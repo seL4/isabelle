@@ -288,17 +288,21 @@ fun REPEAT1 tac = tac THEN REPEAT tac;
 
 (** Search tacticals **)
 
-(*Seaarches "satp" reports proof tree as satisfied*)
+(*Searches until "satp" reports proof tree as satisfied.
+  Suppresses duplicate solutions to minimize search space.*)
 fun DEPTH_FIRST satp tac = 
  let val tf = tracify trace_DEPTH_FIRST tac
-     fun depth [] = None
-       | depth(q::qs) =
+     fun depth used [] = None
+       | depth used (q::qs) =
 	  case Sequence.pull q of
-	      None         => depth qs
+	      None         => depth used qs
 	    | Some(st,stq) => 
-		if satp st then Some(st, Sequence.seqof(fn()=> depth(stq::qs)))
-		else depth (tf st :: stq :: qs)
-  in  traced_tac (fn st => depth([Sequence.single st]))  end;
+		if satp st andalso not (gen_mem eq_thm (st, used))
+		then Some(st, Sequence.seqof
+			         (fn()=> depth (st::used) (stq::qs)))
+		else depth used (tf st :: stq :: qs)
+  in  traced_tac (fn st => depth [] ([Sequence.single st]))  end;
+
 
 
 (*Predicate: Does the rule have fewer than n premises?*)
@@ -438,9 +442,8 @@ val dummy_quant_rl =
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)
 fun protect_subgoal state i =
-  case Sequence.chop (1, bicompose false (false,dummy_quant_rl,1) i state) of
-      ([state'],_) => state'
-    | _            => error"SELECT_GOAL -- impossible error???";
+	Sequence.hd (bicompose false (false,dummy_quant_rl,1) i state)
+	handle _ => error"SELECT_GOAL -- impossible error???";
 
 (*Does the work of SELECT_GOAL. *)
 fun select (Tactic tf) state i =
