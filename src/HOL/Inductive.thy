@@ -9,6 +9,7 @@ header {* Support for inductive sets and types *}
 theory Inductive = Gfp + Sum_Type + Relation + Record
 files
   ("Tools/inductive_package.ML")
+  ("Tools/inductive_realizer.ML")
   ("Tools/inductive_codegen.ML")
   ("Tools/datatype_aux.ML")
   ("Tools/datatype_prop.ML")
@@ -86,6 +87,9 @@ setup DatatypePackage.setup
 
 use "Tools/datatype_codegen.ML"
 setup DatatypeCodegen.setup
+
+use "Tools/inductive_realizer.ML"
+setup InductiveRealizer.setup
 
 use "Tools/inductive_codegen.ML"
 setup InductiveCodegen.setup
