@@ -48,6 +48,7 @@ sig
   val of_sort: sg -> typ * sort -> bool
   val witness_sorts: sg -> sort list -> sort list -> (typ * sort) list
   val univ_witness: sg -> (typ * sort) option
+  val typ_instance: sg -> typ * typ -> bool
   val classK: string
   val typeK: string
   val constK: string
@@ -85,7 +86,9 @@ sig
   val certify_sort: sg -> sort -> sort
   val certify_typ: sg -> typ -> typ
   val certify_typ_no_norm: sg -> typ -> typ
-  val typ_instance: sg -> typ * typ -> bool
+  val certify_tycon: sg -> string -> string
+  val certify_tyabbr: sg -> string -> string
+  val certify_const: sg -> string -> string
   val certify_term: sg -> term -> term * typ * int
   val read_sort: sg -> string -> sort
   val read_raw_typ: sg * (indexname -> sort option) -> string -> typ
@@ -279,7 +282,7 @@ val norm_sort = Type.norm_sort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
 val witness_sorts = Type.witness_sorts o tsig_of;
 val univ_witness = Type.univ_witness o tsig_of;
-
+fun typ_instance sg (T, U) = Type.typ_instance (tsig_of sg, T, U);
 
 
 (** signature data **)
@@ -596,7 +599,17 @@ val certify_class = Type.cert_class o tsig_of;
 val certify_sort = Type.cert_sort o tsig_of;
 val certify_typ = Type.cert_typ o tsig_of;
 val certify_typ_no_norm = Type.cert_typ_no_norm o tsig_of;
-fun typ_instance sg (T, U) = Type.typ_instance (tsig_of sg, T, U);
+
+fun certify_tycon sg c =
+  if is_some (Symtab.lookup (#tycons (Type.rep_tsig (tsig_of sg)), c)) then c
+  else raise TYPE ("Undeclared type constructor " ^ quote c, [], []);
+
+fun certify_tyabbr sg c =
+  if is_some (Symtab.lookup (#abbrs (Type.rep_tsig (tsig_of sg)), c)) then c
+  else raise TYPE ("Unknown type abbreviation " ^ quote c, [], []);
+
+fun certify_const sg c =
+  if is_some (const_type sg c) then c else raise TYPE ("Undeclared constant " ^ quote c, [], []);
 
 
 (* certify_term *)
