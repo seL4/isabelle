@@ -1,0 +1,238 @@
+
+\documentclass[11pt,a4paper]{book}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also isabellesym.sty)
+\usepackage{latexsym}
+%\usepackage{amssymb}
+%\usepackage[english]{babel}
+%\usepackage[latin1]{inputenc}
+%\usepackage[only,bigsqcap]{stmaryrd}
+%\usepackage{wasysym}
+%\usepackage{eufrak}
+%\usepackage{textcomp}
+%\usepackage{marvosym}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% proper setup for best-style documents
+\urlstyle{rm}
+\isabellestyle{it}
+
+\pagestyle{myheadings}
+
+\addtolength{\hoffset}{-1,5cm}
+\addtolength{\textwidth}{4cm}
+\addtolength{\voffset}{-2cm}
+\addtolength{\textheight}{4cm}
+
+%subsection instead of section to make the toc readable
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\subsection{#1}}
+\renewcommand{\isamarkupsection}[1]{\subsubsection{#1}}
+
+%remove spaces from the isabelle environment (trivlist makes them too large)
+\renewenvironment{isabelle}
+{\begin{isabellebody}}
+{\end{isabellebody}}
+
+\begin{document}
+
+\title{Java Source and Bytecode Formalizations in Isabelle: Bali\\
+  {\large -- VerifiCard Project Deliverables -- }}
+\author{Gerwin Klein \and Tobias Nipkow \and David von Oheimb \and
+  Leonor Prensa Nieto \and Norbert Schirmer \and Martin Strecker}
+\maketitle
+
+\tableofcontents
+
+\parindent 0pt\parskip 0.5ex
+\chapter{Overview}
+These theories, called Bali,  model and analyse different aspects of the 
+JavaCard \textbf{source language}. 
+The basis is an abstract model of the JavaCard source language. 
+On it, a type system, an operational semantics and an axiomatic semantics 
+(Hoare logic) are built. The execution of a wellformed program (with respect to
+the type system) according to the operational semantics is proved to be 
+typesafe. The axiomatic semantics is proved to be sound and relative complete 
+with respect to the operational semantics.
+
+We have modelled large parts of the original JavaCard source language. It models
+features such as:
+\begin{itemize}
+\item The basic ``primitive types'' of Java 
+\item Classes and related concepts 
+\item Class fields and methods
+\item Instance fields and methods
+\item Interfaces and related concepts 
+\item Arrays
+\item Static initialisation
+\item Static overloading of fields and methods
+\item Inheritance, overriding and hiding of methods, dynamic binding
+\item All cases of abrupt termination
+      \begin{itemize}
+        \item Exception throwing and handling
+        \item \texttt{break}, \texttt{continue} and \texttt{return} 
+      \end{itemize}
+\item Packages
+\item Access Modifiers (\texttt{private}, \texttt{protected}, \texttt{public})
+\end{itemize}
+
+The following features are missing in Bali wrt.{} JavaCard:
+\begin{itemize}
+\item Some primitive types (\texttt{byte, short})
+\item Most numeric operations, syntactic variants of statements
+  (\texttt{do}-loop, \texttt{for}-loop)
+\item A ``definite assignment'' check
+\end{itemize}
+
+In addition, features are missing that are not part of the JavaCard
+language, such as multithreading and garbage collection. No attempt
+has been made to model peculiarities of JavaCard such as the applet
+firewall or the transaction mechanism.
+
+
+Overview of the theories:
+\begin{description}
+\item [Basis.thy] 
+Some basic definitions and settings not specific to JavaCard but missing in HOL.
+
+\item [Table.thy]
+Definition and some properties of a lookup table to map various names 
+(like class names or method names) to some content (like classes or methods).
+
+\item[Name.thy]
+Definition of various names (class names, variable names, package names,...)
+
+\item[Value.thy]
+JavaCard expression values (Boolean, Integer, Addresses,...)
+
+\item[Type.thy]
+JavaCard types. Primitive types (Boolean, Integer,...) and reference types 
+(Classes, Interfaces, Arrays,...)
+
+\item[Term.thy]
+JavaCard terms. Variables, expressions and statements.
+
+\item[Decl.thy]
+Class, interface and program declarations. Recursion operators for the
+class and the interface hierarchy. 
+
+\item[TypeRel.thy]
+Various relations on types like the subclass-, subinterface-, widening-, 
+narrowing- and casting-relation.
+
+\item[DeclConcepts.thy]
+Advanced concepts on the class and interface hierarchy like inheritance, 
+overriding, hiding, accessibility of types and members according to the access 
+modifiers, method lookup.
+
+\item[WellType.thy]
+Typesystem on the JavaCard term level.
+
+\item[WellForm.thy]
+Typesystem on the JavaCard class, interface and program level.
+
+\item[State.thy]
+The program state (like object store) for the execution of JavaCard.
+Abrupt completion (exceptions, break, continue, return) is modelled as flag
+inside the state.
+
+\item[Eval.thy]
+Operational (big step) semantics for JavaCard.
+
+\item[Example.thy]
+An concrete example of a JavaCard program to validate the typesystem and the
+operational semantics.
+
+\item[Conform.thy]
+Conformance predicate for states. When does an execution state conform to the
+static types of the program given by the typesystem.
+
+\item[TypeSafe.thy]
+Typesafety proof of the execution of JavaCard. ''Welltyped programs don't go
+wrong'' or more technical: The execution of a welltyped JavaCard program 
+preserves the conformance of execution states.
+
+\item[Evaln.thy]
+Copy of the operational semantics given in Eval.thy expanded with an annotation
+for the maximal recursive depth. The semantics is not altered. The annotation
+is needed for the soundness proof of the axiomatic semantics.
+
+\item[AxSem.thy]
+An axiomatic semantics (Hoare logic) for JavaCard.
+
+\item[AxSound.thy]
+The soundness proof of the axiomatic semantics with respect to the operational
+semantics.
+
+\item[AxCompl.thy]
+The proof of (relative) completeness of the axiomatic semantics with respect
+to the operational semantics. 
+
+\item[AxExample.thy]
+An concrete example of the axiomatic semantics at work, applied to prove 
+some properties of the JavaCard example given in Example.thy.
+\end{description}
+
+% include generated text of all theories
+\chapter{Basis.thy}
+\input{../generated/Basis.tex}
+\chapter{Table.thy}
+\input{../generated/Table.tex}    
+
+\chapter{Name.thy}
+\input{../generated/Name.tex}
+\chapter{Value.thy}     
+\input{../generated/Value.tex}
+\chapter{Type.thy}
+\input{../generated/Type.tex}      
+\chapter{Term.thy}
+\input{../generated/Term.tex}     
+\chapter{Decl.thy}
+\input{../generated/Decl.tex}          
+\chapter{TypeRel.thy}
+\input{../generated/TypeRel.tex}   
+\chapter{DeclConcepts.thy}
+\input{../generated/DeclConcepts.tex}  
+
+\chapter{WellType.thy}
+\input{../generated/WellType.tex}
+\chapter{WellForm.thy}
+\input{../generated/WellForm.tex}
+
+\chapter{State.thy}
+\input{../generated/State.tex}    
+\chapter{Eval.thy}
+\input{../generated/Eval.tex}          
+
+\chapter{Example.thy}
+\input{../generated/Example.tex}  
+
+\chapter{Conform.thy}
+\input{../generated/Conform.tex}       
+\chapter{TypeSafe.thy}
+\input{../generated/TypeSafe.tex}
+
+\chapter{Evaln.thy}
+\input{../generated/Evaln.tex}         
+\chapter{AxSem.thy}
+\input{../generated/AxSem.tex}      
+\chapter{AxSound.thy}
+\input{../generated/AxSound.tex}    
+\chapter{AxCompl.thy}
+\input{../generated/AxCompl.tex}    
+\chapter{AxExample.thy}
+\input{../generated/AxExample.tex}  
+
+
+
+
+
+
+
+%\bibliographystyle{abbrv}
+%\bibliography{root}
+
+\end{document}
