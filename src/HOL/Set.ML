@@ -19,6 +19,8 @@ Goal "a : {x. P(x)} ==> P(a)";
 by (Asm_full_simp_tac 1);
 qed "CollectD";
 
+bind_thm ("CollectE", make_elim CollectD);
+
 val [prem] = Goal "[| !!x. (x:A) = (x:B) |] ==> A = B";
 by (rtac (prem RS ext RS arg_cong RS box_equals) 1);
 by (rtac Collect_mem_eq 1);
@@ -139,11 +141,13 @@ Blast.overloaded ("op ``", domain_type);
 Goalw [subset_def] "[| A <= B;  c:A |] ==> c:B";
 by (Blast_tac 1);
 qed "subsetD";
+AddXIs [subsetD];
 
 (*The same, with reversed premises for use with etac -- cf rev_mp*)
 Goal "[| c:A;  A <= B |] ==> c:B";
 by (REPEAT (ares_tac [subsetD] 1)) ;
 qed "rev_subsetD";
+AddXIs [rev_subsetD];
 
 (*Converts A<=B to x:A ==> x:B*)
 fun impOfSubs th = th RSN (2, rev_subsetD);
@@ -724,6 +728,7 @@ Addsimps[subset_UNIV, subset_refl];
 Goalw [psubset_def] "!!A::'a set. [| A <= B; A ~= B |] ==> A<B";
 by (Blast_tac 1);
 qed "psubsetI";
+AddXIs [psubsetI];
 
 Goalw [psubset_def] "A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
 by Auto_tac;
