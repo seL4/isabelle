@@ -17,4 +17,4 @@ ZF_build_completed;	(*Make examples fail if ZF did*)
 writeln"Root file for ZF/IMP";
 proof_timing := true;
 loadpath := [".","IMP"];
-time_use_thy "Equiv" handle _ => exit 1;
+time_use_thy "Equiv";
