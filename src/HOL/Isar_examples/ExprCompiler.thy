@@ -114,12 +114,12 @@ text {*
 lemma exec_append:
   "ALL stack. exec (xs @ ys) stack env =
     exec ys (exec xs stack env) env" (is "?P xs");
-proof (induct ?P xs in type: list);
+proof (induct ?P xs type: list);
   show "?P []"; by simp;
 
   fix x xs; assume "?P xs";
   show "?P (x # xs)" (is "?Q x");
-  proof (induct ?Q x in type: instr);
+  proof (induct ?Q x type: instr);
     show "!!val. ?Q (Const val)"; by (simp!);
     show "!!adr. ?Q (Load adr)"; by (simp!);
     show "!!fun. ?Q (Apply fun)"; by (simp!);
@@ -130,7 +130,7 @@ theorem correctness: "execute (compile e) env = eval e env";
 proof -;
   have "ALL stack. exec (compile e) stack env =
     eval e env # stack" (is "?P e");
-  proof (induct ?P e in type: expr);
+  proof (induct ?P e type: expr);
     show "!!adr. ?P (Variable adr)"; by simp;
     show "!!val. ?P (Constant val)"; by simp;
     show "!!fun e1 e2. (?P e1 ==> ?P e2 ==> ?P (Binop fun e1 e2))";

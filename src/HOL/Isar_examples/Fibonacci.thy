@@ -35,14 +35,14 @@ recdef fib less_than
 lemmas [simp] = fib.rules;
 
 lemma [simp]: "0 < fib (Suc n)";
-  by (induct n in function: fib) (simp+);
+  by (induct n rule: fib.induct) (simp+);
 
 
 text {* Alternative induction rule. *};
 
-theorem fib_induct: 
+theorem fib_induct:
 "[| P 0; P 1; !!n. [| P (n + 1); P n |] ==> P (n + 2) |] ==> P n";
-  by (induct function: fib, simp+);
+  by (induct rule: fib.induct, simp+);
 
 
 
@@ -53,7 +53,7 @@ text {* A few laws taken from \cite{Concrete-Math}. *};
 lemma fib_add: 
   "fib (n + k + 1) = fib (k + 1) * fib (n + 1) + fib k * fib n"
   (is "?P n");
-proof (rule fib_induct [of ?P n]) -- {* see \cite[page 280]{Concrete-Math} *};
+proof (induct ?P n rule: fib_induct) -- {* see \cite[page 280]{Concrete-Math} *};
   show "?P 0"; by simp;
   show "?P 1"; by simp;
   fix n;
@@ -72,7 +72,7 @@ proof (rule fib_induct [of ?P n]) -- {* see \cite[page 280]{Concrete-Math} *};
 qed;
 
 lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (n + 1)) = 1" (is "?P n");
-proof (rule fib_induct [of ?P n]); 
+proof (induct ?P n rule: fib_induct); 
   show "?P 0"; by simp;
   show "?P 1"; by simp;
   fix n; 
@@ -130,7 +130,7 @@ lemma if_cases:
 
 lemma gcd_fib_mod: 
   "0 < m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
-proof (rule less_induct [of _ n]);
+proof (induct n rule: less_induct);
   fix n; 
   assume m: "0 < m"
   and hyp: "ALL ma. ma < n 
@@ -152,7 +152,7 @@ qed;
 
 
 theorem fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)" (is "?P m n");
-proof (rule gcd_induct [of ?P m n]);
+proof (induct ?P m n rule: gcd_induct);
   fix m; show "fib (gcd (m, 0)) = gcd (fib m, fib 0)"; by simp;
   fix n; assume n: "0 < n";
   hence "gcd (m, n) = gcd (n, m mod n)"; by (rule gcd_non_0);

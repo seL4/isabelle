@@ -15,6 +15,13 @@ text_raw {*
  based on a pen-and-paper proof due to Wilfried Buchholz.}
 *};
 
+(* FIXME move? *)
+
+theorems [induct type: multiset] = multiset_induct;
+theorems [induct set: wf] = wf_induct;
+theorems [induct set: acc] = acc_induct;
+
+
 subsection {* A technical lemma *};
 
 lemma less_add: "(N, M0 + {#a#}) : mult1 r ==>
@@ -84,7 +91,7 @@ proof;
 	assume N: "N = M0 + K";
 	assume "ALL b. elem K b --> (b, a) : r";
 	have "?this --> M0 + K : ?W" (is "?P K");
-	proof (induct K in rule: multiset_induct);
+	proof (induct K);
 	  from M0; have "M0 + {#} : ?W"; by simp;
 	  thus "?P {#}"; ..;
 
@@ -109,7 +116,7 @@ proof;
   assume wf: "wf r";
   fix M;
   show "M : ?W";
-  proof (induct M in rule: multiset_induct);
+  proof (induct M);
     show "{#} : ?W";
     proof (rule accI);
       fix b; assume "(b, {#}) : ?R";
@@ -118,7 +125,7 @@ proof;
 
     fix M a; assume "M : ?W";
     from wf; have "ALL M:?W. M + {#a#} : ?W";
-    proof (rule wf_induct [of r]);
+    proof induct;
       fix a;
       assume "ALL b. (b, a) : r --> (ALL M:?W. M + {#b#} : ?W)";
       show "ALL M:?W. M + {#a#} : ?W";
