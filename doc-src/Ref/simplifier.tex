@@ -39,6 +39,7 @@ Asm_simp_tac      : int -> tactic
 Full_simp_tac     : int -> tactic
 Asm_full_simp_tac : int -> tactic
 trace_simp        : bool ref \hfill{\bf initially false}
+debug_simp        : bool ref \hfill{\bf initially false}
 \end{ttbox}
 
 \begin{ttdescription}
@@ -60,9 +61,12 @@ trace_simp        : bool ref \hfill{\bf initially false}
 \footnote{\texttt{Asm_full_simp_tac} used to process the assumptions from
   left to right. For backwards compatibilty reasons only there is now
   \texttt{Asm_lr_simp_tac} that behaves like the old \texttt{Asm_full_simp_tac}.}
-\item[set \ttindexbold{trace_simp};] makes the simplifier output
-  internal operations.  This includes rewrite steps, but also
-  bookkeeping like modifications of the simpset.
+\item[set \ttindexbold{trace_simp};] makes the simplifier output internal
+  operations.  This includes rewrite steps, but also bookkeeping like
+  modifications of the simpset.
+\item[set \ttindexbold{debug_simp};] makes the simplifier output some extra
+  information about internal operations.  This includes any attempted
+  invocation of simplification procedures.
 \end{ttdescription}
 
 \medskip
