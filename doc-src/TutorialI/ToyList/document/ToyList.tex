@@ -153,25 +153,22 @@ The name and the simplification attribute are optional.
 Isabelle's response is to print the initial proof state consisting
 of some header information (like how many subgoals there are) followed by
 \begin{isabelle}%
-rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs\isanewline
 \ {\isadigit{1}}{\isachardot}\ rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs%
 \end{isabelle}
 For compactness reasons we omit the header in this tutorial.
 Until we have finished a proof, the \rmindex{proof state} proper
 always looks like this:
 \begin{isabelle}
-$G$\isanewline
 ~1.~$G\sb{1}$\isanewline
 ~~\vdots~~\isanewline
 ~$n$.~$G\sb{n}$
 \end{isabelle}
-where $G$
-is the overall goal that we are trying to prove, and the numbered lines
-contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$ that we need to prove to
-establish $G$.\index{subgoals}
-Initially there is only one subgoal, which is
-identical with the overall goal.  Normally $G$ is constant and only serves as
-a reminder. Hence we rarely show it in this tutorial.
+The numbered lines contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$
+that we need to prove to establish the main goal.\index{subgoals}
+Initially there is only one subgoal, which is identical with the
+main goal. (If you always want to see the main goal as well,
+set the flag \isa{Proof.show_main_goal}\index{*show_main_goal (flag)}
+--- this flag used to be set by default.)
 
 Let us now get back to \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}. Properties of recursively
 defined functions are best established by induction. In this case there is
