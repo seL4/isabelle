@@ -9,6 +9,9 @@ Root file for UNITY proofs.
 (*Basic meta-theory*)
 time_use_thy "UNITY_Main";
 
+(*New Meier/Sanders composition theory*)
+time_use_thy "Transformers";
+
 (*Simple examples: no composition*)
 time_use_thy "Simple/Deadlock";
 time_use_thy "Simple/Common";
