@@ -1,175 +1,88 @@
 (*  Title:      Pure/Thy/thm_database.ML
     ID:         $Id$
-    Author:     Carsten Clasohm and Tobias Nipkow
-    Copyright   1995 TU Muenchen
+    Author:     Carsten Clasohm and Tobias Nipkow and Markus Wenzel, TU Muenchen
+
+User level interface to thm database (see also Pure/pure_thy.ML).
 *)
 
-datatype thm_db =
-  ThmDB of {count: int,
-            thy_idx: (Sign.sg * (string list * int list)) list,
-            const_idx: ((int * (string * thm)) list) Symtab.table};
-    (*count: number of theorems in database (used as unique ID for next thm)
-      thy_idx: constants and IDs of theorems
-               indexed by the theory's signature they belong to
-      const_idx: named theorems tagged by numbers and
-                 indexed by the constants they contain*)
-
 signature THM_DATABASE =
-  sig
-  val thm_db: thm_db ref
-  val store_thm_db: string * thm -> thm
-  val delete_thm_db: theory -> unit
+sig
+  val store_thm: string * thm -> thm
+  val qed_thm: thm option ref
+  val bind_thm: string * thm -> unit
+  val qed: string -> unit
+  val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
+  val qed_goalw: string -> theory -> thm list -> string -> (thm list -> tactic list) -> unit
+  (*these peek at the proof state!*)
   val thms_containing: string list -> (string * thm) list
-  val findI:         int -> (string * thm)list
-  val findEs:        int -> (string * thm)list
-  val findE:  int -> int -> (string * thm)list
-
-  val store_thm      : string * thm -> thm
-  val bind_thm       : string * thm -> unit
-  val qed            : string -> unit
-  val qed_thm        : thm ref
-  val qed_goal       : string -> theory -> string 
-                       -> (thm list -> tactic list) -> unit
-  val qed_goalw      : string -> theory -> thm list -> string 
-                       -> (thm list -> tactic list) -> unit
-  val get_thm        : theory -> string -> thm
-  val thms_of        : theory -> (string * thm) list
-  val delete_thms    : string -> unit
-
-  val print_theory   : theory -> unit
-  end;
+  val findI: int -> (string * thm) list
+  val findEs: int -> (string * thm) list
+  val findE: int -> int -> (string * thm) list
+end;
 
 structure ThmDatabase: THM_DATABASE =
 struct
 
-open ThyInfo BrowserInfo;
+(** store theorems **)
 
-(*** ignore and top_const could be turned into functor-parameters, but are
-currently identical for all object logics ***)
+(* store in theory and generate HTML *)
 
-(* Constants not to be used for theorem indexing *)
-val ignore = ["Trueprop", "all", "==>", "=="];
-
-(* top_const: main constant, ignoring Trueprop *)
-fun top_const (_ $ t) = (case head_of t of Const(c,_) => Some c
-                                         | _          => None)
-  | top_const _ = None;
-
-(*Symtab which associates a constant with a list of theorems that contain the
-  constant (theorems are tagged with numbers)*)
-val thm_db = ref (ThmDB
- {count = 0, thy_idx = []:(Sign.sg * (string list * int list)) list,
-  const_idx = Symtab.make ([]:(string * ((int * (string * thm)) list)) list)});
-
-(*List all relevant constants a term contains*)
-fun list_consts t =
-  let fun consts (Const (c, _)) = if c mem ignore then [] else [c]
-        | consts (Free _) = []
-        | consts (Var _) = []
-        | consts (Bound _) = []
-        | consts (Abs (_, _, t)) = consts t
-        | consts (t1$t2) = (consts t1) union (consts t2);
-  in distinct (consts t) end;
-
-(*Store a theorem in database*)
-fun store_thm_db (named_thm as (name, thm)) =
-  let val {prop, hyps, sign, ...} = rep_thm thm;
-
-      val consts = distinct (flat (map list_consts (prop :: hyps)));
-
-      val ThmDB {count, thy_idx, const_idx} = !thm_db;
-
-      fun update_thys [] = [(sign, (consts, [count]))]
-        | update_thys ((thy as (thy_sign, (thy_consts, thy_nums))) :: ts) =
-            if Sign.eq_sg (sign, thy_sign) then
-              (thy_sign, (thy_consts union consts, count :: thy_nums)) :: ts
-            else thy :: update_thys ts;
-
-      val tagged_thm = (count, named_thm);
-
-      fun update_db _ [] result = Some result
-        | update_db checked (c :: cs) result =
-            let
-              val old_thms = Symtab.lookup_multi (result, c);
-
-              val duplicate =
-                if checked then false
-                else case find_first (fn (_, (n, _)) => n = name) old_thms of
-                       Some (_, (_, t)) => eq_thm (t, thm)
-                     | None => false
-            in if duplicate then None
-               else update_db true
-                      cs (Symtab.update ((c, tagged_thm :: old_thms), result))
-            end;
-
-      val const_idx' = update_db false consts const_idx;
-  in if consts = [] then warning ("Theorem " ^ name ^
-                                  " cannot be stored in ThmDB\n\t because it \
-                                  \contains no or only ignored constants.")
-     else if is_some const_idx' then
-       thm_db := ThmDB {count = count+1, thy_idx = update_thys thy_idx,
-                        const_idx = the const_idx'}
-     else ();
-     thm
+fun store_thm (name, thm) =
+  let val thm' = PureThy.smart_store_thm (name, thm) in
+    BrowserInfo.thm_to_html thm' name; thm'
   end;
 
-(*Remove all theorems with given signature from database*)
-fun delete_thm_db thy =
+
+(* store on ML toplevel *)
+
+val qed_thm: thm option ref = ref None;
+
+val ml_reserved =
+ ["abstype", "and", "andalso", "as", "case", "do", "datatype", "else",
+  "end", "exception", "fn", "fun", "handle", "if", "in", "infix",
+  "infixr", "let", "local", "nonfix", "of", "op", "open", "orelse",
+  "raise", "rec", "then", "type", "val", "with", "withtype", "while",
+  "eqtype", "functor", "include", "sharing", "sig", "signature",
+  "struct", "structure", "where"];
+
+fun is_ml_identifier name =
+  Syntax.is_identifier name andalso not (name mem ml_reserved);
+
+fun ml_store_thm (name, thm) =
+  let val thm' = store_thm (name, thm) in
+    if is_ml_identifier name then
+      (qed_thm := Some thm';
+        use_strings ["val " ^ name ^ " = the (! ThmDatabase.qed_thm);"])
+    else warning ("Cannot bind thm " ^ quote name ^ " as ML value")
+  end;
+
+fun bind_thm (name, thm) = ml_store_thm (name, standard thm);
+fun qed name = ml_store_thm (name, result ());
+fun qed_goal name thy goal tacsf = ml_store_thm (name, prove_goal thy goal tacsf);
+fun qed_goalw name thy rews goal tacsf = ml_store_thm (name, prove_goalw thy rews goal tacsf);
+
+
+
+(** retrieve theorems **)	(*peek at current proof state*)
+
+(*get theorems that contain *all* of given constants*)
+fun thms_containing raw_consts =
   let
-    val sign = sign_of thy;
-
-    val ThmDB {count, thy_idx, const_idx} = !thm_db;
-
-    (*Remove theory from thy_idx and get the data associated with it*)
-    fun update_thys [] result = (result, [], [])
-      | update_thys ((thy as (thy_sign, (thy_consts, thy_nums))) :: ts)
-                    result =
-          if Sign.eq_sg (sign, thy_sign) then
-            (result @ ts, thy_consts, thy_nums)
-          else update_thys ts (thy :: result);
-
-    val (thy_idx', thy_consts, thy_nums) = update_thys thy_idx [];
-
-    (*Remove all theorems belonging to a theory*)
-    fun update_db [] result = result
-      | update_db (c :: cs) result =
-        let val thms' = filter_out (fn (num, _) => num mem thy_nums)
-                                   (Symtab.lookup_multi (result, c));
-        in update_db cs (Symtab.update ((c, thms'), result)) end;
-  in thm_db := ThmDB {count = count, thy_idx = thy_idx',
-                      const_idx = update_db thy_consts const_idx}
+    val sign = sign_of_thm (topthm ());
+    val consts = map (Sign.intern_const sign) raw_consts;
+    val thy = ThyInfo.theory_of_sign sign;
+  in
+    PureThy.thms_containing thy (consts \\ PureThy.ignored_consts)
   end;
 
-(*Intersection of two theorem lists with descending tags*)
-infix desc_inter;
-fun ([] : (int*'a) list) desc_inter (ys : (int*'a) list) = []
-  | xs desc_inter [] = []
-  | (xss as ((x as (xi,_)) :: xs)) desc_inter (yss as ((yi,_) :: ys)) =
-      if xi = yi then x :: (xs desc_inter ys)
-      else if xi > yi then xs desc_inter yss
-      else xss desc_inter ys;
 
-(*Get all theorems from database that contain a list of constants*)
-fun thms_containing constants =
-  let fun collect [] _ result = map snd result
-        | collect (c :: cs) first result =
-            let val ThmDB {const_idx, ...} = !thm_db;
-
-                val new_thms = Symtab.lookup_multi (const_idx, c);
-            in collect cs false (if first then new_thms
-                                          else (result desc_inter new_thms))
-            end;
-
-      val look_for = constants \\ ignore;
-  in if null look_for then
-       error ("No or only ignored constants were specified for theorem \
-              \database search:\n  " ^ commas (map quote ignore))
-     else ();
-     collect look_for true [] end;
+(*top_const: main constant, ignoring Trueprop*)
+fun top_const (_ $ t) = (case head_of t of Const (c, _) => Some c | _ => None)
+  | top_const _ = None;
 
 val intro_const = top_const o concl_of;
 
-fun elim_const thm = case prems_of thm of [] => None | p::_ => top_const(p);
+fun elim_const thm = case prems_of thm of [] => None | p::_ => top_const p;
 
 (* In case faster access is necessary, the thm db should provide special
 functions
@@ -264,131 +177,5 @@ fun findE i j =
   let val sign = #sign(rep_thm(topthm()))
   in find_elims sign (nth_elem(j-1, prems_of_goal i)) end;
 
-
-(*** Store and retrieve theorems ***)
-
-(** Store theorems **)
-
-(*Store a theorem in the thy_info of its theory,
-  and in the theory's HTML file*)
-fun store_thm (name, thm) =
-  let
-    val (thy_name, {path, children, parents, thy_time, ml_time,
-                            theory, thms, methods, data}) =
-      thyinfo_of_sign (#sign (rep_thm thm))
-
-    val (thms', duplicate) = (Symtab.update_new ((name, thm), thms), false)
-      handle Symtab.DUPLICATE s => 
-        (if eq_thm (the (Symtab.lookup (thms, name)), thm) then 
-           (warning ("Theory database already contains copy of\
-                     \ theorem " ^ quote name);
-            (thms, true))
-         else error ("Duplicate theorem name " ^ quote s
-                     ^ " used in theory database"));
-
-    (*Label this theorem*)
-    val thm' = Thm.name_thm (name, thm)
-  in
-    loaded_thys := Symtab.update
-     ((thy_name, {path = path, children = children, parents = parents,
-                          thy_time = thy_time, ml_time = ml_time,
-                          theory = theory, thms = thms',
-                          methods = methods, data = data}),
-      !loaded_thys);
-    thm_to_html thm name;
-    if duplicate then thm' else store_thm_db (name, thm')
-  end;
-
-
-(*Store result of proof in loaded_thys and as ML value*)
-
-val qed_thm = ref ProtoPure.flexpair_def(*dummy*);
-
-
-fun bind_thm (name, thm) =
- (qed_thm := store_thm (name, (standard thm));
-  use_strings ["val " ^ name ^ " = !qed_thm;"]);
-
-
-fun qed name =
- (qed_thm := store_thm (name, result ());
-  use_strings ["val " ^ name ^ " = !qed_thm;"]);
-
-
-fun qed_goal name thy agoal tacsf =
- (qed_thm := store_thm (name, prove_goal thy agoal tacsf);
-  use_strings ["val " ^ name ^ " = !qed_thm;"]);
-
-
-fun qed_goalw name thy rths agoal tacsf =
- (qed_thm := store_thm (name, prove_goalw thy rths agoal tacsf);
-  use_strings ["val " ^ name ^ " = !qed_thm;"]);
-
-
-(** Retrieve theorems **)
-
-(*Get all theorems belonging to a given theory*)
-fun thmtab_of_thy thy =
-  let val (_, {thms, ...}) = thyinfo_of_sign (sign_of thy);
-  in thms end;
-
-
-fun thmtab_of_name name =
-  let val {thms, ...} = the (get_thyinfo name);
-  in thms end;
-
-
-(*Get a stored theorem specified by theory and name. *)
-fun get_thm thy name =
-  let fun get [] [] searched =
-           raise THEORY ("get_thm: no theorem " ^ quote name, [thy])
-        | get [] ng searched =
-            get (ng \\ searched) [] searched
-        | get (t::ts) ng searched =
-            (case Symtab.lookup (thmtab_of_name t, name) of
-                 Some thm => thm
-               | None => get ts (ng union (parents_of_name t)) (t::searched));
-
-      val (tname, _) = thyinfo_of_sign (sign_of thy);
-  in get [tname] [] [] end;
-
-
-(*Get stored theorems of a theory (original derivations) *)
-val thms_of = Symtab.dest o thmtab_of_thy;
-
-
-(*Remove theorems associated with a theory from theory and theorem database*)
-fun delete_thms tname =
-  let
-    val tinfo = case get_thyinfo tname of
-        Some ({path, children, parents, thy_time, ml_time, theory,
-                       methods, data, ...}) =>
-          {path = path, children = children, parents = parents,
-                   thy_time = thy_time, ml_time = ml_time,
-                   theory = theory, thms = Symtab.null,
-                   methods = methods, data = data}
-      | None => error ("Theory " ^ tname ^ " not stored by loader");
-
-    val {theory, ...} = tinfo;
-  in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys);
-     case theory of
-         Some t => delete_thm_db t
-       | None => ()
-  end;
-
-
-(*** Print theory ***)
-
-fun print_thms thy =
-  let
-    val thms = thms_of thy;
-    fun prt_thm (s, th) = Pretty.block [Pretty.str (s ^ ":"), Pretty.brk 1,
-      Pretty.quote (pretty_thm th)];
-  in
-    Pretty.writeln (Pretty.big_list "stored theorems:" (map prt_thm thms))
-  end;
-
-
-fun print_theory thy = (Display.print_theory thy; print_thms thy);
 
 end;
