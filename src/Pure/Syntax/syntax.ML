@@ -452,7 +452,6 @@ fun prep_rules rd_pat raw_rules =
 
 (** pretty terms, typs, sorts **)
 
-val print_mode = print_mode;
 fun pretty_t t_to_ast prt_t (syn as Syntax tabs) curried t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
