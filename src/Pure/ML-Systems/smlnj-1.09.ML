@@ -6,38 +6,17 @@
 Compatibility file for Standard ML of New Jersey, version 1.09.27 or later.
 *)
 
-(** Poly/ML emulation **)
+(** ML system related **)
 
-fun quit () = exit 0;
+(* restore old-style character / string functions *)
 
-(*to limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
-fun print_depth n =
- (Compiler.Control.Print.printDepth := n div 2;
-  Compiler.Control.Print.printLength := n);
-
-Compiler.Control.primaryPrompt := "> ";
-Compiler.Control.secondaryPrompt := "# ";
+fun ord s = Char.ord (String.sub (s, 0));
+val chr = str o Char.chr;
+val explode = (map str) o String.explode;
+val implode = String.concat;
 
 
-(* interface for toplevel pretty printers, see also Pure/install_pp.ML *)
-
-fun make_pp path pprint =
-  let
-    open Compiler.PrettyPrint;
-
-    fun pp pps obj =
-      pprint obj
-        (add_string pps, begin_block pps INCONSISTENT,
-          fn wd => add_break pps (wd, 0), fn () => add_newline pps,
-          fn () => end_block pps);
-  in
-    (path, pp)
-  end;
-
-fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
-
-
-(** New Jersey ML parameters **)
+(* New Jersey ML parameters *)
 
 val _ =
  (Compiler.Control.Print.printLength := 1000;
@@ -46,18 +25,25 @@ val _ =
   Compiler.Control.Print.signatures := 2);
 
 
-(** Character / string functions which are compatible with 0.93 and Poly/ML **)
+(* Poly/ML emulation *)
 
-fun ord s = Char.ord (String.sub (s, 0));
-val chr = str o Char.chr;
-val explode = (map str) o String.explode;
-val implode = String.concat;
+fun quit () = exit 0;
+
+(*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
+fun print_depth n =
+ (Compiler.Control.Print.printDepth := n div 2;
+  Compiler.Control.Print.printLength := n);
+
+(*Poly/ML-like prompts*)
+Compiler.Control.primaryPrompt := "> ";
+Compiler.Control.secondaryPrompt := "# ";
 
 
-(** Timing functions **)
+(* timing *)
 
-(*A conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime. *)
+(*a conditional timing function: applies f to () and, if the flag is true,
+  prints its runtime*)
+
 fun cond_timeit flag f =
   if flag then
     let open Time  (*...for Time.toString, Time.+ and Time.- *)
@@ -75,35 +61,64 @@ fun cond_timeit flag f =
   else f ();
 
 
-(** File handling **)
+(* toplevel pretty printing (see also Pure/install_pp.ML) *)
 
-(*get time of last modification; if file doesn't exist return an empty string*)
-fun file_info "" = ""
-  | file_info name = Time.toString (OS.FileSys.modTime name) handle _ =>"";
+fun make_pp path pprint =
+  let
+    open Compiler.PrettyPrint;
+
+    fun pp pps obj =
+      pprint obj
+        (add_string pps, begin_block pps INCONSISTENT,
+          fn wd => add_break pps (wd, 0), fn () => add_newline pps,
+          fn () => end_block pps);
+  in
+    (path, pp)
+  end;
+
+fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
 
 
-(** ML command execution **)
+(* ML command execution *)
 
 val use_string = Compiler.Interact.useStream o TextIO.openString o implode;
 
 
-(** System command execution **)
 
-(*Execute an Unix command which doesn't take any input from stdin and
-  sends its output to stdout.
-  This could be done more easily by Unix.execute, but that function
-  doesn't use the PATH.*)
+(** OS related **)
+
+(* system command execution *)
+
+(*execute Unix command which doesn't take any input from stdin and
+  sends its output to stdout; could be done more easily by Unix.execute,
+  but that function doesn't use the PATH*)
 fun execute command =
-  let val tmp_name = "isa_converted.tmp"
-      val is = (OS.Process.system (command ^ " > " ^ tmp_name);
-                TextIO.openIn tmp_name);
-      val result = TextIO.inputAll is;
-  in TextIO.closeIn is;
-     OS.FileSys.remove tmp_name;
-     result
+  let
+    val tmp_name = OS.FileSys.tmpName ();
+    val is = (OS.Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
+    val result = TextIO.inputAll is;
+  in
+    TextIO.closeIn is;
+    OS.FileSys.remove tmp_name;
+    result
   end;
 
 
-(** non-ASCII input **)
+(* file handling *)
+
+(*get time of last modification; if file doesn't exist return an empty string*)
+fun file_info "" = ""		(* FIXME !? *)
+  | file_info name = Time.toString (OS.FileSys.modTime name) handle _ => "";
+
+
+(* getenv *)
+
+fun getenv var =
+  (case OS.Process.getEnv var of
+    NONE => ""
+  | SOME txt => txt);
+
+
+(* non-ASCII input (see also Thy/symbol_input.ML) *)
 
 val needs_filtered_use = false;
