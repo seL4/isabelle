@@ -10,7 +10,7 @@ Addsimps bt.intrs;
 
 Goal "l : bt(A) ==> ALL x r. Br(x,l,r) ~= l";
 by (induct_tac "l" 1);
-by (ALLGOALS Asm_full_simp_tac);
+by Auto_tac;
 qed_spec_mp "Br_neq_left";
 
 (*Proving a freeness theorem*)

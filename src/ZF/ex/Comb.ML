@@ -40,7 +40,6 @@ val [_,_,comb_Ap] = comb.intrs;
 val Ap_E = comb.mk_cases "p#q : comb";
 
 AddSIs comb.intrs;
-AddSEs comb.free_SEs;
 
 
 (*** Results about Contraction ***)
@@ -87,11 +86,11 @@ AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
 
 Goalw [I_def] "I -1-> r ==> P";
-by (Blast_tac 1);
+by Auto_tac;
 qed "I_contract_E";
 
 Goal "K#p -1-> r ==> (EX q. r = K#q & p -1-> q)";
-by (Blast_tac 1);
+by Auto_tac;
 qed "K1_contractD";
 
 Goal "[| p ---> q;  r: comb |] ==> p#r ---> q#r";
@@ -156,31 +155,34 @@ AddSEs [Ap_E, K_parcontractE, S_parcontractE, Ap_parcontractE];
 (*** Basic properties of parallel contraction ***)
 
 Goal "K#p =1=> r ==> (EX p'. r = K#p' & p =1=> p')";
-by (Blast_tac 1);
+by Auto_tac;
 qed "K1_parcontractD";
+AddSDs [K1_parcontractD];
 
 Goal "S#p =1=> r ==> (EX p'. r = S#p' & p =1=> p')";
-by (Blast_tac 1);
+by Auto_tac;
 qed "S1_parcontractD";
+AddSDs [S1_parcontractD];
 
 Goal "S#p#q =1=> r ==> (EX p' q'. r = S#p'#q' & p =1=> p' & q =1=> q')";
-by (blast_tac (claset() addSDs [S1_parcontractD]) 1);
+by Auto_tac;
 qed "S2_parcontractD";
+AddSDs [S2_parcontractD];
 
 (*Church-Rosser property for parallel contraction*)
 Goalw [diamond_def] "diamond(parcontract)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac parcontract.induct 1);
 by (ALLGOALS 
-    (blast_tac (claset() addSDs [K1_parcontractD, S2_parcontractD]
-                        addIs  [parcontract_combD2])));
+    (blast_tac (claset() addSEs comb.free_SEs
+			 addIs [parcontract_combD2])));
 qed "diamond_parcontract";
 
 (*** Equivalence of p--->q and p===>q ***)
 
 Goal "p-1->q ==> p=1=>q";
 by (etac contract.induct 1);
-by (ALLGOALS Blast_tac);
+by Auto_tac;
 qed "contract_imp_parcontract";
 
 Goal "p--->q ==> p===>q";
@@ -189,7 +191,7 @@ by (dtac (field_contract_eq RS equalityD1 RS subsetD) 1);
 by (etac rtrancl_induct 1);
 by (blast_tac (claset() addIs [r_into_trancl]) 1);
 by (blast_tac (claset() addIs [contract_imp_parcontract, 
-			      r_into_trancl, trans_trancl RS transD]) 1);
+			       r_into_trancl, trans_trancl RS transD]) 1);
 qed "reduce_imp_parreduce";
 
 
@@ -200,8 +202,8 @@ by (blast_tac (claset() addIs reduction_rls) 1);
 by (blast_tac (claset() addIs reduction_rls) 1);
 by (blast_tac 
     (claset() addIs [trans_rtrancl RS transD,
-		    Ap_reduce1, Ap_reduce2, parcontract_combD1,
-		    parcontract_combD2]) 1);
+		     Ap_reduce1, Ap_reduce2, parcontract_combD1,
+		     parcontract_combD2]) 1);
 qed "parcontract_imp_reduce";
 
 Goal "p===>q ==> p--->q";
@@ -214,7 +216,7 @@ by (etac parcontract_imp_reduce 1);
 qed "parreduce_imp_reduce";
 
 Goal "p===>q <-> p--->q";
-by (REPEAT (ares_tac [iffI, parreduce_imp_reduce, reduce_imp_parreduce] 1));
+by (blast_tac (claset() addIs [parreduce_imp_reduce, reduce_imp_parreduce]) 1);
 qed "parreduce_iff_reduce";
 
 writeln"Reached end of file.";
