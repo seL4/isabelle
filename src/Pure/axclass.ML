@@ -21,6 +21,10 @@ sig
     val add_inst_arity: string * sort list * class list -> string list
       -> thm list -> tactic option -> theory -> theory
     val axclass_tac: theory -> thm list -> tactic
+    val prove_subclass: theory -> class * class -> thm list
+      -> tactic option -> thm
+    val prove_arity: theory -> string * sort list * class -> thm list
+      -> tactic option -> thm
     val goal_subclass: theory -> class * class -> thm list
     val goal_arity: theory -> string * sort list * class -> thm list
   end
@@ -58,14 +62,6 @@ fun get_ax thy name =
   Some (get_axiom thy name) handle THEORY _ => None;
 
 val get_axioms = mapfilter o get_ax;
-
-
-(* is_defn *)
-
-fun is_defn thm =
-  (case #prop (rep_thm thm) of
-    Const ("==", _) $ _ $ _ => true
-  | _ => false);
 
 
 
@@ -249,10 +245,12 @@ fun class_axms thy =
   (2) rewrite goals using user supplied definitions
   (3) repeatedly resolve goals with user supplied non-definitions*)
 
+val is_def = is_equals o #prop o rep_thm;
+
 fun axclass_tac thy thms =
   TRY (REPEAT_FIRST (resolve_tac (class_axms thy))) THEN
-  TRY (rewrite_goals_tac (filter is_defn thms)) THEN
-  TRY (REPEAT_FIRST (resolve_tac (filter_out is_defn thms)));
+  TRY (rewrite_goals_tac (filter is_def thms)) THEN
+  TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms)));
 
 
 (* provers *)
@@ -268,7 +266,7 @@ fun prove term_of str_of thy sig_prop thms usr_tac =
   handle ERROR => error ("The error(s) above occurred while trying to prove "
     ^ quote (str_of sig_prop));
 
-val prove_classrel =
+val prove_subclass =
   prove mk_classrel (fn (c1, c2) => c1 ^ " < " ^ c2);
 
 val prove_arity =
@@ -289,7 +287,7 @@ val goal_arity = mk_goal mk_arity;
 
 fun add_inst_subclass (c1, c2) axms thms usr_tac thy =
   add_classrel_thms
-  [prove_classrel thy (c1, c2) (get_axioms thy axms @ thms) usr_tac] thy;
+  [prove_subclass thy (c1, c2) (get_axioms thy axms @ thms) usr_tac] thy;
 
 fun add_inst_arity (t, ss, cs) axms thms usr_tac thy =
   let
