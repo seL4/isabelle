@@ -6,15 +6,19 @@
 # the wanted ones as parameters as in "install_html.sh HOL HOLCF".
 
 if ( "$*" == "" ) then
-  rsh hpbroy12 "rm -r .html-data/isabelle/*; mkdir .html-data/isabelle/Tools"
+  rsh www4 "rm -r .html-data/isabelle/*; mkdir .html-data/isabelle/Tools; \
+            chmod o-w Tools"
 endif
 
-rcp index.html hpbroy12:.html-data/isabelle
-rcp Tools/*_arrow.gif hpbroy12:.html-data/isabelle/Tools
+rcp index.html www4:.html-data/isabelle
+rcp Tools/*_arrow.gif www4:.html-data/isabelle/Tools
 
 if ( "$*" == "" ) then
   rcp -r CCL CTT Cube FOL FOLP HOL HOLCF LCF LK Modal ZF \
-         hpbroy12:.html-data/isabelle
+         www4:.html-data/isabelle
 else
-  rcp -r $* hpbroy12:.html-data/isabelle
+  rcp -r $* www4:.html-data/isabelle
 endif
+rsh www4 "chgrp -R isabelle .html-data/isabelle/*; \
+          chmod -R g+w .html-data/isabelle/*"
+
