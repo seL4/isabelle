@@ -167,7 +167,7 @@ qed_goal "consE'" thy
 (*Classical introduction rule*)
 qed_goal "consCI" thy "(a~:B ==> a=b) ==> a: cons(b,B)"
  (fn prems=>
-  [ Simp_tac 1, fast_tac (!claset addIs prems) 1 ]);
+  [ Simp_tac 1, fast_tac (!claset addSIs prems) 1 ]);
 
 AddSIs [consCI];
 AddSEs [consE];
