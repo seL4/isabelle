@@ -73,6 +73,8 @@ if [ -z "$INFILE" ]; then
   check_file "$ML_DBASE_PREFIX$ML_DBASE"
   INFILE="$ML_DBASE"
   MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
+  [ "$ML_SYSTEM" = polyml-4.1.3 ] && \
+    DISCGARB_OPTIONS="$DISCGARB_OPTIONS -Smax"
   [ "$ML_SYSTEM" = polyml-4.1.1 -o "$ML_SYSTEM" = polyml-4.1.2 ] && \
     DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S 180"
 else
@@ -110,6 +112,7 @@ DB_INFO=$(ls -l "$DB" 2>/dev/null)
 "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" $FEEDER_OPTS | \
   { read FPID; "$POLY" $ML_OPTIONS "$DB"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
 RC="$?"
+
 
 NEW_DB_INFO=$(ls -l "$DB" 2>/dev/null)
 [ -n "$OUTFILE" -a -n "$COMPRESS" -a "$DB_INFO" != "$NEW_DB_INFO" ] && \
