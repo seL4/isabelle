@@ -23,7 +23,7 @@ The 8bit package enables you to view, edit and print Isabelle files and perform
 proofs in a quite pleasant form. 
 
 Instead of representing logical operators with ASCII character sequences, 
-a special graphical character font, resp. a \LaTeX{} 
+a special graphical character font, and alternatively a \LaTeX{} 
 command format, is provided. There are editors and a terminal
 capable of inputting and displaying the graphical characters, and converters
 between the different representations. The graphical font extends the normal
@@ -323,7 +323,7 @@ to generate a better output than in the example conversion given in subsection
 
 \subsection{Preparations}
 
-To use the 8bit package, you have to set resp. extend the content of the 
+To use the 8bit package, you have to set respectively extend the content of the 
 following environment variables:
 
 \begin{itemize}
@@ -355,13 +355,14 @@ in your \bt{.login} file.
 
 \subsection{Installation and Configuration}
 
-To install the 8bit package, change directory to \bt{\$ISABELLE8BIT} and 
-run \bt{gmake} (the gnu version of \bt{make}) on the \bt{Makefile} there.
+To install the 8bit package, change directory to \bt{\$ISABELLE8BIT}.
+Configure the \bt{Makefile} there, then run \bt{gmake clean} 
+(\bt{gmake} is the gnu version of \bt{make}) and then \bt{gmake}.
 
 If you want to adapt the configuration of the font (keyboard bindings or
 conversion tables used by \bt{isa2latex}), change directory to\\
 \bt{\$ISABELLE8BIT/config} ,
-edit the files \bt{key-table.inp} resp. \bt{conv-tables.inp},
+edit the files \bt{key-table.inp} respectively \bt{conv-tables.inp},
 and run \bt{gmake} in this directory to generate new versions of 
 \bt{isa2latex}, editor support, and documentation.
 
