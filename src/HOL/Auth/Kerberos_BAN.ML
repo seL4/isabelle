@@ -31,13 +31,13 @@ Goal "[| A ~= B; A ~= Server; B ~= Server |]       \
 \     ==> EX Timestamp K. EX evs: kerberos_ban.    \
 \            Says B A (Crypt K (Number Timestamp)) \
 \                 : set evs";
+by (cut_facts_tac [SesKeyLife_LB] 1);
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (kerberos_ban.Nil RS kerberos_ban.Kb1 RS kerberos_ban.Kb2 RS 
           kerberos_ban.Kb3 RS kerberos_ban.Kb4) 2);
 by possibility_tac;
-by (ALLGOALS (simp_tac (simpset() addsimps [leD]))); (*from NatDef.ML!!!!*)
-by (cut_facts_tac [SesKeyLife_LB] 1);
-by (trans_tac 1);
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS trans_tac);
 result();
 
 
