@@ -73,19 +73,16 @@ val wf_onI2 = result();
 (** Well-founded Induction **)
 
 (*Consider the least z in domain(r) Un {a} such that P(z) does not hold...*)
-val major::prems = goalw WF.thy [wf_def]
+val [major,minor] = goalw WF.thy [wf_def]
     "[| wf(r);          \
 \       !!x.[| ALL y. <y,x>: r --> P(y) |] ==> P(x) \
 \    |]  ==>  P(a)";
 by (res_inst_tac [ ("x", "{z:domain(r) Un {a}. ~P(z)}") ]  (major RS allE) 1);
 by (etac disjE 1);
-by (rtac classical 1);
-by (etac equals0D 1);
-by (etac (singletonI RS UnI2 RS CollectI) 1);
+by (fast_tac (ZF_cs addEs [equalityE]) 1);
+by (asm_full_simp_tac (ZF_ss addsimps [domainI]) 1);
 by (etac bexE 1);
-by (etac CollectE 1);
-by (etac swap 1);
-by (resolve_tac prems 1);
+by (dtac minor 1);
 by (fast_tac ZF_cs 1);
 val wf_induct = result();
 
