@@ -161,6 +161,9 @@ syntax (symbols)
   "_liftMem"    :: [lift, lift] => lift                ("(_/ \\<in> _)" [50, 51] 50)
   "_liftNotMem" :: [lift, lift] => lift                ("(_/ \\<notin> _)" [50, 51] 50)
 
+syntax (HTML output)
+  "_liftNot"    :: lift => lift                        ("\\<not> _" [40] 40)
+
 rules
   Valid_def   "|- A    ==  ALL w. w |= A"
 
@@ -173,5 +176,3 @@ rules
   unl_Rex     "w |= ? x. A x  ==  ? x. (w |= A x)"
   unl_Rex1    "w |= ?! x. A x  ==  ?! x. (w |= A x)"
 end
-
-ML

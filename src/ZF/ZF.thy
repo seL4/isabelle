@@ -164,6 +164,9 @@ syntax (symbols)
   "@pattern"  :: patterns => pttrn         ("\\<langle>_\\<rangle>")
 *)
 
+syntax (HTML output)
+  "op *"      :: [i, i] => i               (infixr "\\<times>" 80)
+
 
 defs
 

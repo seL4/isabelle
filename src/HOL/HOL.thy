@@ -140,9 +140,12 @@ syntax (symbols output)
   "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
   "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
 
-
 syntax (xsymbols)
   "op -->"      :: [bool, bool] => bool             (infixr "\\<longrightarrow>" 25)
+
+syntax (HTML output)
+  Not           :: bool => bool                     ("\\<not> _" [40] 40)
+
 
 (** Rules and definitions **)
 

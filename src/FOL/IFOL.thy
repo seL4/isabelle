@@ -67,6 +67,10 @@ syntax (xsymbols)
   "op -->"      :: [o, o] => o                  (infixr "\\<longrightarrow>" 25)
   "op <->"      :: [o, o] => o                  (infixr "\\<longleftrightarrow>" 25)
 
+syntax (HTML output)
+  Not           :: o => o                       ("\\<not> _" [40] 40)
+
+
 local
 
 rules

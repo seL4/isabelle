@@ -41,6 +41,9 @@ syntax (symbols output)
 syntax (symbols)
   "satisfies"  ::"'a => 'a predicate => bool"    ("_ \\<Turnstile> _" [100,9] 8)
 
+syntax (HTML output)
+  "NOT"    ::"'a predicate => 'a predicate" ("\\<not> _" [40] 40)
+
 
 defs
 

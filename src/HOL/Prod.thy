@@ -27,6 +27,9 @@ typedef (Prod)
 syntax (symbols)
   "*"           :: [type, type] => type         ("(_ \\<times>/ _)" [21, 20] 20)
 
+syntax (HTML output)
+  "*"           :: [type, type] => type         ("(_ \\<times>/ _)" [21, 20] 20)
+
 
 (* abstract constants and syntax *)
 
