@@ -45,6 +45,10 @@ translations
   "sigma |= WF(A)_v"      == "WF A v sigma"
   "sigma |= SF(A)_v"      == "SF A v sigma"
 
+syntax (symbols)
+  Box        :: "('w::world) form => temporal"      ("(\\<box>(_))" [40] 40)
+  Dmd        :: "('w::world) form => temporal"      ("(\\<diamond>(_))" [40] 40)
+
 rules
   dmd_def    "(<>F) == .~[].~F"
   boxact_def "([](F::action)) == ([] Init F)"
@@ -81,5 +85,3 @@ rules
 		 |] ==> G sigma"
 
 end
-
-ML

@@ -84,6 +84,10 @@ translations
 
   "w |= A"              => "A(w)"
 
+syntax (symbols)
+  holdsAt  :: "['w::world, 'w form] => bool"   ("(_ \\<Turnstile> _)" [100,9] 8)
+
+
 rules
   inteq_reflection   "(x .= y) ==> (x == y)"
 
@@ -96,6 +100,5 @@ rules
 
   unl_Rall    "(RALL x. A(x)) w == ALL x. (w |= A(x))"
   unl_Rex     "(REX x. A(x)) w == EX x. (w |= A(x))"
-end
 
-ML
+end
