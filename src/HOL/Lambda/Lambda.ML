@@ -47,11 +47,11 @@ qed "gt_pred";
 
 open Lambda;
 
-Delsimps [(*less_Suc_eq, *)subst_Var];
+Delsimps [subst_Var];
 Addsimps ([if_not_P, not_less_eq] @ beta.intrs);
 
 (* don't add r_into_rtrancl! *)
-val lambda_cs = trancl_cs addSIs beta.intrs;
+AddSIs beta.intrs;
 
 val db_case_distinction =
   rule_by_tactic(EVERY[etac thin_rl 2,etac thin_rl 2,etac thin_rl 3])db.induct;
@@ -60,23 +60,25 @@ val db_case_distinction =
 
 goal Lambda.thy "!!s. s ->> s' ==> Fun s ->> Fun s'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (lambda_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_Fun";
+AddSIs [rtrancl_beta_Fun];
 
 goal Lambda.thy "!!s. s ->> s' ==> s @ t ->> s' @ t";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (lambda_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppL";
 
 goal Lambda.thy "!!s. t ->> t' ==> s @ t ->> s @ t'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (lambda_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppR";
 
 goal Lambda.thy "!!s. [| s ->> s'; t ->> t' |] ==> s @ t ->> s' @ t'";
-by (fast_tac (lambda_cs addSIs [rtrancl_beta_AppL,rtrancl_beta_AppR]
-                        addIs  [rtrancl_trans]) 1);
+by (deepen_tac (!claset addSIs [rtrancl_beta_AppL,rtrancl_beta_AppR]
+                        addIs  [rtrancl_trans]) 3 1);
 qed "rtrancl_beta_App";
+AddIs [rtrancl_beta_App];
 
 (*** subst and lift ***)
 

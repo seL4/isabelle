@@ -20,8 +20,8 @@ val eta_cases = map (eta.mk_cases db.simps)
 val beta_cases = map (beta.mk_cases db.simps)
     ["s @ t -> u","Var i -> t"];
 
-val eta_cs = lambda_cs addIs eta.intrs
-                       addSEs (beta_cases@eta_cases);
+AddIs eta.intrs;
+AddSEs (beta_cases@eta_cases);
 
 section "Arithmetic lemmas";
 
@@ -122,7 +122,7 @@ section "Confluence of -e>";
 goalw Eta.thy [square_def,id_def]  "square eta eta (eta^=) (eta^=)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac eta.induct 1);
-by(ALLGOALS(fast_tac (eta_cs addSEs [eta_decr,not_free_eta] addss !simpset)));
+by(ALLGOALS(fast_tac (!claset addSEs [eta_decr,not_free_eta] addss !simpset)));
 val lemma = result();
 
 goal Eta.thy "confluent(eta)";
@@ -133,22 +133,22 @@ section "Congruence rules for -e>>";
 
 goal Eta.thy "!!s. s -e>> s' ==> Fun s -e>> Fun s'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (eta_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(fast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_Fun";
 
 goal Eta.thy "!!s. s -e>> s' ==> s @ t -e>> s' @ t";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (eta_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(fast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppL";
 
 goal Eta.thy "!!s. t -e>> t' ==> s @ t -e>> s @ t'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (eta_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(fast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppR";
 
 goal Eta.thy "!!s. [| s -e>> s'; t -e>> t' |] ==> s @ t -e>> s' @ t'";
-by (fast_tac (eta_cs addSIs [rtrancl_eta_AppL,rtrancl_eta_AppR]
-                     addIs [rtrancl_trans]) 1);
+by (deepen_tac (!claset addSIs [rtrancl_eta_AppL,rtrancl_eta_AppR]
+                     addIs [rtrancl_trans]) 2 1);
 qed "rtrancl_eta_App";
 
 section "Commutation of -> and -e>";
@@ -196,9 +196,9 @@ Addsimps [eta_lift];
 goal Eta.thy "!s t i. s -e> t --> u[s/i] -e>> u[t/i]";
 by(db.induct_tac "u" 1);
 by(ALLGOALS(asm_simp_tac (addsplit (!simpset))));
-by(fast_tac (eta_cs addIs [r_into_rtrancl]) 1);
-by(fast_tac (eta_cs addSIs [rtrancl_eta_App]) 1);
-by(fast_tac (eta_cs addSIs [rtrancl_eta_Fun,eta_lift]) 1);
+by(fast_tac (!claset addIs [r_into_rtrancl]) 1);
+by(fast_tac (!claset addSIs [rtrancl_eta_App]) 1);
+by(fast_tac (!claset addSIs [rtrancl_eta_Fun,eta_lift]) 1);
 qed_spec_mp "rtrancl_eta_subst";
 
 goalw Eta.thy [square_def] "square beta eta (eta^*) (beta^=)";
@@ -207,12 +207,12 @@ by (etac beta.induct 1);
 by(strip_tac 1);
 by (eresolve_tac eta_cases 1);
 by (eresolve_tac eta_cases 1);
-by(fast_tac (eta_cs addss (!simpset addsimps [subst_decr])) 1);
-by(fast_tac (eta_cs addIs [r_into_rtrancl,eta_subst]) 1);
-by(fast_tac (eta_cs addIs [rtrancl_eta_subst]) 1);
-by(fast_tac (eta_cs addIs [r_into_rtrancl,rtrancl_eta_AppL]) 1);
-by(fast_tac (eta_cs addIs [r_into_rtrancl,rtrancl_eta_AppR]) 1);
-by(fast_tac (eta_cs addIs [r_into_rtrancl,rtrancl_eta_Fun,free_beta,beta_decr]
+by(fast_tac (!claset addss (!simpset addsimps [subst_decr])) 1);
+by(slow_tac (!claset addIs [r_into_rtrancl,eta_subst]) 1);
+by(slow_tac (!claset addIs [rtrancl_eta_subst]) 1);
+by(slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppL]) 1);
+by(slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_AppR]) 1);
+by(slow_tac (!claset addIs [r_into_rtrancl,rtrancl_eta_Fun,free_beta,beta_decr]
                   addss (!simpset addsimps[subst_decr,symmetric decr_def])) 1);
 qed "square_beta_eta";
 

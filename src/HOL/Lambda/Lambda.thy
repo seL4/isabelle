@@ -36,7 +36,7 @@ primrec liftn db
 
 primrec substn db
   "substn (Var i) s k = (if k < i then Var(pred i)
-                                    else if i = k then liftn k s 0 else Var i)"
+                         else if i = k then liftn k s 0 else Var i)"
   "substn (t @ u) s k = (substn t s k) @ (substn u s k)"
   "substn (Fun t) s k = Fun (substn t s (Suc k))"
 
