@@ -100,61 +100,37 @@ exception Interrupt;
 
 local
 
-datatype 'a result =
-  Result of 'a |
-  Exn of exn;
+fun capture f x = ((f x): unit; NONE) handle exn => SOME exn;
 
-fun capture f x = Result (f x) handle exn => Exn exn;
+fun release NONE = ()
+  | release (SOME exn) = raise exn;
 
-fun release (Result x) = x
-  | release (Exn exn) = raise exn;
-
-
-val sig_int = System.Signals.SIGINT;
-
-val interruptible = not o System.Signals.masked;
-fun mask_signals () = System.Signals.maskSignals true;
-fun unmask_signals () = System.Signals.maskSignals false;
-
-fun change_mask ok change unchange f x =
-  if ok () then f x
-  else
-    let
-      val _ = change ();
-      val result = capture f x;
-      val _ = unchange ();
-    in release result end;
-
-fun enable_interrupt f = change_mask interruptible unmask_signals mask_signals f;
+structure Signals = System.Signals;
 
 in
 
-fun ignore_interrupt f = change_mask (not o interruptible) mask_signals unmask_signals f;
+fun ignore_interrupt f x =
+  let
+    val old_handler = Signals.inqHandler Signals.SIGINT;
+    val _ = Signals.setHandler (Signals.SIGINT, SOME #2);
+    val result = capture f x;
+    val _ = Signals.setHandler (Signals.SIGINT, old_handler);
+  in release result end;
 
 fun raise_interrupt f x =
   let
-    val orig_handler = System.Signals.inqHandler sig_int;
-    fun reset_handler () = (System.Signals.setHandler (sig_int, orig_handler); ());
-
     val interrupted = ref false;
-
-    fun set_handler cont =
-      System.Signals.setHandler (sig_int, SOME (fn _ => (interrupted := true; cont)));
-
-    fun proceed cont =
-      let
-        val _ = set_handler cont;
-        val result = enable_interrupt (capture f) x;
-        val _ = reset_handler ();
-      in release result end;
+    val result = ref NONE;
+    val old_handler = Signals.inqHandler Signals.SIGINT;
   in
-    callcc proceed;
-    reset_handler ();
-    if ! interrupted then raise Interrupt else ()
-   end;
+    callcc (fn cont =>
+      (Signals.setHandler (Signals.SIGINT, SOME (fn _ => (interrupted := true; cont)));
+      result := capture f x));
+    Signals.setHandler (Signals.SIGINT, old_handler);
+    if ! interrupted then raise Interrupt else release (! result)
+  end;
 
 end;
-
 
 
 (** OS related **)
