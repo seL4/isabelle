@@ -414,7 +414,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
           let
             val vs' = distinct (flat (vs :: map term_vs out_ts));
             val Some (p, mode as Some (Mode ((_, js), _))) =
-              select_mode_prem thy modes' (arg_vs union vs') ps;
+              select_mode_prem thy modes' vs' ps;
             val ps' = filter_out (equal p) ps;
             val ((names', eqs), out_ts') =
               foldl_map check_constrt ((names, []), out_ts);
@@ -456,7 +456,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
                  end)
           end;
 
-    val (gr', prem_p) = compile_prems in_ts' [] all_vs' gr ps;
+    val (gr', prem_p) = compile_prems in_ts' arg_vs all_vs' gr ps;
   in
     (gr', Pretty.block [Pretty.str "Seq.single inp :->", Pretty.brk 1, prem_p])
   end;
