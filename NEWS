@@ -55,6 +55,13 @@ now "<*lex*>" instead of "**";
 * HOL: theory Sexp is now in HOL/Induct examples (it used to be part
 of main HOL, but was unused); better use HOL's datatype package;
 
+* HOL: removed "symbols" syntax for constant "override" of theory Map;
+the old syntax may be recovered as follows:
+
+  syntax (symbols)
+    override  :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)"
+      (infixl "\\<oplus>" 100)
+
 * HOL/Real: "rabs" replaced by overloaded "abs" function;
 
 * HOL/ML: even fewer consts are declared as global (see theories Ord,

@@ -29,8 +29,6 @@ syntax (symbols)
 					  ("_/'(_/\\<mapsto>/_')"  [900,0,0]900)
   map_upds  :: "('a ~=> 'b) => 'a list => 'b list => ('a ~=> 'b)"
 				         ("_/'(_/[\\<mapsto>]/_')" [900,0,0]900)
-  override  :: "('a ~=> 'b) => ('a ~=> 'b) => ('a ~=> 'b)"
-				         (infixl "\\<oplus>" 100)
 
 translations
 
