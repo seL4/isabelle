@@ -1064,22 +1064,34 @@ fun flexflex_rule (th as Thm{sign_ref, der, maxidx, hyps, prop,...}) =
   A[t1/v1,....,tn/vn]
 *)
 
+local
+
 (*Check that all the terms are Vars and are distinct*)
 fun instl_ok ts = forall is_Var ts andalso null(findrep ts);
 
+fun prt_typing sg_ref t T =
+  let val sg = Sign.deref sg_ref in
+    Pretty.block [Sign.pretty_term sg t, Pretty.str " ::", Pretty.brk 1, Sign.pretty_typ sg T]
+  end;
+
 (*For instantiate: process pair of cterms, merge theories*)
 fun add_ctpair ((ct,cu), (sign_ref,tpairs)) =
-  let val Cterm {sign_ref=sign_reft, t=t, T= T, ...} = ct
-      and Cterm {sign_ref=sign_refu, t=u, T= U, ...} = cu
+  let
+    val Cterm {sign_ref=sign_reft, t=t, T= T, ...} = ct
+    and Cterm {sign_ref=sign_refu, t=u, T= U, ...} = cu;
+    val sign_ref_merged = Sign.merge_refs (sign_ref, Sign.merge_refs (sign_reft, sign_refu));
   in
-    if T=U then
-      (Sign.merge_refs (sign_ref, Sign.merge_refs (sign_reft, sign_refu)), (t,u)::tpairs)
-    else raise TYPE("add_ctpair", [T,U], [t,u])
+    if T=U then (sign_ref_merged, (t,u)::tpairs)
+    else raise TYPE (Pretty.string_of (Pretty.block [Pretty.str "instantiate: type conflict",
+      Pretty.fbrk, prt_typing sign_ref_merged t T,
+      Pretty.fbrk, prt_typing sign_ref_merged u U]), [T,U], [t,u])
   end;
 
 fun add_ctyp ((v,ctyp), (sign_ref',vTs)) =
   let val Ctyp {T,sign_ref} = ctyp
   in (Sign.merge_refs(sign_ref,sign_ref'), (v,T)::vTs) end;
+
+in
 
 (*Left-to-right replacements: ctpairs = [...,(vi,ti),...].
   Instantiates distinct Vars by terms of same type.
@@ -1106,10 +1118,11 @@ fun instantiate ([], []) th = th
       then raise THM("instantiate: type variables not distinct", 0, [th])
       else nodup_Vars newth "instantiate"
   end
-  handle TERM _ =>
-           raise THM("instantiate: incompatible signatures",0,[th])
-       | TYPE (msg,_,_) => raise THM("instantiate: type conflict: " ^ msg, 
-				     0, [th]);
+  handle TERM _ => raise THM("instantiate: incompatible signatures", 0, [th])
+       | TYPE (msg, _, _) => raise THM (msg, 0, [th]);
+
+end;
+
 
 (*The trivial implication A==>A, justified by assume and forall rules.
   A can contain Vars, not so for assume!   *)
