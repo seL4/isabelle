@@ -650,6 +650,9 @@ subsection {* @{text filter} *}
 lemma filter_append [simp]: "filter P (xs @ ys) = filter P xs @ filter P ys"
 by (induct xs) auto
 
+lemma rev_filter: "rev (filter P xs) = filter P (rev xs)"
+by (induct xs) simp_all
+
 lemma filter_filter [simp]: "filter P (filter Q xs) = filter (\<lambda>x. Q x \<and> P x) xs"
 by (induct xs) auto
 
@@ -1451,6 +1454,9 @@ subsection {* @{text "distinct"} and @{text remdups} *}
 lemma distinct_append [simp]:
 "distinct (xs @ ys) = (distinct xs \<and> distinct ys \<and> set xs \<inter> set ys = {})"
 by (induct xs) auto
+
+lemma distinct_rev[simp]: "distinct(rev xs) = distinct xs"
+by(induct xs) auto
 
 lemma set_remdups [simp]: "set (remdups xs) = set xs"
 by (induct xs) (auto simp add: insert_absorb)
