@@ -13,71 +13,66 @@ open PropLog;
 
 (*** prop_rec -- by Vset recursion ***)
 
-val prop_congs = mk_typed_congs Prop.thy 
-		   [("b", "[i,i,i]=>i"), ("d", "[i,i,i,i]=>i")];
-
 (** conversion rules **)
 
 goal PropLog.thy "prop_rec(Fls,b,c,d) = b";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac Prop.con_defs);
-by (SIMP_TAC rank_ss 1);
+by (simp_tac rank_ss 1);
 val prop_rec_Fls = result();
 
 goal PropLog.thy "prop_rec(#v,b,c,d) = c(v)";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac Prop.con_defs);
-by (SIMP_TAC (rank_ss addcongs prop_congs) 1);
+by (simp_tac rank_ss 1);
 val prop_rec_Var = result();
 
 goal PropLog.thy "prop_rec(p=>q,b,c,d) = \
 \      d(p, q, prop_rec(p,b,c,d), prop_rec(q,b,c,d))";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac Prop.con_defs);
-by (SIMP_TAC (rank_ss addcongs prop_congs) 1);
+by (simp_tac rank_ss 1);
 val prop_rec_Imp = result();
 
 val prop_rec_ss = 
-    arith_ss addrews [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
+    arith_ss addsimps [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
 
 (*** Semantics of propositional logic ***)
 
 (** The function is_true **)
 
 goalw PropLog.thy [is_true_def] "is_true(Fls,t) <-> False";
-by (SIMP_TAC (prop_rec_ss addrews [one_not_0 RS not_sym]) 1);
+by (simp_tac (prop_rec_ss addsimps [one_not_0 RS not_sym]) 1);
 val is_true_Fls = result();
 
 goalw PropLog.thy [is_true_def] "is_true(#v,t) <-> v:t";
-by (SIMP_TAC (prop_rec_ss addrews [one_not_0 RS not_sym] 
-	      addsplits [expand_if]) 1);
+by (simp_tac (prop_rec_ss addsimps [one_not_0 RS not_sym] 
+	      setloop (split_tac [expand_if])) 1);
 val is_true_Var = result();
 
 goalw PropLog.thy [is_true_def]
     "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
-by (SIMP_TAC (prop_rec_ss addsplits [expand_if]) 1);
+by (simp_tac (prop_rec_ss setloop (split_tac [expand_if])) 1);
 val is_true_Imp = result();
 
 (** The function hyps **)
 
 goalw PropLog.thy [hyps_def] "hyps(Fls,t) = 0";
-by (SIMP_TAC prop_rec_ss 1);
+by (simp_tac prop_rec_ss 1);
 val hyps_Fls = result();
 
 goalw PropLog.thy [hyps_def] "hyps(#v,t) = {if(v:t, #v, #v=>Fls)}";
-by (SIMP_TAC prop_rec_ss 1);
+by (simp_tac prop_rec_ss 1);
 val hyps_Var = result();
 
 goalw PropLog.thy [hyps_def] "hyps(p=>q,t) = hyps(p,t) Un hyps(q,t)";
-by (SIMP_TAC prop_rec_ss 1);
+by (simp_tac prop_rec_ss 1);
 val hyps_Imp = result();
 
 val prop_ss = prop_rec_ss 
-    addcongs Prop.congs
-    addcongs (mk_congs PropLog.thy ["Fin", "thms", "op |=","is_true","hyps"])
-    addrews Prop.intrs
-    addrews [is_true_Fls, is_true_Var, is_true_Imp,
-	     hyps_Fls, hyps_Var, hyps_Imp];
+    addsimps Prop.intrs
+    addsimps [is_true_Fls, is_true_Var, is_true_Imp,
+	      hyps_Fls, hyps_Var, hyps_Imp];
 
 (*** Proof theory of propositional logic ***)
 
@@ -162,10 +157,10 @@ val thms_FlsE = result();
 val thms_notE = standard (thms_MP RS thms_FlsE);
 
 (*Soundness of the rules wrt truth-table semantics*)
-val [major] = goalw PropThms.thy [sat_def] "H |- p ==> H |= p";
-by (rtac (major RS PropThms.induct) 1);
+goalw PropThms.thy [sat_def] "!!H. H |- p ==> H |= p";
+by (etac PropThms.induct 1);
 by (fast_tac (ZF_cs addSDs [is_true_Imp RS iffD1 RS mp]) 5);
-by (ALLGOALS (SIMP_TAC prop_ss));
+by (ALLGOALS (asm_simp_tac prop_ss));
 val soundness = result();
 
 (*** Towards the completeness proof ***)
@@ -194,7 +189,7 @@ val [major] = goal PropThms.thy
     "p: prop ==> hyps(p,t) |- if(is_true(p,t), p, p=>Fls)";
 by (rtac (expand_if RS iffD2) 1);
 by (rtac (major RS Prop.induct) 1);
-by (ALLGOALS (ASM_SIMP_TAC (prop_ss addrews [thms_I, thms_H])));
+by (ALLGOALS (asm_simp_tac (prop_ss addsimps [thms_I, thms_H])));
 by (fast_tac (ZF_cs addIs [weaken_left_Un1, weaken_left_Un2, 
 			   weaken_right, Imp_Fls]
                     addSEs [Fls_Imp]) 1);
@@ -235,10 +230,10 @@ val thms_excluded_middle_rule = result();
 val [major] = goal PropThms.thy
     "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
 by (rtac (major RS Prop.induct) 1);
-by (SIMP_TAC prop_ss 1);
-by (ASM_SIMP_TAC (prop_ss addsplits [expand_if]) 1);
+by (simp_tac prop_ss 1);
+by (asm_simp_tac (prop_ss setloop (split_tac [expand_if])) 1);
 by (fast_tac (ZF_cs addSEs Prop.free_SEs) 1);
-by (ASM_SIMP_TAC prop_ss 1);
+by (asm_simp_tac prop_ss 1);
 by (fast_tac ZF_cs 1);
 val hyps_Diff = result();
 
@@ -247,10 +242,10 @@ val hyps_Diff = result();
 val [major] = goal PropThms.thy
     "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
 by (rtac (major RS Prop.induct) 1);
-by (SIMP_TAC prop_ss 1);
-by (ASM_SIMP_TAC (prop_ss addsplits [expand_if]) 1);
+by (simp_tac prop_ss 1);
+by (asm_simp_tac (prop_ss setloop (split_tac [expand_if])) 1);
 by (fast_tac (ZF_cs addSEs Prop.free_SEs) 1);
-by (ASM_SIMP_TAC prop_ss 1);
+by (asm_simp_tac prop_ss 1);
 by (fast_tac ZF_cs 1);
 val hyps_cons = result();
 
@@ -269,9 +264,9 @@ val cons_Diff_subset2 = result();
 val [major] = goal PropThms.thy
     "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
 by (rtac (major RS Prop.induct) 1);
-by (ASM_SIMP_TAC (prop_ss addrews [Fin_0I, Fin_consI, UN_I] 
-		  addsplits [expand_if]) 2);
-by (ALLGOALS (ASM_SIMP_TAC (prop_ss addrews [Un_0, Fin_0I, Fin_UnI])));
+by (asm_simp_tac (prop_ss addsimps [Fin_0I, Fin_consI, UN_I] 
+		  setloop (split_tac [expand_if])) 2);
+by (ALLGOALS (asm_simp_tac (prop_ss addsimps [Un_0, Fin_0I, Fin_UnI])));
 val hyps_finite = result();
 
 val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
@@ -281,7 +276,7 @@ val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
 val [premp,sat] = goal PropThms.thy
     "[| p: prop;  0 |= p |] ==> ALL t. hyps(p,t) - hyps(p,t0) |- p";
 by (rtac (premp RS hyps_finite RS Fin_induct) 1);
-by (SIMP_TAC (prop_ss addrews [premp, sat, sat_thms_p, Diff_0]) 1);
+by (simp_tac (prop_ss addsimps [premp, sat, sat_thms_p, Diff_0]) 1);
 by (safe_tac ZF_cs);
 (*Case hyps(p,t)-cons(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
@@ -309,7 +304,7 @@ val completeness_0 = result();
 
 (*A semantic analogue of the Deduction Theorem*)
 goalw PropThms.thy [sat_def] "!!H p q. [| cons(p,H) |= q |] ==> H |= p=>q";
-by (SIMP_TAC prop_ss 1);
+by (simp_tac prop_ss 1);
 by (fast_tac ZF_cs 1);
 val sat_Imp = result();
 

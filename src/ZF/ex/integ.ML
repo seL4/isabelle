@@ -12,16 +12,18 @@ $< is a linear ordering
 $+ and $* are monotonic wrt $<
 *)
 
-open Integ;
+val add_cong = 
+    read_instantiate_sg (sign_of Arith.thy) [("t","op #+")] subst_context2;
 
-val [add_cong] = mk_congs Arith.thy ["op #+"];
+
+open Integ;
 
 (*** Proving that intrel is an equivalence relation ***)
 
 val prems = goal Arith.thy 
     "[| m #+ n = m' #+ n';  m: nat; m': nat |]   \
 \    ==> m #+ (n #+ k) = m' #+ (n' #+ k)";
-by (ASM_SIMP_TAC (arith_ss addrews ([add_assoc RS sym] @ prems)) 1);
+by (asm_simp_tac (arith_ss addsimps ([add_assoc RS sym] @ prems)) 1);
 val add_assoc_cong = result();
 
 val prems = goal Arith.thy 
@@ -31,6 +33,7 @@ by (REPEAT (resolve_tac ([add_commute RS add_assoc_cong] @ prems) 1));
 val add_assoc_swap = result();
 
 val add_kill = (refl RS add_cong);
+
 val add_assoc_swap_kill = add_kill RSN (3, add_assoc_swap RS trans);
 
 (*By luck, requires no typing premises for y1, y2,y3*)
@@ -90,22 +93,17 @@ by (fast_tac (intrel_cs addSEs [integ_trans_lemma]) 1);
 val equiv_intrel = result();
 
 
-val integ_congs = mk_congs Integ.thy
-  ["znat", "zminus", "znegative", "zmagnitude", "op $+", "op $-", "op $*"];
-
-val intrel_ss0 = arith_ss addcongs integ_congs;
-
 val intrel_ss = 
-    intrel_ss0 addrews [equiv_intrel RS eq_equiv_class_iff, intrel_iff];
+    arith_ss addsimps [equiv_intrel RS eq_equiv_class_iff, intrel_iff];
 
-(*More than twice as fast as simplifying with intrel_ss*)
+(*Roughly twice as fast as simplifying with intrel_ss*)
 fun INTEG_SIMP_TAC ths = 
-  let val ss = intrel_ss0 addrews ths 
+  let val ss = arith_ss addsimps ths 
   in fn i =>
-       EVERY [ASM_SIMP_TAC ss i,
+       EVERY [asm_simp_tac ss i,
 	      rtac (intrelI RS (equiv_intrel RS equiv_class_eq)) i,
 	      typechk_tac (ZF_typechecks@nat_typechecks@arith_typechecks),
-	      ASM_SIMP_TAC ss i]
+	      asm_simp_tac ss i]
   end;
 
 
@@ -130,7 +128,7 @@ val znat_inject = result();
 goalw Integ.thy [congruent_def]
     "congruent(intrel, split(%x y. intrel``{<y,x>}))";
 by (safe_tac intrel_cs);
-by (ALLGOALS (ASM_SIMP_TAC intrel_ss));
+by (ALLGOALS (asm_simp_tac intrel_ss));
 by (etac (box_equals RS sym) 1);
 by (REPEAT (ares_tac [add_commute] 1));
 val zminus_congruent = result();
@@ -150,7 +148,7 @@ by (rtac (major RS zminus_ize UN_equiv_class_inject) 1);
 by (REPEAT (ares_tac prems 1));
 by (REPEAT (etac SigmaE 1));
 by (etac rev_mp 1);
-by (ASM_SIMP_TAC ZF_ss 1);
+by (asm_simp_tac ZF_ss 1);
 by (fast_tac (intrel_cs addSIs [SigmaI, equiv_intrel]
 			addSEs [box_equals RS sym, add_commute,
 			        make_elim eq_equiv_class]) 1);
@@ -158,17 +156,17 @@ val zminus_inject = result();
 
 val prems = goalw Integ.thy [zminus_def]
     "[| x: nat;  y: nat |] ==> $~ (intrel``{<x,y>}) = intrel `` {<y,x>}";
-by (ASM_SIMP_TAC 
-    (ZF_ss addrews (prems@[zminus_ize UN_equiv_class, SigmaI])) 1);
+by (asm_simp_tac 
+    (ZF_ss addsimps (prems@[zminus_ize UN_equiv_class, SigmaI])) 1);
 val zminus = result();
 
 goalw Integ.thy [integ_def] "!!z. z : integ ==> $~ ($~ z) = z";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
-by (ASM_SIMP_TAC (ZF_ss addrews [zminus] addcongs integ_congs) 1);
+by (asm_simp_tac (ZF_ss addsimps [zminus]) 1);
 val zminus_zminus = result();
 
 goalw Integ.thy [integ_def, znat_def] "$~ ($#0) = $#0";
-by (SIMP_TAC (arith_ss addrews [zminus]) 1);
+by (simp_tac (arith_ss addsimps [zminus]) 1);
 val zminus_0 = result();
 
 
@@ -179,13 +177,13 @@ goalw Integ.thy [znegative_def, znat_def]
 by (safe_tac intrel_cs);
 by (rtac (add_not_less_self RS notE) 1);
 by (etac ssubst 3);
-by (ASM_SIMP_TAC (arith_ss addrews [add_0_right]) 3);
+by (asm_simp_tac (arith_ss addsimps [add_0_right]) 3);
 by (REPEAT (assume_tac 1));
 val not_znegative_znat = result();
 
 val [nnat] = goalw Integ.thy [znegative_def, znat_def]
     "n: nat ==> znegative($~ $# succ(n))";
-by (SIMP_TAC (intrel_ss addrews [zminus,nnat]) 1);
+by (simp_tac (intrel_ss addsimps [zminus,nnat]) 1);
 by (REPEAT 
     (resolve_tac [refl, exI, conjI, naturals_are_ordinals RS Ord_0_mem_succ,
 		  refl RS intrelI RS imageI, consI1, nnat, nat_0I,
@@ -198,19 +196,19 @@ val znegative_zminus_znat = result();
 goalw Integ.thy [congruent_def]
     "congruent(intrel, split(%x y. (y#-x) #+ (x#-y)))";
 by (safe_tac intrel_cs);
-by (ALLGOALS (ASM_SIMP_TAC intrel_ss));
+by (ALLGOALS (asm_simp_tac intrel_ss));
 by (etac rev_mp 1);
 by (res_inst_tac [("m","x1"),("n","y1")] diff_induct 1);
 by (REPEAT (assume_tac 1));
-by (ASM_SIMP_TAC (arith_ss addrews [add_succ_right,succ_inject_iff]) 3);
-by (ASM_SIMP_TAC
-    (arith_ss addrews [diff_add_inverse,diff_add_0,add_0_right]) 2);
-by (ASM_SIMP_TAC (arith_ss addrews [add_0_right]) 1);
+by (asm_simp_tac (arith_ss addsimps [add_succ_right,succ_inject_iff]) 3);
+by (asm_simp_tac
+    (arith_ss addsimps [diff_add_inverse,diff_add_0,add_0_right]) 2);
+by (asm_simp_tac (arith_ss addsimps [add_0_right]) 1);
 by (rtac impI 1);
 by (etac subst 1);
 by (res_inst_tac [("m1","x")] (add_commute RS ssubst) 1);
 by (REPEAT (assume_tac 1));
-by (ASM_SIMP_TAC (arith_ss addrews [diff_add_inverse,diff_add_0]) 1);
+by (asm_simp_tac (arith_ss addsimps [diff_add_inverse,diff_add_0]) 1);
 val zmagnitude_congruent = result();
 
 (*Resolve th against the corresponding facts for zmagnitude*)
@@ -225,18 +223,18 @@ val zmagnitude_type = result();
 val prems = goalw Integ.thy [zmagnitude_def]
     "[| x: nat;  y: nat |] ==> \
 \    zmagnitude (intrel``{<x,y>}) = (y #- x) #+ (x #- y)";
-by (ASM_SIMP_TAC 
-    (ZF_ss addrews (prems@[zmagnitude_ize UN_equiv_class, SigmaI])) 1);
+by (asm_simp_tac 
+    (ZF_ss addsimps (prems@[zmagnitude_ize UN_equiv_class, SigmaI])) 1);
 val zmagnitude = result();
 
 val [nnat] = goalw Integ.thy [znat_def]
     "n: nat ==> zmagnitude($# n) = n";
-by (SIMP_TAC (intrel_ss addrews [zmagnitude,nnat]) 1);
+by (simp_tac (intrel_ss addsimps [zmagnitude,nnat]) 1);
 val zmagnitude_znat = result();
 
 val [nnat] = goalw Integ.thy [znat_def]
     "n: nat ==> zmagnitude($~ $# n) = n";
-by (SIMP_TAC (intrel_ss addrews [zmagnitude,zminus,nnat,add_0_right]) 1);
+by (simp_tac (intrel_ss addsimps [zmagnitude,zminus,nnat,add_0_right]) 1);
 val zmagnitude_zminus_znat = result();
 
 
@@ -254,7 +252,7 @@ by (INTEG_SIMP_TAC [add_assoc] 1);
 by (res_inst_tac [("m1","x1a")] (add_assoc_swap RS ssubst) 1);
 by (res_inst_tac [("m1","x2a")] (add_assoc_swap RS ssubst) 3);
 by (typechk_tac [add_type]);
-by (ASM_SIMP_TAC (arith_ss addrews [add_assoc RS sym]) 1);
+by (asm_simp_tac (arith_ss addsimps [add_assoc RS sym]) 1);
 val zadd_congruent2 = result();
 
 (*Resolve th against the corresponding facts for zadd*)
@@ -269,19 +267,19 @@ val zadd_type = result();
 val prems = goalw Integ.thy [zadd_def]
   "[| x1: nat; y1: nat;  x2: nat; y2: nat |] ==> \
 \ (intrel``{<x1,y1>}) $+ (intrel``{<x2,y2>}) = intrel `` {<x1#+x2, y1#+y2>}";
-by (ASM_SIMP_TAC (ZF_ss addrews 
+by (asm_simp_tac (ZF_ss addsimps 
 		  (prems @ [zadd_ize UN_equiv_class2, SigmaI])) 1);
 val zadd = result();
 
 goalw Integ.thy [integ_def,znat_def] "!!z. z : integ ==> $#0 $+ z = z";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
-by (ASM_SIMP_TAC (arith_ss addrews [zadd]) 1);
+by (asm_simp_tac (arith_ss addsimps [zadd]) 1);
 val zadd_0 = result();
 
 goalw Integ.thy [integ_def]
     "!!z w. [| z: integ;  w: integ |] ==> $~ (z $+ w) = $~ z $+ $~ w";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
-by (ASM_SIMP_TAC (arith_ss addrews [zminus,zadd] addcongs integ_congs) 1);
+by (asm_simp_tac (arith_ss addsimps [zminus,zadd]) 1);
 val zminus_zadd_distrib = result();
 
 goalw Integ.thy [integ_def]
@@ -296,17 +294,17 @@ goalw Integ.thy [integ_def]
 \                (z1 $+ z2) $+ z3 = z1 $+ (z2 $+ z3)";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
 (*rewriting is much faster without intrel_iff, etc.*)
-by (ASM_SIMP_TAC (intrel_ss0 addrews [zadd,add_assoc]) 1);
+by (asm_simp_tac (arith_ss addsimps [zadd,add_assoc]) 1);
 val zadd_assoc = result();
 
 val prems = goalw Integ.thy [znat_def]
     "[| m: nat;  n: nat |] ==> $# (m #+ n) = ($#m) $+ ($#n)";
-by (ASM_SIMP_TAC (arith_ss addrews (zadd::prems)) 1);
+by (asm_simp_tac (arith_ss addsimps (zadd::prems)) 1);
 val znat_add = result();
 
 goalw Integ.thy [integ_def,znat_def] "!!z. z : integ ==> z $+ ($~ z) = $#0";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
-by (ASM_SIMP_TAC (intrel_ss addrews [zminus,zadd,add_0_right]) 1);
+by (asm_simp_tac (intrel_ss addsimps [zminus,zadd,add_0_right]) 1);
 by (REPEAT (ares_tac [add_commute] 1));
 val zadd_zminus_inverse = result();
 
@@ -334,7 +332,7 @@ val prems = goalw Integ.thy [znat_def]
     "[| k: nat;  l: nat;  m: nat;  n: nat |] ==> 	\
 \    (k #+ l) #+ (m #+ n) = (k #+ m) #+ (n #+ l)";
 val add_commute' = read_instantiate [("m","l")] add_commute;
-by (SIMP_TAC (arith_ss addrews ([add_commute',add_assoc]@prems)) 1);
+by (simp_tac (arith_ss addsimps ([add_commute',add_assoc]@prems)) 1);
 val zmult_congruent_lemma = result();
 
 goal Integ.thy 
@@ -348,7 +346,7 @@ by (ALLGOALS (INTEG_SIMP_TAC []));
 by (rtac (zmult_congruent_lemma RS trans) 2);
 by (rtac (zmult_congruent_lemma RS trans RS sym) 6);
 by (typechk_tac [mult_type]);
-by (ASM_SIMP_TAC (arith_ss addrews [add_mult_distrib_left RS sym]) 2);
+by (asm_simp_tac (arith_ss addsimps [add_mult_distrib_left RS sym]) 2);
 (*Proof that zmult is commutative on representatives*)
 by (rtac add_cong 1);
 by (rtac (add_commute RS trans) 2);
@@ -370,19 +368,19 @@ val prems = goalw Integ.thy [zmult_def]
      "[| x1: nat; y1: nat;  x2: nat; y2: nat |] ==> 	\
 \     (intrel``{<x1,y1>}) $* (intrel``{<x2,y2>}) = 	\
 \     intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}";
-by (ASM_SIMP_TAC (ZF_ss addrews 
+by (asm_simp_tac (ZF_ss addsimps 
 		  (prems @ [zmult_ize UN_equiv_class2, SigmaI])) 1);
 val zmult = result();
 
 goalw Integ.thy [integ_def,znat_def] "!!z. z : integ ==> $#0 $* z = $#0";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
-by (ASM_SIMP_TAC (arith_ss addrews [zmult]) 1);
+by (asm_simp_tac (arith_ss addsimps [zmult]) 1);
 val zmult_0 = result();
 
 goalw Integ.thy [integ_def,znat_def,one_def]
     "!!z. z : integ ==> $#1 $* z = z";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
-by (ASM_SIMP_TAC (arith_ss addrews [zmult,add_0_right]) 1);
+by (asm_simp_tac (arith_ss addsimps [zmult,add_0_right]) 1);
 val zmult_1 = result();
 
 goalw Integ.thy [integ_def]
@@ -432,6 +430,5 @@ val integ_typechecks =
     [znat_type, zminus_type, zmagnitude_type, zadd_type, zmult_type];
 
 val integ_ss =
-    arith_ss addcongs integ_congs
-             addrews  ([zminus_zminus,zmagnitude_znat,zmagnitude_zminus_znat,
-		        zadd_0] @ integ_typechecks);
+    arith_ss addsimps ([zminus_zminus, zmagnitude_znat, 
+			zmagnitude_zminus_znat, zadd_0] @ integ_typechecks);

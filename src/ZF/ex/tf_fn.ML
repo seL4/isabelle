@@ -16,33 +16,29 @@ open TF_Fn;
 
 (*** TF_rec -- by Vset recursion ***)
 
-(*Used only to verify TF_rec*)
-val TF_congs = mk_typed_congs TF.thy 
-		   [("b", "[i,i,i]=>i"), ("d", "[i,i,i,i]=>i")];
-
 (** conversion rules **)
 
 goal TF_Fn.thy "TF_rec(Tcons(a,tf), b, c, d) = b(a, tf, TF_rec(tf,b,c,d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac TF.con_defs);
-by (SIMP_TAC (rank_ss addcongs TF_congs) 1);
+by (simp_tac rank_ss 1);
 val TF_rec_Tcons = result();
 
 goal TF_Fn.thy "TF_rec(Fnil, b, c, d) = c";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac TF.con_defs);
-by (SIMP_TAC rank_ss 1);
+by (simp_tac rank_ss 1);
 val TF_rec_Fnil = result();
 
 goal TF_Fn.thy "TF_rec(Fcons(t,tf), b, c, d) = \
 \      d(t, tf, TF_rec(t, b, c, d), TF_rec(tf, b, c, d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac TF.con_defs);
-by (SIMP_TAC (rank_ss addcongs TF_congs) 1);
+by (simp_tac rank_ss 1);
 val TF_rec_Fcons = result();
 
 (*list_ss includes list operations as well as arith_ss*)
-val TF_rec_ss = list_ss addrews
+val TF_rec_ss = list_ss addsimps
   [TF_rec_Tcons, TF_rec_Fnil, TF_rec_Fcons, TconsI, FnilI, FconsI];
 
 (** Type checking **)
@@ -56,7 +52,7 @@ val major::prems = goal TF_Fn.thy
 \                     |] ==> d(t,tf,r1,r2): C(Fcons(t,tf))    	\
 \    |] ==> TF_rec(z,b,c,d) : C(z)";
 by (rtac (major RS TF.induct) 1);
-by (ALLGOALS (ASM_SIMP_TAC (TF_rec_ss addrews prems)));
+by (ALLGOALS (asm_simp_tac (TF_rec_ss addsimps prems)));
 val TF_rec_type = result();
 
 (*Mutually recursive version*)
@@ -70,7 +66,7 @@ val prems = goal TF_Fn.thy
 \           (ALL tf: forest(A). TF_rec(tf,b,c,d) : D(tf))";
 by (rewtac Ball_def);
 by (rtac TF.mutual_induct 1);
-by (ALLGOALS (ASM_SIMP_TAC (TF_rec_ss addrews prems)));
+by (ALLGOALS (asm_simp_tac (TF_rec_ss addsimps prems)));
 val tree_forest_rec_type = result();
 
 
@@ -159,10 +155,6 @@ val TF_typechecks =
     [TconsI, FnilI, FconsI, treeI, forestI,
      list_of_TF_type, TF_map_type, TF_size_type, TF_preorder_type];
 
-val TF_congs = TF.congs @ 
-    mk_congs TF_Fn.thy
-    ["TF_rec", "list_of_TF", "TF_of_list", "TF_map", "TF_size", "TF_preorder"];
-
 val TF_rewrites =
    [TF_rec_Tcons, TF_rec_Fnil, TF_rec_Fcons,
     list_of_TF_Tcons, list_of_TF_Fnil, list_of_TF_Fcons,
@@ -171,8 +163,8 @@ val TF_rewrites =
     TF_size_Tcons, TF_size_Fnil, TF_size_Fcons,
     TF_preorder_Tcons, TF_preorder_Fnil, TF_preorder_Fcons];
 
-val TF_ss = list_ss addcongs TF_congs 
-		    addrews (TF_rewrites@TF_typechecks);
+val TF_ss = list_ss addsimps TF_rewrites
+                    setsolver type_auto_tac (list_typechecks@TF_typechecks);
 
 (** theorems about list_of_TF and TF_of_list **)
 
@@ -188,26 +180,26 @@ val forest_induct = result();
 
 goal TF_Fn.thy "!!tf A. tf: forest(A) ==> TF_of_list(list_of_TF(tf)) = tf";
 by (etac forest_induct 1);
-by (ALLGOALS (ASM_SIMP_TAC TF_ss));
+by (ALLGOALS (asm_simp_tac TF_ss));
 val forest_iso = result();
 
 goal TF_Fn.thy
     "!!ts. ts: list(tree(A)) ==> list_of_TF(TF_of_list(ts)) = ts";
 by (etac List.induct 1);
-by (ALLGOALS (ASM_SIMP_TAC TF_ss));
+by (ALLGOALS (asm_simp_tac TF_ss));
 val tree_list_iso = result();
 
 (** theorems about TF_map **)
 
 goal TF_Fn.thy "!!z A. z: tree_forest(A) ==> TF_map(%u.u, z) = z";
 by (etac TF.induct 1);
-by (ALLGOALS (ASM_SIMP_TAC TF_ss));
+by (ALLGOALS (asm_simp_tac TF_ss));
 val TF_map_ident = result();
 
 goal TF_Fn.thy
  "!!z A. z: tree_forest(A) ==> TF_map(h, TF_map(j,z)) = TF_map(%u.h(j(u)), z)";
 by (etac TF.induct 1);
-by (ALLGOALS (ASM_SIMP_TAC TF_ss));
+by (ALLGOALS (asm_simp_tac TF_ss));
 val TF_map_compose = result();
 
 (** theorems about TF_size **)
@@ -215,13 +207,13 @@ val TF_map_compose = result();
 goal TF_Fn.thy
     "!!z A. z: tree_forest(A) ==> TF_size(TF_map(h,z)) = TF_size(z)";
 by (etac TF.induct 1);
-by (ALLGOALS (ASM_SIMP_TAC TF_ss));
+by (ALLGOALS (asm_simp_tac TF_ss));
 val TF_size_TF_map = result();
 
 goal TF_Fn.thy
     "!!z A. z: tree_forest(A) ==> TF_size(z) = length(TF_preorder(z))";
 by (etac TF.induct 1);
-by (ALLGOALS (ASM_SIMP_TAC (TF_ss addrews [length_app])));
+by (ALLGOALS (asm_simp_tac (TF_ss addsimps [length_app])));
 val TF_size_length = result();
 
 (** theorems about TF_preorder **)
@@ -229,5 +221,5 @@ val TF_size_length = result();
 goal TF_Fn.thy "!!z A. z: tree_forest(A) ==> \
 \                      TF_preorder(TF_map(h,z)) = map(h, TF_preorder(z))";
 by (etac TF.induct 1);
-by (ALLGOALS (ASM_SIMP_TAC (TF_ss addrews [map_app_distrib])));
+by (ALLGOALS (asm_simp_tac (TF_ss addsimps [map_app_distrib])));
 val TF_preorder_TF_map = result();

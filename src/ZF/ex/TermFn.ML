@@ -18,11 +18,11 @@ val [major,ordi] = goal ListFn.thy
     "[| l: list(A);  Ord(i) |] ==>  \
 \    rank(l): i --> map(%z. (lam x:Vset(i).h(x)) ` z, l) = map(h,l)";
 by (rtac (major RS List.induct) 1);
-by (SIMP_TAC list_ss 1);
+by (simp_tac list_ss 1);
 by (rtac impI 1);
 by (forward_tac [rank_Cons1 RS Ord_trans] 1);
 by (dtac (rank_Cons2 RS Ord_trans) 2);
-by (ALLGOALS (ASM_SIMP_TAC (list_ss addrews [ordi, VsetI])));
+by (ALLGOALS (asm_simp_tac (list_ss addsimps [ordi, VsetI])));
 val map_lemma = result();
 
 (*Typing premise is necessary to invoke map_lemma*)
@@ -31,10 +31,8 @@ val [prem] = goal TermFn.thy
 \    term_rec(Apply(a,ts), d) = d(a, ts, map (%z. term_rec(z,d), ts))";
 by (rtac (term_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac Term.con_defs);
-val term_rec_ss = ZF_ss 
-      addcongs (mk_typed_congs TermFn.thy [("d", "[i,i,i]=>i")])
-      addrews [Ord_rank, rank_pair2, prem RS map_lemma];
-by (SIMP_TAC term_rec_ss 1);
+val term_rec_ss = ZF_ss addsimps [Ord_rank, rank_pair2, prem RS map_lemma];
+by (simp_tac term_rec_ss 1);
 val term_rec = result();
 
 (*Slightly odd typing condition on r in the second premise!*)
@@ -49,7 +47,7 @@ by (forward_tac [list_CollectD] 1);
 by (rtac (term_rec RS ssubst) 1);
 by (REPEAT (ares_tac prems 1));
 by (etac List.induct 1);
-by (ALLGOALS (ASM_SIMP_TAC (list_ss addrews [term_rec])));
+by (ALLGOALS (asm_simp_tac (list_ss addsimps [term_rec])));
 by (etac CollectE 1);
 by (REPEAT (ares_tac [ConsI, UN_I] 1));
 val term_rec_type = result();
@@ -122,31 +120,27 @@ val term_typechecks =
 
 (*map_type2 and term_map_type2 instantiate variables*)
 val term_ss = list_ss 
-      addcongs (Term.congs @
-		mk_congs TermFn.thy ["term_rec","term_map","term_size",
-				   "reflect","preorder"])
-      addrews [term_rec, term_map, term_size, reflect,
-	       preorder]
-      setauto type_auto_tac (list_typechecks@term_typechecks);
+      addsimps [term_rec, term_map, term_size, reflect, preorder]
+      setsolver type_auto_tac (list_typechecks@term_typechecks);
 
 
 (** theorems about term_map **)
 
 goal TermFn.thy "!!t A. t: term(A) ==> term_map(%u.u, t) = t";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [map_ident]) 1);
+by (asm_simp_tac (term_ss addsimps [map_ident]) 1);
 val term_map_ident = result();
 
 goal TermFn.thy
   "!!t A. t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u.f(g(u)), t)";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [map_compose]) 1);
+by (asm_simp_tac (term_ss addsimps [map_compose]) 1);
 val term_map_compose = result();
 
 goal TermFn.thy
     "!!t A. t: term(A) ==> term_map(f, reflect(t)) = reflect(term_map(f,t))";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [rev_map_distrib RS sym, map_compose]) 1);
+by (asm_simp_tac (term_ss addsimps [rev_map_distrib RS sym, map_compose]) 1);
 val term_map_reflect = result();
 
 
@@ -155,18 +149,18 @@ val term_map_reflect = result();
 goal TermFn.thy
     "!!t A. t: term(A) ==> term_size(term_map(f,t)) = term_size(t)";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [map_compose]) 1);
+by (asm_simp_tac (term_ss addsimps [map_compose]) 1);
 val term_size_term_map = result();
 
 goal TermFn.thy "!!t A. t: term(A) ==> term_size(reflect(t)) = term_size(t)";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [rev_map_distrib RS sym, map_compose,
-				   list_add_rev]) 1);
+by (asm_simp_tac (term_ss addsimps [rev_map_distrib RS sym, map_compose,
+				    list_add_rev]) 1);
 val term_size_reflect = result();
 
 goal TermFn.thy "!!t A. t: term(A) ==> term_size(t) = length(preorder(t))";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [length_flat, map_compose]) 1);
+by (asm_simp_tac (term_ss addsimps [length_flat, map_compose]) 1);
 val term_size_length = result();
 
 
@@ -174,8 +168,8 @@ val term_size_length = result();
 
 goal TermFn.thy "!!t A. t: term(A) ==> reflect(reflect(t)) = t";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [rev_map_distrib, map_compose,
-				   map_ident, rev_rev_ident]) 1);
+by (asm_simp_tac (term_ss addsimps [rev_map_distrib, map_compose,
+				    map_ident, rev_rev_ident]) 1);
 val reflect_reflect_ident = result();
 
 
@@ -184,7 +178,7 @@ val reflect_reflect_ident = result();
 goal TermFn.thy
     "!!t A. t: term(A) ==> preorder(term_map(f,t)) = map(f, preorder(t))";
 by (etac term_induct_eqn 1);
-by (ASM_SIMP_TAC (term_ss addrews [map_compose, map_flat]) 1);
+by (asm_simp_tac (term_ss addsimps [map_compose, map_flat]) 1);
 val preorder_term_map = result();
 
 (** preorder(reflect(t)) = rev(postorder(t)) **)

@@ -11,7 +11,6 @@ for proving equality
 
 structure LList = Co_Datatype_Fun
  (val thy = QUniv.thy;
-  val thy = QUniv.thy;
   val rec_specs = 
       [("llist", "quniv(A)",
 	  [(["LNil"],	"i"), 

@@ -190,7 +190,7 @@ by (cut_facts_tac (equivA::prems) 1);
 by (safe_tac ZF_cs);
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (ASM_SIMP_TAC (ZF_ss addrews [equivA RS UN_equiv_class,
+by (asm_simp_tac (ZF_ss addsimps [equivA RS UN_equiv_class,
 				 congruent2_implies_congruent]) 1);
 by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
 by (fast_tac ZF_cs 1);
@@ -200,7 +200,7 @@ val prems as equivA::_ = goal Equiv.thy
     "[| equiv(A,r);  congruent2(r,b);  a1: A;  a2: A |]  \
 \    ==> (UN x1:r``{a1}. UN x2:r``{a2}. b(x1,x2)) = b(a1,a2)";
 by (cut_facts_tac prems 1);
-by (ASM_SIMP_TAC (ZF_ss addrews [equivA RS UN_equiv_class,
+by (asm_simp_tac (ZF_ss addsimps [equivA RS UN_equiv_class,
 				 congruent2_implies_congruent,
 				 congruent2_implies_congruent_UN]) 1);
 val UN_equiv_class2 = result();
@@ -235,7 +235,7 @@ val congruent2I = result();
 
 val [equivA,commute,congt] = goal Equiv.thy
     "[| equiv(A,r);	\
-\       !! y z w. [| y: A;  z: A |] ==> b(y,z) = b(z,y);        \
+\       !! y z. [| y: A;  z: A |] ==> b(y,z) = b(z,y);        \
 \       !! y z w. [| w: A;  <y,z>: r |] ==> b(w,y) = b(w,z)	\
 \    |] ==> congruent2(r,b)";
 by (resolve_tac [equivA RS congruent2I] 1);
@@ -259,7 +259,7 @@ by (rewtac congruent_def);
 by (safe_tac ZF_cs);
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (ASM_SIMP_TAC (ZF_ss addrews [congt RS (equivA RS UN_equiv_class)]) 1);
+by (asm_simp_tac (ZF_ss addsimps [congt RS (equivA RS UN_equiv_class)]) 1);
 by (rtac (commute RS trans) 1);
 by (rtac (commute RS trans RS sym) 3);
 by (rtac sym 5);

@@ -12,28 +12,24 @@ open BT_Fn;
 
 (** bt_rec -- by Vset recursion **)
 
-(*Used to verify bt_rec*)
-val bt_rec_ss = ZF_ss 
-      addcongs (mk_typed_congs BT_Fn.thy [("h", "[i,i,i,i,i]=>i")])
-      addrews BT.case_eqns;
-
 goalw BT.thy BT.con_defs "rank(l) : rank(Br(a,l,r))";
-by (SIMP_TAC rank_ss 1);
+by (simp_tac rank_ss 1);
 val rank_Br1 = result();
 
 goalw BT.thy BT.con_defs "rank(r) : rank(Br(a,l,r))";
-by (SIMP_TAC rank_ss 1);
+by (simp_tac rank_ss 1);
 val rank_Br2 = result();
 
 goal BT_Fn.thy "bt_rec(Lf,c,h) = c";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
-by (SIMP_TAC bt_rec_ss 1);
+by (simp_tac (ZF_ss addsimps BT.case_eqns) 1);
 val bt_rec_Lf = result();
 
 goal BT_Fn.thy
     "bt_rec(Br(a,l,r), c, h) = h(a, l, r, bt_rec(l,c,h), bt_rec(r,c,h))";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
-by (SIMP_TAC (bt_rec_ss addrews [Vset_rankI, rank_Br1, rank_Br2]) 1);
+by (simp_tac (ZF_ss addsimps 
+	      (BT.case_eqns @ [Vset_rankI, rank_Br1, rank_Br2])) 1);
 val bt_rec_Br = result();
 
 (*Type checking -- proved by induction, as usual*)
@@ -44,7 +40,7 @@ val prems = goal BT_Fn.thy
 \		     h(x,y,z,r,s): C(Br(x,y,z))  \
 \    |] ==> bt_rec(t,c,h) : C(t)";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (ASM_SIMP_TAC (ZF_ss addrews
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
 			    (prems@[bt_rec_Lf,bt_rec_Br]))));
 val bt_rec_type = result();
 
@@ -98,15 +94,10 @@ val bt_reflect_type = result();
 val bt_typechecks =
       [LfI, BrI, bt_rec_type, n_nodes_type, n_leaves_type, bt_reflect_type];
 
-val bt_congs = 
-    BT.congs @
-    mk_congs BT_Fn.thy ["bt_case","bt_rec","n_nodes","n_leaves","bt_reflect"];
-
 val bt_ss = arith_ss 
-    addcongs bt_congs
-    addrews BT.case_eqns
-    addrews bt_typechecks
-    addrews [bt_rec_Lf, bt_rec_Br, 
+    addsimps BT.case_eqns
+    addsimps bt_typechecks
+    addsimps [bt_rec_Lf, bt_rec_Br, 
 	     n_nodes_Lf, n_nodes_Br,
 	     n_leaves_Lf, n_leaves_Br,
 	     bt_reflect_Lf, bt_reflect_Br];
@@ -117,14 +108,14 @@ val bt_ss = arith_ss
 val prems = goal BT_Fn.thy
     "t: bt(A) ==> n_leaves(bt_reflect(t)) = n_leaves(t)";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (ASM_SIMP_TAC bt_ss));
+by (ALLGOALS (asm_simp_tac bt_ss));
 by (REPEAT (ares_tac [add_commute, n_leaves_type] 1));
 val n_leaves_reflect = result();
 
 val prems = goal BT_Fn.thy
     "t: bt(A) ==> n_leaves(t) = succ(n_nodes(t))";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (ASM_SIMP_TAC (bt_ss addrews [add_succ_right])));
+by (ALLGOALS (asm_simp_tac (bt_ss addsimps [add_succ_right])));
 val n_leaves_nodes = result();
 
 (*** theorems about bt_reflect ***)
@@ -132,7 +123,7 @@ val n_leaves_nodes = result();
 val prems = goal BT_Fn.thy
     "t: bt(A) ==> bt_reflect(bt_reflect(t))=t";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (ASM_SIMP_TAC bt_ss));
+by (ALLGOALS (asm_simp_tac bt_ss));
 val bt_reflect_bt_reflect_ident = result();
 
 

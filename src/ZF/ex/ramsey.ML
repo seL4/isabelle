@@ -20,9 +20,6 @@ See also
 
 open Ramsey;
 
-val ramsey_congs = mk_congs Ramsey.thy ["Atleast"];
-val ramsey_ss = arith_ss addcongs ramsey_congs;
-
 (*** Cliques and Independent sets ***)
 
 goalw Ramsey.thy [Clique_def] "Clique(0,V,E)";
@@ -95,11 +92,12 @@ val prems = goal Ramsey.thy
 \                         Atleast(m,A) | Atleast(n,B)";
 by (nat_ind_tac "m" prems 1);
 by (fast_tac (ZF_cs addSIs [Atleast0]) 1);
-by (ASM_SIMP_TAC ramsey_ss 1);
+by (asm_simp_tac arith_ss 1);
 by (rtac ballI 1);
+by (rename_tac "n" 1);		(*simplifier does NOT preserve bound names!*)
 by (nat_ind_tac "n" [] 1);
 by (fast_tac (ZF_cs addSIs [Atleast0]) 1);
-by (ASM_SIMP_TAC (ramsey_ss addrews [add_succ_right]) 1);
+by (asm_simp_tac (arith_ss addsimps [add_succ_right]) 1);
 by (safe_tac ZF_cs);
 by (etac (Atleast_succD RS bexE) 1);
 by (etac UnE 1);
@@ -118,7 +116,7 @@ by (etac (mp RS disjE) 1);
 (*cases Atleast(succ(m1),A) and Atleast(succ(n1),B)*)
 by (REPEAT (eresolve_tac [asm_rl, Atleast_Diff_succI, notE] 2));
 (*proving the condition*)
-by (ASM_SIMP_TAC (ramsey_ss addrews [add_succ_right]) 1);
+by (asm_simp_tac (arith_ss addsimps [add_succ_right]) 1);
 by (etac Atleast_superset 1 THEN fast_tac ZF_cs 1);
 val pigeon2_lemma = result();
 
@@ -147,7 +145,7 @@ val prems = goal Ramsey.thy
     "[| Atleast(m #+ n, A);  m: nat;  n: nat |] ==> \
 \    Atleast(succ(m), {x:A. ~P(x)}) | Atleast(n, {x:A. P(x)})";
 by (rtac (nat_succI RS pigeon2) 1);
-by (SIMP_TAC (ramsey_ss addrews prems) 3);
+by (simp_tac (arith_ss addsimps prems) 3);
 by (rtac Atleast_superset 3);
 by (REPEAT (resolve_tac prems 1));
 by (fast_tac ZF_cs 1);

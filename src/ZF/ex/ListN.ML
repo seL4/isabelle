@@ -20,28 +20,24 @@ structure ListN = Inductive_Fun
   val type_intrs = nat_typechecks@List.intrs@[SigmaI]
   val type_elims = [SigmaE2]);
 
-(*Could be generated automatically; requires use of fsplitD*)
-val listn_induct = standard
- (fsplitI RSN 
-  (2, fsplitI RSN 
-      (3, (read_instantiate [("P", "fsplit(R)")] ListN.induct) RS fsplitD)));
+val listn_induct = standard 
+    (ListN.mutual_induct RS spec RS spec RSN (2,rev_mp));
 
 val [major] = goal ListN.thy "l:list(A) ==> <length(l),l> : listn(A)";
 by (rtac (major RS List.induct) 1);
-by (ALLGOALS (ASM_SIMP_TAC list_ss));
+by (ALLGOALS (asm_simp_tac list_ss));
 by (REPEAT (ares_tac ListN.intrs 1));
 val list_into_listn = result();
 
 goal ListN.thy "<n,l> : listn(A) <-> l:list(A) & length(l)=n";
 by (rtac iffI 1);
 by (etac listn_induct 1);
-by (dtac fsplitD 2);
-by (ALLGOALS (ASM_SIMP_TAC (list_ss addrews [Pair_iff])));
-by (fast_tac (ZF_cs addSIs [list_into_listn]) 1);
+by (safe_tac (ZF_cs addSIs (list_typechecks @
+			    [length_Nil, length_Cons, list_into_listn])));
 val listn_iff = result();
 
 goal ListN.thy "listn(A)``{n} = {l:list(A). length(l)=n}";
 by (rtac equality_iffI 1);
-by (SIMP_TAC (list_ss addrews [listn_iff,separation,image_singleton_iff]) 1);
+by (simp_tac (list_ss addsimps [listn_iff,separation,image_singleton_iff]) 1);
 val listn_image_eq = result();
 

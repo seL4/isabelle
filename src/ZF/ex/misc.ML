@@ -62,7 +62,7 @@ val [gfun] = goal SB_thy
 \    X - lfp(X, %W. X - g``(Y - f``W)) ";
 by (res_inst_tac [("P", "%u. ?v = X-u")] 
      (decomp_bnd_mono RS lfp_Tarski RS ssubst) 1);
-by (SIMP_TAC (ZF_ss addrews [subset_refl, double_complement, Diff_subset,
+by (simp_tac (ZF_ss addsimps [subset_refl, double_complement, Diff_subset,
 			     gfun RS fun_is_rel RS image_subset]) 1);
 val Banach_last_equation = result();
 
@@ -97,22 +97,29 @@ val schroeder_bernstein = result();
   JAR 2 (1986), 287-327 
 *)
 
-val hom_ss =   (*collecting the relevant lemmas*)
-  ZF_ss addrews [comp_func,comp_func_apply,SigmaI,apply_type]
-   	addcongs (mk_congs Perm.thy ["op O"]);
+(*collecting the relevant lemmas*)
+val hom_ss = ZF_ss addsimps [comp_func,comp_func_apply,SigmaI,apply_funtype];
 
-(*This version uses a super application of SIMP_TAC;  it is SLOW
-  Expressing the goal by --> instead of ==> would make it slower still*)
-val [hom_eq] = goal Perm.thy
+(*The problem below is proving conditions of rewrites such as comp_func_apply;
+  rewriting does not instantiate Vars; we must prove the conditions
+  explicitly.*)
+fun hom_tac hyps =
+    resolve_tac (TrueI::refl::iff_refl::hyps) ORELSE' 
+    (cut_facts_tac hyps THEN' fast_tac prop_cs);
+
+(*This version uses a super application of simp_tac*)
+goal Perm.thy
     "(ALL A f B g. hom(A,f,B,g) = \
 \          {H: A->B. f:A*A->A & g:B*B->B & \
-\                    (ALL x:A. ALL y:A. H`(f`<x,y>) = g`<H`x,H`y>)}) ==> \
+\                    (ALL x:A. ALL y:A. H`(f`<x,y>) = g`<H`x,H`y>)}) --> \
 \    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
 \    (K O J) : hom(A,f,C,h)";
-by (SIMP_TAC (hom_ss setauto K(fast_tac prop_cs) addrews [hom_eq]) 1);
+by (simp_tac (hom_ss setsolver hom_tac) 1);
+(*Also works but slower:
+    by (asm_simp_tac (hom_ss setloop (K (safe_tac FOL_cs))) 1); *)
 val comp_homs = result();
 
-(*This version uses meta-level rewriting, safe_tac and ASM_SIMP_TAC*)
+(*This version uses meta-level rewriting, safe_tac and asm_simp_tac*)
 val [hom_def] = goal Perm.thy
     "(!! A f B g. hom(A,f,B,g) == \
 \          {H: A->B. f:A*A->A & g:B*B->B & \
@@ -121,8 +128,8 @@ val [hom_def] = goal Perm.thy
 \    (K O J) : hom(A,f,C,h)";
 by (rewtac hom_def);
 by (safe_tac ZF_cs);
-by (ASM_SIMP_TAC hom_ss 1);
-by (ASM_SIMP_TAC hom_ss 1);
+by (asm_simp_tac hom_ss 1);
+by (asm_simp_tac hom_ss 1);
 val comp_homs = result();
 
 
@@ -209,5 +216,32 @@ val prems = goalw Perm.thy [bij_def]
 \       f: A->B;  g: B->C;  h: C->A |] ==> h: bij(C,A)";
 by (REPEAT (resolve_tac (IntI :: pastre_facts prems) 1));
 val pastre6 = result();
+
+(** Yet another example... **)
+
+goalw (merge_theories(Sum.thy,Perm.thy)) [bij_def,inj_def,surj_def]
+    "(lam Z:Pow(A+B). <{x:A. Inl(x):Z}, {y:B. Inr(y):Z}>) \
+\    : bij(Pow(A+B), Pow(A)*Pow(B))";
+by (DO_GOAL
+      [rtac IntI,
+       DO_GOAL
+	 [rtac CollectI,
+	  fast_tac (ZF_cs addSIs [lam_type]),
+	  simp_tac ZF_ss,
+	  fast_tac (eq_cs addSEs [sumE]
+			  addEs  [equalityD1 RS subsetD RS CollectD2,
+				  equalityD2 RS subsetD RS CollectD2])],
+       DO_GOAL
+	 [rtac CollectI,
+	  fast_tac (ZF_cs addSIs [lam_type]),
+	  simp_tac ZF_ss,
+	  K(safe_tac ZF_cs),
+	  res_inst_tac [("x", "{Inl(u). u: ?U} Un {Inr(v). v: ?V}")] bexI,
+	  DO_GOAL
+	    [res_inst_tac [("t", "Pair")] subst_context2,
+	    fast_tac (sum_cs addSIs [equalityI]),
+	    fast_tac (sum_cs addSIs [equalityI])],
+	  DO_GOAL [fast_tac sum_cs]]] 1);
+val Pow_bij = result();
 
 writeln"Reached end of file.";
