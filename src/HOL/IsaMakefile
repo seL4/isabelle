@@ -474,7 +474,7 @@ $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
 TLA: HOL $(OUT)/TLA
 
 $(OUT)/TLA: $(OUT)/HOL TLA/Action.ML TLA/Action.thy TLA/Init.ML \
-  TLA/Init.thy TLA/IntLemmas.ML TLA/Intensional.ML TLA/Intensional.thy \
+  TLA/Init.thy TLA/Intensional.ML TLA/Intensional.thy \
   TLA/ROOT.ML TLA/Stfun.ML TLA/Stfun.thy TLA/TLA.ML TLA/TLA.thy
 	@cd TLA; $(ISATOOL) usedir -b $(OUT)/HOL TLA
 
@@ -502,7 +502,7 @@ $(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy \
 TLA-Memory: TLA $(LOG)/TLA-Memory.gz
 
 $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
-  TLA/Memory/MIlive.ML TLA/Memory/MIsafe.ML TLA/Memory/MemClerk.ML \
+  TLA/Memory/MIsafe.ML TLA/Memory/MemClerk.ML \
   TLA/Memory/MemClerk.thy TLA/Memory/MemClerkParameters.ML \
   TLA/Memory/MemClerkParameters.thy TLA/Memory/Memory.ML \
   TLA/Memory/Memory.thy TLA/Memory/MemoryImplementation.ML \
