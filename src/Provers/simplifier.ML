@@ -6,6 +6,12 @@ Generic simplifier, suitable for most logics.  See Pure/meta_simplifier.ML
 for the actual meta-level rewriting engine.
 *)
 
+(* added: put_delta_simpset, get_delta_simpset
+   changed: simp_add_local
+   07/01/05
+*)
+
+
 signature BASIC_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
@@ -93,6 +99,10 @@ sig
   val method_setup: (Args.T list -> (Method.modifier * Args.T list)) list
     -> (theory -> theory) list
   val easy_setup: thm -> thm list -> (theory -> theory) list
+
+  val get_delta_simpset: ProofContext.context -> Thm.thm list
+  val put_delta_simpset: Thm.thm list -> ProofContext.context -> ProofContext.context
+
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -293,6 +303,37 @@ fun local_simpset_of ctxt =
   context_ss ctxt (get_local_simpset ctxt) (get_context_ss ctxt);
 
 
+(* Jia: added DeltaSimpsetArgs and DeltaSimpset for delta_simpset
+	also added methods to retrieve them. *)
+
+structure DeltaSimpsetArgs =
+struct
+  val name = "delta_simpset";
+  type T = Thm.thm list; (*the type is thm list*)
+  val empty = [];
+end;
+
+structure DeltaSimpset = DeltaDataFun(DeltaSimpsetArgs);
+val get_delta_simpset = DeltaSimpset.get;
+val put_delta_simpset = DeltaSimpset.put;
+
+val get_new_thm_id = ProofContext.get_delta_count_incr;
+
+(* Jia: added to rename a local thm if necessary *) 
+local 
+fun rename_thm' (ctxt,thm) =
+  let val new_id = get_new_thm_id ctxt
+      val new_name = "anon_" ^ (string_of_int new_id)
+  in
+  Thm.name_thm(new_name,thm)
+end;
+
+in
+
+fun rename_thm (ctxt,thm) = if (!Proof.call_atp) then rename_thm' (ctxt,thm) else thm;
+
+end
+
 (* attributes *)
 
 fun change_global_ss f (thy, th) =
@@ -305,7 +346,22 @@ fun change_local_ss f (ctxt, th) =
 
 val simp_add_global = change_global_ss (op addsimps);
 val simp_del_global = change_global_ss (op delsimps);
-val simp_add_local = change_local_ss (op addsimps);
+
+
+
+
+
+(* Jia: note: when simplifier rules are added to local_simpset, they are also added to delta_simpset in ProofContext.context, but not removed if simp_del_local is called *)
+fun simp_add_local (ctxt,th) = 
+    let val delta_ss = get_delta_simpset ctxt
+	val thm_name = Thm.name_of_thm th
+        val th' = if (thm_name = "") then rename_thm (ctxt,th)  else th
+	val new_dss = th'::delta_ss
+	val ctxt' = put_delta_simpset new_dss ctxt 
+    in
+	change_local_ss (op addsimps) (ctxt',th)
+    end;
+
 val simp_del_local = change_local_ss (op delsimps);
 
 val cong_add_global = change_global_ss (op addcongs);

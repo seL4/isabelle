@@ -40,7 +40,7 @@ sig
   val assert_forward_or_chain: state -> state
   val assert_backward: state -> state
   val assert_no_chain: state -> state
-  val atp_hook: (Thm.thm list * Thm.thm -> unit) ref
+  val atp_hook: (ProofContext.context * Thm.thm -> unit) ref
   val enter_forward: state -> state
   val verbose: bool ref
   val show_main_goal: bool ref
@@ -284,6 +284,28 @@ fun get_goal state =
   let val (ctxt, (_, ((_, x), _))) = find_goal state
   in (ctxt, x) end;
 
+
+(*
+(* Jia: added here: get all goals from the state 10/01/05 *)
+fun find_all i (state as State (Node {goal = Some goal, ...}, node::nodes)) = 
+    let val others = find_all (i+1) (State (node, nodes))
+    in
+	(context_of state, (i, goal)) :: others
+    end
+  | find_all i (State (Node {goal = None, ...}, node :: nodes)) = find_all (i + 1) (State (node, nodes))
+  | find_all _ (state as State (_, [])) = [];
+
+val find_all_goals = find_all 0;
+
+fun find_all_goals_ctxts state =
+    let val all_goals = find_all_goals state
+	fun find_ctxt_g [] = []
+	  | find_ctxt_g ((ctxt, (_, ((_, (_, thm)), _)))::others) = (ctxt,thm) :: (find_ctxt_g others)
+    in
+	find_ctxt_g all_goals
+    end;
+*)
+
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
 fun map_goal f g (State (Node {context, facts, mode, goal = Some goal}, nodes)) =
@@ -327,19 +349,18 @@ val assert_no_chain = assert_mode (not_equal ForwardChain);
 
 
 (*Jia Meng: a hook to be used for calling ATPs. *)
-val atp_hook = ref (fn (prems,state): (Thm.thm list * Thm.thm) => ());
+(* send the entire proof context *)
+val atp_hook = ref (fn ctxt_state: ProofContext.context * Thm.thm => ());
 
 (*Jia Meng: the modified version of enter_forward. *)
 (*Jia Meng: atp: Proof.state -> unit *)
 local
  fun atp state = 
-  let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state
-      val prems = ProofContext.prems_of ctxt  
-  in
-      (!atp_hook) (prems,thm)          
-  end;
-  
-
+     let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state
+     in
+	 (!atp_hook) (ctxt,thm)          
+     end;
+     
 in
 
  fun enter_forward state = 

@@ -662,7 +662,7 @@ fun tptp_arity_clause arcls =
 	val knd = string_of_arKind arcls
 	val all_lits = concl_lit :: prems_lits
     in
-	"input_clause(" ^ arcls_id ^ "," ^ knd ^ (ResLib.list_to_string' all_lits) ^ ")."
+	"input_clause(" ^ arcls_id ^ "," ^ knd ^ "," ^ (ResLib.list_to_string' all_lits) ^ ")."
 	
     end;
 
@@ -674,7 +674,7 @@ fun tptp_classrelLits sub sup =
     let val tvar = "(T)"
     in 
 	case sup of None => "[++" ^ sub ^ tvar ^ "]"
-		  | (Some supcls) =>  "[++" ^ sub ^ tvar ^ ",--" ^ supcls ^ tvar ^ "]"
+		  | (Some supcls) =>  "[--" ^ sub ^ tvar ^ ",++" ^ supcls ^ tvar ^ "]"
     end;
 
 

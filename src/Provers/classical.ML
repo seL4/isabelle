@@ -14,6 +14,13 @@ equivalent.  There should be no variables in the premises that are not in
 the conclusion.
 *)
 
+
+(*added: get_delta_claset, put_delta_claset.
+        changed: safe_{dest,elim,intro}_local and haz_{dest,elim,intro}_local
+   06/01/05
+*)
+
+
 (*higher precedence than := facilitates use of references*)
 infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
   addSWrapper delSWrapper addWrapper delWrapper
@@ -164,6 +171,10 @@ sig
   val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
   val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   val setup: (theory -> theory) list
+
+  val get_delta_claset: ProofContext.context -> claset
+  val put_delta_claset: claset -> ProofContext.context -> ProofContext.context
+
 end;
 
 
@@ -890,6 +901,37 @@ val put_local_claset = LocalClaset.put;
 fun local_claset_of ctxt =
   context_cs ctxt (get_local_claset ctxt) (get_context_cs ctxt);
 
+(* added for delta_claset: 06/01/05 *)
+
+structure DeltaClasetArgs =
+struct
+  val name = "delta_claset";
+  type T = claset;
+  val empty = empty_cs;
+end;
+
+structure DeltaClaset = DeltaDataFun(DeltaClasetArgs);
+val get_delta_claset = DeltaClaset.get;
+val put_delta_claset = DeltaClaset.put;
+
+val get_new_thm_id = ProofContext.get_delta_count_incr;
+
+
+local 
+fun rename_thm' (ctxt,thm) =
+  let val new_id = get_new_thm_id ctxt
+      val new_name = "anon_" ^ (string_of_int new_id)
+  in
+  Thm.name_thm(new_name,thm)
+end;
+
+in
+
+(* rename thm if call_atp is true *)
+fun rename_thm (ctxt,thm) = if (!Proof.call_atp) then rename_thm' (ctxt,thm) else thm;
+
+end
+     
 
 (* attributes *)
 
@@ -909,12 +951,70 @@ val haz_elim_global = change_global_cs (op addEs);
 val haz_intro_global = change_global_cs (op addIs);
 val rule_del_global = change_global_cs (op delrules) o ContextRules.rule_del_global;
 
-val safe_dest_local = change_local_cs (op addSDs);
-val safe_elim_local = change_local_cs (op addSEs);
-val safe_intro_local = change_local_cs (op addSIs);
-val haz_dest_local = change_local_cs (op addDs);
-val haz_elim_local = change_local_cs (op addEs);
-val haz_intro_local = change_local_cs (op addIs);
+
+(* when dest/elim/intro rules are added to local_claset, they are also added to delta_claset in ProofContext.context *)
+fun safe_dest_local (ctxt,th) =
+    let val thm_name = Thm.name_of_thm th
+        val th' = if (thm_name = "") then rename_thm (ctxt,th)  else th
+        val delta_cs = get_delta_claset ctxt
+	val new_dcs = delta_cs addSDs [th']
+	val ctxt' = put_delta_claset new_dcs ctxt 
+    in
+	change_local_cs (op addSDs) (ctxt',th)
+    end;
+
+fun safe_elim_local (ctxt, th)= 
+    let val thm_name = Thm.name_of_thm th
+        val th' = if (thm_name = "") then rename_thm (ctxt,th) else th
+        val delta_cs = get_delta_claset ctxt
+	val new_dcs = delta_cs addSEs [th']
+	val ctxt' = put_delta_claset new_dcs ctxt 
+    in
+	change_local_cs (op addSEs) (ctxt',th)
+    end;
+
+fun safe_intro_local (ctxt, th) = 
+    let val thm_name = Thm.name_of_thm th
+        val th' = if (thm_name = "") then rename_thm (ctxt,th) else th
+        val delta_cs = get_delta_claset ctxt
+	val new_dcs = delta_cs addSIs [th']
+	val ctxt' = put_delta_claset new_dcs ctxt 
+    in
+	change_local_cs (op addSIs) (ctxt',th)
+    end;
+
+fun haz_dest_local (ctxt, th)= 
+    let val thm_name = Thm.name_of_thm th
+        val th' = if (thm_name = "") then rename_thm (ctxt,th)else th
+        val delta_cs = get_delta_claset ctxt
+	val new_dcs = delta_cs addDs [th']
+	val ctxt' = put_delta_claset new_dcs ctxt 
+    in
+	change_local_cs (op addDs) (ctxt',th)
+    end;
+
+fun haz_elim_local (ctxt,th) =
+    let val thm_name = Thm.name_of_thm th
+        val th' = if (thm_name = "") then rename_thm (ctxt,th)  else th
+        val delta_cs = get_delta_claset ctxt
+	val new_dcs = delta_cs addEs [th']
+	val ctxt' = put_delta_claset new_dcs ctxt 
+    in 
+	change_local_cs (op addEs) (ctxt',th)
+    end;
+
+fun haz_intro_local (ctxt,th) = 
+    let val thm_name = Thm.name_of_thm th
+        val th' = if (thm_name = "") then rename_thm (ctxt,th)  else th
+        val delta_cs = get_delta_claset ctxt
+	val new_dcs = delta_cs addIs [th']
+	val ctxt' = put_delta_claset new_dcs ctxt 
+    in 
+	change_local_cs (op addIs) (ctxt',th)
+    end;
+
+
+(* when a rule is removed from local_claset, it is not removed from delta_claset in ProofContext.context.  But this is unlikely to happen. *)
 val rule_del_local = change_local_cs (op delrules) o ContextRules.rule_del_local;
 
 

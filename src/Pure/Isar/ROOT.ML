@@ -11,6 +11,7 @@ use "auto_bind.ML";
 use "rule_cases.ML";
 use "proof_context.ML";
 use "proof_data.ML";
+use "delta_data.ML"; (*for delta_{claset,simpset}, part of SPASS interface*)
 use "context_rules.ML";
 use "locale.ML";
 use "proof.ML";

@@ -5,6 +5,13 @@
 Proof context information.
 *)
 
+(*Jia: changed: datatype context
+       affected files:  make_context, map_context, init, put_data, add_syntax, map_defaults, del_bind, upd_bind, qualified, hide_thms, put_thms, reset_thms, gen_assms, map_fixes, add_cases
+
+       added: put_delta, get_delta 
+       06/01/05
+*)
+
 val show_structs = ref false;
 
 signature PROOF_CONTEXT =
@@ -141,6 +148,11 @@ sig
   val thms_containing_limit: int ref
   val print_thms_containing: context -> int option -> string list -> unit
   val setup: (theory -> theory) list
+
+  val get_delta: context -> Object.T Symtab.table (* Jia: (claset, simpset) *)
+  val put_delta: Object.T Symtab.table -> context -> context 
+  val get_delta_count_incr: context -> int
+
 end;
 
 signature PRIVATE_PROOF_CONTEXT =
@@ -161,6 +173,7 @@ struct
 
 type exporter = bool -> cterm list -> thm -> thm Seq.seq;
 
+(* note: another field added to context. *)
 datatype context =
   Context of
    {thy: theory,                                              (*current theory*)
@@ -185,17 +198,20 @@ datatype context =
       typ Vartab.table *                                      (*type constraints*)
       sort Vartab.table *                                     (*default sorts*)
       string list *                                           (*used type variables*)
-      term list Symtab.table};                                (*type variable occurrences*)
+      term list Symtab.table,
+      delta: Object.T Symtab.table (* difference between local and global claset and simpset*),
+      delta_count: int ref (* number of local anonymous thms *)
+};                                (*type variable occurrences*)
 
 exception CONTEXT of string * context;
 
 
-fun make_context (thy, syntax, data, asms, binds, thms, cases, defs) =
+fun make_context (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =
   Context {thy = thy, syntax = syntax, data = data, asms = asms, binds = binds,
-    thms = thms, cases = cases, defs = defs};
+    thms = thms, cases = cases, defs = defs, delta = delta, delta_count = delta_count};
 
-fun map_context f (Context {thy, syntax, data, asms, binds, thms, cases, defs}) =
-  make_context (f (thy, syntax, data, asms, binds, thms, cases, defs));
+fun map_context f (Context {thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count}) =
+  make_context (f (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count));
 
 fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
@@ -293,9 +309,30 @@ fun print_data kind ctxt =
 
 fun put_data kind f x ctxt =
  (lookup_data ctxt kind;
-  map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
+  map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta,delta_count) =>
     (thy, syntax, Symtab.update ((Object.name_of_kind kind, f x), data),
-      asms, binds, thms, cases, defs)) ctxt);
+      asms, binds, thms, cases, defs, delta, delta_count)) ctxt);
+
+
+(* added get_delta and put_delta *)
+
+fun get_delta (ctxt as Context {delta, ...}) = delta;
+
+fun get_delta_count (ctxt as Context {delta_count, ...}) = !delta_count;
+
+fun get_delta_count_incr (ctxt as Context {delta_count, ...}) =
+  let val current_delta_count = !delta_count
+  in
+    (delta_count:=(!delta_count)+1;current_delta_count)
+end;
+
+fun incr_delta_count (ctxt as Context {delta_count, ...}) = (delta_count:=(!delta_count)+1);
+
+(* replace the old delta by new delta *)
+(* count not changed! *)
+fun put_delta new_delta ctxt =
+    map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs,delta, delta_count) =>
+    (thy, syntax, data, asms, binds, thms, cases, defs, new_delta,delta_count)) ctxt;
 
 
 (* init context *)
@@ -304,7 +341,7 @@ fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), []), Vartab.empty,
       (false, NameSpace.empty, Symtab.empty, FactIndex.empty), [],
-      (Vartab.empty, Vartab.empty, [], Symtab.empty))
+      (Vartab.empty, Vartab.empty, [], Symtab.empty), Symtab.empty, ref 0)
   end;
 
 
@@ -358,7 +395,7 @@ fun prep_struct (x, _, None) = Some x
 in
 
 fun add_syntax decls =
-  map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs) =>
+  map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs, delta, delta_count) =>
     let
       val is_logtype = Sign.is_logtype (Theory.sign_of thy);
       val structs' = structs @ mapfilter prep_struct decls;
@@ -369,7 +406,7 @@ fun add_syntax decls =
         |> Syntax.extend_const_gram is_logtype ("", false) mxs_output
         |> Syntax.extend_const_gram is_logtype ("", true) mxs
         |> Syntax.extend_trfuns ([], trs, [], []);
-    in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end)
+    in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs, delta, delta_count) end)
 
 fun syn_of (Context {syntax = (syn, structs, _), ...}) =
   syn |> Syntax.extend_trfuns (Syntax.struct_trfuns structs);
@@ -666,8 +703,8 @@ fun ins_skolem def_ty = foldr
       Some T => Vartab.update (((x, ~1), T), types)
     | None => types));
 
-fun map_defaults f = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-  (thy, syntax, data, asms, binds, thms, cases, f defs));
+fun map_defaults f = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
+  (thy, syntax, data, asms, binds, thms, cases, f defs, delta, delta_count));
 
 fun declare_syn (ctxt, t) =
   ctxt
@@ -790,8 +827,8 @@ fun export_standard view inner outer =
 
 fun del_bind (ctxt, xi) =
   ctxt
-  |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-      (thy, syntax, data, asms, Vartab.update ((xi, None), binds), thms, cases, defs));
+  |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
+      (thy, syntax, data, asms, Vartab.update ((xi, None), binds), thms, cases, defs, delta, delta_count));
 
 fun upd_bind (ctxt, ((x, i), t)) =
   let
@@ -802,8 +839,8 @@ fun upd_bind (ctxt, ((x, i), t)) =
   in
     ctxt
     |> declare_term t'
-    |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-      (thy, syntax, data, asms, Vartab.update (((x, i), Some (t', T)), binds), thms, cases, defs))
+    |> map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
+      (thy, syntax, data, asms, Vartab.update (((x, i), Some (t', T)), binds), thms, cases, defs, delta, delta_count))
   end;
 
 fun del_upd_bind (ctxt, (xi, None)) = del_bind (ctxt, xi)
@@ -968,27 +1005,27 @@ val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 fun cond_extern (Context {thms = (_, space, _, _), ...}) = NameSpace.cond_extern space;
 
 fun qualified q = map_context (fn (thy, syntax, data, asms, binds,
-    (_, space, tab, index), cases, defs) =>
-  (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs));
+    (_, space, tab, index), cases, defs, delta, delta_count) =>
+  (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs, delta, delta_count));
 
 fun restore_qualified (Context {thms, ...}) = qualified (#1 thms);
 
 fun hide_thms fully names =
-  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
+  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs, delta, delta_count) =>
     (thy, syntax, data, asms, binds, (q, NameSpace.hide fully (space, names), tab, index),
-      cases, defs));
+      cases, defs, delta, delta_count));
 
 
 (* put_thm(s) *)
 
 fun put_thms ("", _) ctxt = ctxt
   | put_thms (name, ths) ctxt = ctxt |> map_context
-      (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
+      (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs, delta, delta_count) =>
         if not q andalso NameSpace.is_qualified name then
           raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
         else (thy, syntax, data, asms, binds, (q, NameSpace.extend (space, [name]),
           Symtab.update ((name, Some ths), tab),
-            FactIndex.add (is_known ctxt) (index, (name, ths))), cases, defs));
+            FactIndex.add (is_known ctxt) (index, (name, ths))), cases, defs, delta, delta_count));
 
 fun put_thm (name, th) = put_thms (name, [th]);
 
@@ -999,9 +1036,9 @@ fun put_thmss [] ctxt = ctxt
 (* reset_thms *)
 
 fun reset_thms name =
-  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
+  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs, delta, delta_count) =>
     (thy, syntax, data, asms, binds, (q, space, Symtab.update ((name, None), tab), index),
-      cases, defs));
+      cases, defs, delta,delta_count));
 
 
 (* note_thmss *)
@@ -1100,9 +1137,9 @@ fun gen_assms prepp exp args ctxt =
     val asmss = map #2 results;
     val thmss = map #3 results;
     val ctxt3 = ctxt2 |> map_context
-      (fn (thy, syntax, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
+      (fn (thy, syntax, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs, delta, delta_count) =>
         (thy, syntax, data, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
-          cases, defs));
+          cases, defs, delta, delta_count));
     val ctxt4 = ctxt3 |> put_thms ("prems", prems_of ctxt3);
   in (warn_extra_tfrees ctxt ctxt4, thmss) end;
 
@@ -1148,8 +1185,8 @@ end;
 local
 
 fun map_fixes f =
-  map_context (fn (thy, syntax, data, (assumes, fixes), binds, thms, cases, defs) =>
-    (thy, syntax, data, (assumes, f fixes), binds, thms, cases, defs));
+  map_context (fn (thy, syntax, data, (assumes, fixes), binds, thms, cases, defs, delta, delta_count) =>
+    (thy, syntax, data, (assumes, f fixes), binds, thms, cases, defs, delta, delta_count));
 
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
@@ -1241,8 +1278,8 @@ fun get_case (ctxt as Context {cases, ...}) name xs =
   | Some c => prep_case ctxt name xs c);
 
 
-fun add_cases xs = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-  (thy, syntax, data, asms, binds, thms, rev (filter_out (equal "" o #1) xs) @ cases, defs));
+fun add_cases xs = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs, delta, delta_count) =>
+  (thy, syntax, data, asms, binds, thms, rev (filter_out (equal "" o #1) xs) @ cases, defs, delta, delta_count));
 
 
 
