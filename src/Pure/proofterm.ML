@@ -195,13 +195,7 @@ fun infer_derivs f (ora1, prf1) (ora2, prf2) =
    | 0 => MinProof (if_ora ora2 (if_ora ora1 [] prf1) prf2)
    | i => err_illegal_level i);
 
-fun infer_derivs' f (ora, prf) =
-  (ora,
-   case !proofs of
-     2 => f prf
-   | 1 => MinProof (mk_min_proof ([], prf))
-   | 0 => MinProof (if_ora ora [] prf)
-   | i => err_illegal_level i);
+fun infer_derivs' f = infer_derivs (K f) (false, MinProof []);
 
 fun (prf %> t) = prf % Some t;
 
@@ -602,9 +596,9 @@ fun permute_prems_prf prems j k prf =
 
 (***** instantiation *****)
 
-fun instantiate vTs tpairs =
+fun instantiate vTs tpairs prf =
   map_proof_terms (subst_atomic (map (apsnd remove_types) tpairs) o
-    subst_TVars vTs) (typ_subst_TVars vTs);
+    subst_TVars vTs) (typ_subst_TVars vTs) prf;
 
 
 (***** lifting *****)
