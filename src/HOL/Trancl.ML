@@ -1,9 +1,9 @@
-(*  Title:      HOL/trancl
+(*  Title:      HOL/Trancl
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-For trancl.thy.  Theorems about the transitive closure of a relation
+For Trancl.thy.  Theorems about the transitive closure of a relation
 *)
 
 open Trancl;
@@ -208,15 +208,17 @@ qed "trancl_mono";
 
 (** Conversions between trancl and rtrancl **)
 
-val [major] = goalw Trancl.thy [trancl_def]
-    "(a,b) : r^+ ==> (a,b) : r^*";
-by (resolve_tac [major RS compEpair] 1);
+goalw Trancl.thy [trancl_def]
+    "!!p. p : r^+ ==> p : r^*";
+by (split_all_tac 1);
+by (etac compEpair 1);
 by (REPEAT (ares_tac [rtrancl_into_rtrancl] 1));
 qed "trancl_into_rtrancl";
 
 (*r^+ contains r*)
-val [prem] = goalw Trancl.thy [trancl_def]
-   "[| (a,b) : r |] ==> (a,b) : r^+";
+goalw Trancl.thy [trancl_def]
+   "!!p. p : r ==> p : r^+";
+by (split_all_tac 1);
 by (REPEAT (ares_tac [prem,compI,rtrancl_refl] 1));
 qed "r_into_trancl";
 
@@ -305,9 +307,17 @@ qed "trancl_insert";
 
 goalw Trancl.thy [trancl_def] "(r^-1)^+ = (r^+)^-1";
 by (simp_tac (simpset() addsimps [rtrancl_converse,converse_comp]) 1);
-by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,r_comp_rtrancl_eq]) 1);
+by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,r_comp_rtrancl_eq])1);
 qed "trancl_converse";
 
+val irrefl_tranclI = prove_goal Trancl.thy 
+	"!!r. r^-1 Int r^+ = {} ==> !x. (x, x) ~: r^+" (K [
+	rtac allI 1,
+	subgoal_tac "!y. (x, y) : r^+ --> x~=y" 1,
+	 Fast_tac 1,
+	strip_tac 1,
+	etac trancl_induct 1,
+	 auto_tac (claset() addEs [equals0D, r_into_trancl], simpset())]);
 
 val major::prems = goal Trancl.thy
     "[| (a,b) : r^*;  r <= A Times A |] ==> a=b | a:A";
@@ -322,3 +332,37 @@ goalw Trancl.thy [trancl_def]
 by (blast_tac (claset() addSDs [lemma]) 1);
 qed "trancl_subset_Sigma";
 
+
+goal Trancl.thy "(r^+)^= = r^*";
+by Safe_tac;
+by  (etac trancl_into_rtrancl 1);
+by (split_all_tac 1);
+by (etac rtranclE 1);
+auto();
+by (etac rtrancl_into_trancl1 1);
+ba 1;
+qed "reflcl_trancl";
+Addsimps[reflcl_trancl];
+
+goal Trancl.thy "(r^=)^+ = r^*";
+by Safe_tac;
+by  (dtac trancl_into_rtrancl 1);
+by  (Asm_full_simp_tac 1);
+by (split_all_tac 1);
+by (etac rtranclE 1);
+by  Safe_tac;
+by  (rtac r_into_trancl 1);
+by  (Simp_tac 1);
+by (rtac rtrancl_into_trancl1 1);
+by (etac (rtrancl_reflcl RS equalityD2 RS subsetD) 1);
+by (Fast_tac 1);
+qed "trancl_reflcl";
+Addsimps[trancl_reflcl];
+
+qed_goal "trancl_empty" Trancl.thy "{}^+ = {}" 
+  (K [auto_tac (claset() addEs [trancl_induct], simpset())]);
+Addsimps[trancl_empty];
+
+qed_goal "rtrancl_empty" Trancl.thy "{}^* = id" 
+  (K [rtac (reflcl_trancl RS subst) 1, Simp_tac 1]);
+Addsimps[rtrancl_empty];
