@@ -96,7 +96,7 @@ Goal "(is_exec_fragC A`(pr>>xs)) s = \
 \                andalso (is_exec_fragC A`xs)(snd pr))";
 by (rtac trans 1);
 by (stac is_exec_fragC_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
 by (Simp_tac 1);
 qed"is_exec_fragC_cons";
 

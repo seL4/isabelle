@@ -45,7 +45,7 @@ Goal "(corresp_exC A f`(at>>xs)) s = \
 \          @@ ((corresp_exC A f`xs) (snd at))";
 by (rtac trans 1);
 by (stac corresp_exC_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
 by (Simp_tac 1);
 qed"corresp_exC_cons";
 

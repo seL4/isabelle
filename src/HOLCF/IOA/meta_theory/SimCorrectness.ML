@@ -50,7 +50,7 @@ Goal "(corresp_ex_simC A R`((a,t)>>xs)) s = \
 \             @@ ((corresp_ex_simC A R`xs) T'))";
 by (rtac trans 1);
 by (stac corresp_ex_simC_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
 by (Simp_tac 1);
 qed"corresp_ex_simC_cons";
 

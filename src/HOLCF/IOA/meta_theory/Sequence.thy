@@ -15,7 +15,7 @@ types 'a Seq = ('a::term lift)seq
 
 consts
 
-  Cons             ::"'a            => 'a Seq -> 'a Seq"
+  Consq            ::"'a            => 'a Seq -> 'a Seq"
   Filter           ::"('a => bool)  => 'a Seq -> 'a Seq"
   Map              ::"('a => 'b)    => 'a Seq -> 'b Seq"
   Forall           ::"('a => bool)  => 'a Seq => bool"
@@ -29,7 +29,7 @@ consts
 
 syntax
 
- "@Cons"     ::"'a => 'a Seq => 'a Seq"       ("(_/>>_)"  [66,65] 65)
+ "@Consq"         ::"'a => 'a Seq => 'a Seq"       ("(_/>>_)"  [66,65] 65)
  (* list Enumeration *)
   "_totlist"      :: args => 'a Seq                          ("[(_)!]")
   "_partlist"     :: args => 'a Seq                          ("[(_)?]")
@@ -37,12 +37,12 @@ syntax
 
 syntax (symbols)
 
- "@Cons"     ::"'a => 'a Seq => 'a Seq"       ("(_\\<leadsto>_)"  [66,65] 65)
+ "@Consq"     ::"'a => 'a Seq => 'a Seq"       ("(_\\<leadsto>_)"  [66,65] 65)
  
 
 translations
 
-  "a>>s" == "Cons a`s"
+  "a>>s"         == "Consq a`s"
   "[x, xs!]"     == "x>>[xs!]"
   "[x!]"         == "x>>nil"
   "[x, xs?]"     == "x>>[xs?]"
@@ -51,7 +51,7 @@ translations
 defs
 
 
-Cons_def      "Cons a == LAM s. Def a ## s"
+Consq_def     "Consq a == LAM s. Def a ## s"
 
 Filter_def    "Filter P == sfilter`(flift2 P)"
 

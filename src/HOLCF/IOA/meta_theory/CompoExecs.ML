@@ -110,7 +110,7 @@ Goal "(stutter2 sig`(at>>xs)) s = \
 \                andalso (stutter2 sig`xs) (snd at))"; 
 by (rtac trans 1);
 by (stac stutter2_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def,If_and_if]) 1);
 by (Simp_tac 1);
 qed"stutter2_cons";
 

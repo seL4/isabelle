@@ -49,8 +49,8 @@ Goal "oraclebuild P`s`(x>>t) = \
 \          @@ (x>>(oraclebuild P`(TL`(Dropwhile (%a.~ P a)`s))`t))";     
 by (rtac trans 1);
 by (stac oraclebuild_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"oraclebuild_cons";
 
 

@@ -71,8 +71,8 @@ Goal "[| x:act A; x~:act B; HD`exA=Def a|] \
 \       (x,snd a,t) >> (mkex2 A B`sch`(TL`exA)`exB) (snd a) t";
 by (rtac trans 1);
 by (stac mkex2_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"mkex2_cons_1";
 
 Goal "[| x~:act A; x:act B; HD`exB=Def b|] \
@@ -80,8 +80,8 @@ Goal "[| x~:act A; x:act B; HD`exB=Def b|] \
 \       (x,s,snd b) >> (mkex2 A B`sch`exA`(TL`exB)) s (snd b)";
 by (rtac trans 1);
 by (stac mkex2_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"mkex2_cons_2";
 
 Goal "[| x:act A; x:act B; HD`exA=Def a;HD`exB=Def b|] \
@@ -90,8 +90,8 @@ Goal "[| x:act A; x:act B; HD`exA=Def a;HD`exB=Def b|] \
 \           (mkex2 A B`sch`(TL`exA)`(TL`exB)) (snd a) (snd b)";
 by (rtac trans 1);
 by (stac mkex2_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,If_and_if]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"mkex2_cons_3";
 
 Addsimps [mkex2_UU,mkex2_nil,mkex2_cons_1,mkex2_cons_2,mkex2_cons_3];

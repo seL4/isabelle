@@ -67,8 +67,8 @@ Goal "[|x:act A;x~:act B|]  \
 \                             `schB))";
 by (rtac trans 1);
 by (stac mksch_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,If_and_if]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"mksch_cons1";
 
 Goal "[|x~:act A;x:act B|] \
@@ -78,8 +78,8 @@ Goal "[|x~:act A;x:act B|] \
 \                            ))";
 by (rtac trans 1);
 by (stac mksch_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,If_and_if]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"mksch_cons2";
 
 Goal "[|x:act A;x:act B|] \
@@ -91,8 +91,8 @@ Goal "[|x:act A;x:act B|] \
 \             )";
 by (rtac trans 1);
 by (stac mksch_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,If_and_if]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"mksch_cons3";
 
 val compotr_simps =[mksch_UU,mksch_nil, mksch_cons1,mksch_cons2,mksch_cons3];

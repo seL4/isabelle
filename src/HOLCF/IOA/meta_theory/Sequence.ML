@@ -27,7 +27,7 @@ by (simp_tac (simpset() addsimps [Map_def]) 1);
 qed"Map_nil";
 
 Goal "Map f`(x>>xs)=(f x) >> Map f`xs";
-by (simp_tac (simpset() addsimps [Map_def, Cons_def,flift2_def]) 1);
+by (simp_tac (simpset() addsimps [Map_def, Consq_def,flift2_def]) 1);
 qed"Map_cons";
 
 (* ---------------------------------------------------------------- *)
@@ -43,7 +43,7 @@ by (simp_tac (simpset() addsimps [Filter_def]) 1);
 qed"Filter_nil";
 
 Goal "Filter P`(x>>xs)= (if P x then x>>(Filter P`xs) else Filter P`xs)"; 
-by (simp_tac (simpset() addsimps [Filter_def, Cons_def,flift2_def,If_and_if]) 1);
+by (simp_tac (simpset() addsimps [Filter_def, Consq_def,flift2_def,If_and_if]) 1);
 qed"Filter_cons";
 
 (* ---------------------------------------------------------------- *)
@@ -60,7 +60,7 @@ qed"Forall_nil";
 
 Goal "Forall P (x>>xs)= (P x & Forall P xs)";
 by (simp_tac (simpset() addsimps [Forall_def, sforall_def,
-                                 Cons_def,flift2_def]) 1);
+                                 Consq_def,flift2_def]) 1);
 qed"Forall_cons";
 
 (* ---------------------------------------------------------------- *)
@@ -69,7 +69,7 @@ qed"Forall_cons";
 
 
 Goal "(x>>xs) @@ y = x>>(xs @@y)"; 
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Conc_cons";
 
 (* ---------------------------------------------------------------- *)
@@ -85,7 +85,7 @@ by (simp_tac (simpset() addsimps [Takewhile_def]) 1);
 qed"Takewhile_nil";
 
 Goal "Takewhile P`(x>>xs)= (if P x then x>>(Takewhile P`xs) else nil)"; 
-by (simp_tac (simpset() addsimps [Takewhile_def, Cons_def,flift2_def,If_and_if]) 1);
+by (simp_tac (simpset() addsimps [Takewhile_def, Consq_def,flift2_def,If_and_if]) 1);
 qed"Takewhile_cons";
 
 (* ---------------------------------------------------------------- *)
@@ -101,7 +101,7 @@ by (simp_tac (simpset() addsimps [Dropwhile_def]) 1);
 qed"Dropwhile_nil";
 
 Goal "Dropwhile P`(x>>xs)= (if P x then Dropwhile P`xs else x>>xs)"; 
-by (simp_tac (simpset() addsimps [Dropwhile_def, Cons_def,flift2_def,If_and_if]) 1);
+by (simp_tac (simpset() addsimps [Dropwhile_def, Consq_def,flift2_def,If_and_if]) 1);
 qed"Dropwhile_cons";
 
 (* ---------------------------------------------------------------- *)
@@ -118,7 +118,7 @@ by (simp_tac (simpset() addsimps [Last_def]) 1);
 qed"Last_nil";
 
 Goal "Last`(x>>xs)= (if xs=nil then Def x else Last`xs)"; 
-by (simp_tac (simpset() addsimps [Last_def, Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Last_def, Consq_def]) 1);
 by (res_inst_tac [("x","xs")] seq.casedist 1);
 by (Asm_simp_tac 1);
 by (REPEAT (Asm_simp_tac 1));
@@ -138,7 +138,7 @@ by (simp_tac (simpset() addsimps [Flat_def]) 1);
 qed"Flat_nil";
 
 Goal "Flat`(x##xs)= x @@ (Flat`xs)"; 
-by (simp_tac (simpset() addsimps [Flat_def, Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Flat_def, Consq_def]) 1);
 qed"Flat_cons";
 
 
@@ -181,14 +181,14 @@ qed"Zip_nil";
 
 Goal "Zip`(x>>xs)`nil= UU"; 
 by (stac Zip_unfold 1);
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Zip_cons_nil";
 
 Goal "Zip`(x>>xs)`(y>>ys)= (x,y) >> Zip`xs`ys"; 
 by (rtac trans 1);
 by (stac Zip_unfold 1);
 by (Simp_tac 1);
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Zip_cons";
 
 
@@ -219,11 +219,11 @@ Addsimps [Filter_UU,Filter_nil,Filter_cons,
 section "Cons";
 
 Goal "a>>s = (Def a)##s";
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
-qed"Cons_def2";
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
+qed"Consq_def2";
 
 Goal "x = UU | x = nil | (? a s. x = a >> s)";
-by (simp_tac (simpset() addsimps [Cons_def2]) 1);
+by (simp_tac (simpset() addsimps [Consq_def2]) 1);
 by (cut_facts_tac [seq.exhaust] 1);
 by (fast_tac (HOL_cs addDs [not_Undef_is_Def RS iffD1]) 1);
 qed"Seq_exhaust";
@@ -248,7 +248,7 @@ fun Seq_case_simp_tac s i = Seq_case_tac s i THEN Asm_simp_tac (i+2)
                                              THEN Asm_full_simp_tac i;
 
 Goal "a>>s ~= UU";
-by (stac Cons_def2 1);
+by (stac Consq_def2 1);
 by (resolve_tac seq.con_rews 1);
 by (rtac Def_not_UU 1);
 qed"Cons_not_UU";
@@ -262,22 +262,22 @@ by (asm_full_simp_tac (simpset() addsimps [Cons_not_UU]) 1);
 qed"Cons_not_less_UU";
 
 Goal "~a>>s << nil";
-by (stac Cons_def2 1);
+by (stac Consq_def2 1);
 by (resolve_tac seq.rews 1);
 by (rtac Def_not_UU 1);
 qed"Cons_not_less_nil";
 
 Goal "a>>s ~= nil";
-by (stac Cons_def2 1);
+by (stac Consq_def2 1);
 by (resolve_tac seq.rews 1);
 qed"Cons_not_nil";
 
 Goal "nil ~= a>>s";
-by (simp_tac (simpset() addsimps [Cons_def2]) 1);
+by (simp_tac (simpset() addsimps [Consq_def2]) 1);
 qed"Cons_not_nil2";
 
 Goal "(a>>s = b>>t) = (a = b & s = t)";
-by (simp_tac (HOL_ss addsimps [Cons_def2]) 1);
+by (simp_tac (HOL_ss addsimps [Consq_def2]) 1);
 by (stac (hd lift.inject RS sym) 1);
 back(); back();
 by (rtac scons_inject_eq 1);
@@ -285,7 +285,7 @@ by (REPEAT(rtac Def_not_UU 1));
 qed"Cons_inject_eq";
 
 Goal "(a>>s<<b>>t) = (a = b & s<<t)";
-by (simp_tac (simpset() addsimps [Cons_def2]) 1);
+by (simp_tac (simpset() addsimps [Consq_def2]) 1);
 by (stac (Def_inject_less_eq RS sym) 1);
 back();
 by (rtac iffI 1);
@@ -299,7 +299,7 @@ by (etac monofun_cfun_arg 1);
 qed"Cons_inject_less_eq";
 
 Goal "seq_take (Suc n)`(a>>x) = a>> (seq_take n`x)";
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"seq_take_Cons";
 
 Addsimps [Cons_not_nil2,Cons_inject_eq,Cons_inject_less_eq,seq_take_Cons,
@@ -322,7 +322,7 @@ Goal "!! P. [| adm P; P UU; P nil; !! a s. P s ==> P (a>>s)|] ==> P x";
 by (etac seq.ind 1);
 by (REPEAT (atac 1));
 by (def_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Seq_induct";
 
 Goal "!! P.[|P UU;P nil; !! a s. P s ==> P(a>>s) |]  \
@@ -330,14 +330,14 @@ Goal "!! P.[|P UU;P nil; !! a s. P s ==> P(a>>s) |]  \
 by (etac seq_finite_ind 1);
 by (REPEAT (atac 1));
 by (def_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Seq_FinitePartial_ind";
 
 Goal "!! P.[| Finite x; P nil; !! a s. [| Finite s; P s|] ==> P (a>>s) |] ==> P x";
 by (etac sfinite.induct 1);
 by (assume_tac 1);
 by (def_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"Seq_Finite_ind"; 
 
 
@@ -366,11 +366,11 @@ fun pair_induct_tac s rws i =
 section "HD,TL";
 
 Goal "HD`(x>>y) = Def x";
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"HD_Cons";
 
 Goal "TL`(x>>y) = y";
-by (simp_tac (simpset() addsimps [Cons_def]) 1);
+by (simp_tac (simpset() addsimps [Consq_def]) 1);
 qed"TL_Cons";
 
 Addsimps [HD_Cons,TL_Cons];
@@ -380,7 +380,7 @@ Addsimps [HD_Cons,TL_Cons];
 section "Finite, Partial, Infinite";
 
 Goal "Finite (a>>xs) = Finite xs";
-by (simp_tac (simpset() addsimps [Cons_def2,Finite_cons]) 1);
+by (simp_tac (simpset() addsimps [Consq_def2,Finite_cons]) 1);
 qed"Finite_Cons";
 
 Addsimps [Finite_Cons];

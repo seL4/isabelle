@@ -44,8 +44,8 @@ Goal "(ex2seqC `((a,t)>>xs)) s = \
 \          (s,Some a,t)>> ((ex2seqC`xs) t)";
 by (rtac trans 1);
 by (stac ex2seqC_unfold 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Cons_def,flift1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Consq_def,flift1_def]) 1);
 qed"ex2seqC_cons";
 
 Addsimps [ex2seqC_UU,ex2seqC_nil,ex2seqC_cons];
