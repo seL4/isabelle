@@ -7,22 +7,22 @@ description of higher-order logic.  Gordon's work has demonstrated that
 higher-order logic is useful for hardware verification; beyond this, it is
 widely applicable in many areas of mathematics.  It is weaker than {\ZF}
 set theory but for most applications this does not matter.  If you prefer
-{\ML} to Lisp, you will probably prefer {\HOL} to~{\ZF}.
+{\ML} to Lisp, you will probably prefer \HOL\ to~{\ZF}.
 
 Previous releases of Isabelle included a completely different version
-of~{\HOL}, with explicit type inference rules~\cite{paulson-COLOG}.  This
+of~\HOL, with explicit type inference rules~\cite{paulson-COLOG}.  This
 version no longer exists, but \ttindex{ZF} supports a similar style of
 reasoning.
 
-{\HOL} has a distinct feel, compared with {\ZF} and {\CTT}.  It
+\HOL\ has a distinct feel, compared with {\ZF} and {\CTT}.  It
 identifies object-level types with meta-level types, taking advantage of
 Isabelle's built-in type checker.  It identifies object-level functions
 with meta-level functions, so it uses Isabelle's operations for abstraction
 and application.  There is no ``apply'' operator: function applications are
 written as simply~$f(a)$ rather than $f{\tt`}a$.
 
-These identifications allow Isabelle to support {\HOL} particularly nicely,
-but they also mean that {\HOL} requires more sophistication from the user
+These identifications allow Isabelle to support \HOL\ particularly nicely,
+but they also mean that \HOL\ requires more sophistication from the user
 --- in particular, an understanding of Isabelle's type system.  Beginners
 should gain experience by working in first-order logic, before attempting
 to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
@@ -37,35 +37,39 @@ to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
   \idx{True}    & $bool$                        & tautology ($\top$) \\
   \idx{False}   & $bool$                        & absurdity ($\bot$) \\
   \idx{if}      & $[bool,\alpha,\alpha]\To\alpha::term$ & conditional \\
-  \idx{Inv}     & $(\alpha\To\beta)\To(\beta\To\alpha)$ & function inversion
+  \idx{Inv}     & $(\alpha\To\beta)\To(\beta\To\alpha)$ & function inversion\\
+  \idx{Let}     & $[\alpha,\alpha\To\beta]\To\beta$ & let binder
 \end{tabular}
 \end{center}
 \subcaption{Constants}
 
-\index{"@@{\tt\at}}
 \begin{center}
+\index{"@@{\tt\at}|bold}
+\index{*"!|bold}
+\index{*"?"!|bold}
 \begin{tabular}{llrrr} 
   \it symbol &\it name     &\it meta-type & \it prec & \it description \\
-  \tt\at   & \idx{Eps}  & $(\alpha\To bool)\To\alpha::term$ & 10 & 
+  \tt\at & \idx{Eps}  & $(\alpha\To bool)\To\alpha::term$ & 10 & 
         Hilbert description ($\epsilon$) \\
-  \idx{!}  & \idx{All}  & $(\alpha::term\To bool)\To bool$ & 10 & 
+  \tt!  & \idx{All}  & $(\alpha::term\To bool)\To bool$ & 10 & 
         universal quantifier ($\forall$) \\
   \idx{?}  & \idx{Ex}   & $(\alpha::term\To bool)\To bool$ & 10 & 
         existential quantifier ($\exists$) \\
-  \idx{?!} & \idx{Ex1}  & $(\alpha::term\To bool)\To bool$ & 10 & 
+  \tt?! & \idx{Ex1}  & $(\alpha::term\To bool)\To bool$ & 10 & 
         unique existence ($\exists!$)
 \end{tabular}
 \end{center}
 \subcaption{Binders} 
 
 \begin{center}
+\index{*"E"X"!|bold}
 \begin{tabular}{llrrr} 
   \it symbol &\it name     &\it meta-type & \it prec & \it description \\
   \idx{ALL}  & \idx{All}  & $(\alpha::term\To bool)\To bool$ & 10 & 
         universal quantifier ($\forall$) \\
   \idx{EX}   & \idx{Ex}   & $(\alpha::term\To bool)\To bool$ & 10 & 
         existential quantifier ($\exists$) \\
-  \idx{EX!}  & \idx{Ex1}  & $(\alpha::term\To bool)\To bool$ & 10 & 
+  \tt EX!   & \idx{Ex1}  & $(\alpha::term\To bool)\To bool$ & 10 & 
         unique existence ($\exists!$)
 \end{tabular}
 \end{center}
@@ -94,11 +98,14 @@ to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
 \end{figure}
 
 
-\begin{figure} 
+\begin{figure}
+\indexbold{*let}
+\indexbold{*in}
 \dquotes
 \[\begin{array}{rcl}
     term & = & \hbox{expression of class~$term$} \\
-         & | & "\at~~" id~id^* " . " formula \\[2ex]
+         & | & "\at~~" id~id^* " . " formula \\
+         & | & "let"~id~"="~term";"\dots";"~id~"="~term~"in"~term \\[2ex]
  formula & = & \hbox{expression of type~$bool$} \\
          & | & term " = " term \\
          & | & term " \ttilde= " term \\
@@ -117,7 +124,7 @@ to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
   \end{array}
 \]
 \subcaption{Grammar}
-\caption{Full grammar for {\HOL}} \label{hol-grammar}
+\caption{Full grammar for \HOL} \label{hol-grammar}
 \end{figure} 
 
 
@@ -145,7 +152,7 @@ The type of formulae, {\it bool} belongs to class {\it term}; thus,
 formulae are terms.  The built-in type~$fun$, which constructs function
 types, is overloaded such that $\sigma\To\tau$ belongs to class~$term$ if
 $\sigma$ and~$\tau$ do; this allows quantification over functions.  Types
-in {\HOL} must be non-empty; otherwise the quantifier rules would be
+in \HOL\ must be non-empty; otherwise the quantifier rules would be
 unsound~\cite[\S7]{paulson-COLOG}.
 
 Gordon's {\sc hol} system supports {\bf type definitions}.  A type is
@@ -166,7 +173,7 @@ not checked.
 
 \subsection{Binders}
 Hilbert's {\bf description} operator~$\epsilon x.P[x]$ stands for some~$a$
-satisfying~$P[a]$, if such exists.  Since all terms in {\HOL} denote
+satisfying~$P[a]$, if such exists.  Since all terms in \HOL\ denote
 something, a description is always meaningful, but we do not know its value
 unless $P[x]$ defines it uniquely.  We may write descriptions as
 \ttindexbold{Eps}($P$) or use the syntax
@@ -180,7 +187,7 @@ $\exists!x. \exists!y.P(x,y)$; note that this does not mean that there
 exists a unique pair $(x,y)$ satisfying~$P(x,y)$.
 
 \index{*"!}\index{*"?}
-Quantifiers have two notations.  As in Gordon's {\sc hol} system, {\HOL}
+Quantifiers have two notations.  As in Gordon's {\sc hol} system, \HOL\
 uses~{\tt!}\ and~{\tt?}\ to stand for $\forall$ and $\exists$.  The
 existential quantifier must be followed by a space; thus {\tt?x} is an
 unknown, while \verb'? x.f(x)=y' is a quantification.  Isabelle's usual
@@ -199,7 +206,21 @@ display \hbox{\tt \at $x$.\at $y$.$P[x,y]$} as
 \hbox{\tt \at $x\,y$.$P[x,y]$}.
 \end{warn}
 
-\begin{figure} 
+\subsection{\idx{let} and \idx{case}}
+Local abbreviations can be introduced via a \ttindex{let}-construct whose
+syntax is shown in Fig.~\ref{hol-grammar}. Internally it is translated into
+the constant \ttindex{Let} and can be expanded by rewriting with its
+definition \ttindex{Let_def}.
+
+\HOL\ also defines the basic syntax {\dquotes$"case"~e~"of"~c@1~"=>"~e@1~"|"
+  \dots "|"~c@n~"=>"~e@n$} for {\tt case}-constructs, which means that {\tt
+  case} and \ttindex{of} are reserved words. However, so far this is mere
+syntax and has no logical meaning. In order to be useful it needs to be
+filled with life by translating certain case constructs into meaningful
+terms. For an example see the case construct for the type of lists below.
+
+
+\begin{figure}
 \begin{ttbox}\makeatother
 \idx{refl}           t = t::'a
 \idx{subst}          [| s=t; P(s) |] ==> P(t::'a)
@@ -224,6 +245,7 @@ display \hbox{\tt \at $x$.\at $y$.$P[x,y]$} as
 \idx{Inv_def}   Inv  = (\%(f::'a=>'b) y. @x. f(x)=y)
 \idx{o_def}     op o = (\%(f::'b=>'c) g (x::'a). f(g(x)))
 \idx{if_def}    if   = (\%P x y.@z::'a.(P=True --> z=x) & (P=False --> z=y))
+\idx{Let_def}   Let(s,f) = f(s)
 \subcaption{Further definitions}
 \end{ttbox}
 \caption{Rules of {\tt HOL}} \label{hol-rules}
@@ -267,7 +289,7 @@ display \hbox{\tt \at $x$.\at $y$.$P[x,y]$} as
 \subcaption{Logical equivalence}
 
 \end{ttbox}
-\caption{Derived rules for {\HOL}} \label{hol-lemmas1}
+\caption{Derived rules for \HOL} \label{hol-lemmas1}
 \end{figure}
 
 
@@ -358,7 +380,7 @@ see Paulson~\cite{paulson-COLOG} for details.}
 \end{description}
 
 \begin{warn}
-{\HOL} has no if-and-only-if connective; logical equivalence is expressed
+\HOL\ has no if-and-only-if connective; logical equivalence is expressed
 using equality.  But equality has a high precedence, as befitting a
 relation, while if-and-only-if typically has the lowest precedence.  Thus,
 $\neg\neg P=P$ abbreviates $\neg\neg (P=P)$ and not $(\neg\neg P)=P$.  When
@@ -381,11 +403,11 @@ derived rules.
 
 
 \section{Generic packages}
-{\HOL} instantiates most of Isabelle's generic packages;
+\HOL\ instantiates most of Isabelle's generic packages;
 see {\tt HOL/ROOT.ML} for details.
 \begin{itemize}
 \item 
-Because it includes a general substitution rule, {\HOL} instantiates the
+Because it includes a general substitution rule, \HOL\ instantiates the
 tactic \ttindex{hyp_subst_tac}, which substitutes for an equality
 throughout a subgoal and its hypotheses.
 \item 
@@ -464,12 +486,13 @@ for details.
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
-\caption{Syntax of {\HOL}'s set theory} \label{hol-set-syntax}
+\caption{Syntax of \HOL's set theory} \label{hol-set-syntax}
 \end{figure} 
 
 
 \begin{figure} 
 \begin{center} \tt\frenchspacing
+\index{*"!|bold}
 \begin{tabular}{rrr} 
   \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
@@ -481,7 +504,7 @@ for details.
         \rm intersection over a set \\
   \idx{UN}  $x$:$A$.$B[x]$      & UNION($A$,$\lambda x.B[x]$) &
         \rm union over a set \\
-  \idx{!} $x$:$A$.$P[x]$        & Ball($A$,$\lambda x.P[x]$) & 
+  \tt ! $x$:$A$.$P[x]$        & Ball($A$,$\lambda x.P[x]$) & 
         \rm bounded $\forall$ \\
   \idx{?} $x$:$A$.$P[x]$        & Bex($A$,$\lambda x.P[x]$) & 
         \rm bounded $\exists$ \\[1ex]
@@ -517,7 +540,7 @@ for details.
   \end{array}
 \]
 \subcaption{Full Grammar}
-\caption{Syntax of {\HOL}'s set theory (continued)} \label{hol-set-syntax2}
+\caption{Syntax of \HOL's set theory (continued)} \label{hol-set-syntax2}
 \end{figure} 
 
 
@@ -550,7 +573,7 @@ for details.
 \idx{inj_onto_def}      inj_onto(f,A) == !x:A. !y:A. f(x)=f(y) --> x=y
 \subcaption{Definitions}
 \end{ttbox}
-\caption{Rules of {\HOL}'s set theory} \label{hol-set-rules}
+\caption{Rules of \HOL's set theory} \label{hol-set-rules}
 \end{figure}
 
 
@@ -650,8 +673,8 @@ may be defined by absolute comprehension.
 Although sets may contain other sets as elements, the containing set must
 have a more complex type.
 \end{itemize}
-Finite unions and intersections have the same behaviour in {\HOL} as they
-do in~{\ZF}.  In {\HOL} the intersection of the empty set is well-defined,
+Finite unions and intersections have the same behaviour in \HOL\ as they
+do in~{\ZF}.  In \HOL\ the intersection of the empty set is well-defined,
 denoting the universal set for the given type.
 
 \subsection{Syntax of set theory}
@@ -715,7 +738,7 @@ All the other axioms are definitions; see Fig.\ts \ref{hol-set-rules}.
 These include straightforward properties of functions: image~({\tt``}) and
 {\tt range}, and predicates concerning monotonicity, injectiveness, etc.
 
-{\HOL}'s set theory has the {\ML} identifier \ttindexbold{Set.thy}.
+\HOL's set theory has the {\ML} identifier \ttindexbold{Set.thy}.
 
 \begin{figure} \underscoreon
 \begin{ttbox}
@@ -876,15 +899,15 @@ Figure~\ref{hol-equalities} presents set equalities.  See
   \it name      &\it meta-type  & \it description \\ 
   \idx{Inl}     & $\alpha \To \alpha+\beta$                     & first injection\\
   \idx{Inr}     & $\beta \To \alpha+\beta$                      & second injection\\
-  \idx{case}    & $[\alpha+\beta, \alpha\To\gamma, \beta\To\gamma] \To\gamma$
+  \idx{sum_case}    & $[\alpha+\beta, \alpha\To\gamma, \beta\To\gamma] \To\gamma$
         & conditional
 \end{tabular}
 \end{center}
 \subcaption{Constants}
 
 \begin{ttbox}\makeatletter
-\idx{case_def}     case == (\%p f g. @z. (!x. p=Inl(x) --> z=f(x)) &
-                                  (!y. p=Inr(y) --> z=g(y)))
+\idx{sum_case_def}     sum_case == (\%p f g. @z. (!x. p=Inl(x) --> z=f(x)) &
+                                          (!y. p=Inr(y) --> z=g(y)))
 \subcaption{Definition}
 
 \idx{Inl_not_Inr}    ~ Inl(a)=Inr(b)
@@ -894,10 +917,10 @@ Figure~\ref{hol-equalities} presents set equalities.  See
 
 \idx{sumE}           [| !!x::'a. P(Inl(x));  !!y::'b. P(Inr(y)) |] ==> P(s)
 
-\idx{case_Inl}       case(Inl(x), f, g) = f(x)
-\idx{case_Inr}       case(Inr(x), f, g) = g(x)
+\idx{sum_case_Inl}   sum_case(Inl(x), f, g) = f(x)
+\idx{sum_case_Inr}   sum_case(Inr(x), f, g) = g(x)
 
-\idx{surjective_sum} case(s, %x::'a. f(Inl(x)), %y::'b. f(Inr(y))) = f(s)
+\idx{surjective_sum} sum_case(s, %x::'a. f(Inl(x)), %y::'b. f(Inr(y))) = f(s)
 \subcaption{Derived rules}
 \end{ttbox}
 \caption{Rules for type $\alpha+\beta$} 
@@ -912,7 +935,7 @@ Space does not permit a detailed discussion.  The present section describes
 product, sum, natural number and list types.
 
 \subsection{Product and sum types}
-{\HOL} defines the product type $\alpha\times\beta$ and the sum type
+\HOL\ defines the product type $\alpha\times\beta$ and the sum type
 $\alpha+\beta$, with the ordered pair syntax {\tt<$a$,$b$>}, using fairly
 standard constructions (Figs.~\ref{hol-prod} and~\ref{hol-sum}).  Because
 Isabelle does not support abstract type definitions, the isomorphisms
@@ -1016,7 +1039,7 @@ proved using \ttindex{select_equality}.  See {\tt HOL/prod.thy} and
 
 
 \subsection{The type of natural numbers, $nat$}
-{\HOL} defines the natural numbers in a roundabout but traditional way.
+\HOL\ defines the natural numbers in a roundabout but traditional way.
 The axiom of infinity postulates an type~$ind$ of individuals, which is
 non-empty and closed under an injective operation.  The natural numbers are
 inductively generated by choosing an arbitrary individual for~0 and using
@@ -1032,7 +1055,7 @@ details.  The definition of~$nat$ resides on {\tt HOL/nat.thy}.
 Type $nat$ is postulated to belong to class~$ord$, which overloads $<$ and
 $\leq$ on the natural numbers.  As of this writing, Isabelle provides no
 means of verifying that such overloading is sensible.  On the other hand,
-the {\HOL} theory includes no polymorphic axioms stating general properties
+the \HOL\ theory includes no polymorphic axioms stating general properties
 of $<$ and $\leq$.
 
 File {\tt HOL/arith.ML} develops arithmetic on the natural numbers.
@@ -1047,52 +1070,93 @@ development.  The predecessor relation, \ttindexbold{pred_nat}, is shown to
 be well-founded; recursion along this relation is primitive recursion,
 while its transitive closure is~$<$.
 
-
 \begin{figure}
 \begin{center}
 \begin{tabular}{rrr} 
   \it symbol    & \it meta-type & \it description \\ 
-  \idx{Nil}     & $\alpha list$ & the empty list\\
-  \idx{Cons}    & $[\alpha, \alpha list] \To \alpha list$
-        & list constructor\\
+  \idx{Nil}     & $\alpha list$ & empty list\\
+  \idx{null}    & $\alpha list \To bool$ & emptyness test\\
+  \idx{hd}      & $\alpha list \To \alpha$ & head \\
+  \idx{tl}      & $\alpha list \To \alpha list$ & tail \\
+  \idx{ttl}     & $\alpha list \To \alpha list$ & total tail \\
+  \idx{map}     & $(\alpha\To\beta) \To (\alpha list \To \beta list)$
+        & mapping functional\\
+  \idx{list_all}& $(\alpha \To bool) \To (\alpha list \To bool)$
+        & forall functional\\
+  \idx{filter}  & $(\alpha \To bool) \To (\alpha list \To \alpha list)$
+        & filter functional\\
   \idx{list_rec}        & $[\alpha list, \beta, [\alpha ,\alpha list,
 \beta]\To\beta] \To \beta$
-        & list recursor\\
-  \idx{map}     & $(\alpha\To\beta) \To (\alpha list \To \beta list)$
-        & mapping functional
+        & list recursor
 \end{tabular}
 \end{center}
-\subcaption{Constants}
+
+\begin{center}
+\index{"# @{\tt\#}|bold}
+\index{"@@{\tt\at}|bold}
+\begin{tabular}{rrrr} 
+  \it symbol & \it meta-type & \it precedence & \it description \\
+  \tt \#   & $[\alpha,\alpha list]\To \alpha list$ & Right 65 & cons \\
+  \tt\at  & $[\alpha list,\alpha list]\To \alpha list$ & Left 65 & append \\
+  \idx{mem}  & $[\alpha,\alpha list]\To bool$    &  Left 55   & membership
+\end{tabular}
+\end{center}
+\subcaption{Constants and infixes}
+
+\begin{center} \tt\frenchspacing
+\begin{tabular}{rrr} 
+  \it external          & \it internal  & \it description \\{}
+  \idx{[]}              & Nil           & empty list \\{}
+  [$x@1$, $\dots$, $x@n$]  &  $x@1$\#$\cdots$\#$x@n$\#[] &
+        \rm finite list \\{}
+  [$x$:$xs$ . $P$]          &  filter(\%$x$.$P$,$xs$) & list comprehension\\
+  \begin{tabular}{r@{}l}
+  \idx{case} $e$ of&\ [] => $a$\\
+                  |&\ $x$\#$xs$ => $b$
+  \end{tabular} & list_case($e$,$a$,\%$x~xs$.$b$)
+     & case analysis
+\end{tabular}
+\end{center}
+\subcaption{Translations}
 
 \begin{ttbox}
-\idx{map_def}     map(f,xs) == list_rec(xs, Nil, \%x l r. Cons(f(x), r))
-\subcaption{Definition}
+\idx{list_induct}    [| P([]);  !!x xs. [| P(xs) |] ==> P(x#xs)) |]  ==> P(l)
 
-\idx{list_induct}
-    [| P(Nil);  !!x xs. [| P(xs) |] ==> P(Cons(x,xs)) |]  ==> P(l)
-
-\idx{Cons_not_Nil}   ~ Cons(x,xs) = Nil
-\idx{Cons_Cons_eq}   (Cons(x,xs)=Cons(y,ys)) = (x=y & xs=ys)
-
-\idx{list_rec_Nil}   list_rec(Nil,c,h) = c
-\idx{list_rec_Cons}  list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))
-
-\idx{map_Nil}        map(f,Nil) = Nil
-\idx{map_Cons}       map(f, Cons(x,xs)) = Cons(f(x), map(f,xs))
+\idx{Cons_not_Nil}   (x # xs) ~= []
+\idx{Cons_Cons_eq}   ((x # xs) = (y # ys)) = (x=y & xs=ys)
+\subcaption{Induction and freeness}
 \end{ttbox}
 \caption{The type of lists and its operations} \label{hol-list}
 \end{figure}
 
+\begin{figure}
+\begin{ttbox}\makeatother
+list_rec([],c,h) = c  list_rec(a \# l, c, h) = h(a, l, list_rec(l,c,h))
+list_case([],c,h) = c list_case(x # xs, c, h) = h(x, xs)
+map(f,[]) = []        map(f, x \# xs) = f(x) \# map(f,xs)
+null([]) = True       null(x # xs) = False
+hd(x # xs) = x        tl(x # xs) = xs
+ttl([]) = []          ttl(x # xs) = xs
+[] @ ys = ys          (x # xs) \at ys = x # xs \at ys
+x mem [] = False      x mem y # ys = if(y = x, True, x mem ys)
+filter(P, []) = []    filter(P,x#xs) = if(P(x),x#filter(P,xs),filter(P,xs))
+list_all(P,[]) = True list_all(P, x # xs) = (P(x) & list_all(P, xs))
+\end{ttbox}
+\caption{Rewrite rules for lists} \label{hol-list-simps}
+\end{figure}
 
 \subsection{The type constructor for lists, $\alpha\,list$}
-{\HOL}'s definition of lists is an example of an experimental method for
-handling recursive data types.  The details need not concern us here; see
-the file {\tt HOL/list.ML}.  Figure~\ref{hol-list} presents the
-basic list operations, with their types and properties.  In particular,
+\HOL's definition of lists is an example of an experimental method for
+handling recursive data types.  The details need not concern us here; see the
+file {\tt HOL/list.ML}.  Figure~\ref{hol-list} presents the basic list
+operations, with their types and properties.  In particular,
 \ttindexbold{list_rec} is a primitive recursion operator for lists, in the
 style of Martin-L\"of type theory.  It is derived from well-founded
 recursion, a general principle that can express arbitrary total recursive
-functions. 
+functions. The basic rewrite rules shown in Fig.~\ref{hol-list-simps} are
+contained, together with additional useful lemmas, in the simpset {\tt
+  list_ss}. Induction over the variable $xs$ in subgoal $i$ is performed by
+{\tt list_ind_tac "$xs$" $i$}.
 
 
 \subsection{The type constructor for lazy lists, $\alpha\,llist$}
@@ -1109,7 +1173,7 @@ lists, and finite lists also~\cite{paulson-coind}.
 
 
 \section{Classical proof procedures} \label{hol-cla-prover}
-{\HOL} derives classical introduction rules for $\disj$ and~$\exists$, as
+\HOL\ derives classical introduction rules for $\disj$ and~$\exists$, as
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule (Fig.~\ref{hol-lemmas2}).
 
@@ -1117,7 +1181,7 @@ The classical reasoning module is set up for \HOL, as the structure
 \ttindexbold{Classical}.  This structure is open, so {\ML} identifiers such
 as {\tt step_tac}, {\tt fast_tac}, {\tt best_tac}, etc., refer to it.
 
-{\HOL} defines the following classical rule sets:
+\HOL\ defines the following classical rule sets:
 \begin{ttbox} 
 prop_cs    : claset
 HOL_cs     : claset
@@ -1159,7 +1223,7 @@ mechanization in {\LCF}~\cite{paulson85} of Manna and Waldinger's
 theory~\cite{mw81}. 
 
 Directory {\tt ex} contains other examples and experimental proofs in
-{\HOL}.  Here is an overview of the more interesting files.
+\HOL.  Here is an overview of the more interesting files.
 \begin{description}
 \item[{\tt HOL/ex/meson.ML}]
 contains an experimental implementation of the MESON proof procedure,
@@ -1195,7 +1259,7 @@ example by Milner and Tofte~\cite{milner-coind}.
 
 
 \section{Example: deriving the conjunction rules}
-{\HOL} comes with a body of derived rules, ranging from simple properties
+\HOL\ comes with a body of derived rules, ranging from simple properties
 of the logical constants and set theory to well-founded recursion.  Many of
 them are worth studying.
 
@@ -1217,7 +1281,7 @@ val prems = goal HOL.thy "[| P; Q |] ==> P&Q";
 {\out val prems = ["P [P]",  "Q [Q]"] : thm list}
 \end{ttbox}
 The next step is to unfold the definition of conjunction.  But
-\ttindex{and_def} uses {\HOL}'s internal equality, so
+\ttindex{and_def} uses \HOL's internal equality, so
 \ttindex{rewrite_goals_tac} is unsuitable.
 Instead, we perform substitution using the rule \ttindex{ssubst}:
 \begin{ttbox}
@@ -1318,7 +1382,7 @@ it is so easily expressed:
 Viewing types as sets, $\alpha\To bool$ represents the powerset
 of~$\alpha$.  This version states that for every function from $\alpha$ to
 its powerset, some subset is outside its range.
-The Isabelle proof uses {\HOL}'s set theory, with the type $\alpha\,set$ and
+The Isabelle proof uses \HOL's set theory, with the type $\alpha\,set$ and
 the operator \ttindex{range}.  Since it avoids quantification, we may
 inspect the subset found by the proof.
 \begin{ttbox}
@@ -1384,7 +1448,7 @@ by (assume_tac 1);
 \end{ttbox}
 How much creativity is required?  As it happens, Isabelle can prove this
 theorem automatically.  The classical set \ttindex{set_cs} contains rules
-for most of the constructs of {\HOL}'s set theory.  We augment it with
+for most of the constructs of \HOL's set theory.  We augment it with
 \ttindex{equalityCE} --- set equalities are not broken up by default ---
 and apply best-first search.  Depth-first search would diverge, but
 best-first search successfully navigates through the large search space.
