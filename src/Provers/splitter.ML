@@ -372,7 +372,12 @@ fun split_asm_tac []     = K no_tac
   in SUBGOAL tac
   end;
 
-
+fun gen_split_tac [] = K no_tac
+  | gen_split_tac (split::splits) =
+      let val (_,asm) = split_thm_info split
+      in (if asm then split_asm_tac else split_tac) [split] ORELSE'
+         gen_split_tac splits
+      end;
 
 (** declare split rules **)
 
@@ -420,10 +425,9 @@ val split_modifiers =
   Args.$$$ splitN -- Args.add -- Args.colon >> K (I, split_add_local),
   Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del_local)];
 
-val split_args = #2 oo Method.syntax (Args.mode "asm" -- Attrib.local_thms);
+val split_args = #2 oo Method.syntax Attrib.local_thms;
 
-fun split_meth (asm, ths) =
-  Method.SIMPLE_METHOD' HEADGOAL (if asm then split_asm_tac ths else split_tac ths);
+fun split_meth ths = Method.SIMPLE_METHOD' HEADGOAL (gen_split_tac ths);
 
 
 
