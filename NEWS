@@ -106,6 +106,16 @@ operator;
 * HOL/typedef: simplified package, provide more useful rules (see also
 HOL/subset.thy);
 
+* HOL/datatype: induction rule for arbitrarily branching datatypes is
+now expressed as a proper nested rule (old-style tactic scripts may
+require atomize_strip_tac to cope with non-atomic premises);
+
+* HOL: renamed theory "Prod" to "Product_Type", renamed "split" rule
+to "split_conv" (old name still available for compatibility);
+
+* HOL: improved concrete syntax for strings (e.g. allows translation
+rules with string literals);
+
 * HOL-Hyperreal: a new target, extending HOL-Real with the hyperreals and 
 Fleuriot's mechanization of analysis;
 
