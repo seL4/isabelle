@@ -278,5 +278,5 @@ end;
 
 
 structure ThySyn = ThySynFun(ThySynData);
-init_thy_reader ();
+set_parser ThySyn.parse;
 
