@@ -22,6 +22,7 @@ sig
       val control: string
       val diag: string
       val thy_begin: string
+      val thy_switch: string
       val thy_end: string
       val thy_heading: string
       val thy_decl: string
@@ -68,6 +69,7 @@ struct
   val control = "control";
   val diag = "diag";
   val thy_begin = "theory-begin";
+  val thy_switch = "theory-switch";
   val thy_end = "theory-end";
   val thy_heading = "theory-heading";
   val thy_decl = "theory-decl";
@@ -81,8 +83,8 @@ struct
   val prf_asm = "proof-asm";
   val prf_script = "proof-script";
 
-  val kinds = [control, diag, thy_begin, thy_end, thy_heading, thy_decl, thy_goal, qed,
-    qed_block, prf_goal, prf_block, prf_chain, prf_decl, prf_asm, prf_script];
+  val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_goal,
+    qed, qed_block, prf_goal, prf_block, prf_chain, prf_decl, prf_asm, prf_script];
 end;
 
 
