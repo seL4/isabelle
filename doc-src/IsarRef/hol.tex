@@ -114,8 +114,8 @@ syntax above has been slightly simplified over the old version, usually
 requiring more quotes and less parentheses.  Apart from proper proof methods
 for case-analysis and induction, there are also emulations of ML tactics
 \texttt{case_tac}\indexisarmeth{case-tac} and
-\texttt{induct_tac}\indexisarmeth{induct-tac} available, with similar syntax
-as $subgoal_tac$, see \S\ref{sec:tactical-proof}.
+\texttt{induct_tac}\indexisarmeth{induct-tac} available, see
+\S\ref{sec:induct_tac}.
 
 
 \section{Recursive functions}
@@ -324,6 +324,38 @@ Refer to the $case_names$ and $params$ attributes (see \S\ref{sec:cases}) to
 adjust names of cases and parameters of a rule.
 
 
+\subsection{Emulating tactic scripts}\label{sec:induct_tac}
+
+\indexisarmeth{case-tac}\indexisarmeth{induct-tac}
+\begin{matharray}{rcl}
+  case_tac & : & \isarmeth \\
+  induct_tac & : & \isarmeth \\
+\end{matharray}
+
+These proof methods directly correspond to the ML tactics of the same name
+\cite{isabelle-HOL}.  In particular, the instantiation given refers to the
+\emph{dynamic} proof state, rather than the current proof text.  This enables
+proof scripts to refer to parameters of some subgoal, for example.
+
+Note that in contrast to the proper $cases$ and $induct$ methods, $case_tac$
+and $induct_tac$ admit to reason about datatypes only.  Furthermore, named
+local contexts (see \S\ref{sec:cases}) are not provided.
+
+\railalias{casetac}{case\_tac}
+\railterm{casetac}
+\railalias{inducttac}{induct\_tac}
+\railterm{inducttac}
+
+\begin{rail}
+  casetac goalspec? term
+  ;
+  inducttac goalspec? (var +)
+  ;
+\end{rail}
+
+
+
+
 \section{Arithmetic}
 
 \indexisarmeth{arith}
@@ -339,7 +371,7 @@ adjust names of cases and parameters of a rule.
 The $arith$ method decides linear arithmetic problems (on types $nat$, $int$,
 $real$).  Any current facts are inserted into the goal before running the
 procedure.  The ``!''~argument causes the full context of assumptions to be
-included as well.
+included.
 
 Note that a simpler (but faster) version of arithmetic reasoning is already
 performed by the Simplifier.
