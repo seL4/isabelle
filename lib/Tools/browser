@@ -67,27 +67,27 @@ if [ -z "$GRAPHFILE" ]; then
   cd "$ISABELLE_BROWSER_INFO"
   exec java GraphBrowser.GraphBrowser
 else
+  PDF=""
   case "$OUTFILE" in
     *.pdf)
-      TMPOUTFILE="${OUTFILE%.pdf}.eps"
+      OUTFILE="${OUTFILE%%.pdf}.eps"
       PDF=true
-      ;;
-    *)
-      TMPOUTFILE="$OUTFILE"
-      PDF=""
       ;;
   esac
 
-  if [ -z "$TMPOUTFILE" ]; then
+  if [ -z "$OUTFILE" ]; then
     java GraphBrowser.GraphBrowser "$GRAPHFILE"
   else
-    java GraphBrowser.GraphBrowser "$GRAPHFILE" "$TMPOUTFILE"
+    unset DISPLAY  #paranoia setting
+    java GraphBrowser.GraphBrowser "$GRAPHFILE" "$OUTFILE"
   fi
+  RC="$?"
 
   if [ -n "$PDF" ]; then
-    "$ISABELLE_EPSTOPDF" "$TMPOUTFILE" || fail "Failed to produce pdf output"
-    rm -f "$TMPOUTFILE"
+    "$ISABELLE_EPSTOPDF" "$OUTFILE" || fail "Failed to produce pdf output"
   fi
 
   [ -n "$DELETE" ] && rm -f "$GRAPHFILE"
 fi
+
+exit "$RC"
