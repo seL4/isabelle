@@ -224,7 +224,7 @@ fun make_primrecs new_type_names descr sorts thy =
 
       in (ts @ [HOLogic.mk_Trueprop (HOLogic.mk_eq
         (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
-         list_comb (f, frees @ (map (uncurry ap) (reccombs' ~~ frees')))))], fs)
+         list_comb (f, frees @ (map (op $) (reccombs' ~~ frees')))))], fs)
       end
 
   in fst (foldl (fn (x, ((dt, T), comb_t)) =>
@@ -408,7 +408,7 @@ fun make_size new_type_names descr sorts thy =
     val size_consts = map (fn (s, T) =>
       Const (s, T --> HOLogic.natT)) (size_names ~~ recTs);
 
-    val plus_t = Const ("op +", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT);
+    fun plus (t1, t2) = Const ("op +", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
 
     fun make_size_eqn size_const T (cname, cargs) =
       let
@@ -420,7 +420,7 @@ fun make_size new_type_names descr sorts thy =
         val ts = map (fn ((r, s), T) => nth_elem (dest_DtRec r, size_consts) $
           Free (s, T)) (recs ~~ rec_tnames ~~ recTs);
         val t = if ts = [] then HOLogic.zero else
-          foldl1 (app plus_t) (ts @ [HOLogic.mk_nat 1])
+          foldl1 plus (ts @ [HOLogic.mk_nat 1])
       in
         HOLogic.mk_Trueprop (HOLogic.mk_eq (size_const $
           list_comb (Const (cname, Ts ---> T), map Free (tnames ~~ Ts)), t))

@@ -110,7 +110,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (* make injections for constructors *)
 
-    fun mk_univ_inj ts = access_bal (ap In0, ap In1, if ts = [] then
+    fun mk_univ_inj ts = access_bal (fn t => In0 $ t, fn t => In1 $ t, if ts = [] then
         Const ("arbitrary", Univ_elT)
       else
         foldr1 (HOLogic.mk_binop Scons_name) ts);

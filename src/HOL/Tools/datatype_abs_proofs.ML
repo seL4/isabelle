@@ -427,14 +427,14 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val def_names = map (fn i => big_size_name ^ "_def_" ^ string_of_int i)
       (1 upto length recTs);
 
-    val plus_t = Const ("op +", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT);
+    fun plus (t1, t2) = Const ("op +", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
 
     fun make_sizefun (_, cargs) =
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val k = length (filter is_rec_type cargs);
         val t = if k = 0 then HOLogic.zero else
-          foldl1 (app plus_t) (map Bound (k - 1 downto 0) @ [HOLogic.mk_nat 1])
+          foldl1 plus (map Bound (k - 1 downto 0) @ [HOLogic.mk_nat 1])
       in
         foldr (fn (T, t') => Abs ("x", T, t')) (Ts @ replicate k HOLogic.natT, t)
       end;
