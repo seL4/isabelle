@@ -128,7 +128,7 @@ axclass monoid < times
   monoid_right_unit:  "x * one = x";
 
 text {*
- Groups are *not* yet monoids directly from the definition .  For
+ Groups are *not* yet monoids directly from the definition.  For
  monoids, right_unit had to be included as an axiom, but for groups
  both right_unit and right_inverse are derivable from the other
  axioms.  With group_right_unit derived as a theorem of group theory

@@ -27,7 +27,7 @@ proof;
 qed;
 
 lemma K': "A --> B --> A";
-proof single+; txt {* better use sufficient-to-show here \dots *};
+proof single+   -- {* better use sufficient-to-show here \dots *};
   assume A;
   show A; .;
 qed;
