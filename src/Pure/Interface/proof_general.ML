@@ -114,7 +114,7 @@ fun tell_file msg path = priority ("Proof General, " ^ msg ^ " " ^ quote (File.s
 (* theory / proof state output *)
 
 fun setup_state () =
- (current_goals_markers :=
+ (Display.current_goals_markers :=
     let
       val begin_state = oct_char "366";
       val end_state= oct_char "367";
@@ -192,7 +192,7 @@ val show_context = Context.the_context;
 
 fun kill_goal () = (Goals.reset_goals (); tell_clear_goals ());
 
-fun no_print_goals f = setmp print_current_goals_fn (fn _ => fn _ => fn _ => ()) f;
+fun no_print_goals f = setmp Display.print_current_goals_fn (fn _ => fn _ => fn _ => ()) f;
 
 fun repeat_undo 0 = ()
   | repeat_undo 1 = undo ()
