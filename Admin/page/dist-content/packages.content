@@ -14,11 +14,12 @@ working environment on common Unix platforms.
 A <em>minimal</em> Isabelle installation requires only <tt>bash</tt>
 and <tt>perl</tt> (usually provided by the operating system), and a
 suitable implementation of Standard ML (e.g. <a
-href="http://www.polyml.org">Poly/ML</a> as provided below).  A
+href="http://www.polyml.org">Poly/ML</a> as included below).  A
 <em>comfortable</em> Isabelle working environment demands further user
 interface support, as provided by <a
-href="http://www.proofgeneral.org">Proof General</a> together with the
-(optional) <a
+href="http://www.proofgeneral.org">Proof General</a> (please <a
+href="http://www.proofgeneral.org/register">register</a>) together
+with the (optional) <a
 href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">X-Symbol</a>
 package.  Both of these should be used with a recent version of <a
 href="http://www.xemacs.org">XEmacs-21</a>.
@@ -35,10 +36,11 @@ installed by default.
 
 <p>
 
-Some packages are platform dependent.  Everything is included below
-for Linux/x86 and Solaris/Sparc systems.  Other Unix platforms work as
-well, but require manual compilation of Isabelle logic images using a
-suitable Standard ML system.
+Some of the packages below are platform dependent.  We include a
+complete binary distribution for Linux/x86 and Solaris/Sparc systems;
+the PowerPC platform requires separate compilation of Isabelle logic
+images.  Isabelle also works with different Standard ML
+implementations (for further platforms) not included here.
 
 <p>
 
@@ -53,8 +55,10 @@ suitable Standard ML system.
 
 <!-- _GP_ downloadhead("Poly/ML compiler and runtime system") -->
 <!-- _GP_ download(1, "Poly/ML base system", "contrib/polyml_base.tar.gz", "../..") -->
-<!-- _GP_ download(2, "Poly/ML binary modules", "contrib/polyml_x86-linux.tar.gz", "../..") -->
+<!-- _GP_ download(4, "Poly/ML binary modules", "contrib/polyml_x86-linux.tar.gz", "../..") -->
 <!-- _GP_ download(0, "", "contrib/polyml_sparc-solaris.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "contrib/polyml_ppc-linux.tar.gz", "../..") -->
+<!-- _GP_ download(0, "", "contrib/polyml_ppc-darwin.tar.gz", "../..") -->
 
 <!-- _GP_ downloadhead("Precompiled Isabelle logics") -->
 <!-- _GP_ download(2, "HOL", "HOL_x86-linux.tar.gz", "../..") -->
@@ -75,17 +79,16 @@ suitable Standard ML system.
 
 <h2>Installation</h2>
 
-Installation is very easy.  Basically, just unpack all required
-packages within the same directory.  There is <em>no</em> manual
-configuration required of any of these components, if used according
-to the default settings of Isabelle.
+Actually there is no ``installation'' required, users may just unpack
+all required packages within the same directory.  The default settings
+of Isabelle should be reasonable for most circumstances.
 
 <p>
 
-A typical Linux/x86 site installation of Isabelle/HOL works as
-follows.  By using GNU <tt>tar</tt>, the archives are uncompressed and
-unpacked into the <tt>/usr/local</tt> directory (this location may be
-changed to anything appropriate).
+A typical Linux/x86 site installation of Isabelle/HOL would be
+arranged as follows.  By using GNU <tt>tar</tt>, the archives are
+uncompressed and unpacked into the <tt>/usr/local</tt> directory (this
+location may be changed to anything appropriate).
 
 <p>
 
