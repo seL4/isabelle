@@ -329,7 +329,7 @@ fun deps_thy name ml path =
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.pack path) ^
-        " does not agree with theory name " ^ quote name)
+        " does not agree with theory name " ^ quote name')
     else (parents, map (Path.unpack o #1) files @ ml_file)
   end;
 
