@@ -464,7 +464,7 @@ fun make_syntax keywords sects =
 (* header *)
 
 fun mk_header (thy_name, parents) =
-  (thy_name, "ThyInfo.begin_theory " ^ cat (quote thy_name) (mk_list parents));
+  (thy_name, "IsarThy.begin_theory " ^ cat (quote thy_name) (mk_list parents) ^ "[]");
 
 val header = ident --$$ "=" -- enum1 "+" name >> mk_header;
 
@@ -514,7 +514,7 @@ fun mk_structure ((thy_name, bg_theory), (extxt, postxt, mltxt)) =
   \\n"
   ^ extxt ^ "\n\
   \\n\
-  \|> ThyInfo.end_theory;\n\
+  \|> IsarThy.end_theory;\n\
   \\n\
   \val _ = context thy;\n\
   \\n\
