@@ -235,6 +235,7 @@ done
 
 cat >>$TMP/SPECS/isabelle.spec <<EOF
 %files
+%$ROOT/Isabelle
 %dir $ISABELLE_HOME
 %dir $ISABELLE_HOME/doc
 %dir $ISABELLE_HOME/heaps

@@ -198,6 +198,9 @@ echo "###"
 
 cd "$DISTBASE"
 
+rm -f Isabelle
+ln -s "$DISTNAME" Isabelle
+
 chown -R "$LOGNAME" "$DISTNAME"
 chgrp -R isabelle "$DISTNAME"
 chmod -R u+w "$DISTNAME"
