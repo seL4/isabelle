@@ -1,4 +1,4 @@
-(*  Title:      HOL/Real/ex/BinEx.thy
+(*  Title:      HOL/Complex/ex/BinEx.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
@@ -6,14 +6,16 @@
 
 header {* Binary arithmetic examples *}
 
-theory BinEx = Real:
+theory BinEx = Complex_Main:
 
 text {*
-  Examples of performing binary arithmetic by simplification This time
+  Examples of performing binary arithmetic by simplification.  This time
   we use the reals, though the representation is just of integers.
 *}
 
-text {* \medskip Addition *}
+subsection{*Real Arithmetic*}
+
+subsubsection {*Addition *}
 
 lemma "(1359::real) + -2468 = -1109"
   by simp
@@ -22,7 +24,7 @@ lemma "(93746::real) + -46375 = 47371"
   by simp
 
 
-text {* \medskip Negation *}
+subsubsection {*Negation *}
 
 lemma "- (65745::real) = -65745"
   by simp
@@ -31,7 +33,7 @@ lemma "- (-54321::real) = 54321"
   by simp
 
 
-text {* \medskip Multiplication *}
+subsubsection {*Multiplication *}
 
 lemma "(-84::real) * 51 = -4284"
   by simp
@@ -43,7 +45,7 @@ lemma "(1359::real) * -2468 = -3354012"
   by simp
 
 
-text {* \medskip Inequalities *}
+subsubsection {*Inequalities *}
 
 lemma "(89::real) * 10 \<noteq> 889"
   by simp
@@ -64,7 +66,7 @@ lemma "(1234567::real) \<le> 1234567"
   by simp
 
 
-text {* \medskip Powers *}
+subsubsection {*Powers *}
 
 lemma "2 ^ 15 = (32768::real)"
   by simp
@@ -82,7 +84,7 @@ lemma "-5 ^ 11 = (-48828125::real)"
   by simp
 
 
-text {* \medskip Tests *}
+subsubsection {*Tests *}
 
 lemma "(x + y = x) = (y = (0::real))"
   by arith
@@ -366,5 +368,35 @@ lemma "!!a::real. a + b + c + d \<le> i + j + k + l ==> a \<le> b ==> b \<le> c
 lemma "!!a::real. a + b + c + d \<le> i + j + k + l ==> a \<le> b ==> b \<le> c
     ==> c \<le> d ==> i \<le> j ==> j \<le> k ==> k \<le> l ==> a + a + a + a + a + a \<le> l + l + l + l + i + l"
   by (tactic "fast_arith_tac 1")
+
+
+subsection{*Complex Arithmetic*}
+
+lemma "(1359 + 93746*ii) - (2468 + 46375*ii) = -1109 + 47371*ii"
+  by simp
+
+lemma "- (65745 + -47371*ii) = -65745 + 47371*ii"
+  by simp
+
+text{*Multiplication requires distributive laws.  Perhaps versions instantiated
+to literal constants should be added to the simpset.*}
+
+lemmas distrib = complex_add_mult_distrib complex_add_mult_distrib2
+                 complex_diff_mult_distrib complex_diff_mult_distrib2
+
+lemma "(1 + ii) * (1 - ii) = 2"
+by (simp add: distrib)
+
+lemma "(1 + 2*ii) * (1 + 3*ii) = -5 + 5*ii"
+by (simp add: distrib)
+
+lemma "(-84 + 255*ii) + (51 * 255*ii) = -84 + 13260 * ii"
+by (simp add: distrib)
+
+text{*No inequalities: we have no ordering on the complex numbers.*}
+
+text{*No powers (not supported yet)*}
+
+text{*No linear arithmetic*}
 
 end

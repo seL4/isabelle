@@ -6,7 +6,7 @@
 
 header {*  Square roots of primes are irrational *}
 
-theory Sqrt = Primes + Hyperreal:
+theory Sqrt = Primes + Complex_Main:
 
 subsection {* Preliminaries *}
 

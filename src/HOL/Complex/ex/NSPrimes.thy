@@ -8,7 +8,7 @@ These can be used to derive an alternative proof of the infinitude of primes by
 considering a property of nonstandard sets.
 *)
 
-NSPrimes = Factorization + HSeries +
+NSPrimes = Factorization + Complex_Main +
 
 consts
   hdvd  :: [hypnat, hypnat] => bool       (infixl 50) 

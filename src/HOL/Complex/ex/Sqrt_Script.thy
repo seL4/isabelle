@@ -6,7 +6,7 @@
 
 header {* Square roots of primes are irrational (script version) *}
 
-theory Sqrt_Script = Primes + Hyperreal:
+theory Sqrt_Script = Primes + Complex_Main:
 
 text {*
   \medskip Contrast this linear Isabelle/Isar script with Markus
