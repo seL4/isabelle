@@ -15,24 +15,25 @@
 
 This is the internal repository version of Isabelle.  Starting with
 Isabelle98, the current line of Isabelle introduces many new features,
-but also some imcompatibilities with Isabelle94-XX.  See the
+but also some incompatibilities with Isabelle94-XX.  See the
 <tt>NEWS</tt> file in the distribution for more details.
 
 
 <h2>System requirements</h2>
 
 Isabelle requires a real Unix box with sufficient resources. Fun
-starts at about 32MB of memory (somewhat depending on your ML system),
-with several tens of MB disk space and a relatively fast CPU.
+starts at about 32MB of main memory (somewhat depending on your ML
+system), with several tens of MB disk space and a relatively fast CPU.
 
 <p>
 
 Furthermore, it needs the following software, which is not part of the
 distribution:
 <ul>
-<li> A full Standard ML Compiler (e.g. Poly/ML or SML of New Jersey).
+<li> A full Standard ML Compiler (e.g. SML of New Jersey).
 <li> The GNU bash shell (version 1.x or 2.x).
-<li> Perl 5.x - the Pathologically Eclectic Rubbish Lister.
+<li> Perl 5.x - the Pathologically Eclectic Rubbish Lister (Perl 4.x
+is *not* sufficient).
 </ul>
 
 <p>
@@ -40,10 +41,10 @@ distribution:
 The following ML system and platform combinations are known to work
 quite well:
 <ul>
-<li> Poly/ML versions 2.x and 3.1 on Suns.
+<li> SML/NJ 110.x on any Unix platform (e.g. Suns, Linux).
 <li> SML/NJ 0.93 on Suns and SGIs. There seem to be several
-problems with Linux and HP-UX.
-<li> SML/NJ 110 on Suns, Linux, etc.
+problems with Linux and HP-UX, though.
+<li> Poly/ML versions 2.x and 3.1 on Suns.
 </ul>
 
 <p>
@@ -51,21 +52,22 @@ problems with Linux and HP-UX.
 <a
 href="http://cm.bell-labs.com/cm/cs/what/smlnj/software.html">SML/NJ</a>
 needs lots of store and disk space, but it is free.  The current
-official release is 110, working versions 109.27 to 109.33 should also
-work.  We also still support the old 0.93 release.
-
-<p>
-
-<a href="http://www.ahl.co.uk/poly-ml.html">Poly/ML</a> is a
-commercial product and costs money, but it is stable and efficient. It
-requires relatively little memory (starting at about 16MB) and disk
-space (about 60MB for all distributed object logics).
+official release is 110.x, working versions 109.27 to 109.33 should
+also work.  We also still support the old 0.93 release.
 
 <p>
 
 <a href="http://www.harlequin.com/products/ads/ml/">MLWorks</a> is a
-commercial ML programming environment.  Isabelle on MLWorks should be
-still considered experimental!
+commercial ML programming environment.  Isabelle on MLWorks 2.0 works
+considerably well with memory and disk usage slightly less than
+SML/NJ.  A few minor features (e.g. top-level pretty printing) are not
+yet supported, though.
+
+<p>
+
+Poly/ML used to be a commercial product by Abstract Hardware Limited
+(now Abstract, Inc.).  It is no longer available.  We're awaiting news
+about future availability of Poly/ML.
 
 <p>
 
@@ -74,8 +76,8 @@ still considered experimental!
 
 See file <tt>INSTALL</tt> in the Isabelle sources on how to build the
 system. Further background information may be found in the
-<em>Isabelle System Manual</em>, distributed as <tt>dvi</tt> with the
-sources.
+<em>Isabelle System Manual</em>, distributed with the sources (see
+directory <tt>doc</tt>).
 
 
 <h2>Interfaces</h2>
@@ -131,7 +133,7 @@ Fax:   +49-89-289-28183<br>
 <hr>
 
 Please report any problems you encounter.  While we shall try to be
-helpful, we can accept no responsibility for the deficiences of
+helpful, we can accept no responsibility for the deficiencies of
 Isabelle and their consequences.
 
 <hr>
