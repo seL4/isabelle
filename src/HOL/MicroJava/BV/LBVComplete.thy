@@ -210,18 +210,7 @@ proof -;
   qed;
 qed;
 
-lemma rev_surj: "\\<exists>a'. a = rev a'";
-proof (induct "a"); 
-  show "\\<exists>a'. [] = rev a'"; by simp;
 
-  fix l ls; assume "\\<exists>a''. ls = rev a''";  
-  thus "\\<exists>a'. l # ls = rev a'"; 
-  proof (elim exE);
-    fix a''; assume "ls = rev a''";
-    hence "l#ls = rev (a''@[l])"; by simp;
-    thus ?thesis; by blast;
-  qed;
-qed;
 
 lemma append_length_n: "\\<forall>n. n \\<le> length x \\<longrightarrow> (\\<exists>a b. x = a@b \\<and> length a = n)" (is "?P x");
 proof (induct "?P" "x");
@@ -266,16 +255,14 @@ proof -;
   proof elim;
     fix r d; assume x: "x = r@d" "length r = n";
     with n;
-    have bc: "\\<exists>b c. d = b#c"; by (simp add: neq_Nil_conv);
+    have "\\<exists>b c. d = b#c"; by (simp add: neq_Nil_conv);
     
-    have "\\<exists>a. r = rev a"; by (rule rev_surj);    
-    with bc;
-    show ?thesis;
+    thus ?thesis; 
     proof elim;
-      fix a b c; 
-      assume "r = rev a" "d = b#c";
+      fix b c; 
+      assume "d = b#c";
       with x;
-      have "x = (rev a) @ b # c \\<and> length a = n"; by simp;
+      have "x = (rev (rev r)) @ b # c \\<and> length (rev r) = n"; by simp;
       thus ?thesis; by blast;
     qed;
   qed;
@@ -894,43 +881,6 @@ proof -;
   qed;
 qed;
 
-(* not needed 
-lemma wtl_inst_list_s:
-"\\<lbrakk>wtl_inst_list ins G rT s0 s' cert max_pc pc; ins \\<noteq> []; G \\<turnstile> s <=s s0; s \\<noteq> s0 \\<longrightarrow> cert ! pc = Some s0\\<rbrakk> \\<Longrightarrow> 
-  wtl_inst_list ins G rT s s' cert max_pc pc";  
-proof -;
-  assume * : "wtl_inst_list ins G rT s0 s' cert max_pc pc" 
-             "ins \\<noteq> []" "G \\<turnstile> s <=s s0" 
-             "s \\<noteq> s0 \\<longrightarrow> cert ! pc = Some s0";
-
-  show ?thesis;
-  proof (cases ins);
-    case Nil;
-    with *;
-    show ?thesis; by simp;
-  next;
-    case Cons;
-
-    show ?thesis; 
-    proof (cases "list = []");
-      case True;
-      with Cons *;
-      show ?thesis; by - (cases "s = s0", (simp add: wtl_inst_option_def)+);
-    next;
-      case False;
-      with Cons *;
-      show ?thesis; by (force simp add: wtl_inst_option_def);
-    qed; 
-  qed;
-qed;
-
-
-lemma wtl_inst_list_cert:
-"\\<lbrakk>wtl_inst_list ins G rT s0 s' cert max_pc pc; ins \\<noteq> []; G \\<turnstile> s <=s s0; cert ! pc = Some s0\\<rbrakk> \\<Longrightarrow> 
-  wtl_inst_list ins G rT s s' cert max_pc pc";
-by (cases ins) (force simp add: wtl_inst_option_def)+;
-*)
-
 lemma wtl_option_pseudo_mono:
 "\\<lbrakk>wtl_inst_option i G rT s1 s1' cert mpc pc;  fits ins cert phi; pc < length ins; 
   wf_prog wf_mb G; G \\<turnstile> s2 <=s s1; i = ins!pc\\<rbrakk> \\<Longrightarrow> 
@@ -967,9 +917,6 @@ proof -;
   qed;
 qed;
 
-lemma append_cons_length_nth: "((l @ a # list) ! length l) = a"; 
-  by (induct l, auto);
-
 
 (* main induction over instruction list *)
 theorem wt_imp_wtl_inst_list:
@@ -1001,7 +948,7 @@ next;
               wt_instr (list ! pc') G rT phi (Suc pc + length list) (Suc pc + pc')"; by auto;    
 
     from 2; 
-    have 5: "a = all_ins ! pc"; by (simp add: append_cons_length_nth);
+    have 5: "a = all_ins ! pc"; by (simp add: nth_append);
 
 
     show "\\<exists>s'. wtl_inst_list (a # list) G rT s s' cert (pc + length (a # list)) pc"; 
@@ -1116,12 +1063,6 @@ proof -;
   with *;
   show ?thesis; by - (rule fits_imp_wtl_method_complete);
 qed;
-
-(*
-Goalw[wt_jvm_prog_def, wfprg_def] "\\<lbrakk>wt_jvm_prog G Phi\\<rbrakk> \\<Longrightarrow> wfprg G";
-by Auto_tac;
-qed "wt_imp_wfprg";
-*)
 
 lemma unique_set:
 "(a,b,c,d)\\<in>set l \\<longrightarrow> unique l \\<longrightarrow> (a',b',c',d') \\<in> set l \\<longrightarrow> a = a' \\<longrightarrow> b=b' \\<and> c=c' \\<and> d=d'";
