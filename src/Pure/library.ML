@@ -723,35 +723,41 @@ fun stringord (a, b: string) =
 
 
 
-(** input / output **)
+(** input / output and diagnostics **)
 
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
-val prs_fn = ref(fn s => TextIO.output (TextIO.stdOut, s));
+
+local
+  fun out s =
+    (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+
+  fun lines cs =
+    (case take_prefix (not_equal "\n") cs of
+      (cs', []) => [implode cs']
+    | (cs', _ :: cs'') => implode cs' :: lines cs'');
+
+  fun prefix_lines prfx txt =
+    txt |> explode |> lines |> map (fn s => prfx ^ s ^ "\n") |> implode;
+in
+
+(*hooks for output channels: normal, warning, error*)
+val prs_fn = ref (fn s => out s);
+val warning_fn = ref (fn s => out (prefix_lines "### " s));
+val error_fn = ref (fn s => out (prefix_lines "*** " s));
+
+end;
 
 fun prs s = !prs_fn s;
 fun writeln s = prs (s ^ "\n");
 
-(* TextIO.output to LaTeX / xdvi *)
-fun latex s = 
-        execute ( "( cd /tmp ; echo \"" ^ s ^
-        "\" | isa2latex -s > $$.tex ; latex $$.tex ; xdvi $$.dvi ; rm $$.* ) > /dev/null &" ) ;
-
-(*print warning*)
-val warning_fn = ref(fn s => TextIO.output (TextIO.stdOut, s ^ "\n"));
-fun warning s = !warning_fn ("Warning: " ^ s);
+fun warning s = !warning_fn s;
 
 (*print error message and abort to top level*)
-
-val error_fn = ref(fn s => TextIO.output 
-		            (TextIO.stdOut, "\n*** " ^ s ^ "\n\n"));
-
 exception ERROR;
-fun error msg = (!error_fn msg;
-		 TextIO.flushOut TextIO.stdOut; 
-		 raise ERROR);
-fun sys_error msg = (!error_fn "*** SYSTEM ERROR ***"; error msg);
+fun error s = (!error_fn s; raise ERROR);
+fun sys_error msg = (!error_fn " !! SYSTEM ERROR !!\n"; error msg);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
@@ -789,6 +795,11 @@ fun print_list_ln (pre: 'a -> unit) : 'a list -> unit =
 
 val print_int = prs o string_of_int;
 
+
+(* output to LaTeX / xdvi *)
+fun latex s =
+  execute ("( cd /tmp ; echo \"" ^ s ^
+    "\" | isa2latex -s > $$.tex ; latex $$.tex ; xdvi $$.dvi ; rm $$.* ) > /dev/null &");
 
 
 (** timing **)
