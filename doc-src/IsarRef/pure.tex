@@ -607,7 +607,7 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
   ;
   ('assume' | 'presume') (assm comment? + 'and')
   ;
-  'def' thmdecl? \\ var '==' term termpat? comment?
+  'def' thmdecl? \\ name '==' term termpat? comment?
   ;
 
   var: name ('::' type)?
