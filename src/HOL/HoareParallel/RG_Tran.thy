@@ -1,6 +1,8 @@
 header {* \section{Operational Semantics} *}
 
-theory RG_Tran = RG_Com:
+theory RG_Tran
+imports RG_Com
+begin
 
 subsection {* Semantics of Component Programs *}
 
@@ -770,7 +772,7 @@ lemma aux_onlyif [rule_format]: "\<forall>xs s. (xs, s)#ys \<in> par_cptn \<long
   (\<forall>i<length xs. (xs!i,s)#(clist!i) \<in> cptn))"
 apply(induct ys)
  apply(clarify)
- apply(rule_tac x="map (\<lambda>i. []) [0..length xs(]" in exI)
+ apply(rule_tac x="map (\<lambda>i. []) [0..<length xs]" in exI)
  apply(simp add: conjoin_def same_length_def same_state_def same_program_def compat_label_def)
  apply(rule conjI)
   apply(rule nth_equalityI,simp,simp)
@@ -781,7 +783,7 @@ apply(erule par_cptn.elims,simp)
  apply(erule_tac x="xs" in allE)
  apply(erule_tac x="t" in allE,simp)
  apply clarify
- apply(rule_tac x="(map (\<lambda>j. (P!j, t)#(clist!j)) [0..length P(])" in exI,simp)
+ apply(rule_tac x="(map (\<lambda>j. (P!j, t)#(clist!j)) [0..<length P])" in exI,simp)
  apply(rule conjI)
   prefer 2
   apply clarify
@@ -813,7 +815,7 @@ apply(erule par_ctran.elims,simp)
 apply(erule_tac x="Ps[i:=r]" in allE)
 apply(erule_tac x="ta" in allE,simp)
 apply clarify
-apply(rule_tac x="(map (\<lambda>j. (Ps!j, ta)#(clist!j)) [0..length Ps(]) [i:=((r, ta)#(clist!i))]" in exI,simp)
+apply(rule_tac x="(map (\<lambda>j. (Ps!j, ta)#(clist!j)) [0..<length Ps]) [i:=((r, ta)#(clist!i))]" in exI,simp)
 apply(rule conjI)
  prefer 2
  apply clarify

@@ -1,7 +1,7 @@
-
 header {* \section{Generation of Verification Conditions} *}
 
-theory OG_Tactics = OG_Hoare:
+theory OG_Tactics imports OG_Hoare
+begin
 
 lemmas ann_hoare_intros=AnnBasic AnnSeq AnnCond1 AnnCond2 AnnWhile AnnAwait AnnConseq
 lemmas oghoare_intros=Parallel Basic Seq Cond While Conseq
@@ -186,7 +186,7 @@ by(simp add:interfree_swap_def)
 
 lemma interfree_swap_Map: "\<forall>k. i\<le>k \<and> k<j \<longrightarrow> interfree_aux (com x, post x, c k) 
  \<and> interfree_aux (c k, Q k, com x)   
- \<Longrightarrow> interfree_swap (x, map (\<lambda>k. (c k, Q k)) [i..j(])"
+ \<Longrightarrow> interfree_swap (x, map (\<lambda>k. (c k, Q k)) [i..<j])"
 by(force simp add: interfree_swap_def less_diff_conv)
 
 lemma interfree_Empty: "interfree []"
@@ -204,7 +204,7 @@ done
 
 lemma interfree_Map: 
   "(\<forall>i j. a\<le>i \<and> i<b \<and> a\<le>j \<and> j<b  \<and> i\<noteq>j \<longrightarrow> interfree_aux (c i, Q i, c j))  
-  \<Longrightarrow> interfree (map (\<lambda>k. (c k, Q k)) [a..b(])"
+  \<Longrightarrow> interfree (map (\<lambda>k. (c k, Q k)) [a..<b])"
 by(force simp add: interfree_def less_diff_conv)
 
 constdefs map_ann_hoare :: "(('a ann_com_op * 'a assn) list) \<Rightarrow> bool " ("[\<turnstile>] _" [0] 45)
@@ -220,7 +220,7 @@ apply(case_tac i,simp+)
 done
 
 lemma MapAnnMap: 
-  "\<forall>k. i\<le>k \<and> k<j \<longrightarrow> \<turnstile> (c k) (Q k) \<Longrightarrow> [\<turnstile>] map (\<lambda>k. (Some (c k), Q k)) [i..j(]"
+  "\<forall>k. i\<le>k \<and> k<j \<longrightarrow> \<turnstile> (c k) (Q k) \<Longrightarrow> [\<turnstile>] map (\<lambda>k. (Some (c k), Q k)) [i..<j]"
 apply(simp add: map_ann_hoare_def less_diff_conv)
 done
 

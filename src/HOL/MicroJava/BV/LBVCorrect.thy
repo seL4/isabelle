@@ -15,7 +15,7 @@ locale (open) lbvs = lbv +
   fixes phi :: "'a list" ("\<phi>")
   defines phi_def:
   "\<phi> \<equiv> map (\<lambda>pc. if c!pc = \<bottom> then wtl (take pc ins) c 0 s0 else c!pc) 
-       [0..length ins(]"
+       [0..<length ins]"
 
   assumes bounded: "bounded step (length ins)"
   assumes cert: "cert_ok c (length ins) \<top> \<bottom> A"

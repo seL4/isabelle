@@ -38,7 +38,7 @@ consts
   dropWhile :: "('a => bool) => 'a list => 'a list"
   rev :: "'a list => 'a list"
   zip :: "'a list => 'b list => ('a * 'b) list"
-  upt :: "nat => nat => nat list" ("(1[_../_'(])")
+  upt :: "nat => nat => nat list" ("(1[_..</_'])")
   remdups :: "'a list => 'a list"
   remove1 :: "'a => 'a list => 'a list"
   null:: "'a list => bool"
@@ -74,7 +74,7 @@ translations
   "_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]" == "list_update xs i x"
 
-  "[i..j]" == "[i..(Suc j)(]"
+  "[i..j]" == "[i..<(Suc j)]"
 
 
 syntax (xsymbols)
@@ -193,8 +193,8 @@ primrec
        theorems for @{text "xs = []"} and @{text "xs = z # zs"} *}
 
 primrec
-  upt_0: "[i..0(] = []"
-  upt_Suc: "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
+  upt_0: "[i..<0] = []"
+  upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
 
 primrec
   "distinct [] = True"
@@ -221,7 +221,7 @@ list_all2_def:
   length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y)"
 
 sublist_def:
- "sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..size xs(]))"
+ "sublist xs A == map fst (filter (%p. snd p : A) (zip xs [0..<size xs]))"
 
 
 lemma not_Cons_self [simp]: "xs \<noteq> x # xs"
@@ -619,7 +619,7 @@ by (induct xs) auto
 lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
 by (induct xs) auto
 
-lemma set_upt [simp]: "set[i..j(] = {k. i \<le> k \<and> k < j}"
+lemma set_upt [simp]: "set[i..<j] = {k. i \<le> k \<and> k < j}"
 apply (induct j, simp_all)
 apply (erule ssubst, auto)
 done
@@ -1365,47 +1365,47 @@ by (induct ns) auto
 
 subsubsection {* @{text upto} *}
 
-lemma upt_rec: "[i..j(] = (if i<j then i#[Suc i..j(] else [])"
+lemma upt_rec: "[i..<j] = (if i<j then i#[Suc i..<j] else [])"
 -- {* Does not terminate! *}
 by (induct j) auto
 
-lemma upt_conv_Nil [simp]: "j <= i ==> [i..j(] = []"
+lemma upt_conv_Nil [simp]: "j <= i ==> [i..<j] = []"
 by (subst upt_rec) simp
 
-lemma upt_eq_Nil_conv[simp]: "([i..j(] = []) = (j = 0 \<or> j <= i)"
+lemma upt_eq_Nil_conv[simp]: "([i..<j] = []) = (j = 0 \<or> j <= i)"
 by(induct j)simp_all
 
 lemma upt_eq_Cons_conv:
- "!!x xs. ([i..j(] = x#xs) = (i < j & i = x & [i+1..j(] = xs)"
+ "!!x xs. ([i..<j] = x#xs) = (i < j & i = x & [i+1..<j] = xs)"
 apply(induct j)
  apply simp
 apply(clarsimp simp add: append_eq_Cons_conv)
 apply arith
 done
 
-lemma upt_Suc_append: "i <= j ==> [i..(Suc j)(] = [i..j(]@[j]"
+lemma upt_Suc_append: "i <= j ==> [i..<(Suc j)] = [i..<j]@[j]"
 -- {* Only needed if @{text upt_Suc} is deleted from the simpset. *}
 by simp
 
-lemma upt_conv_Cons: "i < j ==> [i..j(] = i # [Suc i..j(]"
+lemma upt_conv_Cons: "i < j ==> [i..<j] = i # [Suc i..<j]"
 apply(rule trans)
 apply(subst upt_rec)
  prefer 2 apply (rule refl, simp)
 done
 
-lemma upt_add_eq_append: "i<=j ==> [i..j+k(] = [i..j(]@[j..j+k(]"
+lemma upt_add_eq_append: "i<=j ==> [i..<j+k] = [i..<j]@[j..<j+k]"
 -- {* LOOPS as a simprule, since @{text "j <= j"}. *}
 by (induct k) auto
 
-lemma length_upt [simp]: "length [i..j(] = j - i"
+lemma length_upt [simp]: "length [i..<j] = j - i"
 by (induct j) (auto simp add: Suc_diff_le)
 
-lemma nth_upt [simp]: "i + k < j ==> [i..j(] ! k = i + k"
+lemma nth_upt [simp]: "i + k < j ==> [i..<j] ! k = i + k"
 apply (induct j)
 apply (auto simp add: less_Suc_eq nth_append split: nat_diff_split)
 done
 
-lemma take_upt [simp]: "!!i. i+m <= n ==> take m [i..n(] = [i..i+m(]"
+lemma take_upt [simp]: "!!i. i+m <= n ==> take m [i..<n] = [i..<i+m]"
 apply (induct m, simp)
 apply (subst upt_rec)
 apply (rule sym)
@@ -1413,10 +1413,10 @@ apply (subst upt_rec)
 apply (simp del: upt.simps)
 done
 
-lemma map_Suc_upt: "map Suc [m..n(] = [Suc m..n]"
+lemma map_Suc_upt: "map Suc [m..<n] = [Suc m..n]"
 by (induct n) auto
 
-lemma nth_map_upt: "!!i. i < n-m ==> (map f [m..n(]) ! i = f(m+i)"
+lemma nth_map_upt: "!!i. i < n-m ==> (map f [m..<n]) ! i = f(m+i)"
 apply (induct n m rule: diff_induct)
 prefer 3 apply (subst map_Suc_upt[symmetric])
 apply (auto simp add: less_diff_conv nth_upt)
@@ -1745,8 +1745,8 @@ apply simp
 done
 
 lemma sublist_shift_lemma:
-     "map fst [p:zip xs [i..i + length xs(] . snd p : A] =
-      map fst [p:zip xs [0..length xs(] . snd p + i : A]"
+     "map fst [p:zip xs [i..<i + length xs] . snd p : A] =
+      map fst [p:zip xs [0..<length xs] . snd p + i : A]"
 by (induct xs rule: rev_induct) (simp_all add: add_commute)
 
 lemma sublist_append:

@@ -1,7 +1,8 @@
-
 header {* \section{Concrete Syntax} *}
 
-theory RG_Syntax = RG_Hoare + Quote_Antiquote:
+theory RG_Syntax
+imports RG_Hoare Quote_Antiquote
+begin
 
 syntax
   "_Assign"    :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"                     ("(\<acute>_ :=/ _)" [70, 65] 61)
@@ -42,7 +43,7 @@ syntax
   "_prg_scheme" :: "['a, 'a, 'a, 'a] \<Rightarrow> prgs"  ("SCHEME [_ \<le> _ < _] _" [0,0,0,60] 57)
 
 translations
-  "_prg_scheme j i k c" \<rightleftharpoons> "(map (\<lambda>i. c) [j..k(])"
+  "_prg_scheme j i k c" \<rightleftharpoons> "(map (\<lambda>i. c) [j..<k])"
 
 text {* Translations for variables before and after a transition: *}
 

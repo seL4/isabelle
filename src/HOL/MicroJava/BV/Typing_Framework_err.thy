@@ -22,7 +22,7 @@ map_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b) list \<Rightarr
 "map_snd f \<equiv> map (\<lambda>(x,y). (x, f y))"
 
 error :: "nat \<Rightarrow> (nat \<times> 'a err) list"
-"error n \<equiv> map (\<lambda>x. (x,Err)) [0..n(]"
+"error n \<equiv> map (\<lambda>x. (x,Err)) [0..<n]"
 
 err_step :: "nat \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's err step_type"
 "err_step n app step p t \<equiv> 

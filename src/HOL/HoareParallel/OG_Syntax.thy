@@ -1,5 +1,6 @@
-
-theory OG_Syntax = OG_Tactics + Quote_Antiquote:
+theory OG_Syntax
+imports OG_Tactics Quote_Antiquote
+begin
 
 text{* Syntax for commands and for assertions and boolean expressions in 
  commands @{text com} and annotated commands @{text ann_com}. *}
@@ -71,7 +72,7 @@ translations
   "_prgs c q ps" \<rightleftharpoons> "(Some c, q) # ps"
   "_PAR ps" \<rightleftharpoons> "Parallel ps"
 
-  "_prg_scheme j i k c q" \<rightleftharpoons> "(map (\<lambda>i. (Some c, q)) [j..k(])"
+  "_prg_scheme j i k c q" \<rightleftharpoons> "map (\<lambda>i. (Some c, q)) [j..<k]"
 
 print_translation {*
   let

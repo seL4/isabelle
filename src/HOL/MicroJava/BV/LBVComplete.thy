@@ -15,7 +15,7 @@ constdefs
 
   make_cert :: "['s step_type, 's list, 's] \<Rightarrow> 's certificate"
   "make_cert step phi B \<equiv> 
-     map (\<lambda>pc. if is_target step phi pc then phi!pc else B) [0..length phi(] @ [B]"
+     map (\<lambda>pc. if is_target step phi pc then phi!pc else B) [0..<length phi] @ [B]"
 
 constdefs
   list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -26,7 +26,7 @@ lemma [code]: "list_ex P (x#xs) = (P x \<or> list_ex P xs)" by (simp add: list_e
 
 lemma [code]:
   "is_target step phi pc' =
-  list_ex (\<lambda>pc. pc' \<noteq> pc+1 \<and> pc' mem (map fst (step pc (phi!pc)))) [0..length phi(]"
+  list_ex (\<lambda>pc. pc' \<noteq> pc+1 \<and> pc' mem (map fst (step pc (phi!pc)))) [0..<length phi]"
   apply (simp add: list_ex_def is_target_def set_mem_eq)
   apply force
   done
