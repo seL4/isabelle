@@ -54,10 +54,10 @@ val bnd_mono_Int = result();
 (**** Proof of Knaster-Tarski Theorem for the lfp ****)
 
 (*lfp is contained in each pre-fixedpoint*)
-val prems = goalw Fixedpt.thy [lfp_def]
-    "[| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A";
-by (rtac (PowI RS CollectI RS Inter_lower) 1);
-by (REPEAT (resolve_tac prems 1));
+goalw Fixedpt.thy [lfp_def]
+    "!!A. [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A";
+by (fast_tac ZF_cs 1);
+(*or  by (rtac (PowI RS CollectI RS Inter_lower) 1); *)
 val lfp_lowerbound = result();
 
 (*Unfolding the defn of Inter dispenses with the premise bnd_mono(D,h)!*)

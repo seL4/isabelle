@@ -1,9 +1,9 @@
-(*  Title: 	ZF/qpair.ML
+(*  Title: 	ZF/QPair.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For qpair.thy.  
+For QPair.thy.  
 
 Quine-inspired ordered pairs and disjoint sums, for non-well-founded data
 structures in ZF.  Does not precisely follow Quine's construction.  Thanks
@@ -71,23 +71,26 @@ val QSigmaD2 = prove_goal QPair.thy "<a;b> : QSigma(A,B) ==> b : B(a)"
  (fn [major]=>
   [ (rtac (major RS QSigmaE2) 1), (assume_tac 1) ]);
 
+val qpair_cs = ZF_cs addSIs [QSigmaI] addSEs [QSigmaE2, QSigmaE, QPair_inject];
+
+
 val QSigma_cong = prove_goalw QPair.thy [QSigma_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
 \    QSigma(A,B) = QSigma(A',B')"
  (fn prems=> [ (simp_tac (ZF_ss addsimps prems) 1) ]);
 
 val QSigma_empty1 = prove_goal QPair.thy "QSigma(0,B) = 0"
- (fn _ => [ (fast_tac (ZF_cs addIs [equalityI] addSEs [QSigmaE]) 1) ]);
+ (fn _ => [ (fast_tac (qpair_cs addIs [equalityI]) 1) ]);
 
 val QSigma_empty2 = prove_goal QPair.thy "A <*> 0 = 0"
- (fn _ => [ (fast_tac (ZF_cs addIs [equalityI] addSEs [QSigmaE]) 1) ]);
+ (fn _ => [ (fast_tac (qpair_cs addIs [equalityI]) 1) ]);
 
 
 (*** Eliminator - qsplit ***)
 
 val qsplit = prove_goalw QPair.thy [qsplit_def]
     "qsplit(%x y.c(x,y), <a;b>) = c(a,b)"
- (fn _ => [ (fast_tac (ZF_cs addIs [the_equality] addEs [QPair_inject]) 1) ]);
+ (fn _ => [ (fast_tac (qpair_cs addIs [the_equality]) 1) ]);
 
 val qsplit_type = prove_goal QPair.thy
     "[|  p:QSigma(A,B);   \
@@ -98,8 +101,6 @@ val qsplit_type = prove_goal QPair.thy
     (etac ssubst 1),
     (REPEAT (ares_tac (prems @ [qsplit RS ssubst]) 1)) ]);
 
-
-val qpair_cs = ZF_cs addSIs [QSigmaI] addSEs [QSigmaE2, QSigmaE, QPair_inject];
 
 (*** qconverse ***)
 
@@ -208,8 +209,9 @@ val QInl_neq_QInr = standard (QInl_QInr_iff RS iffD1 RS FalseE);
 val QInr_neq_QInl = standard (QInr_QInl_iff RS iffD1 RS FalseE);
 
 val qsum_cs = 
-    qpair_cs addIs [QInlI,QInrI] addSEs [qsumE,QInl_neq_QInr,QInr_neq_QInl]
-             addSDs [QInl_inject,QInr_inject];
+    qpair_cs addSIs [PartI, QInlI, QInrI] 
+             addSEs [PartE, qsumE, QInl_neq_QInr, QInr_neq_QInl]
+             addSDs [QInl_inject, QInr_inject];
 
 goal QPair.thy "!!A B. QInl(a): A<+>B ==> a: A";
 by (fast_tac qsum_cs 1);
@@ -261,21 +263,17 @@ val qcase_type = result();
 (** Rules for the Part primitive **)
 
 goal QPair.thy "Part(A <+> B,QInl) = {QInl(x). x: A}";
-by (fast_tac (qsum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+by (fast_tac (qsum_cs addIs [equalityI]) 1);
 val Part_QInl = result();
 
 goal QPair.thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
-by (fast_tac (qsum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+by (fast_tac (qsum_cs addIs [equalityI]) 1);
 val Part_QInr = result();
 
 goal QPair.thy "Part(A <+> B, %x.QInr(h(x))) = {QInr(y). y: Part(B,h)}";
-by (fast_tac (qsum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+by (fast_tac (qsum_cs addIs [equalityI]) 1);
 val Part_QInr2 = result();
 
 goal QPair.thy "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
-by (rtac equalityI 1);
-by (rtac Un_least 1);
-by (rtac Part_subset 1);
-by (rtac Part_subset 1);
-by (fast_tac (ZF_cs addIs [PartI] addSEs [qsumE]) 1);
+by (fast_tac (qsum_cs addIs [equalityI]) 1);
 val Part_qsum_equality = result();

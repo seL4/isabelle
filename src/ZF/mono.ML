@@ -82,7 +82,7 @@ val QPair_mono = result();
 
 goal QPair.thy "!!A B C D. [| A<=C;  ALL x:A. B(x) <= D(x) |] ==>  \
 \                          QSigma(A,B) <= QSigma(C,D)";
-by (fast_tac (ZF_cs addIs [QSigmaI] addSEs [QSigmaE]) 1);
+by (fast_tac qpair_cs 1);
 val QSigma_mono_lemma = result();
 val QSigma_mono = ballI RSN (2,QSigma_mono_lemma);
 
@@ -109,17 +109,15 @@ goal ZF.thy "!!r s. r<=s ==> domain(r)<=domain(s)";
 by (fast_tac ZF_cs 1);
 val domain_mono = result();
 
-val [prem] = goal ZF.thy "r <= Sigma(A,B) ==> domain(r) <= A";
-by (rtac (domain_subset RS (prem RS domain_mono RS subset_trans)) 1);
-val domain_rel_subset = result();
+val domain_rel_subset = 
+	[domain_mono, domain_subset] MRS subset_trans |> standard;
 
 goal ZF.thy "!!r s. r<=s ==> range(r)<=range(s)";
 by (fast_tac ZF_cs 1);
 val range_mono = result();
 
-val [prem] = goal ZF.thy "r <= A*B ==> range(r) <= B";
-by (rtac (range_subset RS (prem RS range_mono RS subset_trans)) 1);
-val range_rel_subset = result();
+val range_rel_subset = 
+	[range_mono, range_subset] MRS subset_trans |> standard;
 
 goal ZF.thy "!!r s. r<=s ==> field(r)<=field(s)";
 by (fast_tac ZF_cs 1);
@@ -159,9 +157,7 @@ val Collect_mono = result();
 (** Monotonicity of implications -- some could go to FOL **)
 
 goal ZF.thy "!!A B x. A<=B ==> x:A --> x:B";
-by (rtac impI 1);
-by (etac subsetD 1);
-by (assume_tac 1);
+by (fast_tac ZF_cs 1);
 val in_mono = result();
 
 goal IFOL.thy "!!P1 P2 Q1 Q2. [| P1-->Q1; P2-->Q2 |] ==> (P1&P2) --> (Q1&Q2)";

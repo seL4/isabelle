@@ -1,4 +1,4 @@
-(*  Title: 	ZF/sum
+(*  Title: 	ZF/Sum
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -7,6 +7,35 @@ Disjoint sums in Zermelo-Fraenkel Set Theory
 *)
 
 open Sum;
+
+(*** Rules for the Part primitive ***)
+
+goalw Sum.thy [Part_def]
+    "a : Part(A,h) <-> a:A & (EX y. a=h(y))";
+by (rtac separation 1);
+val Part_iff = result();
+
+goalw Sum.thy [Part_def]
+    "!!a b A h. [| a : A;  a=h(b) |] ==> a : Part(A,h)";
+by (REPEAT (ares_tac [exI,CollectI] 1));
+val Part_eqI = result();
+
+val PartI = refl RSN (2,Part_eqI);
+
+val major::prems = goalw Sum.thy [Part_def]
+    "[| a : Part(A,h);  !!z. [| a : A;  a=h(z) |] ==> P  \
+\    |] ==> P";
+by (rtac (major RS CollectE) 1);
+by (etac exE 1);
+by (REPEAT (ares_tac prems 1));
+val PartE = result();
+
+goalw Sum.thy [Part_def] "Part(A,h) <= A";
+by (rtac Collect_subset 1);
+val Part_subset = result();
+
+
+(*** Rules for Disjoint Sums ***)
 
 val sum_defs = [sum_def,Inl_def,Inr_def,case_def];
 
@@ -61,8 +90,9 @@ val Inr_inject = standard (Inr_iff RS iffD1);
 val Inl_neq_Inr = standard (Inl_Inr_iff RS iffD1 RS FalseE);
 val Inr_neq_Inl = standard (Inr_Inl_iff RS iffD1 RS FalseE);
 
-val sum_cs = ZF_cs addSIs [InlI,InrI] addSEs [sumE,Inl_neq_Inr,Inr_neq_Inl]
-                   addSDs [Inl_inject,Inr_inject];
+val sum_cs = ZF_cs addSIs [PartI, InlI, InrI] 
+                   addSEs [PartE, sumE, Inl_neq_Inr, Inr_neq_Inl]
+                   addSDs [Inl_inject, Inr_inject];
 
 val sum_ss = ZF_ss addsimps [InlI, InrI, Inl_iff, Inr_iff, 
 			     Inl_Inr_iff, Inr_Inl_iff];
@@ -125,37 +155,23 @@ by (fast_tac sum_cs 1);
 val expand_case = result();
 
 
-(** Rules for the Part primitive **)
-
-goalw Sum.thy [Part_def]
-    "!!a b A h. [| a : A;  a=h(b) |] ==> a : Part(A,h)";
-by (REPEAT (ares_tac [exI,CollectI] 1));
-val Part_eqI = result();
-
-val PartI = refl RSN (2,Part_eqI);
-
-val major::prems = goalw Sum.thy [Part_def]
-    "[| a : Part(A,h);  !!z. [| a : A;  a=h(z) |] ==> P  \
-\    |] ==> P";
-by (rtac (major RS CollectE) 1);
-by (etac exE 1);
-by (REPEAT (ares_tac prems 1));
-val PartE = result();
-
-goalw Sum.thy [Part_def] "Part(A,h) <= A";
-by (rtac Collect_subset 1);
-val Part_subset = result();
-
 goal Sum.thy "!!A B h. A<=B ==> Part(A,h)<=Part(B,h)";
-by (fast_tac (ZF_cs addIs [PartI] addSEs [PartE]) 1);
+by (fast_tac sum_cs 1);
 val Part_mono = result();
 
+goal Sum.thy "Part(Collect(A,P), h) = Collect(Part(A,h), P)";
+by (fast_tac (sum_cs addSIs [equalityI]) 1);
+val Part_Collect = result();
+
+val Part_CollectE =
+    Part_Collect RS equalityD1 RS subsetD RS CollectE |> standard;
+
 goal Sum.thy "Part(A+B,Inl) = {Inl(x). x: A}";
-by (fast_tac (sum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+by (fast_tac (sum_cs addIs [equalityI]) 1);
 val Part_Inl = result();
 
 goal Sum.thy "Part(A+B,Inr) = {Inr(y). y: B}";
-by (fast_tac (sum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+by (fast_tac (sum_cs addIs [equalityI]) 1);
 val Part_Inr = result();
 
 goalw Sum.thy [Part_def] "!!a. a : Part(A,h) ==> a : A";
@@ -163,17 +179,13 @@ by (etac CollectD1 1);
 val PartD1 = result();
 
 goal Sum.thy "Part(A,%x.x) = A";
-by (fast_tac (ZF_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+by (fast_tac (sum_cs addIs [equalityI]) 1);
 val Part_id = result();
 
 goal Sum.thy "Part(A+B, %x.Inr(h(x))) = {Inr(y). y: Part(B,h)}";
-by (fast_tac (sum_cs addIs [PartI,equalityI] addSEs [PartE]) 1);
+by (fast_tac (sum_cs addIs [equalityI]) 1);
 val Part_Inr2 = result();
 
 goal Sum.thy "!!A B C. C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C";
-by (rtac equalityI 1);
-by (rtac Un_least 1);
-by (rtac Part_subset 1);
-by (rtac Part_subset 1);
-by (fast_tac (ZF_cs addIs [PartI] addSEs [sumE]) 1);
+by (fast_tac (sum_cs addIs [equalityI]) 1);
 val Part_sum_equality = result();
