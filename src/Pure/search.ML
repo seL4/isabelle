@@ -5,8 +5,13 @@
 Search tacticals
 *)
 
+infix 1 THEN_MAYBE THEN_MAYBE';
+
 signature SEARCH =
   sig
+  val THEN_MAYBE	: tactic * tactic -> tactic
+  val THEN_MAYBE'	: ('a -> tactic) * ('a -> tactic) -> ('a -> tactic)
+
   val trace_DEPTH_FIRST	: bool ref
   val DEPTH_FIRST	: (thm -> bool) -> tactic -> tactic
   val DEPTH_SOLVE	: tactic -> tactic
@@ -56,6 +61,14 @@ fun has_fewer_prems n rule = (nprems_of rule < n);
 
 (*Apply a tactic if subgoals remain, else do nothing.*)
 val IF_UNSOLVED = COND (has_fewer_prems 1) all_tac;
+
+(*Execute tac1, but only execute tac2 if there are at least as many subgoals
+  as before.  This ensures that tac2 is only applied to an outcome of tac1.*)
+fun tac1 THEN_MAYBE tac2 = STATE
+    (fn st => tac1  THEN  
+	 COND (has_fewer_prems (nprems_of st)) all_tac tac2);
+
+fun (tac1 THEN_MAYBE' tac2) x = tac1 x THEN_MAYBE tac2 x;
 
 (*Tactical to reduce the number of premises by 1.
   If no subgoals then it must fail! *)
@@ -198,7 +211,7 @@ fun BREADTH_FIRST satpred tac =
 	      ([],[]) => []
 	    | ([],nonsats) => 
 		  (prs("breadth=" ^ string_of_int(length nonsats) ^ "\n");
-		   bfs (flat (map tacf nonsats)))
+		   bfs (List.concat (map tacf nonsats)))
 	    | (sats,_)  => sats)
   in (fn st => Sequence.s_of_list (bfs [st])) end;
 

@@ -758,7 +758,8 @@ fun ext_tsig_arities tsig sarities =
   let
     val TySg {classes, subclass, default, tycons, arities, abbrs} = tsig;
     val arities1 =
-      flat (map (fn (t, ss, cs) => map (fn c => (t, (ss, c))) cs) sarities);
+      List.concat 
+          (map (fn (t, ss, cs) => map (fn c => (t, (ss, c))) cs) sarities);
     val arities2 = foldl (coregular (classes, subclass, tycons))
                          (arities, min_domain subclass arities1)
       |> close subclass;

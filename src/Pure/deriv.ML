@@ -38,7 +38,7 @@ fun rev_deriv (Join (rl, [])) 	= [Join(rl,[])]
 	Join (Bicompose arg, linear rder) :: rev_deriv sder
   | rev_deriv (Join (_, [der]))	= rev_deriv der
   | rev_deriv (Join (rl, der::ders)) =	(*catch-all case; doubtful?*)
-        Join(rl, flat (map linear ders)) :: rev_deriv der
+        Join(rl, List.concat (map linear ders)) :: rev_deriv der
 and linear der 	= rev (rev_deriv der);
 
 

@@ -199,7 +199,7 @@ fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
           else err_bad_axsort name class
       | _ => err_bad_tfrees name);
 
-    val axS = Sign.norm_sort sign (logicC :: flat (map axm_sort axioms));
+    val axS = Sign.norm_sort sign (logicC :: List.concat(map axm_sort axioms))
 
     val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
     fun inclass c = Logic.mk_inclass (aT axS, c);

@@ -157,7 +157,7 @@ fun make_multi alst =
   balance (foldr cons_entry (alst, Tip));
 
 fun dest_multi tab =
-  flat (map (fn (key, entries) => map (pair key) entries) (dest tab));
+  List.concat (map (fn (key, entries) => map (pair key) entries) (dest tab));
 
 
 (* map tables *)

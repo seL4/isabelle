@@ -197,7 +197,7 @@ fun print_sg sg =
     Pretty.writeln (Pretty.big_list "types:" (map pretty_ty tycons));
     Pretty.writeln (Pretty.big_list "abbrs:" (map (pretty_abbr syn) abbrs));
     Pretty.writeln (Pretty.big_list "arities:"
-                      (flat (map pretty_arities arities)));
+                      (List.concat (map pretty_arities arities)));
     Pretty.writeln (Pretty.big_list "consts:"
                       (map (pretty_const syn) (Symtab.dest const_tab)))
   end;

@@ -80,10 +80,10 @@ struct
 (*results may contain duplicates!*)
 
 fun ancestry_of thy =
-  thy :: flat (map ancestry_of (parents_of thy));
+  thy :: List.concat (map ancestry_of (parents_of thy));
 
 val all_axioms_of =
-  flat o map (Symtab.dest o #new_axioms o rep_theory) o ancestry_of;
+  List.concat o map (Symtab.dest o #new_axioms o rep_theory) o ancestry_of;
 
 
 (* clash_types, clash_consts *)
@@ -389,7 +389,7 @@ fun tha RS thb = tha RSN (1,thb);
 fun thas RLN (i,thbs) =
   let val resolve = biresolution false (map (pair false) thas) i
       fun resb thb = Sequence.list_of_s (resolve thb) handle THM _ => []
-  in  flat (map resb thbs)  end;
+  in  List.concat (map resb thbs)  end;
 
 fun thas RL thbs = thas RLN (1,thbs);
 

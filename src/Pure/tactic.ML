@@ -61,6 +61,7 @@ signature TACTIC =
   val net_biresolve_tac: (bool*thm) list -> int -> tactic
   val net_match_tac: thm list -> int -> tactic
   val net_resolve_tac: thm list -> int -> tactic
+  val orderlist: (int * 'a) list -> 'a list
   val PRIMITIVE: (thm -> thm) -> tactic  
   val PRIMSEQ: (thm -> thm Sequence.seq) -> tactic  
   val prune_params_tac: tactic
@@ -387,7 +388,7 @@ fun biresolution_from_nets_tac match (inet,enet) =
       let val hyps = Logic.strip_assums_hyp prem
           and concl = Logic.strip_assums_concl prem 
           val kbrls = Net.unify_term inet concl @
-                      flat (map (Net.unify_term enet) hyps)
+                      List.concat (map (Net.unify_term enet) hyps)
       in PRIMSEQ (biresolution match (orderlist kbrls) i) end);
 
 (*versions taking pre-built nets*)
@@ -527,11 +528,8 @@ val prune_params_tac = rewrite_goals_tac [triv_forall_equality];
 
 (*rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
   right to left if n is positive, and from left to right if n is negative.*)
-fun rotate_tac n =
-  let fun rot(n) = EVERY'(replicate n (dtac asm_rl));
-  in if n >= 0 then rot n
-     else SUBGOAL (fn (t,i) => rot(length(Logic.strip_assums_hyp t)+n) i)
-  end;
+fun rotate_tac 0 i = all_tac
+  | rotate_tac k i = PRIMITIVE (rotate_rule k i);
 
 end;
 
