@@ -8,16 +8,9 @@ This file builds the theory parser and autoloading system.
 
 use "thy_scan.ML";
 use "thy_parse.ML";
-
-structure ThyScan = ThyScanFun(Scanner);
-structure ThyParse = ThyParseFun(structure Symtab = Symtab
-  and ThyScan = ThyScan);
-
 use "thy_syn.ML";
 use "thm_database.ML";
 use "../../Provers/simplifier.ML";
-
-structure Simplifier = SimplifierFun();
 
 use "thy_read.ML";
 
@@ -26,10 +19,6 @@ structure ThmDB = ThmDBFun();
 structure ReadThy = ReadthyFun(structure ThySyn = ThySyn and ThmDB = ThmDB);
 open ThmDB ReadThy;
 
-(* hide functors; saves space in PolyML *)
-functor ThyScanFun() = struct end;
-functor ThyParseFun() = struct end;
-functor SimplifierFun() = struct end;
 
 fun init_thy_reader () =
   use_string

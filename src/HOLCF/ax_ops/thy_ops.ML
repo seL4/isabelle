@@ -8,21 +8,21 @@ write to mayrt@informatik.tu-muenchen.de.
 For a short english description of the new sections
 write to regensbu@informatik.tu-muenchen.de. 
 
-TODO: vielleicht AST-Darstellung mit "op name" statt _I_...
+TODO: maybe AST-representation with "op name" instead of _I_...
 
 *)
 
 signature THY_OPS =
 sig
- (* continuous mixfixes (extension of datatype PrivateSyntax.Mixfix.mixfix) *)
+ (* continuous mixfixes (extension of datatype Mixfix.mixfix) *)
  datatype cmixfix =
-    Mixfix of PrivateSyntax.Mixfix.mixfix |
+    Mixfix of Mixfix.mixfix |
     CInfixl of int | 
     CInfixr of int |
     CMixfix of string * int list *int;
 
  exception CINFIX of cmixfix;
- val cmixfix_to_mixfix : cmixfix ->  PrivateSyntax.Mixfix.mixfix;
+ val cmixfix_to_mixfix : cmixfix ->  Mixfix.mixfix;
 
  (* theory extenders : *)
  val add_ops          : {curried: bool, total: bool, strict: bool} ->
@@ -54,7 +54,7 @@ fun apsnd_of_three f = fn (a,b,c) => (a,f b,c);
 
 (* the extended copy of mixfix *)
 datatype cmixfix =
-    Mixfix of PrivateSyntax.Mixfix.mixfix |
+    Mixfix of Mixfix.mixfix |
     CInfixl of int |
     CInfixr of int |
     CMixfix of string * int list *int;
@@ -125,36 +125,36 @@ fun op_to_fun true  sign (Type("->" ,[larg,t]))=
 fun oldstyle ((name,typ,Mixfix(x))::tl) = 
          (name,typ,x)::(oldstyle tl)
   | oldstyle ((name,typ,CInfixl(i))::tl) = 
-         (mk_internal_name name,typ,PrivateSyntax.Mixfix.NoSyn)::
+         (mk_internal_name name,typ,Mixfix.NoSyn)::
          (oldstyle tl)
   | oldstyle ((name,typ,CInfixr(i))::tl) =
-         (mk_internal_name name,typ,PrivateSyntax.Mixfix.NoSyn)::
+         (mk_internal_name name,typ,Mixfix.NoSyn)::
          (oldstyle tl) 
   | oldstyle ((name,typ,CMixfix(x))::tl) =
-         (name,typ,PrivateSyntax.Mixfix.NoSyn)::
+         (name,typ,Mixfix.NoSyn)::
          (oldstyle tl) 
   | oldstyle [] = [];
 
 (* generating the external purely syntactical infix functions. 
    Called by add_ext_axioms(_i) *)
 fun syn_decls curried sign ((name,typ,CInfixl(i))::tl) =
-     (name,op_to_fun curried sign typ,PrivateSyntax.Mixfix.Infixl(i))::
+     (name,op_to_fun curried sign typ,Mixfix.Infixl(i))::
       (syn_decls curried sign tl)
   | syn_decls curried sign ((name,typ,CInfixr(i))::tl) =
-     (name,op_to_fun curried sign typ,PrivateSyntax.Mixfix.Infixr(i))::
+     (name,op_to_fun curried sign typ,Mixfix.Infixr(i))::
       (syn_decls curried sign tl)
   | syn_decls curried sign ((name,typ,CMixfix(x))::tl) =
 (*####
-     ("@"^name,op_to_fun curried sign typ,PrivateSyntax.Mixfix.Mixfix(x))::
+     ("@"^name,op_to_fun curried sign typ,Mixfix.Mixfix(x))::
 ####**)
-     (name,op_to_fun curried sign typ,PrivateSyntax.Mixfix.Mixfix(x))::
+     (name,op_to_fun curried sign typ,Mixfix.Mixfix(x))::
 
       (syn_decls curried sign tl)
   | syn_decls curried sign (_::tl) = syn_decls curried sign tl
   | syn_decls _ _ [] = [];
 
 (* generating the translation rules. Called by add_ext_axioms(_i) *)
-local open PrivateSyntax.Ast in 
+local open Ast in 
 fun xrules_of true ((name,typ,CInfixl(i))::tail) = 
     ((mk_appl (Constant (mk_internal_name name)) [Variable "A",Variable "B"]) <->
      (mk_appl (Constant "@fapp") [(mk_appl (Constant "@fapp") [

@@ -158,12 +158,10 @@ fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
 val prop_of = #prop o rep_thm;
 
 (*Permits forward proof from rules that discharge assumptions*)
-fun forward_res nf state =
-  case Sequence.pull
-        (tapply(ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)), 
-                state))
+fun forward_res nf st =
+  case Sequence.pull (ALLGOALS (METAHYPS (fn [prem] => rtac (nf prem) 1)) st)
   of Some(th,_) => th
-   | None => raise THM("forward_res", 0, [state]);
+   | None => raise THM("forward_res", 0, [st]);
 
 
 (*Negation Normal Form*)
@@ -188,10 +186,10 @@ fun has_consts bs =
 fun skolemize th = 
   if not (has_consts ["Ex"] (prop_of th)) then th
   else skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
-                          disj_exD, disj_exD1, disj_exD2]))
+			      disj_exD, disj_exD1, disj_exD2]))
     handle THM _ => 
         skolemize (forward_res skolemize
-                (tryres (th, [conj_forward, disj_forward, all_forward])))
+		   (tryres (th, [conj_forward, disj_forward, all_forward])))
     handle THM _ => forward_res skolemize (th RS ex_forward);
 
 
@@ -243,8 +241,7 @@ fun cnf_aux seen (th,ths) =
         (METAHYPS (resop (cnf_nil seen)) 1) THEN
         (STATE (fn st' => 
                 METAHYPS (resop (cnf_nil (literals (concl_of st') @ seen))) 1))
-    in  Sequence.list_of_s (tapply(tac, th RS disj_forward))  @  ths
-    end
+    in  Sequence.list_of_s (tac (th RS disj_forward)) @ ths  end
 and cnf_nil seen th = cnf_aux seen (th,[]);
 
 (*Top-level call to cnf -- it's safe to reset name_ref*)
@@ -266,13 +263,13 @@ by (assume_tac 1);
 qed "disj_forward2";
 
 (*Forward proof, passing extra assumptions as theorems to the tactic*)
-fun forward_res2 nf hyps state =
+fun forward_res2 nf hyps st =
   case Sequence.pull
-        (tapply(REPEAT 
-           (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1), 
-           state))
+        (REPEAT 
+	 (METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1) 
+	 st)
   of Some(th,_) => th
-   | None => raise THM("forward_res2", 0, [state]);
+   | None => raise THM("forward_res2", 0, [st]);
 
 (*Remove duplicates in P|Q by assuming ~P in Q
   rls (initially []) accumulates assumptions of the form P==>False*)

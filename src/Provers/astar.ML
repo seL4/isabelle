@@ -21,7 +21,7 @@ fun some_of_list []     = None
 infix THEN_ASTAR;
 val trace_ASTAR = ref false; 
 
-fun (Tactic tf0) THEN_ASTAR (satp, costf, tac) = 
+fun tf0 THEN_ASTAR (satp, costf, tac) = 
   let val tf = tracify trace_ASTAR tac;   
       fun bfs (news,nprfs,level) =
       let fun cost thm = (level,costf level thm,thm)

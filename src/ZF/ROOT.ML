@@ -12,9 +12,8 @@ val banner = "ZF Set Theory (in FOL)";
 writeln banner;
 
 (*For Pure/tactic??  A crude way of adding structure to rules*)
-fun CHECK_SOLVED (Tactic tf) = 
-  Tactic (fn state => 
-    case Sequence.pull (tf state) of
+fun CHECK_SOLVED tac st =
+    case Sequence.pull (tac st) of
         None => error"DO_GOAL: tactic list failed"
       | Some(x,_) => 
                 if has_fewer_prems 1 x then
@@ -22,7 +21,7 @@ fun CHECK_SOLVED (Tactic tf) =
                 else (writeln"DO_GOAL: unsolved goals!!";
                       writeln"Final proof state was ...";
                       print_goals (!goals_limit) x;
-                      raise ERROR));
+                      raise ERROR);
 
 fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 

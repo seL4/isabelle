@@ -129,7 +129,7 @@ let fun mk[] = error"Check transitivity"
 in mk trans_thms end;
 
 (*Applies tactic and returns the first resulting state, FAILS if none!*)
-fun one_result(tac,thm) = case Sequence.pull(tapply(tac,thm)) of
+fun one_result(tac,thm) = case Sequence.pull(tac thm) of
 	Some(thm',_) => thm'
       | None => raise THM("Simplifier: could not continue", 0, [thm]);
 
@@ -205,7 +205,7 @@ let val thm' = mk_trans2 thm;
 			     resolve_tac congs 1 ORELSE refl1_tac
 		| Free _ => resolve_tac congs 1 ORELSE refl1_tac
 		| _ => refl1_tac))
-    val Some(thm'',_) = Sequence.pull(tapply(add_norm_tac,thm'))
+    val Some(thm'',_) = Sequence.pull(add_norm_tac thm')
 in thm'' end;
 
 fun add_norm_tags congs =
@@ -357,18 +357,18 @@ fun splittable a i thm =
 fun split_tac (cong_tac,splits,split_consts) i =
     let fun seq_try (split::splits,a::bs) thm = tapply(
 		COND (splittable a i) (DETERM(resolve_tac[split]i))
-			(Tactic(seq_try(splits,bs))), thm)
-	      | seq_try([],_) thm = tapply(no_tac,thm)
-	and try_rew thm = tapply(Tactic(seq_try(splits,split_consts))
-				 ORELSE Tactic one_subt, thm)
+			((seq_try(splits,bs))), thm)
+	      | seq_try([],_) thm = no_tac thm
+	and try_rew thm = tapply((seq_try(splits,split_consts))
+				 ORELSE one_subt, thm)
 	and one_subt thm =
 		let val test = has_fewer_prems (nprems_of thm + 1)
 		    fun loop thm = tapply(COND test no_tac
-			((Tactic try_rew THEN DEPTH_FIRST test (refl_tac i))
-			 ORELSE (refl_tac i THEN Tactic loop)), thm)
-		in tapply(cong_tac THEN Tactic loop, thm) end
+			((try_rew THEN DEPTH_FIRST test (refl_tac i))
+			 ORELSE (refl_tac i THEN loop)), thm)
+		in (cong_tac THEN loop) thm end
     in if null splits then no_tac
-       else COND (may_match(split_consts,i)) (Tactic try_rew) no_tac
+       else COND (may_match(split_consts,i)) try_rew no_tac
     end;
 
 fun SPLIT_TAC (SS{cong_net,splits,split_consts,...}) i =
@@ -443,7 +443,7 @@ fun execute(ss,if_fl,auto_tac,cong_tac,splits,split_consts,net,i) thm = let
 fun simp_lhs(thm,ss,anet,ats,cs) =
     if var_lhs(thm,i) then (ss,thm,anet,ats,cs) else
     if lhs_is_NORM(thm,i) then (ss, res1(thm,trans_norms,i), anet,ats,cs)
-    else case Sequence.pull(tapply(cong_tac i,thm)) of
+    else case Sequence.pull(cong_tac i thm) of
 	    Some(thm',_) =>
 		    let val ps = prems_of thm and ps' = prems_of thm';
 			val n = length(ps')-length(ps);
@@ -481,7 +481,7 @@ fun rew(seq,thm,ss,anet,ats,cs, more) = case Sequence.pull seq of
 	    else (ss,thm,anet,ats,cs);
 
 fun try_true(thm,ss,anet,ats,cs) =
-    case Sequence.pull(tapply(auto_tac i,thm)) of
+    case Sequence.pull(auto_tac i thm) of
       Some(thm',_) => (ss,thm',anet,ats,cs)
     | None => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
 	      in if !tracing
@@ -501,7 +501,7 @@ fun step(s::ss, thm, anet, ats, cs) = case s of
 	  MK_EQ => (ss, res1(thm,[red2],i), anet, ats, cs)
 	| ASMS(a) => add_asms(ss,thm,a,anet,ats,cs)
 	| SIMP_LHS => simp_lhs(thm,ss,anet,ats,cs)
-	| REW => rew(tapply(net_tac net i,thm),thm,ss,anet,ats,cs,true)
+	| REW => rew(net_tac net i thm,thm,ss,anet,ats,cs,true)
 	| REFL => (ss, res1(thm,refl_thms,i), anet, ats, cs)
 	| TRUE => try_true(res1(thm,refl_thms,i),ss,anet,ats,cs)
 	| PROVE => (if if_fl then MK_EQ::SIMP_LHS::SPLIT::TRUE::ss

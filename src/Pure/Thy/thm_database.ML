@@ -15,7 +15,7 @@ datatype thm_db_type =
                  indexed by the constants they contain*)
 
 signature THMDB =
-sig
+  sig
   val thm_db: thm_db_type ref
   val store_thm_db: string * thm -> thm
   val delete_thm_db: theory -> unit
@@ -23,7 +23,7 @@ sig
   val findI:         int -> (string * thm)list
   val findEs:        int -> (string * thm)list
   val findE:  int -> int -> (string * thm)list
-end;
+  end;
 
 functor ThmDBFun(): THMDB =
 struct

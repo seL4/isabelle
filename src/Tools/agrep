@@ -1,2 +1,2 @@
 #! /bin/csh
-grep "$*" {Pure/Syntax,Pure/Thy}/*ML */*ML */*/*ML 
+grep "$*" */*.ML */*/*.ML 

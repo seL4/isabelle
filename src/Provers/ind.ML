@@ -40,22 +40,23 @@ in add end;
 fun qnt_tac i = fn (tac,var) => tac THEN res_inst_tac [(a_name,var)] spec i;
 
 (*Generalizes over all free variables, with the named var outermost.*)
-fun all_frees_tac (var:string) i = Tactic(fn thm =>
+fun all_frees_tac (var:string) i thm = 
     let val tsig = #tsig(Sign.rep_sg(#sign(rep_thm thm)));
         val frees = add_term_frees tsig (nth_elem(i-1,prems_of thm),[var]);
         val frees' = sort(op>)(frees \ var) @ [var]
-    in tapply(foldl (qnt_tac i) (all_tac,frees'), thm) end);
+    in foldl (qnt_tac i) (all_tac,frees') thm end;
 
 fun REPEAT_SIMP_TAC simp_tac n i =
-let fun repeat thm = tapply(COND (has_fewer_prems n) all_tac
-	let val k = length(prems_of thm)
-	in simp_tac i THEN COND (has_fewer_prems k) (Tactic repeat) all_tac
-	end, thm)
-in Tactic repeat end;
+let fun repeat thm = 
+        (COND (has_fewer_prems n) all_tac
+	 let val k = nprems_of thm
+	 in simp_tac i THEN COND (has_fewer_prems k) repeat all_tac end)
+	thm
+in repeat end;
 
-fun ALL_IND_TAC sch simp_tac i = Tactic(fn thm => tapply(
-	resolve_tac [sch] i THEN
-	REPEAT_SIMP_TAC simp_tac (length(prems_of thm)) i, thm));
+fun ALL_IND_TAC sch simp_tac i thm = 
+	(resolve_tac [sch] i THEN
+	 REPEAT_SIMP_TAC simp_tac (nprems_of thm) i) thm;
 
 fun IND_TAC sch simp_tac var =
 	all_frees_tac var THEN' ALL_IND_TAC sch simp_tac;

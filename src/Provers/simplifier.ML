@@ -36,7 +36,7 @@ sig
   val Asm_full_simp_tac: int -> tactic
 end;
 
-functor SimplifierFun():SIMPLIFIER =
+structure Simplifier :SIMPLIFIER =
 struct
 
 datatype simpset =
@@ -158,14 +158,11 @@ fun gen_simp_tac mode =
                           (fn n => if n<0 then all_tac else no_tac)
         in DEPTH_SOLVE(solve1_tac) end
 
-      fun simp_loop i thm =
-        tapply(asm_rewrite_goal_tac mode solve_all_tac mss i THEN
-               (finish_tac (prems_of_mss mss) i  ORELSE  looper i),
-               thm)
+      fun simp_loop_tac i thm =
+	  (asm_rewrite_goal_tac mode solve_all_tac mss i THEN
+	   (finish_tac (prems_of_mss mss) i  ORELSE  looper i))  thm
       and allsimp i n = EVERY(map (fn j => simp_loop_tac (i+j)) (n downto 0))
       and looper i = TRY(NEWSUBGOALS (loop_tac i) (allsimp i))
-      and simp_loop_tac i = Tactic(simp_loop i)
-
   in simp_loop_tac end;
 
 val asm_full_simp_tac = gen_simp_tac (true,true);

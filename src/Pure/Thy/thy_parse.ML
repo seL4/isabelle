@@ -10,7 +10,7 @@ infix 3 >>;
 infix 0 ||;
 
 signature THY_PARSE =
-sig
+  sig
   type token
   val !! : ('a -> 'b * 'c) -> 'a -> 'b * 'c
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
@@ -66,9 +66,10 @@ sig
   val mk_pair: string * string -> string
   val mk_triple: string * string * string -> string
   val strip_quotes: string -> string
-end;
+  end;
 
-functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN): THY_PARSE=
+
+structure ThyParse : THY_PARSE=
 struct
 
 open ThyScan;
@@ -516,6 +517,5 @@ val pure_sections =
   axm_section "defs" "|> add_defs" axiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   section "instance" "" instance_decl];
-
 
 end;

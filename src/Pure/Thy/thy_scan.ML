@@ -6,17 +6,17 @@ The scanner for theory files.
 *)
 
 signature THY_SCAN =
-sig
+  sig
   datatype token_kind =
     Keyword | Ident | LongIdent | TypeVar | Nat | String | Verbatim | EOF
   val name_of_kind: token_kind -> string
   type lexicon
   val make_lexicon: string list -> lexicon
   val tokenize: lexicon -> string -> (token_kind * string * int) list
-end;
+  end;
 
 
-functor ThyScanFun(Scanner: SCANNER): THY_SCAN =
+structure ThyScan : THY_SCAN =
 struct
 
 open Scanner;

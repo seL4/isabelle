@@ -173,8 +173,9 @@ Lawrence~C. Paulson.
 \bibitem{paulson-CADE}
 Lawrence~C. Paulson.
 \newblock A fixedpoint approach to implementing (co)inductive definitions.
-\newblock In Alan Bundy, editor, {\em 12th International Conference on
-  Automated Deduction}, LNAI 814, pages 148--161. Springer, 1994.
+\newblock In Alan Bundy, editor, {\em Automated Deduction --- {CADE}-12}, LNAI
+  814, pages 148--161. Springer, 1994.
+\newblock 12th international conference.
 
 \bibitem{paulson-set-II}
 Lawrence~C. Paulson.

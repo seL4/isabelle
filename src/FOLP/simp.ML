@@ -135,7 +135,7 @@ let fun mk[] = error"Check transitivity"
 in mk trans_thms end;
 
 (*Applies tactic and returns the first resulting state, FAILS if none!*)
-fun one_result(tac,thm) = case Sequence.pull(tapply(tac,thm)) of
+fun one_result(tac,thm) = case Sequence.pull(tac thm) of
         Some(thm',_) => thm'
       | None => raise THM("Simplifier: could not continue", 0, [thm]);
 
@@ -211,7 +211,7 @@ let val thm' = mk_trans2 thm;
                              resolve_tac congs 1 ORELSE refl1_tac
                 | Free _ => resolve_tac congs 1 ORELSE refl1_tac
                 | _ => refl1_tac))
-    val Some(thm'',_) = Sequence.pull(tapply(add_norm_tac,thm'))
+    val Some(thm'',_) = Sequence.pull(add_norm_tac thm')
 in thm'' end;
 
 fun add_norm_tags congs =
@@ -336,19 +336,19 @@ fun if_rewritable ifc i thm =
     in find_if(tm,0) end;
 
 fun IF1_TAC cong_tac i =
-    let fun seq_try (ifth::ifths,ifc::ifcs) thm = tapply(
-                COND (if_rewritable ifc i) (DETERM(rtac ifth i))
-                        (Tactic(seq_try(ifths,ifcs))), thm)
-              | seq_try([],_) thm = tapply(no_tac,thm)
-        and try_rew thm = tapply(Tactic(seq_try(case_rews,case_consts))
-                                 ORELSE Tactic one_subt, thm)
+    let fun seq_try (ifth::ifths,ifc::ifcs) thm = 
+                (COND (if_rewritable ifc i) (DETERM(rtac ifth i))
+                        (seq_try(ifths,ifcs))) thm
+              | seq_try([],_) thm = no_tac thm
+        and try_rew thm = (seq_try(case_rews,case_consts) ORELSE one_subt) thm
         and one_subt thm =
                 let val test = has_fewer_prems (nprems_of thm + 1)
-                    fun loop thm = tapply(COND test no_tac
-                        ((Tactic try_rew THEN DEPTH_FIRST test (refl_tac i))
-                         ORELSE (refl_tac i THEN Tactic loop)), thm)
-                in tapply(cong_tac THEN Tactic loop, thm) end
-    in COND (may_match(case_consts,i)) (Tactic try_rew) no_tac end;
+                    fun loop thm = 
+			COND test no_tac
+                          ((try_rew THEN DEPTH_FIRST test (refl_tac i))
+			   ORELSE (refl_tac i THEN loop)) thm
+                in (cong_tac THEN loop) thm end
+    in COND (may_match(case_consts,i)) try_rew no_tac end;
 
 fun CASE_TAC (SS{cong_net,...}) i =
 let val cong_tac = net_tac cong_net i
@@ -422,7 +422,7 @@ fun execute(ss,if_fl,auto_tac,cong_tac,net,i,thm) = let
 fun simp_lhs(thm,ss,anet,ats,cs) =
     if var_lhs(thm,i) then (ss,thm,anet,ats,cs) else
     if lhs_is_NORM(thm,i) then (ss, res1(thm,trans_norms,i), anet,ats,cs)
-    else case Sequence.pull(tapply(cong_tac i,thm)) of
+    else case Sequence.pull(cong_tac i thm) of
             Some(thm',_) =>
                     let val ps = prems_of thm and ps' = prems_of thm';
                         val n = length(ps')-length(ps);
@@ -455,12 +455,12 @@ fun rew(seq,thm,ss,anet,ats,cs, more) = case Sequence.pull seq of
                      thm', anet, ats, (ss,thm,anet,ats,seq',more)::cs)
             end
     | None => if more
-            then rew(tapply(lhs_net_tac anet i THEN assume_tac i,thm),
+            then rew((lhs_net_tac anet i THEN assume_tac i) thm,
                      thm,ss,anet,ats,cs,false)
             else (ss,thm,anet,ats,cs);
 
 fun try_true(thm,ss,anet,ats,cs) =
-    case Sequence.pull(tapply(auto_tac i,thm)) of
+    case Sequence.pull(auto_tac i thm) of
       Some(thm',_) => (ss,thm',anet,ats,cs)
     | None => let val (ss0,thm0,anet0,ats0,seq,more)::cs0 = cs
               in if !tracing
@@ -471,7 +471,7 @@ fun try_true(thm,ss,anet,ats,cs) =
               end;
 
 fun if_exp(thm,ss,anet,ats,cs) =
-        case Sequence.pull(tapply(IF1_TAC (cong_tac i) i,thm)) of
+        case Sequence.pull (IF1_TAC (cong_tac i) i thm) of
                 Some(thm',_) => (SIMP_LHS::IF::ss,thm',anet,ats,cs)
               | None => (ss,thm,anet,ats,cs);
 
@@ -479,7 +479,7 @@ fun step(s::ss, thm, anet, ats, cs) = case s of
           MK_EQ => (ss, res1(thm,[red2],i), anet, ats, cs)
         | ASMS(a) => add_asms(ss,thm,a,anet,ats,cs)
         | SIMP_LHS => simp_lhs(thm,ss,anet,ats,cs)
-        | REW => rew(tapply(net_tac net i,thm),thm,ss,anet,ats,cs,true)
+        | REW => rew(net_tac net i thm,thm,ss,anet,ats,cs,true)
         | REFL => (ss, res1(thm,refl_thms,i), anet, ats, cs)
         | TRUE => try_true(res1(thm,refl_thms,i),ss,anet,ats,cs)
         | PROVE => (if if_fl then MK_EQ::SIMP_LHS::IF::TRUE::ss
@@ -496,10 +496,11 @@ in exec(ss, thm, Net.empty, [], []) end;
 
 fun EXEC_TAC(ss,fl) (SS{auto_tac,cong_net,simp_net,...}) =
 let val cong_tac = net_tac cong_net
-in fn i => Tactic(fn thm =>
-        if i <= 0 orelse nprems_of thm < i then Sequence.null
-        else Sequence.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
-           THEN TRY(auto_tac i)
+in fn i => 
+    (fn thm =>
+     if i <= 0 orelse nprems_of thm < i then Sequence.null
+     else Sequence.single(execute(ss,fl,auto_tac,cong_tac,simp_net,i,thm)))
+    THEN TRY(auto_tac i)
 end;
 
 val SIMP_TAC = EXEC_TAC([MK_EQ,SIMP_LHS,REFL,STOP],false);
