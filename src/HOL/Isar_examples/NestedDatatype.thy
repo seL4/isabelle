@@ -10,9 +10,9 @@ datatype ('a, 'b) "term" =
   | App 'b "('a, 'b) term list";
 
 consts
-  subst_term :: "('a \\<Rightarrow> ('a, 'b) term) \\<Rightarrow> ('a, 'b) term \\<Rightarrow> ('a, 'b) term"
+  subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term"
   subst_term_list ::
-    "('a \\<Rightarrow> ('a, 'b) term) \\<Rightarrow> ('a, 'b) term list \\<Rightarrow> ('a, 'b) term list";
+    "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list";
 
 primrec (subst)
   "subst_term f (Var a) = f a"
@@ -27,7 +27,7 @@ text {*
 
 lemma
    "subst_term (subst_term f1 o f2) t =
-      subst_term f1 (subst_term f2 t) \\<and>
+      subst_term f1 (subst_term f2 t) &
     subst_term_list (subst_term f1 o f2) ts =
       subst_term_list f1 (subst_term_list f2 ts)";
   by (induct t and ts rule: term.induct) simp_all;
@@ -55,12 +55,10 @@ qed;
 subsection {* Alternative induction *};
 
 theorem term_induct' [case_names Var App]:
- "(\\<And>a. P (Var a))
-  \\<Longrightarrow> (\\<And>b ts. list_all P ts \\<Longrightarrow> P (App b ts))
-  \\<Longrightarrow> P t";
+ "(!!a. P (Var a)) ==> (!!b ts. list_all P ts ==> P (App b ts)) ==> P t";
 proof -;
-  assume var: "\\<And>a. P (Var a)";
-  assume app: "\\<And>b ts. list_all P ts \\<Longrightarrow> P (App b ts)";
+  assume var: "!!a. P (Var a)";
+  assume app: "!!b ts. list_all P ts ==> P (App b ts)";
   show ?thesis;
   proof (induct P t);
     fix a; show "P (Var a)"; by (rule var);
@@ -75,14 +73,15 @@ proof -;
   qed;
 qed;
 
-lemma "subst_term (subst_term f1 o f2) t = subst_term f1 (subst_term f2 t)"
+lemma
+  "subst_term (subst_term f1 o f2) t = subst_term f1 (subst_term f2 t)"
   (is "?P t");
 proof (induct ?P t rule: term_induct');
   case Var;
   show "?P (Var a)"; by (simp add: o_def);
 next;
   case App;
-  have "?this \\<longrightarrow> ?P (App b ts)";
+  have "?this --> ?P (App b ts)";
     by (induct ts) simp_all;
   thus "..."; ..;
 qed;
