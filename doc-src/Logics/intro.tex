@@ -21,8 +21,8 @@ axioms~\cite{suppes72}.  It is built upon classical~\FOL{}.
   system~\cite{paulson87}.  It is built upon classical~\FOL{}.
 
 \item[\thydx{HOL}] is the higher-order logic of Church~\cite{church40},
-which is also implemented by Gordon's~{\sc hol} system~\cite{mgordon88a}.  This
-object-logic should not be confused with Isabelle's meta-logic, which is
+which is also implemented by Gordon's~{\sc hol} system~\cite{mgordon-hol}.
+This object-logic should not be confused with Isabelle's meta-logic, which is
 also a form of higher-order logic.
 
 \item[\thydx{HOLCF}] is an alternative version of {\sc lcf}, defined
@@ -99,7 +99,7 @@ This should suffice for most purposes; for full details, please consult the
 actual syntax definitions in the {\tt.thy} files.
 
 Each nonterminal symbol is associated with some Isabelle type.  For
-example, the {\bf formulae} of first-order logic have type~$o$.  Every
+example, the formulae of first-order logic have type~$o$.  Every
 Isabelle expression of type~$o$ is therefore a formula.  These include
 atomic formulae such as $P$, where $P$ is a variable of type~$o$, and more
 generally expressions such as $P(t,u)$, where $P$, $t$ and~$u$ have
@@ -134,7 +134,7 @@ important as the strategy for applying them.
 
 Many of the proof procedures use backtracking.  Typically they attempt to
 solve subgoal~$i$ by repeatedly applying a certain tactic to it.  This
-tactic, which is known as a {\it step tactic}, resolves a selection of
+tactic, which is known as a {\bf step tactic}, resolves a selection of
 rules with subgoal~$i$. This may replace one subgoal by many;  the
 search persists until there are fewer subgoals in total than at the start.
 Backtracking happens when the search reaches a dead end: when the step

@@ -32,7 +32,7 @@ recent paper describes the package~\cite{paulson-fixedpt}.
 
 Recent reports~\cite{paulson-set-I,paulson-set-II} describe {\tt ZF} less
 formally than this chapter.  Isabelle employs a novel treatment of
-non-well-founded data structures within the standard ZF axioms including
+non-well-founded data structures within the standard {\sc zf} axioms including
 the Axiom of Foundation~\cite{paulson-final}.
 
 
@@ -337,7 +337,7 @@ write
 \hbox{\tt ALL $x$:$A$.$P[x]$} and \hbox{\tt EX $x$:$A$.$P[x]$}.
 
 
-%%%% zf.thy
+%%%% ZF.thy
 
 \begin{figure}
 \begin{ttbox}
@@ -414,7 +414,7 @@ presented by Suppes~\cite{suppes72}.  Most of the theory consists of
 definitions.  In particular, bounded quantifiers and the subset relation
 appear in other axioms.  Object-level quantifiers and implications have
 been replaced by meta-level ones wherever possible, to simplify use of the
-axioms.  See the file {\tt ZF/zf.thy} for details.
+axioms.  See the file {\tt ZF/ZF.thy} for details.
 
 The traditional replacement axiom asserts
 \[ y \in {\tt PrimReplace}(A,P) \bimp (\exists x\in A. P(x,y)) \]
@@ -517,9 +517,9 @@ instead.
 \subsection{Fundamental lemmas}
 Figure~\ref{zf-lemmas1} presents the derived rules for the most basic
 operators.  The rules for the bounded quantifiers resemble those for the
-ordinary quantifiers, but note that \tdx{ballE} uses a negated
-assumption in the style of Isabelle's classical reasoner.  The congruence rules
-\tdx{ball_cong} and \tdx{bex_cong} are required by Isabelle's
+ordinary quantifiers, but note that \tdx{ballE} uses a negated assumption
+in the style of Isabelle's classical reasoner.  The \rmindex{congruence
+  rules} \tdx{ball_cong} and \tdx{bex_cong} are required by Isabelle's
 simplifier, but have few other uses.  Congruence rules must be specially
 derived for all binding operators, and henceforth will not be shown.
 
@@ -536,7 +536,7 @@ natural deduction rules for {\tt Collect}.  The elimination rule
 \tdx{CollectD1} and \tdx{CollectD2}, but each rule is suited to
 particular circumstances.  Although too many rules can be confusing, there
 is no reason to aim for a minimal set of rules.  See the file
-{\tt ZF/zf.ML} for a complete listing.
+{\tt ZF/ZF.ML} for a complete listing.
 
 Figure~\ref{zf-lemmas3} presents rules for general union and intersection.
 The empty intersection should be undefined.  We cannot have
@@ -772,7 +772,7 @@ as the elimination rule \tdx{Pair_inject}.
 
 The rule \tdx{Pair_neq_0} asserts $\pair{a,b}\neq\emptyset$.  This
 is a property of $\{\{a\},\{a,b\}\}$, and need not hold for other 
-encoding of ordered pairs.  The non-standard ordered pairs mentioned below
+encodings of ordered pairs.  The non-standard ordered pairs mentioned below
 satisfy $\pair{\emptyset;\emptyset}=\emptyset$.
 
 The natural deduction rules \tdx{SigmaI} and \tdx{SigmaE}
@@ -825,13 +825,13 @@ Figure~\ref{zf-domrange} presents rules involving relations, which are sets
 of ordered pairs.  The converse of a relation~$r$ is the set of all pairs
 $\pair{y,x}$ such that $\pair{x,y}\in r$; if $r$ is a function, then
 {\cdx{converse}$(r)$} is its inverse.  The rules for the domain
-operation, \tdx{domainI} and~\tdx{domainE}, assert that
-\cdx{domain}$(r)$ consists of every element~$a$ such that $r$ contains
+operation, namely \tdx{domainI} and~\tdx{domainE}, assert that
+\cdx{domain}$(r)$ consists of all~$x$ such that $r$ contains
 some pair of the form~$\pair{x,y}$.  The range operation is similar, and
 the field of a relation is merely the union of its domain and range.  
 
 Figure~\ref{zf-domrange2} presents rules for images and inverse images.
-Note that these operations are generalizations of range and domain,
+Note that these operations are generalisations of range and domain,
 respectively.  See the file {\tt ZF/domrange.ML} for derivations of the
 rules.
 
@@ -1019,6 +1019,7 @@ is translated to {\tt succ(0)}.
 \begin{figure}
 \index{*"+ symbol}
 \begin{constants}
+  \it symbol    & \it meta-type & \it priority & \it description \\ 
   \tt +         & $[i,i]\To i$  &  Right 65     & disjoint union operator\\
   \cdx{Inl}~~\cdx{Inr}  & $i\To i$      &       & injections\\
   \cdx{case}    & $[i\To i,i\To i, i]\To i$ &   & conditional for $A+B$
@@ -1293,7 +1294,7 @@ Figure~\ref{zf-fin} presents the finite set operator; ${\tt Fin}(A)$ is the
 set of all finite sets over~$A$.  The definition employs Isabelle's
 inductive definition package~\cite{paulson-fixedpt}, which proves various
 rules automatically.  The induction rule shown is stronger than the one
-proved by the package.  See file {\tt ZF/fin.ML}.
+proved by the package.  See file {\tt ZF/Fin.ML}.
 
 \begin{figure}
 \begin{ttbox}
@@ -1370,8 +1371,8 @@ proved by the package.  See file {\tt ZF/fin.ML}.
 Figure~\ref{zf-list} presents the set of lists over~$A$, ${\tt list}(A)$.
 The definition employs Isabelle's datatype package, which defines the
 introduction and induction rules automatically, as well as the constructors
-and case operator (\verb|list_case|).  See file {\tt ZF/list.ML}.
-The file {\tt ZF/listfn.thy} proceeds to define structural
+and case operator (\verb|list_case|).  See file {\tt ZF/List.ML}.
+The file {\tt ZF/ListFn.thy} proceeds to define structural
 recursion and the usual list functions.
 
 The constructions of the natural numbers and lists make use of a suite of
@@ -1393,10 +1394,10 @@ summary:
     numbers.
 
   \item Theory {\tt Epsilon} derives $\epsilon$-induction and
-    $\epsilon$-recursion, which are generalizations of transfinite
-    induction.  It also defines \cdx{rank}$(x)$, which is the least
-    ordinal $\alpha$ such that $x$ is constructed at stage $\alpha$ of the
-    cumulative hierarchy (thus $x\in V@{\alpha+1}$).
+    $\epsilon$-recursion, which are generalisations of transfinite
+    induction and recursion.  It also defines \cdx{rank}$(x)$, which is the
+    least ordinal $\alpha$ such that $x$ is constructed at stage $\alpha$
+    of the cumulative hierarchy (thus $x\in V@{\alpha+1}$).
 \end{itemize}
 
 
@@ -1422,11 +1423,10 @@ shown in Fig.\ts\ref{zf-simpdata}.
   a \in A \union B      & \bimp &  a\in A \disj a\in B\\
   a \in A \inter B      & \bimp &  a\in A \conj a\in B\\
   a \in A-B             & \bimp &  a\in A \conj \neg (a\in B)\\
-  a \in {\tt cons}(b,B) & \bimp &  a=b \disj a\in B\\
-  i \in {\tt succ}(j)   & \bimp &  i=j \disj i\in j\\
   \pair{a,b}\in {\tt Sigma}(A,B)
                         & \bimp &  a\in A \conj b\in B(a)\\
   a \in {\tt Collect}(A,P)      & \bimp &  a\in A \conj P(a)\\
+  (\forall x \in \emptyset. P(x)) & \bimp &  \top\\
   (\forall x \in A. \top)       & \bimp &  \top
 \end{eqnarray*}
 \caption{Rewrite rules for set theory} \label{zf-simpdata}
@@ -1443,57 +1443,57 @@ publications~\cite{paulson-fixedpt,paulson-set-I,paulson-set-II}.
   Cantor's Theorem, the Schr\"oder-Bernstein Theorem and the
   `Composition of homomorphisms' challenge~\cite{boyer86}.
 
-\item[ZF/ex/ramsey.ML]
+\item[ZF/ex/Ramsey.ML]
 proves the finite exponent 2 version of Ramsey's Theorem, following Basin
 and Kaufmann's presentation~\cite{basin91}.
 
-\item[ZF/ex/equiv.ML]
-develops a ZF theory of equivalence classes, not using the Axiom of Choice.
+\item[ZF/ex/Equiv.ML]
+develops a theory of equivalence classes, not using the Axiom of Choice.
 
-\item[ZF/ex/integ.ML]
+\item[ZF/ex/Integ.ML]
 develops a theory of the integers as equivalence classes of pairs of
 natural numbers.
 
-\item[ZF/ex/bin.ML]
+\item[ZF/ex/Bin.ML]
 defines a datatype for two's complement binary integers.  File
-{\tt binfn.ML} then develops rewrite rules for binary
+{\tt BinFn.ML} then develops rewrite rules for binary
 arithmetic.  For instance, $1359\times {-}2468 = {-}3354012$ takes under
 14 seconds.
 
-\item[ZF/ex/bt.ML]
+\item[ZF/ex/BT.ML]
 defines the recursive data structure ${\tt bt}(A)$, labelled binary trees.
 
-\item[ZF/ex/term.ML] 
-  and {\tt termfn.ML} define a recursive data structure for
+\item[ZF/ex/Term.ML] 
+  and {\tt TermFn.ML} define a recursive data structure for
   terms and term lists.  These are simply finite branching trees.
 
-\item[ZF/ex/tf.ML]
-  and {\tt tf_fn.ML} define primitives for solving mutually
+\item[ZF/ex/TF.ML]
+  and {\tt TF_Fn.ML} define primitives for solving mutually
   recursive equations over sets.  It constructs sets of trees and forests
   as an example, including induction and recursion rules that handle the
   mutual recursion.
 
-\item[ZF/ex/prop.ML]
-  and {\tt proplog.ML} proves soundness and completeness of
-  propositional logic.  This illustrates datatype definitions, inductive
-  definitions, structural induction and rule induction.
+\item[ZF/ex/Prop.ML]
+  and {\tt PropLog.ML} proves soundness and completeness of
+  propositional logic~\cite{paulson-set-II}.  This illustrates datatype
+  definitions, inductive definitions, structural induction and rule induction.
 
-\item[ZF/ex/listn.ML]
+\item[ZF/ex/ListN.ML]
 presents the inductive definition of the lists of $n$ elements~\cite{paulin92}.
 
-\item[ZF/ex/acc.ML]
+\item[ZF/ex/Acc.ML]
 presents the inductive definition of the accessible part of a
 relation~\cite{paulin92}. 
 
-\item[ZF/ex/comb.ML]
+\item[ZF/ex/Comb.ML]
   presents the datatype definition of combinators.  The file
-  {\tt contract0.ML} defines contraction, while file
-  {\tt parcontract.ML} defines parallel contraction and
+  {\tt Contract0.ML} defines contraction, while file
+  {\tt ParContract.ML} defines parallel contraction and
   proves the Church-Rosser Theorem.  This case study follows Camilleri and
   Melham~\cite{camilleri92}. 
 
-\item[ZF/ex/llist.ML]
-  and {\tt llist_eq.ML} develop lazy lists in ZF and a notion
+\item[ZF/ex/LList.ML]
+  and {\tt LList_Eq.ML} develop lazy lists and a notion
   of coinduction for proving equations between them.
 \end{ttdescription}
 
@@ -1683,7 +1683,7 @@ this premise to the assumptions using \ttindex{cut_facts_tac}, or add
 \hbox{\tt prem RS subsetD} to \ttindex{ZF_cs} as an introduction rule.
 
 The file {\tt ZF/equalities.ML} has many similar proofs.  Reasoning about
-general intersection can be difficult because of its anomalous behavior on
+general intersection can be difficult because of its anomalous behaviour on
 the empty set.  However, \ttindex{fast_tac} copes well with these.  Here is
 a typical example, borrowed from Devlin~\cite[page 12]{devlin79}:
 \begin{ttbox}
@@ -1788,7 +1788,7 @@ by (resolve_tac prems 1);
 {\out (f Un g) ` a = f ` a}
 {\out No subgoals!}
 \end{ttbox}
-See the files {\tt ZF/func.ML} and {\tt ZF/wf.ML} for more
+See the files {\tt ZF/func.ML} and {\tt ZF/WF.ML} for more
 examples of reasoning about functions.
 
 \index{set theory|)}
