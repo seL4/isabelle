@@ -75,6 +75,8 @@ sig
   val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
   val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
   val foldl_map_aterms: ('a * term -> 'a * term) -> 'a * term -> 'a * term
+  val add_term_varnames: indexname list * term -> indexname list
+  val term_varnames: term -> indexname list
   val dummyT: typ
   val itselfT: typ -> typ
   val a_itselfT: typ
@@ -944,6 +946,9 @@ val add_tvars = foldl_types add_tvarsT;
 val add_vars = foldl_aterms (fn (vs, Var v) => v ins vs | (vs, _) => vs);
 val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
 
+(*collect variable names*)
+val add_term_varnames = foldl_aterms (fn (xs, Var (x, _)) => ins_ix (x, xs) | (xs, _) => xs);
+fun term_varnames t = add_term_varnames ([], t);
 
 
 (** type and term orders **)
