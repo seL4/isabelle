@@ -4,16 +4,14 @@
     Copyright   1995 TU Muenchen
 
 Eta reduction,
-confluence ot eta,
+confluence of eta,
 commutation of beta/eta,
 confluence of beta+eta
 *)
 
 open Eta;
 
-(* FIXME: add Suc_pred glovbally *)
-Addsimps (Suc_pred :: eta.intrs);
-
+Addsimps eta.intrs;
 
 val eta_cases = map (eta.mk_cases db.simps)
     ["Fun s -e> z","s @ t -e> u","Var i -e> t"];
@@ -21,36 +19,16 @@ val eta_cases = map (eta.mk_cases db.simps)
 val beta_cases = map (beta.mk_cases db.simps)
     ["s @ t -> u","Var i -> t"];
 
-(* FIXME: add r_into_rtrancl to trancl_cs ???
-          build on lambda_ss which should build on trancl_cs *)
-val eta_cs = trancl_cs addIs (beta.intrs@eta.intrs)
+val eta_cs = lambda_cs addIs eta.intrs
                        addSEs (beta_cases@eta_cases);
 
 (*** Arithmetic lemmas ***)
-
-goal Nat.thy "~ Suc n <= n";
-by(simp_tac (simpset_of "Nat" addsimps [le_def]) 1);
-qed "Suc_n_not_le_n";
-
-(* FIXME: move into Nat.ML *)
-goalw Nat.thy [le_def] "(i <= 0) = (i = 0)";
-by(nat_ind_tac "i" 1);
-by(ALLGOALS(Asm_simp_tac));
-qed "le_0";
-Addsimps [le_0];
 
 goal HOL.thy "!!P. P ==> P=True";
 by(fast_tac HOL_cs 1);
 qed "True_eq";
 
 Addsimps [less_not_sym RS True_eq];
-
-(* FIXME: move into Nat.ML *)
-goal Arith.thy "!!i. i<j ==> j<k --> Suc i < k";
-by(nat_ind_tac "k" 1);
-by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
-by(fast_tac (HOL_cs addDs [Suc_lessD]) 1);
-bind_thm("less_trans_Suc",result() RS mp);
 
 goal Arith.thy "i < j --> pred i < j";
 by(nat_ind_tac "j" 1);
@@ -224,7 +202,7 @@ goal Eta.thy "!s t i. s -e> t --> u[s/i] -e>> u[t/i]";
 by(db.induct_tac "u" 1);
 by(ALLGOALS(asm_simp_tac (addsplit (!simpset))));
 by(fast_tac (eta_cs addIs [r_into_rtrancl]) 1);
-by(fast_tac (eta_cs addIs [rtrancl_eta_App]) 1);
+by(fast_tac (eta_cs addSIs [rtrancl_eta_App]) 1);
 by(fast_tac (eta_cs addSIs [rtrancl_eta_Fun,eta_lift]) 1);
 bind_thm("rtrancl_eta_subst", result() RS spec RS spec RS spec RS mp);
 

@@ -8,35 +8,6 @@ Basic commutation lemmas.
 
 open Commutation;
 
-(* FIXME: move to Trancl *)
-(* FIXME: add rtrancl_idemp globally *)
-Addsimps [rtrancl_idemp];
-
-goal Trancl.thy "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
-bd rtrancl_mono 1;
-bd rtrancl_mono 1;
-by(Asm_full_simp_tac 1);
-by(fast_tac eq_cs 1);
-qed "rtrancl_subset";
-
-(* FIXME: move to Trancl *)
-goal Trancl.thy "!!R. p:R ==> p:R^*";
-by(res_inst_tac [("p","p")] PairE 1);
-by(fast_tac (HOL_cs addIs [r_into_rtrancl]) 1);
-qed "r_into_rtrancl1";
-
-(* FIXME: move to Trancl *)
-goal Trancl.thy "!!R. (R^* Un S^*)^* = (R Un S)^*";
-by(best_tac (set_cs addIs [rtrancl_subset,r_into_rtrancl1,
-                           rtrancl_mono RS subsetD]) 1);
-qed "trancl_Un_trancl";
-
-(* FIXME: move to Trancl *)
-goal Commutation.thy "(R^=)^* = R^*";
-by(fast_tac (trancl_cs addIs [rtrancl_subset,r_into_rtrancl1]) 1);
-qed "rtrancl_reflcl";
-Addsimps [rtrancl_reflcl];
-
 (*** square ***)
 
 goalw Commutation.thy [square_def] "!!R. square R S T U ==> square S R U T";
@@ -56,12 +27,11 @@ by(fast_tac trancl_cs 1);
 by(fast_tac (HOL_cs addSEs [rtrancl_into_rtrancl]) 1);
 qed "square_rtrancl";
 
-(* A big fast_tac runs out of store. Search space too large? *)
 goalw Commutation.thy [commute_def]
  "!!R. square R S (S^*) (R^=) ==> commute (R^*) (S^*)";
 bd square_reflcl 1;
 br subsetI 1;
-be r_into_rtrancl1 1;
+be r_into_rtrancl 1;
 bd square_sym 1;
 bd square_rtrancl 1;
 by(Asm_full_simp_tac 1);
@@ -120,6 +90,6 @@ br iffI 1;
 by(safe_tac HOL_cs);
 be rtrancl_induct 1;
  by(fast_tac trancl_cs 1);
- by(slow_tac (rel_cs addIs [r_into_rtrancl]
-                     addEs [rtrancl_trans,r_into_rtrancl RS rtrancl_trans]) 1);
+by(slow_tac (rel_cs addIs [r_into_rtrancl]
+                    addEs [rtrancl_trans,r_into_rtrancl RS rtrancl_trans]) 1);
 qed "Church_Rosser_confluent";

@@ -32,18 +32,14 @@ by(resolve_tac prems 1 THEN etac sym 1);
 by(fast_tac (HOL_cs addIs prems) 1);
 qed "leqE";
 
-goal Arith.thy "!!i. i < j ==> Suc(pred j) = j";
-by(fast_tac (HOL_cs addEs [lessE] addss !simpset) 1);
-qed "Suc_pred";
-
 goal Arith.thy "!!i. Suc i < j ==> i < pred j ";
 by (resolve_tac [Suc_less_SucD] 1);
-by (asm_simp_tac (!simpset addsimps [Suc_pred]) 1);
+by (Asm_simp_tac 1);
 qed "lt_pred";
 
 goal Arith.thy "!!i. [| i < Suc j; k < i |] ==> pred i < j ";
 by (resolve_tac [Suc_less_SucD] 1);
-by (asm_simp_tac (!simpset addsimps [Suc_pred]) 1);
+by (Asm_simp_tac 1);
 qed "gt_pred";
 
 
@@ -54,7 +50,8 @@ open Lambda;
 Delsimps [less_Suc_eq, subst_Var];
 Addsimps ([if_not_P, not_less_eq] @ beta.intrs);
 
-val lambda_cs = HOL_cs addSIs beta.intrs;
+(* don't add r_into_rtrancl! *)
+val lambda_cs = trancl_cs addSIs beta.intrs;
 
 (*** Congruence rules for ->> ***)
 
@@ -74,8 +71,8 @@ by (ALLGOALS(fast_tac (lambda_cs addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppR";
 
 goal Lambda.thy "!!s. [| s ->> s'; t ->> t' |] ==> s @ t ->> s' @ t'";
-by (fast_tac (lambda_cs addIs
-                [rtrancl_beta_AppL,rtrancl_beta_AppR,rtrancl_trans]) 1);
+by (fast_tac (lambda_cs addSIs [rtrancl_beta_AppL,rtrancl_beta_AppR]
+                        addIs  [rtrancl_trans]) 1);
 qed "rtrancl_beta_App";
 
 (*** subst and lift ***)
@@ -116,7 +113,7 @@ by (excluded_middle_tac "nat < j" 1);
 by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("j","nat")] leqE 1);
 by (asm_full_simp_tac (addsplit(!simpset)
-                       addsimps [less_SucI,gt_pred,Suc_pred]) 1);
+                       addsimps [less_SucI,gt_pred]) 1);
 by (hyp_subst_tac 1);
 by (Asm_simp_tac 1);
 by (forw_inst_tac [("j","j")] lt_trans2 1);
@@ -136,7 +133,7 @@ by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("i","j")] leqE 1);
 by (forward_tac  [lt_trans1] 1 THEN assume_tac 1);
 by (ALLGOALS(asm_full_simp_tac
-               (!simpset addsimps [Suc_pred,less_SucI,gt_pred])));
+               (!simpset addsimps [less_SucI,gt_pred])));
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [less_SucI]) 1);
 by(split_tac [expand_if] 1);
@@ -161,12 +158,12 @@ by (excluded_middle_tac "nat < Suc(Suc j)" 1);
 by(Asm_full_simp_tac 1);
 by (forward_tac [lessI RS less_trans] 1);
 by (eresolve_tac [leqE] 1);
-by (asm_simp_tac (!simpset addsimps [Suc_pred,lt_pred]) 2);
+by (asm_simp_tac (!simpset addsimps [lt_pred]) 2);
 by (forward_tac [Suc_mono RS less_trans] 1 THEN assume_tac 1);
 by (forw_inst_tac [("i","i")] (lessI RS less_trans) 1);
-by (asm_simp_tac (!simpset addsimps [Suc_pred,lt_pred]) 1);
+by (asm_simp_tac (!simpset addsimps [lt_pred]) 1);
 by (eres_inst_tac [("i","nat")] leqE 1);
-by (asm_full_simp_tac (!simpset addsimps [Suc_pred,less_SucI]) 2);
+by (asm_full_simp_tac (!simpset addsimps [less_SucI]) 2);
 by (excluded_middle_tac "nat < i" 1);
 by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("j","nat")] leqE 1);

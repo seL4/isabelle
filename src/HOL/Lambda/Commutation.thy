@@ -9,7 +9,6 @@ Abstract commutation and confluence notions.
 Commutation = Trancl +
 
 consts
-  reflcl  :: "('a*'a)set => ('a*'a)set"               ("(_^=)" [100] 100)
   square  :: "[('a*'a)set,('a*'a)set,('a*'a)set,('a*'a)set] => bool"
   commute :: "[('a*'a)set,('a*'a)set] => bool"
   confluent, diamond, Church_Rosser :: "('a*'a)set => bool"
@@ -25,7 +24,6 @@ defs
   !x y. (x,y) : (R Un converse(R))^* --> (? z. (x,z) : R^* & (y,z) : R^*)"
 
 translations
-  "r^="   == "r Un id"
   "confluent R" == "diamond(R^*)"
 
 end
