@@ -24,12 +24,13 @@ signature RECORD_PACKAGE =
 sig
   include BASIC_RECORD_PACKAGE
   val quiet_mode: bool ref
-  val record_definition_quick_and_dirty_sensitive: bool ref
+  val record_quick_and_dirty_sensitive: bool ref
   val updateN: string
   val ext_typeN: string
   val last_extT: typ -> (string * typ list) option
   val dest_recTs : typ -> (string * typ list) list
   val get_extension: Sign.sg -> Symtab.key -> (string * typ list) option
+  val get_extinjects: Sign.sg -> thm list
   val print_records: theory -> unit
   val add_record: string list * string -> string option -> (string * string * mixfix) list 
                   -> theory -> theory
@@ -75,6 +76,8 @@ val AbsN = "Abs_";
 (*** utilities ***)
 
 fun but_last xs = fst (split_last xs);
+fun list None = []
+  | list (Some x) = [x]
 
 (* messages *)
 
@@ -201,14 +204,17 @@ type record_data =
     updates: string Symtab.table,
     simpset: Simplifier.simpset},
   equalities: thm Symtab.table,
+  extinjects: thm list,
+  extsplit: thm Symtab.table, (* maps extension name to split rule *)
   splits: (thm*thm*thm*thm) Symtab.table,    (* !!,!,EX - split-equalities,induct rule *) 
   extfields: (string*typ) list Symtab.table, (* maps extension to its fields *)
   fieldext: (string*typ list) Symtab.table   (* maps field to its extension *)
 };
 
-fun make_record_data records sel_upd equalities splits extfields fieldext =
+fun make_record_data 
+      records sel_upd equalities extinjects extsplit splits extfields fieldext =
  {records = records, sel_upd = sel_upd, 
-  equalities = equalities, splits = splits, 
+  equalities = equalities, extinjects=extinjects, extsplit = extsplit, splits = splits, 
   extfields = extfields, fieldext = fieldext }: record_data;
 
 structure RecordsArgs =
@@ -219,7 +225,7 @@ struct
   val empty =
     make_record_data Symtab.empty
       {selectors = Symtab.empty, updates = Symtab.empty, simpset = HOL_basic_ss}
-      Symtab.empty Symtab.empty Symtab.empty Symtab.empty;
+       Symtab.empty [] Symtab.empty Symtab.empty Symtab.empty Symtab.empty;
 
   val copy = I;
   val prep_ext = I;
@@ -227,12 +233,16 @@ struct
    ({records = recs1,
      sel_upd = {selectors = sels1, updates = upds1, simpset = ss1},
      equalities = equalities1,
+     extinjects = extinjects1, 
+     extsplit = extsplit1,
      splits = splits1,
      extfields = extfields1,
      fieldext = fieldext1},
     {records = recs2,
      sel_upd = {selectors = sels2, updates = upds2, simpset = ss2},
-     equalities = equalities2, 
+     equalities = equalities2,
+     extinjects = extinjects2, 
+     extsplit = extsplit2, 
      splits = splits2,
      extfields = extfields2,
      fieldext = fieldext2}) =
@@ -242,6 +252,8 @@ struct
         updates = Symtab.merge (K true) (upds1, upds2),
         simpset = Simplifier.merge_ss (ss1, ss2)}
       (Symtab.merge Thm.eq_thm (equalities1, equalities2))
+      (extinjects1 @ extinjects2)
+      (Symtab.merge Thm.eq_thm (extsplit1,extsplit2))
       (Symtab.merge (fn ((a,b,c,d),(w,x,y,z)) 
                      => Thm.eq_thm (a,w) andalso Thm.eq_thm (b,x) andalso 
                         Thm.eq_thm (c,y) andalso Thm.eq_thm (d,z)) 
@@ -277,9 +289,10 @@ fun get_record thy name = Symtab.lookup (#records (RecordsData.get thy), name);
 
 fun put_record name info thy =
   let
-    val {records, sel_upd, equalities, splits,extfields,fieldext} = RecordsData.get thy;
+    val {records, sel_upd, equalities, extinjects,extsplit,splits,extfields,fieldext} = 
+          RecordsData.get thy;
     val data = make_record_data (Symtab.update ((name, info), records))
-      sel_upd equalities splits extfields fieldext;
+      sel_upd equalities extinjects extsplit splits extfields fieldext;
   in RecordsData.put data thy end;
 
 (* access 'sel_upd' *)
@@ -302,37 +315,69 @@ fun put_sel_upd names simps thy =
     val upds = map (suffix updateN) names ~~ names;
 
     val {records, sel_upd = {selectors, updates, simpset}, 
-      equalities, splits, extfields,fieldext} = RecordsData.get thy;
+      equalities, extinjects, extsplit, splits, extfields,fieldext} = RecordsData.get thy;
     val data = make_record_data records
       {selectors = Symtab.extend (selectors, sels),
         updates = Symtab.extend (updates, upds),
         simpset = Simplifier.addsimps (simpset, simps)}
-       equalities splits extfields fieldext;
+       equalities extinjects extsplit splits extfields fieldext;
   in RecordsData.put data thy end;
 
 (* access 'equalities' *)
 
 fun add_record_equalities name thm thy =
   let
-    val {records, sel_upd, equalities, splits, extfields,fieldext} = RecordsData.get thy;
+    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} = 
+          RecordsData.get thy;
     val data = make_record_data records sel_upd 
-      (Symtab.update_new ((name, thm), equalities)) splits extfields fieldext;
+           (Symtab.update_new ((name, thm), equalities)) extinjects extsplit 
+           splits extfields fieldext;
   in RecordsData.put data thy end;
 
 fun get_equalities sg name =
   Symtab.lookup (#equalities (RecordsData.get_sg sg), name);
 
+(* access 'extinjects' *)
+
+fun add_extinjects thm thy =
+  let
+    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} = 
+          RecordsData.get thy;
+    val data = make_record_data records sel_upd equalities (extinjects@[thm]) extsplit  
+                 splits extfields fieldext;
+  in RecordsData.put data thy end;
+
+fun get_extinjects sg = #extinjects (RecordsData.get_sg sg);
+
+(* access 'extsplit' *)
+
+fun add_extsplit name thm thy =
+  let
+    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} = 
+          RecordsData.get thy;
+    val data = make_record_data records sel_upd 
+      equalities extinjects (Symtab.update_new ((name, thm), extsplit)) splits 
+      extfields fieldext;
+  in RecordsData.put data thy end;
+
+fun get_extsplit sg name =
+  Symtab.lookup (#extsplit (RecordsData.get_sg sg), name);
+
 (* access 'splits' *)
 
 fun add_record_splits name thmP thy =
   let
-    val {records, sel_upd, equalities, splits, extfields,fieldext} = RecordsData.get thy;
+    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields,fieldext} = 
+          RecordsData.get thy;
     val data = make_record_data records sel_upd 
-      equalities (Symtab.update_new ((name, thmP), splits)) extfields fieldext;
+      equalities extinjects extsplit (Symtab.update_new ((name, thmP), splits)) 
+      extfields fieldext;
   in RecordsData.put data thy end;
 
 fun get_splits sg name =
   Symtab.lookup (#splits (RecordsData.get_sg sg), name);
+
+
 
 (* extension of a record name *)
 fun get_extension sg name =
@@ -344,9 +389,11 @@ fun get_extension sg name =
 
 fun add_extfields name fields thy =
   let
-    val {records, sel_upd, equalities, splits, extfields, fieldext} = RecordsData.get thy;
+    val {records, sel_upd, equalities, extinjects, extsplit,splits, extfields, fieldext} = 
+          RecordsData.get thy;
     val data = make_record_data records sel_upd 
-         equalities splits (Symtab.update_new ((name, fields), extfields)) fieldext;
+         equalities extinjects extsplit splits 
+         (Symtab.update_new ((name, fields), extfields)) fieldext;
   in RecordsData.put data thy end;
 
 fun get_extfields sg name =
@@ -356,10 +403,12 @@ fun get_extfields sg name =
 
 fun add_fieldext extname_types fields thy =
   let
-    val {records, sel_upd, equalities, splits, extfields, fieldext} = RecordsData.get thy;
+    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} = 
+           RecordsData.get thy;
     val fieldext' = foldl (fn (table,field) => Symtab.update_new ((field,extname_types),table))  
                           (fieldext,fields);
-    val data = make_record_data records sel_upd equalities splits extfields fieldext';
+    val data=make_record_data records sel_upd equalities extinjects extsplit 
+              splits extfields fieldext';
   in RecordsData.put data thy end;
 
 
@@ -707,22 +756,41 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
                          (list_comb (Syntax.const name_sfx,ts))
   in (name_sfx, tr') end;
 
-
 (** record simprocs **)
-fun quick_and_dirty_prove sg xs asms prop tac =
-Tactic.prove_standard sg xs asms prop
-    (if !quick_and_dirty then (K (SkipProof.cheat_tac HOL.thy)) else tac);
+
+val record_quick_and_dirty_sensitive = ref false;
+
+fun quick_and_dirty_prove sg asms prop tac =
+  if !record_quick_and_dirty_sensitive andalso !quick_and_dirty
+  then Tactic.prove sg [] [] (Logic.list_implies (map Logic.varify asms,Logic.varify prop))
+        (K (SkipProof.cheat_tac HOL.thy))
+        (* standard can take quite a while for large records, thats why
+         * we varify the proposition manually here.*) 
+  else Tactic.prove_standard sg [] asms prop tac;
 
 
 fun prove_split_simp sg T prop =
   (case get_splits sg (rec_id T) of
      Some (all_thm,_,_,_) 
-     => let val {sel_upd={simpset,...},...} = RecordsData.get_sg sg;
-        in (quick_and_dirty_prove sg [] [] prop 
-           (K (simp_tac (simpset addsimps [all_thm]) 1)))
+     => let
+	   val {sel_upd={simpset,...},extsplit,...} = RecordsData.get_sg sg;
+           val extsplits = 
+                 foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
+                    ([],dest_recTs T);
+           val thms = all_thm::(case extsplits of [thm] => [] | _ => extsplits);
+                                     (* [thm] is the same as all_thm *)
+        in (quick_and_dirty_prove sg [] prop 
+            (fn _ => (simp_tac (simpset addsimps thms) 1)))
         end
    | _ => error "RecordPackage.prove_split_simp:code should never been reached")
 
+
+
+local
+fun get_fields extfields T = 
+     foldl (fn (xs,(eN,_))=>xs@(map fst (Symtab.lookup_multi (extfields,eN))))
+             ([],(dest_recTs T));
+in
 (* record_simproc *)
 (* Simplifies selections of an record update:
  *  (1)  S (r(|S:=k|)) = k respectively
@@ -738,15 +806,13 @@ fun prove_split_simp sg T prop =
 val record_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_simp" ["s (u k r)"]
     (fn sg => fn _ => fn t =>
-      (case t of (sel as Const (s, Type (_,[domS,rangeS]))) $ ((upd as Const (u, _)) $ k $ r) =>
+      (case t of (sel as Const (s, Type (_,[domS,rangeS])))$((upd as Const (u, _)) $ k $ r)=>
         (case get_selectors sg s of Some () =>
           (case get_updates sg u of Some u_name =>
             let
               fun mk_abs_var x t = (x, fastype_of t);
               val {sel_upd={updates,...},extfields,...} = RecordsData.get_sg sg;
-              fun flds T = 
-                   foldl (fn (xs,(eN,_))=>xs@(map fst (Symtab.lookup_multi (extfields,eN))))
-                         ([],(dest_recTs T));
+              
               fun mk_eq_terms ((upd as Const (u,Type(_,[updT,_]))) $ k $ r) =
 		  (case (Symtab.lookup (updates,u)) of
                      None => None
@@ -758,8 +824,8 @@ val record_simproc =
                                val kv = mk_abs_var "k" k
                                val kb = Bound 1 
                              in Some (upd$kb$rb,kb,[kv,rv],true) end
-                        else if u_name mem (flds rangeS)
-                             orelse s mem (flds updT)
+                        else if u_name mem (get_fields extfields rangeS)
+                             orelse s mem (get_fields extfields updT)
                              then None
 			     else (case mk_eq_terms r of 
                                      Some (trm,trm',vars,update_s) 
@@ -789,6 +855,114 @@ val record_simproc =
         | None => None)
       | _ => None));
 
+(* record_upd_simproc *) 
+(* simplify multiple updates:
+ *  (1)  "r(|M:=3,N:=1,M:=2,N:=4|) == r(|M:=2,N:=4|)"
+ *  (2)  "r(|M:= M r|) = r"
+ * For (2) special care of "more" updates has to be taken:
+ *    r(|more := m; A := A r|)
+ * If A is contained in the fields of m we cannot remove the update A := A r!
+ * (But r(|more := r; A := A (r(|more := r|))|) = r(|more := r|) 
+*)
+val record_upd_simproc =
+  Simplifier.simproc (Theory.sign_of HOL.thy) "record_upd_simp" ["(u k r)"]
+    (fn sg => fn _ => fn t =>
+      (case t of ((upd as Const (u, Type(_,[_,Type(_,[T,_])]))) $ k $ r) =>
+ 	 let datatype ('a,'b) calc = Init of 'b | Inter of 'a  
+             val {sel_upd={selectors,updates,...},extfields,...} = RecordsData.get_sg sg;
+             
+	     fun mk_abs_var x t = (x, fastype_of t);
+             fun sel_name u = NameSpace.base (unsuffix updateN u);
+
+             fun seed s (upd as Const (more,Type(_,[mT,_]))$ k $ r) =
+                  if s mem (get_fields extfields mT) then upd else seed s r
+               | seed _ r = r;
+
+             fun grow u uT k vars (sprout,skeleton) = 
+		   if sel_name u = moreN
+                   then let val kv = mk_abs_var "k" k;
+                            val kb = Bound (length vars);
+                        in ((Const (u,uT)$k$sprout,Const (u,uT)$kb$skeleton),kv::vars) end
+                   else ((sprout,skeleton),vars);
+
+             fun is_upd_same (sprout,skeleton) u ((sel as Const (s,_))$r) =
+                   if (unsuffix updateN u) = s andalso (seed s sprout) = r 
+                   then Some (sel,seed s skeleton)
+                   else None
+               | is_upd_same _ _ _ = None
+ 
+             fun init_seed r = ((r,Bound 0), [mk_abs_var "r" r]);
+                       
+             (* mk_updterm returns either
+              *  - Init (orig-term, orig-term-skeleton, vars) if no optimisation can be made,
+              *     where vars are the bound variables in the skeleton 
+              *  - Inter (orig-term-skeleton,simplified-term-skeleton, 
+              *           vars, term-sprout, skeleton-sprout)
+              *     where "All vars. orig-term-skeleton = simplified-term-skeleton" is
+              *     the desired simplification rule,
+              *     the sprouts accumulate the "more-updates" on the way from the seed
+              *     to the outermost update. It is only relevant to calculate the 
+              *     possible simplification for (2) 
+              * The algorithm first walks down the updates to the seed-record while
+              * memorising the updates in the already-table. While walking up the
+              * updates again, the optimised term is constructed.
+              *)
+             fun mk_updterm upds already (t as ((upd as Const (u,uT)) $ k $ r)) =
+		 if is_some (Symtab.lookup (upds,u))
+		 then let 
+			 fun rest already = mk_updterm upds already
+		      in if is_some (Symtab.lookup (already,u)) 
+			 then (case (rest already r) of
+				 Init ((sprout,skel),vars) => 
+                                 let
+	                           val kv = mk_abs_var (sel_name u) k;
+                                   val kb = Bound (length vars);
+                                   val (sprout',vars')= grow u uT k (kv::vars) (sprout,skel);
+                                 in Inter (upd$kb$skel,skel,vars',sprout') end
+                               | Inter (trm,trm',vars,sprout) => 
+                                 let 
+		                   val kv = mk_abs_var (sel_name u) k;
+                                   val kb = Bound (length vars);
+                                   val (sprout',vars') = grow u uT k (kv::vars) sprout;
+                                 in Inter(upd$kb$trm,trm',kv::vars',sprout') end) 
+	                 else 
+                          (case rest (Symtab.update ((u,()),already)) r of 
+			     Init ((sprout,skel),vars) => 
+                              (case is_upd_same (sprout,skel) u k of
+                                 Some (sel,skel') => 
+                                 let
+		                   val (sprout',vars') = grow u uT k vars (sprout,skel); 
+                                  in Inter(upd$(sel$skel')$skel,skel,vars',sprout') end
+                               | None =>  
+                                 let
+	                           val kv = mk_abs_var (sel_name u) k;
+                                   val kb = Bound (length vars);
+                                 in Init ((upd$k$sprout,upd$kb$skel),kv::vars) end)
+		           | Inter (trm,trm',vars,sprout) => 
+                               (case is_upd_same sprout u k of
+                                  Some (sel,skel) =>
+                                  let
+                                    val (sprout',vars') = grow u uT k vars sprout
+                                  in Inter(upd$(sel$skel)$trm,trm',vars',sprout') end
+                                | None =>
+                                  let
+				    val kv = mk_abs_var (sel_name u) k
+                                    val kb = Bound (length vars)
+                                    val (sprout',vars') = grow u uT k (kv::vars) sprout
+                                  in Inter (upd$kb$trm,upd$kb$trm',vars',sprout') end))
+		      end
+		 else Init (init_seed t)
+	       | mk_updterm _ _ t = Init (init_seed t);
+
+	 in (case mk_updterm updates Symtab.empty t of
+	       Inter (trm,trm',vars,_)
+                => Some (prove_split_simp sg T  
+                          (list_all(vars,(Logic.mk_equals (trm,trm')))))
+             | _ => None)
+	 end
+       | _ => None));
+end
+
 (* record_eq_simproc *)
 (* looks up the most specific record-equality.
  * Note on efficiency:
@@ -811,52 +985,6 @@ val record_eq_simproc =
          | name => (case get_equalities sg name of
                                 None => None
                               | Some thm => Some (thm RS Eq_TrueI)))
-       | _ => None));
-
-
-(* record_upd_simproc *)
-(* simplify multiple updates; for example: "r(|M:=3,N:=1,M:=2,N:=4|) == r(|M:=2,N:=4|)" *)
-val record_upd_simproc =
-  Simplifier.simproc (Theory.sign_of HOL.thy) "record_upd_simp" ["(u1 k1 (u2 k2 r))"]
-    (fn sg => fn _ => fn t =>
-      (case t of ((upd as Const (u, Type(_,[_,Type(_,[T,_])]))) $ k $ r) =>
- 	 let val {sel_upd={updates,...},...} = RecordsData.get_sg sg;
-	     fun mk_abs_var x t = (x, fastype_of t);
-
-             fun mk_updterm upds already ((upd as Const (u,_)) $ k $ r) =
-		 if is_some (Symtab.lookup (upds,u))
-		 then let 
-			 fun rest already = mk_updterm upds already
-		      in if is_some (Symtab.lookup (already,u)) 
-			 then (case (rest already r) of
-				 None => let 
-				           val rv = mk_abs_var "r" r
-                                           val rb = Bound 0
-					   val kv = mk_abs_var "k" k
-                                           val kb = Bound 1	      
-                                         in Some (upd$kb$rb,rb,[kv,rv]) end
-                               | Some (trm,trm',vars) 
-				 => let 
-				     val kv = mk_abs_var "k" k
-                                     val kb = Bound (length vars)
-                                    in Some (upd$kb$trm,trm',kv::vars) end)
-	                 else (case rest (Symtab.update ((u,()),already)) r of 
-				 None => None
-		               | Some (trm,trm',vars) 
-                                  => let
-				      val kv = mk_abs_var "k" k
-                                      val kb = Bound (length vars)
-                                     in Some (upd$kb$trm,upd$kb$trm',kv::vars) end)
-		     end
-		 else None
-	       | mk_updterm _ _ _ = None;
-
-	 in (case mk_updterm updates Symtab.empty t of
-	       Some (trm,trm',vars)
-                => Some (prove_split_simp sg T  
-                          (list_all(vars,(Logic.mk_equals (trm,trm')))))
-             | None => None)
-	 end
        | _ => None));
 
 (* record_split_simproc *)
@@ -888,7 +1016,7 @@ val record_ex_sel_eq_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_ex_sel_eq_simproc" ["Ex t"]
     (fn sg => fn _ => fn t =>
        let 
-         fun prove prop = (quick_and_dirty_prove sg [] [] prop 
+         fun prove prop = (quick_and_dirty_prove sg [] prop 
                              (fn _ => (simp_tac ((get_simpset sg) addsimps simp_thms
                                         addsimprocs [record_split_simproc (K true)]) 1)));
 
@@ -1068,16 +1196,6 @@ fun try_param_tac s rule i st =
         (x, list_abs (params, Bound 0))])) rule'
   in compose_tac (false, rule'', nprems_of rule) i st end;
 
-
-val record_definition_quick_and_dirty_sensitive = ref false;
-
-(* fun is crucial here; val would evaluate only once! *)
-fun definition_prove_standard sg = 
-  if !record_definition_quick_and_dirty_sensitive
-  then quick_and_dirty_prove sg 
-  else Tactic.prove_standard sg;
-
-
 fun extension_typedef name repT alphas thy =
   let
     val UNIV = HOLogic.mk_UNIV repT;
@@ -1147,10 +1265,11 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     val vars_more = vars@[more];
     val named_vars_more = (names@[full moreN])~~vars_more;
+    val variants = map (fn (Free (x,_))=>x) vars_more;
     val ext = list_comb (Const ext_decl,vars_more);
     val s     = Free (rN, extT);
-    val P = Free (variant (map (fn (Free (x,_))=>x) vars_more) "P", extT-->HOLogic.boolT);
-    val C = Free (variant (map (fn (Free (x,_))=>x) vars_more) "C", HOLogic.boolT);
+    val P = Free (variant variants "P", extT-->HOLogic.boolT);
+    val C = Free (variant variants "C", HOLogic.boolT);
 
     val inject_prop =
       let val vars_more' = map (fn (Free (x,T)) => Free (x ^ "'",T)) vars_more;
@@ -1174,10 +1293,21 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val dest_conv_props =
        map (fn (c, x as Free (_,T)) => mk_sel ext (suffix ext_dest c,T) === x) named_vars_more;
 
-    val prove_standard = definition_prove_standard (Theory.sign_of defs_thy);
+    val surjective_prop =
+      let val args = 
+           map (fn (c, Free (_,T)) => mk_sel s (suffix ext_dest c,T)) named_vars_more;
+      in s === list_comb (Const ext_decl, args) end;
+
+    val split_meta_prop =
+      let val P = Free (variant variants "P", extT-->Term.propT) in
+        Logic.mk_equals 
+         (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
+      end; 
+
+    val prove_standard = quick_and_dirty_prove (Theory.sign_of defs_thy);
     fun prove_simp simps =
       let val tac = simp_all_tac HOL_ss simps
-      in fn prop => prove_standard [] [] prop (K tac) end;
+      in fn prop => prove_standard [] prop (K tac) end;
     
     (* prove propositions *)
 
@@ -1186,7 +1316,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
 
     fun induct_prf () =
       let val (assm, concl) = induct_prop
-      in prove_standard [] [assm] concl (fn prems =>
+      in prove_standard [assm] concl (fn prems =>
            EVERY [try_param_tac rN abs_induct 1, 
                   simp_tac (HOL_ss addsimps [split_paired_all]) 1,
                   resolve_tac (map (rewrite_rule [ext_def]) prems) 1])
@@ -1194,7 +1324,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val induct = timeit_msg "record extension induct proof:" induct_prf;
 
     fun cases_prf () =
-        prove_standard [] [] cases_prop (fn prems =>
+        prove_standard [] cases_prop (fn prems =>
          EVERY [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]) 1,
                 try_param_tac rN induct 1,
                 rtac impI 1,
@@ -1207,16 +1337,33 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                            ([ext_def,abs_inverse]@Pair_sel_convs@dest_defs)) dest_conv_props;
     val dest_convs = timeit_msg "record extension dest_convs proof:" dest_convs_prf;
 
-    val (thm_thy,([inject',induct',cases'],[dest_convs'])) =
+    fun surjective_prf () = 
+      prove_standard [] surjective_prop (fn prems =>
+          (EVERY [try_param_tac rN induct 1,
+                  simp_tac (HOL_basic_ss addsimps dest_convs) 1]));
+    val surjective = timeit_msg "record extension surjective proof:" surjective_prf;
+
+    fun split_meta_prf () =
+        prove_standard [] split_meta_prop (fn prems =>
+         EVERY [rtac equal_intr_rule 1,
+                  rtac meta_allE 1, etac triv_goal 1, atac 1,
+                rtac (prop_subst OF [surjective]) 1,
+                REPEAT (EVERY [rtac meta_allE 1, etac triv_goal 1, etac thin_rl 1]),
+                atac 1]);
+    val split_meta = timeit_msg "record extension split_meta proof:" split_meta_prf;
+
+    val (thm_thy,([inject',induct',cases',surjective',split_meta'],[dest_convs'])) =
       defs_thy 
       |> (PureThy.add_thms o map Thm.no_attributes) 
            [("ext_inject", inject),
             ("ext_induct", induct),
-            ("ext_cases", cases)]
+            ("ext_cases", cases),
+            ("ext_surjective", surjective),
+            ("ext_split", split_meta)]
       |>>> (PureThy.add_thmss o map Thm.no_attributes)
               [("dest_convs",dest_convs)] 
 
-  in (thm_thy,extT,induct',inject',dest_convs')
+  in (thm_thy,extT,induct',inject',dest_convs',split_meta')
   end;
    
 fun chunks []      []   = []
@@ -1295,7 +1442,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
    
     (* 1st stage: extension_thy *)
 	
-    val (extension_thy,extT,ext_induct,ext_inject,ext_dest_convs) =
+    val (extension_thy,extT,ext_induct,ext_inject,ext_dest_convs,ext_split) =
       thy
       |> Theory.add_path bname
       |> extension_definition full extN fields names alphas_ext zeta moreT more vars;
@@ -1501,10 +1648,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* 3rd stage: thms_thy *)
 
-    val prove_standard = definition_prove_standard (Theory.sign_of defs_thy);
+    val prove_standard = quick_and_dirty_prove (Theory.sign_of defs_thy);
     fun prove_simp ss simps =
       let val tac = simp_all_tac ss simps
-      in fn prop => prove_standard [] [] prop (K tac) end;
+      in fn prop => prove_standard [] prop (K tac) end;
 
     val ss = get_simpset (sign_of defs_thy);
 
@@ -1518,7 +1665,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val parent_induct = if null parents then [] else [#induct (hd (rev parents))];
 
-    fun induct_scheme_prf () = prove_standard [] [] induct_scheme_prop (fn prems =>
+    fun induct_scheme_prf () = prove_standard [] induct_scheme_prop (fn prems =>
           (EVERY [if null parent_induct 
                   then all_tac else try_param_tac rN (hd parent_induct) 1,
                   try_param_tac rN ext_induct 1,
@@ -1528,7 +1675,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun induct_prf () =
       let val (assm, concl) = induct_prop;
       in
-        prove_standard [] [assm] concl (fn prems =>
+        prove_standard [assm] concl (fn prems =>
           try_param_tac rN induct_scheme 1
           THEN try_param_tac "more" unit_induct 1
           THEN resolve_tac prems 1)
@@ -1536,13 +1683,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val induct = timeit_msg "record induct proof:" induct_prf;
 
     fun surjective_prf () = 
-      prove_standard [] [] surjective_prop (fn prems =>
+      prove_standard [] surjective_prop (fn prems =>
           (EVERY [try_param_tac rN induct_scheme 1,
                   simp_tac (ss addsimps sel_convs) 1]))
     val surjective = timeit_msg "record surjective proof:" surjective_prf;
 
     fun cases_scheme_prf () =
-        prove_standard [] [] cases_scheme_prop (fn prems =>
+        prove_standard [] cases_scheme_prop (fn prems =>
          EVERY [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]) 1,
                try_param_tac rN induct_scheme 1,
                rtac impI 1,
@@ -1552,13 +1699,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val cases_scheme = timeit_msg "record cases_scheme proof:" cases_scheme_prf;
 
     fun cases_prf () =
-      prove_standard [] [] cases_prop  (fn _ =>
+      prove_standard [] cases_prop  (fn _ =>
         try_param_tac rN cases_scheme 1
         THEN simp_all_tac HOL_basic_ss [unit_all_eq1]);
     val cases = timeit_msg "record cases proof:" cases_prf;
 
     fun split_meta_prf () =
-        prove_standard [] [] split_meta_prop (fn prems =>
+        prove_standard [] split_meta_prop (fn prems =>
          EVERY [rtac equal_intr_rule 1,
                   rtac meta_allE 1, etac triv_goal 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
@@ -1567,7 +1714,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val split_meta = timeit_msg "record split_meta proof:" split_meta_prf;
 
     fun split_object_prf () =
-        prove_standard [] [] split_object_prop (fn prems =>
+        prove_standard [] split_object_prop (fn prems =>
          EVERY [rtac iffI 1, 
                 REPEAT (rtac allI 1), etac allE 1, atac 1,
                 rtac allI 1, rtac induct_scheme 1,REPEAT (etac allE 1),atac 1]);
@@ -1575,7 +1722,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
 
     fun split_ex_prf () = 
-        prove_standard [] [] split_ex_prop (fn prems =>
+        prove_standard [] split_ex_prop (fn prems =>
           EVERY [rtac iffI 1,
                    etac exE 1,
                    simp_tac (HOL_basic_ss addsimps [split_meta]) 1,
@@ -1592,14 +1739,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           val eqs' = map (simplify ss') eqs;
       in simp_tac (HOL_basic_ss addsimps (s'::s::eqs')) 1 end;
  
-   fun equality_prf () = prove_standard [] [] equality_prop (fn _ =>
+   fun equality_prf () = prove_standard [] equality_prop (fn _ =>
       fn st => let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
         st |> (res_inst_tac [(rN, s)] cases_scheme 1
         THEN res_inst_tac [(rN, s')] cases_scheme 1
         THEN (METAHYPS equality_tac 1)) 
              (* simp_all_tac ss (sel_convs) would also work but is less efficient *)
       end);                              
-     val equality = timeit_msg "record equality proof':" equality_prf;
+     val equality = timeit_msg "record equality proof:" equality_prf;
 
     val (thms_thy,(([sel_convs',upd_convs',sel_defs',upd_defs',[split_meta',split_object',split_ex'],
                     derived_defs'],
@@ -1632,6 +1779,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       |> put_record name (make_record_info args parent fields extension induct_scheme') 
       |> put_sel_upd (names @ [full_moreN]) sel_upd_simps
       |> add_record_equalities extension_id equality'
+      |> add_extinjects ext_inject
+      |> add_extsplit extension_name ext_split
       |> add_record_splits extension_id (split_meta',split_object',split_ex',induct_scheme')
       |> add_extfields extension_name (fields @ [(full_moreN,moreT)]) 
       |> add_fieldext (extension_name,snd extension) (names @ [full_moreN]) 
