@@ -1,0 +1,77 @@
+#
+# $Id$
+#
+# IsaMakefile for PSV 2003 / 2004
+#
+
+SESSIONS = a1 a2 a3 a4 a5
+
+## targets
+
+default: clean sessions
+sessions: $(SESSIONS)
+# all: sessions 
+
+
+## global settings
+
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+INFO = $(ISABELLE_BROWSER_INFO)
+USEDIR = $(ISATOOL) usedir -v true -i false -d false -D generated
+RSYNC = rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync
+WWW = www4.in.tum.de:/home/html/wbroy/html-data/lehre/praktika/psv
+
+
+# reomve old log files
+clean:
+	rm -f $(LOG)/HOL-a?.gz $(LOG)/HOL-l?.gz
+
+## provide style.tex
+
+style:
+	@for D in $(SESSIONS); do test -d $$D/document && { test -r $$D/document/style.tex || ln -s ../../style.tex $$D/document/style.tex; } done;
+
+
+## a1
+
+a1: a1/generated/session.tex
+
+a1/generated/session.tex: a1/ROOT.ML \
+  a1/*.thy
+	@$(USEDIR) HOL a1
+
+## a2
+
+a2: a2/generated/session.tex
+
+a2/generated/session.tex: a2/ROOT.ML \
+  a2/*.thy
+	@$(USEDIR) HOL a2
+
+## a3
+
+a3: a3/generated/session.tex
+
+a3/generated/session.tex: a3/ROOT.ML \
+  a3/*.thy
+	@$(USEDIR) HOL a3
+
+## a4
+
+a4: a4/generated/session.tex
+
+a4/generated/session.tex: a4/ROOT.ML \
+  a4/*.thy
+	@$(USEDIR) HOL a4
+
+## a5
+
+a5: a5/generated/session.tex
+
+a5/generated/session.tex: a5/ROOT.ML \
+  a5/*.thy
+	@$(USEDIR) HOL a5
+
