@@ -236,11 +236,29 @@ qed_goal "trans" IFOL.thy "[| a=b;  b=c |] ==> a=c"
 (** ~ b=a ==> ~ a=b **)
 val [not_sym] = compose(sym,2,contrapos);
 
+
+(* Two theorms for rewriting only one instance of a definition:
+   the first for definitions of formulae and the second for terms *)
+
+val prems = goal IFOL.thy "(A == B) ==> A <-> B";
+by (rewrite_goals_tac prems);
+by (rtac iff_refl 1);
+qed "def_imp_iff";
+
+val prems = goal IFOL.thy "(A == B) ==> A = B";
+by (rewrite_goals_tac prems);
+by (rtac refl 1);
+qed "def_imp_eq";
+
 (*Substitution: rule and tactic*)
 bind_thm ("ssubst", sym RS subst);
 
-(*Fails unless the substitution has an effect*)
-fun stac th = CHANGED_GOAL (rtac (th RS ssubst));
+(*Apply an equality or definition ONCE.
+  Fails unless the substitution has an effect*)
+fun stac th = 
+  let val th' = th RS def_imp_eq handle _ => th
+  in  CHANGED_GOAL (rtac (th' RS ssubst))
+  end;
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 qed_goal "ex1_equalsE" IFOL.thy
@@ -381,20 +399,6 @@ val major::prems = goal IFOL.thy "[| P|Q;  P==>R;  Q==>S |] ==> R|S";
 by (rtac (major RS disjE) 1);
 by (REPEAT (eresolve_tac (prems RL [disjI1, disjI2]) 1));
 qed "disj_imp_disj";
-
-(* The following two theorms are useful when rewriting only one instance  *) 
-(* of a definition                                                        *)
-(* first one for definitions of formulae and the second for terms         *)
-
-val prems = goal IFOL.thy "(A == B) ==> A <-> B";
-by (rewrite_goals_tac prems);
-by (rtac iff_refl 1);
-qed "def_imp_iff";
-
-val prems = goal IFOL.thy "(A == B) ==> A = B";
-by (rewrite_goals_tac prems);
-by (rtac refl 1);
-qed "def_imp_eq";
 
 
 (** strip ALL and --> from proved goal while preserving ALL-bound var names **)

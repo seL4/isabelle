@@ -23,6 +23,11 @@ qed_goal "trans" HOL.thy "[| r=s; s=t |] ==> r=t"
  (fn prems =>
         [rtac subst 1, resolve_tac prems 1, resolve_tac prems 1]);
 
+val prems = goal thy "(A == B) ==> A = B";
+by (rewrite_goals_tac prems);
+by (rtac refl 1);
+qed "def_imp_eq";
+
 (*Useful with eresolve_tac for proving equalties from known equalities.
         a = b
         |   |
@@ -353,8 +358,12 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 
 (** Standard abbreviations **)
 
-(*Fails unless the substitution has an effect*)
-fun stac th = CHANGED_GOAL (rtac (th RS ssubst));
+(*Apply an equality or definition ONCE.
+  Fails unless the substitution has an effect*)
+fun stac th = 
+  let val th' = th RS def_imp_eq handle _ => th
+  in  CHANGED_GOAL (rtac (th' RS ssubst))
+  end;
 
 fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
 
