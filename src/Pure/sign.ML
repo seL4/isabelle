@@ -3,9 +3,6 @@
     Author:     Lawrence C Paulson and Markus Wenzel
 
 The abstract type "sg" of signatures.
-
-TODO:
-  clean
 *)
 
 signature SIGN =
@@ -33,6 +30,7 @@ sig
     val pprint_sg: sg -> pprint_args -> unit
     val pretty_term: sg -> term -> Pretty.T
     val pretty_typ: sg -> typ -> Pretty.T
+    val pretty_sort: sort -> Pretty.T
     val string_of_term: sg -> term -> string
     val string_of_typ: sg -> typ -> string
     val pprint_term: sg -> term -> pprint_args -> unit
@@ -111,12 +109,15 @@ fun const_type (Sg {const_tab, ...}) c =
   Symtab.lookup (const_tab, c);
 
 
-(* classes *)
+(* classes and sorts *)
 
 val classes = #classes o Type.rep_tsig o tsig_of;
 
 val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
+
+fun pretty_sort [c] = Pretty.str c
+  | pretty_sort cs = Pretty.str_list "{" "}" cs;
 
 
 
@@ -128,9 +129,6 @@ fun print_sg sg =
   let
     fun prt_typ syn ty = Pretty.quote (Syntax.pretty_typ syn ty);
 
-    fun pretty_sort [cl] = Pretty.str cl
-      | pretty_sort cls = Pretty.str_list "{" "}" cls;
-
     fun pretty_subclass (cl, cls) = Pretty.block
       [Pretty.str (cl ^ " <"), Pretty.brk 1, pretty_sort cls];
 
@@ -140,7 +138,7 @@ fun print_sg sg =
     fun pretty_arg (ty, n) = Pretty.str (ty ^ " " ^ string_of_int n);
 
     fun pretty_abbr syn (ty, (vs, rhs)) = Pretty.block
-      [prt_typ syn (Type (ty, map (fn v => TVar (v, [])) vs)),
+      [prt_typ syn (Type (ty, map (fn v => TVar ((v, 0), [])) vs)),
         Pretty.str " =", Pretty.brk 1, prt_typ syn rhs];
 
     fun pretty_arity ty (cl, []) = Pretty.block
@@ -264,32 +262,7 @@ fun infer_types sg types sorts (t, T) =
 
 
 
-(** extend signature **)    (*exception ERROR*)
-
-(* FIXME -> type.ML *)
-
-(* FIXME replace? *)
-fun varify_typ (Type (t, tys)) = Type (t, map varify_typ tys)
-  | varify_typ (TFree (a, s)) = TVar ((a, 0), s)
-  | varify_typ (ty as TVar _) =
-      raise_type "Illegal schematic type variable" [ty] [];
-
-
-(* fake newstyle interfaces *) (* FIXME -> type.ML *)
-
-fun ext_tsig_classes tsig classes =
-  extend_tsig tsig (classes, [], [], []);
-
-(* FIXME varify_typ, rem_sorts; norm_typ (?) *)
-fun ext_tsig_abbrs tsig abbrs = Type.ext_tsig_abbrs tsig
-  (map (fn (t, vs, rhs) => (t, (map (rpair 0) vs, varifyT rhs))) abbrs);
-
-fun ext_tsig_arities tsig arities = extend_tsig tsig
-  ([], [], [], flat (map (fn (t, ss, cs) => map (fn c => ([t], (ss, c))) cs) arities));
-
-
-
-(** extension functions **)  (*exception ERROR*)
+(** signature extension functions **)  (*exception ERROR*)
 
 fun decls_of name_of mfixs =
   map (fn (x, y, mx) => (name_of x mx, y)) mfixs;
@@ -354,15 +327,9 @@ fun read_const syn tsig (c, ty_src, mx) =
   (c, read_raw_typ syn tsig (K None) ty_src, mx)
     handle ERROR => err_in_const (Syntax.const_name c mx);
 
-(* FIXME move *)
-fun no_tvars ty =
-  if null (typ_tvars ty) then ty
-  else raise_type "Illegal schematic type variable(s)" [ty] [];
-
 fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
   let
-    (* FIXME clean *)
-    fun prep_const (c, ty, mx) = (c, varify_typ (cert_typ tsig (no_tvars ty)), mx)
+    fun prep_const (c, ty, mx) = (c, varifyT (cert_typ tsig (no_tvars ty)), mx)
       handle TYPE (msg, _, _) => (writeln msg; err_in_const (Syntax.const_name c mx));
 
     val consts = map (prep_const o rd_const syn tsig) raw_consts;
@@ -461,7 +428,7 @@ val make_draft = add_name "#";
 
 
 
-(** merge signatures **)    (*exception TERM*)
+(** merge signatures **)    (*exception TERM*) (*exception ERROR (* FIXME *)*)
 
 fun merge (sg1, sg2) =
   if subsig (sg2, sg1) then sg1
