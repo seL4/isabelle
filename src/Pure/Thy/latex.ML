@@ -11,7 +11,7 @@ sig
   datatype token = Basic of OuterLex.token | Markup of string | MarkupEnv of string | Verbatim
   val output_tokens: (token * string) list -> string
   val tex_trailer: string
-  val isabelle_file: string -> string
+  val isabelle_file: string -> string -> string
   val old_symbol_source: string -> Symbol.symbol list -> string
   val theory_entry: string -> string
   val modes: string list
@@ -124,11 +124,13 @@ val tex_trailer =
   \%%% TeX-master: \"root\"\n\
   \%%% End:\n";
 
-val isabelle_file =
-  enclose "%\n\\begin{isabellebody}%\n" ("\\end{isabellebody}%\n" ^ tex_trailer);
+fun isabelle_file name txt =
+  "%\n\\begin{isabellebody}%\n\
+  \\\def\\isabellecontext{" ^ name ^ "}%\n" ^ txt ^
+  "\\end{isabellebody}%\n" ^ tex_trailer;
 
 fun old_symbol_source name syms =
-  isabelle_file ("\\isamarkupheader{" ^ output_syms name ^ "}%\n" ^ output_symbols syms);
+  isabelle_file name ("\\isamarkupheader{" ^ output_syms name ^ "}%\n" ^ output_symbols syms);
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 
