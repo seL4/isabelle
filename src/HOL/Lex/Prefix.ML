@@ -49,10 +49,7 @@ by (rtac iffI 1);
  by (hyp_subst_tac 1);
  by (asm_full_simp_tac (simpset() delsimps [append_assoc]
                                  addsimps [append_assoc RS sym])1);
-by (etac disjE 1);
- by (Asm_simp_tac 1);
-by (Clarify_tac 1);
-by (Simp_tac 1);
+by (Force_tac 1);
 qed "prefix_snoc";
 Addsimps [prefix_snoc];
 
@@ -85,8 +82,7 @@ qed "prefix_Cons";
 
 Goal "(xs <= ys@zs) = (xs <= ys | (? us. xs = ys@us & us <= zs))";
 by (res_inst_tac [("xs","zs")] rev_induct 1);
- by (Simp_tac 1);
- by (Blast_tac 1);
+ by (Force_tac 1);
 by (asm_full_simp_tac (simpset() delsimps [append_assoc]
                                  addsimps [append_assoc RS sym])1);
 by (Simp_tac 1);
