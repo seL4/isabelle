@@ -158,8 +158,8 @@ fun prj _  _  x (   _::[]) _ = x
 |   prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
 fun fix_tp (tn, args) = (tn, map (K oneT) args); (* instantiate type to
 						    avoid type varaibles *)
-val  proj        = prj (fn S => K(%%"fst" $S)) (fn S => K(%%"snd" $S));
-val cproj        = prj (fn S => K(%%"cfst"`S)) (fn S => K(%%"csnd"`S));
+fun  proj x      = prj (fn S => K(%%"fst" $S)) (fn S => K(%%"snd" $S)) x;
+fun cproj x      = prj (fn S => K(%%"cfst"`S)) (fn S => K(%%"csnd"`S)) x;
 fun cproj' T eqs = prj 
 	(fn S => fn t => Const("cfst",mk_prodT(dummyT,t)->>dummyT)`S) 
 	(fn S => fn t => Const("csnd",mk_prodT(t,dummyT)->>dummyT)`S) 
