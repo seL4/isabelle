@@ -9,8 +9,6 @@ Adds Classical Sequent Calculus to a database containing pure Isabelle.
 val banner = "Sequent Calculii";
 writeln banner;
 
-init_thy_reader();
-
 print_depth 1;  
 
 use_thy "Sequents";
@@ -24,7 +22,6 @@ use_thy"T";
 use_thy"S4";
 use_thy"S43";
 
-init_pps ();
 print_depth 8;
 
 val Sequents_build_completed = ();    (*indicate successful build*)

@@ -49,7 +49,6 @@ cd "../TFL";
 use "sys.sml";
 cd "../HOL";
 
-init_pps ();
 print_depth 8;
 
 val HOL_build_completed = ();   (*indicate successful build*)

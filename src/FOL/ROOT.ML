@@ -11,8 +11,6 @@ val banner = "First-Order Logic with Natural Deduction";
 
 writeln banner;
 
-init_thy_reader();
-
 print_depth 1;  
 
 use "../Provers/splitter.ML";
@@ -49,7 +47,6 @@ qed_goal "ex1_functional" FOL.thy
  (fn _ => [ (deepen_tac FOL_cs 0 1) ]);
 
 
-init_pps ();
 print_depth 8;
 
 val FOL_build_completed = ();   (*indicate successful build*)

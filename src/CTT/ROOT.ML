@@ -12,15 +12,12 @@ writeln banner;
 
 print_depth 1;  
 
-init_thy_reader();
-
 use_thy "CTT";
 use "../Provers/typedsimp.ML";
 use "rew.ML";
 use_thy "Arith";
 use_thy "Bool";
 
-init_pps ();
 print_depth 8;
 
 val CTT_build_completed = ();   (*indicate successful build*)

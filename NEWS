@@ -7,6 +7,8 @@ New in Isabelle???? (DATE ????)
 
 * removed old README and Makefiles;
 
+* removed obsolete init_pps and init_database;
+
 
 New in Isabelle94-8 (May 1997)
 ------------------------------

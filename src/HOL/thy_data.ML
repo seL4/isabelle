@@ -106,7 +106,7 @@ fun exhaust_tac aterm i =
 end;
 
 (*Must be redefined in order to refer to the new instance of bind_thm
-  created by init_thy_reader.*)
+  created by init_thy_reader.*)		(* FIXME: move *)
 
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())

@@ -32,7 +32,6 @@ use "domain/extender.ML";
 use "domain/interface.ML";
 
 init_thy_reader();
-init_pps ();
 
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())

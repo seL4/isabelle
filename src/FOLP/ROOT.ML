@@ -12,9 +12,8 @@ val banner = "First-Order Logic with Natural Deduction with Proof Terms";
 
 writeln banner;
 
-init_thy_reader();
+print_depth 1;
 
-print_depth 1;  
 use_thy "IFOLP";
 use_thy "FOLP";
 
@@ -75,7 +74,7 @@ val FOLP_dup_cs = prop_cs addSIs [allI] addIs [exCI,ex1I]
 
 use "simpdata.ML";
 
-init_pps ();
+
 print_depth 8;
 
 val FOLP_build_completed = ();  (*indicate successful build*)
