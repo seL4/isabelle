@@ -1,6 +1,8 @@
 all: gen pdf
 
-gen: g0304 g2000 g2001 g2002
+
+gen: g2000 g2001 g2002 g2003 g0304
+
 
 dvi: gen
 	latex exercises
@@ -14,8 +16,7 @@ pdf: gen
 	pdflatex exercises
 	pdflatex exercises
 
-g0304:
-	cd 0304; make
+
 
 g2000:
 	cd 2000; make
@@ -26,8 +27,15 @@ g2001:
 g2002:
 	cd 2002; make
 
+g2003:
+	cd 2003; make
+
+g0304:
+	cd 0304; make
+
 clean:
 	rm -f *.log *.aux *.bbl *.blg *.toc *.out *~
+
 
 realclean: clean
 	rm -rf exercises.pdf execrcises.dvi
