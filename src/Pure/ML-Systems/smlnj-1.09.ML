@@ -3,22 +3,23 @@
     Author:     Carsten Clasohm, TU Muenchen
     Copyright   1996  TU Muenchen
 
-Compatibility file for Standard ML of New Jersey, version 1.09.
+Compatibility file for Standard ML of New Jersey, version 1.09.27 or later.
 *)
 
-(*** Poly/ML emulation ***)
+(** Poly/ML emulation **)
 
 fun quit () = exit 0;
 
-(*To limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
-fun print_depth n = (Compiler.Control.Print.printDepth := n div 2;
-                     Compiler.Control.Print.printLength := n);
+(*to limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
+fun print_depth n =
+ (Compiler.Control.Print.printDepth := n div 2;
+  Compiler.Control.Print.printLength := n);
 
 Compiler.Control.primaryPrompt := "> ";
 Compiler.Control.secondaryPrompt := "# ";
 
 
-(*Interface for toplevel pretty printers, see also Pure/install_pp.ML*)
+(* interface for toplevel pretty printers, see also Pure/install_pp.ML *)
 
 fun make_pp path pprint =
   let
@@ -36,26 +37,24 @@ fun make_pp path pprint =
 fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
 
 
-(*** New Jersey ML parameters ***)
+(** New Jersey ML parameters **)
 
-(* Suppresses Garbage Collection messages; doesn't work yet *)
-(*System.Runtime.gc 0;*)
-
-val _ = (Compiler.Control.Print.printLength := 1000;
-         Compiler.Control.Print.printDepth := 350;
-         Compiler.Control.Print.stringDepth := 250;
-         Compiler.Control.Print.signatures := 2);
+val _ =
+ (Compiler.Control.Print.printLength := 1000;
+  Compiler.Control.Print.printDepth := 350;
+  Compiler.Control.Print.stringDepth := 250;
+  Compiler.Control.Print.signatures := 2);
 
 
-(*** Character/string functions which are compatible with 0.93 and Poly/ML ***)
+(** Character / string functions which are compatible with 0.93 and Poly/ML **)
 
-fun ord s = Char.ord (String.sub(s,0));
+fun ord s = Char.ord (String.sub (s, 0));
 val chr = str o Char.chr;
 val explode = (map str) o String.explode;
 val implode = String.concat;
 
 
-(*** Timing functions ***)
+(** Timing functions **)
 
 (*A conditional timing function: applies f to () and, if the flag is true,
   prints its runtime. *)
@@ -73,30 +72,22 @@ fun cond_timeit flag f =
 	  handle Time => ();
         result
     end
-  else f();
+  else f ();
 
 
-(*** File handling ***)
+(** File handling **)
 
-(*Get time of last modification; if file doesn't exist return an empty string*)
+(*get time of last modification; if file doesn't exist return an empty string*)
 fun file_info "" = ""
   | file_info name = Time.toString (OS.FileSys.modTime name) handle _ =>"";
 
 
+(** ML command execution **)
 
-(*** ML command execution ***)
-
-
-(*For version 109.21 and later:
 val use_string = Compiler.Interact.useStream o TextIO.openString o implode;
-*)
-
-(*For versions prior to 109.21:*)
-fun use_string commands = 
-   Compiler.Interact.use_stream (open_string (implode commands));
 
 
-(*** System command execution ***)
+(** System command execution **)
 
 (*Execute an Unix command which doesn't take any input from stdin and
   sends its output to stdout.
@@ -113,6 +104,6 @@ fun execute command =
   end;
 
 
-(* symbol input *)
+(** non-ASCII input **)
 
 val needs_filtered_use = false;
