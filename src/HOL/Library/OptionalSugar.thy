@@ -3,7 +3,7 @@
     Author:     Gerwin Klain, Tobias Nipkow
     Copyright   2005 NICTA and TUM
 *)
-
+(*<*)
 theory OptionalSugar
 imports LaTeXsugar
 begin
@@ -35,3 +35,4 @@ translations
 
 
 end
+(*>*)

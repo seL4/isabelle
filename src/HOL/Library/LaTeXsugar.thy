@@ -32,6 +32,7 @@ translations
 translations 
   "{x} \<union> A" <= "insert x A"
   "{x,y} \<union> A" <= "{x} \<union> ({y} \<union> A)"
+  "{x}" <= "{x} \<union> _emptyset"
 
 (* set comprehension *)
 syntax (latex output)
