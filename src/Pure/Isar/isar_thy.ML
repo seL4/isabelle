@@ -115,17 +115,17 @@ sig
   val local_def_i: ((string * Args.src list) * (string * (term * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val show: ((string * Args.src list) * (string * (string list * string list)))
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
+    * Comment.text -> bool -> ProofHistory.T -> ProofHistory.T
   val show_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
+    * Comment.text -> bool -> ProofHistory.T -> ProofHistory.T
   val have: ((string * Args.src list) * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val have_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val thus: ((string * Args.src list) * (string * (string list * string list)))
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
+    * Comment.text -> bool -> ProofHistory.T -> ProofHistory.T
   val thus_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
-    * Comment.text -> ProofHistory.T -> ProofHistory.T
+    * Comment.text -> bool -> ProofHistory.T -> ProofHistory.T
   val hence: ((string * Args.src list) * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val hence_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
@@ -359,6 +359,48 @@ fun invoke_case ((name, src), comment_ignore) = ProofHistory.apply (fn state =>
 val invoke_case_i = ProofHistory.apply o Proof.invoke_case o Comment.ignore;
 
 
+(* local results *)
+
+local
+
+fun pretty_result {kind, name, thm} =
+  Pretty.block [Pretty.str (kind ^ (if name = "" then "" else " " ^ name) ^ ":"),
+    Pretty.fbrk, Proof.pretty_thm thm];
+
+fun pretty_rule s thm =
+  Pretty.block [Pretty.str (s ^ " to solve goal by exported rule:"),
+    Pretty.fbrk, Proof.pretty_thm thm];
+
+in
+
+val print_result = Pretty.writeln o pretty_result;
+
+fun cond_print_result_rule int =
+  if int then (print_result, priority o Pretty.string_of o pretty_rule "Trying")
+  else (K (), K ());
+
+fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
+
+fun check_goal false state = state
+  | check_goal true state =
+      let
+        val rule = ref (None: thm option);
+        fun warn exn =
+          (["Problem! Local statement will fail to solve any pending goal"] @
+          (case exn of None => [] | Some e => [Toplevel.exn_message e]) @
+          (case ! rule of None => [] | Some thm =>
+            [Pretty.string_of (pretty_rule "Failed attempt" thm)]))
+          |> cat_lines |> warning;
+        val check =
+          (fn () => Seq.pull (SkipProof.local_skip_proof (K (), fn thm => rule := Some thm) state))
+          |> Library.setmp quick_and_dirty true
+          |> Library.transform_error;
+        val result = (check (), None) handle Interrupt => raise Interrupt | e => (None, Some e);
+      in (case result of (Some _, None) => () | (_, exn) => warn exn); state end;
+      
+end;
+
+
 (* statements *)
 
 local
@@ -370,10 +412,14 @@ fun global_statement f ((name, src), s) int thy =
 fun global_statement_i f ((name, atts), t) int thy =
   ProofHistory.init (Toplevel.undo_limit int) (f name atts t thy);
 
-fun local_statement f g ((name, src), s) = ProofHistory.apply (fn state =>
-  f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s (g state));
+fun local_statement' f g ((name, src), s) int = ProofHistory.apply (fn state =>
+  f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s int (g state));
 
-fun local_statement_i f g ((name, atts), t) = ProofHistory.apply (f name atts t o g);
+fun local_statement_i' f g ((name, atts), t) int =
+  ProofHistory.apply (f name atts t int o g);
+
+fun local_statement f g args = local_statement' (K ooo f) g args ();
+fun local_statement_i f g args = local_statement_i' (K ooo f) g args ();
 
 fun multi_local_attribute state ((name, src), s) =
   ((name, map (Attrib.local_attribute (Proof.theory_of state)) src), s);
@@ -395,12 +441,12 @@ val presume     = multi_statement Proof.presume o map Comment.ignore;
 val presume_i   = multi_statement_i Proof.presume_i o map Comment.ignore;
 val local_def   = local_statement LocalDefs.def I o Comment.ignore;
 val local_def_i = local_statement LocalDefs.def_i I o Comment.ignore;
-val show        = local_statement (Proof.show Seq.single) I o Comment.ignore;
-val show_i      = local_statement_i (Proof.show_i Seq.single) I o Comment.ignore;
+val show        = local_statement' (Proof.show check_goal Seq.single) I o Comment.ignore;
+val show_i      = local_statement_i' (Proof.show_i check_goal Seq.single) I o Comment.ignore;
 val have        = local_statement (Proof.have Seq.single) I o Comment.ignore;
 val have_i      = local_statement_i (Proof.have_i Seq.single) I o Comment.ignore;
-val thus        = local_statement (Proof.show Seq.single) Proof.chain o Comment.ignore;
-val thus_i      = local_statement_i (Proof.show_i Seq.single) Proof.chain o Comment.ignore;
+val thus        = local_statement' (Proof.show check_goal Seq.single) Proof.chain o Comment.ignore;
+val thus_i      = local_statement_i' (Proof.show_i check_goal Seq.single) Proof.chain o Comment.ignore;
 val hence       = local_statement (Proof.have Seq.single) Proof.chain o Comment.ignore;
 val hence_i     = local_statement_i (Proof.have_i Seq.single) Proof.chain o Comment.ignore;
 
@@ -432,30 +478,6 @@ fun apply_end (m, comment_ignore) = ProofHistory.applys
 
 val proof = ProofHistory.applys o Method.proof o
   apsome Comment.ignore_interest o Comment.ignore_interest' o Comment.ignore;
-
-
-(* print result *)
-
-local
-
-fun pretty_result {kind, name, thm} =
-  Pretty.block [Pretty.str (kind ^ (if name = "" then "" else " " ^ name) ^ ":"),
-    Pretty.fbrk, Proof.pretty_thm thm];
-
-fun pretty_rule thm =
-  Pretty.block [Pretty.str "trying to solve goal by rule:", Pretty.fbrk, Proof.pretty_thm thm];
-
-in
-
-val print_result = Pretty.writeln o pretty_result;
-
-fun cond_print_result_rule int =
-  if int then (print_result, priority o Pretty.string_of o pretty_rule)
-  else (K (), K ());
-
-fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
-
-end;
 
 
 (* local endings *)
