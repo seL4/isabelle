@@ -8,7 +8,6 @@ The Kerberos protocol, version IV.
 
 Pretty.setdepth 20;
 proof_timing:=true;
-HOL_quantifiers := false;
 
 AddIffs [AuthLife_LB, ServLife_LB, AutcLife_LB, RespLife_LB, Tgs_not_bad];
 
