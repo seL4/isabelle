@@ -47,14 +47,14 @@ proof -;
   thus ?thesis (is "?P a e t");
   proof (rule has_type.induct);     (* FIXME induct method *)
     fix a n;
-    assume "n < length a";
+    assume "n < length (a::typ list)";
     hence "n < length (map ($ s) a)"; by simp;
     hence "map ($ s) a |- Var n :: map ($ s) a ! n";
       by (rule has_type.VarI);
     also; have "map ($ s) a ! n = $ s (a ! n)";
       by (rule nth_map);
     also; have "map ($ s) a = $ s a";
-      by (simp only: app_subst_list);   (* FIXME unfold fails!? *)
+      by (simp only: app_subst_list);
     finally; show "?P a (Var n) (a ! n)"; .;
   next;
     fix a e t1 t2;
@@ -112,31 +112,25 @@ proof -;
     proof (intro allI impI);
       fix a s t m n;
       assume "Ok (s, t, m) = W (Abs e) a n";
-      hence "EX t'. t = s n -> t' &
-          Ok (s, t', m) = W e (TVar n # a) (Suc n)";
-        by (rule rev_mp) simp;
-      with hyp; show "$ s a |- Abs e :: t";
-        by (force intro: has_type.AbsI);
+      thus "$ s a |- Abs e :: t";
+	obtain t' in "t = s n -> t'" "Ok (s, t', m) = W e (TVar n # a) (Suc n)";
+	  by (rule rev_mp) simp;
+	with hyp; show ?thesis; by (force intro: has_type.AbsI);
+      qed;
     qed;
   next;
     fix e1 e2; assume hyp1: "?P e1" and hyp2: "?P e2";
     show "?P (App e1 e2)";
     proof (intro allI impI);
       fix a s t m n; assume "Ok (s, t, m) = W (App e1 e2) a n";
-      hence "EX s1 t1 n1 s2 t2 n2 u.
-          s = $ u o $ s2 o s1 & t = u n2 &
-          mgu ($ s2 t1) (t2 -> TVar n2) = Ok u &
-             W e2 ($ s1 a) n1 = Ok (s2, t2, n2) &
-             W e1 a n = Ok (s1, t1, n1)";
-        by (rule rev_mp) (simp, force); (* FIXME force fails !??*)
       thus "$ s a |- App e1 e2 :: t";
-      proof (elim exE conjE);
-        fix s1 t1 n1 s2 t2 n2 u;
-        assume s: "s = $ u o $ s2 o s1"
+	obtain s1 t1 n1 s2 t2 n2 u in
+          s: "s = $ u o $ s2 o s1"
           and t: "t = u n2"
           and mgu_ok: "mgu ($ s2 t1) (t2 -> TVar n2) = Ok u"
           and W1_ok: "W e1 a n = Ok (s1, t1, n1)"
           and W2_ok: "W e2 ($ s1 a) n1 = Ok (s2, t2, n2)";
+	    by (rule rev_mp) simp;
         show ?thesis;
         proof (rule has_type.AppI);
           from s; have s': "$ u ($ s2 ($ s1 a)) = $s a";
