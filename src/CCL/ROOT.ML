@@ -7,6 +7,10 @@ Adds Classical Computational Logic to a database containing First-Order Logic.
 *)
 
 val banner = "Classical Computational Logic (in FOL)";
+writeln banner;
+
+print_depth 1;
+set eta_contract;
 
 (* Higher-Order Set Theory Extension to FOL *)
 (*      used as basis for CCL               *)
@@ -33,5 +37,7 @@ use     "genrec.ML";
 use     "typecheck.ML";
 use     "eval.ML";
 use_thy "Fix";
+
+print_depth 8;
 
 val CCL_build_completed = ();   (*indicate successful build*)
