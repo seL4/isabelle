@@ -75,7 +75,7 @@ translations
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
 
-syntax ("" output)
+syntax (output)
   "="           :: "['a, 'a] => bool"                    (infix 50)
   "~="          :: "['a, 'a] => bool"                    (infix 50)
 

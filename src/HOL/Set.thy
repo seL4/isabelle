@@ -85,7 +85,7 @@ translations
   "ALL x:A. P"  == "Ball A (%x. P)"
   "EX x:A. P"   == "Bex A (%x. P)"
 
-syntax ("" output)
+syntax (output)
   "_setle"      :: "'a set => 'a set => bool"             ("op <=")
   "_setle"      :: "'a set => 'a set => bool"             ("(_/ <= _)" [50, 51] 50)
   "_setless"    :: "'a set => 'a set => bool"             ("op <")
