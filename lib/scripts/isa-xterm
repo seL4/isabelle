@@ -109,6 +109,6 @@ else
       -xrm "*VT100*font5:" \
       -xrm "*fontMenu*font6*Label:" \
       -xrm "*VT100*font6:" \
-      -e $ISABELLE -e 'print_mode:=["symbols"];' "$@"
+      -e $ISABELLE -m symbols "$@"
   fi
 fi
