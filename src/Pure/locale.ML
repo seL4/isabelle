@@ -21,6 +21,7 @@ signature BASIC_LOCALE =
 sig
   val print_locales: theory -> unit
   val pretty_goals_marker: string -> int -> thm -> Pretty.T list
+  val pretty_goals: int -> thm -> Pretty.T list
   val pretty_sub_goals: bool -> int -> thm -> Pretty.T list
   val print_goals_marker: string -> int -> thm -> unit
   val print_goals: int -> thm -> unit
@@ -588,8 +589,6 @@ local
   fun vars_of t = sort_idxs (add_vars (t, []));
   fun varsT_of t = rev (sort_idxs (it_term_types add_varsT (t, [])));
 
-in
-
   fun pretty_goals_marker_aux begin_goal print_msg print_goal maxgoals state =
     let
       val {sign, ...} = rep_thm state;
@@ -651,12 +650,12 @@ in
      (! show_types orelse ! show_sorts, ! show_sorts)
   end;
 
+in
   fun pretty_goals_marker bg = pretty_goals_marker_aux bg true true;
   val print_goals_marker = (Pretty.writeln o Pretty.chunks) ooo pretty_goals_marker;
-
   val pretty_sub_goals = pretty_goals_marker_aux "" false;
+  val pretty_goals = pretty_goals_marker "";
   val print_goals = print_goals_marker "";
-
 end;
 
 
