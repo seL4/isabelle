@@ -20,8 +20,6 @@ fun mk_defpair (lhs, rhs) =
 
 fun get_def thy s = get_axiom thy (s^"_def");
 
-fun lookup_const sign a = Symtab.lookup(#const_tab (Sign.rep_sg sign), a);
-
 
 (*Read an assumption in the given theory*)
 fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
