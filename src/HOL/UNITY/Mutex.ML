@@ -9,12 +9,12 @@ Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 (*split_all_tac causes a big blow-up*)
 claset_ref() := claset() delSWrapper record_split_name;
 
-Addsimps [Mprg_def RS def_prg_Init];
-program_defs_ref := [Mprg_def];
+Addsimps [Mutex_def RS def_prg_Init];
+program_defs_ref := [Mutex_def];
 
 Addsimps (map simp_of_act
-	  [cmd0U_def, cmd1U_def, cmd2U_def, cmd3U_def, cmd4U_def, 
-	   cmd0V_def, cmd1V_def, cmd2V_def, cmd3V_def, cmd4V_def]);
+	  [U0_def, U1_def, U2_def, U3_def, U4_def, 
+	   V0_def, V1_def, V2_def, V3_def, V4_def]);
 
 Addsimps (map simp_of_set
 	  [invariantU_def, invariantV_def, bad_invariantU_def]);
@@ -22,13 +22,13 @@ Addsimps (map simp_of_set
 (*Simplification for records*)
 Addsimps (thms"state.update_defs");
 
-Goal "Mprg : Invariant invariantU";
+Goal "Mutex : Invariant invariantU";
 by (rtac InvariantI 1);
 by (constrains_tac 2);
 by Auto_tac;
 qed "invariantU";
 
-Goal "Mprg : Invariant invariantV";
+Goal "Mutex : Invariant invariantV";
 by (rtac InvariantI 1);
 by (constrains_tac 2);
 by Auto_tac;
@@ -38,14 +38,14 @@ val invariantUV = Invariant_Int_rule [invariantU, invariantV];
 
 
 (*The safety property: mutual exclusion*)
-Goal "(reachable Mprg) Int {s. MM s = #3 & NN s = #3} = {}";
+Goal "(reachable Mutex) Int {s. m s = #3 & n s = #3} = {}";
 by (cut_facts_tac [invariantUV RS Invariant_includes_reachable] 1);
 by Auto_tac;
 qed "mutual_exclusion";
 
 
-(*The bad invariant FAILS in cmd1V*)
-Goal "Mprg : Invariant bad_invariantU";
+(*The bad invariant FAILS in V1*)
+Goal "Mutex : Invariant bad_invariantU";
 by (rtac InvariantI 1);
 by (constrains_tac 2);
 by (Force_tac 1);
@@ -58,13 +58,13 @@ by (dtac zle_trans 1 THEN assume_tac 1);
 by (full_simp_tac (simpset_of Int.thy) 1);
 by (asm_full_simp_tac (simpset() addsimps int_simps) 1);
 (*Resulting state: n=1, p=false, m=4, u=false.  
-  Execution of cmd1V (the command of process v guarded by n=1) sets p:=true,
+  Execution of V1 (the command of process v guarded by n=1) sets p:=true,
   violating the invariant!*)
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;  
 
 
-Goal "(#1 <= m & m <= #3) = (m = #1 | m = #2 | m = #3)";
+Goal "(#1 <= i & i <= #3) = (i = #1 | i = #2 | i = #3)";
 by (auto_tac (claset(),
 	      simpset_of Int.thy addsimps
 	        [zle_iff_zadd, zadd_int, integ_of_Pls, integ_of_Min, 
@@ -74,44 +74,44 @@ qed "eq_123";
 
 (*** Progress for U ***)
 
-Goalw [Unless_def] "Mprg : {s. MM s=#2} Unless {s. MM s=#3}";
+Goalw [Unless_def] "Mutex : {s. m s=#2} Unless {s. m s=#3}";
 by (constrains_tac 1);
 qed "U_F0";
 
-Goal "Mprg : {s. MM s=#1} LeadsTo {s. PP s = VV s & MM s = #2}";
-by (ensures_tac "cmd1U" 1);
+Goal "Mutex : {s. m s=#1} LeadsTo {s. p s = v s & m s = #2}";
+by (ensures_tac "U1" 1);
 qed "U_F1";
 
-Goal "Mprg : {s. ~ PP s & MM s = #2} LeadsTo {s. MM s = #3}";
+Goal "Mutex : {s. ~ p s & m s = #2} LeadsTo {s. m s = #3}";
 by (cut_facts_tac [invariantU] 1);
-by (ensures_tac "cmd2U" 1);
+by (ensures_tac "U2" 1);
 qed "U_F2";
 
-Goal "Mprg : {s. MM s = #3} LeadsTo {s. PP s}";
-by (res_inst_tac [("B", "{s. MM s = #4}")] LeadsTo_Trans 1);
-by (ensures_tac "cmd4U" 2);
-by (ensures_tac "cmd3U" 1);
+Goal "Mutex : {s. m s = #3} LeadsTo {s. p s}";
+by (res_inst_tac [("B", "{s. m s = #4}")] LeadsTo_Trans 1);
+by (ensures_tac "U4" 2);
+by (ensures_tac "U3" 1);
 qed "U_F3";
 
-Goal "Mprg : {s. MM s = #2} LeadsTo {s. PP s}";
+Goal "Mutex : {s. m s = #2} LeadsTo {s. p s}";
 by (rtac ([LeadsTo_weaken_L, Int_lower2 RS subset_imp_LeadsTo] 
 	  MRS LeadsTo_Diff) 1);
 by (rtac ([U_F2, U_F3] MRS LeadsTo_Trans) 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 val U_lemma2 = result();
 
-Goal "Mprg : {s. MM s = #1} LeadsTo {s. PP s}";
+Goal "Mutex : {s. m s = #1} LeadsTo {s. p s}";
 by (rtac ([U_F1 RS LeadsTo_weaken_R, U_lemma2] MRS LeadsTo_Trans) 1);
 by (Blast_tac 1);
 val U_lemma1 = result();
 
-Goal "Mprg : {s. #1 <= MM s & MM s <= #3} LeadsTo {s. PP s}";
+Goal "Mutex : {s. #1 <= m s & m s <= #3} LeadsTo {s. p s}";
 by (simp_tac (simpset() addsimps [eq_123, Collect_disj_eq, LeadsTo_Un_distrib,
 				  U_lemma1, U_lemma2, U_F3] ) 1);
 val U_lemma123 = result();
 
 (*Misra's F4*)
-Goal "Mprg : {s. UU s} LeadsTo {s. PP s}";
+Goal "Mutex : {s. u s} LeadsTo {s. p s}";
 by (rtac ([invariantU, U_lemma123] MRS Invariant_LeadsTo_weaken) 1);
 by Auto_tac;
 qed "u_Leadsto_p";
@@ -120,45 +120,45 @@ qed "u_Leadsto_p";
 (*** Progress for V ***)
 
 
-Goalw [Unless_def] "Mprg : {s. NN s=#2} Unless {s. NN s=#3}";
+Goalw [Unless_def] "Mutex : {s. n s=#2} Unless {s. n s=#3}";
 by (constrains_tac 1);
 qed "V_F0";
 
-Goal "Mprg : {s. NN s=#1} LeadsTo {s. PP s = (~ UU s) & NN s = #2}";
-by (ensures_tac "cmd1V" 1);
+Goal "Mutex : {s. n s=#1} LeadsTo {s. p s = (~ u s) & n s = #2}";
+by (ensures_tac "V1" 1);
 qed "V_F1";
 
-Goal "Mprg : {s. PP s & NN s = #2} LeadsTo {s. NN s = #3}";
+Goal "Mutex : {s. p s & n s = #2} LeadsTo {s. n s = #3}";
 by (cut_facts_tac [invariantV] 1);
-by (ensures_tac "cmd2V" 1);
+by (ensures_tac "V2" 1);
 qed "V_F2";
 
-Goal "Mprg : {s. NN s = #3} LeadsTo {s. ~ PP s}";
-by (res_inst_tac [("B", "{s. NN s = #4}")] LeadsTo_Trans 1);
-by (ensures_tac "cmd4V" 2);
-by (ensures_tac "cmd3V" 1);
+Goal "Mutex : {s. n s = #3} LeadsTo {s. ~ p s}";
+by (res_inst_tac [("B", "{s. n s = #4}")] LeadsTo_Trans 1);
+by (ensures_tac "V4" 2);
+by (ensures_tac "V3" 1);
 qed "V_F3";
 
-Goal "Mprg : {s. NN s = #2} LeadsTo {s. ~ PP s}";
+Goal "Mutex : {s. n s = #2} LeadsTo {s. ~ p s}";
 by (rtac ([LeadsTo_weaken_L, Int_lower2 RS subset_imp_LeadsTo] 
 	  MRS LeadsTo_Diff) 1);
 by (rtac ([V_F2, V_F3] MRS LeadsTo_Trans) 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 val V_lemma2 = result();
 
-Goal "Mprg : {s. NN s = #1} LeadsTo {s. ~ PP s}";
+Goal "Mutex : {s. n s = #1} LeadsTo {s. ~ p s}";
 by (rtac ([V_F1 RS LeadsTo_weaken_R, V_lemma2] MRS LeadsTo_Trans) 1);
 by (Blast_tac 1);
 val V_lemma1 = result();
 
-Goal "Mprg : {s. #1 <= NN s & NN s <= #3} LeadsTo {s. ~ PP s}";
+Goal "Mutex : {s. #1 <= n s & n s <= #3} LeadsTo {s. ~ p s}";
 by (simp_tac (simpset() addsimps [eq_123, Collect_disj_eq, LeadsTo_Un_distrib,
 				  V_lemma1, V_lemma2, V_F3] ) 1);
 val V_lemma123 = result();
 
 
 (*Misra's F4*)
-Goal "Mprg : {s. VV s} LeadsTo {s. ~ PP s}";
+Goal "Mutex : {s. v s} LeadsTo {s. ~ p s}";
 by (rtac ([invariantV, V_lemma123] MRS Invariant_LeadsTo_weaken) 1);
 by Auto_tac;
 qed "v_Leadsto_not_p";
@@ -167,7 +167,7 @@ qed "v_Leadsto_not_p";
 (** Absence of starvation **)
 
 (*Misra's F6*)
-Goal "Mprg : {s. MM s = #1} LeadsTo {s. MM s = #3}";
+Goal "Mutex : {s. m s = #1} LeadsTo {s. m s = #3}";
 by (rtac LeadsTo_Un_duplicate 1);
 by (rtac LeadsTo_cancel2 1);
 by (rtac U_F2 2);
@@ -181,7 +181,7 @@ qed "m1_Leadsto_3";
 
 
 (*The same for V*)
-Goal "Mprg : {s. NN s = #1} LeadsTo {s. NN s = #3}";
+Goal "Mutex : {s. n s = #1} LeadsTo {s. n s = #3}";
 by (rtac LeadsTo_Un_duplicate 1);
 by (rtac LeadsTo_cancel2 1);
 by (rtac V_F2 2);
