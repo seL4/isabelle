@@ -8,17 +8,21 @@ Functions for reading theory files, and storing and retrieving theories,
 theorems and the global simplifier set.
 *)
 
-(*Type for theory storage*)
+(*Types for theory storage*)
+
+(*Functions to handle arbitrary data added by the user; type "exn" is used
+  to store data*)
+datatype thy_methods =
+  ThyMethods of {merge: exn list -> exn, put: exn -> unit, get: unit -> exn};
+
 datatype thy_info =
   ThyInfo of {path: string,
               children: string list, parents: string list,
               thy_time: string option, ml_time: string option,
               theory: theory option, thms: thm Symtab.table,
-              thy_ss: Simplifier.simpset option,
-              simpset: Simplifier.simpset option,
-              datatypes: (string * string list) list};
-      (*meaning of special values:
-        thy_time, ml_time = None     theory file has not been read yet
+              methods: thy_methods Symtab.table,
+              data: exn Symtab.table * exn Symtab.table};
+      (*thy_time, ml_time = None     theory file has not been read yet
                           = Some ""  theory was read but has either been marked
                                      as outdated or there is no such file for
                                      this theory (see e.g. 'virtual' theories
@@ -30,11 +34,17 @@ datatype thy_info =
                  'parents' only contains the theories which were used to form
                  the base of this theory.
 
-        origin of the simpsets:
-        thy_ss: snapshot of !Simpset.simpset after .thy file was read
-        simpset: snapshot of !Simpset.simpset after .ML file was read
-        datatypes: list of constructors for each datatype that has been
-                   defined in this theory
+        methods: three methods for each user defined data;
+                 merge: merges data of ancestor theories
+                 put: retrieves data from loaded_thys and stores it somewhere
+                 get: retrieves data from somewhere and stores it
+                      in loaded_thys
+                 Warning: If these functions access reference variables inside
+                          READTHY, they have to be redefined each time
+                          init_thy_reader is invoked
+        data: user defined data; exn is used to allow arbitrary types;
+              first element of pairs contains result that get returned after
+              thy file was read, second element after ML file was read
        *)
 
 signature READTHY =
@@ -44,6 +54,7 @@ sig
 
   val loaded_thys    : thy_info Symtab.table ref
   val loadpath       : string list ref
+  val thy_reader_files: string list ref
   val delete_tmpfiles: bool ref
 
   val use_thy        : string -> unit
@@ -70,12 +81,14 @@ sig
                  -> unit
   val get_thm       : theory -> string -> thm
   val thms_of       : theory -> (string * thm) list
-  val simpset_of    : string -> Simplifier.simpset
+
+  val add_thydata   : theory -> string * thy_methods -> unit
+  val get_thydata   : theory -> string -> exn option
+  val add_thy_reader_file: string -> unit
+  val set_thy_reader_file: string -> unit
+  val read_thy_reader_files: unit -> unit
 
   val print_theory  : theory -> unit
-
-  val store_datatype : string * string list -> unit
-  val datatypes_of   : theory -> (string * string list) list
 
   val base_path     : string ref
   val gif_path      : string ref
@@ -100,26 +113,35 @@ val loaded_thys =
                      ThyInfo {path = "",
                               children = ["Pure", "CPure"], parents = [],
                               thy_time = Some "", ml_time = Some "",
-                              theory = Some proto_pure_thy, thms = Symtab.null,
-                              thy_ss = None, simpset = None, datatypes = []}),
+                              theory = Some proto_pure_thy,
+                              thms = Symtab.null, methods = Symtab.null,
+                              data = (Symtab.null, Symtab.null)}),
                     ("Pure",
                      ThyInfo {path = "", children = [],
                               parents = ["ProtoPure"],
                               thy_time = Some "", ml_time = Some "",
                               theory = Some pure_thy, thms = Symtab.null,
-                              thy_ss = None, simpset = None, datatypes = []}),
+                              methods = Symtab.null,
+                              data = (Symtab.null, Symtab.null)}),
                     ("CPure",
                      ThyInfo {path = "",
                               children = [], parents = ["ProtoPure"],
                               thy_time = Some "", ml_time = Some "",
                               theory = Some cpure_thy,
                               thms = Symtab.null,
-                              thy_ss = None, simpset = None, datatypes = []})
+                              methods = Symtab.null,
+                              data = (Symtab.null, Symtab.null)})
                    ]);
 
-val loadpath = ref ["."];              (*default search path for theory files*)
+(*Default search path for theory files*)
+val loadpath = ref ["."];              
 
-val delete_tmpfiles = ref true;            (*remove temporary files after use*)
+(*ML files to be read by init_thy_reader; they normally contain redefinitions
+  of functions accessing reference variables inside READTHY*)
+val thy_reader_files = ref [] : string list ref;
+
+(*Remove temporary files after use*)
+val delete_tmpfiles = ref true;            
 
 
 (*Set location of graphics for HTML files
@@ -210,12 +232,12 @@ fun thy_unchanged thy thy_file ml_file =
 (*Get all direct descendants of a theory*)
 fun children_of t =
   case get_thyinfo t of Some (ThyInfo {children, ...}) => children
-                      | _ => [];
+                      | None => [];
 
 (*Get all direct ancestors of a theory*)
 fun parents_of_name t =
   case get_thyinfo t of Some (ThyInfo {parents, ...}) => parents
-                      | _ => [];
+                      | None => [];
 
 (*Get all descendants of a theory list *)
 fun get_descendants [] = []
@@ -225,15 +247,14 @@ fun get_descendants [] = []
 
 (*Get theory object for a loaded theory *)
 fun theory_of name =
-  let val ThyInfo {theory, ...} = the (get_thyinfo name)
-  in the theory end;
+  case get_thyinfo name of Some (ThyInfo {theory = Some t, ...}) => t
+                         | _ => error ("Theory " ^ name ^
+                                       " not stored by loader");
 
 (*Get path where theory's files are located*)
 fun path_of tname =
   let val ThyInfo {path, ...} = the (get_thyinfo tname)
   in path end;
-
-exception FILE_NOT_FOUND;   (*raised by find_file *)
 
 (*Find a file using a list of paths if no absolute or relative path is
   specified.*)
@@ -251,24 +272,13 @@ fun find_file "" name =
 
 (*Get absolute pathnames for a new or already loaded theory *)
 fun get_filenames path name =
-  let fun make_absolute file =
-        let fun rm_points [] result = rev result
-              | rm_points (".."::ds) result = rm_points ds (tl result)
-              | rm_points ("."::ds) result = rm_points ds result
-              | rm_points (d::ds) result = rm_points ds (d::result);
-        in if file = "" then ""
-           else if hd (explode file) = "/" then file
-           else "/" ^ space_implode "/"
-                     (rm_points (space_explode "/" (tack_on (pwd ()) file)) [])
-        end;
-
-      fun new_filename () =
-        let val found = find_file path (name ^ ".thy")
-                        handle FILE_NOT_FOUND => "";
-            val thy_file = make_absolute found;
+  let fun new_filename () =
+        let val found = find_file path (name ^ ".thy");
+            val absolute_path = absolute_path (pwd ());
+            val thy_file = absolute_path found;
             val (thy_path, _) = split_filename thy_file;
             val found = find_file path (name ^ ".ML");
-            val ml_file = if thy_file = "" then make_absolute found
+            val ml_file = if thy_file = "" then absolute_path found
                           else if file_exists (tack_on thy_path (name ^ ".ML"))
                           then tack_on thy_path (name ^ ".ML")
                           else "";
@@ -302,11 +312,10 @@ fun get_filenames path name =
 (*Remove theory from all child lists in loaded_thys *)
 fun unlink_thy tname =
   let fun remove (ThyInfo {path, children, parents, thy_time, ml_time,
-                           theory, thms, thy_ss, simpset, datatypes}) =
+                           theory, thms, methods, data}) =
         ThyInfo {path = path, children = children \ tname, parents = parents,
                  thy_time = thy_time, ml_time = ml_time, theory = theory, 
-                 thms = thms, thy_ss = thy_ss, simpset = simpset,
-                 datatypes = datatypes}
+                 thms = thms, methods = methods, data = data}
   in loaded_thys := Symtab.map remove (!loaded_thys) end;
 
 (*Remove a theory from loaded_thys *)
@@ -318,11 +327,11 @@ fun remove_thy tname =
 fun set_info tname thy_time ml_time =
   let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
           Some (ThyInfo {path, children, parents, theory, thms,
-                         thy_ss, simpset, datatypes, ...}) =>
+                         methods, data, ...}) =>
             ThyInfo {path = path, children = children, parents = parents,
                      thy_time = thy_time, ml_time = ml_time,
                      theory = theory, thms = thms,
-                     thy_ss = thy_ss, simpset = simpset, datatypes = datatypes}
+                     methods = methods, data = data}
         | None => error ("set_info: theory " ^ tname ^ " not found");
   in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys) end;
 
@@ -514,7 +523,8 @@ fun thyfile2html tpath tname =
           filter (fn s => s mem wanted_theories) (parents_of_name tname);
       in mk_entry relatives end;
   in if is_some (!cur_htmlfile) then
-       error "thyfile2html: Last theory's HTML file has not been closed."
+       (close_out (the (!cur_htmlfile));
+        writeln "Warning: Last theory's HTML file has not been closed.")
      else ();
      cur_htmlfile := Some (open_out (tack_on tpath ("." ^ tname ^ ".html")));
      cur_has_title := false;
@@ -558,15 +568,14 @@ fun use_thy name =
     (*Set absolute path for loaded theory *)
     fun set_path () =
       let val ThyInfo {children, parents, thy_time, ml_time, theory, thms,
-                       thy_ss, simpset, datatypes, ...} =
+                       methods, data, ...} =
             the (Symtab.lookup (!loaded_thys, tname));
       in loaded_thys := Symtab.update ((tname,
                           ThyInfo {path = abs_path,
                                    children = children, parents = parents,
                                    thy_time = thy_time, ml_time = ml_time,
                                    theory = theory, thms = thms,
-                                   thy_ss = thy_ss, simpset = simpset,
-                                   datatypes = datatypes}),
+                                   methods = methods, data = data}),
                           !loaded_thys)
       end;
 
@@ -583,21 +592,21 @@ fun use_thy name =
          seq mark_outdated present
       end;
 
-    (*Remove theorems and datatypes associated with a theory*)
+    (*Remove theorems associated with a theory*)
     fun delete_thms () =
       let
         val tinfo = case get_thyinfo tname of
             Some (ThyInfo {path, children, parents, thy_time, ml_time, theory,
-                           thy_ss, simpset, datatypes, ...}) =>
+                           methods, data, ...}) =>
               ThyInfo {path = path, children = children, parents = parents,
                        thy_time = thy_time, ml_time = ml_time,
                        theory = theory, thms = Symtab.null,
-                       thy_ss = thy_ss, simpset = simpset,
-                       datatypes = []}
+                       methods = methods, data = data}
           | None => ThyInfo {path = "", children = [], parents = [],
                              thy_time = None, ml_time = None,
                              theory = None, thms = Symtab.null,
-                             thy_ss = None, simpset = None, datatypes = []};
+                             methods = Symtab.null,
+                             data = (Symtab.null, Symtab.null)};
 
         val ThyInfo {theory, ...} = tinfo;
       in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys);
@@ -606,83 +615,98 @@ fun use_thy name =
            | None => ()
       end;
 
-    fun save_thy_ss () =
+    (*Invoke every get method stored in the methods table and store result in
+      data table*)
+    fun save_data thy_only =
       let val ThyInfo {path, children, parents, thy_time, ml_time,
-                       theory, thms, simpset, datatypes, ...} =
-            the (get_thyinfo tname);
+                       theory, thms, methods, data} = the (get_thyinfo tname);
+
+          fun get_data [] data = data
+            | get_data ((id, ThyMethods {get, ...}) :: ms) data =
+                get_data ms (Symtab.update ((id, get ()), data));
+
+          val new_data = get_data (Symtab.dest methods) Symtab.null;
+
+          val data' = if thy_only then (new_data, snd data)
+                      else (fst data, new_data);
       in loaded_thys := Symtab.update
            ((tname, ThyInfo {path = path,
                              children = children, parents = parents,
                              thy_time = thy_time, ml_time = ml_time,
                              theory = theory, thms = thms,
-                             thy_ss = Some (!Simplifier.simpset),
-                             simpset = simpset, datatypes = datatypes}),
+                             methods = methods, data = data'}),
             !loaded_thys)
       end;
 
-    fun save_simpset () =
-      let val ThyInfo {path, children, parents, thy_time, ml_time,
-                       theory, thms, thy_ss, datatypes, ...} =
-            the (get_thyinfo tname);
-      in loaded_thys := Symtab.update
-           ((tname, ThyInfo {path = path,
-                             children = children, parents = parents,
-                             thy_time = thy_time, ml_time = ml_time,
-                             theory = theory, thms = thms,
-                             thy_ss = thy_ss,
-                             simpset = Some (!Simplifier.simpset),
-                             datatypes = datatypes}),
-            !loaded_thys)
-      end;
+    (*Invoke every put method stored in the methods table to initialize
+      the state of user defined variables*)
+    fun init_data methods data =
+      let fun put_data [] = ()
+            | put_data ((id, date) :: ds) =
+                case Symtab.lookup (methods, id) of
+                    Some (ThyMethods {put, ...}) => put date
+                  | None => error ("No method defined for theory data \"" ^
+                                   id ^ "\"");
+      in put_data data end;
 
-   (*Add theory to file listing all loaded theories (for index.html)
-     and to the sub-charts of its parents*)
-   fun mk_html () =
-     let val new_parents = parents_of_name tname \\ old_parents;
+    (*Add theory to file listing all loaded theories (for index.html)
+      and to the sub-charts of its parents*)
+    fun mk_html () =
+      let val new_parents = parents_of_name tname \\ old_parents;
 
-         (*Add child to parents' sub-theory charts*)
-         fun add_to_parents t =
-           let val path = if t = "Pure" orelse t = "CPure" then
-                            (the (!pure_subchart))
-                          else path_of t;
+          fun robust_seq (proc: 'a -> unit) : 'a list -> unit =
+            let fun seqf [] = ()
+                  | seqf (x :: xs) = (proc x  handle _ => (); seqf xs)
+            in seqf end;
 
-               val gif_path = relative_path path (!gif_path);
-               val rel_path = relative_path path abs_path;
-               val tpath = tack_on rel_path ("." ^ tname);
+          (*Add child to parents' sub-theory charts*)
+          fun add_to_parents t =
+            let val path = if t = "Pure" orelse t = "CPure" then
+                             (the (!pure_subchart))
+                           else path_of t;
+ 
+                val gif_path = relative_path path (!gif_path);
+                val rel_path = relative_path path abs_path;
+                val tpath = tack_on rel_path ("." ^ tname);
 
-               val out = open_append (tack_on path ("." ^ t ^ "_sub.html"));
-           in output (out,
-                " |\n \\__<A HREF=\"" ^
-                tack_on rel_path ("." ^ tname) ^ ".html\">" ^ tname ^
-                "</A> <A HREF = \"" ^ tpath ^ "_sub.html\">\
-                \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
-                tack_on gif_path "red_arrow.gif\" ALT = \\/></A>\
-                \<A HREF = \"" ^ tpath ^ "_sup.html\">\
-                \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
-                tack_on gif_path "blue_arrow.gif\" ALT = /\\></A>\n");
-              close_out out
-           end;
-
-         val theory_list =
-           open_append (tack_on (!index_path) ".theory_list.txt");
-     in output (theory_list, tname ^ " " ^ abs_path ^ "\n");
-        close_out theory_list;
-
-        seq add_to_parents new_parents
-     end
+                val fname = tack_on path ("." ^ t ^ "_sub.html");
+                val out = if file_exists fname then
+                            open_append fname  handle Io s =>
+                              (writeln ("Warning: Unable to write to file ." ^
+                                        fname); raise Io s)
+                          else raise Io "File not found";
+            in output (out,
+                 " |\n \\__<A HREF=\"" ^
+                 tack_on rel_path ("." ^ tname) ^ ".html\">" ^ tname ^
+                 "</A> <A HREF = \"" ^ tpath ^ "_sub.html\">\
+                 \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
+                 tack_on gif_path "red_arrow.gif\" ALT = \\/></A>\
+                 \<A HREF = \"" ^ tpath ^ "_sup.html\">\
+                 \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
+                 tack_on gif_path "blue_arrow.gif\" ALT = /\\></A>\n");
+               close_out out
+            end;
+ 
+          val theory_list =
+            open_append (tack_on (!index_path) ".theory_list.txt");
+      in output (theory_list, tname ^ " " ^ abs_path ^ "\n");
+         close_out theory_list;
+ 
+         robust_seq add_to_parents new_parents
+      end
   in if thy_uptodate andalso ml_uptodate then ()
      else
       (if thy_file = "" then ()
        else if thy_uptodate then
-         simpset := let val ThyInfo {thy_ss, ...} = the (get_thyinfo tname);
-                    in the thy_ss end
+         let val ThyInfo {methods, data, ...} = the (get_thyinfo tname)
+         in init_data methods (Symtab.dest (fst data)) end
        else
          (writeln ("Reading \"" ^ name ^ ".thy\"");
 
           delete_thms ();
           read_thy tname thy_file;
           use (out_name tname);
-          save_thy_ss ();
+          save_data true;
 
           (*Store axioms of theory
             (but only if it's not a copy of an older theory)*)
@@ -708,7 +732,7 @@ fun use_thy name =
        if ml_file = "" then ()
        else (writeln ("Reading \"" ^ name ^ ".ML\"");
              use ml_file);
-       save_simpset ();
+       save_data false;
 
        (*Store theory again because it could have been redefined*)
        use_string
@@ -818,18 +842,17 @@ fun mk_base bases child mk_draft =
         let val tinfo =
               case Symtab.lookup (!loaded_thys, base) of
                   Some (ThyInfo {path, children, parents, thy_time, ml_time,
-                           theory, thms, thy_ss, simpset, datatypes}) =>
+                           theory, thms, methods, data}) =>
                     ThyInfo {path = path,
                              children = child ins children, parents = parents,
                              thy_time = thy_time, ml_time = ml_time,
                              theory = theory, thms = thms,
-                             thy_ss = thy_ss, simpset = simpset,
-                             datatypes = datatypes}
+                             methods = methods, data = data}
                 | None => ThyInfo {path = "", children = [child], parents = [],
                                    thy_time = None, ml_time = None,
                                    theory = None, thms = Symtab.null,
-                                   thy_ss = None, simpset = None,
-                                   datatypes = []};
+                                   methods = Symtab.null,
+                                   data = (Symtab.null, Symtab.null)};
         in loaded_thys := Symtab.update ((base, tinfo), !loaded_thys) end;
 
       (*Load a base theory if not already done
@@ -851,11 +874,6 @@ fun mk_base bases child mk_draft =
               )
           end;
 
-      (*Get simpset for a theory*)
-      fun get_simpset tname =
-        let val ThyInfo {simpset, ...} = the (get_thyinfo tname);
-        in simpset end;
-
       (*Load all needed files and make a list of all real theories *)
       fun load_base (Thy b :: bs) =
            (load b;
@@ -868,23 +886,78 @@ fun mk_base bases child mk_draft =
       val dummy = unlink_thy child;
       val mergelist = load_base bases;
 
+      val base_thy = (writeln ("Loading theory " ^ (quote child));
+                      merge_thy_list mk_draft (map theory_of mergelist));
+
+      val datas =
+        let fun get_data t =
+              let val ThyInfo {data, ...} = the (get_thyinfo t)
+              in snd data end;
+        in map (Symtab.dest o get_data) mergelist end;
+
+      val methods =
+        let fun get_methods t =
+              let val ThyInfo {methods, ...} = the (get_thyinfo t)
+              in methods end;
+
+            val ms = map get_methods mergelist;
+        in if null ms then Symtab.null
+           else foldl (Symtab.merge (fn (x,y) => true)) (hd ms, tl ms)
+        end;
+
+      (*merge two sorted association lists*)
+      fun merge_two ([], d2) = d2
+        | merge_two (d1, []) = d1
+        | merge_two (l1 as ((p1 as (id1 : string, d1)) :: d1s),
+                     l2 as ((p2 as (id2, d2)) :: d2s)) =
+            if id1 < id2 then
+              p1 :: merge_two (d1s, l2)
+            else
+              p2 :: merge_two (l1, d2s);
+
+      (*Merge multiple occurence of data; also call put for each merged list*)
+      fun merge_multi [] None = []
+        | merge_multi [] (Some (id, ds)) =
+            let val ThyMethods {merge, put, ...} =
+                  the (Symtab.lookup (methods, id));
+             in put (merge ds); [id] end
+        | merge_multi ((id, d) :: ds) None = merge_multi ds (Some (id, [d]))
+        | merge_multi ((id, d) :: ds) (Some (id2, d2s)) =
+            if id = id2 then
+              merge_multi ds (Some (id2, d :: d2s))
+            else
+              let val ThyMethods {merge, put, ...} =
+                    the (Symtab.lookup (methods, id2));
+              in put (merge d2s);
+                 id2 :: merge_multi ds (Some (id, [d]))
+              end;
+
+      val merged =
+        if null datas then []
+        else merge_multi (foldl merge_two (hd datas, tl datas)) None;
+
+      val dummy =
+        let val unmerged = map fst (Symtab.dest methods) \\ merged;
+
+            fun put_empty id =
+              let val ThyMethods {merge, put, ...} =
+                    the (Symtab.lookup (methods, id));
+              in put (merge []) end;
+        in seq put_empty unmerged end;
+
       val dummy =
         let val tinfo = case Symtab.lookup (!loaded_thys, child) of
               Some (ThyInfo {path, children, thy_time, ml_time, theory, thms,
-                             thy_ss, simpset, datatypes, ...}) =>
+                             data, ...}) =>
                  ThyInfo {path = path,
                           children = children, parents = mergelist,
                           thy_time = thy_time, ml_time = ml_time,
                           theory = theory, thms = thms,
-                          thy_ss = thy_ss, simpset = simpset,
-                          datatypes = datatypes}
+                          methods = methods, data = data}
              | None => error ("set_parents: theory " ^ child ^ " not found");
         in loaded_thys := Symtab.update ((child, tinfo), !loaded_thys) end;
 
-      val base_thy = (writeln ("Loading theory " ^ (quote child));
-                      merge_thy_list mk_draft (map theory_of mergelist));
  in cur_thyname := child;
-    simpset := foldr merge_ss (mapfilter get_simpset mergelist, empty_ss);
     base_thy
  end;
 
@@ -892,15 +965,13 @@ fun mk_base bases child mk_draft =
 fun store_theory (thy, tname) =
   let val tinfo = case Symtab.lookup (!loaded_thys, tname) of
                Some (ThyInfo {path, children, parents, thy_time, ml_time, thms,
-                              thy_ss, simpset, datatypes, ...}) =>
+                              methods, data, ...}) =>
                  ThyInfo {path = path, children = children, parents = parents,
                           thy_time = thy_time, ml_time = ml_time,
                           theory = Some thy, thms = thms,
-                          thy_ss = thy_ss, simpset = simpset,
-                          datatypes = datatypes}
+                          methods = methods, data = data}
              | None => error ("store_theory: theory " ^ tname ^ " not found");
-  in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys)
-  end;
+  in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys) end;
 
 
 (*** Store and retrieve theorems ***)
@@ -942,7 +1013,7 @@ val theory_of_thm = theory_of_sign o #sign o rep_thm;
 fun store_thm (name, thm) =
   let
     val (thy_name, ThyInfo {path, children, parents, thy_time, ml_time,
-                            theory, thms, thy_ss, simpset, datatypes}) =
+                            theory, thms, methods, data}) =
       thyinfo_of_sign (#sign (rep_thm thm));
 
     val (thms', duplicate) = (Symtab.update_new ((name, thm), thms), false)
@@ -979,8 +1050,7 @@ fun store_thm (name, thm) =
      ((thy_name, ThyInfo {path = path, children = children, parents = parents,
                           thy_time = thy_time, ml_time = ml_time,
                           theory = theory, thms = thms',
-                          thy_ss = thy_ss, simpset = simpset,
-                          datatypes = datatypes}),
+                          methods = methods, data = data}),
       !loaded_thys);
     thm_to_html ();
     if duplicate then thm else store_thm_db (name, thm)
@@ -1203,33 +1273,38 @@ fun print_thms thy =
 fun print_theory thy = (Drule.print_theory thy; print_thms thy);
 
 
-(*** Store and retrieve information about datatypes ***)
-fun store_datatype (name, cons) =
-  let val tinfo = case get_thyinfo (!cur_thyname) of
-        Some (ThyInfo {path, children, parents, thy_time, ml_time, theory,
-                       thms, thy_ss, simpset, datatypes}) =>
-          ThyInfo {path = path, children = children, parents = parents,
-                   thy_time = thy_time, ml_time = ml_time,
-                   theory = theory, thms = thms,
-                   thy_ss = thy_ss, simpset = simpset,
-                   datatypes = (name, cons) :: datatypes}
-      | None => error "store_datatype: theory not found";
-  in loaded_thys := Symtab.update ((!cur_thyname, tinfo), !loaded_thys) end;
-
-fun datatypes_of thy =
-  let val (_, ThyInfo {datatypes, ...}) = thyinfo_of_sign (sign_of thy);
-  in datatypes end;
-
-
 (*** Misc functions ***)
 
-(*Get simpset of a theory*)
-fun simpset_of tname =
-  case get_thyinfo tname of
-      Some (ThyInfo {simpset, ...}) =>
-        if is_some simpset then the simpset
-        else error ("Simpset of theory " ^ tname ^ " has not been stored yet")
-    | None => error ("Theory " ^ tname ^ " not stored by loader");
+(*Add data handling methods to theory*)
+fun add_thydata thy (new_methods as (id, ThyMethods {get, ...})) =
+  let val (tname, ThyInfo {path, children, parents, thy_time, ml_time, theory,
+                           thms, methods, data}) =
+        thyinfo_of_sign (sign_of thy);
+  in loaded_thys := Symtab.update ((tname, ThyInfo {path = path,
+       children = children, parents = parents, thy_time = thy_time,
+       ml_time = ml_time, theory = theory, thms = thms,
+       methods = Symtab.update (new_methods, methods), data = data}),
+       !loaded_thys)
+  end;
+
+(*Add file to thy_reader_files list*)
+fun set_thy_reader_file file =
+  let val file' = absolute_path (pwd ()) file;
+  in thy_reader_files := file' :: (!thy_reader_files) end;
+
+(*Add file and also 'use' it*)
+fun add_thy_reader_file file = (set_thy_reader_file file; use file);
+
+(*Read all files contained in thy_reader_files list*)
+fun read_thy_reader_files () = seq use (!thy_reader_files);
+
+
+(*Retrieve data associated with theory*)
+fun get_thydata thy id =
+  let val (tname, ThyInfo {data = (_, d2), ...}) =
+        thyinfo_of_sign (sign_of thy);
+  in Symtab.lookup (d2, id) end;
+
 
 (*CD to a directory and load its ROOT.ML file;
   also do some work for HTML generation*)

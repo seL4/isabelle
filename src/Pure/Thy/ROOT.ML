@@ -37,10 +37,12 @@ fun init_thy_reader () =
     "structure ReadThy = ReadthyFun(structure ThySyn = ThySyn \
                                    \and ThmDB = ThmDB);",
     "ReadThy.loaded_thys := !loaded_thys;",
+    "map ReadThy.set_thy_reader_file (!thy_reader_files);",
     "ReadThy.base_path := !base_path;",
     "ReadThy.gif_path := !gif_path;",
     "ReadThy.index_path := !index_path;",
     "ReadThy.pure_subchart := !pure_subchart;",
     "ReadThy.make_html := !make_html;",
     "ThmDB.thm_db := !thm_db;",
-    "open ThmDB ReadThy;"];
+    "open ThmDB ReadThy;",
+    "read_thy_reader_files ();"];
