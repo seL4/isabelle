@@ -12,7 +12,9 @@ The FAULTY version omitting encryption of Nonce NB, as suggested on page 247 of
 
 OtwayRees_Bad = Shared + 
 
-consts  otway   :: "event list set"
+consts  lost    :: agent set        (*No need for it to be a variable*)
+	otway   :: event list set
+
 inductive otway
   intrs 
          (*Initial trace is empty*)
@@ -21,7 +23,7 @@ inductive otway
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway;  B ~= Spy;  X: synth (analz (sees Spy evs)) |]
+    Fake "[| evs: otway;  B ~= Spy;  X: synth (analz (sees lost Spy evs)) |]
           ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
