@@ -209,7 +209,7 @@ fun make_record_data records sel_upd equalities splits extfields fieldext =
 
 structure RecordsArgs =
 struct
-  val name = "HOL/structures"; (* FIXME *)    
+  val name = "HOL/records";     
   type T = record_data;
 
   val empty =
@@ -706,7 +706,7 @@ fun gen_record_type_abbr_tr' abbr alphas zeta lastExt schemeT name =
 
 (** record simprocs **)
 fun quick_and_dirty_prove sg xs asms prop tac =
-Tactic.prove sg xs asms prop
+Tactic.prove_standard sg xs asms prop
     (if !quick_and_dirty then (K (SkipProof.cheat_tac HOL.thy)) else tac);
 
 
@@ -880,39 +880,40 @@ fun record_split_simproc P =
          else None
        | _ => None))
 
-(* record_ex_sel_eq_simproc *)
-(* simplifies: (EX s. x = sel s) resp. (EX s. sel s = x) to True *) 
 val record_ex_sel_eq_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_ex_sel_eq_simproc" ["Ex t"]
     (fn sg => fn _ => fn t =>
-       let fun prove prop = (quick_and_dirty_prove sg [] [] prop 
+       let 
+         fun prove prop = (quick_and_dirty_prove sg [] [] prop 
                              (fn _ => (simp_tac ((get_simpset sg) addsimps simp_thms
-                                       addsimprocs [record_split_simproc (K true)]) 1)));
-       in     
+                                        addsimprocs [record_split_simproc (K true)]) 1)));
+
+         fun mkeq (lr,Teq,(sel,Tsel),x) i =
+              (case get_selectors sg sel of Some () =>
+                 let val x' = if not (loose_bvar1 (x,0)) 
+                              then Free ("x" ^ string_of_int i, range_type Tsel) 
+                              else raise TERM ("",[x]);
+                     val sel' = Const (sel,Tsel)$Bound 0;
+                     val (l,r) = if lr then (sel',x') else (x',sel');
+                  in Const ("op =",Teq)$l$r end
+               | None => raise TERM ("",[Const (sel,Tsel)]));
+
+         fun dest_sel_eq (Const ("op =",Teq)$(Const (sel,Tsel)$Bound 0)$X) = 
+                           (true,Teq,(sel,Tsel),X)
+           | dest_sel_eq (Const ("op =",Teq)$X$(Const (sel,Tsel)$Bound 0)) =
+                           (false,Teq,(sel,Tsel),X)
+           | dest_sel_eq _ = raise TERM ("",[]);
+
+       in         
          (case t of 
-           (Const ("Ex",Tex)$Abs(s,T,Const ("op =",Teq)$(Const (sel,Tsel)$Bound 0)$X)) =>
-             (case get_selectors sg sel of Some () =>
-                let 
-                  val X' = ("x",range_type Tsel);
-		  val prop = list_all ([X'], 
-                               Logic.mk_equals
-		                 (Const ("Ex",Tex)$Abs(s,T,Const ("op =",Teq)$
-                                                      (Const (sel,Tsel)$Bound 0)$Bound 1),
-                                  Const ("True",HOLogic.boolT)));
-                in Some (prove prop) end
-              | None => None)
-          |(Const ("Ex",Tex)$Abs(s,T,Const ("op =",Teq)$X$(Const (sel,Tsel)$Bound 0))) =>
-             (case get_selectors sg sel of Some () =>
-                let 
-                  val X' = ("x",range_type Tsel);
-		  val prop = list_all ([X'], 
-                               Logic.mk_equals
-		                 (Const ("Ex",Tex)$Abs(s,T,Const ("op =",Teq)$
-                                                     Bound 1$(Const (sel,Tsel)$Bound 0)),
-                                  Const ("True",HOLogic.boolT)));
-                in Some (prove prop) end 
-            | None => None)
-          | _ => None)
+           (Const ("Ex",Tex)$Abs(s,T,t)) =>
+             let val eq = mkeq (dest_sel_eq t) 0;
+                 val prop = list_all ([("r",T)],
+                              Logic.mk_equals (Const ("Ex",Tex)$Abs(s,T,eq),
+                                               HOLogic.true_const));
+             in Some (prove prop) end
+             handle TERM _ => None
+          | _ => None)                      
          end)
 
 
