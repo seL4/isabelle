@@ -856,8 +856,7 @@ Addsimps [foldl_append];
 *)
 Goal "!n::nat. m <= n --> m <= foldl op+ n ns";
 by (induct_tac "ns" 1);
- by (Simp_tac 1);
-by (Asm_full_simp_tac 1);
+by Auto_tac;
 qed_spec_mp "start_le_sum";
 
 Goal "n : set ns ==> n <= foldl op+ 0 ns";
