@@ -66,8 +66,9 @@
 
 % keyword and section markup
 
+\newcommand{\isakeywordcharunderscore}{\_}
 \newcommand{\isakeyword}[1]
-{\emph{\bf\def\isachardot{.}\def\isacharunderscore{-}%
+{\emph{\bf\def\isachardot{.}\def\isacharunderscore{\isakeywordcharunderscore}%
 \def\isacharbraceleft{\{}\def\isacharbraceright{\}}#1}}
 \newcommand{\isacommand}[1]{\isakeyword{#1}}
 
@@ -94,6 +95,7 @@
 \newcommand{\isabellestyleit}{%
 \renewcommand{\isastyle}{\small\it}%
 \renewcommand{\isastyleminor}{\it}%
+\renewcommand{\isakeywordcharunderscore}{-}%
 %\renewcommand{\isadigit}[1]{\emph{$##1$}}
 \renewcommand{\isacharbang}{\emph{$!$}}%
 \renewcommand{\isachardoublequote}{}%
