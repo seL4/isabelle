@@ -41,7 +41,7 @@
 \begin{matharray}{rcl}
   \BYY{m@1}{m@2} & \equiv & \PROOF{m@1}~\QED{m@2} \\
   \DDOT & \equiv & \BY{rule} \\
-  \DOT & \equiv & \BY{assumption} \\
+  \DOT & \equiv & \BY{this} \\
   \HENCENAME & \equiv & \THEN~\HAVENAME \\
   \THUSNAME & \equiv & \THEN~\SHOWNAME \\
   \FROM{a@1\;\dots\;a@n} & \equiv & \NOTE{this}{a@1\;\dots\;a@n}~\THEN \\
@@ -79,6 +79,7 @@
 \begin{tabular}{ll}
   \multicolumn{2}{l}{\textbf{Single steps (forward-chaining facts)}} \\[0.5ex]
   $assumption$ & apply some assumption \\
+  $this$ & apply current facts \\
   $rule~a@1\;\dots\;a@n$ & apply some rule  \\
   $rule$ & apply standard rule (default for $\PROOFNAME$) \\
   $induct~x$ & apply induction rule \\

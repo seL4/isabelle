@@ -3,12 +3,14 @@
 
 \section{Basic proof methods}\label{sec:pure-meth}
 
-\indexisarmeth{fail}\indexisarmeth{succeed}\indexisarmeth{$-$}\indexisarmeth{assumption}
+\indexisarmeth{fail}\indexisarmeth{succeed}\indexisarmeth{$-$}
+\indexisarmeth{assumption}\indexisarmeth{this}
 \indexisarmeth{fold}\indexisarmeth{unfold}
 \indexisarmeth{rule}\indexisarmeth{erule}
 \begin{matharray}{rcl}
   - & : & \isarmeth \\
   assumption & : & \isarmeth \\
+  this & : & \isarmeth \\
   rule & : & \isarmeth \\
   erule^* & : & \isarmeth \\[0.5ex]
   fold & : & \isarmeth \\
@@ -29,8 +31,9 @@
   plain \emph{do-nothing} proof step would be $\PROOF{-}$ rather than
   $\PROOFNAME$ alone.
 \item [$assumption$] solves some goal by assumption.  Any facts given are
-  guaranteed to participate in the refinement.  Note that ``$\DOT$'' (dot)
-  abbreviates $\BY{assumption}$.
+  guaranteed to participate in the refinement.
+\item [$this$] applies the current facts directly as rules.  Note that
+  ``$\DOT$'' (dot) abbreviates $\BY{this}$.
 \item [$rule~thms$] applies some rule given as argument in backward manner;
   facts are used to reduce the rule before applying it to the goal.  Thus
   $rule$ without facts is plain \emph{introduction}, while with facts it

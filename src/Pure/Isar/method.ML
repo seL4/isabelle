@@ -41,6 +41,7 @@ sig
   val erule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
+  val this: Proof.method
   val assumption: Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
   val help_methods: theory option -> unit
@@ -281,7 +282,12 @@ val some_erule = gen_rule' erule_tac;
 end;
 
 
-(* assumption / finish *)
+(* this *)
+
+val this = METHOD (EVERY o map (FINDGOAL o Tactic.rtac));
+
+
+(* assumption *)
 
 fun assm_tac ctxt =
   assume_tac APPEND' resolve_tac (filter Thm.no_prems (ProofContext.prems_of ctxt));
@@ -291,7 +297,6 @@ fun assumption_tac ctxt [] = assm_tac ctxt
   | assumption_tac _ _ = K no_tac;
 
 fun assumption ctxt = METHOD (FINDGOAL o assumption_tac ctxt);
-fun finish ctxt = METHOD (K (FILTER Thm.no_prems (ALLGOALS (assm_tac ctxt) THEN flexflex_tac)));
 
 
 
@@ -458,6 +463,9 @@ fun refine_no_facts text state =
 (* structured proof steps *)
 
 val default_text = Source (Args.src (("default", []), Position.none));
+val this_text = Basic (K this);
+
+fun finish ctxt = METHOD (K (FILTER Thm.no_prems (ALLGOALS (assm_tac ctxt) THEN flexflex_tac)));
 
 fun finish_text None = Basic finish
   | finish_text (Some txt) = Then [txt, Basic finish];
@@ -470,7 +478,7 @@ fun proof opt_text state =
 
 fun local_qed opt_text = Proof.local_qed (refine (finish_text opt_text));
 fun local_terminal_proof (text, opt_text) pr = Seq.THEN (proof (Some text), local_qed opt_text pr);
-val local_immediate_proof = local_terminal_proof (Basic assumption, None);
+val local_immediate_proof = local_terminal_proof (this_text, None);
 val local_default_proof = local_terminal_proof (default_text, None);
 
 
@@ -490,7 +498,7 @@ fun global_terminal_proof (text, opt_text) state =
   |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
   |> Seq.hd;
 
-val global_immediate_proof = global_terminal_proof (Basic assumption, None);
+val global_immediate_proof = global_terminal_proof (this_text, None);
 val global_default_proof = global_terminal_proof (default_text, None);
 
 
@@ -509,6 +517,7 @@ val pure_methods =
   ("default", thms_ctxt_args some_rule, "apply some rule"),
   ("rule", thms_ctxt_args some_rule, "apply some rule"),
   ("erule", thms_ctxt_args some_erule, "apply some erule (improper!)"),
+  ("this", no_args this, "apply current facts as rules"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts")];
 
 
