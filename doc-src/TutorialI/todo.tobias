@@ -47,7 +47,13 @@ get rid of use_thy in tutorial?
 
 Explain typographic conventions?
 
+Orderings on numbers (with hint that it is overloaded):
+>, >=, and bounded quantifers ALL x<y, <=, todo: x>y, x>=y.
+
 an example of induction: !y. A --> B --> C ??
+
+Explain type_definition and mention pre-proved thms in subset.thy?
+-> Types/typedef
 
 Appendix: Lexical: long ids.
 
