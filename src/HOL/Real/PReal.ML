@@ -122,10 +122,11 @@ qed "lemma_prat_less_set_mem_preal";
 
 Goal "!!(x::prat). {xa. xa < x} = {x. x < y} ==> x = y";
 by (cut_inst_tac [("q1.0","x"),("q2.0","y")] prat_linear 1);
-by Auto_tac;
+by Safe_tac;
 by (dtac prat_dense 2 THEN etac exE 2);
 by (dtac prat_dense 1 THEN etac exE 1);
-by (auto_tac (claset() addDs [prat_less_not_sym], simpset()));
+by (blast_tac (claset() addDs [prat_less_not_sym]) 1); 
+by (blast_tac (claset() addDs [prat_less_not_sym]) 1); 
 qed "lemma_prat_set_eq";
 
 Goal "inj(preal_of_prat)";

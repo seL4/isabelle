@@ -95,8 +95,7 @@ by (Simp_tac 1);
 qed "real_of_int_real_of_nat";
 
 Goal "~neg z ==> real (nat z) = real z";
-by (asm_simp_tac (simpset() addsimps [not_neg_nat,
-				      real_of_int_real_of_nat RS sym]) 1);
+by (asm_full_simp_tac (simpset() addsimps [not_neg_eq_ge_0, real_of_int_real_of_nat RS sym]) 1);
 qed "real_of_nat_real_of_int";
 
 Goal "(real x = 0) = (x = int 0)";

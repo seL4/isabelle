@@ -14,6 +14,9 @@ lemma zabs_eq_iff:
     "(abs (z::int) = w) = (z = w \<and> 0 <= z \<or> z = -w \<and> z < 0)"
   by (auto simp add: zabs_def)
 
+lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
+  by simp
+
 lemma split_nat[arith_split]:
   "P(nat(i::int)) = ((ALL n. i = int n \<longrightarrow> P n) & (i < 0 \<longrightarrow> P 0))"
   (is "?P = (?L & ?R)")
@@ -107,3 +110,4 @@ apply(rule step)
 done
 
 end
+
