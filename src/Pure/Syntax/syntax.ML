@@ -353,12 +353,11 @@ fun read_asts (Syntax tabs) xids root str =
     val chars = Symbol.explode str;
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
 
-    fun show_pt pt =
-      warning (Symbol.output (Pretty.string_of 
-		(Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt))));
+    fun show_pt pt = warning (Pretty.string_of 
+			(Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt)));
   in
     if length pts > ! ambiguity_level then
-      (warning ("Ambiguous input " ^ quote (Symbol.output str));
+      (warning ("Ambiguous input " ^ quote str);
        warning "produces the following parse trees:";
        seq show_pt pts)
     else ();
