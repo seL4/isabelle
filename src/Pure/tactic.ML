@@ -46,6 +46,9 @@ signature TACTIC =
   val insert_tagged_brl:  ('a*(bool*thm)) * 
                     (('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net) ->
                     ('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net
+  val delete_tagged_brl:  (bool*thm) * 
+                    ((int*(bool*thm))Net.net * (int*(bool*thm))Net.net) ->
+                    (int*(bool*thm))Net.net * (int*(bool*thm))Net.net
   val is_fact: thm -> bool
   val lessb: (bool * thm) * (bool * thm) -> bool
   val lift_inst_rule: thm * int * (string*string)list * thm -> thm
@@ -314,6 +317,20 @@ fun insert_tagged_brl (kbrl as (k,(eres,th)), (inet,enet)) =
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls = 
     foldr insert_tagged_brl (taglist 1 brls, netpair);
+
+(*delete one kbrl from the pair of nets;
+  we don't know the value of k, so we use 0 and ignore it in the comparison*)
+local
+  fun eq_kbrl ((k,(eres,th)), (k',(eres',th'))) = eq_thm (th,th')
+in
+fun delete_tagged_brl (brl as (eres,th), (inet,enet)) =
+    if eres then 
+	case prems_of th of
+	    prem::_ => (inet, Net.delete_term ((prem, (0,brl)), enet, eq_kbrl))
+	  | [] => error"delete_brl: elimination rule with no premises"
+    else (Net.delete_term ((concl_of th, (0,brl)), inet, eq_kbrl), enet);
+end;
+
 
 (*biresolution using a pair of nets rather than rules*)
 fun biresolution_from_nets_tac match (inet,enet) =
