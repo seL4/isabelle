@@ -8,7 +8,7 @@ Characteristic properties of datatypes
 
 signature DATATYPE_PROP =
 sig
-  val dtK : int
+  val dtK : int ref
   val make_injs : (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       term list list
@@ -46,7 +46,7 @@ struct
 open DatatypeAux;
 
 (*the kind of distinctiveness axioms depends on number of constructors*)
-val dtK = 7;
+val dtK = ref 7;
 
 fun make_tnames Ts =
   let
@@ -110,14 +110,19 @@ fun make_ind descr sorts =
 
     fun make_ind_prem k T (cname, cargs) =
       let
+        fun mk_prem ((DtRec k, s), T) = HOLogic.mk_Trueprop
+              (make_pred k T $ Free (s, T))
+          | mk_prem ((DtType ("fun", [_, DtRec k]), s), T' as Type ("fun", [T, U])) =
+              HOLogic.mk_Trueprop (HOLogic.all_const T $
+                Abs ("x", T, make_pred k U $ (Free (s, T') $ Bound 0)));
+
         val recs = filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs' = map (typ_of_dtyp descr' sorts) recs;
         val tnames = variantlist (make_tnames Ts, pnames);
         val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
-        val prems = map (fn ((r, s), T) => HOLogic.mk_Trueprop
-          (make_pred (dest_DtRec r) T $ Free (s, T))) (recs ~~ rec_tnames ~~ recTs');
+        val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
 
       in list_all_free (frees, Logic.list_implies (prems,
         HOLogic.mk_Trueprop (make_pred k T $ 
@@ -162,6 +167,8 @@ fun make_casedists descr sorts =
 
 fun make_primrecs new_type_names descr sorts thy =
   let
+    val o_name = Sign.intern_const (sign_of Fun.thy) "op o";
+
     val sign = Theory.sign_of thy;
 
     val descr' = flat descr;
@@ -174,9 +181,14 @@ fun make_primrecs new_type_names descr sorts thy =
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
         let
-          val recs = filter is_rec_type cargs;
-          val argTs = (map (typ_of_dtyp descr' sorts) cargs) @
-            (map (fn r => nth_elem (dest_DtRec r, rec_result_Ts)) recs)
+          val Ts = map (typ_of_dtyp descr' sorts) cargs;
+          val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
+
+          fun mk_argT (DtRec k, _) = nth_elem (k, rec_result_Ts)
+            | mk_argT (DtType ("fun", [_, DtRec k]), Type ("fun", [T, _])) =
+               T --> nth_elem (k, rec_result_Ts);
+
+          val argTs = Ts @ map mk_argT recs
         in argTs ---> nth_elem (i, rec_result_Ts)
         end) constrs) descr');
 
@@ -201,7 +213,14 @@ fun make_primrecs new_type_names descr sorts thy =
         val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = map Free (tnames ~~ Ts);
         val frees' = map Free (rec_tnames ~~ recTs');
-        val reccombs' = map (fn (DtRec i) => nth_elem (i, reccombs)) recs
+
+        fun mk_reccomb (DtRec i, _) = nth_elem (i, reccombs)
+          | mk_reccomb (DtType ("fun", [_, DtRec i]), Type ("fun", [T, U])) =
+              let val T' = nth_elem (i, rec_result_Ts)
+              in Const (o_name, [U --> T', T --> U, T] ---> T') $ nth_elem (i, reccombs)
+              end;
+
+        val reccombs' = map mk_reccomb (recs ~~ recTs')
 
       in (ts @ [HOLogic.mk_Trueprop (HOLogic.mk_eq
         (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
@@ -292,34 +311,11 @@ fun make_distincts new_type_names descr sorts thy =
           in (make_distincts' constrs) @ (make_distincts_1 T constrs)
           end;
 
-    (**** number of constructors >= dtK : t_ord C_i ... = i ****)
-
-    fun make_distincts_2 T tname i constrs =
-      let
-        val ord_name = Sign.intern_const (Theory.sign_of thy) (tname ^ "_ord");
-        val ord_t = Const (ord_name, T --> HOLogic.natT)
-
-      in (case constrs of
-          [] => [Logic.mk_implies (HOLogic.mk_Trueprop (Not $ HOLogic.mk_eq
-             (ord_t $ Free ("x", T), ord_t $ Free ("y", T))),
-               HOLogic.mk_Trueprop (Not $ HOLogic.mk_eq
-                 (Free ("x", T), Free ("y", T))))]
-        | ((cname, cargs)::constrs) =>
-            let
-              val Ts = map (typ_of_dtyp descr' sorts) cargs;
-              val frees = map Free ((make_tnames Ts) ~~ Ts);
-            in
-              (HOLogic.mk_Trueprop (HOLogic.mk_eq (ord_t $
-                list_comb (Const (cname, Ts ---> T), frees), HOLogic.mk_nat i)))::
-                  (make_distincts_2 T tname (i + 1) constrs)
-            end)
-      end;
-
   in map (fn (((_, (_, _, constrs)), T), tname) =>
-      if length constrs < dtK then make_distincts_1 T constrs
-      else make_distincts_2 T tname 0 constrs)
+      if length constrs < !dtK then make_distincts_1 T constrs else [])
         ((hd descr) ~~ newTs ~~ new_type_names)
   end;
+
 
 (*************************** the "split" - equations **************************)
 
@@ -403,7 +399,7 @@ fun make_size new_type_names descr sorts thy =
     val recTs = get_rec_types descr' sorts;
 
     val big_size_name = space_implode "_" new_type_names ^ "_size";
-    val size_name = Sign.intern_const (Theory.sign_of (the (get_thy "Arith" thy))) "size";
+    val size_name = Sign.intern_const (Theory.sign_of (theory "Arith")) "size";
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.intern_const (Theory.sign_of thy))
         (if length (flat (tl descr)) = 1 then [big_size_name] else

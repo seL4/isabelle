@@ -11,6 +11,7 @@ sig
   val mutual_induct_tac : string list -> int -> tactic
   val induct_tac : string -> int -> tactic
   val exhaust_tac : string -> int -> tactic
+  val distinct_simproc : simproc
 end;
 
 signature DATATYPE_PACKAGE =
@@ -63,9 +64,12 @@ sig
        simps : thm list}
   val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
   val print_datatypes : theory -> unit
-  val datatype_info_sg : Sign.sg -> string -> DatatypeAux.datatype_info
-  val datatype_info : theory -> string -> DatatypeAux.datatype_info
+  val datatype_info_sg : Sign.sg -> string -> DatatypeAux.datatype_info option
+  val datatype_info : theory -> string -> DatatypeAux.datatype_info option
+  val datatype_info_sg_err : Sign.sg -> string -> DatatypeAux.datatype_info
+  val datatype_info_err : theory -> string -> DatatypeAux.datatype_info
   val constrs_of : theory -> string -> term list option
+  val constrs_of_sg : Sign.sg -> string -> term list option
   val case_const_of : theory -> string -> term option
   val setup: (theory -> theory) list
 end;
@@ -104,28 +108,31 @@ val print_datatypes = DatatypesData.print;
 
 (** theory information about datatypes **)
 
-fun datatype_info_sg sg name =
-  (case Symtab.lookup (get_datatypes_sg sg, name) of
-    Some info => info
-  | None => error ("Unknown datatype " ^ quote name));
+fun datatype_info_sg sg name = Symtab.lookup (get_datatypes_sg sg, name);
+
+fun datatype_info_sg_err sg name = (case datatype_info_sg sg name of
+      Some info => info
+    | None => error ("Unknown datatype " ^ quote name));
 
 val datatype_info = datatype_info_sg o Theory.sign_of;
 
-fun constrs_of thy tname =
-  let
-    val {index, descr, ...} = datatype_info thy tname;
-    val (_, _, constrs) = the (assoc (descr, index))
-  in
-    Some (map (fn (cname, _) =>
-      Const (cname, the (Sign.const_type (Theory.sign_of thy) cname))) constrs)
-  end handle _ => None;
+fun datatype_info_err thy name = (case datatype_info thy name of
+      Some info => info
+    | None => error ("Unknown datatype " ^ quote name));
 
-fun case_const_of thy tname =
-  let
-    val {case_name, ...} = datatype_info thy tname;
-  in
-    Some (Const (case_name, the (Sign.const_type (Theory.sign_of thy) case_name)))
-  end handle _ => None;
+fun constrs_of_sg sg tname = (case datatype_info_sg sg tname of
+   Some {index, descr, ...} =>
+     let val (_, _, constrs) = the (assoc (descr, index))
+     in Some (map (fn (cname, _) => Const (cname, the (Sign.const_type sg cname))) constrs)
+     end
+ | _ => None);
+
+val constrs_of = constrs_of_sg o Theory.sign_of;
+
+fun case_const_of thy tname = (case datatype_info thy tname of
+   Some {case_name, ...} => Some (Const (case_name, the (Sign.const_type
+     (Theory.sign_of thy) case_name)))
+ | _ => None);
 
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)
@@ -168,7 +175,7 @@ fun mutual_induct_tac vars i state =
     val (_, _, Bi, _) = dest_state (state, i);
     val {sign, ...} = rep_thm state;
     val tn = find_tname (hd vars) Bi;
-    val {induction, ...} = datatype_info_sg sign tn;
+    val {induction, ...} = datatype_info_sg_err sign tn;
     val ind_vnames = map (fn (_ $ Var (ixn, _)) =>
       implode (tl (explode (Syntax.string_of_vname ixn))))
         (dest_conj (HOLogic.dest_Trueprop (concl_of induction)));
@@ -186,13 +193,68 @@ fun exhaust_tac aterm i state =
   let
     val {sign, ...} = rep_thm state;
     val tn = infer_tname state sign i aterm;
-    val {exhaustion, ...} = datatype_info_sg sign tn;
+    val {exhaustion, ...} = datatype_info_sg_err sign tn;
     val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
       (hd (Logic.strip_assums_hyp (hd (prems_of exhaustion))));
     val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)))
   in
     res_inst_tac [(exh_vname, aterm)] exhaustion i state
   end;
+
+
+(**** simplification procedure for showing distinctness of constructors ****)
+
+(* oracle *)
+
+val distinctN = "constr_distinct";
+
+exception ConstrDistinct of term;
+
+
+fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
+  (case (pairself strip_comb (t1, t2)) of
+     ((Const (cname1, _), xs), (Const (cname2, _), ys)) =>
+         (case (fastype_of t1, fastype_of t2) of
+            (Type (tname1, _), Type (tname2, _)) =>
+                if tname1 = tname2 andalso not (cname1 = cname2) then
+                   (case (constrs_of_sg sg tname1) of
+                      Some constrs => let val cnames = map (fst o dest_Const) constrs
+                        in if cname1 mem cnames andalso cname2 mem cnames then
+                             let val eq_t = Logic.mk_equals (t, Const ("False", HOLogic.boolT));
+                                 val eq_ct = cterm_of sg eq_t;
+                                 val Datatype_thy = theory "Datatype";
+                                 val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
+                                   map (get_thm Datatype_thy)
+                                     ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"]
+                             in (case (#distinct (datatype_info_sg_err sg tname1)) of
+                                 QuickAndDirty => Some (Thm.invoke_oracle
+                                   Datatype_thy distinctN (sg, ConstrDistinct eq_t))
+                               | FewConstrs thms => Some (prove_goalw_cterm [] eq_ct (K
+                                   [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
+                                    atac 2, resolve_tac thms 1, etac FalseE 1]))
+                               | ManyConstrs (thm, ss) => Some (prove_goalw_cterm [] eq_ct (K
+                                   [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
+                                    full_simp_tac ss 1,
+                                    REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
+                                    eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
+                                    etac FalseE 1])))
+                             end
+                           else None
+                        end
+                    | None => None)
+                else None
+          | _ => None)
+   | _ => None)
+  | distinct_proc sg _ _ = None;
+
+val distinct_pats = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s = t", HOLogic.termTVar)];
+val distinct_simproc = mk_simproc "distinct_simproc" distinct_pats distinct_proc;
+
+val dist_ss = HOL_ss addsimprocs [distinct_simproc];
+
+val simproc_setup =
+  [Theory.add_oracle (distinctN, fn (_, ConstrDistinct t) => t),
+   fn thy => (simpset_ref_of thy := simpset_of thy addsimprocs [distinct_simproc]; thy)];
 
 
 (* prepare types *)
@@ -240,7 +302,7 @@ infix 4 addDistinct;
 
 fun clasimp addDistinct ([], _) = clasimp
   | clasimp addDistinct (thms::thmss, (_, (_, _, constrs))::descr) =
-      if length constrs < DatatypeProp.dtK then
+      if length constrs < !DatatypeProp.dtK then
         clasimp addIffs thms addDistinct (thmss, descr)
       else
         clasimp addsimps2 thms addDistinct (thmss, descr);
@@ -275,6 +337,9 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
 
+    val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists
+      (fn (DtType ("fun", [_, DtRec _])) => true | _ => false) cargs) constrs) descr';
+
     (**** declare new types and constants ****)
 
     val tyvars = map (fn (_, (_, Ts, _)) => map dest_DtTFree Ts) (hd descr);
@@ -290,9 +355,14 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
         let
-          val recs = filter is_rec_type cargs;
-          val argTs = (map (typ_of_dtyp descr' sorts) cargs) @
-            (map (fn r => nth_elem (dest_DtRec r, rec_result_Ts)) recs)
+          val Ts = map (typ_of_dtyp descr' sorts) cargs;
+          val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
+
+          fun mk_argT (DtRec k, _) = nth_elem (k, rec_result_Ts)
+            | mk_argT (DtType ("fun", [_, DtRec k]), Type ("fun", [T, _])) =
+               T --> nth_elem (k, rec_result_Ts);
+
+          val argTs = Ts @ map mk_argT recs
         in argTs ---> nth_elem (i, rec_result_Ts)
         end) constrs) descr');
 
@@ -341,19 +411,11 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy2 = thy2' |>
 
-      (** t_ord functions **)
-
-      Theory.add_consts_i
-        (foldr (fn ((((_, (_, _, constrs)), tname), T), decls) =>
-          if length constrs < DatatypeProp.dtK then decls
-          else (tname ^ "_ord", T --> HOLogic.natT, NoSyn)::decls)
-            ((hd descr) ~~ new_type_names ~~ newTs, [])) |>
-
       (** size functions **)
 
-      Theory.add_consts_i (map (fn (s, T) =>
+      (if no_size then I else Theory.add_consts_i (map (fn (s, T) =>
         (Sign.base_name s, T --> HOLogic.natT, NoSyn))
-          (size_names ~~ drop (length (hd descr), recTs))) |>
+          (size_names ~~ drop (length (hd descr), recTs)))) |>
 
       (** constructors **)
 
@@ -370,19 +432,19 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     (**** introduction of axioms ****)
 
     val rec_axs = DatatypeProp.make_primrecs new_type_names descr sorts thy2;
-    val size_axs = DatatypeProp.make_size new_type_names descr sorts thy2;
+    val size_axs = if no_size then [] else DatatypeProp.make_size new_type_names descr sorts thy2;
 
     val (thy3, inject) = thy2 |>
       Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts), [])] |>
       PureThy.add_axiomss_i [(("recs", rec_axs), [])] |>
-      PureThy.add_axiomss_i [(("size", size_axs), [])] |>
+      (if no_size then I else PureThy.add_axiomss_i [(("size", size_axs), [])]) |>
       Theory.parent_path |>
       add_and_get_axiomss "inject" new_type_names
         (DatatypeProp.make_injs descr sorts);
     val induct = get_axiom thy3 "induct";
     val rec_thms = get_thms thy3 "recs";
-    val size_thms = get_thms thy3 "size";
+    val size_thms = if no_size then [] else get_thms thy3 "size";
     val (thy4, distinct) = add_and_get_axiomss "distinct" new_type_names
       (DatatypeProp.make_distincts new_type_names descr sorts thy3) thy3;
     val (thy5, exhaustion) = add_and_get_axioms "exhaust" new_type_names
@@ -401,7 +463,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     
     val dt_infos = map (make_dt_info descr' induct reccomb_names' rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names' ~~ case_thms ~~
-        exhaustion ~~ distinct ~~ inject ~~ nchotomys ~~ case_congs);
+        exhaustion ~~ replicate (length (hd descr)) QuickAndDirty ~~ inject ~~
+          nchotomys ~~ case_congs);
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
@@ -413,7 +476,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val _ = store_clasimp thy11 ((claset_of thy11, simpset_of thy11)
       addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
-      addIffs flat inject addDistinct (distinct, hd descr));
+      addIffs flat (inject @ distinct));
 
   in
     (thy11,
@@ -435,18 +498,16 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
   let
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
-    val (thy2, inject, dist_rewrites, induct) = thy |>
+    val (thy2, inject, distinct, dist_rewrites, simproc_dists, induct) = thy |>
       DatatypeRepProofs.representation_proofs flat_names dt_info new_type_names descr sorts
         types_syntax constr_syntax;
 
     val (thy3, casedist_thms) =
       DatatypeAbsProofs.prove_casedist_thms new_type_names descr sorts induct thy2;
     val (thy4, reccomb_names, rec_thms) = DatatypeAbsProofs.prove_primrec_thms
-      flat_names new_type_names descr sorts dt_info inject dist_rewrites induct thy3;
-    val (thy5, case_names, case_thms) = DatatypeAbsProofs.prove_case_thms
+      flat_names new_type_names descr sorts dt_info inject dist_rewrites dist_ss induct thy3;
+    val (thy6, case_names, case_thms) = DatatypeAbsProofs.prove_case_thms
       flat_names new_type_names descr sorts reccomb_names rec_thms thy4;
-    val (thy6, distinct) = DatatypeAbsProofs.prove_distinctness_thms
-      flat_names new_type_names descr sorts dist_rewrites case_thms thy5;
     val (thy7, split_thms) = DatatypeAbsProofs.prove_split_thms new_type_names
       descr sorts inject dist_rewrites casedist_thms case_thms thy6;
     val (thy8, nchotomys) = DatatypeAbsProofs.prove_nchotomys new_type_names
@@ -458,7 +519,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val dt_infos = map (make_dt_info (flat descr) induct reccomb_names rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names ~~ case_thms ~~
-        casedist_thms ~~ distinct ~~ inject ~~ nchotomys ~~ case_congs);
+        casedist_thms ~~ simproc_dists ~~ inject ~~ nchotomys ~~ case_congs);
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
@@ -470,7 +531,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val _ = store_clasimp thy11 ((claset_of thy11, simpset_of thy11)
       addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
-      addIffs flat inject addDistinct (distinct, hd descr));
+      addIffs flat (inject @ distinct));
 
   in
     (thy11,
@@ -505,7 +566,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       Sign.string_of_term sign t);
 
     fun get_typ (t as _ $ Var (_, Type (tname, Ts))) =
-          ((tname, map dest_TFree Ts) handle _ => err t)
+          ((tname, map dest_TFree Ts) handle TERM _ => err t)
       | get_typ t = err t;
 
     val dtnames = map get_typ (dest_conj (HOLogic.dest_Trueprop (concl_of induction')));
@@ -535,7 +596,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val (thy2, casedist_thms) = thy1 |>
       DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction;
     val (thy3, reccomb_names, rec_thms) = DatatypeAbsProofs.prove_primrec_thms
-      false new_type_names [descr] sorts dt_info inject distinct induction thy2;
+      false new_type_names [descr] sorts dt_info inject distinct dist_ss induction thy2;
     val (thy4, case_names, case_thms) = DatatypeAbsProofs.prove_case_thms false
       new_type_names [descr] sorts reccomb_names rec_thms thy3;
     val (thy5, split_thms) = DatatypeAbsProofs.prove_split_thms
@@ -552,7 +613,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
 
     val dt_infos = map (make_dt_info descr induction reccomb_names rec_thms)
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~
-        casedist_thms ~~ distinct ~~ inject ~~ nchotomys ~~ case_congs);
+        casedist_thms ~~ map FewConstrs distinct ~~ inject ~~ nchotomys ~~ case_congs);
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
@@ -564,7 +625,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
 
     val _ = store_clasimp thy9 ((claset_of thy9, simpset_of thy9)
       addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
-      addIffs flat inject addDistinct (distinct, descr));
+      addIffs flat (inject @ distinct));
 
   in
     (thy9,
@@ -641,10 +702,10 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
       end;
 
     val (dts', constr_syntax, sorts', i) = foldl prep_dt_spec (([], [], [], 0), dts);
-    val dt_info = get_datatypes thy;
-    val (descr, _) = unfold_datatypes dt_info dts' i;
-    val _ = check_nonempty descr;
     val sorts = sorts' @ (map (rpair (Sign.defaultS sign)) (tyvars \\ map fst sorts'));
+    val dt_info = get_datatypes thy;
+    val (descr, _) = unfold_datatypes sign dts' sorts dt_info dts' i;
+    val _ = check_nonempty descr;
 
   in
     (if (!quick_and_dirty) then add_datatype_axm else add_datatype_def)
@@ -659,7 +720,7 @@ val add_datatype = gen_add_datatype read_typ;
 
 (* setup theory *)
 
-val setup = [DatatypesData.init];
+val setup = [DatatypesData.init] @ simproc_setup;
 
 
 (* outer syntax *)

@@ -25,13 +25,10 @@ sig
   val prove_primrec_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       DatatypeAux.datatype_info Symtab.table -> thm list list -> thm list list ->
-        thm -> theory -> theory * string list * thm list
+        simpset -> thm -> theory -> theory * string list * thm list
   val prove_case_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       string list -> thm list -> theory -> theory * string list * thm list list
-  val prove_distinctness_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      thm list list -> thm list list -> theory -> theory * thm list list
   val prove_split_thms : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       thm list list -> thm list list -> thm list -> thm list list -> theory ->
@@ -97,9 +94,13 @@ fun prove_casedist_thms new_type_names descr sorts induct thy =
 (*************************** primrec combinators ******************************)
 
 fun prove_primrec_thms flat_names new_type_names descr sorts
-    (dt_info : datatype_info Symtab.table) constr_inject dist_rewrites induct thy =
+    (dt_info : datatype_info Symtab.table) constr_inject dist_rewrites dist_ss induct thy =
   let
     val _ = message "Constructing primrec combinators ...";
+
+    val fun_rel_comp_name = Sign.intern_const (sign_of Relation.thy) "fun_rel_comp";
+    val [fun_rel_comp_def, o_def] =
+      map (get_thm Relation.thy) ["fun_rel_comp_def", "o_def"];
 
     val big_name = space_implode "_" new_type_names;
     val thy0 = add_path flat_names big_name thy;
@@ -123,9 +124,14 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
         let
-          val recs = filter is_rec_type cargs;
-          val argTs = (map (typ_of_dtyp descr' sorts) cargs) @
-            (map (fn r => nth_elem (dest_DtRec r, rec_result_Ts)) recs)
+          val Ts = map (typ_of_dtyp descr' sorts) cargs;
+          val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
+
+          fun mk_argT (DtRec k, _) = nth_elem (k, rec_result_Ts)
+            | mk_argT (DtType ("fun", [_, DtRec k]), Type ("fun", [T, _])) =
+               T --> nth_elem (k, rec_result_Ts);
+
+          val argTs = Ts @ map mk_argT recs
         in argTs ---> nth_elem (i, rec_result_Ts)
         end) constrs) descr');
 
@@ -141,22 +147,27 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     fun make_rec_intr T set_name ((rec_intr_ts, l), (cname, cargs)) =
       let
-        fun mk_prem (dt, (j, k, prems, t1s, t2s)) =
-          let
-            val T = typ_of_dtyp descr' sorts dt;
-            val free1 = mk_Free "x" T j
-          in (case dt of
-             DtRec m =>
+        fun mk_prem ((dt, U), (j, k, prems, t1s, t2s)) =
+          let val free1 = mk_Free "x" U j
+          in (case (dt, U) of
+             (DtRec m, _) =>
                let val free2 = mk_Free "y" (nth_elem (m, rec_result_Ts)) k
                in (j + 1, k + 1, (HOLogic.mk_Trueprop (HOLogic.mk_mem
                  (HOLogic.mk_prod (free1, free2), nth_elem (m, rec_sets))))::prems,
                    free1::t1s, free2::t2s)
                end
+           | (DtType ("fun", [_, DtRec m]), U' as Type ("fun", [T', _])) =>
+               let val free2 = mk_Free "y" (T' --> nth_elem (m, rec_result_Ts)) k
+               in (j + 1, k + 1, (HOLogic.mk_Trueprop (HOLogic.mk_mem (free2,
+                 Const (fun_rel_comp_name, [U', snd (strip_type (nth_elem (m, rec_set_Ts)))] --->
+                   HOLogic.mk_setT (T' --> nth_elem (m, rec_result_Ts))) $
+                     free1 $ nth_elem (m, rec_sets))))::prems, free1::t1s, free2::t2s)
+               end
            | _ => (j + 1, k, prems, free1::t1s, t2s))
           end;
 
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val (_, _, prems, t1s, t2s) = foldr mk_prem (cargs, (1, 1, [], [], []))
+        val (_, _, prems, t1s, t2s) = foldr mk_prem (cargs ~~ Ts, (1, 1, [], [], []))
 
       in (rec_intr_ts @ [Logic.list_implies (prems, HOLogic.mk_Trueprop (HOLogic.mk_mem
         (HOLogic.mk_prod (list_comb (Const (cname, Ts ---> T), t1s),
@@ -170,7 +181,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val (thy1, {intrs = rec_intrs, elims = rec_elims, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (InductivePackage.add_inductive_i false true big_rec_name' false false true
-           rec_sets [] (map (fn x => (("", x), [])) rec_intr_ts) [] []) thy0;
+           rec_sets [] (map (fn x => (("", x), [])) rec_intr_ts) [fun_rel_comp_mono] []) thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 
@@ -181,9 +192,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         val distinct_tac = (etac Pair_inject 1) THEN
           (if i < length newTs then
              full_simp_tac (HOL_ss addsimps (nth_elem (i, dist_rewrites))) 1
-           else full_simp_tac (HOL_ss addsimps
-             ((#distinct (the (Symtab.lookup (dt_info, tname)))) @
-               [Suc_Suc_eq, Suc_not_Zero, Zero_not_Suc])) 1);
+           else full_simp_tac dist_ss 1);
 
         val inject = map (fn r => r RS iffD1)
           (if i < length newTs then nth_elem (i, constr_inject)
@@ -194,6 +203,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
             val k = length (filter is_rec_type cargs)
 
           in (EVERY [DETERM tac,
+                REPEAT (dtac fun_rel_comp_unique 1),
                 REPEAT (etac ex1E 1), rtac ex1I 1,
                 DEPTH_SOLVE_1 (ares_tac [intr] 1),
                 REPEAT_DETERM_N k (etac thin 1),
@@ -252,10 +262,9 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         (Sign.base_name name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts)) |>
       Theory.add_defs_i (map (fn ((((name, comb), set), T), T') =>
-        ((Sign.base_name name) ^ "_def", Logic.mk_equals
-          (comb $ Free ("x", T),
+        ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
            Const ("Eps", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
-             HOLogic.mk_mem (HOLogic.mk_prod (Free ("x", T), Free ("y", T')), set)))))
+             HOLogic.mk_mem (HOLogic.mk_prod (Free ("x", T), Free ("y", T')), set))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts)) |>
       parent_path flat_names;
 
@@ -270,7 +279,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         [rtac select1_equality 1,
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
-         REPEAT (resolve_tac rec_total_thms 1)]))
+         rewrite_goals_tac [o_def, fun_rel_comp_def],
+         REPEAT ((rtac CollectI 1 THEN rtac allI 1) ORELSE resolve_tac rec_total_thms 1)]))
            (DatatypeProp.make_primrecs new_type_names descr sorts thy2)
 
   in
@@ -294,10 +304,13 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val newTs = take (length (hd descr), recTs);
     val T' = TFree (variant used "'t", HOLogic.termS);
 
+    fun mk_dummyT (DtRec _) = T'
+      | mk_dummyT (DtType ("fun", [T, _])) = typ_of_dtyp descr' sorts T --> T'
+
     val case_dummy_fns = map (fn (_, (_, _, constrs)) => map (fn (_, cargs) =>
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val Ts' = replicate (length (filter is_rec_type cargs)) T'
+        val Ts' = map mk_dummyT (filter is_rec_type cargs)
       in Const ("arbitrary", Ts @ Ts' ---> T')
       end) constrs) descr';
 
@@ -312,7 +325,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
           val (fns1, fns2) = ListPair.unzip (map (fn ((_, cargs), j) =>
             let
               val Ts = map (typ_of_dtyp descr' sorts) cargs;
-              val Ts' = Ts @ (replicate (length (filter is_rec_type cargs)) T');
+              val Ts' = Ts @ map mk_dummyT (filter is_rec_type cargs);
               val frees' = map (uncurry (mk_Free "x")) (Ts' ~~ (1 upto length Ts'));
               val frees = take (length cargs, frees');
               val free = mk_Free "f" (Ts ---> T') j
@@ -350,80 +363,6 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
     (store_thmss "cases" new_type_names case_thms thy3, case_names, case_thms)
   end;
 
-(************************ distinctness of constructors ************************)
-
-fun prove_distinctness_thms flat_names new_type_names descr sorts dist_rewrites case_thms thy =
-  let
-    val thy1 = add_path flat_names (space_implode "_" new_type_names) thy;
-
-    val descr' = flat descr;
-    val recTs = get_rec_types descr' sorts;
-    val newTs = take (length (hd descr), recTs);
-
-    (*--------------------------------------------------------------------*)
-    (* define t_ord - functions for proving distinctness of constructors: *)
-    (*  t_ord C_i ... = i                                                 *)
-    (*--------------------------------------------------------------------*)
-
-    fun define_ord ((thy, ord_defs), (((_, (_, _, constrs)), T), tname)) =
-      if length constrs < DatatypeProp.dtK then (thy, ord_defs)
-      else
-        let
-          val Tss = map ((map (typ_of_dtyp descr' sorts)) o snd) constrs;
-          val ts = map HOLogic.mk_nat (0 upto length constrs - 1);
-          val mk_abs = foldr (fn (T, t') => Abs ("x", T, t'));
-          val fs = map mk_abs (Tss ~~ ts);
-          val fTs = map (fn Ts => Ts ---> HOLogic.natT) Tss;
-          val ord_name = Sign.full_name (Theory.sign_of thy) (tname ^ "_ord");
-          val case_name = Sign.intern_const (Theory.sign_of thy) (tname ^ "_case");
-          val ordT = T --> HOLogic.natT;
-          val caseT = fTs ---> ordT;
-          val defpair = (tname ^ "_ord_def", Logic.mk_equals
-            (Const (ord_name, ordT), list_comb (Const (case_name, caseT), fs)));
-          val thy' = thy |>
-            Theory.add_consts_i [(tname ^ "_ord", ordT, NoSyn)] |>
-            Theory.add_defs_i [defpair];
-          val def = get_def thy' (tname ^ "_ord")
-
-        in (thy', ord_defs @ [def]) end;
-
-    val (thy2, ord_defs) =
-      foldl define_ord ((thy1, []), (hd descr) ~~ newTs ~~ new_type_names);
-
-    (**** number of constructors < dtK ****)
-
-    fun prove_distinct_thms _ [] = []
-      | prove_distinct_thms dist_rewrites' (t::_::ts) =
-          let
-            val dist_thm = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy2) t) (fn _ =>
-              [simp_tac (HOL_ss addsimps dist_rewrites') 1])
-          in dist_thm::(standard (dist_thm RS not_sym))::
-            (prove_distinct_thms dist_rewrites' ts)
-          end;
-
-    val distinct_thms = map (fn ((((_, (_, _, constrs)), ts),
-      dist_rewrites'), case_thms) =>
-        if length constrs < DatatypeProp.dtK then
-          prove_distinct_thms dist_rewrites' ts
-        else 
-          let
-            val t::ts' = rev ts;
-            val (_ $ (_ $ (_ $ (f $ _) $ _))) = hd (Logic.strip_imp_prems t);
-            val cert = cterm_of (Theory.sign_of thy2);
-            val distinct_lemma' = cterm_instantiate
-              [(cert distinct_f, cert f)] distinct_lemma;
-            val rewrites = ord_defs @ (map mk_meta_eq case_thms)
-          in
-            (map (fn t => prove_goalw_cterm rewrites (cert t)
-              (fn _ => [rtac refl 1])) (rev ts')) @ [standard distinct_lemma']
-          end) ((hd descr) ~~ (DatatypeProp.make_distincts new_type_names
-            descr sorts thy2) ~~ dist_rewrites ~~ case_thms)
-
-  in
-    (thy2 |> parent_path flat_names |>
-             store_thmss "distinct" new_type_names distinct_thms,
-     distinct_thms)
-  end;
 
 (******************************* case splitting *******************************)
 
@@ -465,6 +404,11 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
 (******************************* size functions *******************************)
 
 fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
+  if exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists
+    (fn (DtType ("fun", [_, DtRec _])) => true | _ => false) cargs) constrs) (flat descr)
+  then
+    (thy, [])
+  else
   let
     val _ = message "Proving equations for size function ...";
 
@@ -475,7 +419,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val recTs = get_rec_types descr' sorts;
 
     val big_size_name = space_implode "_" new_type_names ^ "_size";
-    val size_name = Sign.intern_const (Theory.sign_of (the (get_thy "Arith" thy1))) "size";
+    val size_name = Sign.intern_const (Theory.sign_of (theory "Arith")) "size";
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.full_name (Theory.sign_of thy1))
         (if length (flat (tl descr)) = 1 then [big_size_name] else
