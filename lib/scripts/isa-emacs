@@ -67,9 +67,8 @@ STARTUP=/tmp/isa-start$$.el
 
   echo "(setq isa-logic-paths"
   echo -n "'("
-  for D in $(echo $ISABELLE_PATH | tr : " ")
+  for DIR in $(echo $ISABELLE_PATH | tr : " ")
   do
-    DIR="$D/$ML_SYSTEM-$PLATFORM"
     [ -d $DIR ] && echo "\"$DIR\""
   done
   echo "\"$ISAMODE_HOME/ruletables\"))"

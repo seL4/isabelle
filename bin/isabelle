@@ -129,8 +129,8 @@ case "$INPUT" in
     INFILE=""
     for DIR in $(echo $ISABELLE_PATH | tr : " ")
     do
-      ISA_PATH="$ISA_PATH $DIR/$ML_SYSTEM-$PLATFORM"
-      [ -z "$INFILE" -a -f $DIR/$ML_SYSTEM-$PLATFORM/$INPUT ] && INFILE=$DIR/$ML_SYSTEM-$PLATFORM/$INPUT
+      ISA_PATH="$ISA_PATH $DIR"
+      [ -z "$INFILE" -a -f $DIR/$INPUT ] && INFILE=$DIR/$INPUT
     done
     if [ -z "$INFILE" ]; then
       echo "Unknown logic \"$INPUT\" -- no heap file found in:" >&2
@@ -154,9 +154,8 @@ case "$OUTPUT" in
     OUTFILE="$OUTPUT"
     ;;
   *)
-    OUTDIR="$ISABELLE_OUTPUT/$ML_SYSTEM-$PLATFORM"
-    mkdir -p "$OUTDIR"
-    OUTFILE="$OUTDIR/$OUTPUT"
+    mkdir -p "$ISABELLE_OUTPUT_DIR"
+    OUTFILE="$ISABELLE_OUTPUT_DIR/$OUTPUT"
     ;;
 esac
 

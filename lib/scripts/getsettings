@@ -15,11 +15,6 @@ set -o allexport
 unset ENV
 unset BASH_ENV
 
-#get bash-style platform info -- has to work around some tricky features
-unset HOSTTYPE
-unset OSTYPE
-PLATFORM=$(bash -norc -c 'echo $HOSTTYPE-$OSTYPE')
-
 #get actual settings
 . $ISABELLE_HOME/etc/settings || exit 2
 [ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
@@ -27,6 +22,5 @@ PLATFORM=$(bash -norc -c 'echo $HOSTTYPE-$OSTYPE')
 #derived values
 ISABELLE=$ISABELLE_HOME/bin/isabelle
 ISATOOL=$ISABELLE_HOME/bin/isatool
-ISABELLE_OUTPUT_DIR="$ISABELLE_OUTPUT/$ML_SYSTEM-$PLATFORM"
 
 set +o allexport

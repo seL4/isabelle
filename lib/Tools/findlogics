@@ -27,7 +27,7 @@ LOGICS=""
 
 for DIR in $(echo $ISABELLE_PATH | tr : " ")
 do
-  for FILE in $DIR/$ML_SYSTEM-$PLATFORM/*
+  for FILE in $DIR/*
   do
     if [ -f "$FILE" ]; then
       NAME=$(basename "$FILE")
