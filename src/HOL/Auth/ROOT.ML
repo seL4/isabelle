@@ -26,6 +26,7 @@ time_use_thy "Yahalom_Bad";
 time_use_thy "NS_Public_Bad";
 time_use_thy "NS_Public";
 time_use_thy "TLS";
+time_use_thy "CertifiedEmail";
 
 (*Blanqui's "guard" concept: protocol-independent secrecy*)
 time_use_thy "Guard/P1";

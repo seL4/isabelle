@@ -135,12 +135,50 @@ inductive_cases Crypt_synth [elim!]: "Crypt K X \<in> synth H"
 
 use "Message_lemmas.ML"
 
+lemma Crypt_notin_image_Key [simp]: "Crypt K X \<notin> Key ` A"
+by auto
+
+lemma Hash_notin_image_Key [simp] :"Hash X \<notin> Key ` A"
+by auto
+
+lemma synth_analz_mono: "G<=H ==> synth (analz(G)) <= synth (analz(H))"
+by (simp add: synth_mono analz_mono) 
+
+lemma Fake_analz_eq [simp]:
+     "X \<in> synth(analz H) ==> synth (analz (insert X H)) = synth (analz H)"
+apply (drule Fake_analz_insert[of _ _ "H"])
+apply (simp add: synth_increasing[THEN Un_absorb2])
+apply (drule synth_mono)
+apply (simp add: synth_idem)
+apply (blast intro: synth_analz_mono [THEN [2] rev_subsetD]) 
+done
+
+
 lemmas analz_into_parts = analz_subset_parts [THEN subsetD, standard]
 
 lemma Fake_parts_insert_in_Un:
      "[|Z \<in> parts (insert X H);  X: synth (analz H)|] 
       ==> Z \<in>  synth (analz H) \<union> parts H";
 by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
+
+text{*Two generalizations of @{text analz_insert_eq}*}
+lemma gen_analz_insert_eq [rule_format]:
+     "X \<in> analz H ==> ALL G. H \<subseteq> G --> analz (insert X G) = analz G";
+by (blast intro: analz_cut analz_insertI analz_mono [THEN [2] rev_subsetD])
+
+lemma synth_analz_insert_eq [rule_format]:
+     "X \<in> synth (analz H) 
+      ==> ALL G. H \<subseteq> G --> (Key K \<in> analz (insert X G)) = (Key K \<in> analz G)";
+apply (erule synth.induct) 
+apply (simp_all add: gen_analz_insert_eq subset_trans [OF _ subset_insertI]) 
+done
+
+lemma Fake_parts_sing:
+     "X \<in> synth (analz H) ==> parts{X} \<subseteq> synth (analz H) Un parts H";
+apply (rule subset_trans) 
+ apply (erule_tac [2] Fake_parts_insert) 
+apply (simp add: parts_mono) 
+done
 
 method_setup spy_analz = {*
     Method.ctxt_args (fn ctxt =>

@@ -37,8 +37,8 @@ translations
 
 axioms
   (*Spy has access to his own key for spoof messages, but Server is secure*)
-  Spy_in_bad     [iff] :    "Spy \\<in> bad"
-  Server_not_bad [iff] : "Server \\<notin> bad"
+  Spy_in_bad     [iff] :    "Spy \<in> bad"
+  Server_not_bad [iff] : "Server \<notin> bad"
 
 primrec
   knows_Nil:   "knows A [] = initState A"
@@ -49,7 +49,7 @@ primrec
 	   Says A' B X => insert X (knows Spy evs)
 	 | Gets A' X => knows Spy evs
 	 | Notes A' X  => 
-	     if A' \\<in> bad then insert X (knows Spy evs) else knows Spy evs)
+	     if A' \<in> bad then insert X (knows Spy evs) else knows Spy evs)
 	else
 	(case ev of
 	   Says A' B X => 
@@ -97,9 +97,53 @@ done
 
 use "Event_lemmas.ML"
 
+lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
+by (induct e, auto simp: knows_Cons)
+
+lemma initState_subset_knows: "initState A <= knows A evs"
+apply (induct_tac evs)
+apply (simp add: ); 
+apply (blast intro: knows_subset_knows_Cons [THEN subsetD])
+done
+
+
+(*For proving new_keys_not_used*)
+lemma keysFor_parts_insert:
+     "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |] \
+\     ==> K \<in> keysFor (parts (G Un H)) | Key (invKey K) \<in> parts H"; 
+by (force 
+    dest!: parts_insert_subset_Un [THEN keysFor_mono, THEN [2] rev_subsetD]
+           analz_subset_parts [THEN keysFor_mono, THEN [2] rev_subsetD]
+    intro: analz_subset_parts [THEN subsetD] parts_mono [THEN [2] rev_subsetD])
+
 method_setup analz_mono_contra = {*
     Method.no_args
       (Method.METHOD (fn facts => REPEAT_FIRST analz_mono_contra_tac)) *}
-    "for proving theorems of the form X \\<notin> analz (knows Spy evs) --> P"
+    "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
+
+subsubsection{*Useful for case analysis on whether a hash is a spoof or not*}
+
+ML
+{*
+val synth_analz_mono = thm "synth_analz_mono";
+
+val synth_analz_mono_contra_tac = 
+  let val syan_impI = inst "P" "?Y ~: synth (analz (knows Spy ?evs))" impI
+  in
+    rtac syan_impI THEN' 
+    REPEAT1 o 
+      (dresolve_tac 
+       [knows_Spy_subset_knows_Spy_Says RS synth_analz_mono RS contra_subsetD,
+        knows_Spy_subset_knows_Spy_Notes RS synth_analz_mono RS contra_subsetD,
+	knows_Spy_subset_knows_Spy_Gets RS synth_analz_mono RS contra_subsetD])
+    THEN'
+    mp_tac
+  end;
+*}
+
+method_setup synth_analz_mono_contra = {*
+    Method.no_args
+      (Method.METHOD (fn facts => REPEAT_FIRST synth_analz_mono_contra_tac)) *}
+    "for proving theorems of the form X \<notin> synth (analz (knows Spy evs)) --> P"
 
 end
