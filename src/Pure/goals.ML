@@ -212,9 +212,9 @@ fun prepare_proof atomic rths chorn =
             forall (fn t => not(Logic.is_implies t orelse Logic.is_all t)) As;
       val (As,B) = if atoms then ([],horn) else (As,B);
       val cAs = map (cterm_of sign) As;
-      val prems = map (rewrite_rule rths o forall_elim_vars(0) o assume) cAs;
+      val prems = map (rewrite_rule rths o forall_elim_vars 0 o Thm.assume) cAs;
       val cB = cterm_of sign B;
-      val st0 = let val st = Drule.mk_triv_goal cB
+      val st0 = let val st = Drule.impose_hyps cAs (Drule.mk_triv_goal cB)
                 in  rewrite_goals_rule rths st end
       (*discharges assumptions from state in the order they appear in goal;
 	checks (if requested) that resulting theorem is equivalent to goal. *)
