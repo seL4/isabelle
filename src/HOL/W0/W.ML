@@ -254,12 +254,8 @@ by (eres_inst_tac [("x","r")] allE 1);
 by (eres_inst_tac [("x","$ s a")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","m")] allE 1);
-by (dtac asm_rl 1);
-by (dtac asm_rl 1);
-by (dtac asm_rl 1);
 by (Asm_full_simp_tac 1);
 by (safe_tac HOL_cs);
-by (fast_tac HOL_cs 1);
 by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
                             conjunct1,new_tv_list_le,new_tv_subst_tel]) 1);
 
