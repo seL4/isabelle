@@ -22,8 +22,7 @@ done
 subsubsection{*Rule Induction*}
 
 text{* Rule induction for set @{term even}, @{thm[source]even.induct}:
-@{thm[display] even.induct[no_vars]}
-*}
+@{thm[display] even.induct[no_vars]}*}
 (*<*)thm even.induct[no_vars](*>*)
 
 lemma even_imp_dvd: "n \<in> even \<Longrightarrow> 2 dvd n"
@@ -83,8 +82,7 @@ text{*
 \begin{exercise}
 Show that the converse of @{thm[source]rtc_step} also holds:
 @{prop[display]"[| (x,y) : r*; (y,z) : r |] ==> (x,z) : r*"}
-\end{exercise}
-*}
+\end{exercise}*}
 
 subsection{*The accessible part of a relation*}
 

@@ -1,6 +1,5 @@
-(*<*)
-theory Sets = Main:
-(*>*)
+(*<*)theory Sets = Main:(*>*)
+
 section{*Sets, Functions and Relations*}
 
 subsection{*Set Notation*}
@@ -13,8 +12,7 @@ text{*
 @{term "{a,b}"} & @{text "{x. P x}"} \\
 @{term "\<Union> M"} & @{text "\<Union>a \<in> A. F a"}
 \end{tabular}
-\end{center}
-*}
+\end{center}*}
 (*<*)term "A \<union> B" term "A \<inter> B" term "A - B"
 term "a \<in> A" term "b \<notin> A"
 term "{a,b}" term "{x. P x}"
@@ -28,8 +26,7 @@ text{*
 @{thm o_def[no_vars]}\\
 @{thm image_def[no_vars]}\\
 @{thm vimage_def[no_vars]}
-\end{tabular}
-*}
+\end{tabular}*}
 (*<*)thm id_def o_def[no_vars] image_def[no_vars] vimage_def[no_vars](*>*)
 
 subsection{*Some Relations*}
@@ -42,16 +39,13 @@ text{*
 @{thm rtrancl_refl[no_vars]}\\
 @{thm rtrancl_into_rtrancl[no_vars]}\\
 @{thm trancl_def[no_vars]}
-\end{tabular}
-*}
-(*<*)
-thm Id_def
+\end{tabular}*}
+(*<*)thm Id_def
 thm converse_def[no_vars]
 thm Image_def[no_vars]
 thm relpow.simps[no_vars]
 thm rtrancl.intros[no_vars]
-thm trancl_def[no_vars]
-(*>*)
+thm trancl_def[no_vars](*>*)
 
 subsection{*Wellfoundedness*}
 
@@ -59,12 +53,9 @@ text{*
 \begin{tabular}{l}
 @{thm wf_def[no_vars]}\\
 @{thm wf_iff_no_infinite_down_chain[no_vars]}
-\end{tabular}
-*}
-(*<*)
-thm wf_def[no_vars]
-thm wf_iff_no_infinite_down_chain[no_vars]
-(*>*)
+\end{tabular}*}
+(*<*)thm wf_def[no_vars]
+thm wf_iff_no_infinite_down_chain[no_vars](*>*)
 
 subsection{*Fixed Point Operators*}
 
@@ -73,13 +64,10 @@ text{*
 @{thm lfp_def[no_vars]}\\
 @{thm lfp_unfold[no_vars]}\\
 @{thm lfp_induct[no_vars]}
-\end{tabular}
-*}
-(*<*)
-thm lfp_def gfp_def
+\end{tabular}*}
+(*<*)thm lfp_def gfp_def
 thm lfp_unfold
-thm lfp_induct
-(*>*)
+thm lfp_induct(*>*)
 
 subsection{*Case Study: Verified Model Checking*}
 
@@ -151,8 +139,5 @@ Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?
 
 Show that the semantics for @{term EF} satisfies the following recursion equation:
 @{prop[display]"(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> EN(EF f))"}
-\end{exercise}
-*}
-(*<*)
-end
-(*>*)
+\end{exercise}*}
+(*<*)end(*>*)

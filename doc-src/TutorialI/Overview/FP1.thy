@@ -1,6 +1,4 @@
-(*<*)
-theory FP1 = Main:
-(*>*)
+(*<*)theory FP1 = Main:(*>*)
 
 lemma "if xs = ys
        then rev xs = rev ys
@@ -28,9 +26,7 @@ apply(induct_tac n)
 apply(auto)
 done
 
-text{*
-Some examples of linear arithmetic:
-*}
+text{*Some examples of linear arithmetic:*}
 
 lemma "\<lbrakk> \<not> m < n; m < n+(1::int) \<rbrakk> \<Longrightarrow> m = n"
 by(auto)
@@ -38,9 +34,7 @@ by(auto)
 lemma "min i (max j k) = max (min k i) (min i (j::nat))"
 by(arith)
 
-text{*
-Not proved automatically because it involves multiplication:
-*}
+text{*Not proved automatically because it involves multiplication:*}
 
 lemma "n*n = n \<Longrightarrow> n=0 \<or> n=(1::int)"
 (*<*)oops(*>*)
@@ -75,9 +69,7 @@ subsubsection{*Simplification Rules*}
 lemma fst_conv[simp]: "fst(x,y) = x"
 by auto
 
-text{*
-Setting and resetting the @{text simp} attribute:
-*}
+text{*Setting and resetting the @{text simp} attribute:*}
 
 declare fst_conv[simp]
 declare fst_conv[simp del]
@@ -94,7 +86,7 @@ subsubsection{*Adding and Deleting Simplification Rules*}
 
 lemma "\<forall>x::nat. x*(y+z) = r"
 apply (simp add: add_mult_distrib2)
-(*<*)oops(*>*)text_raw {* \isanewline\isanewline *}
+(*<*)oops(*>*)text_raw{* \isanewline\isanewline *}
 
 lemma "rev(rev(xs @ [])) = xs"
 apply (simp del: rev_rev_ident)
@@ -129,7 +121,7 @@ subsubsection{*Automatic Case Splits*}
 
 lemma "\<forall>xs. if xs = [] then A else B"
 apply simp
-(*<*)oops(*>*)text_raw {* \isanewline\isanewline *}
+(*<*)oops(*>*)text_raw{* \isanewline\isanewline *}
 
 lemma "case xs @ [] of [] \<Rightarrow> P | y#ys \<Rightarrow> Q ys y"
 apply simp
@@ -139,15 +131,11 @@ apply(simp split: list.split)
 
 subsubsection{*Arithmetic*}
 
-text{*
-Is simple enough for the default arithmetic:
-*}
+text{*Is simple enough for the default arithmetic:*}
 lemma "\<lbrakk> \<not> m < n; m < n+(1::nat) \<rbrakk> \<Longrightarrow> m = n"
 by simp
 
-text{*
-Contains boolean combinations and needs full arithmetic:
-*}
+text{*Contains boolean combinations and needs full arithmetic:*}
 lemma "\<not> m < n \<and> m < n+(1::nat) \<Longrightarrow> m = n"
 apply simp
 by(arith)
@@ -159,7 +147,6 @@ lemma "rev [a] = []"
 apply(simp)
 oops
 (*>*)
-
 
 
 subsection{*Case Study: Compiling Expressions*}
@@ -262,7 +249,6 @@ subsubsection{*Nested Recursion*}
 datatype tree = C "tree list"
 
 text{*Some trees:*}
-
 term "C []"
 term "C [C [C []], C []]"
 
@@ -287,7 +273,6 @@ Complete the above proof.
 \end{exercise}
 *}
 
-
 subsubsection{*Datatypes Involving Functions*}
 
 datatype ('a,'i)bigtree = Tip | Br 'a "'i \<Rightarrow> ('a,'i)bigtree"
@@ -309,13 +294,9 @@ text{* This is \emph{not} allowed:
 \begin{verbatim}
 datatype lambda = C "lambda => lambda"
 \end{verbatim}
-*}
 
-text{*
 \begin{exercise}
 Define a datatype of ordinals and the ordinal $\Gamma_0$.
 \end{exercise}
 *}
-(*<*)
-end
-(*>*)
+(*<*)end(*>*)

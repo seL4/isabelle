@@ -17,7 +17,6 @@ primrec
 theorem rev_rev [simp]: "rev(rev xs) = xs"
 (*<*)oops(*>*)
 
-
 text{*
 \begin{exercise}
 Define a datatype of binary trees and a function @{term mirror}
@@ -29,5 +28,4 @@ by traversing it in infix order. Prove
 @{prop"flatten(mirror t) = rev(flatten t)"}.
 \end{exercise}
 *}
-
 end

@@ -1,6 +1,4 @@
-(*<*)
-theory Rules = Main:
-(*>*)
+(*<*)theory Rules = Main:(*>*)
 
 section{*The Rules of the Game*}
 
@@ -19,9 +17,7 @@ text{* Introduction rules for propositional logic:
 \end{center}
 *}
 
-(*<*)
-thm impI conjI disjI1 disjI2 iffI
-(*>*)
+(*<*)thm impI conjI disjI1 disjI2 iffI(*>*)
 
 lemma "A \<Longrightarrow> B \<longrightarrow> A \<and> (B \<and> A)"
 apply(rule impI)
@@ -45,13 +41,11 @@ text{* Elimination rules for propositional logic:
 \end{tabular}
 \end{center}
 *}
-
 (*<*)
 thm impE mp
 thm conjE
 thm disjE
 (*>*)
-
 lemma disj_swap: "P \<or> Q \<Longrightarrow> Q \<or> P"
 apply (erule disjE)
  apply (rule disjI2)
@@ -74,9 +68,7 @@ text{* Destruction rules for propositional logic:
 \end{center}
 *}
 
-(*<*)
-thm conjunct1 conjunct1 iffD1 iffD2
-(*>*)
+(*<*)thm conjunct1 conjunct1 iffD1 iffD2(*>*)
 
 lemma conj_swap: "P \<and> Q \<Longrightarrow> Q \<and> P"
 apply (rule conjI)
@@ -100,13 +92,11 @@ text{* Quantifier rules:
 \end{tabular}
 \end{center}
 *}
-
 (*<*)
 thm allI exI
 thm allE exE
 thm spec
 (*>*)
-
 lemma "\<exists>x.\<forall>y. P x y \<Longrightarrow> \<forall>y.\<exists>x. P x y"
 (*<*)oops(*>*)
 
@@ -160,7 +150,6 @@ by unifying the premise of one theorem with the conclusion of another:
 \end{tabular}
 \end{center}
 *}
-
 (*<*)
 thm append_self_conv
 thm append_self_conv[of _ "[]"]
@@ -168,7 +157,6 @@ thm sym
 thm sym[OF append_self_conv]
 thm append_self_conv[THEN sym]
 (*>*)
-
 subsection{*Further Useful Methods*}
 
 lemma "n \<le> 1 \<and> n \<noteq> 0 \<Longrightarrow> n^n = n"
@@ -178,7 +166,6 @@ apply arith
 done
 
 text{* And a cute example: *}
-
 lemma "\<lbrakk> 2 \<in> Q; sqrt 2 \<notin> Q;
          \<forall>x y z. sqrt x * sqrt x = x \<and>
                   x ^ 2 = x * x \<and>
@@ -192,7 +179,6 @@ apply(rule_tac x = "" in exI)
 apply simp
 done
 *)
-(*<*)
-oops
-end
-(*>*)
+(*<*)oops
+
+end(*>*)
