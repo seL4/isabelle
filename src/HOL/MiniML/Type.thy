@@ -36,9 +36,10 @@ constdefs
 consts
         app_subst :: [subst, 'a::type_struct] => 'a::type_struct ("$")
 
-rules
-        app_subst_TVar  "$ s (TVar n) = s n" 
-        app_subst_Fun   "$ s (t1 -> t2) = ($ s t1) -> ($ s t2)" 
+primrec app_subst typ
+  app_subst_TVar  "$ s (TVar n) = s n" 
+  app_subst_Fun   "$ s (t1 -> t2) = ($ s t1) -> ($ s t2)" 
+
 defs
         app_subst_list  "$ s == map ($ s)"
   
