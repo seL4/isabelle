@@ -19,7 +19,7 @@ signature INDUCTIVE_ARG =	(** Description of a (co)inductive def **)
 signature INDUCTIVE_I =
   sig
   val rec_tms    : term list		(*the recursive sets*)
-  val domts      : term list		(*their domains*)
+  val dom_sum    : term			(*their common domain*)
   val intr_tms   : term list		(*terms for the introduction rules*)
   end;
 
@@ -75,20 +75,28 @@ val bnd_mono =
 
 val dom_subset = standard (big_rec_def RS Fp.subs);
 
-val unfold = standard (bnd_mono RS (big_rec_def RS Fp.Tarski));
+val unfold = standard ([big_rec_def, bnd_mono] MRS Fp.Tarski);
 
 (********)
 val _ = writeln "  Proving the introduction rules...";
 
-(*Mutual recursion: Needs subset rules for the individual sets???*)
-val rec_typechecks = [dom_subset] RL (asm_rl::monos) RL [subsetD];
+(*Mutual recursion?  Helps to derive subset rules for the individual sets.*)
+val Part_trans =
+    case rec_names of
+         [_] => asm_rl
+       | _   => standard (Part_subset RS subset_trans);
+
+(*To type-check recursive occurrences of the inductive sets, possibly
+  enclosed in some monotonic operator M.*)
+val rec_typechecks = 
+   [dom_subset] RL (asm_rl :: ([Part_trans] RL monos)) RL [subsetD];
 
 (*Type-checking is hardest aspect of proof;
   disjIn selects the correct disjunct after unfolding*)
 fun intro_tacsf disjIn prems = 
   [(*insert prems and underlying sets*)
    cut_facts_tac prems 1,
-   rtac (unfold RS ssubst) 1,
+   DETERM (rtac (unfold RS ssubst) 1),
    REPEAT (resolve_tac [Part_eqI,CollectI] 1),
    (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
    rtac disjIn 2,
@@ -134,7 +142,9 @@ val sumprod_free_SEs =
 val basic_elim_tac =
     REPEAT (SOMEGOAL (eresolve_tac (elim_rls@sumprod_free_SEs)
 	      ORELSE' bound_hyp_subst_tac))
-    THEN prune_params_tac;
+    THEN prune_params_tac
+        (*Mutual recursion: collapse references to Part(D,h)*)
+    THEN fold_tac part_rec_defs;
 
 val elim = rule_by_tactic basic_elim_tac (unfold RS equals_CollectD);
 
@@ -149,7 +159,7 @@ fun mk_cases defs s =
     rule_by_tactic (con_elim_tac defs)
       (assume_read thy s  RS  elim);
 
-val defs = big_rec_def::part_rec_defs;
+val defs = big_rec_def :: part_rec_defs;
 
 val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct);
 end;
