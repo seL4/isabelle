@@ -27,7 +27,7 @@ qed "transD";
 
 (** Identity relation **)
 
-goalw Trancl.thy [id_def] "<a,a> : id";  
+Goalw [id_def] "<a,a> : id";  
 by (rtac CollectI 1);
 by (rtac exI 1);
 by (rtac refl 1);
@@ -77,7 +77,7 @@ qed "comp_mono";
 
 (** The relation rtrancl **)
 
-goal Trancl.thy "mono(%s. id Un (r O s))";
+Goal "mono(%s. id Un (r O s))";
 by (rtac monoI 1);
 by (REPEAT (ares_tac [monoI, subset_refl, comp_mono, Un_mono] 1));
 qed "rtrancl_fun_mono";
@@ -85,7 +85,7 @@ qed "rtrancl_fun_mono";
 val rtrancl_unfold = rtrancl_fun_mono RS (rtrancl_def RS def_lfp_Tarski);
 
 (*Reflexivity of rtrancl*)
-goal Trancl.thy "<a,a> : r^*";
+Goal "<a,a> : r^*";
 by (stac rtrancl_unfold 1);
 by (fast_tac comp_cs 1);
 qed "rtrancl_refl";
@@ -133,7 +133,7 @@ by (fast_tac (comp_cs addIs prems) 1);
 qed "rtrancl_induct";
 
 (*transitivity of transitive closure!! -- by induction.*)
-goal Trancl.thy "trans(r^*)";
+Goal "trans(r^*)";
 by (rtac transI 1);
 by (res_inst_tac [("b","z")] rtrancl_induct 1);
 by (DEPTH_SOLVE (eresolve_tac [asm_rl, rtrancl_into_rtrancl] 1));
@@ -200,7 +200,7 @@ qed "tranclE";
 
 (*Transitivity of r^+.
   Proved by unfolding since it uses transitivity of rtrancl. *)
-goalw Trancl.thy [trancl_def] "trans(r^+)";
+Goalw [trancl_def] "trans(r^+)";
 by (rtac transI 1);
 by (REPEAT (etac compEpair 1));
 by (rtac (rtrancl_into_rtrancl RS (trans_rtrancl RS transD RS compI)) 1);

@@ -108,11 +108,11 @@ qed "SubtypeE";
 
 (*** Monotonicity ***)
 
-goal Type.thy "mono (%X. X)";
+Goal "mono (%X. X)";
 by (REPEAT (ares_tac [monoI] 1));
 qed "idM";
 
-goal Type.thy "mono(%X. A)";
+Goal "mono(%X. A)";
 by (REPEAT (ares_tac [monoI,subset_refl] 1));
 qed "constM";
 
@@ -156,18 +156,18 @@ qed "PlusM";
 
 (*** Conversion Rules for Fixed Points via monotonicity and Tarski ***)
 
-goal Type.thy "mono(%X. Unit+X)";
+Goal "mono(%X. Unit+X)";
 by (REPEAT (ares_tac [PlusM,constM,idM] 1));
 qed "NatM";
 bind_thm("def_NatB", result() RS (Nat_def RS def_lfp_Tarski));
 
-goal Type.thy "mono(%X.(Unit+Sigma(A,%y. X)))";
+Goal "mono(%X.(Unit+Sigma(A,%y. X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
 qed "ListM";
 bind_thm("def_ListB", result() RS (List_def RS def_lfp_Tarski));
 bind_thm("def_ListsB", result() RS (Lists_def RS def_gfp_Tarski));
 
-goal Type.thy "mono(%X.({} + Sigma(A,%y. X)))";
+Goal "mono(%X.({} + Sigma(A,%y. X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
 qed "IListsM";
 bind_thm("def_IListsB", result() RS (ILists_def RS def_gfp_Tarski));

@@ -84,12 +84,12 @@ qed "ilist_append";
 (*        fun iter1(f,a) = a$iter1(f,f(a))                            *)
 (*        fun iter2(f,a) = a$map(f,iter2(f,a))                        *)
 
-goalw Stream.thy [iter1_def] "iter1(f,a) = a$iter1(f,f(a))";
+Goalw [iter1_def] "iter1(f,a) = a$iter1(f,f(a))";
 by (rtac (letrecB RS trans) 1);
 by (simp_tac term_ss 1);
 qed "iter1B";
 
-goalw Stream.thy [iter2_def] "iter2(f,a) = a $ map(f,iter2(f,a))";
+Goalw [iter2_def] "iter2(f,a) = a $ map(f,iter2(f,a))";
 by (rtac (letrecB RS trans) 1);
 by (rtac refl 1);
 qed "iter2B";
@@ -101,7 +101,7 @@ by (res_inst_tac [("P", "%x. ?lhs(x) = ?rhs")] (iter2B RS ssubst) 1);
 by (simp_tac (list_ss addsimps [prem RS nmapBcons]) 1);
 qed "iter2Blemma";
 
-goal Stream.thy "iter1(f,a) = iter2(f,a)";
+Goal "iter1(f,a) = iter2(f,a)";
 by (eq_coinduct3_tac 
     "{p. EX x y. p=<x,y> & (EX n:Nat. x=iter1(f,f^n`a) & y=map(f)^n`iter2(f,a))}"
     1);

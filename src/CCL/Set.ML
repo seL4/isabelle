@@ -116,7 +116,7 @@ fun set_mp_tac i = etac subsetCE i  THEN  mp_tac i;
 qed_goal "subset_refl" Set.thy "A <= A"
  (fn _=> [ (REPEAT (ares_tac [subsetI] 1)) ]);
 
-goal Set.thy "!!A B C. [| A<=B;  B<=C |] ==> A<=C";
+Goal "!!A B C. [| A<=B;  B<=C |] ==> A<=C";
 by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, subsetD] 1));
 qed "subset_trans";
@@ -163,7 +163,7 @@ by (rtac mp 1);
 by (REPEAT (resolve_tac (refl::prems) 1));
 qed "setup_induction";
 
-goal Set.thy "{x. x:A} = A";
+Goal "{x. x:A} = A";
 by (REPEAT (ares_tac [equalityI,subsetI,CollectI] 1  ORELSE etac CollectD 1));
 qed "trivial_set";
 
@@ -234,7 +234,7 @@ val ComplE = make_elim ComplD;
 
 (*** Empty sets ***)
 
-goalw Set.thy [empty_def] "{x. False} = {}";
+Goalw [empty_def] "{x. False} = {}";
 by (rtac refl 1);
 qed "empty_eq";
 
@@ -252,7 +252,7 @@ qed "not_emptyD";
 
 (*** Singleton sets ***)
 
-goalw Set.thy [singleton_def] "a : {a}";
+Goalw [singleton_def] "a : {a}";
 by (rtac CollectI 1);
 by (rtac refl 1);
 qed "singletonI";

@@ -63,7 +63,7 @@ qed "trancl_wf";
 
 (*** Lexicographic Ordering ***)
 
-goalw Wfd.thy [lex_def] 
+Goalw [lex_def] 
  "p : ra**rb <-> (EX a a' b b'. p = <<a,b>,<a',b'>> & (<a,a'> : ra | a=a' & <b,b'> : rb))";
 by (fast_tac ccl_cs 1);
 qed "lexXH";
@@ -109,7 +109,7 @@ qed "lex_wf";
 
 (*** Mapping ***)
 
-goalw Wfd.thy [wmap_def] 
+Goalw [wmap_def] 
  "p : wmap(f,r) <-> (EX x y. p=<x,y>  &  <f(x),f(y)> : r)";
 by (fast_tac ccl_cs 1);
 qed "wmapXH";
@@ -175,18 +175,18 @@ by (ALLGOALS (asm_simp_tac CCL_ss));
 by (rtac Empty_wf 1);
 qed "wf_wf";
 
-goalw Wfd.thy [NatPR_def]  "p : NatPR <-> (EX x:Nat. p=<x,succ(x)>)";
+Goalw [NatPR_def]  "p : NatPR <-> (EX x:Nat. p=<x,succ(x)>)";
 by (fast_tac set_cs 1);
 qed "NatPRXH";
 
-goalw Wfd.thy [ListPR_def]  "p : ListPR(A) <-> (EX h:A. EX t:List(A).p=<t,h$t>)";
+Goalw [ListPR_def]  "p : ListPR(A) <-> (EX h:A. EX t:List(A).p=<t,h$t>)";
 by (fast_tac set_cs 1);
 qed "ListPRXH";
 
 val NatPRI = refl RS (bexI RS (NatPRXH RS iffD2));
 val ListPRI = refl RS (bexI RS (bexI RS (ListPRXH RS iffD2)));
 
-goalw Wfd.thy [Wfd_def]  "Wfd(NatPR)";
+Goalw [Wfd_def]  "Wfd(NatPR)";
 by (safe_tac set_cs);
 by (wfd_strengthen_tac "%x. x:Nat" 1);
 by (fast_tac (type_cs addSEs [XH_to_E NatPRXH]) 1);
@@ -194,7 +194,7 @@ by (etac Nat_ind 1);
 by (ALLGOALS (fast_tac (type_cs addEs [XH_to_E NatPRXH])));
 qed "NatPR_wf";
 
-goalw Wfd.thy [Wfd_def]  "Wfd(ListPR(A))";
+Goalw [Wfd_def]  "Wfd(ListPR(A))";
 by (safe_tac set_cs);
 by (wfd_strengthen_tac "%x. x:List(A)" 1);
 by (fast_tac (type_cs addSEs [XH_to_E ListPRXH]) 1);

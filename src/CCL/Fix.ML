@@ -44,7 +44,7 @@ qed "inclE";
 
 (*** Lemmas for Inclusive Predicates ***)
 
-goal Fix.thy "INCL(%x.~ a(x) [= t)";
+Goal "INCL(%x.~ a(x) [= t)";
 by (rtac inclI 1);
 by (dtac bspec 1);
 by (rtac zeroT 1);
@@ -67,7 +67,7 @@ val prems = goal Fix.thy "[| !!a. a:A ==> INCL(P(a)) |] ==> INCL(%x. ALL a:A. P(
 by (fast_tac (set_cs addSIs ([inclI] @ (prems RL [inclD]))) 1);;
 qed "ball_INCL";
 
-goal Fix.thy "INCL(%x. a(x) = (b(x)::'a::prog))";
+Goal "INCL(%x. a(x) = (b(x)::'a::prog))";
 by (simp_tac (term_ss addsimps [eq_iff]) 1);
 by (REPEAT (resolve_tac [conj_INCL,po_INCL] 1));
 qed "eq_INCL";
@@ -76,11 +76,11 @@ qed "eq_INCL";
 
 (* Fixed points of idgen *)
 
-goal Fix.thy "idgen(fix(idgen)) = fix(idgen)";
+Goal "idgen(fix(idgen)) = fix(idgen)";
 by (rtac (fixB RS sym) 1);
 qed "fix_idgenfp";
 
-goalw Fix.thy [idgen_def] "idgen(lam x. x) = lam x. x";
+Goalw [idgen_def] "idgen(lam x. x) = lam x. x";
 by (simp_tac term_ss 1);
 by (rtac (term_case RS allI) 1);
 by (ALLGOALS (simp_tac term_ss));
@@ -161,7 +161,7 @@ by (simp_tac term_ss 1);
 by (ALLGOALS (fast_tac (term_cs addIs [prem,po_eta_lemma,fix_idgenfp])));
 qed "id_least_idgen";
 
-goal Fix.thy  "fix(idgen) = lam x. x";
+Goal  "fix(idgen) = lam x. x";
 by (fast_tac (term_cs addIs [eq_iff RS iffD2,
                              id_idgenfp RS fix_least_idgen,
                              fix_idgenfp RS id_least_idgen]) 1);

@@ -12,18 +12,18 @@ fun type_of_terms (Const("Trueprop",_) $ (Const("op =",(Type ("fun", [t,_])))$_$
 
 (*** Hereditary Termination ***)
 
-goalw Hered.thy [HTTgen_def]  "mono(%X. HTTgen(X))";
+Goalw [HTTgen_def]  "mono(%X. HTTgen(X))";
 by (rtac monoI 1);
 by (fast_tac set_cs 1);
 qed "HTTgen_mono";
 
-goalw Hered.thy [HTTgen_def]
+Goalw [HTTgen_def]
   "t : HTTgen(A) <-> t=true | t=false | (EX a b. t=<a,b> & a : A & b : A) | \
 \                                       (EX f. t=lam x. f(x) & (ALL x. f(x) : A))";
 by (fast_tac set_cs 1);
 qed "HTTgenXH";
 
-goal Hered.thy
+Goal
   "t : HTT <-> t=true | t=false | (EX a b. t=<a,b> & a : HTT & b : HTT) | \
 \                                  (EX f. t=lam x. f(x) & (ALL x. f(x) : HTT))";
 by (rtac (rewrite_rule [HTTgen_def] 
@@ -33,24 +33,24 @@ qed "HTTXH";
 
 (*** Introduction Rules for HTT ***)
 
-goal Hered.thy "~ bot : HTT";
+Goal "~ bot : HTT";
 by (fast_tac (term_cs addDs [XH_to_D HTTXH]) 1);
 qed "HTT_bot";
 
-goal Hered.thy "true : HTT";
+Goal "true : HTT";
 by (fast_tac (term_cs addIs [XH_to_I HTTXH]) 1);
 qed "HTT_true";
 
-goal Hered.thy "false : HTT";
+Goal "false : HTT";
 by (fast_tac (term_cs addIs [XH_to_I HTTXH]) 1);
 qed "HTT_false";
 
-goal Hered.thy "<a,b> : HTT <->  a : HTT  & b : HTT";
+Goal "<a,b> : HTT <->  a : HTT  & b : HTT";
 by (rtac (HTTXH RS iff_trans) 1);
 by (fast_tac term_cs 1);
 qed "HTT_pair";
 
-goal Hered.thy "lam x. f(x) : HTT <-> (ALL x. f(x) : HTT)";
+Goal "lam x. f(x) : HTT <-> (ALL x. f(x) : HTT)";
 by (rtac (HTTXH RS iff_trans) 1);
 by (simp_tac term_ss 1);
 by (safe_tac term_cs);
@@ -112,11 +112,11 @@ val HTTgenIs = map (mk_genIs Hered.thy data_defs HTTgenXH HTTgen_mono)
 
 (*** Formation Rules for Types ***)
 
-goal Hered.thy "Unit <= HTT";
+Goal "Unit <= HTT";
 by (simp_tac (CCL_ss addsimps ([subsetXH,UnitXH] @ HTT_rews)) 1);
 qed "UnitF";
 
-goal Hered.thy "Bool <= HTT";
+Goal "Bool <= HTT";
 by (simp_tac (CCL_ss addsimps ([subsetXH,BoolXH] @ HTT_rews)) 1);
 by (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD])) 1);
 qed "BoolF";
@@ -136,14 +136,14 @@ qed "SigmaF";
 (***                                          exhaution rule for type-former ***)
 
 (*Proof by induction - needs induction rule for type*)
-goal Hered.thy "Nat <= HTT";
+Goal "Nat <= HTT";
 by (simp_tac (term_ss addsimps [subsetXH]) 1);
 by (safe_tac set_cs);
 by (etac Nat_ind 1);
 by (ALLGOALS (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD]))));
 val NatF = result();
 
-goal Hered.thy "Nat <= HTT";
+Goal "Nat <= HTT";
 by (safe_tac set_cs);
 by (etac HTT_coinduct3 1);
 by (fast_tac (set_cs addIs HTTgenIs 
