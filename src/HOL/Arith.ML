@@ -118,6 +118,12 @@ by (ALLGOALS Asm_simp_tac);
 qed "add_is_0";
 Addsimps [add_is_0];
 
+goal Arith.thy "(pred (m+n) = 0) = (m=0 & pred n = 0 | pred m = 0 & n=0)";
+by (nat_ind_tac "m" 1);
+by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+qed "pred_add_is_0";
+Addsimps [pred_add_is_0];
+
 goal Arith.thy "!!n. n ~= 0 ==> m + pred n = pred(m+n)";
 by (nat_ind_tac "m" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -267,12 +273,12 @@ qed "add_le_mono";
 qed_goal "mult_0_right" Arith.thy "m * 0 = 0"
  (fn _ => [nat_ind_tac "m" 1, ALLGOALS Asm_simp_tac]);
 
-(*right Sucessor law for multiplication*)
+(*right successor law for multiplication*)
 qed_goal "mult_Suc_right" Arith.thy  "m * Suc(n) = m + (m * n)"
  (fn _ => [nat_ind_tac "m" 1,
            ALLGOALS(asm_simp_tac (!simpset addsimps add_ac))]);
 
-Addsimps [mult_0_right,mult_Suc_right];
+Addsimps [mult_0_right, mult_Suc_right];
 
 goal Arith.thy "1 * n = n";
 by (Asm_simp_tac 1);
@@ -305,6 +311,13 @@ qed_goal "mult_left_commute" Arith.thy "x*(y*z) = y*((x*z)::nat)"
            rtac mult_assoc 1, rtac (mult_commute RS arg_cong) 1]);
 
 val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
+
+goal Arith.thy "(m*n = 0) = (m=0 | n=0)";
+by (nat_ind_tac "m" 1);
+by (nat_ind_tac "n" 2);
+by (ALLGOALS Asm_simp_tac);
+qed "mult_is_0";
+Addsimps [mult_is_0];
 
 
 (*** Difference ***)
@@ -522,7 +535,7 @@ by (ALLGOALS (asm_simp_tac(!simpset addsimps ([add_assoc] @
 qed "mod_div_equality";
 
 
-(*** Further facts about mod (mainly for mutilated checkerboard ***)
+(*** Further facts about mod (mainly for the mutilated chess board ***)
 
 goal Arith.thy
     "!!m n. 0<n ==> \
@@ -570,6 +583,13 @@ by (Step_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
+
+goal Arith.thy "!!m. m mod 2 ~= 0 ==> m mod 2 = 1";
+by (subgoal_tac "m mod 2 < 2" 1);
+by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
+by (safe_tac (!claset addSEs [lessE]));
+by (ALLGOALS (blast_tac (!claset addIs [sym])));
+qed "mod2_neq_0";
 
 goal thy "(m+m) mod 2 = 0";
 by (nat_ind_tac "m" 1);
