@@ -198,7 +198,9 @@ unit_eq_proc on (%u::unit. f u), replacing it by f rather than by
 * HOL/Fun INCOMPATIBILITY: `inj_onto' is now called `inj_on' (which
 makes more sense);
 
-* HOL/Set INCOMPATIBILITY: rule `equals0D' is now called `equals0E' (the old name was misleading);
+* HOL/Set INCOMPATIBILITY: rule `equals0D' is now a well-formed destruct rule;
+  It and 'sym RS equals0D' are now in the default  claset, giving automatic
+  disjointness reasoning but breaking a few old proofs.
 
 * HOL/Relation INCOMPATIBILITY: renamed the relational operator r^-1
 to 'converse' from 'inverse' (for compatibility with ZF and some
@@ -245,10 +247,9 @@ instead of "inverse";
 * theory Main includes everything; INCOMPATIBILITY: theory ZF.thy contains
   only the theorems proved on ZF.ML;
 
-* ZF INCOMPATIBILITY: rule `equals0D' is now called `equals0E' (the old name
-  was misleading).  The rule and 'sym RS equals0E' are now in the default
-  claset, giving automatic disjointness reasoning but breaking a few old 
-  proofs.
+* ZF INCOMPATIBILITY: rule `equals0D' is now a well-formed destruct rule;
+  It and 'sym RS equals0D' are now in the default  claset, giving automatic
+  disjointness reasoning but breaking a few old proofs.
 
 * ZF/Update: new theory of function updates
     with default rewrite rule  f(x:=y) ` z = if(z=x, y, f`z)
