@@ -48,26 +48,10 @@ defs
   less_cfun_def         "less_cfun fo1 fo2 == ( fapp fo1 << fapp fo2 )"
 
 (* start 8bit 1 *)
-types
-
-('a, 'b) "è"          (infixr 5)
-
-syntax
-	Gfabs	:: "('a => 'b)=>('a -> 'b)"	(binder "¤" 10)
-
-translations
-
-(type)  "x è y"	== (type) "x -> y" 
-
 (* end 8bit 1 *)
 
 
 end
 
 (* start 8bit 2 *)
-ML
-val parse_ast_translation = ("¤",    fn asts => Appl (Constant "LAM " :: asts)) ::
-			    parse_ast_translation;
-val print_ast_translation = ("LAM ", fn asts => Appl (Constant "¤"    :: asts)) ::
-			    print_ast_translation;
 (* end 8bit 2 *)
