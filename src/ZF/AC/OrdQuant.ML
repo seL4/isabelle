@@ -1,124 +1,104 @@
-(*
-  file OrdQuant.ML
+(*  Title: 	ZF/AC/OrdQuant.thy
+    ID:         $Id$
+    Authors: 	Krzysztof Gr`abczewski and L C Paulson
 
-  Proofs concerning special instances of quantifiers and union operator.
-  Very useful when proving theorems about ordinals. 
+Quantifiers and union operator for ordinals. 
 *)
 
 open OrdQuant;
 
 (*** universal quantifier for ordinals ***)
 
-qed_goalw "oallI" OrdQuant.thy [Oall_def]
+qed_goalw "oallI" thy [oall_def]
     "[| !!x. x<A ==> P(x) |] ==> ALL x<A. P(x)"
  (fn prems=> [ (REPEAT (ares_tac (prems @ [allI,impI]) 1)) ]);
 
-qed_goalw "ospec" OrdQuant.thy [Oall_def]
+qed_goalw "ospec" thy [oall_def]
     "[| ALL x<A. P(x);  x<A |] ==> P(x)"
  (fn major::prems=>
   [ (rtac (major RS spec RS mp) 1),
     (resolve_tac prems 1) ]);
 
-qed_goalw "oallE" OrdQuant.thy [Oall_def]
+qed_goalw "oallE" thy [oall_def]
     "[| ALL x<A. P(x);  P(x) ==> Q;  ~x<A ==> Q |] ==> Q"
  (fn major::prems=>
   [ (rtac (major RS allE) 1),
     (REPEAT (eresolve_tac (prems@[asm_rl,impCE]) 1)) ]);
 
-qed_goal "rev_oallE" OrdQuant.thy
+qed_goal "rev_oallE" thy
     "[| ALL x<A. P(x);  ~x<A ==> Q;  P(x) ==> Q |] ==> Q"
  (fn major::prems=>
   [ (rtac (major RS oallE) 1),
     (REPEAT (eresolve_tac prems 1)) ]);
 
 (*Trival rewrite rule;   (ALL x<a.P)<->P holds only if a is not 0!*)
-qed_goal "oall_simp" OrdQuant.thy "(ALL x<a. True) <-> True"
+qed_goal "oall_simp" thy "(ALL x<a. True) <-> True"
  (fn _=> [ (REPEAT (ares_tac [TrueI,oallI,iffI] 1)) ]);
 
 (*Congruence rule for rewriting*)
-qed_goalw "oall_cong" OrdQuant.thy [Oall_def]
-    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> Oall(a,P) <-> Oall(a',P')"
+qed_goalw "oall_cong" thy [oall_def]
+    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oall(a,P) <-> oall(a',P')"
  (fn prems=> [ (simp_tac (FOL_ss addsimps prems) 1) ]);
 
 
 (*** existential quantifier for ordinals ***)
 
-qed_goalw "oexI" OrdQuant.thy [Oex_def]
+qed_goalw "oexI" thy [oex_def]
     "[| P(x);  x<A |] ==> EX x<A. P(x)"
  (fn prems=> [ (REPEAT (ares_tac (prems @ [exI,conjI]) 1)) ]);
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
-qed_goal "oexCI" OrdQuant.thy 
+qed_goal "oexCI" thy 
    "[| ALL x<A. ~P(x) ==> P(a);  a<A |] ==> EX x<A.P(x)"
  (fn prems=>
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[oexI,oallI,notI,notE]) 1)) ]);
 
-qed_goalw "oexE" OrdQuant.thy [Oex_def]
+qed_goalw "oexE" thy [oex_def]
     "[| EX x<A. P(x);  !!x. [| x<A; P(x) |] ==> Q \
 \    |] ==> Q"
  (fn major::prems=>
   [ (rtac (major RS exE) 1),
     (REPEAT (eresolve_tac (prems @ [asm_rl,conjE]) 1)) ]);
 
-qed_goalw "oex_cong" OrdQuant.thy [Oex_def]
+qed_goalw "oex_cong" thy [oex_def]
     "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) \
-\    |] ==> Oex(a,P) <-> Oex(a',P')"
+\    |] ==> oex(a,P) <-> oex(a',P')"
  (fn prems=> [ (simp_tac (FOL_ss addsimps prems addcongs [conj_cong]) 1) ]);
 
 
-(*** Rules for Unions ***)
+(*** Rules for Ordinal-Indexed Unions ***)
 
-(*The order of the premises presupposes that a is rigid; A may be flexible*)
-qed_goal "OUnionI" OrdQuant.thy "[| b<a;  A: B(b) |] ==> A: OUnion(a, %z. B(z))"
- (fn prems=>
-  [ (resolve_tac [OUnion_iff RS iffD2] 1),
-    (REPEAT (resolve_tac (prems @ [oexI]) 1)) ]);
+qed_goalw "OUN_I" thy [OUnion_def]
+        "!!i. [| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))"
+ (fn _=> [ fast_tac (ZF_cs addSEs [ltE]) 1 ]);
 
-qed_goal "OUnionE" OrdQuant.thy
-    "[| A : OUnion(a, %z. B(z));  !!b.[| A: B(b);  b<a |] ==> R |] ==> R"
- (fn prems=>
-  [ (resolve_tac [OUnion_iff RS iffD1 RS oexE] 1),
-    (REPEAT (ares_tac prems 1)) ]);
-
-
-
-
-(*** Rules for Unions of families ***)
-(* UN x<a. B(x) abbreviates OUnion(a, %x. B(x)) *)
-
-qed_goalw "OUN_iff" OrdQuant.thy [Oex_def]
-    "b : (UN x<a. B(x)) <-> (EX x<a. b : B(x))"
- (fn _=> [ (fast_tac (FOL_cs addIs [OUnionI] 
-                             addSEs [OUnionE]) 1) ]);
-
-(*The order of the premises presupposes that a is rigid; b may be flexible*)
-qed_goal "OUN_I" OrdQuant.thy "[| c<a;  b: B(c) |] ==> b: (UN x<a. B(x))"
- (fn prems=>
-  [ (REPEAT (resolve_tac (prems@[OUnionI]) 1)) ]);
-
-qed_goal "OUN_E" OrdQuant.thy
-    "[| b : (UN x<a. B(x));  !!x.[| x<a;  b: B(x) |] ==> R |] ==> R"
+qed_goalw "OUN_E" thy [OUnion_def]
+    "[| b : (UN z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
  (fn major::prems=>
-  [ (rtac (major RS OUnionE) 1),
-    (REPEAT (eresolve_tac (prems@[asm_rl, RepFunE, subst]) 1)) ]);
+  [ (rtac (major RS CollectE) 1),
+    (rtac UN_E 1),
+    (REPEAT (ares_tac (ltI::prems) 1)) ]);
 
-val prems = goal thy "[| a=b;  !!x. x<b ==> f(x)=g(x) |] ==> OUnion(a,f) = OUnion(b,g)";
-by (resolve_tac [OUnion_iff RS iff_sym RSN (2, OUnion_iff RS iff_trans RS iff_trans) RS equality_iffI] 1);
-by (resolve_tac [oex_cong] 1);
-by (resolve_tac prems 1);
-by (dresolve_tac prems 1);
-by (fast_tac (ZF_cs addSEs [equalityE]) 1);
-qed "OUnion_cong";
+qed_goalw "OUN_iff" thy [oex_def]
+    "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))"
+ (fn _=> [ (fast_tac (FOL_cs addIs [OUN_I] addSEs [OUN_E]) 1) ]);
+
+qed_goal "OUN_cong" thy
+    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i.C(x)) = (UN x<j.D(x))"
+ (fn prems=>
+      [ rtac equality_iffI 1,
+        simp_tac (ZF_ss addcongs [oex_cong] addsimps (OUN_iff::prems)) 1 ]);
 
 val OrdQuant_cs = ZF_cs
-  addSIs [oallI]
-  addIs [oexI, OUnionI]
-  addSEs [oexE, OUnionE]
-  addEs [rev_oallE];
+		  addSIs [oallI]
+		  addIs  [oexI, OUN_I]
+		  addSEs [oexE, OUN_E]
+		  addEs  [rev_oallE];
 
-val OrdQuant_ss = ZF_ss addsimps [oall_simp, ltD RS beta]
-                        addcongs [oall_cong, OUnion_cong];
+val Ord_atomize = atomize (("oall", [ospec])::ZF_conn_pairs, 
+			   ZF_mem_pairs);
 
-
-
+val OrdQuant_ss = ZF_ss setmksimps (map mk_meta_eq o Ord_atomize o gen_all)
+			addsimps [oall_simp, ltD RS beta]
+                        addcongs [oall_cong, oex_cong, OUN_cong];
