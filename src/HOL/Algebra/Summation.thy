@@ -5,9 +5,9 @@
 This file is largely based on HOL/Finite_Set.thy.
 *)
 
-header {* Summation Operator *}
+theory FoldSet = Group:
 
-theory FoldSet = Main:
+section {* Summation operator *}
 
 (* Instantiation of LC from Finite_Set.thy is not possible,
    because here we have explicit typing rules like x : carrier G.
@@ -293,5 +293,292 @@ lemma (in ACeD) foldD_Un_disjoint:
   by (simp add: foldD_Un_Int
     left_commute LCD.foldD_closed [OF LCD.intro [of D]] Un_subset_iff)
 
-end
+subsection {* A Product Operator for Finite Sets *}
 
+text {*
+  Definition of product (or summation, if the monoid is written addivitively)
+  operator.
+*}
+
+locale finite_prod = abelian_monoid + var prod +
+  defines "prod == (%f A. if finite A
+      then foldD (carrier G) (op \<otimes> o f) \<one> A
+      else arbitrary)"
+
+(* TODO: nice syntax for the summation operator inside the locale
+   like \<Otimes>\<index> i\<in>A. f i, probably needs hand-coded translation *)
+
+ML_setup {* 
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+
+lemma (in finite_prod) prod_empty [simp]: 
+  "prod f {} = \<one>"
+  by (simp add: prod_def)
+
+ML_setup {* 
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+
+declare funcsetI [intro]
+  funcset_mem [dest]
+
+lemma (in finite_prod) prod_insert [simp]:
+  "[| finite F; a \<notin> F; f \<in> F -> carrier G; f a \<in> carrier G |] ==>
+   prod f (insert a F) = f a \<otimes> prod f F"
+  apply (rule trans)
+  apply (simp add: prod_def)
+  apply (rule trans)
+  apply (rule LCD.foldD_insert [OF LCD.intro [of "insert a F"]])
+    apply simp
+    apply (rule m_lcomm)
+      apply fast apply fast apply assumption
+    apply (fastsimp intro: m_closed)
+    apply simp+ apply fast
+  apply (auto simp add: prod_def)
+  done
+
+lemma (in finite_prod) prod_one:
+  "finite A ==> prod (%i. \<one>) A = \<one>"
+proof (induct set: Finites)
+  case empty show ?case by simp
+next
+  case (insert A a)
+  have "(%i. \<one>) \<in> A -> carrier G" by auto
+  with insert show ?case by simp
+qed
+
+(*
+lemma prod_eq_0_iff [simp]:
+    "finite F ==> (prod f F = 0) = (ALL a:F. f a = (0::nat))"
+  by (induct set: Finites) auto
+
+lemma prod_SucD: "prod f A = Suc n ==> EX a:A. 0 < f a"
+  apply (case_tac "finite A")
+   prefer 2 apply (simp add: prod_def)
+  apply (erule rev_mp)
+  apply (erule finite_induct)
+   apply auto
+  done
+
+lemma card_eq_prod: "finite A ==> card A = prod (\<lambda>x. 1) A"
+*)  -- {* Could allow many @{text "card"} proofs to be simplified. *}
+(*
+  by (induct set: Finites) auto
+*)
+
+lemma (in finite_prod) prod_closed:
+  fixes A
+  assumes fin: "finite A" and f: "f \<in> A -> carrier G" 
+  shows "prod f A \<in> carrier G"
+using fin f
+proof induct
+  case empty show ?case by simp
+next
+  case (insert A a)
+  then have a: "f a \<in> carrier G" by fast
+  from insert have A: "f \<in> A -> carrier G" by fast
+  from insert A a show ?case by simp
+qed
+
+lemma funcset_Int_left [simp, intro]:
+  "[| f \<in> A -> C; f \<in> B -> C |] ==> f \<in> A Int B -> C"
+  by fast
+
+lemma funcset_Un_left [iff]:
+  "(f \<in> A Un B -> C) = (f \<in> A -> C & f \<in> B -> C)"
+  by fast
+
+lemma (in finite_prod) prod_Un_Int:
+  "[| finite A; finite B; g \<in> A -> carrier G; g \<in> B -> carrier G |] ==>
+   prod g (A Un B) \<otimes> prod g (A Int B) = prod g A \<otimes> prod g B"
+  -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
+proof (induct set: Finites)
+  case empty then show ?case by (simp add: prod_closed)
+next
+  case (insert A a)
+  then have a: "g a \<in> carrier G" by fast
+  from insert have A: "g \<in> A -> carrier G" by fast
+  from insert A a show ?case
+    by (simp add: ac Int_insert_left insert_absorb prod_closed
+          Int_mono2 Un_subset_iff) 
+qed
+
+lemma (in finite_prod) prod_Un_disjoint:
+  "[| finite A; finite B; A Int B = {};
+      g \<in> A -> carrier G; g \<in> B -> carrier G |]
+   ==> prod g (A Un B) = prod g A \<otimes> prod g B"
+  apply (subst prod_Un_Int [symmetric])
+    apply (auto simp add: prod_closed)
+  done
+
+(*
+lemma prod_UN_disjoint:
+  fixes f :: "'a => 'b::plus_ac0"
+  shows
+    "finite I ==> (ALL i:I. finite (A i)) ==>
+        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
+      prod f (UNION I A) = prod (\<lambda>i. prod f (A i)) I"
+  apply (induct set: Finites)
+   apply simp
+  apply atomize
+  apply (subgoal_tac "ALL i:F. x \<noteq> i")
+   prefer 2 apply blast
+  apply (subgoal_tac "A x Int UNION F A = {}")
+   prefer 2 apply blast
+  apply (simp add: prod_Un_disjoint)
+  done
+*)
+
+lemma (in finite_prod) prod_addf:
+  "[| finite A; f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
+   prod (%x. f x \<otimes> g x) A = (prod f A \<otimes> prod g A)"
+proof (induct set: Finites)
+  case empty show ?case by simp
+next
+  case (insert A a) then
+  have fA: "f : A -> carrier G" by fast
+  from insert have fa: "f a : carrier G" by fast
+  from insert have gA: "g : A -> carrier G" by fast
+  from insert have ga: "g a : carrier G" by fast
+  from insert have fga: "(%x. f x \<otimes> g x) a : carrier G" by (simp add: Pi_def)
+  from insert have fgA: "(%x. f x \<otimes> g x) : A -> carrier G"
+    by (simp add: Pi_def)
+  show ?case  (* check if all simps are really necessary *)
+    by (simp add: insert fA fa gA ga fgA fga ac prod_closed Int_insert_left insert_absorb Int_mono2 Un_subset_iff)
+qed
+
+(*
+lemma prod_Un: "finite A ==> finite B ==>
+    (prod f (A Un B) :: nat) = prod f A + prod f B - prod f (A Int B)"
+  apply (subst prod_Un_Int [symmetric])
+    apply auto
+  done
+
+lemma prod_diff1: "(prod f (A - {a}) :: nat) =
+    (if a:A then prod f A - f a else prod f A)"
+  apply (case_tac "finite A")
+   prefer 2 apply (simp add: prod_def)
+  apply (erule finite_induct)
+   apply (auto simp add: insert_Diff_if)
+  apply (drule_tac a = a in mk_disjoint_insert)
+  apply auto
+  done
+*)
+
+text {*
+  Congruence rule.  The simplifier requires the rule to be in this form.
+*}
+(*
+lemma (in finite_prod) prod_cong [cong]:
+  "[| A = B; !!i. i \<in> B ==> f i = g i;
+      g \<in> B -> carrier G = True |] ==> prod f A = prod g B"
+*)
+lemma (in finite_prod) prod_cong:
+  "[| A = B; g \<in> B -> carrier G;
+      !!i. i \<in> B ==> f i = g i |] ==> prod f A = prod g B"
+
+proof -
+  assume prems: "A = B"
+    "!!i. i \<in> B ==> f i = g i"
+    "g \<in> B -> carrier G"
+  show ?thesis
+  proof (cases "finite B")
+    case True
+    then have "!!A. [| A = B; g \<in> B -> carrier G;
+      !!i. i \<in> B ==> f i = g i |] ==> prod f A = prod g B"
+    proof induct
+      case empty thus ?case by simp
+    next
+      case (insert B x)
+      then have "prod f A = prod f (insert x B)" by simp
+      also from insert have "... = f x \<otimes> prod f B"
+      proof (intro prod_insert)
+	show "finite B" .
+      next
+	show "x \<notin> B" .
+      next
+	assume "x \<notin> B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+	  "g \<in> insert x B \<rightarrow> carrier G"
+	thus "f \<in> B -> carrier G" by fastsimp
+      next
+	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+	  "g \<in> insert x B \<rightarrow> carrier G"
+	thus "f x \<in> carrier G" by fastsimp
+      qed
+      also from insert have "... = g x \<otimes> prod g B" by fastsimp
+      also from insert have "... = prod g (insert x B)"
+      by (intro prod_insert [THEN sym]) auto
+      finally show ?case .
+    qed
+    with prems show ?thesis by simp
+  next
+    case False with prems show ?thesis by (simp add: prod_def)
+  qed
+qed
+
+lemma (in finite_prod) prod_cong1 [cong]:
+  "[| A = B; !!i. i \<in> B ==> f i = g i;
+      g \<in> B -> carrier G = True |] ==> prod f A = prod g B"
+  by (rule prod_cong) fast+
+
+text {*
+   Usually, if this rule causes a failed congruence proof error,
+   the reason is that the premise @{text "g \<in> B -> carrier G"} could not
+   be shown. Adding @{thm [source] Pi_def} to the simpset is often useful.
+*}
+
+declare funcsetI [rule del]
+  funcset_mem [rule del]
+
+subsection {* Summation over the integer interval @{term "{..n}"} *}
+
+text {*
+  A new locale where the index set is restricted to @{term "nat"} is
+  necessary, because currently locales demand types in theorems to be as
+  general as in the locale's definition.
+*}
+
+locale finite_prod_nat = finite_prod +
+  assumes "False ==> prod f (A::nat set) = prod f A"
+
+lemma (in finite_prod_nat) natSum_0 [simp]:
+  "f \<in> {0::nat} -> carrier G ==> prod f {..0} = f 0"
+by (simp add: Pi_def)
+
+lemma (in finite_prod_nat) natsum_Suc [simp]:
+  "f \<in> {..Suc n} -> carrier G ==>
+   prod f {..Suc n} = (f (Suc n) \<otimes> prod f {..n})"
+by (simp add: Pi_def atMost_Suc)
+
+lemma (in finite_prod_nat) natsum_Suc2:
+  "f \<in> {..Suc n} -> carrier G ==>
+   prod f {..Suc n} = (prod (%i. f (Suc i)) {..n} \<otimes> f 0)"
+proof (induct n)
+  case 0 thus ?case by (simp add: Pi_def)
+next
+  case Suc thus ?case by (simp add: m_assoc Pi_def prod_closed)
+qed
+
+lemma (in finite_prod_nat) natsum_zero [simp]:
+  "prod (%i. \<one>) {..n::nat} = \<one>"
+by (induct n) (simp_all add: Pi_def)
+
+lemma (in finite_prod_nat) natsum_add [simp]:
+  "[| f \<in> {..n} -> carrier G; g \<in> {..n} -> carrier G |] ==>
+   prod (%i. f i \<otimes> g i) {..n::nat} = prod f {..n} \<otimes> prod g {..n}"
+by (induct n) (simp_all add: ac Pi_def prod_closed)
+
+ML_setup {* 
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+
+ML_setup {* 
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+
+end

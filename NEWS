@@ -44,10 +44,11 @@ New in this Isabelle release
     where n is an integer. Thus you can force termination where previously
     the simplifier would diverge.
 
+  - Accepts free variables as head terms in congruence rules.  Useful in Isar.
 
 * Pure: New flag for triggering if the overall goal of a proof state should
 be printed:
-   PG menu: Isabelle/Isar -> Settigs -> Show Main Goal
+   PG menu: Isabelle/Isar -> Settings -> Show Main Goal
 (ML: Proof.show_main_goal).
 
 * Pure: You can find all matching introduction rules for subgoal 1, i.e. all

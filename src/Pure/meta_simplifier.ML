@@ -404,13 +404,19 @@ in
   is_full_cong_prems prems (xs ~~ ys)
 end
 
+fun cong_name (Const (a, _)) = Some a
+  | cong_name (Free (a, _)) = Some ("Free: " ^ a)
+  | cong_name _ = None;
+
 fun add_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thm) =
   let
     val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (cprop_of thm)) handle TERM _ =>
       raise SIMPLIFIER ("Congruence not a meta-equality", thm);
 (*   val lhs = Pattern.eta_contract lhs; *)
-    val (a, _) = dest_Const (head_of (term_of lhs)) handle TERM _ =>
-      raise SIMPLIFIER ("Congruence must start with a constant", thm);
+    val a = (case cong_name (head_of (term_of lhs)) of
+        Some a => a
+      | None =>
+        raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm));
     val (alist,weak) = congs
     val alist2 = overwrite_warn (alist, (a,{lhs=lhs, thm=thm}))
            ("Overwriting congruence rule for " ^ quote a);
@@ -429,8 +435,10 @@ fun del_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thm) 
     val (lhs, _) = Logic.dest_equals (concl_of thm) handle TERM _ =>
       raise SIMPLIFIER ("Congruence not a meta-equality", thm);
 (*   val lhs = Pattern.eta_contract lhs; *)
-    val (a, _) = dest_Const (head_of lhs) handle TERM _ =>
-      raise SIMPLIFIER ("Congruence must start with a constant", thm);
+    val a = (case cong_name (head_of lhs) of
+        Some a => a
+      | None =>
+        raise SIMPLIFIER ("Congruence must start with a constant", thm));
     val (alist,_) = congs
     val alist2 = filter (fn (x,_)=> x<>a) alist
     val weak2 = mapfilter (fn(a,{thm,...}) => if is_full_cong thm then None
@@ -780,8 +788,8 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
                            | None => None))
                      end
                    val (h, ts) = strip_comb t
-               in case h of
-                    Const(a, _) =>
+               in case cong_name h of
+                    Some a =>
                       (case assoc_string (fst congs, a) of
                          None => appc ()
                        | Some cong =>
