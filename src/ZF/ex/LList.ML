@@ -136,7 +136,7 @@ val lconst_in_quniv = result();
 
 goal LList.thy "!!a A. a:A ==> lconst(a): llist(A)";
 by (rtac (singletonI RS llist.coinduct) 1);
-by (fast_tac (ZF_cs addSIs [lconst_in_quniv]) 1);
+by (etac (lconst_in_quniv RS singleton_subsetI) 1);
 by (fast_tac (ZF_cs addSIs [lconst]) 1);
 val lconst_type = result();
 
