@@ -193,7 +193,7 @@ apply(erule exec01.induct)
   apply simp
   apply(rule rev_revD)
   apply simp
- apply(clarsimp simp add: neq_Nil_conv append_eq_conv_conj)
+ apply(simp (no_asm_use) add: neq_Nil_conv append_eq_conv_conj, clarify)+
  apply(drule sym)
  apply simp
  apply(rule rev_revD)

@@ -236,8 +236,6 @@ lemma completeness_l [rule_format]:
      "u~v ==> regular(v) --> unmark(u) =1=> unmark(u|>v)"
 apply (erule Scomp.induct)
 apply (auto simp add: unmmark_subst_rec)
-apply (drule_tac psi = "Fun (?u) =1=> ?w" in asm_rl)
-apply auto
 done
 
 lemma completeness: "[|u \<in> lambda; u~v; regular(v)|] ==> u =1=> unmark(u|>v)"

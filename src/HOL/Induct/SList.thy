@@ -875,7 +875,8 @@ apply (simp_all add: r_neutr r_neutl, clarify)
 apply (erule all_dupE) 
 apply (rule trans) 
 prefer 2 apply assumption
-apply (simp add: assoc [THEN spec, THEN spec, THEN spec, THEN sym])
+apply (simp (no_asm_use) add: assoc [THEN spec, THEN spec, THEN spec, THEN sym])
+apply simp
 done
 
 lemma foldl_append_sym: 

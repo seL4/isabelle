@@ -118,10 +118,7 @@ done
 
 lemma resfunc_type [simp]:
      "[|s~t; regular(t)|]==> regular(t) --> s |> t \<in> redexes"
-apply (erule Scomp.induct, auto)
-apply (drule_tac psi = "Fun (?u) |> ?v \<in> redexes" in asm_rl)
-apply auto
-done
+  by (erule Scomp.induct, auto)
 
 (* ------------------------------------------------------------------------- *)
 (*     Commutation theorem                                                   *)
@@ -138,7 +135,6 @@ lemma residuals_lift_rec: "[|u~v; k \<in> nat|]==> regular(v)--> (\<forall>n \<i
          lift_rec(u,n) |> lift_rec(v,n) = lift_rec(u |> v,n))"
 apply (erule Scomp.induct, safe)
 apply (simp_all add: lift_rec_Var subst_Var lift_subst)
-apply (rotate_tac -2, simp)
 done
 
 lemma residuals_subst_rec:
@@ -169,7 +165,6 @@ by (erule Scomp.induct, force+)
 lemma residuals_preserve_reg [rule_format, simp]:
      "u~v ==> regular(u) --> regular(v) --> regular(u|>v)"
 apply (erule Scomp.induct, auto)
-apply (drule_tac psi = "regular (Fun (?u) |> ?v)" in asm_rl, force)+
 done
 
 (* ------------------------------------------------------------------------- *)

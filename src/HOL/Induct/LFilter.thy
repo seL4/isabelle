@@ -125,7 +125,6 @@ declare llistD_Fun_LNil_I [intro!] llistD_Fun_LCons_I [intro!]
 
 lemma lfilter_eq_LNil: "lfilter p l = LNil ==> l ~: Domain(findRel p)" 
 apply (auto iff: Domain_findRel_iff)
-apply (rotate_tac 1, simp) 
 done
 
 lemma lfilter_eq_LCons [rule_format]:

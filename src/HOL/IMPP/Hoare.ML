@@ -179,7 +179,7 @@ by          (Blast_tac 1); (* asm *)
 by         (Blast_tac 1); (* cut *)
 by        (Blast_tac 1); (* weaken *)
 by       (ALLGOALS (EVERY'[REPEAT o thin_tac "?x : hoare_derivs", 
-	                   Clarsimp_tac, REPEAT o smp_tac 1]));
+	                   Simp_tac, Clarify_tac, REPEAT o smp_tac 1]));
 by       (ALLGOALS (full_simp_tac (simpset() addsimps [triple_valid_def2])));
 by       (EVERY'[strip_tac, smp_tac 2, Blast_tac] 1); (* conseq *)
 by      (ALLGOALS Clarsimp_tac); (* Skip, Ass, Local *)
@@ -273,10 +273,9 @@ by (case_tac "mgt_call pn : G" 1);
 by  (resolve_tac (premises()(*hoare_derivs.asm*)) 1);
 by  (Fast_tac 1);
 by (resolve_tac (tl(premises())(*MGT_BodyN*)) 1);
-byev[dtac spec 1, etac impE 1, etac impE 2, etac impE 3, dtac spec 4,etac mp 4];
-by   (eresolve_tac (tl(tl(tl(premises())))) 4);
+byev[dtac spec 1, etac impE 1, etac impE 2, dtac spec 3,etac mp 3];
+by   (eresolve_tac (tl(tl(tl(premises())))) 3);
 by   (Fast_tac 1);
-by (etac Suc_leD 1);
 by (dtac finite_subset 1);
 by (etac finite_imageI 1);
 by (Asm_simp_tac 1); 

@@ -678,7 +678,6 @@ done
 
 lemma zless_not_refl [iff]: "~ (z$<z)"
 apply (auto simp add: zless_def znegative_def int_of_def zdiff_def)
-apply (rotate_tac 2, auto)
 done
 
 lemma neq_iff_zless: "[| x: int; y: int |] ==> (x ~= y) <-> (x $< y | y $< x)"

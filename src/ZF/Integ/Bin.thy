@@ -365,12 +365,9 @@ apply (unfold iszero_def, simp)
 apply (subgoal_tac "integ_of (w) : int")
 apply typecheck
 apply (drule int_cases)
-apply (auto elim!: boolE simp add: int_of_add [symmetric])
-apply (simp_all add: zcompare_rls zminus_zadd_distrib [symmetric]
+apply (safe elim!: boolE)
+apply (simp_all (asm_lr) add: zcompare_rls zminus_zadd_distrib [symmetric]
                      int_of_add [symmetric])
-apply (subgoal_tac "znegative ($- $# succ (n)) <-> znegative ($# succ (n))")
- apply (simp (no_asm_use))
-apply simp 
 done
 
 lemma iszero_integ_of_0:

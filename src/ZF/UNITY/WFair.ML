@@ -21,8 +21,8 @@ qed "transientD2";
 
 Goalw [stable_def, constrains_def, transient_def]
     "[| F : stable(A); F : transient(A) |] ==> A = 0";
-by Auto_tac;
-by (Blast_tac 1);
+by (Asm_full_simp_tac 1);
+by (Blast.depth_tac (claset()) 10 1);
 qed "stable_transient_empty";
 
 Goalw [transient_def, st_set_def] 

@@ -229,7 +229,6 @@ apply (induct_tac "k")
  apply (erule natE)
 apply (simp_all add: zadd_zmult_distrib zadd_zless_mono zle_def)
 apply (frule nat_0_le)
-apply (erule (1) notE impE)
 apply (subgoal_tac "i $+ (i $+ $# xa $* i) $< j $+ (j $+ $# xa $* j) ")
 apply (simp (no_asm_use))
 apply (rule zadd_zless_mono)
@@ -392,7 +391,6 @@ lemma unique_remainder:
 apply (subgoal_tac "q = q'")
  prefer 2 apply (blast intro: unique_quotient)
 apply (simp add: quorem_def)
-apply auto
 done
 
 

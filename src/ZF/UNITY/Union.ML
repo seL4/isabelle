@@ -592,8 +592,7 @@ qed "def_prg_Allowed";
 (*For safety_prop to hold, the property must be satisfiable!*)
 Goal "safety_prop(A co B) <-> (A <= B & st_set(A))";
 by (simp_tac (simpset() addsimps [safety_prop_def, constrains_def, st_set_def]) 1);
-by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
-by (REPEAT(Blast_tac 1));
+by (Blast_tac 1);
 qed "safety_prop_constrains";
 AddIffs [safety_prop_constrains];
 

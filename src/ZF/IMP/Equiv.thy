@@ -38,7 +38,7 @@ declare bexp_iff [THEN iffD1, simp]
 
 lemma com1: "<c,sigma> -c-> sigma' ==> <sigma,sigma'> \<in> C(c)"
   apply (erule evalc.induct)
-        apply simp_all
+        apply (simp_all (no_asm_simp))
       txt {* @{text skip} *}
       apply fast
      txt {* @{text assign} *}

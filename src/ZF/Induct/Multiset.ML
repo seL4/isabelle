@@ -51,13 +51,6 @@ qed "fun_cons_funrestrict_eq";
 Addsimps [domain_of_fun];
 Delrules [domainE];
 
-(* The following tactic moves the condition `simp_cond' to the begining
-   of the list of hypotheses and then makes simplifications accordingly *)
-
-fun rotate_simp_tac simp_cond i =
-(dres_inst_tac [("psi", simp_cond)] asm_rl i THEN rotate_tac ~1 i
- THEN Asm_full_simp_tac i);
-
 (* A useful simplification rule *)
 
 Goal "(f:A -> nat-{0}) <-> f:A->nat&(ALL a:A. f`a:nat & 0 < f`a)";
@@ -73,7 +66,7 @@ Goalw [multiset_def]
  "[| multiset(M); mset_of(M)<=A |] ==> M:Mult(A)";
 by (auto_tac (claset(), simpset()
              addsimps [multiset_fun_iff, mset_of_def]));
-by (rotate_simp_tac "M:?u" 1);
+by (Asm_full_simp_tac 1);
 by (res_inst_tac [("B1","nat-{0}")] (FiniteFun_mono RS subsetD) 1);
 by (ALLGOALS(Asm_simp_tac));
 by (rtac (Finite_into_Fin RSN (2, Fin_mono RS subsetD) RS fun_FiniteFunI) 1);
@@ -157,7 +150,7 @@ by (auto_tac (claset(), simpset() addsimps [normalize_def]));
 by (rewtac mset_of_def);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [multiset_fun_iff])));
 by (ALLGOALS(Clarify_tac));
-by (ALLGOALS(rotate_simp_tac "M:?u"));
+by (ALLGOALS Asm_full_simp_tac);
 by Auto_tac;
 qed "mset_of_diff";
 Addsimps [mset_of_diff];
@@ -341,7 +334,7 @@ Goalw [multiset_def]
  "[| multiset(M); a:mset_of(M) |] ==> 0 < mcount(M, a)";
 by (Clarify_tac 1);
 by (rewrite_goals_tac [mcount_def, mset_of_def]);
-by (rotate_simp_tac "M:?u" 1);
+by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [multiset_fun_iff]) 1); 
 qed "mcount_elem";
 
@@ -441,8 +434,6 @@ Goalw [multiset_def]
 by (rtac sym 1 THEN rtac equalityI 1);
 by (rewrite_goals_tac [mcount_def, mset_of_def]);
 by (auto_tac (claset(), simpset() addsimps [multiset_fun_iff]));
-by (ALLGOALS(rotate_simp_tac "M:?u"));
-by (ALLGOALS(rotate_simp_tac "N:?u"));
 by (ALLGOALS(dres_inst_tac [("x", "x")] spec));
 by (case_tac "x:Aa" 2 THEN case_tac "x:A" 1);
 by Auto_tac;
@@ -455,8 +446,6 @@ by (subgoal_tac "mset_of(M) = mset_of(N)" 1);
 by (blast_tac (claset() addIs [equality_lemma]) 2);
 by (rewrite_goals_tac [multiset_def, mset_of_def]);
 by (auto_tac (claset(), simpset() addsimps [multiset_fun_iff]));
-by (rotate_simp_tac "M:?u" 1);
-by (rotate_simp_tac "N:?u" 1);
 by (rtac fun_extension 1);
 by (Blast_tac 1 THEN Blast_tac 1);
 by (dres_inst_tac [("x", "x")] spec 1);
@@ -535,7 +524,6 @@ by (auto_tac (claset(), simpset() addsimps [multiset_fun_iff]));
 by (rewrite_goals_tac [mset_of_def, mcount_def]);
 by (case_tac "x:A" 1);
 by Auto_tac;
-by (rotate_simp_tac "M:?u" 2);
 by (subgoal_tac "$# M ` x $+ #-1 = $# M ` x $- $# 1" 1);
 by (etac ssubst 1);
 by (rtac int_of_diff 1);
@@ -592,9 +580,6 @@ by (ftac msize_eq_0_iff 1);
 by (auto_tac (claset(), 
               simpset() addsimps [mset_of_def, multiset_def,  
                                   multiset_fun_iff, msize_def]@prems));
-by (rotate_simp_tac "M:?u" 1);
-by (rotate_simp_tac "M:?u" 2);
-by (rotate_simp_tac "ALL a:A. ?u(a)" 1);
 by (subgoal_tac "setsum(%x. $# mcount(M, x), A)=$# succ(x)" 1);
 by (dtac setsum_succD 1 THEN Auto_tac);
 by (case_tac "1 <M`a" 1);
@@ -631,9 +616,7 @@ by (dres_inst_tac [("x", "a")] bspec 1);
 by (Asm_simp_tac 1);
 by (subgoal_tac "cons(a, A)= A" 1);
 by (Blast_tac 2);
-by (rotate_simp_tac "cons(a, A) = A" 1);
-by (rotate_simp_tac "ALL x:A. ?u(x)" 1);
-by (rotate_simp_tac "ALL x:A. ?u(x)" 2);
+by (Asm_full_simp_tac 1);
 by (subgoal_tac "M=cons(<a, M`a>, funrestrict(M, A-{a}))" 1);
 by (rtac  fun_cons_funrestrict_eq 2);
 by (subgoal_tac "cons(a, A-{a}) = A" 2);
@@ -660,7 +643,7 @@ by (asm_simp_tac  (simpset() addsimps [multiset_def, multiset_fun_iff]) 1);
 by (Blast_tac 1);
 by (asm_simp_tac (simpset() addsimps [mset_of_def]) 1);
 by (dres_inst_tac [("b", "if ?u then ?v else ?w")] sym 1);
-by (ALLGOALS(rotate_simp_tac "ALL x:A. ?u(x)"));
+by (ALLGOALS Asm_full_simp_tac);
 by (subgoal_tac "{x:A - {a} . 0 < funrestrict(M, A - {x}) ` x} = A - {a}" 1);
 by (auto_tac (claset() addSIs [setsum_cong], 
               simpset() addsimps [zdiff_eq_iff, 
@@ -692,7 +675,7 @@ Goalw [multiset_def, msingle_def]
  "[| multiset(M); a ~:mset_of(M) |] ==> M +# {#a#} = cons(<a, 1>, M)";
 by (auto_tac (claset(), simpset() addsimps [munion_def]));
 by (rewtac mset_of_def);
-by (rotate_simp_tac "M:?u" 1);
+by (Asm_full_simp_tac 1);
 by (rtac fun_extension 1 THEN rtac lam_type 1);
 by (ALLGOALS(Asm_full_simp_tac));
 by (auto_tac (claset(), simpset()  
@@ -707,7 +690,7 @@ Goalw [multiset_def]
 by (auto_tac (claset(),  simpset() 
      addsimps [munion_def, multiset_fun_iff, msingle_def]));
 by (rewtac mset_of_def);
-by (rotate_simp_tac "M:?u" 1);
+by (Asm_full_simp_tac 1);
 by (subgoal_tac "A Un {a} = A" 1);
 by (rtac fun_extension 1);
 by (auto_tac (claset() addDs [domain_type] 
@@ -767,7 +750,6 @@ qed "multiset_partition";
 Goalw [multiset_def, mset_of_def]
  "[| multiset(M); a:mset_of(M) |] ==> natify(M`a) = M`a";
 by (auto_tac (claset(), simpset() addsimps [multiset_fun_iff]));
-by (rotate_simp_tac "M:?u" 1);
 qed "natify_elem_is_self";
 Addsimps [natify_elem_is_self];
 
@@ -1024,8 +1006,6 @@ by (asm_simp_tac (simpset() addsimps [multiset_equality]) 1);
 by (case_tac "a ~: mset_of(I)" 1);
 by (auto_tac (claset(), simpset() addsimps 
              [mcount_def, mset_of_def, multiset_def, multiset_fun_iff]));
-by (rotate_simp_tac "I:?u" 1);
-by (rotate_simp_tac "J:?u" 1);
 by (auto_tac (claset() addDs [domain_type], simpset() addsimps [lemma]));
 qed "mdiff_union_single_conv";
 
@@ -1141,7 +1121,6 @@ by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [multirel1_iff, Mult_iff_multiset]) 1);
 by (Force_tac 1);
 (*Now we know J' ~=  0*)
-by (rotate_simp_tac "multiset(J')" 1);
 by (dtac sym 1 THEN rotate_tac ~1 1);
 by (Asm_full_simp_tac 1);
 by (thin_tac "$# x = msize(J')" 1);
@@ -1215,7 +1194,6 @@ by (forw_inst_tac [("r", "r")] multirel_irrefl_lemma 1);
 by (forw_inst_tac [("B", "mset_of(K)")] part_ord_subset 1);
 by (ALLGOALS(Asm_full_simp_tac));
 by (auto_tac (claset(), simpset() addsimps [multiset_def, mset_of_def]));
-by (rotate_simp_tac "K:?u" 1);
 qed "irrefl_on_multirel";
 
 Goalw [multirel_def, trans_on_def] "trans[Mult(A)](multirel(A, r))";

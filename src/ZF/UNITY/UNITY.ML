@@ -609,7 +609,7 @@ Goalw [stable_def, constrains_def, st_set_def]
 "[| F : stable(C); F : A co (C Un A') |] ==> F : (C Un A) co (C Un A')";
 by (cut_inst_tac [("F", "F")] Acts_type 1);
 by Auto_tac;
-by (Force_tac 1);
+by (Blast.depth_tac (claset()) 10 1);
 qed "stable_constrains_Un";
 
 Goalw [stable_def, constrains_def, st_set_def]

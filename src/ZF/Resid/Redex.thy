@@ -178,11 +178,7 @@ by (erule Scomp.induct, simp_all add: or_commute)
 
 lemma union_preserve_regular [rule_format]:
      "u ~ v ==> regular(u)-->regular(v)-->regular(u un v)"
-apply (erule Scomp.induct, auto)
-(*select the given assumption for simplification*)
-apply (erule_tac P = "regular (Fun (?u) un ?v) " in rev_mp)
-apply simp
-done
+  by (erule Scomp.induct, auto)
 
 end
 

@@ -1620,7 +1620,7 @@ lemma le_exists_lemma:
         m \<in> nat |]==>R"
 apply (rule le_exists, assumption)
 prefer 2 apply (simp add: lt_nat_in_nat)
-apply (rule le_trans [THEN le_exists], assumption+, auto)
+apply (rule le_trans [THEN le_exists], assumption+, force+)
 done
 
 lemma eps_split_left_le:
