@@ -6,14 +6,15 @@
 Permutations: example of an inductive definition
 *)
 
-(*It would be nice to prove
-    xs <~~> ys = (!x. count xs x = count ys x)
-See mset on HOL/ex/Sorting.thy
+(*It would be nice to prove (for "multiset", defined on HOL/ex/Sorting.thy)
+    xs <~~> ys = (ALL x. multiset xs x = multiset ys x)
 *)
+
+AddIs perm.intrs;
 
 Goal "l <~~> l";
 by (induct_tac "l" 1);
-by (REPEAT (ares_tac perm.intrs 1));
+by Auto_tac;
 qed "perm_refl";
 AddIffs [perm_refl];
 
@@ -23,23 +24,28 @@ AddIffs [perm_refl];
 Goal "xs <~~> ys ==> xs=[] --> ys=[]";
 by (etac perm.induct 1);
 by (ALLGOALS Asm_simp_tac);
-qed "perm_Nil_lemma";
+bind_thm ("xperm_empty_imp",    (* [] <~~> ys ==> ys=[] *)
+	  [refl, result()] MRS rev_mp);
 
-(*A more general version is actually easier to understand!*)
+(*This more general theorem is easier to understand!*)
 Goal "xs <~~> ys ==> length(xs) = length(ys)";
 by (etac perm.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "perm_length";
 
+Goal "[] <~~> xs ==> xs=[]";
+by (dtac perm_length 1);
+by Auto_tac;
+qed "perm_empty_imp";
+
 Goal "xs <~~> ys ==> ys <~~> xs";
 by (etac perm.induct 1);
-by (REPEAT (ares_tac perm.intrs 1));
+by Auto_tac;
 qed "perm_sym";
 
 Goal "xs <~~> ys ==> x mem xs --> x mem ys";
 by (etac perm.induct 1);
-by (Fast_tac 4);
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 val perm_mem_lemma = result();
 
 bind_thm ("perm_mem", perm_mem_lemma RS mp);
@@ -49,16 +55,14 @@ bind_thm ("perm_mem", perm_mem_lemma RS mp);
 (*We can insert the head anywhere in the list*)
 Goal "a # xs @ ys <~~> xs @ a # ys";
 by (induct_tac "xs" 1);
-by (ALLGOALS Simp_tac);
-by (etac ([perm.swap, perm.Cons] MRS perm.trans) 1);
+by Auto_tac;
 qed "perm_append_Cons";
 
 Goal "xs@ys <~~> ys@xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Simp_tac);
-by (etac ([perm.Cons, perm_append_Cons] MRS perm.trans) 1);
+by (blast_tac (claset() addIs [perm_append_Cons]) 1);
 qed "perm_append_swap";
-
 
 Goal "a # xs <~~> xs @ [a]";
 by (rtac perm.trans 1);
@@ -69,31 +73,19 @@ qed "perm_append_single";
 Goal "rev xs <~~> xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Simp_tac);
-by (rtac (perm_append_single RS perm_sym RS perm.trans) 1);
-by (etac perm.Cons 1);
+by (blast_tac (claset() addIs [perm_sym, perm_append_single]) 1);
 qed "perm_rev";
 
 Goal "xs <~~> ys ==> l@xs <~~> l@ys";
 by (induct_tac "l" 1);
-by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [perm.Cons]) 1);
+by Auto_tac;
 qed "perm_append1";
 
 Goal "xs <~~> ys ==> xs@l <~~> ys@l";
-by (rtac (perm_append_swap RS perm.trans) 1);
-by (etac (perm_append1 RS perm.trans) 1);
-by (rtac perm_append_swap 1);
+by (blast_tac (claset() addSIs [perm_append_swap, perm_append1]) 1);
 qed "perm_append2";
 
 (** Further results mostly by Thomas Marthedal Rasmussen **)
-
-val perm_rules = [perm.trans, perm.swap, perm.Cons];
-
-Goal "[] <~~> xs ==> xs = []";
-by (rtac mp 1);
-by (res_inst_tac [("ys","xs"),("xs","[]")] perm_Nil_lemma 1);
-by Auto_tac;
-qed "perm_empty_imp";
 
 Goal "([] <~~> xs) = (xs = [])";
 by (blast_tac (claset() addIs [perm_empty_imp]) 1);
@@ -117,15 +109,13 @@ qed "perm_sing_eq";
 AddIffs [perm_sing_eq];
 
 Goal "([y] <~~> ys) = (ys = [y])"; 
-by Auto_tac;
-by (dtac perm_sym 1);
-by Auto_tac;
+by (blast_tac (claset() addDs [perm_sym]) 1);
 qed "perm_sing_eq2";
 AddIffs [perm_sing_eq2];
 
 Goal "x:set ys --> ys <~~> x#(remove x ys)";
 by (induct_tac "ys" 1);
-by (auto_tac (claset() addIs perm_rules, simpset()));
+by Auto_tac;
 qed_spec_mp "perm_remove"; 
 
 Goal "remove x (remove y l) = remove y (remove x l)";
@@ -136,7 +126,6 @@ qed "remove_commute";
 (*Congruence rule*)
 Goal "xs <~~> ys ==> remove z xs <~~> remove z ys";
 by (etac perm.induct 1);
-by (auto_tac (claset() addIs perm_rules, simpset()));
 by Auto_tac;
 qed "perm_remove_perm";
 
@@ -151,14 +140,14 @@ by Auto_tac;
 qed "cons_perm_imp_perm";
 
 Goal "(z#xs <~~> z#ys) = (xs <~~> ys)";
-by (blast_tac (claset() addIs [cons_perm_imp_perm, perm.Cons]) 1);
+by (blast_tac (claset() addIs [cons_perm_imp_perm]) 1);
 qed "cons_perm_eq";
 AddIffs [cons_perm_eq];
 
 Goal "ALL xs ys. zs@xs <~~> zs@ys --> xs <~~> ys";
 by (res_inst_tac [("xs","zs")] rev_induct 1);
 by (ALLGOALS Full_simp_tac);
-by (blast_tac (claset() addSDs [spec]) 1);
+by (Blast_tac 1);
 qed_spec_mp "append_perm_imp_perm";
 
 Goal "(zs@xs <~~> zs@ys) = (xs <~~> ys)";
@@ -170,7 +159,7 @@ Goal "(xs@zs <~~> ys@zs) = (xs <~~> ys)";
 by (safe_tac (claset() addSIs [perm_append2]));
 by (rtac append_perm_imp_perm 1);
 by (rtac (perm_append_swap RS perm.trans) 1);
-(*Not clear why this blast_tac alone can't find the proof.*)
-by (blast_tac (claset() addIs [perm_append_swap, perm.trans]) 1);
+(*The previous step helps this blast_tac call succeed quickly.*)
+by (blast_tac (claset() addIs [perm_append_swap]) 1);
 qed "perm_append2_eq";
 AddIffs [perm_append2_eq];
