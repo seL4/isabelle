@@ -29,6 +29,7 @@ function usage()
   echo "    -P           startup Proof General interaction mode"
   echo "    -c           tell ML system to compress output image"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
+  echo "    -f           pass 'Session.finish();' to the ML session"
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
@@ -64,7 +65,7 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "CIPce:m:qruw" OPT
+while getopts "CIPce:fm:qruw" OPT
 do
   case "$OPT" in
     C)
@@ -81,6 +82,9 @@ do
       ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
+      ;;
+    f)
+      MLTEXT="$MLTEXT Session.finish();"
       ;;
     m)
       if [ -z "$MODES" ]; then
