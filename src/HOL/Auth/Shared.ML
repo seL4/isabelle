@@ -9,14 +9,9 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 *)
 
 
-Addsimps [de_Morgan_conj, de_Morgan_disj, not_all, not_ex];
-(**Addsimps [all_conj_distrib, ex_disj_distrib];**)
-
-
 val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
-by (excluded_middle_tac "P" 1);
-by (asm_simp_tac (!simpset addsimps prems) 1);
-by (asm_simp_tac (!simpset addsimps prems) 1);
+by (case_tac "P" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
 val expand_case = result();
 
 fun expand_case_tac P i =
