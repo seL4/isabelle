@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Proof by induction on types / set / functions.
+Proof methods for cases and induction on types / sets / functions.
 *)
 
 signature INDUCT_METHOD =
@@ -14,47 +14,94 @@ structure InductMethod: INDUCT_METHOD =
 struct
 
 
-(* type induct_kind *)
+(** utils **)
 
-datatype induct_kind = Type | Set | Function | Rule;
+(* vars_of *)
 
-val kind_name =
-  Args.$$$ "type" >> K Type ||
-  Args.$$$ "set" >> K Set ||
-  Args.$$$ "function" >> K Function ||
-  Args.$$$ "rule" >> K Rule;
-
-val kind = kind_name --| Args.$$$ ":";
+fun vars_of tm =        (*ordered left-to-right, preferring right!*)
+  foldl_aterms (fn (ts, t as Var _) => t :: ts | (ts, _) => ts) ([], tm)
+  |> Library.distinct |> rev;
 
 
-(* induct_rule *)
+(* kinds *)
 
-fun kind_rule Type = (#induction oo DatatypePackage.datatype_info_err, Sign.intern_tycon)
-  | kind_rule Set = ((#induct o #2) oo InductivePackage.get_inductive, Sign.intern_const)
-  | kind_rule Function = (#induct oo RecdefPackage.get_recdef, Sign.intern_const)
-  | kind_rule Rule = (PureThy.get_thm, K I);
+datatype kind = Type | Set | Function | Rule;
 
-fun induct_rule thy kind name =
-  let val (ind_rule, intern) = kind_rule kind
-  in ind_rule thy (intern (Theory.sign_of thy) name) end;
+fun intern_kind Type = Sign.intern_tycon
+  | intern_kind Set = Sign.intern_const
+  | intern_kind Function = Sign.intern_const
+  | intern_kind Rule = K I;	(* FIXME !? *)
 
 
-(* induct_tac *)
 
-fun induct_tac thy insts opt_kind_name facts i state =
+(** cases method **)
+
+fun cases_rule Type = DatatypePackage.cases_of o Theory.sign_of
+  | cases_rule Set = InductivePackage.cases_of o Theory.sign_of
+  | cases_rule Function = (fn _ => error "No cases rule for recursive functions")
+  | cases_rule Rule = PureThy.get_thm;
+
+val cases_var = hd o vars_of o hd o Logic.strip_assums_hyp o Library.last_elem o Thm.prems_of;
+
+
+fun cases_tac (None, None) ctxt =
+      Method.rule_tac (case_split_thm :: InductivePackage.cases (ProofContext.sign_of ctxt))
+  | cases_tac args ctxt =
+      let
+        val thy = ProofContext.theory_of ctxt;
+        val sign = Theory.sign_of thy;
+        val cert = Thm.cterm_of sign;
+
+        val (kind, name) =
+          (case args of
+            (_, Some (kind, bname)) => (kind, intern_kind kind sign bname)
+          | (Some t, _) =>
+              (case try (#1 o Term.dest_Type o Term.type_of) t of
+                Some name => (Type, name)
+              | None => error "Need specific type to figure out cases rule")
+          | _ => sys_error "cases_tac");
+        val rule = cases_rule kind thy name;
+
+        val inst_rule =
+          (case #1 args of
+            None => rule
+          | Some t => Drule.cterm_instantiate [(cert (cases_var rule), cert t)] rule);
+  in Method.rule_tac [inst_rule] end;
+
+val cases_meth = Method.METHOD oo (FINDGOAL ooo cases_tac);
+
+
+
+(** induct method **)
+
+fun induct_rule Type = #induction oo DatatypePackage.datatype_info_err
+  | induct_rule Set = (#induct o #2) oo InductivePackage.get_inductive
+  | induct_rule Function = #induct oo RecdefPackage.get_recdef
+  | induct_rule Rule = PureThy.get_thm;
+
+fun induct_tac (insts, opt_kind_name) ctxt =
   let
+    val thy = ProofContext.theory_of ctxt;
+    val sign = Theory.sign_of thy;
+    val cert = Thm.cterm_of sign;
+
     val (kind, name) =
-      (case opt_kind_name of Some kind_name => kind_name | None =>
-        (case try (#1 o Term.dest_Type o Term.type_of o #2 o hd) insts of
-          Some name => (Type, name)
-        | None => error "Unable to figure out induction rule"));
-    val rule = Drule.incr_indexes_wrt [] [] [] [state] (induct_rule thy kind name);
+      (case opt_kind_name of
+        Some (kind, bname) => (kind, intern_kind kind sign bname)
+      | None =>
+          (case try (#1 o Term.dest_Type o Term.type_of o Library.last_elem o hd) insts of
+            Some name => (Type, name)
+          | None => error "Unable to figure out induction rule"));
+    val rule = induct_rule kind thy name;
 
-    val cert = Thm.cterm_of (Sign.merge (pairself Thm.sign_of_thm (state, rule)));
-
-    fun prep_inst ((P $ x), (Some Q, y)) = [(cert P, cert Q), (cert x, cert y)]
-      | prep_inst ((_ $ x), (None, y)) = [(cert x, cert y)]
-      | prep_inst _ = raise THM ("Malformed induction rule", 0, [rule]);
+    fun prep_inst (concl, ts) =
+      let
+        val xs = vars_of concl;
+        val n = length xs - length ts;
+      in
+        if n < 0 then raise THM ("More arguments given than in induction rule", 0, [rule])
+        else map cert (Library.drop (n, xs)) ~~ map cert ts
+      end;
 
     val prep_insts = flat o map2 prep_inst;
 
@@ -62,25 +109,48 @@ fun induct_tac thy insts opt_kind_name facts i state =
       if null insts then rule
       else Drule.cterm_instantiate (prep_insts
         (DatatypeAux.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule)), insts)) rule;
-  in Method.rule_tac [inst_rule] facts i state end;
+  in Method.rule_tac [inst_rule] end;
+
+val induct_meth = Method.METHOD oo (FINDGOAL ooo induct_tac);
 
 
-(* induct_method *)
 
-val term = Scan.unless (Scan.lift kind) Args.local_term;
-val inst = term -- term >> (apfst Some) || term >> pair None;
+(** concrete syntax **)
 
-fun induct ctxt =
-  Args.and_list inst -- Scan.option (Scan.lift (kind -- Args.name))
-  >> (fn (is, k) => Method.METHOD (FINDGOAL o induct_tac (ProofContext.theory_of ctxt) is k));
+local
 
-fun induct_meth src ctxt = #2 (Method.syntax (induct ctxt) ctxt src);
-val induct_method = ("induct", induct_meth, "induction on types, sets, functions etc.");
+val kind_name =
+  Args.$$$ "type" >> K Type ||
+  Args.$$$ "set" >> K Set ||
+  Args.$$$ "function" >> K Function ||
+  Args.$$$ "rule" >> K Rule;
+
+val kind_spec = kind_name --| Args.$$$ ":";
+
+val kind = Scan.lift (kind_spec -- Args.name);
+val term = Scan.unless (Scan.lift (Scan.option (Args.$$$ "in") -- kind_spec)) Args.local_term;
+
+fun argument is_empty arg = arg :-- (fn x =>
+  Scan.option (if is_empty x then kind else Scan.lift (Args.$$$ "in") |-- kind));
+
+in
+
+fun cases_args f src ctxt =
+  f (#2 (Method.syntax (argument is_none (Scan.option term)) src ctxt)) ctxt;
+
+fun induct_args f src ctxt =
+  f (#2 (Method.syntax (argument null (Args.and_list (Scan.repeat1 term))) src ctxt)) ctxt;
+
+end;
 
 
-(* theory setup *)
 
-val setup = [Method.add_methods [induct_method]];
+(** theory setup **)
+
+val setup =
+ [Method.add_methods
+  [("cases", cases_args cases_meth, "case analysis on types / sets"),
+   ("induct", induct_args induct_meth, "induction on types / sets / functions")]];
 
 
 end;
