@@ -18,6 +18,9 @@ signature DRULE =
   val assume_ax		: theory -> string -> thm
   val COMP		: thm * thm -> thm
   val compose		: thm * int * thm -> thm list
+  val cprems_of		: thm -> cterm list
+  val cskip_flexpairs	: cterm -> cterm
+  val cstrip_imp_prems	: cterm -> cterm list
   val cterm_instantiate	: (cterm*cterm)list -> thm -> thm
   val cut_rl		: thm
   val equal_abs_elim	: cterm  -> thm -> thm
@@ -216,6 +219,25 @@ val add_defs = ext_defns read_axm;
 
 
 (**** More derived rules and operations on theorems ****)
+
+(** some cterm->cterm operations: much faster than calling cterm_of! **)
+
+(*Discard flexflex pairs; return a cterm*)
+fun cskip_flexpairs ct =
+    case term_of ct of
+	(Const("==>", _) $ (Const("=?=",_)$_$_) $ _) =>
+	    cskip_flexpairs (#2 (dest_cimplies ct))
+      | _ => ct;
+
+(* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
+fun cstrip_imp_prems ct =
+    let val (cA,cB) = dest_cimplies ct
+    in  cA :: cstrip_imp_prems cB  end
+    handle TERM _ => [];
+
+(*The premises of a theorem, as a cterm list*)
+val cprems_of = cstrip_imp_prems o cskip_flexpairs o cprop_of;
+
 
 (** reading of instantiations **)
 
