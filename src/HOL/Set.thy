@@ -868,6 +868,16 @@ lemma psubset_eq: "(A \<subset> B) = (A \<subseteq> B & A \<noteq> B)"
 lemma psubset_imp_subset: "A \<subset> B ==> A \<subseteq> B"
   by (simp add: psubset_eq)
 
+lemma psubset_trans: "[| A \<subset> B; B \<subset> C |] ==> A \<subset> C"
+apply (unfold psubset_def)
+apply (auto dest: subset_antisym)
+done
+
+lemma psubsetD: "[| A \<subset> B; c \<in> A |] ==> c \<in> B"
+apply (unfold psubset_def)
+apply (auto dest: subsetD)
+done
+
 lemma psubset_subset_trans: "A \<subset> B ==> B \<subseteq> C ==> A \<subset> C"
   by (auto simp add: psubset_eq)
 

@@ -7,26 +7,6 @@
 
 theory RealDef = PReal:
 
-(*MOVE TO THEORY PREAL*)
-instance preal :: order
-proof qed
- (assumption |
-  rule preal_le_refl preal_le_trans preal_le_anti_sym preal_less_le)+
-
-instance preal :: order
-  by (intro_classes,
-      (assumption | 
-       rule preal_le_refl preal_le_trans preal_le_anti_sym preal_less_le)+)
-
-lemma preal_le_linear: "x <= y | y <= (x::preal)"
-apply (insert preal_linear [of x y]) 
-apply (auto simp add: order_less_le) 
-done
-
-instance preal :: linorder
-  by (intro_classes, rule preal_le_linear)
-
-
 constdefs
   realrel   ::  "((preal * preal) * (preal * preal)) set"
   "realrel == {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
@@ -781,8 +761,8 @@ by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
 lemma real_of_preal_le_iff:
      "(real_of_preal m1 \<le> real_of_preal m2) = (m1 \<le> m2)"
-apply (auto intro!: preal_leI simp add: linorder_not_less [symmetric])
-done
+by (auto intro!: preal_le_iff_less_or_eq [THEN iffD1]  
+          simp add: linorder_not_less [symmetric])
 
 
 subsection{*Monotonicity of Addition*}
@@ -797,11 +777,15 @@ done
 lemma real_less_add_positive_left_Ex: "R < S ==> \<exists>T::real. 0 < T & R + T = S"
 apply (rule_tac x = R in real_of_preal_trichotomyE)
 apply (rule_tac [!] x = S in real_of_preal_trichotomyE)
-apply (auto dest!: preal_less_add_left_Ex simp add: real_of_preal_not_minus_gt_all real_of_preal_add real_of_preal_not_less_zero real_less_not_refl real_of_preal_not_minus_gt_zero real_of_preal_minus_less_rev_iff)
+apply (auto dest!: preal_less_add_left_Ex 
+        simp add: real_of_preal_not_minus_gt_all real_of_preal_add
+                real_of_preal_not_less_zero real_less_not_refl 
+             real_of_preal_not_minus_gt_zero real_of_preal_minus_less_rev_iff)
 apply (rule real_of_preal_zero_less) 
 apply (rule_tac [1] x = "real_of_preal m+real_of_preal ma" in exI)
 apply (rule_tac [2] x = "real_of_preal D" in exI)
-apply (auto simp add: real_of_preal_minus_less_rev_iff real_of_preal_zero_less real_of_preal_sum_zero_less real_add_assoc)
+apply (auto simp add: real_of_preal_minus_less_rev_iff real_of_preal_zero_less
+                 real_of_preal_sum_zero_less real_add_assoc)
 apply (simp add: real_add_assoc [symmetric])
 done
 

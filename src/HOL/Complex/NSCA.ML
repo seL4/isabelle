@@ -420,9 +420,9 @@ qed "Infinitesimal_capprox";
 val prem1::prem2::rest = 
 goalw thy [capprox_def,hcomplex_diff_def] 
      "[| a @c= b; c @c= d |] ==> a+c @c= b+d";
-by (rtac (hcomplex_minus_add_distrib RS ssubst) 1);
+by (rtac (minus_add_distrib RS ssubst) 1);
 by (rtac (hcomplex_add_assoc RS ssubst) 1);
-by (res_inst_tac [("y1","c")] (hcomplex_add_left_commute RS subst) 1);
+by (res_inst_tac [("b1","c")] (add_left_commute RS subst) 1);
 by (rtac (hcomplex_add_assoc RS subst) 1);
 by (rtac ([prem1,prem2] MRS CInfinitesimal_add) 1);
 qed "capprox_add";
@@ -449,7 +449,7 @@ qed "capprox_add_minus";
 Goalw [capprox_def,hcomplex_diff_def] 
       "[| a @c= b; c: CFinite|] ==> a*c @c= b*c"; 
 by (asm_full_simp_tac (HOL_ss addsimps [CInfinitesimal_CFinite_mult,
-    hcomplex_minus_mult_eq1,hcomplex_add_mult_distrib RS sym]) 1);
+    minus_mult_left,hcomplex_add_mult_distrib RS sym]) 1);
 qed "capprox_mult1";
 
 Goal "[|a @c= b; c: CFinite|] ==> c*a @c= c*b"; 
@@ -525,8 +525,8 @@ qed "CInfinitesimal_add_right_cancel";
 Goal "d + b  @c= d + c ==> b @c= c";
 by (dtac (capprox_minus_iff RS iffD1) 1);
 by (asm_full_simp_tac (simpset() addsimps 
-    [hcomplex_minus_add_distrib,capprox_minus_iff RS sym] 
-    @ hcomplex_add_ac) 1);
+    [minus_add_distrib,capprox_minus_iff RS sym] 
+    @ add_ac) 1);
 qed "capprox_add_left_cancel";
 
 Goal "b + d @c= c + d ==> b @c= c";
@@ -538,7 +538,7 @@ qed "capprox_add_right_cancel";
 Goal "b @c= c ==> d + b @c= d + c";
 by (rtac (capprox_minus_iff RS iffD2) 1);
 by (asm_full_simp_tac (simpset() addsimps 
-    [capprox_minus_iff RS sym] @ hcomplex_add_ac) 1);
+    [capprox_minus_iff RS sym] @ add_ac) 1);
 qed "capprox_add_mono1";
 
 Goal "b @c= c ==> b + a @c= c + a";
@@ -1223,7 +1223,7 @@ by (Step_tac 1);
 by (subgoal_tac "stc (x + y) = stc ((stc x + e) + (stc y + ea))" 1);
 by (dtac sym 2 THEN dtac sym 2);
 by (Asm_full_simp_tac 2);
-by (asm_simp_tac (simpset() addsimps hcomplex_add_ac) 1);
+by (asm_simp_tac (simpset() addsimps add_ac) 1);
 by (REPEAT(dtac stc_SComplex 1));
 by (dtac SComplex_add 1 THEN assume_tac 1);
 by (dtac CInfinitesimal_add 1 THEN assume_tac 1);
@@ -1268,7 +1268,7 @@ by (forw_inst_tac [("x","e"),("y","y")] CInfinitesimal_CFinite_mult 1);
 by (forw_inst_tac [("x","ea"),("y","x")] CInfinitesimal_CFinite_mult 2);
 by (dtac CInfinitesimal_mult 3);
 by (auto_tac (claset() addIs [CInfinitesimal_add],
-              simpset() addsimps hcomplex_add_ac @ hcomplex_mult_ac));
+              simpset() addsimps add_ac @ mult_ac));
 qed "lemma_stc_mult";
 
 Goal "[| x: CFinite; y: CFinite |] \
@@ -1282,7 +1282,7 @@ by (Asm_full_simp_tac 2);
 by (thin_tac "x = stc x + e" 1);
 by (thin_tac "y = stc y + ea" 1);
 by (asm_full_simp_tac (simpset() addsimps 
-    [hcomplex_add_mult_distrib,hcomplex_add_mult_distrib2]) 1);
+    [hcomplex_add_mult_distrib,right_distrib]) 1);
 by (REPEAT(dtac stc_SComplex 1));
 by (full_simp_tac (simpset() addsimps [hcomplex_add_assoc]) 1);
 by (rtac stc_CInfinitesimal_add_SComplex 1);

@@ -5,9 +5,9 @@
                   differentiation for complex functions
 *)
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Limit of complex to complex function                                               *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goalw [NSCLIM_def,NSCRLIM_def] 
    "f -- a --NSC> L ==> (%x. Re(f x)) -- a --NSCR> Re(L)";
@@ -106,9 +106,9 @@ Goal "(f -- x --C> L) = (f -- x --NSC> L)";
 by (blast_tac (claset() addIs [CLIM_NSCLIM,NSCLIM_CLIM]) 1);
 qed "CLIM_NSCLIM_iff";
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Limit of complex to real function                                                  *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goalw [CRLIM_def,NSCRLIM_def,capprox_def] 
       "f -- x --CR> L ==> f -- x --NSCR> L";
@@ -409,9 +409,9 @@ by (auto_tac (claset(),simpset() addsimps [CLIM_NSCLIM_iff,CRLIM_NSCRLIM_iff,
 qed "CLIM_CRLIM_Re_Im_iff";
 
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Continuity                                                                         *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goalw [isNSContc_def] 
       "[| isNSContc f a; y @c= hcomplex_of_complex a |] \
@@ -552,9 +552,9 @@ qed "isNSContc_const";
 Addsimps [isNSContc_const];
 
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* functions from complex to reals                                                    *)
-(* -----------------------------------------------------------------------------------*)
+(* ----------------------------------------------------------------------*)
 
 Goalw [isNSContCR_def] 
       "[| isNSContCR f a; y @c= hcomplex_of_complex a |] \
@@ -619,9 +619,9 @@ Goalw [isContc_def,isContCR_def]
 by (etac CLIM_CRLIM_Im 1);
 qed "isContc_isContCR_Im"; 
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Derivatives                                                                        *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goalw [cderiv_def] 
       "(CDERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --C> D)";
@@ -661,9 +661,9 @@ by (auto_tac (claset() addSDs [inst "x" "hcomplex_of_hypreal epsilon" bspec]
 qed "NSCDeriv_unique";
 
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Differentiability                                                                  *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goalw [cdifferentiable_def] 
       "f cdifferentiable x ==> EX D. CDERIV f x :> D";
@@ -686,9 +686,9 @@ by (Blast_tac 1);
 qed "NSCdifferentiableI";
 
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Alternative definition for differentiability                                       *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goalw [CLIM_def] 
  "((%h. (f(a + h) - f(a))/h) -- 0 --C> D) = \
@@ -710,9 +710,9 @@ by (simp_tac (simpset() addsimps [CDERIV_CLIM_iff]) 1);
 qed "CDERIV_iff2";
 
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Equivalence of NS and standard defs of differentiation                             *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 (*** first equivalence ***)
 Goalw [nscderiv_def,NSCLIM_def] 
@@ -767,10 +767,10 @@ by (asm_full_simp_tac (simpset() addsimps [NSCDERIV_CDERIV_iff RS sym,
     isNSContc_isContc_iff RS sym,NSCDERIV_isNSContc]) 1);
 qed "CDERIV_isContc";
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Differentiation rules for combinations of functions follow from clear,             *)
 (* straightforard, algebraic manipulations                                            *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 (* use simple constant nslimit theorem *)
 Goal "(NSCDERIV (%x. k) x :> 0)";
@@ -791,7 +791,7 @@ by (auto_tac (claset(),
        simpset() addsimps [hcomplex_add_divide_distrib,hcomplex_diff_def]));
 by (dres_inst_tac [("b","hcomplex_of_complex Da"),
                    ("d","hcomplex_of_complex Db")] capprox_add 1);
-by (auto_tac (claset(), simpset() addsimps hcomplex_add_ac));
+by (auto_tac (claset(), simpset() addsimps add_ac));
 qed "NSCDERIV_add";
 
 Goal "[| CDERIV f x :> Da; CDERIV g x :> Db |] \
@@ -803,7 +803,7 @@ qed "CDERIV_add";
 (*** lemmas for multiplication ***)
 
 Goal "((a::hcomplex)*b) - (c*d) = (b*(a - c)) + (c*(b - d))";
-by (simp_tac (simpset() addsimps [hcomplex_diff_mult_distrib2]) 1);
+by (simp_tac (simpset() addsimps [right_diff_distrib]) 1);
 val lemma_nscderiv1 = result();
 
 Goal "[| (x + y) / z = hcomplex_of_complex D + yb; z ~= 0; \
@@ -833,7 +833,7 @@ by (rewtac hcomplex_diff_def);
 by (dres_inst_tac [("D","Db")] lemma_nscderiv2 1);
 by (dtac (capprox_minus_iff RS iffD2 RS (bex_CInfinitesimal_iff2 RS iffD2)) 4);
 by (auto_tac (claset() addSIs [capprox_add_mono1],
-      simpset() addsimps [hcomplex_add_mult_distrib, hcomplex_add_mult_distrib2, 
+      simpset() addsimps [hcomplex_add_mult_distrib, right_distrib, 
 			  hcomplex_mult_commute, hcomplex_add_assoc]));
 by (res_inst_tac [("w1","hcomplex_of_complex Db * hcomplex_of_complex (f x)")]
     (hcomplex_add_commute RS subst) 1);
@@ -855,7 +855,10 @@ by (asm_full_simp_tac
     (simpset() addsimps [complex_times_divide1_eq RS sym, NSCDERIV_NSCLIM_iff,
                          complex_minus_mult_eq2, complex_add_mult_distrib2 RS sym,
                          complex_diff_def] 
-             delsimps [complex_times_divide1_eq, complex_minus_mult_eq2 RS sym]) 1);
+             delsimps [complex_times_divide1_eq, complex_minus_mult_eq2 RS sym]
+             delsimps [times_divide_eq_right, minus_mult_right RS sym]
+
+) 1);
 by (etac (NSCLIM_const RS NSCLIM_mult) 1);
 qed "NSCDERIV_cmult";
 
@@ -868,7 +871,10 @@ Goal "NSCDERIV f x :> D ==> NSCDERIV (%x. -(f x)) x :> -D";
 by (asm_full_simp_tac (simpset() addsimps [NSCDERIV_NSCLIM_iff,complex_diff_def]) 1);
 by (res_inst_tac [("t","f x")] (complex_minus_minus RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [complex_minus_add_distrib RS sym] 
-                   delsimps [complex_minus_add_distrib, complex_minus_minus]) 1);
+                   delsimps [complex_minus_add_distrib, complex_minus_minus]
+                   delsimps [minus_add_distrib, minus_minus]
+
+) 1);
 by (etac NSCLIM_minus 1);
 qed "NSCDERIV_minus";
 
@@ -995,9 +1001,9 @@ Goal "[| CDERIV f (g x) :> Da; CDERIV g x :> Db |] \
 by (auto_tac (claset() addDs [CDERIV_chain], simpset() addsimps [o_def]));
 qed "CDERIV_chain2";
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Differentiation of natural number powers                                           *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goal "NSCDERIV (%x. x) x :> 1";
 by (auto_tac (claset(),
@@ -1029,7 +1035,8 @@ by (induct_tac "n" 1);
 by (dtac (CDERIV_Id RS CDERIV_mult) 2);
 by (auto_tac (claset(), 
               simpset() addsimps [complex_of_real_add RS sym,
-              complex_add_mult_distrib,real_of_nat_Suc] delsimps [complex_of_real_add]));
+                        complex_add_mult_distrib,real_of_nat_Suc] 
+                 delsimps [complex_of_real_add]));
 by (case_tac "n" 1);
 by (auto_tac (claset(), 
               simpset() addsimps [complex_mult_assoc, complex_add_commute]));
@@ -1062,24 +1069,19 @@ by (forward_tac [CInfinitesimal_add_not_zero] 1);
 by (asm_full_simp_tac (simpset() addsimps [hcomplex_add_commute,numeral_2_eq_2]) 2); 
 by (auto_tac (claset(),
      simpset() addsimps [starfunC_inverse_inverse,hcomplex_diff_def] 
-               delsimps [minus_mult_right RS sym, minus_mult_left RS sym,
-                         hcomplex_minus_mult_eq1 RS sym,
-                         hcomplex_minus_mult_eq2 RS sym]));
+               delsimps [minus_mult_left RS sym, minus_mult_right RS sym]));
 by (asm_simp_tac
      (simpset() addsimps [inverse_add,
-          inverse_mult_distrib RS sym, hcomplex_minus_inverse RS sym] 
-          @ hcomplex_add_ac @ hcomplex_mult_ac 
+          inverse_mult_distrib RS sym, inverse_minus_eq RS sym] 
+          @ add_ac @ mult_ac 
        delsimps [inverse_minus_eq,
-		 inverse_mult_distrib, minus_mult_right RS sym, minus_mult_left RS sym,
-                         hcomplex_minus_mult_eq1 RS sym,
-                 hcomplex_minus_mult_eq2 RS sym] ) 1);
-by (asm_simp_tac (HOL_ss addsimps [hcomplex_mult_assoc RS sym,
-                                      hcomplex_add_mult_distrib2]) 1);
+		 inverse_mult_distrib, minus_mult_right RS sym, minus_mult_left RS sym] ) 1);
+by (asm_simp_tac (HOL_ss addsimps [mult_assoc RS sym, right_distrib]) 1);
 by (res_inst_tac [("y"," inverse(- hcomplex_of_complex x * hcomplex_of_complex x)")] 
                  capprox_trans 1);
 by (rtac inverse_add_CInfinitesimal_capprox2 1);
 by (auto_tac (claset() addSDs [hcomplex_of_complex_CFinite_diff_CInfinitesimal] addIs [CFinite_mult], 
-         simpset() addsimps [hcomplex_minus_inverse RS sym]));
+         simpset() addsimps [inverse_minus_eq RS sym]));
 by (rtac CInfinitesimal_CFinite_mult2 1); 
 by Auto_tac;  
 qed "NSCDERIV_inverse";
@@ -1090,16 +1092,16 @@ by (asm_simp_tac (simpset() addsimps [NSCDERIV_inverse,
 qed "CDERIV_inverse";
 
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Derivative of inverse                                                              *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 Goal "[| CDERIV f x :> d; f(x) ~= 0 |] \
 \     ==> CDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ 2)))";
 by (rtac (complex_mult_commute RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [complex_minus_mult_eq1,
-    complexpow_inverse] delsimps [complexpow_Suc, 
-    complex_minus_mult_eq1 RS sym]) 1);
+    complexpow_inverse] delsimps [complexpow_Suc, minus_mult_left RS sym,
+complex_minus_mult_eq1 RS sym]) 1);
 by (fold_goals_tac [o_def]);
 by (blast_tac (claset() addSIs [CDERIV_chain,CDERIV_inverse]) 1);
 qed "CDERIV_inverse_fun";
@@ -1110,9 +1112,9 @@ by (asm_full_simp_tac (simpset() addsimps [NSCDERIV_CDERIV_iff,
             CDERIV_inverse_fun] delsimps [complexpow_Suc]) 1);
 qed "NSCDERIV_inverse_fun";
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Derivative of quotient                                                             *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 
 Goal "x ~= (0::complex) \\<Longrightarrow> (x * inverse(x) ^ 2) = inverse x";
@@ -1129,8 +1131,7 @@ by (REPEAT(assume_tac 1));
 by (asm_full_simp_tac
     (simpset() addsimps [complex_divide_def, complex_add_mult_distrib2,
                          complexpow_inverse,complex_minus_mult_eq1] @ complex_mult_ac 
-       delsimps [complexpow_Suc, complex_minus_mult_eq1 RS sym,
-                 complex_minus_mult_eq2 RS sym]) 1);
+       delsimps [complexpow_Suc, minus_mult_right RS sym, minus_mult_left RS sym]) 1);
 qed "CDERIV_quotient";
 
 Goal "[| NSCDERIV f x :> d; NSCDERIV g x :> e; g(x) ~= 0 |] \
@@ -1140,9 +1141,9 @@ by (asm_full_simp_tac (simpset() addsimps [NSCDERIV_CDERIV_iff,
 qed "NSCDERIV_quotient";
  
 
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 (* Caratheodory formulation of derivative at a point: standard proof                  *)
-(*------------------------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------*)
 
 
 Goalw [CLIM_def] 

@@ -24,8 +24,6 @@ qed "complex_inverse_eq_divide";
 Goal "(inverse(x::complex) = 0) = (x = 0)";
 by (auto_tac (claset(), 
               simpset() addsimps [COMPLEX_INVERSE_ZERO]));  
-by (rtac ccontr 1); 
-by (blast_tac (claset() addDs [complex_inverse_not_zero]) 1); 
 qed "complex_inverse_zero_iff";
 Addsimps [complex_inverse_zero_iff];
 
@@ -287,7 +285,6 @@ Addsimps [complex_add_minus_iff];
 
 Goal "(-b = -a) = (b = (a::complex))";
 by Auto_tac;
-by (etac ( inj_complex_minus RS injD) 1);
 qed "complex_minus_eq_cancel";
 Addsimps [complex_minus_eq_cancel];
 

@@ -152,7 +152,7 @@ qed "hcomplex_add_number_of_diff1";
 
 Goal "number_of v + (c - number_of w) = \
 \     number_of (bin_add v (bin_minus w)) + (c::hcomplex)";
-by (auto_tac (claset(),simpset() addsimps [hcomplex_diff_def]@ hcomplex_add_ac));
+by (auto_tac (claset(),simpset() addsimps [hcomplex_diff_def]@ add_ac));
 qed "hcomplex_add_number_of_diff2";
 
 Addsimps [hcomplex_add_number_of_left, hcomplex_mult_number_of_left,
@@ -171,7 +171,7 @@ qed "hcomplex_eq_iff_diff_eq_0";
 
 Goal "i*u + (j*u + k) = (i+j)*u + (k::hcomplex)";
 by (asm_simp_tac (simpset() addsimps [hcomplex_add_mult_distrib]
-    @ hcomplex_add_ac) 1);
+    @ add_ac) 1);
 qed "left_hcomplex_add_mult_distrib";
 
 (** For cancel_numerals **)
@@ -188,7 +188,7 @@ val hcomplex_rel_iff_rel_0_rls = [hcomplex_eq_diff_eq_0,hcomplex_eq_add_diff_eq_
 
 Goal "!!i::hcomplex. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
 by (auto_tac (claset(), simpset() addsimps [hcomplex_add_mult_distrib,
-    hcomplex_diff_def] @ hcomplex_add_ac));
+    hcomplex_diff_def] @ add_ac));
 by (asm_simp_tac (simpset() addsimps [hcomplex_add_assoc RS sym]) 1);
 by (simp_tac (simpset() addsimps [hcomplex_add_assoc]) 1);
 qed "hcomplex_eq_add_iff1";
@@ -309,29 +309,27 @@ val hcomplex_minus_simps = NCons_simps @
 
 
 (*To let us treat subtraction as addition*)
-val diff_simps = [hcomplex_diff_def, hcomplex_minus_add_distrib, 
-                  minus_minus];
+val diff_simps = [hcomplex_diff_def, minus_add_distrib, minus_minus];
 
 (*push the unary minus down: - x * y = x * - y *)
 val hcomplex_minus_mult_eq_1_to_2 = 
-    [hcomplex_minus_mult_eq1 RS sym, hcomplex_minus_mult_eq2] MRS trans 
+    [minus_mult_left RS sym, minus_mult_right] MRS trans 
     |> standard;
 
 (*to extract again any uncancelled minuses*)
 val hcomplex_minus_from_mult_simps = 
-    [minus_minus, hcomplex_minus_mult_eq1 RS sym, 
-     hcomplex_minus_mult_eq2 RS sym];
+    [minus_minus, minus_mult_left RS sym, minus_mult_right RS sym];
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val hcomplex_mult_minus_simps =
-    [hcomplex_mult_assoc, hcomplex_minus_mult_eq1, hcomplex_minus_mult_eq_1_to_2];
+    [hcomplex_mult_assoc, minus_mult_left, hcomplex_minus_mult_eq_1_to_2];
 
 (*Final simplification: cancel + and *  *)
 val simplify_meta_eq = 
     Int_Numeral_Simprocs.simplify_meta_eq
-         [hcomplex_add_zero_left, hcomplex_add_zero_right,
- 	  hcomplex_mult_zero_left, hcomplex_mult_zero_right, hcomplex_mult_one_left, 
-          hcomplex_mult_one_right];
+         [add_zero_left, add_zero_right,
+ 	  mult_left_zero, mult_right_zero, mult_1, 
+          mult_1_right];
 
 val prep_simproc = Complex_Numeral_Simprocs.prep_simproc;
 
@@ -346,11 +344,11 @@ structure CancelNumeralsCommon =
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac = 
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                         hcomplex_minus_simps@hcomplex_add_ac))
+                                         hcomplex_minus_simps@add_ac))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@hcomplex_mult_minus_simps))
      THEN ALLGOALS
               (simp_tac (HOL_ss addsimps hcomplex_minus_from_mult_simps@
-                                         hcomplex_add_ac@hcomplex_mult_ac))
+                                         add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end;
@@ -386,10 +384,10 @@ structure CombineNumeralsData =
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac = 
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                         hcomplex_minus_simps@hcomplex_add_ac))
+                                         hcomplex_minus_simps@add_ac))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps non_add_bin_simps@hcomplex_mult_minus_simps))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps hcomplex_minus_from_mult_simps@
-                                              hcomplex_add_ac@hcomplex_mult_ac))
+                                              add_ac@mult_ac))
   val numeral_simp_tac	= ALLGOALS 
                     (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -501,7 +499,7 @@ struct
   val sg_ref    = Sign.self_ref (Theory.sign_of (the_context ()))
   val T	     = HComplex_Numeral_Simprocs.hcomplexT
   val plus   = Const ("op *", [T,T] ---> T)
-  val add_ac = hcomplex_mult_ac
+  val add_ac = mult_ac
 end;
 
 structure HComplex_Times_Assoc = Assoc_Fold (HComplex_Times_Assoc_Data);

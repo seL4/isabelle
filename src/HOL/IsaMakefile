@@ -139,7 +139,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Real/Complex_Numbers.thy \
   Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
   Real/PRat.ML Real/PRat.thy \
-  Real/PReal.ML Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
+  Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
   Real/ROOT.ML Real/Real.thy \
   Real/RealArith0.thy Real/real_arith0.ML \
   Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \

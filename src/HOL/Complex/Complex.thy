@@ -483,28 +483,6 @@ apply (rule_tac z = y in eq_Abs_complex)
 apply (auto simp add: complex_mult complex_minus real_diff_def)
 done
 
-declare complex_minus_mult_eq1 [symmetric, simp] complex_minus_mult_eq2 [symmetric, simp]
-
-lemma complex_mult_minus_one: "-(1::complex) * z = -z"
-apply (simp (no_asm))
-done
-declare complex_mult_minus_one [simp]
-
-lemma complex_mult_minus_one_right: "z * -(1::complex) = -z"
-apply (subst complex_mult_commute)
-apply (simp (no_asm))
-done
-declare complex_mult_minus_one_right [simp]
-
-lemma complex_minus_mult_cancel: "-x * -y = x * (y::complex)"
-apply (simp (no_asm))
-done
-declare complex_minus_mult_cancel [simp]
-
-lemma complex_minus_mult_commute: "-x * y = x * -(y::complex)"
-apply (simp (no_asm))
-done
-
 lemma complex_add_mult_distrib: "((z1::complex) + z2) * w = (z1 * w) + (z2 * w)"
 apply (rule_tac z = z1 in eq_Abs_complex)
 apply (rule_tac z = z2 in eq_Abs_complex)
@@ -541,6 +519,13 @@ lemma COMPLEX_DIVISION_BY_ZERO: "a / (0::complex) = 0"
 apply (simp (no_asm) add: complex_divide_def COMPLEX_INVERSE_ZERO)
 done
 
+instance complex :: division_by_zero
+proof
+  fix x :: complex
+  show "inverse 0 = (0::complex)" by (rule COMPLEX_INVERSE_ZERO)
+  show "x/0 = 0" by (rule COMPLEX_DIVISION_BY_ZERO) 
+qed
+
 lemma complex_mult_inv_left: "z ~= (0::complex) ==> inverse(z) * z = 1"
 apply (rule_tac z = z in eq_Abs_complex)
 apply (auto simp add: complex_mult complex_inverse complex_one_def 
@@ -553,6 +538,61 @@ declare complex_mult_inv_left [simp]
 lemma complex_mult_inv_right: "z ~= (0::complex) ==> z * inverse(z) = 1"
 by (auto intro: complex_mult_commute [THEN subst])
 declare complex_mult_inv_right [simp]
+
+
+subsection {* The field of complex numbers *}
+
+instance complex :: field
+proof
+  fix z u v w :: complex
+  show "(u + v) + w = u + (v + w)"
+    by (rule complex_add_assoc) 
+  show "z + w = w + z"
+    by (rule complex_add_commute) 
+  show "0 + z = z"
+    by (rule complex_add_zero_left) 
+  show "-z + z = 0"
+    by (rule complex_add_minus_left_zero) 
+  show "z - w = z + -w"
+    by (simp add: complex_diff_def)
+  show "(u * v) * w = u * (v * w)"
+    by (rule complex_mult_assoc) 
+  show "z * w = w * z"
+    by (rule complex_mult_commute) 
+  show "1 * z = z"
+    by (rule complex_mult_one_left) 
+  show "0 \<noteq> (1::complex)"  --{*for some reason it has to be early*}
+    by (rule complex_zero_not_eq_one) 
+  show "(u + v) * w = u * w + v * w"
+    by (rule complex_add_mult_distrib) 
+  assume neq: "w \<noteq> 0"
+  thus "z / w = z * inverse w"
+    by (simp add: complex_divide_def)
+  show "inverse w * w = 1"
+    by (simp add: neq complex_mult_inv_left) 
+qed
+
+
+lemma complex_mult_minus_one: "-(1::complex) * z = -z"
+apply (simp (no_asm))
+done
+declare complex_mult_minus_one [simp]
+
+lemma complex_mult_minus_one_right: "z * -(1::complex) = -z"
+apply (subst complex_mult_commute)
+apply (simp (no_asm))
+done
+declare complex_mult_minus_one_right [simp]
+
+lemma complex_minus_mult_cancel: "-x * -y = x * (y::complex)"
+apply (simp (no_asm))
+done
+declare complex_minus_mult_cancel [simp]
+
+lemma complex_minus_mult_commute: "-x * y = x * -(y::complex)"
+apply (simp (no_asm))
+done
+
 
 lemma complex_mult_left_cancel: "(c::complex) ~= 0 ==> (c*a=c*b) = (a=b)"
 apply auto
@@ -603,11 +643,7 @@ apply (subst complex_mult_inv_left, auto)
 done
 
 lemma complex_inverse_distrib: "inverse(x*y) = inverse x * inverse (y::complex)"
-apply (case_tac "x = 0", simp add: COMPLEX_INVERSE_ZERO)
-apply (case_tac "y = 0", simp add: COMPLEX_INVERSE_ZERO)
-apply (rule_tac c1 = "x*y" in complex_mult_left_cancel [THEN iffD1])
-apply (auto simp add: complex_mult_not_zero complex_mult_ac)
-apply (auto simp add: complex_mult_not_zero complex_mult_assoc [symmetric])
+apply (rule inverse_mult_distrib) 
 done
 
 

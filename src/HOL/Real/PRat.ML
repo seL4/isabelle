@@ -482,9 +482,9 @@ by (asm_full_simp_tac (simpset() addsimps [prat_add,
 by (asm_full_simp_tac (simpset() addsimps pnat_mult_ac) 1);
 qed "prat_linear";
 
-Goal "!!(q1::prat). [| q1 < q2 ==> P;  q1 = q2 ==> P; \
-\          q2 < q1 ==> P |] ==> P";
-by (cut_inst_tac [("q1.0","q1"),("q2.0","q2")] prat_linear 1);
+Goal "!!(x::prat). [| x < y ==> P;  x = y ==> P; \
+\          y < x ==> P |] ==> P";
+by (cut_inst_tac [("q1.0","x"),("q2.0","y")] prat_linear 1);
 by Auto_tac;
 qed "prat_linear_less2";
 
@@ -510,7 +510,7 @@ by (auto_tac (claset(),simpset() addsimps
 qed "lemma2_qinv_prat_less";
 
 Goal "q1 < q2  ==> qinv (q2) < qinv (q1)";
-by (res_inst_tac [("q2.0","qinv q1"), ("q1.0","qinv q2")] prat_linear_less2 1);
+by (res_inst_tac [("y","qinv q1"), ("x","qinv q2")] prat_linear_less2 1);
 by (auto_tac (claset() addEs [lemma1_qinv_prat_less,
                  lemma2_qinv_prat_less],simpset()));
 qed "qinv_prat_less";

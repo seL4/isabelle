@@ -19,7 +19,7 @@ structure CancelNumeralFactorCommon =
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps hcomplex_minus_from_mult_simps @ mult_1s))
                  THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@hcomplex_mult_minus_simps))
-                 THEN ALLGOALS (simp_tac (HOL_ss addsimps hcomplex_mult_ac))
+                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
   val numeral_simp_tac	= 
          ALLGOALS (simp_tac (HOL_ss addsimps rel_hcomplex_number_of@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -107,7 +107,7 @@ structure CancelFactorCommon =
   val dest_coeff	= dest_coeff
   val find_first	= find_first []
   val trans_tac         = Real_Numeral_Simprocs.trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@hcomplex_mult_ac))
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@mult_ac))
   end;
 
 
