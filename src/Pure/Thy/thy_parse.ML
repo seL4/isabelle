@@ -437,9 +437,14 @@ type syntax =
   lexicon * (token list -> (string * string) * token list) Symtab.table;
 
 fun make_syntax keywords sects =
-  (make_lexicon (map fst sects @ keywords),
-    Symtab.make sects handle Symtab.DUPS dups =>
-      error ("Duplicate sections in theory file syntax: " ^ commas_quote dups));
+  let
+    val dups = duplicates (map fst sects);
+    val sects' = gen_distinct eq_fst sects;
+  in
+    if null dups then ()
+    else warning ("Duplicate declaration of theory file sections:\n" ^ commas_quote dups);
+    (make_lexicon (map fst sects' @ keywords), Symtab.make sects')
+  end;
 
 
 (* header *)
@@ -511,6 +516,7 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     \|> Theory.add_name " ^ quote thy_name ^ ";\n\
     \\n\
     \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
+    \val _ = context thy;\n\
     \\n\
     \\n"
     ^ postxt ^ "\n\
