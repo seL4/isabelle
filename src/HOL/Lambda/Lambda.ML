@@ -140,20 +140,20 @@ qed "substn_subst_0";
 
 Goal "r -> s ==> !t i. r[t/i] -> s[t/i]";
 be beta.induct 1;
-by(ALLGOALS (asm_simp_tac (simpset() addsimps [subst_subst RS sym])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [subst_subst RS sym])));
 qed_spec_mp "subst_preserves_beta";
 Addsimps [subst_preserves_beta];
 
 Goal "r -> s ==> !i. lift r i -> lift s i";
 be beta.induct 1;
-by(Auto_tac);
+by (Auto_tac);
 qed_spec_mp "lift_preserves_beta";
 Addsimps [lift_preserves_beta];
 
 Goal "!r s i. r -> s --> t[r/i] ->> t[s/i]";
-by(induct_tac "t" 1);
-by(asm_simp_tac (addsplit(simpset() addsimps [r_into_rtrancl])) 1);
-by(asm_simp_tac (simpset() addsimps [rtrancl_beta_App]) 1);
-by(asm_simp_tac (simpset() addsimps [rtrancl_beta_Abs]) 1);
+by (induct_tac "t" 1);
+by (asm_simp_tac (addsplit(simpset() addsimps [r_into_rtrancl])) 1);
+by (asm_simp_tac (simpset() addsimps [rtrancl_beta_App]) 1);
+by (asm_simp_tac (simpset() addsimps [rtrancl_beta_Abs]) 1);
 qed_spec_mp "subst_preserves_beta2";
 Addsimps [subst_preserves_beta2];

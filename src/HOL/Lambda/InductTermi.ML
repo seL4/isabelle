@@ -8,37 +8,37 @@
 
 Goal "s : termi beta ==> !t. t : termi beta --> \
 \     (!r ss. t = r[s/0]$$ss --> Abs r $ s $$ ss : termi beta)";
-be acc_induct 1;
-be thin_rl 1;
-br allI 1;
-br impI 1;
-be acc_induct 1;
-by(Clarify_tac 1);
-br accI 1;
-by(safe_tac (claset() addSEs [apps_betasE]));
-   ba 1;
-  by(blast_tac (claset() addIs [subst_preserves_beta,apps_preserves_beta]) 1);
- by(blast_tac (claset()
+by (etac acc_induct 1);
+by (etac thin_rl 1);
+by (rtac allI 1);
+by (rtac impI 1);
+by (etac acc_induct 1);
+by (Clarify_tac 1);
+by (rtac accI 1);
+by (safe_tac (claset() addSEs [apps_betasE]));
+   by (assume_tac 1);
+  by (blast_tac (claset() addIs [subst_preserves_beta,apps_preserves_beta]) 1);
+ by (blast_tac (claset()
     addIs [apps_preserves_beta2,subst_preserves_beta2,rtrancl_converseI]
     addDs [acc_downwards]) 1);
 (* FIXME: acc_downwards can be replaced by acc(R ^* ) = acc(r) *)
-by(blast_tac (claset() addDs [apps_preserves_betas]) 1);
+by (blast_tac (claset() addDs [apps_preserves_betas]) 1);
 qed_spec_mp "double_induction_lemma";
 
 Goal "t : IT ==> t : termi(beta)";
 be IT.induct 1;
-  bd rev_subsetD 1;
-   br lists_mono 1;
-   br Int_lower2 1;
-  by(Asm_full_simp_tac 1);
-  bd lists_accD 1;
-  be acc_induct 1;
-  br accI 1;
-  by(blast_tac (claset() addSDs [head_Var_reduction]) 1);
- be acc_induct 1;
- br accI 1;
- by(Blast_tac 1);
-by(blast_tac (claset() addIs [double_induction_lemma]) 1);
+  by (dtac rev_subsetD 1);
+   by (rtac lists_mono 1);
+   by (rtac Int_lower2 1);
+  by (Asm_full_simp_tac 1);
+  by (dtac lists_accD 1);
+  by (etac acc_induct 1);
+  by (rtac accI 1);
+  by (blast_tac (claset() addSDs [head_Var_reduction]) 1);
+ by (etac acc_induct 1);
+ by (rtac accI 1);
+ by (Blast_tac 1);
+by (blast_tac (claset() addIs [double_induction_lemma]) 1);
 qed "IT_implies_termi";
 
 (*** Every terminating term is in IT ***)
@@ -55,69 +55,69 @@ AddSEs IT_cases;
 (* Turned out to be redundant:
 Goal "t : termi beta ==> \
 \     !r rs. t = r$$rs --> r : termi beta & rs : termi(step1 beta)";
-be acc_induct 1;
-by(force_tac (claset()
+by (etac acc_induct 1);
+by (force_tac (claset()
      addIs [apps_preserves_beta,apps_preserves_betas,accI],simpset()) 1);
 val lemma = result();
 
 Goal "r$$rs : termi beta ==> r : termi beta & rs : termi(step1 beta)";
-bd lemma 1;
-by(Blast_tac 1);
+by (dtac lemma 1);
+by (Blast_tac 1);
 qed "apps_in_termi_betaD";
 
 Goal "t : termi beta ==> !r. t = Abs r --> r : termi beta";
-be acc_induct 1;
-by(force_tac (claset() addIs [accI],simpset()) 1);
+by (etac acc_induct 1);
+by (force_tac (claset() addIs [accI],simpset()) 1);
 val lemma = result();
 
 Goal "Abs r : termi beta ==> r : termi beta";
-bd lemma 1;
-by(Blast_tac 1);
+by (dtac lemma 1);
+by (Blast_tac 1);
 qed "Abs_in_termi_betaD";
 
 Goal "t : termi beta ==> !r s. t = r$s --> r : termi beta & s : termi beta";
-be acc_induct 1;
-by(force_tac (claset() addIs [accI],simpset()) 1);
+by (etac acc_induct 1);
+by (force_tac (claset() addIs [accI],simpset()) 1);
 val lemma = result();
 
 Goal "r$s : termi beta ==> r : termi beta & s : termi beta";
-bd lemma 1;
-by(Blast_tac 1);
+by (dtac lemma 1);
+by (Blast_tac 1);
 qed "App_in_termi_betaD";
 *)
 
 Goal "r : termi beta ==> r : IT";
-be acc_induct 1;
-by(rename_tac "r" 1);
-be thin_rl 1;
-be rev_mp 1;
-by(Simp_tac 1);
-by(res_inst_tac [("t","r")] Apps_dB_induct 1);
- by(rename_tac "n ts" 1);
- by(Clarify_tac 1);
+by (etac acc_induct 1);
+by (rename_tac "r" 1);
+by (etac thin_rl 1);
+by (etac rev_mp 1);
+by (Simp_tac 1);
+by (res_inst_tac [("t","r")] Apps_dB_induct 1);
+ by (rename_tac "n ts" 1);
+ by (Clarify_tac 1);
  brs IT.intrs 1;
- by(Clarify_tac 1);
- by(EVERY1[dtac bspec, atac]);
- be mp 1;
-  by(Clarify_tac 1);
-  bd converseI 1;
-  by(EVERY1[dtac ex_step1I, atac]);
-  by(Clarify_tac 1);
-  by(rename_tac "us" 1);
-  by(eres_inst_tac [("x","Var n $$ us")] allE 1);
-  by(Force_tac 1);
-by(rename_tac "u ts" 1);
-by(exhaust_tac "ts" 1);
- by(Asm_full_simp_tac 1);
- by(blast_tac (claset() addIs IT.intrs) 1);
-by(rename_tac "s ss" 1);
-by(Asm_full_simp_tac 1);
-by(Clarify_tac 1);
+ by (Clarify_tac 1);
+ by (EVERY1[dtac bspec, atac]);
+ by (etac mp 1);
+  by (Clarify_tac 1);
+  by (dtac converseI 1);
+  by (EVERY1[dtac ex_step1I, atac]);
+  by (Clarify_tac 1);
+  by (rename_tac "us" 1);
+  by (eres_inst_tac [("x","Var n $$ us")] allE 1);
+  by (Force_tac 1);
+by (rename_tac "u ts" 1);
+by (exhaust_tac "ts" 1);
+ by (Asm_full_simp_tac 1);
+ by (blast_tac (claset() addIs IT.intrs) 1);
+by (rename_tac "s ss" 1);
+by (Asm_full_simp_tac 1);
+by (Clarify_tac 1);
 brs IT.intrs 1;
- by(blast_tac (claset() addIs [apps_preserves_beta]) 1);
-be mp 1;
- by(Clarify_tac 1);
- by(rename_tac "t" 1);
- by(eres_inst_tac [("x","Abs u $ t $$ ss")] allE 1);
- by(Force_tac 1);
+ by (blast_tac (claset() addIs [apps_preserves_beta]) 1);
+by (etac mp 1);
+ by (Clarify_tac 1);
+ by (rename_tac "t" 1);
+ by (eres_inst_tac [("x","Abs u $ t $$ ss")] allE 1);
+ by (Force_tac 1);
 qed "termi_implies_IT";

@@ -201,7 +201,7 @@ by (subgoal_tac "~(k<m)" 1);
 by (asm_simp_tac (simpset() addsimps [div_geq]) 1);
 by (subgoal_tac "(k-n) div n <= (k-m) div n" 1);
 by (REPEAT (eresolve_tac [div_le_mono,diff_le_mono2] 2));
-br le_trans 1;
+by (rtac le_trans 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [diff_less]) 1);
 qed "div_le_mono2";

@@ -7,21 +7,21 @@
 Goal
  "v -> v' ==> !rs. v = (Var n)$$rs --> (? ss. rs => ss & v' = (Var n)$$ss)";
 be beta.induct 1;
-by(Asm_full_simp_tac 1);
-br allI 1;
-by(res_inst_tac [("xs","rs")] rev_exhaust 1);
-by(Asm_full_simp_tac 1);
-by(force_tac (claset() addIs [append_step1I],simpset()) 1);
-br allI 1;
-by(res_inst_tac [("xs","rs")] rev_exhaust 1);
-by(Asm_full_simp_tac 1);
-by(force_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 1);
-by(Asm_full_simp_tac 1);
+by (Asm_full_simp_tac 1);
+by (rtac allI 1);
+by (res_inst_tac [("xs","rs")] rev_exhaust 1);
+by (Asm_full_simp_tac 1);
+by (force_tac (claset() addIs [append_step1I],simpset()) 1);
+by (rtac allI 1);
+by (res_inst_tac [("xs","rs")] rev_exhaust 1);
+by (Asm_full_simp_tac 1);
+by (force_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 1);
+by (Asm_full_simp_tac 1);
 val lemma = result();
 
 Goal "(Var n)$$rs -> v ==> (? ss. rs => ss & v = (Var n)$$ss)";
-bd lemma 1;
-by(Blast_tac 1);
+by (dtac lemma 1);
+by (Blast_tac 1);
 qed "head_Var_reduction";
 
 Goal "u -> u' ==> !r rs. u = r$$rs --> \
@@ -29,31 +29,31 @@ Goal "u -> u' ==> !r rs. u = r$$rs --> \
 \       (? rs'. rs => rs' & u' = r$$rs') | \
 \       (? s t ts. r = Abs s & rs = t#ts & u' = s[t/0]$$ts))";
 be beta.induct 1;
-   by(clarify_tac (claset() delrules [disjCI]) 1);
-   by(exhaust_tac "r" 1);
-     by(Asm_full_simp_tac 1);
-    by(asm_full_simp_tac (simpset() addsimps [App_eq_foldl_conv]) 1);
-    by(split_asm_tac [split_if_asm] 1);
-     by(Asm_full_simp_tac 1);
-     by(Blast_tac 1);
-    by(Asm_full_simp_tac 1);
-   by(asm_full_simp_tac (simpset() addsimps [App_eq_foldl_conv]) 1);
-   by(split_asm_tac [split_if_asm] 1);
-    by(Asm_full_simp_tac 1);
-   by(Asm_full_simp_tac 1);
-  by(clarify_tac (claset() delrules [disjCI]) 1);
-  bd (App_eq_foldl_conv RS iffD1) 1;
-  by(split_asm_tac [split_if_asm] 1);
-   by(Asm_full_simp_tac 1);
-   by(Blast_tac 1);
-  by(force_tac (claset() addIs [disjI1 RS append_step1I],simpset()) 1);
- by(clarify_tac (claset() delrules [disjCI]) 1);
- bd (App_eq_foldl_conv RS iffD1) 1;
- by(split_asm_tac [split_if_asm] 1);
-  by(Asm_full_simp_tac 1);
-  by(Blast_tac 1);
- by(force_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 1);
-by(Asm_full_simp_tac 1);
+   by (clarify_tac (claset() delrules [disjCI]) 1);
+   by (exhaust_tac "r" 1);
+     by (Asm_full_simp_tac 1);
+    by (asm_full_simp_tac (simpset() addsimps [App_eq_foldl_conv]) 1);
+    by (split_asm_tac [split_if_asm] 1);
+     by (Asm_full_simp_tac 1);
+     by (Blast_tac 1);
+    by (Asm_full_simp_tac 1);
+   by (asm_full_simp_tac (simpset() addsimps [App_eq_foldl_conv]) 1);
+   by (split_asm_tac [split_if_asm] 1);
+    by (Asm_full_simp_tac 1);
+   by (Asm_full_simp_tac 1);
+  by (clarify_tac (claset() delrules [disjCI]) 1);
+  by (dtac (App_eq_foldl_conv RS iffD1) 1);
+  by (split_asm_tac [split_if_asm] 1);
+   by (Asm_full_simp_tac 1);
+   by (Blast_tac 1);
+  by (force_tac (claset() addIs [disjI1 RS append_step1I],simpset()) 1);
+ by (clarify_tac (claset() delrules [disjCI]) 1);
+ by (dtac (App_eq_foldl_conv RS iffD1) 1);
+ by (split_asm_tac [split_if_asm] 1);
+  by (Asm_full_simp_tac 1);
+  by (Blast_tac 1);
+ by (force_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 1);
+by (Asm_full_simp_tac 1);
 val lemma = result();
 
 Goal "[| r$$rs -> s; \
@@ -61,8 +61,8 @@ Goal "[| r$$rs -> s; \
 \        !rs'. rs => rs' --> s = r$$rs' --> R; \
 \        !t u us. r = Abs t --> rs = u#us --> s = t[u/0]$$us --> R \
 \     |] ==> R";
-bd lemma 1;
-by(blast_tac HOL_cs 1);
+by (dtac lemma 1);
+by (blast_tac HOL_cs 1);
 val lemma = result();
 bind_thm("apps_betasE",
           impI RSN (4,impI RSN (4,impI RSN (4,allI RSN (4,allI RSN (4,allI RSN (4,
@@ -71,27 +71,27 @@ bind_thm("apps_betasE",
 AddSEs [apps_betasE];
 
 Goal "r -> s ==> r$$ss -> s$$ss";
-by(res_inst_tac [("xs","ss")] rev_induct 1);
-by(Auto_tac);
+by (res_inst_tac [("xs","ss")] rev_induct 1);
+by (Auto_tac);
 qed "apps_preserves_beta";
 Addsimps [apps_preserves_beta];
 
 Goal "r ->> s ==> r$$ss ->> s$$ss";
-by(etac rtrancl_induct 1);
- by(Blast_tac 1);
-by(blast_tac (claset() addIs [apps_preserves_beta,rtrancl_into_rtrancl]) 1);
+by (etac rtrancl_induct 1);
+ by (Blast_tac 1);
+by (blast_tac (claset() addIs [apps_preserves_beta,rtrancl_into_rtrancl]) 1);
 qed "apps_preserves_beta2";
 Addsimps [apps_preserves_beta2];
 
 Goal "!ss. rs => ss --> r$$rs -> r$$ss";
-by(res_inst_tac [("xs","rs")] rev_induct 1);
- by(Asm_full_simp_tac 1);
-by(Asm_full_simp_tac 1);
-by(Clarify_tac 1);
-by(res_inst_tac [("xs","ss")] rev_exhaust 1);
- by(Asm_full_simp_tac 1);
-by(Asm_full_simp_tac 1);
-bd Snoc_step1_SnocD 1;
-by(Blast_tac 1);
+by (res_inst_tac [("xs","rs")] rev_induct 1);
+ by (Asm_full_simp_tac 1);
+by (Asm_full_simp_tac 1);
+by (Clarify_tac 1);
+by (res_inst_tac [("xs","ss")] rev_exhaust 1);
+ by (Asm_full_simp_tac 1);
+by (Asm_full_simp_tac 1);
+by (dtac Snoc_step1_SnocD 1);
+by (Blast_tac 1);
 qed_spec_mp "apps_preserves_betas";
 Addsimps [apps_preserves_betas];

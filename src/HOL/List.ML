@@ -232,17 +232,17 @@ Addsimps [tl_append2];
 (* trivial rules for solving @-equations automatically *)
 
 Goal "xs = ys ==> xs = [] @ ys";
-by(Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 qed "eq_Nil_appendI";
 
 Goal "[| x#xs1 = ys; xs = xs1 @ zs |] ==> x#xs = ys@zs";
-bd sym 1;
-by(Asm_simp_tac 1);
+by (dtac sym 1);
+by (Asm_simp_tac 1);
 qed "Cons_eq_appendI";
 
 Goal "[| xs@xs1 = zs; ys = xs1 @ us |] ==> xs@ys = zs@us";
-bd sym 1;
-by(Asm_simp_tac 1);
+by (dtac sym 1);
+by (Asm_simp_tac 1);
 qed "append_eq_appendI";
 
 
@@ -411,20 +411,20 @@ qed "in_set_filter";
 Addsimps [in_set_filter];
 
 Goal "(x : set xs) = (? ys zs. xs = ys@x#zs)";
-by(induct_tac "xs" 1);
- by(Simp_tac 1);
-by(Asm_simp_tac 1);
-br iffI 1;
-by(blast_tac (claset() addIs [eq_Nil_appendI,Cons_eq_appendI]) 1);
-by(REPEAT(etac exE 1));
-by(exhaust_tac "ys" 1);
+by (induct_tac "xs" 1);
+ by (Simp_tac 1);
+by (Asm_simp_tac 1);
+by (rtac iffI 1);
+by (blast_tac (claset() addIs [eq_Nil_appendI,Cons_eq_appendI]) 1);
+by (REPEAT(etac exE 1));
+by (exhaust_tac "ys" 1);
 by Auto_tac;
 qed "in_set_conv_decomp";
 
 (* eliminate `lists' in favour of `set' *)
 
 Goal "(xs : lists A) = (!x : set xs. x : A)";
-by(induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by Auto_tac;
 qed "in_lists_conv_set";
 
@@ -799,7 +799,7 @@ qed_goal "zip_Cons_Cons" thy "zip (x#xs) (y#ys) = (x,y)#zip xs ys"
 section "foldl";
 
 Goal "!a. foldl f a (xs @ ys) = foldl f (foldl f a xs) ys";
-by(induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by Auto_tac;
 qed_spec_mp "foldl_append";
 Addsimps [foldl_append];
@@ -808,19 +808,19 @@ Addsimps [foldl_append];
    because it requires an additional transitivity step
 *)
 Goal "!n::nat. m <= n --> m <= foldl op+ n ns";
-by(induct_tac "ns" 1);
- by(Simp_tac 1);
-by(Asm_full_simp_tac 1);
-by(blast_tac (claset() addIs [trans_le_add1]) 1);
+by (induct_tac "ns" 1);
+ by (Simp_tac 1);
+by (Asm_full_simp_tac 1);
+by (blast_tac (claset() addIs [trans_le_add1]) 1);
 qed_spec_mp "start_le_sum";
 
 Goal "n : set ns ==> n <= foldl op+ 0 ns";
-by(auto_tac (claset() addIs [start_le_sum],
+by (auto_tac (claset() addIs [start_le_sum],
              simpset() addsimps [in_set_conv_decomp]));
 qed "elem_le_sum";
 
 Goal "!m. (foldl op+ m ns = 0) = (m=0 & (!n : set ns. n=0))";
-by(induct_tac "ns" 1);
+by (induct_tac "ns" 1);
 by Auto_tac;
 qed_spec_mp "sum_eq_0_conv";
 AddIffs [sum_eq_0_conv];
@@ -864,29 +864,29 @@ Addsimps [set_replicate];
 section"Lexcicographic orderings on lists";
 
 Goal "wf r ==> wf(lexn r n)";
-by(induct_tac "n" 1);
-by(Simp_tac 1);
-by(Simp_tac 1);
-br wf_subset 1;
-br Int_lower1 2;
-br wf_prod_fun_image 1;
-br injI 2;
-by(Auto_tac);
+by (induct_tac "n" 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
+by (rtac wf_subset 1);
+by (rtac Int_lower1 2);
+by (rtac wf_prod_fun_image 1);
+by (rtac injI 2);
+by (Auto_tac);
 qed "wf_lexn";
 
 Goal "!xs ys. (xs,ys) : lexn r n --> length xs = n & length ys = n";
-by(induct_tac "n" 1);
-by(Auto_tac);
+by (induct_tac "n" 1);
+by (Auto_tac);
 qed_spec_mp "lexn_length";
 
 Goalw [lex_def] "wf r ==> wf(lex r)";
-br wf_UN 1;
-by(blast_tac (claset() addIs [wf_lexn]) 1);
-by(Clarify_tac 1);
-by(rename_tac "m n" 1);
-by(subgoal_tac "m ~= n" 1);
- by(Blast_tac 2);
-by(blast_tac (claset() addDs [lexn_length,not_sym]) 1);
+by (rtac wf_UN 1);
+by (blast_tac (claset() addIs [wf_lexn]) 1);
+by (Clarify_tac 1);
+by (rename_tac "m n" 1);
+by (subgoal_tac "m ~= n" 1);
+ by (Blast_tac 2);
+by (blast_tac (claset() addDs [lexn_length,not_sym]) 1);
 qed "wf_lex";
 AddSIs [wf_lex];
 
@@ -894,30 +894,30 @@ Goal
  "lexn r n = \
 \ {(xs,ys). length xs = n & length ys = n & \
 \           (? xys x y xs' ys'. xs= xys @ x#xs' & ys= xys @ y#ys' & (x,y):r)}";
-by(induct_tac "n" 1);
- by(Simp_tac 1);
- by(Blast_tac 1);
-by(asm_full_simp_tac (simpset() delsimps [length_Suc_conv] 
+by (induct_tac "n" 1);
+ by (Simp_tac 1);
+ by (Blast_tac 1);
+by (asm_full_simp_tac (simpset() delsimps [length_Suc_conv] 
 				addsimps [lex_prod_def]) 1);
-by(auto_tac (claset(), simpset() delsimps [length_Suc_conv]));
-  by(Blast_tac 1);
- by(rename_tac "a xys x xs' y ys'" 1);
- by(res_inst_tac [("x","a#xys")] exI 1);
- by(Simp_tac 1);
-by(exhaust_tac "xys" 1);
- by(ALLGOALS (asm_full_simp_tac (simpset() delsimps [length_Suc_conv])));
-by(Blast_tac 1);
+by (auto_tac (claset(), simpset() delsimps [length_Suc_conv]));
+  by (Blast_tac 1);
+ by (rename_tac "a xys x xs' y ys'" 1);
+ by (res_inst_tac [("x","a#xys")] exI 1);
+ by (Simp_tac 1);
+by (exhaust_tac "xys" 1);
+ by (ALLGOALS (asm_full_simp_tac (simpset() delsimps [length_Suc_conv])));
+by (Blast_tac 1);
 qed "lexn_conv";
 
 Goalw [lex_def]
  "lex r = \
 \ {(xs,ys). length xs = length ys & \
 \           (? xys x y xs' ys'. xs= xys @ x#xs' & ys= xys @ y#ys' & (x,y):r)}";
-by(force_tac (claset(), simpset() delsimps [length_Suc_conv] addsimps [lexn_conv]) 1);
+by (force_tac (claset(), simpset() delsimps [length_Suc_conv] addsimps [lexn_conv]) 1);
 qed "lex_conv";
 
 Goalw [lexico_def] "wf r ==> wf(lexico r)";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "wf_lexico";
 AddSIs [wf_lexico];
 
@@ -925,29 +925,29 @@ Goalw
  [lexico_def,diag_def,lex_prod_def,measure_def,inv_image_def]
 "lexico r = {(xs,ys). length xs < length ys | \
 \                     length xs = length ys & (xs,ys) : lex r}";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "lexico_conv";
 
 Goal "([],ys) ~: lex r";
-by(simp_tac (simpset() addsimps [lex_conv]) 1);
+by (simp_tac (simpset() addsimps [lex_conv]) 1);
 qed "Nil_notin_lex";
 
 Goal "(xs,[]) ~: lex r";
-by(simp_tac (simpset() addsimps [lex_conv]) 1);
+by (simp_tac (simpset() addsimps [lex_conv]) 1);
 qed "Nil2_notin_lex";
 
 AddIffs [Nil_notin_lex,Nil2_notin_lex];
 
 Goal "((x#xs,y#ys) : lex r) = \
 \     ((x,y) : r & length xs = length ys | x=y & (xs,ys) : lex r)";
-by(simp_tac (simpset() addsimps [lex_conv]) 1);
-br iffI 1;
- by(blast_tac (claset() addIs [Cons_eq_appendI]) 2);
-by(REPEAT(eresolve_tac [conjE, exE] 1));
-by(exhaust_tac "xys" 1);
-by(Asm_full_simp_tac 1);
-by(Asm_full_simp_tac 1);
-by(Blast_tac 1);
+by (simp_tac (simpset() addsimps [lex_conv]) 1);
+by (rtac iffI 1);
+ by (blast_tac (claset() addIs [Cons_eq_appendI]) 2);
+by (REPEAT(eresolve_tac [conjE, exE] 1));
+by (exhaust_tac "xys" 1);
+by (Asm_full_simp_tac 1);
+by (Asm_full_simp_tac 1);
+by (Blast_tac 1);
 qed "Cons_in_lex";
 AddIffs [Cons_in_lex];
 

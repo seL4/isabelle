@@ -170,7 +170,7 @@ section "Equality";
 
 (*Anti-symmetry of the subset relation*)
 Goal "[| A <= B;  B <= A |] ==> A = (B::'a set)";
-br set_ext 1;
+by (rtac set_ext 1);
 by (blast_tac (claset() addIs [subsetD]) 1);
 qed "subset_antisym";
 val equalityI = subset_antisym;

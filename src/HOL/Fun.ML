@@ -78,7 +78,7 @@ Goal "inj(f) ==> (f(x) = f(y)) = (x=y)";
 by (rtac iffI 1);
 by (etac arg_cong 2);
 by (etac injD 1);
-ba 1;
+by (assume_tac 1);
 qed "inj_eq";
 
 Goal "inj(f) ==> (@x. f(x)=f(y)) = y";
