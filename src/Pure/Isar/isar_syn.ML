@@ -32,12 +32,8 @@ val kill_excursionP =
     (Scan.succeed (Toplevel.print o IsarCmd.kill_theory));
 
 val contextP =
-  OuterSyntax.improper_command "context" "switch theory context" K.thy_begin
+  OuterSyntax.improper_command "context" "switch theory context" K.thy_switch
     (P.name >> (Toplevel.print oo IsarThy.context));
-
-val update_contextP =
-  OuterSyntax.improper_command "update_context" "switch theory context, forcing update" K.thy_begin
-    (P.name >> (Toplevel.print oo IsarThy.update_context));
 
 
 
@@ -494,12 +490,28 @@ val use_thyP =
     (P.name >> IsarCmd.use_thy);
 
 val use_thy_onlyP =
-  OuterSyntax.improper_command "use_thy_only" "use theory file only, ignoring associated ML" K.diag
-    (P.name >> IsarCmd.use_thy_only);
+  OuterSyntax.improper_command "use_thy_only" "use theory file only, ignoring associated ML"
+    K.diag (P.name >> IsarCmd.use_thy_only);
 
 val update_thyP =
   OuterSyntax.improper_command "update_thy" "update theory file" K.diag
     (P.name >> IsarCmd.update_thy);
+
+val update_thy_onlyP =
+  OuterSyntax.improper_command "update_thy_only" "update theory file, ignoring associated ML"
+    K.diag (P.name >> IsarCmd.update_thy);
+
+val touch_thyP =
+  OuterSyntax.improper_command "touch_thy" "outdate theory, including descendants" K.diag
+    (P.name >> IsarCmd.touch_thy);
+
+val touch_all_thysP =
+  OuterSyntax.improper_command "touch_all_thys" "outdate all non-finished theories" K.diag
+    (Scan.succeed IsarCmd.touch_all_thys);
+
+val remove_thyP =
+  OuterSyntax.improper_command "remove_thy" "remove theory from loader database" K.diag
+    (P.name >> IsarCmd.remove_thy);
 
 val prP =
   OuterSyntax.improper_command "pr" "print current toplevel state" K.diag
@@ -520,9 +532,9 @@ val exitP =
   OuterSyntax.improper_command "exit" "exit Isar loop" K.control
     (Scan.succeed IsarCmd.exit);
 
-val restartP =
-  OuterSyntax.improper_command "restart" "restart Isar loop" K.control
-    (Scan.succeed IsarCmd.restart);
+val init_toplevelP =
+  OuterSyntax.improper_command "init_toplevel" "restart Isar toplevel loop" K.control
+    (Scan.succeed IsarCmd.init_toplevel);
 
 
 
@@ -539,7 +551,7 @@ val keywords =
 
 val parsers = [
   (*theory structure*)
-  theoryP, end_excursionP, kill_excursionP, contextP, update_contextP,
+  theoryP, end_excursionP, kill_excursionP, contextP,
   (*theory sections*)
   txtP, textP, titleP, chapterP, sectionP, subsectionP,
   subsubsectionP, classesP, classrelP, defaultsortP, typedeclP,
@@ -559,8 +571,9 @@ val parsers = [
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
   print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
-  cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, prP, commitP,
-  quitP, exitP, restartP];
+  cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
+  touch_thyP, touch_all_thysP, remove_thyP, prP, commitP, quitP,
+  exitP, init_toplevelP];
 
 
 end;
