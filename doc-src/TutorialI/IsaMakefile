@@ -16,11 +16,15 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 USEDIR = @$(ISATOOL) usedir -m brackets -i true -d dvi -D document $(OUT)/HOL
+REALUSEDIR = @$(ISATOOL) usedir -m brackets -i true -d dvi -D document $(OUT)/HOL-Real
 
 ## HOL
 
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+
+HOL-Real:
+	@cd $(SRC)/HOL; $(ISATOOL) make HOL-Real
 
 styles:
 	@rm -f isabelle.sty
@@ -145,13 +149,13 @@ $(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
 
 ## HOL-Types
 
-HOL-Types: HOL $(LOG)/HOL-Types.gz
+HOL-Types: HOL-Real $(LOG)/HOL-Types.gz
 
-$(LOG)/HOL-Types.gz: $(OUT)/HOL Types/ROOT.ML \
+$(LOG)/HOL-Types.gz: $(OUT)/HOL-Real Types/ROOT.ML \
   Types/Numbers.thy Types/Pairs.thy Types/Typedef.thy \
   Types/Overloading0.thy Types/Overloading1.thy Types/Overloading2.thy \
   Types/Overloading.thy Types/Axioms.thy
-	$(USEDIR) Types
+	$(REALUSEDIR) Types
 	@rm -f tutorial.dvi
 
 ## HOL-Misc
