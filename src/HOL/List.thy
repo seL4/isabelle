@@ -9,83 +9,83 @@ header {* The datatype of finite lists *}
 theory List = PreList:
 
 datatype 'a list =
-Nil("[]")
-| Cons 'a"'a list"(infixr "#" 65)
+    Nil    ("[]")
+  | Cons 'a  "'a list"    (infixr "#" 65)
 
 consts
-"@" :: "'a list => 'a list => 'a list"(infixr 65)
-filter:: "('a => bool) => 'a list => 'a list"
-concat:: "'a list list => 'a list"
-foldl :: "('b => 'a => 'b) => 'b => 'a list => 'b"
-foldr :: "('a => 'b => 'b) => 'a list => 'b => 'b"
-hd:: "'a list => 'a"
-tl:: "'a list => 'a list"
-last:: "'a list => 'a"
-butlast :: "'a list => 'a list"
-set :: "'a list => 'a set"
-list_all:: "('a => bool) => ('a list => bool)"
-list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
-map :: "('a=>'b) => ('a list => 'b list)"
-mem :: "'a => 'a list => bool"(infixl 55)
-nth :: "'a list => nat => 'a" (infixl "!" 100)
-list_update :: "'a list => nat => 'a => 'a list"
-take:: "nat => 'a list => 'a list"
-drop:: "nat => 'a list => 'a list"
-takeWhile :: "('a => bool) => 'a list => 'a list"
-dropWhile :: "('a => bool) => 'a list => 'a list"
-rev :: "'a list => 'a list"
-zip :: "'a list => 'b list => ('a * 'b) list"
-upt :: "nat => nat => nat list" ("(1[_../_'(])")
-remdups :: "'a list => 'a list"
-null:: "'a list => bool"
-"distinct":: "'a list => bool"
-replicate :: "nat => 'a => 'a list"
+  "@" :: "'a list => 'a list => 'a list"    (infixr 65)
+  filter:: "('a => bool) => 'a list => 'a list"
+  concat:: "'a list list => 'a list"
+  foldl :: "('b => 'a => 'b) => 'b => 'a list => 'b"
+  foldr :: "('a => 'b => 'b) => 'a list => 'b => 'b"
+  hd:: "'a list => 'a"
+  tl:: "'a list => 'a list"
+  last:: "'a list => 'a"
+  butlast :: "'a list => 'a list"
+  set :: "'a list => 'a set"
+  list_all:: "('a => bool) => ('a list => bool)"
+  list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
+  map :: "('a=>'b) => ('a list => 'b list)"
+  mem :: "'a => 'a list => bool"    (infixl 55)
+  nth :: "'a list => nat => 'a"    (infixl "!" 100)
+  list_update :: "'a list => nat => 'a => 'a list"
+  take:: "nat => 'a list => 'a list"
+  drop:: "nat => 'a list => 'a list"
+  takeWhile :: "('a => bool) => 'a list => 'a list"
+  dropWhile :: "('a => bool) => 'a list => 'a list"
+  rev :: "'a list => 'a list"
+  zip :: "'a list => 'b list => ('a * 'b) list"
+  upt :: "nat => nat => nat list" ("(1[_../_'(])")
+  remdups :: "'a list => 'a list"
+  null:: "'a list => bool"
+  "distinct":: "'a list => bool"
+  replicate :: "nat => 'a => 'a list"
 
 nonterminals lupdbinds lupdbind
 
 syntax
--- {* list Enumeration *}
-"@list" :: "args => 'a list"("[(_)]")
+  -- {* list Enumeration *}
+  "@list" :: "args => 'a list"    ("[(_)]")
 
--- {* Special syntax for filter *}
-"@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_:_./ _])")
+  -- {* Special syntax for filter *}
+  "@filter" :: "[pttrn, 'a list, bool] => 'a list"    ("(1[_:_./ _])")
 
--- {* list update *}
-"_lupdbind":: "['a, 'a] => lupdbind"("(2_ :=/ _)")
-"" :: "lupdbind => lupdbinds" ("_")
-"_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds" ("_,/ _")
-"_LUpdate" :: "['a, lupdbinds] => 'a" ("_/[(_)]" [900,0] 900)
+  -- {* list update *}
+  "_lupdbind":: "['a, 'a] => lupdbind"    ("(2_ :=/ _)")
+  "" :: "lupdbind => lupdbinds"    ("_")
+  "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    ("_,/ _")
+  "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [900,0] 900)
 
-upto:: "nat => nat => nat list" ("(1[_../_])")
+  upto:: "nat => nat => nat list"    ("(1[_../_])")
 
 translations
-"[x, xs]" == "x#[xs]"
-"[x]" == "x#[]"
-"[x:xs . P]"== "filter (%x. P) xs"
+  "[x, xs]" == "x#[xs]"
+  "[x]" == "x#[]"
+  "[x:xs . P]"== "filter (%x. P) xs"
 
-"_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
-"xs[i:=x]" == "list_update xs i x"
+  "_LUpdate xs (_lupdbinds b bs)"== "_LUpdate (_LUpdate xs b) bs"
+  "xs[i:=x]" == "list_update xs i x"
 
-"[i..j]" == "[i..(Suc j)(]"
+  "[i..j]" == "[i..(Suc j)(]"
 
 
 syntax (xsymbols)
-"@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<in>_ ./ _])")
+  "@filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<in>_ ./ _])")
 
 
 text {*
-Function @{text size} is overloaded for all datatypes.Users may
-refer to the list version as @{text length}. *}
+  Function @{text size} is overloaded for all datatypes.Users may
+  refer to the list version as @{text length}. *}
 
 syntax length :: "'a list => nat"
 translations "length" => "size :: _ list => nat"
 
 typed_print_translation {*
-let
-fun size_tr' _ (Type ("fun", (Type ("list", _) :: _))) [t] =
-Syntax.const "length" $ t
-| size_tr' _ _ _ = raise Match;
-in [("size", size_tr')] end
+  let
+    fun size_tr' _ (Type ("fun", (Type ("list", _) :: _))) [t] =
+          Syntax.const "length" $ t
+      | size_tr' _ _ _ = raise Match;
+  in [("size", size_tr')] end
 *}
 
 primrec
@@ -222,7 +222,7 @@ Cons [intro!]: "[| a: A;l: lists A|] ==> a#l : lists A"
 
 inductive_cases listsE [elim!]: "x#l : lists A"
 
-lemma lists_mono: "A \<subseteq> B ==> lists A \<subseteq> lists B"
+lemma lists_mono [mono]: "A \<subseteq> B ==> lists A \<subseteq> lists B"
 by (unfold lists.defs) (blast intro!: lfp_mono)
 
 lemma lists_IntI [rule_format]:
@@ -434,7 +434,7 @@ by (induct xs) (auto simp add: o_def)
 lemma rev_map: "rev (map f xs) = map f (rev xs)"
 by (induct xs) auto
 
-lemma map_cong:
+lemma map_cong [recdef_cong]:
 "xs = ys ==> (!!x. x : set ys ==> f x = g x) ==> map f xs = map g ys"
 -- {* a congruence rule for @{text map} *}
 by (clarify, induct ys) auto
@@ -492,15 +492,19 @@ apply (case_tac ys)
 apply force
 done
 
-lemma rev_induct: "[| P []; !!x xs. P xs ==> P (xs @ [x]) |] ==> P xs"
+lemma rev_induct [case_names Nil snoc]:
+  "[| P []; !!x xs. P xs ==> P (xs @ [x]) |] ==> P xs"
 apply(subst rev_rev_ident[symmetric])
 apply(rule_tac list = "rev xs" in list.induct, simp_all)
 done
 
 ML {* val rev_induct_tac = induct_thm_tac (thm "rev_induct") *}-- "compatibility"
 
-lemma rev_exhaust: "(xs = [] ==> P) ==>(!!ys y. xs = ys @ [y] ==> P) ==> P"
+lemma rev_exhaust [case_names Nil snoc]:
+  "(xs = [] ==> P) ==>(!!ys y. xs = ys @ [y] ==> P) ==> P"
 by (induct xs rule: rev_induct) auto
+
+lemmas rev_cases = rev_exhaust
 
 
 subsection {* @{text set} *}
@@ -1359,5 +1363,76 @@ by (cases n) simp_all
 lemmas [simp] = take_Cons'[of "number_of v",standard]
                 drop_Cons'[of "number_of v",standard]
                 nth_Cons'[of _ _ "number_of v",standard]
+
+subsection {* Characters and strings *}
+
+datatype nibble =
+    Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
+  | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC | NibbleD | NibbleE | NibbleF
+
+datatype char = Char nibble nibble
+  -- "Note: canonical order of character encoding coincides with standard term ordering"
+
+types string = "char list"
+
+syntax
+  "_Char" :: "xstr => char"    ("CHR _")
+  "_String" :: "xstr => string"    ("_")
+
+parse_ast_translation {*
+  let
+    val constants = Syntax.Appl o map Syntax.Constant;
+
+    fun mk_nib n = "Nibble" ^ chr (n + (if n <= 9 then ord "0" else ord "A" - 10));
+    fun mk_char c =
+      if Symbol.is_ascii c andalso Symbol.is_printable c then
+        constants ["Char", mk_nib (ord c div 16), mk_nib (ord c mod 16)]
+      else error ("Printable ASCII character expected: " ^ quote c);
+
+    fun mk_string [] = Syntax.Constant "Nil"
+      | mk_string (c :: cs) = Syntax.Appl [Syntax.Constant "Cons", mk_char c, mk_string cs];
+
+    fun char_ast_tr [Syntax.Variable xstr] =
+        (case Syntax.explode_xstr xstr of
+          [c] => mk_char c
+        | _ => error ("Single character expected: " ^ xstr))
+      | char_ast_tr asts = raise AST ("char_ast_tr", asts);
+
+    fun string_ast_tr [Syntax.Variable xstr] =
+        (case Syntax.explode_xstr xstr of
+          [] => constants [Syntax.constrainC, "Nil", "string"]
+        | cs => mk_string cs)
+      | string_ast_tr asts = raise AST ("string_tr", asts);
+  in [("_Char", char_ast_tr), ("_String", string_ast_tr)] end;
+*}
+
+print_ast_translation {*
+  let
+    fun dest_nib (Syntax.Constant c) =
+        (case explode c of
+          ["N", "i", "b", "b", "l", "e", h] =>
+            if "0" <= h andalso h <= "9" then ord h - ord "0"
+            else if "A" <= h andalso h <= "F" then ord h - ord "A" + 10
+            else raise Match
+        | _ => raise Match)
+      | dest_nib _ = raise Match;
+
+    fun dest_chr c1 c2 =
+      let val c = chr (dest_nib c1 * 16 + dest_nib c2)
+      in if Symbol.is_printable c then c else raise Match end;
+
+    fun dest_char (Syntax.Appl [Syntax.Constant "Char", c1, c2]) = dest_chr c1 c2
+      | dest_char _ = raise Match;
+
+    fun xstr cs = Syntax.Appl [Syntax.Constant "_xstr", Syntax.Variable (Syntax.implode_xstr cs)];
+
+    fun char_ast_tr' [c1, c2] = Syntax.Appl [Syntax.Constant "_Char", xstr [dest_chr c1 c2]]
+      | char_ast_tr' _ = raise Match;
+
+    fun list_ast_tr' [args] = Syntax.Appl [Syntax.Constant "_String",
+            xstr (map dest_char (Syntax.unfold_ast "_args" args))]
+      | list_ast_tr' ts = raise Match;
+  in [("Char", char_ast_tr'), ("@list", list_ast_tr')] end;
+*}
 
 end
