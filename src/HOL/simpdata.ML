@@ -444,37 +444,9 @@ fun expand_case_tac P i =
     Simp_tac i;
 
 
-
-
-(*** Install simpsets and datatypes in theory structure ***)
+(* install implicit simpset *)
 
 simpset_ref() := HOL_ss;
-
-
-type dtype_info = {case_const:term,
-                   case_rewrites:thm list,
-                   constructors:term list,
-                   induct_tac: string -> int -> tactic,
-                   nchotomy: thm,
-                   exhaustion: thm,
-                   exhaust_tac: string -> int -> tactic,
-                   case_cong:thm};
-
-exception DT_DATA of (string * dtype_info) list;
-val datatypes = ref [] : (string * dtype_info) list ref;
-
-let fun merge [] = DT_DATA []
-      | merge ds =
-          let val ds = map (fn DT_DATA x => x) ds;
-          in DT_DATA (foldl (gen_union eq_fst) (hd ds, tl ds)) end;
-
-    fun put (DT_DATA ds) = datatypes := ds;
-
-    fun get () = DT_DATA (!datatypes);
-in add_thydata "HOL"
-     ("datatypes", ThyMethods {merge = merge, put = put, get = get})
-end;
-
 
 
 (*** Integration of simplifier with classical reasoner ***)
