@@ -176,7 +176,7 @@ fun print_sign_exn_unit sign e =
 	  seq print_thm thms)
    | THEORY (msg,thys) =>
 	 (writeln ("Exception THEORY raised:\n" ^ msg);
-	  seq print_theory thys)
+	  seq (Pretty.writeln o Display.pretty_theory) thys)
    | TERM (msg,ts) =>
 	 (writeln ("Exception TERM raised:\n" ^ msg);
 	  seq (writeln o Sign.string_of_term sign) ts)
