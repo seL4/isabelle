@@ -710,11 +710,11 @@ qed "InfCard_csucc";
 
 goal CardinalArith.thy
     "!!n. n: nat ==> ALL A. A eqpoll n --> A : Fin(A)";
-by (eresolve_tac [nat_induct] 1);
+by (etac nat_induct 1);
 by (simp_tac (ZF_ss addsimps (eqpoll_0_iff::Fin.intrs)) 1);
 by (step_tac ZF_cs 1);
 by (subgoal_tac "EX u. u:A" 1);
-by (eresolve_tac [exE] 1);
+by (etac exE 1);
 by (resolve_tac [Diff_sing_eqpoll RS revcut_rl] 1);
 by (assume_tac 2);
 by (assume_tac 1);
@@ -724,7 +724,7 @@ by (resolve_tac [Fin.consI] 1);
 by (fast_tac ZF_cs 1);
 by (deepen_tac (ZF_cs addIs [Fin_mono RS subsetD]) 0 1);  (*SLOW*)
 (*Now for the lemma assumed above*)
-by (rewrite_goals_tac [eqpoll_def]);
+by (rewtac eqpoll_def);
 by (fast_tac (ZF_cs addSEs [bij_converse_bij RS bij_is_fun RS apply_type]) 1);
 val lemma = result();
 
@@ -744,8 +744,8 @@ goal CardinalArith.thy
     "!!A. [| Finite(A); Finite(B) |] ==> Finite(A Un B)";
 by (fast_tac (ZF_cs addSIs [Fin_into_Finite, Fin_UnI] 
                     addSDs [Finite_into_Fin]
-		    addSEs [Un_upper1 RS Fin_mono RS subsetD,
-			    Un_upper2 RS Fin_mono RS subsetD]) 1);
+                    addSEs [Un_upper1 RS Fin_mono RS subsetD,
+                            Un_upper2 RS Fin_mono RS subsetD]) 1);
 qed "Finite_Un";
 
 
@@ -753,7 +753,7 @@ qed "Finite_Un";
 
 goal CardinalArith.thy
     "!!A. A: Fin(U) ==> x~:A --> ~ cons(x,A) lepoll A";
-by (eresolve_tac [Fin_induct] 1);
+by (etac Fin_induct 1);
 by (simp_tac (ZF_ss addsimps [lepoll_0_iff]) 1);
 by (subgoal_tac "cons(x,cons(xa,y)) = cons(xa,cons(x,y))" 1);
 by (asm_simp_tac ZF_ss 1);
@@ -763,15 +763,15 @@ qed "Fin_imp_not_cons_lepoll";
 
 goal CardinalArith.thy
     "!!a A. [| Finite(A);  a~:A |] ==> |cons(a,A)| = succ(|A|)";
-by (rewrite_goals_tac [cardinal_def]);
-by (resolve_tac [Least_equality] 1);
+by (rewtac cardinal_def);
+by (rtac Least_equality 1);
 by (fold_tac [cardinal_def]);
 by (simp_tac (ZF_ss addsimps [succ_def]) 1);
 by (fast_tac (ZF_cs addIs [cons_eqpoll_cong, well_ord_cardinal_eqpoll] 
                     addSEs [mem_irrefl]
                     addSDs [Finite_imp_well_ord]) 1);
 by (fast_tac (ZF_cs addIs [Ord_succ, Card_cardinal, Card_is_Ord]) 1);
-by (resolve_tac [notI] 1);
+by (rtac notI 1);
 by (resolve_tac [Finite_into_Fin RS Fin_imp_not_cons_lepoll RS mp RS notE] 1);
 by (assume_tac 1);
 by (assume_tac 1);
@@ -782,13 +782,18 @@ by (fast_tac (ZF_cs addIs [well_ord_cardinal_eqpoll RS eqpoll_imp_lepoll]
 qed "Finite_imp_cardinal_cons";
 
 
-goal CardinalArith.thy "!!a A. [| Finite(A);  a:A |] ==> |A-{a}| < |A|";
+goal CardinalArith.thy "!!a A. [| Finite(A);  a:A |] ==> succ(|A-{a}|) = |A|";
 by (res_inst_tac [("b", "A")] (cons_Diff RS subst) 1);
 by (assume_tac 1);
 by (asm_simp_tac (ZF_ss addsimps [Finite_imp_cardinal_cons,
-				  Diff_subset RS subset_imp_lepoll RS 
-				  lepoll_Finite]) 1);
-by (asm_simp_tac (ZF_ss addsimps [cons_Diff, Ord_cardinal RS le_refl]) 1);
+                                  Diff_subset RS subset_Finite]) 1);
+by (asm_simp_tac (ZF_ss addsimps [cons_Diff]) 1);
+qed "Finite_imp_succ_cardinal_Diff";
+
+goal CardinalArith.thy "!!a A. [| Finite(A);  a:A |] ==> |A-{a}| < |A|";
+by (rtac succ_leE 1);
+by (asm_simp_tac (ZF_ss addsimps [Finite_imp_succ_cardinal_Diff, 
+                                  Ord_cardinal RS le_refl]) 1);
 qed "Finite_imp_cardinal_Diff";
 
 
