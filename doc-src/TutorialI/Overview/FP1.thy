@@ -293,7 +293,7 @@ datatype lambda = C "lambda \<Rightarrow> lambda"
 
 text{*
 \begin{exercise}
-Define a datatype of ordinals and the ordinal Gamma0.
+Define a datatype of ordinals and the ordinal $\Gamma_0$.
 \end{exercise}
 *}
 
