@@ -10,8 +10,8 @@ CCL_build_completed;	(*Cause examples to fail if CCL did*)
 
 writeln"Root file for CCL examples";
 proof_timing := true;
-time_use_thy "ex/nat";
-time_use_thy "ex/list";
-time_use_thy "ex/stream";
-time_use_thy "ex/flag";
+time_use_thy "ex/Nat";
+time_use_thy "ex/List";
+time_use_thy "ex/Stream";
+time_use_thy "ex/Flag";
 maketest"END: Root file for CCL examples";

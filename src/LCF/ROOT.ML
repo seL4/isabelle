@@ -11,10 +11,8 @@ This theory is based on Lawrence Paulson's book Logic and Computation.
 val banner = "Logic for Computable Functions (in FOL)";
 writeln banner;
 
-set_loadpath [".", "../FOL"];
-
 print_depth 1;
-use_thy "lcf";
+use_thy "LCF";
 use"simpdata.ML";
 use"pair.ML";
 use"fix.ML";

@@ -15,11 +15,11 @@ print_depth 1;
 structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 open Readthy;
 
-use_thy"ctt";
+use_thy "CTT";
 use "../Provers/typedsimp.ML";
 use "rew.ML";
-use_thy "arith";
-use_thy "bool";
+use_thy "Arith";
+use_thy "Bool";
 
 use "../Pure/install_pp.ML";
 print_depth 8;

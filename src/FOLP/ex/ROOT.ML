@@ -11,7 +11,7 @@ writeln"Root file for FOLP examples";
 proof_timing := true;
 
 time_use     "ex/intro.ML";
-time_use_thy "ex/nat";
+time_use_thy "ex/Nat";
 time_use     "ex/foundn.ML";
 
 writeln"\n** Intuitionistic examples **\n";
@@ -24,7 +24,7 @@ commit();
 
 writeln"\n** Classical examples **\n";
 time_use     "ex/cla.ML";
-time_use_thy "ex/if";
+time_use_thy "ex/If";
 
 val thy = FOLP.thy  and  tac = Cla.fast_tac FOLP_cs 1;
 time_use     "ex/prop.ML";

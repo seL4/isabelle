@@ -15,7 +15,7 @@ open Readthy;
 
 print_depth 1;  
 
-use_thy "lk";
+use_thy "LK";
 
 use "../Pure/install_pp.ML";
 print_depth 8;

@@ -13,7 +13,7 @@ structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 open Readthy;
 
 print_depth 1;  
-use_thy "cube";
+use_thy "Cube";
 
 use "../Pure/install_pp.ML";
 print_depth 8;

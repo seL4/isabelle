@@ -11,29 +11,27 @@ val banner = "Classical Computational Logic (in FOL)";
 (* Higher-Order Set Theory Extension to FOL *)
 (*      used as basis for CCL               *)
 
-set_loadpath [".", "../FOL"];
-
-use_thy "set";
+use_thy "Set";
 use     "subset.ML";
 use     "equalities.ML";
 use     "mono.ML";
-use_thy "lfp";
-use_thy "gfp";
+use_thy "Lfp";
+use_thy "Gfp";
 
 (* CCL - a computational logic for an untyped functional language *)
 (*                       with evaluation to weak head-normal form *)
 
-use_thy "ccl";
-use_thy "term";
-use_thy "type";
+use_thy "CCL";
+use_thy "Term";
+use_thy "Type";
 use     "coinduction.ML";
-use_thy "hered";
+use_thy "Hered";
 
-use_thy "trancl";
-use_thy "wfd";
+use_thy "Trancl";
+use_thy "Wfd";
 use     "genrec.ML";
 use     "typecheck.ML";
 use     "eval.ML";
-use_thy "fix";
+use_thy "Fix";
 
 val CCL_build_completed = ();   (*indicate successful build*)

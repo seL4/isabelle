@@ -15,7 +15,6 @@ structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 open Readthy;
 
 print_depth 1;  
-use_thy "IFOL";
 use_thy "FOL";
 
 use "../Provers/hypsubst.ML";

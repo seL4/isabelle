@@ -13,9 +13,9 @@ FOL_build_completed;	(*Cause examples to fail if FOL did*)
 proof_timing := true;
 
 time_use     "ex/intro.ML";
-time_use_thy "ex/nat";
+time_use_thy "ex/Nat";
 time_use     "ex/foundn.ML";
-time_use_thy "ex/prolog";
+time_use_thy "ex/Prolog";
 
 writeln"\n** Intuitionistic examples **\n";
 time_use     "ex/int.ML";
@@ -26,14 +26,14 @@ time_use     "ex/quant.ML";
 
 writeln"\n** Classical examples **\n";
 time_use     "ex/cla.ML";
-time_use_thy "ex/if";
+time_use_thy "ex/If";
 
 val thy = FOL.thy  and  tac = Cla.fast_tac FOL_cs 1;
 time_use     "ex/prop.ML";
 time_use     "ex/quant.ML";
 
 writeln"\n** Simplification examples **\n";
-time_use_thy "ex/nat2";
-time_use_thy "ex/list";
+time_use_thy "ex/Nat2";
+time_use_thy "ex/List";
 
 maketest"END: Root file for FOL examples";
