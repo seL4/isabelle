@@ -34,7 +34,7 @@ consts
   Part          :: ['a set, 'b => 'a] => 'a set
 
 translations
-  "case p of Inl(x) => a | Inr(y) => b" == "sum_case (%x.a) (%y.b) p"
+  "case p of Inl x => a | Inr y => b" == "sum_case (%x.a) (%y.b) p"
 
 defs
   Inl_def       "Inl == (%a. Abs_Sum(Inl_Rep(a)))"
