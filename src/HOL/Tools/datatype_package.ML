@@ -213,16 +213,17 @@ fun case_tac t = gen_case_tac (t, None);
 
 local
 
-val rule_spec = Scan.option (Scan.lift (Args.$$$ "rule" -- Args.$$$ ":") |-- Attrib.local_thm);
+val rule_spec = Args.$$$ "rule" -- Args.$$$ ":";
+val opt_rule = Scan.option (Scan.lift rule_spec |-- Attrib.local_thm);
 
 fun tactic_syntax args tac =
-  #2 oo Method.syntax (Args.goal_spec HEADGOAL -- (Scan.lift args -- rule_spec) >>
+  #2 oo Method.syntax (Args.goal_spec HEADGOAL -- (Scan.lift args -- opt_rule) >>
     (fn (quant, x) => Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac x))));
 
 in
 
 val tactic_emulations =
- [("induct_tac", tactic_syntax (Scan.repeat1 Args.name) gen_induct_tac,
+ [("induct_tac", tactic_syntax (Scan.repeat1 (Scan.unless rule_spec Args.name)) gen_induct_tac,
     "induct_tac emulation (dynamic instantiation!)"),
   ("case_tac", tactic_syntax Args.name gen_case_tac,
     "case_tac emulation (dynamic instantiation!)")];
