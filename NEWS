@@ -6,6 +6,9 @@ New in this Isabelle release
 
 *** General ***
 
+* Document preparation: new antiquotations @{lhs thm} and @{rhs thm}
+  printing the lhs/rhs of definitions, equations, inequations etc. 
+
 * isatool usedir: new option -f that allows specification of the ML
   file to be used by Isabelle; default is ROOT.ML.
 
