@@ -1,4 +1,4 @@
-(*  Title:      Provers/simplifier
+(*  Title:      Provers/simplifier.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1993  TU Munich
@@ -26,6 +26,13 @@ sig
   val setmksimps: simpset * (thm -> thm list) -> simpset
   val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
   val simp_tac: simpset -> int -> tactic
+
+  val simpset: simpset ref
+  val Addsimps: thm list -> unit
+  val Delsimps: thm list -> unit
+  val Simp_tac: int -> tactic
+  val Asm_simp_tac: int -> tactic
+  val Asm_full_simp_tac: int -> tactic
 end;
 
 functor SimplifierFUN():SIMPLIFIER =
@@ -47,6 +54,7 @@ val empty_ss =
      finish_tac= K(K no_tac),
      loop_tac= K no_tac};
 
+val simpset = ref empty_ss;
 
 fun (SS{mss,simps,congs,subgoal_tac,finish_tac,...}) setloop loop_tac =
   SS{mss=mss,
@@ -90,6 +98,8 @@ fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addsimps rews =
      loop_tac=loop_tac}
   end;
 
+fun Addsimps rews = (simpset := !simpset addsimps rews);
+
 fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) delsimps rews =
   let val rews' = flat(map (Thm.mk_rews_of_mss mss) rews) in
   SS{mss= Thm.del_simps(mss,rews'),
@@ -99,6 +109,8 @@ fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) delsimps rews =
      finish_tac=finish_tac,
      loop_tac=loop_tac}
   end;
+
+fun Delsimps rews = (simpset := !simpset delsimps rews);
 
 fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addeqcongs newcongs =
   SS{mss= Thm.add_congs(mss,newcongs),
@@ -156,6 +168,8 @@ val asm_full_simp_tac = gen_simp_tac (true,true);
 val asm_simp_tac = gen_simp_tac (false,true);
 val simp_tac = gen_simp_tac (false,false);
 
-end;
+fun Asm_full_simp_tac i = asm_full_simp_tac (!simpset) i;
+fun Asm_simp_tac i = asm_simp_tac (!simpset) i;
+fun Simp_tac i = simp_tac (!simpset) i;
 
-structure Simplifier = SimplifierFUN();
+end;
