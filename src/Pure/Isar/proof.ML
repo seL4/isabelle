@@ -82,12 +82,15 @@ sig
   val def: string -> context attribute list -> string *  (string * string list) -> state -> state
   val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
-  val multi_theorem: string -> bstring * theory attribute list
-    -> (xstring * context attribute list list) option -> context attribute Locale.element list
+  val multi_theorem: string
+    -> (xstring * (context attribute list * context attribute list list)) option
+    -> bstring * theory attribute list -> context attribute Locale.element list
     -> ((bstring * theory attribute list) * (string * (string list * string list)) list) list
     -> theory -> state
-  val multi_theorem_i: string -> bstring * theory attribute list
-    -> (string * context attribute list list) option -> context attribute Locale.element_i list
+  val multi_theorem_i: string
+    -> (string * (context attribute list * context attribute list list)) option
+    -> bstring * theory attribute list
+    -> context attribute Locale.element_i list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
     -> theory -> state
   val chain: state -> state
@@ -133,18 +136,16 @@ type context = ProofContext.context;
 (* type goal *)
 
 datatype kind =
-  Theorem of string *                                (*theorem kind*)
-    (bstring * theory attribute list) *              (*common result binding*)
-    (string * context attribute list list) option *  (*target locale and attributes*)
-    theory attribute list list |                     (*attributes of individual result binding*)
-  Show of context attribute list list |              (*intermediate result, solving subgoal*)
-  Have of context attribute list list;               (*intermediate result*)
+  Theorem of {kind: string,
+    theory_spec: (bstring * theory attribute list) * theory attribute list list,
+    locale_spec: (string * (context attribute list * context attribute list list)) option} |
+  Show of context attribute list list |
+  Have of context attribute list list;
 
-fun common_name "" = "" | common_name a = " " ^ a;
-
-fun kind_name _ (Theorem (s, (a, _), None, _)) = s ^ common_name a
-  | kind_name sg (Theorem (s, (a, _), Some (name, _), _)) =
-      s ^ common_name a ^ " (in " ^ Locale.cond_extern sg name ^ ")"
+fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _), locale_spec = None}) =
+      s ^ (if a = "" then "" else " " ^ a)
+  | kind_name sg (Theorem {kind = s, theory_spec = ((a, _), _), locale_spec = Some (name, _)}) =
+      s ^ " (in " ^ Locale.cond_extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
   | kind_name _ (Show _) = "show"
   | kind_name _ (Have _) = "have";
 
@@ -691,21 +692,21 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
   end;
 
 (*global goals*)
-fun global_goal prep kind a raw_locale elems args thy =
+fun global_goal prep kind raw_locale a elems concl thy =
   let
     val init = init_state thy;
     val (opt_name, locale_ctxt, elems_ctxt, propp) =
-      prep (apsome fst raw_locale) elems (map snd args) (context_of init);
-    val locale = (case raw_locale of None => None | Some (_, atts) => Some (the opt_name, atts));
+      prep (apsome fst raw_locale) elems (map snd concl) (context_of init);
+    val locale_spec = (case raw_locale of None => None | Some (_, x) => Some (the opt_name, x));
   in
     init
     |> open_block
     |> map_context (K locale_ctxt)
     |> open_block
     |> map_context (K elems_ctxt)
-    |> setup_goal I ProofContext.bind_propp_schematic_i
-      ProofContext.fix_frees (Theorem (kind, a, locale, map (snd o fst) args))
-      Seq.single (map (fst o fst) args) propp
+    |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
+      (Theorem {kind = kind, theory_spec = (a, map (snd o fst) concl), locale_spec = locale_spec})
+      Seq.single (map (fst o fst) concl) propp
   end;
 
 val multi_theorem = global_goal Locale.read_context_statement;
@@ -808,15 +809,27 @@ fun finish_global state =
     val ts = flat tss;
     val locale_results = map (export goal_ctxt locale_ctxt) (prep_result state ts raw_thm);
     val results = map (Drule.strip_shyps_warning o export locale_ctxt theory_ctxt) locale_results;
-    val (k, (cname, catts), locale, attss) =
+    val {kind = k, theory_spec = ((name, atts), attss), locale_spec} =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
 
-    val (thy1, res') =
-      theory_of state |> Locale.add_thmss_hybrid k
+    val (theory', results') =
+      theory_of state
+      |> (case locale_spec of None => I | Some (loc, (loc_atts, loc_attss)) => fn thy =>
+        if length names <> length loc_attss then
+          raise THEORY ("Bad number of locale attributes", [thy])
+        else (locale_ctxt, thy)
+          |> Locale.add_thmss loc ((names ~~ Library.unflat tss locale_results) ~~ loc_attss)
+          |> (fn ((ctxt', thy'), res) =>
+            if name = "" andalso null loc_atts then thy'
+            else (ctxt', thy')
+              |> (#2 o #1 o Locale.add_thmss loc [((name, flat res), loc_atts)])))
+      |> Locale.smart_have_thmss k locale_spec
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
-        locale (Library.unflat tss locale_results);
-    val thy2 = thy1 |> PureThy.add_thmss [((cname, flat (map #2 res')), catts)] |> #1;
-  in (thy2, ((k, cname), res')) end;
+      |> (fn (thy, res) => (thy, res)
+          |>> (#1 o Locale.smart_have_thmss k locale_spec
+            [((name, atts), [(flat (map #2 res), [])])]));
+  in (theory', ((k, name), results')) end;
+
 
 (*note: clients should inspect first result only, as backtracking may destroy theory*)
 fun global_qed finalize state =
