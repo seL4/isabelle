@@ -225,6 +225,17 @@ by (rtac (Ord_0 RS CardI) 1);
 by (fast_tac (ZF_cs addSEs [ltE]) 1);
 val Card_0 = result();
 
+val [premK,premL] = goal Cardinal.thy
+    "[| Card(K);  Card(L) |] ==> Card(K Un L)";
+by (rtac ([premK RS Card_is_Ord, premL RS Card_is_Ord] MRS Ord_linear_le) 1);
+by (asm_simp_tac 
+    (ZF_ss addsimps [premL, le_imp_subset, subset_Un_iff RS iffD1]) 1);
+by (asm_simp_tac
+    (ZF_ss addsimps [premK, le_imp_subset, subset_Un_iff2 RS iffD1]) 1);
+val Card_Un = result();
+
+(*Infinite unions of cardinals?  See Devlin, Lemma 6.7, page 98*)
+
 goalw Cardinal.thy [cardinal_def] "Card(|A|)";
 by (excluded_middle_tac "EX i. Ord(i) & i eqpoll A" 1);
 by (etac (Least_0 RS ssubst) 1 THEN rtac Card_0 1);
