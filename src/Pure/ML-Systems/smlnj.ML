@@ -9,10 +9,10 @@ Compatibility file for Standard ML of New Jersey 110 or later.
 
 (* restore old-style character / string functions *)
 
-fun ord s = Char.ord (String.sub (s, 0));
-val chr = str o Char.chr;
-val explode = (map str) o String.explode;
-val implode = String.concat;
+val ord     = SML90.ord;
+val chr     = SML90.chr;
+val explode = SML90.explode;
+val implode = SML90.implode;
 
 
 (* New Jersey ML parameters *)
