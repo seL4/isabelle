@@ -36,6 +36,7 @@ consts
   zip :: "'a list => 'b list => ('a * 'b) list"
   upt :: "nat => nat => nat list" ("(1[_../_'(])")
   remdups :: "'a list => 'a list"
+  remove1 :: "'a => 'a list => 'a list"
   null:: "'a list => bool"
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
@@ -171,6 +172,9 @@ primrec
 primrec
 "remdups [] = []"
 "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
+primrec
+"remove1 x [] = []"
+"remove1 x (y#xs) = (if x=y then xs else y # remove1 x xs)"
 primrec
 replicate_0: "replicate 0 x = []"
 replicate_Suc: "replicate (Suc n) x = x # replicate n x"
@@ -487,6 +491,31 @@ lemma ex_map_conv:
   "(EX xs. ys = map f xs) = (ALL y : set ys. EX x. y = f x)"
 by(induct ys, auto)
 
+lemma map_eq_imp_length_eq:
+  "!!xs. map f xs = map f ys ==> length xs = length ys"
+apply (induct ys)
+ apply simp
+apply(simp (no_asm_use))
+apply clarify
+apply(simp (no_asm_use))
+apply fast
+done
+
+lemma map_inj_on:
+ "[| map f xs = map f ys; inj_on f (set xs Un set ys) |]
+  ==> xs = ys"
+apply(frule map_eq_imp_length_eq)
+apply(rotate_tac -1)
+apply(induct rule:list_induct2)
+ apply simp
+apply(simp)
+apply (blast intro:sym)
+done
+
+lemma inj_on_map_eq_map:
+ "inj_on f (set xs Un set ys) \<Longrightarrow> (map f xs = map f ys) = (xs = ys)"
+by(blast dest:map_inj_on)
+
 lemma map_injective:
  "!!xs. map f xs = map f ys ==> inj f ==> xs = ys"
 by (induct ys) (auto dest!:injD)
@@ -512,6 +541,15 @@ by (induct xs, auto)
 
 lemma map_fun_upd [simp]: "y \<notin> set xs \<Longrightarrow> map (f(y:=v)) xs = map f xs"
 by (induct xs) auto
+
+lemma map_fst_zip[simp]:
+  "length xs = length ys \<Longrightarrow> map fst (zip xs ys) = xs"
+by (induct rule:list_induct2, simp_all)
+
+lemma map_snd_zip[simp]:
+  "length xs = length ys \<Longrightarrow> map snd (zip xs ys) = ys"
+by (induct rule:list_induct2, simp_all)
+
 
 subsection {* @{text rev} *}
 
@@ -829,6 +867,9 @@ by simp
 
 declare take_Cons [simp del] and drop_Cons [simp del]
 
+lemma take_Suc: "xs ~= [] ==> take (Suc n) xs = hd xs # take n (tl xs)"
+by(clarsimp simp add:neq_Nil_conv)
+
 lemma drop_Suc: "drop (Suc n) xs = drop n (tl xs)"
 by(cases xs, simp_all)
 
@@ -899,6 +940,18 @@ apply (induct n, auto)
 apply (case_tac xs, auto)
 done
 
+lemma take_eq_Nil[simp]: "!!n. (take n xs = []) = (n = 0 \<or> xs = [])"
+apply(induct xs)
+ apply simp
+apply(simp add:take_Cons split:nat.split)
+done
+
+lemma drop_eq_Nil[simp]: "!!n. (drop n xs = []) = (length xs <= n)"
+apply(induct xs)
+apply simp
+apply(simp add:drop_Cons split:nat.split)
+done
+
 lemma take_map: "!!xs. take n (map f xs) = map f (take n xs)"
 apply (induct n, auto)
 apply (case_tac xs, auto)
@@ -964,6 +1017,13 @@ apply(induct xs\<^isub>1)
  apply simp
 apply(case_tac ys\<^isub>1)
 apply simp_all
+done
+
+lemma take_hd_drop:
+  "!!n. n < length xs \<Longrightarrow> take n xs @ [hd (drop n xs)] = take (n+1) xs"
+apply(induct xs)
+apply simp
+apply(simp add:drop_Cons split:nat.split)
 done
 
 
@@ -1367,10 +1427,10 @@ apply (erule_tac x = "Suc i" in allE)
 apply (erule_tac x = "Suc j" in allE, simp)
 done
 
-lemma distinct_card: "distinct xs \<Longrightarrow> card (set xs) = size xs"
+lemma distinct_card: "distinct xs ==> card (set xs) = size xs"
   by (induct xs) auto
 
-lemma card_distinct: "card (set xs) = size xs \<Longrightarrow> distinct xs"
+lemma card_distinct: "card (set xs) = size xs ==> distinct xs"
 proof (induct xs)
   case Nil thus ?case by simp
 next
@@ -1387,6 +1447,44 @@ next
     thus ?thesis ..
   qed
 qed
+
+lemma inj_on_setI: "distinct(map f xs) ==> inj_on f (set xs)"
+apply(induct xs)
+ apply simp
+apply fastsimp
+done
+
+lemma inj_on_set_conv:
+ "distinct xs \<Longrightarrow> inj_on f (set xs) = distinct(map f xs)"
+apply(induct xs)
+ apply simp
+apply fastsimp
+done
+
+
+subsection {* @{text remove1} *}
+
+lemma set_remove1_subset: "set(remove1 x xs) <= set xs"
+apply(induct xs)
+ apply simp
+apply simp
+apply blast
+done
+
+lemma [simp]: "distinct xs ==> set(remove1 x xs) = set xs - {x}"
+apply(induct xs)
+ apply simp
+apply simp
+apply blast
+done
+
+lemma notin_set_remove1[simp]: "x ~: set xs ==> x ~: set(remove1 y xs)"
+apply(insert set_remove1_subset)
+apply fast
+done
+
+lemma distinct_remove1[simp]: "distinct xs ==> distinct(remove1 x xs)"
+by (induct xs) simp_all
 
 
 subsection {* @{text replicate} *}

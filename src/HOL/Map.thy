@@ -173,6 +173,18 @@ by (auto simp: chg_map_def split add: option.split)
 
 subsection {* @{term map_of} *}
 
+lemma map_of_zip_is_None[simp]:
+  "length xs = length ys \<Longrightarrow> (map_of (zip xs ys) x = None) = (x \<notin> set xs)"
+by (induct rule:list_induct2, simp_all)
+
+lemma finite_range_map_of: "finite (range (map_of xys))"
+apply (induct_tac xys)
+apply  (simp_all (no_asm) add: image_constant)
+apply (rule finite_subset)
+prefer 2 apply assumption
+apply auto
+done
+
 lemma map_of_SomeD [rule_format (no_asm)]: "map_of xs k = Some y --> (k,y):set xs"
 by (induct_tac "xs", auto)
 
@@ -191,14 +203,6 @@ apply (rule mp)
 prefer 2 apply assumption
 apply (erule thin_rl)
 apply (induct_tac "xs", auto)
-done
-
-lemma finite_range_map_of: "finite (range (map_of l))"
-apply (induct_tac "l")
-apply  (simp_all (no_asm) add: image_constant)
-apply (rule finite_subset)
-prefer 2 apply assumption
-apply auto
 done
 
 lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = option_map f (map_of xs x)"
@@ -432,6 +436,10 @@ lemma dom_map_of: "dom(map_of xys) = {x. \<exists>y. (x,y) : set xys}"
 apply(induct xys)
 apply(auto simp del:fun_upd_apply)
 done
+
+lemma dom_map_of_zip[simp]: "[| length xs = length ys; distinct xs |] ==>
+  dom(map_of(zip xs ys)) = set xs"
+by(induct rule: list_induct2, simp_all)
 
 lemma finite_dom_map_of: "finite (dom (map_of l))"
 apply (unfold dom_def)
