@@ -95,7 +95,7 @@ local
      | "\\<times>" => (1.0, "&times;")
      | "\\<emptyset>" => (1.0, "&Oslash;")
      | "\\<div>" => (1.0, "&divide;")
-     | "\\<circ>" => (1.0, "&circ;")    
+     | "\\<circ>" => (1.0, "&circ;")
      | "\\<Alpha>" => (1.0, "&Alpha;")
      | "\\<Beta>" => (1.0, "&Beta;")
      | "\\<Gamma>" => (1.0, "&Gamma;")
@@ -162,7 +162,7 @@ local
      | "\\<propto>" => (1.0, "&prop;")
      | "\\<infinity>" => (1.0, "&infin;")
      | "\\<angle>" => (1.0, "&ang;")
-     | "\\<and>" => (1.0, "&and;")     
+     | "\\<and>" => (1.0, "&and;")
      | "\\<or>" => (1.0, "&or;")
      | "\\<inter>" => (1.0, "&cap;")
      | "\\<union>" => (1.0, "&cup;")
@@ -191,11 +191,10 @@ local
      | "\\<clubsuit>" => (1.0, "&clubs;")
      | "\\<heartsuit>" => (1.0, "&hearts;")
      | "\\<diamondsuit>" => (1.0, "&diams;")
-
      | "\\<lbrakk>" => (2.0, "[|")
      | "\\<rbrakk>" => (2.0, "|]")
      | "\\<Longrightarrow>" => (3.0, "==&gt;")
-     | "\\<Rightarrow>" => (3.0, "=&gt;")
+     | "\\<Rightarrow>" => (2.0, "=&gt;")
      | "\\<And>" => (2.0, "!!")
      | "\\<Colon>" => (2.0, "::")
      | "\\<lparr>" => (2.0, "(|")
@@ -203,47 +202,38 @@ local
      | "\\<longleftrightarrow>" => (3.0, "&lt;-&gt;")
      | "\\<longrightarrow>" => (3.0, "--&gt;")
      | "\\<rightarrow>" => (2.0, "-&gt;")
-     | "\\<rightleftharpoons>" => (2.0, "==")
-     | "\\<rightharpoonup>" => (2.0, "=&gt;")
-     | "\\<leftharpoondown>" => (2.0, "&lt;=")
-
      | "\\<^bsub>" => (0.0, "<sub>")
      | "\\<^esub>" => (0.0, "</sub>")
      | "\\<^bsup>" => (0.0, "<sup>")
      | "\\<^esup>" => (0.0, "</sup>")
-(* keep \<^sub> etc, so they are not destroyed by default case *)
-     | "\\<^sup>" => (0.0, "\\<^sup>")
      | "\\<^sub>" => (0.0, "\\<^sub>")
-     | "\\<^isup>" => (0.0, "\\<^isup>")
+     | "\\<^sup>" => (0.0, "\\<^sup>")
      | "\\<^isub>" => (0.0, "\\<^isub>")
+     | "\\<^isup>" => (0.0, "\\<^isup>")
      | s => (real (size s), implode (map escape (explode s)));
 
   fun add_sym (width, (w: real, s)) = (width + w, s);
 
-  fun script (0, "\\<^sub>") = (1,"<sub>")
-    | script (0, "\\<^isub>") = (1,"<sub>")
+  fun script (0, "\\<^sub>") = (1, "<sub>")
+    | script (0, "\\<^isub>") = (1, "<sub>")
     | script (1, x) = (0, x ^ "</sub>")
-    | script (0, "\\<^sup>") = (2,"<sup>")
-    | script (0, "\\<^isup>") = (2,"<sup>")
+    | script (0, "\\<^sup>") = (2, "<sup>")
+    | script (0, "\\<^isup>") = (2, "<sup>")
     | script (2, x) = (0, x ^ "</sup>")
-    | script (s, x) = (s,x);
+    | script (s, x) = (s, x);
 
-  fun scrs (s, []) = (s,[])
-    | scrs (s, x::xs) = let val (s', x') = script (s, x)
-                            val (s'', xs') = scrs (s', xs)
-                        in (s'', x'::xs') end;
-                           
-  fun scripts ss = #2 (scrs (0,ss));
+  fun scripts ss = #2 (foldl_map script (0, ss));
 in
 
 fun output_width str =
-  if not (exists_string (equal "<" orf equal ">" orf equal "&") str) then (str, real (size str))
+  if not (exists_string (equal "<" orf equal ">" orf equal "&") str)
+  then (str, real (size str))
   else
     let val (width, syms) = foldl_map add_sym (0.0, map output_sym (Symbol.explode str))
     in (implode (scripts syms), width) end;
 
 val output = #1 o output_width;
-val output_symbols = scripts o (map (#2 o output_sym))
+val output_symbols = scripts o map (#2 o output_sym);
 
 end;
 
@@ -369,9 +359,10 @@ fun session_entries [] = "</ul>"
 
 (* theory *)
 
-fun verbatim_source ss = "\n</div>\n<hr>\n<div class=\"source\">\n<pre>" ^ 
-                         implode (output_symbols ss)  ^ 
-                         "</pre>\n</div>\n<hr>\n<div class=\"theorems\">\n";
+fun verbatim_source ss =
+  "\n</div>\n<hr>\n<div class=\"source\">\n<pre>" ^
+  implode (output_symbols ss)  ^
+  "</pre>\n</div>\n<hr>\n<div class=\"theorems\">\n";
 
 
 local
@@ -400,9 +391,9 @@ val end_theory = end_document;
 
 fun ml_file path str =
   begin_document ("File " ^ Url.pack path) ^
-  "\n</div>\n<hr><div class=\"mlsource\">\n" ^ 
-  verbatim str ^ 
-  "\n</div>\n<hr>\n<div class=\"mlfooter\">\n" ^ 
+  "\n</div>\n<hr><div class=\"mlsource\">\n" ^
+  verbatim str ^
+  "\n</div>\n<hr>\n<div class=\"mlfooter\">\n" ^
   end_document;
 
 
