@@ -85,6 +85,11 @@ by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "finite_imageI";
 
+Goal "finite (range g) ==> finite (range (%x. f (g x)))";
+by (Simp_tac 1);
+by (etac finite_imageI 1);
+qed "finite_range_imageI";
+
 val major::prems = Goal 
     "[| finite c;  finite b;                                  \
 \       P(b);                                                   \
