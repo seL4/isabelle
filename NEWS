@@ -16,7 +16,18 @@ New in this Isabelle version
 
 * intro/elim/dest attributes: changed ! / !! flags to ? / ??;
 
+* Pure now provides its own version of intro/elim/dest attributes;
+useful for building new logics, but beware of confusion with the
+Provers/classical ones!
+
 * new 'obtain' language element supports generalized existence proofs;
+
+* HOL: removed "case_split" thm binding, should use "cases" proof
+method anyway;
+
+* tuned syntax of "induct" method;
+
+* new "cases" method for propositions, inductive sets and types;
 
 
 *** HOL ***
@@ -25,7 +36,7 @@ New in this Isabelle version
 Ballarin;
 
 * HOL/record: fixed select-update simplification procedure to handle
-extended records as well;
+extended records as well; admit "r" as field name;
 
 
 
