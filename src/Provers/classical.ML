@@ -205,9 +205,9 @@ fun swap_res_tac rls =
 fun dup_intr th = zero_var_indexes (th RS classical);
 
 fun dup_elim th =
-  (case try
-      (rule_by_tactic (TRYALL (etac revcut_rl)))
-      (th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd) of
+  (case try (fn () =>
+    rule_by_tactic (TRYALL (etac revcut_rl))
+      (th RSN (2, revcut_rl) |> assumption 2 |> Seq.hd)) () of
     Some th' => th'
   | _ => error ("Bad format for elimination rule\n" ^ string_of_thm th));
 
