@@ -24,17 +24,17 @@ datatype
        | Op2 n2n2n aexp aexp
 
 (** Evaluation of arithmetic expressions **)
-consts  evala    :: "(aexp*state*nat)set"
-       "@evala"  :: [aexp,state,nat] => bool ("<_,_>/ -a-> _"  [0,0,50] 50)
+consts  evala    :: "((aexp*state) * nat) set"
+       "-a->"    :: "[aexp*state,nat] => bool"         (infixl 50)
 translations
-    "<ae,sig> -a-> n" == "(ae,sig,n) : evala"
+    "aesig -a-> n" == "(aesig,n) : evala"
 inductive "evala"
   intrs 
-    N   "<N(n),s> -a-> n"
-    X   "<X(x),s> -a-> s(x)"
-    Op1 "<e,s> -a-> n ==> <Op1 f e,s> -a-> f(n)"
-    Op2 "[| <e0,s> -a-> n0;  <e1,s>  -a-> n1 |] 
-           ==> <Op2 f e0 e1,s> -a-> f n0 n1"
+    N   "(N(n),s) -a-> n"
+    X   "(X(x),s) -a-> s(x)"
+    Op1 "(e,s) -a-> n ==> (Op1 f e,s) -a-> f(n)"
+    Op2 "[| (e0,s) -a-> n0;  (e1,s)  -a-> n1 |] 
+           ==> (Op2 f e0 e1,s) -a-> f n0 n1"
 
 types n2n2b = "[nat,nat] => bool"
 
@@ -49,23 +49,23 @@ datatype
        | ori  bexp bexp         (infixl 60)
 
 (** Evaluation of boolean expressions **)
-consts evalb    :: "(bexp*state*bool)set"       
-       "@evalb" :: [bexp,state,bool] => bool ("<_,_>/ -b-> _"  [0,0,50] 50)
+consts evalb    :: "((bexp*state) * bool)set"       
+       "-b->"   :: "[bexp*state,bool] => bool"         (infixl 50)
 
 translations
-    "<be,sig> -b-> b" == "(be,sig,b) : evalb"
+    "besig -b-> b" == "(besig,b) : evalb"
 
 inductive "evalb"
  intrs (*avoid clash with ML constructors true, false*)
-    tru   "<true,s> -b-> True"
-    fls   "<false,s> -b-> False"
-    ROp   "[| <a0,s> -a-> n0; <a1,s> -a-> n1 |] 
-           ==> <ROp f a0 a1,s> -b-> f n0 n1"
-    noti  "<b,s> -b-> w ==> <noti(b),s> -b-> (~w)"
-    andi  "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] 
-          ==> <b0 andi b1,s> -b-> (w0 & w1)"
-    ori   "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] 
-            ==> <b0 ori b1,s> -b-> (w0 | w1)"
+    tru   "(true,s) -b-> True"
+    fls   "(false,s) -b-> False"
+    ROp   "[| (a0,s) -a-> n0; (a1,s) -a-> n1 |] 
+           ==> (ROp f a0 a1,s) -b-> f n0 n1"
+    noti  "(b,s) -b-> w ==> (noti(b),s) -b-> (~w)"
+    andi  "[| (b0,s) -b-> w0; (b1,s) -b-> w1 |] 
+          ==> (b0 andi b1,s) -b-> (w0 & w1)"
+    ori   "[| (b0,s) -b-> w0; (b1,s) -b-> w1 |] 
+            ==> (b0 ori b1,s) -b-> (w0 | w1)"
 
 (** Denotational semantics of arithemtic and boolean expressions **)
 consts
