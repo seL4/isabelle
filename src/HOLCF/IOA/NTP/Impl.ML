@@ -7,7 +7,7 @@ The implementation --- Invariants
 *)
 
 
-Addsimps [Let_def];
+Addsimps [Let_def, le_SucI];
 
 
 open Abschannel Impl;

@@ -808,7 +808,7 @@ by (etac kerberos.induct 1);
 by analz_sees_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (simpset() addsimps ([Says_Kas_message_form, 
+     (simpset() addsimps ([Says_Kas_message_form, less_SucI,
 			   analz_insert_eq, not_parts_not_analz, 
 			   analz_insert_freshK1] @ pushes))));
 (*Fake*) 
@@ -868,9 +868,11 @@ by analz_sees_tac;
 by (rotate_tac ~1 11);
 by (ALLGOALS 
     (asm_full_simp_tac 
-     (simpset() addsimps ([Says_Kas_message_form, Says_Tgs_message_form,
-			   analz_insert_eq, not_parts_not_analz, 
-			   analz_insert_freshK1, analz_insert_freshK2] @ pushes))));
+     (simpset() addsimps [less_SucI, 
+			  Says_Kas_message_form, Says_Tgs_message_form,
+			  analz_insert_eq, not_parts_not_analz, 
+			  analz_insert_freshK1, analz_insert_freshK2] 
+			 @ pushes)));
 (*Fake*) 
 by (spy_analz_tac 1);
 (*K2*)

@@ -239,8 +239,9 @@ Goal "[| A ~: bad;  B ~: bad;  evs : kerberos_ban |]           \
 by (etac kerberos_ban.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [analz_insert_eq, analz_insert_freshK]
-				      @ pushes)));
+    (asm_simp_tac (simpset() addsimps [less_SucI, analz_insert_eq, 
+				       analz_insert_freshK]
+		                      @ pushes)));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys] addIs [less_SucI]) 4);
 (*Kb2*)

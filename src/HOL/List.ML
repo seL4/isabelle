@@ -560,6 +560,7 @@ Addsimps [filter_False];
 Goal "length (filter P xs) <= length xs";
 by (induct_tac "xs" 1);
 by Auto_tac;
+by (asm_simp_tac (simpset() addsimps [le_SucI]) 1);
 qed "length_filter";
 Addsimps[length_filter];
 

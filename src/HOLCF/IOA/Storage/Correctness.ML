@@ -42,7 +42,7 @@ by (simp_tac (simpset() addsimps [
       Spec.ioa_def,Spec.trans_def,trans_of_def])1);
 (* LOC *)
 by (res_inst_tac [("x","(used Un {k},False)")] exI 1);
-by (Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [less_SucI]) 1);
 by (rtac transition_is_ex 1);
 by (simp_tac (simpset() addsimps [
       Spec.ioa_def,Spec.trans_def,trans_of_def])1);

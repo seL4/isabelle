@@ -140,7 +140,6 @@ AddIffs [lessI];
 
 (* i<j ==> i<Suc(j) *)
 bind_thm("less_SucI", lessI RSN (2, less_trans));
-Addsimps [less_SucI];
 
 Goal "0 < Suc(n)";
 by (nat_ind_tac "n" 1);
@@ -381,7 +380,6 @@ qed "Suc_le_eq";
 Goalw [le_def] "m <= n ==> m <= Suc n";
 by (blast_tac (claset() addDs [Suc_lessD]) 1);
 qed "le_SucI";
-Addsimps[le_SucI];
 
 (*bind_thm ("le_Suc", not_Suc_n_less_n RS leI);*)
 
