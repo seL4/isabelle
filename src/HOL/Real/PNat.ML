@@ -212,22 +212,21 @@ qed "pnat_add_left_commute";
 val pnat_add_ac = [pnat_add_assoc, pnat_add_commute, pnat_add_left_commute];
 
 Goalw [pnat_add_def] "((x::pnat) + y = x + z) = (y = z)";
-by (auto_tac (claset() addDs [(inj_on_Abs_pnat RS inj_onD),
+by (auto_tac (claset() addDs [inj_on_Abs_pnat RS inj_onD,
      inj_Rep_pnat RS injD],simpset() addsimps [sum_Rep_pnat]));
 qed "pnat_add_left_cancel";
 
 Goalw [pnat_add_def] "(y + (x::pnat) = z + x) = (y = z)";
-by (auto_tac (claset() addDs [(inj_on_Abs_pnat RS inj_onD),
+by (auto_tac (claset() addDs [inj_on_Abs_pnat RS inj_onD,
      inj_Rep_pnat RS injD],simpset() addsimps [sum_Rep_pnat]));
 qed "pnat_add_right_cancel";
 
 Goalw [pnat_add_def] "!(y::pnat). x + y ~= x";
 by (rtac (Rep_pnat_inverse RS subst) 1);
-by (auto_tac (claset() addDs [(inj_on_Abs_pnat RS inj_onD)] 
+by (auto_tac (claset() addDs [inj_on_Abs_pnat RS inj_onD] 
   	               addSDs [add_eq_self_zero],
 	      simpset() addsimps [sum_Rep_pnat, Rep_pnat,Abs_pnat_inverse,
-				  Rep_pnat_gt_zero RS less_not_refl2]
-                        delsimprocs Nat_Numeral_Simprocs.cancel_numerals));
+				  Rep_pnat_gt_zero RS less_not_refl2]));
 qed "pnat_no_add_ident";
 
 

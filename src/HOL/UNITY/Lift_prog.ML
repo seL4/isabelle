@@ -16,8 +16,6 @@ qed "insert_map_inverse";
 Goal "(insert_map i x (delete_map i g)) = g(i:=x)";
 by (rtac ext 1);
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
-by (case_tac "d" 1);
-by (ALLGOALS Asm_simp_tac);
 qed "insert_map_delete_map_eq";
 
 (*** Injectiveness proof ***)
@@ -303,7 +301,7 @@ Goal "(insert_map j t f)(i := s) = \
 \      else if i<j then insert_map j t (f(i:=s)) \
 \      else insert_map j t (f(i-1:=s)))";
 by (rtac ext 1);
-by (auto_tac (claset(), simpset() addsplits [nat_diff_split']));
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
 by (ALLGOALS arith_tac);
 qed "insert_map_upd";
 
