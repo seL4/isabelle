@@ -17,19 +17,25 @@ by (Int.fast_tac 1);
 
 writeln"File FOL/ex/int.";
 
-(*Note: for PROPOSITIONAL formulae...
-  ~A is classically provable iff it is intuitionistically provable.  
-  Therefore A is classically provable iff ~~A is intuitionistically provable.
+(*Metatheorem (for PROPOSITIONAL formulae...):
+  P is classically provable iff ~~P is intuitionistically provable.
+  Therefore ~P is classically provable iff it is intuitionistically provable.  
 
-Let Q be the conjuction of the propositions A|~A, one for each atom A in
-P.  If P is provable classically, then clearly P&Q is provable
-intuitionistically, so ~~(P&Q) is also provable intuitionistically.
-The latter is intuitionistically equivalent to ~~P&~~Q, hence to ~~P,
-since ~~Q is intuitionistically provable.  Finally, if P is a negation then
-~~P is intuitionstically equivalent to P.  [Andy Pitts]
-*)
+Proof: Let Q be the conjuction of the propositions A|~A, one for each atom A
+in P.  Now ~~Q is intuitionistically provable because ~~(A|~A) is and because
+~~ distributes over &.  If P is provable classically, then clearly Q-->P is
+provable intuitionistically, so ~~(Q-->P) is also provable intuitionistically.
+The latter is intuitionistically equivalent to ~~Q-->~~P, hence to ~~P, since
+~~Q is intuitionistically provable.  Finally, if P is a negation then ~~P is
+intuitionstically equivalent to P.  [Andy Pitts] *)
 
 goal IFOL.thy "~~(P&Q) <-> ~~P & ~~Q";
+by (Int.fast_tac 1);
+result();
+
+(* ~~ does NOT distribute over | *)
+
+goal IFOL.thy "~~(P-->Q)  <-> (~~P --> ~~Q)";
 by (Int.fast_tac 1);
 result();
 
@@ -294,7 +300,7 @@ goal IFOL.thy "(EX x. P(x) & ~Q(x)) &   \
 \             (ALL x. M(x) & L(x) --> P(x)) &   \
 \             ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))  \
 \         --> (ALL x. M(x) --> ~L(x))";
-by (Int.fast_tac 1);   (*44 secs*)
+by (Int.fast_tac 1);   (*21 secs*)
 result();
 
 writeln"Problem ~~28.  AMENDED";
@@ -302,7 +308,7 @@ goal IFOL.thy "(ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       (~~(ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &  \
 \       (~~(EX x.S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
-by (Int.fast_tac 1);  (*101 secs*)
+by (Int.fast_tac 1);  (*48 secs*)
 result();
 
 writeln"Problem 29.  Essentially the same as Principia Mathematica *11.71";
@@ -388,7 +394,7 @@ writeln"Problem 51";
 goal IFOL.thy
     "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)";
-by (Int.best_tac 1);  (*60 seconds*)
+by (Int.best_tac 1);  (*34 seconds*)
 result();
 
 writeln"Problem 52";
@@ -396,7 +402,7 @@ writeln"Problem 52";
 goal IFOL.thy
     "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)";
-by (Int.best_tac 1);  (*60 seconds*)
+by (Int.best_tac 1);  (*34 seconds*)
 result();
 
 writeln"Problem 56";
