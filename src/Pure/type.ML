@@ -333,9 +333,9 @@ fun inst_typ_tvars(tsig, tye) =
 fun inst_term_tvars(tsig, tye) = map_term_types (inst_typ_tvars(tsig, tye));
 
 
-(* expand_typ *)
+(* norm_typ *)
 
-fun expand_typ (TySg {abbrs, ...}) ty =
+fun norm_typ (TySg {abbrs, ...}) ty =
   let
     val idx = maxidx_of_typ ty + 1;
 
@@ -348,9 +348,6 @@ fun expand_typ (TySg {abbrs, ...}) ty =
   in
     expand ty
   end;
-
-val norm_typ = expand_typ;
-
 
 
 (** type matching **)
