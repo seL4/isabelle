@@ -5,10 +5,7 @@
     License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {*
-  \title{Ring and field structures}
-  \author{Gertrud Bauer, L. C. Paulson and Markus Wenzel}
-*}
+header {* Ring and field structures *}
 
 theory Ring_and_Field = Inductive:
 

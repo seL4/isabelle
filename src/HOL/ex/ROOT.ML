@@ -30,10 +30,15 @@ time_use_thy "Qsort";
 time_use_thy "MergeSort";
 time_use_thy "Puzzle";
 
+no_document use_thy "List_Prefix";
+time_use_thy "Exceptions";
+
 time_use_thy "IntRing";
 
 time_use_thy "set";
 time_use_thy "MT";
+
+no_document use_thy "FuncSet";
 time_use_thy "Tarski";
 
 time_use_thy "SVC_Oracle";
@@ -41,4 +46,6 @@ if_svc_enabled time_use_thy "svc_test";
 
 time_use_thy "Refute_Examples";
 
+no_document use_thy "Word";
 time_use_thy "Adder";
+

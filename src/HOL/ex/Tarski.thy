@@ -125,7 +125,7 @@ locale (open) Tarski = CLF +
                       (| pset=intY1, order=induced intY1 r|)"
 
 
-subsubsection {* Partial Order *}
+subsection {* Partial Order *}
 
 lemma (in PO) PO_imp_refl: "refl A r"
 apply (insert cl_po)
@@ -300,7 +300,7 @@ apply (simp add: PO_imp_refl [THEN reflE])
 done
 
 
-subsubsection {* sublattice *}
+subsection {* sublattice *}
 
 lemma (in PO) sublattice_imp_CL:
      "S <<= cl  ==> (| pset = S, order = induced S r |) \<in> CompleteLattice"
@@ -312,7 +312,7 @@ lemma (in CL) sublatticeI:
 by (simp add: sublattice_def A_def r_def)
 
 
-subsubsection {* lub *}
+subsection {* lub *}
 
 lemma (in CL) lub_unique: "[| S <= A; isLub S cl x; isLub S cl L|] ==> x = L"
 apply (rule antisymE)
@@ -379,7 +379,7 @@ lemma (in CL) isLubI:
 by (simp add: isLub_def A_def r_def)
 
 
-subsubsection {* glb *}
+subsection {* glb *}
 
 lemma (in CL) glb_in_lattice: "S <= A ==> glb S cl \<in> A"
 apply (subst glb_dual_lub)
@@ -427,7 +427,7 @@ apply (simp add: dualA_iff)
 done
 
 
-subsubsection {* fixed points *}
+subsection {* fixed points *}
 
 lemma fix_subset: "fix f A <= A"
 by (simp add: fix_def, fast)
@@ -441,7 +441,7 @@ apply (simp add: fix_def, auto)
 done
 
 
-subsubsection {* lemmas for Tarski, lub *}
+subsection {* lemmas for Tarski, lub *}
 lemma (in CLF) lubH_le_flubH:
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> (lub H cl, f (lub H cl)) \<in> r"
 apply (rule lub_least, fast)
@@ -511,7 +511,7 @@ apply (erule bspec)
 apply (rule lubH_is_fixp, assumption)
 done
 
-subsubsection {* Tarski fixpoint theorem 1, first part *}
+subsection {* Tarski fixpoint theorem 1, first part *}
 lemma (in CLF) T_thm_1_lub: "lub P cl = lub {x. (x, f x) \<in> r & x \<in> A} cl"
 apply (rule sym)
 apply (simp add: P_def)
@@ -540,7 +540,7 @@ apply (simp add: Tarski.T_thm_1_lub [of _ f, OF dualPO CL_dualCL]
                  dualPO CL_dualCL CLF_dual dualr_iff)
 done
 
-subsubsection {* interval *}
+subsection {* interval *}
 
 lemma (in CLF) rel_imp_elem: "(x, y) \<in> r ==> x \<in> A"
 apply (insert CO_refl)
@@ -680,7 +680,7 @@ lemmas (in CLF) interv_is_compl_latt =
     interval_is_sublattice [THEN sublattice_imp_CL]
 
 
-subsubsection {* Top and Bottom *}
+subsection {* Top and Bottom *}
 lemma (in CLF) Top_dual_Bot: "Top cl = Bot (dual cl)"
 by (simp add: Top_def Bot_def least_def greatest_def dualA_iff dualr_iff)
 
@@ -741,7 +741,7 @@ apply (simp add: Tarski.Top_intv_not_empty [of _ f]
                  dualA_iff A_def dualPO CL_dualCL CLF_dual)
 done
 
-subsubsection {* fixed points form a partial order *}
+subsection {* fixed points form a partial order *}
 
 lemma (in CLF) fixf_po: "(| pset = P, order = induced P r|) \<in> PartialOrder"
 by (simp add: P_def fix_subset po_subset_po)

@@ -5,6 +5,8 @@
 Implementation of carry chain incrementor and adder.
 *)
 
+header{* Adder *}
+
 theory Adder = Main + Word:
 
 lemma [simp]: "bv_to_nat [b] = bitval b"
