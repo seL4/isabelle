@@ -174,7 +174,7 @@ val imageE = prove_goalw ZF.thy [image_def]
     (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ]);
 
 val image_subset = prove_goal ZF.thy
-    "!!A B r. [| r <= A*B;  C<=A |] ==> r``C <= B"
+    "!!A B r. r <= A*B ==> r``C <= B"
  (fn _ =>
   [ (rtac subsetI 1),
     (REPEAT (eresolve_tac [asm_rl, imageE, subsetD RS SigmaD2] 1)) ]);
@@ -202,8 +202,8 @@ val vimageE = prove_goalw ZF.thy [vimage_def]
     (REPEAT (etac converseD 1 ORELSE ares_tac prems 1)) ]);
 
 val vimage_subset = prove_goalw ZF.thy [vimage_def]
-    "!!A B r. [| r <= A*B;  C<=B |] ==> r-``C <= A"
- (fn _ => [ (REPEAT (ares_tac [converse_type RS image_subset] 1)) ]);
+    "!!A B r. r <= A*B ==> r-``C <= A"
+ (fn _ => [ (etac (converse_type RS image_subset) 1) ]);
 
 
 (** Theorem-proving for ZF set theory **)

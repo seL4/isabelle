@@ -293,12 +293,14 @@ val prems = goal ZF.thy
 \    (f Un g) : (A Un C) -> (B Un D)";
      (*Contradiction if A Int C = 0, a:A, a:B*)
 val [disjoint] = prems RL ([IntI] RLN (2, [equals0D]));
+val Pair_UnE = read_instantiate [("c","<?a,?b>")] UnE;  (* ignores x: A Un C *)
 by (cut_facts_tac prems 1);
 by (rtac PiI 1);
-(*solve subgoal 2 first!!*)
-by (DEPTH_SOLVE_1 (eresolve_tac [UnE, Pair_mem_PiE, sym, disjoint] 2
-       INTLEAVE ares_tac [ex1I, apply_Pair RS UnI1, apply_Pair RS UnI2] 2));
-by (REPEAT (eresolve_tac [asm_rl,UnE,rel_Un,PiE] 1));
+by (REPEAT (ares_tac [rel_Un, fun_is_rel] 1));
+by (rtac ex_ex1I 1);
+by (fast_tac (ZF_cs addDs [apply_Pair]) 1);
+by (REPEAT_FIRST (eresolve_tac [asm_rl, Pair_UnE, sym RS trans]
+	     ORELSE' eresolve_tac [Pair_mem_PiE,disjoint] THEN' atac));
 val fun_disjoint_Un = result();
 
 goal ZF.thy

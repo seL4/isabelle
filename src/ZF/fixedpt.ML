@@ -88,7 +88,7 @@ val subset_cs = subset0_cs
 val prems = goalw Fixedpt.thy [lfp_def]
     "[| h(D) <= D;  !!X. [| h(X) <= X;  X<=D |] ==> A<=X |] ==> \
 \    A <= lfp(D,h)";
-br (Pow_top RS CollectI RS Inter_greatest) 1;
+by (rtac (Pow_top RS CollectI RS Inter_greatest) 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [CollectE,PowD] 1));
 val lfp_greatest = result();
 
@@ -174,8 +174,8 @@ val lfp_Int_lowerbound = result();
 val [hmono,imono,subhi] = goal Fixedpt.thy
     "[| bnd_mono(D,h);  bnd_mono(E,i); 		\
 \       !!X. X<=D ==> h(X) <= i(X)  |] ==> lfp(D,h) <= lfp(E,i)";
-br (bnd_monoD1 RS lfp_greatest) 1;
-br imono 1;
+by (rtac (bnd_monoD1 RS lfp_greatest) 1);
+by (rtac imono 1);
 by (rtac (hmono RSN (2, lfp_Int_lowerbound)) 1);
 by (rtac (Int_lower1 RS subhi RS subset_trans) 1);
 by (rtac (imono RS bnd_monoD2 RS subset_trans) 1);
@@ -186,10 +186,10 @@ val lfp_mono = result();
   but both lfp's must be over the SAME set D;  Inter is anti-monotonic!*)
 val [isubD,subhi] = goal Fixedpt.thy
     "[| i(D) <= D;  !!X. X<=D ==> h(X) <= i(X)  |] ==> lfp(D,h) <= lfp(D,i)";
-br lfp_greatest 1;
-br isubD 1;
+by (rtac lfp_greatest 1);
+by (rtac isubD 1);
 by (rtac lfp_lowerbound 1);
-be (subhi RS subset_trans) 1;
+by (etac (subhi RS subset_trans) 1);
 by (REPEAT (assume_tac 1));
 val lfp_mono2 = result();
 

@@ -127,10 +127,11 @@ fun mk_frees a [] = []
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
 		   ex_mono, Collect_mono, Part_mono, in_mono];
 
+(*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl = 
-  let val Const("op :",_) $ t $ X = dest_tprop (Logic.strip_imp_concl rl)
-  in (t,X) end
-  handle _ => error "Conclusion of rule should be a set membership";
+    case dest_tprop (Logic.strip_imp_concl rl) of
+        Const("op :",_) $ t $ X => (t,X) 
+      | _ => error "Conclusion of rule should be a set membership";
 
 (*For deriving cases rules.  CollectD2 discards the domain, which is redundant;
   read_instantiate replaces a propositional variable by a formula variable*)

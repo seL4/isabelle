@@ -55,17 +55,14 @@ val list_univ = result();
 val list_subset_univ = standard
     (list_mono RS (list_univ RSN (2,subset_trans)));
 
-(*****
 val major::prems = goal List.thy
     "[| l: list(A);    \
-\       c: C(0);       \
-\       !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(<x,y>)  \
-\    |] ==> list_case(l,c,h) : C(l)";
-by (rtac (major RS list_induct) 1);
-by (ALLGOALS (asm_simp_tac (ZF_ss addsimps
-			    ([list_case_0,list_case_Pair]@prems))));
+\       c: C(Nil);       \
+\       !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(Cons(x,y))  \
+\    |] ==> list_case(c,h,l) : C(l)";
+by (rtac (major RS List.induct) 1);
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps (List.case_eqns @ prems))));
 val list_case_type = result();
-****)
 
 
 (** For recursion **)

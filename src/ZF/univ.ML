@@ -47,11 +47,11 @@ goal Univ.thy "Vfrom(A,rank(x)) <= Vfrom(A,x)";
 by (eps_ind_tac "x" 1);
 by (rtac (Vfrom RS ssubst) 1);
 by (rtac (Vfrom RS ssubst) 1);
-br (subset_refl RS Un_mono) 1;
-br UN_least 1;
+by (rtac (subset_refl RS Un_mono) 1);
+by (rtac UN_least 1);
 by (etac (rank_implies_mem RS bexE) 1);
-br subset_trans 1;
-be UN_upper 2;
+by (rtac subset_trans 1);
+by (etac UN_upper 2);
 by (etac (subset_refl RS Vfrom_mono RS subset_trans RS Pow_mono) 1);
 by (etac bspec 1);
 by (assume_tac 1);
@@ -144,16 +144,16 @@ by (rtac (Vfrom RS ssubst) 1);
 by (rtac equalityI 1);
 (*first inclusion*)
 by (rtac Un_least 1);
-br (A_subset_Vfrom RS subset_trans) 1;
-br (prem RS UN_upper) 1;
-br UN_least 1;
-be UnionE 1;
-br subset_trans 1;
-be UN_upper 2;
+by (rtac (A_subset_Vfrom RS subset_trans) 1);
+by (rtac (prem RS UN_upper) 1);
+by (rtac UN_least 1);
+by (etac UnionE 1);
+by (rtac subset_trans 1);
+by (etac UN_upper 2);
 by (rtac (Vfrom RS ssubst) 1);
-be ([UN_upper, Un_upper2] MRS subset_trans) 1;
+by (etac ([UN_upper, Un_upper2] MRS subset_trans) 1);
 (*opposite inclusion*)
-br UN_least 1;
+by (rtac UN_least 1);
 by (rtac (Vfrom RS ssubst) 1);
 by (fast_tac ZF_cs 1);
 val Vfrom_Union = result();
@@ -183,9 +183,9 @@ val Limit_nat = result();
 goalw Univ.thy [Limit_def]
     "!!i. [| Ord(i);  0:i;  ALL y. ~ succ(y)=i |] ==> Limit(i)";
 by (safe_tac subset_cs);
-br Ord_member 1;
+by (rtac Ord_member 1);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, Ord_in_Ord RS Ord_succ]
-          ORELSE' dresolve_tac [Ord_succ_subsetI]));
+          ORELSE' dtac Ord_succ_subsetI ));
 by (fast_tac (subset_cs addSIs [equalityI]) 1);
 val non_succ_LimitI = result();
 
@@ -271,10 +271,10 @@ val Transset_Vfrom = result();
 
 goal Univ.thy "!!A i. Transset(A) ==> Vfrom(A, succ(i)) = Pow(Vfrom(A,i))";
 by (rtac (Vfrom_succ RS trans) 1);
-br (Un_upper2 RSN (2,equalityI)) 1;;
-br (subset_refl RSN (2,Un_least)) 1;;
-br (A_subset_Vfrom RS subset_trans) 1;
-be (Transset_Vfrom RS (Transset_iff_Pow RS iffD1)) 1;
+by (rtac (Un_upper2 RSN (2,equalityI)) 1);
+by (rtac (subset_refl RSN (2,Un_least)) 1);
+by (rtac (A_subset_Vfrom RS subset_trans) 1);
+by (etac (Transset_Vfrom RS (Transset_iff_Pow RS iffD1)) 1);
 val Transset_Vfrom_succ = result();
 
 goalw Ord.thy [Pair_def,Transset_def]
@@ -285,8 +285,8 @@ val Transset_Pair_subset = result();
 goal Univ.thy
     "!!a b.[| <a,b> <= Vfrom(A,i);  Transset(A);  Limit(i) |] ==> \
 \          <a,b> : Vfrom(A,i)";
-be (Transset_Pair_subset RS conjE) 1;
-be Transset_Vfrom 1;
+by (etac (Transset_Pair_subset RS conjE) 1);
+by (etac Transset_Vfrom 1);
 by (REPEAT (ares_tac [Pair_in_Vfrom_limit] 1));
 val Transset_Pair_subset_Vfrom_limit = result();
 
@@ -346,7 +346,7 @@ by (rtac (aprem RS (limiti RS Limit_VfromE)) 1);
 by (rtac (bprem RS (limiti RS Limit_VfromE)) 1);
 by (rtac (limiti RS Limit_Vfrom_eq RS ssubst) 1);
 by (rtac UN_I 1);
-by (rtac (rewrite_rule [one_def] sum_in_Vfrom) 2);
+by (rtac sum_in_Vfrom 2);
 by (rtac (succI1 RS UnI1) 5);
 (*Infer that succ(succ(succ(x Un xa))) < i *)
 by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 2);
@@ -456,14 +456,14 @@ val rank_Vset = result();
 val Vset_rankI = Ord_rank RS VsetI;
 
 goal Univ.thy "a <= Vset(rank(a))";
-br subsetI 1;
-be (rank_lt RS Vset_rankI) 1;
+by (rtac subsetI 1);
+by (etac (rank_lt RS Vset_rankI) 1);
 val arg_subset_Vset_rank = result();
 
 val [iprem] = goal Univ.thy
     "[| !!i. Ord(i) ==> a Int Vset(i) <= b |] ==> a <= b";
-br ([subset_refl, arg_subset_Vset_rank] MRS Int_greatest RS subset_trans) 1;
-br (Ord_rank RS iprem) 1;
+by (rtac ([subset_refl, arg_subset_Vset_rank] MRS Int_greatest RS subset_trans) 1);
+by (rtac (Ord_rank RS iprem) 1);
 val Int_Vset_subset = result();
 
 (** Set up an environment for simplification **)
@@ -507,28 +507,28 @@ val Transset_univ = result();
 (** univ(A) as a limit **)
 
 goalw Univ.thy [univ_def] "univ(A) = (UN i:nat. Vfrom(A,i))";
-br (Limit_nat RS Limit_Vfrom_eq) 1;
+by (rtac (Limit_nat RS Limit_Vfrom_eq) 1);
 val univ_eq_UN = result();
 
 goal Univ.thy "!!c. c <= univ(A) ==> c = (UN i:nat. c Int Vfrom(A,i))";
-br (subset_UN_iff_eq RS iffD1) 1;
-be (univ_eq_UN RS subst) 1;
+by (rtac (subset_UN_iff_eq RS iffD1) 1);
+by (etac (univ_eq_UN RS subst) 1);
 val subset_univ_eq_Int = result();
 
 val [aprem, iprem] = goal Univ.thy
     "[| a <= univ(X);			 	\
 \       !!i. i:nat ==> a Int Vfrom(X,i) <= b 	\
 \    |] ==> a <= b";
-br (aprem RS subset_univ_eq_Int RS ssubst) 1;
-br UN_least 1;
-be iprem 1;
+by (rtac (aprem RS subset_univ_eq_Int RS ssubst) 1);
+by (rtac UN_least 1);
+by (etac iprem 1);
 val univ_Int_Vfrom_subset = result();
 
 val prems = goal Univ.thy
     "[| a <= univ(X);   b <= univ(X);   \
 \       !!i. i:nat ==> a Int Vfrom(X,i) = b Int Vfrom(X,i) \
 \    |] ==> a = b";
-br equalityI 1;
+by (rtac equalityI 1);
 by (ALLGOALS
     (resolve_tac (prems RL [univ_Int_Vfrom_subset]) THEN'
      eresolve_tac (prems RL [equalityD1,equalityD2] RL [subset_trans]) THEN'
@@ -576,7 +576,7 @@ val Sigma_subset_univ = standard
 
 goalw Univ.thy [univ_def]
     "!!a b.[| <a,b> <= univ(A);  Transset(A) |] ==> <a,b> : univ(A)";
-be Transset_Pair_subset_Vfrom_limit 1;
+by (etac Transset_Pair_subset_Vfrom_limit 1);
 by (REPEAT (ares_tac [Ord_nat,Limit_nat] 1));
 val Transset_Pair_subset_univ = result();
 
@@ -592,7 +592,7 @@ val nat_into_univ = standard (nat_subset_univ RS subsetD);
 
 (** instances for 1 and 2 **)
 
-goalw Univ.thy [one_def] "1 : univ(A)";
+goal Univ.thy "1 : univ(A)";
 by (REPEAT (ares_tac [nat_into_univ, nat_0I, nat_succI] 1));
 val one_in_univ = result();
 

@@ -11,20 +11,7 @@ This theory is the work of Martin Coen, Philippe Noel and Lawrence Paulson.
 val banner = "ZF Set Theory (in FOL)";
 writeln banner;
 
-(*For Pure/drule??  Multiple resolution infixes*)
-infix 0 MRS MRL;
-
-(*Resolve a list of rules against bottom_rl from right to left*)
-fun rls MRS bottom_rl = 
-  let fun rs_aux i [] = bottom_rl
-	| rs_aux i (rl::rls) = rl RSN (i, rs_aux (i+1) rls)
-  in  rs_aux 1 rls  end;
-
-fun rlss MRL bottom_rls = 
-  let fun rs_aux i [] = bottom_rls
-	| rs_aux i (rls::rlss) = rls RLN (i, rs_aux (i+1) rlss)
-  in  rs_aux 1 rlss  end;
-
+(*For Pure/tactic??  A crude way of adding structure to rules*)
 fun CHECK_SOLVED (Tactic tf) = 
   Tactic (fn state => 
     case Sequence.pull (tf state) of

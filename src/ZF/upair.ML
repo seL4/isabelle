@@ -235,16 +235,20 @@ val succI2 = prove_goalw ZF.thy [succ_def]
     "i : j ==> i : succ(j)"
  (fn [prem]=> [ (rtac (prem RS consI2) 1) ]);
 
-(*Classical introduction rule*)
-val succCI = prove_goalw ZF.thy [succ_def]
-   "(~ i:j ==> i=j) ==> i: succ(j)"
- (fn prems=> [ (rtac consCI 1), (eresolve_tac prems 1) ]);
-
 val succE = prove_goalw ZF.thy [succ_def]
     "[| i : succ(j);  i=j ==> P;  i:j ==> P |] ==> P"
  (fn major::prems=>
   [ (rtac (major RS consE) 1),
     (REPEAT (eresolve_tac prems 1)) ]);
+
+val succ_iff = prove_goal ZF.thy "i : succ(j) <-> i=j | i:j"
+ (fn _ => [ (fast_tac (lemmas_cs addIs [succI1,succI2] addSEs [succE]) 1) ]);
+
+(*Classical introduction rule*)
+val succCI = prove_goal ZF.thy "(~ i:j ==> i=j) ==> i: succ(j)"
+ (fn [prem]=>
+  [ (rtac (disjCI RS (succ_iff RS iffD2)) 1),
+    (etac prem 1) ]);
 
 val succ_neq_0 = prove_goal ZF.thy "succ(n)=0 ==> P"
  (fn [major]=>

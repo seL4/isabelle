@@ -8,7 +8,7 @@ For ZF/bool.thy.  Booleans in Zermelo-Fraenkel Set Theory
 
 open Bool;
 
-val bool_defs = [bool_def,one_def,cond_def];
+val bool_defs = [bool_def,cond_def];
 
 (* Introduction rules *)
 

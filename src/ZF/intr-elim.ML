@@ -117,7 +117,20 @@ val dummy = assert_all (is_some o lookup_const sign) rec_names
    (fn a => "Name of recursive set not declared as constant: " ^ a);
 
 val intr_tms = map (Sign.term_of o rd propT) sintrs;
-val (Const(_,recT),rec_params) = strip_comb (#2 (rule_concl(hd intr_tms)))
+
+local (*Checking the introduction rules*)
+  val intr_sets = map (#2 o rule_concl) intr_tms;
+
+  fun intr_ok set =
+      case head_of set of Const(a,recT) => a mem rec_names | _ => false;
+
+  val dummy =  assert_all intr_ok intr_sets
+     (fn t => "Conclusion of rule does not name a recursive set: " ^ 
+	      Sign.string_of_term sign t);
+in
+val (Const(_,recT),rec_params) = strip_comb (hd intr_sets)
+end;
+
 val rec_hds = map (fn a=> Const(a,recT)) rec_names;
 val rec_tms = map (fn rec_hd=> list_comb(rec_hd,rec_params)) rec_hds;
 
@@ -262,8 +275,9 @@ val basic_elim_tac =
 
 val elim = rule_by_tactic basic_elim_tac (unfold RS equals_CollectD);
 
-(*Applies freeness of the given constructors.
-  NB for datatypes, defs=con_defs; for inference systems, con_defs=[]! *)
+(*Applies freeness of the given constructors, which *must* be unfolded by
+  the given defs.  Cannot simply use the local con_defs because con_defs=[] 
+  for inference systems. *)
 fun con_elim_tac defs =
     rewrite_goals_tac defs THEN basic_elim_tac THEN fold_con_tac defs;
 

@@ -12,7 +12,7 @@ open Epsilon;
 
 goalw Epsilon.thy [eclose_def] "A <= eclose(A)";
 by (rtac (nat_rec_0 RS equalityD2 RS subset_trans) 1);
-br (nat_0I RS UN_upper) 1;
+by (rtac (nat_0I RS UN_upper) 1);
 val arg_subset_eclose = result();
 
 val arg_into_eclose = arg_subset_eclose RS subsetD;
@@ -71,7 +71,7 @@ val eclose_least_lemma = result();
 
 goalw Epsilon.thy [eclose_def]
      "!!X A. [| Transset(X);  A<=X |] ==> eclose(A) <= X";
-br (eclose_least_lemma RS UN_least) 1;
+by (rtac (eclose_least_lemma RS UN_least) 1);
 by (REPEAT (assume_tac 1));
 val eclose_least = result();
 
@@ -90,8 +90,8 @@ by (fast_tac (ZF_cs addEs [step,ecloseD]) 1);
 val eclose_induct_down = result();
 
 goal Epsilon.thy "!!X. Transset(X) ==> eclose(X) = X";
-be ([eclose_least, arg_subset_eclose] MRS equalityI) 1;
-br subset_refl 1;
+by (etac ([eclose_least, arg_subset_eclose] MRS equalityI) 1);
+by (rtac subset_refl 1);
 val Transset_eclose_eq_arg = result();
 
 
@@ -233,8 +233,8 @@ val rank_0 = result();
 
 goal Epsilon.thy "rank(succ(x)) = succ(rank(x))";
 by (rtac (rank RS trans) 1);
-br ([UN_least, succI1 RS UN_upper] MRS equalityI) 1;
-be succE 1;
+by (rtac ([UN_least, succI1 RS UN_upper] MRS equalityI) 1);
+by (etac succE 1);
 by (fast_tac ZF_cs 1);
 by (REPEAT (ares_tac [Ord_succ_mono,Ord_rank,OrdmemD,rank_lt] 1));
 val rank_succ = result();

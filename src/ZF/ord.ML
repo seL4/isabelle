@@ -47,14 +47,14 @@ val Transset_includes_range = result();
 
 val [prem1,prem2] = goalw (merge_theories(Ord.thy,Sum.thy)) [sum_def]
     "[| Transset(C); A+B <= C |] ==> A <= C & B <= C";
-br (prem2 RS (Un_subset_iff RS iffD1) RS conjE) 1;
+by (rtac (prem2 RS (Un_subset_iff RS iffD1) RS conjE) 1);
 by (REPEAT (etac (prem1 RS Transset_includes_range) 1
      ORELSE resolve_tac [conjI, singletonI] 1));
 val Transset_includes_summands = result();
 
 val [prem] = goalw (merge_theories(Ord.thy,Sum.thy)) [sum_def]
     "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
-br (Int_Un_distrib RS ssubst) 1;
+by (rtac (Int_Un_distrib RS ssubst) 1);
 by (fast_tac (ZF_cs addSDs [prem RS Transset_Pair_D]) 1);
 val Transset_sum_Int_subset = result();
 
@@ -281,7 +281,7 @@ by (rtac (empty_subsetI RS Ord_member) 1);
 by (fast_tac ZF_cs 1);
 by (rtac (prem RS Ord_succ) 1);
 by (rtac Ord_0 1);
-val Ord_0_mem_succ = result();
+val Ord_0_in_succ = result();
 
 goal Ord.thy "!!i j. [| Ord(i);  Ord(j) |] ==> j:i <-> j<=i & ~(i<=j)";
 by (rtac iffI 1);
@@ -293,7 +293,7 @@ by (REPEAT (eresolve_tac [asm_rl, conjE, Ord_member] 1));
 val Ord_member_iff = result();
 
 goal Ord.thy "!!i. Ord(i) ==> 0:i  <-> ~ i=0";
-be (Ord_0 RSN (2,Ord_member_iff) RS iff_trans) 1;
+by (etac (Ord_0 RSN (2,Ord_member_iff) RS iff_trans) 1);
 by (fast_tac eq_cs 1);
 val Ord_0_member_iff = result();
 
@@ -307,6 +307,7 @@ by (etac subsetD 2);
 by (ALLGOALS (fast_tac ZF_cs));
 val member_succI = result();
 
+(*Recall Ord_succ_subsetI, namely  [| i:j;  Ord(j) |] ==> succ(i) <= j *)
 goalw Ord.thy [Transset_def,Ord_def]
     "!!i j. [| i : succ(j);  Ord(j) |] ==> i<=j";
 by (fast_tac ZF_cs 1);
@@ -352,6 +353,8 @@ goal Ord.thy "!!i j. [| i<=j;  Ord(i);  Ord(j) |] ==> succ(i) <= succ(j)";
 by (rtac (member_succI RS succ_mem_succI RS member_succD) 1);
 by (REPEAT (ares_tac [Ord_succ] 1));
 val Ord_succ_mono = result();
+
+(** Union and Intersection **)
 
 goal Ord.thy "!!i j k. [| i:k;  j:k;  Ord(k) |] ==> i Un j : k";
 by (res_inst_tac [("i","i"),("j","j")] Ord_subset 1);

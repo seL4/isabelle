@@ -10,15 +10,21 @@ fun prove_fun s =
     (writeln s;  prove_goal ZF.thy s
        (fn prems => [ (cut_facts_tac prems 1), (fast_tac ZF_cs 1) ]));
 
+(*INCLUDED IN ZF_ss*)
 val mem_simps = map prove_fun
- [ "a:0 <-> False",
-   "a : A Un B <-> a:A | a:B",
-   "a : A Int B <-> a:A & a:B",
-   "a : A-B <-> a:A & ~a:B",
-   "a : cons(b,B) <-> a=b | a:B",
-   "i : succ(j) <-> i=j | i:j",
+ [ "a : 0             <-> False",
+   "a : A Un B        <-> a:A | a:B",
+   "a : A Int B       <-> a:A & a:B",
+   "a : A-B           <-> a:A & ~a:B",
    "<a,b>: Sigma(A,B) <-> a:A & b:B(a)",
-   "a : Collect(A,P) <-> a:A & P(a)" ];
+   "a : Collect(A,P)  <-> a:A & P(a)" ];
+
+(*INCLUDED: should be??*)
+val bquant_simps = map prove_fun
+ [ "(ALL x:0.P(x)) <-> True",
+   "(EX  x:0.P(x)) <-> False",
+   "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
+   "(EX  x:succ(i).P(x)) <-> P(i) | (EX  x:i.P(x))" ];
 
 (** Tactics for type checking -- from CTT **)
 
@@ -83,7 +89,7 @@ fun atomize th =
 fun ZF_mk_rew_rules th = map mk_meta_eq (atomize th);
 
 
-val ZF_simps = [empty_subsetI, ball_simp, if_true, if_false, 
+val ZF_simps = [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
 		beta, eta, restrict, fst_conv, snd_conv, split];
 
 (*Sigma_cong, Pi_cong NOT included by default since they cause
@@ -94,5 +100,5 @@ val ZF_congs =
 
 val ZF_ss = FOL_ss 
       setmksimps ZF_mk_rew_rules
-      addsimps (ZF_simps@mem_simps)
+      addsimps (ZF_simps @ mem_simps @ bquant_simps)
       addcongs ZF_congs;
