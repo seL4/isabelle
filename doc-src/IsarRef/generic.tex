@@ -194,11 +194,11 @@ calculational steps in combination with natural deduction.
 
 \section{Axiomatic Type Classes}\label{sec:axclass}
 
-\indexisarcmd{axclass}\indexisarcmd{instance}
+\indexisarcmd{axclass}\indexisarcmd{instance}\indexisarmeth{intro-classes}
 \begin{matharray}{rcl}
   \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
   \isarcmd{instance} & : & \isartrans{theory}{proof(prove)} \\
-  expand_classes & : & \isarmeth \\
+  intro_classes & : & \isarmeth \\
 \end{matharray}
 
 Axiomatic type classes are provided by Isabelle/Pure as a purely
@@ -222,18 +222,17 @@ the standard Isabelle documentation.
   holding.  Class axioms may not contain more than one type variable.  The
   class axioms (with implicit sort constraints added) are bound to the given
   names.  Furthermore a class introduction rule is generated, which is
-  employed by method $expand_classes$ in support instantiation proofs of this
+  employed by method $intro_classes$ in support instantiation proofs of this
   class.
   
 \item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~t ::
   (\vec s)c$] setup up a goal stating the class relation or type arity.  The
-  proof would usually proceed by the $expand_classes$ method, and then
+  proof would usually proceed by the $intro_classes$ method, and then
   establish the characteristic theorems of the type classes involved.  After
   finishing the proof the theory will be augmented by a type signature
   declaration corresponding to the resulting theorem.
-\item [Method $expand_classes$] iteratively expands the class introduction
+\item [Method $intro_classes$] iteratively expands the class introduction
   rules
-%FIXME intro classIs etc;
 \end{descr}
 
 See theory \texttt{HOL/Isar_examples/Group} for a simple example of using

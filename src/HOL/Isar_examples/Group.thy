@@ -137,7 +137,7 @@ text {*
 *};
 
 instance group < monoid;
-  by (expand_classes,
+  by (intro_classes,
        rule group_assoc,
        rule group_left_unit,
        rule group_right_unit);
