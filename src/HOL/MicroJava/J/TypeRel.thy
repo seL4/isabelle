@@ -9,21 +9,27 @@ The relations between Java types
 TypeRel = Decl +
 
 consts
-  subcls1	:: "'c prog => (cname \\<times> cname) set"  (* subclass *)
-  widen 	:: "'c prog => (ty    \\<times> ty   ) set"  (* widening *)
-  cast		:: "'c prog => (cname \\<times> cname) set"  (* casting *)
+  subcls1 :: "'c prog => (cname \\<times> cname) set"  (* subclass *)
+  widen   :: "'c prog => (ty    \\<times> ty   ) set"  (* widening *)
+  cast    :: "'c prog => (cname \\<times> cname) set"  (* casting *)
 
 syntax
-  subcls1	:: "'c prog => [cname, cname] => bool" ("_\\<turnstile>_\\<prec>C1_"	 [71,71,71] 70)
-  subcls	:: "'c prog => [cname, cname] => bool" ("_\\<turnstile>_\\<preceq>C _"	 [71,71,71] 70)
-  widen		:: "'c prog => [ty   , ty   ] => bool" ("_\\<turnstile>_\\<preceq>_"  [71,71,71] 70)
-  cast		:: "'c prog => [cname, cname] => bool" ("_\\<turnstile>_\\<preceq>? _"[71,71,71] 70)
+  subcls1 :: "'c prog => [cname, cname] => bool" ("_ \\<turnstile> _ \\<prec>C1 _" [71,71,71] 70)
+  subcls  :: "'c prog => [cname, cname] => bool" ("_ \\<turnstile> _ \\<preceq>C _" [71,71,71] 70)
+  widen   :: "'c prog => [ty   , ty   ] => bool" ("_ \\<turnstile> _ \\<preceq> _" [71,71,71] 70)
+  cast    :: "'c prog => [cname, cname] => bool" ("_ \\<turnstile> _ \\<preceq>? _" [71,71,71] 70)
+
+syntax (HTML)
+  subcls1 :: "'c prog => [cname, cname] => bool" ("_ |- _ <=C1 _" [71,71,71] 70)
+  subcls  :: "'c prog => [cname, cname] => bool" ("_ |- _ <=C _" [71,71,71] 70)
+  widen   :: "'c prog => [ty   , ty   ] => bool" ("_ |- _ <= _" [71,71,71] 70)
+  cast    :: "'c prog => [cname, cname] => bool" ("_ |- _ <=? _" [71,71,71] 70)
 
 translations
-  	"G\\<turnstile>C \\<prec>C1 D" == "(C,D) \\<in> subcls1 G"
-	"G\\<turnstile>C \\<preceq>C  D" == "(C,D) \\<in> (subcls1 G)^*"
-	"G\\<turnstile>S \\<preceq>   T" == "(S,T) \\<in> widen   G"
-	"G\\<turnstile>C \\<preceq>?  D" == "(C,D) \\<in> cast    G"
+  "G\\<turnstile>C \\<prec>C1 D" == "(C,D) \\<in> subcls1 G"
+  "G\\<turnstile>C \\<preceq>C  D" == "(C,D) \\<in> (subcls1 G)^*"
+  "G\\<turnstile>S \\<preceq>   T" == "(S,T) \\<in> widen   G"
+  "G\\<turnstile>C \\<preceq>?  D" == "(C,D) \\<in> cast    G"
 
 defs
 

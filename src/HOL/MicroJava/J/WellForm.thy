@@ -19,17 +19,16 @@ WellForm = TypeRel +
 types 'c wf_mb = 'c prog => cname => 'c mdecl => bool
 
 constdefs
-
- wf_fdecl	:: "'c prog =>          fdecl => bool"
+ wf_fdecl	:: "'c prog => fdecl => bool"
 "wf_fdecl G == \\<lambda>(fn,ft). is_type G ft"
 
- wf_mhead	:: "'c prog => sig   => ty => bool"
+ wf_mhead	:: "'c prog => sig => ty => bool"
 "wf_mhead G == \\<lambda>(mn,pTs) rT. (\\<forall>T\\<in>set pTs. is_type G T) \\<and> is_type G rT"
 
- wf_mdecl	:: "'c wf_mb => 'c wf_mb"
+ wf_mdecl :: "'c wf_mb => 'c wf_mb"
 "wf_mdecl wf_mb G C == \\<lambda>(sig,rT,mb). wf_mhead G sig rT \\<and> wf_mb G C (sig,rT,mb)"
 
-  wf_cdecl	:: "'c wf_mb => 'c prog => 'c cdecl => bool"
+ wf_cdecl :: "'c wf_mb => 'c prog => 'c cdecl => bool"
 "wf_cdecl wf_mb G ==
    \\<lambda>(C,(sc,fs,ms)).
 	(\\<forall>f\\<in>set fs. wf_fdecl G   f    ) \\<and>  unique fs \\<and>
@@ -40,7 +39,7 @@ constdefs
              (\\<forall>(sig,rT,b)\\<in>set ms. \\<forall>D' rT' b'.
                  method(G,D) sig = Some(D',rT',b') --> G\\<turnstile>rT\\<preceq>rT'))"
 
- wf_prog	:: "'c wf_mb => 'c prog => bool"
+ wf_prog :: "'c wf_mb => 'c prog => bool"
 "wf_prog wf_mb G ==
    let cs = set G in ObjectC \\<in> cs \\<and> (\\<forall>c\\<in>cs. wf_cdecl wf_mb G c) \\<and> unique G"
 

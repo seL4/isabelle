@@ -14,7 +14,6 @@ types	fields_
         obj = "cname \\<times> fields_"	(* class instance with class name and fields *)
 
 constdefs
-
   obj_ty	:: "obj => ty"
  "obj_ty obj  == Class (fst obj)"
 
@@ -42,9 +41,9 @@ syntax
   Norm		:: "state => xstate"
 
 translations
-  "heap"	=> "fst"
-  "locals"	=> "snd"
-  "Norm s"      == "(None,s)"  
+  "heap"   => "fst"
+  "locals" => "snd"
+  "Norm s" == "(None,s)"  
 
 constdefs
 

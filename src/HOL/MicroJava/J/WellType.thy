@@ -23,26 +23,22 @@ types	lenv (* local variables, including method parameters and This *)
 	= "'c prog \\<times> lenv"
 
 syntax
-
-  prg		:: "'c env => 'c prog"
-  localT	:: "'c env => (vname \\<leadsto> ty)"
+  prg    :: "'c env => 'c prog"
+  localT :: "'c env => (vname \\<leadsto> ty)"
 
 translations	
-
-  "prg"		=> "fst"
-  "localT"	=> "snd"
+  "prg"    => "fst"
+  "localT" => "snd"
 
 consts
-
-  more_spec	:: "'c prog => (ty \\<times> 'x) \\<times> ty list =>
-		               (ty \\<times> 'x) \\<times> ty list => bool"
-  appl_methds	:: "'c prog =>  cname => sig => ((ty \\<times> ty) \\<times> ty list) set"
-  max_spec	:: "'c prog =>  cname => sig => ((ty \\<times> ty) \\<times> ty list) set"
+  more_spec :: "'c prog => (ty \\<times> 'x) \\<times> ty list =>
+                (ty \\<times> 'x) \\<times> ty list => bool"
+  appl_methds :: "'c prog =>  cname => sig => ((ty \\<times> ty) \\<times> ty list) set"
+  max_spec :: "'c prog =>  cname => sig => ((ty \\<times> ty) \\<times> ty list) set"
 
 defs
-
-  more_spec_def	  "more_spec G == \\<lambda>((d,h),pTs). \\<lambda>((d',h'),pTs'). G\\<turnstile>d\\<preceq>d' \\<and>
-		                  list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'"
+  more_spec_def "more_spec G == \\<lambda>((d,h),pTs). \\<lambda>((d',h'),pTs'). G\\<turnstile>d\\<preceq>d' \\<and>
+		                            list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'"
   
   (* applicable methods, cf. 15.11.2.1 *)
   appl_methds_def "appl_methds G C == \\<lambda>(mn, pTs).
@@ -51,11 +47,11 @@ defs
 		                  list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'}"
 
   (* maximally specific methods, cf. 15.11.2.2 *)
-   max_spec_def	  "max_spec G C sig == {m. m \\<in>appl_methds G C sig \\<and> 
-				          (\\<forall>m'\\<in>appl_methds G C sig.
-				                   more_spec G m' m --> m' = m)}"
-consts
+  max_spec_def "max_spec G C sig == {m. m \\<in>appl_methds G C sig \\<and> 
+                                      (\\<forall>m'\\<in>appl_methds G C sig.
+                                        more_spec G m' m --> m' = m)}"
 
+consts
   typeof :: "(loc => ty option) => val => ty option"
 
 primrec
@@ -70,16 +66,20 @@ types
 	(* method body with parameter names, local variables, block, result expression *)
 
 consts
-
   ty_expr :: "java_mb env => (expr      \\<times> ty     ) set"
   ty_exprs:: "java_mb env => (expr list \\<times> ty list) set"
   wt_stmt :: "java_mb env =>  stmt                 set"
 
 syntax
+  ty_expr :: "java_mb env => [expr     , ty     ] => bool" ("_ \\<turnstile> _ :: _"   [51,51,51]50)
+  ty_exprs:: "java_mb env => [expr list, ty list] => bool" ("_ \\<turnstile> _ [::] _" [51,51,51]50)
+  wt_stmt :: "java_mb env =>  stmt                => bool" ("_ \\<turnstile> _ \\<surd>"      [51,51   ]50)
 
-ty_expr :: "java_mb env => [expr     , ty     ] => bool" ("_\\<turnstile>_::_"  [51,51,51]50)
-ty_exprs:: "java_mb env => [expr list, ty list] => bool" ("_\\<turnstile>_[::]_"[51,51,51]50)
-wt_stmt :: "java_mb env =>  stmt                => bool" ("_\\<turnstile>_ \\<surd>" [51,51   ]50)
+syntax (HTML)
+  ty_expr :: "java_mb env => [expr     , ty     ] => bool" ("_ |- _ :: _"   [51,51,51]50)
+  ty_exprs:: "java_mb env => [expr list, ty list] => bool" ("_ |- _ [::] _" [51,51,51]50)
+  wt_stmt :: "java_mb env =>  stmt                => bool" ("_ |- _ [ok]"   [51,51   ]50)
+
 
 translations
 	"E\\<turnstile>e :: T" == "(e,T) \\<in> ty_expr  E"
@@ -91,84 +91,84 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
 (* well-typed expressions *)
 
   (* cf. 15.8 *)
-  NewC	"[|is_class (prg E) C|] ==>
-						 E\\<turnstile>NewC C::Class C"
+  NewC	"[| is_class (prg E) C |] ==>
+         E\\<turnstile>NewC C::Class C"
 
   (* cf. 15.15 *)
-  Cast	"[|E\\<turnstile>e::Class C;
-	  prg E\\<turnstile>C\\<preceq>? D|] ==>
-						 E\\<turnstile>Cast D e::Class D"
+  Cast  "[| E\\<turnstile>e::Class C;
+            prg E\\<turnstile>C\\<preceq>? D |] ==>
+         E\\<turnstile>Cast D e::Class D"
 
   (* cf. 15.7.1 *)
-  Lit	"[|typeof (\\<lambda>v. None) x = Some T|] ==>
-						 E\\<turnstile>Lit x::T"
+  Lit	  "[| typeof (\\<lambda>v. None) x = Some T |] ==>
+         E\\<turnstile>Lit x::T"
 
   
   (* cf. 15.13.1 *)
-  LAcc	"[|localT E v = Some T; is_type (prg E) T|] ==>
-						 E\\<turnstile>LAcc v::T"
+  LAcc  "[| localT E v = Some T; is_type (prg E) T |] ==>
+         E\\<turnstile>LAcc v::T"
 
-  BinOp "[|E\\<turnstile>e1::T;
-	  E\\<turnstile>e2::T;
-	  if bop = Eq then T' = PrimT Boolean
-	              else T' = T \\<and> T = PrimT Integer|] ==>
-						 E\\<turnstile>BinOp bop e1 e2::T'"
+  BinOp "[| E\\<turnstile>e1::T;
+            E\\<turnstile>e2::T;
+            if bop = Eq then T' = PrimT Boolean
+                        else T' = T \\<and> T = PrimT Integer|] ==>
+         E\\<turnstile>BinOp bop e1 e2::T'"
 
   (* cf. 15.25, 15.25.1 *)
-  LAss  "[|E\\<turnstile>LAcc v::T;
-	  E\\<turnstile>e::T';
-	  prg E\\<turnstile>T'\\<preceq>T|] ==>
-						 E\\<turnstile>v::=e::T'"
+  LAss  "[| E\\<turnstile>LAcc v::T;
+	          E\\<turnstile>e::T';
+            prg E\\<turnstile>T'\\<preceq>T |] ==>
+         E\\<turnstile>v::=e::T'"
 
   (* cf. 15.10.1 *)
-  FAcc	"[|E\\<turnstile>a::Class C; 
-	  field (prg E,C) fn = Some (fd,fT)|] ==>
-						 E\\<turnstile>{fd}a..fn::fT"
+  FAcc  "[| E\\<turnstile>a::Class C; 
+            field (prg E,C) fn = Some (fd,fT) |] ==>
+         E\\<turnstile>{fd}a..fn::fT"
 
   (* cf. 15.25, 15.25.1 *)
-  FAss  "[|E\\<turnstile>{fd}a..fn::T;
-	  E\\<turnstile>v       ::T';
-	  prg E\\<turnstile>T'\\<preceq>T|] ==>
-					 	 E\\<turnstile>{fd}a..fn:=v::T'"
+  FAss  "[| E\\<turnstile>{fd}a..fn::T;
+            E\\<turnstile>v        ::T';
+            prg E\\<turnstile>T'\\<preceq>T |] ==>
+         E\\<turnstile>{fd}a..fn:=v::T'"
 
 
   (* cf. 15.11.1, 15.11.2, 15.11.3 *)
-  Call	"[|E\\<turnstile>a::Class C;
-	  E\\<turnstile>ps[::]pTs;
-	  max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')}|] ==>
-						 E\\<turnstile>a..mn({pTs'}ps)::rT"
+  Call  "[| E\\<turnstile>a::Class C;
+            E\\<turnstile>ps[::]pTs;
+            max_spec (prg E) C (mn, pTs) = {((md,rT),pTs')} |] ==>
+         E\\<turnstile>a..mn({pTs'}ps)::rT"
 
 (* well-typed expression lists *)
 
   (* cf. 15.11.??? *)
-  Nil						"E\\<turnstile>[][::][]"
+  Nil  "E\\<turnstile>[][::][]"
 
   (* cf. 15.11.??? *)
-  Cons	"[|E\\<turnstile>e::T;
-	   E\\<turnstile>es[::]Ts|] ==>
-						 E\\<turnstile>e#es[::]T#Ts"
+  Cons "[| E\\<turnstile>e::T;
+           E\\<turnstile>es[::]Ts |] ==>
+        E\\<turnstile>e#es[::]T#Ts"
 
 (* well-typed statements *)
 
-  Skip					"E\\<turnstile>Skip\\<surd>"
+  Skip "E\\<turnstile>Skip\\<surd>"
 
-  Expr	"[|E\\<turnstile>e::T|] ==>
-					 E\\<turnstile>Expr e\\<surd>"
+  Expr "[| E\\<turnstile>e::T |] ==>
+        E\\<turnstile>Expr e\\<surd>"
 
-  Comp	"[|E\\<turnstile>s1\\<surd>; 
-	  E\\<turnstile>s2\\<surd>|] ==>
-					 E\\<turnstile>s1;; s2\\<surd>"
+  Comp "[| E\\<turnstile>s1\\<surd>; 
+           E\\<turnstile>s2\\<surd> |] ==>
+        E\\<turnstile>s1;; s2\\<surd>"
 
   (* cf. 14.8 *)
-  Cond	"[|E\\<turnstile>e::PrimT Boolean;
-	  E\\<turnstile>s1\\<surd>;
-	  E\\<turnstile>s2\\<surd>|] ==>
-					 E\\<turnstile>If(e) s1 Else s2\\<surd>"
+  Cond "[| E\\<turnstile>e::PrimT Boolean;
+           E\\<turnstile>s1\\<surd>;
+           E\\<turnstile>s2\\<surd> |] ==>
+         E\\<turnstile>If(e) s1 Else s2\\<surd>"
 
   (* cf. 14.10 *)
-  Loop "[|E\\<turnstile>e::PrimT Boolean;
-	 E\\<turnstile>s\\<surd>|] ==>
-					 E\\<turnstile>While(e) s\\<surd>"
+  Loop "[| E\\<turnstile>e::PrimT Boolean;
+           E\\<turnstile>s\\<surd> |] ==>
+        E\\<turnstile>While(e) s\\<surd>"
 
 constdefs
 

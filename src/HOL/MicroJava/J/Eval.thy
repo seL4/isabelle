@@ -16,12 +16,22 @@ consts
 
 syntax
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
-          ("_\\<turnstile>_ -_\\<succ>_-> _"[51,82,82,82,82]81)
+          ("_ \\<turnstile> _ -_\\<succ>_-> _" [51,82,82,82,82] 81)
   evals:: "[java_mb prog,xstate,expr list,
                         val list,xstate] => bool "
-          ("_\\<turnstile>_ -_[\\<succ>]_-> _"[51,82,51,51,82]81)
+          ("_ \\<turnstile> _ -_[\\<succ>]_-> _" [51,82,51,51,82] 81)
   exec :: "[java_mb prog,xstate,stmt,    xstate] => bool "
-          ("_\\<turnstile>_ -_-> _"  [51,82,82,   82]81)
+          ("_ \\<turnstile> _ -_-> _" [51,82,82,82] 81)
+
+syntax (HTML)
+  eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
+          ("_ |- _ -_>_-> _" [51,82,82,82,82] 81)
+  evals:: "[java_mb prog,xstate,expr list,
+                        val list,xstate] => bool "
+          ("_ |- _ -_[>]_-> _" [51,82,51,51,82] 81)
+  exec :: "[java_mb prog,xstate,stmt,    xstate] => bool "
+          ("_ |- _ -_-> _" [51,82,82,82] 81)
+
 
 translations
   "G\\<turnstile>s -e \\<succ> v-> (x,s')" <= "(s, e, v, x, s') \\<in> eval  G"
