@@ -193,7 +193,8 @@ Lawrence~C. Paulson.
 Lawrence~C. Paulson.
 \newblock A fixedpoint approach to implementing (co)inductive definitions.
 \newblock In Alan Bundy, editor, {\em 12th International Conference on
-  Automated Deduction}, volume 814, pages 148--161. Springer, 1994.
+  Automated Deduction}, pages 148--161. Springer, 1994.
+\newblock LNAI 814.
 
 \bibitem{paulson-COLOG}
 Lawrence~C. Paulson.
