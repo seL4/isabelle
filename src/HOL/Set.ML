@@ -610,6 +610,16 @@ by (Blast_tac 1);
 qed "image_iff";
 
 
+goal Set.thy "(! x : f `` A. P x) = (! a:A. P(f a))";
+by (Blast_tac 1);
+qed "ball_image";
+
+goal Set.thy "(? x : f `` A. P x) = (? a:A. P(f a))";
+by (Blast_tac 1);
+qed "bex_image";
+
+Addsimps [ball_image,bex_image];
+
 (*** Range of a function -- just a translation for image! ***)
 
 goal thy "!!b. b=f(x) ==> b : range(f)";
