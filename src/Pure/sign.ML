@@ -103,7 +103,8 @@ fun eq_set_stamp (xs, ys) =
 fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
   | is_draft _ = false;
 
-fun subsig (Sg{stamps=s1,...}, Sg{stamps=s2,...}) = subset_stamp(s1,s2);
+fun subsig (Sg{stamps=s1,...}, Sg{stamps=s2,...}) =
+  s1 = s2 orelse subset_stamp (s1, s2);
 
 fun eq_sg (Sg{stamps=s1,...}, Sg{stamps=s2,...}) = eq_set_stamp(s1,s2);
 
