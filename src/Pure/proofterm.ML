@@ -1031,7 +1031,7 @@ fun thm_proof sign (name, tags) hyps prop prf =
         #4 (shrink [] 0 (rewrite_prf fst (!(ProofData.get_sg sign))
           (foldr (uncurry implies_intr_proof) (hyps', prf))))
       else MinProof (mk_min_proof ([], prf));
-    val head = (case strip_combt (fst (strip_combP prf)) of
+    val head = (case strip_combt (fst (strip_combP opt_prf)) of
         (PThm ((old_name, _), prf', prop', None), args') =>
           if (old_name="" orelse old_name=name) andalso
              prop = prop' andalso args = args' then
