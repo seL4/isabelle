@@ -81,7 +81,7 @@ recdef app' "{}"
    (let apTs = rev (take (length fpTs) (fst s));
         X    = hd (drop (length fpTs) (fst s)) 
     in  
-        G \<turnstile> X \<preceq> Class C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and> 
+        G \<turnstile> X \<preceq> Class C \<and> is_class G C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and> 
         (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT)))"
 
 "app' (i,G,maxs,rT,s)                             = False"
@@ -258,7 +258,7 @@ lemma appGoto[simp]:
 
 lemma appInvoke[simp]:
 "app (Invoke C mn fpTs) G maxs rT (Some s) = (\<exists>apTs X ST LT mD' rT' b'.
-  s = ((rev apTs) @ (X # ST), LT) \<and> length apTs = length fpTs \<and> 
+  s = ((rev apTs) @ (X # ST), LT) \<and> length apTs = length fpTs \<and> is_class G C \<and>
   G \<turnstile> X \<preceq> Class C \<and> (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT) \<and> 
   method (G,C) (mn,fpTs) = Some (mD', rT', b'))" (is "?app s = ?P s")
 proof (cases (open) s)
