@@ -470,7 +470,7 @@ val assoc_constP =
   OuterSyntax.command "consts_code"
   "associate constants with target language code" K.thy_decl
     (Scan.repeat1
-       (P.xname -- (Scan.option (P.$$$ "::" |-- P.string)) --|
+       (P.xname -- (Scan.option (P.$$$ "::" |-- P.typ)) --|
         P.$$$ "(" -- P.string --| P.$$$ ")") >>
      (fn xs => Toplevel.theory (fn thy => assoc_consts
        (map (fn ((name, optype), mfx) => (name, optype, parse_mixfix
@@ -479,8 +479,8 @@ val assoc_constP =
 
 val generate_codeP =
   OuterSyntax.command "generate_code" "generates code for terms" K.thy_decl
-    (Scan.option (P.$$$ "(" |-- P.string --| P.$$$ ")") --
-     Scan.repeat1 (P.name --| P.$$$ "=" -- P.string) >>
+    (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
+     Scan.repeat1 (P.name --| P.$$$ "=" -- P.term) >>
      (fn (opt_fname, xs) => Toplevel.theory (fn thy =>
         ((case opt_fname of
             None => use_text Context.ml_output false
