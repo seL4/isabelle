@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/parser.ML
     ID:         $Id$
     Author:     Carsten Clasohm, Sonia Mahjoub, and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Isabelle's main parser (used for terms and types).
 *)

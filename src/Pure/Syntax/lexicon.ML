@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/lexicon.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Lexer for the inner Isabelle syntax (terms and types).
 *)

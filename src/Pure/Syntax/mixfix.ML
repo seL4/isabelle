@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/mixfix.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Mixfix declarations, infixes, binders. Also parts of the Pure syntax.
 *)

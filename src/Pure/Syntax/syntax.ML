@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/syntax.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Root of Isabelle's syntax module.
 *)

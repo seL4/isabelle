@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/token_trans.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Token translations for xterm output.
 *)

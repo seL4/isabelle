@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/type_ext.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Utilities for input and output of types.  Also the concrete syntax of
 types, which is required to bootstrap Pure.

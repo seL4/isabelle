@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/syn_ext.ML
     ID:         $Id$
     Author:     Markus Wenzel and Carsten Clasohm, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Syntax extension (internal interface).
 *)

@@ -1,6 +1,7 @@
 (*  Title:      Pure/Syntax/syn_trans.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Syntax translation functions.
 *)
