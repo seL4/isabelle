@@ -24,7 +24,7 @@ done
 lemma add_diff_inverse: "[| n le m;  m:nat |] ==> n #+ (m#-n) = m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
-apply (rule_tac m = "m" and n = "n" in diff_induct, auto)
+apply (rule_tac m = m and n = n in diff_induct, auto)
 done
 
 lemma add_diff_inverse2: "[| n le m;  m:nat |] ==> (m#-n) #+ n = m"
@@ -36,13 +36,13 @@ done
 lemma diff_succ: "[| n le m;  m:nat |] ==> succ(m) #- n = succ(m#-n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
-apply (rule_tac m = "m" and n = "n" in diff_induct)
+apply (rule_tac m = m and n = n in diff_induct)
 apply (simp_all (no_asm_simp))
 done
 
 lemma zero_less_diff [simp]:
      "[| m: nat; n: nat |] ==> 0 < (n #- m)   <->   m<n"
-apply (rule_tac m = "m" and n = "n" in diff_induct)
+apply (rule_tac m = m and n = n in diff_induct)
 apply (simp_all (no_asm_simp))
 done
 
@@ -67,7 +67,7 @@ lemma div_termination: "[| 0<n;  n le m;  m:nat |] ==> m #- n < m"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (erule rev_mp)
 apply (erule rev_mp)
-apply (rule_tac m = "m" and n = "n" in diff_induct)
+apply (rule_tac m = m and n = n in diff_induct)
 apply (simp_all (no_asm_simp) add: diff_le_self)
 done
 
@@ -236,7 +236,7 @@ apply (simp add: mod_geq not_lt_iff_le div_termination [THEN ltD])
 done
 
 lemma mod_1_eq [simp]: "m mod 1 = 0"
-by (cut_tac n = "1" in mod_less_divisor, auto)
+by (cut_tac n = 1 in mod_less_divisor, auto)
 
 lemma mod2_cases: "b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)"
 apply (subgoal_tac "k mod 2: 2")
@@ -257,7 +257,7 @@ apply auto
 done
 
 lemma mod2_add_self [simp]: "(m#+m) mod 2 = 0"
-by (cut_tac n = "0" in mod2_add_more, auto)
+by (cut_tac n = 0 in mod2_add_more, auto)
 
 
 subsection{*Additional theorems about @{text "\<le>"}*}
@@ -368,7 +368,7 @@ apply auto
 done
 
 lemma mult_le_cancel_le1: "k : nat ==> k #* m le k \<longleftrightarrow> (0 < k \<longrightarrow> natify(m) le 1)"
-by (cut_tac k = "k" and m = "m" and n = "1" in mult_le_cancel1, auto)
+by (cut_tac k = k and m = m and n = 1 in mult_le_cancel1, auto)
 
 lemma Ord_eq_iff_le: "[| Ord(m); Ord(n) |] ==> m=n <-> (m le n & n le m)"
 by (blast intro: le_anti_sym)
@@ -395,7 +395,7 @@ done
 
 lemma div_cancel_raw:
      "[| 0<n; 0<k; k:nat; m:nat; n:nat |] ==> (k#*m) div (k#*n) = m div n"
-apply (erule_tac i = "m" in complete_induct)
+apply (erule_tac i = m in complete_induct)
 apply (case_tac "x<n")
  apply (simp add: div_less zero_lt_mult_iff mult_lt_mono2)
 apply (simp add: not_lt_iff_le zero_lt_mult_iff le_refl [THEN mult_le_mono]
@@ -419,7 +419,7 @@ apply (case_tac "k=0")
 apply (case_tac "n=0")
  apply (simp add: DIVISION_BY_ZERO_MOD)
 apply (simp add: nat_into_Ord [THEN Ord_0_lt_iff])
-apply (erule_tac i = "m" in complete_induct)
+apply (erule_tac i = m in complete_induct)
 apply (case_tac "x<n")
  apply (simp (no_asm_simp) add: mod_less zero_lt_mult_iff mult_lt_mono2)
 apply (simp add: not_lt_iff_le zero_lt_mult_iff le_refl [THEN mult_le_mono] 
@@ -499,7 +499,7 @@ subsubsection{*More Lemmas About Difference*}
 
 lemma diff_is_0_lemma:
      "[| m: nat; n: nat |] ==> m #- n = 0 <-> m le n"
-apply (rule_tac m = "m" and n = "n" in diff_induct, simp_all)
+apply (rule_tac m = m and n = n in diff_induct, simp_all)
 done
 
 lemma diff_is_0_iff: "m #- n = 0 <-> natify(m) le natify(n)"
@@ -514,8 +514,7 @@ lemma nat_diff_split:
       (P(a #- b)) <-> ((a < b -->P(0)) & (ALL d:nat. a = b #+ d --> P(d)))"
 apply (case_tac "a < b")
  apply (force simp add: nat_lt_imp_diff_eq_0)
-apply (rule iffI, force) 
-apply simp 
+apply (rule iffI, force, simp) 
 apply (drule_tac x="a#-b" in bspec)
 apply (simp_all add: Ordinal.not_lt_iff_le add_diff_inverse) 
 done

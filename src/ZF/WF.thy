@@ -79,7 +79,7 @@ lemma wf_onI:
  shows         "wf[A](r)"
 apply (unfold wf_on_def wf_def)
 apply (rule equals0I [THEN disjCI, THEN allI])
-apply (rule_tac Z = "Z" in prem, blast+)
+apply (rule_tac Z = Z in prem, blast+)
 done
 
 text{*If @{term r} allows well-founded induction over @{term A}
@@ -192,7 +192,7 @@ lemma wf_on_trancl:
     "[| wf[A](r);  r-``A <= A |] ==> wf[A](r^+)"
 apply (rule wf_onI2)
 apply (frule bspec [THEN mp], assumption+)
-apply (erule_tac a = "y" in wf_on_induct, assumption)
+apply (erule_tac a = y in wf_on_induct, assumption)
 apply (blast elim: tranclE, blast) 
 done
 
@@ -232,8 +232,8 @@ done
 lemma is_recfun_equal [rule_format]:
      "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |]
       ==> <x,a>:r --> <x,b>:r --> f`x=g`x"
-apply (frule_tac f = "f" in is_recfun_type)
-apply (frule_tac f = "g" in is_recfun_type)
+apply (frule_tac f = f in is_recfun_type)
+apply (frule_tac f = g in is_recfun_type)
 apply (simp add: is_recfun_def)
 apply (erule_tac a=x in wf_induct)
 apply (intro impI)
@@ -250,7 +250,7 @@ lemma is_recfun_cut:
      "[| wf(r);  trans(r);
          is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  <b,a>:r |]
       ==> restrict(f, r-``{b}) = g"
-apply (frule_tac f = "f" in is_recfun_type)
+apply (frule_tac f = f in is_recfun_type)
 apply (rule fun_extension)
   apply (blast dest: transD intro: restrict_type2)
  apply (erule is_recfun_type, simp)
@@ -294,7 +294,7 @@ apply (rule fun_extension)
  apply (blast dest: transD)
 apply (frule spec [THEN mp], assumption)
 apply (subgoal_tac "<xa,a1> : r")
- apply (drule_tac x1 = "xa" in spec [THEN mp], assumption)
+ apply (drule_tac x1 = xa in spec [THEN mp], assumption)
 apply (simp add: vimage_singleton_iff 
                  apply_recfun is_recfun_cut)
 apply (blast dest: transD)
@@ -343,7 +343,7 @@ lemma wfrec_type:
     "[| wf(r);  a:A;  field(r)<=A;
         !!x u. [| x: A;  u: Pi(r-``{x}, B) |] ==> H(x,u) : B(x)
      |] ==> wfrec(r,a,H) : B(a)"
-apply (rule_tac a = "a" in wf_induct2, assumption+)
+apply (rule_tac a = a in wf_induct2, assumption+)
 apply (subst wfrec, assumption)
 apply (simp add: lam_type underD)  
 done

@@ -173,7 +173,7 @@ done
 (*There is no set of all ordinals, for then it would contain itself*)
 lemma ON_class: "~ (ALL i. i:X <-> Ord(i))"
 apply (rule notI)
-apply (frule_tac x = "X" in spec)
+apply (frule_tac x = X in spec)
 apply (safe elim!: mem_irrefl)
 apply (erule swap, rule OrdI [OF _ Ord_is_Transset])
 apply (simp add: Transset_def)
@@ -366,13 +366,13 @@ done
 
 lemma Ord_linear2:
     "[| Ord(i);  Ord(j);  i<j ==> P;  j le i ==> P |]  ==> P"
-apply (rule_tac i = "i" and j = "j" in Ord_linear_lt)
+apply (rule_tac i = i and j = j in Ord_linear_lt)
 apply (blast intro: leI le_eqI sym ) +
 done
 
 lemma Ord_linear_le:
     "[| Ord(i);  Ord(j);  i le j ==> P;  j le i ==> P |]  ==> P"
-apply (rule_tac i = "i" and j = "j" in Ord_linear_lt)
+apply (rule_tac i = i and j = j in Ord_linear_lt)
 apply (blast intro: leI le_eqI ) +
 done
 
@@ -380,7 +380,7 @@ lemma le_imp_not_lt: "j le i ==> ~ i<j"
 by (blast elim!: leE elim: lt_asym)
 
 lemma not_lt_imp_le: "[| ~ i<j;  Ord(i);  Ord(j) |] ==> j le i"
-by (rule_tac i = "i" and j = "j" in Ord_linear2, auto)
+by (rule_tac i = i and j = j in Ord_linear2, auto)
 
 subsubsection{*Some Rewrite Rules for <, le*}
 
@@ -495,7 +495,7 @@ by (rule Un_upper2 [THEN subset_imp_le], auto)
 
 (*Replacing k by succ(k') yields the similar rule for le!*)
 lemma Un_least_lt: "[| i<k;  j<k |] ==> i Un j < k"
-apply (rule_tac i = "i" and j = "j" in Ord_linear_le)
+apply (rule_tac i = i and j = j in Ord_linear_le)
 apply (auto simp add: Un_commute le_subset_iff subset_Un_iff lt_Ord) 
 done
 
@@ -513,7 +513,7 @@ done
 
 (*Replacing k by succ(k') yields the similar rule for le!*)
 lemma Int_greatest_lt: "[| i<k;  j<k |] ==> i Int j < k"
-apply (rule_tac i = "i" and j = "j" in Ord_linear_le)
+apply (rule_tac i = i and j = j in Ord_linear_le)
 apply (auto simp add: Int_commute le_subset_iff subset_Int_iff lt_Ord) 
 done
 

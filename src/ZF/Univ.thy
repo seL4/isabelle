@@ -147,7 +147,7 @@ done
 
 lemma Vfrom_succ: "Vfrom(A,succ(i)) = A Un Pow(Vfrom(A,i))"
 apply (rule_tac x1 = "succ (i)" in Vfrom_rank_eq [THEN subst])
-apply (rule_tac x1 = "i" in Vfrom_rank_eq [THEN subst])
+apply (rule_tac x1 = i in Vfrom_rank_eq [THEN subst])
 apply (subst rank_succ)
 apply (rule Ord_rank [THEN Vfrom_succ_lemma])
 done

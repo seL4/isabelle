@@ -90,7 +90,7 @@ lemma Fin_subset_lemma [rule_format]: "b: Fin(A) ==> \<forall>z. z<=b --> z: Fin
 apply (erule Fin_induct)
 apply (simp add: subset_empty_iff)
 apply (simp add: subset_cons_iff distrib_simps, safe)
-apply (erule_tac b = "z" in cons_Diff [THEN subst], simp)
+apply (erule_tac b = z in cons_Diff [THEN subst], simp)
 done
 
 lemma Fin_subset: "[| c<=b;  b: Fin(A) |] ==> c: Fin(A)"
@@ -158,7 +158,7 @@ lemma FiniteFun_subset_lemma [rule_format]:
 apply (erule FiniteFun.induct)
 apply (simp add: subset_empty_iff FiniteFun.intros)
 apply (simp add: subset_cons_iff distrib_simps, safe)
-apply (erule_tac b = "z" in cons_Diff [THEN subst])
+apply (erule_tac b = z in cons_Diff [THEN subst])
 apply (drule spec [THEN mp], assumption)
 apply (fast intro!: FiniteFun.intros)
 done

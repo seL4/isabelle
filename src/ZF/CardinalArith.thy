@@ -585,14 +585,14 @@ apply (subgoal_tac "Ord (xa) & Ord (ya)")
 (*??WHAT A MESS!*)  
 apply (rule InfCard_is_Limit [THEN ordermap_csquare_le, THEN lt_trans1],
        (assumption | rule refl | erule ltI)+) 
-apply (rule_tac i = "xa Un ya" and j = "nat" in Ord_linear2,
+apply (rule_tac i = "xa Un ya" and j = nat in Ord_linear2,
        simp_all add: Ord_Un Ord_nat)
 prefer 2 (*case nat le (xa Un ya) *)
  apply (simp add: le_imp_subset [THEN nat_succ_eqpoll, THEN cardinal_cong] 
                   le_succ_iff InfCard_def Card_cardinal Un_least_lt Ord_Un
                 ltI nat_le_cardinal Ord_cardinal_le [THEN lt_trans1, THEN ltD])
 (*the finite case: xa Un ya < nat *)
-apply (rule_tac j = "nat" in lt_trans2)
+apply (rule_tac j = nat in lt_trans2)
  apply (simp add: lt_def nat_cmult_eq_mult nat_succI mult_type
                   nat_into_Card [THEN Card_cardinal_eq]  Ord_nat)
 apply (simp add: InfCard_def)
@@ -645,7 +645,7 @@ done
 
 (*Corollary 10.13 (1), for cardinal multiplication*)
 lemma InfCard_cmult_eq: "[| InfCard(K);  InfCard(L) |] ==> K |*| L = K Un L"
-apply (rule_tac i = "K" and j = "L" in Ord_linear_le)
+apply (rule_tac i = K and j = L in Ord_linear_le)
 apply (typecheck add: InfCard_is_Card Card_is_Ord)
 apply (rule cmult_commute [THEN ssubst])
 apply (rule Un_commute [THEN ssubst])
@@ -669,7 +669,7 @@ apply (simp add: InfCard_cdouble_eq)
 done
 
 lemma InfCard_cadd_eq: "[| InfCard(K);  InfCard(L) |] ==> K |+| L = K Un L"
-apply (rule_tac i = "K" and j = "L" in Ord_linear_le)
+apply (rule_tac i = K and j = L in Ord_linear_le)
 apply (typecheck add: InfCard_is_Card Card_is_Ord)
 apply (rule cadd_commute [THEN ssubst])
 apply (rule Un_commute [THEN ssubst])
@@ -812,7 +812,7 @@ done
 
 lemma Finite_imp_succ_cardinal_Diff:
      "[| Finite(A);  a:A |] ==> succ(|A-{a}|) = |A|"
-apply (rule_tac b = "A" in cons_Diff [THEN subst], assumption)
+apply (rule_tac b = A in cons_Diff [THEN subst], assumption)
 apply (simp add: Finite_imp_cardinal_cons Diff_subset [THEN subset_Finite])
 apply (simp add: cons_Diff)
 done

@@ -88,12 +88,12 @@ apply (subgoal_tac "ALL x:A. Inl (x) : Ba")
  prefer 2
  apply (erule_tac V = "y : A + B" in thin_rl)
  apply (rule_tac ballI)
- apply (erule_tac r = "r" and a = "x" in wf_on_induct, assumption)
+ apply (erule_tac r = r and a = x in wf_on_induct, assumption)
  apply blast 
 txt{*Returning to main part of proof*}
 apply safe
 apply blast
-apply (erule_tac r = "s" and a = "ya" in wf_on_induct, assumption, blast) 
+apply (erule_tac r = s and a = ya in wf_on_induct, assumption, blast) 
 done
 
 lemma wf_radd: "[| wf(r);  wf(s) |] ==> wf(radd(field(r),r,field(s),s))"
@@ -193,9 +193,9 @@ apply (rule wf_onI2)
 apply (erule SigmaE)
 apply (erule ssubst)
 apply (subgoal_tac "ALL b:B. <x,b>: Ba", blast)
-apply (erule_tac a = "x" in wf_on_induct, assumption)
+apply (erule_tac a = x in wf_on_induct, assumption)
 apply (rule ballI)
-apply (erule_tac a = "b" in wf_on_induct, assumption)
+apply (erule_tac a = b in wf_on_induct, assumption)
 apply (best elim!: rmultE bspec [THEN mp])
 done
 
@@ -236,7 +236,7 @@ apply (blast intro: bij_is_inj [THEN inj_apply_equality])
 done
 
 lemma singleton_prod_bij: "(lam z:A. <x,z>) : bij(A, {x}*A)"
-by (rule_tac d = "snd" in lam_bijective, auto)
+by (rule_tac d = snd in lam_bijective, auto)
 
 (*Used??*)
 lemma singleton_prod_ord_iso:
@@ -310,8 +310,7 @@ by (unfold rvimage_def, blast)
 subsubsection{*Type checking*}
 
 lemma rvimage_type: "rvimage(A,f,r) <= A*A"
-apply (unfold rvimage_def, rule Collect_subset)
-done
+by (unfold rvimage_def, rule Collect_subset)
 
 lemmas field_rvimage = rvimage_type [THEN field_rel_subset]
 
@@ -539,8 +538,7 @@ apply (rule_tac a = z in wf_on_induct [OF wfB], assumption, assumption)
 apply (rename_tac u) 
 apply (drule_tac x=u in bspec, blast) 
 apply (erule mp, clarify)
-apply (frule ok, assumption+); 
-apply blast 
+apply (frule ok, assumption+, blast) 
 done
 
 

@@ -200,7 +200,7 @@ done
 (*Must simplify BEFORE the induction: else we get a critical pair*)
 lemma diff_succ_succ [simp]: "succ(m) #- succ(n) = m #- n"
 apply (simp add: natify_succ diff_def)
-apply (rule_tac x1 = "n" in natify_in_nat [THEN nat_induct], auto)
+apply (rule_tac x1 = n in natify_in_nat [THEN nat_induct], auto)
 done
 
 (*This defining property is no longer wanted*)
@@ -212,7 +212,7 @@ by (simp add: diff_def)
 
 lemma diff_le_self: "m:nat ==> (m #- n) le m"
 apply (subgoal_tac " (m #- natify (n)) le m")
-apply (rule_tac [2] m = "m" and n = "natify (n) " in diff_induct)
+apply (rule_tac [2] m = m and n = "natify (n) " in diff_induct)
 apply (erule_tac [6] leE)
 apply (simp_all add: le_iff)
 done
@@ -528,7 +528,7 @@ by (induct_tac "m", auto)
 
 lemma less_diff_conv [rule_format]:
      "[| j:nat; k:nat |] ==> ALL i:nat. (i < j #- k) <-> (i #+ k < j)"
-by (erule_tac m = "k" in diff_induct, auto)
+by (erule_tac m = k in diff_induct, auto)
 
 lemmas nat_typechecks = rec_type nat_0I nat_1I nat_succI Ord_nat
 

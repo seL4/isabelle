@@ -166,7 +166,7 @@ done
 lemma trans_rtrancl: "trans(r^*)"
 apply (unfold trans_def)
 apply (intro allI impI)
-apply (erule_tac b = "z" in rtrancl_induct, assumption)
+apply (erule_tac b = z in rtrancl_induct, assumption)
 apply (blast intro: rtrancl_into_rtrancl) 
 done
 

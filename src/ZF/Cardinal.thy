@@ -495,7 +495,7 @@ lemma nat_lepoll_imp_le [rule_format]:
 apply (induct_tac m)
 apply (blast intro!: nat_0_le)
 apply (rule ballI)
-apply (erule_tac n = "n" in natE)
+apply (erule_tac n = n in natE)
 apply (simp (no_asm_simp) add: lepoll_def inj_def)
 apply (blast intro!: succ_leI dest!: succ_lepoll_succD)
 done
@@ -859,7 +859,7 @@ apply (erule exE)
 apply (rule Diff_sing_eqpoll [THEN revcut_rl])
 prefer 2 apply assumption
 apply assumption
-apply (rule_tac b = "A" in cons_Diff [THEN subst], assumption)
+apply (rule_tac b = A in cons_Diff [THEN subst], assumption)
 apply (rule Fin.consI, blast)
 apply (blast intro: subset_consI [THEN Fin_mono, THEN subsetD])
 (*Now for the lemma assumed above*)
@@ -907,7 +907,7 @@ apply (case_tac "a:A")
 apply (subgoal_tac [2] "A-{a}=A", auto)
 apply (rule_tac x = "succ (n) " in bexI)
 apply (subgoal_tac "cons (a, A - {a}) = A & cons (n, n) = succ (n) ")
-apply (drule_tac a = "a" and b = "n" in cons_eqpoll_cong)
+apply (drule_tac a = a and b = n in cons_eqpoll_cong)
 apply (auto dest: mem_irrefl)
 done
 
@@ -976,7 +976,7 @@ apply (rule_tac P =  "x:Z" in case_split_thm)
  apply (drule_tac x = x in bspec, assumption)
  apply (blast elim: mem_irrefl mem_asym)
 txt{*other case*} 
-apply (drule_tac x = "Z" in spec, blast) 
+apply (drule_tac x = Z in spec, blast) 
 done
 
 lemma nat_well_ord_converse_Memrel: "n:nat ==> well_ord(n,converse(Memrel(n)))"

@@ -69,7 +69,7 @@ lemma lam_surjective:
         !!y. y:B ==> d(y): A;            
         !!y. y:B ==> c(d(y)) = y         
      |] ==> (lam x:A. c(x)) : surj(A,B)"
-apply (rule_tac d = "d" in f_imp_surjective) 
+apply (rule_tac d = d in f_imp_surjective) 
 apply (simp_all add: lam_type)
 done
 
@@ -112,7 +112,7 @@ lemma lam_injective:
     "[| !!x. x:A ==> c(x): B;            
         !!x. x:A ==> d(c(x)) = x |]
      ==> (lam x:A. c(x)) : inj(A,B)"
-apply (rule_tac d = "d" in f_imp_injective)
+apply (rule_tac d = d in f_imp_injective)
 apply (simp_all add: lam_type)
 done
 
@@ -143,7 +143,7 @@ done
 
 lemma RepFun_bijective: "(ALL y : x. EX! y'. f(y') = f(y))   
       ==> (lam z:{f(y). y:x}. THE y. f(y) = z) : bij({f(y). y:x}, x)"
-apply (rule_tac d = "f" in lam_bijective)
+apply (rule_tac d = f in lam_bijective)
 apply (auto simp add: the_equality2)
 done
 
@@ -387,8 +387,8 @@ by (unfold inj_def, force)
 lemma comp_mem_injD2: 
     "[| (f O g): inj(A,C);  g: surj(A,B);  f: B->C |] ==> f: inj(B,C)"
 apply (unfold inj_def surj_def, safe)
-apply (rule_tac x1 = "x" in bspec [THEN bexE])
-apply (erule_tac [3] x1 = "w" in bspec [THEN bexE], assumption+, safe)
+apply (rule_tac x1 = x in bspec [THEN bexE])
+apply (erule_tac [3] x1 = w in bspec [THEN bexE], assumption+, safe)
 apply (rule_tac t = "op ` (g) " in subst_context)
 apply (erule asm_rl bspec [THEN bspec, THEN mp])+
 apply (simp (no_asm_simp))

@@ -354,8 +354,7 @@ by (erule list.induct, simp_all)
 
 lemma drop_length [rule_format]:
      "l: list(A) ==> \<forall>i \<in> length(l). (EX z zs. drop(i,l) = Cons(z,zs))"
-apply (erule list.induct, simp_all)
-apply safe
+apply (erule list.induct, simp_all, safe)
 apply (erule drop_length_Cons)
 apply (rule natE)
 apply (erule Ord_trans [OF asm_rl length_type Ord_nat], assumption, simp_all)
@@ -1121,8 +1120,7 @@ done
 lemma nth_map_upt [rule_format]:
      "[| m:nat; n:nat |] ==>
       \<forall>i \<in> nat. i < n #- m --> nth(i, map(f, upt(m,n))) = f(m #+ i)"
-apply (rule_tac n = m and m = n in diff_induct, typecheck, simp) 
-apply simp 
+apply (rule_tac n = m and m = n in diff_induct, typecheck, simp, simp) 
 apply (subst map_succ_upt [symmetric], simp_all, clarify) 
 apply (subgoal_tac "i < length (upt (0, x))")
  prefer 2 

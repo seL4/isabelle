@@ -83,7 +83,7 @@ done
 lemma surj_implies_inj: "f: surj(X,Y) ==> EX g. g: inj(Y,X)"
 apply (unfold surj_def)
 apply (erule CollectE)
-apply (rule_tac A1 = "Y" and B1 = "%y. f-``{y}" in AC_Pi [THEN exE])
+apply (rule_tac A1 = Y and B1 = "%y. f-``{y}" in AC_Pi [THEN exE])
 apply (fast elim!: apply_Pair)
 apply (blast dest: apply_type Pi_memberD 
              intro: apply_equality Pi_type f_imp_injective)

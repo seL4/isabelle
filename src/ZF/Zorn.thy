@@ -115,7 +115,7 @@ lemma TFin_linear_lemma2:
 apply (erule TFin_induct)
 apply (rule impI [THEN ballI])
 txt{*case split using @{text TFin_linear_lemma1}*}
-apply (rule_tac n1 = "n" and m1 = "x" in TFin_linear_lemma1 [THEN disjE],
+apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
        assumption+)
 apply (blast del: subsetI
 	     intro: increasing_trans subsetI, blast)
@@ -127,7 +127,7 @@ prefer 2 apply blast
 apply (rule ballI)
 apply (drule bspec, assumption)
 apply (drule subsetD, assumption)
-apply (rule_tac n1 = "n" and m1 = "x" in TFin_linear_lemma1 [THEN disjE],
+apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
        assumption+, blast)
 apply (erule increasingD2 [THEN subset_trans, THEN disjI1])
 apply (blast dest: TFin_is_subset)+
@@ -156,8 +156,7 @@ lemma equal_next_upper:
      "[| n \<in> TFin(S,next);  m \<in> TFin(S,next);  m = next`m |] ==> n <= m"
 apply (erule TFin_induct)
 apply (drule TFin_subsetD)
-apply (assumption+, force)
-apply blast
+apply (assumption+, force, blast)
 done
 
 text{*Property 3.3 of section 3.3*}
@@ -208,8 +207,7 @@ lemma choice_not_equals:
      "[| ch \<in> (\<Pi>X \<in> Pow(chain(S)) - {0}. X); X \<in> chain(S);  X \<notin> maxchain(S) |]
       ==> ch ` super(S,X) \<noteq> X"
 apply (rule notI)
-apply (drule choice_super, assumption)
-apply assumption
+apply (drule choice_super, assumption, assumption)
 apply (simp add: super_def)
 done
 

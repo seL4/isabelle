@@ -283,7 +283,7 @@ lemma qcase_type:
         !!x. x: A ==> c(x): C(QInl(x));    
         !!y. y: B ==> d(y): C(QInr(y))  
      |] ==> qcase(c,d,u) : C(u)"
-by (simp add: qsum_defs , auto) 
+by (simp add: qsum_defs, auto) 
 
 (** Rules for the Part primitive **)
 

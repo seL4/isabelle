@@ -180,7 +180,7 @@ done
 lemma transrec_type:
     "[| !!x u. [| x:eclose({a});  u: Pi(x,B) |] ==> H(x,u) : B(x) |]
      ==> transrec(a,H) : B(a)"
-apply (rule_tac i = "a" in arg_in_eclose_sing [THEN eclose_induct])
+apply (rule_tac i = a in arg_in_eclose_sing [THEN eclose_induct])
 apply (subst transrec)
 apply (simp add: lam_type) 
 done
@@ -220,7 +220,7 @@ lemma rank: "rank(a) = (\<Union>y\<in>a. succ(rank(y)))"
 by (subst rank_def [THEN def_transrec], simp)
 
 lemma Ord_rank [simp]: "Ord(rank(a))"
-apply (rule_tac a="a" in eps_induct) 
+apply (rule_tac a=a in eps_induct) 
 apply (subst rank)
 apply (rule Ord_succ [THEN Ord_UN])
 apply (erule bspec, assumption)
@@ -233,7 +233,7 @@ apply (simp add: Ord_equality)
 done
 
 lemma rank_lt: "a:b ==> rank(a) < rank(b)"
-apply (rule_tac a1 = "b" in rank [THEN ssubst])
+apply (rule_tac a1 = b in rank [THEN ssubst])
 apply (erule UN_I [THEN ltI])
 apply (rule_tac [2] Ord_UN, auto)
 done

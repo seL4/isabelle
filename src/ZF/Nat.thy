@@ -174,7 +174,7 @@ lemma diff_induct [case_names 0 0_succ succ_succ, consumes 2]:
         !!y. y: nat ==> P(0,succ(y));   
         !!x y. [| x: nat;  y: nat;  P(x,y) |] ==> P(succ(x),succ(y)) |]
      ==> P(m,n)"
-apply (erule_tac x = "m" in rev_bspec)
+apply (erule_tac x = m in rev_bspec)
 apply (erule nat_induct, simp) 
 apply (rule ballI)
 apply (rename_tac i j)
