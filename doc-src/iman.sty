@@ -140,40 +140,14 @@
 \newfont{\sltt}{cmsltt10}     %% for output from terminal sessions
 \newcommand\out{\ \sltt}
 
-% "itmath.sty" use cmr italic for letters in math mode and get the
-%              usual letter spacing of text mode.
-%
-% Michael Lawley, April 1993
-% (lawley@cit.gu.edu.au)
-%
-% Derived from itma.sty (of unknown origin).
-%
-% MATHCODES
-%
 % The mathcodes for the letters A, ..., Z, a, ..., z are changed to
 % generate text italic rather than math italic by default. This makes
 % multi-letter identifiers look better. The mathcode for character c
-% is set to "7000 (variable class) + "400 (text italic) + c.
+% is set to |"7000| (variable family) + |"400| (text italic) + |c|.
 %
-% For NFSS the mathcode is "7000 (variable class) + (hex)\itfam + c
-% \itfam is probably equal to 7.
-%
-
-\ifx\undefined\hexnumber@
-  \def\hexnumber@#1{\ifcase#1 \z@
-  \or \@ne \or \tw@ \or \thr@@
-  \or 4\or 5\or 6\or 7\or 8\or
-  9\or A\or B\or C\or D\or E\or F\fi}
-\fi
-
+\DeclareSymbolFont{italics}{\encodingdefault}{\rmdefault}{m}{it}%
 \def\@setmcodes#1#2#3{{\count0=#1 \count1=#3
         \loop \global\mathcode\count0=\count1 \ifnum \count0<#2
         \advance\count0 by1 \advance\count1 by1 \repeat}}
-
-\edef\@tempa{\hexnumber@\itfam}
-
-\@setmcodes{`A}{`Z}{"7\@tempa 41}
-\@setmcodes{`a}{`z}{"7\@tempa 61}
-
-\ifx\define@mathgroup\undefined\else
-        \define@mathgroup\mv@normal{\itfam}{cmr}{m}{it}\fi
+\@setmcodes{`A}{`Z}{"7\hexnumber@\symitalics41}
+\@setmcodes{`a}{`z}{"7\hexnumber@\symitalics61}

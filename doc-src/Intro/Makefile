@@ -7,21 +7,21 @@
 
 
 FILES =  intro.tex foundations.tex getting.tex advanced.tex \
-	 ../proof209.sty ../iman.sty ../extra.sty
+	 ../proof.sty ../iman.sty ../extra.sty
 
 intro.dvi.gz:   $(FILES)
 	-rm intro.dvi*
-	latex209 intro
+	latex intro
 	bibtex intro
-	latex209 intro
-	latex209 intro
+	latex intro
+	latex intro
 	../sedindex intro
-	latex209 intro
+	latex intro
 	gzip -f intro.dvi
 
 dist:   $(FILES)
 	-rm intro.dvi*
-	latex209 intro
-	latex209 intro
+	latex intro
+	latex intro
 	../sedindex intro
-	latex209 intro
+	latex intro

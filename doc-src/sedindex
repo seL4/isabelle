@@ -5,18 +5,17 @@
 #  puts strings prefixed by * into \tt font
 #    terminator characters for strings are |!@{}
 #
-# uses \ptt instead of \tt since that happens to explicit \tt's 
 # a space terminates the \tt part to allow \index{*NE theorem}, etc.
 #
-# change *"X"Y"Z"W  to  "X"Y"Z"W@{\ptt "X"Y"Z"W}
-# change *"X"Y"Z    to  "X"Y"Z@{\ptt "X"Y"Z}
-# change *"X"Y      to  "X"Y@{\ptt "X"Y}
-# change *"X        to  "X@{\ptt "X}
-# change *IDENT  to  IDENT@{\ptt IDENT}  
+# change *"X"Y"Z"W  to  "X"Y"Z"W@{\tt "X"Y"Z"W}
+# change *"X"Y"Z    to  "X"Y"Z@{\tt "X"Y"Z}
+# change *"X"Y      to  "X"Y@{\tt "X"Y}
+# change *"X        to  "X@{\tt "X}
+# change *IDENT  to  IDENT@{\tt IDENT}  
 #    where IDENT is any string not containing | ! or @
 # FOUR backslashes: to escape the shell AND sed
-sed -e "s~\*\(\".\".\".\".\)~\1@{\\\\ptt \1}~g
-s~\*\(\".\".\".\)~\1@{\\\\ptt \1}~g
-s~\*\(\".\".\)~\1@{\\\\ptt \1}~g
-s~\*\(\".\)~\1@{\\\\ptt \1}~g
-s~\*\([^ |!@{}][^ |!@{}]*\)~\1@{\\\\ptt \1}~g" $1.idx | makeindex -c -q -o $1.ind
+sed -e "s~\*\(\".\".\".\".\)~\1@{\\\\tt \1}~g
+s~\*\(\".\".\".\)~\1@{\\\\tt \1}~g
+s~\*\(\".\".\)~\1@{\\\\tt \1}~g
+s~\*\(\".\)~\1@{\\\\tt \1}~g
+s~\*\([^ |!@{}][^ |!@{}]*\)~\1@{\\\\tt \1}~g" $1.idx | makeindex -c -q -o $1.ind
