@@ -7,9 +7,9 @@ HOL theory data: simpset, claset, records, datatypes.
 
 (*for records*)
 type record_info =
- {args:     (string * sort) list,
-  parent:   (typ list * string) option,
-  fields:   (string * typ) list}
+ {args: (string * sort) list,
+  parent: (typ list * string) option,
+  fields: (string * typ) list}
 
 (*for datatypes*)
 type datatype_info =
