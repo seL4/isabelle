@@ -237,12 +237,12 @@ fun gen_have_thmss_i f ((name, more_atts), th_atts) =
 fun have_lemss name atts = PureThy.have_thmss name (atts @ [Drule.tag_lemma]);
 
 
-fun apply_theorems th_srcs = global_have_thmss PureThy.have_thmss ((None, []), th_srcs);
-fun apply_theorems_i th_srcs = gen_have_thmss_i PureThy.have_thmss ((None, []), th_srcs);
-val have_theorems = #1 oo (global_have_thmss (PureThy.have_thmss o Some) o Comment.ignore);
-val have_theorems_i = #1 oo (gen_have_thmss_i (PureThy.have_thmss o Some) o Comment.ignore);
-val have_lemmas = #1 oo (global_have_thmss (have_lemss o Some) o Comment.ignore);
-val have_lemmas_i = #1 oo (gen_have_thmss_i (have_lemss o Some) o Comment.ignore);
+fun apply_theorems th_srcs = global_have_thmss PureThy.have_thmss (("", []), th_srcs);
+fun apply_theorems_i th_srcs = gen_have_thmss_i PureThy.have_thmss (("", []), th_srcs);
+val have_theorems = #1 oo (global_have_thmss PureThy.have_thmss o Comment.ignore);
+val have_theorems_i = #1 oo (gen_have_thmss_i PureThy.have_thmss o Comment.ignore);
+val have_lemmas = #1 oo (global_have_thmss have_lemss o Comment.ignore);
+val have_lemmas_i = #1 oo (gen_have_thmss_i have_lemss o Comment.ignore);
 val have_facts = ProofHistory.apply o local_have_thmss (Proof.have_thmss []) o Comment.ignore;
 val have_facts_i = ProofHistory.apply o gen_have_thmss_i (Proof.have_thmss []) o Comment.ignore;
 
