@@ -1097,6 +1097,7 @@ Goal "subseq f ==> n \<le> f(n)";
 Goal "subseq f ==> \<exists>n. N1 \<le> n & N2 \<le> f(n)";
  ---------------------------------------------------------------***)
 
+
 ML
 {*
 val Cauchy_def = thm"Cauchy_def";
@@ -1214,15 +1215,8 @@ val Bseq_realpow = thm "Bseq_realpow";
 val monoseq_realpow = thm "monoseq_realpow";
 val convergent_realpow = thm "convergent_realpow";
 val NSLIMSEQ_realpow_zero = thm "NSLIMSEQ_realpow_zero";
-val LIMSEQ_realpow_zero = thm "LIMSEQ_realpow_zero";
-val LIMSEQ_divide_realpow_zero = thm "LIMSEQ_divide_realpow_zero";
-val LIMSEQ_rabs_realpow_zero = thm "LIMSEQ_rabs_realpow_zero";
-val NSLIMSEQ_rabs_realpow_zero = thm "NSLIMSEQ_rabs_realpow_zero";
-val LIMSEQ_rabs_realpow_zero2 = thm "LIMSEQ_rabs_realpow_zero2";
-val NSLIMSEQ_rabs_realpow_zero2 = thm "NSLIMSEQ_rabs_realpow_zero2";
-val NSBseq_HFinite_hypreal = thm "NSBseq_HFinite_hypreal";
-val NSLIMSEQ_zero_Infinitesimal_hypreal = thm "NSLIMSEQ_zero_Infinitesimal_hypreal";
 *}
+
 
 end
 

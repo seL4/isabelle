@@ -2589,8 +2589,8 @@ lemma LIM_fun_not_zero:
       ==> \<exists>r. 0 < r & (\<forall>x. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
 apply (cut_tac x = l and y = 0 in linorder_less_linear, auto)
 apply (drule LIM_fun_less_zero)
-apply (drule_tac [3] LIM_fun_gt_zero, auto)
-apply (rule_tac [!] x = r in exI, auto)
+apply (drule_tac [3] LIM_fun_gt_zero)
+apply force+
 done
 
 ML
