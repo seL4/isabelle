@@ -612,12 +612,15 @@ combining $\FIX x$ with another version of assumption that causes any
 hypothetical equation $x \equiv t$ to be eliminated by the reflexivity rule.
 Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 
+\railalias{equiv}{\isasymequiv}
+\railterm{equiv}
+
 \begin{rail}
   'fix' (vars + 'and') comment?
   ;
   ('assume' | 'presume') (assm comment? + 'and')
   ;
-  'def' thmdecl? \\ name '==' term termpat? comment?
+  'def' thmdecl? \\ name ('==' | equiv) term termpat? comment?
   ;
 
   var: name ('::' type)?
