@@ -50,6 +50,10 @@ New in this Isabelle release
   than a restriction, as the theory loader screws up if Theory.ML is manually
   loaded.)
 
+* Presentation: generated HTML now uses a CSS style sheet to make layout
+  (somewhat) independet of content. It is copied from lib/html/isabelle.css. 
+  It can be changed to alter the colors/layout of generated pages.
+
 *** Isar ***
 
 * Tactic emulation methods rule_tac, erule_tac, drule_tac, frule_tac,
