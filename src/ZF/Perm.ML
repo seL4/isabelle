@@ -459,8 +459,17 @@ qed "invertible_imp_bijective";
 
 (** Unions of functions -- cf similar theorems on func.ML **)
 
-(*For proof of analogous theorem for injections, see 
-   AC/Cardinal_aux/Un_lepoll_Un*)
+(*Theorem by KG, proof by LCP*)
+goal Perm.thy
+    "!!f g. [| f: inj(A,B);  g: inj(C,D);  B Int D = 0 |] ==> \
+\           (lam a: A Un C. if(a:A, f`a, g`a)) : inj(A Un C, B Un D)";
+by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, converse(g)`z)")]
+        lam_injective 1);
+by (ALLGOALS 
+    (asm_simp_tac (ZF_ss addsimps [inj_is_fun RS apply_type, left_inverse] 
+                         setloop (split_tac [expand_if] ORELSE' etac UnE))));
+by (fast_tac (ZF_cs addSEs [inj_is_fun RS apply_type] addDs [equals0D]) 1);
+qed "inj_disjoint_Un";
 
 goalw Perm.thy [surj_def]
     "!!f g. [| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \

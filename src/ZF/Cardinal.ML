@@ -120,6 +120,11 @@ goal Cardinal.thy "A lepoll 0 <-> A=0";
 by (fast_tac (ZF_cs addIs [lepoll_0_is_0, lepoll_refl]) 1);
 qed "lepoll_0_iff";
 
+goalw Cardinal.thy [lepoll_def] 
+    "!!A. [| A lepoll B; C lepoll D; B Int D = 0 |] ==> A Un C lepoll B Un D";
+by (fast_tac (ZF_cs addIs [inj_disjoint_Un]) 1);
+qed "Un_lepoll_Un";
+
 (*A eqpoll 0 ==> A=0*)
 bind_thm ("eqpoll_0_is_0",  eqpoll_imp_lepoll RS lepoll_0_is_0);
 
