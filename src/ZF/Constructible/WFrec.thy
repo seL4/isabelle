@@ -105,7 +105,7 @@ apply (erule ssubst)+
 apply (simp (no_asm_simp) add: vimage_singleton_iff restrict_def)
 apply (rename_tac x1)
 apply (rule_tac t="%z. H(x1,z)" in subst_context) 
-apply (subgoal_tac "ALL y : r-``{x1}. ALL z. <y,z>:f <-> <y,z>:g")
+apply (subgoal_tac "\<forall>y \<in> r-``{x1}. ALL z. <y,z>\<in>f <-> <y,z>\<in>g")
  apply (blast intro: transD) 
 apply (simp add: apply_iff) 
 apply (blast intro: transD sym) 

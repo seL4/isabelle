@@ -475,7 +475,7 @@ done
 
 text{*@{term DPow} is not monotonic.  For example, let @{term A} be some
 non-constructible set of natural numbers, and let @{term B} be @{term nat}.
-Then @{term "A<=B"} and obviously @{term "A : DPow(A)"} but @{term "A ~:
+Then @{term "A<=B"} and obviously @{term "A \<in> DPow(A)"} but @{term "A ~:
 DPow(B)"}.*}
 
 (*This may be true but the proof looks difficult, requiring relativization 
@@ -694,7 +694,7 @@ lemma Limit_Lset_eq:
     "Limit(i) ==> Lset(i) = (\<Union>y\<in>i. Lset(y))"
 by (simp add: Lset_Union [symmetric] Limit_Union_eq)
 
-lemma lt_LsetI: "[| a: Lset(j);  j<i |] ==> a : Lset(i)"
+lemma lt_LsetI: "[| a: Lset(j);  j<i |] ==> a \<in> Lset(i)"
 by (blast dest: Lset_mono [OF le_imp_subset [OF leI]])
 
 lemma Limit_LsetE:
@@ -710,7 +710,7 @@ done
 
 subsubsection{* Basic closure properties *}
 
-lemma zero_in_Lset: "y:x ==> 0 : Lset(x)"
+lemma zero_in_Lset: "y:x ==> 0 \<in> Lset(x)"
 by (subst Lset, blast intro: empty_in_DPow)
 
 lemma notin_Lset: "x \<notin> Lset(x)"
@@ -774,15 +774,15 @@ by (simp add: L_def, blast dest: Union_in_Lset)
 
 subsubsection{* Finite sets and ordered pairs *}
 
-lemma singleton_in_Lset: "a: Lset(i) ==> {a} : Lset(succ(i))"
+lemma singleton_in_Lset: "a: Lset(i) ==> {a} \<in> Lset(succ(i))"
 by (simp add: Lset_succ singleton_in_DPow) 
 
 lemma doubleton_in_Lset:
-     "[| a: Lset(i);  b: Lset(i) |] ==> {a,b} : Lset(succ(i))"
+     "[| a: Lset(i);  b: Lset(i) |] ==> {a,b} \<in> Lset(succ(i))"
 by (simp add: Lset_succ empty_in_DPow cons_in_DPow) 
 
 lemma Pair_in_Lset:
-    "[| a: Lset(i);  b: Lset(i); Ord(i) |] ==> <a,b> : Lset(succ(succ(i)))"
+    "[| a: Lset(i);  b: Lset(i); Ord(i) |] ==> <a,b> \<in> Lset(succ(succ(i)))"
 apply (unfold Pair_def)
 apply (blast intro: doubleton_in_Lset) 
 done
@@ -792,7 +792,7 @@ lemmas Lset_UnI2 = Un_upper2 [THEN Lset_mono [THEN subsetD], standard]
 
 text{*Hard work is finding a single j:i such that {a,b}<=Lset(j)*}
 lemma doubleton_in_LLimit:
-    "[| a: Lset(i);  b: Lset(i);  Limit(i) |] ==> {a,b} : Lset(i)"
+    "[| a: Lset(i);  b: Lset(i);  Limit(i) |] ==> {a,b} \<in> Lset(i)"
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)
 apply (blast intro: lt_LsetI [OF doubleton_in_Lset]
@@ -806,7 +806,7 @@ apply (blast intro: lt_LsetI doubleton_in_LLimit Limit_is_Ord)
 done
 
 lemma Pair_in_LLimit:
-    "[| a: Lset(i);  b: Lset(i);  Limit(i) |] ==> <a,b> : Lset(i)"
+    "[| a: Lset(i);  b: Lset(i);  Limit(i) |] ==> <a,b> \<in> Lset(i)"
 txt{*Infer that a, b occur at ordinals x,xa < i.*}
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)
@@ -919,7 +919,7 @@ by (blast dest: subset_Lset)
 subsubsection{*For L to satisfy the Powerset axiom *}
 
 lemma LPow_env_typing:
-    "[| y : Lset(i); Ord(i); y \<subseteq> X |] 
+    "[| y \<in> Lset(i); Ord(i); y \<subseteq> X |] 
      ==> \<exists>z \<in> Pow(X). y \<in> Lset(succ(lrank(z)))"
 by (auto intro: L_I iff: Lset_succ_lrank_iff) 
 

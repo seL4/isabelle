@@ -129,7 +129,7 @@ done
 
 lemma ord_iso_converse1:
      "[| f: ord_iso(A,r,B,s);  <b, f`a>: s;  a:A;  b:B |] 
-      ==> <converse(f) ` b, a> : r"
+      ==> <converse(f) ` b, a> \<in> r"
 apply (frule ord_iso_converse, assumption+) 
 apply (blast intro: ord_iso_is_bij [THEN bij_is_fun, THEN apply_funtype]) 
 apply (simp add: left_inverse_bij [OF ord_iso_is_bij])
@@ -290,9 +290,9 @@ apply (simp add: Transset_def, clarify)
 apply (simp add: image_iff pred_iff apply_iff [OF omap_funtype [of A r f i]])
 apply (rename_tac c j, clarify)
 apply (frule omap_funtype [of A r f, THEN apply_funtype], assumption+)
-apply (subgoal_tac "j : i") 
+apply (subgoal_tac "j \<in> i") 
 	prefer 2 apply (blast intro: Ord_trans Ord_otype)
-apply (subgoal_tac "converse(f) ` j : obase(M,A,r)") 
+apply (subgoal_tac "converse(f) ` j \<in> obase(M,A,r)") 
 	prefer 2 
 	apply (blast dest: wellordered_omap_bij [THEN bij_converse_bij, 
                                       THEN bij_is_fun, THEN apply_funtype])
