@@ -13,7 +13,8 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [DIR]"
   echo
   echo "  Options are:"
-  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz, pdf"
+  echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,"
+  echo "                 ps.gz, pdf"
   echo
   echo "  Prepare the theory session document in DIR (default '.')"
   echo "  producing the specified output format."
@@ -92,7 +93,11 @@ if [ -f IsaMakefile ]; then
   RC=$?   #FIXME !??
 elif [ "$OUTFORMAT" = pdf ]; then
   pre_latex pdf && \
-  $ISATOOL latex -o pdf
+  $ISATOOL latex -o pdf && \
+  { if [ -n "$ISABELLE_THUMBPDF" ]; then
+      $ISATOOL latex -o png && \
+      $ISATOOL latex -o pdf
+    fi; }
   RC=$?
 else
   pre_latex dvi && \
