@@ -39,7 +39,12 @@ consts_code
 
   "wfrec"   ("wf'_rec?")
 
-ML {* fun wf_rec f x = f (wf_rec f) x; *}
+ML {*
+fun wf_rec f x = f (wf_rec f) x;
+
+val term_of_list = HOLogic.mk_list;
+val term_of_int = HOLogic.mk_int;
+*}
 
 lemma [code]: "((n::nat) < 0) = False" by simp
 declare less_Suc_eq [code]

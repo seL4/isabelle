@@ -66,6 +66,7 @@ sig
   val mk_nat: int -> term
   val dest_nat: term -> int
   val intT: typ
+  val mk_int: int -> term
   val realT: typ
   val binT: typ
   val pls_const: term
@@ -74,7 +75,8 @@ sig
   val number_of_const: typ -> term
   val int_of: int list -> int
   val dest_binum: term -> int
-  val mk_bin   : int -> term
+  val mk_bin: int -> term
+  val mk_list: ('a -> term) -> typ -> 'a list -> term
 end;
 
 
@@ -271,11 +273,6 @@ fun dest_nat (Const ("0", _)) = 0
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
 
-val intT = Type ("IntDef.int", []);
-
-val realT = Type("RealDef.real",[]);
-
-
 (* binary numerals *)
 
 val binT = Type ("Numeral.bin", []);
@@ -315,5 +312,25 @@ fun mk_bin n =
       | term_of [~1] = min_const
       | term_of (b :: bs) = bit_const $ term_of bs $ mk_bit b;
     in term_of (bin_of n) end;
+
+
+(* int *)
+
+val intT = Type ("IntDef.int", []);
+
+fun mk_int i = number_of_const intT $ mk_bin i;
+
+
+(* real *)
+
+val realT = Type("RealDef.real", []);
+
+
+(* list *)
+
+fun mk_list f T [] = Const ("List.list.Nil", Type ("List.list", [T]))
+  | mk_list f T (x :: xs) = Const ("List.list.Cons",
+      T --> Type ("List.list", [T]) --> Type ("List.list", [T])) $ f x $
+        mk_list f T xs;
 
 end;
