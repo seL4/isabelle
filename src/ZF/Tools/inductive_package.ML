@@ -50,6 +50,8 @@ struct
 
 open Logic Ind_Syntax;
 
+val co_prefix = if coind then "co" else "";
+
 
 (* utils *)
 
@@ -525,16 +527,16 @@ let
      and mutual_induct = CP.remove_split mutual_induct_fsplit
 
      val (thy', [induct', mutual_induct']) = thy |> PureThy.add_thms
-      [(("induct", induct), [case_names, InductAttrib.induct_set_global big_rec_name]),
+      [((co_prefix ^ "induct", induct), [case_names, InductAttrib.induct_set_global big_rec_name]),
        (("mutual_induct", mutual_induct), [case_names])];
-    in (thy', induct', mutual_induct')
+    in ((thy', induct'), mutual_induct')
     end;  (*of induction_rules*)
 
   val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct)
 
-  val (thy2, induct, mutual_induct) =
-      if not coind then induction_rules raw_induct thy1
-      else (thy1, raw_induct, TrueI)
+  val ((thy2, induct), mutual_induct) =
+    if not coind then induction_rules raw_induct thy1
+    else (thy1 |> PureThy.add_thms [((co_prefix ^ "induct", raw_induct), [])] |> apsnd hd, TrueI)
   and defs = big_rec_def :: part_rec_defs
 
 
@@ -612,10 +614,8 @@ val ind_decl =
   Scan.optional (P.$$$ "type_elims" |-- P.!!! P.xthms1 --| P.marg_comment) []
   >> (Toplevel.theory o mk_ind);
 
-val coind_prefix = if coind then "co" else "";
-
-val inductiveP = OuterSyntax.command (coind_prefix ^ "inductive")
-  ("define " ^ coind_prefix ^ "inductive sets") K.thy_decl ind_decl;
+val inductiveP = OuterSyntax.command (co_prefix ^ "inductive")
+  ("define " ^ co_prefix ^ "inductive sets") K.thy_decl ind_decl;
 
 val _ = OuterSyntax.add_keywords
   ["domains", "intros", "monos", "con_defs", "type_intros", "type_elims"];
