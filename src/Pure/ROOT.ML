@@ -64,7 +64,7 @@ use "pure.ML";
 
 use "install_pp.ML";
 
-(*if true then some packages won't be too serious about actually proving things*)
+(*if true then some packages will OMIT SOME PROOFS*)
 val quick_and_dirty = ref false;
 
 (*several object-logics declare theories that hide basis library structures*)
@@ -73,6 +73,7 @@ struct
   structure List   = List 
   and       Option = Option
   and       Bool   = Bool
+  and       String = String
   and       Int    = Int
   and       Real   = Real;
 end;
