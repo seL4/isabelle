@@ -6,330 +6,386 @@ Meta-level Simplification.
 *)
 
 infix 4
-  setsubgoaler setloop addloop delloop setSSolver addSSolver setSolver
-  addSolver addsimps delsimps addeqcongs deleqcongs addcongs delcongs
-  setmksimps setmkeqTrue setmkcong setmksym settermless addsimprocs delsimprocs;
+  addsimps delsimps addeqcongs deleqcongs addcongs delcongs addsimprocs delsimprocs
+  setmksimps setmkcong setmksym setmkeqTrue settermless setsubgoaler
+  setloop addloop delloop setSSolver addSSolver setSolver addSolver;
 
 signature BASIC_META_SIMPLIFIER =
 sig
-  val trace_simp: bool ref
   val debug_simp: bool ref
+  val trace_simp: bool ref
   val simp_depth_limit: int ref
-end;
-
-signature AUX_SIMPLIFIER =
-sig
-  type meta_simpset
-  type simpset
-  type simproc
-  val full_mk_simproc: string -> cterm list
-    -> (simpset -> Sign.sg -> thm list -> term -> thm option) -> simproc
-  val mk_simproc: string -> cterm list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
+  type rrule
+  type cong
   type solver
   val mk_solver: string -> (thm list -> int -> tactic) -> solver
-  val empty_ss: simpset
+  type simpset
+  type proc
   val rep_ss: simpset ->
-   {mss: meta_simpset,
-    mk_cong: thm -> thm,
+   {rules: rrule Net.net,
+    prems: thm list,
+    bounds: string list,
+    depth: int} *
+   {congs: (string * cong) list * string list,
+    procs: proc Net.net,
+    mk_rews:
+     {mk: thm -> thm list,
+      mk_cong: thm -> thm,
+      mk_sym: thm -> thm option,
+      mk_eq_True: thm -> thm option},
+    termless: term * term -> bool,
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (int -> tactic)) list,
-    unsafe_solvers: solver list,
-    solvers: solver list}
-  val from_mss: meta_simpset -> simpset
-  val ss_of            : thm list -> simpset
+    solvers: solver list * solver list}
   val print_ss: simpset -> unit
-  val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
-  val setloop:      simpset *             (int -> tactic) -> simpset
-  val addloop:      simpset *  (string * (int -> tactic)) -> simpset
-  val delloop:      simpset *   string                    -> simpset
-  val setSSolver:   simpset * solver -> simpset
-  val addSSolver:   simpset * solver -> simpset
-  val setSolver:    simpset * solver -> simpset
-  val addSolver:    simpset * solver -> simpset
-  val setmksimps:   simpset * (thm -> thm list) -> simpset
-  val setmkeqTrue:  simpset * (thm -> thm option) -> simpset
-  val setmkcong:    simpset * (thm -> thm) -> simpset
-  val setmksym:     simpset * (thm -> thm option) -> simpset
-  val settermless:  simpset * (term * term -> bool) -> simpset
-  val addsimps:     simpset * thm list -> simpset
-  val delsimps:     simpset * thm list -> simpset
-  val addeqcongs:   simpset * thm list -> simpset
-  val deleqcongs:   simpset * thm list -> simpset
-  val addcongs:     simpset * thm list -> simpset
-  val delcongs:     simpset * thm list -> simpset
-  val addsimprocs:  simpset * simproc list -> simpset
-  val delsimprocs:  simpset * simproc list -> simpset
-  val merge_ss:     simpset * simpset -> simpset
-  val prems_of_ss:  simpset -> thm list
+  val empty_ss: simpset
+  val merge_ss: simpset * simpset -> simpset
+  type simproc
+  val mk_simproc: string -> cterm list ->
+    (Sign.sg -> simpset -> term -> thm option) -> simproc
+  val add_prems: thm list -> simpset -> simpset
+  val prems_of_ss: simpset -> thm list
+  val addsimps: simpset * thm list -> simpset
+  val delsimps: simpset * thm list -> simpset
+  val addeqcongs: simpset * thm list -> simpset
+  val deleqcongs: simpset * thm list -> simpset
+  val addcongs: simpset * thm list -> simpset
+  val delcongs: simpset * thm list -> simpset
+  val addsimprocs: simpset * simproc list -> simpset
+  val delsimprocs: simpset * simproc list -> simpset
+  val setmksimps: simpset * (thm -> thm list) -> simpset
+  val setmkcong: simpset * (thm -> thm) -> simpset
+  val setmksym: simpset * (thm -> thm option) -> simpset
+  val setmkeqTrue: simpset * (thm -> thm option) -> simpset
+  val settermless: simpset * (term * term -> bool) -> simpset
+  val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
+  val setloop: simpset * (int -> tactic) -> simpset
+  val addloop: simpset * (string * (int -> tactic)) -> simpset
+  val delloop: simpset * string -> simpset
+  val setSSolver: simpset * solver -> simpset
+  val addSSolver: simpset * solver -> simpset
+  val setSolver: simpset * solver -> simpset
+  val addSolver: simpset * solver -> simpset
   val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
-  val simproc: Sign.sg -> string -> string list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
-  val simproc_i: Sign.sg -> string -> term list
-    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
-  val full_simproc: Sign.sg -> string -> string list
-    -> (simpset -> Sign.sg -> thm list -> term -> thm option) -> simproc
-  val full_simproc_i: Sign.sg -> string -> term list
-    -> (simpset -> Sign.sg -> thm list -> term -> thm option) -> simproc
-  val clear_ss  : simpset -> simpset
-  val simp_thm  : bool * bool * bool -> simpset -> thm -> thm
-  val simp_cterm: bool * bool * bool -> simpset -> cterm -> thm
 end;
 
 signature META_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
-  include AUX_SIMPLIFIER
   exception SIMPLIFIER of string * thm
-  exception SIMPROC_FAIL of string * exn
-  val dest_mss          : meta_simpset ->
+  val dest_ss: simpset ->
     {simps: thm list, congs: thm list, procs: (string * cterm list) list}
-  val empty_mss         : meta_simpset
-  val clear_mss         : meta_simpset -> meta_simpset
-  val merge_mss         : meta_simpset * meta_simpset -> meta_simpset
-  val add_simps         : meta_simpset * thm list -> meta_simpset
-  val del_simps         : meta_simpset * thm list -> meta_simpset
-  val mss_of            : thm list -> meta_simpset
-  val add_congs         : meta_simpset * thm list -> meta_simpset
-  val del_congs         : meta_simpset * thm list -> meta_simpset
-  val add_simprocs      : meta_simpset *
-    (string * cterm list * (simpset -> Sign.sg -> thm list -> term -> thm option) * stamp) list
-      -> meta_simpset
-  val del_simprocs      : meta_simpset *
-    (string * cterm list * (simpset -> Sign.sg -> thm list -> term -> thm option) * stamp) list
-      -> meta_simpset
-  val add_prems         : meta_simpset * thm list -> meta_simpset
-  val prems_of_mss      : meta_simpset -> thm list
-  val set_mk_rews       : meta_simpset * (thm -> thm list) -> meta_simpset
-  val set_mk_sym        : meta_simpset * (thm -> thm option) -> meta_simpset
-  val set_mk_eq_True    : meta_simpset * (thm -> thm option) -> meta_simpset
-  val get_mk_rews       : meta_simpset -> thm -> thm list
-  val get_mk_sym        : meta_simpset -> thm -> thm option
-  val get_mk_eq_True    : meta_simpset -> thm -> thm option
-  val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
+  val clear_ss: simpset -> simpset
+  exception SIMPROC_FAIL of string * exn
+  val simproc_i: Sign.sg -> string -> term list
+    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
+  val simproc: Sign.sg -> string -> string list
+    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
   val rewrite_cterm: bool * bool * bool ->
-    (meta_simpset -> thm -> thm option) -> simpset -> cterm -> thm
-  val rewrite_aux       : (meta_simpset -> thm -> thm option) -> bool -> thm list -> cterm -> thm
-  val simplify_aux      : (meta_simpset -> thm -> thm option) -> bool -> thm list -> thm -> thm
-  val rewrite_thm       : bool * bool * bool
-                          -> (meta_simpset -> thm -> thm option)
-                          -> simpset -> thm -> thm
-  val rewrite_goals_rule_aux: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
-  val rewrite_goal_rule : bool* bool * bool
-                          -> (meta_simpset -> thm -> thm option)
-                          -> simpset -> int -> thm -> thm
+    (simpset -> thm -> thm option) -> simpset -> cterm -> thm
+  val rewrite_aux: (simpset -> thm -> thm option) -> bool -> thm list -> cterm -> thm
+  val simplify_aux: (simpset -> thm -> thm option) -> bool -> thm list -> thm -> thm
   val rewrite_term: Sign.sg -> thm list -> (term -> term option) list -> term -> term
-  val asm_rewrite_goal_tac: bool*bool*bool ->
-    (meta_simpset -> tactic) -> simpset -> int -> tactic
-
+  val rewrite_thm: bool * bool * bool ->
+    (simpset -> thm -> thm option) -> simpset -> thm -> thm
+  val rewrite_goals_rule_aux: (simpset -> thm -> thm option) -> thm list -> thm -> thm
+  val rewrite_goal_rule: bool * bool * bool ->
+    (simpset -> thm -> thm option) -> simpset -> int -> thm -> thm
+  val asm_rewrite_goal_tac: bool * bool * bool ->
+    (simpset -> tactic) -> simpset -> int -> tactic
+  val simp_thm: bool * bool * bool -> simpset -> thm -> thm
+  val simp_cterm: bool * bool * bool -> simpset -> cterm -> thm
 end;
 
-structure MetaSimplifier : META_SIMPLIFIER =
+structure MetaSimplifier: META_SIMPLIFIER =
 struct
+
 
 (** diagnostics **)
 
 exception SIMPLIFIER of string * thm;
-exception SIMPROC_FAIL of string * exn;
 
+val debug_simp = ref false;
+val trace_simp = ref false;
 val simp_depth = ref 0;
 val simp_depth_limit = ref 1000;
 
 local
 
 fun println a =
-  tracing ((case ! simp_depth of 0 => "" | n => "[" ^ string_of_int n ^ "]") ^ a);
+  tracing (case ! simp_depth of 0 => a | n => enclose "[" "]" (string_of_int n) ^ a);
 
 fun prnt warn a = if warn then warning a else println a;
-fun prtm warn a sign t = prnt warn (a ^ "\n" ^ Sign.string_of_term sign t);
+fun prtm warn a sg t = prnt warn (a ^ "\n" ^ Sign.string_of_term sg t);
 fun prctm warn a t = prnt warn (a ^ "\n" ^ Display.string_of_cterm t);
 
 in
 
-fun prthm warn a = prctm warn a o Thm.cprop_of;
+fun debug warn a = if ! debug_simp then prnt warn a else ();
+fun trace warn a = if ! trace_simp then prnt warn a else ();
 
-val trace_simp = ref false;
-val debug_simp = ref false;
-
-fun trace warn a = if !trace_simp then prnt warn a else ();
-fun debug warn a = if !debug_simp then prnt warn a else ();
-
-fun trace_term warn a sign t = if !trace_simp then prtm warn a sign t else ();
-fun trace_cterm warn a t = if !trace_simp then prctm warn a t else ();
-fun debug_term warn a sign t = if !debug_simp then prtm warn a sign t else ();
-
-fun trace_thm a thm =
-  let val {sign, prop, ...} = rep_thm thm
-  in trace_term false a sign prop end;
+fun debug_term warn a sign t = if ! debug_simp then prtm warn a sign t else ();
+fun trace_term warn a sign t = if ! trace_simp then prtm warn a sign t else ();
+fun trace_cterm warn a ct = if ! trace_simp then prctm warn a ct else ();
+fun trace_thm a th = if ! trace_simp then prctm false a (Thm.cprop_of th) else ();
 
 fun trace_named_thm a (thm, name) =
-  trace_thm (a ^ (if name = "" then "" else " " ^ quote name) ^ ":") thm;
+  if ! trace_simp then
+    prctm false (if name = "" then a else a ^ " " ^ quote name ^ ":") (Thm.cprop_of thm)
+  else ();
+
+fun warn_thm a = prctm true a o Thm.cprop_of;
 
 end;
 
 
-(** meta simp sets **)
 
-(* basic components *)
+(** datatype simpset **)
+
+(* rewrite rules *)
 
 type rrule = {thm: thm, name: string, lhs: term, elhs: cterm, fo: bool, perm: bool};
-(* thm: the rewrite rule
-   name: name of theorem from which rewrite rule was extracted
-   lhs: the left-hand side
-   elhs: the etac-contracted lhs.
-   fo:  use first-order matching
-   perm: the rewrite rule is permutative
+
+(*thm: the rewrite rule;
+  name: name of theorem from which rewrite rule was extracted;
+  lhs: the left-hand side;
+  elhs: the etac-contracted lhs;
+  fo: use first-order matching;
+  perm: the rewrite rule is permutative;
+
 Remarks:
   - elhs is used for matching,
-    lhs only for preservation of bound variable names.
+    lhs only for preservation of bound variable names;
   - fo is set iff
     either elhs is first-order (no Var is applied),
-           in which case fo-matching is complete,
+      in which case fo-matching is complete,
     or elhs is not a pattern,
-       in which case there is nothing better to do.
-*)
-type cong = {thm: thm, lhs: cterm};
+      in which case there is nothing better to do;*)
 
 fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
-  #prop (rep_thm thm1) aconv #prop (rep_thm thm2);
+  Drule.eq_thm_prop (thm1, thm2);
+
+
+(* congruences *)
+
+type cong = {thm: thm, lhs: cterm};
 
 fun eq_cong ({thm = thm1, ...}: cong, {thm = thm2, ...}: cong) =
-  #prop (rep_thm thm1) aconv #prop (rep_thm thm2);
-
-fun eq_prem (thm1, thm2) =
-  #prop (rep_thm thm1) aconv #prop (rep_thm thm2);
+  Drule.eq_thm_prop (thm1, thm2);
 
 
-(* datatype mss *)
+(* solvers *)
 
-(*
-  A "mss" contains data needed during conversion:
+datatype solver =
+  Solver of
+   {name: string,
+    solver: thm list -> int -> tactic,
+    id: stamp};
+
+fun mk_solver name solver = Solver {name = name, solver = solver, id = stamp ()};
+
+fun solver ths (Solver {solver = tacf, ...}) = tacf ths;
+
+fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
+val merge_solvers = gen_merge_lists eq_solver;
+
+
+(* simplification sets and procedures *)
+
+(*A simpset contains data required during conversion:
     rules: discrimination net of rewrite rules;
+    prems: current premises;
+    bounds: names of bound variables already used
+      (for generating new names when rewriting under lambda abstractions);
+    depth: depth of conditional rewriting;
     congs: association list of congruence rules and
            a list of `weak' congruence constants.
            A congruence is `weak' if it avoids normalization of some argument.
     procs: discrimination net of simplification procedures
       (functions that prove rewrite rules on the fly);
-    bounds: names of bound variables already used
-      (for generating new names when rewriting under lambda abstractions);
-    prems: current premises;
-    mk_rews: mk: turns simplification thms into rewrite rules;
-             mk_sym: turns == around; (needs Drule!)
-             mk_eq_True: turns P into P == True - logic specific;
-    termless: relation for ordered rewriting;
-    depth: depth of conditional rewriting;
-*)
+    mk_rews:
+      mk: turn simplification thms into rewrite rules;
+      mk_cong: prepare congruence rules;
+      mk_sym: turn == around;
+      mk_eq_True: turn P into P == True;
+    termless: relation for ordered rewriting;*)
 
-datatype solver = Solver of string * (thm list -> int -> tactic) * stamp;
+type mk_rews =
+ {mk: thm -> thm list,
+  mk_cong: thm -> thm,
+  mk_sym: thm -> thm option,
+  mk_eq_True: thm -> thm option};
 
-datatype meta_simpset =
-  Mss of {
-    rules: rrule Net.net,
-    congs: (string * cong) list * string list,
-    procs: meta_simproc Net.net,
-    bounds: string list,
+datatype simpset =
+  Simpset of
+   {rules: rrule Net.net,
     prems: thm list,
-    mk_rews: {mk: thm -> thm list,
-              mk_sym: thm -> thm option,
-              mk_eq_True: thm -> thm option},
+    bounds: string list,
+    depth: int} *
+   {congs: (string * cong) list * string list,
+    procs: proc Net.net,
+    mk_rews: mk_rews,
     termless: term * term -> bool,
-    depth: int}
-and simpset =
-  Simpset of {
-    mss: meta_simpset,
-    mk_cong: thm -> thm,
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (int -> tactic)) list,
-    unsafe_solvers: solver list,
-    solvers: solver list}
-withtype meta_simproc =
- {name: string, proc: simpset -> Sign.sg -> thm list -> term -> thm option, lhs: cterm, id: stamp};
+    solvers: solver list * solver list}
+and proc =
+  Proc of
+   {name: string,
+    lhs: cterm,
+    proc: Sign.sg -> simpset -> term -> thm option,
+    id: stamp};
 
-fun mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless, depth) =
-  Mss {rules = rules, congs = congs, procs = procs, bounds = bounds,
-       prems=prems, mk_rews=mk_rews, termless=termless, depth=depth};
+fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = (id1 = id2);
 
-fun upd_rules(Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}, rules') =
-  mk_mss(rules',congs,procs,bounds,prems,mk_rews,termless,depth);
+fun rep_ss (Simpset args) = args;
 
-val empty_mss =
-  let val mk_rews = {mk = K [], mk_sym = K None, mk_eq_True = K None}
-  in mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, Term.termless, 0) end;
+fun make_ss1 (rules, prems, bounds, depth) =
+  {rules = rules, prems = prems, bounds = bounds, depth = depth};
 
-fun clear_mss (Mss {mk_rews, termless, ...}) =
-  mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, termless,0);
+fun map_ss1 f {rules, prems, bounds, depth} =
+  make_ss1 (f (rules, prems, bounds, depth));
 
-fun incr_depth(Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}) =
-  let val depth1 = depth+1
-  in if depth1 > !simp_depth_limit
-     then (warning "simp_depth_limit exceeded - giving up"; None)
-     else (if depth1 mod 10 = 0
-           then warning("Simplification depth " ^ string_of_int depth1)
-           else ();
-           Some(mk_mss(rules,congs,procs,bounds,prems,mk_rews,termless,depth1))
-          )
-  end;
+fun make_ss2 (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =
+  {congs = congs, procs = procs, mk_rews = mk_rews, termless = termless,
+    subgoal_tac = subgoal_tac, loop_tacs = loop_tacs, solvers = solvers};
 
-datatype simproc =
-  Simproc of string * cterm list * (simpset -> Sign.sg -> thm list -> term -> thm option) * stamp
+fun map_ss2 f {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers} =
+  make_ss2 (f (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
 
-fun eq_simproc ({id = s1, ...}:meta_simproc, {id = s2, ...}:meta_simproc) = (s1 = s2);
+fun make_simpset (args1, args2) = Simpset (make_ss1 args1, make_ss2 args2);
 
-fun mk_simproc (name, proc, lhs, id) =
-  {name = name, proc = proc, lhs = lhs, id = id};
+fun map_simpset f (Simpset ({rules, prems, bounds, depth},
+    {congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers})) =
+  make_simpset (f ((rules, prems, bounds, depth),
+    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers)));
+
+fun map_simpset1 f (Simpset (r1, r2)) = Simpset (map_ss1 f r1, r2);
+fun map_simpset2 f (Simpset (r1, r2)) = Simpset (r1, map_ss2 f r2);
 
 
-(** simpset operations **)
+(* print simpsets *)
 
-(* term variables *)
-
-val add_term_varnames = foldl_aterms (fn (xs, Var (x, _)) => ins_ix (x, xs) | (xs, _) => xs);
-fun term_varnames t = add_term_varnames ([], t);
-
-
-(* dest_mss *)
-
-fun dest_mss (Mss {rules, congs, procs, ...}) =
+fun dest_ss (Simpset ({rules, ...}, {congs = (congs, _), procs, ...})) =
   {simps = map (fn (_, {thm, ...}) => thm) (Net.dest rules),
-   congs = map (fn (_, {thm, ...}) => thm) (fst congs),
+   congs = map (fn (_, {thm, ...}) => thm) congs,
    procs =
-     map (fn (_, {name, lhs, id, ...}) => ((name, lhs), id)) (Net.dest procs)
+     map (fn (_, Proc {name, lhs, id, ...}) => ((name, lhs), id)) (Net.dest procs)
      |> partition_eq eq_snd
      |> map (fn ps => (#1 (#1 (hd ps)), map (#2 o #1) ps))
      |> Library.sort_wrt #1};
 
+fun print_ss ss =
+  let
+    val {simps, procs, congs} = dest_ss ss;
 
-(* merge_mss *)       (*NOTE: ignores mk_rews, termless and depth of 2nd mss*)
-
-fun merge_mss
- (Mss {rules = rules1, congs = (congs1,weak1), procs = procs1,
-       bounds = bounds1, prems = prems1, mk_rews, termless, depth},
-  Mss {rules = rules2, congs = (congs2,weak2), procs = procs2,
-       bounds = bounds2, prems = prems2, ...}) =
-      mk_mss
-       (Net.merge (rules1, rules2, eq_rrule),
-        (gen_merge_lists (eq_cong o pairself snd) congs1 congs2,
-        merge_lists weak1 weak2),
-        Net.merge (procs1, procs2, eq_simproc),
-        merge_lists bounds1 bounds2,
-        gen_merge_lists eq_prem prems1 prems2,
-        mk_rews, termless, depth);
+    val pretty_thms = map Display.pretty_thm;
+    fun pretty_proc (name, lhss) =
+      Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
+  in
+    [Pretty.big_list "simplification rules:" (pretty_thms simps),
+      Pretty.big_list "simplification procedures:" (map pretty_proc procs),
+      Pretty.big_list "congruences:" (pretty_thms congs)]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
 
 
-(* add_simps *)
+(* empty simpsets *)
 
-fun mk_rrule2{thm, name, lhs, elhs, perm} =
-  let val fo = Pattern.first_order (term_of elhs) orelse not(Pattern.pattern (term_of elhs))
-  in {thm=thm, name=name, lhs=lhs, elhs=elhs, fo=fo, perm=perm} end
+local
 
-fun insert_rrule quiet (mss as Mss {rules,...},
-                 rrule as {thm,name,lhs,elhs,perm}) =
-  (trace_named_thm "Adding rewrite rule" (thm, name);
-   let val rrule2 as {elhs,...} = mk_rrule2 rrule
-       val rules' = Net.insert_term ((term_of elhs, rrule2), rules, eq_rrule)
-   in upd_rules(mss,rules') end
-   handle Net.INSERT => if quiet then mss else
-     (prthm true "Ignoring duplicate rewrite rule:" thm; mss));
+fun init_ss mk_rews termless subgoal_tac solvers =
+  make_simpset ((Net.empty, [], [], 0),
+    (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
+
+val basic_mk_rews: mk_rews =
+ {mk = fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
+  mk_cong = I,
+  mk_sym = Some o Drule.symmetric_fun,
+  mk_eq_True = K None};
+
+in
+
+val empty_ss = init_ss basic_mk_rews Term.termless (K (K no_tac)) ([], []);
+
+fun clear_ss (Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...})) =
+  init_ss mk_rews termless subgoal_tac solvers;
+
+end;
+
+
+(* merge simpsets *)            (*NOTE: ignores some fields of 2nd simpset*)
+
+fun merge_ss (ss1, ss2) =
+  let
+    val Simpset ({rules = rules1, prems = prems1, bounds = bounds1, depth},
+     {congs = (congs1, weak1), procs = procs1, mk_rews, termless, subgoal_tac,
+      loop_tacs = loop_tacs1, solvers = (unsafe_solvers1, solvers1)}) = ss1;
+    val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, depth = _},
+     {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
+      loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
+
+    val rules' = Net.merge (rules1, rules2, eq_rrule);
+    val prems' = gen_merge_lists Drule.eq_thm_prop prems1 prems2;
+    val bounds' = merge_lists bounds1 bounds2;
+    val congs' = gen_merge_lists (eq_cong o pairself #2) congs1 congs2;
+    val weak' = merge_lists weak1 weak2;
+    val procs' = Net.merge (procs1, procs2, eq_proc);
+    val loop_tacs' = merge_alists loop_tacs1 loop_tacs2;
+    val unsafe_solvers' = merge_solvers unsafe_solvers1 unsafe_solvers2;
+    val solvers' = merge_solvers solvers1 solvers2;
+  in
+    make_simpset ((rules', prems', bounds', depth), ((congs', weak'), procs',
+      mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
+  end;
+
+
+(* simprocs *)
+
+exception SIMPROC_FAIL of string * exn;
+
+datatype simproc = Simproc of proc list;
+
+fun mk_simproc name lhss proc =
+  let val id = stamp () in
+    Simproc (lhss |> map (fn lhs =>
+      Proc {name = name, lhs = lhs, proc = proc, id = id}))
+  end;
+
+fun simproc_i sg name = mk_simproc name o map (Thm.cterm_of sg o Logic.varify);
+fun simproc sg name = simproc_i sg name o map (Sign.simple_read_term sg TypeInfer.logicT);
+
+
+
+(** simpset operations **)
+
+(* bounds and prems *)
+
+fun add_bound b = map_simpset1 (fn (rules, prems, bounds, depth) =>
+  (rules, prems, b :: bounds, depth));
+
+fun add_prems ths = map_simpset1 (fn (rules, prems, bounds, depth) =>
+  (rules, ths @ prems, bounds, depth));
+
+fun prems_of_ss (Simpset ({prems, ...}, _)) = prems;
+
+
+(* addsimps *)
+
+fun mk_rrule2 {thm, name, lhs, elhs, perm} =
+  let
+    val fo = Pattern.first_order (term_of elhs) orelse not (Pattern.pattern (term_of elhs))
+  in {thm = thm, name = name, lhs = lhs, elhs = elhs, fo = fo, perm = perm} end;
+
+fun insert_rrule quiet (ss, rrule as {thm, name, lhs, elhs, perm}) =
+ (trace_named_thm "Adding rewrite rule" (thm, name);
+  ss |> map_simpset1 (fn (rules, prems, bounds, depth) =>
+    let
+      val rrule2 as {elhs, ...} = mk_rrule2 rrule;
+      val rules' = Net.insert_term ((term_of elhs, rrule2), rules, eq_rrule);
+    in (rules', prems, bounds, depth) end)
+  handle Net.INSERT =>
+    (if quiet then () else warn_thm "Ignoring duplicate rewrite rule:" thm; ss));
 
 fun vperm (Var _, Var _) = true
   | vperm (Abs (_, _, s), Abs (_, _, t)) = vperm (s, t)
@@ -346,36 +402,37 @@ all its Vars? Better: a dynamic check each time a rule is applied.
 fun rewrite_rule_extra_vars prems elhs erhs =
   not (term_varnames erhs subset foldl add_term_varnames (term_varnames elhs, prems))
   orelse
-  not ((term_tvars erhs) subset
-       (term_tvars elhs  union  List.concat(map term_tvars prems)));
+  not (term_tvars erhs subset (term_tvars elhs union List.concat (map term_tvars prems)));
 
-(*Simple test for looping rewrite rules and stupid orientations*)
+(*simple test for looping rewrite rules and stupid orientations*)
 fun reorient sign prems lhs rhs =
-   rewrite_rule_extra_vars prems lhs rhs
-  orelse
-   is_Var (head_of lhs)
-  orelse
-   (exists (apl (lhs, Logic.occs)) (rhs :: prems))
-  orelse
-   (null prems andalso
-    Pattern.matches (Sign.tsig_of sign) (lhs, rhs))
+  rewrite_rule_extra_vars prems lhs rhs
+    orelse
+  is_Var (head_of lhs)
+    orelse
+  exists (apl (lhs, Logic.occs)) (rhs :: prems)
+    orelse
+  null prems andalso Pattern.matches (Sign.tsig_of sign) (lhs, rhs)
     (*the condition "null prems" is necessary because conditional rewrites
       with extra variables in the conditions may terminate although
-      the rhs is an instance of the lhs. Example: ?m < ?n ==> f(?n) == f(?m)*)
-  orelse
-   (is_Const lhs andalso not(is_Const rhs))
+      the rhs is an instance of the lhs; example: ?m < ?n ==> f(?n) == f(?m)*)
+    orelse
+  is_Const lhs andalso not (is_Const rhs);
 
 fun decomp_simp thm =
-  let val {sign, prop, ...} = rep_thm thm;
-      val prems = Logic.strip_imp_prems prop;
-      val concl = Drule.strip_imp_concl (cprop_of thm);
-      val (lhs, rhs) = Drule.dest_equals concl handle TERM _ =>
-        raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm)
-      val elhs = snd (Drule.dest_equals (cprop_of (Thm.eta_conversion lhs)));
-      val elhs = if elhs=lhs then lhs else elhs (* try to share *)
-      val erhs = Pattern.eta_contract (term_of rhs);
-      val perm = var_perm (term_of elhs, erhs) andalso not (term_of elhs aconv erhs)
-                 andalso not (is_Var (term_of elhs))
+  let
+    val {sign, prop, ...} = Thm.rep_thm thm;
+    val prems = Logic.strip_imp_prems prop;
+    val concl = Drule.strip_imp_concl (Thm.cprop_of thm);
+    val (lhs, rhs) = Drule.dest_equals concl handle TERM _ =>
+      raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
+    val (_, elhs) = Drule.dest_equals (Thm.cprop_of (Thm.eta_conversion lhs));
+    val elhs = if elhs = lhs then lhs else elhs;  (*share identical copies*)
+    val erhs = Pattern.eta_contract (term_of rhs);
+    val perm =
+      var_perm (term_of elhs, erhs) andalso
+      not (term_of elhs aconv erhs) andalso
+      not (is_Var (term_of elhs));
   in (sign, prems, term_of lhs, elhs, term_of rhs, perm) end;
 
 fun decomp_simp' thm =
@@ -384,409 +441,255 @@ fun decomp_simp' thm =
     else (lhs, rhs)
   end;
 
-fun mk_eq_True (Mss{mk_rews={mk_eq_True,...},...}) (thm, name) =
-  case mk_eq_True thm of
+fun mk_eq_True (Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
+  (case mk_eq_True thm of
     None => []
   | Some eq_True =>
-      let val (_,_,lhs,elhs,_,_) = decomp_simp eq_True
-      in [{thm=eq_True, name=name, lhs=lhs, elhs=elhs, perm=false}] end;
+      let val (_, _, lhs, elhs, _, _) = decomp_simp eq_True
+      in [{thm = eq_True, name = name, lhs = lhs, elhs = elhs, perm = false}] end);
 
-(* create the rewrite rule and possibly also the ==True variant,
-   in case there are extra vars on the rhs *)
-fun rrule_eq_True(thm,name,lhs,elhs,rhs,mss,thm2) =
-  let val rrule = {thm=thm, name=name, lhs=lhs, elhs=elhs, perm=false}
-  in if (term_varnames rhs)  subset (term_varnames lhs) andalso
-        (term_tvars rhs) subset (term_tvars lhs)
-     then [rrule]
-     else mk_eq_True mss (thm2, name) @ [rrule]
+(*create the rewrite rule and possibly also the eq_True variant,
+  in case there are extra vars on the rhs*)
+fun rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm2) =
+  let val rrule = {thm = thm, name = name, lhs = lhs, elhs = elhs, perm = false} in
+    if term_varnames rhs subset term_varnames lhs andalso
+      term_tvars rhs subset term_tvars lhs then [rrule]
+    else mk_eq_True ss (thm2, name) @ [rrule]
   end;
 
-fun mk_rrule mss (thm, name) =
-  let val (_,prems,lhs,elhs,rhs,perm) = decomp_simp thm
-  in if perm then [{thm=thm, name=name, lhs=lhs, elhs=elhs, perm=true}] else
-     (* weak test for loops: *)
-     if rewrite_rule_extra_vars prems lhs rhs orelse
-        is_Var (term_of elhs)
-     then mk_eq_True mss (thm, name)
-     else rrule_eq_True(thm,name,lhs,elhs,rhs,mss,thm)
+fun mk_rrule ss (thm, name) =
+  let val (_, prems, lhs, elhs, rhs, perm) = decomp_simp thm in
+    if perm then [{thm = thm, name = name, lhs = lhs, elhs = elhs, perm = true}]
+    else
+      (*weak test for loops*)
+      if rewrite_rule_extra_vars prems lhs rhs orelse is_Var (term_of elhs)
+      then mk_eq_True ss (thm, name)
+      else rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm)
   end;
 
-fun orient_rrule mss (thm, name) =
-  let val (sign,prems,lhs,elhs,rhs,perm) = decomp_simp thm
-  in if perm then [{thm=thm, name=name, lhs=lhs, elhs=elhs, perm=true}]
-     else if reorient sign prems lhs rhs
-          then if reorient sign prems rhs lhs
-               then mk_eq_True mss (thm, name)
-               else let val Mss{mk_rews={mk_sym,...},...} = mss
-                    in case mk_sym thm of
-                         None => []
-                       | Some thm' =>
-                           let val (_,_,lhs',elhs',rhs',_) = decomp_simp thm'
-                           in rrule_eq_True(thm',name,lhs',elhs',rhs',mss,thm) end
-                    end
-          else rrule_eq_True(thm,name,lhs,elhs,rhs,mss,thm)
+fun orient_rrule ss (thm, name) =
+  let val (sign, prems, lhs, elhs, rhs, perm) = decomp_simp thm in
+    if perm then [{thm = thm, name = name, lhs = lhs, elhs = elhs, perm = true}]
+    else if reorient sign prems lhs rhs then
+      if reorient sign prems rhs lhs
+      then mk_eq_True ss (thm, name)
+      else
+        let val Simpset (_, {mk_rews = {mk_sym, ...}, ...}) = ss in
+          (case mk_sym thm of
+            None => []
+          | Some thm' =>
+              let val (_, _, lhs', elhs', rhs', _) = decomp_simp thm'
+              in rrule_eq_True (thm', name, lhs', elhs', rhs', ss, thm) end)
+        end
+    else rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm)
   end;
 
-fun extract_rews(Mss{mk_rews = {mk,...},...},thms) =
+fun extract_rews (Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
   flat (map (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms);
 
-fun orient_comb_simps comb mk_rrule (mss,thms) =
-  let val rews = extract_rews(mss,thms)
-      val rrules = flat (map mk_rrule rews)
-  in foldl comb (mss,rrules) end
+fun orient_comb_simps comb mk_rrule (ss, thms) =
+  let
+    val rews = extract_rews (ss, thms);
+    val rrules = flat (map mk_rrule rews);
+  in foldl comb (ss, rrules) end;
 
-(* Add rewrite rules explicitly; do not reorient! *)
-fun add_simps(mss,thms) =
-  orient_comb_simps (insert_rrule false) (mk_rrule mss) (mss,thms);
+fun extract_safe_rrules (ss, thm) =
+  flat (map (orient_rrule ss) (extract_rews (ss, [thm])));
 
-fun mss_of thms = foldl (insert_rrule false) (empty_mss, flat
-  (map (fn thm => mk_rrule empty_mss (thm, Thm.name_of_thm thm)) thms));
-
-fun extract_safe_rrules(mss,thm) =
-  flat (map (orient_rrule mss) (extract_rews(mss,[thm])));
-
-(* del_simps *)
-
-fun del_rrule(mss as Mss {rules,...},
-              rrule as {thm, elhs, ...}) =
-  (upd_rules(mss, Net.delete_term ((term_of elhs, rrule), rules, eq_rrule))
-   handle Net.DELETE =>
-     (prthm true "Rewrite rule not in simpset:" thm; mss));
-
-fun del_simps(mss,thms) =
-  orient_comb_simps del_rrule (map mk_rrule2 o mk_rrule mss) (mss,thms);
+(*add rewrite rules explicitly; do not reorient!*)
+fun ss addsimps thms =
+  orient_comb_simps (insert_rrule false) (mk_rrule ss) (ss, thms);
 
 
-(* add_congs *)
+(* delsimps *)
 
-fun is_full_cong_prems [] varpairs = null varpairs
-  | is_full_cong_prems (p::prems) varpairs =
-    (case Logic.strip_assums_concl p of
-       Const("==",_) $ lhs $ rhs =>
-         let val (x,xs) = strip_comb lhs and (y,ys) = strip_comb rhs
-         in is_Var x  andalso  forall is_Bound xs  andalso
-            null(findrep(xs))  andalso xs=ys andalso
-            (x,y) mem varpairs andalso
-            is_full_cong_prems prems (varpairs\(x,y))
-         end
-     | _ => false);
+fun del_rrule (ss, rrule as {thm, elhs, ...}) =
+  ss |> map_simpset1 (fn (rules, prems, bounds, depth) =>
+    (Net.delete_term ((term_of elhs, rrule), rules, eq_rrule), prems, bounds, depth))
+  handle Net.DELETE => (warn_thm "Rewrite rule not in simpset:" thm; ss);
 
-fun is_full_cong thm =
-let val prems = prems_of thm
-    and concl = concl_of thm
-    val (lhs,rhs) = Logic.dest_equals concl
-    val (f,xs) = strip_comb lhs
-    and (g,ys) = strip_comb rhs
-in
-  f=g andalso null(findrep(xs@ys)) andalso length xs = length ys andalso
-  is_full_cong_prems prems (xs ~~ ys)
-end
+fun ss delsimps thms =
+  orient_comb_simps del_rrule (map mk_rrule2 o mk_rrule ss) (ss, thms);
+
+
+(* congs *)
 
 fun cong_name (Const (a, _)) = Some a
   | cong_name (Free (a, _)) = Some ("Free: " ^ a)
   | cong_name _ = None;
 
-fun add_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thm) =
+local
+
+fun is_full_cong_prems [] [] = true
+  | is_full_cong_prems [] _ = false
+  | is_full_cong_prems (p :: prems) varpairs =
+      (case Logic.strip_assums_concl p of
+        Const ("==", _) $ lhs $ rhs =>
+          let val (x, xs) = strip_comb lhs and (y, ys) = strip_comb rhs in
+            is_Var x andalso forall is_Bound xs andalso
+            null (findrep xs) andalso xs = ys andalso
+            (x, y) mem varpairs andalso
+            is_full_cong_prems prems (varpairs \ (x, y))
+          end
+      | _ => false);
+
+fun is_full_cong thm =
   let
-    val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (cprop_of thm)) handle TERM _ =>
-      raise SIMPLIFIER ("Congruence not a meta-equality", thm);
-(*   val lhs = Pattern.eta_contract lhs; *)
-    val a = (case cong_name (head_of (term_of lhs)) of
-        Some a => a
-      | None =>
-        raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm));
-    val (alist,weak) = congs
-    val alist2 = overwrite_warn (alist, (a,{lhs=lhs, thm=thm}))
-           ("Overwriting congruence rule for " ^ quote a);
-    val weak2 = if is_full_cong thm then weak else a::weak
+    val prems = prems_of thm and concl = concl_of thm;
+    val (lhs, rhs) = Logic.dest_equals concl;
+    val (f, xs) = strip_comb lhs and (g, ys) = strip_comb rhs;
   in
-    mk_mss (rules,(alist2,weak2),procs,bounds,prems,mk_rews,termless,depth)
+    f = g andalso null (findrep (xs @ ys)) andalso length xs = length ys andalso
+    is_full_cong_prems prems (xs ~~ ys)
   end;
 
-val (op add_congs) = foldl add_cong;
+fun add_cong (ss, thm) = ss |>
+  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    let
+      val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
+        handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
+    (*val lhs = Pattern.eta_contract lhs;*)
+      val a = the (cong_name (head_of (term_of lhs))) handle Library.OPTION =>
+        raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
+      val (alist, weak) = congs;
+      val alist2 = overwrite_warn (alist, (a, {lhs = lhs, thm = thm}))
+        ("Overwriting congruence rule for " ^ quote a);
+      val weak2 = if is_full_cong thm then weak else a :: weak;
+    in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
+
+fun del_cong (ss, thm) = ss |>
+  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    let
+      val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
+        raise SIMPLIFIER ("Congruence not a meta-equality", thm);
+    (*val lhs = Pattern.eta_contract lhs;*)
+      val a = the (cong_name (head_of lhs)) handle Library.OPTION =>
+        raise SIMPLIFIER ("Congruence must start with a constant", thm);
+      val (alist, _) = congs;
+      val alist2 = filter (fn (x, _) => x <> a) alist;
+      val weak2 = alist2 |> mapfilter (fn (a, {thm, ...}) =>
+        if is_full_cong thm then None else Some a);
+    in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
+
+fun mk_cong (Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f;
+
+in
+
+val (op addeqcongs) = foldl add_cong;
+val (op deleqcongs) = foldl del_cong;
+
+fun ss addcongs congs = ss addeqcongs map (mk_cong ss) congs;
+fun ss delcongs congs = ss deleqcongs map (mk_cong ss) congs;
+
+end;
 
 
-(* del_congs *)
+(* simprocs *)
 
-fun del_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thm) =
-  let
-    val (lhs, _) = Logic.dest_equals (concl_of thm) handle TERM _ =>
-      raise SIMPLIFIER ("Congruence not a meta-equality", thm);
-(*   val lhs = Pattern.eta_contract lhs; *)
-    val a = (case cong_name (head_of lhs) of
-        Some a => a
-      | None =>
-        raise SIMPLIFIER ("Congruence must start with a constant", thm));
-    val (alist,_) = congs
-    val alist2 = filter (fn (x,_)=> x<>a) alist
-    val weak2 = mapfilter (fn(a,{thm,...}) => if is_full_cong thm then None
-                                              else Some a)
-                   alist2
-  in
-    mk_mss (rules,(alist2,weak2),procs,bounds,prems,mk_rews,termless,depth)
-  end;
+local
 
-val (op del_congs) = foldl del_cong;
+fun add_proc (ss, proc as Proc {name, lhs, ...}) =
+ (trace_cterm false ("Adding simplification procedure " ^ quote name ^ " for") lhs;
+  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    (congs, Net.insert_term ((term_of lhs, proc), procs, eq_proc),
+      mk_rews, termless, subgoal_tac, loop_tacs, solvers)) ss
+  handle Net.INSERT =>
+    (warning ("Ignoring duplicate simplification procedure " ^ quote name); ss));
 
+fun del_proc (ss, proc as Proc {name, lhs, ...}) =
+  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    (congs, Net.delete_term ((term_of lhs, proc), procs, eq_proc),
+      mk_rews, termless, subgoal_tac, loop_tacs, solvers)) ss
+  handle Net.DELETE =>
+    (warning ("Simplification procedure " ^ quote name ^ " not in simpset"); ss);
 
-(* add_simprocs *)
+in
 
-fun add_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth},
-    (name, lhs, proc, id)) =
-  let val {sign, t, ...} = rep_cterm lhs
-  in (trace_term false ("Adding simplification procedure " ^ quote name ^ " for")
-      sign t;
-    mk_mss (rules, congs,
-      Net.insert_term ((t, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-        handle Net.INSERT =>
-            (warning ("Ignoring duplicate simplification procedure \""
-                      ^ name ^ "\"");
-             procs),
-        bounds, prems, mk_rews, termless,depth))
-  end;
+val (op addsimprocs) = foldl (fn (ss, Simproc procs) => foldl add_proc (ss, procs));
+val (op delsimprocs) = foldl (fn (ss, Simproc procs) => foldl del_proc (ss, procs));
 
-fun add_simproc (mss, (name, lhss, proc, id)) =
-  foldl add_proc (mss, map (fn lhs => (name, lhs, proc, id)) lhss);
-
-val add_simprocs = foldl add_simproc;
-
-
-(* del_simprocs *)
-
-fun del_proc (mss as Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth},
-    (name, lhs, proc, id)) =
-  mk_mss (rules, congs,
-    Net.delete_term ((term_of lhs, mk_simproc (name, proc, lhs, id)), procs, eq_simproc)
-      handle Net.DELETE =>
-          (warning ("Simplification procedure \"" ^ name ^
-                       "\" not in simpset"); procs),
-      bounds, prems, mk_rews, termless, depth);
-
-fun del_simproc (mss, (name, lhss, proc, id)) =
-  foldl del_proc (mss, map (fn lhs => (name, lhs, proc, id)) lhss);
-
-val del_simprocs = foldl del_simproc;
-
-
-(* prems *)
-
-fun add_prems (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, thms) =
-  mk_mss (rules, congs, procs, bounds, thms @ prems, mk_rews, termless, depth);
-
-fun prems_of_mss (Mss {prems, ...}) = prems;
+end;
 
 
 (* mk_rews *)
 
-fun set_mk_rews
-  (Mss {rules, congs, procs, bounds, prems, mk_rews, termless, depth}, mk) =
-    mk_mss (rules, congs, procs, bounds, prems,
-            {mk=mk, mk_sym= #mk_sym mk_rews, mk_eq_True= #mk_eq_True mk_rews},
-            termless, depth);
+local
 
-fun set_mk_sym
-  (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, mk_sym) =
-    mk_mss (rules, congs, procs, bounds, prems,
-            {mk= #mk mk_rews, mk_sym= mk_sym, mk_eq_True= #mk_eq_True mk_rews},
-            termless,depth);
+fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk_cong, mk_sym, mk_eq_True},
+      termless, subgoal_tac, loop_tacs, solvers) =>
+  let val (mk', mk_cong', mk_sym', mk_eq_True') = f (mk, mk_cong, mk_sym, mk_eq_True) in
+    (congs, procs, {mk = mk', mk_cong = mk_cong', mk_sym = mk_sym', mk_eq_True = mk_eq_True'},
+      termless, subgoal_tac, loop_tacs, solvers)
+  end);
 
-fun set_mk_eq_True
-  (Mss {rules,congs,procs,bounds,prems,mk_rews,termless,depth}, mk_eq_True) =
-    mk_mss (rules, congs, procs, bounds, prems,
-            {mk= #mk mk_rews, mk_sym= #mk_sym mk_rews, mk_eq_True= mk_eq_True},
-            termless,depth);
+in
 
-fun get_mk_rews    (Mss {mk_rews,...}) = #mk         mk_rews
-fun get_mk_sym     (Mss {mk_rews,...}) = #mk_sym     mk_rews
-fun get_mk_eq_True (Mss {mk_rews,...}) = #mk_eq_True mk_rews
+fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
+
+fun ss setmkcong mk_cong = ss |> map_mk_rews (fn (mk, _, mk_sym, mk_eq_True) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
+
+fun ss setmksym mk_sym = ss |> map_mk_rews (fn (mk, mk_cong, _, mk_eq_True) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
+
+fun ss setmkeqTrue mk_eq_True = ss |> map_mk_rews (fn (mk, mk_cong, mk_sym, _) =>
+  (mk, mk_cong, mk_sym, mk_eq_True));
+
+end;
+
 
 (* termless *)
 
-fun set_termless
-  (Mss {rules, congs, procs, bounds, prems, mk_rews, depth, ...}, termless) =
-    mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless, depth);
+fun ss settermless termless = ss |>
+  map_simpset2 (fn (congs, procs, mk_rews, _, subgoal_tac, loop_tacs, solvers) =>
+   (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
 
 
+(* tactics *)
 
-(** simplification procedures **)
+fun ss setsubgoaler subgoal_tac = ss |>
+  map_simpset2 (fn (congs, procs, mk_rews, termless, _, loop_tacs, solvers) =>
+   (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers));
 
-(* datatype simproc *)
+fun ss setloop tac = ss |>
+  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, _, solvers) =>
+   (congs, procs, mk_rews, termless, subgoal_tac, [("", tac)], solvers));
 
-fun full_mk_simproc name lhss proc =
-  Simproc (name, map (Thm.cterm_fun Logic.varify) lhss, proc, stamp ());
+fun ss addloop (name, tac) = ss |>
+  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    (congs, procs, mk_rews, termless, subgoal_tac,
+      overwrite_warn (loop_tacs, (name, tac)) ("Overwriting looper " ^ quote name),
+      solvers));
 
-fun full_simproc sg name ss =
-  full_mk_simproc name (map (fn s => Thm.read_cterm sg (s, TypeInfer.logicT)) ss);
-fun full_simproc_i sg name = full_mk_simproc name o map (Thm.cterm_of sg);
+fun ss delloop name = ss |>
+  map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
+    let val (del, rest) = partition (fn (n, _) => n = name) loop_tacs in
+      if null del then warning ("No such looper in simpset: " ^ quote name) else ();
+      (congs, procs, mk_rews, termless, subgoal_tac, rest, solvers)
+    end);
 
-fun mk_simproc name lhss proc =
-  Simproc (name, map (Thm.cterm_fun Logic.varify) lhss, K proc, stamp ());
+fun ss setSSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
+  subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
+    (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, (unsafe_solvers, [solver])));
 
-fun simproc sg name ss =
-  mk_simproc name (map (fn s => Thm.read_cterm sg (s, TypeInfer.logicT)) ss);
-fun simproc_i sg name = mk_simproc name o map (Thm.cterm_of sg);
+fun ss addSSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
+  subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, termless,
+    subgoal_tac, loop_tacs, (unsafe_solvers, merge_solvers solvers [solver])));
 
-fun rep_simproc (Simproc args) = args;
+fun ss setSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
+  subgoal_tac, loop_tacs, (_, solvers)) => (congs, procs, mk_rews, termless,
+    subgoal_tac, loop_tacs, ([solver], solvers)));
 
+fun ss addSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
+  subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, termless,
+    subgoal_tac, loop_tacs, (merge_solvers unsafe_solvers [solver], solvers)));
 
-
-(** solvers **)
-
-fun mk_solver name solver = Solver (name, solver, stamp());
-fun eq_solver (Solver (_, _, s1), Solver(_, _, s2)) = s1 = s2;
-
-val merge_solvers = gen_merge_lists eq_solver;
-
-fun app_sols [] _ _ = no_tac
-  | app_sols (Solver(_,solver,_)::sols) thms i =
-       solver thms i ORELSE app_sols sols thms i;
-
-
-
-(** simplification sets **)
-
-(* type simpset *)
-
-fun make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers solvers =
-  Simpset {mss = mss, mk_cong = mk_cong, subgoal_tac = subgoal_tac,
-    loop_tacs = loop_tacs, unsafe_solvers = unsafe_solvers, solvers = solvers};
-
-fun from_mss mss = make_ss mss I (K (K no_tac)) [] [] [];
-
-val empty_ss = from_mss (set_mk_sym (empty_mss, Some o symmetric_fun));
-
-fun rep_ss (Simpset args) = args;
-fun prems_of_ss (Simpset {mss, ...}) = prems_of_mss mss;
+fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, termless,
+  subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, termless,
+  subgoal_tac, loop_tacs, (solvers, solvers)));
 
 
-(* print simpsets *)
-
-fun print_ss ss =
-  let
-    val Simpset {mss, ...} = ss;
-    val {simps, procs, congs} = dest_mss mss;
-
-    val pretty_thms = map Display.pretty_thm;
-    fun pretty_proc (name, lhss) =
-      Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
-  in
-    [Pretty.big_list "simplification rules:" (pretty_thms simps),
-      Pretty.big_list "simplification procedures:" (map pretty_proc procs),
-      Pretty.big_list "congruences:" (pretty_thms congs)]
-    |> Pretty.chunks |> Pretty.writeln
-  end;
-
-
-(* extend simpsets *)
-
-fun (Simpset {mss, mk_cong, subgoal_tac = _, loop_tacs, unsafe_solvers, solvers})
-    setsubgoaler subgoal_tac =
-  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs = _, unsafe_solvers, solvers})
-    setloop tac =
-  make_ss mss mk_cong subgoal_tac [("", tac)] unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    addloop tac = make_ss mss mk_cong subgoal_tac
-      (case assoc_string (loop_tacs, (#1 tac)) of None => () | Some x =>
-        warning ("overwriting looper " ^ quote (#1 tac)); overwrite (loop_tacs, tac))
-      unsafe_solvers solvers;
-
-fun (ss as Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
- delloop name =
-  let val (del, rest) = partition (fn (n, _) => n = name) loop_tacs in
-    if null del then (warning ("No such looper in simpset: " ^ name); ss)
-    else make_ss mss mk_cong subgoal_tac rest unsafe_solvers solvers
-  end;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, ...})
-    setSSolver solver =
-  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers [solver];
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    addSSolver sol =
-  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers (merge_solvers solvers [sol]);
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers = _, solvers})
-    setSolver unsafe_solver =
-  make_ss mss mk_cong subgoal_tac loop_tacs [unsafe_solver] solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    addSolver sol =
-  make_ss mss mk_cong subgoal_tac loop_tacs (merge_solvers unsafe_solvers [sol]) solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    setmksimps mk_simps =
-  make_ss (set_mk_rews (mss, mk_simps)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    setmkeqTrue mk_eq_True =
-  make_ss (set_mk_eq_True (mss, mk_eq_True)) mk_cong subgoal_tac loop_tacs
-    unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong = _, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    setmkcong mk_cong =
-  make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    setmksym mksym =
-  make_ss (set_mk_sym (mss, mksym)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs,  unsafe_solvers, solvers})
-    settermless termless =
-  make_ss (set_termless (mss, termless)) mk_cong subgoal_tac loop_tacs
-    unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    addsimps rews =
-  make_ss (add_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    delsimps rews =
-  make_ss (del_simps (mss, rews)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    addeqcongs newcongs =
-  make_ss (add_congs (mss, newcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (Simpset {mss, subgoal_tac, mk_cong, loop_tacs, unsafe_solvers, solvers})
-    deleqcongs oldcongs =
-  make_ss (del_congs (mss, oldcongs)) mk_cong subgoal_tac loop_tacs unsafe_solvers solvers;
-
-fun (ss as Simpset {mk_cong, ...}) addcongs newcongs =
-  ss addeqcongs map mk_cong newcongs;
-
-fun (ss as Simpset {mk_cong, ...}) delcongs oldcongs =
-  ss deleqcongs map mk_cong oldcongs;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    addsimprocs simprocs =
-  make_ss (add_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac loop_tacs
-    unsafe_solvers solvers;
-
-fun (Simpset {mss, mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers})
-    delsimprocs simprocs =
-  make_ss (del_simprocs (mss, map rep_simproc simprocs)) mk_cong subgoal_tac
-    loop_tacs unsafe_solvers solvers;
-
-fun clear_ss (Simpset {mss, mk_cong, subgoal_tac, loop_tacs = _, unsafe_solvers, solvers}) =
-  make_ss (clear_mss mss) mk_cong subgoal_tac [] unsafe_solvers solvers;
-
-
-(* merge simpsets *)
-
-(*ignores subgoal_tac of 2nd simpset!*)
-
-fun merge_ss
-   (Simpset {mss = mss1, mk_cong, loop_tacs = loop_tacs1, subgoal_tac,
-             unsafe_solvers = unsafe_solvers1, solvers = solvers1},
-    Simpset {mss = mss2, mk_cong = _, loop_tacs = loop_tacs2, subgoal_tac = _,
-             unsafe_solvers = unsafe_solvers2, solvers = solvers2}) =
-  make_ss (merge_mss (mss1, mss2)) mk_cong subgoal_tac
-    (merge_alists loop_tacs1 loop_tacs2)
-    (merge_solvers unsafe_solvers1 unsafe_solvers2)
-    (merge_solvers solvers1 solvers2);
 
 (** rewriting **)
 
@@ -796,76 +699,89 @@ fun merge_ss
     Science of Computer Programming 3 (1983), pages 119-149.
 *)
 
-val dest_eq = Drule.dest_equals o cprop_of;
-val lhs_of = fst o dest_eq;
-val rhs_of = snd o dest_eq;
+val dest_eq = Drule.dest_equals o Thm.cprop_of;
+val lhs_of = #1 o dest_eq;
+val rhs_of = #2 o dest_eq;
 
 fun check_conv msg thm thm' =
   let
     val thm'' = transitive thm (transitive
       (symmetric (Drule.beta_eta_conversion (lhs_of thm'))) thm')
-  in (if msg then trace_thm "SUCCEEDED" thm' else (); Some thm'') end
+  in if msg then trace_thm "SUCCEEDED" thm' else (); Some thm'' end
   handle THM _ =>
-    let val {sign, prop = _ $ _ $ prop0, ...} = rep_thm thm;
-    in
-      (trace_thm "Proved wrong thm (Check subgoaler?)" thm';
-       trace_term false "Should have proved:" sign prop0;
-       None)
+    let val {sign, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
+      trace_thm "Proved wrong thm (Check subgoaler?)" thm';
+      trace_term false "Should have proved:" sign prop0;
+      None
     end;
 
 
 (* mk_procrule *)
 
 fun mk_procrule thm =
-  let val (_,prems,lhs,elhs,rhs,_) = decomp_simp thm
-  in if rewrite_rule_extra_vars prems lhs rhs
-     then (prthm true "Extra vars on rhs:" thm; [])
-     else [mk_rrule2{thm=thm, name="", lhs=lhs, elhs=elhs, perm=false}]
+  let val (_, prems, lhs, elhs, rhs, _) = decomp_simp thm in
+    if rewrite_rule_extra_vars prems lhs rhs
+    then (warn_thm "Extra vars on rhs:" thm; [])
+    else [mk_rrule2 {thm = thm, name = "", lhs = lhs, elhs = elhs, perm = false}]
   end;
 
 
-(* conversion to apply the meta simpset to a term *)
+(* rewritec: conversion to apply the meta simpset to a term *)
 
-(* Since the rewriting strategy is bottom-up, we avoid re-normalizing already
-   normalized terms by carrying around the rhs of the rewrite rule just
-   applied. This is called the `skeleton'. It is decomposed in parallel
-   with the term. Once a Var is encountered, the corresponding term is
-   already in normal form.
-   skel0 is a dummy skeleton that is to enforce complete normalization.
-*)
+(*Since the rewriting strategy is bottom-up, we avoid re-normalizing already
+  normalized terms by carrying around the rhs of the rewrite rule just
+  applied. This is called the `skeleton'. It is decomposed in parallel
+  with the term. Once a Var is encountered, the corresponding term is
+  already in normal form.
+  skel0 is a dummy skeleton that is to enforce complete normalization.*)
+
 val skel0 = Bound 0;
 
-(* Use rhs as skeleton only if the lhs does not contain unnormalized bits.
-   The latter may happen iff there are weak congruence rules for constants
-   in the lhs.
-*)
-fun uncond_skel((_,weak),(lhs,rhs)) =
-  if null weak then rhs (* optimization *)
-  else if exists_Const (fn (c,_) => c mem weak) lhs then skel0
-       else rhs;
+(*Use rhs as skeleton only if the lhs does not contain unnormalized bits.
+  The latter may happen iff there are weak congruence rules for constants
+  in the lhs.*)
 
-(* Behaves like unconditional rule if rhs does not contain vars not in the lhs.
-   Otherwise those vars may become instantiated with unnormalized terms
-   while the premises are solved.
-*)
-fun cond_skel(args as (congs,(lhs,rhs))) =
-  if term_varnames rhs subset term_varnames lhs then uncond_skel(args)
+fun uncond_skel ((_, weak), (lhs, rhs)) =
+  if null weak then rhs  (*optimization*)
+  else if exists_Const (fn (c, _) => c mem weak) lhs then skel0
+  else rhs;
+
+(*Behaves like unconditional rule if rhs does not contain vars not in the lhs.
+  Otherwise those vars may become instantiated with unnormalized terms
+  while the premises are solved.*)
+
+fun cond_skel (args as (congs, (lhs, rhs))) =
+  if term_varnames rhs subset term_varnames lhs then uncond_skel args
   else skel0;
 
+fun incr_depth ss =
+  let
+    val ss' = ss |> map_simpset1 (fn (rules, prems, bounds, depth) =>
+      (rules, prems, bounds, depth + 1));
+    val Simpset ({depth = depth', ...}, _) = ss';
+  in
+    if depth' > ! simp_depth_limit
+    then (warning "simp_depth_limit exceeded - giving up"; None)
+    else
+     (if depth' mod 10 = 0
+      then warning ("Simplification depth " ^ string_of_int depth')
+      else ();
+      Some ss')
+  end;
+
 (*
-  we try in order:
+  Rewriting -- we try in order:
     (1) beta reduction
     (2) unconditional rewrite rules
     (3) conditional rewrite rules
     (4) simplification procedures
 
   IMPORTANT: rewrite rules must not introduce new Vars or TVars!
-
 *)
 
-fun rewritec (prover, signt, maxt)
-             (ss as Simpset{mss=mss as Mss{rules, procs, termless, prems, congs, depth,...},...}) t =
+fun rewritec (prover, signt, maxt) ss t =
   let
+    val Simpset ({rules, ...}, {congs, procs, termless, ...}) = ss;
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = rhs_of eta_thm;
     val eta_t = term_of eta_t';
@@ -874,7 +790,7 @@ fun rewritec (prover, signt, maxt)
       let
         val {sign, prop, maxidx, ...} = rep_thm thm;
         val _ = if Sign.subsig (sign, signt) then ()
-                else (prthm true "Ignoring rewrite rule from different theory:" thm;
+                else (warn_thm "Ignoring rewrite rule from different theory:" thm;
                       raise Pattern.MATCH);
         val (rthm, elhs') = if maxt = ~1 then (thm, elhs)
           else (Thm.incr_indexes (maxt+1) thm, Thm.cterm_incr_indexes (maxt+1) elhs);
@@ -897,11 +813,11 @@ fun rewritec (prover, signt, maxt)
               in Some (thm'', uncond_skel (congs, lr)) end)
            else
              (trace_thm "Trying to rewrite:" thm';
-              case incr_depth mss of
+              case incr_depth ss of
                 None => (trace_thm "FAILED - reached depth limit" thm'; None)
-              | Some mss =>
-              (case prover mss thm' of
-                None       => (trace_thm "FAILED" thm'; None)
+              | Some ss' =>
+              (case prover ss' thm' of
+                None => (trace_thm "FAILED" thm'; None)
               | Some thm2 =>
                   (case check_conv true eta_thm thm2 of
                      None => None |
@@ -926,12 +842,12 @@ fun rewritec (prover, signt, maxt)
                                      else sort rrs (re1,rr::re2)
     in sort rrs ([],[]) end
 
-    fun proc_rews ([]:meta_simproc list) = None
-      | proc_rews ({name, proc, lhs, ...} :: ps) =
-          if Pattern.matches tsigt (term_of lhs, term_of t) then
+    fun proc_rews [] = None
+      | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
+          if Pattern.matches tsigt (Thm.term_of lhs, Thm.term_of t) then
             (debug_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
              case transform_failure (curry SIMPROC_FAIL name)
-                 (fn () => proc ss signt prems eta_t) () of
+                 (fn () => proc signt ss eta_t) () of
                None => (debug false "FAILED"; proc_rews ps)
              | Some raw_thm =>
                  (trace_thm ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
@@ -983,49 +899,45 @@ fun transitive1 None None = None
 fun transitive2 thm = transitive1 (Some thm);
 fun transitive3 thm = transitive1 thm o Some;
 
-fun replace_mss (Simpset{mss=_,mk_cong,subgoal_tac,loop_tacs,unsafe_solvers,solvers}) mss_new =
-    Simpset{mss=mss_new,mk_cong=mk_cong,subgoal_tac=subgoal_tac,loop_tacs=loop_tacs,
-	    unsafe_solvers=unsafe_solvers,solvers=solvers};
-
-fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss,...}) =
+fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
   let
-    fun botc skel mss t =
+    fun botc skel ss t =
           if is_Var skel then None
           else
-          (case subc skel mss t of
+          (case subc skel ss t of
              some as Some thm1 =>
-               (case rewritec (prover, sign, maxidx) (replace_mss ss mss) (rhs_of thm1) of
+               (case rewritec (prover, sign, maxidx) ss (rhs_of thm1) of
                   Some (thm2, skel2) =>
                     transitive2 (transitive thm1 thm2)
-                      (botc skel2 mss (rhs_of thm2))
+                      (botc skel2 ss (rhs_of thm2))
                 | None => some)
            | None =>
-               (case rewritec (prover, sign, maxidx) (replace_mss ss mss) t of
+               (case rewritec (prover, sign, maxidx) ss t of
                   Some (thm2, skel2) => transitive2 thm2
-                    (botc skel2 mss (rhs_of thm2))
+                    (botc skel2 ss (rhs_of thm2))
                 | None => None))
 
-    and try_botc mss t =
-          (case botc skel0 mss t of
+    and try_botc ss t =
+          (case botc skel0 ss t of
              Some trec1 => trec1 | None => (reflexive t))
 
-    and subc skel
-          (mss as Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}) t0 =
+    and subc skel (ss as Simpset ({bounds, ...}, {congs, ...})) t0 =
        (case term_of t0 of
            Abs (a, T, t) =>
-             let val b = variant bounds a
-                 val (v, t') = Thm.dest_abs (Some ("." ^ b)) t0
-                 val mss' = mk_mss (rules, congs, procs, b :: bounds, prems, mk_rews, termless,depth)
-                 val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0
-             in case botc skel' mss' t' of
+             let
+                 val b = variant bounds a;
+                 val (v, t') = Thm.dest_abs (Some ("." ^ b)) t0;
+                 val ss' = add_bound b ss;
+                 val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
+             in case botc skel' ss' t' of
                   Some thm => Some (abstract_rule a v thm)
                 | None => None
              end
          | t $ _ => (case t of
-             Const ("==>", _) $ _  => impc t0 mss
+             Const ("==>", _) $ _  => impc t0 ss
            | Abs _ =>
                let val thm = beta_conversion false t0
-               in case subc skel0 mss (rhs_of thm) of
+               in case subc skel0 ss (rhs_of thm) of
                     None => Some thm
                   | Some thm' => Some (transitive thm thm')
                end
@@ -1037,13 +949,13 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss
                          | _ => (skel0, skel0);
                        val (ct, cu) = Thm.dest_comb t0
                      in
-                     (case botc tskel mss ct of
+                     (case botc tskel ss ct of
                         Some thm1 =>
-                          (case botc uskel mss cu of
+                          (case botc uskel ss cu of
                              Some thm2 => Some (combination thm1 thm2)
                            | None => Some (combination thm1 (reflexive cu)))
                       | None =>
-                          (case botc uskel mss cu of
+                          (case botc uskel ss cu of
                              Some thm1 => Some (combination (reflexive ct) thm1)
                            | None => None))
                      end
@@ -1053,16 +965,16 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss
                       (case assoc_string (fst congs, a) of
                          None => appc ()
                        | Some cong =>
-(* post processing: some partial applications h t1 ... tj, j <= length ts,
-   may be a redex. Example: map (%x.x) = (%xs.xs) wrt map_cong *)
+  (*post processing: some partial applications h t1 ... tj, j <= length ts,
+    may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
                           (let
-                             val thm = congc (prover mss, sign, maxidx) cong t0;
+                             val thm = congc (prover ss, sign, maxidx) cong t0;
                              val t = if_none (apsome rhs_of thm) t0;
                              val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
                              val skel =
                                list_comb (h, replicate (length ts) dVar)
-                           in case botc skel mss cl of
+                           in case botc skel ss cl of
                                 None => thm
                               | Some thm' => transitive3 thm
                                   (combination thm' (reflexive cr))
@@ -1072,19 +984,19 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss
                end)
          | _ => None)
 
-    and impc ct mss =
-      if mutsimp then mut_impc0 [] ct [] [] mss else nonmut_impc ct mss
+    and impc ct ss =
+      if mutsimp then mut_impc0 [] ct [] [] ss else nonmut_impc ct ss
 
-    and rules_of_prem mss prem =
+    and rules_of_prem ss prem =
       if maxidx_of_term (term_of prem) <> ~1
       then (trace_cterm true
         "Cannot add premise as rewrite rule because it contains (type) unknowns:" prem; ([], None))
       else
         let val asm = assume prem
-        in (extract_safe_rrules (mss, asm), Some asm) end
+        in (extract_safe_rrules (ss, asm), Some asm) end
 
-    and add_rrules (rrss, asms) mss =
-      add_prems (foldl (insert_rrule true) (mss, flat rrss), mapfilter I asms)
+    and add_rrules (rrss, asms) ss =
+      foldl (insert_rrule true) (ss, flat rrss) |> add_prems (mapfilter I asms)
 
     and disch r (prem, eq) =
       let
@@ -1105,42 +1017,42 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss
       end
 
     and rebuild [] _ _ _ _ eq = eq
-      | rebuild (prem :: prems) concl (rrs :: rrss) (asm :: asms) mss eq =
+      | rebuild (prem :: prems) concl (rrs :: rrss) (asm :: asms) ss eq =
           let
-            val mss' = add_rrules (rev rrss, rev asms) mss;
+            val ss' = add_rrules (rev rrss, rev asms) ss;
             val concl' =
               Drule.mk_implies (prem, if_none (apsome rhs_of eq) concl);
             val dprem = apsome (curry (disch false) prem)
-          in case rewritec (prover, sign, maxidx) (replace_mss ss mss') concl' of
-              None => rebuild prems concl' rrss asms mss (dprem eq)
+          in case rewritec (prover, sign, maxidx) ss' concl' of
+              None => rebuild prems concl' rrss asms ss (dprem eq)
             | Some (eq', _) => transitive2 (foldl (disch false o swap)
                   (the (transitive3 (dprem eq) eq'), prems))
-                (mut_impc0 (rev prems) (rhs_of eq') (rev rrss) (rev asms) mss)
+                (mut_impc0 (rev prems) (rhs_of eq') (rev rrss) (rev asms) ss)
           end
-          
-    and mut_impc0 prems concl rrss asms mss =
+
+    and mut_impc0 prems concl rrss asms ss =
       let
         val prems' = strip_imp_prems concl;
-        val (rrss', asms') = split_list (map (rules_of_prem mss) prems')
+        val (rrss', asms') = split_list (map (rules_of_prem ss) prems')
       in mut_impc (prems @ prems') (strip_imp_concl concl) (rrss @ rrss')
-        (asms @ asms') [] [] [] [] mss ~1 ~1
+        (asms @ asms') [] [] [] [] ss ~1 ~1
       end
- 
-    and mut_impc [] concl [] [] prems' rrss' asms' eqns mss changed k =
+
+    and mut_impc [] concl [] [] prems' rrss' asms' eqns ss changed k =
         transitive1 (foldl (fn (eq2, (eq1, prem)) => transitive1 eq1
             (apsome (curry (disch false) prem) eq2)) (None, eqns ~~ prems'))
           (if changed > 0 then
              mut_impc (rev prems') concl (rev rrss') (rev asms')
-               [] [] [] [] mss ~1 changed
-           else rebuild prems' concl rrss' asms' mss
-             (botc skel0 (add_rrules (rev rrss', rev asms') mss) concl))
+               [] [] [] [] ss ~1 changed
+           else rebuild prems' concl rrss' asms' ss
+             (botc skel0 (add_rrules (rev rrss', rev asms') ss) concl))
 
       | mut_impc (prem :: prems) concl (rrs :: rrss) (asm :: asms)
-          prems' rrss' asms' eqns mss changed k =
+          prems' rrss' asms' eqns ss changed k =
         case (if k = 0 then None else botc skel0 (add_rrules
-          (rev rrss' @ rrss, rev asms' @ asms) mss) prem) of
+          (rev rrss' @ rrss, rev asms' @ asms) ss) prem) of
             None => mut_impc prems concl rrss asms (prem :: prems')
-              (rrs :: rrss') (asm :: asms') (None :: eqns) mss changed
+              (rrs :: rrss') (asm :: asms') (None :: eqns) ss changed
               (if k = 0 then 0 else k - 1)
           | Some eqn =>
             let
@@ -1148,21 +1060,21 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss
               val tprems = map term_of prems;
               val i = 1 + foldl Int.max (~1, map (fn p =>
                 find_index_eq p tprems) (#hyps (rep_thm eqn)));
-              val (rrs', asm') = rules_of_prem mss prem'
+              val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (Some (foldr (disch true)
                 (take (i, prems), Drule.imp_cong' eqn (reflexive (Drule.list_implies
-                  (drop (i, prems), concl))))) :: eqns) mss (length prems') ~1
+                  (drop (i, prems), concl))))) :: eqns) ss (length prems') ~1
             end
 
-     (* legacy code - only for backwards compatibility *)
-     and nonmut_impc ct mss =
+     (*legacy code - only for backwards compatibility*)
+     and nonmut_impc ct ss =
        let val (prem, conc) = dest_implies ct;
-           val thm1 = if simprem then botc skel0 mss prem else None;
+           val thm1 = if simprem then botc skel0 ss prem else None;
            val prem1 = if_none (apsome rhs_of thm1) prem;
-           val mss1 = if not useprem then mss else add_rrules
-             (apsnd single (apfst single (rules_of_prem mss prem1))) mss
-       in (case botc skel0 mss1 conc of
+           val ss1 = if not useprem then ss else add_rrules
+             (apsnd single (apfst single (rules_of_prem ss prem1))) ss
+       in (case botc skel0 ss1 conc of
            None => (case thm1 of
                None => None
              | Some thm1' => Some (Drule.imp_cong' thm1' (reflexive conc)))
@@ -1175,10 +1087,10 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss
            end)
        end
 
- in try_botc mss end;
+ in try_botc end;
 
 
-(*** Meta-rewriting: rewrites t to u and returns the theorem t==u ***)
+(* Meta-rewriting: rewrites t to u and returns the theorem t==u *)
 
 (*
   Parameters:
@@ -1186,87 +1098,81 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) (ss as Simpset{mss
             use A in simplifying B,
             use prems of B (if B is again a meta-impl.) to simplify A)
            when simplifying A ==> B
-    mss: contains equality theorems of the form [|p1,...|] ==> t==u
     prover: how to solve premises in conditional rewrites and congruences
 *)
 
-fun rewrite_cterm mode prover (ss as Simpset{mss,...}) ct =
-  let val {sign, t, maxidx, ...} = rep_cterm ct
-      val Mss{depth, ...} = mss
-  in trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ct;
-     simp_depth := depth;
-     bottomc (mode, prover, sign, maxidx) ss ct
-  end
-  handle THM (s, _, thms) =>
+fun rewrite_cterm mode prover ss ct =
+  let
+    val Simpset ({depth, ...}, _) = ss;
+    val {sign, t, maxidx, ...} = Thm.rep_cterm ct;
+  in
+    trace_cterm false "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" ct;
+    simp_depth := depth;
+    bottomc (mode, prover, sign, maxidx) ss ct
+  end handle THM (s, _, thms) =>
     error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
       Pretty.string_of (Display.pretty_thms thms));
 
-val ss_of = from_mss o mss_of
-
 (*Rewrite a cterm*)
 fun rewrite_aux _ _ [] = (fn ct => Thm.reflexive ct)
-  | rewrite_aux prover full thms = rewrite_cterm (full, false, false) prover (ss_of thms);
+  | rewrite_aux prover full thms =
+      rewrite_cterm (full, false, false) prover (empty_ss addsimps thms);
 
 (*Rewrite a theorem*)
 fun simplify_aux _ _ [] = (fn th => th)
   | simplify_aux prover full thms =
-      Drule.fconv_rule (rewrite_cterm (full, false, false) prover (ss_of thms));
+      Drule.fconv_rule (rewrite_cterm (full, false, false) prover (empty_ss addsimps thms));
 
-fun rewrite_thm mode prover mss = Drule.fconv_rule (rewrite_cterm mode prover mss);
+(*simple term rewriting -- no proof*)
+fun rewrite_term sg rules procs =
+  Pattern.rewrite_term (Sign.tsig_of sg) (map decomp_simp' rules) procs;
+
+fun rewrite_thm mode prover ss = Drule.fconv_rule (rewrite_cterm mode prover ss);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
 fun rewrite_goals_rule_aux _ []   th = th
   | rewrite_goals_rule_aux prover thms th =
       Drule.fconv_rule (Drule.goals_conv (K true) (rewrite_cterm (true, true, false) prover
-        (ss_of thms))) th;
+        (empty_ss addsimps thms))) th;
 
-(*Rewrite the subgoal of a proof state (represented by a theorem) *)
+(*Rewrite the subgoal of a proof state (represented by a theorem)*)
 fun rewrite_goal_rule mode prover ss i thm =
   if 0 < i  andalso  i <= nprems_of thm
   then Drule.fconv_rule (Drule.goals_conv (fn j => j=i) (rewrite_cterm mode prover ss)) thm
   else raise THM("rewrite_goal_rule",i,[thm]);
 
-
-(*simple term rewriting -- without proofs*)
-fun rewrite_term sg rules procs =
-  Pattern.rewrite_term (Sign.tsig_of sg) (map decomp_simp' rules) procs;
-
 (*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
-fun asm_rewrite_goal_tac mode prover_tac mss =
+fun asm_rewrite_goal_tac mode prover_tac ss =
   SELECT_GOAL
-    (PRIMITIVE (rewrite_goal_rule mode (SINGLE o prover_tac) mss 1));
+    (PRIMITIVE (rewrite_goal_rule mode (SINGLE o prover_tac) ss 1));
 
-(** simplification tactics **)
 
-fun solve_all_tac (mk_cong, subgoal_tac, loop_tacs, unsafe_solvers) mss =
+
+(** simplification tactics and rules **)
+
+fun solve_all_tac solvers ss =
   let
-    val ss =
-      make_ss mss mk_cong subgoal_tac loop_tacs unsafe_solvers unsafe_solvers;
-    val solve1_tac = (subgoal_tac ss THEN_ALL_NEW (K no_tac)) 1
-  in DEPTH_SOLVE solve1_tac end;
+    val Simpset (_, {subgoal_tac, ...}) = ss;
+    val solve_tac = subgoal_tac (set_solvers solvers ss) THEN_ALL_NEW (K no_tac);
+  in DEPTH_SOLVE (solve_tac 1) end;
 
-fun loop_tac loop_tacs = FIRST'(map snd loop_tacs);
-
-(*note: may instantiate unknowns that appear also in other subgoals*)
-fun generic_simp_tac safe mode =
-  fn (ss as Simpset {mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, solvers, ...}) =>
-    let
-      val solvs = app_sols (if safe then solvers else unsafe_solvers);
-      fun simp_loop_tac i =
-        asm_rewrite_goal_tac mode
-          (solve_all_tac (mk_cong, subgoal_tac, loop_tacs, unsafe_solvers))
-          ss i
-        THEN (solvs (prems_of_ss ss) i ORELSE
-              TRY ((loop_tac loop_tacs THEN_ALL_NEW simp_loop_tac) i))
-    in simp_loop_tac end;
-
-(** simplification rules and conversions **)
-
-fun simp rew mode
-     (ss as Simpset {mk_cong, subgoal_tac, loop_tacs, unsafe_solvers, ...}) thm =
+(*NOTE: may instantiate unknowns that appear also in other subgoals*)
+fun generic_simp_tac safe mode ss =
   let
-    val tacf = solve_all_tac (mk_cong, subgoal_tac, loop_tacs, unsafe_solvers);
-    fun prover m th = apsome fst (Seq.pull (tacf m th));
+    val Simpset ({prems, ...}, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = ss;
+    val loop_tac = FIRST' (map #2 loop_tacs);
+    val solve_tac = FIRST' (map (solver prems) (if safe then solvers else unsafe_solvers));
+
+    fun simp_loop_tac i =
+      asm_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ss i THEN
+      (solve_tac i ORELSE TRY ((loop_tac THEN_ALL_NEW simp_loop_tac) i));
+  in simp_loop_tac end;
+
+fun simp rew mode ss thm =
+  let
+    val Simpset (_, {solvers = (unsafe_solvers, _), ...}) = ss;
+    val tacf = solve_all_tac unsafe_solvers;
+    fun prover s th = apsome #1 (Seq.pull (tacf s th));
   in rew mode prover ss thm end;
 
 val simp_thm = simp rewrite_thm;
