@@ -6,60 +6,58 @@
 Theorems for bool.thy (booleans and conditionals)
 *)
 
-open Bool;
-
 val bool_defs = [Bool_def,true_def,false_def,cond_def];
 
 (*Derivation of rules for the type Bool*)
 
 (*formation rule*)
-qed_goalw "boolF" Bool.thy bool_defs 
-    "Bool type"
- (fn _ => [ (typechk_tac []) ]);
+Goalw bool_defs "Bool type";
+by (typechk_tac []) ;
+qed "boolF";
 
 
 (*introduction rules for true, false*)
 
-qed_goalw "boolI_true" Bool.thy bool_defs 
-    "true : Bool"
- (fn _ => [ (typechk_tac []) ]);
+Goalw bool_defs "true : Bool";
+by (typechk_tac []) ;
+qed "boolI_true";
 
-qed_goalw "boolI_false" Bool.thy bool_defs 
-    "false : Bool"
- (fn _ => [ (typechk_tac []) ]);
+Goalw bool_defs "false : Bool";
+by (typechk_tac []) ;
+qed "boolI_false";
 
 (*elimination rule: typing of cond*)
-qed_goalw "boolE" Bool.thy bool_defs 
-    "!!C. [| p:Bool;  a : C(true);  b : C(false) |] ==> cond(p,a,b) : C(p)"
- (fn _ =>
-  [ (typechk_tac []),
-    (ALLGOALS (etac TE)),
-    (typechk_tac []) ]);
+Goalw bool_defs 
+    "[| p:Bool;  a : C(true);  b : C(false) |] ==> cond(p,a,b) : C(p)";
+by (typechk_tac []);
+by (ALLGOALS (etac TE));
+by (typechk_tac []) ;
+qed "boolE";
 
-qed_goalw "boolEL" Bool.thy bool_defs 
-    "!!C. [| p = q : Bool;  a = c : C(true);  b = d : C(false) |] ==> \
-\         cond(p,a,b) = cond(q,c,d) : C(p)"
- (fn _ =>
-  [ (rtac PlusEL 1),
-    (REPEAT (eresolve_tac [asm_rl, refl_elem RS TEL] 1)) ]);
+Goalw bool_defs
+    "[| p = q : Bool;  a = c : C(true);  b = d : C(false) |] \
+\    ==> cond(p,a,b) = cond(q,c,d) : C(p)";
+by (rtac PlusEL 1);
+by (REPEAT (eresolve_tac [asm_rl, refl_elem RS TEL] 1)) ;
+qed "boolEL";
 
 (*computation rules for true, false*)
 
-qed_goalw "boolC_true" Bool.thy bool_defs 
-    "!!C. [| a : C(true);  b : C(false) |] ==> cond(true,a,b) = a : C(true)"
- (fn _ =>
-  [ (resolve_tac comp_rls 1),
-    (typechk_tac []),
-    (ALLGOALS (etac TE)),
-    (typechk_tac []) ]);
+Goalw bool_defs 
+    "[| a : C(true);  b : C(false) |] ==> cond(true,a,b) = a : C(true)";
+by (resolve_tac comp_rls 1);
+by (typechk_tac []);
+by (ALLGOALS (etac TE));
+by (typechk_tac []) ;
+qed "boolC_true";
 
-qed_goalw "boolC_false" Bool.thy bool_defs 
-    "!!C. [| a : C(true);  b : C(false) |] ==> cond(false,a,b) = b : C(false)"
- (fn _ =>
-  [ (resolve_tac comp_rls 1),
-    (typechk_tac []),
-    (ALLGOALS (etac TE)),
-    (typechk_tac []) ]);
+Goalw bool_defs
+    "[| a : C(true);  b : C(false) |] ==> cond(false,a,b) = b : C(false)";
+by (resolve_tac comp_rls 1);
+by (typechk_tac []);
+by (ALLGOALS (etac TE));
+by (typechk_tac []) ;
+qed "boolC_false";
 
 writeln"Reached end of file.";
 

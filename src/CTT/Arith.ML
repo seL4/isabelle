@@ -9,7 +9,6 @@ Proofs about elementary arithmetic: addition, multiplication, etc.
 Tests definitions and simplifier.
 *)
 
-open Arith;
 val arith_defs = [add_def, diff_def, absdiff_def, mult_def, mod_def, div_def];
 
 
@@ -17,88 +16,97 @@ val arith_defs = [add_def, diff_def, absdiff_def, mult_def, mod_def, div_def];
 
 (*typing of add: short and long versions*)
 
-qed_goalw "add_typing" Arith.thy arith_defs
-    "[| a:N;  b:N |] ==> a #+ b : N"
- (fn prems=> [ (typechk_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a:N;  b:N |] ==> a #+ b : N";
+by (typechk_tac prems) ;
+qed "add_typing";
 
-qed_goalw "add_typingL" Arith.thy arith_defs
-    "[| a=c:N;  b=d:N |] ==> a #+ b = c #+ d : N"
- (fn prems=> [ (equal_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a=c:N;  b=d:N |] ==> a #+ b = c #+ d : N";
+by (equal_tac prems) ;
+qed "add_typingL";
 
 
 (*computation for add: 0 and successor cases*)
 
-qed_goalw "addC0" Arith.thy arith_defs
-    "b:N ==> 0 #+ b = b : N"
- (fn prems=> [ (rew_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "b:N ==> 0 #+ b = b : N";
+by (rew_tac prems) ;
+qed "addC0";
 
-qed_goalw "addC_succ" Arith.thy arith_defs
-    "[| a:N;  b:N |] ==> succ(a) #+ b = succ(a #+ b) : N"
- (fn prems=> [ (rew_tac prems) ]); 
+val prems= goalw Arith.thy arith_defs 
+    "[| a:N;  b:N |] ==> succ(a) #+ b = succ(a #+ b) : N";
+by (rew_tac prems) ;
+qed "addC_succ"; 
 
 
 (** Multiplication *)
 
 (*typing of mult: short and long versions*)
 
-qed_goalw "mult_typing" Arith.thy arith_defs
-    "[| a:N;  b:N |] ==> a #* b : N"
- (fn prems=>
-  [ (typechk_tac([add_typing]@prems)) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a:N;  b:N |] ==> a #* b : N";
+by (typechk_tac([add_typing]@prems)) ;
+qed "mult_typing";
 
-qed_goalw "mult_typingL" Arith.thy arith_defs
-    "[| a=c:N;  b=d:N |] ==> a #* b = c #* d : N"
- (fn prems=>
-  [ (equal_tac (prems@[add_typingL])) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a=c:N;  b=d:N |] ==> a #* b = c #* d : N";
+by (equal_tac (prems@[add_typingL])) ;
+qed "mult_typingL";
 
 (*computation for mult: 0 and successor cases*)
 
-qed_goalw "multC0" Arith.thy arith_defs
-    "b:N ==> 0 #* b = 0 : N"
- (fn prems=> [ (rew_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "b:N ==> 0 #* b = 0 : N";
+by (rew_tac prems) ;
+qed "multC0";
 
-qed_goalw "multC_succ" Arith.thy arith_defs
-    "[| a:N;  b:N |] ==> succ(a) #* b = b #+ (a #* b) : N"
- (fn prems=> [ (rew_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a:N;  b:N |] ==> succ(a) #* b = b #+ (a #* b) : N";
+by (rew_tac prems) ;
+qed "multC_succ";
 
 
 (** Difference *)
 
 (*typing of difference*)
 
-qed_goalw "diff_typing" Arith.thy arith_defs
-    "[| a:N;  b:N |] ==> a - b : N"
- (fn prems=> [ (typechk_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a:N;  b:N |] ==> a - b : N";
+by (typechk_tac prems) ;
+qed "diff_typing";
 
-qed_goalw "diff_typingL" Arith.thy arith_defs
-    "[| a=c:N;  b=d:N |] ==> a - b = c - d : N"
- (fn prems=> [ (equal_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a=c:N;  b=d:N |] ==> a - b = c - d : N";
+by (equal_tac prems) ;
+qed "diff_typingL";
 
 
 
 (*computation for difference: 0 and successor cases*)
 
-qed_goalw "diffC0" Arith.thy arith_defs
-    "a:N ==> a - 0 = a : N"
- (fn prems=> [ (rew_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "a:N ==> a - 0 = a : N";
+by (rew_tac prems) ;
+qed "diffC0";
 
 (*Note: rec(a, 0, %z w.z) is pred(a). *)
 
-qed_goalw "diff_0_eq_0" Arith.thy arith_defs
-    "b:N ==> 0 - b = 0 : N"
- (fn prems=>
-  [ (NE_tac "b" 1),
-    (hyp_rew_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "b:N ==> 0 - b = 0 : N";
+by (NE_tac "b" 1);
+by (hyp_rew_tac prems) ;
+qed "diff_0_eq_0";
 
 
 (*Essential to simplify FIRST!!  (Else we get a critical pair)
   succ(a) - succ(b) rewrites to   pred(succ(a) - b)  *)
-qed_goalw "diff_succ_succ" Arith.thy arith_defs
-    "[| a:N;  b:N |] ==> succ(a) - succ(b) = a - b : N"
- (fn prems=>
-  [ (hyp_rew_tac prems),
-    (NE_tac "b" 1),
-    (hyp_rew_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a:N;  b:N |] ==> succ(a) - succ(b) = a - b : N";
+by (hyp_rew_tac prems);
+by (NE_tac "b" 1);
+by (hyp_rew_tac prems) ;
+qed "diff_succ_succ";
 
 
 
@@ -144,24 +152,24 @@ fun hyp_arith_rew_tac prems = make_rew_tac
  **********)
 
 (*Associative law for addition*)
-qed_goal "add_assoc" Arith.thy 
-    "[| a:N;  b:N;  c:N |] ==> (a #+ b) #+ c = a #+ (b #+ c) : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (hyp_arith_rew_tac prems) ]);
+val prems= goal Arith.thy 
+    "[| a:N;  b:N;  c:N |] ==> (a #+ b) #+ c = a #+ (b #+ c) : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac prems) ;
+qed "add_assoc";
 
 
 (*Commutative law for addition.  Can be proved using three inductions.
   Must simplify after first induction!  Orientation of rewrites is delicate*)  
-qed_goal "add_commute" Arith.thy 
-    "[| a:N;  b:N |] ==> a #+ b = b #+ a : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (hyp_arith_rew_tac prems),
-    (NE_tac "b" 2),
-    (rtac sym_elem 1),
-    (NE_tac "b" 1),
-    (hyp_arith_rew_tac prems) ]);
+val prems= goal Arith.thy 
+    "[| a:N;  b:N |] ==> a #+ b = b #+ a : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac prems);
+by (NE_tac "b" 2);
+by (rtac sym_elem 1);
+by (NE_tac "b" 1);
+by (hyp_arith_rew_tac prems) ;
+qed "add_commute";
 
 
 (****************
@@ -169,59 +177,53 @@ qed_goal "add_commute" Arith.thy
  ****************)
 
 (*Commutative law for multiplication
-qed_goal "mult_commute" Arith.thy 
-    "[| a:N;  b:N |] ==> a #* b = b #* a : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (hyp_arith_rew_tac prems),
-    (NE_tac "b" 2),
-    (rtac sym_elem 1),
-    (NE_tac "b" 1),
-    (hyp_arith_rew_tac prems) ]);   NEEDS COMMUTATIVE MATCHING
+val prems= goal Arith.thy 
+    "[| a:N;  b:N |] ==> a #* b = b #* a : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac prems);
+by (NE_tac "b" 2);
+by (rtac sym_elem 1);
+by (NE_tac "b" 1);
+by (hyp_arith_rew_tac prems) ;
+qed "mult_commute";   NEEDS COMMUTATIVE MATCHING
 ***************)
 
 (*right annihilation in product*)
-qed_goal "mult_0_right" Arith.thy 
-    "a:N ==> a #* 0 = 0 : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (hyp_arith_rew_tac prems) ]);
+val prems= goal Arith.thy 
+    "a:N ==> a #* 0 = 0 : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac prems) ;
+qed "mult_0_right";
 
 (*right successor law for multiplication*)
-qed_goal "mult_succ_right" Arith.thy 
-    "[| a:N;  b:N |] ==> a #* succ(b) = a #+ (a #* b) : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-(*swap round the associative law of addition*)
-    (hyp_arith_rew_tac (prems @ [add_assoc RS sym_elem])),  
-(*leaves a goal involving a commutative law*)
-    (REPEAT (assume_tac 1  ORELSE  
-            resolve_tac
-             (prems@[add_commute,mult_typingL,add_typingL]@
-               intrL_rls@[refl_elem])   1)) ]);
+val prems= goal Arith.thy 
+    "[| a:N;  b:N |] ==> a #* succ(b) = a #+ (a #* b) : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac (prems @ [add_assoc RS sym_elem]));
+by (REPEAT (assume_tac 1  ORELSE resolve_tac (prems@[add_commute,mult_typingL,add_typingL]@ intrL_rls@[refl_elem])   1)) ;
+qed "mult_succ_right";
 
 (*Commutative law for multiplication*)
-qed_goal "mult_commute" Arith.thy 
-    "[| a:N;  b:N |] ==> a #* b = b #* a : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (hyp_arith_rew_tac (prems @ [mult_0_right, mult_succ_right])) ]);
+val prems= goal Arith.thy 
+    "[| a:N;  b:N |] ==> a #* b = b #* a : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac (prems @ [mult_0_right, mult_succ_right])) ;
+qed "mult_commute";
 
 (*addition distributes over multiplication*)
-qed_goal "add_mult_distrib" Arith.thy 
-    "[| a:N;  b:N;  c:N |] ==> (a #+ b) #* c = (a #* c) #+ (b #* c) : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-(*swap round the associative law of addition*)
-    (hyp_arith_rew_tac (prems @ [add_assoc RS sym_elem])) ]);
+val prems= goal Arith.thy 
+    "[| a:N;  b:N;  c:N |] ==> (a #+ b) #* c = (a #* c) #+ (b #* c) : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac (prems @ [add_assoc RS sym_elem])) ;
+qed "add_mult_distrib";
 
 
 (*Associative law for multiplication*)
-qed_goal "mult_assoc" Arith.thy 
-    "[| a:N;  b:N;  c:N |] ==> (a #* b) #* c = a #* (b #* c) : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (hyp_arith_rew_tac (prems @ [add_mult_distrib])) ]);
+val prems= goal Arith.thy 
+    "[| a:N;  b:N;  c:N |] ==> (a #* b) #* c = a #* (b #* c) : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac (prems @ [add_mult_distrib])) ;
+qed "mult_assoc";
 
 
 (************
@@ -231,11 +233,11 @@ qed_goal "mult_assoc" Arith.thy
 Difference on natural numbers, without negative numbers
   a - b = 0  iff  a<=b    a - b = succ(c) iff a>b   *)
 
-qed_goal "diff_self_eq_0" Arith.thy 
-    "a:N ==> a - a = 0 : N"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (hyp_arith_rew_tac prems) ]);
+val prems= goal Arith.thy 
+    "a:N ==> a - a = 0 : N";
+by (NE_tac "a" 1);
+by (hyp_arith_rew_tac prems) ;
+qed "diff_self_eq_0";
 
 
 (*  [| c : N; 0 : N; c : N |] ==> c #+ 0 = c : N  *)
@@ -283,29 +285,31 @@ qed "add_diff_inverse";
 
 (*typing of absolute difference: short and long versions*)
 
-qed_goalw "absdiff_typing" Arith.thy arith_defs
-    "[| a:N;  b:N |] ==> a |-| b : N"
- (fn prems=> [ (typechk_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a:N;  b:N |] ==> a |-| b : N";
+by (typechk_tac prems) ;
+qed "absdiff_typing";
 
-qed_goalw "absdiff_typingL" Arith.thy arith_defs
-    "[| a=c:N;  b=d:N |] ==> a |-| b = c |-| d : N"
- (fn prems=> [ (equal_tac prems) ]);
+val prems= goalw Arith.thy arith_defs 
+    "[| a=c:N;  b=d:N |] ==> a |-| b = c |-| d : N";
+by (equal_tac prems) ;
+qed "absdiff_typingL";
 
-qed_goalw "absdiff_self_eq_0" Arith.thy [absdiff_def]
-    "a:N ==> a |-| a = 0 : N"
- (fn prems=>
-  [ (arith_rew_tac (prems@[diff_self_eq_0])) ]);
+Goalw [absdiff_def]  
+    "a:N ==> a |-| a = 0 : N";
+by (arith_rew_tac (prems@[diff_self_eq_0])) ;
+qed "absdiff_self_eq_0";
 
-qed_goalw "absdiffC0" Arith.thy [absdiff_def]
-    "a:N ==> 0 |-| a = a : N"
- (fn prems=>
-  [ (hyp_arith_rew_tac prems) ]);
+Goalw [absdiff_def]  
+    "a:N ==> 0 |-| a = a : N";
+by (hyp_arith_rew_tac []);
+qed "absdiffC0";
 
 
-qed_goalw "absdiff_succ_succ" Arith.thy [absdiff_def]
-    "[| a:N;  b:N |] ==> succ(a) |-| succ(b)  =  a |-| b : N"
- (fn prems=>
-  [ (hyp_arith_rew_tac prems) ]);
+Goalw [absdiff_def]  
+    "[| a:N;  b:N |] ==> succ(a) |-| succ(b)  =  a |-| b : N";
+by (hyp_arith_rew_tac []) ;
+qed "absdiff_succ_succ";
 
 (*Note how easy using commutative laws can be?  ...not always... *)
 val prems = goalw Arith.thy [absdiff_def]
@@ -367,76 +371,78 @@ qed "absdiff_eq0";
 
 (*typing of remainder: short and long versions*)
 
-qed_goalw "mod_typing" Arith.thy [mod_def]
-    "[| a:N;  b:N |] ==> a mod b : N"
- (fn prems=>
-  [ (typechk_tac (absdiff_typing::prems)) ]);
+Goalw [mod_def]  
+    "[| a:N;  b:N |] ==> a mod b : N";
+by (typechk_tac (absdiff_typing::prems)) ;
+qed "mod_typing";
  
-qed_goalw "mod_typingL" Arith.thy [mod_def]
-    "[| a=c:N;  b=d:N |] ==> a mod b = c mod d : N"
- (fn prems=>
-  [ (equal_tac (prems@[absdiff_typingL])) ]);
+Goalw [mod_def]  
+    "[| a=c:N;  b=d:N |] ==> a mod b = c mod d : N";
+by (equal_tac [absdiff_typingL]) ;
+by (ALLGOALS assume_tac);
+qed "mod_typingL";
  
 
 (*computation for  mod : 0 and successor cases*)
 
-qed_goalw "modC0" Arith.thy [mod_def] "b:N ==> 0 mod b = 0 : N"
- (fn prems=>
-  [ (rew_tac(absdiff_typing::prems)) ]);
+Goalw [mod_def]   "b:N ==> 0 mod b = 0 : N";
+by (rew_tac(absdiff_typing::prems)) ;
+qed "modC0";
 
-qed_goalw "modC_succ" Arith.thy [mod_def] 
-"[| a:N; b:N |] ==> succ(a) mod b = rec(succ(a mod b) |-| b, 0, %x y. succ(a mod b)) : N"
- (fn prems=>
-  [ (rew_tac(absdiff_typing::prems)) ]);
+Goalw [mod_def]   
+"[| a:N; b:N |] ==> succ(a) mod b = rec(succ(a mod b) |-| b, 0, %x y. succ(a mod b)) : N";
+by (rew_tac(absdiff_typing::prems)) ;
+qed "modC_succ";
 
 
 (*typing of quotient: short and long versions*)
 
-qed_goalw "div_typing" Arith.thy [div_def] "[| a:N;  b:N |] ==> a div b : N"
- (fn prems=>
-  [ (typechk_tac ([absdiff_typing,mod_typing]@prems)) ]);
+Goalw [div_def]   "[| a:N;  b:N |] ==> a div b : N";
+by (typechk_tac ([absdiff_typing,mod_typing]@prems)) ;
+qed "div_typing";
 
-qed_goalw "div_typingL" Arith.thy [div_def]
-   "[| a=c:N;  b=d:N |] ==> a div b = c div d : N"
- (fn prems=>
-  [ (equal_tac (prems @ [absdiff_typingL, mod_typingL])) ]);
+Goalw [div_def]  
+   "[| a=c:N;  b=d:N |] ==> a div b = c div d : N";
+by (equal_tac [absdiff_typingL, mod_typingL]);
+by (ALLGOALS assume_tac);
+qed "div_typingL";
 
 val div_typing_rls = [mod_typing, div_typing, absdiff_typing];
 
 
 (*computation for quotient: 0 and successor cases*)
 
-qed_goalw "divC0" Arith.thy [div_def] "b:N ==> 0 div b = 0 : N"
- (fn prems=>
-  [ (rew_tac([mod_typing, absdiff_typing] @ prems)) ]);
+Goalw [div_def]   "b:N ==> 0 div b = 0 : N";
+by (rew_tac([mod_typing, absdiff_typing] @ prems)) ;
+qed "divC0";
 
-val divC_succ =
-prove_goalw Arith.thy [div_def] "[| a:N;  b:N |] ==> succ(a) div b = \
-\    rec(succ(a) mod b, succ(a div b), %x y. a div b) : N"
- (fn prems=>
-  [ (rew_tac([mod_typing]@prems)) ]);
+Goalw [div_def] 
+ "[| a:N;  b:N |] ==> succ(a) div b = \
+\    rec(succ(a) mod b, succ(a div b), %x y. a div b) : N";
+by (rew_tac([mod_typing]@prems)) ;
+qed "divC_succ";
 
 
 (*Version of above with same condition as the  mod  one*)
-qed_goal "divC_succ2" Arith.thy
+val prems= goal Arith.thy
     "[| a:N;  b:N |] ==> \
-\    succ(a) div b =rec(succ(a mod b) |-| b, succ(a div b), %x y. a div b) : N"
- (fn prems=>
-  [ (resolve_tac [ divC_succ RS trans_elem ] 1),
-    (rew_tac(div_typing_rls @ prems @ [modC_succ])),
-    (NE_tac "succ(a mod b)|-|b" 1),
-    (rew_tac ([mod_typing, div_typing, absdiff_typing] @prems)) ]);
+\    succ(a) div b =rec(succ(a mod b) |-| b, succ(a div b), %x y. a div b) : N";
+by (resolve_tac [ divC_succ RS trans_elem ] 1);
+by (rew_tac(div_typing_rls @ prems @ [modC_succ]));
+by (NE_tac "succ(a mod b)|-|b" 1);
+by (rew_tac ([mod_typing, div_typing, absdiff_typing] @prems)) ;
+qed "divC_succ2";
 
 (*for case analysis on whether a number is 0 or a successor*)
-qed_goal "iszero_decidable" Arith.thy
+val prems= goal Arith.thy
     "a:N ==> rec(a, inl(eq), %ka kb. inr(<ka, eq>)) : \
-\                     Eq(N,a,0) + (SUM x:N. Eq(N,a, succ(x)))"
- (fn prems=>
-  [ (NE_tac "a" 1),
-    (rtac PlusI_inr 3),
-    (rtac PlusI_inl 2),
-    eqintr_tac,
-    (equal_tac prems) ]);
+\                     Eq(N,a,0) + (SUM x:N. Eq(N,a, succ(x)))";
+by (NE_tac "a" 1);
+by (rtac PlusI_inr 3);
+by (rtac PlusI_inl 2);
+by eqintr_tac;
+by (equal_tac prems) ;
+qed "iszero_decidable";
 
 (*Main Result.  Holds when b is 0 since   a mod 0 = a     and    a div 0 = 0  *)
 val prems =
