@@ -864,14 +864,14 @@ instantiation for~$\Var{P}$.
 \begin{ttbox}
 goal Nat.thy "~ (Suc(k) = k)";
 {\out Level 0}
-{\out ~Suc(k) = k}
-{\out  1. ~Suc(k) = k}
+{\out Suc(k) ~= k}
+{\out  1. Suc(k) ~= k}
 \ttbreak
 by (res_inst_tac [("n","k")] induct 1);
 {\out Level 1}
-{\out ~Suc(k) = k}
-{\out  1. ~Suc(0) = 0}
-{\out  2. !!x. ~Suc(x) = x ==> ~Suc(Suc(x)) = Suc(x)}
+{\out Suc(k) ~= k}
+{\out  1. Suc(0) ~= 0}
+{\out  2. !!x. Suc(x) ~= x ==> Suc(Suc(x)) ~= Suc(x)}
 \end{ttbox}
 We should check that Isabelle has correctly applied induction.  Subgoal~1
 is the base case, with $k$ replaced by~0.  Subgoal~2 is the inductive step,
@@ -881,14 +881,14 @@ other rules of theory {\tt Nat}.  The base case holds by~\ttindex{Suc_neq_0}:
 \begin{ttbox}
 by (resolve_tac [notI] 1);
 {\out Level 2}
-{\out ~Suc(k) = k}
+{\out Suc(k) ~= k}
 {\out  1. Suc(0) = 0 ==> False}
-{\out  2. !!x. ~Suc(x) = x ==> ~Suc(Suc(x)) = Suc(x)}
+{\out  2. !!x. Suc(x) ~= x ==> Suc(Suc(x)) ~= Suc(x)}
 \ttbreak
 by (eresolve_tac [Suc_neq_0] 1);
 {\out Level 3}
-{\out ~Suc(k) = k}
-{\out  1. !!x. ~Suc(x) = x ==> ~Suc(Suc(x)) = Suc(x)}
+{\out Suc(k) ~= k}
+{\out  1. !!x. Suc(x) ~= x ==> Suc(Suc(x)) ~= Suc(x)}
 \end{ttbox}
 The inductive step holds by the contrapositive of~\ttindex{Suc_inject}.
 Negation rules transform the subgoal into that of proving $Suc(x)=x$ from
@@ -896,17 +896,17 @@ $Suc(Suc(x)) = Suc(x)$:
 \begin{ttbox}
 by (resolve_tac [notI] 1);
 {\out Level 4}
-{\out ~Suc(k) = k}
-{\out  1. !!x. [| ~Suc(x) = x; Suc(Suc(x)) = Suc(x) |] ==> False}
+{\out Suc(k) ~= k}
+{\out  1. !!x. [| Suc(x) ~= x; Suc(Suc(x)) = Suc(x) |] ==> False}
 \ttbreak
 by (eresolve_tac [notE] 1);
 {\out Level 5}
-{\out ~Suc(k) = k}
+{\out Suc(k) ~= k}
 {\out  1. !!x. Suc(Suc(x)) = Suc(x) ==> Suc(x) = x}
 \ttbreak
 by (eresolve_tac [Suc_inject] 1);
 {\out Level 6}
-{\out ~Suc(k) = k}
+{\out Suc(k) ~= k}
 {\out No subgoals!}
 \end{ttbox}
 
@@ -983,7 +983,7 @@ or {\bf simpset}.  We take the standard simpset for first-order logic and
 insert the equations proved in the previous section, namely
 $0+n=n$ and ${\tt Suc}(m)+n={\tt Suc}(m+n)$:
 \begin{ttbox}
-val add_ss = FOL_ss addrews [add_0, add_Suc];
+val add_ss = FOL_ss addsimps [add_0, add_Suc];
 \end{ttbox}
 We state the goal for associativity of addition, and
 use \ttindex{res_inst_tac} to invoke induction on~$k$:

@@ -58,7 +58,7 @@ EX x. k = k
 
 (*tactics *)
 
-goal cla_thy "P|P --> P";
+goal FOL.thy "P|P --> P";
 by (resolve_tac [impI] 1);
 by (resolve_tac [disjE] 1);
 by (assume_tac 3);
@@ -67,7 +67,7 @@ by (assume_tac 1);
 val mythm = prth(result());
 
 
-goal cla_thy "(P & Q) | R  --> (P | R)";
+goal FOL.thy "(P & Q) | R  --> (P | R)";
 by (resolve_tac [impI] 1);
 by (eresolve_tac [disjE] 1);
 by (dresolve_tac [conjunct1] 1);
@@ -76,7 +76,7 @@ by (resolve_tac [disjI2] 2);
 by (REPEAT (assume_tac 1));
 
 
-- goal cla_thy "(P & Q) | R  --> (P | R)";
+- goal FOL.thy "(P & Q) | R  --> (P | R)";
 Level 0
 P & Q | R --> P | R
  1. P & Q | R --> P | R
@@ -110,7 +110,7 @@ P & Q | R --> P | R
 No subgoals!
 
 
-goal cla_thy "(P | Q) | R  -->  P | (Q | R)";
+goal FOL.thy "(P | Q) | R  -->  P | (Q | R)";
 by (resolve_tac [impI] 1);
 by (eresolve_tac [disjE] 1);
 by (eresolve_tac [disjE] 1);
