@@ -7,22 +7,24 @@ Apply Abel_Cancel to the integers
 *)
 
 
-(*** Two lemmas needed for the simprocs ***)
+(*** Lemmas needed for the simprocs ***)
 
 (*Deletion of other terms in the formula, seeking the -x at the front of z*)
-val zadd_cancel_21 = prove_goal IntDef.thy
-    "((x::int) + (y + z) = y + u) = ((x + z) = u)"
-  (fn _ => [stac zadd_left_commute 1,
-	    rtac zadd_left_cancel 1]);
+Goal "((x::int) + (y + z) = y + u) = ((x + z) = u)";
+by (stac zadd_left_commute 1);
+by (rtac zadd_left_cancel 1);
+qed "zadd_cancel_21";
 
 (*A further rule to deal with the case that
   everything gets cancelled on the right.*)
-val zadd_cancel_end = prove_goal IntDef.thy
-    "((x::int) + (y + z) = y) = (x = -z)"
-  (fn _ => [stac zadd_left_commute 1,
-	    res_inst_tac [("t", "y")] (zadd_int0_right RS subst) 1,
-	    stac zadd_left_cancel 1,
-	    simp_tac (simpset() addsimps [eq_zdiff_eq RS sym]) 1]);
+Goal "((x::int) + (y + z) = y) = (x = -z)";
+by (stac zadd_left_commute 1);
+by (res_inst_tac [("t", "y")] (zadd_int0_right RS subst) 1
+    THEN stac zadd_left_cancel 1);
+by (simp_tac (simpset() addsimps [eq_zdiff_eq RS sym]) 1);
+qed "zadd_cancel_end";
+
+
 
 
 structure Int_Cancel_Data =
@@ -33,6 +35,7 @@ struct
   val thy	= IntDef.thy
   val T		= HOLogic.intT
   val zero	= Const ("IntDef.int", HOLogic.natT --> T) $ HOLogic.zero
+  val restrict_to_left  = restrict_to_left
   val add_cancel_21	= zadd_cancel_21
   val add_cancel_end	= zadd_cancel_end
   val add_left_cancel	= zadd_left_cancel
