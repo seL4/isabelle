@@ -7,7 +7,7 @@
 ## targets
 
 default: HOL
-images: HOL HOL-Algebra HOL-Real HOL-Complex TLA
+images: HOL HOL-Algebra HOL-Complex TLA
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -19,7 +19,6 @@ test: \
   HOL-CTL \
   HOL-Extraction \
       HOL-Real-HahnBanach \
-      HOL-Real-ex \
   HOL-Hoare \
   HOL-HoareParallel \
   HOL-IMP \
@@ -113,35 +112,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
 	@$(ISATOOL) usedir -b -g true $(OUT)/Pure HOL
 
 
-## HOL-Real
-
-HOL-Real: HOL $(OUT)/HOL-Real
-
-$(OUT)/HOL-Real: $(OUT)/HOL Real/Complex_Numbers.thy \
-  Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
-  Real/PRat.ML Real/PRat.thy \
-  Real/PReal.ML Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
-  Real/ROOT.ML Real/Real.thy Real/RealAbs.ML Real/RealAbs.thy \
-  Real/RealArith0.ML Real/RealArith0.thy Real/real_arith0.ML \
-  Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \
-  Real/RealBin.thy Real/RealDef.ML Real/RealDef.thy Real/RealInt.ML \
-  Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML \
-  Real/RealPow.thy Real/document/root.tex Real/real_arith.ML
-	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
-
-
-## HOL-Real-ex
-
-HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
-
-$(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML \
-  Real/ex/BinEx.thy Real/ex/document/root.tex
-	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
-
 
 ## HOL-Real-HahnBanach
 
-HOL-Real-HahnBanach: HOL-Real $(LOG)/HOL-Real-HahnBanach.gz
+HOL-Real-HahnBanach: HOL-Complex $(LOG)/HOL-Real-HahnBanach.gz
 
 $(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
   Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
@@ -153,15 +127,25 @@ $(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
   Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy \
   Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib \
   Real/HahnBanach/document/root.tex
-	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Real HahnBanach
+	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Complex HahnBanach
 
 
 ## HOL-Complex
 
-HOL-Complex: HOL-Real $(OUT)/HOL-Complex
+HOL-Complex: HOL $(OUT)/HOL-Complex
 
-$(OUT)/HOL-Complex: $(OUT)/HOL-Real Complex/ROOT.ML\
+$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Library/Zorn.thy\
+  Real/Complex_Numbers.thy \
+  Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
+  Real/PRat.ML Real/PRat.thy \
+  Real/PReal.ML Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
+  Real/ROOT.ML Real/Real.thy Real/RealAbs.ML Real/RealAbs.thy \
+  Real/RealArith0.ML Real/RealArith0.thy Real/real_arith0.ML \
+  Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \
+  Real/RealBin.thy Real/RealDef.ML Real/RealDef.thy Real/RealInt.ML \
+  Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML \
+  Real/RealPow.thy Real/document/root.tex Real/real_arith.ML\
   Hyperreal/EvenOdd.ML Hyperreal/EvenOdd.thy Hyperreal/ExtraThms2.ML\
   Hyperreal/ExtraThms2.thy Hyperreal/Fact.ML Hyperreal/Fact.thy\
   Hyperreal/Filter.ML Hyperreal/Filter.thy Hyperreal/HRealAbs.ML\
@@ -191,7 +175,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL-Real Complex/ROOT.ML\
   Complex/NSComplex.ML Complex/NSComplex.thy\
   Complex/NSComplexArith0.ML Complex/NSComplexArith0.thy\
   Complex/NSComplexBin.ML Complex/NSComplexBin.thy
-	@cd Complex; $(ISATOOL) usedir -b $(OUT)/HOL-Real HOL-Complex
+	@cd Complex; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Complex
 
 
 ## HOL-Complex-ex
@@ -200,6 +184,7 @@ HOL-Complex-ex: HOL-Complex $(LOG)/HOL-Complex-ex.gz
 
 $(LOG)/HOL-Complex-ex.gz: $(OUT)/HOL-Complex Library/Primes.thy \
   Complex/ex/ROOT.ML Complex/ex/document/root.tex \
+  Complex/ex/BinEx.thy \
   Complex/ex/NSPrimes.ML Complex/ex/NSPrimes.thy\
   Complex/ex/Sqrt.thy Complex/ex/Sqrt_Script.thy
 	@cd Complex; $(ISATOOL) usedir $(OUT)/HOL-Complex ex
@@ -675,7 +660,7 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL $(OUT)/HOL-Real $(OUT)/HOL-Complex $(OUT)/TLA \
+	@rm -f  $(OUT)/HOL $(OUT)/HOL-Complex $(OUT)/TLA \
 		$(LOG)/HOL.gz $(LOG)/HOL-Real.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \

@@ -152,11 +152,16 @@ of the empty set.
 implicit structures.  Also a new, experimental summation operator for
 abelian groups;
 
-* Complex: new directory of the complex numbers with numeric constants, nonstandard complex numbers, and some complex analysis, standard and nonstandard (Jacques Fleuriot);
-
 * GroupTheory: deleted, since its material has been moved to Algebra;
 
-* Hyperreal: introduced Gauge integration and hyperreal logarithms (Jacques Fleuriot);
+* Complex: new directory of the complex numbers with numeric constants, 
+nonstandard complex numbers, and some complex analysis, standard and 
+nonstandard (Jacques Fleuriot);
+
+* HOL-Complex: new image for analysis, replacing HOL-Real and HOL-Hyperreal;
+
+* Hyperreal: introduced Gauge integration and hyperreal logarithms (Jacques 
+Fleuriot);
 
 * Real/HahnBanach: updated and adapted to locales;
 

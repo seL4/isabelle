@@ -1,9 +1,10 @@
-(*  Title:      HOL/Hyperreal/ex/ROOT.ML
+(*  Title:      HOL/Complex/ex/ROOT.ML
     ID:         $Id$
 
-Miscellaneous HOL-Hyperreal Examples.
+Miscellaneous examples involving the Reals, Hyperreals, etc.
 *)
 
+use_thy "BinEx";
 no_document (with_path "../../NumberTheory" use_thy) "Factorization";
 (*These two examples just need the theory Primes.*)
 use_thy "Sqrt";
