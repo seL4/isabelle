@@ -138,7 +138,7 @@ else
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
     echo
-    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d dvi  ## -D generated"
+    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d pdf  ## -D generated"
     echo
     echo
     echo "## $NAME"
@@ -213,7 +213,7 @@ else
 
   [ -z "$QUIET" ] && echo "creating $PREFIX/document/root.tex" >&2
   TITLE=$(echo "$NAME" | tr _ -)
-  AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[-3]" | tr _ -)
+  AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[6]" | tr _ -)
   cat >document/root.tex <<EOF
 
 \documentclass[11pt,a4paper]{article}
