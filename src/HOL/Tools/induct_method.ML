@@ -191,6 +191,8 @@ end;
   ...   cases ... R   - explicit rule
 *)
 
+val case_split = RuleCases.name ["True", "False"] case_split_thm;
+
 local
 
 fun cases_var thm =
@@ -217,7 +219,7 @@ fun cases_tac (ctxt, (simplified, args)) facts =
 
     val rules =
       (case (args, facts) of
-        ((None, None), []) => [(case_split_thm, ["True", "False"])]
+        ((None, None), []) => [RuleCases.add case_split]
       | ((Some t, None), []) =>
           let val name = type_name t in
             (case lookup_casesT ctxt name of
@@ -427,6 +429,7 @@ val setup =
      (inductN, induct_attr, "induction rule for type or set")],
    Method.add_methods
     [("cases", cases_meth oo cases_args, "case analysis on types or sets"),
-     ("induct", induct_meth oo induct_args, "induction on types or sets")]];
+     ("induct", induct_meth oo induct_args, "induction on types or sets")],
+   (#1 o PureThy.add_thms [(("case_split", case_split), [])])];
 
 end;

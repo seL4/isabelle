@@ -11,4 +11,6 @@ theory PreList =
   Option + WF_Rel + NatSimprocs + Recdef + Record + RelPow + Calculation + 
   SVC_Oracle:
 
+theorems [cases type: bool] = case_split
+
 end
