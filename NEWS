@@ -37,24 +37,25 @@ New in this Isabelle release
 
   - The simplifier trace now shows the names of the applied rewrite rules
 
-* Pure: new flag for triggering if the overall goal of a proof state should
-be printed (ML: Proof.show_main_goal).
-PG menu: Isabelle/Isar -> Settigs -> Show Main Goal
+* Pure: New flag for triggering if the overall goal of a proof state should
+be printed:
+   PG menu: Isabelle/Isar -> Settigs -> Show Main Goal
+(ML: Proof.show_main_goal).
 
-* Pure: you can find all matching introduction rules for subgoal 1,
-  i.e. all rules whose conclusion matches subgoal 1, by executing
-  ML"ProofGeneral.print_intros()"
-  The rules are ordered by how closely they match the subgoal.
-  In particular, rules that solve a subgoal outright are displayed first
-  (or rather last, the way it is printed).
-  TODO: integration with PG
+* Pure: You can find all matching introduction rules for subgoal 1, i.e. all
+rules whose conclusion matches subgoal 1:
+      PG menu: Isabelle/Isar -> Show me -> matching rules
+The rules are ordered by how closely they match the subgoal.
+In particular, rules that solve a subgoal outright are displayed first
+(or rather last, the way they are printed).
+(ML: ProofGeneral.print_intros())
 
-* Pure: new flag trace_unify_fail causes unification to print
+* Pure: New flag trace_unify_fail causes unification to print
 diagnostic information (PG: in trace buffer) when it fails. This is
 useful for figuring out why single step proofs like rule, erule or
 assumption failed.
 
-* Pure: locale specifications now produce predicate definitions
+* Pure: Locale specifications now produce predicate definitions
 according to the body of text (covering assumptions modulo local
 definitions); predicate "loc_axioms" covers newly introduced text,
 while "loc" is cumulative wrt. all included locale expressions; the
