@@ -32,21 +32,21 @@ constdefs
     case, proving equivalence with Chandy and Sanders's n-ary definitions*)
 
   ex_prop  :: "'a program set => bool"
-   "ex_prop X == \<forall>F G. F ok G -->F \<in> X | G \<in> X --> (F Join G) \<in> X"
+   "ex_prop X == \<forall>F G. F ok G -->F \<in> X | G \<in> X --> (F\<squnion>G) \<in> X"
 
   strict_ex_prop  :: "'a program set => bool"
-   "strict_ex_prop X == \<forall>F G.  F ok G --> (F \<in> X | G \<in> X) = (F Join G \<in> X)"
+   "strict_ex_prop X == \<forall>F G.  F ok G --> (F \<in> X | G \<in> X) = (F\<squnion>G \<in> X)"
 
   uv_prop  :: "'a program set => bool"
-   "uv_prop X == SKIP \<in> X & (\<forall>F G. F ok G --> F \<in> X & G \<in> X --> (F Join G) \<in> X)"
+   "uv_prop X == SKIP \<in> X & (\<forall>F G. F ok G --> F \<in> X & G \<in> X --> (F\<squnion>G) \<in> X)"
 
   strict_uv_prop  :: "'a program set => bool"
    "strict_uv_prop X == 
-      SKIP \<in> X & (\<forall>F G. F ok G --> (F \<in> X & G \<in> X) = (F Join G \<in> X))"
+      SKIP \<in> X & (\<forall>F G. F ok G --> (F \<in> X & G \<in> X) = (F\<squnion>G \<in> X))"
 
   guar :: "['a program set, 'a program set] => 'a program set"
           (infixl "guarantees" 55)  (*higher than membership, lower than Co*)
-   "X guarantees Y == {F. \<forall>G. F ok G --> F Join G \<in> X --> F Join G \<in> Y}"
+   "X guarantees Y == {F. \<forall>G. F ok G --> F\<squnion>G \<in> X --> F\<squnion>G \<in> Y}"
   
 
   (* Weakest guarantees *)
@@ -64,8 +64,8 @@ constdefs
   refines :: "['a program, 'a program, 'a program set] => bool"
 			("(3_ refines _ wrt _)" [10,10,10] 10)
   "G refines F wrt X ==
-     \<forall>H. (F ok H  & G ok H & F Join H \<in> welldef \<inter> X) --> 
-         (G Join H \<in> welldef \<inter> X)"
+     \<forall>H. (F ok H  & G ok H & F\<squnion>H \<in> welldef \<inter> X) --> 
+         (G\<squnion>H \<in> welldef \<inter> X)"
 
   iso_refines :: "['a program, 'a program, 'a program set] => bool"
                               ("(3_ iso'_refines _ wrt _)" [10,10,10] 10)
@@ -146,19 +146,19 @@ by (blast intro: uv1 uv2)
 (*** guarantees ***)
 
 lemma guaranteesI:
-     "(!!G. [| F ok G; F Join G \<in> X |] ==> F Join G \<in> Y)  
+     "(!!G. [| F ok G; F\<squnion>G \<in> X |] ==> F\<squnion>G \<in> Y)  
       ==> F \<in> X guarantees Y"
 by (simp add: guar_def component_def)
 
 lemma guaranteesD: 
-     "[| F \<in> X guarantees Y;  F ok G;  F Join G \<in> X |]  
-      ==> F Join G \<in> Y"
+     "[| F \<in> X guarantees Y;  F ok G;  F\<squnion>G \<in> X |]  
+      ==> F\<squnion>G \<in> Y"
 by (unfold guar_def component_def, blast)
 
 (*This version of guaranteesD matches more easily in the conclusion
   The major premise can no longer be  F \<subseteq> H since we need to reason about G*)
 lemma component_guaranteesD: 
-     "[| F \<in> X guarantees Y;  F Join G = H;  H \<in> X;  F ok G |]  
+     "[| F \<in> X guarantees Y;  F\<squnion>G = H;  H \<in> X;  F ok G |]  
       ==> H \<in> Y"
 by (unfold guar_def, blast)
 
@@ -263,24 +263,24 @@ by (unfold guar_def, blast)
 
 lemma guarantees_Join_Int: 
     "[| F \<in> U guarantees V;  G \<in> X guarantees Y; F ok G |]  
-     ==> F Join G \<in> (U \<inter> X) guarantees (V \<inter> Y)"
+     ==> F\<squnion>G \<in> (U \<inter> X) guarantees (V \<inter> Y)"
 apply (unfold guar_def)
 apply (simp (no_asm))
 apply safe
 apply (simp add: Join_assoc)
-apply (subgoal_tac "F Join G Join Ga = G Join (F Join Ga) ")
+apply (subgoal_tac "F\<squnion>G\<squnion>Ga = G\<squnion>(F\<squnion>Ga) ")
 apply (simp add: ok_commute)
 apply (simp (no_asm_simp) add: Join_ac)
 done
 
 lemma guarantees_Join_Un: 
     "[| F \<in> U guarantees V;  G \<in> X guarantees Y; F ok G |]   
-     ==> F Join G \<in> (U \<union> X) guarantees (V \<union> Y)"
+     ==> F\<squnion>G \<in> (U \<union> X) guarantees (V \<union> Y)"
 apply (unfold guar_def)
 apply (simp (no_asm))
 apply safe
 apply (simp add: Join_assoc)
-apply (subgoal_tac "F Join G Join Ga = G Join (F Join Ga) ")
+apply (subgoal_tac "F\<squnion>G\<squnion>Ga = G\<squnion>(F\<squnion>Ga) ")
 apply (simp add: ok_commute)
 apply (simp (no_asm_simp) add: Join_ac)
 done
@@ -291,7 +291,7 @@ lemma guarantees_JN_INT:
 apply (unfold guar_def, auto)
 apply (drule bspec, assumption)
 apply (rename_tac "i")
-apply (drule_tac x = "JOIN (I-{i}) F Join G" in spec)
+apply (drule_tac x = "JOIN (I-{i}) F\<squnion>G" in spec)
 apply (auto intro: OK_imp_ok
             simp add: Join_assoc [symmetric] JN_Join_diff JN_absorb)
 done
@@ -302,7 +302,7 @@ lemma guarantees_JN_UN:
 apply (unfold guar_def, auto)
 apply (drule bspec, assumption)
 apply (rename_tac "i")
-apply (drule_tac x = "JOIN (I-{i}) F Join G" in spec)
+apply (drule_tac x = "JOIN (I-{i}) F\<squnion>G" in spec)
 apply (auto intro: OK_imp_ok
             simp add: Join_assoc [symmetric] JN_Join_diff JN_absorb)
 done
@@ -311,7 +311,7 @@ done
 (*** guarantees laws for breaking down the program, by lcp ***)
 
 lemma guarantees_Join_I1: 
-     "[| F \<in> X guarantees Y;  F ok G |] ==> F Join G \<in> X guarantees Y"
+     "[| F \<in> X guarantees Y;  F ok G |] ==> F\<squnion>G \<in> X guarantees Y"
 apply (unfold guar_def)
 apply (simp (no_asm))
 apply safe
@@ -319,7 +319,7 @@ apply (simp add: Join_assoc)
 done
 
 lemma guarantees_Join_I2:
-     "[| G \<in> X guarantees Y;  F ok G |] ==> F Join G \<in> X guarantees Y"
+     "[| G \<in> X guarantees Y;  F ok G |] ==> F\<squnion>G \<in> X guarantees Y"
 apply (simp add: Join_commute [of _ G] ok_commute [of _ G])
 apply (blast intro: guarantees_Join_I1)
 done
@@ -328,17 +328,17 @@ lemma guarantees_JN_I:
      "[| i \<in> I;  F i \<in> X guarantees Y;  OK I F |]  
       ==> (\<Squnion>i \<in> I. (F i)) \<in> X guarantees Y"
 apply (unfold guar_def, clarify)
-apply (drule_tac x = "JOIN (I-{i}) F Join G" in spec)
+apply (drule_tac x = "JOIN (I-{i}) F\<squnion>G" in spec)
 apply (auto intro: OK_imp_ok simp add: JN_Join_diff JN_Join_diff Join_assoc [symmetric])
 done
 
 
 (*** well-definedness ***)
 
-lemma Join_welldef_D1: "F Join G \<in> welldef ==> F \<in> welldef"
+lemma Join_welldef_D1: "F\<squnion>G \<in> welldef ==> F \<in> welldef"
 by (unfold welldef_def, auto)
 
-lemma Join_welldef_D2: "F Join G \<in> welldef ==> G \<in> welldef"
+lemma Join_welldef_D2: "F\<squnion>G \<in> welldef ==> G \<in> welldef"
 by (unfold welldef_def, auto)
 
 (*** refinement ***)
@@ -356,13 +356,13 @@ qed "refines_trans"; *)
 
 lemma strict_ex_refine_lemma: 
      "strict_ex_prop X  
-      ==> (\<forall>H. F ok H & G ok H & F Join H \<in> X --> G Join H \<in> X)  
+      ==> (\<forall>H. F ok H & G ok H & F\<squnion>H \<in> X --> G\<squnion>H \<in> X)  
               = (F \<in> X --> G \<in> X)"
 by (unfold strict_ex_prop_def, auto)
 
 lemma strict_ex_refine_lemma_v: 
      "strict_ex_prop X  
-      ==> (\<forall>H. F ok H & G ok H & F Join H \<in> welldef & F Join H \<in> X --> G Join H \<in> X) =  
+      ==> (\<forall>H. F ok H & G ok H & F\<squnion>H \<in> welldef & F\<squnion>H \<in> X --> G\<squnion>H \<in> X) =  
           (F \<in> welldef \<inter> X --> G \<in> X)"
 apply (unfold strict_ex_prop_def, safe)
 apply (erule_tac x = SKIP and P = "%H. ?PP H --> ?RR H" in allE)
@@ -371,7 +371,7 @@ done
 
 lemma ex_refinement_thm:
      "[| strict_ex_prop X;   
-         \<forall>H. F ok H & G ok H & F Join H \<in> welldef \<inter> X --> G Join H \<in> welldef |]  
+         \<forall>H. F ok H & G ok H & F\<squnion>H \<in> welldef \<inter> X --> G\<squnion>H \<in> welldef |]  
       ==> (G refines F wrt X) = (G iso_refines F wrt X)"
 apply (rule_tac x = SKIP in allE, assumption)
 apply (simp add: refines_def iso_refines_def strict_ex_refine_lemma_v)
@@ -380,12 +380,12 @@ done
 
 lemma strict_uv_refine_lemma: 
      "strict_uv_prop X ==> 
-      (\<forall>H. F ok H & G ok H & F Join H \<in> X --> G Join H \<in> X) = (F \<in> X --> G \<in> X)"
+      (\<forall>H. F ok H & G ok H & F\<squnion>H \<in> X --> G\<squnion>H \<in> X) = (F \<in> X --> G \<in> X)"
 by (unfold strict_uv_prop_def, blast)
 
 lemma strict_uv_refine_lemma_v: 
      "strict_uv_prop X  
-      ==> (\<forall>H. F ok H & G ok H & F Join H \<in> welldef & F Join H \<in> X --> G Join H \<in> X) =  
+      ==> (\<forall>H. F ok H & G ok H & F\<squnion>H \<in> welldef & F\<squnion>H \<in> X --> G\<squnion>H \<in> X) =  
           (F \<in> welldef \<inter> X --> G \<in> X)"
 apply (unfold strict_uv_prop_def, safe)
 apply (erule_tac x = SKIP and P = "%H. ?PP H --> ?RR H" in allE)
@@ -394,8 +394,8 @@ done
 
 lemma uv_refinement_thm:
      "[| strict_uv_prop X;   
-         \<forall>H. F ok H & G ok H & F Join H \<in> welldef \<inter> X --> 
-             G Join H \<in> welldef |]  
+         \<forall>H. F ok H & G ok H & F\<squnion>H \<in> welldef \<inter> X --> 
+             G\<squnion>H \<in> welldef |]  
       ==> (G refines F wrt X) = (G iso_refines F wrt X)"
 apply (rule_tac x = SKIP in allE, assumption)
 apply (simp add: refines_def iso_refines_def strict_uv_refine_lemma_v)
@@ -458,15 +458,15 @@ lemma wx_weakest: "\<forall>Z. Z<= X --> ex_prop Z --> Z \<subseteq> wx X"
 by (unfold wx_def, auto)
 
 (* Proposition 6 *)
-lemma wx'_ex_prop: "ex_prop({F. \<forall>G. F ok G --> F Join G \<in> X})"
+lemma wx'_ex_prop: "ex_prop({F. \<forall>G. F ok G --> F\<squnion>G \<in> X})"
 apply (unfold ex_prop_def, safe)
-apply (drule_tac x = "G Join Ga" in spec)
+apply (drule_tac x = "G\<squnion>Ga" in spec)
 apply (force simp add: ok_Join_iff1 Join_assoc)
-apply (drule_tac x = "F Join Ga" in spec)
+apply (drule_tac x = "F\<squnion>Ga" in spec)
 apply (simp (no_asm_use) add: ok_Join_iff1)
 apply safe
 apply (simp (no_asm_simp) add: ok_commute)
-apply (subgoal_tac "F Join G = G Join F")
+apply (subgoal_tac "F\<squnion>G = G\<squnion>F")
 apply (simp (no_asm_simp) add: Join_assoc)
 apply (simp (no_asm) add: Join_commute)
 done
@@ -474,15 +474,15 @@ done
 (* Equivalence with the other definition of wx *)
 
 lemma wx_equiv: 
- "wx X = {F. \<forall>G. F ok G --> (F Join G):X}"
+ "wx X = {F. \<forall>G. F ok G --> (F\<squnion>G):X}"
 
 apply (unfold wx_def, safe)
 apply (simp (no_asm_use) add: ex_prop_def)
 apply (drule_tac x = x in spec)
 apply (drule_tac x = G in spec)
-apply (frule_tac c = "x Join G" in subsetD, safe)
+apply (frule_tac c = "x\<squnion>G" in subsetD, safe)
 apply (simp (no_asm))
-apply (rule_tac x = "{F. \<forall>G. F ok G --> F Join G \<in> X}" in exI, safe)
+apply (rule_tac x = "{F. \<forall>G. F ok G --> F\<squnion>G \<in> X}" in exI, safe)
 apply (rule_tac [2] wx'_ex_prop)
 apply (rotate_tac 1)
 apply (drule_tac x = SKIP in spec, auto)

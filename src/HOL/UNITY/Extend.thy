@@ -429,7 +429,7 @@ apply (rule extend_inverse)
 done
 
 lemma (in Extend) extend_Join [simp]:
-     "extend h (F Join G) = extend h F Join extend h G"
+     "extend h (F\<squnion>G) = extend h F\<squnion>extend h G"
 apply (rule program_equalityI)
 apply (simp (no_asm) add: extend_set_Int_distrib)
 apply (simp add: image_Un, auto)
@@ -679,14 +679,14 @@ by (auto simp add: preserves_def extend_def extend_act_def stable_def
 subsection{*Guarantees*}
 
 lemma (in Extend) project_extend_Join:
-     "project h UNIV ((extend h F) Join G) = F Join (project h UNIV G)"
+     "project h UNIV ((extend h F)\<squnion>G) = F\<squnion>(project h UNIV G)"
 apply (rule program_equalityI)
   apply (simp add: project_set_extend_set_Int)
  apply (simp add: image_eq_UN UN_Un, auto)
 done
 
 lemma (in Extend) extend_Join_eq_extend_D:
-     "(extend h F) Join G = extend h H ==> H = F Join (project h UNIV G)"
+     "(extend h F)\<squnion>G = extend h H ==> H = F\<squnion>(project h UNIV G)"
 apply (drule_tac f = "project h UNIV" in arg_cong)
 apply (simp add: project_extend_Join)
 done

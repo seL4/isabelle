@@ -46,10 +46,10 @@ translations
   "JN x. B"     == "JOIN UNIV (%x. B)"
 
 syntax (xsymbols)
-  SKIP      :: "'a program"                              ("\<bottom>")
-  "op Join" :: "['a program, 'a program] => 'a program"  (infixl "\<squnion>" 65)
-  "@JOIN1"  :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion> _./ _)" 10)
-  "@JOIN"   :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion> _\<in>_./ _)" 10)
+  SKIP     :: "'a program"                              ("\<bottom>")
+  Join     :: "['a program, 'a program] => 'a program"  (infixl "\<squnion>" 65)
+  "@JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion> _./ _)" 10)
+  "@JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion> _\<in>_./ _)" 10)
 
 
 subsection{*SKIP*}
@@ -82,14 +82,14 @@ declare SKIP_in_stable [THEN stable_imp_Stable, iff]
 
 subsection{*Join*}
 
-lemma Init_Join [simp]: "Init (F Join G) = Init F \<inter> Init G"
+lemma Init_Join [simp]: "Init (F\<squnion>G) = Init F \<inter> Init G"
 by (simp add: Join_def)
 
-lemma Acts_Join [simp]: "Acts (F Join G) = Acts F \<union> Acts G"
+lemma Acts_Join [simp]: "Acts (F\<squnion>G) = Acts F \<union> Acts G"
 by (auto simp add: Join_def)
 
 lemma AllowedActs_Join [simp]:
-     "AllowedActs (F Join G) = AllowedActs F \<inter> AllowedActs G"
+     "AllowedActs (F\<squnion>G) = AllowedActs F \<inter> AllowedActs G"
 by (auto simp add: Join_def)
 
 
@@ -98,7 +98,7 @@ subsection{*JN*}
 lemma JN_empty [simp]: "(\<Squnion>i\<in>{}. F i) = SKIP"
 by (unfold JOIN_def SKIP_def, auto)
 
-lemma JN_insert [simp]: "(\<Squnion>i \<in> insert a I. F i) = (F a) Join (\<Squnion>i \<in> I. F i)"
+lemma JN_insert [simp]: "(\<Squnion>i \<in> insert a I. F i) = (F a)\<squnion>(\<Squnion>i \<in> I. F i)"
 apply (rule program_equalityI)
 apply (auto simp add: JOIN_def Join_def)
 done
@@ -121,33 +121,33 @@ by (simp add: JOIN_def)
 
 subsection{*Algebraic laws*}
 
-lemma Join_commute: "F Join G = G Join F"
+lemma Join_commute: "F\<squnion>G = G\<squnion>F"
 by (simp add: Join_def Un_commute Int_commute)
 
-lemma Join_assoc: "(F Join G) Join H = F Join (G Join H)"
+lemma Join_assoc: "(F\<squnion>G)\<squnion>H = F\<squnion>(G\<squnion>H)"
 by (simp add: Un_ac Join_def Int_assoc insert_absorb)
  
-lemma Join_left_commute: "A Join (B Join C) = B Join (A Join C)"
+lemma Join_left_commute: "A\<squnion>(B\<squnion>C) = B\<squnion>(A\<squnion>C)"
 by (simp add: Un_ac Int_ac Join_def insert_absorb)
 
-lemma Join_SKIP_left [simp]: "SKIP Join F = F"
+lemma Join_SKIP_left [simp]: "SKIP\<squnion>F = F"
 apply (unfold Join_def SKIP_def)
 apply (rule program_equalityI)
 apply (simp_all (no_asm) add: insert_absorb)
 done
 
-lemma Join_SKIP_right [simp]: "F Join SKIP = F"
+lemma Join_SKIP_right [simp]: "F\<squnion>SKIP = F"
 apply (unfold Join_def SKIP_def)
 apply (rule program_equalityI)
 apply (simp_all (no_asm) add: insert_absorb)
 done
 
-lemma Join_absorb [simp]: "F Join F = F"
+lemma Join_absorb [simp]: "F\<squnion>F = F"
 apply (unfold Join_def)
 apply (rule program_equalityI, auto)
 done
 
-lemma Join_left_absorb: "F Join (F Join G) = F Join G"
+lemma Join_left_absorb: "F\<squnion>(F\<squnion>G) = F\<squnion>G"
 apply (unfold Join_def)
 apply (rule program_equalityI, auto)
 done
@@ -159,25 +159,25 @@ lemmas Join_ac = Join_assoc Join_left_absorb Join_commute Join_left_commute
 subsection{*\<Squnion>laws*}
 
 (*Also follows by JN_insert and insert_absorb, but the proof is longer*)
-lemma JN_absorb: "k \<in> I ==> F k Join (\<Squnion>i \<in> I. F i) = (\<Squnion>i \<in> I. F i)"
+lemma JN_absorb: "k \<in> I ==> F k\<squnion>(\<Squnion>i \<in> I. F i) = (\<Squnion>i \<in> I. F i)"
 by (auto intro!: program_equalityI)
 
-lemma JN_Un: "(\<Squnion>i \<in> I \<union> J. F i) = ((\<Squnion>i \<in> I. F i) Join (\<Squnion>i \<in> J. F i))"
+lemma JN_Un: "(\<Squnion>i \<in> I \<union> J. F i) = ((\<Squnion>i \<in> I. F i)\<squnion>(\<Squnion>i \<in> J. F i))"
 by (auto intro!: program_equalityI)
 
 lemma JN_constant: "(\<Squnion>i \<in> I. c) = (if I={} then SKIP else c)"
 by (rule program_equalityI, auto)
 
 lemma JN_Join_distrib:
-     "(\<Squnion>i \<in> I. F i Join G i) = (\<Squnion>i \<in> I. F i)  Join  (\<Squnion>i \<in> I. G i)"
+     "(\<Squnion>i \<in> I. F i\<squnion>G i) = (\<Squnion>i \<in> I. F i) \<squnion> (\<Squnion>i \<in> I. G i)"
 by (auto intro!: program_equalityI)
 
 lemma JN_Join_miniscope:
-     "i \<in> I ==> (\<Squnion>i \<in> I. F i Join G) = ((\<Squnion>i \<in> I. F i) Join G)"
+     "i \<in> I ==> (\<Squnion>i \<in> I. F i\<squnion>G) = ((\<Squnion>i \<in> I. F i)\<squnion>G)"
 by (auto simp add: JN_Join_distrib JN_constant)
 
 (*Used to prove guarantees_JN_I*)
-lemma JN_Join_diff: "i \<in> I ==> F i Join JOIN (I - {i}) F = JOIN I F"
+lemma JN_Join_diff: "i \<in> I ==> F i\<squnion>JOIN (I - {i}) F = JOIN I F"
 apply (unfold JOIN_def Join_def)
 apply (rule program_equalityI, auto)
 done
@@ -193,21 +193,21 @@ lemma JN_constrains:
 by (simp add: constrains_def JOIN_def, blast)
 
 lemma Join_constrains [simp]:
-     "(F Join G \<in> A co B) = (F \<in> A co B & G \<in> A co B)"
+     "(F\<squnion>G \<in> A co B) = (F \<in> A co B & G \<in> A co B)"
 by (auto simp add: constrains_def Join_def)
 
 lemma Join_unless [simp]:
-     "(F Join G \<in> A unless B) = (F \<in> A unless B & G \<in> A unless B)"
+     "(F\<squnion>G \<in> A unless B) = (F \<in> A unless B & G \<in> A unless B)"
 by (simp add: Join_constrains unless_def)
 
 (*Analogous weak versions FAIL; see Misra [1994] 5.4.1, Substitution Axiom.
-  reachable (F Join G) could be much bigger than reachable F, reachable G
+  reachable (F\<squnion>G) could be much bigger than reachable F, reachable G
 *)
 
 
 lemma Join_constrains_weaken:
      "[| F \<in> A co A';  G \<in> B co B' |]  
-      ==> F Join G \<in> (A \<inter> B) co (A' \<union> B')"
+      ==> F\<squnion>G \<in> (A \<inter> B) co (A' \<union> B')"
 by (simp, blast intro: constrains_weaken)
 
 (*If I={}, it degenerates to SKIP \<in> UNIV co {}, which is false.*)
@@ -227,18 +227,18 @@ lemma invariant_JN_I:
 by (simp add: invariant_def JN_stable, blast)
 
 lemma Join_stable [simp]:
-     "(F Join G \<in> stable A) =  
+     "(F\<squnion>G \<in> stable A) =  
       (F \<in> stable A & G \<in> stable A)"
 by (simp add: stable_def)
 
 lemma Join_increasing [simp]:
-     "(F Join G \<in> increasing f) =  
+     "(F\<squnion>G \<in> increasing f) =  
       (F \<in> increasing f & G \<in> increasing f)"
 by (simp add: increasing_def Join_stable, blast)
 
 lemma invariant_JoinI:
      "[| F \<in> invariant A; G \<in> invariant A |]   
-      ==> F Join G \<in> invariant A"
+      ==> F\<squnion>G \<in> invariant A"
 by (simp add: invariant_def, blast)
 
 lemma FP_JN: "FP (\<Squnion>i \<in> I. F i) = (\<Inter>i \<in> I. FP (F i))"
@@ -253,14 +253,14 @@ lemma JN_transient:
 by (auto simp add: transient_def JOIN_def)
 
 lemma Join_transient [simp]:
-     "F Join G \<in> transient A =  
+     "F\<squnion>G \<in> transient A =  
       (F \<in> transient A | G \<in> transient A)"
 by (auto simp add: bex_Un transient_def Join_def)
 
-lemma Join_transient_I1: "F \<in> transient A ==> F Join G \<in> transient A"
+lemma Join_transient_I1: "F \<in> transient A ==> F\<squnion>G \<in> transient A"
 by (simp add: Join_transient)
 
-lemma Join_transient_I2: "G \<in> transient A ==> F Join G \<in> transient A"
+lemma Join_transient_I2: "G \<in> transient A ==> F\<squnion>G \<in> transient A"
 by (simp add: Join_transient)
 
 (*If I={} it degenerates to (SKIP \<in> A ensures B) = False, i.e. to ~(A \<subseteq> B) *)
@@ -271,14 +271,14 @@ lemma JN_ensures:
 by (auto simp add: ensures_def JN_constrains JN_transient)
 
 lemma Join_ensures: 
-     "F Join G \<in> A ensures B =      
+     "F\<squnion>G \<in> A ensures B =      
       (F \<in> (A-B) co (A \<union> B) & G \<in> (A-B) co (A \<union> B) &  
        (F \<in> transient (A-B) | G \<in> transient (A-B)))"
 by (auto simp add: ensures_def Join_transient)
 
 lemma stable_Join_constrains: 
     "[| F \<in> stable A;  G \<in> A co A' |]  
-     ==> F Join G \<in> A co A'"
+     ==> F\<squnion>G \<in> A co A'"
 apply (unfold stable_def constrains_def Join_def)
 apply (simp add: ball_Un, blast)
 done
@@ -286,20 +286,20 @@ done
 (*Premise for G cannot use Always because  F \<in> Stable A  is weaker than
   G \<in> stable A *)
 lemma stable_Join_Always1:
-     "[| F \<in> stable A;  G \<in> invariant A |] ==> F Join G \<in> Always A"
+     "[| F \<in> stable A;  G \<in> invariant A |] ==> F\<squnion>G \<in> Always A"
 apply (simp (no_asm_use) add: Always_def invariant_def Stable_eq_stable)
 apply (force intro: stable_Int)
 done
 
 (*As above, but exchanging the roles of F and G*)
 lemma stable_Join_Always2:
-     "[| F \<in> invariant A;  G \<in> stable A |] ==> F Join G \<in> Always A"
+     "[| F \<in> invariant A;  G \<in> stable A |] ==> F\<squnion>G \<in> Always A"
 apply (subst Join_commute)
 apply (blast intro: stable_Join_Always1)
 done
 
 lemma stable_Join_ensures1:
-     "[| F \<in> stable A;  G \<in> A ensures B |] ==> F Join G \<in> A ensures B"
+     "[| F \<in> stable A;  G \<in> A ensures B |] ==> F\<squnion>G \<in> A ensures B"
 apply (simp (no_asm_simp) add: Join_ensures)
 apply (simp add: stable_def ensures_def)
 apply (erule constrains_weaken, auto)
@@ -307,7 +307,7 @@ done
 
 (*As above, but exchanging the roles of F and G*)
 lemma stable_Join_ensures2:
-     "[| F \<in> A ensures B;  G \<in> stable A |] ==> F Join G \<in> A ensures B"
+     "[| F \<in> A ensures B;  G \<in> stable A |] ==> F\<squnion>G \<in> A ensures B"
 apply (subst Join_commute)
 apply (blast intro: stable_Join_ensures1)
 done
@@ -322,7 +322,7 @@ lemma ok_SKIP2 [iff]: "F ok SKIP"
 by (simp add: ok_def)
 
 lemma ok_Join_commute:
-     "(F ok G & (F Join G) ok H) = (G ok H & F ok (G Join H))"
+     "(F ok G & (F\<squnion>G) ok H) = (G ok H & F ok (G\<squnion>H))"
 by (auto simp add: ok_def)
 
 lemma ok_commute: "(F ok G) = (G ok F)"
@@ -331,18 +331,18 @@ by (auto simp add: ok_def)
 lemmas ok_sym = ok_commute [THEN iffD1, standard]
 
 lemma ok_iff_OK:
-     "OK {(0::int,F),(1,G),(2,H)} snd = (F ok G & (F Join G) ok H)"
+     "OK {(0::int,F),(1,G),(2,H)} snd = (F ok G & (F\<squnion>G) ok H)"
 by (simp add: Ball_def conj_disj_distribR ok_def Join_def OK_def insert_absorb
               all_conj_distrib eq_commute,   blast)
 
-lemma ok_Join_iff1 [iff]: "F ok (G Join H) = (F ok G & F ok H)"
+lemma ok_Join_iff1 [iff]: "F ok (G\<squnion>H) = (F ok G & F ok H)"
 by (auto simp add: ok_def)
 
-lemma ok_Join_iff2 [iff]: "(G Join H) ok F = (G ok F & H ok F)"
+lemma ok_Join_iff2 [iff]: "(G\<squnion>H) ok F = (G ok F & H ok F)"
 by (auto simp add: ok_def)
 
 (*useful?  Not with the previous two around*)
-lemma ok_Join_commute_I: "[| F ok G; (F Join G) ok H |] ==> F ok (G Join H)"
+lemma ok_Join_commute_I: "[| F ok G; (F\<squnion>G) ok H |] ==> F ok (G\<squnion>H)"
 by (auto simp add: ok_def)
 
 lemma ok_JN_iff1 [iff]: "F ok (JOIN I G) = (\<forall>i \<in> I. F ok G i)"
@@ -363,7 +363,7 @@ subsection{*Allowed*}
 lemma Allowed_SKIP [simp]: "Allowed SKIP = UNIV"
 by (auto simp add: Allowed_def)
 
-lemma Allowed_Join [simp]: "Allowed (F Join G) = Allowed F \<inter> Allowed G"
+lemma Allowed_Join [simp]: "Allowed (F\<squnion>G) = Allowed F \<inter> Allowed G"
 by (auto simp add: Allowed_def)
 
 lemma Allowed_JN [simp]: "Allowed (JOIN I F) = (\<Inter>i \<in> I. Allowed (F i))"
@@ -428,10 +428,10 @@ lemma def_UNION_ok_iff:
 by (auto simp add: ok_def safety_prop_Acts_iff)
 
 text{*The union of two total programs is total.*}
-lemma totalize_Join: "totalize F Join totalize G = totalize (F Join G)"
+lemma totalize_Join: "totalize F\<squnion>totalize G = totalize (F\<squnion>G)"
 by (simp add: program_equalityI totalize_def Join_def image_Un)
 
-lemma all_total_Join: "[|all_total F; all_total G|] ==> all_total (F Join G)"
+lemma all_total_Join: "[|all_total F; all_total G|] ==> all_total (F\<squnion>G)"
 by (simp add: all_total_def, blast)
 
 lemma totalize_JN: "(\<Squnion>i \<in> I. totalize (F i)) = totalize(\<Squnion>i \<in> I. F i)"

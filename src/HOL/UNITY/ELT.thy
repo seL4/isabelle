@@ -127,8 +127,7 @@ done
 (*Useful with cancellation, disjunction*)
 lemma leadsETo_Un_duplicate:
      "F : A leadsTo[CC] (A' Un A') ==> F : A leadsTo[CC] A'"
-apply (simp add: Un_ac)
-done
+by (simp add: Un_ac)
 
 lemma leadsETo_Un_duplicate2:
      "F : A leadsTo[CC] (A' Un C Un C) ==> F : A leadsTo[CC] (A' Un C)"
@@ -195,12 +194,12 @@ done
 
 lemma single_leadsETo_I:
      "(!!x. x : A ==> F : {x} leadsTo[CC] B) ==> F : A leadsTo[CC] B"
-apply (subst UN_singleton [symmetric], rule leadsETo_UN, blast)
-done
+by (subst UN_singleton [symmetric], rule leadsETo_UN, blast)
 
 
 lemma subset_imp_leadsETo: "A<=B ==> F : A leadsTo[CC] B"
-by (simp add: subset_imp_ensures [THEN leadsETo_Basis] Diff_eq_empty_iff [THEN iffD2])
+by (simp add: subset_imp_ensures [THEN leadsETo_Basis] 
+              Diff_eq_empty_iff [THEN iffD2])
 
 lemmas empty_leadsETo = empty_subsetI [THEN subset_imp_leadsETo, simp]
 
@@ -210,37 +209,33 @@ lemmas empty_leadsETo = empty_subsetI [THEN subset_imp_leadsETo, simp]
 
 lemma leadsETo_weaken_R:
      "[| F : A leadsTo[CC] A';  A'<=B' |] ==> F : A leadsTo[CC] B'"
-apply (blast intro: subset_imp_leadsETo leadsETo_Trans)
-done
+by (blast intro: subset_imp_leadsETo leadsETo_Trans)
 
 lemma leadsETo_weaken_L [rule_format]:
      "[| F : A leadsTo[CC] A'; B<=A |] ==> F : B leadsTo[CC] A'"
-apply (blast intro: leadsETo_Trans subset_imp_leadsETo)
-done
+by (blast intro: leadsETo_Trans subset_imp_leadsETo)
 
 (*Distributes over binary unions*)
 lemma leadsETo_Un_distrib:
      "F : (A Un B) leadsTo[CC] C  =   
       (F : A leadsTo[CC] C & F : B leadsTo[CC] C)"
-apply (blast intro: leadsETo_Un leadsETo_weaken_L)
-done
+by (blast intro: leadsETo_Un leadsETo_weaken_L)
 
 lemma leadsETo_UN_distrib:
      "F : (UN i:I. A i) leadsTo[CC] B  =   
       (ALL i : I. F : (A i) leadsTo[CC] B)"
-apply (blast intro: leadsETo_UN leadsETo_weaken_L)
-done
+by (blast intro: leadsETo_UN leadsETo_weaken_L)
 
 lemma leadsETo_Union_distrib:
      "F : (Union S) leadsTo[CC] B  =  (ALL A : S. F : A leadsTo[CC] B)"
-apply (blast intro: leadsETo_Union leadsETo_weaken_L)
-done
+by (blast intro: leadsETo_Union leadsETo_weaken_L)
 
 lemma leadsETo_weaken:
      "[| F : A leadsTo[CC'] A'; B<=A; A'<=B';  CC' <= CC |]  
       ==> F : B leadsTo[CC] B'"
 apply (drule leadsETo_mono [THEN subsetD], assumption)
-apply (blast del: subsetCE intro: leadsETo_weaken_R leadsETo_weaken_L leadsETo_Trans)
+apply (blast del: subsetCE 
+             intro: leadsETo_weaken_R leadsETo_weaken_L leadsETo_Trans)
 done
 
 lemma leadsETo_givenBy:
@@ -286,7 +281,6 @@ apply simp_all
 done
 
 
-
 (** PSP: Progress-Safety-Progress **)
 
 (*Special case of PSP: Misra's "stable conjunction"*)
@@ -299,7 +293,8 @@ prefer 3 apply (blast intro: leadsETo_Union_Int)
 prefer 2 apply (blast intro: leadsETo_Trans)
 apply (rule leadsETo_Basis)
 prefer 2 apply (force simp add: Diff_Int_distrib2 [symmetric])
-apply (simp add: ensures_def Diff_Int_distrib2 [symmetric] Int_Un_distrib2 [symmetric])
+apply (simp add: ensures_def Diff_Int_distrib2 [symmetric] 
+                 Int_Un_distrib2 [symmetric])
 apply (blast intro: transient_strengthen constrains_Int)
 done
 
@@ -339,8 +334,8 @@ by (simp add: e_psp Int_ac)
 (*??IS THIS NEEDED?? or is it just an example of what's provable??*)
 lemma gen_leadsETo_imp_Join_leadsETo:
      "[| F: (A leadsTo[givenBy v] B);  G : preserves v;   
-         F Join G : stable C |]  
-      ==> F Join G : ((C Int A) leadsTo[(%D. C Int D) ` givenBy v] B)"
+         F\<squnion>G : stable C |]  
+      ==> F\<squnion>G : ((C Int A) leadsTo[(%D. C Int D) ` givenBy v] B)"
 apply (erule leadsETo_induct)
   prefer 3
   apply (subst Int_Union) 
@@ -348,7 +343,8 @@ apply (erule leadsETo_induct)
 prefer 2
  apply (blast intro: e_psp_stable2 [THEN leadsETo_weaken_L] leadsETo_Trans)
 apply (rule leadsETo_Basis)
-apply (auto simp add: Diff_eq_empty_iff [THEN iffD2] Int_Diff ensures_def givenBy_eq_Collect Join_transient)
+apply (auto simp add: Diff_eq_empty_iff [THEN iffD2] 
+                      Int_Diff ensures_def givenBy_eq_Collect Join_transient)
 prefer 3 apply (blast intro: transient_strengthen)
 apply (drule_tac [2] P1 = P in preserves_subset_stable [THEN subsetD])
 apply (drule_tac P1 = P in preserves_subset_stable [THEN subsetD])
@@ -363,8 +359,8 @@ done
 lemma leadsETo_subset_leadsTo: "(A leadsTo[CC] B) <= (A leadsTo B)"
 apply safe
 apply (erule leadsETo_induct)
-prefer 3 apply (blast intro: leadsTo_Union)
-prefer 2 apply (blast intro: leadsTo_Trans, blast)
+  prefer 3 apply (blast intro: leadsTo_Union)
+ prefer 2 apply (blast intro: leadsTo_Trans, blast)
 done
 
 lemma leadsETo_UNIV_eq_leadsTo: "(A leadsTo[UNIV] B) = (A leadsTo B)"
@@ -372,8 +368,8 @@ apply safe
 apply (erule leadsETo_subset_leadsTo [THEN subsetD])
 (*right-to-left case*)
 apply (erule leadsTo_induct)
-prefer 3 apply (blast intro: leadsETo_Union)
-prefer 2 apply (blast intro: leadsETo_Trans, blast)
+  prefer 3 apply (blast intro: leadsETo_Union)
+ prefer 2 apply (blast intro: leadsETo_Trans, blast)
 done
 
 (**** weak ****)
@@ -420,8 +416,7 @@ done
 (*Lets us look at the starting state*)
 lemma single_LeadsETo_I:
      "(!!s. s : A ==> F : {s} LeadsTo[CC] B) ==> F : A LeadsTo[CC] B"
-apply (subst UN_singleton [symmetric], rule LeadsETo_UN, blast)
-done
+by (subst UN_singleton [symmetric], rule LeadsETo_UN, blast)
 
 lemma subset_imp_LeadsETo:
      "A <= B ==> F : A LeadsTo[CC] B"
@@ -482,10 +477,9 @@ done
 
 (**** EXTEND/PROJECT PROPERTIES ****)
 
-lemma (in Extend) givenBy_o_eq_extend_set: "givenBy (v o f) = extend_set h ` (givenBy v)"
-apply (simp (no_asm) add: givenBy_eq_Collect)
-apply best 
-done
+lemma (in Extend) givenBy_o_eq_extend_set:
+     "givenBy (v o f) = extend_set h ` (givenBy v)"
+by (simp add: givenBy_eq_Collect, best)
 
 lemma (in Extend) givenBy_eq_extend_set: "givenBy f = range (extend_set h)"
 apply (simp (no_asm) add: givenBy_eq_Collect)
@@ -515,9 +509,9 @@ done
 lemma (in Extend) Join_project_ensures_strong:
      "[| project h C G ~: transient (project_set h C Int (A-B)) |  
            project_set h C Int (A - B) = {};   
-         extend h F Join G : stable C;   
-         F Join project h C G : (project_set h C Int A) ensures B |]  
-      ==> extend h F Join G : (C Int extend_set h A) ensures (extend_set h B)"
+         extend h F\<squnion>G : stable C;   
+         F\<squnion>project h C G : (project_set h C Int A) ensures B |]  
+      ==> extend h F\<squnion>G : (C Int extend_set h A) ensures (extend_set h B)"
 apply (subst Int_extend_set_lemma [symmetric])
 apply (rule Join_project_ensures)
 apply (auto simp add: Int_Diff)
@@ -525,10 +519,10 @@ done
 
 (*NOT WORKING.  MODIFY AS IN Project.thy
 lemma (in Extend) pld_lemma:
-     "[| extend h F Join G : stable C;   
-         F Join project h C G : (project_set h C Int A) leadsTo[(%D. project_set h C Int D)`givenBy v] B;   
+     "[| extend h F\<squnion>G : stable C;   
+         F\<squnion>project h C G : (project_set h C Int A) leadsTo[(%D. project_set h C Int D)`givenBy v] B;   
          G : preserves (v o f) |]  
-      ==> extend h F Join G :  
+      ==> extend h F\<squnion>G :  
             (C Int extend_set h (project_set h C Int A))  
             leadsTo[(%D. C Int extend_set h D)`givenBy v]  (extend_set h B)"
 apply (erule leadsETo_induct)
@@ -548,21 +542,21 @@ apply (simp (no_asm_simp) add: stable_ensures_Int [THEN ensures_weaken_R] Int_lo
 done
 
 lemma (in Extend) project_leadsETo_D_lemma:
-     "[| extend h F Join G : stable C;   
-         F Join project h C G :  
+     "[| extend h F\<squnion>G : stable C;   
+         F\<squnion>project h C G :  
              (project_set h C Int A)  
              leadsTo[(%D. project_set h C Int D)`givenBy v] B;   
          G : preserves (v o f) |]  
-      ==> extend h F Join G : (C Int extend_set h A)  
+      ==> extend h F\<squnion>G : (C Int extend_set h A)  
             leadsTo[(%D. C Int extend_set h D)`givenBy v] (extend_set h B)"
 apply (rule pld_lemma [THEN leadsETo_weaken])
 apply (auto simp add: split_extended_all)
 done
 
 lemma (in Extend) project_leadsETo_D:
-     "[| F Join project h UNIV G : A leadsTo[givenBy v] B;   
+     "[| F\<squnion>project h UNIV G : A leadsTo[givenBy v] B;   
          G : preserves (v o f) |]   
-      ==> extend h F Join G : (extend_set h A)  
+      ==> extend h F\<squnion>G : (extend_set h A)  
             leadsTo[givenBy (v o f)] (extend_set h B)"
 apply (cut_tac project_leadsETo_D_lemma [of _ _ UNIV], auto) 
 apply (erule leadsETo_givenBy)
@@ -570,10 +564,10 @@ apply (rule givenBy_o_eq_extend_set [THEN equalityD2])
 done
 
 lemma (in Extend) project_LeadsETo_D:
-     "[| F Join project h (reachable (extend h F Join G)) G  
+     "[| F\<squnion>project h (reachable (extend h F\<squnion>G)) G  
              : A LeadsTo[givenBy v] B;   
          G : preserves (v o f) |]  
-      ==> extend h F Join G :  
+      ==> extend h F\<squnion>G :  
             (extend_set h A) LeadsTo[givenBy (v o f)] (extend_set h B)"
 apply (cut_tac subset_refl [THEN stable_reachable, THEN project_leadsETo_D_lemma])
 apply (auto simp add: LeadsETo_def)
@@ -593,7 +587,7 @@ done
 
 lemma (in Extend) extending_LeadsETo: 
      "(ALL G. extend h F ok G --> G : preserves (v o f))  
-      ==> extending (%G. reachable (extend h F Join G)) h F  
+      ==> extending (%G. reachable (extend h F\<squnion>G)) h F  
                 (extend_set h A LeadsTo[givenBy (v o f)] extend_set h B)  
                 (A LeadsTo[givenBy v]  B)"
 apply (unfold extending_def)
@@ -606,10 +600,10 @@ done
 
 (*Lemma for the Trans case*)
 lemma (in Extend) pli_lemma:
-     "[| extend h F Join G : stable C;     
-         F Join project h C G     
+     "[| extend h F\<squnion>G : stable C;     
+         F\<squnion>project h C G     
            : project_set h C Int project_set h A leadsTo project_set h B |]  
-      ==> F Join project h C G     
+      ==> F\<squnion>project h C G     
             : project_set h C Int project_set h A leadsTo     
               project_set h C Int project_set h B"
 apply (rule psp_stable2 [THEN leadsTo_weaken_L])
@@ -617,10 +611,10 @@ apply (auto simp add: project_stable_project_set extend_stable_project_set)
 done
 
 lemma (in Extend) project_leadsETo_I_lemma:
-     "[| extend h F Join G : stable C;   
-         extend h F Join G :  
+     "[| extend h F\<squnion>G : stable C;   
+         extend h F\<squnion>G :  
            (C Int A) leadsTo[(%D. C Int D)`givenBy f]  B |]   
-  ==> F Join project h C G   
+  ==> F\<squnion>project h C G   
     : (project_set h C Int project_set h (C Int A)) leadsTo (project_set h B)"
 apply (erule leadsETo_induct)
   prefer 3
@@ -633,14 +627,14 @@ apply (blast intro: ensures_extend_set_imp_project_ensures)
 done
 
 lemma (in Extend) project_leadsETo_I:
-     "extend h F Join G : (extend_set h A) leadsTo[givenBy f] (extend_set h B)
-      ==> F Join project h UNIV G : A leadsTo B"
+     "extend h F\<squnion>G : (extend_set h A) leadsTo[givenBy f] (extend_set h B)
+      ==> F\<squnion>project h UNIV G : A leadsTo B"
 apply (rule project_leadsETo_I_lemma [THEN leadsTo_weaken], auto)
 done
 
 lemma (in Extend) project_LeadsETo_I:
-     "extend h F Join G : (extend_set h A) LeadsTo[givenBy f] (extend_set h B) 
-      ==> F Join project h (reachable (extend h F Join G)) G   
+     "extend h F\<squnion>G : (extend_set h A) LeadsTo[givenBy f] (extend_set h B) 
+      ==> F\<squnion>project h (reachable (extend h F\<squnion>G)) G   
            : A LeadsTo B"
 apply (simp (no_asm_use) add: LeadsTo_def LeadsETo_def)
 apply (rule project_leadsETo_I_lemma [THEN leadsTo_weaken])
@@ -656,7 +650,7 @@ apply (force dest: project_leadsETo_I)
 done
 
 lemma (in Extend) projecting_LeadsTo: 
-     "projecting (%G. reachable (extend h F Join G)) h F  
+     "projecting (%G. reachable (extend h F\<squnion>G)) h F  
                  (extend_set h A LeadsTo[givenBy f] extend_set h B)  
                  (A LeadsTo B)"
 apply (unfold projecting_def)
