@@ -59,6 +59,8 @@ location;
   - 'induct' proper support for mutual induction involving non-atomic
     rule statements (uses the new concept of simultaneous goals, see
     below);
+  - append all possible rule selections, but only use the first
+    success (no backtracking);
   - removed obsolete "(simplified)" and "(stripped)" options of methods;
   - undeclared rule case names default to numbers 1, 2, 3, ...;
   - added 'print_induct_rules' (covered by help item in recent Proof
