@@ -27,23 +27,20 @@ typedef (Sum)
 (* abstract constants and syntax *)
 
 consts
-  Inl           :: "'a => 'a + 'b"
-  Inr           :: "'b => 'a + 'b"
-  sum_case      :: "['a => 'c, 'b => 'c, 'a + 'b] => 'c"
+  Inl            :: "'a => 'a + 'b"
+  Inr            :: "'b => 'a + 'b"
+  basic_sum_case :: "['a => 'c, 'b => 'c, 'a + 'b] => 'c"
 
   (*disjoint sum for sets; the operator + is overloaded with wrong type!*)
   Plus          :: "['a set, 'b set] => ('a + 'b) set"        (infixr 65)
   Part          :: ['a set, 'b => 'a] => 'a set
-
-translations
-  "case p of Inl x => a | Inr y => b" == "sum_case (%x. a) (%y. b) p"
 
 local
 
 defs
   Inl_def       "Inl == (%a. Abs_Sum(Inl_Rep(a)))"
   Inr_def       "Inr == (%b. Abs_Sum(Inr_Rep(b)))"
-  sum_case_def  "sum_case f g p == @z.  (!x. p=Inl(x) --> z=f(x))      
+  sum_case_def  "basic_sum_case f g p == @z.  (!x. p=Inl(x) --> z=f(x))      
                                       & (!y. p=Inr(y) --> z=g(y))"
 
   sum_def       "A Plus B == (Inl``A) Un (Inr``B)"

@@ -116,11 +116,11 @@ AddSEs [PlusE];
 
 (** sum_case -- the selection operator for sums **)
 
-Goalw [sum_case_def] "sum_case f g (Inl x) = f(x)";
+Goalw [sum_case_def] "basic_sum_case f g (Inl x) = f(x)";
 by (Blast_tac 1);
 qed "sum_case_Inl";
 
-Goalw [sum_case_def] "sum_case f g (Inr x) = g(x)";
+Goalw [sum_case_def] "basic_sum_case f g (Inr x) = g(x)";
 by (Blast_tac 1);
 qed "sum_case_Inr";
 
@@ -143,31 +143,31 @@ by (res_inst_tac [("s","x")] sumE 1);
 by (ALLGOALS (hyp_subst_tac THEN' (resolve_tac prems)));
 qed "sum_induct";
 
-Goal "sum_case (%x::'a. f(Inl x)) (%y::'b. f(Inr y)) s = f(s)";
+Goal "basic_sum_case (%x::'a. f(Inl x)) (%y::'b. f(Inr y)) s = f(s)";
 by (EVERY1 [res_inst_tac [("s","s")] sumE, 
             etac ssubst, rtac sum_case_Inl,
             etac ssubst, rtac sum_case_Inr]);
 qed "surjective_sum";
 
-Goal "R(sum_case f g s) = \
+Goal "R(basic_sum_case f g s) = \
 \             ((! x. s = Inl(x) --> R(f(x))) & (! y. s = Inr(y) --> R(g(y))))";
 by (res_inst_tac [("s","s")] sumE 1);
 by Auto_tac;
 qed "split_sum_case";
 
-Goal "P (sum_case f g s) = \
+Goal "P (basic_sum_case f g s) = \
 \     (~ ((? x. s = Inl x & ~P (f x)) | (? y. s = Inr y & ~P (g y))))";
 by (stac split_sum_case 1);
 by (Blast_tac 1);
 qed "split_sum_case_asm";
 
 (*Prevents simplification of f and g: much faster*)
-Goal "s=t ==> sum_case f g s = sum_case f g t";
+Goal "s=t ==> basic_sum_case f g s = basic_sum_case f g t";
 by (etac arg_cong 1);
 qed "sum_case_weak_cong";
 
 val [p1,p2] = Goal
-  "[| sum_case f1 f2 = sum_case g1 g2;  \
+  "[| basic_sum_case f1 f2 = basic_sum_case g1 g2;  \
 \     [| f1 = g1; f2 = g2 |] ==> P |] \
 \  ==> P";
 by (rtac p2 1);
