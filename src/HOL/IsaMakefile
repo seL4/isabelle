@@ -259,7 +259,7 @@ $(LOG)/HOL-AxClasses-Lattice.gz: $(OUT)/HOL AxClasses/Lattice/CLattice.ML \
   AxClasses/Lattice/Lattice.thy AxClasses/Lattice/OrdDefs.ML \
   AxClasses/Lattice/OrdDefs.thy AxClasses/Lattice/OrdInsts.thy \
   AxClasses/Lattice/Order.ML AxClasses/Lattice/Order.thy \
-  AxClasses/Lattice/ROOT.ML AxClasses/Lattice/tools.ML
+  AxClasses/Lattice/ROOT.ML
 	@$(ISATOOL) usedir -s AxClasses-Lattice $(OUT)/HOL AxClasses/Lattice
 
 

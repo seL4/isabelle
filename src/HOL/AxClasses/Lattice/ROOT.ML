@@ -12,8 +12,6 @@ reset eta_contract;
 set show_types;
 set show_sorts;
 
-use "tools.ML";
-
 use_thy "Order";
 use_thy "OrdDefs";
 use_thy "OrdInsts";
