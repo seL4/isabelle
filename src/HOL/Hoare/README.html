@@ -2,16 +2,16 @@
 
 <H2>Hoare Logic for a Simple WHILE Language</H2>
 
-<H1>The language and logic<H1>
+<H3>Language and logic</H3>
 
 This directory contains an implementation of Hoare logic for a simple WHILE
-language. The  are
+language. The constructs are
 <UL>
-<LI> SKIP
-<LI> _ := _
-<LI> _ ; _
-<LI> <kbd>IF _ THEN _ ELSE _ FI<kbd>
-<LI> WHILE _ INV {_} DO _ OD
+<LI> <kbd>SKIP</kbd>
+<LI> <kbd>_ := _</kbd>
+<LI> <kbd>_ ; _</kbd>
+<LI> <kbd>IF _ THEN _ ELSE _ FI</kbd>
+<LI> <kbd>WHILE _ INV {_} DO _ OD</kbd>
 </UL>
 Note that each WHILE-loop must be annotated with an invariant.
 <P>
@@ -21,31 +21,33 @@ After loading theory Hoare, you can state goals of the form
 |- VARS x y ... . {P} prog {Q}
 </PRE>
 where <kbd>prog</kbd> is a program in the above language, <kbd>P</kbd> is the
-precondition, <kbd>Q</kbd> the postcondition, and <kbd>x y ...<kbd> is the
+precondition, <kbd>Q</kbd> the postcondition, and <kbd>x y ...</kbd> is the
 list of all <i>program variables</i> in <kbd>prog</kbd>. The latter list must
 be nonempty and it must include all variables that occur on the left-hand
-side of an assignment in <kbd>prof</kbd>. Example:
+side of an assignment in <kbd>prog</kbd>. Example:
 <PRE>
 |- VARS x. {x = a} x := x+1 {x = a+1}
 </PRE>
 The (normal) variable <kbd>a</kbd> is merely used to record the initial
-value of <kbd>x</kbd> and is not a program variable. Pre and postconditions
+value of <kbd>x</kbd> and is not a program variable. Pre/post conditions
 can be arbitrary HOL formulae mentioning both program variables and normal
 variables.
 <P>
 
 The implementation hides reasoning in Hoare logic completely and provides a
-tactic hoare_tac for generating the verification conditions in ordinary
-logic:
+tactic <kbd>hoare_tac</kbd> for transforming a goal in Hoare logic into an
+equivalent list of verification conditions in HOL:
 <PRE>
 by(hoare_tac tac i);
 </PRE>
 applies the tactic to subgoal <kbd>i</kbd> and applies the parameter
-<kbd>tac</kbd> to all generated verification conditions. A typical call is
+<kbd>tac</kbd> (of type <kbd>int -> tactic</kbd>) to all generated
+verification conditions. A typical call is
 <PRE>
 by(hoare_tac Asm_full_simp_tac 1);
 </PRE>
-which, given the example goal above, solves it completely.
+which, given the example goal above, solves it completely. For further
+examples see <a href="Examples.ML">Examples.ML</a>.
 <P>
 
 IMPORTANT:
@@ -53,18 +55,16 @@ This is a logic of partial correctness. You can only prove that your program
 does the right thing <i>if</i> it terminates, but not <i>that</i> it
 terminates.
 
-<H1>Notes on the implementation</H1>
+<H3>Notes on the implementation</H3>
 
-This directory contains a sugared shallow semantic embedding of Hoare logic
-for a while language. The implementation closely follows<P>
-
-
+The implementation loosely follows
+<P>
 Mike Gordon.
 <cite>Mechanizing Programming Logics in Higher Order Logic.</cite><BR>
-University of Cambridge, Computer Laboratory, TR 145, 1988.<P>
-
-published as<P>
-
+University of Cambridge, Computer Laboratory, TR 145, 1988.
+<P>
+published as
+<P>
 Mike Gordon.
 <cite>Mechanizing Programming Logics in Higher Order Logic.</cite><BR>
 In
@@ -73,21 +73,12 @@ In
 edited by G. Birtwistle and P.A. Subrahmanyam, Springer-Verlag, 1989. 
 <P>
 
-At the top level, it provides a tactic <B>hoare_tac</B>, which transforms a
-goal
-<BLOCKQUOTE>
-<KBD>{P} prog {Q}</KBD>
-</BLOCKQUOTE>
-into a set of HOL-level verification conditions.
-<DL>
-<DT>Syntax:
-<DD> the letters a-z are interpreted as program variables,
-     all other identifiers as mathematical variables.<P>
-</DL>
-The pre/post conditions can be arbitrary HOL formulae including program
-variables. The program text should only refer to program variables.
+The main differences: the state is modelled as a tuple as suggested in
 <P>
-<B>Note</B>: Program variables are typed in the same way as HOL
-variables. Although you can write programs over arbitrary types, all
-program variables in a particular program must be of the same type!
+J. von Wright and J. Hekanaho and P. Luostarinen and T. Langbacka.
+<cite>Mechanizing Some Advanced Refinement Concepts</cite>.
+Formal Methods in System Design, 3, 1993, 49-81.
+<P>
+and the embeding is deep, i.e. there is a concrete datatype of programs. The
+latter is not really necessary.
 </BODY></HTML>
