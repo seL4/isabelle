@@ -309,11 +309,48 @@ fun SUBGOAL goalfun i st =
       [] => Sequence.null
     | prem::_ => goalfun (prem,i) st;
 
+
+(*** SELECT_GOAL ***)
+
 (*Tactical for restricting the effect of a tactic to subgoal i.
   Works by making a new state from subgoal i, applying tac to it, and
   composing the resulting metathm with the original state.
   The "main goal" of the new state will not be atomic, some tactics may fail!
   DOES NOT work if tactic affects the main goal other than by instantiation.*)
+
+(*SELECT_GOAL optimization: replace the conclusion by a variable X,
+  to avoid copying.  Proof states have X==concl as an assuption.*)
+
+val prop_equals = cterm_of Sign.proto_pure 
+                    (Const("==", propT-->propT-->propT));
+
+fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
+
+(*Like trivial but returns [ct==X] ct==>X instead of ct==>ct, if possible.
+  It is paired with a function to undo the transformation.  If ct contains
+  Vars then it returns ct==>ct.*)
+fun eq_trivial ct =
+  let val xfree = cterm_of Sign.proto_pure (Free (gensym"X", propT))
+      val ct_eq_x = mk_prop_equals (adjust_maxidx ct, xfree)
+      and refl_ct = reflexive ct
+      fun restore th = 
+	  implies_elim 
+	    (forall_elim ct (forall_intr xfree (implies_intr ct_eq_x th)))
+	    refl_ct
+  in  (equal_elim
+         (combination (combination refl_implies refl_ct) (assume ct_eq_x))
+         (trivial ct),
+       restore)
+  end  (*Fails if there are Vars or TVars*)
+    handle THM _ => (trivial ct, I);
+
+(*Does the work of SELECT_GOAL. *)
+fun select tac st0 i =
+  let val cprem::_ = drop(i-1, cprems_of st0)
+      val (eq_cprem, restore) = eq_trivial cprem
+      fun next st = bicompose false (false, restore st, nprems_of st) i st0
+  in  Sequence.flats (Sequence.maps next (tac eq_cprem))
+  end;
 
 (* (!!x. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
 val dummy_quant_rl = 
@@ -325,13 +362,6 @@ val dummy_quant_rl =
 fun protect_subgoal st i =
 	Sequence.hd (bicompose false (false,dummy_quant_rl,1) i st)
 	handle _ => error"SELECT_GOAL -- impossible error???";
-
-(*Does the work of SELECT_GOAL. *)
-fun select tac st0 i =
-  let val cprem::_ = drop(i-1, cprems_of st0)
-      fun next st = bicompose false (false, st, nprems_of st) i st0
-  in  Sequence.flats (Sequence.maps next (tac (trivial cprem)))
-  end;
 
 fun SELECT_GOAL tac i st = 
   case (i, drop(i-1, prems_of st)) of
