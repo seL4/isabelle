@@ -257,6 +257,9 @@ mathematics-style proof in Isabelle/Isar; by Markus Wenzel;
 * HOL/Prolog: a (bare-bones) implementation of Lambda-Prolog, by David
 von Oheimb;
 
+* HOL/IMPP: extension of IMP with local variables and mutually
+recursive procedures, by David von Oheimb;
+
 * HOL/Lambda: converted into new-style theory and document;
 
 * HOL/ex/Multiquote: example of multiple nested quotations and
