@@ -124,7 +124,7 @@ qed "image_is_empty";
 AddIffs [image_is_empty];
 
 Goal "f `` {x. P x} = {f x | x. P x}";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "image_Collect";
 Addsimps [image_Collect];
 
@@ -216,6 +216,11 @@ Goal "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Int_UNIV";
 Addsimps[Int_UNIV];
+
+Goal "(C <= A Int B) = (C <= A & C <= B)";
+by (Blast_tac 1);
+qed "Int_subset_iff";
+
 
 section "Un";
 
@@ -321,6 +326,11 @@ Goal "(A Un B = {}) = (A = {} & B = {})";
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Un_empty";
 Addsimps[Un_empty];
+
+Goal "(A Un B <= C) = (A <= C & B <= C)";
+by (Blast_tac 1);
+qed "Un_subset_iff";
+
 
 section "Compl";
 

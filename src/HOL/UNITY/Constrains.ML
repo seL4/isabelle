@@ -7,18 +7,6 @@ Safety relations: restricted to the set of reachable states.
 *)
 
 
-
-(**MOVE TO EQUALITIES.ML**)
-
-Goal "(A Un B <= C) = (A <= C & B <= C)";
-by (Blast_tac 1);
-qed "Un_subset_iff";
-
-Goal "(C <= A Int B) = (C <= A & C <= B)";
-by (Blast_tac 1);
-qed "Int_subset_iff";
-
-
 (*** Constrains ***)
 
 (*constrains (Acts prg) B B'
@@ -255,7 +243,7 @@ val Invariant_Int_tac = dtac Invariant_Int THEN'
                         assume_tac THEN'
 			etac Invariant_thin;
 
-(*Combines two invariance THEOREMS into one.*)
+(*Combines a list of invariance THEOREMS into one.*)
 val Invariant_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Invariant_Int);
 
 
