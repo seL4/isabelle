@@ -100,7 +100,7 @@ fun decorate_lines bg en "" = plain_output o enclose bg en
 
 fun setup_messages () =
  (priority_fn := decorate_lines (oct_char "360") (oct_char "361") "";
-(*  tracing_fn := decorate_lines (oct_char "360") (oct_char "361") (oct_char "375");  *)
+  tracing_fn := decorate_lines (oct_char "360") (oct_char "361") (oct_char "375");
   warning_fn := (decorate_lines (oct_char "362") (oct_char "363") "### ");
   error_fn := (decorate_lines (oct_char "364") (oct_char "365") "*** "));
 
