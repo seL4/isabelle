@@ -49,14 +49,14 @@ type dpair = binderlist * term * term;
 
 fun body_type(Envir.Envir{iTs,...}) = 
 let fun bT(Type("fun",[_,T])) = bT T
-      | bT(T as TVar(ixn,_)) = (case assoc(iTs,ixn) of
+      | bT(T as TVar(ixn,_)) = (case Vartab.lookup (iTs,ixn) of
 		None => T | Some(T') => bT T')
       | bT T = T
 in bT end;
 
 fun binder_types(Envir.Envir{iTs,...}) = 
 let fun bTs(Type("fun",[T,U])) = T :: bTs U
-      | bTs(T as TVar(ixn,_)) = (case assoc(iTs,ixn) of
+      | bTs(T as TVar(ixn,_)) = (case Vartab.lookup (iTs,ixn) of
 		None => [] | Some(T') => bTs T')
       | bTs _ = []
 in bTs end;
@@ -104,7 +104,7 @@ let val funerr = "fastype: expected function type";
 	(case (fast (rbinder, f)) of
 	   Type("fun",[_,T]) => T
 	 | TVar(ixn,_) =>
-		(case assoc(iTs,ixn) of
+		(case Vartab.lookup (iTs,ixn) of
 		   Some(Type("fun",[_,T])) => T
 		 | _ => raise TERM(funerr, [f$u]))
 	 | _ => raise TERM(funerr, [f$u]))
@@ -123,7 +123,7 @@ fun eta_norm(env as Envir.Envir{iTs,...}) =
   let fun etif (Type("fun",[T,U]), t) =
 	    Abs("", T, etif(U, incr_boundvars 1 t $ Bound 0))
 	| etif (TVar(ixn,_),t) = 
-	    (case assoc(iTs,ixn) of
+	    (case Vartab.lookup (iTs,ixn) of
 		  None => t | Some(T) => etif(T,t))
 	| etif (_,t) = t;
       fun eta_nm (rbinder, Abs(a,T,body)) =

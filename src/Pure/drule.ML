@@ -560,12 +560,12 @@ local
     in  (sign', tye', maxi')  end;
 in
 fun cterm_instantiate ctpairs0 th =
-  let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th),[],0))
+  let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th), Vartab.empty, 0))
       val tsig = #tsig(Sign.rep_sg sign);
-      fun instT(ct,cu) = let val inst = subst_TVars tye
+      fun instT(ct,cu) = let val inst = subst_TVars_Vartab tye
                          in (cterm_fun inst ct, cterm_fun inst cu) end
       fun ctyp2 (ix,T) = (ix, ctyp_of sign T)
-  in  instantiate (map ctyp2 tye, map instT ctpairs0) th  end
+  in  instantiate (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
   handle TERM _ =>
            raise THM("cterm_instantiate: incompatible signatures",0,[th])
        | TYPE (msg, _, _) => raise THM(msg, 0, [th])

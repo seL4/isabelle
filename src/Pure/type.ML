@@ -47,18 +47,19 @@ sig
   val norm_typ: type_sig -> typ -> typ
   val norm_term: type_sig -> term -> term
   val inst_term_tvars: type_sig * (indexname * typ) list -> term -> term
+  val inst_typ_tvars: type_sig * (indexname * typ) list -> typ -> typ
 
   (*type matching*)
   exception TYPE_MATCH
-  val typ_match: type_sig -> (indexname * typ) list * (typ * typ)
-    -> (indexname * typ) list
+  val typ_match: type_sig -> typ Vartab.table * (typ * typ)
+    -> typ Vartab.table
   val typ_instance: type_sig * typ * typ -> bool
   val of_sort: type_sig -> typ * sort -> bool
 
   (*type unification*)
   exception TUNIFY
-  val unify: type_sig -> int -> (indexname * typ) list -> (typ * typ)
-    -> (indexname * typ) list * int
+  val unify: type_sig -> int -> typ Vartab.table -> (typ * typ)
+    -> typ Vartab.table * int
   val raw_unify: typ * typ -> bool
 
   (*type inference*)
@@ -691,8 +692,8 @@ exception TYPE_MATCH;
 fun typ_match tsig =
   let
     fun match (subs, (TVar (v, S), T)) =
-          (case assoc (subs, v) of
-            None => ((v, (check_has_sort (tsig, T, S); T)) :: subs
+          (case Vartab.lookup (subs, v) of
+            None => (Vartab.update_new ((v, (check_has_sort (tsig, T, S); T)), subs)
               handle TYPE _ => raise TYPE_MATCH)
           | Some U => if U = T then subs else raise TYPE_MATCH)
       | match (subs, (Type (a, Ts), Type (b, Us))) =
@@ -704,7 +705,7 @@ fun typ_match tsig =
   in match end;
 
 fun typ_instance (tsig, T, U) =
-  (typ_match tsig ([], (U, T)); true) handle TYPE_MATCH => false;
+  (typ_match tsig (Vartab.empty, (U, T)); true) handle TYPE_MATCH => false;
 
 
 
@@ -721,7 +722,7 @@ fun occurs v tye =
       | occ (TFree _) = false
       | occ (TVar (w, _)) =
           eq_ix (v, w) orelse
-            (case assoc (tye, w) of
+            (case Vartab.lookup (tye, w) of
               None => false
             | Some U => occ U);
   in occ end;
@@ -731,7 +732,7 @@ fun occurs v tye =
 
 (*if devar returns a type var then it must be unassigned*)
 fun devar (T as TVar (v, _), tye) =
-      (case  assoc (tye, v) of
+      (case  Vartab.lookup (tye, v) of
         Some U => devar (U, tye)
       | None => T)
   | devar (T, tye) = T;
@@ -740,11 +741,8 @@ fun devar (T as TVar (v, _), tye) =
 (* add_env *)
 
 (*avoids chains 'a |-> 'b |-> 'c ...*)
-fun add_env (p, []) = [p]
-  | add_env (vT as (v, T), (xU as (x, TVar (w, S))) :: ps) =
-      (if eq_ix (v, w) then (x, T) else xU) :: add_env (vT, ps)
-  | add_env (v, x :: xs) = x :: add_env (v, xs);
-
+fun add_env (vT as (v, T), tab) = Vartab.update_new (vT, Vartab.map
+  (fn (U as (TVar (w, S))) => if eq_ix (v, w) then T else U | U => U) tab);
 
 (* unify *)
 
@@ -798,7 +796,7 @@ fun unify (tsig as TySg {classrel, arities, ...}) maxidx tyenv TU =
 
 (*purely structural unification -- ignores sorts*)
 fun raw_unify (ty1, ty2) =
-  (unify tsig0 0 [] (rem_sorts ty1, rem_sorts ty2); true)
+  (unify tsig0 0 Vartab.empty (rem_sorts ty1, rem_sorts ty2); true)
     handle TUNIFY => false;
 
 

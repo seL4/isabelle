@@ -332,8 +332,8 @@ fun fomatch tsig =
       | _ => raise MATCH
   in mtch end;
 
-fun first_order_match tsig = fomatch tsig ([],[]);
- 
+fun first_order_match tsig = apfst Vartab.dest o fomatch tsig (Vartab.empty, []);
+
 (* Matching of higher-order patterns *)
 
 fun match_bind(itms,binders,ixn,is,t) =
@@ -355,7 +355,7 @@ let
       Abs(ns,Ts,ts) =>
         (case obj of
            Abs(nt,Tt,tt) => mtch ((nt,Tt)::binders) (env,(ts,tt))
-         | _ => let val Tt = typ_subst_TVars iTs Ts
+         | _ => let val Tt = typ_subst_TVars_Vartab iTs Ts
                 in mtch((ns,Tt)::binders)(env,(ts,(incr obj)$Bound(0))) end)
     | _ => (case obj of
               Abs(nt,Tt,tt) =>
@@ -392,11 +392,11 @@ let
 
   val pT = fastype_of pat
   and oT = fastype_of obj
-  val iTs = typ_match tsg ([],(pT,oT))
+  val iTs = typ_match tsg (Vartab.empty, (pT,oT))
   val insts2 = (iTs,[])
 
-in mtch [] (insts2, po)
-   handle Pattern => fomatch tsg insts2 po
+in apfst Vartab.dest (mtch [] (insts2, po)
+   handle Pattern => fomatch tsg insts2 po)
 end;
 
 (*Predicate: does the pattern match the object?*)
