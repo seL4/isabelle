@@ -27,7 +27,7 @@ struct
 
  (*prove while suppressing timing information*)
  fun prove name ct tacf = 
-     setmp Goals.proof_timing false (prove_goalw_cterm [] ct) tacf
+     setmp Library.timing false (prove_goalw_cterm [] ct) tacf
      handle ERROR =>
 	 error(name ^ " simproc:\nfailed to prove " ^ string_of_cterm ct);
                 
@@ -77,7 +77,7 @@ end;
 
 
 (*test data:
-set proof_timing;
+set timing;
 
 Goal "(#3 * (a * #34)) * (#2 * b * #9) = (x::int)";
 

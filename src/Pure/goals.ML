@@ -63,7 +63,6 @@ signature GOALS =
   val pprint_typ	: typ -> pprint_args -> unit
   val print_exn		: exn -> 'a
   val print_sign_exn	: Sign.sg -> exn -> 'a
-  val proof_timing	: bool ref
   val prove_goal	: theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
   val prove_goalw_cterm	: thm list->cterm->(thm list->tactic list)->thm
@@ -92,9 +91,6 @@ datatype proof = Proof of gstack list * thm list * (bool*thm->thm);
 
 
 (*** References ***)
-
-(*Should process time be printed after proof steps?*)
-val proof_timing = ref false;
 
 (*Current assumption list -- set by "goal".*)
 val curr_prems = ref([] : thm list);
@@ -276,7 +272,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 	  (case Seq.pull (tac st0) of 
 	       Some(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
-  in  mkresult (check, cond_timeit (!proof_timing) statef)  end
+  in  mkresult (check, cond_timeit (!Library.timing) statef)  end
   handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
 	       writeln ("The exception above was raised for\n" ^ 
 		      string_of_cterm chorn); raise e);
@@ -284,9 +280,9 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 (*Two variants: one checking the result, one not.  
   Neither prints runtime messages: they are for internal packages.*)
 fun prove_goalw_cterm rths chorn = 
-	setmp proof_timing false (prove_goalw_cterm_general true rths chorn)
+	setmp Library.timing false (prove_goalw_cterm_general true rths chorn)
 and prove_goalw_cterm_nocheck rths chorn = 
-	setmp proof_timing false (prove_goalw_cterm_general false rths chorn);
+	setmp Library.timing false (prove_goalw_cterm_general false rths chorn);
 
 
 (*Version taking the goal as a string*)
@@ -448,7 +444,7 @@ fun by_com tac ((th,ths), pairs) : gstack =
 		       sign_error (#sign(rep_thm th), #sign(rep_thm th2)));
        ((th2,ths2)::(th,ths)::pairs)));
 
-fun by tac = cond_timeit (!proof_timing) 
+fun by tac = cond_timeit (!Library.timing) 
     (fn() => make_command (by_com tac));
 
 (* byev[tac1,...,tacn] applies tac1 THEN ... THEN tacn.

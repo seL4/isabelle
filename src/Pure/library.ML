@@ -244,6 +244,7 @@ sig
   val cond_timeit: bool -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
   val timeap: ('a -> 'b) -> 'a -> 'b
+  val timing: bool ref
 
   (*misc*)
   val make_keylist: ('a -> 'b) -> 'a list -> ('a * 'b) list
@@ -1178,14 +1179,12 @@ fun transform_failure exn f x =
 (** timing **)
 
 (*a conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime*)
+  prints its runtime on warning channel*)
 fun cond_timeit flag f =
   if flag then
     let val start = startTiming()
         val result = f ()
-    in
-        writeln (endTiming start);  result
-    end
+    in warning (endTiming start);  result end
   else f ();
 
 (*unconditional timing function*)
@@ -1193,6 +1192,9 @@ fun timeit x = cond_timeit true x;
 
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
+
+(*global timing mode*)
+val timing = ref false;
 
 
 

@@ -53,7 +53,7 @@ open Data;
 				    minus_0, add_0, add_0_right];
 
  (*prove while suppressing timing information*)
- fun prove ct = setmp Goals.proof_timing false (prove_goalw_cterm [] ct);
+ fun prove ct = setmp Library.timing false (prove_goalw_cterm [] ct);
 
  val plus = Const ("op +", [Data.T,Data.T] ---> Data.T);
  val minus = Const ("uminus", Data.T --> Data.T);

@@ -52,7 +52,6 @@ sig
   val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
   val quiet: bool ref
-  val trace: bool ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion: transition list -> unit
@@ -345,7 +344,6 @@ fun proof_to_theory f = map_current (fn _ => (fn Proof prf => Theory (f prf) | _
 (** toplevel transactions **)
 
 val quiet = ref false;
-val trace = ref false;
 
 
 (* print exceptions *)
@@ -389,7 +387,7 @@ fun app int (tr as Transition {trans, int_only, print, ...}) state =
       if int orelse not int_only then ()
       else warning (command_msg "Interactive-only " tr);
     val (result, opt_exn) =
-      (if ! trace then (writeln (command_msg "" tr); timeap) else I) (apply_trans int trans) state;
+      (if ! Library.timing then (warning (command_msg "" tr); timeap) else I) (apply_trans int trans) state;
     val _ = if int andalso print andalso not (! quiet) then print_state false result else ();
   in (result, apsome (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 
