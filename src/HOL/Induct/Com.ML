@@ -38,6 +38,7 @@ by (Blast_tac 3);
 by (Blast_tac 1);
 by (rewrite_goals_tac [Function_def, Unique_def]);
 by (thin_tac "(?c,s1) -[ev]-> s2" 5);
+by (rotate_tac 1 5);   (*PATCH to avoid very slow proof*)
 (*SLOW (23s) due to proof reconstruction; needs 60s if thin_tac is omitted*)
 by (REPEAT (blast_tac (claset() addEs [exec_WHILE_case]) 1));
 qed "Function_exec";
