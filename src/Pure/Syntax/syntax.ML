@@ -70,7 +70,7 @@ open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 (*the ref serves as unique id*)
 (*does not subsume typed print translations*)
-type 'a trtab = (('a list -> 'a) * unit ref) Symtab.table;
+type 'a trtab = (('a list -> 'a) * stamp) Symtab.table;
 
 val dest_trtab = Symtab.dest;
 
@@ -86,7 +86,7 @@ fun err_dup_trfuns name cs =
 val empty_trtab = Symtab.null;
 
 fun extend_trtab tab trfuns name =
-  Symtab.extend_new (tab, map (fn (c, f) => (c, (f, ref ()))) trfuns)
+  Symtab.extend_new (tab, map (fn (c, f) => (c, (f, stamp ()))) trfuns)
     handle Symtab.DUPS cs => err_dup_trfuns name cs;
 
 fun merge_trtabs tab1 tab2 name =
@@ -133,7 +133,7 @@ datatype syntax =
     parse_ast_trtab: ast trtab,
     parse_ruletab: ruletab,
     parse_trtab: term trtab,
-    print_trtab: ((typ -> term list -> term) * unit ref) Symtab.table,
+    print_trtab: ((typ -> term list -> term) * stamp) Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ast trtab,
     prtabs: prtabs};
