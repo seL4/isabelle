@@ -402,12 +402,16 @@ fun pretty_sort (Sg {syn, spaces, ...}) S =
 fun pretty_classrel sg (c1, c2) = Pretty.block
   [pretty_sort sg [c1], Pretty.str " <", Pretty.brk 1, pretty_sort sg [c2]];
 
-fun pretty_arity sg (t, [], S) = Pretty.block
-      [Pretty.str (t ^ " ::"), Pretty.brk 1, pretty_sort sg S]
-  | pretty_arity sg (t, Ss, S) = Pretty.block
-      [Pretty.str (t ^ " ::"), Pretty.brk 1,
-        Pretty.list "(" ")" (map (pretty_sort sg) Ss),
-        Pretty.brk 1, pretty_sort sg S];
+fun pretty_arity sg (t, Ss, S) =
+  let
+    val t' = if ! long_names then t else intern_tycon sg t;
+    val dom =
+      if null Ss then []
+      else [Pretty.list "(" ")" (map (pretty_sort sg) Ss), Pretty.brk 1];
+  in
+    Pretty.block
+      ([Pretty.str (t ^ " ::"), Pretty.brk 1] @ dom @ [pretty_sort sg S])
+  end;
 
 fun string_of_term sg t = Pretty.string_of (pretty_term sg t);
 fun string_of_typ sg T = Pretty.string_of (pretty_typ sg T);
