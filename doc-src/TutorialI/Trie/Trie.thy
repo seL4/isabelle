@@ -3,7 +3,7 @@ theory Trie = Main:;
 (*>*)
 text{*
 To minimize running time, each node of a trie should contain an array that maps
-letters to subtries. We have chosen a (sometimes) more space efficient
+letters to subtries. We have chosen a
 representation where the subtries are held in an association list, i.e.\ a
 list of (letter,trie) pairs.  Abstracting over the alphabet @{typ"'a"} and the
 values @{typ"'v"} we define a trie as follows:
@@ -67,7 +67,7 @@ primrec
   "update t (a#as) v =
      (let tt = (case assoc (alist t) a of
                   None \<Rightarrow> Trie None [] | Some at \<Rightarrow> at)
-      in Trie (value t) ((a,update tt as v)#alist t))";
+      in Trie (value t) ((a,update tt as v) # alist t))";
 
 text{*\noindent
 The base case is obvious. In the recursive case the subtrie

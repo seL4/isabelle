@@ -64,7 +64,7 @@ Unfortunately, this is not a complete success:
 @{subgoals[display,indent=0,margin=65]}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
-@{term"[]"}. The corresponding heuristic:
+argument, @{term"[]"}.  This suggests a heuristic:
 \begin{quote}
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
@@ -109,11 +109,13 @@ This prevents trivial failures like the above and does not change the
 provability of the goal. Because it is not always required, and may even
 complicate matters in some cases, this heuristic is often not
 applied blindly.
+The variables that require generalization are typically those that 
+change in recursive calls.
 
 In general, if you have tried the above heuristics and still find your
 induction does not go through, and no obvious lemma suggests itself, you may
 need to generalize your proposition even further. This requires insight into
-the problem at hand and is beyond simple rules of thumb. In a nutshell: you
+the problem at hand and is beyond simple rules of thumb.  You
 will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
 to learn about some advanced techniques for inductive proofs.
 

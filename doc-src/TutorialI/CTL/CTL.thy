@@ -346,7 +346,7 @@ done
 
 text{*
 
-The above language is not quite CTL. The latter also includes an
+The above language is not quite CTL\@. The latter also includes an
 until-operator @{term"EU f g"} with semantics ``there exist a path
 where @{term f} is true until @{term g} becomes true''. With the help
 of an auxiliary function

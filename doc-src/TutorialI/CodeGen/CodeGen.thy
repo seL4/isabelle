@@ -6,7 +6,7 @@ section{*Case study: compiling expressions*}
 
 text{*\label{sec:ExprCompiler}
 The task is to develop a compiler from a generic type of expressions (built
-up from variables, constants and binary operations) to a stack machine.  This
+from variables, constants and binary operations) to a stack machine.  This
 generic type of expressions is a generalization of the boolean expressions in
 \S\ref{sec:boolex}.  This time we do not commit ourselves to a particular
 type of variables or values but make them type parameters.  Neither is there
@@ -23,7 +23,7 @@ text{*\noindent
 The three constructors represent constants, variables and the application of
 a binary operation to two subexpressions.
 
-The value of an expression w.r.t.\ an environment that maps variables to
+The value of an expression with respect to an environment that maps variables to
 values is easily defined:
 *}
 
@@ -35,7 +35,7 @@ primrec
 
 text{*
 The stack machine has three instructions: load a constant value onto the
-stack, load the contents of a certain address onto the stack, and apply a
+stack, load the contents of an address onto the stack, and apply a
 binary operation to the two topmost elements of the stack, replacing them by
 the result. As for @{text"expr"}, addresses and values are type parameters:
 *}
@@ -66,12 +66,12 @@ Recall that @{term"hd"} and @{term"tl"}
 return the first element and the remainder of a list.
 Because all functions are total, @{term"hd"} is defined even for the empty
 list, although we do not know what the result is. Thus our model of the
-machine always terminates properly, although the above definition does not
+machine always terminates properly, although the definition above does not
 tell us much about the result in situations where @{term"Apply"} was executed
 with fewer than two elements on the stack.
 
 The compiler is a function from expressions to a list of instructions. Its
-definition is pretty much obvious:
+definition is obvious:
 *}
 
 consts comp :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list";

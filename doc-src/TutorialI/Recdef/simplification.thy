@@ -72,6 +72,7 @@ In fact, this is probably the neatest solution next to pattern matching.
 
 A final alternative is to replace the offending simplification rules by
 derived conditional ones. For @{term gcd} it means we have to prove
+these lemmas:
 *}
 
 lemma [simp]: "gcd (m, 0) = m";
@@ -82,7 +83,7 @@ apply(simp);
 done
 
 text{*\noindent
-after which we can disable the original simplification rule:
+Now we can disable the original simplification rule:
 *}
 
 declare gcd.simps [simp del]

@@ -84,7 +84,7 @@ lemma gcd_greatest [rule_format]:
   done;
 
 theorem gcd_greatest_iff [iff]: 
-        "k dvd gcd(m,n) = (k dvd m \<and> k dvd n)"
+        "(k dvd gcd(m,n)) = (k dvd m \<and> k dvd n)"
   apply (blast intro!: gcd_greatest intro: dvd_trans);
   done;
 

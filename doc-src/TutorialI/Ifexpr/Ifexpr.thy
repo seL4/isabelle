@@ -36,12 +36,12 @@ Hence the function @{text"value"} takes an additional parameter, an
 values:
 *}
 
-consts value :: "boolex \\<Rightarrow> (nat \\<Rightarrow> bool) \\<Rightarrow> bool";
+consts value :: "boolex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool";
 primrec
 "value (Const b) env = b"
 "value (Var x)   env = env x"
-"value (Neg b)   env = (\\<not> value b env)"
-"value (And b c) env = (value b env \\<and> value c env)";
+"value (Neg b)   env = (\<not> value b env)"
+"value (And b c) env = (value b env \<and> value c env)";
 
 text{*\noindent
 \subsubsection{If-expressions}
@@ -58,7 +58,7 @@ text{*\noindent
 The evaluation if If-expressions proceeds as for @{typ"boolex"}:
 *}
 
-consts valif :: "ifex \\<Rightarrow> (nat \\<Rightarrow> bool) \\<Rightarrow> bool";
+consts valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool";
 primrec
 "valif (CIF b)    env = b"
 "valif (VIF x)    env = env x"
@@ -73,7 +73,7 @@ formulae, whereas @{typ"ifex"} is designed for efficiency. It is easy to
 translate from @{typ"boolex"} into @{typ"ifex"}:
 *}
 
-consts bool2if :: "boolex \\<Rightarrow> ifex";
+consts bool2if :: "boolex \<Rightarrow> ifex";
 primrec
 "bool2if (Const b) = CIF b"
 "bool2if (Var x)   = VIF x"
@@ -107,13 +107,13 @@ repeatedly replacing a subterm of the form @{term"IF (IF b x y) z u"} by
 primitive recursive functions perform this task:
 *}
 
-consts normif :: "ifex \\<Rightarrow> ifex \\<Rightarrow> ifex \\<Rightarrow> ifex";
+consts normif :: "ifex \<Rightarrow> ifex \<Rightarrow> ifex \<Rightarrow> ifex";
 primrec
 "normif (CIF b)    t e = IF (CIF b) t e"
 "normif (VIF x)    t e = IF (VIF x) t e"
 "normif (IF b t e) u f = normif b (normif t u f) (normif e u f)";
 
-consts norm :: "ifex \\<Rightarrow> ifex";
+consts norm :: "ifex \<Rightarrow> ifex";
 primrec
 "norm (CIF b)    = CIF b"
 "norm (VIF x)    = VIF x"
@@ -133,7 +133,7 @@ lemma (which also helps to understand what @{term"normif"} does):
 *}
 
 lemma [simp]:
-  "\\<forall>t e. valif (normif b t e) env = valif (IF b t e) env";
+  "\<forall>t e. valif (normif b t e) env = valif (IF b t e) env";
 (*<*)
 apply(induct_tac b);
 by(auto);
@@ -150,19 +150,19 @@ But how can we be sure that @{term"norm"} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality
 *}
 
-consts normal :: "ifex \\<Rightarrow> bool";
+consts normal :: "ifex \<Rightarrow> bool";
 primrec
 "normal(CIF b) = True"
 "normal(VIF x) = True"
-"normal(IF b t e) = (normal t \\<and> normal e \\<and>
-     (case b of CIF b \\<Rightarrow> True | VIF x \\<Rightarrow> True | IF x y z \\<Rightarrow> False))";
+"normal(IF b t e) = (normal t \<and> normal e \<and>
+     (case b of CIF b \<Rightarrow> True | VIF x \<Rightarrow> True | IF x y z \<Rightarrow> False))";
 
 text{*\noindent
 and prove @{term"normal(norm b)"}. Of course, this requires a lemma about
 normality of @{term"normif"}:
 *}
 
-lemma[simp]: "\\<forall>t e. normal(normif b t e) = (normal t \\<and> normal e)";
+lemma[simp]: "\<forall>t e. normal(normif b t e) = (normal t \<and> normal e)";
 (*<*)
 apply(induct_tac b);
 by(auto);
@@ -173,9 +173,9 @@ by(auto);
 (*>*)
 
 text{*\medskip
-How does one come up with the required lemmas? Try to prove the main theorems
-without them and study carefully what @{text auto} leaves unproved. This has
-to provide the clue.  The necessity of universal quantification
+How do we come up with the required lemmas? Try to prove the main theorems
+without them and study carefully what @{text auto} leaves unproved. This 
+can provide the clue.  The necessity of universal quantification
 (@{text"\<forall>t e"}) in the two lemmas is explained in
 \S\ref{sec:InductionHeuristics}
 

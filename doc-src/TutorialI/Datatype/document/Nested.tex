@@ -87,15 +87,15 @@ that recursively reverses the order of arguments of all function symbols in a
   term. Prove that \isa{trev\ {\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t}.
 \end{exercise}
 
-The experienced functional programmer may feel that our above definition of
-\isa{subst} is unnecessarily complicated in that \isa{substs} is
-completely unnecessary. The \isa{App}-case can be defined directly as
+The experienced functional programmer may feel that our definition of
+\isa{subst} is too complicated in that \isa{substs} is
+unnecessary. The \isa{App}-case can be defined directly as
 \begin{isabelle}%
 \ \ \ \ \ subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}%
 \end{isabelle}
 where \isa{map} is the standard list function such that
 \isa{map\ f\ {\isacharbrackleft}x{\isadigit{1}}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}xn{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}f\ x{\isadigit{1}}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}f\ xn{\isacharbrackright}}. This is true, but Isabelle
-insists on the above fixed format. Fortunately, we can easily \emph{prove}
+insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}{\isachardoublequote}\isanewline
@@ -114,8 +114,8 @@ The advantage is that now we have replaced \isa{substs} by
 about \isa{map}.  Unfortunately inductive proofs about type
 \isa{term} are still awkward because they expect a conjunction. One
 could derive a new induction principle as well (see
-\S\ref{sec:derive-ind}), but turns out to be simpler to define
-functions by \isacommand{recdef} instead of \isacommand{primrec}.
+\S\ref{sec:derive-ind}), but simpler is to stop using \isacommand{primrec}
+and to define functions with \isacommand{recdef} instead.
 The details are explained in \S\ref{sec:nested-recdef} below.
 
 Of course, you may also combine mutual and nested recursion. For example,

@@ -22,9 +22,10 @@ as a degenerate product with 0 components.
 Products, like type @{typ nat}, are datatypes, which means
 in particular that @{text induct_tac} and @{text case_tac} are applicable to
 terms of product type.
+Both replace the term by tuple of variables.
 \item
-Instead of tuples with many components (where ``many'' is not much above 2),
-it is preferable to use records.
+Tuples with more than two or three components become unwieldy;
+records are preferable.
 \end{itemize}
 For more information on pairs and records see Chapter~\ref{ch:more-types}.
 *}

@@ -78,7 +78,7 @@ y A) = insert y (insert x A)"} for sets. Such rules are problematic because
 once they apply, they can be used forever. The simplifier is aware of this
 danger and treats permutative rules by means of a special strategy, called
 \bfindex{ordered rewriting}: a permutative rewrite
-rule is only applied if the term becomes ``smaller'' (w.r.t.\ some fixed
+rule is only applied if the term becomes ``smaller'' (with respect to a fixed
 lexicographic ordering on terms). For example, commutativity rewrites
 @{term"b+a"} to @{term"a+b"}, but then stops because @{term"a+b"} is strictly
 smaller than @{term"b+a"}.  Permutative rewrite rules can be turned into

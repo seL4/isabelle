@@ -16,14 +16,15 @@ recursion pattern of the particular function $f$. We call this
 requires you to prove for each \isacommand{recdef} equation that the property
 you are trying to establish holds for the left-hand side provided it holds
 for all recursive calls on the right-hand side. Here is a simple example
+involving the predefined @{term"map"} functional on lists:
 *}
 
 lemma "map f (sep(x,xs)) = sep(f x, map f xs)";
 
 txt{*\noindent
-involving the predefined @{term"map"} functional on lists: @{term"map f xs"}
+Note that @{term"map f xs"}
 is the result of applying @{term"f"} to all elements of @{term"xs"}. We prove
-this lemma by recursion induction w.r.t. @{term"sep"}:
+this lemma by recursion induction over @{term"sep"}:
 *}
 
 apply(induct_tac x xs rule: sep.induct);
@@ -46,7 +47,7 @@ definition of @{term"sep"}.
 
 In general, the format of invoking recursion induction is
 \begin{quote}
-\isacommand{apply}@{text"(induct_tac ("}$x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
+\isacommand{apply}@{text"(induct_tac "}$x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
 \end{quote}\index{*induct_tac}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes an $n$-tuple. Usually the subgoal will

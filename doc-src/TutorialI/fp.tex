@@ -29,8 +29,8 @@ We will now examine it line by line.
 
 {\makeatother\input{ToyList/document/ToyList.tex}}
 
-The complete proof script is shown in figure~\ref{fig:ToyList-proofs}. The
-concatenation of figures \ref{fig:ToyList} and \ref{fig:ToyList-proofs}
+The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. The
+concatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}
 constitutes the complete theory \texttt{ToyList} and should reside in file
 \texttt{ToyList.thy}. It is good practice to present all declarations and
 definitions at the beginning of a theory to facilitate browsing.
@@ -159,7 +159,10 @@ Theory \isa{ToyList} is only a small fragment of HOL's predefined theory
 The latter contains many further operations. For example, the functions
 \isaindexbold{hd} (``head'') and \isaindexbold{tl} (``tail'') return the first
 element and the remainder of a list. (However, pattern-matching is usually
-preferable to \isa{hd} and \isa{tl}.)  Theory \isa{List} also contains
+preferable to \isa{hd} and \isa{tl}.)  
+Also available are the higher-order
+functions \isa{map}, \isa{filter}, \isa{foldl} and \isa{foldr}.
+Theory \isa{List} also contains
 more syntactic sugar: \isa{[}$x@1$\isa{,}\dots\isa{,}$x@n$\isa{]} abbreviates
 $x@1$\isa{\#}\dots\isa{\#}$x@n$\isa{\#[]}.  In the rest of the tutorial we
 always use HOL's predefined lists.
@@ -193,7 +196,7 @@ that do not have an argument of type $t$, and for all other constructors
 \isa{1 +} the sum of the sizes of all arguments of type $t$. Note that because
 \isa{size} is defined on every datatype, it is overloaded; on lists
 \isa{size} is also called \isaindexbold{length}, which is not overloaded.
-Isbelle will always show \isa{size} on lists as \isa{length}.
+Isabelle will always show \isa{size} on lists as \isa{length}.
 
 
 \subsection{Primitive recursion}
@@ -261,7 +264,7 @@ definitions.
 \subsection{Type synonyms}
 \indexbold{type synonym}
 
-Type synonyms are similar to those found in ML. Their syntax is fairly self
+Type synonyms are similar to those found in ML\@. Their syntax is fairly self
 explanatory:
 
 \input{Misc/document/types.tex}%
@@ -294,7 +297,7 @@ form of recursive function definition which goes well beyond what
 \label{sec:Simplification}
 \index{simplification|(}
 
-So far we have proved our theorems by \isa{auto}, which ``simplifies''
+So far we have proved our theorems by \isa{auto}, which simplifies
 \emph{all} subgoals. In fact, \isa{auto} can do much more than that, except
 that it did not need to so far. However, when you go beyond toy examples, you
 need to understand the ingredients of \isa{auto}.  This section covers the
@@ -363,7 +366,8 @@ previously defined datatypes. This does not include functions:
 \begin{isabelle}
 \isacommand{datatype} t = C "t \isasymRightarrow\ bool"
 \end{isabelle}
-is a real can of worms: in HOL it must be ruled out because it requires a type
+This declaration is a real can of worms.
+In HOL it must be ruled out because it requires a type
 \isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have the
 same cardinality---an impossibility. For the same reason it is not possible
 to allow recursion involving the type \isa{set}, which is isomorphic to
@@ -384,8 +388,10 @@ alternatives to pure HOL: LCF~\cite{paulson87} is a logic where types like
 \begin{isabelle}
 \isacommand{datatype} lam = C "lam \isasymrightarrow\ lam"
 \end{isabelle}
-do indeed make sense (but note the intentionally different arrow
-\isa{\isasymrightarrow}). There is even a version of LCF on top of HOL,
+do indeed make sense.  Note the different arrow,
+\isa{\isasymrightarrow} instead of \isa{\isasymRightarrow},
+expressing the type of \textbf{continuous} functions. 
+There is even a version of LCF on top of HOL,
 called HOLCF~\cite{MuellerNvOS99}.
 
 \index{*primrec|)}

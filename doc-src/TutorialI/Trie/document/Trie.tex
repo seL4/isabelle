@@ -4,7 +4,7 @@
 %
 \begin{isamarkuptext}%
 To minimize running time, each node of a trie should contain an array that maps
-letters to subtries. We have chosen a (sometimes) more space efficient
+letters to subtries. We have chosen a
 representation where the subtries are held in an association list, i.e.\ a
 list of (letter,trie) pairs.  Abstracting over the alphabet \isa{{\isacharprime}a} and the
 values \isa{{\isacharprime}v} we define a trie as follows:%
@@ -59,7 +59,7 @@ associated with that string:%
 \ \ {\isachardoublequote}update\ t\ {\isacharparenleft}a{\isacharhash}as{\isacharparenright}\ v\ {\isacharequal}\isanewline
 \ \ \ \ \ {\isacharparenleft}let\ tt\ {\isacharequal}\ {\isacharparenleft}case\ assoc\ {\isacharparenleft}alist\ t{\isacharparenright}\ a\ of\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ None\ {\isasymRightarrow}\ Trie\ None\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ Some\ at\ {\isasymRightarrow}\ at{\isacharparenright}\isanewline
-\ \ \ \ \ \ in\ Trie\ {\isacharparenleft}value\ t{\isacharparenright}\ {\isacharparenleft}{\isacharparenleft}a{\isacharcomma}update\ tt\ as\ v{\isacharparenright}{\isacharhash}alist\ t{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ \ \ \ \ in\ Trie\ {\isacharparenleft}value\ t{\isacharparenright}\ {\isacharparenleft}{\isacharparenleft}a{\isacharcomma}update\ tt\ as\ v{\isacharparenright}\ {\isacharhash}\ alist\ t{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 The base case is obvious. In the recursive case the subtrie

@@ -82,7 +82,7 @@ proofs are in separate ML files.
 \label{sec:TypesTermsForms}
 \indexbold{type}
 
-Embedded in a theory are the types, terms and formulae of HOL. HOL is a typed
+Embedded in a theory are the types, terms and formulae of HOL\@. HOL is a typed
 logic whose type system resembles that of functional programming languages
 like ML or Haskell. Thus there are
 \begin{description}
@@ -102,7 +102,7 @@ natural numbers. Parentheses around single arguments can be dropped (as in
   which abbreviates \isa{$\tau@1$ \isasymFun~$\cdots$ \isasymFun~$\tau@n$
     \isasymFun~$\tau$}.
 \item[type variables,]\indexbold{type variable}\indexbold{variable!type}
-  denoted by \ttindexboldpos{'a}{$Isatype}, \isa{'b} etc., just like in ML. They give rise
+  denoted by \ttindexboldpos{'a}{$Isatype}, \isa{'b} etc., just like in ML\@. They give rise
   to polymorphic types like \isa{'a \isasymFun~'a}, the type of the identity
   function.
 \end{description}
@@ -172,7 +172,7 @@ and $t@2$ are terms of the same type. In case $t@1$ and $t@2$ are of type
 \isa{$t@1$~\isasymnoteq~$t@2$} is merely an abbreviation for
 \isa{\isasymnot($t@1$ = $t@2$)}.
 
-The syntax for quantifiers is
+Quantifiers are written as
 \isa{\isasymforall{}x.~$P$}\indexbold{$HOL0All@\isasymforall} and
 \isa{\isasymexists{}x.~$P$}\indexbold{$HOL0Ex@\isasymexists}.  There is
 even \isa{\isasymuniqex{}x.~$P$}\index{$HOL0ExU@\isasymuniqex|bold}, which
@@ -185,7 +185,7 @@ Despite type inference, it is sometimes necessary to attach explicit
 \isa{$t$::$\tau$} as in \isa{x < (y::nat)}. Note that
 \ttindexboldpos{::}{$Isatype} binds weakly and should therefore be enclosed
 in parentheses: \isa{x < y::nat} is ill-typed because it is interpreted as
-\isa{(x < y)::nat}. The main reason for type constraints are overloaded
+\isa{(x < y)::nat}. The main reason for type constraints is overloading of
 functions like \isa{+}, \isa{*} and \isa{<}. See {\S}\ref{sec:overloading} for
 a full discussion of overloading and Table~\ref{tab:overloading} for the most
 important overloaded function symbols.
@@ -195,10 +195,10 @@ In general, HOL's concrete syntax tries to follow the conventions of
 functional programming and mathematics. Below we list the main rules that you
 should be familiar with to avoid certain syntactic traps. A particular
 problem for novices can be the priority of operators. If you are unsure, use
-more rather than fewer parentheses. In those cases where Isabelle echoes your
+additional parentheses. In those cases where Isabelle echoes your
 input, you can see which parentheses are dropped---they were superfluous. If
 you are unsure how to interpret Isabelle's output because you don't know
-where the (dropped) parentheses go, set (and possibly reset) the \rmindex{flag}
+where the (dropped) parentheses go, set the \rmindex{flag}
 \isaindexbold{show_brackets}:
 \begin{ttbox}
 ML "set show_brackets"; \(\dots\); ML "reset show_brackets";
@@ -300,4 +300,4 @@ create theory files.  While you are developing a theory, we recommend to
 type each command into the file first and then enter it into Isabelle by
 copy-and-paste, thus ensuring that you have a complete record of your theory.
 As mentioned above, Proof General offers a much superior interface.
-If you have installed Proof General, you can start it with \texttt{Isabelle}.
+If you have installed Proof General, you can start it by typing \texttt{Isabelle}.

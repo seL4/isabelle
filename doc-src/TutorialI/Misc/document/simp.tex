@@ -8,7 +8,7 @@
 \begin{isamarkuptext}%
 \indexbold{simplification rule}
 To facilitate simplification, theorems can be declared to be simplification
-rules (with the help of the attribute \isa{{\isacharbrackleft}simp{\isacharbrackright}}\index{*simp
+rules (by the attribute \isa{{\isacharbrackleft}simp{\isacharbrackright}}\index{*simp
   (attribute)}), in which case proofs by simplification make use of these
 rules automatically. In addition the constructs \isacommand{datatype} and
 \isacommand{primrec} (and a few others) invisibly declare useful
@@ -33,7 +33,7 @@ also happen that a simplification rule needs to be disabled in certain
 proofs.  Frequent changes in the simplification status of a theorem may
 indicate a badly designed theory.
 \begin{warn}
-  Simplification may not terminate, for example if both $f(x) = g(x)$ and
+  Simplification may run forever, for example if both $f(x) = g(x)$ and
   $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
   to include simplification rules that can lead to nontermination, either on
   their own or in combination with other simplification rules.
@@ -49,7 +49,7 @@ The general format of the simplification method is
 \begin{quote}
 \isa{simp} \textit{list of modifiers}
 \end{quote}
-where the list of \emph{modifiers} helps to fine tune the behaviour and may
+where the list of \emph{modifiers} fine tunes the behaviour and may
 be empty. Most if not all of the proofs seen so far could have been performed
 with \isa{simp} instead of \isa{auto}, except that \isa{simp} attacks
 only the first subgoal and may thus need to be repeated---use
@@ -120,10 +120,9 @@ There are three options that influence the treatment of assumptions:
  means that the assumptions are simplified but are not
   used in the simplification of each other or the conclusion.
 \end{description}
-Neither \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}} nor \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}} allow to simplify
-the above problematic subgoal.
-
-Note that only one of the above options is allowed, and it must precede all
+Both \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}} and \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}} run forever on
+the problematic subgoal above.
+Note that only one of the options is allowed, and it must precede all
 other arguments.%
 \end{isamarkuptext}%
 %
@@ -183,7 +182,7 @@ rule because this defeats the whole purpose of an abbreviation.
 \index{simplification!of let-expressions}
 Proving a goal containing \isaindex{let}-expressions almost invariably
 requires the \isa{let}-con\-structs to be expanded at some point. Since
-\isa{let}-\isa{in} is just syntactic sugar for a predefined constant
+\isa{let}\ldots\isa{=}\ldots\isa{in}{\ldots} is just syntactic sugar for a predefined constant
 (called \isa{Let}), expanding \isa{let}-constructs means rewriting with
 \isa{Let{\isacharunderscore}def}:%
 \end{isamarkuptext}%
@@ -211,13 +210,13 @@ accepts \emph{conditional} equations, for example%
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
 sequence of methods. Assuming that the simplification rule
 \isa{{\isacharparenleft}rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}
-is present as well,%
+is present as well,
+the lemma below is proved by plain simplification:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-is proved by plain simplification:
-the conditional equation \isa{hd{\isacharunderscore}Cons{\isacharunderscore}tl} above
+The conditional equation \isa{hd{\isacharunderscore}Cons{\isacharunderscore}tl} above
 can simplify \isa{hd\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl\ {\isacharparenleft}rev\ xs{\isacharparenright}} to \isa{rev\ xs}
 because the corresponding precondition \isa{rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}
 simplifies to \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}, which is exactly the local
@@ -327,8 +326,8 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{i
 \index{arithmetic}
 The simplifier routinely solves a small class of linear arithmetic formulae
 (over type \isa{nat} and other numeric types): it only takes into account
-assumptions and conclusions that are (possibly negated) (in)equalities
-(\isa{{\isacharequal}}, \isasymle, \isa{{\isacharless}}) and it only knows about addition. Thus%
+assumptions and conclusions that are relations
+($=$, $\le$, $<$, possibly negated) and it only knows about addition. Thus%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
 \begin{isamarkuptext}%

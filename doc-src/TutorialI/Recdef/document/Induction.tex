@@ -15,14 +15,15 @@ recursion pattern of the particular function $f$. We call this
 \textbf{recursion induction}. Roughly speaking, it
 requires you to prove for each \isacommand{recdef} equation that the property
 you are trying to establish holds for the left-hand side provided it holds
-for all recursive calls on the right-hand side. Here is a simple example%
+for all recursive calls on the right-hand side. Here is a simple example
+involving the predefined \isa{map} functional on lists:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}map\ f\ {\isacharparenleft}sep{\isacharparenleft}x{\isacharcomma}xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep{\isacharparenleft}f\ x{\isacharcomma}\ map\ f\ xs{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-involving the predefined \isa{map} functional on lists: \isa{map\ f\ xs}
+Note that \isa{map\ f\ xs}
 is the result of applying \isa{f} to all elements of \isa{xs}. We prove
-this lemma by recursion induction w.r.t. \isa{sep}:%
+this lemma by recursion induction over \isa{sep}:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ x\ xs\ rule{\isacharcolon}\ sep{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
@@ -48,7 +49,7 @@ definition of \isa{sep}.
 
 In general, the format of invoking recursion induction is
 \begin{quote}
-\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac\ {\isacharparenleft}}$x@1 \dots x@n$ \isa{rule{\isacharcolon}} $f$\isa{{\isachardot}induct{\isacharparenright}}
+\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac\ }$x@1 \dots x@n$ \isa{rule{\isacharcolon}} $f$\isa{{\isachardot}induct{\isacharparenright}}
 \end{quote}\index{*induct_tac}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes an $n$-tuple. Usually the subgoal will

@@ -6,7 +6,7 @@ subsubsection{*Simplification rules*}
 
 text{*\indexbold{simplification rule}
 To facilitate simplification, theorems can be declared to be simplification
-rules (with the help of the attribute @{text"[simp]"}\index{*simp
+rules (by the attribute @{text"[simp]"}\index{*simp
   (attribute)}), in which case proofs by simplification make use of these
 rules automatically. In addition the constructs \isacommand{datatype} and
 \isacommand{primrec} (and a few others) invisibly declare useful
@@ -32,7 +32,7 @@ also happen that a simplification rule needs to be disabled in certain
 proofs.  Frequent changes in the simplification status of a theorem may
 indicate a badly designed theory.
 \begin{warn}
-  Simplification may not terminate, for example if both $f(x) = g(x)$ and
+  Simplification may run forever, for example if both $f(x) = g(x)$ and
   $g(x) = f(x)$ are simplification rules. It is the user's responsibility not
   to include simplification rules that can lead to nontermination, either on
   their own or in combination with other simplification rules.
@@ -46,7 +46,7 @@ The general format of the simplification method is
 \begin{quote}
 @{text simp} \textit{list of modifiers}
 \end{quote}
-where the list of \emph{modifiers} helps to fine tune the behaviour and may
+where the list of \emph{modifiers} fine tunes the behaviour and may
 be empty. Most if not all of the proofs seen so far could have been performed
 with @{text simp} instead of \isa{auto}, except that @{text simp} attacks
 only the first subgoal and may thus need to be repeated---use
@@ -117,10 +117,9 @@ There are three options that influence the treatment of assumptions:
  means that the assumptions are simplified but are not
   used in the simplification of each other or the conclusion.
 \end{description}
-Neither @{text"(no_asm_simp)"} nor @{text"(no_asm_use)"} allow to simplify
-the above problematic subgoal.
-
-Note that only one of the above options is allowed, and it must precede all
+Both @{text"(no_asm_simp)"} and @{text"(no_asm_use)"} run forever on
+the problematic subgoal above.
+Note that only one of the options is allowed, and it must precede all
 other arguments.
 *}
 
@@ -177,7 +176,7 @@ subsubsection{*Simplifying let-expressions*}
 text{*\index{simplification!of let-expressions}
 Proving a goal containing \isaindex{let}-expressions almost invariably
 requires the @{text"let"}-con\-structs to be expanded at some point. Since
-@{text"let"}-@{text"in"} is just syntactic sugar for a predefined constant
+@{text"let"}\ldots\isa{=}\ldots@{text"in"}{\ldots} is just syntactic sugar for a predefined constant
 (called @{term"Let"}), expanding @{text"let"}-constructs means rewriting with
 @{thm[source]Let_def}:
 *}
@@ -209,6 +208,7 @@ Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
 sequence of methods. Assuming that the simplification rule
 @{term"(rev xs = []) = (xs = [])"}
 is present as well,
+the lemma below is proved by plain simplification:
 *}
 
 lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs";
@@ -216,8 +216,7 @@ lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs";
 by(simp);
 (*>*)
 text{*\noindent
-is proved by plain simplification:
-the conditional equation @{thm[source]hd_Cons_tl} above
+The conditional equation @{thm[source]hd_Cons_tl} above
 can simplify @{term"hd(rev xs) # tl(rev xs)"} to @{term"rev xs"}
 because the corresponding precondition @{term"rev xs ~= []"}
 simplifies to @{term"xs ~= []"}, which is exactly the local
@@ -333,8 +332,8 @@ subsubsection{*Arithmetic*}
 text{*\index{arithmetic}
 The simplifier routinely solves a small class of linear arithmetic formulae
 (over type \isa{nat} and other numeric types): it only takes into account
-assumptions and conclusions that are (possibly negated) (in)equalities
-(@{text"="}, \isasymle, @{text"<"}) and it only knows about addition. Thus
+assumptions and conclusions that are relations
+($=$, $\le$, $<$, possibly negated) and it only knows about addition. Thus
 *}
 
 lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"

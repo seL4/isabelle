@@ -7,7 +7,7 @@ The purpose of this section is twofold: we want to demonstrate
 some of the induction principles and heuristics discussed above and we want to
 show how inductive definitions can simplify proofs.
 In \S\ref{sec:CTL} we gave a fairly involved proof of the correctness of a
-model checker for CTL. In particular the proof of the
+model checker for CTL\@. In particular the proof of the
 @{thm[source]infinity_lemma} on the way to @{thm[source]AF_lemma2} is not as
 simple as one might intuitively expect, due to the @{text SOME} operator
 involved. Below we give a simpler proof of @{thm[source]AF_lemma2}

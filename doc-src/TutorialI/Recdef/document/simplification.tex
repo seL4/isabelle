@@ -75,7 +75,8 @@ is also available for \isa{bool} but is not split automatically:%
 In fact, this is probably the neatest solution next to pattern matching.
 
 A final alternative is to replace the offending simplification rules by
-derived conditional ones. For \isa{gcd} it means we have to prove%
+derived conditional ones. For \isa{gcd} it means we have to prove
+these lemmas:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
@@ -85,7 +86,7 @@ derived conditional ones. For \isa{gcd} it means we have to prove%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-after which we can disable the original simplification rule:%
+Now we can disable the original simplification rule:%
 \end{isamarkuptext}%
 \isacommand{declare}\ gcd{\isachardot}simps\ {\isacharbrackleft}simp\ del{\isacharbrackright}\isanewline
 \end{isabellebody}%

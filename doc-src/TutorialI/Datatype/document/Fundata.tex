@@ -33,15 +33,16 @@ instead of \isa{{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\i
 Isabelle because the termination proof is not as obvious since
 \isa{map{\isacharunderscore}bt} is only partially applied.
 
-The following lemma has a canonical proof%
+The following lemma has a canonical proof:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}map{\isacharunderscore}bt\ {\isacharparenleft}g\ o\ f{\isacharparenright}\ T\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ T{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ T{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptxt}%
 \noindent
-but it is worth taking a look at the proof state after the induction step
-to understand what the presence of the function type entails:
+It is worth taking a look at the proof state after the induction step
+to understand what the presence of the function type entails.
+Notice the quantified induction hypothesis:
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ Tip\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ Tip{\isacharparenright}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ F{\isachardot}\ {\isasymforall}x{\isachardot}\ map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}F\ x{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline

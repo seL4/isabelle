@@ -79,7 +79,7 @@ lemma wf_id: "wf r \<Longrightarrow> wf(id r)"
 by simp;
 
 text{*\noindent
-and should have appended the following hint to our above definition:
+and should have appended the following hint to our definition above:
 \indexbold{*recdef_wf}
 *}
 (*<*)

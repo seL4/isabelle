@@ -13,8 +13,8 @@ from them) as theorems. For example, look (via \isacommand{thm}) at
 the same function. What is more, those equations are automatically declared as
 simplification rules.
 
-In general, Isabelle may not be able to prove all termination conditions
-(there is one for each recursive call) automatically. For example,
+Isabelle may fail to prove some termination conditions
+(there is one for each recursive call).  For example,
 termination of the following artificial function
 *}
 
@@ -23,8 +23,8 @@ recdef f "measure(\<lambda>(x,y). x-y)"
   "f(x,y) = (if x \<le> y then x else f(x,y+1))";
 
 text{*\noindent
-is not proved automatically (although maybe it should be). Isabelle prints a
-kind of error message showing you what it was unable to prove. You will then
+is not proved automatically. Isabelle prints a
+message showing you what it was unable to prove. You will then
 have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:
 *}

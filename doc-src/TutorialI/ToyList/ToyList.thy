@@ -30,12 +30,11 @@ the right, i.e.\ the term @{term"x # y # z"} is read as @{text"x # (y # z)"}
 and not as @{text"(x # y) # z"}.
 
 \begin{warn}
-  Syntax annotations are a powerful but completely optional feature. You
+  Syntax annotations are a powerful but optional feature. You
   could drop them from theory @{text"ToyList"} and go back to the identifiers
-  @{term[source]Nil} and @{term[source]Cons}. However, lists are such a
-  central datatype
-  that their syntax is highly customized. We recommend that novices should
-  not use syntax annotations in their own theories.
+  @{term[source]Nil} and @{term[source]Cons}.
+  We recommend that novices avoid using
+  syntax annotations in their own theories.
 \end{warn}
 Next, two functions @{text"app"} and \isaindexbold{rev} are declared:
 *}
@@ -79,8 +78,8 @@ $f(n)$ on both sides.
 % However, this is a subtle issue that we cannot discuss here further.
 
 \begin{warn}
-  As we have indicated, the desire for total functions is not a gratuitously
-  imposed restriction but an essential characteristic of HOL. It is only
+  As we have indicated, the requirement for total functions is not a gratuitous
+  restriction but an essential characteristic of HOL\@. It is only
   because of totality that reasoning in HOL is comparatively easy.  More
   generally, the philosophy in HOL is not to allow arbitrary axioms (such as
   function definitions whose totality has not been proved) because they
@@ -116,7 +115,7 @@ presented so far, we are ready to prove a few simple theorems. This will
 illustrate not just the basic proof commands but also the typical proof
 process.
 
-\subsubsection*{Main goal: @{text"rev(rev xs) = xs"}}
+\subsubsection*{Main goal: @{text"rev(rev xs) = xs"}.}
 
 Our goal is to show that reversing a list twice produces the original
 list. The input line
@@ -125,6 +124,8 @@ list. The input line
 theorem rev_rev [simp]: "rev(rev xs) = xs";
 
 txt{*\index{*theorem|bold}\index{*simp (attribute)|bold}
+\noindent
+does several things.  It
 \begin{itemize}
 \item
 establishes a new theorem to be proved, namely @{prop"rev(rev xs) = xs"},
@@ -231,7 +232,7 @@ lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
 
 txt{*\noindent The keywords \isacommand{theorem}\index{*theorem} and
 \isacommand{lemma}\indexbold{*lemma} are interchangable and merely indicate
-the importance we attach to a proposition. In general, we use the words
+the importance we attach to a proposition.  We use the words
 \emph{theorem}\index{theorem} and \emph{lemma}\index{lemma} pretty much
 interchangeably.
 
@@ -334,7 +335,7 @@ apply(auto);
 done
 
 text{*\noindent
-and then solve our main theorem:
+and then prove our main theorem:
 *}
 
 theorem rev_rev [simp]: "rev(rev xs) = xs";

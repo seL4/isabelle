@@ -89,13 +89,13 @@ that recursively reverses the order of arguments of all function symbols in a
   term. Prove that @{prop"trev(trev t) = t"}.
 \end{exercise}
 
-The experienced functional programmer may feel that our above definition of
-@{term subst} is unnecessarily complicated in that @{term substs} is
-completely unnecessary. The @{term App}-case can be defined directly as
+The experienced functional programmer may feel that our definition of
+@{term subst} is too complicated in that @{term substs} is
+unnecessary. The @{term App}-case can be defined directly as
 @{term[display]"subst s (App f ts) = App f (map (subst s) ts)"}
 where @{term"map"} is the standard list function such that
 @{text"map f [x1,...,xn] = [f x1,...,f xn]"}. This is true, but Isabelle
-insists on the above fixed format. Fortunately, we can easily \emph{prove}
+insists on the conjunctive format. Fortunately, we can easily \emph{prove}
 that the suggested equation holds:
 *}
 
@@ -116,8 +116,8 @@ The advantage is that now we have replaced @{term substs} by
 about @{term map}.  Unfortunately inductive proofs about type
 @{text term} are still awkward because they expect a conjunction. One
 could derive a new induction principle as well (see
-\S\ref{sec:derive-ind}), but turns out to be simpler to define
-functions by \isacommand{recdef} instead of \isacommand{primrec}.
+\S\ref{sec:derive-ind}), but simpler is to stop using \isacommand{primrec}
+and to define functions with \isacommand{recdef} instead.
 The details are explained in \S\ref{sec:nested-recdef} below.
 
 Of course, you may also combine mutual and nested recursion. For example,

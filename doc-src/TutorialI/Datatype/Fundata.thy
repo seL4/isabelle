@@ -32,7 +32,7 @@ instead of @{term"%i. map_bt f (F i)"}, but the former is not accepted by
 Isabelle because the termination proof is not as obvious since
 @{term"map_bt"} is only partially applied.
 
-The following lemma has a canonical proof  *}
+The following lemma has a canonical proof:  *}
 
 lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
 apply(induct_tac T, simp_all)
@@ -40,8 +40,9 @@ done
 (*<*)lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
 apply(induct_tac T, rename_tac[2] F)(*>*)
 txt{*\noindent
-but it is worth taking a look at the proof state after the induction step
-to understand what the presence of the function type entails:
+It is worth taking a look at the proof state after the induction step
+to understand what the presence of the function type entails.
+Notice the quantified induction hypothesis:
 @{subgoals[display,indent=0]}
 *}
 (*<*)

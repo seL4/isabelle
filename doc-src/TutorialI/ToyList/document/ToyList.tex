@@ -32,12 +32,11 @@ the right, i.e.\ the term \isa{x\ {\isacharhash}\ y\ {\isacharhash}\ z} is read 
 and not as \isa{{\isacharparenleft}x\ {\isacharhash}\ y{\isacharparenright}\ {\isacharhash}\ z}.
 
 \begin{warn}
-  Syntax annotations are a powerful but completely optional feature. You
+  Syntax annotations are a powerful but optional feature. You
   could drop them from theory \isa{ToyList} and go back to the identifiers
-  \isa{Nil} and \isa{Cons}. However, lists are such a
-  central datatype
-  that their syntax is highly customized. We recommend that novices should
-  not use syntax annotations in their own theories.
+  \isa{Nil} and \isa{Cons}.
+  We recommend that novices avoid using
+  syntax annotations in their own theories.
 \end{warn}
 Next, two functions \isa{app} and \isaindexbold{rev} are declared:%
 \end{isamarkuptext}%
@@ -77,8 +76,8 @@ $f(n)$ on both sides.
 % However, this is a subtle issue that we cannot discuss here further.
 
 \begin{warn}
-  As we have indicated, the desire for total functions is not a gratuitously
-  imposed restriction but an essential characteristic of HOL. It is only
+  As we have indicated, the requirement for total functions is not a gratuitous
+  restriction but an essential characteristic of HOL\@. It is only
   because of totality that reasoning in HOL is comparatively easy.  More
   generally, the philosophy in HOL is not to allow arbitrary axioms (such as
   function definitions whose totality has not been proved) because they
@@ -113,7 +112,7 @@ presented so far, we are ready to prove a few simple theorems. This will
 illustrate not just the basic proof commands but also the typical proof
 process.
 
-\subsubsection*{Main goal: \isa{rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}}
+\subsubsection*{Main goal: \isa{rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}.}
 
 Our goal is to show that reversing a list twice produces the original
 list. The input line%
@@ -121,6 +120,8 @@ list. The input line%
 \isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \index{*theorem|bold}\index{*simp (attribute)|bold}
+\noindent
+does several things.  It
 \begin{itemize}
 \item
 establishes a new theorem to be proved, namely \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs},
@@ -221,7 +222,7 @@ proof}\indexbold{proof!abandon} (at the shell level type
 \begin{isamarkuptxt}%
 \noindent The keywords \isacommand{theorem}\index{*theorem} and
 \isacommand{lemma}\indexbold{*lemma} are interchangable and merely indicate
-the importance we attach to a proposition. In general, we use the words
+the importance we attach to a proposition.  We use the words
 \emph{theorem}\index{theorem} and \emph{lemma}\index{lemma} pretty much
 interchangeably.
 
@@ -320,7 +321,7 @@ Now we can go back and prove the first lemma%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
-and then solve our main theorem:%
+and then prove our main theorem:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ rev{\isacharunderscore}rev\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}rev{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isanewline
