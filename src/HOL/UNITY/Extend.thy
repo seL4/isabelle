@@ -41,8 +41,7 @@ locale Extend =
     f_act   :: "('c * 'c) set => ('a*'a) set"
 
   assumes
-    inj_h  "inj h"
-    surj_h "surj h"
+    bij_h  "bij h"
   defines
     f_def       "f z == fst (inv h z)"
     g_def       "g z == snd (inv h z)"

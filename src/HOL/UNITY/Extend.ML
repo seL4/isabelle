@@ -16,8 +16,8 @@ val f_act_def = thm "f_act_def";
 
 (*** Trivial properties of f, g, h ***)
 
-val inj_h = thm "inj_h";
-val surj_h = thm "surj_h";
+val inj_h  = thm "bij_h" RS bij_is_inj;
+val surj_h = thm "bij_h" RS bij_is_surj;
 Addsimps [inj_h, inj_h RS inj_eq, surj_h];
 
 val f_def = thm "f_def";
@@ -46,6 +46,10 @@ Goalw [extend_set_def]
 by (force_tac (claset() addIs  [h_f_g_eq RS sym], simpset()) 1);
 qed "mem_extend_set_iff";
 AddIffs [mem_extend_set_iff]; 
+
+Goal "{s. P (f s)} = extend_set h {s. P s}";
+by Auto_tac;
+qed "Collect_eq_extend_set";
 
 (*Converse appears to fail*)
 Goalw [project_set_def] "z : C ==> f z : project_set h C";
@@ -364,10 +368,21 @@ by (etac constrains_weaken_L 1);
 by (auto_tac (claset() addDs [reachable_imp_reachable_project], simpset()));
 qed "project_Constrains_D";
 
-Goalw [Stable_def]
-     "project h F : Stable A ==> F : Stable (extend_set h A)";
+Goalw [Stable_def] "project h F : Stable A ==> F : Stable (extend_set h A)";
 by (asm_simp_tac (simpset() addsimps [project_Constrains_D]) 1);
 qed "project_Stable_D";
+
+Goalw [Always_def] "project h F : Always A ==> F : Always (extend_set h A)";
+by (force_tac (claset() addIs [reachable.Init, project_set_I],
+	       simpset() addsimps [project_Stable_D]) 1);
+qed "project_Always_D";
+
+Goalw [Increasing_def]
+     "project h F : Increasing func ==> F : Increasing (func o f)";
+by Auto_tac;
+by (stac Collect_eq_extend_set 1);
+by (asm_simp_tac (simpset() addsimps [project_Stable_D]) 1); 
+qed "project_Increasing_D";
 
 
 (*** Programs of the form  ((extend h F) Join G)
@@ -416,8 +431,7 @@ by (asm_full_simp_tac
 			 extend_constrains,
 			 project_constrains RS sym,
 			 project_extend_Join]) 2);
-by (blast_tac (claset() addIs [constrains_weaken, 
-			       reachable_extend_Join_D]) 1);
+by (blast_tac (claset() addIs [constrains_weaken, reachable_extend_Join_D]) 1);
 qed "extend_Join_Constrains";
 
 Goal "F Join project h G : Stable A    \
@@ -580,29 +594,21 @@ by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
 			       extend_guarantees_imp_guarantees]) 1);
 qed "extend_guarantees_eq";
 
-
 (*Weak precondition and postcondition; this is the good one!
-  Not clear that it has a converse [or that we want one!]
-  Can trivially satisfy the constraint on X by taking X = project h `` XX*)
+  Not clear that it has a converse [or that we want one!] *)
 val [xguary,project,extend] =
 Goal "[| F : X guarantees Y;  \
-\        !!H. H : XX ==> project h H : X;  \
+\        !!G. extend h F Join G : XX ==> F Join project h G : X;  \
 \        !!G. F Join project h G : Y ==> extend h F Join G : YY |] \
 \     ==> extend h F : XX guarantees YY";
 by (rtac (xguary RS guaranteesD RS extend RS guaranteesI) 1);
-by (dtac project 1);
-by (full_simp_tac (simpset() addsimps [project_extend_Join]) 1);
+by (etac project 1);
 qed "project_guarantees";
 
 (** It seems that neither "guarantees" law can be proved from the other. **)
 
 
-
 (*** guarantees corollaries ***)
-
-Goal "{s. P (f s)} = extend_set h {s. P s}";
-by Auto_tac;
-qed "Collect_eq_extend_set";
 
 Goalw [increasing_def]
      "F : UNIV guarantees increasing func \
@@ -637,7 +643,8 @@ by (asm_full_simp_tac
 			 stable_Join]) 2);
 (*the "localTo" requirement*)
 by (asm_simp_tac
-    (simpset() addsimps [Diff_project_stable, 
+    (simpset() addsimps [project_extend_Join RS sym,
+			 Diff_project_stable, 
 			 Collect_eq_extend_set RS sym]) 1); 
 qed "extend_localTo_guar_increasing";
 
@@ -652,7 +659,8 @@ by (stac Collect_eq_extend_set 2);
 by (asm_simp_tac (simpset() addsimps [extend_Join_Stable]) 2);
 (*the "localTo" requirement*)
 by (asm_simp_tac
-    (simpset() addsimps [Diff_project_stable, 
+    (simpset() addsimps [project_extend_Join RS sym,
+			 Diff_project_stable, 
 			 Collect_eq_extend_set RS sym]) 1); 
 qed "extend_localTo_guar_Increasing";
 
