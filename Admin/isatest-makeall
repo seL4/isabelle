@@ -69,6 +69,10 @@ case $HOSTNAME in
 	MFLAGS="-j 4"
 	;;
 
+	sunbroy1)
+	MFLAGS="-j 2"
+	;;
+
    	*)
 	MFLAGS=""
         ;;
