@@ -219,7 +219,7 @@ fun del map_data (x, th) =
   (map_data (del_rule th o del_rule (Tactic.make_elim th)) x, th);
 
 fun add k view map_data opt_w =
-  (fn (x, th) => (map_data (add_rule k opt_w th) x, th)) o del map_data;
+  (fn (x, th) => (map_data (add_rule k opt_w (view th)) x, th)) o del map_data;
 
 in
 
