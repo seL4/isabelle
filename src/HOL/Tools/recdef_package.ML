@@ -12,7 +12,6 @@ sig
   val print_recdefs: theory -> unit
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
-  val tcs_of: theory -> xstring -> term list
   val simp_add_global: theory attribute
   val simp_del_global: theory attribute
   val cong_add_global: theory attribute
@@ -37,6 +36,10 @@ sig
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm * theory attribute list) list
     -> theory -> theory * {induct_rules: thm}
+  val recdef_tc: bstring * Args.src list -> xstring -> int option
+    -> bool -> theory -> ProofHistory.T
+  val recdef_tc_i: bstring * theory attribute list -> string -> int option
+    -> bool -> theory -> ProofHistory.T
   val setup: (theory -> theory) list
 end;
 
@@ -137,14 +140,6 @@ fun put_recdef name info thy =
 
 val get_global_hints = #2 o GlobalRecdefData.get;
 val map_global_hints = GlobalRecdefData.map o apsnd;
-
-
-fun tcs_of thy raw_name =
-  let val name = Sign.intern_const (Theory.sign_of thy) raw_name in
-    (case get_recdef thy name of
-      None => error ("No recdef definition of constant: " ^ quote name)
-    | Some {tcs, ...} => tcs)
-  end;
 
 
 (* proof data kind 'HOL/recdef' *)
@@ -300,6 +295,30 @@ val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
 
 
 
+(** recdef_tc(_i) **)
+
+fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
+  let
+    val name = prep_name (Theory.sign_of thy) raw_name;
+    val atts = map (prep_att thy) raw_atts;
+    val tcs =
+      (case get_recdef thy name of
+        None => error ("No recdef definition of constant: " ^ quote name)
+      | Some {tcs, ...} => tcs);
+    val i = if_none opt_i 1;
+    val tc = Library.nth_elem (i - 1, tcs) handle Library.LIST _ =>
+      error ("No termination condition #" ^ string_of_int i ^
+        " in recdef definition of " ^ quote name);
+  in
+    thy
+    |> IsarThy.theorem_i (((bname, atts), (HOLogic.mk_Trueprop tc, ([], []))), Comment.none) int
+  end;
+
+val recdef_tc = gen_recdef_tc Attrib.global_attribute Sign.intern_const;
+val recdef_tc_i = gen_recdef_tc (K I) (K I);
+
+
+
 (** package setup **)
 
 (* setup theory *)
@@ -338,8 +357,20 @@ val defer_recdefP =
   OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)" K.thy_decl
     (defer_recdef_decl >> Toplevel.theory);
 
+
+val recdef_tc_decl =
+  P.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
+    --| P.marg_comment;
+
+fun mk_recdef_tc ((thm_name, name), i) = recdef_tc thm_name name i;
+
+val recdef_tcP =
+  OuterSyntax.command "recdef_tc" "recommence proof of termination condition (TFL)" K.thy_goal
+    (recdef_tc_decl >> (Toplevel.print oo (Toplevel.theory_to_proof o mk_recdef_tc)));
+
+
 val _ = OuterSyntax.add_keywords ["congs", "hints"];
-val _ = OuterSyntax.add_parsers [recdefP, defer_recdefP];
+val _ = OuterSyntax.add_parsers [recdefP, defer_recdefP, recdef_tcP];
 
 end;
 
