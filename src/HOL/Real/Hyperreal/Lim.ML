@@ -1591,7 +1591,7 @@ by (auto_tac (claset(),
       simpset() addsimps [eq_divide_2_times_iff, real_add_divide_distrib, 
                           Let_def, split_def]));
 by (auto_tac (claset(), 
-              simpset() addsimps [Bolzano_bisect_le, real_diff_def]));  
+              simpset() addsimps (real_add_ac@[Bolzano_bisect_le, real_diff_def])));
 qed "Bolzano_bisect_diff";
 
 val Bolzano_nest_unique =
