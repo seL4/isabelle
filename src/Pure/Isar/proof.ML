@@ -472,21 +472,10 @@ fun prep_result state t raw_thm =
 fun strip_flexflex thm =
   Seq.hd (Thm.flexflex_rule thm) handle THM _ => thm;
 
-fun final_result state pre_thm =
-  let
-    val thm =
-      pre_thm
-      |> strip_flexflex
-      |> Thm.strip_shyps
-      |> Drule.standard;
-
-    val str_of_sort = Sign.str_of_sort (Thm.sign_of_thm thm);
-    val xshyps = Thm.extra_shyps thm;
-  in
-    if not (null xshyps) then
-      raise STATE ("Extra sort hypotheses: " ^ commas (map str_of_sort xshyps), state)
-    else thm
-  end;
+fun final_result state thm =
+  thm
+  |> strip_flexflex
+  |> Drule.standard;
 
 
 
