@@ -14,10 +14,10 @@
 # binaries.  Do not invent new ML system names unless you know what
 # you are doing.  Only one of the sections below should be activated.
 
-# Poly/ML 3.x and 4.0
+# Poly/ML 3.x and 4.0 or later
 if [ -e /usr/bin/poly -a -e /usr/lib/poly ]; then
-  #maybe a shrink-wrapped polyml-4.0 on x86-linux ...
-  ML_SYSTEM=polyml-4.0
+  #maybe a shrink-wrapped polyml-4.1.1 on x86-linux ...
+  ML_SYSTEM=polyml-4.1.1
   ML_PLATFORM=x86-linux
   ML_HOME=/usr/bin
   ML_DBASE=/usr/lib/poly/ML_dbase
@@ -65,8 +65,10 @@ fi
 ### Compilation options
 ###
 
-ISABELLE_USEDIR_OPTIONS="-i false"
-#ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
+ISABELLE_USEDIR_OPTIONS=""
+
+# Default for precompiled distribution ...
+#ISABELLE_USEDIR_OPTIONS="-i true -d pdf -p 2"
 
 
 ###
@@ -117,7 +119,7 @@ fi
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \
   { echo >&2 "### Isabelle site settings already present!  Maybe copied etc/settings in full?"; }
 
-#Users may want to change this.
+# Users may want to change this.
 ISABELLE_LOGIC=HOL
 
 
