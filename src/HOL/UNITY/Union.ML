@@ -62,7 +62,7 @@ qed "Acts_Join";
 
 (** JN **)
 
-Goalw [JOIN_def, SKIP_def] "(JN i:{}. F i) = (SKIP UNIV)";
+Goalw [JOIN_def, SKIP_def] "(JN i:{}. F i) = SKIP UNIV";
 by Auto_tac;
 qed "JN_empty";
 Addsimps [JN_empty];
@@ -76,8 +76,9 @@ by (auto_tac (claset() addIs [impOfSubs Init_subset_States],
 	      simpset() addsimps [JOIN_def]));
 qed "Init_JN";
 
+(*If I={} then the LHS is (SKIP UNIV) while the RHS is {}.*)
 Goalw [eqStates_def]
-     "[| i: I;  eqStates I F |] ==> Acts (JN i:I. F i) = (UN i:I. Acts (F i))";
+     "[| eqStates I F; i: I |] ==> Acts (JN i:I. F i) = (UN i:I. Acts (F i))";
 by (Clarify_tac 1);
 by (subgoal_tac "(UN i:I. Acts (F i)) <= Pow (St Times St)" 1);
 by (blast_tac (claset() addEs [equalityE] 
