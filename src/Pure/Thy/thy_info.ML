@@ -2,15 +2,12 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theory loader database: theory and file dependencies, theory values
-and user data.
+Theory loader database, including theory and file dependencies.
 
 TODO:
-  - data: ThyInfoFun;
   - remove operation (GC!?);
   - update_all operation (!?);
   - put_theory:
-      . include data;
       . allow for undef entry only;
       . elim (via theory_ref);
   - stronger handling of missing files (!?!?);
@@ -49,19 +46,7 @@ sig
   val register_theory: theory -> unit
 end;
 
-signature PRIVATE_THY_INFO =
-sig
-  include THY_INFO
-(* FIXME
-  val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) *
-    (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit)) -> unit
-  val print_data: Object.kind -> string -> unit
-  val get_data: Object.kind -> (Object.T -> 'a) -> string -> 'a
-  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> unit
-*)
-end;
-
-structure ThyInfo: PRIVATE_THY_INFO =
+structure ThyInfo: THY_INFO =
 struct
 
 
@@ -108,19 +93,13 @@ type deps =
 fun make_deps present outdated master files =
   {present = present, outdated = outdated, master = master, files = files}: deps;
 
-type thy = deps option * (theory * Object.T Symtab.table) option;
-type kind = Object.kind * (Object.T * (Object.T -> unit));
-
+type thy = deps option * theory option;
 
 local
-  val database = ref (Graph.empty: thy Graph.T, Symtab.empty: kind Symtab.table);
+  val database = ref (Graph.empty: thy Graph.T);
 in
-
-fun get_thys () = #1 (! database);
-fun get_kinds () = #2 (! database);
-fun change_thys f = database := (f (get_thys ()), get_kinds ());
-fun change_kinds f = database := (get_thys (), f (get_kinds ()));
-
+  fun get_thys () = ! database;
+  fun change_thys f = database := (f (! database));
 end;
 
 
@@ -157,17 +136,14 @@ val loaded_files = mapfilter #2 o get_files;
 
 fun get_theory name =
   (case get_thy name of
-    (_, Some (theory, _)) => theory
+    (_, Some theory) => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
 
 val theory_of_sign = get_theory o Sign.name_of;
 val theory_of_thm = theory_of_sign o Thm.sign_of_thm;
 
 fun put_theory theory =
-  change_thy (PureThy.get_name theory) (fn (deps, _) => (deps, (Some (theory, Symtab.empty))));
-
-
-(** thy data **)  (* FIXME *)
+  change_thy (PureThy.get_name theory) (fn (deps, _) => (deps, Some theory));
 
 
 
@@ -314,7 +290,7 @@ fun begin_theory name parents paths =
   let
     val _ = seq weak_use_thy parents;
     val theory = PureThy.begin_theory name (map get_theory parents);
-    val _ = change_thys (update_node name parents (init_deps [] [], Some (theory, Symtab.empty)));
+    val _ = change_thys (update_node name parents (init_deps [] [], Some theory));
     val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
   in Context.setmp (Some theory) (seq use_path) use_paths; theory end;
 
@@ -324,24 +300,6 @@ fun end_theory theory =
 
 
 (* finalize entries *)
-
-(* FIXME
-fun finishs names =
-  let
-    fun err txt bads =
-      error (loader_msg txt bads ^ "\n" ^ gen_msg "cannot mark" names ^ " as finished");
-
-    val all_preds = thy_graph Graph.all_preds names;
-    val noncurrent = filter_out is_current all_preds;
-    val unfinished = filter_out is_finished (all_preds \\ names);
-  in
-    if not (null noncurrent) then err "non-current theories" noncurrent
-    else if not (null unfinished) then err "unfinished ancestor theories" unfinished
-    else seq (fn name => change_thy name (apfst (K Finished)))
-  end;
-
-fun finish name = finishs [name];
-*)
 
 fun update_all () = ();         (* FIXME fake *)
 
@@ -367,7 +325,7 @@ fun register_theory theory =
     val variants = mapfilter get_variant (parents ~~ parent_names);
 
     fun register G =
-      (Graph.new_node (name, (None, Some (theory, Symtab.empty))) G
+      (Graph.new_node (name, (None, Some theory)) G
         handle Graph.DUPLICATE _ => err "duplicate theory entry" [])
       |> add_deps name parent_names;
   in
