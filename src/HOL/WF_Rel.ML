@@ -26,6 +26,12 @@ by (Simp_tac 1);
 qed "less_than_iff";
 AddIffs [less_than_iff];
 
+Goal "(!!n. (!m. Suc m <= n --> P m) ==> P n) ==> P n";
+br (wf_less_than RS wf_induct) 1;
+by (resolve_tac (premises()) 1);
+by Auto_tac;
+qed_spec_mp "full_nat_induct";
+
 (*----------------------------------------------------------------------------
  * The inverse image into a wellfounded relation is wellfounded.
  *---------------------------------------------------------------------------*)
