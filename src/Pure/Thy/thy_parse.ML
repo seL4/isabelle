@@ -420,6 +420,17 @@ val instance_decl =
   >> (fn ((x, y), z) => (cat_lines [x, y, z]));
 
 
+(* locale *)
+
+val locale_decl =
+  (name --$$ "=") --
+    ("fixes" $$--
+      (repeat (name --$$ "::" -- !! (typ -- opt_mixfix)) >> (mk_big_list o map mk_triple2))) --
+    ("assumes" $$-- (repeat ((ident >> quote) -- !! string) >> (mk_list o map mk_pair))) --
+    ("defines" $$-- (repeat ((ident >> quote) -- !! string) >> (mk_list o map mk_pair)))
+  >> (fn (((nm, cs), asms), defs) => cat_lines [nm, cs, asms, defs]);
+
+
 
 (** theory syntax **)
 
@@ -540,7 +551,7 @@ fun section name pretxt parse =
 val pure_keywords =
  ["end", "ML", "mixfix", "infixr", "infixl", "binder", "output", "=",
   "+", ",", "<", "{", "}", "(", ")", "[", "]", "::", "==", "=>",
-  "<="];
+  "<=", "fixes", "assumes", "defines"];
 
 val pure_sections =
  [section "classes" "|> Theory.add_classes" class_decls,
@@ -561,7 +572,8 @@ val pure_sections =
   section "global" "|> PureThy.global_path" empty_decl,
   section "local" "|> PureThy.local_path" empty_decl,
   section "setup" "|> Theory.apply" long_id,
-  section "MLtext" "" verbatim];
+  section "MLtext" "" verbatim,
+  section "locale" "|> Locale.add_locale" locale_decl];
 
 
 end;
