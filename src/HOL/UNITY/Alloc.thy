@@ -15,7 +15,7 @@ constdefs
        ALL F G. F : X --> drop_prog i F = drop_prog i G --> G : X"
 
 
- (UNITY.thy????????????????*)
+ (*UNITY.thy????????????????*)
   (*An Idle program can do nothing*)
   Idle :: 'a program set
     "Idle == {F. Union (Acts F) <= Id}"
@@ -174,6 +174,8 @@ constdefs
 			      allocAsk = allocAsk s,
 			      allocRel = allocRel s,
 			      client   = y |)"
+(***    "sysOfAlloc == %(s,y). s(|client := y|)"  TYPE DOESN'T CHANGE***)
+
 
   sysOfClient :: "((nat => clientState) * allocState ) => systemState"
     "sysOfClient == %(x,y). sysOfAlloc(y,x)"
@@ -195,7 +197,7 @@ locale System =
     System_def
       "System == (extend sysOfAlloc Alloc)
                  Join
-                 (extend sysOfClient (PPI x: lessThan Nclients. Client))
+                 (extend sysOfClient (plam x: lessThan Nclients. Client))
                  Join
                  Network"
 end
