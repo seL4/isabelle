@@ -54,7 +54,7 @@ echo Running on `hostname`
 echo Log files will be called make$$.log.gz
 
 case $FORCE.$EXEC in
-    on.on) (cd $ISABELLEBIN; rm -f Pure FOL ZF CCL LCF CTT LK Modal HOL HOLCF Cube FOLP)
+    on.on) (cd $ISABELLEBIN; rm -f Pure FOL ZF CCL LCF CTT LK Modal HOL CHOL HOLCF Cube FOLP)
 esac
 
 set +e			#no longer fail upon errors -- e.g. if a "make" fails
@@ -152,6 +152,16 @@ esac
 
 echo
 echo
+echo '*****Curried Higher-Order Logic (CHOL)*****'
+(cd CHOL;  make $NO $TEST > make$$.log)
+tail CHOL/make$$.log
+gzip CHOL/make$$.log
+case $CLEAN.$EXEC in
+    on.on)	rm $ISABELLEBIN/CHOL
+esac
+
+echo
+echo
 echo '*****The Lambda-Cube (Cube)*****'
 (cd Cube;  make $NO $TEST > make$$.log)
 case $CLEAN.$EXEC in
@@ -174,7 +184,7 @@ case $TEST.$EXEC in
     test.on)	echo
 	        echo '***** Now check the dates on the "test" files *****'
         	ls -lrt FOL/test ZF/test CCL/test LCF/test CTT/test\
-              	        LK/test Modal/test HOL/test HOLCF/test Cube/test\
-                        FOLP/test
+              	        LK/test Modal/test HOL/test CHOL/test HOLCF/test\
+                        Cube/test FOLP/test
 esac
 echo Finished at `date`
