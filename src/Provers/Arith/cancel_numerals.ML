@@ -37,6 +37,7 @@ sig
   val bal_add2: thm
   (*proof tools*)
   val prove_conv: tactic list -> Sign.sg -> term * term -> thm option
+  val subst_tac: thm option -> tactic
   val norm_tac: tactic
   val numeral_simp_tac: tactic
 end;
@@ -49,13 +50,9 @@ functor CancelNumeralsFun(Data: CANCEL_NUMERALS_DATA):
 =
 struct
 
-fun listof None = []
-  | listof (Some x) = [x];
-
-(*If t = #n*u then put u in the table*)
+(*For t = #n*u then put u in the table*)
 fun update_by_coeff (tab, t) =
-  Termtab.update ((#2 (Data.dest_coeff t), ()), tab)
-  handle TERM _ => tab;
+  Termtab.update ((#2 (Data.dest_coeff t), ()), tab);
 
 (*a left-to-right scan of terms1, seeking a term of the form #n*u, where
   #m*u is in terms2 for some m*)
@@ -67,7 +64,6 @@ fun find_common (terms1,terms2) =
 	      in  if is_some (Termtab.lookup (tab2, u)) then u
 		  else seek terms
 	      end
-	      handle TERM _ => seek terms
   in  seek terms1 end;
 
 (*the simplification procedure*)
@@ -79,28 +75,29 @@ fun proc sg _ t =
       val (n1, terms1') = Data.find_first_coeff u terms1
       and (n2, terms2') = Data.find_first_coeff u terms2
       fun newshape (i,terms) = Data.mk_sum (Data.mk_coeff(i,u)::terms)
-      val reshapes =  (*Move i*u to the front and put j*u into standard form
-		      i + #m + j + k == #m + i + (j + k) *)
+      val reshape =  (*Move i*u to the front and put j*u into standard form
+		       i + #m + j + k == #m + i + (j + k) *)
 	    if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
 		raise TERM("cancel_numerals", []) 
-	    else
-		listof (Data.prove_conv [Data.norm_tac] sg 
+	    else Data.prove_conv [Data.norm_tac] sg 
 			(t, 
 			 Data.mk_bal (newshape(n1,terms1'), 
-				      newshape(n2,terms2'))))
+				      newshape(n2,terms2')))
   in
 
       if n2<=n1 then 
 	  Data.prove_conv 
-	     [rewrite_goals_tac reshapes, rtac Data.bal_add1 1,
+	     [Data.subst_tac reshape, rtac Data.bal_add1 1,
 	      Data.numeral_simp_tac] sg
 	     (t, Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum terms2'))
       else
 	  Data.prove_conv 
-	     [rewrite_goals_tac reshapes, rtac Data.bal_add2 1,
+	     [Data.subst_tac reshape, rtac Data.bal_add2 1,
 	      Data.numeral_simp_tac] sg
 	     (t, Data.mk_bal (Data.mk_sum terms1', newshape(n2-n1,terms2')))
   end
-  handle TERM _ => None;
+  handle TERM _ => None
+       | TYPE _ => None;   (*Typically (if thy doesn't include Numeral)
+			     Undeclared type constructor "Numeral.bin"*)
 
 end;
