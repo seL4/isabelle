@@ -58,7 +58,7 @@ qed "gr0_conv_Suc";
 
 Goal "!!n::nat. (~(0 < n)) = (n=0)";
 by (rtac iffI 1);
- by (etac swap 1);
+ by (rtac ccontr 1);
  by (ALLGOALS Asm_full_simp_tac);
 qed "not_gr0";
 AddIffs [not_gr0];
