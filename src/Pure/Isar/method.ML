@@ -140,17 +140,18 @@ fun trace rules =
 
 (** global and local rule data **)
 
-val introK = 0;
-val elimK = 1;
-val intro_bangK = 2;
-val elim_bangK = 3;
+val intro_bangK = 0;
+val elim_bangK = 1;
+val introK = 2;
+val elimK = 3;
 
 local
 
-fun kind_name 0 = "introduction rules (intro)"
-  | kind_name 1 = "elimination rules (elim)"
-  | kind_name 2 = "safe introduction rules (intro!)"
-  | kind_name 3 = "safe elimination rules (elim!)";
+fun kind_name 0 = "safe introduction rules (intro!)"
+  | kind_name 1 = "safe elimination rules (elim!)"
+  | kind_name 2 = "introduction rules (intro)"
+  | kind_name 3 = "elimination rules (elim)"
+  | kind_name _ = "unknown";
 
 fun prt_rules sg (k, rs) =
   Pretty.writeln (Pretty.big_list (kind_name k ^ ":")
