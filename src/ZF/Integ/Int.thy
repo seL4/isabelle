@@ -76,7 +76,7 @@ constdefs
      "z1 $<= z2 == z1 $< z2 | intify(z1)=intify(z2)"
   
 
-syntax (symbols)
+syntax (xsymbols)
   "zmult"     :: [i,i] => i          (infixl "$\\<times>" 70)
   "zle"       :: [i,i] => o          (infixl "$\\<le>" 50)  (*less than / equals*)
 

@@ -19,7 +19,7 @@ syntax
 translations
   "x le y"      == "x < succ(y)"
 
-syntax (symbols)
+syntax (xsymbols)
   "op le"       :: [i,i] => o  (infixl "\\<le>" 50) (*less than or equals*)
 
 defs

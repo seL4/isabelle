@@ -15,7 +15,7 @@ axclass sq_ord<term
 consts
   "<<"          :: "['a,'a::sq_ord] => bool"        (infixl 55)
 
-syntax (symbols)
+syntax (xsymbols)
   "op <<"       :: "['a,'a::sq_ord] => bool"        (infixl "\\<sqsubseteq>" 55)
 
 axclass po < sq_ord

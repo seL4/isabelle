@@ -38,7 +38,7 @@ defs
    (*standard real numbers as a subset of the hyperreals*)
    SReal_def      "Reals == {x. EX r. x = hypreal_of_real r}"
 
-syntax (symbols)
+syntax (xsymbols)
     approx :: "[hypreal, hypreal] => bool"    (infixl "\\<approx>" 50)
   
 end

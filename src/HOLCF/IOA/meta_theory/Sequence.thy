@@ -35,7 +35,7 @@ syntax
   "_partlist"     :: args => 'a Seq                          ("[(_)?]")
 
 
-syntax (symbols)
+syntax (xsymbols)
 
  "@Consq"     ::"'a => 'a Seq => 'a Seq"       ("(_\\<leadsto>_)"  [66,65] 65)
  

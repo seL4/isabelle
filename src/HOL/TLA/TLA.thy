@@ -55,7 +55,7 @@ translations
   "sigma |= EEX x. F"    <= "_EEx x F sigma"
   "sigma |= AALL x. F"    <= "_AAll x F sigma"
 
-syntax (symbols)
+syntax (xsymbols)
   "_Box"     :: lift => lift                        ("(\\<box>_)" [40] 40)
   "_Dmd"     :: lift => lift                        ("(\\<diamond>_)" [40] 40)
   "_leadsto" :: [lift,lift] => lift                 ("(_ \\<leadsto> _)" [23,22] 22)

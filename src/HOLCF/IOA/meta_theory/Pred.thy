@@ -32,13 +32,13 @@ syntax ("" output)
   "OR"      ::"'a predicate => 'a predicate => 'a predicate"    (infixr "|" 30)
   "IMPLIES" ::"'a predicate => 'a predicate => 'a predicate"    (infixr "-->" 25)
 
-syntax (symbols output)
+syntax (xsymbols output)
   "NOT"    ::"'a predicate => 'a predicate" ("\\<not> _" [40] 40)
   "AND"    ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\\<and>" 35)
   "OR"     ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\\<or>" 30)
-  "IMPLIES" ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\\<midarrow>\\<rightarrow>" 25)
+  "IMPLIES" ::"'a predicate => 'a predicate => 'a predicate"    (infixr "\\<longrightarrow>" 25)
 
-syntax (symbols)
+syntax (xsymbols)
   "satisfies"  ::"'a => 'a predicate => bool"    ("_ \\<Turnstile> _" [100,9] 8)
 
 syntax (HTML output)

@@ -86,7 +86,7 @@ defs
   real_le_def
   "P <= (Q::real) == ~(Q < P)"
 
-syntax (symbols)
+syntax (xsymbols)
   Reals     :: "'a set"                   ("\\<real>")
   Nats      :: "'a set"                   ("\\<nat>")
 

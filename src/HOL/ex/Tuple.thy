@@ -38,7 +38,7 @@ syntax
   "_tuple_type_args" :: "type => tuple_type_args => tuple_type_args" ("_ */ _" [21, 20] 20)
   "_tuple_type"      :: "type => tuple_type_args => type"            ("(_ */ _)" [21, 20] 20)
 
-syntax (symbols)
+syntax (xsymbols)
   "_tuple_type_args" :: "type => tuple_type_args => tuple_type_args" ("_ \<times>/ _" [21, 20] 20)
   "_tuple_type"      :: "type => tuple_type_args => type"          ("(_ \<times>/ _)" [21, 20] 20)
 

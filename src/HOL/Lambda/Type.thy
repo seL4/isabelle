@@ -20,7 +20,7 @@ subsection {* Environments *}
 constdefs
   shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_<_:_>" [90, 0, 0] 91)
   "e<i:a> \<equiv> \<lambda>j. if j < i then e j else if j = i then a else e (j - 1)"
-syntax (symbols)
+syntax (xsymbols)
   shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
 
 lemma shift_eq [simp]: "i = j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = T"
@@ -56,7 +56,7 @@ syntax
   "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |- _ : _" [50, 50, 50] 50)
   "_typings" :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
     ("_ ||- _ : _" [50, 50, 50] 50)
-syntax (symbols)
+syntax (xsymbols)
   "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile> _ : _" [50, 50, 50] 50)
 syntax (latex)
   "_funs" :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "\<Rrightarrow>" 200)

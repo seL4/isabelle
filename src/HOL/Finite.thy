@@ -63,7 +63,7 @@ constdefs
 
 syntax
   "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("\\<Sum>_:_. _" [0, 51, 10] 10)
-syntax (symbols)
+syntax (xsymbols)
   "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("\\<Sum>_\\<in>_. _" [0, 51, 10] 10)
 translations
   "\\<Sum>i:A. b" == "setsum (%i. b) A"  (* Beware of argument permutation! *)

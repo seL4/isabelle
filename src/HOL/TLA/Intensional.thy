@@ -146,14 +146,14 @@ translations
   "w |= EX x. A"   <= "_REx x A w"
   "w |= EX! x. A"  <= "_REx1 x A w"
 
-syntax (symbols)
+syntax (xsymbols)
   "_Valid"      :: lift => bool                        ("(\\<turnstile> _)" 5)
   "_holdsAt"    :: ['a, lift] => bool                  ("(_ \\<Turnstile> _)" [100,10] 10)
   "_liftNeq"    :: [lift, lift] => lift                (infixl "\\<noteq>" 50)
   "_liftNot"    :: lift => lift                        ("\\<not> _" [40] 40)
   "_liftAnd"    :: [lift, lift] => lift                (infixr "\\<and>" 35)
   "_liftOr"     :: [lift, lift] => lift                (infixr "\\<or>" 30)
-  "_liftImp"    :: [lift, lift] => lift                (infixr "\\<midarrow>\\<rightarrow>" 25)
+  "_liftImp"    :: [lift, lift] => lift                (infixr "\\<longrightarrow>" 25)
   "_RAll"       :: [idts, lift] => lift                ("(3\\<forall>_./ _)" [0, 10] 10)
   "_REx"        :: [idts, lift] => lift                ("(3\\<exists>_./ _)" [0, 10] 10)
   "_REx1"       :: [idts, lift] => lift                ("(3\\<exists>!_./ _)" [0, 10] 10)

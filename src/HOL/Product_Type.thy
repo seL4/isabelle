@@ -77,7 +77,7 @@ proof
     by blast
 qed
 
-syntax (symbols)
+syntax (xsymbols)
   "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 syntax (HTML output)
   "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
@@ -129,7 +129,7 @@ translations
   "SIGMA x:A. B" => "Sigma A (%x. B)"
   "A <*> B"      => "Sigma A (_K B)"
 
-syntax (symbols)
+syntax (xsymbols)
   "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
   "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
 

@@ -46,7 +46,7 @@ constdefs
   inj_on :: ['a => 'b, 'a set] => bool
     "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
-syntax (symbols)
+syntax (xsymbols)
   "op o"        :: "['b => 'c, 'a => 'b, 'a] => 'c"      (infixl "\\<circ>" 55)
 
 syntax
@@ -79,7 +79,7 @@ syntax
 
   (*Giving funcset the arrow syntax (namely ->) clashes with other theories*)
 
-syntax (symbols)
+syntax (xsymbols)
   "@Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\\<Pi> _\\<in>_./ _)"   10)
 
 translations

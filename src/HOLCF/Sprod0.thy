@@ -14,7 +14,7 @@ constdefs
 
 typedef (Sprod)  ('a, 'b) "**" (infixr 20) = "{f. ? a b. f = Spair_Rep (a::'a) (b::'b)}"
 
-syntax (symbols)
+syntax (xsymbols)
   "**"		:: [type, type] => type	 ("(_ \\<otimes>/ _)" [21,20] 20)
 
 consts

@@ -50,7 +50,7 @@ translations
   "JN x y. B"   == "JN x. JN y. B"
   "JN x. B"     == "JOIN(state,(%x. B))"
 
-syntax (symbols)
+syntax (xsymbols)
    SKIP     :: i                    ("\\<bottom>")
   "op Join" :: [i, i] => i   (infixl "\\<squnion>" 65)
   "@JOIN1"  :: [pttrns, i] => i     ("(3\\<Squnion> _./ _)" 10)

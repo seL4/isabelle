@@ -142,7 +142,7 @@ translations
   "%<x,y>.b"    == "split(%x y. b)"
 
 
-syntax (symbols)
+syntax (xsymbols)
   "op *"      :: [i, i] => i               (infixr "\\<times>" 80)
   "op Int"    :: [i, i] => i    	   (infixl "\\<inter>" 70)
   "op Un"     :: [i, i] => i    	   (infixl "\\<union>" 65)
@@ -160,8 +160,6 @@ syntax (symbols)
   "@lam"      :: [pttrn, i, i] => i        ("(3\\<lambda>_\\<in>_./ _)" 10)
   "@Ball"     :: [pttrn, i, o] => o        ("(3\\<forall>_\\<in>_./ _)" 10)
   "@Bex"      :: [pttrn, i, o] => o        ("(3\\<exists>_\\<in>_./ _)" 10)
-
-syntax (xsymbols)
   "@Tuple"    :: [i, is] => i              ("\\<langle>(_,/ _)\\<rangle>")
   "@pattern"  :: patterns => pttrn         ("\\<langle>_\\<rangle>")
 

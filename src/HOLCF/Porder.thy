@@ -25,7 +25,7 @@ translations
 
   "LUB x. t"	== "lub(range(%x. t))"
 
-syntax (symbols)
+syntax (xsymbols)
 
   "LUB "	:: "[idts, 'a] => 'a"		("(3\\<Squnion>_./ _)"[0,10] 10)
 

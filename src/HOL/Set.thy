@@ -91,7 +91,7 @@ syntax ("" output)
   "_setless"    :: "'a set => 'a set => bool"             ("op <")
   "_setless"    :: "'a set => 'a set => bool"             ("(_/ < _)" [50, 51] 50)
 
-syntax (symbols)
+syntax (xsymbols)
   "_setle"      :: "'a set => 'a set => bool"             ("op \<subseteq>")
   "_setle"      :: "'a set => 'a set => bool"             ("(_/ \<subseteq> _)" [50, 51] 50)
   "_setless"    :: "'a set => 'a set => bool"             ("op \<subset>")

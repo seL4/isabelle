@@ -83,10 +83,10 @@ syntax
   "local"      :: "('a,'s)ioa => 'a set"
 
 
-syntax (symbols)
+syntax (xsymbols)
 
   "_trans_of"  :: "'s => 'a => ('a,'s)ioa => 's => bool"  
-                  ("_ \\<midarrow>_\\<midarrow>_\\<midarrow>\\<rightarrow> _" [81,81,81,81] 100)
+                  ("_ \\<midarrow>_\\<midarrow>_\\<longrightarrow> _" [81,81,81,81] 100)
   "op ||"         ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr "\\<parallel>" 10)
 
 

@@ -23,7 +23,7 @@ syntax
 map_upd	:: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
 					         ("_/'(_/|->_')"   [900,0,0]900)
 
-syntax (symbols)
+syntax (xsymbols)
   "~=>"     :: [type, type] => type      (infixr "\\<leadsto>" 0)
   map_upd   :: "('a ~=> 'b) => 'a      => 'b      => ('a ~=> 'b)"
 					  ("_/'(_/\\<mapsto>/_')"  [900,0,0]900)

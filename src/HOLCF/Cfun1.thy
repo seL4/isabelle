@@ -23,7 +23,7 @@ syntax
                                                 (* abstraction      *)
         less_cfun :: "[('a -> 'b),('a -> 'b)]=>bool"
 
-syntax (symbols)
+syntax (xsymbols)
   "->"		:: [type, type] => type	("(_ \\<rightarrow>/ _)" [1,0]0)
   "LAM "	:: "[idts, 'a => 'b] => ('a -> 'b)"
 					("(3\\<Lambda>_./ _)" [0, 10] 10)

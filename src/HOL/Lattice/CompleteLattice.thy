@@ -34,7 +34,7 @@ text {*
 consts
   Meet :: "'a::complete_lattice set \<Rightarrow> 'a"
   Join :: "'a::complete_lattice set \<Rightarrow> 'a"
-syntax (symbols)
+syntax (xsymbols)
   Meet :: "'a::complete_lattice set \<Rightarrow> 'a"    ("\<Sqinter>_" [90] 90)
   Join :: "'a::complete_lattice set \<Rightarrow> 'a"    ("\<Squnion>_" [90] 90)
 defs

@@ -9,7 +9,7 @@ Group theory using locales
 Group = Main +
 
   (*Giving funcset the nice arrow syntax \\<rightarrow> *)
-syntax (symbols)
+syntax (xsymbols)
   "op funcset" :: "['a set, 'b set] => ('a => 'b) set"  (infixr "\\<rightarrow>" 60) 
 
 
@@ -21,7 +21,7 @@ record 'a semigrouptype =
 record 'a grouptype = 'a semigrouptype +
   inverse  :: "'a => 'a"
   unit     :: "'a"
-(* This should be obsolete, if records will allow the promised syntax *)
+
 syntax 
   "@carrier" :: "'a semigrouptype => 'a set"            ("_ .<cr>"  [10] 10)
   "@bin_op"  :: "'a semigrouptype => (['a, 'a] => 'a)"  ("_ .<f>"   [10] 10)

@@ -78,11 +78,11 @@ syntax ("" output)
   "="           :: "['a, 'a] => bool"                    (infix 50)
   "~="          :: "['a, 'a] => bool"                    (infix 50)
 
-syntax (symbols)
+syntax (xsymbols)
   Not           :: "bool => bool"                        ("\<not> _" [40] 40)
   "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
   "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\<midarrow>\<rightarrow>" 25)
+  "op -->"      :: "[bool, bool] => bool"                (infixr "\<longrightarrow>" 25)
   "op ~="       :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
   "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
@@ -90,11 +90,8 @@ syntax (symbols)
   "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 (*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \\<orelse> _")*)
 
-syntax (symbols output)
+syntax (xsymbols output)
   "op ~="       :: "['a, 'a] => bool"                    (infix "\<noteq>" 50)
-
-syntax (xsymbols)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\<longrightarrow>" 25)
 
 syntax (HTML output)
   Not           :: "bool => bool"                        ("\<not> _" [40] 40)
@@ -353,7 +350,7 @@ consts
 
 local
 
-syntax (symbols)
+syntax (xsymbols)
   "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
   "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
 
@@ -638,7 +635,7 @@ syntax
   "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3ALL _<=_./ _)" [0, 0, 10] 10)
   "_leEx"    :: "[idt, 'a, bool] => bool"   ("(3EX _<=_./ _)" [0, 0, 10] 10)
 
-syntax (symbols)
+syntax (xsymbols)
   "_lessAll" :: "[idt, 'a, bool] => bool"   ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
   "_lessEx"  :: "[idt, 'a, bool] => bool"   ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
   "_leAll"   :: "[idt, 'a, bool] => bool"   ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)

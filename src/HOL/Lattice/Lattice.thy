@@ -27,7 +27,7 @@ text {*
 consts
   meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "&&" 70)
   join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "||" 65)
-syntax (symbols)
+syntax (xsymbols)
   meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<sqinter>" 70)
   join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<squnion>" 65)
 defs

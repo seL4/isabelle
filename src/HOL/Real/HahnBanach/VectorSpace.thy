@@ -18,7 +18,7 @@ text {*
 consts
   prod  :: "real \<Rightarrow> 'a::{plus, minus, zero} \<Rightarrow> 'a"     (infixr "'(*')" 70)
 
-syntax (symbols)
+syntax (xsymbols)
   prod  :: "real \<Rightarrow> 'a \<Rightarrow> 'a"                          (infixr "\<cdot>" 70)
 
 

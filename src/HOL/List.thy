@@ -64,7 +64,7 @@ translations
   "[i..j]" == "[i..(Suc j)(]"
 
 
-syntax (symbols)
+syntax (xsymbols)
   "@filter"   :: [pttrn, 'a list, bool] => 'a list        ("(1[_\\<in>_ ./ _])")
 
 

@@ -22,7 +22,7 @@ axclass pcpo < cpo
 consts
   UU            :: "'a::pcpo"        
 
-syntax (symbols)
+syntax (xsymbols)
   UU            :: "'a::pcpo"                           ("\\<bottom>")
 
 defs

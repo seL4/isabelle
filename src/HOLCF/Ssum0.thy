@@ -17,7 +17,7 @@ constdefs
 typedef (Ssum)  ('a, 'b) "++" (infixr 10) = 
 	"{f.(? a. f=Sinl_Rep(a::'a))|(? b. f=Sinr_Rep(b::'b))}"
 
-syntax (symbols)
+syntax (xsymbols)
   "++"		:: [type, type] => type	("(_ \\<oplus>/ _)" [21, 20] 20)
 
 consts
