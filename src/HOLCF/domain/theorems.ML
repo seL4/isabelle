@@ -27,14 +27,6 @@ fun pg'' thy defs t = let val sg = sign_of thy;
 fun pg'  thy defs t tacsf=pg'' thy defs t (fn []   => tacsf 
                                 | prems=> (cut_facts_tac prems 1)::tacsf);
 
-fun REPEAT_DETERM_UNTIL p tac = 
-let fun drep st = if p st then Seq.single st
-                          else (case Seq.pull(tac st) of
-                                  None        => Seq.empty
-                                | Some(st',_) => drep st')
-in drep end;
-val UNTIL_SOLVED = REPEAT_DETERM_UNTIL (has_fewer_prems 1);
-
 local val trueI2 = prove_goal HOL.thy"f~=x ==> True"(fn _ => [rtac TrueI 1]) in
 val kill_neq_tac = dtac trueI2 end;
 fun case_UU_tac rews i v =      case_tac (v^"=UU") i THEN
@@ -131,7 +123,7 @@ val casedist = let
                                 rewrite_goals_tac axs_con_def,
                                 dtac iso_swap 1,
                                 simp_tac HOLCF_ss 1,
-                                UNTIL_SOLVED(fast_tac HOL_cs 1)]) 1;
+                                DETERM_UNTIL_SOLVED(fast_tac HOL_cs 1)]) 1;
             fun sum_tac [(_,args)]       [p]        = 
                                 prod_tac args THEN sum_rest_tac p
             |   sum_tac ((_,args)::cons') (p::prems) = DETERM(
@@ -159,7 +151,7 @@ val casedist = let
                                 else sum_tac cons (tl prems)])end;
 val exhaust= pg[](mk_trp(exh (foldr' mk_disj) Id mk_ex (foldr' mk_conj) (K %)))[
                                 rtac casedist 1,
-                                UNTIL_SOLVED(fast_tac HOL_cs 1)];
+                                DETERM_UNTIL_SOLVED(fast_tac HOL_cs 1)];
 end;
 
 local 
@@ -197,7 +189,7 @@ val dis_rews = let
                       defined(%%(dis_name con)`%x_name)) [
                                 rtac casedist 1,
                                 contr_tac 1,
-                                UNTIL_SOLVED (CHANGED(asm_simp_tac 
+                                DETERM_UNTIL_SOLVED (CHANGED(asm_simp_tac 
                                         (HOLCF_ss addsimps dis_apps) 1))]) cons;
 in dis_stricts @ dis_defins @ dis_apps end;
 
@@ -237,7 +229,7 @@ val sel_defins = if length cons=1 then map (fn arg => pg [](defined(%x_name)==>
                         defined(%%(sel_of arg)`%x_name)) [
                                 rtac casedist 1,
                                 contr_tac 1,
-                                UNTIL_SOLVED (CHANGED(asm_simp_tac 
+                                DETERM_UNTIL_SOLVED (CHANGED(asm_simp_tac 
                                              (HOLCF_ss addsimps sel_apps) 1))]) 
                  (filter_out is_lazy (snd(hd cons))) else [];
 val sel_rews = sel_stricts @ sel_defins @ sel_apps;

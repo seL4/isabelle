@@ -41,13 +41,14 @@ signature TACTICAL =
   val print_tac         : string -> tactic
   val REPEAT            : tactic -> tactic
   val REPEAT1           : tactic -> tactic
+  val REPEAT_FIRST      : (int -> tactic) -> tactic
+  val REPEAT_SOME       : (int -> tactic) -> tactic
   val REPEAT_DETERM_N   : int -> tactic -> tactic
   val REPEAT_DETERM     : tactic -> tactic
   val REPEAT_DETERM1    : tactic -> tactic
   val REPEAT_DETERM_FIRST: (int -> tactic) -> tactic
   val REPEAT_DETERM_SOME: (int -> tactic) -> tactic
-  val REPEAT_FIRST      : (int -> tactic) -> tactic
-  val REPEAT_SOME       : (int -> tactic) -> tactic
+  val DETERM_UNTIL      : (thm -> bool) -> tactic -> tactic
   val SELECT_GOAL       : tactic -> int -> tactic
   val SOMEGOAL          : (int -> tactic) -> tactic   
   val strip_context     : term -> (string * typ) list * term list * term
@@ -243,6 +244,16 @@ fun traced_tac seqf st =
      Seq.make (fn()=> seqf st
                          handle TRACE_EXIT st' => Some(st', Seq.empty)));
 
+
+(*Deterministic DO..UNTIL: only retains the first outcome; tail recursive.
+  Forces repitition until predicate on state is fulfilled.*)
+fun DETERM_UNTIL p tac = 
+let val tac = tracify trace_REPEAT tac
+    fun drep st = if p st then Some (st, Seq.empty)
+                          else (case Seq.pull(tac st) of
+                                  None        => None
+                                | Some(st',_) => drep st')
+in  traced_tac drep  end;
 
 (*Deterministic REPEAT: only retains the first outcome; 
   uses less space than REPEAT; tail recursive.

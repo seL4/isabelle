@@ -67,11 +67,13 @@ writing a series of tactics to be attempted one after another.
 \subsection{Repetition tacticals}
 \index{tacticals!repetition}
 \begin{ttbox} 
-TRY           : tactic -> tactic
-REPEAT_DETERM : tactic -> tactic
-REPEAT        : tactic -> tactic
-REPEAT1       : tactic -> tactic
-trace_REPEAT  : bool ref \hfill{\bf initially false}
+TRY             : tactic -> tactic
+REPEAT_DETERM   : tactic -> tactic
+REPEAT_DETERM_N : int -> tactic -> tactic
+REPEAT          : tactic -> tactic
+REPEAT1         : tactic -> tactic
+DETERM_UNTIL    : (thm -> bool) -> tactic -> tactic
+trace_REPEAT    : bool ref \hfill{\bf initially false}
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{TRY} {\it tac}] 
@@ -84,6 +86,10 @@ applies {\it tac\/} to the proof state and, recursively, to the head of the
 resulting sequence.  It returns the first state to make {\it tac\/} fail.
 It is deterministic, discarding alternative outcomes.
 
+\item[\ttindexbold{REPEAT_DETERM_N} {\it n} {\it tac}] 
+is like \hbox{\tt REPEAT_DETERM {\it tac}} but the number of repititions
+is bound by {\it n} (unless negative).
+
 \item[\ttindexbold{REPEAT} {\it tac}] 
 applies {\it tac\/} to the proof state and, recursively, to each element of
 the resulting sequence.  The resulting sequence consists of those states
@@ -95,6 +101,12 @@ requires more space.
 \item[\ttindexbold{REPEAT1} {\it tac}] 
 is like \hbox{\tt REPEAT {\it tac}} but it always applies {\it tac\/} at
 least once, failing if this is impossible.
+
+\item[\ttindexbold{DETERM_UNTIL} {\it p} {\it tac}] 
+applies {\it tac\/} to the proof state and, recursively, to the head of the
+resulting sequence, until the predicate {\it p} (applied on the proof state)
+yields {\it true}. It fails if {\it tac\/} fails on any of the intermediate 
+states. It is deterministic, discarding alternative outcomes.
 
 \item[set \ttindexbold{trace_REPEAT};] 
 enables an interactive tracing mode for the tacticals {\tt REPEAT_DETERM}
@@ -252,10 +264,11 @@ view the tracing options, type {\tt h} at the prompt.
 \index{tacticals!conditional}
 \index{tacticals!deterministic}
 \begin{ttbox} 
-COND        : (thm->bool) -> tactic -> tactic -> tactic
-IF_UNSOLVED : tactic -> tactic
-SOLVE       : tactic -> tactic
-DETERM      : tactic -> tactic
+COND                : (thm->bool) -> tactic -> tactic -> tactic
+IF_UNSOLVED         : tactic -> tactic
+SOLVE               : tactic -> tactic
+DETERM              : tactic -> tactic
+DETERM_UNTIL_SOLVED : tactic -> tactic
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{COND} {\it p} $tac@1$ $tac@2$] 
@@ -277,6 +290,10 @@ left.
 applies {\it tac\/} to the proof state and returns the head of the
 resulting sequence.  {\tt DETERM} limits the search space by making its
 argument deterministic.
+
+\item[\ttindexbold{DETERM_UNTIL_SOLVED} {\it tac}] 
+forces repeated deterministic application of {\it tac\/} to the proof state 
+until the goal is solved completely.
 \end{ttdescription}
 
 
