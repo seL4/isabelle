@@ -31,7 +31,7 @@ consts
   Ball, Bex     :: ['a set, 'a => bool] => bool         (*bounded quantifiers*)
   inj, surj     :: ('a => 'b) => bool                   (*inj/surjective*)
   inj_onto      :: ['a => 'b, 'a set] => bool
-  "``"          :: ['a => 'b, 'a set] => ('b set)   (infixl 90)
+  "``"          :: ['a => 'b, 'a set] => ('b set)   (infixr 90)
   ":"           :: ['a, 'a set] => bool             (infixl 50) (*membership*)
 
 
