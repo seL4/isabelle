@@ -237,7 +237,7 @@ qed "localTo_imp_equals";
 Goalw [localTo_def, stable_def, constrains_def]
      "v localTo F <= (f o v) localTo F";
 by (Clarify_tac 1);
-by (auto_tac (claset() addSEs [allE, ballE], simpset()));
+by (force_tac (claset() addSEs [allE, ballE], simpset()) 1);
 qed "localTo_imp_o_localTo";
 
 
