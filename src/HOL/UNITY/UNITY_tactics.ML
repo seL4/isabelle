@@ -6,6 +6,96 @@
 Specialized UNITY tactics, and ML bindings of theorems
 *)
 
+(*Extend*)
+val Restrict_iff = thm "Restrict_iff";
+val Restrict_UNIV = thm "Restrict_UNIV";
+val Restrict_empty = thm "Restrict_empty";
+val Restrict_Int = thm "Restrict_Int";
+val Restrict_triv = thm "Restrict_triv";
+val Restrict_subset = thm "Restrict_subset";
+val Restrict_eq_mono = thm "Restrict_eq_mono";
+val Restrict_imageI = thm "Restrict_imageI";
+val Domain_Restrict = thm "Domain_Restrict";
+val Image_Restrict = thm "Image_Restrict";
+val insert_Id_image_Acts = thm "insert_Id_image_Acts";
+val good_mapI = thm "good_mapI";
+val good_map_is_surj = thm "good_map_is_surj";
+val fst_inv_equalityI = thm "fst_inv_equalityI";
+val project_set_iff = thm "project_set_iff";
+val extend_set_mono = thm "extend_set_mono";
+val extend_set_empty = thm "extend_set_empty";
+val project_set_Int_subset = thm "project_set_Int_subset";
+val Init_extend = thm "Init_extend";
+val Init_project = thm "Init_project";
+val Acts_project = thm "Acts_project";
+val project_set_UNIV = thm "project_set_UNIV";
+val project_set_Union = thm "project_set_Union";
+val project_act_mono = thm "project_act_mono";
+val project_constrains_project_set = thm "project_constrains_project_set";
+val project_stable_project_set = thm "project_stable_project_set";
+
+
+(*Rename*)
+val good_map_bij = thm "good_map_bij";
+val fst_o_inv_eq_inv = thm "fst_o_inv_eq_inv";
+val mem_rename_set_iff = thm "mem_rename_set_iff";
+val extend_set_eq_image = thm "extend_set_eq_image";
+val Init_rename = thm "Init_rename";
+val extend_set_inv = thm "extend_set_inv";
+val bij_extend_act_eq_project_act = thm "bij_extend_act_eq_project_act";
+val bij_extend_act = thm "bij_extend_act";
+val bij_project_act = thm "bij_project_act";
+val bij_inv_project_act_eq = thm "bij_inv_project_act_eq";
+val Acts_project = thm "Acts_project";
+val extend_inv = thm "extend_inv";
+val rename_inv_rename = thm "rename_inv_rename";
+val rename_rename_inv = thm "rename_rename_inv";
+val rename_inv_eq = thm "rename_inv_eq";
+val bij_extend = thm "bij_extend";
+val bij_project = thm "bij_project";
+val inv_project_eq = thm "inv_project_eq";
+val Allowed_rename = thm "Allowed_rename";
+val bij_rename = thm "bij_rename";
+val surj_rename = thm "surj_rename";
+val inj_rename_imp_inj = thm "inj_rename_imp_inj";
+val surj_rename_imp_surj = thm "surj_rename_imp_surj";
+val bij_rename_imp_bij = thm "bij_rename_imp_bij";
+val bij_rename_iff = thm "bij_rename_iff";
+val rename_SKIP = thm "rename_SKIP";
+val rename_Join = thm "rename_Join";
+val rename_JN = thm "rename_JN";
+val rename_constrains = thm "rename_constrains";
+val rename_stable = thm "rename_stable";
+val rename_invariant = thm "rename_invariant";
+val rename_increasing = thm "rename_increasing";
+val reachable_rename_eq = thm "reachable_rename_eq";
+val rename_Constrains = thm "rename_Constrains";
+val rename_Stable = thm "rename_Stable";
+val rename_Always = thm "rename_Always";
+val rename_Increasing = thm "rename_Increasing";
+val rename_transient = thm "rename_transient";
+val rename_ensures = thm "rename_ensures";
+val rename_leadsTo = thm "rename_leadsTo";
+val rename_LeadsTo = thm "rename_LeadsTo";
+val rename_rename_guarantees_eq = thm "rename_rename_guarantees_eq";
+val rename_guarantees_eq_rename_inv = thm "rename_guarantees_eq_rename_inv";
+val rename_preserves = thm "rename_preserves";
+val ok_rename_iff = thm "ok_rename_iff";
+val OK_rename_iff = thm "OK_rename_iff";
+val bij_eq_rename = thm "bij_eq_rename";
+val rename_image_constrains = thm "rename_image_constrains";
+val rename_image_stable = thm "rename_image_stable";
+val rename_image_increasing = thm "rename_image_increasing";
+val rename_image_invariant = thm "rename_image_invariant";
+val rename_image_Constrains = thm "rename_image_Constrains";
+val rename_image_preserves = thm "rename_image_preserves";
+val rename_image_Stable = thm "rename_image_Stable";
+val rename_image_Increasing = thm "rename_image_Increasing";
+val rename_image_Always = thm "rename_image_Always";
+val rename_image_leadsTo = thm "rename_image_leadsTo";
+val rename_image_LeadsTo = thm "rename_image_LeadsTo";
+
+
 
 (*Lift_prog*)
 val sub_def = thm "sub_def";

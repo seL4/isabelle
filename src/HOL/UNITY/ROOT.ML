@@ -24,7 +24,6 @@ with_path "../Auth"  (*to find Public.thy*)
   time_use_thy"Simple/NSP_Bad";
 
 (*Example of composition*)
-time_use_thy "Comp";
 time_use_thy "Comp/Handshake";
 
 (*Universal properties examples*)
@@ -32,10 +31,9 @@ time_use_thy "Comp/Counter";
 time_use_thy "Comp/Counterc";
 time_use_thy "Comp/Priority";
 
-(*Allocator example*)
-time_use_thy "PPROD";
 time_use_thy "Comp/TimerArray";
 
+(*Allocator example*)
 time_use_thy "Comp/Alloc";
 time_use_thy "Comp/AllocImpl";
 time_use_thy "Comp/Client";

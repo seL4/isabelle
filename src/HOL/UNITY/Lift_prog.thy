@@ -348,13 +348,6 @@ apply (unfold lift_map_def, auto)
 apply (blast dest: insert_map_eq_diff)
 done
 
-
-ML
-{*
-bind_thm ("export_mem_extend_act_iff", export mem_extend_act_iff)
-*}
-
-
 lemma lift_transient_eq_disj:
      "F : preserves snd  
       ==> (lift i F : transient (lift_set j (A <*> UNIV))) =  
@@ -362,8 +355,7 @@ lemma lift_transient_eq_disj:
 apply (case_tac "i=j")
 apply (auto simp add: lift_transient)
 apply (auto simp add: lift_set_def lift_def transient_def rename_def extend_def Domain_extend_act)
-apply (drule subsetD, blast)
-apply auto
+apply (drule subsetD, blast, auto)
 apply (rename_tac s f uu s' f' uu')
 apply (subgoal_tac "f'=f & uu'=uu")
  prefer 2 apply (force dest!: preserves_imp_eq, auto)
@@ -371,7 +363,8 @@ apply (drule sym)
 apply (drule subsetD)
 apply (rule ImageI)
 apply (erule bij_lift_map [THEN good_map_bij, 
-                           THEN export_mem_extend_act_iff [THEN iffD2]], force)
+                           THEN Extend.intro, 
+                           THEN Extend.mem_extend_act_iff [THEN iffD2]], force)
 apply (erule lift_map_eq_diff [THEN exE], auto)
 done
 
@@ -445,19 +438,12 @@ apply (rule_tac a = "mk_program (UNIV,{act},UNIV) " in UN_I)
 apply (auto simp add: preserves_def stable_def constrains_def)
 done
 
-
-ML
-{*
-bind_thm ("export_Acts_extend", export Acts_extend);
-bind_thm ("export_AllowedActs_extend", export AllowedActs_extend)
-*}
-
 lemma UNION_OK_lift_I:
      "[| ALL i:I. F i : preserves snd;   
          ALL i:I. UNION (preserves fst) Acts <= AllowedActs (F i) |]  
       ==> OK I (%i. lift i (F i))"
-apply (auto simp add: OK_def lift_def rename_def export_Acts_extend)
-apply (simp (no_asm) add: export_AllowedActs_extend project_act_extend_act)
+apply (auto simp add: OK_def lift_def rename_def Extend.Acts_extend)
+apply (simp (no_asm) add: Extend.AllowedActs_extend project_act_extend_act)
 apply (rename_tac "act")
 apply (subgoal_tac
        "{(x, x'). \<exists>s f u s' f' u'. 
@@ -477,12 +463,11 @@ lemma OK_lift_I:
       ==> OK I (%i. lift i (F i))"
 by (simp add: safety_prop_AllowedActs_iff_Allowed UNION_OK_lift_I)
 
-
 lemma Allowed_lift [simp]: "Allowed (lift i F) = lift i ` (Allowed F)"
 by (simp add: lift_def Allowed_rename)
 
-lemma lift_image_preserves: "lift i ` preserves v = preserves (v o drop_map i)"
-apply (simp (no_asm) add: rename_image_preserves lift_def inv_lift_map_eq)
-done
+lemma lift_image_preserves:
+     "lift i ` preserves v = preserves (v o drop_map i)"
+by (simp (no_asm) add: rename_image_preserves lift_def inv_lift_map_eq)
 
 end
