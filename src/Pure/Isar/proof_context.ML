@@ -20,6 +20,7 @@ sig
   val print_proof_data: theory -> unit
   val init: theory -> context
   val is_fixed: context -> string -> bool
+  val default_type: context -> string -> typ option
   val read_typ: context -> string -> typ
   val read_typ_no_norm: context -> string -> typ
   val cert_typ: context -> typ -> typ
@@ -386,6 +387,9 @@ fun def_type (Context {binds, defs = (types, _, _, _), ...}) is_pat xi =
           Some (Some (_, T)) => Some (TypeInfer.polymorphicT T)
         | _ => None)
   | some => some);
+
+fun default_type (Context {binds, defs = (types, _, _, _), ...}) x =
+  Vartab.lookup (types, (x, ~1));
 
 
 
