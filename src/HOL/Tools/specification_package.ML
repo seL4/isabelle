@@ -43,10 +43,11 @@ fun proc_exprop [] arg = arg
 	Const("Trueprop",_) $ (Const("Ex",_) $ P) =>
 	let
 	    val ctype = domain_type (type_of P)
+	    val cname_full = Sign.intern_const (sign_of thy) cname
 	    val cdefname = if thname = ""
 			   then Thm.def_name (Sign.base_name cname)
 			   else thname
-	    val def_eq = Logic.mk_equals (Const(cname,ctype),choice_const ctype $  P)
+	    val def_eq = Logic.mk_equals (Const(cname_full,ctype),choice_const ctype $  P)
 	    val (thy',thms) = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
 	    val thm' = [thm,hd thms] MRS helper
 	in
