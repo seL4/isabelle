@@ -215,15 +215,13 @@ fun cert_axm sg (name, raw_tm) =
 fun read_axm sg (name, str) = 
   let
     val ts = Syntax.read (#syn (Sign.rep_sg sg)) propT str;
-    val (_, t, _) =
-          Sign.infer_types sg (K None) (K None) [] true (ts, propT);
+    val (t, _) = Sign.infer_types sg (K None) (K None) [] true (ts, propT);
   in cert_axm sg (name,t) end
   handle ERROR => err_in_axm name;
 
 fun inferT_axm sg (name, pre_tm) =
   let
-    val (_, t, _) =
-      Sign.infer_types sg (K None) (K None) [] true ([pre_tm], propT);
+    val (t, _) = Sign.infer_types sg (K None) (K None) [] true ([pre_tm], propT);
   in (name, no_vars t) end
   handle ERROR => err_in_axm name;
 

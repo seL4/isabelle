@@ -264,8 +264,7 @@ fun read_def_cterm (sign, types, sorts) used freeze (a, T) =
     val T' = Sign.certify_typ sign T
       handle TYPE (msg, _, _) => error msg;
     val ts = Syntax.read (#syn (Sign.rep_sg sign)) T' a;
-    val (_, t', tye) =
-      Sign.infer_types sign types sorts used freeze (ts, T');
+    val (t', tye) = Sign.infer_types sign types sorts used freeze (ts, T');
     val ct = cterm_of sign t'
       handle TYPE (msg, _, _) => error msg
            | TERM (msg, _) => error msg;
