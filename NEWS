@@ -251,6 +251,8 @@ Florian Kammüller);
 parts turned into readable document, with proper Isar proof texts and
 some explanations (by Gerwin Klein);
 
+* HOL-Real: added Complex_Numbers (by Gertrud Bauer);
+
 * HOL-Hyperreal is now a logic image;
 
 
