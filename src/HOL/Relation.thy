@@ -7,14 +7,14 @@
 Relation = Prod +
 
 consts
-  O           :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set" (infixr 60)
-  converse    :: "('a*'b) set => ('b*'a) set"     ("(_^-1)" [1000] 999)
-  "^^"        :: "[('a*'b) set,'a set] => 'b set" (infixl 90)
+  O            :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set" (infixr 60)
+  converse     :: "('a*'b) set => ('b*'a) set"     ("(_^-1)" [1000] 999)
+  "^^"         :: "[('a*'b) set,'a set] => 'b set" (infixl 90)
   
 defs
-  comp_def      "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
-  converse_def  "r^-1 == {(y,x). (x,y):r}"
-  Image_def     "r ^^ s == {y. ? x:s. (x,y):r}"
+  comp_def         "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
+  converse_def     "r^-1 == {(y,x). (x,y):r}"
+  Image_def        "r ^^ s == {y. ? x:s. (x,y):r}"
   
 constdefs
   Id     :: "('a * 'a)set"                 (*the identity relation*)
@@ -43,6 +43,9 @@ constdefs
 
   Univalent :: "('a * 'b)set => bool"
     "Univalent r == !x y. (x,y):r --> (!z. (x,z):r --> y=z)"
+
+  fun_rel_comp :: "['a => 'b, ('b * 'c) set] => ('a => 'c) set"
+    "fun_rel_comp f R == {g. !x. (f x, g x) : R}"
 
 syntax
   reflexive :: "('a * 'a)set => bool"       (*reflexivity over a type*)

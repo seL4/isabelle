@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Declares the type 'a node, a subtype of (nat=>nat) * ('a+nat)
+Declares the type ('a, 'b) node, a subtype of (nat=>'b+nat) * ('a+nat)
 
 Defines "Cartesian Product" and "Disjoint Sum" as set operations.
 Could <*> be generalized to a general summation (Sigma)?
@@ -16,36 +16,40 @@ Univ = Arith + Sum +
 global
 
 typedef (Node)
-  'a node = "{p. EX f x k. p = (f::nat=>nat, x::'a+nat) & f(k)=0}"
+  ('a, 'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
 
 types
-  'a item = 'a node set
+  'a item = ('a, unit) node set
+  ('a, 'b) dtree = ('a, 'b) node set
 
 consts
   apfst     :: "['a=>'c, 'a*'b] => 'c*'b"
-  Push      :: [nat, nat=>nat] => (nat=>nat)
+  Push      :: "[('b + nat), nat => ('b + nat)] => (nat => ('b + nat))"
 
-  Push_Node :: [nat, 'a node] => 'a node
-  ndepth    :: 'a node => nat
+  Push_Node :: "[('b + nat), ('a, 'b) node] => ('a, 'b) node"
+  ndepth    :: ('a, 'b) node => nat
 
-  Atom      :: "('a+nat) => 'a item"
-  Leaf      :: 'a => 'a item
-  Numb      :: nat => 'a item
-  Scons     :: ['a item, 'a item]=> 'a item
-  In0,In1   :: 'a item => 'a item
+  Atom      :: "('a + nat) => ('a, 'b) dtree"
+  Leaf      :: 'a => ('a, 'b) dtree
+  Numb      :: nat => ('a, 'b) dtree
+  Scons     :: [('a, 'b) dtree, ('a, 'b) dtree] => ('a, 'b) dtree
+  In0,In1   :: ('a, 'b) dtree => ('a, 'b) dtree
 
-  ntrunc    :: [nat, 'a item] => 'a item
+  Lim       :: ('b => ('a, 'b) dtree) => ('a, 'b) dtree
+  Funs      :: "'u set => ('t => 'u) set"
 
-  "<*>"  :: ['a item set, 'a item set]=> 'a item set (infixr 80)
-  "<+>"  :: ['a item set, 'a item set]=> 'a item set (infixr 70)
+  ntrunc    :: [nat, ('a, 'b) dtree] => ('a, 'b) dtree
 
-  Split  :: [['a item, 'a item]=>'b, 'a item] => 'b
-  Case   :: [['a item]=>'b, ['a item]=>'b, 'a item] => 'b
+  "<*>"  :: [('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set (infixr 80)
+  "<+>"  :: [('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set (infixr 70)
 
-  "<**>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 
-           => ('a item * 'a item)set" (infixr 80)
-  "<++>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 
-           => ('a item * 'a item)set" (infixr 70)
+  Split  :: [[('a, 'b) dtree, ('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c
+  Case   :: [[('a, 'b) dtree]=>'c, [('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c
+
+  "<**>" :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set] 
+           => (('a, 'b) dtree * ('a, 'b) dtree)set" (infixr 80)
+  "<++>" :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set] 
+           => (('a, 'b) dtree * ('a, 'b) dtree)set" (infixr 70)
 
 
 local
@@ -56,13 +60,13 @@ defs
 
   (*crude "lists" of nats -- needed for the constructions*)
   apfst_def  "apfst == (%f (x,y). (f(x),y))"
-  Push_def   "Push == (%b h. nat_case (Suc b) h)"
+  Push_def   "Push == (%b h. nat_case b h)"
 
   (** operations on S-expressions -- sets of nodes **)
 
   (*S-expression constructors*)
-  Atom_def   "Atom == (%x. {Abs_Node((%k.0, x))})"
-  Scons_def  "Scons M N == (Push_Node(0) `` M) Un (Push_Node(Suc(0)) `` N)"
+  Atom_def   "Atom == (%x. {Abs_Node((%k. Inr 0, x))})"
+  Scons_def  "Scons M N == (Push_Node (Inr 1) `` M) Un (Push_Node (Inr 2) `` N)"
 
   (*Leaf nodes, with arbitrary or nat labels*)
   Leaf_def   "Leaf == Atom o Inl"
@@ -72,8 +76,12 @@ defs
   In0_def    "In0(M) == Scons (Numb 0) M"
   In1_def    "In1(M) == Scons (Numb 1) M"
 
+  (*Function spaces*)
+  Lim_def "Lim f == Union {z. ? x. z = Push_Node (Inl x) `` (f x)}"
+  Funs_def "Funs S == {f. range f <= S}"
+
   (*the set of nodes with depth less than k*)
-  ndepth_def "ndepth(n) == (%(f,x). LEAST k. f(k)=0) (Rep_Node n)"
+  ndepth_def "ndepth(n) == (%(f,x). LEAST k. f k = Inr 0) (Rep_Node n)"
   ntrunc_def "ntrunc k N == {n. n:N & ndepth(n)<k}"
 
   (*products and sums for the "universe"*)

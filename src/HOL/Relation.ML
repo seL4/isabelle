@@ -383,3 +383,24 @@ Goal "Range{(x,y). y = f x & P x} = f``{x. P x}";
 by (Blast_tac 1);
 qed "Range_partial_func";
 
+
+(** Composition of function and relation **)
+
+Goalw [fun_rel_comp_def] "A <= B ==> fun_rel_comp f A <= fun_rel_comp f B";
+by (Fast_tac 1);
+qed "fun_rel_comp_mono";
+
+Goalw [fun_rel_comp_def] "! x. ?! y. (f x, y) : R ==> ?! g. g : fun_rel_comp f R";
+by (res_inst_tac [("a","%x. @y. (f x, y) : R")] ex1I 1);
+by (rtac CollectI 1);
+by (rtac allI 1);
+by (etac allE 1);
+by (rtac (select_eq_Ex RS iffD2) 1);
+by (etac ex1_implies_ex 1);
+by (rtac ext 1);
+by (etac CollectE 1);
+by (REPEAT (etac allE 1));
+by (rtac (select1_equality RS sym) 1);
+by (atac 1);
+by (atac 1);
+qed "fun_rel_comp_unique";

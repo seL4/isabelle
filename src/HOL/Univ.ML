@@ -24,7 +24,7 @@ qed "apfst_convE";
 (** Push -- an injection, analogous to Cons on lists **)
 
 Goalw [Push_def] "Push i f = Push j g  ==> i=j";
-by (etac (fun_cong RS box_equals RS Suc_inject) 1);
+by (etac (fun_cong RS box_equals) 1);
 by (rtac nat_case_0 1);
 by (rtac nat_case_0 1);
 qed "Push_inject1";
@@ -42,8 +42,9 @@ val [major,minor] = Goal
 by (rtac ((major RS Push_inject2) RS ((major RS Push_inject1) RS minor)) 1);
 qed "Push_inject";
 
-Goalw [Push_def] "Push k f =(%z.0) ==> P";
-by (etac (fun_cong RS box_equals RS Suc_neq_Zero) 1);
+Goalw [Push_def] "Push (Inr (Suc k)) f = (%z. Inr 0) ==> P";
+by (rtac Suc_neq_Zero 1);
+by (etac (fun_cong RS box_equals RS Inr_inject) 1);
 by (rtac nat_case_0 1);
 by (rtac refl 1);
 qed "Push_neq_K0";
@@ -65,13 +66,13 @@ val Abs_Node_inject = inj_on_Abs_Node RS inj_onD;
 
 (*** Introduction rules for Node ***)
 
-Goalw [Node_def] "(%k. 0,a) : Node";
+Goalw [Node_def] "(%k. Inr 0, a) : Node";
 by (Blast_tac 1);
 qed "Node_K0_I";
 
 Goalw [Node_def,Push_def]
     "p: Node ==> apfst (Push i) p : Node";
-by (blast_tac (claset() addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
+by (fast_tac (claset() addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
 qed "Node_Push_I";
 
 
@@ -205,23 +206,22 @@ Addsimps [apfst_conv];
 AddIffs  [Scons_not_Atom, Atom_not_Scons, Scons_Scons_eq];
 
 
-Goalw [ndepth_def] "ndepth (Abs_Node((%k.0, x))) = 0";
+Goalw [ndepth_def] "ndepth (Abs_Node((%k. Inr 0, x))) = 0";
 by (EVERY1[stac (Node_K0_I RS Abs_Node_inverse), stac split]);
 by (rtac Least_equality 1);
 by (rtac refl 1);
 by (etac less_zeroE 1);
 qed "ndepth_K0";
 
-Goal "k < Suc(LEAST x. f(x)=0) --> 0 < nat_case (Suc i) f k";
+Goal "k < Suc(LEAST x. f x = Inr 0) --> nat_case (Inr (Suc i)) f k ~= Inr 0";
 by (nat_ind_tac "k" 1);
 by (ALLGOALS Simp_tac);
 by (rtac impI 1);
-by (dtac not_less_Least 1);
-by (Asm_full_simp_tac 1);
+by (etac not_less_Least 1);
 val lemma = result();
 
 Goalw [ndepth_def,Push_Node_def]
-    "ndepth (Push_Node i n) = Suc(ndepth(n))";
+    "ndepth (Push_Node (Inr (Suc i)) n) = Suc(ndepth(n))";
 by (stac (Rep_Node RS Node_Push_I RS Abs_Node_inverse) 1);
 by (cut_facts_tac [rewrite_rule [Node_def] Rep_Node] 1);
 by Safe_tac;
@@ -374,6 +374,69 @@ qed "inj_In0";
 Goal "inj In1";
 by (blast_tac (claset() addSIs [injI]) 1);
 qed "inj_In1";
+
+
+(*** Function spaces ***)
+
+Goalw [Lim_def] "Lim f = Lim g ==> f = g";
+by (rtac ext 1);
+by (rtac ccontr 1);
+by (etac equalityE 1);
+by (subgoal_tac "? y. y : f x & y ~: g x | y ~: f x & y : g x" 1);
+by (Blast_tac 2);
+by (etac exE 1);
+by (etac disjE 1);
+by (REPEAT (EVERY [
+  dtac subsetD 1,
+  Fast_tac 1,
+  etac UnionE 1,
+  dtac CollectD 1,
+  etac exE 1,
+  hyp_subst_tac 1,
+  etac imageE 1,
+  etac Push_Node_inject 1,
+  Asm_full_simp_tac 1,
+  TRY (thin_tac "?S <= ?T" 1)]));
+qed "Lim_inject";
+
+Goalw [Funs_def] "S <= T ==> Funs S <= Funs T";
+by (Blast_tac 1);
+qed "Funs_mono";
+
+val [p] = goalw thy [Funs_def] "(!!x. f x : S) ==> f : Funs S";
+br CollectI 1;
+br subsetI 1;
+be rangeE 1;
+be ssubst 1;
+br p 1;
+qed "FunsI";
+
+Goalw [Funs_def] "f : Funs S ==> f x : S";
+be CollectE 1;
+be subsetD 1;
+br rangeI 1;
+qed "FunsD";
+
+val [p1, p2] = goalw thy [o_def]
+  "[| f : Funs R; !!x. x : R ==> r (a x) = x |] ==> r o (a o f) = f";
+br ext 1;
+br p2 1;
+br (p1 RS FunsD) 1;
+qed "Funs_inv";
+
+val [p1, p2] = Goalw [o_def] "[| f : Funs (range g); !!h. f = g o h ==> P |] ==> P";
+by (cut_facts_tac [p1] 1);
+by (res_inst_tac [("h", "%x. @y. f x = g y")] p2 1);
+br ext 1;
+bd FunsD 1;
+be rangeE 1;
+be (exI RS (select_eq_Ex RS iffD2)) 1;
+qed "Funs_rangeE";
+
+Goal "a : S ==> (%x. a) : Funs S";
+by (rtac FunsI 1);
+by (atac 1);
+qed "Funs_nonempty";
 
 
 (*** proving equality of sets and functions using ntrunc ***)

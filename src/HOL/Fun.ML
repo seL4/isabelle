@@ -62,6 +62,18 @@ Goalw [o_def] "UNION A (g o f) = UNION (f``A) g";
 by (Blast_tac 1);
 qed "UN_o";
 
+(** lemma for proving injectivity of representation functions for **)
+(** datatypes involving function types                            **)
+
+Goalw [o_def]
+  "[| !x y. g (f x) = g y --> f x = y; g o f = g o fa |] ==> f = fa";
+br ext 1;
+be allE 1;
+be allE 1;
+be mp 1;
+be fun_cong 1;
+qed "inj_fun_lemma";
+
 
 section "inj";
 (**NB: inj now just translates to inj_on**)
@@ -106,6 +118,11 @@ by (res_inst_tac [("t", "x")] (oneone RS (inv_f_f RS subst)) 1);
 by (rtac (rangeI RS minor) 1);
 qed "inj_transfer";
 
+Goalw [o_def] "[| inj f; f o g = f o h |] ==> g = h";
+by (rtac ext 1);
+by (etac injD 1);
+by (etac fun_cong 1);
+qed "inj_o";
 
 (*** inj_on f A: f is one-to-one over A ***)
 

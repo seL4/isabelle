@@ -167,6 +167,17 @@ qed_goal "sum_case_weak_cong" Sum.thy
   "s=t ==> sum_case f g s = sum_case f g t"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
+val [p1,p2] = Goal "[| sum_case f1 f2 = sum_case g1 g2;  \
+  \  [| f1 = g1; f2 = g2 |] ==> P |] ==> P";
+by (cut_facts_tac [p1] 1);
+br p2 1;
+br ext 1;
+by (dres_inst_tac [("x","Inl x")] fun_cong 1);
+by (Asm_full_simp_tac 1);
+br ext 1;
+by (dres_inst_tac [("x","Inr x")] fun_cong 1);
+by (Asm_full_simp_tac 1);
+qed "sum_case_inject";
 
 
 (** Rules for the Part primitive **)
