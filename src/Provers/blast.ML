@@ -43,13 +43,14 @@ signature BLAST_DATA =
 signature BLAST =
   sig
   type claset
-  val depth_tac 		: claset -> int -> int -> tactic
-  val blast_tac 		: claset -> int -> tactic
-  val Blast_tac 		: int -> tactic
+  val depth_tac 	: claset -> int -> int -> tactic
+  val blast_tac 	: claset -> int -> tactic
+  val Blast_tac 	: int -> tactic
+  val declConsts 	: string list * thm list -> unit
   end;
 
 
-functor BlastFun(Data: BLAST_DATA): BLAST = 
+functor BlastFun(Data: BLAST_DATA) = 
 struct
 
 type claset = Data.claset;
@@ -138,7 +139,10 @@ fun addConsts (t as Term.Const(a,_), tab) =
 
 fun addRules (rls,tab) = foldr addConsts (map (#prop o rep_thm) rls, tab);
 
-fun declConst (a,tab) = Symtab.update((a,[]), tab);
+fun declConst (a,tab) = 
+    case Symtab.lookup (tab,a) of
+	None   => Symtab.update((a,[]), tab)	(*create a brand new entry*)
+      | Some _ => tab				(*preserve old entry*);
 
 (*maps the name of each overloaded constant to a list of archetypal constants,
   which may be polymorphic.*)
@@ -748,12 +752,12 @@ fun prove (cs, brs, cont) =
 		    handle NEWBRANCHES => 
 		     (case netMkRules G vars hazList of
 			 [] => (*no plausible rules: move G to literals*)
-			     prv (tacs, trs, choices,
+			     prv (tacs, brs0::trs, choices,
 				  (br, hazs, addLit(G,lits), vars, lim)::brs)
 		      | _ => (*G admits some haz rules: try later*)
 			     prv (if isGoal G then negOfGoal_tac :: tacs
 				  else tacs, 
-				  trs,  choices,
+				  brs0::trs,  choices,
 				  (br, addHaz((G,md),hazs), lits, vars, lim)
 				  ::brs)))
 	  end
@@ -794,7 +798,7 @@ fun prove (cs, brs, cont) =
 			  newBr (vars', dup) prems)
 		     handle PRV => 
 			 if ntrl < ntrl'       (*variables updated?*)
-			    orelse vars=vars'  (*pseudo-unsafe: no new Vars?*)
+                            orelse vars=vars'  (*pseudo-unsafe: no new Vars?*)
 			 then (*reset Vars and try another rule*)
 			      (clearTo ntrl;  deeper grls)
 			 else (*backtrack to previous level*)
@@ -814,6 +818,7 @@ fun prove (cs, brs, cont) =
  in prv ([], [], [(!ntrail, length brs, PROVE)], brs) end;
 
 
+(*Construct an initial branch.*)
 fun initBranch (ts,lim) = 
     (map (fn t => (t,true)) ts, 
      [[]], [], add_terms_vars (ts,[]), lim);
