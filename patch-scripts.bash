@@ -41,7 +41,7 @@ for FILE in $(find . -type f -print)
 do
   if [ -x "$FILE" ]; then
     sed -e "s:^#!.*/bash:#!$BASH:" -e "s:^#!.*/perl:#!$PERL:" $FILE >$FILE~~
-    if cmp $FILE $FILE~~ -s; then
+    if cmp -s $FILE $FILE~~; then
       rm $FILE~~
     else
       rm -f $FILE
