@@ -88,11 +88,9 @@ local
 in
   fun file_info "" = ""
     | file_info name = makestring (mtime (PATH name));
-end;
 
-fun delete_file name = 
-  let val _ = System.system ("rm " ^ name)
-  in () end;
+  val delete_file = unlink;
+end;
 
 (*Get pathname of current working directory *)
 fun pwd () = System.Directory.getWD ();
