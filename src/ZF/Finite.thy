@@ -6,7 +6,7 @@
 Finite powerset operator
 *)
 
-Finite = Inductive + Nat +
+Finite = Inductive + Epsilon + Nat +
 
 (*The natural numbers as a datatype*)
 rep_datatype 
