@@ -4,6 +4,15 @@ Isabelle NEWS -- history of user-visible changes
 
 New in Isabelle94-8 (??????????? 1997 FIXME)
 ---------------------------------------
+* HOLCF changes: derived all rules and arities 
+  + axiomatic type classes instead of classes 
+  + typedef instead of faking type definitions
+  + eliminated the initernal constants less_fun, less_cfun, UU_fun, UU_cfun etc.
+  + new axclasses cpo,chfin,flat with flat<chfin<pcpo<cpo<po
+  + eliminated the types void, one, tr
+  + use unit lift and bool lift (with translations) instead of one and tr
+  + eliminated blift from Lift3.thy (use Def instead of blift)
+  all eliminated rules are derivd as theorems --> no visible changes 
 
 * simplifier: new functions delcongs, deleqcongs, and Delcongs. richer rep_ss.
 
@@ -60,6 +69,8 @@ Beware of Union_iff.  eq_cs is gone, can be put back as ZF_cs addSIs
 * more default rewrite rules in HOL for quantifiers, union/intersection;
 
 * the NEWS file;
+
+Changes in HOLCF:
 
 
 New in Isabelle94-7 (November 96)
