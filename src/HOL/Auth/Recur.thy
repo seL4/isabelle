@@ -69,14 +69,10 @@ inductive "recur"
               # evs1 : recur"
 
          (*Bob's response to Alice's message.  C might be the Server.
-           XA should be the Hash of the remaining components with KA, but
-                Bob cannot check that.
-           P is the previous recur message from Alice's caller.
-           NOTE: existing proofs don't need PA and are complicated by its
-                presence!  See parts_Fake_tac.*)
+           We omit PA = {|XA, Agent A, Agent B, Nonce NA, P|} because
+           it complicates proofs, so B may respond to any message at all!*)
     RA2  "[| evs2: recur;  B ~= C;  B ~= Server;  Nonce NB ~: used evs2;
-             Says A' B PA : set evs2;  
-             PA = {|XA, Agent A, Agent B, Nonce NA, P|} |]
+             Says A' B PA : set evs2 |]
           ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
               # evs2 : recur"
 

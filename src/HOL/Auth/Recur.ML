@@ -133,7 +133,6 @@ bind_thm ("RA4_parts_spies",
 fun parts_induct_tac i = 
     etac recur.induct i				THEN
     forward_tac [RA2_parts_spies] (i+3)	THEN
-    etac subst (i+3) (*RA2: DELETE needless definition of PA!*)  THEN
     forward_tac [respond_imp_responses] (i+4)	THEN
     forward_tac [RA4_parts_spies] (i+5)	THEN
     prove_simple_subgoals_tac i;
@@ -152,9 +151,7 @@ by (Fake_parts_insert_tac 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [parts_insert2, parts_insert_spies])));
 (*RA3*)
-by (blast_tac (claset() addDs [Key_in_parts_respond]) 2);
-(*RA2*)
-by (blast_tac (claset() addSEs partsEs  addDs [parts_cut]) 1);
+by (blast_tac (claset() addDs [Key_in_parts_respond]) 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
@@ -202,7 +199,6 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 
 (*For proofs involving analz.*)
 val analz_spies_tac = 
-    etac subst 4 (*RA2: DELETE needless definition of PA!*)  THEN
     dtac RA2_analz_spies 4 THEN 
     forward_tac [respond_imp_responses] 5                THEN
     dtac RA4_analz_spies 6;
@@ -234,7 +230,7 @@ goal thy
 by (etac recur.induct 1);
 by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
-by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
+by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
 by (ALLGOALS 
     (asm_simp_tac
      (analz_image_freshK_ss addsimps [resp_analz_image_freshK_lemma])));
