@@ -158,18 +158,19 @@ Goal "z + #0 = z";
 by (Simp_tac 1);
 qed "zadd_0_right";
 
-Goal "z + (- z) = #0";
-by (Simp_tac 1);
-qed "zadd_zminus_inverse";
+Addsimps [zadd_0, zadd_0_right];
 
-Goal "(- z) + z = #0";
-by (Simp_tac 1);
-qed "zadd_zminus_inverse2";
 
-(*These rewrite to int 0.  Henceforth we should rewrite to #0  *)
-Delsimps [zadd_zminus_inverse_nat, zadd_zminus_inverse_nat2];
+(** Converting simple cases of (int n) to numerals **)
 
-Addsimps [zadd_0, zadd_0_right, zadd_zminus_inverse, zadd_zminus_inverse2];
+(*int 0 = #0 *)
+bind_thm ("int_0", integ_of_Pls RS sym);
+
+Goal "int (Suc n) = #1 + int n";
+by (simp_tac (simpset() addsimps [zadd_int]) 1);
+qed "int_Suc";
+
+val int_simps = [int_0, int_Suc];
 
 Goal "- (#0) = #0";
 by (Simp_tac 1);
@@ -221,11 +222,11 @@ Addsimps [zmult_0, zmult_0_right,
 	  zmult_2, zmult_2_right];
 
 Goal "(w < z + #1) = (w<z | w=z)";
-by (simp_tac (simpset() addsimps [zless_add_nat1_eq]) 1);
+by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);
 qed "zless_add1_eq";
 
 Goal "(w + #1 <= z) = (w<z)";
-by (simp_tac (simpset() addsimps [add_nat1_zle_eq]) 1);
+by (simp_tac (simpset() addsimps [add_int_Suc_zle_eq]) 1);
 qed "add1_zle_eq";
 Addsimps [add1_zle_eq];
 
@@ -241,7 +242,6 @@ Goal "#0 <= int m";
 by (Simp_tac 1);
 qed "zero_zle_int";
 AddIffs [zero_zle_int];
-
 
 
 (** Simplification rules for comparison of binary numbers (Norbert Voelker) **)
@@ -342,6 +342,19 @@ qed "diff_integ_of_eq";
 Addsimps [diff_integ_of_eq];
 
 
+(** Simplification of arithmetic when nested to the right **)
+
+Goal "integ_of v + (integ_of w + z) = integ_of(bin_add v w) + z";
+by (simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
+qed "add_integ_of_left";
+
+Goal "integ_of v * (integ_of w * z) = integ_of(bin_mult v w) * z";
+by (simp_tac (simpset() addsimps [zmult_assoc RS sym]) 1);
+qed "mult_integ_of_left";
+
+Addsimps [add_integ_of_left, mult_integ_of_left];
+
+
 (** Simplification of inequalities involving numerical constants **)
 
 Goal "(w <= z + #1) = (w<=z | w = z + #1)";
@@ -436,29 +449,5 @@ Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
 by (case_tac "neg z" 1);
 by (auto_tac (claset(), simpset() addsimps [nat_less_iff]));
 by (auto_tac (claset() addIs [zless_trans], 
-	      simpset() addsimps [neg_eq_less_0, integ_of_Pls, zle_def]));
+	      simpset() addsimps [neg_eq_less_0, zle_def, int_0]));
 qed "nat_less_eq_zless";
-
-Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
-by (stac nat_less_iff 1);
-by (assume_tac 1);
-by (case_tac "neg z" 1);
-by (auto_tac (claset(), simpset() addsimps [not_neg_nat, neg_nat]));
-by (auto_tac (claset(), 
-	      simpset() addsimps [neg_eq_less_0, integ_of_Pls, zle_def]));
-by (blast_tac (claset() addIs [zless_trans]) 1);
-qed "nat_less_eq_zless";
-
-
-(**Can these be generalized without evaluating large numbers?**)
-Goal "(int k = #0) = (k=0)";
-by (simp_tac (simpset() addsimps [integ_of_Pls]) 1);
-qed "nat_eq_0_conv";
-
-Goal "(#0 = int k) = (k=0)";
-by (auto_tac (claset(), simpset() addsimps [integ_of_Pls]));
-qed "nat_eq_0_conv'";
-
-Addsimps [nat_eq_0_conv, nat_eq_0_conv'];
-
-
