@@ -168,8 +168,7 @@ local
 
 val kinds =
  [(Sign.classK, can o Sign.certify_class),
-  (Sign.typeK, fn sg => fn c =>
-    can (Sign.certify_tycon sg) c orelse can (Sign.certify_tyabbr sg) c),
+  (Sign.typeK, can o Sign.certify_tyname),
   (Sign.constK, can o Sign.certify_const)];
 
 fun gen_hide intern (kind, xnames) thy =
