@@ -106,6 +106,11 @@ AddSEs [converseE];
 goalw Relation.thy [converse_def] "converse(converse R) = R";
 by (Blast_tac 1);
 qed "converse_converse";
+Addsimps [converse_converse];
+
+goal Relation.thy "converse(r O s) = converse s O converse r";
+by(Blast_tac 1);
+qed "converse_comp";
 
 (** Domain **)
 

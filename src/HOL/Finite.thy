@@ -8,18 +8,17 @@ Finite sets and their cardinality
 
 Finite = Divides + Power + 
 
-consts Fin :: 'a set => 'a set set
+consts Finites :: 'a set set
 
-inductive "Fin(A)"
+inductive "Finites"
   intrs
-    emptyI  "{} : Fin(A)"
-    insertI "[| a: A;  b: Fin(A) |] ==> insert a b : Fin(A)"
+    emptyI  "{} : Finites"
+    insertI "A : Finites ==> insert a A : Finites"
+
+syntax finite :: 'a set => bool
+translations  "finite A"  ==  "A : Finites"
 
 constdefs
-
-  finite :: 'a set => bool
-  "finite A == A : Fin(UNIV)"
-
   card :: 'a set => nat
   "card A == LEAST n. ? f. A = {f i |i. i<n}"
 

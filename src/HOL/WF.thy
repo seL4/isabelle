@@ -12,6 +12,9 @@ constdefs
   wf         :: "('a * 'a)set => bool"
   "wf(r) == (!P. (!x. (!y. (y,x):r --> P(y)) --> P(x)) --> (!x.P(x)))"
 
+  acyclic :: "('a*'a)set => bool"
+  "acyclic r == !x. (x,x) ~: r^+"
+
   cut        :: "('a => 'b) => ('a * 'a)set => 'a => 'a => 'b"
   "cut f r x == (%y. if (y,x):r then f y else arbitrary)"
 
