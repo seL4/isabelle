@@ -1,4 +1,3 @@
-% ID:         $Id$
 \section{The set of even numbers}
 
 The set of even numbers can be inductively defined as the least set
@@ -32,16 +31,12 @@ analysis and an induction rule.  We can refer to these theorems by
 automatically-generated names.  Here are two examples:
 %
 \begin{isabelle}
+0\ \isasymin \ even
+\rulename{even.zero}
+\par\smallskip
 n\ \isasymin \ even\ \isasymLongrightarrow \ Suc\ (Suc\ n)\ \isasymin \
 even%
 \rulename{even.step}
-\par\medskip
-\isasymlbrakk xa\ \isasymin \ even;\isanewline
-\ P\ 0;\isanewline
-\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ P\ n\isasymrbrakk \
-\isasymLongrightarrow \ P\ (Suc\ (Suc\ n))\isasymrbrakk\isanewline
-\ \isasymLongrightarrow \ P\ xa%
-\rulename{even.induct}
 \end{isabelle}
 
 The introduction rules can be given attributes.  Here both rules are
@@ -86,10 +81,31 @@ just proved, whose \isa{intro!} attribute ensures it will be used.
 
 \subsection{Rule induction}
 
-The other direction of this equivalence is proved by induction over the set
-\isa{even}.   This type of inductive argument is called \textbf{rule induction}. 
-It is the usual way of proving a property of the elements of an inductively
-defined set.
+From the definition of the set
+\isa{even}, Isabelle has
+generated an induction rule:
+\begin{isabelle}
+\isasymlbrakk xa\ \isasymin \ even;\isanewline
+\ P\ 0;\isanewline
+\ \isasymAnd n.\ \isasymlbrakk n\ \isasymin \ even;\ P\ n\isasymrbrakk \
+\isasymLongrightarrow \ P\ (Suc\ (Suc\ n))\isasymrbrakk\isanewline
+\ \isasymLongrightarrow \ P\ xa%
+\rulename{even.induct}
+\end{isabelle}
+A property \isa{P} holds for every even number provided it
+holds for~\isa{0} and is closed under the operation
+\isa{Suc(Suc\(\cdots\))}.  Then \isa{P} is closed under the introduction
+rules for \isa{even}, which is the least set closed under those rules. 
+This type of inductive argument is called \textbf{rule induction}. 
+
+Apart from the double application of \isa{Suc}, the induction rule above
+resembles the familiar mathematical induction, which indeed is an instance
+of rule induction; the natural numbers can be defined inductively to be
+the least set containing \isa{0} and closed under~\isa{Suc}.
+
+Induction is the usual way of proving a property of the elements of an
+inductively defined set.  Let us prove that all members of the set
+\isa{even} are multiples of two.  
 \begin{isabelle}
 \isacommand{lemma}\ even_imp_dvd:\ "n\ \isasymin \ even\ \isasymLongrightarrow \ \#2\ dvd\ n"\isanewline
 \isacommand{apply}\ (erule\ even.induct)\isanewline
@@ -196,5 +212,8 @@ attribute because of its obvious value for simplification.
 \isacommand{lemma}\ [iff]:\ "((Suc\ (Suc\ n))\ \isasymin \ even)\ =\ (n\
 \isasymin \ even)"\isanewline
 \isacommand{apply}\ (blast\ dest:\ Suc_Suc_even_imp_even)\isanewline
-\isacommand{done}\isanewline
+\isacommand{done}
 \end{isabelle}
+
+The even numbers example has shown how inductive definitions can be used. 
+Later examples will show that they are actually worth using.
