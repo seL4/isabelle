@@ -29,12 +29,12 @@
     \subitem of main goal, 41
     \subitem use of, 16, 28
   \item axioms
-    \subitem Peano, 54
+    \subitem Peano, 55
 
   \indexspace
 
   \item {\tt ba}, 31
-  \item {\tt back}, 59, 62
+  \item {\tt back}, 59, 63
   \item backtracking
     \subitem Prolog style, 62
   \item {\tt bd}, 31
@@ -45,7 +45,7 @@
 
   \indexspace
 
-  \item {\tt choplev}, 37, 64
+  \item {\tt choplev}, 37, 65
   \item classes, 3
     \subitem built-in, \bold{25}
   \item classical reasoner, 39
@@ -53,7 +53,7 @@
   \item constants, 3
     \subitem clashes with variables, 9
     \subitem declaring, \bold{48}
-    \subitem overloaded, 53
+    \subitem overloaded, 54
     \subitem polymorphic, 3
   \item {\tt CPure} theory, 47
 
@@ -78,9 +78,9 @@
   \item examples
     \subitem of deriving rules, 41
     \subitem of induction, 57, 58
-    \subitem of simplification, 59
+    \subitem of simplification, 60
     \subitem of tacticals, 37
-    \subitem of theories, 48, 50--55, 61
+    \subitem of theories, 48, 50--54, 56, 61
     \subitem propositional, 17, 31, 32
     \subitem with quantifiers, 18, 34, 35, 38
   \item {\tt exE} theorem, 38
@@ -143,11 +143,11 @@
 
   \indexspace
 
-  \item {\tt Nat} theory, 55
+  \item {\tt Nat} theory, 56
   \item {\tt nat} type, 3
   \item {\tt not_def} theorem, 44
-  \item {\tt notE} theorem, \bold{45}, 57
-  \item {\tt notI} theorem, \bold{44}, 57
+  \item {\tt notE} theorem, \bold{45}, 58
+  \item {\tt notI} theorem, \bold{44}, 58
 
   \indexspace
 
@@ -160,7 +160,7 @@
   \item parameters, \bold{8}, 34
     \subitem lifting over, 15
   \item {\tt Prolog} theory, 61
-  \item Prolog interpreter, \bold{60}
+  \item Prolog interpreter, \bold{61}
   \item proof state, 16
   \item proofs
     \subitem commands for, 30
@@ -181,7 +181,7 @@
   \item {\tt read_instantiate}, 29
   \item {\tt refl} theorem, 29
   \item {\tt REPEAT}, 33, 38, 62, 64
-  \item {\tt res_inst_tac}, 57, 59
+  \item {\tt res_inst_tac}, 57, 60
   \item reserved words, 24
   \item resolution, 10, \bold{12}
     \subitem in backward proof, 15
@@ -208,8 +208,8 @@
     \subitem depth-first, 63
   \item signatures, \bold{9}
   \item {\tt Simp_tac}, 60
-  \item simplification, 59
-  \item simplification sets, 59
+  \item simplification, 60
+  \item simplification sets, 60
   \item sort constraints, 25
   \item sorts, \bold{5}
   \item {\tt spec} theorem, 28, 36, 37
@@ -233,7 +233,7 @@
     \subitem basic operations on, \bold{27}
     \subitem printing of, 27
   \item theories, \bold{9}
-    \subitem defining, 47--56
+    \subitem defining, 47--57
   \item {\tt thm} ML type, 27
   \item {\tt topthm}, 42
   \item {\tt Trueprop} constant, 6, 7, 25
