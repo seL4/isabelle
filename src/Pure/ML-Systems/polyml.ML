@@ -134,7 +134,4 @@ end;
 
 (* non-ASCII input (see also Thy/use.ML) *)
 
-val needs_filtered_use =
-  (case explode ml_system of
-    "p" :: "o" :: "l" :: "y" :: "m" :: "l" :: "-" :: "3" :: _ => true
-  | _ => false);
+val needs_filtered_use = true;
