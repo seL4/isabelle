@@ -355,6 +355,11 @@ fun mk_axiom_decls axms = (mk_axms axms, map fst axms);
 val axiom_decls = repeat1 (ident -- !! string) >> mk_axiom_decls;
 
 
+(* oracle *)
+
+val oracle_decl = (name --$$ "=" -- long_id) >> mk_pair;
+
+
 (* combined consts and axioms *)
 
 fun mk_constaxiom_decls x =
@@ -430,12 +435,12 @@ val header = ident --$$ "=" -- enum1 "+" base >> mk_header;
 
 (* extension *)
 
-fun mk_extension ((has_begin, txts), mltxt) =
+fun mk_extension ((begin, txts), mltxt) =
   let
     val cat_sects = space_implode "\n\n" o filter_out (equal "");
     val (extxts, postxts) = split_list txts;
   in
-    (has_begin, cat_sects extxts, cat_sects postxts, mltxt)
+    (begin, cat_sects extxts, cat_sects postxts, mltxt)
   end;
 
 fun sect tab ((Keyword, s, n) :: toks) =
@@ -445,8 +450,11 @@ fun sect tab ((Keyword, s, n) :: toks) =
   | sect _ ((_, s, n) :: _) = syn_err "section" s n
   | sect _ [] = eof_err ();
 
+val opt_begin =
+  optional ("begin" $$-- optional name "" >> Some) None;
+
 fun extension sectab = "+" $$-- !!
-  (optional ($$ "begin" >> K true) false -- (repeat (sect sectab) --$$ "end") --
+  (opt_begin -- (repeat (sect sectab) --$$ "end") --
     optional ("ML" $$-- verbatim) "") >> mk_extension;
 
 
@@ -458,7 +466,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_ext) =
       ^ quote thy_name ^ " are different")
   else
     (case opt_ext of
-      Some (has_begin, extxt, postxt, mltxt) =>
+      Some (begin, extxt, postxt, mltxt) =>
         "val thy = " ^ old_thys ^ " true;\n\n\
         \structure " ^ thy_name ^ " =\n\
         \struct\n\
@@ -470,8 +478,13 @@ fun mk_structure tname ((thy_name, old_thys), opt_ext) =
         ^ mltxt ^ "\n\
         \\n\
         \val thy = thy\n\
-        \\n" ^
-        (if has_begin then "|> Theory.add_path " ^ quote tname ^ "\n" else "") ^
+        \\n\
+        \|> Theory.add_path \"/\"\n" ^
+        (case begin of
+          None => (warning ("Flat name space for theory " ^ tname ^ "?  \
+            \Consider begin ..."); "")
+        | Some "" => "|> Theory.add_path " ^ quote tname ^ "\n"
+        | Some path => "|> Theory.add_path " ^ path ^ "\n") ^
         "\n\
         \|> Theory.add_trfuns\n"
         ^ trfun_args ^ "\n\
@@ -480,7 +493,6 @@ fun mk_structure tname ((thy_name, old_thys), opt_ext) =
         \\n"
         ^ extxt ^ "\n\
         \\n\
-        \|> Theory.add_path \"/\"\n\
         \|> Theory.add_name " ^ quote thy_name ^ ";\n\
         \\n\
         \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
@@ -537,8 +549,7 @@ val pure_keywords =
   "+", ",", "<", "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
 
 val pure_sections =
- [section "oracle" "|> Theory.set_oracle" (name >> strip_quotes),
-  section "classes" "|> Theory.add_classes" class_decls,
+ [section "classes" "|> Theory.add_classes" class_decls,
   section "default" "|> Theory.add_defsort" sort,
   section "types" "" type_decls,
   section "arities" "|> Theory.add_arities" arity_decls,
@@ -547,9 +558,11 @@ val pure_sections =
   section "translations" "|> Theory.add_trrules" trans_decls,
   axm_section "rules" "|> Theory.add_axioms" axiom_decls,
   axm_section "defs" "|> Theory.add_defs" axiom_decls,
+  section "oracle" "|> Theory.add_oracle" oracle_decl,
   axm_section "constdefs" "|> Theory.add_consts" constaxiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   section "instance" "" instance_decl,
   section "path" "|> Theory.add_path" name];
+
 
 end;
