@@ -181,7 +181,8 @@ val type_ext = mk_syn_ext false []
    Mfix ("_,/ _",       [typeT, typesT] ---> typesT,   "_types", [], max_pri),
    Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "fun", [1, 0], 0),
    Mfix ("([_]/ => _)", [typesT, typeT] ---> typeT,    "_bracket", [0, 0], 0),
-   Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri)]
+   Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri),
+   Mfix ("'_",          typeT,                         "dummy", [], max_pri)]
   []
   ([("_tapp", tapp_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
    [],
