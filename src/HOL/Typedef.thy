@@ -84,4 +84,6 @@ qed
 
 use "Tools/typedef_package.ML"
 
+setup TypedefPackage.setup
+
 end
