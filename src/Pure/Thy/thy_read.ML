@@ -22,6 +22,11 @@ sig
   val update         : unit -> unit
   val unlink_thy     : string -> unit
   val mk_base        : basetype list -> string -> theory
+
+  (* Additions for Proof General by David Aspinall <da@dcs.ed.ac.uk> *)
+  val use_thy_no_topml : string -> unit
+  val get_thy_filenames : string -> string -> string * string
+  val update_verbose : bool ref
 end;
 
 
@@ -112,7 +117,7 @@ fun find_file "" name =
 
 
 (*Get absolute pathnames for a new or already loaded theory *)
-fun get_filenames path name =
+fun get_filenames1 give_error_if_none_found path name =
   let fun new_filename () =
         let val found = find_file path (name ^ ".thy");
             val absolute_path = absolute_path (OS.FileSys.getDir ());
@@ -126,7 +131,8 @@ fun get_filenames path name =
             val searched_dirs = if path = "" then (!tmp_loadpath @ !loadpath)
                                              else [path]
         in if thy_file = "" andalso ml_file = "" then
-             error ("Could not find file \"" ^ name ^ ".thy\" or \""
+             (if give_error_if_none_found then error else warning)
+                   ("Could not find file \"" ^ name ^ ".thy\" or \""
                     ^ name ^ ".ML\" for theory \"" ^ name ^ "\"\n"
                     ^ "in the following directories: \"" ^
                     (space_implode "\", \"" searched_dirs) ^ "\"")
@@ -150,6 +156,10 @@ fun get_filenames path name =
        end
      else new_filename ()
   end;
+
+val get_filenames = get_filenames1 true;
+
+val get_thy_filenames = get_filenames1 false;
 
 
 (*Remove theory from all child lists in loaded_thys *)
@@ -197,8 +207,10 @@ fun mark_outdated tname =
   raised exceptions we cannot guarantee that it's value is always valid.
   Therefore this has to be assured by the first parameter of use_thy1 which
   is "true" if use_thy gets invoked by mk_base and "false" else.
+  no_mlfile is a flag which indicates that the ml file for this theory
+  should not be read, used to implement use_thy_no_topml.
 *)
-fun use_thy1 tmp_loadpath_valid name =
+fun use_thy1 no_mlfile tmp_loadpath_valid name =
   let
     val (path, tname) = split_filename name;
     val dummy = (tmp_loadpath :=
@@ -267,7 +279,7 @@ fun use_thy1 tmp_loadpath_valid name =
        set_info tname (Some (file_info thy_file)) None;
             (*mark thy_file as successfully loaded*)
 
-       if ml_file = "" then ()
+       if (no_mlfile orelse ml_file = "") then ()
        else (writeln ("Reading \"" ^ name ^ ".ML\"");
              Use.use ml_file);
 
@@ -284,7 +296,8 @@ fun use_thy1 tmp_loadpath_valid name =
   end;
 
 
-val use_thy = use_thy1 false;
+val use_thy = use_thy1 false false;
+val use_thy_no_topml = use_thy1 true false;
 
 
 fun time_use_thy tname = timeit(fn()=>
@@ -293,6 +306,8 @@ fun time_use_thy tname = timeit(fn()=>
     writeln("\n**** Finished Theory " ^ tname ^ " ****"))
    );
 
+
+val update_verbose = ref false;
 
 (*Load all thy or ML files that have been changed and also
   all theories that depend on them.*)
@@ -317,8 +332,17 @@ fun update () =
                 val (thy_file, ml_file) = get_filenames abspath t;
                 val (thy_uptodate, ml_uptodate) =
                         thy_unchanged t thy_file ml_file;
-            in if thy_uptodate andalso ml_uptodate then ()
-                                                   else use_thy t;
+             in if thy_uptodate andalso ml_uptodate then
+ 		(if !update_verbose then
+ 	         (writeln
+ 		   ("Not reading \"" ^ thy_file ^
+ 		          "\" (unchanged)" ^
+ 		    (if ml_file <> ""
+ 		      then "\nNot reading \"" ^ ml_file ^
+ 			   "\" (unchanged)"
+ 	              else "")))
+ 	         else ())
+ 		else use_thy t;
                reload_changed ts
             end
         | reload_changed [] = ();
@@ -394,7 +418,8 @@ fun mk_base bases child =
                if thy_loaded then ()
                else (writeln ("Autoloading theory " ^ quote base
                               ^ " (required by " ^ quote child ^ ")");
-                     use_thy1 true base)
+		     (* autoloaded theories always use .ML files too *)
+                     use_thy1 false true base)
               )
           end;
 
