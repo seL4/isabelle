@@ -58,7 +58,7 @@ fun make_deps_graph ((gra, parents), Join (ta, ders)) =
                    | None => [])
              | _ => ["global"])
         in
-          (Symtab.update_new ((name,
+          (Symtab.update ((name,
             {name = Sign.base_name name, ID = name,
              dir = space_implode "/" (session @ prefx),
              unfold = false, path = "", parents = parents'}), gra'), name ins parents)
