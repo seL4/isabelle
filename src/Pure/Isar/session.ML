@@ -11,7 +11,7 @@ sig
   val name: unit -> string
   val welcome: unit -> string
   val use_dir:
-    string list -> bool -> bool -> string -> string -> string -> string -> string -> unit
+    string list -> bool -> bool -> string -> string -> string -> string -> string -> deriv_kind -> unit
   val finish: unit -> unit
 end;
 
@@ -78,11 +78,12 @@ fun get_rpath rpath_str =
        rpath := Some (Url.unpack rpath_str);
    (!rpath, rpath_str <> ""));
 
-fun use_dir modes reset info doc parent name dump rpath_str =
+fun use_dir modes reset info doc parent name dump rpath_str der =
   Library.setmp print_mode (modes @ ! print_mode) (fn () =>
     (init reset parent name;
      Present.init info doc (path ()) name
        (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str);
+     Proofterm.keep_derivs := der;
      File.symbol_use root_file;
      finish ())) ()
   handle exn => (writeln (Toplevel.exn_message exn); exit 1);
