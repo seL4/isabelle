@@ -150,7 +150,7 @@ Goal "ack(i1,j) + ack(i2,j) < ack(#4 + (i1 + i2), j)";
 by (res_inst_tac [("j", "ack(2, ack(i1 + i2, j))")] less_trans 1);
 by (Asm_simp_tac 1);
 by (rtac (ack_nest_bound RS less_le_trans) 2);
-by (Asm_simp_tac 2);
+by (asm_simp_tac (simpset() addsimps [Suc3_eq_add_3]) 2);
 by (cut_inst_tac [("i","i1"), ("m1","i2"), ("k","j")] 
     (le_add1 RS ack_le_mono1) 1);
 by (cut_inst_tac [("i","i2"), ("m1","i1"), ("k","j")] 
