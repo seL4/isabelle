@@ -1154,38 +1154,40 @@ translations
 
 print_translation {*
 let
+  fun mk v v' q n P =
+    if v=v' andalso not(v  mem (map fst (Term.add_frees([],n))))
+    then Syntax.const q $ Syntax.mark_bound v' $ n $ P else raise Match;
   fun all_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op -->",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' then Syntax.const "_lessAll" $ Syntax.mark_bound v' $ n $ P else raise Match)
+    mk v v' "_lessAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op -->",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' then Syntax.const "_leAll" $ Syntax.mark_bound v' $ n $ P else raise Match)
+    mk v v' "_leAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op -->",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
-  (if v=v' then Syntax.const "_gtAll" $ Syntax.mark_bound v' $ n $ P else raise Match)
+    mk v v' "_gtAll" n P
 
   | all_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op -->",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
-  (if v=v' then Syntax.const "_geAll" $ Syntax.mark_bound v' $ n $ P else raise Match);
+    mk v v' "_geAll" n P;
 
   fun ex_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op &",_) $ (Const ("op <",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' then Syntax.const "_lessEx" $ Syntax.mark_bound v' $ n $ P else raise Match)
+    mk v v' "_lessEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op &",_) $ (Const ("op <=",_) $ (Const ("_bound",_) $ Free (v',_)) $ n ) $ P] = 
-  (if v=v' then Syntax.const "_leEx" $ Syntax.mark_bound v' $ n $ P else
-               raise Match)
+    mk v v' "_leEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op &",_) $ (Const ("op <",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
-  (if v=v' then Syntax.const "_gtEx" $ Syntax.mark_bound v' $ n $ P else raise Match)
+    mk v v' "_gtEx" n P
 
   | ex_tr' [Const ("_bound",_) $ Free (v,_), 
                Const("op &",_) $ (Const ("op <=",_) $ n $ (Const ("_bound",_) $ Free (v',_))) $ P] = 
-  (if v=v' then Syntax.const "_geEx" $ Syntax.mark_bound v' $ n $ P else raise Match)
+    mk v v' "_geEx" n P
 in
 [("ALL ", all_tr'), ("EX ", ex_tr')]
 end
