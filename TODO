@@ -13,8 +13,6 @@ For Isabelle2005:
   language specification (cf. http://validator.w3.org/) (Tjark, or anyone
   who is interested)
   
-- fix the inductive definition bug (Larry): Equations in the intro rules can make proofs fail. Perhaps the critical proof could "protect" the initial equations e.g. by disjoining False, and removing this later.
-  
 - update or remove ex/MT (Larry? Tobias?)  
 
 - Include IsaPlanner? (Larry to co-ordinate)
