@@ -3,6 +3,10 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Higher level user interfaces for axiomatic type classes.
+
+TODO:
+  remove add_sigclass (?)
+  remove goal_... (?)
 *)
 
 signature AX_CLASS =
@@ -25,9 +29,9 @@ sig
       -> tactic option -> thm
     val prove_arity: theory -> string * sort list * class -> thm list
       -> tactic option -> thm
-    val add_subclass: class * class -> string list -> thm list
+    val add_inst_subclass: class * class -> string list -> thm list
       -> tactic option -> theory -> theory
-    val add_instance: string * sort list * class list -> string list
+    val add_inst_arity: string * sort list * class list -> string list
       -> thm list -> tactic option -> theory -> theory
   end
 end;
@@ -102,7 +106,7 @@ fun dest_classrel tm =
 
 fun mk_arity (t, ss, c) =
   let
-    val names = variantlist (replicate (length ss) "'a", []);
+    val names = tl (variantlist (replicate (length ss + 1) "'", []));
     val tfrees = map TFree (names ~~ ss);
   in
     mk_inclass (Type (t, tfrees), c)
@@ -310,13 +314,13 @@ val goal_arity = mk_goal mk_arity;
 
 
 
-(** add proved class relations and instances **)
+(** add proved subclass relations and arities **)
 
-fun add_subclass (c1, c2) axms thms usr_tac thy =
+fun add_inst_subclass (c1, c2) axms thms usr_tac thy =
   add_classrel_thms
   [prove_classrel thy (c1, c2) (get_axioms thy axms @ thms) usr_tac] thy;
 
-fun add_instance (t, ss, cs) axms thms usr_tac thy =
+fun add_inst_arity (t, ss, cs) axms thms usr_tac thy =
   let
     val usr_thms = get_axioms thy axms @ thms;
     fun prove c =
