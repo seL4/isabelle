@@ -28,7 +28,7 @@ sig
   val update         : unit -> unit
   val time_use_thy   : string -> unit
   val unlink_thy     : string -> unit
-  val base_on        : basetype list -> string -> Thm.theory
+  val base_on        : basetype list -> string -> bool -> Thm.theory
   val store_theory   : string -> Thm.theory -> unit
 end;
 
@@ -343,7 +343,7 @@ fun update () =
 
 (*Merge theories to build a base for a new theory.
   Base members are only loaded if they are missing. *)
-fun base_on bases child =
+fun base_on bases child mk_draft =
       let (*List all descendants of a theory list *)
           fun list_descendants (t :: ts) =
                 let val tinfo = get_thyinfo t
