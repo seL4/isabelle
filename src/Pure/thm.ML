@@ -226,11 +226,11 @@ fun capply (Cterm {t=f, sign_ref=sign_ref1, T=Type("fun",[dty,rty]), maxidx=maxi
       else raise CTERM "capply: types don't agree"
   | capply _ _ = raise CTERM "capply: first arg is not a function"
 
-fun cabs (Cterm {t=Free(a,ty), sign_ref=sign_ref1, T=T1, maxidx=maxidx1})
+fun cabs (Cterm {t=t1, sign_ref=sign_ref1, T=T1, maxidx=maxidx1})
          (Cterm {t=t2, sign_ref=sign_ref2, T=T2, maxidx=maxidx2}) =
-      Cterm {t=Sign.nodup_vars (absfree(a,ty,t2)), sign_ref=Sign.merge_refs(sign_ref1,sign_ref2),
-             T = ty --> T2, maxidx=Int.max(maxidx1, maxidx2)}
-  | cabs _ _ = raise CTERM "cabs: first arg is not a free variable";
+      Cterm {t=Sign.nodup_vars (lambda t1 t2), sign_ref=Sign.merge_refs(sign_ref1,sign_ref2),
+             T = T1 --> T2, maxidx=Int.max(maxidx1, maxidx2)}
+      handle TERM _ => raise CTERM "cabs: first arg is not a variable";
 
 (*Matching of cterms*)
 fun gen_cterm_match mtch
