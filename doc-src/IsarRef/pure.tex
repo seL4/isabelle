@@ -833,10 +833,21 @@ variables of the form $\Var{x}$, or nameless dummies ``\texttt{_}''
 patterns occur on the left-hand side, while the $\ISNAME$ patterns are in
 postfix position.
 
+Polymorphism of term bindings is handled in Hindley-Milner style, as in ML.
+Type variables referring to local assumptions or open goal statements are
+\emph{fixed}, while those of finished results or bound by $\LETNAME$ may occur
+in \emph{arbitrary} instances later.  Even though actual polymorphism should
+be rarely used in practice, this mechanism is essential to achieve proper
+incremental type-inference, as the user proceeds to build up the Isar proof
+text.
+
+\medskip
+
 Term abbreviations are quite different from actual local definitions as
 introduced via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are
 visible within the logic as actual equations, while abbreviations disappear
-during the input process just after type checking.
+during the input process just after type checking.  Also note that $\DEFNAME$
+does not support polymorphism.
 
 \begin{rail}
   'let' ((term + 'as') '=' term comment? + 'and')
