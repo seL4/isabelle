@@ -25,7 +25,6 @@ sig
   type transition
   exception TERMINATE
   exception RESTART
-  exception BREAK of state
   val undo_limit: bool -> int option
   val empty: transition
   val name: string -> transition -> transition
@@ -86,7 +85,6 @@ fun print_node (Theory thy) = Pretty.writeln (Pretty.block
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) list;
 
 val toplevel = State [];
-fun append_states (State ns) (State ms) = State (ns @ ms);
 
 fun str_of_state (State []) = "at top level"
   | str_of_state (State ((node, _) :: _)) = str_of_node (History.current node);
@@ -142,13 +140,13 @@ val proof_of = node_case (fn _ => raise UNDEF) I;
 
 exception TERMINATE;
 exception RESTART;
-exception BREAK of state;
-exception FAIL of exn * string;
-exception ROLLBACK of state * exn option;
+exception EXCURSION_FAIL of exn * string;
 exception FAILURE of state * exn;
 
 
 (* recovery from stale signatures *)
+
+(*note: proof commands should be non-destructive!*)
 
 local
 
@@ -163,6 +161,11 @@ fun copy_node true (Theory thy) = Theory (Theory.copy thy)
 fun interruptible f x =
   let val y = ref (None: node History.T option);
   in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
+
+val rollback = ERROR_MESSAGE "Stale signature encountered after succesful execution!";
+
+fun return (result, None) = result
+  | return (result, Some exn) = raise FAILURE (result, exn);
 
 in
 
@@ -179,13 +182,13 @@ fun node_trans _ _ _ (State []) = raise UNDEF
           (mk_state (transform_error (interruptible (trans (f int))) cont_node), None)
             handle exn => (mk_state cont_node, Some exn);
       in
-        if is_stale result then raise ROLLBACK (mk_state back_node, opt_exn)
-        else (case opt_exn of None => result | Some exn => raise FAILURE (result, exn))
+        if is_stale result then return (mk_state back_node, Some (if_none opt_exn rollback))
+        else return (result, opt_exn)
       end;
 
 fun check_stale state =
   if not (is_stale state) then ()
-  else warning "Stale signature encountered!  Should redo current theory from start.";
+  else warning "Stale signature encountered!  Should restart current theory.";
 
 end;
 
@@ -331,8 +334,7 @@ fun raised_msg name msg = raised name ^ ": " ^ msg;
 
 fun exn_message TERMINATE = "Exit."
   | exn_message RESTART = "Restart."
-  | exn_message (BREAK _) = "Break."
-  | exn_message (FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
+  | exn_message (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
   | exn_message Interrupt = "Interrupt."
   | exn_message ERROR = "ERROR."
   | exn_message (ERROR_MESSAGE msg) = msg
@@ -376,12 +378,7 @@ fun apply int tr st =
   (case app int tr st of
     (_, Some TERMINATE) => None
   | (_, Some RESTART) => Some (toplevel, None)
-  | (state', Some (FAIL (exn_info as (BREAK break_state, _)))) =>
-      Some (append_states break_state state', Some exn_info)
-  | (state', Some (FAIL exn_info)) => Some (state', Some exn_info)
-  | (_, Some (ROLLBACK (back_state, opt_exn))) =>
-      (warning (command_msg "Rollback after " tr);
-        Some (back_state, apsome (fn exn => (exn, at_command tr)) opt_exn))
+  | (state', Some (EXCURSION_FAIL exn_info)) => Some (state', Some exn_info)
   | (state', Some exn) => Some (state', Some (exn, at_command tr))
   | (state', None) => Some (state', None));
 
@@ -396,8 +393,8 @@ fun excur [] x = x
   | excur (tr :: trs) x =
       (case apply false tr x of
         Some (x', None) => excur trs x'
-      | Some (x', Some exn_info) => raise FAIL exn_info
-      | None => raise FAIL (TERMINATE, at_command tr));
+      | Some (x', Some exn_info) => raise EXCURSION_FAIL exn_info
+      | None => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
 in
 
