@@ -53,6 +53,7 @@ val order_trans = thm "order_trans";
 val order_antisym = thm "order_antisym";
 val order_less_le = thm "order_less_le";
 val linorder_linear = thm "linorder_linear";
+val choice_eq = thm "choice_eq";
 
 structure HOL =
 struct

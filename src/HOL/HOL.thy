@@ -512,6 +512,24 @@ setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 
+theorem choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
+  apply (rule iffI)
+  apply (rule_tac a = "%x. THE y. P x y" in ex1I)
+  apply (fast dest!: theI')
+  apply (fast intro: ext the1_equality [symmetric])
+  apply (erule ex1E)
+  apply (rule allI)
+  apply (rule ex1I)
+  apply (erule spec)
+  apply (rule ccontr)
+  apply (erule_tac x = "%z. if z = x then y else f z" in allE)
+  apply (erule impE)
+  apply (rule allI)
+  apply (rule_tac P = "xa = x" in case_split_thm)
+  apply (drule_tac [3] x = x in fun_cong)
+  apply simp_all
+  done
+
 text{*Needs only HOL-lemmas:*}
 lemma mk_left_commute:
   assumes a: "\<And>x y z. f (f x y) z = f x (f y z)" and
