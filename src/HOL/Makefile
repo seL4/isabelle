@@ -123,16 +123,26 @@ LAMBDA_NAMES = Lambda ParRed Commutation Eta
 LAMBDA_FILES = Lambda/ROOT.ML \
               $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
 
-Lambda:  $(BIN)/HOL  $(LAMBDA_FILES)
+Lambda:	$(BIN)/HOL  $(LAMBDA_FILES)
 	echo 'exit_use"Lambda/ROOT.ML";quit();' | $(LOGIC)
 
+##Type inference for MiniML
 MINIML_NAMES = I Maybe MiniML Type W
 
-LAMBDA_FILES = MiniML/ROOT.ML \
+MINIML_FILES = MiniML/ROOT.ML \
               $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
 
-MiniML: $(BIN)/HOL  $(MINIML_FILES)
+MiniML:	$(BIN)/HOL  $(MINIML_FILES)
 	echo 'exit_use"MiniML/ROOT.ML";quit();' | $(LOGIC)
+
+##Lexical analysis
+LEX_FILES = Auto AutoChopper Chopper Prefix
+
+LEX_FILES = Lex/ROOT.ML \
+            $(LEX_NAMES:%=Lex/%.thy) $(LEX_NAMES:%=Lex/%.ML)
+
+Lex:	$(BIN)/HOL  $(LEX_FILES)
+	echo 'exit_use"Lex/ROOT.ML";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
 EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String \
@@ -144,8 +154,8 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 ex:     $(BIN)/HOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
-#Full test. (IOA has been removed temporarily)
-test:   $(BIN)/HOL IMP Hoare Integ Subst Lambda MiniML IOA ex
+#Full test.
+test:   $(BIN)/HOL IMP Hoare Lex Integ Subst Lambda MiniML IOA ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
