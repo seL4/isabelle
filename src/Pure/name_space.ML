@@ -17,13 +17,12 @@ sig
   val base: string -> string
   val qualified: string -> bool
   type T
-  val dest: T -> string list
   val empty: T
-  val declared: T -> string -> bool
   val extend: T * string list -> T
   val merge: T * T -> T
   val intern: T -> string -> string
   val extern: T -> string -> string
+  val dest: T -> (string * string list) list
 end;
 
 structure NameSpace: NAME_SPACE =
@@ -70,13 +69,6 @@ datatype T =
 
 val empty = NameSpace Symtab.empty;
 
-(* FIXME !? *)
-fun dest (NameSpace tab) = map (fn (x, y) => x ^ " -> " ^ y) (Symtab.dest tab);
-fun dest (NameSpace tab) = map fst (Symtab.dest tab);
-
-(* FIXME !? *)
-fun declared (NameSpace tab) name = is_some (Symtab.lookup (tab, name));
-
 
 (* extend, merge operations *)
 
@@ -101,6 +93,13 @@ fun extern space name =
           if intern space nm = name then nm
           else try nms;
   in try (map pack (suffixes1 (unpack name))) end;
+
+
+(* dest *)
+
+fun dest (NameSpace tab) =
+  map (apsnd (sort (int_ord o pairself size)))
+    (Symtab.dest (Symtab.make_multi (map swap (Symtab.dest tab))));
 
 
 end;
