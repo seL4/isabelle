@@ -173,7 +173,7 @@ Goal
 \ (G\\<turnstile>(x,(h,l)) -c       -> (x', (h',l')) --> \
 \     (\\<forall>lT.    (h ,l )::\\<preceq>(G,lT) -->       (G,lT)\\<turnstile>c  \\<surd> --> \
 \     h\\<le>|h' \\<and> (h',l')::\\<preceq>(G,lT)))";
-by( rtac eval_evals_exec.induct 1);
+by( rtac eval_evals_exec_induct 1);
 by( rewtac c_hupd_def);
 
 (* several simplifications, XcptE, XcptEs, XcptS, Skip, Nil?? *)

@@ -4,6 +4,8 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
+val eval_evals_exec_induct = complete_split_rule eval_evals_exec.induct;
+
 Goal "[|new_Addr (heap s) = (a,x); \
 \      s' = c_hupd (heap s(a\\<mapsto>(C,init_vars (fields (G,C))))) (x,s)|] ==> \
 \      G\\<turnstile>Norm s -NewC C\\<succ>Addr a-> s'";
@@ -16,7 +18,7 @@ Goal "!!s s'. (G\\<turnstile>(x,s) -e \\<succ>  v -> (x',s') --> x'=None --> x=N
 \             (G\\<turnstile>(x,s) -es[\\<succ>]vs-> (x',s') --> x'=None --> x=None) \\<and> \
 \             (G\\<turnstile>(x,s) -c       -> (x',s') --> x'=None --> x=None)";
 by(split_all_tac 1);
-by(rtac eval_evals_exec.induct 1);
+by(rtac eval_evals_exec_induct 1);
 by(rewtac c_hupd_def);
 by(ALLGOALS Asm_full_simp_tac);
 qed "eval_evals_exec_no_xcpt";
@@ -36,7 +38,7 @@ Goal
 \        (G\\<turnstile>(x,s) -es[\\<succ>]vs-> (x',s') --> x=Some xc --> x'=Some xc \\<and> s'=s) \\<and> \
 \        (G\\<turnstile>(x,s) -c       -> (x',s') --> x=Some xc --> x'=Some xc \\<and> s'=s)";
 by (split_all_tac 1);
-by (rtac eval_evals_exec.induct 1);
+by (rtac eval_evals_exec_induct 1);
 by (rewtac c_hupd_def);
 by (ALLGOALS Asm_full_simp_tac);
 qed "eval_evals_exec_xcpt";
