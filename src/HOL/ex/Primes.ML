@@ -181,6 +181,12 @@ Goal "gcd(m, n+m) = gcd(m,n)";
 by (asm_simp_tac (simpset() addsimps [add_commute, gcd_add]) 1);
 qed "gcd_add2";
 
+Goal "gcd(m, k*m+n) = gcd(m,n)";
+by (induct_tac "k" 1);
+by (asm_simp_tac (simpset() addsimps [gcd_add, add_assoc]) 2); 
+by (Simp_tac 1);
+qed "gcd_add_mult";
+
 
 (** More multiplication laws **)
 
