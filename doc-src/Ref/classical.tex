@@ -31,11 +31,12 @@ any proof can be viewed interactively.
 The simplest way to apply the classical reasoner (to subgoal~$i$) is as
 follows:
 \begin{ttbox}
-by (Fast_tac \(i\));
+by (Blast_tac \(i\));
 \end{ttbox}
 If the subgoal is a simple formula of the predicate calculus or set theory,
 then it should be proved quickly.  However, to use the classical reasoner
-effectively, you need to know how it works.
+effectively, you need to know how it works and how to choose among the many
+tactics available, including {\tt Fast_tac} and {\tt Best_tac}.
 
 We shall first discuss the underlying principles, then present the classical
 reasoner.  Finally, we shall see how to instantiate it for new logics.  The
@@ -228,7 +229,11 @@ addEs       : claset * thm list -> claset                 \hfill{\bf infix 4}
 addDs       : claset * thm list -> claset                 \hfill{\bf infix 4}
 delrules    : claset * thm list -> claset                 \hfill{\bf infix 4}
 \end{ttbox}
-The add operations do not check for repetitions.
+The add operations ignore any rule already present in the claset with the same
+classification (such as Safe Introduction).  They print a warning if the rule
+has already been added with some other classification, but add the rule
+anyway.  Calling {\tt delrules} deletes all occurrences of a rule from the
+claset, but see the warning below concerning destruction rules.
 \begin{ttdescription}
 \item[\ttindexbold{empty_cs}] is the empty classical set.
 
@@ -253,8 +258,21 @@ adds unsafe elimination~$rules$ to~$cs$.
 adds unsafe destruction~$rules$ to~$cs$.
 
 \item[$cs$ delrules $rules$] \indexbold{*delrules}
-deletes~$rules$ from~$cs$.
+deletes~$rules$ from~$cs$.  It prints a warning for those rules that are not
+in~$cs$.
 \end{ttdescription}
+
+\begin{warn}
+  If you added $rule$ using {\tt addSDs} or {\tt addDs}, then you must delete
+  it as follows:
+\begin{ttbox}
+\(cs\) delrules [make_elim \(rule\)]
+\end{ttbox}
+\par\noindent
+This is necessary because the operators {\tt addSDs} and {\tt addDs} convert
+the destruction rules to elimination rules by applying \ttindex{make_elim},
+and then insert them using {\tt addSEs} and {\tt addEs}, respectively.
+\end{warn}
 
 Introduction rules are those that can be applied using ordinary resolution.
 The classical set automatically generates their swapped forms, which will
@@ -272,7 +290,8 @@ also apply {\tt hyp_subst_tac}, if they have been set up to do so (see
 below).  They may perform a form of Modus Ponens: if there are assumptions
 $P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
 
-The classical reasoner allows you to modify this basic proof strategy by
+The classical reasoning tactics---except {\tt blast_tac}!---allow you to
+modify this basic proof strategy by 
 applying two arbitrary {\bf wrapper tacticals} to it. This affects each step of
 the search.  Usually they are the identity tacticals, but they could apply 
 another tactic before or after the step tactic. The first one, which is
@@ -343,6 +362,51 @@ to combine their effects.
 If installed, the classical module provides several tactics (and other
 operations) for simulating the classical sequent calculus.
 
+\subsection{The automatic tableau prover}
+The tactic {\tt blast_tac} finds a proof rapidly using a separate tableau
+prover and then reconstructs the proof using Isabelle tactics.  It is much
+faster and more powerful than the other classical reasoning tactics, but has
+major limitations too.  
+\begin{itemize}
+\item It does not use the wrapper tacticals described above, such as
+  \ttindex{addss}.
+\item It ignores types, which can cause problems in \HOL.  If it applies a rule
+  whose types are inappropriate, then proof reconstruction will fail.
+\item It does not perform higher-order unification, as needed by the rule {\tt
+    rangeI} in {\HOL} and {\tt RepFunI} in {\ZF}.  There are often
+    alternatives to such rules, for example {\tt
+    range_eqI} and {\tt RepFun_eqI}.
+\item The message {\small\tt Function Var's argument not a bound variable\ }
+relates to the lack of higher-order unification.  Function variables
+may only be applied to parameters of the subgoal.
+\item Its proof strategy is more general than {\tt fast_tac}'s but can be
+  slower.  If {\tt blast_tac} fails or seems to be running forever, try {\tt
+  fast_tac} and the other tactics described below.
+\end{itemize}
+%
+\begin{ttbox} 
+blast_tac        : claset -> int -> tactic
+Blast.depth_tac  : claset -> int -> int -> tactic
+Blast.trace      : bool ref \hfill{\bf initially false}
+\end{ttbox}
+The two tactics differ on how they bound the number of unsafe steps used in a
+proof.  While {\tt blast_tac} starts with a bound of zero and increases it
+successively to~20, {\tt Blast.depth_tac} applies a user-supplied search bound.
+\begin{ttdescription}
+\item[\ttindexbold{blast_tac} $cs$ $i$] tries to prove
+  subgoal~$i$ using iterative deepening to increase the search bound.
+  
+\item[\ttindexbold{Blast.depth_tac} $cs$ $lim$ $i$] tries
+  to prove subgoal~$i$ using a search bound of $lim$.  Often a slow
+  proof using {\tt blast_tac} can be made much faster by supplying the
+  successful search bound to this tactic instead.
+  
+\item[\ttindexbold{Blast.trace} := true;] \index{tracing!of classical prover}
+  causes the tableau prover to print a trace of its search.  At each step it
+  displays the formula currently being examined and reports whether the branch
+  has been closed, extended or split.
+\end{ttdescription}
+
 \subsection{The automatic tactics}
 \begin{ttbox} 
 fast_tac      : claset -> int -> tactic
@@ -352,7 +416,7 @@ slow_best_tac : claset -> int -> tactic
 \end{ttbox}
 These tactics work by applying {\tt step_tac} or {\tt slow_step_tac}
 repeatedly.  Their effect is restricted (by {\tt SELECT_GOAL}) to one subgoal;
-they either solve this subgoal or fail.  The {\tt slow_} versions are more
+they either prove this subgoal or fail.  The {\tt slow_} versions are more
 powerful but can be much slower.  
 
 The best-first tactics are guided by a heuristic function: typically, the
@@ -360,16 +424,16 @@ total size of the proof state.  This function is supplied in the functor call
 that sets up the classical reasoner.
 \begin{ttdescription}
 \item[\ttindexbold{fast_tac} $cs$ $i$] applies {\tt step_tac} using
-depth-first search, to solve subgoal~$i$.
+depth-first search, to prove subgoal~$i$.
 
 \item[\ttindexbold{best_tac} $cs$ $i$] applies {\tt step_tac} using
-best-first search, to solve subgoal~$i$.
+best-first search, to prove subgoal~$i$.
 
 \item[\ttindexbold{slow_tac} $cs$ $i$] applies {\tt slow_step_tac} using
-depth-first search, to solve subgoal~$i$.
+depth-first search, to prove subgoal~$i$.
 
 \item[\ttindexbold{slow_best_tac} $cs$ $i$] applies {\tt slow_step_tac} using
-best-first search, to solve subgoal~$i$.
+best-first search, to prove subgoal~$i$.
 \end{ttdescription}
 
 
@@ -387,10 +451,10 @@ The depth limits the number of unsafe steps.  If you can estimate the minimum
 number of unsafe steps needed, supply this value as~$m$ to save time.
 \begin{ttdescription}
 \item[\ttindexbold{depth_tac} $cs$ $m$ $i$] 
-tries to solve subgoal~$i$ by exhaustive search up to depth~$m$.
+tries to prove subgoal~$i$ by exhaustive search up to depth~$m$.
 
 \item[\ttindexbold{deepen_tac} $cs$ $m$ $i$] 
-tries to solve subgoal~$i$ by iterative deepening.  It calls {\tt depth_tac}
+tries to prove subgoal~$i$ by iterative deepening.  It calls {\tt depth_tac}
 repeatedly with increasing depths, starting with~$m$.
 \end{ttdescription}
 
@@ -437,16 +501,17 @@ underlying idea is quite similar to that of a current simpset described in
 warnings.  Just like simpsets, clasets can be associated with theories.  The
 tactics
 \begin{ttbox}
-Step_tac     : int -> tactic
+Blast_tac     : int -> tactic
 Fast_tac     : int -> tactic
 Best_tac     : int -> tactic
 Deepen_tac   : int -> int -> tactic
+Step_tac     : int -> tactic
 \end{ttbox}
-\indexbold{*Step_tac} \indexbold{*Best_tac} \indexbold{*Fast_tac}
-\indexbold{*Deepen_tac} 
-make use of the current claset. E.g.~{\tt Fast_tac} is defined as follows:
+\indexbold{*Blast_tac}\indexbold{*Best_tac}\indexbold{*Fast_tac}%
+\indexbold{*Deepen_tac}\indexbold{*Step_tac}
+make use of the current claset. E.g. {\tt Blast_tac} is defined as follows:
 \begin{ttbox}
-fun Fast_tac i = fast_tac (!claset) i;
+fun Blast_tac i = fast_tac (!claset) i;
 \end{ttbox}
 where \ttindex{!claset} is the current claset.
 The functions
@@ -492,7 +557,7 @@ is safe.
 
 \item[\ttindexbold{swap_res_tac} {\it thms} {\it i}] refines subgoal~$i$ of
 the proof state using {\it thms}, which should be a list of introduction
-rules.  First, it attempts to solve the goal using {\tt assume_tac} or
+rules.  First, it attempts to prove the goal using {\tt assume_tac} or
 {\tt contr_tac}.  It then attempts to apply each rule in turn, attempting
 resolution and also elim-resolution with the swapped form.
 \end{ttdescription}
