@@ -36,6 +36,8 @@ signature THEORY =
   val add_consts_i	: (string * typ * mixfix) list -> theory -> theory
   val add_syntax	: (string * string * mixfix) list -> theory -> theory
   val add_syntax_i	: (string * typ * mixfix) list -> theory -> theory
+  val add_modesyntax	: string -> (string * string * mixfix) list -> theory -> theory
+  val add_modesyntax_i	: string -> (string * typ * mixfix) list -> theory -> theory
   val add_trfuns	:
     (string * (Syntax.ast list -> Syntax.ast)) list *
     (string * (term list -> term)) list *
@@ -59,7 +61,8 @@ end;
 
 structure Theory : THEORY =
 struct
-(*** Theories ***)
+
+(** datatype theory **)
 
 datatype theory =
   Theory of {
@@ -129,21 +132,23 @@ fun ext_thy (thy as Theory {sign, oraopt, new_axioms, parents})
 fun ext_sg extfun decls (thy as Theory {sign, ...}) =
   ext_thy thy (extfun decls sign) [];
 
-val add_classes   = ext_sg Sign.add_classes;
-val add_classrel  = ext_sg Sign.add_classrel;
-val add_defsort   = ext_sg Sign.add_defsort;
-val add_types     = ext_sg Sign.add_types;
-val add_tyabbrs   = ext_sg Sign.add_tyabbrs;
-val add_tyabbrs_i = ext_sg Sign.add_tyabbrs_i;
-val add_arities   = ext_sg Sign.add_arities;
-val add_consts    = ext_sg Sign.add_consts;
-val add_consts_i  = ext_sg Sign.add_consts_i;
-val add_syntax    = ext_sg Sign.add_syntax;
-val add_syntax_i  = ext_sg Sign.add_syntax_i;
-val add_trfuns    = ext_sg Sign.add_trfuns;
-val add_trrules   = ext_sg Sign.add_trrules;
-val add_trrules_i = ext_sg Sign.add_trrules_i;
-val add_thyname   = ext_sg Sign.add_name;
+val add_classes      = ext_sg Sign.add_classes;
+val add_classrel     = ext_sg Sign.add_classrel;
+val add_defsort      = ext_sg Sign.add_defsort;
+val add_types        = ext_sg Sign.add_types;
+val add_tyabbrs      = ext_sg Sign.add_tyabbrs;
+val add_tyabbrs_i    = ext_sg Sign.add_tyabbrs_i;
+val add_arities      = ext_sg Sign.add_arities;
+val add_consts       = ext_sg Sign.add_consts;
+val add_consts_i     = ext_sg Sign.add_consts_i;
+val add_syntax       = ext_sg Sign.add_syntax;
+val add_syntax_i     = ext_sg Sign.add_syntax_i;
+val add_modesyntax   = curry (ext_sg Sign.add_modesyntax);
+val add_modesyntax_i = curry (ext_sg Sign.add_modesyntax_i);
+val add_trfuns       = ext_sg Sign.add_trfuns;
+val add_trrules      = ext_sg Sign.add_trrules;
+val add_trrules_i    = ext_sg Sign.add_trrules_i;
+val add_thyname      = ext_sg Sign.add_name;
 
 
 (* prepare axioms *)
