@@ -214,9 +214,9 @@ via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 about large specifications.
 
 \begin{rail}
-  'cases' ('(simplified)')? ('(opaque)')? \\ (insts * 'and') rule?  ;
+  'cases' ('(simplified)')? ('(open)')? \\ (insts * 'and') rule?  ;
 
-  'induct' ('(stripped)')? ('(opaque)')? \\ (insts * 'and') rule?
+  'induct' ('(stripped)')? ('(open)')? \\ (insts * 'and') rule?
   ;
 
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
@@ -247,14 +247,13 @@ about large specifications.
   The $simplified$ option causes ``obvious cases'' of the rule to be solved
   beforehand, while the others are left unscathed.
   
-  The $opaque$ option causes the parameters of the new local contexts to be
-  turned into ``internal'' names.  This results in quasi-existentially bound
-  elements to be introduced when individual cases are invoked later.  Thus
-  both unwanted hiding of existing local variables and references to
-  implicitly bound variables (stemming from cases) are avoided.  So by using
-  the $opaque$ option, a proof text may become slightly more readable and
-  robust.
-  
+  The $open$ option causes the parameters of the new local contexts to be
+  exposed to the current proof context.  Thus local variables stemming from
+  distant parts of the theory development may be introduced in an implicit
+  manner, which can be quite confusing to the reader.  Furthermore, this
+  option may cause unwanted hiding of existing local variables, resulting in
+  less robust proof texts.
+
 \item [$induct~insts~R$] is analogous to the $cases$ method, but refers to
   induction rules, which are determined as follows:
   \begin{matharray}{llll}
@@ -276,8 +275,7 @@ about large specifications.
   application of the induction rule.  This accommodates typical
   ``strengthening of induction'' predicates.
   
-  The $opaque$ option has the same effect as for the $cases$ method, see
-  above.
+  The $open$ option has the same effect as for the $cases$ method, see above.
 \end{descr}
 
 Above methods produce named local contexts (cf.\ \S\ref{sec:cases}), as
@@ -324,11 +322,11 @@ adjust names of cases and parameters of a rule.
 \subsection{Emulating tactic scripts}\label{sec:induct_tac}
 
 \indexisarmeth{case-tac}\indexisarmeth{induct-tac}
-\indexisarmeth{mk-cases-tac}\indexisarcmd{inductive-cases}
+\indexisarmeth{ind-cases}\indexisarcmd{inductive-cases}
 \begin{matharray}{rcl}
-  case_tac & : & \isarmeth \\
-  induct_tac & : & \isarmeth \\
-  mk_cases_tac & : & \isarmeth \\
+  case_tac^* & : & \isarmeth \\
+  induct_tac^* & : & \isarmeth \\
+  ind_cases^* & : & \isarmeth \\
   \isarcmd{inductive_cases} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
@@ -338,20 +336,20 @@ adjust names of cases and parameters of a rule.
 \railalias{inducttac}{induct\_tac}
 \railterm{inducttac}
 
-\railalias{mkcasestac}{mk\_cases\_tac}
-\railterm{mkcasestac}
-
-\railalias{indcases}{inductive\_cases}
+\railalias{indcases}{ind\_cases}
 \railterm{indcases}
+
+\railalias{inductivecases}{inductive\_cases}
+\railterm{inductivecases}
 
 \begin{rail}
   casetac goalspec? term rule?
   ;
   inducttac goalspec? (insts * 'and') rule?
   ;
-  mkcasestac (prop +)
+  indcases (prop +)
   ;
-  indcases thmdef? (prop +) comment?
+  inductivecases thmdecl? (prop +) comment?
   ;
 
   rule: ('rule' ':' thmref)
@@ -368,13 +366,13 @@ adjust names of cases and parameters of a rule.
   proper $induct$ and $cases$ proof methods (see
   \S\ref{sec:induct-method-proper}).
   
-\item [$mk_cases_tac$ and $\isarkeyword{inductive_cases}$] provide an
-  interface to the \texttt{mk_cases} operation.  Rules are simplified in an
-  unrestricted forward manner, unlike the proper $cases$ method (see
+\item [$ind_cases$ and $\isarkeyword{inductive_cases}$] provide an interface
+  to the \texttt{mk_cases} operation.  Rules are simplified in an unrestricted
+  forward manner, unlike the proper $cases$ method (see
   \S\ref{sec:induct-method-proper}) which requires simplified cases to be
   solved completely.
   
-  While $mk_cases_tac$ is a proof method to apply the result immediately as
+  While $ind_cases$ is a proof method to apply the result immediately as
   elimination rules, $\isarkeyword{inductive_cases}$ provides case split
   theorems at the theory level for later use,
 \end{descr}
