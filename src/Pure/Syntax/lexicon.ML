@@ -9,6 +9,24 @@ infix 5 -- ^^;
 infix 3 >>;
 infix 0 ||;
 
+signature SCANNER =
+sig
+  exception LEXICAL_ERROR
+  val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
+  val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
+  val -- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
+  val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
+  val $$ : ''a -> ''a list -> ''a * ''a list
+  val scan_empty: 'a list -> 'b list * 'a list
+  val scan_one: ('a -> bool) -> 'a list -> 'a * 'a list
+  val scan_any: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val scan_any1: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val scan_end: 'a list -> 'b list * 'a list
+  val optional: ('a -> 'b * 'a) -> 'a -> 'b option * 'a
+  val repeat: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+  val repeat1: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+end;
+
 signature LEXICON0 =
 sig
   val is_identifier: string -> bool
@@ -19,6 +37,7 @@ end;
 
 signature LEXICON =
 sig
+  include SCANNER
   include LEXICON0
   val is_xid: string -> bool
   val is_tfree: string -> bool
@@ -44,21 +63,6 @@ sig
   val extend_lexicon: lexicon -> string list -> lexicon
   val mk_lexicon: string list -> lexicon
   val tokenize: lexicon -> bool -> string -> token list
-
-  exception LEXICAL_ERROR
-  val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
-  val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
-  val -- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
-  val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
-  val $$ : ''a -> ''a list -> ''a * ''a list
-  val scan_empty: 'a list -> 'b list * 'a list
-  val scan_one: ('a -> bool) -> 'a list -> 'a * 'a list
-  val scan_any: ('a -> bool) -> 'a list -> 'a list * 'a list
-  val scan_any1: ('a -> bool) -> 'a list -> 'a list * 'a list
-  val scan_end: 'a list -> 'b list * 'a list
-  val optional: ('a -> 'b * 'a) -> 'a -> 'b option * 'a
-  val repeat: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
-  val repeat1: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
 end;
 
 functor LexiconFun(): LEXICON =
@@ -254,7 +258,10 @@ fun scan_one _ [] = raise LEXICAL_ERROR
   | scan_one pred (c :: cs) =
       if pred c then (c, cs) else raise LEXICAL_ERROR;
 
-val scan_any = take_prefix;
+fun scan_any _ [] = ([], [])
+  | scan_any pred (chs as c :: cs) =
+      if pred c then apfst (cons c) (scan_any pred cs)
+      else ([], chs);
 
 fun scan_any1 pred = scan_one pred -- scan_any pred >> op ::;
 
