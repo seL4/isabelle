@@ -140,7 +140,7 @@ qed "not_znegative_znat";
 
 Goalw [znegative_def, znat_def] "n: nat ==> znegative($~ $# succ(n))";
 by (asm_simp_tac (simpset() addsimps [zminus]) 1);
-by(blast_tac (claset() addIs [nat_0_le]) 1);
+by (blast_tac (claset() addIs [nat_0_le]) 1);
 qed "znegative_zminus_znat";
 
 

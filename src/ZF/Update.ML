@@ -20,7 +20,7 @@ Goalw [update_def] "[| f`x = y;  f: Pi(A,B);  x: A |] ==> f(x:=y) = f";
 by (asm_simp_tac (simpset() addsimps [domain_of_fun, cons_absorb]) 1);
 by (rtac fun_extension 1);
 by (best_tac (claset() addIs [apply_type, if_type, lam_type]) 1);
-ba 1;
+by (assume_tac 1);
 by (Asm_simp_tac 1);
 qed "update_idem";
 
