@@ -9,6 +9,8 @@ Tacticals
 infix 1 THEN THEN' THEN_BEST_FIRST;
 infix 0 ORELSE APPEND INTLEAVE ORELSE' APPEND' INTLEAVE';
 
+infix 0 THEN_ELSE;
+
 
 signature TACTICAL =
   sig
@@ -62,6 +64,7 @@ signature TACTICAL =
   val THEN'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val THEN_BEST_FIRST	: tactic * ((thm->bool) * (thm->int) * tactic) 
 			  -> tactic
+  val THEN_ELSE		: tactic * (tactic*tactic) -> tactic
   val traced_tac	: (thm -> (thm * thm Sequence.seq) option) -> tactic
   val tracify		: bool ref -> tactic -> thm -> thm Sequence.seq
   val trace_BEST_FIRST	: bool ref
@@ -123,6 +126,18 @@ fun (Tactic tf1)  APPEND  (Tactic tf2) =
 fun (Tactic tf1)  INTLEAVE  (Tactic tf2) = 
   Tactic (fn state =>  Sequence.interleave(tf1 state,
                           Sequence.seqof(fn()=> Sequence.pull (tf2 state))));
+
+(*Conditional tactic.
+	tac1 ORELSE tac2 = tac1 THEN_ELSE (all_tac, tac2)
+	tac1 THEN tac2   = tac1 THEN_ELSE (tac2, no_tac)
+*)
+fun (Tactic tf) THEN_ELSE (Tactic tf1, Tactic tf2) = 
+  Tactic (fn state =>  
+    case Sequence.pull(tf state) of
+	None    => tf2 state		(*failed; try tactic 2*)
+      | seqcell => Sequence.flats 	(*succeeded; use tactic 1*)
+	            (Sequence.maps tf1 (Sequence.seqof(fn()=> seqcell))));
+
 
 (*Versions for combining tactic-valued functions, as in
      SOMEGOAL (resolve_tac rls THEN' assume_tac) *)
