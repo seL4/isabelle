@@ -16,4 +16,5 @@ use          "simproc";
 time_use_thy "RealAbs";
 time_use_thy "RComplete";
 
-use_dir "Hyperreal";
+add_path "Hyperreal";
+use_thy "Filter";
