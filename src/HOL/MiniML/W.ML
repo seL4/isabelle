@@ -132,25 +132,29 @@ by (fast_tac (HOL_cs addDs [W_var_geD] addIs
      [new_tv_list_le,new_tv_subst_tel,lessI RS less_imp_le RS new_tv_subst_le])
     1);
 by (etac (sym RS mgu_new) 1);
-by (fast_tac (HOL_cs addDs [W_var_geD] addIs [new_tv_subst_te,new_tv_list_le,
-   new_tv_subst_tel,lessI RS less_imp_le RS new_tv_le,lessI RS less_imp_le RS 
-   new_tv_subst_le,new_tv_le]) 1);
-by (fast_tac (HOL_cs addDs [W_var_geD] addIs
-     [new_tv_list_le,new_tv_subst_tel,new_tv_le] 
-        addss (!simpset)) 1);
+by (best_tac (HOL_cs addDs [W_var_geD] 
+	             addIs [new_tv_subst_te,new_tv_list_le,
+			    new_tv_subst_tel,
+			    lessI RS less_imp_le RS new_tv_le,
+			    lessI RS less_imp_le RS new_tv_subst_le,
+			    new_tv_le]) 1);
+by (fast_tac (HOL_cs addDs [W_var_geD] 
+	             addIs [new_tv_list_le,new_tv_subst_tel,new_tv_le] 
+		     addss (!simpset)) 1);
 by (rtac (lessI RS new_tv_subst_var) 1);
 by (etac (sym RS mgu_new) 1);
-by (fast_tac (HOL_cs addSIs [lessI RS less_imp_le RS new_tv_le,new_tv_subst_te]
-   addDs [W_var_geD] addIs
-   [new_tv_list_le,new_tv_subst_tel,lessI RS less_imp_le RS
-   new_tv_subst_le,new_tv_le] addss !simpset) 1);
-by (fast_tac (HOL_cs addDs [W_var_geD] addIs
-     [new_tv_list_le,new_tv_subst_tel,new_tv_le]
-     addss (!simpset)) 1);
+by (best_tac (HOL_cs addSIs [lessI RS less_imp_le RS new_tv_le,new_tv_subst_te]
+                     addDs [W_var_geD]
+		     addIs [new_tv_list_le,
+			    new_tv_subst_tel,
+			    lessI RS less_imp_le RS new_tv_subst_le,
+			    new_tv_le] 
+		     addss !simpset) 1);
+by (fast_tac (HOL_cs addDs [W_var_geD] 
+	             addIs [new_tv_list_le,new_tv_subst_tel,new_tv_le]
+                     addss (!simpset)) 1);
 qed_spec_mp "new_tv_W";
 
-
-AddSEs [less_SucE];
 
 goal thy
      "!n a s t m v. W e a n = Ok (s,t,m) -->            \
