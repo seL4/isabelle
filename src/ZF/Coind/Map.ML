@@ -50,7 +50,6 @@ by (rtac (MapQU_lemma RS subsetD) 1);
 by (rtac subsetI 1);
 by (eresolve_tac prems 1);
 by (fast_tac ZF_cs 1);
-by flexflex_tac;
 qed "mapQU";
 
 (* ############################################################ *)
@@ -59,7 +58,6 @@ qed "mapQU";
 
 goalw Map.thy [PMap_def,TMap_def] "!!A.B<=C ==> PMap(A,B)<=PMap(A,C)";
 by (fast_tac ZF_cs 1);
-by (flexflex_tac);
 qed "map_mono";
 
 (* Rename to pmap_mono *)
@@ -77,38 +75,23 @@ qed "pmap_empI";
 
 (** map_owr **)
 
+
 goalw Map.thy [map_owr_def,PMap_def,TMap_def] 
   "!! A.[| m:PMap(A,B); a:A; b:B |]  ==> map_owr(m,a,b):PMap(A,B)";
 by (safe_tac ZF_cs);
-
-by (asm_full_simp_tac if_ss 1);
+by (asm_full_simp_tac if_ss 1 THEN fast_tac ZF_cs 1);
 by (fast_tac ZF_cs 1);
-
+by (asm_full_simp_tac (ZF_ss addsimps [if_iff]) 1);
 by (fast_tac ZF_cs 1);
-
-by (rtac (excluded_middle RS disjE) 1);
-by (dtac (if_not_P RS subst) 1);
-by (assume_tac 1);
-by (fast_tac ZF_cs 1);
-by (hyp_subst_tac 1);
-by (asm_full_simp_tac if_ss 1);
-by (fast_tac ZF_cs 1);
-
 by (rtac (excluded_middle RS disjE) 1);
 by (etac image_Sigma1 1);
-by (rtac (qbeta RS ssubst) 1);
-by (assume_tac 1);
-by (dtac map_lem1 1);
-by (etac qbeta 1);
-by (etac UnE'  1);
-by (etac singletonE 1);
-by (hyp_subst_tac 1);
-by (asm_full_simp_tac (if_ss addsimps [qbeta]) 1);
-by (etac notsingletonE 1);
-by (dtac map_lem1 1);
-by (rtac if_not_P 1);
-by (assume_tac 1);
-by (asm_full_simp_tac (if_ss addsimps [qbeta]) 1);
+by (safe_tac upair_cs);    (*This claset knows nothing about domain(m).*)
+by (asm_full_simp_tac (ZF_ss addsimps [qbeta]) 1);
+by (asm_simp_tac (ZF_ss addsimps [qbeta] setloop split_tac [expand_if]) 1);
+by (safe_tac FOL_cs);
+by (asm_full_simp_tac (ZF_ss addsimps [qbeta]) 1);
+by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 1);
+by (asm_full_simp_tac (ZF_ss addsimps [qbeta]) 1);
 by (fast_tac ZF_cs 1);
 qed "pmap_owrI";
 
