@@ -11,21 +11,26 @@ sig
   val std_output: string -> unit
   val std_error: string -> unit
   val immediate_output: string -> unit
-  val writeln_default: string -> unit
-  val writeln_fn: (string -> unit) ref
-  val priority_fn: (string -> unit) ref
-  val tracing_fn: (string -> unit) ref
-  val warning_fn: (string -> unit) ref
-  val error_fn: (string -> unit) ref
-  val panic_fn: (string -> unit) ref
-  val writeln: string -> unit
-  val priority: string -> unit
-  val tracing: string -> unit
-  val warning: string -> unit
-  val error_msg: string -> unit
-  val error: string -> 'a
-  val sys_error: string -> 'a
-  val panic: string -> unit
+  val writeln_default: string -> unit      
+  val writeln_fn: (string -> unit) ref  
+  val priority_fn: (string -> unit) ref 
+  val tracing_fn: (string -> unit) ref  
+  val warning_fn: (string -> unit) ref  
+  val error_fn: (string -> unit) ref    
+  val panic_fn: (string -> unit) ref    
+  val info_fn:  (string -> unit) ref    
+  val debug_fn: (string -> unit) ref    
+  val writeln: string -> unit		(* default output (in messages window) *)
+  val priority: string -> unit		(* high-priority (maybe modal/pop-up; must be displayed) *)
+  val tracing: string -> unit		(* tracing message (possibly in tracing window) *)
+  val warning: string -> unit		(* display warning of non-fatal error condition *)
+  val error_msg: string -> unit		(* display fatal error (possibly modal msg) *)
+  val error: string -> 'a		(* display message as above, raise exn *)	
+  val sys_error: string -> 'a		(* internal fatal error condition; raise exn *)
+  val panic: string -> unit		(* unrecoverable fatal error; exits system! *)
+  val info: string -> unit		(* incidental information message (e.g. timing) *)
+  val debug: string -> unit		(* internal debug messages, maybe hidden/disabled *)
+  val show_debug_msgs: bool ref	
   val assert: bool -> string -> unit
   val deny: bool -> string -> unit
   val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
@@ -116,14 +121,20 @@ val tracing_fn = ref (fn s => ! writeln_fn s);
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 val panic_fn = ref (std_output o suffix "\n" o prefix_lines "!!! ");
+val info_fn = ref (std_output o suffix "\n" o prefix_lines  "+++ ");
+val debug_fn = ref (std_output o suffix "\n" o prefix_lines "::: ");
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
 fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
+fun info s = ! info_fn (output s);
+
+val show_debug_msgs = ref false;
+fun debug s = if !show_debug_msgs then ! debug_fn (output s) else ()
+
 fun error_msg s = ! error_fn (output s);
 fun panic_msg s = ! panic_fn (output s);
-
 
 (* add_mode *)
 
@@ -207,7 +218,7 @@ fun cond_timeit flag f =
   if flag then
     let val start = startTiming()
         val result = f ()
-    in warning (endTiming start); result end
+    in info (endTiming start); result end
   else f ();
 
 (*unconditional timing function*)
@@ -215,7 +226,7 @@ fun timeit x = cond_timeit true x;
 
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
-fun timeap_msg s f x = (warning s; timeap f x);
+fun timeap_msg s f x = (info s; timeap f x);
 
 
 (* accumulated timing *)
@@ -245,7 +256,7 @@ fun time_check (ref (TI r)) = r;
 
 fun time_finish name ti =
   let val {timer, sys, usr, gc, count} = time_check ti in
-    warning ("Total of " ^ quote name ^ ": " ^
+    info ("Total of " ^ quote name ^ ": " ^
       secs "User " usr ^ secs "  GC " gc ^ secs "  All " (Time.+ (sys, Time.+ (usr, gc))) ^
       " secs in " ^ string_of_int count ^ " calls");
     ti := TI {timer = timer, sys = Time.zeroTime, usr = Time.zeroTime,
