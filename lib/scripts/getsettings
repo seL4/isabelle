@@ -4,8 +4,10 @@
 # getsettings - bash source script to augment current env.
 #
 
-#value set by caller
+#normalize ISABELLE_HOME as passed by caller
 export ISABELLE_HOME
+ISABELLE_HOME=$(cd $ISABELLE_HOME; echo $PWD)
+
 
 set -o allexport
 
@@ -22,6 +24,7 @@ PLATFORM=$(bash -norc -c 'echo $HOSTTYPE-$OSTYPE')
 . $ISABELLE_HOME/etc/settings || exit 2
 [ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
 
+#derived values
 ISABELLE=$ISABELLE_HOME/bin/isabelle
 ISATOOL=$ISABELLE_HOME/bin/isatool
 ISABELLE_OUTPUT_DIR="$ISABELLE_OUTPUT/$ML_SYSTEM-$PLATFORM"
