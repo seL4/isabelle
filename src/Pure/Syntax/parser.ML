@@ -499,11 +499,8 @@ fun extend_gram gram [] = gram
       add_prods prods' fromto_chains lambdas None prods2;
 
     val chains' = inverse_chains fromto_chains' [];
-  in Pretty.writeln (Pretty.big_list "prods:" (pretty_gram (Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
-           chains = chains', lambdas = lambdas', prods = prods'})));
-Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
+  in Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
            chains = chains', lambdas = lambdas', prods = prods'}
-     
   end;
 
 
