@@ -307,8 +307,12 @@ $t\in M(R_i)$ premise, then this proof is trivial.\footnote{Due to the
 The package returns its result as an ML structure, which consists of named
 components; we may regard it as a record.  The result structure contains
 the definitions of the recursive sets as a theorem list called {\tt defs}.
-It also contains, as the theorem {\tt unfold}, a fixedpoint equation such
-as
+It also contains some theorems; {\tt dom\_subset} is an inclusion such as 
+$\Fin(A)\sbs\pow(A)$, while {\tt bnd\_mono} asserts that the fixedpoint
+definition is monotonic.
+
+Internally the package uses the theorem {\tt unfold}, a fixedpoint equation
+such as
 \begin{eqnarray*}
   \Fin(A) & = &
   \begin{array}[t]{r@{\,}l}
@@ -316,8 +320,7 @@ as
              &(\exists a\,b. z=\{a\}\un b\conj a\in A\conj b\in \Fin(A))\}
   \end{array}
 \end{eqnarray*}
-It also contains, as the theorem {\tt dom\_subset}, an inclusion such as 
-$\Fin(A)\sbs\pow(A)$.
+In order to save space, this theorem is not exported.  
 
 
 \subsection{Mutual recursion} \label{mutual-sec}
@@ -508,7 +511,7 @@ corresponding invocation in an Isabelle theory file.  Note that
 $\cons(a,b)$ abbreviates $\{a\}\un b$ in Isabelle/ZF.
 \begin{ttbox}
 Finite = Arith + 
-consts      Fin :: "i=>i"
+consts      Fin :: i=>i
 inductive
   domains   "Fin(A)" <= "Pow(A)"
   intrs
@@ -567,7 +570,7 @@ We declare the constant~$\listn$ and supply an inductive definition,
 specifying the domain as $\nat\times\lst(A)$:
 \begin{ttbox}
 ListN = List +
-consts  listn ::"i=>i"
+consts  listn :: i=>i
 inductive
   domains   "listn(A)" <= "nat*list(A)"
   intrs
@@ -687,7 +690,7 @@ introduction rules
 To make this coinductive definition, the theory file includes (after the
 declaration of $\llist(A)$) the following lines:
 \begin{ttbox}
-consts    lleq :: "i=>i"
+consts    lleq :: i=>i
 coinductive
   domains "lleq(A)" <= "llist(A) * llist(A)"
   intrs
@@ -749,7 +752,7 @@ denotes the inverse image of~$\{a\}$ under~$r$.  We supply the theorem {\tt
   Pow\_mono}, which asserts that $\pow$ is monotonic.
 \begin{ttbox}
 Acc = WF + 
-consts    acc :: "i=>i"
+consts    acc :: i=>i
 inductive
   domains "acc(r)" <= "field(r)"
   intrs
@@ -825,8 +828,8 @@ each operation on primitive recursive functions combined just two functions.
 \begin{ttbox}
 Primrec = List +
 consts
-  primrec :: "i"
-  SC      :: "i"
+  primrec :: i
+  SC      :: i
   \(\vdots\)
 defs
   SC_def    "SC == lam l:list(nat).list_case(0, %x xs.succ(x), l)"
@@ -1000,15 +1003,15 @@ discussed extensively in another paper~\cite{paulson-set-II}.
 \subsection{Example: lists and lazy lists}\label{lists-sec}
 Here is a theory file that declares the datatype of lists:
 \begin{ttbox} 
-List = Univ + 
-consts  list :: "i=>i"
+List = Datatype + 
+consts  list :: i=>i
 datatype "list(A)" = Nil | Cons ("a:A", "l: list(A)")
 end
 \end{ttbox}
 And here is the theory file that declares the codatatype of lazy lists:
 \begin{ttbox}
-LList = QUniv + 
-consts  llist :: "i=>i"
+LList = Datatype + 
+consts  llist :: i=>i
 codatatype "llist(A)" = LNil | LCons ("a: A", "l: llist(A)")
 end
 \end{ttbox}
@@ -1020,15 +1023,15 @@ datatype and codatatype definitions.\footnote{The real theory files contain
 
 Each form of list has two constructors, one for the empty list and one for
 adding an element to a list.  Each takes a parameter, defining the set of
-lists over a given set~$A$.  Each uses the appropriate domain from a
-Isabelle/ZF theory:
+lists over a given set~$A$.  Each specifies {\tt Datatype} as the parent
+theory; this implicitly specifies {\tt Univ} and {\tt QUniv} as ancestors,
+making available the definitions of $\univ$ and $\quniv$.  Each is
+automatically given the appropriate domain:
 \begin{itemize}
-\item $\lst(A)$ requires the parent theory {\tt Univ}.  The package
-  automatically uses the domain $\univ(A)$ (the default choice can be
+\item $\lst(A)$ uses the domain $\univ(A)$ (the default choice can be
   overridden). 
 
-\item $\llist(A)$ requires the parent theory {\tt QUniv}.  The package
-  automatically uses the domain $\quniv(A)$.
+\item $\llist(A)$ uses the domain $\quniv(A)$.
 \end{itemize}
 
 Since $\lst(A)$ is a datatype, it enjoys a structural induction rule, {\tt
@@ -1084,7 +1087,7 @@ have the one constructor $\Tcons$, while forests have the two constructors
 $\Fnil$ and~$\Fcons$:
 \begin{ttbox}
 TF = List +
-consts  tree, forest, tree_forest    :: "i=>i"
+consts  tree, forest, tree_forest    :: i=>i
 datatype "tree(A)"   = Tcons ("a: A",  "f: forest(A)")
 and      "forest(A)" = Fnil  |  Fcons ("t: tree(A)",  "f: forest(A)")
 end
@@ -1152,8 +1155,8 @@ forests:
 Finally let us consider a fairly general datatype.  It has four
 constructors $\Con_0$, \ldots, $\Con_3$, with the corresponding arities.
 \begin{ttbox}
-Data = Univ +
-consts    data :: "[i,i] => i"
+Data = Datatype +
+consts    data :: [i,i] => i
 datatype  "data(A,B)" = Con0
                       | Con1 ("a: A")
                       | Con2 ("a: A", "b: B")
@@ -1324,6 +1327,14 @@ all $\alpha<\kappa$ then $|\union\sb{\alpha<\kappa} X(\alpha)| \le \kappa$.
 The need for such efforts is not a drawback of the fixedpoint
 approach, for the alternative is to take such definitions on faith.
 
+Inductive and datatype definitions can take up considerable storage.  The
+introduction rules are replicated in slightly different forms as fixedpoint
+definitions, elimination rules and induction rules.  Here are two examples.
+Three datatypes and three inductive definitions specify the operational
+semantics of a simple imperative language; they occupy over 600K in total.
+One datatype definition, an enumeration type with 60 constructors, requires
+nearly 560K\@.
+
 The approach is not restricted to set theory.  It should be suitable for
 any logic that has some notion of set and the Knaster-Tarski Theorem.  I
 have ported the (co)inductive definition package from Isabelle/ZF to
@@ -1360,9 +1371,6 @@ in~\S\ref{basic-sec}; others are self-explanatory.
 
 \item[\tt bnd\_mono] is a monotonicity theorem for the fixedpoint operator.
 
-\item[\tt unfold] is a fixedpoint equation for the recursive set (the union of
-the recursive sets, in the case of mutual recursion).
-
 \item[\tt dom\_subset] is a theorem stating inclusion in the domain.
 
 \item[\tt intrs] is the list of introduction rules, now proved as theorems, for
@@ -1376,7 +1384,9 @@ elim}, using freeness reasoning on some underlying datatype.
 \end{description}
 
 For an inductive definition, the result structure contains two induction rules,
-{\tt induct} and \verb|mutual_induct|.  For a coinductive definition, it
+{\tt induct} and \verb|mutual_induct|.  (To save storage, the latter rule is
+replaced by {\tt True} if it is not significantly different from
+{\tt induct}.)  For a coinductive definition, it
 contains the rule \verb|coinduct|.
 
 Figure~\ref{def-result-fig} summarizes the two result signatures,
@@ -1388,7 +1398,6 @@ sig
 val thy          : theory
 val defs         : thm list
 val bnd_mono     : thm
-val unfold       : thm
 val dom_subset   : thm
 val intrs        : thm list
 val elim         : thm
