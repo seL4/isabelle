@@ -37,6 +37,7 @@ use "unify.ML";
 use "net.ML";
 use "logic.ML";
 use "theory.ML";
+use "theory_data.ML";
 use "thm.ML";
 use "display.ML";
 use "attribute.ML";
