@@ -1,0 +1,20 @@
+%%
+%% Author: Makarius, Hagia Maria Sion Abbey (Jerusalem)
+%% License: GPL (GNU GENERAL PUBLIC LICENSE)
+%%
+%% root for draft documents
+%%
+
+\documentclass[10pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage[latin1]{inputenc}
+\usepackage{pdfsetup}
+
+\pagestyle{myheadings}
+\renewcommand{\isamarkupheader}[1]%
+{\section{#1}\markright{FILE~``\isabellecontext''}}
+
+\begin{document}
+\input{session}
+\end{document}
+
