@@ -11,123 +11,116 @@ signature BASIC_THEORY =
 sig
   type theory
   exception THEORY of string * theory list
-  val rep_theory        : theory ->
+  val rep_theory: theory ->
     {sign: Sign.sg,
-      new_axioms: term Symtab.table,
+      axioms: term Symtab.table,
       oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
       parents: theory list}
-  val sign_of           : theory -> Sign.sg
-  val syn_of            : theory -> Syntax.syntax
-  val parents_of        : theory -> theory list
-  val subthy            : theory * theory -> bool
-  val eq_thy            : theory * theory -> bool
-  val cert_axm          : Sign.sg -> string * term -> string * term
-  val read_axm          : Sign.sg -> string * string -> string * term
-  val inferT_axm        : Sign.sg -> string * term -> string * term
-  val merge_theories	: string -> theory * theory -> theory
+  val sign_of: theory -> Sign.sg
+  val syn_of: theory -> Syntax.syntax
+  val parents_of: theory -> theory list
+  val subthy: theory * theory -> bool
+  val eq_thy: theory * theory -> bool
+  val cert_axm: Sign.sg -> string * term -> string * term
+  val read_axm: Sign.sg -> string * string -> string * term
+  val inferT_axm: Sign.sg -> string * term -> string * term
+  val merge_theories: string -> theory * theory -> theory
 end
 
 signature THEORY =
 sig
   include BASIC_THEORY
-  val proto_pure        : theory
-  val pure              : theory
-  val cpure             : theory
-  val thmK		: string
-  val oracleK		: string
+  val axiomK: string
+  val oracleK: string
   (*theory extendsion primitives*)
-  val add_classes	: (bclass * xclass list) list -> theory -> theory
-  val add_classes_i	: (bclass * class list) list -> theory -> theory
-  val add_classrel	: (xclass * xclass) list -> theory -> theory
-  val add_classrel_i	: (class * class) list -> theory -> theory
-  val add_defsort	: xsort -> theory -> theory
-  val add_defsort_i	: sort -> theory -> theory
-  val add_types		: (bstring * int * mixfix) list -> theory -> theory
-  val add_tyabbrs	: (bstring * string list * string * mixfix) list
+  val add_classes: (bclass * xclass list) list -> theory -> theory
+  val add_classes_i: (bclass * class list) list -> theory -> theory
+  val add_classrel: (xclass * xclass) list -> theory -> theory
+  val add_classrel_i: (class * class) list -> theory -> theory
+  val add_defsort: xsort -> theory -> theory
+  val add_defsort_i: sort -> theory -> theory
+  val add_types: (bstring * int * mixfix) list -> theory -> theory
+  val add_tyabbrs: (bstring * string list * string * mixfix) list
     -> theory -> theory
-  val add_tyabbrs_i	: (bstring * string list * typ * mixfix) list
+  val add_tyabbrs_i: (bstring * string list * typ * mixfix) list
     -> theory -> theory
-  val add_arities	: (xstring * xsort list * xsort) list -> theory -> theory
-  val add_arities_i	: (string * sort list * sort) list -> theory -> theory
-  val add_consts	: (bstring * string * mixfix) list -> theory -> theory
-  val add_consts_i	: (bstring * typ * mixfix) list -> theory -> theory
-  val add_syntax	: (bstring * string * mixfix) list -> theory -> theory
-  val add_syntax_i	: (bstring * typ * mixfix) list -> theory -> theory
-  val add_modesyntax	: string * bool -> (bstring * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i	: string * bool -> (bstring * typ * mixfix) list -> theory -> theory
-  val add_trfuns	:
+  val add_arities: (xstring * xsort list * xsort) list -> theory -> theory
+  val add_arities_i: (string * sort list * sort) list -> theory -> theory
+  val add_consts: (bstring * string * mixfix) list -> theory -> theory
+  val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
+  val add_syntax: (bstring * string * mixfix) list -> theory -> theory
+  val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
+  val add_modesyntax: string * bool -> (bstring * string * mixfix) list -> theory -> theory
+  val add_modesyntax_i: string * bool -> (bstring * typ * mixfix) list -> theory -> theory
+  val add_trfuns:
     (bstring * (Syntax.ast list -> Syntax.ast)) list *
     (bstring * (term list -> term)) list *
     (bstring * (term list -> term)) list *
     (bstring * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
-  val add_trfunsT	:
+  val add_trfunsT:
     (bstring * (typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> theory -> theory
-  val add_trrules	: (string * string) Syntax.trrule list -> theory -> theory
-  val add_trrules_i	: Syntax.ast Syntax.trrule list -> theory -> theory
-  val add_axioms	: (bstring * string) list -> theory -> theory
-  val add_axioms_i	: (bstring * term) list -> theory -> theory
-  val add_oracle	: bstring * (Sign.sg * exn -> term) -> theory -> theory
-  val add_defs		: (bstring * string) list -> theory -> theory
-  val add_defs_i	: (bstring * term) list -> theory -> theory
-  val add_path		: string -> theory -> theory
-  val add_space		: string * string list -> theory -> theory
-  val add_name		: string -> theory -> theory
-  val init_data		: string * exn * (exn -> exn) * (exn * exn -> exn) *
-    (string -> exn -> unit) -> theory -> theory
-  val get_data		: theory -> string -> exn
-  val put_data		: string * exn -> theory -> theory
-  val prep_ext		: theory -> theory
-  val prep_ext_merge    : theory list -> theory
+  val add_trrules: (string * string) Syntax.trrule list -> theory -> theory
+  val add_trrules_i: Syntax.ast Syntax.trrule list -> theory -> theory
+  val add_axioms: (bstring * string) list -> theory -> theory
+  val add_axioms_i: (bstring * term) list -> theory -> theory
+  val add_oracle: bstring * (Sign.sg * exn -> term) -> theory -> theory
+  val add_defs: (bstring * string) list -> theory -> theory
+  val add_defs_i: (bstring * term) list -> theory -> theory
+  val add_path: string -> theory -> theory
+  val add_space: string * string list -> theory -> theory
+  val add_name: string -> theory -> theory
+  val init_data: string -> exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit)
+    -> theory -> theory
+  val get_data: theory -> string -> exn
+  val put_data: string * exn -> theory -> theory
+  val prep_ext: theory -> theory
+  val prep_ext_merge: theory list -> theory
+  val pre_pure: theory
 end;
 
 
 structure Theory: THEORY =
 struct
 
+
 (** datatype theory **)
 
 datatype theory =
   Theory of {
     sign: Sign.sg,
-    new_axioms: term Symtab.table,
+    axioms: term Symtab.table,
     oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
     parents: theory list};
 
+fun make_thy sign axms oras parents =
+  Theory {sign = sign, axioms = axms, oracles = oras, parents = parents};
+
 fun rep_theory (Theory args) = args;
-
-(*errors involving theories*)
-exception THEORY of string * theory list;
-
 
 val sign_of = #sign o rep_theory;
 val syn_of = #syn o Sign.rep_sg o sign_of;
-
-(*return the immediate ancestors*)
 val parents_of = #parents o rep_theory;
 
+(*errors involving theories*)
+exception THEORY of string * theory list;
 
 (*compare theories*)
 val subthy = Sign.subsig o pairself sign_of;
 val eq_thy = Sign.eq_sg o pairself sign_of;
 
 
-(* the Pure theories *)
+(* partial Pure theory *)
 
-fun make_thy sign axms oras parents =
-  Theory {sign = sign, new_axioms = axms, oracles = oras, parents = parents};
-
-val proto_pure = make_thy Sign.proto_pure Symtab.null Symtab.null [];
-val pure = make_thy Sign.pure Symtab.null Symtab.null [proto_pure];
-val cpure = make_thy Sign.cpure Symtab.null Symtab.null [proto_pure];
+val pre_pure = make_thy Sign.pre_pure Symtab.null Symtab.null [];
 
 
 
 (** extend theory **)
 
 (*name space kinds*)
-val thmK = "thm";
+val axiomK = "axiom";
 val oracleK = "oracle";
 
 
@@ -142,17 +135,17 @@ fun err_dup_oras names =
 
 fun ext_thy thy sign' new_axms new_oras =
   let
-    val Theory {sign, new_axioms, oracles, parents} = thy;
+    val Theory {sign, axioms, oracles, parents} = thy;
     val draft = Sign.is_draft sign;
-    val new_axioms' =
-      Symtab.extend_new (if draft then new_axioms else Symtab.null, new_axms)
+    val axioms' =
+      Symtab.extend_new (if draft then axioms else Symtab.null, new_axms)
         handle Symtab.DUPS names => err_dup_axms names;
     val oracles' =
       Symtab.extend_new (oracles, new_oras)
         handle Symtab.DUPS names => err_dup_oras names;
     val parents' = if draft then parents else [thy];
   in
-    make_thy sign' new_axioms' oracles' parents'
+    make_thy sign' axioms' oracles' parents'
   end;
 
 
@@ -189,6 +182,7 @@ val add_name         = ext_sg Sign.add_name;
 val prep_ext         = ext_sg (K Sign.prep_ext) ();
 
 
+
 (** add axioms **)
 
 (* prepare axioms *)
@@ -204,7 +198,7 @@ fun cert_axm sg (name, raw_tm) =
   let
     val (t, T, _) = Sign.certify_term sg raw_tm
       handle TYPE (msg, _, _) => error msg
-	   | TERM (msg, _) => error msg;
+           | TERM (msg, _) => error msg;
   in
     assert (T = propT) "Term not of type prop";
     (name, no_vars t)
@@ -235,7 +229,7 @@ fun ext_axms prep_axm raw_axms (thy as Theory {sign, ...}) =
     val raw_axms' = map (apfst (Sign.full_name sign)) raw_axms;
     val axioms =
       map (apsnd (Term.compress_term o Logic.varify) o prep_axm sign) raw_axms';
-    val sign' = Sign.add_space (thmK, map fst axioms) sign;
+    val sign' = Sign.add_space (axiomK, map fst axioms) sign;
   in
     ext_thy thy sign' axioms []
   end;
@@ -266,7 +260,7 @@ fun ancestry_of thy =
   thy :: List.concat (map ancestry_of (parents_of thy));
 
 val all_axioms_of =
-  List.concat o map (Symtab.dest o #new_axioms o rep_theory) o ancestry_of;
+  List.concat o map (Symtab.dest o #axioms o rep_theory) o ancestry_of;
 
 
 (* clash_types, clash_consts *)
@@ -377,7 +371,7 @@ val add_defs = ext_defns read_axm;
 
 (** additional theory data **)
 
-val init_data = ext_sg Sign.init_data;
+val init_data = curry (ext_sg Sign.init_data);
 val get_data = Sign.get_data o sign_of;
 val put_data = ext_sg Sign.put_data;
 
@@ -387,32 +381,27 @@ val put_data = ext_sg Sign.put_data;
 
 (*merge list of theories from left to right, preparing extend*)
 fun prep_ext_merge thys =
-  let
-    fun is_union thy = forall (fn t => subthy (t, thy)) thys;
-    val is_draft = Sign.is_draft o sign_of;
-    val begin_ext = Sign.add_path "/" o Sign.prep_ext;
+  if null thys then
+    raise THEORY ("Merge: no parent theories", [])
+  else if exists (Sign.is_draft o sign_of) thys then
+    raise THEORY ("Attempt to merge draft theories", thys)
+  else
+    let
+      fun add_sign (sg, Theory {sign, ...}) =
+        Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
+      val sign' =
+        foldl add_sign (sign_of (hd thys), tl thys)
+        |> Sign.prep_ext
+        |> Sign.add_path "/";
 
-    fun add_sign (sg, Theory {sign, ...}) =
-      Sign.merge (sg, sign) handle TERM (msg, _) => error msg;
-
-    fun oracles_of (Theory {oracles, ...}) = Symtab.dest oracles;
-    fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
-  in
-    if exists is_draft thys then
-      raise THEORY ("Attempt to merge draft theories", thys)
-    else
-      (case find_first is_union thys of
-        Some (Theory {sign, oracles, new_axioms = _, parents = _}) =>
-          make_thy (begin_ext sign) Symtab.null oracles thys
-      | None =>
-          make_thy
-            (begin_ext (foldl add_sign (Sign.proto_pure, thys)))
-            Symtab.null
-            (Symtab.make (gen_distinct eq_ora (flat (map oracles_of thys)))
-              handle Symtab.DUPS names => err_dup_oras names)
-            thys)
-  end;
-
+      fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
+      val oracles' =
+        Symtab.make (gen_distinct eq_ora
+          (flat (map (Symtab.dest o #oracles o rep_theory) thys)))
+        handle Symtab.DUPS names => err_dup_oras names;
+    in
+      make_thy sign' Symtab.null oracles' thys
+    end;
 
 fun merge_theories name (thy1, thy2) =
   prep_ext_merge [thy1, thy2]
