@@ -29,13 +29,9 @@ sig
   val global_typ: theory * T list -> typ * (theory * T list)
   val global_term: theory * T list -> term * (theory * T list)
   val global_prop: theory * T list -> term * (theory * T list)
-  val global_term_pat: theory * T list -> term * (theory * T list)
-  val global_prop_pat: theory * T list -> term * (theory * T list)
   val local_typ: Proof.context * T list -> typ * (Proof.context * T list)
   val local_term: Proof.context * T list -> term * (Proof.context * T list)
   val local_prop: Proof.context * T list -> term * (Proof.context * T list)
-  val local_term_pat: Proof.context * T list -> term * (Proof.context * T list)
-  val local_prop_pat: Proof.context * T list -> term * (Proof.context * T list)
   val bang_facts: Proof.context * T list -> thm list * (Proof.context * T list)
   type src
   val src: (string * T list) * Position.T -> src
@@ -131,14 +127,10 @@ fun gen_item read = Scan.depend (fn st => name >> (pair st o read st));
 val global_typ = gen_item (ProofContext.read_typ o ProofContext.init);
 val global_term = gen_item (ProofContext.read_term o ProofContext.init);
 val global_prop = gen_item (ProofContext.read_prop o ProofContext.init);
-val global_term_pat = gen_item (ProofContext.read_term_pat o ProofContext.init);
-val global_prop_pat = gen_item (ProofContext.read_prop_pat o ProofContext.init);
 
 val local_typ = gen_item ProofContext.read_typ;
 val local_term = gen_item ProofContext.read_term;
 val local_prop = gen_item ProofContext.read_prop;
-val local_term_pat = gen_item ProofContext.read_term_pat;
-val local_prop_pat = gen_item ProofContext.read_prop_pat;
 
 
 (* bang facts *)
