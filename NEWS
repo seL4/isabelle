@@ -2,17 +2,20 @@
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
-New in Isabelle94-8 (really-soon-now 1997 FIXME)
+New in Isabelle94-8 (April 1997)
 ------------------------------------------------
 
 * added token_translation interface (may translate name tokens in
 arbitrary ways, dependent on their type (free, bound, tfree, ...));
 
+* token translations for modes "xterm" and "xterm_color" that display
+names in bold, underline etc. or colors;
+
 * HOLCF changes: derived all rules and arities 
   + axiomatic type classes instead of classes 
   + typedef instead of faking type definitions
   + eliminated the initernal constants less_fun, less_cfun, UU_fun, UU_cfun etc.
-  + new axclasses cpo,chfin,flat with flat<chfin<pcpo<cpo<po
+  + new axclasses cpo, chfin, flat with flat < chfin < pcpo < cpo < po
   + eliminated the types void, one, tr
   + use unit lift and bool lift (with translations) instead of one and tr
   + eliminated blift from Lift3.thy (use Def instead of blift)
@@ -34,7 +37,7 @@ arbitrary ways, dependent on their type (free, bound, tfree, ...));
   Now, the simplification is safe (therefore moved to safe_step_tac) and thus
   more complete, as multiple instantiation of unknowns (with slow_tac) possible
   COULD MAKE EXISTING PROOFS FAIL; in case of problems with unstable old proofs:
-                                   use unsafe_addss and unsafe_auto_tac
+  use unsafe_addss and unsafe_auto_tac
 
 * HOL: primrec now also works with type nat;
 
