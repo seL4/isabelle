@@ -57,6 +57,7 @@ fun ball_tac i = etac ballE i THEN contr_tac (i+1);
 
 AddSIs [ballI];
 AddEs  [ballE];
+AddXDs [bspec];
 (* gives better instantiation for bound: *)
 claset_ref() := claset() addWrapper ("bspec", fn tac2 =>
 			 (dtac bspec THEN' atac) APPEND' tac2);
