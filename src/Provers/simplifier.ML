@@ -2,8 +2,8 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Generic simplifier, suitable for most logics.  See also Pure/thm.ML
-for the actual meta level rewriting engine.
+Generic simplifier, suitable for most logics.  See Pure/thm.ML for the
+actual meta-level rewriting engine.
 *)
 
 infix 4
@@ -11,8 +11,7 @@ infix 4
   addSolver addsimps delsimps addeqcongs deleqcongs
   setmksimps setmkeqTrue setmksym settermless addsimprocs delsimprocs;
 
-
-signature SIMPLIFIER =
+signature BASIC_SIMPLIFIER =
 sig
   type simproc
   val mk_simproc: string -> cterm list
@@ -47,9 +46,6 @@ sig
   val delsimprocs:  simpset * simproc list -> simpset
   val merge_ss:     simpset * simpset -> simpset
   val prems_of_ss:  simpset -> thm list
-
-  val simpset_thy_data: string * (object * (object -> object) *
-    (object * object -> object) * (Sign.sg -> object -> unit))
   val simpset_ref_of_sg: Sign.sg -> simpset ref
   val simpset_ref_of: theory -> simpset ref
   val simpset_of_sg: Sign.sg -> simpset
@@ -62,7 +58,6 @@ sig
   val Delsimps: thm list -> unit
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
-
   val               simp_tac: simpset -> int -> tactic
   val           asm_simp_tac: simpset -> int -> tactic
   val          full_simp_tac: simpset -> int -> tactic
@@ -80,6 +75,16 @@ sig
   val asm_full_simplify: simpset -> thm -> thm
 end;
 
+signature SIMPLIFIER =
+sig
+  include BASIC_SIMPLIFIER
+  val setup: theory -> theory
+  val get_local_simpset: local_theory -> simpset
+  val put_local_simpset: simpset -> local_theory -> local_theory
+  val simp_add: tag
+  val simp_del: tag
+  val simp_ignore: tag
+end;
 
 structure Simplifier: SIMPLIFIER =
 struct
@@ -234,48 +239,48 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
       subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
 
-(* merge simpsets *)	(*NOTE: ignores tactics of 2nd simpset*)
+(* merge simpsets *)	(*NOTE: ignores tactics of 2nd simpset (except loopers)*)
 
 fun merge_ss
-   (Simpset {mss = mss1, loop_tacs = loop_tacs1,
-             subgoal_tac, finish_tac, unsafe_finish_tac},
+   (Simpset {mss = mss1, loop_tacs = loop_tacs1, subgoal_tac, finish_tac, unsafe_finish_tac},
     Simpset {mss = mss2, loop_tacs = loop_tacs2, ...}) =
   make_ss (Thm.merge_mss (mss1, mss2), subgoal_tac,
-           merge_alists loop_tacs1 loop_tacs2,
-           finish_tac, unsafe_finish_tac);
+    merge_alists loop_tacs1 loop_tacs2, finish_tac, unsafe_finish_tac);
 
 
 
-(** simpset theory data **)
-
-(* data kind simpset *)
+(** simpset data **)
 
 val simpsetK = "Provers/simpset";
-exception SimpsetData of simpset ref;
+
+
+(* global simpset ref *)
+
+exception SimpsetGlobal of simpset ref;
 
 local
-  val empty = SimpsetData (ref empty_ss);
+  val empty = SimpsetGlobal (ref empty_ss);
 
   (*create new reference*)
-  fun prep_ext (SimpsetData (ref ss)) = SimpsetData (ref ss);
+  fun prep_ext (SimpsetGlobal (ref ss)) = SimpsetGlobal (ref ss);
 
-  fun merge (SimpsetData (ref ss1), SimpsetData (ref ss2)) =
-    SimpsetData (ref (merge_ss (ss1, ss2)));
+  fun merge (SimpsetGlobal (ref ss1), SimpsetGlobal (ref ss2)) =
+    SimpsetGlobal (ref (merge_ss (ss1, ss2)));
 
-  fun print (_: Sign.sg) (SimpsetData (ref ss)) = print_ss ss;
+  fun print _ (SimpsetGlobal (ref ss)) = print_ss ss;
 in
-  val simpset_thy_data = (simpsetK, (empty, prep_ext, merge, print));
+  val setup_thy_data = Theory.init_data [(simpsetK, (empty, prep_ext, merge, print))];
 end;
 
 
-(* access simpset *)
+(* access global simpset *)
 
 fun print_simpset thy = Display.print_data thy simpsetK;
 
 fun simpset_ref_of_sg sg =
   (case Sign.get_data sg simpsetK of
-    SimpsetData r => r
-  | _ => sys_error "simpset_ref_of_sg")
+    SimpsetGlobal r => r
+  | _ => type_error simpsetK);
 
 val simpset_ref_of = simpset_ref_of_sg o sign_of;
 val simpset_of_sg = ! o simpset_ref_of_sg;
@@ -288,7 +293,7 @@ val simpset = simpset_of o Context.get_context;
 val simpset_ref = simpset_ref_of_sg o sign_of o Context.get_context;
 
 
-(* change simpset *)
+(* change global simpset *)
 
 fun change_simpset f x = simpset_ref () := (f (simpset (), x));
 
@@ -296,6 +301,56 @@ val Addsimps = change_simpset (op addsimps);
 val Delsimps = change_simpset (op delsimps);
 val Addsimprocs = change_simpset (op addsimprocs);
 val Delsimprocs = change_simpset (op delsimprocs);
+
+
+(* local simpset *)
+
+exception SimpsetLocal of simpset;
+
+fun get_local_simpset (thy, data) =
+  (case Symtab.lookup (data, simpsetK) of
+    Some (SimpsetLocal ss) => ss
+  | None => simpset_of thy
+  | _ => type_error simpsetK);
+
+fun put_local_simpset ss (thy, data) =
+  (thy, Symtab.update ((simpsetK, SimpsetLocal ss), data));
+
+
+
+(** simplifier attributes **)
+
+(* tags *)
+
+val simpA = "simp";
+val simp_tag = (simpA, []);
+val simp_add = (simpA, ["add"]);
+val simp_del = (simpA, ["del"]);
+val simp_ignore = (simpA, ["ignore"]);
+
+
+(* attribute *)
+
+fun simp_attr change args (x, tth) =
+  (case args of
+    [] => change (op addsimps) (x, tth)
+  | ["add"] => change (op addsimps) (x, tth)
+  | ["del"] => change (op delsimps) (x, tth)
+  | ["ignore"] => (x, tth)
+  | _ => Attribute.fail simpA ("bad argument(s) " ^ commas_quote args));
+
+fun change_global_ss f (thy, tth) =
+  let val r = simpset_ref_of thy in
+    r := f (! r, [Attribute.thm_of tth]);
+    (thy, tth)
+  end;
+
+fun change_local_ss f (lthy, tth) =
+  let val ss = f (get_local_simpset lthy, [Attribute.thm_of tth])
+  in (put_local_simpset ss lthy, tth) end;
+
+val setup_attrs =
+  Attribute.add_attrs [(simpA, (simp_attr change_global_ss, simp_attr change_local_ss))];
 
 
 
@@ -325,7 +380,6 @@ fun basic_gen_simp_tac mode =
 fun gen_simp_tac mode (ss as Simpset {unsafe_finish_tac, ...}) =
   basic_gen_simp_tac mode (ss setSSolver unsafe_finish_tac);
 
-
 val          simp_tac = gen_simp_tac (false, false, false);
 val      asm_simp_tac = gen_simp_tac (false, true, false);
 val     full_simp_tac = gen_simp_tac (true,  false, false);
@@ -335,13 +389,13 @@ val asm_full_simp_tac = gen_simp_tac (true,  true, true);
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
 val safe_asm_full_simp_tac = basic_gen_simp_tac (true, true, false);
 
-(** The abstraction over the proof state delays the dereferencing **)
-
+(*the abstraction over the proof state delays the dereferencing*)
 fun          Simp_tac i st =          simp_tac (simpset ()) i st;
 fun      Asm_simp_tac i st =      asm_simp_tac (simpset ()) i st;
 fun     Full_simp_tac i st =     full_simp_tac (simpset ()) i st;
 fun   Asm_lr_simp_tac i st =   asm_lr_simp_tac (simpset ()) i st;
 fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
+
 
 
 (** simplification meta rules **)
@@ -360,4 +414,14 @@ val     full_simplify = simp (true, false, false);
 val asm_full_simplify = simp (true, true, false);
 
 
+
+(** theory setup **)
+
+val setup = Theory.setup [setup_thy_data, setup_attrs];
+
+
 end;
+
+
+structure BasicSimplifier: BASIC_SIMPLIFIER = Simplifier;
+open BasicSimplifier;
