@@ -1,7 +1,7 @@
-(*Title:HOL/List.thy
-ID: $Id$
-Author: Tobias Nipkow
-Copyright 1994 TU Muenchen
+(* Title:HOL/List.thy
+   ID: $Id$
+   Author: Tobias Nipkow
+   Copyright 1994 TU Muenchen
 *)
 
 header {* The datatype of finite lists *}
@@ -171,7 +171,7 @@ primrec
 "remdups [] = []"
 "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
 primrec
-replicate_0: "replicate0x = []"
+replicate_0: "replicate 0 x = []"
 replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 defs
  list_all2_def:
