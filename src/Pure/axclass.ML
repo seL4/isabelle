@@ -30,10 +30,10 @@ sig
     -> tactic option -> thm
   val goal_subclass: theory -> xclass * xclass -> thm list
   val goal_arity: theory -> xstring * xsort list * xclass -> thm list
-  val instance_subclass_proof: xclass * xclass -> theory -> ProofHistory.T
-  val instance_subclass_proof_i: class * class -> theory -> ProofHistory.T
-  val instance_arity_proof: xstring * xsort list * xclass -> theory -> ProofHistory.T
-  val instance_arity_proof_i: string * sort list * class -> theory -> ProofHistory.T
+  val instance_subclass_proof: xclass * xclass -> bool -> theory -> ProofHistory.T
+  val instance_subclass_proof_i: class * class -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof: xstring * xsort list * xclass -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof_i: string * sort list * class -> bool -> theory -> ProofHistory.T
   val setup: (theory -> theory) list
 end;
 
@@ -337,7 +337,9 @@ fun axclass_tac thms =
 fun prove mk_prop str_of thy sig_prop thms usr_tac =
   let
     val sign = Theory.sign_of thy;
-    val goal = Thm.cterm_of sign (mk_prop sig_prop);
+    val goal = Thm.cterm_of sign (mk_prop sig_prop)
+      handle TERM (msg, _) => error msg
+        | TYPE (msg, _, _) => error msg;
     val tac = axclass_tac thms THEN (if_none usr_tac all_tac);
   in
     prove_goalw_cterm [] goal (K [tac])
@@ -401,10 +403,10 @@ val goal_arity = mk_goal (mk_arity oo intrn_arity Sign.intern_class);
 
 fun inst_attribute add_thms (thy, thm) = (add_thms [thm] thy, thm);
 
-fun inst_proof mk_prop add_thms sig_prop thy =
+fun inst_proof mk_prop add_thms sig_prop int thy =
   thy
   |> IsarThy.theorem_i "" [inst_attribute add_thms]
-    (mk_prop (Theory.sign_of thy) sig_prop, []);
+    (mk_prop (Theory.sign_of thy) sig_prop, []) int;
 
 val instance_subclass_proof = inst_proof (mk_classrel oo intrn_classrel) add_classrel_thms;
 val instance_subclass_proof_i = inst_proof (K mk_classrel) add_classrel_thms;
