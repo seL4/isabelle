@@ -163,7 +163,7 @@ by (typ.induct_tac "t" 1);
 by( fast_tac (HOL_cs addIs [less_le_trans] addss !simpset) 1);
 (* case Fun t1 t2 *)
 by (Asm_simp_tac 1);
-bind_thm ("new_tv_le",result() RS mp RS mp);
+qed_spec_mp "new_tv_le";
 Addsimps [lessI RS less_imp_le RS new_tv_le];
 
 goal thy 
@@ -173,7 +173,7 @@ by( list.induct_tac "ts" 1);
 by(Simp_tac 1);
 (* case a#al *)
 by (fast_tac (HOL_cs addIs [new_tv_le] addss !simpset) 1);
-bind_thm ("new_tv_list_le",result() RS mp RS mp);
+qed_spec_mp "new_tv_list_le";
 Addsimps [lessI RS less_imp_le RS new_tv_list_le];
 
 goal thy
@@ -198,7 +198,7 @@ goal thy
   "new_tv n s --> new_tv n (t::typ) --> new_tv n ($ s t)";
 by (typ.induct_tac "t" 1);
 by (ALLGOALS(fast_tac (HOL_cs addss (!simpset addsimps [new_tv_subst]))));
-bind_thm ("new_tv_subst_te",result() RS mp RS mp);
+qed_spec_mp "new_tv_subst_te";
 Addsimps [new_tv_subst_te];
 
 goal thy
@@ -206,7 +206,7 @@ goal thy
 by( simp_tac (!simpset addsimps [new_tv_list]) 1);
 by (list.induct_tac "ts" 1);
 by (ALLGOALS(fast_tac (HOL_cs addss (!simpset addsimps [new_tv_subst]))));
-bind_thm ("new_tv_subst_tel",result() RS mp RS mp);
+qed_spec_mp "new_tv_subst_tel";
 Addsimps [new_tv_subst_tel];
 
 (* auxilliary lemma *)
@@ -247,7 +247,7 @@ by (list.induct_tac "ts" 1);
 by (Simp_tac 1);
 (* case x#xl *)
 by (fast_tac (set_cs addss (!simpset setloop (split_tac [expand_if]))) 1);
-bind_thm ("ftv_mem_sub_ftv_list",result() RS mp);
+qed_spec_mp "ftv_mem_sub_ftv_list";
 Addsimps [ftv_mem_sub_ftv_list];
 
 
@@ -261,7 +261,7 @@ by (typ.induct_tac "t" 1);
 by (fast_tac (HOL_cs addss !simpset) 1);
 (* case Fun t1 t2 *)
 by (fast_tac (HOL_cs addss !simpset) 1);
-bind_thm ("eq_subst_te_eq_free",result() RS mp RS mp);
+qed_spec_mp "eq_subst_te_eq_free";
 
 goal thy
   "(!n. n:(free_tv t) --> s1 n = s2 n) --> $ s1 (t::typ) = $ s2 t";
@@ -270,7 +270,7 @@ by (typ.induct_tac "t" 1);
 by (fast_tac (HOL_cs addss !simpset) 1);
 (* case Fun t1 t2 *)
 by (fast_tac (HOL_cs addss !simpset) 1);
-bind_thm ("eq_free_eq_subst_te",result() RS mp);
+qed_spec_mp "eq_free_eq_subst_te";
 
 goal thy
   "$s1 (ts::typ list) = $s2 ts --> n:(free_tv ts) --> s1 n = s2 n";
@@ -279,7 +279,7 @@ by (list.induct_tac "ts" 1);
 by (fast_tac (HOL_cs addss !simpset) 1);
 (* case x#xl *)
 by (fast_tac (HOL_cs addIs [eq_subst_te_eq_free] addss (!simpset)) 1);
-bind_thm ("eq_subst_tel_eq_free",result() RS mp RS mp);
+qed_spec_mp "eq_subst_tel_eq_free";
 
 goal thy
   "(!n. n:(free_tv ts) --> s1 n = s2 n) --> $s1 (ts::typ list) = $s2 ts";
@@ -288,7 +288,7 @@ by (list.induct_tac "ts" 1);
 by (fast_tac (HOL_cs addss !simpset) 1);
 (* case x#xl *)
 by (fast_tac (HOL_cs addIs [eq_free_eq_subst_te] addss (!simpset)) 1);
-bind_thm ("eq_free_eq_subst_tel",result() RS mp);
+qed_spec_mp "eq_free_eq_subst_tel";
 
 (* some useful theorems *)
 goalw thy [free_tv_subst] 
@@ -333,8 +333,11 @@ by( cut_facts_tac [free_tv_app_subst_te] 1);
 by( fast_tac (set_cs addss !simpset) 1);
 qed "free_tv_app_subst_tel";
 
-goalw thy [free_tv_subst,dom_def] 
-     "free_tv (%u::nat. $ s1 ($ s2 (s3 u)) :: typ) <=   \ 
-\     free_tv s1 Un free_tv s2 Un free_tv s3";
-by( fast_tac (set_cs addSDs [free_tv_app_subst_te RS subsetD,free_tv_subst_var RS subsetD] addss (!simpset addsimps [cod_def,dom_def])) 1);
-qed "free_tv_comp_subst";    
+goalw thy [free_tv_subst,dom_def]
+     "free_tv (%u::nat. $ s1 (s2 u) :: typ) <=   \
+\     free_tv s1 Un free_tv s2";
+by( fast_tac (set_cs addSDs [free_tv_app_subst_te RS
+subsetD,free_tv_subst_var RS subsetD] addss (
+!simpset addsimps [cod_def,dom_def])) 1);
+qed "free_tv_comp_subst";
+
