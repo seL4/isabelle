@@ -140,7 +140,7 @@ goal thy "(UN A. parts (sees lost A (Says B C Y # evs))) = \
 by (Step_tac 1);
 by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
 by (ALLGOALS
-    (fast_tac (!claset unsafe_addss (!simpset addsimps [parts_Un, sees_Cons] 
+    (fast_tac (!claset addss (!simpset addsimps [parts_Un, sees_Cons] 
 				            setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 
@@ -157,7 +157,7 @@ goal thy
  "!!evs. [| Says A B (Crypt (shrK C) X) : set_of_list evs;  C : lost |] \
 \        ==> X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      unsafe_addss (!simpset)) 1);
+                      addss (!simpset)) 1);
 qed "Says_Crypt_lost";
 
 goal thy  
@@ -165,7 +165,7 @@ goal thy
 \           X ~: analz (sees lost Spy evs) |]                     \
 \        ==> C ~: lost";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      unsafe_addss (!simpset)) 1);
+                      addss (!simpset)) 1);
 qed "Says_Crypt_not_lost";
 
 (*NEEDED??*)

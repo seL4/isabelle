@@ -121,7 +121,7 @@ by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
                addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               unsafe_addss (!simpset)) 1);
+               addss (!simpset)) 1);
 (*OR1-3*)
 by (ALLGOALS Blast_tac);
 qed_spec_mp "new_keys_not_used";

@@ -11,8 +11,6 @@ Results from the book "Set Theory: an Introduction to Independence Proofs"
 
 open Order;
 
-val op addss = op unsafe_addss;
-
 (** Basic properties of the definitions **)
 
 (*needed?*)

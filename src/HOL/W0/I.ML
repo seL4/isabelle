@@ -8,8 +8,6 @@ Equivalence of W and I.
 
 open I;
 
-val op addss = op unsafe_addss;
-
 goal thy
   "! a m s s' t n.  \
 \    (new_tv m a & new_tv m s) --> I e a m s = Ok(s',t,n) -->   \

@@ -208,13 +208,13 @@ goal thy "!!evs. evs : recur lost ==>          \
 by parts_induct_tac;
 (*RA3*)
 by (best_tac (!claset addDs  [Key_in_keysFor_parts]
-	      unsafe_addss  (!simpset addsimps [parts_insert_sees])) 2);
+	      addss  (!simpset addsimps [parts_insert_sees])) 2);
 (*Fake*)
 by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
                addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               unsafe_addss (!simpset)) 1);
+               addss (!simpset)) 1);
 qed_spec_mp "new_keys_not_used";
 
 

@@ -54,7 +54,6 @@ val Ap_contractE = contract.mk_cases comb.simps "x#y -1-> z";
 AddSIs [contract.K, contract.S];
 AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
-Unsafe_Addss  (!simpset);
 
 goalw Comb.thy [I_def] "!!z. I -1-> z ==> P";
 by (Blast_tac 1);
@@ -105,7 +104,6 @@ val Ap_parcontractE = parcontract.mk_cases comb.simps "x#y =1=> z";
 
 AddIs  parcontract.intrs;
 AddSEs [K_parcontractE, S_parcontractE,Ap_parcontractE];
-Unsafe_Addss  (!simpset);
 
 (*** Basic properties of parallel contraction ***)
 

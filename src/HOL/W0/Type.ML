@@ -259,7 +259,7 @@ by (list.induct_tac "ts" 1);
 (* case [] *)
 by (Simp_tac 1);
 (* case x#xl *)
-by (fast_tac (set_cs unsafe_addss(!simpset setloop (split_tac [expand_if]))) 1);
+by (fast_tac (set_cs addss(!simpset setloop (split_tac [expand_if]))) 1);
 qed_spec_mp "ftv_mem_sub_ftv_list";
 Addsimps [ftv_mem_sub_ftv_list];
 

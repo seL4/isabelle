@@ -120,7 +120,7 @@ goal thy "(UN A. parts (sees lost A (Says B C Y # evs))) = \
 by (Step_tac 1);
 by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
 by (ALLGOALS
-    (fast_tac (!claset unsafe_addss (!simpset addsimps [parts_Un, sees_Cons] 
+    (fast_tac (!claset addss (!simpset addsimps [parts_Un, sees_Cons] 
 				            setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 

@@ -493,7 +493,7 @@ by (eres_inst_tac [("x","(FVar n)#A")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
 by (best_tac (HOL_cs addSDs [mk_scheme_injective] 
-                  unsafe_addss (!simpset addcongs [conj_cong] 
+                  addss (!simpset addcongs [conj_cong] 
                                 setloop (split_tac [expand_option_bind]))) 1);
 (** LEVEL 19 **)
 
