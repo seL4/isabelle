@@ -17,10 +17,12 @@ val [prem] = Goalw [mono_def]
     "[| !!A B. A <= B ==> f(A) <= f(B) |] ==> mono(f)";
 by (REPEAT (ares_tac [allI, impI, prem] 1));
 qed "monoI";
+AddXIs [monoI];
 
 Goalw [mono_def] "[| mono(f);  A <= B |] ==> f(A) <= f(B)";
 by (Fast_tac 1);
 qed "monoD";
+AddXDs [monoD];
 
 
 section "Orders";
