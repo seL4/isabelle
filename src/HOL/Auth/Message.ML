@@ -7,6 +7,25 @@ Datatypes of agents and messages;
 Inductive relations "parts", "analz" and "synth"
 *)
 
+
+(*Eliminates a commonly-occurring expression*)
+goal HOL.thy "~ (ALL x. x~=y)";
+by (Blast_tac 1);
+Addsimps [result()];
+
+
+(*Classical simplification*)
+val rev_conjI = conjI RS (conj_commute RS iffD1) |> standard;
+val acontr_tac = assume_tac ORELSE' contr_tac;
+fun impCE_tac i = eresolve_tac [impCE] i  THEN  
+                (acontr_tac i ORELSE acontr_tac (i+1));
+
+val clarify_tac =
+    REPEAT_FIRST (ares_tac [impI, notI, allI] ORELSE'
+		  eresolve_tac [exE, conjE, conjI, rev_conjI] ORELSE'
+		  contr_tac ORELSE' impCE_tac ORELSE' hyp_subst_tac);
+
+
 open Message;
 
 AddIffs atomic.inject;
@@ -877,6 +896,10 @@ val Fake_insert_tac =
                   impOfSubs Fake_parts_insert] THEN'
     eresolve_tac [asm_rl, synth.Inj];
 
+fun Fake_insert_simp_tac i = 
+    REPEAT (Fake_insert_tac i) THEN Asm_full_simp_tac i;
+
+
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
   but this application is no longer necessary if analz_insert_eq is used.
   Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
@@ -892,7 +915,7 @@ fun spy_analz_tac i =
        simp_tac (!simpset setloop split_tac [expand_if]) 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE 
-         (REPEAT (Fake_insert_tac 1) THEN Asm_full_simp_tac 1
+         (Fake_insert_simp_tac 1
           THEN
           IF_UNSOLVED (Blast.depth_tac
 		       (!claset addIs [analz_insertI,
