@@ -35,7 +35,6 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML		\
   $(SRC)/Provers/Arith/assoc_fold.ML		\
   $(SRC)/Provers/Arith/combine_coeff.ML		\
-  $(SRC)/Provers/Arith/inverse_fold.ML		\
   $(SRC)/Provers/Arith/fold_Suc.ML		\
   $(SRC)/Provers/Arith/cancel_numerals.ML		\
   $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
@@ -53,7 +52,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy Integ/IntArith.ML \
   Integ/IntArith.thy Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML \
   Integ/Int.thy Integ/IntDiv.ML Integ/IntDiv.thy Integ/NatBin.ML \
-  Integ/NatBin.thy Lfp.ML Lfp.thy List.ML List.thy Main.thy Map.ML \
+  Integ/NatBin.thy Integ/NatSimprocs.ML \
+  Lfp.ML Lfp.thy List.ML List.thy Main.thy Map.ML \
   Map.thy Nat.ML Nat.thy NatDef.ML NatDef.thy Numeral.thy Option.ML \
   Option.thy Ord.ML Ord.thy Power.ML Power.thy PreList.thy Prod.ML \
   Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML RelPow.thy \
