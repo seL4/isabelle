@@ -46,19 +46,16 @@ exception Pattern;
 
 val trace_unify_fail = ref false;
 
-(* Only for communication between unification and error message printing *)
-val sgr = ref Sign.pre_pure
-
-fun string_of_term env binders t = Sign.string_of_term (!sgr)
+fun string_of_term sg env binders t = Sign.string_of_term sg
   (Envir.norm_term env (subst_bounds(map Free binders,t)));
 
 fun bname binders i = fst(nth_elem(i,binders));
 fun bnames binders is = space_implode " " (map (bname binders) is);
 
-fun typ_clash(tye,T,U) =
+fun typ_clash sg (tye,T,U) =
   if !trace_unify_fail
-  then let val t = Sign.string_of_typ (!sgr) (Envir.norm_type tye T)
-           and u = Sign.string_of_typ (!sgr) (Envir.norm_type tye U)
+  then let val t = Sign.string_of_typ sg (Envir.norm_type tye T)
+           and u = Sign.string_of_typ sg (Envir.norm_type tye U)
        in tracing("The following types do not unify:\n" ^ t ^ "\n" ^ u) end
   else ()
 
@@ -76,11 +73,11 @@ fun clashB binders i s =
   if !trace_unify_fail then clash (boundVar binders i) s
   else ()
 
-fun proj_fail(env,binders,F,is,t) =
+fun proj_fail sg (env,binders,F,is,t) =
   if !trace_unify_fail
   then let val f = Syntax.string_of_vname F
            val xs = bnames binders is
-           val u = string_of_term env binders t
+           val u = string_of_term sg env binders t
            val ys = bnames binders (loose_bnos t \\ is)
        in tracing("Cannot unify variable " ^ f ^
                " (depending on bound variables " ^ xs ^ ")\nwith term " ^ u ^
@@ -88,10 +85,10 @@ fun proj_fail(env,binders,F,is,t) =
        end
   else ()
 
-fun ocheck_fail(F,t,binders,env) =
+fun ocheck_fail sg (F,t,binders,env) =
   if !trace_unify_fail
   then let val f = Syntax.string_of_vname F
-           val u = string_of_term env binders t
+           val u = string_of_term sg env binders t
        in tracing("Variable " ^ f ^ " occurs in term\n" ^ u ^
                   "\nCannot unify!\n")
        end
@@ -229,31 +226,29 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
                  end;
   in if xless(G,F) then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
-val tsgr = ref(Type.empty_tsig);
-
-fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
+fun unify_types sg (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Type.unify (!tsgr) (iTs, maxidx) (U, T)
+  else let val (iTs',maxidx') = Type.unify (Sign.tsig_of sg) (iTs, maxidx) (U, T)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
-       handle Type.TUNIFY => (typ_clash(iTs,T,U); raise Unif);
+       handle Type.TUNIFY => (typ_clash sg (iTs,T,U); raise Unif);
 
-fun unif binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env t) of
+fun unif sg binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>
          let val name = if ns = "" then nt else ns
-         in unif ((name,Ts)::binders) (env,(ts,tt)) end
-    | (Abs(ns,Ts,ts),t) => unif ((ns,Ts)::binders) (env,(ts,(incr t)$Bound(0)))
-    | (t,Abs(nt,Tt,tt)) => unif ((nt,Tt)::binders) (env,((incr t)$Bound(0),tt))
-    | p => cases(binders,env,p)
+         in unif sg ((name,Ts)::binders) (env,(ts,tt)) end
+    | (Abs(ns,Ts,ts),t) => unif sg ((ns,Ts)::binders) (env,(ts,(incr t)$Bound(0)))
+    | (t,Abs(nt,Tt,tt)) => unif sg ((nt,Tt)::binders) (env,((incr t)$Bound(0),tt))
+    | p => cases sg (binders,env,p)
 
-and cases(binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
+and cases sg (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
        ((Var(F,Fty),ss),(Var(G,Gty),ts)) =>
          if F = G then flexflex1(env,binders,F,Fty,ints_of' env ss,ints_of' env ts)
                   else flexflex2(env,binders,F,Fty,ints_of' env ss,G,Gty,ints_of' env ts)
-      | ((Var(F,_),ss),_)             => flexrigid(env,binders,F,ints_of' env ss,t)
-      | (_,(Var(F,_),ts))             => flexrigid(env,binders,F,ints_of' env ts,s)
-      | ((Const c,ss),(Const d,ts))   => rigidrigid(env,binders,c,d,ss,ts)
-      | ((Free(f),ss),(Free(g),ts))   => rigidrigid(env,binders,f,g,ss,ts)
-      | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB (env,binders,i,j,ss,ts)
+      | ((Var(F,_),ss),_)             => flexrigid sg (env,binders,F,ints_of' env ss,t)
+      | (_,(Var(F,_),ts))             => flexrigid sg (env,binders,F,ints_of' env ts,s)
+      | ((Const c,ss),(Const d,ts))   => rigidrigid sg (env,binders,c,d,ss,ts)
+      | ((Free(f),ss),(Free(g),ts))   => rigidrigid sg (env,binders,f,g,ss,ts)
+      | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB sg (env,binders,i,j,ss,ts)
       | ((Abs(_),_),_)                => raise Pattern
       | (_,(Abs(_),_))                => raise Pattern
       | ((Const(c,_),_),(Free(f,_),_)) => (clash c f; raise Unif)
@@ -264,22 +259,21 @@ and cases(binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
       | ((Bound i,_),(Free(f,_),_))    => (clashB binders i f; raise Unif)
 
 
-and rigidrigid (env,binders,(a,Ta),(b,Tb),ss,ts) =
+and rigidrigid sg (env,binders,(a,Ta),(b,Tb),ss,ts) =
       if a<>b then (clash a b; raise Unif)
-      else foldl (unif binders) (unify_types(Ta,Tb,env), ss~~ts)
+      else foldl (unif sg binders) (unify_types sg (Ta,Tb,env), ss~~ts)
 
-and rigidrigidB (env,binders,i,j,ss,ts) =
+and rigidrigidB sg (env,binders,i,j,ss,ts) =
      if i <> j then (clashBB binders i j; raise Unif)
-     else foldl (unif binders) (env ,ss~~ts)
+     else foldl (unif sg binders) (env ,ss~~ts)
 
-and flexrigid (params as (env,binders,F,is,t)) =
-      if occurs(F,t,env) then (ocheck_fail(F,t,binders,env); raise Unif)
+and flexrigid sg (params as (env,binders,F,is,t)) =
+      if occurs(F,t,env) then (ocheck_fail sg (F,t,binders,env); raise Unif)
       else (let val (u,env') = proj(t,env,binders,is)
             in Envir.update((F,mkabs(binders,is,u)),env') end
-            handle Unif => (proj_fail params; raise Unif));
+            handle Unif => (proj_fail sg params; raise Unif));
 
-fun unify(sg,env,tus) = (sgr := sg; tsgr := Sign.tsig_of sg;
-                         foldl (unif []) (env,tus));
+fun unify(sg,env,tus) = foldl (unif sg []) (env,tus);
 
 
 (*Eta-contract a term (fully)*)
