@@ -1,3 +1,9 @@
+(*  Title: 	ZF/AC/AC16_WO4.ML
+    ID:         $Id$
+    Author: 	Krzysztof Gr`abczewski
+
+  The proof of AC16(n, k) ==> WO4(n-k)
+*)
 
 open AC16_WO4;
 
@@ -447,7 +453,7 @@ val well_ord_subsets_eqpoll_n = result();
 
 goal thy "!!n. n:nat ==> {z:Pow(y). z lepoll succ(n)} =  \
 \	{z:Pow(y). z lepoll n} Un {z:Pow(y). z eqpoll succ(n)}";
-by (fast_tac (ZF_cs addSIs [le_refl, leI,
+by (fast_tac (ZF_cs addIs [le_refl, leI,
 		le_imp_lepoll, equalityI]
 		addSDs [lepoll_succ_disj]
 		addSEs [nat_into_Ord, lepoll_trans, eqpoll_imp_lepoll]) 1);

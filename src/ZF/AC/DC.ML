@@ -192,7 +192,7 @@ by (resolve_tac [lemma3_1 RS lemma3_2 RS ssubst] 1
 by (fast_tac (AC_cs addSEs [nat_succI]) 1);
 by (dresolve_tac [nat_succI RSN (4, lemma2)] 1
 	THEN REPEAT (assume_tac 1));
-by (fast_tac (AC_cs addSEs [image_fun RS sym,
+by (fast_tac (AC_cs addSEs [conjE, image_fun RS sym,
 	nat_into_Ord RSN (2, OrdmemD)]) 1);
 val lemma3 = result();
 
@@ -400,21 +400,16 @@ by (resolve_tac [oallI] 1);
 by (dresolve_tac [ltD] 1);
 by (eresolve_tac [nat_induct] 1);
 by (dresolve_tac [[nat_0I, Ord_nat] MRS ltI RSN (2, ospec)] 1);
-by (REPEAT (eresolve_tac [CollectE, conjE, disjE] 1));
-by (asm_full_simp_tac (AC_ss
-	addsimps [image_0, singleton_fun RS domain_of_fun,
-	[lepoll_refl, succI1] MRS lepoll_1_is_sing]) 1);
-by (asm_full_simp_tac (AC_ss
-	addsimps [image_0, singleton_fun RS domain_of_fun,
-	[lepoll_refl, succI1] MRS lepoll_1_is_sing, singleton_in_funs]) 1);
+by (fast_tac (FOL_cs addss
+	(ZF_ss addsimps [image_0, singleton_fun RS domain_of_fun,
+	[lepoll_refl, succI1] MRS lepoll_1_is_sing, singleton_in_funs])) 1);
 by (dresolve_tac [[nat_succI, Ord_nat] MRS ltI RSN (2, ospec)] 1
 	THEN (assume_tac 1));
 by (REPEAT (eresolve_tac [conjE, CollectE, disjE] 1));
-by (fast_tac (AC_cs addSEs [trans, subst_context]
+by (fast_tac (FOL_cs addSEs [trans, subst_context]
 	addSIs [UN_image_succ_eq_succ] addss AC_ss) 1);
 by (eresolve_tac [conjE] 1);
 by (eresolve_tac [notE] 1);
-by (hyp_subst_tac 1);
 by (asm_full_simp_tac (AC_ss addsimps [UN_image_succ_eq_succ]) 1);
 by (eresolve_tac [conjE] 1);
 by (dresolve_tac [apply_UN_type] 1 THEN REPEAT (assume_tac 1));
@@ -428,7 +423,8 @@ by (fast_tac (FOL_cs
 by (resolve_tac [UN_I] 1);
 by (eresolve_tac [nat_succI] 1);
 by (resolve_tac [CollectI] 1);
-by (fast_tac (AC_cs addSEs [cons_fun_type2]) 1);
+by (eresolve_tac [rangeI RSN (2, subsetD) RSN (2, cons_fun_type2)] 1
+	THEN REPEAT (assume_tac 1));
 by (resolve_tac [ballI] 1);
 by (eresolve_tac [succE] 1);
 by (asm_full_simp_tac (AC_ss addsimps [cons_val_n, cons_val_k]) 1);
@@ -455,8 +451,8 @@ by (asm_full_simp_tac AC_ss 1);
 by (resolve_tac [conjI] 1);
 by (fast_tac (AC_cs
 	addSEs [trans RS domain_eq_imp_fun_type, subst_context]) 1);
-by (fast_tac (AC_cs addSEs [nat_succI, succI2, f_n_pairs_in_R RS bspec,
-	subst_context, trans]) 1);
+by (fast_tac (FOL_cs
+	addSEs [conjE, f_n_pairs_in_R, trans, subst_context]) 1);
 val lemma2 = result();
 
 goal thy "!!n. [| XX = (UN n:nat.  \
@@ -576,8 +572,8 @@ val lam_type_RepFun = result();
 goal thy "!!Z. [| ALL Y:Pow(X). Y lesspoll a --> (EX x:X. <Y, x> : R);  \
 \	b:a; Z:Pow(X); Z lesspoll a |]  \
 \	==> {x:X. <Z,x> : R} ~= 0";
-by (dresolve_tac [bspec] 1 THEN (assume_tac 1));
-by (fast_tac (AC_cs addSIs [not_emptyI]) 1);
+by (fast_tac (FOL_cs addEs [bexE, equals0D]
+	addSDs [bspec] addIs [CollectI]) 1);
 val lemma_ = result();
 
 goal thy "!!K. [| Card(K); well_ord(X,Q);  \

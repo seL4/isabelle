@@ -15,5 +15,4 @@ defs
 
   first_def                "first(u, X, R) 
 			    == u:X & (ALL v:X. v~=u --> <u,v> : R)"
-
 end

@@ -1,3 +1,3 @@
 (*Dummy theory to document dependencies *)
 
-Cardinal_aux = Cardinal + OrderType + CardinalArith + first
+Cardinal_aux = AC_Equiv + first 

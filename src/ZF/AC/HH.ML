@@ -18,13 +18,13 @@ goal thy "HH(f,x,a) =  \
 \	(let z = x - (UN b:a. HH(f,x,b))  \
 \	in  if(f`z:Pow(z)-{0}, f`z, {x}))";
 by (resolve_tac [HH_def RS def_transrec RS trans] 1);
-by (asm_full_simp_tac ZF_ss 1);
+by (simp_tac ZF_ss 1);
 val HH_def_satisfies_eq = result();
 
 goal thy "HH(f,x,a) : Pow(x)-{0} | HH(f,x,a)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (asm_full_simp_tac (ZF_ss addsimps [Let_def, Diff_subset RS PowI]) 1);
-by (split_tac [expand_if] 1);
+by (simp_tac (ZF_ss addsimps [Let_def, Diff_subset RS PowI] 
+                    setloop split_tac [expand_if]) 1);
 by (fast_tac ZF_cs 1);
 val HH_values = result();
 
@@ -78,8 +78,8 @@ by (dresolve_tac [HH_def_satisfies_eq RS subst] 1);
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (asm_full_simp_tac (AC_ss addsimps [Let_def, Diff_subset RS PowI]) 1);
 by (dresolve_tac [expand_if RS iffD1] 1);
-by (split_tac [expand_if] 1);
-by (fast_tac (AC_cs addSEs [mem_irrefl]) 1);
+by (simp_tac (ZF_ss setloop split_tac [expand_if] ) 1);
+by (fast_tac (subset_cs addSEs [mem_irrefl]) 1);
 val HH_subset_x_imp_subset_Diff_UN = result();
 
 goal thy "!!x. [| HH(f,x,v)=HH(f,x,w); HH(f,x,v): Pow(x)-{0}; v:w |] ==> P";
@@ -190,12 +190,12 @@ val f_subsets_imp_UN_HH_eq_x = result();
 
 goal thy "HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j))) | HH(f,x,i)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
-by (asm_full_simp_tac (ZF_ss addsimps [Let_def, Diff_subset RS PowI]) 1);
-by (split_tac [expand_if] 1);
-by (fast_tac ZF_cs 1);
+by (simp_tac (ZF_ss addsimps [Let_def, Diff_subset RS PowI]
+	      setloop split_tac [expand_if]) 1);
 val HH_values2 = result();
 
-goal thy "!!f. HH(f,x,i): Pow(x)-{0} ==> HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j)))";
+goal thy
+     "!!f. HH(f,x,i): Pow(x)-{0} ==> HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j)))";
 by (resolve_tac [HH_values2 RS disjE] 1 THEN (assume_tac 1));
 by (fast_tac (AC_cs addSEs [equalityE, mem_irrefl]
 	addSDs [singleton_subsetD]) 1);

@@ -110,9 +110,9 @@ goal thy "!!A. [| EX f. ALL B:{cons(0, x*nat). x:A}.  \
 \		sets_of_size_between(f`B, 2, succ(n)) &  \
 \		Union(f`B)=B; n:nat |]  \
 \	==> EX f. ALL B:A. f`B ~= 0 & f`B <= B & f`B lepoll n";
-by (fast_tac (empty_cs addSDs [lemma3, bspec, theI]
+by (fast_tac (empty_cs addSDs [lemma3, theI] addDs [bspec]
 		addSEs [exE, conjE]
-		addSIs [exI, ballI, lemma5]) 1);
+		addIs [exI, ballI, lemma5]) 1);
 val ex_fun_AC13_AC15 = result();
 
 (* ********************************************************************** *)
@@ -170,7 +170,7 @@ goalw thy AC_defs "!!n. [| n:nat; 1 le n; AC10(n) |] ==> AC13(n)";
 by (safe_tac ZF_cs);
 by (fast_tac (empty_cs addSEs [allE, cons_times_nat_not_Finite RSN (2, impE),
 				ex_fun_AC13_AC15]) 1);
-val AC10_imp_AC13 = result();
+qed "AC10_AC13";
 
 (* ********************************************************************** *)
 (* The proofs needed in the second case, not in the first		  *)
@@ -246,12 +246,12 @@ val lemma = result();
 
 goalw thy AC_defs "!!Z. AC13(1) ==> AC1";
 by (fast_tac (AC_cs addSEs [lemma]) 1);
-qed "AC13(1)_AC1";
+qed "AC13_AC1";
 
 (* ********************************************************************** *)
 (* AC11 ==> AC14							  *)
 (* ********************************************************************** *)
 
 goalw thy [AC11_def, AC14_def] "!!Z. AC11 ==> AC14";
-by (fast_tac (ZF_cs addSIs [AC10_imp_AC13]) 1);
+by (fast_tac (ZF_cs addSIs [AC10_AC13]) 1);
 qed "AC11_AC14";

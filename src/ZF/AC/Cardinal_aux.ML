@@ -94,14 +94,14 @@ by (fast_tac (AC_cs addSEs [inj_is_fun RS apply_type]) 1);
 by (fast_tac (AC_cs addSEs [left_inverse]) 1);
 val Un_lepoll_Un = result();
 
-goal thy "{x, y} - {y} = {x} - {y}";
+goal ZF.thy "{x, y} - {y} = {x} - {y}";
 by (fast_tac eq_cs 1);
 val double_Diff_sing = result();
 
-goal thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
+goal ZF.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
 by (split_tac [expand_if] 1);
-by (asm_full_simp_tac (AC_ss addsimps [double_Diff_sing, Diff_eq_0_iff]) 1);
-by (fast_tac (AC_cs addSIs [the_equality, equalityI, equals0I]
+by (asm_full_simp_tac (ZF_ss addsimps [double_Diff_sing, Diff_eq_0_iff]) 1);
+by (fast_tac (ZF_cs addSIs [the_equality, equalityI, equals0I]
 		addEs [equalityE] addSEs [singletonE]) 1);
 val paired_bij_lemma = result();
 
@@ -236,8 +236,8 @@ val lepoll_imp_eqpoll_subset = result();
 
 goal thy "!!m n. [| m:nat; n:nat |] ==> m + n eqpoll m #+ n";
 by (resolve_tac [eqpoll_trans] 1);
-by (eresolve_tac [nat_into_Ord RS well_ord_Memrel RS (
-                  nat_into_Ord RS well_ord_Memrel RSN (2,
+by (eresolve_tac [nat_implies_well_ord RS (
+                  nat_implies_well_ord RSN (2,
                   well_ord_radd RS well_ord_cardinal_eqpoll)) RS eqpoll_sym] 1 
     THEN (assume_tac 1));
 by (eresolve_tac [nat_cadd_eq_add RS subst] 1 THEN (assume_tac 1));

@@ -21,6 +21,8 @@ val AC_ss = OrdQuant_ss;
  
 (* ******************************************** *)
 
+val nat_implies_well_ord = nat_into_Ord RS well_ord_Memrel;
+
 (* Theorems analogous to ones presented in "ZF/Ordinal.ML" *)
 
 (* lemma for nat_le_imp_lepoll *)

@@ -26,8 +26,8 @@ by (eresolve_tac [allE] 1);
 by (excluded_middle_tac "Finite(A)" 1);
 by (fast_tac AC_cs 1);
 by (rewrite_goals_tac [Finite_def, eqpoll_def]);
-by (fast_tac (AC_cs addSIs [nat_into_Ord RS well_ord_Memrel RSN (2, 
-				bij_is_inj RS well_ord_rvimage)]) 1);
+by (fast_tac (ZF_cs addSIs [[bij_is_inj, nat_implies_well_ord] MRS
+				 well_ord_rvimage]) 1);
 val LEMMA_imp_WO1 = result();
 
 (* ********************************************************************** *)

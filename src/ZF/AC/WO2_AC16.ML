@@ -531,7 +531,7 @@ val main_induct = result();
 
 (* ********************************************************************** *)
 (* Lemma to simplify the inductive proof				  *)
-(*   - the disired property is a consequence of the inductive assumption  *)
+(*   - the desired property is a consequence of the inductive assumption  *)
 (* ********************************************************************** *)
 
 val [prem1, prem2, prem3, prem4] = goal thy
@@ -561,7 +561,7 @@ by (fast_tac (AC_cs addSIs [OUN_I]) 1);
 by (REPEAT (eresolve_tac [conjE, OUN_E] 1));
 by (eresolve_tac [lt_Ord RSN (2, lt_Ord RS Ord_linear_le)] 1 THEN (assume_tac 1));
 by (dresolve_tac [prem4 RS subsetD] 2 THEN (assume_tac 2));
-by (fast_tac AC_cs 2);
+by (fast_tac FOL_cs 2);
 by (forward_tac [prem1] 1);
 by (forward_tac [succ_leE] 1);
 by (dresolve_tac [prem4 RS subsetD] 1 THEN (assume_tac 1));
@@ -569,7 +569,7 @@ by (eresolve_tac [conjE] 1);
 by (dresolve_tac [lt_trans RSN (2, ospec)] 1 THEN (TRYALL assume_tac));
 by (dresolve_tac [disjI1 RSN (2, mp)] 1 THEN (assume_tac 1));
 by (eresolve_tac [ex1_two_eq] 1);
-by (REPEAT (fast_tac AC_cs 1));
+by (REPEAT (fast_tac FOL_cs 1));
 val lemma_simp_induct = result();
 
 (* ********************************************************************** *)
