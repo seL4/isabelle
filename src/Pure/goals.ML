@@ -319,9 +319,12 @@ fun pop [] = error"Cannot go back past the beginning of the proof!"
 val current_goals_markers = ref ("", "", "");
 
 fun print_current_goals_default n max th =
-  let val ref (begin_state, end_state, begin_goal) = current_goals_markers;
-      val ngoals = nprems_of th in
-    writeln (begin_state ^ "Level " ^ string_of_int n ^
+  let
+    val ref (begin_state, end_state, begin_goal) = current_goals_markers;
+    val ngoals = nprems_of th;
+  in
+    if begin_state = "" then () else writeln begin_state;
+    writeln ("Level " ^ string_of_int n ^
       (if ngoals > 0 then " (" ^ string_of_int ngoals ^ " subgoal" ^
         (if ngoals <> 1 then "s" else "") ^ ")"
       else ""));
