@@ -113,6 +113,8 @@ sig
   val terminal_proof: Method.text * Comment.interest -> Toplevel.transition -> Toplevel.transition
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val default_proof: Toplevel.transition -> Toplevel.transition
+  val also: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val finally: Comment.text -> Toplevel.transition -> Toplevel.transition
   val use_mltext: string -> theory option -> theory option
   val use_mltext_theory: string -> theory -> theory
   val use_setup: string -> theory -> theory
@@ -340,6 +342,18 @@ fun qed meth = local_qed meth o global_qed meth;
 fun terminal_proof meth = local_terminal_proof meth o global_terminal_proof meth;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val default_proof = local_default_proof o global_default_proof;
+
+
+(* calculational proof commands *)
+
+fun cond_print_calc int thm =
+  if int then Pretty.writeln (Pretty.big_list "calculation:" [Display.pretty_thm thm])
+  else ();
+
+fun proof''' f = Toplevel.proof' (f o cond_print_calc);
+
+fun also _ = proof''' (ProofHistory.applys o Calculation.also);
+fun finally _ = proof''' (ProofHistory.applys o Calculation.finally);
 
 
 (* use ML text *)
