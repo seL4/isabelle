@@ -15,8 +15,10 @@ end;
 signature ATTRIB =
 sig
   include BASIC_ATTRIB
+  exception ATTRIB_FAIL of (string * Position.T) * exn
   val global_attribute: theory -> Args.src -> theory attribute
   val local_attribute: theory -> Args.src -> Proof.context attribute
+  val local_attribute': Proof.context -> Args.src -> Proof.context attribute
   val add_attributes: (bstring * ((Args.src -> theory attribute) *
       (Args.src -> Proof.context attribute)) * string) list -> theory -> theory
   val global_thm: theory * Args.T list -> tthm * (theory * Args.T list)
@@ -71,6 +73,8 @@ val print_attributes = AttributesData.print;
 
 (* get global / local attributes *)
 
+exception ATTRIB_FAIL of (string * Position.T) * exn;
+
 fun gen_attribute which thy =
   let
     val {space, attrs} = AttributesData.get thy;
@@ -82,7 +86,7 @@ fun gen_attribute which thy =
       in
         (case Symtab.lookup (attrs, name) of
           None => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | Some ((p, _), _) => which p src)
+        | Some ((p, _), _) => transform_failure (curry ATTRIB_FAIL (name, pos)) (which p src))
       end;
   in attr end;
 
@@ -149,8 +153,6 @@ fun no_args x = syntax (Scan.succeed x);
 
 fun gen_tag x = syntax (tag >> Attribute.tag) x;
 fun gen_untag x = syntax (tag >> Attribute.untag) x;
-fun gen_lemma x = no_args Attribute.tag_lemma x;
-fun gen_assumption x = no_args Attribute.tag_assumption x;
 
 
 (* transfer *)
@@ -180,39 +182,59 @@ val global_APP = syntax (global_thmss >> apply);
 val local_APP = syntax (local_thmss >> apply);
 
 
-(* instantiations *)
+(* where: named instantiations *)
 
-(* FIXME assumes non var hyps *)  (* FIXME move (see also drule.ML) *)
-val add_vars = foldl_aterms (fn (vs, Var v) => v ins vs | (vs, _) => vs);
-fun vars_of thm = (add_vars ([], #prop (Thm.rep_thm thm)));
-
-fun read_instantiate context_of raw_insts x thm =
+fun read_instantiate context_of insts x thm =
   let
     val ctxt = context_of x;
     val sign = ProofContext.sign_of ctxt;
 
-    val vars = vars_of thm;
+    val vars = Drule.vars_of thm;
     fun get_typ xi =
       (case assoc (vars, xi) of
         Some T => T
       | None => error ("No such variable in theorem: " ^ Syntax.string_of_vname xi));
 
-    val (xs, ss) = Library.split_list raw_insts;
+    val (xs, ss) = Library.split_list insts;
     val Ts = map get_typ xs;
 
-    (* FIXME really declare_thm (!!!!??????) *)
     val (ts, envT) = ProofContext.read_termTs (ctxt |> ProofContext.declare_thm thm) (ss ~~ Ts);
-
     val cenvT = map (apsnd (Thm.ctyp_of sign)) envT;
-    val cenv = map2 (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t)) (xs, ts);
+    val cenv =
+      map (fn (xi, t) => pairself (Thm.cterm_of sign) (Var (xi, fastype_of t), t))
+        (gen_distinct (fn ((x1, t1), (x2, t2)) => x1 = x2 andalso t1 aconv t2) (xs ~~ ts));
   in Thm.instantiate (cenvT, cenv) thm end;
 
+fun insts x = Scan.lift (Args.enum "and" (Args.var --| Args.$$$ "=" -- Args.name)) x;
 
-fun insts x = Scan.lift (Args.enum1 "and" (Args.var --| Args.$$$ "=" -- Args.name)) x;
 fun gen_where context_of = syntax (insts >> (Attribute.rule o read_instantiate context_of));
 
 val global_where = gen_where ProofContext.init;
 val local_where = gen_where I;
+
+
+(* with: positional instantiations *)
+
+fun read_instantiate' context_of (args, concl_args) x thm =
+  let
+    fun zip_vars _ [] = []
+      | zip_vars (_ :: xs) (None :: opt_ts) = zip_vars xs opt_ts
+      | zip_vars ((x, _) :: xs) (Some t :: opt_ts) = (x, t) :: zip_vars xs opt_ts
+      | zip_vars [] _ = error "More instantiations than variables in theorem";
+    val insts =
+      zip_vars (Drule.vars_of_terms [#prop (Thm.rep_thm thm)]) args @
+      zip_vars (Drule.vars_of_terms [Thm.concl_of thm]) concl_args;
+  in read_instantiate context_of insts x thm end;
+
+val concl = Args.$$$ "concl" -- Args.$$$ ":";
+val inst_arg = Scan.unless concl (Args.$$$ "_" >> K None || Args.name >> Some);
+val inst_args = Scan.repeat inst_arg;
+fun insts' x = Scan.lift (inst_args -- Scan.optional (concl |-- Args.!!! inst_args) []) x;
+
+fun gen_with context_of = syntax (insts' >> (Attribute.rule o read_instantiate' context_of));
+
+val global_with = gen_with ProofContext.init;
+val local_with = gen_with I;
 
 
 (* misc rules *)
@@ -229,11 +251,10 @@ fun elimify x = no_args (Attribute.rule (K Tactic.make_elim)) x;
 val pure_attributes =
  [("tag", (gen_tag, gen_tag), "tag theorem"),
   ("untag", (gen_untag, gen_untag), "untag theorem"),
-  ("lemma", (gen_lemma, gen_lemma), "tag as lemma"),
-  ("assumption", (gen_assumption, gen_assumption), "tag as assumption"),
   ("RS", (global_RS, local_RS), "resolve with rule"),
   ("APP", (global_APP, local_APP), "resolve rule with"),
-  ("where", (global_where, local_where), "instantiate theorem (named vars)"),
+  ("where", (global_where, local_where), "named instantiation of theorem"),
+  ("with", (global_with, local_with), "positional instantiation of theorem"),
   ("standard", (standard, standard), "put theorem into standard form"),
   ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
   ("transfer", (global_transfer, local_transfer), "transfer theorem to this theory")];
