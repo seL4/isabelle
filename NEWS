@@ -96,6 +96,11 @@ New in this Isabelle release
   the old record representation. The type generated for a record is
   called <record_name>_ext_type.
 
+* HOL/record: Reference record_definition_quick_and_dirty_sensitive
+  can be enabled to skip the proofs triggered by a record definition
+  (if quick_and_dirty is enabled). Definitions of large records can
+  take quite long.
+
 * HOL: symbolic syntax of Hilbert Choice Operator is now as follows:
 
   syntax (epsilon)

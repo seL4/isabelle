@@ -24,6 +24,7 @@ signature RECORD_PACKAGE =
 sig
   include BASIC_RECORD_PACKAGE
   val quiet_mode: bool ref
+  val record_definition_quick_and_dirty_sensitive: bool ref
   val updateN: string
   val ext_typeN: string
   val last_extT: typ -> (string * typ list) option
@@ -80,6 +81,10 @@ fun but_last xs = fst (split_last xs);
 val quiet_mode = ref false;
 fun message s = if ! quiet_mode then () else writeln s;
 
+(* timing *)
+
+fun timeit_msg s x = if !timing then (warning s; timeit x) else x ();
+ 
 (* syntax *)
 
 fun prune n xs = Library.drop (n, xs);
@@ -1063,6 +1068,16 @@ fun try_param_tac s rule i st =
         (x, list_abs (params, Bound 0))])) rule'
   in compose_tac (false, rule'', nprems_of rule) i st end;
 
+
+val record_definition_quick_and_dirty_sensitive = ref false;
+
+(* fun is crucial here; val would evaluate only once! *)
+fun definition_prove_standard sg = 
+  if !record_definition_quick_and_dirty_sensitive
+  then quick_and_dirty_prove sg 
+  else Tactic.prove_standard sg;
+
+
 fun extension_typedef name repT alphas thy =
   let
     val UNIV = HOLogic.mk_UNIV repT;
@@ -1145,10 +1160,11 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
            ===
            foldr1 HOLogic.mk_conj (map HOLogic.mk_eq (vars_more ~~ vars_more')))
       end;
-
+    
     val induct_prop =
-      All (map dest_Free vars_more) (Trueprop (P $ ext)) ==> Trueprop (P $ s);
-     
+      (All (map dest_Free vars_more) (Trueprop (P $ ext)), Trueprop (P $ s));
+
+
     val cases_prop =
       (All (map dest_Free vars_more) 
         (Trueprop (HOLogic.mk_eq (s,ext)) ==> Trueprop C)) 
@@ -1158,21 +1174,26 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val dest_conv_props =
        map (fn (c, x as Free (_,T)) => mk_sel ext (suffix ext_dest c,T) === x) named_vars_more;
 
-    val prove_standard = Tactic.prove_standard (Theory.sign_of defs_thy);
+    val prove_standard = definition_prove_standard (Theory.sign_of defs_thy);
     fun prove_simp simps =
       let val tac = simp_all_tac HOL_ss simps
       in fn prop => prove_standard [] [] prop (K tac) end;
     
     (* prove propositions *)
 
-    val inject = (prove_simp [ext_def,abs_inject,Pair_eq] inject_prop);
+    fun inject_prf () = (prove_simp [ext_def,abs_inject,Pair_eq] inject_prop);
+    val inject = timeit_msg "record extension inject proof:" inject_prf;
 
-    val induct =
-        prove_standard [] [] induct_prop (fn prems =>
-         EVERY [try_param_tac rN abs_induct 1, 
-                asm_full_simp_tac (HOL_ss addsimps [ext_def,split_paired_all]) 1]);
+    fun induct_prf () =
+      let val (assm, concl) = induct_prop
+      in prove_standard [] [assm] concl (fn prems =>
+           EVERY [try_param_tac rN abs_induct 1, 
+                  simp_tac (HOL_ss addsimps [split_paired_all]) 1,
+                  resolve_tac (map (rewrite_rule [ext_def]) prems) 1])
+      end;
+    val induct = timeit_msg "record extension induct proof:" induct_prf;
 
-    val cases =
+    fun cases_prf () =
         prove_standard [] [] cases_prop (fn prems =>
          EVERY [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]) 1,
                 try_param_tac rN induct 1,
@@ -1180,10 +1201,12 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
                 REPEAT (etac allE 1),
                 etac mp 1,
                 rtac refl 1])
+    val cases = timeit_msg "record extension cases proof:" cases_prf;
 	
-    val dest_convs = map (prove_simp 
+    fun dest_convs_prf () = map (prove_simp 
                            ([ext_def,abs_inverse]@Pair_sel_convs@dest_defs)) dest_conv_props;
-    
+    val dest_convs = timeit_msg "record extension dest_convs proof:" dest_convs_prf;
+
     val (thm_thy,([inject',induct',cases'],[dest_convs'])) =
       defs_thy 
       |> (PureThy.add_thms o map Thm.no_attributes) 
@@ -1478,27 +1501,31 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* 3rd stage: thms_thy *)
 
-    val prove_standard = Tactic.prove_standard (Theory.sign_of defs_thy);
+    val prove_standard = definition_prove_standard (Theory.sign_of defs_thy);
     fun prove_simp ss simps =
       let val tac = simp_all_tac ss simps
       in fn prop => prove_standard [] [] prop (K tac) end;
 
     val ss = get_simpset (sign_of defs_thy);
-    val sel_convs = map (prove_simp ss 
-                           (sel_defs@ext_dest_convs)) sel_conv_props;
 
-    val upd_convs = map (prove_simp ss (sel_convs@upd_defs)) 
-                         upd_conv_props;
-      
+    fun sel_convs_prf () = map (prove_simp ss 
+                           (sel_defs@ext_dest_convs)) sel_conv_props;
+    val sel_convs = timeit_msg "record sel_convs proof:" sel_convs_prf;
+
+    fun upd_convs_prf () = map (prove_simp ss (sel_convs@upd_defs)) 
+                             upd_conv_props;
+    val upd_convs = timeit_msg "record upd_convs proof:" upd_convs_prf;
+
     val parent_induct = if null parents then [] else [#induct (hd (rev parents))];
 
-    val induct_scheme = prove_standard [] [] induct_scheme_prop (fn prems =>
+    fun induct_scheme_prf () = prove_standard [] [] induct_scheme_prop (fn prems =>
           (EVERY [if null parent_induct 
                   then all_tac else try_param_tac rN (hd parent_induct) 1,
                   try_param_tac rN ext_induct 1,
                   asm_simp_tac HOL_basic_ss 1]));
+    val induct_scheme = timeit_msg "record induct_scheme proof:" induct_scheme_prf;
 
-    val induct =
+    fun induct_prf () =
       let val (assm, concl) = induct_prop;
       in
         prove_standard [] [assm] concl (fn prems =>
@@ -1506,13 +1533,15 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           THEN try_param_tac "more" unit_induct 1
           THEN resolve_tac prems 1)
       end;
+    val induct = timeit_msg "record induct proof:" induct_prf;
 
-    val surjective = 
+    fun surjective_prf () = 
       prove_standard [] [] surjective_prop (fn prems =>
           (EVERY [try_param_tac rN induct_scheme 1,
                   simp_tac (ss addsimps sel_convs) 1]))
-    
-    val cases_scheme =
+    val surjective = timeit_msg "record surjective proof:" surjective_prf;
+
+    fun cases_scheme_prf () =
         prove_standard [] [] cases_scheme_prop (fn prems =>
          EVERY [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]) 1,
                try_param_tac rN induct_scheme 1,
@@ -1520,37 +1549,57 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
                REPEAT (etac allE 1),
                etac mp 1,
                rtac refl 1])
+    val cases_scheme = timeit_msg "record cases_scheme proof:" cases_scheme_prf;
 
-    val cases =
+    fun cases_prf () =
       prove_standard [] [] cases_prop  (fn _ =>
         try_param_tac rN cases_scheme 1
         THEN simp_all_tac HOL_basic_ss [unit_all_eq1]);
+    val cases = timeit_msg "record cases proof:" cases_prf;
 
-    val split_meta =
+    fun split_meta_prf () =
         prove_standard [] [] split_meta_prop (fn prems =>
          EVERY [rtac equal_intr_rule 1,
                   rtac meta_allE 1, etac triv_goal 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
                 REPEAT (EVERY [rtac meta_allE 1, etac triv_goal 1, etac thin_rl 1]),
                 atac 1]);
+    val split_meta = timeit_msg "record split_meta proof:" split_meta_prf;
 
-    val split_object =
+    fun split_object_prf () =
         prove_standard [] [] split_object_prop (fn prems =>
          EVERY [rtac iffI 1, 
                 REPEAT (rtac allI 1), etac allE 1, atac 1,
                 rtac allI 1, rtac induct_scheme 1,REPEAT (etac allE 1),atac 1]);
+    val split_object = timeit_msg "record split_object proof:" split_object_prf;
 
-    val split_ex = 
+
+    fun split_ex_prf () = 
         prove_standard [] [] split_ex_prop (fn prems =>
-         fast_simp_tac (claset_of HOL.thy,
-                       HOL_basic_ss addsimps [split_meta]) 1);
+          EVERY [rtac iffI 1,
+                   etac exE 1,
+                   simp_tac (HOL_basic_ss addsimps [split_meta]) 1,
+                   REPEAT (rtac exI 1),
+                   atac 1,
+                 REPEAT (etac exE 1),
+                 rtac exI 1,
+                 atac 1]);
+    val split_ex = timeit_msg "record split_ex proof:" split_ex_prf;
 
-    val equality = prove_standard [] [] equality_prop (fn _ =>
+    fun equality_tac thms = 
+      let val (s'::s::eqs) = rev thms;
+          val ss' = ss addsimps (s'::s::sel_convs);
+          val eqs' = map (simplify ss') eqs;
+      in simp_tac (HOL_basic_ss addsimps (s'::s::eqs')) 1 end;
+ 
+   fun equality_prf () = prove_standard [] [] equality_prop (fn _ =>
       fn st => let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
         st |> (res_inst_tac [(rN, s)] cases_scheme 1
         THEN res_inst_tac [(rN, s')] cases_scheme 1
-        THEN simp_all_tac ss (sel_convs))
-      end);
+        THEN (METAHYPS equality_tac 1)) 
+             (* simp_all_tac ss (sel_convs) would also work but is less efficient *)
+      end);                              
+     val equality = timeit_msg "record equality proof':" equality_prf;
 
     val (thms_thy,(([sel_convs',upd_convs',sel_defs',upd_defs',[split_meta',split_object',split_ex'],
                     derived_defs'],
