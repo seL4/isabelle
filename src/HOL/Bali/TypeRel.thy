@@ -545,7 +545,7 @@ by auto
 lemma widen_Object:"\<lbrakk>isrtype G T;ws_prog G\<rbrakk> \<Longrightarrow> G\<turnstile>RefT T \<preceq> Class Object"
 apply (case_tac T)
 apply (auto)
-apply (subgoal_tac "G\<turnstile>pid_field_type\<preceq>\<^sub>C Object")
+apply (subgoal_tac "G\<turnstile>qtname_ext_type\<preceq>\<^sub>C Object")
 apply (auto intro: subcls_ObjectI)
 done
 

@@ -80,7 +80,7 @@ axclass has_qtname < "type"
 consts qtname:: "'a::has_qtname \<Rightarrow> qtname"
 
 (* Declare qtname as instance of has_qtname *)
-instance pid_field_type::(has_pname,"type") has_qtname ..
+instance qtname_ext_type::("type") has_qtname ..
 
 defs (overloaded)
 qtname_qtname_def: "qtname (q::qtname) \<equiv> q"

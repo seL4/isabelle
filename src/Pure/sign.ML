@@ -61,6 +61,7 @@ sig
   val extern: sg -> string -> string -> xstring
   val cond_extern: sg -> string -> string -> xstring
   val cond_extern_table: sg -> string -> 'a Symtab.table -> (xstring * 'a) list
+  val extern_typ: sg -> typ -> typ
   val intern_class: sg -> xclass -> class
   val intern_tycon: sg -> xstring -> string
   val intern_const: sg -> xstring -> string
@@ -551,6 +552,9 @@ in
   val cond_extern = cond_extrn o spaces_of;
   fun cond_extern_table sg = cond_extrn_table (spaces_of sg);
 
+  fun extern_typ (sg as Sg (_, {spaces, ...})) T =
+       if ! NameSpace.long_names then T else extrn_typ spaces T;
+
   val intern_class = intrn_class o spaces_of;
   val intern_sort = intrn_sort o spaces_of;
   val intern_typ = intrn_typ o spaces_of;
@@ -596,9 +600,8 @@ fun pretty_term' syn (sg as Sg ({stamps, ...}, {spaces, ...})) t =
 
 fun pretty_term sg = pretty_term' (syn_of sg) sg;
 
-fun pretty_typ (sg as Sg (_, {spaces, ...})) T =
-  Syntax.pretty_typ (syn_of sg)
-    (if ! NameSpace.long_names then T else extrn_typ spaces T);
+fun pretty_typ sg T =
+  Syntax.pretty_typ (syn_of sg) (extern_typ sg T);
 
 fun pretty_sort (sg as Sg (_, {spaces, ...})) S =
   Syntax.pretty_sort (syn_of sg)

@@ -776,12 +776,8 @@ defer apply assumption
 apply (force intro: var_tys_Some_eq [THEN iffD2])
 done
 
-lemma obj_split: "\<And> obj. \<exists> t vs. obj = \<lparr>tag=t,values=vs\<rparr>"
-proof record_split
-  fix tag values more
-  show "\<exists>t vs. \<lparr>tag = tag, values = values, \<dots> = more\<rparr> = \<lparr>tag = t, values = vs\<rparr>"
-    by auto
-qed
+lemma obj_split: "\<exists> t vs. obj = \<lparr>tag=t,values=vs\<rparr>"
+  by (cases obj) auto
  
 lemma AVar_lemma2: "error_free state 
        \<Longrightarrow> error_free
@@ -3602,7 +3598,7 @@ proof -
 	show "G\<turnstile>statC\<preceq>\<^sub>C statDeclC"
 	  by (auto dest!: accfield_fields dest: fields_declC)
 	from accfield
-	show fld: "table_of (fields G statC) (fn, statDeclC) = Some f"
+	show fld: "table_of (DeclConcepts.fields G statC) (fn, statDeclC) = Some f"
 	  by (auto dest!: accfield_fields)
 	from wf show "wf_prog G" .
 	from conf_a s2 show "x2 = None \<longrightarrow> G,store2\<turnstile>a\<Colon>\<preceq>Class statC"

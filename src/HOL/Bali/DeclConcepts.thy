@@ -92,7 +92,7 @@ acc_modi_accmodi_def: "accmodi (a::acc_modi) \<equiv> a"
 lemma acc_modi_accmodi_simp[simp]: "accmodi (a::acc_modi) = a"
 by (simp add: acc_modi_accmodi_def)
 
-instance access_field_type:: ("type","type") has_accmodi ..
+instance decl_ext_type:: ("type") has_accmodi ..
 
 defs (overloaded)
 decl_acc_modi_def: "accmodi (d::('a:: type) decl_scheme) \<equiv> access d"
@@ -130,7 +130,7 @@ out of various HOL types *}
 axclass has_declclass < "type"
 consts declclass:: "'a::has_declclass \<Rightarrow> qtname"
 
-instance pid_field_type::("type","type") has_declclass ..
+instance qtname_ext_type::("type") has_declclass ..
 
 defs (overloaded)
 qtname_declclass_def: "declclass (q::qtname) \<equiv> q"
@@ -153,17 +153,17 @@ out of various HOL types *}
 axclass has_static < "type"
 consts is_static :: "'a::has_static \<Rightarrow> bool"
 
-instance access_field_type :: ("type","has_static") has_static ..
+instance decl_ext_type :: ("has_static") has_static ..
 
 defs (overloaded)
 decl_is_static_def: 
  "is_static (m::('a::has_static) decl_scheme) \<equiv> is_static (Decl.decl.more m)" 
 
-instance static_field_type :: ("type","type") has_static ..
+instance member_ext_type :: ("type") has_static ..
 
 defs (overloaded)
 static_field_type_is_static_def: 
- "is_static (m::(bool,'b::type) static_field_type) \<equiv> static_val m"
+ "is_static (m::('b::type) member_ext_type) \<equiv> static_val m"
 
 lemma member_is_static_simp: "is_static (m::'a member_scheme) = static m"
 apply (cases m)
@@ -401,37 +401,30 @@ out of various HOL types *}
 axclass has_resTy < "type"
 consts resTy:: "'a::has_resTy \<Rightarrow> ty"
 
-instance access_field_type :: ("type","has_resTy") has_resTy ..
+instance decl_ext_type :: ("has_resTy") has_resTy ..
 
 defs (overloaded)
 decl_resTy_def: 
  "resTy (m::('a::has_resTy) decl_scheme) \<equiv> resTy (Decl.decl.more m)" 
 
-instance static_field_type :: ("type","has_resTy") has_resTy ..
+instance member_ext_type :: ("has_resTy") has_resTy ..
 
 defs (overloaded)
-static_field_type_resTy_def: 
- "resTy (m::(bool,'b::has_resTy) static_field_type) 
-  \<equiv> resTy (static_more m)" 
+member_ext_type_resTy_def: 
+ "resTy (m::('b::has_resTy) member_ext_type) 
+  \<equiv> resTy (member.more_val m)" 
 
-instance pars_field_type :: ("type","has_resTy") has_resTy ..
-
-defs (overloaded)
-pars_field_type_resTy_def: 
- "resTy (m::(vname list,'b::has_resTy) pars_field_type) 
-  \<equiv> resTy (pars_more m)" 
-
-instance resT_field_type :: ("type","type") has_resTy ..
+instance mhead_ext_type :: ("type") has_resTy ..
 
 defs (overloaded)
-resT_field_type_resTy_def: 
- "resTy (m::(ty,'b::type) resT_field_type) 
+mhead_ext_type_resTy_def: 
+ "resTy (m::('b mhead_ext_type)) 
   \<equiv> resT_val m" 
 
 lemma mhead_resTy_simp: "resTy (m::'a mhead_scheme) = resT m"
 apply (cases m)
-apply (simp add: decl_resTy_def static_field_type_resTy_def 
-                 pars_field_type_resTy_def resT_field_type_resTy_def
+apply (simp add: decl_resTy_def member_ext_type_resTy_def 
+                 mhead_ext_type_resTy_def 
                  member.dest_convs mhead.dest_convs)
 done
 

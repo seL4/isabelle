@@ -1,6 +1,7 @@
 (*  Title:      HOL/ex/Records.thy
     ID:         $Id$
-    Author:     Wolfgang Naraschewski and Markus Wenzel, TU Muenchen
+    Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, 
+                TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
@@ -19,6 +20,7 @@ text {*
   following theorems:
 *}
 
+
 thm "point.simps"
 thm "point.iffs"
 thm "point.defs"
@@ -28,10 +30,10 @@ text {*
   automatically to the standard simpset, @{thm [source] point.iffs} is
   added to the Classical Reasoner and Simplifier context.
 
-  \medskip Record declarations define new type abbreviations:
+  \medskip Record declarations define new types and type abbreviations:
   @{text [display]
-"    point = (| xpos :: nat, ypos :: nat |)
-    'a point_scheme = (| xpos :: nat, ypos :: nat, ... :: 'a |)"}
+"  point = \<lparr>xpos :: nat, ypos :: nat\<rparr> = () point_ext_type
+  'a point_scheme = \<lparr>xpos :: nat, ypos :: nat, ... :: 'a\<rparr>  = 'a point_ext_type"}
 *}
 
 consts foo1 :: point
@@ -107,7 +109,7 @@ text {*
   induction.
 *}
 
-lemma "r (| xpos := n |) (| ypos := m |) = r (| ypos := m |) (| xpos := n |)"
+lemma "r(| xpos := n |) (| ypos := m |) = r (| ypos := m |) (| xpos := n |)"
 proof (cases r)
   fix xpos ypos more
   assume "r = (| xpos = xpos, ypos = ypos, ... = more |)"
@@ -174,10 +176,12 @@ record cpoint = point +
 
 
 text {*
-  The record declaration defines new type constructors:
+  The record declaration defines a new type constructure and abbreviations:
   @{text [display]
-"    cpoint = (| xpos :: nat, ypos :: nat, colour :: colour |)
-    'a cpoint_scheme = (| xpos :: nat, ypos :: nat, colour :: colour, ... :: 'a |)"}
+"  cpoint = (| xpos :: nat, ypos :: nat, colour :: colour |) = 
+     () cpoint_ext_type point_ext_type
+   'a cpoint_scheme = (| xpos :: nat, ypos :: nat, colour :: colour, ... :: 'a |) = 
+     'a cpoint_ext_type point_ext_type"}
 *}
 
 consts foo6 :: cpoint
