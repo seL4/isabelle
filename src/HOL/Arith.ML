@@ -337,12 +337,6 @@ qed "zero_is_mult";
 
 Addsimps [mult_is_0, zero_is_mult];
 
-Goal "m <= m*(m::nat)";
-by (induct_tac "m" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_assoc RS sym])));
-by (etac (le_add2 RSN (2,le_trans)) 1);
-qed "le_square";
-
 
 (*** Difference ***)
 
@@ -1043,6 +1037,17 @@ val arith_setup =
 (*---------------------------------------------------------------------------*)
 (* End of proof procedures. Now go and USE them!                             *)
 (*---------------------------------------------------------------------------*)
+
+Goal "m <= m*(m::nat)";
+by (induct_tac "m" 1);
+by Auto_tac;
+qed "le_square";
+
+Goal "(m::nat) <= m*(m*m)";
+by (induct_tac "m" 1);
+by Auto_tac;
+qed "le_cube";
+
 
 (*** Subtraction laws -- mostly from Clemens Ballarin ***)
 
