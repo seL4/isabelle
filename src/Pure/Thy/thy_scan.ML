@@ -75,6 +75,7 @@ fun string ("\"" :: cs) n = (["\""], cs, n)
       | (Some s, cs') => cons_fst ("\\" ^ s) (string cs' (inc_line n s)))
   | string (c :: cs) n = 
       if c = "\n" then string cs (n+1)
+      else if is_blank c then cons_fst " " (string cs n)
       else cons_fst c (string cs n)
   | string [] n = lex_err n "missing quote at end of string";
 
