@@ -37,7 +37,7 @@ fun message s = if ! quiet_mode then () else writeln s;
 
 (* misc *)
 
-fun read_term thy = Sign.simple_read_term (Theory.sign_of thy) HOLogic.termT;
+val read_term = Thm.term_of oo (HOLogic.read_cterm o Theory.sign_of);
 
 
 (*---------------------------------------------------------------------------
