@@ -8,9 +8,12 @@ very easy. As the canonical application of this feature, Pure and major
 object-logics (FOL, ZF, HOL, HOLCF) support optional input and output of
 proper mathematical symbols as built-in option.
 
-Symbolic output is enabled by activating the ``\ttindex{symbols}'' print mode.
-User interfaces (e.g.\ \texttt{isa-xterm}, see \S\ref{sec:interface}) usually
-do this already by default.
+Basic symbolic output is enabled by activating the ``\ttindex{symbols}'' print
+mode.  User interfaces (e.g.\ \texttt{isa-xterm}, see \S\ref{sec:interface})
+usually do this already by default.  More advanced support is provided by
+Proof~General~\cite{proofgeneral} when used together with the X-Symbol package
+\cite{x-symbol}; the corresponding print mode is ``\ttindex{xsymbols}'' (plain
+``\ttindex{symbols}'' is activated as well).
 
 \medskip Displaying non-standard characters requires special screen fonts. The
 \texttt{installfonts} utility takes care of this (see
@@ -29,11 +32,17 @@ The \tooldx{installfonts} utility ensures that your currently running X11
 display server (as determined by the \texttt{DISPLAY} environment variable)
 knows about the Isabelle fonts. Its usage is:
 \begin{ttbox}
-Usage: isatool installfonts
+Usage: installfonts [OPTIONS]
 
-  Install the isabelle fonts into your X11 server.
-  (May be safely called repeatedly.)
+  Options are:
+    -x           install X-Symbol fonts
+
+  Installs symbol fonts on the current X11 server.
 \end{ttbox}
+
+The \texttt{-x} option installs fonts for the X-Symbol package
+\cite{x-symbol}, rather than the basic Isabelle ones.
+
 Note that this need not be called manually under normal circumstances --- user
 interfaces depending on the Isabelle fonts usually invoke
 \texttt{installfonts} automatically.
@@ -41,7 +50,8 @@ interfaces depending on the Isabelle fonts usually invoke
 \medskip As simple as this might appear to be, it is not! X11 fonts are a
 surprisingly complicated matter. Depending on your network structure, fonts
 might have to be installed differently. This has to be specified via the
-\settdx{ISABELLE_INSTALLFONTS} variable in your local settings.
+\settdx{ISABELLE_INSTALLFONTS} (or \settdx{XSYMBOL_INSTALLFONTS}) variables in
+your local settings.
 
 \medskip In the simplest situation, X11 is used only locally, i.e.\ the client
 program (Isabelle) and the display server are run on the same machine. In that
