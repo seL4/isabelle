@@ -6,7 +6,7 @@
 *) 
 
 
-PNat = Arith +
+PNat = Main +
 
 typedef
   pnat = "lfp(%X. {1} Un (Suc``X))"   (lfp_def)

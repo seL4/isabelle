@@ -5,6 +5,6 @@
     Description : Absolute value function for the reals
 *) 
 
-RealAbs = RealOrd + RealBin +
+RealAbs = RealBin +
 
 end

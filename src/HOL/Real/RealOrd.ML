@@ -812,7 +812,8 @@ by (Step_tac 1 THEN dtac leI 1 THEN dtac sym 2);
 by (dtac lemma_nat_not_dense 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [real_of_nat_Suc, real_of_nat_zero] @ 
-	                         real_add_ac));
+	                         real_add_ac
+                        delsimprocs Nat_Numeral_Simprocs.cancel_numerals));
 by (asm_full_simp_tac (simpset() addsimps [real_of_nat_one RS sym,
 					   real_of_nat_add,Suc_diff_n]) 1);
 qed "real_of_nat_minus";

@@ -226,7 +226,8 @@ by (rtac (Rep_pnat_inverse RS subst) 1);
 by (auto_tac (claset() addDs [(inj_on_Abs_pnat RS inj_onD)] 
   	               addSDs [add_eq_self_zero],
 	      simpset() addsimps [sum_Rep_pnat, Rep_pnat,Abs_pnat_inverse,
-				  Rep_pnat_gt_zero RS less_not_refl2]));
+				  Rep_pnat_gt_zero RS less_not_refl2]
+                        delsimprocs Nat_Numeral_Simprocs.cancel_numerals));
 qed "pnat_no_add_ident";
 
 

@@ -289,4 +289,3 @@ qed "chainD2";
 Goal "x : Union(c) ==> EX m:c. x:m";
 by (Blast_tac 1);
 qed "mem_UnionD";
-

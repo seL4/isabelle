@@ -80,14 +80,15 @@ qed "real_of_int_mult";
 
 Goal "real_of_int (int (Suc n)) = real_of_int (int n) + 1r";
 by (simp_tac (simpset() addsimps [real_of_int_one RS sym,
-				  real_of_int_add,zadd_int]) 1);
+				  real_of_int_add,zadd_int] @ zadd_ac) 1);
 qed "real_of_int_Suc";
 
 (* relating two of the embeddings *)
 Goal "real_of_int (int n) = real_of_nat n";
 by (induct_tac "n" 1);
-by (auto_tac (claset(),simpset() addsimps [real_of_int_zero,
-    real_of_nat_zero,real_of_int_Suc,real_of_nat_Suc]));
+by (ALLGOALS (simp_tac (HOL_ss addsimps [real_of_int_zero,
+    real_of_nat_zero,real_of_int_Suc,real_of_nat_Suc])));
+by (Simp_tac 1);
 qed "real_of_int_real_of_nat";
 
 Goal "~neg z ==> real_of_nat (nat z) = real_of_int z";
@@ -104,7 +105,7 @@ Addsimps [real_of_nat_neg_int];
 
 Goal "(real_of_int x = 0r) = (x = int 0)";
 by (auto_tac (claset() addIs [inj_real_of_int RS injD],
-    simpset() addsimps [real_of_int_zero]));
+    HOL_ss addsimps [real_of_int_zero]));
 qed "real_of_int_zero_cancel";
 Addsimps [real_of_int_zero_cancel];
 
@@ -118,7 +119,7 @@ qed "real_of_int_less_cancel";
 
 Goal "x < y ==> (real_of_int x < real_of_int y)";
 by (auto_tac (claset(),
-	      simpset() addsimps [zless_iff_Suc_zadd, real_of_int_add RS sym,
+	      HOL_ss addsimps [zless_iff_Suc_zadd, real_of_int_add RS sym,
 				  real_of_int_real_of_nat,
 				  real_of_nat_Suc]));
 by (simp_tac (simpset() addsimps [real_of_nat_one RS

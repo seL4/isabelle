@@ -5,7 +5,7 @@
     Description : The positive rationals
 *) 
 
-PRat = PNat + Equiv +
+PRat = PNat +
 
 constdefs
     ratrel   ::  "((pnat * pnat) * (pnat * pnat)) set"

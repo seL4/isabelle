@@ -6,11 +6,11 @@
 
 *)
 
-RealPow = WF_Rel + RealAbs + 
+RealPow = RealAbs +
 
 instance real :: {power}
 
-primrec
+primrec (realpow)
      realpow_0   "r ^ 0       = 1r"
      realpow_Suc "r ^ (Suc n) = (r::real) * (r ^ n)"
 
