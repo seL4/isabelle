@@ -40,8 +40,7 @@ inductive "otway"
     OR1  "[| evs1: otway |]
           ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs1 : otway"
 
-         (*Bob's response to Alice's message.  Bob doesn't know who 
-	   the sender is, hence the A' in the sender field.*)
+         (*Bob's response to Alice's message.*)
     OR2  "[| evs2: otway;  
              Gets B {|Agent A, Agent B, Nonce NA|} : set evs2 |]
           ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}

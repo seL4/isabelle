@@ -34,9 +34,7 @@ inductive "otway"
                          Crypt (shrK A) {|Nonce NA, Agent A, Agent B|} |} 
                  # evs1 : otway"
 
-         (*Bob's response to Alice's message.  Bob doesn't know who 
-	   the sender is, hence the A' in the sender field.
-           Note that NB is encrypted.*)
+         (*Bob's response to Alice's message.  Note that NB is encrypted.*)
     OR2  "[| evs2: otway;  Nonce NB ~: used evs2;
              Gets B {|Nonce NA, Agent A, Agent B, X|} : set evs2 |]
           ==> Says B Server 

@@ -36,9 +36,8 @@ inductive otway
                          Crypt (shrK A) {|Nonce NA, Agent A, Agent B|} |} 
                  # evs1 : otway"
 
-         (*Bob's response to Alice's message.  Bob doesn't know who 
-	   the sender is, hence the A' in the sender field.
-           We modify the published protocol by NOT encrypting NB.*)
+         (*Bob's response to Alice's message. 
+           This variant of the protocol does NOT encrypt NB.*)
     OR2  "[| evs2: otway;  Nonce NB ~: used evs2;
              Gets B {|Nonce NA, Agent A, Agent B, X|} : set evs2 |]
           ==> Says B Server 
