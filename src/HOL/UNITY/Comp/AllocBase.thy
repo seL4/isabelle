@@ -6,7 +6,7 @@
 Common declarations for Chandy and Charpentier's Allocator
 *)
 
-AllocBase = Rename + Follows + 
+AllocBase = UNITY_Main + 
 
 consts
   NbT      :: nat       (*Number of tokens in system*)
