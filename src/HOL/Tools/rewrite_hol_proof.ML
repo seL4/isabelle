@@ -242,6 +242,8 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
  \        (refl % TYPE(bool=>bool=>bool) % (op = :: bool=>bool=>bool)) %%  \
  \        (refl % TYPE(bool) % A)))",
 
+   (** transitivity, reflexivity, and symmetry **)
+
    "(iffD1 % A % C %% (trans % TYPE(bool) % A % B % C %% prf1 %% prf2) %% prf3) ==  \
  \  (iffD1 % B % C %% prf2 %% (iffD1 % A % B %% prf1 %% prf3))",
 
@@ -307,11 +309,19 @@ fun make_subst Ts prf xs (_, []) = prf
 fun make_sym Ts ((x, y), prf) =
   ((y, x), change_type (Some [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% prf);
 
+fun mk_AbsP P t = AbsP ("H", P, t);
+
 fun elim_cong Ts (PThm (("HOL.iffD1", _), _, _, _) % _ % _ %% prf1 %% prf2) =
       apsome (make_subst Ts prf2 []) (strip_cong [] prf1)
+  | elim_cong Ts (PThm (("HOL.iffD1", _), _, _, _) % P % _ %% prf) =
+      apsome (mk_AbsP P o make_subst Ts (PBound 0) [])
+        (strip_cong [] (incr_pboundvars 1 0 prf))
   | elim_cong Ts (PThm (("HOL.iffD2", _), _, _, _) % _ % _ %% prf1 %% prf2) =
       apsome (make_subst Ts prf2 [] o
         apsnd (map (make_sym Ts))) (strip_cong [] prf1)
+  | elim_cong Ts (PThm (("HOL.iffD2", _), _, _, _) % _ % P %% prf) =
+      apsome (mk_AbsP P o make_subst Ts (PBound 0) [] o
+        apsnd (map (make_sym Ts))) (strip_cong [] (incr_pboundvars 1 0 prf))
   | elim_cong _ _ = None;
 
 end;
