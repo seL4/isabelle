@@ -27,17 +27,18 @@ consts
   has_type :: "(typ list * expr * typ) set";
 
 syntax
-  "@has_type" :: "[typ list, expr, typ] => bool"
+  "_has_type" :: "[typ list, expr, typ] => bool"
     ("((_) |-/ (_) :: (_))" [60, 0, 60] 60);
 translations
   "a |- e :: t" == "(a,e,t) : has_type";
 
 inductive has_type
   intrs [simp]
-    VarI: "n < length a ==> a |- Var n :: a ! n"
-    AbsI: "t1#a |- e :: t2 ==> a |- Abs e :: t1 -> t2"
-    AppI: "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |]
+    Var: "n < length a ==> a |- Var n :: a ! n"
+    Abs: "t1#a |- e :: t2 ==> a |- Abs e :: t1 -> t2"
+    App: "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |]
               ==> a |- App e1 e2 :: t1";
+
 
 text {* Type assigment is closed wrt.\ substitution. *};
 
@@ -45,28 +46,25 @@ lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t";
 proof -;
   assume "a |- e :: t";
   thus ?thesis (is "?P a e t");
-  proof induct;
-    fix a n;
-    assume "n < length (a::typ list)";
+  proof (induct ?P a e t);
+    case Var;
     hence "n < length (map ($ s) a)"; by simp;
     hence "map ($ s) a |- Var n :: map ($ s) a ! n";
-      by (rule has_type.VarI);
+      by (rule has_type.Var);
     also; have "map ($ s) a ! n = $ s (a ! n)";
       by (rule nth_map);
     also; have "map ($ s) a = $ s a";
       by (simp only: app_subst_list);
     finally; show "?P a (Var n) (a ! n)"; .;
   next;
-    fix a e t1 t2;
-    assume "?P (t1 # a) e t2";
+    case Abs;
     hence "$ s t1 # map ($ s) a |- e :: $ s t2";
       by (simp add: app_subst_list);
     hence "map ($ s) a |- Abs e :: $ s t1 -> $ s t2";
-      by (rule has_type.AbsI);
+      by (rule has_type.Abs);
     thus "?P a (Abs e) (t1 -> t2)"; by (simp add: app_subst_list);
   next;
-    fix a e1 e2 t1 t2;
-    assume "?P a e1 (t2 -> t1)" "?P a e2 t2";
+    case App;
     thus "?P a (App e1 e2) t1"; by simp;
   qed;
 qed;
@@ -102,10 +100,10 @@ text_raw {* \end{comment} *};
 theorem W_correct: "W e a n = Ok (s, t, m) ==> $ s a |- e :: t";
 proof -;
   assume W_ok: "W e a n = Ok (s, t, m)";
-  have "ALL a s t m n . Ok (s, t, m) = W e a n --> $ s a |- e :: t"
+  have "ALL a s t m n. Ok (s, t, m) = W e a n --> $ s a |- e :: t"
     (is "?P e");
   proof (induct e);
-    fix n; show "?P (Var n)"; by simp;
+    fix i; show "?P (Var i)"; by simp;
   next;
     fix e; assume hyp: "?P e";
     show "?P (Abs e)";
@@ -115,7 +113,7 @@ proof -;
       thus "$ s a |- Abs e :: t";
 	obtain t' where "t = s n -> t'" "Ok (s, t', m) = W e (TVar n # a) (Suc n)";
 	  by (rule rev_mp) simp;
-	with hyp; show ?thesis; by (force intro: has_type.AbsI);
+	with hyp; show ?thesis; by (force intro: has_type.Abs);
       qed;
     qed;
   next;
@@ -132,7 +130,7 @@ proof -;
           and W2_ok: "W e2 ($ s1 a) n1 = Ok (s2, t2, n2)";
 	    by (rule rev_mp) simp;
         show ?thesis;
-        proof (rule has_type.AppI);
+        proof (rule has_type.App);
           from s; have s': "$ u ($ s2 ($ s1 a)) = $s a";
             by (simp add: subst_comp_tel o_def);
           show "$s a |- e1 :: $ u t2 -> t";
