@@ -76,6 +76,7 @@ in
 (*Make meta-equalities.  The operator below is Trueprop*)
 
 fun mk_meta_eq r = r RS eq_reflection;
+fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 
 val Eq_TrueI  = mk_meta_eq(prover  "P --> (P = True)"  RS mp);
 val Eq_FalseI = mk_meta_eq(prover "~P --> (P = False)" RS mp);
