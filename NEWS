@@ -17,6 +17,12 @@ New in this Isabelle release
   symbols.  Call 'isatool fixgreek' to try to fix parsing errors in
   existing theory and ML files.
 
+* Pure: Using the functions Theory.add_finals or Theory.add_finals_i
+  or the new Isar command "finalconsts", it is now possible to
+  make constants "final", thereby ensuring that they are not defined
+  later.  Useful for constants whose behaviour is fixed axiomatically
+  rather than definitionally, such as the meta-logic connectives.
+
 *** Isar ***
 
 * Tactic emulation methods ?rule_tac, cut_tac, subgoal_tac and thin_tac:
@@ -42,7 +48,8 @@ New in this Isabelle release
 *** HOL ***
 
 * 'specification' command added, allowing for definition by
-specification.
+  specification.  There is also an 'ax_specification' command that
+  introduces the new constants axiomatically.
 
 * SET-Protocol: formalization and verification of the SET protocol suite;
 
