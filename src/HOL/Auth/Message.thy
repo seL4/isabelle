@@ -38,14 +38,6 @@ constdefs
 datatype  (*We allow any number of friendly agents*)
   agent = Server | Friend nat | Spy
 
-consts  
-  isSpy :: agent => bool
-
-primrec isSpy agent
-  isSpy_Server  "isSpy Server  = False"
-  isSpy_Friend  "isSpy (Friend i) = False"
-  isSpy_Spy   "isSpy Spy = True"
-
 datatype  (*Messages are agent names, nonces, keys, pairs and encryptions*)
   msg = Agent agent
       | Nonce nat
