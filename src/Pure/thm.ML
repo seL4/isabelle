@@ -1597,8 +1597,8 @@ fun rewrite_rule_extra_vars prems elhs erhs =
   not ((term_tvars erhs) subset
        (term_tvars elhs  union  List.concat(map term_tvars prems)));
 
-(*simple test for looping rewrite*)
-fun looptest sign prems lhs rhs =
+(*Simple test for looping rewrite rules and stupid orientations*)
+fun reorient sign prems lhs rhs =
    rewrite_rule_extra_vars prems lhs rhs
   orelse
    is_Var (head_of lhs)
@@ -1607,10 +1607,11 @@ fun looptest sign prems lhs rhs =
   orelse
    (null prems andalso
     Pattern.matches (#tsig (Sign.rep_sg sign)) (lhs, rhs))
-(*the condition "null prems" in the last cases is necessary because
-  conditional rewrites with extra variables in the conditions may terminate
-  although the rhs is an instance of the lhs. Example:
-  ?m < ?n ==> f(?n) == f(?m)*)
+    (*the condition "null prems" is necessary because conditional rewrites
+      with extra variables in the conditions may terminate although
+      the rhs is an instance of the lhs. Example: ?m < ?n ==> f(?n) == f(?m)*)
+  orelse
+   (is_Const lhs andalso not(is_Const rhs))
 
 fun decomp_simp(thm as Thm {sign_ref, prop, ...}) =
   let val sign = Sign.deref sign_ref;
@@ -1653,8 +1654,8 @@ fun mk_rrule mss thm =
 fun orient_rrule mss thm =
   let val (sign,prems,lhs,rhs,perm) = decomp_simp thm
   in if perm then [{thm=thm,lhs=lhs,perm=true}]
-     else if looptest sign prems lhs rhs
-          then if looptest sign prems rhs lhs
+     else if reorient sign prems lhs rhs
+          then if reorient sign prems rhs lhs
                then mk_eq_True mss thm
                else let val Mss{mk_rews={mk_sym,...},...} = mss
                     in case mk_sym thm of
@@ -2052,11 +2053,13 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
                    val mss1 = foldl insert_rrule (add_prems(mss,[thm]),rrules1)
                in (rrules1, lhss1, mss1) end
 
-        fun rebuild(conc2,(shyps2,hyps2,ders2)) =
+        fun disch1(conc2,(shyps2,hyps2,ders2)) =
           let val hyps2' = if gen_mem (op aconv) (prem1, hyps1)
                            then hyps2 else hyps2\prem1
-              val trec = (Logic.mk_implies(prem1,conc2),
-                          (shyps2,hyps2',ders2))
+          in (Logic.mk_implies(prem1,conc2),(shyps2,hyps2',ders2)) end
+
+        fun rebuild trec2 =
+          let val trec = disch1 trec2
           in case rewritec (prover,sign_ref,maxidx) mss trec of
                None => (None,trec)
              | Some(Const("==>",_)$prem$conc,etc) =>
@@ -2068,10 +2071,10 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
           case conc of
             Const("==>",_)$s$t =>
               (case impc(prems@[prem1],s,t,mss1,etc1) of
-                 (Some(i,prem),(conc2,etc2)) =>
-                    let val impl = Logic.mk_implies(prem1,conc2)
-                    in if i=0 then impc1(prems,prem,impl,mss,etc2)
-                       else (Some(i-1,prem),(impl,etc2))
+                 (Some(i,prem),trec2) =>
+                    let val trec2' = disch1 trec2
+                    in if i=0 then impc1(prems,prem,fst trec2',mss,snd trec2')
+                       else (Some(i-1,prem),trec2')
                     end
                | (None,trec) => rebuild(trec))
           | _ => rebuild(try_botc mss1 (conc,etc1))

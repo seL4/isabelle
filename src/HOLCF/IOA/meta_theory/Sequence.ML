@@ -414,8 +414,6 @@ by (Seq_Finite_induct_tac 1);
 (* nil*)
 by (strip_tac 1);
 by (Seq_case_simp_tac "x" 1);
-by (hyp_subst_tac 1);
-by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 (* cons *)
 by (strip_tac 1);

@@ -178,7 +178,7 @@ val hoare_lemma10 = "[| ? k. b1`(iterate k g ?x1) ~= TT;
 
 val hoare_lemma11 = prove_goal Hoare.thy 
 "(? n. b1`(iterate n g x) ~= TT) ==>\
-\ k=Least(%n. b1`(iterate n g x) ~= TT) & b1`(iterate k g x)=FF \
+\ k=(LEAST n. b1`(iterate n g x) ~= TT) & b1`(iterate k g x)=FF \
 \ --> p`x = iterate k g x"
  (fn prems =>
         [
@@ -191,9 +191,6 @@ val hoare_lemma11 = prove_goal Hoare.thy
         (rtac trans 1),
         (rtac p_def3 1),
         (asm_simp_tac HOLCF_ss 1),
-        (eres_inst_tac
-           [("s","0"),("t","Least(%n. b1`(iterate n g x) ~= TT)")] subst 1),
-        (Simp_tac 1),
         (hyp_subst_tac 1),
         (strip_tac 1),
         (etac conjE 1),

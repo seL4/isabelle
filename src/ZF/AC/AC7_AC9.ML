@@ -140,7 +140,6 @@ by (dtac bspec 1 THEN (assume_tac 1));
 by (REPEAT (eresolve_tac [exE,conjE] 1));
 by (hyp_subst_tac 1);
 by (Asm_full_simp_tac 1);
-by (fast_tac (claset() addSEs [sym RS equals0D]) 1);
 val lemma1 = result();
 
 goal thy "!!A. [| f: (PROD X:RepFun(A,p). X); D:A |]  \
