@@ -11,59 +11,59 @@ This time we use the reals, though the representation is just of integers.
 
 Goal "(#1359::real)  +  #-2468 = #-1109";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "(#93746::real) +  #-46375 = #47371";
 by (Simp_tac 1);
-result();
+qed "";
 
 (*** Negation ***)
 
 Goal "- (#65745::real) = #-65745";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "- (#-54321::real) = #54321";
 by (Simp_tac 1);
-result();
+qed "";
 
 
 (*** Multiplication ***)
 
 Goal "(#-84::real)  *  #51 = #-4284";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "(#255::real)  *  #255 = #65025";
 by (Simp_tac 1);
-result();
+qed "";
 
 Goal "(#1359::real)  *  #-2468 = #-3354012";
 by (Simp_tac 1);
-result();
+qed "";
 
 (*** Inequalities ***)
 
 Goal "(#89::real) * #10 ~= #889";  
 by (Simp_tac 1); 
-result();
+qed "";
 
 Goal "(#13::real) < #18 - #4";  
 by (Simp_tac 1); 
-result();
+qed "";
 
 Goal "(#-345::real) < #-242 + #-100";  
 by (Simp_tac 1); 
-result();
+qed "";
 
 Goal "(#13557456::real) < #18678654";  
 by (Simp_tac 1); 
-result();
+qed "";
 
 Goal "(#999999::real) <= (#1000001 + #1)-#2";  
 by (Simp_tac 1); 
-result();
+qed "";
 
 Goal "(#1234567::real) <= #1234567";  
 by (Simp_tac 1); 
-result();
+qed "";

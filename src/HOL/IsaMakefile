@@ -90,7 +90,8 @@ $(OUT)/HOL-Real: $(OUT)/HOL Real/Lubs.ML Real/Lubs.thy Real/PNat.ML \
 
 HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
 
-$(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML Real/ex/BinEx.ML
+$(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML \
+  Real/ex/BinEx.thy
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
 
 
