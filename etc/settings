@@ -37,6 +37,11 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 #ML_HOME=/usr/local/smlnj-110/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
+# MLWorks 1.0r2 or later -- still EXPERIMENTAL!!
+#ML_SYSTEM=mlworks
+#ML_HOME=/usr/local/mlworks/bin
+#ML_OPTIONS=""
+
 
 ###
 ### Compilation options
