@@ -118,6 +118,12 @@ qed "Spy_sees_lost";
 
 AddSIs [sees_own_shrK, Spy_sees_lost];
 
+(*Added for Yahalom/lost_tac*)
+goal thy "!!A. [| Crypt X (shrK A) : analz (sees lost Spy evs);  A: lost |] \
+\              ==> X : analz (sees lost Spy evs)";
+by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
+qed "Crypt_Spy_analz_lost";
+
 (** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
 
 goal thy "sees lost B (Says A B X # evs) = insert X (sees lost B evs)";
@@ -242,7 +248,8 @@ fun safe_solver prems =
     ORELSE' etac FalseE;
 
 (*Analysis of Fake cases and of messages that forward unknown parts
-  Abstraction over i is ESSENTIAL: it delays the dereferencing of claset*)
+  Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
+  DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
 fun spy_analz_tac i =
   SELECT_GOAL 
    (EVERY [  (*push in occurrences of X...*)
@@ -250,12 +257,12 @@ fun spy_analz_tac i =
              (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
              (*...allowing further simplifications*)
            simp_tac (!simpset setloop split_tac [expand_if]) 1,
-           REPEAT (resolve_tac [impI,notI] 1),
+           REPEAT (resolve_tac [allI,impI,notI] 1),
            dtac (impOfSubs Fake_analz_insert) 1,
            eresolve_tac [asm_rl, synth.Inj] 1,
            Fast_tac 1,
            Asm_full_simp_tac 1,
-           IF_UNSOLVED (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 1)
+           IF_UNSOLVED (depth_tac (!claset addIs [impOfSubs analz_mono]) 2 1)
            ]) i;
 
 
@@ -276,6 +283,7 @@ by (Simp_tac 1);
 val newK_invKey = result();
 
 AddSDs [newK_invKey];
+AddSDs [sym RS newK_invKey];
 
 Delsimps [image_insert];
 Addsimps [image_insert RS sym];
@@ -300,4 +308,7 @@ goal thy
 by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 1);
 qed "analz_image_newK_lemma";
 
+
+(*Useful in many uniqueness proofs*)
+fun ex_strip_tac i = REPEAT (ares_tac [exI, conjI] i) THEN assume_tac (i+1);
 
