@@ -115,7 +115,7 @@ non-identifier names or those ruled out by outer syntax keywords (e.g.\
 Large chunks of plain \railqtoken{text} are usually given
 \railtoken{verbatim}, i.e.\ enclosed in \verb|{*|~\dots~\verb|*}|.  For
 convenience, any of the smaller text units conforming to \railqtoken{nameref}
-are admitted as well.  Almost any of the Isar commands may be annotated by a
+are admitted as well.  Almost any of the Isar commands may be annotated by
 marginal \railnonterm{comment} of the form \texttt{--} \railqtoken{text}.
 Note that the latter kind of comment is actually part of the language, while
 source level comments \verb|(*|~\dots~\verb|*)| are stripped at the lexical
@@ -129,7 +129,7 @@ every hope, who enter here.
 \begin{rail}
   text: verbatim | nameref
   ;
-  comment: '--' text
+  comment: ('--' text +)
   ;
   interest: percent nat? | ppercent
   ;
