@@ -25,7 +25,6 @@ text {*
 
 text_raw {*
   \newcommand{\isasyminv}{\isasyminverse}
-  \newcommand{\isasymone}{\isamath{1}}
   \newcommand{\isasymIN}{\isatext{\isakeyword{in}}}
 *}
 
