@@ -42,9 +42,12 @@ fun gen_constdef prep_typ prep_term prep_att
     val ctxt =
       ProofContext.init thy |> ProofContext.add_fixes
         (flat (map (fn (As, T) => map (fn A => (A, T, None)) As) structs));
-    val (ctxt', mx) =
-      (case decl of None => (ctxt, Syntax.NoSyn) | Some (x, raw_T, mx) =>
-        (ProofContext.add_fixes [(x, apsome (prep_typ ctxt) raw_T, Some mx)] ctxt, mx));
+    val (ctxt', d, mx) =
+      (case decl of None => (ctxt, None, Syntax.NoSyn) | Some (x, raw_T, mx) =>
+        let
+          val x' = Syntax.const_name x mx and mx' = Syntax.fix_mixfix x mx;
+          val T = apsome (prep_typ ctxt) raw_T;
+        in (ProofContext.add_fixes_liberal [(x', T, Some mx')] ctxt, Some x', mx') end);
 
     val prop = prep_term ctxt' raw_prop;
     val concl = Logic.strip_imp_concl prop;
@@ -53,9 +56,9 @@ fun gen_constdef prep_typ prep_term prep_att
     val head = Term.head_of lhs;
     val (c, T) = Term.dest_Free head handle TERM _ =>
       err "Locally fixed variable required as head of definition:" [head];
-    val _ = (case decl of None => () | Some (d, _, _) =>
-      if c <> d then
-        err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote d) []
+    val _ = (case d of None => () | Some c' =>
+      if c <> c' then
+        err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
       else ());
 
     val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_name sign c, T))] prop;
@@ -75,9 +78,9 @@ fun gen_constdefs prep_vars prep_typ prep_term prep_att (raw_structs, specs) thy
       |> foldl_map (gen_constdef prep_typ prep_term prep_att structs);
   in Pretty.writeln (pretty_constdefs (Theory.sign_of thy') decls); thy' end;
 
-val add_constdefs = gen_constdefs ProofContext.read_vars
-  ProofContext.read_typ ProofContext.read_term Attrib.global_attribute;
-val add_constdefs_i = gen_constdefs ProofContext.cert_vars
+val add_constdefs = gen_constdefs ProofContext.read_vars_liberal
+  ProofContext.read_typ ProofContext.read_term_liberal Attrib.global_attribute;
+val add_constdefs_i = gen_constdefs ProofContext.cert_vars_liberal
   ProofContext.cert_typ ProofContext.cert_term (K I);
 
 end;
