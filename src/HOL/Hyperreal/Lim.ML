@@ -1074,11 +1074,10 @@ qed "DERIV_cmult";
  -------------------------------*)
 Goal "NSDERIV f x :> D ==> NSDERIV (%x. -(f x)) x :> -D";
 by (asm_full_simp_tac (simpset() addsimps [NSDERIV_NSLIM_iff]) 1);
-by (res_inst_tac [("t","f x")] (real_minus_minus RS subst) 1);
-by (subgoal_tac "(\\<lambda>h. (- f (x + h) + - (- f x)) / h) = (\\<lambda>h. - ((f (x + h) + - f x) / h))" 1);
+by (dtac NSLIM_minus 1);
+by (subgoal_tac "ALL a::real. ALL b. - a + b = - (a + - b)" 1);
+by (asm_full_simp_tac (HOL_ss addsimps [thm"minus_divide_left" RS sym]) 1);
 by (Asm_full_simp_tac 1); 
-by (etac NSLIM_minus 1);
-by (asm_full_simp_tac (simpset() addsimps [real_minus_divide_eq RS sym]) 1); 
 qed "NSDERIV_minus";
 
 Goal "DERIV f x :> D \

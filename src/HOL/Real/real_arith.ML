@@ -20,6 +20,16 @@ val pos_real_divide_le_eq = thm"pos_divide_le_eq";
 
 (****Common factor cancellation****)
 
+(*To quote from Provers/Arith/cancel_numeral_factor.ML:
+
+This simproc Cancels common coefficients in balanced expressions:
+
+     u*#m ~~ u'*#m'  ==  #n*u ~~ #n'*u'
+
+where ~~ is an appropriate balancing operation (e.g. =, <=, <, div, /)
+and d = gcd(m,m') and n=m/d and n'=m'/d.
+*)
+
 val real_inverse_eq_divide = thm"real_inverse_eq_divide";
 val real_mult_less_cancel2 = thm"real_mult_less_cancel2";
 val real_mult_le_cancel2 = thm"real_mult_le_cancel2";
@@ -234,7 +244,8 @@ val simps = [True_implies_equals,
              inst "w" "number_of ?v" real_add_mult_distrib2,
              divide_1,times_divide_eq_right,times_divide_eq_left];
 
-val simprocs = [real_cancel_numeral_factors_divide];
+val simprocs = [real_cancel_numeral_factors_divide,
+                real_cancel_numeral_factors_divide];
 
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 

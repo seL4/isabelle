@@ -430,9 +430,8 @@ by (case_tac "x = 1" 1);
 by (auto_tac (claset() addSDs [LIMSEQ_rabs_realpow_zero2],
              simpset() addsimps [sumr_geometric ,sums_def,
                                  real_diff_def, real_add_divide_distrib]));
-by (subgoal_tac "1 / (1 + -x) = 0/(x - 1) + - 1/(x - 1)" 1);
-by (asm_full_simp_tac (simpset() addsimps [
-                      real_divide_minus_eq RS sym, real_diff_def]) 2); 
+by (subgoal_tac "1 / (1 + -x) = 0/(x - 1) + - 1/(x - 1)" 1); 
+by (asm_full_simp_tac (simpset() addsimps [thm"minus_divide_right"]) 2); 
 by (etac ssubst 1); 
 by (rtac LIMSEQ_add 1 THEN rtac LIMSEQ_divide 1);
 by (auto_tac (claset() addIs [LIMSEQ_const], 

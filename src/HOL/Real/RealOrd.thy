@@ -16,16 +16,10 @@ defs (overloaded)
 subsection{*Properties of Less-Than Or Equals*}
 
 lemma real_leI: "~(w < z) ==> z \<le> (w::real)"
-apply (unfold real_le_def, assumption)
-done
+by (unfold real_le_def, assumption)
 
 lemma real_leD: "z\<le>w ==> ~(w<(z::real))"
 by (unfold real_le_def, assumption)
-
-lemmas real_leE = real_leD [elim_format]
-
-lemma real_less_le_iff: "(~(w < z)) = (z \<le> (w::real))"
-by (blast intro!: real_leI real_leD)
 
 lemma not_real_leE: "~ z \<le> w ==> w<(z::real)"
 by (unfold real_le_def, blast)
@@ -106,9 +100,7 @@ lemma real_less_all_real2: "~ 0 < y ==> \<forall>x. y < real_of_preal x"
 by (blast intro!: real_less_all_preal real_leI)
 
 lemma real_of_preal_le_iff: "(real_of_preal m1 \<le> real_of_preal m2) = (m1 \<le> m2)"
-apply (auto intro!: preal_leI simp add: real_less_le_iff [symmetric])
-apply (drule order_le_less_trans, assumption)
-apply (erule preal_less_irrefl)
+apply (auto intro!: preal_leI simp add: linorder_not_less [symmetric])
 done
 
 
@@ -195,8 +187,8 @@ done
 
 lemma real_add_left_mono: "x \<le> y ==> z + x \<le> z + (y::real)"
 apply (rule real_le_eqI [THEN iffD1]) 
- prefer 2 apply assumption; 
-apply (simp add: real_diff_def real_add_ac);
+ prefer 2 apply assumption
+apply (simp add: real_diff_def real_add_ac)
 done
 
 
@@ -295,26 +287,8 @@ lemma real_minus_inverse: "inverse(-x) = -inverse(x::real)"
 lemma real_inverse_distrib: "inverse(x*y) = inverse(x)*inverse(y::real)"
   by (rule Ring_and_Field.inverse_mult_distrib)
 
-(** As with multiplication, pull minus signs OUT of the / operator **)
-
-lemma real_minus_divide_eq: "(-x) / (y::real) = - (x/y)"
-by (simp add: real_divide_def)
-declare real_minus_divide_eq [simp]
-
-lemma real_divide_minus_eq: "(x / -(y::real)) = - (x/y)"
-by (simp add: real_divide_def real_minus_inverse)
-declare real_divide_minus_eq [simp]
-
 lemma real_add_divide_distrib: "(x+y)/(z::real) = x/z + y/z"
-by (simp add: real_divide_def real_add_mult_distrib)
-
-(*The following would e.g. convert (x+y)/2 to x/2 + y/2.  Sometimes that
-  leads to cancellations in x or y, but is also prevents "multiplying out"
-  the 2 in e.g. (x+y)/2 = 5.
-
-Addsimps [inst "z" "number_of ?w" real_add_divide_distrib]
-**)
-
+  by (rule Ring_and_Field.add_divide_distrib)
 
 
 subsection{*More Lemmas*}
@@ -393,34 +367,6 @@ lemma real_mult_div_cancel1: "!!k::real. k~=0 ==> (k*m) / (k*n) = (m/n)"
 lemma real_mult_div_cancel_disj:
      "(k*m) / (k*n) = (if k = (0::real) then 0 else m/n)"
   by (rule Ring_and_Field.mult_divide_cancel_eq_if) 
-
-
-subsection{*For the @{text abel_cancel} Simproc (DELETE)*}
-
-lemma real_eq_eqI: "(x::real) - y = x' - y' ==> (x=y) = (x'=y')"
-apply safe
-apply (simp_all add: eq_diff_eq diff_eq_eq)
-done
-
-lemma real_add_minus_cancel: "z + ((- z) + w) = (w::real)"
-by (simp add: real_add_assoc [symmetric])
-
-lemma real_minus_add_cancel: "(-z) + (z + w) = (w::real)"
-by (simp add: real_add_assoc [symmetric])
-
-(*Deletion of other terms in the formula, seeking the -x at the front of z*)
-lemma real_add_cancel_21: "((x::real) + (y + z) = y + u) = ((x + z) = u)"
-apply (subst real_add_left_commute)
-apply (rule real_add_left_cancel)
-done
-
-(*A further rule to deal with the case that
-  everything gets cancelled on the right.*)
-lemma real_add_cancel_end: "((x::real) + (y + z) = y) = (x = -z)"
-apply (subst real_add_left_commute)
-apply (rule_tac t = y in real_add_zero_right [THEN subst], subst real_add_left_cancel)
-apply (simp add: real_diff_def eq_diff_eq [symmetric])
-done
 
 
 subsection{*Inverse and Division*}
@@ -606,8 +552,7 @@ by (auto dest: inj_real_of_nat [THEN injD])
 
 lemma real_of_nat_diff [rule_format]:
      "n \<le> m --> real (m - n) = real (m::nat) - real n"
-apply (induct_tac "m")
-apply (simp add: );
+apply (induct_tac "m", simp)
 apply (simp add: real_diff_def Suc_diff_le le_Suc_eq real_of_nat_Suc add_ac)
 apply (simp add: add_left_commute [of _ "- 1"]) 
 done
@@ -649,11 +594,10 @@ declare real_of_posnat_not_eq_zero [THEN real_mult_inv_right, simp]
 
 lemma real_of_posnat_ge_one: "1 <= real_of_posnat n"
 apply (simp (no_asm) add: real_of_posnat_one [symmetric])
-apply (induct_tac "n")
-apply (simp add: ); 
+apply (induct_tac "n", simp) 
 apply (simp add: real_of_posnat_Suc real_of_posnat_one order_less_imp_le)
 apply (rule add_le_cancel_right [THEN iffD1, of _ "- 1"]) 
-apply (simp add: add_assoc); 
+apply (simp add: add_assoc) 
 done
 declare real_of_posnat_ge_one [simp]
 
@@ -780,8 +724,7 @@ done
 declare real_of_nat_ge_zero_cancel_iff [simp]
 
 lemma real_of_nat_num_if: "real n = (if n=0 then 0 else 1 + real ((n::nat) - 1))"
-apply (case_tac "n")
-apply (simp add: ); 
+apply (case_tac "n", simp) 
 apply (simp add: real_of_nat_Suc add_commute)
 done
 
@@ -860,8 +803,6 @@ val real_neq_iff = thm"real_neq_iff";
 val real_linear_less2 = thm"real_linear_less2";
 val real_leI = thm"real_leI";
 val real_leD = thm"real_leD";
-val real_leE = thm"real_leE";
-val real_less_le_iff = thm"real_less_le_iff";
 val not_real_leE = thm"not_real_leE";
 val real_le_imp_less_or_eq = thm"real_le_imp_less_or_eq";
 val real_less_or_eq_imp_le = thm"real_less_or_eq_imp_le";
@@ -937,8 +878,6 @@ val real_inverse_inverse = thm"real_inverse_inverse";
 val real_inverse_1 = thm"real_inverse_1";
 val real_minus_inverse = thm"real_minus_inverse";
 val real_inverse_distrib = thm"real_inverse_distrib";
-val real_minus_divide_eq = thm"real_minus_divide_eq";
-val real_divide_minus_eq = thm"real_divide_minus_eq";
 val real_add_divide_distrib = thm"real_add_divide_distrib";
 
 val real_of_posnat_one = thm "real_of_posnat_one";
@@ -990,8 +929,6 @@ val real_of_nat_num_if = thm "real_of_nat_num_if";
 
 val real_minus_add_distrib = thm"real_minus_add_distrib";
 val real_add_left_cancel = thm"real_add_left_cancel";
-val real_add_minus_cancel = thm"real_add_minus_cancel";
-val real_minus_add_cancel = thm"real_minus_add_cancel";
 *}
 
 end

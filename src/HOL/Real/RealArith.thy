@@ -63,14 +63,16 @@ done
 
 (*** Density of the Reals ***)
 
+text{*Similar results are proved in @{text Ring_and_Field}*}
 lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
-by auto
+  by auto
 
 lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
-by auto
+  by auto
 
 lemma real_dense: "x < y ==> \<exists>r::real. x < r & r < y"
-by (blast intro!: real_less_half_sum real_gt_half_sum)
+  by (rule Ring_and_Field.dense)
+
 
 subsection{*Absolute Value Function for the Reals*}
 

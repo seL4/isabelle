@@ -640,30 +640,6 @@ lemma mult_cancel_left [simp]:
 by (simp add: mult_commute [of c] mult_cancel_right)
 
 
-subsection {* Absolute Value *}
-
-text{*But is it really better than just rewriting with @{text abs_if}?*}
-lemma abs_split:
-     "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
-by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
-
-lemma abs_zero [simp]: "abs 0 = (0::'a::ordered_ring)"
-by (simp add: abs_if)
-
-lemma abs_mult: "abs (x * y) = abs x * abs (y::'a::ordered_ring)" 
-apply (case_tac "x=0 | y=0", force) 
-apply (auto elim: order_less_asym
-            simp add: abs_if mult_less_0_iff linorder_neq_iff
-                  minus_mult_left [symmetric] minus_mult_right [symmetric])  
-done
-
-lemma abs_eq_0 [simp]: "(abs x = 0) = (x = (0::'a::ordered_ring))"
-by (simp add: abs_if)
-
-lemma zero_less_abs_iff [simp]: "(0 < abs x) = (x ~= (0::'a::ordered_ring))"
-by (simp add: abs_if linorder_neq_iff)
-
-
 subsection {* Fields *}
 
 lemma right_inverse [simp]:
@@ -703,6 +679,14 @@ by (simp add: divide_inverse_zero)
 
 lemma inverse_eq_divide: "inverse (a::'a::{field,division_by_zero}) = 1/a"
 by (simp add: divide_inverse_zero)
+
+lemma nonzero_add_divide_distrib: "c \<noteq> 0 ==> (a+b)/(c::'a::field) = a/c + b/c"
+by (simp add: divide_inverse left_distrib) 
+
+lemma add_divide_distrib: "(a+b)/(c::'a::{field,division_by_zero}) = a/c + b/c"
+apply (case_tac "c=0", simp) 
+apply (simp add: nonzero_add_divide_distrib) 
+done
 
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
@@ -922,6 +906,37 @@ by (simp add: divide_inverse_zero mult_ac)
 lemma divide_divide_eq_left [simp]:
      "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
 by (simp add: divide_inverse_zero mult_assoc)
+
+
+subsection {* Division and Unary Minus *}
+
+lemma nonzero_minus_divide_left: "b \<noteq> 0 ==> - (a/b) = (-a) / (b::'a::field)"
+by (simp add: divide_inverse minus_mult_left)
+
+lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a/b) = a / -(b::'a::field)"
+by (simp add: divide_inverse nonzero_inverse_minus_eq minus_mult_right)
+
+lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a)/(-b) = a / (b::'a::field)"
+by (simp add: divide_inverse nonzero_inverse_minus_eq)
+
+lemma minus_divide_left: "- (a/b) = (-a) / (b::'a::{field,division_by_zero})"
+apply (case_tac "b=0", simp) 
+apply (simp add: nonzero_minus_divide_left) 
+done
+
+lemma minus_divide_right: "- (a/b) = a / -(b::'a::{field,division_by_zero})"
+apply (case_tac "b=0", simp) 
+by (rule nonzero_minus_divide_right) 
+
+text{*The effect is to extract signs from divisions*}
+declare minus_divide_left  [symmetric, simp]
+declare minus_divide_right [symmetric, simp]
+
+lemma minus_divide_divide [simp]:
+     "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
+apply (case_tac "b=0", simp) 
+apply (simp add: nonzero_minus_divide_divide) 
+done
 
 
 subsection {* Ordered Fields *}
@@ -1277,6 +1292,94 @@ lemma divide_cancel_left [simp]:
 apply (case_tac "c=0", simp) 
 apply (simp add: divide_inverse_zero field_mult_cancel_left) 
 done
+
+
+subsection {* Ordering Rules for Division *}
+
+lemma divide_strict_right_mono:
+     "[|a < b; 0 < c|] ==> a / c < b / (c::'a::ordered_field)"
+by (simp add: order_less_imp_not_eq2 divide_inverse mult_strict_right_mono 
+              positive_imp_inverse_positive) 
+
+lemma divide_right_mono:
+     "[|a \<le> b; 0 \<le> c|] ==> a/c \<le> b/(c::'a::{ordered_field,division_by_zero})"
+  by (force simp add: divide_strict_right_mono order_le_less) 
+
+
+text{*The last premise ensures that @{term a} and @{term b} 
+      have the same sign*}
+lemma divide_strict_left_mono:
+       "[|b < a; 0 < c; 0 < a*b|] ==> c / a < c / (b::'a::ordered_field)"
+by (force simp add: zero_less_mult_iff divide_inverse mult_strict_left_mono 
+      order_less_imp_not_eq order_less_imp_not_eq2  
+      less_imp_inverse_less less_imp_inverse_less_neg) 
+
+lemma divide_left_mono:
+     "[|b \<le> a; 0 \<le> c; 0 < a*b|] ==> c / a \<le> c / (b::'a::ordered_field)"
+  apply (subgoal_tac "a \<noteq> 0 & b \<noteq> 0") 
+   prefer 2 
+   apply (force simp add: zero_less_mult_iff order_less_imp_not_eq) 
+  apply (case_tac "c=0", simp add: divide_inverse)
+  apply (force simp add: divide_strict_left_mono order_le_less) 
+  done
+
+lemma divide_strict_left_mono_neg:
+     "[|a < b; c < 0; 0 < a*b|] ==> c / a < c / (b::'a::ordered_field)"
+  apply (subgoal_tac "a \<noteq> 0 & b \<noteq> 0") 
+   prefer 2 
+   apply (force simp add: zero_less_mult_iff order_less_imp_not_eq) 
+  apply (drule divide_strict_left_mono [of _ _ "-c"]) 
+   apply (simp_all add: mult_commute nonzero_minus_divide_left [symmetric]) 
+  done
+
+lemma divide_strict_right_mono_neg:
+     "[|b < a; c < 0|] ==> a / c < b / (c::'a::ordered_field)"
+apply (drule divide_strict_right_mono [of _ _ "-c"], simp) 
+apply (simp add: order_less_imp_not_eq nonzero_minus_divide_right [symmetric]) 
+done
+
+
+subsection {* Ordered Fields are Dense *}
+
+lemma zero_less_two: "0 < (1+1::'a::ordered_field)"
+proof -
+  have "0 + 0 <  (1+1::'a::ordered_field)"
+    by (blast intro: zero_less_one add_strict_mono) 
+  thus ?thesis by simp
+qed
+
+lemma less_half_sum: "a < b ==> a < (a+b) / (1+1::'a::ordered_field)"
+by (simp add: zero_less_two pos_less_divide_eq right_distrib) 
+
+lemma gt_half_sum: "a < b ==> (a+b)/(1+1::'a::ordered_field) < b"
+by (simp add: zero_less_two pos_divide_less_eq right_distrib) 
+
+lemma dense: "a < b ==> \<exists>r::'a::ordered_field. a < r & r < b"
+by (blast intro!: less_half_sum gt_half_sum)
+
+
+subsection {* Absolute Value *}
+
+text{*But is it really better than just rewriting with @{text abs_if}?*}
+lemma abs_split:
+     "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
+by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
+
+lemma abs_zero [simp]: "abs 0 = (0::'a::ordered_ring)"
+by (simp add: abs_if)
+
+lemma abs_mult: "abs (x * y) = abs x * abs (y::'a::ordered_ring)" 
+apply (case_tac "x=0 | y=0", force) 
+apply (auto elim: order_less_asym
+            simp add: abs_if mult_less_0_iff linorder_neq_iff
+                  minus_mult_left [symmetric] minus_mult_right [symmetric])  
+done
+
+lemma abs_eq_0 [simp]: "(abs x = 0) = (x = (0::'a::ordered_ring))"
+by (simp add: abs_if)
+
+lemma zero_less_abs_iff [simp]: "(0 < abs x) = (x ~= (0::'a::ordered_ring))"
+by (simp add: abs_if linorder_neq_iff)
 
 
 end
