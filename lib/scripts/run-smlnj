@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# SML/NJ startup script (for 1.06 or later).
+# SML/NJ startup script (for 1.09.27 or later).
 #
 # Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE,
 # and from settings
@@ -24,11 +24,6 @@ COMMIT=""
 SUFFIX=""
 
 case "$ML_SYSTEM" in
-  smlnj-1.0[678]*)
-    EXIT="val exit = System.Unix.exit;"
-    COMMIT="fun commit () = not (exportML\"$OUTFILE\");"
-    COMMIT_RO='fun commit () = (output (std_err, "Error - Database is not opened for writing.\\n"); false);'
-    ;;
   smlnj-1.09*)
     EXIT="fun exit 0 : unit = OS.Process.exit OS.Process.success | exit _ = OS.Process.exit OS.Process.failure;"
     COMMIT="fun commit () = not (SMLofNJ.exportML\"$OUTFILE\");"
