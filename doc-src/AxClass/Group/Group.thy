@@ -42,7 +42,7 @@ text {*
  \noindent So class $monoid$ contains exactly those types $\tau$ where
  $\TIMES :: \tau \To \tau \To \tau$ and $1 :: \tau$ are specified
  appropriately, such that $\TIMES$ is associative and $1$ is a left
- and right unit element for $\TIMES$.
+ and right unit element for the $\TIMES$ operation.
 *}
 
 text {*
@@ -227,7 +227,7 @@ text {*
  transferred to Isabelle's type signature level.
 
  \medskip As a typical example, we show that type $bool$ with
- exclusive-or as operation $\TIMES$, identity as $\isasyminv$, and
+ exclusive-or as $\TIMES$ operation, identity as $\isasyminv$, and
  $False$ as $1$ forms an Abelian group.
 *}
 
