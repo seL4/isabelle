@@ -121,19 +121,23 @@ many laws relating division to addition, multiplication, etc.;
 
 *** General ***
 
-* Meta-level proof terms (by Stefan Berghofer), see also ref manual;
+* kernel: meta-level proof terms (by Stefan Berghofer), see also ref
+manual;
 
-* new token syntax "num" for plain numerals (without "#" of "xnum");
-potential INCOMPATIBILITY, since -0, -1 etc. are now separate tokens,
-so expressions involving minus need to be spaced properly;
-
-* Classical reasoner: renamed addaltern to addafter, addSaltern to
+* classical reasoner: renamed addaltern to addafter, addSaltern to
 addSafter;
+
+* syntax: new token syntax "num" for plain numerals (without "#" of
+"xnum"); potential INCOMPATIBILITY, since -0, -1 etc. are now separate
+tokens, so expressions involving minus need to be spaced properly;
 
 * syntax: support non-oriented infixes;
 
-* print modes "type_brackets" and "no_type_brackets" control output of
-nested => (types); the default behavior is "brackets";
+* syntax: print modes "type_brackets" and "no_type_brackets" control
+output of nested => (types); the default behavior is "type_brackets";
+
+* syntax: builtin parse translation for "_constify" turns valued
+tokens into AST constants;
 
 * system: support Poly/ML 4.1.1 (now able to manage large heaps);
 
