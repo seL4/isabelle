@@ -3,11 +3,11 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Orders in Zermelo-Fraenkel Set Theory
-
 Results from the book "Set Theory: an Introduction to Independence Proofs"
         by Kenneth Kunen.  Chapter 1, section 6.
 *)
+
+header{*Partial and Total Orderings: Basic Definitions and Properties*}
 
 theory Order = WF + Perm:
 
@@ -48,9 +48,8 @@ syntax (xsymbols)
     ord_iso :: "[i,i,i,i]=>i"      ("(\<langle>_, _\<rangle> \<cong>/ \<langle>_, _\<rangle>)" 51)
 
 
-(** Basic properties of the definitions **)
+subsection{*Immediate Consequences of the Definitions*}
 
-(*needed?*)
 lemma part_ord_Imp_asym:
     "part_ord(A,r) ==> asym(r Int A*A)"
 by (unfold part_ord_def irrefl_def trans_on_def asym_def, blast)
@@ -109,6 +108,8 @@ lemma trans_pred_pred_eq:
 by (unfold trans_on_def pred_def, blast)
 
 
+subsection{*Restricting an Ordering's Domain*}
+
 (** The ordering's properties hold over all subsets of its domain
     [including initial segments of the form pred(A,x,r) **)
 
@@ -165,6 +166,8 @@ apply (simp add: tot_ord_Int_iff wf_on_Int_iff)
 done
 
 
+subsection{*Empty and Unit Domains*}
+
 (** Relations over the Empty Set **)
 
 lemma irrefl_0: "irrefl(0,r)"
@@ -209,6 +212,10 @@ apply (simp add: tot_ord_unit wf_on_unit)
 done
 
 
+subsection{*Order-Isomorphisms*}
+
+text{*Suppes calls them "similarities"*}
+
 (** Order-preserving (monotone) maps **)
 
 lemma mono_map_is_fun: "f: mono_map(A,r,B,s) ==> f: A->B"
@@ -220,9 +227,6 @@ apply (unfold mono_map_def inj_def, clarify)
 apply (erule_tac x=w and y=x in linearE, assumption+)
 apply (force intro: apply_type dest: wf_on_not_refl)+
 done
-
-
-(** Order-isomorphisms -- or similarities, as Suppes calls them **)
 
 lemma ord_isoI:
     "[| f: bij(A, B);
@@ -342,7 +346,7 @@ apply (fast elim!: part_ord_ord_iso linear_ord_iso wf_on_ord_iso)
 done
 
 
-(*** Main results of Kunen, Chapter 1 section 6 ***)
+subsection{*Main results of Kunen, Chapter 1 section 6*}
 
 (*Inductive argument for Kunen's Lemma 6.1, etc.
   Simple proof from Halmos, page 72*)
@@ -456,7 +460,7 @@ apply (blast intro: ord_iso_is_bij bij_is_fun apply_funtype
                     well_ord_is_linear well_ord_ord_iso ord_iso_sym)
 done
 
-(** Towards Kunen's Theorem 6.3: linearity of the similarity relation **)
+subsection{*Towards Kunen's Theorem 6.3: Linearity of the Similarity Relation*}
 
 lemma ord_iso_map_subset: "ord_iso_map(A,r,B,s) <= A*B"
 by (unfold ord_iso_map_def, blast)
@@ -564,8 +568,8 @@ apply (rule converse_ord_iso_map [THEN subst])
 apply (simp add: domain_ord_iso_map_cases)
 done
 
-(*Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets*)
-lemma well_ord_trichotomy:
+text{*Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets*}
+theorem well_ord_trichotomy:
    "[| well_ord(A,r);  well_ord(B,s) |]
     ==> ord_iso_map(A,r,B,s) : ord_iso(A, r, B, s) |
         (EX x:A. ord_iso_map(A,r,B,s) : ord_iso(pred(A,x,r), r, B, s)) |
@@ -585,7 +589,9 @@ apply (unfold ord_iso_map_def, blast)
 done
 
 
-(*** Properties of converse(r), by Krzysztof Grabczewski ***)
+subsection{*Miscellaneous Results by Krzysztof Grabczewski*}
+
+(** Properties of converse(r) **)
 
 lemma irrefl_converse: "irrefl(A,r) ==> irrefl(A,converse(r))"
 by (unfold irrefl_def, blast)

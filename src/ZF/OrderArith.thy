@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Towards ordinal arithmetic.  Also useful with wfrec.
 *)
+
+header{*Combining Orderings: Foundations of Ordinal Arithmetic*}
 
 theory OrderArith = Order + Sum + Ordinal:
 constdefs
@@ -32,29 +33,25 @@ constdefs
     "measure(A,f) == {<x,y>: A*A. f(x) < f(y)}"
 
 
-(**** Addition of relations -- disjoint sum ****)
+subsection{*Addition of Relations -- Disjoint Sum*}
 
 (** Rewrite rules.  Can be used to obtain introduction rules **)
 
 lemma radd_Inl_Inr_iff [iff]: 
     "<Inl(a), Inr(b)> : radd(A,r,B,s)  <->  a:A & b:B"
-apply (unfold radd_def, blast)
-done
+by (unfold radd_def, blast)
 
 lemma radd_Inl_iff [iff]: 
     "<Inl(a'), Inl(a)> : radd(A,r,B,s)  <->  a':A & a:A & <a',a>:r"
-apply (unfold radd_def, blast)
-done
+by (unfold radd_def, blast)
 
 lemma radd_Inr_iff [iff]: 
     "<Inr(b'), Inr(b)> : radd(A,r,B,s) <->  b':B & b:B & <b',b>:s"
-apply (unfold radd_def, blast)
-done
+by (unfold radd_def, blast)
 
 lemma radd_Inr_Inl_iff [iff]: 
     "<Inr(b), Inl(a)> : radd(A,r,B,s) <->  False"
-apply (unfold radd_def, blast)
-done
+by (unfold radd_def, blast)
 
 (** Elimination Rule **)
 
@@ -64,8 +61,7 @@ lemma raddE:
         !!x' x. [| p'=Inl(x'); p=Inl(x); <x',x>: r; x':A; x:A |] ==> Q;  
         !!y' y. [| p'=Inr(y'); p=Inr(y); <y',y>: s; y':B; y:B |] ==> Q   
      |] ==> Q"
-apply (unfold radd_def, blast) 
-done
+by (unfold radd_def, blast) 
 
 (** Type checking **)
 
@@ -80,8 +76,7 @@ lemmas field_radd = radd_type [THEN field_rel_subset]
 
 lemma linear_radd: 
     "[| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))"
-apply (unfold linear_def, blast) 
-done
+by (unfold linear_def, blast) 
 
 
 (** Well-foundedness **)
@@ -119,7 +114,8 @@ done
 lemma sum_bij:
      "[| f: bij(A,C);  g: bij(B,D) |]
       ==> (lam z:A+B. case(%x. Inl(f`x), %y. Inr(g`y), z)) : bij(A+B, C+D)"
-apply (rule_tac d = "case (%x. Inl (converse (f) `x), %y. Inr (converse (g) `y))" in lam_bijective)
+apply (rule_tac d = "case (%x. Inl (converse(f)`x), %y. Inr(converse(g)`y))" 
+       in lam_bijective)
 apply (typecheck add: bij_is_inj inj_is_fun) 
 apply (auto simp add: left_inverse_bij right_inverse_bij) 
 done
@@ -156,11 +152,10 @@ lemma sum_assoc_ord_iso:
      "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z))  
       : ord_iso((A+B)+C, radd(A+B, radd(A,r,B,s), C, t),     
                 A+(B+C), radd(A, r, B+C, radd(B,s,C,t)))"
-apply (rule sum_assoc_bij [THEN ord_isoI], auto)
-done
+by (rule sum_assoc_bij [THEN ord_isoI], auto)
 
 
-(**** Multiplication of relations -- lexicographic product ****)
+subsection{*Multiplication of Relations -- Lexicographic Product*}
 
 (** Rewrite rule.  Can be used to obtain introduction rules **)
 
@@ -169,23 +164,19 @@ lemma  rmult_iff [iff]:
             (<a',a>: r  & a':A & a:A & b': B & b: B) |   
             (<b',b>: s  & a'=a & a:A & b': B & b: B)"
 
-apply (unfold rmult_def, blast)
-done
+by (unfold rmult_def, blast)
 
 lemma rmultE: 
     "[| <<a',b'>, <a,b>> : rmult(A,r,B,s);               
         [| <a',a>: r;  a':A;  a:A;  b':B;  b:B |] ==> Q;         
         [| <b',b>: s;  a:A;  a'=a;  b':B;  b:B |] ==> Q  
      |] ==> Q"
-apply blast 
-done
+by blast 
 
 (** Type checking **)
 
 lemma rmult_type: "rmult(A,r,B,s) <= (A*B) * (A*B)"
-apply (unfold rmult_def)
-apply (rule Collect_subset)
-done
+by (unfold rmult_def, rule Collect_subset)
 
 lemmas field_rmult = rmult_type [THEN field_rel_subset]
 
@@ -193,8 +184,7 @@ lemmas field_rmult = rmult_type [THEN field_rel_subset]
 
 lemma linear_rmult:
     "[| linear(A,r);  linear(B,s) |] ==> linear(A*B,rmult(A,r,B,s))"
-apply (simp add: linear_def, blast) 
-done
+by (simp add: linear_def, blast) 
 
 (** Well-foundedness **)
 
@@ -289,33 +279,28 @@ done
 lemma sum_prod_distrib_bij:
      "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x))  
       : bij((A+B)*C, (A*C)+(B*C))"
-apply (rule_tac d = "case (%<x,y>.<Inl (x),y>, %<x,y>.<Inr (x),y>) " 
-       in lam_bijective)
-apply auto
-done
+by (rule_tac d = "case (%<x,y>.<Inl (x),y>, %<x,y>.<Inr (x),y>) " 
+    in lam_bijective, auto)
 
 lemma sum_prod_distrib_ord_iso:
  "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x))  
   : ord_iso((A+B)*C, rmult(A+B, radd(A,r,B,s), C, t),  
             (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))"
-apply (rule sum_prod_distrib_bij [THEN ord_isoI], auto)
-done
+by (rule sum_prod_distrib_bij [THEN ord_isoI], auto)
 
 (** Associativity **)
 
 lemma prod_assoc_bij:
      "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))"
-apply (rule_tac d = "%<x, <y,z>>. <<x,y>, z>" in lam_bijective, auto)
-done
+by (rule_tac d = "%<x, <y,z>>. <<x,y>, z>" in lam_bijective, auto)
 
 lemma prod_assoc_ord_iso:
  "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>)                    
   : ord_iso((A*B)*C, rmult(A*B, rmult(A,r,B,s), C, t),   
             A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))"
-apply (rule prod_assoc_bij [THEN ord_isoI], auto)
-done
+by (rule prod_assoc_bij [THEN ord_isoI], auto)
 
-(**** Inverse image of a relation ****)
+subsection{*Inverse Image of a Relation*}
 
 (** Rewrite rule **)
 
@@ -325,8 +310,7 @@ by (unfold rvimage_def, blast)
 (** Type checking **)
 
 lemma rvimage_type: "rvimage(A,f,r) <= A*A"
-apply (unfold rvimage_def)
-apply (rule Collect_subset)
+apply (unfold rvimage_def, rule Collect_subset)
 done
 
 lemmas field_rvimage = rvimage_type [THEN field_rel_subset]
@@ -410,8 +394,7 @@ done
 
 lemma ord_iso_rvimage_eq: 
     "f: ord_iso(A,r, B,s) ==> rvimage(A,f,s) = r Int A*A"
-apply (unfold ord_iso_def rvimage_def, blast)
-done
+by (unfold ord_iso_def rvimage_def, blast)
 
 
 (** The "measure" relation is useful with wfrec **)
@@ -424,12 +407,10 @@ apply (auto intro: Ord_in_Ord simp add: lt_def)
 done
 
 lemma wf_measure [iff]: "wf(measure(A,f))"
-apply (simp (no_asm) add: measure_eq_rvimage_Memrel wf_Memrel wf_rvimage)
-done
+by (simp (no_asm) add: measure_eq_rvimage_Memrel wf_Memrel wf_rvimage)
 
 lemma measure_iff [iff]: "<x,y> : measure(A,f) <-> x:A & y:A & f(x)<f(y)"
-apply (simp (no_asm) add: measure_def)
-done
+by (simp (no_asm) add: measure_def)
 
 ML {*
 val measure_def = thm "measure_def";

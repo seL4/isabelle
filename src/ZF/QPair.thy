@@ -3,20 +3,23 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Quine-inspired ordered pairs and disjoint sums, for non-well-founded data
-structures in ZF.  Does not precisely follow Quine's construction.  Thanks
-to Thomas Forster for suggesting this approach!
-
-W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
-1966.
-
 Many proofs are borrowed from pair.thy and sum.thy
 
 Do we EVER have rank(a) < rank(<a;b>) ?  Perhaps if the latter rank
     is not a limit ordinal? 
 *)
 
+header{*Quine-Inspired Ordered Pairs and Disjoint Sums*}
+
 theory QPair = Sum + mono:
+
+text{*For non-well-founded data
+structures in ZF.  Does not precisely follow Quine's construction.  Thanks
+to Thomas Forster for suggesting this approach!
+
+W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
+1966.
+*}
 
 constdefs
   QPair     :: "[i, i] => i"                      ("<(_;/ _)>")
@@ -62,7 +65,7 @@ constdefs
 print_translation {* [("QSigma", dependent_tr' ("@QSUM", "op <*>"))] *}
 
 
-(**** Quine ordered pairing ****)
+subsection{*Quine ordered pairing*}
 
 (** Lemmas for showing that <a;b> uniquely determines a and b **)
 
@@ -83,8 +86,8 @@ lemma QPair_inject2: "<a;b> = <c;d> ==> b=d"
 by blast
 
 
-(*** QSigma: Disjoint union of a family of sets
-     Generalizes Cartesian product ***)
+subsubsection{*QSigma: Disjoint union of a family of sets
+     Generalizes Cartesian product*}
 
 lemma QSigmaI [intro!]: "[| a:A;  b:B(a) |] ==> <a;b> : QSigma(A,B)"
 by (simp add: QSigma_def)
@@ -95,8 +98,7 @@ lemma QSigmaE:
     "[| c: QSigma(A,B);   
         !!x y.[| x:A;  y:B(x);  c=<x;y> |] ==> P  
      |] ==> P"
-apply (simp add: QSigma_def, blast) 
-done
+by (simp add: QSigma_def, blast) 
 
 (** Elimination rules for <a;b>:A*B -- introducing no eigenvariables **)
 
@@ -104,8 +106,7 @@ lemma QSigmaE [elim!]:
     "[| c: QSigma(A,B);   
         !!x y.[| x:A;  y:B(x);  c=<x;y> |] ==> P  
      |] ==> P"
-apply (simp add: QSigma_def, blast) 
-done
+by (simp add: QSigma_def, blast) 
 
 lemma QSigmaE2 [elim!]:
     "[| <a;b>: QSigma(A,B); [| a:A;  b:B(a) |] ==> P |] ==> P"
@@ -129,7 +130,7 @@ lemma QSigma_empty2 [simp]: "A <*> 0 = 0"
 by blast
 
 
-(*** Projections: qfst, qsnd ***)
+subsubsection{*Projections: qfst, qsnd*}
 
 lemma qfst_conv [simp]: "qfst(<a;b>) = a"
 by (simp add: qfst_def, blast)
@@ -147,7 +148,7 @@ lemma QPair_qfst_qsnd_eq: "a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a"
 by auto
 
 
-(*** Eliminator - qsplit ***)
+subsubsection{*Eliminator: qsplit*}
 
 (*A META-equality, so that it applies to higher types as well...*)
 lemma qsplit [simp]: "qsplit(%x y. c(x,y), <a;b>) == c(a,b)"
@@ -166,7 +167,7 @@ apply (simp add: qsplit_def, auto)
 done
 
 
-(*** qsplit for predicates: result type o ***)
+subsubsection{*qsplit for predicates: result type o*}
 
 lemma qsplitI: "R(a,b) ==> qsplit(R, <a;b>)"
 by (simp add: qsplit_def)
@@ -176,14 +177,13 @@ lemma qsplitE:
     "[| qsplit(R,z);  z:QSigma(A,B);                     
         !!x y. [| z = <x;y>;  R(x,y) |] ==> P            
     |] ==> P"
-apply (simp add: qsplit_def, auto) 
-done
+by (simp add: qsplit_def, auto) 
 
 lemma qsplitD: "qsplit(R,<a;b>) ==> R(a,b)"
 by (simp add: qsplit_def)
 
 
-(*** qconverse ***)
+subsubsection{*qconverse*}
 
 lemma qconverseI [intro!]: "<a;b>:r ==> <b;a>:qconverse(r)"
 by (simp add: qconverse_def, blast)
@@ -195,8 +195,7 @@ lemma qconverseE [elim!]:
     "[| yx : qconverse(r);   
         !!x y. [| yx=<y;x>;  <x;y>:r |] ==> P  
      |] ==> P"
-apply (simp add: qconverse_def, blast) 
-done
+by (simp add: qconverse_def, blast) 
 
 lemma qconverse_qconverse: "r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
 by blast
@@ -211,7 +210,7 @@ lemma qconverse_empty: "qconverse(0) = 0"
 by blast
 
 
-(**** The Quine-inspired notion of disjoint sum ****)
+subsection{*The Quine-inspired notion of disjoint sum*}
 
 lemmas qsum_defs = qsum_def QInl_def QInr_def qcase_def
 
@@ -230,8 +229,7 @@ lemma qsumE [elim!]:
         !!x. [| x:A;  u=QInl(x) |] ==> P;  
         !!y. [| y:B;  u=QInr(y) |] ==> P  
      |] ==> P"
-apply (simp add: qsum_defs, blast) 
-done
+by (simp add: qsum_defs, blast) 
 
 
 (** Injection and freeness equivalences, for rewriting **)
@@ -268,8 +266,7 @@ by blast
 
 lemma qsum_iff:
      "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))"
-apply blast
-done
+by blast
 
 lemma qsum_subset_iff: "A <+> B <= C <+> D <-> A<=C & B<=D"
 by blast
@@ -279,7 +276,7 @@ apply (simp (no_asm) add: extension qsum_subset_iff)
 apply blast
 done
 
-(*** Eliminator -- qcase ***)
+subsubsection{*Eliminator -- qcase*}
 
 lemma qcase_QInl [simp]: "qcase(c, d, QInl(a)) = c(a)"
 by (simp add: qsum_defs )
@@ -293,8 +290,7 @@ lemma qcase_type:
         !!x. x: A ==> c(x): C(QInl(x));    
         !!y. y: B ==> d(y): C(QInr(y))  
      |] ==> qcase(c,d,u) : C(u)"
-apply (simp add: qsum_defs , auto) 
-done
+by (simp add: qsum_defs , auto) 
 
 (** Rules for the Part primitive **)
 
@@ -311,7 +307,7 @@ lemma Part_qsum_equality: "C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C"
 by blast
 
 
-(*** Monotonicity ***)
+subsubsection{*Monotonicity*}
 
 lemma QPair_mono: "[| a<=c;  b<=d |] ==> <a;b> <= <c;d>"
 by (simp add: QPair_def sum_mono)

@@ -3,15 +3,15 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Order types and ordinal arithmetic in Zermelo-Fraenkel Set Theory 
-
-The order type of a well-ordering is the least ordinal isomorphic to it.
-
-Ordinal arithmetic is traditionally defined in terms of order types, as here.
-But a definition by transfinite recursion would be much simpler!
 *)
 
+header{*Order Types and Ordinal Arithmetic*}
+
 theory OrderType = OrderArith + OrdQuant + Nat:
+
+text{*The order type of a well-ordering is the least ordinal isomorphic to it.
+Ordinal arithmetic is traditionally defined in terms of order types, as it is
+here.  But a definition by transfinite recursion would be much simpler!*}
 
 constdefs
   
@@ -108,7 +108,7 @@ apply (rule lam_type)
 apply (rule lamI [THEN imageI], assumption+)
 done
 
-(*** Unfolding of ordermap ***)
+subsubsection{*Unfolding of ordermap *}
 
 (*Useful for cardinality reasoning; see CardinalArith.ML*)
 lemma ordermap_eq_image: 
@@ -145,7 +145,7 @@ might eliminate the need for r to be transitive.
 *)
 
 
-(*** Showing that ordermap, ordertype yield ordinals ***)
+subsubsection{*Showing that ordermap, ordertype yield ordinals *}
 
 lemma Ord_ordermap: 
     "[| well_ord(A,r);  x:A |] ==> Ord(ordermap(A,r) ` x)"
@@ -170,7 +170,7 @@ apply (blast intro: trans_onD
 done
 
 
-(*** ordermap preserves the orderings in both directions ***)
+subsubsection{*ordermap preserves the orderings in both directions *}
 
 lemma ordermap_mono:
      "[| <w,x>: r;  wf[A](r);  w: A; x: A |]
@@ -199,7 +199,7 @@ apply (force intro!: ordermap_type ordermap_surj
              simp add: mem_not_refl)
 done
 
-(*** Isomorphisms involving ordertype ***)
+subsubsection{*Isomorphisms involving ordertype *}
 
 lemma ordertype_ord_iso: 
  "well_ord(A,r)
@@ -227,7 +227,7 @@ apply (erule ssubst)
 apply (erule ordertype_ord_iso [THEN ord_iso_sym])
 done
 
-(*** Basic equalities for ordertype ***)
+subsubsection{*Basic equalities for ordertype *}
 
 (*Ordertype of Memrel*)
 lemma le_ordertype_Memrel: "j le i ==> ordertype(j,Memrel(i)) = j"
@@ -255,7 +255,7 @@ done
                          ordertype(A, rvimage(A,f,s)) = ordertype(B,s) *)
 lemmas bij_ordertype_vimage = ord_iso_rvimage [THEN ordertype_eq]
 
-(*** A fundamental unfolding law for ordertype. ***)
+subsubsection{*A fundamental unfolding law for ordertype. *}
 
 (*Ordermap returns the same result if applied to an initial segment*)
 lemma ordermap_pred_eq_ordermap:
@@ -332,7 +332,7 @@ done
 
 subsection{*Ordinal Addition*}
 
-(*** Order Type calculations for radd ***)
+subsubsection{*Order Type calculations for radd *}
 
 (** Addition with 0 **)
 
@@ -398,7 +398,7 @@ apply (blast intro: well_ord_radd well_ord_subset [OF _ pred_subset])
 done
 
 
-(*** ordify: trivial coercion to an ordinal ***)
+subsubsection{*ordify: trivial coercion to an ordinal *}
 
 lemma Ord_ordify [iff, TC]: "Ord(ordify(x))"
 by (simp add: ordify_def)
@@ -408,7 +408,7 @@ lemma ordify_idem [simp]: "ordify(ordify(x)) = ordify(x)"
 by (simp add: ordify_def)
 
 
-(*** Basic laws for ordinal addition ***)
+subsubsection{*Basic laws for ordinal addition *}
 
 lemma Ord_raw_oadd: "[|Ord(i); Ord(j)|] ==> Ord(raw_oadd(i,j))"
 by (simp add: raw_oadd_def ordify_def Ord_ordertype well_ord_radd
@@ -552,7 +552,7 @@ apply (force simp add: ordertype_pred_Inl_eq well_ord_Memrel ltI
 done
 
 
-(*** Ordinal addition with successor -- via associativity! ***)
+subsubsection{*Ordinal addition with successor -- via associativity! *}
 
 lemma oadd_assoc: "(i++j)++k = i++(j++k)"
 apply (simp add: oadd_eq_if_raw_oadd Ord_raw_oadd raw_oadd_0 raw_oadd_0_left, clarify)
@@ -599,7 +599,8 @@ by (blast intro: ltI Ord_UN Ord_oadd lt_oadd1 [THEN ltD]
 
 lemma oadd_Limit: "Limit(j) ==> i++j = (UN k:j. i++k)"
 apply (frule Limit_has_0 [THEN ltD])
-apply (simp (no_asm_simp) add: Limit_is_Ord [THEN Ord_in_Ord] oadd_UN [symmetric] Union_eq_UN [symmetric] Limit_Union_eq)
+apply (simp add: Limit_is_Ord [THEN Ord_in_Ord] oadd_UN [symmetric] 
+                 Union_eq_UN [symmetric] Limit_Union_eq)
 done
 
 lemma oadd_eq_0_iff: "[| Ord(i); Ord(j) |] ==> (i ++ j) = 0 <-> i=0 & j=0"
@@ -634,8 +635,8 @@ apply (simp (no_asm_simp) add: oadd_Limit)
 apply (rule le_trans)
 apply (rule_tac [2] le_implies_UN_le_UN)
 apply (erule_tac [2] bspec)
-prefer 2 apply assumption
-apply (simp (no_asm_simp) add: Union_eq_UN [symmetric] Limit_Union_eq le_refl Limit_is_Ord)
+ prefer 2 apply assumption
+apply (simp add: Union_eq_UN [symmetric] Limit_Union_eq le_refl Limit_is_Ord)
 done
 
 lemma oadd_le_mono1: "k le j ==> k++i le j++i"
@@ -752,7 +753,7 @@ apply (unfold omult_def)
 apply (blast intro: Ord_ordertype well_ord_rmult well_ord_Memrel)
 done
 
-(*** A useful unfolding law ***)
+subsubsection{*A useful unfolding law *}
 
 lemma pred_Pair_eq: 
  "[| a:A;  b:B |] ==> pred(A*B, <a,b>, rmult(A,r,B,s)) =      
@@ -779,10 +780,12 @@ lemma ordertype_pred_Pair_lemma:
                    rmult(i,Memrel(i),j,Memrel(j))) =                    
          raw_oadd (j**i', j')"
 apply (unfold raw_oadd_def omult_def)
-apply (simp (no_asm_simp) add: ordertype_pred_Pair_eq lt_pred_Memrel ltD lt_Ord2 well_ord_Memrel)
+apply (simp add: ordertype_pred_Pair_eq lt_pred_Memrel ltD lt_Ord2 
+                 well_ord_Memrel)
 apply (rule trans)
-apply (rule_tac [2] ordertype_ord_iso [THEN sum_ord_iso_cong, THEN ordertype_eq])
-apply (rule_tac [3] ord_iso_refl)
+ apply (rule_tac [2] ordertype_ord_iso 
+                      [THEN sum_ord_iso_cong, THEN ordertype_eq])
+  apply (rule_tac [3] ord_iso_refl)
 apply (rule id_bij [THEN ord_isoI, THEN ordertype_eq])
 apply (elim SigmaE sumE ltE ssubst)
 apply (simp_all add: well_ord_rmult well_ord_radd well_ord_Memrel
@@ -807,7 +810,7 @@ apply (unfold omult_def)
 apply (rule ltI)
  prefer 2
  apply (simp add: Ord_ordertype well_ord_rmult well_ord_Memrel lt_Ord2)
-apply (simp (no_asm_simp) add: ordertype_pred_unfold well_ord_rmult well_ord_Memrel lt_Ord2)
+apply (simp add: ordertype_pred_unfold well_ord_rmult well_ord_Memrel lt_Ord2)
 apply (rule bexI)
 prefer 2 apply (blast elim!: ltE)
 apply (simp add: ordertype_pred_Pair_lemma ltI omult_def [symmetric])
@@ -824,7 +827,7 @@ apply (blast elim!: ltE)
 apply (blast intro: omult_oadd_lt [THEN ltD] ltI)
 done
 
-(*** Basic laws for ordinal multiplication ***)
+subsubsection{*Basic laws for ordinal multiplication *}
 
 (** Ordinal multiplication by zero **)
 
@@ -886,7 +889,8 @@ apply (rule ordertype_eq [THEN trans])
 apply (rule prod_ord_iso_cong [OF ord_iso_refl 
                                   ordertype_ord_iso [THEN ord_iso_sym]])
 apply (blast intro: well_ord_rmult well_ord_Memrel)+
-apply (rule prod_assoc_ord_iso [THEN ord_iso_sym, THEN ordertype_eq, THEN trans])
+apply (rule prod_assoc_ord_iso 
+             [THEN ord_iso_sym, THEN ordertype_eq, THEN trans])
 apply (rule_tac [2] ordertype_eq)
 apply (rule_tac [2] prod_ord_iso_cong [OF ordertype_ord_iso ord_iso_refl])
 apply (blast intro: well_ord_rmult well_ord_Memrel Ord_ordertype)+
@@ -905,7 +909,7 @@ by (simp add: Limit_is_Ord [THEN Ord_in_Ord] omult_UN [symmetric]
               Union_eq_UN [symmetric] Limit_Union_eq)
 
 
-(*** Ordering/monotonicity properties of ordinal multiplication ***)
+subsubsection{*Ordering/monotonicity properties of ordinal multiplication *}
 
 (*As a special case we have "[| 0<i;  0<j |] ==> 0 < i**j" *)
 lemma lt_omult1: "[| k<i;  0<j |] ==> k < i**j"

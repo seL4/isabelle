@@ -10,7 +10,7 @@ header{*Cardinal Arithmetic Using AC*}
 
 theory Cardinal_AC = CardinalArith + Zorn:
 
-(*** Strengthened versions of existing theorems about cardinals ***)
+subsection{*Strengthened Forms of Existing Theorems on Cardinals*}
 
 lemma cardinal_eqpoll: "|A| eqpoll A"
 apply (rule AC_well_ord [THEN exE])
@@ -65,7 +65,7 @@ apply (erule well_ord_InfCard_square_eq, assumption)
 done
 
 
-(*** Other applications of AC ***)
+subsection{*Other Applications of AC*}
 
 lemma Card_le_imp_lepoll: "|A| le |B| ==> A lepoll B"
 apply (rule cardinal_eqpoll

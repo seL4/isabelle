@@ -41,7 +41,7 @@ inductive
   type_intros Fin.intros
 
 
-subsection {* Finite powerset operator *}
+subsection {* Finite Powerset Operator *}
 
 lemma Fin_mono: "A<=B ==> Fin(A) <= Fin(B)"
 apply (unfold Fin.defs)
@@ -132,7 +132,7 @@ apply (fast intro!: Fin.consI)
 done
 
 
-(*** Finite function space ***)
+subsection{*Finite Function Space*}
 
 lemma FiniteFun_mono:
     "[| A<=C;  B<=D |] ==> A -||> B  <=  C -||> D"

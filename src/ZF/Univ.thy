@@ -3,13 +3,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-The cumulative hierarchy and a small universe for recursive types
-
 Standard notation for Vset(i) is V(i), but users might want V for a variable
 
 NOTE: univ(A) could be a translation; would simplify many proofs!
   But Ind_Syntax.univ refers to the constant "Univ.univ"
 *)
+
+header{*The Cumulative Hierarchy and a Small Universe for Recursive Types*}
 
 theory Univ = Epsilon + Cardinal:
 
@@ -34,6 +34,8 @@ constdefs
   univ        :: "i=>i"
     "univ(A) == Vfrom(A,nat)"
 
+
+subsection{*Immediate Consequences of the Definition of @{term "Vfrom(A,i)"}*}
 
 text{*NOT SUITABLE FOR REWRITING -- RECURSIVE!*}
 lemma Vfrom: "Vfrom(A,i) = A Un (\<Union>j\<in>i. Pow(Vfrom(A,j)))"
@@ -87,7 +89,7 @@ apply (rule Vfrom_rank_subset1)
 done
 
 
-subsection{* Basic closure properties *}
+subsection{* Basic Closure Properties *}
 
 lemma zero_in_Vfrom: "y:x ==> 0 \<in> Vfrom(A,x)"
 by (subst Vfrom, blast)
@@ -128,7 +130,7 @@ apply (erule subset_trans)
 apply (rule Vfrom_mono [OF subset_refl subset_succI]) 
 done
 
-subsection{* 0, successor and limit equations fof Vfrom *}
+subsection{* 0, Successor and Limit Equations for @{term Vfrom} *}
 
 lemma Vfrom_0: "Vfrom(A,0) = A"
 by (subst Vfrom, blast)
@@ -169,7 +171,7 @@ apply (rule UN_least)
 apply (subst Vfrom, blast)
 done
 
-subsection{* Vfrom applied to Limit ordinals *}
+subsection{* @{term Vfrom} applied to Limit Ordinals *}
 
 (*NB. limit ordinals are non-empty:
       Vfrom(A,0) = A = A Un (\<Union>y\<in>0. Vfrom(A,y)) *)
@@ -235,7 +237,7 @@ lemmas nat_subset_VLimit =
 lemma nat_into_VLimit: "[| n: nat;  Limit(i) |] ==> n \<in> Vfrom(A,i)"
 by (blast intro: nat_subset_VLimit [THEN subsetD])
 
-subsubsection{* Closure under disjoint union *}
+subsubsection{* Closure under Disjoint Union *}
 
 lemmas zero_in_VLimit = Limit_has_0 [THEN ltD, THEN zero_in_Vfrom, standard]
 
@@ -261,7 +263,7 @@ lemmas sum_subset_VLimit = subset_trans [OF sum_mono sum_VLimit]
 
 
 
-subsection{* Properties assuming Transset(A) *}
+subsection{* Properties assuming @{term "Transset(A)"} *}
 
 lemma Transset_Vfrom: "Transset(A) ==> Transset(Vfrom(A,i))"
 apply (rule_tac a=i in eps_induct)
@@ -324,7 +326,7 @@ apply (simp add: Un_least_lt_iff lt_Ord Vfrom_UnI1 Vfrom_UnI2)
 apply (blast intro: Limit_has_0 Limit_has_succ VfromI)
 done
 
-subsubsection{* products *}
+subsubsection{* Products *}
 
 lemma prod_in_Vfrom:
     "[| a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A) |]
@@ -342,7 +344,7 @@ apply (erule in_VLimit, assumption+)
 apply (blast intro: prod_in_Vfrom Limit_has_succ)
 done
 
-subsubsection{* Disjoint sums, aka Quine ordered pairs *}
+subsubsection{* Disjoint Sums, or Quine Ordered Pairs *}
 
 lemma sum_in_Vfrom:
     "[| a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A);  1:j |]
@@ -361,7 +363,7 @@ apply (erule in_VLimit, assumption+)
 apply (blast intro: sum_in_Vfrom Limit_has_succ)
 done
 
-subsubsection{* function space! *}
+subsubsection{* Function Space! *}
 
 lemma fun_in_Vfrom:
     "[| a \<in> Vfrom(A,j);  b \<in> Vfrom(A,j);  Transset(A) |] ==>
@@ -399,7 +401,7 @@ lemma Pow_in_VLimit:
 by (blast elim: Limit_VfromE intro: Limit_has_succ Pow_in_Vfrom VfromI)
 
 
-subsection{* The set Vset(i) *}
+subsection{* The Set @{term "Vset(i)"} *}
 
 lemma Vset: "Vset(i) = (\<Union>j\<in>i. Pow(Vset(j)))"
 by (subst Vfrom, blast)
@@ -407,7 +409,7 @@ by (subst Vfrom, blast)
 lemmas Vset_succ = Transset_0 [THEN Transset_Vfrom_succ, standard]
 lemmas Transset_Vset = Transset_0 [THEN Transset_Vfrom, standard]
 
-subsubsection{* Characterisation of the elements of Vset(i) *}
+subsubsection{* Characterisation of the elements of @{term "Vset(i)"} *}
 
 lemma VsetD [rule_format]: "Ord(i) ==> \<forall>b. b \<in> Vset(i) --> rank(b) < i"
 apply (erule trans_induct)
@@ -454,7 +456,7 @@ apply (erule nat_induct)
 apply (simp add: Vset_succ) 
 done
 
-subsubsection{* Reasoning about sets in terms of their elements' ranks *}
+subsubsection{* Reasoning about Sets in Terms of Their Elements' Ranks *}
 
 lemma arg_subset_Vset_rank: "a <= Vset(rank(a))"
 apply (rule subsetI)
@@ -468,7 +470,7 @@ apply (rule Int_greatest [OF subset_refl arg_subset_Vset_rank])
 apply (blast intro: Ord_rank) 
 done
 
-subsubsection{* Set up an environment for simplification *}
+subsubsection{* Set Up an Environment for Simplification *}
 
 lemma rank_Inl: "rank(a) < rank(Inl(a))"
 apply (unfold Inl_def)
@@ -482,7 +484,7 @@ done
 
 lemmas rank_rls = rank_Inl rank_Inr rank_pair1 rank_pair2
 
-subsubsection{* Recursion over Vset levels! *}
+subsubsection{* Recursion over Vset Levels! *}
 
 text{*NOT SUITABLE FOR REWRITING: recursive!*}
 lemma Vrec: "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))"
@@ -515,7 +517,7 @@ apply (rule Vrecursor)
 done
 
 
-subsection{* univ(A) *}
+subsection{* The Datatype Universe: @{term "univ(A)"} *}
 
 lemma univ_mono: "A<=B ==> univ(A) <= univ(B)"
 apply (unfold univ_def)
@@ -528,7 +530,7 @@ apply (unfold univ_def)
 apply (erule Transset_Vfrom)
 done
 
-subsubsection{* univ(A) as a limit *}
+subsubsection{* The Set @{term"univ(A)"} as a Limit *}
 
 lemma univ_eq_UN: "univ(A) = (\<Union>i\<in>nat. Vfrom(A,i))"
 apply (unfold univ_def)
@@ -559,7 +561,7 @@ apply (rule univ_Int_Vfrom_subset, assumption)
 apply (blast elim: equalityCE) 
 done
 
-subsubsection{* Closure properties *}
+subsection{* Closure Properties for @{term "univ(A)"}*}
 
 lemma zero_in_univ: "0 \<in> univ(A)"
 apply (unfold univ_def)
@@ -576,7 +578,7 @@ done
 
 lemmas A_into_univ = A_subset_univ [THEN subsetD, standard]
 
-subsubsection{* Closure under unordered and ordered pairs *}
+subsubsection{* Closure under Unordered and Ordered Pairs *}
 
 lemma singleton_in_univ: "a: univ(A) ==> {a} \<in> univ(A)"
 apply (unfold univ_def)
@@ -607,7 +609,7 @@ apply (rule Limit_nat [THEN product_VLimit])
 done
 
 
-subsubsection{* The natural numbers *}
+subsubsection{* The Natural Numbers *}
 
 lemma nat_subset_univ: "nat <= univ(A)"
 apply (unfold univ_def)
@@ -617,7 +619,7 @@ done
 text{* n:nat ==> n:univ(A) *}
 lemmas nat_into_univ = nat_subset_univ [THEN subsetD, standard]
 
-subsubsection{* instances for 1 and 2 *}
+subsubsection{* Instances for 1 and 2 *}
 
 lemma one_in_univ: "1 \<in> univ(A)"
 apply (unfold univ_def)
@@ -636,7 +638,7 @@ done
 lemmas bool_into_univ = bool_subset_univ [THEN subsetD, standard]
 
 
-subsubsection{* Closure under disjoint union *}
+subsubsection{* Closure under Disjoint Union *}
 
 lemma Inl_in_univ: "a: univ(A) ==> Inl(a) \<in> univ(A)"
 apply (unfold univ_def)
@@ -669,7 +671,7 @@ done
 
 subsection{* Finite Branching Closure Properties *}
 
-subsubsection{* Closure under finite powerset *}
+subsubsection{* Closure under Finite Powerset *}
 
 lemma Fin_Vfrom_lemma:
      "[| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i"
@@ -693,7 +695,7 @@ apply (unfold univ_def)
 apply (rule Limit_nat [THEN Fin_VLimit])
 done
 
-subsubsection{* Closure under finite powers: functions from a natural number *}
+subsubsection{* Closure under Finite Powers: Functions from a Natural Number *}
 
 lemma nat_fun_VLimit:
      "[| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)"
@@ -710,7 +712,7 @@ apply (erule nat_fun_VLimit [OF _ Limit_nat])
 done
 
 
-subsubsection{* Closure under finite function space *}
+subsubsection{* Closure under Finite Function Space *}
 
 text{*General but seldom-used version; normally the domain is fixed*}
 lemma FiniteFun_VLimit1:
@@ -749,7 +751,7 @@ lemmas FiniteFun_in_univ' = FiniteFun_in_univ [OF _ subsetI]
 
 subsection{** For QUniv.  Properties of Vfrom analogous to the "take-lemma" **}
 
-subsection{* Intersecting a*b with Vfrom... *}
+text{* Intersecting a*b with Vfrom... *}
 
 text{*This version says a, b exist one level down, in the smaller set Vfrom(X,i)*}
 lemma doubleton_in_Vfrom_D:

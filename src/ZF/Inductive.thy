@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-(Co)Inductive Definitions for Zermelo-Fraenkel Set Theory.
 *)
+
+header{*Inductive and Coinductive Definitions*}
 
 theory Inductive = Fixedpt + mono + QPair
   files
@@ -17,12 +18,5 @@ theory Inductive = Fixedpt + mono + QPair
 
 setup IndCases.setup
 setup DatatypeTactics.setup
-
-
-(*belongs to theory ZF*)
-declare bspec [dest?]
-
-(*belongs to theory upair*)
-declare UnI1 [elim?]  UnI2 [elim?]
 
 end

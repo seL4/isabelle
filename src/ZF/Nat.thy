@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Natural numbers in Zermelo-Fraenkel Set Theory 
 *)
+
+header{*The Natural numbers As a Least Fixed Point*}
 
 theory Nat = OrdQuant + Bool + mono:
 
@@ -75,7 +76,7 @@ by (blast elim!: boolE)
 lemmas bool_into_nat = bool_subset_nat [THEN subsetD, standard]
 
 
-(** Injectivity properties and induction **)
+subsection{*Injectivity Properties and Induction*}
 
 (*Mathematical induction*)
 lemma nat_induct:
@@ -139,7 +140,7 @@ lemma le_in_nat: "[| m le n; n:nat |] ==> m:nat"
 by (blast dest!: lt_nat_in_nat)
 
 
-(** Variations on mathematical induction **)
+subsection{*Variations on Mathematical Induction*}
 
 (*complete induction*)
 
@@ -226,8 +227,7 @@ done
 
 lemma nat_cases:
      "[|k=0 ==> P;  !!y. k = succ(y) ==> P; ~ quasinat(k) ==> P|] ==> P"
-apply (insert nat_cases_disj [of k], blast) 
-done
+by (insert nat_cases_disj [of k], blast) 
 
 (** nat_case **)
 
@@ -250,9 +250,10 @@ apply (auto simp add: non_nat_case)
 done
 
 
+subsection{*Recursion on the Natural Numbers*}
 
-(** nat_rec -- used to define eclose and transrec, then obsolete
-    rec, from arith.ML, has fewer typing conditions **)
+(** nat_rec is used to define eclose and transrec, then becomes obsolete.
+    The operator rec, from arith.thy, has fewer typing conditions **)
 
 lemma nat_rec_0: "nat_rec(0,a,b) = a"
 apply (rule nat_rec_def [THEN def_wfrec, THEN trans])

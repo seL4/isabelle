@@ -3,10 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Least and greatest fixed points; the Knaster-Tarski Theorem
-
 Proved in the lattice of subsets of D, namely Pow(D), with Inter as glb
 *)
+
+header{*Least and Greatest Fixed Points; the Knaster-Tarski Theorem*}
 
 theory Fixedpt = equalities:
 
@@ -23,7 +23,7 @@ constdefs
      "gfp(D,h) == Union({X: Pow(D). X <= h(X)})"
 
 
-(*** Monotone operators ***)
+subsection{*Monotone Operators*}
 
 lemma bnd_monoI:
     "[| h(D)<=D;   
@@ -124,7 +124,7 @@ apply simp
 apply (erule lfp_unfold)
 done
 
-(*** General induction rule for least fixedpoints ***)
+subsection{*General Induction Rule for Least Fixedpoints*}
 
 lemma Collect_is_pre_fixedpt:
     "[| bnd_mono(D,h);  !!x. x : h(Collect(lfp(D,h),P)) ==> P(x) |]
@@ -243,7 +243,7 @@ apply (erule gfp_unfold)
 done
 
 
-(*** Coinduction rules for greatest fixed points ***)
+subsection{*Coinduction Rules for Greatest Fixed Points*}
 
 (*weak version*)
 lemma weak_coinduct: "[| a: X;  X <= h(X);  X <= D |] ==> a : gfp(D,h)"

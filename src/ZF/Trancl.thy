@@ -1,11 +1,11 @@
-(*  Title:      ZF/trancl.thy
+(*  Title:      ZF/Trancl.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-1. General Properties of relations
-2. Transitive closure of a relation
 *)
+
+header{*Relations: Their General Properties and Transitive Closure*}
 
 theory Trancl = Fixedpt + Perm + mono:
 
@@ -56,8 +56,7 @@ subsubsection{*symmetry*}
 
 lemma symI:
      "[| !!x y.<x,y>: r ==> <y,x>: r |] ==> sym(r)"
-apply (unfold sym_def, blast) 
-done
+by (unfold sym_def, blast) 
 
 lemma antisymI: "[| sym(r); <x,y>: r |]  ==>  <y,x>: r"
 by (unfold sym_def, blast)
@@ -66,8 +65,7 @@ subsubsection{*antisymmetry*}
 
 lemma antisymI:
      "[| !!x y.[| <x,y>: r;  <y,x>: r |] ==> x=y |] ==> antisym(r)"
-apply (simp add: antisym_def, blast) 
-done
+by (simp add: antisym_def, blast) 
 
 lemma antisymE: "[| antisym(r); <x,y>: r;  <y,x>: r |]  ==>  x=y"
 by (simp add: antisym_def, blast)
@@ -364,6 +362,12 @@ apply (simp (no_asm_use) add: trancl_converse [symmetric])
 apply (erule trancl_induct)
 apply (auto simp add: trancl_converse)
 done
+
+lemmas rtrancl_induct = rtrancl_induct [case_names initial step, induct set: rtrancl]
+  and trancl_induct = trancl_induct [case_names initial step, induct set: trancl]
+  and converse_trancl_induct = converse_trancl_induct [case_names initial step, consumes 1]
+  and rtrancl_full_induct = rtrancl_full_induct [case_names initial step, consumes 1]
+
 
 ML
 {*

@@ -3,15 +3,14 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Based upon the article
-    Abrial & Laffitte, 
-    Towards the Mechanization of the Proofs of Some 
-    Classical Theorems of Set Theory. 
-
-Union_in_Pow is proved in ZF.ML
 *)
 
+header{*Zorn's Lemma*}
+
 theory Zorn = OrderArith + AC + Inductive:
+
+text{*Based upon the unpublished article ``Towards the Mechanization of the
+Proofs of Some Classical Theorems of Set Theory,'' by Abrial and Laffitte.*}
 
 constdefs
   Subset_rel :: "i=>i"
@@ -31,11 +30,17 @@ constdefs
   increasing :: "i=>i"
     "increasing(A) == {f: Pow(A)->Pow(A). ALL x. x<=A --> x<=f`x}"
 
-(** We could make the inductive definition conditional on next: increasing(S)
+
+(*Lemma for the inductive definition below*)
+lemma Union_in_Pow: "Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)"
+by blast
+
+
+text{*We could make the inductive definition conditional on 
+    @{term "next \<in> increasing(S)"}
     but instead we make this a side-condition of an introduction rule.  Thus
     the induction rule lets us assume that condition!  Many inductive proofs
-    are therefore unconditional.
-**)
+    are therefore unconditional.*}
 consts
   "TFin" :: "[i,i]=>i"
 
@@ -52,16 +57,17 @@ inductive
   type_intros   CollectD1 [THEN apply_funtype] Union_in_Pow
 
 
-(*** Section 1.  Mathematical Preamble ***)
+subsection{*Mathematical Preamble *}
 
 lemma Union_lemma0: "(ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)"
 by blast
 
-lemma Inter_lemma0: "[| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B"
+lemma Inter_lemma0:
+     "[| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B"
 by blast
 
 
-(*** Section 2.  The Transfinite Construction ***)
+subsection{*The Transfinite Construction *}
 
 lemma increasingD1: "f: increasing(A) ==> f: Pow(A)->Pow(A)"
 apply (unfold increasing_def)
@@ -83,11 +89,10 @@ lemma TFin_induct:
       !!x. [| x : TFin(S,next);  P(x);  next: increasing(S) |] ==> P(next`x);  
       !!Y. [| Y <= TFin(S,next);  ALL y:Y. P(y) |] ==> P(Union(Y))  
    |] ==> P(n)"
-apply (erule TFin.induct, blast+)
-done
+by (erule TFin.induct, blast+)
 
 
-(*** Section 3.  Some Properties of the Transfinite Construction ***)
+subsection{*Some Properties of the Transfinite Construction *}
 
 lemmas increasing_trans = subset_trans [OF _ increasingD2, 
                                         OF _ _ TFin_is_subset]
@@ -170,8 +175,10 @@ apply (blast del: subsetI
 done
 
 
-(*** Section 4.  Hausdorff's Theorem: every set contains a maximal chain ***)
-(*** NB: We assume the partial ordering is <=, the subset relation! **)
+subsection{*Hausdorff's Theorem: Every Set Contains a Maximal Chain*}
+
+text{*NOTE: We assume the partial ordering is @{text "\<subseteq>"}, the subset
+relation!*}
 
 (** Defining the "next" operation for Hausdorff's Theorem **)
 
@@ -242,10 +249,11 @@ apply (simp (no_asm_simp) add: chain_subset_Pow [THEN subsetD, THEN PowD]
             choice_super [THEN super_subset_chain [THEN subsetD]])
 apply (unfold chain_def)
 apply (rule CollectI, blast, safe)
-apply (rule_tac m1 = "B" and n1 = "Ba" in TFin_subset_linear [THEN disjE], fast+) (*Blast_tac's slow*)
+apply (rule_tac m1=B and n1=Ba in TFin_subset_linear [THEN disjE], fast+) 
+      (*Blast_tac's slow*)
 done
 
-lemma Hausdorff: "EX c. c : maxchain(S)"
+theorem Hausdorff: "EX c. c : maxchain(S)"
 apply (rule AC_Pi_Pow [THEN exE])
 apply (rule Hausdorff_next_exists [THEN bexE], assumption)
 apply (rename_tac ch "next")
@@ -266,14 +274,15 @@ apply (assumption+)
 done
 
 
-(*** Section 5.  Zorn's Lemma: if all chains in S have upper bounds in S 
-                               then S contains a maximal element ***)
+subsection{*Zorn's Lemma*}
+
+text{*If all chains in S have upper bounds in S,
+       then S contains a maximal element *}
 
 (*Used in the proof of Zorn's Lemma*)
 lemma chain_extend: 
     "[| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)"
-apply (unfold chain_def, blast)
-done
+by (unfold chain_def, blast)
 
 lemma Zorn: "ALL c: chain(S). Union(c) : S ==> EX y:S. ALL z:S. y<=z --> y=z"
 apply (rule Hausdorff [THEN exE])
@@ -292,7 +301,7 @@ apply (fast elim: equalityE)
 done
 
 
-(*** Section 6.  Zermelo's Theorem: every set can be well-ordered ***)
+subsection{*Zermelo's Theorem: Every Set can be Well-Ordered*}
 
 (*Lemma 5*)
 lemma TFin_well_lemma5:
@@ -393,7 +402,7 @@ apply (simp add: Collect_subset [THEN TFin_UnionI, THEN TFin_is_subset])
 done
 
 (*The wellordering theorem*)
-lemma AC_well_ord: "EX r. well_ord(S,r)"
+theorem AC_well_ord: "EX r. well_ord(S,r)"
 apply (rule AC_Pi_Pow [THEN exE])
 apply (rule Zermelo_next_exists [THEN bexE], assumption)
 apply (rule exI)

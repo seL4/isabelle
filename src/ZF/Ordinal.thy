@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Ordinals in Zermelo-Fraenkel Set Theory 
 *)
+
+header{*Transitive Sets and Ordinals*}
 
 theory Ordinal = WF + Bool + equalities:
 
@@ -35,9 +36,9 @@ syntax (xsymbols)
   "op le"       :: "[i,i] => o"  (infixl "\<le>" 50)  (*less-than or equals*)
 
 
-(*** Rules for Transset ***)
+subsection{*Rules for Transset*}
 
-(** Three neat characterisations of Transset **)
+subsubsection{*Three Neat Characterisations of Transset*}
 
 lemma Transset_iff_Pow: "Transset(A) <-> A<=Pow(A)"
 by (unfold Transset_def, blast)
@@ -50,7 +51,7 @@ done
 lemma Transset_iff_Union_subset: "Transset(A) <-> Union(A) <= A"
 by (unfold Transset_def, blast)
 
-(** Consequences of downwards closure **)
+subsubsection{*Consequences of Downwards Closure*}
 
 lemma Transset_doubleton_D: 
     "[| Transset(C); {a,b}: C |] ==> a:C & b: C"
@@ -70,7 +71,7 @@ lemma Transset_includes_range:
     "[| Transset(C); A*B <= C; a: A |] ==> B <= C"
 by (blast dest: Transset_Pair_D)
 
-(** Closure properties **)
+subsubsection{*Closure Properties*}
 
 lemma Transset_0: "Transset(0)"
 by (unfold Transset_def, blast)
@@ -109,7 +110,7 @@ lemma Transset_INT:
 by (rule Transset_Inter_family, auto) 
 
 
-(*** Natural Deduction rules for Ord ***)
+subsection{*Lemmas for Ordinals*}
 
 lemma OrdI:
     "[| Transset(i);  !!x. x:i ==> Transset(x) |]  ==>  Ord(i)"
@@ -122,7 +123,6 @@ lemma Ord_contains_Transset:
     "[| Ord(i);  j:i |] ==> Transset(j) "
 by (unfold Ord_def, blast)
 
-(*** Lemmas for ordinals ***)
 
 lemma Ord_in_Ord: "[| Ord(i);  j:i |] ==> Ord(j)"
 by (unfold Ord_def Transset_def, blast)
@@ -147,7 +147,7 @@ lemma Ord_succ_subsetI: "[| i:j;  Ord(j) |] ==> succ(i) <= j"
 by (blast dest: OrdmemD)
 
 
-(*** The construction of ordinals: 0, succ, Union ***)
+subsection{*The Construction of Ordinals: 0, succ, Union*}
 
 lemma Ord_0 [iff,TC]: "Ord(0)"
 by (blast intro: OrdI Transset_0)
@@ -180,7 +180,7 @@ apply (simp add: Transset_def)
 apply (blast intro: Ord_in_Ord)+
 done
 
-(*** < is 'less than' for ordinals ***)
+subsection{*< is 'less Than' for Ordinals*}
 
 lemma ltI: "[| i:j;  Ord(j) |] ==> i<j"
 by (unfold lt_def, blast)
@@ -263,7 +263,7 @@ by (blast elim!: leE)
 
 lemmas le0D = le0_iff [THEN iffD1, dest!]
 
-(*** Natural Deduction rules for Memrel ***)
+subsection{*Natural Deduction Rules for Memrel*}
 
 (*The lemmas MemrelI/E give better speed than [iff] here*)
 lemma Memrel_iff [simp]: "<a,b> : Memrel(A) <-> a:b & a:A & b:A"
@@ -311,7 +311,7 @@ lemma Transset_Memrel_iff:
 by (unfold Transset_def, blast)
 
 
-(*** Transfinite induction ***)
+subsection{*Transfinite Induction*}
 
 (*Epsilon induction over a transitive set*)
 lemma Transset_induct: 
@@ -339,7 +339,7 @@ done
 (*** Fundamental properties of the epsilon ordering (< on ordinals) ***)
 
 
-(** Proving that < is a linear ordering on the ordinals **)
+subsubsection{*Proving That < is a Linear Ordering on the Ordinals*}
 
 lemma Ord_linear [rule_format]:
      "Ord(i) ==> (ALL j. Ord(j) --> i:j | i=j | j:i)"
@@ -374,7 +374,7 @@ by (blast elim!: leE elim: lt_asym)
 lemma not_lt_imp_le: "[| ~ i<j;  Ord(i);  Ord(j) |] ==> j le i"
 by (rule_tac i = "i" and j = "j" in Ord_linear2, auto)
 
-(** Some rewrite rules for <, le **)
+subsubsection{*Some Rewrite Rules for <, le*}
 
 lemma Ord_mem_iff_lt: "Ord(j) ==> i:j <-> i<j"
 by (unfold lt_def, blast)
@@ -398,7 +398,7 @@ lemma Ord_0_lt_iff: "Ord(i) ==> i~=0 <-> 0<i"
 by (blast intro: Ord_0_lt)
 
 
-(*** Results about less-than or equals ***)
+subsection{*Results about Less-Than or Equals*}
 
 (** For ordinals, j<=i (subset) implies j le i (less-than or equals) **)
 
@@ -425,7 +425,7 @@ done
 lemma all_lt_imp_le: "[| Ord(i);  Ord(j);  !!x. x<j ==> x<i |] ==> j le i"
 by (blast intro: not_lt_imp_le dest: lt_irrefl)
 
-(** Transitive laws **)
+subsubsection{*Transitivity Laws*}
 
 lemma lt_trans1: "[| i le j;  j<k |] ==> i<k"
 by (blast elim!: leE intro: lt_trans)
@@ -477,7 +477,7 @@ apply (insert succ_le_iff [of i j])
 apply (simp add: lt_def) 
 done
 
-(** Union and Intersection **)
+subsubsection{*Union and Intersection*}
 
 lemma Un_upper1_le: "[| Ord(i); Ord(j) |] ==> i le i Un j"
 by (rule Un_upper1 [THEN subset_imp_le], auto)
@@ -539,7 +539,7 @@ lemma Ord_Union_succ_eq: "Ord(i) ==> \<Union>(succ(i)) = i"
 by (blast intro: Ord_trans)
 
 
-(*** Results about limits ***)
+subsection{*Results about Limits*}
 
 lemma Ord_Union [intro,simp,TC]: "[| !!i. i:A ==> Ord(i) |] ==> Ord(Union(A))"
 apply (rule Ord_is_Transset [THEN Transset_Union_family, THEN OrdI])
@@ -612,7 +612,7 @@ lemma Ord_Union_subset: "Ord(i) ==> Union(i) <= i"
 by (blast intro: Ord_trans)
 
 
-(*** Limit ordinals -- general properties ***)
+subsection{*Limit Ordinals -- General Properties*}
 
 lemma Limit_Union_eq: "Limit(i) ==> Union(i) = i"
 apply (unfold Limit_def)
@@ -666,7 +666,7 @@ lemma Limit_le_succD: "[| Limit(i);  i le succ(j) |] ==> i le j"
 by (blast elim!: leE)
 
 
-(** Traditional 3-way case analysis on ordinals **)
+subsubsection{*Traditional 3-Way Case Analysis on Ordinals*}
 
 lemma Ord_cases_disj: "Ord(i) ==> i=0 | (EX j. Ord(j) & i=succ(j)) | Limit(i)"
 by (blast intro!: non_succ_LimitI Ord_0_lt)

@@ -504,11 +504,6 @@ Goal "EX S: Pow(A). ALL x:A. b(x) ~= S";
 by (best_tac cantor_cs 1);
 qed "cantor";
 
-(*Lemma for the inductive definition in theory Zorn*)
-Goal "Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)";
-by (Blast_tac 1);
-qed "Union_in_Pow";
-
 Goal "(!!x. x:A ==> P(x)) == Trueprop (ALL x:A. P(x))";
 by (simp_tac (simpset () addsimps [Ball_def, thm "atomize_all", thm "atomize_imp"]) 1);
 qed "atomize_ball";

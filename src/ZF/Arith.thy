@@ -87,7 +87,7 @@ done
 lemmas zero_lt_natE = zero_lt_lemma [THEN bexE, standard]
 
 
-(** natify: coercion to "nat" **)
+subsection{*@{text natify}, the Coercion to @{term nat}*}
 
 lemma pred_succ_eq [simp]: "pred(succ(y)) = y"
 by (unfold pred_def, auto)
@@ -163,7 +163,7 @@ lemma div_natify2 [simp]: "m div natify(n) = m div n"
 by (simp add: div_def)
 
 
-(*** Typing rules ***)
+subsection{*Typing rules*}
 
 (** Addition **)
 
@@ -218,7 +218,7 @@ apply (simp_all add: le_iff)
 done
 
 
-(*** Addition ***)
+subsection{*Addition*}
 
 (*Natify has weakened this law, compared with the older approach*)
 lemma add_0_natify [simp]: "0 #+ m = natify(m)"
@@ -308,7 +308,7 @@ lemma add_lt_elim1: "[| k#+m < k#+n; m: nat; n: nat |] ==> m < n"
 by (drule add_lt_elim1_natify, auto)
 
 
-(*** Monotonicity of Addition ***)
+subsection{*Monotonicity of Addition*}
 
 (*strict, in 1st argument; proof is by rule induction on 'less than'.
   Still need j:nat, for consider j = omega.  Then we can have i<omega,
@@ -402,7 +402,7 @@ lemma iff_cong2: "u <-> u' ==> (t==u) == (t==u')"
 by auto
 
 
-(*** Multiplication [the simprocs need these laws] ***)
+subsection{*Multiplication*}
 
 lemma mult_0 [simp]: "0 #* m = 0"
 by (simp add: mult_def)

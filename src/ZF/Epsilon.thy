@@ -34,7 +34,7 @@ constdefs
     "rec(k,a,b) == recursor(a,b,k)"
 
 
-(*** Basic closure properties ***)
+subsection{*Basic Closure Properties*}
 
 lemma arg_subset_eclose: "A <= eclose(A)"
 apply (unfold eclose_def)
@@ -77,7 +77,7 @@ lemma eps_induct:
 by (rule arg_in_eclose_sing [THEN eclose_induct], blast) 
 
 
-(*** Leastness of eclose ***)
+subsection{*Leastness of @{term eclose}*}
 
 (** eclose(A) is the least transitive set including A as a subset. **)
 
@@ -117,7 +117,7 @@ apply (rule subset_refl)
 done
 
 
-(*** Epsilon recursion ***)
+subsection{*Epsilon Recursion*}
 
 (*Unused...*)
 lemma mem_eclose_trans: "[| A: eclose(B);  B: eclose(C) |] ==> A: eclose(C)"
@@ -205,7 +205,7 @@ apply (blast intro!: minor
              dest: Ord_in_Ord [THEN eclose_sing_Ord, THEN subsetD])
 done
 
-(*** Rank ***)
+subsection{*Rank*}
 
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
 lemma rank: "rank(a) = (UN y:a. succ(rank(y)))"
@@ -309,7 +309,7 @@ apply (blast intro: lt_trans rank_lt rank_pair2)
 done
 
 
-(*** Corollaries of leastness ***)
+subsection{*Corollaries of Leastness*}
 
 lemma mem_eclose_subset: "A:B ==> eclose(A)<=eclose(B)"
 apply (rule Transset_eclose [THEN eclose_least])

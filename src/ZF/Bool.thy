@@ -112,7 +112,7 @@ by (simp add: xor_def)
 lemmas bool_typechecks = bool_1I bool_0I cond_type not_type and_type
                          or_type xor_type
 
-(*** Laws for 'not' ***)
+subsection{*Laws About 'not' *}
 
 lemma not_not [simp]: "a:bool ==> not(not(a)) = a"
 by (elim boolE, auto)
@@ -123,7 +123,7 @@ by (elim boolE, auto)
 lemma not_or [simp]: "a:bool ==> not(a or b) = not(a) and not(b)"
 by (elim boolE, auto)
 
-(*** Laws about 'and' ***)
+subsection{*Laws About 'and' *}
 
 lemma and_absorb [simp]: "a: bool ==> a and a = a"
 by (elim boolE, auto)
@@ -138,7 +138,7 @@ lemma and_or_distrib: "[| a: bool; b:bool; c:bool |] ==>
        (a or b) and c  =  (a and c) or (b and c)"
 by (elim boolE, auto)
 
-(** binary 'or' **)
+subsection{*Laws About 'or' *}
 
 lemma or_absorb [simp]: "a: bool ==> a or a = a"
 by (elim boolE, auto)

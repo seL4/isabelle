@@ -10,7 +10,7 @@ header{*Arithmetic with simplification*}
 theory ArithSimp = Arith
 files "arith_data.ML":
 
-(*** Difference ***)
+subsection{*Difference*}
 
 lemma diff_self_eq_0: "m #- m = 0"
 apply (subgoal_tac "natify (m) #- natify (m) = 0")
@@ -60,7 +60,7 @@ apply (simp (no_asm) add: mult_commute [of k] diff_mult_distrib)
 done
 
 
-(*** Remainder ***)
+subsection{*Remainder*}
 
 (*We need m:nat even with natify*)
 lemma div_termination: "[| 0<n;  n le m;  m:nat |] ==> m #- n < m"
@@ -131,7 +131,7 @@ apply (simp add: mod_def raw_mod_geq nat_into_Ord [THEN Ord_0_lt_iff])
 done
 
 
-(*** Division ***)
+subsection{*Division*}
 
 lemma raw_div_type: "[| m:nat;  n:nat |] ==> raw_div (m, n) : nat"
 apply (unfold raw_div_def)
@@ -196,7 +196,9 @@ apply (simp (no_asm_simp) add: mod_div_equality_natify)
 done
 
 
-(*** Further facts about mod (mainly for mutilated chess board) ***)
+subsection{*Further Facts about Remainder*}
+
+text{*(mainly for mutilated chess board)*}
 
 lemma mod_succ_lemma:
      "[| 0<n;  m:nat;  n:nat |]  
@@ -258,7 +260,7 @@ lemma mod2_add_self [simp]: "(m#+m) mod 2 = 0"
 by (cut_tac n = "0" in mod2_add_more, auto)
 
 
-(**** Additional theorems about "le" ****)
+subsection{*Additional theorems about @{text "\<le>"}*}
 
 lemma add_le_self: "m:nat ==> m le (m #+ n)"
 apply (simp (no_asm_simp))
@@ -333,7 +335,7 @@ apply auto
 done
 
 
-(** Cancellation laws for common factors in comparisons **)
+subsection{*Cancellation Laws for Common Factors in Comparisons*}
 
 lemma mult_less_cancel_lemma:
      "[| k: nat; m: nat; n: nat |] ==> (m#*k < n#*k) <-> (0<k & m<n)"
@@ -408,7 +410,7 @@ apply auto
 done
 
 
-(** Distributive law for remainder (mod) **)
+subsection{*More Lemmas about Remainder*}
 
 lemma mult_mod_distrib_raw:
      "[| k:nat; m:nat; n:nat |] ==> (k#*m) mod (k#*n) = k #* (m mod n)"
@@ -492,7 +494,8 @@ lemma less_iff_succ_add:
      "[| m: nat; n: nat |] ==> (m<n) <-> (EX k: nat. n = succ(m#+k))"
 by (auto intro: less_imp_succ_add)
 
-(* on nat *)
+
+subsubsection{*More Lemmas About Difference*}
 
 lemma diff_is_0_lemma:
      "[| m: nat; n: nat |] ==> m #- n = 0 <-> m le n"

@@ -44,7 +44,7 @@ syntax (xsymbols)
   "lesspoll"    :: "[i,i] => o"       (infixl "\<prec>" 50)
   "LEAST "         :: "[pttrn, o] => i"  ("(3\<mu>_./ _)" [0, 10] 10)
 
-(*** The Schroeder-Bernstein Theorem -- see Davey & Priestly, page 106 ***)
+subsection{*The Schroeder-Bernstein Theorem -- see Davey & Priestly, page 106 *}
 
 (** Lemma: Banach's Decomposition Theorem **)
 
@@ -168,7 +168,7 @@ apply (blast intro: bij_disjoint_Un)
 done
 
 
-(*** lesspoll: contributions by Krzysztof Grabczewski ***)
+subsection{*lesspoll: contributions by Krzysztof Grabczewski *}
 
 lemma lesspoll_not_refl: "~ (i \<prec> i)"
 by (simp add: lesspoll_def) 
@@ -270,7 +270,7 @@ apply (unfold Least_def)
 apply (rule the_0, blast)
 done
 
-lemma Ord_Least: "Ord(LEAST x. P(x))"
+lemma Ord_Least [intro,simp,TC]: "Ord(LEAST x. P(x))"
 apply (rule_tac P = "EX i. Ord(i) & P(i)" in case_split_thm)  
     (*case_tac method not available yet; needs "inductive"*)
 apply safe
@@ -466,7 +466,7 @@ apply (blast intro: lepoll_Ord_imp_eqpoll)
 done
 
 
-(*** The finite cardinals ***)
+subsection{*The finite cardinals *}
 
 lemma cons_lepoll_consD: 
  "[| cons(u,A) \<lesssim> cons(v,B);  u~:A;  v~:B |] ==> A \<lesssim> B"
@@ -585,7 +585,7 @@ apply (blast intro: well_ord_Memrel well_ord_cardinal_eqpoll [THEN eqpoll_sym]
 done
 
 
-(*** The first infinite cardinal: Omega, or nat ***)
+subsection{*The first infinite cardinal: Omega, or nat *}
 
 (*This implies Kunen's Lemma 10.6*)
 lemma lt_not_lepoll: "[| n<i;  n:nat |] ==> ~ i \<lesssim> n"
@@ -622,7 +622,7 @@ apply (erule cardinal_mono)
 done
 
 
-(*** Towards Cardinal Arithmetic ***)
+subsection{*Towards Cardinal Arithmetic *}
 (** Congruence laws for successor, cardinal addition and multiplication **)
 
 (*Congruence law for  cons  under equipollence*)
@@ -699,8 +699,9 @@ apply (blast intro: inj_converse_fun [THEN apply_type])+
 done
 
 
-(*** Lemmas by Krzysztof Grabczewski.  New proofs using cons_lepoll_cons.
-     Could easily generalise from succ to cons. ***)
+subsection{*Lemmas by Krzysztof Grabczewski*}
+
+(*New proofs using cons_lepoll_cons. Could generalise from succ to cons.*)
 
 (*If A has at most n+1 elements and a:A then A-{a} has at most n.*)
 lemma Diff_sing_lepoll: 
@@ -902,6 +903,8 @@ lemma Finite_induct:
 apply (erule Finite_into_Fin [THEN Fin_induct]) 
 apply (blast intro: Fin_into_Finite)+
 done
+
+lemmas Finite_induct = Finite_induct [case_names 0 cons, induct set: Finite]
 
 (*Sidi Ehmety.  The contrapositive says ~Finite(A) ==> ~Finite(A-{a}) *)
 lemma Diff_sing_Finite: "Finite(A - {a}) ==> Finite(A)"

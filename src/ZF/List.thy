@@ -439,6 +439,8 @@ apply (subgoal_tac "P(rev(rev(l)))", simp)
 apply (erule rev_type [THEN list.induct], simp_all)
 done
 
+lemmas list_append_induct = list_append_induct [case_names Nil snoc, consumes 1]
+
 
 (*** Thanks to Sidi Ehmety for these results about min, take, etc. ***)
 

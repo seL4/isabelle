@@ -88,7 +88,7 @@ apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
 done
 
 
-(*** Cardinal addition ***)
+subsection{*Cardinal addition*}
 
 text{*Note: Could omit proving the algebraic laws for cardinal addition and
 multiplication.  On finite cardinals these operations coincide with
@@ -214,7 +214,7 @@ apply (simp add: cadd_succ_lemma nat_into_Card [THEN Card_cardinal_eq])
 done
 
 
-(*** Cardinal multiplication ***)
+subsection{*Cardinal multiplication*}
 
 (** Cardinal multiplication is commutative **)
 
@@ -301,7 +301,7 @@ apply (unfold cmult_def succ_def)
 apply (simp add: prod_singleton_eqpoll [THEN cardinal_cong] Card_cardinal_eq)
 done
 
-(*** Some inequalities for multiplication ***)
+subsection{*Some inequalities for multiplication*}
 
 lemma prod_square_lepoll: "A \<lesssim> A*A"
 apply (unfold lepoll_def inj_def)
@@ -356,7 +356,7 @@ apply (rule well_ord_lepoll_imp_Card_le)
 apply (blast intro: prod_lepoll_mono subset_imp_lepoll)
 done
 
-(*** Multiplication of finite cardinals is "ordinary" multiplication ***)
+subsection{*Multiplication of finite cardinals is "ordinary" multiplication*}
 
 lemma prod_succ_eqpoll: "succ(A)*B \<approx> B + A*B"
 apply (unfold eqpoll_def)
@@ -396,7 +396,7 @@ lemma lepoll_imp_sum_lepoll_prod: "[| A \<lesssim> B; 2 \<lesssim> A |] ==> A+B 
 by (blast intro: sum_lepoll_mono sum_lepoll_prod lepoll_trans lepoll_refl)
 
 
-(*** Infinite Cardinals are Limit Ordinals ***)
+subsection{*Infinite Cardinals are Limit Ordinals*}
 
 (*This proof is modelled upon one assuming nat<=A, with injection
   lam z:cons(u,A). if z=u then 0 else if z : nat then succ(z) else z
@@ -623,6 +623,15 @@ apply (blast intro: Ord_cardinal well_ord_rmult well_ord_Memrel, assumption)
 apply (simp add: cmult_def [symmetric] InfCard_csquare_eq)
 done
 
+lemma InfCard_square_eqpoll: "InfCard(K) ==> K \<times> K \<approx> K"
+apply (rule well_ord_InfCard_square_eq)  
+ apply (erule InfCard_is_Card [THEN Card_is_Ord, THEN well_ord_Memrel]) 
+apply (simp add: InfCard_is_Card [THEN Card_cardinal_eq]) 
+done
+
+lemma Inf_Card_is_InfCard: "[| ~Finite(i); Card(i) |] ==> InfCard(i)"
+by (simp add: InfCard_def Card_is_Ord [THEN nat_le_infinite_Ord])
+
 (** Toward's Kunen's Corollary 10.13 (1) **)
 
 lemma InfCard_le_cmult_eq: "[| InfCard(K);  L le K;  0<L |] ==> K |*| L = K"
@@ -672,8 +681,9 @@ done
   might be  InfCard(K) ==> |list(K)| = K.
 *)
 
-(*** For every cardinal number there exists a greater one
-     [Kunen's Theorem 10.16, which would be trivial using AC] ***)
+subsection{*For Every Cardinal Number There Exists A Greater One}
+
+text{*This result is Kunen's Theorem 10.16, which would be trivial using AC*}
 
 lemma Ord_jump_cardinal: "Ord(jump_cardinal(K))"
 apply (unfold jump_cardinal_def)
@@ -730,7 +740,7 @@ apply (safe dest!: ltD jump_cardinal_iff [THEN iffD1])
 apply (blast intro: Card_jump_cardinal_lemma [THEN mem_irrefl])
 done
 
-(*** Basic properties of successor cardinals ***)
+subsection{*Basic Properties of Successor Cardinals*}
 
 lemma csucc_basic: "Ord(K) ==> Card(csucc(K)) & K < csucc(K)"
 apply (unfold csucc_def)

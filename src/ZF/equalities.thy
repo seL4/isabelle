@@ -3,14 +3,14 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-
-Basic equations (and inclusions) involving union, intersection, 
-converse, domain, range, etc.
-
-Thanks also to Philippe de Groote.
 *)
 
+header{*Basic Equalities and Inclusions*}
+
 theory equalities = pair:
+
+text{*These cover union, intersection, converse, domain, range, etc.  Philippe
+de Groote proved many of the inclusions.*}
 
 (*FIXME: move to ZF.thy or even to FOL.thy??*)
 lemma [simp]: "((P-->Q) <-> (P-->R)) <-> (P --> (Q<->R))"
@@ -54,10 +54,11 @@ by blast
 lemma the_eq_0 [simp]: "(THE x. False) = 0"
 by (blast intro: the_0)
 
-text {* \medskip Bounded quantifiers.
+subsection{*Bounded Quantifiers*}
+text {* \medskip 
 
   The following are not added to the default simpset because
-  (a) they duplicate the body and (b) there are no similar rules for @{text Int}. *}
+  (a) they duplicate the body and (b) there are no similar rules for @{text Int}.*}
 
 lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) <-> (\<forall>x \<in> A. P(x)) & (\<forall>x \<in> B. P(x))";
   by blast
@@ -71,7 +72,7 @@ lemma ball_UN: "(\<forall>z \<in> (UN x:A. B(x)). P(z)) <-> (\<forall>x\<in>A. \
 lemma bex_UN: "(\<exists>z \<in> (UN x:A. B(x)). P(z)) <-> (\<exists>x\<in>A. \<exists>z\<in>B(x). P(z))"
   by blast
 
-(*** converse ***)
+subsection{*Converse of a Relation*}
 
 lemma converse_iff [iff]: "<a,b>: converse(r) <-> <b,a>:r"
 by (unfold converse_def, blast)
@@ -105,7 +106,7 @@ lemma converse_subset_iff:
 by blast
 
 
-(** cons; Finite Sets **)
+subsection{*Finite Set Constructions Using @{term cons}*}
 
 lemma cons_subsetI: "[| a:C; B<=C |] ==> cons(a,B) <= C"
 by blast
@@ -154,7 +155,7 @@ lemma singleton_subsetD: "{a} <= C  ==>  a:C"
 by blast
 
 
-(*** succ ***)
+(** succ **)
 
 lemma subset_succI: "i <= succ(i)"
 by blast
@@ -166,14 +167,13 @@ by (unfold succ_def, blast)
 
 lemma succ_subsetE:
     "[| succ(i) <= j;  [| i:j;  i<=j |] ==> P |] ==> P"
-apply (unfold succ_def, blast) 
-done
+by (unfold succ_def, blast) 
 
 lemma succ_subset_iff: "succ(a) <= B <-> (a <= B & a : B)"
 by (unfold succ_def, blast)
 
 
-(*** Binary Intersection ***)
+subsection{*Binary Intersection*}
 
 (** Intersection is the greatest lower bound of two sets **)
 
@@ -225,7 +225,7 @@ by (blast elim!: equalityE)
 lemma Int_Diff_eq: "C<=A ==> (A-B) Int C = C-B"
 by blast
 
-(*** Binary Union ***)
+subsection{*Binary Union*}
 
 (** Union is the least upper bound of two sets *)
 
@@ -277,7 +277,7 @@ by blast
 lemma Un_eq_Union: "A Un B = Union({A, B})"
 by blast
 
-(*** Set difference ***)
+subsection{*Set Difference*}
 
 lemma Diff_subset: "A-B <= A"
 by blast
@@ -354,7 +354,7 @@ lemma Un_Int_assoc_iff: "(A Int B) Un C = A Int (B Un C)  <->  C<=A"
 by (blast elim!: equalityE)
 
 
-(*** Big Union and Intersection ***)
+subsection{*Big Union and Intersection*}
 
 (** Big Union is the least upper bound of a set  **)
 
@@ -424,7 +424,7 @@ lemma Inter_cons [simp]:
      "Inter(cons(a,B)) = (if B=0 then a else a Int Inter(B))"
 by force
 
-(*** Unions and Intersections of Families ***)
+subsection{*Unions and Intersections of Families*}
 
 lemma subset_UN_iff_eq: "A <= (UN i:I. B(i)) <-> A = (UN i:I. A Int B(i))"
 by (blast elim!: equalityE)
@@ -739,7 +739,7 @@ lemma range_Diff_eq: "[| <c,b> : r; c~=a |] ==> range(r-{<a,b>}) = range(r)"
 by blast
 
 
-(*** Image of a set under a function/relation ***)
+subsection{*Image of a Set under a Function or Relation*}
 
 lemma image_iff: "b : r``A <-> (EX x:A. <x,b>:r)"
 by (unfold image_def, blast)
@@ -784,7 +784,7 @@ lemma image_Int_subset_left: "(r Int s)``A <= (r``A) Int (s``A)"
 by blast
 
 
-(*** Inverse image of a set under a function/relation ***)
+subsection{*Inverse Image of a Set under a Function or Relation*}
 
 lemma vimage_iff: 
     "a : r-``B <-> (EX y:B. <a,y>:r)"
@@ -868,7 +868,8 @@ lemma converse_INT [simp]:
 apply (unfold Inter_def, blast)
 done
 
-(** Pow **)
+
+subsection{*Powerset Operator*}
 
 lemma Pow_0 [simp]: "Pow(0) = {0}"
 by blast
@@ -897,7 +898,8 @@ by blast
 lemma Pow_INT_eq: "x:A ==> Pow(INT x:A. B(x)) = (INT x:A. Pow(B(x)))"
 by blast
 
-(*** RepFun ***)
+
+subsection{*RepFun*}
 
 lemma RepFun_subset: "[| !!x. x:A ==> f(x): B |] ==> {f(x). x:A} <= B"
 by blast
@@ -910,7 +912,7 @@ apply auto
 apply blast
 done
 
-(*** Collect ***)
+subsection{*Collect*}
 
 lemma Collect_subset: "Collect(A,P) <= A"
 by blast

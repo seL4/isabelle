@@ -18,6 +18,9 @@ files "Tools/typechk":
 setup TypeCheck.setup
 declare atomize_ball [symmetric, rulify]
 
+(*belongs to theory ZF*)
+declare bspec [dest?]
+
 (*** Lemmas about power sets  ***)
 
 lemmas Pow_bottom = empty_subsetI [THEN PowI] (* 0 : Pow(B) *)
@@ -53,6 +56,9 @@ by simp
 
 lemma UnI2: "c : B ==> c : A Un B"
 by simp
+
+(*belongs to theory upair*)
+declare UnI1 [elim?]  UnI2 [elim?]
 
 lemma UnE [elim!]: "[| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P"
 apply simp 

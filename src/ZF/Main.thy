@@ -1,15 +1,8 @@
-(*$Id$
-  theory Main includes everything except AC*)
+(*$Id$*)
 
-theory Main = Update + List + EquivClass + IntDiv + CardinalArith:
+header{*Theory Main: Everything Except AC*}
 
-(* belongs to theory Trancl *)
-lemmas rtrancl_induct = rtrancl_induct [case_names initial step, induct set: rtrancl]
-  and trancl_induct = trancl_induct [case_names initial step, induct set: trancl]
-  and converse_trancl_induct = converse_trancl_induct [case_names initial step, consumes 1]
-  and rtrancl_full_induct = rtrancl_full_induct [case_names initial step, consumes 1]
-
-
+theory Main = List + IntDiv + CardinalArith:
 
 (*The theory of "iterates" logically belongs to Nat, but can't go there because
   primrec isn't available into after Datatype.  The only theories defined
@@ -48,29 +41,9 @@ lemma Ord_iterates [simp]:
 by (induct n rule: nat_induct, simp_all)
 
 
-(* belongs to theory Cardinal *)
-declare Ord_Least [intro,simp,TC]
-
-
-(* belongs to theory List *)
-lemmas list_append_induct = list_append_induct [case_names Nil snoc, consumes 1]
-
 (* belongs to theory IntDiv *)
 lemmas posDivAlg_induct = posDivAlg_induct [consumes 2]
   and negDivAlg_induct = negDivAlg_induct [consumes 2]
 
-
-(* belongs to theory CardinalArith *)
-
-lemmas Finite_induct = Finite_induct [case_names 0 cons, induct set: Finite]
-
-lemma InfCard_square_eqpoll: "InfCard(K) ==> K \<times> K \<approx> K"
-apply (rule well_ord_InfCard_square_eq)  
- apply (erule InfCard_is_Card [THEN Card_is_Ord, THEN well_ord_Memrel]) 
-apply (simp add: InfCard_is_Card [THEN Card_cardinal_eq]) 
-done
-
-lemma Inf_Card_is_InfCard: "[| ~Finite(i); Card(i) |] ==> InfCard(i)"
-by (simp add: InfCard_def Card_is_Ord [THEN nat_le_infinite_Ord])
 
 end

@@ -3,8 +3,6 @@
     Author:     Tobias Nipkow and Lawrence C Paulson
     Copyright   1994  University of Cambridge
 
-Well-founded Recursion
-
 Derived first for transitive relations, and finally for arbitrary WF relations
 via wf_trancl and trans_trancl.
 
@@ -16,6 +14,8 @@ principle, but harder to use, especially to prove wfrec_eclose_eq in
 epsilon.ML.  Expanding out the definition of wftrec in wfrec would yield
 a mess.
 *)
+
+header{*Well-Founded Recursion*}
 
 theory WF = Trancl + mono + equalities:
 
@@ -45,7 +45,7 @@ constdefs
     "wfrec[A](r,a,H) == wfrec(r Int A*A, a, H)"
 
 
-(*** Well-founded relations ***)
+subsection{*Well-Founded Relations*}
 
 (** Equivalences between wf and wf_on **)
 
@@ -153,7 +153,7 @@ apply blast
 done
 
 
-(*** Properties of well-founded relations ***)
+subsection{*Basic Properties of Well-Founded Relations*}
 
 lemma wf_not_refl: "wf(r) ==> <a,a> ~: r"
 by (erule_tac a=a in wf_induct, blast)
@@ -260,7 +260,7 @@ apply (rule fun_extension)
 apply (blast dest: transD intro: is_recfun_equal)
 done
 
-(*** Main Existence Lemma ***)
+subsection{*Recursion: Main Existence Lemma*}
 
 lemma is_recfun_functional:
      "[| wf(r); trans(r); is_recfun(r,a,H,f); is_recfun(r,a,H,g) |]  ==>  f=g"
@@ -304,7 +304,7 @@ apply (blast dest: transD)
 done
 
 
-(*** Unfolding wftrec ***)
+subsection{*Unfolding @{term "wftrec(r,a,H)"}*}
 
 lemma the_recfun_cut:
      "[| wf(r);  trans(r);  <b,a>:r |]

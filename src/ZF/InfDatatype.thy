@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Infinite-branching datatype definitions
 *)
+
+header{*Infinite-Branching Datatype Definitions*}
 
 theory InfDatatype = Datatype + Univ + Finite + Cardinal_AC:
 

@@ -3,11 +3,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Disjoint sums in Zermelo-Fraenkel Set Theory 
-"Part" primitive for simultaneous recursive type definitions
 *)
 
+header{*Disjoint Sums*}
+
 theory Sum = Bool + equalities:
+
+text{*And the "Part" primitive for simultaneous recursive type definitions*}
 
 global
 
@@ -30,7 +32,7 @@ constdefs
 
 local
 
-(*** Rules for the Part primitive ***)
+subsection{*Rules for the @{term Part} Primitive*}
 
 lemma Part_iff: 
     "a : Part(A,h) <-> a:A & (EX y. a=h(y))"
@@ -56,7 +58,7 @@ apply (rule Collect_subset)
 done
 
 
-(*** Rules for Disjoint Sums ***)
+subsection{*Rules for Disjoint Sums*}
 
 lemmas sum_defs = sum_def Inl_def Inr_def case_def
 
@@ -130,7 +132,7 @@ lemma sum_eq_2_times: "A+A = 2*A"
 by (simp add: sum_def, blast)
 
 
-(*** Eliminator -- case ***)
+subsection{*The Eliminator: @{term case}*}
 
 lemma case_Inl [simp]: "case(c, d, Inl(a)) = c(a)"
 by (simp add: sum_defs)
@@ -165,7 +167,7 @@ lemma case_case: "z: A+B ==>
 by auto
 
 
-(*** More rules for Part(A,h) ***)
+subsection{*More Rules for @{term "Part(A,h)"}*}
 
 lemma Part_mono: "A<=B ==> Part(A,h)<=Part(B,h)"
 by blast
