@@ -8,7 +8,8 @@ strings, lists as sets, association lists, generic tables, balanced trees,
 input / output, timing, filenames, misc functions.
 *)
 
-infix |> ~~ \ \\ orelf ins orf andf prefix upto downto mem union inter subset;
+infix |> ~~ \ \\ orelf ins orf andf prefix upto downto mem union inter subset
+      subdir_of;
 
 
 structure Library =
@@ -695,7 +696,7 @@ fun time_use fname = timeit (fn () =>
 fun exit_use fname = use fname handle _ => exit 1;
 
 
-(** filenames **)
+(** filenames and paths **)
 
 (*Convert UNIX filename of the form "path/file" to "path/" and "file";
   if filename contains no slash, then it returns "" and "file"*)
@@ -730,6 +731,12 @@ fun relative_path cur_path dest_path =
      space_implode "/" (mk_relative (space_explode "/" cur_path)
                                     (space_explode "/" dest_path))
   end;
+
+(*Determine if absolute path1 is a subdirectory of absolute path2*)
+fun path1 subdir_of path2 =
+  if hd (explode path1) <> "/" orelse hd (explode path2) <> "/" then
+    error "Relative or empty path passed to subdir_of"
+  else (space_explode "/" path2) prefix (space_explode "/" path1);
 
 
 (** misc functions **)
