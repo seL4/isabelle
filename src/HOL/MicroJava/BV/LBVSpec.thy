@@ -15,7 +15,9 @@ text {*
   soundness and completeness are broken (they still need to be
   ported to the exception version). Both theories are included
   for documentation (but they don't work for this specification), 
-  please see the Isabelle 99-2 release for a working copy.
+  please see the Isabelle 99-2 release for a working copy, or
+  \url{http://isabelle.in.tum.de/verificard} for the most recent
+  development of \mJava.
 *}
 
 types
