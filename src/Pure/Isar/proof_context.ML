@@ -21,6 +21,7 @@ sig
   val init: theory -> context
   val is_fixed: context -> string -> bool
   val default_type: context -> string -> typ option
+  val used_types: context -> string list
   val read_typ: context -> string -> typ
   val read_typ_no_norm: context -> string -> typ
   val cert_typ: context -> typ -> typ
@@ -388,8 +389,8 @@ fun def_type (Context {binds, defs = (types, _, _, _), ...}) is_pat xi =
         | _ => None)
   | some => some);
 
-fun default_type (Context {binds, defs = (types, _, _, _), ...}) x =
-  Vartab.lookup (types, (x, ~1));
+fun default_type (Context {defs = (types, _, _, _), ...}) x = Vartab.lookup (types, (x, ~1));
+fun used_types (Context {defs = (_, _, used, _), ...}) = used;
 
 
 
@@ -420,10 +421,10 @@ end;
 fun lookup_skolem ctxt x = assoc (fixes_of ctxt, x);
 fun get_skolem ctxt x = if_none (lookup_skolem ctxt x) x;
 
-fun no_skolem no_internal ctxt x =
+fun no_skolem internal ctxt x =
   if can Syntax.dest_skolem x then
     raise CONTEXT ("Illegal reference to internal Skolem constant: " ^ quote x, ctxt)
-  else if no_internal andalso can Syntax.dest_internal x then
+  else if not internal andalso can Syntax.dest_internal x then
     raise CONTEXT ("Illegal reference to internal variable: " ^ quote x, ctxt)
   else x;
 
@@ -600,7 +601,9 @@ val ins_sorts = foldl_types (foldl_atyps
     | (sorts, _) => sorts));
 
 val ins_used = foldl_term_types (fn t => foldl_atyps
-  (fn (used, TFree (x, _)) => x ins_string used | (used, _) => used));
+  (fn (used, TFree (x, _)) => x ins_string used
+    | (used, TVar ((x, _), _)) => x ins_string used
+    | (used, _) => used));
 
 val ins_occs = foldl_term_types (fn t => foldl_atyps
   (fn (tab, TFree (x, _)) => Symtab.update_multi ((x, t), tab) | (tab, _) => tab));
@@ -731,7 +734,7 @@ fun export is_goal inner outer =
         rule
         |> Drule.forall_intr_list frees
         |> Tactic.norm_hhf
-        |> Drule.tvars_intr_list tfrees
+        |> (#1 o Drule.tvars_intr_list tfrees)
       end)
   end;
 
@@ -1056,20 +1059,24 @@ end;
 
 local
 
-fun prep_vars prep_typ no_internal (ctxt, (xs, raw_T)) =
+fun prep_vars prep_typ internal (ctxt, (xs, raw_T)) =
   let
-    val _ = (case filter (not o Syntax.is_identifier) (map (no_skolem no_internal ctxt) xs) of
+    fun cond_tvars T =
+      if internal then T
+      else Type.no_tvars T handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
+
+    val _ = (case filter (not o Syntax.is_identifier) (map (no_skolem internal ctxt) xs) of
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
-    val opt_T = apsome (prep_typ ctxt) raw_T;
+    val opt_T = apsome (cond_tvars o prep_typ ctxt) raw_T;
     val T = if_none opt_T TypeInfer.logicT;
     val ctxt' = ctxt |> declare_terms_syntax (map (fn x => Free (x, T)) xs);
   in (ctxt', (xs, opt_T)) end;
 
 in
 
-val read_vars = prep_vars read_typ true;
-val cert_vars = prep_vars cert_typ false;
+val read_vars = prep_vars read_typ false;
+val cert_vars = prep_vars cert_typ true;
 
 end;
 
@@ -1124,7 +1131,7 @@ end;
 
 fun fix_frees ts ctxt =
   let
-    val frees = foldl Drule.add_frees ([], ts);
+    val frees = foldl Term.add_frees ([], ts);
     fun new (x, T) = if is_fixed ctxt x then None else Some ([x], Some T);
   in fix_direct (rev (mapfilter new frees)) ctxt end;
 
