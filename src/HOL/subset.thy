@@ -66,8 +66,8 @@ proof -
   proof
     assume "Abs x = Abs y"
     hence "Rep (Abs x) = Rep (Abs y)" by simp
-    moreover note x hence "Rep (Abs x) = x" by (rule Abs_inverse [OF tydef])
-    moreover note y hence "Rep (Abs y) = y" by (rule Abs_inverse [OF tydef])
+    moreover from x have "Rep (Abs x) = x" by (rule Abs_inverse [OF tydef])
+    moreover from y have "Rep (Abs y) = y" by (rule Abs_inverse [OF tydef])
     ultimately show "x = y" by (simp only:)
   next
     assume "x = y"
