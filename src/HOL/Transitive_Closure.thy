@@ -13,13 +13,18 @@ These postfix operators have MAXIMUM PRIORITY, forcing their operands
 to be atomic.
 *)
 
-theory Transitive_Closure = Lfp + Relation
+theory Transitive_Closure = Inductive
 files ("Transitive_Closure_lemmas.ML"):
 
-constdefs
+consts
   rtrancl :: "('a * 'a) set => ('a * 'a) set"    ("(_^*)" [1000] 999)
-  "r^* == lfp (%s. Id Un (r O s))"
 
+inductive "r^*"
+intros
+  rtrancl_refl [intro!, simp]: "(a, a) : r^*"
+  rtrancl_into_rtrancl:        "[| (a,b) : r^*; (b,c) : r |] ==> (a,c) : r^*"
+
+constdefs
   trancl :: "('a * 'a) set => ('a * 'a) set"    ("(_^+)" [1000] 999)
   "r^+ ==  r O rtrancl r"
 
@@ -89,5 +94,11 @@ lemma Not_Domain_rtrancl:
 	"x ~: Domain R ==> ((x, y) : R^*) = (x = y)"
  apply (auto)
  by (erule rev_mp, erule rtrancl_induct, auto)
- 
+
+
+declare rtrancl_induct [induct set: rtrancl]
+declare rtranclE [cases set: rtrancl]
+declare trancl_induct [induct set: trancl]
+declare tranclE [cases set: trancl]
+
 end

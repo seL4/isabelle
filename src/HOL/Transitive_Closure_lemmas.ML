@@ -6,36 +6,14 @@
 Theorems about the transitive closure of a relation
 *)
 
-val rtrancl_def = thm "rtrancl_def";
+val rtrancl_refl = thm "rtrancl_refl";
+val rtrancl_into_rtrancl = thm "rtrancl_into_rtrancl";
 val trancl_def = thm "trancl_def";
 
 
 (** The relation rtrancl **)
 
 section "^*";
-
-Goal "mono(%s. Id Un (r O s))";
-by (rtac monoI 1);
-by (REPEAT (ares_tac [monoI, subset_refl, comp_mono, Un_mono] 1));
-qed "rtrancl_fun_mono";
-
-bind_thm ("rtrancl_unfold", rtrancl_fun_mono RS (rtrancl_def RS def_lfp_unfold));
-
-(*Reflexivity of rtrancl*)
-Goal "(a,a) : r^*";
-by (stac rtrancl_unfold 1);
-by (Blast_tac 1);
-qed "rtrancl_refl";
-
-Addsimps [rtrancl_refl];
-AddSIs   [rtrancl_refl];
-
-
-(*Closure under composition with r*)
-Goal "[| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
-by (stac rtrancl_unfold 1);
-by (Blast_tac 1);
-qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
 Goal "!!p. p : r ==> p : r^*";
@@ -46,20 +24,13 @@ qed "r_into_rtrancl";
 AddIs [r_into_rtrancl];
 
 (*monotonicity of rtrancl*)
-Goalw [rtrancl_def] "r <= s ==> r^* <= s^*";
-by (REPEAT(ares_tac [lfp_mono,Un_mono,comp_mono,subset_refl] 1));
+Goal "r <= s ==> r^* <= s^*";
+by (rtac subsetI 1);
+by (split_all_tac 1);
+by (etac (thm "rtrancl.induct") 1);
+by (rtac rtrancl_into_rtrancl 2);
+by (ALLGOALS Blast_tac);
 qed "rtrancl_mono";
-
-(** standard induction rule **)
-
-val major::prems = Goal 
-  "[| (a,b) : r^*; \
-\     !!x. P(x,x); \
-\     !!x y z.[| P(x,y); (x,y): r^*; (y,z): r |]  ==>  P(x,z) |] \
-\  ==>  P(a,b)";
-by (rtac ([rtrancl_def, rtrancl_fun_mono, major] MRS def_lfp_induct) 1);
-by (blast_tac (claset() addIs prems) 1);
-qed "rtrancl_full_induct";
 
 (*nice induction rule*)
 val major::prems = Goal
@@ -67,14 +38,9 @@ val major::prems = Goal
 \       P(a); \
 \       !!y z.[| (a,y) : r^*;  (y,z) : r;  P(y) |] ==> P(z) |]  \
 \     ==> P(b)";
-(*by induction on this formula*)
-by (subgoal_tac "! y. (a::'a,b) = (a,y) --> P(y)" 1);
-(*now solve first subgoal: this formula is sufficient*)
-by (Blast_tac 1);
-(*now do the induction*)
-by (resolve_tac [major RS rtrancl_full_induct] 1);
-by (blast_tac (claset() addIs prems) 1);
-by (blast_tac (claset() addIs prems) 1);
+by (rtac (read_instantiate [("P","%x y. x = a --> P y")]
+  (major RS thm "rtrancl.induct") RS mp) 1);
+by (ALLGOALS (blast_tac (claset() addIs prems)));
 qed "rtrancl_induct";
 
 bind_thm ("rtrancl_induct2", split_rule
