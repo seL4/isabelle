@@ -57,3 +57,16 @@ val option_map_SomeD = prove_goalw thy [option_map_def]
 	"!!x. option_map f x = Some y ==> ? z. x = Some z & f z = y" (K [
 	optionE_tac "x" 1,
 	 Auto_tac]);
+
+section "o2s";
+
+val elem_o2s = prove_goal thy "!!X. x : o2s xo = (xo = Some x)"
+ (K [	optionE_tac "xo" 1,
+	 Auto_tac]);
+AddSDs [elem_o2s RS iffD1];
+Addsimps [elem_o2s];
+
+val o2s_empty_eq = prove_goal thy "(o2s xo = {}) = (xo = None)"
+ (K [	optionE_tac "xo" 1,
+	 Auto_tac]);
+Addsimps [o2s_empty_eq];
