@@ -112,11 +112,11 @@ fun newName (ix, (pairs,used)) =
 
 fun freezeOne alist (ix,sort) =
   TFree (the (assoc (alist, ix)), sort)
-    handle OPTION _ =>
+    handle OPTION =>
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
 fun thawOne alist (a,sort) = TVar (the (assoc (alist,a)), sort)
-      handle OPTION _ => TFree(a,sort);
+      handle OPTION => TFree(a,sort);
 
 (*This sort of code could replace unvarifyT (?)
     fun freeze_thaw_type T =
