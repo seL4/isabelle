@@ -142,34 +142,30 @@ by (rewrite_goals_tac [equiv_def,sym_def,congruent_def]);
 by (fast_tac ZF_cs 1);
 qed "UN_equiv_class";
 
-(*Resolve th against the "local" premises*)
-val localize = RSLIST [equivA,bcong];
-
 (*type checking of  UN x:r``{a}. b(x) *)
-val _::_::prems = goalw EquivClass.thy [quotient_def]
+val prems = goalw EquivClass.thy [quotient_def]
     "[| equiv(A,r);  congruent(r,b);  X: A/r;	\
 \	!!x.  x : A ==> b(x) : B |] 	\
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
 by (safe_tac ZF_cs);
-by (rtac (localize UN_equiv_class RS ssubst) 1);
-by (REPEAT (ares_tac prems 1));
+by (asm_simp_tac (ZF_ss addsimps (UN_equiv_class::prems)) 1);
 qed "UN_equiv_class_type";
 
 (*Sufficient conditions for injectiveness.  Could weaken premises!
   major premise could be an inclusion; bcong could be !!y. y:A ==> b(y):B
 *)
-val _::_::prems = goalw EquivClass.thy [quotient_def]
+val prems = goalw EquivClass.thy [quotient_def]
     "[| equiv(A,r);   congruent(r,b);  \
 \       (UN x:X. b(x))=(UN y:Y. b(y));  X: A/r;  Y: A/r;  \
 \       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> <x,y>:r |] 	\
 \    ==> X=Y";
 by (cut_facts_tac prems 1);
 by (safe_tac ZF_cs);
-by (rtac (equivA RS equiv_class_eq) 1);
+by (rtac equiv_class_eq 1);
 by (REPEAT (ares_tac prems 1));
 by (etac box_equals 1);
-by (REPEAT (ares_tac [localize UN_equiv_class] 1));
+by (REPEAT (ares_tac [UN_equiv_class] 1));
 qed "UN_equiv_class_inject";
 
 
