@@ -52,6 +52,8 @@ bind_thm("list_eq_cases",
 
 (** @ - append **)
 
+section "@ - append";
+
 goal thy "(xs@ys)@zs = xs@(ys@zs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -111,6 +113,8 @@ qed "tl_append";
 
 (** map **)
 
+section "map";
+
 goal thy
   "(!x. x : set xs --> f x = g x) --> map f xs = map g xs";
 by (induct_tac "xs" 1);
@@ -143,6 +147,8 @@ qed "rev_map";
 
 (** rev **)
 
+section "rev";
+
 goal thy "rev(xs@ys) = rev(ys) @ rev(xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -158,6 +164,8 @@ Addsimps[rev_rev_ident];
 
 (** mem **)
 
+section "mem";
+
 goal thy "x mem (xs@ys) = (x mem xs | x mem ys)";
 by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
@@ -171,6 +179,8 @@ qed "mem_filter";
 Addsimps[mem_filter];
 
 (** set **)
+
+section "set";
 
 goal thy "set (xs@ys) = (set xs Un set ys)";
 by (induct_tac "xs" 1);
@@ -210,6 +220,8 @@ Addsimps [set_of_list_map];
 
 (** list_all **)
 
+section "list_all";
+
 goal thy "list_all (%x.True) xs = True";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -231,6 +243,8 @@ qed "list_all_mem_conv";
 
 (** filter **)
 
+section "filter";
+
 goal thy "filter P (xs@ys) = filter P xs @ filter P ys";
 by (induct_tac "xs" 1);
  by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
@@ -245,18 +259,38 @@ qed "filter_size";
 
 (** concat **)
 
+section "concat";
+
 goal thy  "concat(xs@ys) = concat(xs)@concat(ys)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed"concat_append";
 Addsimps [concat_append];
 
-goal thy "rev(concat ls) = concat (map rev (rev ls))";
-by (induct_tac "ls" 1);
+goal thy  "set(concat xs) = Union(set `` set xs)";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed"set_of_list_concat";
+Addsimps [set_of_list_concat];
+
+goal thy "map f (concat xs) = concat (map (map f) xs)"; 
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "map_concat";
+
+goal thy "filter p (concat xs) = concat (map (filter p) xs)"; 
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed"filter_concat"; 
+
+goal thy "rev(concat xs) = concat (map rev (rev xs))";
+by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "rev_concat";
 
 (** length **)
+
+section "length";
 
 goal thy "length(xs@ys) = length(xs)+length(ys)";
 by (induct_tac "xs" 1);
@@ -290,6 +324,8 @@ AddIffs [length_greater_0_conv];
 
 
 (** nth **)
+
+section "nth";
 
 goal thy
   "!xs. nth n (xs@ys) = \
@@ -481,6 +517,8 @@ qed_spec_mp "nth_drop";
 Addsimps [nth_drop];
 
 (** takeWhile & dropWhile **)
+
+section "takeWhile & dropWhile";
 
 goal thy
   "x:set xs & ~P(x) --> takeWhile P (xs @ ys) = takeWhile P xs";
