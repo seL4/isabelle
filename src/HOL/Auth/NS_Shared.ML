@@ -288,7 +288,6 @@ by (ALLGOALS
      (!simpset addsimps ([insert_Key_singleton, insert_Key_image, pushKey_newK]
                          @ pushes)
                setloop split_tac [expand_if])));
-(** LEVEL 6 **)
 (*NS3, Fake*) 
 by (EVERY (map spy_analz_tac [5,2]));
 by (REPEAT (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1));
