@@ -109,9 +109,6 @@ for SETTINGS in $@; do
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    cd $DISTPREFIX/Isabelle/src/Pure
-    $DISTPREFIX/Isabelle/bin/isatool make Pure $MFLAGS all >> $TESTLOG 2>&1
-    cd -
     $NICE $DISTPREFIX/Isabelle/bin/isatool makeall $MFLAGS all >> $TESTLOG 2>&1 
 
     if [ $? -eq 0 ]
