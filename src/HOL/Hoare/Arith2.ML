@@ -79,22 +79,11 @@ qed "gcd_diff_r";
 
 (*** pow ***)
 
-val [pow_0,pow_Suc] = nat_recs pow_def;
-store_thm("pow_0",pow_0);
-store_thm("pow_Suc",pow_Suc);
-
-goalw thy [pow_def] "m pow (n+k) = m pow n * m pow k";
-by (nat_ind_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [mult_left_commute])));
-qed "pow_add_reduce";
-
-goalw thy [pow_def] "m pow n pow k = m pow (n*k)";
-by (nat_ind_tac "k" 1);
-by (ALLGOALS Asm_simp_tac);
-by (fold_goals_tac [pow_def]);
-by (rtac (pow_add_reduce RS sym) 1);
-qed "pow_pow_reduce";
-
-(*** fac ***)
-
-Addsimps(nat_recs fac_def);
+val prems = goal Power.thy "m mod 2 = 0 ==> ((n::nat)*n)^(m div 2) = n^m";
+by (subgoal_tac "n*n=n^2" 1);
+by (etac ssubst 1);
+by (stac (power_mult RS sym) 1);
+by (stac mult_div_cancel 1);
+by (ALLGOALS(simp_tac (simpset() addsimps prems)));
+qed "sq_pow_div2";
+Addsimps [sq_pow_div2];
