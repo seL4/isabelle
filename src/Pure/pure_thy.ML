@@ -74,6 +74,7 @@ struct
     ref {space = NameSpace.empty, thms_tab = Symtab.empty, const_idx = (0, Symtab.empty)} : T;
 
   val empty = mk_empty ();
+  fun copy (ref x) = ref x;
   val prep_ext = mk_empty;
   val merge = mk_empty;
 
@@ -326,6 +327,7 @@ struct
   type T = {name: string, generation: int};
 
   val empty = {name = "", generation = 0};
+  val copy = I;
   val prep_ext  = I;
   fun merge _ = empty;
   fun print _ _ = ();
@@ -435,7 +437,8 @@ val proto_pure =
     ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("Goal", "prop => prop", Mixfix ("GOAL _", [999], 1000)),
-    ("TYPE", "'a itself", NoSyn)]
+    ("TYPE", "'a itself", NoSyn),
+    ("dummy", "'a", Delimfix "'_")]
   |> Theory.add_modesyntax ("", false)
     [("Goal", "prop => prop", Mixfix ("_", [0], 0))]
   |> local_path
