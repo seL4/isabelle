@@ -874,15 +874,17 @@ implication and the assumption \isa{P\ a}, which leaves this subgoal:
 %
 We have created the assumption \isa{P(h\ a)}, which is progress.  To finish the
 proof, we apply \isa{spec} one last time, using \isa{drule}.
-One final remark: applying \isa{spec} by the command
+
+\medskip
+\emph{A final remark}.  Applying \isa{spec} by the command
 \begin{isabelle}
 \isacommand{apply}\ (drule\ mp,\ assumption)
 \end{isabelle}
-does not work the second time.  It adds a second copy of \isa{P(h\ a)} instead of
-the desired assumption, \isa{P(h(h\ a))}.  We have used the \isacommand{by}
-command, which causes Isabelle to backtrack until it finds the correct one.
-Equivalently, we could have used the \isacommand{apply} command and bundled the
-\isa{drule mp} with two \isa{assumption} calls.
+would not work a second time: it would add a second copy of \isa{P(h~a)} instead
+of the desired assumption, \isa{P(h(h~a))}.  The \isacommand{by}
+command forces Isabelle to backtrack until it finds the correct one.
+Alternatively, we could have used the \isacommand{apply} command and bundled the
+\isa{drule mp} with \emph{two} calls of \isa{assumption}.
 
 
 \subsection{The Existential Quantifier}
@@ -1268,23 +1270,16 @@ the \isa{iff} attribute. Once we have proved the lemma, Isabelle
 will make it known to the classical reasoner (and to the simplifier). 
 \begin{isabelle}
 \isacommand{lemma}\
-[iff]:\
-"(xs{\isacharat}ys\ =\
-\isacharbrackleft{]})\ =\
-(xs=[]\
-\isacharampersand\
-ys=[])"\isanewline
-\isacommand{apply}\ (induct_tac\
-xs)\isanewline
-\isacommand{apply}\ (simp_all)
-\isanewline
+[iff]:\ "(xs{\isacharat}ys\ =\ [])\ =\
+(xs=[]\ \isacharampersand\ ys=[])"\isanewline
+\isacommand{apply}\ (induct_tac\ xs)\isanewline
+\isacommand{apply}\ (simp_all)\isanewline
 \isacommand{done}
 \end{isabelle}
 %
 This fact about multiplication is also appropriate for 
-the \isa{iff} attribute:
-%%\REMARK{the ?s are ugly here but we need
-%%  them again when talking about \isa{of}; we need a consistent style}
+the \isa{iff} attribute:\REMARK{the ?s are ugly here but we need
+  them again when talking about \isa{of}; we need a consistent style}
 \begin{isabelle}
 (\mbox{?m}\ *\ \mbox{?n}\ =\ 0)\ =\ (\mbox{?m}\ =\ 0\ \isasymor\ \mbox{?n}\ =\ 0)
 \end{isabelle}
@@ -1309,7 +1304,10 @@ reasoning uses search and backtracking in order to \emph{prove} a goal.
 \label{sec:proving-euclid}
 
 A brief development will illustrate the advanced use of  
-\isa{blast}.  In \S\ref{sec:recdef-simplification}, we declared the
+\isa{blast}.  We shall also see \isa{case_tac} used to perform a Boolean
+case split.
+
+In \S\ref{sec:recdef-simplification}, we declared the
 recursive function \isa{gcd}:
 \begin{isabelle}
 \isacommand{consts}\ gcd\ ::\ "nat*nat\ \isasymRightarrow\ nat"\isanewline
@@ -1319,35 +1317,6 @@ recursive function \isa{gcd}:
 \end{isabelle}
 Let us prove that it computes the greatest common
 divisor of its two arguments.  
-%
-%The declaration yields a recursion
-%equation  for \isa{gcd}.  Simplifying with this equation can 
-%cause looping, expanding to ever-larger expressions of if-then-else 
-%and \isa{gcd} calls.  To prevent this, we prove separate simplification rules
-%for $n=0$\ldots
-%\begin{isabelle}
-%\isacommand{lemma}\ gcd_0\ [simp]:\ "gcd(m,0)\ =\ m"\isanewline
-%\isacommand{apply}\ (simp)\isanewline
-%\isacommand{done}
-%\end{isabelle}
-%\ldots{} and for $n>0$:
-%\begin{isabelle}
-%\isacommand{lemma}\ gcd_non_0:\ "0{\isacharless}n\ \isasymLongrightarrow\ gcd(m,n)\ =\ gcd\ (n,\ m\ mod\ n)"\isanewline
-%\isacommand{apply}\ (simp)\isanewline
-%\isacommand{done}
-%\end{isabelle}
-%This second rule is similar to the original equation but
-%does not loop because it is conditional.  It can be applied only
-%when the second argument is known to be non-zero.
-%Armed with our two new simplification rules, we now delete the 
-%original \isa{gcd} recursion equation. 
-%\begin{isabelle}
-%\isacommand{declare}\ gcd.simps\ [simp\ del]
-%\end{isabelle}
-%
-%Now we can prove  some interesting facts about the \isa{gcd} function,
-%for exampe, that it computes a common divisor of its arguments.  
-%
 The theorem is expressed in terms of the familiar
 \textbf{divides} relation from number theory: 
 \begin{isabelle}
@@ -1371,9 +1340,9 @@ Notice that the induction formula
 is a conjunction.  This is necessary: in the inductive step, each 
 half of the conjunction establishes the other. The first three proof steps 
 are applying induction, performing a case analysis on \isa{n}, 
-and simplifying.  Let us pass over these quickly and consider
-the use of \isa{blast}.  We have reached the following 
-subgoal: 
+and simplifying.  Let us pass over these quickly --- we shall discuss
+\isa{case_tac} below --- and consider the use of \isa{blast}.  We have reached the
+following  subgoal: 
 \begin{isabelle}
 %gcd\ (m,\ n)\ dvd\ m\ \isasymand\ gcd\ (m,\ n)\ dvd\ n\isanewline
 \ 1.\ \isasymAnd m\ n.\ \isasymlbrakk0\ \isacharless\ n;\isanewline
@@ -1391,7 +1360,7 @@ the conclusion, for we have the following theorem at our disposal:
 %
 This theorem can be applied in various ways.  As an introduction rule, it
 would cause backward chaining from  the conclusion (namely
-\isa{?k\ dvd\ ?m}) to the two premises, which 
+\isa{?k~dvd~?m}) to the two premises, which 
 also involve the divides relation. This process does not look promising
 and could easily loop.  More sensible is  to apply the rule in the forward
 direction; each step would eliminate an occurrence of the \isa{mod} symbol, so the
@@ -1413,10 +1382,10 @@ Several things are happening here. The keyword \isacommand{lemmas}
 tells Isabelle to transform a theorem in some way and to
 give a name to the resulting theorem.  Attributes can be given,
 here \isa{iff}, which supplies the new theorems to the classical reasoner
-and the simplifier.  The directive \isa{THEN}, which will be explained
-below, supplies the lemma 
+and the simplifier.  The directive \isa{THEN}, described in
+\S\ref{sec:forward} below, supplies the lemma 
 \isa{gcd_dvd_both} to the
-destruction rule \isa{conjunct1} in order to extract the first part:
+destruction rule \isa{conjunct1}.  The effect is to extract the first part:
 \begin{isabelle}
 \ \ \ \ \ gcd\ (?m1,\ ?n1)\ dvd\ ?m1
 \end{isabelle}
@@ -1426,8 +1395,8 @@ clashes.  The second \isacommand{lemmas} declaration yields
 \begin{isabelle}
 \ \ \ \ \ gcd\ (?m1,\ ?n1)\ dvd\ ?n1
 \end{isabelle}
-Later, we shall explore this type of forward reasoning in detail. 
 
+\medskip
 To complete the verification of the \isa{gcd} function, we must 
 prove that it returns the greatest of all the common divisors 
 of its arguments.  The proof is by induction, case analysis and simplification.
@@ -1436,12 +1405,36 @@ of its arguments.  The proof is by induction, case analysis and simplification.
 [rule_format]:\isanewline
 \ \ \ \ \ \ \ "k\ dvd\ m\ \isasymlongrightarrow\ k\ dvd\ n\ \isasymlongrightarrow\
 k\ dvd\ gcd(m,n)"\isanewline
-\isacommand{apply}\ (induct_tac\ m\ n\
-rule:\ gcd.induct)\isanewline
+\isacommand{apply}\ (induct_tac\ m\ n\ rule:\ gcd.induct)\isanewline
 \isacommand{apply}\ (case_tac\ "n=0")\isanewline
 \isacommand{apply}\ (simp_all\ add:\ gcd_non_0\ dvd_mod)\isanewline
 \isacommand{done}
 \end{isabelle}
+
+The case analysis is performed by \isa{case_tac~"n=0"}: the operand has type
+\isa{bool}.  Until now, we have used \isa{case_tac} only with datatypes, and since
+\isa{nat} is a datatype, we could have written
+\isa{case_tac~"n"} with a similar effect.  However, the definition of \isa{gcd}
+makes a Boolean decision:
+\begin{isabelle}
+\ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
+\end{isabelle}
+Proofs about a function frequently follow the function's definition, so we perform
+case analysis over the same formula.
+
+\begingroup\samepage
+\begin{isabelle}
+\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
+\ \ \ \ \ \ \ \ \ \ \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ m\ mod\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (n,\ m\ mod\ n);\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ n\ =\ 0\isasymrbrakk \isanewline
+\ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ k\ dvd\ m\ \isasymlongrightarrow \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (m,\ n)
+\pagebreak[0]\isanewline
+\ 2.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
+\ \ \ \ \ \ \ \ \ \ \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ m\ mod\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (n,\ m\ mod\ n);\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ n\ \isasymnoteq \ 0\isasymrbrakk \isanewline
+\ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ k\ dvd\ m\ \isasymlongrightarrow \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (m,\ n)
+\end{isabelle}
+\endgroup
 
 \begin{warn}
 Note that the theorem has been expressed using HOL implication,
@@ -1450,7 +1443,7 @@ preconditions.  The directive \isa{rule_format} tells Isabelle to replace
 each \isa{\isasymlongrightarrow} by \isa{\isasymLongrightarrow} before
 storing the theorem we have proved.  This directive can also remove outer
 universal quantifiers, converting a theorem into the usual format for
-inference rules.
+inference rules.  (See \S\ref{sec:forward}.)
 \end{warn}
 
 The facts proved above can be summarized as a single logical 
