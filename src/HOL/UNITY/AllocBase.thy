@@ -21,4 +21,10 @@ primrec
   "tokens [] = 0"
   "tokens (x#xs) = x + tokens xs"
 
+(*Or could be setsum...(lessThan n)*)
+consts sum_below :: "[nat=>'a, nat] => ('a::plus_ac0)"
+primrec 
+  sum_below_0    "sum_below f 0 = 0"
+  sum_below_Suc  "sum_below f (Suc n) = f(n) + sum_below f n"
+
 end
