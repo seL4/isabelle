@@ -421,7 +421,7 @@ enclosed in quotation marks.
 \indexbold{definitions} The {\bf definition part} is similar, but with the
 keyword {\tt defs} instead of {\tt rules}.  {\bf Definitions} are rules of the
 form $t\equiv u$, and should serve only as abbreviations.  Isabelle checks for
-common errors in definitions, such as extra variables on the right-hard side.
+common errors in definitions, such as extra variables on the right-hand side.
 Determined users can write non-conservative `definitions' by using mutual
 recursion, for example; the consequences of such actions are their
 responsibility.
@@ -440,7 +440,7 @@ end
 
 \begin{warn}
 A common mistake when writing definitions is to introduce extra free variables
-on the right-hard side as in the following fictitious definition:
+on the right-hand side as in the following fictitious definition:
 \begin{ttbox}
 defs  prime_def "prime(p) == (m divides p) --> (m=1 | m=p)"
 \end{ttbox}
