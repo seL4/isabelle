@@ -52,6 +52,11 @@ nested => (types); the default behaviour is "brackets";
 * Proof General keywords specification is now part of the Isabelle
 distribution (see etc/isar-keywords.el);
 
+* system: support Poly/ML 4.1.1 (large heaps);
+
+* system: smart selection of Isabelle process versus Isabelle
+interface, accomodates case-insensitive file systems (e.g. HFS+);
+
 
 
 New in Isabelle99-2 (February 2001)
