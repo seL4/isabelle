@@ -34,9 +34,9 @@ $(OUT)/Pure: ML-Systems/mlworks.ML ML-Systems/polyml.ML \
   Thy/thy_parse.ML Thy/thy_read.ML Thy/thy_scan.ML Thy/thy_syn.ML \
   Thy/use.ML attribute.ML axclass.ML basis.ML deriv.ML display.ML \
   drule.ML envir.ML goals.ML install_pp.ML library.ML logic.ML \
-  name_space.ML net.ML pattern.ML pure_thy.ML search.ML seq.ML sign.ML \
-  sorts.ML table.ML tactic.ML tctical.ML term.ML theory.ML thm.ML \
-  type.ML type_infer.ML unify.ML
+  name_space.ML net.ML object.ML pattern.ML pure_thy.ML search.ML \
+  seq.ML sign.ML sorts.ML table.ML tactic.ML tctical.ML term.ML \
+  theory.ML thm.ML type.ML type_infer.ML unify.ML
 	@./mk
 
 

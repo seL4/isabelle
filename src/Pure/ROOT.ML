@@ -16,6 +16,7 @@ ml_prompts "> " "# ";
 (*basic utils*)
 use "library.ML";
 use "table.ML";
+use "object.ML";
 use "seq.ML";
 use "name_space.ML";
 use "term.ML";
