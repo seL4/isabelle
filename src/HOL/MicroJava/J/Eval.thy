@@ -8,7 +8,6 @@ execution of Java expressions and statements
 *)
 
 Eval = State + WellType +
-
 consts
   eval  :: "java_mb prog => (xstate \\<times> expr      \\<times> val      \\<times> xstate) set"
   evals :: "java_mb prog => (xstate \\<times> expr list \\<times> val list \\<times> xstate) set"
@@ -16,21 +15,21 @@ consts
 
 syntax
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
-          ("_ \\<turnstile> _ -_\\<succ>_-> _" [51,82,82,82,82] 81)
+          ("_ \\<turnstile> _ -_\\<succ>_-> _" [51,82,60,82,82] 81)
   evals:: "[java_mb prog,xstate,expr list,
                         val list,xstate] => bool "
-          ("_ \\<turnstile> _ -_[\\<succ>]_-> _" [51,82,51,51,82] 81)
+          ("_ \\<turnstile> _ -_[\\<succ>]_-> _" [51,82,60,51,82] 81)
   exec :: "[java_mb prog,xstate,stmt,    xstate] => bool "
-          ("_ \\<turnstile> _ -_-> _" [51,82,82,82] 81)
+          ("_ \\<turnstile> _ -_-> _" [51,82,60,82] 81)
 
 syntax (HTML)
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
-          ("_ |- _ -_>_-> _" [51,82,82,82,82] 81)
+          ("_ |- _ -_>_-> _" [51,82,60,82,82] 81)
   evals:: "[java_mb prog,xstate,expr list,
                         val list,xstate] => bool "
-          ("_ |- _ -_[>]_-> _" [51,82,51,51,82] 81)
+          ("_ |- _ -_[>]_-> _" [51,82,60,51,82] 81)
   exec :: "[java_mb prog,xstate,stmt,    xstate] => bool "
-          ("_ |- _ -_-> _" [51,82,82,82] 81)
+          ("_ |- _ -_-> _" [51,82,60,82] 81)
 
 
 translations
@@ -123,17 +122,22 @@ inductive "eval G" "evals G" "exec G" intrs
          G\\<turnstile>Norm s0 -Expr e-> s1"
 
   (* cf. 14.2 *)
-  Comp  "[| G\\<turnstile>Norm s0 -s -> s1;
+  Comp  "[| G\\<turnstile>Norm s0 -s-> s1;
             G\\<turnstile> s1 -t -> s2|] ==>
-         G\\<turnstile>Norm s0 -(s;; t)-> s2"
+         G\\<turnstile>Norm s0 -s;; t-> s2"
 
   (* cf. 14.8.2 *)
-  Cond  "[| G\\<turnstile>Norm s0  -e \\<succ>v-> s1;
-            G\\<turnstile> s1 -(if  the_Bool v then s else t)-> s2|] ==>
-         G\\<turnstile>Norm s0 -(If(e) s Else t)-> s2"
+  Cond  "[| G\\<turnstile>Norm s0  -e\\<succ>v-> s1;
+            G\\<turnstile> s1 -(if the_Bool v then s else t)-> s2|] ==>
+         G\\<turnstile>Norm s0 -If(e) s Else t-> s2"
 
   (* cf. 14.10, 14.10.1 *)
-  Loop  "[| G\\<turnstile>Norm s0 -(If(e) (s;; While(e) s) Else Skip)-> s1 |] ==>
-         G\\<turnstile>Norm s0 -(While(e) s)-> s1"
+  Loop  "[| G\\<turnstile>Norm s0 -e\\<succ>v-> s1;
+	    if the_Bool v then G\\<turnstile>s1 -s-> s2 \\<and> G\\<turnstile>s2 -While(e) s-> s3
+	                  else s3 = s1 |] ==>
+         G\\<turnstile>Norm s0 -While(e) s-> s3"
+
+monos
+  if_def2
 
 end

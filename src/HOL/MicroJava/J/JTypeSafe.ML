@@ -255,8 +255,9 @@ by( blast_tac (claset() addIs [conforms_upd_local, conf_widen]) 1);
 by( fast_tac (claset() addSEs [FAcc_type_sound]) 1);
 
 (* 5 While *)
-by( fast_tac (claset() addIs [ty_expr_ty_exprs_wt_stmt.Cond, ty_expr_ty_exprs_wt_stmt.Comp, ty_expr_ty_exprs_wt_stmt.Skip]
-		       addEs [ty_expr_ty_exprs_wt_stmt.Loop]) 5);
+by(thin_tac "?a \\<longrightarrow> ?b" 5);
+by(datac ty_expr_ty_exprs_wt_stmt.Loop 1 5);
+by(force_tac (claset() addEs [hext_trans], simpset()addsplits[split_if_asm]) 5);
 
 by forward_hyp_tac;
 

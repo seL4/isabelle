@@ -11,6 +11,8 @@ qed "select_split";
 
 Addsimps [Let_def];
 
+bind_thm ("if_def2", read_instantiate [("P","\\<lambda>x. x")] split_if);
+
 (* ### To HOL.ML *)
 Goal "[| ?!x. P x; P y |] ==> Eps P = y"; 
 by (rtac some_equality 1);
