@@ -13,7 +13,6 @@ print_depth 1;
 
 (*global flags*)
 val print_mode = ref ([]: string list);
-val quick_and_dirty = ref false;        (*if true then some packages will OMIT SOME PROOFS*)
 
 (*fake hiding of private structures*)
 structure Hidden = struct end;
