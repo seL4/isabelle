@@ -17,8 +17,6 @@ fun prove (s,tac) = prove_goal Prod.thy s (fn [] => [tac]);
 
 fun prove_hard arg = if even_hard_ones then prove arg else TrueI;
 
-val meson_tac = safe_meson_tac 1;
-
 set timing;
 
 (* ========================================================================= *)
@@ -177,7 +175,7 @@ val BOO003_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
 \  (~product(x::'a,x,x)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*51194 inferences so far.  Searching to depth 13. 204.6 secs
   Strange!  The previous problem also has 51194 inferences at depth 13.  They
@@ -220,7 +218,7 @@ val BOO004_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
 \  (~sum(x::'a,x,x)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*74799 inferences so far.  Searching to depth 13.  290.0 secs*)
 val BOO005_1 = prove_hard
@@ -261,7 +259,7 @@ val BOO005_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
 \  (~sum(x::'a,multiplicative_identity,multiplicative_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*74799 inferences so far.  Searching to depth 13.  314.6 secs*)
 val BOO006_1 = prove_hard
@@ -302,7 +300,7 @@ val BOO006_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
 \  (~product(x::'a,additive_identity,additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*5 inferences so far.  Searching to depth 5.  1.3 secs*)
 val BOO011_1 = prove
@@ -343,7 +341,7 @@ val BOO011_1 = prove
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
 \  (~equal(inverse(additive_identity),multiplicative_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*4007 inferences so far.  Searching to depth 9.  13 secs*)
 val CAT001_3 = prove_hard
@@ -381,7 +379,7 @@ val CAT001_3 = prove_hard
 \  (there_exists(compos(b::'a,h))) &       \
 \  (equal(compos(b::'a,h),compos(b::'a,g))) & \
 \  (~equal(h::'a,g)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*245 inferences so far.  Searching to depth 7.  1.0 secs*)
 val CAT003_3 = prove
@@ -419,7 +417,7 @@ val CAT003_3 = prove
 \  (there_exists(h)) &  \
 \  (equal(compos(h::'a,a),compos(g::'a,a))) & \
 \  (~equal(g::'a,h)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*54288 inferences so far.  Searching to depth 14.  118.0 secs*)
 val CAT005_1 = prove_hard
@@ -457,7 +455,7 @@ val CAT005_1 = prove_hard
 \  (defined(a::'a,d)) &     \
 \  (identity_map(d)) &  \
 \  (~equal(domain(a),d)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*1728 inferences so far.  Searching to depth 10.  5.8 secs*)
@@ -495,7 +493,7 @@ val CAT007_1 = prove_hard
 \  (! X Y Z. equal(X::'a,Y) --> equal(compos(X::'a,Z),compos(Y::'a,Z))) & \
 \  (equal(domain(a),codomain(b))) &     \
 \  (~defined(a::'a,b)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*82895 inferences so far.  Searching to depth 13.  355 secs*)
 val CAT018_1 = prove_hard
@@ -533,7 +531,7 @@ val CAT018_1 = prove_hard
 \  (defined(a::'a,b)) &     \
 \  (defined(b::'a,c)) &     \
 \  (~defined(a::'a,compos(b::'a,c))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*1118 inferences so far.  Searching to depth 8.  2.3 secs*)
 val COL001_2 = prove
@@ -548,7 +546,7 @@ val COL001_2 = prove
 \  (! D F' E. equal(D::'a,E) --> equal(apply(F'::'a,D),apply(F'::'a,E))) &  \
 \  (! X. equal(apply(apply(apply(s::'a,apply(b::'a,X)),i),apply(apply(s::'a,apply(b::'a,X)),i)),apply(x::'a,apply(apply(apply(s::'a,apply(b::'a,X)),i),apply(apply(s::'a,apply(b::'a,X)),i))))) &   \
 \  (! Y. ~equal(Y::'a,apply(combinator::'a,Y))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*500 inferences so far.  Searching to depth 8.  0.9 secs*)
 val COL023_1 = prove
@@ -560,7 +558,7 @@ val COL023_1 = prove
 \  (! A B C. equal(A::'a,B) --> equal(apply(A::'a,C),apply(B::'a,C))) &     \
 \  (! D F' E. equal(D::'a,E) --> equal(apply(F'::'a,D),apply(F'::'a,E))) &  \
 \  (! Y. ~equal(Y::'a,apply(combinator::'a,Y))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*3018 inferences so far.  Searching to depth 10.  4.3 secs*)
 val COL032_1 = prove_hard
@@ -573,7 +571,7 @@ val COL032_1 = prove_hard
 \  (! D F' E. equal(D::'a,E) --> equal(apply(F'::'a,D),apply(F'::'a,E))) &  \
 \  (! G H. equal(G::'a,H) --> equal(f(G),f(H))) &   \
 \  (! Y. ~equal(apply(Y::'a,f(Y)),apply(f(Y),apply(Y::'a,f(Y))))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*381878 inferences so far.  Searching to depth 13.  670.4 secs*)
 val COL052_2 = prove_hard
@@ -593,7 +591,7 @@ val COL052_2 = prove_hard
 \  (agreeable(c)) &     \
 \  (~agreeable(a)) &    \
 \  (equal(c::'a,compos(a::'a,b))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*13201 inferences so far.  Searching to depth 11.  31.9 secs*)
 val COL075_2 = prove_hard
@@ -607,7 +605,7 @@ val COL075_2 = prove_hard
 \  (! A B. equal(A::'a,B) --> equal(b(A),b(B))) &   \
 \  (! C D. equal(C::'a,D) --> equal(c(C),c(D))) &   \
 \  (! Y. ~equal(apply(apply(Y::'a,b(Y)),c(Y)),apply(b(Y),b(Y)))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*33 inferences so far.  Searching to depth 7.  0.1 secs*)
 val COM001_1 = prove
@@ -622,7 +620,7 @@ val COM001_1 = prove
 \  (follows(p8::'a,p3)) &   \
 \  (has(p8::'a,goto(loop))) &       \
 \  (~succeeds(p3::'a,p3)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*533 inferences so far.  Searching to depth 13.  0.3 secs*)
 val COM002_1 = prove
@@ -645,7 +643,7 @@ val COM002_1 = prove
 \  (follows(p8::'a,p7)) &   \
 \  (has(p8::'a,goto(loop))) &       \
 \  (~succeeds(p3::'a,p3)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*4821 inferences so far.  Searching to depth 14.  1.3 secs*)
 val COM002_2 = prove
@@ -668,7 +666,7 @@ val COM002_2 = prove
 \  (follows(p8::'a,p7)) &   \
 \  (has(p8::'a,goto(loop))) &       \
 \  (fails(p3::'a,p3)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*98 inferences so far.  Searching to depth 10.  1.1 secs*)
 val COM003_2 = prove
@@ -715,7 +713,7 @@ val COM003_2 = prove
 \  (! V Y. program(V) & program_halts2_halts2_outputs(V::'a,f4(V),good) & program_not_halts2_halts2_outputs(V::'a,f4(V),bad) & program_halts2(Y::'a,Y) --> halts2(c3::'a,Y)) &  \
 \  (! V Y. program(V) & program_halts2_halts2_outputs(V::'a,f4(V),good) & program_not_halts2_halts2_outputs(V::'a,f4(V),bad) --> program_not_halts2_halts2_outputs(c3::'a,Y,bad)) & \
 \  (algorithm_program_decides(c4)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (****************SLOW
 2100398 inferences so far.  Searching to depth 12.  No proof after 30 mins.
@@ -745,7 +743,7 @@ val COM004_1 = prove
 \  (equal(n_left::'a,left_child_of(n))) &   \
 \  (equal(n_right::'a,right_child_of(n))) & \
 \  (! Z. ~failure_node(Z::'a,or(empty::'a,empty))) --> False",
-  meson_tac);
+  meson_tac 1);
 ****************)
 
 (*179 inferences so far.  Searching to depth 7.  3.9 secs*)
@@ -806,7 +804,7 @@ val GEO003_1 = prove_hard
 \  (! X V1 V2 V3 V4 Y V5. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,X,V5),continuous(V1::'a,V2,V3,V4,Y,V5))) &    \
 \  (! X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y))) &    \
 \  (~between(a::'a,b,b)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*4272 inferences so far.  Searching to depth 10.  29.4 secs*)
 val GEO017_2 = prove_hard
@@ -865,7 +863,7 @@ val GEO017_2 = prove_hard
 \  (! X V1 V2 V3 V4 V5 Y. equal(X::'a,Y) --> equal(continuous(V1::'a,V2,V3,V4,V5,X),continuous(V1::'a,V2,V3,V4,V5,Y))) &    \
 \  (equidistant(u::'a,v,w,x)) &     \
 \  (~equidistant(u::'a,v,x,w)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (****************SLOW
 382903 inferences so far.  Searching to depth 9.  No proof after 35 minutes.
@@ -948,7 +946,7 @@ val GEO027_3 = prove_hard
 \  (between(u::'a,v,w)) &   \
 \  (~equal(u::'a,v)) &      \
 \  (~equal(w::'a,extension(u::'a,v,v,w))) --> False",
-  meson_tac);
+  meson_tac 1);
 ****************)
 
 (*313884 inferences so far.  Searching to depth 10.  887 secs: 15 mins.*)
@@ -1011,7 +1009,7 @@ val GEO058_2 = prove_hard
 \  (! A1 C1 B1. equal(A1::'a,B1) --> equal(reflection(C1::'a,A1),reflection(C1::'a,B1))) &  \
 \  (equal(v::'a,reflection(u::'a,v))) & \
 \  (~equal(u::'a,v)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*0 inferences so far.  Searching to depth 0.  0.2 secs*)
 val GEO079_1 = prove
@@ -1021,7 +1019,7 @@ val GEO079_1 = prove
 \  (! U V X Y. parallel(U::'a,V,X,Y) --> eq(X::'a,V,U,V,X,Y)) & \
 \  (trapezoid(a::'a,b,c,d)) &       \
 \  (~eq(a::'a,c,b,c,a,d)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (****************SLOW
 2032008 inferences so far.  Searching to depth 16.  No proof after 30 minutes.
@@ -1046,7 +1044,7 @@ val GRP001_1 = prove_hard
 \  (! X. product(X::'a,X,identity)) &       \
 \  (product(a::'a,b,c)) &   \
 \  (~product(b::'a,a,c)) --> False",
-  meson_tac);
+  meson_tac 1);
 ****************)
 
 (*2386 inferences so far.  Searching to depth 11.  8.7 secs*)
@@ -1075,7 +1073,7 @@ val GRP008_1 = prove_hard
 \  (! A. product(j(A),A,h(A)) | product(A::'a,j(A),h(A)) | q(A)) &        \
 \  (! A. product(j(A),A,h(A)) & product(A::'a,j(A),h(A)) --> q(A)) &        \
 \  (~q(identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*8625 inferences so far.  Searching to depth 11.  20 secs*)
 val GRP013_1 = prove_hard
@@ -1101,7 +1099,7 @@ val GRP013_1 = prove_hard
 \  (product(inverse(a),inverse(b),d)) & \
 \  (! A C B. product(inverse(A),inverse(B),C) --> product(A::'a,C,B)) &     \
 \  (~product(c::'a,d,identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*2448 inferences so far.  Searching to depth 10.  7.2 secs*)
 val GRP037_3 = prove_hard
@@ -1135,7 +1133,7 @@ val GRP037_3 = prove_hard
 \  (subgroup_member(a)) &       \
 \  (subgroup_member(another_identity)) &        \
 \  (~equal(inverse(a),another_inverse(a))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*163 inferences so far.  Searching to depth 11.  0.3 secs*)
 val GRP031_2 = prove
@@ -1146,7 +1144,7 @@ val GRP031_2 = prove
 \  (! A. product(A::'a,inverse(A),identity)) &      \
 \  (! A. product(A::'a,identity,A)) &       \
 \  (! A. ~product(A::'a,a,identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*47 inferences so far.  Searching to depth 11.   0.2 secs*)
 val GRP034_4 = prove
@@ -1159,7 +1157,7 @@ val GRP034_4 = prove
 \  (! B A C. subgroup_member(A) & subgroup_member(B) & product(B::'a,inverse(A),C) --> subgroup_member(C)) &        \
 \  (subgroup_member(a)) &       \
 \  (~subgroup_member(inverse(a))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*3287 inferences so far.  Searching to depth 14.  3.5 secs*)
 val GRP047_2 = prove_hard
@@ -1172,7 +1170,7 @@ val GRP047_2 = prove_hard
 \  (! X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
 \  (equal(a::'a,b)) &       \
 \  (~equal(multiply(c::'a,a),multiply(c::'a,b))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*25559 inferences so far.  Searching to depth 19.  16.9 secs*)
 val GRP130_1_002 = prove_hard
@@ -1185,7 +1183,7 @@ val GRP130_1_002 = prove_hard
 \  (! X Y W Z. product(X::'a,W,Y) & product(X::'a,Z,Y) --> equal(W::'a,Z)) &        \
 \  (! Y X W Z. product(W::'a,Y,X) & product(Z::'a,Y,X) --> equal(W::'a,Z)) &        \
 \  (! Z1 Z2 Y X. product(X::'a,Y,Z1) & product(X::'a,Z1,Z2) --> product(Z2::'a,Y,X)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*3468 inferences so far.  Searching to depth 10.  9.1 secs*)
 val GRP156_1 = prove_hard
@@ -1218,7 +1216,7 @@ val GRP156_1 = prove_hard
 \  (! A C B. equal(A::'a,B) --> equal(multiply(C::'a,A),multiply(C::'a,B))) &       \
 \  (equal(least_upper_bound(a::'a,b),b)) &  \
 \  (~equal(greatest_lower_bound(multiply(a::'a,c),multiply(b::'a,c)),multiply(a::'a,c))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*4394 inferences so far.  Searching to depth 10.  8.2 secs*)
 val GRP168_1 = prove_hard
@@ -1251,7 +1249,7 @@ val GRP168_1 = prove_hard
 \  (! A C B. equal(A::'a,B) --> equal(multiply(C::'a,A),multiply(C::'a,B))) &       \
 \  (equal(least_upper_bound(a::'a,b),b)) &  \
 \  (~equal(least_upper_bound(multiply(inverse(c),multiply(a::'a,c)),multiply(inverse(c),multiply(b::'a,c))),multiply(inverse(c),multiply(b::'a,c)))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*250258 inferences so far.  Searching to depth 16.  406.2 secs*)
 val HEN003_3 = prove_hard
@@ -1270,7 +1268,7 @@ val HEN003_3 = prove_hard
 \  (! G H I'. equal(G::'a,H) & less_equal(G::'a,I') --> less_equal(H::'a,I')) &     \
 \  (! J L K'. equal(J::'a,K') & less_equal(L::'a,J) --> less_equal(L::'a,K')) &     \
 \  (~equal(divide(a::'a,a),zero)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*202177 inferences so far.  Searching to depth 14.  451 secs*)
@@ -1304,7 +1302,7 @@ val HEN007_2 = prove_hard
 \  (quotient(z::'a,y,zQy)) &        \
 \  (quotient(z::'a,x,zQx)) &        \
 \  (~less_equal(zQy::'a,zQx)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*60026 inferences so far.  Searching to depth 12.  42.2 secs*)
 val HEN008_4 = prove_hard
@@ -1331,7 +1329,7 @@ val HEN008_4 = prove_hard
 \  (! Y Z X. less_equal(X::'a,Y) --> less_equal(divide(Z::'a,Y),divide(Z::'a,X))) & \
 \  (less_equal(a::'a,b)) &  \
 \  (~less_equal(divide(a::'a,c),divide(b::'a,c))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*3160 inferences so far.  Searching to depth 11.  3.5 secs*)
@@ -1354,7 +1352,7 @@ val HEN009_5 = prove_hard
 \  (equal(divide(identity::'a,b),c)) &      \
 \  (equal(divide(identity::'a,c),d)) &      \
 \  (~equal(b::'a,d)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*970373 inferences so far.  Searching to depth 17.  890.0 secs*)
 val HEN012_3 = prove_hard
@@ -1373,7 +1371,7 @@ val HEN012_3 = prove_hard
 \  (! G H I'. equal(G::'a,H) & less_equal(G::'a,I') --> less_equal(H::'a,I')) &     \
 \  (! J L K'. equal(J::'a,K') & less_equal(L::'a,J) --> less_equal(L::'a,K')) &     \
 \  (~less_equal(a::'a,a)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*1063 inferences so far.  Searching to depth 20.  1.0 secs*)
@@ -1381,7 +1379,7 @@ val LCL010_1 = prove
  ("(! X Y. is_a_theorem(equivalent(X::'a,Y)) & is_a_theorem(X) --> is_a_theorem(Y)) &       \
 \  (! X Z Y. is_a_theorem(equivalent(equivalent(X::'a,Y),equivalent(equivalent(X::'a,Z),equivalent(Z::'a,Y))))) &   \
 \  (~is_a_theorem(equivalent(equivalent(a::'a,b),equivalent(equivalent(c::'a,b),equivalent(a::'a,c))))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*2549 inferences so far.  Searching to depth 12.  1.4 secs*)
 val LCL077_2 = prove
@@ -1391,14 +1389,14 @@ val LCL077_2 = prove
 \  (! Y X. is_a_theorem(implies(implies(not(X),not(Y)),implies(Y,X)))) &        \
 \  (! X2 X1 X3. is_a_theorem(implies(X1,X2)) & is_a_theorem(implies(X2,X3)) --> is_a_theorem(implies(X1,X3))) & \
 \  (~is_a_theorem(implies(not(not(a)),a))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*2036 inferences so far.  Searching to depth 20.  1.5 secs*)
 val LCL082_1 = prove
  ("(! X Y. is_a_theorem(implies(X::'a,Y)) & is_a_theorem(X) --> is_a_theorem(Y)) &  \
 \  (! Y Z U X. is_a_theorem(implies(implies(implies(X::'a,Y),Z),implies(implies(Z::'a,X),implies(U::'a,X))))) &     \
 \  (~is_a_theorem(implies(a::'a,implies(b::'a,a)))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*1100 inferences so far.  Searching to depth 13.  1.0 secs*)
 val LCL111_1 = prove
@@ -1408,7 +1406,7 @@ val LCL111_1 = prove
 \  (! Y X. is_a_theorem(implies(implies(implies(X,Y),Y),implies(implies(Y,X),X)))) &    \
 \  (! Y X. is_a_theorem(implies(implies(not(X),not(Y)),implies(Y,X)))) &        \
 \  (~is_a_theorem(implies(implies(a,b),implies(implies(c,a),implies(c,b))))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*667 inferences so far.  Searching to depth 9.  1.4 secs*)
 val LCL143_1 = prove
@@ -1434,7 +1432,7 @@ val LCL143_1 = prove
 \  (! P R Q. equal(P,Q) & ordered(R,P) --> ordered(R,Q)) &      \
 \  (ordered(x,y)) &     \
 \  (~ordered(implies(z,x),implies(z,y))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*5245 inferences so far.  Searching to depth 12.  4.6 secs*)
 val LCL182_1 = prove_hard
@@ -1447,7 +1445,7 @@ val LCL182_1 = prove_hard
 \  (! X Y. axiom(or(not(Y),X)) & theorem(Y) --> theorem(X)) &   \
 \  (! X Y Z. axiom(or(not(X),Y)) & theorem(or(not(Y),Z)) --> theorem(or(not(X),Z))) &   \
 \  (~theorem(or(not(or(not(p),q)),or(not(not(q)),not(p))))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*410 inferences so far.  Searching to depth 10.  0.3 secs*)
 val LCL200_1 = prove
@@ -1460,7 +1458,7 @@ val LCL200_1 = prove
 \  (! X Y. axiom(or(not(Y),X)) & theorem(Y) --> theorem(X)) &   \
 \  (! X Y Z. axiom(or(not(X),Y)) & theorem(or(not(Y),Z)) --> theorem(or(not(X),Z))) &   \
 \  (~theorem(or(not(not(or(p,q))),not(q)))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*5849 inferences so far.  Searching to depth 12.  5.6 secs*)
 val LCL215_1 = prove_hard
@@ -1473,7 +1471,7 @@ val LCL215_1 = prove_hard
 \  (! X Y. axiom(or(not(Y),X)) & theorem(Y) --> theorem(X)) &   \
 \  (! X Y Z. axiom(or(not(X),Y)) & theorem(or(not(Y),Z)) --> theorem(or(not(X),Z))) &   \
 \  (~theorem(or(not(or(not(p),q)),or(not(or(p,q)),q)))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*0 secs.  Not sure that a search even starts!*)
 val LCL230_2 = prove
@@ -1481,7 +1479,7 @@ val LCL230_2 = prove
 \  (~p) &       \
 \  (q) &        \
 \  (~r) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*119585 inferences so far.  Searching to depth 14.  262.4 secs*)
 val LDA003_1 = prove_hard
@@ -1499,7 +1497,7 @@ val LDA003_1 = prove_hard
 \  (! G H I'. equal(G::'a,H) & left(G::'a,I') --> left(H::'a,I')) & \
 \  (! J L K'. equal(J::'a,K') & left(L::'a,J) --> left(L::'a,K')) & \
 \  (~left(num3::'a,u)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*2392 inferences so far.  Searching to depth 12.  2.2 secs*)
@@ -1518,7 +1516,7 @@ val MSC002_1 = prove
 \  (! One_place Thing Place Situation. hand_at(One_place::'a,Situation) & held(Thing::'a,Situation) --> at(Thing::'a,Place,go(Place::'a,Situation))) &  \
 \  (! Place Thing Situation. hand_at(Place::'a,Situation) & at(Thing::'a,Place,Situation) --> held(Thing::'a,pick_up(Situation))) & \
 \  (! Situation. ~answer(Situation)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*73 inferences so far.  Searching to depth 10.  0.2 secs*)
 val MSC003_1 = prove
@@ -1530,7 +1528,7 @@ val MSC003_1 = prove
 \  (! X. in'(X::'a,human) --> has_parts(X::'a,num2,arm)) & \
 \  (! X. in'(X::'a,arm) --> has_parts(X::'a,num1,hand)) &  \
 \  (~has_parts(john::'a,times(num2::'a,num1),hand)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*1486 inferences so far.  Searching to depth 20.  1.2 secs*)
 val MSC004_1 = prove
@@ -1542,7 +1540,7 @@ val MSC004_1 = prove
 \  (! X. in'(X::'a,human) --> has_parts(X::'a,num2,arm)) & \
 \  (! X. in'(X::'a,arm) --> has_parts(X::'a,num1,hand)) &  \
 \  (~has_parts(john::'a,times(times(num2::'a,num1),num5),fingers)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*100 inferences so far.  Searching to depth 12.  0.1 secs*)
 val MSC005_1 = prove
@@ -1553,7 +1551,7 @@ val MSC005_1 = prove
 \  (! X Y. value(X::'a,falsity) & value(Y::'a,truth) --> value(xor(X::'a,Y),truth)) &       \
 \  (! X Y. value(X::'a,falsity) & value(Y::'a,falsity) --> value(xor(X::'a,Y),falsity)) &   \
 \  (! Value. ~value(xor(xor(xor(xor(truth::'a,falsity),falsity),truth),falsity),Value)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*19116 inferences so far.  Searching to depth 16.  15.9 secs*)
 val MSC006_1 = prove_hard
@@ -1563,7 +1561,7 @@ val MSC006_1 = prove_hard
 \  (! X Y. p(X::'a,Y) | q(X::'a,Y)) &  \
 \  (~p(a::'a,b)) &  \
 \  (~q(c::'a,d)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*1713 inferences so far.  Searching to depth 10.  2.8 secs*)
 val NUM001_1 = prove
@@ -1580,7 +1578,7 @@ val NUM001_1 = prove
 \  (! A C B D. equal(A::'a,B) & equal(C::'a,subtract(A::'a,D)) --> equal(C::'a,subtract(B::'a,D))) &        \
 \  (! A C D B. equal(A::'a,B) & equal(C::'a,subtract(D::'a,A)) --> equal(C::'a,subtract(D::'a,B))) &        \
 \  (~equal(add(add(a::'a,b),c),add(a::'a,add(b::'a,c)))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*20717 inferences so far.  Searching to depth 11.  13.7 secs*)
 val NUM021_1 = prove_hard
@@ -1603,7 +1601,7 @@ val NUM021_1 = prove_hard
 \  (~less(b::'a,a)) &       \
 \  (divides(c::'a,a)) &     \
 \  (! A. ~equal(successor(A),num0)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*26320 inferences so far.  Searching to depth 10.  26.4 secs*)
 val NUM024_1 = prove_hard
@@ -1623,7 +1621,7 @@ val NUM024_1 = prove_hard
 \  (! B A C. equal(add(A::'a,B),add(C::'a,B)) --> equal(A::'a,C)) & \
 \  (less(a::'a,a)) &        \
 \  (! A. ~equal(successor(A),num0)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*1345 inferences so far.  Searching to depth 7.  23.3 secs.  BIG*)
@@ -1893,7 +1891,7 @@ val NUM180_1 = prove_hard
 \  (! T3 U3 V3. equal(T3::'a,U3) & well_ordering(T3::'a,V3) --> well_ordering(U3::'a,V3)) & \
 \  (! W3 Y3 X3. equal(W3::'a,X3) & well_ordering(Y3::'a,W3) --> well_ordering(Y3::'a,X3)) & \
 \  (~subclass(limit_ordinals::'a,ordinal_numbers)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*0 inferences so far.  Searching to depth 0.  16.8 secs.  BIG*)
@@ -2164,7 +2162,7 @@ val NUM228_1 = prove_hard
 \  (! W3 Y3 X3. equal(W3::'a,X3) & well_ordering(Y3::'a,W3) --> well_ordering(Y3::'a,X3)) & \
 \  (~function(z)) &     \
 \  (~equal(recursion_equation_functions(z),null_class)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*4868 inferences so far.  Searching to depth 12.  4.3 secs*)
@@ -2186,7 +2184,7 @@ val PLA002_1 = prove_hard
 \  (! Situation. at(f::'a,Situation) --> at(d::'a,go(d::'a,Situation))) &   \
 \  (at(f::'a,s0)) & \
 \  (! S'. ~at(a::'a,S')) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*190 inferences so far.  Searching to depth 10.  0.6 secs*)
 val PLA006_1 = prove
@@ -2221,7 +2219,7 @@ val PLA006_1 = prove
 \  (holds(empty::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(on(c::'a,table),State)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*190 inferences so far.  Searching to depth 10.  0.5 secs*)
 val PLA017_1 = prove
@@ -2256,7 +2254,7 @@ val PLA017_1 = prove
 \  (holds(empty::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(on(a::'a,c),State)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*13732 inferences so far.  Searching to depth 16.  9.8 secs*)
 val PLA022_1 = prove_hard
@@ -2291,7 +2289,7 @@ val PLA022_1 = prove_hard
 \  (holds(empty::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(and'(on(c::'a,d),on(a::'a,c)),State)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*217 inferences so far.  Searching to depth 13.  0.7 secs*)
 val PLA022_2 = prove
@@ -2326,7 +2324,7 @@ val PLA022_2 = prove
 \  (holds(empty::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(and'(on(a::'a,c),on(c::'a,d)),State)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*948 inferences so far.  Searching to depth 18.  1.1 secs*)
 val PRV001_1 = prove
@@ -2344,7 +2342,7 @@ val PRV001_1 = prove
 \  (q1(a::'a,b,c)) &        \
 \  (! W. ~(q4(a::'a,b,W) & less_or_equal(a::'a,W) & less_or_equal(b::'a,W) & less_or_equal(W::'a,a))) & \
 \  (! W. ~(q4(a::'a,b,W) & less_or_equal(a::'a,W) & less_or_equal(b::'a,W) & less_or_equal(W::'a,b))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*21 inferences so far.  Searching to depth 5.  0.4 secs*)
 val PRV003_1 = prove
@@ -2375,7 +2373,7 @@ val PRV003_1 = prove
 \  (! X. less_than(one::'a,i) & less_than(a(X),a(predecessor(i))) --> less_than(X::'a,i) | less_than(n::'a,X)) &   \
 \  (! X. ~(less_than(one::'a,X) & less_than(X::'a,i) & less_than(a(X),a(predecessor(X))))) &    \
 \  (less_than(j::'a,i)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*584 inferences so far.  Searching to depth 7.  1.1 secs*)
 val PRV005_1 = prove
@@ -2406,7 +2404,7 @@ val PRV005_1 = prove
 \  (! X. less_than(X::'a,successor(n)) & less_than(a(X),a(k)) --> less_than(X::'a,l)) & \
 \  (! X. less_than(one::'a,l) & less_than(a(X),a(predecessor(l))) --> less_than(X::'a,l) | less_than(n::'a,X)) &   \
 \  (! X. ~(less_than(one::'a,X) & less_than(X::'a,l) & less_than(a(X),a(predecessor(X))))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*2343 inferences so far.  Searching to depth 8.  3.5 secs*)
 val PRV006_1 = prove_hard
@@ -2436,7 +2434,7 @@ val PRV006_1 = prove_hard
 \  (! X. less_than(X::'a,successor(n)) & less_than(a(X),a(m)) --> less_than(X::'a,i)) & \
 \  (! X. less_than(one::'a,i) & less_than(a(X),a(predecessor(i))) --> less_than(X::'a,i) | less_than(n::'a,X)) &   \
 \  (! X. ~(less_than(one::'a,X) & less_than(X::'a,i) & less_than(a(X),a(predecessor(X))))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*86 inferences so far.  Searching to depth 14.  0.1 secs*)
 val PRV009_1 = prove
@@ -2449,7 +2447,7 @@ val PRV009_1 = prove
 \  (! X Y. less_or_equal(m::'a,X) & less_or_equal(X::'a,Y) & less_or_equal(Y::'a,j) --> less_or_equal(a(X),a(Y))) & \
 \  (! X Y. less_or_equal(i::'a,X) & less_or_equal(X::'a,Y) & less_or_equal(Y::'a,n) --> less_or_equal(a(X),a(Y))) & \
 \  (~less_or_equal(a(p),a(q))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*222 inferences so far.  Searching to depth 8.  0.4 secs*)
 val PUZ012_1 = prove
@@ -2471,7 +2469,7 @@ val PUZ012_1 = prove
 \  (label(boxc::'a,bananas)) &      \
 \  (contains(boxb::'a,apples)) &    \
 \  (~(contains(boxa::'a,bananas) & contains(boxc::'a,oranges))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*35 inferences so far.  Searching to depth 5.  3.2 secs*)
 val PUZ020_1 = prove
@@ -2504,7 +2502,7 @@ val PUZ020_1 = prove
 \  (a_truth(statement_by(husband)) | knight(wife)) &   \
 \  (knight(wife) --> a_truth(statement_by(husband))) &  \
 \  (~knight(husband)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*121806 inferences so far.  Searching to depth 17.  63.0 secs*)
 val PUZ025_1 = prove_hard
@@ -2532,7 +2530,7 @@ val PUZ025_1 = prove_hard
 \  (a_truth(says(a::'a,equal_type(b::'a,c)))) & \
 \  (ask_1_if_2(c::'a,equal_type(a::'a,b))) &    \
 \  (! Answer. ~answer(Answer)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*621 inferences so far.  Searching to depth 18.  0.2 secs*)
@@ -2552,7 +2550,7 @@ val PUZ029_1 = prove
 \  (young(piggy)) &     \
 \  (pig(piggy)) &       \
 \  (balloonist(piggy)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*93620 inferences so far.  Searching to depth 24.  65.9 secs*)
 val RNG001_3 = prove_hard
@@ -2564,7 +2562,7 @@ val RNG001_3 = prove_hard
 \  (! Y Z X V3 V1 V2 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & product(X::'a,V3,V4) --> sum(V1::'a,V2,V4)) &        \
 \  (! Y Z V1 V2 X V3 V4. product(X::'a,Y,V1) & product(X::'a,Z,V2) & sum(Y::'a,Z,V3) & sum(V1::'a,V2,V4) --> product(X::'a,V3,V4)) &        \
 \  (~product(a::'a,additive_identity,additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (****************SLOW
@@ -2600,7 +2598,7 @@ val RNG001_5 = prove_hard
 \  (! X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
 \  (! X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
 \  (~product(a::'a,additive_identity,additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 ****************)
 
 (*0 inferences so far.  Searching to depth 0.  0.5 secs*)
@@ -2640,7 +2638,7 @@ val RNG011_5 = prove
 \  (! X Y. equal(commutator(X::'a,Y),add(multiply(Y::'a,X),additive_inverse(multiply(X::'a,Y))))) & \
 \  (! X Y. equal(multiply(multiply(associator(X::'a,X,Y),X),associator(X::'a,X,Y)),additive_identity)) &        \
 \  (~equal(multiply(multiply(associator(a::'a,a,b),a),associator(a::'a,a,b)),additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*202 inferences so far.  Searching to depth 8.  0.6 secs*)
 val RNG023_6 = prove
@@ -2673,7 +2671,7 @@ val RNG023_6 = prove
 \  (! D1 E1 F1. equal(D1::'a,E1) --> equal(multiply(D1::'a,F1),multiply(E1::'a,F1))) &      \
 \  (! G1 I1 H1. equal(G1::'a,H1) --> equal(multiply(I1::'a,G1),multiply(I1::'a,H1))) &      \
 \  (~equal(associator(x::'a,x,y),additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*0 inferences so far.  Searching to depth 0.  0.6 secs*)
 val RNG028_2 = prove
@@ -2710,7 +2708,7 @@ val RNG028_2 = prove
 \  (! X Y Z. ~equal(associator(Y::'a,X,Z),additive_inverse(associator(X::'a,Y,Z)))) &   \
 \  (! X Y Z. ~equal(associator(Z::'a,Y,X),additive_inverse(associator(X::'a,Y,Z)))) &   \
 \  (~equal(multiply(multiply(cx::'a,multiply(cy::'a,cx)),cz),multiply(cx::'a,multiply(cy::'a,multiply(cx::'a,cz))))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*209 inferences so far.  Searching to depth 9.  1.2 secs*)
 val RNG038_2 = prove
@@ -2744,7 +2742,7 @@ val RNG038_2 = prove
 \  (product(a::'a,b,additive_identity)) &   \
 \  (~equal(a::'a,additive_identity)) &      \
 \  (~equal(b::'a,additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*2660 inferences so far.  Searching to depth 10.  7.0 secs*)
 val RNG040_2 = prove_hard
@@ -2788,7 +2786,7 @@ val RNG040_2 = prove_hard
 \  (product(b::'a,a,l)) &   \
 \  (product(c::'a,a,n)) &   \
 \  (~sum(l::'a,n,additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*8991 inferences so far.  Searching to depth 9.  22.2 secs*)
 val RNG041_1 = prove_hard
@@ -2833,7 +2831,7 @@ val RNG041_1 = prove_hard
 \  (product(a::'a,b,additive_identity)) &   \
 \  (~equal(a::'a,additive_identity)) &      \
 \  (~equal(b::'a,additive_identity)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*101319 inferences so far.  Searching to depth 14.  76.0 secs*)
 val ROB010_1 = prove_hard
@@ -2848,7 +2846,7 @@ val ROB010_1 = prove_hard
 \  (! G H. equal(G::'a,H) --> equal(negate(G),negate(H))) & \
 \  (equal(negate(add(a::'a,negate(b))),c)) &        \
 \  (~equal(negate(add(c::'a,negate(add(b::'a,a)))),a)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*6933 inferences so far.  Searching to depth 12.  5.1 secs*)
@@ -2864,7 +2862,7 @@ val ROB013_1 = prove_hard
 \  (! G H. equal(G::'a,H) --> equal(negate(G),negate(H))) & \
 \  (equal(negate(add(a::'a,b)),c)) &        \
 \  (~equal(negate(add(c::'a,negate(add(negate(b),a)))),a)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*6614 inferences so far.  Searching to depth 11.  20.4 secs*)
 val ROB016_1 = prove_hard
@@ -2889,7 +2887,7 @@ val ROB016_1 = prove_hard
 \  (positive_integer(k)) &      \
 \  (! Vk X Y. equal(negate(add(negate(Y),negate(add(X::'a,negate(Y))))),X) & positive_integer(Vk) --> equal(negate(add(Y::'a,multiply(Vk::'a,add(X::'a,negate(add(X::'a,negate(Y))))))),negate(Y))) &       \
 \  (~equal(negate(add(e::'a,multiply(k::'a,add(d::'a,negate(add(d::'a,negate(e))))))),negate(e))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*14077 inferences so far.  Searching to depth 11.  32.8 secs*)
 val ROB021_1 = prove_hard
@@ -2904,7 +2902,7 @@ val ROB021_1 = prove_hard
 \  (! G H. equal(G::'a,H) --> equal(negate(G),negate(H))) & \
 \  (! X Y. equal(negate(X),negate(Y)) --> equal(X::'a,Y)) & \
 \  (~equal(add(negate(add(a::'a,negate(b))),negate(add(negate(a),negate(b)))),b)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*35532 inferences so far.  Searching to depth 19.  54.3 secs*)
 val SET005_1 = prove_hard
@@ -2924,7 +2922,7 @@ val SET005_1 = prove_hard
 \  (intersection(b::'a,c,bIc)) &    \
 \  (intersection(a::'a,bIc,aIbIc)) &        \
 \  (~intersection(aIb::'a,c,aIbIc)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*6450 inferences so far.  Searching to depth 14.  4.2 secs*)
@@ -2945,7 +2943,7 @@ val SET009_1 = prove_hard
 \  (difference(b::'a,a,bDa)) &      \
 \  (difference(b::'a,d,bDd)) &      \
 \  (~subset(bDa::'a,bDd)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*34726 inferences so far.  Searching to depth 6.  2420 secs: 40 mins!  BIG*)
 val SET025_4 = prove_hard
@@ -3216,7 +3214,7 @@ val SET025_4 = prove_hard
 \  (! W15 X15 Y15. equal(W15::'a,X15) & subset(W15::'a,Y15) --> subset(X15::'a,Y15)) &      \
 \  (! Z15 B16 A16. equal(Z15::'a,A16) & subset(B16::'a,Z15) --> subset(B16::'a,A16)) &      \
 \  (~little_set(ordered_pair(a::'a,b))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*13 inferences so far.  Searching to depth 8.  0 secs*)
@@ -3224,7 +3222,7 @@ val SET046_5 = prove
  ("(! Y X. ~(element(X::'a,a) & element(X::'a,Y) & element(Y::'a,X))) &     \
 \  (! X. element(X::'a,f(X)) | element(X::'a,a)) &     \
 \  (! X. element(f(X),X) | element(X::'a,a)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*33 inferences so far.  Searching to depth 9.  0.2 secs*)
 val SET047_5 = prove
@@ -3234,14 +3232,14 @@ val SET047_5 = prove
 \  (! X Y. element(f(X::'a,Y),Y) & element(f(X::'a,Y),X) --> set_equal(X::'a,Y)) &  \
 \  (set_equal(a::'a,b) | set_equal(b::'a,a)) & \
 \  (~(set_equal(b::'a,a) & set_equal(a::'a,b))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*311 inferences so far.  Searching to depth 12.  0.1 secs*)
 val SYN034_1 = prove
  ("(! A. p(A::'a,a) | p(A::'a,f(A))) & \
 \  (! A. p(A::'a,a) | p(f(A),A)) & \
 \  (! A B. ~(p(A::'a,B) & p(B::'a,A) & p(B::'a,a))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*30 inferences so far.  Searching to depth 6.  0.2 secs*)
 val SYN071_1 = prove
@@ -3252,7 +3250,7 @@ val SYN071_1 = prove
 \  (equal(a::'a,c) | equal(b::'a,d)) & \
 \  (~equal(a::'a,d)) &      \
 \  (~equal(b::'a,c)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (****************SLOW
 655670 inferences so far.  Searching to depth 44.  No proof after 10 minutes.
@@ -3267,7 +3265,7 @@ val SYN349_1 = prove_hard
 \  (! Y X. f(g(X::'a,Y),Y) & f(g(X::'a,Y),w(X)) --> f(X::'a,g(X::'a,Y)) | f(Y::'a,g(X::'a,Y))) &       \
 \  (! Y X. f(Y::'a,g(X::'a,Y)) & f(g(X::'a,Y),w(X)) --> f(X::'a,g(X::'a,Y)) | f(g(X::'a,Y),Y)) &       \
 \  (! Y X. ~(f(X::'a,g(X::'a,Y)) & f(g(X::'a,Y),Y) & f(Y::'a,g(X::'a,Y)) & f(g(X::'a,Y),w(X)))) --> False",
-  meson_tac);
+  meson_tac 1);
 ****************)
 
 (*398 inferences so far.  Searching to depth 12.  0.4 secs*)
@@ -3279,7 +3277,7 @@ val SYN352_1 = prove
 \  (! X Y. f(b::'a,z(X::'a,Y)) & f(X::'a,z(X::'a,Y)) --> f(z(X::'a,Y),z(X::'a,Y))) &    \
 \  (! X Y. ~(f(X::'a,Y) & f(X::'a,z(X::'a,Y)) & f(Y::'a,z(X::'a,Y)))) &     \
 \  (! X Y. f(X::'a,Y) --> f(X::'a,z(X::'a,Y)) | f(Y::'a,z(X::'a,Y))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*5336 inferences so far.  Searching to depth 15.  5.3 secs*)
 val TOP001_2 = prove_hard
@@ -3296,14 +3294,14 @@ val TOP001_2 = prove_hard
 \  (! X Y. element_of_set(in_1st_set(X::'a,Y),Y) --> subset_sets(X::'a,Y)) &    \
 \  (basis(cx::'a,f)) &      \
 \  (~subset_sets(union_of_members(top_of_basis(f)),cx)) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*0 inferences so far.  Searching to depth 0.  0 secs*)
 val TOP002_2 = prove
  ("(! Vf U. element_of_collection(U::'a,top_of_basis(Vf)) | element_of_set(f11(Vf::'a,U),U)) & \
 \  (! X. ~element_of_set(X::'a,empty_set)) &        \
 \  (~element_of_collection(empty_set::'a,top_of_basis(f))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*0 inferences so far.  Searching to depth 0.  6.5 secs.  BIG*)
 val TOP004_1 = prove_hard
@@ -3420,7 +3418,7 @@ val TOP004_1 = prove_hard
 \  (! U. element_of_collection(U::'a,top_of_basis(f))) &    \
 \  (! V. element_of_collection(V::'a,top_of_basis(f))) &    \
 \  (! U V. ~element_of_collection(intersection_of_sets(U::'a,V),top_of_basis(f))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
 (*0 inferences so far.  Searching to depth 0.  0.8 secs*)
@@ -3446,7 +3444,7 @@ val TOP004_2 = prove
 \  (! U. element_of_collection(U::'a,top_of_basis(f))) &    \
 \  (! V. element_of_collection(V::'a,top_of_basis(f))) &    \
 \  (! U V. ~element_of_collection(intersection_of_sets(U::'a,V),top_of_basis(f))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 (*53777 inferences so far.  Searching to depth 20.  68.7 secs*)
 val TOP005_2 = prove_hard
@@ -3462,6 +3460,6 @@ val TOP005_2 = prove_hard
 \  (! X U Y. subset_collections(X::'a,Y) & element_of_collection(U::'a,X) --> element_of_collection(U::'a,Y)) &     \
 \  (subset_collections(g::'a,top_of_basis(f))) &    \
 \  (~element_of_collection(union_of_members(g),top_of_basis(f))) --> False",
-  meson_tac);
+  meson_tac 1);
 
 
