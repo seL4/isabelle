@@ -13,7 +13,7 @@ simplifies matters because we are now free to use the recursion equation
 suggested at the end of \S\ref{sec:nested-datatype}:
 *}
 
-recdef (*<*)(permissive)(*<*)trev "measure size"
+recdef (*<*)(permissive)(*>*)trev "measure size"
  "trev (Var x)    = Var x"
  "trev (App f ts) = App f (rev(map trev ts))"
 

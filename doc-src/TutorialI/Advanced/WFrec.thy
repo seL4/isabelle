@@ -67,7 +67,7 @@ of a recursive function that calls itself with increasing values up to ten:
 *}
 
 consts f :: "nat \<Rightarrow> nat"
-recdef (*<*)(permissive)(*<*)f "{(i,j). j<i \<and> i \<le> (#10::nat)}"
+recdef (*<*)(permissive)(*>*)f "{(i,j). j<i \<and> i \<le> (#10::nat)}"
 "f i = (if #10 \<le> i then 0 else i * f(Suc i))"
 
 text{*\noindent

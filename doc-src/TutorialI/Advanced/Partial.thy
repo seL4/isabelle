@@ -64,7 +64,7 @@ As a simple example we define division on @{typ nat}:
 consts divi :: "nat \<times> nat \<Rightarrow> nat"
 recdef (permissive) divi "measure(\<lambda>(m,n). m)"
   "divi(m,n) = (if n = 0 then arbitrary else
-                if m < n then 0 else divi(m-n,n)+1)"  (* FIXME permissive!? *)
+                if m < n then 0 else divi(m-n,n)+1)"  (* FIXME hide permissive!? *)
 
 text{*\noindent Of course we could also have defined
 @{term"divi(m,0)"} to be some specific number, for example 0. The

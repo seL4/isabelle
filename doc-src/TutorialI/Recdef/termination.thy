@@ -17,7 +17,7 @@ Isabelle may fail to prove the termination condition for some
 recursive call.  Let us try the following artificial function:*}
 
 consts f :: "nat\<times>nat \<Rightarrow> nat"
-recdef (*<*)(permissive)(*<*)f "measure(\<lambda>(x,y). x-y)"
+recdef (*<*)(permissive)(*>*)f "measure(\<lambda>(x,y). x-y)"
   "f(x,y) = (if x \<le> y then x else f(x,y+1))"
 
 text{*\noindent
