@@ -28,7 +28,6 @@ sig
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
-  val get_goal: state -> term * (thm list * thm)
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
@@ -244,14 +243,11 @@ fun these_factss (state, named_factss) =
 
 (* goal *)
 
-fun find_goal i (state as State (Node {goal = Some goal, ...}, _)) = (context_of state, (i, goal))
-  | find_goal i (State (Node {goal = None, ...}, node :: nodes)) =
-      find_goal (i + 1) (State (node, nodes))
-  | find_goal _ (state as State (_, [])) = err_malformed "find_goal" state;
-
-fun get_goal state =
-  let val (_, (_, (((_, _, t), goal), _))) = find_goal 0 state
-  in (t, goal) end;
+local
+  fun find i (state as State (Node {goal = Some goal, ...}, _)) = (context_of state, (i, goal))
+    | find i (State (Node {goal = None, ...}, node :: nodes)) = find (i + 1) (State (node, nodes))
+    | find _ (state as State (_, [])) = err_malformed "find_goal" state;
+in val find_goal = find 0 end;
 
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
@@ -351,14 +347,14 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
         else "")), Pretty.str ""] @
      (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
      (if ! verbose orelse mode = Forward then
-       (pretty_facts "" facts @ pretty_goal (find_goal 0 state))
+       (pretty_facts "" facts @ pretty_goal (find_goal state))
       else if mode = ForwardChain then pretty_facts "picking " facts
-      else pretty_goal (find_goal 0 state))
+      else pretty_goal (find_goal state))
   in Pretty.writeln (Pretty.chunks prts) end;
 
 fun pretty_goals main_goal state =
-  let val (_, (_, ((_, (_, thm)), _))) = find_goal 0 state
-  in Locale.pretty_sub_goals main_goal (!goals_limit) thm end;
+  let val (_, (_, ((_, (_, thm)), _))) = find_goal state
+  in Locale.pretty_sub_goals main_goal (! goals_limit) thm end;
 
 
 
@@ -383,7 +379,7 @@ fun check_sign sg state =
 
 fun gen_refine current_context meth_fun state =
   let
-    val (goal_ctxt, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
+    val (goal_ctxt, (_, ((result, (facts, thm)), f))) = find_goal state;
     val Method meth = meth_fun (if current_context then context_of state else goal_ctxt);
 
     fun refn (thm', cases) =
@@ -416,7 +412,7 @@ fun HEADGOAL tac = tac 1;
 
 fun export_goal print_rule raw_rule inner state =
   let
-    val (outer, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
+    val (outer, (_, ((result, (facts, thm)), f))) = find_goal state;
     val (exp_tac, tacs) = ProofContext.export_wrt true inner (Some outer);
     fun exp_rule rule =
       let
@@ -465,7 +461,7 @@ fun prep_result state t raw_thm =
   in
     if not (null bad_hyps) then
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) bad_hyps))
-    else if not (t aconv prop) then
+    else if not (Pattern.matches (Sign.tsig_of (sign_of state)) (t, prop)) then
       err ("Proved a different theorem: " ^ Sign.string_of_term sign prop)
     else thm
   end;
@@ -593,7 +589,16 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
       |> map_context_result (fn ct => prepp (ct, [[raw_propp]]));
     val cprop = Thm.cterm_of (sign_of state') prop;
     val goal = Drule.mk_triv_goal cprop;
+
+    val tvars = Term.term_tvars prop;
+    val vars = Term.term_vars prop;
   in
+    if null tvars then ()
+    else raise STATE ("Goal statement contains illegal schematic type variable(s): " ^
+      commas (map (Syntax.string_of_vname o #1) tvars), state);
+    if null vars then ()
+    else warning ("Goal statement contains unbound schematic variable(s): " ^
+      commas (map (Sign.string_of_term (sign_of state)) vars));
     state'
     |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed o map_context gen_binds))
     |> map_context (ProofContext.add_cases (RuleCases.make true goal [antN]))
@@ -608,10 +613,10 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
 fun global_goal prepp kind name atts x thy =
   setup_goal I prepp kind Seq.single name atts x (init_state thy);
 
-val theorem = global_goal ProofContext.bind_propp Theorem;
-val theorem_i = global_goal ProofContext.bind_propp_i Theorem;
-val lemma = global_goal ProofContext.bind_propp Lemma;
-val lemma_i = global_goal ProofContext.bind_propp_i Lemma;
+val theorem = global_goal ProofContext.bind_propp_schematic Theorem;
+val theorem_i = global_goal ProofContext.bind_propp_schematic_i Theorem;
+val lemma = global_goal ProofContext.bind_propp_schematic Lemma;
+val lemma_i = global_goal ProofContext.bind_propp_schematic_i Lemma;
 
 
 (*local goals*)
@@ -712,7 +717,7 @@ fun finish_global state =
     val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);
   in (thy', {kind = kind_name kind, name = name, thm = result'}) end;
 
-(*Note: should inspect first result only, backtracking may destroy theory*)
+(*note: clients should inspect first result only, as backtracking may destroy theory*)
 fun global_qed finalize state =
   state
   |> end_proof true
