@@ -15,7 +15,7 @@ NAME = ref
 FILES = ref.tex introduction.tex goals.tex tactic.tex tctical.tex \
 	thm.tex theories.tex defining.tex syntax.tex substitution.tex \
 	simplifier.tex classical.tex theory-syntax.tex \
-	../rail.sty ../proof.sty ../iman.sty ../extra.sty
+	../rail.sty ../proof.sty ../iman.sty ../extra.sty ../manual.bib
 
 dvi: $(NAME).dvi
 

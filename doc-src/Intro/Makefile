@@ -13,7 +13,7 @@ include ../Makefile.in
 
 NAME = intro
 FILES = intro.tex foundations.tex getting.tex advanced.tex \
-	../proof.sty ../iman.sty ../extra.sty
+	../proof.sty ../iman.sty ../extra.sty ../manual.bib
 
 dvi: $(NAME).dvi
 

@@ -13,7 +13,7 @@ include ../Makefile.in
 
 NAME = logics-ZF
 FILES = logics-ZF.tex ../Logics/syntax.tex FOL.tex ZF.tex \
-	../rail.sty ../proof.sty ../iman.sty ../extra.sty
+	../rail.sty ../proof.sty ../iman.sty ../extra.sty ../manual.bib
 
 dvi: $(NAME).dvi
 
