@@ -23,7 +23,7 @@ proof;
   qed;
 qed;
 
-lemma K: "A --> B --> A";
+lemma K': "A --> B --> A";
 proof single*;
   assume A;
   show A; .;
@@ -122,7 +122,7 @@ proof;
 qed;
 
 lemma "(EX x. P(f(x))) --> (EX x. P(x))";
-by blast;
+  by blast;
 
 
 end;
