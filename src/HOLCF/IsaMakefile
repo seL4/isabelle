@@ -32,8 +32,7 @@ $(OUT)/HOLCF: $(OUT)/HOL Cfun1.ML Cfun1.thy Cfun2.ML Cfun2.thy \
   Cprod2.thy Cprod3.ML Cprod3.thy Discrete.ML Discrete.thy Discrete0.ML \
   Discrete0.thy Discrete1.ML Discrete1.thy Fix.ML Fix.thy Fun1.ML \
   Fun1.thy Fun2.ML Fun2.thy Fun3.ML Fun3.thy HOLCF.ML HOLCF.thy Lift.ML \
-  Lift.thy Lift1.ML Lift1.thy Lift2.ML Lift2.thy Lift3.ML Lift3.thy \
-  One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy Porder0.ML \
+  Lift.thy One.ML One.thy Pcpo.ML Pcpo.thy Porder.ML Porder.thy Porder0.ML \
   Porder0.thy ROOT.ML Sprod0.ML Sprod0.thy Sprod1.ML Sprod1.thy \
   Sprod2.ML Sprod2.thy Sprod3.ML Sprod3.thy Ssum0.ML Ssum0.thy Ssum1.ML \
   Ssum1.thy Ssum2.ML Ssum2.thy Ssum3.ML Ssum3.thy Tr.ML Tr.thy Up1.ML \
