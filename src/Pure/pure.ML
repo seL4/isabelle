@@ -18,7 +18,7 @@ in
     val thy =
       PureThy.begin_theory "Pure" [ProtoPure.thy]
       |> Theory.add_syntax Syntax.pure_appl_syntax
-      |> Theory.apply common_setup
+      |> Library.apply common_setup
       |> PureThy.end_theory;
   end;
 
@@ -27,7 +27,7 @@ in
     val thy =
       PureThy.begin_theory "CPure" [ProtoPure.thy]
       |> Theory.add_syntax Syntax.pure_applC_syntax
-      |> Theory.apply common_setup
+      |> Library.apply common_setup
       |> Theory.copy
       |> PureThy.end_theory;
   end;

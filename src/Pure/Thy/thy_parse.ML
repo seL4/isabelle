@@ -571,7 +571,7 @@ val pure_sections =
   section "path" "|> Theory.add_path" name,
   section "global" "|> PureThy.global_path" empty_decl,
   section "local" "|> PureThy.local_path" empty_decl,
-  section "setup" "|> Theory.apply" long_id,
+  section "setup" "|> Library.apply" long_id,
   section "MLtext" "" verbatim,
   section "locale" "|> Locale.add_locale" locale_decl];
 

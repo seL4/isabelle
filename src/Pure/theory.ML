@@ -33,7 +33,6 @@ end
 signature THEORY =
 sig
   include BASIC_THEORY
-  val apply: (theory -> theory) list -> theory -> theory
   val axiomK: string
   val oracleK: string
   (*theory extension primitives*)
@@ -135,10 +134,6 @@ fun requires thy name what =
 
 (*partial Pure theory*)
 val pre_pure = make_theory Sign.pre_pure Symtab.empty Symtab.empty [] [];
-
-(*apply transformers*)
-fun apply [] thy = thy
-  | apply (f :: fs) thy = apply fs (f thy);
 
 
 
