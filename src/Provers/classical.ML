@@ -186,7 +186,7 @@ fun joinrules (intrs,elims) =
      map (pair false) intrs);
 
 (*Priority: prefer rules with fewest subgoals, 
-              then rules added most recently.*)
+  then rules added most recently (preferring the head of the list).*)
 fun tag_brls k [] = []
   | tag_brls k (brl::brls) =
       (1000000*subgoals_of_brl brl + k, brl) :: 
