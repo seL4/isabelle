@@ -50,13 +50,13 @@ fun binary_rule ((cl1, lit1), (cl2 , lit2)) =
 
 fun binary_syntax ((i, B), j) (x, A) = (x, binary_rule ((A,i), (B,j)));
 
-fun gen_BINARY thm = syntax
+fun gen_binary thm = syntax
       ((Scan.lift Args.nat -- thm -- Scan.lift Args.nat) >> binary_syntax);
-val BINARY_global = gen_BINARY global_thm;
-val BINARY_local = gen_BINARY local_thm;
+val binary_global = gen_binary global_thm;
+val binary_local = gen_binary local_thm;
 
 (*I have not done the MRR rule because it seems to be identifical to 
-BINARY*)
+binary*)
 
 
 fun inst_single sign t1 t2 cl =
@@ -92,7 +92,7 @@ fun factor_rule (cl, lit1, lit2) =
 
 fun factor_syntax (i, j) (x, A) = (x, factor_rule (A,i,j));
 
-fun FACTOR x = syntax ((Scan.lift (Args.nat -- Args.nat)) >> factor_syntax) x;
+fun factor x = syntax ((Scan.lift (Args.nat -- Args.nat)) >> factor_syntax) x;
 
 
 (** Paramodulation **)
@@ -138,10 +138,10 @@ fun paramod_rule ((cl1, lit1), (cl2 , lit2)) =
 
 fun paramod_syntax ((i, B), j) (x, A) = (x, paramod_rule ((A,i), (B,j)));
 
-fun gen_PARAMOD thm = syntax
+fun gen_paramod thm = syntax
       ((Scan.lift Args.nat -- thm -- Scan.lift Args.nat) >> paramod_syntax);
-val PARAMOD_global = gen_PARAMOD global_thm;
-val PARAMOD_local = gen_PARAMOD local_thm;
+val paramod_global = gen_paramod global_thm;
+val paramod_local = gen_paramod local_thm;
 
 
 (** Demodulation, i.e. rewriting **)
@@ -158,9 +158,9 @@ fun demod_rule (cl1,lit1,cl2) =
 
 fun demod_syntax (i, B) (x, A) = (x, demod_rule (A,i,B));
 
-fun gen_DEMOD thm = syntax ((Scan.lift Args.nat -- thm) >> demod_syntax);
-val DEMOD_global = gen_DEMOD global_thm;
-val DEMOD_local = gen_DEMOD local_thm;
+fun gen_demod thm = syntax ((Scan.lift Args.nat -- thm) >> demod_syntax);
+val demod_global = gen_demod global_thm;
+val demod_local = gen_demod local_thm;
 
 
 (** Conversion of a theorem into clauses **)
@@ -172,18 +172,18 @@ fun clausify_rule (A,i) =
 
 fun clausify_syntax i (x, A) = (x, clausify_rule (A,i));
 
-fun CLAUSIFY x = syntax ((Scan.lift Args.nat) >> clausify_syntax) x;
+fun clausify x = syntax ((Scan.lift Args.nat) >> clausify_syntax) x;
 
 
 (** theory setup **)
 
 val setup =
   [Attrib.add_attributes
-     [("BINARY", (BINARY_global, BINARY_local), "binary resolution"),
-      ("PARAMOD", (PARAMOD_global, PARAMOD_local), "paramodulation"),
-      ("DEMOD", (DEMOD_global, DEMOD_local), "demodulation"),
-      ("FACTOR", (FACTOR, FACTOR), "factoring"),
-      ("CLAUSIFY", (CLAUSIFY, CLAUSIFY), "conversion to clauses")]];
+     [("binary", (binary_global, binary_local), "binary resolution"),
+      ("paramod", (paramod_global, paramod_local), "paramodulation"),
+      ("demod", (demod_global, demod_local), "demodulation"),
+      ("factor", (factor, factor), "factoring"),
+      ("clausify", (clausify, clausify), "conversion to clauses")]];
 
 end
 end

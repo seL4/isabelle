@@ -720,8 +720,8 @@ lemma "(\<forall>x. P1 x --> P0 x) & (\<exists>x. P1 x) &
        (\<forall>x. (P4 x|P5 x) --> (\<exists>y. Q0 y & R x y))
        --> (\<exists>x y. P0 x & P0 y & (\<exists>z. Q1 z & R y z & R x y))"
 by (tactic{*safe_best_meson_tac 1*})
-    --{*Considerably faster than @{text meson},
-        which does iterative deepening rather than best-first search*}
+    --{*Nearly twice as fast as @{text meson},
+        which performs iterative deepening rather than best-first search*}
 
 text{*The Los problem. Circulated by John Harrison*}
 lemma "(\<forall>x y z. P x y & P y z --> P x z) &
@@ -794,9 +794,9 @@ proof (rule ccontr, skolemize, make_clauses)
      and Q: "\<And>U. Q U \<Longrightarrow> False"
      and PQ: "\<And>U.  \<lbrakk>P (f U); \<not> Q (g U)\<rbrakk> \<Longrightarrow> False"
   have cl4: "\<And>U. \<not> Q (g U) \<Longrightarrow> False"
-    by (rule P [BINARY 0 PQ 0])
+    by (rule P [binary 0 PQ 0])
   show "False"
-    by (rule Q [BINARY 0 cl4 0])
+    by (rule Q [binary 0 cl4 0])
 qed
 
 end
