@@ -102,12 +102,7 @@ fun filter pred = mapfilter (fn x => if pred x then Some x else None);
 
 (* list source *)
 
-(*limiting the input buffer considerably improves performance*)
-val limit = 4000;
-
-fun drain_list _ xs = (take (limit, xs), drop (limit, xs));
-
-fun of_list xs = make_source [] xs default_prompt drain_list;
+fun of_list xs = make_source [] xs default_prompt (fn _ => fn xs => (xs, []));
 val of_string = of_list o explode;
 
 fun exhausted src = of_list (exhaust src);
