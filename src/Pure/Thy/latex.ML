@@ -10,6 +10,7 @@ signature LATEX =
 sig
   datatype token = Basic of OuterLex.token | Markup of string | MarkupEnv of string | Verbatim
   val output_tokens: (token * string) list -> string
+  val tex_trailer: string
   val isabelle_file: string -> string
   val old_symbol_source: string -> Symbol.symbol list -> string
   val theory_entry: string -> string
@@ -117,13 +118,14 @@ val output_tokens = implode o map output_tok;
 
 (* theory presentation *)
 
-val isabelle_file = enclose
-  "\\begin{isabelle}%\n"
-  "\\end{isabelle}%\n\
-  \%%% Local Variables:\n\
+val tex_trailer =
+  "%%% Local Variables:\n\
   \%%% mode: latex\n\
   \%%% TeX-master: \"root\"\n\
   \%%% End:\n";
+
+val isabelle_file =
+  enclose "%\n\\begin{isabellebody}%\n" ("\\end{isabellebody}%\n" ^ tex_trailer);
 
 fun old_symbol_source name syms =
   isabelle_file ("\\isamarkupheader{" ^ output_syms name ^ "}%\n" ^ output_symbols syms);
