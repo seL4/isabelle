@@ -246,23 +246,19 @@ by (REPEAT (ares_tac [congt] 1
      ORELSE etac (equivA RS equiv_type RS subsetD RS SigmaE2) 1));
 val congruent2_commuteI = result();
 
-(***OBSOLETE VERSION
-(*Rules congruentI and congruentD would simplify use of rewriting below*)
+(*Obsolete?*)
 val [equivA,ZinA,congt,commute] = goalw EquivClass.thy [quotient_def]
     "[| equiv(A,r);  Z: A/r;  \
 \       !!w. [| w: A |] ==> congruent(r, %z.b(w,z));	\
 \       !!x y. [| x: A;  y: A |] ==> b(y,x) = b(x,y)	\
 \    |] ==> congruent(r, %w. UN z: Z. b(w,z))";
 val congt' = rewrite_rule [congruent_def] congt;
-by (cut_facts_tac [ZinA,congt] 1);
+by (cut_facts_tac [ZinA] 1);
 by (rewtac congruent_def);
 by (safe_tac ZF_cs);
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (asm_simp_tac (ZF_ss addsimps [congt RS (equivA RS UN_equiv_class)]) 1);
-by (rtac (commute RS trans) 1);
-by (rtac (commute RS trans RS sym) 3);
-by (rtac sym 5);
+by (asm_simp_tac (ZF_ss addsimps [commute,
+				  [equivA, congt] MRS UN_equiv_class]) 1);
 by (REPEAT (ares_tac [congt' RS spec RS spec RS mp] 1));
 val congruent_commuteI = result();
-***)
