@@ -67,10 +67,4 @@ constdefs
   zle          ::      [i,i]=>o      (infixl "$<=" 50)
      "z1 $<= z2 == z1 $< z2 | intify(z1)=intify(z2)"
   
-(*div and mod await definitions!*)
-consts
-  "$'/"       ::      [i,i]=>i      (infixl 70) 
-
-  "$'/'/"     ::      [i,i]=>i      (infixl 70)
-    
 end

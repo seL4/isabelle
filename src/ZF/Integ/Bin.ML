@@ -313,11 +313,6 @@ qed "zmult_minus1_right";
 
 Addsimps [zmult_minus1, zmult_minus1_right];
 
-(*beware!  LOOPS with int_combine_numerals simproc*)
-Goal "#2 $* z = z $+ z";
-by (simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
-qed "zmult_2";
-
 
 (*** Simplification rules for comparison of binary numbers (N Voelker) ***)
 

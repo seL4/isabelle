@@ -31,10 +31,11 @@ $(OUT)/ZF: $(OUT)/FOL AC.ML AC.thy Arith.ML Arith.thy Bool.ML           \
   Cardinal.ML Cardinal.thy CardinalArith.ML CardinalArith.thy		\
   Cardinal_AC.ML Cardinal_AC.thy Datatype.ML Datatype.thy Epsilon.ML	\
   Epsilon.thy Finite.ML Finite.thy Fixedpt.ML Fixedpt.thy Inductive.ML	\
-  Inductive.thy InfDatatype.ML InfDatatype.thy Integ/Bin.ML		\
-  Integ/Bin.thy Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML	\
-  Integ/Int.thy Integ/twos_compl.ML \
-  Integ/int_arith.ML Integ/IntArith.thy \
+  Inductive.thy InfDatatype.ML InfDatatype.thy \
+  Integ/Bin.ML Integ/Bin.thy \
+  Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML	Integ/Int.thy \
+  Integ/IntDiv.ML Integ/IntDiv.thy \
+  Integ/twos_compl.ML Integ/int_arith.ML Integ/IntArith.thy \
   Let.ML Let.thy List.ML List.thy	\
   Main.thy Nat.ML Nat.thy Order.ML Order.thy OrderArith.ML		\
   OrderArith.thy OrderType.ML OrderType.thy Ordinal.ML Ordinal.thy	\

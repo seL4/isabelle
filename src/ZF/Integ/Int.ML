@@ -702,15 +702,15 @@ qed "zless_imp_intify_neq";
 
 (*This lemma allows direct proofs of other <-properties*)
 Goalw [zless_def, znegative_def, zdiff_def, int_def] 
-    "[| w $< z; w: int; z: int |] ==> (EX n. z = w $+ $#(succ(n)))";
+    "[| w $< z; w: int; z: int |] ==> (EX n: nat. z = w $+ $#(succ(n)))";
 by (auto_tac (claset() addSDs [less_imp_succ_add], 
               simpset() addsimps [zadd, zminus, int_of_def]));  
-by (res_inst_tac [("x","k")] exI 1);
+by (res_inst_tac [("x","k")] bexI 1);
 by (etac add_left_cancel 1);
 by Auto_tac;  
 val lemma = result();
 
-Goal "w $< z ==> (EX n. w $+ $#(succ(n)) = intify(z))";
+Goal "w $< z ==> (EX n: nat. w $+ $#(succ(n)) = intify(z))";
 by (subgoal_tac "intify(w) $< intify(z)" 1);
 by (dres_inst_tac [("w","intify(w)")] lemma 1);
 by Auto_tac;  
@@ -729,10 +729,11 @@ by (cut_facts_tac [intify_in_int RS lemma] 1);
 by Auto_tac;  
 qed "zless_succ_zadd";
 
-Goal "w $< z <-> (EX n. w $+ $#(succ(n)) = intify(z))";
+Goal "w $< z <-> (EX n: nat. w $+ $#(succ(n)) = intify(z))";
 by (rtac iffI 1);
 by (etac zless_imp_succ_zadd 1);
 by Auto_tac;  
+by (rename_tac "n" 1);
 by (cut_inst_tac [("w","w"),("n","n")] zless_succ_zadd 1);
 by Auto_tac;  
 qed "zless_iff_succ_zadd";
@@ -763,6 +764,16 @@ qed "zless_not_sym";
 (* [| z $< w; ~ P ==> w $< z |] ==> P *)
 bind_thm ("zless_asym", zless_not_sym RS swap);
 
+Goalw [zle_def] "z $< w ==> z $<= w";
+by (blast_tac (claset() addEs [zless_asym]) 1);
+qed "zless_imp_zle";
+
+Goal "z $<= w | w $<= z";
+by (simp_tac (simpset() addsimps [zle_def]) 1);
+by (cut_facts_tac [zless_linear] 1);
+by (Blast_tac 1);
+qed "zle_linear";
+
 
 (*** "Less Than or Equals", $<= ***)
 
@@ -770,9 +781,18 @@ Goalw [zle_def] "z $<= z";
 by Auto_tac;  
 qed "zle_refl";
 
+Goal "x=y ==> x $<= y";
+by (asm_simp_tac (simpset() addsimps [zle_refl]) 1);
+qed "zle_eq_refl";
+
 Goalw [zle_def] "[| x $<= y; y $<= x |] ==> intify(x) = intify(y)";
 by Auto_tac;  
 by (blast_tac (claset() addDs [zless_trans]) 1);
+qed "zle_anti_sym_intify";
+
+Goal "[| x $<= y; y $<= x; x: int; y: int |] ==> x=y"; 
+by (dtac zle_anti_sym_intify 1);
+by Auto_tac;  
 qed "zle_anti_sym";
 
 Goalw [zle_def] "[| x: int; y: int; z: int; x $<= y; y $<= z |] ==> x $<= z";
