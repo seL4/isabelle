@@ -43,7 +43,7 @@ constdefs
     "first(u, X, R) == u:X & (ALL v:X. v~=u --> <u,v> : R)"
 
 syntax (xsymbols)
-    ord_iso :: [i,i,i,i]=>i       ("('(_,_') \\<cong> '(_,_'))" 50)
+    ord_iso :: [i,i,i,i]=>i       ("(\\<langle>_, _\\<rangle> \\<cong>/ \\<langle>_, _\\<rangle>)" 51)
 
 
 end
