@@ -9,14 +9,15 @@ deduction rules, for use with Isabelle's classical reasoner.  Much
 of it is based on the work of No\"el~\cite{noel}.
 
 A tremendous amount of set theory has been formally developed, including
-the basic properties of relations, functions and ordinals.  Significant
-results have been proved, such as the Schr\"oder-Bernstein Theorem and a
-version of Ramsey's Theorem.  General methods have been developed for
-solving recursion equations over monotonic functors; these have been
-applied to yield constructions of lists, trees, infinite lists, etc.  The
-Recursion Theorem has been proved, admitting recursive definitions of
-functions over well-founded relations.  Thus, we may even regard set theory
-as a computational logic, loosely inspired by Martin-L\"of's Type Theory.
+the basic properties of relations, functions, ordinals and cardinals.
+Significant results have been proved, such as the Schr\"oder-Bernstein
+Theorem, the Wellordering Theorem and a version of Ramsey's Theorem.
+General methods have been developed for solving recursion equations over
+monotonic functors; these have been applied to yield constructions of
+lists, trees, infinite lists, etc.  The Recursion Theorem has been proved,
+admitting recursive definitions of functions over well-founded relations.
+Thus, we may even regard set theory as a computational logic, loosely
+inspired by Martin-L\"of's Type Theory.
 
 Because {\ZF} is an extension of {\FOL}, it provides the same packages,
 namely {\tt hyp_subst_tac}, the simplifier, and the classical reasoner.
@@ -24,11 +25,13 @@ The main simplification set is called {\tt ZF_ss}.  Several
 classical rule sets are defined, including {\tt lemmas_cs},
 {\tt upair_cs} and~{\tt ZF_cs}.  
 
-{\tt ZF} now has a flexible package for handling inductive definitions,
+{\tt ZF} has a flexible package for handling inductive definitions,
 such as inference systems, and datatype definitions, such as lists and
-trees.  Moreover it also handles coinductive definitions, such as
+trees.  Moreover it handles coinductive definitions, such as
 bisimulation relations, and codatatype definitions, such as streams.  A
-recent paper describes the package~\cite{paulson-fixedpt}.  
+recent paper describes the package~\cite{paulson-CADE}, but its examples
+use an obsolete declaration syntax.  Please consult the version of the
+paper distributed with Isabelle.
 
 Recent reports~\cite{paulson-set-I,paulson-set-II} describe {\tt ZF} less
 formally than this chapter.  Isabelle employs a novel treatment of
@@ -1132,7 +1135,7 @@ set (Fig.\ts\ref{zf-fixedpt}).  The theory defines least and greatest
 fixedpoint operators with corresponding induction and coinduction rules.
 These are essential to many definitions that follow, including the natural
 numbers and the transitive closure operator.  The (co)inductive definition
-package also uses the fixedpoint operators~\cite{paulson-fixedpt}.  See
+package also uses the fixedpoint operators~\cite{paulson-CADE}.  See
 Davey and Priestley~\cite{davey&priestley} for more on the Knaster-Tarski
 Theorem and my paper~\cite{paulson-set-II} for discussion of the Isabelle
 proofs.
@@ -1290,16 +1293,17 @@ constructing codatatypes such as streams.  It is analogous to ${\tt
   univ}(A)$ (and is defined in terms of it) but is closed under the
 non-standard product and sum.
 
-Figure~\ref{zf-fin} presents the finite set operator; ${\tt Fin}(A)$ is the
-set of all finite sets over~$A$.  The definition employs Isabelle's
-inductive definition package~\cite{paulson-fixedpt}, which proves various
-rules automatically.  The induction rule shown is stronger than the one
-proved by the package.  See file {\tt ZF/Fin.ML}.
+Theory {\tt Finite} (Figure~\ref{zf-fin}) defines the finite set operator;
+${\tt Fin}(A)$ is the set of all finite sets over~$A$.  The theory employs
+Isabelle's inductive definition package, which proves various rules
+automatically.  The induction rule shown is stronger than the one proved by
+the package.  The theory also defines the set of all finite functions
+between two given sets.
 
 \begin{figure}
 \begin{ttbox}
-\tdx{Fin_0I}          0 : Fin(A)
-\tdx{Fin_consI}       [| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)
+\tdx{Fin.emptyI}      0 : Fin(A)
+\tdx{Fin.consI}       [| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)
 
 \tdx{Fin_induct}
     [| b: Fin(A);
@@ -1400,6 +1404,58 @@ summary:
     of the cumulative hierarchy (thus $x\in V@{\alpha+1}$).
 \end{itemize}
 
+Other important theories lead to a theory of cardinal numbers.  They have
+not yet been written up anywhere.  Here is a summary:
+\begin{itemize}
+\item Theory {\tt Rel} defines the basic properties of relations, such as
+  (ir)reflexivity, (a)symmetry, and transitivity.
+
+\item Theory {\tt EquivClass} develops a theory of equivalence
+  classes, not using the Axiom of Choice.
+
+\item Theory {\tt Order} defines partial orderings, total orderings and
+  wellorderings.
+
+\item Theory {\tt OrderArith} defines orderings on sum and product sets.
+  These can be used to define ordinal arithmetic and have applications to
+  cardinal arithmetic.
+
+\item Theory {\tt OrderType} defines order types.  Every wellordering is
+  equivalent to a unique ordinal, which is its order type.
+
+\item Theory {\tt Cardinal} defines equipollence and cardinal numbers.
+ 
+\item Theory {\tt CardinalArith} defines cardinal addition and
+  multiplication, and proves their elementary laws.  It proves that there
+  is no greatest cardinal.  It also proves a deep result, namely
+  $\kappa\otimes\kappa=\kappa$ for every infinite cardinal~$\kappa$; see
+  Kunen~\cite[page 29]{kunen80}.  None of these results assume the Axiom of
+  Choice, which complicates their proofs considerably.  
+\end{itemize}
+
+The following developments involve the Axiom of Choice (AC):
+\begin{itemize}
+\item Theory {\tt AC} asserts the Axiom of Choice and proves some simple
+  equivalent forms.
+
+\item Theory {\tt Zorn} proves Hausdorff's Maximal Principle, Zorn's Lemma
+  and the Wellordering Theorem, following Abrial and
+  Laffitte~\cite{abrial93}.
+
+\item Theory \verb|Cardinal_AC| uses AC to prove simplified theorems about
+  the cardinals.  It also proves a theorem needed to justify
+  infinitely branching datatype declarations: if $\kappa$ is an infinite
+  cardinal and $|X(\alpha)| \le \kappa$ for all $\alpha<\kappa$ then
+  $|\union\sb{\alpha<\kappa} X(\alpha)| \le \kappa$.
+
+\item Theory {\tt InfDatatype} proves theorems to justify infinitely
+  branching datatypes.  Arbitrary index sets are allowed, provided their
+  cardinalities have an upper bound.  The theory also justifies some
+  unusual cases of finite branching, involving the finite powerset operator
+  and the finite function space operator.
+\end{itemize}
+
+
 
 \section{Simplification rules}
 {\ZF} does not merely inherit simplification from \FOL, but modifies it
@@ -1433,69 +1489,63 @@ shown in Fig.\ts\ref{zf-simpdata}.
 \end{figure}
 
 
-\section{The examples directory}
+\section{The examples directories}
+Directory {\tt HOL/IMP} contains a mechanised version of a semantic
+equivalence proof taken from Winskel~\cite{winskel93}.  It formalises the
+denotational and operational semantics of a simple while-language, then
+proves the two equivalent.  It contains several datatype and inductive
+definitions, and demonstrates their use.
+
 The directory {\tt ZF/ex} contains further developments in {\ZF} set
 theory.  Here is an overview; see the files themselves for more details.  I
 describe much of this material in other
-publications~\cite{paulson-fixedpt,paulson-set-I,paulson-set-II}. 
-\begin{ttdescription}
-\item[ZF/ex/misc.ML] contains miscellaneous examples such as
-  Cantor's Theorem, the Schr\"oder-Bernstein Theorem and the
-  `Composition of homomorphisms' challenge~\cite{boyer86}.
+publications~\cite{paulson-set-I,paulson-set-II,paulson-CADE}. 
+\begin{itemize}
+\item File {\tt misc.ML} contains miscellaneous examples such as
+  Cantor's Theorem, the Schr\"oder-Bernstein Theorem and the `Composition
+  of homomorphisms' challenge~\cite{boyer86}.
 
-\item[ZF/ex/Ramsey.ML]
-proves the finite exponent 2 version of Ramsey's Theorem, following Basin
-and Kaufmann's presentation~\cite{basin91}.
+\item Theory {\tt Ramsey} proves the finite exponent 2 version of
+  Ramsey's Theorem, following Basin and Kaufmann's
+  presentation~\cite{basin91}.
 
-\item[ZF/ex/Equiv.ML]
-develops a theory of equivalence classes, not using the Axiom of Choice.
+\item Theory {\tt Integ} develops a theory of the integers as
+  equivalence classes of pairs of natural numbers.
 
-\item[ZF/ex/Integ.ML]
-develops a theory of the integers as equivalence classes of pairs of
-natural numbers.
+\item Theory {\tt Bin} defines a datatype for two's complement binary
+  integers, then proves rewrite rules to perform binary arithmetic.  For
+  instance, $1359\times {-}2468 = {-}3354012$ takes under 14 seconds.
 
-\item[ZF/ex/Bin.ML]
-defines a datatype for two's complement binary integers.  File
-{\tt BinFn.ML} then develops rewrite rules for binary
-arithmetic.  For instance, $1359\times {-}2468 = {-}3354012$ takes under
-14 seconds.
+\item Theory {\tt BT} defines the recursive data structure ${\tt
+    bt}(A)$, labelled binary trees.
 
-\item[ZF/ex/BT.ML]
-defines the recursive data structure ${\tt bt}(A)$, labelled binary trees.
+\item Theory {\tt Term} defines a recursive data structure for terms
+  and term lists.  These are simply finite branching trees.
 
-\item[ZF/ex/Term.ML] 
-  and {\tt TermFn.ML} define a recursive data structure for
-  terms and term lists.  These are simply finite branching trees.
-
-\item[ZF/ex/TF.ML]
-  and {\tt TF_Fn.ML} define primitives for solving mutually
+\item Theory {\tt TF} defines primitives for solving mutually
   recursive equations over sets.  It constructs sets of trees and forests
   as an example, including induction and recursion rules that handle the
   mutual recursion.
 
-\item[ZF/ex/Prop.ML]
-  and {\tt PropLog.ML} proves soundness and completeness of
+\item Theory {\tt Prop} proves soundness and completeness of
   propositional logic~\cite{paulson-set-II}.  This illustrates datatype
-  definitions, inductive definitions, structural induction and rule induction.
+  definitions, inductive definitions, structural induction and rule
+  induction.
 
-\item[ZF/ex/ListN.ML]
-presents the inductive definition of the lists of $n$ elements~\cite{paulin92}.
+\item Theory {\tt ListN} inductively defines the lists of $n$
+  elements~\cite{paulin92}.
 
-\item[ZF/ex/Acc.ML]
-presents the inductive definition of the accessible part of a
-relation~\cite{paulin92}. 
+\item Theory {\tt Acc} inductively defines the accessible part of a
+  relation~\cite{paulin92}.
 
-\item[ZF/ex/Comb.ML]
-  presents the datatype definition of combinators.  The file
-  {\tt Contract0.ML} defines contraction, while file
-  {\tt ParContract.ML} defines parallel contraction and
-  proves the Church-Rosser Theorem.  This case study follows Camilleri and
-  Melham~\cite{camilleri92}. 
+\item Theory {\tt Comb} defines the datatype of combinators and
+  inductively defines contraction and parallel contraction.  It goes on to
+  prove the Church-Rosser Theorem.  This case study follows Camilleri and
+  Melham~\cite{camilleri92}.
 
-\item[ZF/ex/LList.ML]
-  and {\tt LList_Eq.ML} develop lazy lists and a notion
-  of coinduction for proving equations between them.
-\end{ttdescription}
+\item Theory {\tt LList} defines lazy lists and a coinduction
+  principle for proving equations between them.
+\end{itemize}
 
 
 \section{A proof about powersets}\label{sec:ZF-pow-example}
