@@ -98,6 +98,7 @@ sig
   val vars_of           : thm -> (indexname * typ) list
   val unvarifyT         : thm -> thm
   val unvarify          : thm -> thm
+  val tvars_intr_list	: string list -> thm -> thm
   val rule_attribute    : ('a -> thm -> thm) -> 'a attribute
   val tag_rule          : tag -> thm -> thm
   val untag_rule        : string -> thm -> thm
@@ -691,6 +692,16 @@ fun unvarify raw_thm =
     val ct = Thm.cterm_of (Thm.sign_of_thm thm);
     val frees = map (fn ((x, _), T) => Some (ct (Free (x, T)))) (vars_of thm);
   in instantiate' [] frees thm end;
+
+
+(* tvars_intr_list *)
+
+fun tfrees_of thm =
+  let val {hyps, prop, ...} = Thm.rep_thm thm
+  in foldr Term.add_term_tfree_names (prop :: hyps, []) end;
+
+fun tvars_intr_list tfrees thm =
+  Thm.varifyT' (tfrees_of thm \\ tfrees) thm;
 
 
 (* increment var indexes *)
