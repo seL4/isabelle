@@ -50,6 +50,7 @@ sig
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
   type isar
   val trace: bool ref
+  val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion: transition list -> unit
   val set_state: state -> unit
