@@ -4,7 +4,7 @@
     Copyright   1996  University of Cambridge
 
 Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.
-Version incorporating Lowe's fix (inclusion of B's identify in round 2).
+Version incorporating Lowe's fix (inclusion of B's identity in round 2).
 *)
 
 NS_Public = Public + 
