@@ -322,7 +322,7 @@ goal FOL.thy
 \    (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &    \
 \            (~p(a) | ~(EX y. p(y) & r(x,y)) |                          \
 \             (EX z. EX w. p(z) & r(x,w) & r(w,z))))";
-by (fast_tac FOL_cs 1);
+by (deepen_tac FOL_cs 0 1);  (*beats fast_tac!*)
 result();
 
 writeln"Problem 39";
