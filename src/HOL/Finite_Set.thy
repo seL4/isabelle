@@ -58,6 +58,24 @@ proof -
   qed
 qed
 
+lemma finite_ne_induct[case_names singleton insert, consumes 2]:
+assumes fin: "finite F" shows "F \<noteq> {} \<Longrightarrow>
+ \<lbrakk> \<And>x. P{x};
+   \<And>x F. \<lbrakk> finite F; F \<noteq> {}; x \<notin> F; P F \<rbrakk> \<Longrightarrow> P (insert x F) \<rbrakk>
+ \<Longrightarrow> P F"
+using fin
+proof induct
+  case empty thus ?case by simp
+next
+  case (insert x F)
+  show ?case
+  proof cases
+    assume "F = {}" thus ?thesis using insert(4) by simp
+  next
+    assume "F \<noteq> {}" thus ?thesis using insert by blast
+  qed
+qed
+
 lemma finite_subset_induct [consumes 2, case_names empty insert]:
   "finite F ==> F \<subseteq> A ==>
     P {} ==> (!!a F. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)) ==>
@@ -744,6 +762,10 @@ next
   assume "a \<notin> A"
   with finA show ?thesis by simp
 qed
+
+lemma (in ACIf) foldI_conv_id:
+  "finite A \<Longrightarrow> fold f g z A = fold f id z (g ` A)"
+by(erule finite_induct)(simp_all add: fold_insert2 del: fold_insert)
 
 subsubsection{*Lemmas about @{text fold}*}
 
@@ -1850,7 +1872,7 @@ apply (auto intro: finite_nonempty_imp_foldSet1
     cong add: conj_cong simp add: fold1_def [symmetric] foldSet1_equality)
 done
 
-lemma (in ACIf) fold1_insert2:
+lemma (in ACIf) fold1_insert2[simp]:
 assumes finA: "finite A" and nonA: "A \<noteq> {}"
 shows "fold1 f (insert a A) = f a (fold1 f A)"
 proof cases
@@ -1876,7 +1898,6 @@ next
   with finA nonA show ?thesis by(simp add:fold1_insert)
 qed
 
-
 text{* Now the recursion rules for definitions: *}
 
 lemma fold1_singleton_def: "g \<equiv> fold1 f \<Longrightarrow> g {a} = a"
@@ -1889,6 +1910,67 @@ by(simp add:fold1_insert)
 lemma (in ACIf) fold1_insert2_def:
   "\<lbrakk> g \<equiv> fold1 f; finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g(insert x A) = x \<cdot> (g A)"
 by(simp add:fold1_insert2)
+
+
+subsubsection{* Lemmas about {@text fold1} *}
+
+lemma (in ACf) fold1_Un:
+assumes A: "finite A" "A \<noteq> {}"
+shows "finite B \<Longrightarrow> B \<noteq> {} \<Longrightarrow> A Int B = {} \<Longrightarrow>
+       fold1 f (A Un B) = f (fold1 f A) (fold1 f B)"
+using A
+proof(induct rule:finite_ne_induct)
+  case singleton thus ?case by(simp add:fold1_insert)
+next
+  case insert thus ?case by (simp add:fold1_insert assoc)
+qed
+
+lemma (in ACIf) fold1_Un2:
+assumes A: "finite A" "A \<noteq> {}"
+shows "finite B \<Longrightarrow> B \<noteq> {} \<Longrightarrow>
+       fold1 f (A Un B) = f (fold1 f A) (fold1 f B)"
+using A
+proof(induct rule:finite_ne_induct)
+  case singleton thus ?case by(simp add:fold1_insert2)
+next
+  case insert thus ?case by (simp add:fold1_insert2 assoc)
+qed
+
+lemma (in ACf) fold1_in:
+  assumes A: "finite (A)" "A \<noteq> {}" and elem: "\<And>x y. x\<cdot>y \<in> {x,y}"
+  shows "fold1 f A \<in> A"
+using A
+proof (induct rule:finite_ne_induct)
+  case singleton thus ?case by(simp)
+next
+  case insert thus ?case using elem by (force simp add:fold1_insert)
+qed
+
+lemma fold1_le:
+  assumes ACf: "ACf(f::'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
+  and A: "finite (A)" "A \<noteq> {}" and le: "\<And>x y. f x y \<le> x"
+  shows "a \<in> A \<Longrightarrow> fold1 f A \<le> a"
+using A
+proof (induct rule:finite_ne_induct)
+  case singleton thus ?case by(simp)
+next
+  from le have le2: "\<And>x y. f x y \<le> y" by (fastsimp simp:ACf.commute[OF ACf])
+  case (insert x F) thus ?case using le le2
+    by (simp add:ACf.fold1_insert[OF ACf]) (blast intro: le order_trans)
+qed
+
+lemma fold1_ge:
+  assumes ACf: "ACf(f::'a::linorder \<Rightarrow> 'a \<Rightarrow> 'a)"
+  and A: "finite (A)" "A \<noteq> {}" and ge: "\<And>x y. x \<le> f x y"
+  shows "a \<in> A \<Longrightarrow> a \<le> fold1 f A"
+using A
+proof (induct rule:finite_ne_induct)
+  case singleton thus ?case by(simp)
+next
+  from ge have ge2: "\<And>x y. y \<le> f x y" by (fastsimp simp:ACf.commute[OF ACf])
+  case (insert x F) thus ?case using ge ge2
+    by (simp add:ACf.fold1_insert[OF ACf]) (blast intro: ge order_trans)
+qed
 
 
 subsection{*Min and Max*}
@@ -1937,71 +2019,22 @@ declare
   fold1_singleton_def[OF Max_def, simp]
   ACIf.fold1_insert2_def[OF ACIf_max Max_def, simp]
 
-text{* Now we prove some properties by induction: *}
+text{* Now we instantiate some @{text fold1} properties: *}
 
 lemma Min_in [simp]:
-  assumes a: "finite S"
-  shows "S \<noteq> {} \<Longrightarrow> Min S \<in> S"
-using a
-proof induct
-  case empty thus ?case by simp
-next
-  case (insert x S)
-  show ?case
-  proof cases
-    assume "S = {}" thus ?thesis by simp
-  next
-    assume "S \<noteq> {}" thus ?thesis using insert by (simp add:min_def)
-  qed
-qed
-
-lemma Min_le [simp]:
-  assumes a: "finite S"
-  shows "\<lbrakk> S \<noteq> {}; x \<in> S \<rbrakk> \<Longrightarrow> Min S \<le> x"
-using a
-proof induct
-  case empty thus ?case by simp
-next
-  case (insert y S)
-  show ?case
-  proof cases
-    assume "S = {}" thus ?thesis using insert by simp
-  next
-    assume "S \<noteq> {}" thus ?thesis using insert by (auto simp add:min_def)
-  qed
-qed
+  shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Min A \<in> A"
+using ACf.fold1_in[OF ACf_min]
+by(fastsimp simp: Min_def min_def)
 
 lemma Max_in [simp]:
-  assumes a: "finite S"
-  shows "S \<noteq> {} \<Longrightarrow> Max S \<in> S"
-using a
-proof induct
-  case empty thus ?case by simp
-next
-  case (insert x S)
-  show ?case
-  proof cases
-    assume "S = {}" thus ?thesis by simp
-  next
-    assume "S \<noteq> {}" thus ?thesis using insert by (simp add:max_def)
-  qed
-qed
+  shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Max A \<in> A"
+using ACf.fold1_in[OF ACf_max]
+by(fastsimp simp: Max_def max_def)
 
-lemma Max_le [simp]:
-  assumes a: "finite S"
-  shows "\<lbrakk> S \<noteq> {}; x \<in> S \<rbrakk> \<Longrightarrow> x \<le> Max S"
-using a
-proof induct
-  case empty thus ?case by simp
-next
-  case (insert y S)
-  show ?case
-  proof cases
-    assume "S = {}" thus ?thesis using insert by simp
-  next
-    assume "S \<noteq> {}" thus ?thesis using insert by (auto simp add:max_def)
-  qed
-qed
+lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
+by(simp add: Min_def fold1_le[OF ACf_min] min_le_iff_disj)
 
+lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<le> Max A"
+by(simp add: Max_def fold1_ge[OF ACf_max] le_max_iff_disj)
 
 end
