@@ -101,78 +101,84 @@ let val showtyp = string_of_typ sign;
 in  terrs  end;
 
 
+
 (** The Extend operation **)
 
-(*Reset TVar indices to zero, renaming to preserve distinctness*)
-fun zero_tvar_indices tsig T =
-  let val inxSs = typ_tvars T;
-      val nms' = variantlist(map (#1 o #1) inxSs,[]);
-      val tye = map (fn ((v,S),a) => (v, TVar((a,0),S))) (inxSs ~~ nms')
-  in typ_subst_TVars tye T end
+(* Extend a signature: may add classes, types and constants. The "ref" in
+   stamps ensures that no two signatures are identical -- it is impossible to
+   forge a signature. *)
 
-
-(*Check that all types mentioned in the list of declarations are valid.
-  If errors found then raise exception.
-  Zero type var indices because type inference requires it.
-*)
-fun read_consts(tsig,syn) =
-let val showtyp = Syntax.string_of_typ syn;
-    fun read [] = []
-      | read((cs,s)::pairs) =
-        let val t = Syntax.read syn Syntax.typeT s handle ERROR =>
-                    error("The error above occurred in type " ^ quote s);
-            val S = Type.defaultS tsig;
-            val T = Type.varifyT(Syntax.typ_of_term (K S) t)
-            val T0 = zero_tvar_indices tsig T;
-        in (case Type.type_errors (tsig,showtyp) (T0,[]) of
-                [] => (cs,T0) :: read pairs
-            | errs => error (cat_lines
-           (("Error in type of constants " ^ space_implode " " cs) :: errs)))
-        end
-in read end;
-
-
-(*Extend a signature: may add classes, types and constants.
-  Replaces syntax with "syn".
-  The "ref" in stamps ensures that no two signatures are identical --
-  it is impossible to forge a signature. *)
-
-fun extend (Sg {tsig, const_tab, syn, stamps}) signame
-  (classes, default, types, arities, const_decs, osext) =
+fun extend (Sg {tsig, const_tab, syn, stamps}) name
+  (classes, default, types, arities, const_decs, opt_sext) =
   let
+    fun err_in_typ s = error ("The error(s) above occurred in type " ^ quote s);
+
+    fun read_typ tsg sy s =
+      Syntax.read_typ sy (K (Type.defaultS tsg)) s handle ERROR => err_in_typ s;
+
+    fun check_typ tsg sy ty =
+      (case Type.type_errors (tsg, Syntax.string_of_typ sy) (ty, []) of
+        [] => ty
+      | errs => (prs (cat_lines errs); err_in_typ (Syntax.string_of_typ sy ty)));
+
+    (*reset TVar indices to zero, renaming to preserve distinctness*)
+    fun zero_tvar_indices T =
+      let
+        val inxSs = typ_tvars T;
+        val nms' = variantlist (map (#1 o #1) inxSs, []);
+        val tye = map (fn ((v, S), a) => (v, TVar ((a, 0), S))) (inxSs ~~ nms');
+      in typ_subst_TVars tye T end;
+
+    (*read and check the type mentioned in a const declaration; zero type var
+      indices because type inference requires it*)
+
+    (* FIXME bug / feature: varifyT'ed TFrees may clash with user specified
+      TVars e.g. foo :: "'a => ?'a" *)
+    (* FIXME if user supplied TVars were disallowed, zero_tvar_indices would
+      become obsolete *)
+    (* FIXME disallow "" as const name *)
+
+    fun read_consts tsg sy (cs, s) =
+      let val ty = zero_tvar_indices (Type.varifyT (read_typ tsg sy s));
+      in
+        (case Type.type_errors (tsg, Syntax.string_of_typ sy) (ty, []) of
+          [] => (cs, ty)
+        | errs => error (cat_lines (("Error in type of constants " ^
+            space_implode " " (map quote cs)) :: errs)))
+      end;
+
+
     (* FIXME abbr *)
     val tsig' = Type.extend (tsig, classes, default, types, arities);
 
-    (* FIXME expand_typ, check typ *)
-    val read_ty = Syntax.read_typ syn (K (Type.defaultS tsig'));
+    (* FIXME *)
+    fun expand_typ _ ty = ty;
 
-    val roots = filter (Type.logical_type tsig') (distinct (flat (map #1 arities)));
+    val read_ty =
+      (expand_typ tsig') o (check_typ tsig' syn) o (read_typ tsig' syn);
+    val log_types = Type.logical_types tsig';
     val xconsts = map #1 classes @ flat (map #1 types) @ flat (map #1 const_decs);
-    val syn' =
-      (case osext of
-        Some sext => Syntax.extend syn read_ty (roots, xconsts, sext)
-      | None =>
-          if null roots andalso null xconsts then syn
-          else Syntax.extend syn read_ty (roots, xconsts, Syntax.empty_sext));
-    val sconsts =
-      (case osext of
-        Some sext => Syntax.constants sext
-      | None => []);
-    val const_decs' = read_consts (tsig', syn') (sconsts @ const_decs);
+    val sext = case opt_sext of Some sx => sx | None => Syntax.empty_sext;
+
+    val syn' = Syntax.extend syn read_ty (log_types, xconsts, sext);
+
+    val const_decs' =
+      map (read_consts tsig' syn') (Syntax.constants sext @ const_decs);
+                    (* FIXME ^^^^ should be syn *)
   in
     Sg {
       tsig = tsig',
       const_tab = Symtab.st_of_declist (const_decs', const_tab)
         handle Symtab.DUPLICATE a => error ("Constant " ^ quote a ^ " declared twice"),
       syn = syn',
-      stamps = ref signame :: stamps}
+      stamps = ref name :: stamps}
   end;
 
 
 (* The empty signature *)
 
-val sg0 = Sg {tsig = Type.tsig0,
-  const_tab = Symtab.null, syn = Syntax.type_syn, stamps= []};
+val sg0 = Sg {tsig = Type.tsig0, const_tab = Symtab.null,
+  syn = Syntax.type_syn, stamps = []};
 
 
 (* The pure signature *)
@@ -185,7 +191,7 @@ val pure = extend sg0 "Pure"
   (Syntax.syntax_types, 0)],
  [(["fun"],  ([["logic"], ["logic"]], "logic")),
   (["prop"], ([], "logic"))],
- [([Syntax.constrainC], "'a::logic => 'a")],  (* MMW FIXME replace logic by {} (?) *)
+ [([Syntax.constrainC], "'a::logic => 'a")],  (* FIXME replace logic by {} (?) *)
  Some Syntax.pure_sext);
 
 
@@ -216,15 +222,19 @@ fun merge_stamps (stamps1,stamps2) =
   end;
 
 (*Merge two signatures.  Forms unions of tables.  Prefers sign1. *)
-fun merge (sign1 as Sg{tsig=tsig1,const_tab=ctab1,stamps=stamps1,syn=syn1},
-           sign2 as Sg{tsig=tsig2,const_tab=ctab2,stamps=stamps2,syn=syn2}) =
+fun merge
+  (sign1 as Sg {tsig = tsig1, const_tab = ctab1, stamps = stamps1, syn = syn1},
+   sign2 as Sg {tsig = tsig2, const_tab = ctab2, stamps = stamps2, syn = syn2}) =
     if stamps2 subset stamps1 then sign1
     else if stamps1 subset stamps2 then sign2
-    else  (*neither is union already;  must form union*)
-           Sg{tsig= Type.merge(tsig1,tsig2),
-              const_tab= merge_tabs (ctab1, ctab2),
-              stamps= merge_stamps (stamps1,stamps2),
-              syn = Syntax.merge(syn1,syn2)};
+    else (*neither is union already; must form union*)
+      let val tsig = Type.merge (tsig1, tsig2);
+      in
+        Sg {tsig = tsig, const_tab = merge_tabs (ctab1, ctab2),
+          stamps = merge_stamps (stamps1, stamps2),
+          syn = Syntax.merge (Type.logical_types tsig) syn1 syn2}
+      end;
+
 
 
 (**** CERTIFIED TYPES ****)
