@@ -14,23 +14,25 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
-  val help_methods: theory -> unit
-  val multi_resolve: thm list -> thm -> thm Seq.seq
-  val FINISHED: tactic -> tactic
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD0: tactic -> Proof.method
   val fail: Proof.method
   val succeed: Proof.method
-  val same_tac: thm list -> int -> tactic
-  val same: Proof.method
-  val assumption_tac: thm list -> int -> tactic
-  val assumption: Proof.method
-  val forward_chain: thm list -> thm list -> thm Seq.seq
+  val insert_tac: thm list -> int -> tactic
+  val insert: Proof.method
+  val fold: thm list -> Proof.method
+  val unfold: thm list -> Proof.method
+  val multi_resolve: thm list -> thm -> thm Seq.seq
+  val multi_resolves: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
   val erule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
+  val assumption: Proof.method
+  val FINISHED: tactic -> tactic
+  val finish: Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
+  val help_methods: theory -> unit
   val method: theory -> Args.src -> Proof.context -> Proof.method
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
@@ -54,7 +56,6 @@ sig
     Then of text list |
     Orelse of text list |
     Try of text |
-    Repeat of text |
     Repeat1 of text
   val refine: text -> Proof.state -> Proof.state Seq.seq
   val tac: text -> Proof.state -> Proof.state Seq.seq
@@ -82,12 +83,6 @@ structure Method: METHOD =
 struct
 
 
-(** utils **)
-
-val FINISHED = FILTER (equal 0 o Thm.nprems_of);
-
-
-
 (** proof methods **)
 
 (* method from tactic *)
@@ -102,7 +97,9 @@ val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
 
 
-(* same *)
+(* insert *)
+
+local
 
 fun cut_rule_tac raw_rule =
   let
@@ -110,17 +107,14 @@ fun cut_rule_tac raw_rule =
     val revcut_rl = Drule.incr_indexes_wrt [] [] [] [rule] Drule.revcut_rl;
   in Tactic.rtac (rule COMP revcut_rl) THEN' Tactic.rotate_tac ~1 end;
 
-fun same_tac [] i = all_tac
-  | same_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
+in
 
-val same = METHOD (ALLGOALS o same_tac);
+fun insert_tac [] i = all_tac
+  | insert_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
 
+val insert = METHOD (ALLGOALS o insert_tac);
 
-(* assumption *)
-
-fun assumption_tac facts = same_tac facts THEN' assume_tac;
-val assumption = METHOD (FIRSTGOAL o assumption_tac);
-val asm_finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
+end;
 
 
 (* fold / unfold definitions *)
@@ -129,30 +123,59 @@ val fold = METHOD0 o fold_goals_tac;
 val unfold = METHOD0 o rewrite_goals_tac;
 
 
+(* multi_resolve *)
+
+local
+
+fun res th i rule =
+  Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
+
+fun multi_res _ [] rule = Seq.single rule
+  | multi_res i (th :: ths) rule = Seq.flat (Seq.map (res th i) (multi_res (i + 1) ths rule));
+
+in
+
+val multi_resolve = multi_res 1;
+fun multi_resolves facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
+
+end;
+
+
 (* rule *)
 
-fun res th i rule = Thm.biresolution false [(false, th)] i rule handle THM _ => Seq.empty;
-
-fun multi_resolve facts rule =
-  let
-    fun multi_res i [] = Seq.single rule
-      | multi_res i (th :: ths) = Seq.flat (Seq.map (res th i) (multi_res (i + 1) ths))
-  in multi_res 1 facts end;
-
-fun forward_chain facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
+local
 
 fun gen_rule_tac tac rules [] = tac rules
   | gen_rule_tac tac erules facts =
       let
-        val rules = forward_chain facts erules;
+        val rules = multi_resolves facts erules;
         fun tactic i state = Seq.flat (Seq.map (fn rule => tac [rule] i state) rules);
       in tactic end;
+
+in
 
 val rule_tac = gen_rule_tac Tactic.resolve_tac;
 val erule_tac = gen_rule_tac Tactic.eresolve_tac;
 
 fun rule rules = METHOD (FIRSTGOAL o rule_tac rules);
 fun erule rules = METHOD (FIRSTGOAL o erule_tac rules);
+
+end;
+
+
+(* assumption *)
+
+fun assumption_tac [] = assume_tac
+  | assumption_tac [fact] = resolve_tac [fact]
+  | assumption_tac _ = K no_tac;
+
+val assumption = METHOD (FIRSTGOAL o assumption_tac);
+
+
+(* finish *)
+
+val FINISHED = FILTER (equal 0 o Thm.nprems_of);
+val finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
 
 
 
@@ -289,7 +312,6 @@ datatype text =
   Then of text list |
   Orelse of text list |
   Try of text |
-  Repeat of text |
   Repeat1 of text;
 
 
@@ -304,7 +326,6 @@ fun refine text state =
       | eval (Then txts) = Seq.EVERY (map eval txts)
       | eval (Orelse txts) = Seq.FIRST (map eval txts)
       | eval (Try txt) = Seq.TRY (eval txt)
-      | eval (Repeat txt) = Seq.REPEAT (eval txt)
       | eval (Repeat1 txt) = Seq.REPEAT1 (eval txt);
   in eval text state end;
 
@@ -338,7 +359,7 @@ fun proof opt_text state =
 
 fun local_qed opt_text = Proof.local_qed (refine (if_none opt_text finish_text));
 fun local_terminal_proof (text, opt_text) pr = Seq.THEN (proof (Some text), local_qed opt_text pr);
-val local_immediate_proof = local_terminal_proof (Basic (K same), None);
+val local_immediate_proof = local_terminal_proof (Basic (K assumption), None);
 val local_default_proof = local_terminal_proof (default_text, None);
 
 
@@ -358,7 +379,7 @@ fun global_terminal_proof (text, opt_text) state =
   |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
   |> Seq.hd;
 
-val global_immediate_proof = global_terminal_proof (Basic (K same), None);
+val global_immediate_proof = global_terminal_proof (Basic (K assumption), None);
 val global_default_proof = global_terminal_proof (default_text, None);
 
 
@@ -370,13 +391,13 @@ val global_default_proof = global_terminal_proof (default_text, None);
 val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
-  ("-", no_args same, "insert facts, nothing else"),
-  ("assumption", no_args assumption, "proof by assumption"),
-  ("finish", no_args asm_finish, "finish proof by assumption"),
+  ("-", no_args insert, "insert facts, nothing else"),
   ("fold", thms_args fold, "fold definitions"),
   ("unfold", thms_args unfold, "unfold definitions"),
   ("rule", thms_args rule, "apply some rule"),
-  ("erule", thms_args erule, "apply some erule (improper!)")];
+  ("erule", thms_args erule, "apply some erule (improper!)"),
+  ("assumption", no_args assumption, "proof by assumption"),
+  ("finish", no_args finish, "finish proof by assumption")];
 
 
 (* setup *)
