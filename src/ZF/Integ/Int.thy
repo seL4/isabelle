@@ -1,4 +1,4 @@
-(*  Title:      ZF/ex/integ.thy
+(*  Title:      ZF/Integ/Int.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -6,10 +6,10 @@
 The integers as equivalence classes over nat*nat.
 *)
 
-Integ = EquivClass + Arith +
+Int = EquivClass + Arith +
 consts
-    intrel,integ::      i
-    znat        ::      i=>i            ("$# _" [80] 80)
+    intrel,int::      i
+    int_of      ::      i=>i            ("$# _" [80] 80)
     zminus      ::      i=>i            ("$~ _" [80] 80)
     znegative   ::      i=>o
     zmagnitude  ::      i=>i
@@ -26,9 +26,9 @@ defs
      "intrel == {p:(nat*nat)*(nat*nat).                 
         EX x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> & x1#+y2 = x2#+y1}"
 
-    integ_def   "integ == (nat*nat)/intrel"
+    int_def   "int == (nat*nat)/intrel"
     
-    znat_def    "$# m == intrel `` {<m,0>}"
+    int_of_def  "$# m == intrel `` {<m,0>}"
     
     zminus_def  "$~ Z == UN <x,y>:Z. intrel``{<y,x>}"
     

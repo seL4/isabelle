@@ -99,8 +99,8 @@ val NCons_simps = [NCons_Pls_0, NCons_Pls_1,
 
 val bin_typechecks0 = bin_rec_type :: bin.intrs;
 
-Goalw [integ_of_def] "w: bin ==> integ_of(w) : integ";
-by (typechk_tac (bin_typechecks0@integ_typechecks@
+Goalw [integ_of_def] "w: bin ==> integ_of(w) : int";
+by (typechk_tac (bin_typechecks0@int_typechecks@
                  nat_typechecks@[bool_into_nat]));
 qed "integ_of_type";
 
@@ -143,32 +143,12 @@ Addsimps ([bool_1I, bool_0I,
 	   bin_rec_Pls, bin_rec_Min, bin_rec_Cons] @ 
 	  bin_recs integ_of_def @ bin_typechecks);
 
-val typechecks = bin_typechecks @ integ_typechecks @ nat_typechecks @
+val typechecks = bin_typechecks @ int_typechecks @ nat_typechecks @
                  [bool_subset_nat RS subsetD];
 
 (**** The carry/borrow functions, bin_succ and bin_pred ****)
 
-(** Lemmas **)
-
-goal Integ.thy 
-    "!!z v. [| z $+ v = z' $+ v';  \
-\       z: integ; z': integ;  v: integ; v': integ;  w: integ |]   \
-\    ==> z $+ (v $+ w) = z' $+ (v' $+ w)";
-by (asm_simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
-qed "zadd_assoc_cong";
-
-goal Integ.thy 
-    "!!z v w. [| z: integ;  v: integ;  w: integ |]   \
-\    ==> z $+ (v $+ w) = v $+ (z $+ w)";
-by (REPEAT (ares_tac [zadd_commute RS zadd_assoc_cong] 1));
-qed "zadd_assoc_swap";
-
-(*Pushes 'constants' of the form $#m to the right -- LOOPS if two!*)
-bind_thm ("zadd_assoc_znat", (znat_type RS zadd_assoc_swap));
-
-
 Addsimps (bin_recs bin_succ_def @ bin_recs bin_pred_def);
-
 
 (*NCons preserves the integer value of its argument*)
 Goal "[| w: bin; b: bool |] ==>     \
@@ -346,7 +326,7 @@ qed "bin_mult_Cons0";
 (*** The computation simpset ***)
 
 (*Adding the typechecking rules as rewrites is much slower, unfortunately...*)
-val bin_comp_ss = simpset_of Integ.thy 
+val bin_comp_ss = simpset_of Int.thy 
     addsimps [integ_of_add RS sym,   (*invoke bin_add*)
               integ_of_minus RS sym, (*invoke bin_minus*)
               integ_of_mult RS sym,  (*invoke bin_mult*)

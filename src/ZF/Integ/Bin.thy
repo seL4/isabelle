@@ -18,7 +18,7 @@ For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
 Division is not defined yet!
 *)
 
-Bin = Integ + Datatype + 
+Bin = Int + Datatype + 
 
 consts
   bin_rec   :: [i, i, i, [i,i,i]=>i] => i
@@ -143,15 +143,15 @@ local
         | bin_of (Const ("Cons", _) $ bs $ b) = dest_bit b :: bin_of bs
         | bin_of _ = raise Match;
 
-      fun int_of [] = 0
-        | int_of (b :: bs) = b + 2 * int_of bs;
+      fun integ_of [] = 0
+        | integ_of (b :: bs) = b + 2 * integ_of bs;
 
       val rev_digs = bin_of tm;
       val (sign, zs) =
         (case rev rev_digs of
           ~1 :: bs => ("-", prefix_len (equal 1) bs)
         | bs => ("", prefix_len (equal 0) bs));
-      val num = string_of_int (abs (int_of rev_digs));
+      val num = string_of_int (abs (integ_of rev_digs));
     in
       "#" ^ sign ^ implode (replicate zs "0") ^ num
     end;
