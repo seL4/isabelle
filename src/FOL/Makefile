@@ -21,6 +21,11 @@ COMP = $(ISABELLECOMP)
 FILES =  ROOT.ML ifol.thy ifol.ML fol.thy fol.ML intprover.ML simpdata.ML \
 	../Provers/classical.ML ../Provers/simplifier.ML ../Provers/ind.ML
 
+EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/if.ML ex/if.thy ex/int.ML\
+	   ex/intro.ML ex/list.ML ex/list.thy ex/nat.ML ex/nat.thy\
+	   ex/nat2.ML ex/nat2.thy ex/prolog.ML ex/prolog.thy ex/prop.ML\
+	   ex/quant.ML
+
 $(BIN)/FOL:   $(BIN)/Pure  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/FOL"; quit();'  \
@@ -33,7 +38,7 @@ $(BIN)/FOL:   $(BIN)/Pure  $(FILES)
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/FOL
+test:   ex/ROOT.ML  $(BIN)/FOL  $(EX_FILES) 
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/FOL ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/FOL;;\

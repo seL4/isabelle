@@ -19,7 +19,7 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = 	ROOT.ML  cube.thy  cube.ML  ex.ML
+FILES = 	ROOT.ML  cube.thy  cube.ML
 
 $(BIN)/Cube:   $(BIN)/Pure  $(FILES) 
 	case "$(COMP)" in \

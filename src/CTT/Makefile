@@ -21,6 +21,8 @@ COMP = $(ISABELLECOMP)
 FILES = 	ROOT.ML ctt.thy ctt.ML bool.thy bool.ML \
 		arith.thy arith.ML rew.ML ../Provers/typedsimp.ML
 
+EX_FILES = ex/ROOT.ML ex/elim.ML ex/equal.ML ex/synth.ML ex/typechk.ML
+
 $(BIN)/CTT:   $(BIN)/Pure  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/CTT"; quit();'  \
@@ -33,7 +35,7 @@ $(BIN)/CTT:   $(BIN)/Pure  $(FILES)
 $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
-test:   ex/ROOT.ML $(BIN)/CTT
+test:   ex/ROOT.ML $(BIN)/CTT  $(EX_FILES) 
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/CTT ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/CTT;;\

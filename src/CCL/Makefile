@@ -26,6 +26,9 @@ CCL_FILES = ccl.thy ccl.ML term.thy term.ML type.thy type.ML \
             coinduction.ML hered.thy hered.ML trancl.thy trancl.ML\
             wfd.thy wfd.ML genrec.ML typecheck.ML eval.ML fix.thy fix.ML
 
+EX_FILES = ex/ROOT.ML ex/flag.ML ex/flag.thy ex/list.ML ex/list.thy\
+	   ex/nat.ML ex/nat.thy ex/stream.ML ex/stream.thy
+
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES) 
 	case "$(COMP)" in \
@@ -38,7 +41,7 @@ $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES)
 $(BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/CCL
+test:   ex/ROOT.ML  $(BIN)/CCL  $(EX_FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/CCL ;;\
 	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/CCL;;\
