@@ -41,8 +41,8 @@ sig
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
   val apsome: ('a -> 'b) -> 'a option -> 'b option
-  val can: ('a -> 'b) -> 'a -> bool
   val try: ('a -> 'b) -> 'a -> 'b option
+  val can: ('a -> 'b) -> 'a -> bool
 
   (*pairs*)
   val pair: 'a -> 'b -> 'a * 'b
@@ -316,9 +316,15 @@ fun is_none (Some _) = false
 fun apsome f (Some x) = Some (f x)
   | apsome _ None = None;
 
-(*handle partial functions*)
-fun can f x = (f x; true) handle _ => false;
-fun try f x = Some (f x) handle _ => None;
+
+(* exception handling *)
+
+exception ERROR;
+
+fun try f x = Some (f x)
+  handle Interrupt => raise Interrupt | ERROR => raise ERROR | _ => None;
+
+fun can f x = is_some (try f x);
 
 
 
@@ -662,7 +668,9 @@ fun string_of_indexname (a,0) = a
 (*functions tuned for strings, avoiding explode*)
 
 fun nth_elem_string (i, str) =
-  String.substring (str, i, 1) handle _ => raise LIST "nth_elem_string";
+  (case try String.substring (str, i, 1) of
+    Some s => s
+  | None => raise LIST "nth_elem_string");
 
 fun foldl_string f (x0, str) =
   let
@@ -1077,7 +1085,7 @@ fun writeln s = ! writeln_fn s;
 fun warning s = ! warning_fn s;
 
 (*print error message and abort to top level*)
-exception ERROR;
+
 fun error_msg s = ! error_fn s;
 fun error s = (error_msg s; raise ERROR);
 fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
