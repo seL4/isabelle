@@ -193,7 +193,7 @@ by (dres_inst_tac [("x", "j")] spec 1);
 by (rtac bexI 1);
 by (rtac (add_diff_inverse2 RS sym) 1);
 by Auto_tac;
-by (asm_full_simp_tac (simpset() addsimps [nat_into_Ord, not_lt_iff_le]) 1);
+by (asm_full_simp_tac (simpset() addsimps [not_lt_iff_le]) 1);
 qed "not_zneg_int_of";
 
 Goal "[| z: int; ~ znegative(z) |] ==> $# (zmagnitude(z)) = z"; 

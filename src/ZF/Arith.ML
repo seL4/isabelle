@@ -78,8 +78,7 @@ val prems = goal Arith.thy
     "[| m:nat;  n:nat |] ==> m #- n le m";
 by (rtac (prems MRS diff_induct) 1);
 by (etac leE 3);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps prems @ [le_iff, nat_into_Ord])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems @ [le_iff])));
 qed "diff_le_self";
 
 (*** Simplification over add, mult, diff ***)
@@ -284,7 +283,7 @@ val div_rls =   (*for mod and div*)
     [Ord_transrec_type, apply_type, div_termination RS ltD, if_type,
      nat_into_Ord, not_lt_iff_le RS iffD1];
 
-val div_ss = simpset() addsimps [nat_into_Ord, div_termination RS ltD,
+val div_ss = simpset() addsimps [div_termination RS ltD,
 				 not_lt_iff_le RS iffD2];
 
 (*Type checking depends upon termination!*)
@@ -336,7 +335,7 @@ by (excluded_middle_tac "x<n" 1);
 by (Asm_simp_tac 2);
 (*case n le x*)
 by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, nat_into_Ord, add_assoc,
+     (simpset() addsimps [not_lt_iff_le, add_assoc,
                          div_termination RS ltD, add_diff_inverse]) 1);
 qed "mod_div_equality";
 
@@ -352,8 +351,7 @@ by (asm_simp_tac (simpset() addsimps [nat_le_refl RS lt_trans,
 				      succ_neq_self]) 2);
 by (asm_simp_tac (simpset() addsimps [ltD RS mem_imp_not_eq]) 2);
 (* case n le succ(x) *)
-by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, nat_into_Ord]) 1);
+by (asm_full_simp_tac (simpset() addsimps [not_lt_iff_le]) 1);
 by (etac leE 1);
 (*equality case*)
 by (asm_full_simp_tac (simpset() addsimps [diff_self_eq_0]) 2);
@@ -367,8 +365,7 @@ by (excluded_middle_tac "x<n" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less]) 2);
 (*case n le x*)
 by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, nat_into_Ord,
-                         mod_geq, div_termination RS ltD]) 1);
+     (simpset() addsimps [not_lt_iff_le, mod_geq, div_termination RS ltD]) 1);
 qed "mod_less_divisor";
 
 
@@ -411,7 +408,7 @@ Goal "[| i<j; j:nat; k:nat |] ==> i#+k < j#+k";
 by (ftac lt_nat_in_nat 1);
 by (assume_tac 1);
 by (etac succ_lt_induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [nat_into_Ord, leI])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [leI])));
 qed "add_lt_mono1";
 
 (*strict, in both arguments*)
@@ -496,7 +493,7 @@ by (excluded_middle_tac "x<n" 1);
 by (asm_simp_tac (simpset() addsimps [div_less, zero_lt_mult_iff, 
                                      mult_lt_mono2]) 2);
 by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, nat_into_Ord,
+     (simpset() addsimps [not_lt_iff_le, 
                          zero_lt_mult_iff, le_refl RS mult_le_mono, div_geq,
                          diff_mult_distrib2 RS sym,
                          div_termination RS ltD]) 1);
@@ -509,7 +506,7 @@ by (excluded_middle_tac "x<n" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less, zero_lt_mult_iff, 
                                      mult_lt_mono2]) 2);
 by (asm_full_simp_tac
-     (simpset() addsimps [not_lt_iff_le, nat_into_Ord,
+     (simpset() addsimps [not_lt_iff_le, 
                          zero_lt_mult_iff, le_refl RS mult_le_mono, mod_geq,
                          diff_mult_distrib2 RS sym,
                          div_termination RS ltD]) 1);
@@ -530,7 +527,7 @@ by (etac rev_mp 1);
 by (induct_tac "m" 1);
 by (Asm_simp_tac 1);
 by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [not_le_iff_lt,nat_into_Ord]) 1);
+by (asm_full_simp_tac (simpset() addsimps [not_le_iff_lt]) 1);
 qed "add_le_elim1";
 
 Goal "[| m<n; n: nat |] ==> EX k: nat. n = succ(m#+k)";

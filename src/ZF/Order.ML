@@ -9,8 +9,6 @@ Results from the book "Set Theory: an Introduction to Independence Proofs"
         by Ken Kunen.  Chapter 1, section 6.
 *)
 
-open Order;
-
 (** Basic properties of the definitions **)
 
 (*needed?*)
@@ -567,8 +565,7 @@ Goal "[| well_ord(A,r);  well_ord(B,s) |] ==> \
 \       range(ord_iso_map(A,r,B,s)) = B |       \
 \       (EX y:B. range(ord_iso_map(A,r,B,s))= pred(B,y,s))";
 by (resolve_tac [converse_ord_iso_map RS subst] 1);
-by (asm_simp_tac
-    (simpset() addsimps [range_converse, domain_ord_iso_map_cases]) 1);
+by (asm_simp_tac (simpset() addsimps [domain_ord_iso_map_cases]) 1);
 qed "range_ord_iso_map_cases";
 
 (*Kunen's Theorem 6.3: Fundamental Theorem for Well-Ordered Sets*)

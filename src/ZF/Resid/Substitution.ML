@@ -34,7 +34,7 @@ by (asm_simp_tac (simpset() addsimps [succ_pred]) 1);
 qed "gt_pred";
 
 
-Addsimps [nat_into_Ord, not_lt_iff_le, if_P, if_not_P];
+Addsimps [not_lt_iff_le, if_P, if_not_P];
 
 
 (* ------------------------------------------------------------------------- *)

@@ -103,7 +103,7 @@ qed "Fin_0_induct";
 (*Functions from a finite ordinal*)
 Goal "n: nat ==> n->A <= Fin(nat*A)";
 by (induct_tac "n" 1);
-by (simp_tac (simpset() addsimps [Pi_empty1, subset_iff, cons_iff]) 1);
+by (simp_tac (simpset() addsimps [subset_iff]) 1);
 by (asm_simp_tac 
     (simpset() addsimps [succ_def, mem_not_refl RS cons_fun_eq]) 1);
 by (fast_tac (claset() addSIs [Fin.consI]) 1);
@@ -125,14 +125,14 @@ qed "FiniteFun_mono1";
 
 Goal "h: A -||>B ==> h: domain(h) -> B";
 by (etac FiniteFun.induct 1);
-by (simp_tac (simpset() addsimps [empty_fun, domain_0]) 1);
-by (asm_simp_tac (simpset() addsimps [fun_extend3, domain_cons]) 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [fun_extend3]) 1);
 qed "FiniteFun_is_fun";
 
 Goal "h: A -||>B ==> domain(h) : Fin(A)";
 by (etac FiniteFun.induct 1);
-by (simp_tac (simpset() addsimps [domain_0]) 1);
-by (asm_simp_tac (simpset() addsimps [domain_cons]) 1);
+by (Simp_tac 1);
+by (Asm_simp_tac 1);
 qed "FiniteFun_domain_Fin";
 
 bind_thm ("FiniteFun_apply_type", FiniteFun_is_fun RS apply_type);

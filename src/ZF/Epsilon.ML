@@ -107,9 +107,8 @@ by (rtac ([Transset_eclose, singleton_subsetI] MRS eclose_least RS subsetD) 1);
 by (REPEAT (assume_tac 1));
 qed "mem_eclose_sing_trans";
 
-Goalw [Transset_def]
-    "[| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
-by (blast_tac (claset() addSIs [MemrelI] addSEs [MemrelE]) 1);
+Goalw [Transset_def] "[| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
+by (Blast_tac 1);
 qed "under_Memrel";
 
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
@@ -318,7 +317,7 @@ qed "THE_eq";
 
 Goal "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (simp_tac (simpset() addsimps [succ_not_0, THE_eq, if_P]) 1);
+by (simp_tac (simpset() addsimps [THE_eq, if_P]) 1);
 by (Blast_tac 1);
 qed "transrec2_succ";
 

@@ -131,11 +131,11 @@ qed "sum_eq_2_times";
 (*** Eliminator -- case ***)
 
 Goalw sum_defs "case(c, d, Inl(a)) = c(a)";
-by (simp_tac (simpset() addsimps [cond_0]) 1);
+by (Simp_tac 1);
 qed "case_Inl";
 
 Goalw sum_defs "case(c, d, Inr(b)) = d(b)";
-by (simp_tac (simpset() addsimps [cond_1]) 1);
+by (Simp_tac 1);
 qed "case_Inr";
 
 Addsimps [case_Inl, case_Inr];

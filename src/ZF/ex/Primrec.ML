@@ -52,7 +52,7 @@ Goal "[| i:nat;  j:nat |]  \
 by (asm_simp_tac (simpset() addsimps [CONST,PREC_succ,COMP_1,PROJ_0]) 1);
 qed "ack_succ_succ";
 
-Addsimps [ack_0, ack_succ_0, ack_succ_succ, ack_type, nat_into_Ord];
+Addsimps [ack_0, ack_succ_0, ack_succ_succ, ack_type];
 Delsimps [ACK_0, ACK_succ];
 
 
@@ -165,7 +165,7 @@ qed "ack_add_bound2";
 
 (*** MAIN RESULT ***)
 
-Addsimps [list_add_type, nat_into_Ord];
+Addsimps [list_add_type];
 
 Goalw [SC_def] "l: list(nat) ==> SC ` l < ack(1, list_add(l))";
 by (exhaust_tac "l" 1);

@@ -353,7 +353,7 @@ qed "fun_Union";
 
 (** The Union of 2 disjoint functions is a function **)
 
-val Un_rls = [Un_subset_iff, domain_Un_eq, SUM_Un_distrib1, prod_Un_distrib2, 
+val Un_rls = [Un_subset_iff, SUM_Un_distrib1, prod_Un_distrib2, 
               Un_upper1 RSN (2, subset_trans), 
               Un_upper2 RSN (2, subset_trans)];
 

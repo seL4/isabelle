@@ -1784,7 +1784,6 @@ by (asm_simp_tac(simpset() addsimps[e_less_eq,e_gr_eq]) 2);
 (* Must control rewriting by instantiating a variable. *)
 by (asm_full_simp_tac(simpset() addsimps
      [read_instantiate [("i1","n")] (nat_into_Ord RS not_le_iff_lt RS iff_sym),
-      nat_into_Ord,
       add_le_self]) 1);
 qed "eps_e_gr_add";
 

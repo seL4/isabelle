@@ -6,9 +6,6 @@
 Towards ordinal arithmetic 
 *)
 
-open OrderArith;
-
-
 (**** Addition of relations -- disjoint sum ****)
 
 (** Rewrite rules.  Can be used to obtain introduction rules **)
@@ -67,8 +64,7 @@ Addsimps [radd_Inl_iff, radd_Inr_iff,
 
 Goalw [linear_def]
     "[| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))";
-by (REPEAT_FIRST (ares_tac [ballI] ORELSE' etac sumE));
-by (ALLGOALS Asm_simp_tac);
+by (Force_tac 1);
 qed "linear_radd";
 
 
@@ -110,7 +106,7 @@ Goal "[| f: bij(A,C);  g: bij(B,D) |] ==> \
 by (res_inst_tac 
         [("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(g)`y))")] 
     lam_bijective 1);
-by (safe_tac (claset() addSEs [sumE]));
+by Safe_tac;
 by (ALLGOALS (asm_simp_tac bij_inverse_ss));
 qed "sum_bij";
 
@@ -134,11 +130,7 @@ Goal "A Int B = 0 ==>     \
 \           (lam z:A+B. case(%x. x, %y. y, z)) : bij(A+B, A Un B)";
 by (res_inst_tac [("d", "%z. if z:A then Inl(z) else Inr(z)")] 
     lam_bijective 1);
-by (blast_tac (claset() addSIs [if_type]) 2);
-by (DEPTH_SOLVE_1 (eresolve_tac [case_type, UnI1, UnI2] 1));
-by Safe_tac;
-by (ALLGOALS Asm_simp_tac);
-by (blast_tac (claset() addEs [equalityE]) 1);
+by Auto_tac;
 qed "sum_disjoint_bij";
 
 (** Associativity **)
@@ -147,15 +139,14 @@ Goal "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
 \ : bij((A+B)+C, A+(B+C))";
 by (res_inst_tac [("d", "case(%x. Inl(Inl(x)), case(%x. Inl(Inr(x)), Inr))")] 
     lam_bijective 1);
-by (ALLGOALS (asm_simp_tac (simpset() setloop etac sumE)));
+by Auto_tac;
 qed "sum_assoc_bij";
 
 Goal "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
 \ : ord_iso((A+B)+C, radd(A+B, radd(A,r,B,s), C, t),    \
 \           A+(B+C), radd(A, r, B+C, radd(B,s,C,t)))";
 by (resolve_tac [sum_assoc_bij RS ord_isoI] 1);
-by (REPEAT_FIRST (etac sumE));
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "sum_assoc_ord_iso";
 
 
@@ -255,8 +246,7 @@ qed "prod_ord_iso_cong";
 
 Goal "(lam z:A. <x,z>) : bij(A, {x}*A)";
 by (res_inst_tac [("d", "snd")] lam_bijective 1);
-by Safe_tac;
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "singleton_prod_bij";
 
 (*Used??*)
@@ -277,7 +267,7 @@ by (resolve_tac [id_bij RS sum_bij RS comp_bij] 1);
 by (rtac singleton_prod_bij 1);
 by (rtac sum_disjoint_bij 1);
 by (Blast_tac 1);
-by (asm_simp_tac (simpset() addcongs [case_cong] addsimps [id_conv]) 1);
+by (asm_simp_tac (simpset() addcongs [case_cong]) 1);
 by (resolve_tac [comp_lam RS trans RS sym] 1);
 by (fast_tac (claset() addSEs [case_type]) 1);
 by (asm_simp_tac (simpset() addsimps [case_case]) 1);
@@ -303,40 +293,35 @@ Goal "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
 \ : bij((A+B)*C, (A*C)+(B*C))";
 by (res_inst_tac
     [("d", "case(%<x,y>.<Inl(x),y>, %<x,y>.<Inr(x),y>)")] lam_bijective 1);
-by (safe_tac (claset() addSEs [sumE]));
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "sum_prod_distrib_bij";
 
 Goal "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
 \ : ord_iso((A+B)*C, rmult(A+B, radd(A,r,B,s), C, t), \
 \           (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))";
 by (resolve_tac [sum_prod_distrib_bij RS ord_isoI] 1);
-by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE]));
-by (ALLGOALS Asm_simp_tac);
+by Auto_tac;
 qed "sum_prod_distrib_ord_iso";
 
 (** Associativity **)
 
 Goal "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))";
 by (res_inst_tac [("d", "%<x, <y,z>>. <<x,y>, z>")] lam_bijective 1);
-by (ALLGOALS (asm_simp_tac (simpset() setloop etac SigmaE)));
+by Auto_tac;
 qed "prod_assoc_bij";
 
 Goal "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>)                   \
 \ : ord_iso((A*B)*C, rmult(A*B, rmult(A,r,B,s), C, t),  \
 \           A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))";
 by (resolve_tac [prod_assoc_bij RS ord_isoI] 1);
-by (REPEAT_FIRST (eresolve_tac [SigmaE, ssubst]));
-by (Asm_simp_tac 1);
-by (Blast_tac 1);
+by Auto_tac;
 qed "prod_assoc_ord_iso";
 
 (**** Inverse image of a relation ****)
 
 (** Rewrite rule **)
 
-Goalw [rvimage_def] 
-    "<a,b> : rvimage(A,f,r)  <->  <f`a,f`b>: r & a:A & b:A";
+Goalw [rvimage_def] "<a,b> : rvimage(A,f,r)  <->  <f`a,f`b>: r & a:A & b:A";
 by (Blast_tac 1);
 qed "rvimage_iff";
 
@@ -348,8 +333,7 @@ qed "rvimage_type";
 
 bind_thm ("field_rvimage", (rvimage_type RS field_rel_subset));
 
-Goalw [rvimage_def] 
-    "rvimage(A,f, converse(r)) = converse(rvimage(A,f,r))";
+Goalw [rvimage_def] "rvimage(A,f, converse(r)) = converse(rvimage(A,f,r))";
 by (Blast_tac 1);
 qed "rvimage_converse";
 
@@ -398,7 +382,7 @@ by (Blast_tac 1);
 by (eres_inst_tac [("a","f`y")] wf_on_induct 1);
 by (blast_tac (claset() addSIs [apply_funtype]) 1);
 by (blast_tac (claset() addSIs [apply_funtype] 
-                       addSDs [rvimage_iff RS iffD1]) 1);
+                        addSDs [rvimage_iff RS iffD1]) 1);
 qed "wf_on_rvimage";
 
 (*Note that we need only wf[A](...) and linear(A,...) to get the result!*)

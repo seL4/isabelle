@@ -121,7 +121,7 @@ qed "cadd_succ_lemma";
 Goal "[| m: nat;  n: nat |] ==> m |+| n = m#+n";
 by (induct_tac "m" 1);
 by (asm_simp_tac (simpset() addsimps [nat_into_Card RS cadd_0]) 1);
-by (asm_simp_tac (simpset() addsimps [nat_into_Ord, cadd_succ_lemma,
+by (asm_simp_tac (simpset() addsimps [cadd_succ_lemma,
 				      nat_into_Card RS Card_cardinal_eq]) 1);
 qed "nat_cadd_eq_add";
 
@@ -285,8 +285,7 @@ qed "cmult_succ_lemma";
 Goal "[| m: nat;  n: nat |] ==> m |*| n = m#*n";
 by (induct_tac "m" 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [nat_into_Ord, cmult_succ_lemma,
-				      nat_cadd_eq_add]) 1);
+by (asm_simp_tac (simpset() addsimps [cmult_succ_lemma, nat_cadd_eq_add]) 1);
 qed "nat_cmult_eq_mult";
 
 Goal "Card(n) ==> 2 |*| n = n |+| n";
