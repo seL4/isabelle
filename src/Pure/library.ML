@@ -1209,9 +1209,9 @@ val timing = ref false;
 
 (** misc **)
 
-fun overwrite_warn (args as (alist,(a,_))) text =
-  (if is_none(assoc(alist,a)) then () else warning text;
-   overwrite args);
+fun overwrite_warn (args as (alist, (a, _))) msg =
+ (if is_none (assoc (alist, a)) then () else warning msg;
+  overwrite args);
 
 (*use the keyfun to make a list of (x, key) pairs*)
 fun make_keylist (keyfun: 'a->'b) : 'a list -> ('a * 'b) list =
