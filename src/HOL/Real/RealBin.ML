@@ -269,17 +269,8 @@ val numeral_syms = [real_numeral_0_eq_0 RS sym, real_numeral_1_eq_1 RS sym];
 fun mk_numeral n = HOLogic.number_of_const HOLogic.realT $ HOLogic.mk_bin n;
 
 (*Decodes a binary real constant, or 0, 1*)
-fun dest_numeral (Const("0", _)) = 0
-  | dest_numeral (Const("1", _)) = 1
-  | dest_numeral (Const("Numeral.number_of", _) $ w) = 
-     (HOLogic.dest_binum w
-      handle TERM _ => raise TERM("Real_Numeral_Simprocs.dest_numeral:1", [w]))
-  | dest_numeral t = raise TERM("Real_Numeral_Simprocs.dest_numeral:2", [t]);
-
-fun find_first_numeral past (t::terms) =
-	((dest_numeral t, rev past @ terms)
-	 handle TERM _ => find_first_numeral (t::past) terms)
-  | find_first_numeral past [] = raise TERM("find_first_numeral", []);
+val dest_numeral = Int_Numeral_Simprocs.dest_numeral;
+val find_first_numeral = Int_Numeral_Simprocs.find_first_numeral;
 
 val zero = mk_numeral 0;
 val mk_plus = HOLogic.mk_binop "op +";
