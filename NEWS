@@ -5,6 +5,10 @@ Isabelle NEWS -- history of user-visible changes
 New in Isabelle???? (DATE ????)
 -------------------------------
 
+* Pure: fixed idt/idts vs. pttrn/pttrns syntactic categories;
+
+* HOLCF: fixed LAM <x,y,zs>.b syntax (may break some unusual cases);
+
 * added extended adm_tac to simplifier in HOLCF. Is now capable to discharge
   adm (%x. P (t x)), where P is chainfinite and t continuous.
 
