@@ -162,7 +162,9 @@ Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
 \bibitem{slind-tfl}
 Slind, K.,
 \newblock Function definition in higher-order logic,
-\newblock Tech. rep., T. U. Munich, 1996
+\newblock In {\em Theorem Proving in Higher Order Logics\/} (1996), J.~von
+  Wright, Ed.,
+\newblock In press
 
 \bibitem{szasz93}
 Szasz, N.,
