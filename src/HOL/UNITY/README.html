@@ -4,21 +4,24 @@
 <H2>UNITY--Chandy and Misra's UNITY formalism</H2>
 
 <P>The book <EM>Parallel Program Design: A Foundation</EM> by Chandy and Misra
-(Addison-Wesley, 1988) presents UNITY, which consists of an abstract
-programming language of guarded assignments and an associated calculus.
-Misra's 1994 paper "A Logic for Concurrent Programming" presents "New UNITY",
-giving more elegant foundations for a more general class of languages.
+(Addison-Wesley, 1988) presents the UNITY formalism.  UNITY consists of an
+abstract programming language of guarded assignments and a calculus for
+reasoning about such programs.  Misra's 1994 paper "A Logic for Concurrent
+Programming" presents New UNITY, giving more elegant foundations for a more
+general class of languages.  In recent work, Chandy and Sanders have proposed
+new methods for reasoning about systems composed of many components.
 
-<P> This directory is a preliminary formalization of New UNITY.  The Isabelle
-examples may not represent the most natural treatment of UNITY style.  Hand
-UNITY proofs tend to be written in the forwards direction, as in informal
-mathematics, while Isabelle works best in a backwards (goal-directed) style.
+<P>This directory formalizes these new ideas for UNITY.  The Isabelle examples
+may seem strange to UNITY traditionalists.  Hand UNITY proofs tend to be
+written in the forwards direction, as in informal mathematics, while Isabelle
+works best in a backwards (goal-directed) style.  Programs are expressed as
+sets of commands, where each command is a relation on states.  Quantification
+over commands using [] is easily expressed.  At present, there are no examples
+of quantification using ||.
 
-<P>
-The syntax, also, is rather unnatural.   Programs are expressed as sets of 
-commands, where each command is a relation on states.  Quantification over 
-commands using [] is easily expressed.  At present, there are no examples of
-quantification using ||.
+<P>A UNITY assertion denotes the set of programs satisfying it, as
+in the propositions-as-types paradigm.  The resulting style is readable if
+unconventional.
 
 <P>
 The directory presents a few small examples, mostly taken from Misra's 1994
