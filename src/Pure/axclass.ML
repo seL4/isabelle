@@ -318,8 +318,9 @@ val intro_classes_method =
 
 (* default method *)
 
-fun default_intro_classes_tac [] = intro_classes_tac []
-  | default_intro_classes_tac _ = K Tactical.no_tac;    (*no error message!*)
+fun default_intro_classes_tac [] i = intro_classes_tac [] i THEN
+      Tactic.distinct_subgoals_tac    (*affects all subgoals, which is usually OK*)
+  | default_intro_classes_tac _ _ = Tactical.no_tac;    (*no error message!*)
 
 fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts ORELSE' default_intro_classes_tac facts);
