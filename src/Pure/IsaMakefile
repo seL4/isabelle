@@ -1,0 +1,35 @@
+#
+#  $Id$
+#
+# IsaMakefile for Pure Isabelle
+#
+# The Pure part is common to all systems. Object-logics (like FOL)
+# are loaded on top of it.
+#
+# How to build:
+#   (1) put the Isabelle bin dir into your PATH (try 'which isabelle')
+#   (2) make sure Isabelle's etc/settings are appropriate (ML system etc.)
+#   (3) cd here and run 'isatool make'
+#
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+FILES = ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML \
+	ML-Systems/smlnj-1.07.ML ML-Systems/smlnj-1.09.ML ROOT.ML \
+	Syntax/ROOT.ML Syntax/ast.ML Syntax/lexicon.ML Syntax/mixfix.ML \
+	Syntax/parser.ML Syntax/pretty.ML Syntax/printer.ML \
+	Syntax/symbol_font.ML Syntax/syn_ext.ML Syntax/syn_trans.ML \
+	Syntax/syntax.ML Syntax/type_ext.ML Thy/ROOT.ML Thy/symbol_input.ML \
+	Thy/thm_database.ML Thy/thy_parse.ML Thy/thy_read.ML Thy/thy_scan.ML \
+	Thy/thy_syn.ML axclass.ML basis.ML deriv.ML display.ML drule.ML \
+	envir.ML goals.ML install_pp.ML library.ML logic.ML net.ML pattern.ML \
+	search.ML section_utils.ML sequence.ML sign.ML symtab.ML tactic.ML \
+	tctical.ML term.ML theory.ML thm.ML type.ML unify.ML \
+	../Provers/simplifier.ML
+
+$(OUT)/Pure: $(FILES)
+	@./mk
+
+test: $(OUT)/Pure
+
+.PRECIOUS: $(OUT)/Pure
