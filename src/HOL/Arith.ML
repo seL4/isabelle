@@ -130,9 +130,9 @@ qed "add_eq_self_zero";
 (*Deleted less_natE; instead use less_eq_Suc_add RS exE*)
 Goal "m<n --> (? k. n=Suc(m+k))";
 by (induct_tac "n" 1);
-by (ALLGOALS (simp_tac (simpset() addsimps [less_Suc_eq])));
+by (ALLGOALS (simp_tac (simpset() addsimps [le_eq_less_or_eq])));
 by (blast_tac (claset() addSEs [less_SucE] 
-                       addSIs [add_0_right RS sym, add_Suc_right RS sym]) 1);
+                        addSIs [add_0_right RS sym, add_Suc_right RS sym]) 1);
 qed_spec_mp "less_eq_Suc_add";
 
 Goal "n <= ((m + n)::nat)";
@@ -186,8 +186,7 @@ AddIffs [not_add_less1, not_add_less2];
 
 Goal "m+k<=n --> m<=(n::nat)";
 by (induct_tac "k" 1);
-by (ALLGOALS Asm_simp_tac);
-by (blast_tac (claset() addDs [Suc_leD]) 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps le_simps)));
 qed_spec_mp "add_leD1";
 
 Goal "m+k<=n ==> k<=(n::nat)";
@@ -201,12 +200,10 @@ bind_thm ("add_leE", result() RS conjE);
 
 (*needs !!k for add_ac to work*)
 Goal "!!k:: nat. [| k<l;  m+l = k+n |] ==> m<n";
-by (safe_tac (claset() addSDs [less_eq_Suc_add]));
-by (asm_full_simp_tac
-    (simpset() delsimps [add_Suc_right]
-               addsimps ([add_Suc_right RS sym, add_left_cancel] @ add_ac)) 1);
-by (etac subst 1);
-by (simp_tac (simpset() addsimps [less_add_Suc1]) 1);
+by (auto_tac (claset(),
+	      simpset() delsimps [add_Suc_right]
+	                addsimps ([less_iff_Suc_add,
+				   add_Suc_right RS sym] @ add_ac)));
 qed "less_add_eq_less";
 
 
@@ -374,14 +371,14 @@ Addsimps [Suc_diff_diff];
 Goal "0<n ==> n - Suc i < n";
 by (exhaust_tac "n" 1);
 by Safe_tac;
-by (asm_simp_tac (simpset() addsimps [le_eq_less_Suc RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps le_simps) 1);
 qed "diff_Suc_less";
 Addsimps [diff_Suc_less];
 
 Goal "i<n ==> n - Suc i < n - i";
 by (exhaust_tac "n" 1);
-by Safe_tac;
-by (asm_simp_tac (simpset() addsimps [le_eq_less_Suc, Suc_diff_le]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps ([Suc_diff_le]@le_simps)));
 qed "diff_Suc_less_diff";
 
 Goal "m - n <= Suc m - n";
@@ -427,7 +424,7 @@ qed "le_imp_diff_is_add";
 
 Goal "(m-n = 0) = (m <= n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [le_eq_less_Suc])));
+by (ALLGOALS Asm_simp_tac);
 qed "diff_is_0_eq";
 Addsimps [diff_is_0_eq RS iffD2];
 
@@ -623,23 +620,29 @@ by (Asm_full_simp_tac 1);
 qed "add_less_imp_less_diff";
 
 Goal "(i < j-k) = (i+k < (j::nat))";
-br iffI 1;
- by(case_tac "k <= j" 1);
-  bd le_add_diff_inverse2 1;
-  by(dres_inst_tac [("k","k")] add_less_mono1 1);
-  by(Asm_full_simp_tac 1);
- by(rotate_tac 1 1);
- by(asm_full_simp_tac (simpset() addSolver cut_trans_tac) 1);
-be add_less_imp_less_diff 1;
+by (rtac iffI 1);
+ by (case_tac "k <= j" 1);
+  by (dtac le_add_diff_inverse2 1);
+  by (dres_inst_tac [("k","k")] add_less_mono1 1);
+  by (Asm_full_simp_tac 1);
+ by (rotate_tac 1 1);
+ by (asm_full_simp_tac (simpset() addSolver cut_trans_tac) 1);
+by (etac add_less_imp_less_diff 1);
 qed "less_diff_conv";
 
-Goal "k <= j ==> (i <= j-k) = (i+k <= (j::nat))";
-by (asm_full_simp_tac (simpset() addsimps [le_eq_less_Suc, less_diff_conv,
-					   Suc_diff_le RS sym]) 1);
+Goal "(j-k <= (i::nat)) = (j <= i+k)";
+by (simp_tac (simpset() addsimps [less_diff_conv, le_def]) 1);
 qed "le_diff_conv";
 
+Goal "k <= j ==> (i <= j-k) = (i+k <= (j::nat))";
+by (asm_full_simp_tac
+    (simpset() delsimps [less_Suc_eq_le]
+               addsimps [less_Suc_eq_le RS sym, less_diff_conv,
+			 Suc_diff_le RS sym]) 1);
+qed "le_diff_conv2";
+
 Goal "Suc i <= n ==> Suc (n - Suc i) = n - i";
-by (asm_simp_tac (simpset() addsimps [Suc_diff_le RS sym]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Suc_diff_le RS sym]) 1);
 qed "Suc_diff_Suc";
 
 Goal "i <= (n::nat) ==> n - (n - i) = i";
@@ -653,7 +656,7 @@ Goal "k <= (n::nat) ==> m <= n + m - k";
 by (etac rev_mp 1);
 by (res_inst_tac [("m", "k"), ("n", "n")] diff_induct 1);
 by (Simp_tac 1);
-by (simp_tac (simpset() addsimps [less_add_Suc2, less_imp_le]) 1);
+by (simp_tac (simpset() addsimps [le_add2, less_imp_le]) 1);
 by (Simp_tac 1);
 qed "le_add_diff";
 
@@ -682,15 +685,14 @@ AddIffs [diff_le_Suc_diff];
 
 Goal "n - Suc i <= n - i";
 by (case_tac "i<n" 1);
-bd diff_Suc_less_diff 1;
-by (auto_tac (claset(), simpset() addsimps [leI RS le_imp_less_Suc]));
+by (dtac diff_Suc_less_diff 1);
+by (auto_tac (claset(), simpset() addsimps [leI]));
 qed "diff_Suc_le_diff";
 AddIffs [diff_Suc_le_diff];
 
 Goal "0 < n ==> (m <= n-1) = (m<n)";
 by (exhaust_tac "n" 1);
-by Auto_tac;
-by (ALLGOALS trans_tac);
+by (auto_tac (claset(), simpset() addsimps le_simps));
 qed "le_pred_eq";
 
 Goal "0 < n ==> (m-1 < n) = (m<=n)";
