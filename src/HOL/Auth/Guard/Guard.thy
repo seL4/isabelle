@@ -168,10 +168,10 @@ translations "decrypt H K Y" => "insert Y (H - {Crypt K Y})"
 
 lemma analz_decrypt: "[| Crypt K Y:H; Key (invKey K):H; Nonce n:analz H |]
 ==> Nonce n:analz (decrypt H K Y)"
-by (drule_tac P="%H. Nonce n:analz H" in insert_Diff_substD, simp_all)
-
-lemma "[| finite H; Crypt K Y:H |] ==> finite (decrypt H K Y)"
-by auto
+apply (drule_tac P="%H. Nonce n:analz H" in ssubst [OF insert_Diff])
+apply assumption
+apply (simp only: analz_Crypt_if, simp)
+done
 
 lemma parts_decrypt: "[| Crypt K Y:H; X:parts (decrypt H K Y) |] ==> X:parts H"
 by (erule parts.induct, auto intro: parts.Fst parts.Snd parts.Body)

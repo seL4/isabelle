@@ -13,24 +13,10 @@ header {*Extensions to Standard Theories*}
 
 theory Extensions = Event:
 
-declare  insert_Diff_single [simp del]
-
 subsection{*Extensions to Theory @{text Set}*}
 
 lemma eq: "[| !!x. x:A ==> x:B; !!x. x:B ==> x:A |] ==> A=B"
 by auto
-
-lemma Un_eq: "[| A=A'; B=B' |] ==> A Un B = A' Un B'"
-by auto
-
-lemma insert_absorb_substI: "[| x:A; P (insert x A) |] ==> P A"
-by (simp add: insert_absorb)
-
-lemma insert_Diff_substD: "[| x:A; P A |] ==> P (insert x (A - {x}))"
-by (simp add: insert_Diff)
-
-lemma insert_Diff_substI: "[| x:A; P (insert x (A - {x})) |] ==> P A"
-by (simp add: insert_Diff)
 
 lemma insert_Un: "P ({x} Un A) ==> P (insert x A)"
 by simp
@@ -201,11 +187,9 @@ by auto
 
 lemmas insert_commute_substI = insert_commute [THEN ssubst]
 
-lemma analz_insertD: "[| Crypt K Y:H; Key (invKey K):H |]
-==> analz (insert Y H) = analz H"
-apply (rule_tac x="Crypt K Y" and P="%H. analz (insert Y H) = analz H"
-in insert_absorb_substI, simp)
-by (rule_tac insert_commute_substI, simp)
+lemma analz_insertD:
+     "[| Crypt K Y:H; Key (invKey K):H |] ==> analz (insert Y H) = analz H"
+by (blast intro: analz.Decrypt analz_insert_eq)  
 
 lemma must_decrypt [rule_format,dest]: "[| X:analz H; has_no_pair H |] ==>
 X ~:H --> (EX K Y. Crypt K Y:H & Key (invKey K):H)"
@@ -367,19 +351,22 @@ subsubsection{*knows without initState*}
 consts knows' :: "agent => event list => msg set"
 
 primrec
-"knows' A [] = {}"
-"knows' A (ev # evs) = (
-  if A = Spy then (
-    case ev of
-      Says A' B X => insert X (knows' A evs)
-    | Gets A' X => knows' A evs
-    | Notes A' X => if A':bad then insert X (knows' A evs) else knows' A evs
-  ) else (
-    case ev of
-      Says A' B X => if A=A' then insert X (knows' A evs) else knows' A evs
-    | Gets A' X => if A=A' then insert X (knows' A evs) else knows' A evs
-    | Notes A' X => if A=A' then insert X (knows' A evs) else knows' A evs
-  ))"
+knows'_Nil:
+ "knows' A [] = {}"
+
+knows'_Cons0:
+ "knows' A (ev # evs) = (
+   if A = Spy then (
+     case ev of
+       Says A' B X => insert X (knows' A evs)
+     | Gets A' X => knows' A evs
+     | Notes A' X => if A':bad then insert X (knows' A evs) else knows' A evs
+   ) else (
+     case ev of
+       Says A' B X => if A=A' then insert X (knows' A evs) else knows' A evs
+     | Gets A' X => if A=A' then insert X (knows' A evs) else knows' A evs
+     | Notes A' X => if A=A' then insert X (knows' A evs) else knows' A evs
+   ))"
 
 translations "spies" == "knows Spy"
 
@@ -408,7 +395,10 @@ lemma knows_Cons: "knows A (ev#evs) = initState A Un knows' A [ev]
 Un knows A evs"
 apply (simp only: knows_decomp)
 apply (rule_tac s="(knows' A [ev] Un knows' A evs) Un initState A" in trans)
-by (rule Un_eq, rule knows'_Cons, simp, blast)
+apply (simp only: knows'_Cons [of A ev evs] Un_ac)
+apply blast
+done
+
 
 lemmas knows_Cons_substI = knows_Cons [THEN ssubst]
 lemmas knows_Cons_substD = knows_Cons [THEN sym, THEN ssubst]
