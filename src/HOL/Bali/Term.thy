@@ -106,33 +106,37 @@ translations
   "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
 -- "function codes for unary operations"
-datatype unop =  UPlus    -- "+ unary plus" 
-               | UMinus   -- "- unary minus"
-               | UBitNot  -- "~ bitwise NOT"
-               | UNot     -- "! logical complement"
+datatype unop =  UPlus    -- {*{\tt +} unary plus*} 
+               | UMinus   -- {*{\tt -} unary minus*}
+               | UBitNot  -- {*{\tt ~} bitwise NOT*}
+               | UNot     -- {*{\tt !} logical complement*}
 
 -- "function codes for binary operations"
-datatype binop = Mul     -- "*   multiplication"
-               | Div     -- "/   division"
-               | Mod     -- "%   remainder"
-               | Plus    -- "+   addition"
-               | Minus   -- "-   subtraction"
-               | LShift  -- "<<  left shift"
-               | RShift  -- ">>  signed right shift"
-               | RShiftU -- ">>> unsigned right shift"
-               | Less    -- "<   less than"
-               | Le      -- "<=  less than or equal"
-               | Greater -- ">   greater than"
-               | Ge      -- ">=  greater than or equal"
-               | Eq      -- "==  equal"
-               | Neq     -- "!=  not equal"
-               | BitAnd  -- "&   bitwise AND"
-               | And     -- "&   boolean AND"
-               | BitXor  -- "^   bitwise Xor"
-               | Xor     -- "^   boolean Xor"
-               | BitOr   -- "|   bitwise Or"
-               | Or      -- "|   boolean Or"
-
+datatype binop = Mul     -- {*{\tt * }   multiplication*}
+               | Div     -- {*{\tt /}   division*}
+               | Mod     -- {*{\tt %}   remainder*}
+               | Plus    -- {*{\tt +}   addition*}
+               | Minus   -- {*{\tt -}   subtraction*}
+               | LShift  -- {*{\tt <<}  left shift*}
+               | RShift  -- {*{\tt >>}  signed right shift*}
+               | RShiftU -- {*{\tt >>>} unsigned right shift*}
+               | Less    -- {*{\tt <}   less than*}
+               | Le      -- {*{\tt <=}  less than or equal*}
+               | Greater -- {*{\tt >}   greater than*}
+               | Ge      -- {*{\tt >=}  greater than or equal*}
+               | Eq      -- {*{\tt ==}  equal*}
+               | Neq     -- {*{\tt !=}  not equal*}
+               | BitAnd  -- {*{\tt &}   bitwise AND*}
+               | And     -- {*{\tt &}   boolean AND*}
+               | BitXor  -- {*{\tt ^}   bitwise Xor*}
+               | Xor     -- {*{\tt ^}   boolean Xor*}
+               | BitOr   -- {*{\tt |}   bitwise Or*}
+               | Or      -- {*{\tt |}   boolean Or*}
+text{* The boolean operators {\tt &} and {\tt |} strictly evaluate both
+of their arguments. The lazy operators {\tt &&} and {\tt ||} are modeled
+as instances of the @{text Cond} expression: {\tt a && b = a?b:false} and
+  {\tt a || b = a?true:b}
+*}
 datatype var
 	= LVar                  lname(* local variable (incl. parameters) *)
         | FVar qtname qtname bool expr vname
@@ -233,4 +237,40 @@ bind_thms ("is_stmt_rews", sum3_instantiate (thm "is_stmt_def"));
 *}
 
 declare is_stmt_rews [simp]
+
+axclass inj_term < "type"
+consts inj_term:: "'a::inj_term \<Rightarrow> term" ("\<langle>_\<rangle>" 83)
+
+instance stmt::inj_term ..
+
+defs (overloaded)
+stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
+
+lemma stmt_inj_term_simp: "\<langle>c::stmt\<rangle> = In1r c"
+by (simp add: stmt_inj_term_def)
+
+instance expr::inj_term ..
+
+defs (overloaded)
+expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
+
+lemma expr_inj_term_simp: "\<langle>e::expr\<rangle> = In1l e"
+by (simp add: expr_inj_term_def)
+
+instance var::inj_term ..
+
+defs (overloaded)
+var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
+
+lemma var_inj_term_simp: "\<langle>v::var\<rangle> = In2 v"
+by (simp add: var_inj_term_def)
+
+instance "list":: (type) inj_term ..
+
+defs (overloaded)
+expr_list_inj_term_def: "\<langle>es::expr list\<rangle> \<equiv> In3 es"
+
+lemma expr_list_inj_term_simp: "\<langle>es::expr list\<rangle> = In3 es"
+by (simp add: expr_list_inj_term_def)
+
 end
