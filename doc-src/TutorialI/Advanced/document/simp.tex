@@ -26,7 +26,7 @@ when the simplifier does not do what you expect of it.%
 \begin{isamarkuptext}%
 \label{sec:simp-cong}
 While simplifying the conclusion $Q$
-of $P \Imp Q$, it is legal use the assumption $P$.
+of $P \Imp Q$, it is legal to use the assumption $P$.
 For $\Imp$ this policy is hardwired, but 
 contextual information can also be made available for other
 operators. For example, \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ xs\ {\isacharat}\ xs\ {\isacharequal}\ xs} simplifies to \isa{True} because we may use \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} when simplifying \isa{xs\ {\isacharat}\ xs\ {\isacharequal}\ xs}. The generation of contextual information during simplification is

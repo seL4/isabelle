@@ -33,7 +33,7 @@ and not as @{text"(x # y) # z"}.
 The @{text 65} is the priority of the infix @{text"#"}.
 
 \begin{warn}
-  Syntax annotations are can be powerful, but they are difficult to master and 
+  Syntax annotations can be powerful, but they are difficult to master and 
   are never necessary.  You
   could drop them from theory @{text"ToyList"} and go back to the identifiers
   @{term[source]Nil} and @{term[source]Cons}.

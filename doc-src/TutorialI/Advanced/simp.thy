@@ -16,7 +16,7 @@ subsubsection{*Congruence Rules*}
 
 text{*\label{sec:simp-cong}
 While simplifying the conclusion $Q$
-of $P \Imp Q$, it is legal use the assumption $P$.
+of $P \Imp Q$, it is legal to use the assumption $P$.
 For $\Imp$ this policy is hardwired, but 
 contextual information can also be made available for other
 operators. For example, @{prop"xs = [] --> xs@xs = xs"} simplifies to @{term
