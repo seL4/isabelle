@@ -276,10 +276,10 @@ lemma split_curry [simp]: "split (curry f) = f"
 lemma curryI [intro!]: "f (a,b) ==> curry f a b"
   by (simp add: curry_def)
 
-lemma curryD [dest]: "curry f a b ==> f (a,b)"
+lemma curryD [dest!]: "curry f a b ==> f (a,b)"
   by (simp add: curry_def)
 
-lemma curryE [elim!]: "[| curry f a b ; f (a,b) ==> Q |] ==> Q"
+lemma curryE: "[| curry f a b ; f (a,b) ==> Q |] ==> Q"
   by (simp add: curry_def)
 
 lemma curry_conv [simp]: "curry f a b = f (a,b)"
