@@ -175,14 +175,13 @@ goal thy "EX K K' K''. Key K ~: used evs & Key K' ~: used evs' & \
 \                      Key K'' ~: used evs'' & K ~= K' & K' ~= K'' & K ~= K''";
 by (cut_inst_tac [("evs","evs")] (Finites.emptyI RS Key_supply_ax) 1);
 by (etac exE 1);
-by (cut_inst_tac [("evs","evs'")] 
+(*Blast_tac requires instantiation of the keys for some reason*)
+by (cut_inst_tac [("evs","evs'"), ("a1","K")] 
     (Finites.emptyI RS Finites.insertI RS Key_supply_ax) 1);
 by (etac exE 1);
-by (cut_inst_tac [("evs","evs''")] 
+by (cut_inst_tac [("evs","evs''"), ("a1","Ka"), ("a2","K")] 
     (Finites.emptyI RS Finites.insertI RS Finites.insertI RS Key_supply_ax) 1);
-by (Clarify_tac 1);
-by (Full_simp_tac 1);
-by (fast_tac (claset() addSEs [allE]) 1);
+by (Blast_tac 1);
 qed "Key_supply3";
 
 goal thy "Key (@ K. Key K ~: used evs) ~: used evs";
