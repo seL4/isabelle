@@ -180,7 +180,6 @@ struct
 
 datatype ctyp = Ctyp of {sign_ref: Sign.sg_ref, T: typ};
 
-(* FIXME tune!? *)
 fun rep_ctyp (Ctyp {sign_ref, T}) = {sign = Sign.deref sign_ref, T = T};
 fun typ_of (Ctyp {T, ...}) = T;
 
@@ -198,7 +197,6 @@ fun read_ctyp sign s =
 
 datatype cterm = Cterm of {sign_ref: Sign.sg_ref, t: term, T: typ, maxidx: int};
 
-(* FIXME tune!? *)
 fun rep_cterm (Cterm {sign_ref, t, T, maxidx}) =
   {sign = Sign.deref sign_ref, t = t, T = T, maxidx = maxidx};
 
@@ -396,7 +394,6 @@ datatype thm = Thm of
   hyps: term list,             (*hypotheses*)
   prop: term};                 (*conclusion*)
 
-(* FIXME tune!? *)
 fun rep_thm (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
   {sign = Sign.deref sign_ref, der = der, maxidx = maxidx,
     shyps = shyps, hyps = hyps, prop = prop};
