@@ -532,7 +532,10 @@ fun ext_tsig_classes tsig new_classes =
   let
     val TySg {classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities} = tsig;
     val (classes', classrel') = extend_classes (classes,classrel, new_classes);
-  in make_tsig (classes', classrel', default, tycons, log_types, univ_witness, abbrs, arities) end;
+  in
+    make_tsig (classes', classrel', default, tycons, log_types, univ_witness, abbrs, arities)
+    |> rebuild_tsig
+  end;
 
 
 (* ext_tsig_classrel *)
