@@ -55,7 +55,7 @@ consts
 (*Function "size" is overloaded for all datatypes.  Users may refer to the
   list version as "length".*)
 syntax   length :: 'a list => nat
-translations  "length"  =>  "size"
+translations  "length"  =>  "size:: _ list => nat"
 
 primrec hd list
   "hd([]) = arbitrary"
@@ -111,3 +111,19 @@ primrec dropWhile list
   "dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)"
 
 end
+
+ML
+
+local
+
+(* translating size::list -> length *)
+
+fun size_tr' (Type ("fun", (Type ("list", _) :: _))) [t] =
+      Syntax.const "length" $ t
+  | size_tr'   _ _ = raise Match;
+
+in
+
+val typed_print_translation = [("size", size_tr')];
+
+end;
