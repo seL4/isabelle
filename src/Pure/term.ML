@@ -129,9 +129,10 @@ fun type_of1 (Ts, Const (_,T)) = T
       in case T of
 	    Type("fun",[T1,T2]) =>
 	      if T1=U then T2  else raise TYPE
-	         ("type_of: type mismatch in application", [T1,U], [f$u])
-	  | _ => raise TYPE ("type_of: Rator must have function type",
-	                        [T,U], [f$u])
+	            ("type_of: type mismatch in application", [T1,U], [f$u])
+	  | _ => raise TYPE 
+		    ("type_of: function type is expected in application",
+		     [T,U], [f$u])
       end;
 
 fun type_of t : typ = type_of1 ([],t);
