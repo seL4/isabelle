@@ -54,7 +54,7 @@ struct
 (* mode *)
 
 val htmlN = "HTML";
-fun html_mode f x = setmp print_mode [htmlN] f x;
+fun html_mode f x = setmp print_mode (htmlN :: ! print_mode) f x;
 
 
 (* symbol output *)
