@@ -10,6 +10,7 @@ signature RECONSTRUCT =
 sig
   val quiet_mode : bool ref
   val reconstruct_proof : Sign.sg -> term -> Proofterm.proof -> Proofterm.proof
+  val prop_of' : term list -> Proofterm.proof -> term
   val prop_of : Proofterm.proof -> term
   val expand_proof : Sign.sg -> string list -> Proofterm.proof -> Proofterm.proof
 end;
@@ -302,29 +303,27 @@ fun reconstruct_proof sg prop cprf =
     thawf (norm_proof env' prf)
   end;
 
-fun prop_of prf =
-  let
-    fun prop_of_atom prop Ts =
-      subst_TVars (map fst (term_tvars prop) ~~ Ts) (forall_intr_vfs prop);
+fun prop_of_atom prop Ts =
+  subst_TVars (map fst (term_tvars prop) ~~ Ts) (forall_intr_vfs prop);
 
-    fun prop_of' Hs (PBound i) = nth_elem (i, Hs)
-      | prop_of' Hs (Abst (s, Some T, prf)) =
-          all T $ (Abs (s, T, prop_of' Hs prf))
-      | prop_of' Hs (AbsP (s, Some t, prf)) =
-          Logic.mk_implies (t, prop_of' (t :: Hs) prf)
-      | prop_of' Hs (prf % Some t) = (case prop_of' Hs prf of
-          Const ("all", _) $ f => betapply (f, t)
-        | _ => error "prop_of: all expected")
-      | prop_of' Hs (prf1 %% prf2) = (case prop_of' Hs prf1 of
-          Const ("==>", _) $ P $ Q => Q
-        | _ => error "prop_of: ==> expected")
-      | prop_of' Hs (Hyp t) = t
-      | prop_of' Hs (PThm (_, _, prop, Some Ts)) = prop_of_atom prop Ts
-      | prop_of' Hs (PAxm (_, prop, Some Ts)) = prop_of_atom prop Ts
-      | prop_of' Hs (Oracle (_, prop, Some Ts)) = prop_of_atom prop Ts
-      | prop_of' _ _ = error "prop_of: partial proof object";
+fun prop_of' Hs (PBound i) = nth_elem (i, Hs)
+  | prop_of' Hs (Abst (s, Some T, prf)) =
+      all T $ (Abs (s, T, prop_of' Hs prf))
+  | prop_of' Hs (AbsP (s, Some t, prf)) =
+      Logic.mk_implies (t, prop_of' (t :: Hs) prf)
+  | prop_of' Hs (prf % Some t) = (case prop_of' Hs prf of
+      Const ("all", _) $ f => betapply (f, t)
+    | _ => error "prop_of: all expected")
+  | prop_of' Hs (prf1 %% prf2) = (case prop_of' Hs prf1 of
+      Const ("==>", _) $ P $ Q => Q
+    | _ => error "prop_of: ==> expected")
+  | prop_of' Hs (Hyp t) = t
+  | prop_of' Hs (PThm (_, _, prop, Some Ts)) = prop_of_atom prop Ts
+  | prop_of' Hs (PAxm (_, prop, Some Ts)) = prop_of_atom prop Ts
+  | prop_of' Hs (Oracle (_, prop, Some Ts)) = prop_of_atom prop Ts
+  | prop_of' _ _ = error "prop_of: partial proof object";
 
-  in prop_of' [] prf end;
+val prop_of = prop_of' [];
 
 
 (********************************************************************************
