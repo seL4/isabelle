@@ -75,6 +75,10 @@ sig
   val add_path		: string -> theory -> theory
   val add_space		: string * string list -> theory -> theory
   val add_name		: string -> theory -> theory
+  val init_data		: string * exn * (exn * exn -> exn) * (string -> exn -> Pretty.T)
+    -> theory -> theory
+  val get_data		: theory -> string -> exn
+  val put_data		: string * exn -> theory -> theory
   val merge_thy_list    : bool -> theory list -> theory
 end;
 
@@ -373,6 +377,13 @@ fun ext_defns prep_axm raw_axms thy =
 
 val add_defs_i = ext_defns cert_axm;
 val add_defs = ext_defns read_axm;
+
+
+(** additional theory data **)
+
+val init_data = ext_sg Sign.init_data;
+val get_data = Sign.get_data o sign_of;
+val put_data = ext_sg Sign.put_data;
 
 
 
