@@ -189,3 +189,12 @@ by (etac RepFunE 1);
 by (etac ssubst 1);
 by (eresolve_tac prems 1);
 val RepFun_subset = result();
+
+(*A more powerful claset for subset reasoning*)
+val subset_cs = subset0_cs 
+  addSIs [subset_refl,cons_subsetI,subset_consI,Union_least,UN_least,Un_least,
+	  Inter_greatest,Int_greatest,RepFun_subset]
+  addSIs [Un_upper1,Un_upper2,Int_lower1,Int_lower2]
+  addIs  [Union_upper,Inter_lower]
+  addSEs [cons_subsetE];
+
