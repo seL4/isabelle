@@ -29,7 +29,6 @@ signature AST1 =
 signature AST =
   sig
   include AST1
-  val raise_ast: string -> ast list -> 'a
   val head_of_rule: ast * ast -> string
   val rule_error: ast * ast -> string option
   val fold_ast: string -> ast list -> ast
@@ -68,7 +67,6 @@ fun mk_appl f [] = f
 
 exception AST of string * ast list;
 
-fun raise_ast msg asts = raise AST (msg, asts);
 
 
 (** print asts in a LISP-like style **)
