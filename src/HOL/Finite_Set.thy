@@ -36,16 +36,16 @@ qed
 
 lemma finite_induct [case_names empty insert, induct set: Finites]:
   "finite F ==>
-    P {} ==> (!!F x. finite F ==> x \<notin> F ==> P F ==> P (insert x F)) ==> P F"
+    P {} ==> (!!x F. finite F ==> x \<notin> F ==> P F ==> P (insert x F)) ==> P F"
   -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
 proof -
   assume "P {}" and
-    insert: "!!F x. finite F ==> x \<notin> F ==> P F ==> P (insert x F)"
+    insert: "!!x F. finite F ==> x \<notin> F ==> P F ==> P (insert x F)"
   assume "finite F"
   thus "P F"
   proof induct
     show "P {}" .
-    fix F x assume F: "finite F" and P: "P F"
+    fix x F assume F: "finite F" and P: "P F"
     show "P (insert x F)"
     proof cases
       assume "x \<in> F"
@@ -60,16 +60,16 @@ qed
 
 lemma finite_subset_induct [consumes 2, case_names empty insert]:
   "finite F ==> F \<subseteq> A ==>
-    P {} ==> (!!F a. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)) ==>
+    P {} ==> (!!a F. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)) ==>
     P F"
 proof -
   assume "P {}" and insert:
-    "!!F a. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
+    "!!a F. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
   assume "finite F"
   thus "F \<subseteq> A ==> P F"
   proof induct
     show "P {}" .
-    fix F x assume "finite F" and "x \<notin> F"
+    fix x F assume "finite F" and "x \<notin> F"
       and P: "F \<subseteq> A ==> P F" and i: "insert x F \<subseteq> A"
     show "P (insert x F)"
     proof (rule insert)
@@ -93,7 +93,7 @@ proof -
     case empty
     thus ?case by simp
   next
-    case (insert F x A)
+    case (insert x F A)
     have A: "A \<subseteq> insert x F" and r: "A - {x} \<subseteq> F ==> finite (A - {x})" .
     show "finite A"
     proof cases
@@ -143,7 +143,7 @@ proof -
       case empty
       from P1 show ?case by simp
     next
-      case (insert F x)
+      case (insert x F)
       have "P (b - F - {x})"
       proof (rule P2)
         from _ b show "finite (b - F)" by (rule finite_subset) blast
@@ -751,7 +751,7 @@ proof -
     case empty
     thus ?case by simp
   next
-    case (insert F x)
+    case (insert x F)
     have "fold (f o g) e (insert x F \<union> B) = fold (f o g) e (insert x (F \<union> B))"
       by simp
     also have "... = (f o g) x (fold (f o g) e (F \<union> B))"
@@ -1014,7 +1014,7 @@ proof -
       case empty
       thus ?case by auto
     next
-      case (insert F x)
+      case (insert x F)
       thus ?case using le finiteB 
 	by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
     qed
@@ -1073,7 +1073,7 @@ proof (cases "finite A")
   proof (induct)
     case empty thus ?case by simp
   next
-    case (insert A x) thus ?case by (simp add: right_distrib)
+    case (insert x A) thus ?case by (simp add: right_distrib)
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)
@@ -1087,7 +1087,7 @@ using fin
 proof (induct) 
   case empty thus ?case by simp
 next
-  case (insert A x)
+  case (insert x A)
   thus ?case by (auto intro: abs_triangle_ineq order_trans)
 qed
 
@@ -1099,7 +1099,7 @@ using fin
 proof (induct) 
   case empty thus ?case by simp
 next
-  case (insert A x) thus ?case by (auto intro: order_trans)
+  case (insert x A) thus ?case by (auto intro: order_trans)
 qed
 
 subsubsection {* Cardinality of unions and Sigma sets *}
@@ -1388,7 +1388,7 @@ using fin
 proof (induct)
   case empty thus ?case by simp
 next
-  case (insert S x)
+  case (insert x S)
   show ?case
   proof (cases)
     assume "S = {}" thus ?thesis by simp
@@ -1411,7 +1411,7 @@ using fin
 proof (induct)
   case empty thus ?case by simp
 next
-  case (insert S x)
+  case (insert x S)
   show ?case
   proof (cases)
     assume "S = {}" thus ?thesis by simp
