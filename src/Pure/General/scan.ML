@@ -1,6 +1,6 @@
-(*  Title:	Pure/General/scan.ML
-    ID:		$Id$
-    Author:	Markus Wenzel and Tobias Nipkow, TU Muenchen
+(*  Title:      Pure/General/scan.ML
+    ID:         $Id$
+    Author:     Markus Wenzel and Tobias Nipkow, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Generic scanners (for potentially infinite input).
@@ -76,9 +76,9 @@ struct
 
 (** scanners **)
 
-exception MORE of string option;	(*need more input (prompt)*)
-exception FAIL of string option;	(*try alternatives (reason of failure)*)
-exception ABORT of string;		(*dead end*)
+exception MORE of string option;        (*need more input (prompt)*)
+exception FAIL of string option;        (*try alternatives (reason of failure)*)
+exception ABORT of string;              (*dead end*)
 
 
 (* scanner combinators *)
@@ -129,7 +129,7 @@ fun repeat1 scan = scan -- repeat scan >> op ::;
 
 fun max leq scan1 scan2 xs =
   (case (option scan1 xs, option scan2 xs) of
-    ((None, _), (None, _)) => raise FAIL None		(*looses FAIL msg!*)
+    ((None, _), (None, _)) => raise FAIL None           (*looses FAIL msg!*)
   | ((Some tok1, xs'), (None, _)) => (tok1, xs')
   | ((None, _), (Some tok2, xs')) => (tok2, xs')
   | ((Some tok1, xs1'), (Some tok2, xs2')) =>
@@ -254,21 +254,22 @@ val dest_lexicon = map implode o dest_lex;
 
 val empty_lexicon = Empty;
 
-fun extend_lexicon lexicon chrss =
-  let
-    fun ext (lex, chrs) =
+fun extend_lexicon lexicon [] = lexicon
+  | extend_lexicon lexicon chrss =
       let
-	fun add (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
-	      if c < d then Branch (d, a, add lt chs, eq, gt)
-	      else if c > d then Branch (d, a, lt, eq, add gt chs)
-	      else Branch (d, if null cs then chrs else a, lt, add eq cs, gt)
-	  | add Empty [c] =
-	      Branch (c, chrs, Empty, Empty, Empty)
-	  | add Empty (c :: cs) =
-	      Branch (c, no_literal, Empty, add Empty cs, Empty)
-	  | add lex [] = lex;
-      in add lex chrs end;
-  in foldl ext (lexicon, chrss \\ dest_lex lexicon) end;
+        fun ext (lex, chrs) =
+          let
+            fun add (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
+                  if c < d then Branch (d, a, add lt chs, eq, gt)
+                  else if c > d then Branch (d, a, lt, eq, add gt chs)
+                  else Branch (d, if null cs then chrs else a, lt, add eq cs, gt)
+              | add Empty [c] =
+                  Branch (c, chrs, Empty, Empty, Empty)
+              | add Empty (c :: cs) =
+                  Branch (c, no_literal, Empty, add Empty cs, Empty)
+              | add lex [] = lex;
+          in add lex chrs end;
+      in foldl ext (lexicon, chrss \\ dest_lex lexicon) end;
 
 val make_lexicon = extend_lexicon empty_lexicon;
 
@@ -290,9 +291,9 @@ fun literal lex chrs =
     fun lit Empty res _ = res
       | lit (Branch _) _ [] = raise MORE None
       | lit (Branch (d, a, lt, eq, gt)) res (chs as c :: cs) =
-	  if c < d then lit lt res chs
-	  else if c > d then lit gt res chs
-	  else lit eq (if a = no_literal then res else Some (a, cs)) cs;
+          if c < d then lit lt res chs
+          else if c > d then lit gt res chs
+          else lit eq (if a = no_literal then res else Some (a, cs)) cs;
   in
     (case lit lex None chrs of
       None => raise FAIL None
