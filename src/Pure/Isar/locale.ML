@@ -444,7 +444,7 @@ fun flatten_expr ctxt (prev_idents, expr) =
       end;
 
     fun identify top (Locale name) =
-    (* CB: ids is a list of tuples of the form ((name, ps), axs),
+    (* CB: ids is a list of tuples of the form ((name, ps)  axs),
        where name is a locale name, ps a list of parameter names and axs
        a list of axioms relating to the identifier, axs is empty unless
        identify at top level (top = true);
@@ -942,8 +942,9 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
 
     val (ctxt, (elemss, _)) =
       activate_facts prep_facts (import_ctxt, qs);
-    val stmt = gen_duplicates Term.aconv
-       (flat (map (fn ((_, axs), _) => flat (map (#hyps o Thm.rep_thm) axs)) qs));
+    val stmt = gen_distinct Term.aconv
+       (flat (map (fn ((_, axs), _) =>
+         flat (map (#hyps o Thm.rep_thm) axs)) qs));
     val cstmt = map (cterm_of sign) stmt;
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss)), (parms, spec, defs)), (cstmt, concl))

@@ -878,14 +878,6 @@ fun finish_global state =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
 
     val ts = flat tss;
-val _ = set show_hyps;
-val _ = PolyML.print "finish_global";
-val _ = PolyML.print "ts:";
-val _ = PolyML.print ts;
-val _ = PolyML.print "raw_thm:";
-val _ = PolyML.print raw_thm;
-val _ = PolyML.print "elems_view";
-val _ = PolyML.print elems_view;
     val locale_results = map (ProofContext.export_standard elems_view goal_ctxt locale_ctxt)
       (prep_result state ts raw_thm);
 
