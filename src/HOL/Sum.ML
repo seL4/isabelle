@@ -123,7 +123,7 @@ by (blast_tac (!claset addIs [select_equality]) 1);
 qed "sum_case_Inl";
 
 goalw Sum.thy [sum_case_def] "sum_case f g (Inr x) = g(x)";
-by (fast_tac (!claset addIs [select_equality]) 1);
+by (blast_tac (!claset addIs [select_equality]) 1);
 qed "sum_case_Inr";
 
 Addsimps [sum_case_Inl, sum_case_Inr];
