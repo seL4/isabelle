@@ -91,13 +91,13 @@ is solved by \texttt{Asm_simp_tac} as follows:
 by (Asm_simp_tac 1);
 \end{ttbox}
 
-\medskip {\tt Asm_full_simp_tac} is the most powerful of this quartet
+\medskip \texttt{Asm_full_simp_tac} is the most powerful of this quartet
 of tactics but may also loop where some of the others terminate.  For
 example,
 \begin{ttbox}
 {\out  1. ALL x. f x = g (f (g x)) ==> f 0 = f 0 + 0}
 \end{ttbox}
-is solved by {\tt Simp_tac}, but {\tt Asm_simp_tac} and {\tt
+is solved by \texttt{Simp_tac}, but \texttt{Asm_simp_tac} and {\tt
   Asm_simp_tac} loop because the rewrite rule $f\,\Var{x} =
 g\,(f\,(g\,\Var{x}))$ extracted from the assumption does not
 terminate.  Isabelle notices certain simple forms of nontermination,
@@ -366,10 +366,10 @@ powerful mechanism than term rewriting by a fixed set of rules.
 
 \begin{ttdescription}
   
-\item[$ss$ \ttindexbold{addsimprocs} $procs$] adds simplification
+\item[$ss$ \ttindexbold{addsimprocs} $procs$] adds the simplification
   procedures $procs$ to the current simpset.
   
-\item[$ss$ \ttindexbold{delsimprocs} $procs$] deletes simplification
+\item[$ss$ \ttindexbold{delsimprocs} $procs$] deletes the simplification
   procedures $procs$ from the current simpset.
 
 \end{ttdescription}
@@ -505,7 +505,7 @@ addSSolver : simpset * (thm list -> int -> tactic) -> simpset \hfill{\bf infix 4
 
 The solver is a pair of tactics that attempt to solve a subgoal after
 simplification.  Typically it just proves trivial subgoals such as
-{\tt True} and $t=t$.  It could use sophisticated means such as {\tt
+\texttt{True} and $t=t$.  It could use sophisticated means such as {\tt
   blast_tac}, though that could make simplification expensive.
 
 Rewriting does not instantiate unknowns.  For example, rewriting
@@ -564,7 +564,7 @@ will invoke the simplifier at some point, which will eventually call
 the solver.  For this reason, solver tactics must be prepared to solve
 goals of the form $t = \Var{x}$, usually by reflexivity.  In
 particular, reflexivity should be tried before any of the fancy
-tactics like {\tt blast_tac}.
+tactics like \texttt{blast_tac}.
 
 It may even happen that due to simplification the subgoal is no longer
 an equality.  For example $False \bimp \Var{Q}$ could be rewritten to
@@ -846,7 +846,7 @@ val [prem] = goal Nat.thy
 {\out val prem = "f(Suc(?n)) = Suc(f(?n))}
 {\out             [!!n. f(Suc(n)) = Suc(f(n))]" : thm}
 \end{ttbox}
-In the theorem~{\tt prem}, note that $f$ is a free variable while
+In the theorem~\texttt{prem}, note that $f$ is a free variable while
 $\Var{n}$ is a schematic variable.
 \begin{ttbox}
 by (res_inst_tac [("n","i")] induct 1);
@@ -958,7 +958,7 @@ following points in mind:
 
 \item To complete your set of rewrite rules, you must add not just
   associativity~(A) and commutativity~(C) but also a derived rule, {\bf
-    left-commutativity} (LC): $f(x,f(y,z)) = f(y,f(x,z))$.
+    left-com\-mut\-ativ\-ity} (LC): $f(x,f(y,z)) = f(y,f(x,z))$.
 \end{itemize}
 Ordered rewriting with the combination of A, C, and~LC sorts a term
 lexicographically:
@@ -973,14 +973,14 @@ such as boolean rings.
 This example is again set in \HOL\ (see \texttt{HOL/ex/NatSum}).
 Theory \thydx{Arith} contains natural numbers arithmetic.  Its
 associated simpset contains many arithmetic laws including
-distributivity of~$\times$ over~$+$, while {\tt add_ac} is a list
+distributivity of~$\times$ over~$+$, while \texttt{add_ac} is a list
 consisting of the A, C and LC laws for~$+$ on type \texttt{nat}.  Let
 us prove the theorem
 \[ \sum@{i=1}^n i = n\times(n+1)/2. \]
 %
-A functional~{\tt sum} represents the summation operator under the
-interpretation ${\tt sum} \, f \, (n + 1) = \sum@{i=0}^n f\,i$.  We
-extend {\tt Arith} as follows:
+A functional~\texttt{sum} represents the summation operator under the
+interpretation $\texttt{sum} \, f \, (n + 1) = \sum@{i=0}^n f\,i$.  We
+extend \texttt{Arith} as follows:
 \begin{ttbox}
 NatSum = Arith +
 consts sum     :: [nat=>nat, nat] => nat
@@ -997,7 +997,7 @@ the example) and insert the AC-rules for~$+$:
 Delsimprocs nat_cancel;
 Addsimps add_ac;
 \end{ttbox}
-Our desired theorem now reads ${\tt sum} \, (\lambda i.i) \, (n+1) =
+Our desired theorem now reads $\texttt{sum} \, (\lambda i.i) \, (n+1) =
 n\times(n+1)/2$.  The Isabelle goal has both sides multiplied by~$2$:
 \begin{ttbox}
 goal NatSum.thy "2 * sum (\%i.i) (Suc n) = n * Suc n";
@@ -1032,7 +1032,7 @@ by (ALLGOALS Asm_simp_tac);
 {\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
 {\out No subgoals!}
 \end{ttbox}
-Simplification cannot prove the induction step if we omit {\tt add_ac} from
+Simplification cannot prove the induction step if we omit \texttt{add_ac} from
 the simpset.  Observe that like terms have not been collected:
 \begin{ttbox}
 {\out Level 3}
@@ -1050,7 +1050,7 @@ $\sum@{i=1}^n i^3 = n^2\times(n+1)^2/4$.
 
 
 \subsection{Re-orienting equalities}
-Ordered rewriting with the derived rule {\tt symmetry} can reverse
+Ordered rewriting with the derived rule \texttt{symmetry} can reverse
 equations:
 \begin{ttbox}
 val symmetry = prove_goal HOL.thy "(x=y) = (y=x)"
@@ -1058,16 +1058,16 @@ val symmetry = prove_goal HOL.thy "(x=y) = (y=x)"
 \end{ttbox}
 This is frequently useful.  Assumptions of the form $s=t$, where $t$ occurs
 in the conclusion but not~$s$, can often be brought into the right form.
-For example, ordered rewriting with {\tt symmetry} can prove the goal
+For example, ordered rewriting with \texttt{symmetry} can prove the goal
 \[ f(a)=b \conj f(a)=c \imp b=c. \]
-Here {\tt symmetry} reverses both $f(a)=b$ and $f(a)=c$
+Here \texttt{symmetry} reverses both $f(a)=b$ and $f(a)=c$
 because $f(a)$ is lexicographically greater than $b$ and~$c$.  These
 re-oriented equations, as rewrite rules, replace $b$ and~$c$ in the
 conclusion by~$f(a)$. 
 
 Another example is the goal $\neg(t=u) \imp \neg(u=t)$.
 The differing orientations make this appear difficult to prove.  Ordered
-rewriting with {\tt symmetry} makes the equalities agree.  (Without
+rewriting with \texttt{symmetry} makes the equalities agree.  (Without
 knowing more about~$t$ and~$u$ we cannot say whether they both go to $t=u$
 or~$u=t$.)  Then the simplifier can prove the goal outright.
 
@@ -1126,7 +1126,8 @@ procedure \texttt{pair_eta_expand_proc} is defined as follows:
 \begin{ttbox}
 local
   val lhss =
-    [read_cterm (sign_of Prod.thy) ("f::'a*'b=>'c", TVar (("'z", 0), []))];
+    [read_cterm (sign_of Prod.thy) 
+                ("f::'a*'b=>'c", TVar (("'z", 0), []))];
   val rew = mk_meta_eq pair_eta_expand; \medskip
   fun proc _ _ (Abs _) = Some rew
     | proc _ _ _ = None;
@@ -1165,10 +1166,10 @@ use "$ISABELLE_HOME/src/Provers/simplifier.ML";
 use "$ISABELLE_HOME/src/Provers/splitter.ML";
 \end{ttbox}
 
-Simplification requires reflecting various object-equalities to
-meta-level rewrite rules.  This demands rules stating that equal terms
-and equivalent formulae are also equal at the meta-level.  The rule
-declaration part of the file {\tt FOL/IFOL.thy} contains the two lines
+Simplification requires converting object-equalities to meta-level rewrite
+rules.  This demands rules stating that equal terms and equivalent formulae
+are also equal at the meta-level.  The rule declaration part of the file
+\texttt{FOL/IFOL.thy} contains the two lines
 \begin{ttbox}\index{*eq_reflection theorem}\index{*iff_reflection theorem}
 eq_reflection   "(x=y)   ==> (x==y)"
 iff_reflection  "(P<->Q) ==> (P==Q)"
@@ -1177,7 +1178,7 @@ Of course, you should only assert such rules if they are true for your
 particular logic.  In Constructive Type Theory, equality is a ternary
 relation of the form $a=b\in A$; the type~$A$ determines the meaning
 of the equality essentially as a partial equivalence relation.  The
-present simplifier cannot be used.  Rewriting in {\tt CTT} uses
+present simplifier cannot be used.  Rewriting in \texttt{CTT} uses
 another simplifier, which resides in the file {\tt
   Provers/typedsimp.ML} and is not documented.  Even this does not
 work for later variants of Constructive Type Theory that use
@@ -1198,7 +1199,7 @@ fun int_prove_fun s =
                   (IntPr.fast_tac 1) ]));
 \end{ttbox}
 The following rewrite rules about conjunction are a selection of those
-proved on {\tt FOL/simpdata.ML}.  Later, these will be supplied to the
+proved on \texttt{FOL/simpdata.ML}.  Later, these will be supplied to the
 standard simpset.
 \begin{ttbox}
 val conj_simps = map int_prove_fun
@@ -1225,20 +1226,20 @@ val distrib_simps  = map int_prove_fun
 setmksimps : simpset * (thm -> thm list) -> simpset \hfill{\bf infix 4}
 \end{ttbox}
 The next step is to define the function for preprocessing rewrite rules.
-This will be installed by calling {\tt setmksimps} below.  Preprocessing
+This will be installed by calling \texttt{setmksimps} below.  Preprocessing
 occurs whenever rewrite rules are added, whether by user command or
 automatically.  Preprocessing involves extracting atomic rewrites at the
 object-level, then reflecting them to the meta-level.
 
-To start, the function {\tt gen_all} strips any meta-level
+To start, the function \texttt{gen_all} strips any meta-level
 quantifiers from the front of the given theorem.  Usually there are none
 anyway.
 \begin{ttbox}
 fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
 \end{ttbox}
-The function {\tt atomize} analyses a theorem in order to extract
+The function \texttt{atomize} analyses a theorem in order to extract
 atomic rewrite rules.  The head of all the patterns, matched by the
-wildcard~{\tt _}, is the coercion function {\tt Trueprop}.
+wildcard~\texttt{_}, is the coercion function \texttt{Trueprop}.
 \begin{ttbox}
 fun atomize th = case concl_of th of 
     _ $ (Const("op &",_) $ _ $ _)   => atomize(th RS conjunct1) \at
@@ -1260,21 +1261,21 @@ There are several cases, depending upon the form of the conclusion:
 \item Universal quantification: remove the quantifier, replacing the bound
   variable by a schematic variable, and extract rewrites from the body.
 
-\item {\tt True} and {\tt False} contain no useful rewrites.
+\item \texttt{True} and \texttt{False} contain no useful rewrites.
 
 \item Anything else: return the theorem in a singleton list.
 \end{itemize}
 The resulting theorems are not literally atomic --- they could be
 disjunctive, for example --- but are broken down as much as possible.  See
-the file {\tt ZF/simpdata.ML} for a sophisticated translation of
+the file \texttt{ZF/simpdata.ML} for a sophisticated translation of
 set-theoretic formulae into rewrite rules.
 
 The simplified rewrites must now be converted into meta-equalities.  The
-rule {\tt eq_reflection} converts equality rewrites, while {\tt
+rule \texttt{eq_reflection} converts equality rewrites, while {\tt
   iff_reflection} converts if-and-only-if rewrites.  The latter possibility
 can arise in two other ways: the negative theorem~$\neg P$ is converted to
-$P\equiv{\tt False}$, and any other theorem~$P$ is converted to
-$P\equiv{\tt True}$.  The rules {\tt iff_reflection_F} and {\tt
+$P\equiv\texttt{False}$, and any other theorem~$P$ is converted to
+$P\equiv\texttt{True}$.  The rules \texttt{iff_reflection_F} and {\tt
   iff_reflection_T} accomplish this conversion.
 \begin{ttbox}
 val P_iff_F = int_prove_fun "~P ==> (P <-> False)";
@@ -1283,7 +1284,7 @@ val iff_reflection_F = P_iff_F RS iff_reflection;
 val P_iff_T = int_prove_fun "P ==> (P <-> True)";
 val iff_reflection_T = P_iff_T RS iff_reflection;
 \end{ttbox}
-The function {\tt mk_meta_eq} converts a theorem to a meta-equality
+The function \texttt{mk_meta_eq} converts a theorem to a meta-equality
 using the case analysis described above.
 \begin{ttbox}
 fun mk_meta_eq th = case concl_of th of
@@ -1292,13 +1293,13 @@ fun mk_meta_eq th = case concl_of th of
   | _ $ (Const("Not",_)$_)      => th RS iff_reflection_F
   | _                           => th RS iff_reflection_T;
 \end{ttbox}
-The three functions {\tt gen_all}, {\tt atomize} and {\tt mk_meta_eq} will
-be composed together and supplied below to {\tt setmksimps}.
+The three functions \texttt{gen_all}, \texttt{atomize} and \texttt{mk_meta_eq} will
+be composed together and supplied below to \texttt{setmksimps}.
 
 
 \subsection{Making the initial simpset}
 
-It is time to assemble these items.  We open module {\tt Simplifier}
+It is time to assemble these items.  We open module \texttt{Simplifier}
 to gain direct access to its components.  We define the infix operator
 \ttindex{addcongs} to insert congruence rules; given a list of
 theorems, it converts their conclusions into meta-equalities and
@@ -1317,16 +1318,16 @@ infix 4 addsplits;
 fun ss addsplits splits = ss addloop (split_tac splits);
 \end{ttbox}
 
-The list {\tt IFOL_simps} contains the default rewrite rules for
-first-order logic.  The first of these is the reflexive law expressed
-as the equivalence $(a=a)\bimp{\tt True}$; the rewrite rule $a=a$ is
+The list \texttt{IFOL_simps} contains the default rewrite rules for
+intuitionistic first-order logic.  The first of these is the reflexive law
+expressed as the equivalence $(a=a)\bimp\texttt{True}$; the rewrite rule $a=a$ is
 clearly useless.
 \begin{ttbox}
 val IFOL_simps =
    [refl RS P_iff_T] \at conj_simps \at disj_simps \at not_simps \at 
     imp_simps \at iff_simps \at quant_simps;
 \end{ttbox}
-The list {\tt triv_rls} contains trivial theorems for the solver.  Any
+The list \texttt{triv_rls} contains trivial theorems for the solver.  Any
 subgoal that is simplified to one of these will be removed.
 \begin{ttbox}
 val notFalseI = int_prove_fun "~False";
@@ -1335,15 +1336,15 @@ val triv_rls = [TrueI,refl,iff_refl,notFalseI];
 %
 The basic simpset for intuitionistic \FOL{} is
 \ttindexbold{FOL_basic_ss}.  It preprocess rewrites using {\tt
-  gen_all}, {\tt atomize} and {\tt mk_meta_eq}.  It solves simplified
-subgoals using {\tt triv_rls} and assumptions, and by detecting
+  gen_all}, \texttt{atomize} and \texttt{mk_meta_eq}.  It solves simplified
+subgoals using \texttt{triv_rls} and assumptions, and by detecting
 contradictions.  It uses \ttindex{asm_simp_tac} to tackle subgoals of
 conditional rewrites.
 
-Other simpsets built from {\tt FOL_basic_ss} will inherit these items.
+Other simpsets built from \texttt{FOL_basic_ss} will inherit these items.
 In particular, \ttindexbold{IFOL_ss}, which introduces {\tt
   IFOL_simps} as rewrite rules.  \ttindexbold{FOL_ss} will later
-extend {\tt IFOL_ss} with classical rewrite rules such as $\neg\neg
+extend \texttt{IFOL_ss} with classical rewrite rules such as $\neg\neg
 P\bimp P$.
 \index{*setmksimps}\index{*setSSolver}\index{*setSolver}\index{*setsubgoaler}
 \index{*addsimps}\index{*addcongs}
@@ -1355,20 +1356,22 @@ fun   safe_solver prems = FIRST'[match_tac (triv_rls {\at} prems),
                                  eq_assume_tac, ematch_tac [FalseE]];
 
 val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
-                            addsimprocs [defALL_regroup,defEX_regroup]
+                            addsimprocs [defALL_regroup, defEX_regroup]
                             setSSolver   safe_solver
                             setSolver  unsafe_solver
-                            setmksimps (map mk_meta_eq o atomize o gen_all);
+                            setmksimps (map mk_meta_eq o 
+                                        atomize o gen_all);
 
-val IFOL_ss = FOL_basic_ss addsimps (IFOL_simps {\at} int_ex_simps {\at} int_all_simps)
+val IFOL_ss = FOL_basic_ss addsimps (IFOL_simps {\at} 
+                                     int_ex_simps {\at} int_all_simps)
                            addcongs [imp_cong];
 \end{ttbox}
-This simpset takes {\tt imp_cong} as a congruence rule in order to use
+This simpset takes \texttt{imp_cong} as a congruence rule in order to use
 contextual information to simplify the conclusions of implications:
 \[ \List{\Var{P}\bimp\Var{P'};\; \Var{P'} \Imp \Var{Q}\bimp\Var{Q'}} \Imp
    (\Var{P}\imp\Var{Q}) \bimp (\Var{P'}\imp\Var{Q'})
 \]
-By adding the congruence rule {\tt conj_cong}, we could obtain a similar
+By adding the congruence rule \texttt{conj_cong}, we could obtain a similar
 effect for conjunctions.
 
 
@@ -1376,7 +1379,7 @@ effect for conjunctions.
 
 To set up case splitting, we must prove the theorem \texttt{meta_iffD}
 below and pass it to \ttindexbold{mk_case_split_tac}.  The tactic
-\ttindexbold{split_tac} uses {\tt mk_meta_eq}, defined above, to
+\ttindexbold{split_tac} uses \texttt{mk_meta_eq}, defined above, to
 convert the splitting rules to meta-equalities.
 \begin{ttbox}
 val meta_iffD = 
@@ -1399,7 +1402,7 @@ called~$split$) for Cartesian products:
 \langle a,b\rangle \imp \Var{P}(\Var{f}(a,b))) 
 \] 
 Case splits should be allowed only when necessary; they are expensive
-and hard to control.  Here is an example of use, where {\tt expand_if}
+and hard to control.  Here is an example of use, where \texttt{expand_if}
 is the first rule above:
 \begin{ttbox}
 by (simp_tac (simpset() addloop (split_tac [expand_if])) 1);

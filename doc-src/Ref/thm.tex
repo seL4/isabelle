@@ -158,7 +158,7 @@ Use {\tt read_instantiate_sg} below if {\it insts\/} appears to be treated
 incorrectly.
 
 \item[\ttindexbold{read_instantiate_sg} {\it sg} {\it insts} {\it thm}]
-  resembles \hbox{\tt read_instantiate {\it insts} {\it thm}}, but reads
+  is like \texttt{read_instantiate {\it insts}~{\it thm}}, but it reads
   the instantiations under signature~{\it sg}.  This is necessary to
   instantiate a rule from a general theory, such as first-order logic,
   using the notation of some specialized theory.  Use the function {\tt
@@ -226,7 +226,7 @@ nprems_of     : thm -> int
 tpairs_of     : thm -> (term*term) list
 sign_of_thm   : thm -> Sign.sg
 theory_of_thm : thm -> theory
-dest_state    : thm * int -> (term * term) list * term list * term * term
+dest_state    : thm * int -> (term*term) list * term list * term * term
 rep_thm       : thm -> {\ttlbrace}sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
                         shyps: sort list, hyps: term list, prop: term\ttrbrace
 crep_thm      : thm -> {\ttlbrace}sign_ref: Sign.sg_ref, der: deriv, maxidx: int,
@@ -778,7 +778,7 @@ Deriv.tree   : deriv -> Deriv.orule mtree
 
 \begin{ttdescription}
 \item[\ttindexbold{keep_derivs} := MinDeriv $|$ ThmDeriv $|$ FullDeriv;] 
-specifies one of the three options for keeping derivations.  They can be
+specifies one of the options for keeping derivations.  They can be
 minimal (oracles only), include theorems and axioms, or be full.
 
 \item[\ttindexbold{Deriv.size} $der$] yields the size of a derivation,

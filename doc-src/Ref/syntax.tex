@@ -712,16 +712,13 @@ coming in two variants.  Each such function is associated with a name,
 which triggers calls to it.  Such names can be constants (logical or
 syntactic) or type constructors.
 
-{\tt print_syntax} displays the sets of names associated with the
-translation functions of a theory under
-\ttindex{parse_ast_translation}, \ttindex{parse_translation},
-\ttindex{print_translation} (or \ttindex{typed_print_translation}) and
-\ttindex{print_ast_translation}.  You can add new ones via the {\tt
-  ML} section\index{*ML section} of a theory definition file.  There
-may never be more than one function of the same kind per name.  Even
-though the {\tt ML} section is the very last part of the file, newly
-installed translation functions are already effective when processing
-all of the preceding sections.
+{\tt print_syntax} displays the sets of names associated with the translation
+functions of a theory under \texttt{parse_ast_translation}, etc.  You can add
+new ones via the {\tt ML} section\index{*ML section} of a theory definition
+file.  There may never be more than one function of the same kind per name.
+Even though the {\tt ML} section is the very last part of the file, newly
+installed translation functions are already effective when processing all of
+the preceding sections.
 
 The {\tt ML} section's contents are simply copied verbatim near the
 beginning of the \ML\ file generated from a theory definition file.

@@ -217,12 +217,15 @@
   \item {\tt Deriv.size}, \bold{49}
   \item {\tt Deriv.tree}, \bold{49}
   \item {\tt dest_eq}, \bold{101}
+  \item {\tt dest_imp}, \bold{101}
   \item {\tt dest_state}, \bold{41}
+  \item {\tt dest_Trueprop}, \bold{101}
   \item destruct-resolution, 18
   \item {\tt DETERM}, \bold{33}
   \item discrimination nets, \bold{25}
   \item {\tt distinct_subgoals_tac}, \bold{23}
   \item {\tt dmatch_tac}, \bold{18}
+  \item {\tt domain_type}, \bold{102}
   \item {\tt dres_inst_tac}, \bold{19}
   \item {\tt dresolve_tac}, \bold{18}
   \item {\tt dtac}, \bold{20}
@@ -240,7 +243,7 @@
   \item {\tt eq_assume_tac}, \bold{18}, 131
   \item {\tt eq_assumption}, \bold{47}
   \item {\tt eq_mp_tac}, \bold{138}
-  \item {\tt eq_reflection} theorem, \bold{101}, 122
+  \item {\tt eq_reflection} theorem, \bold{102}, 122
   \item {\tt eq_thm}, \bold{33}
   \item {\tt eq_thy}, \bold{58}
   \item {\tt equal_elim}, \bold{44}
@@ -347,7 +350,7 @@
   \item {\tt IF_UNSOLVED}, \bold{33}
   \item {\tt iff_reflection} theorem, 122
   \item {\tt IFOL_ss}, \bold{125}
-  \item {\tt imp_intr} theorem, \bold{101}
+  \item {\tt imp_intr} theorem, \bold{102}
   \item {\tt implies_elim}, \bold{44}
   \item {\tt implies_elim_list}, \bold{44}
   \item {\tt implies_intr}, \bold{44}
@@ -395,7 +398,7 @@
 
   \item macros, 88--94
   \item {\tt make_elim}, \bold{40}, 132
-  \item {\tt Match} exception, 96, 101
+  \item {\tt Match} exception, 95
   \item {\tt match_tac}, \bold{18}, 131
   \item {\tt max_pri}, 68, \bold{74}
   \item {\tt merge_ss}, \bold{106}
@@ -451,9 +454,7 @@
     \subitem renaming, 13, 22, 48
   \item {\tt parents_of}, \bold{59}
   \item parse trees, 83
-  \item {\tt parse_ast_translation}, 95
   \item {\tt parse_rules}, 90
-  \item {\tt parse_translation}, 95
   \item pattern, higher-order, \bold{108}
   \item {\tt pause_tac}, \bold{27}
   \item Poly/{\ML} compiler, 5
@@ -470,7 +471,6 @@
   \item {\tt prin}, 6, \bold{15}
   \item print mode, 52, 97
   \item print modes, 78--79
-  \item {\tt print_ast_translation}, 95
   \item {\tt print_cs}, \bold{131}
   \item {\tt print_data}, \bold{59}
   \item {\tt print_depth}, \bold{4}
@@ -485,7 +485,6 @@
   \item {\tt print_tac}, \bold{27}
   \item {\tt print_theory}, \bold{59}
   \item {\tt print_thm}, \bold{38}
-  \item {\tt print_translation}, 95
   \item printing control, 3--5
   \item {\tt printyp}, \bold{15}
   \item priorities, 67, \bold{74}
@@ -564,7 +563,7 @@
   \item {\tt resolve_tac}, \bold{17}, 131
   \item {\tt restore_proof}, \bold{15}
   \item {\tt result}, \bold{9}, 16, 57
-  \item {\tt rev_mp} theorem, \bold{101}
+  \item {\tt rev_mp} theorem, \bold{102}
   \item rewrite rules, 107--108
     \subitem permutative, 117--120
   \item {\tt rewrite_goals_rule}, \bold{39}
@@ -677,14 +676,14 @@
   \item {\tt subgoal_tac}, \bold{20}
   \item {\tt subgoals_of_brl}, \bold{24}
   \item {\tt subgoals_tac}, \bold{20}
-  \item {\tt subst} theorem, 99, \bold{101}
+  \item {\tt subst} theorem, 99, \bold{102}
   \item substitution
     \subitem rules, 99
   \item {\tt subthy}, \bold{58}
   \item {\tt swap} theorem, \bold{139}
   \item {\tt swap_res_tac}, \bold{138}
   \item {\tt swapify}, \bold{138}
-  \item {\tt sym} theorem, 100, \bold{101}
+  \item {\tt sym} theorem, 100, \bold{102}
   \item {\tt symmetric}, \bold{44}
   \item {\tt syn_of}, \bold{72}
   \item syntax
@@ -772,6 +771,7 @@
   \item {\tt theory} ML type, 51
   \item {\tt Theory.add_oracle}, \bold{64}
   \item {\tt theory_of_thm}, \bold{41}
+  \item {\tt thin_refl} theorem, \bold{102}
   \item {\tt thin_tac}, \bold{23}
   \item {\tt THM} exception, 37, 38, 42, 47
   \item {\tt thm} ML type, 37
@@ -827,7 +827,6 @@
   \item type unknowns, \bold{63}, 70
     \subitem freezing/thawing of, 46
   \item type variables, \bold{63}
-  \item {\tt typed_print_translation}, 95
   \item types, \bold{63}
     \subitem certified, \bold{63}
     \subitem printing of, 4, 15, 63

@@ -838,7 +838,8 @@ depends upon oracle calls.
 
 \begin{ttbox}
 invoke_oracle     : theory -> xstring -> Sign.sg * object -> thm
-Theory.add_oracle : bstring * (Sign.sg * object -> term) -> theory -> theory
+Theory.add_oracle : bstring * (Sign.sg * object -> term) -> theory 
+                    -> theory
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{invoke_oracle} $thy$ $name$ ($sign$, $data$)]
@@ -914,8 +915,8 @@ end
 Now in \texttt{IffOracle.ML} we first define a wrapper for invoking
 the oracle:
 \begin{ttbox}
-fun iff_oracle n =
-  invoke_oracle IffOracle.thy "iff" (sign_of IffOracle.thy, IffOracleExn n);
+fun iff_oracle n = invoke_oracle IffOracle.thy "iff"
+                      (sign_of IffOracle.thy, IffOracleExn n);
 \end{ttbox}
 
 Here are some example applications of the \texttt{iff} oracle.  An

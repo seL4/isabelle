@@ -339,9 +339,12 @@ compWrapper  : claset * ((int -> tactic) ->
 \index{simplification!from classical reasoner} The wrapper tacticals
 underly the operator addss, which combines each search step by
 simplification.  Strictly speaking, \texttt{addss} is not part of the
-classical reasoner.  It should be defined (using \texttt{addSaltern
-  (CHANGED o (safe_asm_more_full_simp_tac ss)}) when the simplifier is
-installed.
+classical reasoner.  It should be defined when the simplifier is
+installed:
+\begin{ttbox}
+infix 4 addss;
+fun cs addss  ss = cs  addbefore  asm_full_simp_tac ss;
+\end{ttbox}
 
 \begin{ttdescription}
 \item[$cs$ addss $ss$] \indexbold{*addss}
@@ -396,7 +399,7 @@ simpler subgoal that can be tackled by other means, such as by
 instantiating quantifiers yourself.
 \begin{ttdescription}
 \item[\ttindexbold{clarify_tac} $cs$ $i$] performs a series of safe steps on
-subgoal~$i$, using \texttt{clarify_step_tac}.
+subgoal~$i$ by repeatedly calling \texttt{clarify_step_tac}.
 
 \item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
   subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
