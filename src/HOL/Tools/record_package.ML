@@ -551,7 +551,7 @@ fun field_type_defs args thy = foldl field_type_def ((thy, []), args);
 
 (* field_definitions *)
 
-fun field_definitions fields names zeta moreT more vars named_vars thy =
+fun field_definitions fields names xs zeta moreT more vars named_vars thy =
   let
     val sign = Theory.sign_of thy;
     val base = Sign.base_name;
@@ -632,8 +632,8 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
     val surj_pairs = map (prove [DatatypePackage.induct_tac "p" 1]
       (map Thm.symmetric field_defs @ dest_convs)) surj_props;
 
-    fun mk_split th = SplitPairedAll.rule (th RS eq_reflection);
-    val field_splits = map mk_split surj_pairs;
+    fun mk_split (x, th) = SplitPairedAll.rule_params x moreN (th RS eq_reflection);
+    val field_splits = map2 mk_split (xs, surj_pairs);
 
     val thms_thy =
       defs_thy
@@ -773,7 +773,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val (fields_thy, field_simps, field_injects, field_splits) =
       thy
       |> Theory.add_path bname
-      |> field_definitions fields names zeta moreT more vars named_vars;
+      |> field_definitions fields names xs zeta moreT more vars named_vars;
 
     val named_splits = map2 (fn (c, th) => (suffix field_typeN c, th)) (names, field_splits);
 
