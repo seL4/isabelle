@@ -183,6 +183,14 @@ AxClasses: $(OUT)/HOL $(AXCLASSES_FILES)
 	@$(ISATOOL) usedir -s AxClasses-Tutorial $(OUT)/HOL AxClasses/Tutorial
 
 
+## Higher-order quotients
+
+QUOT_FILES = Quot/ROOT.ML
+
+Quot:	$(OUT)/HOL $(QUOT_FILES)
+	@$(ISATOOL) usedir $(OUT)/HOL Quot
+
+
 ## Miscellaneous examples
 
 EX_NAMES = String BT Perm Comb InSort Qsort LexProd \
@@ -198,7 +206,7 @@ ex:	$(OUT)/HOL $(EX_FILES)
 ## Full test
 
 test:	$(OUT)/HOL \
-	TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML IOA AxClasses ex
+	TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML IOA AxClasses Quot ex
 	echo 'Test examples ran successfully' > test
 
 
