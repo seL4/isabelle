@@ -12,13 +12,10 @@ Based upon ex/Term.ML
 open Ntree;
 
 goal Ntree.thy "ntree(A) = A * (UN n: nat. n -> ntree(A))";
-by (rtac (ntree.unfold RS trans) 1);
-bws ntree.con_defs;
-br equalityI 1;
-by (fast_tac sum_cs 1);
-by (fast_tac (sum_cs addIs datatype_intrs
- 	             addDs [ntree.dom_subset RS subsetD]
- 	             addEs [nat_fun_into_univ]) 1);
+let open ntree;  val rew = rewrite_rule con_defs in  
+by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+                     addEs [rew elim]) 1)
+end;
 val ntree_unfold = result();
 
 (*A nicer induction rule than the standard one*)

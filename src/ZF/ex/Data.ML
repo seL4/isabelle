@@ -10,15 +10,10 @@ It has four contructors, of arities 0-3, and two parameters A and B.
 open Data;
 
 goal Data.thy "data(A,B) = ({0} + A) + (A*B + A*B*data(A,B))";
-by (rtac (data.unfold RS trans) 1);
-bws data.con_defs;
-br equalityI 1;
-by (fast_tac sum_cs 1);
-(*for this direction, fast_tac is just too slow!*)
-by (safe_tac sum_cs);
-by (REPEAT_FIRST (swap_res_tac [refl, conjI, disjCI, exI]));
-by (REPEAT (fast_tac (sum_cs addIs datatype_intrs
-  		             addDs [data.dom_subset RS subsetD]) 1));
+let open data;  val rew = rewrite_rule con_defs in  
+by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+                     addEs [rew elim]) 1)
+end;
 val data_unfold = result();
 
 (**  Lemmas to justify using "data" in other recursive type definitions **)

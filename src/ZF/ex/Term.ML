@@ -10,13 +10,10 @@ Illustrates the list functor (essentially the same type as in Trees & Forests)
 open Term;
 
 goal Term.thy "term(A) = A * list(term(A))";
-by (rtac (term.unfold RS trans) 1);
-bws term.con_defs;
-br equalityI 1;
-by (fast_tac sum_cs 1);
-by (fast_tac (sum_cs addIs datatype_intrs
- 	             addDs [term.dom_subset RS subsetD]
- 	             addEs [list_into_univ]) 1);
+let open term;  val rew = rewrite_rule con_defs in  
+by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+                     addEs [rew elim]) 1)
+end;
 val term_unfold = result();
 
 (*Induction on term(A) followed by induction on List *)

@@ -31,23 +31,17 @@ val TF_equals_Un = result();
 
 (** NOT useful, but interesting... **)
 
-(*The (refl RS conjI RS exI RS exI) avoids considerable search!*)
-val unfold_cs = sum_cs addSIs [PartI, refl RS conjI RS exI RS exI]
-                    addIs datatype_intrs
-                    addDs [tree_forest.dom_subset RS subsetD]
-	            addSEs ([PartE] @ datatype_elims @ tree_forest.free_SEs);
-
-goalw TF.thy (tl tree_forest.defs)
+goalw TF.thy (tl tree_forest.defs) 
     "tree_forest(A) = (A*forest(A)) + ({0} + tree(A)*forest(A))";
-by (rtac (tree_forest.unfold RS trans) 1);
-by (rewrite_goals_tac tree_forest.con_defs);
-by (rtac equalityI 1);
-by (fast_tac unfold_cs 1);
-by (fast_tac unfold_cs 1);
+let open tree_forest;  
+    val rew = rewrite_rule (con_defs @ tl defs) in  
+by (fast_tac (sum_cs addSIs (equalityI :: PartI :: (map rew intrs RL [PartD1]))
+                     addEs [PartE, rew elim]) 1)
+end;
 val tree_forest_unfold = result();
 
-val tree_forest_unfold' = rewrite_rule (tl tree_forest.defs) tree_forest_unfold;
-
+val tree_forest_unfold' = rewrite_rule (tl tree_forest.defs) 
+                          tree_forest_unfold;
 
 goalw TF.thy (tl tree_forest.defs)
     "tree(A) = {Inl(x). x: A*forest(A)}";
