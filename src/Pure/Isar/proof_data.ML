@@ -20,6 +20,7 @@ sig
   val print: Proof.context -> unit
   val get: Proof.context -> T
   val put: T -> Proof.context -> Proof.context
+  val put_st: T -> Proof.state -> Proof.state
 end;
 
 functor ProofDataFun(Args: PROOF_DATA_ARGS): PROOF_DATA =
@@ -38,6 +39,7 @@ val init =
 val print = ProofContext.print_data kind;
 val get = ProofContext.get_data kind (fn Data x => x);
 val put = ProofContext.put_data kind Data;
+val put_st = Proof.put_data kind Data;
 
 end;
 
