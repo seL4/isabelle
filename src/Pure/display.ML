@@ -224,7 +224,7 @@ fun pretty_full_theory thy =
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
 
-    val {self = _, tsig, const_tab, syn = _, path, spaces, data} = Sign.rep_sg sg;
+    val {self = _, tsig, const_tab, path, spaces, data} = Sign.rep_sg sg;
     val {axioms, oracles, ...} = Theory.rep_theory thy;
     val spaces' = Library.sort_wrt fst spaces;
     val {classes, classrel, default, tycons = type_tab, log_types, univ_witness, abbrs, arities} =
