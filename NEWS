@@ -98,8 +98,9 @@ New in this Isabelle release
     now formalized using the Ring_and_Field theory mentioned above. 
   - INCOMPATIBILITY: simplification and arithmetic behaves somewhat differently
     than before, because now they are set up once in a generic manner.
-  - INCOMPATIBILITY: many type-specific instances of laws proved in 
-    Ring_and_Field are no longer available.
+  - INCOMPATIBILITY: many type-specific arithmetic laws have gone. 
+    Look for the general versions in Ring_and_Field (and Power if they concern
+    exponentiation).
 
 * Type "rat" of the rational numbers is now available in HOL-Complex.
 
