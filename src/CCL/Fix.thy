@@ -1,6 +1,6 @@
-(*  Title: 	CCL/Lazy/fix.thy
+(*  Title:      CCL/Lazy/fix.thy
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1993  University of Cambridge
 
 Tentative attempt at including fixed point induction.
@@ -11,7 +11,7 @@ Fix = Type +
 
 consts
 
-  idgen      ::	      "[i]=>i"
+  idgen      ::       "[i]=>i"
   INCL      :: "[i=>o]=>o"
 
 rules

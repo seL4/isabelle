@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ccl.thy
+(*  Title:      CCL/ccl.thy
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1993  University of Cambridge
 
 Classical Computational Logic for Untyped Lambda Calculus with reduction to 

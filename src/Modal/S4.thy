@@ -1,6 +1,6 @@
-(*  Title: 	91/Modal/S4
+(*  Title:      91/Modal/S4
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 

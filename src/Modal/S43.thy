@@ -1,6 +1,6 @@
-(*  Title: 	91/Modal/S43
+(*  Title:      91/Modal/S43
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1991  University of Cambridge
 
 This implements Rajeev Gore's sequent calculus for S43.
@@ -9,10 +9,10 @@ This implements Rajeev Gore's sequent calculus for S43.
 S43 = Modal0 +
 
 consts
-  S43pi	:: "[sobj=>sobj, sobj=>sobj, sobj=>sobj,
-	     sobj=>sobj, sobj=>sobj, sobj=>sobj] => prop"
+  S43pi :: "[sobj=>sobj, sobj=>sobj, sobj=>sobj,
+             sobj=>sobj, sobj=>sobj, sobj=>sobj] => prop"
   "@S43pi" :: "[sequence, sequence, sequence, sequence, sequence,
-		sequence] => prop" ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
+                sequence] => prop" ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
 
 rules
 (* Definition of the star operation using a set of Horn clauses  *)
@@ -69,9 +69,9 @@ local
   val tr' = LK.seq_tr1';
 
   fun s43pi_tr[s1,s2,s3,s4,s5,s6]=
-	Const(S43pi,dummyT)$tr s1$tr s2$tr s3$tr s4$tr s5$tr s6;
+        Const(S43pi,dummyT)$tr s1$tr s2$tr s3$tr s4$tr s5$tr s6;
   fun s43pi_tr'[Abs(_,_,s1),Abs(_,_,s2),Abs(_,_,s3),
-		Abs(_,_,s4),Abs(_,_,s5),Abs(_,_,s6)] =
+                Abs(_,_,s4),Abs(_,_,s5),Abs(_,_,s6)] =
         Const(SS43pi,dummyT)$tr' s1$tr' s2$tr' s3$tr' s4$tr' s5$tr' s6;
 in
 val parse_translation = [(SS43pi,s43pi_tr)];

@@ -1,24 +1,24 @@
-(*  Title: 	91/Modal/modal0
+(*  Title:      91/Modal/modal0
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1991  University of Cambridge
 *)
 
 Modal0 = LK +
 
 consts
-  box		:: "o=>o"	("[]_" [50] 50)
-  dia		:: "o=>o"	("<>_" [50] 50)
-  "--<",">-<"	:: "[o,o]=>o"	(infixr 25)
-  "@Lstar"	:: "[sequence,sequence]=>prop"	("(_)|L>(_)" [6,6] 5)
-  "@Rstar"	:: "[sequence,sequence]=>prop"	("(_)|R>(_)" [6,6] 5)
-  Lstar,Rstar	:: "[sobj=>sobj,sobj=>sobj]=>prop"
+  box           :: "o=>o"       ("[]_" [50] 50)
+  dia           :: "o=>o"       ("<>_" [50] 50)
+  "--<",">-<"   :: "[o,o]=>o"   (infixr 25)
+  "@Lstar"      :: "[sequence,sequence]=>prop"  ("(_)|L>(_)" [6,6] 5)
+  "@Rstar"      :: "[sequence,sequence]=>prop"  ("(_)|R>(_)" [6,6] 5)
+  Lstar,Rstar   :: "[sobj=>sobj,sobj=>sobj]=>prop"
 
 rules
   (* Definitions *)
 
-  strimp_def	"P --< Q == [](P --> Q)"
-  streqv_def	"P >-< Q == (P --< Q) & (Q --< P)"
+  strimp_def    "P --< Q == [](P --> Q)"
+  streqv_def    "P >-< Q == (P --< Q) & (Q --< P)"
 end
 
 ML

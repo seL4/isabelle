@@ -1,6 +1,6 @@
-(*  Title: 	CCL/wfd.thy
+(*  Title:      CCL/wfd.thy
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Well-founded relations in CCL.

@@ -1,6 +1,6 @@
-(*  Title: 	LK/lk.thy
+(*  Title:      LK/lk.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Classical First-Order Sequent Calculus
@@ -19,51 +19,51 @@ arities
  o :: logic
 
 consts
- True,False	:: "o"
- "="		:: "['a,'a] => o"	(infixl 50)
- "Not"		:: "o => o"		("~ _" [40] 40)
- "&"		:: "[o,o] => o"		(infixr 35)
- "|"		:: "[o,o] => o"		(infixr 30)
- "-->","<->"	:: "[o,o] => o"		(infixr 25)
- The		:: "('a => o) => 'a"	(binder "THE " 10)
- All		:: "('a => o) => o"	(binder "ALL " 10)
- Ex		:: "('a => o) => o"	(binder "EX " 10)
+ True,False     :: "o"
+ "="            :: "['a,'a] => o"       (infixl 50)
+ "Not"          :: "o => o"             ("~ _" [40] 40)
+ "&"            :: "[o,o] => o"         (infixr 35)
+ "|"            :: "[o,o] => o"         (infixr 30)
+ "-->","<->"    :: "[o,o] => o"         (infixr 25)
+ The            :: "('a => o) => 'a"    (binder "THE " 10)
+ All            :: "('a => o) => o"     (binder "ALL " 10)
+ Ex             :: "('a => o) => o"     (binder "EX " 10)
 
  (*Representation of sequents*)
- Trueprop	:: "[sobj=>sobj,sobj=>sobj] => prop"
- Seqof		:: "o => sobj=>sobj"
- "@Trueprop"	:: "[sequence,sequence] => prop" ("((_)/ |- (_))" [6,6] 5)
- "@MtSeq"	:: "sequence"				("" [] 1000)
- "@NmtSeq"	:: "[seqobj,seqcont] => sequence"	("__" [] 1000)
- "@MtSeqCont"	:: "seqcont"				("" [] 1000)
- "@SeqCont"	:: "[seqobj,seqcont] => seqcont"	(",/ __" [] 1000)
- ""		:: "o => seqobj"			("_" [] 1000)
- "@SeqId"	:: "id => seqobj"			("$_" [] 1000)
- "@SeqVar"	:: "var => seqobj"			("$_")
+ Trueprop       :: "[sobj=>sobj,sobj=>sobj] => prop"
+ Seqof          :: "o => sobj=>sobj"
+ "@Trueprop"    :: "[sequence,sequence] => prop" ("((_)/ |- (_))" [6,6] 5)
+ "@MtSeq"       :: "sequence"                           ("" [] 1000)
+ "@NmtSeq"      :: "[seqobj,seqcont] => sequence"       ("__" [] 1000)
+ "@MtSeqCont"   :: "seqcont"                            ("" [] 1000)
+ "@SeqCont"     :: "[seqobj,seqcont] => seqcont"        (",/ __" [] 1000)
+ ""             :: "o => seqobj"                        ("_" [] 1000)
+ "@SeqId"       :: "id => seqobj"                       ("$_" [] 1000)
+ "@SeqVar"      :: "var => seqobj"                      ("$_")
 
 rules
   (*Structural rules*)
 
-  basic	"$H, P, $G |- $E, P, $F"
+  basic "$H, P, $G |- $E, P, $F"
 
-  thinR	"$H |- $E, $F ==> $H |- $E, P, $F"
-  thinL	"$H, $G |- $E ==> $H, P, $G |- $E"
+  thinR "$H |- $E, $F ==> $H |- $E, P, $F"
+  thinL "$H, $G |- $E ==> $H, P, $G |- $E"
 
-  cut	"[| $H |- $E, P;  $H, P |- $E |] ==> $H |- $E"
+  cut   "[| $H |- $E, P;  $H, P |- $E |] ==> $H |- $E"
 
   (*Propositional rules*)
 
-  conjR	"[| $H|- $E, P, $F;  $H|- $E, Q, $F |] ==> $H|- $E, P&Q, $F"
-  conjL	"$H, P, Q, $G |- $E ==> $H, P & Q, $G |- $E"
+  conjR "[| $H|- $E, P, $F;  $H|- $E, Q, $F |] ==> $H|- $E, P&Q, $F"
+  conjL "$H, P, Q, $G |- $E ==> $H, P & Q, $G |- $E"
 
-  disjR	"$H |- $E, P, Q, $F ==> $H |- $E, P|Q, $F"
-  disjL	"[| $H, P, $G |- $E;  $H, Q, $G |- $E |] ==> $H, P|Q, $G |- $E"
+  disjR "$H |- $E, P, Q, $F ==> $H |- $E, P|Q, $F"
+  disjL "[| $H, P, $G |- $E;  $H, Q, $G |- $E |] ==> $H, P|Q, $G |- $E"
 
-  impR	"$H, P |- $E, Q, $F ==> $H |- $E, P-->Q, $F"
-  impL	"[| $H,$G |- $E,P;  $H, Q, $G |- $E |] ==> $H, P-->Q, $G |- $E"
+  impR  "$H, P |- $E, Q, $F ==> $H |- $E, P-->Q, $F"
+  impL  "[| $H,$G |- $E,P;  $H, Q, $G |- $E |] ==> $H, P-->Q, $G |- $E"
 
-  notR	"$H, P |- $E, $F ==> $H |- $E, ~P, $F"
-  notL	"$H, $G |- $E, P ==> $H, ~P, $G |- $E"
+  notR  "$H, P |- $E, $F ==> $H |- $E, ~P, $F"
+  notL  "$H, $G |- $E, P ==> $H, ~P, $G |- $E"
 
   FalseL "$H, False, $G |- $E"
 
@@ -72,15 +72,15 @@ rules
 
   (*Quantifiers*)
 
-  allR	"(!!x.$H |- $E, P(x), $F) ==> $H |- $E, ALL x.P(x), $F"
-  allL	"$H, P(x), $G, ALL x.P(x) |- $E ==> $H, ALL x.P(x), $G |- $E"
+  allR  "(!!x.$H |- $E, P(x), $F) ==> $H |- $E, ALL x.P(x), $F"
+  allL  "$H, P(x), $G, ALL x.P(x) |- $E ==> $H, ALL x.P(x), $G |- $E"
 
-  exR	"$H |- $E, P(x), $F, EX x.P(x) ==> $H |- $E, EX x.P(x), $F"
-  exL	"(!!x.$H, P(x), $G |- $E) ==> $H, EX x.P(x), $G |- $E"
+  exR   "$H |- $E, P(x), $F, EX x.P(x) ==> $H |- $E, EX x.P(x), $F"
+  exL   "(!!x.$H, P(x), $G |- $E) ==> $H, EX x.P(x), $G |- $E"
 
   (*Equality*)
 
-  refl	"$H |- $E, a=a, $F"
+  refl  "$H |- $E, a=a, $F"
   sym   "$H |- $E, a=b, $F ==> $H |- $E, b=a, $F"
   trans "[| $H|- $E, a=b, $F;  $H|- $E, b=c, $F |] ==> $H|- $E, a=c, $F"
 

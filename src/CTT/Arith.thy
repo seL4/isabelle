@@ -1,6 +1,6 @@
-(*  Title: 	CTT/arith
+(*  Title:      CTT/arith
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Arithmetic operators and their definitions
@@ -11,8 +11,8 @@ Tests definitions and simplifier.
 
 Arith = CTT +
 
-consts "#+","-","|-|"	:: "[i,i]=>i"	(infixr 65)
-       "#*",div,mod     :: "[i,i]=>i"	(infixr 70)
+consts "#+","-","|-|"   :: "[i,i]=>i"   (infixr 65)
+       "#*",div,mod     :: "[i,i]=>i"   (infixr 70)
 
 rules
   add_def     "a#+b == rec(a, b, %u v.succ(v))"  

@@ -1,6 +1,6 @@
-(*  Title: 	CCL/hered.thy
+(*  Title:      CCL/hered.thy
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1993  University of Cambridge
 
 Hereditary Termination - cf. Martin Lo\"f

@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ex/flag.thy
+(*  Title:      CCL/ex/flag.thy
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Dutch national flag program - except that the point of Dijkstra's example was to use 

@@ -1,6 +1,6 @@
-(*  Title: 	CCL/terms.thy
+(*  Title:      CCL/terms.thy
     ID:         $Id$
-    Author: 	Martin Coen
+    Author:     Martin Coen
     Copyright   1993  University of Cambridge
 
 Definitions of usual program constructs in CCL.
@@ -38,16 +38,16 @@ consts
   letrec3    :: "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"  
 
   "@let"     :: "[idt,i,i]=>i"             ("(3let _ be _/ in _)"
-  			[0,0,60] 60)
+                        [0,0,60] 60)
 
   "@letrec"  :: "[idt,idt,i,i]=>i"         ("(3letrec _ _ be _/ in _)"
-  			[0,0,0,60] 60)
+                        [0,0,0,60] 60)
 
   "@letrec2" :: "[idt,idt,idt,i,i]=>i"     ("(3letrec _ _ _ be _/ in _)"
-  			[0,0,0,0,60] 60)
+                        [0,0,0,0,60] 60)
 
   "@letrec3" :: "[idt,idt,idt,idt,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
-  			[0,0,0,0,0,60] 60)
+                        [0,0,0,0,0,60] 60)
 
   napply     :: "[i=>i,i,i]=>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
 
@@ -66,7 +66,7 @@ rules
   succ_def               "succ(n) == inr(n)"
   ncase_def         "ncase(n,b,c) == when(n,%x.b,%y.c(y))"
   nrec_def          " nrec(n,b,c) == letrec g x be ncase(x,b,%y.c(y,g(y))) in g(n)"
-  nil_def	              "[] == inl(one)"
+  nil_def                     "[] == inl(one)"
   cons_def                   "h$t == inr(<h,t>)"
   lcase_def         "lcase(l,b,c) == when(l,%x.b,%y.split(y,c))"
   lrec_def           "lrec(l,b,c) == letrec g x be lcase(x,b,%h t.c(h,t,g(t))) in g(l)"

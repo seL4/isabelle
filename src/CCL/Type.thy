@@ -28,10 +28,10 @@ consts
   SPLIT         :: "[i, [i, i] => i set] => i set"
 
   "@Pi"         :: "[idt, i set, i set] => i set"    ("(3PROD _:_./ _)"
-  				[0,0,60] 60)
+                                [0,0,60] 60)
 
   "@Sigma"      :: "[idt, i set, i set] => i set"    ("(3SUM _:_./ _)"
-  				[0,0,60] 60)
+                                [0,0,60] 60)
   
   "@->"         :: "[i set, i set] => i set"         ("(_ ->/ _)"  [54, 53] 53)
   "@*"          :: "[i set, i set] => i set"         ("(_ */ _)" [56, 55] 55)

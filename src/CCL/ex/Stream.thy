@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ex/stream.thy
+(*  Title:      CCL/ex/stream.thy
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Programs defined over streams.
