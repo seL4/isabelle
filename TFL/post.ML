@@ -195,6 +195,42 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
                error (mesg ^
                       "\n    (In TFL function " ^ module ^ "." ^ func ^ ")");
 
+
+(* Derive the initial equations from the case-split rules to meet the
+users specification of the recursive function. 
+ Note: We don't do this if the wf conditions fail to be solved, as each
+case may have a different wf condition. We could group the conditions
+together and say that they must be true to solve the general case,
+but that would hide from the user which sub-case they were related
+to. Probably this is not important, and it would work fine, but, for now, I
+prefer leaving more fine-grain control to the user. *)
+local
+  fun get_related_thms i = 
+      mapfilter ((fn (r,x) => if x = i then Some r else None));
+
+  fun solve_eq (th, [], i) = 
+      raise ERROR_MESSAGE "derive_init_eqs: missing rules"
+    | solve_eq (th, [a], i) = [(a, i)]
+    | solve_eq (th, splitths as (_ :: _), i) = 
+      [((standard o ObjectLogic.rulify_no_asm)
+          (CaseSplit.splitto splitths th), i)]
+      (* if there's an error, pretend nothing happened with this definition 
+         We should probably print something out so that the user knows...? *)
+      handle ERROR_MESSAGE _ => map (fn x => (x,i)) splitths; 
+in
+fun derive_init_eqs sgn rules eqs = 
+    let 
+      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o HOLogic.mk_Trueprop) 
+                      eqs
+      fun countlist l = 
+          (rev o snd o (foldl (fn ((i,L), e) => (i + 1,(e,i) :: L)))) ((0,[]), l)
+    in
+      flat (map (fn (e,i) => solve_eq (e, (get_related_thms i rules), i))
+                (countlist eqths))
+    end;
+end;
+
+
 (*---------------------------------------------------------------------------
  * Defining a function with an associated termination relation.
  *---------------------------------------------------------------------------*)
