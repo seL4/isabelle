@@ -29,10 +29,11 @@ sig
   val defaultS: type_sig -> sort
   val logical_types: type_sig -> string list
   val univ_witness: type_sig -> (typ * sort) option
-  val is_type_abbr: type_sig -> string -> bool
   val subsort: type_sig -> sort * sort -> bool
   val eq_sort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
+  val cert_class: type_sig -> class -> class
+  val cert_sort: type_sig -> sort -> sort
   val witness_sorts: type_sig -> sort list -> sort list -> (typ * sort) list
   val rem_sorts: typ -> typ
   val tsig0: type_sig
@@ -179,7 +180,30 @@ fun classes (TySg {classes = cs, ...}) = cs;
 fun defaultS (TySg {default, ...}) = default;
 fun logical_types (TySg {log_types, ...}) = log_types;
 fun univ_witness (TySg {univ_witness, ...}) = univ_witness;
-fun is_type_abbr (TySg {abbrs, ...}) name = is_some (Symtab.lookup (abbrs, name));
+
+
+(* error messages *)
+
+fun undeclared_class c = "Undeclared class: " ^ quote c;
+fun undeclared_classes cs = "Undeclared class(es): " ^ commas_quote cs;
+
+fun err_undeclared_class s = error (undeclared_class s);
+
+fun err_dup_classes cs =
+  error ("Duplicate declaration of class(es): " ^ commas_quote cs);
+
+fun undeclared_type c = "Undeclared type constructor: " ^ quote c;
+
+fun err_neg_args c =
+  error ("Negative number of arguments of type constructor: " ^ quote c);
+
+fun err_dup_tycon c =
+  error ("Duplicate declaration of type constructor: " ^ quote c);
+
+fun dup_tyabbrs ts =
+  "Duplicate declaration of type abbreviation(s): " ^ commas_quote ts;
+
+fun ty_confl c = "Conflicting type constructor and abbreviation: " ^ quote c;
 
 
 (* sorts *)
@@ -187,6 +211,11 @@ fun is_type_abbr (TySg {abbrs, ...}) name = is_some (Symtab.lookup (abbrs, name)
 fun subsort (TySg {classrel, ...}) = Sorts.sort_le classrel;
 fun eq_sort (TySg {classrel, ...}) = Sorts.sort_eq classrel;
 fun norm_sort (TySg {classrel, ...}) = Sorts.norm_sort classrel;
+
+fun cert_class (TySg {classes, ...}) c =
+  if c mem_string classes then c else raise TYPE (undeclared_class c, [], []);
+
+fun cert_sort tsig S = norm_sort tsig (map (cert_class tsig) S);
 
 fun witness_sorts (tsig as TySg {classrel, arities, log_types, ...}) =
   Sorts.witness_sorts (classrel, arities, log_types);
@@ -196,36 +225,14 @@ fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
   | rem_sorts (TVar (xi, _)) = TVar (xi, []);
 
 
-(* error messages *)
-
-fun undcl_class c = "Undeclared class " ^ quote c;
-fun err_undcl_class s = error (undcl_class s);
-
-fun err_dup_classes cs =
-  error ("Duplicate declaration of class(es) " ^ commas_quote cs);
-
-fun undcl_type c = "Undeclared type constructor " ^ quote c;
-
-fun err_neg_args c =
-  error ("Negative number of arguments of type constructor " ^ quote c);
-
-fun err_dup_tycon c =
-  error ("Duplicate declaration of type constructor " ^ quote c);
-
-fun dup_tyabbrs ts =
-  "Duplicate declaration of type abbreviation(s) " ^ commas_quote ts;
-
-fun ty_confl c = "Conflicting type constructor and abbreviation " ^ quote c;
-
-
-(* FIXME err_undcl_class! *)
+(* FIXME err_undeclared_class! *)
 (* 'leq' checks the partial order on classes according to the
    statements in classrel 'a'
 *)
 
 fun less a (C, D) = case Symtab.lookup (a, C) of
      Some ss => D mem_string ss
-   | None => err_undcl_class C;
+   | None => err_undeclared_class C;
 
 fun leq a (C, D)  =  C = D orelse less a (C, D);
 
@@ -317,7 +324,7 @@ fun typ_errors tsig (typ, errors) =
 
     fun class_err (errs, c) =
       if c mem_string classes then errs
-      else undcl_class c ins_string errs;
+      else undeclared_class c ins_string errs;
 
     val sort_err = foldl class_err;
 
@@ -333,7 +340,7 @@ fun typ_errors tsig (typ, errors) =
             | None =>
                 (case Symtab.lookup (abbrs, c) of
                   Some (vs, _) => nargs (length vs)
-                | None => undcl_type c ins_string errs))
+                | None => undeclared_type c ins_string errs))
           end
     | typ_errs (errs, TFree (_, S)) = sort_err (errs, S)
     | typ_errs (errs, TVar ((x, i), S)) =
@@ -343,9 +350,9 @@ fun typ_errors tsig (typ, errors) =
   in typ_errs (errors, typ) end;
 
 
-(* cert_typ *)
+(* cert_typ *)           (*exception TYPE*)
 
-(*check and normalize typ wrt. tsig*)           (*exception TYPE*)
+(*check and normalize type wrt tsig*)
 fun cert_typ tsig T =
   (case typ_errors tsig (T, []) of
     [] => norm_typ tsig T
@@ -502,7 +509,7 @@ fun add_classrel classes (classrel, (s, ges)) =
                            else Symtab.update ((s, sups union_string ges'), classrel)
            | None => classrel
         end
-      else err_undcl_class s'
+      else err_undeclared_class s'
   in foldl upd (Symtab.update ((s, ges), classrel), ges) end;
 
 
@@ -627,7 +634,7 @@ fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
    the 'arities' association list of the given type signatrure  *)
 
 fun coregular (classes, classrel, tycons) =
-  let fun ex C = if C mem_string classes then () else err_undcl_class(C);
+  let fun ex C = if C mem_string classes then () else err_undeclared_class(C);
 
       fun addar(arities, (t, (w, C))) = case Symtab.lookup (tycons, t) of
             Some(n) => if n <> length w then varying_decls(t) else
@@ -635,7 +642,7 @@ fun coregular (classes, classrel, tycons) =
                       let val ars = the (Symtab.lookup (arities, t))
                           val ars' = add_arity classrel ars (t,(C,w))
                       in Symtab.update ((t,ars'), arities) end)
-          | None => error (undcl_type t);
+          | None => error (undeclared_type t);
 
   in addar end;
 
