@@ -34,6 +34,7 @@ sig
   val eof: token list -> string * token list
   val not_eof: token list -> token * token list
   val opt_unit: token list -> unit * token list
+  val opt_keyword: string -> token list -> bool * token list
   val nat: token list -> int * token list
   val enum: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
   val enum1: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
@@ -53,6 +54,7 @@ sig
   val opt_mixfix: token list -> Syntax.mixfix * token list
   val opt_infix': token list -> Syntax.mixfix * token list
   val opt_mixfix': token list -> Syntax.mixfix * token list
+  val mixfix': token list -> Syntax.mixfix * token list
   val const: token list -> (bstring * string * Syntax.mixfix) * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
@@ -153,6 +155,8 @@ val not_eof = Scan.one T.not_eof;
 
 val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 
+fun opt_keyword s = Scan.optional ($$$ "(" |-- !!! (($$$ s >> K true) --| $$$ ")")) false;
+
 
 (* enumerations *)
 
@@ -173,8 +177,7 @@ val xname = group "name reference" (short_ident || long_ident || sym_ident || st
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 
 val uname = underscore >> K None || name >> Some;
-  (* CB: underscore yields None, any other name Some with that string.
-     Used, for example, in the renaming of locale parameters.  *)
+
 
 (* sorts and arities *)
 
@@ -215,14 +218,14 @@ val mixfix =
   (string -- !!! (opt_pris -- Scan.optional nat Syntax.max_pri))
   >> (Syntax.Mixfix o triple2);
 
-fun opt_fix guard fix =
-  Scan.optional ($$$ "(" |-- guard (fix --| $$$ ")")) Syntax.NoSyn;
+fun fix_decl guard fix = $$$ "(" |-- guard (fix --| $$$ ")");
+fun opt_fix guard fix = Scan.optional (fix_decl guard fix) Syntax.NoSyn;
 
 val opt_infix = opt_fix !!! (infxl || infxr || infx);
 val opt_mixfix = opt_fix !!! (mixfix || binder || infxl || infxr || infx);
-
 val opt_infix' = opt_fix I (infxl || infxr || infx);
 val opt_mixfix' = opt_fix I (mixfix || binder || infxl || infxr || infx);
+val mixfix' = fix_decl !!! (mixfix || binder || infxl || infxr || infx);
 
 
 (* consts *)
