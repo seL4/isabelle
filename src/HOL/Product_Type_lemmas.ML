@@ -178,7 +178,7 @@ Goalw [split_def] "split c (a,b) = c a b";
 by (Simp_tac 1);
 qed "split_conv";
 Addsimps [split_conv];
-(*bind_thm ("split", split_conv);                  (*for compatibility*)*)
+bind_thm ("split", split_conv);                  (*for compatibility*)
 
 (*Subsumes the old split_Pair when f is the identity function*)
 Goal "split (%x y. f(x,y)) = f";
@@ -580,5 +580,3 @@ qed "Times_Int_distrib1";
 Goal "(A - B) <*> C = (A <*> C) - (B <*> C)";
 by (Blast_tac 1);
 qed "Times_Diff_distrib1";
-
-
