@@ -82,17 +82,7 @@ val (op ==>) = Logic.mk_implies;
 
 (* proof tools *)
 
-fun prove_goal sign goal tacs =
-  Goals.prove_goalw_cterm [] (Thm.cterm_of sign goal) tacs
-  handle ERROR => error ("The error(s) above occurred while trying to prove " ^
-    quote (Sign.string_of_term sign goal));
-
-fun prove_simp sign ss tacs simps =
-  let
-    val ss' = Simplifier.addsimps (ss, simps);
-    fun prove goal = prove_goal sign goal
-      (K (tacs @ [ALLGOALS (Simplifier.asm_full_simp_tac ss')]));
-  in prove end;
+fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps simps));
 
 fun try_param_tac x s rule i st =
   res_inst_tac [(x, (case Tactic.innermost_params i st of [] => s | (p, _) :: _ => p))] rule i st;
@@ -503,14 +493,15 @@ fun proc sg _ t =
     (case get_selectors sg s of Some () =>
       (case get_updates sg u of Some u_name =>
         let
-          fun atomize x t = Free (x, fastype_of t);
-          val k' = atomize "k" k;
-          val r' = atomize "r" r;
+          fun mk_free x t = Free (x, fastype_of t);
+          val k' = mk_free "k" k;
+          val r' = mk_free "r" r;
           val t' = sel $ (upd $ k' $ r');
-          val prove = mk_meta_eq o prove_simp sg (get_simpset sg) [] [];
+          fun prove prop =
+            Tactic.prove sg ["k", "r"] [] prop (K (simp_all_tac (get_simpset sg) []));
         in
-          if u_name = s then Some (prove (t' === k'))
-          else Some (prove (t' === sel $ r'))
+          if u_name = s then Some (prove (Logic.mk_equals (t', k')))
+          else Some (prove (Logic.mk_equals (t', sel $ r')))
         end
       | None => None)
     | None => None)
@@ -788,9 +779,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     (*induct*)
     val P = Free ("P", rec_schemeT --> HOLogic.boolT);
     val P' = Free ("P", recT --> HOLogic.boolT);
-    val induct_scheme_prop =
-      All (all_xs_more ~~ all_types_more) (Trueprop (P $ rec_scheme)) ==> Trueprop (P $ r_scheme);
-    val induct_prop = All (all_xs ~~ all_types) (Trueprop (P' $ rec_)) ==> Trueprop (P' $ r);
+    val induct_scheme_assm = All (all_xs_more ~~ all_types_more) (Trueprop (P $ rec_scheme));
+    val induct_scheme_concl = Trueprop (P $ r_scheme);
+    val induct_assm = All (all_xs ~~ all_types) (Trueprop (P' $ rec_));
+    val induct_concl = Trueprop (P' $ r);
 
     (*cases*)
     val C = Trueprop (Free (variant all_xs_more "C", HOLogic.boolT));
@@ -830,36 +822,38 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* 3rd stage: thms_thy *)
 
+    val prove_standard = Tactic.prove_standard defs_sg;
+    fun prove_simp simps =
+      let val tac = simp_all_tac HOL_basic_ss simps
+      in fn prop => prove_standard [] [] prop (K tac) end;
+
     val parent_simps = flat (map #simps parents);
-    val prove = prove_simp defs_sg HOL_basic_ss [];
-    val prove' = prove_simp defs_sg HOL_ss;
+    val sel_convs = map (prove_simp (parent_simps @ sel_defs @ field_simps)) sel_props;
+    val update_convs = map (prove_simp (parent_simps @ update_defs @ sel_convs)) update_props;
 
-    val sel_convs = map (prove (parent_simps @ sel_defs @ field_simps)) sel_props;
-    val update_convs = map (prove (parent_simps @ update_defs @ sel_convs)) update_props;
-    val equality =
-      prove' [ALLGOALS record_split_tac] (parent_simps @ sel_convs @ field_injects) equality_prop;
-
-    val induct_scheme = prove_goal defs_sg induct_scheme_prop (fn prems =>
+    val induct_scheme = prove_standard [] [induct_scheme_assm] induct_scheme_concl (fn prems =>
         (case previous of Some {induct, ...} => res_inst_tac [(rN, rN)] induct 1
-        | None => all_tac) :: map (fn rule => try_param_tac "p" rN rule 1) field_inducts @
-        [resolve_tac prems 1]);
+        | None => all_tac)
+        THEN EVERY (map (fn rule => try_param_tac "p" rN rule 1) field_inducts)
+        THEN resolve_tac prems 1);
 
-    val induct = prove_goal defs_sg induct_prop (fn prems =>
-        [res_inst_tac [(rN, rN)] induct_scheme 1,
-         try_param_tac "x" "more" unit_induct 1, resolve_tac prems 1]);
+    val induct = prove_standard [] [induct_assm] induct_concl (fn prems =>
+        res_inst_tac [(rN, rN)] induct_scheme 1
+        THEN try_param_tac "x" "more" unit_induct 1
+        THEN resolve_tac prems 1);
 
-    val cases_scheme = prove_goal defs_sg cases_scheme_prop (fn prems =>
-        Method.insert_tac prems 1 ::
+    val cases_scheme = prove_standard [] [] cases_scheme_prop (fn _ =>
         (case previous of Some {cases, ...} => try_param_tac rN rN cases 1
-        | None => all_tac) :: map (fn rule => try_param_tac "p" rN rule 1) field_cases @
-        [Simplifier.asm_full_simp_tac HOL_basic_ss 1]);
+        | None => all_tac)
+        THEN EVERY (map (fn rule => try_param_tac "p" rN rule 1) field_cases)
+        THEN simp_all_tac HOL_basic_ss []);
 
-    val cases = prove_goal defs_sg cases_prop (fn prems =>
-        [Method.insert_tac prems 1, res_inst_tac [(rN, rN)] cases_scheme 1,
-         Simplifier.asm_full_simp_tac (HOL_basic_ss addsimps [unit_all_eq1]) 1]);
+    val cases = prove_standard [] [] cases_prop (fn _ =>
+        res_inst_tac [(rN, rN)] cases_scheme 1
+        THEN simp_all_tac HOL_basic_ss [unit_all_eq1]);
 
     val (thms_thy, ([sel_convs', update_convs', sel_defs', update_defs', _],
-        [equality', induct_scheme', induct', cases_scheme', cases'])) =
+        [induct_scheme', induct', cases_scheme', cases'])) =
       defs_thy
       |> (PureThy.add_thmss o map Thm.no_attributes)
        [("select_convs", sel_convs),
@@ -868,8 +862,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         ("update_defs", update_defs),
         ("derived_defs", derived_defs)]
       |>>> PureThy.add_thms
-       [(("equality", equality), [Classical.xtra_intro_global]),
-        (("induct_scheme", induct_scheme), [RuleCases.case_names [fieldsN],
+       [(("induct_scheme", induct_scheme), [RuleCases.case_names [fieldsN],
           InductAttrib.induct_type_global (suffix schemeN name)]),
         (("induct", induct), [RuleCases.case_names [fieldsN],
           InductAttrib.induct_type_global name]),
@@ -878,11 +871,21 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         (("cases", cases), [RuleCases.case_names [fieldsN],
           InductAttrib.cases_type_global name])];
 
+    val equality = Tactic.prove_standard (Theory.sign_of thms_thy) [] [] equality_prop (fn _ =>
+      fn st => let val [r, r'] = map #1 (rev (Tactic.innermost_params 1 st)) in
+        st |> (res_inst_tac [(rN, r)] cases_scheme' 1
+        THEN res_inst_tac [(rN, r')] cases_scheme' 1
+        THEN simp_all_tac HOL_basic_ss (parent_simps @ sel_convs))
+      end);
+
+    val (thms_thy', [equality']) =
+      thms_thy |> PureThy.add_thms [(("equality", equality), [Classical.xtra_intro_global])];
+
     val simps = sel_convs' @ update_convs' @ [equality'];
     val iffs = field_injects;
 
-    val thms_thy' =
-      thms_thy |> (#1 oo PureThy.add_thmss)
+    val thms_thy'' =
+      thms_thy' |> (#1 oo PureThy.add_thmss)
         [(("simps", simps), [Simplifier.simp_add_global]),
          (("iffs", iffs), [iff_add_global])];
 
@@ -890,7 +893,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     (* 4th stage: final_thy *)
 
     val final_thy =
-      thms_thy'
+      thms_thy''
       |> put_record name (make_record_info args parent fields (field_simps @ simps)
           induct_scheme' cases_scheme')
       |> put_sel_upd (names @ [full_moreN]) (field_simps @ sel_defs' @ update_defs')
