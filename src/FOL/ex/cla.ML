@@ -184,9 +184,6 @@ writeln"Problem 20";
 goal FOL.thy "(ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))     \
 \   --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))";
 by (fast_tac FOL_cs 1); 
-goal FOL.thy "(ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))     \
-\   --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))";
-by (fast_tac FOL_cs 1); 
 result();
 
 writeln"Problem 21";
@@ -317,13 +314,14 @@ by (fast_tac FOL_cs 1);
 (*slow...Poly/ML: 9.7 secs*)
 result();
 
-writeln"Problem 38. NOT PROVED";
+writeln"Problem 38";
 goal FOL.thy
     "(ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->	\
 \            (EX z. EX w. p(z) & r(x,w) & r(w,z)))  <->		\
 \    (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &	\
 \            (~p(a) | ~(EX y. p(y) & r(x,y)) |				\
 \             (EX z. EX w. p(z) & r(x,w) & r(w,z))))";
+by (fast_tac FOL_cs 1);
 
 writeln"Problem 39";
 goal FOL.thy "~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
@@ -342,13 +340,14 @@ goal FOL.thy "(ALL z. EX y. ALL x. f(x,y) <-> f(x,z) & ~ f(x,x))	\
 by (best_tac FOL_cs 1);
 result();
 
-writeln"Problem 42  NOT PROVED";
+writeln"Problem 42";
 goal FOL.thy "~ (EX y. ALL x. p(x,y) <-> ~ (EX z. p(x,z) & p(z,x)))";
+by (best_tac FOL_dup_cs 1);
+result();
 
 writeln"Problem 43  NOT PROVED AUTOMATICALLY";
 goal FOL.thy "(ALL x. ALL y. q(x,y) <-> (ALL z. p(z,x) <-> p(z,y)))	\
 \         --> (ALL x. (ALL y. q(x,y) <-> q(y,x)))";
-
 
 writeln"Problem 44";
 goal FOL.thy "(ALL x. f(x) -->						\
