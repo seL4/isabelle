@@ -89,8 +89,8 @@ inductive tls
     SpyKeys (*The spy may apply PRF & sessionK to available nonces*)
          "[| evsSK: tls;
 	     Says Spy B {|Nonce NA, Nonce NB, Nonce M|} : set evsSK |]
-          ==> Says Spy B {| Nonce (PRF(M,NA,NB)),
-			    Key (sessionK((NA,NB,M),b)) |} # evsSK : tls"
+          ==> Notes Spy {| Nonce (PRF(M,NA,NB)),
+			   Key (sessionK((NA,NB,M),b)) |} # evsSK : tls"
 
     ClientHello
 	 (*(7.4.1.2)
@@ -129,8 +129,7 @@ inductive tls
            The Note event records in the trace that she knows PMS
                (see REMARK at top). *)
          "[| evsCX: tls;  A ~= B;  Nonce PMS ~: used evsCX;  PMS ~: range PRF;
-             Says B'  A {|Nonce NB, Number SID, Number PB|} : set evsCX;
-             Says B'' A (certificate B KB) : set evsCX |]
+             Says B' A (certificate B KB) : set evsCX |]
           ==> Says A B (Crypt KB (Nonce PMS))
 	      # Notes A {|Agent B, Nonce PMS|}
 	      # evsCX  :  tls"
