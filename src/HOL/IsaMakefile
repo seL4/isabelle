@@ -34,7 +34,7 @@ TFL_FILES = ../TFL/ROOT.ML ../TFL/sys.sml \
             $(TFL_NAMES:%=../TFL/%.sig) $(TFL_NAMES:%=../TFL/%.sml)
 
 TFL:	$(OUT)/HOL $(TFL_FILES)
-	@$(ISABELLE) -e 'exit_use_dir"../TFL"; quit();' HOL
+	@$(ISABELLE) -qe 'exit_use_dir"../TFL"; quit();' HOL
 
 
 
