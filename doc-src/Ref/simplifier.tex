@@ -83,8 +83,9 @@ second but will leave the assumptions unchanged. See
 \S\ref{sec:reordering-asms} for ways around this problem.
 \end{warn}
 
-Using the simplifier effectively may take a bit of experimentation.  The
-tactics can be traced with the ML command \verb$trace_simp := true$.
+Using the simplifier effectively may take a bit of experimentation.  
+\index{tracing!of simplification|)}\ttindex{trace_simp}
+The tactics can be traced with the ML command \verb$trace_simp := true$.
 
 There is not just one global current simpset, but one associated with each
 theory as well. How are these simpset built up?
@@ -514,6 +515,7 @@ by (asm_simp_tac add_ss 1);
 \end{ttbox}
 
 \subsection{An example of tracing}
+\index{tracing!of simplification|(}\ttindex{trace_simp|(}
 Let us prove a similar result involving more complex terms.  The two
 equations together can be used to prove that addition is commutative.
 \begin{ttbox}
@@ -570,6 +572,7 @@ by (ALLGOALS (asm_simp_tac add_ss));
 {\out m + Suc(n) = Suc(m + n)}
 {\out No subgoals!}
 \end{ttbox}
+\index{tracing!of simplification|)}\ttindex{trace_simp|)}
 
 \subsection{Free variables and simplification}
 Here is a conjecture to be proved for an arbitrary function~$f$ satisfying
