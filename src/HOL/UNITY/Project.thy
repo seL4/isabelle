@@ -20,7 +20,7 @@ constdefs
 		 'c program set, 'c program set, 'a program set] => bool"
   "extending C h F X' Y' Y ==
      ALL G. F Join project (C G) h G : Y & extend h F Join G : X' &
-            Disjoint (extend h F) G
+            Disjoint UNIV (extend h F) G
             --> extend h F Join G : Y'"
 
 end

@@ -65,7 +65,7 @@ qed "uv_prop_finite";
 (*** guarantees ***)
 
 val prems = Goal
-     "(!!G. [| F Join G : X;  Disjoint F G |] ==> F Join G : Y) \
+     "(!!G. [| F Join G : X;  Disjoint UNIV F G |] ==> F Join G : Y) \
 \     ==> F : X guarantees Y";
 by (simp_tac (simpset() addsimps [guar_def, component_eq]) 1);
 by (blast_tac (claset() addIs prems) 1);
@@ -84,7 +84,7 @@ qed "component_guaranteesD";
 
 (*This equation is more intuitive than the official definition*)
 Goal "(F : X guarantees Y) = \
-\     (ALL G. F Join G : X & Disjoint F G --> F Join G : Y)";
+\     (ALL G. F Join G : X & Disjoint UNIV F G --> F Join G : Y)";
 by (simp_tac (simpset() addsimps [guar_def, component_eq]) 1);
 by (Blast_tac 1);
 qed "guarantees_eq";

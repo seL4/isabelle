@@ -388,19 +388,21 @@ qed "System_Increasing_giv";
 
 (*A LOT of work just to lift "Client_Progress" to the array*)
 Goal "lift_prog i Client \
-\  : Increasing (giv o sub i) Int ((%z. z i) localTo (lift_prog i Client)) \
+\  : Increasing (giv o sub i) Int ((%z. z i) localTo[UNIV] (lift_prog i Client)) \
 \    guarantees \
 \    (INT h. {s. h <=  (giv o sub i) s & \
 \                       h pfixGe (ask o sub i) s}  \
 \            LeadsTo {s. tokens h <= (tokens o rel o sub i) s})";
-br (Client_Progress RS drop_prog_guarantees) 1;
-br (lift_export extending_LeadsTo RS extending_weaken RS extending_INT) 2;
-br subset_refl 4;
+by (rtac (Client_Progress RS drop_prog_guarantees) 1);
+by (rtac (lift_export extending_LeadsTo RS extending_weaken RS extending_INT) 2);
+by (rtac subset_refl 4);
 by (simp_tac (simpset()addsimps [lift_export Collect_eq_extend_set RS sym]) 3);
 by (force_tac (claset(), simpset() addsimps [lift_prog_correct]) 2);
 by (rtac (lift_export projecting_Increasing RS projecting_weaken) 1);
 by (auto_tac (claset(), simpset() addsimps [o_def]));
 qed "Client_i_Progress";
+
+xxxxxxxxxxxxxxxx;
 
 Goalw [System_def]
      "i < Nclients \
@@ -408,15 +410,15 @@ Goalw [System_def]
 \                       h pfixGe (ask o sub i o client) s}  \
 \            LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})";
 by (rtac (guarantees_Join_I2 RS guaranteesD) 1);
-br (guarantees_PLam_I RS project_guarantees) 1;
-br Client_i_Progress  1;
+by (rtac (guarantees_PLam_I RS project_guarantees) 1);
+by (rtac Client_i_Progress  1);
 by (Force_tac 1);
-br (client_export extending_LeadsTo RS extending_weaken RS extending_INT) 2;
-br subset_refl 4;
+by (rtac (client_export extending_LeadsTo RS extending_weaken RS extending_INT) 2);
+by (rtac subset_refl 4);
 by (simp_tac (simpset()addsimps [client_export Collect_eq_extend_set RS sym]) 3);
-br projecting_Int 1;
-br (client_export projecting_Increasing) 1;
-br (client_export projecting_localTo) 1;
+by (rtac projecting_Int 1);
+by (rtac (client_export projecting_Increasing) 1);
+by (rtac (client_export projecting_localTo) 1);
 
 by (simp_tac (simpset()addsimps [lift_prog_correct]) 1);
 

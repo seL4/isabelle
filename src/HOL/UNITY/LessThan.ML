@@ -7,6 +7,61 @@ lessThan, greaterThan, atLeast, atMost
 *)
 
 
+(*** Restrict [MOVE TO RELATION.THY??] ***)
+
+Goalw [Restrict_def] "((x,y): Restrict A r) = ((x,y): r & x: A)";
+by (Blast_tac 1);
+qed "Restrict_iff";
+AddIffs [Restrict_iff];
+
+Goal "Restrict UNIV = id";
+by (rtac ext 1);
+by (auto_tac (claset(), simpset() addsimps [Restrict_def]));
+qed "Restrict_UNIV";
+Addsimps [Restrict_UNIV];
+
+Goal "Restrict {} r = {}";
+by (auto_tac (claset(), simpset() addsimps [Restrict_def]));
+qed "Restrict_empty";
+Addsimps [Restrict_empty];
+
+Goalw [Restrict_def] "Restrict A (Restrict B r) = Restrict (A Int B) r";
+by (Blast_tac 1);
+qed "Restrict_Int";
+Addsimps [Restrict_Int];
+
+Goalw [Restrict_def] "Domain r <= A ==> Restrict A r = r";
+by Auto_tac;
+qed "Restrict_triv";
+
+Goalw [Restrict_def] "Restrict A r <= r";
+by Auto_tac;
+qed "Restrict_subset";
+
+Goalw [Restrict_def]
+     "[| A <= B;  Restrict B r = Restrict B s |] \
+\     ==> Restrict A r = Restrict A s";
+by (blast_tac (claset() addSEs [equalityE]) 1);
+qed "Restrict_eq_mono";
+
+Goalw [Restrict_def, image_def]
+     "[| s : RR;  Restrict A r = Restrict A s |] \
+\     ==> Restrict A r : Restrict A `` RR";
+by Auto_tac;
+qed "Restrict_imageI";
+
+Goal "(Restrict A `` (Restrict A `` r - s)) = (Restrict A `` r - s)";
+by Auto_tac;
+by (rewrite_goals_tac [image_def, Restrict_def]);
+by (Blast_tac 1);
+qed "Restrict_image_Diff";
+
+(*Nothing to do with Restrict, but to specialized for Fun.ML?*)
+Goal "f``(g``A - B) = (UN x: (A - g-`` B). {f(g(x))})";
+by (Blast_tac 1);
+qed "image_Diff_image_eq";
+
+
 (*** lessThan ***)
 
 Goalw [lessThan_def] "(i: lessThan k) = (i<k)";

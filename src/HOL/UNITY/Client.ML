@@ -73,7 +73,7 @@ qed "stable_size_ask_le_rel";
 program_defs_ref := [];
 
 (*Safety property 2: clients return the right number of tokens*)
-Goal "Cli_prg : (Increasing giv Int (rel localTo Cli_prg))  \
+Goal "Cli_prg : (Increasing giv Int (rel localTo[UNIV] Cli_prg))  \
 \               guarantees Always {s. rel s <= giv s}";
 by (rtac guaranteesI 1);
 by (rtac AlwaysI 1);
@@ -101,7 +101,7 @@ val rewrite_o = rewrite_rule [o_def];
 val Increasing_length = mono_length RS mono_Increasing_o;
 
 Goal "Cli_prg : \
-\      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg)) \
+\      (Increasing giv Int (rel localTo[UNIV] Cli_prg) Int (ask localTo[UNIV] Cli_prg)) \
 \      guarantees Always ({s. size (ask s) <= Suc (size (rel s))} Int \
 \                            {s. size (rel s) <= size (giv s)})";
 by (rtac guaranteesI 1);
@@ -122,7 +122,7 @@ val lemma1 = result();
 
 
 Goal "Cli_prg : \
-\      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg) \
+\      (Increasing giv Int (rel localTo[UNIV] Cli_prg) Int (ask localTo[UNIV] Cli_prg) \
 \                 Int Always giv_meets_ask) \
 \      guarantees ({s. k < size (giv s)} LeadsTo {s. k < size (rel s)})";
 by (rtac guaranteesI 1);

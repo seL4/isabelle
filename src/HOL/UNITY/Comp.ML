@@ -62,7 +62,7 @@ by (blast_tac (claset() addSIs [program_equalityI]) 1);
 qed "component_antisym";
 
 Goalw [component_def]
-      "F <= H = (EX G. F Join G = H & Disjoint F G)";
+      "F <= H = (EX G. F Join G = H & Disjoint UNIV F G)";
 by (blast_tac (claset() addSIs [Diff_Disjoint, Join_Diff2]) 1);
 qed "component_eq";
 
@@ -77,8 +77,3 @@ by (auto_tac (claset(),
 qed "component_constrains";
 
 bind_thm ("program_less_le", strict_component_def RS meta_eq_to_obj_eq);
-
-Goal "Diff F (Acts G) <= F";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Diff_def, component_eq_subset]));
-qed "Diff_component";

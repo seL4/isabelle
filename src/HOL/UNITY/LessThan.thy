@@ -12,6 +12,10 @@ LessThan = Main +
 
 constdefs
 
+  (*MOVE TO RELATION.THY??*)
+  Restrict :: "[ 'a set, ('a*'b) set] => ('a*'b) set"
+    "Restrict A r == r Int (A Times UNIV)"
+
   lessThan   :: "nat => nat set"
      "lessThan n == {i. i<n}"
 

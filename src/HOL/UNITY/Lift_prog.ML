@@ -54,13 +54,8 @@ by Auto_tac;
 qed "lift_act_eq";
 AddIffs [lift_act_eq];
 
-Goalw [drop_act_def]
-     "[| (s, s') : act;  s : C |] ==> (s i, s' i) : drop_act C i act";
-by Auto_tac;
-qed "drop_act_I";
-
 Goalw [drop_set_def, drop_act_def]
-     "UNIV <= drop_set i C ==> drop_act C i Id = Id";
+     "UNIV <= drop_set i C ==> drop_act i (Restrict C Id) = Id";
 by (Blast_tac 1);
 qed "drop_act_Id";
 Addsimps [drop_act_Id];
@@ -82,7 +77,7 @@ by Auto_tac;
 qed "Init_drop_prog";
 Addsimps [Init_drop_prog];
 
-Goal "Acts (drop_prog C i F) = insert Id (drop_act C i `` Acts F)";
+Goal "Acts (drop_prog C i F) = insert Id (drop_act i `` Restrict C `` Acts F)";
 by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], 
 	      simpset() addsimps [drop_prog_def]));
 qed "Acts_drop_prog";
@@ -169,7 +164,7 @@ by (rtac bexI 1);
 by (auto_tac (claset() addSIs [exI], simpset()));
 qed "lift_act_correct";
 
-Goal "drop_act C i = project_act C (lift_map i)";
+Goal "drop_act i = project_act (lift_map i)";
 by (rtac ext 1);
 by (rewrite_goals_tac [project_act_def, drop_act_def, lift_map_def]);
 by Auto_tac;
@@ -230,12 +225,14 @@ by (simp_tac
 qed "lift_set_UNIV_eq";
 Addsimps [lift_set_UNIV_eq];
 
-Goal "Domain act <= drop_set i C ==> drop_act C i (lift_act i act) = act";
+(*
+Goal "Domain act <= drop_set i C ==> drop_act i (Restrict C (lift_act i act)) = act";
 by (asm_full_simp_tac
     (simpset() addsimps [drop_set_correct, drop_act_correct, 
 			 lift_act_correct, lift_export extend_act_inverse]) 1);
 qed "lift_act_inverse";
 Addsimps [lift_act_inverse];
+*)
 
 Goal "UNIV <= drop_set i C ==> drop_prog C i (lift_prog i F) = F";
 by (asm_full_simp_tac
@@ -314,9 +311,8 @@ qed "drop_prog_stable";
 
 (*** Diff, needed for localTo ***)
 
-Goal "[| (UN act:acts. Domain act) <= drop_set i C; \
-\        Diff G (lift_act i `` acts) : (lift_set i A) co (lift_set i B) |]  \
-\     ==> Diff (drop_prog C i G) acts : A co B";
+Goal "[| Diff C G (lift_act i `` acts) : (lift_set i A) co (lift_set i B) |] \
+\     ==> Diff (drop_set i C) (drop_prog C i G) acts : A co B";
 by (asm_full_simp_tac
     (simpset() addsimps [drop_set_correct, drop_prog_correct, 
 			 lift_set_correct, lift_act_correct, 
@@ -324,26 +320,10 @@ by (asm_full_simp_tac
 qed "Diff_drop_prog_constrains";
 
 Goalw [stable_def]
-     "[| (UN act:acts. Domain act) <= drop_set i C; \
-\        Diff G (lift_act i `` acts) : stable (lift_set i A) |]  \
-\     ==> Diff (drop_prog C i G) acts : stable A";
-by (etac Diff_drop_prog_constrains 1);
-by (assume_tac 1);
+     "[| Diff C G (lift_act i `` acts) : stable (lift_set i A) |]  \
+\     ==> Diff (drop_set i C) (drop_prog C i G) acts : stable A";
+by (blast_tac (claset() addIs [Diff_drop_prog_constrains]) 1);
 qed "Diff_drop_prog_stable";
-
-Goalw [constrains_def, Diff_def]
-     "Diff G acts : A co B  \
-\     ==> Diff (lift_prog i G) (lift_act i `` acts) \
-\         : (lift_set i A) co (lift_set i B)";
-by Auto_tac;
-by (Blast_tac 1);
-qed "Diff_lift_prog_co";
-
-Goalw [stable_def]
-     "Diff G acts : stable A  \
-\     ==> Diff (lift_prog i G) (lift_act i `` acts) : stable (lift_set i A)";
-by (etac Diff_lift_prog_co 1);
-qed "Diff_lift_prog_stable";
 
 
 (*** Weak safety primitives: Co, Stable ***)
@@ -466,19 +446,19 @@ by (dtac (lift_export extend_guar_Increasing) 1);
 by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
 qed "lift_prog_guar_Increasing";
 
-Goal "F : (v localTo G) guarantees increasing func  \
-\     ==> lift_prog i F : (v o sub i) localTo (lift_prog i G)  \
+Goal "F : (v localTo[UNIV] G) guarantees increasing func  \
+\     ==> lift_prog i F : (v o sub i) localTo[UNIV] (lift_prog i G)  \
 \                         guarantees increasing (func o sub i)";
 by (dtac (lift_export extend_localTo_guar_increasing) 1);
 by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
 qed "lift_prog_localTo_guar_increasing";
 
-Goal "F : (v localTo G) guarantees Increasing func  \
-\     ==> lift_prog i F : (v o sub i) localTo (lift_prog i G)  \
+Goal "F : (v LocalTo G) guarantees Increasing func  \
+\     ==> lift_prog i F : (v o sub i) LocalTo (lift_prog i G)  \
 \                         guarantees Increasing (func o sub i)";
-by (dtac (lift_export extend_localTo_guar_Increasing) 1);
+by (dtac (lift_export extend_LocalTo_guar_Increasing) 1);
 by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
-qed "lift_prog_localTo_guar_Increasing";
+qed "lift_prog_LocalTo_guar_Increasing";
 
 Goal "F : Always A guarantees Always B \
 \ ==> lift_prog i F : Always(lift_set i A) guarantees Always (lift_set i B)";
