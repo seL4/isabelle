@@ -17,6 +17,10 @@ open OtwayRees;
 proof_timing:=true;
 HOL_quantifiers := false;
 
+(*Replacing the variable by a constant improves search speed by 50%!*)
+val Says_imp_sees_Spy' = 
+    read_instantiate_sg (sign_of thy) [("lost","lost")] Says_imp_sees_Spy;
+
 
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
@@ -36,8 +40,8 @@ result();
 goal thy "!!evs. lost' <= lost ==> otway lost' <= otway lost";
 by (rtac subsetI 1);
 by (etac otway.induct 1);
-by (REPEAT_FIRST
-    (best_tac (!claset addIs (impOfSubs (sees_mono RS analz_mono RS synth_mono)
+by (ALLGOALS
+    (blast_tac (!claset addIs (impOfSubs(sees_mono RS analz_mono RS synth_mono)
                               :: otway.intrs))));
 qed "otway_mono";
 
@@ -54,17 +58,17 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 goal thy "!!evs. Says A' B {|N, Agent A, Agent B, X|} : set_of_list evs \
 \                ==> X : analz (sees lost Spy evs)";
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS analz.Inj]) 1);
 qed "OR2_analz_sees_Spy";
 
 goal thy "!!evs. Says S' B {|N, X, Crypt (shrK B) X'|} : set_of_list evs \
 \                ==> X : analz (sees lost Spy evs)";
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS analz.Inj]) 1);
 qed "OR4_analz_sees_Spy";
 
 goal thy "!!evs. Says Server B {|NA, X, Crypt K' {|NB,K|}|} : set_of_list evs \
 \                 ==> K : parts (sees lost Spy evs)";
-by (fast_tac (!claset addSEs sees_Spy_partsEs) 1);
+by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
 qed "Oops_parts_sees_Spy";
 
 (*OR2_analz... and OR4_analz... let us treat those cases using the same 
@@ -118,7 +122,7 @@ Addsimps [Spy_analz_shrK];
 
 goal thy  "!!A. [| Key (shrK A) : parts (sees lost Spy evs);       \
 \                  evs : otway lost |] ==> A:lost";
-by (fast_tac (!claset addDs [Spy_see_shrK]) 1);
+by (blast_tac (!claset addDs [Spy_see_shrK]) 1);
 qed "Spy_see_shrK_D";
 
 bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
@@ -135,8 +139,7 @@ by (best_tac
                addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
                unsafe_addss (!simpset)) 1);
-(*OR1-3*)
-by (REPEAT (fast_tac (!claset addss (!simpset)) 1));
+by (ALLGOALS Blast_tac);
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
@@ -158,7 +161,8 @@ goal thy
 \     ==> K ~: range shrK & (EX i. NA = Nonce i) & (EX j. NB = Nonce j)";
 by (etac rev_mp 1);
 by (etac otway.induct 1);
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
+by (ALLGOALS Simp_tac);
+by (ALLGOALS Blast_tac);
 qed "Says_Server_message_form";
 
 
@@ -195,7 +199,7 @@ by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 (*Base*)
-by (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1);
+by (Blast_tac 1);
 (*Fake, OR2, OR4*) 
 by (REPEAT (spy_analz_tac 1));
 qed_spec_mp "analz_image_freshK";
@@ -221,13 +225,12 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
 by (Step_tac 1);
 (*Remaining cases: OR3 and OR4*)
 by (ex_strip_tac 2);
-by (Fast_tac 2);
+by (Best_tac 2);
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message, and handle this case by contradiction*)
-by (fast_tac (!claset addSEs sees_Spy_partsEs
-                      delrules [conjI]    (*prevent split-up into 4 subgoals*)
-                      addss (!simpset addsimps [parts_insertI])) 1);
+by (blast_tac (!claset addSEs sees_Spy_partsEs
+                       delrules [conjI] (*no split-up into 4 subgoals*)) 1);
 val lemma = result();
 
 goal thy 
@@ -266,7 +269,7 @@ by (parts_induct_tac 1);
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
 (*OR1: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NA = ?y" 1);
-by (best_tac (!claset addSEs sees_Spy_partsEs) 1);
+by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
 val lemma = result();
 
 goal thy 
@@ -288,9 +291,8 @@ goal thy
 \            Crypt (shrK A) {|NA', NA, Agent A', Agent A|}       \
 \             ~: parts (sees lost Spy evs)";
 by (parts_induct_tac 1);
-by (REPEAT (fast_tac (!claset addSEs sees_Spy_partsEs
-                              addSDs  [impOfSubs parts_insert_subset_Un]
-                              addss (!simpset)) 1));
+by (REPEAT (blast_tac (!claset addSEs sees_Spy_partsEs
+                               addSDs  [impOfSubs parts_insert_subset_Un]) 1));
 qed_spec_mp"no_nonce_OR1_OR2";
 
 
@@ -309,25 +311,23 @@ goal thy
 \                   : set_of_list evs)";
 by (parts_induct_tac 1);
 (*OR1: it cannot be a new Nonce, contradiction.*)
-by (fast_tac (!claset addSIs [parts_insertI]
-                      addSEs sees_Spy_partsEs
-                      addss (!simpset)) 1);
+by (blast_tac (!claset addSIs [parts_insertI] addSEs sees_Spy_partsEs) 1);
 (*OR3 and OR4*) 
 (*OR4*)
 by (REPEAT (Safe_step_tac 2));
-by (REPEAT (best_tac (!claset addSDs [parts_cut]) 3));
+by (REPEAT (blast_tac (!claset addSDs [parts_cut]) 3));
 by (fast_tac (!claset addSIs [Crypt_imp_OR1]
                       addEs  sees_Spy_partsEs) 2);
 (*OR3*)  (** LEVEL 5 **)
 by (asm_simp_tac (!simpset addsimps [ex_disj_distrib]) 1);
 by (step_tac (!claset delrules [disjCI, impCE]) 1);
-by (fast_tac (!claset addSEs [MPair_parts]
-                      addSDs [Says_imp_sees_Spy RS parts.Inj]
+by (blast_tac (!claset addSEs [MPair_parts]
+                      addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addEs  [no_nonce_OR1_OR2 RSN (2, rev_notE)]
                       delrules [conjI] (*stop split-up into 4 subgoals*)) 2);
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addSEs [MPair_parts]
-                      addEs  [unique_NA]) 1);
+                      addIs  [unique_NA]) 1);
 qed_spec_mp "NA_Crypt_imp_Server_msg";
 
 
@@ -347,8 +347,8 @@ goal thy
 \                       Crypt (shrK A) {|NA, Key K|},              \
 \                       Crypt (shrK B) {|NB, Key K|}|}             \
 \                       : set_of_list evs";
-by (fast_tac (!claset addSIs [NA_Crypt_imp_Server_msg]
-                      addEs  sees_Spy_partsEs) 1);
+by (blast_tac (!claset addSIs [NA_Crypt_imp_Server_msg]
+                       addEs  sees_Spy_partsEs) 1);
 qed "A_trusts_OR4";
 
 
@@ -370,15 +370,13 @@ by (ALLGOALS
                             addsimps [not_parts_not_analz, analz_insert_freshK]
                             setloop split_tac [expand_if])));
 (*OR3*)
-by (fast_tac (!claset delrules [impCE]
-                      addSEs sees_Spy_partsEs
-                      addIs [impOfSubs analz_subset_parts]
-                      addss (!simpset addsimps [parts_insert2])) 3);
+by (blast_tac (!claset delrules [impCE]
+                       addSEs sees_Spy_partsEs
+                       addIs [impOfSubs analz_subset_parts]) 3);
 (*OR4, OR2, Fake*) 
 by (REPEAT_FIRST spy_analz_tac);
 (*Oops*) (** LEVEL 5 **)
-by (fast_tac (!claset delrules [disjE]
-                      addDs [unique_session_keys] addss (!simpset)) 1);
+by (blast_tac (!claset addSDs [unique_session_keys]) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 goal thy 
@@ -389,7 +387,7 @@ goal thy
 \           A ~: lost;  B ~: lost;  evs : otway lost |]                  \
 \        ==> Key K ~: analz (sees lost Spy evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (fast_tac (!claset addSEs [lemma]) 1);
+by (blast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
@@ -404,7 +402,7 @@ goal thy
 by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
 by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
 by (FIRSTGOAL (rtac Spy_not_see_encrypted_key));
-by (REPEAT_FIRST (fast_tac (!claset addIs [otway_mono RS subsetD])));
+by (REPEAT_FIRST (blast_tac (!claset addIs [otway_mono RS subsetD])));
 qed "Agent_not_see_encrypted_key";
 
 
@@ -421,7 +419,7 @@ goal thy
 \               Crypt (shrK B) {|NA, NB, Agent A, Agent B|}|}  \
 \             : set_of_list evs)";
 by (parts_induct_tac 1);
-by (auto_tac (!claset, !simpset addcongs [conj_cong]));
+by (ALLGOALS Blast_tac);
 bind_thm ("Crypt_imp_OR2", result() RSN (2,rev_mp) RS exE);
 
 
@@ -436,7 +434,7 @@ by (parts_induct_tac 1);
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
 (*OR2: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NB = ?y" 1);
-by (deepen_tac (!claset addSEs sees_Spy_partsEs) 3 1);
+by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
 val lemma = result();
 
 goal thy 
@@ -465,21 +463,18 @@ goal thy
 \                   : set_of_list evs)";
 by (parts_induct_tac 1);
 (*OR1: it cannot be a new Nonce, contradiction.*)
-by (fast_tac (!claset addSIs [parts_insertI]
-                      addSEs sees_Spy_partsEs
-                      addss (!simpset)) 1);
+by (blast_tac (!claset addSIs [parts_insertI] addSEs sees_Spy_partsEs) 1);
 (*OR4*)
-by (fast_tac (!claset addSEs [MPair_parts, Crypt_imp_OR2]) 2);
+by (blast_tac (!claset addSEs [MPair_parts, Crypt_imp_OR2]) 2);
 (*OR3*)
 by (step_tac (!claset delrules [disjCI, impCE]) 1);
-by (fast_tac (!claset delrules [conjI] (*stop split-up*)) 3); 
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
-                      addSEs [MPair_parts]
-                      addDs  [unique_NB]) 2);
-by (fast_tac (!claset addSEs [MPair_parts]
-                      addSDs [Says_imp_sees_Spy RS parts.Inj]
-                      addSEs  [no_nonce_OR1_OR2 RSN (2, rev_notE)]
-                      delrules [conjI, impCE] (*stop split-up*)) 1);
+by (blast_tac (!claset delrules [conjI] (*stop split-up*)) 3); 
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
+                       addSEs [MPair_parts]
+                       addDs  [unique_NB]) 2);
+by (blast_tac (!claset addSEs [MPair_parts, no_nonce_OR1_OR2 RSN (2, rev_notE)]
+                       addSDs [Says_imp_sees_Spy' RS parts.Inj]
+                       delrules [conjI, impCE] (*stop split-up*)) 1);
 qed_spec_mp "NB_Crypt_imp_Server_msg";
 
 
@@ -497,8 +492,8 @@ goal thy
 \                   Crypt (shrK A) {|NA, Key K|},                  \
 \                   Crypt (shrK B) {|NB, Key K|}|}                 \
 \                   : set_of_list evs";
-by (fast_tac (!claset addSIs [NB_Crypt_imp_Server_msg]
-                      addEs  sees_Spy_partsEs) 1);
+by (blast_tac (!claset addSIs [NB_Crypt_imp_Server_msg]
+                       addSEs sees_Spy_partsEs) 1);
 qed "B_trusts_OR3";
 
 
@@ -514,9 +509,10 @@ goal thy
 \                            Crypt (shrK B) {|NA, NB, Agent A, Agent B|} |} \
 \            : set_of_list evs)";
 by (etac otway.induct 1);
-by (Auto_tac());
-by (dtac (Says_imp_sees_Spy RS parts.Inj) 1);
-by (fast_tac (!claset addSEs [MPair_parts, Crypt_imp_OR2]) 1);
+by (ALLGOALS Asm_simp_tac);
+by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS parts.Inj]
+		       addSEs [MPair_parts, Crypt_imp_OR2]) 3);
+by (ALLGOALS Blast_tac);
 bind_thm ("OR3_imp_OR2", result() RSN (2,rev_mp) RS exE);
 
 
@@ -533,6 +529,6 @@ goal thy
 \        ==> EX NB X. Says B Server {|NA, Agent A, Agent B, X,     \
 \                              Crypt (shrK B)  {|NA, NB, Agent A, Agent B|} |}\
 \            : set_of_list evs";
-by (fast_tac (!claset addSDs  [A_trusts_OR4]
-                      addSEs [OR3_imp_OR2]) 1);
+by (blast_tac (!claset addSDs  [A_trusts_OR4]
+                       addSEs [OR3_imp_OR2]) 1);
 qed "A_auths_B";
