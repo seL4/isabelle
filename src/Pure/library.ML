@@ -249,7 +249,7 @@ fun find_index (pred: 'a->bool) : 'a list -> int =
   let fun find _ []      = ~1
         | find n (x::xs) = if pred x then n else find (n+1) xs
   in find 0 end;
-fun find_index_eq x = find_index (fn y => y = x);
+fun find_index_eq x = find_index (equal x);
 
 (*flatten a list of lists to a list*)
 fun flat (ls: 'c list list) : 'c list = foldr (op @) (ls, []);
