@@ -18,6 +18,7 @@ sig
   val parse_content: string list -> tree list * string list
   val parse_elem: string list -> tree * string list
   val parse_document: string list -> (string option * tree) * string list
+  val scan_comment_whspc : string list -> unit * string list
   val tree_of_string: string -> tree
 end;
 
@@ -111,6 +112,9 @@ val parse_att =
 val parse_comment = Scan.this_string "<!--" --
   Scan.repeat (Scan.unless (Scan.this_string "-->") (Scan.one Symbol.not_eof)) --
   Scan.this_string "-->";
+
+val scan_comment_whspc = 
+    (scan_whspc >> K()) --| (Scan.repeat (parse_comment |-- (scan_whspc >> K())));
 
 val parse_pi = Scan.this_string "<?" |--
   Scan.repeat (Scan.unless (Scan.this_string "?>") (Scan.one Symbol.not_eof)) --|
