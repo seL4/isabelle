@@ -31,7 +31,7 @@ Addsimps [simp_of_set reach_invariant_def];
 
 Goal "Rprg : Always reach_invariant";
 by (always_tac 1);
-by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
+by (blast_tac (claset() addIs rtranclIs) 1);
 qed "reach_invariant";
 
 
@@ -42,7 +42,7 @@ Goalw [fixedpoint_def]
      "fixedpoint Int reach_invariant = { %v. (init, v) : edges^* }";
 by (rtac equalityI 1);
 by (auto_tac (claset() addSIs [ext], simpset()));
-by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 2);
+by (blast_tac (claset() addIs rtranclIs) 2);
 by (etac rtrancl_induct 1);
 by Auto_tac;
 qed "fixedpoint_invariant_correct";

@@ -97,7 +97,7 @@ by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE";
 
 bind_thm ("rtrancl_into_rtrancl2", r_into_rtrancl RS rtrancl_trans);
-
+bind_thms("rtranclIs", [r_into_rtrancl, rtrancl_trans]);
 
 (*** More r^* equations and inclusions ***)
 
@@ -106,14 +106,14 @@ by Auto_tac;
 by (etac r_into_rtrancl 2);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (blast_tac (claset() addIs [rtrancl_trans]) 1);
+by (blast_tac (claset() addIs rtranclIs) 1);
 qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
 
 Goal "R^* O R^* = R^*";
 by (rtac set_ext 1);
 by (split_all_tac 1);
-by (blast_tac (claset() addIs [rtrancl_trans]) 1);
+by (blast_tac (claset() addIs rtranclIs) 1);
 qed "rtrancl_idemp_self_comp";
 Addsimps [rtrancl_idemp_self_comp];
 
@@ -153,13 +153,13 @@ qed "rtrancl_r_diff_Id";
 Goal "(x,y) : (r^-1)^* ==> (y,x) : r^*";
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
+by (blast_tac (claset() addIs rtranclIs) 1);
 qed "rtrancl_converseD";
 
 Goal "(y,x) : r^* ==> (x,y) : (r^-1)^*";
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
+by (blast_tac (claset() addIs rtranclIs) 1);
 qed "rtrancl_converseI";
 
 Goal "(r^-1)^* = (r^*)^-1";
@@ -288,7 +288,7 @@ qed "trans_trancl";
 bind_thm ("trancl_trans", trans_trancl RS transD);
 
 Goalw [trancl_def] "[| (x,y):r^*; (y,z):r^+ |] ==> (x,z):r^+";
-by (blast_tac (claset() addIs [rtrancl_trans,r_into_rtrancl]) 1);
+by (blast_tac (claset() addIs rtranclIs) 1);
 qed "rtrancl_trancl_trancl";
 
 (* "[| (a,b) : r;  (b,c) : r^+ |]   ==>  (a,c) : r^+" *)

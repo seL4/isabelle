@@ -65,12 +65,12 @@ AddSEs [K1_contractD];
 
 Goal "x ---> y ==> x#z ---> y#z";
 by (etac rtrancl_induct 1);
-by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
+by (ALLGOALS (blast_tac (claset() addIs rtranclIs)));
 qed "Ap_reduce1";
 
 Goal "x ---> y ==> z#x ---> z#y";
 by (etac rtrancl_induct 1);
-by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
+by (ALLGOALS (blast_tac (claset() addIs rtranclIs)));
 qed "Ap_reduce2";
 
 (** Counterexample to the diamond property for -1-> **)

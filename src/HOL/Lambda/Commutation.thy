@@ -132,7 +132,7 @@ lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
        rtrancl_converseI, converseI, Un_upper1 RS rtrancl_mono RS subsetD]) 1 *})
   apply (erule rtrancl_induct)
    apply blast
-  apply (blast del: rtrancl_refl intro: r_into_rtrancl rtrancl_trans)
+  apply (blast del: rtrancl_refl intro: rtranclIs)
   done
 
 end
