@@ -60,6 +60,14 @@ Goal "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)";
 by (Simp_tac 1);
 qed "binomial_Suc_Suc";
 
+Goal "ALL k. n < k --> (n choose k) = 0";
+by (induct_tac "n" 1);
+by Auto_tac;
+by (etac allE 1);
+by (etac mp 1);
+by (arith_tac 1);
+qed_spec_mp "binomial_eq_0";
+
 Addsimps [binomial_n_0, binomial_0_Suc, binomial_Suc_Suc];
 Delsimps [binomial_0, binomial_Suc];
 
@@ -87,3 +95,26 @@ by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "binomial_1";
 Addsimps [binomial_1];
+
+Goal "k <= n --> 0 < (n choose k)";
+by (res_inst_tac [("m","n"),("n","k")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed_spec_mp "zero_less_binomial";
+
+(*Might be more useful if re-oriented*)
+Goal "ALL k. k <= n --> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k";
+by (induct_tac "n" 1);
+by (simp_tac (simpset() addsimps [binomial_0]) 1);
+by (Clarify_tac 1);
+by (exhaust_tac "k" 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [add_mult_distrib, add_mult_distrib2,
+				  le_Suc_eq, binomial_eq_0]));
+qed_spec_mp "Suc_times_binomial_eq";
+
+Goal "k <= n ==> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k";
+by (asm_simp_tac
+    (simpset_of Nat.thy addsimps [Suc_times_binomial_eq, 
+				  div_mult_self_is_m]) 1);
+qed "binomial_Suc_Suc_eq_times";
+
