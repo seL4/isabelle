@@ -1,22 +1,58 @@
 (*  Title:      HOL/Recdef.thy
     ID:         $Id$
-    Author:     Konrad Slind
+    Author:     Konrad Slind and Markus Wenzel, TU Muenchen
 
 TFL: recursive function definitions.
 *)
 
 theory Recdef = Wellfounded_Relations + Datatype
 files
-  "../TFL/utils.sml"
-  "../TFL/usyntax.sml"
-  "../TFL/thms.sml"
-  "../TFL/dcterm.sml"
-  "../TFL/rules.sml"
-  "../TFL/thry.sml"
-  "../TFL/tfl.sml"
-  "../TFL/post.sml"
-  "Tools/recdef_package.ML":
+  ("../TFL/utils.ML")
+  ("../TFL/usyntax.ML")
+  ("../TFL/dcterm.ML")
+  ("../TFL/thms.ML")
+  ("../TFL/rules.ML")
+  ("../TFL/thry.ML")
+  ("../TFL/tfl.ML")
+  ("../TFL/post.ML")
+  ("Tools/recdef_package.ML"):
 
+lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
+  by (blast intro: someI)
+
+lemma tfl_eq_True: "(x = True) --> x"
+  by blast
+
+lemma tfl_rev_eq_mp: "(x = y) --> y --> x";
+  by blast
+
+lemma tfl_simp_thm: "(x --> y) --> (x = x') --> (x' --> y)"
+  by blast
+
+lemma tfl_P_imp_P_iff_True: "P ==> P = True"
+  by blast
+
+lemma tfl_imp_trans: "(A --> B) ==> (B --> C) ==> (A --> C)"
+  by blast
+
+lemma tfl_disj_assoc: "(a \<or> b) \<or> c == a \<or> (b \<or> c)"
+  by simp
+
+lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
+  by blast
+
+lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
+  by blast
+
+use "../TFL/utils.ML"
+use "../TFL/usyntax.ML"
+use "../TFL/dcterm.ML"
+use "../TFL/thms.ML"
+use "../TFL/rules.ML"
+use "../TFL/thry.ML"
+use "../TFL/tfl.ML"
+use "../TFL/post.ML"
+use "Tools/recdef_package.ML"
 setup RecdefPackage.setup
 
 lemmas [recdef_simp] =
