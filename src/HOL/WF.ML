@@ -6,10 +6,15 @@
 Wellfoundedness, induction, and  recursion
 *)
 
-open WF;
-
 val H_cong = read_instantiate [("f","H")] (standard(refl RS cong RS cong));
 val H_cong1 = refl RS H_cong;
+
+val [prem] = Goalw [wf_def]
+ "[| !!P x. [| !x. (!y. (y,x) : r --> P(y)) --> P(x) |] ==> P(x) |] ==> wf(r)";
+by (Clarify_tac 1);
+by (rtac prem 1);
+by (assume_tac 1);
+qed "wfUNIVI";
 
 (*Restriction to domain A.  If r is well-founded over A then wf(r)*)
 val [prem1,prem2] = Goalw [wf_def]
