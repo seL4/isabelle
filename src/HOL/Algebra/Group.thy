@@ -42,10 +42,10 @@ consts
   pow :: "[('a, 'm) monoid_scheme, 'a, 'b::number] => 'a" (infixr "'(^')\<index>" 75)
 
 defs (overloaded)
-  nat_pow_def: "pow G a n == nat_rec (one G) (%u b. mult G b a) n"
+  nat_pow_def: "pow G a n == nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a) n"
   int_pow_def: "pow G a z ==
-    let p = nat_rec (one G) (%u b. mult G b a)
-    in if neg z then m_inv G (p (nat (-z))) else p (nat z)"
+    let p = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
+    in if neg z then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z)"
 
 locale magma = struct G +
   assumes m_closed [intro, simp]:
@@ -62,14 +62,15 @@ locale monoid = semigroup +
     and r_one [simp]: "x \<in> carrier G ==> x \<otimes> \<one> = x"
 
 lemma monoidI:
+  includes struct G
   assumes m_closed:
-      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> mult G x y \<in> carrier G"
-    and one_closed: "one G \<in> carrier G"
+      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
+    and one_closed: "\<one> \<in> carrier G"
     and m_assoc:
       "!!x y z. [| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
-      mult G (mult G x y) z = mult G x (mult G y z)"
-    and l_one: "!!x. x \<in> carrier G ==> mult G (one G) x = x"
-    and r_one: "!!x. x \<in> carrier G ==> mult G x (one G) = x"
+      (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
+    and l_one: "!!x. x \<in> carrier G ==> \<one> \<otimes> x = x"
+    and r_one: "!!x. x \<in> carrier G ==> x \<otimes> \<one> = x"
   shows "monoid G"
   by (fast intro!: monoid.intro magma.intro semigroup_axioms.intro
     semigroup.intro monoid_axioms.intro
@@ -80,8 +81,8 @@ lemma (in monoid) Units_closed [dest]:
   by (unfold Units_def) fast
 
 lemma (in monoid) inv_unique:
-  assumes eq: "y \<otimes> x = \<one>" "x \<otimes> y' = \<one>"
-    and G: "x \<in> carrier G" "y \<in> carrier G" "y' \<in> carrier G"
+  assumes eq: "y \<otimes> x = \<one>"  "x \<otimes> y' = \<one>"
+    and G: "x \<in> carrier G"  "y \<in> carrier G"  "y' \<in> carrier G"
   shows "y = y'"
 proof -
   from G eq have "y = y \<otimes> (x \<otimes> y')" by simp
@@ -129,13 +130,13 @@ lemma (in monoid) Units_l_cancel [simp]:
    (x \<otimes> y = x \<otimes> z) = (y = z)"
 proof
   assume eq: "x \<otimes> y = x \<otimes> z"
-    and G: "x \<in> Units G" "y \<in> carrier G" "z \<in> carrier G"
+    and G: "x \<in> Units G"  "y \<in> carrier G"  "z \<in> carrier G"
   then have "(inv x \<otimes> x) \<otimes> y = (inv x \<otimes> x) \<otimes> z"
     by (simp add: m_assoc Units_closed)
   with G show "y = z" by (simp add: Units_l_inv)
 next
   assume eq: "y = z"
-    and G: "x \<in> Units G" "y \<in> carrier G" "z \<in> carrier G"
+    and G: "x \<in> Units G"  "y \<in> carrier G"  "z \<in> carrier G"
   then show "x \<otimes> y = x \<otimes> z" by simp
 qed
 
@@ -152,14 +153,14 @@ lemma (in monoid) inv_inj_on_Units:
   "inj_on (m_inv G) (Units G)"
 proof (rule inj_onI)
   fix x y
-  assume G: "x \<in> Units G" "y \<in> Units G" and eq: "inv x = inv y"
+  assume G: "x \<in> Units G"  "y \<in> Units G" and eq: "inv x = inv y"
   then have "inv (inv x) = inv (inv y)" by simp
   with G show "x = y" by simp
 qed
 
 lemma (in monoid) Units_inv_comm:
   assumes inv: "x \<otimes> y = \<one>"
-    and G: "x \<in> Units G" "y \<in> Units G"
+    and G: "x \<in> Units G"  "y \<in> Units G"
   shows "y \<otimes> x = \<one>"
 proof -
   from G have "x \<otimes> y \<otimes> x = x \<otimes> \<one>" by (auto simp add: inv Units_closed)
@@ -200,59 +201,58 @@ locale group = monoid +
   assumes Units: "carrier G <= Units G"
 
 theorem groupI:
+  includes struct G
   assumes m_closed [simp]:
-      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> mult G x y \<in> carrier G"
-    and one_closed [simp]: "one G \<in> carrier G"
+      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
+    and one_closed [simp]: "\<one> \<in> carrier G"
     and m_assoc:
       "!!x y z. [| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
-      mult G (mult G x y) z = mult G x (mult G y z)"
-    and l_one [simp]: "!!x. x \<in> carrier G ==> mult G (one G) x = x"
-    and l_inv_ex: "!!x. x \<in> carrier G ==> EX y : carrier G. mult G y x = one G"
+      (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
+    and l_one [simp]: "!!x. x \<in> carrier G ==> \<one> \<otimes> x = x"
+    and l_inv_ex: "!!x. x \<in> carrier G ==> EX y : carrier G. y \<otimes> x = \<one>"
   shows "group G"
 proof -
   have l_cancel [simp]:
     "!!x y z. [| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
-    (mult G x y = mult G x z) = (y = z)"
+    (x \<otimes> y = x \<otimes> z) = (y = z)"
   proof
     fix x y z
-    assume eq: "mult G x y = mult G x z"
-      and G: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
+    assume eq: "x \<otimes> y = x \<otimes> z"
+      and G: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
     with l_inv_ex obtain x_inv where xG: "x_inv \<in> carrier G"
-      and l_inv: "mult G x_inv x = one G" by fast
-    from G eq xG have "mult G (mult G x_inv x) y = mult G (mult G x_inv x) z"
+      and l_inv: "x_inv \<otimes> x = \<one>" by fast
+    from G eq xG have "(x_inv \<otimes> x) \<otimes> y = (x_inv \<otimes> x) \<otimes> z"
       by (simp add: m_assoc)
     with G show "y = z" by (simp add: l_inv)
   next
     fix x y z
     assume eq: "y = z"
-      and G: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
-    then show "mult G x y = mult G x z" by simp
+      and G: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
+    then show "x \<otimes> y = x \<otimes> z" by simp
   qed
   have r_one:
-    "!!x. x \<in> carrier G ==> mult G x (one G) = x"
+    "!!x. x \<in> carrier G ==> x \<otimes> \<one> = x"
   proof -
     fix x
     assume x: "x \<in> carrier G"
     with l_inv_ex obtain x_inv where xG: "x_inv \<in> carrier G"
-      and l_inv: "mult G x_inv x = one G" by fast
-    from x xG have "mult G x_inv (mult G x (one G)) = mult G x_inv x"
+      and l_inv: "x_inv \<otimes> x = \<one>" by fast
+    from x xG have "x_inv \<otimes> (x \<otimes> \<one>) = x_inv \<otimes> x"
       by (simp add: m_assoc [symmetric] l_inv)
-    with x xG show "mult G x (one G) = x" by simp 
+    with x xG show "x \<otimes> \<one> = x" by simp
   qed
   have inv_ex:
-    "!!x. x \<in> carrier G ==> EX y : carrier G. mult G y x = one G &
-      mult G x y = one G"
+    "!!x. x \<in> carrier G ==> EX y : carrier G. y \<otimes> x = \<one> & x \<otimes> y = \<one>"
   proof -
     fix x
     assume x: "x \<in> carrier G"
     with l_inv_ex obtain y where y: "y \<in> carrier G"
-      and l_inv: "mult G y x = one G" by fast
-    from x y have "mult G y (mult G x y) = mult G y (one G)"
+      and l_inv: "y \<otimes> x = \<one>" by fast
+    from x y have "y \<otimes> (x \<otimes> y) = y \<otimes> \<one>"
       by (simp add: m_assoc [symmetric] l_inv r_one)
-    with x y have r_inv: "mult G x y = one G"
+    with x y have r_inv: "x \<otimes> y = \<one>"
       by simp
-    from x y show "EX y : carrier G. mult G y x = one G &
-      mult G x y = one G"
+    from x y show "EX y : carrier G. y \<otimes> x = \<one> & x \<otimes> y = \<one>"
       by (fast intro: l_inv r_inv)
   qed
   then have carrier_subset_Units: "carrier G <= Units G"
@@ -265,7 +265,7 @@ qed
 
 lemma (in monoid) monoid_groupI:
   assumes l_inv_ex:
-    "!!x. x \<in> carrier G ==> EX y : carrier G. mult G y x = one G"
+    "!!x. x \<in> carrier G ==> EX y : carrier G. y \<otimes> x = \<one>"
   shows "group G"
   by (rule groupI) (auto intro: m_assoc l_inv_ex)
 
@@ -306,13 +306,13 @@ lemma (in group) r_cancel [simp]:
    (y \<otimes> x = z \<otimes> x) = (y = z)"
 proof
   assume eq: "y \<otimes> x = z \<otimes> x"
-    and G: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
+    and G: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
   then have "y \<otimes> (x \<otimes> inv x) = z \<otimes> (x \<otimes> inv x)"
     by (simp add: m_assoc [symmetric])
   with G show "y = z" by (simp add: r_inv)
 next
   assume eq: "y = z"
-    and G: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
+    and G: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
   then show "y \<otimes> x = z \<otimes> x" by simp
 qed
 
@@ -335,7 +335,7 @@ lemma (in group) inv_inj:
 lemma (in group) inv_mult_group:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> inv (x \<otimes> y) = inv y \<otimes> inv x"
 proof -
-  assume G: "x \<in> carrier G" "y \<in> carrier G"
+  assume G: "x \<in> carrier G"  "y \<in> carrier G"
   then have "inv (x \<otimes> y) \<otimes> (x \<otimes> y) = (inv y \<otimes> inv x) \<otimes> (x \<otimes> y)"
     by (simp add: m_assoc l_inv) (simp add: m_assoc [symmetric] l_inv)
   with G show ?thesis by simp
@@ -343,14 +343,14 @@ qed
 
 lemma (in group) inv_comm:
   "[| x \<otimes> y = \<one>; x \<in> carrier G; y \<in> carrier G |] ==> y \<otimes> x = \<one>"
-  by (rule Units_inv_comm) auto                          
+  by (rule Units_inv_comm) auto
 
 lemma (in group) inv_equality:
      "[|y \<otimes> x = \<one>; x \<in> carrier G; y \<in> carrier G|] ==> inv x = y"
 apply (simp add: m_inv_def)
 apply (rule the_equality)
- apply (simp add: inv_comm [of y x]) 
-apply (rule r_cancel [THEN iffD1], auto) 
+ apply (simp add: inv_comm [of y x])
+apply (rule r_cancel [THEN iffD1], auto)
 done
 
 text {* Power *}
@@ -493,10 +493,10 @@ subsection {* Direct Products *}
 constdefs (structure G and H)
   DirProdSemigroup :: "_ => _ => ('a \<times> 'b) semigroup"  (infixr "\<times>\<^sub>s" 80)
   "G \<times>\<^sub>s H == (| carrier = carrier G \<times> carrier H,
-    mult = (%(xg, xh) (yg, yh). (xg \<otimes> yg, xh \<otimes>\<^sub>2 yh)) |)"
+    mult = (%(g, h) (g', h'). (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')) |)"
 
   DirProdGroup :: "_ => _ => ('a \<times> 'b) monoid"  (infixr "\<times>\<^sub>g" 80)
-  "G \<times>\<^sub>g H == semigroup.extend (G \<times>\<^sub>s H) (| one = (\<one>, \<one>\<^sub>2) |)"
+  "G \<times>\<^sub>g H == semigroup.extend (G \<times>\<^sub>s H) (| one = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>) |)"
 
 lemma DirProdSemigroup_magma:
   includes magma G + magma H
@@ -550,18 +550,18 @@ lemma carrier_DirProdGroup [simp]:
   by (simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma one_DirProdGroup [simp]:
-     "one (G \<times>\<^sub>g H) = (one G, one H)"
+     "\<one>\<^bsub>(G \<times>\<^sub>g H)\<^esub> = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>)"
   by (simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma mult_DirProdGroup [simp]:
-     "mult (G \<times>\<^sub>g H) (g, h) (g', h') = (mult G g g', mult H h h')"
+     "(g, h) \<otimes>\<^bsub>(G \<times>\<^sub>g H)\<^esub> (g', h') = (g \<otimes>\<^bsub>G\<^esub> g', h \<otimes>\<^bsub>H\<^esub> h')"
   by (simp add: DirProdGroup_def DirProdSemigroup_def semigroup.defs)
 
 lemma inv_DirProdGroup [simp]:
   includes group G + group H
   assumes g: "g \<in> carrier G"
       and h: "h \<in> carrier H"
-  shows "m_inv (G \<times>\<^sub>g H) (g, h) = (m_inv G g, m_inv H h)"
+  shows "m_inv (G \<times>\<^sub>g H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
   apply (rule group.inv_equality [OF DirProdGroup_group])
   apply (simp_all add: prems group_def group.l_inv)
   done
@@ -572,7 +572,7 @@ constdefs (structure G and H)
   hom :: "_ => _ => ('a => 'b) set"
   "hom G H ==
     {h. h \<in> carrier G -> carrier H &
-      (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes> y) = h x \<otimes>\<^sub>2 h y)}"
+      (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
 lemma (in semigroup) hom:
   includes semigroup G
@@ -586,9 +586,9 @@ next
 qed
 
 lemma hom_mult:
-  "[| h \<in> hom G H; x \<in> carrier G; y \<in> carrier G |] 
-   ==> h (mult G x y) = mult H (h x) (h y)"
-  by (simp add: hom_def) 
+  "[| h \<in> hom G H; x \<in> carrier G; y \<in> carrier G |]
+   ==> h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
+  by (simp add: hom_def)
 
 lemma hom_closed:
   "[| h \<in> hom G H; x \<in> carrier G |] ==> h x \<in> carrier H"
@@ -598,9 +598,9 @@ lemma compose_hom:
      "[|group G; h \<in> hom G G; h' \<in> hom G G; h' \<in> carrier G -> carrier G|]
       ==> compose (carrier G) h h' \<in> hom G G"
 apply (simp (no_asm_simp) add: hom_def)
-apply (intro conjI) 
+apply (intro conjI)
  apply (force simp add: funcset_compose hom_def)
-apply (simp add: compose_def group.axioms hom_mult funcset_mem) 
+apply (simp add: compose_def group.axioms hom_mult funcset_mem)
 done
 
 locale group_hom = group G + group H + var h +
@@ -613,9 +613,9 @@ lemma (in group_hom) one_closed [simp]:
   by simp
 
 lemma (in group_hom) hom_one [simp]:
-  "h \<one> = \<one>\<^sub>2"
+  "h \<one> = \<one>\<^bsub>H\<^esub>"
 proof -
-  have "h \<one> \<otimes>\<^sub>2 \<one>\<^sub>2 = h \<one> \<otimes>\<^sub>2 h \<one>"
+  have "h \<one> \<otimes>\<^bsub>H\<^esub> \<one>\<^bsub>H\<^esub> = h \<one> \<otimes>\<^sub>2 h \<one>"
     by (simp add: hom_mult [symmetric] del: hom_mult)
   then show ?thesis by (simp del: r_one)
 qed
@@ -625,14 +625,14 @@ lemma (in group_hom) inv_closed [simp]:
   by simp
 
 lemma (in group_hom) hom_inv [simp]:
-  "x \<in> carrier G ==> h (inv x) = inv\<^sub>2 (h x)"
+  "x \<in> carrier G ==> h (inv x) = inv\<^bsub>H\<^esub> (h x)"
 proof -
   assume x: "x \<in> carrier G"
-  then have "h x \<otimes>\<^sub>2 h (inv x) = \<one>\<^sub>2"
+  then have "h x \<otimes>\<^bsub>H\<^esub> h (inv x) = \<one>\<^bsub>H\<^esub>"
     by (simp add: hom_mult [symmetric] G.r_inv del: hom_mult)
-  also from x have "... = h x \<otimes>\<^sub>2 inv\<^sub>2 (h x)"
+  also from x have "... = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)"
     by (simp add: hom_mult [symmetric] H.r_inv del: hom_mult)
-  finally have "h x \<otimes>\<^sub>2 h (inv x) = h x \<otimes>\<^sub>2 inv\<^sub>2 (h x)" .
+  finally have "h x \<otimes>\<^bsub>H\<^esub> h (inv x) = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)" .
   with x show ?thesis by simp
 qed
 
@@ -653,7 +653,7 @@ lemma (in comm_semigroup) m_lcomm:
   "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
    x \<otimes> (y \<otimes> z) = y \<otimes> (x \<otimes> z)"
 proof -
-  assume xyz: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
+  assume xyz: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
   from xyz have "x \<otimes> (y \<otimes> z) = (x \<otimes> y) \<otimes> z" by (simp add: m_assoc)
   also from xyz have "... = (y \<otimes> x) \<otimes> z" by (simp add: m_comm)
   also from xyz have "... = y \<otimes> (x \<otimes> z)" by (simp add: m_assoc)
@@ -665,15 +665,16 @@ lemmas (in comm_semigroup) m_ac = m_assoc m_comm m_lcomm
 locale comm_monoid = comm_semigroup + monoid
 
 lemma comm_monoidI:
+  includes struct G
   assumes m_closed:
-      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> mult G x y \<in> carrier G"
-    and one_closed: "one G \<in> carrier G"
+      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
+    and one_closed: "\<one> \<in> carrier G"
     and m_assoc:
       "!!x y z. [| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
-      mult G (mult G x y) z = mult G x (mult G y z)"
-    and l_one: "!!x. x \<in> carrier G ==> mult G (one G) x = x"
+      (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
+    and l_one: "!!x. x \<in> carrier G ==> \<one> \<otimes> x = x"
     and m_comm:
-      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> mult G x y = mult G y x"
+      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y = y \<otimes> x"
   shows "comm_monoid G"
   using l_one
   by (auto intro!: comm_monoid.intro magma.intro semigroup_axioms.intro
@@ -682,20 +683,17 @@ lemma comm_monoidI:
 
 lemma (in monoid) monoid_comm_monoidI:
   assumes m_comm:
-      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> mult G x y = mult G y x"
+      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y = y \<otimes> x"
   shows "comm_monoid G"
   by (rule comm_monoidI) (auto intro: m_assoc m_comm)
-(*
-lemma (in comm_monoid) r_one [simp]:
+(*lemma (in comm_monoid) r_one [simp]:
   "x \<in> carrier G ==> x \<otimes> \<one> = x"
 proof -
   assume G: "x \<in> carrier G"
   then have "x \<otimes> \<one> = \<one> \<otimes> x" by (simp add: m_comm)
   also from G have "... = x" by simp
   finally show ?thesis .
-qed
-*)
-
+qed*)
 lemma (in comm_monoid) nat_pow_distr:
   "[| x \<in> carrier G; y \<in> carrier G |] ==>
   (x \<otimes> y) (^) (n::nat) = x (^) n \<otimes> y (^) n"
@@ -705,22 +703,23 @@ locale comm_group = comm_monoid + group
 
 lemma (in group) group_comm_groupI:
   assumes m_comm: "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==>
-      mult G x y = mult G y x"
+      x \<otimes> y = y \<otimes> x"
   shows "comm_group G"
   by (fast intro: comm_group.intro comm_semigroup_axioms.intro
     group.axioms prems)
 
 lemma comm_groupI:
+  includes struct G
   assumes m_closed:
-      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> mult G x y \<in> carrier G"
-    and one_closed: "one G \<in> carrier G"
+      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y \<in> carrier G"
+    and one_closed: "\<one> \<in> carrier G"
     and m_assoc:
       "!!x y z. [| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
-      mult G (mult G x y) z = mult G x (mult G y z)"
+      (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
     and m_comm:
-      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> mult G x y = mult G y x"
-    and l_one: "!!x. x \<in> carrier G ==> mult G (one G) x = x"
-    and l_inv_ex: "!!x. x \<in> carrier G ==> EX y : carrier G. mult G y x = one G"
+      "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<otimes> y = y \<otimes> x"
+    and l_one: "!!x. x \<in> carrier G ==> \<one> \<otimes> x = x"
+    and l_inv_ex: "!!x. x \<in> carrier G ==> EX y : carrier G. y \<otimes> x = \<one>"
   shows "comm_group G"
   by (fast intro: group.group_comm_groupI groupI prems)
 
