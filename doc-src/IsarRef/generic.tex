@@ -171,7 +171,7 @@ command required.
 \begin{descr}
 \item [$\ALSO~(thms)$] maintains the auxiliary $calculation$ register as
   follows.  The first occurrence of $\ALSO$ in some calculational thread
-  initialises $calculation$ by $this$. Any subsequent $\ALSO$ on the same
+  initializes $calculation$ by $this$. Any subsequent $\ALSO$ on the same
   level of block-structure updates $calculation$ by some transitivity rule
   applied to $calculation$ and $this$ (in that order).  Transitivity rules are
   picked from the current context plus those given as $thms$ (the latter have
@@ -252,7 +252,7 @@ axiomatic type classes, including instantiation proofs.
 \end{matharray}
 
 \begin{rail}
-  'simp' (simpmod * )
+  'simp' ('!' ?) (simpmod * )
   ;
 
   simpmod: ('add' | 'del' | 'only' | 'other') ':' thmrefs
@@ -264,21 +264,16 @@ axiomatic type classes, including instantiation proofs.
   adding or deleting rules as specified.  The \railtoken{only} modifier first
   removes all other rewrite rules and congruences, and then is like
   \railtoken{add}.  In contrast, \railtoken{other} ignores its arguments;
-  nevertheless there may be side-effects on the context via attributes.  This
-  provides a back door for arbitrary context manipulation.
+  nevertheless there may be side-effects on the context via
+  attributes.\footnote{This provides a back door for arbitrary context
+    manipulation.}
   
-  The $simp$ method is based on \texttt{asm_full_simp_tac} (see also
-  \cite[\S10]{isabelle-ref}), but is much better behaved in practice.  Only
-  the local premises of the actual goal are involved by default.  Additional
-  facts may be insert via forward-chaining (using $\THEN$, $\FROMNAME$ etc.).
-  The full context of assumptions is
-
-; $simp$ removes any premises of the goal, before
-  inserting the goal facts; $asm_simp$ leaves the premises.  Thus $asm_simp$
-  may refer to premises that are not explicitly spelled out, potentially
-  obscuring the reasoning.  The plain $simp$ method is more faithful in the
-  sense that, apart from the rewrite rules of the current context, \emph{at
-    most} the explicitly provided facts may participate in the simplification.
+  The $simp$ method is based on \texttt{asm_full_simp_tac}
+  \cite[\S10]{isabelle-ref}, but is much better behaved in practice.  Just the
+  local premises of the actual goal are involved by default.  Additional facts
+  may be inserted via forward-chaining (using $\THEN$, $\FROMNAME$ etc.).  The
+  full context of assumptions is only included in the $simp!$ version, which
+  should be used with care.
 \end{descr}
 
 \subsection{Modifying the context}
@@ -311,8 +306,11 @@ axiomatic type classes, including instantiation proofs.
 \end{matharray}
 
 These attributes provide forward rules for simplification, which should be
-used only very rarely.  See the ML functions of the same name in
-\cite[\S10]{isabelle-ref} for more information.
+used only very rarely.  There are no separate options for adding or deleting
+simplification rules locally.
+
+See the ML functions of the same name in \cite[\S10]{isabelle-ref} for more
+information.
 
 
 \section{The Classical Reasoner}
@@ -334,19 +332,19 @@ used only very rarely.  See the ML functions of the same name in
 
 \begin{descr}
 \item [$rule$] as offered by the classical reasoner is a refinement over the
-  primitive one (see \S\ref{sec:pure-meth}).  In the case that no rules are
+  primitive one (see \S\ref{sec:pure-meth}).  In case that no rules are
   provided as arguments, it automatically determines elimination and
   introduction rules from the context (see also \S\ref{sec:classical-mod}).
   In that form it is the default method for basic proof steps, such as
   $\PROOFNAME$ and ``$\DDOT$'' (two dots).
   
 \item [$intro$ and $elim$] repeatedly refine some goal by intro- or
-  elim-resolution, after having inserted the facts.  Omitting the arguments
+  elim-resolution, after having inserted any facts.  Omitting the arguments
   refers to any suitable rules from the context, otherwise only the explicitly
   given ones may be applied.  The latter form admits better control of what
   actually happens, thus it is very appropriate as an initial method for
   $\PROOFNAME$ that splits up certain connectives of the goal, before entering
-  the sub-proof.
+  the actual proof.
   
 \item [$contradiction$] solves some goal by contradiction, deriving any result
   from both $\neg A$ and $A$.  Facts, which are guaranteed to participate, may
@@ -370,9 +368,9 @@ used only very rarely.  See the ML functions of the same name in
 \railterm{slowbest}
 
 \begin{rail}
-  'blast' nat? (clamod * )
+  'blast' ('!' ?) nat? (clamod * )
   ;
-  ('fast' | 'best' | 'slow' | slowbest) (clamod * )
+  ('fast' | 'best' | 'slow' | slowbest) ('!' ?) (clamod * )
   ;
 
   clamod: (('intro' | 'elim' | 'dest') (() | '!' | '!!') | 'del') ':' thmrefs
@@ -401,7 +399,7 @@ rules.  There semantics is analogous to the attributes given in
 \end{matharray}
 
 \begin{rail}
-  ('force' | 'auto') (clasimpmod * )
+  ('force' | 'auto') ('!' ?) (clasimpmod * )
   ;
 
   clasimpmod: ('simp' ('add' | 'del' | 'only') | other |
@@ -413,8 +411,8 @@ rules.  There semantics is analogous to the attributes given in
   simplification and classical reasoning tactics.  See \texttt{force_tac} and
   \texttt{auto_tac} in \cite[\S11]{isabelle-ref} for more information.  The
   modifier arguments correspond to those given in \S\ref{sec:simp} and
-  \S\ref{sec:classical-auto}.  Note that the ones related to the Simplifier
-  are prefixed by \railtoken{simp} here.
+  \S\ref{sec:classical-auto}.  Just note that the ones related to the
+  Simplifier are prefixed by \railtoken{simp} here.
 \end{descr}
 
 \subsection{Modifying the context}\label{sec:classical-mod}
@@ -447,7 +445,6 @@ rules.  There semantics is analogous to the attributes given in
   Note that destruction rules would have to be turned into elimination rules
   first, e.g.\ by using the $elimify$ attribute.
 \end{descr}
-
 
 %%% Local Variables: 
 %%% mode: latex
