@@ -199,7 +199,7 @@ subsection {* Chain-finite and flat cpos *}
 
 text {* further useful classes for HOLCF domains *}
 
-axclass chfin < cpo
+axclass chfin < po
   chfin: 	"!Y. chain Y-->(? n. max_in_chain n Y)"
 
 axclass flat < pcpo
@@ -207,10 +207,20 @@ axclass flat < pcpo
 
 text {* some properties for chfin and flat *}
 
+text {* chfin types are cpo *}
+
+lemma chfin_imp_cpo:
+  "chain (S::nat=>'a::chfin) ==> EX x. range S <<| x"
+apply (frule chfin [rule_format])
+apply (blast intro: lub_finch1)
+done
+
+instance chfin < cpo
+by intro_classes (rule chfin_imp_cpo)
+
 text {* flat types are chfin *}
 
 lemma flat_imp_chfin: 
-  -- {*Used only in an "instance" declaration (Fun1.thy)*}
      "ALL Y::nat=>'a::flat. chain Y --> (EX n. max_in_chain n Y)"
 apply (unfold max_in_chain_def)
 apply clarify
