@@ -1,6 +1,11 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+* HOL: introduced f^n = f o ... o f
+  WARNING: due to the limits of Isabelle's type classes, ^ on functions and
+  relations has too general a domain, namely ('a * 'b)set and 'a => 'b.
+  This means that it may be necessary to attach explicit type constraints.
+
 * Classical reasoner: renamed addaltern to addafter, addSaltern to addSafter
 
 * HOL: added safe wrapper "split_conv_tac" to claset. EXISTING PROOFS MAY FAIL
