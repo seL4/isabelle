@@ -227,7 +227,7 @@ if (chead mem inp) then
 error("Input action " ^ tr ^ " was not specified")
 ) else (
 if (chead mem (out@int)) then
-(writeln("Action " ^ tr ^ " was completedly disabled due to missing specification")) else print("");
+(writeln("Action " ^ tr ^ " was completedly disabled due to missing specification")) else ();
 (tr ^ " => False",tr ^ " => False")) |
 write_alt thy (chead,ctrm) inp out int ((a,b,c,d,e)::r) =
 let
