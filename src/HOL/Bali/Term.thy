@@ -106,37 +106,33 @@ translations
   "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
 -- "function codes for unary operations"
-datatype unop =  UPlus    -- {*{\tt +} unary plus*} 
-               | UMinus   -- {*{\tt -} unary minus*}
-               | UBitNot  -- {*{\tt ~} bitwise NOT*}
-               | UNot     -- {*{\tt !} logical complement*}
+datatype unop =  UPlus    
+               | UMinus   
+               | UBitNot  
+               | UNot     
 
 -- "function codes for binary operations"
-datatype binop = Mul     -- {*{\tt * }   multiplication*}
-               | Div     -- {*{\tt /}   division*}
-               | Mod     -- {*{\tt %}   remainder*}
-               | Plus    -- {*{\tt +}   addition*}
-               | Minus   -- {*{\tt -}   subtraction*}
-               | LShift  -- {*{\tt <<}  left shift*}
-               | RShift  -- {*{\tt >>}  signed right shift*}
-               | RShiftU -- {*{\tt >>>} unsigned right shift*}
-               | Less    -- {*{\tt <}   less than*}
-               | Le      -- {*{\tt <=}  less than or equal*}
-               | Greater -- {*{\tt >}   greater than*}
-               | Ge      -- {*{\tt >=}  greater than or equal*}
-               | Eq      -- {*{\tt ==}  equal*}
-               | Neq     -- {*{\tt !=}  not equal*}
-               | BitAnd  -- {*{\tt &}   bitwise AND*}
-               | And     -- {*{\tt &}   boolean AND*}
-               | BitXor  -- {*{\tt ^}   bitwise Xor*}
-               | Xor     -- {*{\tt ^}   boolean Xor*}
-               | BitOr   -- {*{\tt |}   bitwise Or*}
-               | Or      -- {*{\tt |}   boolean Or*}
-text{* The boolean operators {\tt &} and {\tt |} strictly evaluate both
-of their arguments. The lazy operators {\tt &&} and {\tt ||} are modeled
-as instances of the @{text Cond} expression: {\tt a && b = a?b:false} and
-  {\tt a || b = a?true:b}
-*}
+datatype binop = Mul     
+               | Div     
+               | Mod     
+               | Plus    
+               | Minus   
+               | LShift  
+               | RShift  
+               | RShiftU 
+               | Less    
+               | Le      
+               | Greater 
+               | Ge      
+               | Eq      
+               | Neq     
+               | BitAnd  
+               | And     
+               | BitXor  
+               | Xor     
+               | BitOr   
+               | Or      
+
 datatype var
 	= LVar                  lname(* local variable (incl. parameters) *)
         | FVar qtname qtname bool expr vname
