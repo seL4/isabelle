@@ -33,10 +33,6 @@ if_svc_enabled time_use_thy "svc_test";
 time_use_thy "MonoidGroup";
 time_use_thy "Records";
 
-(*groups via locales*)
-time_use_thy "PiSets";
-time_use_thy "LocaleGroup";
-
 (*advanced concrete syntax*)
 time_use_thy "Tuple";
 time_use_thy "Antiquote";
