@@ -42,7 +42,6 @@ syntax
   
  SeqO           :: "o => seqobj"                        ("_")
  SeqId          :: "'a => seqobj"                       ("$_")
- SeqVar         :: "var => seqobj"                      ("$_")
 
 types
     
