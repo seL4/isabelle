@@ -62,7 +62,7 @@ theorems basic_monos [mono] =
   imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
   not_all not_ex
   Ball_def Bex_def
-  inductive_rulify2
+  induct_rulify2
 
 
 subsubsection {* Inductive datatypes and primitive recursion *}
