@@ -1,39 +1,88 @@
-ERRATA in Springer book
+$Id$
+ERRATA in the book "Isabelle: A Generic Theorem Prover"
+by Lawrence C. Paulson (contributions by Tobias Nipkow)
+
+Some of these errors are typographical but most of them are due to continuing
+changes to Isabelle.
 
 Thanks to Sara Kalvala, Tobias Nipkow
 
-* = corrected by sending new pages
 
-*page 50: In section heading, Mixfix should be mixfix
+INTRODUCTION TO ISABELLE
 
-*page 217 and 251: fst and snd should be fst_conv and snd_conv.
-*Also affects index: pages 310 and 317!
+Advanced Methods
 
-*page 224: type of id, namely $\To i$, should be $i \To i$ 
+page 52, middle: the declaration "types bool,nat" should be "types bool nat"
 
-Intro/advanced
-page 52: the declaration  "types bool,nat"  is illegal    
-
-should be addsimps in 'val add_ss = FOL_ss addrews [add_0, add_Suc]'
+page 57, bottom: should be addsimps in 
+	val add_ss = FOL_ss addrews [add_0, add_Suc]
 
 
-Ref/introduction: documented show_brackets; added\pageref{sec:goals-printing}
+ISABELLE REFERENCE MANUAL
 
-Ref/goals: in 'Printing the proof state' added \ref{sec:printing-control}
+Introduction
 
-Ref/tactic: documented subgoals_tac
+page 67: show_brackets is another flag, controlling display of bracketting
 
-Ref/theories: added init_thy_reader and removed extend_theory.
+Tactics
 
-Ref/defining: type constraints ("::") now have a very low priority of 4.
-              As in ML, they must be enclosed in paretheses most of the time.
+page 85: subgoals_tac is another tactic, for multiple calls to subgoal_tac
 
-Ref/syntax (page 145?): deleted repeated "the" in "before the the .thy file"
+Theories
 
-Logics/ZF: ****************
-renamed mem_anti_sym and mem_anti_refl to mem_asym and mem_irrefl
-renamed union_iff to Union_iff
-renamed power_set to Pow_iff
-DiffD2: now is really a destruction rule
-escaped braces in qconverse_def, QSigma_def, lfp_def, gfp_def
+page 117: the three lines of ML shown can be abbreviated to just
+	init_thy_reader();
 
+page 118: extend_theory has been replaced by numerous functions for adding
+types, constants, axioms, etc.
+
+Defining Logics
+
+page 127: type constraints ("::") now have a very low priority of 4.
+As in ML, they must usually be enclosed in paretheses.
+
+Syntax Transformations
+
+page 145, line -5: delete repeated "the" in "before the the .thy file"
+
+
+ISABELLE'S OBJECT-LOGICS
+
+Zermelo-Fraenkel Set Theory
+
+page 209: axioms have been renamed:
+	union_iff is now Union_iff
+	power_set is now Pow_iff
+
+page 215, bottom of figure 17.10: DiffD2 is now  "c : A - B ==> c ~: B"
+
+page 215, bottom: rules mem_anti_sym and mem_anti_refl are now mem_asym and
+mem_irrefl
+
+page 222, top: missing braces in qconverse_def (around right-hand side)
+and QSigma_def (around <x;y>)
+
+page 223, top: lfp_def, gfp_def have missing braces around the argument of
+Inter, Union
+
+page 228: now there is also a theory of cardinal numbers and some
+developments involving the Axiom of Choice.
+
+page 229: now there is another examples directory, IMP (a semantics
+equivalence proof for an imperative language)
+
+Higher-Order Logic
+
+page 243: Pow is a new constant of type 'a set => 'a set set
+
+page 246: Pow is defined by   Pow(A) == {B. B <= A}
+
+page 248: Pow has the rules
+	PowI     A<=B ==> A: Pow(B)
+	PowD     A: Pow(B) ==> A<=B
+
+page 259: HOL theory files may now include datatype declarations and
+(co)inductive definitions.  (Two sections added.)
+
+page 259: now there is another examples directory, IMP (a semantics
+equivalence proof for an imperative language)
