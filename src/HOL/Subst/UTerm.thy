@@ -1,4 +1,4 @@
-(*  Title:      Substitutions/UTerm.thy
+(*  Title:      Subst/UTerm.thy
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -6,60 +6,32 @@ Simple term structure for unification.
 Binary trees with leaves that are constants or variables.
 *)
 
-UTerm = Sexp +
+UTerm = Finite + 
 
-types uterm 1
-
-arities 
-  uterm     :: (term)term
+datatype 'a uterm = Var ('a) 
+                  | Const ('a)
+                  | Comb ('a uterm) ('a uterm)
 
 consts
-  uterm     :: 'a item set => 'a item set
-  Rep_uterm :: 'a uterm => 'a item
-  Abs_uterm :: 'a item => 'a uterm
-  VAR       :: 'a item => 'a item
-  CONST     :: 'a item => 'a item
-  COMB      :: ['a item, 'a item] => 'a item
-  Var       :: 'a => 'a uterm
-  Const     :: 'a => 'a uterm
-  Comb      :: ['a uterm, 'a uterm] => 'a uterm
-  UTerm_rec :: ['a item, 'a item => 'b, 'a item => 'b, 
-                ['a item , 'a item, 'b, 'b]=>'b] => 'b
-  uterm_rec :: ['a uterm, 'a => 'b, 'a => 'b, 
-                ['a uterm, 'a uterm,'b,'b]=>'b] => 'b
+  vars_of  ::  'a uterm => 'a set
+  "<:"     ::  'a uterm => 'a uterm => bool   (infixl 54) 
+uterm_size ::  'a uterm => nat
 
-defs
-     (*defining the concrete constructors*)
-  VAR_def       "VAR(v) == In0(v)"
-  CONST_def     "CONST(v) == In1(In0(v))"
-  COMB_def      "COMB t u == In1(In1(t $ u))"
 
-inductive "uterm(A)"
-  intrs
-    VAR_I          "v:A ==> VAR(v) : uterm(A)"
-    CONST_I  "c:A ==> CONST(c) : uterm(A)"
-    COMB_I   "[| M:uterm(A);  N:uterm(A) |] ==> COMB M N : uterm(A)"
+primrec vars_of   uterm
+vars_of_Var   "vars_of (Var v) = {v}"
+vars_of_Const "vars_of (Const c) = {}"
+vars_of_Comb  "vars_of (Comb M N) = (vars_of(M) Un vars_of(N))"
 
-rules
-    (*faking a type definition...*)
-  Rep_uterm             "Rep_uterm(xs): uterm(range(Leaf))"
-  Rep_uterm_inverse     "Abs_uterm(Rep_uterm(xs)) = xs"
-  Abs_uterm_inverse     "M: uterm(range(Leaf)) ==> Rep_uterm(Abs_uterm(M)) = M"
 
-defs
-     (*defining the abstract constructors*)
-  Var_def       "Var(v) == Abs_uterm(VAR(Leaf(v)))"
-  Const_def     "Const(c) == Abs_uterm(CONST(Leaf(c)))"
-  Comb_def      "Comb t u == Abs_uterm (COMB (Rep_uterm t) (Rep_uterm u))"
+primrec "op <:"   uterm
+occs_Var   "u <: (Var v) = False"
+occs_Const "u <: (Const c) = False"
+occs_Comb  "u <: (Comb M N) = (u=M | u=N | u <: M | u <: N)"
 
-     (*uterm recursion*)
-  UTerm_rec_def 
-   "UTerm_rec M b c d == wfrec (trancl pred_sexp) 
-    (%g. Case (%x.b(x)) (Case (%y. c(y)) (Split (%x y. d x y (g x) (g y))))) M"
-
-  uterm_rec_def
-   "uterm_rec t b c d == 
-   UTerm_rec (Rep_uterm t) (%x.b(inv Leaf x)) (%x.c(inv Leaf x)) 
-                           (%x y q r.d (Abs_uterm x) (Abs_uterm y) q r)"
+primrec uterm_size  uterm
+uterm_size_Var   "uterm_size (Var v) = 0"
+uterm_size_Const "uterm_size (Const c) = 0"
+uterm_size_Comb  "uterm_size (Comb M N) = Suc(uterm_size M + uterm_size N)"
 
 end

@@ -12,7 +12,7 @@ consts
   alist_rec  :: "[('a*'b)list, 'c, ['a, 'b, ('a*'b)list, 'c]=>'c] => 'c"
   assoc      :: "['a,'b,('a*'b) list] => 'b"
 
-rules
+defs
 
   alist_rec_def "alist_rec al b c == list_rec b (split c) al"
 
