@@ -31,7 +31,8 @@ lemma finite_induct [case_names empty insert, induct set: Finites]:
     P {} ==> (!!F x. finite F ==> x \<notin> F ==> P F ==> P (insert x F)) ==> P F"
   -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
 proof -
-  assume "P {}" and insert: "!!F x. finite F ==> x \<notin> F ==> P F ==> P (insert x F)"
+  assume "P {}" and
+    insert: "!!F x. finite F ==> x \<notin> F ==> P F ==> P (insert x F)"
   assume "finite F"
   thus "P F"
   proof induct
@@ -54,7 +55,8 @@ lemma finite_subset_induct [consumes 2, case_names empty insert]:
     P {} ==> (!!F a. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)) ==>
     P F"
 proof -
-  assume "P {}" and insert: "!!F a. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
+  assume "P {}" and insert:
+    "!!F a. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
   assume "finite F"
   thus "F \<subseteq> A ==> P F"
   proof induct
@@ -721,7 +723,7 @@ lemma (in ACe) fold_Un_Int:
   apply (induct set: Finites)
    apply simp
   apply (simp add: AC insert_absorb Int_insert_left
-    LC.fold_insert [OF LC.intro, OF LC_axioms.intro])
+    LC.fold_insert [OF LC.intro])
   done
 
 lemma (in ACe) fold_Un_disjoint:
@@ -746,14 +748,14 @@ proof -
       by simp
     also have "... = (f \<circ> g) x (fold (f \<circ> g) e (F \<union> B))"
       by (rule LC.fold_insert [OF LC.intro])
-        (insert b insert, auto simp add: left_commute intro: LC_axioms.intro)
+        (insert b insert, auto simp add: left_commute)
     also from insert have "fold (f \<circ> g) e (F \<union> B) =
       fold (f \<circ> g) e F \<cdot> fold (f \<circ> g) e B" by blast
     also have "(f \<circ> g) x ... = (f \<circ> g) x (fold (f \<circ> g) e F) \<cdot> fold (f \<circ> g) e B"
       by (simp add: AC)
     also have "(f \<circ> g) x (fold (f \<circ> g) e F) = fold (f \<circ> g) e (insert x F)"
       by (rule LC.fold_insert [OF LC.intro, symmetric]) (insert b insert,
-	auto simp add: left_commute intro: LC_axioms.intro)
+	auto simp add: left_commute)
     finally show ?case .
   qed
 qed
@@ -779,7 +781,7 @@ lemma setsum_empty [simp]: "setsum f {} = 0"
 lemma setsum_insert [simp]:
     "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
   by (simp add: setsum_def
-    LC.fold_insert [OF LC.intro, OF LC_axioms.intro] plus_ac0_left_commute)
+    LC.fold_insert [OF LC.intro] plus_ac0_left_commute)
 
 lemma setsum_0: "setsum (\<lambda>i. 0) A = 0"
   apply (case_tac "finite A")
@@ -936,7 +938,8 @@ lemma n_sub_lemma:
    apply (simp add: card_s_0_eq_empty)
   apply atomize
   apply (rotate_tac -1, erule finite_induct)
-   apply (simp_all (no_asm_simp) cong add: conj_cong add: card_s_0_eq_empty choose_deconstruct)
+   apply (simp_all (no_asm_simp) cong add: conj_cong
+     add: card_s_0_eq_empty choose_deconstruct)
   apply (subst card_Un_disjoint)
      prefer 4 apply (force simp add: constr_bij)
     prefer 3 apply force
@@ -945,7 +948,8 @@ lemma n_sub_lemma:
   apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
   done
 
-theorem n_subsets: "finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
+theorem n_subsets:
+    "finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
   by (simp add: n_sub_lemma)
 
 end

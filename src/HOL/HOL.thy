@@ -344,7 +344,7 @@ lemma simp_thms:
     "!!P. (ALL x. x=t --> P(x)) = P(t)"
     "!!P. (ALL x. t=x --> P(x)) = P(t)"
   by (blast, blast, blast, blast, blast, rules+)
- 
+
 lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
   by rules
 
@@ -605,13 +605,8 @@ locale mono =
   fixes f
   assumes mono: "A <= B ==> f A <= f B"
 
-lemmas monoI [intro?] = mono.intro [OF mono_axioms.intro]
+lemmas monoI [intro?] = mono.intro
   and monoD [dest?] = mono.mono
-
-lemma mono_def: "mono f == ALL A B. A <= B --> f A <= f B"
-  -- compatibility
-  by (simp only: atomize_eq mono_def mono_axioms_def)
-
 
 constdefs
   min :: "['a::ord, 'a] => 'a"

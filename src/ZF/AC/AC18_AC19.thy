@@ -36,7 +36,7 @@ done
 
 lemma AC1_AC18: "AC1 ==> PROP AC18"
 apply (unfold AC1_def)
-apply (rule AC18.intro [OF AC18_axioms.intro])
+apply (rule AC18.intro)
 apply (fast elim!: lemma_AC18 apply_type intro!: equalityI INT_I UN_I)
 done
 

@@ -960,16 +960,16 @@ lemma Diff_subset: "A - B \<subseteq> A"
 
 text {* \medskip Monotonicity. *}
 
-lemma mono_Un: "mono f ==> f A \<union> f B \<subseteq> f (A \<union> B)"
+lemma mono_Un: includes mono shows "f A \<union> f B \<subseteq> f (A \<union> B)"
   apply (rule Un_least)
-   apply (erule Un_upper1 [THEN [2] monoD])
-  apply (erule Un_upper2 [THEN [2] monoD])
+   apply (rule Un_upper1 [THEN mono])
+  apply (rule Un_upper2 [THEN mono])
   done
 
-lemma mono_Int: "mono f ==> f (A \<inter> B) \<subseteq> f A \<inter> f B"
+lemma mono_Int: includes mono shows "f (A \<inter> B) \<subseteq> f A \<inter> f B"
   apply (rule Int_greatest)
-   apply (erule Int_lower1 [THEN [2] monoD])
-  apply (erule Int_lower2 [THEN [2] monoD])
+   apply (rule Int_lower1 [THEN mono])
+  apply (rule Int_lower2 [THEN mono])
   done
 
 

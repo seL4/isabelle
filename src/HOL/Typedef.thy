@@ -15,9 +15,6 @@ locale type_definition =
     and Abs_inverse: "y \<in> A ==> Rep (Abs y) = y"
   -- {* This will be axiomatized for each typedef! *}
 
-lemmas type_definitionI [intro] =
-  type_definition.intro [OF type_definition_axioms.intro]
-
 lemma (in type_definition) Rep_inject:
   "(Rep x = Rep y) = (x = y)"
 proof

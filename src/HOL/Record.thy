@@ -18,9 +18,6 @@ locale product_type =
     and dest1: "dest1 == (\<lambda>p. fst (Rep p))"
     and dest2: "dest2 == (\<lambda>p. snd (Rep p))"
 
-lemmas product_typeI =
-  product_type.intro [OF product_type_axioms.intro]
-
 lemma (in product_type)
     "inject": "(pair x y = pair x' y') = (x = x' \<and> y = y')"
   by (simp add: pair type_definition.Abs_inject [OF "typedef"])
