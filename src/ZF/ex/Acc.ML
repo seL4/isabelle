@@ -34,7 +34,7 @@ by (rtac indhyp 1);
 by (fast_tac ZF_cs 2);
 by (resolve_tac acc.intrs 1);
 by (assume_tac 2);
-be (Collect_subset RS Pow_mono RS subsetD) 1;
+by (etac (Collect_subset RS Pow_mono RS subsetD) 1);
 qed "acc_induct";
 
 goal Acc.thy "wf[acc(r)](r)";
@@ -50,7 +50,7 @@ val [major] = goal Acc.thy "wf(r) ==> field(r) <= acc(r)";
 by (rtac subsetI 1);
 by (etac (major RS wf_induct2) 1);
 by (rtac subset_refl 1);
-by (resolve_tac [accI] 1);
+by (rtac accI 1);
 by (assume_tac 2);
 by (fast_tac ZF_cs 1);
 qed "acc_wfD";

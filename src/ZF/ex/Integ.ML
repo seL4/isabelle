@@ -143,7 +143,7 @@ qed "zminus_0";
 
 goalw Integ.thy [znegative_def, znat_def]  "~ znegative($# n)";
 by (asm_full_simp_tac (intrel_ss setloop K(safe_tac intrel_cs)) 1);
-be rev_mp 1;
+by (etac rev_mp 1);
 by (asm_simp_tac (arith_ss addsimps [add_le_self2 RS le_imp_not_lt]) 1);
 qed "not_znegative_znat";
 
