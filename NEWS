@@ -5,15 +5,48 @@ Isabelle NEWS -- history of user-visible changes
 New in Isabelle???? (DATE ????)
 -------------------------------
 
-* Pure: fixed idt/idts vs. pttrn/pttrns syntactic categories;
+*** General Changes ***
 
-* HOLCF: fixed LAM <x,y,zs>.b syntax (may break some unusual cases);
+* improved output of warnings / errors;
 
-* added extended adm_tac to simplifier in HOLCF. Is now capable to discharge
-  adm (%x. P (t x)), where P is chainfinite and t continuous.
+* removed old README and Makefiles;
+
+* defs may now be conditional; improved rewrite_goals_tac to handle
+conditional equations;
 
 * replaced print_goals_ref hook by print_current_goals_fn and
   result_error_fn;
+
+* removed obsolete init_pps and init_database;
+
+* deleted the obsolete tactical STATE, which was declared by
+    fun STATE tacfun st = tacfun st st;
+
+
+*** Classical Reasoner ***
+
+* Clarify_tac. clarify_tac, clarify_step_tac, Clarify_step_tac :
+   new tactics that use classical reasoning to simplify a subgoal 
+   without splitting it into several subgoals;
+
+
+*** Simplifier ***
+
+* added simplification meta rules:
+    (asm_)(full_)simplify: simpset -> thm -> thm;
+
+* simplifier.ML no longer part of Pure -- has to be loaded by object
+logics (again);
+
+* added prems argument to simplification procedures;
+
+
+*** Syntax ***
+
+* Pure: fixed idt/idts vs. pttrn/pttrns syntactic categories;
+
+
+*** HOL ***
 
 * HOL/simplifier: terms of the form
   `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)' (or t=x)
@@ -23,25 +56,13 @@ New in Isabelle???? (DATE ????)
 * HOL/Lists: the function "set_of_list" has been renamed "set" (and its 
   theorems too);
 
-* removed old README and Makefiles;
 
-* removed obsolete init_pps and init_database;
+*** HOLCF ***
 
-* defs may now be conditional; improved rewrite_goals_tac to handle
-conditional equations;
+* HOLCF: fixed LAM <x,y,zs>.b syntax (may break some unusual cases);
 
-* improved output of warnings / errors;
-
-* deleted the obsolete tactical STATE, which was declared by:
-    fun STATE tacfun st = tacfun st st;
-
-* added simplification meta rules:
-    (asm_)(full_)simplify: simpset -> thm -> thm;
-
-* simplifier.ML no longer part of Pure -- has to be loaded by object
-logics (again);
-
-* added prems argument to simplification procedures;
+* added extended adm_tac to simplifier in HOLCF.  Can now discharge
+  adm (%x. P (t x)), where P is chainfinite and t continuous.
 
 
 
