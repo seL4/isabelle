@@ -56,7 +56,6 @@ signature HYPSUBST =
   val eq_var                 : bool -> bool -> term -> int * bool
   val inspect_pair           : bool -> bool -> term * term * typ -> bool
   val mk_eqs                 : thm -> thm list
-  val thin_leading_eqs_tac   : bool -> int -> int -> tactic
   val stac		     : thm -> int -> tactic
   val hypsubst_setup         : (theory -> theory) list
   end;
@@ -126,22 +125,6 @@ fun eq_var bnd novars =
         | eq_var_aux k _ = raise EQ_VAR
   in  eq_var_aux 0  end;
 
-(*We do not try to delete ALL equality assumptions at once.  But
-  it is easy to handle several consecutive equality assumptions in a row.
-  Note that we have to inspect the proof state after doing the rewriting,
-  since e.g. z=f(x); x=z changes to z=f(x); x=f(x) and the second equality
-  must NOT be deleted.  Tactic must rotate or delete m assumptions.
-*)
-fun thin_leading_eqs_tac bnd m = SUBGOAL (fn (Bi,i) =>
-    let fun count []      = 0
-          | count (A::Bs) = ((inspect_pair bnd true
-                              (Data.dest_eq (Data.dest_Trueprop A));
-                              1 + count Bs)
-                             handle _ => 0)
-        val j = Int.min(m, count (Logic.strip_assums_hyp Bi))
-    in  REPEAT_DETERM_N j (etac thin_rl i)  THEN  rotate_tac (m-j) i
-    end);
-
 (*For the simpset.  Adds ALL suitable equalities, even if not first!
   No vars are allowed here, as simpsets are built from meta-assumptions*)
 fun mk_eqs th =
@@ -158,16 +141,13 @@ in
 
   (*Select a suitable equality assumption and substitute throughout the subgoal
     Replaces only Bound variables if bnd is true*)
-  fun gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
-        let val n = length(Logic.strip_assums_hyp Bi) - 1
-            val (k,_) = eq_var bnd true Bi
-        in
-           DETERM (EVERY [rotate_tac k i,
-                          asm_full_simp_tac hyp_subst_ss i,
-                          etac thin_rl i,
-                          thin_leading_eqs_tac bnd (n-k) i])
-        end
-        handle THM _ => no_tac | EQ_VAR => no_tac);
+  fun gen_hyp_subst_tac bnd =
+    let val tac = SUBGOAL (fn (Bi, i) =>
+      let val (k, _) = eq_var bnd true Bi
+      in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ss i,
+        etac thin_rl i, rotate_tac (~k) i]
+      end handle THM _ => no_tac | EQ_VAR => no_tac)
+    in REPEAT_DETERM1 o tac end;
 
 end;
 
