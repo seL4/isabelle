@@ -101,6 +101,6 @@ text {*
 refute_params [minsize=1,
                maxsize=8,
                maxvars=100,
-               satsolver="auto"]
+               satsolver="dpll"]
 
 end

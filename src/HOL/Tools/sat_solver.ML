@@ -283,10 +283,11 @@ let
 	in
 		fun dpll_solver fm =
 		let
-			(* prop_formula *)
-			val defcnf = PropLogic.defcnf fm
+			(* We could use 'PropLogic.defcnf fm' instead of 'fm', but that   *)
+			(* sometimes introduces more boolean variables than we can handle *)
+			(* efficiently.                                                   *)
 			(* int list *)
-			val indices = PropLogic.indices defcnf
+			val indices = PropLogic.indices fm
 			(* int list -> int -> prop_formula *)
 			fun partial_var_eval []      i = BoolVar i
 			  | partial_var_eval (x::xs) i = if x=i then True else if x=(~i) then False else partial_var_eval xs i
@@ -297,6 +298,7 @@ let
 			  | partial_eval xs (Not fm)         = SNot (partial_eval xs fm)
 			  | partial_eval xs (Or (fm1, fm2))  = SOr (partial_eval xs fm1, partial_eval xs fm2)
 			  | partial_eval xs (And (fm1, fm2)) = SAnd (partial_eval xs fm1, partial_eval xs fm2)
+			  | partial_eval xs _                = raise ERROR  (* formula is not in negation normal form *)
 			(* prop_formula -> int list *)
 			fun forced_vars True              = []
 			  | forced_vars False             = []
@@ -349,7 +351,7 @@ let
 				else assignment_from_list xs i
 		in
 			(* initially, no variable is interpreted yet *)
-			apsome assignment_from_list (dpll [] defcnf)
+			apsome assignment_from_list (dpll [] fm)
 		end
 	end  (* local *)
 in

@@ -26,7 +26,7 @@ lemma "P \<and> Q"
   refute [satsolver="dpll"] 2  -- {* ... and specify a subgoal at the same time *}
 oops
 
-refute_params
+refute_params [satsolver="dpll"]
 
 section {* Examples and Test Cases *}
 
@@ -155,7 +155,7 @@ oops
 text {* A true statement (also testing names of free and bound variables being identical) *}
 
 lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall>x. P x y) \<longrightarrow> P y x"
-  refute [maxsize=2]  (* [maxsize=5] works well with ZChaff *)
+  refute
   apply fast
 done
 
@@ -172,13 +172,13 @@ oops
 text {* "Every reflexive and symmetric relation is transitive." *}
 
 lemma "\<lbrakk> \<forall>x. P x x; \<forall>x y. P x y \<longrightarrow> P y x \<rbrakk> \<Longrightarrow> P x y \<longrightarrow> P y z \<longrightarrow> P x z"
-  (* refute -- works well with ZChaff, but the internal solver is too slow *)
+  refute
 oops
 
 text {* The "Drinker's theorem" ... *}
 
 lemma "\<exists>x. f x = g x \<longrightarrow> f = g"
-  refute [maxsize=4]  (* [maxsize=6] works well with ZChaff *)
+  refute
   apply (auto simp add: ext)
 done
 
@@ -262,7 +262,7 @@ lemma "(\<forall>x y. (P x y | R x y) \<longrightarrow> T x y) \<longrightarrow>
         \<longrightarrow> trans_closure TP P
         \<longrightarrow> trans_closure TR R
         \<longrightarrow> (T x y = (TP x y | TR x y))"
-  (* refute -- works well with ZChaff, but the internal solver is too slow *)
+  refute
 oops
 
 text {* "Every surjective function is invertible." *}
@@ -280,7 +280,7 @@ oops
 text {* Every point is a fixed point of some function. *}
 
 lemma "\<exists>f. f x = x"
-  refute [maxsize=4]
+  refute [maxsize=5]
   apply (rule_tac x="\<lambda>x. x" in exI)
   apply simp
 done
@@ -294,12 +294,12 @@ oops
 text {* ... and now two correct ones *}
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x. P x (f x))"
-  refute [maxsize=5]
+  refute
   apply (simp add: choice)
 done
 
 lemma "(\<forall>x. EX!y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
-  refute [maxsize=3]  (* [maxsize=4] works well with ZChaff *)
+  refute
   apply auto
     apply (simp add: ex1_implies_ex choice)
   apply (fast intro: ext)
@@ -361,7 +361,7 @@ lemma "P (A::'a set set)"
 oops
 
 lemma "{x. P x} = {y. P y}"
-  refute [maxsize=2]  (* [maxsize=8] works well with ZChaff *)
+  refute
   apply simp
 done
 
@@ -430,7 +430,7 @@ lemma "(THE x. x=y) = z"
 oops
 
 lemma "Ex P \<longrightarrow> P (The P)"
-  (* refute -- works well with ZChaff, but the internal solver is too slow *)
+  refute
 oops
 
 subsection {* Eps *}
@@ -452,7 +452,7 @@ lemma "(SOME x. x=y) = z"
 oops
 
 lemma "Ex P \<longrightarrow> P (Eps P)"
-  refute [maxsize=2]  (* [maxsize=3] works well with ZChaff *)
+  refute [maxsize=3]
   apply (auto simp add: someI)
 done
 
