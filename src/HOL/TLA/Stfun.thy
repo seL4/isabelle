@@ -34,8 +34,7 @@ consts
      of flexible quantification later on. Nevertheless, we need to distinguish
      state variables, mainly to define the enabledness of actions. The user
      identifies (tuples of) "base" state variables in a specification via the
-     "meta predicate" stvars.
-     NOTE: There should not be duplicates in the tuple!
+     "meta predicate" basevars, which is defined here.
   *)
   stvars    :: "'a stfun => bool"
 
@@ -47,17 +46,13 @@ translations
   "PRED P"   =>  "(P::state => _)"
   "_stvars"  ==  "stvars"
 
-rules
+defs
   (* Base variables may be assigned arbitrary (type-correct) values. 
-     Note that vs may be a tuple of variables. The rule would be unsound 
-     if vs contained duplicates.
+     Note that vs may be a tuple of variables. The correct identification
+     of base variables is up to the user who must take care not to
+     introduce an inconsistency. For example, "basevars (x,x)" would
+     definitely be inconsistent.
   *)
-  basevars  "basevars vs ==> EX u. vs u = c"
-  base_pair "basevars (x,y) ==> basevars x & basevars y"
-  (* Since the unit type has just one value, any state function can be
-     regarded as "base". The following axiom can sometimes be useful
-     because it gives a trivial solution for "basevars" premises.
-  *)
-  unit_base "basevars (v::unit stfun)"
+  basevars_def	"stvars vs == range vs = UNIV"
 
 end
