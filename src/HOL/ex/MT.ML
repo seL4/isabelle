@@ -35,11 +35,11 @@ qed "notsingletonI";
 (* ############################################################ *)
 
 val infsys_mono_tac =
-  (rewtac subset_def) THEN (safe_tac HOL_cs) THEN (rtac ballI 1) THEN
+  (rewtac subset_def) THEN (safe_tac (claset_of "HOL")) THEN (rtac ballI 1) THEN
   (rtac CollectI 1) THEN (dtac CollectD 1) THEN
   REPEAT 
     ( (TRY ((etac disjE 1) THEN (rtac disjI2 2) THEN (rtac disjI1 1))) THEN
-      (REPEAT (etac exE 1)) THEN (REPEAT (rtac exI 1)) THEN (fast_tac set_cs 1)
+      (REPEAT (etac exE 1)) THEN (REPEAT (rtac exI 1)) THEN (fast_tac ((claset_of "Fun")delrules [equalityI]) 1)
     );
 
 val prems = goal MT.thy "P a b ==> P (fst (a,b)) (snd (a,b))";
@@ -102,7 +102,7 @@ by (rtac (cih RSN (2,gfp_upperbound RS subsetD)) 1);
 by (rtac (monoh RS monoD) 1);
 by (rtac (UnE RS subsetI) 1);
 by (assume_tac 1);
-by (fast_tac (set_cs addSIs [cih]) 1);
+by (fast_tac (!claset addSIs [cih]) 1);
 by (rtac (monoh RS monoD RS subsetD) 1);
 by (rtac Un_upper2 1);
 by (etac (monoh RS gfp_lemma2 RS subsetD) 1);
@@ -169,7 +169,7 @@ goalw MT.thy [eval_def, eval_rel_def] "ve |- e_const(c) ---> v_const(c)";
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "eval_const";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -178,7 +178,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "eval_var2";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -187,7 +187,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "eval_fn";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -197,7 +197,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "eval_fix";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def]
@@ -207,7 +207,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "eval_app1";
 
 val prems = goalw MT.thy [eval_def, eval_rel_def] 
@@ -220,7 +220,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
-by (fast_tac (set_cs addSIs [disjI2]) 1);
+by (fast_tac (!claset addSIs [disjI2]) 1);
 qed "eval_app2";
 
 (* Strong elimination, induction on evaluations *)
@@ -248,9 +248,9 @@ by (resolve_tac (prems RL [lfp_ind2]) 1);
 by (rtac eval_fun_mono 1);
 by (rewtac eval_fun_def);
 by (dtac CollectD 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (ALLGOALS (resolve_tac prems));
-by (ALLGOALS (fast_tac set_cs));
+by (ALLGOALS (Fast_tac));
 qed "eval_ind0";
 
 val prems = goal MT.thy 
@@ -293,7 +293,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "elab_const";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def] 
@@ -302,7 +302,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "elab_var";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def] 
@@ -311,7 +311,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "elab_fn";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def]
@@ -321,7 +321,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "elab_fix";
 
 val prems = goalw MT.thy [elab_def, elab_rel_def] 
@@ -331,7 +331,7 @@ by (cut_facts_tac prems 1);
 by (rtac lfp_intro2 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
-by (fast_tac (set_cs addSIs [disjI2]) 1);
+by (fast_tac (!claset addSIs [disjI2]) 1);
 qed "elab_app";
 
 (* Strong elimination, induction on elaborations *)
@@ -359,9 +359,9 @@ by (resolve_tac (prems RL [lfp_ind2]) 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
 by (dtac CollectD 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (ALLGOALS (resolve_tac prems));
-by (ALLGOALS (fast_tac set_cs));
+by (ALLGOALS (Fast_tac));
 qed "elab_ind0";
 
 val prems = goal MT.thy
@@ -410,9 +410,9 @@ by (resolve_tac (prems RL [lfp_elim2]) 1);
 by (rtac elab_fun_mono 1);
 by (rewtac elab_fun_def);
 by (dtac CollectD 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (ALLGOALS (resolve_tac prems));
-by (ALLGOALS (fast_tac set_cs));
+by (ALLGOALS (Fast_tac));
 qed "elab_elim0";
 
 val prems = goal MT.thy
@@ -441,7 +441,7 @@ qed "elab_elim";
 fun elab_e_elim_tac p = 
   ( (rtac elab_elim 1) THEN 
     (resolve_tac p 1) THEN 
-    (REPEAT (fast_tac (e_ext_cs HOL_cs) 1))
+    (REPEAT (fast_tac (e_ext_cs (claset_of "HOL")) 1))
   );
 
 val prems = goal MT.thy "te |- e ===> t ==> (e = e_const(c) --> c isof t)";
@@ -451,7 +451,7 @@ qed "elab_const_elim_lem";
 val prems = goal MT.thy "te |- e_const(c) ===> t ==> c isof t";
 by (cut_facts_tac prems 1);
 by (dtac elab_const_elim_lem 1);
-by (fast_tac prop_cs 1);
+by (Fast_tac 1);
 qed "elab_const_elim";
 
 val prems = goal MT.thy 
@@ -463,7 +463,7 @@ val prems = goal MT.thy
   "te |- e_var(ev) ===> t ==> t=te_app te ev & ev : te_dom(te)";
 by (cut_facts_tac prems 1);
 by (dtac elab_var_elim_lem 1);
-by (fast_tac prop_cs 1);
+by (Fast_tac 1);
 qed "elab_var_elim";
 
 val prems = goal MT.thy 
@@ -479,7 +479,7 @@ val prems = goal MT.thy
 \   (? t1 t2. t=t1->t2 & te + {x1 |=> t1} |- e1 ===> t2)";
 by (cut_facts_tac prems 1);
 by (dtac elab_fn_elim_lem 1);
-by (fast_tac prop_cs 1);
+by (Fast_tac 1);
 qed "elab_fn_elim";
 
 val prems = goal MT.thy 
@@ -494,7 +494,7 @@ val prems = goal MT.thy
 \   (? t1 t2. t=t1->t2 & te + {ev1 |=> t1->t2} + {ev2 |=> t1} |- e1 ===> t2)";
 by (cut_facts_tac prems 1);
 by (dtac elab_fix_elim_lem 1);
-by (fast_tac prop_cs 1);
+by (Fast_tac 1);
 qed "elab_fix_elim";
 
 val prems = goal MT.thy 
@@ -507,7 +507,7 @@ val prems = goal MT.thy
  "te |- e1 @ e2 ===> t2 ==> (? t1 . te |- e1 ===> t1->t2 & te |- e2 ===> t1)"; 
 by (cut_facts_tac prems 1);
 by (dtac elab_app_elim_lem 1);
-by (fast_tac prop_cs 1);
+by (Fast_tac 1);
 qed "elab_app_elim";
 
 (* ############################################################ *)
@@ -534,7 +534,7 @@ by (rtac gfp_coind2 1);
 by (rewtac MT.hasty_fun_def);
 by (rtac CollectI 1);
 by (rtac disjI1 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 by (rtac mono_hasty_fun 1);
 qed "hasty_rel_const_coind";
 
@@ -553,7 +553,7 @@ by (rtac gfp_coind2 1);
 by (rewtac hasty_fun_def);
 by (rtac CollectI 1);
 by (rtac disjI2 1);
-by (fast_tac HOL_cs 1);
+by (fast_tac (claset_of "HOL") 1);
 by (rtac mono_hasty_fun 1);
 qed "hasty_rel_clos_coind";
 
@@ -574,9 +574,9 @@ by (rtac mono_hasty_fun 1);
 by (rewtac hasty_fun_def);
 by (dtac CollectD 1);
 by (fold_goals_tac [hasty_fun_def]);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (ALLGOALS (resolve_tac prems));
-by (ALLGOALS (fast_tac set_cs));
+by (ALLGOALS (Fast_tac));
 qed "hasty_rel_elim0";
 
 val prems = goal MT.thy 
@@ -605,7 +605,7 @@ val prems = goalw MT.thy [hasty_def,hasty_env_def]
   "te |- fn ev => e ===> t & ve hastyenv te ==> v_clos(<|ev,e,ve|>) hasty t";
 by (cut_facts_tac prems 1);
 by (rtac hasty_rel_clos_coind 1);
-by (ALLGOALS (fast_tac set_cs));
+by (ALLGOALS (Fast_tac));
 qed "hasty_clos";
 
 (* Elimination on constants for hasty *)
@@ -614,12 +614,12 @@ val prems = goalw MT.thy [hasty_def]
   "v hasty t ==> (!c.(v = v_const(c) --> c isof t))";  
 by (cut_facts_tac prems 1);
 by (rtac hasty_rel_elim 1);
-by (ALLGOALS (fast_tac (v_ext_cs HOL_cs)));
+by (ALLGOALS (fast_tac (v_ext_cs (claset_of "HOL"))));
 qed "hasty_elim_const_lem";
 
 val prems = goal MT.thy "v_const(c) hasty t ==> c isof t";
 by (cut_facts_tac (prems RL [hasty_elim_const_lem]) 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "hasty_elim_const";
 
 (* Elimination on closures for hasty *)
@@ -630,14 +630,14 @@ val prems = goalw MT.thy [hasty_env_def,hasty_def]
 \     v=v_clos(<|x,e,ve|>) --> (? te.te |- fn x => e ===> t & ve hastyenv te)";
 by (cut_facts_tac prems 1);
 by (rtac hasty_rel_elim 1);
-by (ALLGOALS (fast_tac (v_ext_cs HOL_cs)));
+by (ALLGOALS (fast_tac (v_ext_cs (claset_of "HOL"))));
 qed "hasty_elim_clos_lem";
 
 val prems = goal MT.thy 
   "v_clos(<|ev,e,ve|>) hasty t ==> ? te.te |- fn ev => e ===>\
   \t & ve hastyenv te ";
 by (cut_facts_tac (prems RL [hasty_elim_clos_lem]) 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "hasty_elim_clos";
 
 (* ############################################################ *)
@@ -650,10 +650,10 @@ goal MT.thy
 by (rewtac hasty_env_def);
 by (asm_full_simp_tac (!simpset delsimps mem_simps
                                 addsimps [ve_dom_owr, te_dom_owr]) 1);
-by (safe_tac HOL_cs);
+by (safe_tac (claset_of "HOL"));
 by (excluded_middle_tac "ev=x" 1);
 by (asm_full_simp_tac (!simpset addsimps [ve_app_owr2, te_app_owr2]) 1);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 by (asm_simp_tac (!simpset addsimps [ve_app_owr1, te_app_owr1]) 1);
 qed "hasty_env1";
 
@@ -673,7 +673,7 @@ val prems = goalw MT.thy [hasty_env_def]
 \   ve_app ve ev hasty t";
 by (cut_facts_tac prems 1);
 by (dtac elab_var_elim 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "consistency_var";
 
 val prems = goal MT.thy
@@ -681,7 +681,7 @@ val prems = goal MT.thy
 \   v_clos(<| ev, e, ve |>) hasty t";
 by (cut_facts_tac prems 1);
 by (rtac hasty_clos 1);
-by (fast_tac prop_cs 1);
+by (Fast_tac 1);
 qed "consistency_fn";
 
 val prems = goalw MT.thy [hasty_env_def,hasty_def]
@@ -692,7 +692,7 @@ val prems = goalw MT.thy [hasty_env_def,hasty_def]
 \   v_clos(cl) hasty t";
 by (cut_facts_tac prems 1);
 by (dtac elab_fix_elim 1);
-by (safe_tac HOL_cs);
+by (safe_tac (claset_of "HOL"));
 (*Do a single unfolding of cl*)
 by ((forward_tac [ssubst] 1) THEN (assume_tac 2));
 by (rtac hasty_rel_clos_coind 1);
@@ -700,16 +700,16 @@ by (etac elab_fn 1);
 by (asm_simp_tac (!simpset addsimps [ve_dom_owr, te_dom_owr]) 1);
 
 by (asm_simp_tac (!simpset delsimps mem_simps addsimps [ve_dom_owr]) 1);
-by (safe_tac HOL_cs);
+by (safe_tac (claset_of "HOL"));
 by (excluded_middle_tac "ev2=ev1a" 1);
 by (asm_full_simp_tac (!simpset addsimps [ve_app_owr2, te_app_owr2]) 1);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 
 by (asm_simp_tac (!simpset delsimps mem_simps
                            addsimps [ve_app_owr1, te_app_owr1]) 1);
 by (hyp_subst_tac 1);
 by (etac subst 1);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "consistency_fix";
 
 val prems = goal MT.thy 
@@ -720,13 +720,13 @@ val prems = goal MT.thy
 \   v_const(c_app c1 c2) hasty t";
 by (cut_facts_tac prems 1);
 by (dtac elab_app_elim 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (rtac hasty_const 1);
 by (rtac isof_app 1);
 by (rtac hasty_elim_const 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 by (rtac hasty_elim_const 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "consistency_app1";
 
 val prems = goal MT.thy 
@@ -742,7 +742,7 @@ val prems = goal MT.thy
 \   v hasty t";
 by (cut_facts_tac prems 1);
 by (dtac elab_app_elim 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by ((etac allE 1) THEN (etac allE 1) THEN (etac impE 1));
 by (assume_tac 1);
 by (etac impE 1);
@@ -752,12 +752,12 @@ by (assume_tac 1);
 by (etac impE 1);
 by (assume_tac 1);
 by (dtac hasty_elim_clos 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (dtac elab_fn_elim 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (dtac t_fun_inj 1);
-by (safe_tac prop_cs);
-by ((dtac hasty_env1 1) THEN (assume_tac 1) THEN (fast_tac HOL_cs 1));
+by (safe_tac (!claset));
+by ((dtac hasty_env1 1) THEN (assume_tac 1) THEN (Fast_tac 1));
 qed "consistency_app2";
 
 val [major] = goal MT.thy 
@@ -767,7 +767,7 @@ val [major] = goal MT.thy
 (* Proof by induction on the structure of evaluations *)
 
 by (rtac (major RS eval_ind) 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (DEPTH_SOLVE 
     (ares_tac [consistency_const, consistency_var, consistency_fn,
                consistency_fix, consistency_app1, consistency_app2] 1));
@@ -780,7 +780,7 @@ qed "consistency";
 val prems = goalw MT.thy [isof_env_def,hasty_env_def] 
   "ve isofenv te ==> ve hastyenv te";
 by (cut_facts_tac prems 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (etac allE 1);
 by (etac impE 1);
 by (assume_tac 1);
@@ -795,7 +795,7 @@ val prems = goal MT.thy
 by (cut_facts_tac prems 1);
 by (rtac hasty_elim_const 1);
 by (dtac consistency 1);
-by (fast_tac (HOL_cs addSIs [basic_consistency_lem]) 1);
+by (fast_tac (!claset addSIs [basic_consistency_lem]) 1);
 qed "basic_consistency";
 
 

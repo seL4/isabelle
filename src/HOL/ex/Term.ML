@@ -12,7 +12,7 @@ open Term;
 (*** Monotonicity and unfolding of the function ***)
 
 goal Term.thy "term(A) = A <*> list(term(A))";
-by (fast_tac (univ_cs addSIs (equalityI :: term.intrs)
+by (fast_tac (!claset addSIs (equalityI :: term.intrs)
                       addEs [term.elim]) 1);
 qed "term_unfold";
 
@@ -25,7 +25,7 @@ qed "term_mono";
 
 goalw Term.thy term.defs "term(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
-by (fast_tac (univ_cs addIs [sexp.SconsI, list_sexp RS subsetD]) 1);
+by (fast_tac (!claset addIs [sexp.SconsI, list_sexp RS subsetD]) 1);
 qed "term_sexp";
 
 (* A <= sexp ==> term(A) <= sexp *)

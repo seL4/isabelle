@@ -27,7 +27,7 @@ val alls_lemma=result();
 Addsimps [alls_lemma];
 
 goal HOL.thy "((P --> Q) & (~P --> Q)) = Q";
-by(fast_tac HOL_cs 1);
+by(Fast_tac 1);
 val lemma = result();
 
 goal Qsort.thy "(Alls x:qsort le xs.P(x))  =  (Alls x:xs.P(x))";
@@ -55,7 +55,7 @@ by(Asm_simp_tac 1);
 by(asm_full_simp_tac (!simpset addsimps []) 1);
 by(asm_full_simp_tac (!simpset addsimps [list_all_mem_conv]) 1);
 by(rewrite_goals_tac [Sorting.total_def,Sorting.transf_def]);
-by(fast_tac HOL_cs 1);
+by(Fast_tac 1);
 result();
 
 (* A verification based on predicate calculus rather than combinators *)
@@ -69,7 +69,7 @@ Addsimps [sorted_Cons];
 goal Qsort.thy "x mem qsort le xs = x mem xs";
 by(res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
 by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-by(fast_tac HOL_cs 1);
+by(Fast_tac 1);
 Addsimps [result()];
 
 goal Qsort.thy
@@ -80,7 +80,7 @@ by(Asm_simp_tac 1);
 by(asm_simp_tac (!simpset setloop (split_tac [expand_if])
 			  delsimps [list_all_conj]
 			  addsimps [list_all_mem_conv]) 1);
-by(fast_tac HOL_cs 1);
+by(Fast_tac 1);
 Addsimps [result()];
 
 goal Qsort.thy
@@ -91,7 +91,7 @@ by(asm_simp_tac (!simpset setloop (split_tac [expand_if])
 			  delsimps [list_all_conj]
 			  addsimps [list_all_mem_conv]) 1);
 by(rewrite_goals_tac [Sorting.total_def,Sorting.transf_def]);
-by(fast_tac HOL_cs 1);
+by(Fast_tac 1);
 result();
 
 

@@ -20,12 +20,12 @@ result();
 
 goal Set.thy "~ (? f:: 'a=>'a set. ! S. ? x. f(x) = S)";
 (*requires best-first search because it is undirectional*)
-by (best_tac (set_cs addSEs [equalityCE]) 1);
+by (best_tac (!claset addSEs [equalityCE]) 1);
 qed "cantor1";
 
 (*This form displays the diagonal term*)
 goal Set.thy "! f:: 'a=>'a set. ! x. f(x) ~= ?S(f)";
-by (best_tac (set_cs addSEs [equalityCE]) 1);
+by (best_tac (!claset addSEs [equalityCE]) 1);
 uresult();
 
 (*This form exploits the set constructs*)
@@ -39,15 +39,15 @@ by (swap_res_tac [CollectI] 1);
 by (assume_tac 1);
 
 choplev 0;
-by (best_tac (set_cs addSEs [equalityCE]) 1);
+by (best_tac (!claset addSEs [equalityCE]) 1);
 
 (*** The Schroder-Berstein Theorem ***)
 
 val prems = goalw Lfp.thy [image_def] "inj(f) ==> Inv(f)``(f``X) = X";
 by (cut_facts_tac prems 1);
 by (rtac equalityI 1);
-by (fast_tac (set_cs addEs [Inv_f_f RS ssubst]) 1);
-by (fast_tac (set_cs addEs [Inv_f_f RS ssubst]) 1);
+by (fast_tac (!claset addEs [Inv_f_f RS ssubst]) 1);
+by (fast_tac (!claset addEs [Inv_f_f RS ssubst]) 1);
 qed "inv_image_comp";
 
 val prems = goal Set.thy "f(a) ~: (f``X) ==> a~:X";
@@ -55,7 +55,7 @@ by (cfast_tac prems 1);
 qed "contra_imageI";
 
 goal Lfp.thy "(a ~: Compl(X)) = (a:X)";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "not_Compl";
 
 (*Lots of backtracking in this proof...*)
@@ -69,22 +69,22 @@ qed "disj_lemma";
 goal Lfp.thy "range(%z. if z:X then f(z) else g(z)) = f``X Un g``Compl(X)";
 by (rtac equalityI 1);
 by (rewtac range_def);
-by (fast_tac (set_cs addIs [if_P RS sym, if_not_P RS sym]) 2);
+by (fast_tac (!claset addIs [if_P RS sym, if_not_P RS sym]) 2);
 by (rtac subsetI 1);
 by (etac CollectE 1);
 by (etac exE 1);
 by (etac ssubst 1);
 by (rtac (excluded_middle RS disjE) 1);
-by (EVERY' [rtac (if_P     RS ssubst), atac, fast_tac set_cs] 2);
-by (EVERY' [rtac (if_not_P RS ssubst), atac, fast_tac set_cs] 1);
+by (EVERY' [rtac (if_P     RS ssubst), atac, Fast_tac] 2);
+by (EVERY' [rtac (if_not_P RS ssubst), atac, Fast_tac] 1);
 qed "range_if_then_else";
 
 goal Lfp.thy "a : X Un Compl(X)";
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "X_Un_Compl";
 
 goalw Lfp.thy [surj_def] "surj(f) = (!a. a : range(f))";
-by (fast_tac (set_cs addEs [ssubst]) 1);
+by (fast_tac (!claset addEs [ssubst]) 1);
 qed "surj_iff_full_range";
 
 val [compl] = goal Lfp.thy
@@ -105,9 +105,9 @@ by (rtac (compl RS surj_if_then_else) 2);
 by (rewtac inj_def);
 by (cut_facts_tac [injf,injg] 1);
 by (EVERY1 [rtac allI, rtac allI, stac expand_if, rtac conjI, stac expand_if]);
-by (fast_tac (set_cs addEs  [inj_ontoD, sym RS f_eq_gE]) 1);
+by (fast_tac (!claset addEs  [inj_ontoD, sym RS f_eq_gE]) 1);
 by (stac expand_if 1);
-by (fast_tac (set_cs addEs  [inj_ontoD, f_eq_gE]) 1);
+by (fast_tac (!claset addEs  [inj_ontoD, f_eq_gE]) 1);
 qed "bij_if_then_else";
 
 goal Lfp.thy "? X. X = Compl(g``Compl((f:: 'a=>'b)``X))";

@@ -21,38 +21,38 @@ by (rtac impI 1);
 by (rtac classical 1);
 by (dtac not_leE 1);
 by (subgoal_tac "f(na) <= f(f(na))" 1);
-by (best_tac (HOL_cs addIs [lessD,Puzzle.f_ax,le_less_trans,le_trans]) 1);
-by (fast_tac (HOL_cs addIs [Puzzle.f_ax]) 1);
+by (best_tac (!claset addIs [lessD,Puzzle.f_ax,le_less_trans,le_trans]) 1);
+by (fast_tac (!claset addIs [Puzzle.f_ax]) 1);
 val lemma = result() RS spec RS mp;
 
 goal Puzzle.thy "n <= f(n)";
-by (fast_tac (HOL_cs addIs [lemma]) 1);
+by (fast_tac (!claset addIs [lemma]) 1);
 qed "lemma1";
 
 goal Puzzle.thy "f(n) < f(Suc(n))";
-by (fast_tac (HOL_cs addIs [Puzzle.f_ax,le_less_trans,lemma1]) 1);
+by (fast_tac (!claset addIs [Puzzle.f_ax,le_less_trans,lemma1]) 1);
 qed "lemma2";
 
 val prems = goal Puzzle.thy "(!!n.f(n) <= f(Suc(n))) ==> m<n --> f(m) <= f(n)";
 by (res_inst_tac[("n","n")]nat_induct 1);
 by (Simp_tac 1);
 by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
-by (fast_tac (HOL_cs addIs (le_trans::prems)) 1);
+by (fast_tac (!claset addIs (le_trans::prems)) 1);
 bind_thm("mono_lemma1", result() RS mp);
 
 val [p1,p2] = goal Puzzle.thy
     "[| !! n. f(n)<=f(Suc(n));  m<=n |] ==> f(m) <= f(n)";
 by (rtac (p2 RS le_imp_less_or_eq RS disjE) 1);
 by (etac (p1 RS mono_lemma1) 1);
-by (fast_tac (HOL_cs addIs [le_refl]) 1);
+by (fast_tac (!claset addIs [le_refl]) 1);
 qed "mono_lemma";
 
 val prems = goal Puzzle.thy "m <= n ==> f(m) <= f(n)";
-by (fast_tac (HOL_cs addIs ([mono_lemma,less_imp_le,lemma2]@prems)) 1);
+by (fast_tac (!claset addIs ([mono_lemma,less_imp_le,lemma2]@prems)) 1);
 qed "f_mono";
 
 goal Puzzle.thy "f(n) = n";
 by (rtac le_anti_sym 1);
 by (rtac lemma1 2);
-by (fast_tac (HOL_cs addIs [Puzzle.f_ax,leI] addDs [leD,f_mono,lessD]) 1);
+by (fast_tac (!claset addIs [Puzzle.f_ax,leI] addDs [leD,f_mono,lessD]) 1);
 result();

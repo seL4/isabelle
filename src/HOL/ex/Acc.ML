@@ -14,14 +14,14 @@ open Acc;
 (*The intended introduction rule*)
 val prems = goal Acc.thy
     "[| !!b. (b,a):r ==> b: acc(r) |] ==> a: acc(r)";
-by (fast_tac (set_cs addIs (prems @ 
+by (fast_tac (!claset addIs (prems @ 
                             map (rewrite_rule [pred_def]) acc.intrs)) 1);
 qed "accI";
 
 goal Acc.thy "!!a b r. [| b: acc(r);  (a,b): r |] ==> a: acc(r)";
 by (etac acc.elim 1);
 by (rewtac pred_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "acc_downward";
 
 val [major,indhyp] = goal Acc.thy
@@ -32,7 +32,7 @@ by (rtac (major RS acc.induct) 1);
 by (rtac indhyp 1);
 by (resolve_tac acc.intrs 1);
 by (rewtac pred_def);
-by (fast_tac set_cs 2);
+by (Fast_tac 2);
 by (etac (Int_lower1 RS Pow_mono RS subsetD) 1);
 qed "acc_induct";
 
@@ -41,20 +41,20 @@ val [major] = goal Acc.thy "r <= (acc r) Times (acc r) ==> wf(r)";
 by (rtac (major RS wfI) 1);
 by (etac acc.induct 1);
 by (rewtac pred_def);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "acc_wfI";
 
 val [major] = goal Acc.thy "wf(r) ==> ALL x. (x,y): r | (y,x):r --> y: acc(r)";
 by (rtac (major RS wf_induct) 1);
 by (rtac (impI RS allI) 1);
 by (rtac accI 1);
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed "acc_wfD_lemma";
 
 val [major] = goal Acc.thy "wf(r) ==> r <= (acc r) Times (acc r)";
 by (rtac subsetI 1);
 by (res_inst_tac [("p", "x")] PairE 1);
-by (fast_tac (set_cs addSIs [SigmaI,
+by (fast_tac (!claset addSIs [SigmaI,
                              major RS acc_wfD_lemma RS spec RS mp]) 1);
 qed "acc_wfD";
 

@@ -12,7 +12,7 @@ val list_con_defs = [NIL_def, CONS_def];
 
 goal SList.thy "list(A) = {Numb(0)} <+> (A <*> list(A))";
 let val rew = rewrite_rule list_con_defs in  
-by (fast_tac (univ_cs addSIs (equalityI :: map rew list.intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew list.intrs)
                       addEs [rew list.elim]) 1)
 end;
 qed "list_unfold";
@@ -26,7 +26,7 @@ qed "list_mono";
 (*Type checking -- list creates well-founded sets*)
 goalw SList.thy (list_con_defs @ list.defs) "list(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
-by (fast_tac (univ_cs addIs sexp.intrs@[sexp_In0I,sexp_In1I]) 1);
+by (fast_tac (!claset addIs sexp.intrs@[sexp_In0I,sexp_In1I]) 1);
 qed "list_sexp";
 
 (* A <= sexp ==> list(A) <= sexp *)
@@ -82,32 +82,32 @@ val Nil_neq_Cons = sym RS Cons_neq_Nil2;
 (** Injectiveness of CONS and Cons **)
 
 goalw SList.thy [CONS_def] "(CONS K M=CONS L N) = (K=L & M=N)";
-by (fast_tac (HOL_cs addSEs [Scons_inject, make_elim In1_inject]) 1);
+by (fast_tac (!claset addSEs [Scons_inject, make_elim In1_inject]) 1);
 qed "CONS_CONS_eq";
 
 bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
 
 (*For reasoning about abstract list constructors*)
-val list_cs = set_cs addIs [Rep_list] @ list.intrs
-                     addSEs [CONS_neq_NIL,NIL_neq_CONS,CONS_inject]
-                     addSDs [inj_onto_Abs_list RS inj_ontoD,
-                             inj_Rep_list RS injD, Leaf_inject];
+AddIs ([Rep_list] @ list.intrs);
+AddSEs [CONS_neq_NIL,NIL_neq_CONS,CONS_inject];
+AddSDs [inj_onto_Abs_list RS inj_ontoD,
+        inj_Rep_list RS injD, Leaf_inject];
 
 goalw SList.thy [Cons_def] "(x#xs=y#ys) = (x=y & xs=ys)";
-by (fast_tac list_cs 1);
+by (Fast_tac 1);
 qed "Cons_Cons_eq";
 bind_thm ("Cons_inject2", (Cons_Cons_eq RS iffD1 RS conjE));
 
 val [major] = goal SList.thy "CONS M N: list(A) ==> M: A & N: list(A)";
 by (rtac (major RS setup_induction) 1);
 by (etac list.induct 1);
-by (ALLGOALS (fast_tac list_cs));
+by (ALLGOALS (Fast_tac));
 qed "CONS_D";
 
 val prems = goalw SList.thy [CONS_def,In1_def]
     "CONS M N: sexp ==> M: sexp & N: sexp";
 by (cut_facts_tac prems 1);
-by (fast_tac (set_cs addSDs [Scons_D]) 1);
+by (fast_tac (!claset addSDs [Scons_D]) 1);
 qed "sexp_CONS_D";
 
 
@@ -343,7 +343,7 @@ goal SList.thy
 \                        (!y ys. xs=y#ys --> P(f y ys)))";
 by(list_ind_tac "xs" 1);
 by(ALLGOALS Asm_simp_tac);
-by(fast_tac HOL_cs 1);
+by(Fast_tac 1);
 qed "expand_list_case2";
 
 
