@@ -40,6 +40,13 @@ locale coset = group G +
       and lcos_def: "x <# H == l_coset G x H"
       and setmult_def: "H <#> K == set_mult G H K"
 
+text {*
+  Locale @{term coset} provides only syntax.
+  Logically, groups are cosets.
+*}
+lemma (in group) is_coset:
+  "coset G"
+  ..
 
 text{*Lemmas useful for Sylow's Theorem*}
 
@@ -413,7 +420,15 @@ lemma (in coset) setmult_closed:
 by (auto simp add: normal_imp_subgroup [THEN subgroup.subset] 
                    rcos_sum setrcos_eq)
 
+lemma (in group) setinv_closed:
+     "[| H <| G; K \<in> rcosets G H |] ==> set_inv G K \<in> rcosets G H"
+by (auto simp add:  normal_imp_subgroup
+                 subgroup.subset coset.rcos_inv [OF is_coset]
+                 coset.setrcos_eq [OF is_coset])
+
 (*
+The old version is no longer valid: "group G" has to be an explicit premise.
+
 lemma setinv_closed:
      "[| H <| G; K \<in> rcosets G H |] ==> set_inv G K \<in> rcosets G H"
 by (auto simp add:  normal_imp_subgroup
@@ -426,8 +441,20 @@ lemma (in coset) setrcos_assoc:
 by (auto simp add: setrcos_eq rcos_sum normal_imp_subgroup 
                    subgroup.subset m_assoc)
 
-(*??
-lemma subgroup_in_rcosets: "subgroup H G ==> H \<in> rcosets G H"
+lemma (in group) subgroup_in_rcosets:
+  "subgroup H G ==> H \<in> rcosets G H"
+proof -
+  assume sub: "subgroup H G"
+  have "r_coset G H \<one> = H"
+    by (rule coset.coset_join2)
+      (auto intro: sub subgroup.one_closed is_coset)
+  then show ?thesis
+    by (auto simp add: coset.setrcos_eq [OF is_coset])
+qed
+
+(*
+lemma subgroup_in_rcosets:
+  "subgroup H G ==> H \<in> rcosets G H"
 apply (frule subgroup_imp_coset) 
 apply (frule subgroup_imp_group) 
 apply (simp add: coset.setrcos_eq)
@@ -441,6 +468,33 @@ lemma (in coset) setrcos_inv_mult_group_eq:
      "[|H <| G; M \<in> rcosets G H|] ==> set_inv G M <#> M = H"
 by (auto simp add: setrcos_eq rcos_inv rcos_sum normal_imp_subgroup 
                    subgroup.subset)
+
+lemma (in group) factorgroup_is_magma:
+  "H <| G ==> magma (G Mod H)"
+  by rule (simp add: FactGroup_def coset.setmult_closed [OF is_coset])
+
+lemma (in group) factorgroup_semigroup_axioms:
+  "H <| G ==> semigroup_axioms (G Mod H)"
+  by rule (simp add: FactGroup_def coset.setrcos_assoc [OF is_coset]
+    coset.setmult_closed [OF is_coset])
+
+theorem (in group) factorgroup_is_group:
+  "H <| G ==> group (G Mod H)"
+apply (insert is_coset) 
+apply (simp add: FactGroup_def) 
+apply (rule group.intro)
+   apply (rule magma.intro) 
+   apply (simp add: coset.setmult_closed)
+  apply (rule semigroup_axioms.intro)
+  apply (simp add: restrictI coset.setmult_closed coset.setrcos_assoc)
+ apply (rule l_one.intro)
+  apply (simp add: normal_imp_subgroup subgroup_in_rcosets)
+ apply (simp add: normal_imp_subgroup
+   subgroup_in_rcosets coset.setrcos_mult_eq)
+apply (rule group_axioms.intro)
+ apply (simp add: restrictI setinv_closed)
+apply (simp add: setinv_closed coset.setrcos_inv_mult_group_eq)
+done
 
 (*????????????????
 theorem factorgroup_is_group: "H <| G ==> group (G Mod H)"

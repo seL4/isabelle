@@ -16,16 +16,20 @@ record 'a ring = "'a group" +
   zero :: 'a ("\<zero>\<index>")
   add :: "['a, 'a] => 'a" (infixl "\<oplus>\<index>" 65)
   a_inv :: "'a => 'a" ("\<ominus>\<index> _" [81] 80)
-  minus :: "['a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
 
 locale cring = abelian_monoid R +
   assumes a_abelian_group: "abelian_group (| carrier = carrier R,
       mult = add R, one = zero R, m_inv = a_inv R |)"
-    and minus_def: "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y = x \<oplus> \<ominus> y"
     and m_inv_def: "[| EX y. y \<in> carrier R & x \<otimes> y = \<one>; x \<in> carrier R |]
       ==> inv x = (THE y. y \<in> carrier R & x \<otimes> y = \<one>)"
     and l_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
+
+text {* Derived operation. *}
+
+constdefs
+  minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
+  "[| x \<in> carrier R; y \<in> carrier R |] ==> minus R x y == add R x (a_inv R y)"
 
 (*
   -- {* Definition of derived operations *}
@@ -289,8 +293,8 @@ lemmas (in cring) finsum_addf =
   abelian_monoid.finprod_multf [OF a_abelian_monoid, folded finsum_def,
     simplified group_record_simps]
 
-lemmas (in cring) finsum_cong =
-  abelian_monoid.finprod_cong [OF a_abelian_monoid, folded finsum_def,
+lemmas (in cring) finsum_cong' =
+  abelian_monoid.finprod_cong' [OF a_abelian_monoid, folded finsum_def,
     simplified group_record_simps]
 
 lemmas (in cring) finsum_0 [simp] =
@@ -309,92 +313,9 @@ lemmas (in cring) finsum_add [simp] =
   abelian_monoid.finprod_mult [OF a_abelian_monoid, folded finsum_def,
     simplified group_record_simps]
 
-lemmas (in cring) finsum_cong' [cong] =
-  abelian_monoid.finprod_cong' [OF a_abelian_monoid, folded finsum_def,
+lemmas (in cring) finsum_cong =
+  abelian_monoid.finprod_cong [OF a_abelian_monoid, folded finsum_def,
     simplified group_record_simps]
-
-(*
-lemma (in cring) finsum_empty [simp]:
-  "finsum R f {} = \<zero>"
-  by (simp add: finsum_def
-    abelian_monoid.finprod_empty [OF a_abelian_monoid])
-
-lemma (in cring) finsum_insert [simp]:
-  "[| finite F; a \<notin> F; f : F -> carrier R; f a \<in> carrier R |] ==>
-   finsum R f (insert a F) = f a \<oplus> finsum R f F"
-  by (simp add: finsum_def
-    abelian_monoid.finprod_insert [OF a_abelian_monoid])
-
-lemma (in cring) finsum_zero:
-  "finite A ==> finsum R (%i. \<zero>) A = \<zero>"
-  by (simp add: finsum_def
-    abelian_monoid.finprod_one [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_closed [simp]:
-  "[| finite A; f : A -> carrier R |] ==> finsum R f A \<in> carrier R"
-  by (simp only: finsum_def
-    abelian_monoid.finprod_closed [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_Un_Int:
-  "[| finite A; finite B; g \<in> A -> carrier R; g \<in> B -> carrier R |] ==>
-     finsum R g (A Un B) \<oplus> finsum R g (A Int B) =
-     finsum R g A \<oplus> finsum R g B"
-  by (simp only: finsum_def
-    abelian_monoid.finprod_Un_Int [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_Un_disjoint:
-  "[| finite A; finite B; A Int B = {};
-      g \<in> A -> carrier R; g \<in> B -> carrier R |]
-   ==> finsum R g (A Un B) = finsum R g A \<oplus> finsum R g B"
-  by (simp only: finsum_def
-    abelian_monoid.finprod_Un_disjoint [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_addf:
-  "[| finite A; f \<in> A -> carrier R; g \<in> A -> carrier R |] ==>
-   finsum R (%x. f x \<oplus> g x) A = (finsum R f A \<oplus> finsum R g A)"
-  by (simp only: finsum_def
-    abelian_monoid.finprod_multf [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_cong:
-  "[| A = B; g : B -> carrier R;
-      !!i. i : B ==> f i = g i |] ==> finsum R f A = finsum R g B"
-  apply (simp only: finsum_def)
-  apply (rule abelian_monoid.finprod_cong [OF a_abelian_monoid, simplified])
-  apply simp_all
-  done
-
-lemma (in cring) finsum_0 [simp]:
-  "f \<in> {0::nat} -> carrier R ==> finsum R f {..0} = f 0"
-  by (simp add: finsum_def
-    abelian_monoid.finprod_0 [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_Suc [simp]:
-  "f \<in> {..Suc n} -> carrier R ==>
-   finsum R f {..Suc n} = (f (Suc n) \<oplus> finsum R f {..n})"
-  by (simp add: finsum_def
-    abelian_monoid.finprod_Suc [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_Suc2:
-  "f \<in> {..Suc n} -> carrier R ==>
-   finsum R f {..Suc n} = (finsum R (%i. f (Suc i)) {..n} \<oplus> f 0)"
-  by (simp only: finsum_def
-    abelian_monoid.finprod_Suc2 [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_add [simp]:
-  "[| f : {..n} -> carrier R; g : {..n} -> carrier R |] ==>
-     finsum R (%i. f i \<oplus> g i) {..n::nat} =
-     finsum R f {..n} \<oplus> finsum R g {..n}"
-  by (simp only: finsum_def
-    abelian_monoid.finprod_mult [OF a_abelian_monoid, simplified])
-
-lemma (in cring) finsum_cong' [cong]:
-  "[| A = B; !!i. i : B ==> f i = g i;
-      g \<in> B -> carrier R = True |] ==> finsum R f A = finsum R g B"
-  apply (simp only: finsum_def)
-  apply (rule abelian_monoid.finprod_cong' [OF a_abelian_monoid, simplified])
-  apply simp_all
-  done
-*)
 
 text {*Usually, if this rule causes a failed congruence proof error,
    the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.

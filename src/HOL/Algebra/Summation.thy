@@ -416,7 +416,7 @@ next
     by (simp add: insert fA fa gA ga fgA fga ac finprod_closed Int_insert_left insert_absorb Int_mono2 Un_subset_iff)
 qed
 
-lemma (in abelian_monoid) finprod_cong:
+lemma (in abelian_monoid) finprod_cong':
   "[| A = B; g : B -> carrier G;
       !!i. i : B ==> f i = g i |] ==> finprod G f A = finprod G g B"
 proof -
@@ -457,14 +457,17 @@ proof -
   qed
 qed
 
-lemma (in abelian_monoid) finprod_cong' [cong]:
+lemma (in abelian_monoid) finprod_cong:
   "[| A = B; !!i. i : B ==> f i = g i;
       g : B -> carrier G = True |] ==> finprod G f A = finprod G g B"
-  by (rule finprod_cong) fast+
+  by (rule finprod_cong') fast+
 
 text {*Usually, if this rule causes a failed congruence proof error,
-   the reason is that the premise @{text "g : B -> carrier G"} cannot be shown.
-   Adding @{thm [source] Pi_def} to the simpset is often useful. *}
+  the reason is that the premise @{text "g : B -> carrier G"} cannot be shown.
+  Adding @{thm [source] Pi_def} to the simpset is often useful.
+  For this reason, @{thm [source] abelian_monoid.finprod_cong}
+  is not added to the simpset by default.
+*}
 
 declare funcsetI [rule del]
   funcset_mem [rule del]
