@@ -88,10 +88,10 @@ qed_goalw "QSigma_cong" thy [QSigma_def]
  (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
 
 qed_goal "QSigma_empty1" thy "QSigma(0,B) = 0"
- (fn _ => [ (fast_tac (!claset addIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "QSigma_empty2" thy "A <*> 0 = 0"
- (fn _ => [ (fast_tac (!claset addIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 Addsimps [QSigma_empty1, QSigma_empty2];
 
@@ -192,17 +192,17 @@ AddSEs [qconverseD, qconverseE];
 
 qed_goal "qconverse_qconverse" thy
     "!!A B r. r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
- (fn _ => [ (fast_tac (!claset addSIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "qconverse_type" thy
     "!!A B r. r <= A <*> B ==> qconverse(r) <= B <*> A"
  (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "qconverse_prod" thy "qconverse(A <*> B) = B <*> A"
- (fn _ => [ (fast_tac (!claset addSIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "qconverse_empty" thy "qconverse(0) = 0"
- (fn _ => [ (fast_tac (!claset addSIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 
 (**** The Quine-inspired notion of disjoint sum ****)
@@ -315,17 +315,17 @@ qed "qcase_type";
 (** Rules for the Part primitive **)
 
 goal thy "Part(A <+> B,QInl) = {QInl(x). x: A}";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_QInl";
 
 goal thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_QInr";
 
 goal thy "Part(A <+> B, %x.QInr(h(x))) = {QInr(y). y: Part(B,h)}";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_QInr2";
 
 goal thy "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_qsum_equality";

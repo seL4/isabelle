@@ -335,7 +335,7 @@ val div_rls =   (*for mod and div*)
      nat_into_Ord, not_lt_iff_le RS iffD1];
 
 val div_ss = (!simpset) addsimps [nat_into_Ord, div_termination RS ltD,
-				  not_lt_iff_le RS iffD2];
+                                  not_lt_iff_le RS iffD2];
 
 (*Type checking depends upon termination!*)
 goalw Arith.thy [mod_def] "!!m n. [| 0<n;  m:nat;  n:nat |] ==> m mod n : nat";
@@ -585,7 +585,7 @@ qed "mult_eq_self_implies_10";
 (*Thanks to Sten Agerholm*)
 goal Arith.thy  (* add_le_elim1 *)
     "!!m n k. [|m#+n le m#+k; m:nat; n:nat; k:nat|] ==> n le k";
-be rev_mp 1;
+by (etac rev_mp 1);
 by (eres_inst_tac[("n","n")]nat_induct 1);
 by (Asm_simp_tac 1);
 by (Step_tac 1);

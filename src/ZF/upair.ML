@@ -198,8 +198,7 @@ AddSEs [singletonE];
 qed_goalw "the_equality" thy [the_def]
     "[| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a"
  (fn [pa,eq] =>
-  [ (fast_tac (!claset addSIs [pa] addIs [equalityI]
-	               addEs [eq RS subst]) 1) ]);
+  [ (fast_tac (!claset addSIs [pa] addEs [eq RS subst]) 1) ]);
 
 (* Only use this if you already know EX!x. P(x) *)
 qed_goal "the_equality2" thy
@@ -226,7 +225,7 @@ qed_goal "theI2" thy
 (*If it's "undefined", it's zero!*)
 qed_goalw "the_0" thy [the_def]
     "!!P. ~ (EX! x. P(x)) ==> (THE x. P(x))=0"
- (fn _ => [ (fast_tac (!claset addIs [equalityI] addSEs [ReplaceE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSEs [ReplaceE]) 1) ]);
 
 
 (*** if -- a conditional expression for formulae ***)

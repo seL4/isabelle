@@ -55,7 +55,7 @@ by (fast_tac (!claset addIs [r_into_rtrancl]) 1);
 qed "r_subset_rtrancl";
 
 goal Trancl.thy "field(r^*) = field(r)";
-by (fast_tac (eq_cs addIs [r_into_rtrancl] 
+by (fast_tac (!claset addIs [r_into_rtrancl] 
                     addSDs [rtrancl_type RS subsetD]) 1);
 qed "rtrancl_field";
 

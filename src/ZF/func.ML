@@ -53,11 +53,11 @@ qed "fun_weaken_type";
 
 (*Empty function spaces*)
 goalw thy [Pi_def, function_def] "Pi(0,A) = {0}";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Pi_empty1";
 
 goalw thy [Pi_def] "!!A a. a:A ==> A->0 = 0";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Pi_empty2";
 
 (*The empty function*)
@@ -67,7 +67,7 @@ qed "empty_fun";
 
 (*The singleton function*)
 goalw thy [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "singleton_fun";
 
 Addsimps [empty_fun, singleton_fun];
@@ -245,7 +245,7 @@ qed "Pi_lamE";
 (** Images of functions **)
 
 goalw thy [lam_def] "!!C A. C <= A ==> (lam x:A.b(x)) `` C = {b(x). x:C}";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "image_lam";
 
 goal thy "!!C A. [| f : Pi(A,B);  C <= A |] ==> f``C = {f`x. x:C}";
@@ -291,7 +291,7 @@ by (REPEAT (ares_tac (prems@[lam_cong]) 1));
 qed "restrict_eqI";
 
 goalw thy [restrict_def, lam_def] "domain(restrict(f,C)) = C";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "domain_restrict";
 
 val [prem] = goalw thy [restrict_def]
@@ -360,7 +360,7 @@ qed "fun_disjoint_apply2";
 (** Domain and range of a function/relation **)
 
 goalw thy [Pi_def] "!!f. f : Pi(A,B) ==> domain(f)=A";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "domain_of_fun";
 
 goal thy "!!f. [| f : Pi(A,B);  a: A |] ==> f`a : range(f)";
@@ -379,7 +379,7 @@ goal thy
     "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)";
 by (forward_tac [singleton_fun RS fun_disjoint_Un] 1);
 by (asm_full_simp_tac (FOL_ss addsimps [cons_eq]) 2);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "fun_extend";
 
 goal thy
@@ -417,6 +417,6 @@ by (rtac fun_extension 1 THEN REPEAT (ares_tac [fun_extend] 1));
 by (etac consE 1);
 by (ALLGOALS 
     (asm_simp_tac (!simpset addsimps [restrict, fun_extend_apply1, 
-				      fun_extend_apply2])));
+                                      fun_extend_apply2])));
 qed "cons_fun_eq";
 

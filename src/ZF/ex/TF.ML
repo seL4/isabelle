@@ -38,7 +38,7 @@ goalw TF.thy [tree_def, forest_def]
     "tree_forest(A) = (A*forest(A)) + ({0} + tree(A)*forest(A))";
 let open tree_forest;  
     val rew = rewrite_rule (con_defs @ tl defs) in  
-by (fast_tac (sum_cs addSIs (equalityI :: (map rew intrs RL [PartD1]))
+by (fast_tac (!claset addSIs (equalityI :: (map rew intrs RL [PartD1]))
                      addEs [rew elim]) 1)
 end;
 qed "tree_forest_unfold";

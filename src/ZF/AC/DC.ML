@@ -51,7 +51,7 @@ by (res_inst_tac [("a","<0, {<0, x>}>")] not_emptyI 1);
 by (rtac CollectI 1);
 by (rtac SigmaI 1);
 by (fast_tac (!claset addSIs [nat_0I RS UN_I, empty_fun]) 1);
-br (nat_1I RS UN_I) 1;
+by (rtac (nat_1I RS UN_I) 1);
 by (fast_tac (!claset addSIs [singleton_fun RS Pi_type]
         addss (!simpset addsimps [singleton_0 RS sym])) 1);
 by (asm_full_simp_tac (!simpset addsimps [domain_0, domain_cons,
@@ -115,9 +115,9 @@ by (Asm_full_simp_tac 1);
 by (Step_tac 1);
 by (rtac bexI 1 THEN (assume_tac 2));
 by (best_tac (!claset addIs [ltD]
-		      addSEs [nat_0_le RS leE]
+                      addSEs [nat_0_le RS leE]
         addEs [sym RS trans RS succ_neq_0, domain_of_fun]
-	addss (!simpset)) 1);
+        addss (!simpset)) 1);
 (** LEVEL 7 **)
 by (dresolve_tac [nat_succI RSN (2, bspec)] 1 THEN (assume_tac 1));
 by (subgoal_tac "f ` succ(succ(x)) : succ(k)->X" 1);
@@ -276,7 +276,7 @@ val Finite_Fin = result();
 
 goal thy "!!x. x: X  \
 \ ==> {<0,x>}: (UN n:nat. {f:succ(n)->X. ALL k:n. <f`k, f`succ(k)> : R})";
-br (nat_0I RS UN_I) 1;
+by (rtac (nat_0I RS UN_I) 1);
 by (fast_tac (!claset addSIs [singleton_fun RS Pi_type]
         addss (!simpset addsimps [singleton_0 RS sym])) 1);
 val singleton_in_funs = result();
@@ -303,7 +303,7 @@ by (etac subst 2 THEN (*elimination equation for greater speed*)
 by (step_tac (!claset delrules [domainE]) 1);
 by (swap_res_tac [bexI] 1 THEN etac singleton_in_funs 2);
 by (asm_full_simp_tac (!simpset addsimps [nat_0I  RSN (2, bexI), 
-				     cons_fun_type2, empty_fun]) 1);
+                                     cons_fun_type2, empty_fun]) 1);
 val lemma1 = result();
 
 goal thy "!!f. [| f:nat->X; n:nat |] ==>  \
@@ -392,8 +392,8 @@ by (dtac ltD 1);
 by (etac nat_induct 1);
 by (dresolve_tac [[nat_0I, Ord_nat] MRS ltI RSN (2, ospec)] 1);
 by (fast_tac (FOL_cs addss
-	      (!simpset addsimps [image_0, singleton_fun RS domain_of_fun,
-				  singleton_0, singleton_in_funs])) 1);
+              (!simpset addsimps [image_0, singleton_fun RS domain_of_fun,
+                                  singleton_0, singleton_in_funs])) 1);
 (*induction step*) (** LEVEL 5 **)
 by (Full_simp_tac 1);
 by (dresolve_tac [[nat_succI, Ord_nat] MRS ltI RSN (2, ospec)] 1
@@ -411,10 +411,10 @@ by (etac domainE 1);
 by (etac domainE 1);
 
 by (forward_tac [f_n_type] 1 THEN REPEAT (assume_tac 1));
-br bexI 1;
+by (rtac bexI 1);
 by (etac nat_succI 2);
 by (res_inst_tac [("x","cons(<succ(xa), ya>, f`xa)")] bexI 1);
-br conjI 1;
+by (rtac conjI 1);
 by (fast_tac (FOL_cs
         addEs [subst_context RSN (2, trans) RS domain_cons_eq_succ,
         subst_context, all_in_image_restrict_eq, trans, equalityD1]) 2);

@@ -69,7 +69,7 @@ val ss = (!simpset) addsimps [inj_is_fun RS apply_type, left_inverse]
                setloop (split_tac [expand_if] ORELSE' etac UnE);
 
 goal upair.thy "{x, y} - {y} = {x} - {y}";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 val double_Diff_sing = result();
 
 goal upair.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";

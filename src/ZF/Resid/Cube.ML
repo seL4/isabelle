@@ -74,10 +74,10 @@ val cube = result();
 
 goal Cube.thy 
     "!!u.[|w~u; w~v; regular(u); regular(v)|]==> \
-\          EX uv.EX vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu &\
+\          EX uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu &\
 \            regular(vu) & (w|>v)~uv & regular(uv) ";
 by (forw_inst_tac [("x1","v")] (comp_sym RS comp_trans) 1);
-by (REPEAT(Step_tac 1));
+by (step_tac (!claset addSIs [exI]) 1);
 by (rtac cube 1);
 by (asm_simp_tac (prism_ss addsimps [comp_sym_iff]) 1);
 by (asm_simp_tac (prism_ss addsimps [comp_sym_iff]) 1);

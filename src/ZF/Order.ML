@@ -82,13 +82,13 @@ qed "pred_subset";
 
 goalw Order.thy [pred_def]
     "pred(pred(A,x,r), y, r) = pred(A,x,r) Int pred(A,y,r)";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "pred_pred_eq";
 
 goalw Order.thy [trans_on_def, pred_def]
     "!!r. [| trans[A](r);  <y,x>:r;  x:A;  y:A \
 \         |] ==> pred(pred(A,x,r), y, r) = pred(A,y,r)";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "trans_pred_pred_eq";
 
 
@@ -171,7 +171,7 @@ by (simp_tac (!simpset addsimps [part_ord_0, linear_0]) 1);
 qed "tot_ord_0";
 
 goalw Order.thy [wf_on_def, wf_def] "wf[0](r)";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "wf_on_0";
 
 goalw Order.thy [well_ord_def] "well_ord(0,r)";
@@ -300,7 +300,7 @@ qed "well_ord_mono_ord_isoI";
 goalw Order.thy [part_ord_def, irrefl_def, trans_on_def, ord_iso_def]
     "!!A B r. [| part_ord(B,s);  f: ord_iso(A,r,B,s) |] ==> part_ord(A,r)";
 by (Asm_simp_tac 1);
-by (fast_tac (ZF_cs addIs [bij_is_fun RS apply_type]) 1);
+by (fast_tac (!claset addIs [bij_is_fun RS apply_type]) 1);
 qed "part_ord_ord_iso";
 
 goalw Order.thy [linear_def, ord_iso_def]
@@ -319,11 +319,10 @@ goalw Order.thy [wf_on_def, wf_def, ord_iso_def]
 by (asm_full_simp_tac (!simpset addcongs [conj_cong2]) 1);
 by (safe_tac (!claset));
 by (dres_inst_tac [("x", "{f`z. z:Z Int A}")] spec 1);
-by (safe_tac eq_cs);
+by (safe_tac (!claset addSIs [equalityI]));
 by (dtac equalityD1 1);
 by (fast_tac (!claset addSIs [bexI]) 1);
-by (fast_tac (!claset addSIs [bexI]
-              addIs [bij_is_fun RS apply_type]) 1);
+by (fast_tac (!claset addSIs [bexI] addIs [bij_is_fun RS apply_type]) 1);
 qed "wf_on_ord_iso";
 
 goalw Order.thy [well_ord_def, tot_ord_def]
@@ -382,7 +381,8 @@ goalw Order.thy [ord_iso_def, pred_def]
 by (etac CollectE 1);
 by (asm_simp_tac 
     (!simpset addsimps [[bij_is_fun, Collect_subset] MRS image_fun]) 1);
-by (safe_tac (eq_cs addSEs [bij_is_fun RS apply_type]));
+by (rtac equalityI 1);
+by (safe_tac (!claset addSEs [bij_is_fun RS apply_type]));
 by (rtac RepFun_eqI 1);
 by (fast_tac (!claset addSIs [right_inverse_bij RS sym]) 1);
 by (asm_simp_tac bij_inverse_ss 1);
@@ -472,7 +472,7 @@ qed "range_ord_iso_map";
 
 goalw Order.thy [ord_iso_map_def]
     "converse(ord_iso_map(A,r,B,s)) = ord_iso_map(B,s,A,r)";
-by (fast_tac (eq_cs addIs [ord_iso_sym]) 1);
+by (fast_tac (!claset addIs [ord_iso_sym]) 1);
 qed "converse_ord_iso_map";
 
 goalw Order.thy [ord_iso_map_def, function_def]

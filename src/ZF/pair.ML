@@ -99,10 +99,10 @@ AddSIs [SigmaI];
 AddSEs [SigmaE2, SigmaE];
 
 qed_goal "Sigma_empty1" thy "Sigma(0,B) = 0"
- (fn _ => [ (fast_tac (!claset addIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "Sigma_empty2" thy "A*0 = 0"
- (fn _ => [ (fast_tac (!claset addIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 Addsimps [Sigma_empty1, Sigma_empty2];
 

@@ -65,7 +65,7 @@ goalw thy [lesspoll_def]
 \            (EX b<a. f`b ~= 0 & (ALL g<a. ALL d<a. u(f,b,g,d) ~= 0 -->  \
 \                                       u(f,b,g,d) eqpoll m))";
 by (Asm_simp_tac 1);
-by (Fast_tac 1);
+by (fast_tac (!claset delrules [equalityI]) 1);
 val cases = result();
 
 (* ********************************************************************** *)
@@ -233,7 +233,7 @@ goalw thy [vv2_def]
 \          |] ==> vv2(f,b,g,s) <= f`g";
 by (split_tac [expand_if] 1);
 by (Step_tac 1);
-be (uu_Least_is_fun RS apply_type) 1;
+by (etac (uu_Least_is_fun RS apply_type) 1);
 by (REPEAT_SOME (fast_tac (!claset addSIs [not_emptyI, singleton_subsetI])));
 val vv2_subset = result();
 
@@ -354,7 +354,7 @@ val le_imp_rec_subset = result();
 goal thy "EX y. x Un y*y <= y";
 by (res_inst_tac [("x","UN n:nat. rec(n, x, %k r. r Un r*r)")] exI 1);
 by (safe_tac (!claset));
-br (nat_0I RS UN_I) 1;
+by (rtac (nat_0I RS UN_I) 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("a","succ(n Un na)")] UN_I 1);
 by (eresolve_tac [Un_nat_type RS nat_succI] 1 THEN (assume_tac 1));

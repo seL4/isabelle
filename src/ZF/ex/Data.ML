@@ -11,7 +11,7 @@ open Data;
 
 goal Data.thy "data(A,B) = ({0} + A) + (A*B + A*B*data(A,B))";
 let open data;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "data_unfold";

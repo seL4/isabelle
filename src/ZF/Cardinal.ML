@@ -110,7 +110,7 @@ by (fast_tac (!claset addIs [eqpollI] addSEs [eqpollE]) 1);
 qed "eqpoll_iff";
 
 goalw Cardinal.thy [lepoll_def, inj_def] "!!A. A lepoll 0 ==> A = 0";
-by (fast_tac (eq_cs addDs [apply_type]) 1);
+by (fast_tac (!claset addDs [apply_type]) 1);
 qed "lepoll_0_is_0";
 
 (*0 lepoll Y*)
@@ -163,7 +163,7 @@ by (fast_tac (!claset addSIs [if_type RS lam_type]
                       addEs [apply_funtype RS succE]) 1);
 (*Proving it's injective*)
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Fast_tac 1);
+by (fast_tac (!claset delrules [equalityI]) 1);
 qed "inj_not_surj_succ";
 
 (** Variations on transitivity **)
@@ -671,7 +671,7 @@ goal Cardinal.thy "!!A. [| A lepoll 1; a:A |] ==> A = {a}";
 by (forward_tac [Diff_sing_lepoll] 1);
 by (assume_tac 1);
 by (dtac lepoll_0_is_0 1);
-by (fast_tac (eq_cs addEs [equalityE]) 1);
+by (fast_tac (!claset addEs [equalityE]) 1);
 qed "lepoll_1_is_sing";
 
 goalw Cardinal.thy [lepoll_def] "A Un B lepoll A+B";

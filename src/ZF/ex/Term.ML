@@ -11,7 +11,7 @@ open Term;
 
 goal Term.thy "term(A) = A * list(term(A))";
 let open term;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "term_unfold";

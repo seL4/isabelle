@@ -17,7 +17,7 @@ by (Fast_tac 1);
 qed "Transset_iff_Pow";
 
 goalw Ordinal.thy [Transset_def] "Transset(A) <-> Union(succ(A)) = A";
-by (fast_tac (eq_cs addSEs [equalityE]) 1);
+by (fast_tac (!claset addSEs [equalityE]) 1);
 qed "Transset_iff_Union_succ";
 
 (** Consequences of downwards closure **)
@@ -314,11 +314,11 @@ by (Fast_tac 1);
 qed "Memrel_mono";
 
 goalw Ordinal.thy [Memrel_def] "Memrel(0) = 0";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Memrel_0";
 
 goalw Ordinal.thy [Memrel_def] "Memrel(1) = 0";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Memrel_1";
 
 Addsimps [Memrel_0, Memrel_1];
@@ -396,7 +396,7 @@ val prems = goal Ordinal.thy
 by (trans_ind_tac "i" prems 1);
 by (rtac (impI RS allI) 1);
 by (trans_ind_tac "j" [] 1);
-by (DEPTH_SOLVE (step_tac eq_cs 1 ORELSE Ord_trans_tac 1));
+by (DEPTH_SOLVE (Step_tac 1 ORELSE Ord_trans_tac 1));
 qed "Ord_linear_lemma";
 
 (*"[| Ord(i); Ord(x) |] ==> i:x | i=x | x:i"*)
@@ -623,7 +623,7 @@ by (REPEAT (eresolve_tac [asm_rl, leprem RS ltE] 1
 qed "le_implies_UN_le_UN";
 
 goal Ordinal.thy "!!i. Ord(i) ==> (UN y:i. succ(y)) = i";
-by (fast_tac (eq_cs addEs [Ord_trans]) 1);
+by (fast_tac (!claset addEs [Ord_trans]) 1);
 qed "Ord_equality";
 
 (*Holds for all transitive sets, not just ordinals*)
@@ -635,7 +635,7 @@ qed "Ord_Union_subset";
 (*** Limit ordinals -- general properties ***)
 
 goalw Ordinal.thy [Limit_def] "!!i. Limit(i) ==> Union(i) = i";
-by (fast_tac (eq_cs addSIs [ltI] addSEs [ltE] addEs [Ord_trans]) 1);
+by (fast_tac (!claset addSIs [ltI] addSEs [ltE] addEs [Ord_trans]) 1);
 qed "Limit_Union_eq";
 
 goalw Ordinal.thy [Limit_def] "!!i. Limit(i) ==> Ord(i)";
@@ -673,7 +673,7 @@ qed "Limit_le_succD";
 
 goal Ordinal.thy "!!i. Ord(i) ==> i=0 | (EX j. Ord(j) & i=succ(j)) | Limit(i)";
 by (fast_tac (!claset addSIs [non_succ_LimitI, Ord_0_lt]
-         	      addSDs [Ord_succD]) 1);
+                      addSDs [Ord_succD]) 1);
 qed "Ord_cases_disj";
 
 val major::prems = goal Ordinal.thy

@@ -112,7 +112,7 @@ qed "mem_eclose_sing_trans";
 
 goalw Epsilon.thy [Transset_def]
     "!!i j. [| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j";
-by (fast_tac (eq_cs addSIs [MemrelI] addSEs [MemrelE]) 1);
+by (fast_tac (!claset addSIs [MemrelI] addSEs [MemrelE]) 1);
 qed "under_Memrel";
 
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)

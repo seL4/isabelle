@@ -421,7 +421,7 @@ by (subgoals_tac ["x<K", "y<K"] 1);
 by (REPEAT (eresolve_tac [asm_rl, lt_trans] 2));
 by (REPEAT (etac ltE 1));
 by (asm_simp_tac (!simpset addsimps [rvimage_iff, rmult_iff, Memrel_iff,
-				     Un_absorb, Un_least_mem_iff, ltD]) 1);
+                                     Un_absorb, Un_least_mem_iff, ltD]) 1);
 qed "csquare_ltI";
 
 (*Part of the traditional proof.  UNUSED since it's harder to prove & apply *)
@@ -758,7 +758,7 @@ by (simp_tac (!simpset addsimps [lepoll_0_iff]) 1);
 by (subgoal_tac "cons(x,cons(xa,y)) = cons(xa,cons(x,y))" 1);
 by (Asm_simp_tac 1);
 by (fast_tac (!claset addSDs [cons_lepoll_consD]) 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Fin_imp_not_cons_lepoll";
 
 goal CardinalArith.thy

@@ -23,7 +23,7 @@ qed_goal "cons_subset_iff" thy "cons(a,B)<=C <-> a:C & B<=C"
 bind_thm ("cons_subsetE", cons_subset_iff RS iffD1 RS conjE);
 
 qed_goal "subset_empty_iff" thy "A<=0 <-> A=0"
- (fn _=> [ (fast_tac (!claset addIs [equalityI]) 1) ]);
+ (fn _=> [ (Fast_tac 1) ]);
 
 qed_goal "subset_cons_iff" thy
     "C<=cons(a,B) <-> C<=B | (a:C & C-{a} <= B)"
@@ -73,7 +73,7 @@ qed_goal "Union_least" thy
 (*** Union of a family of sets  ***)
 
 goal thy "A <= (UN i:I. B(i)) <-> A = (UN i:I. A Int B(i))";
-by (fast_tac (!claset addSIs [equalityI] addSEs [equalityE]) 1);
+by (fast_tac (!claset addSEs [equalityE]) 1);
 qed "subset_UN_iff_eq";
 
 qed_goal "UN_subset_iff" thy

@@ -36,7 +36,7 @@ AddIs (Ty.intrs@TyEnv.intrs@Val_ValEnv.intrs);
 AddDs [te_owrE,(ElabRel.dom_subset RS subsetD)];
 
 Addsimps [ve_dom_owr, te_dom_owr, ve_app_owr1, ve_app_owr2, 
-	  te_app_owr1, te_app_owr2];
+          te_app_owr1, te_app_owr2];
 
 val clean_tac = 
   REPEAT_FIRST (fn i => 
@@ -129,7 +129,7 @@ by (assume_tac 1);
 by (etac htr_closE 1);
 by (etac elab_fnE 1);
 by (rewrite_tac Ty.con_defs);
-by (safe_tac sum_cs);
+by (safe_tac (!claset));
 by (dtac (spec RS spec RS mp RS mp) 1);
 by (assume_tac 3);
 by (assume_tac 2);

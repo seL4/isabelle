@@ -190,7 +190,7 @@ by (asm_simp_tac        (*solve the easy 0 case*)
                      Card_is_Ord, Ord_0_lt_csucc]) 2);
 by (asm_full_simp_tac
     (!simpset addsimps [InfCard_is_Card, le_Card_iff, lepoll_def]) 1);
-by (safe_tac eq_cs);
+by (safe_tac (!claset addSIs [equalityI]));
 by (swap_res_tac [[inj_UN_subset, cardinal_UN_Ord_lt_csucc] 
                   MRS lt_subset_trans] 1);
 by (REPEAT (assume_tac 1));

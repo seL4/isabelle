@@ -149,7 +149,7 @@ goalw thy [surj_def]
 by (asm_full_simp_tac (!simpset addsimps [lam_type, Diff_eq_0_iff]) 1);
 by (Step_tac 1);
 by (set_mp_tac 1);
-by (deepen_tac (eq_cs addSIs [bexI] addSEs [equalityE]) 4 1);
+by (deepen_tac (!claset addSIs [bexI] addSEs [equalityE]) 4 1);
 val lam_surj_sing = result();
 
 goal thy "!!x. y:Pow(x)-{0} ==> x ~= 0";
@@ -188,30 +188,32 @@ by (fast_tac (!claset addSEs [equalityE, mem_irrefl]
         addSDs [singleton_subsetD]) 1);
 val HH_subset_imp_eq = result();
 
-goal thy "!!f. [| f : (PROD X:Pow(x)-{0}. {{z}. z:x});  \
+goal thy "!!f. [| f : (Pow(x)-{0}) -> {{z}. z:x};  \
 \       a:(LEAST i. HH(f,x,i)={x}) |] ==> EX z:x. HH(f,x,a) = {z}";
 by (dtac less_Least_subset_x 1);
 by (forward_tac [HH_subset_imp_eq] 1);
 by (dtac apply_type 1);
 by (resolve_tac [Diff_subset RS PowI RS DiffI] 1);
-by (fast_tac (!claset addSDs [HH_subset_x_imp_subset_Diff_UN RS not_emptyI2]) 1);
-by (fast_tac (!claset addSEs [RepFunE] addEs [ssubst]) 1);
+by (fast_tac 
+    (!claset addSDs [HH_subset_x_imp_subset_Diff_UN RS not_emptyI2]) 1);
+by (fast_tac (!claset addss (!simpset)) 1);
 val f_sing_imp_HH_sing = result();
 
 goalw thy [bij_def] 
         "!!f. [| x - (UN j: (LEAST i. HH(f,x,i)={x}). HH(f,x,j)) = 0;  \
-\       f : (PROD X:Pow(x)-{0}. {{z}. z:x}) |]  \
+\       f : (Pow(x)-{0}) -> {{z}. z:x} |]  \
 \       ==> (lam a:(LEAST i. HH(f,x,i)={x}). HH(f,x,a))  \
 \                       : bij(LEAST i. HH(f,x,i)={x}, {{y}. y:x})";
 by (fast_tac (!claset addSIs [lam_Least_HH_inj, lam_surj_sing,
-                f_sing_imp_HH_sing]) 1);
+                              f_sing_imp_HH_sing]) 1);
 val f_sing_lam_bij = result();
 
 goal thy "!!f. f: (PROD X: Pow(x)-{0}. F(X))  \
 \       ==> (lam X:Pow(x)-{0}. {f`X}) : (PROD X: Pow(x)-{0}. {{z}. z:F(X)})";
 by (fast_tac (FOL_cs addSIs [lam_type, RepFun_eqI, singleton_eq_iff RS iffD2]
-        addDs [apply_type]) 1);
+                     addDs [apply_type]) 1);
 val lam_singI = result();
 
-val bij_Least_HH_x = standard (lam_singI RSN (2, 
-        [f_sing_lam_bij, lam_sing_bij RS bij_converse_bij] MRS comp_bij));
+val bij_Least_HH_x = 
+    (lam_singI RSN (2, [f_sing_lam_bij, lam_sing_bij RS bij_converse_bij]
+                    MRS comp_bij)) |> standard;

@@ -124,7 +124,7 @@ by (fast_tac (!claset addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_subset RS
 val Finite_lesspoll_infinite_Ord = result();
 
 goal thy "!!x. x:X ==> Union(X) = Union(X-{x}) Un x";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 val Union_eq_Un_Diff = result();
 
 goal thy "!!n. n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
@@ -182,7 +182,7 @@ val Union_lesspoll = result();
 (* ********************************************************************** *)
 
 goal thy "A Un {a} = cons(a, A)";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 val Un_sing_eq_cons = result();
 
 goal thy "!!A. A lepoll B ==> A Un {a} lepoll succ(B)";
@@ -361,7 +361,7 @@ val Int_empty = result();
 (* ********************************************************************** *)
 
 goal thy "!!A. [| A <= B; a : A; A - {a} = B - {a} |] ==> A = B";
-by (fast_tac (eq_cs addSEs [equalityE]) 1);
+by (fast_tac (!claset addSEs [equalityE]) 1);
 val Diffs_eq_imp_eq = result();
 
 goal thy "!!A. m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
@@ -538,27 +538,32 @@ by (rtac subsetI 1);
 by (etac OUN_E 1);
 by (dtac prem1 1);
 by (Fast_tac 1);
+(** LEVEL 5 **)
 by (rtac ballI 1);
 by (etac imageE 1);
 by (dresolve_tac [prem3 RS Limit_is_Ord RSN (2, ltI) RS
         (prem3 RS Limit_has_succ)] 1);
 by (forward_tac [prem1] 1);
 by (etac conjE 1);
+(** LEVEL 10 **)
 by (dresolve_tac [leI RS succ_leE RSN (2, ospec)] 1 THEN (assume_tac 1));
 by (etac impE 1);
 by (fast_tac (!claset addSEs [leI RS succ_leE RS lt_Ord RS le_refl]) 1);
 by (dresolve_tac [prem2 RSN (2, apply_equality)] 1);
 by (REPEAT (eresolve_tac [conjE, ex1E] 1));
+(** LEVEL 15 **)
 by (rtac ex1I 1);
 by (fast_tac (!claset addSIs [OUN_I]) 1);
 by (REPEAT (eresolve_tac [conjE, OUN_E] 1));
 by (eresolve_tac [lt_Ord RSN (2, lt_Ord RS Ord_linear_le)] 1 THEN (assume_tac 1));
 by (dresolve_tac [prem4 RS subsetD] 2 THEN (assume_tac 2));
-by (Fast_tac 2);
+(** LEVEL 20 **)
+by (fast_tac FOL_cs 2);
 by (forward_tac [prem1] 1);
 by (forward_tac [succ_leE] 1);
 by (dresolve_tac [prem4 RS subsetD] 1 THEN (assume_tac 1));
 by (etac conjE 1);
+(** LEVEL 25 **)
 by (dresolve_tac [lt_trans RSN (2, ospec)] 1 THEN (TRYALL assume_tac));
 by (dresolve_tac [disjI1 RSN (2, mp)] 1 THEN (assume_tac 1));
 by (etac ex1_two_eq 1);
@@ -573,7 +578,8 @@ goalw thy [AC16_def]
         "!!n k. [| WO2; 0<m; k:nat; m:nat |] ==> AC16(k #+ m,k)";
 by (rtac allI 1);
 by (rtac impI 1);
-by (forward_tac [WO2_infinite_subsets_eqpoll_X] 1 THEN (REPEAT (assume_tac 1)));
+by (forward_tac [WO2_infinite_subsets_eqpoll_X] 1 
+    THEN (REPEAT (assume_tac 1)));
 by (forw_inst_tac [("n","k #+ m")] (WO2_infinite_subsets_eqpoll_X) 1
         THEN (REPEAT (ares_tac [add_type] 1)));
 by (forward_tac [WO2_imp_ex_Card] 1);

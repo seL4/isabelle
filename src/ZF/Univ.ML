@@ -122,7 +122,7 @@ qed "succ_in_Vfrom";
 
 goal Univ.thy "Vfrom(A,0) = A";
 by (stac Vfrom 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Vfrom_0";
 
 goal Univ.thy "!!i. Ord(i) ==> Vfrom(A,succ(i)) = A Un Pow(Vfrom(A,i))";
@@ -258,7 +258,7 @@ by (REPEAT (ares_tac [one_in_VLimit, Pair_in_VLimit] 1));
 qed "Inr_in_VLimit";
 
 goal Univ.thy "!!i. Limit(i) ==> Vfrom(C,i)+Vfrom(C,i) <= Vfrom(C,i)";
-by (fast_tac (sum_cs addSIs [Inl_in_VLimit, Inr_in_VLimit]) 1);
+by (fast_tac (!claset addSIs [Inl_in_VLimit, Inr_in_VLimit]) 1);
 qed "sum_VLimit";
 
 bind_thm ("sum_subset_VLimit", [sum_mono, sum_VLimit] MRS subset_trans);
@@ -284,7 +284,7 @@ qed "Transset_Vfrom_succ";
 
 goalw Ordinal.thy [Pair_def,Transset_def]
     "!!C. [| <a,b> <= C; Transset(C) |] ==> a: C & b: C";
-by (Fast_tac 1);
+by (Best_tac 1);
 qed "Transset_Pair_subset";
 
 goal Univ.thy
@@ -387,7 +387,7 @@ qed "fun_in_VLimit";
 
 goal Univ.thy "Vset(i) = (UN j:i. Pow(Vset(j)))";
 by (stac Vfrom 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Vset";
 
 val Vset_succ = Transset_0 RS Transset_Vfrom_succ;

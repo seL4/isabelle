@@ -43,7 +43,7 @@ qed "Part_subset";
 val sum_defs = [sum_def,Inl_def,Inr_def,case_def];
 
 goalw Sum.thy (bool_def::sum_defs) "Sigma(bool,C) = C(0) + C(1)";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "Sigma_bool";
 
 (** Introduction rules for the injections **)
@@ -103,8 +103,6 @@ AddSDs [Inl_inject, Inr_inject];
 
 Addsimps [InlI, InrI, Inl_iff, Inr_iff, Inl_Inr_iff, Inr_Inl_iff, sum_empty];
 
-val sum_cs = !claset;
-
 goal Sum.thy "!!A B. Inl(a): A+B ==> a: A";
 by (Fast_tac 1);
 qed "InlD";
@@ -127,7 +125,7 @@ by (Fast_tac 1);
 qed "sum_equal_iff";
 
 goalw Sum.thy [sum_def] "A+A = 2*A";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "sum_eq_2_times";
 
 
@@ -142,8 +140,6 @@ by (simp_tac (!simpset addsimps [cond_1]) 1);
 qed "case_Inr";
 
 Addsimps [case_Inl, case_Inr];
-
-val sum_ss = !simpset;
 
 val major::prems = goal Sum.thy
     "[| u: A+B; \
@@ -187,17 +183,17 @@ by (Fast_tac 1);
 qed "Part_mono";
 
 goal Sum.thy "Part(Collect(A,P), h) = Collect(Part(A,h), P)";
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_Collect";
 
 bind_thm ("Part_CollectE", Part_Collect RS equalityD1 RS subsetD RS CollectE);
 
 goal Sum.thy "Part(A+B,Inl) = {Inl(x). x: A}";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_Inl";
 
 goal Sum.thy "Part(A+B,Inr) = {Inr(y). y: B}";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_Inr";
 
 goalw Sum.thy [Part_def] "!!a. a : Part(A,h) ==> a : A";
@@ -205,13 +201,13 @@ by (etac CollectD1 1);
 qed "PartD1";
 
 goal Sum.thy "Part(A,%x.x) = A";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_id";
 
 goal Sum.thy "Part(A+B, %x.Inr(h(x))) = {Inr(y). y: Part(B,h)}";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_Inr2";
 
 goal Sum.thy "!!A B C. C <= A+B ==> Part(C,Inl) Un Part(C,Inr) = C";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "Part_sum_equality";

@@ -36,16 +36,16 @@ AddSEs [converseD,converseE];
 
 qed_goal "converse_converse" thy
     "!!A B r. r<=Sigma(A,B) ==> converse(converse(r)) = r"
- (fn _ => [ (fast_tac (!claset addSIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "converse_type" thy "!!A B r. r<=A*B ==> converse(r)<=B*A"
  (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "converse_prod" thy "converse(A*B) = B*A"
- (fn _ => [ (fast_tac (!claset addSIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 qed_goal "converse_empty" thy "converse(0) = 0"
- (fn _ => [ (fast_tac (!claset addSIs [equalityI]) 1) ]);
+ (fn _ => [ (Fast_tac 1) ]);
 
 Addsimps [converse_prod, converse_empty];
 
@@ -191,9 +191,7 @@ qed_goalw "vimage_subset" thy [vimage_def]
 AddIs  [vimageI];
 AddSEs [vimageE];
 
-val ZF_cs = !claset;
-
-val eq_cs = ZF_cs addSIs [equalityI];
+val ZF_cs = !claset delrules [equalityI];
 
 (** The Union of a set of relations is a relation -- Lemma for fun_Union **)
 goal thy "!!S. (ALL x:S. EX A B. x <= A*B) ==>  \
@@ -208,10 +206,10 @@ qed_goal "rel_Un" thy
 
 
 goal thy "!!r. [| <a,c> : r; c~=b |] ==> domain(r-{<a,b>}) = domain(r)";
-by (deepen_tac eq_cs 0 1);
+by (Deepen_tac 0 1);
 qed "domain_Diff_eq";
 
 goal thy "!!r. [| <c,b> : r; c~=a |] ==> range(r-{<a,b>}) = range(r)";
-by (deepen_tac eq_cs 0 1);
+by (Deepen_tac 0 1);
 qed "range_Diff_eq";
 

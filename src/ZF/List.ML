@@ -28,7 +28,7 @@ fun list_ind_tac a prems i =
 
 goal List.thy "list(A) = {0} + (A * list(A))";
 let open list;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "list_unfold";
@@ -113,7 +113,7 @@ qed "drop_Nil";
 
 goalw List.thy [drop_def]
     "!!i. i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
-br sym 1;
+by (rtac sym 1);
 by (etac nat_induct 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);

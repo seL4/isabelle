@@ -15,7 +15,7 @@ open Ntree;
 
 goal Ntree.thy "ntree(A) = A * (UN n: nat. n -> ntree(A))";
 let open ntree;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "ntree_unfold";
@@ -70,7 +70,7 @@ val ntree_subset_univ = [ntree_mono, ntree_univ] MRS subset_trans |> standard;
 
 goal Ntree.thy "maptree(A) = A * (maptree(A) -||> maptree(A))";
 let open maptree;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "maptree_unfold";
@@ -95,7 +95,7 @@ qed "maptree_induct";
 
 goal Ntree.thy "maptree2(A,B) = A * (B -||> maptree2(A,B))";
 let open maptree2;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "maptree2_unfold";

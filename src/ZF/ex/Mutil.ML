@@ -12,7 +12,7 @@ open Mutil;
 (** Basic properties of evnodd **)
 
 goalw thy [evnodd_def] "<i,j>: evnodd(A,b) <-> <i,j>: A & (i#+j) mod 2 = b";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "evnodd_iff";
 
 goalw thy [evnodd_def] "evnodd(A, b) <= A";
@@ -103,16 +103,16 @@ by (resolve_tac tiling.intrs 1);
 by (assume_tac 2);
 by (subgoal_tac    (*seems the easiest way of turning one to the other*)
     "{i}*{succ(n1#+n1)} Un {i}*{n1#+n1} = {<i,n1#+n1>, <i,succ(n1#+n1)>}" 1);
-by (fast_tac eq_cs 2);
+by (Fast_tac 2);
 by (asm_simp_tac (!simpset addsimps [domino.horiz]) 1);
-by (fast_tac (eq_cs addEs [mem_irrefl, mem_asym]) 1);
+by (fast_tac (!claset addEs [mem_irrefl, mem_asym]) 1);
 qed "dominoes_tile_row";
 
 goal thy "!!m n. [| m: nat;  n: nat |] ==> m * (n #+ n) : tiling(domino)";
 by (nat_ind_tac "m" [] 1);
 by (simp_tac (!simpset addsimps tiling.intrs) 1);
 by (asm_simp_tac (!simpset addsimps [Sigma_succ1]) 1);
-by (fast_tac (eq_cs addIs [tiling_UnI, dominoes_tile_row] 
+by (fast_tac (!claset addIs [tiling_UnI, dominoes_tile_row] 
                     addEs [mem_irrefl]) 1);
 qed "dominoes_tile_matrix";
 

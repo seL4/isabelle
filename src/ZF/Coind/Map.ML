@@ -11,19 +11,19 @@ open Map;
 (* ############################################################ *)
 
 goal Map.thy "!!A. a:A ==> Sigma(A,B)``{a} = B(a)";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "qbeta";
 
 goal Map.thy "!!A. a~:A ==> Sigma(A,B)``{a} = 0";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "qbeta_emp";
 
 goal Map.thy "!!A.a ~: A ==> Sigma(A,B)``{a}=0";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "image_Sigma1";
 
 goal Map.thy "0``A = 0";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "image_02";
 
 (* ############################################################ *)
@@ -107,7 +107,7 @@ qed "tmap_app_notempty";
 
 goalw Map.thy [TMap_def,map_app_def,domain_def] 
   "!!m.[| m:TMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "tmap_appI";
 
 goalw Map.thy [PMap_def]
@@ -123,12 +123,12 @@ qed "pmap_appI";
 
 goalw Map.thy [TMap_def]
   "!!m.[| m:TMap(A,B); a:domain(m) |] ==> a:A";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "tmap_domainD";
 
 goalw Map.thy [PMap_def,TMap_def]
   "!!m.[| m:PMap(A,B); a:domain(m) |] ==> a:A";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "pmap_domainD";
 
 (* ############################################################ *)
@@ -140,33 +140,33 @@ qed "pmap_domainD";
 (* Lemmas *)
 
 goal Map.thy  "domain(UN x:A.B(x)) = (UN x:A.domain(B(x)))";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "domain_UN";
 
 goal Map.thy  "domain(Sigma(A,B)) = {x:A.EX y.y:B(x)}";
 by (simp_tac (!simpset addsimps [domain_UN,domain_0,domain_cons]) 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "domain_Sigma";
 
 (* Theorems *)
 
 goalw Map.thy [map_emp_def] "domain(map_emp) = 0";
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "map_domain_emp";
 
 goalw Map.thy [map_owr_def] 
   "!!a.b ~= 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)";
 by (simp_tac (!simpset addsimps [domain_Sigma]) 1);
 by (rtac equalityI 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 by (rtac subsetI 1);
 by (rtac CollectI 1);
 by (assume_tac 1);
 by (etac UnE' 1);
 by (etac singletonE 1);
 by (Asm_simp_tac 1);
-by (fast_tac eq_cs 1);
-by (fast_tac (eq_cs addss (!simpset)) 1);
+by (Fast_tac 1);
+by (fast_tac (!claset addss (!simpset)) 1);
 qed "map_domain_owr";
 
 (** Application **)
@@ -183,7 +183,7 @@ goalw Map.thy [map_app_def,map_owr_def]
 by (rtac (excluded_middle RS disjE) 1);
 by (stac qbeta_emp 1);
 by (assume_tac 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 by (etac (qbeta RS ssubst) 1);
 by (Asm_simp_tac 1);
 qed "map_app_owr2";

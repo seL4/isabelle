@@ -281,7 +281,7 @@ by (rtac classical 1);
 by (subgoal_tac "cons(z,c): super(S,c)" 1);
 by (fast_tac (!claset addEs [equalityE]) 1);
 by (rewtac super_def);
-by (safe_tac eq_cs);
+by (safe_tac (!claset));
 by (fast_tac (!claset addEs [chain_extend]) 1);
 by (best_tac (!claset addEs [equalityE]) 1);
 qed "Zorn";
@@ -301,7 +301,7 @@ by (rtac (bspec RS TFin_subsetD RS disjE) 1);
 by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
 by (subgoal_tac "x = Inter(Z)" 1);
 by (Fast_tac 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "TFin_well_lemma5";
 
 (*Well-ordering of TFin(S,next)*)
@@ -334,7 +334,7 @@ by (Fast_tac 2);
 by (rtac wf_onI 1);
 by (forward_tac [well_ord_TFin_lemma] 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","Inter(Z)")] bspec 1 THEN assume_tac 1);
-by (fast_tac eq_cs 1);
+by (Fast_tac 1);
 qed "well_ord_TFin";
 
 (** Defining the "next" operation for Zermelo's Theorem **)
@@ -343,7 +343,7 @@ goal AC.thy
     "!!S. [| ch : (PROD X:Pow(S) - {0}. X);  X<=S;  X~=S        \
 \         |] ==> ch ` (S-X) : S-X";
 by (etac apply_type 1);
-by (fast_tac (eq_cs addEs [equalityE]) 1);
+by (fast_tac (!claset addEs [equalityE]) 1);
 qed "choice_Diff";
 
 (*This justifies Definition 6.1*)
@@ -392,7 +392,7 @@ by (subgoal_tac "~ next ` Union({y: TFin(S,next). x~: y}) <= \
 \                  Union({y: TFin(S,next). x~: y})" 1);
 by (asm_simp_tac 
     (!simpset delsimps [Union_iff]
-	      addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
+              addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
                      Pow_iff, cons_subset_iff, subset_refl,
                      choice_Diff RS DiffD2]
            setloop split_tac [expand_if]) 2);

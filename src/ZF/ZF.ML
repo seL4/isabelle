@@ -152,6 +152,8 @@ qed_goalw "subset_iff" ZF.thy [subset_def,Ball_def]
 qed_goal "equalityI" ZF.thy "[| A <= B;  B <= A |] ==> A = B"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[conjI, extension RS iffD2]) 1)) ]);
 
+AddIs [equalityI];
+
 qed_goal "equality_iffI" ZF.thy "(!!x. x:A <-> x:B) ==> A = B"
  (fn [prem] =>
   [ (rtac equalityI 1),
@@ -268,7 +270,7 @@ qed_goalw "RepFun_iff" ZF.thy [Bex_def]
  (fn _ => [Fast_tac 1]);
 
 goal ZF.thy "{x.x:A} = A";
-by (fast_tac (!claset addSIs [equalityI]) 1);
+by (fast_tac (!claset) 1);
 qed "triv_RepFun";
 
 Addsimps [RepFun_iff, triv_RepFun];
@@ -438,7 +440,7 @@ Addsimps [empty_subsetI];
 AddSIs [empty_subsetI];
 
 qed_goal "equals0I" ZF.thy "[| !!y. y:A ==> False |] ==> A=0"
- (fn prems=> [ fast_tac (!claset addIs [equalityI] addDs prems) 1 ]);
+ (fn prems=> [ fast_tac (!claset addDs prems) 1 ]);
 
 qed_goal "equals0D" ZF.thy "!!P. [| A=0;  a:A |] ==> P"
  (fn _=> [ Full_simp_tac 1, Fast_tac 1 ]);

@@ -11,7 +11,7 @@ open Bool;
 val bool_defs = [bool_def,cond_def];
 
 goalw Bool.thy [succ_def] "{0} = 1";
-br refl 1;
+by (rtac refl 1);
 qed "singleton_0";
 
 (* Introduction rules *)

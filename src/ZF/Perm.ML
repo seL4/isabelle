@@ -23,7 +23,7 @@ by (fast_tac (!claset addIs [apply_equality]
 qed "fun_is_surj";
 
 goalw Perm.thy [surj_def] "!!f A B. f: surj(A,B) ==> range(f)=B";
-by (best_tac (!claset addIs [equalityI,apply_Pair] addEs [range_type]) 1);
+by (best_tac (!claset addIs [apply_Pair] addEs [range_type]) 1);
 qed "surj_range";
 
 (** A function with a right inverse is a surjection **)
@@ -269,7 +269,7 @@ by (Fast_tac 1);
 qed "domain_comp_eq";
 
 goal Perm.thy "(r O s)``A = r``(s``A)";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "image_comp";
 
 
@@ -286,21 +286,21 @@ qed "comp_rel";
 
 (*associative law for composition*)
 goal Perm.thy "(r O s) O t = r O (s O t)";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "comp_assoc";
 
 (*left identity of composition; provable inclusions are
         id(A) O r <= r       
   and   [| r<=A*B; B<=C |] ==> r <= id(C) O r *)
 goal Perm.thy "!!r A B. r<=A*B ==> id(B) O r = r";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "left_comp_id";
 
 (*right identity of composition; provable inclusions are
         r O id(A) <= r
   and   [| r<=A*B; A<=C |] ==> r <= r O id(C) *)
 goal Perm.thy "!!r A B. r<=A*B ==> r O id(A) = r";
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Fast_tac 1);
 qed "right_comp_id";
 
 
@@ -404,7 +404,7 @@ qed "comp_mem_surjD2";
 (*left inverse of composition; one inclusion is
         f: A->B ==> id(A) <= converse(f) O f *)
 goalw Perm.thy [inj_def] "!!f. f: inj(A,B) ==> converse(f) O f = id(A)";
-by (fast_tac (!claset addIs [equalityI, apply_Pair] 
+by (fast_tac (!claset addIs [apply_Pair] 
                       addEs [domain_type]
                addss (!simpset addsimps [apply_iff])) 1);
 qed "left_comp_inverse";

@@ -14,7 +14,7 @@ open Brouwer;
 
 goal Brouwer.thy "brouwer = {0} + brouwer + (nat -> brouwer)";
 let open brouwer;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "brouwer_unfold";
@@ -38,7 +38,7 @@ qed "brouwer_induct2";
 
 goal Brouwer.thy "Well(A,B) = (SUM x:A. B(x) -> Well(A,B))";
 let open Well;  val rew = rewrite_rule con_defs in  
-by (fast_tac (sum_cs addSIs (equalityI :: map rew intrs)
+by (fast_tac (!claset addSIs (equalityI :: map rew intrs)
                      addEs [rew elim]) 1)
 end;
 qed "Well_unfold";
