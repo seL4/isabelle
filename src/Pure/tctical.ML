@@ -444,10 +444,9 @@ fun protect_subgoal state i =
 
 (*Does the work of SELECT_GOAL. *)
 fun select (Tactic tf) state i =
-  let val prem::_ = drop(i-1, prems_of state)
-      val st0 = trivial (cterm_of (#sign(rep_thm state)) prem);
+  let val cprem::_ = drop(i-1, cprems_of state)
       fun next st = bicompose false (false, st, nprems_of st) i state
-  in  Sequence.flats (Sequence.maps next (tf st0))
+  in  Sequence.flats (Sequence.maps next (tf (trivial cprem)))
   end;
 
 fun SELECT_GOAL tac i = Tactic (fn state =>
