@@ -660,7 +660,7 @@ $if::[o,o,o]\To o$.  The axiom \tdx{if_def} asserts the
 equation~$(if)$.
 \begin{ttbox}
 If = FOL +
-consts  if     :: "[o,o,o]=>o"
+consts  if     :: [o,o,o]=>o
 rules   if_def "if(P,Q,R) == P&Q | ~P&R"
 end
 \end{ttbox}
