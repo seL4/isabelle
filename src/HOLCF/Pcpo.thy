@@ -11,7 +11,7 @@ Pcpo = Porder +
 (* ********************************************** *)
 axclass cpo < po
         (* class axiom: *)
-  cpo   "chain S ==> ? x. range(S) <<| (x::'a::po)" 
+  cpo   "chain S ==> ? x. range S <<| x" 
 
 (* The class pcpo of pointed cpos *)
 (* ****************************** *)
