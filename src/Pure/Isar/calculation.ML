@@ -83,9 +83,6 @@ fun reset_calculation state =
 
 local
 
-fun map_rules_global f thy = GlobalCalculation.put (f (GlobalCalculation.get thy)) thy;
-fun map_rules_local f ctxt = LocalCalculation.put (f (LocalCalculation.get ctxt)) ctxt;
-
 fun add_trans thm rules = Library.gen_ins Thm.eq_thm (thm, rules);
 fun del_trans thm rules = Library.gen_rem Thm.eq_thm (rules, thm);
 
@@ -93,10 +90,10 @@ fun mk_att f g (x, thm) = (f (g thm) x, thm);
 
 in
 
-val trans_add_global = mk_att map_rules_global add_trans;
-val trans_del_global = mk_att map_rules_global del_trans;
-val trans_add_local = mk_att map_rules_local (Library.apfst o add_trans);
-val trans_del_local = mk_att map_rules_local (Library.apfst o del_trans);
+val trans_add_global = mk_att GlobalCalculation.map add_trans;
+val trans_del_global = mk_att GlobalCalculation.map del_trans;
+val trans_add_local = mk_att LocalCalculation.map (Library.apfst o add_trans);
+val trans_del_local = mk_att LocalCalculation.map (Library.apfst o del_trans);
 
 end;
 
