@@ -12,9 +12,10 @@ PRG=`basename "$0"`
 usage()
 {
   echo
-  echo "Usage: $PRG [OPTIONS] [DEST]"
+  echo "Usage: $PRG [OPTIONS] DEST"
   echo
   echo "  Options are:"
+  echo "    -h    print help message"
   echo "    -n    dry run, don't do anything, just report what would happen"
   echo "    -d    delete files that are not on the server (beware!)"
   echo
@@ -32,11 +33,15 @@ fail()
 
 # options
 
+HELP=""
 ARGS=""
 
-while getopts "nd" OPT
+while getopts "hnd" OPT
 do
   case "$OPT" in
+    h)
+      HELP=true
+      ;;
     n)
       ARGS="$ARGS -n"
       ;;
@@ -51,6 +56,60 @@ done
 
 shift `expr $OPTIND - 1`
 
+
+# help
+
+if [ -n "$HELP" ]; then
+  cat <<EOF
+
+Mirroring the Isabelle Distribution
+===================================
+
+The Munich site maintains an rsync server for the Isabelle
+distribution, including complete sources, binaries, and documentation.
+
+The rsync tool is very smart and efficient in mirroring large
+directory hierarchies.  See http://rsync.samba.org/ for more
+information.  The rsync-isabelle script provides a simple front-end
+for easy access to the Isabelle distribution.
+
+The script can be either run in conservative or clean-sweep mode.
+
+1) Basic mirroring works like this:
+
+  ./rsync-isabelle /foo/bar
+
+where /foo/bar refers to your local copy of the Isabelle distribution
+(the base directory has to exist already).  This operation is
+conservative in the sense that files are never deleted, thus garbage
+may accumulate over time as our master copy is changed.
+
+Avoiding garbage in your local copy requires some care.  Rsync
+provides a way to delete all additional local files that are absent in
+the master copy.  This provides an efficient way to purge large
+directory hierarchies, even unwillingly in case that a wrong
+destination is given!
+
+2a) This will invoke a safe dry-run of clean-sweep mirroring:
+
+  ./rsync-isabelle -dn /foo/bar
+
+where additions and deletions will be printed without any actual
+changes performed so far.
+
+2b) Exact mirroring with actual deletion of garbage may be performed
+like this:
+
+  ./rsync-isabelle -d /foo/bar
+
+
+After gaining some confidence in the workings of rsync-isabelle one
+would usually set up some automatic mirror scheme, e.g. a daily cron
+job run by the 'nobody' user.
+
+EOF
+  exit 0
+fi
 
 # arguments
 
