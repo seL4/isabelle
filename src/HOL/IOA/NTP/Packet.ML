@@ -11,3 +11,5 @@ Packets
 goal Packet.thy "!x. x = packet --> hdr(x) = hdr(packet)";
  by (simp_tac (!simpset addsimps [Packet.hdr_def]) 1);
 qed "eq_packet_imp_eq_hdr"; 
+
+Addsimps [Packet.hdr_def,Packet.msg_def];

@@ -33,4 +33,6 @@ goals_limit := 1;
 loadpath := ["IOA/meta_theory","IOA/NTP"];
 use_thy "Correctness";
 
+
 make_chart ();   (*make HTML chart*)
+

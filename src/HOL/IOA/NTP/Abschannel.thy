@@ -6,7 +6,7 @@
 The (faulty) transmission channel (both directions)
 *)
 
-Abschannel = IOA + Action + Multiset +
+Abschannel = IOA + Action + 
  
 datatype ('a)act =   S('a) | R('a)
 

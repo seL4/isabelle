@@ -6,7 +6,7 @@
 Packets
 *)
 
-Packet = Arith +
+Packet = Arith + Multiset +  
 
 types
 

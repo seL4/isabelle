@@ -12,6 +12,7 @@ goal Abschannel.thy "(? x.x=P & Q(x)) = Q(P)";
 by (fast_tac HOL_cs 1);
 qed"exis_elim";
 
+Delsimps [split_paired_All];
 Addsimps 
  ([srch_asig_def, rsch_asig_def, rsch_ioa_def, srch_ioa_def, ch_ioa_def, 
    ch_asig_def, srch_actions_def, rsch_actions_def, rename_def, asig_of_def, 

@@ -22,8 +22,6 @@ qed "count_addm_simp";
 goal Multiset.thy "count M y <= count (addm M x) y";
   by (simp_tac (!simpset addsimps [count_addm_simp]
                          setloop (split_tac [expand_if])) 1);
-  by (rtac impI 1);
-  by (rtac (le_refl RS (leq_suc RS mp)) 1);
 qed "count_leq_addm";
 
 goalw Multiset.thy [Multiset.count_def] 
@@ -82,3 +80,8 @@ goal Multiset.thy
                        suc_pred_id]
                     setloop (split_tac [expand_if])) 1);
 qed "countm_done_delm";
+
+
+Addsimps [count_addm_simp, count_delm_simp,
+          Multiset.countm_empty_def, Multiset.delm_empty_def,
+          count_empty];

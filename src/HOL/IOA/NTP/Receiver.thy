@@ -6,7 +6,7 @@
 The implementation: receiver
 *)
 
-Receiver = List + IOA + Action + Multiset +
+Receiver = List + IOA + Action + 
 
 types 
 

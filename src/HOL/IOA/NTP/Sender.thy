@@ -6,7 +6,7 @@
 The implementation: sender
 *)
 
-Sender = IOA + Action + Multiset + List +
+Sender = IOA + Action + List +
 
 types
 

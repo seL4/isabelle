@@ -59,21 +59,6 @@ goal Arith.thy "n ~= 0 --> Suc(m+pred(n)) = m+n";
   by (REPEAT(Simp_tac 1));
 val Suc_pred_lemma = store_thm("Suc_pred_lemma", result() RS mp);
 
-goal Arith.thy "x <= y --> x <= Suc(y)";
-  by (rtac impI 1);
-  by (rtac (le_eq_less_or_eq RS iffD2) 1);
-  by (rtac disjI1 1);
-  by (dtac (le_eq_less_or_eq RS iffD1) 1);
-  by (etac disjE 1);
-  by (etac less_SucI 1);
-  by (Asm_simp_tac 1);
-val leq_imp_leq_suc = store_thm("leq_imp_leq_suc", result() RS mp);
-
-(* Same as previous! *)
-goal Arith.thy "(x::nat)<=y --> x<=Suc(y)";
-  by (simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-qed "leq_suc";
-
 goal Arith.thy "((m::nat) + n = m + p) = (n = p)";
   by (nat_ind_tac "m" 1);
   by (Simp_tac 1);
@@ -102,7 +87,7 @@ qed "less_add_same_less";
 goal Arith.thy "(x::nat)<= y --> x<=y+k";
   by (nat_ind_tac "k" 1);
   by (Simp_tac 1);
-  by (asm_full_simp_tac (!simpset addsimps [leq_suc]) 1);
+  by (Asm_full_simp_tac 1);
 qed "leq_add_leq";
 
 goal Arith.thy "(x::nat) + y <= z --> x <= z";
@@ -167,10 +152,6 @@ goal Arith.thy "Suc(x) <= y --> (? z. y = Suc(z))";
   by (safe_tac HOL_cs);
   by (fast_tac HOL_cs 2);
   by (asm_simp_tac (!simpset addsimps [suc_not_zero]) 1);
-  by (rtac ccontr 1);
-  by (asm_full_simp_tac (!simpset addsimps [suc_not_zero]) 1);
-  by (hyp_subst_tac 1);
-  by (Asm_full_simp_tac 1);
 qed "suc_leq_suc";
 
 goal Arith.thy "~0<n --> n = 0";
@@ -229,12 +210,6 @@ goal List.thy "(x ~= hd(xs@ys)) = (x ~= (if xs = [] then hd ys else hd xs))";
   by (asm_full_simp_tac list_ss 1);
 qed "not_hd_append";
 
-goal List.thy "(L = (x#rst)) --> (L = []) --> P";
-  by (simp_tac list_ss 1);
-qed "list_cases";
 
-goal List.thy "(? L2. L1 = x#L2) --> (L1 ~= [])";
-  by (strip_tac 1);
-  by (etac exE 1);
-  by (asm_simp_tac list_ss 1);
-qed "cons_imp_not_null";
+
+Addsimps ([append_cons,not_hd_append,Suc_pred_lemma] @ set_lemmas);

@@ -17,7 +17,7 @@ goal Sender.thy
 \ C_r_r(m) ~: actions(sender_asig)";
 by(simp_tac (!simpset addsimps 
              (Sender.sender_asig_def :: actions_def :: 
-              asig_projections @ set_lemmas)) 1);
+              asig_projections)) 1);
 qed "in_sender_asig";
 
 val sender_projections = 
