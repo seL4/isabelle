@@ -164,8 +164,9 @@ Goalw [nat_of_def] "nat_of($# n) = n";
 by Auto_tac;
 qed "nat_of_nat";
 
-Goalw [nat_of_def] "nat_of(- $# n) = n";
-by Auto_tac;
+Goalw [nat_of_def] "nat_of(- $# n) = 0";
+by (auto_tac (claset(),
+	      simpset() addsimps [neg_eq_less_nat0, zminus_zless])); 
 qed "nat_of_zminus_nat";
 
 Addsimps [nat_of_nat, nat_of_zminus_nat];
@@ -182,8 +183,7 @@ by (auto_tac (claset(),
 				  zdiff_eq_eq RS sym, zdiff_def])); 
 qed "negD"; 
 
-Goal "neg z ==> $# (nat_of z) = -z"; 
-by (dtac negD 1);
+Goalw [nat_of_def] "neg z ==> nat_of z = 0"; 
 by Auto_tac; 
 qed "neg_nat_of"; 
 
