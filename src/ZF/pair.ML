@@ -179,7 +179,8 @@ val pair_cs = upair_cs
 
 fun prove_fun s = 
     (writeln s;  prove_goal ZF.thy s
-       (fn prems => [ (cut_facts_tac prems 1), (fast_tac pair_cs 1) ]));
+       (fn prems => [ (cut_facts_tac prems 1), 
+		      (fast_tac (pair_cs addSIs [equalityI]) 1) ]));
 
 (*INCLUDED IN ZF_ss*)
 val mem_simps = map prove_fun
@@ -194,10 +195,28 @@ goal ZF.thy "{x.x:A} = A";
 by (fast_tac (pair_cs addSIs [equalityI]) 1);
 qed "triv_RepFun";
 
-(*INCLUDED: should be??*)
+(*INCLUDED: should be?  And what about cons(a,b)?*)
 val bquant_simps = map prove_fun
  [ "(ALL x:0.P(x)) <-> True",
    "(EX  x:0.P(x)) <-> False",
    "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
-   "(EX  x:succ(i).P(x)) <-> P(i) | (EX  x:i.P(x))" ];
+   "(EX  x:succ(i).P(x)) <-> P(i) | (EX  x:i.P(x))",
+   "(ALL x:cons(a,B).P(x)) <-> P(a) & (ALL x:B.P(x))",
+   "(EX  x:cons(a,B).P(x)) <-> P(a) | (EX  x:B.P(x))" ];
+
+val Collect_simps = map prove_fun
+ [ "{x:0. P(x)} = 0",
+   "{x:A. False} = 0",
+   "{x:A. True} = A",
+   "RepFun(0,f) = 0",
+   "RepFun(succ(i),f) = cons(f(i), RepFun(i,f))",
+   "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))" ];
+
+val UnInt_simps = map prove_fun
+ [ "0 Un A = A",  "A Un 0 = A",
+   "0 Int A = 0", "A Int 0 = 0",
+   "0-A = 0",     "A-0 = A",
+   "Union(0) = 0",
+   "Union(cons(b,A)) = b Un Union(A)",
+   "Inter({b}) = b"];
 
