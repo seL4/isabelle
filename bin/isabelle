@@ -31,7 +31,7 @@ function usage()
   echo
   echo "  INPUT (default \"$ISABELLE_LOGIC\") and OUTPUT specify in/out heaps."
   echo "  These are either names to be searched in the Isabelle path, or actual"
-  echo "  file names (then containing at least one /)."
+  echo "  file names (containing at least one /)."
   echo "  If INPUT is \"RAW_ML_SYSTEM\", just start the bare bones ML system."
   echo
   exit 1
