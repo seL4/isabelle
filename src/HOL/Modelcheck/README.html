@@ -1,28 +1,29 @@
-<HTML><HEAD><TITLE>HOL/Modelcheck/Readme</TITLE></HEAD><BODY>
 
-<H3>Invoking Model Checkers in Isabelle/HOL </H3>
+<html><head><title>HOL/Modelcheck</title></head><body>
 
-Authors:     Olaf M&uuml;ller, Jan Philipps, Robert Sandner<BR>
-Copyright   1997 Technische Universit&auml;t M&uuml;nchen<P>
+<h2>Invoking Model Checkers in Isabelle/HOL</h2>
 
+This directory contains the basic setup for integration of some model
+checkers in Isabelle/HOL, together with a few basic examples.
 
-This directory contains four theories:
+<p>
 
-<UL>
-  <li>MuCalculus: A formalization of the relational mu calculus using the fixed point 
-      theory Lfp and Gfp of HOL.<P>
-  <li>CTL: A formulation of some CTL operators in the mu calculus.<P>
-  <li>MCSyn: The definition of the output syntax "Eindhoven" tailored for the the model checker due to G. Janssen from Eindhoven using
-         the print_mode facilities provided by Isabelle. <P>
-  <li>Example: A simple reachability property is formulated in the mu calculus and checked 
-       by the model checker simply by invoking the tactic mc_tac.
-</UL>
+Currently, best results are achieved with the <a
+href="http://iseran.ira.uka.de/~armin/mucke/"><em>Mucke</em></a> model
+checker (version 0.3.5 is known to work).  Theory <tt>MuCalculus</tt>
+provides the syntactic and oracle interfaces, while
+<tt>MuckeExample1</tt> and <tt>MuckeExample2</tt> demonstrate the
+model checker tactic <tt>mc_mucke_tac</tt> at work.
 
-Note: The example illustrates the use of the print_mode facility even without actually using the model checker. However, if you like to see the example in full functionality, get the Eindhoven model checker from here (<A HREF="http://www4.informatik.tu-muenchen.de/~mueller/tools.html">model checker binary</A>) as a Sparc SunOS4 binary which also runs under Solaris2.x, or directly from Eindhoven (<A HREF="http://www.es.ele.tue.nl/geert/research/research_index.html">model checker sources</A>), where you get the C sources and documentation. 
+<p>
 
+In order to support more realistic applications, the <a
+href="http://isabelle.in.tum.de/library/HOLCF/IOA/Modelcheck">HOLCF/IOA/Modelcheck</a>
+session augments this basic mechanism by further infrastructure to
+support proofs about I/O automata.  There is a separate <a
+href="http://isabelle.in.tum.de/IOA/papers/IOA-modelcheck.pdf">paper</a>
+available, describing model checking in Isabelle/IOA in more detail.
 
+</body>
 
-</BODY></HTML>
-
-
-
+</html>
