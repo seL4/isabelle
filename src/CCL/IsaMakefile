@@ -26,6 +26,8 @@ CCL: FOL $(OUT)/CCL
 FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
+$(OUT)/FOL: FOL
+
 $(OUT)/CCL: $(OUT)/FOL CCL.ML CCL.thy Fix.ML Fix.thy Gfp.ML Gfp.thy \
   Hered.ML Hered.thy Lfp.ML Lfp.thy ROOT.ML Set.ML Set.thy Term.ML \
   Term.thy Trancl.ML Trancl.thy Type.ML Type.thy Wfd.ML Wfd.thy \
