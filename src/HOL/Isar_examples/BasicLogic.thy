@@ -8,7 +8,7 @@ Basic propositional and quantifier reasoning.
 theory BasicLogic = Main:;
 
 
-text {* Just a few tiny examples to get an idea of how Isabelle/Isar
+text {* Just a few toy examples to get an idea of how Isabelle/Isar
   proof documents may look like. *};
 
 lemma I: "A --> A";
@@ -62,7 +62,7 @@ proof;
 qed;
 
 
-text {* Variations of backward vs.\ forward reasonong \dots *};
+text {* Variations of backward vs.\ forward reasoning \dots *};
 
 lemma "A & B --> B & A";
 proof;
@@ -81,6 +81,16 @@ proof;
   proof;
     assume A B;
     show ?thesis; ..;
+  qed;
+qed;
+
+lemma "A & B --> B & A";
+proof;
+  assume "A & B";
+  show "B & A";
+  proof;
+    from prems; show B; ..;
+    from prems; show A; ..;
   qed;
 qed;
 

@@ -345,7 +345,8 @@ fun load_thy name ml time path =
 fun isar term no_pos =
   Source.tty
   |> Symbol.source true
-  |> OuterLex.source true get_lexicons (if no_pos then Position.none else Position.line_name 1 "stdin")
+  |> OuterLex.source true get_lexicons
+    (if no_pos then Position.none else Position.line_name 1 "stdin")
   |> source term true get_parser;
 
 
