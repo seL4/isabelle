@@ -65,6 +65,9 @@ lemmas induct_atomize = atomize_conj induct_forall_eq induct_implies_eq induct_e
 lemmas induct_rulify1 [symmetric, standard] = induct_forall_eq induct_implies_eq induct_equal_eq
 lemmas induct_rulify2 = induct_forall_def induct_implies_def induct_equal_def
 
+lemma all_conj_eq: "(ALL x. P(x)) & (ALL y. Q(y)) == (ALL x y. P(x) & Q(y))"
+  by simp
+
 hide const induct_forall induct_implies induct_equal
 
 
@@ -75,12 +78,13 @@ ML {*
   (struct
     val dest_concls = FOLogic.dest_concls;
     val cases_default = thm "case_split";
-    val local_imp_def = thm "induct_implies_def";
     val local_impI = thm "induct_impliesI";
     val conjI = thm "conjI";
     val atomize = thms "induct_atomize";
     val rulify1 = thms "induct_rulify1";
     val rulify2 = thms "induct_rulify2";
+    val localize = [Thm.symmetric (thm "induct_implies_def"),
+      Thm.symmetric (thm "atomize_all"), thm "all_conj_eq"];
   end);
 *}
 

@@ -321,12 +321,12 @@ ML {*
   (struct
     val dest_concls = HOLogic.dest_concls;
     val cases_default = thm "case_split";
-    val local_imp_def = thm "induct_implies_def";
     val local_impI = thm "induct_impliesI";
     val conjI = thm "conjI";
     val atomize = thms "induct_atomize";
     val rulify1 = thms "induct_rulify1";
     val rulify2 = thms "induct_rulify2";
+    val localize = [Thm.symmetric (thm "induct_implies_def")];
   end);
 *}
 

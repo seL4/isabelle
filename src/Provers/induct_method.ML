@@ -10,12 +10,12 @@ signature INDUCT_METHOD_DATA =
 sig
   val dest_concls: term -> term list
   val cases_default: thm
-  val local_imp_def: thm
   val local_impI: thm
   val conjI: thm
   val atomize: thm list
   val rulify1: thm list
   val rulify2: thm list
+  val localize: thm list
 end;
 
 signature INDUCT_METHOD =
@@ -150,7 +150,7 @@ val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify2 THEN'
   Tactic.norm_hhf_tac;
 
-val localize = Tactic.simplify false [Thm.symmetric Data.local_imp_def];
+val localize = Tactic.norm_hhf o Tactic.simplify false Data.localize;
 
 
 (* imp_intr --- limited to atomic prems *)
