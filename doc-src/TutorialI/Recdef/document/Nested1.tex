@@ -38,7 +38,9 @@ condition expresses that the size of the argument \isa{t\ {\isasymin}\ set\ ts} 
 recursive call of \isa{trev} is strictly less than \isa{size\ {\isacharparenleft}App\ f\ ts{\isacharparenright}},
 which equals \isa{Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}}.  We will now prove the termination condition and
 continue with our definition.  Below we return to the question of how
-\isacommand{recdef} knows about \isa{map}.%
+\isacommand{recdef} knows about \isa{map}.
+
+The termination condition is easily proved by induction:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%

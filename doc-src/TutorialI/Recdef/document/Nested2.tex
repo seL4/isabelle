@@ -1,12 +1,8 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Nested{\isadigit{2}}}%
+\isanewline
 \isamarkupfalse%
-%
-\begin{isamarkuptext}%
-The termination condition is easily proved by induction:%
-\end{isamarkuptext}%
-\isamarkuptrue%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}\isamarkupfalse%

@@ -2,8 +2,6 @@
 theory Nested2 = Nested0:
 (*>*)
 
-text{*The termination condition is easily proved by induction:*}
-
 lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(term_list_size ts)"
 by(induct_tac ts, auto)
 (*<*)

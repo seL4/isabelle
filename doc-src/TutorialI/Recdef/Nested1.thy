@@ -34,6 +34,8 @@ recursive call of @{term trev} is strictly less than @{term"size(App f ts)"},
 which equals @{term"Suc(term_list_size ts)"}.  We will now prove the termination condition and
 continue with our definition.  Below we return to the question of how
 \isacommand{recdef} knows about @{term map}.
+
+The termination condition is easily proved by induction:
 *}
 
 (*<*)
