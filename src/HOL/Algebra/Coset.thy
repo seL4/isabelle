@@ -491,23 +491,4 @@ apply (rule groupI)
 apply (auto dest: coset.setrcos_inv_mult_group_eq simp add: setinv_closed)
 done
 
-(*????????????????
-theorem factorgroup_is_group: "H <| G ==> group (G Mod H)"
-apply (frule normal_imp_coset) 
-apply (simp add: FactGroup_def) 
-apply (rule group.intro)
-apply (rule magma.intro) 
-apply (simp add: ); 
-  apply (simp add: restrictI coset.setmult_closed) 
- apply (rule semigroup.intro) 
-  apply (simp add: restrictI coset.setmult_closed) 
- apply (simp add: coset.setmult_closed coset.setrcos_assoc)  
-apply (rule group_axioms.intro) 
-   apply (simp add: restrictI setinv_closed) 
-  apply (simp add: normal_imp_subgroup subgroup_in_rcosets) 
- apply (simp add: setinv_closed coset.setrcos_inv_mult_group_eq) 
-apply (simp add: normal_imp_subgroup subgroup_in_rcosets coset.setrcos_mult_eq)
-done
-*)
-
 end

@@ -8,6 +8,7 @@
 
 no_document use_thy "FuncSet";
 use_thy "Sylow";		(* Groups *)
+use_thy "Bij";			(* Automorphism Groups *)
 use_thy "UnivPoly";		(* Rings and polynomials *)
 
 (* Old development, based on axiomatic type classes.

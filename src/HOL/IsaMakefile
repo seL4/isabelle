@@ -284,7 +284,6 @@ HOL-GroupTheory: HOL $(LOG)/HOL-GroupTheory.gz
 
 $(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
   Library/Primes.thy Library/FuncSet.thy \
-  GroupTheory/Bij.thy \
   GroupTheory/Group.thy \
   GroupTheory/ROOT.ML \
   GroupTheory/document/root.tex
@@ -341,6 +340,7 @@ $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
 HOL-Algebra: HOL $(LOG)/HOL-Algebra.gz
 
 $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
+  Algebra/Bij.thy \
   Algebra/CRing.thy \
   Algebra/Coset.thy \
   Algebra/Exponent.thy \

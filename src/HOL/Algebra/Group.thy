@@ -99,29 +99,23 @@ lemma (in monoid) Units_one_closed [intro, simp]:
 
 lemma (in monoid) Units_inv_closed [intro, simp]:
   "x \<in> Units G ==> inv x \<in> carrier G"
-  apply (unfold Units_def m_inv_def)
-  apply auto
+  apply (unfold Units_def m_inv_def, auto)
   apply (rule theI2, fast)
-   apply (fast intro: inv_unique)
-  apply fast
+   apply (fast intro: inv_unique, fast)
   done
 
 lemma (in monoid) Units_l_inv:
   "x \<in> Units G ==> inv x \<otimes> x = \<one>"
-  apply (unfold Units_def m_inv_def)
-  apply auto
+  apply (unfold Units_def m_inv_def, auto)
   apply (rule theI2, fast)
-   apply (fast intro: inv_unique)
-  apply fast
+   apply (fast intro: inv_unique, fast)
   done
 
 lemma (in monoid) Units_r_inv:
   "x \<in> Units G ==> x \<otimes> inv x = \<one>"
-  apply (unfold Units_def m_inv_def)
-  apply auto
+  apply (unfold Units_def m_inv_def, auto)
   apply (rule theI2, fast)
-   apply (fast intro: inv_unique)
-  apply fast
+   apply (fast intro: inv_unique, fast)
   done
 
 lemma (in monoid) Units_inv_Units [intro, simp]:
@@ -353,6 +347,14 @@ qed
 lemma (in group) inv_comm:
   "[| x \<otimes> y = \<one>; x \<in> carrier G; y \<in> carrier G |] ==> y \<otimes> x = \<one>"
   by (rule Units_inv_comm) auto                          
+
+lemma (in group) m_inv_equality:
+     "[|y \<otimes> x = \<one>; x \<in> carrier G; y \<in> carrier G|] ==> inv x = y"
+apply (simp add: m_inv_def)
+apply (rule the_equality)
+ apply (simp add: inv_comm [of y x]) 
+apply (rule r_cancel [THEN iffD1], auto) 
+done
 
 text {* Power *}
 
@@ -593,6 +595,15 @@ lemma hom_mult:
 lemma hom_closed:
   "[| h \<in> hom G H; x \<in> carrier G |] ==> h x \<in> carrier H"
   by (auto simp add: hom_def funcset_mem)
+
+lemma compose_hom:
+     "[|group G; h \<in> hom G G; h' \<in> hom G G; h' \<in> carrier G -> carrier G|]
+      ==> compose (carrier G) h h' \<in> hom G G"
+apply (simp (no_asm_simp) add: hom_def)
+apply (intro conjI) 
+ apply (force simp add: funcset_compose hom_def)
+apply (simp add: compose_def group.axioms hom_mult funcset_mem) 
+done
 
 locale group_hom = group G + group H + var h +
   assumes homh: "h \<in> hom G H"
