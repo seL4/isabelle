@@ -139,23 +139,34 @@ by (wf_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed "wf_not_refl";
 
-Goal "[| wf(r);  <a,x>:r;  <x,a>:r |] ==> P";
-by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
-by (wf_ind_tac "a" [] 2);
-by (Blast_tac 2);
+Goal "wf(r) ==> ALL x. <a,x>:r --> <x,a> ~: r";
+by (wf_ind_tac "a" [] 1);
 by (Blast_tac 1);
-qed "wf_asym";
+qed_spec_mp "wf_not_sym";
+
+(* [| wf(r);  <a,x> : r;  ~P ==> <x,a> : r |] ==> P *)
+bind_thm ("wf_asym", wf_not_sym RS swap);
 
 Goal "[| wf[A](r); a: A |] ==> <a,a> ~: r";
 by (wf_on_ind_tac "a" [] 1);
 by (Blast_tac 1);
 qed "wf_on_not_refl";
 
-Goal "[| wf[A](r);  <a,b>:r;  <b,a>:r;  a:A;  b:A |] ==> P";
-by (subgoal_tac "ALL y:A. <a,y>:r --> <y,a>:r --> P" 1);
-by (wf_on_ind_tac "a" [] 2);
-by (Blast_tac 2);
+Goal "[| wf[A](r);  a:A;  b:A |] ==> <a,b>:r --> <b,a>~:r";
+by (res_inst_tac [("x","b")] bspec 1);
+by (assume_tac 2);
+by (wf_on_ind_tac "a" [] 1);
 by (Blast_tac 1);
+qed_spec_mp "wf_on_not_sym";
+
+(* [| wf[A](r);  <a,b> : r;  a:A;  b:A;  ~P ==> <b,a> : r |] ==> P *)
+bind_thm ("wf_on_asym", wf_on_not_sym RS swap);
+
+val prems =
+Goal "[| wf[A](r);  <a,b>:r;  ~P ==> <b,a>:r;  a:A;  b:A |] ==> P";
+by (rtac ccontr 1);
+by (rtac (wf_on_not_sym RS notE) 1);
+by (DEPTH_SOLVE (ares_tac prems 1));
 qed "wf_on_asym";
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means

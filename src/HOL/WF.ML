@@ -36,12 +36,13 @@ fun wf_ind_tac a prems i =
            rename_last_tac a ["1"] (i+1),
            ares_tac prems i];
 
-Goal "[| wf(r);  (a,x):r;  (x,a):r |] ==> P";
-by (subgoal_tac "! x. (a,x):r --> (x,a):r --> P" 1);
-by (Blast_tac 1);
+Goal "wf(r) ==> ! x. (a,x):r --> (x,a)~:r";
 by (wf_ind_tac "a" [] 1);
 by (Blast_tac 1);
-qed "wf_asym";
+qed_spec_mp "wf_not_sym";
+
+(* [| wf(r);  (a,x):r;  ~P ==> (x,a):r |] ==> P *)
+bind_thm ("wf_asym", wf_not_sym RS swap);
 
 Goal "[| wf(r);  (a,a): r |] ==> P";
 by (blast_tac (claset() addEs [wf_asym]) 1);
@@ -219,10 +220,9 @@ Goalw [acyclic_def]
 by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl]) 1);
 qed "wf_acyclic";
 
-Goalw [acyclic_def]
-  "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)";
+Goalw [acyclic_def] "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)";
 by (simp_tac (simpset() addsimps [trancl_insert]) 1);
-by (blast_tac (claset() addEs [make_elim rtrancl_trans]) 1);
+by (blast_tac (claset() addIs [rtrancl_trans]) 1);
 qed "acyclic_insert";
 AddIffs [acyclic_insert];
 
