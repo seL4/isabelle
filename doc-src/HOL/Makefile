@@ -6,7 +6,7 @@
 #########################################################################
 
 
-FILES =  logics-HOL.tex ../Logics/syntax.tex FOL.tex HOL.tex\
+FILES =  logics-HOL.tex ../Logics/syntax.tex HOL.tex \
 	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty
 
 logics-HOL.dvi.gz:   $(FILES) 
