@@ -17,7 +17,7 @@ files
   ("../TFL/post.ML")
   ("Tools/recdef_package.ML"):
 
-lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
+lemma tfl_some: "\\<forall>P x. P x --> P (Eps P)"
   by (blast intro: someI)
 
 lemma tfl_eq_True: "(x = True) --> x"
@@ -35,13 +35,13 @@ lemma tfl_P_imp_P_iff_True: "P ==> P = True"
 lemma tfl_imp_trans: "(A --> B) ==> (B --> C) ==> (A --> C)"
   by blast
 
-lemma tfl_disj_assoc: "(a \<or> b) \<or> c == a \<or> (b \<or> c)"
+lemma tfl_disj_assoc: "(a \\<or> b) \\<or> c == a \\<or> (b \\<or> c)"
   by simp
 
-lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
+lemma tfl_disjE: "P \\<or> Q ==> P --> R ==> Q --> R ==> R"
   by blast
 
-lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
+lemma tfl_exE: "\\<exists>x. P x ==> \\<forall>x. P x --> Q ==> Q"
   by blast
 
 use "../TFL/utils.ML"
@@ -61,8 +61,7 @@ lemmas [recdef_simp] =
   lex_prod_def
   less_Suc_eq [THEN iffD2]
 
-lemmas [recdef_cong] =
-  if_cong
+lemmas [recdef_cong] = if_cong image_cong
 
 lemma let_cong [recdef_cong]:
     "M = N ==> (!!x. x = N ==> f x = g x) ==> Let M f = Let N g"
