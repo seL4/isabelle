@@ -237,7 +237,7 @@ val hideP =
 
 val useP =
   OuterSyntax.command "use" "eval ML text from file" K.diag
-    (P.name >> (Toplevel.no_timing oo IsarCmd.use));
+    (P.path >> (Toplevel.no_timing oo IsarCmd.use));
 
 val mlP =
   OuterSyntax.command "ML" "eval ML text (diagnostic)" K.diag
@@ -661,7 +661,7 @@ val print_typeP =
 
 val cdP =
   OuterSyntax.improper_command "cd" "change current working directory" K.diag
-    (P.name >> (Toplevel.no_timing oo IsarCmd.cd));
+    (P.path >> (Toplevel.no_timing oo IsarCmd.cd));
 
 val pwdP =
   OuterSyntax.improper_command "pwd" "print current working directory" K.diag
@@ -705,11 +705,11 @@ val kill_thyP =
 
 val display_draftsP =
   OuterSyntax.improper_command "display_drafts" "display raw source files with symbols"
-    K.diag (Scan.repeat1 P.name >> (Toplevel.no_timing oo IsarCmd.display_drafts));
+    K.diag (Scan.repeat1 P.path >> (Toplevel.no_timing oo IsarCmd.display_drafts));
 
 val print_draftsP =
   OuterSyntax.improper_command "print_drafts" "print raw source files with symbols"
-    K.diag (Scan.repeat1 P.name >> (Toplevel.no_timing oo IsarCmd.print_drafts));
+    K.diag (Scan.repeat1 P.path >> (Toplevel.no_timing oo IsarCmd.print_drafts));
 
 val opt_limits =
   Scan.option P.nat -- Scan.option (P.$$$ "," |-- P.!!! P.nat);

@@ -30,18 +30,18 @@ sig
   val undo: Toplevel.transition -> Toplevel.transition
   val kill: Toplevel.transition -> Toplevel.transition
   val back: bool -> Toplevel.transition -> Toplevel.transition
-  val use: string -> Toplevel.transition -> Toplevel.transition
+  val use: Path.T -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext: bool -> string -> Toplevel.transition -> Toplevel.transition
   val use_commit: Toplevel.transition -> Toplevel.transition
-  val cd: string -> Toplevel.transition -> Toplevel.transition
+  val cd: Path.T -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val use_thy: string -> Toplevel.transition -> Toplevel.transition
   val use_thy_only: string -> Toplevel.transition -> Toplevel.transition
   val update_thy: string -> Toplevel.transition -> Toplevel.transition
   val update_thy_only: string -> Toplevel.transition -> Toplevel.transition
-  val display_drafts: string list -> Toplevel.transition -> Toplevel.transition
-  val print_drafts: string list -> Toplevel.transition -> Toplevel.transition
+  val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
+  val print_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val pretty_setmargin: int -> Toplevel.transition -> Toplevel.transition
   val print_context: Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
@@ -152,8 +152,8 @@ val back = Toplevel.proof o ProofHistory.back;
 
 (* use ML text *)
 
-fun use name = Toplevel.keep (fn state =>
-  Context.setmp (try Toplevel.theory_of state) ThyInfo.use name);
+fun use path = Toplevel.keep (fn state =>
+  Context.setmp (try Toplevel.theory_of state) (ThyInfo.load_file false) path);
 
 (*passes changes of theory context*)
 val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory;
@@ -168,7 +168,7 @@ val use_commit = use_mltext false "commit();";
 
 (* current working directory *)
 
-fun cd dir = Toplevel.imperative (fn () => (File.cd (Path.unpack dir)));
+fun cd path = Toplevel.imperative (fn () => (File.cd path));
 val pwd = Toplevel.imperative (fn () => writeln (Path.pack (File.pwd ())));
 
 
@@ -184,11 +184,11 @@ fun update_thy_only name =
 (* present draft files *)
 
 fun display_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.quote_sysify_path (Present.drafts "dvi" (map Path.unpack files))
+  let val outfile = File.quote_sysify_path (Present.drafts "dvi" files)
   in system ("\"$ISATOOL\" display -c " ^ outfile ^ " &"); () end);
 
 fun print_drafts files = Toplevel.imperative (fn () =>
-  let val outfile = File.quote_sysify_path (Present.drafts "ps" (map Path.unpack files))
+  let val outfile = File.quote_sysify_path (Present.drafts "ps" files)
   in system ("\"$ISATOOL\" print -c " ^ outfile); () end);
 
 
