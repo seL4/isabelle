@@ -78,10 +78,22 @@ val `~ = ~ : int -> int;
 types_code
   "int" ("int")
 
-lemmas [code] = int_0 int_Suc
+constdefs
+  int_aux :: "int \<Rightarrow> nat \<Rightarrow> int"
+  "int_aux i n == (i + int n)"
+  nat_aux :: "nat \<Rightarrow> int \<Rightarrow> nat"
+  "nat_aux n i == (n + nat i)"
 
-lemma [code]: "nat x = (if x <= 0 then 0 else Suc (nat (x - 1)))"
-  by (simp add: Suc_nat_eq_nat_zadd1)
+lemma [code]:
+  "int_aux i 0 = i"
+  "int_aux i (Suc n) = int_aux (i + 1) n" -- {* tail recursive *}
+  "int n = int_aux 0 n"
+  by (simp add: int_aux_def)+
+
+lemma [code]: "nat_aux n i = (if i <= 0 then n else nat_aux (Suc n) (i - 1))"
+  by (simp add: nat_aux_def Suc_nat_eq_nat_zadd1) -- {* tail recursive *}
+lemma [code]: "nat i = nat_aux 0 i"
+  by (simp add: nat_aux_def)
 
 consts_code
   "0" :: "int"                  ("0")
