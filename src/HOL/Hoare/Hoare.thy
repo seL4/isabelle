@@ -9,27 +9,30 @@ Sugared semantic embedding of Hoare logic.
 Hoare = Arith +
 
 types
-  'a prog                       (* program syntax *)
-  pvar = nat                    (* encoding of program variables ( < 26! ) *)
-  'a state = pvar => 'a         (* program state *)
-  'a exp = 'a state => 'a       (* denotation of expressions *)
-  'a bexp = 'a state => bool    (* denotation of boolean expressions *)
-  'a com = 'a state => 'a state => bool (* denotation of programs *)
+  pvar = nat                                    (* encoding of program variables ( < 26! ) *)
+  'a state = pvar => 'a                         (* program state *)
+  'a exp = 'a state => 'a                       (* denotation of expressions *)
+  'a bexp = 'a state => bool                    (* denotation of boolean expressions *)
+  'a com = 'a state => 'a state => bool         (* denotation of programs *)
+
+
+(* program syntax *)
+
+nonterminals
+  prog
 
 syntax
-  "@Skip"       :: 'a prog                              ("SKIP")
-  "@Assign"     :: [id, 'a] => 'a prog          ("_ := _")
-  "@Seq"        :: ['a prog, 'a prog] => 'a prog        ("_;//_" [0,1000] 999)
-  "@If"         :: [bool, 'a prog, 'a prog] => 'a prog
-                   ("IF _//THEN//  (_)//ELSE//  (_)//END")
-  "@While"      :: [bool, bool, 'a prog] => 'a prog
-                   ("WHILE _//DO {_}//  (_)//END")
+  "@Skip"       :: prog                         ("SKIP")
+  "@Assign"     :: [id, 'a] => prog             ("_ := _")
+  "@Seq"        :: [prog, prog] => prog         ("_;//_" [0,1000] 999)
+  "@If"         :: [bool, prog, prog] => prog   ("IF _//THEN//  (_)//ELSE//  (_)//END")
+  "@While"      :: [bool, bool, prog] => prog   ("WHILE _//DO {_}//  (_)//END")
+  "@Spec"       :: [bool, prog, bool] => bool   ("{_}//_//{_}")
 
-  "@Spec"       :: [bool, 'a prog, bool] => bool        ("{_}//_//{_}")
+
+(* denotational semantics *)
 
 constdefs
-  (* denotational semantics *)
-
   Skip          :: 'a com
   "Skip s s' == (s=s')"
 
