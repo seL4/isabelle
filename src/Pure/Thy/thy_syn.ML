@@ -30,7 +30,7 @@ val syntax = ref (make_syntax ());
 (* augment syntax *)
 
 fun add_syntax keys sects =
- (keywords := keys union ! keywords;
+ (keywords := (keys union ! keywords);
   sections := sects @ ! sections;
   syntax := make_syntax ());
 
