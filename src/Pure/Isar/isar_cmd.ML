@@ -27,6 +27,7 @@ sig
   val kill_proof: Toplevel.transition -> Toplevel.transition
   val undo_theory: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
+  val kill: Toplevel.transition -> Toplevel.transition
   val use: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext: bool -> string -> Toplevel.transition -> Toplevel.transition
@@ -114,6 +115,7 @@ val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
 
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
+val kill = Toplevel.kill o kill_proof;
 
 
 (* use ML text *)
@@ -175,8 +177,13 @@ val print_cases = Toplevel.keep (ProofContext.print_cases o Proof.context_of o T
 (* print theorems / types / terms / props *)
 
 fun print_thms (ms, args) = Toplevel.keep (fn state =>
-  let val st = Toplevel.node_case Proof.init_state Proof.enter_forward state
-  in with_modes ms (fn () => Pretty.writeln (Proof.pretty_thms (IsarThy.get_thmss args st))) end);
+  let
+    val st = Toplevel.node_case Proof.init_state Proof.enter_forward state;
+    val transfer = Thm.transfer (Toplevel.theory_of state);
+  in
+    with_modes ms (fn () =>
+      Pretty.writeln (Proof.pretty_thms (map transfer (IsarThy.get_thmss args st))))
+  end);
 
 fun print_type (ms, s) = Toplevel.keep (fn state =>
   let
