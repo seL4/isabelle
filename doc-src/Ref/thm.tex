@@ -260,23 +260,30 @@ force_strip_shyps : bool ref \hfill{\bf initially true}
 causes sort hypotheses to be deleted, printing a warning.
 \end{ttdescription}
 
-A sort is {\em empty\/} if there are no types having that sort.  If a theorem
-contain a type variable whose sort is empty, then that theorem has no
-instances.  In effect, it asserts nothing.  But what if it is used to prove
-another theorem that no longer involves that sort?  The latter theorem holds
-only if the sort is non-empty.
+Isabelle's type variables are decorated with sorts, constraining them to
+certain ranges of types.  This has little impact when sorts only serve for
+syntactic classification of types --- for example, FOL distinguishes between
+terms and other types.  But when type classes are introduced through axioms,
+this may result in some sorts becoming {\em empty\/}: where one cannot exhibit
+a type belonging to it because certain axioms are unsatisfiable.
 
-Theorems are therefore subject to sort hypotheses, which express that certain
-sorts are non-empty.  The {\tt shyps} field is a list of sorts occurring in
-type variables.  The list includes all sorts from the current theorem (the
-{\tt prop} and {\tt hyps} fields).  It also includes sorts used in the
-theorem's proof --- so-called {\em dangling\/} sort constraints.  These are
-the critical ones that must be non-empty in order for the proof to be valid.
+If a theorem contain a type variable whose sort is empty, then that theorem
+has no instances.  In effect, it asserts nothing.  But what if it is used to
+prove another theorem that no longer involves that sort?  The latter theorem
+holds only if the sort is non-empty.
 
-Isabelle removes sorts from the {\tt shyps} field whenever
-non-emptiness holds.  Because its current implementation is highly incomplete,
-the flag shown above is available.  Setting it to true (the default) allows
-existing proofs to run.
+Therefore, Isabelle's theorems carry around sort hypotheses. The {\tt
+shyps} field is a list of sorts occurring in type variables in the current
+{\tt prop} and {\tt hyps} fields.  It may also includes sorts used in the
+theorem's proof that no longer appear in the {\tt prop} or {\tt hyps}
+fields --- so-called {\em dangling\/} sort constraints. These are the
+critical ones, asserting non-emptiness of the corresponding sorts.
+ 
+Isabelle tries to remove extraneous sorts from the {\tt shyps} field whenever
+non-emptiness can be established by looking at the theorem's signature: from
+the {\tt arities} information, etc.  Because its current implementation is
+highly incomplete, the flag shown above is available.  Setting it to true (the
+default) allows existing proofs to run.
 
 
 \subsection{Tracing flags for unification}
