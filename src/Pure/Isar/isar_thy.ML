@@ -61,6 +61,8 @@ sig
     -> theory -> theory
   val apply_theorems: (xstring * Args.src list) list -> theory -> theory * thm list
   val apply_theorems_i: (thm * theory attribute list) list -> theory -> theory * thm list
+  val declare_theorems: (xstring * Args.src list) list * Comment.text -> theory -> theory
+  val declare_theorems_i: (thm * theory attribute list) list * Comment.text -> theory -> theory
   val have_theorems: (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
     -> theory -> theory
   val have_theorems_i: (((bstring * theory attribute list) * (thm * theory attribute list) list)
@@ -307,12 +309,24 @@ fun local_have_thmss f args state =
 fun gen_have_thmss_i f args = f (map (fn ((name, more_atts), th_atts) =>
   ((name, more_atts), map (apfst single) th_atts)) args);
 
-fun apply_theorems th_srcs = flat_unnamed o global_have_thmss "" (PureThy.have_thmss []) [(("", []), th_srcs)];
-fun apply_theorems_i th_srcs = flat_unnamed o gen_have_thmss_i (PureThy.have_thmss []) [(("", []), th_srcs)];
-val have_theorems = #1 oo (global_have_thmss "theorems" (PureThy.have_thmss []) o map Comment.ignore);
-val have_theorems_i = #1 oo (gen_have_thmss_i (PureThy.have_thmss []) o map Comment.ignore);
-val have_lemmas = #1 oo (global_have_thmss "lemmas" (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
-val have_lemmas_i = #1 oo (gen_have_thmss_i (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
+fun apply_theorems th_srcs =
+  flat_unnamed o global_have_thmss "" (PureThy.have_thmss []) [(("", []), th_srcs)];
+fun apply_theorems_i th_srcs =
+  flat_unnamed o gen_have_thmss_i (PureThy.have_thmss []) [(("", []), th_srcs)];
+
+val declare_theorems = #1 oo (apply_theorems o Comment.ignore);
+val declare_theorems_i = #1 oo (apply_theorems_i o Comment.ignore);
+
+val have_theorems =
+  #1 oo (global_have_thmss "theorems" (PureThy.have_thmss []) o map Comment.ignore);
+val have_theorems_i =
+  #1 oo (gen_have_thmss_i (PureThy.have_thmss []) o map Comment.ignore);
+
+val have_lemmas =
+  #1 oo (global_have_thmss "lemmas" (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
+val have_lemmas_i =
+  #1 oo (gen_have_thmss_i (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
+
 val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss o map Comment.ignore;
 val have_facts_i = ProofHistory.apply o gen_have_thmss_i Proof.have_thmss o map Comment.ignore;
 
@@ -516,27 +530,27 @@ end;
 (* translation functions *)
 
 val parse_ast_translation =
-  Context.use_let "parse_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
+  Context.use_let "val parse_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
     "Theory.add_trfuns (parse_ast_translation, [], [], [])" o Comment.ignore;
 
 val parse_translation =
-  Context.use_let "parse_translation: (string * (term list -> term)) list"
+  Context.use_let "val parse_translation: (string * (term list -> term)) list"
     "Theory.add_trfuns ([], parse_translation, [], [])" o Comment.ignore;
 
 val print_translation =
-  Context.use_let "print_translation: (string * (term list -> term)) list"
+  Context.use_let "val print_translation: (string * (term list -> term)) list"
     "Theory.add_trfuns ([], [], print_translation, [])" o Comment.ignore;
 
 val print_ast_translation =
-  Context.use_let "print_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
+  Context.use_let "val print_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
     "Theory.add_trfuns ([], [], [], print_ast_translation)" o Comment.ignore;
 
 val typed_print_translation =
-  Context.use_let "typed_print_translation: (string * (bool -> typ -> term list -> term)) list"
+  Context.use_let "val typed_print_translation: (string * (bool -> typ -> term list -> term)) list"
     "Theory.add_trfunsT typed_print_translation" o Comment.ignore;
 
 val token_translation =
-  Context.use_let "token_translation: (string * string * (string -> string * int)) list"
+  Context.use_let "val token_translation: (string * string * (string -> string * int)) list"
     "Theory.add_tokentrfuns token_translation" o Comment.ignore;
 
 
@@ -544,7 +558,7 @@ val token_translation =
 
 fun method_setup ((name, txt, cmt), comment_ignore) =
   Context.use_let
-    "method: bstring * (Args.src -> Proof.context -> Proof.method) * string"
+    "val method: bstring * (Args.src -> Proof.context -> Proof.method) * string"
     "PureIsar.Method.add_method method"
     ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")");
 
@@ -553,7 +567,7 @@ fun method_setup ((name, txt, cmt), comment_ignore) =
 
 fun add_oracle ((name, txt), comment_ignore) =
   Context.use_let
-    "oracle: bstring * (Sign.sg * Object.T -> term)"
+    "val oracle: bstring * (Sign.sg * Object.T -> term)"
     "Theory.add_oracle oracle"
     ("(" ^ quote name ^ ", " ^ txt ^ ")");
 
