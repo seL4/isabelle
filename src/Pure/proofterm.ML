@@ -1,9 +1,9 @@
 (*  Title:      Pure/proofterm.ML
     ID:         $Id$
-    Author:     Stefan Berghofer
-    Copyright   2000  TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-LF style proof terms
+LF style proof terms.
 *)
 
 infix 8 % %% %%%;
