@@ -17,9 +17,9 @@ text {*
   \url{http://www.research.att.com/~njas/sequences/}.
 *}
 
-declare lessThan_Suc [simp] atMost_Suc [simp]
-declare add_mult_distrib [simp] add_mult_distrib2 [simp]
-declare diff_mult_distrib [simp] diff_mult_distrib2 [simp]
+lemmas [simp] = lessThan_Suc atMost_Suc  left_distrib right_distrib
+                left_diff_distrib right_diff_distrib --{*for true subtraction*}
+                diff_mult_distrib diff_mult_distrib2 --{*for type nat*}
 
 text {*
   \medskip The sum of the first @{text n} odd numbers equals @{text n}
@@ -97,17 +97,10 @@ text {*
   Alternative proof, with a change of variables and much more
   subtraction, performed using the integers. *}
 
-declare
-  zmult_int [symmetric, simp]
-  zadd_zmult_distrib [simp]
-  zadd_zmult_distrib2 [simp]
-  zdiff_zmult_distrib [simp]
-  zdiff_zmult_distrib2 [simp]
-
 lemma int_sum_of_fourth_powers:
-  "30 * int (\<Sum>i \<in> {..<m}. i * i * i * i) =
-    int m * (int m - 1) * (int (2 * m) - 1) *
-    (int (3 * m * m) - int (3 * m) - 1)"
+  "30 * of_nat (\<Sum>i \<in> {..<m}. i * i * i * i) =
+    of_nat m * (of_nat m - 1) * (of_nat (2 * m) - 1) *
+    (of_nat (3 * m * m) - of_nat (3 * m) - (1::int))"
   apply (induct m)
    apply simp_all
   done
