@@ -88,6 +88,4 @@ do
 done
 
 ARGS="$ARGS -f isabelle"
-
-
-exec $PROGNAME -T "Isabelle" -geometry $MAINGEOM $ARGS
+exec $PROGNAME -T "Isabelle" $ARGS
