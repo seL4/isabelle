@@ -41,10 +41,11 @@ by (REPEAT (ares_tac prems 1
 qed "nat_induct";
 
 (*Perform induction on n. *)
-fun nat_ind_tac a i = 
-    EVERY[res_inst_tac [("n",a)] nat_induct i,
-          COND (Datatype.occs_in_prems a (i+1)) all_tac
-               (rename_last_tac a [""] (i+1))];
+local fun raw_nat_ind_tac a i = 
+    res_inst_tac [("n",a)] nat_induct i  THEN  rename_last_tac a [""] (i+1)
+in
+val nat_ind_tac = Datatype.occs_in_prems raw_nat_ind_tac
+end;
 
 (*A special form of induction for reasoning about m<n and m-n*)
 val prems = goal thy
