@@ -8,6 +8,18 @@ Specification of Chandy and Charpentier's Allocator
 
 Alloc = Follows + Extend + PPROD +
 
+constdefs
+  (**TOO STRONG: DELETE**)
+  modular :: "['a, ('a=>'b) program set] => bool"
+    "modular i X ==
+       ALL F G. F : X --> drop_prog i F = drop_prog i G --> G : X"
+
+
+ (UNITY.thy????????????????*)
+  (*An Idle program can do nothing*)
+  Idle :: 'a program set
+    "Idle == {F. Union (Acts F) <= Id}"
+
 (*simplifies the expression of some specifications*)
 constdefs
   sub :: ['a, 'a=>'b] => 'b
