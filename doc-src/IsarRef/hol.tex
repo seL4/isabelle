@@ -215,7 +215,7 @@ HOL.
 
 \section{Proof by cases and induction}\label{sec:induct-method}
 
-\subsection{Proof methods}
+\subsection{Proof methods}\label{sec:induct-method-proper}
 
 \indexisarmeth{cases}\indexisarmeth{induct}
 \begin{matharray}{rcl}
@@ -337,23 +337,25 @@ These proof methods directly correspond to the ML tactics of the same name
 \emph{dynamic} proof state, rather than the current proof text.  This enables
 proof scripts to refer to parameters of some subgoal, for example.
 
-Note that in contrast to the proper $cases$ and $induct$ methods, $case_tac$
-and $induct_tac$ admit to reason about datatypes only.  Furthermore, named
-local contexts (see \S\ref{sec:cases}) are not provided.
-
 \railalias{casetac}{case\_tac}
 \railterm{casetac}
 \railalias{inducttac}{induct\_tac}
 \railterm{inducttac}
 
 \begin{rail}
-  casetac goalspec? term
+  casetac goalspec? term rule?
   ;
-  inducttac goalspec? (var +)
+  inducttac goalspec? (var +) rule?
+  ;
+
+  rule: ('rule' ':' thmref)
   ;
 \end{rail}
 
-
+By default, $case_tac$ and $induct_tac$ admit to reason about datatypes only,
+unless an alternative explicit rule is given.  Also note that named local
+contexts (see \S\ref{sec:cases}) are not provided as would be by the proper
+$induct$ and $cases$ proof methods (see \S\ref{sec:induct-method-proper}).
 
 
 \section{Arithmetic}
