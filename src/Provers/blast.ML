@@ -480,8 +480,8 @@ fun fromRule vars rl =
 	  
   in Option.SOME (trl, tac) end
   handle Bind => (*reject: conclusion is not just a variable*)
-   (if !trace then (writeln"Warning: ignoring ill-formed elimination rule";
-		    print_thm rl)
+   (if !trace then (warning ("ignoring ill-formed elimination rule\n" ^
+		    string_of_thm rl))
     else ();
     Option.NONE);
 
