@@ -379,11 +379,6 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Suc_diff_le";
 
-Goal "n<=(l::nat) --> Suc l - n + m = Suc (l - n + m)";
-by (res_inst_tac [("m","n"),("n","l")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
-qed_spec_mp "Suc_diff_add_le";
-
 Goal "m - n < Suc(m)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (etac less_SucE 3);
@@ -415,12 +410,6 @@ by Safe_tac;
 by (asm_simp_tac (simpset() addsimps le_simps) 1);
 qed "diff_Suc_less";
 Addsimps [diff_Suc_less];
-
-Goal "i<n ==> n - Suc i < n - i";
-by (exhaust_tac "n" 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [Suc_diff_le]@le_simps));
-qed "diff_Suc_less_diff";
 
 (*This and the next few suggested by Florian Kammueller*)
 Goal "!!i::nat. i-j-k = i-k-j";
@@ -480,14 +469,6 @@ by (res_inst_tac [("x","j - i")] exI 1);
 by (asm_simp_tac (simpset() addsimps [add_diff_inverse, less_not_sym]) 1);
 qed "less_imp_add_positive";
 
-Goal "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
-by (simp_tac (simpset() addsimps [leI, Suc_le_eq, Suc_diff_le]) 1);
-qed "if_Suc_diff_le";
-
-Goal "Suc(m)-n <= Suc(m-n)";
-by (simp_tac (simpset() addsimps [if_Suc_diff_le]) 1);
-qed "diff_Suc_le_Suc_diff";
-
 Goal "P(k) --> (!n. P(Suc(n))--> P(n)) --> P(k-i)";
 by (res_inst_tac [("m","k"),("n","i")] diff_induct 1);
 by (ALLGOALS (Clarify_tac THEN' Simp_tac THEN' TRY o Blast_tac));
@@ -510,15 +491,6 @@ val add_commute_k = read_instantiate [("n","k")] add_commute;
 by (asm_simp_tac (simpset() addsimps [add_commute_k]) 1);
 qed "diff_cancel2";
 Addsimps [diff_cancel2];
-
-(*From Clemens Ballarin, proof by lcp*)
-Goal "[| k<=n; n<=m |] ==> (m-k) - (n-k) = m-(n::nat)";
-by (REPEAT (etac rev_mp 1));
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
-(*a confluence problem*)
-by (asm_simp_tac (simpset() addsimps [Suc_diff_le, le_Suc_eq]) 1);
-qed "diff_right_cancel";
 
 Goal "n - (n+m) = 0";
 by (induct_tac "n" 1);
@@ -1107,23 +1079,59 @@ by (arith_tac 1);
 qed "diff_less";
 
 
+(*** Reducting subtraction to addition ***)
+
+(*Intended for use with linear arithmetic, but useful in its own right*)
+Goal "P (x-y) = (ALL z. (x<y --> P 0) & (x = y+z --> P z))";
+by (case_tac "x<y" 1);
+by (auto_tac (claset(),  simpset() addsimps [diff_is_0_eq RS iffD2]));
+qed "split_diff";
+
+val remove_diff_ss = 
+    simpset()
+      delsimps ex_simps@all_simps
+      addsimps [le_diff_conv2, le_diff_conv, le_imp_diff_is_add, 
+		diff_diff_right] 
+      addcongs [conj_cong]
+      addsplits [split_diff];
+
+Goal "n<=(l::nat) --> Suc l - n + m = Suc (l - n + m)";
+by (simp_tac remove_diff_ss 1);
+qed_spec_mp "Suc_diff_add_le";
+
+Goal "i<n ==> n - Suc i < n - i";
+by (asm_simp_tac remove_diff_ss 1);
+qed "diff_Suc_less_diff";
+
+Goal "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
+by (simp_tac remove_diff_ss 1);
+qed "if_Suc_diff_le";
+
+Goal "Suc(m)-n <= Suc(m-n)";
+by (simp_tac remove_diff_ss 1);
+qed "diff_Suc_le_Suc_diff";
+
+Goal "[| k<=n; n<=m |] ==> (m-k) - (n-k) = m-(n::nat)";
+by (asm_simp_tac remove_diff_ss 1);
+qed "diff_right_cancel";
+
+
 (** (Anti)Monotonicity of subtraction -- by Stephan Merz **)
 
 (* Monotonicity of subtraction in first argument *)
 Goal "m <= (n::nat) ==> (m-l) <= (n-l)";
-by (arith_tac 1);
+by (asm_simp_tac remove_diff_ss 1);
 qed "diff_le_mono";
 
 Goal "m <= (n::nat) ==> (l-n) <= (l-m)";
-by (arith_tac 1);
+by (asm_simp_tac remove_diff_ss 1);
 qed "diff_le_mono2";
-
 
 (*This proof requires natdiff_cancel_sums*)
 Goal "[| m < (n::nat); m<l |] ==> (l-n) < (l-m)";
-by (arith_tac 1);
+by (asm_simp_tac remove_diff_ss 1);
 qed "diff_less_mono2";
 
 Goal "[| m-n = 0; n-m = 0 |] ==>  m=n";
-by (arith_tac 1);
+by (asm_full_simp_tac remove_diff_ss 1);
 qed "diffs0_imp_equal";
