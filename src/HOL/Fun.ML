@@ -228,6 +228,27 @@ Goal "surj f ==> inj (inv f)";
 by (asm_simp_tac (simpset() addsimps [inj_on_inv, surj_range]) 1);
 qed "surj_imp_inj_inv";
 
+(** We seem to need both the id-forms and the (%x. x) forms; the latter can
+    arise by rewriting, while id may be used explicitly. **)
+
+Goal "(%x. x) `` Y = Y";
+by (Blast_tac 1);
+qed "image_ident";
+
+Goalw [id_def] "id `` Y = Y";
+by (Blast_tac 1);
+qed "image_id";
+Addsimps [image_ident, image_id];
+
+Goal "(%x. x) -`` Y = Y";
+by (Blast_tac 1);
+qed "vimage_ident";
+
+Goalw [id_def] "id -`` A = A";
+by Auto_tac;
+qed "vimage_id";
+Addsimps [vimage_ident, vimage_id];
+
 Goal "f``(A Int B) <= f``A Int f``B";
 by (Blast_tac 1);
 qed "image_Int_subset";
