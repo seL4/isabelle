@@ -28,7 +28,6 @@ sig
     string list -> string * string -> string * term
   val read_axm: Sign.sg -> string * string -> string * term
   val inferT_axm: Sign.sg -> string * term -> string * term
-  val merge_theories: string -> theory * theory -> theory
 end
 
 signature THEORY =
@@ -81,8 +80,8 @@ sig
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
   val copy: theory -> theory
-  val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
+  val merge_theories: string -> theory * theory -> theory
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
   val pre_pure: theory
@@ -211,7 +210,6 @@ val parent_path      = add_path "..";
 val root_path        = add_path "/";
 val add_space        = ext_sign Sign.add_space;
 val add_name         = ext_sign Sign.add_name;
-val prep_ext         = ext_sign (K Sign.prep_ext) ();
 val copy             = ext_sign (K Sign.copy) ();
 
 
