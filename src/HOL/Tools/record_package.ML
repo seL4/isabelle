@@ -46,12 +46,12 @@ struct
 val product_typeN = "Record.product_type";
 
 val product_typeI = thm "product_typeI";
-val product_type_inject = thm "product_type_inject";
-val product_type_conv1 = thm "product_type_conv1";
-val product_type_conv2 = thm "product_type_conv2";
-val product_type_induct = thm "product_type_induct";
-val product_type_cases = thm "product_type_cases";
-val product_type_split_paired_all = thm "product_type_split_paired_all";
+val product_type_inject = thm "product_type.inject";
+val product_type_conv1 = thm "product_type.conv1";
+val product_type_conv2 = thm "product_type.conv2";
+val product_type_induct = thm "product_type.induct";
+val product_type_cases = thm "product_type.cases";
+val product_type_split_paired_all = thm "product_type.split_paired_all";
 
 
 

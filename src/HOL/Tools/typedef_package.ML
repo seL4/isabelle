@@ -35,17 +35,16 @@ struct
 (** theory context references **)
 
 val type_definitionN = "Typedef.type_definition";
-val type_definition_def = thm "type_definition_def";
 
-val Rep = thm "Rep";
-val Rep_inverse = thm "Rep_inverse";
-val Abs_inverse = thm "Abs_inverse";
-val Rep_inject = thm "Rep_inject";
-val Abs_inject = thm "Abs_inject";
-val Rep_cases = thm "Rep_cases";
-val Abs_cases = thm "Abs_cases";
-val Rep_induct = thm "Rep_induct";
-val Abs_induct = thm "Abs_induct";
+val Rep = thm "type_definition.Rep";
+val Rep_inverse = thm "type_definition.Rep_inverse";
+val Abs_inverse = thm "type_definition.Abs_inverse";
+val Rep_inject = thm "type_definition.Rep_inject";
+val Abs_inject = thm "type_definition.Abs_inject";
+val Rep_cases = thm "type_definition.Rep_cases";
+val Abs_cases = thm "type_definition.Abs_cases";
+val Rep_induct = thm "type_definition.Rep_induct";
+val Abs_induct = thm "type_definition.Abs_induct";
 
 
 
