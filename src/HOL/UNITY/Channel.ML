@@ -14,7 +14,7 @@ AddIffs [skip];
 
 
 (*None represents "infinity" while Some represents proper integers*)
-Goalw [minSet_def] "!!A. minSet A = Some x --> x : A";
+Goalw [minSet_def] "minSet A = Some x --> x : A";
 by (Simp_tac 1);
 by (fast_tac (claset() addIs [LeastI]) 1);
 qed_spec_mp "minSet_eq_SomeD";
@@ -24,7 +24,7 @@ by (Asm_simp_tac 1);
 qed_spec_mp "minSet_empty";
 Addsimps [minSet_empty];
 
-Goalw [minSet_def] "!!A. x:A ==> minSet A = Some (LEAST x. x: A)";
+Goalw [minSet_def] "x:A ==> minSet A = Some (LEAST x. x: A)";
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "minSet_nonempty";

@@ -16,11 +16,11 @@ val Token_defs = [WellTyped_def, Token_def, HasTok_def, H_def, E_def, T_def];
 
 AddIffs [N_positive, skip];
 
-Goalw [HasTok_def] "!!i. [| s: HasTok i; s: HasTok j |] ==> i=j";
+Goalw [HasTok_def] "[| s: HasTok i; s: HasTok j |] ==> i=j";
 by Auto_tac;
 qed "HasToK_partition";
 
-Goalw Token_defs "!!s. s : WellTyped ==> (s ~: E i) = (s : H i | s : T i)";
+Goalw Token_defs "s : WellTyped ==> (s ~: E i) = (s : H i | s : T i)";
 by (Simp_tac 1);
 by (exhaust_tac "s (Suc i)" 1);
 by Auto_tac;
@@ -61,13 +61,13 @@ by (rtac (wf_less_than RS wf_inv_image RS wf_subset) 1);
 by (Blast_tac 1);
 qed"wf_nodeOrder";
 
-Goal "!!m. [| m<n; Suc m ~= n |] ==> Suc(m) < n";
+Goal "[| m<n; Suc m ~= n |] ==> Suc(m) < n";
     by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
     by (blast_tac (claset() addEs [less_asym, less_SucE]) 1);
     qed "Suc_lessI";
 
 Goalw [nodeOrder_def, next_def, inv_image_def]
-    "!!x. [| i<N; j<N |] ==> ((next i, i) : nodeOrder j) = (i ~= j)";
+    "[| i<N; j<N |] ==> ((next i, i) : nodeOrder j) = (i ~= j)";
 by (auto_tac (claset(),
 	      simpset() addsimps [Suc_lessI, mod_Suc, mod_less, mod_geq]));
 by (dtac sym 1);
@@ -100,7 +100,7 @@ qed "nodeOrder_eq";
 (*From "A Logic for Concurrent Programming", but not used in Chapter 4.
   Note the use of case_tac.  Reasoning about leadsTo takes practice!*)
 Goal
- "!!i. [| i<N; j<N |] ==> \
+ "[| i<N; j<N |] ==> \
 \      leadsTo Acts (HasTok i) ({s. (Token s, i) : nodeOrder j} Un HasTok j)";
 by (case_tac "i=j" 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
@@ -112,7 +112,7 @@ qed "TR7_nodeOrder";
 
 (*Chapter 4 variant, the one actually used below.*)
 Goal
- "!!i. [| i<N; j<N; i~=j |] ==> \
+ "[| i<N; j<N; i~=j |] ==> \
 \      leadsTo Acts (HasTok i) {s. (Token s, i) : nodeOrder j}";
 by (rtac (TR7 RS leadsTo_weaken_R) 1);
 by (Clarify_tac 1);
@@ -127,7 +127,7 @@ val Token_lemma = result();
 
 (*Misra's TR9: the token reaches an arbitrary node*)
 Goal
- "!!i. j<N ==> leadsTo Acts {s. Token s < N} (HasTok j)";
+ "j<N ==> leadsTo Acts {s. Token s < N} (HasTok j)";
 by (rtac leadsTo_weaken_R 1);
 by (res_inst_tac [("I", "Compl{j}"), ("f", "Token"), ("B", "{}")]
      (wf_nodeOrder RS bounded_induct) 1);
@@ -141,7 +141,7 @@ by (ALLGOALS Blast_tac);
 qed "leadsTo_j";
 
 (*Misra's TR8: a hungry process eventually eats*)
-Goal "!!i. j<N ==> leadsTo Acts ({s. Token s < N} Int H j) (E j)";
+Goal "j<N ==> leadsTo Acts ({s. Token s < N} Int H j) (E j)";
 by (rtac (leadsTo_cancel1 RS leadsTo_Un_duplicate) 1);
 by (rtac TR6 2);
 by (rtac leadsTo_weaken_R 1);

@@ -10,10 +10,10 @@ SubstAx = WFair +
 
 constdefs
 
-   LeadsTo :: "['a set, ('a * 'a)set set, 'a set, 'a set] => bool"
-    "LeadsTo Init Acts A B ==
-     leadsTo Acts (reachable Init Acts Int A)
-                  (reachable Init Acts Int B)"
+   LeadsTo :: "['a set * ('a * 'a)set set, 'a set, 'a set] => bool"
+    "LeadsTo == %(Init,Acts) A B.
+		 leadsTo Acts (reachable (Init,Acts) Int A)
+			      (reachable (Init,Acts) Int B)"
 
 
 end

@@ -65,7 +65,7 @@ Goalw [rinit_def, invariant_def] "rinit <= invariant";
 by Auto_tac;
 qed "rinit_invariant";
 
-Goal "reachable rinit racts <= invariant";
+Goal "reachable (rinit,racts) <= invariant";
 by (simp_tac (simpset() addsimps
 	      [strongest_invariant, stable_invariant, rinit_invariant]) 1); 
 qed "reachable_subset_invariant";
@@ -134,13 +134,13 @@ qed "Diff_fixedpoint";
 
 (*** Progress ***)
 
-Goalw [metric_def] "!!s. ~ s x ==> Suc (metric (s(x:=True))) = metric s";
+Goalw [metric_def] "~ s x ==> Suc (metric (s(x:=True))) = metric s";
 by (subgoal_tac "{v. ~ (s(x:=True)) v} = {v. ~ s v} - {x}" 1);
 by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 1);
 qed "Suc_metric";
 
-Goal "!!s. ~ s x ==> metric (s(x:=True)) < metric s";
+Goal "~ s x ==> metric (s(x:=True)) < metric s";
 by (etac (Suc_metric RS subst) 1);
 by (Blast_tac 1);
 qed "metric_less";
@@ -152,7 +152,7 @@ by (auto_tac (claset() addIs [less_imp_le],
 	      simpset() addsimps [update_idem]));
 qed "metric_le";
 
-Goal "!!m. (u,v): edges ==> \
+Goal "(u,v): edges ==> \
 \              ensures racts ((metric-``{m}) Int {s. s u & ~ s v})  \
 \                            (metric-``(lessThan m))";
 by (ensures_tac "asgt u v" 1);
@@ -180,7 +180,7 @@ by Auto_tac;
 by (rtac leadsTo_Un_fixedpoint 1);
 qed "leadsTo_fixedpoint";
 
-Goal "LeadsTo rinit racts UNIV { %v. (init, v) : edges^* }";
+Goal "LeadsTo(rinit,racts) UNIV { %v. (init, v) : edges^* }";
 by (stac (fixedpoint_invariant_correct RS sym) 1);
 by (rtac (leadsTo_fixedpoint RS leadsTo_imp_LeadsTo RS LeadsTo_weaken_R) 1); 
 by (cut_facts_tac [reachable_subset_invariant] 1);

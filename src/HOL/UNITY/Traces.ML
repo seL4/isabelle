@@ -1,39 +1,81 @@
+(*  Title:      HOL/UNITY/Traces
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1998  University of Cambridge
+
+Definitions of
+  * traces: the possible execution traces
+  * reachable: the set of reachable states
+
+*)
+
 open Traces;
 
-Goal "reachable Init Acts <= {s. EX evs. s#evs: traces Init Acts}";
-by (rtac subsetI 1);
-be reachable.induct 1;
-by (REPEAT (blast_tac (claset() addIs traces.intrs) 1));
-val lemma1 = result();
 
-Goal "!!evs. evs : traces Init Acts \
-\                ==> ALL s evs'. evs = s#evs' --> s: reachable Init Acts";
+(****
+Now simulate the inductive definition (illegal due to paired arguments)
+
+inductive "reachable(Init,Acts)"
+  intrs 
+    Init  "s: Init ==> s : reachable(Init,Acts)"
+
+    Acts  "[| act: Acts;  s : reachable(Init,Acts);  (s,s'): act |]
+	   ==> s' : reachable(Init,Acts)"
+
+This amounts to an equivalence proof for the definition actually used, 
+****)
+
+
+(** reachable: Deriving the Introduction rules **)
+
+Goal "s: Init ==> s : reachable(Init,Acts)";
+by (simp_tac (simpset() addsimps [reachable_def]) 1);
+by (blast_tac (claset() addIs traces.intrs) 1);
+qed "reachable_Init";
+
+
+Goal "[| act: Acts;  s : reachable(Init,Acts) |] \
+\     ==> (s,s'): act --> s' : reachable(Init,Acts)";
+by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1);
+by (etac exE 1);
 be traces.induct 1;
-by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
-val lemma2 = normalize_thm [RSmp, RSspec] (result());
-
-Goal "{s. EX evs. s#evs: traces Init Acts} <= reachable Init Acts";
-by (blast_tac (claset() addIs [lemma2]) 1);
-val lemma3 = result();
-
-Goal "reachable Init Acts = {s. EX evs. s#evs: traces Init Acts}";
-by (rtac ([lemma1,lemma3] MRS equalityI) 1);
-qed "reachable_eq_traces";
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (blast_tac (claset() addIs traces.intrs)));
+qed_spec_mp "reachable_Acts";
 
 
-(*Could/should this be proved?*)
-Goal "reachable Init Acts = (UN evs: traces Init Acts. set evs)";
+val major::prems = 
+Goalw [reachable_def] 
+  "[| za : reachable(Init,Acts);  \
+\     !!s. s : Init ==> P s;      \
+\     !!act s s'.  \
+\        [| act : Acts; s : reachable(Init,Acts); P s; (s, s') : act |]  \
+\        ==> P s' |] \
+\  ==> P za";
+by (cut_facts_tac [major] 1);
+auto();
+be traces.induct 1;
+by (ALLGOALS (blast_tac (claset() addIs prems)));
+qed "reachable_induct";
+
+structure reachable = 
+  struct 
+  val Init = reachable_Init
+  val Acts = reachable_Acts
+  val intrs = [reachable_Init, reachable_Acts]
+  val induct = reachable_induct
+  end;
 
 
 (*The strongest invariant is the set of all reachable states!*)
 Goalw [stable_def, constrains_def]
-    "!!A. [| Init<=A;  stable Acts A |] ==> reachable Init Acts <= A";
+    "[| Init<=A;  stable Acts A |] ==> reachable(Init,Acts) <= A";
 by (rtac subsetI 1);
 be reachable.induct 1;
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "strongest_invariant";
 
-Goal "stable Acts (reachable Init Acts)";
+Goal "stable Acts (reachable(Init,Acts))";
 by (REPEAT (blast_tac (claset() addIs [stableI, constrainsI]
 				addIs reachable.intrs) 1));
 qed "stable_reachable";

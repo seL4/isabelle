@@ -1,10 +1,15 @@
+(*  Title:      HOL/UNITY/Traces
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1998  University of Cambridge
 
-
-(*** Deadlock examples from section 5.6 ***)
+Deadlock examples from section 5.6 of 
+    Misra, "A Logic for Concurrent Programming", 1994
+*)
 
 (*Trivial, two-process case*)
 Goalw [constrains_def, stable_def]
-    "!!Acts. [| constrains Acts (A Int B) A;  constrains Acts (B Int A) B |] \
+    "[| constrains Acts (A Int B) A;  constrains Acts (B Int A) B |] \
 \           ==> stable Acts (A Int B)";
 by (Blast_tac 1);
 result();
