@@ -14,10 +14,6 @@ import java.util.*;
 import java.awt.*;
 import java.io.*;
 
-class ParseError extends Exception {
-	public ParseError(String s) { super(s); }
-}
-
 public class Graph {
 	/**** parameters for layout ****/
 
