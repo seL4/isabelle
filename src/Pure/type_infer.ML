@@ -7,6 +7,8 @@ Type inference.
 
 signature TYPE_INFER =
 sig
+  val anyT: sort -> typ
+  val logicT: typ
   val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
     -> (string -> typ option) -> Sorts.classrel -> Sorts.arities
     -> string list -> bool -> (indexname -> bool) -> term list -> typ list
@@ -28,15 +30,16 @@ struct
       A very complicated structure produced by the syntax module's
       read functions.  Encodes types and sorts as terms; may contain
       explicit constraints and partial typing information (where
-      dummyT serves as wildcard).
+      dummies serve as wildcards).
 
       Parse trees are INTERNAL! Users should never encounter them,
       except in parse / print translation functions.
 
     raw terms (type term):
       Provide the user interface to type inferences.  They may contain
-      partial type information (dummyT is wildcard) or explicit type
-      constraints (introduced via constrain: term -> typ -> term).
+      partial type information (dummies are wildcards) or explicit
+      type constraints (introduced via constrain: term -> typ ->
+      term).
 
       The type inference function also lets users specify a certain
       subset of TVars to be treated as non-rigid inference parameters.
@@ -93,6 +96,9 @@ fun foldl_pretyps f (x, PConst (_, T)) = f (x, T)
 
 (* pretyp(s)_of *)
 
+fun anyT S = TFree ("'_dummy_", S);
+val logicT = anyT logicS;
+
 fun pretyp_of is_param (params, typ) =
   let
     fun add_parms (ps, TVar (xi as (x, _), S)) =
@@ -107,6 +113,7 @@ fun pretyp_of is_param (params, typ) =
           (case assoc (params', xi) of
             None => PTVar v
           | Some p => p)
+      | pre_of (TFree ("'_dummy_", S)) = mk_param S
       | pre_of (TFree v) = PTFree v
       | pre_of (T as Type (a, Ts)) =
           if T = dummyT then mk_param []
@@ -140,9 +147,8 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
     fun constrain (ps, t) T =
       if T = dummyT then (ps, t)
       else
-        let val (ps', T') = preT_of (ps, T) in
-          (ps', Constraint (t, T'))
-        end;
+        let val (ps', T') = preT_of (ps, T)
+        in (ps', Constraint (t, T')) end;
 
     fun pre_of (ps, Const (c, T)) =
           (case const_type c of
@@ -277,8 +283,8 @@ fun unify classrel arities =
     fun assign r T S =
       (case deref T of
         T' as Link (r' as ref (Param _)) =>
-          if r = r' then () else (r := T'; meet (T', S))
-      | T' => (occurs_check r T'; r := T'; meet (T', S)));
+          if r = r' then () else (meet (T', S); r := T')
+      | T' => (occurs_check r T'; meet (T', S); r := T'));
 
 
     (* unification *)
@@ -300,15 +306,14 @@ fun unify classrel arities =
 (** type inference **)
 
 fun appl_error prt prT why t T u U =
-  ["Type error in application: " ^ why,
-   "",
-   Pretty.string_of
-    (Pretty.block [Pretty.str "Operator:", Pretty.brk 2, prt t,
-                   Pretty.str " ::", Pretty.brk 1, prT T]),
-   Pretty.string_of
-     (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u,
-                    Pretty.str " ::", Pretty.brk 1, prT U]),
-   ""];
+ ["Type error in application: " ^ why,
+  "",
+  Pretty.string_of (Pretty.block
+    [Pretty.str "Operator:", Pretty.brk 2, prt t, Pretty.str " ::", Pretty.brk 1, prT T]),
+  Pretty.string_of (Pretty.block
+    [Pretty.str "Operand:", Pretty.brk 3, prt u, Pretty.str " ::", Pretty.brk 1, prT U]),
+  ""];
+
 
 (* infer *)                                     (*DESTRUCTIVE*)
 
