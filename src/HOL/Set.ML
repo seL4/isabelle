@@ -422,7 +422,7 @@ Goal "c:B ==> c : A Un B";
 by (Asm_simp_tac 1);
 qed "UnI2";
 
-AddXIs [UnI1, UnI2];
+AddXEs [UnI1, UnI2];
 
 
 (*Classical introduction rule: no commitment to A vs B*)

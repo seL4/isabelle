@@ -84,6 +84,7 @@ qed "UnCI";
 
 AddSIs [UnCI];
 AddSEs [UnE];
+AddXEs [UnI1, UnI2];
 
 
 (*** Rules for small intersection -- Int -- defined via Upair ***)
