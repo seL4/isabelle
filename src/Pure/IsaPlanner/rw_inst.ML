@@ -88,23 +88,26 @@ fun mk_abstractedrule Ts rule =
          bound vars with binders outside the redex *)
       val prop = Thm.prop_of rule;
       val names = Term.add_term_names (prop, []);
-      val (fromnames,tonames,names2) = 
-          foldl (fn ((rnf,rnt,names),(n,ty)) => 
+      val (fromnames,tonames,names2,Ts') = 
+          foldl (fn ((rnf,rnt,names, Ts'),(n,ty)) => 
                     let val n2 = Term.variant names n in
                       (ctermify (Free(RWTools.mk_fake_bound_name n,
                                       ty)) :: rnf,
                        ctermify (Free(n2,ty)) :: rnt, 
-                       n2 :: names)
+                       n2 :: names,
+                       (n2,ty) :: Ts')
                     end)
-                (([],[],names), Ts);
+                (([],[],names, []), Ts);
+
       val rule' = rule |> Drule.forall_intr_list fromnames
                        |> Drule.forall_elim_list tonames;
       
       (* make unconditional rule and prems *)
-      val (uncond_rule, cprems) = IsaND.allify_conditions ctermify Ts rule';
+      val (uncond_rule, cprems) = IsaND.allify_conditions ctermify (rev Ts') 
+                                                          rule';
 
       (* using these names create lambda-abstracted version of the rule *)
-      val abstractions = Ts ~~ (rev tonames);
+      val abstractions = rev (Ts' ~~ tonames);
       val abstract_rule = foldl (fn (th,((n,ty),ct)) => 
                                     Thm.abstract_rule n ct th)
                                 (uncond_rule, abstractions);
