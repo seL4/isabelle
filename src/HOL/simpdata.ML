@@ -120,7 +120,8 @@ local
      "(P | False) = P", "(False | P) = P", "(P | P) = P",
      "((~P) = (~Q)) = (P=Q)",
      "(!x.P) = P", "(? x.P) = P", "? x. x=t", 
-     "(? x. x=t & P(x)) = P(t)", "(! x. x=t --> P(x)) = P(t)" ];
+     "(? x. x=t & P(x)) = P(t)", "(? x. t=x & P(x)) = P(t)", 
+     "(! x. x=t --> P(x)) = P(t)", "(! x. t=x --> P(x)) = P(t)" ];
 
 in
 
