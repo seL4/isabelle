@@ -1,0 +1,11 @@
+#/!bin/bash
+
+ISATOOL=${ISATOOL:-isatool}
+type -p "$ISATOOL" >/dev/null || { echo "isatool not found!" >&2; exit 2; }
+
+for FILE in $(find . -name IsaMakefile -print)
+do
+  DIR=$(dirname "$FILE")
+  echo "Entering $DIR ..."
+  ( cd "$DIR"; $ISATOOL make "$@"; )
+done
