@@ -6,6 +6,8 @@
 Main result: auto_chopper satisfies the is_auto_chopper specification.
 *)
 
+Delsimps (ex_simps @ all_simps);
+
 open AutoChopper;
 
 infix repeat_RS;

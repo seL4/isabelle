@@ -9,6 +9,7 @@ Correctness and completeness of type inference algorithm W
 open W;
 
 Addsimps [Suc_le_lessD];
+Delsimps (ex_simps @ all_simps);
 
 (* correctness of W with respect to has_type *)
 goal W.thy
