@@ -66,7 +66,7 @@ qed "extend_set_Int_distrib";
 Goalw [extend_set_def]
     "extend_set h (INTER A B) = (INT x:A. extend_set h (B x))";
 by (force_tac (claset() addIs  [h_f_g_eq RS sym], simpset()) 1);
-qed "extend_set_INTER_distrib";
+qed "extend_set_INT_distrib";
 
 Goalw [extend_set_def]
     "extend_set h (A - B) = extend_set h A - extend_set h B";
@@ -178,8 +178,8 @@ Addsimps [extend_Join];
 
 Goal "extend h (JOIN I F) = (JN i:I. extend h (F i))";
 by (rtac program_equalityI 1);
-by (simp_tac (simpset() addsimps [image_UNION, Acts_JN]) 2);
-by (simp_tac (simpset() addsimps [extend_set_INTER_distrib]) 1);
+by (simp_tac (simpset() addsimps [image_UN, Acts_JN]) 2);
+by (simp_tac (simpset() addsimps [extend_set_INT_distrib]) 1);
 qed "extend_JN";
 Addsimps [extend_JN];
 
