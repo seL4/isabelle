@@ -1515,6 +1515,15 @@ lemma ring_hom_UP_cringI:
   by (fast intro: ring_hom_UP_cring.intro ring_hom_cring_axioms.intro
     cring.axioms prems)
 
+constdefs
+  INTEG :: "int ring"
+  "INTEG == (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
+
+lemma cring_INTEG:
+  "cring INTEG"
+  by (unfold INTEG_def) (auto intro!: cringI abelian_groupI comm_monoidI
+    zadd_zminus_inverse2 zadd_zmult_distrib)
+
 lemma INTEG_id:
   "ring_hom_UP_cring INTEG INTEG id"
   by (fast intro: ring_hom_UP_cringI cring_INTEG id_ring_hom)

@@ -139,25 +139,4 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Every Abelian Group is a Z-module *}
-
-(* Not all versions of pdflatex permit $\mathbb{Z}$ in bookmarks. *)
-
-text {* Not finished. *}
-
-constdefs
-  INTEG :: "int ring"
-  "INTEG == (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
-
-(*
-  INTEG_MODULE :: "('a, 'm) ring_scheme => (int, 'a) module"
-  "INTEG_MODULE R == (| carrier = carrier R, mult = mult R, one = one R,
-    zero = zero R, add = add R, smult = (%n. %x:carrier R. ... ) |)"
-*)
-
-lemma cring_INTEG:
-  "cring INTEG"
-  by (unfold INTEG_def) (auto intro!: cringI abelian_groupI comm_monoidI
-    zadd_zminus_inverse2 zadd_zmult_distrib)
-
 end

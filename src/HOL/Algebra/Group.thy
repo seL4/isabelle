@@ -10,11 +10,6 @@ header {* Groups *}
 
 theory Group = FuncSet:
 
-(* axclass number < type
-
-instance nat :: number ..
-instance int :: number .. *)
-
 section {* From Magmas to Groups *}
 
 text {*
