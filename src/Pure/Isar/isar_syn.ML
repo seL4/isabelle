@@ -51,7 +51,7 @@ val subsubsectionP =
   OuterSyntax.markup_command "subsubsection" "subsubsection heading" K.thy_heading
     (P.comment >> (Toplevel.theory o IsarThy.add_subsubsection));
 
-val textP = OuterSyntax.markup_command "text" "formal comment (theory)" K.thy_decl
+val textP = OuterSyntax.markup_env_command "text" "formal comment (theory)" K.thy_decl
   (P.comment >> (Toplevel.theory o IsarThy.add_text));
 
 val text_rawP = OuterSyntax.verbatim_command "text_raw" "raw document preparation text"
@@ -67,7 +67,7 @@ val subsectP = OuterSyntax.markup_command "subsect" "formal comment (proof)" K.p
 val subsubsectP = OuterSyntax.markup_command "subsubsect" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_subsubsect)));
 
-val txtP = OuterSyntax.markup_command "txt" "formal comment (proof)" K.prf_decl
+val txtP = OuterSyntax.markup_env_command "txt" "formal comment (proof)" K.prf_decl
   (P.comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.add_txt)));
 
 val txt_rawP = OuterSyntax.verbatim_command "txt_raw" "raw document preparation text (proof)"
