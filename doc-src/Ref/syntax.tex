@@ -813,7 +813,7 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
         let val (x', B') = Syntax.variant_abs' (x, dummyT, B) in
           list_comb
-            (Const (q, dummyT) $ Syntax.mark_boundT (x', T) $ A $ B', ts)
+            (Const (q,dummyT) $ Syntax.mark_boundT (x', T) $ A $ B', ts)
         end
       else list_comb (Const (r, dummyT) $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;

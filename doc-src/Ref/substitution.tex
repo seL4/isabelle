@@ -126,11 +126,11 @@ signature HYPSUBST_DATA =
   sig
   structure Simplifier : SIMPLIFIER
   val dest_eq          : term -> term*term
-  val eq_reflection    : thm               (* a=b ==> a==b *)
-  val imp_intr         : thm               (* (P ==> Q) ==> P-->Q *)
-  val rev_mp           : thm               (* [| P;  P-->Q |] ==> Q *)
-  val subst            : thm               (* [| a=b;  P(a) |] ==> P(b) *)
-  val sym              : thm               (* a=b ==> b=a *)
+  val eq_reflection    : thm             (* a=b ==> a==b *)
+  val imp_intr         : thm             (* (P ==> Q) ==> P-->Q *)
+  val rev_mp           : thm             (* [| P;  P-->Q |] ==> Q *)
+  val subst            : thm             (* [| a=b;  P(a) |] ==> P(b) *)
+  val sym              : thm             (* a=b ==> b=a *)
   end;
 \end{ttbox}
 Thus, the functor requires the following items:

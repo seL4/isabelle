@@ -393,13 +393,15 @@ parameters in subgoal~$i$.  (Ignore the message {\footnotesize\tt Warning:\
 
 
 \section{Executing batch proofs}
-\index{batch execution}
+\index{batch execution}%
+To save space below, let type \texttt{tacfun} abbreviate \texttt{thm list ->
+  tactic list}, which is the type of a tactical proof.
 \begin{ttbox}
-prove_goal :         theory->          string->(thm list->tactic list)->thm
-qed_goal   : string->theory->          string->(thm list->tactic list)->unit
-prove_goalw:         theory->thm list->string->(thm list->tactic list)->thm
-qed_goalw  : string->theory->thm list->string->(thm list->tactic list)->unit
-prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
+prove_goal :           theory ->             string -> tacfun -> thm
+qed_goal   : string -> theory ->             string -> tacfun -> unit
+prove_goalw:           theory -> thm list -> string -> tacfun -> thm
+qed_goalw  : string -> theory -> thm list -> string -> tacfun -> unit
+prove_goalw_cterm:               thm list -> cterm  -> tacfun -> thm
 \end{ttbox}
 These batch functions create an initial proof state, then apply a tactic to
 it, yielding a sequence of final proof states.  The head of the sequence is

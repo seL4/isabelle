@@ -269,7 +269,7 @@ current premises from a simpset.
 The solver is a pair of tactics that attempt to solve a subgoal after
 simplification.  Typically it just proves trivial subgoals such as {\tt
   True} and $t=t$.  It could use sophisticated means such as {\tt
-  fast_tac}, though that could make simplification expensive. 
+  blast_tac}, though that could make simplification expensive. 
 
 Rewriting does not instantiate unknowns.  For example, rewriting
 cannot prove $a\in \Var{A}$ since this requires
@@ -306,7 +306,7 @@ $\Var{x}$ needs to be instantiated with the result.  Hence the subgoaler
 should call the simplifier at some point.  The simplifier will then call the
 solver, which must therefore be prepared to solve goals of the form $t =
 \Var{x}$, usually by reflexivity.  In particular, reflexivity should be
-tried before any of the fancy tactics like {\tt fast_tac}.  
+tried before any of the fancy tactics like {\tt blast_tac}.  
 
 It may even happen that due to simplification the subgoal is no longer
 an equality.  For example $False \bimp \Var{Q}$ could be rewritten to
@@ -366,14 +366,16 @@ looper, may be added with \ttindex{addloop}.
 \index{*Asm_full_simp_tac}
 
 \begin{ttbox}
-infix 4 setsubgoaler setloop addloop setSSolver addSSolver setSolver addSolver 
+infix 4 setsubgoaler setloop addloop 
+        setSSolver addSSolver setSolver addSolver 
         setmksimps addsimps delsimps addeqcongs deleqcongs;
 
 signature SIMPLIFIER =
 sig
   type simpset
   val empty_ss: simpset
-  val rep_ss: simpset -> {simps: thm list, procs: string list, congs: thm list,
+  val rep_ss: simpset -> {simps: thm list, procs: string list, 
+                          congs: thm list,
                           subgoal_tac:        simpset -> int -> tactic,
                           loop_tac:                      int -> tactic,
                                  finish_tac: thm list -> int -> tactic,
@@ -758,7 +760,7 @@ failed to prove the induction step:
 \begin{ttbox}
 2 * sum (\%i. i) (Suc n) = n * Suc n
  1. !!n1. n1 + sum (\%i. i) n1 + (n1 + sum (\%i. i) n1) = n1 + n1 * n1
-          ==> n1 + (n1 + sum (\%i. i) n1) + (n1 + (n1 + sum (\%i. i) n1)) =
+          ==> n1 + (n1 + sum (\%i. i) n1) + (n1 + (n1 + sum (\%i.i) n1)) =
               n1 + (n1 + (n1 + n1 * n1))
 \end{ttbox}
 Ordered rewriting proves this by sorting the left-hand side.  Proving
@@ -774,7 +776,7 @@ Ordered rewriting with the derived rule {\tt symmetry} can reverse equality
 signs:
 \begin{ttbox}
 val symmetry = prove_goal HOL.thy "(x=y) = (y=x)"
-                 (fn _ => [fast_tac HOL_cs 1]);
+                 (fn _ => [Blast_tac 1]);
 \end{ttbox}
 This is frequently useful.  Assumptions of the form $s=t$, where $t$ occurs
 in the conclusion but not~$s$, can often be brought into the right form.

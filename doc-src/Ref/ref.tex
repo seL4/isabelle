@@ -1,9 +1,8 @@
 \documentclass[12pt]{report}
-\usepackage{a4}
+\usepackage{a4,proof}
 
 \makeatletter
 \input{../rail.sty}
-\input{../proof.sty}
 \input{../iman.sty}
 \input{../extra.sty}
 \makeatother
@@ -16,19 +15,19 @@
 %%% needs chapter on Provers/typedsimp.ML?
 \title{The Isabelle Reference Manual}
 
-\author{{\em Lawrence C. Paulson}%
+\author{{\em Lawrence C. Paulson}\\
+        Computer Laboratory \\ University of Cambridge \\
+        \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
+        With Contributions by Tobias Nipkow and Markus Wenzel%
 \thanks{Tobias Nipkow, of T. U. Munich, wrote most of
   Chapters~\protect\ref{Defining-Logics} and~\protect\ref{simp-chap}, and part of
   Chapter~\protect\ref{theories}.  Carsten Clasohm also contributed to
   Chapter~\protect\ref{theories}.  Markus Wenzel contributed to
   Chapter~\protect\ref{chap:syntax}.  Sara Kalvala, Martin Simons and others
   suggested changes
-  and corrections.  The research has been funded by the SERC (grants
-  GR/G53279, GR/H40570) and by ESPRIT project 6453: Types.}
-\\
-Computer Laboratory \\ University of Cambridge \\[2ex] 
-\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}\\[3cm]
-Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
+  and corrections.  The research has been funded by the EPSRC (grants
+  GR/G53279, GR/H40570, GR/K57381, GR/K77051) and by ESPRIT project 6453:
+  Types.}} 
 
 \makeindex
 
