@@ -11,6 +11,8 @@ HOL_build_completed;    (*Make examples fail if HOL did*)
 writeln"Root file for HOL/UNITY";
 set proof_timing;
 
+
+
 loadpath := "../Lex" :: !loadpath;   (*to find Prefix.thy*)
 time_use_thy"UNITY";
 
@@ -27,7 +29,9 @@ time_use_thy "Handshake";
 time_use_thy "Lift";
 time_use_thy "Comp";
 time_use_thy "Client";
-time_use_thy "PPROD";
+(**
+time_use_thy "PPX";
+**)
 
 loadpath := "../Auth" :: !loadpath;  (*to find Public.thy*)
 use_thy"NSP_Bad";

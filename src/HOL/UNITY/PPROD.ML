@@ -4,11 +4,6 @@
     Copyright   1998  University of Cambridge
 *)
 
-	Addsimps [image_id];
-
-
-val rinst = read_instantiate_sg (sign_of thy);
-
 (*** General lemmas ***)
 
 Goal "x:C ==> (A Times C <= B Times C) = (A <= B)";
@@ -23,9 +18,9 @@ Goal "Union(B) Times A = (UN C:B. C Times A)";
 by (Blast_tac 1);
 qed "Times_Union2";
 
-Goal "Domain (Union S) = (UN A:S. Domain A)";
-by (Blast_tac 1);
-qed "Domain_Union";
+    Goal "Domain (Union S) = (UN A:S. Domain A)";
+    by (Blast_tac 1);
+    qed "Domain_Union";
 
 (** RTimes: the product of two relations **)
 
@@ -65,17 +60,6 @@ by (auto_tac (claset(), simpset() addsimps [Image_iff]));
 qed "Image_RTimes"; 
 
 
-Goal "- (UNIV Times A) = UNIV Times (-A)";
-by Auto_tac;
-qed "Compl_Times_UNIV1"; 
-
-Goal "- (A Times UNIV) = (-A) Times UNIV";
-by Auto_tac;
-qed "Compl_Times_UNIV2"; 
-
-Addsimps [Compl_Times_UNIV1, Compl_Times_UNIV2]; 
-
-
 (**** Lcopy ****)
 
 (*** Basic properties ***)
@@ -84,9 +68,9 @@ Goal "Init (Lcopy F) = Init F Times UNIV";
 by (simp_tac (simpset() addsimps [Lcopy_def]) 1);
 qed "Init_Lcopy";
 
-Goal "Id : (%act. act RTimes Id) `` Acts F";
+Goal "diag (States F Times UNIV) : (%act. act RTimes diag UNIV) `` Acts F";
 by (rtac image_eqI 1);
-by (rtac Id_in_Acts 2);
+by (rtac diag_in_Acts 2);
 by Auto_tac;
 val lemma = result();
 
@@ -234,7 +218,7 @@ qed "Init_lift_prog";
 Addsimps [Init_lift_prog];
 
 Goalw [lift_prog_def] "Acts (lift_prog i F) = lift_act i `` Acts F";
-by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], simpset()));
+by (auto_tac (claset() addIs [diag_in_Acts RSN (2,image_eqI)], simpset()));
 qed "Acts_lift_prog";
 
 Goalw [PPROD_def] "Init (PPROD I F) = {f. ALL i:I. f i : Init (F i)}";

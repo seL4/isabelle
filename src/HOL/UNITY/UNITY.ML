@@ -12,6 +12,29 @@ set proof_timing;
 HOL_quantifiers := false;
 
 
+(*** General lemmas ***)
+
+    Goal "Pow UNIV = UNIV";
+    by (Blast_tac 1);
+    qed "Pow_UNIV";
+    Addsimps [Pow_UNIV];
+
+Goal "UNIV Times UNIV = UNIV";
+by Auto_tac;
+qed "UNIV_Times_UNIV"; 
+Addsimps [UNIV_Times_UNIV];
+
+Goal "- (UNIV Times A) = UNIV Times (-A)";
+by Auto_tac;
+qed "Compl_Times_UNIV1"; 
+
+Goal "- (A Times UNIV) = (-A) Times UNIV";
+by Auto_tac;
+qed "Compl_Times_UNIV2"; 
+
+Addsimps [Compl_Times_UNIV1, Compl_Times_UNIV2]; 
+
+
 (*** constrains ***)
 
 overload_1st_set "UNITY.constrains";
@@ -83,15 +106,24 @@ Goalw [constrains_def]
 by (Blast_tac 1);
 qed "ball_constrains_INT";
 
-Goalw [constrains_def] "[| F : constrains A A' |] ==> A<=A'";
-by (Blast_tac 1);
+Goalw [constrains_def] "[| F : constrains A A'; A <= States F |] ==> A <= A'";
+by (Force_tac 1);
 qed "constrains_imp_subset";
 
-Goalw [constrains_def]
-    "[| F : constrains A B; F : constrains B C |]   \
+(*The reasoning is by subsets since "constrains" refers to single actions
+  only.  So this rule isn't that useful.*)
+Goal "[| F : constrains A B; F : constrains B C; B <= States F |]   \
 \    ==> F : constrains A C";
-by (Blast_tac 1);
+by (etac constrains_weaken_R 1);
+by (etac constrains_imp_subset 1);
+by (assume_tac 1);
 qed "constrains_trans";
+
+Goal "[| F : constrains A (A' Un B); F : constrains B B'; B <= States F|] \
+\     ==> F : constrains A (A' Un B')";
+by (etac constrains_weaken_R 1);
+by (blast_tac (claset() addDs [impOfSubs constrains_imp_subset]) 1);
+qed "constrains_cancel";
 
 
 (*** stable ***)
@@ -210,14 +242,6 @@ Goalw [constrains_def]
     "(ALL m. F : constrains {m} (B m)) ==> F : constrains M (UN m:M. B m)";
 by (Blast_tac 1);
 qed "elimination_sing";
-
-
-Goalw [constrains_def]
-   "[| F : constrains A (A' Un B); F : constrains B B' |] \
-\   ==> F : constrains A (A' Un B')";
-by (Clarify_tac 1);
-by (Blast_tac 1);
-qed "constrains_cancel";
 
 
 

@@ -89,18 +89,26 @@ by (dtac constrains_reachable_Int 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "ball_Constrains_INT";
 
-Goal "F : Constrains A A' ==> reachable F Int A <= A'";
+Goal "[| F : Constrains A A'; A <= reachable F |] ==> A <= A'";
 by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
 by (dtac constrains_imp_subset 1);
-by (ALLGOALS
-    (full_simp_tac (simpset() addsimps [Int_subset_iff, Int_lower1])));
+by (auto_tac (claset() addIs [impOfSubs reachable_subset_States],
+	      simpset() addsimps [Int_subset_iff, Int_lower1]));
 qed "Constrains_imp_subset";
 
 Goalw [Constrains_def]
     "[| F : Constrains A B; F : Constrains B C |]   \
 \    ==> F : Constrains A C";
-by (blast_tac (claset() addIs [constrains_trans, constrains_weaken]) 1);
+by (blast_tac (claset() addIs [impOfSubs reachable_subset_States,
+			       constrains_trans, constrains_weaken]) 1);
 qed "Constrains_trans";
+
+Goal "[| F : Constrains A (A' Un B); F : Constrains B B' |] \
+\     ==> F : Constrains A (A' Un B')";
+by (asm_full_simp_tac (simpset() addsimps [Constrains_def, Int_Un_distrib]) 1);
+by (blast_tac (claset() addIs [impOfSubs reachable_subset_States,
+			       constrains_cancel]) 1);
+qed "Constrains_cancel";
 
 
 (*** Stable ***)
@@ -192,13 +200,6 @@ Goalw [Constrains_def, constrains_def]
     "(ALL m. F : Constrains {m} (B m)) ==> F : Constrains M (UN m:M. B m)";
 by (Blast_tac 1);
 qed "Elimination_sing";
-
-Goalw [Constrains_def, constrains_def]
-   "[| F : Constrains A (A' Un B); F : Constrains B B' |] \
-\   ==> F : Constrains A (A' Un B')";
-by (Clarify_tac 1);
-by (Blast_tac 1);
-qed "Constrains_cancel";
 
 
 (*** Specialized laws for handling Invariants ***)

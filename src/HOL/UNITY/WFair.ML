@@ -8,6 +8,10 @@ Weak Fairness versions of transient, ensures, leadsTo.
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
+    Goal "[| x:A;  P(x) |] ==> ? x:A. P(x)";
+    by (Blast_tac 1);
+    qed "rev_bexI";
+
 
 overload_1st_set "WFair.transient";
 overload_1st_set "WFair.ensures";
@@ -23,8 +27,7 @@ qed "stable_transient_empty";
 Goalw [transient_def]
     "[| F : transient A; B<=A |] ==> F : transient B";
 by (Clarify_tac 1);
-by (rtac bexI 1 THEN assume_tac 2);
-by (Blast_tac 1);
+by (blast_tac (claset() addSIs [rev_bexI]) 1);
 qed "transient_strengthen";
 
 Goalw [transient_def]

@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-General products of programs (Pi operation).
+General products of programs (Pi operation), for replicating components.
 Also merging of state sets.
 *)
 
@@ -11,7 +11,7 @@ PPROD = Union + Comp +
 
 constdefs
   (*Cartesian product of two relations*)
-  RTimes :: "[('a*'a) set, ('b*'b) set] => (('a*'b) * ('a*'b)) set"
+  RTimes :: "[('a*'b) set, ('c*'d) set] => (('a*'c) * ('b*'d)) set"
 	("_ RTimes _" [81, 80] 80)
 
     "R RTimes S == {((x,y),(x',y')). (x,x'):R & (y,y'):S}"
@@ -26,8 +26,9 @@ constdefs
     "fst_act act == (%((x,y),(x',y')). (x,x')) `` act"
 
   Lcopy :: "'a program => ('a*'b) program"
-    "Lcopy F == mk_program (Init F Times UNIV,
-			    (%act. act RTimes Id) `` Acts F)"
+    "Lcopy F == mk_program (UNIV,
+			    Init F Times UNIV,
+			    (%act. act RTimes (diag UNIV)) `` Acts F)"
 
   lift_act :: "['a, ('b*'b) set] => (('a=>'b) * ('a=>'b)) set"
     "lift_act i act == {(f,f'). EX s'. f' = f(i:=s') & (f i, s') : act}"
@@ -36,7 +37,8 @@ constdefs
     "drop_act i act == (%(f,f'). (f i, f' i)) `` act"
 
   lift_prog :: "['a, 'b program] => ('a => 'b) program"
-    "lift_prog i F == mk_program ({f. f i : Init F}, lift_act i `` Acts F)"
+    "lift_prog i F ==
+       mk_program (UNIV, {f. f i : Init F}, lift_act i `` Acts F)"
 
   (*products of programs*)
   PPROD  :: ['a set, 'a => 'b program] => ('a => 'b) program
