@@ -757,8 +757,9 @@ local
 in
 fun cterm_instantiate ctpairs0 th =
   let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th), Vartab.empty, 0))
-      fun instT(ct,cu) = let val inst = subst_TVars_Vartab tye
-                         in (cterm_fun inst ct, cterm_fun inst cu) end
+      fun instT(ct,cu) = 
+        let val inst = cterm_of sign o subst_TVars_Vartab tye o term_of
+        in (inst ct, inst cu) end
       fun ctyp2 (ix,T) = (ix, ctyp_of sign T)
   in  instantiate (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
   handle TERM _ =>
