@@ -22,16 +22,16 @@ use "~~/src/Provers/Arith/cancel_numerals.ML";
 use "~~/src/Provers/Arith/combine_numerals.ML";
 
 use_thy "mono";
-use     "ind_syntax";
-use     "Tools/cartprod";
+use     "ind_syntax.ML";
+use     "Tools/cartprod.ML";
 use_thy "Fixedpt";
-use     "Tools/inductive_package";
-use     "Tools/induct_tacs";
-use     "Tools/primrec_package";
+use     "Tools/inductive_package.ML";
+use     "Tools/induct_tacs.ML";
+use     "Tools/primrec_package.ML";
 use_thy "QUniv";
-use     "Tools/datatype_package";
+use     "Tools/datatype_package.ML";
 
-use     "Tools/numeral_syntax";
+use     "Tools/numeral_syntax.ML";
 (*the all-in-one theory*)
 with_path "Integ" use_thy "Main";
 
