@@ -44,7 +44,7 @@ signature THM =
   val keep_derivs       : deriv_kind ref
   datatype rule = 
       MinProof                          
-    | Oracle		  of string * Sign.sg * object
+    | Oracle		  of string * Sign.sg * Object.T
     | Axiom               of string
     | Theorem             of string       
     | Assume              of cterm
@@ -172,7 +172,7 @@ signature THM =
   val rewrite_cterm     : bool * bool * bool -> meta_simpset ->
                           (meta_simpset -> thm -> thm option) -> cterm -> thm
 
-  val invoke_oracle     : theory -> xstring -> Sign.sg * object -> thm
+  val invoke_oracle     : theory -> xstring -> Sign.sg * Object.T -> thm
 end;
 
 structure Thm: THM =
@@ -298,7 +298,7 @@ fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
   executed in ML.*)
 datatype rule = 
     MinProof                            (*for building minimal proof terms*)
-  | Oracle              of string * Sign.sg * object       (*oracles*)
+  | Oracle              of string * Sign.sg * Object.T       (*oracles*)
 (*Axioms/theorems*)
   | Axiom               of string
   | Theorem             of string
