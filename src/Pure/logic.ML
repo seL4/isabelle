@@ -23,6 +23,7 @@ sig
   val strip_prems       : int * term list * term -> term list * term
   val count_prems       : term * int -> int
   val mk_conjunction    : term * term -> term
+  val mk_conjunction_list: term list -> term
   val mk_flexpair       : term * term -> term
   val dest_flexpair     : term -> term * term
   val list_flexpairs    : (term*term)list * term -> term
@@ -124,6 +125,8 @@ fun count_prems (Const("==>", _) $ A $ B, n) = count_prems (B,n+1)
 fun mk_conjunction (t, u) =
   Term.list_all ([("C", propT)], mk_implies (list_implies ([t, u], Bound 0), Bound 0));
 
+fun mk_conjunction_list [] = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0))
+  | mk_conjunction_list ts = foldr1 mk_conjunction ts;
 
 
 (** flex-flex constraints **)
