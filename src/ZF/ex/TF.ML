@@ -60,13 +60,13 @@ val tree_forest_unfold' = rewrite_rule (tl TF.defs) tree_forest_unfold;
 
 
 goalw TF.thy (tl TF.defs) "tree(A) = {Inl(x). x: A*forest(A)}";
-br (Part_Inl RS subst) 1;
-br (tree_forest_unfold' RS subst_context) 1;
+by (rtac (Part_Inl RS subst) 1);
+by (rtac (tree_forest_unfold' RS subst_context) 1);
 val tree_unfold = result();
 
 goalw TF.thy (tl TF.defs) "forest(A) = {Inr(x). x: {0} + tree(A)*forest(A)}";
-br (Part_Inr RS subst) 1;
-br (tree_forest_unfold' RS subst_context) 1;
+by (rtac (Part_Inr RS subst) 1);
+by (rtac (tree_forest_unfold' RS subst_context) 1);
 val forest_unfold = result();
 
 

@@ -221,7 +221,7 @@ by (etac bexI 3);
 by (REPEAT (ares_tac (prems@[nat_succI]) 1));
 val ramsey = result();
 
-(*Computer Ramsey numbers according to proof above -- which, actually,
+(*Compute Ramsey numbers according to proof above -- which, actually,
   does not constrain the base case values at all!*)
 fun ram 0 j = 1
   | ram i 0 = 1

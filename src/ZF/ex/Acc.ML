@@ -30,17 +30,17 @@ val [major,indhyp] = goal Acc.thy
     "[| a : acc(r);						\
 \       !!x. [| x: acc(r);  ALL y. <y,x>:r --> P(y) |] ==> P(x)	\
 \    |] ==> P(a)";
-br (major RS Acc.induct) 1;
-br indhyp 1;
+by (rtac (major RS Acc.induct) 1);
+by (rtac indhyp 1);
 by (fast_tac ZF_cs 2);
 by (resolve_tac Acc.intrs 1);
-ba 2;
+by (assume_tac 2);
 by (fast_tac ZF_cs 1);
 val acc_induct = result();
 
 goal Acc.thy "wf[acc(r)](r)";
-br wf_onI2 1;
-be acc_induct 1;
+by (rtac wf_onI2 1);
+by (etac acc_induct 1);
 by (fast_tac ZF_cs 1);
 val wf_on_acc = result();
 

@@ -386,7 +386,7 @@ goal Primrec.thy
     "~ (lam l:list(nat). list_case(0, %x xs. ack(x,x), l)) : primrec";
 by (rtac notI 1);
 by (etac (ack_bounds_primrec RS bexE) 1);
-by (rtac lt_anti_refl 1);
+by (rtac lt_irrefl 1);
 by (dres_inst_tac [("x", "[x]")] bspec 1);
 by (asm_simp_tac ack2_ss 1);
 by (asm_full_simp_tac (ack2_ss addsimps [add_0_right]) 1);
