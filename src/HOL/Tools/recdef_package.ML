@@ -245,12 +245,11 @@ fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints th
     val simp_att = if null tcs then
       [Simplifier.simp_add_global, RecfunCodegen.add] else [];
 
-    val case_numbers = map Library.string_of_int (1 upto Thm.nprems_of induct);
     val (thy, (simps' :: rules', [induct'])) =
       thy
       |> Theory.add_path bname
       |> PureThy.add_thmss ((("simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
-      |>>> PureThy.add_thms [(("induct", induct), [RuleCases.case_names case_numbers])];
+      |>>> PureThy.add_thms [(("induct", induct), [])];
     val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
       thy
