@@ -104,6 +104,13 @@ by(case_tac as, simp_all)
 lemma List_Ref[simp]: "List h (Ref a) as = (\<exists>bs. as = a#bs \<and> List h (h a) bs)"
 by(case_tac as, simp_all, fast)
 
+theorem notin_List_update[simp]:
+ "\<And>x. a \<notin> set as \<Longrightarrow> List (h(a := y)) x as = List h x as"
+apply(induct as)
+apply simp
+apply(clarsimp simp add:fun_upd_apply)
+done
+
 
 declare fun_upd_apply[simp del]fun_upd_same[simp] fun_upd_other[simp]
 
@@ -125,13 +132,6 @@ done
 lemma List_distinct[simp]: "\<And>x. List h x as \<Longrightarrow> distinct as"
 apply(induct as, simp)
 apply(fastsimp dest:List_hd_not_in_tl)
-done
-
-theorem notin_List_update[simp]:
- "\<And>x. a \<notin> set as \<Longrightarrow> List (h(a := y)) x as = List h x as"
-apply(induct as)
-apply simp
-apply(clarsimp simp add:fun_upd_apply)
 done
 
 subsection "Functional abstraction"
