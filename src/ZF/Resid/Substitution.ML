@@ -127,7 +127,7 @@ Goal "u \\<in> redexes ==> \\<forall>n \\<in> nat. \\<forall>i \\<in> nat. i le 
 by (etac redexes.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by Safe_tac;
-by (case_tac "n < xa" 1);
+by (case_tac "n < i" 1);
 by ((ftac lt_trans2 1) THEN (assume_tac 1));
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [lift_rec_Var, leI])));
 qed "lift_lift_rec";
@@ -187,7 +187,7 @@ Goal "u \\<in> redexes ==>  \
 \       \\<forall>n \\<in> nat. \\<forall>v \\<in> redexes. subst_rec(v,lift_rec(u,n),n) =  u";
 by (etac redexes.induct 1);
 by Auto_tac;
-by (case_tac "n < x" 1);
+by (case_tac "n < na" 1);
 by Auto_tac;
 qed "subst_rec_lift_rec";
 

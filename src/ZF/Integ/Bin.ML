@@ -348,7 +348,7 @@ by (auto_tac (claset() addSEs [boolE],
 by (ALLGOALS (asm_full_simp_tac 
 	      (simpset() addsimps zcompare_rls @ 
 			  [zminus_zadd_distrib RS sym, int_of_add RS sym])));
-by (subgoal_tac "znegative ($- $# succ(x)) <-> znegative ($# succ(x))" 1);
+by (subgoal_tac "znegative ($- $# succ(n)) <-> znegative ($# succ(n))" 1);
 by (Asm_simp_tac 2);
 by (Full_simp_tac 1);
 qed "iszero_integ_of_BIT"; 
@@ -391,7 +391,7 @@ by (auto_tac (claset() addSEs [boolE],
 by (ALLGOALS (asm_full_simp_tac 
 	      (simpset() addsimps [zminus_zadd_distrib RS sym, zdiff_def,
 				   int_of_add RS sym])));
-by (subgoal_tac "$#1 $- $# succ(succ(x #+ x)) = $- $# succ(x #+ x)" 1);
+by (subgoal_tac "$#1 $- $# succ(succ(n #+ n)) = $- $# succ(n #+ n)" 1);
 by (asm_full_simp_tac (simpset() addsimps [zdiff_def])1);
 by (asm_simp_tac (simpset() addsimps [equation_zminus, int_of_diff RS sym])1);
 qed "neg_integ_of_BIT"; 

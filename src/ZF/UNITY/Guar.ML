@@ -129,7 +129,7 @@ Goalw [uv_prop_def]
 \ --> (JN G:GG. G):X)  --> uv_prop(X)";
 by Auto_tac;
 by (Clarify_tac 2);
-by (dres_inst_tac [("x", "{x,xa}")] spec 2);
+by (dres_inst_tac [("x", "{F,G}")] spec 2);
 by (dres_inst_tac [("x", "0")] spec 1);
 by (auto_tac (claset() addDs [ok_sym], 
     simpset() addsimps [OK_iff_ok]));

@@ -550,7 +550,7 @@ qed "constrains_imp_subset";
 Goalw [constrains_def]
     "[| F : A co B; F : B co C |] ==> F : A co C";
 by Auto_tac;
-by (dres_inst_tac [("x", "x")] bspec 1);
+by (dres_inst_tac [("x", "act")] bspec 1);
 by (dres_inst_tac [("x", "Id")] bspec 2);
 by (auto_tac (claset() addDs [ActsD], 
               simpset() addsimps [condition_def]));
@@ -560,7 +560,7 @@ Goalw [constrains_def]
    "[| F : A co (A' Un B); F : B co B' |] ==> F : A co (A' Un B')";
 by Auto_tac;
 by (dres_inst_tac [("x", "Id")] bspec 1);
-by (dres_inst_tac [("x", "x")] bspec 2);
+by (dres_inst_tac [("x", "act")] bspec 2);
 by (auto_tac (claset(), simpset() addsimps [condition_def]));
 qed "constrains_cancel";
 
@@ -756,25 +756,25 @@ Goalw [increasing_on_def, stable_def, constrains_def, part_order_def]
 by (asm_full_simp_tac (simpset() addsimps [INT_iff,condition_def, mono_map_def]) 1);
 by (auto_tac (claset() addIs [comp_fun], simpset() addsimps [mono_map_def]));
 by (force_tac (claset() addSDs [bspec, ActsD],  simpset()) 1);
-by (subgoal_tac "xd:state" 1);
+by (subgoal_tac "xc:state" 1);
 by (force_tac (claset() addSDs [ActsD], simpset()) 2);
-by (subgoal_tac "f`xe:A & f`xd:A" 1);
+by (subgoal_tac "f`xd:A & f`xc:A" 1);
 by (blast_tac (claset() addDs [apply_type]) 2);
 by (rotate_tac 3 1);
-by (dres_inst_tac [("x", "f`xe")] bspec 1);
+by (dres_inst_tac [("x", "f`xd")] bspec 1);
 by (Asm_simp_tac 1);
 by (REPEAT(etac conjE 1));
 by (rotate_tac ~2 1);
-by (dres_inst_tac [("x", "xc")] bspec 1);
+by (dres_inst_tac [("x", "act")] bspec 1);
 by (Asm_simp_tac 1);
-by (dres_inst_tac [("c", "xd")] subsetD 1);
+by (dres_inst_tac [("c", "xc")] subsetD 1);
 by (rtac imageI 1);
 by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [refl_def]) 1);
-by (dres_inst_tac [("x", "f`xe")] bspec 1);
-by (dres_inst_tac [("x", "f`xd")] bspec 2);
+by (dres_inst_tac [("x", "f`xd")] bspec 1);
+by (dres_inst_tac [("x", "f`xc")] bspec 2);
 by (ALLGOALS(Asm_simp_tac));
-by (dres_inst_tac [("b", "g`(f`xe)")] trans_onD 1);
+by (dres_inst_tac [("b", "g`(f`xd)")] trans_onD 1);
 by Auto_tac;
 qed "mono_increasing_on_comp";
 

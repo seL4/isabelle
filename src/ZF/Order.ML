@@ -496,7 +496,7 @@ Goalw [mono_map_def]
 \                     range(ord_iso_map(A,r,B,s)), s)";
 by (asm_simp_tac (simpset() addsimps [ord_iso_map_fun]) 1);
 by Safe_tac;
-by (subgoals_tac ["x:A", "xa:A", "y:B", "ya:B"] 1);
+by (subgoals_tac ["x:A", "ya:A", "y:B", "yb:B"] 1);
 by (REPEAT 
     (blast_tac (claset() addSEs [ord_iso_map_subset RS subsetD RS SigmaE]) 2));
 by (asm_simp_tac 

@@ -483,19 +483,19 @@ by (etac InfCard_is_Card 3);
 by (etac ltE 2 THEN assume_tac 2);
 by (asm_full_simp_tac (simpset() addsimps [ordertype_unfold]) 1);
 by (safe_tac (claset() addSEs [ltE]));
-by (subgoals_tac ["Ord(xb)", "Ord(y)"] 1);
+by (subgoals_tac ["Ord(xa)", "Ord(ya)"] 1);
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 2));
 by (rtac (InfCard_is_Limit RS ordermap_csquare_le RS lt_trans1) 1  THEN
     REPEAT (ares_tac [refl] 1 ORELSE etac ltI 1));
-by (res_inst_tac [("i","xb Un y"), ("j","nat")] Ord_linear2 1  THEN
+by (res_inst_tac [("i","xa Un ya"), ("j","nat")] Ord_linear2 1  THEN
     REPEAT (ares_tac [Ord_Un, Ord_nat] 1));
-(*the finite case: xb Un y < nat *)
+(*the finite case: xa Un ya < nat *)
 by (res_inst_tac [("j", "nat")] lt_trans2 1);
 by (asm_full_simp_tac (simpset() addsimps [InfCard_def]) 2);
 by (asm_full_simp_tac
     (simpset() addsimps [lt_def, nat_cmult_eq_mult, nat_succI, mult_type,
 			 nat_into_Card RS Card_cardinal_eq, Ord_nat]) 1);
-(*case nat le (xb Un y) *)
+(*case nat le (xa Un ya) *)
 by (asm_full_simp_tac
     (simpset() addsimps [le_imp_subset RS nat_succ_eqpoll RS cardinal_cong,
 			 le_succ_iff, InfCard_def, Card_cardinal, Un_least_lt, 
