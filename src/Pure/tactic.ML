@@ -16,6 +16,9 @@ signature TACTIC =
   val bimatch_from_nets_tac: 
       (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net -> int -> tactic
   val bimatch_tac	: (bool*thm)list -> int -> tactic
+  val biresolution_from_nets_tac: 
+	('a list -> (bool * thm) list) ->
+	bool -> 'a Net.net * 'a Net.net -> int -> tactic
   val biresolve_from_nets_tac: 
       (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net -> int -> tactic
   val biresolve_tac	: (bool*thm)list -> int -> tactic
@@ -402,19 +405,21 @@ fun delete_tagged_brl (brl as (eres,th), (inet,enet)) =
 end;
 
 
-(*biresolution using a pair of nets rather than rules*)
-fun biresolution_from_nets_tac match (inet,enet) =
+(*biresolution using a pair of nets rather than rules.  
+    function "order" must sort and possibly filter the list of brls.
+    boolean "match" indicates matching or unification.*)
+fun biresolution_from_nets_tac order match (inet,enet) =
   SUBGOAL
     (fn (prem,i) =>
       let val hyps = Logic.strip_assums_hyp prem
           and concl = Logic.strip_assums_concl prem 
           val kbrls = Net.unify_term inet concl @
                       List.concat (map (Net.unify_term enet) hyps)
-      in PRIMSEQ (biresolution match (orderlist kbrls) i) end);
+      in PRIMSEQ (biresolution match (order kbrls) i) end);
 
-(*versions taking pre-built nets*)
-val biresolve_from_nets_tac = biresolution_from_nets_tac false;
-val bimatch_from_nets_tac = biresolution_from_nets_tac true;
+(*versions taking pre-built nets.  No filtering of brls*)
+val biresolve_from_nets_tac = biresolution_from_nets_tac orderlist false;
+val bimatch_from_nets_tac   = biresolution_from_nets_tac orderlist true;
 
 (*fast versions using nets internally*)
 val net_biresolve_tac =
