@@ -8,7 +8,7 @@
 
 default: HOL
 images: HOL HOL-Real TLA
-test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex \
+test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex HOL-Algebra \
   HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML HOL-BCV \
   HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-ex \
@@ -177,6 +177,28 @@ $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
   Lex/RegSet_of_nat_DA.thy Lex/RegSet_of_nat_DA.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Lex
 
+
+## HOL-Algebra
+
+HOL-Algebra: HOL $(LOG)/HOL-Algebra.gz
+
+$(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
+  Algebra/abstract/Abstract.thy \
+  Algebra/abstract/Factor.ML Algebra/abstract/Factor.thy \
+  Algebra/abstract/Field.thy \
+  Algebra/abstract/Ideal.ML Algebra/abstract/Ideal.thy \
+  Algebra/abstract/NatSum.ML Algebra/abstract/NatSum.thy \
+  Algebra/abstract/PID.thy \
+  Algebra/abstract/Ring.ML Algebra/abstract/Ring.thy \
+  Algebra/abstract/RingHomo.ML Algebra/abstract/RingHomo.thy\
+  Algebra/poly/Degree.ML Algebra/poly/Degree.thy \
+  Algebra/poly/LongDiv.ML Algebra/poly/LongDiv.thy \
+  Algebra/poly/PolyHomo.ML Algebra/poly/PolyHomo.thy \
+  Algebra/poly/PolyRing.ML Algebra/poly/PolyRing.thy \
+  Algebra/poly/Polynomial.thy \
+  Algebra/poly/ProtoPoly.ML Algebra/poly/ProtoPoly.thy \
+  Algebra/poly/UnivPoly.ML Algebra/poly/UnivPoly.thy
+	@$(ISATOOL) usedir $(OUT)/HOL Algebra
 
 ## HOL-Auth
 
