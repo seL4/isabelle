@@ -106,9 +106,8 @@ particular, external environment references should be kept at a minimum.
   the absolute path names of the \texttt{isabelle} and
   \texttt{isatool} executables, respectively.
   
-\item \settdx{ISABELLE_PATH} and \settdx{ISABELLE_OUTPUT} will have the {\ML}
-  system identifier (according to \texttt{ML_IDENTIFIER}) automatically
-  appended to their values.
+\item \settdx{ISABELLE_OUTPUT} will has the {\ML} system identifier (according
+  to \texttt{ML_IDENTIFIER}) automatically appended to its value.
 \end{itemize}
 
 \medskip The Isabelle settings scheme is basically simple, but non-trivial.
@@ -153,9 +152,9 @@ selection. Variables that are special in some sense are marked with *.
   \texttt{ML_IDENTIFIER} is automatically obtained by composing the
   \texttt{ML_SYSTEM} and \texttt{ML_PLATFORM} values.
   
-\item[\settdx{ISABELLE_PATH}*] is a list of directories (separated by colons)
-  where Isabelle logic images may reside. Note that the value of
-  \texttt{ML_IDENTIFIER} is appended to each component automatically.
+\item[\settdx{ISABELLE_PATH}] is a list of directories (separated by colons)
+  where Isabelle logic images may reside.  When looking up heaps files, the
+  value of \texttt{ML_IDENTIFIER} is appended to each component internally.
   
 \item[\settdx{ISABELLE_OUTPUT}*] is a directory where output heap files should
   be stored by default. The \texttt{ML_SYSTEM} identifier is appended here,
@@ -230,10 +229,11 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
 \end{ttbox}
 Input files without path specifications are looked up in the
 \texttt{ISABELLE_PATH} setting, which may consist of multiple components
-separated by colons --- these are tried in the given order.  Likewise, base
-names are relative to the directory specified by \texttt{ISABELLE_OUTPUT}.  In
-any case, actual file locations may also be given by including at least one
-slash (\texttt{/}) in the name (hint: use \texttt{./} to refer to the current
+separated by colons --- these are tried in the given order with the value of
+\texttt{ML_IDENTIFIER} appended internally.  In a similar way, base names are
+relative to the directory specified by \texttt{ISABELLE_OUTPUT}.  In any case,
+actual file locations may also be given by including at least one slash
+(\texttt{/}) in the name (hint: use \texttt{./} to refer to the current
 directory).
 
 

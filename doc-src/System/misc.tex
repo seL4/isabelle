@@ -55,9 +55,10 @@ Usage: isatool findlogics
   Collect heap file names from ISABELLE_PATH.
 \end{ttbox}
 The base names of all files found on the path are printed --- sorted and with
-duplicates removed. Also note that \texttt{ISABELLE_PATH} implicitly depends
-upon \texttt{ML_SYSTEM} and \texttt{ML_PLATFORM}. Thus switching to another
-{\ML} compiler may change the set of logic images available.
+duplicates removed. Also note that lookup in \texttt{ISABELLE_PATH} includes
+the current values of \texttt{ML_SYSTEM} and \texttt{ML_PLATFORM}. Thus
+switching to another {\ML} compiler may change the set of logic images
+available.
 
 
 \section{Inspecting the settings environment -- \texttt{isatool getenv}}
@@ -85,29 +86,27 @@ causes only the values to be printed.
 
 \subsection*{Examples}
 
-Get the {\ML} system identifier and the location where the compiler binaries
-are supposed to reside as follows:
+Get the {\ML} system name and the location where the compiler binaries are
+supposed to reside as follows:
 \begin{ttbox}
 isatool getenv ML_SYSTEM ML_HOME
-{\out ML_SYSTEM=smlnj-110}
-{\out ML_HOME=/usr/local/smlnj-110/bin}
+{\out ML_SYSTEM=polyml}
+{\out ML_HOME=/usr/share/polyml/x86-linux}
 \end{ttbox}
 
-The next one peeks at the search path that \texttt{isabelle} uses to locate
-logic images:
+The next one peeks at the output directory for \texttt{isabelle} logic images:
 \begin{ttbox}
-isatool getenv -b ISABELLE_PATH
-{\out /home/me/isabelle/heaps/smlnj-110:/usr/local/isabelle/heaps/smlnj-110}
+isatool getenv -b ISABELLE_OUTPUT
+{\out /home/me/isabelle/heaps/polyml_x86-linux}
 \end{ttbox}
 Here we have used the \texttt{-b} option to suppress the
-\texttt{ISABELLE_PATH=} prefix.  The value above is what became of the
+\texttt{ISABELLE_OUTPUT=} prefix.  The value above is what became of the
 following assignment in the default settings file:
 \begin{ttbox}
-ISABELLE_PATH=\$ISABELLE_HOME_USER/heaps:\$ISABELLE_HOME/heaps
+ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 \end{ttbox}
-Note how the \texttt{ML_SYSTEM} value got appended automatically to each path
-component. This is a special feature of \texttt{ISABELLE_PATH} (and also of
-\texttt{ISABELLE_OUTPUT}).
+Note how the \texttt{ML_IDENTIFIER} value got appended automatically to each
+path component. This is a special feature of \texttt{ISABELLE_OUTPUT}.
 
 
 \section{Installing standalone Isabelle executables -- \texttt{isatool install}}
