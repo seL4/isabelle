@@ -161,9 +161,7 @@ subsection{* Relativized versions of order-isomorphisms and order types *}
 lemma (in M_axioms) order_isomorphism_abs [simp]: 
      "[| M(A); M(B); M(f) |] 
       ==> order_isomorphism(M,A,r,B,s,f) <-> f \<in> ord_iso(A,r,B,s)"
-by (simp add: typed_apply_abs [OF bij_is_fun] apply_closed 
-              order_isomorphism_def ord_iso_def)
-
+by (simp add: apply_closed order_isomorphism_def ord_iso_def)
 
 lemma (in M_axioms) pred_set_abs [simp]: 
      "[| M(r); M(B) |] ==> pred_set(M,A,x,r,B) <-> B = Order.pred(A,x,r)"
@@ -236,7 +234,7 @@ apply (unfold wellordered_def ord_iso_def)
 apply (elim conjE CollectE) 
 apply (erule wellfounded_on_induct, assumption+)
  apply (insert well_ord_iso_separation [of A f r])
- apply (simp add: typed_apply_abs [OF bij_is_fun] apply_closed, clarify) 
+ apply (simp, clarify) 
 apply (drule_tac a = x in bij_is_fun [THEN apply_type], assumption, blast)
 done
 

@@ -563,40 +563,40 @@ apply (intro cons_reflection)
 done
 
 
-subsubsection{*Function Application, Internalized*}
+subsubsection{*Big Union, Internalized*}
 
-constdefs fun_apply_fm :: "[i,i,i]=>i"
-    "fun_apply_fm(f,x,y) == 
-       Forall(Iff(Exists(And(Member(0,succ(succ(f))),
-                             pair_fm(succ(succ(x)), 1, 0))),
-                  Equal(succ(y),0)))"
+(*  "big_union(M,A,z) == \<forall>x[M]. x \<in> z <-> (\<exists>y[M]. y\<in>A & x \<in> y)" *)
+constdefs big_union_fm :: "[i,i]=>i"
+    "big_union_fm(A,z) == 
+       Forall(Iff(Member(0,succ(z)),
+                  Exists(And(Member(0,succ(succ(A))), Member(1,0)))))"
 
-lemma fun_apply_type [TC]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> fun_apply_fm(x,y,z) \<in> formula"
-by (simp add: fun_apply_fm_def) 
+lemma big_union_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> big_union_fm(x,y) \<in> formula"
+by (simp add: big_union_fm_def) 
 
-lemma arity_fun_apply_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
-      ==> arity(fun_apply_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: fun_apply_fm_def succ_Un_distrib [symmetric] Un_ac) 
+lemma arity_big_union_fm [simp]:
+     "[| x \<in> nat; y \<in> nat |] 
+      ==> arity(big_union_fm(x,y)) = succ(x) \<union> succ(y)"
+by (simp add: big_union_fm_def succ_Un_distrib [symmetric] Un_ac)
 
-lemma sats_fun_apply_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, fun_apply_fm(x,y,z), env) <-> 
-        fun_apply(**A, nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: fun_apply_fm_def fun_apply_def)
+lemma sats_big_union_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, big_union_fm(x,y), env) <-> 
+        big_union(**A, nth(x,env), nth(y,env))"
+by (simp add: big_union_fm_def big_union_def)
 
-lemma fun_apply_iff_sats:
-      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
-          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-       ==> fun_apply(**A, x, y, z) <-> sats(A, fun_apply_fm(i,j,k), env)"
+lemma big_union_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> big_union(**A, x, y) <-> sats(A, big_union_fm(i,j), env)"
 by simp
 
-theorem fun_apply_reflection:
-     "REFLECTS[\<lambda>x. fun_apply(L,f(x),g(x),h(x)), 
-               \<lambda>i x. fun_apply(**Lset(i),f(x),g(x),h(x))]" 
-apply (simp only: fun_apply_def setclass_simps)
-apply (intro FOL_reflections pair_reflection)  
+theorem big_union_reflection:
+     "REFLECTS[\<lambda>x. big_union(L,f(x),g(x)), 
+               \<lambda>i x. big_union(**Lset(i),f(x),g(x))]"
+apply (simp only: big_union_def setclass_simps)
+apply (intro FOL_reflections)  
 done
 
 
@@ -924,6 +924,47 @@ apply (intro FOL_reflections pair_reflection)
 done
 
 
+subsubsection{*Function Application, Internalized*}
+
+(* "fun_apply(M,f,x,y) == 
+        (\<exists>xs[M]. \<exists>fxs[M]. 
+         upair(M,x,x,xs) & image(M,f,xs,fxs) & big_union(M,fxs,y))" *)
+constdefs fun_apply_fm :: "[i,i,i]=>i"
+    "fun_apply_fm(f,x,y) == 
+       Exists(Exists(And(upair_fm(succ(succ(x)), succ(succ(x)), 1),
+                         And(image_fm(succ(succ(f)), 1, 0), 
+                             big_union_fm(0,succ(succ(y)))))))"
+
+lemma fun_apply_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> fun_apply_fm(x,y,z) \<in> formula"
+by (simp add: fun_apply_fm_def) 
+
+lemma arity_fun_apply_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(fun_apply_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: fun_apply_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_fun_apply_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, fun_apply_fm(x,y,z), env) <-> 
+        fun_apply(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: fun_apply_fm_def fun_apply_def)
+
+lemma fun_apply_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> fun_apply(**A, x, y, z) <-> sats(A, fun_apply_fm(i,j,k), env)"
+by simp
+
+theorem fun_apply_reflection:
+     "REFLECTS[\<lambda>x. fun_apply(L,f(x),g(x),h(x)), 
+               \<lambda>i x. fun_apply(**Lset(i),f(x),g(x),h(x))]" 
+apply (simp only: fun_apply_def setclass_simps)
+apply (intro FOL_reflections upair_reflection image_reflection
+             big_union_reflection)  
+done
+
+
 subsubsection{*The Concept of Relation, Internalized*}
 
 (* "is_relation(M,r) == 
@@ -1036,7 +1077,7 @@ by simp
 
 lemmas function_reflections = 
         empty_reflection upair_reflection pair_reflection union_reflection
-	cons_reflection successor_reflection 
+	big_union_reflection cons_reflection successor_reflection 
         fun_apply_reflection subset_reflection
 	transitive_set_reflection membership_reflection
 	pred_set_reflection domain_reflection range_reflection field_reflection

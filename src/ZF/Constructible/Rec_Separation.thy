@@ -196,8 +196,8 @@ done
 
 subsection{*Well-Founded Recursion!*}
 
-(* M_is_recfun :: "[i=>o, i, i, [i,i,i]=>o, i] => o"
-   "M_is_recfun(M,r,a,MH,f) == 
+(* M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
+   "M_is_recfun(M,MH,r,a,f) == 
      \<forall>z[M]. z \<in> f <-> 
             5      4       3       2       1           0
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
@@ -252,7 +252,7 @@ lemma sats_is_recfun_fm:
   shows 
       "[|x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
        ==> sats(A, is_recfun_fm(p,x,y,z), env) <-> 
-           M_is_recfun(**A, nth(x,env), nth(y,env), MH, nth(z,env))"
+           M_is_recfun(**A, MH, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: is_recfun_fm_def M_is_recfun_def MH_iff_sats [THEN iff_sym])
 
 lemma is_recfun_iff_sats:
@@ -261,15 +261,15 @@ lemma is_recfun_iff_sats:
                         sats(A, p(x,y,z), env));
       nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> M_is_recfun(**A, x, y, MH, z) <-> sats(A, is_recfun_fm(p,i,j,k), env)" 
+   ==> M_is_recfun(**A, MH, x, y, z) <-> sats(A, is_recfun_fm(p,i,j,k), env)" 
 by (simp add: sats_is_recfun_fm [of A MH])
 
 theorem is_recfun_reflection:
   assumes MH_reflection:
     "!!f g h. REFLECTS[\<lambda>x. MH(L, f(x), g(x), h(x)), 
                      \<lambda>i x. MH(**Lset(i), f(x), g(x), h(x))]"
-  shows "REFLECTS[\<lambda>x. M_is_recfun(L, f(x), g(x), MH(L), h(x)), 
-               \<lambda>i x. M_is_recfun(**Lset(i), f(x), g(x), MH(**Lset(i)), h(x))]"
+  shows "REFLECTS[\<lambda>x. M_is_recfun(L, MH(L), f(x), g(x), h(x)), 
+               \<lambda>i x. M_is_recfun(**Lset(i), MH(**Lset(i)), f(x), g(x), h(x))]"
 apply (simp (no_asm_use) only: M_is_recfun_def setclass_simps)
 apply (intro FOL_reflections function_reflections 
              restriction_reflection MH_reflection)  
@@ -279,15 +279,17 @@ subsection{*Separation for  @{term "wfrank"}*}
 
 lemma wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
-              ~ (\<exists>f[L]. M_is_recfun(L, rplus, x, %x f y. is_range(L,f,y), f)),
+              ~ (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)),
       \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
-         ~ (\<exists>f \<in> Lset(i). M_is_recfun(**Lset(i), rplus, x, %x f y. is_range(**Lset(i),f,y), f))]"
+         ~ (\<exists>f \<in> Lset(i). 
+            M_is_recfun(**Lset(i), %x f y. is_range(**Lset(i),f,y), 
+                        rplus, x, f))]"
 by (intro FOL_reflections function_reflections is_recfun_reflection tran_closure_reflection)  
 
 lemma wfrank_separation:
      "L(r) ==>
       separation (L, \<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) -->
-         ~ (\<exists>f[L]. M_is_recfun(L, rplus, x, %x f y. is_range(L,f,y), f)))"
+         ~ (\<exists>f[L]. M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f)))"
 apply (rule separation_CollectI) 
 apply (rule_tac A="{r,z}" in subset_LsetE, blast ) 
 apply (rule ReflectsE [OF wfrank_Reflects], assumption)
@@ -309,12 +311,12 @@ lemma wfrank_replacement_Reflects:
  "REFLECTS[\<lambda>z. \<exists>x[L]. x \<in> A & 
         (\<forall>rplus[L]. tran_closure(L,r,rplus) -->
          (\<exists>y[L]. \<exists>f[L]. pair(L,x,y,z)  & 
-                        M_is_recfun(L, rplus, x, %x f y. is_range(L,f,y), f) &
+                        M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) &
                         is_range(L,f,y))),
  \<lambda>i z. \<exists>x \<in> Lset(i). x \<in> A & 
       (\<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) -->
        (\<exists>y \<in> Lset(i). \<exists>f \<in> Lset(i). pair(**Lset(i),x,y,z)  & 
-         M_is_recfun(**Lset(i), rplus, x, %x f y. is_range(**Lset(i),f,y), f) &
+         M_is_recfun(**Lset(i), %x f y. is_range(**Lset(i),f,y), rplus, x, f) &
          is_range(**Lset(i),f,y)))]"
 by (intro FOL_reflections function_reflections fun_plus_reflections
              is_recfun_reflection tran_closure_reflection)
@@ -325,7 +327,7 @@ lemma wfrank_strong_replacement:
       strong_replacement(L, \<lambda>x z. 
          \<forall>rplus[L]. tran_closure(L,r,rplus) -->
          (\<exists>y[L]. \<exists>f[L]. pair(L,x,y,z)  & 
-                        M_is_recfun(L, rplus, x, %x f y. is_range(L,f,y), f) &
+                        M_is_recfun(L, %x f y. is_range(L,f,y), rplus, x, f) &
                         is_range(L,f,y)))"
 apply (rule strong_replacementI) 
 apply (rule rallI)
@@ -351,12 +353,13 @@ lemma Ord_wfrank_Reflects:
  "REFLECTS[\<lambda>x. \<forall>rplus[L]. tran_closure(L,r,rplus) --> 
           ~ (\<forall>f[L]. \<forall>rangef[L]. 
              is_range(L,f,rangef) -->
-             M_is_recfun(L, rplus, x, \<lambda>x f y. is_range(L,f,y), f) -->
+             M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) -->
              ordinal(L,rangef)),
       \<lambda>i x. \<forall>rplus \<in> Lset(i). tran_closure(**Lset(i),r,rplus) --> 
           ~ (\<forall>f \<in> Lset(i). \<forall>rangef \<in> Lset(i). 
              is_range(**Lset(i),f,rangef) -->
-             M_is_recfun(**Lset(i), rplus, x, \<lambda>x f y. is_range(**Lset(i),f,y), f) -->
+             M_is_recfun(**Lset(i), \<lambda>x f y. is_range(**Lset(i),f,y), 
+                         rplus, x, f) -->
              ordinal(**Lset(i),rangef))]"
 by (intro FOL_reflections function_reflections is_recfun_reflection 
           tran_closure_reflection ordinal_reflection)
@@ -367,7 +370,7 @@ lemma  Ord_wfrank_separation:
          \<forall>rplus[L]. tran_closure(L,r,rplus) --> 
           ~ (\<forall>f[L]. \<forall>rangef[L]. 
              is_range(L,f,rangef) -->
-             M_is_recfun(L, rplus, x, \<lambda>x f y. is_range(L,f,y), f) -->
+             M_is_recfun(L, \<lambda>x f y. is_range(L,f,y), rplus, x, f) -->
              ordinal(L,rangef)))" 
 apply (rule separation_CollectI) 
 apply (rule_tac A="{r,z}" in subset_LsetE, blast ) 

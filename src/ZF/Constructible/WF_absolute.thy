@@ -140,9 +140,8 @@ lemma (in M_axioms) rtran_closure_mem_iff:
            (\<exists>f[M]. f \<in> succ(n) -> A &
             (\<exists>x[M]. \<exists>y[M]. p = <x,y> & f`0 = x & f`n = y) &
                            (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
-apply (simp add: rtran_closure_mem_def typed_apply_abs
-                 Ord_succ_mem_iff nat_0_le [THEN ltD], blast) 
-done
+by (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD]) 
+
 
 locale M_trancl = M_axioms +
   assumes rtrancl_separation:
@@ -237,13 +236,13 @@ locale M_wfrank = M_trancl +
      "M(r) ==>
       separation (M, \<lambda>x. 
          \<forall>rplus[M]. tran_closure(M,r,rplus) -->
-         ~ (\<exists>f[M]. M_is_recfun(M, rplus, x, %x f y. is_range(M,f,y), f)))"
+         ~ (\<exists>f[M]. M_is_recfun(M, %x f y. is_range(M,f,y), rplus, x, f)))"
  and wfrank_strong_replacement:
      "M(r) ==>
       strong_replacement(M, \<lambda>x z. 
          \<forall>rplus[M]. tran_closure(M,r,rplus) -->
          (\<exists>y[M]. \<exists>f[M]. pair(M,x,y,z)  & 
-                        M_is_recfun(M, rplus, x, %x f y. is_range(M,f,y), f) &
+                        M_is_recfun(M, %x f y. is_range(M,f,y), rplus, x, f) &
                         is_range(M,f,y)))"
  and Ord_wfrank_separation:
      "M(r) ==>
@@ -251,7 +250,7 @@ locale M_wfrank = M_trancl +
          \<forall>rplus[M]. tran_closure(M,r,rplus) --> 
           ~ (\<forall>f[M]. \<forall>rangef[M]. 
              is_range(M,f,rangef) -->
-             M_is_recfun(M, rplus, x, \<lambda>x f y. is_range(M,f,y), f) -->
+             M_is_recfun(M, \<lambda>x f y. is_range(M,f,y), rplus, x, f) -->
              ordinal(M,rangef)))" 
 
 text{*Proving that the relativized instances of Separation or Replacement

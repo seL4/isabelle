@@ -69,7 +69,7 @@ lemma (in M_axioms) is_recfun_separation':
         M(r); M(f); M(g); M(a); M(b) |] 
      ==> separation(M, \<lambda>x. \<not> (\<langle>x, a\<rangle> \<in> r \<longrightarrow> \<langle>x, b\<rangle> \<in> r \<longrightarrow> f ` x = g ` x))"
 apply (insert is_recfun_separation [of r f g a b]) 
-apply (simp add: typed_apply_abs vimage_singleton_iff)
+apply (simp add: vimage_singleton_iff)
 done
 
 text{*Stated using @{term "trans(r)"} rather than
@@ -275,8 +275,8 @@ apply (rule exists_is_recfun_indstep)
 done
 
 constdefs
- M_is_recfun :: "[i=>o, i, i, [i,i,i]=>o, i] => o"
-   "M_is_recfun(M,r,a,MH,f) == 
+ M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
+   "M_is_recfun(M,MH,r,a,f) == 
      \<forall>z[M]. z \<in> f <-> 
             (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
 	       pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
@@ -286,7 +286,7 @@ constdefs
 lemma (in M_axioms) is_recfun_abs:
      "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(r); M(a); M(f); 
          \<forall>x g y. M(x) --> M(g) --> M(y) --> MH(x,g,y) <-> y = H(x,g) |] 
-      ==> M_is_recfun(M,r,a,MH,f) <-> is_recfun(r,a,H,f)"
+      ==> M_is_recfun(M,MH,r,a,f) <-> is_recfun(r,a,H,f)"
 apply (simp add: M_is_recfun_def is_recfun_relativize)
 apply (rule rall_cong)
 apply (blast dest: transM)
@@ -295,7 +295,7 @@ done
 lemma M_is_recfun_cong [cong]:
      "[| r = r'; a = a'; f = f'; 
        !!x g y. [| M(x); M(g); M(y) |] ==> MH(x,g,y) <-> MH'(x,g,y) |]
-      ==> M_is_recfun(M,r,a,MH,f) <-> M_is_recfun(M,r',a',MH',f')"
+      ==> M_is_recfun(M,MH,r,a,f) <-> M_is_recfun(M,MH',r',a',f')"
 by (simp add: M_is_recfun_def) 
 
 
@@ -308,9 +308,9 @@ constdefs
     "is_oadd_fun(M,i,j,x,f) == 
        (\<forall>sj msj. M(sj) --> M(msj) --> 
                  successor(M,j,sj) --> membership(M,sj,msj) --> 
-	         M_is_recfun(M, msj, x, 
+	         M_is_recfun(M, 
 		     %x g y. \<exists>gx[M]. image(M,g,x,gx) & union(M,i,gx,y),
-		     f))"
+		     msj, x, f))"
 
  is_oadd :: "[i=>o,i,i,i] => o"
     "is_oadd(M,i,j,k) == 
@@ -422,14 +422,9 @@ apply (subgoal_tac "\<forall>k\<in>x. k<J")
 apply (blast intro: lt_trans ltI lt_Ord) 
 done
 
-lemma (in M_ord_arith) oadd_abs_fun_apply_iff:
-    "[| M(i); M(J); M(f); M(k); j<J; is_oadd_fun(M,i,J,J,f) |] 
-     ==> fun_apply(M,f,j,k) <-> f`j = k"
-by (force simp add: lt_def is_oadd_fun_iff subsetD typed_apply_abs) 
-
 lemma (in M_ord_arith) Ord_oadd_abs:
     "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_oadd(M,i,j,k) <-> k = i++j"
-apply (simp add: is_oadd_def oadd_abs_fun_apply_iff is_oadd_fun_iff_oadd)
+apply (simp add: is_oadd_def is_oadd_fun_iff_oadd)
 apply (frule exists_oadd_fun [of j i], blast+)
 done
 
@@ -547,14 +542,9 @@ apply (subgoal_tac "\<forall>k\<in>x. k<J")
 apply (blast intro: lt_trans ltI lt_Ord) 
 done
 
-lemma (in M_ord_arith) omult_abs_fun_apply_iff:
-    "[| M(i); M(J); M(f); M(k); j<J; is_omult_fun(M,i,J,f) |] 
-     ==> fun_apply(M,f,j,k) <-> f`j = k"
-by (auto simp add: lt_def is_omult_fun_def subsetD apply_abs) 
-
 lemma (in M_ord_arith) omult_abs:
     "[| M(i); M(j); M(k); Ord(i); Ord(j) |] ==> is_omult(M,i,j,k) <-> k = i**j"
-apply (simp add: is_omult_def omult_abs_fun_apply_iff is_omult_fun_eq_omult)
+apply (simp add: is_omult_def is_omult_fun_eq_omult)
 apply (frule exists_omult_fun [of j i], blast+)
 done
 

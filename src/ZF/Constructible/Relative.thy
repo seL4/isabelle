@@ -96,7 +96,8 @@ constdefs
 
   fun_apply :: "[i=>o,i,i,i] => o"
     "fun_apply(M,f,x,y) == 
-	(\<forall>y'[M]. (\<exists>u[M]. u\<in>f & pair(M,x,y',u)) <-> y=y')"
+        (\<exists>xs[M]. \<exists>fxs[M]. 
+         upair(M,x,x,xs) & image(M,f,xs,fxs) & big_union(M,fxs,y))"
 
   typed_function :: "[i=>o,i,i,i] => o"
     "typed_function(M,A,B,r) == 
@@ -646,6 +647,13 @@ apply (elim disjE exE)
  apply (simp_all add: b_abs) 
 done
 
+(*Needed?  surely better to replace by nat_case?*)
+lemma (in M_triv_axioms) is_nat_case_cong [cong]:
+     "[| a = a'; k = k';  z = z';  M(z');
+       !!x y. [| M(x); M(y) |] ==> is_b(x,y) <-> is_b'(x,y) |]
+      ==> is_nat_case(M, a, is_b, k, z) <-> is_nat_case(M, a', is_b', k', z')"
+by (simp add: is_nat_case_def) 
+
 lemma (in M_triv_axioms) Inl_in_M_iff [iff]:
      "M(Inl(a)) <-> M(a)"
 by (simp add: Inl_def) 
@@ -970,17 +978,11 @@ lemma (in M_axioms) apply_closed [intro,simp]:
      "[|M(f); M(a)|] ==> M(f`a)"
 by (simp add: apply_def)
 
-lemma (in M_axioms) apply_abs: 
-     "[| function(f); M(f); M(y) |] 
-      ==> fun_apply(M,f,x,y) <-> x \<in> domain(f) & f`x = y"
-apply (simp add: fun_apply_def)
-apply (blast intro: function_apply_equality function_apply_Pair) 
+lemma (in M_axioms) apply_abs [simp]: 
+     "[| M(f); M(x); M(y) |] ==> fun_apply(M,f,x,y) <-> f`x = y"
+apply (simp add: fun_apply_def apply_def)
+apply (blast intro: elim:); 
 done
-
-lemma (in M_axioms) typed_apply_abs: 
-     "[| f \<in> A -> B; M(f); M(y) |] 
-      ==> fun_apply(M,f,x,y) <-> x \<in> A & f`x = y"
-by (simp add: apply_abs fun_is_function domain_of_fun) 
 
 lemma (in M_axioms) typed_function_abs [simp]: 
      "[| M(A); M(f) |] ==> typed_function(M,A,B,f) <-> f \<in> A -> B"
@@ -996,7 +998,7 @@ done
 
 lemma (in M_axioms) surjection_abs [simp]: 
      "[| M(A); M(B); M(f) |] ==> surjection(M,A,B,f) <-> f \<in> surj(A,B)"
-by (simp add: typed_apply_abs surjection_def surj_def)
+by (simp add: surjection_def surj_def)
 
 lemma (in M_axioms) bijection_abs [simp]: 
      "[| M(A); M(B); M(f) |] ==> bijection(M,A,B,f) <-> f \<in> bij(A,B)"

@@ -503,7 +503,6 @@ bind_thm ("relation_abs", axiomsL (thm "M_axioms.relation_abs"));
 bind_thm ("function_abs", axiomsL (thm "M_axioms.function_abs"));
 bind_thm ("apply_closed", axiomsL (thm "M_axioms.apply_closed"));
 bind_thm ("apply_abs", axiomsL (thm "M_axioms.apply_abs"));
-bind_thm ("typed_apply_abs", axiomsL (thm "M_axioms.typed_apply_abs"));
 bind_thm ("typed_function_abs", axiomsL (thm "M_axioms.typed_function_abs"));
 bind_thm ("injection_abs", axiomsL (thm "M_axioms.injection_abs"));
 bind_thm ("surjection_abs", axiomsL (thm "M_axioms.surjection_abs"));
