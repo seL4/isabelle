@@ -1421,9 +1421,11 @@ fun mk_rrule raw_thm =
       val (elhs,erhs) = Logic.dest_equals econcl
       val perm = var_perm(elhs,erhs) andalso not(elhs aconv erhs)
                                      andalso not(is_Var(elhs))
-  in
-     if not perm andalso loops sign prems (elhs,erhs) then
-       (prtm_warning "ignoring looping rewrite rule" sign prop; None)
+  in if not(term_vars(erhs) subset
+            (term_vars(elhs) union flat(map term_vars prems)))
+     then (prtm_warning "extra Var(s) on rhs" sign prop; None) else
+     if not perm andalso loops sign prems (elhs,erhs)
+     then (prtm_warning "ignoring looping rewrite rule" sign prop; None)
      else Some{thm=thm,lhs=lhs,perm=perm}
   end;
 
