@@ -14,24 +14,28 @@ consts
   Subtype       :: "['a set, 'a => o] => 'a set"
   Bool          :: "i set"
   Unit          :: "i set"
-  "+"           :: "[i set, i set] => i set"            (infixr 55)
+  "+"           :: "[i set, i set] => i set"         (infixr 55)
   Pi            :: "[i set, i => i set] => i set"
   Sigma         :: "[i set, i => i set] => i set"
   Nat           :: "i set"
   List          :: "i set => i set"
   Lists         :: "i set => i set"
   ILists        :: "i set => i set"
-  TAll          :: "(i set => i set) => i set"          (binder "TALL " 55)
-  TEx           :: "(i set => i set) => i set"          (binder "TEX " 55)
-  Lift          :: "i set => i set"                     ("(3[_])")
+  TAll          :: "(i set => i set) => i set"       (binder "TALL " 55)
+  TEx           :: "(i set => i set) => i set"       (binder "TEX " 55)
+  Lift          :: "i set => i set"                  ("(3[_])")
 
   SPLIT         :: "[i, [i, i] => i set] => i set"
 
-  "@Pi"         :: "[idt, i set, i set] => i set"       ("(3PROD _:_./ _)" [] 60)
-  "@Sigma"      :: "[idt, i set, i set] => i set"       ("(3SUM _:_./ _)" [] 60)
-  "@->"         :: "[i set, i set] => i set"            ("(_ ->/ _)"  [54, 53] 53)
-  "@*"          :: "[i set, i set] => i set"            ("(_ */ _)" [56, 55] 55)
-  "@Subtype"    :: "[idt, 'a set, o] => 'a set"         ("(1{_: _ ./ _})")
+  "@Pi"         :: "[idt, i set, i set] => i set"    ("(3PROD _:_./ _)"
+  				[0,0,60] 60)
+
+  "@Sigma"      :: "[idt, i set, i set] => i set"    ("(3SUM _:_./ _)"
+  				[0,0,60] 60)
+  
+  "@->"         :: "[i set, i set] => i set"         ("(_ ->/ _)"  [54, 53] 53)
+  "@*"          :: "[i set, i set] => i set"         ("(_ */ _)" [56, 55] 55)
+  "@Subtype"    :: "[idt, 'a set, o] => 'a set"      ("(1{_: _ ./ _})")
 
 translations
   "PROD x:A. B" => "Pi(A, %x. B)"
