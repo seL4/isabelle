@@ -577,7 +577,7 @@ apply (simp add: abrupt_if_def)
 apply auto
 done
 
-lemma raise_if_SomeD [dest!]:
+lemma error_if_SomeD [dest!]:
   "error_if c e y = Some z \<Longrightarrow> c \<and> z=(Error e) \<and> y=None \<or> (y=Some z)"
 apply (case_tac y)
 apply (case_tac c)
@@ -773,7 +773,7 @@ lemma error_free_Some [simp,intro]:
  "\<not> (\<exists> err. x=Error err) \<Longrightarrow> error_free ((Some x),s)"
 by (auto simp add: error_free_def)
 
-lemma error_free_absorb [simp,intro]: 
+lemma error_free_abupd_absorb [simp,intro]: 
  "error_free s \<Longrightarrow> error_free (abupd (absorb j) s)"
 by (cases s) 
    (auto simp add: error_free_def absorb_def

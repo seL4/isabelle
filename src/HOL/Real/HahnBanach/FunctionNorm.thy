@@ -161,7 +161,7 @@ proof -
   from this and b show ?thesis ..
 qed
 
-lemma (in functional_vectorspace) function_norm_least [intro?]:
+lemma (in functional_vectorspace) function_norm_least' [intro?]:
   includes continuous
   assumes b: "\<And>b. b \<in> B V f \<Longrightarrow> b \<le> y"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
@@ -234,7 +234,7 @@ lemma (in functional_vectorspace) function_norm_least [intro?]:
   includes continuous
   assumes ineq: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" and ge: "0 \<le> c"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> c"
-proof (rule function_norm_least)
+proof (rule function_norm_least')
   fix b assume b: "b \<in> B V f"
   show "b \<le> c"
   proof cases

@@ -766,15 +766,6 @@ apply (rule MGF_asm [THEN MGFNormalD])
 apply   (auto intro: MGFNormalI)
 done
 
-lemma MGF_deriv: "wf_prog G \<Longrightarrow> G,({}::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
-apply (rule MGF_asm)
-apply (intro strip)
-apply (rule MGFNormalI)
-apply (rule ax_derivs.weaken)
-apply  (erule MGF_simult_Methd)
-apply auto
-done
-
 
 section "corollaries"
 

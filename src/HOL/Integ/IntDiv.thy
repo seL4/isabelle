@@ -352,12 +352,12 @@ by (simp add: zmod_zminus1_eq_if zmod_zminus2)
 
 (*** division of a number by itself ***)
 
-lemma lemma1: "[| (0::int) < a; a = r + a*q; r < a |] ==> 1 <= q"
+lemma self_quotient_aux1: "[| (0::int) < a; a = r + a*q; r < a |] ==> 1 <= q"
 apply (subgoal_tac "0 < a*q")
  apply (simp add: int_0_less_mult_iff, arith)
 done
 
-lemma lemma2: "[| (0::int) < a; a = r + a*q; 0 <= r |] ==> q <= 1"
+lemma self_quotient_aux2: "[| (0::int) < a; a = r + a*q; 0 <= r |] ==> q <= 1"
 apply (subgoal_tac "0 <= a* (1-q) ")
  apply (simp add: int_0_le_mult_iff)
 apply (simp add: zdiff_zmult_distrib2)
@@ -366,9 +366,9 @@ done
 lemma self_quotient: "[| quorem((a,a),(q,r));  a ~= (0::int) |] ==> q = 1"
 apply (simp add: split_ifs quorem_def linorder_neq_iff)
 apply (rule order_antisym, auto)
-apply (rule_tac [3] a = "-a" and r = "-r" in lemma1)
-apply (rule_tac a = "-a" and r = "-r" in lemma2)
-apply (force intro: lemma1 lemma2 simp add: zadd_commute zmult_zminus)+
+apply (rule_tac [3] a = "-a" and r = "-r" in self_quotient_aux1)
+apply (rule_tac a = "-a" and r = "-r" in self_quotient_aux2)
+apply (force intro: self_quotient_aux1 self_quotient_aux2 simp add: zadd_commute zmult_zminus)+
 done
 
 lemma self_remainder: "[| quorem((a,a),(q,r));  a ~= (0::int) |] ==> r = 0"
@@ -699,7 +699,7 @@ done
 
 (** first, four lemmas to bound the remainder for the cases b<0 and b>0 **)
 
-lemma lemma1: "[| (0::int) < c;  b < r;  r <= 0 |] ==> b*c < b*(q mod c) + r"
+lemma zmult2_lemma_aux1: "[| (0::int) < c;  b < r;  r <= 0 |] ==> b*c < b*(q mod c) + r"
 apply (subgoal_tac "b * (c - q mod c) < r * 1")
 apply (simp add: zdiff_zmult_distrib2)
 apply (rule order_le_less_trans)
@@ -709,19 +709,19 @@ apply (auto simp add: zcompare_rls zadd_commute [of 1]
                       add1_zle_eq pos_mod_bound)
 done
 
-lemma lemma2: "[| (0::int) < c;   b < r;  r <= 0 |] ==> b * (q mod c) + r <= 0"
+lemma zmult2_lemma_aux2: "[| (0::int) < c;   b < r;  r <= 0 |] ==> b * (q mod c) + r <= 0"
 apply (subgoal_tac "b * (q mod c) <= 0")
  apply arith
 apply (simp add: zmult_le_0_iff pos_mod_sign)
 done
 
-lemma lemma3: "[| (0::int) < c;  0 <= r;  r < b |] ==> 0 <= b * (q mod c) + r"
+lemma zmult2_lemma_aux3: "[| (0::int) < c;  0 <= r;  r < b |] ==> 0 <= b * (q mod c) + r"
 apply (subgoal_tac "0 <= b * (q mod c) ")
 apply arith
 apply (simp add: int_0_le_mult_iff pos_mod_sign)
 done
 
-lemma lemma4: "[| (0::int) < c; 0 <= r; r < b |] ==> b * (q mod c) + r < b * c"
+lemma zmult2_lemma_aux4: "[| (0::int) < c; 0 <= r; r < b |] ==> b * (q mod c) + r < b * c"
 apply (subgoal_tac "r * 1 < b * (c - q mod c) ")
 apply (simp add: zdiff_zmult_distrib2)
 apply (rule order_less_le_trans)
@@ -735,7 +735,7 @@ lemma zmult2_lemma: "[| quorem ((a,b), (q,r));  b ~= 0;  0 < c |]
       ==> quorem ((a, b*c), (q div c, b*(q mod c) + r))"
 by (auto simp add: zmult_ac quorem_def linorder_neq_iff
                    int_0_less_mult_iff zadd_zmult_distrib2 [symmetric] 
-                   lemma1 lemma2 lemma3 lemma4)
+                   zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4)
 
 lemma zdiv_zmult2_eq: "(0::int) < c ==> a div (b*c) = (a div b) div c"
 apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
@@ -751,17 +751,17 @@ done
 
 (*** Cancellation of common factors in div ***)
 
-lemma lemma1: "[| (0::int) < b;  c ~= 0 |] ==> (c*a) div (c*b) = a div b"
+lemma zdiv_zmult_zmult1_aux1: "[| (0::int) < b;  c ~= 0 |] ==> (c*a) div (c*b) = a div b"
 by (subst zdiv_zmult2_eq, auto)
 
-lemma lemma2: "[| b < (0::int);  c ~= 0 |] ==> (c*a) div (c*b) = a div b"
+lemma zdiv_zmult_zmult1_aux2: "[| b < (0::int);  c ~= 0 |] ==> (c*a) div (c*b) = a div b"
 apply (subgoal_tac " (c * (-a)) div (c * (-b)) = (-a) div (-b) ")
-apply (rule_tac [2] lemma1, auto)
+apply (rule_tac [2] zdiv_zmult_zmult1_aux1, auto)
 done
 
 lemma zdiv_zmult_zmult1: "c ~= (0::int) ==> (c*a) div (c*b) = a div b"
 apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
-apply (auto simp add: linorder_neq_iff lemma1 lemma2)
+apply (auto simp add: linorder_neq_iff zdiv_zmult_zmult1_aux1 zdiv_zmult_zmult1_aux2)
 done
 
 lemma zdiv_zmult_zmult2: "c ~= (0::int) ==> (a*c) div (b*c) = a div b"
@@ -773,18 +773,18 @@ done
 
 (*** Distribution of factors over mod ***)
 
-lemma lemma1: "[| (0::int) < b;  c ~= 0 |] ==> (c*a) mod (c*b) = c * (a mod b)"
+lemma zmod_zmult_zmult1_aux1: "[| (0::int) < b;  c ~= 0 |] ==> (c*a) mod (c*b) = c * (a mod b)"
 by (subst zmod_zmult2_eq, auto)
 
-lemma lemma2: "[| b < (0::int);  c ~= 0 |] ==> (c*a) mod (c*b) = c * (a mod b)"
+lemma zmod_zmult_zmult1_aux2: "[| b < (0::int);  c ~= 0 |] ==> (c*a) mod (c*b) = c * (a mod b)"
 apply (subgoal_tac " (c * (-a)) mod (c * (-b)) = c * ((-a) mod (-b))")
-apply (rule_tac [2] lemma1, auto)
+apply (rule_tac [2] zmod_zmult_zmult1_aux1, auto)
 done
 
 lemma zmod_zmult_zmult1: "(c*a) mod (c*b) = (c::int) * (a mod b)"
 apply (case_tac "b = 0", simp add: DIVISION_BY_ZERO)
 apply (case_tac "c = 0", simp add: DIVISION_BY_ZERO)
-apply (auto simp add: linorder_neq_iff lemma1 lemma2)
+apply (auto simp add: linorder_neq_iff zmod_zmult_zmult1_aux1 zmod_zmult_zmult1_aux2)
 done
 
 lemma zmod_zmult_zmult2: "(a*c) mod (b*c) = (a mod b) * (c::int)"

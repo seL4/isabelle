@@ -502,7 +502,7 @@ apply (subst Abs_LList_inject)
 apply (auto simp add: Rep_LList_inject)
 done
 
-lemma LList_fun_equalityI: "CONS M N \<in> llist(A) ==> M \<in> A & N \<in> llist(A)"
+lemma CONS_D2: "CONS M N \<in> llist(A) ==> M \<in> A & N \<in> llist(A)"
 apply (erule llist.cases)
 apply (erule CONS_neq_NIL, fast)
 done
@@ -613,7 +613,7 @@ apply blast
 done
 
 text{*strong co-induction: bisimulation and case analysis on one variable*}
-lemma Lappend_type: "[| M \<in> llist(A); N \<in> llist(A) |] ==> Lappend M N \<in> llist(A)"
+lemma Lappend_type': "[| M \<in> llist(A); N \<in> llist(A) |] ==> Lappend M N \<in> llist(A)"
 apply (rule_tac X = " (%u. Lappend u N) `llist (A) " in llist_coinduct)
 apply (erule imageI)
 apply (rule image_subsetI)
@@ -893,14 +893,14 @@ apply (blast intro: llistD_Fun_LCons_I)
 done
 
 text{*Shorter proof of theorem above using @{text llist_equalityI} as strong coinduction*}
-lemma lmap_lappend_distrib:
+lemma lmap_lappend_distrib':
      "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)"
 apply (rule_tac l = "l" in llist_fun_equalityI, simp)
 apply simp
 done
 
 text{*Without strong coinduction, three case analyses might be needed*}
-lemma lappend_assoc: "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)"
+lemma lappend_assoc': "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)"
 apply (rule_tac l = "l1" in llist_fun_equalityI, simp)
 apply simp
 done

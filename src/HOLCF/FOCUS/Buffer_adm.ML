@@ -268,11 +268,11 @@ b y ftac fstream_prefix 1;
 b y Clarsimp_tac 1;
 b y ftac BufAC_Asm_d3 1;
 b y Force_tac 1;
-qed "adm_non_BufAC_Asm";
+qed "adm_non_BufAC_Asm'";
 
 Goal "f \\<in> BufEq \\<Longrightarrow> adm (\\<lambda>u. u \\<in> BufAC_Asm \\<longrightarrow> (u, f\\<cdot>u) \\<in> BufAC_Cmt)";
 by (rtac triv_admI 1);
 by (Clarify_tac 1);
 by (eatac Buf_Eq_imp_AC_lemma 1 1); 
       (* this is what we originally aimed to show, using admissibilty :-( *)
-qed "adm_BufAC";
+qed "adm_BufAC'";

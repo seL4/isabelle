@@ -79,12 +79,9 @@ lemmas bool_into_nat = bool_subset_nat [THEN subsetD, standard]
 subsection{*Injectivity Properties and Induction*}
 
 (*Mathematical induction*)
-lemma nat_induct:
+lemma nat_induct [case_names 0 succ, induct set: nat]:
     "[| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)"
 by (erule def_induct [OF nat_def nat_bnd_mono], blast)
-
-(*fixed up for induct method*)
-lemmas nat_induct = nat_induct [case_names 0 succ, induct set: nat]
 
 lemma natE:
     "[| n: nat;  n=0 ==> P;  !!x. [| x: nat; n=succ(x) |] ==> P |] ==> P"
@@ -168,7 +165,7 @@ apply (blast intro: nat_induct_from_lemma)
 done
 
 (*Induction suitable for subtraction and less-than*)
-lemma diff_induct: 
+lemma diff_induct [case_names 0 0_succ succ_succ, consumes 2]:
     "[| m: nat;  n: nat;   
         !!x. x: nat ==> P(x,0);   
         !!y. y: nat ==> P(0,succ(y));   
@@ -181,8 +178,6 @@ apply (rename_tac i j)
 apply (erule_tac n=j in nat_induct, auto)  
 done
 
-(*fixed up for induct method*)
-lemmas diff_induct = diff_induct [case_names 0 0_succ succ_succ, consumes 2]
 
 (** Induction principle analogous to trancl_induct **)
 

@@ -66,7 +66,7 @@ by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac (chain_iterate RS chainE) 1);
-qed "cont_Ifix2";
+qed "cont_Ifix2'";
 
 (* the proof in little steps *)
 
@@ -98,5 +98,5 @@ by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac (chain_iterate RS chainE) 1);
-qed "cont_Ifix2";
+qed "cont_Ifix2''";
 

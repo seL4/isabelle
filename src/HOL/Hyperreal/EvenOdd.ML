@@ -204,8 +204,8 @@ Addsimps [Suc_n_div_2_gt_zero];
 Goal "0 < n & even n --> 1 < n";
 by (induct_tac "n" 1);
 by Auto_tac;
-qed_spec_mp "even_gt_zero_gt_one";
-bind_thm ("even_gt_zero_gt_one",conjI RS even_gt_zero_gt_one);
+qed_spec_mp "even_gt_zero_gt_one_aux";
+bind_thm ("even_gt_zero_gt_one",conjI RS even_gt_zero_gt_one_aux);
 
 (* more general *)
 Goal "n div 2 <= (Suc n) div 2";

@@ -697,10 +697,6 @@ by (atac 1);
 by (atac 1);
 qed "adm_disj";
 
-
-bind_thm("adm_lemma11",adm_lemma11);
-bind_thm("adm_disj",adm_disj);
-
 Goal "[| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)";
 by (subgoal_tac "(%x. P x --> Q x) = (%x. ~P x | Q x)" 1);
 by (etac ssubst 1);

@@ -6,10 +6,6 @@
 
 (* Logic *)
 
-val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by (fast_tac (claset() addDs prems) 1);
-qed "imp_conj_lemma";
-
 goal HOL.thy "(~(A&B)) = ((~A)&B| ~B)";
 by (Fast_tac 1);
 val and_de_morgan_and_absorbe = result();

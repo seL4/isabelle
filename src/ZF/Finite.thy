@@ -56,7 +56,7 @@ lemmas FinD = Fin.dom_subset [THEN subsetD, THEN PowD, standard]
 (** Induction on finite sets **)
 
 (*Discharging x~:y entails extra work*)
-lemma Fin_induct:
+lemma Fin_induct [case_names 0 cons, induct set: Fin]:
     "[| b: Fin(A);
         P(0);
         !!x y. [| x: A;  y: Fin(A);  x~:y;  P(y) |] ==> P(cons(x,y))
@@ -66,9 +66,6 @@ apply (case_tac "a:b")
  apply (erule cons_absorb [THEN ssubst], assumption) (*backtracking!*)
 apply simp
 done
-
-(*fixed up for induct method*)
-lemmas Fin_induct = Fin_induct [case_names 0 cons, induct set: Fin]
 
 
 (** Simplification for Fin **)

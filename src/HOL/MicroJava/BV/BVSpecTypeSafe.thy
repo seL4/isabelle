@@ -643,7 +643,7 @@ apply (cases v)
 apply (auto intro: rtrancl_trans)
 done
 
-lemmas defs1 = defs1 raise_system_xcpt_def
+lemmas defs2 = defs1 raise_system_xcpt_def
 
 lemma Checkcast_correct:
 "\<lbrakk> wt_jvm_prog G phi;
@@ -654,7 +654,7 @@ lemma Checkcast_correct:
     G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
     fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 wt_jvm_prog_def map_eq_Cons split: split_if_asm)
+apply (clarsimp simp add: defs2 wt_jvm_prog_def map_eq_Cons split: split_if_asm)
 apply (blast intro: Cast_conf2)
 done
 
@@ -668,12 +668,12 @@ lemma Getfield_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 map_eq_Cons wt_jvm_prog_def 
+apply (clarsimp simp add: defs2 map_eq_Cons wt_jvm_prog_def 
                 split: option.split split_if_asm)
 apply (frule conf_widen)
 apply assumption+
 apply (drule conf_RefTD)
-apply (clarsimp simp add: defs1)
+apply (clarsimp simp add: defs2)
 apply (rule conjI)
  apply (drule widen_cfs_fields)
  apply assumption+
@@ -700,7 +700,7 @@ lemma Putfield_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 split_beta split: option.split List.split split_if_asm)
+apply (clarsimp simp add: defs2 split_beta split: option.split List.split split_if_asm)
 apply (frule conf_widen)
 prefer 2
   apply assumption
@@ -1110,7 +1110,7 @@ lemma Goto_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1)
+apply (clarsimp simp add: defs2)
 apply fast
 done
 
@@ -1123,7 +1123,7 @@ lemma Ifcmpeq_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1)
+apply (clarsimp simp add: defs2)
 apply fast
 done
 
@@ -1135,7 +1135,7 @@ lemma Pop_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1)
+apply (clarsimp simp add: defs2)
 apply fast
 done
 
@@ -1147,7 +1147,7 @@ lemma Dup_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 map_eq_Cons)
+apply (clarsimp simp add: defs2 map_eq_Cons)
 apply (blast intro: conf_widen)
 done
 
@@ -1159,7 +1159,7 @@ lemma Dup_x1_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 map_eq_Cons)
+apply (clarsimp simp add: defs2 map_eq_Cons)
 apply (blast intro: conf_widen)
 done
 
@@ -1171,7 +1171,7 @@ lemma Dup_x2_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 map_eq_Cons)
+apply (clarsimp simp add: defs2 map_eq_Cons)
 apply (blast intro: conf_widen)
 done
 
@@ -1183,7 +1183,7 @@ lemma Swap_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 map_eq_Cons)
+apply (clarsimp simp add: defs2 map_eq_Cons)
 apply (blast intro: conf_widen)
 done
 
@@ -1195,7 +1195,7 @@ lemma IAdd_correct:
   Some state' = exec (G, None, hp, (stk,loc,C,sig,pc)#frs) ; 
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs1 map_eq_Cons approx_val_def conf_def)
+apply (clarsimp simp add: defs2 map_eq_Cons approx_val_def conf_def)
 apply blast
 done
 

@@ -139,7 +139,7 @@ lemma funsum_oneelem [rule_format (no_asm)]:
 
 subsection {* Chinese: uniqueness *}
 
-lemma aux:
+lemma zcong_funprod_aux:
   "m_cond n mf ==> km_cond n kf mf
     ==> lincong_sol n kf bf mf x ==> lincong_sol n kf bf mf y
     ==> [x = y] (mod mf n)"
@@ -160,10 +160,10 @@ lemma zcong_funprod [rule_format]:
     [x = y] (mod funprod mf 0 n)"
   apply (induct n)
    apply (simp_all (no_asm))
-   apply (blast intro: aux)
+   apply (blast intro: zcong_funprod_aux)
   apply (rule impI)+
   apply (rule zcong_zgcd_zmult_zmod)
-    apply (blast intro: aux)
+    apply (blast intro: zcong_funprod_aux)
     prefer 2
     apply (subst zgcd_commute)
     apply (rule funprod_zgcd)
@@ -192,7 +192,7 @@ lemma unique_xi_sol:
     apply simp_all
   done
 
-lemma aux:
+lemma x_sol_lin_aux:
     "0 < n ==> i \<le> n ==> j \<le> n ==> j \<noteq> i ==> mf j dvd mhf mf n i"
   apply (unfold mhf_def)
   apply (case_tac "i = 0")
@@ -215,7 +215,7 @@ lemma x_sol_lin:
      apply auto
   apply (subst zdvd_iff_zmod_eq_0 [symmetric])
   apply (rule zdvd_zmult)
-  apply (rule aux)
+  apply (rule x_sol_lin_aux)
   apply auto
   done
 

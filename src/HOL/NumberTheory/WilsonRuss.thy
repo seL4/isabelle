@@ -32,7 +32,7 @@ recdef wset
 
 text {* \medskip @{term [source] inv} *}
 
-lemma aux: "1 < m ==> Suc (nat (m - 2)) = nat (m - 1)"
+lemma inv_is_inv_aux: "1 < m ==> Suc (nat (m - 2)) = nat (m - 1)"
   apply (subst int_int_eq [symmetric])
   apply auto
   done
@@ -44,7 +44,7 @@ lemma inv_is_inv:
   apply (subst zmod_zmult1_eq [symmetric])
   apply (subst zcong_zmod [symmetric])
   apply (subst power_Suc [symmetric])
-  apply (subst aux)
+  apply (subst inv_is_inv_aux)
    apply (erule_tac [2] Little_Fermat)
    apply (erule_tac [2] zdvd_not_zless)
    apply (unfold zprime_def)
@@ -89,7 +89,7 @@ lemma inv_not_1:
           apply auto
   done
 
-lemma aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
+lemma inv_not_p_minus_1_aux: "[a * (p - 1) = 1] (mod p) = [a = p - 1] (mod p)"
   apply (unfold zcong_def)
   apply (simp add: zdiff_zdiff_eq zdiff_zdiff_eq2 zdiff_zmult_distrib2)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
@@ -106,7 +106,7 @@ lemma inv_not_p_minus_1:
   apply safe
   apply (cut_tac a = a and p = p in inv_is_inv)
      apply auto
-  apply (simp add: aux)
+  apply (simp add: inv_not_p_minus_1_aux)
   apply (subgoal_tac "a = p - 1")
    apply (rule_tac [2] zcong_zless_imp_eq)
        apply auto
@@ -137,7 +137,7 @@ lemma inv_less_p_minus_1:
   apply (simp add: pos_mod_bound)
   done
 
-lemma aux: "5 \<le> p ==>
+lemma inv_inv_aux: "5 \<le> p ==>
     nat (p - 2) * nat (p - 2) = Suc (nat (p - 1) * nat (p - 3))"
   apply (subst int_int_eq [symmetric])
   apply (simp add: zmult_int [symmetric])
@@ -163,7 +163,7 @@ lemma inv_inv: "p \<in> zprime \<Longrightarrow>
       apply (subst zcong_zmod)
       apply (subst mod_mod_trivial)
       apply (subst zcong_zmod [symmetric])
-      apply (subst aux)
+      apply (subst inv_inv_aux)
        apply (subgoal_tac [2]
 	 "zcong (a * a^(nat (p - 1) * nat (p - 3))) (a * 1) p")
         apply (rule_tac [3] zcong_zmult)

@@ -764,15 +764,6 @@ apply(subgoal_tac "length xs<length (x # xs)")
 apply simp
 done
 
-lemma last_lift_not_None: "fst ((lift Q) ((x#xs)!(length xs))) \<noteq> None"
-apply(subgoal_tac "length xs<length (x # xs)")
- apply(drule_tac Q=Q in  lift_nth)
- apply(erule ssubst)
- apply (simp add:lift_def)
- apply(case_tac "(x # xs) ! length xs",simp)
-apply simp
-done
-
 lemma Seq_sound: 
   "\<lbrakk>\<Turnstile> P sat [pre, rely, guar, mid]; \<Turnstile> Q sat [mid, rely, guar, post]\<rbrakk>
   \<Longrightarrow> \<Turnstile> Seq P Q sat [pre, rely, guar, post]"
@@ -914,37 +905,6 @@ apply simp
 done
 
 subsubsection{* Soundness of the While rule *}
-
-lemma assum_after_body: 
-  "\<lbrakk> \<Turnstile> P sat [pre \<inter> b, rely, guar, pre]; 
-  (Some P, s) # xs \<in> cptn_mod; fst (((Some P, s) # xs)!length xs) = None; 
-   s \<in> b;  (Some (While b P), s) # (Some (Seq P (While b P)), s) # 
-            map (lift (While b P)) xs @ ys \<in> assum (pre, rely)\<rbrakk>
-  \<Longrightarrow> (Some (While b P), snd (((Some P, s) # xs)!length xs)) # ys 
-      \<in> assum (pre, rely)"
-apply(simp add:assum_def com_validity_def cp_def cptn_iff_cptn_mod)
-apply clarify
-apply(erule_tac x=s in allE)
-apply(drule_tac c="(Some P, s) # xs" in subsetD,simp)
- apply clarify
- apply(erule_tac x="Suc i" in allE)
- apply simp
- apply(simp add:Cons_lift_append nth_append snd_lift del:map.simps)
- apply(erule mp)
- apply(erule etran.elims,simp)
- apply(case_tac "fst(((Some P, s) # xs) ! i)")
-  apply(force intro:Env simp add:lift_def)
- apply(force intro:Env simp add:lift_def)
-apply(rule conjI)
- apply(simp add:comm_def last_length)
-apply clarify
-apply(erule_tac x="Suc(length xs + i)" in allE,simp)
-apply(case_tac i, simp add:nth_append Cons_lift_append snd_lift del:map.simps)
- apply(erule mp)
- apply(case_tac "((Some P, s) # xs) ! length xs")
- apply(simp add:lift_def)
-apply(simp add:Cons_lift_append nth_append snd_lift del:map.simps)
-done
 
 lemma last_append[rule_format]:
   "\<forall>xs. ys\<noteq>[] \<longrightarrow> ((xs@ys)!(length (xs@ys) - (Suc 0)))=(ys!(length ys - (Suc 0)))"

@@ -343,7 +343,7 @@ lemma zgcd_zmult_eq_self2 [simp]: "0 \<le> k ==> zgcd (k * n, k) = k"
    apply simp_all
   done
 
-lemma aux: "zgcd (n, k) = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
+lemma zrelprime_zdvd_zmult_aux: "zgcd (n, k) = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
   apply (subgoal_tac "m = zgcd (m * n, m * k)")
    apply (erule ssubst, rule zgcd_greatest_iff [THEN iffD2])
    apply (simp_all add: zgcd_zmult_distrib2 [symmetric] int_0_le_mult_iff)
@@ -351,9 +351,9 @@ lemma aux: "zgcd (n, k) = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
 
 lemma zrelprime_zdvd_zmult: "zgcd (n, k) = 1 ==> k dvd m * n ==> k dvd m"
   apply (case_tac "0 \<le> m")
-   apply (blast intro: aux)
+   apply (blast intro: zrelprime_zdvd_zmult_aux)
   apply (subgoal_tac "k dvd -m")
-   apply (rule_tac [2] aux)
+   apply (rule_tac [2] zrelprime_zdvd_zmult_aux)
      apply auto
   done
 
@@ -618,18 +618,13 @@ lemma zgcd_zcong_zgcd:
   apply (auto simp add: zcong_iff_lin)
   done
 
-lemma aux: "a = c ==> b = d ==> a - b = c - (d::int)"
-  apply auto
-  done
-
-lemma aux: "a - b = (m::int) * (a div m - b div m) + (a mod m - b mod m)"
+lemma zcong_zmod_aux: "a - b = (m::int) * (a div m - b div m) + (a mod m - b mod m)"
 by(simp add: zdiff_zmult_distrib2 zadd_zdiff_eq eq_zdiff_eq zadd_ac)
-
 
 lemma zcong_zmod: "[a = b] (mod m) = [a mod m = b mod m] (mod m)"
   apply (unfold zcong_def)
   apply (rule_tac t = "a - b" in ssubst)
-  apply (rule_tac "m" = "m" in aux)
+  apply (rule_tac "m" = "m" in zcong_zmod_aux)
   apply (rule trans)
    apply (rule_tac [2] k = m and m = "a div m - b div m" in zdvd_reduce)
   apply (simp add: zadd_commute)
@@ -643,7 +638,7 @@ lemma zcong_zmod_eq: "0 < m ==> [a = b] (mod m) = (a mod m = b mod m)"
        apply (simp_all add: pos_mod_bound pos_mod_sign)
   apply (unfold zcong_def dvd_def)
   apply (rule_tac x = "a div m - b div m" in exI)
-  apply (rule_tac m1 = m in aux [THEN trans])
+  apply (rule_tac m1 = m in zcong_zmod_aux [THEN trans])
   apply auto
   done
 
@@ -688,7 +683,7 @@ subsection {* Extended GCD *}
 
 declare xzgcda.simps [simp del]
 
-lemma aux1:
+lemma xzgcd_correct_aux1:
   "zgcd (r', r) = k --> 0 < r -->
     (\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn))"
   apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
@@ -707,7 +702,7 @@ lemma aux1:
   apply (simp add: zabs_def)
   done
 
-lemma aux2:
+lemma xzgcd_correct_aux2:
   "(\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn)) --> 0 < r -->
     zgcd (r', r) = k"
   apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
@@ -729,25 +724,25 @@ lemma xzgcd_correct:
     "0 < n ==> (zgcd (m, n) = k) = (\<exists>s t. xzgcd m n = (k, s, t))"
   apply (unfold xzgcd_def)
   apply (rule iffI)
-   apply (rule_tac [2] aux2 [THEN mp, THEN mp])
-    apply (rule aux1 [THEN mp, THEN mp])
+   apply (rule_tac [2] xzgcd_correct_aux2 [THEN mp, THEN mp])
+    apply (rule xzgcd_correct_aux1 [THEN mp, THEN mp])
      apply auto
   done
 
 
 text {* \medskip @{term xzgcd} linear *}
 
-lemma aux:
+lemma xzgcda_linear_aux1:
   "(a - r * b) * m + (c - r * d) * (n::int) =
     (a * m + c * n) - r * (b * m + d * n)"
   apply (simp add: zdiff_zmult_distrib zadd_zmult_distrib2 zmult_assoc)
   done
 
-lemma aux:
+lemma xzgcda_linear_aux2:
   "r' = s' * m + t' * n ==> r = s * m + t * n
     ==> (r' mod r) = (s' - (r' div r) * s) * m + (t' - (r' div r) * t) * (n::int)"
   apply (rule trans)
-   apply (rule_tac [2] aux [symmetric])
+   apply (rule_tac [2] xzgcda_linear_aux1 [symmetric])
   apply (simp add: eq_zdiff_eq zmult_commute)
   done
 
@@ -769,7 +764,7 @@ lemma xzgcda_linear [rule_format]:
    apply (rule_tac [2] order_le_neq_implies_less)
    apply (rule_tac [2] pos_mod_sign)
     apply (cut_tac m = m and n = n and r' = r' and r = r and s' = s' and
-      s = s and t' = t' and t = t in aux)
+      s = s and t' = t' and t = t in xzgcda_linear_aux2)
       apply auto
   done
 

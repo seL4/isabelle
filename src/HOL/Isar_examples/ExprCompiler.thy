@@ -148,7 +148,7 @@ text {*
  better idea of what is actually going on.
 *}
 
-lemma exec_append:
+lemma exec_append':
   "ALL stack. exec (xs @ ys) stack env
     = exec ys (exec xs stack env) env" (is "?P xs")
 proof (induct xs)

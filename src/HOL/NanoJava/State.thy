@@ -121,7 +121,7 @@ lemma get_field_set_locs [simp]:
   "get_field (set_locs l s) a f = get_field s a f"
 by (simp add: lupd_def get_field_def set_locs_def get_obj_def)
 
-lemma get_field_set_locs [simp]:
+lemma get_field_del_locs [simp]:
   "get_field (del_locs s) a f = get_field s a f"
 by (simp add: lupd_def get_field_def del_locs_def get_obj_def)
 

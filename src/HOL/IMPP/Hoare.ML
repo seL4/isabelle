@@ -352,10 +352,10 @@ by (rtac (finite_dom_body RSN (2,MGT_Body)) 1);
 by (Simp_tac 1);
 by (eatac MGF_lemma2_simult 1 1);
 by (rtac subset_refl 1);
-qed "MGF";
+qed "MGF'";
 
 (* requires Body+empty+insert / BodyN, com_det *)
-bind_thm ("hoare_complete", MGF RS MGF_complete); 
+bind_thm ("hoare_complete", MGF' RS MGF_complete); 
 
 section "unused derived rules";
 

@@ -96,7 +96,7 @@ apply (rule eclose_least_lemma [THEN UN_least], assumption+)
 done
 
 (*COMPLETELY DIFFERENT induction principle from eclose_induct!!*)
-lemma eclose_induct_down: 
+lemma eclose_induct_down [consumes 1]:
     "[| a: eclose(b);                                            
         !!y.   [| y: b |] ==> P(y);                              
         !!y z. [| y: eclose(b);  P(y);  z: y |] ==> P(z)         
@@ -107,9 +107,6 @@ apply (rule eclose_least [THEN subsetD, THEN CollectD2, of "eclose(b)"])
  apply (blast intro: ecloseD)
 apply (blast intro: arg_subset_eclose [THEN subsetD])
 done
-
-(*fixed up for induct method*)
-lemmas eclose_induct_down = eclose_induct_down [consumes 1]
 
 lemma Transset_eclose_eq_arg: "Transset(X) ==> eclose(X) = X"
 apply (erule equalityI [OF eclose_least arg_subset_eclose])

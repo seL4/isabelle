@@ -604,7 +604,7 @@ proof -
   ultimately show "\<langle>c1;c2,s1\<rangle> \<longrightarrow>\<^sub>1\<^sup>* cs3" by simp
 qed
 
-lemma evalc_impl_evalc1: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s1 \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s1\<rangle>"
+lemma evalc_impl_evalc1': "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s1 \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s1\<rangle>"
 apply (erule evalc.induct)
 
 -- SKIP 
@@ -680,7 +680,7 @@ lemma FB_lemma2 [rule_format]:
   apply (fastsimp elim!: evalc1_term_cases intro: FB_lemma3)
   done
 
-lemma evalc1_impl_evalc: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>t\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
+lemma evalc1_impl_evalc': "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>t\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
   apply (fastsimp dest: FB_lemma2)
   done
 

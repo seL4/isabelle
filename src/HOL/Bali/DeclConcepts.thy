@@ -567,11 +567,6 @@ undeclared_in:: "prog  \<Rightarrow> memberid \<Rightarrow> qtname \<Rightarrow>
                             fid fn  \<Rightarrow> cdeclaredfield G C fn  = None
                           | mid sig \<Rightarrow> cdeclaredmethd G C sig = None)"
 
-lemma method_declared_inI:
-  "\<lbrakk>class G C = Some c; table_of (methods c) sig = Some m\<rbrakk> 
-   \<Longrightarrow> G\<turnstile>mdecl (sig,m) declared_in C"
-by (auto simp add: declared_in_def cdeclaredmethd_def)
-
 
 subsubsection "members"
 

@@ -126,7 +126,7 @@ by (simp add: SXcpt_def)
 lemma neq_Ext_SXcpt [simp]: "Ext\<noteq>SXcpt xn"
 by (simp add: SXcpt_def)
 
-lemma neq_Main_Object [simp]: "Main\<noteq>SXcpt xn"
+lemma neq_Main_SXcpt [simp]: "Main\<noteq>SXcpt xn"
 by (simp add: SXcpt_def)
 
 section "classes and interfaces"
@@ -686,10 +686,6 @@ by (auto intro!: members.Immediate Base_declares_foo)
 lemma Base_foo_member_in_Base: 
   "tprg\<turnstile>(Base,mdecl Base_foo) member_in Base"
 by (rule member_of_to_member_in [OF Base_foo_member_of_Base])
-
-lemma Base_foo_member_of_Base: 
-  "tprg\<turnstile>(Base,mdecl Base_foo) member_of Base"
-by (auto intro!: members.Immediate Base_declares_foo)
 
 lemma Ext_foo_member_of_Ext: 
   "tprg\<turnstile>(Ext,mdecl Ext_foo) member_of Ext"

@@ -142,7 +142,7 @@ lemma Bnor_fin: "finite (BnorRset (a, m))"
    apply auto
   done
 
-lemma aux: "a \<le> b - 1 ==> a < (b::int)"
+lemma norR_mem_unique_aux: "a \<le> b - 1 ==> a < (b::int)"
   apply auto
   done
 
@@ -154,7 +154,7 @@ lemma norR_mem_unique:
    apply auto
    apply (rule_tac [2] m = m in zcong_zless_imp_eq)
        apply (auto intro: Bnor_mem_zle Bnor_mem_zg zcong_trans
-	 order_less_imp_le aux simp add: zcong_sym)
+	 order_less_imp_le norR_mem_unique_aux simp add: zcong_sym)
   apply (rule_tac "x" = "b" in exI)
   apply safe
   apply (rule Bnor_mem_if)
@@ -280,7 +280,7 @@ lemma RRset2norRR_eq_norR:
   done
 
 
-lemma aux: "a \<notin> A ==> inj f ==> f a \<notin> f ` A"
+lemma Bnor_prod_power_aux: "a \<notin> A ==> inj f ==> f a \<notin> f ` A"
   apply (unfold inj_on_def)
   apply auto
   done
@@ -295,7 +295,7 @@ lemma Bnor_prod_power [rule_format]:
    apply auto
   apply (simp add: Bnor_fin Bnor_mem_zle_swap)
   apply (subst setprod_insert)
-    apply (rule_tac [2] aux)
+    apply (rule_tac [2] Bnor_prod_power_aux)
      apply (unfold inj_on_def)
      apply (simp_all add: zmult_ac Bnor_fin finite_imageI
        Bnor_mem_zle_swap)

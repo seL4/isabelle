@@ -518,14 +518,15 @@ by (auto simp add: is_acc_class_def)
 lemma is_acc_iface_is_iface: "is_acc_iface G P I \<Longrightarrow> is_iface G I"
 by (auto simp add: is_acc_iface_def)
 
-lemma is_acc_iface_is_accessible: 
+lemma is_acc_iface_Iface_is_accessible: 
   "is_acc_iface G P I \<Longrightarrow> G\<turnstile>(Iface I) accessible_in P"
 by (auto simp add: is_acc_iface_def)
 
 lemma is_acc_type_is_type: "is_acc_type G P T \<Longrightarrow> is_type G T"
 by (auto simp add: is_acc_type_def)
 
-lemma is_acc_iface_is_accessible: "is_acc_type G P T \<Longrightarrow> G\<turnstile>T accessible_in P"
+lemma is_acc_iface_is_accessible:
+  "is_acc_type G P T \<Longrightarrow> G\<turnstile>T accessible_in P"
 by (auto simp add: is_acc_type_def)
 
 lemma wt_Methd_is_methd: 
@@ -538,13 +539,6 @@ done
 (* Special versions of some typing rules, better suited to pattern match the
  * conclusion (no selectors in the conclusion\<dots>)
  *)
-
-lemma wt_Super:
-"\<lbrakk>lcl E This = Some (Class C); C \<noteq> Object;
-  class (prg E) C = Some c;D=super c\<rbrakk> 
- \<Longrightarrow> E,dt\<Turnstile>Super\<Colon>-Class D"
-by (auto elim: wt.Super)
- 
 
 lemma wt_Call: 
 "\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT statT; E,dt\<Turnstile>ps\<Colon>\<doteq>pTs;  

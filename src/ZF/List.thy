@@ -425,7 +425,7 @@ done
 
 (** New induction rules **)
 
-lemma list_append_induct:
+lemma list_append_induct [case_names Nil snoc, consumes 1]:
     "[| l: list(A);
         P(Nil);
         !!x y. [| x: A;  y: list(A);  P(y) |] ==> P(y @ [x])
@@ -433,8 +433,6 @@ lemma list_append_induct:
 apply (subgoal_tac "P(rev(rev(l)))", simp)
 apply (erule rev_type [THEN list.induct], simp_all)
 done
-
-lemmas list_append_induct = list_append_induct [case_names Nil snoc, consumes 1]
 
 lemma list_complete_induct_lemma [rule_format]:
  assumes ih: 

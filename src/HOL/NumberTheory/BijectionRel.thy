@@ -77,26 +77,27 @@ proof -
     done
 qed
 
-lemma aux: "A \<subseteq> B ==> a \<notin> A ==> a \<in> B ==> inj_on f B ==> f a \<notin> f ` A"
+lemma inj_func_bijR_aux1:
+    "A \<subseteq> B ==> a \<notin> A ==> a \<in> B ==> inj_on f B ==> f a \<notin> f ` A"
   apply (unfold inj_on_def)
   apply auto
   done
 
-lemma aux:
+lemma inj_func_bijR_aux2:
   "\<forall>a. a \<in> A --> P a (f a) ==> inj_on f A ==> finite A ==> F <= A
     ==> (F, f ` F) \<in> bijR P"
   apply (rule_tac F = F and A = A in aux_induct)
      apply (rule finite_subset)
       apply auto
   apply (rule bijR.insert)
-     apply (rule_tac [3] aux)
+     apply (rule_tac [3] inj_func_bijR_aux1)
         apply auto
   done
 
 lemma inj_func_bijR:
   "\<forall>a. a \<in> A --> P a (f a) ==> inj_on f A ==> finite A
     ==> (A, f ` A) \<in> bijR P"
-  apply (rule aux)
+  apply (rule inj_func_bijR_aux2)
      apply auto
   done
 
@@ -166,14 +167,14 @@ lemma aux_in2:
       apply auto
   done
 
-lemma aux: "\<forall>a b. Q a \<and> P a b --> R b ==> P a b ==> Q a ==> R b"
+lemma aux_foo: "\<forall>a b. Q a \<and> P a b --> R b ==> P a b ==> Q a ==> R b"
   apply auto
   done
 
 lemma aux_bij: "bijP P F ==> symP P ==> P a b ==> (a \<in> F) = (b \<in> F)"
   apply (unfold bijP_def)
   apply (rule iffI)
-  apply (erule_tac [!] aux)
+  apply (erule_tac [!] aux_foo)
       apply simp_all
   apply (rule iffD2)
    apply (rule_tac P = P in aux_sym)

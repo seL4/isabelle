@@ -6,11 +6,6 @@
 Trivial Abstraction Example.
 *)
 
-val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by (fast_tac (claset() addDs prems) 1);
-qed "imp_conj_lemma";
-
-
 Goalw [is_abstraction_def] 
 "is_abstraction h_abs C_ioa A_ioa";
 by (rtac conjI 1);

@@ -892,15 +892,13 @@ apply (blast intro: Fin.consI Fin_mono [THEN [2] rev_subsetD])
 done
 
 (* Induction principle for Finite(A), by Sidi Ehmety *)
-lemma Finite_induct:
+lemma Finite_induct [case_names 0 cons, induct set: Finite]:
 "[| Finite(A); P(0);
     !! x B.   [| Finite(B); x ~: B; P(B) |] ==> P(cons(x, B)) |]
  ==> P(A)"
 apply (erule Finite_into_Fin [THEN Fin_induct]) 
 apply (blast intro: Fin_into_Finite)+
 done
-
-lemmas Finite_induct = Finite_induct [case_names 0 cons, induct set: Finite]
 
 (*Sidi Ehmety.  The contrapositive says ~Finite(A) ==> ~Finite(A-{a}) *)
 lemma Diff_sing_Finite: "Finite(A - {a}) ==> Finite(A)"
