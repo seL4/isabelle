@@ -129,6 +129,11 @@ New in this Isabelle release
   Similarly for "\<Union>x. B", and for \<Inter> instead of \<Union>.
   The subscript version is also accepted as input syntax.
 
+* Unions and Intersections over Intervals:
+  There is new short syntax "UN i<=n. A" for "UN i:{0..n}. A". There is 
+  also an x-symbol version with subscripts "\<Union>\<^bsub>i <= n\<^esub>. A" 
+  like in normal math, and corresponding versions for < and for intersection.
+
 * ML: the legacy theory structures Int and List have been removed. They had
   conflicted with ML Basis Library structures having the same names.
 

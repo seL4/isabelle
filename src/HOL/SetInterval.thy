@@ -33,6 +33,31 @@ constdefs
   atLeastAtMost :: "['a::ord, 'a] => 'a set"        ("(1{_.._})")
   "{l..u} == {l..} Int {..u}"
 
+syntax
+  "@UNION_le"   :: "nat => nat => 'b set => 'b set"       ("(3UN _<=_./ _)" 10)
+  "@UNION_less" :: "nat => nat => 'b set => 'b set"       ("(3UN _<_./ _)" 10)
+  "@INTER_le"   :: "nat => nat => 'b set => 'b set"       ("(3INT _<=_./ _)" 10)
+  "@INTER_less" :: "nat => nat => 'b set => 'b set"       ("(3INT _<_./ _)" 10)
+
+syntax (input)
+  "@UNION_le"   :: "nat => nat => 'b set => 'b set"       ("(3\<Union> _\<le>_./ _)" 10)
+  "@UNION_less" :: "nat => nat => 'b set => 'b set"       ("(3\<Union> _<_./ _)" 10)
+  "@INTER_le"   :: "nat => nat => 'b set => 'b set"       ("(3\<Inter> _\<le>_./ _)" 10)
+  "@INTER_less" :: "nat => nat => 'b set => 'b set"       ("(3\<Inter> _<_./ _)" 10)
+
+syntax (xsymbols)
+  "@UNION_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>\<^bsub>_ \<le> _\<^esub>/ _)" 10)
+  "@UNION_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>\<^bsub>_ < _\<^esub>/ _)" 10)
+  "@INTER_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>\<^bsub>_ \<le> _\<^esub>/ _)" 10)
+  "@INTER_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>\<^bsub>_ < _\<^esub>/ _)" 10)
+
+translations
+  "UN i<=n. A"  == "UN i:{..n}. A"
+  "UN i<n. A"   == "UN i:{..n(}. A"
+  "INT i<=n. A" == "INT i:{..n}. A"
+  "INT i<n. A"  == "INT i:{..n(}. A"
+
+
 subsection {*lessThan*}
 
 lemma lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
