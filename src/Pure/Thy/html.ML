@@ -156,6 +156,8 @@ local
      | "\\<nabla>" => (1.0, "&nabla;")
      | "\\<in>" => (1.0, "&isin;")
      | "\\<notin>" => (1.0, "&notin;")
+     | "\\<prod>" => (1.0, "&prod;")
+     | "\\<sum>" => (1.0, "&sum;")
      | "\\<star>" => (1.0, "&lowast;")
      | "\\<propto>" => (1.0, "&prop;")
      | "\\<infinity>" => (1.0, "&infin;")
