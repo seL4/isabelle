@@ -148,8 +148,8 @@ local
  (*Must check for negative literal first!*)
  val clause_rules = [disj_assoc, make_neg_rule, make_pos_rule];
 
- (*For Plaisted's postive refinement.  [currently unused] *)
- val refined_clause_rules = [disj_assoc, make_refined_neg_rule, make_pos_rule];
+ (*For ordinary resolution. *)
+ val resolution_clause_rules = [disj_assoc, make_neg_rule', make_pos_rule'];
 
  (*Create a goal or support clause, conclusing False*)
  fun make_goal th =   (*Must check for negative literal first!*)
@@ -267,6 +267,13 @@ fun make_clauses ths =
 fun make_horns ths =
     name_thms "Horn#"
       (gen_distinct Drule.eq_thm_prop (foldr (add_contras clause_rules) (ths,[])));
+
+(*Convert a list of clauses to meta-level clauses, with no contrapositives,
+  for ordinary resolution.*)
+fun make_meta_clauses ths =
+    name_thms "MClause#"
+      (gen_distinct Drule.eq_thm_prop
+       (map (make_horn resolution_clause_rules) ths));
 
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)

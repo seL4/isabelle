@@ -8,7 +8,9 @@ Lemmas for Meson.
 
 (* Generation of contrapositives *)
 
-(*Inserts negated disjunct after removing the negation; P is a literal*)
+(*Inserts negated disjunct after removing the negation; P is a literal.
+  Model elimination requires assuming the negation of every attempted subgoal,
+  hence the negated disjuncts.*)
 val [major,minor] = Goal "~P|Q ==> ((~P==>P) ==> Q)";
 by (rtac (major RS disjE) 1);
 by (rtac notE 1);
@@ -29,6 +31,14 @@ by (etac minor 1);
 by (ALLGOALS assume_tac);
 qed "make_pos_rule";
 
+(** Versions of make_neg_rule and make_pos_rule that don't insert new 
+    assumptions, for ordinary resolution. **)
+
+val make_neg_rule' = make_refined_neg_rule;
+
+Goal "[|P|Q; ~P|] ==> Q";
+by (Blast_tac 1);
+qed "make_pos_rule'";
 
 (* Generation of a goal clause -- put away the final literal *)
 
