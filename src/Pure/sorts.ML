@@ -9,6 +9,7 @@ signature SORTS =
 sig
   type classrel
   type arities
+  val str_of_classrel: class * class -> string
   val str_of_sort: sort -> string
   val str_of_arity: string * sort list * sort -> string
   val class_eq: classrel -> class * class -> bool
@@ -63,6 +64,8 @@ type arities = (string * (class * sort list) list) list;
 
 
 (* print sorts and arities *)
+
+fun str_of_classrel (c1, c2) = c1 ^ " < " ^ c2;
 
 fun str_of_sort [c] = c
   | str_of_sort cs = enclose "{" "}" (commas cs);
