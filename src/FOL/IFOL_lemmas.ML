@@ -251,7 +251,7 @@ qed_goal "trans" (the_context ()) "[| a=b;  b=c |] ==> a=c"
  (fn [prem1,prem2] => [ (rtac (prem2 RS subst) 1), (rtac prem1 1) ]);
 
 (** ~ b=a ==> ~ a=b **)
-val [not_sym] = compose(sym,2,contrapos);
+bind_thm ("not_sym", hd (compose(sym,2,contrapos)));
 
 
 (* Two theorms for rewriting only one instance of a definition:
@@ -358,7 +358,7 @@ val pred_congs =
                (explode"PQRS"));
 
 (*special case for the equality predicate!*)
-val eq_cong = read_instantiate [("P","op =")] pred2_cong;
+bind_thm ("eq_cong", read_instantiate [("P","op =")] pred2_cong);
 
 
 (*** Simplifications of assumed implications.

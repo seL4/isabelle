@@ -7,7 +7,7 @@ Tactics and lemmas for theory FOL (classical First-Order Logic).
 *)
 
 val classical = thm "classical";
-val ccontr = FalseE RS classical;
+bind_thm ("ccontr", FalseE RS classical);
 
 
 (*** Classical introduction rules for | and EX ***)
