@@ -204,7 +204,7 @@ representation:%
 Expanding \isa{three{\isacharunderscore}def} yields the premise \isa{n\ {\isasymle}\ {\isadigit{2}}}. Repeated
 elimination with \isa{le{\isacharunderscore}SucE}
 \begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}{\isacharquery}m\ {\isasymle}\ Suc\ {\isacharquery}n{\isacharsemicolon}\ {\isacharquery}m\ {\isasymle}\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isacharsemicolon}\ {\isacharquery}m\ {\isacharequal}\ Suc\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R%
+\ \ \ \ \ {\isacharquery}m\ {\isasymle}\ Suc\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isacharquery}m\ {\isasymle}\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isacharquery}m\ {\isacharequal}\ Suc\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharquery}R%
 \end{isabelle}
 reduces \isa{n\ {\isasymle}\ {\isadigit{2}}} to the three cases \isa{n\ {\isasymle}\ {\isadigit{0}}}, \isa{n\ {\isacharequal}\ {\isadigit{1}}} and
 \isa{n\ {\isacharequal}\ {\isadigit{2}}} which are trivial for simplification:%
@@ -231,10 +231,10 @@ When we now apply the above lemma, \isa{Q} becomes \isa{{\isasymlambda}n{\isacha
 \isacommand{apply}{\isacharparenleft}rule\ cases{\isacharunderscore}lemma{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{0}}{\isacharparenright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{1}}{\isacharparenright}\isanewline
-\ {\isadigit{3}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{2}}{\isacharparenright}\isanewline
-\ {\isadigit{4}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ x\ {\isasymin}\ three%
+\ {\isadigit{1}}{\isachardot}\ P\ A\ {\isasymLongrightarrow}\ P\ B\ {\isasymLongrightarrow}\ P\ C\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{0}}{\isacharparenright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ P\ A\ {\isasymLongrightarrow}\ P\ B\ {\isasymLongrightarrow}\ P\ C\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{1}}{\isacharparenright}\isanewline
+\ {\isadigit{3}}{\isachardot}\ P\ A\ {\isasymLongrightarrow}\ P\ B\ {\isasymLongrightarrow}\ P\ C\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{2}}{\isacharparenright}\isanewline
+\ {\isadigit{4}}{\isachardot}\ P\ A\ {\isasymLongrightarrow}\ P\ B\ {\isasymLongrightarrow}\ P\ C\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ x\ {\isasymin}\ three%
 \end{isabelle}
 The resulting subgoals are easily solved by simplification:%
 \end{isamarkuptxt}%

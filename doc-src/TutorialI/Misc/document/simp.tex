@@ -228,33 +228,31 @@ assumption of the subgoal.%
 }
 %
 \begin{isamarkuptext}%
-\indexbold{case splits}\index{*split|(}
+\indexbold{case splits}\index{*split (method, attr.)|(}
 Goals containing \isa{if}-expressions are usually proved by case
 distinction on the condition of the \isa{if}. For example the goal%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymforall}xs{\isachardot}\ if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-can be split by a degenerate form of simplification%
+can be split by a special method \isa{split}:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymforall}xs{\isachardot}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}%
 \end{isabelle}
-where no simplification rules are included (\isa{only{\isacharcolon}} is followed by the
-empty list of theorems) but the rule \isaindexbold{split_if} for
-splitting \isa{if}s is added (via the modifier \isa{split{\isacharcolon}}). Because
+where \isaindexbold{split_if} is a theorem that expresses splitting of
+\isa{if}s. Because
 case-splitting on \isa{if}s is almost always the right proof strategy, the
 simplifier performs it automatically. Try \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}}
 on the initial goal above.
 
 This splitting idea generalizes from \isa{if} to \isaindex{case}:%
 \end{isamarkuptxt}%
-\isanewline
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ zs\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ y{\isacharhash}{\isacharparenleft}ys{\isacharat}zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ xs{\isacharat}zs{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}split\ list{\isachardot}split{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ zs{\isacharparenright}\ {\isasymand}\isanewline
@@ -262,13 +260,14 @@ This splitting idea generalizes from \isa{if} to \isaindex{case}:%
 \end{isabelle}
 In contrast to \isa{if}-expressions, the simplifier does not split
 \isa{case}-expressions by default because this can lead to nontermination
-in case of recursive datatypes. Again, if the \isa{only{\isacharcolon}} modifier is
-dropped, the above goal is solved,%
+in case of recursive datatypes. Therefore the simplifier has a modifier
+\isa{split} for adding further splitting rules explicitly. This means the
+above lemma can be proved in one step by%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}simp\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
 \begin{isamarkuptext}%
-\noindent%
-which \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}} alone will not do.
+\noindent
+whereas \isacommand{apply}\isa{{\isacharparenleft}simp{\isacharparenright}} alone will not succeed.
 
 In general, every datatype $t$ comes with a theorem
 $t$\isa{{\isachardot}split} which can be declared to be a \bfindex{split rule} either
@@ -287,20 +286,25 @@ or globally:%
 \end{isamarkuptext}%
 \isacommand{declare}\ list{\isachardot}split\ {\isacharbrackleft}split\ del{\isacharbrackright}%
 \begin{isamarkuptext}%
+In polished proofs the \isa{split} method is rarely used on its own
+but always as part of the simplifier. However, if a goal contains
+multiple splittable constructs, the \isa{split} method can be
+helpful in selectively exploring the effects of splitting.
+
 The above split rules intentionally only affect the conclusion of a
 subgoal.  If you want to split an \isa{if} or \isa{case}-expression in
 the assumptions, you have to apply \isa{split{\isacharunderscore}if{\isacharunderscore}asm} or
 $t$\isa{{\isachardot}split{\isacharunderscore}asm}:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ ys\ {\isachartilde}{\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isacharequal}{\isachargreater}\ xs\ {\isacharat}\ ys\ {\isachartilde}{\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}%
+\isacommand{lemma}\ {\isachardoublequote}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ else\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 In contrast to splitting the conclusion, this actually creates two
 separate subgoals (which are solved by \isa{simp{\isacharunderscore}all}):
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}%
+\ {\isadigit{1}}{\isachardot}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ xs\ {\isacharat}\ ys\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
 If you need to split both in the assumptions and the conclusion,
 use $t$\isa{{\isachardot}splits} which subsumes $t$\isa{{\isachardot}split} and
@@ -313,9 +317,7 @@ $t$\isa{{\isachardot}split{\isacharunderscore}asm}. Analogously, there is \isa{i
   same is true for \isaindex{case}-expressions: only the selector is
   simplified at first, until either the expression reduces to one of the
   cases or it is split.
-\end{warn}
-
-\index{*split|)}%
+\end{warn}\index{*split (method, attr.)|)}%
 \end{isamarkuptxt}%
 %
 \isamarkupsubsubsection{Arithmetic%
