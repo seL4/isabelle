@@ -113,7 +113,8 @@ Paulson, L.~C.,
 \bibitem{paulson-set-II}
 Paulson, L.~C.,
 \newblock Set theory for verification: {II}. {Induction} and recursion,
-\newblock Tech. Rep. 312, Comp. Lab., Univ. Cambridge, 1993
+\newblock Tech. Rep. 312, Comp. Lab., Univ. Cambridge, 1993,
+\newblock To appear in J. Auto. Reas.
 
 \bibitem{paulson-final}
 Paulson, L.~C.,
