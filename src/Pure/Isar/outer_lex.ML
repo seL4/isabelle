@@ -9,10 +9,11 @@ signature OUTER_LEX =
 sig
   datatype token_kind =
     Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar | Nat |
-    String | Verbatim | Ignore | EOF
+    String | Verbatim | Ignore | Sync | EOF
   type token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
+  val not_sync: token -> bool
   val not_eof: token -> bool
   val position_of: token -> Position.T
   val pos_of: token -> string
@@ -38,7 +39,7 @@ struct
 
 datatype token_kind =
   Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar | Nat |
-  String | Verbatim | Ignore | EOF;
+  String | Verbatim | Ignore | Sync | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
@@ -55,7 +56,14 @@ val str_of_kind =
   | String => "string"
   | Verbatim => "verbatim text"
   | Ignore => "ignored text"
+  | Sync => "sync marker"
   | EOF => "end-of-file";
+
+
+(* sync token *)
+
+fun not_sync (Token (_, (Sync, _))) = false
+  | not_sync _ = true;
 
 
 (* eof token *)
@@ -131,8 +139,9 @@ val is_sid = is_symid orf Syntax.is_identifier;
 
 val scan_str =
   scan_blank >> K Symbol.space ||
-  keep_line ($$ "\\" |-- Scan.one Symbol.not_eof) ||
-  keep_line (Scan.one (not_equal "\\" andf not_equal "\"" andf Symbol.not_eof));
+  keep_line ($$ "\\" |-- Scan.one (Symbol.not_sync andf Symbol.not_eof)) ||
+  keep_line (Scan.one (not_equal "\\" andf not_equal "\"" andf
+    Symbol.not_sync andf Symbol.not_eof));
 
 val scan_string =
   keep_line ($$ "\"") |--
@@ -145,7 +154,7 @@ val scan_string =
 val scan_verb =
   scan_blank ||
   keep_line ($$ "*" --| Scan.ahead (Scan.one (not_equal "}"))) ||
-  keep_line (Scan.one (not_equal "*" andf Symbol.not_eof));
+  keep_line (Scan.one (not_equal "*" andf Symbol.not_sync andf Symbol.not_eof));
 
 val scan_verbatim =
   keep_line ($$ "{" -- $$ "*") |--
@@ -169,7 +178,7 @@ val scan_cmt =
   Scan.depend (fn d => keep_line ($$ "(" ^^ $$ "*") >> pair (d + 1)) ||
   Scan.depend (fn 0 => Scan.fail | d => keep_line ($$ "*" ^^ $$ ")") >> pair (d - 1)) ||
   Scan.lift (keep_line ($$ "*" --| Scan.ahead (Scan.one (not_equal ")")))) ||
-  Scan.lift (keep_line (Scan.one (not_equal "*" andf Symbol.not_eof)));
+  Scan.lift (keep_line (Scan.one (not_equal "*" andf Symbol.not_sync andf Symbol.not_eof)));
 
 val scan_comment =
   keep_line ($$ "(" -- $$ "*") |--
@@ -184,12 +193,14 @@ fun scan lex (pos, cs) =
   let
     fun token k x = Token (pos, (k, x));
     fun ignore _ = token Ignore "";
+    fun sync _ = token Sync Symbol.sync;
 
     val scanner =
       scan_string >> token String ||
       scan_verbatim >> token Verbatim ||
       scan_space >> ignore ||
       scan_comment >> ignore ||
+      keep_line (Scan.one Symbol.is_sync >> sync) ||
       keep_line (Scan.max token_leq
         (Scan.literal lex >> (token Keyword o implode))
         (Syntax.scan_longid >> token LongIdent ||
@@ -200,14 +211,13 @@ fun scan lex (pos, cs) =
           Syntax.scan_tvar >> token TypeVar ||
           Syntax.scan_nat >> token Nat ||
           scan_symid >> token SymIdent));
-  in
-    !! (lex_err (fn cs => "bad input " ^ quote (Symbol.beginning cs))) scanner (pos, cs)
-  end;
+  in !! (lex_err (fn cs => "bad input " ^ quote (Symbol.beginning cs))) scanner (pos, cs) end;
 
 
 (* source of (proper) tokens *)
 
-fun recover xs = keep_line (Scan.any1 ((not o Symbol.is_blank) andf Symbol.not_eof)) xs;
+val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
+fun recover xs = keep_line (Scan.any1 is_junk) xs;
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
