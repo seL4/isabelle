@@ -206,7 +206,7 @@ fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i =
 	   compose_tac (bires_flg, lift_inst_rule (state, i, sinsts, rule),
 			nsubgoal) i
 	   handle TERM (msg,_) => (writeln msg;  no_tac)
-		| THM _ => no_tac );
+		| THM  (msg,_,_) => (writeln msg;  no_tac) );
 
 (*Resolve version*)
 fun res_inst_tac sinsts rule i =
