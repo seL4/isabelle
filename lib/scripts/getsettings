@@ -22,6 +22,21 @@ ISATOOL=$ISABELLE_HOME/bin/isatool
 unset ENV
 unset BASH_ENV
 
+#support easy settings
+function choosefrom ()
+{
+  local RESULT=""
+  local FILE=""
+
+  for FILE in "$@"
+  do
+    [ -z "$RESULT" -a -e "$FILE" ] && RESULT="$FILE"
+  done
+
+  [ -z "$RESULT" ] && RESULT="$FILE"
+  echo "$RESULT"
+}
+
 #get actual settings
 . $ISABELLE_HOME/etc/settings || exit 2
 ISABELLE_SITE_SETTINGS_PRESENT=true
