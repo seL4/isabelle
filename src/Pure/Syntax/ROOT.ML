@@ -5,9 +5,10 @@
 This file builds the syntax module.
 *)
 
-use "symbol_font.ML";
 use "pretty.ML";
 use "lexicon.ML";
+structure Scanner: SCANNER = Lexicon;
+use "symbol_font.ML";
 use "ast.ML";
 use "syn_ext.ML";
 use "parser.ML";
@@ -17,8 +18,6 @@ use "mixfix.ML";
 use "printer.ML";
 use "syntax.ML";
 
-(*Hiding: only the most basic features are opened*)
+(*hiding: only the most basic features are opened*)
 structure BasicSyntax: BASIC_SYNTAX = Syntax;
 open BasicSyntax;
-
-structure Scanner: SCANNER = Lexicon;
