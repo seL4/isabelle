@@ -256,21 +256,18 @@ type parent_info =
   simps: tthm list};
 
 
-(* data kind 'records' *)
+(* data kind '"HOL/records' *)
 
-local
-  val recordsK = Object.kind "HOL/records";
-  exception Records of record_info Symtab.table;
+structure RecordsArgs =
+struct
+  val name = "HOL/records";
+  type T = record_info Symtab.table;
 
+  val empty = Symtab.empty;
+  val prep_ext = I;
+  val merge: T * T -> T = Symtab.merge (K true);
 
-  val empty = Records Symtab.empty;
-
-  fun prep_ext (x as Records _) = x;
-
-  fun merge (Records tab1, Records tab2) =
-    Records (Symtab.merge (K true) (tab1, tab2));
-
-  fun print sg (Records tab) =
+  fun print sg tab =
     let
       val prt_typ = Sign.pretty_typ sg;
       val ext_const = Sign.cond_extern sg Sign.constK;
@@ -288,20 +285,18 @@ local
     in
       seq (Pretty.writeln o pretty_record) (Symtab.dest tab)
     end;
-in
-  val init_records = Theory.init_data recordsK (empty, prep_ext, merge, print);
-  val print_records = Theory.print_data recordsK;
-  val get_records = Theory.get_data recordsK (fn Records x => x);
-  val put_records = Theory.put_data recordsK Records;
 end;
+
+structure RecordsData = TheoryDataFun(RecordsArgs);
+val print_records = RecordsData.print;
 
 
 (* get and put records *)
 
-fun get_record thy name = Symtab.lookup (get_records thy, name);
+fun get_record thy name = Symtab.lookup (RecordsData.get thy, name);
 
 fun put_record name info thy =
-  put_records (Symtab.update ((name, info), get_records thy)) thy;
+  RecordsData.put (Symtab.update ((name, info), RecordsData.get thy)) thy;
 
 
 (* parent records *)
@@ -701,7 +696,7 @@ val add_record_i = gen_add_record cert_typ (K I);
 (** setup theory **)
 
 val setup =
- [init_records,
+ [RecordsData.init,
   Theory.add_trfuns
     ([], [("_record", record_tr), ("_record_scheme", record_scheme_tr)], [], [])];
 

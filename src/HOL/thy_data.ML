@@ -28,33 +28,31 @@ structure ThyData: THY_DATA =
 struct
 
 
-(* data kind 'datatypes' *)
+(* data kind 'HOL/datatypes' *)
 
-local
-  val datatypesK = Object.kind "HOL/datatypes";
-  exception DatatypeInfo of datatype_info Symtab.table;
+structure DatatypesArgs =
+struct
+  val name = "HOL/datatypes";
+  type T = datatype_info Symtab.table;
 
-  val empty = DatatypeInfo Symtab.empty;
+  val empty = Symtab.empty;
+  val prep_ext = I;
+  val merge: T * T -> T = Symtab.merge (K true);
 
-  fun prep_ext (x as DatatypeInfo _) = x;
-
-  fun merge (DatatypeInfo tab1, DatatypeInfo tab2) =
-    DatatypeInfo (Symtab.merge (K true) (tab1, tab2));
-
-  fun print sg (DatatypeInfo tab) =
+  fun print sg tab =
     Pretty.writeln (Pretty.strs ("datatypes:" ::
       map (Sign.cond_extern sg Sign.typeK o fst) (Symtab.dest tab)));
-in
-  val init_datatypes = Theory.init_data datatypesK (empty, prep_ext, merge, print);
-  val get_datatypes_sg = Sign.get_data datatypesK (fn DatatypeInfo tab => tab);
-  val get_datatypes = get_datatypes_sg o sign_of;
-  val put_datatypes = Theory.put_data datatypesK DatatypeInfo;
 end;
+
+structure DatatypesData = TheoryDataFun(DatatypesArgs);
+val get_datatypes_sg = DatatypesData.get_sg;
+val get_datatypes = DatatypesData.get;
+val put_datatypes = DatatypesData.put;
 
 
 (* setup *)
 
-val setup = [init_datatypes];
+val setup = [DatatypesData.init];
 
 
 end;
