@@ -21,8 +21,6 @@ val AC_ss = OrdQuant_ss;
  
 (* ******************************************** *)
 
-val nat_implies_well_ord = nat_into_Ord RS well_ord_Memrel;
-
 (* Theorems analogous to ones presented in "ZF/Ordinal.ML" *)
 
 (* lemma for nat_le_imp_lepoll *)
@@ -43,18 +41,6 @@ val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 (* ********************************************************************** *)
 (*             lemmas concerning FOL and pure ZF theory                   *)
 (* ********************************************************************** *)
-
-(* The following two theorms are useful when rewriting only one instance  *) 
-(* of a definition                                                        *)
-(* first one for definitions of formulae and the second for terms         *)
-
-val prems = goal ZF.thy "(A == B) ==> A <-> B";
-by (asm_simp_tac (ZF_ss addsimps prems) 1);
-val def_imp_iff = result();
-
-val prems = goal ZF.thy "(A == B) ==> A = B";
-by (simp_tac (ZF_ss addsimps prems) 1);
-val def_imp_eq = result();
 
 goal thy "!!X. (A->X)=0 ==> X=0";
 by (fast_tac (ZF_cs addSIs [equals0I] addEs [lam_type RSN (2, equals0D)]) 1);
