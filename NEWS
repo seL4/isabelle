@@ -9,6 +9,25 @@ New in this Isabelle version
 
 * several changes of proof tools (see next section);
 
+* HOL/datatype:
+  - Theories using datatypes must now have Datatype.thy as an
+    ancestor.
+  - The specific <typename>.induct_tac no longer exists - use the
+    generic induct_tac instead.
+  - natE has been renamed to nat.exhaustion - use exhaust_tac
+    instead of res_inst_tac ... natE. Note that the variable
+    names in nat.exhaustion differ from the names in natE, this
+    may cause some "fragile" proofs to fail.
+  - the theorems split_<typename>_case and split_<typename>_case_asm
+    have been renamed to <typename>.split and <typename>.split_asm.
+  - Since default sorts are no longer ignored by the package,
+    some datatype definitions may have to be annotated with
+    explicit sort constraints.
+  - Primrec definitions no longer require function name and type
+    of recursive argument.
+  Use isatool fixdatatype to adapt your theories and proof scripts
+  to the new package (as usual, backup your sources first!).
+
 * HOL/inductive requires Inductive.thy as an ancestor; `inj_onto' is
 now called `inj_on' (which makes more sense);
 
@@ -93,6 +112,33 @@ lib/logo/isabelle-{small,tiny}.xpm;
 
 *** HOL ***
 
+* HOL/datatype package reorganized and improved: now supports mutually
+  recursive datatypes such as
+
+    datatype
+      'a aexp = IF_THEN_ELSE ('a bexp) ('a aexp) ('a aexp)
+              | SUM ('a aexp) ('a aexp)
+              | DIFF ('a aexp) ('a aexp)
+              | NUM 'a
+    and
+      'a bexp = LESS ('a aexp) ('a aexp)
+              | AND ('a bexp) ('a bexp)
+              | OR ('a bexp) ('a bexp)
+
+  as well as indirectly recursive datatypes such as
+
+    datatype
+      ('a, 'b) term = Var 'a
+                    | App 'b ((('a, 'b) term) list)
+
+  The new tactic
+
+    mutual_induct_tac [<var_1>, ..., <var_n>] i
+
+  performs induction on mutually / indirectly recursive datatypes.
+  Primrec equations are now stored in theory and can be accessed
+  via <function_name>.simps
+
 * reorganized the main HOL image: HOL/Integ and String loaded by
 default; theory Main includes everything;
 
@@ -123,7 +169,7 @@ definitions such as
 
   inductive EVEN ODD
     intrs
-      null " 0 : EVEN"
+      null "0 : EVEN"
       oddI "n : EVEN ==> Suc n : ODD"
       evenI "n : ODD ==> Suc n : EVEN"
 
