@@ -30,8 +30,7 @@ sig
   val get_datatypes_sg: Sign.sg -> datatype_info Symtab.table
   val get_datatypes: theory -> datatype_info Symtab.table
   val put_datatypes: datatype_info Symtab.table -> theory -> theory
-  val hol_data: (string * (object * (object -> object) *
-    (object * object -> object) * (Sign.sg -> object -> unit))) list
+  val setup: theory -> theory
 end;
 
 structure ThyData: THY_DATA =
@@ -66,7 +65,7 @@ end;
 fun get_datatypes_sg sg =
   (case Sign.get_data sg datatypesK of
     DatatypeInfo tab => tab
-  | _ => sys_error "get_datatypes_sg");
+  | _ => type_error datatypesK);
 
 val get_datatypes = get_datatypes_sg o sign_of;
 
@@ -122,20 +121,16 @@ end;
 fun get_records thy =
   (case Theory.get_data thy recordsK of
     Records tab => tab
-  | _ => sys_error "get_records");
+  | _ => type_error recordsK);
 
 fun put_records tab thy =
   Theory.put_data (recordsK, Records tab) thy;
 
 
 
-(** hol_data **)
+(** theory data setup **)
 
-val hol_data =
- [Simplifier.simpset_thy_data,
-  ClasetThyData.thy_data,
-  datatypes_thy_data,
-  record_thy_data];
+val setup = Theory.init_data [datatypes_thy_data, record_thy_data];
 
 
 end;
