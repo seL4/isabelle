@@ -75,6 +75,10 @@ sig
   val bang_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
     (thm list -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val bang_sectioned_args':
+    (Args.T list -> modifier * Args.T list) list ->
+    (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
+    ('a -> thm list -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val only_sectioned_args:
     (Args.T list -> modifier * Args.T list) list ->
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
@@ -507,6 +511,8 @@ fun sectioned_args args ss f src ctxt =
   in f x ctxt' end;
 
 fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
+fun bang_sectioned_args' ss scan f =
+  sectioned_args (Args.bang_facts -- scan >> swap) ss (uncurry f);
 fun only_sectioned_args ss f = sectioned_args (Scan.succeed ()) ss (fn () => f);
 
 fun thms_ctxt_args f = sectioned_args (thmss []) [] f;
