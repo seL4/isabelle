@@ -100,7 +100,7 @@ type goal =
 datatype mode = Forward | ForwardChain | Backward;
 
 val mode_name =
-  fn Forward => "forward" | ForwardChain => "forward chain" | Backward => "backward";
+  fn Forward => "state" | ForwardChain => "chain" | Backward => "prove";
 
 
 (* type node *)
