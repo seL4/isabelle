@@ -22,6 +22,7 @@ sig
   val succeed: Proof.method
   val same_tac: thm list -> int -> tactic
   val same: Proof.method
+  val assumption_tac: thm list -> int -> tactic
   val assumption: Proof.method
   val forward_chain: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
@@ -55,13 +56,15 @@ sig
   val tac: text -> Proof.state -> Proof.state Seq.seq
   val then_tac: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
-  val local_qed: text option -> ({kind: string, name: string, thm: thm} -> unit)
+  val local_qed: text option
+    -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
-  val local_terminal_proof: text * text option -> ({kind: string, name: string, thm: thm} -> unit)
+  val local_terminal_proof: text * text option
+    -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
-  val local_immediate_proof: ({kind: string, name: string, thm: thm} -> unit)
+  val local_immediate_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
-  val local_default_proof: ({kind: string, name: string, thm: thm} -> unit)
+  val local_default_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
   val global_qed: text option -> Proof.state -> theory * {kind: string, name: string, thm: thm}
   val global_terminal_proof: text * text option
@@ -95,16 +98,24 @@ val fail = METHOD (K no_tac);
 val succeed = METHOD (K all_tac);
 
 
-(* same, assumption *)
+(* same *)
 
-fun same_tac [] = K all_tac
-  | same_tac facts =
-      let val r = ~ (length facts);
-      in metacuts_tac facts THEN' rotate_tac r end;
+fun cut_rule_tac raw_rule =
+  let
+    val rule = Drule.forall_intr_vars raw_rule;
+    val revcut_rl = Drule.incr_indexes_wrt [] [] [] [rule] Drule.revcut_rl;
+  in Tactic.rtac (rule COMP revcut_rl) THEN' Tactic.rotate_tac ~1 end;
+
+fun same_tac [] i = all_tac
+  | same_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
 
 val same = METHOD (ALLGOALS o same_tac);
-val assumption = METHOD (fn facts => FIRSTGOAL (same_tac facts THEN' assume_tac));
 
+
+(* assumption *)
+
+fun assumption_tac facts = same_tac facts THEN' assume_tac;
+val assumption = METHOD (FIRSTGOAL o assumption_tac);
 val asm_finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
 
 
