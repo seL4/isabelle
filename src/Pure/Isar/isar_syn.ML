@@ -105,7 +105,7 @@ val typedeclP =
 val typeabbrP =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
-      (P.type_args -- P.name -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix)) -- P.marg_comment)
+      (P.type_args -- P.name -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix')) -- P.marg_comment)
       >> (Toplevel.theory o IsarThy.add_tyabbrs o
         map (fn (((args, a), (T, mx)), cmt) => ((a, args, T, mx), cmt))));
 

@@ -49,6 +49,8 @@ sig
   val typ: token list -> string * token list
   val opt_infix: token list -> Syntax.mixfix * token list
   val opt_mixfix: token list -> Syntax.mixfix * token list
+  val opt_infix': token list -> Syntax.mixfix * token list
+  val opt_mixfix': token list -> Syntax.mixfix * token list
   val const: token list -> (bstring * string * Syntax.mixfix) * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
@@ -212,11 +214,14 @@ val mixfix =
   (string -- !!! (opt_pris -- Scan.optional nat Syntax.max_pri))
   >> (Syntax.Mixfix o triple2);
 
-fun opt_fix fix =
-  Scan.optional ($$$ "(" |-- fix --| $$$ ")") Syntax.NoSyn;
+fun opt_fix guard fix =
+  Scan.optional ($$$ "(" |-- guard (fix --| $$$ ")")) Syntax.NoSyn;
 
-val opt_infix = opt_fix (infxl || infxr);
-val opt_mixfix = opt_fix (mixfix || binder || infxl || infxr);
+val opt_infix = opt_fix !!! (infxl || infxr);
+val opt_mixfix = opt_fix !!! (mixfix || binder || infxl || infxr);
+
+val opt_infix' = opt_fix I (infxl || infxr);
+val opt_mixfix' = opt_fix I (mixfix || binder || infxl || infxr);
 
 
 (* consts *)
