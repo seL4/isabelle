@@ -19,7 +19,7 @@ open Domain_Library;
   fun check_and_sort_domain (dtnvs: (string * typ list) list, cons'' :
      ((string * mixfix * (bool*string*typ) list) list) list) sg =
   let
-    val defaultS = Type.defaultS (tsig_of sg);
+    val defaultS = Sign.defaultS sg;
     val test_dupl_typs = (case duplicates (map fst dtnvs) of 
 	[] => false | dups => error ("Duplicate types: " ^ commas_quote dups));
     val test_dupl_cons = (case duplicates (map first (flat cons'')) of 
