@@ -267,10 +267,13 @@ while (<>) { # main loop
   s/^Delsplits\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"split del")/seg;
   s/^AddIs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"intro")/seg;
   s/^AddSIs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"intro!")/seg;
+  s/^AddXIs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"intro?")/seg;
   s/^AddEs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"elim")/seg;
   s/^AddSEs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"elim!")/seg;
+  s/^AddXEs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"elim?")/seg;
   s/^AddDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest")/seg;
   s/^AddSDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest!")/seg;
+  s/^AddXDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest?")/seg;
   s/^AddIffs\s*\[?\s*([\w\'\. ,]*)\s*\]?</decl($1,"iff")/seg;
   print "$_$tail";
   if(eof()) { last; } # prevents reading finally from stdin (thru <>)!
