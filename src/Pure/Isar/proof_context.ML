@@ -71,6 +71,7 @@ sig
   val get_thm_closure: context -> string -> thm
   val get_thms: context -> string -> thm list
   val get_thms_closure: context -> string -> thm list
+  val get_thms_with_closure: (string -> thm list) -> context -> string -> thm list
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
@@ -788,6 +789,7 @@ val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
 val get_thm_closure = retrieve_thms PureThy.get_thms_closure PureThy.single_thm;
 val get_thms = retrieve_thms PureThy.get_thms (K I);
 val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
+fun get_thms_with_closure closure = retrieve_thms (K closure) (K I);
 
 
 (* put_thm(s) *)
@@ -943,7 +945,7 @@ fun gen_fix prep add raw_vars ctxt =
     val xs = flat (map fst varss);
   in
     (case Library.duplicates xs of [] => () | dups => err_dups ctxt dups);
-    ctxt' |> map_vars (add ctxt xs)
+    ctxt' |> map_vars (add ctxt (rev xs))
   end;
 
 in
@@ -954,9 +956,12 @@ val fix_direct = gen_fix cert_vars add_vars_direct;
 
 end;
 
-fun fix_frees ts =
-  let val frees = foldl (foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs)) ([], ts)
-  in fix_direct (map (fn (x, T) => ([x], Some T)) frees) end;
+fun fix_frees ts ctxt =
+  let
+    val frees = foldl (foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs)) ([], ts);
+    val fixed = fixed_names ctxt;
+    fun new (x, T) = if x mem_string fixed then None else Some ([x], Some T);
+  in fix_direct (mapfilter new frees) ctxt end;
 
 
 (*Note: improper use may result in variable capture / dynamic scoping!*)
