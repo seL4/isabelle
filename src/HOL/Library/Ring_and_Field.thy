@@ -33,4 +33,9 @@ axclass field < ring, inverse
   left_inverse: "a \<noteq> 0 ==> inverse a * a = #1"
   divides_inverse: "b \<noteq> 0 ==> a / b = a * inverse b"
 
+
+axclass ordered_field < field, linorder
+  add_left_mono: "a \<le> b ==> c + a \<le> c + b"
+  mult_left_mono: "a \<le> b ==> 0 < c ==> c * a \<le> c * b"
+
 end
