@@ -14,6 +14,7 @@ Shared = Message + List +
 
 consts
   shrK    :: agent => key  (*symmetric keys*)
+  leaked  :: nat set       (*Friendly agents whose keys have leaked to Enemy*)
 
 rules
   isSym_shrK "isSymKey (shrK A)"
@@ -25,7 +26,8 @@ primrec initState agent
         (*Server knows all keys; other agents know only their own*)
   initState_Server  "initState Server     = Key `` range shrK"
   initState_Friend  "initState (Friend i) = {Key (shrK (Friend i))}"
-  initState_Enemy   "initState Enemy  = {Key (shrK Enemy)}"
+  initState_Enemy
+    "initState Enemy = insert (Key (shrK Enemy)) (Key``shrK``Friend``leaked)"
 
 datatype  (*Messages, and components of agent stores*)
   event = Says agent agent msg

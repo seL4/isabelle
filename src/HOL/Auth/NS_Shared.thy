@@ -24,7 +24,7 @@ inductive ns_shared
     Fake "[| evs: ns_shared;  B ~= Enemy;  X: synth (analz (sees Enemy evs))
           |] ==> Says Enemy B X # evs : ns_shared"
 
-         (*Alice initiates a protocol run*)
+         (*Alice initiates a protocol run, requesting to talk to any B*)
     NS1  "[| evs: ns_shared;  A ~= Server
           |] ==> Says A Server {|Agent A, Agent B, Nonce (newN evs)|} # evs
                  : ns_shared"
