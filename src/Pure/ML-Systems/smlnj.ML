@@ -108,72 +108,36 @@ fun use_text (print, err) verbose txt =
 
 (** interrupts **)
 
+exception Interrupt;
+
 local
 
-datatype 'a result =
-  Result of 'a |
-  Exn of exn;
+fun capture f x = ((f x): unit; NONE) handle exn => SOME exn;
 
-fun capture f x = Result (f x) handle exn => Exn exn;
-
-fun release (Result x) = x
-  | release (Exn exn) = raise exn;
-
-
-val sig_int = Signals.sigINT;
-val sig_int_mask = Signals.MASK [Signals.sigINT];
-
-fun interruptible () =
-  (case Signals.masked () of
-    Signals.MASKALL => false
-  | Signals.MASK sigs => List.all (fn s => s <> sig_int) sigs);
-
-val mask_signals = Signals.maskSignals;
-val unmask_signals = Signals.unmaskSignals;
-
-fun change_mask ok change unchange f x =
-  if ok () then f x
-  else
-    let
-      val _ = change sig_int_mask;
-      val result = capture f x;
-      val _ = unchange sig_int_mask;
-    in release result end;
+fun release NONE = ()
+  | release (SOME exn) = raise exn;
 
 in
 
-
-(* mask / unmask interrupt *)
-
-fun mask_interrupt f = change_mask (not o interruptible) mask_signals unmask_signals f;
-fun unmask_interrupt f = change_mask interruptible unmask_signals mask_signals f;
-
-
-(* exhibit interrupt (via exception) *)
-
-exception Interrupt;
-
-fun exhibit_interrupt f x =
+fun ignore_interrupt f x =
   let
-    val orig_handler = Signals.inqHandler sig_int;
-    fun reset_handler () = (Signals.setHandler (sig_int, orig_handler); ());
+    val old_handler = Signals.setHandler (Signals.sigINT, Signals.IGNORE);
+    val result = capture f x;
+    val _ = Signals.setHandler (Signals.sigINT, old_handler);
+  in release result end;
 
+fun raise_interrupt f x =
+  let
     val interrupted = ref false;
-
-    fun set_handler cont =
-      Signals.setHandler (sig_int, Signals.HANDLER (fn _ => (interrupted := true; cont)));
-
-    fun proceed cont =
-      let
-        val _ = set_handler cont;
-        val result = unmask_interrupt (capture f) x;
-        val _ = reset_handler ();
-      in release result end;
+    val result = ref NONE;
+    val old_handler = Signals.inqHandler Signals.sigINT;
   in
-    SMLofNJ.Cont.callcc proceed;
-    reset_handler ();
-    if ! interrupted then raise Interrupt else ()
-   end;
+    SMLofNJ.Cont.callcc (fn cont =>
+      (Signals.setHandler (Signals.sigINT, Signals.HANDLER (fn _ => (interrupted := true; cont)));
+      result := capture f x));
+    Signals.setHandler (Signals.sigINT, old_handler);
+    if ! interrupted then raise Interrupt else release (! result)
+  end;
 
 end;
 
@@ -198,7 +162,7 @@ fun execute command =
   end;
 
 (*plain version; with return code*)
-val system = OS.Process.system: string -> int; 
+val system = OS.Process.system: string -> int;
 
 
 (* file handling *)
