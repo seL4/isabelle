@@ -7,12 +7,15 @@ Type classes and sorts. Type signatures. Type unification and inference.
 TODO:
   move type unification and inference to type_unify.ML (TypeUnify) (?)
   rename args -> tycons, coreg -> arities (?)
-  clean err msgs
 *)
 
 signature TYPE =
 sig
   structure Symtab: SYMTAB
+  val no_tvars: typ -> typ
+  val varifyT: typ -> typ
+  val unvarifyT: typ -> typ
+  val varify: term * string list -> term
   val str_of_sort: sort -> string
   val str_of_arity: string * sort list * sort -> string
   type type_sig
@@ -21,19 +24,17 @@ sig
      subclass: (class * class list) list,
      default: sort,
      args: (string * int) list,
-     abbrs: (string * (indexname list * typ)) list,
+     abbrs: (string * (string list * typ)) list,
      coreg: (string * (class * sort list) list) list}
   val defaultS: type_sig -> sort
   val tsig0: type_sig
   val logical_types: type_sig -> string list
-  val extend_tsig: type_sig ->
-    (class * class list) list * sort * (string list * int) list *
-    (string list * (sort list * class)) list -> type_sig
+  val ext_tsig_classes: type_sig -> (class * class list) list -> type_sig
   val ext_tsig_subclass: type_sig -> (class * class) list -> type_sig
   val ext_tsig_defsort: type_sig -> sort -> type_sig
   val ext_tsig_types: type_sig -> (string * int) list -> type_sig
-  val ext_tsig_abbrs: type_sig -> (string * (indexname list * typ)) list
-    -> type_sig
+  val ext_tsig_abbrs: type_sig -> (string * string list * typ) list -> type_sig
+  val ext_tsig_arities: type_sig -> (string * sort list * sort) list -> type_sig
   val merge_tsigs: type_sig * type_sig -> type_sig
   val subsort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
@@ -53,9 +54,6 @@ sig
   val unify: type_sig -> (typ * typ) * (indexname * typ) list
     -> (indexname * typ) list
   val raw_unify: typ * typ -> bool
-  val unvarifyT		: typ -> typ  
-  val varifyT: typ -> typ
-  val varify: term * string list -> term
   exception TUNIFY
   exception TYPE_MATCH
 end;
@@ -64,6 +62,39 @@ functor TypeFun(structure Symtab: SYMTAB and Syntax: SYNTAX): TYPE =
 struct
 
 structure Symtab = Symtab;
+
+
+(*** TFrees vs TVars ***)
+
+(*disallow TVars*)
+fun no_tvars T =
+  if null (typ_tvars T) then T
+  else raise_type "Illegal schematic type variable(s)" [T] [];
+
+(*turn TFrees into TVars to allow types & axioms to be written without "?"*)
+fun varifyT (Type (a, Ts)) = Type (a, map varifyT Ts)
+  | varifyT (TFree (a, S)) = TVar ((a, 0), S)
+  | varifyT T = T;
+
+(*inverse of varifyT*)
+fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
+  | unvarifyT (TVar ((a, 0), S)) = TFree (a, S)
+  | unvarifyT T = T;
+
+(*turn TFrees except those in fixed into new TVars*)
+fun varify (t, fixed) =
+  let
+    val fs = add_term_tfree_names (t, []) \\ fixed;
+    val ixns = add_term_tvar_ixns (t, []);
+    val fmap = fs ~~ variantlist (fs, map #1 ixns)
+    fun thaw (Type(a, Ts)) = Type (a, map thaw Ts)
+      | thaw (T as TVar _) = T
+      | thaw (T as TFree(a, S)) =
+          (case assoc (fmap, a) of None => T | Some b => TVar((b, 0), S))
+  in
+    map_term_types thaw t
+  end;
+
 
 
 (*** type classes and sorts ***)
@@ -125,7 +156,7 @@ datatype type_sig =
     subclass: (class * class list) list,
     default: sort,
     args: (string * int) list,
-    abbrs: (string * (indexname list * typ)) list,
+    abbrs: (string * (string list * typ)) list,
     coreg: (string * (class * domain) list) list};
 
 fun rep_tsig (TySg comps) = comps;
@@ -150,20 +181,20 @@ fun err_neg_args c =
 fun err_dup_tycon c =
   error ("Duplicate declaration of type constructor " ^ quote c);
 
-fun err_dup_tyabbr c =
-  error ("Duplicate declaration of type abbreviation " ^ quote c);
+fun dup_tyabbrs ts =
+  "Duplicate declaration of type abbreviation(s) " ^ commas_quote ts;
 
 fun ty_confl c = "Conflicting type constructor and abbreviation " ^ quote c;
 val err_ty_confl = error o ty_confl;
 
 
 (* 'leq' checks the partial order on classes according to the
-   statements in the association list 'a' (i.e.'subclass')
+   statements in the association list 'a' (i.e. 'subclass')
 *)
 
 fun less a (C, D) = case assoc (a, C) of
-     Some(ss) => D mem ss
-   | None => err_undcl_class (C) ;
+     Some ss => D mem ss
+   | None => err_undcl_class C;
 
 fun leq a (C, D)  =  C = D orelse less a (C, D);
 
@@ -310,17 +341,17 @@ fun inst_term_tvars(tsig, tye) = map_term_types (inst_typ_tvars(tsig, tye));
 
 fun expand_typ (TySg {abbrs, ...}) ty =
   let
-    fun exptyp (Type (a, Ts)) =
+    val idx = maxidx_of_typ ty + 1;
+
+    fun expand (Type (a, Ts)) =
           (case assoc (abbrs, a) of
-            Some (vs, U) => exptyp (inst_typ (vs ~~ Ts) U)
-          | None => Type (a, map exptyp Ts))
-      | exptyp T = T
+            Some (vs, U) =>
+              expand (inst_typ (map (rpair idx) vs ~~ Ts) (incr_tvar idx U))
+          | None => Type (a, map expand Ts))
+      | expand T = T
   in
-    exptyp ty
+    expand ty
   end;
-
-
-(* norm_typ *)      (* FIXME norm sorts *)
 
 val norm_typ = expand_typ;
 
@@ -372,12 +403,6 @@ fun norm_sort (TySg {subclass, ...}) S =
 fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
   | rem_sorts (TFree (x, _)) = TFree (x, [])
   | rem_sorts (TVar (xi, _)) = TVar (xi, []);
-
-
-
-fun twice(a) = error("Type constructor " ^a^ " has already been declared.");
-
-fun tyab_conflict(a) = error("Can't declare type "^(quote a)^"!\nAn abbreviation with this name exists already.");
 
 
 (* typ_errors *)
@@ -517,16 +542,11 @@ fun merge_args (args, (t, n)) =
     Some m => if m = n then args else varying_decls t
   | None => (t, n) :: args);
 
-(* FIXME raise TERM *)
 fun merge_abbrs (abbrs1, abbrs2) =
-  let
-    val abbrs = abbrs1 union abbrs2;
-    val names = map fst abbrs;
-  in
-    (case duplicates names of
+  let val abbrs = abbrs1 union abbrs2 in
+    (case gen_duplicates eq_fst abbrs of
       [] => abbrs
-    | dups => error ("Duplicate declaration of type abbreviations: " ^
-        commas_quote dups))
+    | dups => raise_term (dup_tyabbrs (map fst dups)) [])
   end;
 
 
@@ -551,20 +571,12 @@ fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1, arg
 
 (*** extend type signatures ***)
 
-(** add classes **)
+(** add classes and subclass relations**)
 
-(* FIXME use? *)
 fun add_classes classes cs =
   (case cs inter classes of
     [] => cs @ classes
   | dups => err_dup_classes cs);
-
-
-(* 'add_class' adds a new class to the list of all existing classes *)
-
-fun add_class (classes, (s, _)) =
-  if s mem classes then error("Class " ^ s ^ " declared twice.")
-  else s :: classes;
 
 
 (*'add_subclass' adds a tuple consisting of a new class (the new class has
@@ -575,26 +587,39 @@ fun add_class (classes, (s, _)) =
   no cycles (i.e. C <= D <= C, with C <> D);*)
 
 fun add_subclass classes (subclass, (s, ges)) =
-let fun upd (subclass, s') = if s' mem classes then
+  let
+    fun upd (subclass, s') =
+      if s' mem classes then
         let val ges' = the (assoc (subclass, s))
         in case assoc (subclass, s') of
              Some sups => if s mem sups
                            then error(" Cycle :" ^ s^" <= "^ s'^" <= "^ s )
                            else overwrite (subclass, (s, sups union ges'))
            | None => subclass
-         end
-         else err_undcl_class(s')
-in foldl upd (subclass@[(s, ges)], ges) end;
+        end
+      else err_undcl_class s'
+  in foldl upd (subclass @ [(s, ges)], ges) end;
 
 
 (* 'extend_classes' inserts all new classes into the corresponding
    lists ('classes', 'subclass') if possible *)
 
-fun extend_classes (classes, subclass, newclasses) =
-  if newclasses = [] then (classes, subclass) else
-  let val classes' = foldl add_class (classes, newclasses);
-      val subclass' = foldl (add_subclass classes') (subclass, newclasses);
+fun extend_classes (classes, subclass, new_classes) =
+  let
+    val classes' = add_classes classes (map fst new_classes);
+    val subclass' = foldl (add_subclass classes') (subclass, new_classes);
   in (classes', subclass') end;
+
+
+(* ext_tsig_classes *)
+
+fun ext_tsig_classes tsig new_classes =
+  let
+    val TySg {classes, subclass, default, args, abbrs, coreg} = tsig;
+    val (classes', subclass') = extend_classes (classes, subclass, new_classes);
+  in
+    make_tsig (classes', subclass', default, args, abbrs, coreg)
+  end;
 
 
 (* ext_tsig_subclass *)
@@ -618,7 +643,7 @@ fun ext_tsig_defsort (TySg {classes, subclass, args, abbrs, coreg, ...}) default
 
 
 
-(** add types **)   (* FIXME check *)
+(** add types **)
 
 fun ext_tsig_types (TySg {classes, subclass, default, args, abbrs, coreg}) ts =
   let
@@ -630,7 +655,7 @@ fun ext_tsig_types (TySg {classes, subclass, default, args, abbrs, coreg}) ts =
   in
     seq check_type ts;
     make_tsig (classes, subclass, default, ts @ args, abbrs,
-      map (rpair [] o #1) ts @ coreg)    (* FIXME (t, []) needed? *)
+      map (rpair [] o #1) ts @ coreg)
   end;
 
 
@@ -640,18 +665,17 @@ fun ext_tsig_types (TySg {classes, subclass, default, args, abbrs, coreg}) ts =
 fun abbr_errors tsig (a, (lhs_vs, rhs)) =
   let
     val TySg {args, abbrs, ...} = tsig;
-    val rhs_vs = map #1 (typ_tvars rhs);
-    val show_idxs = commas_quote o map fst;
+    val rhs_vs = map (#1 o #1) (typ_tvars rhs);
 
     val dup_lhs_vars =
       (case duplicates lhs_vs of
         [] => []
-      | vs => ["Duplicate variables on lhs: " ^ show_idxs vs]);
+      | vs => ["Duplicate variables on lhs: " ^ commas_quote vs]);
 
     val extra_rhs_vars =
       (case gen_rems (op =) (rhs_vs, lhs_vs) of
         [] => []
-      | vs => ["Extra variables on rhs: " ^ show_idxs vs]);
+      | vs => ["Extra variables on rhs: " ^ commas_quote vs]);
 
     val tycon_confl =
       if is_none (assoc (args, a)) then []
@@ -665,15 +689,25 @@ fun abbr_errors tsig (a, (lhs_vs, rhs)) =
       typ_errors tsig (rhs, [])
   end;
 
-fun add_abbr (tsig, abbr as (a, _)) =
-  let val TySg {classes, subclass, default, args, coreg, abbrs} = tsig in
+fun prep_abbr tsig (a, vs, raw_rhs) =
+  let
+    fun err msgs = (seq writeln msgs;
+      error ("The error(s) above occurred in type abbreviation " ^ quote a));
+
+    val rhs = rem_sorts (varifyT (no_tvars raw_rhs))
+      handle TYPE (msg, _, _) => err [msg];
+    val abbr = (a, (vs, rhs));
+  in
     (case abbr_errors tsig abbr of
-      [] => make_tsig (classes, subclass, default, args, abbr :: abbrs, coreg)
-    | errs => (seq writeln errs;
-        error ("The error(s) above occurred in type abbreviation " ^ quote a)))
+      [] => abbr
+    | msgs => err msgs)
   end;
 
-fun ext_tsig_abbrs tsig abbrs = foldl add_abbr (tsig, abbrs);
+fun add_abbr (tsig as TySg {classes, subclass, default, args, coreg, abbrs}, abbr) =
+  make_tsig
+    (classes, subclass, default, args, prep_abbr tsig abbr :: abbrs, coreg);
+
+fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
 
 
 
@@ -713,9 +747,9 @@ fun coregular (classes, subclass, args) =
    no declaration t:(Ss')D with C <=D then the declaration holds
    for all range classes more general than C *)
 
-fun close (coreg, subclass) =
+fun close subclass coreg =
   let fun check sl (l, (s, dom)) = case assoc (subclass, s) of
-          Some(sups) =>
+          Some sups =>
             let fun close_sup (l, sup) =
                   if exists (fn s'' => less subclass (s, s'') andalso
                                        leq subclass (s'', sup)) sl
@@ -727,83 +761,58 @@ fun close (coreg, subclass) =
   in map ext coreg end;
 
 
-(** add types **)
+(* ext_tsig_arities *)
 
-(* FIXME old *)
-fun add_types (aca, (ts, n)) =
+fun ext_tsig_arities tsig sarities =
   let
-    fun add_type ((args, coreg, abbrs), t) =
-      case assoc(args, t) of              (* FIXME from new *)
-        Some _ => twice(t)
-      | None =>
-          (case assoc(abbrs, t) of
-            Some _ => tyab_conflict(t)
-          | None => ((t, n)::args, (t, [])::coreg, abbrs))
+    val TySg {classes, subclass, default, args, coreg, abbrs} = tsig;
+    val arities =
+      flat (map (fn (t, ss, cs) => map (fn c => ([t], (ss, c))) cs) sarities);
+    val coreg' =
+      foldl (coregular (classes, subclass, args))
+        (coreg, min_domain subclass arities)
+      |> close subclass;
   in
-    if n < 0 then     (* FIXME err_neg_args *)
-      error ("Type constructor cannot have negative number of arguments")
-    else foldl add_type (aca, ts)
+    make_tsig (classes, subclass, default, args, abbrs, coreg')
   end;
-
-
-
-(* 'extend_tsig' takes the above described check- and extend-functions to
-   extend a given type signature with new classes and new type declarations *)
-
-fun extend_tsig (TySg{classes, default, subclass, args, coreg, abbrs})
-            (newclasses, [], types, arities) =
-  let
-    val (classes', subclass') = extend_classes(classes, subclass, newclasses);
-    val (args', coreg', _) = foldl add_types ((args, coreg, abbrs), types);
-
-    val coreg'' =
-      foldl (coregular (classes', subclass', args'))
-        (coreg', min_domain subclass' arities);
-    val coreg''' = close (coreg'', subclass');
-  in
-    TySg {classes = classes', subclass = subclass', default = default,
-      args = args', coreg = coreg''', abbrs = abbrs}
-  end;
-
 
 
 
 (*** type unification and inference ***)
 
 (*
+  Input:
+    - a 'raw' term which contains only dummy types and some explicit type
+      constraints encoded as terms.
+    - the expected type of the term.
 
-Input:
-- a 'raw' term which contains only dummy types and some explicit type
-  constraints encoded as terms.
-- the expected type of the term.
+  Output:
+    - the correctly typed term
+    - the substitution needed to unify the actual type of the term with its
+      expected type; only the TVars in the expected type are included.
 
-Output:
-- the correctly typed term
-- the substitution needed to unify the actual type of the term with its
-  expected type; only the TVars in the expected type are included.
+  During type inference all TVars in the term have negative index. This keeps
+  them apart from normal TVars, which is essential, because at the end the
+  type of the term is unified with the expected type, which contains normal
+  TVars.
 
-During type inference all TVars in the term have negative index. This keeps
-them apart from normal TVars, which is essential, because at the end the type
-of the term is unified with the expected type, which contains normal TVars.
-
-1. Add initial type information to the term (attach_types).
-   This freezes (freeze_vars) TVars in explicitly provided types (eg
-   constraints or defaults) by turning them into TFrees.
-2. Carry out type inference, possibly introducing new negative TVars.
-3. Unify actual and expected type.
-4. Turn all (negative) TVars into unique new TFrees (freeze).
-5. Thaw all TVars frozen in step 1 (thaw_vars).
-
+  1. Add initial type information to the term (attach_types).
+     This freezes (freeze_vars) TVars in explicitly provided types (eg
+     constraints or defaults) by turning them into TFrees.
+  2. Carry out type inference, possibly introducing new negative TVars.
+  3. Unify actual and expected type.
+  4. Turn all (negative) TVars into unique new TFrees (freeze).
+  5. Thaw all TVars frozen in step 1 (thaw_vars).
 *)
 
 (*Raised if types are not unifiable*)
 exception TUNIFY;
 
-val tyvar_count = ref(~1);
+val tyvar_count = ref ~1;
 
 fun tyinit() = (tyvar_count := ~1);
 
-fun new_tvar_inx() = (tyvar_count := !tyvar_count-1; !tyvar_count)
+fun new_tvar_inx () = (tyvar_count := ! tyvar_count - 1; ! tyvar_count)
 
 (*
 Generate new TVar.  Index is < ~1 to distinguish it from TVars generated from
@@ -962,8 +971,6 @@ fun constrainAbs (Abs (a, _, body), T) = Abs (a, T, body)
 
 (* FIXME consitency of sort_env / sorts (!?) *)
 
-(* FIXME check *)
-
 fun attach_types (tsig, const_type, types, sorts) tm =
   let
     val sort_env = Syntax.raw_term_sorts tm;
@@ -1053,29 +1060,7 @@ fun infer_term (tsig, const_type, types, sorts, T, t) =
     (u'', (map fst Ttye) ~~ Ts)
   end;
 
-fun infer_types args = (tyinit(); infer_term args);
-
-
-(* Turn TFrees into TVars to allow types & axioms to be written without "?" *)
-fun varifyT (Type (a, Ts)) = Type (a, map varifyT Ts)
-  | varifyT (TFree (a, S)) = TVar ((a, 0), S)
-  | varifyT T = T;
-
-(*Inverse of varifyT*)
-fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
-  | unvarifyT (TVar ((a, 0), S)) = TFree (a, S)
-  | unvarifyT T = T;
-
-(* Turn TFrees except those in fixed into new TVars *)
-fun varify (t, fixed) =
-  let val fs = add_term_tfree_names(t, []) \\ fixed;
-      val ixns = add_term_tvar_ixns(t, []);
-      val fmap = fs ~~ variantlist(fs, map #1 ixns)
-      fun thaw(Type(a, Ts)) = Type(a, map thaw Ts)
-        | thaw(T as TVar _) = T
-        | thaw(T as TFree(a, S)) =
-            (case assoc(fmap, a) of None => T | Some b => TVar((b, 0), S))
-  in map_term_types thaw t end;
+fun infer_types args = (tyinit (); infer_term args);
 
 
 end;
