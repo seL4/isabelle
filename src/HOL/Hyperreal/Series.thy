@@ -26,6 +26,11 @@ constdefs
    suminf   :: "(nat=>real) => real"
    "suminf f == SOME s. f sums s"
 
+syntax
+  "_suminf" :: "idt => real => real"    ("\<Sum>_. _" [0, 10] 10)
+translations
+  "\<Sum>i. b" == "suminf (%i. b)"
+
 lemma setsum_Suc[simp]:
   "setsum f {m..<Suc n} = (if n < m then 0 else setsum f {m..<n} + f(n))"
 by (simp add: atLeastLessThanSuc add_commute)
@@ -105,15 +110,15 @@ by (simp add: real_divide_def sums_mult mult_commute [of _ "inverse c"])
 lemma sums_diff: "[| x sums x0; y sums y0 |] ==> (%n. x n - y n) sums (x0-y0)"
 by (auto simp add: sums_def setsum_subtractf intro: LIMSEQ_diff)
 
-lemma suminf_mult: "summable f ==> suminf f * c = suminf(%n. f n * c)"
+lemma suminf_mult: "summable f ==> suminf f * c = (\<Sum>n. f n * c)"
 by (auto intro!: sums_unique sums_mult summable_sums simp add: mult_commute)
 
-lemma suminf_mult2: "summable f ==> c * suminf f  = suminf(%n. c * f n)"
+lemma suminf_mult2: "summable f ==> c * suminf f  = (\<Sum>n. c * f n)"
 by (auto intro!: sums_unique sums_mult summable_sums)
 
 lemma suminf_diff:
      "[| summable f; summable g |]   
-      ==> suminf f - suminf g  = suminf(%n. f n - g n)"
+      ==> suminf f - suminf g  = (\<Sum>n. f n - g n)"
 by (auto intro!: sums_diff sums_unique summable_sums)
 
 lemma sums_minus: "x sums x0 ==> (%n. - x n) sums - x0"
@@ -285,7 +290,7 @@ done
 
 text{*Absolute convergence of series*}
 lemma summable_rabs:
-     "summable (%n. abs (f n)) ==> abs(suminf f) \<le> suminf (%n. abs(f n))"
+     "summable (%n. abs (f n)) ==> abs(suminf f) \<le> (\<Sum>n. abs(f n))"
 by (auto intro: LIMSEQ_le LIMSEQ_imp_rabs summable_rabs_cancel summable_sumr_LIMSEQ_suminf)
 
 

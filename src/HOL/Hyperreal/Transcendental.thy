@@ -19,18 +19,18 @@ constdefs
     "sqrt x == root 2 x"
 
     exp :: "real => real"
-    "exp x == suminf(%n. inverse(real (fact n)) * (x ^ n))"
+    "exp x == \<Sum>n. inverse(real (fact n)) * (x ^ n)"
 
     sin :: "real => real"
-    "sin x == suminf(%n. (if even(n) then 0 else
-             ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
+    "sin x == \<Sum>n. (if even(n) then 0 else
+             ((- 1) ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n"
  
     diffs :: "(nat => real) => nat => real"
     "diffs c == (%n. real (Suc n) * c(Suc n))"
 
     cos :: "real => real"
-    "cos x == suminf(%n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
-                          else 0) * x ^ n)"
+    "cos x == \<Sum>n. (if even(n) then ((- 1) ^ (n div 2))/(real (fact n)) 
+                          else 0) * x ^ n"
   
     ln :: "real => real"
     "ln x == (@u. exp u = x)"
@@ -452,7 +452,7 @@ by (auto simp add: lemma_diffs)
 lemma diffs_equiv:
      "summable (%n. (diffs c)(n) * (x ^ n)) ==>  
       (%n. real n * c(n) * (x ^ (n - Suc 0))) sums  
-         (suminf(%n. (diffs c)(n) * (x ^ n)))"
+         (\<Sum>n. (diffs c)(n) * (x ^ n))"
 apply (subgoal_tac " (%n. real n * c (n) * (x ^ (n - Suc 0))) ----> 0")
 apply (rule_tac [2] LIMSEQ_imp_Suc)
 apply (drule summable_sums) 
@@ -571,7 +571,7 @@ apply (subgoal_tac "summable (%n. f n * \<bar>h\<bar>) ")
 apply (subgoal_tac "summable (%n. abs (g (h::real) (n::nat))) ")
  apply (rule_tac [2] g = "%n. f n * \<bar>h\<bar>" in summable_comparison_test)
   apply (rule_tac [2] x = 0 in exI, auto)
-apply (rule_tac j = "suminf (%n. \<bar>g h n\<bar>)" in real_le_trans)
+apply (rule_tac j = "\<Sum>n. \<bar>g h n\<bar>" in real_le_trans)
 apply (auto intro: summable_rabs summable_le simp add: sums_summable [THEN suminf_mult])
 done
 
@@ -581,10 +581,9 @@ text{* FIXME: Long proofs*}
 
 lemma termdiffs_aux:
      "[|summable (\<lambda>n. diffs (diffs c) n * K ^ n); \<bar>x\<bar> < \<bar>K\<bar> |]
-    ==> (\<lambda>h. suminf
-             (\<lambda>n. c n *
+    ==> (\<lambda>h. \<Sum>n. c n *
                   (((x + h) ^ n - x ^ n) * inverse h -
-                   real n * x ^ (n - Suc 0))))
+                   real n * x ^ (n - Suc 0)))
        -- 0 --> 0"
 apply (drule dense, safe)
 apply (frule real_less_sum_gt_zero)
@@ -648,16 +647,16 @@ lemma termdiffs:
         summable(%n. (diffs c)(n) * (K ^ n));  
         summable(%n. (diffs(diffs c))(n) * (K ^ n));  
         \<bar>x\<bar> < \<bar>K\<bar> |]  
-     ==> DERIV (%x. suminf (%n. c(n) * (x ^ n)))  x :>  
-             suminf (%n. (diffs c)(n) * (x ^ n))"
+     ==> DERIV (%x. \<Sum>n. c(n) * (x ^ n))  x :>  
+             (\<Sum>n. (diffs c)(n) * (x ^ n))"
 apply (simp add: deriv_def)
-apply (rule_tac g = "%h. suminf (%n. ((c (n) * ( (x + h) ^ n)) - (c (n) * (x ^ n))) * inverse h)" in LIM_trans)
+apply (rule_tac g = "%h. \<Sum>n. ((c (n) * ( (x + h) ^ n)) - (c (n) * (x ^ n))) * inverse h" in LIM_trans)
 apply (simp add: LIM_def, safe)
 apply (rule_tac x = "\<bar>K\<bar> - \<bar>x\<bar>" in exI)
 apply (auto simp add: less_diff_eq)
 apply (drule abs_triangle_ineq [THEN order_le_less_trans])
 apply (rule_tac y = 0 in order_le_less_trans, auto)
-apply (subgoal_tac " (%n. (c n) * (x ^ n)) sums (suminf (%n. (c n) * (x ^ n))) & (%n. (c n) * ((x + xa) ^ n)) sums (suminf (%n. (c n) * ( (x + xa) ^ n))) ")
+apply (subgoal_tac " (%n. (c n) * (x ^ n)) sums (\<Sum>n. (c n) * (x ^ n)) & (%n. (c n) * ((x + xa) ^ n)) sums (\<Sum>n. (c n) * ( (x + xa) ^ n))")
 apply (auto intro!: summable_sums)
 apply (rule_tac [2] powser_inside, rule_tac [4] powser_inside)
 apply (auto simp add: add_commute)
@@ -666,7 +665,7 @@ apply (drule_tac x = "(%n. c n * (xa + x) ^ n - c n * x ^ n) " and c = "inverse 
 apply (rule sums_unique)
 apply (simp add: diff_def divide_inverse add_ac mult_ac)
 apply (rule LIM_zero_cancel)
-apply (rule_tac g = "%h. suminf (%n. c (n) * ((( ((x + h) ^ n) - (x ^ n)) * inverse h) - (real n * (x ^ (n - Suc 0)))))" in LIM_trans)
+apply (rule_tac g = "%h. \<Sum>n. c (n) * ((( ((x + h) ^ n) - (x ^ n)) * inverse h) - (real n * (x ^ (n - Suc 0))))" in LIM_trans)
  prefer 2 apply (blast intro: termdiffs_aux) 
 apply (simp add: LIM_def, safe)
 apply (rule_tac x = "\<bar>K\<bar> - \<bar>x\<bar>" in exI)
@@ -677,7 +676,7 @@ apply (subgoal_tac "summable (%n. (diffs c) (n) * (x ^ n))")
 apply (rule_tac [2] powser_inside, auto)
 apply (drule_tac c = c and x = x in diffs_equiv)
 apply (frule sums_unique, auto)
-apply (subgoal_tac " (%n. (c n) * (x ^ n)) sums (suminf (%n. (c n) * (x ^ n))) & (%n. (c n) * ((x + xa) ^ n)) sums (suminf (%n. (c n) * ( (x + xa) ^ n))) ")
+apply (subgoal_tac " (%n. (c n) * (x ^ n)) sums (\<Sum>n. (c n) * (x ^ n)) & (%n. (c n) * ((x + xa) ^ n)) sums (\<Sum>n. (c n) * ( (x + xa) ^ n))")
 apply safe
 apply (auto intro!: summable_sums)
 apply (rule_tac [2] powser_inside, rule_tac [4] powser_inside)
@@ -742,33 +741,32 @@ by (auto intro!: ext
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
 lemma lemma_sin_minus:
-     "- sin x =
-         suminf(%n. - ((if even n then 0 
+     "- sin x = (\<Sum>n. - ((if even n then 0 
                   else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * x ^ n))"
 by (auto intro!: sums_unique sums_minus sin_converges)
 
-lemma lemma_exp_ext: "exp = (%x. suminf (%n. inverse (real (fact n)) * x ^ n))"
+lemma lemma_exp_ext: "exp = (%x. \<Sum>n. inverse (real (fact n)) * x ^ n)"
 by (auto intro!: ext simp add: exp_def)
 
 lemma DERIV_exp [simp]: "DERIV exp x :> exp(x)"
 apply (simp add: exp_def)
 apply (subst lemma_exp_ext)
-apply (subgoal_tac "DERIV (%u. suminf (%n. inverse (real (fact n)) * u ^ n)) x :> suminf (%n. diffs (%n. inverse (real (fact n))) n * x ^ n) ")
+apply (subgoal_tac "DERIV (%u. \<Sum>n. inverse (real (fact n)) * u ^ n) x :> (\<Sum>n. diffs (%n. inverse (real (fact n))) n * x ^ n)")
 apply (rule_tac [2] K = "1 + \<bar>x\<bar>" in termdiffs)
 apply (auto intro: exp_converges [THEN sums_summable] simp add: exp_fdiffs, arith)
 done
 
 lemma lemma_sin_ext:
-     "sin = (%x. suminf(%n. 
+     "sin = (%x. \<Sum>n. 
                    (if even n then 0  
                        else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                   x ^ n))"
+                   x ^ n)"
 by (auto intro!: ext simp add: sin_def)
 
 lemma lemma_cos_ext:
-     "cos = (%x. suminf(%n. 
+     "cos = (%x. \<Sum>n. 
                    (if even n then (- 1) ^ (n div 2)/(real (fact n)) else 0) *
-                   x ^ n))"
+                   x ^ n)"
 by (auto intro!: ext simp add: cos_def)
 
 lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
@@ -792,7 +790,7 @@ subsection{*Properties of the Exponential Function*}
 lemma exp_zero [simp]: "exp 0 = 1"
 proof -
   have "(\<Sum>n = 0..<1. inverse (real (fact n)) * 0 ^ n) =
-        suminf (\<lambda>n. inverse (real (fact n)) * 0 ^ n)"
+        (\<Sum>n. inverse (real (fact n)) * 0 ^ n)"
     by (rule series_zero [rule_format, THEN sums_unique],
         case_tac "m", auto)
   thus ?thesis by (simp add:  exp_def) 
@@ -1325,7 +1323,7 @@ proof -
              else (- 1) ^ ((k - Suc 0) div 2) / real (fact k)) *
             x ^ k) 
 	sums
-	suminf (\<lambda>n. (if even n then 0
+	(\<Sum>n. (if even n then 0
 		     else (- 1) ^ ((n - Suc 0) div 2) / real (fact n)) *
 	            x ^ n)" 
     by (rule sin_converges [THEN sums_summable, THEN sums_group], simp) 
@@ -1336,7 +1334,7 @@ lemma sin_gt_zero: "[|0 < x; x < 2 |] ==> 0 < sin x"
 apply (subgoal_tac 
        "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
               (- 1) ^ k / real (fact (2 * k + 1)) * x ^ (2 * k + 1)) 
-     sums suminf (\<lambda>n. (- 1) ^ n / real (fact (2 * n + 1)) * x ^ (2 * n + 1))")
+     sums (\<Sum>n. (- 1) ^ n / real (fact (2 * n + 1)) * x ^ (2 * n + 1))")
  prefer 2
  apply (rule sin_paired [THEN sums_summable, THEN sums_group], simp) 
 apply (rotate_tac 2)
@@ -1394,8 +1392,7 @@ proof -
             (if even k then (- 1) ^ (k div 2) / real (fact k) else 0) *
             x ^ k) 
         sums
-	suminf
-	 (\<lambda>n. (if even n then (- 1) ^ (n div 2) / real (fact n) else 0) *
+	(\<Sum>n. (if even n then (- 1) ^ (n div 2) / real (fact n) else 0) *
 	      x ^ n)" 
     by (rule cos_converges [THEN sums_summable, THEN sums_group], simp) 
   thus ?thesis by (simp add: mult_ac cos_def)
