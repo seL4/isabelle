@@ -10,13 +10,13 @@ signature TYPE_EXT0 =
 sig
   val raw_term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
+  val term_of_typ: bool -> typ -> term
 end;
 
 signature TYPE_EXT =
 sig
   include TYPE_EXT0
   val term_of_sort: sort -> term
-  val term_of_typ: bool -> typ -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val type_ext: SynExt.syn_ext
 end;
