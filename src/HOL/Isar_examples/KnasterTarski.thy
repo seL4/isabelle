@@ -9,7 +9,6 @@ Typical textbook proof example.
 theory KnasterTarski = Main:;
 
 text {*
-
  According to the book ``Introduction to Lattices and Order'' (by
  B. A. Davey and H. A. Priestley, CUP 1990), the Knaster-Tarski
  fixpoint theorem is as follows (pages 93--94).  Note that we have

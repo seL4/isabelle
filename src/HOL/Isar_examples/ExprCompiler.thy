@@ -108,23 +108,23 @@ proof (induct ??P xs type: list);
   assume "??P xs";
   show "??P (x # xs)" (is "??Q x");
   proof (induct ??Q x type: instr);
-    fix val; show "??Q (Const val)"; by brute_force;
+    fix val; show "??Q (Const val)"; by force;
   next;
-    fix adr; show "??Q (Load adr)"; by brute_force;
+    fix adr; show "??Q (Load adr)"; by force;
   next;
-    fix fun; show "??Q (Apply fun)"; by brute_force;
+    fix fun; show "??Q (Apply fun)"; by force;
   qed;
 qed;
 
 lemma exec_comp:
   "ALL stack. exec (comp e) stack env = eval e env # stack" (is "??P e");
 proof (induct ??P e type: expr);
-  fix adr; show "??P (Variable adr)"; by brute_force;
+  fix adr; show "??P (Variable adr)"; by force;
 next;
-  fix val; show "??P (Constant val)"; by brute_force;
+  fix val; show "??P (Constant val)"; by force;
 next;
   fix fun e1 e2; assume "??P e1" "??P e2"; show "??P (Binop fun e1 e2)";
-    by (brute_force simp add: exec_append);
+    by (force simp add: exec_append);
 qed;
 
 
