@@ -17,7 +17,7 @@ sig
   val filter: ('a -> bool) -> ('a, 'b) source -> ('a, ('a, 'b) source) source
   val of_list: 'a list -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
-  val of_file: string -> (string, string list) source
+  val of_file: Path.T -> (string, string list) source * Position.T
   val decorate_prompt_fn: (string -> string) ref
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
@@ -108,7 +108,10 @@ fun drain_list _ xs = (take (limit, xs), drop (limit, xs));
 
 fun of_list xs = make_source [] xs default_prompt drain_list;
 val of_string = of_list o explode;
-val of_file = of_string o File.read;
+
+fun of_file raw_path =
+  let val path = Path.expand raw_path
+  in (of_string (File.read path), Position.line_name 1 (quote (Path.pack path))) end;
 
 
 (* stream source *)
