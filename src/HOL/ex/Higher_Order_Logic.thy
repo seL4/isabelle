@@ -308,4 +308,15 @@ proof -
   qed
 qed
 
+lemma (in classical) "(\<not> A \<Longrightarrow> A) \<Longrightarrow> A"  (* FIXME *)
+proof -
+  assume r: "\<not> A \<Longrightarrow> A"
+  show A
+  proof (rule classical_cases)
+    assume A thus A .
+  next
+    assume "\<not> A" thus A by (rule r)
+  qed
+qed
+
 end
