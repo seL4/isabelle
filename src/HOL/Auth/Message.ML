@@ -405,8 +405,7 @@ goal thy "!!H. Key (invKey K) : analz H ==>  \
 by (Auto_tac());
 by (eres_inst_tac [("za","x")] analz.induct 1);
 by (Auto_tac());
-by (blast_tac (!claset addIs [subset_insertI RS analz_mono RS subsetD,
-                             analz.Decrypt]) 1);
+by (blast_tac (!claset addIs [analz_insertI, analz.Decrypt]) 1);
 val lemma2 = result();
 
 goal thy "!!H. Key (invKey K) : analz H ==>  \
@@ -477,6 +476,9 @@ qed "analz_cut";
    "!!H. Y: analz (insert X H) ==> X: analz H --> Y: analz H"
 *)
 
+(*This rewrite rule helps in the simplification of messages that involve
+  the forwarding of unknown components (X).  Without it, removing occurrences
+  of X can be very complicated. *)
 goal thy "!!H. X: analz H ==> analz (insert X H) = analz H";
 by (blast_tac (!claset addIs [analz_cut, analz_insertI]) 1);
 qed "analz_insert_eq";
@@ -839,7 +841,8 @@ val Fake_insert_tac =
                   impOfSubs Fake_parts_insert] THEN'
     eresolve_tac [asm_rl, synth.Inj];
 
-(*Analysis of Fake cases and of messages that forward unknown parts.
+(*Analysis of Fake cases.  Also works for messages that forward unknown parts,
+  but this application is no longer necessary if analz_insert_eq is used.
   Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
   DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
 fun spy_analz_tac i =
