@@ -270,10 +270,10 @@ val scan_cmt =
   Scan.lift ($$ "*" --| Scan.ahead (Scan.one (not_equal ")"))) ||
   Scan.lift (Scan.one (not_equal "*" andf Symbol.not_eof));
 
-val scan_comment =
-  $$ "(" -- $$ "*" -- !! (lex_err "missing end of comment" "(*")
+fun scan_comment xs =
+  ($$ "(" -- $$ "*" -- !! (lex_err "missing end of comment" "(*")
     (Scan.pass 0 (Scan.repeat scan_cmt) -- $$ "*" -- $$ ")")
-  >> K None;
+   >> K None) xs;
 
 
 
