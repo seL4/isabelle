@@ -15,6 +15,7 @@ end;
 signature PURE_THY =
 sig
   include BASIC_PURE_THY
+  val thms_closure: theory -> xstring -> tthm list option
   val get_tthm: theory -> xstring -> tthm
   val get_tthms: theory -> xstring -> tthm list
   val thms_containing: theory -> string list -> (string * thm) list
@@ -29,6 +30,7 @@ sig
   val add_defs_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_defss: ((bstring * string list) * theory attribute list) list -> theory -> theory
   val add_defss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory
+  val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val proto_pure: theory
   val pure: theory
   val cpure: theory
@@ -38,9 +40,9 @@ structure PureThy: PURE_THY =
 struct
 
 
-(*** init theorems data ***)
+(*** theorem database ***)
 
-(** data kind 'theorems' **)
+(** data kind 'Pure/theorems' **)
 
 val theoremsK = "Pure/theorems";
 
@@ -89,23 +91,26 @@ val get_theorems = get_theorems_sg o Theory.sign_of;
 
 (** retrieve theorems **)
 
-fun local_thms thy name =
-  let
-    val ref {space, thms_tab, ...} = get_theorems thy;
-    val full_name = NameSpace.intern space name;
-  in Symtab.lookup (thms_tab, full_name) end;
+(* thms_closure *)
 
-fun all_local_thms [] _ = None
-  | all_local_thms (thy :: thys) name =
-      (case local_thms thy name of
-        None => all_local_thms thys name
-      | some => some);
+(*note: we avoid life references to the theory, so users may safely
+  keep thms_closure without too much space consumption*)
+
+fun thms_closure_aux thy =
+  let val ref {space, thms_tab, ...} = get_theorems thy
+  in fn name => Symtab.lookup (thms_tab, NameSpace.intern space name) end;
+
+fun thms_closure thy =
+  let val closures = map thms_closure_aux (thy :: Theory.ancestors_of thy)
+  in fn name => get_first (fn f => f name) closures end;
 
 
 (* get_thms etc. *)
 
+fun lookup_thms name thy = thms_closure_aux thy name;
+
 fun get_tthms thy name =
-  (case all_local_thms (thy :: Theory.ancestors_of thy) name of
+  (case get_first (lookup_thms name) (thy :: Theory.ancestors_of thy) of
     None => raise THEORY ("Unknown theorem(s) " ^ quote name, [thy])
   | Some thms => thms);
 
@@ -266,22 +271,46 @@ end;
 
 
 
-(** the Pure theories **)
+(*** add logical types ***)
+
+fun add_typedecls decls thy =
+  let
+    val full = Sign.full_name (Theory.sign_of thy);
+
+    fun type_of (raw_name, vs, mx) =
+      if null (duplicates vs) then (raw_name, length vs, mx)
+      else error ("Duplicate parameters in type declaration: " ^ quote raw_name);
+
+    fun arity_of (raw_name, len, mx) =
+      (full (Syntax.type_name raw_name mx), replicate len logicS, logicS);
+
+    val types = map type_of decls;
+    val arities = map arity_of types;
+  in
+    thy
+    |> Theory.add_types types
+    |> Theory.add_arities_i arities
+  end;
+
+
+
+(*** the Pure theories ***)
 
 val proto_pure =
   Theory.pre_pure
   |> Theory.apply [Attribute.setup, theorems_setup]
   |> Theory.add_types
-   (("fun", 2, NoSyn) ::
-    ("prop", 0, NoSyn) ::
-    ("itself", 1, NoSyn) ::
-    Syntax.pure_types)
+   [("fun", 2, NoSyn),
+    ("prop", 0, NoSyn),
+    ("itself", 1, NoSyn),
+    ("dummy", 0, NoSyn)]
   |> Theory.add_classes_i [(logicC, [])]
   |> Theory.add_defsort_i logicS
   |> Theory.add_arities_i
    [("fun", [logicS, logicS], logicS),
     ("prop", [], logicS),
     ("itself", [logicS], logicS)]
+  |> Theory.add_nonterminals Syntax.pure_nonterms
   |> Theory.add_syntax Syntax.pure_syntax
   |> Theory.add_modesyntax ("symbols", true) Syntax.pure_sym_syntax
   |> Theory.add_trfuns Syntax.pure_trfuns
@@ -303,14 +332,14 @@ val proto_pure =
 
 val pure =
   Theory.prep_ext_merge [proto_pure]
-  |> Theory.add_syntax Syntax.pure_appl_syntax
   |> Theory.add_path "Pure"
+  |> Theory.add_syntax Syntax.pure_appl_syntax
   |> Theory.add_name "Pure";
 
 val cpure =
   Theory.prep_ext_merge [proto_pure]
-  |> Theory.add_syntax Syntax.pure_applC_syntax
   |> Theory.add_path "CPure"
+  |> Theory.add_syntax Syntax.pure_applC_syntax
   |> Theory.add_name "CPure";
 
 
