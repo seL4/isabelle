@@ -28,8 +28,10 @@ sig
   val untag: tag -> 'a attribute
   val lemma: tag
   val assumption: tag
+  val internal: tag
   val tag_lemma: 'a attribute
   val tag_assumption: 'a attribute
+  val tag_internal: 'a attribute
 end;
 
 structure Attribute: ATTRIBUTE =
@@ -91,8 +93,10 @@ fun untag tg (x, (thm, tags)) = (x, (thm, tags \ tg));
 
 val lemma = ("lemma", []);
 val assumption = ("assumption", []);
+val internal = ("internal", []);
 fun tag_lemma x = tag lemma x;
 fun tag_assumption x = tag assumption x;
+fun tag_internal x = tag internal x;
 
 
 end;
