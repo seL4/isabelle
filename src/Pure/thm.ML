@@ -517,11 +517,11 @@ fun add_term_sorts (Const (_, T), Ss) = add_typ_sorts (T, Ss)
 fun add_terms_sorts ([], Ss) = Ss
   | add_terms_sorts (t::ts, Ss) = add_terms_sorts (ts, add_term_sorts (t,Ss));
 
-fun env_codT (Envir.Envir {iTs, ...}) = map snd iTs;
+fun env_codT (Envir.Envir {iTs, ...}) = map snd (Vartab.dest iTs);
 
-fun add_env_sorts (env, Ss) =
-  add_terms_sorts (map snd (Envir.alist_of env),
-    add_typs_sorts (env_codT env, Ss));
+fun add_env_sorts (Envir.Envir {iTs, asol, ...}, Ss) =
+  Vartab.foldl (add_term_sorts o swap o apsnd snd)
+    (Vartab.foldl (add_typ_sorts o swap o apsnd snd) (Ss, iTs), asol);
 
 fun add_thm_sorts (Thm {hyps, prop, ...}, Ss) =
   add_terms_sorts (hyps, add_term_sorts (prop, Ss));
@@ -1389,7 +1389,7 @@ fun strip_assums2 (Const("==>", _) $ _ $ B1,
 fun norm_term_skip env 0 t = Envir.norm_term env t
   | norm_term_skip env n (Const("all",_)$Abs(a,T,t)) =
         let val Envir.Envir{iTs, ...} = env
-            val T' = typ_subst_TVars iTs T
+            val T' = typ_subst_TVars_Vartab iTs T
             (*Must instantiate types of parameters because they are flattened;
               this could be a NEW parameter*)
         in  all T' $ Abs(a, T', norm_term_skip env n t)  end
