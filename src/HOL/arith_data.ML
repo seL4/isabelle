@@ -205,7 +205,7 @@ end;
 structure ArithTheoryDataArgs =
 struct
   val name = "HOL/arith";
-  type T = {splits: thm list, inj_consts: (string * typ)list, discrete: (string * bool) list, presburger: (int -> tactic) option};
+  type T = {splits: thm list, inj_consts: (string * typ)list, discrete: string  list, presburger: (int -> tactic) option};
 
   val empty = {splits = [], inj_consts = [], discrete = [], presburger = None};
   val copy = I;
@@ -214,7 +214,7 @@ struct
              {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, presburger= presburger2}) =
    {splits = Drule.merge_rules (splits1, splits2),
     inj_consts = merge_lists inj_consts1 inj_consts2,
-    discrete = merge_alists discrete1 discrete2,
+    discrete = merge_lists discrete1 discrete2,
     presburger = (case presburger1 of None => presburger2 | p => p)};
   fun print _ _ = ();
 end;
@@ -339,14 +339,11 @@ fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
 fun of_lin_arith_sort sg U =
   Type.of_sort (Sign.tsig_of sg) (U,["Ring_and_Field.ordered_idom"])
 
-(* FIXME: "discrete" should only contain discrete types *)
 fun allows_lin_arith sg discrete (U as Type(D,[])) =
       if of_lin_arith_sort sg U
-      then (true, case assoc(discrete,D) of None => false
-                  | Some d => d)
+      then (true, D mem discrete)
       else (* special cases *)
-           (case assoc(discrete,D) of None => (false,false)
-            | Some d => (true,d))
+           if D mem discrete then (true,true) else (false,false)
   | allows_lin_arith sg discrete U = (of_lin_arith_sort sg U, false);
 
 fun decomp1 (sg,discrete,inj_consts) (T,xxx) =
@@ -428,7 +425,7 @@ val init_lin_arith_data =
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],
     simpset = HOL_basic_ss addsimps add_rules addsimprocs nat_cancel_sums_add}),
-  ArithTheoryData.init, arith_discrete ("nat", true)];
+  ArithTheoryData.init, arith_discrete "nat"];
 
 end;
 

@@ -524,7 +524,7 @@ val int_arith_setup =
                       addcongs [if_weak_cong]}),
   arith_inj_const ("IntDef.of_nat", HOLogic.natT --> HOLogic.intT),
   arith_inj_const ("IntDef.int", HOLogic.natT --> HOLogic.intT),
-  arith_discrete ("IntDef.int", true)];
+  arith_discrete "IntDef.int"];
 
 end;
 
