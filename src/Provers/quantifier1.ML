@@ -102,9 +102,10 @@ fun rearrange_all sg _ (F as all $ Abs(x,T,(* --> *)_ $ P $ Q)) =
           in Some(prove_conv prove_all_tac sg (F,all$Abs(x,T,R))) end)
   | rearrange_all _ _ _ = None;
 
+(* Better: instantiate exI *)
 val prove_ex_tac = rtac iffI 1 THEN
-    ALLGOALS(EVERY'[etac exE, REPEAT o (etac conjE),
-                    rtac exI, REPEAT o (ares_tac [conjI] ORELSE' etac sym)]);
+    ALLGOALS(EVERY'[etac exE, REPEAT_DETERM o (etac conjE), rtac exI,
+                    DEPTH_SOLVE_1 o (ares_tac [conjI] APPEND' etac sym)]);
 
 fun rearrange_ex sg _ (F as ex $ Abs(x,T,P)) =
      (case extract P of
