@@ -26,6 +26,7 @@ function usage()
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
+  echo "    -u           pass 'use\"ROOT.ML\";' to the ML session"
   echo "    -w           reset write permissions on OUTPUT"
   echo
   echo "  INPUT (default \"$ISABELLE_LOGIC\") and OUTPUT specify in/out heaps."
@@ -53,7 +54,7 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "e:m:qrw" OPT
+while getopts "e:m:qruw" OPT
 do
   case "$OPT" in
     e)
@@ -71,6 +72,9 @@ do
       ;;
     r)
       READONLY=true
+      ;;
+    u)
+      MLTEXT="$MLTEXT use\"ROOT.ML\";"
       ;;
     w)
       NOWRITE=true
