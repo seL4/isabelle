@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Type class for order signatures.
+Type classes for order signatures and orders.
 *)
 
 Ord = HOL +
