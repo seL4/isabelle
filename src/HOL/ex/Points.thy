@@ -3,13 +3,12 @@
     Author:     Wolfgang Naraschewski and Markus Wenzel, TU Muenchen
 *)
 
+header {* Points and coloured points --- using extensible records in HOL *}
+
 theory Points = Main:
 
-text {* Basic use of extensible records in HOL, including the famous points
- and coloured points. *}
 
-
-section {* Points *}
+subsection {* Points *}
 
 record point =
   x :: nat
@@ -44,14 +43,14 @@ consts foo3 :: "'a => ('a::more) point_scheme"
 consts foo4 :: "'a => (| x :: nat, y :: nat, ... :: 'a |)"
 
 
-subsection {* Introducing concrete records and record schemes *}
+subsubsection {* Introducing concrete records and record schemes *}
 
 defs
   foo1_def: "foo1 == (| x = 1, y = 0 |)"
   foo3_def: "foo3 ext == (| x = 1, y = 0, ... = ext |)"
 
 
-subsection {* Record selection and record update *}
+subsubsection {* Record selection and record update *}
 
 constdefs
   getX :: "('a::more) point_scheme => nat"
@@ -60,9 +59,9 @@ constdefs
   "setX r n == r (| x := n |)"
 
 
-subsection {* Some lemmas about records *}
+subsubsection {* Some lemmas about records *}
 
-text {* basic simplifications *}
+text {* Basic simplifications *}
 
 lemma "x (| x = m, y = n, ... = p |) = m"
   by simp
@@ -71,7 +70,7 @@ lemma "(| x = m, y = n, ... = p |) (| x:= 0 |) = (| x = 0, y = n, ... = p |)"
   by simp
 
 
-text {* splitting quantifiers: the !!r is NECESSARY here *}
+text {* Splitting quantifiers: the !!r is NECESSARY here *}
 
 lemma "!!r. r (| x := n |) (| y := m |) = r (| y := m |) (| x := n |)"
 proof record_split
@@ -90,20 +89,20 @@ proof record_split
 qed
 
 
-text {* equality of records *}
+text {* Equality of records *}
 
 lemma "(| x = n, y = p |) = (| x = n', y = p' |) ==> n = n'"
   by simp
 
 
-text {* concrete records are type instances of record schemes *}
+text {* Concrete records are type instances of record schemes *}
 
 constdefs
   foo5 :: nat
   "foo5 == getX (| x = 1, y = 0 |)"
 
 
-text {* manipulating the `...' (more) part *}
+text {* Manipulating the `...' (more) part *}
 
 constdefs
   incX :: "('a::more) point_scheme => 'a point_scheme"
@@ -111,7 +110,7 @@ constdefs
 
 lemma "!!r n. incX r = setX r (Suc (getX r))"
 proof (unfold getX_def setX_def incX_def)
-  show "!! r n. (| x = Suc (x r), y = y r, ... = more r |) = r(| x := Suc (x r) |)"
+  show "!!r n. (| x = Suc (x r), y = y r, ... = more r |) = r(| x := Suc (x r) |)"
     by record_split simp
 qed
 
@@ -123,8 +122,7 @@ constdefs
   "incX' r == r (| x := Suc (x r) |)"
 
 
-
-section {* coloured points: record extension *}
+subsection {* Coloured points: record extension *}
 
 datatype colour = Red | Green | Blue
 
@@ -145,14 +143,14 @@ consts foo8 :: "('a::more) cpoint_scheme"
 consts foo9 :: "(| x :: nat, y :: nat, colour :: colour, ... :: 'a |)"
 
 
-text {* functions on point schemes work for cpoints as well *}
+text {* Functions on point schemes work for cpoints as well *}
 
 constdefs
   foo10 :: nat
   "foo10 == getX (| x = 2, y = 0, colour = Blue |)"
 
 
-subsection {* Non-coercive structural subtyping *}
+subsubsection {* Non-coercive structural subtyping *}
 
 text {* foo11 has type cpoint, not type point --- Great! *}
 
@@ -161,8 +159,7 @@ constdefs
   "foo11 == setX (| x = 2, y = 0, colour = Blue |) 0"
 
 
-
-section {* Other features *}
+subsection {* Other features *}
 
 text {* field names contribute to record identity *}
 
@@ -170,13 +167,10 @@ record point' =
   x' :: nat
   y' :: nat
 
-consts
-  foo12 :: nat
-
-text {* Definition @{term "foo12 == getX (| x' = 2, y' = 0 |)"} is invalid *}
+text {* May not apply @{term getX} to @{term "(| x' = 2, y' = 0 |)"} *}
 
 
-text {* polymorphic records *}
+text {* Polymorphic records *}
 
 record 'a point'' = point +
   content :: 'a
