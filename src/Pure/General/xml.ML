@@ -89,14 +89,9 @@ val parse_cdata = scan_lit "<![CDATA[" |--
     implode) --| scan_lit "]]>";
 
 val parse_att =
-  Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --| $$ "\"" --
-  (Scan.repeat (Scan.unless ($$ "\"")
-    (scan_special || Scan.one Symbol.not_eof)) >> implode) --| $$ "\"";
-
-val parse_att2 = 
-  Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --| $$ "'" --
-  (Scan.repeat (Scan.unless ($$ "'")
-    (scan_special || Scan.one Symbol.not_eof)) >> implode) --| $$ "'";
+  Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --
+  (($$ "\"" || $$ "'") :-- (fn s => (Scan.repeat (Scan.unless ($$ s)
+    (scan_special || Scan.one Symbol.not_eof)) >> implode) --| $$ s) >> snd);
 
 val parse_comment = scan_lit "<!--" --
   Scan.repeat (Scan.unless (scan_lit "-->") (Scan.one Symbol.not_eof)) --
@@ -118,7 +113,7 @@ fun parse_content xs =
 
 and parse_elem xs =
   ($$ "<" |-- Symbol.scan_id --
-    Scan.repeat (scan_whspc |-- (parse_att || parse_att2)) --| scan_whspc :-- (fn (s, _) =>
+    Scan.repeat (scan_whspc |-- parse_att) --| scan_whspc :-- (fn (s, _) =>
       !! (err "Expected > or />")
         (scan_lit "/>" >> K []
          || $$ ">" |-- parse_content --|
