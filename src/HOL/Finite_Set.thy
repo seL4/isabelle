@@ -958,7 +958,7 @@ lemma setsum_Un: "finite A ==> finite B ==>
   by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
 
 lemma setsum_Un_ring: "finite A ==> finite B ==>
-    (setsum f (A Un B) :: 'a :: comm_ring_1) =
+    (setsum f (A Un B) :: 'a :: ab_group_add) =
       setsum f A + setsum f B - setsum f (A Int B)"
   by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
 
@@ -1043,24 +1043,24 @@ proof -
     qed
   qed
 
-lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::comm_ring_1) A =
+lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::ab_group_add) A =
   - setsum f A"
   by (induct set: Finites, auto)
 
-lemma setsum_subtractf: "finite A ==> setsum (%x. ((f x)::'a::comm_ring_1) - g x) A =
+lemma setsum_subtractf: "finite A ==> setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
   setsum f A - setsum g A"
   by (simp add: diff_minus setsum_addf setsum_negf)
 
 lemma setsum_nonneg: "[| finite A;
-    \<forall>x \<in> A. (0::'a::ordered_semidom) \<le> f x |] ==>
-    0 \<le>  setsum f A";
+    \<forall>x \<in> A. (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) \<le> f x |] ==>
+    0 \<le> setsum f A";
   apply (induct set: Finites, auto)
   apply (subgoal_tac "0 + 0 \<le> f x + setsum f F", simp)
   apply (blast intro: add_mono)
   done
 
 lemma setsum_nonpos: "[| finite A;
-    \<forall>x \<in> A. f x \<le> (0::'a::ordered_semidom) |] ==>
+    \<forall>x \<in> A. f x \<le> (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) |] ==>
     setsum f A \<le> 0";
   apply (induct set: Finites, auto)
   apply (subgoal_tac "f x + setsum f F \<le> 0 + 0", simp)
