@@ -128,7 +128,6 @@ by (rtac surjective_pairing 1);
 qed "surj_pair";
 Addsimps [surj_pair];
 
-
 bind_thm ("split_paired_all",
   SplitPairedAll.rule (standard (surjective_pairing RS eq_reflection)));
 bind_thms ("split_tupled_all", [split_paired_all, unit_all_eq2]);
@@ -139,7 +138,6 @@ because it also affects premises in congrence rules,
 where is can lead to premises of the form !!a b. ... = ?P(a,b)
 which cannot be solved by reflexivity.
 *)
-
 
 (* replace parameters of product type by individual component parameters *)
 val safe_full_simp_tac = generic_simp_tac true (true, false, false);
@@ -403,6 +401,10 @@ by (split_all_tac 1);
 by (Asm_full_simp_tac 1);
 qed "Eps_split_eq";
 *)
+
+Goal "!!x y. [|fst x = fst y; snd x = snd y|] ==> x = y";
+by Auto_tac;
+qed "injective_fst_snd";
 
 (*** prod_fun -- action of the product functor upon functions ***)
 
