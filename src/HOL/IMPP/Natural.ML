@@ -38,7 +38,7 @@ qed "evaln_evalc";
 
 goal Nat.thy "(Suc n <= m') --> (? m. m' = Suc m)";
 by (induct_tac "m'" 1);
-by  Auto_tac;
+by (CLASIMPSET auto_tac);
 qed_spec_mp "Suc_le_D";
 
 Goal "[| Suc n <= m'; (!!m. n <= m ==> P (Suc m)) |] ==> P m'";
