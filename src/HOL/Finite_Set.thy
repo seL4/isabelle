@@ -446,6 +446,13 @@ constdefs
   fold :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a"
   "fold f g z A == THE x. (A, x) : foldSet f g z"
 
+text{*A tempting alternative for the definiens is
+@{term "if finite A then THE x. (A, x) : foldSet f g e else e"}.
+It allows the removal of finiteness assumptions from the theorems
+@{text fold_commute}, @{text fold_reindex} and @{text fold_distrib}.
+The proofs become ugly, with @{text rule_format}. It is not worth the effort.*}
+
+
 lemma Diff1_foldSet:
   "(A - {x}, y) : foldSet f g z ==> x: A ==> (A, f (g x) y) : foldSet f g z"
 by (erule insert_Diff [THEN subst], rule foldSet.intros, auto)
