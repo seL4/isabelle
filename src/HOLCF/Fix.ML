@@ -693,13 +693,7 @@ local
   val adm_disj_lemma4 = prove_goal Nat.thy
   "!!Q. !j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
  (fn _ =>
-        [
-        Asm_simp_tac 1,
-        strip_tac 1,
-        etac allE 1,
-        etac mp 1,
-        trans_tac 1
-        ]);
+        [Asm_simp_tac 1]);
 
   val adm_disj_lemma5 = prove_goal thy
   "!!Y::nat=>'a::cpo. [| chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
