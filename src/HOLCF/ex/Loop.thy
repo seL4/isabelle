@@ -6,10 +6,9 @@
 Theory for a loop primitive like while
 *)
 
-Loop = Tr2 +
+Loop = Tr +
 
 consts
-
         step  :: "('a -> tr)->('a -> 'a)->'a->'a"
         while :: "('a -> tr)->('a -> 'a)->'a->'a"
 

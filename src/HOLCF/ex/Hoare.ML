@@ -95,7 +95,7 @@ val hoare_lemma28 = prove_goal HOLCF.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (etac (flat_tr RS flat_codom RS disjE) 1),
+        (etac (flat_flat RS flat_codom RS disjE) 1),
         (atac 1),
         (etac spec 1)
         ]);
@@ -323,7 +323,7 @@ val hoare_lemma19 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (flat_tr RS flat_codom) 1),
+        (rtac (flat_flat RS flat_codom) 1),
         (res_inst_tac [("t","x1")] (iterate_0 RS subst) 1),
         (etac spec 1)
         ]);

@@ -4,7 +4,7 @@ open Witness;
 (* classes cplus, cminus, ctimes, cdiv introduce 
    characteristic constants  o+ o- o* o/
 
-	"bullet":: "void -> void -> void"
+	"circ":: "one -> one -> one"
 
    is the witness for o+ o- o* o/	
 
@@ -18,9 +18,9 @@ open Witness;
 
    The witness for these is 
 
-	"cric"	:: "void -> void -> tr"			(cinfixl 55)
+	"bullet":: "one -> one -> tr"			(cinfixl 55)
 
-   the classes equiv, eq, qlinear impose additional axioms
+   the classes equiv, eq, impose additional axioms
 *)
 
 (* -------------------------------------------------------------------- *)
@@ -45,88 +45,85 @@ refl_per	"[|(x::'a::equiv) ~= UU|] ==> (x .= x)=TT"
 
 characteristic axioms of class eq:
 
-weq	"[|(x::'a::eq) ~= UU; y ~= UU|] ==> (x = y --> (x .= y)=TT) & (x ~= y --> «x .= y»)"
+weq	"[|(x::'a::eq)~=UU; y~=UU|] ==> (x=y --> (x.=y)=TT) & (x~=y --> «x.=y»)"
 
 
    --------------------------------------------------------------------
-
-characteristic axioms of class qpo:
-
-strict_qpo	"(UU .<= x) = UU & (x .<= UU) = UU"
-total_qpo	"[|x ~= UU; y ~= UU|] ==> (x .<= y) ~= UU"
-
-refl_qpo	"[|x ~= UU|] ==> (x .<= x)=TT"
-antisym_qpo	"[|(x .<= y)=TT; (y .<= x)=TT |] ==> (x .= y)=TT"
-trans_qpo	"[|(x .<= y)=TT; (y .<= z)=TT |] ==> (x .<= z)=TT"
-antisym_qpo_rev	" (x .= y)=TT ==> (x .<= y)=TT & (y .<= x)=TT" 
-
-   --------------------------------------------------------------------
-
-characteristic axioms of class qlinear:
-
-qlinear	"[|(x::'a::qlinear) ~= UU; y ~= UU|] ==> (x .<= y)=TT | (y .<= x)=TT "
 
 *)
 
 (* strict_per, strict_qpo *)
-val prems = goal thy "(UU circ x) = UU & (x circ UU) = UU";
-by (simp_tac (HOLCF_ss addsimps [circ_def]) 1);
+goalw thy [bullet_def] "(UU bullet x) = UU & (x bullet UU) = UU";
+by (simp_tac (!simpset addsimps [flift1_def,flift2_def,o_def]) 1);
+by (lift.induct_tac "x" 1);
+auto();
 result();
 
 (* total_per, total_qpo *)
-val prems = goal thy "[|x ~= UU; y ~= UU|] ==> (x circ y) ~= UU";
+val prems = goal thy "[|x~=UU; y~=UU|] ==> (x bullet y) ~= UU";
+by (subgoal_tac "x~=UU&y~=UU-->(x bullet y) ~= UU" 1);
 by (cut_facts_tac prems 1);
-by (etac notE 1);
-by (rtac unique_void2 1);
+by (fast_tac HOL_cs 1);
+by (simp_tac (!simpset addsimps [bullet_def,flift1_def,flift2_def,o_def]) 1);
+by (lift.induct_tac "x" 1);
+by (fast_tac HOL_cs 1);
+by (lift.induct_tac "y" 1);
+auto();
 result();
 
 (* flat_per *)
 
-val prems = goal thy "flat (UU::void)";
-by (rtac flat_void 1);
+goal thy "flat (x::one)";
+by (rtac flat_flat 1);
 result();
 
 (* sym_per *)  
-val prems = goal thy "(x circ y) = (y circ x)";
-by (simp_tac (HOLCF_ss addsimps [circ_def]) 1);
+goalw thy [bullet_def] "(x bullet y) = (y bullet x)";
+by (simp_tac (!simpset addsimps [bullet_def,flift1_def,flift2_def,o_def]) 1);
+by (lift.induct_tac "x" 1);
+by (lift.induct_tac "y" 2);
+by (lift.induct_tac "y" 1);
+auto();
 result();
 
 (* trans_per, trans_qpo *)
-val prems = goal thy "[|(x bullet y)=TT; (y bullet z)=TT |] ==> (x bullet z)=TT";
+val prems = goal thy "[|(x bullet y)=TT; (y bullet z)=TT|] ==>(x bullet z)=TT";
+by (subgoal_tac "(x bullet y)=TT&(y bullet z)=TT-->(x bullet z)=TT" 1);
 by (cut_facts_tac prems 1);
-by (asm_full_simp_tac (HOLCF_ss addsimps [bullet_def]) 1);
+by (fast_tac HOL_cs 1);
+by (simp_tac (!simpset addsimps [bullet_def,flift1_def,flift2_def,o_def]) 1);
+by (lift.induct_tac "x" 1);
+by (lift.induct_tac "y" 2);
+by (lift.induct_tac "y" 1);
+by (lift.induct_tac "z" 4);
+by (lift.induct_tac "z" 3);
+by (lift.induct_tac "z" 2);
+by (lift.induct_tac "z" 1);
+auto();
 result();
 
 (* refl_per *)
-val prems = goal thy "[|(x::void) ~= UU|] ==> (x bullet x)=TT";
+val prems = goal thy "x ~= UU ==> (x bullet x)=TT";
+by (subgoal_tac "x ~= UU --> (x bullet x)=TT" 1);
 by (cut_facts_tac prems 1);
-by (etac notE 1);
-by (rtac unique_void2 1);
-result();
+by (fast_tac HOL_cs 1);
+by (simp_tac (!simpset addsimps [bullet_def,flift1_def,flift2_def,o_def]) 1);
+by (lift.induct_tac "x" 1);
+auto();
+qed "refl_per_one";
 
 (* weq *)
 val prems = goal thy 
-	"[|(x::void) ~= UU; y ~= UU|] ==> (x = y --> (x bullet y)=TT) & (x ~= y --> (x bullet y)=FF)";
+	"[|x~=UU; y~=UU|]==>(x=y-->(x bullet y)=TT)&(x~=y-->(x bullet y)=FF)";
+by(subgoal_tac"x~=UU&y~=UU-->(x=y-->(x bullet y)=TT)&(x~=y-->(x bullet y)=FF)"1);
 by (cut_facts_tac prems 1);
-by (etac notE 1);
-by (rtac unique_void2 1);
+by (fast_tac HOL_cs 1);
+by (lift.induct_tac "x" 1);
+by (lift.induct_tac "y" 2);
+by (lift.induct_tac "y" 1);
+auto();
+br refl_per_one 1;
+auto();
+by (simp_tac (!simpset addsimps [bullet_def,flift1_def,flift2_def,o_def]) 1);
 result();
 
-(* antisym_qpo *)
-val prems = goal thy "[|(x bullet y)=TT; (y bullet x)=TT |] ==> (x bullet y)=TT";
-by (cut_facts_tac prems 1);
-by (asm_full_simp_tac (HOLCF_ss addsimps [bullet_def]) 1);
-result();
-
-(* antisym_qpo_rev *)
-val prems = goal thy "(x bullet y)=TT ==> (x bullet y)=TT & (y bullet x)=TT";
-by (cut_facts_tac prems 1);
-by (asm_full_simp_tac (HOLCF_ss addsimps [bullet_def]) 1);
-
-(* qlinear *)
-val prems = goal thy 
-	"[|(x::void) ~= UU; y ~= UU|] ==> (x bullet y)=TT | (y bullet x)=TT ";
-by (cut_facts_tac prems 1);
-by (etac notE 1);
-by (rtac unique_void2 1);
-result();

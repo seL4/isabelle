@@ -1,29 +1,24 @@
 (*  Title:      FOCUS/Witness.thy
-    ID:         $ $
+    ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1995 Technical University Munich
 
 Witnesses for introduction of type cleasse in theory Classlib
 
-The 8bit package is needed for this theory
+The type one of HOLCF/One.thy is a witness for all the introduced classes.
 
-The type void of HOLCF/Void.thy is a witness for all the introduced classes.
-
-the trivial instance for ++ -- ** // is LAM x y.(UU::void) 
-the trivial instance for .= and .<=  is LAM x y.(UU::tr)
+the trivial instance for ++ -- ** // is circ 
+the trivial instance for .= and .<=  is bullet
 
 *)
 
 Witness = HOLCF +
 
 ops curried 
-	"circ"	:: "void -> void -> void"		(cinfixl 65)
-	"bullet":: "void -> void -> tr"			(cinfixl 55)
+	"bullet":: "one -> one -> tr"			(cinfixl 55)
 
 defs 
 
-circ_def	"(op circ) Ú (LAM x y.UU)"
-
-bullet_def	"(op bullet) Ú (LAM x y.UU)"
+bullet_def	"(op bullet) Ú flift1(flift2 o (op =))"
 
 end
