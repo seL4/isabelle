@@ -37,7 +37,7 @@ Isabelle because the termination proof is not as obvious since
 The following lemma has a canonical proof%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}map{\isacharunderscore}bt\ {\isacharparenleft}g\ o\ f{\isacharparenright}\ T\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ T{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ {\isachardoublequote}T{\isachardoublequote}{\isacharcomma}\ auto{\isacharparenright}%
+\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ {\isachardoublequote}T{\isachardoublequote}{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 but it is worth taking a look at the proof state after the induction step

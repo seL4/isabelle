@@ -1,0 +1,45 @@
+\begin{isabelle}%
+\isacommand{consts}\ trev\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ {\isacharequal}{\isachargreater}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+Although the definition of \isa{trev} is quite natural, we will have
+overcome a minor difficulty in convincing Isabelle of is termination.
+It is precisely this difficulty that is the \textit{rasion d'\^etre} of
+this subsection.
+
+Defining \isa{trev} by \isacommand{recdef} rather than \isacommand{primrec}
+simplifies matters because we are now free to use the recursion equation
+suggested at the end of \S\ref{sec:nested-datatype}:%
+\end{isamarkuptext}%
+\isacommand{recdef}\ trev\ {\isachardoublequote}measure\ size{\isachardoublequote}\isanewline
+\ {\isachardoublequote}trev\ {\isacharparenleft}Var\ x{\isacharparenright}\ {\isacharequal}\ Var\ x{\isachardoublequote}\isanewline
+\ {\isachardoublequote}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}rev{\isacharparenleft}map\ trev\ ts{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+FIXME: recdef should complain and generate unprovable termination condition!
+moveto todo
+
+Remember that function \isa{size} is defined for each \isacommand{datatype}.
+However, the definition does not succeed. Isabelle complains about an unproved termination
+condition
+\begin{quote}
+
+\begin{isabelle}%
+\mbox{t}\ {\isasymin}\ set\ \mbox{ts}\ {\isasymlongrightarrow}\ size\ \mbox{t}\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}size\ \mbox{ts}{\isacharparenright}
+\end{isabelle}%
+
+\end{quote}
+where \isa{set} returns the set of elements of a list---no special knowledge of sets is
+required in the following.
+First we have to understand why the recursive call of \isa{trev} underneath \isa{map} leads
+to the above condition. The reason is that \isacommand{recdef} ``knows'' that \isa{map} will
+apply \isa{trev} only to elements of \isa{\mbox{ts}}. Thus the above condition expresses that
+the size of the argument \isa{\mbox{t}\ {\isasymin}\ set\ \mbox{ts}} of any recursive call of \isa{trev} is strictly
+less than \isa{size\ {\isacharparenleft}App\ \mbox{f}\ \mbox{ts}{\isacharparenright}\ {\isacharequal}\ Suc\ {\isacharparenleft}term{\isacharunderscore}size\ \mbox{ts}{\isacharparenright}}.
+We will now prove the termination condition and continue with our definition.
+Below we return to the question of how \isacommand{recdef} ``knows'' about \isa{map}.%
+\end{isamarkuptext}%
+\end{isabelle}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
