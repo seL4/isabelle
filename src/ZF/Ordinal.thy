@@ -300,10 +300,15 @@ apply (unfold wf_def)
 apply (rule foundation [THEN disjE, THEN allI], erule disjI1, blast) 
 done
 
-(*Transset(i) does not suffice, though ALL j:i.Transset(j) does*)
+text{*The premise @{term "Ord(i)"} does not suffice.*}
 lemma trans_Memrel: 
     "Ord(i) ==> trans(Memrel(i))"
 by (unfold Ord_def Transset_def trans_def, blast)
+
+text{*However, the following premise is strong enough.*}
+lemma Transset_trans_Memrel: 
+    "\<forall>j\<in>i. Transset(j) ==> trans(Memrel(i))"
+by (unfold Transset_def trans_def, blast)
 
 (*If Transset(A) then Memrel(A) internalizes the membership relation below A*)
 lemma Transset_Memrel_iff: 

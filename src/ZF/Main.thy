@@ -40,6 +40,9 @@ lemma Ord_iterates [simp]:
       ==> Ord(F^n (x))"  
 by (induct n rule: nat_induct, simp_all)
 
+lemma iterates_commute: "n \<in> nat ==> F(F^n (x)) = F^n (F(x))"
+by (induct_tac n, simp_all)
+
 
 (* belongs to theory IntDiv *)
 lemmas posDivAlg_induct = posDivAlg_induct [consumes 2]

@@ -28,14 +28,15 @@ translations
 
 consts
   length :: "i=>i"
-  hd      :: "i=>i"
-  tl      :: "i=>i"
+  hd     :: "i=>i"
+  tl     :: "i=>i"
 
 primrec
   "length([]) = 0"
   "length(Cons(a,l)) = succ(length(l))"
 
 primrec
+  "hd([]) = 0"
   "hd(Cons(a,l)) = a"
 
 primrec
