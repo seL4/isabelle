@@ -323,7 +323,7 @@ val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
                         (filter (fn (_,args)=>exists is_nonlazy_rec args) cons);
 val copy_rews = copy_strict::copy_apps @ copy_stricts;
 in thy |> Theory.add_path (Sign.base_name dname)
-       |> (PureThy.add_tthmss o map Attribute.no_attrss) [
+       |> (PureThy.add_thmss o map Thm.no_attributes) [
 		("iso_rews" , iso_rews  ),
 		("exhaust"  , [exhaust] ),
 		("casedist" , [casedist]),
@@ -598,7 +598,7 @@ end; (* local *)
 
 
 in thy |> Theory.add_path comp_dnam
-       |> (PureThy.add_tthmss o map Attribute.no_attrss) [
+       |> (PureThy.add_thmss o map Thm.no_attributes) [
 		("take_rews"  , take_rews  ),
 		("take_lemmas", take_lemmas),
 		("finites"    , finites    ),

@@ -422,7 +422,7 @@ end;
 
 local
 
-fun gen_rulify x = Attrib.no_args (Attribute.rule (K (normalize_thm [RSspec, RSmp]))) x;
+fun gen_rulify x = Attrib.no_args (Drule.rule_attribute (K (normalize_thm [RSspec, RSmp]))) x;
 
 in
 

@@ -535,7 +535,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val thy7 = thy6 |>
       Theory.add_path big_name |>
-      PureThy.add_tthms [(("induct", Attribute.tthm_of dt_induct), [])] |>
+      PureThy.add_thms [(("induct", dt_induct), [])] |>
       Theory.parent_path;
 
   in (thy7, constr_inject, dist_rewrites, dt_induct)

@@ -165,8 +165,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 
   in
       thy |> Theory.add_path (Sign.base_name big_rec_name)
-	  |> PureThy.add_tthmss [(("simps", Attribute.tthms_of simps), 
-				  [Simplifier.simp_add_global])] 
+	  |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])]
 	  |> DatatypesData.put 
 	      (Symtab.update
 	       ((big_rec_name, dt_info), DatatypesData.get thy)) 

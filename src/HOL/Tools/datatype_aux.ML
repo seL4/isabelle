@@ -78,14 +78,14 @@ fun parent_path flat_names = if flat_names then I else Theory.parent_path;
 fun store_thmss label tnames thmss thy =
   foldr (fn ((tname, thms), thy') => thy' |>
     Theory.add_path tname |>
-    PureThy.add_tthmss [((label, Attribute.tthms_of thms), [])] |>
+    PureThy.add_thmss [((label, thms), [])] |>
     Theory.parent_path)
       (tnames ~~ thmss, thy);
 
 fun store_thms label tnames thms thy =
   foldr (fn ((tname, thm), thy') => thy' |>
     Theory.add_path tname |>
-    PureThy.add_tthms [((label, Attribute.tthm_of thm), [])] |>
+    PureThy.add_thms [((label, thm), [])] |>
     Theory.parent_path)
       (tnames ~~ thms, thy);
 

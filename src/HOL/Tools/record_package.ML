@@ -53,7 +53,7 @@ fun add_iffs_global (thy, th) =
   let
     val ss = Simplifier.simpset_ref_of thy;
     val cs = Classical.claset_ref_of thy;
-    val (cs', ss') = (! cs, ! ss) addIffs [Attribute.thm_of th];
+    val (cs', ss') = (! cs, ! ss) addIffs [th];
   in ss := ss'; cs := cs'; (thy, th) end;
 
 fun add_wrapper wrapper thy =
@@ -68,7 +68,7 @@ infix 0 :== ===;
 val (op :==) = Logic.mk_defpair;
 val (op ===) = HOLogic.mk_Trueprop o HOLogic.mk_eq;
 
-fun get_defs thy specs = map (PureThy.get_tthm thy o fst) specs;
+fun get_defs thy specs = map (PureThy.get_thm thy o fst) specs;
 
 
 (* proof by simplification *)
@@ -76,14 +76,13 @@ fun get_defs thy specs = map (PureThy.get_tthm thy o fst) specs;
 fun prove_simp thy tacs simps =
   let
     val sign = Theory.sign_of thy;
-    val ss = Simplifier.addsimps (HOL_basic_ss, Attribute.thms_of simps);
+    val ss = Simplifier.addsimps (HOL_basic_ss, simps);
 
     fun prove goal =
-      Attribute.tthm_of
-        (Goals.prove_goalw_cterm [] (Thm.cterm_of sign goal)
-          (K (tacs @ [ALLGOALS (Simplifier.simp_tac ss)]))
-        handle ERROR => error ("The error(s) above occurred while trying to prove "
-          ^ quote (Sign.string_of_term sign goal)));
+      Goals.prove_goalw_cterm [] (Thm.cterm_of sign goal)
+        (K (tacs @ [ALLGOALS (Simplifier.simp_tac ss)]))
+      handle ERROR => error ("The error(s) above occurred while trying to prove "
+        ^ quote (Sign.string_of_term sign goal));
   in prove end;
 
 
@@ -328,12 +327,12 @@ type record_info =
  {args: (string * sort) list,
   parent: (typ list * string) option,
   fields: (string * typ) list,
-  simps: tthm list};
+  simps: thm list};
 
 type parent_info =
  {name: string,
   fields: (string * typ) list,
-  simps: tthm list};
+  simps: thm list};
 
 
 (* data kind 'HOL/records' *)
@@ -519,11 +518,9 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
 
     (* 1st stage: types_thy *)
 
-    val (types_thy, simps) =
+    val (types_thy, datatype_simps) =
       thy
       |> field_type_defs fieldT_specs;
-
-    val datatype_simps = Attribute.tthms_of simps;
 
 
     (* 2nd stage: defs_thy *)
@@ -532,7 +529,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
       types_thy
        |> (Theory.add_consts_i o map (Syntax.no_syn o apfst base))
          (field_decls @ dest_decls)
-       |> (PureThy.add_defs_i o map (fn x => (x, [Attribute.tag_internal])))
+       |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal])))
          (field_specs @ dest_specs);
 
     val field_defs = get_defs defs_thy field_specs;
@@ -547,14 +544,14 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
     val field_injects = map prove_std inject_props;
     val dest_convs = map prove_std dest_props;
     val surj_pairs = map (prove [DatatypePackage.induct_tac "p" 1]
-      (map (apfst Thm.symmetric) field_defs @ dest_convs)) surj_props;
+      (map Thm.symmetric field_defs @ dest_convs)) surj_props;
 
     fun mk_split th = SplitPairedAll.rule (th RS eq_reflection);
-    val field_splits = map (fn (th, _) => Attribute.tthm_of (mk_split th)) surj_pairs;
+    val field_splits = map mk_split surj_pairs;
 
     val thms_thy =
       defs_thy
-      |> (PureThy.add_tthmss o map Attribute.none)
+      |> (PureThy.add_thmss o map Thm.no_attributes)
         [("field_defs", field_defs),
           ("dest_defs", dest_defs),
           ("dest_convs", dest_convs),
@@ -692,7 +689,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_path bname
       |> field_definitions fields names zeta moreT more vars named_vars;
 
-    val named_splits = map2 (fn (c, (th, _)) => (suffix field_typeN c, th)) (names, field_splits);
+    val named_splits = map2 (fn (c, th) => (suffix field_typeN c, th)) (names, field_splits);
 
 
     (* 2nd stage: defs_thy *)
@@ -705,9 +702,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
         (sel_decls @ update_decls @ make_decls)
-      |> (PureThy.add_defs_i o map (fn x => (x, [Attribute.tag_internal])))
+      |> (PureThy.add_defs_i o map (fn x => (x, [Drule.tag_internal])))
         (sel_specs @ update_specs)
-      |> (PureThy.add_defs_i o map Attribute.none) make_specs;
+      |> (PureThy.add_defs_i o map Thm.no_attributes) make_specs;
 
     val sel_defs = get_defs defs_thy sel_specs;
     val update_defs = get_defs defs_thy update_specs;
@@ -726,13 +723,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     val thms_thy =
       defs_thy
-      |> (PureThy.add_tthmss o map Attribute.none)
+      |> (PureThy.add_thmss o map Thm.no_attributes)
         [("select_defs", sel_defs),
           ("update_defs", update_defs),
           ("make_defs", make_defs),
           ("select_convs", sel_convs),
           ("update_convs", update_convs)]
-      |> PureThy.add_tthmss
+      |> PureThy.add_thmss
         [(("simps", simps), [Simplifier.simp_add_global]),
          (("iffs", field_injects), [add_iffs_global])];
 

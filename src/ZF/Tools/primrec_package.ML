@@ -173,20 +173,20 @@ fun add_primrec_i recursion_eqns thy =
     val rewrites = get_axiom thy' (#1 def) ::
 	           map mk_meta_eq (#rec_rewrites con_info)
     val char_thms = 
-	(if !Ind_Syntax.trace then
+	(if !Ind_Syntax.trace then	(* FIXME message / quiet_mode (!?) *)
 	     writeln ("Proving equations for primrec function " ^ fname)
 	 else ();
-	 map (fn (_,t) => 
+	 map (fn (_,t) =>
 	      prove_goalw_cterm rewrites
 		(Ind_Syntax.traceIt "next primrec equation = "
 		 (cterm_of (sign_of thy') t))
 	      (fn _ => [rtac refl 1]))
 	 recursion_eqns);
-    val tsimps = Attribute.tthms_of char_thms;
+    val simps = char_thms;
     val thy'' = thy' 
-      |> PureThy.add_tthmss [(("simps", tsimps), [Simplifier.simp_add_global])]
-      |> PureThy.add_tthms (map (rpair [])
-         (filter_out (equal "_" o fst) (map fst recursion_eqns ~~ tsimps)))
+      |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])]
+      |> PureThy.add_thms (map (rpair [])
+         (filter_out (equal "_" o fst) (map fst recursion_eqns ~~ simps)))
       |> Theory.parent_path;
   in
     (thy'', char_thms)

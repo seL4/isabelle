@@ -141,9 +141,9 @@ fun gen_add_typedef prep_term no_def name (t, vs, mx) raw_set axms thms usr_tac 
      ((if no_def then [] else [(name, setT, NoSyn)]) @
       [(Rep_name, newT --> oldT, NoSyn),
        (Abs_name, oldT --> newT, NoSyn)])
-    |> (if no_def then I else (PureThy.add_defs_i o map Attribute.none)
+    |> (if no_def then I else (PureThy.add_defs_i o map Thm.no_attributes)
      [(name ^ "_def", Logic.mk_equals (setC, set))])
-    |> (PureThy.add_axioms_i o map Attribute.none)
+    |> (PureThy.add_axioms_i o map Thm.no_attributes)
      [(Rep_name, rep_type),
       (Rep_name ^ "_inverse", rep_type_inv),
       (Abs_name ^ "_inverse", abs_type_inv)]

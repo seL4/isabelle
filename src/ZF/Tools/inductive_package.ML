@@ -169,7 +169,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 
   (*add definitions of the inductive sets*)
   val thy1 = thy |> Theory.add_path big_rec_base_name
-                 |> PureThy.add_defs_i (map Attribute.none axpairs)  
+                 |> PureThy.add_defs_i (map Thm.no_attributes axpairs)  
 
 
   (*fetch fp definitions from the theory*)
@@ -519,9 +519,9 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
      and mutual_induct = CP.remove_split mutual_induct_fsplit
     in
       (thy
-	|> PureThy.add_tthms 
-	    [(("induct", Attribute.tthm_of induct), []),
-	     (("mutual_induct", Attribute.tthm_of mutual_induct), [])],
+	|> PureThy.add_thms 
+	    [(("induct", induct), []),
+	     (("mutual_induct", mutual_induct), [])],
        induct, mutual_induct)
     end;  (*of induction_rules*)
 
@@ -534,13 +534,13 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 
  in
    (thy2
-	 |> PureThy.add_tthms
-	      [(("bnd_mono", Attribute.tthm_of bnd_mono), []),
-	       (("dom_subset", Attribute.tthm_of dom_subset), []),
-	       (("elim", Attribute.tthm_of elim), [])]
-	 |> PureThy.add_tthmss
-	       [(("defs", Attribute.tthms_of defs), []),
-		(("intrs", Attribute.tthms_of intrs), [])]
+	 |> (PureThy.add_thms o map Thm.no_attributes)
+	      [("bnd_mono", bnd_mono),
+	       ("dom_subset", dom_subset),
+	       ("elim", elim)]
+	 |> (PureThy.add_thmss o map Thm.no_attributes)
+	       [("defs", defs),
+		("intrs", intrs)]
          |> Theory.parent_path,
     {defs = defs,
      bnd_mono = bnd_mono,
