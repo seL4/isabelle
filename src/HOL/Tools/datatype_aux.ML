@@ -154,8 +154,7 @@ datatype dtyp =
 
 type datatype_info =
   {index : int,
-   descr : (int * (string * dtyp list *
-     (string * dtyp list) list)) list,
+   descr : (int * (string * dtyp list * (string * dtyp list) list)) list,
    rec_names : string list,
    rec_rewrites : thm list,
    case_name : string,
