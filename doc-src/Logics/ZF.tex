@@ -30,10 +30,10 @@ reasoning about the relations $<$ and $\le$).
 {\tt ZF} has a flexible package for handling inductive definitions,
 such as inference systems, and datatype definitions, such as lists and
 trees.  Moreover it handles coinductive definitions, such as
-bisimulation relations, and codatatype definitions, such as streams.  A
-recent paper describes the package~\cite{paulson-CADE}, but its examples
-use an obsolete declaration syntax.  Please consult the version of the
-paper distributed with Isabelle.
+bisimulation relations, and codatatype definitions, such as streams.
+There is a paper \cite{paulson-CADE} describing the package, but its
+examples use an obsolete declaration syntax.  Please consult the
+version of the paper distributed with Isabelle.
 
 Recent reports~\cite{paulson-set-I,paulson-set-II} describe {\tt ZF} less
 formally than this chapter.  Isabelle employs a novel treatment of
@@ -162,7 +162,7 @@ union.  The Isabelle version goes on to define the constant
    A\cup B              & \equiv &       \bigcup({\tt Upair}(A,B)) \\
    {\tt cons}(a,B)      & \equiv &        {\tt Upair}(a,a) \union B
 \end{eqnarray*}
-The {\tt\{\ldots\}} notation abbreviates finite sets constructed in the
+The $\{\ldots\}$ notation abbreviates finite sets constructed in the
 obvious manner using~{\tt cons} and~$\emptyset$ (the empty set):
 \begin{eqnarray*}
  \{a,b,c\} & \equiv & {\tt cons}(a,{\tt cons}(b,{\tt cons}(c,\emptyset)))
@@ -189,20 +189,20 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 \begin{tabular}{rrr} 
   \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
-  \{$a@1$, $\ldots$, $a@n$\}  &  cons($a@1$,$\cdots$,cons($a@n$,0)) &
+  \ttlbrace$a@1$, $\ldots$, $a@n$\ttrbrace  &  cons($a@1$,$\cdots$,cons($a@n$,0)) &
         \rm finite set \\
   <$a@1$, $\ldots$, $a@{n-1}$, $a@n$> & 
         Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots) &
         \rm ordered $n$-tuple \\
-  \{$x$:$A . P[x]$\}    &  Collect($A$,$\lambda x.P[x]$) &
+  \ttlbrace$x$:$A . P[x]$\ttrbrace    &  Collect($A$,$\lambda x.P[x]$) &
         \rm separation \\
-  \{$y . x$:$A$, $Q[x,y]$\}  &  Replace($A$,$\lambda x\,y.Q[x,y]$) &
+  \ttlbrace$y . x$:$A$, $Q[x,y]$\ttrbrace  &  Replace($A$,$\lambda x\,y.Q[x,y]$) &
         \rm replacement \\
-  \{$b[x] . x$:$A$\}  &  RepFun($A$,$\lambda x.b[x]$) &
+  \ttlbrace$b[x] . x$:$A$\ttrbrace  &  RepFun($A$,$\lambda x.b[x]$) &
         \rm functional replacement \\
-  \sdx{INT} $x$:$A . B[x]$      & Inter(\{$B[x] . x$:$A$\}) &
+  \sdx{INT} $x$:$A . B[x]$      & Inter(\ttlbrace$B[x] . x$:$A$\ttrbrace) &
         \rm general intersection \\
-  \sdx{UN}  $x$:$A . B[x]$      & Union(\{$B[x] . x$:$A$\}) &
+  \sdx{UN}  $x$:$A . B[x]$      & Union(\ttlbrace$B[x] . x$:$A$\ttrbrace) &
         \rm general union \\
   \sdx{PROD} $x$:$A . B[x]$     & Pi($A$,$\lambda x.B[x]$) & 
         \rm general product \\
@@ -233,11 +233,11 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 \[\begin{array}{rcl}
     term & = & \hbox{expression of type~$i$} \\
          & | & "let"~id~"="~term";"\dots";"~id~"="~term~"in"~term \\
-         & | & "\{ " term\; ("," term)^* " \}" \\
+         & | & "{\ttlbrace} " term\; ("," term)^* " {\ttrbrace}" \\
          & | & "< "  term\; ("," term)^* " >"  \\
-         & | & "\{ " id ":" term " . " formula " \}" \\
-         & | & "\{ " id " . " id ":" term ", " formula " \}" \\
-         & | & "\{ " term " . " id ":" term " \}" \\
+         & | & "{\ttlbrace} " id ":" term " . " formula " {\ttrbrace}" \\
+         & | & "{\ttlbrace} " id " . " id ":" term ", " formula " {\ttrbrace}" \\
+         & | & "{\ttlbrace} " term " . " id ":" term " {\ttrbrace}" \\
          & | & term " `` " term \\
          & | & term " -`` " term \\
          & | & term " ` " term \\
@@ -276,37 +276,40 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 
 \section{Binding operators}
 The constant \cdx{Collect} constructs sets by the principle of {\bf
-  separation}.  The syntax for separation is \hbox{\tt\{$x$:$A$.$P[x]$\}},
-where $P[x]$ is a formula that may contain free occurrences of~$x$.  It
-abbreviates the set {\tt Collect($A$,$\lambda x.P[x]$)}, which consists of
-all $x\in A$ that satisfy~$P[x]$.  Note that {\tt Collect} is an
-unfortunate choice of name: some set theories adopt a set-formation
-principle, related to replacement, called collection.
+  separation}.  The syntax for separation is
+\hbox{\tt\ttlbrace$x$:$A$.$P[x]$\ttrbrace}, where $P[x]$ is a formula
+that may contain free occurrences of~$x$.  It abbreviates the set {\tt
+  Collect($A$,$\lambda x.P[x]$)}, which consists of all $x\in A$ that
+satisfy~$P[x]$.  Note that {\tt Collect} is an unfortunate choice of
+name: some set theories adopt a set-formation principle, related to
+replacement, called collection.
 
 The constant \cdx{Replace} constructs sets by the principle of {\bf
-  replacement}.  The syntax \hbox{\tt\{$y$.$x$:$A$,$Q[x,y]$\}} denotes the
-set {\tt Replace($A$,$\lambda x\,y.Q[x,y]$)}, which consists of all~$y$ such
-that there exists $x\in A$ satisfying~$Q[x,y]$.  The Replacement Axiom has
-the condition that $Q$ must be single-valued over~$A$: for all~$x\in A$
-there exists at most one $y$ satisfying~$Q[x,y]$.  A single-valued binary
-predicate is also called a {\bf class function}.
+  replacement}.  The syntax
+\hbox{\tt\ttlbrace$y$.$x$:$A$,$Q[x,y]$\ttrbrace} denotes the set {\tt
+  Replace($A$,$\lambda x\,y.Q[x,y]$)}, which consists of all~$y$ such
+that there exists $x\in A$ satisfying~$Q[x,y]$.  The Replacement Axiom
+has the condition that $Q$ must be single-valued over~$A$: for
+all~$x\in A$ there exists at most one $y$ satisfying~$Q[x,y]$.  A
+single-valued binary predicate is also called a {\bf class function}.
 
 The constant \cdx{RepFun} expresses a special case of replacement,
 where $Q[x,y]$ has the form $y=b[x]$.  Such a $Q$ is trivially
 single-valued, since it is just the graph of the meta-level
 function~$\lambda x.b[x]$.  The resulting set consists of all $b[x]$
-for~$x\in A$.  This is analogous to the \ML{} functional {\tt map}, since
-it applies a function to every element of a set.  The syntax is
-\hbox{\tt\{$b[x]$.$x$:$A$\}}, which expands to {\tt RepFun($A$,$\lambda
-  x.b[x]$)}.
+for~$x\in A$.  This is analogous to the \ML{} functional {\tt map},
+since it applies a function to every element of a set.  The syntax is
+\hbox{\tt\ttlbrace$b[x]$.$x$:$A$\ttrbrace}, which expands to {\tt
+  RepFun($A$,$\lambda x.b[x]$)}.
 
 \index{*INT symbol}\index{*UN symbol} 
 General unions and intersections of indexed
 families of sets, namely $\bigcup@{x\in A}B[x]$ and $\bigcap@{x\in A}B[x]$,
 are written \hbox{\tt UN $x$:$A$.$B[x]$} and \hbox{\tt INT $x$:$A$.$B[x]$}.
 Their meaning is expressed using {\tt RepFun} as
-\[ \bigcup(\{B[x]. x\in A\}) \qquad\hbox{and}\qquad 
-   \bigcap(\{B[x]. x\in A\}). 
+\[
+\bigcup(\{B[x]. x\in A\}) \qquad\hbox{and}\qquad 
+\bigcap(\{B[x]. x\in A\}). 
 \]
 General sums $\sum@{x\in A}B[x]$ and products $\prod@{x\in A}B[x]$ can be
 constructed in set theory, where $B[x]$ is a family of sets over~$A$.  They
@@ -373,18 +376,18 @@ write
 
 \tdx{Replace_def}  Replace(A,P) == 
                    PrimReplace(A, \%x y. (EX!z.P(x,z)) & P(x,y))
-\tdx{RepFun_def}   RepFun(A,f)  == \{y . x:A, y=f(x)\}
-\tdx{the_def}      The(P)       == Union(\{y . x:\{0\}, P(y)\})
+\tdx{RepFun_def}   RepFun(A,f)  == {\ttlbrace}y . x:A, y=f(x)\ttrbrace
+\tdx{the_def}      The(P)       == Union({\ttlbrace}y . x:{\ttlbrace}0{\ttrbrace}, P(y){\ttrbrace})
 \tdx{if_def}       if(P,a,b)    == THE z. P & z=a | ~P & z=b
-\tdx{Collect_def}  Collect(A,P) == \{y . x:A, x=y & P(x)\}
+\tdx{Collect_def}  Collect(A,P) == {\ttlbrace}y . x:A, x=y & P(x){\ttrbrace}
 \tdx{Upair_def}    Upair(a,b)   == 
-                 \{y. x:Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)\}
+                 {\ttlbrace}y. x:Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b){\ttrbrace}
 \subcaption{Consequences of replacement}
 
-\tdx{Inter_def}    Inter(A) == \{ x:Union(A) . ALL y:A. x:y\}
+\tdx{Inter_def}    Inter(A) == {\ttlbrace}x:Union(A) . ALL y:A. x:y{\ttrbrace}
 \tdx{Un_def}       A Un  B  == Union(Upair(A,B))
 \tdx{Int_def}      A Int B  == Inter(Upair(A,B))
-\tdx{Diff_def}     A - B    == \{ x:A . ~(x:B) \}
+\tdx{Diff_def}     A - B    == {\ttlbrace}x:A . x~:B{\ttrbrace}
 \subcaption{Union, intersection, difference}
 \end{ttbox}
 \caption{Rules and axioms of {\ZF}} \label{zf-rules}
@@ -398,24 +401,24 @@ write
 \tdx{infinity}     0:Inf & (ALL y:Inf. succ(y): Inf)
 \subcaption{Finite and infinite sets}
 
-\tdx{Pair_def}       <a,b>      == \{\{a,a\}, \{a,b\}\}
+\tdx{Pair_def}       <a,b>      == {\ttlbrace}{\ttlbrace}a,a{\ttrbrace}, {\ttlbrace}a,b{\ttrbrace}{\ttrbrace}
 \tdx{split_def}      split(c,p) == THE y. EX a b. p=<a,b> & y=c(a,b)
 \tdx{fst_def}        fst(A)     == split(\%x y.x, p)
 \tdx{snd_def}        snd(A)     == split(\%x y.y, p)
-\tdx{Sigma_def}      Sigma(A,B) == UN x:A. UN y:B(x). \{<x,y>\}
+\tdx{Sigma_def}      Sigma(A,B) == UN x:A. UN y:B(x). {\ttlbrace}<x,y>{\ttrbrace}
 \subcaption{Ordered pairs and Cartesian products}
 
-\tdx{converse_def}   converse(r) == \{z. w:r, EX x y. w=<x,y> & z=<y,x>\}
-\tdx{domain_def}     domain(r)   == \{x. w:r, EX y. w=<x,y>\}
+\tdx{converse_def}   converse(r) == {\ttlbrace}z. w:r, EX x y. w=<x,y> & z=<y,x>{\ttrbrace}
+\tdx{domain_def}     domain(r)   == {\ttlbrace}x. w:r, EX y. w=<x,y>{\ttrbrace}
 \tdx{range_def}      range(r)    == domain(converse(r))
 \tdx{field_def}      field(r)    == domain(r) Un range(r)
-\tdx{image_def}      r `` A      == \{y : range(r) . EX x:A. <x,y> : r\}
+\tdx{image_def}      r `` A      == {\ttlbrace}y : range(r) . EX x:A. <x,y> : r{\ttrbrace}
 \tdx{vimage_def}     r -`` A     == converse(r)``A
 \subcaption{Operations on relations}
 
-\tdx{lam_def}    Lambda(A,b) == \{<x,b(x)> . x:A\}
+\tdx{lam_def}    Lambda(A,b) == {\ttlbrace}<x,b(x)> . x:A{\ttrbrace}
 \tdx{apply_def}  f`a         == THE y. <a,y> : f
-\tdx{Pi_def}     Pi(A,B) == \{f: Pow(Sigma(A,B)). ALL x:A. EX! y. <x,y>: f\}
+\tdx{Pi_def}     Pi(A,B) == {\ttlbrace}f: Pow(Sigma(A,B)). ALL x:A. EX! y. <x,y>: f{\ttrbrace}
 \tdx{restrict_def}   restrict(f,A) == lam x:A.f`x
 \subcaption{Functions and general product}
 \end{ttbox}
@@ -568,21 +571,21 @@ similar premises.
 \begin{figure}[p]
 \begin{ttbox}
 \tdx{ReplaceI}      [| x: A;  P(x,b);  !!y. P(x,y) ==> y=b |] ==> 
-              b : \{y. x:A, P(x,y)\}
+              b : {\ttlbrace}y. x:A, P(x,y){\ttrbrace}
 
-\tdx{ReplaceE}      [| b : \{y. x:A, P(x,y)\};  
+\tdx{ReplaceE}      [| b : {\ttlbrace}y. x:A, P(x,y){\ttrbrace};  
                  !!x. [| x: A;  P(x,b);  ALL y. P(x,y)-->y=b |] ==> R 
               |] ==> R
 
-\tdx{RepFunI}       [| a : A |] ==> f(a) : \{f(x). x:A\}
-\tdx{RepFunE}       [| b : \{f(x). x:A\};  
+\tdx{RepFunI}       [| a : A |] ==> f(a) : {\ttlbrace}f(x). x:A{\ttrbrace}
+\tdx{RepFunE}       [| b : {\ttlbrace}f(x). x:A{\ttrbrace};  
                  !!x.[| x:A;  b=f(x) |] ==> P |] ==> P
 
-\tdx{separation}     a : \{x:A. P(x)\} <-> a:A & P(a)
-\tdx{CollectI}       [| a:A;  P(a) |] ==> a : \{x:A. P(x)\}
-\tdx{CollectE}       [| a : \{x:A. P(x)\};  [| a:A; P(a) |] ==> R |] ==> R
-\tdx{CollectD1}      a : \{x:A. P(x)\} ==> a:A
-\tdx{CollectD2}      a : \{x:A. P(x)\} ==> P(a)
+\tdx{separation}     a : {\ttlbrace}x:A. P(x){\ttrbrace} <-> a:A & P(a)
+\tdx{CollectI}       [| a:A;  P(a) |] ==> a : {\ttlbrace}x:A. P(x){\ttrbrace}
+\tdx{CollectE}       [| a : {\ttlbrace}x:A. P(x){\ttrbrace};  [| a:A; P(a) |] ==> R |] ==> R
+\tdx{CollectD1}      a : {\ttlbrace}x:A. P(x){\ttrbrace} ==> a:A
+\tdx{CollectD2}      a : {\ttlbrace}x:A. P(x){\ttrbrace} ==> P(a)
 \end{ttbox}
 \caption{Replacement and separation} \label{zf-lemmas2}
 \end{figure}
@@ -649,8 +652,8 @@ similar premises.
 \tdx{consCI}       (~ a:B ==> a=b) ==> a: cons(b,B)
 \tdx{consE}        [| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P
 
-\tdx{singletonI}   a : \{a\}
-\tdx{singletonE}   [| a : \{b\}; a=b ==> P |] ==> P
+\tdx{singletonI}   a : {\ttlbrace}a{\ttrbrace}
+\tdx{singletonE}   [| a : {\ttlbrace}b{\ttrbrace}; a=b ==> P |] ==> P
 \end{ttbox}
 \caption{Finite and singleton sets} \label{zf-upair2}
 \end{figure}
@@ -819,7 +822,7 @@ $\lambda$-abstraction. Some important examples are
 \item[Let:] {\tt let {\it pattern} = $t$ in $u$}
 \item[Choice:] {\tt THE~{\it pattern}~.~$P$}
 \item[Set operations:] {\tt UN~{\it pattern}:$A$.~$B$}
-\item[Comprehension:] {\tt \{~{\it pattern}:$A$~.~$P$~\}}
+\item[Comprehension:] {\tt {\ttlbrace}~{\it pattern}:$A$~.~$P$~{\ttrbrace}}
 \end{description}
 
 
@@ -926,7 +929,7 @@ rules.
 \begin{figure}
 \begin{ttbox}
 \tdx{fun_empty}            0: 0->0
-\tdx{fun_single}           \{<a,b>\} : \{a\} -> \{b\}
+\tdx{fun_single}           {\ttlbrace}<a,b>{\ttrbrace} : {\ttlbrace}a{\ttrbrace} -> {\ttlbrace}b{\ttrbrace}
 
 \tdx{fun_disjoint_Un}      [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  
                      (f Un g) : (A Un C) -> (B Un D)
@@ -1025,7 +1028,7 @@ disjoint.
 %\end{constants}
 %
 \begin{ttbox}
-\tdx{bool_def}       bool == \{0,1\}
+\tdx{bool_def}       bool == {\ttlbrace}0,1{\ttrbrace}
 \tdx{cond_def}       cond(b,c,d) == if(b=1,c,d)
 \tdx{not_def}        not(b)  == cond(b,0,1)
 \tdx{and_def}        a and b == cond(a,b,0)
@@ -1066,7 +1069,7 @@ is translated to {\tt succ(0)}.
   \cdx{case}    & $[i\To i,i\To i, i]\To i$ &   & conditional for $A+B$
 \end{constants}
 \begin{ttbox}
-\tdx{sum_def}        A+B == \{0\}*A Un \{1\}*B
+\tdx{sum_def}        A+B == {\ttlbrace}0{\ttrbrace}*A Un {\ttlbrace}1{\ttrbrace}*B
 \tdx{Inl_def}        Inl(a) == <0,a>
 \tdx{Inr_def}        Inr(b) == <1,b>
 \tdx{case_def}       case(c,d,u) == split(\%y z. cond(y, d(z), c(z)), u)
@@ -1097,10 +1100,10 @@ mutual recursion~\cite{paulson-set-II}.
 \tdx{QPair_def}       <a;b> == a+b
 \tdx{qsplit_def}      qsplit(c,p)  == THE y. EX a b. p=<a;b> & y=c(a,b)
 \tdx{qfsplit_def}     qfsplit(R,z) == EX x y. z=<x;y> & R(x,y)
-\tdx{qconverse_def}   qconverse(r) == \{z. w:r, EX x y. w=<x;y> & z=<y;x>\}
-\tdx{QSigma_def}      QSigma(A,B)  == UN x:A. UN y:B(x). \{<x;y>\}
+\tdx{qconverse_def}   qconverse(r) == {\ttlbrace}z. w:r, EX x y. w=<x;y> & z=<y;x>{\ttrbrace}
+\tdx{QSigma_def}      QSigma(A,B)  == UN x:A. UN y:B(x). {\ttlbrace}<x;y>{\ttrbrace}
 
-\tdx{qsum_def}        A <+> B      == (\{0\} <*> A) Un (\{1\} <*> B)
+\tdx{qsum_def}        A <+> B      == ({\ttlbrace}0{\ttrbrace} <*> A) Un ({\ttlbrace}1{\ttrbrace} <*> B)
 \tdx{QInl_def}        QInl(a)      == <0;a>
 \tdx{QInr_def}        QInr(b)      == <1;b>
 \tdx{qcase_def}       qcase(c,d)   == qsplit(\%y z. cond(y, d(z), c(z)))
@@ -1124,8 +1127,8 @@ definitions, for example of infinite lists~\cite{paulson-final}.
 \tdx{bnd_mono_def}   bnd_mono(D,h) == 
                  h(D)<=D & (ALL W X. W<=X --> X<=D --> h(W) <= h(X))
 
-\tdx{lfp_def}        lfp(D,h) == Inter(\{X: Pow(D). h(X) <= X\})
-\tdx{gfp_def}        gfp(D,h) == Union(\{X: Pow(D). X <= h(X)\})
+\tdx{lfp_def}        lfp(D,h) == Inter({\ttlbrace}X: Pow(D). h(X) <= X{\ttrbrace})
+\tdx{gfp_def}        gfp(D,h) == Union({\ttlbrace}X: Pow(D). X <= h(X){\ttrbrace})
 
 
 \tdx{lfp_lowerbound} [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A
@@ -1196,11 +1199,11 @@ file {\tt ZF/mono.ML}.
 \end{constants}
 
 \begin{ttbox}
-\tdx{comp_def}  r O s     == \{xz : domain(s)*range(r) . 
-                        EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r\}
+\tdx{comp_def}  r O s     == {\ttlbrace}xz : domain(s)*range(r) . 
+                        EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r{\ttrbrace}
 \tdx{id_def}    id(A)     == (lam x:A. x)
-\tdx{inj_def}   inj(A,B)  == \{ f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x\}
-\tdx{surj_def}  surj(A,B) == \{ f: A->B . ALL y:B. EX x:A. f`x=y\}
+\tdx{inj_def}   inj(A,B)  == {\ttlbrace} f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x {\ttrbrace}
+\tdx{surj_def}  surj(A,B) == {\ttlbrace} f: A->B . ALL y:B. EX x:A. f`x=y {\ttrbrace}
 \tdx{bij_def}   bij(A,B)  == inj(A,B) Int surj(A,B)
 
 
@@ -1262,7 +1265,7 @@ equipollence and cardinality.
 \end{constants}
 
 \begin{ttbox}
-\tdx{nat_def}       nat == lfp(lam r: Pow(Inf). \{0\} Un \{succ(x). x:r\}
+\tdx{nat_def}       nat == lfp(lam r: Pow(Inf). {\ttlbrace}0{\ttrbrace} Un {\ttlbrace}succ(x). x:r{\ttrbrace}
 
 \tdx{nat_case_def}  nat_case(a,b,k) == 
               THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))
@@ -1294,7 +1297,7 @@ equipollence and cardinality.
 \tdx{mult_0}        0 #* n = 0
 \tdx{mult_succ}     succ(m) #* n = n #+ (m #* n)
 \tdx{mult_commute}  [| m:nat; n:nat |] ==> m #* n = n #* m
-\tdx{add_mult_dist} [| m:nat; k:nat |] ==> (m #+ n) #* k = (m #* k) #+ (n #* k)
+\tdx{add_mult_dist} [| m:nat; k:nat |] ==> (m #+ n) #* k = (m #* k){\thinspace}#+{\thinspace}(n #* k)
 \tdx{mult_assoc}
     [| m:nat;  n:nat;  k:nat |] ==> (m #* n) #* k = m #* (n #* k)
 \tdx{mod_quo_equality}
@@ -1433,12 +1436,13 @@ summary:
       less than}: $i<j$ if and only if $i$ and $j$ are both ordinals and
     $i\in j$.  As a special case, it includes less than on the natural
     numbers.
-
-  \item Theory {\tt Epsilon} derives $\epsilon$-induction and
-    $\epsilon$-recursion, which are generalisations of transfinite
-    induction and recursion.  It also defines \cdx{rank}$(x)$, which is the
-    least ordinal $\alpha$ such that $x$ is constructed at stage $\alpha$
-    of the cumulative hierarchy (thus $x\in V@{\alpha+1}$).
+    
+  \item Theory {\tt Epsilon} derives $\varepsilon$-induction and
+    $\varepsilon$-recursion, which are generalisations of transfinite
+    induction and recursion.  It also defines \cdx{rank}$(x)$, which
+    is the least ordinal $\alpha$ such that $x$ is constructed at
+    stage $\alpha$ of the cumulative hierarchy (thus $x\in
+    V@{\alpha+1}$).
 \end{itemize}
 
 Other important theories lead to a theory of cardinal numbers.  They have
