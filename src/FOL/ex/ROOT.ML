@@ -31,6 +31,8 @@ val thy = FOL.thy  and  tac = Cla.fast_tac FOL_cs 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
 
+time_use_thy "NatClass";
+
 writeln"\n** Simplification examples **\n";
 time_use_thy "Nat2";
 time_use_thy "List";
