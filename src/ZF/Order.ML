@@ -179,6 +179,22 @@ by (simp_tac (simpset() addsimps [tot_ord_0, wf_on_0]) 1);
 qed "well_ord_0";
 
 
+(** The unit set is well-ordered by the empty relation (Grabczewski) **)
+
+Goalw [irrefl_def, trans_on_def, part_ord_def, linear_def, tot_ord_def]
+        "tot_ord({a},0)";
+by (Simp_tac 1);
+qed "tot_ord_unit";
+
+Goalw [wf_on_def, wf_def] "wf[{a}](0)";
+by (Fast_tac 1);
+qed "wf_on_unit";
+
+Goalw [well_ord_def] "well_ord({a},0)";
+by (simp_tac (simpset() addsimps [tot_ord_unit, wf_on_unit]) 1);
+qed "well_ord_unit";
+
+
 (** Order-preserving (monotone) maps **)
 
 Goalw [mono_map_def] 
