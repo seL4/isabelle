@@ -199,8 +199,8 @@ proof -
   show ?thesis
     apply (subgoal_tac "x = z | (EX y. (x,y) : r & (y,z) : r^*)")
      apply (rule_tac [2] major [THEN converse_rtrancl_induct])
-      prefer 2 apply (blast!)
-     prefer 2 apply (blast!)
+      prefer 2 apply rules
+     prefer 2 apply rules
     apply (erule asm_rl exE disjE conjE prems)+
     done
 qed
