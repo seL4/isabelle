@@ -212,7 +212,7 @@ Addsimps [new_tv_subst_te];
 Goal "new_tv n s --> new_tv n (ts::typ list) --> new_tv n ($ s ts)";
 by (simp_tac (simpset() addsimps [new_tv_list]) 1);
 by (induct_tac "ts" 1);
-by (Safe_tac);
+by Safe_tac;
 by    (ALLGOALS(fast_tac (HOL_cs addss (simpset() addsimps [new_tv_subst]))));
 qed_spec_mp "new_tv_subst_tel";
 Addsimps [new_tv_subst_tel];
