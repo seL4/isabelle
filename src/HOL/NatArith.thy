@@ -33,12 +33,12 @@ ML {*
 *}
 (* Careful: arith_tac produces counter examples!
 fun add_arith cs = cs addafter ("arith_tac", arith_tac);
-TODO: use arith_tac for force_tac in Provers/clasip.ML *)
+TODO: use arith_tac for force_tac in Provers/clasimp.ML *)
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 
 
-subsubsection {* Generic summation indexed over natural numbers *}
+subsection {* Generic summation indexed over natural numbers *}
 
 consts
   Summation :: "(nat => 'a::{zero, plus}) => nat => 'a"
