@@ -267,8 +267,7 @@ apply (rule the_0, blast)
 done
 
 lemma Ord_Least [intro,simp,TC]: "Ord(LEAST x. P(x))"
-apply (rule_tac P = "EX i. Ord(i) & P(i)" in case_split_thm)  
-    (*case_tac method not available yet; needs "inductive"*)
+apply (case_tac "\<exists>i. Ord(i) & P(i)")  
 apply safe
 apply (rule Least_le [THEN ltE])
 prefer 3 apply assumption+
@@ -380,7 +379,7 @@ done
 
 lemma Card_cardinal: "Card(|A|)"
 apply (unfold cardinal_def)
-apply (rule_tac P =  "EX i. Ord (i) & i \<approx> A" in case_split_thm)
+apply (case_tac "EX i. Ord (i) & i \<approx> A")
  txt{*degenerate case*}
  prefer 2 apply (erule Least_0 [THEN ssubst], rule Card_0)
 txt{*real case: A is isomorphic to some ordinal*}
@@ -790,7 +789,7 @@ lemmas Finite_Diff = Diff_subset [THEN subset_Finite, standard]
 
 lemma Finite_cons: "Finite(x) ==> Finite(cons(y,x))"
 apply (unfold Finite_def)
-apply (rule_tac P =  "y:x" in case_split_thm)
+apply (case_tac "y:x")
 apply (simp add: cons_absorb)
 apply (erule bexE)
 apply (rule bexI)
@@ -974,7 +973,7 @@ apply (erule nat_induct)
 apply (blast intro: wf_onI)
 apply (rule wf_onI)
 apply (simp add: wf_on_def wf_def)
-apply (rule_tac P =  "x:Z" in case_split_thm)
+apply (case_tac "x:Z")
  txt{*x:Z case*}
  apply (drule_tac x = x in bspec, assumption)
  apply (blast elim: mem_irrefl mem_asym)

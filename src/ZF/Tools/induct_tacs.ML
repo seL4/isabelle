@@ -83,6 +83,8 @@ fun datatype_info_sg sign name =
 
 
 (*Given a variable, find the inductive set associated it in the assumptions*)
+exception Find_tname of string
+
 fun find_tname var Bi =
   let fun mk_pair (Const("op :",_) $ Free (v,_) $ A) =
              (v, #1 (dest_Const (head_of A)))
@@ -90,7 +92,7 @@ fun find_tname var Bi =
       val pairs = mapfilter (try (mk_pair o FOLogic.dest_Trueprop))
           (#2 (strip_context Bi))
   in case assoc (pairs, var) of
-       None => error ("Cannot determine datatype of " ^ quote var)
+       None => raise Find_tname ("Cannot determine datatype of " ^ quote var)
      | Some t => t
   end;
 
@@ -118,11 +120,14 @@ fun exhaust_induct_tac exh var i state =
         String.substring (ind_vname, 1, size ind_vname-1)
   in
     eres_inst_tac [(vname',var)] rule i state
-  end;
+  end
+  handle Find_tname msg =>
+            if exh then (*try boolean case analysis instead*)
+		case_tac var i state
+            else error msg;
 
 val exhaust_tac = exhaust_induct_tac true;
 val induct_tac = exhaust_induct_tac false;
-
 
 
 (**** declare non-datatype as datatype ****)
@@ -201,8 +206,8 @@ val setup =
   Method.add_methods
     [("induct_tac", Method.goal_args Args.name induct_tac,
       "induct_tac emulation (dynamic instantiation!)"),
-     ("case_tac", Method.goal_args Args.name case_tac,
-      "case_tac emulation (dynamic instantiation!)")]];
+     ("case_tac", Method.goal_args Args.name exhaust_tac,
+      "datatype case_tac emulation (dynamic instantiation!)")]];
 
 
 (* outer syntax *)

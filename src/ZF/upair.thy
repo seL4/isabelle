@@ -223,8 +223,7 @@ by (unfold if_def, blast)
 
 lemma split_if [split]:
      "P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
-(*no case_tac yet!*)
-by (rule_tac P=Q in case_split_thm, simp_all)
+by (case_tac Q, simp_all)
 
 (** Rewrite rules for boolean case-splitting: faster than 
 	addsplits[split_if]

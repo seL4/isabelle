@@ -118,7 +118,7 @@ lemma Transset_0_lemma [rule_format]: "Transset(A) ==> x\<in>A --> 0\<in>A";
 apply (simp add: Transset_def) 
 apply (rule_tac a=x in eps_induct, clarify) 
 apply (drule bspec, assumption) 
-apply (rule_tac P = "x=0" in case_split_thm, auto)
+apply (case_tac "x=0", auto)
 done
 
 lemma Transset_0_disj: "Transset(A) ==> A=0 | 0\<in>A";

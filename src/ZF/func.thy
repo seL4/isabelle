@@ -462,7 +462,7 @@ translations
 
 lemma update_apply [simp]: "f(x:=y) ` z = (if z=x then y else f`z)"
 apply (simp add: update_def)
-apply (rule_tac P="z \<in> domain(f)" in case_split_thm)   
+apply (case_tac "z \<in> domain(f)")   
 apply (simp_all add: apply_0)
 done
 

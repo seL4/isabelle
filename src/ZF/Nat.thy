@@ -217,11 +217,9 @@ lemma non_nat_case: "~ quasinat(x) ==> nat_case(a,b,x) = 0"
 by (simp add: quasinat_def nat_case_def) 
 
 lemma nat_cases_disj: "k=0 | (\<exists>y. k = succ(y)) | ~ quasinat(k)"
-txt{*The @{text case_tac} method is not yet available.*}
-apply (rule_tac P = "k=0" in case_split_thm, simp) 
-apply (rule_tac P = "\<exists>m. k = succ(m)" in case_split_thm, simp) 
-apply simp 
-apply (simp add: quasinat_def) 
+apply (case_tac "k=0", simp) 
+apply (case_tac "\<exists>m. k = succ(m)") 
+apply (simp_all add: quasinat_def) 
 done
 
 lemma nat_cases:
