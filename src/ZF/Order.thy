@@ -394,16 +394,20 @@ apply (blast intro!: right_inverse_bij [symmetric])
 apply (auto simp add: right_inverse_bij  bij_is_fun [THEN apply_funtype])
 done
 
+lemma ord_iso_restrict_image:
+     "[| f : ord_iso(A,r,B,s);  C<=A |] 
+      ==> restrict(f,C) : ord_iso(C, r, f``C, s)"
+apply (simp add: ord_iso_def) 
+apply (blast intro: bij_is_inj restrict_bij) 
+done
+
 (*But in use, A and B may themselves be initial segments.  Then use
   trans_pred_pred_eq to simplify the pred(pred...) terms.  See just below.*)
-lemma ord_iso_restrict_pred: "[| f : ord_iso(A,r,B,s);   a:A |] ==>
-       restrict(f, pred(A,a,r)) : ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)"
-apply (simp add: ord_iso_image_pred [symmetric])
-apply (simp add: ord_iso_def, clarify)
-apply (rule conjI)
-apply (erule restrict_bij [OF bij_is_inj pred_subset])
-apply (frule bij_is_fun)
-apply (auto simp add: pred_def)
+lemma ord_iso_restrict_pred:
+   "[| f : ord_iso(A,r,B,s);   a:A |]
+    ==> restrict(f, pred(A,a,r)) : ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)"
+apply (simp add: ord_iso_image_pred [symmetric]) 
+apply (blast intro: ord_iso_restrict_image elim: predE) 
 done
 
 (*Tricky; a lot of forward proof!*)
