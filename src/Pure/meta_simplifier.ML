@@ -64,7 +64,7 @@ exception SIMPLIFIER of string * thm;
 
 val simp_depth = ref 0;
 
-fun println a = writeln(replicate_string (!simp_depth) " " ^ a)
+fun println a = tracing (replicate_string (! simp_depth) " " ^ a);
 
 fun prnt warn a = if warn then warning a else println a;
 

@@ -66,7 +66,7 @@ struct
 	                then error "Environment variable SVC_MACHINE not set"
 			else svc_home ^ "/" ^ svc_machine ^ "/bin/check_valid"
       val svc_input = toString e
-      val _ = if !trace then writeln ("Calling SVC:\n" ^ svc_input) else ()
+      val _ = if !trace then tracing ("Calling SVC:\n" ^ svc_input) else ()
       val svc_input_file  = File.tmp_path (Path.basic "SVM_in");
       val svc_output_file = File.tmp_path (Path.basic "SVM_out");
       val _ = (File.write svc_input_file svc_input;
@@ -79,7 +79,7 @@ struct
           Some out => out
         | None => error "SVC returned no output");
   in
-      if ! trace then writeln ("SVC Returns:\n" ^ svc_output)
+      if ! trace then tracing ("SVC Returns:\n" ^ svc_output)
       else (File.rm svc_input_file; File.rm svc_output_file);
       String.isPrefix "VALID" svc_output
   end
@@ -249,7 +249,7 @@ struct
 
  (*The oracle proves the given formula t, if possible*)
  fun oracle (sign, OracleExn t) = 
-   let val dummy = if !trace then writeln ("Subgoal abstracted to\n" ^
+   let val dummy = if !trace then tracing ("Subgoal abstracted to\n" ^
 					   Sign.string_of_term sign t)
                    else ()
    in

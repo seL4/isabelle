@@ -124,7 +124,7 @@ struct
 fun trace_goalno_tac tac i st =
     case Seq.pull(tac i st) of
         None    => Seq.empty
-      | seqcell => (writeln ("Subgoal " ^ string_of_int i ^ " selected");
+      | seqcell => (tracing ("Subgoal " ^ string_of_int i ^ " selected");
                          Seq.make(fn()=> seqcell));
 
 (*Makes a rule by applying a tactic to an existing rule*)
@@ -285,8 +285,8 @@ fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i st =
   if i > nprems_of st then no_tac st
   else st |>
     (compose_tac (bires_flg, lift_inst_rule (st, i, sinsts, rule), nsubgoal) i
-     handle TERM (msg,_)   => (writeln msg;  no_tac)
-          | THM  (msg,_,_) => (writeln msg;  no_tac));
+     handle TERM (msg,_)   => (warning msg;  no_tac)
+          | THM  (msg,_,_) => (warning msg;  no_tac));
 
 (*"Resolve" version.  Note: res_inst_tac cannot behave sensibly if the
   terms that are substituted contain (term or type) unknowns from the

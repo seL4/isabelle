@@ -52,14 +52,14 @@ struct
  (*Make a simproc to combine all literals in a associative nest*)
  fun proc sg _ lhs =
    let fun show t = string_of_cterm (Thm.cterm_of sg t)
-       val _ = if !trace then writeln ("assoc_fold simproc: LHS = " ^ show lhs)
+       val _ = if !trace then tracing ("assoc_fold simproc: LHS = " ^ show lhs)
 	       else ()
        val (lits,others) = sift_terms (lhs, ([],[]))
        val _ = if length lits < 2
                then raise Assoc_fail (*we can't reduce the number of terms*)
                else ()  
        val rhs = Data.plus $ mk_sum lits $ mk_sum others
-       val _ = if !trace then writeln ("RHS = " ^ show rhs) else ()
+       val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
        val th = prove "assoc_fold" 
 	           (Thm.cterm_of sg (Logic.mk_equals (lhs, rhs)))
 		   (fn _ => [rtac Data.eq_reflection 1,

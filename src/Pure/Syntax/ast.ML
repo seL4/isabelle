@@ -157,12 +157,6 @@ fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
 
 (** normalization of asts **)
 
-(* tracing options *)
-
-val trace_ast = ref false;
-val stat_ast = ref false;
-
-
 (* match *)
 
 fun match ast pat =
@@ -228,9 +222,8 @@ fun normalize trace stat get_rules pre_ast =
       | rewrite ast = try_headless_rules ast;
 
     fun rewrote old_ast new_ast =
-      if trace then
-        writeln ("rewrote: " ^ str_of_ast old_ast ^ "  ->  " ^ str_of_ast new_ast)
-      else ();
+      conditional trace (fn () =>
+        tracing ("rewrote: " ^ str_of_ast old_ast ^ "  ->  " ^ str_of_ast new_ast));
 
     fun norm_root ast =
       (case rewrite ast of
@@ -258,21 +251,23 @@ fun normalize trace stat get_rules pre_ast =
       end;
 
 
-    val _ = if trace then writeln ("pre: " ^ str_of_ast pre_ast) else ();
+    val _ = conditional trace (fn () => tracing ("pre: " ^ str_of_ast pre_ast));
 
     val post_ast = normal pre_ast;
   in
-    if trace orelse stat then
-      writeln ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
+    conditional (trace orelse stat) (fn () =>
+      tracing ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
         string_of_int (! passes) ^ " passes, " ^
         string_of_int (! changes) ^ " changes, " ^
-        string_of_int (! failed_matches) ^ " matches failed")
-    else ();
+        string_of_int (! failed_matches) ^ " matches failed"));
     post_ast
   end;
 
 
 (* normalize_ast *)
+
+val trace_ast = ref false;
+val stat_ast = ref false;
 
 fun normalize_ast get_rules ast =
   normalize (! trace_ast) (! stat_ast) get_rules ast;

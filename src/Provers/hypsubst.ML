@@ -236,7 +236,7 @@ fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
           val hyps = List.take(hyps0, k) @ List.drop(hyps0, k+1)
           val n = length hyps
       in
-         if !trace then writeln "Substituting an equality" else ();
+         if !trace then tracing "Substituting an equality" else ();
          DETERM
            (EVERY [REPEAT_DETERM_N k (etac Data.rev_mp i),
                    rotate_tac 1 i,

@@ -198,14 +198,14 @@ fun RANGE [] _ = all_tac
 (*Print the current proof state and pass it on.*)
 fun print_tac msg = 
     (fn st => 
-     (writeln msg;
+     (tracing msg;
       Display.print_goals (! Display.goals_limit) st; Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
-  (writeln "** Press RETURN to continue:";
+  (tracing "** Press RETURN to continue:";
    if TextIO.inputLine TextIO.stdIn = "\n" then Seq.single st
-   else (writeln "Goodbye";  Seq.empty));
+   else (tracing "Goodbye";  Seq.empty));
 
 exception TRACE_EXIT of thm
 and TRACE_QUIT;
@@ -221,9 +221,9 @@ fun exec_trace_command flag (tac, st) =
      | "f\n" => Seq.empty
      | "o\n" => (flag:=false;  tac st)
      | "s\n" => (suppress_tracing:=true;  tac st)
-     | "x\n" => (writeln "Exiting now";  raise (TRACE_EXIT st))
+     | "x\n" => (tracing "Exiting now";  raise (TRACE_EXIT st))
      | "quit\n" => raise TRACE_QUIT
-     | _     => (writeln
+     | _     => (tracing
 "Type RETURN to continue or...\n\
 \     f    - to fail here\n\
 \     o    - to switch tracing off\n\
@@ -237,7 +237,7 @@ fun exec_trace_command flag (tac, st) =
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
            then (Display.print_goals (! Display.goals_limit) st;
-                 writeln "** Press RETURN to continue:";
+                 tracing "** Press RETURN to continue:";
                  exec_trace_command flag (tac,st))
   else tac st;
 

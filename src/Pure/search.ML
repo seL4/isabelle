@@ -118,7 +118,7 @@ fun prune (new as (k', np':int, rgd', stq), qs) =
           | prune_aux (qs, (k,np,rgd,q)::rqs) =
 	      if np'+1 = np andalso rgd then
 		  (if !trace_DEPTH_FIRST then
-		       writeln ("Pruning " ^ 
+		       tracing ("Pruning " ^ 
 				string_of_int (1+length rqs) ^ " levels")
 		   else ();
 		   (*Use OLD k: zero-cost solution; see Stickel, p 365*)
@@ -142,7 +142,7 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
      and qs0 = tac0 st
      (*bnd = depth bound; inc = estimate of increment required next*)
      fun depth (bnd,inc) [] = 
-	     (writeln (string_of_int (!countr) ^ 
+	     (tracing (string_of_int (!countr) ^ 
 		       " inferences so far.  Searching to depth " ^ 
 		       string_of_int bnd);
 	      (*larger increments make it run slower for the hard problems*)
@@ -152,7 +152,7 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
           else
 	  case (countr := !countr+1;
 		if !trace_DEPTH_FIRST then
-		    writeln (string_of_int np ^ 
+		    tracing (string_of_int np ^ 
 			     implode (map (fn _ => "*") qs))
 		else ();
 		Seq.pull q) of
@@ -185,8 +185,8 @@ val ITER_DEEPEN = THEN_ITER_DEEPEN all_tac;
 fun DEEPEN (inc,lim) tacf m i = 
   let fun dpn m st = st |> (if has_fewer_prems i st then no_tac
 			    else if m>lim then 
-				(writeln "Giving up..."; no_tac)
-				 else (writeln ("Depth = " ^ string_of_int m);
+				(tracing "Giving up..."; no_tac)
+				 else (tracing ("Depth = " ^ string_of_int m);
 				       tacf m i  ORELSE  dpn (m+inc)))
   in  dpn m  end;
 
@@ -221,7 +221,7 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
 	    else 
 	    let val (n,prf) = ThmHeap.min nprf_heap
 	    in if !trace_BEST_FIRST 
-	       then writeln("state size = " ^ string_of_int n)  
+	       then tracing("state size = " ^ string_of_int n)  
                else ();
 	       bfs (Seq.list_of (tac prf), 
 		    deleteAllMin prf (ThmHeap.delete_min nprf_heap))
@@ -245,7 +245,7 @@ fun gen_BREADTH_FIRST message satpred (tac:tactic) =
 	    | (sats,_)  => sats)
   in (fn st => Seq.of_list (bfs [st])) end;
 
-val BREADTH_FIRST = gen_BREADTH_FIRST writeln;
+val BREADTH_FIRST = gen_BREADTH_FIRST tracing;
 val QUIET_BREADTH_FIRST = gen_BREADTH_FIRST (K ());
 
 
@@ -281,7 +281,7 @@ fun THEN_ASTAR tac0 (satp, costf) tac1 =
       next []  = None
         | next ((level,n,prf)::nprfs)  =
             (if !trace_ASTAR 
-               then writeln("level = " ^ string_of_int level ^
+               then tracing("level = " ^ string_of_int level ^
 			 "  cost = " ^ string_of_int n ^ 
                          "  queue length =" ^ string_of_int (length nprfs))  
                else ();

@@ -232,7 +232,7 @@ fun extract_first p =
 
 fun print_ineqs ineqs =
   if !trace then
-     writeln(cat_lines(""::map (fn Lineq(c,t,l,_) =>
+     tracing(cat_lines(""::map (fn Lineq(c,t,l,_) =>
        string_of_int c ^
        (case t of Eq => " =  " | Lt=> " <  " | Le => " <= ") ^
        commas(map string_of_int l)) ineqs))
@@ -280,10 +280,10 @@ fun elim ineqs =
 (* ------------------------------------------------------------------------- *)
 
 fun trace_thm msg th = 
-    if !trace then (writeln msg; prth th) else th;
+    if !trace then (tracing msg; tracing (Display.string_of_thm th); th) else th;
 
 fun trace_msg msg = 
-    if !trace then writeln msg else ();
+    if !trace then tracing msg else ();
 
 (* FIXME OPTIMIZE!!!!
    Addition/Multiplication need i*t representation rather than t+t+...

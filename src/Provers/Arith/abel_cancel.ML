@@ -104,7 +104,7 @@ open Data;
  *)
 
  fun sum_proc sg _ lhs =
-   let val _ = if !trace then writeln ("cancel_sums: LHS = " ^ 
+   let val _ = if !trace then tracing ("cancel_sums: LHS = " ^ 
 				       string_of_cterm (cterm_of sg lhs))
 	       else ()
        val (head::tail) = terms lhs
@@ -112,7 +112,7 @@ open Data;
        val rhs = mk_sum (cancelled (head',tail))
        and chead' = Thm.cterm_of sg head'
        val _ = if !trace then 
-		 writeln ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
+		 tracing ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
 	       else ()
        val ct = Thm.cterm_of sg (Logic.mk_equals (lhs, rhs))
        val thm = prove ct 
@@ -153,7 +153,7 @@ open Data;
  val add_ac_ss = Data.ss addsimps [add_assoc,add_commute,add_left_commute];
 
  fun rel_proc sg _ (lhs as (rel$lt$rt)) =
-   let val _ = if !trace then writeln ("cancel_relations: LHS = " ^ 
+   let val _ = if !trace then tracing ("cancel_relations: LHS = " ^ 
 				       string_of_cterm (cterm_of sg lhs))
 	       else ()
        val ltms = terms lt
@@ -170,7 +170,7 @@ open Data;
 
        val rhs = rel$lt'$rt'
        val _ = if !trace then 
-		 writeln ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
+		 tracing ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
 	       else ()
        val ct = Thm.cterm_of sg (Logic.mk_equals (lhs,rhs))
 

@@ -186,7 +186,7 @@ fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
 
 fun test_unify_types(args as (T,U,_)) =
 let val sot = Sign.string_of_typ (!sgr);
-    fun warn() = writeln("Potential loss of completeness: "^sot U^" = "^sot T);
+    fun warn() = tracing ("Potential loss of completeness: "^sot U^" = "^sot T);
     val env' = unify_types(args)
 in if is_TVar(T) orelse is_TVar(U) then warn() else ();
    env'
@@ -560,8 +560,8 @@ fun print_dpairs msg (env,dpairs) =
                               (Envir.norm_term env (rlist_abs(rbinder,t)))
             val bsymbs = [termT u, Pretty.str" =?=", Pretty.brk 1,
                           termT t];
-        in writeln(Pretty.string_of(Pretty.blk(0,bsymbs))) end;
-  in  writeln msg;  seq pdp dpairs  end;
+        in tracing(Pretty.string_of(Pretty.blk(0,bsymbs))) end;
+  in  tracing msg;  seq pdp dpairs  end;
 
 
 (*Unify the dpairs in the environment.
@@ -588,7 +588,7 @@ fun hounifiers (sg,env, tus : (term*term)list)
 			   (MATCH (env',dp, frigid'@flexflex), reseq)))
 	  end
 	  handle CANTUNIFY => 
-	    (if tdepth > !trace_bound then writeln"Failure node" else ();
+	    (if tdepth > !trace_bound then tracing"Failure node" else ();
 	     Seq.pull reseq));
      val dps = map (fn(t,u)=> ([],t,u)) tus
   in sgr := sg;
