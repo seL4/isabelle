@@ -20,9 +20,9 @@ function usage()
   echo "    -I FILE      alternative IsaMakefile output"
   echo "    -P           include parent logic target"
   echo "    -b           setup build mode (session outputs heap image)"
-  echo "    -d           setup document"
+  echo "    -q           quiet mode"
   echo
-  echo "  Prepare session directory, including IsaMakefile, document etc."
+  echo "  Prepare session directory, including IsaMakefile and document source"
   echo "  with parent LOGIC (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
   echo
   exit 1
@@ -42,9 +42,9 @@ function fail()
 ISAMAKEFILE="IsaMakefile"
 PARENT=""
 BUILD=""
-DOCUMENT=""
+QUIET=""
 
-while getopts "I:Pbd" OPT
+while getopts "I:Pbq" OPT
 do
   case "$OPT" in
     I)
@@ -56,8 +56,8 @@ do
     b)
       BUILD=true
       ;;
-    d)
-      DOCUMENT=true
+    q)
+      QUIET=true
       ;;
     \?)
       usage
@@ -87,11 +87,13 @@ NAME=$(basename "$DIR_NAME")
 
 ## main
 
+[ -z "$QUIET" ] && echo "Preparing session \"$NAME\" ..."
+
+
 # IsaMakefile
 
 mkdir -p "$DIR" || fail "Bad directory: $DIR"
 cd "$DIR"
-
 
 DOCUMENT_ROOT=""
 
@@ -101,7 +103,7 @@ if [ -n "$BUILD" ]; then
   TARGET="\$(OUT)/$NAME"
   ROOT_ML="ROOT.ML"
   SOURCES="*.thy"
-  [ -n "$DOCUMENT" ] && DOCUMENT_ROOT="document/root.tex"
+  DOCUMENT_ROOT="document/root.tex"
   USEDIR="\$(USEDIR) -b -P http://isabelle.in.tum.de/library"
 else
   IMAGES=""
@@ -109,12 +111,12 @@ else
   TARGET="\$(LOG)/$LOGIC-$NAME.gz"
   ROOT_ML="$NAME/ROOT.ML"
   SOURCES="$NAME/*.thy"
-  [ -n "$DOCUMENT" ] && DOCUMENT_ROOT="$NAME/document/root.tex"
+  DOCUMENT_ROOT="$NAME/document/root.tex"
   USEDIR="\$(USEDIR)"
 fi
 
 if [ "$ISAMAKEFILE" != - -a -f "$ISAMAKEFILE" ]; then
-  echo "keeping $PWD/$ISAMAKEFILE" >&2
+  echo "keeping $DIR/$ISAMAKEFILE" >&2
 else
   { echo
     echo "## targets"
@@ -131,7 +133,8 @@ else
     echo "SRC = \$(ISABELLE_HOME)/src"
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
-    echo "USEDIR = \$(ISATOOL) usedir -i true -d dvi  ## -D document"
+    echo
+    echo "USEDIR = \$(ISATOOL) usedir -v true -i true -d dvi  ## -D document"
     echo
     echo
     echo "## $NAME"
@@ -147,7 +150,7 @@ else
     else
       echo "$NAME: $TARGET"
       echo
-      echo "$TARGET: $ROOT_ML $DOCUMENT_ROOT  ## $SOURCES"
+      echo "$TARGET:  ## $ROOT_ML $DOCUMENT_ROOT $SOURCES"
       echo -e "\t@$USEDIR $LOGIC $NAME"
     fi
     echo
@@ -170,40 +173,69 @@ fi
 # base directory
 
 if [ -z "$BUILD" ]; then
-  mkdir -p "$NAME" || fail "Bad directory: $PWD/$NAME"
+  mkdir -p "$NAME" || fail "Bad directory: $DIR/$NAME"
   cd "$NAME"
+  PREFIX="$DIR/$NAME"
+else
+  PREFIX="$DIR"
 fi
 
 if [ -f ROOT.ML ]; then
-  echo "keeping $PWD/ROOT.ML" >&2
+  echo "keeping $PREFIX/ROOT.ML" >&2
 else
-  echo -e "\n(* use_thy \"YourTheory\"; *)\n" >ROOT.ML
+  cat >ROOT.ML <<EOF
+(*
+  no_document use_thy "ThisTheory";
+  use_thy "ThatTheory";
+*)
+EOF
 fi
 
 
 # document directory
 
-if [ -n "$DOCUMENT" ]; then
-  if [ -e document ]; then
-    echo "keeping $PWD/document" >&2
-  else
-    mkdir document || fail "Bad directory: $PWD/document"
-    TITLE=$(echo "$NAME" | tr _ -)
-    cat >document/root.tex <<EOF
+#set by configure
+AUTO_PERL=perl
+
+if [ -e document ]; then
+  echo "keeping $PREFIX/document" >&2
+else
+  mkdir document || fail "Bad directory: $PREFIX/document"
+  TITLE=$(echo "$NAME" | tr _ -)
+  AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[5]" | tr _ -)
+  cat >document/root.tex <<EOF
 
 \documentclass[11pt,a4paper]{article}
-\usepackage{isabelle,isabellesym,pdfsetup}
+\usepackage{isabelle,isabellesym}
 
-%for best-style documents ...
+% further packages required for unusual symbols (see also isabellesym.sty)
+%\usepackage{latexsym}
+%\usepackage{amssymb}
+%\usepackage[english]{babel}
+%\usepackage[latin1]{inputenc}
+%\usepackage[only,bigsqcap]{stmaryrd}
+%\usepackage{wasysym}
+%\usepackage{eufrak}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% proper setup for best-style documents
 \urlstyle{rm}
 \isabellestyle{it}
 
+
 \begin{document}
 
-\title{$TITLE}\maketitle
+\title{$TITLE}
+\author{$AUTHOR}
+\maketitle
+
 \tableofcontents
 
 \parindent 0pt\parskip 0.5ex
+
+% include generated text of all theories
 \input{session}
 
 %\bibliographystyle{plain}
@@ -211,5 +243,25 @@ if [ -n "$DOCUMENT" ]; then
 
 \end{document}
 EOF
-  fi
+fi
+
+
+# notes
+
+if [ -z "$QUIET" ]; then
+
+cat >&2 <<EOF
+
+Notes:
+
+  * 'isatool make' processes the session (including document preparation)
+
+  * $PREFIX/ROOT.ML needs to contain ML code to load all theories
+
+  * $PREFIX/document/root.tex contains the LaTeX master document setup
+
+  * $DIR/IsaMakefile contains compilation options and file dependencies
+
+EOF
+
 fi
