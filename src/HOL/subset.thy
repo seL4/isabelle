@@ -28,9 +28,9 @@ constdefs
   -- {* This will be stated as an axiom for each typedef! *}
 
 lemma type_definitionI [intro]:
-  "(\<And>x. Rep x \<in> A) \<Longrightarrow>
-    (\<And>x. Abs (Rep x) = x) \<Longrightarrow>
-    (\<And>y. y \<in> A \<Longrightarrow> Rep (Abs y) = y) \<Longrightarrow>
+  "(!!x. Rep x \<in> A) ==>
+    (!!x. Abs (Rep x) = x) ==>
+    (!!y. y \<in> A ==> Rep (Abs y) = y) ==>
     type_definition Rep Abs A"
   by (unfold type_definition_def) blast
 
