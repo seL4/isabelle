@@ -59,8 +59,8 @@ goal thy "!! A1 A2 B1 B2. \
 \        ==> (A1 || B1) =<| (A2 || B2)";
 
 by (asm_full_simp_tac (simpset() addsimps [is_asig_of_def]) 1);
-by (forw_inst_tac [("A2","A1")] (compat_commute RS iffD1) 1);
-by (forw_inst_tac [("A2","A2")] (compat_commute RS iffD1) 1);
+by (forw_inst_tac [("A1","A1")] (compat_commute RS iffD1) 1);
+by (forw_inst_tac [("A1","A2")] (compat_commute RS iffD1) 1);
 by (asm_full_simp_tac (simpset() addsimps [ioa_implements_def,
           inputs_of_par,outputs_of_par,externals_of_par]) 1);
 by (safe_tac set_cs);

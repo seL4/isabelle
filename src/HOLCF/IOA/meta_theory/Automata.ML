@@ -205,7 +205,7 @@ by (case_tac "a:act A" 1);
 by (eres_inst_tac [("x","a")] allE 1);
 by (eres_inst_tac [("x","a")] allE 1);
 by (asm_full_simp_tac (simpset() addsimps [inp_is_act]) 1);
-by (forw_inst_tac [("A2","A")] (compat_commute RS iffD1) 1);
+by (forw_inst_tac [("A1","A")] (compat_commute RS iffD1) 1);
 by (dtac inpAAactB_is_inpBoroutB 1);
 back();
 by (assume_tac 1);

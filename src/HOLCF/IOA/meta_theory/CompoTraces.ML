@@ -289,7 +289,7 @@ goal thy " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible
 \                   Forall (%x. x:act B & x~:act A) y1 & \
 \                   Finite y1 & y = (y1 @@ y2) & \
 \                   Filter (%a. a:ext B)`y1 = bs)";
-by (forw_inst_tac [("A2","A")] (compat_commute RS iffD1) 1);
+by (forw_inst_tac [("A1","A")] (compat_commute RS iffD1) 1);
 by (etac Seq_Finite_ind  1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
@@ -344,7 +344,7 @@ goal thy " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible
 \                   Forall (%x. x:act A & x~:act B) x1 & \
 \                   Finite x1 & x = (x1 @@ x2) & \
 \                   Filter (%a. a:ext A)`x1 = as)";
-by (forw_inst_tac [("A2","A")] (compat_commute RS iffD1) 1);
+by (forw_inst_tac [("A1","A")] (compat_commute RS iffD1) 1);
 by (etac Seq_Finite_ind  1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);

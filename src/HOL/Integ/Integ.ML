@@ -22,7 +22,7 @@ Delrules [equalityI];
 val eqa::eqb::prems = goal Arith.thy 
     "[| (x1::nat) + y2 = x2 + y1; x2 + y3 = x3 + y2 |] ==> \
 \       x1 + y3 = x3 + y1";
-by (res_inst_tac [("k2","x2")] (add_left_cancel RS iffD1) 1);
+by (res_inst_tac [("k1","x2")] (add_left_cancel RS iffD1) 1);
 by (rtac (add_left_commute RS trans) 1);
 by (stac eqb 1);
 by (rtac (add_left_commute RS trans) 1);
