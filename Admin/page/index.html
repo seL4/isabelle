@@ -1,4 +1,3 @@
-
 <html>
 
 <head>
@@ -22,17 +21,17 @@ from several <a href="dist/">mirror sites</a>.
 
 Isabelle can be viewed from two main perspectives.  On the one hand it
 may serve as a generic framework for rapid prototyping of deductive
-systems.  On the other hand, major object logics, like
-<strong>Isabelle/HOL</strong>, provide a theorem proving environment
+systems.  On the other hand, major object logics like
+<strong>Isabelle/HOL</strong> provide a theorem proving environment
 ready to use for sizable applications.
 
 
 <h2>Object logics</h2>
 
-The Isabelle distribution includes o large body of object logics and
+The Isabelle distribution includes a large body of object logics and
 other examples (see the <a
 href="http://www.in.tum.de/~isabelle/library/">Isabelle theory
-library</a>.
+library</a>).
 
 <dl>
 
@@ -93,8 +92,9 @@ library</a>.
 
 Logics are not hard-wired into Isabelle, but formulated within
 Isabelle's meta logic: <strong>Isabelle/Pure</strong>.  There are
-quite a lot of syntactic and deductive tools available.  Thus defining
-new logics or extending existing ones basically works as follows:
+quite a lot of syntactic and deductive tools available in generic
+Isabelle.  Thus defining new logics or extending existing ones
+basically works as follows:
 
 <ol>
 
@@ -112,17 +112,18 @@ written ML).
 
 </ol>
 
-The first 3 steps are fully declarative and involve no ML programming
-at all.  Thus one already gets a decent deductive environment based on
-primitive inferences (by employing the built-in mechanisms of
-Isabelle/Pure, in particular higher-order unification and resolution).
+The first 3 steps above are fully declarative and involve no ML
+programming at all.  Thus one already gets a decent deductive
+environment based on primitive inferences (by employing the built-in
+mechanisms of Isabelle/Pure, in particular higher-order unification
+and resolution).
 
 For sizable applications some degree of automated reasoning is
 essential.  Instantiating existing tools like the classical tableau
-prover involves only minimal ML based setup.  One may also write
+prover involves only minimal ML-based setup.  One may also write
 arbitrary proof procedures or even theory extension packages in ML,
 without breaching system soundness (Isabelle follows the well-known
-"LCF system approach").
+"LCF system approach" to achieve a secure system).
 
 
 <h2>Further information</h2>
@@ -134,6 +135,5 @@ align=right alt="[Munich]"></a> The local Isabelle pages at <a
 href="http://www.cl.cam.ac.uk/Research/HVG/isabelle.html">Cambridge</a>
 and <a href="http://www.in.tum.de/~isabelle/">Munich</a> provide
 further information on Isabelle and related projects.
-
 
 </html>
