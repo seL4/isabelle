@@ -95,7 +95,7 @@ $(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy \
 IOA-ABP: IOA $(LOG)/IOA-ABP.gz
 
 $(LOG)/IOA-ABP.gz: $(OUT)/IOA IOA/ABP/Abschannel.thy \
-  IOA/ABP/Abschannel_finite.thy IOA/ABP/Action.ML IOA/ABP/Action.thy \
+  IOA/ABP/Abschannel_finite.thy IOA/ABP/Action.thy \
   IOA/ABP/Check.ML IOA/ABP/Correctness.ML IOA/ABP/Correctness.thy \
   IOA/ABP/Env.thy IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy \
   IOA/ABP/Lemmas.ML IOA/ABP/Lemmas.thy IOA/ABP/Packet.thy \
@@ -108,7 +108,7 @@ $(LOG)/IOA-ABP.gz: $(OUT)/IOA IOA/ABP/Abschannel.thy \
 IOA-NTP: IOA $(LOG)/IOA-NTP.gz
 
 $(LOG)/IOA-NTP.gz: $(OUT)/IOA IOA/NTP/Abschannel.ML \
-  IOA/NTP/Abschannel.thy IOA/NTP/Action.ML IOA/NTP/Action.thy \
+  IOA/NTP/Abschannel.thy IOA/NTP/Action.thy \
   IOA/NTP/Correctness.ML IOA/NTP/Correctness.thy IOA/NTP/Impl.ML \
   IOA/NTP/Impl.thy IOA/NTP/Lemmas.ML IOA/NTP/Lemmas.thy \
   IOA/NTP/Multiset.ML IOA/NTP/Multiset.thy IOA/NTP/Packet.ML \
