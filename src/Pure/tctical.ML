@@ -6,7 +6,7 @@
 Tacticals
 *)
 
-infix 1 THEN THEN';
+infix 1 THEN THEN' THEN_ALL_NEW;
 infix 0 ORELSE APPEND INTLEAVE ORELSE' APPEND' INTLEAVE';
 infix 0 THEN_ELSE;
 
@@ -54,6 +54,7 @@ signature TACTICAL =
   val suppress_tracing  : bool ref
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val THEN_ALL_NEW	: (int -> tactic) * (int -> tactic) -> int -> tactic
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
   val traced_tac        : (thm -> (thm * thm Seq.seq) option) -> tactic
   val tracify           : bool ref -> tactic -> thm -> thm Seq.seq
@@ -321,6 +322,13 @@ fun TRYALL tac = ALLGOALS (TRY o tac);
 (*Make a tactic for subgoal i, if there is one.  *)
 fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
                              handle Subscript => Seq.empty;
+
+fun ALLGOALS_RANGE tac (i:int) j st =
+  if i > j then all_tac st
+  else (tac j THEN ALLGOALS_RANGE tac i (j - 1)) st;
+
+fun (tac1 THEN_ALL_NEW tac2) i st =
+  st |> (tac1 i THEN (fn st' => ALLGOALS_RANGE tac2 i (i + nprems_of st' - nprems_of st) st'));
 
 
 (*** SELECT_GOAL ***)
