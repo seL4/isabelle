@@ -244,6 +244,7 @@ abbreviates \hbox{\tt rewrite_goals_tac [{\it def}]}, unfolding a definition.
 cut_facts_tac : thm list -> int -> tactic
 cut_inst_tac  : (string*string)list -> thm -> int -> tactic
 subgoal_tac   : string -> int -> tactic
+subgoal_tacs  : string list -> int -> tactic
 \end{ttbox}
 These tactics add assumptions to a given subgoal.
 \begin{ttdescription}
@@ -264,6 +265,10 @@ These tactics add assumptions to a given subgoal.
 \item[\ttindexbold{subgoal_tac} {\it formula} {\it i}] 
 adds the {\it formula} as a assumption to subgoal~$i$, and inserts the same
 {\it formula} as a new subgoal, $i+1$.
+
+\item[\ttindexbold{subgoals_tac} {\it formulae} {\it i}] 
+  uses {\tt subgoal_tac} to add the members of the list of {\it
+    formulae} as assumptions to subgoal~$i$. 
 \end{ttdescription}
 
 
