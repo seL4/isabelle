@@ -202,7 +202,7 @@ val elim_local = mk_att LocalRules.map add_elim;
 val intro_local = mk_att LocalRules.map add_intro;
 val rule_del_local = mk_att LocalRules.map del_rule;
 
-fun del_args att = Attrib.syntax (Scan.lift (Args.$$$ Args.delN) >> K att);
+fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
 
 end;
 

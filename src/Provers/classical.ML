@@ -15,7 +15,7 @@ the conclusion.
 *)
 
 (*higher precedence than := facilitates use of references*)
-infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
+infix 4 addSIs addSEs addSDs addIs addEs addDs addXIs addXEs addXDs delrules
   addSWrapper delSWrapper addWrapper delWrapper
   addSbefore addSaltern addbefore addaltern
   addD2 addE2 addSD2 addSE2;
@@ -56,6 +56,9 @@ sig
   val addSDs            : claset * thm list -> claset
   val addSEs            : claset * thm list -> claset
   val addSIs            : claset * thm list -> claset
+  val addXDs            : claset * thm list -> claset
+  val addXEs            : claset * thm list -> claset
+  val addXIs            : claset * thm list -> claset
   val delrules          : claset * thm list -> claset
   val addSWrapper       : claset * (string * wrapper) -> claset
   val delSWrapper       : claset *  string            -> claset
@@ -513,8 +516,6 @@ fun addXE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwr
         haz_netpair  = haz_netpair,
         dup_netpair  = dup_netpair}
   end;
-
-infix 4 addXIs addXEs addXDs;
 
 val op addXIs = rev_foldl addXI;
 val op addXEs = rev_foldl addXE;
@@ -1028,18 +1029,12 @@ val elimN = "elim";
 val destN = "dest";
 val ruleN = "rule";
 
-val colon = Args.$$$ ":";
-val query = Args.$$$ "?";
-val bang = Args.$$$ "!";
-val query_colon = Args.$$$ "?:";
-val bang_colon = Args.$$$ "!:";
-
 fun cla_att change xtra haz safe = Attrib.syntax
-  (Scan.lift ((query >> K xtra || bang >> K safe || Scan.succeed haz) >> change));
+  (Scan.lift ((Args.query >> K xtra || Args.bang >> K safe || Scan.succeed haz) >> change));
 
 fun cla_attr f g h = (cla_att change_global_cs f g h, cla_att change_local_cs f g h);
 
-fun del_args att = Attrib.syntax (Scan.lift (Args.$$$ Args.delN) >> K att);
+fun del_args att = Attrib.syntax (Scan.lift Args.del >> K att);
 val rule_del_attr = (del_args rule_del_global, del_args rule_del_local);
 
 
@@ -1149,16 +1144,16 @@ val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_pr
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- query_colon >> K ((I, xtra_dest_local):Method.modifier),
-  Args.$$$ destN -- bang_colon >> K (I, safe_dest_local),
-  Args.$$$ destN -- colon >> K (I, haz_dest_local),
-  Args.$$$ elimN -- query_colon >> K (I, xtra_elim_local),
-  Args.$$$ elimN -- bang_colon >> K (I, safe_elim_local),
-  Args.$$$ elimN -- colon >> K (I, haz_elim_local),
-  Args.$$$ introN -- query_colon >> K (I, xtra_intro_local),
-  Args.$$$ introN -- bang_colon >> K (I, safe_intro_local),
-  Args.$$$ introN -- colon >> K (I, haz_intro_local),
-  Args.$$$ Args.delN -- colon >> K (I, rule_del_local)];
+ [Args.$$$ destN -- Args.query_colon >> K ((I, xtra_dest_local):Method.modifier),
+  Args.$$$ destN -- Args.bang_colon >> K (I, safe_dest_local),
+  Args.$$$ destN -- Args.colon >> K (I, haz_dest_local),
+  Args.$$$ elimN -- Args.query_colon >> K (I, xtra_elim_local),
+  Args.$$$ elimN -- Args.bang_colon >> K (I, safe_elim_local),
+  Args.$$$ elimN -- Args.colon >> K (I, haz_elim_local),
+  Args.$$$ introN -- Args.query_colon >> K (I, xtra_intro_local),
+  Args.$$$ introN -- Args.bang_colon >> K (I, safe_intro_local),
+  Args.$$$ introN -- Args.colon >> K (I, haz_intro_local),
+  Args.del -- Args.colon >> K (I, rule_del_local)];
 
 fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_claset ctxt));

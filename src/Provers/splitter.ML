@@ -417,8 +417,8 @@ val split_attr =
 
 val split_modifiers =
  [Args.$$$ splitN -- Args.colon >> K ((I, split_add_local): Method.modifier),
-  Args.$$$ splitN -- Args.$$$ Args.addN -- Args.colon >> K (I, split_add_local),
-  Args.$$$ splitN -- Args.$$$ Args.delN -- Args.colon >> K (I, split_del_local)];
+  Args.$$$ splitN -- Args.add -- Args.colon >> K (I, split_add_local),
+  Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del_local)];
 
 val split_args = #2 oo Method.syntax (Args.mode "asm" -- Attrib.local_thms);
 

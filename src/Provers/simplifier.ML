@@ -518,19 +518,19 @@ val simp_options =
 
 val cong_modifiers =
  [Args.$$$ congN -- Args.colon >> K ((I, cong_add_local):Method.modifier),
-  Args.$$$ congN -- Args.$$$ Args.addN -- Args.colon >> K (I, cong_add_local),
-  Args.$$$ congN -- Args.$$$ Args.delN -- Args.colon >> K (I, cong_del_local)];
+  Args.$$$ congN -- Args.add -- Args.colon >> K (I, cong_add_local),
+  Args.$$$ congN -- Args.del -- Args.colon >> K (I, cong_del_local)];
 
 val simp_modifiers =
  [Args.$$$ simpN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.$$$ Args.addN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ simpN -- Args.$$$ Args.delN -- Args.colon >> K (I, simp_del_local),
+  Args.$$$ simpN -- Args.add -- Args.colon >> K (I, simp_add_local),
+  Args.$$$ simpN -- Args.del -- Args.colon >> K (I, simp_del_local),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
    @ cong_modifiers;
 
 val simp_modifiers' =
- [Args.$$$ Args.addN -- Args.colon >> K (I, simp_add_local),
-  Args.$$$ Args.delN -- Args.colon >> K (I, simp_del_local),
+ [Args.add -- Args.colon >> K (I, simp_add_local),
+  Args.del -- Args.colon >> K (I, simp_del_local),
   Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
    @ cong_modifiers;
 

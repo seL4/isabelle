@@ -156,8 +156,8 @@ fun syntax scan src (st, th) =
 
 fun no_args x = syntax (Scan.succeed x);
 
-fun add_del_args add del x = syntax (Scan.lift
-    (Args.$$$ Args.addN >> K add || Args.$$$ Args.delN >> K del || Scan.succeed add)) x;
+fun add_del_args add del x = syntax
+  (Scan.lift (Args.add >> K add || Args.del >> K del || Scan.succeed add)) x;
 
 
 
