@@ -124,7 +124,7 @@ fun prep_thm_axm thy thm =
 
 (*general theorems*)
 fun add_thms_as_axms thms thy =
-  add_axioms_i (map (apsnd (prep_thm_axm thy)) thms) thy;
+  Theory.add_axioms_i (map (apsnd (prep_thm_axm thy)) thms) thy;
 
 (*theorems expressing class relations*)
 fun add_classrel_thms thms thy =
@@ -136,7 +136,7 @@ fun add_classrel_thms thms thy =
           raise THM ("add_classrel_thms: theorem is not a class relation", 0, [thm]);
       in (c1, c2) end;
   in
-    add_classrel (map prep_thm thms) thy
+    Theory.add_classrel (map prep_thm thms) thy
   end;
 
 (*theorems expressing arities*)
@@ -149,7 +149,7 @@ fun add_arity_thms thms thy =
           raise THM ("add_arity_thms: theorem is not an arity", 0, [thm]);
       in (t, ss, [c]) end;
   in
-    add_arities (map prep_thm thms) thy
+    Theory.add_arities (map prep_thm thms) thy
   end;
 
 
@@ -173,7 +173,7 @@ fun err_bad_tfrees ax =
 fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
   let
     val axioms = map (prep_axm (sign_of old_thy)) raw_axioms;
-    val thy = add_classes [(class, super_classes)] old_thy;
+    val thy = Theory.add_classes [(class, super_classes)] old_thy;
     val sign = sign_of thy;
 
 
@@ -210,7 +210,7 @@ fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
     val intro_axm = Logic.list_implies
       (map inclass super_classes @ map (int_axm o snd) axioms, inclass class);
   in
-    add_axioms_i ((class ^ "I", intro_axm) :: abs_axioms) thy
+    Theory.add_axioms_i ((class ^ "I", intro_axm) :: abs_axioms) thy
   end;
 
 

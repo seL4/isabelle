@@ -279,8 +279,8 @@ fun mk_type_decl (((xs, t), None), syn) =
       [(parens (commas [t, mk_list xs, rhs, syn]), true)];
 
 fun mk_type_decls tys =
-  "|> add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
-  \|> add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
+  "|> Theory.add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
+  \|> Theory.add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
 
 
 val old_type_decl = names1 -- nat -- opt_infix >> mk_old_type_decl;
@@ -362,7 +362,7 @@ fun mk_constaxiom_decls x =
     val (axms_defs, axms_names) =
       mk_axiom_decls (map (fn ((id, _), def) => (id ^ "_def", def)) x);
   in ((mk_big_list o map mk_triple2 o map (apfst quote o fst)) x ^
-       "\n\n|> add_defs\n" ^ axms_defs, axms_names)
+       "\n\n|> Theory.add_defs\n" ^ axms_defs, axms_names)
   end;
 
 val constaxiom_decls =
@@ -470,14 +470,14 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n\
         \val thy = thy\n\
         \\n\
-        \|> add_trfuns\n"
+        \|> Theory.add_trfuns\n"
         ^ trfun_args ^ "\n\
-        \|> add_trfunsT typed_print_translation \n\
-        \|> add_tokentrfuns token_translation \n\
+        \|> Theory.add_trfunsT typed_print_translation \n\
+        \|> Theory.add_tokentrfuns token_translation \n\
         \\n"
         ^ extxt ^ "\n\
         \\n\
-        \|> add_thyname " ^ quote thy_name ^ ";\n\
+        \|> Theory.add_name " ^ quote thy_name ^ ";\n\
         \\n\
         \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
         \\n\
@@ -534,16 +534,16 @@ val pure_keywords =
 
 val pure_sections =
  [section "oracle" "|> set_oracle" (name >> strip_quotes),
-  section "classes" "|> add_classes" class_decls,
-  section "default" "|> add_defsort" sort,
+  section "classes" "|> Theory.add_classes" class_decls,
+  section "default" "|> Theory.add_defsort" sort,
   section "types" "" type_decls,
-  section "arities" "|> add_arities" arity_decls,
-  section "consts" "|> add_consts" const_decls,
-  section "syntax" "|> add_modesyntax" syntax_decls,
-  section "translations" "|> add_trrules" trans_decls,
-  axm_section "rules" "|> add_axioms" axiom_decls,
-  axm_section "defs" "|> add_defs" axiom_decls,
-  axm_section "constdefs" "|> add_consts" constaxiom_decls,
+  section "arities" "|> Theory.add_arities" arity_decls,
+  section "consts" "|> Theory.add_consts" const_decls,
+  section "syntax" "|> Theory.add_modesyntax" syntax_decls,
+  section "translations" "|> Theory.add_trrules" trans_decls,
+  axm_section "rules" "|> Theory.add_axioms" axiom_decls,
+  axm_section "defs" "|> Theory.add_defs" axiom_decls,
+  axm_section "constdefs" "|> Theory.add_consts" constaxiom_decls,
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   section "instance" "" instance_decl];
 
