@@ -188,7 +188,7 @@ by (rtac (zadd_commute RS arg_cong) 1);
 qed "zadd_left_commute";
 
 (*Integer addition is an AC operator*)
-val zadd_ac = [zadd_assoc,zadd_commute,zadd_left_commute];
+bind_thms ("zadd_ac", [zadd_assoc,zadd_commute,zadd_left_commute]);
 
 Goalw [int_def] "(int m) + (int n) = int (m + n)";
 by (simp_tac (simpset() addsimps [zadd]) 1);
@@ -325,7 +325,7 @@ by (rtac (zmult_commute RS arg_cong) 1);
 qed "zmult_left_commute";
 
 (*Integer multiplication is an AC operator*)
-val zmult_ac = [zmult_assoc, zmult_commute, zmult_left_commute];
+bind_thms ("zmult_ac", [zmult_assoc, zmult_commute, zmult_left_commute]);
 
 Goal "((z1::int) + z2) * w = (z1 * w) + (z2 * w)";
 by (res_inst_tac [("z","z1")] eq_Abs_Integ 1);

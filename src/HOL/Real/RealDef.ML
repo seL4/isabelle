@@ -194,7 +194,7 @@ by (rtac (real_add_commute RS arg_cong) 1);
 qed "real_add_left_commute";
 
 (* real addition is an AC operator *)
-val real_add_ac = [real_add_assoc,real_add_commute,real_add_left_commute];
+bind_thms ("real_add_ac", [real_add_assoc,real_add_commute,real_add_left_commute]);
 
 Goalw [real_of_preal_def,real_zero_def] "0r + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_real 1);
@@ -361,7 +361,7 @@ qed_goal "real_mult_left_commute" thy
            rtac (real_mult_commute RS arg_cong) 1]);
 
 (* real multiplication is an AC operator *)
-val real_mult_ac = [real_mult_assoc, real_mult_commute, real_mult_left_commute];
+bind_thms ("real_mult_ac", [real_mult_assoc, real_mult_commute, real_mult_left_commute]);
 
 Goalw [real_one_def,pnat_one_def] "1r * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_real 1);
@@ -880,7 +880,7 @@ Goalw [real_le_def] "z<=w ==> ~(w<(z::real))";
 by (assume_tac 1);
 qed "real_leD";
 
-val real_leE = make_elim real_leD;
+bind_thm ("real_leE", make_elim real_leD);
 
 Goal "(~(w < z)) = (z <= (w::real))";
 by (blast_tac (claset() addSIs [real_leI,real_leD]) 1);

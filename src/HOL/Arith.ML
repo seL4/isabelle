@@ -74,7 +74,7 @@ by (rtac (add_commute RS arg_cong) 1);
 qed "add_left_commute";
 
 (*Addition is an AC-operator*)
-val add_ac = [add_assoc, add_commute, add_left_commute];
+bind_thms ("add_ac", [add_assoc, add_commute, add_left_commute]);
 
 Goal "(k + m = k + n) = (m=(n::nat))";
 by (induct_tac "k" 1);
@@ -329,7 +329,7 @@ by (rtac mult_assoc 1);
 by (rtac (mult_commute RS arg_cong) 1);
 qed "mult_left_commute";
 
-val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
+bind_thms ("mult_ac", [mult_assoc,mult_commute,mult_left_commute]);
 
 Goal "(m*n = 0) = (m=0 | n=0)";
 by (induct_tac "m" 1);
@@ -1006,7 +1006,8 @@ val arith_tac =
 
 (* proof method setup *)
 
-val arith_method = Method.METHOD (fn facts => FIRSTGOAL (Method.same_tac facts THEN' arith_tac));
+val arith_method =
+  Method.METHOD (fn facts => FIRSTGOAL (Method.insert_tac facts THEN' arith_tac));
 
 val arith_setup =
  [Method.add_methods
