@@ -216,7 +216,7 @@ theorem lookup_some_upper: "!!env e.
       es' y = Some env' \<and>
       lookup env' ys = Some e"
   (is "PROP ?P xs" is "!!env e. ?A env e xs ==> ?C env e xs")
-proof (induct ?P xs)
+proof (induct xs)
   fix env e let ?A = "?A env e" and ?C = "?C env e"
   {
     assume "?A []"

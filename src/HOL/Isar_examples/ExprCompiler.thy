@@ -114,15 +114,15 @@ text {*
 lemma exec_append:
   "ALL stack. exec (xs @ ys) stack env =
     exec ys (exec xs stack env) env" (is "?P xs")
-proof (induct ?P xs type: list)
+proof (induct xs)
   show "?P []" by simp
-
-  fix x xs assume "?P xs"
-  show "?P (x # xs)" (is "?Q x")
-  proof (induct ?Q x type: instr)
-    show "!!val. ?Q (Const val)" by (simp!)
-    show "!!adr. ?Q (Load adr)" by (simp!)
-    show "!!fun. ?Q (Apply fun)" by (simp!)
+next
+  fix x xs assume hyp: "?P xs"
+  show "?P (x # xs)"
+  proof (induct x)
+    from hyp show "!!val. ?P (Const val # xs)" by simp
+    from hyp show "!!adr. ?P (Load adr # xs)" by simp
+    from hyp show "!!fun. ?P (Apply fun # xs)" by simp
   qed
 qed
 
@@ -130,10 +130,10 @@ theorem correctness: "execute (compile e) env = eval e env"
 proof -
   have "ALL stack. exec (compile e) stack env =
     eval e env # stack" (is "?P e")
-  proof (induct ?P e type: expr)
+  proof (induct e)
     show "!!adr. ?P (Variable adr)" by simp
     show "!!val. ?P (Constant val)" by simp
-    show "!!fun e1 e2. (?P e1 ==> ?P e2 ==> ?P (Binop fun e1 e2))"
+    show "!!fun e1 e2. ?P e1 ==> ?P e2 ==> ?P (Binop fun e1 e2)"
       by (simp add: exec_append)
   qed
   thus ?thesis by (simp add: execute_def)
@@ -151,7 +151,7 @@ text {*
 lemma exec_append:
   "ALL stack. exec (xs @ ys) stack env
     = exec ys (exec xs stack env) env" (is "?P xs")
-proof (induct ?P xs)
+proof (induct xs)
   show "?P []" (is "ALL s. ?Q s")
   proof
     fix s have "exec ([] @ ys) s env = exec ys s env" by simp

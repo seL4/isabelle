@@ -30,7 +30,7 @@ lemma
       subst_term f1 (subst_term f2 t) &
     subst_term_list (subst_term f1 o f2) ts =
       subst_term_list f1 (subst_term_list f2 ts)"
-  by (induct t and ts rule: term.induct) simp_all
+  by (induct t and ts) simp_all
 
 lemma "subst_term (subst_term f1 o f2) t =
   subst_term f1 (subst_term f2 t)"
@@ -62,7 +62,7 @@ proof -
   assume var: "!!a. P (Var a)"
   assume app: "!!b ts. list_all P ts ==> P (App b ts)"
   show ?thesis
-  proof (induct P t)
+  proof (induct t)
     fix a show "P (Var a)" by (rule var)
   next
     fix b t ts assume "list_all P ts"
@@ -78,12 +78,12 @@ qed
 lemma
   "subst_term (subst_term f1 o f2) t = subst_term f1 (subst_term f2 t)"
   (is "?P t")
-proof (induct (open) ?P t rule: term_induct')
-  case Var
+proof (induct t rule: term_induct')
+  case (Var a)
   show "?P (Var a)" by (simp add: o_def)
 next
-  case App
-  show "?P (App b ts)" by (insert App, induct ts) simp_all
+  case (App b ts)
+  thus "?P (App b ts)" by (induct ts) simp_all
 qed
 
 end

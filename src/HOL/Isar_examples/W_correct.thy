@@ -34,9 +34,9 @@ translations
 
 inductive has_type
   intros
-    Var [simp]: "n < length a ==> a |- Var n :: a ! n"
-    Abs [simp]: "t1#a |- e :: t2 ==> a |- Abs e :: t1 -> t2"
-    App [simp]: "a |- e1 :: t2 -> t1 ==> a |- e2 :: t2
+    Var: "n < length a ==> a |- Var n :: a ! n"
+    Abs: "t1#a |- e :: t2 ==> a |- Abs e :: t1 -> t2"
+    App: "a |- e1 :: t2 -> t1 ==> a |- e2 :: t2
       ==> a |- App e1 e2 :: t1"
 
 
@@ -46,7 +46,7 @@ lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t"
 proof -
   assume "a |- e :: t"
   thus ?thesis (is "?P a e t")
-  proof (induct (open) ?P a e t)
+  proof (induct (open) a e t)
     case Var
     hence "n < length (map ($ s) a)" by simp
     hence "map ($ s) a |- Var n :: map ($ s) a ! n"
@@ -66,7 +66,7 @@ proof -
       by (simp add: app_subst_list)
   next
     case App
-    thus "?P a (App e1 e2) t1" by simp
+    thus "?P a (App e1 e2) t1" by (simp add: has_type.App)
   qed
 qed
 
@@ -98,7 +98,7 @@ proof (induct e)
   {
     fix i
     assume "Ok (s, t, m) = W (Var i) a n"
-    thus "$ s a |- Var i :: t" by (simp split: if_splits)
+    thus "$ s a |- Var i :: t" by (simp add: has_type.Var split: if_splits)
   next
     fix e assume hyp: "PROP ?P e"
     assume "Ok (s, t, m) = W (Abs e) a n"

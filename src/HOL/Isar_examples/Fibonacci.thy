@@ -52,7 +52,7 @@ lemma fib_add:
   "fib (n + k + 1) = fib (k + 1) * fib (n + 1) + fib k * fib n"
   (is "?P n")
   -- {* see \cite[page 280]{Concrete-Math} *}
-proof (induct ?P n rule: fib_induct)
+proof (induct n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp
   fix n
@@ -71,7 +71,7 @@ proof (induct ?P n rule: fib_induct)
 qed
 
 lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (n + 1)) = 1" (is "?P n")
-proof (induct ?P n rule: fib_induct)
+proof (induct n rule: fib_induct)
   show "?P 0" by simp
   show "?P 1" by simp
   fix n
@@ -158,7 +158,7 @@ qed
 
 
 theorem fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)" (is "?P m n")
-proof (induct ?P m n rule: gcd_induct)
+proof (induct m n rule: gcd_induct)
   fix m show "fib (gcd (m, 0)) = gcd (fib m, fib 0)" by simp
   fix n :: nat assume n: "0 < n"
   hence "gcd (m, n) = gcd (n, m mod n)" by (rule gcd_non_0)

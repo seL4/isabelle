@@ -591,7 +591,7 @@ proof -
   assume r: "\<And>r x r'. r \<midarrow>x\<rightarrow> r' \<Longrightarrow> Q r \<Longrightarrow>  P x \<Longrightarrow> Q r'"
   assume "root =xs\<Rightarrow> root'"
   thus "Q root \<Longrightarrow> (\<forall>x \<in> set xs. P x) \<Longrightarrow> Q root'" (is "PROP ?P root xs root'")
-  proof (induct ?P root xs root')
+  proof (induct root xs root')
     fix root assume "Q root"
     thus "Q root" .
   next

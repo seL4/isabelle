@@ -36,7 +36,7 @@ lemma subst_comp:
     (subst_term f1 (subst_term f2 t)) \<and>
   (subst_term_list ((subst_term f1) \<circ> f2) ts) =
     (subst_term_list f1 (subst_term_list f2 ts))"
-  apply (induct t and ts rule: term.induct)
+  apply (induct t and ts)
      apply simp_all
   done
 
@@ -50,7 +50,7 @@ lemma term_induct2:
 proof -
   case rule_context
   have "P t \<and> list_all P ts"
-    apply (induct t and ts rule: term.induct)
+    apply (induct t and ts)
        apply (rule rule_context)
       apply (rule rule_context)
       apply assumption
