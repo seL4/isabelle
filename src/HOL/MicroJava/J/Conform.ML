@@ -55,7 +55,7 @@ val conf_AddrI = prove_goalw thy [conf_def]
 (K [Asm_full_simp_tac 1]);
 
 val conf_obj_AddrI = prove_goalw thy [conf_def]
- "\\<And>G. \\<lbrakk>h a = Some (C,fs); G\\<turnstile>Class C\\<preceq>Class D\\<rbrakk> \\<Longrightarrow> G,h\\<turnstile>Addr a\\<Colon>\\<preceq>Class D" 
+ "\\<And>G. \\<lbrakk>h a = Some (C,fs); G\\<turnstile>Class C\\<preceq> Class D\\<rbrakk> \\<Longrightarrow> G,h\\<turnstile>Addr a\\<Colon>\\<preceq> Class D" 
 (K [Asm_full_simp_tac 1]);
 
 Goalw [conf_def] "is_type G T \\<longrightarrow> G,h\\<turnstile>default_val T\\<Colon>\\<preceq>T";
@@ -116,8 +116,8 @@ val non_npD = prove_goal thy "\\<And>G. \\<lbrakk>a' \\<noteq> Null; G,h\\<turns
 	Step_tac 1,
 	 Auto_tac]);
 
-val non_np_objD = prove_goal thy "\\<And>G. \\<lbrakk>a' \\<noteq> Null; G,h\\<turnstile>a'\\<Colon>\\<preceq>Class C; C \\<noteq> Object\\<rbrakk> \\<Longrightarrow> \
-\ (\\<exists>a C' fs. a' = Addr a \\<and>  h a = Some (C',fs) \\<and>  G\\<turnstile>Class C'\\<preceq>Class C)" 
+val non_np_objD = prove_goal thy "\\<And>G. \\<lbrakk>a' \\<noteq> Null; G,h\\<turnstile>a'\\<Colon>\\<preceq> Class C; C \\<noteq> Object\\<rbrakk> \\<Longrightarrow> \
+\ (\\<exists>a C' fs. a' = Addr a \\<and>  h a = Some (C',fs) \\<and>  G\\<turnstile>Class C'\\<preceq> Class C)" 
 	(K[fast_tac (HOL_cs addDs [non_npD]) 1]);
 
 Goal "a' \\<noteq> Null \\<longrightarrow> wf_prog wf_mb G \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq>RefT t \\<longrightarrow>\

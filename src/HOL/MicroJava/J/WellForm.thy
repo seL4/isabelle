@@ -36,7 +36,7 @@ constdefs
 	(\\<forall>m\\<in>set ms. wf_mdecl wf_mb G C m) \\<and>  unique ms \\<and>
 	(case sc of None \\<Rightarrow> C = Object
          | Some D \\<Rightarrow>
-             is_class G D \\<and>  \\<not>  G\\<turnstile>D\\<prec>C C \\<and>
+             is_class G D \\<and>  \\<not>  G\\<turnstile>D\\<preceq>C C \\<and>
              (\\<forall>(sig,rT,b)\\<in>set ms. \\<forall>D' rT' b'.
                  method(G,D) sig = Some(D',rT',b') \\<longrightarrow> G\\<turnstile>rT\\<preceq>rT'))"
 

@@ -5,7 +5,7 @@
 *)
 
 Goal
-"\\<lbrakk> method (G,C) sig = Some (md,rT,b); wf_prog wf_mb G; G\\<turnstile>Class T''\\<preceq>Class C\\<rbrakk>\
+"\\<lbrakk> method (G,C) sig = Some (md,rT,b); wf_prog wf_mb G; G\\<turnstile>Class T''\\<preceq> Class C\\<rbrakk>\
 \ \\<Longrightarrow> \\<exists>md' rT' b'. method (G,T'') sig = Some (md',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT";
 by( forward_tac [widen_Class_RefT] 1);
 by( etac exE 1);
@@ -18,9 +18,9 @@ qed "widen_methd";
 
 
 Goal
-"\\<lbrakk>method (G,C) sig = Some (md,rT,b); G\\<turnstile>Class T''\\<preceq>Class C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
+"\\<lbrakk>method (G,C) sig = Some (md,rT,b); G\\<turnstile>Class T''\\<preceq> Class C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
 \ \\<exists>T' rT' b. method (G,T'') sig = Some (T',rT',b) \\<and> \
-\ G\\<turnstile>rT'\\<preceq>rT \\<and> G\\<turnstile>Class T''\\<preceq>Class T' \\<and> wf_mhead G sig rT' \\<and> wf_mb G T' (sig,rT',b)";
+\ G\\<turnstile>rT'\\<preceq>rT \\<and> G\\<turnstile>Class T''\\<preceq> Class T' \\<and> wf_mhead G sig rT' \\<and> wf_mb G T' (sig,rT',b)";
 by( datac widen_methd 2 1);
 by( Clarsimp_tac 1);
 by( dtac method_wf_mdecl 1);

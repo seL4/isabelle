@@ -95,8 +95,8 @@ val widen_Class_RefT = prove_typerel
 val widen_Class_NullT = prove_typerel "G\\<turnstile>Class C\\<preceq>RefT NullT \\<Longrightarrow> R" 
  [prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S=Class C \\<longrightarrow> T=RefT NullT \\<longrightarrow> R"];
 
-val widen_Class_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>Class cm \\<Longrightarrow> G\\<turnstile>C\\<prec>C cm"
-[ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> T = Class cm \\<longrightarrow> G\\<turnstile>C\\<prec>C cm"];
+val widen_Class_Class = prove_typerel "G\\<turnstile>Class C\\<preceq> Class cm \\<Longrightarrow> G\\<turnstile>C\\<preceq>C cm"
+[ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> T = Class cm \\<longrightarrow> G\\<turnstile>C\\<preceq>C cm"];
 
 Goal "G\\<turnstile>S\\<preceq>U \\<Longrightarrow> \\<forall>T. G\\<turnstile>U\\<preceq>T \\<longrightarrow> G\\<turnstile>S\\<preceq>T";
 by( etac widen.induct 1);

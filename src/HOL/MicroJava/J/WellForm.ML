@@ -140,7 +140,7 @@ val field_Object = prove_goalw thy [field_def]
  "\\<And>X. wf_prog wf_mb G \\<Longrightarrow> field (G,Object) = empty" (K [Asm_simp_tac 1]);
 Addsimps [field_Object];
 
-Goal "\\<lbrakk>is_class G C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> G\\<turnstile>C\\<prec>C Object";
+Goal "\\<lbrakk>is_class G C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> G\\<turnstile>C\\<preceq>C Object";
 by(etac subcls1_induct 1);
 by(  atac 1);
 by( Fast_tac 1);
@@ -152,7 +152,7 @@ val is_type_rTI = prove_goalw thy [wf_mhead_def]
 	"\\<And>sig. wf_mhead G sig rT \\<Longrightarrow> is_type G rT"
 	(K [split_all_tac 1, Auto_tac]);
 
-Goal "\\<lbrakk>wf_prog wf_mb G; is_class G C\\<rbrakk> \\<Longrightarrow> G\\<turnstile>Class C\\<preceq>Class Object";
+Goal "\\<lbrakk>wf_prog wf_mb G; is_class G C\\<rbrakk> \\<Longrightarrow> G\\<turnstile>Class C\\<preceq> Class Object";
 by(rtac widen.subcls 1);	
 by(eatac subcls_C_Object 1 1);
 qed "widen_Class_Object";
@@ -166,7 +166,7 @@ by(  Auto_tac);
 qed_spec_mp "fields_mono";
 
 Goal "\\<lbrakk>is_class G C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
-\ \\<forall>((fn,fd),fT)\\<in>set (fields (G,C)). G\\<turnstile>Class C\\<preceq>Class fd";
+\ \\<forall>((fn,fd),fT)\\<in>set (fields (G,C)). G\\<turnstile>Class C\\<preceq> Class fd";
 by( etac subcls1_induct 1);
 by(   atac 1);
 by(  Asm_simp_tac 1);
@@ -189,7 +189,7 @@ by( Asm_full_simp_tac 1);
 qed "widen_fields_defpl'";
 
 Goal "\\<lbrakk>is_class G C; wf_prog wf_mb G; ((fn,fd),fT) \\<in> set (fields (G,C))\\<rbrakk> \\<Longrightarrow> \
-\ G\\<turnstile>Class C\\<preceq>Class fd";
+\ G\\<turnstile>Class C\\<preceq> Class fd";
 by( datac widen_fields_defpl' 1 1);
 (*###################*)
 by( dtac bspec 1);
@@ -227,7 +227,7 @@ by(force_tac (claset(), simpset() addsimps [reflcl_trancl RS sym]
 qed "rtranclD";
 
 Goal
-"\\<lbrakk>wf_prog wf_mb G; G\\<turnstile>Class C'\\<preceq>Class C; map_of(fields (G,C )) f = Some ft\\<rbrakk> \\<Longrightarrow> \
+"\\<lbrakk>wf_prog wf_mb G; G\\<turnstile>Class C'\\<preceq> Class C; map_of(fields (G,C )) f = Some ft\\<rbrakk> \\<Longrightarrow> \
 \                          map_of (fields (G,C')) f = Some ft";
 by( dtac widen_Class_Class 1);
 by( dtac rtranclD 1);
@@ -246,11 +246,11 @@ val cfs_fields_lemma = prove_goalw thy [field_def]
 (K [rtac table_map_Some 1, Asm_full_simp_tac 1]);
 
 val widen_cfs_fields = prove_goal thy "\\<And>X. \\<lbrakk>field (G,C) fn = Some (fd, fT);\
-\  G\\<turnstile>Class C'\\<preceq>Class C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> map_of (fields (G,C')) (fn, fd) = Some fT" (K[
+\  G\\<turnstile>Class C'\\<preceq> Class C; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> map_of (fields (G,C')) (fn, fd) = Some fT" (K[
 fast_tac (HOL_cs addIs [widen_fields_mono, cfs_fields_lemma]) 1]);
 
 Goal "wf_prog wf_mb G \\<Longrightarrow> method (G,C) sig = Some (md,mh,m)\
-\  \\<longrightarrow> G\\<turnstile>Class C\\<preceq>Class md \\<and> wf_mdecl wf_mb G md (sig,(mh,m))";
+\  \\<longrightarrow> G\\<turnstile>Class C\\<preceq> Class md \\<and> wf_mdecl wf_mb G md (sig,(mh,m))";
 by( case_tac "is_class G C" 1);
 by(  forw_inst_tac [("C","C")] method_rec 2);
 by(    asm_full_simp_tac (simpset() addsimps [is_class_def] 
@@ -278,7 +278,7 @@ by( rewtac wf_cdecl_def);
 by( Asm_full_simp_tac 1);
 qed_spec_mp "method_wf_mdecl";
 
-Goal "\\<lbrakk>G\\<turnstile>T\\<prec>C T'; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
+Goal "\\<lbrakk>G\\<turnstile>T\\<preceq>C T'; wf_prog wf_mb G\\<rbrakk> \\<Longrightarrow> \
 \  \\<forall>D rT b. method (G,T') sig = Some (D,rT ,b) \\<longrightarrow>\
 \ (\\<exists>D' rT' b'. method (G,T) sig = Some (D',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT)";
 by( dtac rtranclD 1);
@@ -313,7 +313,7 @@ qed_spec_mp "subcls_widen_methd";
 
 
 Goal
- "\\<lbrakk> G\\<turnstile>Class C\\<preceq>Class D; wf_prog wf_mb G; \
+ "\\<lbrakk> G\\<turnstile>Class C\\<preceq> Class D; wf_prog wf_mb G; \
 \    method (G,D) sig = Some (md, rT, b) \\<rbrakk> \
 \ \\<Longrightarrow> \\<exists>mD' rT' b'. method (G,C) sig= Some(mD',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT";
 by(auto_tac (claset() addSDs [widen_Class_Class]

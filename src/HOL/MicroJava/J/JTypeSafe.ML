@@ -45,7 +45,7 @@ by     Auto_tac;
 qed "Cast_conf";
 
 Goal "\\<lbrakk> wf_prog wf_mb G; field (G,C) fn = Some (fd, ft); (h,l)\\<Colon>\\<preceq>(G,lT); \
-\    x' = None \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq>Class C; np a' x' = None \\<rbrakk> \\<Longrightarrow> \
+\    x' = None \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq> Class C; np a' x' = None \\<rbrakk> \\<Longrightarrow> \
 \ G,h\\<turnstile>the (snd (the (h (the_Addr a'))) (fn, fd))\\<Colon>\\<preceq>ft";
 by( dtac np_NoneD 1);
 by( etac conjE 1);
@@ -67,7 +67,7 @@ Goal
 \   (G, lT)\\<turnstile>v\\<Colon>T'; G\\<turnstile>T'\\<preceq>ft; \
 \   (G, lT)\\<turnstile>aa\\<Colon>Class C; \
 \   field (G,C) fn = Some (fd, ft); h''\\<le>|h'; \
-\   x' = None \\<longrightarrow> G,h'\\<turnstile>a'\\<Colon>\\<preceq>Class C; h'\\<le>|h; \
+\   x' = None \\<longrightarrow> G,h'\\<turnstile>a'\\<Colon>\\<preceq> Class C; h'\\<le>|h; \
 \   (h, l)\\<Colon>\\<preceq>(G, lT); G,h\\<turnstile>x\\<Colon>\\<preceq>T'; np a' x' = None\\<rbrakk> \\<Longrightarrow> \
 \ h''\\<le>|h(a\\<mapsto>(c,(fs((fn,fd)\\<mapsto>x)))) \\<and>  \
 \ (h(a\\<mapsto>(c,(fs((fn,fd)\\<mapsto>x)))), l)\\<Colon>\\<preceq>(G, lT) \\<and>  \
@@ -131,7 +131,7 @@ Goalw [wf_java_prog_def]
 \ (G, lT)\\<turnstile>blk\\<surd> \\<longrightarrow>  h\\<le>|xi \\<and>  (xi, xl)\\<Colon>\\<preceq>(G, lT); \
 \ \\<forall>lT. (xi, xl)\\<Colon>\\<preceq>(G, lT) \\<longrightarrow> (\\<forall>T. (G, lT)\\<turnstile>res\\<Colon>T \\<longrightarrow> \
 \         xi\\<le>|h' \\<and> (h', xj)\\<Colon>\\<preceq>(G, lT) \\<and> (x' = None \\<longrightarrow> G,h'\\<turnstile>v\\<Colon>\\<preceq>T)); \
-\ G,xh\\<turnstile>a'\\<Colon>\\<preceq>Class C \\<rbrakk> \\<Longrightarrow> \
+\ G,xh\\<turnstile>a'\\<Colon>\\<preceq> Class C \\<rbrakk> \\<Longrightarrow> \
 \ xc\\<le>|h' \\<and> (h', l)\\<Colon>\\<preceq>(G, lT) \\<and>  (x' = None \\<longrightarrow> G,h'\\<turnstile>v\\<Colon>\\<preceq>rTa)";
 by( dtac (insertI1 RSN (2,(equalityD2 RS subsetD))) 1);
 by( dtac (max_spec2appl_meths RS appl_methsD) 1);
