@@ -373,7 +373,7 @@ theorem Crypt_Nonce_neq_Nonce: "Crypt K (Nonce M) \<noteq> Nonce N"
 by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
 
 text{*...and many similar results*}
-theorem Crypt_Nonce_neq_Nonce: "Crypt K (Crypt K' (Nonce M)) \<noteq> Nonce N" 
+theorem Crypt2_Nonce_neq_Nonce: "Crypt K (Crypt K' (Nonce M)) \<noteq> Nonce N" 
 by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
 
 theorem Crypt_Crypt_eq [iff]: "(Crypt K X = Crypt K X') = (X=X')" 
