@@ -8,7 +8,7 @@ Loads Pure Isabelle into an empty ML database (see also IsaMakefile).
 *)
 
 val banner = "Pure Isabelle";
-val version = "Isabelle-94 revision 8: May 1997";
+val version = "Isabelle98: Jan 1998";
 
 print_depth 1;
 
@@ -23,7 +23,7 @@ cd "Syntax";
 use "ROOT.ML";
 cd "..";
 
-(*Core system*)
+(*Main system*)
 use "sorts.ML";
 use "type_infer.ML";
 use "type.ML";
@@ -46,10 +46,7 @@ use "goals.ML";
 use "axclass.ML";
 
 (*Theory parser and loader*)
-
-(* FIXME tmp *)
-val global_names = ref false;
-
+val global_names = ref false;		(* FIXME tmp *)
 cd "Thy";
 use "ROOT.ML";
 cd "..";
