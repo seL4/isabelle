@@ -28,13 +28,18 @@ $(BIN)/LK:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/LK"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/LK;\
-		else echo 'open PolyML; exit_use_dir".";' | $(COMP) $(BIN)/LK;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/LK;\
+                else echo 'open PolyML; exit_use_dir".";' | $(COMP) $(BIN)/LK;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/LK" banner;' | $(BIN)/Pure;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/LK" banner;' \
+                       | $(BIN)/Pure;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/LK" banner;' \
                        | $(BIN)/Pure;\
                 fi;;\

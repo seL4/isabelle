@@ -36,14 +36,19 @@ FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
 $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)  cp $(BIN)/HOL $(BIN)/HOLCF;\
-                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/HOLCF;\
-		else echo 'open PolyML; exit_use_dir".";' \
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/HOLCF;\
+                else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/HOLCF;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/HOLCF" banner;' \
+                       | $(BIN)/HOL;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/HOLCF" banner;' \
                        | $(BIN)/HOL;\
                 fi;;\
@@ -61,8 +66,16 @@ EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 test:   ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
-	sml*)	echo 'exit_use_dir"ex"' | $(BIN)/HOLCF;;\
+	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"ex"; quit();' \
+                       | $(COMP) $(BIN)/HOLCF;\
+                else echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/HOLCF;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"ex";' \
+                       | $(BIN)/HOLCF;\
+                else echo 'exit_use_dir"ex";' | $(BIN)/HOLCF;\
+                fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
@@ -77,9 +90,16 @@ EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS)\
 
 test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF  $(EXPLICIT_DOMAINS_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'exit_use_dir"explicit_domains"; quit();' \
-                  | $(COMP) $(BIN)/HOLCF ;;\
-	sml*)	echo 'exit_use_dir"explicit_domains"' | $(BIN)/HOLCF;;\
+	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"explicit_domains";                             quit();' | $(COMP) $(BIN)/HOLCF;\
+                else echo 'exit_use_dir"explicit_domains"; quit();' \
+                       | $(COMP) $(BIN)/HOLCF;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"exlicit_domains";' \
+                       | $(BIN)/HOLCF;\
+                else echo 'exit_use_dir"explicit_domains";' | $(BIN)/HOLCF;\
+                fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

@@ -40,14 +40,19 @@ $(BIN)/HOL:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/HOL"; quit();'  \
 		  | $(COMP) $(BIN)/Pure;\
-		if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
-                  | $(COMP) $(BIN)/HOL;\
-		else echo 'open PolyML; exit_use_dir".";' \
+                       | $(COMP) $(BIN)/HOL;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/HOL;\
+                else echo 'open PolyML; exit_use_dir".";' \
                        | $(COMP) $(BIN)/HOL;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/HOL" banner;' | $(BIN)/Pure;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/HOL" banner;' \
+                       | $(BIN)/Pure;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/HOL" banner;' \
                        | $(BIN)/Pure;\
                 fi;;\
@@ -73,14 +78,21 @@ IMP_NAMES = Com Denotation Equiv Properties
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:    $(BIN)/HOL  $(IMP_FILES)
-	echo 'exit_use_dir"IMP";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"IMP";quit();' | $(LOGIC); \
+        else echo 'exit_use_dir"IMP";quit();' | $(LOGIC); \
+        fi
 
 ##Hoare logic
 Hoare_NAMES = Hoare Arith2 Examples
-Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) $(Hoare_NAMES:%=Hoare/%.ML)
+Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) \
+              $(Hoare_NAMES:%=Hoare/%.ML)
 
 Hoare:  $(BIN)/HOL  $(Hoare_FILES)
-	echo 'exit_use_dir"Hoare";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Hoare";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"Hoare";quit();' | $(LOGIC); \
+        fi
 
 ##The integers in HOL
 INTEG_NAMES = Equiv Integ 
@@ -89,7 +101,10 @@ INTEG_FILES = Integ/ROOT.ML \
               $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
 
 Integ:  $(BIN)/HOL  $(INTEG_FILES)
-	echo 'exit_use_dir"Integ";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Integ";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"Integ";quit();' | $(LOGIC); \
+        fi
 
 ##I/O Automata
 IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet\
@@ -106,8 +121,14 @@ IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy\
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:    $(BIN)/HOL  $(IOA_FILES)
-	echo 'exit_use_dir"IOA/NTP";quit();' | $(LOGIC)
-	echo 'exit_use_dir"IOA/ABP";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"IOA/NTP";quit();' \
+               | $(LOGIC);\
+             echo 'make_html := true; exit_use_dir"IOA/ABP";quit();' \
+               | $(LOGIC);\
+        else echo 'exit_use_dir"IOA/NTP";quit();' | $(LOGIC); \
+	     echo 'exit_use_dir"IOA/ABP";quit();' | $(LOGIC); \
+        fi
 
 ##Properties of substitutions
 SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
@@ -116,7 +137,10 @@ SUBST_FILES = Subst/ROOT.ML \
               $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
 
 Subst:  $(BIN)/HOL  $(SUBST_FILES)
-	echo 'exit_use_dir"Subst";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Subst";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"Subst";quit();' | $(LOGIC); \
+        fi
 
 ##Confluence of Lambda-calculus
 LAMBDA_NAMES = Lambda ParRed Commutation Eta
@@ -125,7 +149,11 @@ LAMBDA_FILES = Lambda/ROOT.ML \
               $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
 
 Lambda:  $(BIN)/HOL $(LAMBDA_FILES)
-	echo 'exit_use_dir"Lambda";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Lambda";quit();' \
+               | $(LOGIC);\
+        else echo 'exit_use_dir"Lambda";quit();' | $(LOGIC); \
+        fi
 
 ##Type inference for MiniML
 MINIML_NAMES = I Maybe MiniML Type W
@@ -134,7 +162,11 @@ MINIML_FILES = MiniML/ROOT.ML \
               $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
 
 MiniML: $(BIN)/HOL  $(MINIML_FILES)
-	echo 'exit_use_dir"MiniML";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"MiniML";quit();' \
+               | $(LOGIC);\
+        else echo 'exit_use_dir"MiniML";quit();' | $(LOGIC); \
+        fi
 
 ##Lexical analysis
 LEX_FILES = Auto AutoChopper Chopper Prefix
@@ -143,7 +175,10 @@ LEX_FILES = Lex/ROOT.ML \
             $(LEX_NAMES:%=Lex/%.thy) $(LEX_NAMES:%=Lex/%.ML)
 
 Lex:	$(BIN)/HOL  $(LEX_FILES)
-	echo 'exit_use_dir"Lex";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Lex";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"Lex";quit();' | $(LOGIC); \
+        fi
 
 ##Miscellaneous examples
 EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String \
@@ -153,7 +188,10 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
            ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 ex:     $(BIN)/HOL  $(EX_FILES)
-	echo 'exit_use_dir"ex";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"ex";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"ex";quit();' | $(LOGIC); \
+        fi
 
 #Full test.
 test:   $(BIN)/HOL IMP Hoare Lex Integ Subst Lambda MiniML IOA ex

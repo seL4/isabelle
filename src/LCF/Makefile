@@ -27,14 +27,19 @@ FILES =  ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 $(BIN)/LCF:   $(BIN)/FOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/LCF;\
-                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/LCF;\
-		else echo 'open PolyML; exit_use_dir".";' \
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/LCF;\
+                else echo 'open PolyML; exit_use_dir".";' \
                        | $(COMP) $(BIN)/LCF;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/LCF" banner;' \
+                       | $(BIN)/FOL;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/LCF" banner;' \
                        | $(BIN)/FOL;\
                 fi;;\

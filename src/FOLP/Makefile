@@ -32,14 +32,19 @@ $(BIN)/FOLP:   $(BIN)/Pure  $(FILES)
 	case "$(COMP)" in \
 	poly*)	echo 'make_database"$(BIN)/FOLP"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
-                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/FOLP;\
-		else echo 'open PolyML; exit_use_dir".";' \
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/FOLP;\
+                else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/FOLP;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/FOLP" banner;' | $(BIN)/Pure;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/FOLP" banner;' \
+                       | $(BIN)/Pure;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/FOLP" banner;' \
                        | $(BIN)/Pure;\
                 fi;;\
@@ -52,8 +57,16 @@ $(BIN)/Pure:
 
 test:   ex/ROOT.ML  $(BIN)/FOLP  $(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/FOLP ;;\
-	sml*)	echo 'exit_use_dir"ex";' | $(BIN)/FOLP;;\
+	poly*)  if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"ex"; quit();' \
+                       | $(COMP) $(BIN)/FOLP;\
+                else echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/FOLP;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"ex";' \
+                       | $(BIN)/FOLP;\
+                else echo 'exit_use_dir"ex";' | $(BIN)/FOLP;\
+                fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

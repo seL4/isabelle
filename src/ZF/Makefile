@@ -37,13 +37,19 @@ FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML \
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/ZF;\
-                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/ZF;\
-		else echo 'open PolyML; exit_use_dir".";' | $(COMP) $(BIN)/ZF;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/ZF;\
+                else echo 'open PolyML; exit_use_dir".";' \
+                       | $(COMP) $(BIN)/ZF;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/ZF" banner;' | $(BIN)/FOL;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/ZF" banner;' \
+                       | $(BIN)/FOL;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/ZF" banner;' \
                        | $(BIN)/FOL;\
                 fi;;\
@@ -69,7 +75,10 @@ IMP_NAMES = Com Denotation Equiv
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:   $(BIN)/ZF  $(IMP_FILES)
-	echo 'exit_use_dir"IMP";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"IMP";quit();' | $(LOGIC); \
+        else echo 'exit_use_dir"IMP";quit();' | $(LOGIC); \
+        fi
 
 ##Coinduction example
 COIND_NAMES = ECR Language MT Map Static Types Values 
@@ -78,7 +87,10 @@ COIND_FILES = Coind/ROOT.ML Coind/BCR.thy  Coind/Dynamic.thy \
               $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
 
 Coind:  $(BIN)/ZF  $(COIND_FILES)
-	echo 'exit_use_dir"Coind";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Coind";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"Coind";quit();' | $(LOGIC); \
+        fi
 
 ##AC examples
 AC_NAMES = AC_Equiv OrdQuant Transrec2 Cardinal_aux \
@@ -92,7 +104,10 @@ AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
            $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
 
 AC:  $(BIN)/ZF  $(AC_FILES)
-	echo 'exit_use_dir"AC";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"AC";quit();' | $(LOGIC); \
+        else echo 'exit_use_dir"AC";quit();' | $(LOGIC); \
+        fi
 
 ##Residuals example
 
@@ -103,7 +118,10 @@ RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) \
                             $(RESID_NAMES:%=Resid/%.ML)
 
 Resid:  $(BIN)/ZF  $(RESID_FILES)
-	echo 'exit_use_dir"Resid";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"Resid";quit();' | $(LOGIC);\
+        else echo 'exit_use_dir"Resid";quit();' | $(LOGIC); \
+        fi
 
 ##Miscellaneous examples
 EX_NAMES = Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
@@ -113,7 +131,10 @@ EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 #Test ZF by loading the examples in directory ex
 ex:     $(BIN)/ZF  $(EX_FILES)
-	echo 'exit_use_dir"ex";quit();' | $(LOGIC)
+	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+        then echo 'make_html := true; exit_use_dir"ex";quit();' | $(LOGIC); \
+        else echo 'exit_use_dir"ex";quit();' | $(LOGIC); \
+        fi
 
 #Full test.
 test:   $(BIN)/ZF IMP Coind AC Resid ex

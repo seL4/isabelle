@@ -36,14 +36,19 @@ EX_FILES = ex/ROOT.ML ex/Flag.ML ex/Flag.thy ex/List.ML ex/List.thy\
 $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/CCL;\
-                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/CCL;\
-		else echo 'open PolyML; exit_use_dir".";' \
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/CCL;\
+                else echo 'open PolyML; exit_use_dir".";' \
                        | $(COMP) $(BIN)/CCL;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)   if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/CCL" banner;' | $(BIN)/FOL;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/CCL" banner;' \
+                       | $(BIN)/FOL;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/CCL" banner;' \
                        | $(BIN)/FOL;\
                 fi;;\
@@ -56,9 +61,16 @@ $(BIN)/FOL:
 
 test:   ex/ROOT.ML  $(BIN)/CCL  $(EX_FILES)
 	case "$(COMP)" in \
-	poly*)	echo 'exit_use_dir"ex"; quit();' \
-                  | $(COMP) $(BIN)/CCL ;;\
-	sml*)	echo 'exit_use_dir"ex";' | $(BIN)/CCL;;\
+	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"ex"; quit();' \
+                       | $(COMP) $(BIN)/CCL;\
+                else echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/CCL;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'make_html := true; exit_use_dir"ex";' \
+                       | $(BIN)/CCL;\
+                else echo 'exit_use_dir"ex";' | $(BIN)/CCL;\
+                fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

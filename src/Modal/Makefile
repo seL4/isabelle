@@ -28,14 +28,19 @@ EX_FILES = ex/ROOT.ML ex/S43thms.ML ex/S4thms.ML ex/Tthms.ML
 $(BIN)/Modal:   $(BIN)/LK  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/LK $(BIN)/Modal;\
-                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/Modal;\
-		else echo 'open PolyML; exit_use_dir".";' \
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/Modal;\
+                else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/Modal;\
                 fi;;\
-	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Modal" banner;' | $(BIN)/LK;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/Modal" banner;' \
+                       | $(BIN)/LK;\
                 else echo 'exit_use_dir"."; xML"$(BIN)/Modal" banner;' \
                        | $(BIN)/LK;\
                 fi;;\
