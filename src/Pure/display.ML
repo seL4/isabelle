@@ -176,7 +176,7 @@ fun print_sign sg =
       [Pretty.str "default:", Pretty.brk 1, prt_sort S];
 
     fun pretty_ty (t, n) = Pretty.block
-      [Pretty.str t, Pretty.spc 1, Pretty.str (string_of_int n)];
+      [Pretty.str t, Pretty.brk 1, Pretty.str (string_of_int n)];
 
     fun pretty_log_types ts = Pretty.block
       (Pretty.breaks (Pretty.str "logical types:" :: map Pretty.str ts));
