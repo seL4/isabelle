@@ -240,12 +240,12 @@ text {*
 *}
 
 consts normal :: "bin set"
-inductive "normal"
-  intros [simp]
-    Pls: "Pls: normal"
-    Min: "Min: normal"
-    BIT_F: "w: normal ==> w \<noteq> Pls ==> w BIT False : normal"
-    BIT_T: "w: normal ==> w \<noteq> Min ==> w BIT True : normal"
+inductive normal
+  intros
+    Pls [simp]: "Pls: normal"
+    Min [simp]: "Min: normal"
+    BIT_F [simp]: "w: normal ==> w \<noteq> Pls ==> w BIT False : normal"
+    BIT_T [simp]: "w: normal ==> w \<noteq> Min ==> w BIT True : normal"
 
 text {*
   \medskip Binary arithmetic on normalized operands yields normalized

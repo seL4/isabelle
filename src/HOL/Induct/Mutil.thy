@@ -17,15 +17,15 @@ text {*
 
 consts tiling :: "'a set set => 'a set set"
 inductive "tiling A"
-  intros [simp, intro]
-    empty: "{} \<in> tiling A"
-    Un: "a \<in> A ==> t \<in> tiling A ==> a \<inter> t = {} ==> a \<union> t \<in> tiling A"
+  intros
+    empty [simp, intro]: "{} \<in> tiling A"
+    Un [simp, intro]: "a \<in> A ==> t \<in> tiling A ==> a \<inter> t = {} ==> a \<union> t \<in> tiling A"
 
 consts domino :: "(nat \<times> nat) set set"
 inductive domino
-  intros [simp]
-    horiz: "{(i, j), (i, Suc j)} \<in> domino"
-    vertl: "{(i, j), (Suc i, j)} \<in> domino"
+  intros
+    horiz [simp]: "{(i, j), (i, Suc j)} \<in> domino"
+    vertl [simp]: "{(i, j), (Suc i, j)} \<in> domino"
 
 constdefs
   coloured :: "nat => (nat \<times> nat) set"
