@@ -176,9 +176,9 @@ qed_spec_mp "Suc_times_binomial_eq";
 (*This is the well-known version, but it's harder to use because of the
   need to reason about division.*)
 Goal "k <= n ==> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k";
-by (asm_simp_tac
-    (simpset_of NatDef.thy addsimps [Suc_times_binomial_eq, 
-				  div_mult_self_is_m]) 1);
+by (asm_simp_tac (simpset()
+  addsimps [Suc_times_binomial_eq, div_mult_self_is_m, zero_less_Suc]
+  delsimps [mult_Suc, mult_Suc_right]) 1);
 qed "binomial_Suc_Suc_eq_times";
 
 (*Another version, with -1 instead of Suc.*)
