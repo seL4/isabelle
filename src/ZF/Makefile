@@ -18,18 +18,17 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-THYS = ZF.thy upair.thy subset.thy pair.thy domrange.thy \
-       func.thy AC.thy simpdata.thy equalities.thy Bool.thy \
-       Sum.thy QPair.thy mono.thy Fixedpt.thy ind_syntax.thy add_ind_def.thy \
-       constructor.thy intr_elim.thy indrule.thy Inductive.thy \
-       Perm.thy Rel.thy EquivClass.thy Trancl.thy \
-       WF.thy Order.thy Ordinal.thy Epsilon.thy Arith.thy Univ.thy \
-       QUniv.thy Datatype.thy OrderArith.thy OrderType.thy \
-       Cardinal.thy CardinalArith.thy Cardinal_AC.thy InfDatatype.thy \
-       Zorn.thy Nat.thy Finite.thy List.thy 
+NAMES = ZF upair subset pair domrange \
+	func AC simpdata equalities Bool \
+	Sum QPair mono Fixedpt ind_syntax add_ind_def \
+	constructor intr_elim indrule Inductive Perm Rel EquivClass Trancl \
+	WF Order Ordinal Epsilon Arith Univ \
+	QUniv Datatype OrderArith OrderType \
+	Cardinal CardinalArith Cardinal_AC InfDatatype \
+	Zorn Nat Finite List 
 
-FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML $(THYS) $(THYS:.thy=.ML)
-	
+FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML \
+ 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 
@@ -55,37 +54,41 @@ LOGIC:sh=case $ISABELLECOMP in \
 	esac
 
 ##IMP-semantics example
-IMP_THYS = IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy
-IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
+IMP_NAMES = Com Denotation Equiv
+IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:   $(BIN)/ZF  $(IMP_FILES)
 	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
 
 ##Coinduction example
-COIND_THYS = Coind/ECR.thy Coind/Language.thy\
-	     Coind/MT.thy Coind/Map.thy Coind/Static.thy \
-	     Coind/Types.thy Coind/Values.thy 
+COIND_NAMES = ECR Language MT Map Static Types Values 
 
 COIND_FILES = Coind/ROOT.ML Coind/BCR.thy  Coind/Dynamic.thy \
-              $(COIND_THYS) $(COIND_THYS:.thy=.ML)
+              $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
 
 Coind:  $(BIN)/ZF  $(COIND_FILES)
 	echo 'exit_use"Coind/ROOT.ML";quit();' | $(LOGIC)
 
+##AC examples
+AC_NAMES = AC_Equiv OrdQuant Transrec2 WO6_WO1 rel_is_fun
+
+AC_FILES = AC/ROOT.ML $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
+
+AC:  $(BIN)/ZF  $(AC_FILES)
+	echo 'exit_use"AC/ROOT.ML";quit();' | $(LOGIC)
+
 ##Miscellaneous examples
-EX_THYS = ex/Ramsey.thy ex/Integ.thy ex/twos_compl.thy ex/Bin.thy \
-	  ex/BT.thy ex/Term.thy  ex/TF.thy ex/Ntree.thy \
-	  ex/Brouwer.thy ex/Data.thy ex/Enum.thy \
-	  ex/Rmap.thy ex/PropLog.thy ex/ListN.thy ex/Acc.thy \
-	  ex/Comb.thy ex/Primrec.thy ex/LList.thy ex/CoUnit.thy 
-EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
+EX_NAMES = Ramsey Integ twos_compl Bin BT Term TF Ntree Brouwer Data Enum \
+	   Rmap PropLog ListN Acc Comb Primrec LList CoUnit 
+
+EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 #Test ZF by loading the examples in directory ex
 ex:     $(BIN)/ZF  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test.
-test:   $(BIN)/ZF IMP Coind ex
+test:   $(BIN)/ZF IMP Coind AC ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/FOL $(BIN)/ZF 
