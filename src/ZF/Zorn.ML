@@ -217,7 +217,7 @@ by (rewtac chain_def);
 by (rtac CollectI 1 THEN Blast_tac 1);
 by Safe_tac;
 by (res_inst_tac  [("m1","B"), ("n1","Ba")] (TFin_subset_linear RS disjE) 1);
-by (ALLGOALS Fast_tac);
+by (ALLGOALS Fast_tac);   (*Blast_tac's slow*)
 qed "TFin_chain_lemma4";
 
 Goal "EX c. c : maxchain(S)";
@@ -256,7 +256,7 @@ by (resolve_tac [Hausdorff RS exE] 1);
 by (asm_full_simp_tac (simpset() addsimps [maxchain_def]) 1);
 by (rename_tac "c" 1);
 by (res_inst_tac [("x", "Union(c)")] bexI 1);
-by (Fast_tac 2);  (*Blast_tac: PROOF FAILED*)
+by (Blast_tac 2);
 by Safe_tac;
 by (rename_tac "z" 1);
 by (rtac classical 1);
