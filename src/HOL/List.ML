@@ -19,12 +19,28 @@ by (Asm_simp_tac 1);
 qed "neq_Nil_conv";
 
 
-(** List operator over sets **)
+(** "lists": the list-forming operator over sets **)
 
 goalw thy lists.defs "!!A B. A<=B ==> lists A <= lists B";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "lists_mono";
+
+val listsE = lists.mk_cases list.simps  "x#l : lists A";
+AddSEs [listsE];
+AddSIs lists.intrs;
+
+goal thy "!!l. l: lists A ==> l: lists B --> l: lists (A Int B)";
+by (etac lists.induct 1);
+by (ALLGOALS Blast_tac);
+qed_spec_mp "lists_IntI";
+
+goal thy "lists (A Int B) = lists A Int lists B";
+br (mono_Int RS equalityI) 1;
+by (simp_tac (!simpset addsimps [mono_def, lists_mono]) 1);
+by (blast_tac (!claset addSIs [lists_IntI]) 1);
+qed "lists_Int_eq";
+Addsimps [lists_Int_eq];
 
 
 (** list_case **)
