@@ -18,7 +18,7 @@ For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
 Division is not defined yet!
 *)
 
-Bin = Integ + Univ + "twos_compl" +
+Bin = Integ + Datatype + "twos_compl" +
 
 consts
   bin_rec          :: "[i, i, i, [i,i,i]=>i] => i"

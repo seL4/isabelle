@@ -7,7 +7,7 @@ Sample datatype definition.
 It has four contructors, of arities 0-3, and two parameters A and B.
 *)
 
-Data = Univ +
+Data = Datatype +
 
 consts
   data :: "[i,i] => i"

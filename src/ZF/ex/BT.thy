@@ -6,7 +6,7 @@
 Binary trees
 *)
 
-BT = Univ +
+BT = Datatype +
 consts
     bt_rec    	:: "[i, i, [i,i,i,i,i]=>i] => i"
     n_nodes	:: "i=>i"

@@ -7,7 +7,7 @@ Datatype definition of propositional logic formulae and inductive definition
 of the propositional tautologies.
 *)
 
-PropLog = Finite + Univ +
+PropLog = Finite + Datatype +
 
 (** The datatype of propositions; note mixfix syntax **)
 consts
