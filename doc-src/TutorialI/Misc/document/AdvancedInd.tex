@@ -63,25 +63,18 @@ This time, induction leaves us with a trivial base case:
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd\ {\isacharparenleft}rev\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ last\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
-And \isa{auto} completes the proof.%
-\end{isamarkuptxt}%
-%
-\begin{isamarkuptext}%
+And \isa{auto} completes the proof.
+
 If there are multiple premises $A@1$, \dots, $A@n$ containing the
 induction variable, you should turn the conclusion $C$ into
 \[ A@1 \longrightarrow \cdots A@n \longrightarrow C \]
-(see the remark?? in \S\ref{??}).
 Additionally, you may also have to universally quantify some other variables,
 which can yield a fairly complex conclusion.  However, \isa{rule{\isacharunderscore}format} 
 can remove any number of occurrences of \isa{{\isasymforall}} and
-\isa{{\isasymlongrightarrow}}.
-
-Here is a simple example (which is proved by \isa{blast}):%
-\end{isamarkuptext}%
-\isacommand{lemma}\ simple{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymand}\ A\ y{\isachardoublequote}%
+\isa{{\isasymlongrightarrow}}.%
+\end{isamarkuptxt}%
+%
 \begin{isamarkuptext}%
-\medskip
-
 A second reason why your proposition may not be amenable to induction is that
 you want to induct on a whole term, rather than an individual variable. In
 general, when inducting on some term $t$ you must rephrase the conclusion $C$
@@ -129,7 +122,7 @@ Here is an example of its application.%
 \begin{isamarkuptext}%
 \noindent
 The axiom for \isa{f} implies \isa{n\ {\isasymle}\ f\ n}, which can
-be proved by induction on \isa{f\ n}. Following the recipe outlined
+be proved by induction on \mbox{\isa{f\ n}}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
@@ -164,8 +157,7 @@ the other case:%
 \isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-If you find the last step puzzling, here are the 
-two other lemmas used above:
+If you find the last step puzzling, here are the two lemmas it employs:
 \begin{isabelle}
 \isa{m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ Suc\ m\ {\isasymle}\ n}
 \rulename{Suc_leI}\isanewline
@@ -191,7 +183,7 @@ translate the internal proof into a human-readable format. Therefore
 Chapter~\ref{sec:part2?} introduces a language for writing readable
 proofs.
 
-We can now derive the desired \isa{i\ {\isasymle}\ f\ i} from \isa{f{\isacharunderscore}incr}:%
+We can now derive the desired \isa{i\ {\isasymle}\ f\ i} from \isa{f{\isacharunderscore}incr{\isacharunderscore}lem}:%
 \end{isamarkuptext}%
 \isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}%
 \begin{isamarkuptext}%
@@ -253,16 +245,15 @@ requires us to generalize the statement first:%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-The base case is trivially true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: case \isa{m\ {\isacharless}\ n} is true by induction
+The base case is vacuously true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: case \isa{m\ {\isacharless}\ n} is true by induction
 hypothesis and case \isa{m\ {\isacharequal}\ n} follows from the assumption, again using
 the induction hypothesis:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isacommand{by}{\isacharparenleft}blast\ elim{\isacharcolon}less{\isacharunderscore}SucE{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction
-mentioned above:
+The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}m\ {\isacharless}\ Suc\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ m\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
 \end{isabelle}

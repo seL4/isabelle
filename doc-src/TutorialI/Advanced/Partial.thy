@@ -6,7 +6,7 @@ in HOL are total. Hence we cannot hope to define truly partial
 functions. The best we can do are functions that are
 \emph{underdefined}\index{underdefined function}:
 for certain arguments we only know that a result
-exists, but we don't know what it is. When defining functions that are
+exists, but we do not know what it is. When defining functions that are
 normally considered partial, underdefinedness turns out to be a very
 reasonable alternative.
 
@@ -20,7 +20,6 @@ primrec "hd (x#xs) = x"
 
 text{*\noindent
 although it generates a warning.
-
 Even ordinary definitions allow underdefinedness, this time by means of
 preconditions:
 *}
@@ -64,8 +63,9 @@ standard mathematical division function.
 As a more substantial example we consider the problem of searching a graph.
 For simplicity our graph is given by a function (@{term f}) of
 type @{typ"'a \<Rightarrow> 'a"} which
-maps each node to its successor, and the task is to find the end of a chain,
-i.e.\ a node pointing to itself. Here is a first attempt:
+maps each node to its successor, i.e.\ the graph is really a tree.
+The task is to find the end of a chain, modelled by a node pointing to
+itself. Here is a first attempt:
 @{prop[display]"find(f,x) = (if f x = x then x else find(f, f x))"}
 This may be viewed as a fixed point finder or as one half of the well known
 \emph{Union-Find} algorithm.
@@ -91,22 +91,24 @@ text{*\noindent
 The recursion equation itself should be clear enough: it is our aborted
 first attempt augmented with a check that there are no non-trivial loops.
 
-What complicates the termination proof is that the argument of
-@{term find} is a pair. To express the required well-founded relation
-we employ the predefined combinator @{term same_fst} of type
+What complicates the termination proof is that the argument of @{term find}
+is a pair. To express the required well-founded relation we employ the
+predefined combinator @{term same_fst} of type
 @{text[display]"('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> ('b\<times>'b)set) \<Rightarrow> (('a\<times>'b) \<times> ('a\<times>'b))set"}
 defined as
 @{thm[display]same_fst_def[no_vars]}
-This combinator is designed for recursive functions on pairs where the first
-component of the argument is passed unchanged to all recursive
-calls. Given a constraint on the first component and a relation on the second
-component, @{term same_fst} builds the required relation on pairs.
-The theorem @{thm[display]wf_same_fst[no_vars]}
-is known to the well-foundedness prover of \isacommand{recdef}.
-Thus well-foundedness of the given relation is immediate.
-Furthermore, each recursive call descends along the given relation:
-the first argument stays unchanged and the second one descends along
-@{term"step1 f"}. The proof merely requires unfolding of some definitions.
+This combinator is designed for
+recursive functions on pairs where the first component of the argument is
+passed unchanged to all recursive calls. Given a constraint on the first
+component and a relation on the second component, @{term same_fst} builds the
+required relation on pairs.  The theorem
+@{thm[display]wf_same_fst[no_vars]}
+is known to the well-foundedness prover of \isacommand{recdef}.  Thus
+well-foundedness of the relation given to \isacommand{recdef} is immediate.
+Furthermore, each recursive call descends along that relation: the first
+argument stays unchanged and the second one descends along @{term"step1
+f"}. The proof merely requires unfolding of some definitions, as specified in
+the \isacommand{hints} above.
 
 Normally you will then derive the following conditional variant of and from
 the recursion equation
@@ -204,7 +206,7 @@ equation for @{term while} is a directly executable functional
 program. This is in stark contrast to guarded recursion as introduced
 above which requires an explicit test @{prop"x \<in> dom f"} in the
 function body.  Unless @{term dom} is trivial, this leads to a
-definition that is impossible to execute (or prohibitively slow).
+definition that is impossible to execute or prohibitively slow.
 Thus, if you are aiming for an efficiently executable definition
 of a partial function, you are likely to need @{term while}.
 *}

@@ -1,17 +1,15 @@
 (*<*)
-theory Nested2 = Nested0:;
+theory Nested2 = Nested0:
 (*>*)
 
-text{*\noindent
-The termintion condition is easily proved by induction:
-*};
+text{*The termintion condition is easily proved by induction:*}
 
-lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(term_list_size ts)";
-by(induct_tac ts, auto);
+lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(term_list_size ts)"
+by(induct_tac ts, auto)
 (*<*)
 recdef trev "measure size"
  "trev (Var x) = Var x"
- "trev (App f ts) = App f (rev(map trev ts))";
+ "trev (App f ts) = App f (rev(map trev ts))"
 (*>*)
 text{*\noindent
 By making this theorem a simplification rule, \isacommand{recdef}
@@ -20,17 +18,16 @@ succeeds now. As a reward for our effort, we can now prove the desired
 lemma directly.  We no longer need the verbose
 induction schema for type @{text"term"} and can use the simpler one arising from
 @{term"trev"}:
-*};
+*}
 
-lemma "trev(trev t) = t";
-apply(induct_tac t rule:trev.induct);
-txt{*\noindent
-This leaves us with a trivial base case @{term"trev (trev (Var x)) = Var x"} and the step case
-@{term[display,margin=60]"ALL t. t : set ts --> trev (trev t) = t ==> trev (trev (App f ts)) = App f ts"}
-both of which are solved by simplification:
-*};
+lemma "trev(trev t) = t"
+apply(induct_tac t rule:trev.induct)
+txt{*
+@{subgoals[display,indent=0]}
+Both the base case and the induction step fall to simplification:
+*}
 
-by(simp_all add:rev_map sym[OF map_compose] cong:map_cong);
+by(simp_all add:rev_map sym[OF map_compose] cong:map_cong)
 
 text{*\noindent
 If the proof of the induction step mystifies you, we recommend that you go through
@@ -83,7 +80,7 @@ or declare them globally
 by giving them the \isaindexbold{recdef_cong} attribute as in
 *}
 
-declare map_cong[recdef_cong];
+declare map_cong[recdef_cong]
 
 text{*
 Note that the @{text cong} and @{text recdef_cong} attributes are
@@ -94,5 +91,5 @@ simplification and making recursive definitions.
 %The simplifier's congruence rules cannot be used by recdef.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.
-*};
-(*<*)end;(*>*)
+*}
+(*<*)end(*>*)

@@ -32,7 +32,7 @@ example, Baader and Nipkow~\cite{Baader-Nipkow}.
 
 Each \isacommand{recdef} definition should be accompanied (after the name of
 the function) by a well-founded relation on the argument type of the
-function.  HOL formalizes some of the most important
+function.  Isabelle/HOL formalizes some of the most important
 constructions of well-founded relations (see \S\ref{sec:Well-founded}). For
 example, @{term"measure f"} is always well-founded, and the lexicographic
 product of two well-founded relations is again well-founded, which we relied
@@ -77,7 +77,7 @@ our relation was well-founded:
 
 lemma wf_greater: "wf {(i,j). j<i \<and> i \<le> (N::nat)}"
 
-txt{*
+txt{*\noindent
 The proof is by showing that our relation is a subset of another well-founded
 relation: one given by a measure function. 
 *};

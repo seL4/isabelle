@@ -3,12 +3,11 @@
 section{*Introducing New Types*}
 
 text{*\label{sec:adv-typedef}
-By now we have seen a number of ways for introducing new types, for example
-type synonyms, recursive datatypes and records. For most applications, this
-repertoire should be quite sufficient. Very occasionally you may feel the
-need for a more advanced type. If you cannot do without that type, and you are
-certain that it is not definable by any of the standard means,
-then read on.
+For most applications, a combination of predefined types like @{typ bool} and
+@{text"\<Rightarrow>"} with recursive datatypes and records is quite sufficient. Very
+occasionally you may feel the need for a more advanced type. If you cannot do
+without that type, and you are certain that it is not definable by any of the
+standard means, then read on.
 \begin{warn}
   Types in HOL must be non-empty; otherwise the quantifier rules would be
   unsound, because $\exists x.\ x=x$ is a theorem.
@@ -34,8 +33,7 @@ of states without any internal structure.
 
 In principle we can always get rid of such type declarations by making those
 types parameters of every other type, thus keeping the theory generic. In
-practice, however, the resulting clutter can sometimes make types hard to
-read.
+practice, however, the resulting clutter can make types hard to read.
 
 If you are looking for a quick and dirty way of introducing a new type
 together with its properties: declare the type and state its properties as
@@ -49,7 +47,7 @@ text{*\noindent
 However, we strongly discourage this approach, except at explorative stages
 of your development. It is extremely easy to write down contradictory sets of
 axioms, in which case you will be able to prove everything but it will mean
-nothing.  Here the axiomatic approach is
+nothing.  In the example above, the axiomatic approach is
 unnecessary: a one-element type called @{typ unit} is already defined in HOL.
 *}
 
@@ -63,7 +61,7 @@ any non-empty subset of an existing type can be turned into a new type.  Thus
 a type definition is merely a notational device: you introduce a new name for
 a subset of an existing type. This does not add any logical power to HOL,
 because you could base all your work directly on the subset of the existing
-type. However, the resulting theories could easily become undigestible
+type. However, the resulting theories could easily become indigestible
 because instead of implicit types you would have explicit sets in your
 formulae.
 
@@ -85,7 +83,7 @@ by simp
 
 text{*
 This type definition introduces the new type @{typ three} and asserts
-that it is a \emph{copy} of the set @{term"{0,1,2}"}. This assertion
+that it is a copy of the set @{term"{0,1,2}"}. This assertion
 is expressed via a bijection between the \emph{type} @{typ three} and the
 \emph{set} @{term"{0,1,2}"}. To this end, the command declares the following
 constants behind the scenes:
@@ -96,7 +94,7 @@ constants behind the scenes:
 @{term Abs_three} &::& @{typ"nat \<Rightarrow> three"}
 \end{tabular}
 \end{center}
-Constant @{term three} is explicitly defined as the representing set:
+where constant @{term three} is explicitly defined as the representing set:
 \begin{center}
 @{thm three_def}\hfill(@{thm[source]three_def})
 \end{center}
@@ -233,7 +231,7 @@ apply(rule subst[OF Rep_three_inverse]);
 txt{*\noindent
 This substitution step worked nicely because there was just a single
 occurrence of a term of type @{typ three}, namely @{term x}.
-When we now apply the lemma, @{term Q} becomes @{term"\<lambda>n. P(Abs_three
+When we now apply @{thm[source]cases_lemma}, @{term Q} becomes @{term"\<lambda>n. P(Abs_three
 n)"} because @{term"Rep_three x"} is the only term of type @{typ nat}:
 *}
 

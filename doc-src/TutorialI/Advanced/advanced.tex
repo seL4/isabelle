@@ -13,8 +13,8 @@ required for parts of the section on recursion.
 \index{*recdef|(}
 
 The purpose of this section is to introduce advanced forms of
-\isacommand{recdef}: how to define recursive function over nested recursive
-datatypes, how to establish termination by means other than measure functions,
+\isacommand{recdef}: how to establish termination by means other than measure
+functions, how to define recursive function over nested recursive datatypes,
 and how to deal with partial functions.
 
 If, after reading this section, you feel that the definition of recursive
@@ -27,15 +27,15 @@ terms explicitly. Thus one shifts definedness arguments from definition time to
 proof time. In HOL you may have to work hard to define a function, but proofs
 can then proceed unencumbered by worries about undefinedness.
 
+\subsection{Beyond measure}
+\label{sec:beyond-measure}
+\input{Advanced/document/WFrec.tex}
+
 \subsection{Recursion over nested datatypes}
 \label{sec:nested-recdef}
 \input{Recdef/document/Nested0.tex}
 \input{Recdef/document/Nested1.tex}
 \input{Recdef/document/Nested2.tex}
-
-\subsection{Beyond measure}
-\label{sec:beyond-measure}
-\input{Advanced/document/WFrec.tex}
 
 \subsection{Partial functions}
 \index{partial function}

@@ -33,9 +33,9 @@ Note that behind the scenes, Isabelle has restricted the axioms to class
 \isa{{\isacharparenleft}{\isacharquery}x{\isasymColon}{\isacharquery}{\isacharprime}a{\isasymColon}parord{\isacharparenright}\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharquery}x}.
 
 We have not made \isa{less{\isacharunderscore}le} a global definition because it would
-fix once and for all that \isa{{\isacharless}{\isacharless}} is defined in terms of \isa{{\isacharless}{\isacharless}{\isacharequal}}.
-There are however situations where it is the other way around, which such a
-definition would complicate. The slight drawback of the above class is that
+fix once and for all that \isa{{\isacharless}{\isacharless}} is defined in terms of \isa{{\isacharless}{\isacharless}{\isacharequal}} and
+never the other way around. Below you will see why we want to avoid this
+asymmetry. The drawback of the above class is that
 we need to define both \isa{{\isacharless}{\isacharless}{\isacharequal}} and \isa{{\isacharless}{\isacharless}} for each instance.
 
 We can now prove simple theorems in this abstract setting, for example
@@ -89,8 +89,8 @@ We can now apply our single lemma above in the context of booleans:%
 \begin{isamarkuptext}%
 \noindent
 The effect is not stunning, but it demonstrates the principle.  It also shows
-that tools like the simplifier can deal with generic rules as well. Moreover,
-it should be clear that the main advantage of the axiomatic method is that
+that tools like the simplifier can deal with generic rules as well.
+It should be clear that the main advantage of the axiomatic method is that
 theorems can be proved in the abstract and one does not need to repeat the
 proof for each instance.%
 \end{isamarkuptext}%
@@ -103,16 +103,16 @@ If any two elements of a partial order are comparable it is a
 \emph{linear} or \emph{total} order:%
 \end{isamarkuptext}%
 \isacommand{axclass}\ linord\ {\isacharless}\ parord\isanewline
-total{\isacharcolon}\ {\isachardoublequote}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymor}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isachardoublequote}%
+linear{\isacharcolon}\ {\isachardoublequote}x\ {\isacharless}{\isacharless}{\isacharequal}\ y\ {\isasymor}\ y\ {\isacharless}{\isacharless}{\isacharequal}\ x{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 By construction, \isa{linord} inherits all axioms from \isa{parord}.
-Therefore we can show that totality can be expressed in terms of \isa{{\isacharless}{\isacharless}}
+Therefore we can show that linearity can be expressed in terms of \isa{{\isacharless}{\isacharless}}
 as follows:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymAnd}x{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}linord{\isachardot}\ x{\isacharless}{\isacharless}y\ {\isasymor}\ x{\isacharequal}y\ {\isasymor}\ y{\isacharless}{\isacharless}x{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isasymAnd}x{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}linord{\isachardot}\ x\ {\isacharless}{\isacharless}\ y\ {\isasymor}\ x\ {\isacharequal}\ y\ {\isasymor}\ y\ {\isacharless}{\isacharless}\ x{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ less{\isacharunderscore}le{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}insert\ total{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}insert\ linear{\isacharparenright}\isanewline
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
@@ -137,13 +137,25 @@ le{\isacharunderscore}less{\isacharcolon}\ \ \ \ {\isachardoublequote}x\ {\isach
 \noindent
 It is well known that partial orders are the same as strict orders. Let us
 prove one direction, namely that partial orders are a subclass of strict
-orders. The proof follows the ususal pattern:%
+orders.%
 \end{isamarkuptext}%
 \isacommand{instance}\ parord\ {\isacharless}\ strord\isanewline
-\isacommand{apply}\ intro{\isacharunderscore}classes\isanewline
-\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ add{\isacharcolon}less{\isacharunderscore}le{\isacharparenright}\isanewline
-\ \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ trans\ antisym{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ refl{\isacharparenright}\isanewline
+\isacommand{apply}\ intro{\isacharunderscore}classes%
+\begin{isamarkuptxt}%
+\noindent
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isasymColon}{\isacharprime}a{\isachardot}\ {\isasymnot}\ x\ {\isacharless}{\isacharless}\ x\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharparenleft}y{\isasymColon}{\isacharprime}a{\isacharparenright}\ z{\isasymColon}{\isacharprime}a{\isachardot}\ {\isasymlbrakk}x\ {\isacharless}{\isacharless}\ y{\isacharsemicolon}\ y\ {\isacharless}{\isacharless}\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isacharless}{\isacharless}\ z\isanewline
+\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}{\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ y{\isasymColon}{\isacharprime}a{\isachardot}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}{\isacharequal}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}{\isacharless}\ y\ {\isasymor}\ x\ {\isacharequal}\ y{\isacharparenright}\isanewline
+type\ variables{\isacharcolon}\isanewline
+\isaindent{\ \ }{\isacharprime}a\ {\isacharcolon}{\isacharcolon}\ parord%
+\end{isabelle}
+Assuming \isa{{\isacharprime}a\ {\isacharcolon}{\isacharcolon}\ parord}, the three axioms of class \isa{strord}
+are easily proved:%
+\end{isamarkuptxt}%
+\ \ \isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}\ add{\isacharcolon}less{\isacharunderscore}le{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ trans\ antisym{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ refl{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
 The subclass relation must always be acyclic. Therefore Isabelle will
@@ -194,7 +206,7 @@ the fly: the expression $\{C@1,\dots,C@n\}$, where the $C@i$ are classes,
 represents the intersection of the $C@i$. Such an expression is called a
 \bfindex{sort}, and sorts can appear in most places where we have only shown
 classes so far, for example in type constraints: \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}linord{\isacharcomma}wford{\isacharbraceright}}.
-In fact, \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}ord} is short for \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}ord{\isacharbraceright}}.
+In fact, \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}C} is short for \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}{\isacharbraceleft}C{\isacharbraceright}}.
 However, we do not pursue this rarefied concept further.
 
 This concludes our demonstration of type classes based on orderings.  We

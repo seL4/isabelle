@@ -29,8 +29,8 @@ defined on all numeric types and sometimes on other types as well, for example
 In addition there is a special input syntax for bounded quantifiers:
 \begin{center}
 \begin{tabular}{lcl}
-@{text"\<forall>x \<le> y. P x"} & @{text"\<equiv>"} & @{prop"\<forall>x. x \<le> y \<longrightarrow> P x"} \\
-@{text"\<exists>x \<le> y. P x"} & @{text"\<equiv>"} & @{prop"\<exists>x. x \<le> y \<and> P x"}
+@{text"\<forall>x \<le> y. P x"} & @{text"\<rightharpoonup>"} & @{prop"\<forall>x. x \<le> y \<longrightarrow> P x"} \\
+@{text"\<exists>x \<le> y. P x"} & @{text"\<rightharpoonup>"} & @{prop"\<exists>x. x \<le> y \<and> P x"}
 \end{tabular}
 \end{center}
 And analogously for @{text"<"} instead of @{text"\<le>"}.

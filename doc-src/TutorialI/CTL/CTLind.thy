@@ -58,51 +58,53 @@ the @{text"\<forall>f\<in>Paths t"} in the induction hypothesis by the path star
 expresses.  Simplification shows that this is a path starting with @{term t} 
 and that the instantiated induction hypothesis implies the conclusion.
 
-Now we come to the key lemma. It says that if @{term t} can be reached by a
-finite @{term A}-avoiding path from @{term s}, then @{prop"t \<in> lfp(af A)"},
-provided there is no infinite @{term A}-avoiding path starting from @{term
-s}.
+Now we come to the key lemma. Assuming that no infinite @{term A}-avoiding
+path starts from @{term s}, we want to show @{prop"s \<in> lfp(af A)"}. This
+can be generalized by proving that every point @{term t} ``between''
+@{term s} and @{term A}, i.e.\ all of @{term"Avoid s A"},
+is contained in @{term"lfp(af A)"}:
 *}
 
 lemma Avoid_in_lfp[rule_format(no_asm)]:
   "\<forall>p\<in>Paths s. \<exists>i. p i \<in> A \<Longrightarrow> t \<in> Avoid s A \<longrightarrow> t \<in> lfp(af A)";
+
 txt{*\noindent
-The trick is not to induct on @{prop"t \<in> Avoid s A"}, as even the base
-case would be a problem, but to proceed by well-founded induction on~@{term
-t}. Hence\hbox{ @{prop"t \<in> Avoid s A"}} must be brought into the conclusion as
-well, which the directive @{text rule_format} undoes at the end (see below).
-But induction with respect to which well-founded relation? The
-one we want is the restriction
-of @{term M} to @{term"Avoid s A"}:
-@{term[display]"{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> y \<in> Avoid s A \<and> x \<notin> A}"}
+The proof is by induction on the ``distance'' between @{term t} and @{term
+A}. Remember that @{prop"lfp(af A) = A \<union> M\<inverse> `` lfp(af A)"}.
+If @{term t} is already in @{term A}, then @{prop"t \<in> lfp(af A)"} is
+trivial. If @{term t} is not in @{term A} but all successors are in
+@{term"lfp(af A)"} (induction hypothesis), then @{prop"t \<in> lfp(af A)"} is
+again trivial.
+
+The formal counterpart of this proof sketch is a well-founded induction
+w.r.t.\ @{term M} restricted to (roughly speaking) @{term"Avoid s A - A"}:
+@{term[display]"{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> x \<notin> A}"}
 As we shall see in a moment, the absence of infinite @{term A}-avoiding paths
 starting from @{term s} implies well-foundedness of this relation. For the
 moment we assume this and proceed with the induction:
 *}
 
-apply(subgoal_tac
-  "wf{(y,x). (x,y)\<in>M \<and> x \<in> Avoid s A \<and> y \<in> Avoid s A \<and> x \<notin> A}");
+apply(subgoal_tac "wf{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> x \<notin> A}");
  apply(erule_tac a = t in wf_induct);
  apply(clarsimp);
+(*<*)apply(rename_tac t)(*>*)
 
 txt{*\noindent
 @{subgoals[display,indent=0,margin=65]}
-\REMARK{I put in this proof state but I wonder if readers will be able to
-follow this proof. You could prove that your relation is WF in a 
-lemma beforehand, maybe omitting that proof.}
 Now the induction hypothesis states that if @{prop"t \<notin> A"}
 then all successors of @{term t} that are in @{term"Avoid s A"} are in
-@{term"lfp (af A)"}. To prove the actual goal we unfold @{term lfp} once. Now
-we have to prove that @{term t} is in @{term A} or all successors of @{term
-t} are in @{term"lfp (af A)"}. If @{term t} is not in @{term A}, the second
+@{term"lfp (af A)"}. Unfolding @{term lfp} in the conclusion of the first
+subgoal once, we have to prove that @{term t} is in @{term A} or all successors
+of @{term t} are in @{term"lfp (af A)"}: if @{term t} is not in @{term A},
+the second 
 @{term Avoid}-rule implies that all successors of @{term t} are in
 @{term"Avoid s A"} (because we also assume @{prop"t \<in> Avoid s A"}), and
 hence, by the induction hypothesis, all successors of @{term t} are indeed in
 @{term"lfp(af A)"}. Mechanically:
 *}
 
- apply(rule ssubst [OF lfp_unfold[OF mono_af]]);
- apply(simp only: af_def);
+ apply(subst lfp_unfold[OF mono_af]);
+ apply(simp (no_asm) add: af_def);
  apply(blast intro:Avoid.intros);
 
 txt{*
@@ -124,7 +126,8 @@ apply(auto simp add:Paths_def);
 done
 
 text{*
-The @{text"(no_asm)"} modifier of the @{text"rule_format"} directive means
+The @{text"(no_asm)"} modifier of the @{text"rule_format"} directive in the
+statement of the lemma means
 that the assumption is left unchanged --- otherwise the @{text"\<forall>p"} is turned
 into a @{text"\<And>p"}, which would complicate matters below. As it is,
 @{thm[source]Avoid_in_lfp} is now

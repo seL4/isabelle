@@ -31,17 +31,17 @@ two of the three types \isa{bool}, \isa{{\isacharprime}a\ set} and \isa{{\isacha
 common instance. What is more, the recursion in \isa{inverse{\isacharunderscore}pair} is
 benign because the type of \isa{inverse} becomes smaller: on the
 left it is \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b} but on the right \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} and
-\isa{{\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b}. The annotation \isa{{\isacharparenleft}overloaded{\isacharparenright}} tells Isabelle that
+\isa{{\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b}. The annotation \isa{{\isacharparenleft}}\isacommand{overloaded}\isa{{\isacharparenright}} tells Isabelle that
 the definitions do intentionally define \isa{inverse} only at
 instances of its declared type \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} --- this merely supresses
 warnings to that effect.
 
 However, there is nothing to prevent the user from forming terms such as
-\isa{{\isachardoublequote}inverse\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}} and proving theorems as \isa{{\isachardoublequote}inverse\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ inverse\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}}, although we never defined inverse on lists. We hasten to say
+\isa{inverse\ {\isacharbrackleft}{\isacharbrackright}} and proving theorems as \isa{inverse\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ inverse\ {\isacharbrackleft}{\isacharbrackright}}, although we never defined inverse on lists. We hasten to say
 that there is nothing wrong with such terms and theorems. But it would be
 nice if we could prevent their formation, simply because it is very likely
-that the user did not mean to write what he did. Thus he had better not waste
-his time pursuing it further. This requires the use of type classes.%
+that the user did not mean to write what he did. Thus she had better not waste
+her time pursuing it further. This requires the use of type classes.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

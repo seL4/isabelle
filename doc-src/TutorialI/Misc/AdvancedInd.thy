@@ -62,33 +62,26 @@ txt{*\noindent
 This time, induction leaves us with a trivial base case:
 @{subgoals[display,indent=0,goals_limit=1]}
 And @{text"auto"} completes the proof.
-*}
-(*<*)
-by auto;
-(*>*)
 
-
-text{*
 If there are multiple premises $A@1$, \dots, $A@n$ containing the
 induction variable, you should turn the conclusion $C$ into
 \[ A@1 \longrightarrow \cdots A@n \longrightarrow C \]
-(see the remark?? in \S\ref{??}).
 Additionally, you may also have to universally quantify some other variables,
-which can yield a fairly complex conclusion.  However, @{text"rule_format"} 
+which can yield a fairly complex conclusion.  However, @{text rule_format} 
 can remove any number of occurrences of @{text"\<forall>"} and
 @{text"\<longrightarrow>"}.
+*}
 
-Here is a simple example (which is proved by @{text"blast"}):
-*};
-
-lemma simple[rule_format]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y \<and> A y";
 (*<*)
-by blast;
+by auto;
 (*>*)
+(*
+Here is a simple example (which is proved by @{text"blast"}):
+lemma simple[rule_format]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y \<and> A y";
+by blast;
+*)
 
 text{*
-\medskip
-
 A second reason why your proposition may not be amenable to induction is that
 you want to induct on a whole term, rather than an individual variable. In
 general, when inducting on some term $t$ you must rephrase the conclusion $C$
@@ -133,7 +126,7 @@ axioms f_ax: "f(f(n)) < f(Suc(n))";
 
 text{*\noindent
 The axiom for @{term"f"} implies @{prop"n <= f n"}, which can
-be proved by induction on @{term"f n"}. Following the recipe outlined
+be proved by induction on \mbox{@{term"f n"}}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:
 *};
 
@@ -155,19 +148,16 @@ distinction on @{term"i"}. The case @{prop"i = 0"} is trivial and we focus on
 the other case:
 *}
 
-apply(rule allI);
-apply(case_tac i);
- apply(simp);
-
+apply(rule allI)
+apply(case_tac i)
+ apply(simp)
 txt{*
 @{subgoals[display,indent=0]}
-*};
-
-by(blast intro!: f_ax Suc_leI intro: le_less_trans);
+*}
+by(blast intro!: f_ax Suc_leI intro: le_less_trans)
 
 text{*\noindent
-If you find the last step puzzling, here are the 
-two other lemmas used above:
+If you find the last step puzzling, here are the two lemmas it employs:
 \begin{isabelle}
 @{thm Suc_leI[no_vars]}
 \rulename{Suc_leI}\isanewline
@@ -193,7 +183,7 @@ translate the internal proof into a human-readable format. Therefore
 Chapter~\ref{sec:part2?} introduces a language for writing readable
 proofs.
 
-We can now derive the desired @{prop"i <= f i"} from @{text"f_incr"}:
+We can now derive the desired @{prop"i <= f i"} from @{thm[source]f_incr_lem}:
 *};
 
 lemmas f_incr = f_incr_lem[rule_format, OF refl];
@@ -256,17 +246,16 @@ lemma induct_lem: "(\<And>n::nat. \<forall>m<n. P m \<Longrightarrow> P n) \<Lon
 apply(induct_tac n);
 
 txt{*\noindent
-The base case is trivially true. For the induction step (@{prop"m <
+The base case is vacuously true. For the induction step (@{prop"m <
 Suc n"}) we distinguish two cases: case @{prop"m < n"} is true by induction
 hypothesis and case @{prop"m = n"} follows from the assumption, again using
 the induction hypothesis:
 *};
-apply(blast);
+ apply(blast);
 by(blast elim:less_SucE)
 
 text{*\noindent
-The elimination rule @{thm[source]less_SucE} expresses the case distinction
-mentioned above:
+The elimination rule @{thm[source]less_SucE} expresses the case distinction:
 @{thm[display]"less_SucE"[no_vars]}
 
 Now it is straightforward to derive the original version of

@@ -9,7 +9,7 @@ in HOL are total. Hence we cannot hope to define truly partial
 functions. The best we can do are functions that are
 \emph{underdefined}\index{underdefined function}:
 for certain arguments we only know that a result
-exists, but we don't know what it is. When defining functions that are
+exists, but we do not know what it is. When defining functions that are
 normally considered partial, underdefinedness turns out to be a very
 reasonable alternative.
 
@@ -22,7 +22,6 @@ non-exhaustive pattern matching: the definition of \isa{last} in
 \begin{isamarkuptext}%
 \noindent
 although it generates a warning.
-
 Even ordinary definitions allow underdefinedness, this time by means of
 preconditions:%
 \end{isamarkuptext}%
@@ -67,8 +66,9 @@ standard mathematical division function.
 As a more substantial example we consider the problem of searching a graph.
 For simplicity our graph is given by a function (\isa{f}) of
 type \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} which
-maps each node to its successor, and the task is to find the end of a chain,
-i.e.\ a node pointing to itself. Here is a first attempt:
+maps each node to its successor, i.e.\ the graph is really a tree.
+The task is to find the end of a chain, modelled by a node pointing to
+itself. Here is a first attempt:
 \begin{isabelle}%
 \ \ \ \ \ find\ {\isacharparenleft}f{\isacharcomma}\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ f\ x\ {\isacharequal}\ x\ then\ x\ else\ find\ {\isacharparenleft}f{\isacharcomma}\ f\ x{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
@@ -94,9 +94,9 @@ must be well-founded. Thus we make the following definition:%
 The recursion equation itself should be clear enough: it is our aborted
 first attempt augmented with a check that there are no non-trivial loops.
 
-What complicates the termination proof is that the argument of
-\isa{find} is a pair. To express the required well-founded relation
-we employ the predefined combinator \isa{same{\isacharunderscore}fst} of type
+What complicates the termination proof is that the argument of \isa{find}
+is a pair. To express the required well-founded relation we employ the
+predefined combinator \isa{same{\isacharunderscore}fst} of type
 \begin{isabelle}%
 \ \ \ \ \ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isasymtimes}{\isacharprime}b{\isacharparenright}set{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}b{\isacharparenright}\ {\isasymtimes}\ {\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}b{\isacharparenright}{\isacharparenright}set%
 \end{isabelle}
@@ -104,18 +104,19 @@ defined as
 \begin{isabelle}%
 \ \ \ \ \ same{\isacharunderscore}fst\ P\ R\ {\isasymequiv}\ {\isacharbraceleft}{\isacharparenleft}{\isacharparenleft}x{\isacharprime}{\isacharcomma}\ y{\isacharprime}{\isacharparenright}{\isacharcomma}\ x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ x\ {\isasymand}\ P\ x\ {\isasymand}\ {\isacharparenleft}y{\isacharprime}{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ R\ x{\isacharbraceright}%
 \end{isabelle}
-This combinator is designed for recursive functions on pairs where the first
-component of the argument is passed unchanged to all recursive
-calls. Given a constraint on the first component and a relation on the second
-component, \isa{same{\isacharunderscore}fst} builds the required relation on pairs.
-The theorem \begin{isabelle}%
+This combinator is designed for
+recursive functions on pairs where the first component of the argument is
+passed unchanged to all recursive calls. Given a constraint on the first
+component and a relation on the second component, \isa{same{\isacharunderscore}fst} builds the
+required relation on pairs.  The theorem
+\begin{isabelle}%
 \ \ \ \ \ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ P\ x\ {\isasymLongrightarrow}\ wf\ {\isacharparenleft}R\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ wf\ {\isacharparenleft}same{\isacharunderscore}fst\ P\ R{\isacharparenright}%
 \end{isabelle}
-is known to the well-foundedness prover of \isacommand{recdef}.
-Thus well-foundedness of the given relation is immediate.
-Furthermore, each recursive call descends along the given relation:
-the first argument stays unchanged and the second one descends along
-\isa{step{\isadigit{1}}\ f}. The proof merely requires unfolding of some definitions.
+is known to the well-foundedness prover of \isacommand{recdef}.  Thus
+well-foundedness of the relation given to \isacommand{recdef} is immediate.
+Furthermore, each recursive call descends along that relation: the first
+argument stays unchanged and the second one descends along \isa{step{\isadigit{1}}\ f}. The proof merely requires unfolding of some definitions, as specified in
+the \isacommand{hints} above.
 
 Normally you will then derive the following conditional variant of and from
 the recursion equation%
@@ -213,7 +214,7 @@ equation for \isa{while} is a directly executable functional
 program. This is in stark contrast to guarded recursion as introduced
 above which requires an explicit test \isa{x\ {\isasymin}\ dom\ f} in the
 function body.  Unless \isa{dom} is trivial, this leads to a
-definition that is impossible to execute (or prohibitively slow).
+definition that is impossible to execute or prohibitively slow.
 Thus, if you are aiming for an efficiently executable definition
 of a partial function, you are likely to need \isa{while}.%
 \end{isamarkuptext}%

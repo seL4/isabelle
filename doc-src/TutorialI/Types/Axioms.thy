@@ -30,9 +30,9 @@ Note that behind the scenes, Isabelle has restricted the axioms to class
 @{thm[show_sorts]refl}.
 
 We have not made @{thm[source]less_le} a global definition because it would
-fix once and for all that @{text"<<"} is defined in terms of @{text"<<="}.
-There are however situations where it is the other way around, which such a
-definition would complicate. The slight drawback of the above class is that
+fix once and for all that @{text"<<"} is defined in terms of @{text"<<="} and
+never the other way around. Below you will see why we want to avoid this
+asymmetry. The drawback of the above class is that
 we need to define both @{text"<<="} and @{text"<<"} for each instance.
 
 We can now prove simple theorems in this abstract setting, for example
@@ -85,8 +85,8 @@ by simp;
 
 text{*\noindent
 The effect is not stunning, but it demonstrates the principle.  It also shows
-that tools like the simplifier can deal with generic rules as well. Moreover,
-it should be clear that the main advantage of the axiomatic method is that
+that tools like the simplifier can deal with generic rules as well.
+It should be clear that the main advantage of the axiomatic method is that
 theorems can be proved in the abstract and one does not need to repeat the
 proof for each instance.
 *}
@@ -97,17 +97,17 @@ text{* If any two elements of a partial order are comparable it is a
 \emph{linear} or \emph{total} order: *}
 
 axclass linord < parord
-total: "x <<= y \<or> y <<= x"
+linear: "x <<= y \<or> y <<= x"
 
 text{*\noindent
 By construction, @{text linord} inherits all axioms from @{text parord}.
-Therefore we can show that totality can be expressed in terms of @{text"<<"}
+Therefore we can show that linearity can be expressed in terms of @{text"<<"}
 as follows:
 *}
 
-lemma "\<And>x::'a::linord. x<<y \<or> x=y \<or> y<<x";
+lemma "\<And>x::'a::linord. x << y \<or> x = y \<or> y << x";
 apply(simp add: less_le);
-apply(insert total);
+apply(insert linear);
 apply blast;
 done
 
@@ -133,13 +133,20 @@ le_less:    "x <<= y = (x << y \<or> x = y)"
 text{*\noindent
 It is well known that partial orders are the same as strict orders. Let us
 prove one direction, namely that partial orders are a subclass of strict
-orders. The proof follows the ususal pattern: *}
+orders. *}
 
 instance parord < strord
 apply intro_classes;
-apply(simp_all (no_asm_use) add:less_le);
-  apply(blast intro: trans antisym);
- apply(blast intro: refl);
+
+txt{*\noindent
+@{subgoals[display,show_sorts]}
+Assuming @{text"'a :: parord"}, the three axioms of class @{text strord}
+are easily proved:
+*}
+
+  apply(simp_all (no_asm_use) add:less_le);
+ apply(blast intro: trans antisym);
+apply(blast intro: refl);
 done
 
 text{*
@@ -207,7 +214,7 @@ the fly: the expression $\{C@1,\dots,C@n\}$, where the $C@i$ are classes,
 represents the intersection of the $C@i$. Such an expression is called a
 \bfindex{sort}, and sorts can appear in most places where we have only shown
 classes so far, for example in type constraints: @{text"'a::{linord,wford}"}.
-In fact, @{text"'a::ord"} is short for @{text"'a::{ord}"}.
+In fact, @{text"'a::C"} is short for @{text"'a::{C}"}.
 However, we do not pursue this rarefied concept further.
 
 This concludes our demonstration of type classes based on orderings.  We

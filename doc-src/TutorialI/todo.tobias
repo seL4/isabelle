@@ -62,6 +62,8 @@ say something about definitional approach. In recdef section? At the end?
 I guess we should say "HOL" everywhere, with a remark early on about the
 differences between our HOL and the other one.
 
+Syntax translations! Harpoons already used!
+
 warning: simp of asms from l to r; may require reordering (rotate_tac)
 
 Adjust FP textbook refs: new Bird, Hudak

@@ -3,7 +3,6 @@
 \def\isabellecontext{Nested{\isadigit{2}}}%
 %
 \begin{isamarkuptext}%
-\noindent
 The termintion condition is easily proved by induction:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
@@ -20,13 +19,13 @@ induction schema for type \isa{term} and can use the simpler one arising from
 \isacommand{lemma}\ {\isachardoublequote}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}trev{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
-\noindent
-This leaves us with a trivial base case \isa{trev\ {\isacharparenleft}trev\ {\isacharparenleft}Var\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ Var\ x} and the step case
 \begin{isabelle}%
-\ \ \ \ \ {\isasymforall}t{\isachardot}\ t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ trev\ {\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ \ \ \ \ }trev\ {\isacharparenleft}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ App\ f\ ts%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ trev\ {\isacharparenleft}trev\ {\isacharparenleft}Var\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ Var\ x\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}f\ ts{\isachardot}\isanewline
+\isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }{\isasymforall}x{\isachardot}\ x\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ trev\ {\isacharparenleft}trev\ x{\isacharparenright}\ {\isacharequal}\ x\ {\isasymLongrightarrow}\isanewline
+\isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }trev\ {\isacharparenleft}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ App\ f\ ts%
 \end{isabelle}
-both of which are solved by simplification:%
+Both the base case and the induction step fall to simplification:%
 \end{isamarkuptxt}%
 \isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}map{\isacharunderscore}cong{\isacharparenright}%
 \begin{isamarkuptext}%

@@ -17,7 +17,7 @@ subsubsection{*Congruence Rules*}
 
 text{*\label{sec:simp-cong}
 It is hardwired into the simplifier that while simplifying the conclusion $Q$
-of $P \isasymImp Q$ it is legal to make uses of the assumptions $P$. This
+of $P \Imp Q$ it is legal to make uses of the assumption $P$. This
 kind of contextual information can also be made available for other
 operators. For example, @{prop"xs = [] --> xs@xs = xs"} simplifies to @{term
 True} because we may use @{prop"xs = []"} when simplifying @{prop"xs@xs =
@@ -33,8 +33,8 @@ and assume @{prop"P'"} when simplifying @{prop Q} to @{prop"Q'"}.
 Here are some more examples.  The congruence rules for bounded
 quantifiers supply contextual information about the bound variable:
 @{thm[display,eta_contract=false,margin=60]ball_cong[no_vars]}
-The congruence rule for conditional expressions supply contextual
-information for simplifying the arms:
+The congruence rule for conditional expressions supplies contextual
+information for simplifying the @{text then} and @{text else} cases:
 @{thm[display]if_cong[no_vars]}
 A congruence rule can also \emph{prevent} simplification of some arguments.
 Here is an alternative congruence rule for conditional expressions:
@@ -42,7 +42,7 @@ Here is an alternative congruence rule for conditional expressions:
 Only the first argument is simplified; the others remain unchanged.
 This makes simplification much faster and is faithful to the evaluation
 strategy in programming languages, which is why this is the default
-congruence rule for @{text if}. Analogous rules control the evaluaton of
+congruence rule for @{text if}. Analogous rules control the evaluation of
 @{text case} expressions.
 
 You can declare your own congruence rules with the attribute @{text cong},
@@ -107,7 +107,7 @@ lexicographically:
 
 Note that ordered rewriting for @{text"+"} and @{text"*"} on numbers is rarely
 necessary because the built-in arithmetic prover often succeeds without
-such hints.
+such tricks.
 *}
 
 subsection{*How It Works*}
@@ -149,8 +149,7 @@ is not a pattern) by adding new variables and conditions: @{text"?y =
 ?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is fine
 as a conditional rewrite rule since conditions can be arbitrary
 terms. However, this trick is not a panacea because the newly
-introduced conditions may be hard to prove, as they must be
-before the rule can actually be applied.
+introduced conditions may be hard to solve.
   
 There is no restriction on the form of the right-hand
 sides.  They may not contain extraneous term or type variables, though.
