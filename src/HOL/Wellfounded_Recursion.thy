@@ -28,4 +28,8 @@ constdefs
   "wfrec r H == (%x. H (cut (the_recfun (trancl r) (%f v. H (cut f r v) v) x)
                             r x)  x)"
 
+axclass
+  wellorder < linorder
+  wf "wf {(x,y::'a::ord). x<y}"
+
 end
