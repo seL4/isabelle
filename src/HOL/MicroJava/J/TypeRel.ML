@@ -83,12 +83,15 @@ AddIffs [widen_PrimT_RefT];
 
 val widen_RefT = prove_typerel "G\\<turnstile>RefT R\\<preceq>T \\<Longrightarrow> \\<exists>t. T=RefT t" 
 	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S=RefT R \\<longrightarrow> (\\<exists>t. T=RefT t)"];
+bind_thm ("widen_RefT", widen_RefT);
 
 val widen_RefT2 = prove_typerel "G\\<turnstile>S\\<preceq>RefT R \\<Longrightarrow> \\<exists>t. S=RefT t" 
 	[prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> T=RefT R \\<longrightarrow> (\\<exists>t. S=RefT t)"];
+bind_thm ("widen_RefT2", widen_RefT2);
 
 val widen_Class = prove_typerel "G\\<turnstile>Class C\\<preceq>T \\<Longrightarrow> \\<exists>D. T=Class D"
  [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = Class C \\<longrightarrow> (\\<exists>D. T=Class D)"];
+bind_thm ("widen_Class", widen_Class);
 
 Goal "(G\\<turnstile>Class C\\<preceq>RefT NullT) = False"; 
 br iffI 1;
