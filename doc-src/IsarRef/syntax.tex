@@ -20,7 +20,7 @@ within a theory, while \texttt{x + y} is not.
   Note that classic Isabelle theories used to fake parts of the inner syntax
   of types, with rather complicated rules when quotes may be omitted.  Despite
   the minor drawback of requiring quotes more often, the syntax of
-  Isabelle/Isar is simpler and more robust in that respect.
+  Isabelle/Isar is much simpler and more robust in that respect.
 \end{warn}
 
 \medskip
@@ -44,7 +44,7 @@ should not be confused, though.
 \begin{matharray}{rcl}
   ident & = & letter~quasiletter^* \\
   longident & = & ident\verb,.,ident~\dots~ident \\
-  symident & = & sym^+ \\
+  symident & = & sym^+ ~|~ symbol \\
   nat & = & digit^+ \\
   var & = & \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
   typefree & = & \verb,',ident \\
@@ -60,6 +60,7 @@ should not be confused, though.
    \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~
    \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \mathtt{\at} ~|~ \\
   & & \verb,^, ~|~ \verb,_, ~|~ \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
+  symbol & = & {\forall} ~|~ {\exists} ~|~ \dots
 \end{matharray}
 
 The syntax of \texttt{string} admits any characters, including newlines;
@@ -94,7 +95,7 @@ primitive tokens such as \railtoken{ident} or \railtoken{string}.
 
 Entity \railqtoken{name} usually refers to any name of types, constants,
 theorems etc.\ that are to be \emph{declared} or \emph{defined} (so qualified
-identifiers are excluded).  Quoted strings provide an escape for
+identifiers are excluded here).  Quoted strings provide an escape for
 non-identifier names or those ruled out by outer syntax keywords (e.g.\ 
 \verb|"let"|).  Already existing objects are usually referenced by
 \railqtoken{nameref}.
@@ -159,13 +160,13 @@ that this is in contrast to types and terms (see \ref{sec:types-terms}).
 
 The actual inner Isabelle syntax, that of types and terms of the logic, is far
 too sophisticated in order to be modelled explicitly at the outer theory
-level.  Basically, any such entity has to be quoted here to turn it into a
-single token (the parsing and type-checking is performed internally later).
-For convenience, a slightly more liberal convention is adopted: quotes may be
+level.  Basically, any such entity has to be quoted to turn it into a single
+token (the parsing and type-checking is performed internally later).  For
+convenience, a slightly more liberal convention is adopted: quotes may be
 omitted for any type or term that is already \emph{atomic} at the outer level.
 For example, one may write just \texttt{x} instead of \texttt{"x"}.  Note that
-symbolic identifiers (e.g.\ \texttt{++}) are available as well, provided these
-are not superseded by commands or keywords (e.g.\ \texttt{+}).
+symbolic identifiers (e.g.\ \texttt{++} or $\forall$) are available as well,
+provided these are not superseded by commands or keywords (e.g.\ \texttt{+}).
 
 \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
 \begin{rail}
@@ -209,10 +210,10 @@ referring the (atomic) conclusion of a rule.
 \subsection{Mixfix annotations}
 
 Mixfix annotations specify concrete \emph{inner} syntax of Isabelle types and
-terms.  Some commands such as $\TYPES$ (see \S\ref{sec:types-pure}) admit
-infixes only, while $\CONSTS$ (see \S\ref{sec:consts}) and
-$\isarkeyword{syntax}$ (see \S\ref{sec:syn-trans}) support the full range of
-general mixfixes and binders.
+terms (see also \cite{isabelle-ref}).  Some commands such as $\TYPES$ (see
+\S\ref{sec:types-pure}) admit infixes only, while $\CONSTS$ (see
+\S\ref{sec:consts}) and $\isarkeyword{syntax}$ (see \S\ref{sec:syn-trans})
+support the full range of general mixfixes and binders.
 
 \indexouternonterm{infix}\indexouternonterm{mixfix}
 \begin{rail}
@@ -297,12 +298,11 @@ may be dropped for single method specifications (with no arguments).
 Proper use of Isar proof methods does \emph{not} involve goal addressing.
 Nevertheless, specifying goal ranges may occasionally come in handy in
 emulating tactic scripts.  Note that $[n-]$ refers to all goals, starting from
-$n$.  In particular, $[1-]$ corresponds to the ML tactical \texttt{ALLGOALS}
-\cite{isabelle-ref}.
+$n$.  All goals may be specified by $[!]$, which is the same as $[1-]$.
 
 \indexouternonterm{goalspec}
 \begin{rail}
-  goalspec: '[' (nat '-' nat | nat '-' | nat) ']'
+  goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
   ;
 \end{rail}
 
