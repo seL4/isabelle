@@ -52,9 +52,9 @@ fun mk_empty _ =
   Theorems (ref {space = NameSpace.empty,
     thms_tab = Symtab.null, const_idx = (0, Symtab.null)});
 
-fun print (Theorems (ref {space, thms_tab, const_idx = _})) =
+fun print sg (Theorems (ref {space, thms_tab, const_idx = _})) =
   let
-    val prt_thm = Pretty.quote o Display.pretty_thm;
+    val prt_thm = Pretty.quote o Display.pretty_thm o Thm.transfer_sg sg;
     fun prt_thms (name, [th]) =
           Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, prt_thm th]
       | prt_thms (name, ths) = Pretty.big_list (name ^ ":") (map prt_thm ths);
@@ -70,7 +70,7 @@ fun print (Theorems (ref {space, thms_tab, const_idx = _})) =
 in
 
 val theorems_data: string * (object * (object -> object) *
-  (object * object -> object) * (object -> unit)) =
+  (object * object -> object) * (Sign.sg -> object -> unit)) =
     (theoremsK, (mk_empty (), mk_empty, mk_empty, print));
 
 end;
