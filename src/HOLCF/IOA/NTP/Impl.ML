@@ -28,7 +28,7 @@ Addsimps [ioa_triple_proj, starts_of_par, trans_of_par4,
           in_rsch_asig];
 Addcongs [let_weak_cong];
 
-goal Impl.thy
+Goal
   "fst(x) = sen(x)            & \
 \  fst(snd(x)) = rec(x)       & \
 \  fst(snd(snd(x))) = srch(x) & \
@@ -37,7 +37,7 @@ by (simp_tac (simpset() addsimps
              [sen_def,rec_def,srch_def,rsch_def]) 1);
 Addsimps [result()];
 
-goal Impl.thy "a:actions(sender_asig)   \
+Goal "a:actions(sender_asig)   \
 \            | a:actions(receiver_asig) \
 \            | a:actions(srch_asig)     \
 \            | a:actions(rsch_asig)";
@@ -67,7 +67,7 @@ val tac_ren = asm_simp_tac (rename_ss addcongs [conj_cong] addsplits [split_if])
 
 (* INVARIANT 1 *)
 
-goalw Impl.thy impl_ioas "invariant impl_ioa inv1";
+Goalw impl_ioas "invariant impl_ioa inv1";
 by (rtac invariantI 1);
 by (asm_full_simp_tac (simpset()
    addsimps [inv1_def, hdr_sum_def, Sender.srcvd_def,
@@ -150,7 +150,7 @@ qed "inv1";
 
 (* INVARIANT 2 *)
 
-  goal Impl.thy "invariant impl_ioa inv2";
+Goal "invariant impl_ioa inv2";
 
   by (rtac invariantI1 1); 
   (* Base case *)
@@ -212,7 +212,7 @@ qed "inv2";
 
 (* INVARIANT 3 *)
 
-goal Impl.thy "invariant impl_ioa inv3";
+Goal "invariant impl_ioa inv3";
 
   by (rtac invariantI 1); 
   (* Base case *)
@@ -278,7 +278,7 @@ qed "inv3";
 
 (* INVARIANT 4 *)
 
-goal Impl.thy "invariant impl_ioa inv4";
+Goal "invariant impl_ioa inv4";
 
   by (rtac invariantI 1); 
   (* Base case *)

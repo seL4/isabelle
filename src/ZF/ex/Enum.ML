@@ -10,7 +10,7 @@ Can go up to at least 100 constructors, but it takes nearly 7 minutes...
 
 open Enum;
 
-goal Enum.thy "C00 ~= C01";
+Goal "C00 ~= C01";
 by (simp_tac (simpset() addsimps enum.free_iffs) 1);
 result();
 

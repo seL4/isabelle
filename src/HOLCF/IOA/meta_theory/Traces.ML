@@ -26,15 +26,15 @@ section "recursive equations of operators";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy  "filter_act`UU = UU";
+Goal  "filter_act`UU = UU";
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
 qed"filter_act_UU";
 
-goal thy  "filter_act`nil = nil";
+Goal  "filter_act`nil = nil";
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
 qed"filter_act_nil";
 
-goal thy "filter_act`(x>>xs) = (fst x) >> filter_act`xs";
+Goal "filter_act`(x>>xs) = (fst x) >> filter_act`xs";
 by (simp_tac (simpset() addsimps [filter_act_def]) 1);
 qed"filter_act_cons";
 
@@ -45,15 +45,15 @@ Addsimps [filter_act_UU,filter_act_nil,filter_act_cons];
 (*                             mk_trace                             *)
 (* ---------------------------------------------------------------- *)
 
-goal thy "mk_trace A`UU=UU";
+Goal "mk_trace A`UU=UU";
 by (simp_tac (simpset() addsimps [mk_trace_def]) 1);
 qed"mk_trace_UU";
 
-goal thy "mk_trace A`nil=nil";
+Goal "mk_trace A`nil=nil";
 by (simp_tac (simpset() addsimps [mk_trace_def]) 1);
 qed"mk_trace_nil";
 
-goal thy "mk_trace A`(at >> xs) =    \
+Goal "mk_trace A`(at >> xs) =    \
 \            (if ((fst at):ext A)    \       
 \                 then (fst at) >> (mk_trace A`xs) \   
 \                 else mk_trace A`xs)";
@@ -68,7 +68,7 @@ Addsimps [mk_trace_UU,mk_trace_nil,mk_trace_cons];
 (* ---------------------------------------------------------------- *)
 
 
-goal thy "is_exec_fragC A = (LAM ex. (%s. case ex of \
+Goal "is_exec_fragC A = (LAM ex. (%s. case ex of \
 \      nil => TT \
 \    | x##xs => (flift1 \ 
 \            (%p. Def ((s,p):trans_of A) andalso (is_exec_fragC A`xs) (snd p)) \
@@ -81,17 +81,17 @@ by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"is_exec_fragC_unfold";
 
-goal thy "(is_exec_fragC A`UU) s=UU";
+Goal "(is_exec_fragC A`UU) s=UU";
 by (stac is_exec_fragC_unfold 1);
 by (Simp_tac 1);
 qed"is_exec_fragC_UU";
 
-goal thy "(is_exec_fragC A`nil) s = TT";
+Goal "(is_exec_fragC A`nil) s = TT";
 by (stac is_exec_fragC_unfold 1);
 by (Simp_tac 1);
 qed"is_exec_fragC_nil";
 
-goal thy "(is_exec_fragC A`(pr>>xs)) s = \
+Goal "(is_exec_fragC A`(pr>>xs)) s = \
 \                        (Def ((s,pr):trans_of A) \
 \                andalso (is_exec_fragC A`xs)(snd pr))";
 by (rtac trans 1);
@@ -108,15 +108,15 @@ Addsimps [is_exec_fragC_UU,is_exec_fragC_nil,is_exec_fragC_cons];
 (*                        is_exec_frag                              *)
 (* ---------------------------------------------------------------- *)
 
-goal thy "is_exec_frag A (s, UU)";
+Goal "is_exec_frag A (s, UU)";
 by (simp_tac (simpset() addsimps [is_exec_frag_def]) 1);
 qed"is_exec_frag_UU";
 
-goal thy "is_exec_frag A (s, nil)";
+Goal "is_exec_frag A (s, nil)";
 by (simp_tac (simpset() addsimps [is_exec_frag_def]) 1);
 qed"is_exec_frag_nil";
 
-goal thy "is_exec_frag A (s, (a,t)>>ex) = \
+Goal "is_exec_frag A (s, (a,t)>>ex) = \
 \                               (((s,a,t):trans_of A) & \
 \                               is_exec_frag A (t, ex))";
 by (simp_tac (simpset() addsimps [is_exec_frag_def]) 1);
@@ -130,15 +130,15 @@ Addsimps [is_exec_frag_UU,is_exec_frag_nil, is_exec_frag_cons];
                            section "laststate";
 (* ---------------------------------------------------------------------------- *)
 
-goal thy "laststate (s,UU) = s";
+Goal "laststate (s,UU) = s";
 by (simp_tac (simpset() addsimps [laststate_def]) 1); 
 qed"laststate_UU";
 
-goal thy "laststate (s,nil) = s";
+Goal "laststate (s,nil) = s";
 by (simp_tac (simpset() addsimps [laststate_def]) 1);
 qed"laststate_nil";
 
-goal thy "!! ex. Finite ex ==> laststate (s,at>>ex) = laststate (snd at,ex)";
+Goal "!! ex. Finite ex ==> laststate (s,at>>ex) = laststate (snd at,ex)";
 by (simp_tac (simpset() addsimps [laststate_def]) 1);
 by (case_tac "ex=nil" 1);
 by (Asm_simp_tac 1);
@@ -150,7 +150,7 @@ qed"laststate_cons";
 
 Addsimps [laststate_UU,laststate_nil,laststate_cons];
 
-goal thy "!!ex. Finite ex ==> (! s. ? u. laststate (s,ex)=u)";
+Goal "!!ex. Finite ex ==> (! s. ? u. laststate (s,ex)=u)";
 by (Seq_Finite_induct_tac 1);
 qed"exists_laststate";
 
@@ -162,7 +162,7 @@ section "has_trace, mk_trace";
 (* alternative definition of has_trace tailored for the refinement proof, as it does not 
    take the detour of schedules *)
 
-goalw thy  [executions_def,mk_trace_def,has_trace_def,schedules_def,has_schedule_def] 
+Goalw  [executions_def,mk_trace_def,has_trace_def,schedules_def,has_schedule_def] 
 "has_trace A b = (? ex:executions A. b = mk_trace A`(snd ex))";
 
 by (safe_tac set_cs);
@@ -193,7 +193,7 @@ section "signatures and executions, schedules";
    For executions of parallel automata this assumption is not needed, as in par_def
    this condition is included once more. (see Lemmas 1.1.1c in CompoExecs for example) *)
 
-goal thy 
+Goal 
   "!! A. is_trans_of A ==> \
 \ ! s. is_exec_frag A (s,xs) --> Forall (%a. a:act A) (filter_act`xs)";
 
@@ -204,7 +204,7 @@ by (safe_tac set_cs);
 by (REPEAT (asm_full_simp_tac (simpset() addsimps [is_trans_of_def]) 1));
 qed"execfrag_in_sig";
 
-goal thy 
+Goal 
   "!! A.[|  is_trans_of A; x:executions A |] ==> \
 \ Forall (%a. a:act A) (filter_act`(snd x))";
 
@@ -214,7 +214,7 @@ by (rtac (execfrag_in_sig RS spec RS mp) 1);
 by Auto_tac;
 qed"exec_in_sig";
 
-goalw thy [schedules_def,has_schedule_def]
+Goalw [schedules_def,has_schedule_def]
   "!! A.[|  is_trans_of A; x:schedules A |] ==> \
 \   Forall (%a. a:act A) x";
 
@@ -225,7 +225,7 @@ qed"scheds_in_sig";
 
 is ok but needs ForallQFilterP which has to been proven first (is trivial also)
 
-goalw thy [traces_def,has_trace_def]
+Goalw [traces_def,has_trace_def]
   "!! A.[| x:traces A |] ==> \
 \   Forall (%a. a:act A) x";
  by (safe_tac set_cs );
@@ -240,7 +240,7 @@ qed"traces_in_sig";
 section "executions are prefix closed";
 
 (* only admissible in y, not if done in x !! *)
-goal thy "!x s. is_exec_frag A (s,x) & y<<x  --> is_exec_frag A (s,y)";
+Goal "!x s. is_exec_frag A (s,x) & y<<x  --> is_exec_frag A (s,y)";
 by (pair_induct_tac "y" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "xa" 1);
@@ -253,7 +253,7 @@ bind_thm ("exec_prefixclosed",conjI RS (execfrag_prefixclosed RS spec RS spec RS
 
 (* second prefix notion for Finite x *)
 
-goal thy "! y s. is_exec_frag A (s,x@@y) --> is_exec_frag A (s,x)";
+Goal "! y s. is_exec_frag A (s,x@@y) --> is_exec_frag A (s,x)";
 by (pair_induct_tac "x" [is_exec_frag_def] 1);
 by (strip_tac 1);
 by (Seq_case_simp_tac "s" 1);

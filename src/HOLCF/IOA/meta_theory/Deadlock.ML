@@ -10,7 +10,7 @@ Deadlock freedom of I/O Automata
                input actions may always be added to a schedule
 **********************************************************************************)
 
-goal thy "!! sch. [| Filter (%x. x:act A)`sch : schedules A; a:inp A; input_enabled A; Finite sch|] \
+Goal "!! sch. [| Filter (%x. x:act A)`sch : schedules A; a:inp A; input_enabled A; Finite sch|] \
 \         ==> Filter (%x. x:act A)`sch @@ a>>nil : schedules A";
 by (asm_full_simp_tac (simpset() addsimps [schedules_def,has_schedule_def]) 1);
 by (safe_tac set_cs);
@@ -51,7 +51,7 @@ qed"scheds_input_enabled";
                     and distributivity of is_exec_frag over @@
 **********************************************************************************)
 Delsplits [split_if];
-goal thy "!! sch. [| a : local A; Finite sch; sch : schedules (A||B); \
+Goal "!! sch. [| a : local A; Finite sch; sch : schedules (A||B); \
 \            Filter (%x. x:act A)`(sch @@ a>>nil) : schedules A; compatible A B; input_enabled B |] \
 \          ==> (sch @@ a>>nil) : schedules (A||B)";
 

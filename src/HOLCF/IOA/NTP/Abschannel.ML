@@ -14,7 +14,7 @@ val unfold_renaming =
    actions_def, srch_trans_def, rsch_trans_def, ch_trans_def,starts_of_def, 
    trans_of_def] @ asig_projections;
 
-goal Abschannel.thy
+Goal
      "S_msg(m) ~: actions(srch_asig)        &    \
      \ R_msg(m) ~: actions(srch_asig)        &    \
      \ S_pkt(pkt) : actions(srch_asig)    &    \
@@ -28,7 +28,7 @@ goal Abschannel.thy
 by (simp_tac (simpset() addsimps unfold_renaming) 1);
 qed"in_srch_asig";
 
-goal Abschannel.thy
+Goal
       "S_msg(m) ~: actions(rsch_asig)         & \
      \ R_msg(m) ~: actions(rsch_asig)         & \
      \ S_pkt(pkt) ~: actions(rsch_asig)    & \
@@ -43,14 +43,14 @@ goal Abschannel.thy
 by (simp_tac (simpset() addsimps unfold_renaming) 1);
 qed"in_rsch_asig";
 
-goal Abschannel.thy "srch_ioa = \
+Goal "srch_ioa = \
 \   (srch_asig, {{|}}, srch_trans,srch_wfair,srch_sfair)";
 by (simp_tac (simpset() addsimps [srch_asig_def,srch_trans_def, asig_of_def, trans_of_def,
               wfair_of_def, sfair_of_def,srch_wfair_def,srch_sfair_def]) 1);
 by (simp_tac (simpset() addsimps unfold_renaming) 1);
 qed"srch_ioa_thm";
 
-goal Abschannel.thy "rsch_ioa = \
+Goal "rsch_ioa = \
 \    (rsch_asig, {{|}}, rsch_trans,rsch_wfair,rsch_sfair)";
 by (simp_tac (simpset() addsimps [rsch_asig_def,rsch_trans_def, asig_of_def, trans_of_def,
               wfair_of_def, sfair_of_def,rsch_wfair_def,rsch_sfair_def]) 1);

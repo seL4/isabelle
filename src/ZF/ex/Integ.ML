@@ -31,20 +31,20 @@ qed "integ_trans_lemma";
 
 (** Natural deduction for intrel **)
 
-goalw Integ.thy [intrel_def]
+Goalw [intrel_def]
     "<<x1,y1>,<x2,y2>>: intrel <-> \
 \    x1: nat & y1: nat & x2: nat & y2: nat & x1#+y2 = x2#+y1";
 by (Fast_tac 1);
 qed "intrel_iff";
 
-goalw Integ.thy [intrel_def]
+Goalw [intrel_def]
     "!!x1 x2. [| x1#+y2 = x2#+y1; x1: nat; y1: nat; x2: nat; y2: nat |] ==> \
 \             <<x1,y1>,<x2,y2>>: intrel";
 by (fast_tac (claset() addIs prems) 1);
 qed "intrelI";
 
 (*intrelE is hard to derive because fast_tac tries hyp_subst_tac so soon*)
-goalw Integ.thy [intrel_def]
+Goalw [intrel_def]
   "p: intrel --> (EX x1 y1 x2 y2. \
 \                  p = <<x1,y1>,<x2,y2>> & x1#+y2 = x2#+y1 & \
 \                  x1: nat & y1: nat & x2: nat & y2: nat)";
@@ -63,7 +63,7 @@ qed "intrelE";
 AddSIs [intrelI];
 AddSEs [intrelE];
 
-goalw Integ.thy [equiv_def, refl_def, sym_def, trans_def]
+Goalw [equiv_def, refl_def, sym_def, trans_def]
     "equiv(nat*nat, intrel)";
 by (fast_tac (claset() addSEs [sym, integ_trans_lemma]) 1);
 qed "equiv_intrel";
@@ -77,12 +77,12 @@ val eq_intrelD = equiv_intrel RSN (2,eq_equiv_class);
 
 (** znat: the injection from nat to integ **)
 
-goalw Integ.thy [integ_def,quotient_def,znat_def]
+Goalw [integ_def,quotient_def,znat_def]
     "!!m. m : nat ==> $#m : integ";
 by (fast_tac (claset() addSIs [nat_0I]) 1);
 qed "znat_type";
 
-goalw Integ.thy [znat_def]
+Goalw [znat_def]
     "!!m n. [| $#m = $#n;  n: nat |] ==> m=n";
 by (dtac eq_intrelD 1);
 by (typechk_tac [nat_0I, SigmaI]);
@@ -92,7 +92,7 @@ qed "znat_inject";
 
 (**** zminus: unary negation on integ ****)
 
-goalw Integ.thy [congruent_def]
+Goalw [congruent_def]
     "congruent(intrel, %<x,y>. intrel``{<y,x>})";
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
@@ -101,13 +101,13 @@ qed "zminus_congruent";
 (*Resolve th against the corresponding facts for zminus*)
 val zminus_ize = RSLIST [equiv_intrel, zminus_congruent];
 
-goalw Integ.thy [integ_def,zminus_def]
+Goalw [integ_def,zminus_def]
     "!!z. z : integ ==> $~z : integ";
 by (typechk_tac [split_type, SigmaI, zminus_ize UN_equiv_class_type,
                  quotientI]);
 qed "zminus_type";
 
-goalw Integ.thy [integ_def,zminus_def]
+Goalw [integ_def,zminus_def]
     "!!z w. [| $~z = $~w;  z: integ;  w: integ |] ==> z=w";
 by (etac (zminus_ize UN_equiv_class_inject) 1);
 by Safe_tac;
@@ -116,17 +116,17 @@ by (asm_full_simp_tac (simpset() addsimps add_ac
                        setloop dtac eq_intrelD) 1);
 qed "zminus_inject";
 
-goalw Integ.thy [zminus_def]
+Goalw [zminus_def]
     "!!x y.[| x: nat;  y: nat |] ==> $~ (intrel``{<x,y>}) = intrel `` {<y,x>}";
 by (asm_simp_tac (simpset() addsimps [zminus_ize UN_equiv_class, SigmaI]) 1);
 qed "zminus";
 
-goalw Integ.thy [integ_def] "!!z. z : integ ==> $~ ($~ z) = z";
+Goalw [integ_def] "!!z. z : integ ==> $~ ($~ z) = z";
 by (REPEAT (eresolve_tac [quotientE,SigmaE,ssubst] 1));
 by (asm_simp_tac (simpset() addsimps [zminus]) 1);
 qed "zminus_zminus";
 
-goalw Integ.thy [integ_def, znat_def] "$~ ($#0) = $#0";
+Goalw [integ_def, znat_def] "$~ ($#0) = $#0";
 by (simp_tac (simpset() addsimps [zminus]) 1);
 qed "zminus_0";
 
@@ -134,7 +134,7 @@ qed "zminus_0";
 (**** znegative: the test for negative integers ****)
 
 (*No natural number is negative!*)
-goalw Integ.thy [znegative_def, znat_def]  "~ znegative($# n)";
+Goalw [znegative_def, znat_def]  "~ znegative($# n)";
 by Safe_tac;
 by (dres_inst_tac [("psi", "?lhs=?rhs")] asm_rl 1);
 by (dres_inst_tac [("psi", "?lhs<?rhs")] asm_rl 1);
@@ -142,7 +142,7 @@ by (fast_tac (claset() addss
               (simpset() addsimps [add_le_self2 RS le_imp_not_lt])) 1);
 qed "not_znegative_znat";
 
-goalw Integ.thy [znegative_def, znat_def]
+Goalw [znegative_def, znat_def]
     "!!n. n: nat ==> znegative($~ $# succ(n))";
 by (asm_simp_tac (simpset() addsimps [zminus]) 1);
 by (REPEAT 
@@ -153,7 +153,7 @@ qed "znegative_zminus_znat";
 
 (**** zmagnitude: magnitide of an integer, as a natural number ****)
 
-goalw Integ.thy [congruent_def]
+Goalw [congruent_def]
     "congruent(intrel, %<x,y>. (y#-x) #+ (x#-y))";
 by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
@@ -176,25 +176,25 @@ qed "zmagnitude_congruent";
 (*Resolve th against the corresponding facts for zmagnitude*)
 val zmagnitude_ize = RSLIST [equiv_intrel, zmagnitude_congruent];
 
-goalw Integ.thy [integ_def,zmagnitude_def]
+Goalw [integ_def,zmagnitude_def]
     "!!z. z : integ ==> zmagnitude(z) : nat";
 by (typechk_tac [split_type, zmagnitude_ize UN_equiv_class_type,
                  add_type, diff_type]);
 qed "zmagnitude_type";
 
-goalw Integ.thy [zmagnitude_def]
+Goalw [zmagnitude_def]
     "!!x y. [| x: nat;  y: nat |] ==> \
 \           zmagnitude (intrel``{<x,y>}) = (y #- x) #+ (x #- y)";
 by (asm_simp_tac
     (simpset() addsimps [zmagnitude_ize UN_equiv_class, SigmaI]) 1);
 qed "zmagnitude";
 
-goalw Integ.thy [znat_def]
+Goalw [znat_def]
     "!!n. n: nat ==> zmagnitude($# n) = n";
 by (asm_simp_tac (simpset() addsimps [zmagnitude]) 1);
 qed "zmagnitude_znat";
 
-goalw Integ.thy [znat_def]
+Goalw [znat_def]
     "!!n. n: nat ==> zmagnitude($~ $# n) = n";
 by (asm_simp_tac (simpset() addsimps [zmagnitude, zminus]) 1);
 qed "zmagnitude_zminus_znat";
@@ -204,7 +204,7 @@ qed "zmagnitude_zminus_znat";
 
 (** Congruence property for addition **)
 
-goalw Integ.thy [congruent2_def]
+Goalw [congruent2_def]
     "congruent2(intrel, %z1 z2.                      \
 \         let <x1,y1>=z1; <x2,y2>=z2                 \
 \                           in intrel``{<x1#+x2, y1#+y2>})";
@@ -222,14 +222,14 @@ qed "zadd_congruent2";
 (*Resolve th against the corresponding facts for zadd*)
 val zadd_ize = RSLIST [equiv_intrel, zadd_congruent2];
 
-goalw Integ.thy [integ_def,zadd_def]
+Goalw [integ_def,zadd_def]
     "!!z w. [| z: integ;  w: integ |] ==> z $+ w : integ";
 by (rtac (zadd_ize UN_equiv_class_type2) 1);
 by (simp_tac (simpset() addsimps [Let_def]) 3);
 by (REPEAT (ares_tac [split_type, add_type, quotientI, SigmaI] 1));
 qed "zadd_type";
 
-goalw Integ.thy [zadd_def]
+Goalw [zadd_def]
   "!!x1 y1. [| x1: nat; y1: nat;  x2: nat; y2: nat |] ==>       \
 \           (intrel``{<x1,y1>}) $+ (intrel``{<x2,y2>}) =        \
 \           intrel `` {<x1#+x2, y1#+y2>}";
@@ -237,24 +237,24 @@ by (asm_simp_tac (simpset() addsimps [zadd_ize UN_equiv_class2, SigmaI]) 1);
 by (simp_tac (simpset() addsimps [Let_def]) 1);
 qed "zadd";
 
-goalw Integ.thy [integ_def,znat_def] "!!z. z : integ ==> $#0 $+ z = z";
+Goalw [integ_def,znat_def] "!!z. z : integ ==> $#0 $+ z = z";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps [zadd]) 1);
 qed "zadd_0";
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z w. [| z: integ;  w: integ |] ==> $~ (z $+ w) = $~ z $+ $~ w";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps [zminus,zadd]) 1);
 qed "zminus_zadd_distrib";
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z w. [| z: integ;  w: integ |] ==> z $+ w = w $+ z";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps (add_ac @ [zadd])) 1);
 qed "zadd_commute";
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z1 z2 z3. [| z1: integ;  z2: integ;  z3: integ |] ==> \
 \                (z1 $+ z2) $+ z3 = z1 $+ (z2 $+ z3)";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
@@ -271,22 +271,22 @@ qed_goal "zadd_left_commute" Integ.thy
 (*Integer addition is an AC operator*)
 val zadd_ac = [zadd_assoc, zadd_commute, zadd_left_commute];
 
-goalw Integ.thy [znat_def]
+Goalw [znat_def]
     "!!m n. [| m: nat;  n: nat |] ==> $# (m #+ n) = ($#m) $+ ($#n)";
 by (asm_simp_tac (simpset() addsimps [zadd]) 1);
 qed "znat_add";
 
-goalw Integ.thy [integ_def,znat_def] "!!z. z : integ ==> z $+ ($~ z) = $#0";
+Goalw [integ_def,znat_def] "!!z. z : integ ==> z $+ ($~ z) = $#0";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps [zminus, zadd, add_commute]) 1);
 qed "zadd_zminus_inverse";
 
-goal Integ.thy "!!z. z : integ ==> ($~ z) $+ z = $#0";
+Goal "!!z. z : integ ==> ($~ z) $+ z = $#0";
 by (asm_simp_tac
     (simpset() addsimps [zadd_commute, zminus_type, zadd_zminus_inverse]) 1);
 qed "zadd_zminus_inverse2";
 
-goal Integ.thy "!!z. z:integ ==> z $+ $#0 = z";
+Goal "!!z. z:integ ==> z $+ $#0 = z";
 by (rtac (zadd_commute RS trans) 1);
 by (REPEAT (ares_tac [znat_type, nat_0I, zadd_0] 1));
 qed "zadd_0_right";
@@ -300,7 +300,7 @@ qed "zadd_0_right";
 
 (** Congruence property for multiplication **)
 
-goal Integ.thy 
+Goal 
     "congruent2(intrel, %p1 p2.                 \
 \               split(%x1 y1. split(%x2 y2.     \
 \                   intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1))";
@@ -320,50 +320,50 @@ qed "zmult_congruent2";
 (*Resolve th against the corresponding facts for zmult*)
 val zmult_ize = RSLIST [equiv_intrel, zmult_congruent2];
 
-goalw Integ.thy [integ_def,zmult_def]
+Goalw [integ_def,zmult_def]
     "!!z w. [| z: integ;  w: integ |] ==> z $* w : integ";
 by (REPEAT (ares_tac [zmult_ize UN_equiv_class_type2,
                       split_type, add_type, mult_type, 
                       quotientI, SigmaI] 1));
 qed "zmult_type";
 
-goalw Integ.thy [zmult_def]
+Goalw [zmult_def]
      "!!x1 x2. [| x1: nat; y1: nat;  x2: nat; y2: nat |] ==>    \
 \              (intrel``{<x1,y1>}) $* (intrel``{<x2,y2>}) =     \
 \              intrel `` {<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}";
 by (asm_simp_tac (simpset() addsimps [zmult_ize UN_equiv_class2, SigmaI]) 1);
 qed "zmult";
 
-goalw Integ.thy [integ_def,znat_def] "!!z. z : integ ==> $#0 $* z = $#0";
+Goalw [integ_def,znat_def] "!!z. z : integ ==> $#0 $* z = $#0";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
 qed "zmult_0";
 
-goalw Integ.thy [integ_def,znat_def]
+Goalw [integ_def,znat_def]
     "!!z. z : integ ==> $#1 $* z = z";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps [zmult, add_0_right]) 1);
 qed "zmult_1";
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z w. [| z: integ;  w: integ |] ==> ($~ z) $* w = $~ (z $* w)";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps ([zminus, zmult] @ add_ac)) 1);
 qed "zmult_zminus";
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z w. [| z: integ;  w: integ |] ==> ($~ z) $* ($~ w) = (z $* w)";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps ([zminus, zmult] @ add_ac)) 1);
 qed "zmult_zminus_zminus";
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z w. [| z: integ;  w: integ |] ==> z $* w = w $* z";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (simpset() addsimps ([zmult] @ add_ac @ mult_ac)) 1);
 qed "zmult_commute";
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z1 z2 z3. [| z1: integ;  z2: integ;  z3: integ |] ==> \
 \                (z1 $* z2) $* z3 = z1 $* (z2 $* z3)";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
@@ -382,7 +382,7 @@ qed_goal "zmult_left_commute" Integ.thy
 (*Integer multiplication is an AC operator*)
 val zmult_ac = [zmult_assoc, zmult_commute, zmult_left_commute];
 
-goalw Integ.thy [integ_def]
+Goalw [integ_def]
     "!!z1 z2 z3. [| z1: integ;  z2: integ;  w: integ |] ==> \
 \                (z1 $+ z2) $* w = (z1 $* w) $+ (z2 $* w)";
 by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));

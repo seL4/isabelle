@@ -25,7 +25,7 @@ context Perm.thy;
  W. Bledsoe.  A Maximal Method for Set Variables in Automatic Theorem-proving.
  In: J. Hayes and D. Michie and L. Mikulich, eds.  Machine Intelligence 9.
  Ellis Horwood, 53-100 (1979). *)
-goal thy "(ALL F. {x}: F --> {y}:F) --> (ALL A. x:A --> y:A)";
+Goal "(ALL F. {x}: F --> {y}:F) --> (ALL A. x:A --> y:A)";
 by (Best_tac 1);
 result();
 
@@ -69,7 +69,7 @@ qed "comp_homs";
 
 (** A characterization of functions, suggested by Tobias Nipkow **)
 
-goalw thy [Pi_def, function_def]
+Goalw [Pi_def, function_def]
     "r: domain(r)->B  <->  r <= domain(r)*B & (ALL X. r `` (r -`` X) <= X)";
 by (Best_tac 1);
 result();

@@ -34,17 +34,17 @@ bind_thm ("oraclebuild_unfold", fix_prover2 thy oraclebuild_def
 \      )\
 \    )");
 
-goal thy "oraclebuild P`sch`UU = UU";
+Goal "oraclebuild P`sch`UU = UU";
 by (stac oraclebuild_unfold 1);
 by (Simp_tac 1);
 qed"oraclebuild_UU";
 
-goal thy "oraclebuild P`sch`nil = nil";
+Goal "oraclebuild P`sch`nil = nil";
 by (stac oraclebuild_unfold 1);
 by (Simp_tac 1);
 qed"oraclebuild_nil";
 
-goal thy "oraclebuild P`s`(x>>t) = \
+Goal "oraclebuild P`s`(x>>t) = \
 \         (Takewhile (%a.~ P a)`s)   \
 \          @@ (x>>(oraclebuild P`(TL`(Dropwhile (%a.~ P a)`s))`t))";     
 by (rtac trans 1);
@@ -60,7 +60,7 @@ qed"oraclebuild_cons";
                    section "Cut rewrite rules";
 (* ---------------------------------------------------------------- *)
 
-goalw thy [Cut_def]
+Goalw [Cut_def]
 "!! s. [| Forall (%a.~ P a) s; Finite s|] \
 \           ==> Cut P s =nil";
 by (subgoal_tac "Filter P`s = nil" 1);
@@ -69,7 +69,7 @@ by (rtac ForallQFilterPnil 1);
 by (REPEAT (atac 1));
 qed"Cut_nil";
 
-goalw thy [Cut_def]
+Goalw [Cut_def]
 "!! s. [| Forall (%a.~ P a) s; ~Finite s|] \
 \           ==> Cut P s =UU";
 by (subgoal_tac "Filter P`s= UU" 1);
@@ -78,7 +78,7 @@ by (rtac ForallQFilterPUU 1);
 by (REPEAT (atac 1));
 qed"Cut_UU";
 
-goalw thy [Cut_def]
+Goalw [Cut_def]
 "!! s. [| P t;  Forall (%x.~ P x) ss; Finite ss|] \
 \           ==> Cut P (ss @@ (t>> rs)) \
 \                = ss @@ (t >> Cut P rs)";
@@ -93,7 +93,7 @@ qed"Cut_Cons";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy "Filter P`s = Filter P`(Cut P s)";
+Goal "Filter P`s = Filter P`(Cut P s)";
 
 by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P x"), ("x1","s")]
@@ -110,7 +110,7 @@ by Auto_tac;
 qed"FilterCut";
 
 
-goal thy "Cut P (Cut P s) = (Cut P s)";
+Goal "Cut P (Cut P s) = (Cut P s)";
 
 by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P x"), ("x1","s")]
@@ -128,7 +128,7 @@ by Auto_tac;
 qed"Cut_idemp";
 
 
-goal thy "Map f`(Cut (P o f) s) = Cut P (Map f`s)";
+Goal "Map f`(Cut (P o f) s) = Cut P (Map f`s)";
 
 by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P (f x)"), ("x1","s")]
@@ -152,7 +152,7 @@ by Auto_tac;
 qed"MapCut";
 
 
-goal thy "~Finite s --> Cut P s << s";
+Goal "~Finite s --> Cut P s << s";
 by (strip_tac 1);
 by (rtac (take_lemma_less RS iffD1) 1);
 by (strip_tac 1);
@@ -181,7 +181,7 @@ qed_spec_mp"Cut_prefixcl_nFinite";
 
 (*
 
-goal thy "Finite s --> (? y. s = Cut P s @@ y)";
+Goal "Finite s --> (? y. s = Cut P s @@ y)";
 by (strip_tac 1);
 by (rtac exI 1);
 by (resolve_tac seq.take_lemmas 1);
@@ -209,7 +209,7 @@ qed_spec_mp"Cut_prefixcl_Finite";
 
 
 
-goal thy "!!ex .is_exec_frag A (s,ex) ==> is_exec_frag A (s,Cut P ex)";
+Goal "!!ex .is_exec_frag A (s,ex) ==> is_exec_frag A (s,Cut P ex)";
 by (case_tac "Finite ex" 1);
 by (cut_inst_tac [("s","ex"),("P","P")] Cut_prefixcl_Finite 1);
 by (assume_tac 1);
@@ -229,7 +229,7 @@ qed"execThruCut";
 
 
 
-goalw thy [schedules_def,has_schedule_def]
+Goalw [schedules_def,has_schedule_def]
  "!! sch. [|sch : schedules A ; tr = Filter (%a. a:ext A)`sch|] \
 \   ==> ? sch. sch : schedules A & \
 \              tr = Filter (%a. a:ext A)`sch &\
@@ -268,7 +268,7 @@ qed"exists_LastActExtsch";
                    section "Further Cut lemmas";
 (* ---------------------------------------------------------------- *)
 
-goalw  thy [LastActExtsch_def]
+Goalw [LastActExtsch_def]
   "!! A. [| LastActExtsch A sch; Filter (%x. x:ext A)`sch = nil |] \
 \   ==> sch=nil";
 by (dtac FilternPnilForallP 1);
@@ -278,7 +278,7 @@ by (assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed"LastActExtimplnil";
 
-goalw  thy [LastActExtsch_def]
+Goalw [LastActExtsch_def]
   "!! A. [| LastActExtsch A sch; Filter (%x. x:ext A)`sch = UU |] \
 \   ==> sch=UU";
 by (dtac FilternPUUForallP 1);

@@ -27,7 +27,7 @@ val ss' = (simpset() addsimps hom_ioas);
 (* A lemma about restricting the action signature of the implementation
  * to that of the specification.
  ****************************)
-goal Correctness.thy
+Goal
  "a:externals(asig_of(restrict impl_ioa (externals spec_sig))) = \
 \ (case a of                  \
 \     S_msg(m) => True        \
@@ -66,7 +66,7 @@ val sels = [Sender.sbit_def, Sender.sq_def, Sender.ssending_def,
 
 
 (* Proof of correctness *)
-goalw Correctness.thy [Spec.ioa_def, is_weak_ref_map_def]
+Goalw [Spec.ioa_def, is_weak_ref_map_def]
   "is_weak_ref_map hom (restrict impl_ioa (externals spec_sig)) spec_ioa";
 by (simp_tac (simpset() delsplits [split_if] addsimps 
     [Correctness.hom_def, cancel_restrict, externals_lemma]) 1);

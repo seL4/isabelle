@@ -11,7 +11,7 @@ val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
 qed "imp_conj_lemma";
 
 
-goalw  thy [is_abstraction_def] 
+Goalw [is_abstraction_def] 
 "is_abstraction h_abs C_ioa A_ioa";
 by (rtac conjI 1);
 (* ------------- start states ------------ *)
@@ -29,21 +29,21 @@ qed"h_abs_is_abstraction";
 
 
 (*
-goalw thy [xt2_def,plift,option_lift]
+Goalw [xt2_def,plift,option_lift]
   "(xt2 (plift afun)) (s,a,t) = (afun a)";
 (* !!!!!!!!!!!!! Occurs check !!!! *)
 by (option.induct_tac "a" 1);
 
 *)
 
-goalw thy [Enabled_def, enabled_def, h_abs_def,A_ioa_def,C_ioa_def,A_trans_def,
+Goalw [Enabled_def, enabled_def, h_abs_def,A_ioa_def,C_ioa_def,A_trans_def,
            C_trans_def,trans_of_def] 
 "!!s. Enabled A_ioa {INC} (h_abs s) ==> Enabled C_ioa {INC} s";
 auto();
 qed"Enabled_implication";
 
 
-goalw thy [is_live_abstraction_def]
+Goalw [is_live_abstraction_def]
 "is_live_abstraction h_abs (C_ioa, WF C_ioa {INC}) (A_ioa, WF A_ioa {INC})";
 auto();
 (* is_abstraction *)
@@ -54,7 +54,7 @@ be Enabled_implication 1;
 qed"h_abs_is_liveabstraction";
 
 
-goalw thy [C_live_ioa_def]
+Goalw [C_live_ioa_def]
 "validLIOA C_live_ioa (<>[] <%(n,a,m). n~=0>)";
 br AbsRuleT2 1;
 br h_abs_is_liveabstraction 1;
@@ -65,7 +65,7 @@ qed"TrivEx2_abstraction";
 
 
 (*
-goal thy "validIOA aut_ioa (Box (Init (%(s,a,t). a= Some(Alarm(APonR)))) 
+Goal "validIOA aut_ioa (Box (Init (%(s,a,t). a= Some(Alarm(APonR)))) 
 IMPLIES (Next (Init (%(s,a,t). info_comp(s) = APonR))))";
 
 *)

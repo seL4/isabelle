@@ -19,22 +19,22 @@ val [TconsI, FnilI, FconsI] = tree_forest.intrs;
 
 val [_, tree_def, forest_def] = tree_forest.defs;
 
-goalw TF.thy [tree_def] "tree(A) <= tree_forest(A)";
+Goalw [tree_def] "tree(A) <= tree_forest(A)";
 by (rtac Part_subset 1);
 qed "tree_subset_TF";
 
-goalw TF.thy [forest_def] "forest(A) <= tree_forest(A)";
+Goalw [forest_def] "forest(A) <= tree_forest(A)";
 by (rtac Part_subset 1);
 qed "forest_subset_TF";
 
-goal TF.thy "tree(A) Un forest(A) = tree_forest(A)";
+Goal "tree(A) Un forest(A) = tree_forest(A)";
 by (safe_tac (subset_cs addSIs [equalityI, tree_subset_TF, forest_subset_TF]));
 by (fast_tac (claset() addSIs tree_forest.intrs addEs [tree_forest.elim]) 1);
 qed "TF_equals_Un";
 
 (** NOT useful, but interesting... **)
 
-goalw TF.thy [tree_def, forest_def] 
+Goalw [tree_def, forest_def] 
     "tree_forest(A) = (A*forest(A)) + ({0} + tree(A)*forest(A))";
 let open tree_forest;  
     val rew = rewrite_rule (con_defs @ tl defs) in  
@@ -45,13 +45,13 @@ qed "tree_forest_unfold";
 val tree_forest_unfold' = rewrite_rule [tree_def, forest_def] 
                           tree_forest_unfold;
 
-goalw TF.thy [tree_def, forest_def]
+Goalw [tree_def, forest_def]
     "tree(A) = {Inl(x). x: A*forest(A)}";
 by (rtac (Part_Inl RS subst) 1);
 by (rtac (tree_forest_unfold' RS subst_context) 1);
 qed "tree_unfold";
 
-goalw TF.thy [tree_def, forest_def]
+Goalw [tree_def, forest_def]
     "forest(A) = {Inr(x). x: {0} + tree(A)*forest(A)}";
 by (rtac (Part_Inr RS subst) 1);
 by (rtac (tree_forest_unfold' RS subst_context) 1);
@@ -62,19 +62,19 @@ qed "forest_unfold";
 
 (** conversion rules **)
 
-goal TF.thy "TF_rec(Tcons(a,f), b, c, d) = b(a, f, TF_rec(f,b,c,d))";
+Goal "TF_rec(Tcons(a,f), b, c, d) = b(a, f, TF_rec(f,b,c,d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac tree_forest.con_defs);
 by (simp_tac rank_ss 1);
 qed "TF_rec_Tcons";
 
-goal TF.thy "TF_rec(Fnil, b, c, d) = c";
+Goal "TF_rec(Fnil, b, c, d) = c";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac tree_forest.con_defs);
 by (Simp_tac 1);
 qed "TF_rec_Fnil";
 
-goal TF.thy "TF_rec(Fcons(t,f), b, c, d) = \
+Goal "TF_rec(Fcons(t,f), b, c, d) = \
 \      d(t, f, TF_rec(t, b, c, d), TF_rec(f, b, c, d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac tree_forest.con_defs);
@@ -142,7 +142,7 @@ val [list_of_TF_Tcons, list_of_TF_Fnil, list_of_TF_Fcons] =
         TF_recs list_of_TF_def;
 Addsimps [list_of_TF_Tcons, list_of_TF_Fnil, list_of_TF_Fcons];
 
-goalw TF.thy [list_of_TF_def]
+Goalw [list_of_TF_def]
     "!!z A. z: tree_forest(A) ==> list_of_TF(z) : list(tree(A))";
 by (REPEAT (ares_tac ([TF_rec_type,TconsI] @ list_typechecks) 1));
 qed "list_of_TF_type";
@@ -150,7 +150,7 @@ qed "list_of_TF_type";
 val [TF_of_list_Nil,TF_of_list_Cons] = list_recs TF_of_list_def;
 Addsimps [TF_of_list_Nil,TF_of_list_Cons];
 
-goalw TF.thy [TF_of_list_def] 
+Goalw [TF_of_list_def] 
     "!!l A. l: list(tree(A)) ==> TF_of_list(l) : forest(A)";
 by (REPEAT (ares_tac [list_rec_type, FnilI, FconsI] 1));
 qed "TF_of_list_type";
@@ -175,7 +175,7 @@ qed "TF_map_type";
 val [TF_size_Tcons, TF_size_Fnil, TF_size_Fcons] = TF_recs TF_size_def;
 Addsimps [TF_size_Tcons, TF_size_Fnil, TF_size_Fcons];
 
-goalw TF.thy [TF_size_def]
+Goalw [TF_size_def]
     "!!z A. z: tree_forest(A) ==> TF_size(z) : nat";
 by (REPEAT (ares_tac [TF_rec_type, add_type, nat_0I, nat_succI] 1));
 qed "TF_size_type";
@@ -187,7 +187,7 @@ val [TF_preorder_Tcons, TF_preorder_Fnil, TF_preorder_Fcons] =
         TF_recs TF_preorder_def;
 Addsimps [TF_preorder_Tcons, TF_preorder_Fnil, TF_preorder_Fcons];
 
-goalw TF.thy [TF_preorder_def]
+Goalw [TF_preorder_def]
     "!!z A. z: tree_forest(A) ==> TF_preorder(z) : list(A)";
 by (REPEAT (ares_tac ([TF_rec_type, app_type] @ list.intrs) 1));
 qed "TF_preorder_type";
@@ -216,12 +216,12 @@ by (rtac (major RS (tree_forest.mutual_induct RS conjunct2 RS spec RSN (2,rev_mp
 by (REPEAT (ares_tac (TrueI::prems) 1));
 qed "forest_induct";
 
-goal TF.thy "!!f A. f: forest(A) ==> TF_of_list(list_of_TF(f)) = f";
+Goal "!!f A. f: forest(A) ==> TF_of_list(list_of_TF(f)) = f";
 by (etac forest_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "forest_iso";
 
-goal TF.thy
+Goal
     "!!ts. ts: list(tree(A)) ==> list_of_TF(TF_of_list(ts)) = ts";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -229,12 +229,12 @@ qed "tree_list_iso";
 
 (** theorems about TF_map **)
 
-goal TF.thy "!!z A. z: tree_forest(A) ==> TF_map(%u. u, z) = z";
+Goal "!!z A. z: tree_forest(A) ==> TF_map(%u. u, z) = z";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "TF_map_ident";
 
-goal TF.thy
+Goal
  "!!z A. z: tree_forest(A) ==> TF_map(h, TF_map(j,z)) = TF_map(%u. h(j(u)), z)";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -242,13 +242,13 @@ qed "TF_map_compose";
 
 (** theorems about TF_size **)
 
-goal TF.thy
+Goal
     "!!z A. z: tree_forest(A) ==> TF_size(TF_map(h,z)) = TF_size(z)";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "TF_size_TF_map";
 
-goal TF.thy
+Goal
     "!!z A. z: tree_forest(A) ==> TF_size(z) = length(TF_preorder(z))";
 by (etac tree_forest.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app])));
@@ -256,7 +256,7 @@ qed "TF_size_length";
 
 (** theorems about TF_preorder **)
 
-goal TF.thy "!!z A. z: tree_forest(A) ==> \
+Goal "!!z A. z: tree_forest(A) ==> \
 \                      TF_preorder(TF_map(h,z)) = map(h, TF_preorder(z))";
 by (etac tree_forest.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));

@@ -11,11 +11,11 @@ open recfunAC16;
 (* Basic properties of recfunAC16                                         *)
 (* ********************************************************************** *)
 
-goalw thy [recfunAC16_def] "recfunAC16(f,fa,0,a) = 0";
+Goalw [recfunAC16_def] "recfunAC16(f,fa,0,a) = 0";
 by (rtac transrec2_0 1);
 qed "recfunAC16_0";
 
-goalw thy [recfunAC16_def] "recfunAC16(f,fa,succ(i),a) =  \
+Goalw [recfunAC16_def] "recfunAC16(f,fa,succ(i),a) =  \
 \       if (EX y:recfunAC16(f,fa,i,a). fa ` i <= y, recfunAC16(f,fa,i,a), \
 \       recfunAC16(f,fa,i,a) Un {f ` (LEAST j. fa ` i <= f ` j &  \
 \       (ALL b<a. (fa`b <= f`j  \
@@ -23,7 +23,7 @@ goalw thy [recfunAC16_def] "recfunAC16(f,fa,succ(i),a) =  \
 by (rtac transrec2_succ 1);
 qed "recfunAC16_succ";
 
-goalw thy [recfunAC16_def] "!!i. Limit(i)  \
+Goalw [recfunAC16_def] "!!i. Limit(i)  \
 \       ==> recfunAC16(f,fa,i,a) = (UN j<i. recfunAC16(f,fa,j,a))";
 by (etac transrec2_Limit 1);
 qed "recfunAC16_Limit";
@@ -57,7 +57,7 @@ qed "transrec2_mono";
 (* Monotonicity of recfunAC16                                             *)
 (* ********************************************************************** *)
 
-goalw thy [recfunAC16_def]
+Goalw [recfunAC16_def]
         "!!i. i le j ==> recfunAC16(f, g, i, a) <= recfunAC16(f, g, j, a)";
 by (rtac transrec2_mono 1);
 by (REPEAT (fast_tac (claset() addIs [expand_if RS iffD2]) 1));

@@ -22,16 +22,16 @@ open Ramsey;
 
 (*** Cliques and Independent sets ***)
 
-goalw Ramsey.thy [Clique_def] "Clique(0,V,E)";
+Goalw [Clique_def] "Clique(0,V,E)";
 by (Fast_tac 1);
 qed "Clique0";
 
-goalw Ramsey.thy [Clique_def]
+Goalw [Clique_def]
     "!!C V E. [| Clique(C,V',E);  V'<=V |] ==> Clique(C,V,E)";
 by (Fast_tac 1);
 qed "Clique_superset";
 
-goalw Ramsey.thy [Indept_def] "Indept(0,V,E)";
+Goalw [Indept_def] "Indept(0,V,E)";
 by (Fast_tac 1);
 qed "Indept0";
 
@@ -42,21 +42,21 @@ qed "Indept_superset";
 
 (*** Atleast ***)
 
-goalw Ramsey.thy [Atleast_def, inj_def, Pi_def, function_def] "Atleast(0,A)";
+Goalw [Atleast_def, inj_def, Pi_def, function_def] "Atleast(0,A)";
 by (Fast_tac 1);
 qed "Atleast0";
 
-goalw Ramsey.thy [Atleast_def]
+Goalw [Atleast_def]
     "!!m A. Atleast(succ(m),A) ==> EX x:A. Atleast(m, A-{x})";
 by (fast_tac (claset() addEs [inj_is_fun RS apply_type, inj_succ_restrict]) 1);
 qed "Atleast_succD";
 
-goalw Ramsey.thy [Atleast_def]
+Goalw [Atleast_def]
     "!!n A. [| Atleast(n,A);  A<=B |] ==> Atleast(n,B)";
 by (fast_tac (claset() addEs [inj_weaken_type]) 1);
 qed "Atleast_superset";
 
-goalw Ramsey.thy [Atleast_def,succ_def]
+Goalw [Atleast_def,succ_def]
     "!!m. [| Atleast(m,B);  b~: B |] ==> Atleast(succ(m), cons(b,B))";
 by (etac exE 1);
 by (rtac exI 1);
@@ -65,7 +65,7 @@ by (rtac mem_not_refl 1);
 by (assume_tac 1);
 qed "Atleast_succI";
 
-goal Ramsey.thy
+Goal
     "!!m. [| Atleast(m, B-{x});  x: B |] ==> Atleast(succ(m), B)";
 by (etac (Atleast_succI RS Atleast_superset) 1);
 by (Fast_tac 1);
@@ -119,11 +119,11 @@ bind_thm ("pigeon2", (pigeon2_lemma RS bspec RS spec RS spec RS mp));
 
 (** Base cases of induction; they now admit ANY Ramsey number **)
 
-goalw Ramsey.thy [Ramsey_def] "Ramsey(n,0,j)";
+Goalw [Ramsey_def] "Ramsey(n,0,j)";
 by (fast_tac (claset() addIs [Clique0,Atleast0]) 1);
 qed "Ramsey0j";
 
-goalw Ramsey.thy [Ramsey_def] "Ramsey(n,i,0)";
+Goalw [Ramsey_def] "Ramsey(n,i,0)";
 by (fast_tac (claset() addIs [Indept0,Atleast0]) 1);
 qed "Ramseyi0";
 
@@ -201,7 +201,7 @@ by (fast_tac (claset() addSDs [bspec]
 qed "ramsey_lemma";
 
 (*Final statement in a tidy form, without succ(...) *)
-goal Ramsey.thy "!!i j. [| i: nat;  j: nat |] ==> EX n:nat. Ramsey(n,i,j)";
+Goal "!!i j. [| i: nat;  j: nat |] ==> EX n:nat. Ramsey(n,i,j)";
 by (best_tac (claset() addDs [ramsey_lemma] addSIs [nat_succI]) 1);
 qed "ramsey";
 

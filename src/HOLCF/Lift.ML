@@ -14,7 +14,7 @@ Theorems for Lift.thy
 
 
 (* flift1 is continuous in its argument itself*)
-goal thy "cont (lift_case UU f)"; 
+Goal "cont (lift_case UU f)"; 
 by (rtac flatdom_strict2cont 1);
 by (Simp_tac 1);
 qed"cont_flift1_arg";
@@ -22,7 +22,7 @@ qed"cont_flift1_arg";
 (* flift1 is continuous in a variable that occurs only 
    in the Def branch *)
 
-goal thy "!!f. [| !! a. cont (%y. (f y) a) |] ==> \
+Goal "!!f. [| !! a. cont (%y. (f y) a) |] ==> \
 \          cont (%y. lift_case UU (f y))";
 by (rtac cont2cont_CF1L_rev 1);
 by (strip_tac 1);
@@ -34,7 +34,7 @@ qed"cont_flift1_not_arg";
 (* flift1 is continuous in a variable that occurs either 
    in the Def branch or in the argument *)
 
-goal thy "!!f. [| !! a. cont (%y. (f y) a); cont g|] ==> \
+Goal "!!f. [| !! a. cont (%y. (f y) a); cont g|] ==> \
 \   cont (%y. lift_case UU (f y) (g y))";
 by (rtac cont2cont_app 1);
 back();
@@ -46,7 +46,7 @@ qed"cont_flift1_arg_and_not_arg";
 
 (* flift2 is continuous in its argument itself *)
 
-goal thy "cont (lift_case UU (%y. Def (f y)))";
+Goal "cont (lift_case UU (%y. Def (f y)))";
 by (rtac flatdom_strict2cont 1);
 by (Simp_tac 1);
 qed"cont_flift2_arg";
@@ -82,25 +82,25 @@ simpset_ref() := simpset() addSolver (K (DEPTH_SOLVE_1 o cont_tac));
 (* ---------------------------------------------------------- *)
 
 
-goal thy "flift1 f`(Def x) = (f x)";
+Goal "flift1 f`(Def x) = (f x)";
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"flift1_Def";
 
-goal thy "flift2 f`(Def x) = Def (f x)";
+Goal "flift2 f`(Def x) = Def (f x)";
 by (simp_tac (simpset() addsimps [flift2_def]) 1);
 qed"flift2_Def";
 
-goal thy "flift1 f`UU = UU";
+Goal "flift1 f`UU = UU";
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"flift1_UU";
 
-goal thy "flift2 f`UU = UU";
+Goal "flift2 f`UU = UU";
 by (simp_tac (simpset() addsimps [flift2_def]) 1);
 qed"flift2_UU";
 
 Addsimps [flift1_Def,flift2_Def,flift1_UU,flift2_UU];
 
-goal thy "!!x. x~=UU ==> (flift2 f)`x~=UU";
+Goal "!!x. x~=UU ==> (flift2 f)`x~=UU";
 by (def_tac 1);
 qed"flift2_nUU";
 

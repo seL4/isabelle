@@ -50,17 +50,17 @@ bind_thm ("mksch_unfold", fix_prover2 thy mksch_def
 \       ))");
 
 
-goal thy "mksch A B`UU`schA`schB = UU";
+Goal "mksch A B`UU`schA`schB = UU";
 by (stac mksch_unfold 1);
 by (Simp_tac 1);
 qed"mksch_UU";
 
-goal thy "mksch A B`nil`schA`schB = nil";
+Goal "mksch A B`nil`schA`schB = nil";
 by (stac mksch_unfold 1);
 by (Simp_tac 1);
 qed"mksch_nil";
 
-goal thy "!!x.[|x:act A;x~:act B|]  \
+Goal "!!x.[|x:act A;x~:act B|]  \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
 \         (Takewhile (%a. a:int A)`schA) \
 \         @@ (x>>(mksch A B`tr`(TL`(Dropwhile (%a. a:int A)`schA)) \
@@ -71,7 +71,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
 by (simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mksch_cons1";
 
-goal thy "!!x.[|x~:act A;x:act B|] \
+Goal "!!x.[|x~:act A;x:act B|] \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
 \        (Takewhile (%a. a:int B)`schB)  \
 \         @@ (x>>(mksch A B`tr`schA`(TL`(Dropwhile (%a. a:int B)`schB))  \
@@ -82,7 +82,7 @@ by (asm_full_simp_tac (simpset() addsimps [Cons_def,If_and_if]) 1);
 by (simp_tac (simpset() addsimps [Cons_def]) 1);
 qed"mksch_cons2";
 
-goal thy "!!x.[|x:act A;x:act B|] \
+Goal "!!x.[|x:act A;x:act B|] \
 \   ==> mksch A B`(x>>tr)`schA`schB = \
 \            (Takewhile (%a. a:int A)`schA) \
 \         @@ ((Takewhile (%a. a:int B)`schB)  \
@@ -114,7 +114,7 @@ Addsimps compotr_simps;
    the compatibility of IOA, in particular out of the condition that internals are 
    really hidden. *)
 
-goal thy "(eB & ~eA --> ~A) -->       \
+Goal "(eB & ~eA --> ~A) -->       \
 \         (A & (eA | eB)) = (eA & A)";
 by (Fast_tac 1);
 qed"compatibility_consequence1";
@@ -122,7 +122,7 @@ qed"compatibility_consequence1";
 
 (* very similar to above, only the commutativity of | is used to make a slight change *)
 
-goal thy "(eB & ~eA --> ~A) -->       \
+Goal "(eB & ~eA --> ~A) -->       \
 \         (A & (eB | eA)) = (eA & A)";
 by (Fast_tac 1);
 qed"compatibility_consequence2";
@@ -146,7 +146,7 @@ by (etac (p2 RS subst) 1);
 qed"subst_lemma2";
 
 
-goal thy "!!A B. compatible A B ==> \
+Goal "!!A B. compatible A B ==> \
 \   ! schA schB. Forall (%x. x:act (A||B)) tr \
 \   --> Forall (%x. x:act (A||B)) (mksch A B`tr`schA`schB)";
 by (Seq_induct_tac "tr" [Forall_def,sforall_def,mksch_def] 1); 
@@ -173,7 +173,7 @@ by (asm_full_simp_tac (simpset() addsimps [ForallPTakewhileQ,intA_is_not_actB,in
 by Auto_tac;
 qed_spec_mp"ForallAorB_mksch";
 
-goal thy "!!A B. compatible B A  ==> \
+Goal "!!A B. compatible B A  ==> \
 \   ! schA schB.  (Forall (%x. x:act B & x~:act A) tr \
 \   --> Forall (%x. x:act B & x~:act A) (mksch A B`tr`schA`schB))";
 
@@ -184,7 +184,7 @@ by (asm_full_simp_tac (simpset() addsimps [ForallPTakewhileQ,
                             intA_is_not_actB,int_is_act]) 1);
 qed_spec_mp "ForallBnAmksch";
 
-goal thy "!!A B. compatible A B ==> \
+Goal "!!A B. compatible A B ==> \
 \   ! schA schB.  (Forall (%x. x:act A & x~:act B) tr \
 \   --> Forall (%x. x:act A & x~:act B) (mksch A B`tr`schA`schB))";
 
@@ -199,7 +199,7 @@ qed_spec_mp"ForallAnBmksch";
 (* safe-tac makes too many case distinctions with this lemma in the next proof *)
 Delsimps [FiniteConc];
 
-goal thy "!! tr. [| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==> \
+Goal "!! tr. [| Finite tr; is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \   ! x y. Forall (%x. x:act A) x & Forall (%x. x:act B) y & \
 \          Filter (%a. a:ext A)`x = Filter (%a. a:act A)`tr & \
 \          Filter (%a. a:ext B)`y = Filter (%a. a:act B)`tr &\
@@ -272,7 +272,7 @@ Addsimps [FiniteConc];
 (* otherwise subst_lemma2 does not fit exactly, just to avoid a subst_lemma3 *)
 Delsimps [FilterConc]; 
 
-goal thy " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
+Goal " !!bs. [| Finite bs; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
 \! y. Forall (%x. x:act B) y & Forall (%x. x:act B & x~:act A) bs &\
 \    Filter (%a. a:ext B)`y = Filter (%a. a:act B)`(bs @@ z) \
 \    --> (? y1 y2.  (mksch A B`(bs @@ z)`x`y) = (y1 @@ (mksch A B`z`x`y2)) & \
@@ -326,7 +326,7 @@ bind_thm("reduceA_mksch",conjI RSN (6,conjI RSN (5,reduceA_mksch1)));
 Delsimps [FilterConc]; 
 
 
-goal thy " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
+Goal " !!as. [| Finite as; is_asig(asig_of A); is_asig(asig_of B);compatible A B|] ==>  \
 \! x. Forall (%x. x:act A) x & Forall (%x. x:act A & x~:act B) as &\
 \    Filter (%a. a:ext A)`x = Filter (%a. a:act A)`(as @@ z) \
 \    --> (? x1 x2.  (mksch A B`(as @@ z)`x`y) = (x1 @@ (mksch A B`z`x2`y)) & \
@@ -379,7 +379,7 @@ bind_thm("reduceB_mksch",conjI RSN (6,conjI RSN (5,reduceB_mksch1)));
 (*
 
 
-goal thy "!! y.Finite y ==> ! z tr. Forall (%a.a:ext (A||B)) tr & \
+Goal "!! y.Finite y ==> ! z tr. Forall (%a.a:ext (A||B)) tr & \
 \                             y = z @@ mksch A B`tr`a`b\
 \                             --> Finite tr";
 by (etac Seq_Finite_ind  1);
@@ -438,19 +438,19 @@ by (asm_full_simp_tac (simpset() addsimps [Conc_Conc_eq]) 1);
 
 
 
-goal thy "(x>>xs = y @@ z) = ((y=nil & x>>xs=z) | (? ys. y=x>>ys & xs=ys@@z))";
+Goal "(x>>xs = y @@ z) = ((y=nil & x>>xs=z) | (? ys. y=x>>ys & xs=ys@@z))";
 by (Seq_case_simp_tac "y" 1);
 by Auto_tac;
 qed"Conc_Conc_eq";
 
-goal thy "!! (y::'a Seq).Finite y ==> ~ y= x@@UU";
+Goal "!! (y::'a Seq).Finite y ==> ~ y= x@@UU";
 by (etac Seq_Finite_ind 1);
 by (Seq_case_simp_tac "x" 1);
 by (Seq_case_simp_tac "x" 1);
 by Auto_tac;
 qed"FiniteConcUU1";
 
-goal thy "~ Finite ((x::'a Seq)@@UU)";
+Goal "~ Finite ((x::'a Seq)@@UU)";
 by (rtac (FiniteConcUU1 COMP rev_contrapos) 1);
 by Auto_tac;
 qed"FiniteConcUU";
@@ -466,7 +466,7 @@ finiteR_mksch
 (*                             structural induction
   ------------------------------------------------------------------------------------- *)
 
-goal thy 
+Goal 
 "!! A B. [| compatible A B; compatible B A;\
 \           is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ ! schA schB. Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
@@ -543,7 +543,7 @@ With uncomplete take lemma rule should be reused afterwards !!!!!!!!!!!!!!!!!
                              take lemma
   --------------------------------------------------------------------------- *)
 
-goal thy "!! A B. [| compatible A B; compatible B A; \
+Goal "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ Forall (%x. x:ext (A||B)) tr & \
 \ Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
@@ -677,7 +677,7 @@ by (Asm_full_simp_tac 1);
 
 
 
-goal thy "!! A B. [| compatible A B; compatible B A; \
+Goal "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ Forall (%x. x:ext (A||B)) tr & \
 \ Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
@@ -917,7 +917,7 @@ qed"FilterAmksch_is_schA";
 
 
 
-goal thy "!! A B. [| compatible A B; compatible B A; \
+Goal "!! A B. [| compatible A B; compatible B A; \
 \ is_asig(asig_of A); is_asig(asig_of B) |] ==> \
 \ Forall (%x. x:ext (A||B)) tr & \
 \ Forall (%x. x:act A) schA & Forall (%x. x:act B) schB & \
@@ -1155,7 +1155,7 @@ qed"FilterBmksch_is_schB";
          section"COMPOSITIONALITY on TRACE Level -- Main Theorem";
 (* ------------------------------------------------------------------ *)
  
-goal thy 
+Goal 
 "!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A; \
 \           is_asig(asig_of A); is_asig(asig_of B)|] \
 \       ==>  tr: traces(A||B) = \
@@ -1218,7 +1218,7 @@ qed"compositionality_tr";
 (*                            For Modules                             *)
 (* ------------------------------------------------------------------ *)
 
-goalw thy [Traces_def,par_traces_def]
+Goalw [Traces_def,par_traces_def]
 
 "!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A; \
 \           is_asig(asig_of A); is_asig(asig_of B)|] \

@@ -11,21 +11,21 @@ open MT;
 (* The Consistency theorem                                      *)
 (* ############################################################ *)
 
-goal MT.thy 
+Goal 
   "!!t. [| c:Const; hastyenv(ve,te);<te,e_const(c),t>:ElabRel |] ==>         \
 \       <v_const(c), t> : HasTyRel";
 by (Fast_tac 1);
 qed "consistency_const";
 
 
-goalw  MT.thy [hastyenv_def]
+Goalw [hastyenv_def]
   "!!t. [| x:ve_dom(ve); hastyenv(ve,te); <te,e_var(x),t>:ElabRel |] ==>     \
 \  <ve_app(ve,x),t>:HasTyRel";
 by (Fast_tac 1);
 qed "consistency_var";
 
 
-goalw MT.thy [hastyenv_def]
+Goalw [hastyenv_def]
   "!!t. [| ve:ValEnv; x:ExVar; e:Exp; hastyenv(ve,te);       \
 \          <te,e_fn(x,e),t>:ElabRel  \
 \       |] ==> <v_clos(x, e, ve), t> : HasTyRel";
@@ -143,7 +143,7 @@ qed "consistency_app2";
 
 fun mt_cases_tac t = ((rtac t 1) THEN (TRYALL assume_tac)); 
 
-goal MT.thy 
+Goal 
   "!!e. <ve,e,v>:EvalRel ==>         \
 \       (ALL t te. hastyenv(ve,te) --> <te,e,t>:ElabRel --> <v,t>:HasTyRel)";
 by (etac EvalRel.induct 1);

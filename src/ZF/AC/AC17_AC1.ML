@@ -11,7 +11,7 @@ open AC17_AC1;
 (* more properties of HH                                                   *)
 (* *********************************************************************** *)
 
-goal thy "!!f. [| x - (UN j:LEAST i. HH(lam X:Pow(x)-{0}. {f`X}, x, i) = {x}. \
+Goal "!!f. [| x - (UN j:LEAST i. HH(lam X:Pow(x)-{0}. {f`X}, x, i) = {x}. \
 \       HH(lam X:Pow(x)-{0}. {f`X}, x, j)) = 0;  \
 \       f : Pow(x)-{0} -> x |]  \
 \       ==> EX r. well_ord(x,r)";
@@ -25,7 +25,7 @@ qed "UN_eq_imp_well_ord";
 (* theorems closer to the proof                                            *)
 (* *********************************************************************** *)
 
-goalw thy AC_defs "!!Z. ~AC1 ==>  \
+Goalw AC_defs "!!Z. ~AC1 ==>  \
 \               EX A. ALL f:Pow(A)-{0} -> A. EX u:Pow(A)-{0}. f`u ~: u";
 by (etac swap 1);
 by (rtac allI 1);
@@ -37,7 +37,7 @@ by (rtac impI 1);
 by (fast_tac (claset() addSIs [restrict_type]) 1);
 qed "not_AC1_imp_ex";
 
-goal thy "!!x. [| ALL f:Pow(x) - {0} -> x. EX u: Pow(x) - {0}. f`u~:u;  \
+Goal "!!x. [| ALL f:Pow(x) - {0} -> x. EX u: Pow(x) - {0}. f`u~:u;  \
 \       EX f: Pow(x)-{0}->x. \
 \       x - (UN a:(LEAST i. HH(lam X:Pow(x)-{0}. {f`X},x,i)={x}).  \
 \       HH(lam X:Pow(x)-{0}. {f`X},x,a)) = 0 |] \
@@ -53,24 +53,24 @@ by (resolve_tac [apply_type RSN (2, subsetD)] 1 THEN TRYALL assume_tac);
 by (Fast_tac 1);
 val lemma1 = result();
 
-goal thy "!!x. ~ (EX f: Pow(x)-{0}->x. x - F(f) = 0)  \
+Goal "!!x. ~ (EX f: Pow(x)-{0}->x. x - F(f) = 0)  \
 \       ==> (lam f: Pow(x)-{0}->x. x - F(f))  \
 \               : (Pow(x) -{0} -> x) -> Pow(x) - {0}";
 by (fast_tac (claset() addSIs [lam_type] addSDs [Diff_eq_0_iff RS iffD1]) 1);
 val lemma2 = result();
 
-goal thy "!!f. [| f`Z : Z; Z:Pow(x)-{0} |] ==>  \
+Goal "!!f. [| f`Z : Z; Z:Pow(x)-{0} |] ==>  \
 \       (lam X:Pow(x)-{0}. {f`X})`Z : Pow(Z)-{0}";
 by (Asm_full_simp_tac 1);
 by (fast_tac (claset() addSDs [equals0D]) 1);
 val lemma3 = result();
 
-goal thy "!!z. EX f:F. f`((lam f:F. Q(f))`f) : (lam f:F. Q(f))`f  \
+Goal "!!z. EX f:F. f`((lam f:F. Q(f))`f) : (lam f:F. Q(f))`f  \
 \       ==> EX f:F. f`Q(f) : Q(f)";
 by (Asm_full_simp_tac 1);
 val lemma4 = result();
 
-goalw thy [AC17_def] "!!Z. AC17 ==> AC1";
+Goalw [AC17_def] "!!Z. AC17 ==> AC1";
 by (rtac classical 1);
 by (eresolve_tac [not_AC1_imp_ex RS exE] 1);
 by (excluded_middle_tac

@@ -15,19 +15,19 @@ open PropLog;
 
 (** conversion rules **)
 
-goal PropLog.thy "prop_rec(Fls,b,c,d) = b";
+Goal "prop_rec(Fls,b,c,d) = b";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac prop.con_defs);
 by (Simp_tac 1);
 qed "prop_rec_Fls";
 
-goal PropLog.thy "prop_rec(#v,b,c,d) = c(v)";
+Goal "prop_rec(#v,b,c,d) = c(v)";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac prop.con_defs);
 by (Simp_tac 1);
 qed "prop_rec_Var";
 
-goal PropLog.thy "prop_rec(p=>q,b,c,d) = \
+Goal "prop_rec(p=>q,b,c,d) = \
 \      d(p, q, prop_rec(p,b,c,d), prop_rec(q,b,c,d))";
 by (rtac (prop_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac prop.con_defs);
@@ -40,31 +40,31 @@ Addsimps [prop_rec_Fls, prop_rec_Var, prop_rec_Imp];
 
 (** The function is_true **)
 
-goalw PropLog.thy [is_true_def] "is_true(Fls,t) <-> False";
+Goalw [is_true_def] "is_true(Fls,t) <-> False";
 by (simp_tac (simpset() addsimps [one_not_0 RS not_sym]) 1);
 qed "is_true_Fls";
 
-goalw PropLog.thy [is_true_def] "is_true(#v,t) <-> v:t";
+Goalw [is_true_def] "is_true(#v,t) <-> v:t";
 by (simp_tac (simpset() addsimps [one_not_0 RS not_sym] 
               setloop (split_tac [expand_if])) 1);
 qed "is_true_Var";
 
-goalw PropLog.thy [is_true_def]
+Goalw [is_true_def]
     "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
 by (simp_tac (simpset() setloop (split_tac [expand_if])) 1);
 qed "is_true_Imp";
 
 (** The function hyps **)
 
-goalw PropLog.thy [hyps_def] "hyps(Fls,t) = 0";
+Goalw [hyps_def] "hyps(Fls,t) = 0";
 by (Simp_tac 1);
 qed "hyps_Fls";
 
-goalw PropLog.thy [hyps_def] "hyps(#v,t) = {if(v:t, #v, #v=>Fls)}";
+Goalw [hyps_def] "hyps(#v,t) = {if(v:t, #v, #v=>Fls)}";
 by (Simp_tac 1);
 qed "hyps_Var";
 
-goalw PropLog.thy [hyps_def] "hyps(p=>q,t) = hyps(p,t) Un hyps(q,t)";
+Goalw [hyps_def] "hyps(p=>q,t) = hyps(p,t) Un hyps(q,t)";
 by (Simp_tac 1);
 qed "hyps_Imp";
 
@@ -74,7 +74,7 @@ Addsimps [is_true_Fls, is_true_Var, is_true_Imp,
 
 (*** Proof theory of propositional logic ***)
 
-goalw PropLog.thy thms.defs "!!G H. G<=H ==> thms(G) <= thms(H)";
+Goalw thms.defs "!!G H. G<=H ==> thms(G) <= thms(H)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac thms.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
@@ -85,13 +85,13 @@ val thms_in_pl = thms.dom_subset RS subsetD;
 val ImpE = prop.mk_cases prop.con_defs "p=>q : prop";
 
 (*Stronger Modus Ponens rule: no typechecking!*)
-goal PropLog.thy "!!p q H. [| H |- p=>q;  H |- p |] ==> H |- q";
+Goal "!!p q H. [| H |- p=>q;  H |- p |] ==> H |- q";
 by (rtac thms.MP 1);
 by (REPEAT (eresolve_tac [asm_rl, thms_in_pl, thms_in_pl RS ImpE] 1));
 qed "thms_MP";
 
 (*Rule is called I for Identity Combinator, not for Introduction*)
-goal PropLog.thy "!!p H. p:prop ==> H |- p=>p";
+Goal "!!p H. p:prop ==> H |- p=>p";
 by (rtac (thms.S RS thms_MP RS thms_MP) 1);
 by (rtac thms.K 5);
 by (rtac thms.K 4);
@@ -109,13 +109,13 @@ val weaken_left_cons = subset_consI RS weaken_left;
 val weaken_left_Un1  = Un_upper1 RS weaken_left;
 val weaken_left_Un2  = Un_upper2 RS weaken_left;
 
-goal PropLog.thy "!!H p q. [| H |- q;  p:prop |] ==> H |- p=>q";
+Goal "!!H p q. [| H |- q;  p:prop |] ==> H |- p=>q";
 by (rtac (thms.K RS thms_MP) 1);
 by (REPEAT (ares_tac [thms_in_pl] 1));
 qed "weaken_right";
 
 (*The deduction theorem*)
-goal PropLog.thy "!!p q H. [| cons(p,H) |- q;  p:prop |] ==>  H |- p=>q";
+Goal "!!p q H. [| cons(p,H) |- q;  p:prop |] ==>  H |- p=>q";
 by (etac thms.induct 1);
 by (fast_tac (claset() addIs [thms_I, thms.H RS weaken_right]) 1);
 by (fast_tac (claset() addIs [thms.K RS weaken_right]) 1);
@@ -126,12 +126,12 @@ qed "deduction";
 
 
 (*The cut rule*)
-goal PropLog.thy "!!H p q. [| H|-p;  cons(p,H) |- q |] ==>  H |- q";
+Goal "!!H p q. [| H|-p;  cons(p,H) |- q |] ==>  H |- q";
 by (rtac (deduction RS thms_MP) 1);
 by (REPEAT (ares_tac [thms_in_pl] 1));
 qed "cut";
 
-goal PropLog.thy "!!H p. [| H |- Fls; p:prop |] ==> H |- p";
+Goal "!!H p. [| H |- Fls; p:prop |] ==> H |- p";
 by (rtac (thms.DN RS thms_MP) 1);
 by (rtac weaken_right 2);
 by (REPEAT (ares_tac (prop.intrs@[consI1]) 1));
@@ -141,7 +141,7 @@ qed "thms_FlsE";
 bind_thm ("thms_notE", (thms_MP RS thms_FlsE));
 
 (*Soundness of the rules wrt truth-table semantics*)
-goalw PropLog.thy [logcon_def] "!!H. H |- p ==> H |= p";
+Goalw [logcon_def] "!!H. H |- p ==> H |= p";
 by (etac thms.induct 1);
 by (fast_tac (claset() addSDs [is_true_Imp RS iffD1 RS mp]) 5);
 by (ALLGOALS Asm_simp_tac);
@@ -289,12 +289,12 @@ by (rtac (sat RS (premp RS completeness_0_lemma RS spec)) 1);
 qed "completeness_0";
 
 (*A semantic analogue of the Deduction Theorem*)
-goalw PropLog.thy [logcon_def] "!!H p q. [| cons(p,H) |= q |] ==> H |= p=>q";
+Goalw [logcon_def] "!!H p q. [| cons(p,H) |= q |] ==> H |= p=>q";
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "logcon_Imp";
 
-goal PropLog.thy "!!H. H: Fin(prop) ==> ALL p:prop. H |= p --> H |- p";
+Goal "!!H. H: Fin(prop) ==> ALL p:prop. H |= p --> H |- p";
 by (etac Fin_induct 1);
 by (safe_tac (claset() addSIs [completeness_0]));
 by (rtac (weaken_left_cons RS thms_MP) 1);

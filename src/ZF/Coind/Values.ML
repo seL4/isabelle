@@ -49,7 +49,7 @@ by (Fast_tac 1);
 by (Fast_tac 1);
 qed "set_notemptyE";
 
-goalw Values.thy (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
+Goalw (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
   "v_clos(x,e,ve) ~= 0";
 by (rtac not_emptyI 1);
 by (rtac UnI2 1);
@@ -59,7 +59,7 @@ by (rtac UnI1 1);
 by (Fast_tac 1);
 qed "v_closNE";
 
-goalw Values.thy (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
+Goalw (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
   "!!c. c:Const ==> v_const(c) ~= 0";
 by (dtac constNEE 1);
 by (etac not_emptyE 1);
@@ -75,7 +75,7 @@ qed "v_constNE";
 
 (* Proving that the empty set is not a value *)
 
-goal Values.thy "!!v. v:Val ==> v ~= 0";
+Goal "!!v. v:Val ==> v ~= 0";
 by (etac ValE 1);
 by (ALLGOALS hyp_subst_tac);
 by (etac v_constNE 1);
@@ -94,14 +94,14 @@ by (assume_tac 1);
 by (rtac Un_commute 1);
 qed "ve_dom_owr";
 
-goalw Values.thy [ve_app_def,ve_owr_def]
+Goalw [ve_app_def,ve_owr_def]
 "!!ve. ve:ValEnv ==> ve_app(ve_owr(ve,x,v),x) = v"; 
 by (etac ValEnvE 1);
 by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
 by (rtac map_app_owr1 1);
 qed "ve_app_owr1";
 
-goalw Values.thy [ve_app_def,ve_owr_def]
+Goalw [ve_app_def,ve_owr_def]
  "!!ve. ve:ValEnv ==> x ~= y ==> ve_app(ve_owr(ve,x,v),y) = ve_app(ve,y)";
 by (etac ValEnvE 1);
 by (asm_full_simp_tac (simpset() addsimps Val_ValEnv.case_eqns) 1);
@@ -111,7 +111,7 @@ qed "ve_app_owr2";
 
 (* Introduction rules for operators on value environments *)
 
-goalw Values.thy [ve_app_def,ve_owr_def,ve_dom_def]
+Goalw [ve_app_def,ve_owr_def,ve_dom_def]
   "!!ve.[| ve:ValEnv; x:ve_dom(ve) |] ==> ve_app(ve,x):Val";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
@@ -121,7 +121,7 @@ by (assume_tac 1);
 by (assume_tac 1);
 qed "ve_appI";
 
-goalw Values.thy [ve_dom_def]
+Goalw [ve_dom_def]
   "!!ve.[| ve:ValEnv; x:ve_dom(ve) |] ==> x:ExVar";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);
@@ -131,12 +131,12 @@ by (assume_tac 1);
 by (assume_tac 1);
 qed "ve_domI";
 
-goalw Values.thy [ve_emp_def] "ve_emp:ValEnv";
+Goalw [ve_emp_def] "ve_emp:ValEnv";
 by (rtac Val_ValEnv.ve_mk_I 1);
 by (rtac pmap_empI 1);
 qed "ve_empI";
 
-goalw Values.thy [ve_owr_def] 
+Goalw [ve_owr_def] 
   "!!ve.[|ve:ValEnv; x:ExVar; v:Val |] ==> ve_owr(ve,x,v):ValEnv";
 by (etac ValEnvE 1);
 by (hyp_subst_tac 1);

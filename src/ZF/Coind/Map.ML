@@ -9,22 +9,22 @@ open Map;
 (** Some sample proofs of inclusions for the final coalgebra "U" (by lcp) **)
 
 
-goalw Map.thy [TMap_def]
+Goalw [TMap_def]
      "{0,1} <= {1} Un TMap(I, {0,1})";
 by (Blast_tac 1);
 result();
 
-goalw Map.thy [TMap_def]
+Goalw [TMap_def]
      "{0} Un TMap(I,1) <= {1} Un TMap(I, {0} Un TMap(I,1))";
 by (Blast_tac 1);
 result();
 
-goalw Map.thy [TMap_def]
+Goalw [TMap_def]
      "{0,1} Un TMap(I,2) <= {1} Un TMap(I, {0,1} Un TMap(I,2))";
 by (Blast_tac 1);
 result();
 
-goalw Map.thy [TMap_def]
+Goalw [TMap_def]
      "{0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2) <= \
 \     {1} Un TMap(I, {0,1} Un TMap(I,TMap(I,2)) Un TMap(I,2))";
 (*twice as fast as Blast_tac alone*)
@@ -36,19 +36,19 @@ result();
 (* Lemmas                                                       *)
 (* ############################################################ *)
 
-goal Map.thy "!!A. a:A ==> Sigma(A,B)``{a} = B(a)";
+Goal "!!A. a:A ==> Sigma(A,B)``{a} = B(a)";
 by (Fast_tac 1);
 qed "qbeta";
 
-goal Map.thy "!!A. a~:A ==> Sigma(A,B)``{a} = 0";
+Goal "!!A. a~:A ==> Sigma(A,B)``{a} = 0";
 by (Fast_tac 1);
 qed "qbeta_emp";
 
-goal Map.thy "!!A. a ~: A ==> Sigma(A,B)``{a}=0";
+Goal "!!A. a ~: A ==> Sigma(A,B)``{a}=0";
 by (Fast_tac 1);
 qed "image_Sigma1";
 
-goal Map.thy "0``A = 0";
+Goal "0``A = 0";
 by (Fast_tac 1);
 qed "image_02";
 
@@ -58,7 +58,7 @@ qed "image_02";
 
 (* Lemmas *)
 
-goalw Map.thy [quniv_def]
+Goalw [quniv_def]
     "!!A. A <= univ(X) ==> Pow(A * Union(quniv(X))) <= quniv(X)";
 by (rtac Pow_mono 1);
 by (rtac ([Sigma_mono, product_univ] MRS subset_trans) 1);
@@ -82,7 +82,7 @@ qed "mapQU";
 (* Monotonicity                                                 *)
 (* ############################################################ *)
 
-goalw Map.thy [PMap_def,TMap_def] "!!A. B<=C ==> PMap(A,B)<=PMap(A,C)";
+Goalw [PMap_def,TMap_def] "!!A. B<=C ==> PMap(A,B)<=PMap(A,C)";
 by (Fast_tac 1);
 qed "map_mono";
 
@@ -94,7 +94,7 @@ qed "map_mono";
 
 (** map_emp **)
 
-goalw Map.thy [map_emp_def,PMap_def,TMap_def] "map_emp:PMap(A,B)";
+Goalw [map_emp_def,PMap_def,TMap_def] "map_emp:PMap(A,B)";
 by Safe_tac;
 by (rtac image_02 1);
 qed "pmap_empI";
@@ -102,7 +102,7 @@ qed "pmap_empI";
 (** map_owr **)
 
 
-goalw Map.thy [map_owr_def,PMap_def,TMap_def] 
+Goalw [map_owr_def,PMap_def,TMap_def] 
   "!! A.[| m:PMap(A,B); a:A; b:B |]  ==> map_owr(m,a,b):PMap(A,B)";
 by Safe_tac;
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [if_iff])));
@@ -123,7 +123,7 @@ qed "pmap_owrI";
 
 (** map_app **)
 
-goalw Map.thy [TMap_def,map_app_def] 
+Goalw [TMap_def,map_app_def] 
   "!!m.[| m:TMap(A,B); a:domain(m) |] ==> map_app(m,a) ~=0";
 by (etac domainE 1);
 by (dtac imageI 1);
@@ -131,12 +131,12 @@ by (Fast_tac 1);
 by (etac not_emptyI 1);
 qed "tmap_app_notempty";
 
-goalw Map.thy [TMap_def,map_app_def,domain_def] 
+Goalw [TMap_def,map_app_def,domain_def] 
   "!!m.[| m:TMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
 by (Fast_tac 1);
 qed "tmap_appI";
 
-goalw Map.thy [PMap_def]
+Goalw [PMap_def]
   "!!m.[| m:PMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
 by (forward_tac [tmap_app_notempty] 1); 
 by (assume_tac 1);
@@ -147,12 +147,12 @@ qed "pmap_appI";
 
 (** domain **)
 
-goalw Map.thy [TMap_def]
+Goalw [TMap_def]
   "!!m.[| m:TMap(A,B); a:domain(m) |] ==> a:A";
 by (Fast_tac 1);
 qed "tmap_domainD";
 
-goalw Map.thy [PMap_def,TMap_def]
+Goalw [PMap_def,TMap_def]
   "!!m.[| m:PMap(A,B); a:domain(m) |] ==> a:A";
 by (Fast_tac 1);
 qed "pmap_domainD";
@@ -165,22 +165,22 @@ qed "pmap_domainD";
 
 (* Lemmas *)
 
-goal Map.thy  "domain(UN x:A. B(x)) = (UN x:A. domain(B(x)))";
+Goal  "domain(UN x:A. B(x)) = (UN x:A. domain(B(x)))";
 by (Fast_tac 1);
 qed "domain_UN";
 
-goal Map.thy  "domain(Sigma(A,B)) = {x:A. EX y. y:B(x)}";
+Goal  "domain(Sigma(A,B)) = {x:A. EX y. y:B(x)}";
 by (simp_tac (simpset() addsimps [domain_UN,domain_0,domain_cons]) 1);
 by (Fast_tac 1);
 qed "domain_Sigma";
 
 (* Theorems *)
 
-goalw Map.thy [map_emp_def] "domain(map_emp) = 0";
+Goalw [map_emp_def] "domain(map_emp) = 0";
 by (Fast_tac 1);
 qed "map_domain_emp";
 
-goalw Map.thy [map_owr_def] 
+Goalw [map_owr_def] 
   "!!a. b ~= 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)";
 by (simp_tac (simpset() addsimps [domain_Sigma]) 1);
 by (rtac equalityI 1);
@@ -197,14 +197,14 @@ qed "map_domain_owr";
 
 (** Application **)
 
-goalw Map.thy [map_app_def,map_owr_def] 
+Goalw [map_app_def,map_owr_def] 
   "map_app(map_owr(f,a,b),a) = b";
 by (stac qbeta 1);
 by (Fast_tac 1);
 by (Simp_tac 1);
 qed "map_app_owr1";
 
-goalw Map.thy [map_app_def,map_owr_def] 
+Goalw [map_app_def,map_owr_def] 
   "!!a. c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
 by (rtac (excluded_middle RS disjE) 1);
 by (stac qbeta_emp 1);

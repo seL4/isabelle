@@ -315,7 +315,7 @@ by (asm_simp_tac (simpset() addsimps [nat_succI]) 1);
 brr(cpo_refl::prems) 1;
 qed "chain_const";
 
-goalw Limit.thy [islub_def,isub_def] (* islub_const *)
+Goalw [islub_def,isub_def] (* islub_const *)
     "!!x D. [|x:set(D); cpo(D)|] ==> islub(D,(lam n:nat. x),x)";
 by (Asm_simp_tac 1);
 by (Blast_tac 1);
@@ -1717,7 +1717,7 @@ by Safe_tac;
 by (asm_full_simp_tac(simpset() addsimps prems) 1); (* Surprise, surprise. *)
 qed "succ_le_pos";
 
-goal Limit.thy  (* lemma_le_exists *)
+Goal  (* lemma_le_exists *)
     "!!z. [|n:nat; m:nat|] ==> m le n --> (EX k:nat. n = m #+ k)";
 by (res_inst_tac[("n","m")]nat_induct 1);
 by (assume_tac 1);

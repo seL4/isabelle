@@ -11,7 +11,7 @@ val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
 qed "imp_conj_lemma";
 
 
-goalw  thy [is_abstraction_def] 
+Goalw [is_abstraction_def] 
 "is_abstraction h_abs C_ioa A_ioa";
 by (rtac conjI 1);
 (* ------------- start states ------------ *)
@@ -28,7 +28,7 @@ auto();
 qed"h_abs_is_abstraction";
 
 
-goal thy "validIOA C_ioa (<>[] <%(n,a,m). n~=0>)";
+Goal "validIOA C_ioa (<>[] <%(n,a,m). n~=0>)";
 br AbsRuleT1 1;
 br h_abs_is_abstraction 1;
 br MC_result 1;

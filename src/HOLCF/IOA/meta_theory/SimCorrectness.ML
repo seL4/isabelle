@@ -18,7 +18,7 @@ section "corresp_ex_sim";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy "corresp_ex_simC A R  = (LAM ex. (%s. case ex of \
+Goal "corresp_ex_simC A R  = (LAM ex. (%s. case ex of \
 \      nil =>  nil   \
 \    | x##xs => (flift1 (%pr. let a = (fst pr); t = (snd pr); \
 \                                 T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t' \
@@ -33,17 +33,17 @@ br beta_cfun 1;
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"corresp_ex_simC_unfold";
 
-goal thy "(corresp_ex_simC A R`UU) s=UU";
+Goal "(corresp_ex_simC A R`UU) s=UU";
 by (stac corresp_ex_simC_unfold 1);
 by (Simp_tac 1);
 qed"corresp_ex_simC_UU";
 
-goal thy "(corresp_ex_simC A R`nil) s = nil";
+Goal "(corresp_ex_simC A R`nil) s = nil";
 by (stac corresp_ex_simC_unfold 1);
 by (Simp_tac 1);
 qed"corresp_ex_simC_nil";
 
-goal thy "(corresp_ex_simC A R`((a,t)>>xs)) s = \
+Goal "(corresp_ex_simC A R`((a,t)>>xs)) s = \
 \          (let T' = @t'. ? ex1. (t,t'):R & move A ex1 s a t' \
 \           in  \
 \            (@cex. move A cex s a T')  \ 
@@ -68,7 +68,7 @@ section"properties of move";
 
 Delsimps [Let_def];
 
-goalw thy [is_simulation_def]
+Goalw [is_simulation_def]
    "!!f. [|is_simulation R C A; reachable C s; s -a--C-> t; (s,s'):R|] ==>\
 \     let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \     (t,T'): R & move A (@ex2. move A ex2 s' a T') s' a T'";
@@ -98,7 +98,7 @@ qed"move_is_move_sim";
 
 Addsimps [Let_def];
 
-goal thy
+Goal
    "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \    is_exec_frag A (s',@x. move A x s' a T')";
@@ -107,7 +107,7 @@ by (REPEAT (assume_tac 1));
 by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop1_sim";
 
-goal thy
+Goal
    "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \   Finite (@x. move A x s' a T')";
@@ -116,7 +116,7 @@ by (REPEAT (assume_tac 1));
 by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop2_sim";
 
-goal thy
+Goal
    "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \    laststate (s',@x. move A x s' a T') = T'";
@@ -125,7 +125,7 @@ by (REPEAT (assume_tac 1));
 by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop3_sim";
 
-goal thy
+Goal
    "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \     mk_trace A`((@x. move A x s' a T')) = \
@@ -135,7 +135,7 @@ by (REPEAT (assume_tac 1));
 by (asm_full_simp_tac (simpset() addsimps [move_def,Let_def]) 1);
 qed"move_subprop4_sim";
 
-goal thy
+Goal
    "!!f. [|is_simulation R C A; reachable C s; s-a--C-> t; (s,s'):R|] ==>\
 \   let T' = @t'. ? ex1. (t,t'):R & move A ex1 s' a t' in \
 \     (t,T'):R";
@@ -157,7 +157,7 @@ section "Lemmata for <==";
    ------------------------------------------------------- *)
 
 Delsplits[split_if];
-goal thy 
+Goal 
   "!!f.[|is_simulation R C A; ext C = ext A|] ==>  \     
 \        !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R --> \
 \            mk_trace C`ex = mk_trace A`((corresp_ex_simC A R`ex) s')";
@@ -187,7 +187,7 @@ Addsplits[split_if];
 (* ----------------------------------------------------------- *)
 
 
-goal thy 
+Goal 
  "!!f.[| is_simulation R C A |] ==>\
 \ !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'):R  \
 \ --> is_exec_frag A (s',(corresp_ex_simC A R`ex) s')"; 
@@ -239,7 +239,7 @@ section "Main Theorem: T R A C E - I N C L U S I O N";
      traces_coincide_sim, the second for the start state case. 
      S':= @s'. (s,s'):R & s':starts_of A, where s:starts_of C  *)
 
-goal thy 
+Goal 
 "!!C. [| is_simulation R C A; s:starts_of C |] \
 \ ==> let S' = @s'. (s,s'):R & s':starts_of A in \
 \     (s,S'):R & S':starts_of A";
@@ -258,7 +258,7 @@ bind_thm("sim_starts1",(rewrite_rule [Let_def] simulation_starts) RS conjunct1);
 bind_thm("sim_starts2",(rewrite_rule [Let_def] simulation_starts) RS conjunct2);
 
 
-goalw thy [traces_def]
+Goalw [traces_def]
   "!!f. [| ext C = ext A; is_simulation R C A |] \
 \          ==> traces C <= traces A"; 
 

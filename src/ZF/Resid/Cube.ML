@@ -17,7 +17,7 @@ val prism_ss = (res1L_ss addsimps
 (* ------------------------------------------------------------------------- *)
 
 (* Having more assumptions than needed -- removed below  *)
-goal Cube.thy 
+Goal 
     "!!u. v<==u ==> \
 \   regular(u)-->(ALL w. w~v-->w~u-->  \
 \             w |> u = (w|>v) |> (u|>v))";
@@ -31,7 +31,7 @@ by (dresolve_tac [spec RS mp RS mp] 1 THEN resolve_tac [Scomp.Comp_Fun] 1
 by (asm_full_simp_tac prism_ss 1);
 qed_spec_mp "prism_l";
 
-goal Cube.thy 
+Goal 
     "!!u.[|v <== u; regular(u); w~v|]==> \
 \       w |> u = (w|>v) |> (u|>v)";
 by (rtac prism_l 1);
@@ -45,7 +45,7 @@ qed "prism";
 (*    Levy's Cube Lemma                                                      *)
 (* ------------------------------------------------------------------------- *)
 
-goal Cube.thy 
+Goal 
     "!!u.[|u~v; regular(v); regular(u); w~u|]==>  \
 \          (w|>u) |> (v|>u) = (w|>v) |> (u|>v)";
 by (stac preservation 1 
@@ -68,7 +68,7 @@ qed "cube";
 (*           paving theorem                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-goal Cube.thy 
+Goal 
     "!!u.[|w~u; w~v; regular(u); regular(v)|]==> \
 \          EX uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu &\
 \            regular(vu) & (w|>v)~uv & regular(uv) ";

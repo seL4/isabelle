@@ -6,12 +6,12 @@
 Proves that 'a discr is a cpo
 *)
 
-goalw thy [less_discr_def] "((x::('a::term)discr) << y) = (x=y)";
+Goalw [less_discr_def] "((x::('a::term)discr) << y) = (x=y)";
 by (rtac refl 1);
 qed "discr_less_eq";
 AddIffs [discr_less_eq];
 
-goalw thy [chain]
+Goalw [chain]
  "!!S::nat=>('a::term)discr. chain S ==> S i = S 0";
 by (nat_ind_tac "i" 1);
 by (rtac refl 1);
@@ -20,13 +20,13 @@ by (rtac sym 1);
 by (Fast_tac 1);
 qed "discr_chain0";
 
-goal thy
+Goal
  "!!S::nat=>('a::term)discr. chain(S) ==> range(S) = {S 0}";
 by (fast_tac (claset() addEs [discr_chain0]) 1);
 qed "discr_chain_range0";
 Addsimps [discr_chain_range0];
 
-goalw thy [is_lub,is_ub]
+Goalw [is_lub,is_ub]
  "!!S. chain S ==> ? x::('a::term)discr. range(S) <<| x";
 by (Asm_simp_tac 1);
 qed "discr_cpo";

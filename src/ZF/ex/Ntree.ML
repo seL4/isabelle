@@ -13,7 +13,7 @@ open Ntree;
 
 (** ntree **)
 
-goal Ntree.thy "ntree(A) = A * (UN n: nat. n -> ntree(A))";
+Goal "ntree(A) = A * (UN n: nat. n -> ntree(A))";
 let open ntree;  val rew = rewrite_rule con_defs in  
 by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
@@ -48,14 +48,14 @@ qed "ntree_induct_eqn";
 
 (**  Lemmas to justify using "Ntree" in other recursive type definitions **)
 
-goalw Ntree.thy ntree.defs "!!A B. A<=B ==> ntree(A) <= ntree(B)";
+Goalw ntree.defs "!!A B. A<=B ==> ntree(A) <= ntree(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac ntree.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
 qed "ntree_mono";
 
 (*Easily provable by induction also*)
-goalw Ntree.thy (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
+Goalw (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by Safe_tac;
@@ -67,7 +67,7 @@ val ntree_subset_univ = [ntree_mono, ntree_univ] MRS subset_trans |> standard;
 
 (** maptree **)
 
-goal Ntree.thy "maptree(A) = A * (maptree(A) -||> maptree(A))";
+Goal "maptree(A) = A * (maptree(A) -||> maptree(A))";
 let open maptree;  val rew = rewrite_rule con_defs in  
 by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;
@@ -91,7 +91,7 @@ qed "maptree_induct";
 
 (** maptree2 **)
 
-goal Ntree.thy "maptree2(A,B) = A * (B -||> maptree2(A,B))";
+Goal "maptree2(A,B) = A * (B -||> maptree2(A,B))";
 let open maptree2;  val rew = rewrite_rule con_defs in  
 by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
 end;

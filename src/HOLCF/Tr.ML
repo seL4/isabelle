@@ -95,7 +95,7 @@ Addsimps (dist_less_tr @ dist_eq_tr @ andalso_thms @
 (*  split-tac for If via If2 because the constant has to be a constant *)
 (* ------------------------------------------------------------------- *)
   
-goalw thy [If2_def] 
+Goalw [If2_def] 
   "P (If2 Q x y ) = ((Q=UU --> P UU) & (Q=TT --> P x) & (Q=FF --> P y))";
 by (res_inst_tac [("p","Q")] trE 1);
 by (REPEAT (Asm_full_simp_tac 1));
@@ -111,7 +111,7 @@ val split_If_tac =
 (* ----------------------------------------------------------------- *)
 
 
-goal thy
+Goal
 "!!t.[|t~=UU|]==> ((t andalso s)=FF)=(t=FF | s=FF)";
 by (rtac iffI 1);
 by (res_inst_tac [("p","t")] trE 1);
@@ -120,7 +120,7 @@ by (res_inst_tac [("p","t")] trE 1);
 by Auto_tac;
 qed"andalso_or";
 
-goal thy "!!t.[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)";
+Goal "!!t.[|t~=UU|]==> ((t andalso s)~=FF)=(t~=FF & s~=FF)";
 by (rtac iffI 1);
 by (res_inst_tac [("p","t")] trE 1);
 by Auto_tac;
@@ -128,23 +128,23 @@ by (res_inst_tac [("p","t")] trE 1);
 by Auto_tac;
 qed"andalso_and";
 
-goal thy "(Def x ~=FF)= x";
+Goal "(Def x ~=FF)= x";
 by (simp_tac (simpset() addsimps [FF_def]) 1);
 qed"Def_bool1";
 
-goal thy "(Def x = FF) = (~x)";
+Goal "(Def x = FF) = (~x)";
 by (simp_tac (simpset() addsimps [FF_def]) 1);
 qed"Def_bool2";
 
-goal thy "(Def x = TT) = x";
+Goal "(Def x = TT) = x";
 by (simp_tac (simpset() addsimps [TT_def]) 1);
 qed"Def_bool3";
 
-goal thy "(Def x ~= TT) = (~x)";
+Goal "(Def x ~= TT) = (~x)";
 by (simp_tac (simpset() addsimps [TT_def]) 1);
 qed"Def_bool4";
 
-goal thy 
+Goal 
   "(If Def P then A else B fi)= (if P then A else B)";
 by (res_inst_tac [("p","Def P")]  trE 1);
 by (Asm_full_simp_tac 1);
@@ -163,12 +163,12 @@ Addsimps [Def_bool1,Def_bool2,Def_bool3,Def_bool4];
    replaced by a more general admissibility test that also checks 
    chain-finiteness, of which these lemmata are specific examples *)
 
-goal thy "x~=FF = (x=TT|x=UU)";
+Goal "x~=FF = (x=TT|x=UU)";
 by (res_inst_tac [("p","x")] trE 1);
 by (TRYALL (Asm_full_simp_tac));
 qed"adm_trick_1";
 
-goal thy "x~=TT = (x=FF|x=UU)";
+Goal "x~=TT = (x=FF|x=UU)";
 by (res_inst_tac [("p","x")] trE 1);
 by (TRYALL (Asm_full_simp_tac));
 qed"adm_trick_2";
@@ -176,12 +176,12 @@ qed"adm_trick_2";
 val adm_tricks = [adm_trick_1,adm_trick_2];
 
 
-goal thy "!!f. cont(f) ==> adm (%x. (f x)~=TT)";
+Goal "!!f. cont(f) ==> adm (%x. (f x)~=TT)";
 by (simp_tac (HOL_basic_ss addsimps adm_tricks) 1);
 by (REPEAT ((resolve_tac (adm_lemmas@cont_lemmas1) 1) ORELSE atac 1));
 qed"adm_nTT";
 
-goal thy "!!f. cont(f) ==> adm (%x. (f x)~=FF)";
+Goal "!!f. cont(f) ==> adm (%x. (f x)~=FF)";
 by (simp_tac (HOL_basic_ss addsimps adm_tricks) 1);
 by (REPEAT ((resolve_tac (adm_lemmas@cont_lemmas1) 1) ORELSE atac 1));
 qed"adm_nFF";

@@ -10,7 +10,7 @@ LEMMA is the sentence denoted by (**)
 (* It is easy to see, that WO7 is equivallent to (**)                     *)
 (* ********************************************************************** *)
 
-goalw thy [WO7_def] "WO7 <-> (ALL X. ~Finite(X) -->  \
+Goalw [WO7_def] "WO7 <-> (ALL X. ~Finite(X) -->  \
 \                       (EX R. well_ord(X,R) & ~well_ord(X,converse(R))))";
 by (fast_tac (claset() addSEs [Finite_well_ord_converse]) 1);
 qed "WO7_iff_LEMMA";
@@ -19,7 +19,7 @@ qed "WO7_iff_LEMMA";
 (* It is also easy to show that LEMMA implies WO1.                        *)
 (* ********************************************************************** *)
 
-goalw thy [WO1_def] "!!Z. ALL X. ~Finite(X) -->  \
+Goalw [WO1_def] "!!Z. ALL X. ~Finite(X) -->  \
 \               (EX R. well_ord(X,R) & ~well_ord(X,converse(R))) ==> WO1";
 by (rtac allI 1);
 by (etac allE 1);
@@ -43,7 +43,7 @@ qed "LEMMA_imp_WO1";
 (* gives the conclusion.                                                  *)
 (* ********************************************************************** *)
 
-goalw thy [wf_on_def, wf_def] 
+Goalw [wf_on_def, wf_def] 
     "!!a. [| Ord(a); ~Finite(a) |] ==> ~wf[a](converse(Memrel(a)))";
 by (dresolve_tac [nat_le_infinite_Ord RS le_imp_subset] 1 
     THEN (assume_tac 1));
@@ -57,12 +57,12 @@ by (fast_tac (claset() addSIs [nat_succI, converseI, MemrelI,
                             nat_succI RSN (2, subsetD)]) 1);
 qed "converse_Memrel_not_wf_on";
 
-goalw thy [well_ord_def] 
+Goalw [well_ord_def] 
     "!!a. [| Ord(a); ~Finite(a) |] ==> ~well_ord(a,converse(Memrel(a)))";
 by (fast_tac (claset() addSDs [converse_Memrel_not_wf_on]) 1);
 qed "converse_Memrel_not_well_ord";
 
-goal thy "!!A. [| well_ord(A,r); well_ord(A,converse(r)) |]  \
+Goal "!!A. [| well_ord(A,r); well_ord(A,converse(r)) |]  \
 \       ==> well_ord(ordertype(A,r), converse(Memrel(ordertype(A, r))))";
 by (rtac ([ordertype_ord_iso RS ord_iso_sym RS ord_iso_rvimage_eq, 
                 Memrel_type RS (subset_Int_iff RS iffD1)] 
@@ -74,7 +74,7 @@ by (etac (ordertype_ord_iso RS ord_iso_sym RS ord_iso_is_bij RS
         THEN (assume_tac 1));
 qed "well_ord_converse_Memrel";
 
-goalw thy [WO1_def] "!!Z. WO1 ==> ALL X. ~Finite(X) -->  \
+Goalw [WO1_def] "!!Z. WO1 ==> ALL X. ~Finite(X) -->  \
 \                       (EX R. well_ord(X,R) & ~well_ord(X,converse(R)))";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE,exE] 1));

@@ -38,7 +38,7 @@ val nat_le_imp_lepoll = nat_le_imp_lepoll_lemma RS bspec RS mp |> standard;
 (*             lemmas concerning FOL and pure ZF theory                   *)
 (* ********************************************************************** *)
 
-goal thy "!!X. (A->X)=0 ==> X=0";
+Goal "!!X. (A->X)=0 ==> X=0";
 by (fast_tac (claset() addSIs [equals0I] addEs [lam_type RSN (2, equals0D)]) 1);
 qed "fun_space_emptyD";
 
@@ -95,12 +95,12 @@ goalw CardinalArith.thy [InfCard_def]
 by (asm_simp_tac (simpset() addsimps [Card_is_Ord RS nat_le_infinite_Ord]) 1);
 qed "Inf_Card_is_InfCard";
 
-goal thy "(THE z. {x}={z}) = x";
+Goal "(THE z. {x}={z}) = x";
 by (fast_tac (claset() addSIs [the_equality]
                 addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
 qed "the_element";
 
-goal thy "(lam x:A. {x}) : bij(A, {{x}. x:A})";
+Goal "(lam x:A. {x}) : bij(A, {{x}. x:A})";
 by (res_inst_tac [("d","%z. THE x. z={x}")] lam_bijective 1);
 by (TRYALL (eresolve_tac [RepFunI, RepFunE]));
 by (REPEAT (asm_full_simp_tac (simpset() addsimps [the_element]) 1));
@@ -118,15 +118,15 @@ by (fast_tac (claset() addSEs [minor]
         addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
 qed "inj_strengthen_type";
 
-goal thy "A*B=0 <-> A=0 | B=0";
+Goal "A*B=0 <-> A=0 | B=0";
 by (fast_tac (claset() addSIs [equals0I] addEs [equals0D]) 1);
 qed "Sigma_empty_iff";
 
-goalw thy [Finite_def] "!!n. n:nat ==> Finite(n)";
+Goalw [Finite_def] "!!n. n:nat ==> Finite(n)";
 by (fast_tac (claset() addSIs [eqpoll_refl]) 1);
 qed "nat_into_Finite";
 
-goalw thy [Finite_def] "~Finite(nat)";
+Goalw [Finite_def] "~Finite(nat)";
 by (fast_tac (claset() addSDs [eqpoll_imp_lepoll]
                 addIs [Ord_nat RSN (2, ltI) RS lt_not_lepoll RS notE]) 1);
 qed "nat_not_Finite";
@@ -137,7 +137,7 @@ val le_imp_lepoll = le_imp_subset RS subset_imp_lepoll;
 (* Another elimination rule for EX!                                       *)
 (* ********************************************************************** *)
 
-goal thy "!!x. [| EX! x. P(x); P(x); P(y) |] ==> x=y";
+Goal "!!x. [| EX! x. P(x); P(x); P(y) |] ==> x=y";
 by (etac ex1E 1);
 by (res_inst_tac [("b","xa")] (sym RSN (2, trans)) 1);
 by (Fast_tac 1);
@@ -148,7 +148,7 @@ qed "ex1_two_eq";
 (* image of a surjection                                                  *)
 (* ********************************************************************** *)
 
-goalw thy [surj_def] "!!f. f : surj(A, B) ==> f``A = B";
+Goalw [surj_def] "!!f. f : surj(A, B) ==> f``A = B";
 by (etac CollectE 1);
 by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 
     THEN (assume_tac 1));
@@ -156,11 +156,11 @@ by (fast_tac (claset() addSEs [apply_type] addIs [equalityI]) 1);
 qed "surj_image_eq";
 
 
-goal thy "!!y. succ(x) lepoll y ==> y ~= 0";
+Goal "!!y. succ(x) lepoll y ==> y ~= 0";
 by (fast_tac (claset() addSDs [lepoll_0_is_0]) 1);
 qed "succ_lepoll_imp_not_empty";
 
-goal thy "!!x. x eqpoll succ(n) ==> x ~= 0";
+Goal "!!x. x eqpoll succ(n) ==> x ~= 0";
 by (fast_tac (claset() addSEs [eqpoll_sym RS eqpoll_0_is_0 RS succ_neq_0]) 1);
 qed "eqpoll_succ_imp_not_empty";
 

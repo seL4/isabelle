@@ -13,7 +13,7 @@ open Lift1;
 (* less_lift is a partial order on type 'a -> 'b                            *)
 (* ------------------------------------------------------------------------ *)
 
-goalw thy [less_lift_def] "(x::'a lift) << x";
+Goalw [less_lift_def] "(x::'a lift) << x";
 by (fast_tac HOL_cs 1);
 qed"refl_less_lift";
 

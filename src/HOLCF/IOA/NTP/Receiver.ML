@@ -4,7 +4,7 @@
     Copyright   1994  TU Muenchen
 *)
 
-goal Receiver.thy
+Goal
  "S_msg(m) ~: actions(receiver_asig)      &   \
 \ R_msg(m) : actions(receiver_asig)       &   \
 \ S_pkt(pkt) ~: actions(receiver_asig) &   \

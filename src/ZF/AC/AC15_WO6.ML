@@ -7,7 +7,7 @@ The proof of AC1 ==> WO2
 
 open AC15_WO6;
 
-goal thy "!!x. Ord(x) ==> (UN a<x. F(a)) = (UN a:x. F(a))";
+Goal "!!x. Ord(x) ==> (UN a<x. F(a)) = (UN a:x. F(a))";
 by (fast_tac (claset() addSIs [ltI] addSDs [ltD]) 1);
 qed "OUN_eq_UN";
 
@@ -30,7 +30,7 @@ by (fast_tac (claset() addIs [prem RS ballE]
                 addSDs [HH_subset_x_imp_subset_Diff_UN RS not_emptyI2]) 1);
 val lemma2 = result();
 
-goalw thy [AC15_def, WO6_def] "!!Z. AC15 ==> WO6";
+Goalw [AC15_def, WO6_def] "!!Z. AC15 ==> WO6";
 by (rtac allI 1);
 by (eres_inst_tac [("x","Pow(A)-{0}")] allE 1);
 by (etac impE 1);

@@ -17,7 +17,7 @@ by (fast_tac (claset() addSDs [equals0D, prem RS apply_type]) 1);
 by (fast_tac (claset() addSIs [prem RS Pi_weaken_type]) 1);
 val lemma1 = uresult() |> standard;
 
-goalw thy [AC1_def, WO2_def, eqpoll_def] "!!Z. AC1 ==> WO2";
+Goalw [AC1_def, WO2_def, eqpoll_def] "!!Z. AC1 ==> WO2";
 by (rtac allI 1);
 by (eres_inst_tac [("x","Pow(A)-{0}")] allE 1);
 by (fast_tac (claset() addSDs [lemma1] addSIs [Ord_Least]) 1);

@@ -20,7 +20,7 @@ val prems = goal Acc.thy
 by (fast_tac (claset() addIs (prems@acc.intrs)) 1);
 qed "accI";
 
-goal Acc.thy "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
+Goal "!!a b r. [| b: acc(r);  <a,b>: r |] ==> a: acc(r)";
 by (etac acc.elim 1);
 by (Fast_tac 1);
 qed "acc_downward";
@@ -37,7 +37,7 @@ by (assume_tac 2);
 by (etac (Collect_subset RS Pow_mono RS subsetD) 1);
 qed "acc_induct";
 
-goal Acc.thy "wf[acc(r)](r)";
+Goal "wf[acc(r)](r)";
 by (rtac wf_onI2 1);
 by (etac acc_induct 1);
 by (Fast_tac 1);
@@ -55,6 +55,6 @@ by (assume_tac 2);
 by (Fast_tac 1);
 qed "acc_wfD";
 
-goal Acc.thy "wf(r) <-> field(r) <= acc(r)";
+Goal "wf(r) <-> field(r) <= acc(r)";
 by (EVERY1 [rtac iffI, etac acc_wfD, etac acc_wfI]);
 qed "wf_acc_iff";

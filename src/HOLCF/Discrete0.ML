@@ -6,17 +6,17 @@
 Proves that 'a discr is a po
 *)
 
-goalw thy [less_discr_def] "(x::('a::term)discr) << x";
+Goalw [less_discr_def] "(x::('a::term)discr) << x";
 by (rtac refl 1);
 qed "less_discr_refl";
 
-goalw thy [less_discr_def]
+Goalw [less_discr_def]
   "!!x. [| (x::('a::term)discr) << y; y << z |] ==> x <<  z";
 by (etac trans 1);
 by (assume_tac 1);
 qed "less_discr_trans";
 
-goalw thy [less_discr_def]
+Goalw [less_discr_def]
   "!!x. [| (x::('a::term)discr) << y; y << x |] ==> x=y";
 by (assume_tac 1);
 qed "less_discr_antisym";

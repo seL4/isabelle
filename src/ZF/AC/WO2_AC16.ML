@@ -18,7 +18,7 @@
 (* case of limit ordinal                                                  *)
 (* ********************************************************************** *)
 
-goal thy "!!Z. [| ALL y<x. ALL z<a. z<y | (EX Y: F(y). f(z)<=Y)  \
+Goal "!!Z. [| ALL y<x. ALL z<a. z<y | (EX Y: F(y). f(z)<=Y)  \
 \               --> (EX! Y. Y:F(y) & f(z)<=Y);  \
 \               ALL i j. i le j --> F(i) <= F(j); j le i; i<x; z<a;  \
 \               V: F(i); f(z)<=V; W:F(j); f(z)<=W |]  \
@@ -31,7 +31,7 @@ by (fast_tac (FOL_cs addSIs [bexI]) 1);
 by (etac ex1_two_eq 1 THEN (REPEAT (ares_tac [conjI] 1)));
 val lemma3_1 = result();
 
-goal thy "!!Z. [| ALL y<x. ALL z<a. z<y | (EX Y: F(y). f(z)<=Y)  \
+Goal "!!Z. [| ALL y<x. ALL z<a. z<y | (EX Y: F(y). f(z)<=Y)  \
 \               --> (EX! Y. Y:F(y) & f(z)<=Y);  \
 \               ALL i j. i le j --> F(i) <= F(j); i<x; j<x; z<a;  \
 \               V: F(i); f(z)<=V; W:F(j); f(z)<=W |]  \
@@ -42,7 +42,7 @@ by (eresolve_tac [lemma3_1 RS sym] 1 THEN (REPEAT (assume_tac 1)));
 by (etac lemma3_1 1 THEN (REPEAT (assume_tac 1)));
 val lemma3 = result();
 
-goal thy "!!a. [| ALL y<x. F(y) <= X &  \
+Goal "!!a. [| ALL y<x. F(y) <= X &  \
 \               (ALL x<a. x < y | (EX Y:F(y). fa(x) <= Y) -->  \
 \                       (EX! Y. Y : F(y) & fa(x) <= Y)); x < a |]  \
 \               ==> ALL y<x. ALL z<a. z < y | (EX Y:F(y). fa(z) <= Y) -->  \
@@ -52,7 +52,7 @@ by (dtac ospec 1 THEN (assume_tac 1));
 by (fast_tac (FOL_cs addSEs [oallE]) 1);
 val lemma4 = result();
 
-goal thy "!!a. [| ALL y<x. F(y) <= X &  \
+Goal "!!a. [| ALL y<x. F(y) <= X &  \
 \               (ALL x<a. x < y | (EX Y:F(y). fa(x) <= Y) -->  \
 \                       (EX! Y. Y : F(y) & fa(x) <= Y)); \
 \               x < a; Limit(x); ALL i j. i le j --> F(i) <= F(j) |]  \
@@ -101,7 +101,7 @@ val lemma5 = result();
 (* dbl_Diff_eqpoll_Card                                                   *)
 (* ********************************************************************** *)
 
-goal thy "!!A. [| A eqpoll a; Card(a); ~Finite(a); B lesspoll a;  \
+Goal "!!A. [| A eqpoll a; Card(a); ~Finite(a); B lesspoll a;  \
 \       C lesspoll a |] ==> A - B - C eqpoll a";
 by (rtac Diff_lesspoll_eqpoll_Card 1 THEN (REPEAT (assume_tac 1)));
 by (rtac Diff_lesspoll_eqpoll_Card 1 THEN (REPEAT (assume_tac 1)));
@@ -111,7 +111,7 @@ qed "dbl_Diff_eqpoll_Card";
 (* Case of finite ordinals                                                *)
 (* ********************************************************************** *)
 
-goalw thy [lesspoll_def]
+Goalw [lesspoll_def]
         "!!X. [| Finite(X); ~Finite(a); Ord(a) |] ==> X lesspoll a";
 by (rtac conjI 1);
 by (dresolve_tac [nat_le_infinite_Ord RS le_imp_lepoll] 1
@@ -123,11 +123,11 @@ by (fast_tac (claset() addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_subset RS
         subset_imp_lepoll RSN (2, eqpoll_imp_lepoll RS lepoll_trans)]) 1);
 qed "Finite_lesspoll_infinite_Ord";
 
-goal thy "!!x. x:X ==> Union(X) = Union(X-{x}) Un x";
+Goal "!!x. x:X ==> Union(X) = Union(X-{x}) Un x";
 by (Fast_tac 1);
 qed "Union_eq_Un_Diff";
 
-goal thy "!!n. n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
+Goal "!!n. n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
 \       --> Finite(Union(X))";
 by (etac nat_induct 1);
 by (fast_tac (claset() addSDs [eqpoll_imp_lepoll RS lepoll_0_is_0]
@@ -141,19 +141,19 @@ by (Fast_tac 2);
 by (fast_tac (claset() addSIs [Diff_sing_eqpoll]) 1);
 qed "Finite_Union_lemma";
 
-goal thy "!!X. [| ALL x:X. Finite(x); Finite(X) |] ==> Finite(Union(X))";
+Goal "!!X. [| ALL x:X. Finite(x); Finite(X) |] ==> Finite(Union(X))";
 by (eresolve_tac [Finite_def RS def_imp_iff RS iffD1 RS bexE] 1);
 by (dtac Finite_Union_lemma 1);
 by (Fast_tac 1);
 qed "Finite_Union";
 
-goalw thy [Finite_def] "!!x. [| x lepoll n; n:nat |] ==> Finite(x)";
+Goalw [Finite_def] "!!x. [| x lepoll n; n:nat |] ==> Finite(x)";
 by (fast_tac (claset()
         addEs [nat_into_Ord RSN (2, lepoll_imp_ex_le_eqpoll) RS exE,
         Ord_nat RSN (2, ltI) RSN (2, lt_trans1) RS ltD]) 1);
 qed "lepoll_nat_num_imp_Finite";
 
-goal thy "!!X. [| ALL x:X. x lepoll n & x <= T; well_ord(T, R); X lepoll b;  \
+Goal "!!X. [| ALL x:X. x lepoll n & x <= T; well_ord(T, R); X lepoll b;  \
 \       b<a; ~Finite(a); Card(a); n:nat |]  \
 \       ==> Union(X) lesspoll a";
 by (excluded_middle_tac "Finite(X)" 1);
@@ -181,24 +181,24 @@ qed "Union_lesspoll";
 (* recfunAC16_lepoll_index                                                *)
 (* ********************************************************************** *)
 
-goal thy "A Un {a} = cons(a, A)";
+Goal "A Un {a} = cons(a, A)";
 by (Fast_tac 1);
 qed "Un_sing_eq_cons";
 
-goal thy "!!A. A lepoll B ==> A Un {a} lepoll succ(B)";
+Goal "!!A. A lepoll B ==> A Un {a} lepoll succ(B)";
 by (asm_simp_tac (simpset() addsimps [Un_sing_eq_cons, succ_def]) 1);
 by (eresolve_tac [mem_not_refl RSN (2, cons_lepoll_cong)] 1);
 qed "Un_lepoll_succ";
 
-goal thy "!!a. Ord(a) ==> F(a) - (UN b<succ(a). F(b)) = 0";
+Goal "!!a. Ord(a) ==> F(a) - (UN b<succ(a). F(b)) = 0";
 by (fast_tac (claset() addSIs [OUN_I, le_refl]) 1);
 qed "Diff_UN_succ_empty";
 
-goal thy "!!a. Ord(a) ==> F(a) Un X - (UN b<succ(a). F(b)) <= X";
+Goal "!!a. Ord(a) ==> F(a) Un X - (UN b<succ(a). F(b)) <= X";
 by (fast_tac (claset() addSIs [OUN_I, le_refl]) 1);
 qed "Diff_UN_succ_subset";
 
-goal thy "!!x. Ord(x) ==>  \
+Goal "!!x. Ord(x) ==>  \
 \       recfunAC16(f, g, x, a) - (UN i<x. recfunAC16(f, g, i, a)) lepoll 1";
 by (etac Ord_cases 1);
 by (asm_simp_tac (simpset() addsimps [recfunAC16_0,
@@ -213,12 +213,12 @@ by (fast_tac (claset() addSEs [Diff_UN_succ_subset RS subset_imp_lepoll RS
         (singleton_eqpoll_1 RS eqpoll_imp_lepoll RSN (2, lepoll_trans))]) 1);
 qed "recfunAC16_Diff_lepoll_1";
 
-goal thy "!!z. [| z : F(x); Ord(x) |]  \
+Goal "!!z. [| z : F(x); Ord(x) |]  \
 \       ==> z:F(LEAST i. z:F(i)) - (UN j<(LEAST i. z:F(i)). F(j))";
 by (fast_tac (claset() addEs [less_LeastE] addSEs [OUN_E, LeastI]) 1);
 qed "in_Least_Diff";
 
-goal thy "!!w. [| (LEAST i. w:F(i)) = (LEAST i. z:F(i));  \
+Goal "!!w. [| (LEAST i. w:F(i)) = (LEAST i. z:F(i));  \
 \       w:(UN i<a. F(i)); z:(UN i<a. F(i)) |]  \
 \       ==> EX b<a. w:(F(b) - (UN c<b. F(c))) & z:(F(b) - (UN c<b. F(c)))";
 by (REPEAT (etac OUN_E 1));
@@ -231,11 +231,11 @@ by (eresolve_tac [lt_Ord RSN (2, Least_le) RS lt_trans1] 1
         THEN (REPEAT (assume_tac 1)));
 qed "Least_eq_imp_ex";
 
-goal thy "!!A. [| A lepoll 1; a:A; b:A |] ==> a=b";
+Goal "!!A. [| A lepoll 1; a:A; b:A |] ==> a=b";
 by (fast_tac (claset() addSDs [lepoll_1_is_sing]) 1);
 qed "two_in_lepoll_1";
 
-goal thy "!!a. [| ALL i<a. F(i)-(UN j<i. F(j)) lepoll 1; Limit(a) |]  \
+Goal "!!a. [| ALL i<a. F(i)-(UN j<i. F(j)) lepoll 1; Limit(a) |]  \
 \       ==> (UN x<a. F(x)) lepoll a";
 by (resolve_tac [lepoll_def RS (def_imp_iff RS iffD2)] 1);
 by (res_inst_tac [("x","lam z: (UN x<a. F(x)). LEAST i. z:F(i)")] exI 1);
@@ -254,7 +254,7 @@ by (dtac Least_eq_imp_ex 1 THEN (REPEAT (assume_tac 1)));
 by (fast_tac (claset() addSEs [two_in_lepoll_1]) 1);
 qed "UN_lepoll_index";
 
-goal thy "!!y. Ord(y) ==> recfunAC16(f, fa, y, a) lepoll y";
+Goal "!!y. Ord(y) ==> recfunAC16(f, fa, y, a) lepoll y";
 by (etac trans_induct 1);
 by (etac Ord_cases 1);
 by (asm_simp_tac (simpset() addsimps [recfunAC16_0, lepoll_refl]) 1);
@@ -268,7 +268,7 @@ by (fast_tac (claset() addSEs [lt_Ord RS recfunAC16_Diff_lepoll_1]
         addSIs [UN_lepoll_index]) 1);
 qed "recfunAC16_lepoll_index";
 
-goal thy "!!y. [| recfunAC16(f,g,y,a) <= {X: Pow(A). X eqpoll n};  \
+Goal "!!y. [| recfunAC16(f,g,y,a) <= {X: Pow(A). X eqpoll n};  \
 \               A eqpoll a; y<a; ~Finite(a); Card(a); n:nat |]  \
 \               ==> Union(recfunAC16(f,g,y,a)) lesspoll a";
 by (eresolve_tac [eqpoll_def RS def_imp_iff RS iffD1 RS exE] 1);
@@ -279,7 +279,7 @@ by (eresolve_tac [[bij_is_inj, Card_is_Ord RS well_ord_Memrel] MRS
 by (fast_tac (claset() addSEs [eqpoll_imp_lepoll]) 1);
 qed "Union_recfunAC16_lesspoll";
 
-goal thy
+Goal
   "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 \       Card(a); ~ Finite(a); A eqpoll a;  \
 \       k : nat; m : nat; y<a;  \
@@ -302,7 +302,7 @@ val disj_Un_eqpoll_nat_sum = disj_Un_eqpoll_sum RS (
                              nat_sum_eqpoll_sum RSN (3, 
                              eqpoll_trans RS eqpoll_trans))) |> standard;
 
-goal thy "!!x. [| x : Pow(A - B - fa`i); x eqpoll m;  \
+Goal "!!x. [| x : Pow(A - B - fa`i); x eqpoll m;  \
 \       fa : bij(a, {x: Pow(A) . x eqpoll k}); i<a; k:nat; m:nat |]  \
 \       ==> fa ` i Un x : {x: Pow(A) . x eqpoll k #+ m}";
 by (rtac CollectI 1);
@@ -319,7 +319,7 @@ qed "Un_in_Collect";
 (* Lemmas simplifying assumptions                                         *)
 (* ********************************************************************** *)
 
-goal thy "!!j. [| ALL y<succ(j). F(y)<=X & (ALL x<a. x<y | P(x,y)  \
+Goal "!!j. [| ALL y<succ(j). F(y)<=X & (ALL x<a. x<y | P(x,y)  \
 \       --> Q(x,y)); succ(j)<a |]  \
 \       ==> F(j)<=X & (ALL x<a. x<j | P(x,j) --> Q(x,j))";
 by (dtac ospec 1);
@@ -327,7 +327,7 @@ by (resolve_tac [lt_Ord RS (succI1 RS ltI RS lt_Ord RS le_refl)] 1
         THEN (REPEAT (assume_tac 1)));
 val lemma6 = result();
 
-goal thy "!!j. [| F(j)<=X; (ALL x<a. x<j | P(x,j) --> Q(x,j)); succ(j)<a |]  \
+Goal "!!j. [| F(j)<=X; (ALL x<a. x<j | P(x,j) --> Q(x,j)); succ(j)<a |]  \
 \       ==> P(j,j) --> F(j) <= X & (ALL x<a. x le j | P(x,j) --> Q(x,j))";
 by (fast_tac (claset() addSEs [leE]) 1);
 val lemma7 = result();
@@ -337,7 +337,7 @@ val lemma7 = result();
 (* ordinal there is a set satisfying certain properties                   *)
 (* ********************************************************************** *)
 
-goal thy "!!A. [| A eqpoll a; ~ Finite(a); Ord(a); m:nat |]  \
+Goal "!!A. [| A eqpoll a; ~ Finite(a); Ord(a); m:nat |]  \
 \       ==> EX X:Pow(A). X eqpoll m";
 by (eresolve_tac [Ord_nat RSN (2, ltI) RS 
                 (nat_le_infinite_Ord RSN (2, lt_trans2)) RS 
@@ -348,11 +348,11 @@ by (eresolve_tac [Ord_nat RSN (2, ltI) RS
 by (fast_tac (claset() addSEs [eqpoll_sym]) 1);
 qed "ex_subset_eqpoll";
 
-goal thy "!!A. [| A <= B Un C; A Int C = 0 |] ==> A <= B";
+Goal "!!A. [| A <= B Un C; A Int C = 0 |] ==> A <= B";
 by (fast_tac (claset() addDs [equals0D]) 1);
 qed "subset_Un_disjoint";
 
-goal thy "!!F. [| X:Pow(A - Union(B) -C); T:B; F<=T |] ==> F Int X = 0";
+Goal "!!F. [| X:Pow(A - Union(B) -C); T:B; F<=T |] ==> F Int X = 0";
 by (fast_tac (claset() addSIs [equals0I]) 1);
 qed "Int_empty";
 
@@ -360,11 +360,11 @@ qed "Int_empty";
 (* equipollent subset (and finite) is the whole set                       *)
 (* ********************************************************************** *)
 
-goal thy "!!A. [| A <= B; a : A; A - {a} = B - {a} |] ==> A = B";
+Goal "!!A. [| A <= B; a : A; A - {a} = B - {a} |] ==> A = B";
 by (fast_tac (claset() addSEs [equalityE]) 1);
 qed "Diffs_eq_imp_eq";
 
-goal thy "!!A. m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
+Goal "!!A. m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
 by (etac nat_induct 1);
 by (fast_tac (claset() addSDs [lepoll_0_is_0]) 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
@@ -382,11 +382,11 @@ by (etac Diffs_eq_imp_eq 1
         THEN REPEAT (assume_tac 1));
 qed "subset_imp_eq_lemma";
 
-goal thy "!!A. [| A <= B; m lepoll A; B lepoll m; m:nat |] ==> A=B";
+Goal "!!A. [| A <= B; m lepoll A; B lepoll m; m:nat |] ==> A=B";
 by (fast_tac (FOL_cs addSDs [subset_imp_eq_lemma]) 1);
 qed "subset_imp_eq";
 
-goal thy "!!f. [| f:bij(a, {Y:X. Y eqpoll succ(k)}); k:nat; f`b<=f`y; b<a;  \
+Goal "!!f. [| f:bij(a, {Y:X. Y eqpoll succ(k)}); k:nat; f`b<=f`y; b<a;  \
 \       y<a |] ==> b=y";
 by (dtac subset_imp_eq 1);
 by (etac nat_succI 3);
@@ -398,7 +398,7 @@ by (rewrite_goals_tac [bij_def, inj_def]);
 by (fast_tac (claset() addSDs [ltD]) 1);
 qed "bij_imp_arg_eq";
 
-goal thy
+Goal
   "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 \       Card(a); ~ Finite(a); A eqpoll a;  \
 \       k : nat; m : nat; y<a;  \
@@ -434,7 +434,7 @@ qed "ex_next_set";
 (* ordinal there is a number of the set satisfying certain properties     *)
 (* ********************************************************************** *)
 
-goal thy
+Goal
   "!!a. [| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 \       Card(a); ~ Finite(a); A eqpoll a;  \
 \       k : nat; m : nat; y<a;  \
@@ -452,7 +452,7 @@ by (resolve_tac [right_inverse_bij RS ssubst] 1
         THEN REPEAT (ares_tac [Card_is_Ord] 1));
 qed "ex_next_Ord";
 
-goal thy "!!Z. [| EX! Y. Y:Z & P(Y); ~P(W) |] ==> EX! Y. Y: (Z Un {W}) & P(Y)";
+Goal "!!Z. [| EX! Y. Y:Z & P(Y); ~P(W) |] ==> EX! Y. Y: (Z Un {W}) & P(Y)";
 by (Fast_tac 1);
 qed "ex1_in_Un_sing";
 
@@ -460,7 +460,7 @@ qed "ex1_in_Un_sing";
 (* Lemma simplifying assumptions                                          *)
 (* ********************************************************************** *)
 
-goal thy "!!j. [| ALL x<a. x<j | (EX xa:F(j). P(x, xa))  \
+Goal "!!j. [| ALL x<a. x<j | (EX xa:F(j). P(x, xa))  \
 \       --> (EX! Y. Y:F(j) & P(x, Y)); F(j) <= X;  \
 \       L : X; P(j, L) & (ALL x<a. P(x, L) --> (ALL xa:F(j). ~P(x, xa))) |]  \
 \       ==> F(j) Un {L} <= X &  \
@@ -489,7 +489,7 @@ val lemma8 = result();
 (* lemma main_induct                                                      *)
 (* ********************************************************************** *)
 
-goal thy
+Goal
         "!!a. [| b < a; f : bij(a, {Y: Pow(A) . Y eqpoll succ(k #+ m)});  \
 \       fa : bij(a, {Y: Pow(A) . Y eqpoll succ(k)});  \
 \       ~Finite(a); Card(a); A eqpoll a; k : nat; m : nat |]  \
@@ -574,7 +574,7 @@ qed "lemma_simp_induct";
 (* The target theorem                                                     *)
 (* ********************************************************************** *)
 
-goalw thy [AC16_def]
+Goalw [AC16_def]
         "!!n k. [| WO2; 0<m; k:nat; m:nat |] ==> AC16(k #+ m,k)";
 by (rtac allI 1);
 by (rtac impI 1);

@@ -7,22 +7,22 @@ Axiomatic multisets.
 Should be done as a subtype and moved to a global place.
 *)
 
-goalw Multiset.thy [Multiset.count_def, Multiset.countm_empty_def]
+Goalw [Multiset.count_def, Multiset.countm_empty_def]
    "count {|} x = 0";
  by (rtac refl 1);
 qed "count_empty";
 
-goal Multiset.thy 
+Goal 
      "count (addm M x) y = (if y=x then Suc(count M y) else count M y)";
   by (asm_simp_tac (simpset() addsimps 
                     [Multiset.count_def,Multiset.countm_nonempty_def]) 1);
 qed "count_addm_simp";
 
-goal Multiset.thy "count M y <= count (addm M x) y";
+Goal "count M y <= count (addm M x) y";
   by (simp_tac (simpset() addsimps [count_addm_simp]) 1);
 qed "count_leq_addm";
 
-goalw Multiset.thy [Multiset.count_def] 
+Goalw [Multiset.count_def] 
      "count (delm M x) y = (if y=x then count M y - 1 else count M y)";
 by (res_inst_tac [("M","M")] Multiset.induction 1);
 by (asm_simp_tac (simpset() 
@@ -34,14 +34,14 @@ by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "count_delm_simp";
 
-goal Multiset.thy "!!M. (!x. P(x) --> Q(x)) ==> (countm M P <= countm M Q)";
+Goal "!!M. (!x. P(x) --> Q(x)) ==> (countm M P <= countm M Q)";
 by (res_inst_tac [("M","M")] Multiset.induction 1);
  by (simp_tac (simpset() addsimps [Multiset.countm_empty_def]) 1);
 by (simp_tac (simpset() addsimps[Multiset.countm_nonempty_def]) 1);
 auto();
 qed "countm_props";
 
-goal Multiset.thy "!!P. ~P(obj) ==> countm M P = countm (delm M obj) P";
+Goal "!!P. ~P(obj) ==> countm M P = countm (delm M obj) P";
   by (res_inst_tac [("M","M")] Multiset.induction 1);
   by (simp_tac (simpset() addsimps [Multiset.delm_empty_def,
                                    Multiset.countm_empty_def]) 1);
@@ -50,7 +50,7 @@ goal Multiset.thy "!!P. ~P(obj) ==> countm M P = countm (delm M obj) P";
 qed "countm_spurious_delm";
 
 
-goal Multiset.thy "!!P. P(x) ==> 0<count M x --> 0<countm M P";
+Goal "!!P. P(x) ==> 0<count M x --> 0<countm M P";
   by (res_inst_tac [("M","M")] Multiset.induction 1);
   by (simp_tac (simpset() addsimps 
                           [Multiset.delm_empty_def,Multiset.count_def,
@@ -60,7 +60,7 @@ goal Multiset.thy "!!P. P(x) ==> 0<count M x --> 0<countm M P";
                         Multiset.countm_nonempty_def]) 1);
 qed_spec_mp "pos_count_imp_pos_countm";
 
-goal Multiset.thy
+Goal
    "!!P. P(x) ==> 0<count M x --> countm (delm M x) P = countm M P - 1";
   by (res_inst_tac [("M","M")] Multiset.induction 1);
   by (simp_tac (simpset() addsimps 

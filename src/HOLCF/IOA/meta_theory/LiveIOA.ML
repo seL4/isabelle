@@ -9,7 +9,7 @@ Live I/O Automata
 
 Delsimps [split_paired_Ex];
 
-goalw thy [live_implements_def] 
+Goalw [live_implements_def] 
 "!! A. [| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |] \
 \     ==> live_implements (A,LA) (C,LC)"; 
 auto();
@@ -24,7 +24,7 @@ section "Correctness of live refmap";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy "!! f. [| inp(C)=inp(A); out(C)=out(A); \
+Goal "!! f. [| inp(C)=inp(A); out(C)=out(A); \
 \                  is_live_ref_map f (C,M) (A,L) |] \
 \               ==> live_implements (C,M) (A,L)";
 
@@ -59,7 +59,7 @@ qed"live_implements";
 
 (* Classical Fairness and Fairness by Temporal Formula coincide *)
  
-goal thy "!! ex. Finite (snd ex) ==> \
+Goal "!! ex. Finite (snd ex) ==> \
 \          (ex |== WF A acts) = (~ Enabled A acts (laststate ex))";
 
 In 3 steps:

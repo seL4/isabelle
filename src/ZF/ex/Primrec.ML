@@ -24,32 +24,32 @@ val pr_typechecks =
 
 simpset_ref() := simpset() setSolver (type_auto_tac pr_typechecks);
 
-goalw Primrec.thy [SC_def]
+Goalw [SC_def]
     "!!x l. [| x:nat;  l: list(nat) |] ==> SC ` (Cons(x,l)) = succ(x)";
 by (Asm_simp_tac 1);
 qed "SC";
 
-goalw Primrec.thy [CONST_def]
+Goalw [CONST_def]
     "!!l. [| l: list(nat) |] ==> CONST(k) ` l = k";
 by (Asm_simp_tac 1);
 qed "CONST";
 
-goalw Primrec.thy [PROJ_def]
+Goalw [PROJ_def]
     "!!l. [| x: nat;  l: list(nat) |] ==> PROJ(0) ` (Cons(x,l)) = x";
 by (Asm_simp_tac 1);
 qed "PROJ_0";
 
-goalw Primrec.thy [COMP_def]
+Goalw [COMP_def]
     "!!l. [| l: list(nat) |] ==> COMP(g,[f]) ` l = g` [f`l]";
 by (Asm_simp_tac 1);
 qed "COMP_1";
 
-goalw Primrec.thy [PREC_def]
+Goalw [PREC_def]
     "!!l. l: list(nat) ==> PREC(f,g) ` (Cons(0,l)) = f`l";
 by (Asm_simp_tac 1);
 qed "PREC_0";
 
-goalw Primrec.thy [PREC_def]
+Goalw [PREC_def]
     "!!l. [| x:nat;  l: list(nat) |] ==>  \
 \         PREC(f,g) ` (Cons(succ(x),l)) = \
 \         g ` Cons(PREC(f,g)`(Cons(x,l)), Cons(x,l))";
@@ -64,7 +64,7 @@ val primrec_into_fun = primrec.dom_subset RS subsetD;
 simpset_ref() := simpset() setSolver (type_auto_tac ([primrec_into_fun] @ 
 					      pr_typechecks @ primrec.intrs));
 
-goalw Primrec.thy [ACK_def] "!!i. i:nat ==> ACK(i): primrec";
+Goalw [ACK_def] "!!i. i:nat ==> ACK(i): primrec";
 by (etac nat_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ACK_in_primrec";
@@ -79,26 +79,26 @@ fun tc_tac rls =
     REPEAT
       (SOMEGOAL (test_assume_tac ORELSE' match_tac (rls @ ack_typechecks)));
 
-goal Primrec.thy "!!i j. [| i:nat;  j:nat |] ==>  ack(i,j): nat";
+Goal "!!i j. [| i:nat;  j:nat |] ==>  ack(i,j): nat";
 by (tc_tac []);
 qed "ack_type";
 
 (** Ackermann's function cases **)
 
 (*PROPERTY A 1*)
-goalw Primrec.thy [ACK_def] "!!j. j:nat ==> ack(0,j) = succ(j)";
+Goalw [ACK_def] "!!j. j:nat ==> ack(0,j) = succ(j)";
 by (asm_simp_tac (simpset() addsimps [SC]) 1);
 qed "ack_0";
 
 (*PROPERTY A 2*)
-goalw Primrec.thy [ACK_def] "ack(succ(i), 0) = ack(i,1)";
+Goalw [ACK_def] "ack(succ(i), 0) = ack(i,1)";
 by (asm_simp_tac (simpset() addsimps [CONST,PREC_0]) 1);
 qed "ack_succ_0";
 
 (*PROPERTY A 3*)
 (*Could be proved in Primrec0, like the previous two cases, but using
   primrec_into_fun makes type-checking easier!*)
-goalw Primrec.thy [ACK_def]
+Goalw [ACK_def]
     "!!i j. [| i:nat;  j:nat |] ==> \
 \           ack(succ(i), succ(j)) = ack(i, ack(succ(i), j))";
 by (asm_simp_tac (simpset() addsimps [CONST,PREC_succ,COMP_1,PROJ_0]) 1);
@@ -107,7 +107,7 @@ qed "ack_succ_succ";
 Addsimps [ack_0, ack_succ_0, ack_succ_succ, ack_type, nat_into_Ord];
 
 (*PROPERTY A 4*)
-goal Primrec.thy "!!i. i:nat ==> ALL j:nat. j < ack(i,j)";
+Goal "!!i. i:nat ==> ALL j:nat. j < ack(i,j)";
 by (etac nat_induct 1);
 by (Asm_simp_tac 1);
 by (rtac ballI 1);
@@ -120,13 +120,13 @@ qed "lt_ack2_lemma";
 bind_thm ("lt_ack2", (lt_ack2_lemma RS bspec));
 
 (*PROPERTY A 5-, the single-step lemma*)
-goal Primrec.thy "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(i, succ(j))";
+Goal "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(i, succ(j))";
 by (etac nat_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_ack2])));
 qed "ack_lt_ack_succ2";
 
 (*PROPERTY A 5, monotonicity for < *)
-goal Primrec.thy "!!i j k. [| j<k; i:nat; k:nat |] ==> ack(i,j) < ack(i,k)";
+Goal "!!i j k. [| j<k; i:nat; k:nat |] ==> ack(i,j) < ack(i,k)";
 by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
 by (etac succ_lt_induct 1);
 by (assume_tac 1);
@@ -135,14 +135,14 @@ by (REPEAT (ares_tac ([ack_lt_ack_succ2, ack_type] @ pr_typechecks) 1));
 qed "ack_lt_mono2";
 
 (*PROPERTY A 5', monotonicity for le *)
-goal Primrec.thy
+Goal
     "!!i j k. [| j le k;  i: nat;  k:nat |] ==> ack(i,j) le ack(i,k)";
 by (res_inst_tac [("f", "%j. ack(i,j)")] Ord_lt_mono_imp_le_mono 1);
 by (REPEAT (ares_tac [ack_lt_mono2, ack_type RS nat_into_Ord] 1));
 qed "ack_le_mono2";
 
 (*PROPERTY A 6*)
-goal Primrec.thy
+Goal
     "!!i j. [| i:nat;  j:nat |] ==> ack(i, succ(j)) le ack(succ(i), j)";
 by (nat_ind_tac "j" [] 1);
 by (ALLGOALS Asm_simp_tac);
@@ -152,14 +152,14 @@ by (REPEAT (ares_tac (ack_typechecks) 1));
 qed "ack2_le_ack1";
 
 (*PROPERTY A 7-, the single-step lemma*)
-goal Primrec.thy "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(succ(i),j)";
+Goal "!!i j. [| i:nat; j:nat |] ==> ack(i,j) < ack(succ(i),j)";
 by (rtac (ack_lt_mono2 RS lt_trans2) 1);
 by (rtac ack2_le_ack1 4);
 by (REPEAT (ares_tac ([nat_le_refl, ack_type] @ pr_typechecks) 1));
 qed "ack_lt_ack_succ1";
 
 (*PROPERTY A 7, monotonicity for < *)
-goal Primrec.thy "!!i j k. [| i<j; j:nat; k:nat |] ==> ack(i,k) < ack(j,k)";
+Goal "!!i j k. [| i<j; j:nat; k:nat |] ==> ack(i,k) < ack(j,k)";
 by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
 by (etac succ_lt_induct 1);
 by (assume_tac 1);
@@ -168,26 +168,26 @@ by (REPEAT (ares_tac ([ack_lt_ack_succ1, ack_type] @ pr_typechecks) 1));
 qed "ack_lt_mono1";
 
 (*PROPERTY A 7', monotonicity for le *)
-goal Primrec.thy
+Goal
     "!!i j k. [| i le j; j:nat; k:nat |] ==> ack(i,k) le ack(j,k)";
 by (res_inst_tac [("f", "%j. ack(j,k)")] Ord_lt_mono_imp_le_mono 1);
 by (REPEAT (ares_tac [ack_lt_mono1, ack_type RS nat_into_Ord] 1));
 qed "ack_le_mono1";
 
 (*PROPERTY A 8*)
-goal Primrec.thy "!!j. j:nat ==> ack(1,j) = succ(succ(j))";
+Goal "!!j. j:nat ==> ack(1,j) = succ(succ(j))";
 by (etac nat_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ack_1";
 
 (*PROPERTY A 9*)
-goal Primrec.thy "!!j. j:nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))";
+Goal "!!j. j:nat ==> ack(succ(1),j) = succ(succ(succ(j#+j)))";
 by (etac nat_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [ack_1, add_succ_right])));
 qed "ack_2";
 
 (*PROPERTY A 10*)
-goal Primrec.thy
+Goal
     "!!i1 i2 j. [| i1:nat; i2:nat; j:nat |] ==> \
 \               ack(i1, ack(i2,j)) < ack(succ(succ(i1#+i2)), j)";
 by (rtac (ack2_le_ack1 RSN (2,lt_trans2)) 1);
@@ -198,7 +198,7 @@ by (tc_tac []);
 qed "ack_nest_bound";
 
 (*PROPERTY A 11*)
-goal Primrec.thy
+Goal
     "!!i1 i2 j. [| i1:nat; i2:nat; j:nat |] ==> \
 \          ack(i1,j) #+ ack(i2,j) < ack(succ(succ(succ(succ(i1#+i2)))), j)";
 by (res_inst_tac [("j", "ack(succ(1), ack(i1 #+ i2, j))")] lt_trans 1);
@@ -212,7 +212,7 @@ qed "ack_add_bound";
 
 (*PROPERTY A 12.  Article uses existential quantifier but the ALF proof
   used k#+4.  Quantified version must be nested EX k'. ALL i,j... *)
-goal Primrec.thy
+Goal
     "!!i j k. [| i < ack(k,j);  j:nat;  k:nat |] ==> \
 \             i#+j < ack(succ(succ(succ(succ(k)))), j)";
 by (res_inst_tac [("j", "ack(k,j) #+ ack(0,j)")] lt_trans 1);
@@ -225,7 +225,7 @@ qed "ack_add_bound2";
 
 Addsimps [list_add_type, nat_into_Ord];
 
-goalw Primrec.thy [SC_def]
+Goalw [SC_def]
     "!!l. l: list(nat) ==> SC ` l < ack(1, list_add(l))";
 by (etac list.elim 1);
 by (asm_simp_tac (simpset() addsimps [succ_iff]) 1);
@@ -233,19 +233,19 @@ by (asm_simp_tac (simpset() addsimps [ack_1, add_le_self]) 1);
 qed "SC_case";
 
 (*PROPERTY A 4'? Extra lemma needed for CONST case, constant functions*)
-goal Primrec.thy "!!j. [| i:nat; j:nat |] ==> i < ack(i,j)";
+Goal "!!j. [| i:nat; j:nat |] ==> i < ack(i,j)";
 by (etac nat_induct 1);
 by (asm_simp_tac (simpset() addsimps [nat_0_le]) 1);
 by (etac ([succ_leI, ack_lt_ack_succ1] MRS lt_trans1) 1);
 by (tc_tac []);
 qed "lt_ack1";
 
-goalw Primrec.thy [CONST_def]
+Goalw [CONST_def]
     "!!l. [| l: list(nat);  k: nat |] ==> CONST(k) ` l < ack(k, list_add(l))";
 by (asm_simp_tac (simpset() addsimps [lt_ack1]) 1);
 qed "CONST_case";
 
-goalw Primrec.thy [PROJ_def]
+Goalw [PROJ_def]
     "!!l. l: list(nat) ==> ALL i:nat. PROJ(i) ` l < ack(0, list_add(l))";
 by (Asm_simp_tac 1);
 by (etac list.induct 1);
@@ -263,7 +263,7 @@ val PROJ_case = PROJ_case_lemma RS bspec;
 
 (** COMP case **)
 
-goal Primrec.thy
+Goal
  "!!fs. fs : list({f: primrec .                                 \
 \                  EX kf:nat. ALL l:list(nat).                  \
 \                             f`l < ack(kf, list_add(l))})      \
@@ -282,7 +282,7 @@ by (rtac ack_add_bound 5);
 by (tc_tac []);
 qed "COMP_map_lemma";
 
-goalw Primrec.thy [COMP_def]
+Goalw [COMP_def]
  "!!g. [| kg: nat;                                 \
 \         ALL l:list(nat). g`l < ack(kg, list_add(l));          \
 \         fs : list({f: primrec .                               \
@@ -302,7 +302,7 @@ qed "COMP_case";
 
 (** PREC case **)
 
-goalw Primrec.thy [PREC_def]
+Goalw [PREC_def]
  "!!f g. [| ALL l:list(nat). f`l #+ list_add(l) < ack(kf, list_add(l)); \
 \           ALL l:list(nat). g`l #+ list_add(l) < ack(kg, list_add(l)); \
 \           f: primrec;  kf: nat;                                       \
@@ -333,7 +333,7 @@ by (etac ack_lt_mono2 5);
 by (tc_tac []);
 qed "PREC_case_lemma";
 
-goal Primrec.thy
+Goal
  "!!f g. [| f: primrec;  kf: nat;                               \
 \           g: primrec;  kg: nat;                               \
 \           ALL l:list(nat). f`l < ack(kf, list_add(l));        \
@@ -349,7 +349,7 @@ by (REPEAT
               rtac (ack_add_bound2 RS ballI) THEN' etac bspec])));
 qed "PREC_case";
 
-goal Primrec.thy
+Goal
     "!!f. f:primrec ==> EX k:nat. ALL l:list(nat). f`l < ack(k, list_add(l))";
 by (etac primrec.induct 1);
 by Safe_tac;
@@ -358,7 +358,7 @@ by (DEPTH_SOLVE
                        bexI, ballI] @ nat_typechecks) 1));
 qed "ack_bounds_primrec";
 
-goal Primrec.thy
+Goal
     "~ (lam l:list(nat). list_case(0, %x xs. ack(x,x), l)) : primrec";
 by (rtac notI 1);
 by (etac (ack_bounds_primrec RS bexE) 1);

@@ -31,7 +31,7 @@ open WO1_AC;
 (* WO1 ==> AC1                                                            *)
 (* ********************************************************************** *)
 
-goalw thy [AC1_def, WO1_def] "!!Z. WO1 ==> AC1";
+Goalw [AC1_def, WO1_def] "!!Z. WO1 ==> AC1";
 by (fast_tac (claset() addSEs [ex_choice_fun]) 1);
 qed "WO1_AC1";
 
@@ -39,7 +39,7 @@ qed "WO1_AC1";
 (* WO1 ==> AC10(n) (n >= 1)                                               *)
 (* ********************************************************************** *)
 
-goalw thy [WO1_def] "!!A. [| WO1; ALL B:A. EX C:D(B). P(C,B) |]  \
+Goalw [WO1_def] "!!A. [| WO1; ALL B:A. EX C:D(B). P(C,B) |]  \
 \               ==> EX f. ALL B:A. P(f`B,B)";
 by (eres_inst_tac [("x","Union({{C:D(B). P(C,B)}. B:A})")] allE 1);
 by (etac exE 1);
@@ -52,7 +52,7 @@ by (fast_tac (claset() addSDs [RepFunI RSN (2, apply_type)]
                 addSEs [CollectD2]) 1);
 val lemma1 = result();
 
-goalw thy [WO1_def] "!!A. [| ~Finite(B); WO1 |] ==> |B| + |B| eqpoll  B";
+Goalw [WO1_def] "!!A. [| ~Finite(B); WO1 |] ==> |B| + |B| eqpoll  B";
 by (rtac eqpoll_trans 1);
 by (fast_tac (claset() addSEs [well_ord_cardinal_eqpoll]) 2);
 by (resolve_tac [eqpoll_sym RS eqpoll_trans] 1);
@@ -68,17 +68,17 @@ by (resolve_tac [eqpoll_sym RS eqpoll_imp_lepoll RS lepoll_Finite] 1
 by (fast_tac (claset() addSEs [well_ord_cardinal_eqpoll]) 1);
 val lemma2_1 = result();
 
-goal thy "!!f. f : bij(D+D, B) ==> {{f`Inl(i), f`Inr(i)}. i:D} : Pow(Pow(B))";
+Goal "!!f. f : bij(D+D, B) ==> {{f`Inl(i), f`Inr(i)}. i:D} : Pow(Pow(B))";
 by (fast_tac (claset() addSIs [InlI, InrI]
                 addSEs [RepFunE, bij_is_fun RS apply_type]) 1);
 val lemma2_2 = result();
 
-goal thy "!!f. [| f:inj(A,B); f`a = f`b; a:A; b:A |] ==> a=b";
+Goal "!!f. [| f:inj(A,B); f`a = f`b; a:A; b:A |] ==> a=b";
 by (rtac inj_equality 1);
 by (TRYALL (fast_tac (claset() addSEs [inj_is_fun RS apply_Pair] addEs [subst])));
 val lemma = result();
 
-goalw thy AC_aux_defs
+Goalw AC_aux_defs
         "!!f. f : bij(D+D, B) ==>  \
 \               pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i:D})";
 by (fast_tac (claset() addSEs [RepFunE, not_emptyE] 
@@ -99,12 +99,12 @@ by (fast_tac (claset() addSIs [cons_lepoll_cong, minor, lepoll_refl, InlI, InrI]
         addSEs [RepFunE, not_emptyE, mem_irrefl]) 1);
 val lemma2_4 = result();
 
-goalw thy [bij_def, surj_def]
+Goalw [bij_def, surj_def]
         "!!f. f : bij(D+D, B) ==> Union({{f`Inl(i), f`Inr(i)}. i:D})=B";
 by (fast_tac (claset() addSEs [inj_is_fun RS apply_type]) 1);
 val lemma2_5 = result();
 
-goal thy "!!A. [| WO1; ~Finite(B); 1 le n  |]  \
+Goal "!!A. [| WO1; ~Finite(B); 1 le n  |]  \
 \       ==> EX C:Pow(Pow(B)). pairwise_disjoint(C) &  \
 \               sets_of_size_between(C, 2, succ(n)) &  \
 \               Union(C)=B";
@@ -114,6 +114,6 @@ by (fast_tac (FOL_cs addSIs [bexI]
                 addSEs [lemma2_2, lemma2_3, lemma2_4, lemma2_5]) 1);
 val lemma2 = result();
 
-goalw thy AC_defs "!!n. [| WO1; 1 le n |] ==> AC10(n)";
+Goalw AC_defs "!!n. [| WO1; 1 le n |] ==> AC10(n)";
 by (fast_tac (claset() addSIs [lemma1] addSEs [lemma2]) 1);
 qed "WO1_AC10";

@@ -20,15 +20,15 @@ section "recursive equations of operators";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy  "ProjA2`UU = UU";
+Goal  "ProjA2`UU = UU";
 by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_UU";
 
-goal thy  "ProjA2`nil = nil";
+Goal  "ProjA2`nil = nil";
 by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_nil";
 
-goal thy "ProjA2`((a,t)>>xs) = (a,fst t) >> ProjA2`xs";
+Goal "ProjA2`((a,t)>>xs) = (a,fst t) >> ProjA2`xs";
 by (simp_tac (simpset() addsimps [ProjA2_def]) 1);
 qed"ProjA2_cons";
 
@@ -38,15 +38,15 @@ qed"ProjA2_cons";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy  "ProjB2`UU = UU";
+Goal  "ProjB2`UU = UU";
 by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_UU";
 
-goal thy  "ProjB2`nil = nil";
+Goal  "ProjB2`nil = nil";
 by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_nil";
 
-goal thy "ProjB2`((a,t)>>xs) = (a,snd t) >> ProjB2`xs";
+Goal "ProjB2`((a,t)>>xs) = (a,snd t) >> ProjB2`xs";
 by (simp_tac (simpset() addsimps [ProjB2_def]) 1);
 qed"ProjB2_cons";
 
@@ -57,15 +57,15 @@ qed"ProjB2_cons";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy "Filter_ex2 sig`UU=UU";
+Goal "Filter_ex2 sig`UU=UU";
 by (simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_UU";
 
-goal thy "Filter_ex2 sig`nil=nil";
+Goal "Filter_ex2 sig`nil=nil";
 by (simp_tac (simpset() addsimps [Filter_ex2_def]) 1);
 qed"Filter_ex2_nil";
 
-goal thy "Filter_ex2 sig`(at >> xs) =    \
+Goal "Filter_ex2 sig`(at >> xs) =    \
 \            (if (fst at:actions sig)    \       
 \                 then at >> (Filter_ex2 sig`xs) \   
 \                 else        Filter_ex2 sig`xs)";
@@ -79,7 +79,7 @@ qed"Filter_ex2_cons";
 (* ---------------------------------------------------------------- *)
 
 
-goal thy "stutter2 sig = (LAM ex. (%s. case ex of \
+Goal "stutter2 sig = (LAM ex. (%s. case ex of \
 \      nil => TT \
 \    | x##xs => (flift1 \ 
 \            (%p.(If Def ((fst p)~:actions sig) \
@@ -95,17 +95,17 @@ by (rtac beta_cfun 1);
 by (simp_tac (simpset() addsimps [flift1_def]) 1);
 qed"stutter2_unfold";
 
-goal thy "(stutter2 sig`UU) s=UU";
+Goal "(stutter2 sig`UU) s=UU";
 by (stac stutter2_unfold 1);
 by (Simp_tac 1);
 qed"stutter2_UU";
 
-goal thy "(stutter2 sig`nil) s = TT";
+Goal "(stutter2 sig`nil) s = TT";
 by (stac stutter2_unfold 1);
 by (Simp_tac 1);
 qed"stutter2_nil";
 
-goal thy "(stutter2 sig`(at>>xs)) s = \
+Goal "(stutter2 sig`(at>>xs)) s = \
 \              ((if (fst at)~:actions sig then Def (s=snd at) else TT) \
 \                andalso (stutter2 sig`xs) (snd at))"; 
 by (rtac trans 1);
@@ -122,15 +122,15 @@ Addsimps [stutter2_UU,stutter2_nil,stutter2_cons];
 (*                             stutter                              *)
 (* ---------------------------------------------------------------- *)
 
-goal thy "stutter sig (s, UU)";
+Goal "stutter sig (s, UU)";
 by (simp_tac (simpset() addsimps [stutter_def]) 1);
 qed"stutter_UU";
 
-goal thy "stutter sig (s, nil)";
+Goal "stutter sig (s, nil)";
 by (simp_tac (simpset() addsimps [stutter_def]) 1);
 qed"stutter_nil";
 
-goal thy "stutter sig (s, (a,t)>>ex) = \
+Goal "stutter sig (s, (a,t)>>ex) = \
 \     ((a~:actions sig --> (s=t)) & stutter sig (t,ex))";
 by (simp_tac (simpset() addsimps [stutter_def]) 1);
 qed"stutter_cons";
@@ -158,7 +158,7 @@ Addsimps compoex_simps;
 (*  Lemma_1_1a : is_ex_fr propagates from A||B to Projections A and B    *)
 (* --------------------------------------------------------------------- *)
 
-goal thy "!s. is_exec_frag (A||B) (s,xs) \
+Goal "!s. is_exec_frag (A||B) (s,xs) \
 \      -->  is_exec_frag A (fst s, Filter_ex2 (asig_of A)`(ProjA2`xs)) &\
 \           is_exec_frag B (snd s, Filter_ex2 (asig_of B)`(ProjB2`xs))";
 
@@ -174,7 +174,7 @@ qed"lemma_1_1a";
 (*  Lemma_1_1b : is_ex_fr (A||B) implies stuttering on Projections       *)
 (* --------------------------------------------------------------------- *)
 
-goal thy "!s. is_exec_frag (A||B) (s,xs) \
+Goal "!s. is_exec_frag (A||B) (s,xs) \
 \      --> stutter (asig_of A) (fst s,ProjA2`xs)  &\
 \          stutter (asig_of B) (snd s,ProjB2`xs)"; 
 
@@ -189,7 +189,7 @@ qed"lemma_1_1b";
 (*  Lemma_1_1c : Executions of A||B have only  A- or B-actions           *)
 (* --------------------------------------------------------------------- *)
 
-goal thy "!s. (is_exec_frag (A||B) (s,xs) \
+Goal "!s. (is_exec_frag (A||B) (s,xs) \
 \  --> Forall (%x. fst x:act (A||B)) xs)";
 
 by (pair_induct_tac "xs" [Forall_def,sforall_def,is_exec_frag_def] 1);
@@ -204,7 +204,7 @@ qed"lemma_1_1c";
 (*  Lemma_1_2 : ex A, exB, stuttering and forall a:A|B implies ex (A||B)   *)
 (* ----------------------------------------------------------------------- *)
 
-goal thy 
+Goal 
 "!s. is_exec_frag A (fst s,Filter_ex2 (asig_of A)`(ProjA2`xs)) &\
 \    is_exec_frag B (snd s,Filter_ex2 (asig_of B)`(ProjB2`xs)) &\
 \    stutter (asig_of A) (fst s,(ProjA2`xs)) & \
@@ -230,7 +230,7 @@ qed"lemma_1_2";
 (* ------------------------------------------------------------------ *)
 
 
-goal thy 
+Goal 
 "ex:executions(A||B) =\
 \(Filter_ex (asig_of A) (ProjA ex) : executions A &\
 \ Filter_ex (asig_of B) (ProjB ex) : executions B &\
@@ -256,7 +256,7 @@ qed"compositionality_ex";
 (*                            For Modules                             *)
 (* ------------------------------------------------------------------ *)
 
-goalw thy [Execs_def,par_execs_def]
+Goalw [Execs_def,par_execs_def]
 
 "Execs (A||B) = par_execs (Execs A) (Execs B)";
 

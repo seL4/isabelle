@@ -112,7 +112,7 @@ qed_goal "thelubI" thy "M <<| l ==> lub(M) = l"
         ]);
 
 
-goal thy "lub{x} = x";
+Goal "lub{x} = x";
 by (rtac thelubI 1);
 by (simp_tac (simpset() addsimps [is_lub,is_ub]) 1);
 qed "lub_singleton";

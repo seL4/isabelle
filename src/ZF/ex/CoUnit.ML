@@ -19,7 +19,7 @@ val ConE = counit.mk_cases counit.con_defs "Con(x) : counit";
 val Con_iff = counit.mk_free "Con(x)=Con(y) <-> x=y";
 
 (*Should be a singleton, not everything!*)
-goal CoUnit.thy "counit = quniv(0)";
+Goal "counit = quniv(0)";
 by (rtac (counit.dom_subset RS equalityI) 1);
 by (rtac subsetI 1);
 by (etac counit.coinduct 1);
@@ -38,12 +38,12 @@ val Con2E = counit2.mk_cases counit2.con_defs "Con2(x,y) : counit2";
 (*Proving freeness results*)
 val Con2_iff = counit2.mk_free "Con2(x,y)=Con2(x',y') <-> x=x' & y=y'";
 
-goalw CoUnit.thy counit2.con_defs "bnd_mono(univ(0), %x. Con2(x,x))";
+Goalw counit2.con_defs "bnd_mono(univ(0), %x. Con2(x,x))";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, QPair_subset_univ, QPair_mono] 1));
 qed "Con2_bnd_mono";
 
-goal CoUnit.thy "lfp(univ(0), %x. Con2(x,x)) : counit2";
+Goal "lfp(univ(0), %x. Con2(x,x)) : counit2";
 by (rtac (singletonI RS counit2.coinduct) 1);
 by (rtac (qunivI RS singleton_subsetI) 1);
 by (rtac ([lfp_subset, empty_subsetI RS univ_mono] MRS subset_trans) 1);
@@ -51,7 +51,7 @@ by (fast_tac (claset() addSIs [Con2_bnd_mono RS lfp_Tarski]) 1);
 qed "lfp_Con2_in_counit2";
 
 (*Lemma for proving finality.  Borrowed from ex/llist_eq.ML!*)
-goal CoUnit.thy
+Goal
     "!!i. Ord(i) ==> ALL x y. x: counit2 & y: counit2 --> x Int Vset(i) <= y";
 by (etac trans_induct 1);
 by (safe_tac subset_cs);
@@ -66,12 +66,12 @@ qed "counit2_Int_Vset_subset_lemma";
 val counit2_Int_Vset_subset = standard
         (counit2_Int_Vset_subset_lemma RS spec RS spec RS mp);
 
-goal CoUnit.thy "!!x y. [| x: counit2;  y: counit2 |] ==> x=y";
+Goal "!!x y. [| x: counit2;  y: counit2 |] ==> x=y";
 by (rtac equalityI 1);
 by (REPEAT (ares_tac [conjI, counit2_Int_Vset_subset RS Int_Vset_subset] 1));
 qed "counit2_implies_equal";
 
-goal CoUnit.thy "counit2 = {lfp(univ(0), %x. Con2(x,x))}";
+Goal "counit2 = {lfp(univ(0), %x. Con2(x,x))}";
 by (rtac equalityI 1);
 by (rtac (lfp_Con2_in_counit2 RS singleton_subsetI) 2);
 by (rtac subsetI 1);

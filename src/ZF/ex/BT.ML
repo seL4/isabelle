@@ -19,13 +19,13 @@ fun bt_ind_tac a prems i =
 
 (**  Lemmas to justify using "bt" in other recursive type definitions **)
 
-goalw BT.thy bt.defs "!!A B. A<=B ==> bt(A) <= bt(B)";
+Goalw bt.defs "!!A B. A<=B ==> bt(A) <= bt(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac bt.bnd_mono 1));
 by (REPEAT (ares_tac (univ_mono::basic_monos) 1));
 qed "bt_mono";
 
-goalw BT.thy (bt.defs@bt.con_defs) "bt(univ(A)) <= univ(A)";
+Goalw (bt.defs@bt.con_defs) "bt(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by (fast_tac (claset() addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
@@ -37,20 +37,20 @@ bind_thm ("bt_subset_univ", ([bt_mono, bt_univ] MRS subset_trans));
 
 (** bt_rec -- by Vset recursion **)
 
-goalw BT.thy bt.con_defs "rank(l) < rank(Br(a,l,r))";
+Goalw bt.con_defs "rank(l) < rank(Br(a,l,r))";
 by (simp_tac rank_ss 1);
 qed "rank_Br1";
 
-goalw BT.thy bt.con_defs "rank(r) < rank(Br(a,l,r))";
+Goalw bt.con_defs "rank(r) < rank(Br(a,l,r))";
 by (simp_tac rank_ss 1);
 qed "rank_Br2";
 
-goal BT.thy "bt_rec(Lf,c,h) = c";
+Goal "bt_rec(Lf,c,h) = c";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
 by (Simp_tac 1);
 qed "bt_rec_Lf";
 
-goal BT.thy
+Goal
     "bt_rec(Br(a,l,r), c, h) = h(a, l, r, bt_rec(l,c,h), bt_rec(r,c,h))";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
 by (simp_tac (rank_ss addsimps (bt.case_eqns @ [rank_Br1, rank_Br2])) 1);
@@ -110,7 +110,7 @@ qed "n_leaves_type";
 val [bt_reflect_Lf, bt_reflect_Br] = bt_recs bt_reflect_def;
 Addsimps [bt_reflect_Lf, bt_reflect_Br];
 
-goalw BT.thy [bt_reflect_def] "!!xs. xs: bt(A) ==> bt_reflect(xs) : bt(A)";
+Goalw [bt_reflect_def] "!!xs. xs: bt(A) ==> bt_reflect(xs) : bt(A)";
 by (REPEAT (ares_tac (bt.intrs @ [bt_rec_type]) 1));
 qed "bt_reflect_type";
 

@@ -37,33 +37,33 @@ val reducL_ss = simpset() setloop (SELECT_GOAL Safe_tac);
 (*     Lemmas for reduction                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-goal Reduction.thy  "!!u. m--->n ==> Fun(m) ---> Fun(n)";
+Goal  "!!u. m--->n ==> Fun(m) ---> Fun(n)";
 by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (Asm_simp_tac ));
 qed "red_Fun";
 
-goal Reduction.thy  
+Goal  
     "!!u.[|n:lambda; m ---> m'|]==> Apl(m,n)--->Apl(m',n)";
 by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (Asm_simp_tac ));
 qed "red_Apll";
 
-goal Reduction.thy  
+Goal  
     "!!u.[|n:lambda; m ---> m'|]==> Apl(n,m)--->Apl(n,m')";
 by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (Asm_simp_tac ));
 qed "red_Aplr";
 
-goal Reduction.thy  
+Goal  
     "!!u.[|m ---> m'; n--->n'|]==> Apl(m,n)--->Apl(m',n')";
 by (res_inst_tac [("n","Apl(m',n)")] Sred.trans 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [red_Apll,red_Aplr]) ));
 qed "red_Apl";
 
-goal Reduction.thy  
+Goal  
     "!!u.[|m:lambda; m':lambda; n:lambda; n':lambda; m ---> m'; n--->n'|]==> \
 \              Apl(Fun(m),n)---> n'/m'";
 by (res_inst_tac [("n","Apl(Fun(m'),n')")] Sred.trans 1);
@@ -76,23 +76,23 @@ qed "red_beta";
 (* ------------------------------------------------------------------------- *)
 
 
-goal Reduction.thy "!!u. m:lambda==> m =1=> m";
+Goal "!!u. m:lambda==> m =1=> m";
 by (eresolve_tac [lambda.induct] 1);
 by (ALLGOALS (Asm_simp_tac ));
 qed "refl_par_red1";
 
-goal Reduction.thy "!!u. m-1->n ==> m=1=>n";
+Goal "!!u. m-1->n ==> m=1=>n";
 by (etac Sred1.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [refl_par_red1]) ));
 qed "red1_par_red1";
 
-goal Reduction.thy "!!u. m--->n ==> m===>n";
+Goal "!!u. m--->n ==> m===>n";
 by (etac Sred.induct 1);
 by (resolve_tac [Spar_red.trans] 3);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [refl_par_red1,red1_par_red1]) ));
 qed "red_par_red";
 
-goal Reduction.thy "!!u. m===>n ==> m--->n";
+Goal "!!u. m===>n ==> m--->n";
 by (etac Spar_red.induct 1);
 by (etac Spar_red1.induct 1);
 by (resolve_tac [Sred.trans] 5);
@@ -104,7 +104,7 @@ qed "par_red_red";
 (*      Simulation                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-goal Reduction.thy  
+Goal  
     "!!u. m=1=>n ==> EX v. m|>v = n & m~v & regular(v)";
 by (etac Spar_red1.induct 1);
 by Safe_tac;
@@ -118,14 +118,14 @@ qed "simulation";
 (*           commuting of unmark and subst                                   *)
 (* ------------------------------------------------------------------------- *)
 
-goal Reduction.thy  
+Goal  
     "!!u. u:redexes ==> \
 \           ALL k:nat. unmark(lift_rec(u,k)) = lift_rec(unmark(u),k)";
 by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS (asm_full_simp_tac (addsplit (simpset()))));
 qed "unmmark_lift_rec";
 
-goal Reduction.thy  
+Goal  
     "!!u. v:redexes ==> ALL k:nat. ALL u:redexes.  \
 \         unmark(subst_rec(u,v,k)) = subst_rec(unmark(u),unmark(v),k)";
 by (eresolve_tac [redexes.induct] 1);
@@ -138,7 +138,7 @@ qed "unmmark_subst_rec";
 (*        Completeness                                                       *)
 (* ------------------------------------------------------------------------- *)
 
-goal Reduction.thy  
+Goal  
     "!!u. u~v ==> regular(v) --> unmark(u) =1=> unmark(u|>v)";
 by (etac Scomp.induct 1);
 by (ALLGOALS (asm_full_simp_tac (reducL_ss addsimps [unmmark_subst_rec]) ));
@@ -146,7 +146,7 @@ by (dres_inst_tac [("psi", "Fun(?u) =1=> ?w")] asm_rl 1);
 by (asm_full_simp_tac reducL_ss 1);
 qed_spec_mp "completeness_l";
 
-goal Reduction.thy  
+Goal  
     "!!u.[|u:lambda; u~v; regular(v)|]==> u =1=> unmark(u|>v)";
 by (dtac completeness_l 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [lambda_unmark]) ));

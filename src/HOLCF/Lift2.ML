@@ -20,7 +20,7 @@ qed_goal "inst_lift_po" thy "(op <<)=(%x y. x=y|x=Undef)"
 (* type ('a)lift is pointed                                                *)
 (* ------------------------------------------------------------------------ *)
 
-goal Lift2.thy  "Undef << x";
+Goal  "Undef << x";
 by (simp_tac (simpset() addsimps [inst_lift_po]) 1);
 qed"minimal_lift";
 
@@ -44,7 +44,7 @@ qed_goal "least_lift" thy "? x::'a lift.!y. x<<y"
 
 (* Tailoring notUU_I of Pcpo.ML to Undef *)
 
-goal Lift2.thy "!!x. [| x<<y; ~x=Undef |] ==> ~y=Undef";
+Goal "!!x. [| x<<y; ~x=Undef |] ==> ~y=Undef";
 by (etac contrapos 1);
 by (hyp_subst_tac 1);
 by (rtac antisym_less 1);
@@ -55,7 +55,7 @@ qed"notUndef_I";
 
 (* Tailoring chain_mono2 of Pcpo.ML to Undef *)
 
-goal Lift2.thy
+Goal
 "!!Y. [|? j.~Y(j)=Undef;chain(Y::nat=>('a)lift)|] \
 \ ==> ? j.!i. j<i-->~Y(i)=Undef";
 by Safe_tac;
@@ -70,7 +70,7 @@ qed"chain_mono2_po";
 
 (* Tailoring flat_imp_chfin of Fix.ML to lift *)
 
-goal Lift2.thy
+Goal
         "(! Y. chain(Y::nat=>('a)lift)-->(? n. max_in_chain n Y))";
 by (rewtac max_in_chain_def);  
 by (strip_tac 1);
@@ -109,7 +109,7 @@ qed"flat_imp_chfin_poo";
 
 (* Main Lemma: cpo_lift *)
 
-goal Lift2.thy  
+Goal  
   "!!Y. chain(Y::nat=>('a)lift) ==> ? x. range(Y) <<|x";
 by (cut_inst_tac [] flat_imp_chfin_poo 1);
 by (Step_tac 1);

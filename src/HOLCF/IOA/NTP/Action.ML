@@ -6,7 +6,7 @@
 Derived rules for actions
 *)
 
-goal Action.thy "!!x. x = y ==> action_case a b c d e f g h i j x =     \
+Goal "!!x. x = y ==> action_case a b c d e f g h i j x =     \
 \                               action_case a b c d e f g h i j y";
 by (Asm_simp_tac 1);
 
