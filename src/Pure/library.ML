@@ -730,10 +730,13 @@ fun assert_all pred l msg_fn =
 	                else error (msg_fn x)
   in  asl l  end;
 
-(* FIXME close file (?) *)
 (*for the "test" target in Makefiles -- signifies successful termination*)
 fun maketest msg =
-  (writeln msg; output (open_out "test", "Test examples ran successfully\n"));
+  (writeln msg; 
+   let val os = open_out "test" 
+   in  output (os, "Test examples ran successfully\n");
+       close_out os
+   end);
 
 
 (*print a list surrounded by the brackets lpar and rpar, with comma separator
@@ -945,5 +948,8 @@ fun scanwords is_let cs =
   in scan1 (#2 (take_prefix (not o is_let) cs)) end;
 
 end;
+
+(*Variable-branching trees: for proof terms*)
+datatype 'a mtree = Join of 'a * 'a mtree list;
 
 open Library;
