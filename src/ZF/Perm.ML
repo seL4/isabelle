@@ -147,11 +147,12 @@ val subset_iff_id = result();
 (*** Converse of a function ***)
 
 val [prem] = goal Perm.thy "f: inj(A,B) ==> converse(f) : range(f)->A";
-by (rtac (prem RS inj_is_fun RS PiE) 1);
-by (rtac (converse_type RS PiI) 1);
-by (fast_tac ZF_cs 1);
+by (cut_facts_tac [prem] 1);
+by (asm_full_simp_tac (ZF_ss addsimps [inj_def, Pi_iff, domain_converse]) 1);
+by (resolve_tac [conjI] 1);
+by (deepen_tac ZF_cs 0 2);
+by (simp_tac (ZF_ss addsimps [function_def, converse_iff]) 1);
 by (fast_tac (ZF_cs addEs [prem RSN (3,inj_equality)]) 1);
-by flexflex_tac;
 val inj_converse_fun = result();
 
 (** Equations for converse(f) **)
@@ -295,10 +296,18 @@ val right_comp_id = result();
 
 (** Composition preserves functions, injections, and surjections **)
 
-goal Perm.thy "!!f g. [| g: A->B;  f: B->C |] ==> (f O g) : A->C";
-by (REPEAT (ares_tac [PiI,comp_rel,ex1I,compI] 1
-     ORELSE eresolve_tac [fun_is_rel,apply_Pair,apply_type] 1));
-by (fast_tac (comp_cs addDs [apply_equality]) 1);
+goalw Perm.thy [function_def]
+    "!!f g. [| function(g);  function(f) |] ==> function(f O g)";
+by (fast_tac (subset_cs addIs [compI] addSEs [compE, Pair_inject]) 1);
+val comp_function = result();
+
+goalw Perm.thy [Pi_def]
+    "!!f g. [| g: A->B;  f: B->C |] ==> (f O g) : A->C";
+by (safe_tac subset_cs);
+by (asm_simp_tac (ZF_ss addsimps [comp_function]) 3);
+by (rtac (range_rel_subset RS domain_comp_eq RS ssubst) 2 THEN assume_tac 3);
+by (fast_tac ZF_cs 2);
+by (asm_simp_tac (ZF_ss addsimps [comp_rel]) 1);
 val comp_fun = result();
 
 goal Perm.thy "!!f g. [| g: A->B;  f: B->C;  a:A |] ==> (f O g)`a = f`(g`a)";
