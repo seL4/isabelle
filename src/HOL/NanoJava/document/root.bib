@@ -1,0 +1,58 @@
+@inproceedings{NipkowOP00,
+        author={Tobias Nipkow and Oheimb, David von and Cornelia Pusch},
+        title={{$\mu$Java}: Embedding a Programming Language in a Theorem Prover},
+        booktitle = {Foundations of Secure Computation},
+        series= {NATO Science Series F: Computer and Systems Sciences},
+        volume = {175},
+        year = {2000},
+        publisher = {IOS Press},
+        editor = {Friedrich L. Bauer and Ralf Steinbr{\"u}ggen},
+        abstract = {This paper introduces the subset $micro$Java of Java,
+essentially by omitting everything but classes.
+The type system and semantics of this language
+(and a corresponding abstract Machine $micro$JVM)
+are formalized in the theorem prover Isabelle/HOL.
+Type safety both of $micro$Java and the $micro$JVM
+are mechanically verified.
+
+To make the paper self-contained, it starts with
+introductions to Isabelle/HOL and the art of
+embedding languages in theorem provers.},
+        CRClassification = {D.3.1, F.3.2},
+        CRGenTerms = {Languages, Reliability, Theory, Verification},
+        url = {\url{http://isabelle.in.tum.de/Bali/papers/MOD99.html}},
+        pages = {117--144}
+}
+
+
+@article{DvO-CPE01,
+        author = {David von Oheimb},
+        title = {Hoare Logic for {J}ava in {Isabelle/HOL}},
+        journal = {Concurrency: Practice and Experience},
+        year = {2001},
+        url = {http://www4.in.tum.de/papers/DvO-CPE01.html},
+        abstract = {
+This article presents a Hoare-style calculus for a substantial subset 
+of Java Card, which we call Java_light. In particular, the language 
+includes side-effecting expressions, mutual recursion, dynamic method 
+binding, full exception handling, and static class initialization.
+
+The Hoare logic of partial correctness is proved not only sound (w.r.t.
+our operational semantics of Java_light, described in detail elsewhere)
+but even complete. It is the first logic for an object-oriented 
+language that is provably complete.
+The completeness proof uses a refinement of the Most General Formula 
+approach. The proof of soundness gives new insights into the role of 
+type safety. Further by-products of this work are a new general 
+methodology for handling side-effecting expressions and their results, 
+the discovery of the strongest possible rule of consequence, and a 
+flexible Call rule for mutual recursion. 
+We also give a small but non-trivial application example.
+
+All definitions and proofs have been done formally with the interactive 
+theorem prover Isabelle/HOL. This guarantees not only rigorous definitions, 
+but also gives maximal confidence in the results obtained.},
+        CRClassification = {D.2.4, D.3.1, F.3.1},
+        CRGenTerms = {Languages, Verification, Theory},
+        note = {\url{http://isabelle.in.tum.de/Bali/papers/CPE01.html}, to appear}
+}

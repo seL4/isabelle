@@ -1,0 +1,57 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{latexsym,isabelle,isabellesym,latexsym,pdfsetup}
+
+\urlstyle{tt}
+\pagestyle{myheadings}
+
+\addtolength{\hoffset}{-1,5cm}
+\addtolength{\textwidth}{4cm}
+\addtolength{\voffset}{-2cm}
+\addtolength{\textheight}{4cm}
+
+%subsection instead of section to make the toc readable
+\renewcommand{\thesubsection}{\arabic{subsection}}
+\renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\subsection{#1}}
+\renewcommand{\isamarkupsection}[1]{\subsubsection{#1}}
+
+%remove spaces from the isabelle environment (trivlist makes them too large)
+\renewenvironment{isabelle}
+{\begin{isabellebody}}
+{\end{isabellebody}}
+
+\newcommand{\nJava}{\it NanoJava}
+
+%remove clutter from the toc
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+\title{\nJava}
+\author{David von Oheimb \\ Tobias Nipkow}
+\maketitle
+
+\begin{abstract}\noindent
+  These theories define {\nJava}, a very small fragment of the programming 
+  language Java (with essentially just classes) derived from the one given 
+  in \cite{NipkowOP00}.
+  For {\nJava}, an operational semantics is given as well as a Hoare logic,
+  which is proved both sound and (relatively) complete. The Hoare logic
+  implements a new approach for handling auxiliary variables.
+  A more complex Hoare logic covering a much larger subset of Java is described
+  in \cite{DvO-CPE01}.\\
+See also the homepage of project Bali at \url{http://isabelle.in.tum.de/Bali/}.
+\end{abstract}
+
+\tableofcontents
+\parindent 0pt \parskip 0.5ex
+
+\newpage
+\input{session}
+
+\newpage
+\nocite{*}
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
