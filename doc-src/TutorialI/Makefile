@@ -13,7 +13,8 @@ include ../Makefile.in
 
 NAME = tutorial
 FILES = tutorial.tex basics.tex fp.tex appendix.tex \
-	../iman.sty ttbox.sty extra.sty
+	../iman.sty ttbox.sty extra.sty \
+	isabelle.sty isabellesym.sty pdfsetup.sty
 
 dvi: $(NAME).dvi
 

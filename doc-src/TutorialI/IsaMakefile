@@ -37,7 +37,7 @@ HOL-Ifexpr: HOL $(LOG)/HOL-Ifexpr.gz
 
 $(LOG)/HOL-Ifexpr.gz: $(OUT)/HOL Ifexpr/Ifexpr.thy Ifexpr/ROOT.ML
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Ifexpr
-
+	@rm -f tutorial.dvi
 
 ## HOL-ToyList
 
@@ -48,9 +48,11 @@ ToyList2/ToyList.thy: ToyList2/ToyList1 ToyList2/ToyList2
 
 $(LOG)/HOL-ToyList2.gz: $(OUT)/HOL ToyList2/ToyList.thy ToyList2/ROOT.ML
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL ToyList2
+	@rm -f tutorial.dvi
 
 $(LOG)/HOL-ToyList.gz: $(OUT)/HOL ToyList/ToyList.thy ToyList/ROOT.ML
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL ToyList
+	@rm -f tutorial.dvi
 
 ## HOL-CodeGen
 
@@ -58,6 +60,7 @@ HOL-CodeGen: HOL $(LOG)/HOL-CodeGen.gz
 
 $(LOG)/HOL-CodeGen.gz: $(OUT)/HOL CodeGen/CodeGen.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL CodeGen
+	@rm -f tutorial.dvi
 
 
 ## HOL-Datatype
@@ -67,6 +70,7 @@ HOL-Datatype: HOL $(LOG)/HOL-Datatype.gz
 $(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy \
   Datatype/Nested.thy Datatype/unfoldnested.thy Datatype/Fundata.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Datatype
+	@rm -f tutorial.dvi
 
 
 ## HOL-Trie
@@ -75,6 +79,7 @@ HOL-Trie: HOL $(LOG)/HOL-Trie.gz
 
 $(LOG)/HOL-Trie.gz: $(OUT)/HOL Trie/Option2.thy Trie/Trie.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Trie
+	@rm -f tutorial.dvi
 
 
 ## HOL-Recdef
@@ -84,6 +89,7 @@ HOL-Recdef: HOL $(LOG)/HOL-Recdef.gz
 $(LOG)/HOL-Recdef.gz: $(OUT)/HOL Recdef/examples.thy Recdef/termination.thy \
   Recdef/simplification.thy Recdef/Induction.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Recdef
+	@rm -f tutorial.dvi
 
 
 ## HOL-Misc
@@ -96,9 +102,10 @@ $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/cases.thy \
   Misc/def_rewr.thy Misc/let_rewr.thy Misc/cond_rewr.thy Misc/case_splits.thy \
   Misc/trace_simp.thy Misc/Itrev.thy Misc/asm_simp.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Misc
+	@rm -f tutorial.dvi
 
 
 ## clean
 
 clean:
-	@rm -f $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz
+	@rm -f tutorial.dvi $(LOG)/HOL-Ifexpr.gz $(LOG)/HOL-CodeGen.gz $(LOG)/HOL-Misc.gz $(LOG)/HOL-ToyList.gz $(LOG)/HOL-ToyList2.gz $(LOG)/HOL-Trie.gz $(LOG)/HOL-Datatype.gz $(LOG)/HOL-Recdef.gz
