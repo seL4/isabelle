@@ -42,6 +42,11 @@ by (dres_inst_tac [("f", "Abs_Program")] arg_cong 1);
 by (full_simp_tac (rep_ss addsimps [surjective_pairing RS sym]) 1);
 qed "program_equalityI";
 
+val [major,minor] =
+Goal "[| F = G; [| Init F = Init G; Acts F = Acts G |] ==> P |] ==> P";
+by (rtac minor 1);
+by (auto_tac (claset(), simpset() addsimps [major]));
+qed "program_equalityE";
 
 (*** These rules allow "lazy" definition expansion ***)
 
