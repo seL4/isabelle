@@ -69,7 +69,8 @@ abstract class Vertex {
 	public void setID(String s) {}
 
 	public Dimension getLabelSize(Graphics g) {
-		FontMetrics fm=g.getFontMetrics(font);
+		FontMetrics fm = g == null ? 
+		    new DefaultFontMetrics(font) : g.getFontMetrics(font);
 		
 		return new Dimension(
 		        Math.max(fm.stringWidth("[. . . .]"),fm.stringWidth(getLabel())),

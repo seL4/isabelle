@@ -2,7 +2,7 @@
   Title:      GraphBrowser/GraphBrowser.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This is the graph browser's main class. It contains the "main(...)"
   method, which is used for the stand-alone version, as well as
@@ -115,7 +115,7 @@ public class GraphBrowser extends Applet {
 				f.show();
 			}
 		} catch (Exception exn) {
-			System.out.println("Can't read file "+fname);
+			System.err.println("Can't read file "+fname);
 		}
 	}
 				
@@ -162,11 +162,11 @@ public class GraphBrowser extends Applet {
 			gridbag.setConstraints(gv2,cnstr);
 			add(gv2);
 		} catch (IOException exn) {
-			System.out.println("\nI/O error while reading graph file.");
+			System.err.println("\nI/O error while reading graph file.");
 		} catch (ParseError exn) {
-			System.out.println("\nParse error in graph file:");
-			System.out.println(exn.getMessage());
-			System.out.println("\nSyntax:\n<vertexname> <vertexID> <dirname> [ + ] <path> [ < | > ] [ <vertexID> [ ... [ <vertexID> ] ... ] ] ;");
+			System.err.println("\nParse error in graph file:");
+			System.err.println(exn.getMessage());
+			System.err.println("\nSyntax:\n<vertexname> <vertexID> <dirname> [ + ] <path> [ < | > ] [ <vertexID> [ ... [ <vertexID> ] ... ] ] ;");
 		}
 	}		
 
@@ -178,9 +178,9 @@ public class GraphBrowser extends Applet {
 			initBrowser(is);
 			is.close();
 		} catch (MalformedURLException exn) {
-			System.out.println("Invalid URL: "+gfname);
+			System.err.println("Invalid URL: "+gfname);
 		} catch (IOException exn) {
-			System.out.println("I/O error while reading "+gfname+".");
+			System.err.println("I/O error while reading "+gfname+".");
 		}
 	}
 
@@ -188,17 +188,33 @@ public class GraphBrowser extends Applet {
 		isApplet=false;
 		try {
 			GraphBrowser gb=new GraphBrowser(args.length > 0 ? args[0] : "");
-			if (args.length>0) {
+			if (args.length > 0) {
 				InputStream is=new FileInputStream(args[0]);
 				gb.initBrowser(is);
 				is.close();
 			}
-			f=new GraphBrowserFrame(gb);
-			f.setSize(700,500);
-			f.show();
+			if (args.length > 1) {
+			    gb.gv.getGraph().layout(null);
+                            try {
+			      if (args[1].endsWith(".ps")) {
+                                gb.gv.PS(args[1], true);
+                              } else if (args[1].endsWith(".eps")) {
+                                gb.gv.PS(args[1], false);
+                              } else {
+                                System.err.println("Unknown file type: " + args[1]);
+                              }
+                            } catch (IOException exn) {
+                              System.err.println("Unable to write file " + args[1]);
+                            }
+                        } else {
+			    f=new GraphBrowserFrame(gb);
+			    f.setSize(700,500);
+			    f.show();
+                        }
 		} catch (IOException exn) {
-			System.out.println("Can't open graph file "+args[0]);
+			System.err.println("Can't open graph file "+args[0]);
 		}
+		System.exit(0);
 	}
 }
 
