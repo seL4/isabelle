@@ -1,6 +1,6 @@
 (*  Title:      Pure/Isar/locale.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU München
+    Author:     Markus Wenzel, LMU München
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Locales -- Isar proof contexts as meta-level predicates, with local
@@ -52,7 +52,6 @@ end;
 
 structure Locale: LOCALE =
 struct
-
 
 (** locale elements and expressions **)
 
@@ -214,15 +213,16 @@ fun inst_thm [] th = th
   | inst_thm env th =
       let
         val {sign, hyps, prop, maxidx, ...} = Thm.rep_thm th;
-        val cert = Thm.cterm_of sign and certT = Thm.ctyp_of sign;
-        val names = foldr Term.add_term_tfree_names (prop :: hyps, []);
-        val env' = filter (fn ((a, _), _) => a mem_string names) env;
+        val cert = Thm.cterm_of sign;
+        val certT = Thm.ctyp_of sign;
+        val occs = foldr Term.add_term_tfree_names (prop :: hyps, []);
+        val env' = filter (fn ((a, _), _) => a mem_string occs) env;
       in
         if null env' then th
         else
           th
           |> Drule.implies_intr_list (map cert hyps)
-          |> Drule.tvars_intr_list names
+          |> Drule.tvars_intr_list (map (#1 o #1) env')
           |> (fn (th', al) => th' |>
             Thm.instantiate ((map (fn ((a, _), T) => (the (assoc (al, a)), certT T)) env'), []))
           |> (fn th'' => Drule.implies_elim_list th''
@@ -324,7 +324,7 @@ fun unify_elemss _ _ [] = []
           ((name, map (apsnd (apsome (inst_type env))) ps), map (inst_elem env) elems);
       in map inst (elemss ~~ envs) end;
 
-fun flatten_expr ctxt expr =
+fun flatten_expr ctxt (prev_idents, expr) =
   let
     val thy = ProofContext.theory_of ctxt;
 
@@ -370,22 +370,19 @@ fun flatten_expr ctxt expr =
         val elems'' = map (rename_facts [NameSpace.base name, space_implode "_" xs]) elems';
       in ((name, params'), elems'') end;
 
-    val raw_elemss = unique_parms ctxt (map eval (#1 (identify (([], []), expr))));
+    val idents = gen_rems (op =) (#1 (identify (([], []), expr)), prev_idents);
+    val raw_elemss = unique_parms ctxt (map eval idents);
     val elemss = unify_elemss ctxt [] raw_elemss;
-  in elemss end;
+  in (prev_idents @ idents, elemss) end;
 
 end;
 
 
 (* activate elements *)
 
-fun declare_fixes fixes =
-  ProofContext.add_syntax fixes o
-  ProofContext.fix_direct (map (fn (x, T, _) => ([x], T)) fixes);
-
 local
 
-fun activate_elem (Fixes fixes) = declare_fixes fixes
+fun activate_elem (Fixes fixes) = ProofContext.add_fixes fixes
   | activate_elem (Assumes asms) =
       #1 o ProofContext.assume_i ProofContext.export_assume asms o
       ProofContext.fix_frees (flat (map (map #1 o #2) asms))
@@ -457,12 +454,12 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 local
 
 fun declare_int_elem i (ctxt, Fixes fixes) =
-      (ctxt |> declare_fixes (map (fn (x, T, mx) =>
+      (ctxt |> ProofContext.add_fixes (map (fn (x, T, mx) =>
         (x, apsome (Term.map_type_tfree (Type.param i)) T, mx)) fixes), [])
   | declare_int_elem _ (ctxt, _) = (ctxt, []);
 
 fun declare_ext_elem prep_fixes (ctxt, Fixes fixes) =
-      (ctxt |> declare_fixes (prep_fixes ctxt fixes), [])
+      (ctxt |> ProofContext.add_fixes (prep_fixes ctxt fixes), [])
   | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
   | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
   | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
@@ -480,10 +477,14 @@ fun close_frees ctxt t =
   let val frees = rev (filter_out (ProofContext.is_fixed ctxt o #1) (Term.add_frees ([], t)))
   in Term.list_all_free (frees, t) end;
 
+fun no_binds _ [] = []
+  | no_binds ctxt _ = raise ProofContext.CONTEXT ("Illegal term bindings in locale element", ctxt);
+
 fun closeup ctxt (Assumes asms) = Assumes (asms |> map (fn (a, propps) =>
-      (a, map (fn (t, _) => (close_frees ctxt t, ([], []))) propps)))
-  | closeup ctxt (Defines defs) = Defines (defs |> map (fn (a, (t, _)) =>
-      (a, (close_frees ctxt (#2 (ProofContext.cert_def ctxt t)), []))))
+      (a, map (fn (t, (ps, qs)) => (close_frees ctxt t,
+        (no_binds ctxt ps, no_binds ctxt qs))) propps)))
+  | closeup ctxt (Defines defs) = Defines (defs |> map (fn (a, (t, ps)) =>
+      (a, (close_frees ctxt (#2 (ProofContext.cert_def ctxt t)), no_binds ctxt ps))))
   | closeup ctxt elem = elem;
 
 fun finish_elem parms _ (Fixes fixes, _) = Ext (Fixes (map (fn (x, _, mx) =>
@@ -571,13 +572,16 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     close fixed_params import elements raw_concl context =
   let
     val sign = ProofContext.sign_of context;
-    fun flatten (Elem (Fixes fixes)) = [(("", map (rpair None o #1) fixes), Ext (Fixes fixes))]
-      | flatten (Elem elem) = [(("", []), Ext elem)]
-      | flatten (Expr expr) = map (apsnd Int) (flatten_expr context (prep_expr sign expr));
+    fun flatten (ids, Elem (Fixes fixes)) =
+          (ids, [(("", map (rpair None o #1) fixes), Ext (Fixes fixes))])
+      | flatten (ids, Elem elem) = (ids, [(("", []), Ext elem)])
+      | flatten (ids, Expr expr) =
+          let val (ids', elemss) = flatten_expr context (ids, prep_expr sign expr)
+          in (ids', map (apsnd Int) elemss) end
     val activate = activate_facts prep_facts;
 
-    val raw_import_elemss = flatten (Expr import);
-    val raw_elemss = flat (map flatten elements);
+    val (import_ids, raw_import_elemss) = flatten ([], Expr import);
+    val raw_elemss = flat (#2 ((foldl_map flatten (import_ids, elements))));
     val (parms, all_elemss, concl) =
       prep_elemss close context fixed_params (raw_import_elemss @ raw_elemss) raw_concl;
 
@@ -625,7 +629,7 @@ fun print_locale thy raw_expr =
 
     fun prt_syn syn =
       let val s = (case syn of None => "(structure)" | Some mx => Syntax.string_of_mixfix mx)
-      in if s = "" then [] else [Pretty.brk 4, Pretty.str s] end;
+      in if s = "" then [] else [Pretty.brk 2, Pretty.str s] end;
     fun prt_fix (x, Some T, syn) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
           prt_typ T :: Pretty.brk 1 :: prt_syn syn)
       | prt_fix (x, None, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
