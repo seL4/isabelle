@@ -2,14 +2,8 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-HOL theory data: records, datatypes.
+HOL theory data: datatypes.
 *)
-
-(*for records*)
-type record_info =
- {args: (string * sort) list,
-  parent: (typ list * string) option,
-  fields: (string * typ) list}
 
 (*for datatypes*)
 type datatype_info =
@@ -25,12 +19,10 @@ type datatype_info =
 
 signature THY_DATA =
 sig
-  val get_records: theory -> record_info Symtab.table
-  val put_records: record_info Symtab.table -> theory -> theory
   val get_datatypes_sg: Sign.sg -> datatype_info Symtab.table
   val get_datatypes: theory -> datatype_info Symtab.table
   val put_datatypes: datatype_info Symtab.table -> theory -> theory
-  val setup: theory -> theory
+  val setup: (theory -> theory) list
 end;
 
 structure ThyData: THY_DATA =
@@ -74,63 +66,9 @@ fun put_datatypes tab thy =
 
 
 
-(** records **)
-
-(* data kind 'records' *)
-
-val recordsK = "HOL/records";
-exception Records of record_info Symtab.table;
-
-
-(* methods *)
-
-local
-  val empty = Records Symtab.empty;
-
-  fun prep_ext (x as Records _) = x;
-
-  fun merge (Records tab1, Records tab2) =
-    Records (Symtab.merge (K true) (tab1, tab2));
-
-  fun print sg (Records tab) =
-    let
-      fun pretty_parent None = []
-        | pretty_parent (Some (ts, name)) = 
-            [Pretty.block ((Sign.pretty_typ sg (Type (name, ts))) :: [Pretty.str (" +")])];
-
-      fun pretty_field (c, T) = Pretty.block
-        [Pretty.str (c ^ " :: "), Pretty.brk 1, Pretty.quote (Sign.pretty_typ sg T)];
-
-      fun pretty_record (name, {args, parent, fields}) =
-        Pretty.block 
-          (Pretty.fbreaks
-            ((Pretty.block 
-                ((Sign.pretty_typ sg (Type (name, map TFree args))) :: 
-                   [Pretty.str " = "])) 
-              :: pretty_parent parent @ map pretty_field fields))
-    in
-      seq (Pretty.writeln o pretty_record) (Symtab.dest tab)
-    end;
-in
-  val record_thy_data = (recordsK, (empty, prep_ext, merge, print));
-end;
-
-
-(* get and put records *)
-
-fun get_records thy =
-  (case Theory.get_data thy recordsK of
-    Records tab => tab
-  | _ => type_error recordsK);
-
-fun put_records tab thy =
-  Theory.put_data (recordsK, Records tab) thy;
-
-
-
 (** theory data setup **)
 
-val setup = Theory.init_data [datatypes_thy_data, record_thy_data];
+val setup = [Theory.init_data [datatypes_thy_data]];
 
 
 end;
