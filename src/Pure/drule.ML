@@ -57,6 +57,7 @@ signature DRULE =
   val RLN		: thm list * (int * thm list) -> thm list
   val size_of_thm	: thm -> int
   val standard		: thm -> thm
+  val swap_prems_rl     : thm
   val symmetric_thm	: thm
   val thin_rl		: thm
   val transitive_thm	: thm
@@ -630,6 +631,23 @@ val triv_forall_equality =
       and x  = read_cterm Sign.proto_pure ("x", TFree("'a",logicS));
   in  standard (equal_intr (implies_intr QV (forall_elim x (assume QV)))
                            (implies_intr V  (forall_intr x (assume V))))
+  end;
+
+(* (PROP ?PhiA ==> PROP ?PhiB ==> PROP ?Psi) ==>
+   (PROP ?PhiB ==> PROP ?PhiA ==> PROP ?Psi)
+   `thm COMP swap_prems_rl' swaps the first two premises of `thm'
+*)
+val swap_prems_rl =
+  let val cmajor = read_cterm Sign.proto_pure
+            ("PROP PhiA ==> PROP PhiB ==> PROP Psi", propT);
+      val major = assume cmajor;
+      val cminor1 = read_cterm Sign.proto_pure  ("PROP PhiA", propT);
+      val minor1 = assume cminor1;
+      val cminor2 = read_cterm Sign.proto_pure  ("PROP PhiB", propT);
+      val minor2 = assume cminor2;
+  in standard
+       (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
+         (implies_elim (implies_elim major minor1) minor2))))
   end;
 
 end;
