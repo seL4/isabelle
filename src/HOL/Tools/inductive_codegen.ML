@@ -1,4 +1,4 @@
-(*  Title:      Pure/HOL/inductive_codegen.ML
+(*  Title:      HOL/inductive_codegen.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
@@ -183,15 +183,15 @@ fun compile_clause thy gr dep all_vs arg_vs modes mode (ts, ps) =
 
     fun compile_prems out_ts' vs names gr [] =
           let
-            val (gr2, out_ps) = foldl_map (fn (gr, t) =>
-              invoke_codegen thy gr dep false t) (gr, out_ts);
+            val (gr2, out_ps) = foldl_map
+              (invoke_codegen thy dep false) (gr, out_ts);
             val (gr3, eq_ps) = foldl_map (fn (gr, (s, t)) =>
               apsnd (Pretty.block o cons (Pretty.str (s ^ " = ")) o single)
-                (invoke_codegen thy gr dep false t)) (gr2, eqs);
+                (invoke_codegen thy dep false (gr, t))) (gr2, eqs);
             val (nvs, out_ts'') = foldl_map distinct_v
               ((names, map (fn x => (x, [x])) vs), out_ts');
-            val (gr4, out_ps') = foldl_map (fn (gr, t) =>
-              invoke_codegen thy gr dep false t) (gr3, out_ts'');
+            val (gr4, out_ps') = foldl_map
+              (invoke_codegen thy dep false) (gr3, out_ts'');
           in
             (gr4, compile_match (snd nvs) eq_ps out_ps'
               (Pretty.block [Pretty.str "Seq.single", Pretty.brk 1, mk_tuple out_ps])
@@ -208,14 +208,14 @@ fun compile_clause thy gr dep all_vs arg_vs modes mode (ts, ps) =
                Prem (s, us, args) =>
                  let
                    val (in_ts, out_ts') = get_args mode' 1 us;
-                   val (gr1, in_ps) = foldl_map (fn (gr, t) =>
-                     invoke_codegen thy gr dep false t) (gr, in_ts);
-                   val (gr2, arg_ps) = foldl_map (fn (gr, t) =>
-                     invoke_codegen thy gr dep true t) (gr1, args);
+                   val (gr1, in_ps) = foldl_map
+                     (invoke_codegen thy dep false) (gr, in_ts);
+                   val (gr2, arg_ps) = foldl_map
+                     (invoke_codegen thy dep true) (gr1, args);
                    val (nvs, out_ts'') = foldl_map distinct_v
                      ((names, map (fn x => (x, [x])) vs), out_ts);
-                   val (gr3, out_ps) = foldl_map (fn (gr, t) =>
-                     invoke_codegen thy gr dep false t) (gr2, out_ts'')
+                   val (gr3, out_ps) = foldl_map
+                     (invoke_codegen thy dep false) (gr2, out_ts'')
                    val (gr4, rest) = compile_prems out_ts' vs' (fst nvs) gr3 ps';
                  in
                    (gr4, compile_match (snd nvs) [] out_ps
@@ -227,11 +227,11 @@ fun compile_clause thy gr dep all_vs arg_vs modes mode (ts, ps) =
                  end
              | Sidecond t =>
                  let
-                   val (gr1, side_p) = invoke_codegen thy gr dep true t;
+                   val (gr1, side_p) = invoke_codegen thy dep true (gr, t);
                    val (nvs, out_ts') = foldl_map distinct_v
                      ((names, map (fn x => (x, [x])) vs), out_ts);
-                   val (gr2, out_ps) = foldl_map (fn (gr, t) =>
-                     invoke_codegen thy gr dep false t) (gr1, out_ts')
+                   val (gr2, out_ps) = foldl_map
+                     (invoke_codegen thy dep false) (gr1, out_ts')
                    val (gr3, rest) = compile_prems [] vs' (fst nvs) gr2 ps';
                  in
                    (gr3, compile_match (snd nvs) [] out_ps
@@ -357,10 +357,10 @@ fun mk_ind_call thy gr dep t u is_query = (case strip_comb u of
              else (ts, 1 upto length ts);
            val _ = if mode mem the (assoc (modes, s)) then () else
              error ("No such mode for " ^ s ^ ": " ^ string_of_mode mode);
-           val (gr2, in_ps) = foldl_map (fn (gr, t) =>
-             invoke_codegen thy gr dep false t) (gr1, ts');
-           val (gr3, arg_ps) = foldl_map (fn (gr, t) =>
-             invoke_codegen thy gr dep true t) (gr2, args);
+           val (gr2, in_ps) = foldl_map
+             (invoke_codegen thy dep false) (gr1, ts');
+           val (gr3, arg_ps) = foldl_map
+             (invoke_codegen thy dep true) (gr2, args);
          in
            Some (gr3, Pretty.block (separate (Pretty.brk 1)
              (Pretty.str (modename thy s mode) :: arg_ps @ [mk_tuple in_ps])))
@@ -371,7 +371,7 @@ fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
       (case mk_ind_call thy gr dep t u false of
          None => None
        | Some (gr', call_p) => Some (gr', (if brack then parens else I)
-           (Pretty.block [Pretty.str "nonempty (", call_p, Pretty.str ")"])))
+           (Pretty.block [Pretty.str "?! (", call_p, Pretty.str ")"])))
   | inductive_codegen thy gr dep brack (Free ("query", _) $ (Const ("op :", _) $ t $ u)) =
       mk_ind_call thy gr dep t u true
   | inductive_codegen thy gr dep brack _ = None;
@@ -379,3 +379,21 @@ fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
 val setup = [add_codegen "inductive" inductive_codegen];
 
 end;
+
+
+(**** combinators for code generated from inductive predicates ****)
+
+infix 5 :->;
+infix 3 ++;
+
+fun s :-> f = Seq.flat (Seq.map f s);
+
+fun s1 ++ s2 = Seq.append (s1, s2);
+
+fun ?? b = if b then Seq.single () else Seq.empty;
+
+fun ?! s = is_some (Seq.pull s);    
+
+fun eq_1 x = Seq.single x;
+
+val eq_2 = eq_1;
