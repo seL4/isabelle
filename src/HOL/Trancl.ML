@@ -139,48 +139,48 @@ qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
 goal Trancl.thy "!!r. (x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";
-by (rtac inverseI 1);
+by (rtac converseI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
-qed "rtrancl_inverseD";
+qed "rtrancl_converseD";
 
 goal Trancl.thy "!!r. (x,y) : (r^*)^-1 ==> (x,y) : (r^-1)^*";
-by (dtac inverseD 1);
+by (dtac converseD 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
-qed "rtrancl_inverseI";
+qed "rtrancl_converseI";
 
 goal Trancl.thy "(r^-1)^* = (r^*)^-1";
-by (safe_tac (claset() addSIs [rtrancl_inverseI]));
+by (safe_tac (claset() addSIs [rtrancl_converseI]));
 by (res_inst_tac [("p","x")] PairE 1);
 by (hyp_subst_tac 1);
-by (etac rtrancl_inverseD 1);
-qed "rtrancl_inverse";
+by (etac rtrancl_converseD 1);
+qed "rtrancl_converse";
 
 val major::prems = goal Trancl.thy
     "[| (a,b) : r^*; P(b); \
 \       !!y z.[| (y,z) : r;  (z,b) : r^*;  P(z) |] ==> P(y) |]  \
 \     ==> P(a)";
-by (rtac ((major RS inverseI RS rtrancl_inverseI) RS rtrancl_induct) 1);
+by (rtac ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1);
 by (resolve_tac prems 1);
-by (blast_tac (claset() addIs prems addSDs[rtrancl_inverseD])1);
-qed "inverse_rtrancl_induct";
+by (blast_tac (claset() addIs prems addSDs[rtrancl_converseD])1);
+qed "converse_rtrancl_induct";
 
 val prems = goal Trancl.thy
  "[| ((a,b),(c,d)) : r^*; P c d; \
 \    !!x y z u.[| ((x,y),(z,u)) : r;  ((z,u),(c,d)) : r^*;  P z u |] ==> P x y\
 \ |] ==> P a b";
 by (res_inst_tac[("R","P")]splitD 1);
-by (res_inst_tac[("P","split P")]inverse_rtrancl_induct 1);
+by (res_inst_tac[("P","split P")]converse_rtrancl_induct 1);
 by (resolve_tac prems 1);
 by (Simp_tac 1);
 by (resolve_tac prems 1);
 by (split_all_tac 1);
 by (Asm_full_simp_tac 1);
 by (REPEAT(ares_tac prems 1));
-qed "inverse_rtrancl_induct2";
+qed "converse_rtrancl_induct2";
 
 val major::prems = goal Trancl.thy
  "[| (x,z):r^*; \
@@ -188,7 +188,7 @@ val major::prems = goal Trancl.thy
 \    !!y. [| (x,y):r; (y,z):r^* |] ==> P \
 \ |] ==> P";
 by (subgoal_tac "x = z  | (? y. (x,y) : r & (y,z) : r^*)" 1);
-by (rtac (major RS inverse_rtrancl_induct) 2);
+by (rtac (major RS converse_rtrancl_induct) 2);
 by (blast_tac (claset() addIs prems) 2);
 by (blast_tac (claset() addIs prems) 2);
 by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
@@ -304,9 +304,9 @@ by (blast_tac (claset() addIs
 qed "trancl_insert";
 
 goalw Trancl.thy [trancl_def] "(r^-1)^+ = (r^+)^-1";
-by (simp_tac (simpset() addsimps [rtrancl_inverse,inverse_comp]) 1);
-by (simp_tac (simpset() addsimps [rtrancl_inverse RS sym,r_comp_rtrancl_eq]) 1);
-qed "trancl_inverse";
+by (simp_tac (simpset() addsimps [rtrancl_converse,converse_comp]) 1);
+by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,r_comp_rtrancl_eq]) 1);
+qed "trancl_converse";
 
 
 val major::prems = goal Trancl.thy

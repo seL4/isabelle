@@ -16,9 +16,9 @@ Delrules [equalityI];
 
 (** first half: equiv A r ==> r^-1 O r = r **)
 
-goalw Equiv.thy [trans_def,sym_def,inverse_def]
+goalw Equiv.thy [trans_def,sym_def,converse_def]
     "!!r. [| sym(r); trans(r) |] ==> r^-1 O r <= r";
-by (blast_tac (claset() addSEs [inverseD]) 1);
+by (Blast_tac 1);
 qed "sym_trans_comp_subset";
 
 goalw Equiv.thy [refl_def]

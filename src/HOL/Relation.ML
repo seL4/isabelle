@@ -87,22 +87,22 @@ qed "transD";
 
 (** Natural deduction for r^-1 **)
 
-goalw thy [inverse_def] "!!a b r. ((a,b): r^-1) = ((b,a):r)";
+goalw thy [converse_def] "!!a b r. ((a,b): r^-1) = ((b,a):r)";
 by (Simp_tac 1);
-qed "inverse_iff";
+qed "converse_iff";
 
-AddIffs [inverse_iff];
+AddIffs [converse_iff];
 
-goalw thy [inverse_def] "!!a b r. (a,b):r ==> (b,a): r^-1";
+goalw thy [converse_def] "!!a b r. (a,b):r ==> (b,a): r^-1";
 by (Simp_tac 1);
-qed "inverseI";
+qed "converseI";
 
-goalw thy [inverse_def] "!!a b r. (a,b) : r^-1 ==> (b,a) : r";
+goalw thy [converse_def] "!!a b r. (a,b) : r^-1 ==> (b,a) : r";
 by (Blast_tac 1);
-qed "inverseD";
+qed "converseD";
 
-(*More general than inverseD, as it "splits" the member of the relation*)
-qed_goalw "inverseE" thy [inverse_def]
+(*More general than converseD, as it "splits" the member of the relation*)
+qed_goalw "converseE" thy [converse_def]
     "[| yx : r^-1;  \
 \       !!x y. [| yx=(y,x);  (x,y):r |] ==> P \
 \    |] ==> P"
@@ -111,21 +111,21 @@ qed_goalw "inverseE" thy [inverse_def]
     (REPEAT (eresolve_tac [splitE, bexE,exE, conjE, minor] 1)),
     (assume_tac 1) ]);
 
-AddSEs [inverseE];
+AddSEs [converseE];
 
-goalw thy [inverse_def] "(r^-1)^-1 = r";
+goalw thy [converse_def] "(r^-1)^-1 = r";
 by (Blast_tac 1);
-qed "inverse_inverse";
-Addsimps [inverse_inverse];
+qed "converse_converse";
+Addsimps [converse_converse];
 
 goal thy "(r O s)^-1 = s^-1 O r^-1";
 by (Blast_tac 1);
-qed "inverse_comp";
+qed "converse_comp";
 
 goal thy "id^-1 = id";
 by (Blast_tac 1);
-qed "inverse_id";
-Addsimps [inverse_id];
+qed "converse_id";
+Addsimps [converse_id];
 
 (** Domain **)
 
@@ -153,14 +153,14 @@ Addsimps [Domain_id];
 (** Range **)
 
 qed_goalw "RangeI" thy [Range_def] "!!a b r.(a,b): r ==> b : Range(r)"
- (fn _ => [ (etac (inverseI RS DomainI) 1) ]);
+ (fn _ => [ (etac (converseI RS DomainI) 1) ]);
 
 qed_goalw "RangeE" thy [Range_def]
     "[| b : Range(r);  !!x. (x,b): r ==> P |] ==> P"
  (fn major::prems=>
   [ (rtac (major RS DomainE) 1),
     (resolve_tac prems 1),
-    (etac inverseD 1) ]);
+    (etac converseD 1) ]);
 
 AddIs  [RangeI];
 AddSEs [RangeE];

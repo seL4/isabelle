@@ -144,8 +144,8 @@ qed "acyclic_insert";
 AddIffs [acyclic_insert];
 
 goalw WF.thy [acyclic_def] "acyclic(r^-1) = acyclic r";
-by (simp_tac (simpset() addsimps [trancl_inverse]) 1);
-qed "acyclic_inverse";
+by (simp_tac (simpset() addsimps [trancl_converse]) 1);
+qed "acyclic_converse";
 
 (** cut **)
 
