@@ -55,14 +55,20 @@ New in this Isabelle release
   fold_commute}, for example.  Note that a proof context is escaped to
   the enclosing theory context first.
 
-* ML: all output via channels of writeln/warning/error etc. is now
-  passed through Output.output.  This gives interface builders a
-  chance to adapt text encodings in arbitrary manners (say as XML
-  entities); see the hook provided by Output.add_mode.  On the other
-  hand, results of Pretty.string_of/str_of (including string_of_term,
-  string_of_thm etc.) are still 'raw' (containing funny \<^raw...>
-  symbols), which requires separate application of Output.output
-  whenever strings are *not* passed on to writeln/warning/error etc.
+* ML: output via the Isabelle channels of writeln/warning/error
+  etc. is now passed through Output.output, with a hook for arbitrary
+  transformations depending on the print_mode (cf. Output.add_mode --
+  the first active mode that provides a output function wins).
+  Already formatted output may be embedded into further text via
+  Output.raw; the result of Pretty.string_of/str_of and derived
+  functions (string_of_term/cterm/thm etc.) is already marked raw to
+  accommodate easy composition of diagnostic messages etc.
+  Programmers rarely need to care about Output.output or Output.raw at
+  all, with some notable exceptions: Output.output is required when
+  bypassing the standard channels (writeln etc.), or in token
+  translations to produce properly formatted results; Output.raw is
+  required when capturing already output material that will eventually
+  be presented to the user a second time.
 
 
 *** HOL ***
