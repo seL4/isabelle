@@ -152,10 +152,10 @@ qed_spec_mp "decomp_propa";
 val [iter_wf,iter_tc] = iter.tcs;
 
 goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop iter_wf));
-by (REPEAT(rtac wf_same_fstI 1));
+by (REPEAT(rtac wf_same_fst 1));
 by (split_all_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [lesssub_def]) 1);
-by (REPEAT(rtac wf_same_fstI 1));
+by (REPEAT(rtac wf_same_fst 1));
 by (rtac wf_lex_prod 1);
  by (rtac wf_finite_psubset 2); (* FIXME *)
 by (Clarify_tac 1);

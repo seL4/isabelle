@@ -39,6 +39,7 @@ lemmas [recdef_wf] =
   wf_inv_image
   wf_measure
   wf_pred_nat
+  wf_same_fst
   wf_empty
 
 end

@@ -47,23 +47,23 @@ lemma apps_betasE_aux:
      apply (case_tac r)
        apply simp
       apply (simp add: App_eq_foldl_conv)
-      apply (split (asm) split_if_asm)
+      apply (split split_if_asm)
        apply simp
        apply blast
       apply simp
      apply (simp add: App_eq_foldl_conv)
-     apply (split (asm) split_if_asm)
+     apply (split split_if_asm)
       apply simp
      apply simp
     apply (clarify del: disjCI)
     apply (drule App_eq_foldl_conv [THEN iffD1])
-    apply (split (asm) split_if_asm)
+    apply (split split_if_asm)
      apply simp
      apply blast
     apply (force intro: disjI1 [THEN append_step1I])
    apply (clarify del: disjCI)
    apply (drule App_eq_foldl_conv [THEN iffD1])
-   apply (split (asm) split_if_asm)
+   apply (split split_if_asm)
     apply simp
     apply blast
    apply (auto 0 3 intro: disjI2 [THEN append_step1I])

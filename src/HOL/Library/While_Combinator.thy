@@ -36,8 +36,8 @@ constdefs
 ML_setup {*
   goalw_cterm [] (cterm_of (sign_of (the_context ()))
     (HOLogic.mk_Trueprop (hd (RecdefPackage.tcs_of (the_context ()) "while_aux"))));
-  br wf_same_fstI 1;
-  br wf_same_fstI 1;
+  br wf_same_fst 1;
+  br wf_same_fst 1;
   by (asm_full_simp_tac (simpset() addsimps [wf_iff_no_infinite_down_chain]) 1);
   by (Blast_tac 1);
   qed "while_aux_tc";
@@ -74,7 +74,7 @@ text {*
  The proof rule for @{term while}, where @{term P} is the invariant.
 *}
 
-theorem while_rule [rule_format]:
+theorem while_rule_lemma[rule_format]:
   "(!!s. P s ==> b s ==> P (c s)) ==>
     (!!s. P s ==> \<not> b s ==> Q s) ==>
     wf {(t, s). P s \<and> b s \<and> t = c s} ==>
@@ -91,31 +91,19 @@ proof -
     done
 qed
 
+theorem while_rule:
+  "\<lbrakk> P s; \<And>s. \<lbrakk> P s; b s \<rbrakk> \<Longrightarrow> P(c s);
+    \<And>s.\<lbrakk> P s; \<not> b s \<rbrakk> \<Longrightarrow> Q s;
+    wf r;  \<And>s. \<lbrakk> P s; b s \<rbrakk> \<Longrightarrow> (c s,s) \<in> r \<rbrakk> \<Longrightarrow>
+    Q (while b c s)"
+apply (rule while_rule_lemma)
+prefer 4 apply assumption
+apply blast
+apply blast
+apply(erule wf_subset)
+apply blast
+done
+
 hide const while_aux
-
-text {*
- \medskip An application: computation of the @{term lfp} on finite
- sets via iteration.
-*}
-
-theorem lfp_conv_while:
-  "mono f ==> finite U ==> f U = U ==>
-    lfp f = fst (while (\<lambda>(A, fA). A \<noteq> fA) (\<lambda>(A, fA). (fA, f fA)) ({}, f {}))"
-  apply (rule_tac P =
-      "\<lambda>(A, B). (A \<subseteq> U \<and> B = f A \<and> A \<subseteq> B \<and> B \<subseteq> lfp f)" in while_rule)
-     apply (subst lfp_unfold)
-      apply assumption
-     apply clarsimp
-     apply (blast dest: monoD)
-    apply (fastsimp intro!: lfp_lowerbound)
-   apply (rule_tac r = "((Pow U <*> UNIV) <*> (Pow U <*> UNIV)) \<inter>
-       inv_image finite_psubset (op - U o fst)" in wf_subset)
-    apply (blast intro: wf_finite_psubset Int_lower2 [THEN [2] wf_subset])
-   apply (clarsimp simp add: inv_image_def finite_psubset_def order_less_le)
-   apply (blast intro!: finite_Diff dest: monoD)
-  apply (subst lfp_unfold)
-   apply assumption
-  apply (simp add: monoD)
-  done
 
 end
