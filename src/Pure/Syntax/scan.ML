@@ -38,13 +38,17 @@ sig
   val depend: ('a -> 'b -> ('c * 'd) * 'e) -> 'a * 'b -> 'd * ('c * 'e)
   val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
   val pass: 'a -> ('a * 'b -> 'c * ('d * 'e)) -> 'b -> 'c * 'e
+  val try: ('a -> 'b) -> 'a -> 'b
   val force: ('a -> 'b) -> 'a -> 'b
+  val prompt: string -> ('a -> 'b) -> 'a -> 'b
   val finite': ''a -> ('b * ''a list -> 'c * ('d * ''a list))
     -> 'b * ''a list -> 'c * ('d * ''a list)
   val finite: ''a -> (''a list -> 'b * ''a list) -> ''a list -> 'b * ''a list
   val error: ('a -> 'b) -> 'a -> 'b
-  val source: ('a -> 'b list * 'a) -> ('b list * 'a -> 'c)
-    -> ('b list -> 'd * 'b list) -> 'a -> 'd list * 'c
+  val source: string -> (string -> 'a -> 'b list * 'a)
+    -> ('c * 'a -> 'd) -> ('b list -> 'e * 'c) -> 'a -> 'e * 'd
+  val single: ('a -> 'b * 'c) -> 'a -> 'b list * 'c
+  val many: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
   val dest_lexicon: lexicon -> string list list
   val make_lexicon: string list list -> lexicon
@@ -60,9 +64,9 @@ struct
 
 (** scanners **)
 
-exception MORE;			(*need more input*)
-exception FAIL;			(*try alternatives*)
-exception ABORT of string;	(*dead end*)
+exception MORE of string option;	(*need more input (use prompt)*)
+exception FAIL;				(*try alternatives*)
+exception ABORT of string;		(*dead end*)
 
 
 (* scanner combinators *)
@@ -88,15 +92,15 @@ fun (scan1 ^^ scan2) = scan1 -- scan2 >> op ^;
 fun fail _ = raise FAIL;
 fun succeed y xs = (y, xs);
 
-fun one _ [] = raise MORE
+fun one _ [] = raise MORE None
   | one pred (x :: xs) =
       if pred x then (x, xs) else raise FAIL;
 
-fun $$ _ [] = raise MORE
+fun $$ _ [] = raise MORE None
   | $$ a (x :: xs) =
       if a = x then (x, xs) else raise FAIL;
 
-fun any _ [] = raise MORE
+fun any _ [] = raise MORE None
   | any pred (lst as x :: xs) =
       if pred x then apfst (cons x) (any pred xs)
       else ([], lst);
@@ -138,7 +142,9 @@ fun pass st scan xs =
 (* exception handling *)
 
 fun !! err scan xs = scan xs handle FAIL => raise ABORT (err xs);
-fun force scan xs = scan xs handle MORE => raise FAIL;
+fun try scan xs = scan xs handle MORE _ => raise FAIL | ABORT _ => raise FAIL;
+fun force scan xs = scan xs handle MORE _ => raise FAIL;
+fun prompt str scan xs = scan xs handle MORE None => raise MORE (Some str);
 fun error scan xs = scan xs handle ABORT msg => Library.error msg;
 
 
@@ -163,24 +169,22 @@ fun finite stopper scan xs =
   in (y, xs') end;
 
 
-(* infinite scans *)		(* FIXME state based!? *)
+(* infinite scans *)
 
-fun source get unget scan src =
+fun source def_prmpt get unget scan src =
   let
-    fun try_more x =
-      scan x handle MORE => raise FAIL | ABORT _ => raise FAIL;
-
     fun drain (xs, s) =
-      (((scan -- repeat try_more) >> op ::) xs, s)
-        handle MORE =>
-          let val (more_xs, s') = get s in
+      (scan xs, s)
+        handle MORE prmpt =>
+          let val (more_xs, s') = get (if_none prmpt def_prmpt) s in
             if null more_xs then raise ABORT "Input source exhausted"
             else drain (xs @ more_xs, s')
           end;
-
-    val ((ys, xs'), src') = drain (get src);
+    val ((ys, xs'), src') = drain (get def_prmpt src);
   in (ys, unget (xs', src')) end;
 
+fun single scan = scan >> (fn x => [x]);
+fun many scan = scan -- repeat (try scan) >> (op ::);
 
 
 
@@ -240,7 +244,7 @@ fun merge_lexicons lex1 lex2 =
 fun literal lex chrs =
   let
     fun lit Empty res _ = res
-      | lit (Branch _) _ [] = raise MORE
+      | lit (Branch _) _ [] = raise MORE None
       | lit (Branch (d, a, lt, eq, gt)) res (chs as c :: cs) =
 	  if c < d then lit lt res chs
 	  else if c > d then lit gt res chs
