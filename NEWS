@@ -155,6 +155,8 @@ method scripts' have to be in depth-first order;
 instead use individual commands for printing items (print_commands,
 print_methods etc.);
 
+* added 'nothing' --- the empty list of theorems;
+
 
 *** HOL ***
 
