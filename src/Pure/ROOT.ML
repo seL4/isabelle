@@ -60,11 +60,12 @@ use "install_pp.ML";
 (*if true then some packages won't be too serious about actually proving things*)
 val quick_and_dirty = ref false;
 
-(*several object-logics declare theories named List or Option, hiding
-  the eponymous basis library structures*)
+(*several object-logics declare theories that hide basis library structures*)
 structure BasisLibrary =
 struct
-  structure List = List and Option = Option;
+  structure List   = List 
+  and       Option = Option
+  and       Int    = Int;
 end;
 
 open Use;
