@@ -231,7 +231,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
     val in_vs = terms_vs in_ts;
     val concl_vs = terms_vs ts
   in
-    forall is_eqT (map snd (duplicates (flat (map term_vTs in_ts')))) andalso
+    forall is_eqT (map snd (duplicates (flat (map term_vTs in_ts)))) andalso
     (case check_mode_prems (arg_vs union in_vs) ps of
        None => false
      | Some vs => concl_vs subset vs)
