@@ -285,8 +285,9 @@ fun use_thy name =
          else (writeln ("Reading \"" ^ name ^ ".ML\"");
                use ml_file);
 
-         use_string ["store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");",
-                     "map store_thm_db (axioms_of " ^ tname ^ ".thy);"];
+         use_string
+           ["val _ = (store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");\
+            \map store_thm_db (axioms_of " ^ tname ^ ".thy));"];
                     (*Store theory again because it could have been redefined*)
 
          (*Now set the correct info*)
