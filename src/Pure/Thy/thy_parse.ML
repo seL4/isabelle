@@ -406,8 +406,8 @@ val opt_witness =
   >> mk_witness;
 
 val instance_decl =
-  (name --$$ "<" -- name >> (pair "|> AxClass.add_inst_subclass" o mk_pair) ||
-    name --$$ "::" -- arity >> (pair "|> AxClass.add_inst_arity" o mk_triple2))
+  (name --$$ "<" -- name >> (pair "|> AxClass.add_inst_subclass_x" o mk_pair) ||
+    name --$$ "::" -- arity >> (pair "|> AxClass.add_inst_arity_x" o mk_triple2))
   -- opt_witness
   >> (fn ((x, y), z) => (cat_lines [x, y, z]));
 
