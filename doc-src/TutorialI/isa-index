@@ -16,8 +16,8 @@
 # change *IDENT  to  IDENT@{\tt IDENT}  
 #    where IDENT is any string not containing | ! or @
 # FOUR backslashes: to escape the shell AND sed
-sed -e "s~\*\(\".\".\".\".\)~\1@{\\\\isa{\1}}~g
-s~\*\(\".\".\".\)~\1@{\\\\isa{\1}}~g
-s~\*\(\".\".\)~\1@{\\\\isa{\1}}~g
-s~\*\(\".\)~\1@{\\\\isa{\1}}~g
-s~\*\([^ |!@{}][^ |!@{}]*\)~\1@{\\\\isa{\1}}~g" $1.idx | makeindex -c -q -o $1.ind
+sed -e "s~\*\(\".\".\".\".\)~\1@\\\\isa {\1}~g
+s~\*\(\".\".\".\)~\1@\\\\isa {\1}~g
+s~\*\(\".\".\)~\1@\\\\isa {\1}~g
+s~\*\(\".\)~\1@\\\\isa {\1}~g
+s~\*\([^ |!@{}][^ |!@{}]*\)~\1@\\\\isa {\1}~g" $1.idx | makeindex -c -q -o $1.ind
