@@ -107,8 +107,6 @@ apply (erule otway.induct, auto)
 done
 
 
-(**** Inductive proofs about otway ****)
-
 (** For reasoning about the encrypted portion of messages **)
 
 lemma OR2_analz_knows_Spy:
@@ -131,10 +129,10 @@ lemmas OR2_parts_knows_Spy =
   some reason proofs work without them!*)
 
 
-(** Theorems of the form X \<notin> parts (knows Spy evs) imply that NOBODY
-    sends messages containing X! **)
+text{*Theorems of the form @{term "X \<notin> parts (spies evs)"} imply that
+NOBODY sends messages containing X! *}
 
-(*Spy never sees a good agent's shared key!*)
+text{*Spy never sees a good agent's shared key!*}
 lemma Spy_see_shrK [simp]:
      "evs \<in> otway ==> (Key (shrK A) \<in> parts (knows Spy evs)) = (A \<in> bad)"
 by (erule otway.induct, force,
@@ -173,7 +171,7 @@ by (erule rev_mp, erule otway.induct, simp_all, blast)
 
 text{*Session keys are not used to encrypt other session keys*}
 
-(*The equality makes the induction hypothesis easier to apply*)
+text{*The equality makes the induction hypothesis easier to apply*}
 lemma analz_image_freshK [rule_format]:
  "evs \<in> otway ==>
    \<forall>K KK. KK <= -(range shrK) -->
@@ -185,7 +183,6 @@ apply (drule_tac [7] OR4_analz_knows_Spy)
 apply (drule_tac [5] OR2_analz_knows_Spy, analz_freshK, spy_analz, auto) 
 done
 
-
 lemma analz_insert_freshK:
   "[| evs \<in> otway;  KAB \<notin> range shrK |] ==>
       (Key K \<in> analz (insert (Key KAB) (knows Spy evs))) =
@@ -193,8 +190,7 @@ lemma analz_insert_freshK:
 by (simp only: analz_image_freshK analz_image_freshK_simps)
 
 
-(*** The Key K uniquely identifies the Server's  message. **)
-
+text{*The Key K uniquely identifies the Server's  message. *}
 lemma unique_session_keys:
      "[| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}   \<in> set evs;
          Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|} \<in> set evs;
@@ -202,23 +198,21 @@ lemma unique_session_keys:
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule otway.induct, simp_all)
-(*Remaining cases: OR3 and OR4*)
-apply blast+
+apply blast+  --{*OR3 and OR4*}
 done
 
 
 subsection{*Authenticity properties relating to NA*}
 
-(*Only OR1 can have caused such a part of a message to appear.*)
+text{*Only OR1 can have caused such a part of a message to appear.*}
 lemma Crypt_imp_OR1 [rule_format]:
  "[| A \<notin> bad;  evs \<in> otway |]
   ==> Crypt (shrK A) {|NA, Agent A, Agent B|} \<in> parts (knows Spy evs) -->
       Says A B {|NA, Agent A, Agent B,
                  Crypt (shrK A) {|NA, Agent A, Agent B|}|}
         \<in> set evs"
-apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
-done
+by (erule otway.induct, force,
+    drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 
 lemma Crypt_imp_OR1_Gets:
      "[| Gets B {|NA, Agent A, Agent B,
@@ -242,9 +236,9 @@ apply (erule otway.induct, force,
 done
 
 
-(*It is impossible to re-use a nonce in both OR1 and OR2.  This holds because
+text{*It is impossible to re-use a nonce in both OR1 and OR2.  This holds because
   OR2 encrypts Nonce NB.  It prevents the attack that can occur in the
-  over-simplified version of this protocol: see OtwayRees_Bad.*)
+  over-simplified version of this protocol: see OtwayRees_Bad.*}
 lemma no_nonce_OR1_OR2:
    "[| Crypt (shrK A) {|NA, Agent A, Agent B|} \<in> parts (knows Spy evs);
        A \<notin> bad;  evs \<in> otway |]
@@ -254,8 +248,8 @@ apply (erule otway.induct, force,
        drule_tac [4] OR2_parts_knows_Spy, simp_all, blast+)
 done
 
-(*Crucial property: If the encrypted message appears, and A has used NA
-  to start a run, then it originated with the Server!*)
+text{*Crucial property: If the encrypted message appears, and A has used NA
+  to start a run, then it originated with the Server!*}
 lemma NA_Crypt_imp_Server_msg [rule_format]:
      "[| A \<notin> bad;  evs \<in> otway |]
       ==> Says A B {|NA, Agent A, Agent B,
@@ -267,19 +261,16 @@ lemma NA_Crypt_imp_Server_msg [rule_format]:
                            Crypt (shrK B) {|NB, Key K|}|} \<in> set evs)"
 apply (erule otway.induct, force,
        drule_tac [4] OR2_parts_knows_Spy, simp_all, blast)
-(*OR1: it cannot be a new Nonce, contradiction.*)
-apply blast
-(*OR3*)
-apply (blast dest!: no_nonce_OR1_OR2 intro: unique_NA)
-(*OR4*)
-apply (blast intro!: Crypt_imp_OR1)
+apply blast  --{*OR1: by freshness*}
+apply (blast dest!: no_nonce_OR1_OR2 intro: unique_NA)  --{*OR3*}
+apply (blast intro!: Crypt_imp_OR1)  --{*OR4*}
 done
 
 
-(*Corollary: if A receives B's OR4 message and the nonce NA agrees
+text{*Corollary: if A receives B's OR4 message and the nonce NA agrees
   then the key really did come from the Server!  CANNOT prove this of the
   bad form of this protocol, even though we can prove
-  Spy_not_see_encrypted_key*)
+  Spy_not_see_encrypted_key*}
 lemma A_trusts_OR4:
      "[| Says A  B {|NA, Agent A, Agent B,
                      Crypt (shrK A) {|NA, Agent A, Agent B|}|} \<in> set evs;
@@ -293,10 +284,9 @@ lemma A_trusts_OR4:
 by (blast intro!: NA_Crypt_imp_Server_msg)
 
 
-(** Crucial secrecy property: Spy does not see the keys sent in msg OR3
+text{*Crucial secrecy property: Spy does not see the keys sent in msg OR3
     Does not in itself guarantee security: an attack could violate
-    the premises, e.g. by having A=Spy **)
-
+    the premises, e.g. by having @{term "A=Spy"}*}
 lemma secrecy_lemma:
  "[| A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
   ==> Says Server B
@@ -308,9 +298,9 @@ apply (erule otway.induct, force)
 apply (frule_tac [7] Says_Server_message_form)
 apply (drule_tac [6] OR4_analz_knows_Spy)
 apply (drule_tac [4] OR2_analz_knows_Spy)
-apply (simp_all add: analz_insert_eq analz_insert_freshK pushes, spy_analz)  (*Fake*)
-(*OR3, OR4, Oops*)
-apply (blast dest: unique_session_keys)+
+apply (simp_all add: analz_insert_eq analz_insert_freshK pushes)
+apply spy_analz  --{*Fake*}
+apply (blast dest: unique_session_keys)+  --{*OR3, OR4, Oops*}
 done
 
 theorem Spy_not_see_encrypted_key:
@@ -339,8 +329,8 @@ lemma Spy_not_know_encrypted_key:
 by (blast dest: Spy_not_see_encrypted_key)
 
 
-(*A's guarantee.  The Oops premise quantifies over NB because A cannot know
-  what it is.*)
+text{*A's guarantee.  The Oops premise quantifies over NB because A cannot know
+  what it is.*}
 lemma A_gets_good_key:
      "[| Says A  B {|NA, Agent A, Agent B,
                      Crypt (shrK A) {|NA, Agent A, Agent B|}|} \<in> set evs;
@@ -354,8 +344,8 @@ by (blast dest!: A_trusts_OR4 Spy_not_see_encrypted_key)
 
 subsection{*Authenticity properties relating to NB*}
 
-(*Only OR2 can have caused such a part of a message to appear.  We do not
-  know anything about X: it does NOT have to have the right form.*)
+text{*Only OR2 can have caused such a part of a message to appear.  We do not
+  know anything about X: it does NOT have to have the right form.*}
 lemma Crypt_imp_OR2:
      "[| Crypt (shrK B) {|NA, NB, Agent A, Agent B|} \<in> parts (knows Spy evs);
          B \<notin> bad;  evs \<in> otway |]
@@ -378,12 +368,11 @@ lemma unique_NB:
 apply (erule rev_mp, erule rev_mp)
 apply (erule otway.induct, force,
        drule_tac [4] OR2_parts_knows_Spy, simp_all)
-(*Fake, OR2*)
-apply blast+
+apply blast+  --{*Fake, OR2*}
 done
 
-(*If the encrypted message appears, and B has used Nonce NB,
-  then it originated with the Server!  Quite messy proof.*)
+text{*If the encrypted message appears, and B has used Nonce NB,
+  then it originated with the Server!  Quite messy proof.*}
 lemma NB_Crypt_imp_Server_msg [rule_format]:
  "[| B \<notin> bad;  evs \<in> otway |]
   ==> Crypt (shrK B) {|NB, Key K|} \<in> parts (knows Spy evs)
@@ -397,14 +386,11 @@ lemma NB_Crypt_imp_Server_msg [rule_format]:
                     \<in> set evs)"
 apply simp
 apply (erule otway.induct, force,
-       drule_tac [4] OR2_parts_knows_Spy, simp_all, blast)
-(*OR1: it cannot be a new Nonce, contradiction.*)
-(*OR2*)
-apply blast
-(*OR3: needs elim: MPair_parts or it takes forever!*)
-apply (blast dest: unique_NB dest!: no_nonce_OR1_OR2)
-(*OR4*)
-apply (blast dest!: Crypt_imp_OR2)
+       drule_tac [4] OR2_parts_knows_Spy, simp_all)
+apply blast  --{*Fake*}
+apply blast  --{*OR2*}
+apply (blast dest: unique_NB dest!: no_nonce_OR1_OR2)  --{*OR3*}
+apply (blast dest!: Crypt_imp_OR2)  --{*OR4*}
 done
 
 
@@ -424,7 +410,8 @@ theorem B_trusts_OR3:
 by (blast intro!: NB_Crypt_imp_Server_msg)
 
 
-(*The obvious combination of B_trusts_OR3 with Spy_not_see_encrypted_key*)
+text{*The obvious combination of @{text B_trusts_OR3} with 
+      @{text Spy_not_see_encrypted_key}*}
 lemma B_gets_good_key:
      "[| Says B Server {|NA, Agent A, Agent B, X',
                          Crypt (shrK B) {|NA, NB, Agent A, Agent B|} |}
