@@ -54,23 +54,22 @@ qed "reachable_0";
 
 goalw IOA.thy (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
-  by(Asm_full_simp_tac 1);
-  by(safe_tac (!claset));
-  by(res_inst_tac [("x","(%i.if i<n then fst ex i                    \
+  by (Asm_full_simp_tac 1);
+  by (safe_tac (!claset));
+  by (res_inst_tac [("x","(%i.if i<n then fst ex i                    \
 \                            else (if i=n then Some a else None),    \
 \                         %i.if i<Suc n then snd ex i else t)")] bexI 1);
-  by(res_inst_tac [("x","Suc(n)")] exI 1);
-  by(Simp_tac 1);
-  by(Asm_simp_tac 1);
-  by(REPEAT(rtac allI 1));
-  by(res_inst_tac [("m","na"),("n","n")] (make_elim less_linear) 1);
-  be disjE 1;
-  by(asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
-  be disjE 1;
-  by(Asm_simp_tac 1);
-  by(Fast_tac 1);
-  by(forward_tac [less_not_sym] 1);
-  by(asm_simp_tac (!simpset addsimps [less_not_refl2,less_Suc_eq]) 1);
+  by (res_inst_tac [("x","Suc(n)")] exI 1);
+  by (Simp_tac 1);
+  by (Asm_simp_tac 1);
+  by (REPEAT(rtac allI 1));
+  by (res_inst_tac [("m","na"),("n","n")] (make_elim less_linear) 1);
+  by (etac disjE 1);
+  by (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
+  by (etac disjE 1);
+  by (Asm_simp_tac 1);
+  by (forward_tac [less_not_sym] 1);
+  by (asm_simp_tac (!simpset addsimps [less_not_refl2,less_Suc_eq]) 1);
 qed "reachable_n";
 
 val [p1,p2] = goalw IOA.thy [invariant_def]
@@ -100,19 +99,19 @@ qed "invariantI1";
 
 val [p1,p2] = goalw IOA.thy [invariant_def]
 "[| invariant A P; reachable A s |] ==> P(s)";
-   br(p2 RS (p1 RS spec RS mp))1;
+   by (rtac (p2 RS (p1 RS spec RS mp)) 1);
 qed "invariantE";
 
 goal IOA.thy 
 "actions(asig_comp a b) = actions(a) Un actions(b)";
-  by(simp_tac (!simpset addsimps
+  by (simp_tac (!simpset addsimps
                ([actions_def,asig_comp_def]@asig_projections)) 1);
-  by(Fast_tac 1);
+  by (Fast_tac 1);
 qed "actions_asig_comp";
 
 goal IOA.thy
 "starts_of(A || B) = {p. fst(p):starts_of(A) & snd(p):starts_of(B)}";
-  by(simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
+  by (simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
 qed "starts_of_par";
 
 (* Every state in an execution is reachable *)
@@ -136,7 +135,7 @@ goal IOA.thy
 \  (if a:actions(asig_of(D)) then                                            \
 \     (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)                      \
 \   else snd(snd(snd(t)))=snd(snd(snd(s)))))";
-  by(simp_tac (!simpset addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq]@
+  by (simp_tac (!simpset addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq]@
                             ioa_projections)
                   setloop (split_tac [expand_if])) 1);
 qed "trans_of_par4";
@@ -144,12 +143,12 @@ qed "trans_of_par4";
 goal IOA.thy "starts_of(restrict ioa acts) = starts_of(ioa) &     \
 \             trans_of(restrict ioa acts) = trans_of(ioa) &       \
 \             reachable (restrict ioa acts) s = reachable ioa s";
-by(simp_tac (!simpset addsimps ([is_execution_fragment_def,executions_def,
+by (simp_tac (!simpset addsimps ([is_execution_fragment_def,executions_def,
                            reachable_def,restrict_def]@ioa_projections)) 1);
 qed "cancel_restrict";
 
 goal IOA.thy "asig_of(A || B) = asig_comp (asig_of A) (asig_of B)";
-  by(simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
+  by (simp_tac (!simpset addsimps (par_def::ioa_projections)) 1);
 qed "asig_of_par";
 
 

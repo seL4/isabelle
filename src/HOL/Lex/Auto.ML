@@ -34,6 +34,5 @@ by(safe_tac (!claset));
  by(asm_simp_tac (!simpset addsimps [eq_sym_conv]) 1);
 by(res_inst_tac [("x","x#us")] exI 1);
 by(Asm_simp_tac 1);
-by (Fast_tac 1);
 qed"acc_prefix_Cons";
 Addsimps [acc_prefix_Cons];

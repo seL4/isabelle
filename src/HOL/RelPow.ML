@@ -26,7 +26,6 @@ qed "rel_pow_Suc_I";
 goal RelPow.thy "!z. (x,y) : R --> (y,z):R^n -->  (x,z):R^(Suc n)";
 by (nat_ind_tac "n" 1);
 by (simp_tac (!simpset addsimps [rel_pow_Suc]) 1);
-by (Fast_tac 1);
 by (asm_full_simp_tac (!simpset addsimps [rel_pow_Suc]) 1);
 by (Fast_tac 1);
 qed_spec_mp "rel_pow_Suc_I2";
