@@ -377,9 +377,8 @@ qed "mod_less_divisor";
 
 (** Evens and Odds **)
 
-val less_cs = set_cs addSEs [less_zeroE, less_SucE];
-
-AddSEs [less_zeroE, less_SucE];
+(*With less_zeroE, causes case analysis on b<2*)
+AddSEs [less_SucE];
 
 goal thy "!!k b. b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
 by (subgoal_tac "k mod 2 < 2" 1);
@@ -391,7 +390,7 @@ qed "mod2_cases";
 goal thy "Suc(Suc(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (safe_tac (!claset));
+by (Step_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
@@ -403,17 +402,20 @@ by (asm_simp_tac (!simpset addsimps [mod2_Suc_Suc, add_Suc_right]) 1);
 qed "mod2_add_self";
 Addsimps [mod2_add_self];
 
+Delrules [less_SucE];
+
 
 (**** Additional theorems about "less than" ****)
 
+goal Arith.thy "? k::nat. n = n+k";
+by (res_inst_tac [("x","0")] exI 1);
+by (Simp_tac 1);
+val lemma = result();
+
 goal Arith.thy "!!m. m<n --> (? k. n=Suc(m+k))";
 by (nat_ind_tac "n" 1);
-by (Simp_tac 1);
-by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
-by (REPEAT_FIRST (ares_tac [conjI, impI]));
-by (res_inst_tac [("x","0")] exI 2);
-by (Simp_tac 2);
-by (safe_tac (claset_of "HOL"));
+by (ALLGOALS (simp_tac (!simpset addsimps [less_Suc_eq])));
+by (step_tac (!claset addSIs [lemma]) 1);
 by (res_inst_tac [("x","Suc(k)")] exI 1);
 by (Simp_tac 1);
 qed_spec_mp "less_eq_Suc_add";
@@ -589,7 +591,7 @@ goal Arith.thy "!!m n. m = m*n ==> n=1 | m=0";
 by (dtac sym 1);
 by (rtac disjCI 1);
 by (rtac nat_less_cases 1 THEN assume_tac 2);
-by (fast_tac (!claset addss !simpset) 1);
+by (fast_tac (!claset addSEs [less_SucE] addss !simpset) 1);
 by (fast_tac (!claset addDs [mult_less_mono2] 
                       addss (!simpset addsimps [zero_less_eq RS sym])) 1);
 qed "mult_eq_self_implies_10";
