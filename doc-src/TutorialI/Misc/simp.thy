@@ -162,7 +162,7 @@ text{*\noindent
 Of course we can also unfold definitions in the middle of a proof.
 
 You should normally not turn a definition permanently into a simplification
-rule because this defeats the whole purpose of an abbreviation.
+rule because this defeats the whole purpose.
 
 \begin{warn}
   If you have defined $f\,x\,y~\isasymequiv~t$ then you can only unfold

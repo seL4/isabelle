@@ -8,12 +8,14 @@ formalisms, and Isabelle/HOL is the specialization of Isabelle for
 HOL, which abbreviates Higher-Order Logic. We introduce HOL step by step
 following the equation
 \[ \mbox{HOL} = \mbox{Functional Programming} + \mbox{Logic}. \]
-We assume that the reader is familiar with the basic concepts of both fields.
-For excellent introductions to functional programming consult the textbooks
-by Bird and Wadler~\cite{Bird-Wadler} or Paulson~\cite{paulson-ml2}.  Although
-this tutorial initially concentrates on functional programming, do not be
-misled: HOL can express most mathematical concepts, and functional
-programming is just one particularly simple and ubiquitous instance.
+We do not assume that the reader is familiar with mathematical logic but that
+(s)he is used to logical and set theoretic notation.  In contrast, we do assume
+that the reader is familiar with the basic concepts of functional programming.
+For excellent introductions consult the textbooks by Bird and
+Wadler~\cite{Bird-Wadler} or Paulson~\cite{paulson-ml2}.  Although this
+tutorial initially concentrates on functional programming, do not be
+misled: HOL can express most mathematical concepts, and functional programming
+is just one particularly simple and ubiquitous instance.
 
 Isabelle~\cite{paulson-isa-book} is implemented in ML~\cite{SML}.
 This has influenced some of HOL's concrete syntax but is otherwise
@@ -233,7 +235,7 @@ refers to an item \isa{x} in theory \isa{x}. Write
 \end{itemize}
 
 For the sake of readability the usual mathematical symbols are used throughout
-the tutorial. Their ASCII-equivalents are shown in table~\ref{tab:ascii} in
+the tutorial. Their \textsc{ascii}-equivalents are shown in table~\ref{tab:ascii} in
 the appendix.
 
 
@@ -278,7 +280,7 @@ Isabelle/Isar is the Emacs-based \bfindex{Proof
   General}~\cite{Aspinall:TACAS:2000,proofgeneral}.
 
 Some interfaces (including the shell level) offer special fonts with
-mathematical symbols. For those that do not, remember that ASCII-equivalents
+mathematical symbols. For those that do not, remember that \textsc{ascii}-equivalents
 are shown in table~\ref{tab:ascii} in the appendix.
 
 Finally, a word about semicolons.\indexbold{$Isar@\texttt{;}} 
@@ -295,7 +297,7 @@ Assuming you have installed Isabelle, you start it by typing \texttt{isabelle
   starts the default logic, which usually is already \texttt{HOL}.  This is
   controlled by the \texttt{ISABELLE_LOGIC} setting, see \emph{The Isabelle
     System Manual} for more details.} This presents you with Isabelle's most
-basic ASCII interface.  In addition you need to open an editor window to
+basic \textsc{ascii} interface.  In addition you need to open an editor window to
 create theory files.  While you are developing a theory, we recommend to
 type each command into the file first and then enter it into Isabelle by
 copy-and-paste, thus ensuring that you have a complete record of your theory.

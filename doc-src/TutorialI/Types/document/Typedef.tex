@@ -102,10 +102,10 @@ constants behind the scenes:
 \isa{Abs{\isacharunderscore}three} &::& \isa{nat\ {\isasymRightarrow}\ three}
 \end{tabular}
 \end{center}
-Constant \isa{three} is just an abbreviation (\isa{three{\isacharunderscore}def}):
-\begin{isabelle}%
-three\ {\isasymequiv}\ {\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}%
-\end{isabelle}
+Constant \isa{three} is explicitly defined as the representing set:
+\begin{center}
+\isa{three\ {\isasymequiv}\ {\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}}\hfill(\isa{three{\isacharunderscore}def})
+\end{center}
 The situation is best summarized with the help of the following diagram,
 where squares are types and circles are sets:
 \begin{center}
@@ -125,10 +125,10 @@ where squares are types and circles are sets:
 Finally, \isacommand{typedef} asserts that \isa{Rep{\isacharunderscore}three} is
 surjective on the subset \isa{three} and \isa{Abs{\isacharunderscore}three} and \isa{Rep{\isacharunderscore}three} are inverses of each other:
 \begin{center}
-\begin{tabular}{rl}
-\isa{Rep{\isacharunderscore}three\ x\ {\isasymin}\ three} &~~ (\isa{Rep{\isacharunderscore}three}) \\
-\isa{Abs{\isacharunderscore}three\ {\isacharparenleft}Rep{\isacharunderscore}three\ x{\isacharparenright}\ {\isacharequal}\ x} &~~ (\isa{Rep{\isacharunderscore}three{\isacharunderscore}inverse}) \\
-\isa{y\ {\isasymin}\ three\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ y} &~~ (\isa{Abs{\isacharunderscore}three{\isacharunderscore}inverse})
+\begin{tabular}{@ {}r@ {\qquad\qquad}l@ {}}
+\isa{Rep{\isacharunderscore}three\ x\ {\isasymin}\ three} & (\isa{Rep{\isacharunderscore}three}) \\
+\isa{Abs{\isacharunderscore}three\ {\isacharparenleft}Rep{\isacharunderscore}three\ x{\isacharparenright}\ {\isacharequal}\ x} & (\isa{Rep{\isacharunderscore}three{\isacharunderscore}inverse}) \\
+\isa{y\ {\isasymin}\ three\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ y} & (\isa{Abs{\isacharunderscore}three{\isacharunderscore}inverse})
 \end{tabular}
 \end{center}
 %

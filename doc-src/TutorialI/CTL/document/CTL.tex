@@ -15,8 +15,9 @@ We extend the datatype
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ formula%
 \begin{isamarkuptext}%
 \noindent
-which stands for "always in the future":
-on all paths, at some point the formula holds. Formalizing the notion of an infinite path is easy
+which stands for ``\emph{A}lways in the \emph{F}uture'':
+on all infinite paths, at some point the formula holds.
+Formalizing the notion of an infinite path is easy
 in HOL: it is simply a function from \isa{nat} to \isa{state}.%
 \end{isamarkuptext}%
 \isacommand{constdefs}\ Paths\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}set{\isachardoublequote}\isanewline
@@ -45,7 +46,7 @@ Now we define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the leas
 \begin{isamarkuptext}%
 \noindent
 Because \isa{af} is monotone in its second argument (and also its first, but
-that is irrelevant) \isa{af\ A} has a least fixed point:%
+that is irrelevant), \isa{af\ A} has a least fixed point:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ mono{\isacharunderscore}af{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ mono{\isacharunderscore}def\ af{\isacharunderscore}def{\isacharparenright}\isanewline
@@ -111,14 +112,14 @@ The opposite inclusion is proved by contradiction: if some state
 infinite \isa{A}-avoiding path starting from \isa{s}. The reason is
 that by unfolding \isa{lfp} we find that if \isa{s} is not in
 \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then \isa{s} is not in \isa{A} and there is a
-direct successor of \isa{s} that is again not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Iterating this argument yields the promised infinite
+direct successor of \isa{s} that is again not in \mbox{\isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}}. Iterating this argument yields the promised infinite
 \isa{A}-avoiding path. Let us formalize this sketch.
 
 The one-step argument in the sketch above
 is proved by a variant of contraposition:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharcolon}\isanewline
-\ {\isachardoublequote}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\ {\isachardoublequote}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}np{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}af{\isacharunderscore}def{\isacharparenright}\isanewline
@@ -153,8 +154,8 @@ has a successor that again satisfies \isa{Q}, then there exists an infinite \isa
 \ \ \ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-First we rephrase the conclusion slightly because we need to prove both the path property
-and the fact that \isa{Q} holds simultaneously:%
+First we rephrase the conclusion slightly because we need to prove simultaneously
+both the path property and the fact that \isa{Q} holds:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}{\isasymexists}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}{\isacharparenright}%
 \begin{isamarkuptxt}%
@@ -170,7 +171,7 @@ The new subgoal is proved by providing the witness \isa{path\ s\ Q} for \isa{p}:
 \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-After simplification and clarification the subgoal has the following compact form
+After simplification and clarification, the subgoal has the following form
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ }{\isasymLongrightarrow}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ i{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\isanewline
@@ -182,7 +183,7 @@ and invites a proof by induction on \isa{i}:%
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-After simplification the base case boils down to
+After simplification, the base case boils down to
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isasymrbrakk}\isanewline
 \isaindent{\ {\isadigit{1}}{\isachardot}\ }{\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymin}\ M%
@@ -281,8 +282,8 @@ necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isach
 \isacommand{done}%
 \begin{isamarkuptext}%
 The language defined above is not quite CTL\@. The latter also includes an
-until-operator \isa{EU\ f\ g} with semantics ``there exists a path
-where \isa{f} is true until \isa{g} becomes true''. With the help
+until-operator \isa{EU\ f\ g} with semantics ``there \emph{E}xists a path
+where \isa{f} is true \emph{U}ntil \isa{g} becomes true''. With the help
 of an auxiliary function%
 \end{isamarkuptext}%
 \isacommand{consts}\ until{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ {\isasymRightarrow}\ state\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
@@ -293,7 +294,7 @@ of an auxiliary function%
 \noindent
 the semantics of \isa{EU} is straightforward:
 \begin{isabelle}%
-\ \ \ \ \ s\ {\isasymTurnstile}\ EU\ f\ g\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ until\ A\ B\ s\ p{\isacharparenright}%
+\ \ \ \ \ s\ {\isasymTurnstile}\ EU\ f\ g\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ until\ {\isacharbraceleft}t{\isachardot}\ t\ {\isasymTurnstile}\ f{\isacharbraceright}\ {\isacharbraceleft}t{\isachardot}\ t\ {\isasymTurnstile}\ g{\isacharbraceright}\ s\ p{\isacharparenright}%
 \end{isabelle}
 Note that \isa{EU} is not definable in terms of the other operators!
 
@@ -320,10 +321,10 @@ Let us close this section with a few words about the executability of our model 
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only \isa{lfp} requires a little thought.
 Fortunately, the HOL Library%
-\footnote{See theory \isa{While_Combinator_Example}.}
+\footnote{See theory \isa{While_Combinator}.}
 provides a theorem stating that 
 in the case of finite sets and a monotone function~\isa{F},
-the value of \isa{lfp\ F} can be computed by iterated application of \isa{F} to~\isa{{\isacharbraceleft}{\isacharbraceright}} until
+the value of \mbox{\isa{lfp\ F}} can be computed by iterated application of \isa{F} to~\isa{{\isacharbraceleft}{\isacharbraceright}} until
 a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.%
 \end{isamarkuptext}%

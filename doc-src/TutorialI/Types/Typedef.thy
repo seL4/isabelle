@@ -96,8 +96,10 @@ constants behind the scenes:
 @{term Abs_three} &::& @{typ"nat \<Rightarrow> three"}
 \end{tabular}
 \end{center}
-Constant @{term three} is just an abbreviation (@{thm[source]three_def}):
-@{thm[display]three_def}
+Constant @{term three} is explicitly defined as the representing set:
+\begin{center}
+@{thm three_def}\hfill(@{thm[source]three_def})
+\end{center}
 The situation is best summarized with the help of the following diagram,
 where squares are types and circles are sets:
 \begin{center}
@@ -118,10 +120,10 @@ Finally, \isacommand{typedef} asserts that @{term Rep_three} is
 surjective on the subset @{term three} and @{term Abs_three} and @{term
 Rep_three} are inverses of each other:
 \begin{center}
-\begin{tabular}{rl}
-@{thm Rep_three[no_vars]} &~~ (@{thm[source]Rep_three}) \\
-@{thm Rep_three_inverse[no_vars]} &~~ (@{thm[source]Rep_three_inverse}) \\
-@{thm Abs_three_inverse[no_vars]} &~~ (@{thm[source]Abs_three_inverse})
+\begin{tabular}{@ {}r@ {\qquad\qquad}l@ {}}
+@{thm Rep_three[no_vars]} & (@{thm[source]Rep_three}) \\
+@{thm Rep_three_inverse[no_vars]} & (@{thm[source]Rep_three_inverse}) \\
+@{thm Abs_three_inverse[no_vars]} & (@{thm[source]Abs_three_inverse})
 \end{tabular}
 \end{center}
 %

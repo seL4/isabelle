@@ -42,8 +42,8 @@ primrec
 
 text{*\noindent
 The first three equations should be self-explanatory. The temporal formula
-@{term"AX f"} means that @{term f} is true in all next states whereas
-@{term"EF f"} means that there exists some future state in which @{term f} is
+@{term"AX f"} means that @{term f} is true in \emph{A}ll ne\emph{X}t states whereas
+@{term"EF f"} means that there \emph{E}xists some \emph{F}uture state in which @{term f} is
 true. The future is expressed via @{text"\<^sup>*"}, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
@@ -68,7 +68,7 @@ converse of a relation and the image of a set under a relation.  Thus
 fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M\<inverse> `` T"} is the least set
 @{term T} containing @{term"mc f"} and all predecessors of @{term T}. If you
 find it hard to see that @{term"mc(EF f)"} contains exactly those states from
-which there is a path to a state where @{term f} is true, do not worry --- that
+which there is a path to a state where @{term f} is true, do not worry --- this
 will be proved in a moment.
 
 First we prove monotonicity of the function inside @{term lfp}
@@ -180,7 +180,7 @@ done;
 text{*
 \begin{exercise}
 @{term AX} has a dual operator @{term EN}\footnote{We cannot use the customary @{text EX}
-as that is the ASCII equivalent of @{text"\<exists>"}}
+as that is the \textsc{ascii}-equivalent of @{text"\<exists>"}}
 (``there exists a next state such that'') with the intended semantics
 @{prop[display]"(s \<Turnstile> EN f) = (EX t. (s,t) : M & t \<Turnstile> f)"}
 Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?

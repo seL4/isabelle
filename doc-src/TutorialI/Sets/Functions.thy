@@ -79,7 +79,7 @@ small sample proof
 *}
 
 lemma "inj f \<Longrightarrow> (f o g = f o h) = (g = h)";
-  apply (simp add: expand_fun_eq inj_on_def o_def)
+  apply (simp add: expand_fun_eq inj_on_def)
   apply (auto)
   done
 

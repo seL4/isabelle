@@ -60,7 +60,7 @@ typedecl state
 
 text{*\noindent
 Command \isacommand{typedecl} merely declares a new type but without
-defining it (see also \S\ref{sec:typedecl}). Thus we know nothing
+defining it (see \S\ref{sec:typedecl}). Thus we know nothing
 about the type other than its existence. That is exactly what we need
 because @{typ state} really is an implicit parameter of our model.  Of
 course it would have been more generic to make @{typ state} a type

@@ -43,8 +43,8 @@ The definition of \isa{{\isasymTurnstile}} is by recursion over the syntax:%
 \begin{isamarkuptext}%
 \noindent
 The first three equations should be self-explanatory. The temporal formula
-\isa{AX\ f} means that \isa{f} is true in all next states whereas
-\isa{EF\ f} means that there exists some future state in which \isa{f} is
+\isa{AX\ f} means that \isa{f} is true in \emph{A}ll ne\emph{X}t states whereas
+\isa{EF\ f} means that there \emph{E}xists some \emph{F}uture state in which \isa{f} is
 true. The future is expressed via \isa{\isactrlsup {\isacharasterisk}}, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
@@ -68,7 +68,7 @@ converse of a relation and the image of a set under a relation.  Thus
 fixed point (\isa{lfp}) of \isa{{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ T} is the least set
 \isa{T} containing \isa{mc\ f} and all predecessors of \isa{T}. If you
 find it hard to see that \isa{mc\ {\isacharparenleft}EF\ f{\isacharparenright}} contains exactly those states from
-which there is a path to a state where \isa{f} is true, do not worry --- that
+which there is a path to a state where \isa{f} is true, do not worry --- this
 will be proved in a moment.
 
 First we prove monotonicity of the function inside \isa{lfp}
@@ -177,7 +177,7 @@ The main theorem is proved in the familiar manner: induction followed by
 \begin{isamarkuptext}%
 \begin{exercise}
 \isa{AX} has a dual operator \isa{EN}\footnote{We cannot use the customary \isa{EX}
-as that is the ASCII equivalent of \isa{{\isasymexists}}}
+as that is the \textsc{ascii}-equivalent of \isa{{\isasymexists}}}
 (``there exists a next state such that'') with the intended semantics
 \begin{isabelle}%
 \ \ \ \ \ s\ {\isasymTurnstile}\ EN\ f\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}%

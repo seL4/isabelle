@@ -35,15 +35,12 @@ defs with = and pattern matching??
 Minor fixes in the tutorial
 ===========================
 
+Adjust FP textbook refs: new Bird, Hudak
+Discrete math textbook: Rosen?
+
+say something about "abbreviations" when defs are introduced.
+
 adjust type of ^ in tab:overloading
-
-explanation of term "contrapositive"/contraposition in Rules?
-Index the notion and maybe the rules contrapos_xy
-
-get rid of use_thy in tutorial?
-
-Orderings on numbers (with hint that it is overloaded):
-bounded quantifers ALL x<y, <=.
 
 an example of induction: !y. A --> B --> C ??
 
@@ -73,16 +70,6 @@ Minor additions to the tutorial, unclear where
 ==============================================
 
 unfold?
-
-Tacticals: , ? +
-Note: + is used in typedef section!
-
-A list of further useful commands (rules? tricks?)
-prefer, defer, print_simpset (-> print_simps?)
-
-demonstrate x : set xs in Sets. Or Tricks chapter?
-
-Appendix with HOL and Isar keywords.
 
 
 Possible exercises

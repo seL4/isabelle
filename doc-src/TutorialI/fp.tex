@@ -1,16 +1,18 @@
 \chapter{Functional Programming in HOL}
 
 Although on the surface this chapter is mainly concerned with how to write
-functional programs in HOL and how to verify them, most of the
-constructs and proof procedures introduced are general purpose and recur in
-any specification or verification task.
+functional programs in HOL and how to verify them, most of the constructs and
+proof procedures introduced are general purpose and recur in any specification
+or verification task. In fact, it we should really speak of functional
+\emph{modelling} rather than \emph{programming} because our aim is not
+primarily to write programs but to design abstract models of systems.  HOL is
+a specification language that goes well beyond what can be expressed as a
+program. However, for the time being we concentrate on the computable.
 
 The dedicated functional programmer should be warned: HOL offers only
-\emph{total functional programming} --- all functions in HOL must be total;
-lazy data structures are not directly available. On the positive side,
-functions in HOL need not be computable: HOL is a specification language that
-goes well beyond what can be expressed as a program. However, for the time
-being we concentrate on the computable.
+\emph{total functional programming} --- all functions in HOL must be total,
+i.e.\ they must terminate for all inputs; lazy data structures are not
+directly available.
 
 \section{An Introductory Theory}
 \label{sec:intro-theory}

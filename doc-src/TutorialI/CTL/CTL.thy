@@ -17,8 +17,9 @@ datatype formula = Atom atom
                   | AF formula;
 
 text{*\noindent
-which stands for "always in the future":
-on all paths, at some point the formula holds. Formalizing the notion of an infinite path is easy
+which stands for ``\emph{A}lways in the \emph{F}uture'':
+on all infinite paths, at some point the formula holds.
+Formalizing the notion of an infinite path is easy
 in HOL: it is simply a function from @{typ nat} to @{typ state}.
 *};
 
@@ -67,7 +68,7 @@ primrec
 
 text{*\noindent
 Because @{term af} is monotone in its second argument (and also its first, but
-that is irrelevant) @{term"af A"} has a least fixed point:
+that is irrelevant), @{term"af A"} has a least fixed point:
 *};
 
 lemma mono_af: "mono(af A)";
@@ -150,8 +151,8 @@ The opposite inclusion is proved by contradiction: if some state
 infinite @{term A}-avoiding path starting from @{term s}. The reason is
 that by unfolding @{term lfp} we find that if @{term s} is not in
 @{term"lfp(af A)"}, then @{term s} is not in @{term A} and there is a
-direct successor of @{term s} that is again not in @{term"lfp(af
-A)"}. Iterating this argument yields the promised infinite
+direct successor of @{term s} that is again not in \mbox{@{term"lfp(af
+A)"}}. Iterating this argument yields the promised infinite
 @{term A}-avoiding path. Let us formalize this sketch.
 
 The one-step argument in the sketch above
@@ -159,7 +160,7 @@ is proved by a variant of contraposition:
 *};
 
 lemma not_in_lfp_afD:
- "s \<notin> lfp(af A) \<Longrightarrow> s \<notin> A \<and> (\<exists> t. (s,t)\<in>M \<and> t \<notin> lfp(af A))";
+ "s \<notin> lfp(af A) \<Longrightarrow> s \<notin> A \<and> (\<exists> t. (s,t) \<in> M \<and> t \<notin> lfp(af A))";
 apply(erule contrapos_np);
 apply(rule ssubst[OF lfp_unfold[OF mono_af]]);
 apply(simp add:af_def);
@@ -196,8 +197,8 @@ lemma infinity_lemma:
    \<exists>p\<in>Paths s. \<forall>i. Q(p i)";
 
 txt{*\noindent
-First we rephrase the conclusion slightly because we need to prove both the path property
-and the fact that @{term Q} holds simultaneously:
+First we rephrase the conclusion slightly because we need to prove simultaneously
+both the path property and the fact that @{term Q} holds:
 *};
 
 apply(subgoal_tac "\<exists>p. s = p 0 \<and> (\<forall>i. (p i,p(i+1)) \<in> M \<and> Q(p i))");
@@ -216,7 +217,7 @@ apply(rule_tac x = "path s Q" in exI);
 apply(clarsimp);
 
 txt{*\noindent
-After simplification and clarification the subgoal has the following compact form
+After simplification and clarification, the subgoal has the following form
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
 and invites a proof by induction on @{term i}:
 *};
@@ -225,7 +226,7 @@ apply(induct_tac i);
  apply(simp);
 
 txt{*\noindent
-After simplification the base case boils down to
+After simplification, the base case boils down to
 @{subgoals[display,indent=0,margin=70,goals_limit=1]}
 The conclusion looks exceedingly trivial: after all, @{term t} is chosen such that @{prop"(s,t):M"}
 holds. However, we first have to show that such a @{term t} actually exists! This reasoning
@@ -345,8 +346,8 @@ done
 text{*
 
 The language defined above is not quite CTL\@. The latter also includes an
-until-operator @{term"EU f g"} with semantics ``there exists a path
-where @{term f} is true until @{term g} becomes true''. With the help
+until-operator @{term"EU f g"} with semantics ``there \emph{E}xists a path
+where @{term f} is true \emph{U}ntil @{term g} becomes true''. With the help
 of an auxiliary function
 *}
 
@@ -360,7 +361,7 @@ primrec
 
 text{*\noindent
 the semantics of @{term EU} is straightforward:
-@{text[display]"s \<Turnstile> EU f g = (\<exists>p. until A B s p)"}
+@{prop[display]"s \<Turnstile> EU f g = (\<exists>p. until {t. t \<Turnstile> f} {t. t \<Turnstile> g} s p)"}
 Note that @{term EU} is not definable in terms of the other operators!
 
 Model checking @{term EU} is again a least fixed point construction:
@@ -457,10 +458,10 @@ Let us close this section with a few words about the executability of our model 
 It is clear that if all sets are finite, they can be represented as lists and the usual
 set operations are easily implemented. Only @{term lfp} requires a little thought.
 Fortunately, the HOL Library%
-\footnote{See theory \isa{While_Combinator_Example}.}
+\footnote{See theory \isa{While_Combinator}.}
 provides a theorem stating that 
 in the case of finite sets and a monotone function~@{term F},
-the value of @{term"lfp F"} can be computed by iterated application of @{term F} to~@{term"{}"} until
+the value of \mbox{@{term"lfp F"}} can be computed by iterated application of @{term F} to~@{term"{}"} until
 a fixed point is reached. It is actually possible to generate executable functional programs
 from HOL definitions, but that is beyond the scope of the tutorial.
 *}

@@ -96,7 +96,7 @@ Here is another example, also proved automatically:
 \isacommand{by}\ blast
 \end{isabelle}
 %
-This is the same example using ASCII syntax, illustrating a pitfall: 
+This is the same example using \textsc{ascii} syntax, illustrating a pitfall: 
 \begin{isabelle}
 \isacommand{lemma}\ "(A\ <=\ -B)\ =\ (B\ <=\ -A)"
 \end{isabelle}
@@ -287,8 +287,8 @@ Q\isasymrbrakk\ \isasymLongrightarrow\ Q%
 \end{isabelle}
 
 Unions can be formed over the values of a given  set.  The syntax is
-\isa{\isasymUnion x\isasymin A.\ B} or \isa{UN
-x:\ A.\ B} in \textsc{ascii}. Indexed union satisfies this basic law:
+\mbox{\isa{\isasymUnion x\isasymin A.\ B}} or \isa{UN
+x\isasymin A.\ B} in \textsc{ascii}. Indexed union satisfies this basic law:
 \begin{isabelle}
 (b\ \isasymin\
 (\isasymUnion x\isasymin A.\ B\ x))\ =\ (\isasymexists x\isasymin A.\
@@ -320,12 +320,12 @@ The following built-in abbreviation lets us express the union
 over a \emph{type}:
 \begin{isabelle}
 \ \ \ \ \
-({\isasymUnion}x.\ B\ x)\ {==}\
+({\isasymUnion}x.\ B\ x)\ {\isasymrightleftharpoons}\
 ({\isasymUnion}x{\isasymin}UNIV.\ B\ x)
 \end{isabelle}
 Abbreviations work as you might expect.  The term on the left-hand side of
 the
-\isa{==} symbol is automatically translated to the right-hand side when the
+\indexboldpos{\isasymrightleftharpoons}{$IsaEqq} symbol is automatically translated to the right-hand side when the
 term is parsed, the reverse translation being done when the term is
 displayed.
 
@@ -523,7 +523,7 @@ bij\ f\ \ \isasymLongrightarrow\ inv\ (inv\ f)\ =\ f
 
 Theorems involving these concepts can be hard to prove. The following 
 example is easy, but it cannot be proved automatically. To begin 
-with, we need a law that relates the quality of functions to 
+with, we need a law that relates the equality of functions to 
 equality over all arguments: 
 \begin{isabelle}
 (f\ =\ g)\ =\ ({\isasymforall}x.\ f\ x\ =\ g\ x)
@@ -535,7 +535,7 @@ that an injection can be cancelled from the left
 side of function composition: 
 \begin{isabelle}
 \isacommand{lemma}\ "inj\ f\ \isasymLongrightarrow\ (f\ o\ g\ =\ f\ o\ h)\ =\ (g\ =\ h)"\isanewline
-\isacommand{apply}\ (simp\ add:\ expand_fun_eq\ inj_on_def\ o_def)\isanewline
+\isacommand{apply}\ (simp\ add:\ expand_fun_eq\ inj_on_def)\isanewline
 \isacommand{apply}\ auto\isanewline
 \isacommand{done}
 \end{isabelle}
@@ -593,7 +593,7 @@ that function. There is no constant {\isa{range}}.  Instead, {\isa{range}}
 abbreviates an application of image to {\isa{UNIV}}: 
 \begin{isabelle}
 \ \ \ \ \ range\ f\
-{==}\ f`UNIV
+{\isasymrightleftharpoons}\ f`UNIV
 \end{isabelle}
 %
 Few theorems are proved specifically 
@@ -845,7 +845,7 @@ for ordered pairs in more detail.
 Induction comes in many forms, including traditional mathematical 
 induction, structural induction on lists and induction on size. 
 More general than these is induction over a well-founded relation. 
-Such A relation expresses the notion of a terminating process. 
+Such a relation expresses the notion of a terminating process. 
 Intuitively, the relation~$\prec$ is \textbf{well-founded} if it admits no
 infinite  descending chains
 \[ \cdots \prec a@2 \prec a@1 \prec a@0. \]
@@ -944,9 +944,9 @@ in the Library.  Baader and Nipkow \cite[\S2.5]{Baader-Nipkow} discuss it.
 
 \section{Fixed Point Operators}
 
-Fixed point operators define sets recursively.  Most users invoke 
-them by making an inductive definition, as discussed in
-Chap.\ts\ref{chap:inductive} below.  However, they can be used directly.
+Fixed point operators define sets recursively.  They are invoked
+implicitly when making an inductive definition, as discussed in
+Chap.\ts\ref{chap:inductive} below.  However, they can be used directly, too.
 The
 \relax{least}  or \relax{strongest} fixed point yields an inductive
 definition;  the \relax{greatest} or \relax{weakest} fixed point yields a
@@ -954,7 +954,7 @@ coinductive  definition.  Mathematicians may wish to note that the
 existence  of these fixed points is guaranteed by the Knaster-Tarski
 theorem. 
 
-The theory works applies only to monotonic functions. Isabelle's 
+The theory applies only to monotonic functions. Isabelle's 
 definition of monotone is overloaded over all orderings:
 \begin{isabelle}
 mono\ f\ \isasymequiv\ {\isasymforall}A\ B.\ A\ \isasymle\ B\ \isasymlongrightarrow\ f\ A\ \isasymle\ f\ B%
