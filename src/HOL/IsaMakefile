@@ -313,9 +313,9 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
 
 TLA: HOL $(OUT)/TLA
 
-$(OUT)/TLA: $(OUT)/HOL TLA/Action.ML TLA/Action.thy TLA/IntLemmas.ML \
-  TLA/Intensional.ML TLA/Intensional.thy TLA/ROOT.ML TLA/Stfun.ML \
-  TLA/Stfun.thy TLA/TLA.ML TLA/TLA.thy TLA/cladata.ML TLA/hypsubst.ML
+$(OUT)/TLA: $(OUT)/HOL TLA/Action.ML TLA/Action.thy TLA/Init.ML \
+  TLA/Init.thy TLA/IntLemmas.ML TLA/Intensional.ML TLA/Intensional.thy \
+  TLA/ROOT.ML TLA/Stfun.ML TLA/Stfun.thy TLA/TLA.ML TLA/TLA.thy
 	@cd TLA; $(ISATOOL) usedir -b $(OUT)/HOL TLA
 
 
