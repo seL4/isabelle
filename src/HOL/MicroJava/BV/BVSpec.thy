@@ -22,7 +22,7 @@ primrec
 	 pc+1 < max_pc \\<and>
 	 idx < length LT \\<and>
 	 (\\<exists>ts. (LT ! idx) = Some ts \\<and> 
-	       G \\<turnstile> phi ! (pc+1) >>>= (ts # ST , LT)))"
+	       G \\<turnstile> (ts # ST , LT) <=s phi ! (pc+1)))"
 
 "wt_LS (Store idx) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
@@ -30,19 +30,19 @@ primrec
 	 pc+1 < max_pc \\<and>
 	 idx < length LT \\<and>
 	 (\\<exists>ts ST'. ST = ts # ST' \\<and>
-		   G \\<turnstile> phi ! (pc+1) >>>= (ST' , LT[idx:=Some ts])))"
+		   G \\<turnstile> (ST' , LT[idx:=Some ts]) <=s phi ! (pc+1)))"
 
 "wt_LS (Bipush i) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
-	 G \\<turnstile> phi ! (pc+1) >>>= ((PrimT Integer) # ST , LT))"
+	 G \\<turnstile> ((PrimT Integer) # ST , LT) <=s phi ! (pc+1))"
 
 "wt_LS (Aconst_null) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
-	 G \\<turnstile> phi ! (pc+1) >>>= (NT # ST , LT))"
+	 G \\<turnstile> (NT # ST , LT) <=s phi ! (pc+1))"
 
 consts
  wt_MO	:: "[manipulate_object,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
@@ -55,7 +55,7 @@ primrec
 	 (\\<exists>T oT ST'. cfield (G,C) F = Some(C,T) \\<and>
                        ST = oT # ST' \\<and> 
 		       G \\<turnstile> oT \\<preceq> (Class C) \\<and>
-		       G \\<turnstile> phi ! (pc+1) >>>= (T # ST' , LT)))"
+		       G \\<turnstile> (T # ST' , LT) <=s phi ! (pc+1)))"
 
 "wt_MO (Putfield F C) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
@@ -67,7 +67,7 @@ primrec
              ST = vT # oT # ST' \\<and> 
              G \\<turnstile> oT \\<preceq> (Class C) \\<and>
 	     G \\<turnstile> vT \\<preceq> T  \\<and>
-             G \\<turnstile> phi ! (pc+1) >>>= (ST' , LT)))"
+             G \\<turnstile> (ST' , LT) <=s phi ! (pc+1)))"
 
 
 consts 
@@ -78,7 +78,7 @@ primrec
 	 in
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and>
-	 G \\<turnstile> phi ! (pc+1) >>>= ((Class C) # ST , LT))"
+	 G \\<turnstile> ((Class C) # ST , LT) <=s phi ! (pc+1))"
 
 consts
  wt_CH	:: "[check_object,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
@@ -89,7 +89,7 @@ primrec
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and> 
 	 (\\<exists>rt ST'. ST = RefT rt # ST' \\<and>
-                   G \\<turnstile> phi ! (pc+1) >>>= (Class C # ST' , LT)))"
+                   G \\<turnstile> (Class C # ST' , LT) <=s phi ! (pc+1)))"
 
 consts 
  wt_OS	:: "[op_stack,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
@@ -99,35 +99,35 @@ primrec
 	 in
 	 \\<exists>ts ST'. pc+1 < max_pc \\<and>
 		ST = ts # ST' \\<and> 	 
-		G \\<turnstile> phi ! (pc+1) >>>= (ST' , LT))"
+		G \\<turnstile> (ST' , LT) <=s phi ! (pc+1))"
 
 "wt_OS Dup G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts ST'. ST = ts # ST' \\<and> 	 
-		   G \\<turnstile> phi ! (pc+1) >>>= (ts # ts # ST' , LT)))"
+		   G \\<turnstile> (ts # ts # ST' , LT) <=s phi ! (pc+1)))"
 
 "wt_OS Dup_x1 G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts1 ts2 ST'. ST = ts1 # ts2 # ST' \\<and> 	 
-		   G \\<turnstile> phi ! (pc+1) >>>= (ts1 # ts2 # ts1 # ST' , LT)))"
+		   G \\<turnstile> (ts1 # ts2 # ts1 # ST' , LT) <=s phi ! (pc+1)))"
 
 "wt_OS Dup_x2 G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts1 ts2 ts3 ST'. ST = ts1 # ts2 # ts3 # ST' \\<and> 	 
-		   G \\<turnstile> phi ! (pc+1) >>>= (ts1 # ts2 # ts3 # ts1 # ST' , LT)))"
+		   G \\<turnstile> (ts1 # ts2 # ts3 # ts1 # ST' , LT) <=s phi ! (pc+1)))"
 
 "wt_OS Swap G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 pc+1 < max_pc \\<and>
 	 (\\<exists>ts ts' ST'. ST = ts' # ts # ST' \\<and> 	 
-		       G \\<turnstile> phi ! (pc+1) >>>= (ts # ts' # ST' , LT)))"
+		       G \\<turnstile> (ts # ts' # ST' , LT) <=s phi ! (pc+1)))"
 
 consts 
  wt_BR	:: "[branch,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
@@ -137,13 +137,13 @@ primrec
 	 in
 	 pc+1 < max_pc \\<and> (nat(int pc+branch)) < max_pc \\<and> 
 	 (\\<exists>ts ts' ST'. ST = ts # ts' # ST' \\<and>  ts = ts' \\<and>
-		       G \\<turnstile> phi ! (pc+1) >>>= (ST' , LT) \\<and>
-		       G \\<turnstile> phi ! (nat(int pc+branch)) >>>= (ST' , LT)))"
+		       G \\<turnstile> (ST' , LT) <=s phi ! (pc+1) \\<and>
+		       G \\<turnstile> (ST' , LT) <=s phi ! (nat(int pc+branch))))"
 "wt_BR (Goto branch) G phi max_pc pc =
 	(let (ST,LT) = phi ! pc
 	 in
 	 (nat(int pc+branch)) < max_pc \\<and> 
-	 G \\<turnstile> phi ! (nat(int pc+branch)) >>>= (ST , LT))"
+	 G \\<turnstile> (ST , LT) <=s phi ! (nat(int pc+branch)))"
 
 consts
  wt_MI :: "[meth_inv,jvm_prog,method_type,p_count,p_count] \\<Rightarrow> bool" 
@@ -156,7 +156,7 @@ primrec
          length apTs = length fpTs \\<and>
          (\\<forall>(aT,fT)\\<in>set(zip apTs fpTs). G \\<turnstile> aT \\<preceq> fT) \\<and>
          (\\<exists>D rT b. cmethd (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
-         G \\<turnstile> phi ! (pc+1) >>>= (rT # ST' , LT))))"
+         G \\<turnstile> (rT # ST' , LT) <=s phi ! (pc+1))))"
 
 constdefs
  wt_MR	:: "[jvm_prog,ty,method_type,p_count] \\<Rightarrow> bool"
@@ -183,7 +183,7 @@ constdefs
 constdefs
  wt_start :: "[jvm_prog,cname,ty list,nat,method_type] \\<Rightarrow> bool"
  "wt_start G C pTs mxl phi \\<equiv> 
-    G \\<turnstile> phi!0 >>>= ([],(Some(Class C))#((map Some pTs))@(replicate mxl None))"
+    G \\<turnstile> ([],(Some(Class C))#((map Some pTs))@(replicate mxl None)) <=s phi!0"
 
 
  wt_method :: "[jvm_prog,cname,ty list,ty,nat,instr list,method_type] \\<Rightarrow> bool"

@@ -9,32 +9,32 @@ val widen_PrimT_conv1 =
  [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = PrimT x \\<longrightarrow> T = PrimT x"];
 Addsimps [widen_PrimT_conv1];
 
-Goalw [sup_ty_opt_def] "(G \\<turnstile> any >= None) = (any = None)";
+Goalw [sup_ty_opt_def] "(G \\<turnstile> None <=o any) = (any = None)";
 by(simp_tac (simpset() addsplits [option.split]) 1);
 qed "anyConvNone";
 Addsimps [anyConvNone];
 
-Goalw [sup_ty_opt_def] "(G \\<turnstile> Some ty >= Some ty') = (G \\<turnstile> ty' \\<preceq> ty)";
+Goalw [sup_ty_opt_def] "(G \\<turnstile> Some ty' <=o Some ty) = (G \\<turnstile> ty' \\<preceq> ty)";
 by(Simp_tac 1);
 qed "SomeanyConvSome";
 Addsimps [SomeanyConvSome];
 
 Goal
-"(G \\<turnstile> X >= Some(PrimT Integer)) = (X=None \\<or> (X=Some(PrimT Integer)))";
+"(G \\<turnstile> Some(PrimT Integer) <=o X) = (X=None \\<or> (X=Some(PrimT Integer)))";
 by (simp_tac (simpset() setloop (split_tac [ty.split,option.split]) addsimps [sup_ty_opt_def]) 1);
 qed "sup_PTS_eq";
 
 
 
 Goal
-"CFS \\<turnstile> XT >>= [] = (XT=[])";
+"CFS \\<turnstile> [] <=l XT = (XT=[])";
 by (case_tac "XT=[]" 1);
 by (asm_simp_tac (simpset() addsimps [sup_loc_def]) 1);
 by (fast_tac (claset() addss (simpset() addsimps [sup_loc_def,neq_Nil_conv])) 1);
 qed "sup_loc_Nil";
 
 Goal
-"CFS \\<turnstile> XT >>= (Y#YT) = (\\<exists>X XT'. XT=X#XT' \\<and> CFS \\<turnstile> X>=Y \\<and> CFS \\<turnstile> XT'>>=YT)";
+"CFS \\<turnstile> (Y#YT) <=l XT = (\\<exists>X XT'. XT=X#XT' \\<and> CFS \\<turnstile> Y <=o X \\<and> CFS \\<turnstile> YT <=l XT')";
 by (case_tac "XT=[]" 1);
 by (asm_simp_tac (simpset() addsimps [sup_loc_def]) 1);
 by (fast_tac (claset() addss (simpset() addsimps [sup_loc_def,neq_Nil_conv])) 1);
