@@ -40,6 +40,7 @@ sig
   val is_Const: term -> bool
   val is_Free: term -> bool
   val is_Var: term -> bool
+  val dest_Type: typ -> string * typ list
   val dest_Const: term -> string * typ
   val dest_Free: term -> string * typ
   val dest_Var: term -> indexname * typ
@@ -188,13 +189,7 @@ datatype typ = Type  of string * typ list
              | TFree of string * sort
 	     | TVar  of indexname * sort;
 
-fun S --> T = Type("fun",[S,T]);
-
-(*handy for multiple args: [T1,...,Tn]--->T  gives  T1-->(T2--> ... -->T)*)
-val op ---> = foldr (op -->);
-
-
-(*terms.  Bound variables are indicated by depth number.
+(*Terms.  Bound variables are indicated by depth number.
   Free variables, (scheme) variables and constants have names.
   An term is "closed" if every bound variable of level "lev"
   is enclosed by at least "lev" abstractions. 
@@ -230,6 +225,17 @@ exception TERM of string * term list;
     A,B,C: term (denoting formulae)
     T,U: typ
 *)
+
+
+(** Types **)
+
+fun S --> T = Type("fun",[S,T]);
+
+(*handy for multiple args: [T1,...,Tn]--->T  gives  T1-->(T2--> ... -->T)*)
+val op ---> = foldr (op -->);
+
+fun dest_Type (Type x) = x
+  | dest_Type T = raise TYPE ("dest_Type", [T], []);
 
 
 (** Discriminators **)
