@@ -186,8 +186,6 @@ lynx -dump README.html >README
 
 ( cd src; ../Admin/maketags; )
 
-( env BASH_PATH=/bin/bash PERL_PATH=/usr/bin/perl ./configure )
-
 rm -rf Admin
 
 
