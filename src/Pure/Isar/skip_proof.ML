@@ -13,6 +13,7 @@ sig
     -> Proof.state -> Proof.state Seq.seq
   val global_skip_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val prove_goalw_cterm: theory -> thm list -> cterm -> (thm list -> tactic list) -> thm
+  val make_thm: theory -> term -> thm
   val setup: (theory -> theory) list
 end;
 
@@ -56,6 +57,12 @@ val global_skip_proof = Method.global_terminal_proof (Method.Basic cheating, Non
 fun prove_goalw_cterm thy rews ct tacs =
   Goals.prove_goalw_cterm rews ct
     (if ! quick_and_dirty then (K [cheat_tac thy]) else tacs);
+
+
+(* make_thm *)
+
+fun make_thm thy t =
+  prove_goalw_cterm thy [] (Thm.cterm_of (Theory.sign_of thy) t) (K []);
 
 
 (* theory setup *)
