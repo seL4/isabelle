@@ -13,10 +13,12 @@ sig
   val add_subsection: Comment.text -> theory -> theory
   val add_subsubsection: Comment.text -> theory -> theory
   val add_text: Comment.text -> theory -> theory
+  val add_verbatim: Comment.text -> theory -> theory
   val add_sect: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_subsect: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_subsubsect: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_txt: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val add_verb: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_classes: (bclass * xclass list) list * Comment.text -> theory -> theory
   val add_classes_i: (bclass * class list) list * Comment.text  -> theory -> theory
   val add_classrel: (xclass * xclass) * Comment.text -> theory -> theory
@@ -170,6 +172,7 @@ fun add_header comment =
   Toplevel.keep (fn state => if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF);
 
 fun add_text comment thy = thy:theory;
+val add_verbatim = add_text;
 val add_chapter = add_text;
 
 fun gen_add_section add present txt thy =
@@ -180,6 +183,7 @@ val add_subsection = gen_add_section add_text Present.subsection;
 val add_subsubsection = gen_add_section add_text Present.subsubsection;
 
 fun add_txt comment = ProofHistory.apply Proof.assert_forward;
+val add_verb = add_txt;
 val add_sect = add_txt;
 val add_subsect = add_txt;
 val add_subsubsect = add_txt;
