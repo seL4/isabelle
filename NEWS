@@ -227,7 +227,8 @@ instead of "inverse";
 
 *** ZF ***
 
-* theory Main includes everything;
+* theory Main includes everything; INCOMPATIBILITY: theory ZF.thy contains
+  only the theorems proved on ZF.ML;
 
 * ZF INCOMPATIBILITY: rule `equals0D' is now called `equals0E' (the old name
   was misleading).  The rule and 'sym RS equals0E' are now in the default
