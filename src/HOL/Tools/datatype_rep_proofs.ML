@@ -141,13 +141,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (********************************* typedef ********************************)
 
-    (* FIXME: quiet_mode flag for TypedefPackage and BREADTH_FIRST *)
-
     val thy3 = add_path flat_names big_name (foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
-      TypedefPackage.add_typedef_i_no_def name' (name, tvs, mx) c [] []
-        (Some (BREADTH_FIRST (has_fewer_prems 1) (resolve_tac rep_intrs 1))) thy)
-          (parent_path flat_names thy2, types_syntax ~~ tyvars ~~ (take (length newTs, consts)) ~~
-            new_type_names));
+      setmp TypedefPackage.quiet_mode true
+        (TypedefPackage.add_typedef_i_no_def name' (name, tvs, mx) c [] []
+          (Some (QUIET_BREADTH_FIRST (has_fewer_prems 1) (resolve_tac rep_intrs 1)))) thy)
+            (parent_path flat_names thy2, types_syntax ~~ tyvars ~~ (take (length newTs, consts)) ~~
+              new_type_names));
 
     (*********************** definition of constructors ***********************)
 
