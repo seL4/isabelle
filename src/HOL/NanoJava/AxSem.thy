@@ -78,13 +78,13 @@ intros
   Call: "[| A |-e {P} e1 {Q}; \<forall>a. A |-e {Q a} e2 {R a};
     \<forall>a p l. A |- {\<lambda>s'. \<exists>s. R a p s \<and> l = s \<and> 
                     s' = lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(reset_locs s))}
-                  Meth C m {\<lambda>s. S (s<Res>) (set_locs l s)} |] ==>
+                  Meth (C,m) {\<lambda>s. S (s<Res>) (set_locs l s)} |] ==>
              A |-e {P} {C}e1..m(e2) {S}"
 
   Meth: "\<forall>D. A |- {\<lambda>s'. \<exists>s a. s<This> = Addr a \<and> D = obj_class s a \<and> D <=C C \<and> 
                         P s \<and> s' = init_locs D m s}
                   Impl (D,m) {Q} ==>
-             A |- {P} Meth C m {Q}"
+             A |- {P} Meth (C,m) {Q}"
 
   (*\<Union>z instead of \<forall>z in the conclusion and
       z restricted to type state due to limitations of the inductive package *)

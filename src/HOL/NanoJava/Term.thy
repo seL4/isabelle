@@ -11,7 +11,6 @@ theory Term = Main:
 typedecl cname  (* class name *)
 typedecl vnam   (* variable or field name *)
 typedecl mname  (* method name *)
-types   imname = "cname \<times> mname"
 
 datatype vname  (* variable for special names *)
   = This        (* This pointer *)
@@ -26,8 +25,8 @@ datatype stmt
   | Loop vname stmt        ("While '(_') _"     [99,91   ] 91)
   | LAss vname expr        ("_ :== _"           [99,   95] 94) (* local ass. *)
   | FAss expr  vnam expr   ("_.._:==_"          [95,99,95] 94) (* field ass. *)
-  | Meth cname mname       (* virtual method *)
-  | Impl      imname       (* method implementation *)
+  | Meth "cname \<times> mname"   (* virtual method *)
+  | Impl "cname \<times> mname"   (* method implementation *)
 and expr
   = NewC cname       ("new _"        [   99] 95) (* object creation  *)
   | Cast cname expr                              (* type cast        *)

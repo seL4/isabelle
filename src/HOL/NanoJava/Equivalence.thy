@@ -249,6 +249,7 @@ apply clarsimp
 apply (drule (1) eval_eval_max)
 apply blast
 
+apply (simp only: split_paired_all)
 apply (rule hoare_ehoare.Meth)
 apply (rule allI)
 apply (drule spec, drule spec, erule hoare_ehoare.Conseq)

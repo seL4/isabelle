@@ -54,12 +54,12 @@ inductive exec eval intros
             s -Cast C e>v-n-> s'"
 
   Call: "[| s0 -e1>a-n-> s1; s1 -e2>p-n-> s2; 
-            lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(reset_locs s2)) -Meth C m-n-> s3
+            lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(reset_locs s2)) -Meth (C,m)-n-> s3
      |] ==> s0 -{C}e1..m(e2)>s3<Res>-n-> set_locs s2 s3"
 
   Meth: "[| s<This> = Addr a; D = obj_class s a; D\<preceq>C C;
             init_locs D m s -Impl (D,m)-n-> s' |] ==>
-            s -Meth C m-n-> s'"
+            s -Meth (C,m)-n-> s'"
 
   Impl: "   s -body M-n-> s' ==>
             s -Impl M-Suc n-> s'"
@@ -72,8 +72,8 @@ inductive_cases exec_elim_cases':
 				  "s -While(x) c      -n\<rightarrow> t"
 				  "s -x:==e           -n\<rightarrow> t"
 				  "s -e1..f:==e2      -n\<rightarrow> t"
-inductive_cases Meth_elim_cases:  "s -Meth C m-n\<rightarrow> t"
-inductive_cases Impl_elim_cases:  "s -Impl   M-n\<rightarrow> t"
+inductive_cases Meth_elim_cases:  "s -Meth Cm-n\<rightarrow> t"
+inductive_cases Impl_elim_cases:  "s -Impl Cm-n\<rightarrow> t"
 lemmas exec_elim_cases = exec_elim_cases' Meth_elim_cases Impl_elim_cases
 inductive_cases eval_elim_cases:
 				  "s -new C         \<succ>v-n\<rightarrow> t"

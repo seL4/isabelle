@@ -10,7 +10,7 @@ theory State = TypeRel:
 
 constdefs
 
-  body :: "imname => stmt"
+  body :: "cname \<times> mname => stmt"
  "body \<equiv> \<lambda>(C,m). bdy (the (method C m))"
 
 text {* locations, i.e.\ abstract references to objects *}
