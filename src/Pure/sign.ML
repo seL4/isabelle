@@ -422,8 +422,8 @@ fun cond_extrn_table spaces kind tab = NameSpace.cond_extern_table (space_of spa
 
 (*add / hide names*)
 fun change_space f spaces kind x = overwrite (spaces, (kind, f (space_of spaces kind, x)));
-val add_names = change_space NameSpace.extend;
-val hide_names = change_space NameSpace.hide;
+fun add_names x = change_space NameSpace.extend x;
+fun hide_names x = change_space NameSpace.hide x;
 
 (*make full names*)
 fun full path name =
