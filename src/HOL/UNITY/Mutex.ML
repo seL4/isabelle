@@ -45,15 +45,7 @@ qed "mutual_exclusion";
 Goal "Mutex : Always bad_IU";
 by (rtac AlwaysI 1);
 by (constrains_tac 2);
-by (Force_tac 1);
-(*Needs a decision procedure to simplify the resulting state*)
-by (auto_tac (claset(), 
-	      simpset_of Int.thy addsimps
-	        [zadd_int, integ_of_Pls, integ_of_Min, 
-		 integ_of_BIT, le_int_Suc_eq]));
-by (dtac zle_trans 1 THEN assume_tac 1);
-by (full_simp_tac (simpset_of Int.thy) 1);
-by (asm_full_simp_tac (simpset() addsimps int_simps) 1);
+by Auto_tac;
 (*Resulting state: n=1, p=false, m=4, u=false.  
   Execution of V1 (the command of process v guarded by n=1) sets p:=true,
   violating the invariant!*)
@@ -62,10 +54,7 @@ getgoal 1;
 
 
 Goal "(#1 <= i & i <= #3) = (i = #1 | i = #2 | i = #3)";
-by (auto_tac (claset(),
-	      simpset_of Int.thy addsimps
-	        [zle_iff_zadd, zadd_int, integ_of_Pls, integ_of_Min, 
-		 integ_of_BIT]));
+by (arith_tac 1);
 qed "eq_123";
 
 
@@ -165,27 +154,24 @@ qed "v_Leadsto_not_p";
 
 (*Misra's F6*)
 Goal "Mutex : {s. m s = #1} LeadsTo {s. m s = #3}";
-by (rtac LeadsTo_Un_duplicate 1);
-by (rtac LeadsTo_cancel2 1);
+by (rtac (LeadsTo_cancel2 RS LeadsTo_Un_duplicate) 1);
 by (rtac U_F2 2);
 by (simp_tac (simpset() addsimps [Collect_conj_eq] ) 1);
 by (stac Un_commute 1);
-by (rtac LeadsTo_Un_duplicate 1);
-by (rtac ([v_Leadsto_not_p, U_F0] MRS PSP_Unless RSN(2, LeadsTo_cancel2)) 1);
+by (rtac (LeadsTo_cancel2 RS LeadsTo_Un_duplicate) 1);
+by (rtac ([v_Leadsto_not_p, U_F0] MRS PSP_Unless) 2);
 by (rtac (U_F1 RS LeadsTo_weaken_R) 1);
-by (auto_tac (claset() addSEs [less_SucE], simpset()));
+by Auto_tac;
 qed "m1_Leadsto_3";
-
 
 (*The same for V*)
 Goal "Mutex : {s. n s = #1} LeadsTo {s. n s = #3}";
-by (rtac LeadsTo_Un_duplicate 1);
-by (rtac LeadsTo_cancel2 1);
+by (rtac (LeadsTo_cancel2 RS LeadsTo_Un_duplicate) 1);
 by (rtac V_F2 2);
 by (simp_tac (simpset() addsimps [Collect_conj_eq] ) 1);
 by (stac Un_commute 1);
-by (rtac LeadsTo_Un_duplicate 1);
-by (rtac ([u_Leadsto_p, V_F0] MRS PSP_Unless  RSN(2, LeadsTo_cancel2)) 1);
+by (rtac (LeadsTo_cancel2 RS LeadsTo_Un_duplicate) 1);
+by (rtac ([u_Leadsto_p, V_F0] MRS PSP_Unless) 2);
 by (rtac (V_F1 RS LeadsTo_weaken_R) 1);
-by (auto_tac (claset() addSEs [less_SucE], simpset()));
+by Auto_tac;
 qed "n1_Leadsto_3";
