@@ -97,44 +97,6 @@ by (auto_tac
      simpset() addsimps [constrains_def, Join_def]));
 qed "constrains_Join";
 
-
-(**
-Michel says...
-
-    p inductive-next q' in F
-    p inductive-next q'' in G
-    p noninductive-next q in FoG
-    -------------------------------------------
-    p noninductive-next q /\ (q' \/ q'') in FoG
-
-  From which you deduce:
-
-    inductive-stable A /\ B in F
-    inductive-stable A      in G
-    noninductive-stable B   in FoG
-    ---------------------------------
-    noninductive-stable A /\ B in FoG
-**)
-
-Goal "[| F : constrains A B';  G : constrains A B'';  \
-\        F Join G : Constrains A B |]                 \
-\     ==> F Join G : Constrains A (B Int (B' Un B''))";
-by (auto_tac
-    (claset() addIs [constrains_Int RS constrains_weaken],
-     simpset() addsimps [Constrains_def, constrains_Join]));
-qed "constrains_imp_Join_Constrains";
-
-Goalw [Stable_def, stable_def]
-     "[| F : stable (A Int B);  G : stable A;  \
-\        F Join G : Stable B |]                 \
-\     ==> F Join G : Stable (A Int B)";
-by (auto_tac
-    (claset() addIs [constrains_Int RS constrains_weaken],
-     simpset() addsimps [Constrains_def, constrains_Join]));
-qed "stable_imp_Join_Stable";
-
-
-
 (**FAILS, I think; see 5.4.1, Substitution Axiom.
    The problem is to relate reachable (F Join G) with 
    reachable F and reachable G
@@ -235,12 +197,82 @@ by (blast_tac (claset() addIs [ensures_stable_Join1]) 1);
 qed "ensures_stable_Join2";
 
 
-(** localTo **)
+(** Diff and localTo **)
 
-Goal "[| F Join G : f localTo F;  (s,s') : act;  \
-\        act : Acts G; act ~: Acts F |] ==> f s' = f s";
+Goalw [Join_def, Diff_def] "F Join (Diff G (Acts F)) = F Join G";
+by (rtac program_equalityI 1);
+by Auto_tac;
+qed "Join_Diff2";
+
+Goalw [Diff_def, Disjoint_def] "Disjoint F (Diff G (Acts F))";
+by Auto_tac;
+qed "Diff_Disjoint";
+
+Goal "[| F Join G : v localTo F;  Disjoint F G |] \
+\     ==> G : (INT z. stable {s. v s = z})";
 by (asm_full_simp_tac 
-    (simpset() addsimps [localTo_def, Diff_def, Acts_Join, stable_def, 
-			 constrains_def]) 1);
+    (simpset() addsimps [localTo_def, Diff_def, Disjoint_def,
+			 Acts_Join, stable_def, constrains_def]) 1);
+by (Blast_tac 1);
+qed "localTo_imp_stable";
+
+Goal "[| F Join G : v localTo F;  (s,s') : act;  \
+\        act : Acts G;  Disjoint F G |] ==> v s' = v s";
+by (asm_full_simp_tac 
+    (simpset() addsimps [localTo_def, Diff_def, Disjoint_def,
+			 Acts_Join, stable_def, constrains_def]) 1);
 by (Blast_tac 1);
 qed "localTo_imp_equals";
+
+Goalw [localTo_def, stable_def, constrains_def]
+     "v localTo F <= (f o v) localTo F";
+by (Clarify_tac 1);
+by (auto_tac (claset() addSEs [allE, ballE], simpset()));
+qed "localTo_imp_o_localTo";
+
+
+(*** Higher-level rules involving localTo and Join ***)
+
+Goal "[| F : constrains {s. P (v s) (w s)} {s. P' (v s) (w s)};   \
+\        F Join G : v localTo F;       \
+\        F Join G : w localTo F;       \
+\        Disjoint F G |]               \
+\     ==> F Join G : constrains {s. P (v s) (w s)} {s. P' (v s) (w s)}";
+by (auto_tac (claset(), simpset() addsimps [constrains_def, Acts_Join]));
+by (REPEAT_FIRST (dtac localTo_imp_equals THEN' REPEAT1 o atac));
+by Auto_tac;
+qed "constrains_localTo_constrains2";
+
+Goalw [stable_def]
+     "[| F : stable {s. P (v s) (w s)};   \
+\        F Join G : v localTo F;       \
+\        F Join G : w localTo F;       \
+\        Disjoint F G |]               \
+\     ==> F Join G : stable {s. P (v s) (w s)}";
+by (blast_tac (claset() addIs [constrains_localTo_constrains2]) 1);
+qed "stable_localTo_stable2";
+
+
+Goal "(UN k. {s. f s = k}) = UNIV";
+by (Blast_tac 1);
+qed "UN_eq_UNIV";
+
+Goal "[| F : stable {s. v s <= w s};   \
+\        F Join G : v localTo F;       \
+\        F Join G : Increasing w;      \
+\        Disjoint F G |]               \
+\     ==> F Join G : Stable {s. v s <= w s}";
+by (safe_tac (claset() addSDs [localTo_imp_stable]));
+by (rewrite_goals_tac [stable_def, Stable_def, Increasing_def]);
+by (subgoal_tac "ALL k: UNIV. ?H : Constrains ({s. v s = k} Int ?AA) ?AA" 1);
+by (dtac ball_Constrains_UN 1);
+by (full_simp_tac (simpset() addsimps [UN_eq_UNIV]) 1);
+by (rtac ballI 1);
+by (subgoal_tac "F Join G : constrains ({s. v s = k} Int {s. v s <= w s}) \
+\                                      ({s. v s = k} Un {s. v s <= w s})" 1);
+by (asm_simp_tac (simpset() addsimps [constrains_Join]) 2);
+by (blast_tac (claset() addIs [constrains_weaken]) 2);
+by (dtac (constrains_imp_Constrains RS Constrains_Int) 1 THEN etac INT_D 1);
+by (etac Constrains_weaken 2);
+by Auto_tac;
+qed "Increasing_localTo_Stable";

@@ -81,7 +81,7 @@ Goalw [Constrains_def]
 by (blast_tac (claset() addIs [constrains_Int RS constrains_weaken]) 1);
 qed "Constrains_Int";
 
-Goal "[| ALL i:I. F : Constrains (A i) (A' i) |]   \
+Goal "ALL i:I. F : Constrains (A i) (A' i)   \
 \     ==> F : Constrains (INT i:I. A i) (INT i:I. A' i)";
 by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
 by (dtac ball_constrains_INT 1);
@@ -140,6 +140,11 @@ by (blast_tac (claset() addIs [Constrains_Int RS Constrains_weaken]) 1);
 qed "Stable_Constrains_Int";
 
 Goalw [Stable_def]
+    "(ALL i:I. F : Stable (A i)) ==> F : Stable (UN i:I. A i)";
+by (etac ball_Constrains_UN 1);
+qed "ball_Stable_UN";
+
+Goalw [Stable_def]
     "(ALL i:I. F : Stable (A i)) ==> F : Stable (INT i:I. A i)";
 by (etac ball_Constrains_INT 1);
 qed "ball_Stable_INT";
@@ -156,13 +161,13 @@ Goalw [Increasing_def, Stable_def, Constrains_def, stable_def, constrains_def]
      "Increasing f <= Increasing (length o f)";
 by Auto_tac;
 by (blast_tac (claset() addIs [prefix_length_le, le_trans]) 1);
-qed "Increasing_length";
+qed "Increasing_size";
 
 Goalw [Increasing_def]
      "Increasing f <= {F. ALL z::nat. F: Stable {s. z < f s}}";
 by (simp_tac (simpset() addsimps [Suc_le_eq RS sym]) 1);
 by (Blast_tac 1);
-qed "Increasing_less";
+qed "Increasing_Stable_less";
 
 Goalw [increasing_def, Increasing_def]
      "F : increasing f ==> F : Increasing f";
@@ -211,13 +216,7 @@ qed "InvariantD";
 bind_thm ("InvariantE", InvariantD RS conjE);
 
 
-(*The set of all reachable states is an Invariant...*)
-Goal "F : Invariant (reachable F)";
-by (simp_tac (simpset() addsimps [Invariant_def]) 1);
-by (blast_tac (claset() addIs (Stable_reachable::reachable.intrs)) 1);
-qed "Invariant_reachable";
-
-(*...in fact the strongest Invariant!*)
+(*The set of all reachable states is the strongest Invariant*)
 Goal "F : Invariant A ==> reachable F <= A";
 by (full_simp_tac 
     (simpset() addsimps [Stable_def, Constrains_def, constrains_def, 
@@ -233,22 +232,33 @@ by (blast_tac (claset() addIs [constrains_reachable_Int]) 1);
 qed "invariant_imp_Invariant";
 
 Goalw [Invariant_def, invariant_def, Stable_def, Constrains_def, stable_def]
-     "(F : Invariant A) = (F : invariant (reachable F Int A))";
+     "Invariant A = {F. F : invariant (reachable F Int A)}";
 by (blast_tac (claset() addIs reachable.intrs) 1);
 qed "Invariant_eq_invariant_reachable";
 
+(*Invariant is the "always" notion*)
+Goal "Invariant A = {F. reachable F <= A}";
+by (auto_tac (claset() addDs [invariant_includes_reachable],
+	      simpset() addsimps [Int_absorb2, invariant_reachable,
+				  Invariant_eq_invariant_reachable]));
+qed "Invariant_eq_always";
 
 
-Goal "F : Invariant INV ==> reachable F Int INV = reachable F";
-by (dtac Invariant_includes_reachable 1);
-by (Blast_tac 1);
-qed "reachable_Int_INV";
+Goal "Invariant A = (UN I: Pow A. invariant I)";
+by (simp_tac (simpset() addsimps [Invariant_eq_always]) 1);
+by (blast_tac (claset() addIs [invariantI, impOfSubs Init_subset_reachable, 
+                               stable_reachable,
+			       impOfSubs invariant_includes_reachable]) 1);
+qed "Invariant_eq_UN_invariant";
+
+
+(*** "Constrains" rules involving Invariant ***)
 
 Goal "[| F : Invariant INV;  F : Constrains (INV Int A) A' |]   \
 \     ==> F : Constrains A A'";
 by (asm_full_simp_tac
-    (simpset() addsimps [Constrains_def, reachable_Int_INV,
-			 Int_assoc RS sym]) 1);
+    (simpset() addsimps [Invariant_includes_reachable RS Int_absorb2,
+			 Constrains_def, Int_assoc RS sym]) 1);
 qed "Invariant_ConstrainsI";
 
 (* [| F : Invariant INV; F : Constrains (INV Int A) A |]
@@ -258,8 +268,8 @@ bind_thm ("Invariant_StableI", Invariant_ConstrainsI RS StableI);
 Goal "[| F : Invariant INV;  F : Constrains A A' |]   \
 \     ==> F : Constrains A (INV Int A')";
 by (asm_full_simp_tac
-    (simpset() addsimps [Constrains_def, reachable_Int_INV,
-			 Int_assoc RS sym]) 1);
+    (simpset() addsimps [Invariant_includes_reachable RS Int_absorb2,
+			 Constrains_def, Int_assoc RS sym]) 1);
 qed "Invariant_ConstrainsD";
 
 bind_thm ("Invariant_StableD", StableD RSN (2,Invariant_ConstrainsD));
@@ -269,8 +279,7 @@ bind_thm ("Invariant_StableD", StableD RSN (2,Invariant_ConstrainsD));
 (** Conjoining Invariants **)
 
 Goal "[| F : Invariant A;  F : Invariant B |] ==> F : Invariant (A Int B)";
-by (auto_tac (claset(),
-	      simpset() addsimps [Invariant_def, Stable_Int]));
+by (auto_tac (claset(), simpset() addsimps [Invariant_eq_always]));
 qed "Invariant_Int";
 
 (*Delete the nearest invariance assumption (which will be the second one

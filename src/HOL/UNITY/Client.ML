@@ -7,19 +7,7 @@ Distributed Resource Management System: the Client
 *)
 
 
-(*Perhaps move to SubstAx.ML*)
-Goal "[| F : Stable A;  F : transient C;  \
-\        reachable F <= (-A Un B Un C) |] ==> F : LeadsTo A B";
-by (etac reachable_LeadsTo_weaken 1);
-by (rtac LeadsTo_Diff 1);
-by (etac (transient_imp_leadsTo RS leadsTo_imp_LeadsTo RS PSP_stable2) 2);
-by (ALLGOALS (blast_tac (claset() addIs [subset_imp_LeadsTo])));
-qed "Stable_transient_reachable_LeadsTo";
-
-
-
-(*split_all_tac causes a big blow-up*)
-claset_ref() := claset() delSWrapper record_split_name;
+claset_ref() := claset();
 
 Addsimps [Cli_prg_def RS def_prg_Init];
 program_defs_ref := [Cli_prg_def];
@@ -28,17 +16,6 @@ Addsimps (map simp_of_act [rel_act_def, tok_act_def, ask_act_def]);
 
 (*Simplification for records*)
 Addsimps (thms"state.update_defs");
-
-(*CAN THIS be generalized?
-  Importantly, the second case considers actions that are in G
-  and NOT in Cli_prg (needed to use localTo_imp_equals) *)
-Goal "(act : Acts (Cli_prg Join G)) = \
-\      (act : {Id, rel_act, tok_act, ask_act} | \
-\       act : Acts G & act ~: Acts Cli_prg)";
-by (asm_full_simp_tac (simpset() addsimps [Cli_prg_def, Acts_Join]) 1);
-(*don't unfold definitions of actions*)
-by (blast_tac HOL_cs 1);
-qed "Acts_Cli_Join_eq";
 
 
 fun invariant_tac i = 
@@ -73,92 +50,92 @@ qed "tok_bounded";
 *)
 Goal "Cli_prg:                             \
 \       invariant ({s. tok s <= Max}  Int  \
-\                  {s. ALL n: lessThan (length (ask s)). ask s!n <= Max})";
+\                  {s. ALL n: lessThan (size (ask s)). ask s!n <= Max})";
 by (invariant_tac 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 qed "ask_bounded";
 
+(** Several facts used to prove Lemma 1 **)
+
+Goal "Cli_prg: stable {s. rel s <= giv s}";
+by (constrains_tac 1);
+by Auto_tac;
+qed "stable_rel_le_giv";
+
+Goal "Cli_prg: stable {s. size (rel s) <= size (giv s)}";
+by (constrains_tac 1);
+by Auto_tac;
+qed "stable_size_rel_le_giv";
+
+Goal "Cli_prg: stable {s. size (ask s) <= Suc (size (rel s))}";
+by (constrains_tac 1);
+by Auto_tac;
+qed "stable_size_ask_le_rel";
+
 
 (*We no longer need constrains_tac to expand the program definition, and 
-  expanding it is extremely expensive!  Instead, Acts_Cli_Join_eq expands
-  the program.*)
+  expanding it is extremely expensive!*)
 program_defs_ref := [];
 
 (*Safety property 2: clients return the right number of tokens*)
-Goalw [increasing_def]
-      "Cli_prg : (increasing giv Int (rel localTo Cli_prg))  \
-\                guarantees invariant {s. rel s <= giv s}";
+Goal "Cli_prg : (Increasing giv Int (rel localTo Cli_prg))  \
+\               guarantees Invariant {s. rel s <= giv s}";
 by (rtac guaranteesI 1);
-by (invariant_tac 1);
+by (rtac InvariantI 1);
 by (Force_tac 1);
-by (subgoal_tac "rel s <= giv s'" 1);
-by (force_tac (claset(),
-	       simpset() addsimps [stable_def, constrains_def]) 2);
-by (dtac (Acts_Cli_Join_eq RS iffD1) 1);
-(*we note that "rel" is local to Client*)
-by (auto_tac (claset() addD2 ("x",localTo_imp_equals), simpset()));
+by (blast_tac (claset() addIs [Increasing_localTo_Stable, 
+			       stable_rel_le_giv]) 1);
 qed "ok_guar_rel_prefix_giv";
 
 
 (*** Towards proving the liveness property ***)
 
 Goal "Cli_prg Join G   \
-\       : transient {s. length (giv s) = Suc k &  \
-\                       length (rel s) = k & ask s ! k <= giv s ! k}";
+\       : transient {s. size (giv s) = Suc k &  \
+\                       size (rel s) = k & ask s ! k <= giv s ! k}";
 by (res_inst_tac [("act", "rel_act")] transient_mem 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Domain_def, Acts_Join, Cli_prg_def]));
 qed "transient_lemma";
 
+
+
+val rewrite_o = rewrite_rule [o_def];
+
 Goal "Cli_prg : \
-\      (increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg) \
-\                 Int invariant giv_meets_ask) \
-\      guarantees invariant {s. length (ask s) <= Suc (length (rel s)) & \
-\                               length (rel s) <= length (giv s)}";
+\      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg)) \
+\      guarantees Invariant ({s. size (ask s) <= Suc (size (rel s))} Int \
+\                            {s. size (rel s) <= size (giv s)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
-by (dtac (impOfSubs increasing_length) 1);
-by (invariant_tac 1);
- by (Force_tac 1);
-by (dtac (Acts_Cli_Join_eq RS iffD1) 1);
-by Auto_tac;
- by (TRYALL (dtac localTo_imp_equals THEN' atac));
-     by (auto_tac (claset() addD2 ("x",localTo_imp_equals), simpset()));
-by (force_tac (claset() addD2 ("x",localTo_imp_equals),
-	       simpset() addsimps [increasing_def, Acts_Join, stable_def, 
-				   constrains_def]) 1);
+by (dtac (impOfSubs (rewrite_o Increasing_size)) 1);
+by (rtac InvariantI 1);
+by (Force_tac 1);
+by (rtac Stable_Int 1);
+by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
+	               addIs [Increasing_localTo_Stable, 
+			      stable_size_rel_le_giv]) 2);
+by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
+	               addIs [stable_localTo_stable2 RS stable_imp_Stable,
+			      stable_size_ask_le_rel]) 1);
 val lemma1 = result();
 
 
 Goal "Cli_prg : \
-\      (increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg) \
-\                 Int invariant giv_meets_ask) \
-\      guarantees (LeadsTo {s. k < length (giv s)}    \
-\                          {s. k < length (rel s)})";
+\      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg) \
+\                 Int Invariant giv_meets_ask) \
+\      guarantees (LeadsTo {s. k < size (giv s)}    \
+\                          {s. k < size (rel s)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (rtac Stable_transient_reachable_LeadsTo 1);
-  by (res_inst_tac [("k", "k")] transient_lemma 2);
- by (rtac stable_imp_Stable 1);
- by (dtac (impOfSubs increasing_length) 1);
- by (force_tac (claset(),
- 	        simpset() addsimps [increasing_def, 
-				   stable_def, constrains_def]) 1);
-(** LEVEL 7 **)
-(*
- 1. !!G. [| Cli_prg Join G : invariant giv_meets_ask;
-            Cli_prg Join G : ask localTo Cli_prg;
-            Cli_prg Join G : increasing giv;
-            Cli_prg Join G : rel localTo Cli_prg |]
-         ==> reachable (Cli_prg Join G)
-             <= - {s. k < length (giv s)} Un {s. k < length (rel s)} Un
-                {s. length (giv s) = Suc k &
-                    length (rel s) = k & ask s ! k <= giv s ! k}
-x
-*)
+by (res_inst_tac [("k", "k")] transient_lemma 2);
+by (force_tac (claset() addDs [impOfSubs Increasing_size,
+			       impOfSubs Increasing_Stable_less],
+	       simpset()) 1);
 by (rtac (make_elim (lemma1 RS guaranteesD)) 1);
  by (Blast_tac 1);
-by (auto_tac (claset() addSDs [invariant_includes_reachable],
-	      simpset() addsimps [giv_meets_ask_def]));
+by (auto_tac (claset(),
+	      simpset() addsimps [Invariant_eq_always, giv_meets_ask_def]));
 by (ALLGOALS Force_tac);
 qed "client_correct";

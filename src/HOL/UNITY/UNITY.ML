@@ -69,12 +69,6 @@ Goalw [constrains_def]
 by (Blast_tac 1);
 qed "ball_constrains_UN";
 
-Goalw [constrains_def]
-    "[| ALL i. F : constrains (A i) (A' i) |] \
-\    ==> F : constrains (UN i. A i) (UN i. A' i)";
-by (Blast_tac 1);
-qed "all_constrains_UN";
-
 (** Intersection **)
 
 Goalw [constrains_def]
@@ -88,12 +82,6 @@ Goalw [constrains_def]
 \    ==> F : constrains (INT i:I. A i) (INT i:I. A' i)";
 by (Blast_tac 1);
 qed "ball_constrains_INT";
-
-Goalw [constrains_def]
-    "[| ALL i. F : constrains (A i) (A' i) |] \
-\    ==> F : constrains (INT i. A i) (INT i. A' i)";
-by (Blast_tac 1);
-qed "all_constrains_INT";
 
 Goalw [constrains_def] "[| F : constrains A A' |] ==> A<=A'";
 by (Blast_tac 1);
@@ -116,15 +104,29 @@ Goalw [stable_def] "F : stable A ==> F : constrains A A";
 by (assume_tac 1);
 qed "stableD";
 
+(** Union **)
+
 Goalw [stable_def]
     "[| F : stable A; F : stable A' |] ==> F : stable (A Un A')";
 by (blast_tac (claset() addIs [constrains_Un]) 1);
 qed "stable_Un";
 
 Goalw [stable_def]
+    "ALL i:I. F : stable (A i) ==> F : stable (UN i:I. A i)";
+by (blast_tac (claset() addIs [ball_constrains_UN]) 1);
+qed "ball_stable_UN";
+
+(** Intersection **)
+
+Goalw [stable_def]
     "[| F : stable A; F : stable A' |] ==> F : stable (A Int A')";
 by (blast_tac (claset() addIs [constrains_Int]) 1);
 qed "stable_Int";
+
+Goalw [stable_def]
+    "ALL i:I. F : stable (A i) ==> F : stable (INT i:I. A i)";
+by (blast_tac (claset() addIs [ball_constrains_INT]) 1);
+qed "ball_stable_INT";
 
 Goalw [stable_def, constrains_def]
     "[| F : stable C; F : constrains A (C Un A') |]   \
@@ -150,7 +152,7 @@ qed "stable_reachable";
 bind_thm ("stable_constrains_stable", stable_constrains_Int RS stableI);
 
 
-(*** invariant & always ***)
+(*** invariant ***)
 
 Goal "[| Init F<=A;  F: stable A |] ==> F : invariant A";
 by (asm_simp_tac (simpset() addsimps [invariant_def]) 1);
@@ -176,17 +178,6 @@ by (etac reachable.induct 1);
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "invariant_includes_reachable";
 
-Goalw [always_def] "always A = (UN I: Pow A. invariant I)";
-by (blast_tac (claset() addIs [invariantI, impOfSubs Init_subset_reachable, 
-                               stable_reachable,
-			       impOfSubs invariant_includes_reachable]) 1);
-qed "always_eq_UN_invariant";
-
-Goal "F : always A = (EX I. F: invariant I & I <= A)";
-by (simp_tac (simpset() addsimps [always_eq_UN_invariant]) 1);
-by (Blast_tac 1);
-qed "always_iff_ex_invariant";
-
 
 (*** increasing ***)
 
@@ -194,13 +185,13 @@ Goalw [increasing_def, stable_def, constrains_def]
      "increasing f <= increasing (length o f)";
 by Auto_tac;
 by (blast_tac (claset() addIs [prefix_length_le, le_trans]) 1);
-qed "increasing_length";
+qed "increasing_size";
 
 Goalw [increasing_def]
      "increasing f <= {F. ALL z::nat. F: stable {s. z < f s}}";
 by (simp_tac (simpset() addsimps [Suc_le_eq RS sym]) 1);
 by (Blast_tac 1);
-qed "increasing_less";
+qed "increasing_stable_less";
 
 
 (** The Elimination Theorem.  The "free" m has become universally quantified!

@@ -24,14 +24,8 @@ constdefs
   unless :: "['a set, 'a set] => 'a program set"
     "unless A B == constrains (A-B) (A Un B)"
 
-  (*The traditional word for inductive properties.  Anyway, INDUCTIVE is
-    reserved!*)
   invariant :: "'a set => 'a program set"
     "invariant A == {F. Init F <= A} Int stable A"
-
-  (*Safety properties*)
-  always :: "'a set => 'a program set"
-    "always A == {F. reachable F <= A}"
 
   (*Polymorphic in both states and the meaning of <= *)
   increasing :: "['a => 'b::{ord}] => 'a program set"

@@ -5,7 +5,7 @@
 
 Unions of programs
 
-From Misra's Chapter 5: Asynchronous Compositions of Programs
+Partly from Misra's Chapter 5: Asynchronous Compositions of Programs
 *)
 
 Union = SubstAx + FP +
@@ -23,9 +23,13 @@ constdefs
   Diff :: "['a program, ('a * 'a)set set] => 'a program"
     "Diff F acts == mk_program (Init F, Acts F - acts)"
 
-  (*The set of systems that regard "f" as local to F*)
+  (*The set of systems that regard "v" as local to F*)
   localTo :: ['a => 'b, 'a program] => 'a program set  (infixl 80)
-    "f localTo F == {G. ALL z. Diff G (Acts F) : stable {s. f s = z}}"
+    "v localTo F == {G. ALL z. Diff G (Acts F) : stable {s. v s = z}}"
+
+  (*Two programs with disjoint actions, except for Id (idling)*)
+  Disjoint :: ['a program, 'a program] => bool
+    "Disjoint F G == Acts F Int Acts G <= {Id}"
 
 syntax
   "@JOIN"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3JN _:_./ _)" 10)

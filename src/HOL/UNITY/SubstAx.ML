@@ -294,6 +294,15 @@ by (blast_tac (claset() addIs [LeadsTo_Diff, LeadsTo_weaken,
 qed "PSP_Unless";
 
 
+Goal "[| F : Stable A;  F : transient C;  \
+\        reachable F <= (-A Un B Un C) |] ==> F : LeadsTo A B";
+by (etac reachable_LeadsTo_weaken 1);
+by (rtac LeadsTo_Diff 1);
+by (etac (transient_imp_leadsTo RS leadsTo_imp_LeadsTo RS PSP_stable2) 2);
+by (ALLGOALS (blast_tac (claset() addIs [subset_imp_LeadsTo])));
+qed "Stable_transient_reachable_LeadsTo";
+
+
 (*** Induction rules ***)
 
 (** Meta or object quantifier ????? **)

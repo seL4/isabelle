@@ -43,6 +43,10 @@ by (asm_simp_tac (simpset() addsimps [program_equalityI, equalityI,
 				      component_Acts, component_Init]) 1);
 qed "component_anti_sym";
 
+Goalw [component_def]
+      "component F H = (EX G. F Join G = H & Disjoint F G)";
+by (blast_tac (claset() addSIs [Diff_Disjoint, Join_Diff2]) 1);
+qed "component_eq";
 
 (*** existential properties ***)
 
@@ -101,8 +105,9 @@ qed "uv_prop_finite";
 (*** guarantees ***)
 
 (*This equation is more intuitive than the official definition*)
-Goalw [guarantees_def, component_def]
-      "(F : A guarantees B) = (ALL G. F Join G : A --> F Join G : B)";
+Goal "(F : A guarantees B) = \
+\     (ALL G. F Join G : A & Disjoint F G --> F Join G : B)";
+by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
 by (Blast_tac 1);
 qed "guarantees_eq";
 
@@ -154,13 +159,16 @@ Goalw [guarantees_def]
 by (Blast_tac 1);
 qed "ex_guarantees";
 
-val prems = Goalw [guarantees_def, component_def]
-      "(!!G. F Join G : A ==> F Join G : B) ==> F : A guarantees B";
+val prems = Goal
+     "(!!G. [| F Join G : A;  Disjoint F G |] ==> F Join G : B) \
+\     ==> F : A guarantees B";
+by (simp_tac (simpset() addsimps [guarantees_def, component_eq]) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "guaranteesI";
 
-Goal "[| F : A guarantees B;  F Join G : A |] ==> F Join G : B";
-by (asm_full_simp_tac (simpset() addsimps [guarantees_eq]) 1);
+Goalw [guarantees_def, component_def]
+     "[| F : A guarantees B;  F Join G : A |] ==> F Join G : B";
+by (Blast_tac 1);
 qed "guaranteesD";
 
 

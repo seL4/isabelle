@@ -29,9 +29,9 @@ constdefs
   
   rel_act :: "(state*state) set"
     "rel_act == {(s,s').
-		  EX nrel. nrel = length (rel s) &
+		  EX nrel. nrel = size (rel s) &
 		           s' = s (| rel := rel s @ [giv s!nrel] |) &
-		           nrel < length (giv s) &
+		           nrel < size (giv s) &
 		           ask s!nrel <= giv s!nrel}"
 
   (** Choose a new token requirement **)
@@ -45,7 +45,7 @@ constdefs
   ask_act :: "(state*state) set"
     "ask_act == {(s,s'). s'=s |
 		         (s' = s (|ask := ask s @ [tok s]|) &
-		          length (ask s) = length (rel s))}"
+		          size (ask s) = size (rel s))}"
 
   Cli_prg :: state program
     "Cli_prg == mk_program ({s. tok s : atMost Max &
@@ -56,7 +56,7 @@ constdefs
 
   giv_meets_ask :: state set
     "giv_meets_ask ==
-       {s. length (giv s) <= length (ask s) & 
-           (ALL n: lessThan (length (giv s)). ask s!n <= giv s!n)}"
+       {s. size (giv s) <= size (ask s) & 
+           (ALL n: lessThan (size (giv s)). ask s!n <= giv s!n)}"
 
 end
