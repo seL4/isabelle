@@ -59,16 +59,19 @@ val dist_eqI = prove_goal Porder.thy "~(x::'a::po) << y ==> x ~= y" (fn prems =>
 in
 
 
-fun theorems thy (((dname,_),cons) : eq, eqs :eq list) =
+type thms = (thm list * thm * thm * thm list *
+	     thm list * thm list * thm list * thm list * thm  list * thm list *
+	     thm list * thm list);
+fun (theorems thy: eq list -> eq -> thms) eqs ((dname,_),cons)  =
 let
 
-val dummy = writeln ("Proving isomorphism   properties of domain "^dname^"...");
+val dummy = writeln ("Proving isomorphism properties of domain "^dname^" ...");
 val pg = pg' thy;
 (*
 infixr 0 y;
 val b = 0;
 fun _ y t = by t;
-fun  g  defs t = let val sg = sign_of thy;
+fun g defs t = let val sg = sign_of thy;
                      val ct = Thm.cterm_of sg (inferT sg t);
                  in goalw_cterm defs ct end;
 *)
@@ -328,14 +331,16 @@ in     (iso_rews, exhaust, cases, when_rews,
 end; (* let *)
 
 
-fun comp_theorems thy (comp_dnam, eqs: eq list, casess, con_rews, copy_rews) =
+fun comp_theorems thy (comp_dnam, eqs: eq list, thmss: thms list) =
 let
-
+val casess    =       map #3  thmss;
+val con_rews  = flat (map #5  thmss);
+val copy_rews = flat (map #12 thmss);
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
 val comp_dname = Sign.full_name (sign_of thy) comp_dnam;
 
-val dummy = writeln("Proving induction properties of domain "^comp_dname^"...");
+val d = writeln("Proving induction   properties of domain "^comp_dname^" ...");
 val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
@@ -361,9 +366,10 @@ local
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =(if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
   val take_stricts=pg copy_take_defs(mk_trp(foldr' mk_conj(map(fn((dn,args),_)=>
-            strict(dc_take dn $ %"n")) eqs)))([
+            strict(dc_take dn $ %"n")) eqs))) ([
+			if n_eqs = 1 then all_tac else rewtac ax_copy2_def,
                         nat_ind_tac "n" 1,
-                        simp_tac iterate_Cprod_ss 1,
+                         simp_tac iterate_Cprod_ss 1,
                         asm_simp_tac (iterate_Cprod_ss addsimps copy_rews)1]);
   val take_stricts' = rewrite_rule copy_take_defs take_stricts;
   val take_0s = mapn(fn n=> fn dn => pg axs_take_def(mk_trp((dc_take dn $ %%"0")
@@ -420,8 +426,8 @@ local
               (lazy_rec orelse is_lazy arg) (n, (nth_elem(rec_of arg,conss))))
           ) o snd) cons;
     fun all_rec_to ns  = rec_to forall not all_rec_to  ns;
-    fun warn (n,cons)  = if all_rec_to [] false (n,cons) then (writeln 
-        ("WARNING: domain "^nth_elem(n,dnames)^" is empty!"); true) else false;
+    fun warn (n,cons)  = if all_rec_to [] false (n,cons) then (warning
+        ("domain "^nth_elem(n,dnames)^" is empty!"); true) else false;
     fun lazy_rec_to ns = rec_to exists Id  lazy_rec_to ns;
 
   in val n__eqs     = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
@@ -530,9 +536,9 @@ val (finites,ind) = if is_finite then
                                     axs_reach @ [
                                 quant_tac 1,
                                 rtac (adm_impl_admw RS wfix_ind) 1,
-                                REPEAT_DETERM(rtac adm_all2 1),
-                                REPEAT_DETERM(TRY(rtac adm_conj 1) THEN 
-                                                  rtac adm_subst 1 THEN 
+                                 REPEAT_DETERM(rtac adm_all2 1),
+                                 REPEAT_DETERM(TRY(rtac adm_conj 1) THEN 
+                                                   rtac adm_subst 1 THEN 
                                         cont_tacR 1 THEN resolve_tac prems 1),
                                 strip_tac 1,
                                 rtac (rewrite_rule axs_take_def finite_ind) 1,

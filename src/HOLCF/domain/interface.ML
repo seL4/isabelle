@@ -10,7 +10,7 @@ local
   open ThyParse;
   open Domain_Library;
 
-(* --- generation of bindings for axioms and theorems in trailer of .thy.ML - *)
+(* --- generation of bindings for axioms and theorems in .thy.ML - *)
 
   fun gt_ax         name   = "get_axiom thy " ^ quote name;
   fun gen_val dname name   = "val "^name^" = "^ gt_ax (dname^"_"^name)^";";
@@ -19,7 +19,7 @@ local
  	      \con_rews @ sel_rews @ dis_rews @ dists_le @ dists_eq @\n\
 	      \copy_rews";
 
-  fun gen_domain eqname num ((dname,_), cons') = let
+  fun gen_struct thms_str num ((dname,_), cons') = let
     val axioms1 = ["abs_iso", "rep_iso", "when_def"];
 		   (* con_defs , sel_defs, dis_defs *) 
     val axioms2 = ["copy_def"];
@@ -35,8 +35,7 @@ local
       gen_vall"dis_defs"(map(fn (con,_,_) => gt_ax(dis_name_ con^"_def")) 
 								          cons')^"\n"^
       cat_lines(map (gen_val dname) axioms2)^"\n"^
-      "val ("^ theorems ^") =\n\
-      \Domain_Theorems.theorems thy "^eqname^";\n" ^
+      "val ("^ theorems ^") = "^thms_str^";\n" ^
       (if num > 1 then "val rews = " ^rews1 ^";\n" else "")
     end;
 
@@ -59,14 +58,14 @@ local
 
     val thy_ext_string = let
       fun mk_conslist cons' = 
-	  mk_list (map (fn (c,syn,ts)=>
+	  mk_list (map (fn (c,syn,ts)=> "\n"^
 		    mk_triple(quote c, syn, mk_list (map (fn (b,s ,tp) =>
 		    mk_triple(Bool.toString b, quote s, tp)) ts))) cons');
-    in "val (thy, "^comp_dname^"_equations) = thy |> Domain_Extender.add_domain \n"
-       ^ mk_pair(quote comp_dname, mk_list(map (fn ((n,vs),cs) => 
+    in "val (thy, thmss, comp_thms) = thy |> Domain_Extender.add_domain "
+       ^ mk_pair(quote comp_dname, mk_list(map (fn ((n,vs),cs) => "\n"^
 				   mk_pair (mk_pair (quote n, mk_list vs), 
 					    mk_conslist cs)) eqs'))
-       ^ ";\nval thy = thy"
+       ^ ";\n"
     end;
 
 (* ----- string for calling (comp_)theorems and producing the structures ---- *)
@@ -76,32 +75,35 @@ local
       val comp_axioms   = [(* copy, *) "reach", "take_def", "finite_def"
 			   (*, "bisim_def" *)];
       val comp_theorems = "take_rews, " ^ implode (separate ", " (map plural
-			       ["take_lemma","finite"]))^", finite_ind, ind, coind";
-      fun eqname n = "(hd(funpow "^string_of_int n^" tl "^comp_dname^"_equations), "
-							 ^comp_dname^"_equations)";
+			   ["take_lemma","finite"]))^", finite_ind, ind, coind";
+      fun thms_str n = "hd (funpow "^string_of_int n^" tl thmss)";
       fun collect sep name = if num = 1 then name else
 			     implode (separate sep (map (fn s => s^"."^name) dnames));
     in
-      implode (separate "end; (* struct *)\n\n" 
-        	 (mapn (fn n => gen_domain (eqname n) num) 0 eqs'))^(if num > 1 then
-      "end; (* struct *)\n\n\
-      \structure "^comp_dname^" = struct\n" else "") ^
+	implode (separate "end; (* struct *)\n" 
+			  (mapn (fn n => gen_struct (thms_str n) num) 0 eqs')) ^
+	(if num > 1 then "end; (* struct *)\n\n\
+		       \structure "^comp_dname^" = struct\n" else "") ^
 	(if num > 1 then gen_val comp_dname "copy_def" ^"\n" else "") ^
-	implode ((map (fn s => gen_vall (plural s)
-	           (map (fn dn => gt_ax(dn ^ "_" ^ s)) dnames) ^"\n") comp_axioms)) ^
-	 gen_val comp_dname "bisim_def" ^"\n\
-        \val ("^ comp_theorems ^") =\n\
-	\Domain_Theorems.comp_theorems thy \
-	\(" ^ quote comp_dname   ^ ","^ comp_dname ^"_equations,\n\
-	\ ["^collect "    ," "cases"    ^"],\n\
-	\  "^collect "@"     "con_rews " ^",\n\
-	\  "^collect " @"    "copy_rews" ^");\n\
-	\val rews = "^(if num>1 then collect" @ " "rews"else rews1)^ " @ take_rews;\n\
-      \end; (* struct *)"
+	implode (map (fn s => gen_vall (plural s)
+			      (map (fn dn => gt_ax(dn ^ "_" ^ s)) dnames) ^"\n")
+		 comp_axioms) ^
+	gen_val comp_dname "bisim_def" ^"\n\
+        \val ("^ comp_theorems ^") = comp_thms;\n\
+	\val rews = "^(if num>1 then collect" @ " "rews"else rews1)^ 
+		    " @ take_rews;\n\
+      \end; (* struct *)\n"
     end;
-  in (thy_ext_string, val_gen_string) end;
+  in ("local\n"^
+      thy_ext_string^
+      "in\n"^
+      "val thy = thy;\n"^
+      val_gen_string^
+      "end; (* local *)\n\n"^
+      "val thy = thy",
+      "") end;
 
-(* ----- strings for calling add_gen_by and producing the value binding ----------- *)
+(* ----- strings for calling add_gen_by and producing the value binding ----- *)
 
   fun mk_gen_by (finite,eqs) = let
       val typs    = map fst eqs;
@@ -113,7 +115,7 @@ local
 			 mk_list (map (fn cns => mk_list(map quote cns)) cnstrss))),
        "val "^tname^"_induct = " ^gt_ax (tname^"_induct")^";") end;
 
-(* ----- parser for domain declaration equation ----------------------------------- *)
+(* ----- parser for domain declaration equation ----------------------------- *)
 
   val name' = name >> strip_quotes;
   val type_var' = type_var >> strip_quotes;
