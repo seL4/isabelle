@@ -42,7 +42,7 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
 
 (* ML command execution -- 'eval' *)
 
-val use_string =
+val use_strings =
   let
     fun exec line =
       let
@@ -50,7 +50,7 @@ val use_string =
 
         fun get_line () =
           if ! is_first then (is_first := false; line)
-          else raise Io "use_string: buffer exhausted";
+          else raise Io "use_strings: buffer exhausted";
       in
         PolyML.compiler (get_line, print) ()
       end;

@@ -80,7 +80,7 @@ fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
 
 (* ML command execution *)
 
-val use_string = Compiler.Interact.useStream o TextIO.openString o implode;
+val use_strings = Compiler.Interact.useStream o TextIO.openString o implode;
 
 
 

@@ -84,7 +84,7 @@ fun file_info "" = ""
 val tmpName = OS.FileSys.tmpName();
 
 (*Can one redirect 'use' directly to an instream?*)
-fun use_string slist =
+fun use_strings slist =
   let val tmpFile = TextIO.openOut tmpName
   in app (fn s => TextIO.output (tmpFile, s)) slist;
      TextIO.closeOut tmpFile;

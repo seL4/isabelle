@@ -307,22 +307,22 @@ val qed_thm = ref flexpair_def(*dummy*);
 
 fun bind_thm (name, thm) =
  (qed_thm := store_thm (name, (standard thm));
-  use_string ["val " ^ name ^ " = !qed_thm;"]);
+  use_strings ["val " ^ name ^ " = !qed_thm;"]);
 
 
 fun qed name =
  (qed_thm := store_thm (name, result ());
-  use_string ["val " ^ name ^ " = !qed_thm;"]);
+  use_strings ["val " ^ name ^ " = !qed_thm;"]);
 
 
 fun qed_goal name thy agoal tacsf =
  (qed_thm := store_thm (name, prove_goal thy agoal tacsf);
-  use_string ["val " ^ name ^ " = !qed_thm;"]);
+  use_strings ["val " ^ name ^ " = !qed_thm;"]);
 
 
 fun qed_goalw name thy rths agoal tacsf =
  (qed_thm := store_thm (name, prove_goalw thy rths agoal tacsf);
-  use_string ["val " ^ name ^ " = !qed_thm;"]);
+  use_strings ["val " ^ name ^ " = !qed_thm;"]);
 
 
 (** Retrieve theorems **)

@@ -314,7 +314,7 @@ fun use_thy1 tmp_loadpath_valid name =
        save_data false;
 
        (*Store theory again because it could have been redefined*)
-       use_string
+       use_strings
          ["val _ = store_theory (" ^ tname ^ ".thy, " ^ quote tname ^ ");"];
 
        (*Add theory to list of all loaded theories (for index.html)

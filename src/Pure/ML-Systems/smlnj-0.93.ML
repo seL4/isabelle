@@ -30,34 +30,29 @@ fun print_depth n =
 (* timing *)
 
 local
-
-(*print microseconds, suppressing trailing zeroes*)
-fun umakestring 0 = ""
-  | umakestring n =
-      chr (ord "0" + n div 100000) ^ umakestring (10 * (n mod 100000));
-
+  (*print microseconds, suppressing trailing zeroes*)
+  fun umakestring 0 = ""
+    | umakestring n =
+        chr (ord "0" + n div 100000) ^ umakestring (10 * (n mod 100000));
 in
-
-(*a conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime*)
-
-fun cond_timeit flag f =
-  if flag then
-    let fun string_of_time (System.Timer.TIME {sec, usec}) =
-            makestring sec ^ "." ^ (if usec=0 then "0" else umakestring usec)
-        open System.Timer;
-        val start = start_timer()
-        val result = f();
-        val nongc = check_timer(start)
-        and gc = check_timer_gc(start);
-        val both = add_time(nongc, gc)
-    in  print("Non GC " ^ string_of_time nongc ^
-               "   GC " ^ string_of_time gc ^
-               "  both "^ string_of_time both ^ " secs\n");
-        result
-    end
-  else f();
-
+  (*a conditional timing function: applies f to () and, if the flag is true,
+    prints its runtime*)
+  fun cond_timeit flag f =
+    if flag then
+      let fun string_of_time (System.Timer.TIME {sec, usec}) =
+              makestring sec ^ "." ^ (if usec=0 then "0" else umakestring usec)
+          open System.Timer;
+          val start = start_timer()
+          val result = f();
+          val nongc = check_timer(start)
+          and gc = check_timer_gc(start);
+          val both = add_time(nongc, gc)
+      in  print("Non GC " ^ string_of_time nongc ^
+                 "   GC " ^ string_of_time gc ^
+                 "  both "^ string_of_time both ^ " secs\n");
+          result
+      end
+    else f();
 end;
 
 
@@ -81,7 +76,7 @@ fun install_pp (path, pp) = System.PrettyPrint.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_string commands =
+fun use_strings commands =
   System.Compile.use_stream (open_string (implode commands));
 
 
