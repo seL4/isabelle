@@ -82,8 +82,7 @@ AddSDs [Spy_see_priK_D, Spy_analz_priK_D];
   is secret.  (Honest users generate fresh nonces.)*)
 goal thy 
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees Spy evs); \
-\           Nonce NA ~: analz (sees Spy evs);       \
-\           evs : ns_public |]                      \
+\           Nonce NA ~: analz (sees Spy evs);   evs : ns_public |]       \
 \ ==> Crypt (pubK C) {|NA', Nonce NA|} ~: parts (sees Spy evs)";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
@@ -118,7 +117,7 @@ goal thy
  "!!evs. [| Crypt(pubK B)  {|Nonce NA, Agent A|}  : parts(sees Spy evs); \
 \           Crypt(pubK B') {|Nonce NA, Agent A'|} : parts(sees Spy evs); \
 \           Nonce NA ~: analz (sees Spy evs);                            \
-\           evs : ns_public |]                                                \
+\           evs : ns_public |]                                           \
 \        ==> A=A' & B=B'";
 by (prove_unique_tac lemma 1);
 qed "unique_NA";
@@ -134,8 +133,8 @@ fun analz_induct_tac i =
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
 goal thy 
- "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;         \
-\           A ~: lost;  B ~: lost;  evs : ns_public |]                        \
+ "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;     \
+\           A ~: lost;  B ~: lost;  evs : ns_public |]                    \
 \        ==>  Nonce NA ~: analz (sees Spy evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
@@ -181,8 +180,8 @@ qed "A_trusts_NS2";
 (*If the encrypted message appears then it originated with Alice in NS1*)
 goal thy 
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees Spy evs); \
-\           Nonce NA ~: analz (sees Spy evs);                 \
-\           evs : ns_public |]                                     \
+\           Nonce NA ~: analz (sees Spy evs);                            \
+\           evs : ns_public |]                                           \
 \   ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
@@ -197,9 +196,9 @@ qed "B_trusts_NS1";
 (*Unicity for NS2: nonce NB identifies agent A and nonce NA
   [proof closely follows that for unique_NA] *)
 goal thy 
- "!!evs. [| Nonce NB ~: analz (sees Spy evs);  evs : ns_public |]      \
-\ ==> EX A' NA'. ALL A NA.                                                  \
-\      Crypt (pubK A) {|Nonce NA, Nonce NB|}                                \
+ "!!evs. [| Nonce NB ~: analz (sees Spy evs);  evs : ns_public |]  \
+\ ==> EX A' NA'. ALL A NA.                                         \
+\      Crypt (pubK A) {|Nonce NA, Nonce NB|}                       \
 \        : parts (sees Spy evs)  -->  A=A' & NA=NA'";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
@@ -217,7 +216,7 @@ goal thy
  "!!evs. [| Crypt(pubK A) {|Nonce NA, Nonce NB|}  : parts(sees Spy evs); \
 \           Crypt(pubK A'){|Nonce NA', Nonce NB|} : parts(sees Spy evs); \
 \           Nonce NB ~: analz (sees Spy evs);                            \
-\           evs : ns_public |]                                                \
+\           evs : ns_public |]                                           \
 \        ==> A=A' & NA=NA'";
 by (prove_unique_tac lemma 1);
 qed "unique_NB";
@@ -254,10 +253,9 @@ qed "Spy_not_see_NB";
 (*Authentication for B: if he receives message 3 and has used NB
   in message 2, then A has sent message 3--to somebody....*)
 goal thy 
- "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB|})          \
-\             : set evs;                                               \
-\           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;            \
-\           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
+ "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs; \
+\           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;              \
+\           A ~: lost;  B ~: lost;  evs : ns_public |]                   \
 \        ==> EX C. Says A C (Crypt (pubK C) (Nonce NB)) : set evs";
 by (etac rev_mp 1);
 (*prepare induction over Crypt (pubK B) NB : parts H*)
@@ -317,6 +315,3 @@ Level 9
           Nonce NB ~: analz (sees Spy evsa) |]
        ==> False
 *)
-
-
-
