@@ -58,8 +58,8 @@ qed "wf_onI";
   Premise is equivalent to 
   !!B. ALL x:A. (ALL y. <y,x>: r --> y:B) --> x:B ==> A<=B  *)
 val [prem] = Goal
-    "[| !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
-\              |] ==> y:B |] \
+    "[| !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A |]   \
+\              ==> y:B |] \
 \    ==>  wf[A](r)";
 by (rtac wf_onI 1);
 by (res_inst_tac [ ("c", "u") ] (prem RS DiffE) 1);
@@ -122,8 +122,8 @@ fun wf_on_ind_tac a prems i =
 (*If r allows well-founded induction then wf(r)*)
 val [subs,indhyp] = Goal
     "[| field(r)<=A;  \
-\       !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;   y:A  \
-\              |] ==> y:B |] \
+\       !!y B. [| ALL x:A. (ALL y:A. <y,x>:r --> y:B) --> x:B;  y:A|]  \
+\              ==> y:B |] \
 \    ==>  wf(r)";
 by (rtac ([wf_onI2, subs] MRS (wf_on_subset_A RS wf_on_field_imp_wf)) 1);
 by (REPEAT (ares_tac [indhyp] 1));
@@ -212,36 +212,25 @@ by (res_inst_tac [("P", "%x.?t(x) = (?u::i)")] (isrec RS ssubst) 1);
 by (rtac (rel RS underI RS beta) 1);
 qed "apply_recfun";
 
-(*eresolve_tac transD solves <a,b>:r using transitivity AT MOST ONCE
-  spec RS mp  instantiates induction hypotheses*)
-fun indhyp_tac hyps =
-    resolve_tac (TrueI::refl::reflexive_thm::hyps) ORELSE' 
-    (cut_facts_tac hyps THEN'
-       DEPTH_SOLVE_1 o (ares_tac [TrueI, ballI] ORELSE'
-                        eresolve_tac [underD, transD, spec RS mp]));
-
-(*** NOTE! some simplifications need a different solver!! ***)
-val wf_super_ss = simpset() setSolver (mk_solver "WF" indhyp_tac);
-
 Goalw [is_recfun_def]
     "[| wf(r);  trans(r);  is_recfun(r,a,H,f);  is_recfun(r,b,H,g) |] ==> \
 \    <x,a>:r --> <x,b>:r --> f`x=g`x";
 by (wf_ind_tac "x" [] 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
-by (rewtac restrict_def);
-by (asm_simp_tac (wf_super_ss addsimps [vimage_singleton_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [vimage_singleton_iff, restrict_def]) 1); 
+by (subgoal_tac "ALL y. y : r-``{x1} --> f`y = g`y" 1);
+ by (Asm_simp_tac 1);
+by (blast_tac (claset() addDs [transD]) 1); 
 qed_spec_mp "is_recfun_equal";
 
-val prems as [wfr,transr,recf,recg,_] = goal (the_context ())
-    "[| wf(r);  trans(r);       \
-\       is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  <b,a>:r |] ==> \
-\    restrict(f, r-``{b}) = g";
-by (cut_facts_tac prems 1);
+Goal "[| wf(r);  trans(r);       \
+\        is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  <b,a>:r |]  \
+\     ==> restrict(f, r-``{b}) = g";
 by (rtac (consI1 RS restrict_type RS fun_extension) 1);
 by (etac is_recfun_type 1);
-by (ALLGOALS
-    (asm_simp_tac (wf_super_ss addsimps
-                   [ [wfr,transr,recf,recg] MRS is_recfun_equal ])));
+by (asm_full_simp_tac (simpset() addsimps [vimage_singleton_iff]) 1);
+by (blast_tac (claset() addDs [transD]
+			addIs [is_recfun_equal]) 1);
 qed "is_recfun_cut";
 
 (*** Main Existence Lemma ***)
@@ -269,10 +258,14 @@ by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
 by (REPEAT (dtac underD 1 ORELSE resolve_tac [refl, lam_cong] 1));
 by (fold_tac [is_recfun_def]);
 by (rtac (consI1 RS restrict_type RSN (2,fun_extension) RS subst_context) 1);
-by (rtac is_recfun_type 1);
-by (ALLGOALS
-    (asm_simp_tac
-     (wf_super_ss addsimps [underI RS beta, apply_recfun, is_recfun_cut])));
+ by (blast_tac (claset() addIs [is_recfun_type]) 1);
+by (ftac (spec RS mp) 1 THEN assume_tac 1);
+by (subgoal_tac "<xa,a1> : r" 1);
+by (dres_inst_tac [("x1","xa")] (spec RS mp) 1 THEN assume_tac 1);
+by (asm_full_simp_tac
+     (simpset() addsimps [vimage_singleton_iff, underI RS beta, apply_recfun, 
+                          is_recfun_cut]) 1);
+by (blast_tac (claset() addDs [transD]) 1);
 qed "unfold_the_recfun";
 
 
@@ -331,22 +324,9 @@ by (etac (wfrec RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [vimage_Int_square, cons_subset_iff]) 1);
 qed "wfrec_on";
 
-(*----------------------------------------------------------------------------
- * Minimal-element characterization of well-foundedness
- *---------------------------------------------------------------------------*)
-
-Goalw [wf_def] "wf(r) ==> x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q)";
-by (dtac spec 1);
+(*Minimal-element characterization of well-foundedness*)
+Goalw [wf_def] 
+     "wf(r) <-> (ALL Q x. x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q))";
 by (Blast_tac 1);
-val lemma1 = result();
-
-Goalw [wf_def]
-     "(ALL Q x. x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q)) ==> wf(r)";
-by (Clarify_tac 1);
-by (Blast_tac 1);
-val lemma2 = result();
-
-Goal "wf(r) <-> (ALL Q x. x:Q --> (EX z:Q. ALL y. <y,z>:r --> y~:Q))";
-by (blast_tac (claset() addSIs [lemma1, lemma2]) 1);
 qed "wf_eq_minimal";
 
