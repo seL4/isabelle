@@ -14,16 +14,20 @@
 \newcommand{\isacommand}[1]{{\bf #1}}
 \newcommand{\isakeyword}[1]{{\bf #1}}
 
-%theory sections
-\newcommand{\isamarkupheader}[1]{{\rm #1}}
+
+%section markup
+
+\newcommand{\isapar}[1]{{\par\medskip #1\par\smallskip}}
+
+\newcommand{\isamarkupheader}[1]{\isapar{\normalsize\rm #1}}
 \newcommand{\isamarkupchapter}[1]{\chapter{#1}}
 \newcommand{\isamarkupsection}[1]{\section{#1}}
 \newcommand{\isamarkupsubsection}[1]{\subsection{#1}}
 \newcommand{\isamarkupsubsubsection}[1]{\subsubsection{#1}}
-\newcommand{\isamarkuptext}[1]{{\rm #1}}
+\newcommand{\isamarkuptext}[1]{\isapar{\normalsize\rm #1}}
 
-%proof sections
 \newcommand{\isamarkupsect}[1]{\section{#1}}
 \newcommand{\isamarkupsubsect}[1]{\subsection{#1}}
 \newcommand{\isamarkupsubsubsect}[1]{\subsubsection{#1}}
-\newcommand{\isamarkuptxt}[1]{{\sl #1}}
+\newcommand{\isamarkuptxt}[1]{\isapar{\rm #1}}
+\newcommand{\isamarkupcmt}[1]{{\rm--- #1}}
