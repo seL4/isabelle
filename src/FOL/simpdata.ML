@@ -17,14 +17,14 @@ fun int_prove_fun s =
 val conj_simps = map int_prove_fun
  ["P & True <-> P",      "True & P <-> P",
   "P & False <-> False", "False & P <-> False",
-  "P & P <-> P",
+  "P & P <-> P", "P & P & Q <-> P & Q",
   "P & ~P <-> False",    "~P & P <-> False",
   "(P & Q) & R <-> P & (Q & R)"];
 
 val disj_simps = map int_prove_fun
  ["P | True <-> True",  "True | P <-> True",
   "P | False <-> P",    "False | P <-> P",
-  "P | P <-> P",
+  "P | P <-> P", "P | P | Q <-> P | Q",
   "(P | Q) | R <-> P | (Q | R)"];
 
 val not_simps = map int_prove_fun
