@@ -53,7 +53,14 @@ sort :  id
 types : 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )
       ;
 
-typeDecl : ( () | tid | '(' ( tid + ',' ) ')') name ( () | '='  string );
+typeDecl : ( () | tid | '(' ( tid + ',' ) ')') name
+           ( () | '=' ( string | type ) );
+
+type : simpleType | '(' type ')' | type '=>' type |
+       '[' ( type + "," ) ']' '=>' type;
+
+simpleType: id | ( tid ( () | '::' id ) ) |
+            '(' ( type + "," ) ')' id | simpleType id;
 
 infix : ( 'infixr' | 'infixl' ) nat;
 
@@ -71,12 +78,6 @@ consts : 'consts' ( ( constDecl ( () | ( '(' mixfix ')' ) ) ) + )
        ;
 
 constDecl : ( name + ',') '::' (string | type);
-
-type : simpleType | '(' type ')' | type '=>' type |
-       '[' ( type + "," ) ']' '=>' type;
-
-simpleType: id | ( tid ( () | '::' id ) ) |
-            '(' ( type + "," ) ')' id | simpleType id;
 
 mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
        | infix
