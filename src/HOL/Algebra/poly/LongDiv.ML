@@ -91,12 +91,10 @@ by (asm_simp_tac (simpset() addsimps [diff_diff_right, leI, m_comm]) 1);
 by (etac exE 1);
 by (res_inst_tac [("x", "((%(q,r,k). ((lcoeff g ^ k * lcoeff x) *s monom (deg x - deg g) + q)) xa, (%(q,r,k). r) xa, (%(q,r,k). Suc k) xa)")] exI 1);
 by (Clarify_tac 1);
-by (rtac conjI 1);
 by (dtac sym 1);
 by (simp_tac (simpset() addsimps [l_distr, a_assoc]) 1);
 by (Asm_simp_tac 1);
 by (simp_tac (simpset() addsimps a_ac@[smult_l_distr, smult_r_distr, smult_r_minus, smult_assoc2, smult_assoc1]) 1);
-by Auto_tac;
 qed "long_div_eucl_size";
 
 Goal
