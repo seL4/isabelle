@@ -78,13 +78,6 @@ fun exhaust_tac aterm i state = state |>
 end;
 
 
-(* should go into Pure *)
-fun ALLNEWSUBGOALS tac tacf i st0 = st0 |>
-  (tac i THEN
-   (fn st1 => st1 |> 
-        let val d = nprems_of st1 - nprems_of st0
-        in EVERY(map tacf ((i+d) downto i)) end));
-
 (*used for constructor parameters*)
 datatype dt_type = dtVar of string |
   dtTyp of dt_type list * string |
@@ -977,9 +970,8 @@ fun build_record (thy,(ty,cl),itac) =
      val {nchotomy,case_cong} = case_thms sign case_rewrites itac
      val exhaustion = mk_exhaust nchotomy
      val exh_var = exhaust_var exhaustion;
-     fun exhaust_tac a =
-           ALLNEWSUBGOALS (res_inst_tac [(exh_var,a)] exhaustion)
-                          (rotate_tac ~1);
+     fun exhaust_tac a =  (res_inst_tac [(exh_var,a)] exhaustion)
+                          THEN_ALL_NEW (rotate_tac ~1);
      val induct_tac = Datatype.occs_in_prems itac 
  in
   (ty, {constructors = map(fn s => const s handle _ => const("op "^s)) cl,

@@ -16,8 +16,8 @@ MLtext {|
 ("nat", {case_const = Bound 0, case_rewrites = [],
   constructors = [], induct_tac = nat_ind_tac,
   exhaustion = natE,
-  exhaust_tac = fn v => ALLNEWSUBGOALS (res_inst_tac [("n",v)] natE)
-                                       (rotate_tac ~1),
+  exhaust_tac = fn v => (res_inst_tac [("n",v)] natE)
+                        THEN_ALL_NEW (rotate_tac ~1),
   nchotomy = ProtoPure.flexpair_def, case_cong = ProtoPure.flexpair_def})
 |}
 
