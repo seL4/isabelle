@@ -16,4 +16,7 @@ time_use_thy "ex/Nat";
 time_use_thy "ex/List";
 time_use_thy "ex/Stream";
 time_use_thy "ex/Flag";
+
+make_chart ();   (*make HTML chart*)
+
 maketest"END: Root file for CCL examples";

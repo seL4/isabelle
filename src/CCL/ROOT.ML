@@ -40,4 +40,6 @@ use_thy "Fix";
 
 print_depth 8;
 
+make_chart ();   (*make HTML chart*)
+
 val CCL_build_completed = ();   (*indicate successful build*)
