@@ -60,7 +60,7 @@ fun inductive_decl co =
       end
     val domains = "domains" $$-- enum1 "+" string --$$ "<=" -- !! string
     val ipairs  = "intrs"   $$-- repeat1 (ident -- !! string)
-    fun optstring s = optional (s $$-- string) "\"[]\"" >> trim
+    fun optstring s = optional (s $$-- string >> trim) "[]"
   in domains -- ipairs -- optstring "monos" -- optstring "con_defs"
              -- optstring "type_intrs" -- optstring "type_elims"
      >> mk_params
