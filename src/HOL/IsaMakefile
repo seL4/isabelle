@@ -70,9 +70,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/make_elim.ML \
   $(SRC)/Provers/rulify.ML $(SRC)/Provers/simplifier.ML \
   $(SRC)/Provers/split_paired_all.ML $(SRC)/Provers/splitter.ML \
-  $(SRC)/TFL/dcterm.sml $(SRC)/TFL/post.sml $(SRC)/TFL/rules.sml \
-  $(SRC)/TFL/tfl.sml $(SRC)/TFL/thms.sml $(SRC)/TFL/thry.sml \
-  $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sml Calculation.thy \
+  $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML $(SRC)/TFL/rules.ML \
+  $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
+  $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML Calculation.thy \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy Divides.ML \
   Divides.thy Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML \
   HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML Integ/Bin.thy \
@@ -119,6 +119,7 @@ $(OUT)/HOL-Real: $(OUT)/HOL \
   Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML \
   Real/RealPow.thy Real/real_arith.ML
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
+
 
 ## HOL-Hyperreal
 
