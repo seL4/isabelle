@@ -11,6 +11,7 @@ and different types cannot occur.
 signature ENVIR =
 sig
   datatype env = Envir of {asol: term Vartab.table, iTs: typ Vartab.table, maxidx: int}
+  val type_env: env -> typ Vartab.table
   exception SAME
   val genvars: string -> env * typ list -> env * term list
   val genvar: string -> env * typ -> env * term
@@ -23,9 +24,9 @@ sig
   val alist_of: env -> (indexname * term) list
   val norm_term: env -> term -> term
   val norm_term_same: env -> term -> term
-  val norm_type: env -> typ -> typ
-  val norm_type_same: env -> typ -> typ
-  val norm_types_same: env -> typ list -> typ list
+  val norm_type: typ Vartab.table -> typ -> typ
+  val norm_type_same: typ Vartab.table -> typ -> typ
+  val norm_types_same: typ Vartab.table -> typ list -> typ list
   val beta_norm: term -> term
   val head_norm: env -> term -> term
   val fastype: env -> typ list -> term -> typ
@@ -42,6 +43,7 @@ datatype env = Envir of
      asol: term Vartab.table,   (*table of assignments to Vars*)
      iTs: typ Vartab.table}     (*table of assignments to TVars*)
 
+fun type_env (Envir {iTs, ...}) = iTs;
 
 (*Generate a list of distinct variables.
   Increments index to make them distinct from ALL present variables. *)
@@ -155,11 +157,11 @@ val norm_term_same = gen_norm_term true;
 
 val beta_norm = norm_term (empty 0);
 
-fun norm_type (Envir {iTs, ...}) = normTh iTs;
-fun norm_type_same (Envir {iTs, ...}) =
+fun norm_type iTs = normTh iTs;
+fun norm_type_same iTs =
   if Vartab.is_empty iTs then raise SAME else normT iTs;
 
-fun norm_types_same (Envir {iTs, ...}) =
+fun norm_types_same iTs =
   if Vartab.is_empty iTs then raise SAME else normTs iTs;
 
 
