@@ -22,6 +22,14 @@ are legal term specifications, while \texttt{x + y} is not.
   robust in that respect.
 \end{warn}
 
+\medskip
+
+Another notable point is proper input termination.  Proof~General demands any
+command to be terminated by ``\texttt{;}''
+(semicolon)\index{semicolon}\index{*;}.  As far as plain Isabelle/Isar is
+concerned, commands may be directly run together.  Thus for better
+readability, we usually omit semicolons when discussion Isar proof text here.
+
 
 \section{Lexical matters}\label{sec:lex-syntax}
 
@@ -37,7 +45,6 @@ be confused, though.
   symident & = & sym^+ \\
   nat & = & digit^+ \\
   var & = & \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
-  textvar & = & \verb,??,ident \\
   typefree & = & \verb,',ident \\
   typevar & = & \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
   string & = & \verb,", ~\dots~ \verb,", \\
@@ -105,15 +112,15 @@ non-identifier names or those ruled out by outer syntax keywords (e.g.\
 Large chunks of plain \railqtoken{text} are usually given
 \railtoken{verbatim}, i.e.\ enclosed in \verb|{*|\dots\verb|*}|.  For
 convenience, any of the smaller text units conforming to \railqtoken{nameref}
-are admitted as well.  Almost any of the Isar commands may be annotated by
-some marginal \railnonterm{comment} of the form \texttt{--} \railqtoken{text}.
-Note that this kind of comment is actually part of the language, while source
-level comments \verb|(*|\dots\verb|*)| are stripped at the lexical level.  A
-few commands such as $\PROOFNAME$ admit additional markup with a ``level of
-interest'': \texttt{\%} followed by an optional number $n$ (default $n = 1$)
-indicates that the respective part of the document becomes $n$ levels more
-obscure; \texttt{\%\%} means that interest drops by $\infty$ --- abandon every
-hope, who enter here.
+are admitted as well.  Almost any of the Isar commands may be annotated by a
+marginal \railnonterm{comment} of the form \texttt{--} \railqtoken{text}.
+Note that the latter kind of comment is actually part of the language, while
+source level comments \verb|(*|\dots\verb|*)| are stripped at the lexical
+level.  A few commands such as $\PROOFNAME$ admit additional markup with a
+``level of interest'': \texttt{\%} followed by an optional number $n$ (default
+$n = 1$) indicates that the respective part of the document becomes $n$ levels
+more obscure; \texttt{\%\%} means that interest drops by $\infty$ --- abandon
+every hope, who enter here.
 
 \indexoutertoken{text}\indexouternonterm{comment}\indexouternonterm{interest}
 \begin{rail}
@@ -153,13 +160,15 @@ Basically, any such entity has to be quoted here to turn it into a single
 token (the parsing and type-checking is performed later).  For convenience, a
 slightly more liberal convention is adopted: quotes may be omitted for any
 type or term that is already \emph{atomic} at the outer level.  E.g.\ one may
-write just \texttt{x} instead of \texttt{"x"}.
+write just \texttt{x} instead of \texttt{"x"}.  Note that symbolic identifiers
+such as \texttt{++} are available as well, provided these are not superceded
+by commands or keywords (like \texttt{+}).
 
 \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
 \begin{rail}
   type: nameref | typefree | typevar
   ;
-  term: nameref | var | textvar | nat
+  term: nameref | var | nat
   ;
   prop: term
   ;
@@ -224,7 +233,7 @@ conforming to \railtoken{symident}.
 
 \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
 \begin{rail}
-  atom: nameref | typefree | typevar | var | textvar | nat | keyword
+  atom: nameref | typefree | typevar | var | nat | keyword
   ;
   arg: atom | '(' args ')' | '[' args ']' | lbrace args rbrace
   ;
@@ -240,7 +249,9 @@ statements, \railnonterm{thmdef} collects lists of existing theorems.
 Existing theorems are given by \railnonterm{thmref} and \railnonterm{thmrefs}
 (the former requires an actual singleton result).  Any of these theorem
 specifications may include lists of attributes both on the left and right hand
-sides; attributes are applied to any immediately preceding theorem.
+sides; attributes are applied to any immediately preceding theorem.  If names
+are omitted, the theorems are not stored within the theory's theorem database;
+any given attributes are still applied, though.
 
 \indexouternonterm{thmdecl}\indexouternonterm{axmdecl}
 \indexouternonterm{thmdef}\indexouternonterm{thmrefs}
@@ -265,8 +276,8 @@ sides; attributes are applied to any immediately preceding theorem.
 
 Proof methods are either basic ones, or expressions composed of methods via
 ``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternative choices),
-``\texttt{?}'' (try), ``\texttt{+}'' (at least once).  In practice, proof
-methods are usually just a comma separated list of
+``\texttt{?}'' (try once), ``\texttt{+}'' (repeat at least once).  In
+practice, proof methods are usually just a comma separated list of
 \railqtoken{nameref}~\railnonterm{args} specifications.  Thus the syntax is
 similar to that of attributes, with plain parentheses instead of square
 brackets.  Note that parentheses may be dropped for single method

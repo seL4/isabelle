@@ -11,13 +11,13 @@ specific elements (for Isabelle/HOL).
 \medskip
 
 Isar commands may be either \emph{proper} document constructors, or
-\emph{improper commands} (indicated by $^*$).  Some proof methods and
-attributes introduced later are classified as improper as well.  Improper Isar
-language elements might be helpful when developing proof documents, while
-their use is strongly discouraged for the final version.  Typical examples are
-diagnostic commands that print terms or theorems according to the current
-context; other commands even emulate old-style tactical theorem proving, which
-facilitates porting of legacy proof scripts.
+\emph{improper commands}.  Some proof methods and attributes introduced later
+are classified as improper as well.  Improper Isar language elements, which
+are subsequently marked by $^*$, are often helpful when developing proof
+documents, while their use is usually discouraged for the final outcome.
+Typical examples are diagnostic commands that print terms or theorems
+according to the current context; other commands even emulate old-style
+tactical theorem proving, which facilitates porting of legacy proof scripts.
 
 
 \section{Theory commands}
@@ -337,13 +337,13 @@ some way to do so.
 
 \begin{descr}
 \item [$\isarkeyword{use}~file$] reads and executes ML commands from $file$.
-  The current theory context (if present) is passed down to the ML session.
-  Furthermore, the file name is checked with the $\isarkeyword{files}$
-  dependency declaration given in the theory header (see also
-  \S\ref{sec:begin-thy}).
-
+  The current theory context (if present) is passed down to the ML session,
+  but must not be modified.  Furthermore, the file name is checked with the
+  $\isarkeyword{files}$ dependency declaration given in the theory header (see
+  also \S\ref{sec:begin-thy}).
+  
 \item [$\isarkeyword{ML}~text$] reads and executes ML commands from $text$.
-  The theory context is passed just as for $\isarkeyword{use}$.
+  The theory context is passed in the same way as for $\isarkeyword{use}$.
 
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
   applying setup functions $text$, which has to be an ML expression of type
@@ -584,8 +584,8 @@ pending goal and whether forward chaining is employed.
 
 \begin{descr}
 \item [$\THEOREM{a}{\phi}$] enters proof mode with $\phi$ as main goal,
-  eventually resulting in some theorem $\turn \phi$, which will be stored in
-  the theory.
+  eventually resulting in some theorem $\turn \phi$, and put back into the
+  theory.
 \item [$\LEMMANAME$] is similar to $\THEOREMNAME$, but tags the result as
   ``lemma''.
 \item [$\HAVE{a}{\phi}$] claims a local goal, eventually resulting in a
@@ -735,12 +735,11 @@ come in handy for exploring and debugging.
 Abbreviations may be either bound by explicit $\LET{p \equiv t}$ statements,
 or by annotating assumptions or goal statements ($\ASSUMENAME$, $\SHOWNAME$
 etc.) with a list of patterns $\IS{p@1 \dots p@n}$.  In both cases,
-higher-order matching is applied to bind extra-logical text
-variables\index{text variables}, which may be either of the form $\VVar{x}$
-(token class \railtoken{textvar}, see \S\ref{sec:lex-syntax}) or nameless
-dummies ``\texttt{_}'' (underscore).\index{dummy variables} Note that in the
-$\LETNAME$ form the patterns occur on the left-hand side, while the $\ISNAME$
-patterns are in postfix position.
+higher-order matching is applied to bind extra-logical text variables, which
+may be either named schematic variables of the form $\Var{x}$, or nameless
+dummies ``\texttt{_}'' (underscore).\indexisarvar{_@\texttt{_}} Note that in
+the $\LETNAME$ form the patterns occur on the left-hand side, while the
+$\ISNAME$ patterns are in postfix position.
 
 Term abbreviations are quite different from actual local definitions as
 introduced via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are
@@ -765,15 +764,20 @@ The syntax of $\ISNAME$ patterns follows \railnonterm{termpat} or
 
 A few \emph{automatic} term abbreviations\index{automatic abbreviation} for
 goals and facts are available as well.  For any open goal,
-$\VVar{thesis_prop}$ refers to the full proposition (which may be a rule),
-$\VVar{thesis_concl}$ to its (atomic) conclusion, and $\VVar{thesis}$ to its
+$\Var{thesis_prop}$\indexisarvar{thesis-prop} refers to the full proposition
+(which may be a rule), $\Var{thesis_concl}$\indexisarvar{thesis-concl} to its
+(atomic) conclusion, and $\Var{thesis}$\indexisarvar{thesis} to its
 object-logical statement.  The latter two abstract over any meta-level
-parameters.
+parameters bound by $\Forall$.
 
-Facts (i.e.\ assumptions and finished goals) that have an application $f(x)$
-as object-logic statement get $x$ bound to the special text variable
-``$\dots$'' (three dots).  The canonical application of this feature are
-calculational proofs (see \S\ref{sec:calculation}).
+Fact statements resulting from assumptions or finished goals are bound as
+$\Var{this_prop}$\indexisarvar{this-prop},
+$\Var{this_concl}$\indexisarvar{this-concl}, and
+$\Var{this}$\indexisarvar{this}, similar to $\Var{thesis}$ above.  In case
+$\Var{this}$ refers to an object-logic statement that is an application
+$f(x)$, then $x$ is bound to the special text variable
+``$\dots$''\indexisarvar{\dots} (three dots).  The canonical application of
+this feature are calculational proofs (see \S\ref{sec:calculation}).
 
 
 \subsection{Block structure}

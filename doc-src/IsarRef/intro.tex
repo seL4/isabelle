@@ -69,18 +69,16 @@ Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
 \end{ttbox}
 Users of XEmacs may note the tool bar for navigating forward and backward
 through the text.  Consult the Proof~General documentation \cite{proofgeneral}
-for further basic commands, such as \texttt{c-c return} or \texttt{c-c u}.
+for further basic commands, like \texttt{c-c return} or \texttt{c-c u}.
 
 \medskip
 
 Occasionally, a user's \texttt{.emacs} contains material that is incompatible
 with the version of (X)Emacs that Proof~General prefers.  Then proper startup
-may be still achieved by using the \texttt{-u false} option.\footnote{Also
-  note that the Emacs lisp files
-  \texttt{\$ISABELLE_HOME/etc/proofgeneral-settings.el} and
-  \texttt{\$ISABELLE_HOME_USER/etc/proofgeneral-settings.el} are automatically
-  loaded by Proof~General if invoked via the interface wrapper script.}
-
+may be still achieved by using the \texttt{-u false} option.\footnote{Any
+  \texttt{proofgeneral-settings.el} file occurring in
+  \texttt{\$ISABELLE_HOME/etc} or \texttt{\$ISABELLE_HOME_USER/etc} is
+  automatically loaded by the Proof~General interface script as well.}
 
 \section{How to write Isar proofs anyway?}
 
