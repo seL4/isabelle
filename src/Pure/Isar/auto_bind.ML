@@ -13,7 +13,8 @@ signature AUTO_BIND =
 sig
   val goal: term -> (indexname * term option) list
   val facts: string -> term list -> (indexname * term option) list
-  val atomic_thesis: term -> (string * term) * term
+  val thesisN: string
+  val atomic_thesis: term -> term * term
   val add_judgment: bstring * string * mixfix -> theory -> theory
   val add_judgment_i: bstring * typ * mixfix -> theory -> theory
 end;
@@ -61,8 +62,8 @@ fun facts _ [] = []
 
 fun mk_free t = Free (thesisN, Term.fastype_of t);
 
-fun atomic_thesis ((c as Const ("Trueprop", _)) $ t) = ((thesisN, t), c $ mk_free t)
-  | atomic_thesis t = ((thesisN, t), mk_free t);
+fun atomic_thesis ((c as Const ("Trueprop", _)) $ t) = (t, c $ mk_free t)
+  | atomic_thesis t = (t, mk_free t);
 
 
 (** judgment **)
