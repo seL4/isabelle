@@ -16,7 +16,7 @@ proof_timing:=true;
 HOL_quantifiers := false;
 
 
-(*Weak liveness: there are traces that reach the end*)
+(*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX N K. EX evs: ns_shared lost.          \
@@ -213,7 +213,7 @@ goal thy
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (Auto_tac());
-qed "A_trust_NS2";
+qed "A_trusts_NS2";
 
 
 (*EITHER describes the form of X when the following message is sent, 
@@ -231,7 +231,7 @@ by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
                       addss (!simpset)) 1);
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj] 1);
 by (fast_tac (!claset addEs  partsEs
-                      addSDs [A_trust_NS2, Says_Server_message_form]
+                      addSDs [A_trusts_NS2, Says_Server_message_form]
                       addIs [Says_imp_old_keys]
                       addss (!simpset)) 1);
 qed "Says_S_message_form";
@@ -351,8 +351,7 @@ qed "unique_session_keys";
 (** Crucial secrecy property: Spy does not see the keys sent in msg NS2 **)
 
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  \
-\           evs : ns_shared lost;  evt: ns_shared lost |]  \
+ "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_shared lost |]            \
 \        ==> Says Server A                                             \
 \              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
 \                                Crypt (shrK B) {|Key K, Agent A|}|})  \
@@ -378,12 +377,12 @@ by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 2);
 by (etac conjE 2);
 by (mp_tac 2);
 (**LEVEL 11 **)
-by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trust_NS2] 2);
+by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trusts_NS2] 2);
 by (assume_tac 3);
 by (fast_tac (!claset addSEs [Says_Crypt_not_lost]) 2);
 by (fast_tac (!claset addDs [unique_session_keys] addss (!simpset)) 2);
 (*NS3*)
-by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trust_NS2] 1);
+by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
 by (fast_tac (!claset addSEs [Says_Crypt_not_lost]) 1);
 by (fast_tac (!claset addDs [unique_session_keys] addss (!simpset)) 1);
@@ -419,7 +418,7 @@ qed "Agent_not_see_encrypted_key";
 
 (**** Guarantees available at various stages of protocol ***)
 
-A_trust_NS2 RS conjunct2 RS Spy_not_see_encrypted_key;
+A_trusts_NS2 RS conjunct2 RS Spy_not_see_encrypted_key;
 
 
 (*If the encrypted message appears then it originated with the Server*)
@@ -438,7 +437,7 @@ by (best_tac (!claset addSDs [impOfSubs Fake_parts_insert]
                       addDs  [impOfSubs analz_subset_parts]
                       addss  (!simpset)) 2);
 by (Auto_tac());
-qed "B_trust_NS3";
+qed "B_trusts_NS3";
 
 
 goal thy
@@ -469,7 +468,7 @@ by (rtac disjI1 1);
 by (thin_tac "?PP-->?QQ" 1);
 by (case_tac "Ba : lost" 1);
 by (dtac Says_Crypt_lost 1 THEN assume_tac 1 THEN Fast_tac 1);
-by (dtac (Says_imp_sees_Spy RS parts.Inj RS B_trust_NS3) 1 THEN 
+by (dtac (Says_imp_sees_Spy RS parts.Inj RS B_trusts_NS3) 1 THEN 
     REPEAT (assume_tac 1));
 by (fast_tac (!claset addDs [unique_session_keys]) 1);
 val lemma = result();
@@ -483,4 +482,4 @@ goal thy
 \        ==> Says B A (Crypt K (Nonce NB)) : set_of_list evs";
 by (fast_tac (!claset addSIs [lemma RS mp RS mp RS mp]
                       addSEs [Spy_not_see_encrypted_key RSN (2, rev_notE)]) 1);
-qed "A_trust_NS4";
+qed "A_trusts_NS4";

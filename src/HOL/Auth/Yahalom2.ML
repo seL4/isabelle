@@ -18,8 +18,7 @@ proof_timing:=true;
 HOL_quantifiers := false;
 
 
-(*Weak liveness: there are traces that reach the end*)
-
+(*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX X NB K. EX evs: yahalom lost.          \
@@ -358,7 +357,7 @@ by (etac rev_mp 1);
 by (parts_induct_tac 1);
 (*The nested conjunctions are entirely useless*)
 by (REPEAT_FIRST (rtac conjI ORELSE' fast_tac (!claset delrules [conjI])));
-qed "A_trust_YM3";
+qed "A_trusts_YM3";
 
 
 (*B knows, by the first part of A's message, that the Server distributed 
@@ -395,4 +394,4 @@ goal thy
 \                   : set_of_list evs";
 by (etac (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1);
 by (fast_tac (!claset addSDs [B_trusts_YM4_shrK]) 1);
-qed "B_trust_YM4";
+qed "B_trusts_YM4";
