@@ -29,6 +29,7 @@ sig
       val thy_goal: string
       val qed: string
       val qed_block: string
+      val qed_global: string
       val prf_goal: string
       val prf_block: string
       val prf_chain: string
@@ -83,6 +84,7 @@ struct
   val thy_goal = "theory-goal";
   val qed = "qed";
   val qed_block = "qed-block";
+  val qed_global = "qed-global";
   val prf_goal = "proof-goal";
   val prf_block = "proof-block";
   val prf_chain = "proof-chain";
@@ -92,7 +94,8 @@ struct
   val prf_script = "proof-script";
 
   val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_goal,
-    qed, qed_block, prf_goal, prf_block, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
+    qed, qed_block, qed_global, prf_goal, prf_block, prf_chain, prf_decl, prf_asm, prf_asm_goal,
+    prf_script];
 end;
 
 
