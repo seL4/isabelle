@@ -27,7 +27,11 @@ better in printed text;
 
 * added default LaTeX bindings for \<tturnstile> and \<TTurnstile>;
 note that these symbols are currently unavailable in Proof General /
-X-Symbol;
+X-Symbol; added \<euro> symbol;
+
+* isatool latex no longer depends on changed TEXINPUTS, instead
+isatool document copies the Isabelle style files to the target
+location;
 
 
 *** Isar ***
@@ -240,6 +244,8 @@ Florian Kammüller);
 * HOL/IMP: updated and converted to new-style theory format; several
 parts turned into readable document, with proper Isar proof texts and
 some explanations (by Gerwin Klein);
+
+* HOL-Hyperreal is now a logic image;
 
 
 *** HOLCF ***
