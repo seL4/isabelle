@@ -183,13 +183,15 @@ val ITER_DEEPEN = THEN_ITER_DEEPEN all_tac;
 (*Simple iterative deepening tactical.  It merely "deepens" any search tactic
   using increment "inc" up to limit "lim". *)
 fun DEEPEN (inc,lim) tacf m i = 
-  let fun dpn m st = st |> (if has_fewer_prems i st then no_tac
-			    else if m>lim then 
-				(tracing "Giving up..."; no_tac)
-				 else (tracing ("Depth = " ^ string_of_int m);
-				       tacf m i  ORELSE  dpn (m+inc)))
+  let fun dpn m st = 
+       st |> (if has_fewer_prems i st then no_tac
+	      else if m>lim then 
+		       (warning "Search depth limit exceeded: giving up"; 
+			no_tac)
+	      else (warning ("Search depth = " ^ string_of_int m);
+			     tacf m i  ORELSE  dpn (m+inc)))
   in  dpn m  end;
-
+ 
 (*** Best-first search ***)
 
 val trace_BEST_FIRST = ref false;
