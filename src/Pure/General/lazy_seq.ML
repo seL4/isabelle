@@ -316,7 +316,7 @@ local
     fun F None = ()
       | F (Some(x,s)) = F (getItem s)
 in
-val force_all = F o getItem
+fun force_all s = F (getItem s)
 end
 
 fun of_function f =
