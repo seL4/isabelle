@@ -36,6 +36,7 @@ for packaging solvers. A solver is created via
 	mk_solver: string -> (thm list -> int -> tactic) -> solver
 where the string argument is only a comment.
 
+
 *** Proof tools ***
 
 * Provers/Arith/fast_lin_arith.ML contains a functor for creating a
@@ -287,6 +288,12 @@ now of type real instead of int;
 interface (see src/Pure/Thy/thy_info.ML); example application: keep
 your own database of information attached to *whole* theories -- as
 opposed to intra-theory data slots offered via TheoryDataFun;
+
+* proper handling of dangling sort hypotheses (at last!);
+Thm.strip_shyps and Drule.strip_shyps_warning take care of removing
+extra sort hypotheses that can be witnessed from the type signature;
+the force_strip_shyps is gone, any remaining shyps are simply left in
+the theorem (with a warning issued by strip_shyps_warning);
 
 
 
