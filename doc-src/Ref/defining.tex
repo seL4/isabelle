@@ -6,7 +6,7 @@ for set theory, higher-order logic or the sequent calculus, its
 distinguishing feature is support for the definition of new logics.
 
 Isabelle logics are hierarchies of theories, which are described and
-illustrated in 
+illustrated in
 \iflabelundefined{sec:defining-theories}{{\em Introduction to Isabelle}}%
 {\S\ref{sec:defining-theories}}.  That material, together with the theory
 files provided in the examples directories, should suffice for all simple
@@ -19,7 +19,7 @@ demonstrate the logical aspects of the definition of theories.
 
 
 \section{Priority grammars} \label{sec:priority_grammars}
-\index{priority grammars|(} 
+\index{priority grammars|(}
 
 A context-free grammar contains a set of {\bf nonterminal symbols}, a set of
 {\bf terminal symbols} and a set of {\bf productions}\index{productions}.
@@ -39,7 +39,7 @@ introducing new nonterminals and productions.
 Formally, a set of context free productions $G$ induces a derivation
 relation $\longrightarrow@G$.  Let $\alpha$ and $\beta$ denote strings of
 terminal or nonterminal symbols.  Then
-\[ \alpha\, A^{(p)}\, \beta ~\longrightarrow@G~ \alpha\,\gamma\,\beta \] 
+\[ \alpha\, A^{(p)}\, \beta ~\longrightarrow@G~ \alpha\,\gamma\,\beta \]
 if and only if $G$ contains some production $A^{(q)}=\gamma$ for~$p \le q$.
 
 The following simple grammar for arithmetic expressions demonstrates how
@@ -65,8 +65,8 @@ For clarity, grammars obey these conventions:
   the left-hand side may be omitted.
 \item The production $A^{(p)} = \alpha$ is written as $A = \alpha~(p)$; the
   priority of the left-hand side actually appears in a column on the far
-  right.  
-\item Alternatives are separated by~$|$.  
+  right.
+\item Alternatives are separated by~$|$.
 \item Repetition is indicated by dots~(\dots) in an informal but obvious
   way.
 \end{itemize}
@@ -89,28 +89,32 @@ $A$ & = & {\tt0} & \hspace*{4em} \\
 \begin{center}
 \begin{tabular}{rclc}
 $any$ &=& $prop$ ~~$|$~~ $logic$ \\\\
-$prop$ &=& {\tt PROP} $aprop$ ~~$|$~~ {\tt(} $prop$ {\tt)} \\
+$prop$ &=& {\tt(} $prop$ {\tt)} \\
+     &$|$& $prop^{(4)}$ {\tt::} $type$ & (3) \\
+     &$|$& {\tt PROP} $aprop$ \\
      &$|$& $any^{(3)}$ {\tt ==} $any^{(2)}$ & (2) \\
      &$|$& $any^{(3)}$ {\tt =?=} $any^{(2)}$ & (2) \\
      &$|$& $prop^{(2)}$ {\tt ==>} $prop^{(1)}$ & (1) \\
      &$|$& {\tt[|} $prop$ {\tt;} \dots {\tt;} $prop$ {\tt|]} {\tt==>} $prop^{(1)}$ & (1) \\
-     &$|$& {\tt!!} $idts$ {\tt.} $prop$ & (0) \\\\
+     &$|$& {\tt!!} $idts$ {\tt.} $prop$ & (0) \\
+     &$|$& {\tt OFCLASS} {\tt(} $type$ {\tt,} $logic$ {\tt)} \\\\
 $aprop$ &=& $id$ ~~$|$~~ $var$
     ~~$|$~~ $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\\\
-$logic$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $logic$ {\tt)} \\
-    &$|$& $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\
-    &$|$& $logic^{(4)}$ {\tt::} $type$ & (4) \\
-    &$|$& {\tt \%} $idts$ {\tt.} $any$ & (0) \\\\
+$logic$ &=& {\tt(} $logic$ {\tt)} \\
+      &$|$& $logic^{(4)}$ {\tt::} $type$ & (3) \\
+      &$|$& $id$ ~~$|$~~ $var$
+    ~~$|$~~ $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\
+      &$|$& {\tt \%} $idts$ {\tt.} $any$ & (0) \\\\
 $idts$ &=& $idt$ ~~$|$~~ $idt^{(1)}$ $idts$ \\\\
 $idt$ &=& $id$ ~~$|$~~ {\tt(} $idt$ {\tt)} \\
     &$|$& $id$ {\tt ::} $type$ & (0) \\\\
-$type$ &=& $tid$ ~~$|$~~ $tvar$ ~~$|$~~ $tid$ {\tt::} $sort$
-  ~~$|$~~ $tvar$ {\tt::} $sort$ \\
+$type$ &=& {\tt(} $type$ {\tt)} \\
+     &$|$& $tid$ ~~$|$~~ $tvar$ ~~$|$~~ $tid$ {\tt::} $sort$
+       ~~$|$~~ $tvar$ {\tt::} $sort$ \\
      &$|$& $id$ ~~$|$~~ $type^{(\infty)}$ $id$
                 ~~$|$~~ {\tt(} $type$ {\tt,} \dots {\tt,} $type$ {\tt)} $id$ \\
      &$|$& $type^{(1)}$ {\tt =>} $type$ & (0) \\
-     &$|$& {\tt[}  $type$ {\tt,} \dots {\tt,} $type$ {\tt]} {\tt=>} $type$&(0)\\
-     &$|$& {\tt(} $type$ {\tt)} \\\\
+     &$|$& {\tt[}  $type$ {\tt,} \dots {\tt,} $type$ {\tt]} {\tt=>} $type$&(0) \\\\
 $sort$ &=& $id$ ~~$|$~~ {\tt\ttlbrace\ttrbrace}
                 ~~$|$~~ {\tt\ttlbrace} $id$ {\tt,} \dots {\tt,} $id$ {\tt\ttrbrace}
 \end{tabular}
@@ -135,30 +139,35 @@ $sort$ &=& $id$ ~~$|$~~ {\tt\ttlbrace\ttrbrace}
 
 At the root of all object-logics lies the theory \thydx{Pure}.  It
 contains, among many other things, the Pure syntax.  An informal account of
-this basic syntax (types, terms and formulae) appears in 
+this basic syntax (types, terms and formulae) appears in
 \iflabelundefined{sec:forward}{{\em Introduction to Isabelle}}%
 {\S\ref{sec:forward}}.  A more precise description using a priority grammar
 appears in Fig.\ts\ref{fig:pure_gram}.  It defines the following
 nonterminals:
 \begin{ttdescription}
-  \item[\ndxbold{prop}] denotes terms of type {\tt prop}.  These are formulae
-  of the meta-logic.
+  \item[\ndxbold{any}] denotes any term.
 
-  \item[\ndxbold{aprop}] denotes atomic propositions.  These typically
-  include the judgement forms of the object-logic; its definition
-  introduces a meta-level predicate for each judgement form.
+  \item[\ndxbold{prop}] denotes terms of type {\tt prop}.  These are formulae
+    of the meta-logic.  Note that user constants of result type {\tt prop}
+    (i.e.\ $c :: \ldots \To prop$) should always provide concrete syntax.
+    Otherwise atomic propositions with head $c$ may be printed incorrectly.
+
+  \item[\ndxbold{aprop}] denotes atomic propositions.
+
+%% FIXME huh!?
+%  These typically
+%  include the judgement forms of the object-logic; its definition
+%  introduces a meta-level predicate for each judgement form.
 
   \item[\ndxbold{logic}] denotes terms whose type belongs to class
-  \cldx{logic}.  As the syntax is extended by new object-logics, more
-  productions for {\tt logic} are added automatically (see below).
-
-  \item[\ndxbold{any}] denotes terms that either belong to {\tt prop}
-    or {\tt logic}.
-
-  \item[\ndxbold{type}] denotes types of the meta-logic.
+    \cldx{logic}, excluding type \tydx{prop}.
 
   \item[\ndxbold{idts}] denotes a list of identifiers, possibly constrained
     by types.
+
+  \item[\ndxbold{type}] denotes types of the meta-logic.
+
+  \item[\ndxbold{sort}] denotes meta-level sorts.
 \end{ttdescription}
 
 \begin{warn}
@@ -172,34 +181,20 @@ nonterminals:
   yields an error.  The correct form is \verb|(x::nat) (y::nat)|.
 \end{warn}
 
-\subsection{Logical types and default syntax}\label{logical-types}
-\index{lambda calc@$\lambda$-calculus}
-
-Isabelle's representation of mathematical languages is based on the
-simply typed $\lambda$-calculus.  All logical types, namely those of
-class \cldx{logic}, are automatically equipped with a basic syntax of
-types, identifiers, variables, parentheses, $\lambda$-abstractions and
-applications.
-
-More precisely, Isabelle internally replaces every nonterminal by
-$logic$ if it belongs to a subclass of \cldx{logic}.  Thereby these
-productions (which actually are productions of the nonterminal
-$logic$) can be used for $ty$:
-
-\begin{center}
-\begin{tabular}{rclc}
-$ty$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $ty$ {\tt)} \\
-  &$|$& $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)}\\
-  &$|$& $ty^{(4)}$ {\tt::} $type$ ~~~~~~~ (3) \\\\
-\end{tabular}
-\end{center}
-
 \begin{warn}
   Type constraints bind very weakly. For example, \verb!x<y::nat! is normally
   parsed as \verb!(x<y)::nat!, unless \verb$<$ has priority of 3 or less, in
   which case the string is likely to be ambiguous. The correct form is
   \verb!x<(y::nat)!.
 \end{warn}
+
+Isabelle's representation of mathematical languages is based on the simply
+typed $\lambda$-calculus\index{lambda calc@$\lambda$-calculus}.  All user
+defined logical types, namely those of class \cldx{logic}, refer to the
+nonterminal {\tt logic}. Thus they are automatically equipped with a basic
+syntax of types, identifiers, variables, parentheses, $\lambda$-abstractions
+and applications.
+
 
 \subsection{Lexical matters}
 The parser does not process input strings directly.  It operates on token
@@ -212,23 +207,40 @@ add new ones when extending theories.  In Fig.\ts\ref{fig:pure_gram} they
 appear in typewriter font, for example {\tt ==}, {\tt =?=} and
 {\tt PROP}\@.
 
-Name tokens have a predefined syntax.  The lexer distinguishes four
-disjoint classes of names: \rmindex{identifiers}, \rmindex{unknowns}, type
-identifiers\index{type identifiers}, type unknowns\index{type unknowns}.
-They are denoted by \ndxbold{id}, \ndxbold{var}, \ndxbold{tid},
-\ndxbold{tvar}, respectively.  Typical examples are {\tt x}, {\tt ?x7},
-{\tt 'a}, {\tt ?'a3}.  Here is the precise syntax:
+Name tokens have a predefined syntax.  The lexer distinguishes six disjoint
+classes of names: \rmindex{identifiers}, \rmindex{unknowns}, type
+identifiers\index{type identifiers}, type unknowns\index{type unknowns},
+\rmindex{numerals}, \rmindex{strings}. They are denoted by \ndxbold{id},
+\ndxbold{var}, \ndxbold{tid}, \ndxbold{tvar}, \ndxbold{xnum}, \ndxbold{xstr},
+respectively.  Typical examples are {\tt x}, {\tt ?x7}, {\tt 'a}, {\tt ?'a3},
+{\tt \#42}, {\tt ''foo bar''}. Here is the precise syntax:
 \begin{eqnarray*}
 id        & =   & letter~quasiletter^* \\
 var       & =   & \mbox{\tt ?}id ~~|~~ \mbox{\tt ?}id\mbox{\tt .}nat \\
 tid       & =   & \mbox{\tt '}id \\
 tvar      & =   & \mbox{\tt ?}tid ~~|~~
-                  \mbox{\tt ?}tid\mbox{\tt .}nat \\[1ex]
+                  \mbox{\tt ?}tid\mbox{\tt .}nat \\
+xnum      & =   & \mbox{\tt \#}nat ~~|~~ \mbox{\tt \#\char`\~}nat \\
+xstr      & =   & \mbox{\tt ''\rm text\tt ''} \\[1ex]
 letter    & =   & \mbox{one of {\tt a}\dots {\tt z} {\tt A}\dots {\tt Z}} \\
 digit     & =   & \mbox{one of {\tt 0}\dots {\tt 9}} \\
 quasiletter & =  & letter ~~|~~ digit ~~|~~ \mbox{\tt _} ~~|~~ \mbox{\tt '} \\
 nat       & =   & digit^+
 \end{eqnarray*}
+The lexer repeatedly takes the maximal prefix of the input string that forms
+a valid token.  A maximal prefix that is both a delimiter and a name is
+treated as a delimiter.  Spaces, tabs, newlines and formfeeds are separators;
+they never occur within tokens, except those of class $xstr$.
+
+\medskip
+Delimiters need not be separated by white space.  For example, if {\tt -}
+is a delimiter but {\tt --} is not, then the string {\tt --} is treated as
+two consecutive occurrences of the token~{\tt -}.  In contrast, \ML\
+treats {\tt --} as a single symbolic name.  The consequence of Isabelle's
+more liberal scheme is that the same string may be parsed in different ways
+after extending the syntax: after adding {\tt --} as a delimiter, the input
+{\tt --} is treated as a single token.
+
 A \ndxbold{var} or \ndxbold{tvar} describes an unknown, which is internally
 a pair of base name and index (\ML\ type \mltydx{indexname}).  These
 components are either separated by a dot as in {\tt ?x.1} or {\tt ?x7.3} or
@@ -236,19 +248,11 @@ run together as in {\tt ?x1}.  The latter form is possible if the base name
 does not end with digits.  If the index is 0, it may be dropped altogether:
 {\tt ?x} abbreviates both {\tt ?x0} and {\tt ?x.0}.
 
-The lexer repeatedly takes the maximal prefix of the input string that
-forms a valid token.  A maximal prefix that is both a delimiter and a name
-is treated as a delimiter.  Spaces, tabs and newlines are separators; they
-never occur within tokens.
+Tokens of class $xnum$ or $xstr$ are not used by the meta-logic.
+Object-logics may provide numerals and string constants by adding appropriate
+productions and translation functions.
 
-Delimiters need not be separated by white space.  For example, if {\tt -}
-is a delimiter but {\tt --} is not, then the string {\tt --} is treated as
-two consecutive occurrences of the token~{\tt -}.  In contrast, \ML\ 
-treats {\tt --} as a single symbolic name.  The consequence of Isabelle's
-more liberal scheme is that the same string may be parsed in different ways
-after extending the syntax: after adding {\tt --} as a delimiter, the input
-{\tt --} is treated as a single token.
-
+\medskip
 Although name tokens are returned from the lexer rather than the parser, it
 is more logical to regard them as nonterminals.  Delimiters, however, are
 terminals; they are just syntactic sugar and contribute nothing to the
@@ -258,6 +262,7 @@ abstract syntax tree.
 \subsection{*Inspecting the syntax}
 \begin{ttbox}
 syn_of              : theory -> Syntax.syntax
+print_syntax        : theory -> unit
 Syntax.print_syntax : Syntax.syntax -> unit
 Syntax.print_gram   : Syntax.syntax -> unit
 Syntax.print_trans  : Syntax.syntax -> unit
@@ -269,12 +274,15 @@ functions:
 \item[\ttindexbold{syn_of} {\it thy}] returns the syntax of the Isabelle
   theory~{\it thy} as an \ML\ value.
 
+\item[\ttindexbold{print_syntax} $thy$] displays the syntax part of $thy$
+  using {\tt Syntax.print_syntax}.
+
 \item[\ttindexbold{Syntax.print_syntax} {\it syn}] shows virtually all
   information contained in the syntax {\it syn}.  The displayed output can
   be large.  The following two functions are more selective.
 
 \item[\ttindexbold{Syntax.print_gram} {\it syn}] shows the grammar part
-  of~{\it syn}, namely the lexicon, roots and productions.  These are
+  of~{\it syn}, namely the lexicon, logical types and productions.  These are
   discussed below.
 
 \item[\ttindexbold{Syntax.print_trans} {\it syn}] shows the translation
@@ -287,7 +295,7 @@ is too verbose to display in full.
 \begin{ttbox}\index{*Pure theory}
 Syntax.print_syntax (syn_of Pure.thy);
 {\out lexicon: "!!" "\%" "(" ")" "," "." "::" ";" "==" "==>" \dots}
-{\out roots: logic type fun prop}
+{\out logtypes: fun itself}
 {\out prods:}
 {\out   type = tid  (1000)}
 {\out   type = tvar  (1000)}
@@ -307,17 +315,17 @@ Syntax.print_syntax (syn_of Pure.thy);
 \end{ttbox}
 
 As you can see, the output is divided into labelled sections.  The grammar
-is represented by {\tt lexicon}, {\tt roots} and {\tt prods}.  The rest
+is represented by {\tt lexicon}, {\tt logtypes} and {\tt prods}.  The rest
 refers to syntactic translations and macro expansion.  Here is an
 explanation of the various sections.
 \begin{description}
   \item[{\tt lexicon}] lists the delimiters used for lexical
-    analysis.\index{delimiters} 
+    analysis.\index{delimiters}
 
-  \item[{\tt roots}] lists the grammar's nonterminal symbols.  You must
-    name the desired root when calling lower level functions or specifying
-    macros.  Higher level functions usually expect a type and derive the
-    actual root as described in~\S\ref{sec:grammar}.
+  \item[{\tt logtypes}] lists the types that are regarded the same as {\tt
+    logic} syntactically. Thus types of object-logics (e.g.\ {\tt nat}, say)
+    will be automatically equipped with the standard syntax of
+    $\lambda$-calculus.
 
   \item[{\tt prods}] lists the \rmindex{productions} of the priority grammar.
     The nonterminal $A^{(n)}$ is rendered in {\sc ascii} as {\tt $A$[$n$]}.
@@ -355,70 +363,43 @@ explanation of the various sections.
 
 
 \section{Mixfix declarations} \label{sec:mixfix}
-\index{mixfix declarations|(} 
+\index{mixfix declarations|(}
 
 When defining a theory, you declare new constants by giving their names,
 their type, and an optional {\bf mixfix annotation}.  Mixfix annotations
 allow you to extend Isabelle's basic $\lambda$-calculus syntax with
 readable notation.  They can express any context-free priority grammar.
 Isabelle syntax definitions are inspired by \OBJ~\cite{OBJ}; they are more
-general than the priority declarations of \ML\ and Prolog.  
+general than the priority declarations of \ML\ and Prolog.
 
 A mixfix annotation defines a production of the priority grammar.  It
 describes the concrete syntax, the translation to abstract syntax, and the
 pretty printing.  Special case annotations provide a simple means of
-specifying infix operators, binders and so forth.
+specifying infix operators and binders.
 
-\subsection{Grammar productions}\label{sec:grammar}\index{productions}
 
-Let us examine the treatment of the production
-\[ A^{(p)}= w@0\, A@1^{(p@1)}\, w@1\, A@2^{(p@2)}\, \ldots\,  
-                  A@n^{(p@n)}\, w@n. \]
-Here $A@i^{(p@i)}$ is a nonterminal with priority~$p@i$ for $i=1$,
-\ldots,~$n$, while $w@0$, \ldots,~$w@n$ are strings of terminals.
-In the corresponding mixfix annotation, the priorities are given separately
-as $[p@1,\ldots,p@n]$ and~$p$.  The nonterminal symbols are identified with
-types~$\tau$, $\tau@1$, \ldots,~$\tau@n$ respectively, and the production's
-effect on nonterminals is expressed as the function type
-\[ [\tau@1, \ldots, \tau@n]\To \tau. \]
-Finally, the template
-\[ w@0  \;_\; w@1 \;_\; \ldots \;_\; w@n \]
-describes the strings of terminals.
+%% FIXME remove
+%\subsection{Grammar productions}\label{sec:grammar}\index{productions}
+%
+%Let us examine the treatment of the production
+%\[ A^{(p)}= w@0\, A@1^{(p@1)}\, w@1\, A@2^{(p@2)}\, \ldots\,
+%                  A@n^{(p@n)}\, w@n. \]
+%Here $A@i^{(p@i)}$ is a nonterminal with priority~$p@i$ for $i=1$,
+%\ldots,~$n$, while $w@0$, \ldots,~$w@n$ are strings of terminals.
+%In the corresponding mixfix annotation, the priorities are given separately
+%as $[p@1,\ldots,p@n]$ and~$p$.  The nonterminal symbols are derived from
+%types~$\tau$, $\tau@1$, \ldots,~$\tau@n$ respectively, and the production's
+%effect on nonterminals is expressed as the function type
+%\[ [\tau@1, \ldots, \tau@n]\To \tau. \]
+%Finally, the template
+%\[ w@0  \;_\; w@1 \;_\; \ldots \;_\; w@n \]
+%describes the strings of terminals.
 
-A simple type is typically declared for each nonterminal symbol.  In
-first-order logic, type~$i$ stands for terms and~$o$ for formulae.  Only
-the outermost type constructor is taken into account.  For example, any
-type of the form $\sigma list$ stands for a list;  productions may refer
-to the symbol {\tt list} and will apply to lists of any type.
-
-The symbol associated with a type is called its {\bf root} since it may
-serve as the root of a parse tree.  Precisely, the root of $(\tau@1, \dots,
-\tau@n)ty$ is $ty$, where $\tau@1$, \ldots, $\tau@n$ are types and $ty$ is
-a type constructor.  Type infixes are a special case of this; in
-particular, the root of $\tau@1 \To \tau@2$ is {\tt fun}.  Finally, the
-root of a type variable is {\tt logic}; general productions might
-refer to this nonterminal.
-
-Identifying nonterminals with types allows a constant's type to specify
-syntax as well.  We can declare the function~$f$ to have type $[\tau@1,
-\ldots, \tau@n]\To \tau$ and, through a mixfix annotation, specify the
-layout of the function's $n$ arguments.  The constant's name, in this
-case~$f$, will also serve as the label in the abstract syntax tree.  There
-are two exceptions to this treatment of constants:
-\begin{enumerate}\index{constants!syntactic}
-  \item A production need not map directly to a logical function.  In this
-    case, you must declare a constant whose purpose is purely syntactic.
-    By convention such constants begin with the symbol~{\tt\at}, 
-    ensuring that they can never be written in formulae.
-
-  \item A copy production has no associated constant.\index{productions!copy}
-\end{enumerate}
-There is something artificial about this representation of productions,
-but it is convenient, particularly for simple theory extensions.
 
 \subsection{The general mixfix form}
 Here is a detailed account of mixfix declarations.  Suppose the following
-line occurs within the {\tt consts} section of a {\tt .thy} file:
+line occurs within a {\tt consts} or {\tt syntax} section of a {\tt .thy}
+file:
 \begin{center}
   {\tt $c$ ::\ "$\sigma$" ("$template$" $ps$ $p$)}
 \end{center}
@@ -432,15 +413,16 @@ This constant declaration and mixfix annotation are interpreted as follows:
     $a@n$)}, where $a@i$ is the \AST{} generated by parsing the $i$-th
   argument.
 
-  \item The constant $c$, if non-empty, is declared to have type $\sigma$.
+  \item The constant $c$, if non-empty, is declared to have type $\sigma$
+    ({\tt consts} section only).
 
   \item The string $template$ specifies the right-hand side of
     the production.  It has the form
-    \[ w@0 \;_\; w@1 \;_\; \ldots \;_\; w@n, \] 
+    \[ w@0 \;_\; w@1 \;_\; \ldots \;_\; w@n, \]
     where each occurrence of {\tt_} denotes an argument position and
     the~$w@i$ do not contain~{\tt _}.  (If you want a literal~{\tt _} in
     the concrete syntax, you must escape it as described below.)  The $w@i$
-    may consist of \rmindex{delimiters}, spaces or 
+    may consist of \rmindex{delimiters}, spaces or
     \rmindex{pretty printing} annotations (see below).
 
   \item The type $\sigma$ specifies the production's nonterminal symbols
@@ -448,8 +430,7 @@ This constant declaration and mixfix annotation are interpreted as follows:
     must be a function type with at least~$n$ argument positions, say
     $\sigma = [\tau@1, \dots, \tau@n] \To \tau$.  Nonterminal symbols are
     derived from the types $\tau@1$, \ldots,~$\tau@n$, $\tau$ as described
-    above.  Any of these may be function types; the corresponding root is
-    then \tydx{fun}.
+    below.  Any of these may be function types.
 
   \item The optional list~$ps$ may contain at most $n$ integers, say {\tt
       [$p@1$, $\ldots$, $p@m$]}, where $p@i$ is the minimal
@@ -461,46 +442,76 @@ This constant declaration and mixfix annotation are interpreted as follows:
     Priorities range between 0 and \ttindexbold{max_pri} (= 1000).
 \end{itemize}
 %
-The declaration {\tt $c$ ::\ "$\sigma$" ("$template$")} specifies no
-priorities.  The resulting production puts no priority constraints on any
-of its arguments and has maximal priority itself.  Omitting priorities in
-this manner will introduce syntactic ambiguities unless the production's
-right-hand side is fully bracketed, as in \verb|"if _ then _ else _ fi"|.
+The resulting production is \[ A^{(p)}= w@0\, A@1^{(p@1)}\, w@1\,
+A@2^{(p@2)}\, \dots\, A@n^{(p@n)}\, w@n \] where $A$ and the $A@i$ are the
+nonterminals corresponding to the types $\tau$ and $\tau@i$ respectively.
+The nonterminal symbol associated with a type $(\ldots)ty$ is {\tt logic}, if
+this is a logical type (namely one of class {\tt logic} excluding {\tt
+prop}).  Otherwise it is $ty$ (note that only the outermost type constructor
+is taken into account).  Finally, the nonterminal of a type variable is {\tt
+any}.
+
+\begin{warn} 
+  Theories must sometimes declare types for purely syntactic purposes ---
+  merely playing the role of nonterminals. One example is \tydx{type}, the
+  built-in type of types.  This is a `type of all types' in the syntactic
+  sense only.  Do not declare such types under {\tt arities} as belonging to
+  class {\tt logic}\index{*logic class}, for that would make them useless as
+  separate nonterminal symbols.
+\end{warn}
+
+Associating nonterminals with types allows a constant's type to specify
+syntax as well.  We can declare the function~$f$ to have type $[\tau@1,
+\ldots, \tau@n]\To \tau$ and, through a mixfix annotation, specify the layout
+of the function's $n$ arguments.  The constant's name, in this case~$f$, will
+also serve as the label in the abstract syntax tree.
+
+You may also declare mixfix syntax without adding constants to the theory's
+signature, by using a {\tt syntax} section instead of {\tt consts}.  Thus a
+production need not map directly to a logical function (this typically
+requires additional syntactic translations, see also
+Chapter~\ref{chap:syntax}).
+
+
+\medskip 
+As a special case of the general mixfix declaration, the form 
+\begin{center}
+  {\tt $c$ ::\ "$\sigma$" ("$template$")} 
+\end{center}
+specifies no priorities.  The resulting production puts no priority
+constraints on any of its arguments and has maximal priority itself.
+Omitting priorities in this manner is prone to syntactic ambiguities unless
+the production's right-hand side is fully bracketed, as in \verb|"if _ then _
+else _ fi"|.
 
 Omitting the mixfix annotation completely, as in {\tt $c$ ::\ "$\sigma$"},
 is sensible only if~$c$ is an identifier.  Otherwise you will be unable to
 write terms involving~$c$.
 
-\begin{warn}
-  Theories must sometimes declare types for purely syntactic purposes.  One
-  example is \tydx{type}, the built-in type of types.  This is a `type of
-  all types' in the syntactic sense only.  Do not declare such types under
-  {\tt arities} as belonging to class {\tt logic}\index{*logic class}, for
-  that would allow their use in arbitrary Isabelle
-  expressions~(\S\ref{logical-types}).
-\end{warn}
+\medskip 
+There is something artificial about the representation of productions as
+mixfix declarations, but it is convenient, particularly for simple theory
+extensions.
+
 
 \subsection{Example: arithmetic expressions}
 \index{examples!of mixfix declarations}
-This theory specification contains a {\tt consts} section with mixfix
+This theory specification contains a {\tt syntax} section with mixfix
 declarations encoding the priority grammar from
 \S\ref{sec:priority_grammars}:
 \begin{ttbox}
 EXP = Pure +
 types
   exp
-arities
-  exp :: logic
-consts
+syntax
   "0" :: "exp"                ("0"      9)
   "+" :: "[exp, exp] => exp"  ("_ + _"  [0, 1] 0)
   "*" :: "[exp, exp] => exp"  ("_ * _"  [3, 2] 2)
   "-" :: "exp => exp"         ("- _"    [3] 3)
 end
 \end{ttbox}
-The {\tt arities} declaration causes {\tt exp} to be added as a new root.
-If you put this into a file {\tt EXP.thy} and load it via {\tt
-  use_thy "EXP"}, you can run some tests:
+If you put this into a file {\tt EXP.thy} and load it via {\tt use_thy"EXP"},
+you can run some tests:
 \begin{ttbox}
 val read_exp = Syntax.test_read (syn_of EXP.thy) "exp";
 {\out val it = fn : string -> unit}
@@ -518,8 +529,8 @@ The output of \ttindex{Syntax.test_read} includes the token list ({\tt
 ignoring parse \AST{} translations.  The rest is tracing information
 provided by the macro expander (see \S\ref{sec:macros}).
 
-Executing {\tt Syntax.print_gram} reveals the productions derived
-from our mixfix declarations (lots of additional information deleted):
+Executing {\tt Syntax.print_gram} reveals the productions derived from the
+above mixfix declarations (lots of additional information deleted):
 \begin{ttbox}
 Syntax.print_gram (syn_of EXP.thy);
 {\out exp = "0"  => "0" (9)}
@@ -530,7 +541,7 @@ Syntax.print_gram (syn_of EXP.thy);
 
 
 \subsection{The mixfix template}
-Let us take a closer look at the string $template$ appearing in mixfix
+Let us now take a closer look at the string $template$ appearing in mixfix
 annotations.  This string specifies a list of parsing and printing
 directives: delimiters\index{delimiters}, arguments, spaces, blocks of
 indentation and line breaks.  These are encoded by the following character
@@ -578,23 +589,20 @@ Paulson~\cite{paulson91}.
 Infix operators associating to the left or right can be declared
 using {\tt infixl} or {\tt infixr}.
 Roughly speaking, the form {\tt $c$ ::\ "$\sigma$" (infixl $p$)}
-abbreviates the constant declarations
+abbreviates the mixfix declarations
 \begin{ttbox}
-"op \(c\)" :: "\(\sigma\)"   ("op \(c\)")
 "op \(c\)" :: "\(\sigma\)"   ("(_ \(c\)/ _)" [\(p\), \(p+1\)] \(p\))
-\end{ttbox}
-and {\tt $c$ ::\ "$\sigma$" (infixr $p$)} abbreviates the constant declarations
-\begin{ttbox}
 "op \(c\)" :: "\(\sigma\)"   ("op \(c\)")
+\end{ttbox}
+and {\tt $c$ ::\ "$\sigma$" (infixr $p$)} abbreviates the mixfix declarations
+\begin{ttbox}
 "op \(c\)" :: "\(\sigma\)"   ("(_ \(c\)/ _)" [\(p+1\), \(p\)] \(p\))
+"op \(c\)" :: "\(\sigma\)"   ("op \(c\)")
 \end{ttbox}
 The infix operator is declared as a constant with the prefix {\tt op}.
 Thus, prefixing infixes with \sdx{op} makes them behave like ordinary
 function symbols, as in \ML.  Special characters occurring in~$c$ must be
 escaped, as in delimiters, using a single quote.
-
-The expanded forms above would be actually illegal in a {\tt .thy} file
-because they declare the constant \hbox{\tt"op \(c\)"} twice.
 
 
 \subsection{Binders}
@@ -612,7 +620,7 @@ $x$ is a bound variable of type~$\tau@1$, the body~$P$ has type $\tau@2$
 and the whole term has type~$\tau@3$.  Special characters in $\Q$ must be
 escaped using a single quote.
 
-The declaration is expanded internally to
+The declaration is expanded internally to something like
 \begin{ttbox}
 \(c\)    :: "(\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)"
 "\(\Q\)"\hskip-3pt  :: "[idts, \(\tau@2\)] => \(\tau@3\)"   ("(3\(\Q\)_./ _)" \(p\))
@@ -647,14 +655,14 @@ can be polymorphic.
 \index{ambiguity!of parsed expressions}
 
 To keep the grammar small and allow common productions to be shared
-all logical types are internally represented
-by one nonterminal, namely {\tt logic}. This and omitted or too freely 
+all logical types (except {\tt prop}) are internally represented
+by one nonterminal, namely {\tt logic}. This and omitted or too freely
 chosen priorities may lead to ways of parsing an expression that were
 not intended by the theory's maker. In most cases Isabelle is able to
-select one of multiple parse trees that an expression has lead 
+select one of multiple parse trees that an expression has lead
 to by checking which of them can be typed correctly. But this may not
 work in every case and always slows down parsing.
-The warning and error messages that can be produced during this process are 
+The warning and error messages that can be produced during this process are
 as follows:
 
 If an ambiguity can be resolved by type inference this warning
@@ -681,22 +689,25 @@ syntax in two different productions:
 \end{ttbox}
 
 On the other hand it's also possible that none of the parse trees can be
-typed correctly though the user did not make a mistake. By default Isabelle 
-assumes that the type of a syntax translation rule is {\tt logic} but does 
-not look at the type unless parsing the rule produces more than one parse 
-tree. In that case this message is output if the rule's type is different 
-from {\tt logic}:
+typed correctly although the user did not make a mistake.
 
-\begin{ttbox}
-{\out Warning: Ambiguous input "..."}
-{\out produces the following parse trees:}
-{\out ...}
-{\out This occured in syntax translation rule: "..."  ->  "..."}
-{\out Type checking error: Term does not have expected type}
-{\out ...}
-\end{ttbox}
-
-To circumvent this the rule's type has to be stated.
+%% FIXME remove?
+%By default Isabelle
+%assumes that the type of a syntax translation rule is {\tt logic} but does
+%not look at the type unless parsing the rule produces more than one parse
+%tree. In that case this message is output if the rule's type is different
+%from {\tt logic}:
+%
+%\begin{ttbox}
+%{\out Warning: Ambiguous input "..."}
+%{\out produces the following parse trees:}
+%{\out ...}
+%{\out This occured in syntax translation rule: "..."  ->  "..."}
+%{\out Type checking error: Term does not have expected type}
+%{\out ...}
+%\end{ttbox}
+%
+%To circumvent this the rule's type has to be stated.
 
 
 \section{Example: some minimal logics} \label{sec:min_logics}
@@ -706,13 +717,15 @@ This section presents some examples that have a simple syntax.  They
 demonstrate how to define new object-logics from scratch.
 
 First we must define how an object-logic syntax is embedded into the
-meta-logic.  Since all theorems must conform to the syntax for~\ndx{prop} (see
-Fig.\ts\ref{fig:pure_gram}), that syntax has to be extended with the
+meta-logic.  Since all theorems must conform to the syntax for~\ndx{prop}
+(see Fig.\ts\ref{fig:pure_gram}), that syntax has to be extended with the
 object-level syntax.  Assume that the syntax of your object-logic defines a
-nonterminal symbol~\ndx{o} of formulae.  These formulae can now appear in
-axioms and theorems wherever \ndx{prop} does if you add the production
-\[ prop ~=~ o. \]
-This is not a copy production but a coercion from formulae to propositions:
+meta-type~\tydx{o} of formulae which refers to the nonterminal {\tt logic}.
+These formulae can now appear in axioms and theorems wherever \ndx{prop} does
+if you add the production
+\[ prop ~=~ logic. \]
+This is not supposed to be a copy production but an implicit coercion from
+formulae to propositions:
 \begin{ttbox}
 Base = Pure +
 types
