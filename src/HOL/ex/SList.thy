@@ -21,35 +21,35 @@ arities
 
 consts
 
-  list      :: 'a item set => 'a item set
-  Rep_list  :: 'a list => 'a item
-  Abs_list  :: 'a item => 'a list
-  NIL       :: 'a item
-  CONS      :: ['a item, 'a item] => 'a item
-  Nil       :: 'a list
-  "#"       :: ['a, 'a list] => 'a list                         (infixr 65)
-  List_case :: ['b, ['a item, 'a item]=>'b, 'a item] => 'b
-  List_rec  :: ['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b
-  list_case :: ['b, ['a, 'a list]=>'b, 'a list] => 'b
-  list_rec  :: ['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b
-  Rep_map   :: ('b => 'a item) => ('b list => 'a item)
-  Abs_map   :: ('a item => 'b) => 'a item => 'b list
-  null      :: 'a list => bool
-  hd        :: 'a list => 'a
-  tl,ttl    :: 'a list => 'a list
-  setOfList :: ('a list => 'a set)
-  mem       :: ['a, 'a list] => bool                            (infixl 55)
-  map       :: ('a=>'b) => ('a list => 'b list)
-  "@"       :: ['a list, 'a list] => 'a list                    (infixr 65)
-  filter    :: ['a => bool, 'a list] => 'a list
+  list        :: 'a item set => 'a item set
+  Rep_list    :: 'a list => 'a item
+  Abs_list    :: 'a item => 'a list
+  NIL         :: 'a item
+  CONS        :: ['a item, 'a item] => 'a item
+  Nil         :: 'a list
+  "#"         :: ['a, 'a list] => 'a list                         (infixr 65)
+  List_case   :: ['b, ['a item, 'a item]=>'b, 'a item] => 'b
+  List_rec    :: ['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b
+  list_case   :: ['b, ['a, 'a list]=>'b, 'a list] => 'b
+  list_rec    :: ['a list, 'b, ['a, 'a list, 'b]=>'b] => 'b
+  Rep_map     :: ('b => 'a item) => ('b list => 'a item)
+  Abs_map     :: ('a item => 'b) => 'a item => 'b list
+  null        :: 'a list => bool
+  hd          :: 'a list => 'a
+  tl,ttl      :: 'a list => 'a list
+  set_of_list :: ('a list => 'a set)
+  mem         :: ['a, 'a list] => bool                            (infixl 55)
+  map         :: ('a=>'b) => ('a list => 'b list)
+  "@"         :: ['a list, 'a list] => 'a list                    (infixr 65)
+  filter      :: ['a => bool, 'a list] => 'a list
 
   (* list Enumeration *)
 
-  "[]"      :: 'a list                            ("[]")
-  "@list"   :: args => 'a list                    ("[(_)]")
+  "[]"        :: 'a list                              ("[]")
+  "@list"     :: args => 'a list                      ("[(_)]")
 
   (* Special syntax for filter *)
-  "@filter"     :: [idt, 'a list, bool] => 'a list      ("(1[_:_ ./ _])")
+  "@filter"   :: [idt, 'a list, bool] => 'a list      ("(1[_:_ ./ _])")
 
 translations
   "[x, xs]"     == "x#[xs]"
@@ -105,7 +105,7 @@ defs
   (* a total version of tl: *)
   ttl_def       "ttl(xs)             == list_rec xs [] (%x xs r.xs)"
 
-  setOfList_def "setOfList xs == list_rec xs {} (%x l r. insert x r)"
+  set_of_list_def "set_of_list xs    == list_rec xs {} (%x l r. insert x r)"
 
   mem_def       "x mem xs            == 
                    list_rec xs False (%y ys r. if y=x then True else r)"
