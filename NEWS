@@ -6,6 +6,9 @@ New in this Isabelle release
 
 *** General ***
 
+* Provers/trancl.ML:  new transitivity reasoner for transitive and
+  reflexive-transitive closure of relations.
+
 * Pure: considerably improved version of 'constdefs' command.  Now
   performs automatic type-inference of declared constants; additional
   support for local structure declarations (cf. locales and HOL
@@ -184,6 +187,12 @@ New in this Isabelle release
   Function 'Summation' over nat is gone, its syntax '\<Sum>i<k. e'
   now translates into 'setsum' as above.
 
+* Simplifier:
+  - Is now set up to reason about transitivity chains involving "trancl" (r^+)
+    and "rtrancl" (r^*) by setting up tactics provided by Provers/trancl.ML
+    as additional solvers.
+  - INCOMPATIBILITY: old proofs break occasionally.  Typically, this is
+    because simplification now solves more goals than previously.
 
 *** HOLCF ***
 

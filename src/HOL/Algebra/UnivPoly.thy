@@ -1162,7 +1162,7 @@ proof -
     next
       case (Suc j)
       (* The following could be simplified if there was a reasoner for
-        total orders integrated with simip. *)
+        total orders integrated with simp. *)
       have R6: "!!i k. [| k <= j; i <= Suc j - k |] ==> g i \<in> carrier R"
         using Suc by (auto intro!: funcset_mem [OF Rg]) arith
       have R8: "!!i k. [| k <= Suc j; i <= k |] ==> g (k - i) \<in> carrier R"

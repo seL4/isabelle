@@ -6,7 +6,9 @@
 
 header {* Reflexive and Transitive closure of a relation *}
 
-theory Transitive_Closure = Inductive:
+theory Transitive_Closure = Inductive
+
+files ("../Provers/trancl.ML"):
 
 text {*
   @{text rtrancl} is reflexive/transitive closure,
@@ -443,5 +445,63 @@ declare trancl_into_rtrancl [elim]
 
 declare rtranclE [cases set: rtrancl]
 declare tranclE [cases set: trancl]
+
+subsection {* Setup of transitivity reasoner *}
+
+use "../Provers/trancl.ML";
+
+ML_setup {*
+
+structure Trancl_Tac = Trancl_Tac_Fun (
+  struct
+    val r_into_trancl = thm "r_into_trancl";
+    val trancl_trans  = thm "trancl_trans";
+    val rtrancl_refl = thm "rtrancl_refl";
+    val r_into_rtrancl = thm "r_into_rtrancl";
+    val trancl_into_rtrancl = thm "trancl_into_rtrancl";
+    val rtrancl_trancl_trancl = thm "rtrancl_trancl_trancl";
+    val trancl_rtrancl_trancl = thm "trancl_rtrancl_trancl";
+    val rtrancl_trans = thm "rtrancl_trans";
+(*
+  fun decomp (Trueprop $ t) = 
+    let fun dec (Const ("op :", _) $ t1 $ t2 ) = 
+	let fun dec1  (Const ("Pair", _) $ a $ b) =  (a,b);
+	    fun dec2 (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
+	      | dec2 (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
+	      | dec2 r = (r,"r");
+	    val (a,b) = dec1 t1;
+	    val (rel,r) = dec2 t2;
+	in Some (a,b,rel,r) end
+      | dec _ =  None 
+    in dec t end;
+*)
+  fun decomp (Trueprop $ t) = 
+    let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) = 
+	let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
+	      | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
+	      | decr r = (r,"r");
+	    val (rel,r) = decr rel;
+	in Some (a,b,rel,r) end
+      | dec _ =  None 
+    in dec t end;
+  
+  end); (* struct *)
+
+simpset_ref() := simpset ()
+    addSolver (mk_solver "Trancl" (fn _ => Trancl_Tac.trancl_tac))
+    addSolver (mk_solver "Rtrancl" (fn _ => Trancl_Tac.rtrancl_tac));
+
+*}
+
+(* Optional methods
+
+method_setup trancl =
+  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trancl_tac)) *}
+  {* simple transitivity reasoner *}	    
+method_setup rtrancl =
+  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (rtrancl_tac)) *}
+  {* simple transitivity reasoner *}
+
+*)
 
 end

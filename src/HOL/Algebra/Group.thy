@@ -540,7 +540,7 @@ by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
 
 
 text{*Basis for homomorphism proofs: we assume two groups @{term G} and
-  @term{H}, with a homomorphism @{term h} between them*}
+  @{term H}, with a homomorphism @{term h} between them*}
 locale group_hom = group G + group H + var h +
   assumes homh: "h \<in> hom G H"
   notes hom_mult [simp] = hom_mult [OF homh]
@@ -553,7 +553,7 @@ lemma (in group_hom) one_closed [simp]:
 lemma (in group_hom) hom_one [simp]:
   "h \<one> = \<one>\<^bsub>H\<^esub>"
 proof -
-  have "h \<one> \<otimes>\<^bsub>H\<^esub> \<one>\<^bsub>H\<^esub> = h \<one> \<otimes>\<^sub>2 h \<one>"
+  have "h \<one> \<otimes>\<^bsub>H\<^esub> \<one>\<^bsub>H\<^esub> = h \<one> \<otimes>\<^bsub>H\<^esub> h \<one>"
     by (simp add: hom_mult [symmetric] del: hom_mult)
   then show ?thesis by (simp del: r_one)
 qed

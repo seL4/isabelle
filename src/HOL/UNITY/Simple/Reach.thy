@@ -75,7 +75,7 @@ lemma fixedpoint_invariant_correct:
 apply (unfold fixedpoint_def)
 apply (rule equalityI)
 apply (auto intro!: ext)
- prefer 2 apply (blast intro: rtrancl_trans)
+(* CBtrancl: prefer 2 apply (blast intro: rtrancl_trans) *)
 apply (erule rtrancl_induct, auto)
 done
 
