@@ -9,33 +9,36 @@ list below later rules have priority.
 theory Calculation = Int:;
 
 
-theorems [trans] = HOL.ssubst;                              (*  =  x  x  *)
-theorems [trans] = HOL.subst[COMP swap_prems_rl];           (*  x  =  x  *)
+theorem [trans]: "[| s = t; P t |] ==> P s"; 		    (*  =  x  x  *)
+  by (rule ssubst);
 
-theorems [trans] = Divides.dvd_trans;                       (* dvd dvd dvd *)
+theorem [trans]: "[| P s; s = t |] ==> P t";		    (*  x  =  x  *)
+  by (rule subst);
+
+theorems [trans] = dvd_trans;                               (* dvd dvd dvd *)
 
 theorem [trans]: "[| (x::'a::order) < y; y < x |] ==> P";   (*  <  >  P  *)
-  by (rule Ord.order_less_asym);
+  by (rule order_less_asym);
 
-theorems [trans] = Ord.order_less_trans;                    (*  <  <  <  *)
-theorems [trans] = Ord.order_le_less_trans;                 (*  <= <  <  *)
-theorems [trans] = Ord.order_less_le_trans;                 (*  <  <= <  *)
-theorems [trans] = Ord.order_trans;                         (*  <= <= <= *)
-theorems [trans] = Ord.order_antisym;                       (*  <= >= =  *)
+theorems [trans] = order_less_trans;                        (*  <  <  <  *)
+theorems [trans] = order_le_less_trans;                     (*  <= <  <  *)
+theorems [trans] = order_less_le_trans;                     (*  <  <= <  *)
+theorems [trans] = order_trans;                             (*  <= <= <= *)
+theorems [trans] = order_antisym;                           (*  <= >= =  *)
 
 theorem [trans]: "[| x <= y; y = z |] ==> x <= z";	    (*  <= =  <= *)
-  by (rule HOL.subst);
+  by (rule subst);
 
 theorem [trans]: "[| x = y; y <= z |] ==> x <= z";	    (*  =  <= <= *)
-  by (rule HOL.ssubst);
+  by (rule ssubst);
 
 theorem [trans]: "[| x < y; y = z |] ==> x < z";	    (*  <  =  <  *)
-  by (rule HOL.subst);
+  by (rule subst);
 
 theorem [trans]: "[| x = y; y < z |] ==> x < z";	    (*  =  <  <  *)
-  by (rule HOL.ssubst);
+  by (rule ssubst);
 
-theorems [trans] = HOL.trans                                (*  =  =  =  *)
+theorems [trans] = trans                                    (*  =  =  =  *)
 
 
 end;
