@@ -118,8 +118,8 @@ datatype proof =
    PBound of int
  | Abst of string * typ option * proof
  | AbsP of string * term option * proof
- | op % of proof * term option
- | op %% of proof * proof
+ | % of proof * term option
+ | %% of proof * proof
  | Hyp of term
  | PThm of (string * (string * string list) list) * proof * term * typ list option
  | PAxm of string * term * typ list option
@@ -915,8 +915,6 @@ fun match_proof Ts tymatch =
                    ((ixn, incr_pboundvars (~i) (~j) prf) :: pinst, tinst)
                  else raise PMatch
             | _ => raise PMatch)
-      | mtch Ts i j (pinst, tinst) (Hyp (Var (ixn, _)), prf) =
-          ((ixn, prf) :: pinst, tinst)
       | mtch Ts i j inst (prf1 % opt1, prf2 % opt2) =
           optmatch (matcht Ts j) (mtch Ts i j inst (prf1, prf2)) (opt1, opt2)
       | mtch Ts i j inst (prf1 %% prf2, prf1' %% prf2') =
