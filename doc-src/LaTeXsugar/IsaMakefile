@@ -1,0 +1,31 @@
+
+## targets
+
+default: Sugar
+images: 
+test: Sugar
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+USEDIR = $(ISATOOL) usedir -v true -i true -d pdf -D generated
+
+
+## Sugar
+
+Sugar: $(LOG)/HOL-Sugar.gz
+
+$(LOG)/HOL-Sugar.gz: Sugar/ROOT.ML Sugar/document/root.tex Sugar/*.thy
+	@$(USEDIR) HOL Sugar
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/HOL-Sugar.gz
