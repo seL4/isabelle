@@ -135,7 +135,7 @@ val constsP =
     (Scan.repeat1 (P.const -- P.marg_comment) >> (Toplevel.theory o IsarThy.add_consts));
 
 
-val mode_spec = 
+val mode_spec =
   (P.$$$ "output" >> K ("", false)) || P.name -- Scan.optional (P.$$$ "output" >> K false) true;
 
 val opt_mode = Scan.optional (P.$$$ "(" |-- P.!!! (mode_spec --| P.$$$ ")")) ("", true);
@@ -300,22 +300,22 @@ val in_locale_elems =
   Scan.option ((P.$$$ "(" -- P.$$$ "in") |-- P.xname -- P.opt_attribs --| P.$$$ ")") --
   Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.locale_element --| P.$$$ ")")) [];
 
-val statement = P.opt_thm_name ":" -- P.propp -- P.marg_comment;
+val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment);
 
 val theoremP =
   OuterSyntax.command "theorem" "state theorem" K.thy_goal
     (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
-      uncurry (IsarThy.theorem Drule.theoremK)));
+      uncurry (IsarThy.multi_theorem Drule.theoremK)));
 
 val lemmaP =
   OuterSyntax.command "lemma" "state lemma" K.thy_goal
     (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
-      uncurry (IsarThy.theorem Drule.lemmaK)));
+      uncurry (IsarThy.multi_theorem Drule.lemmaK)));
 
 val corollaryP =
   OuterSyntax.command "corollary" "state corollary" K.thy_goal
     (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
-      uncurry (IsarThy.theorem Drule.corollaryK)));
+      uncurry (IsarThy.multi_theorem Drule.corollaryK)));
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation" K.prf_goal
@@ -364,13 +364,11 @@ val fixP =
 
 val assumeP =
   OuterSyntax.command "assume" "assume propositions" K.prf_asm
-    (P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
-      >> (Toplevel.print oo (Toplevel.proof o IsarThy.assume)));
+    (statement >> (Toplevel.print oo (Toplevel.proof o IsarThy.assume)));
 
 val presumeP =
   OuterSyntax.command "presume" "assume propositions, to be established later" K.prf_asm
-    (P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
-      >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
+    (statement >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
 
 val defP =
   OuterSyntax.command "def" "local definition" K.prf_asm
@@ -382,8 +380,7 @@ val obtainP =
     K.prf_asm_goal
     (Scan.optional
       (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
-        --| P.$$$ "where") [] --
-      P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
+        --| P.$$$ "where") [] -- statement
     >> (Toplevel.print oo (Toplevel.proof o IsarThy.obtain)));
 
 val letP =
