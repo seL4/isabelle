@@ -7,7 +7,6 @@
 
 ## global settings
 
-LOGICS="HOL ZF"
 FAKE_BUILD=""
 DISTBASE=~/tmp/isadist
 ROOT=/usr/share
@@ -80,7 +79,8 @@ if [ -n "$FAKE_BUILD" ]; then
   touch heaps/${COMPILER}/HOL-Real
   touch heaps/${COMPILER}/ZF
 else
-  ./build -bi $LOGICS
+  ./build -b -m HOL-Real HOL
+  ./build -b ZF
   rm -f heaps/${COMPILER}/Pure heaps/${COMPILER}/FOL heaps/${COMPILER}/TLA
 fi
 
@@ -156,6 +156,12 @@ Logics are not hard-wired into Isabelle, but formulated within
 Isabelle's meta logic: Isabelle/Pure.  There are quite a lot of
 syntactic and deductive tools available in generic Isabelle.  Isabelle
 proof tools provide a high degree of automation.
+
+By virtue of the Isabelle/Isar subsystem, interactive proof
+development may be performed both via traditional tactic scripts, or
+actual human readable (formal) proof texts.  The resulting theory
+developments may be presented in high quality as (PDF)LaTeX documents,
+accommodating both printed copies and WWW browsing.
 
 %package	HOL
 Summary:	Isabelle Theorem Proving Environment -- Higher-Order Logic
