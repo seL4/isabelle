@@ -174,10 +174,10 @@ sig
   type simpset
   val simp_tac:          simpset -> int -> tactic
   val asm_simp_tac:      simpset -> int -> tactic
-  val asm_full_simp_tac: simpset -> int -> tactic
-  val addeqcongs:  simpset * thm list -> simpset
-  val addsimps:    simpset * thm list -> simpset
-  val delsimps:    simpset * thm list -> simpset
+  val asm_full_simp_tac: simpset -> int -> tactic\smallskip
+  val addeqcongs:   simpset * thm list -> simpset
+  val addsimps:     simpset * thm list -> simpset
+  val delsimps:     simpset * thm list -> simpset
   val empty_ss:     simpset
   val merge_ss:     simpset * simpset -> simpset
   val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
