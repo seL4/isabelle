@@ -15,10 +15,10 @@
  semigroups.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ times\ ::\ {"}'a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a{"}\ \ \ \ (\isakeyword{infixl}\ {"}{\isasymOtimes}{"}\ 70)\isanewline
+\ \ times\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ 70{\isacharparenright}\isanewline
 \isacommand{axclass}\isanewline
-\ \ semigroup\ <\ {"}term{"}\isanewline
-\ \ assoc:\ {"}(x\ {\isasymOtimes}\ y)\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ (y\ {\isasymOtimes}\ z){"}%
+\ \ semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\ \ assoc:\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOtimes}\ y{\isacharparenright}\ {\isasymOtimes}\ z\ =\ x\ {\isasymOtimes}\ {\isacharparenleft}y\ {\isasymOtimes}\ z{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Above we have first declared a polymorphic constant $\TIMES
  :: \alpha \To \alpha \To \alpha$ and then defined the class
@@ -37,10 +37,10 @@
  to semigroups $(\tau, \TIMES^\tau)$.%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ plus\ ::\ {"}'a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a{"}\ \ \ \ (\isakeyword{infixl}\ {"}{\isasymOplus}{"}\ 70)\isanewline
+\ \ plus\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOplus}{\isachardoublequote}\ 70{\isacharparenright}\isanewline
 \isacommand{axclass}\isanewline
-\ \ plus\_semigroup\ <\ {"}term{"}\isanewline
-\ \ assoc:\ {"}(x\ {\isasymOplus}\ y)\ {\isasymOplus}\ z\ =\ x\ {\isasymOplus}\ (y\ {\isasymOplus}\ z){"}%
+\ \ plus{\isacharunderscore}semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\ \ assoc:\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymOplus}\ y{\isacharparenright}\ {\isasymOplus}\ z\ =\ x\ {\isasymOplus}\ {\isacharparenleft}y\ {\isasymOplus}\ z{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Even if classes $plus_semigroup$ and $semigroup$ both
  represent semigroups in a sense, they are certainly not quite the

@@ -8,26 +8,43 @@
 
 % isabelle environments
 
-\newcommand{\isabellestyle}{\small\tt\slshape}
+\newcommand{\isastyle}{\small\tt\slshape}
+\newcommand{\isastyletext}{\normalsize\rm}
+\newcommand{\isastyletxt}{\rm}
+\newcommand{\isastylecmt}{\rm}
 
 \newdimen\isa@parindent\newdimen\isa@parskip
+
 \newenvironment{isabelle}{%
 \isa@parindent\parindent\parindent0pt%
 \isa@parskip\parskip\parskip0pt%
-\isabellestyle}{}
+\isastyle}{}
 
-\newcommand{\isa}[1]{\emph{\isabellestyle #1}}
-
-\newenvironment{isabellequote}%
-{\begin{quote}\begin{isabelle}\noindent}{\end{isabelle}\end{quote}}
+\newcommand{\isa}[1]{\emph{\isastyle #1}}
 
 \newcommand{\isanewline}{\mbox{}\\\mbox{}}
 
-\chardef\isabraceleft=`\{
-\chardef\isabraceright=`\}
-\chardef\isatilde=`\~
-\chardef\isacircum=`\^
-\chardef\isabackslash=`\\
+\chardef\isacharhash=`\#
+\chardef\isachardollar=`\$
+\chardef\isacharpercent=`\%
+\chardef\isacharampersand=`\&
+\chardef\isacharprime=`\'
+\chardef\isacharparenleft=`\(
+\chardef\isacharparenright=`\)
+\chardef\isacharasterisk=`\*
+\chardef\isacharminus=`\-
+\chardef\isacharless=`\<
+\chardef\isachargreater=`\>
+\chardef\isacharbrackleft=`\[
+\chardef\isachardoublequote=`\"
+\chardef\isacharbackslash=`\\
+\chardef\isacharbrackright=`\]
+\chardef\isacharcircum=`\^
+\chardef\isacharunderscore=`\_
+\chardef\isacharbraceleft=`\{
+\chardef\isacharbar=`\|
+\chardef\isacharbraceright=`\}
+\chardef\isachartilde=`\~
 
 
 % keyword and section markup
@@ -47,6 +64,38 @@
 \newcommand{\isamarkupsubsubsect}[1]{\subsubsection{#1}}
 
 \newenvironment{isapar}{\parindent\isa@parindent\parskip\isa@parskip\par\medskip}{\par\smallskip}
-\newenvironment{isamarkuptext}{\normalsize\rm\begin{isapar}}{\end{isapar}}
-\newenvironment{isamarkuptxt}{\rm\begin{isapar}}{\end{isapar}}
-\newcommand{\isamarkupcmt}[1]{{\rm--- #1}}
+\newenvironment{isamarkuptext}{\isastyletext\begin{isapar}}{\end{isapar}}
+\newenvironment{isamarkuptxt}{\isastyletxt\begin{isapar}}{\end{isapar}}
+\newcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
+
+
+% alternative styles -- default is "tt"
+
+\newcommand{\isabellestyle}{}
+\def\isabellestyle#1{\csname isasetup#1\endcsname}
+
+\newcommand{\isasetupit}{%
+\renewcommand{\isastyle}{\small\itshape}%
+\renewcommand{\isastyletext}{\normalsize\rm}%
+\renewcommand{\isastyletxt}{\rm}%
+\renewcommand{\isastylecmt}{\rm}%
+\renewcommand{\isachardollar}{\textsl{\$}}%
+\renewcommand{\isacharampersand}{\textsl{\&}}%
+\renewcommand{\isacharprime}{$'$}%
+\renewcommand{\isacharparenleft}{\emph{$($}}%
+\renewcommand{\isacharparenright}{\emph{$)$}}%
+\renewcommand{\isacharasterisk}{\emph{$*$}}%
+\renewcommand{\isacharminus}{\emph{$-$}}%
+\renewcommand{\isacharless}{\emph{$<$}}%
+\renewcommand{\isachargreater}{\emph{$>$}}%
+\renewcommand{\isachardoublequote}{}%
+\renewcommand{\isacharbrackleft}{\emph{$[$}}%
+\renewcommand{\isacharbrackright}{\emph{$]$}}%
+\renewcommand{\isacharunderscore}{-}%
+\renewcommand{\isacharbraceleft}{\emph{$\{$}}%
+\renewcommand{\isacharbar}{\emph{$\mid$}}%
+\renewcommand{\isacharbraceright}{\emph{$\}$}}%
+}
+
+\newcommand{\isasetupsl}{\isasetupit\renewcommand{\isastyle}{\small\slshape}}
+

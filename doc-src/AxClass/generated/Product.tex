@@ -17,9 +17,9 @@
  syntactic type classes.%
 \end{isamarkuptext}%
 \isacommand{axclass}\isanewline
-\ \ product\ <\ {"}term{"}\isanewline
+\ \ product\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
 \isacommand{consts}\isanewline
-\ \ product\ ::\ {"}'a::product\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a{"}\ \ \ \ (\isakeyword{infixl}\ {"}{\isasymOtimes}{"}\ 70)%
+\ \ product\ ::\ {\isachardoublequote}{\isacharprime}a::product\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymOtimes}{\isachardoublequote}\ 70{\isacharparenright}%
 \begin{isamarkuptext}%
 Here class $product$ is defined as subclass of $term$ without any
  additional axioms.  This effects in logical equivalence of $product$
@@ -49,9 +49,9 @@ Here class $product$ is defined as subclass of $term$ without any
  This is done for class $product$ and type $bool$ as follows.%
 \end{isamarkuptext}%
 \isacommand{instance}\ bool\ ::\ product\isanewline
-\ \ \isacommand{by}\ intro\_classes\isanewline
-\isacommand{defs}\ (\isakeyword{overloaded})\isanewline
-\ \ product\_bool\_def:\ {"}x\ {\isasymOtimes}\ y\ {\isasymequiv}\ x\ {\isasymand}\ y{"}%
+\ \ \isacommand{by}\ intro{\isacharunderscore}classes\isanewline
+\isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
+\ \ product{\isacharunderscore}bool{\isacharunderscore}def:\ {\isachardoublequote}x\ {\isasymOtimes}\ y\ {\isasymequiv}\ x\ {\isasymand}\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
 The definition $prod_bool_def$ becomes syntactically well-formed only
  after the arity $bool :: product$ is made known to the type checker.

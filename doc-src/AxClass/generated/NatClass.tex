@@ -13,21 +13,21 @@
  \url{http://isabelle.in.tum.de/library/FOL/ex/NatClass.html}}%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-\ \ zero\ ::\ 'a\ \ \ \ ({"}0{"})\isanewline
-\ \ Suc\ ::\ {"}'a\ {\isasymRightarrow}\ 'a{"}\isanewline
-\ \ rec\ ::\ {"}'a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ ('a\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a)\ {\isasymRightarrow}\ 'a{"}\isanewline
+\ \ zero\ ::\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}0{\isachardoublequote}{\isacharparenright}\isanewline
+\ \ Suc\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\ \ rec\ ::\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{axclass}\isanewline
-\ \ nat\ <\ {"}term{"}\isanewline
-\ \ induct:\ \ \ \ \ {"}P(0)\ {\isasymLongrightarrow}\ ({\isasymAnd}x.\ P(x)\ {\isasymLongrightarrow}\ P(Suc(x)))\ {\isasymLongrightarrow}\ P(n){"}\isanewline
-\ \ Suc\_inject:\ {"}Suc(m)\ =\ Suc(n)\ {\isasymLongrightarrow}\ m\ =\ n{"}\isanewline
-\ \ Suc\_neq\_0:\ \ {"}Suc(m)\ =\ 0\ {\isasymLongrightarrow}\ R{"}\isanewline
-\ \ rec\_0:\ \ \ \ \ \ {"}rec(0,\ a,\ f)\ =\ a{"}\isanewline
-\ \ rec\_Suc:\ \ \ \ {"}rec(Suc(m),\ a,\ f)\ =\ f(m,\ rec(m,\ a,\ f)){"}\isanewline
+\ \ nat\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\ \ induct:\ \ \ \ \ {\isachardoublequote}P{\isacharparenleft}0{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x.\ P{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}Suc{\isacharparenleft}x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}n{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ Suc{\isacharunderscore}inject:\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ =\ Suc{\isacharparenleft}n{\isacharparenright}\ {\isasymLongrightarrow}\ m\ =\ n{\isachardoublequote}\isanewline
+\ \ Suc{\isacharunderscore}neq{\isacharunderscore}0:\ \ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ =\ 0\ {\isasymLongrightarrow}\ R{\isachardoublequote}\isanewline
+\ \ rec{\isacharunderscore}0:\ \ \ \ \ \ {\isachardoublequote}rec{\isacharparenleft}0,\ a,\ f{\isacharparenright}\ =\ a{\isachardoublequote}\isanewline
+\ \ rec{\isacharunderscore}Suc:\ \ \ \ {\isachardoublequote}rec{\isacharparenleft}Suc{\isacharparenleft}m{\isacharparenright},\ a,\ f{\isacharparenright}\ =\ f{\isacharparenleft}m,\ rec{\isacharparenleft}m,\ a,\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{constdefs}\isanewline
-\ \ add\ ::\ {"}'a::nat\ {\isasymRightarrow}\ 'a\ {\isasymRightarrow}\ 'a{"}\ \ \ \ (\isakeyword{infixl}\ {"}+{"}\ 60)\isanewline
-\ \ {"}m\ +\ n\ {\isasymequiv}\ rec(m,\ n,\ {\isasymlambda}x\ y.\ Suc(y)){"}%
+\ \ add\ ::\ {\isachardoublequote}{\isacharprime}a::nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}+{\isachardoublequote}\ 60{\isacharparenright}\isanewline
+\ \ {\isachardoublequote}m\ +\ n\ {\isasymequiv}\ rec{\isacharparenleft}m,\ n,\ {\isasymlambda}x\ y.\ Suc{\isacharparenleft}y{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 This is an abstract version of the plain $Nat$ theory in
  FOL.\footnote{See
