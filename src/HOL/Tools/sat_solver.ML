@@ -27,7 +27,7 @@ sig
 	(* generic interface *)
 	val solvers       : (string * solver) list ref
 	val add_solver    : string * solver -> unit
-	val invoke_solver : string -> solver  (* exception OPTION *)
+	val invoke_solver : string -> solver  (* exception Option *)
 end;
 
 structure SatSolver : SAT_SOLVER =
@@ -186,14 +186,9 @@ struct
 
 	fun parse_std_result_file path (satisfiable, assignment_prefix, unsatisfiable) =
 	let
-		(* 'a option -> 'a option *)
-		fun option (SOME a) =
-			SOME a
-		  | option NONE =
-			NONE
 		(* string -> int list *)
 		fun int_list_from_string s =
-			List.mapPartial (option o Int.fromString) (space_explode " " s)
+			List.mapPartial Int.fromString (space_explode " " s)
 		(* int list -> assignment *)
 		fun assignment_from_list [] i =
 			NONE  (* the SAT solver didn't provide a value for this variable *)
@@ -336,7 +331,7 @@ struct
 
 (* ------------------------------------------------------------------------- *)
 (* invoke_solver: returns the solver associated with the given 'name'        *)
-(* Note: If no solver is associated with 'name', exception 'OPTION' will be  *)
+(* Note: If no solver is associated with 'name', exception 'Option' will be  *)
 (*       raised.                                                             *)
 (* ------------------------------------------------------------------------- *)
 
