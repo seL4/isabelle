@@ -136,7 +136,7 @@ val no_type_bracketsN = "no_type_brackets";
 fun no_type_brackets () =
   Library.find_first (equal type_bracketsN orf equal no_type_bracketsN)
                      (! print_mode)
-  = Some no_type_bracketsN;
+  <> Some type_bracketsN;
 
 
 (* parse ast translations *)
