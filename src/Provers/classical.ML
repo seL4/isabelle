@@ -272,12 +272,12 @@ val empty_cs =
 
 fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}) =
   let val pretty_thms = map Display.pretty_thm in
-    [Pretty.big_list "safe introduction rules:" (pretty_thms safeIs),
-      Pretty.big_list "unsafe introduction rules:" (pretty_thms hazIs),
-      Pretty.big_list "extra introduction rules:" (pretty_thms xtraIs),
-      Pretty.big_list "safe elimination rules:" (pretty_thms safeEs),
-      Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs),
-      Pretty.big_list "extra elimination rules:" (pretty_thms xtraEs)]
+    [Pretty.big_list "safe introduction rules (intro!):" (pretty_thms safeIs),
+      Pretty.big_list "introduction rules (intro):" (pretty_thms hazIs),
+      Pretty.big_list "extra introduction rules (intro?):" (pretty_thms xtraIs),
+      Pretty.big_list "safe elimination rules (elim!):" (pretty_thms safeEs),
+      Pretty.big_list "elimination rules (elim):" (pretty_thms hazEs),
+      Pretty.big_list "extra elimination rules (elim?):" (pretty_thms xtraEs)]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
@@ -331,9 +331,9 @@ fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}) =
   else if mem_thm (th, safeEs) then
          warning ("Rule already declared as safe elimination (elim!)\n" ^ string_of_thm th)
   else if mem_thm (th, hazIs) then 
-         warning ("Rule already declared as unsafe introduction (intro)\n" ^ string_of_thm th)
+         warning ("Rule already declared as introduction (intro)\n" ^ string_of_thm th)
   else if mem_thm (th, hazEs) then 
-         warning ("Rule already declared as unsafe elimination (elim)\n" ^ string_of_thm th)
+         warning ("Rule already declared as elimination (elim)\n" ^ string_of_thm th)
   else if mem_thm (th, xtraIs) then 
          warning ("Rule already declared as extra introduction (intro?)\n" ^ string_of_thm th)
   else if mem_thm (th, xtraEs) then 
@@ -410,7 +410,7 @@ fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwra
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th)=
   if mem_thm (th, hazIs) then 
-	 (warning ("Ignoring duplicate unsafe introduction (intro)\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate introduction (intro)\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length hazIs + 1
@@ -435,7 +435,7 @@ fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwra
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair},
 	  th) =
   if mem_thm (th, hazEs) then 
-	 (warning ("Ignoring duplicate unsafe elimination (elim)\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate elimination (elim)\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length hazIs 
