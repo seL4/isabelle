@@ -69,9 +69,7 @@ type locale =
 fun make_locale imports elements closed =
   {imports = imports, elements = elements, closed = closed}: locale;
 
-
-(*fun close_locale {imports, elements, closed = _} = make_locale imports elements true;*)
-fun close_locale x = x;   (* FIXME tmp *)
+fun close_locale {imports, elements, closed = _} = make_locale imports elements true;
 
 
 
@@ -86,7 +84,8 @@ struct
 
   val empty = (NameSpace.empty, Symtab.empty);
   val copy = I;
-  fun prep_ext (space, locales) = (space, Symtab.map close_locale locales);
+  fun finish (space, locales) = (space, Symtab.map close_locale locales);
+  val prep_ext = I;
   fun merge ((space1, locales1), (space2, locales2)) =
       (NameSpace.merge (space1, space2), Symtab.merge (K true) (locales1, locales2));
 
