@@ -179,7 +179,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/FuncSet.thy Library/Library.thy \
   Library/List_Prefix.thy Library/Multiset.thy Library/NatPair.thy \
   Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
-  Library/Nat_Infinity.thy \
+  Library/Nat_Infinity.thy Library/Word.thy Library/word_setup.ML \
   Library/README.html Library/Continuity.thy \
   Library/Nested_Environment.thy Library/Zorn.thy\
   Library/Library/ROOT.ML Library/Library/document/root.tex \

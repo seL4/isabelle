@@ -40,3 +40,5 @@ time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
 
 time_use_thy "Refute_Examples";
+
+time_use_thy "Adder";

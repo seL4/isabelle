@@ -10,6 +10,7 @@ theory Library =
   Permutation +
   NatPair +
   Primes +
+  Word +
   While_Combinator:
 end
 (*>*)
