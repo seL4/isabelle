@@ -521,9 +521,8 @@ fun store_thm (name, thm) =
 val qed_thm = ref flexpair_def(*dummy*);
 
 fun bind_thm (name, thm) =
-  (qed_thm := thm;
-   use_string ["val " ^ name ^ " = standard (store_thm (" ^ quote name ^
-               ", !qed_thm));"]);
+  (qed_thm := standard thm;
+   use_string ["val " ^name^ " = store_thm (" ^quote name^", !qed_thm);"]);
 
 fun qed name =
   use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^ ", result ());"];
