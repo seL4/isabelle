@@ -70,9 +70,9 @@ $(BIN)/FOL:
 #Load ex/ROOT.ML last since it creates the file "test"
 test:   $(BIN)/ZF  $(IMP_FILES) $(EX_FILES)
 	case "$(COMP)" in \
-	poly*)	echo 'use"IMP/ROOT.ML"; use"ex/ROOT.ML"; quit();' | \
+	poly*)	echo '(use"IMP/ROOT.ML"; use"ex/ROOT.ML"); quit();' | \
 			$(COMP) $(BIN)/ZF ;;\
-	sml*)	echo 'use"IMP/ROOT.ML"; use"ex/ROOT.ML";' | $(BIN)/ZF;;\
+	sml*)	echo '(use"IMP/ROOT.ML"; use"ex/ROOT.ML");' | $(BIN)/ZF;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
