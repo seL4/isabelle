@@ -214,13 +214,13 @@ fun add_html name txt = change_theory_info name (fn (tex_source, html_source, ht
 
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
-    doc_prefix: Path.T option, graph_path: Path.T, all_graph_path: Path.T,
+    doc_format: string, doc_prefix: Path.T option, graph_path: Path.T, all_graph_path: Path.T,
     remote_path: Url.T option};
 
-fun make_session_info (name, parent, session, path, html_prefix, doc_prefix,
+fun make_session_info (name, parent, session, path, html_prefix, doc_format, doc_prefix,
     graph_path, all_graph_path, remote_path) =
-  {name = name, parent = parent, session = session, path = path,
-    html_prefix = html_prefix, doc_prefix = doc_prefix, graph_path = graph_path,
+  {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
+    doc_format = doc_format, doc_prefix = doc_prefix, graph_path = graph_path,
     all_graph_path = all_graph_path, remote_path = remote_path}: session_info;
 
 
@@ -316,7 +316,7 @@ fun init false _ _ _ _ = (browser_info := empty_browser_info; session_info := No
         seq (fn (name, txt) => File.write (Path.append graph_prefix (Path.basic name)) txt)
           (HTML.applet_pages session_name codebase graph_up_lnk (length path = 1));
         session_info := Some (make_session_info (name, parent_name, session_name, path,
-          html_prefix, doc_prefix, graph_path, all_graph_path, remote_path));
+          html_prefix, doc, doc_prefix, graph_path, all_graph_path, remote_path));
         browser_info := initial_browser_info remote_path all_graph_path path;
         add_html_index index_text
       end;
@@ -324,18 +324,23 @@ fun init false _ _ _ _ = (browser_info := empty_browser_info; session_info := No
 
 (* finish session *)
 
+fun isatool_document doc_format doc_prefix =
+  let val cmd = "$ISATOOL document -o '" ^ doc_format ^ "' '" ^ File.sysify_path doc_prefix ^ "'"
+  in writeln cmd; writeln (execute cmd) end;
+
 fun finish () = with_session ()
-    (fn {name, html_prefix, doc_prefix, graph_path, all_graph_path, path, ...} =>
+    (fn {name, html_prefix, doc_format, doc_prefix, graph_path, all_graph_path, path, ...} =>
   let
     val {theories, tex_index, html_index, graph, all_graph} = ! browser_info;
 
     fun finish_node (a, {tex_source, html_source = _, html}) =
-     (apsome (fn p => Buffer.write (Path.append p (tex_path a)) tex_source) doc_prefix;
+     (doc_prefix |> apsome (fn p => Buffer.write (Path.append p (tex_path a)) tex_source);
       Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html));
   in
     seq finish_node (Symtab.dest theories);
     Buffer.write (Path.append html_prefix pre_index_path) html_index;
-    apsome (fn p => Buffer.write (Path.append p doc_index_path) tex_index) doc_prefix;
+    doc_prefix |> apsome (fn p =>
+     (Buffer.write (Path.append p doc_index_path) tex_index; isatool_document doc_format p));
     put_graph graph graph_path;
     put_graph all_graph all_graph_path;
     create_index html_prefix;
