@@ -20,30 +20,6 @@ qed "eta_contract_eq";
 
 fun prover s = prove_goal (the_context ()) s (fn _ => [(Blast_tac 1)]);
 
-(*Make meta-equalities.  The operator below is Trueprop*)
-
-fun mk_meta_eq r = r RS eq_reflection;
-fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
-
-bind_thm ("Eq_TrueI", mk_meta_eq (prover  "P --> (P = True)"  RS mp));
-bind_thm ("Eq_FalseI", mk_meta_eq(prover "~P --> (P = False)" RS mp));
-
-fun mk_eq th = case concl_of th of
-        Const("==",_)$_$_       => th
-    |   _$(Const("op =",_)$_$_) => mk_meta_eq th
-    |   _$(Const("Not",_)$_)    => th RS Eq_FalseI
-    |   _                       => th RS Eq_TrueI;
-(* last 2 lines requires all formulae to be of the from Trueprop(.) *)
-
-fun mk_eq_True r =
-  Some (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => None;
-
-(*Congruence rules for = (instead of ==)*)
-fun mk_meta_cong rl =
-  standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
-  handle THM _ =>
-  error("Premises and conclusion of congruence rules must be =-equalities");
-
 bind_thm ("not_not", prover "(~ ~ P) = P");
 
 bind_thms ("simp_thms", [not_not] @ map prover
@@ -93,14 +69,6 @@ bind_thms ("all_simps", map prover
   "(ALL x. P x --> Q) = ((EX x. P x) --> Q)",
   "(ALL x. P --> Q x) = (P --> (ALL x. Q x))"]);
 
-
-(* Elimination of True from asumptions: *)
-
-local fun rd s = read_cterm (sign_of (the_context())) (s, propT);
-in val True_implies_equals = standard' (equal_intr
-  (implies_intr_hyps (implies_elim (assume (rd "True ==> PROP P")) TrueI))
-  (implies_intr_hyps (implies_intr (rd "True") (assume (rd "PROP P")))));
-end;
 
 fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [(Blast_tac 1)]);
 
@@ -290,6 +258,39 @@ end;
 
 
 (*** Case splitting ***)
+
+(*Make meta-equalities.  The operator below is Trueprop*)
+
+fun mk_meta_eq r = r RS eq_reflection;
+fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
+
+bind_thm ("Eq_TrueI", mk_meta_eq (prover  "P --> (P = True)"  RS mp));
+bind_thm ("Eq_FalseI", mk_meta_eq(prover "~P --> (P = False)" RS mp));
+
+fun mk_eq th = case concl_of th of
+        Const("==",_)$_$_       => th
+    |   _$(Const("op =",_)$_$_) => mk_meta_eq th
+    |   _$(Const("Not",_)$_)    => th RS Eq_FalseI
+    |   _                       => th RS Eq_TrueI;
+(* last 2 lines requires all formulae to be of the from Trueprop(.) *)
+
+fun mk_eq_True r =
+  Some (r RS meta_eq_to_obj_eq RS Eq_TrueI) handle Thm.THM _ => None;
+
+(*Congruence rules for = (instead of ==)*)
+fun mk_meta_cong rl =
+  standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
+  handle THM _ =>
+  error("Premises and conclusion of congruence rules must be =-equalities");
+
+(* Elimination of True from asumptions: *)
+
+local fun rd s = read_cterm (sign_of (the_context())) (s, propT);
+in val True_implies_equals = standard' (equal_intr
+  (implies_intr_hyps (implies_elim (assume (rd "True ==> PROP P")) TrueI))
+  (implies_intr_hyps (implies_intr (rd "True") (assume (rd "PROP P")))));
+end;
+
 
 structure SplitterData =
   struct
