@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# ucat - uninterruptible cat
+# NOTE: If perl is unavailable we simply fall back on normal cat!
+#
+# $Id$
+
+PERL=$(type -path perl)
+
+if [ -z "$PERL" ]
+then
+  exec cat "$@"
+else
+  exec $PERL -e '$SIG{INT} = "IGNORE"; $| = 1; while (<ARGV>) {print;}' "$@"
+fi
