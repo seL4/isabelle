@@ -20,3 +20,4 @@ time_use_thy "Mutex";
 time_use_thy "FP";
 time_use_thy "Reach";
 time_use_thy "Handshake";
+time_use_thy "Lift";

@@ -19,25 +19,26 @@ record state =
   move  :: bool		(*whether moving takes precedence over opening*)
 
 consts
-  min, max :: nat       (*least and greatest floors*)
+  Min, Max :: nat       (*least and greatest floors*)
 
 rules
-  min_le_max  "min <= max"
+  Min_le_Max  "Min <= Max"
   
   (** Linear arithmetic: justified by a separate call to arith_oracle_tac **)
   arith1      "m < fl ==> n - Suc fl < fl - m + (n - m)"
-  arith2      "[| Suc fl < n; m < n |] ==> n - Suc fl < fl - m + (n - m)"
-
+  arith2      "[| m<n;  m <= fl |] ==> n - Suc fl < fl - m + (n - m)"
+  arith3      "[| Suc ix < m |] ==> ix - n < m - Suc ix + (m - n)"
+  arith4      "[| ix < m;  n < ix |] ==> ix - n < m - Suc (ix) + (m - n)"
 
 constdefs
   
   (** Abbreviations: the "always" part **)
   
   above :: state set
-    "above == {s. EX i. floor s < i & i <= max & i : req s}"
+    "above == {s. EX i. floor s < i & i <= Max & i : req s}"
 
   below :: state set
-    "below == {s. EX i. min <= i & i < floor s & i : req s}"
+    "below == {s. EX i. Min <= i & i < floor s & i : req s}"
 
   queueing :: state set
     "queueing == above Un below"
@@ -91,15 +92,15 @@ constdefs
   close_act :: "(state*state) set"
     "close_act == {(s,s'). s' = s (|open := False|) & open s}"
 
-  req_up_act :: "(state*state) set"
-    "req_up_act ==
+  req_up :: "(state*state) set"
+    "req_up ==
          {(s,s'). s' = s (|stop  :=False,
 			   floor := Suc (floor s),
 			   up    := True|)
 		       & s : (ready Int goingup)}"
 
-  req_down_act :: "(state*state) set"
-    "req_down_act ==
+  req_down :: "(state*state) set"
+    "req_down ==
          {(s,s'). s' = s (|stop  :=False,
 			   floor := floor s - 1,
 			   up    := False|)
@@ -115,17 +116,24 @@ constdefs
          {(s,s'). s' = s (|floor := floor s - 1|)
 		       & ~ stop s & ~ up s & floor s ~: req s}"
 
+  button_press  :: "(state*state) set"
+    "button_press ==
+         {(s,s'). EX n. s' = s (|req := insert n (req s)|)
+		        & Min <= n & n <= Max}"
+
+
   Lprg :: state program
-    "Lprg == (|Init = {s. floor s = min & ~ up s & move s & stop s &
+    (*for the moment, we OMIT button_press*)
+    "Lprg == (|Init = {s. floor s = Min & ~ up s & move s & stop s &
 		          ~ open s & req s = {}},
 	       Acts = {id, request_act, open_act, close_act,
-		       req_up_act, req_down_act, move_up, move_down}|)"
+		       req_up, req_down, move_up, move_down}|)"
 
 
   (** Invariants **)
 
   bounded :: state set
-    "bounded == {s. min <= floor s & floor s <= max}"
+    "bounded == {s. Min <= floor s & floor s <= Max}"
 
   open_stop :: state set
     "open_stop == {s. open s --> stop s}"
@@ -138,25 +146,26 @@ constdefs
   
   moving_up :: state set
     "moving_up == {s. ~ stop s & up s -->
-                   (EX f. floor s <= f & f <= max & f : req s)}"
+                   (EX f. floor s <= f & f <= Max & f : req s)}"
   
   moving_down :: state set
     "moving_down == {s. ~ stop s & ~ up s -->
-                     (EX f. min <= f & f <= floor s & f : req s)}"
+                     (EX f. Min <= f & f <= floor s & f : req s)}"
   
   metric :: [nat,state] => nat
-    "metric n s == if up s & floor s < n then n - floor s
-		   else if ~ up s & n < floor s then floor s - n
-		   else if up s & n < floor s then (max - floor s) + (max-n)
-		   else if ~ up s & floor s < n then (floor s - min) + (n-min)
-		   else 0"
+    "metric ==
+       %n s. if up s & floor s < n then n - floor s
+	     else if ~ up s & n < floor s then floor s - n
+	     else if up s & n < floor s then (Max - floor s) + (Max-n)
+	     else if ~ up s & floor s < n then (floor s - Min) + (n-Min)
+	     else 0"
 
 locale floor =
   fixes 
     n	:: nat
   assumes
-    min_le_n    "min <= n"
-    n_le_max    "n <= max"
+    Min_le_n    "Min <= n"
+    n_le_Max    "n <= Max"
   defines
 
 end
