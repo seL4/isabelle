@@ -22,6 +22,7 @@ sub unsymbolize {
     s/\\?\\<Midarrow>\\?\\<Rightarrow>/==>/g;
     s/\\?\\<Rightarrow>/=>/g;
     s/\\?\\<equiv>/==/g;
+    s/\\?\\<dots>/.../g;
     s/\\?\\<lbrakk> ?/[| /g;
     s/\\?\\ ?<rbrakk>/ |]/g;
     s/\\?\\<lparr> ?/(| /g;
