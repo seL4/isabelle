@@ -393,8 +393,9 @@ goal Correctness.thy
 
 by (simp_tac (impl_ss delsimps ([srch_ioa_def, rsch_ioa_def, srch_fin_ioa_def,
                                  rsch_fin_ioa_def] @ env_ioas @ impl_ioas)
-                      addsimps [system_def, system_fin_def, abs_def, impl_def,
-                                impl_fin_def, sys_IOA, sys_fin_IOA]) 1);
+                      addsimps [system_def, system_fin_def, abs_def,
+                                impl_ioa_def, impl_fin_ioa_def, sys_IOA,
+                                sys_fin_IOA]) 1);
 
 by (REPEAT (EVERY[rtac fxg_is_weak_pmap_of_product_IOA 1, 
                   simp_tac (ss addsimps abstractions) 1,

@@ -11,12 +11,12 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 
 Acc = WF + 
 
-consts
+constdefs
   pred :: "['b, ('a * 'b)set] => 'a set"        (*Set of predecessors*)
-  acc  :: "('a * 'a)set => 'a set"              (*Accessible part*)
+  "pred x r == {y. (y,x):r}"
 
-defs
-  pred_def  "pred x r == {y. (y,x):r}"
+consts
+  acc  :: "('a * 'a)set => 'a set"              (*Accessible part*)
 
 inductive "acc(r)"
   intrs

@@ -8,13 +8,9 @@ Weak possibilities mapping (abstraction)
 
 Solve = IOA +
 
-consts
+constdefs
 
   is_weak_pmap :: "['c => 'a, ('action,'c)ioa,('action,'a)ioa] => bool"
-
-defs
-
-is_weak_pmap_def
   "is_weak_pmap f C A ==                          
    (!s:starts_of(C). f(s):starts_of(A)) &        
    (!s t a. reachable C s &                      
