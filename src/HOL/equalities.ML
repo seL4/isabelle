@@ -22,6 +22,12 @@ qed "in_insert";
 
 (** insert **)
 
+goal Set.thy "insert a A ~= {}";
+by (fast_tac (set_cs addEs [equalityCE]) 1);
+qed"insert_not_empty";
+
+bind_thm("empty_not_insert",insert_not_empty RS not_sym);
+
 goal Set.thy "!!a. a:A ==> insert a A = A";
 by (fast_tac eq_cs 1);
 qed "insert_absorb";
@@ -185,6 +191,14 @@ qed "Inter_Un_distrib";
 
 (*Basic identities*)
 
+goal Set.thy "(UN x:{}. B x) = {}";
+by (fast_tac eq_cs 1);
+qed "UN_empty";
+
+goal Set.thy "(UN x:insert a A. B x) = B a Un UNION A B";
+by (fast_tac eq_cs 1);
+qed "UN_insert";
+
 goal Set.thy "Union(range(f)) = (UN x.f(x))";
 by (fast_tac eq_cs 1);
 qed "Union_range_eq";
@@ -325,8 +339,10 @@ qed "Diff_Int";
 
 val set_ss = set_ss addsimps
   [in_empty,in_insert,insert_subset,
+   insert_not_empty,empty_not_insert,
    Int_absorb,Int_empty_left,Int_empty_right,
    Un_absorb,Un_empty_left,Un_empty_right,Un_empty,
+   UN_empty, UN_insert,
    UN1_constant,image_empty,
    Compl_disjoint,double_complement,
    Union_empty,Union_insert,empty_subsetI,subset_refl,
