@@ -133,13 +133,24 @@ by (Blast_tac 1);
 qed "Int_absorb";
 Addsimps[Int_absorb];
 
+goal thy " A Int (A Int B) = A Int B";
+by (Blast_tac 1);
+qed "Int_left_absorb";
+
 goal thy "A Int B  =  B Int A";
 by (Blast_tac 1);
 qed "Int_commute";
 
+goal thy "A Int (B Int C) = B Int (A Int C)";
+by (Blast_tac 1);
+qed "Int_left_commute";
+
 goal thy "(A Int B) Int C  =  A Int (B Int C)";
 by (Blast_tac 1);
 qed "Int_assoc";
+
+(*Intersection is an AC-operator*)
+val Int_ac = [Int_assoc, Int_left_absorb, Int_commute, Int_left_commute];
 
 goal thy "{} Int B = {}";
 by (Blast_tac 1);
@@ -197,13 +208,16 @@ goal thy "A Un B  =  B Un A";
 by (Blast_tac 1);
 qed "Un_commute";
 
-goal thy " A Un (B Un C) = B Un (A Un C)";
+goal thy "A Un (B Un C) = B Un (A Un C)";
 by (Blast_tac 1);
 qed "Un_left_commute";
 
 goal thy "(A Un B) Un C  =  A Un (B Un C)";
 by (Blast_tac 1);
 qed "Un_assoc";
+
+(*Union is an AC-operator*)
+val Un_ac = [Un_assoc, Un_left_absorb, Un_commute, Un_left_commute];
 
 goal thy "{} Un B = B";
 by (Blast_tac 1);
@@ -247,9 +261,13 @@ by (simp_tac (simpset() addsplits [expand_if]) 1);
 by (Blast_tac 1);
 qed "Int_insert_right";
 
-goal thy "(A Int B) Un C  =  (A Un C) Int (B Un C)";
+goal thy "A Un (B Int C)  =  (A Un B) Int (A Un C)";
 by (Blast_tac 1);
 qed "Un_Int_distrib";
+
+goal thy "(B Int C) Un A =  (B Un A) Int (C Un A)";
+by (Blast_tac 1);
+qed "Un_Int_distrib2";
 
 goal thy
  "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
@@ -506,6 +524,10 @@ qed "bex_Un";
 
 
 section "-";
+
+goal thy "A-B = A Int Compl B";
+by (Blast_tac 1);
+qed "Diff_eq_Int_Compl";
 
 goal thy "A-A = {}";
 by (Blast_tac 1);
