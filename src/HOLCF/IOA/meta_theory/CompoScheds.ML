@@ -159,7 +159,7 @@ Addsimps composch_simps;
 (* --------------------------------------------------------------------- *)
 
 goalw thy [filter_act_def,Filter_ex2_def]
-   "filter_act`(Filter_ex2 A`xs)=\
+   "filter_act`(Filter_ex2 (asig_of A)`xs)=\
 \   Filter (%a.a:act A)`(filter_act`xs)";
 
 by (simp_tac (!simpset addsimps [MapFilter,o_def]) 1);
@@ -273,7 +273,7 @@ goal thy "! exA exB s t. \
 \ Forall (%x.x:act (A||B)) sch & \
 \ Filter (%a.a:act A)`sch << filter_act`exA &\
 \ Filter (%a.a:act B)`sch << filter_act`exB \
-\ --> stutter A (s,ProjA2`(snd (mkex A B sch (s,exA) (t,exB))))";
+\ --> stutter (asig_of A) (s,ProjA2`(snd (mkex A B sch (s,exA) (t,exB))))";
 
 by (mkex_induct_tac "sch" "exA" "exB");
 
@@ -284,7 +284,7 @@ goal thy "!! sch.[|  \
 \ Forall (%x.x:act (A||B)) sch ; \
 \ Filter (%a.a:act A)`sch << filter_act`(snd exA) ;\
 \ Filter (%a.a:act B)`sch << filter_act`(snd exB) |] \
-\ ==> stutter A (ProjA (mkex A B sch exA exB))";
+\ ==> stutter (asig_of A) (ProjA (mkex A B sch exA exB))";
 
 by (cut_facts_tac [stutterA_mkex] 1);
 by (asm_full_simp_tac (!simpset addsimps [stutter_def,ProjA_def,mkex_def]) 1);
@@ -304,7 +304,7 @@ goal thy "! exA exB s t. \
 \ Forall (%x.x:act (A||B)) sch & \
 \ Filter (%a.a:act A)`sch << filter_act`exA &\
 \ Filter (%a.a:act B)`sch << filter_act`exB \
-\ --> stutter B (t,ProjB2`(snd (mkex A B sch (s,exA) (t,exB))))";
+\ --> stutter (asig_of B) (t,ProjB2`(snd (mkex A B sch (s,exA) (t,exB))))";
 
 by (mkex_induct_tac "sch" "exA" "exB");
 
@@ -315,7 +315,7 @@ goal thy "!! sch.[|  \
 \ Forall (%x.x:act (A||B)) sch ; \
 \ Filter (%a.a:act A)`sch << filter_act`(snd exA) ;\
 \ Filter (%a.a:act B)`sch << filter_act`(snd exB) |] \
-\ ==> stutter B (ProjB (mkex A B sch exA exB))";
+\ ==> stutter (asig_of B) (ProjB (mkex A B sch exA exB))";
 
 by (cut_facts_tac [stutterB_mkex] 1);
 by (asm_full_simp_tac (!simpset addsimps [stutter_def,ProjB_def,mkex_def]) 1);
@@ -337,7 +337,7 @@ goal thy "! exA exB s t. \
 \ Forall (%x.x:act (A||B)) sch & \
 \ Filter (%a.a:act A)`sch << filter_act`exA  &\
 \ Filter (%a.a:act B)`sch << filter_act`exB \
-\ --> Filter_ex2 A`(ProjA2`(snd (mkex A B sch (s,exA) (t,exB)))) =   \
+\ --> Filter_ex2 (asig_of A)`(ProjA2`(snd (mkex A B sch (s,exA) (t,exB)))) =   \
 \     Zip`(Filter (%a.a:act A)`sch)`(Map snd`exA)";
 
 by (mkex_induct_tac "sch" "exA" "exB");
@@ -376,7 +376,7 @@ goal thy "!!sch exA exB.\
 \ [| Forall (%a.a:act (A||B)) sch ; \
 \ Filter (%a.a:act A)`sch = filter_act`(snd exA)  ;\
 \ Filter (%a.a:act B)`sch = filter_act`(snd exB) |]\
-\ ==> Filter_ex A (ProjA (mkex A B sch exA exB)) = exA";
+\ ==> Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA";
 by (asm_full_simp_tac (!simpset addsimps [ProjA_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
@@ -401,7 +401,7 @@ goal thy "! exA exB s t. \
 \ Forall (%x.x:act (A||B)) sch & \
 \ Filter (%a.a:act A)`sch << filter_act`exA  &\
 \ Filter (%a.a:act B)`sch << filter_act`exB \
-\ --> Filter_ex2 B`(ProjB2`(snd (mkex A B sch (s,exA) (t,exB)))) =   \
+\ --> Filter_ex2 (asig_of B)`(ProjB2`(snd (mkex A B sch (s,exA) (t,exB)))) =   \
 \     Zip`(Filter (%a.a:act B)`sch)`(Map snd`exB)";
 
 (* notice necessary change of arguments exA and exB *)
@@ -420,7 +420,7 @@ goal thy "!!sch exA exB.\
 \ [| Forall (%a.a:act (A||B)) sch ; \
 \ Filter (%a.a:act A)`sch = filter_act`(snd exA)  ;\
 \ Filter (%a.a:act B)`sch = filter_act`(snd exB) |]\
-\ ==> Filter_ex B (ProjB (mkex A B sch exA exB)) = exB";
+\ ==> Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB";
 by (asm_full_simp_tac (!simpset addsimps [ProjB_def,Filter_ex_def]) 1);
 by (pair_tac "exA" 1);
 by (pair_tac "exB" 1);
@@ -463,11 +463,11 @@ goal thy
 by (simp_tac (!simpset addsimps [schedules_def, has_schedule_def]) 1);
 by (safe_tac set_cs); 
 (* ==> *) 
-by (res_inst_tac [("x","Filter_ex A (ProjA ex)")] bexI 1);
+by (res_inst_tac [("x","Filter_ex (asig_of A) (ProjA ex)")] bexI 1);
 by (asm_full_simp_tac (!simpset addsimps [compositionality_ex]) 2);
 by (simp_tac (!simpset addsimps [Filter_ex_def,ProjA_def,
                                  lemma_2_1a,lemma_2_1b]) 1); 
-by (res_inst_tac [("x","Filter_ex B (ProjB ex)")] bexI 1);
+by (res_inst_tac [("x","Filter_ex (asig_of B) (ProjB ex)")] bexI 1);
 by (asm_full_simp_tac (!simpset addsimps [compositionality_ex]) 2);
 by (simp_tac (!simpset addsimps [Filter_ex_def,ProjB_def,
                                  lemma_2_1a,lemma_2_1b]) 1);
@@ -497,6 +497,20 @@ by (pair_tac "exB" 1);
 by (asm_full_simp_tac (!simpset addsimps [mkex_actions_in_AorB]) 1);
 qed"compositionality_sch";
 
+
+(* ------------------------------------------------------------------ *)
+(*           COMPOSITIONALITY   on    SCHEDULE      Level             *)
+(*                            For Modules                             *)
+(* ------------------------------------------------------------------ *)
+
+goalw thy [Scheds_def,par_scheds_def]
+
+"Scheds (A||B) = par_scheds (Scheds A) (Scheds B)";
+
+by (asm_full_simp_tac (!simpset addsimps [asig_of_par]) 1);
+br set_ext 1;
+by (asm_full_simp_tac (!simpset addsimps [compositionality_sch,actions_of_par]) 1);
+qed"compositionality_sch_modules";
 
 
 Delsimps compoex_simps;

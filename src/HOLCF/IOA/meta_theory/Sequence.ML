@@ -1034,6 +1034,35 @@ qed"take_lemma_less_induct";
 
 
 (*
+local
+
+fun qnt_tac i (tac, var) = tac THEN res_inst_tac [("x", var)] spec i;
+
+fun add_frees tsig =
+  let
+    fun add (Free (x, T), vars) =
+          if Type.of_sort tsig (T, HOLogic.termS) then x ins vars
+          else vars
+      | add (Abs (_, _, t), vars) = add (t, vars)
+      | add (t $ u, vars) = add (t, add (u, vars))
+      | add (_, vars) = vars;
+   in add end;
+
+
+in
+
+(*Generalizes over all free variables, with the named var outermost.*)
+fun all_frees_tac x i thm =
+  let
+    val tsig = #tsig (Sign.rep_sg (#sign (rep_thm thm)));
+    val frees = add_frees tsig (nth_elem (i - 1, prems_of thm), [x]);
+    val frees' = sort (op >) (frees \ x) @ [x];
+  in
+    foldl (qnt_tac i) (all_tac, frees') thm
+  end;
+
+end;
+
 
 goal thy 
 "!! Q. [|!! s h1 h2. [| Forall Q s; A s h1 h2|] ==> (f s h1 h2) = (g s h1 h2) ; \

@@ -1170,7 +1170,7 @@ qed"FilterBmksch_is_schB";
 (* ------------------------------------------------------------------ *)
  
 goal thy 
-"!! A B. [| IOA A; IOA B; compatible A B; compatible B A; \
+"!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A; \
 \           is_asig(asig_of A); is_asig(asig_of B)|] \
 \       ==>  tr: traces(A||B) = \
 \            (Filter (%a.a:act A)`tr : traces A &\
@@ -1226,6 +1226,22 @@ by (etac ext_is_act 1);
 qed"compositionality_tr";
 
 
+
+(* ------------------------------------------------------------------ *)
+(*           COMPOSITIONALITY   on    TRACE         Level             *)
+(*                            For Modules                             *)
+(* ------------------------------------------------------------------ *)
+
+goalw thy [Traces_def,par_traces_def]
+
+"!! A B. [| is_trans_of A; is_trans_of B; compatible A B; compatible B A; \
+\           is_asig(asig_of A); is_asig(asig_of B)|] \
+\==> Traces (A||B) = par_traces (Traces A) (Traces B)";
+
+by (asm_full_simp_tac (!simpset addsimps [asig_of_par]) 1);
+br set_ext 1;
+by (asm_full_simp_tac (!simpset addsimps [compositionality_tr,externals_of_par]) 1);
+qed"compositionality_tr_modules";
 
 
 

@@ -10,7 +10,7 @@ Deadlock freedom of I/O Automata
                input actions may always be added to a schedule
 **********************************************************************************)
 
-goal thy "!! sch. [| Filter (%x.x:act A)`sch : schedules A; a:inp A; IOA A; Finite sch|] \
+goal thy "!! sch. [| Filter (%x.x:act A)`sch : schedules A; a:inp A; input_enabled A; Finite sch|] \
 \         ==> Filter (%x.x:act A)`sch @@ a>>nil : schedules A";
 by (asm_full_simp_tac (!simpset addsimps [schedules_def,has_schedule_def]) 1);
 by (safe_tac set_cs);
@@ -29,7 +29,7 @@ by (forward_tac [exists_laststate] 1);
 by (etac allE 1);
 by (etac exE 1);
 (* using input-enabledness *)
-by (asm_full_simp_tac (!simpset addsimps [ioa_def,input_enabled_def]) 1);
+by (asm_full_simp_tac (!simpset addsimps [input_enabled_def]) 1);
 by (REPEAT (etac conjE 1));
 by (eres_inst_tac [("x","a")] allE 1);
 by (Asm_full_simp_tac 1);
@@ -46,13 +46,13 @@ qed"scheds_input_enabled";
 
 (********************************************************************************
                Deadlock freedom: component B cannot block an out or int action
-                                 of component A in every schedule
+                                 of component A in every schedule.
     Needs compositionality on schedule level, input-enabledness, compatibility
                     and distributivity of is_exec_frag over @@
 **********************************************************************************)
 
 goal thy "!! sch. [| a : local A; Finite sch; sch : schedules (A||B); \
-\            Filter (%x.x:act A)`(sch @@ a>>nil) : schedules A; compatible A B; IOA B |] \
+\            Filter (%x.x:act A)`(sch @@ a>>nil) : schedules A; compatible A B; input_enabled B |] \
 \          ==> (sch @@ a>>nil) : schedules (A||B)";
 
 by (asm_full_simp_tac (!simpset addsimps [compositionality_sch,locals_def]) 1);

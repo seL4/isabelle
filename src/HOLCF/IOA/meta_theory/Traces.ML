@@ -162,18 +162,18 @@ section "signatures and executions, schedules";
    this condition is included once more. (see Lemmas 1.1.1c in CompoExecs for example) *)
 
 goal thy 
-  "!! A. IOA A ==> \
+  "!! A. is_trans_of A ==> \
 \ ! s. is_exec_frag A (s,xs) --> Forall (%a.a:act A) (filter_act`xs)";
 
 by (pair_induct_tac "xs" [is_exec_frag_def,Forall_def,sforall_def] 1);
 (* main case *)
 ren "ss a t" 1;
 by (safe_tac set_cs);
-by (REPEAT (asm_full_simp_tac (!simpset addsimps [ioa_def,state_trans_def]) 1));
+by (REPEAT (asm_full_simp_tac (!simpset addsimps [is_trans_of_def]) 1));
 qed"execfrag_in_sig";
 
 goal thy 
-  "!! A.[|  IOA A; x:executions A |] ==> \
+  "!! A.[|  is_trans_of A; x:executions A |] ==> \
 \ Forall (%a.a:act A) (filter_act`(snd x))";
 
 by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
@@ -183,7 +183,7 @@ by (Auto_tac());
 qed"exec_in_sig";
 
 goalw thy [schedules_def,has_schedule_def]
-  "!! A.[|  IOA A; x:schedules A |] ==> \
+  "!! A.[|  is_trans_of A; x:schedules A |] ==> \
 \   Forall (%a.a:act A) x";
 
 by (fast_tac (!claset addSIs [exec_in_sig]) 1);

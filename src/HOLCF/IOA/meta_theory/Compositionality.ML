@@ -17,6 +17,7 @@ goal thy
 "!! A B. [| compatible A B; Forall (%a. a: ext A | a: ext B) tr |] ==> \
 \           Filter (%a. a: act A)`tr= Filter (%a. a: ext A)`tr";
 by (rtac ForallPFilterQR 1);
+(* i.e.: [| (! x. P x --> (Q x = R x)) ; Forall P tr |] ==> Filter Q`tr = Filter R`tr *)
 by (assume_tac 2);
 by (rtac compatibility_consequence3 1);
 by (REPEAT (asm_full_simp_tac (!simpset 
@@ -49,14 +50,15 @@ qed"Filter_actAisFilter_extA2";
 
 
 goal thy "!! A1 A2 B1 B2. \
-\         [| IOA A1; IOA A2; IOA B1; IOA B2;\
-\            is_asig (asig_of A1); is_asig (asig_of A2); \
-\            is_asig (asig_of B1); is_asig (asig_of B2); \
+\         [| is_trans_of A1; is_trans_of A2; is_trans_of B1; is_trans_of B2;\
+\            is_asig_of A1; is_asig_of A2; \
+\            is_asig_of B1; is_asig_of B2; \
 \            compatible A1 B1; compatible A2 B2; \
 \            A1 =<| A2; \
 \            B1 =<| B2 |] \
 \        ==> (A1 || B1) =<| (A2 || B2)";
 
+by (asm_full_simp_tac (!simpset addsimps [is_asig_of_def]) 1);
 by (forw_inst_tac [("A2","A1")] (compat_commute RS iffD1) 1);
 by (forw_inst_tac [("A2","A2")] (compat_commute RS iffD1) 1);
 by (asm_full_simp_tac (!simpset addsimps [ioa_implements_def,

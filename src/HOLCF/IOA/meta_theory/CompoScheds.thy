@@ -17,6 +17,8 @@ consts
  mkex2    ::"('a,'s)ioa => ('a,'t)ioa => 'a Seq -> 
               ('a,'s)pairs -> ('a,'t)pairs -> 
               ('s => 't => ('a,'s*'t)pairs)"
+ par_scheds ::"['a schedule_module,'a schedule_module] => 'a schedule_module"
+
 
 
 defs
@@ -59,5 +61,15 @@ mkex2_def
              )
          )
        ))))"
+
+par_scheds_def
+  "par_scheds SchedsA SchedsB == 
+       let schA = fst SchedsA; sigA = snd SchedsA; 
+           schB = fst SchedsB; sigB = snd SchedsB       
+       in
+       (    {sch. Filter (%a.a:actions sigA)`sch : schA}
+        Int {sch. Filter (%a.a:actions sigB)`sch : schB}
+        Int {sch. Forall (%x. x:(actions sigA Un actions sigB)) sch},
+        asig_comp sigA sigB)"
 
 end

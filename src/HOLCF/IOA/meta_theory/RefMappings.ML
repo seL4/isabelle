@@ -92,19 +92,20 @@ qed"weak_ref_map2ref_map";
 
 
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by (fast_tac (!claset addDs prems) 1);
-qed "imp_conj_lemma";
+  by(fast_tac (!claset addDs prems) 1);
+val lemma = result();
+
 
 goal thy "!!f.[| is_weak_ref_map f C A |]\
 \                      ==> (is_weak_ref_map f (rename C g) (rename A g))";
 by (asm_full_simp_tac (!simpset addsimps [is_weak_ref_map_def]) 1);
 by (rtac conjI 1);
 (* 1: start states *)
-by (asm_full_simp_tac (!simpset addsimps [rename_def,starts_of_def]) 1);
+by (asm_full_simp_tac (!simpset addsimps [rename_def,rename_set_def,starts_of_def]) 1);
 (* 2: reachable transitions *)
 by (REPEAT (rtac allI 1));
-by (rtac imp_conj_lemma 1);
-by (simp_tac (!simpset addsimps [rename_def]) 1);
+by (rtac lemma 1);
+by (simp_tac (!simpset addsimps [rename_def,rename_set_def]) 1);
 by (asm_full_simp_tac (!simpset addsimps [externals_def,asig_inputs_def,
 asig_outputs_def,asig_of_def,trans_of_def]) 1);
 by (safe_tac (!claset));

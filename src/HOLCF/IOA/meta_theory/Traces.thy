@@ -15,6 +15,10 @@ types
    ('a,'s)pairs            =    "('a * 's) Seq"
    ('a,'s)execution        =    "'s * ('a,'s)pairs"
    'a trace                =    "'a Seq"
+
+   ('a,'s)execution_module = "('a,'s)execution set * 'a signature"
+   'a schedule_module      = "'a trace set * 'a signature"
+   'a trace_module         = "'a trace set * 'a signature"
  
 consts
 
@@ -31,11 +35,15 @@ consts
   has_trace     :: "[('a,'s)ioa, 'a trace] => bool"
   schedules,
   traces        :: "('a,'s)ioa => 'a trace set"
- 
   mk_trace      :: "('a,'s)ioa => ('a,'s)pairs -> 'a trace"
 
   (* Notion of implementation *)
   "=<|" :: "[('a,'s1)ioa, ('a,'s2)ioa] => bool"   (infixr 12) 
+
+  (* Execution, schedule and trace modules *)
+  Execs         ::  "('a,'s)ioa => ('a,'s)execution_module"
+  Scheds        ::  "('a,'s)ioa => 'a schedule_module"
+  Traces        ::  "('a,'s)ioa => 'a trace_module"
 
 (*
 (* FIX: introduce good symbol *)
@@ -106,6 +114,17 @@ ioa_implements_def
     (((inputs(asig_of(ioa1)) = inputs(asig_of(ioa2))) &   
      (outputs(asig_of(ioa1)) = outputs(asig_of(ioa2)))) &
       traces(ioa1) <= traces(ioa2))"
+
+(*  ------------------- Modules ------------------------------ *)
+
+Execs_def
+  "Execs A  == (executions A, asig_of A)"
+
+Scheds_def
+  "Scheds A == (schedules A, asig_of A)"
+
+Traces_def
+  "Traces A == (traces A,asig_of A)"
 
 
 end

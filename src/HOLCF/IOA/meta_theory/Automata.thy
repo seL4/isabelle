@@ -13,17 +13,24 @@ default term
  
 types
    ('a,'s)transition       =    "'s * 'a * 's"
-   ('a,'s)ioa              =    "'a signature * 's set * ('a,'s)transition set"
+   ('a,'s)ioa              =    "'a signature * 's set * ('a,'s)transition set * 
+                                 (('a set) set) * (('a set) set)"
 
 consts
  
   (* IO automata *)
-  state_trans  ::"['a signature, ('a,'s)transition set] => bool"
-  input_enabled::"['a signature, ('a,'s)transition set] => bool"
-  asig_of      ::"('a,'s)ioa => 'a signature"
-  starts_of    ::"('a,'s)ioa => 's set"
-  trans_of     ::"('a,'s)ioa => ('a,'s)transition set"
-  IOA	       ::"('a,'s)ioa => bool"
+
+  asig_of        ::"('a,'s)ioa => 'a signature"
+  starts_of      ::"('a,'s)ioa => 's set"
+  trans_of       ::"('a,'s)ioa => ('a,'s)transition set"
+  wfair_of       ::"('a,'s)ioa => ('a set) set"
+  sfair_of       ::"('a,'s)ioa => ('a set) set"
+
+  is_asig_of     ::"('a,'s)ioa => bool"
+  is_starts_of	 ::"('a,'s)ioa => bool"
+  is_trans_of	 ::"('a,'s)ioa => bool"
+  input_enabled	 ::"('a,'s)ioa => bool"
+  IOA	         ::"('a,'s)ioa => bool"
 
   (* reachability and invariants *)
   reachable     :: "('a,'s)ioa => 's set"
@@ -31,15 +38,18 @@ consts
 
   (* binary composition of action signatures and automata *)
   asig_comp    ::"['a signature, 'a signature] => 'a signature"
-  compatible  ::"[('a,'s)ioa, ('a,'t)ioa] => bool"
+  compatible   ::"[('a,'s)ioa, ('a,'t)ioa] => bool"
   "||"         ::"[('a,'s)ioa, ('a,'t)ioa] => ('a,'s*'t)ioa"  (infixr 10)
 
-  (* hiding *)
+  (* hiding and restricting *)
+  hide_asig     :: "['a signature, 'a set] => 'a signature"
+  hide          :: "[('a,'s)ioa, 'a set] => ('a,'s)ioa"
   restrict_asig :: "['a signature, 'a set] => 'a signature"
   restrict      :: "[('a,'s)ioa, 'a set] => ('a,'s)ioa"
 
   (* renaming *)
-  rename:: "('a, 'b)ioa => ('c => 'a option) => ('c,'b)ioa"
+  rename_set    :: "'a set => ('c => 'a option) => 'c set"
+  rename        :: "('a, 'b)ioa => ('c => 'a option) => ('c,'b)ioa"
 
 
 syntax 
@@ -83,24 +93,34 @@ defs
 
 (* --------------------------------- IOA ---------------------------------*)
 
-state_trans_def
-  "state_trans asig R == 
-    (!triple. triple:R --> fst(snd(triple)):actions(asig))"
-
-input_enabled_def
-  "input_enabled asig R ==
-    (!a. (a:inputs(asig)) --> (!s1. ? s2. (s1,a,s2):R))" 
 
 
 asig_of_def   "asig_of == fst"
 starts_of_def "starts_of == (fst o snd)"
-trans_of_def  "trans_of == (snd o snd)"
+trans_of_def  "trans_of == (fst o snd o snd)"
+wfair_of_def  "wfair_of == (fst o snd o snd o snd)"
+sfair_of_def  "sfair_of == (snd o snd o snd o snd)"
+
+is_asig_of_def
+  "is_asig_of A == is_asig (asig_of A)" 
+
+is_starts_of_def 
+  "is_starts_of A ==  (~ starts_of A = {})"
+
+is_trans_of_def
+  "is_trans_of A == 
+    (!triple. triple:(trans_of A) --> fst(snd(triple)):actions(asig_of A))"
+
+input_enabled_def
+  "input_enabled A ==
+    (!a. (a:inputs(asig_of A)) --> (!s1. ? s2. (s1,a,s2):(trans_of A)))" 
+
 
 ioa_def
-  "IOA(ioa) == (is_asig(asig_of(ioa))      &                            
-                (~ starts_of(ioa) = {})    &                            
-                state_trans (asig_of ioa) (trans_of ioa) &
-                input_enabled (asig_of ioa) (trans_of ioa))"
+  "IOA A == (is_asig_of A    &                            
+             is_starts_of A  &                            
+             is_trans_of A   &
+             input_enabled A)"
 
 
 invariant_def "invariant A P == (!s. reachable A s --> P(s))"
@@ -121,44 +141,73 @@ asig_comp_def
        (outputs(a1) Un outputs(a2)),                                   
        (internals(a1) Un internals(a2))))"
 
-
 par_def
-  "(ioa1 || ioa2) ==                                                    
-      (asig_comp (asig_of ioa1) (asig_of ioa2),                        
-       {pr. fst(pr):starts_of(ioa1) & snd(pr):starts_of(ioa2)},        
+  "(A || B) ==                                                    
+      (asig_comp (asig_of A) (asig_of B),                        
+       {pr. fst(pr):starts_of(A) & snd(pr):starts_of(B)},        
        {tr. let s = fst(tr); a = fst(snd(tr)); t = snd(snd(tr))        
-            in (a:act ioa1 | a:act ioa2) & 
-               (if a:act ioa1 then                       
-                  (fst(s),a,fst(t)):trans_of(ioa1)                     
+            in (a:act A | a:act B) & 
+               (if a:act A then                       
+                  (fst(s),a,fst(t)):trans_of(A)                     
                 else fst(t) = fst(s))                                  
                &                                                       
-               (if a:act ioa2 then                       
-                  (snd(s),a,snd(t)):trans_of(ioa2)                     
-                else snd(t) = snd(s))})"
+               (if a:act B then                       
+                  (snd(s),a,snd(t)):trans_of(B)                     
+                else snd(t) = snd(s))},
+        wfair_of A Un wfair_of B,
+        sfair_of A Un sfair_of B)"
+
 
 (* ------------------------ hiding -------------------------------------------- *)
 
 restrict_asig_def
   "restrict_asig asig actns ==                                          
-    (inputs(asig) Int actns, outputs(asig) Int actns,                  
+    (inputs(asig) Int actns, 
+     outputs(asig) Int actns,                  
      internals(asig) Un (externals(asig) - actns))"
 
+(* Notice that for wfair_of and sfair_of nothing has to be changed, as 
+   changes from the outputs to the internals does not touch the locals as 
+   a whole, which is of importance for fairness only *)
 
 restrict_def
-  "restrict ioa actns ==                                               
-    (restrict_asig (asig_of ioa) actns, starts_of(ioa), trans_of(ioa))"
+  "restrict A actns ==                                               
+    (restrict_asig (asig_of A) actns, 
+     starts_of A, 
+     trans_of A,
+     wfair_of A,
+     sfair_of A)"
+
+hide_asig_def
+  "hide_asig asig actns ==                                          
+    (inputs(asig) - actns, 
+     outputs(asig) - actns,                  
+     internals(asig) Un actns)"
+
+hide_def
+  "hide A actns ==                                               
+    (hide_asig (asig_of A) actns, 
+     starts_of A, 
+     trans_of A,
+     wfair_of A,
+     sfair_of A)"
 
 (* ------------------------- renaming ------------------------------------------- *)
   
+rename_set_def
+  "rename_set set ren == {b. ? x. Some x = ren b & x : set}" 
+
 rename_def 
 "rename ioa ren ==  
-  (({b. ? x. Some(x)= ren(b) & x : inp ioa},         
-    {b. ? x. Some(x)= ren(b) & x : out ioa},        
-    {b. ? x. Some(x)= ren(b) & x : int ioa}),     
-              starts_of(ioa)   ,                                            
+  ((rename_set (inp ioa) ren,         
+    rename_set (out ioa) ren,        
+    rename_set (int ioa) ren),     
+   starts_of ioa,                                            
    {tr. let s = fst(tr); a = fst(snd(tr));  t = snd(snd(tr))    
         in                                                      
-        ? x. Some(x) = ren(a) & (s,x,t):trans_of(ioa)})"
+        ? x. Some(x) = ren(a) & (s,x,t):trans_of ioa},
+   {rename_set s ren | s. s: wfair_of ioa},
+   {rename_set s ren | s. s: sfair_of ioa})"
 
 
 end

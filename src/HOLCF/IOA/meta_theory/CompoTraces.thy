@@ -11,8 +11,8 @@ CompoTraces = CompoScheds + ShortExecutions +
 
 consts  
 
- mksch     ::"('a,'s)ioa => ('a,'t)ioa => 'a Seq -> 'a Seq -> 'a Seq -> 'a Seq" 
-
+ mksch      ::"('a,'s)ioa => ('a,'t)ioa => 'a Seq -> 'a Seq -> 'a Seq -> 'a Seq" 
+ par_traces ::"['a trace_module,'a trace_module] => 'a trace_module"
 
 defs
 
@@ -51,6 +51,16 @@ mksch_def
        )))"
 
 
+par_traces_def
+  "par_traces TracesA TracesB == 
+       let trA = fst TracesA; sigA = snd TracesA; 
+           trB = fst TracesB; sigB = snd TracesB       
+       in
+       (    {tr. Filter (%a.a:actions sigA)`tr : trA}
+        Int {tr. Filter (%a.a:actions sigB)`tr : trB}
+        Int {tr. Forall (%x. x:(externals sigA Un externals sigB)) tr},
+        asig_comp sigA sigB)"
+
 rules
 
 
@@ -60,5 +70,3 @@ finiteR_mksch
 
 
 end
-
-
