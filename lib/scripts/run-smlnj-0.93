@@ -58,7 +58,8 @@ else
 fi
 
 if [ -n "$MOVE" -a -f "$OUTFILE" ]; then
-  mv -f "$OUTFILE" "$INFILE" || fail_out
+  rm -f "$INFILE" || fail_out
+  mv "$OUTFILE" "$INFILE" || fail_out
 fi
 
 exit $RC
