@@ -48,7 +48,7 @@ constdefs
 
 (* syntax for Let *)
 
-types
+nonterminals
   Cletbinds  Cletbind
 
 syntax
