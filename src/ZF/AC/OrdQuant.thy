@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/OrdQuant.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Authors: 	Krzysztof Gr`abczewski and L C Paulson
 
 Quantifiers and union operator for ordinals. 
 *)
@@ -10,30 +10,29 @@ OrdQuant = Ordinal +
 consts
   
   (* Ordinal Quantifiers *)
-  Oall, Oex   :: "[i, i => o] => o"
-  (* General Union and Intersection *)
+  oall, oex   :: "[i, i => o] => o"
+
+  (* Ordinal Union *)
   OUnion      :: "[i, i => i] => i"
   
 syntax
   
+  "@oall"     :: "[idt, i, o] => o"        ("(3ALL _<_./ _)" 10)
+  "@oex"      :: "[idt, i, o] => o"        ("(3EX _<_./ _)" 10)
   "@OUNION"   :: "[idt, i, i] => i"        ("(3UN _<_./ _)" 10)
-  "@Oall"     :: "[idt, i, o] => o"        ("(3ALL _<_./ _)" 10)
-  "@Oex"      :: "[idt, i, o] => o"        ("(3EX _<_./ _)" 10)
 
 translations
   
+  "ALL x<a. P"  == "oall(a, %x. P)"
+  "EX x<a. P"   == "oex(a, %x. P)"
   "UN x<a. B"   == "OUnion(a, %x. B)"
-  "ALL x<a. P"  == "Oall(a, %x. P)"
-  "EX x<a. P"   == "Oex(a, %x. P)"
-
-rules
-  
-  OUnion_iff     "A : OUnion(a, %z. B(z)) <-> (EX x<a. A: B(x))"
 
 defs
   
   (* Ordinal Quantifiers *)
-  Oall_def      "Oall(A, P) == ALL x. x<A --> P(x)"
-  Oex_def       "Oex(A, P) == EX x. x<A & P(x)"
+  oall_def      "oall(A, P) == ALL x. x<A --> P(x)"
+  oex_def       "oex(A, P) == EX x. x<A & P(x)"
 
+  OUnion_def     "OUnion(i,B) == {z: UN x:i. B(x). Ord(i)}"
+  
 end
