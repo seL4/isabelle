@@ -182,8 +182,10 @@ default in Arith.thy -- this COULD MAKE EXISTING PROOFS FAIL;
     "n ~= 0". Theorems and proof tools have been modified towards this
     `standard'.
 
-* HOL/Lists: the function "set_of_list" has been renamed "set"
-  (and its theorems too);
+* HOL/Lists:
+  the function "set_of_list" has been renamed "set" (and its theorems too);
+  the function "nth" now takes its arguments in the reverse order and
+  has acquired the infix notation "!" as in "xs!n".
 
 * HOL/Set: UNIV is now a constant and is no longer translated to Compl{};
 

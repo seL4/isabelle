@@ -23,7 +23,7 @@ translations
 
 inductive has_type
 intrs
-        VarI "[| n < length A; t <| (nth n A) |] ==> A |- Var n :: t"
+        VarI "[| n < length A; t <| A!n |] ==> A |- Var n :: t"
         AbsI "[| (mk_scheme t1)#A |- e :: t2 |] ==> A |- Abs e :: t1 -> t2"
         AppI "[| A |- e1 :: t2 -> t1; A |- e2 :: t2 |] 
               ==> A |- App e1 e2 :: t1"

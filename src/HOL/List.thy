@@ -20,7 +20,7 @@ consts
   list_all    :: ('a => bool) => ('a list => bool)
   map         :: ('a=>'b) => ('a list => 'b list)
   mem         :: ['a, 'a list] => bool                    (infixl 55)
-  nth         :: [nat, 'a list] => 'a
+  nth         :: ['a list, nat] => 'a			  (infixl "!" 100)
   take, drop  :: [nat, 'a list] => 'a list
   takeWhile,
   dropWhile   :: ('a => bool) => 'a list => 'a list
@@ -106,8 +106,8 @@ primrec take list
   take_Nil  "take n [] = []"
   take_Cons "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
 primrec nth nat
-  "nth 0 xs = hd xs"
-  "nth (Suc n) xs = nth n (tl xs)"
+  "xs!0 = hd xs"
+  "xs!(Suc n) = (tl xs)!n"
 primrec takeWhile list
   "takeWhile P [] = []"
   "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"

@@ -20,8 +20,8 @@ consts
 primrec W expr
   "W (Var i) A n =  
      (if i < length A then Some( id_subst,   
-	                         bound_typ_inst (%b. TVar(b+n)) (nth i A),   
-	                         n + (min_new_bound_tv (nth i A)) )  
+	                         bound_typ_inst (%b. TVar(b+n)) (A!i),   
+	                         n + (min_new_bound_tv (A!i)) )  
 	              else None)"
   
   "W (Abs e) A n = ( (S,t,m) := W e ((FVar n)#A) (Suc n);

@@ -146,7 +146,7 @@ by (Simp_tac 1);
 qed "free_tv_id_subst";
 Addsimps [free_tv_id_subst];
 
-goal thy "!!A. !n. n < length A --> x : free_tv (nth n A) --> x : free_tv A";
+goal thy "!!A. !n. n < length A --> x : free_tv (A!n) --> x : free_tv A";
 by (list.induct_tac "A" 1);
 by (Asm_full_simp_tac 1);
 by (rtac allI 1);
@@ -157,7 +157,7 @@ qed_spec_mp "free_tv_nth_A_impl_free_tv_A";
 
 Addsimps [free_tv_nth_A_impl_free_tv_A];
 
-goal thy "!!A. !nat. nat < length A --> x : free_tv (nth nat A) --> x : free_tv A";
+goal thy "!!A. !nat. nat < length A --> x : free_tv (A!nat) --> x : free_tv A";
 by (list.induct_tac "A" 1);
 by (Asm_full_simp_tac 1);
 by (rtac allI 1);
@@ -512,7 +512,8 @@ goalw thy [new_tv_def] "!!A::type_scheme list. (free_tv A) = (free_tv A') --> (n
 by (Asm_simp_tac 1);
 qed_spec_mp "new_tv_only_depends_on_free_tv_scheme_list";
 
-goalw thy [new_tv_def] "!!A. !nat. nat < length A --> new_tv n A --> (new_tv n (nth nat A))";
+goalw thy [new_tv_def]
+  "!!A. !nat. nat < length A --> new_tv n A --> (new_tv n (A!nat))";
 by (list.induct_tac "A" 1);
 by (Asm_full_simp_tac 1);
 by (rtac allI 1);
@@ -750,7 +751,7 @@ by (assume_tac 1);
 by (Simp_tac 1);
 qed "subst_id_on_type_scheme_list";
 
-goal thy "!!n. !n. n < length A --> nth n ($ S A) = $S (nth n A)";
+goal thy "!n. n < length A --> ($ S A)!n = $S (A!n)";
 by (list.induct_tac "A" 1);
 by (Asm_full_simp_tac 1);
 by (rtac allI 1);

@@ -44,6 +44,6 @@ primrec subst_to_scheme typ
   
 instance list :: (ord)ord
 defs le_env_def
-  "A <= B == length B = length A & (!i. i < length A --> nth i A <= nth i B)"
+  "A <= B == length B = length A & (!i. i < length A --> A!i <= B!i)"
 
 end

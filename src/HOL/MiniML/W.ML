@@ -180,7 +180,7 @@ by (expr.induct_tac "e" 1);
 by (simp_tac (simpset() addsimps
     [free_tv_subst] addsplits [split_option_bind,expand_if]) 1);
 by (strip_tac 1);
-by (case_tac "v : free_tv (nth nat A)" 1);
+by (case_tac "v : free_tv (A!nat)" 1);
 by (Asm_full_simp_tac 1);
 by (dtac free_tv_bound_typ_inst1 1);
 by (simp_tac (simpset() addsimps [o_def]) 1);

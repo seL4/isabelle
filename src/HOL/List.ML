@@ -438,8 +438,7 @@ qed "rev_concat";
 section "nth";
 
 goal thy
-  "!xs. nth n (xs@ys) = \
-\          (if n < length xs then nth n xs else nth (n - length xs) ys)";
+  "!xs. (xs@ys)!n = (if n < length xs then xs!n else ys!(n - length xs))";
 by (nat_ind_tac "n" 1);
  by (Asm_simp_tac 1);
  by (rtac allI 1);
@@ -450,7 +449,7 @@ by (exhaust_tac "xs" 1);
  by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "nth_append";
 
-goal thy "!n. n < length xs --> nth n (map f xs) = f (nth n xs)";
+goal thy "!n. n < length xs --> (map f xs)!n = f(xs!n)";
 by (induct_tac "xs" 1);
 (* case [] *)
 by (Asm_full_simp_tac 1);
@@ -461,7 +460,7 @@ by (ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "nth_map";
 Addsimps [nth_map];
 
-goal thy "!n. n < length xs --> list_all P xs --> P(nth n xs)";
+goal thy "!n. n < length xs --> list_all P xs --> P(xs!n)";
 by (induct_tac "xs" 1);
 (* case [] *)
 by (Simp_tac 1);
@@ -471,7 +470,7 @@ by (nat_ind_tac "n" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "list_all_nth";
 
-goal thy "!n. n < length xs --> (nth n xs) mem xs";
+goal thy "!n. n < length xs --> xs!n mem xs";
 by (induct_tac "xs" 1);
 (* case [] *)
 by (Simp_tac 1);
@@ -643,7 +642,7 @@ by (exhaust_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "drop_map";
 
-goal thy "!n i. i < n --> nth i (take n xs) = nth i xs";
+goal thy "!n i. i < n --> (take n xs)!i = xs!i";
 by (induct_tac "xs" 1);
  by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
@@ -654,7 +653,7 @@ by (ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "nth_take";
 Addsimps [nth_take];
 
-goal thy  "!xs i. n + i <= length xs --> nth i (drop n xs) = nth (n + i) xs";
+goal thy  "!xs i. n + i <= length xs --> (drop n xs)!i = xs!(n+i)";
 by (nat_ind_tac "n" 1);
  by (ALLGOALS Asm_simp_tac);
 by (rtac allI 1);
