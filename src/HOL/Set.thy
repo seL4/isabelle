@@ -4,7 +4,7 @@
     Copyright   1993  University of Cambridge
 *)
 
-Set = Ord +
+Set = HOL +
 
 
 (** Core syntax **)
