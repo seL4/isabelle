@@ -31,7 +31,6 @@ sig
   val decode_raw: symbol -> string
   val encode_raw: string -> symbol list
   datatype sym = Char of string | Sym of string | Ctrl of string | Raw of string
-  exception DECODE of string
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
@@ -72,7 +71,7 @@ struct
     (2) printable symbols: \<ident>
     (3) control symbols: \<^ident>
     (4) raw control symbols: \<^raw:...>, where "..." may be any printable
-        character excluding ">", or \<^rawNNN> where NNN are digits
+        character excluding ">", or \<^raw000>
 
   Output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools.
@@ -133,54 +132,65 @@ val is_ascii_blank =
     | _ => false;
 
 
-(* raw symbols *)
+(* encode_raw *)
+
+fun raw_chr c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">";
+
+fun encode_raw str =
+  let
+    val raw1 = enclose "\\<^raw:" ">" o implode;
+    val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
+
+    fun encode cs = enc (Library.take_prefix raw_chr cs)
+    and enc ([], []) = []
+      | enc (cs, []) = [raw1 cs]
+      | enc ([], d :: ds) = raw2 d :: encode ds
+      | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
+  in
+    if exists_string (not o raw_chr) str then encode (explode str)
+    else [enclose "\\<^raw:" ">" str]
+  end;
+
+
+(* diagnostics *)
+
+fun beginning n cs =
+  let
+    val drop_blanks = #1 o Library.take_suffix is_ascii_blank;
+    val all_cs = drop_blanks cs;
+    val dots = if length all_cs > n then " ..." else "";
+  in
+    (drop_blanks (Library.take (n, all_cs))
+      |> map (fn c => if is_ascii_blank c then space else c)
+      |> implode) ^ dots
+  end;
+
+(*raw encoding avoids looping errors!*)
+fun malformed_symbol s =
+  "Malformed symbolic character specification: " ^ quote (Output.raw s);
+
+
+(* decode_raw *)
 
 fun is_raw s =
   String.isPrefix "\\<^raw" s andalso String.substring (s, size s - 1, 1) = ">";
 
 fun decode_raw s =
-  if not (is_raw s) then "*** BAD RAW OUTPUT " ^ s ^ " ***"
+  if not (is_raw s) then error (malformed_symbol s)
   else if String.isPrefix "\\<^raw:" s then String.substring (s, 7, size s - 8)
   else chr (#1 (Library.read_int (explode (String.substring (s, 6, size s - 7)))));
-
-local
-
-fun raw_chr c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">";
-
-val raw1 = enclose "\\<^raw:" ">" o implode;
-val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
-
-fun encode cs = enc (take_prefix raw_chr cs)
-and enc ([], []) = []
-  | enc (cs, []) = [raw1 cs]
-  | enc ([], d :: ds) = raw2 d :: encode ds
-  | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
-
-in
-
-val scan_raw =
- (Scan.this (explode "raw:") -- Scan.any raw_chr ||
-  Scan.this (explode "raw") -- Scan.any1 is_ascii_digit) >> (implode o op @);
-
-fun encode_raw s =
-  if exists_string (not o raw_chr) s then encode (explode s)
-  else [enclose "\\<^raw:" ">" s];
-
-end;
 
 
 (* symbol variants *)
 
 datatype sym = Char of string | Sym of string | Ctrl of string | Raw of string;
 
-exception DECODE of string;
-
 fun decode s =
   if is_char s then Char s
   else if is_raw s then Raw (decode_raw s)
   else if String.isPrefix "\\<^" s then Ctrl (String.substring (s, 3, size s - 4))
   else if String.isPrefix "\\<" s then Sym (String.substring (s, 2, size s - 3))
-  else raise DECODE s;   (*NB: no error message in order to avoid looping in output!*)
+  else error (malformed_symbol s);
 
 
 (* standard symbol kinds *)
@@ -353,13 +363,6 @@ fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Q
 
 (* scanning through symbols *)
 
-fun beginning n raw_ss =
-  let
-    val (all_ss, _) = Library.take_suffix is_blank raw_ss;
-    val dots = if length all_ss > n then " ..." else "";
-    val (ss, _) = Library.take_suffix is_blank (Library.take (n, all_ss));
-  in implode (map (fn s => if is_blank s then space else s) ss) ^ dots end;
-
 fun scanner msg scan chs =
   let
     fun err_msg cs = msg ^ ": " ^ beginning 10 cs;
@@ -380,15 +383,19 @@ local
 val scan_encoded_newline =
   $$ "\r" -- $$ "\n" >> K "\n" ||
   $$ "\r" >> K "\n" ||
-  Scan.optional ($$ "\\") "" -- Scan.this (explode "\\<^newline>") >> K "\n";
+  $$ "\\" -- Scan.optional ($$ "\\") "" -- Scan.this_string "<^newline>" >> K "\n";
+
+val scan_raw =
+  Scan.this_string "raw:" ^^ (Scan.any raw_chr >> implode) ||
+  Scan.this_string "raw" ^^ (Scan.any1 is_ascii_digit >> implode);
 
 in
 
 val scan =
   scan_encoded_newline ||
-  ($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
-    !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning 10 cs)
-       (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">") ||
+  (($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
+    !! (fn (cs, _) => malformed_symbol (beginning 10 ("\\" :: "<" :: cs)))
+      (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">")) ||
   Scan.one not_eof;
 
 end;
@@ -396,7 +403,8 @@ end;
 
 (* source *)
 
-val recover = Scan.any ((not o is_blank) andf not_eof) >> K [malformed];
+val recover =
+  Scan.any ((not o is_blank) andf not_equal "\"" andf not_eof) >> K [malformed];
 
 fun source do_recover src =
   Source.source stopper (Scan.bulk scan) (if do_recover then Some recover else None) src;
