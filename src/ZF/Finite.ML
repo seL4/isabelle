@@ -113,7 +113,7 @@ qed "nat_fun_subset_Fin";
 (*** Finite function space ***)
 
 Goalw FiniteFun.defs
-    "!!A B C D. [| A<=C;  B<=D |] ==> A -||> B  <=  C -||> D";
+    "[| A<=C;  B<=D |] ==> A -||> B  <=  C -||> D";
 by (rtac lfp_mono 1);
 by (REPEAT (rtac FiniteFun.bnd_mono 1));
 by (REPEAT (ares_tac (Fin_mono::Sigma_mono::basic_monos) 1));
@@ -152,3 +152,42 @@ Goal "[| c<=b;  b: A-||>B |] ==> c: A-||>B";
 by (REPEAT (ares_tac [FiniteFun_subset_lemma RS spec RS mp] 1));
 qed "FiniteFun_subset";
 
+(** Some further results by Sidi O. Ehmety **)
+
+Goal "A:Fin(X) ==> ALL f. f:A->B --> f:A-||>B";
+by (etac Fin.induct 1);
+by (simp_tac (simpset() addsimps FiniteFun.intrs) 1);
+by (Clarify_tac 1);
+by (case_tac "a:b" 1);
+by (rotate_tac ~1 1);
+by (asm_full_simp_tac (simpset() addsimps [cons_absorb]) 1);
+by (subgoal_tac "restrict(f,b) : b -||> B" 1);
+by (blast_tac (claset() addIs [restrict_type2]) 2);
+by (stac fun_cons_restrict_eq 1 THEN assume_tac 1);
+by (full_simp_tac (simpset() addsimps [restrict_def, lam_def]) 1);
+by (blast_tac (claset() addIs [apply_funtype, impOfSubs FiniteFun_mono]
+                              @FiniteFun.intrs) 1);
+qed_spec_mp "fun_FiniteFunI";
+
+Goal "A: Fin(X) ==> (lam x:A. b(x)) : A -||> {b(x). x:A}";
+by (blast_tac (claset() addIs [fun_FiniteFunI, lam_funtype]) 1);
+qed "lam_FiniteFun";
+
+Goal "f : FiniteFun(A, {y:B. P(y)})  \
+\     <-> f : FiniteFun(A,B) & (ALL x:domain(f). P(f`x))";
+by Auto_tac;
+by (blast_tac (claset() addIs [impOfSubs FiniteFun_mono]) 1);
+by (blast_tac (claset() addDs [FiniteFun_is_fun]
+                        addEs [Pair_mem_PiE]) 1);
+by (res_inst_tac [("A1", "domain(f)")]
+    (subset_refl RSN(2, FiniteFun_mono) RS subsetD) 1);
+by (fast_tac (claset() addDs
+		[FiniteFun_domain_Fin, Fin.dom_subset RS subsetD]) 1);
+by (resolve_tac [fun_FiniteFunI] 1);
+be FiniteFun_domain_Fin 1;
+by (res_inst_tac [("B" , "range(f)")] fun_weaken_type 1);
+by (ALLGOALS
+    (blast_tac (claset() addDs
+		[FiniteFun_is_fun, range_of_fun, range_type,
+		 apply_equality])));
+qed "FiniteFun_Collect_iff";
