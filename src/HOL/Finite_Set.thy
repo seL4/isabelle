@@ -1009,18 +1009,14 @@ lemma setsum_diff:
   shows "setsum f (A - B) = setsum f A - ((setsum f B)::('a::pordered_ab_group_add))"
 proof -
   from le have finiteB: "finite B" using finite_subset by auto
-  show ?thesis using le finiteB
-    proof (induct rule: Finites.induct[OF finiteB])
-      case 1
+  show ?thesis using finiteB le
+    proof (induct)
+      case empty
       thus ?case by auto
     next
-      case 2
-      thus ?case using le 
-	apply auto
-	apply (subst Diff_insert)
-	apply (subst setsum_diff1)
-	apply (auto simp add: insert_absorb)
-	done
+      case (insert F x)
+      thus ?case using le finiteB 
+	by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
     qed
   qed
 
