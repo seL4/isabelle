@@ -10,11 +10,11 @@ Goal "EX S. S ~: range(f :: 'a => 'a set)";
   by (contr_tac 1);
   by (swap_res_tac [CollectI] 1);
   by (assume_tac 1);
-qed "it";
+qed "";
 
 
 (* tactic script -- automatic *)
 
 Goal "EX S. S ~: range(f :: 'a => 'a set)";
   by (best_tac (claset() addSEs [equalityCE]) 1);
-qed "it";
+qed "";
