@@ -6,13 +6,14 @@ Syntax extension (internal interface).
 *)
 
 signature SYN_EXT0 =
-  sig
+sig
   val typeT: typ
   val constrainC: string
-  end;
+  val mixfix_args: string -> int
+end;
 
 signature SYN_EXT =
-  sig
+sig
   include SYN_EXT0
   val logic: string
   val args: string
@@ -66,7 +67,7 @@ signature SYN_EXT =
   val syn_ext_tokentrfuns: string list
     -> (string * string * (string -> string * int)) list -> syn_ext
   val pure_ext: syn_ext
-  end;
+end;
 
 structure SynExt : SYN_EXT =
 struct
@@ -164,19 +165,51 @@ val typ_to_nonterm = typ_to_nt any;
 val typ_to_nonterm1 = typ_to_nt logic;
 
 
+(* scan_mixfix, mixfix_args *)
+
+local
+  fun is_meta c = c mem ["(", ")", "/", "_"];
+
+  fun scan_delim_char ("'" :: c :: cs) =
+        if is_blank c then raise LEXICAL_ERROR else (c, cs)
+    | scan_delim_char ["'"] = error "Trailing escape character"
+    | scan_delim_char (chs as c :: cs) =
+        if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
+    | scan_delim_char [] = raise LEXICAL_ERROR;
+
+  val scan_sym =
+    $$ "_" >> K (Argument ("", 0)) ||
+    $$ "(" -- Term.scan_int >> (Bg o #2) ||
+    $$ ")" >> K En ||
+    $$ "/" -- $$ "/" >> K (Brk ~1) ||
+    $$ "/" -- scan_any is_blank >> (Brk o length o #2) ||
+    scan_any1 is_blank >> (Space o implode) ||
+    repeat1 scan_delim_char >> (Delim o implode);
+
+  val scan_symb =
+    scan_sym >> Some ||
+    $$ "'" -- scan_one is_blank >> K None;
+
+  val scan_symbs = mapfilter I o #1 o repeat scan_symb;
+in
+  val scan_mixfix = scan_symbs o SymbolFont.read_charnames o explode;
+end;
+
+fun mixfix_args mx =
+  foldl (fn (i, Argument _) => i + 1 | (i, _) => i) (0, scan_mixfix mx);
+
+
 (* mfix_to_xprod *)
 
 fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
   let
     fun err msg =
-      (writeln ("Error in mixfix annotation " ^ quote sy ^ " for " ^ quote const);
-        error msg);
-    fun post_err () = error ("The error(s) above occurred in mixfix annotation " ^
-      quote sy ^ " for " ^ quote const);
+      (if msg = "" then () else error_msg msg;
+        error ("in mixfix annotation " ^ quote sy ^ " for " ^ quote const));
 
     fun check_pri p =
       if p >= 0 andalso p <= max_pri then ()
-      else err ("precedence out of range: " ^ string_of_int p);
+      else err ("Precedence out of range: " ^ string_of_int p);
 
     fun blocks_ok [] 0 = true
       | blocks_ok [] _ = false
@@ -187,46 +220,19 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
 
     fun check_blocks syms =
       if blocks_ok syms 0 then ()
-      else err "unbalanced block parentheses";
-
-
-    local
-      fun is_meta c = c mem ["(", ")", "/", "_"];
-
-      fun scan_delim_char ("'" :: c :: cs) =
-            if is_blank c then raise LEXICAL_ERROR else (c, cs)
-        | scan_delim_char ["'"] = err "trailing escape character"
-        | scan_delim_char (chs as c :: cs) =
-            if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
-        | scan_delim_char [] = raise LEXICAL_ERROR;
-
-      val scan_sym =
-        $$ "_" >> K (Argument ("", 0)) ||
-        $$ "(" -- scan_int >> (Bg o #2) ||
-        $$ ")" >> K En ||
-        $$ "/" -- $$ "/" >> K (Brk ~1) ||
-        $$ "/" -- scan_any is_blank >> (Brk o length o #2) ||
-        scan_any1 is_blank >> (Space o implode) ||
-        repeat1 scan_delim_char >> (Delim o implode);
-
-      val scan_symb =
-        scan_sym >> Some ||
-        $$ "'" -- scan_one is_blank >> K None;
-    in
-      val scan_symbs = mapfilter I o #1 o repeat scan_symb;
-    end;
+      else err "Unbalanced block parentheses";
 
 
     val cons_fst = apfst o cons;
 
     fun add_args [] ty [] = ([], typ_to_nonterm1 ty)
-      | add_args [] _ _ = err "too many precedences"
+      | add_args [] _ _ = err "Too many precedences"
       | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) [] =
           cons_fst (Argument (typ_to_nonterm ty, 0)) (add_args syms tys [])
       | add_args (Argument _ :: syms) (Type ("fun", [ty, tys])) (p :: ps) =
           cons_fst (Argument (typ_to_nonterm ty, p)) (add_args syms tys ps)
       | add_args (Argument _ :: _) _ _ =
-          err "more arguments than in corresponding type"
+          err "More arguments than in corresponding type"
       | add_args (sym :: syms) ty ps = cons_fst sym (add_args syms ty ps);
 
 
@@ -250,9 +256,7 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
       | unify_logtypes _ a = a;
 
 
-    val sy_chars =
-      SymbolFont.read_charnames (explode sy) handle ERROR => post_err ();
-    val raw_symbs = scan_symbs sy_chars;
+    val raw_symbs = scan_mixfix sy handle ERROR => err "";
     val (symbs, lhs) = add_args raw_symbs typ pris;
     val copy_prod =
       lhs mem ["prop", "logic"]
@@ -271,10 +275,10 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
     check_pri pri;
     check_blocks symbs';
 
-    if is_terminal lhs' then err ("illegal lhs: " ^ lhs')
+    if is_terminal lhs' then err ("Illegal lhs: " ^ lhs')
     else if const <> "" then xprod
     else if length (filter is_arg symbs') <> 1 then
-      err "copy production must have exactly one argument"
+      err "Copy production must have exactly one argument"
     else if exists is_term symbs' then xprod
     else XProd (lhs', map rem_pri symbs', "", chain_pri)
   end;
