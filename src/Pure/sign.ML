@@ -33,6 +33,12 @@ sig
   val norm_sort: sg -> sort -> sort
   val nonempty_sort: sg -> sort list -> sort -> bool
   val long_names: bool ref
+  val classK: string
+  val typeK: string
+  val constK: string
+  val intern: sg -> string -> xstring -> string
+  val extern: sg -> string -> string -> xstring
+  val full_name: sg -> xstring -> string
   val intern_class: sg -> xclass -> class
   val extern_class: sg -> class -> xclass
   val intern_sort: sg -> xsort -> sort
@@ -90,7 +96,7 @@ sig
   val add_trrules: (string * string) Syntax.trrule list -> sg -> sg
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_path: string -> sg -> sg
-  val add_space: string * xstring list -> sg -> sg
+  val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
   val make_draft: sg -> sg
   val merge: sg * sg -> sg
@@ -205,7 +211,8 @@ fun add_names spaces kind names =
     overwrite (spaces, (kind, space'))
   end;
 
-fun full_name path name = NameSpace.pack (path @ (NameSpace.unpack name));
+(*make full names*)
+fun full path name = NameSpace.pack (path @ NameSpace.unpack name);
 
 
 (* intern / extern names *)
@@ -279,6 +286,8 @@ in
   fun intrn_tycons spaces T =
     map_typ I (mapping (intrn spaces typeK) add_typ_tycons T) T;
 
+  val intern = intrn o spaces_of;
+  val extern = intrn o spaces_of;
   val intern_class = intrn_class o spaces_of;
   val extern_class = extrn_class o spaces_of;
   val intern_sort = intrn_sort o spaces_of;
@@ -292,6 +301,7 @@ in
   fun intern_const sg = intrn (spaces_of sg) constK;
   val intern_tycons = intrn_tycons o spaces_of;
 
+  fun full_name (Sg {path, ...}) = full path;
 end;
 
 
@@ -339,12 +349,13 @@ fun print_sg sg =
       [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ ty];
 
     val Sg {tsig, const_tab, syn = _, path, spaces, stamps} = sg;
+    val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
     Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
-    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces));
+    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces'));
     Pretty.writeln (pretty_classes classes);
     Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel classrel));
     Pretty.writeln (pretty_default default);
@@ -496,9 +507,10 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 fun infer_types sg def_type def_sort used freeze (ts, T) =
   let
     val Sg {tsig, ...} = sg;
-    val prt = setmp Syntax.show_brackets true
-      (fn _ => setmp long_names true pretty_term sg) ();
-    val prT = pretty_typ sg;
+    val prt =
+      setmp Syntax.show_brackets true
+        (setmp long_names true (pretty_term sg));
+    val prT = setmp long_names true (pretty_typ sg);
     val infer = Type.infer_types prt prT tsig (const_type sg) def_type def_sort
       (intern_const sg) (intern_tycons sg) (intern_sort sg) used freeze;
 
@@ -546,7 +558,7 @@ fun infer_types sg def_type def_sort used freeze (ts, T) =
 (** signature extension functions **)  (*exception ERROR*)
 
 fun decls_of path name_of mfixs =
-  map (fn (x, y, mx) => (full_name path (name_of x mx), y)) mfixs;
+  map (fn (x, y, mx) => (full path (name_of x mx), y)) mfixs;
 
 fun no_read _ _ _ decl = decl;
 
@@ -581,7 +593,7 @@ fun ext_abbrs rd_abbr (syn, tsig, ctab, (path, spaces)) abbrs =
 
     val abbrs' =
       map (fn (t, vs, rhs, mx) =>
-        (full_name path (Syntax.type_name t mx), vs, rhs)) abbrs;
+        (full path (Syntax.type_name t mx), vs, rhs)) abbrs;
     val spaces' = add_names spaces typeK (map #1 abbrs');
     val decls = map (rd_abbr syn' tsig spaces') abbrs';
   in
@@ -609,7 +621,7 @@ fun ext_arities int (syn, tsig, ctab, (path, spaces)) arities =
 (* add term constants and syntax *)
 
 fun const_name path c mx =
-  full_name path (Syntax.const_name c mx);
+  full path (Syntax.const_name c mx);
 
 fun err_in_const c =
   error ("in declaration of constant " ^ quote c);
@@ -667,7 +679,7 @@ fun ext_classes int (syn, tsig, ctab, (path, spaces)) classes =
     val consts =
       map (fn c => (const_of_class c, a_itselfT --> propT, NoSyn)) names;
 
-    val full_names = map (full_name path) names;
+    val full_names = map (full path) names;
     val spaces' = add_names spaces classK full_names;
     val intrn = if int then map (intrn_class spaces') else I;
     val classes' =
@@ -833,14 +845,14 @@ val proto_pure =
   |> add_modesyntax (("symbols", true), Syntax.pure_sym_syntax)
   |> add_trfuns Syntax.pure_trfuns
   |> add_trfunsT Syntax.pure_trfunsT
+  |> add_syntax
+   [("==>", "[prop, prop] => prop", Delimfix "op ==>")]
   |> add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
     ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
     ("==>", "[prop, prop] => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("TYPE", "'a itself", NoSyn)]
-  |> add_syntax
-   [("==>", "[prop, prop] => prop", Delimfix "op ==>")]
   |> add_name "ProtoPure";
 
 val pure = proto_pure
