@@ -10,10 +10,10 @@ theory Group = Main:;
 subsection {* Groups and calculational reasoning *}; 
 
 text {*
- We define an axiomatic type class of groups over signature $({\times}
- :: \alpha \To \alpha \To \alpha, \idt{one} :: \alpha, \idt{inv} ::
- \alpha \To \alpha)$.  Note that the parent class $\idt{times}$ is
- provided by the basic HOL theory.
+ Groups over signature $({\times} :: \alpha \To \alpha \To \alpha,
+ \idt{one} :: \alpha, \idt{inv} :: \alpha \To \alpha)$ are defined as
+ an axiomatic type class as follows.  Note that the parent class
+ $\idt{times}$ is provided by the basic HOL theory.
 *};
 
 consts

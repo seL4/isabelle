@@ -3,15 +3,17 @@
     Author:     Markus Wenzel
 
 Wellfoundedness proof for the multiset order.
-
-Original tactic script by Tobias Nipkow (see also
-HOL/Induct/Multiset).  Pen-and-paper proof by Wilfried Buchholz.
 *)
 
 header {* Wellfoundedness of multiset ordering *};
 
 theory MultisetOrder = Multiset:;
 
+text_raw {*
+ \footnote{Original tactic script by Tobias Nipkow (see also
+ \url{http://isabelle.in.tum.de/library/HOL/Induct/Multiset.html}),
+ based on a pen-and-paper proof due to Wilfried Buchholz.}
+*};
 
 subsection {* A technical lemma *};
 

@@ -2,18 +2,18 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen (Isar document)
                 Lawrence C Paulson, Cambridge University Computer Laboratory (original scripts)
-
-The Mutilated Checker Board Problem, formalized inductively.
-  Originator is Max Black, according to J A Robinson.
-  Popularized as the Mutilated Checkerboard Problem by J McCarthy.
-
-See also HOL/Induct/Mutil for the original Isabelle tactic scripts.
 *)
 
 header {* The Mutilated Checker Board Problem *};
 
 theory MutilatedCheckerboard = Main:;
 
+text {*
+ The Mutilated Checker Board Problem, formalized inductively.  See
+ \cite{paulson-mutilated-board} and
+ \url{http://isabelle.in.tum.de/library/HOL/Induct/Mutil.html} for the
+ original tactic script version.
+*};
 
 subsection {* Tilings *};
 

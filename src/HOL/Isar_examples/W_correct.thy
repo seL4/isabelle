@@ -3,12 +3,16 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Correctness of Milner's type inference algorithm W (let-free version).
-Based upon HOL/W0 by Dieter Nazareth and Tobias Nipkow.
 *)
 
 header {* Milner's type inference algorithm~W (let-free version) *};
 
 theory W_correct = Main + Type:;
+
+text_raw {*
+  \footnote{Based upon \url{http://isabelle.in.tum.de/library/HOL/W0}
+  by Dieter Nazareth and Tobias Nipkow.}
+*};
 
 
 subsection "Mini ML with type inference rules";
