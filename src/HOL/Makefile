@@ -225,8 +225,8 @@ Lex:	$(BIN)/HOL  $(LEX_FILES)
 	fi
 
 ##Miscellaneous examples
-EX_NAMES = String BT Perm Comb InSort Qsort LexProd \
-	   Puzzle Mutil Primes NatSum SList LList Acc PropLog Term Simult MT
+EX_NAMES = String BT Perm Comb InSort Qsort LexProd Puzzle Mutil \
+	   Primes NatSum SList LList LFilter Acc PropLog Term Simult MT
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
