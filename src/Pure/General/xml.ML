@@ -57,7 +57,7 @@ datatype tree =
     Elem of string * (string * string) list * tree list
   | Text of string;
 
-fun attribute (a, x) = a ^ " = " ^ "\"" (text x) "\"";
+fun attribute (a, x) = a ^ " = \"" ^ (text x) ^ "\"";
 
 fun element name atts cs =
   let val elem = space_implode " " (name :: map attribute atts) in
