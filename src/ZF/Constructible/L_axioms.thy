@@ -800,4 +800,220 @@ theorem is_function_reflection [simplified,intro]:
 by (simp only: is_function_def setclass_simps, fast)
 
 
+subsubsection{*Typed Functions*}
+
+(* "typed_function(M,A,B,r) == 
+        is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
+        (\<forall>u[M]. u\<in>r --> (\<forall>x[M]. \<forall>y[M]. pair(M,x,y,u) --> y\<in>B))" *)
+
+constdefs typed_function_fm :: "[i,i,i]=>i"
+    "typed_function_fm(A,B,r) == 
+       And(function_fm(r),
+         And(relation_fm(r),
+           And(domain_fm(r,A),
+             Forall(Implies(Member(0,succ(r)),
+                  Forall(Forall(Implies(pair_fm(1,0,2),Member(0,B#+3)))))))))"
+
+lemma typed_function_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> typed_function_fm(x,y,z) \<in> formula"
+by (simp add: typed_function_fm_def) 
+
+lemma arity_typed_function_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(typed_function_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: typed_function_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_typed_function_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, typed_function_fm(x,y,z), env) <-> 
+        typed_function(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: typed_function_fm_def typed_function_def)
+
+lemma typed_function_iff_sats:
+  "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+      i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+   ==> typed_function(**A, x, y, z) <-> sats(A, typed_function_fm(i,j,k), env)"
+by simp
+
+theorem typed_function_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. typed_function(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. typed_function(**Lset(i),f(x),g(x),h(x)))"
+by (simp only: typed_function_def setclass_simps, fast)
+
+
+
+subsubsection{*Injections*}
+
+(* "injection(M,A,B,f) == 
+	typed_function(M,A,B,f) &
+        (\<forall>x[M]. \<forall>x'[M]. \<forall>y[M]. \<forall>p[M]. \<forall>p'[M]. 
+          pair(M,x,y,p) --> pair(M,x',y,p') --> p\<in>f --> p'\<in>f --> x=x')" *)
+constdefs injection_fm :: "[i,i,i]=>i"
+ "injection_fm(A,B,f) == 
+    And(typed_function_fm(A,B,f),
+       Forall(Forall(Forall(Forall(Forall(
+         Implies(pair_fm(4,2,1),
+                 Implies(pair_fm(3,2,0),
+                         Implies(Member(1,f#+5),
+                                 Implies(Member(0,f#+5), Equal(4,3)))))))))))"
+
+
+lemma injection_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> injection_fm(x,y,z) \<in> formula"
+by (simp add: injection_fm_def) 
+
+lemma arity_injection_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(injection_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: injection_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_injection_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, injection_fm(x,y,z), env) <-> 
+        injection(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: injection_fm_def injection_def)
+
+lemma injection_iff_sats:
+  "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+      i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+   ==> injection(**A, x, y, z) <-> sats(A, injection_fm(i,j,k), env)"
+by simp
+
+theorem injection_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. injection(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. injection(**Lset(i),f(x),g(x),h(x)))"
+by (simp only: injection_def setclass_simps, fast)
+
+
+subsubsection{*Surjections*}
+
+(*  surjection :: "[i=>o,i,i,i] => o"
+    "surjection(M,A,B,f) == 
+        typed_function(M,A,B,f) &
+        (\<forall>y[M]. y\<in>B --> (\<exists>x[M]. x\<in>A & fun_apply(M,f,x,y)))" *)
+constdefs surjection_fm :: "[i,i,i]=>i"
+ "surjection_fm(A,B,f) == 
+    And(typed_function_fm(A,B,f),
+       Forall(Implies(Member(0,succ(B)),
+                      Exists(And(Member(0,succ(succ(A))),
+                                 fun_apply_fm(succ(succ(f)),0,1))))))"
+
+lemma surjection_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> surjection_fm(x,y,z) \<in> formula"
+by (simp add: surjection_fm_def) 
+
+lemma arity_surjection_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(surjection_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: surjection_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_surjection_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, surjection_fm(x,y,z), env) <-> 
+        surjection(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: surjection_fm_def surjection_def)
+
+lemma surjection_iff_sats:
+  "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+      i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+   ==> surjection(**A, x, y, z) <-> sats(A, surjection_fm(i,j,k), env)"
+by simp
+
+theorem surjection_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. surjection(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. surjection(**Lset(i),f(x),g(x),h(x)))"
+by (simp only: surjection_def setclass_simps, fast)
+
+
+
+subsubsection{*Bijections*}
+
+(*   bijection :: "[i=>o,i,i,i] => o"
+    "bijection(M,A,B,f) == injection(M,A,B,f) & surjection(M,A,B,f)" *)
+constdefs bijection_fm :: "[i,i,i]=>i"
+ "bijection_fm(A,B,f) == And(injection_fm(A,B,f), surjection_fm(A,B,f))"
+
+lemma bijection_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> bijection_fm(x,y,z) \<in> formula"
+by (simp add: bijection_fm_def) 
+
+lemma arity_bijection_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(bijection_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: bijection_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_bijection_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, bijection_fm(x,y,z), env) <-> 
+        bijection(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: bijection_fm_def bijection_def)
+
+lemma bijection_iff_sats:
+  "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+      i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+   ==> bijection(**A, x, y, z) <-> sats(A, bijection_fm(i,j,k), env)"
+by simp
+
+theorem bijection_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. bijection(L,f(x),g(x),h(x)), 
+                    \<lambda>i x. bijection(**Lset(i),f(x),g(x),h(x)))"
+by (simp only: bijection_def setclass_simps, fast)
+
+
+
+subsubsection{*Order-Isomorphisms*}
+
+(*  order_isomorphism :: "[i=>o,i,i,i,i,i] => o"
+   "order_isomorphism(M,A,r,B,s,f) == 
+        bijection(M,A,B,f) & 
+        (\<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A -->
+          (\<forall>p[M]. \<forall>fx[M]. \<forall>fy[M]. \<forall>q[M].
+            pair(M,x,y,p) --> fun_apply(M,f,x,fx) --> fun_apply(M,f,y,fy) --> 
+            pair(M,fx,fy,q) --> (p\<in>r <-> q\<in>s))))"
+  *)
+
+constdefs order_isomorphism_fm :: "[i,i,i,i,i]=>i"
+ "order_isomorphism_fm(A,r,B,s,f) == 
+   And(bijection_fm(A,B,f), 
+     Forall(Implies(Member(0,succ(A)),
+       Forall(Implies(Member(0,succ(succ(A))),
+         Forall(Forall(Forall(Forall(
+           Implies(pair_fm(5,4,3),
+             Implies(fun_apply_fm(f#+6,5,2),
+               Implies(fun_apply_fm(f#+6,4,1),
+                 Implies(pair_fm(2,1,0), 
+                   Iff(Member(3,r#+6), Member(0,s#+6)))))))))))))))"
+
+lemma order_isomorphism_type [TC]:
+     "[| A \<in> nat; r \<in> nat; B \<in> nat; s \<in> nat; f \<in> nat |]  
+      ==> order_isomorphism_fm(A,r,B,s,f) \<in> formula"
+by (simp add: order_isomorphism_fm_def) 
+
+lemma arity_order_isomorphism_fm [simp]:
+     "[| A \<in> nat; r \<in> nat; B \<in> nat; s \<in> nat; f \<in> nat |] 
+      ==> arity(order_isomorphism_fm(A,r,B,s,f)) = 
+          succ(A) \<union> succ(r) \<union> succ(B) \<union> succ(s) \<union> succ(f)" 
+by (simp add: order_isomorphism_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_order_isomorphism_fm [simp]:
+   "[| U \<in> nat; r \<in> nat; B \<in> nat; s \<in> nat; f \<in> nat; env \<in> list(A)|]
+    ==> sats(A, order_isomorphism_fm(U,r,B,s,f), env) <-> 
+        order_isomorphism(**A, nth(U,env), nth(r,env), nth(B,env), 
+                               nth(s,env), nth(f,env))"
+by (simp add: order_isomorphism_fm_def order_isomorphism_def)
+
+lemma order_isomorphism_iff_sats:
+  "[| nth(i,env) = U; nth(j,env) = r; nth(k,env) = B; nth(j',env) = s; 
+      nth(k',env) = f; 
+      i \<in> nat; j \<in> nat; k \<in> nat; j' \<in> nat; k' \<in> nat; env \<in> list(A)|]
+   ==> order_isomorphism(**A,U,r,B,s,f) <-> 
+       sats(A, order_isomorphism_fm(i,j,k,j',k'), env)" 
+by simp
+
+theorem order_isomorphism_reflection [simplified,intro]:
+     "L_Reflects(?Cl, \<lambda>x. order_isomorphism(L,f(x),g(x),h(x),g'(x),h'(x)), 
+               \<lambda>i x. order_isomorphism(**Lset(i),f(x),g(x),h(x),g'(x),h'(x)))"
+by (simp only: order_isomorphism_def setclass_simps, fast)
+
+
 end
