@@ -14,12 +14,13 @@ sig
   val null: 'a table
   val is_null: 'a table -> bool
   val lookup: 'a table * string -> 'a option
+  val find_first: (string * 'a -> bool) -> 'a table -> (string * 'a) option
   val update: (string * 'a) * 'a table -> 'a table
   val update_new: (string * 'a) * 'a table -> 'a table
-  val mapst: ('a -> 'a) -> 'a table -> 'a table
-  val alist_of: 'a table -> (string * 'a) list
+  val map: ('a -> 'b) -> 'a table -> 'b table
+  val alist_of: 'a table -> (string * 'a) list  (*obsolete*)
   val balance: 'a table -> 'a table
-  val st_of_alist: (string * 'a) list * 'a table -> 'a table
+  val st_of_alist: (string * 'a) list * 'a table -> 'a table  (*obsolete*)
   val st_of_declist: (string list * 'a) list * 'a table -> 'a table
   val make: (string * 'a) list -> 'a table
   val dest: 'a table -> (string * 'a) list
@@ -56,6 +57,15 @@ fun lookup (symtab: 'a table, key: string) : 'a option =
   in look symtab end;
 
 
+fun find_first _ Tip = None
+  | find_first pred (Branch (key, entry, left, right)) =
+      (case find_first pred left of
+        None =>
+          if pred (key, entry) then Some (key, entry)
+          else find_first pred right
+      | some => some);
+
+
 (*update, allows overwriting of an entry*)
 fun update ((key: string, entry: 'a), symtab : 'a table)
   : 'a table =
@@ -76,14 +86,6 @@ fun update_new ((key: string, entry: 'a), symtab : 'a table)
             else if key' < key then Branch (key', entry', left, upd right)
             else  raise DUPLICATE(key)
   in  upd symtab  end;
-
-
-(*Similar to map this applies a function f to every entry in symtab*)
-fun mapst f symtab =
-  let fun apply Tip = Tip
-        | apply (Branch (key, entry, left, right)) =
-            Branch (key, f entry, apply left, apply right);
-  in apply symtab end;
 
 
 (*conversion of symbol table to sorted association list*)
@@ -166,6 +168,12 @@ fun make_multi alst =
 fun dest_multi tab =
   flat (map (fn (key, entries) => map (pair key) entries) (dest tab));
 
+
+(* map tables *)
+
+fun map _ Tip = Tip
+  | map f (Branch (key, entry, left, right)) =
+      Branch (key, f entry, map f left, map f right);
 
 end;
 
