@@ -45,10 +45,18 @@ val skolem_tag = oct_char "357";
 
 fun tagit p x = (p ^ x ^ end_tag, real (Symbol.length (Symbol.explode x)));
 
-fun unless_skolem tag x =
+fun free_or_skolem x =
   (case try Syntax.dest_skolem x of
-    None => tagit tag x
+    None => tagit free_tag x
   | Some x' => tagit skolem_tag x');
+
+fun var_or_skolem s =
+  (case Syntax.read_var s of
+    Var ((x, i), _) =>
+      (case try Syntax.dest_skolem x of
+        None => tagit var_tag s
+      | Some x' => tagit skolem_tag (Syntax.string_of_vname (x', i)))
+  | _ => tagit var_tag s);
 
 in
 
@@ -57,9 +65,9 @@ val proof_general_trans =
   [("class", tagit tclass_tag),
    ("tfree", tagit tfree_tag),
    ("tvar", tagit tvar_tag),
-   ("free", unless_skolem free_tag),
+   ("free", free_or_skolem),
    ("bound", tagit bound_tag),
-   ("var", unless_skolem var_tag)];
+   ("var", var_or_skolem)];
 
 end;
 
