@@ -56,23 +56,22 @@ qed "map_append";
 
 val prems = goal Stream.thy 
         "[| k:Lists(A); l:Lists(A); m:Lists(A) |] ==> k @ l @ m = (k @ l) @ m";
-by (eq_coinduct3_tac "{p. EX x y.p=<x,y> & (EX k:Lists(A).EX l:Lists(A).EX m:Lists(A). \
-\                                                   x=k @ l @ m & y=(k @ l) @ m)}"  1);
+by (eq_coinduct3_tac 
+    "{p. EX x y.p=<x,y> & (EX k:Lists(A).EX l:Lists(A).EX m:Lists(A). \
+\                          x=k @ l @ m & y=(k @ l) @ m)}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
 be (XH_to_E ListsXH) 1;
 by (EQgen_tac list_ss [] 1);
-be (XH_to_E ListsXH) 1;back();
-by (EQgen_tac list_ss [] 1);
-be (XH_to_E ListsXH) 1;
-by (EQgen_tac list_ss [] 1);
-by (fast_tac ccl_cs 1);
+by (fast_tac ccl_cs 2);
+by (DEPTH_SOLVE (etac (XH_to_E ListsXH) 1 THEN EQgen_tac list_ss [] 1));
 qed "append_assoc";
 
 (*** Appending anything to an infinite list doesn't alter it ****)
 
 val prems = goal Stream.thy "l:ILists(A) ==> l @ m = l";
-by (eq_coinduct3_tac "{p. EX x y.p=<x,y> & (EX l:ILists(A).EX m.x=l@m & y=l)}" 1);
+by (eq_coinduct3_tac
+    "{p. EX x y.p=<x,y> & (EX l:ILists(A).EX m.x=l@m & y=l)}" 1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac set_cs);
 be (XH_to_E IListsXH) 1;
@@ -96,8 +95,9 @@ br refl 1;
 qed "iter2B";
 
 val [prem] =goal Stream.thy
-   "n:Nat ==> map(f) ^ n ` iter2(f,a) = (f ^ n ` a) $ (map(f) ^ n ` map(f,iter2(f,a)))";
-br (iter2B RS ssubst) 1;back();back();
+   "n:Nat ==> \
+\   map(f) ^ n ` iter2(f,a) = (f ^ n ` a) $ (map(f) ^ n ` map(f,iter2(f,a)))";
+by (res_inst_tac [("P", "%x. ?lhs(x) = ?rhs")] (iter2B RS ssubst) 1);
 by (simp_tac (list_ss addsimps [prem RS nmapBcons]) 1);
 qed "iter2Blemma";
 
