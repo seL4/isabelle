@@ -118,7 +118,7 @@ if [ "$KDE" = true ]; then
   echo "# KDE Config File" > "$KDEAPP" || fail "Cannot write file: $KDEAPP"
   echo "[KDE Desktop Entry]" >> "$KDEAPP"
   echo "Type=Application" >> "$KDEAPP"
-  echo "Exec=$DISTDIR/bin/Isabelle %f" >> "$KDEAPP"
+  echo "Exec=\"$DISTDIR/bin/Isabelle\" %f" >> "$KDEAPP"
   echo "Icon=isabelle.xpm" >> "$KDEAPP"
   echo "TerminalOptions=" >> "$KDEAPP"
   echo "Path=" >> "$KDEAPP"
