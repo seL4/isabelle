@@ -53,6 +53,15 @@ qed_goal "impCE" FOL.thy
   [ (resolve_tac [excluded_middle RS disjE] 1),
     (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ]);
 
+(*This version of --> elimination works on Q before P.  It works best for
+  those cases in which P holds "almost everywhere".  Can't install as
+  default: would break old proofs.*)
+qed_goal "impCE'" thy 
+    "[| P-->Q;  Q ==> R;  ~P ==> R |] ==> R"
+ (fn major::prems=>
+  [ (resolve_tac [excluded_middle RS disjE] 1),
+    (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ]);
+
 (*Double negation law*)
 qed_goal "notnotD" FOL.thy "~~P ==> P"
  (fn [major]=>
