@@ -41,7 +41,7 @@ about that message (which B receives) and the stronger event
 
 header{*The TLS Protocol: Transport Layer Security*}
 
-theory TLS = Public:
+theory TLS = Public + NatPair:
 
 constdefs
   certificate      :: "[agent,key] => msg"
@@ -71,13 +71,25 @@ translations
   "clientK X" == "sessionK(X, ClientRole)"
   "serverK X" == "sessionK(X, ServerRole)"
 
-axioms
+specification (PRF)
+  inj_PRF: "inj PRF"
   --{*the pseudo-random function is collision-free*}
-  inj_PRF:       "inj PRF"
+   apply (rule exI [of _ "%(x,y,z). nat2_to_nat(x, nat2_to_nat(y,z))"])
+   apply (simp add: inj_on_def) 
+   apply (blast dest!: nat2_to_nat_inj [THEN injD]) 
+   done
 
+specification (sessionK)
+  inj_sessionK: "inj sessionK"
   --{*sessionK is collision-free; also, no clientK clashes with any serverK.*}
-  inj_sessionK:  "inj sessionK"	
+   apply (rule exI [of _ 
+         "%((x,y,z), r). nat2_to_nat(role_case 0 1 r, 
+                           nat2_to_nat(x, nat2_to_nat(y,z)))"])
+   apply (simp add: inj_on_def split: role.split) 
+   apply (blast dest!: nat2_to_nat_inj [THEN injD]) 
+   done
 
+axioms
   --{*sessionK makes symmetric keys*}
   isSym_sessionK: "sessionK nonces \<in> symKeys"
 

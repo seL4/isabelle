@@ -45,12 +45,18 @@ translations
   "priK A" == "invKey (pubEK A)"
 
 
-axioms
-  (*By freeness of agents, no two agents have the same key.  Since true\<noteq>false,
-    no agent has identical signing and encryption keys*)
+text{*By freeness of agents, no two agents have the same key.  Since
+  @{term "True\<noteq>False"}, no agent has identical signing and encryption keys*}
+specification (publicKey)
   injective_publicKey:
     "publicKey b A = publicKey c A' ==> b=c & A=A'"
+   apply (rule exI [of _ "%b A. 2 * agent_case 0 (\<lambda>n. n + 2) 1 A + (if b then 1 else 0)"]) 
+   apply (auto simp add: inj_on_def split: agent.split) 
+   apply (drule_tac f="%x. x mod 2" in arg_cong, simp add: mod_Suc)+
+   done                       
 
+
+axioms
   (*No private key equals any public key (essential to ensure that private
     keys are private!) *)
   privateKey_neq_publicKey [iff]: "privateKey b A \<noteq> publicKey c A'"
@@ -115,8 +121,14 @@ are symmetric.*}
 consts
   shrK    :: "agent => key"    --{*long-term shared keys*}
 
+specification (shrK)
+  inj_shrK: "inj shrK"
+  --{*No two agents have the same long-term key*}
+   apply (rule exI [of _ "agent_case 0 (\<lambda>n. n + 2) 1"]) 
+   apply (simp add: inj_on_def split: agent.split) 
+   done
+
 axioms
-  inj_shrK: "inj shrK"	             --{*No two agents have the same key*}
   sym_shrK [iff]: "shrK X \<in> symKeys" --{*All shared keys are symmetric*}
 
 (*Injectiveness: Agents' long-term keys are distinct.*)

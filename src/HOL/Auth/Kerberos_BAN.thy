@@ -34,19 +34,23 @@ consts
     (*Duration of the authenticator*)
     AutLife :: nat
 
-axioms
-    (*The ticket should remain fresh for two journeys on the network at least*)
-    SesKeyLife_LB: "2 <= SesKeyLife"
+text{*The ticket should remain fresh for two journeys on the network at least*}
+specification (SesKeyLife)
+  SesKeyLife_LB [iff]: "2 \<le> SesKeyLife"
+    by blast
 
-    (*The authenticator only for one journey*)
-    AutLife_LB:    "Suc 0 <= AutLife"
+text{*The authenticator only for one journey*}
+specification (AutLife)
+  AutLife_LB [iff]:    "Suc 0 \<le> AutLife"
+    by blast
+
 
 translations
    "CT" == "length"
   
    "Expired T evs" == "SesKeyLife + T < CT evs"
 
-   "RecentAuth T evs" == "CT evs <= AutLife + T"
+   "RecentAuth T evs" == "CT evs \<le> AutLife + T"
 
 consts  kerberos_ban   :: "event list set"
 inductive "kerberos_ban"
@@ -99,9 +103,6 @@ inductive "kerberos_ban"
 declare Says_imp_knows_Spy [THEN parts.Inj, dest] parts.Body [dest]
 declare analz_subset_parts [THEN subsetD, dest]
 declare Fake_parts_insert [THEN subsetD, dest]
-
-declare SesKeyLife_LB [iff] AutLife_LB [iff]
-
 
 (*A "possibility property": there are traces that reach the end.*)
 lemma "\<exists>Timestamp K. \<exists>evs \<in> kerberos_ban.     
@@ -250,7 +251,7 @@ done
 
 lemma analz_image_freshK [rule_format (no_asm)]:
      "evs \<in> kerberos_ban ==>                           
-   \<forall>K KK. KK <= - (range shrK) -->                  
+   \<forall>K KK. KK \<subseteq> - (range shrK) -->                  
           (Key K \<in> analz (Key`KK Un (spies evs))) =   
           (K \<in> KK | Key K \<in> analz (spies evs))"
 apply (erule kerberos_ban.induct)

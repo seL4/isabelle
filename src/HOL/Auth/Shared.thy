@@ -11,14 +11,24 @@ Shared, long-term keys; initial states of agents
 theory Shared = Event:
 
 consts
-  shrK    :: "agent => key"  (*symmetric keys*)
+  shrK    :: "agent => key"  (*symmetric keys*);
 
-axioms
-  isSym_keys: "K \<in> symKeys"	(*All keys are symmetric*)
-  inj_shrK:   "inj shrK"	(*No two agents have the same long-term key*)
+specification (shrK)
+  inj_shrK: "inj shrK"
+  --{*No two agents have the same long-term key*}
+   apply (rule exI [of _ "agent_case 0 (\<lambda>n. n + 2) 1"]) 
+   apply (simp add: inj_on_def split: agent.split) 
+   done
 
+text{*All keys are symmetric*}
+
+defs  all_symmetric_def: "all_symmetric == True"
+
+lemma isSym_keys: "K \<in> symKeys"	
+by (simp add: symKeys_def all_symmetric_def invKey_cases) 
+
+text{*Server knows all long-term keys; other agents know only their own*}
 primrec
-        (*Server knows all long-term keys; other agents know only their own*)
   initState_Server:  "initState Server     = Key ` range shrK"
   initState_Friend:  "initState (Friend i) = {Key (shrK (Friend i))}"
   initState_Spy:     "initState Spy        = Key`shrK`bad"

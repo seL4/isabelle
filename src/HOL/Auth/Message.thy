@@ -19,13 +19,20 @@ types
   key = nat
 
 consts
-  invKey :: "key=>key"
+  all_symmetric :: bool        --{*true if all keys are symmetric*}
+  invKey        :: "key=>key"  --{*inverse of a symmetric key*}
 
-axioms
-  invKey [simp] : "invKey (invKey K) = K"
+specification (invKey)
+  invKey_cases: "(\<forall>K. invKey(invKey K) = K) & (all_symmetric --> invKey = id)"
+    by (rule exI [of _ id], auto)
 
-  (*The inverse of a symmetric key is itself;
-    that of a public key is the private key and vice versa*)
+
+lemma invKey [simp]: "invKey (invKey K) = K"
+by (simp add: invKey_cases)
+
+
+text{*The inverse of a symmetric key is itself; that of a public key
+      is the private key and vice versa*}
 
 constdefs
   symKeys :: "key set"
@@ -764,7 +771,7 @@ declare parts.Body [rule del]
 
 ML
 {*
-(*ML bindings for definitions and axioms*)
+(*ML bindings for definitions*)
 
 val invKey = thm "invKey"
 val keysFor_def = thm "keysFor_def"

@@ -26,18 +26,21 @@ consts
   knows  :: "agent => event list => msg set"
 
 
-(*"spies" is retained for compatibility's sake*)
+text{*The constant "spies" is retained for compatibility's sake*}
 syntax
   spies  :: "event list => msg set"
 
 translations
   "spies"   => "knows Spy"
 
+text{*Spy has access to his own key for spoof messages, but Server is secure*}
+specification (bad)
+  bad_properties: "Spy \<in> bad & Server \<notin> bad"
+    by (rule exI [of _ "{Spy}"], simp)
 
-axioms
-  (*Spy has access to his own key for spoof messages, but Server is secure*)
-  Spy_in_bad     [iff] :    "Spy \<in> bad"
-  Server_not_bad [iff] : "Server \<notin> bad"
+lemmas Spy_in_bad = bad_properties [THEN conjunct1, iff]
+lemmas Server_not_bad = bad_properties [THEN conjunct2, iff]
+
 
 primrec
   knows_Nil:   "knows A [] = initState A"

@@ -12,7 +12,9 @@ theory Puzzle = Main:
 
 consts f :: "nat => nat"
 
-axioms  f_ax [intro!]: "f(f(n)) < f(Suc(n))"
+specification (f)
+  f_ax [intro!]: "f(f(n)) < f(Suc(n))"
+    by (rule exI [of _ id], simp)
 
 
 lemma lemma0 [rule_format]: "\<forall>n. k=f(n) --> n <= f(n)"
