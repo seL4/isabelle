@@ -16,7 +16,7 @@ fun mk_frees a [] = []
 (*Make a definition lhs==rhs*)
 fun mk_defpair (lhs, rhs) = 
   let val Const(name, _) = head_of lhs
-  in (name ^ "_def", Logic.mk_equals (lhs, rhs)) end;
+  in (Sign.base_name name ^ "_def", Logic.mk_equals (lhs, rhs)) end;
 
 fun get_def thy s = get_axiom thy (s^"_def");
 
