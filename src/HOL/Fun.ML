@@ -262,6 +262,36 @@ Goal "f -`` (f `` A) = {y. EX x:A. f x = f y}";
 by (blast_tac (claset() addIs [sym]) 1);
 qed "vimage_image_eq";
 
+Goal "f `` (f -`` A) <= A";
+by (Blast_tac 1);
+qed "image_vimage_subset";
+
+Goal "f `` (f -`` A) = A Int range f";
+by (Blast_tac 1);
+qed "image_vimage_eq";
+Addsimps [image_vimage_eq];
+
+Goal "surj f ==> f `` (f -`` A) = A";
+by (asm_simp_tac (simpset() addsimps [surj_range]) 1);
+qed "surj_image_vimage_eq";
+
+Goalw [inj_on_def] "inj f ==> f -`` (f `` A) = A";
+by (Blast_tac 1);
+qed "inj_vimage_image_eq";
+
+Goalw [surj_def] "surj f ==> f -`` B <= A ==> B <= f `` A";
+by (blast_tac (claset() addIs [sym]) 1);
+qed "vimage_subsetD";
+
+Goalw [inj_on_def] "inj f ==> B <= f `` A ==> f -`` B <= A";
+by (Blast_tac 1);
+qed "vimage_subsetI";
+
+Goalw [bij_def] "bij f ==> (f -`` B <= A) = (B <= f `` A)";
+by (blast_tac (claset() delrules [subsetI]
+			addIs [vimage_subsetI, vimage_subsetD]) 1);
+qed "vimage_subset_eq";
+
 Goal "f``(A Int B) <= f``A Int f``B";
 by (Blast_tac 1);
 qed "image_Int_subset";
