@@ -213,6 +213,23 @@ by (Simp_tac 1);
 qed "finite_converse";
 AddIffs [finite_converse];
 
+(* A bounded set of natural numbers is finite *)
+Goal "!N. (!i:N. i<(n::nat)) --> finite N";
+by(induct_tac "n" 1);
+ by(Simp_tac 1);
+by(asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
+br allI 1;
+by(case_tac "n : N" 1);
+ by(ftac insert_Diff 1);
+ by(etac subst 1);
+ br impI 1;
+ br (finite_insert RS iffD2) 1;
+ by(EVERY1[etac allE, etac mp]);
+ by(Blast_tac 1);
+by(Blast_tac 1);
+qed_spec_mp "bounded_nat_set_is_finite";
+
+
 section "Finite cardinality -- 'card'";
 
 (* Ugly proofs for the traditional definition 
