@@ -15,7 +15,6 @@ function usage()
   echo "Usage: $PRG LOGIC NAME"
   echo
   echo "  Options are:"
-  echo "    -B           build mode with THIS_IS_ISABELLE_BUILD indication"
   echo "    -P PATH      set path for remote theory browsing information"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
@@ -47,14 +46,9 @@ RPATH=""
 function getoptions()
 {
   OPTIND=1
-  while getopts "BP:bc:d:i:rs:" OPT
+  while getopts "P:bc:d:i:rs:" OPT
   do
     case "$OPT" in
-      B)
-        BUILD=true
-        unset ISABELLE_SETTINGS_PRESENT
-        export THIS_IS_ISABELLE_BUILD=true
-        ;;
       b)
         BUILD=true
         ;;
