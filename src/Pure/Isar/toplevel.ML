@@ -3,16 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The Isabelle/Isar toplevel.
-
-TODO:
-  - cleanup this file:
-      . more internal locality;
-      . clearer structure of control flow (exceptions, interrupts);
-      . clear division with outer_syntax.ML (!?);
-  - improve transactions; only in interactive mode!
-  - init / exit proof;
-  - display stack size in prompt (prompt: state -> string (hook));
-  - excursion: more robust checking of begin / end theory match (including correct name);
 *)
 
 signature TOPLEVEL =
@@ -25,7 +15,7 @@ sig
   val print_state_fn: (state -> unit) ref
   val print_state: state -> unit
   val node_of: state -> node
-  val node_cases: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
+  val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
   val proof_of: state -> Proof.state
@@ -44,10 +34,6 @@ sig
   val exit: transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
   val init_theory: (unit -> theory) -> (theory -> unit) -> transition -> transition
-(* FIXME
-  val init_proof: (theory -> ProofHistory.T) -> transition -> transition
-  val exit_proof: (ProofHistory.T -> unit) -> transition -> transition
-*)
   val theory: (theory -> theory) -> transition -> transition
   val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val theory_to_proof: (theory -> ProofHistory.T) -> transition -> transition
@@ -121,14 +107,21 @@ fun print_state state = ! print_state_fn state;
 fun node_of (State []) = raise UNDEF
   | node_of (State ((node, _) :: _)) = node;
 
-fun node_cases f g state =
+fun node_case f g state =
   (case node_of state of
     Theory thy => f thy
   | Proof prf => g (ProofHistory.current prf));
 
-val theory_of = node_cases I Proof.theory_of;
+val theory_of = node_case I Proof.theory_of;
 val sign_of = Theory.sign_of o theory_of;
-val proof_of = node_cases (fn _ => raise UNDEF) I;
+val proof_of = node_case (fn _ => raise UNDEF) I;
+
+fun is_stale state =
+  Sign.is_stale (node_case Theory.sign_of Proof.sign_of state) handle UNDEF => false;
+
+fun backup (State ((Theory thy, exit) :: nodes)) =
+      State ((Theory (PureThy.backup thy), exit) :: nodes)
+  | backup state = state;
 
 
 
@@ -222,8 +215,7 @@ fun imperative f = keep (fn _ => f ());
 fun init_theory f g =
   init (fn _ => Theory (f ())) (fn Theory thy => g thy | _ => raise UNDEF);
 
-fun theory f = map_current
-  (fn Theory thy => Theory (PureThy.transaction f thy) | _ => raise UNDEF);
+fun theory f = map_current (fn Theory thy => Theory (f thy) | _ => raise UNDEF);
 fun proof f = map_current (fn Proof prf => Proof (f prf) | _ => raise UNDEF);
 
 fun theory_to_proof f = map_current (fn Theory thy => Proof (f thy) | _ => raise UNDEF);
@@ -291,17 +283,15 @@ fun transform_interrupt_isar f x =
 (* the dreaded stale signatures *)
 
 fun check_stale state =
-  (case try theory_of state of
-    None => ()
-  | Some thy =>
-      if Sign.is_stale (Theory.sign_of thy) then
-        warning "Stale signature encountered!  Should redo current theory from start."
-      else ());
+  if not (is_stale state) then ()
+  else warning "Stale signature encountered!  Should redo current theory from start.";
 
 
 (* apply transitions *)
 
-fun app int (tr as Transition {trans, int_only, print, ...}) state =
+local
+
+fun ap int (tr as Transition {trans, int_only, print, ...}) state =
   let
     val _ =
       if int orelse not int_only then ()
@@ -313,25 +303,35 @@ fun app int (tr as Transition {trans, int_only, print, ...}) state =
     val _ = if int andalso print then print_state state' else ();
   in state' end;
 
-fun rollback tr copy_thy (State ((Theory _, g) :: nodes)) =
-      (warning (command_msg "Rollback after " tr); State ((Theory copy_thy, g) :: nodes))
-  | rollback tr _ state =
-      (warning (command_msg "Ignoring rollback theory copy from " tr); state);
+fun app int tr state =
+  let
+    val back_state = backup state;
+    fun rollback st =
+      if not (is_stale st) then st
+      else (warning (command_msg "Rollback after " tr); back_state);
+  in
+    (rollback (transform_interrupt_state (transform_error (ap int tr)) state), None)
+      handle exn => (rollback state, Some exn)
+  end;
+
+in
 
 fun apply int tr state =
-  Some (transform_interrupt_state (transform_error (app int tr)) state, None)
-    handle
-      TERMINATE => None
-    | RESTART => Some (toplevel, None)
-    | FAIL (exn_info as (BREAK break_state, _)) =>
-        Some (append_states break_state state, Some exn_info)
-    | FAIL exn_info => Some (state, Some exn_info)
-    | PureThy.ROLLBACK (copy_thy, opt_exn) =>
-        Some (rollback tr copy_thy state, apsome (fn exn => (exn, at_command tr)) opt_exn)
-    | exn => Some (state, Some (exn, at_command tr));
+  (case app int tr state of
+    (state', None) => Some (state', None)
+  | (_, Some TERMINATE) => None
+  | (_, Some RESTART) => Some (toplevel, None)
+  | (state', Some (FAIL (exn_info as (BREAK break_state, _)))) =>
+      Some (append_states break_state state', Some exn_info)
+  | (state', Some (FAIL exn_info)) => Some (state', Some exn_info)
+  | (state', Some exn) => Some (state', Some (exn, at_command tr)));
+
+end;
 
 
 (* excursion: toplevel -- apply transformers -- toplevel *)
+
+local
 
 fun excur [] x = x
   | excur (tr :: trs) x =
@@ -340,10 +340,14 @@ fun excur [] x = x
       | Some (x', Some exn_info) => raise FAIL exn_info
       | None => raise FAIL (TERMINATE, at_command tr));
 
+in
+
 fun excursion trs =
   (case excur trs (State []) of
     State [] => ()
   | _ => raise ERROR_MESSAGE "Open block(s) pending at end of input");
+
+end;
 
 
 
