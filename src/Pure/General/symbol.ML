@@ -29,7 +29,7 @@ sig
   val is_ascii_blank: symbol -> bool
   val is_raw: symbol -> bool
   val decode_raw: symbol -> string
-  val encode_raw: string -> symbol list
+  val encode_raw: string -> string
   datatype sym = Char of string | Sym of string | Ctrl of string | Raw of string
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
@@ -47,11 +47,11 @@ sig
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
+  val escape: string -> string
   val strip_blanks: string -> string
   val bump_init: string -> string
   val bump_string: string -> string
   val length: symbol list -> int
-  val plain_output: string -> string
   val default_output: string -> string * real
   val default_indent: string * int -> string
   val default_raw: string -> string
@@ -75,11 +75,6 @@ struct
 
   Output is subject to the print_mode variable (default: verbatim),
   actual interpretation in display is up to front-end tools.
-
-  Proper symbols may optionally start with "\\" instead of just "\"
-  for compatibility with ML string literals (e.g. used in old-style
-  theory files and ML proof scripts).  To be on the safe side, the
-  default output of these symbols will start with the double "\\".
 *)
 
 type symbol = string;
@@ -147,8 +142,8 @@ fun encode_raw str =
       | enc ([], d :: ds) = raw2 d :: encode ds
       | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
   in
-    if exists_string (not o raw_chr) str then encode (explode str)
-    else [enclose "\\<^raw:" ">" str]
+    if exists_string (not o raw_chr) str then implode (encode (explode str))
+    else enclose "\\<^raw:" ">" str
   end;
 
 
@@ -425,6 +420,11 @@ fun sym_explode str =
   end;
 
 
+(* escape *)
+
+val escape = implode o map (fn s => if is_char s then s else "\\" ^ s) o sym_explode;
+
+
 (* blanks *)
 
 fun strip_blanks s =
@@ -460,7 +460,21 @@ fun bump_string str =
 
 
 
-(** symbol output **)
+(** print modes **)
+
+(* default *)
+
+fun default_output s = (s, real (size s));
+fun default_indent (_: string, k) = spaces k;
+fun default_raw (s: string) = s;
+
+val _ = Output.add_mode "" (default_output, default_indent, default_raw);
+
+
+(* xsymbols *)
+
+val symbolsN = "symbols";    (*legacy!*)
+val xsymbolsN = "xsymbols";
 
 fun sym_len s =
   if not (is_printable s) then 0
@@ -470,39 +484,6 @@ fun sym_len s =
   else 1;
 
 fun sym_length ss = foldl (fn (n, s) => sym_len s + n) (0, ss);
-
-
-(* default output *)
-
-local
-
-fun string_size s = (s, real (size s));
-
-fun sym_output s =
-  if is_char s then s
-  else if is_raw s then decode_raw s
-  else "\\" ^ s;
-
-in
-
-fun default_output s =
-  if not (exists_string (equal "\\") s) then string_size s
-  else string_size (implode (map sym_output (sym_explode s)));
-
-end;
-
-val plain_output = #1 o default_output;
-
-fun default_indent (_: string, k) = spaces k;
-val default_raw = implode o encode_raw;
-
-val _ = Output.add_mode "" (default_output, default_indent, default_raw);
-
-
-(* print modes *)
-
-val symbolsN = "symbols";
-val xsymbolsN = "xsymbols";
 
 
 (*final declarations of this structure!*)
