@@ -1096,6 +1096,10 @@ disjoint.
 \idx{one_def}        1    == succ(0)
 \idx{bool_def}       bool == {0,1}
 \idx{cond_def}       cond(b,c,d) == if(b=1,c,d)
+\idx{not_def}        not(b) == cond(b,0,1)
+\idx{and_def}        a and b == cond(a,b,0)
+\idx{or_def}         a or b == cond(a,1,b)
+\idx{xor_def}        a xor b == cond(a,not(b),b)
 
 \idx{sum_def}        A+B == \{0\}*A Un \{1\}*B
 \idx{Inl_def}        Inl(a) == <0,a>
@@ -1106,7 +1110,7 @@ disjoint.
 \idx{bool_1I}        1 : bool
 \idx{bool_0I}        0 : bool
 
-\idx{boolE}          [| c: bool;  P(1);  P(0) |] ==> P(c)
+\idx{boolE}          [| c: bool;  c=1 ==> P;  c=0 ==> P |] ==> P
 \idx{cond_1}         cond(1,c,d) = c
 \idx{cond_0}         cond(0,c,d) = d
 
@@ -1256,9 +1260,9 @@ Figure~\ref{zf-equalities} presents commutative, associative, distributive,
 and idempotency laws of union and intersection, along with other equations.
 See file \ttindexbold{ZF/equalities.ML}.
 
-Figure~\ref{zf-sum} defines $\{0,1\}$ as a set of booleans, with a
-conditional operator.  It also defines the disjoint union of two sets, with
-injections and a case analysis operator.  See files
+Figure~\ref{zf-sum} defines $\{0,1\}$ as a set of booleans, with the usual
+operators including a conditional.  It also defines the disjoint union of
+two sets, with injections and a case analysis operator.  See files
 \ttindexbold{ZF/bool.ML} and \ttindexbold{ZF/sum.ML}.
 
 Figure~\ref{zf-qpair} defines a notion of ordered pair that admits
