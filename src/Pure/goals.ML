@@ -14,6 +14,8 @@ signature GOALS =
   type proof
   val atomic_goal	: theory -> string -> thm list
   val atomic_goalw	: theory -> thm list -> string -> thm list
+  val Goal		: string -> thm list
+  val Goalw		: thm list -> string -> thm list
   val ba		: int -> unit
   val back		: unit -> unit
   val bd		: thm -> int -> unit
@@ -30,6 +32,7 @@ signature GOALS =
   val choplev		: int -> unit
   val export_thy        : theory -> thm -> thm
   val export            : thm -> thm
+  val Export		: thm -> thm
   val fa		: unit -> unit
   val fd		: thm -> unit
   val fds		: thm list -> unit
@@ -144,8 +147,7 @@ fun varify th =
 (** exporting a theorem out of a locale means turning all meta-hyps into assumptions
     and expand and cancel the locale definitions. 
     export goes through all levels in case of nested locales, whereas
-    export_thy just goes one up. (Here the version with theory parameter, the real export
-    resides in Thy/context.ML **)
+    export_thy just goes one up. **)
 
 fun get_top_scope_thms thy = 
    let val sc = (Locale.get_scope_sg (sign_of thy))
@@ -177,6 +179,9 @@ fun export_thy thy th =
   end;
 
 val export = standard o Seq.hd o (REPEAT (FIRSTGOAL (rtac reflexive_thm))) o standard;
+
+fun Export th = export_thy (the_context ()) th;
+
 
 (*Common treatment of "goal" and "prove_goal":
   Return assumptions, initial proof state, and function to make result.
@@ -410,9 +415,12 @@ fun agoal atomic thy = agoalw atomic thy [];
 val goal = agoal false;
 
 (*now the versions that wrap the goal up in `Goal' to make it atomic*)
-
 val atomic_goalw = agoalw true;
 val atomic_goal = agoal true;
+
+(*implicit context versions*)
+fun Goal s = atomic_goal (Context.the_context ()) s;
+fun Goalw thms s = atomic_goalw (Context.the_context ()) thms s;
 
 
 (*Proof step "by" the given tactic -- apply tactic to the proof state*)
