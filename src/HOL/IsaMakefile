@@ -638,7 +638,7 @@ HOL-Matrix: HOL $(LOG)/HOL-Matrix.gz
 
 $(LOG)/HOL-Matrix.gz: $(OUT)/HOL Matrix/ROOT.ML \
   Matrix/Matrix.thy Matrix/LinProg.thy Matrix/MatrixGeneral.thy \
-  Matrix/document/root.tex
+  Matrix/SparseMatrix.thy Matrix/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL Matrix
 
 
