@@ -118,7 +118,7 @@
   \item {\tt ccontr} theorem, 66
   \item {\tt classical} theorem, 66
   \item {\tt coinduct} theorem, 44
-  \item {\tt coinductive}, 91--95
+  \item {\tt coinductive}, 92--95
   \item {\tt Collect} constant, 25, 26, 29, 68, 70
   \item {\tt Collect_def} theorem, 30
   \item {\tt Collect_mem_eq} theorem, 70, 71
@@ -184,7 +184,7 @@
 
   \indexspace
 
-  \item {\tt datatype}, 85--91
+  \item {\tt datatype}, 85--92
   \item {\tt deepen_tac}, 16
   \item {\tt diff_0_eq_0} theorem, 123
   \item {\tt Diff_cancel} theorem, 41
@@ -272,6 +272,7 @@
   \item {\tt exCI} theorem, 11, 15, 66
   \item {\tt excluded_middle} theorem, 11, 66
   \item {\tt exE} theorem, 8, 66
+  \item {\tt exhaust_tac}, \bold{88}
   \item {\tt exI} theorem, 8, 66
   \item {\tt exL} theorem, 102
   \item {\tt Exp} theory, 96
@@ -402,7 +403,7 @@
   \item {\tt ind} type, 79
   \item {\tt induct} theorem, 44
   \item {\tt induct_tac}, 80, \bold{86}
-  \item {\tt inductive}, 91--95
+  \item {\tt inductive}, 92--95
   \item {\tt Inf} constant, 25, 29
   \item {\tt infinity} theorem, 31
   \item {\tt inj} constant, 45, 75
@@ -507,7 +508,7 @@
   \item {\tt lfp_Tarski} theorem, 44
   \item {\tt List} theory, 80, 81
   \item {\tt list} constant, 49
-  \item {\tt list} type, 80, 95
+  \item {\tt list} type, 80, 96
   \item {\tt List.induct} theorem, 49
   \item {\tt list_case} constant, 49
   \item {\tt list_mono} theorem, 49
@@ -643,8 +644,8 @@
   \item {\tt Pow_mono} theorem, 52
   \item {\tt PowD} theorem, 33, 53, 73
   \item {\tt PowI} theorem, 33, 53, 73
-  \item primitive recursion, 90--91
-  \item {\tt primrec}, 90--91
+  \item primitive recursion, 90--92
+  \item {\tt primrec}, 90--92
   \item {\tt primrec} symbol, 79
   \item {\tt PrimReplace} constant, 25, 29
   \item priorities, 2
