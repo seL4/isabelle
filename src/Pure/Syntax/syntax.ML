@@ -24,6 +24,14 @@ sig
   include SYN_TRANS1
   include MIXFIX1
   include PRINTER0
+  val extend_trtab: ('a * stamp) Symtab.table -> (string * 'a) list -> string
+    -> ('a * stamp) Symtab.table
+  val merge_trtabs: ('a * stamp) Symtab.table -> ('a * stamp) Symtab.table -> string
+    -> ('a * stamp) Symtab.table
+  val merge_tr'tabs: ('a * stamp) list Symtab.table -> ('a * stamp) list Symtab.table
+    -> ('a * stamp) list Symtab.table
+  val extend_tr'tab: ('a * stamp) list Symtab.table -> (string * 'a) list
+    -> ('a * stamp) list Symtab.table
   datatype 'a trrule =
     ParseRule of 'a * 'a |
     PrintRule of 'a * 'a |
@@ -36,11 +44,10 @@ sig
   val extend_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
-    (string * (term list -> term)) list *
+    (string * (bool -> typ -> term list -> term)) list *
     (string * (ast list -> ast)) list -> syntax -> syntax
-  val extend_trfunsT: (string * (bool -> typ -> term list -> term)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (string -> string * real)) list -> syntax -> syntax
-  val extend_trrules: (string * string) trrule list -> syntax -> syntax
+  val extend_trrules: syntax -> (string * string) trrule list -> syntax -> syntax
   val extend_trrules_i: ast trrule list -> syntax -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val merge_syntaxes: syntax -> syntax -> syntax
@@ -485,12 +492,10 @@ val extend_consts = ext_syntax SynExt.syn_ext_const_names ("", true);
 
 val extend_trfuns = ext_syntax SynExt.syn_ext_trfuns ("", true);
 
-val extend_trfunsT = ext_syntax SynExt.syn_ext_trfunsT ("", true);
-
 val extend_tokentrfuns = ext_syntax SynExt.syn_ext_tokentrfuns ("", true);
 
-fun extend_trrules rules syn =
-  ext_syntax SynExt.syn_ext_rules ("", true) (prep_rules (read_pattern syn) rules) syn;
+fun extend_trrules syn rules =
+  ext_syntax SynExt.syn_ext_rules ("", true) (prep_rules (read_pattern syn) rules);
 
 fun extend_trrules_i rules = ext_syntax SynExt.syn_ext_rules ("", true) (prep_rules I rules);
 
