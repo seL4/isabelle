@@ -1,6 +1,69 @@
 
 @inproceedings{NipkowOP00,
-author={Tobias Nipkow and Oheimb, David von and Cornelia Pusch},
-title={{$\mu$Java}: Embedding a Programming Language in a Theorem Prover},
-booktitle={Proceedings of the international summer school Marktoberdorf '99},
-editor={F.L. Bauer and R. Steinbr\"uggen},publisher={IOS Press},year=2000,note={To appear}}
+        author={Tobias Nipkow and Oheimb, David von and Cornelia Pusch},
+        title={{$\mu$Java}: Embedding a Programming Language in a Theorem Prover},
+        booktitle = {Foundations of Secure Computation},
+        series= {NATO Science Series F: Computer and Systems Sciences}
+        volume = {175},
+        year = {2000},
+        publisher = {IOS Press},
+        editor = {Friedrich L. Bauer and Ralf Steinbr{\"u}ggen},
+        abstract = {This paper introduces the subset $micro$Java of Java,
+essentially by omitting everything but classes.
+The type system and semantics of this language
+(and a corresponding abstract Machine $micro$JVM)
+are formalized in the theorem prover Isabelle/HOL.
+Type safety both of $micro$Java and the $micro$JVM
+are mechanically verified.
+
+To make the paper self-contained, it starts with
+introductions to Isabelle/HOL and the art of
+embedding languages in theorem provers.},
+        CRClassification = {D.3.1, F.3.2},
+        CRGenTerms = {Languages, Reliability, Theory, Verification},
+        url = {\url{http://isabelle.in.tum.de/Bali/papers/MOD99.html}},
+        pages = {117--144}
+}
+
+
+
+@inproceedings{DvO-ECOOP00,
+        author = {David von Oheimb},
+        title = {Axiomatic Semantics for Java_light in Isabelle/HOL},
+        booktitle = {Formal Techniques for {J}ava Programs},
+        year = {2000},
+        publisher = {Fernuniversit{{\"a}t} Hagen},
+        editor = {Drossopoulou, S. and Eisenbach, S. and Jacobs, B. and Leavens, G. T. and M{\"u}ller, P. and Poetzsch-Heffter, A.},
+        organization = {Technical Report 269, 5/2000, Fernuniversit{{\"a}t} Hagen},
+        note = {ECOOP2000 Workshop proceedings available from \url{http://www.informatik.fernuni-hagen.de/pi5/publications.html}}
+        abstract = {We introduce a Hoare-style calculus for a nearly 
+full subset of sequential Java, which we call Java_light. In particular, 
+we present solutions to challenging features like exception handling, 
+static initialization of classes and dynamic binding of methods.
+
+This axiomatic semantics has been proved sound and complete w.r.t. 
+our operational semantics of Java_light, described in earlier papers.
+To our knowledge, our Hoare logic is the first one for an
+object-oriented language that has been proved complete.
+The proofs also give new insights into the role of type-safety.
+
+All the formalization and proofs have been done with the 
+theorem prover Isabelle/HOL.},
+        CRClassification = {D.2.4, D.3.1, F.3.1},
+        CRGenTerms = {Languages, Verification, Theory},
+        url       = {\url{http://isabelle.in.tum.de/Bali/papers/ECOOP00.html}}
+}
+
+
+
+@inproceedings{KleinN00,
+author={Gerwin Klein and Tobias Nipkow},
+title={Verified Lightweight Bytecode Verification},
+        booktitle = {Formal Techniques for {J}ava Programs},
+        year = {2000},
+        publisher = {Fernuniversit{{\"a}t} Hagen},
+        editor = {Drossopoulou, S. and Eisenbach, S. and Jacobs, B. and Leavens, G. T. and M{\"u}ller, P. and Poetzsch-Heffter, A.},
+        organization = {Technical Report 269, 5/2000, Fernuniversit{{\"a}t} Hagen},
+        note = {ECOOP2000 Workshop proceedings available from \url{http://www.informatik.fernuni-hagen.de/pi5/publications.html}}
+        url       = {\url{http://www4.in.tum.de/~nipkow/pubs/lbv.html}}
+}
