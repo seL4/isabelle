@@ -187,19 +187,28 @@ fun match ast pat =
   let
     exception NO_MATCH;
 
-    fun mtch (Constant a, Constant b, env) =
+    fun mtch (Constant a) (Constant b) env =
           if a = b then env else raise NO_MATCH
-      | mtch (Variable a, Constant b, env) =
+      | mtch (Variable a) (Constant b) env =
           if a = b then env else raise NO_MATCH
-      | mtch (ast, Variable x, env) = Env.add ((x, ast), env)
-      | mtch (Appl asts, Appl pats, env) = mtch_lst (asts, pats, env)
-      | mtch _ = raise NO_MATCH
-    and mtch_lst (ast :: asts, pat :: pats, env) =
-          mtch_lst (asts, pats, mtch (ast, pat, env))
-      | mtch_lst ([], [], env) = env
-      | mtch_lst _ = raise NO_MATCH;
+      | mtch ast (Variable x) env = Env.add ((x, ast), env)
+      | mtch (Appl asts) (Appl pats) env = mtch_lst asts pats env
+      | mtch _ _ _ = raise NO_MATCH
+    and mtch_lst (ast :: asts) (pat :: pats) env =
+          mtch_lst asts pats (mtch ast pat env)
+      | mtch_lst [] [] env = env
+      | mtch_lst _ _ _ = raise NO_MATCH;
+
+    val (head, args) =
+      (case (ast, pat) of
+        (Appl asts, Appl pats) =>
+          let val a = length asts and p = length pats in
+            if a > p then (Appl (take (p, asts)), drop (p, asts))
+            else (ast, [])
+          end
+      | _ => (ast, []));
   in
-    Some (mtch (ast, pat, Env.empty)) handle NO_MATCH => None
+    Some (mtch head pat Env.empty, args) handle NO_MATCH => None
   end;
 
 
@@ -220,7 +229,8 @@ fun normalize trace stat get_rules pre_ast =
 
     fun try_rules ast ((lhs, rhs) :: pats) =
           (case match ast lhs of
-            Some env => (inc changes; Some (subst env rhs))
+            Some (env, args) =>
+              (inc changes; Some (mk_appl (subst env rhs) args))
           | None => (inc failed_matches; try_rules ast pats))
       | try_rules _ [] = None;
 
@@ -285,4 +295,3 @@ fun normalize_ast get_rules ast =
 
 
 end;
-
