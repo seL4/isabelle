@@ -699,6 +699,26 @@ fun rename_aTs names vars : (string*typ)list =
 fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 
 
+(* left-ro-right traversal *)
+
+(*foldl atoms of type*)
+fun foldl_atyps f (x, Type (_, Ts)) = foldl (foldl_atyps f) (x, Ts)
+  | foldl_atyps f x_atom = f x_atom;
+
+(*foldl atoms of term*)
+fun foldl_aterms f (x, t $ u) = foldl_aterms f (foldl_aterms f (x, t), u)
+  | foldl_aterms f (x, Abs (_, _, t)) = foldl_aterms f (x, t)
+  | foldl_aterms f x_atom = f x_atom;
+
+(*foldl types of term*)
+fun foldl_types f (x, Const (_, T)) = f (x, T)
+  | foldl_types f (x, Free (_, T)) = f (x, T)
+  | foldl_types f (x, Var (_, T)) = f (x, T)
+  | foldl_types f (x, Bound _) = x
+  | foldl_types f (x, Abs (_, T, t)) = foldl_types f (f (x, T), t)
+  | foldl_types f (x, t $ u) = foldl_types f (foldl_types f (x, t), u);
+
+
 
 (*** Compression of terms and types by sharing common subtrees.  
      Saves 50-75% on storage requirements.  As it is fairly slow, 
