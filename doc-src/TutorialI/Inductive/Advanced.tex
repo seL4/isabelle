@@ -1,17 +1,17 @@
 
-The next examples illustrate advanced features of inductive  definitions. 
+This section describes advanced features of inductive definitions. 
 The premises of introduction rules may contain universal quantifiers and
 monotonic functions.  Theorems may be proved by rule inversion.
 
 \subsection{Universal quantifiers in introduction rules}
 \label{sec:gterm-datatype}
 
-A \textbf{ground} term is a term constructed from constant and function 
-symbols alone: no variables. To simplify matters further, 
-we regard a constant as a function applied to the null argument 
-list. Let us declare a datatype \isa{gterm} for the type of ground 
-terms. It is a type constructor whose argument is a type of 
-function symbols. 
+As a running example, this section develops the theory of \textbf{ground
+terms}: terms constructed from constant and function 
+symbols but not variables. To simplify matters further, we regard a
+constant as a function applied to the null argument  list.  Let us declare a
+datatype \isa{gterm} for the type of ground  terms. It is a type constructor
+whose argument is a type of  function symbols. 
 \begin{isabelle}
 \isacommand{datatype}\ 'f\ gterm\ =\ Apply\ 'f\ "'f\ gterm\ list"
 \end{isabelle}
