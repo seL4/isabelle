@@ -511,8 +511,20 @@ by (assume_tac 1);
 (* IH *)
 by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
                    FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
-(* Case a:B, a~:A *)
 
+(* Case a:A, a~:B *)
+by (forward_tac [divide_Seq] 1);
+by (REPEAT (etac conjE 1));
+(* filtering internals of A is nil *)
+by (asm_full_simp_tac (simpset() addsimps 
+          [FilterPTakewhileQnil,not_ext_is_int_or_not_act,
+           externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
+by (dres_inst_tac [("x","schA")] subst_lemma1 1);
+by (assume_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
+                    FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
+
+(* Case a:B, a~:A *)
 by (forward_tac [divide_Seq] 1);
 by (REPEAT (etac conjE 1));
 (* filtering internals of A is nil *)
@@ -524,20 +536,8 @@ back();
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
                     FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
-(* Case a:A, a~:B *)
 
-by (forward_tac [divide_Seq] 1);
-by (REPEAT (etac conjE 1));
-(* filtering internals of A is nil *)
-by (asm_full_simp_tac (simpset() addsimps 
-          [FilterPTakewhileQnil,not_ext_is_int_or_not_act,
-           externals_of_par, intA_is_not_extB,int_is_not_ext]) 1);
-by (dres_inst_tac [("x","schA")] subst_lemma1 1);
-by (assume_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
-                    FilterPTakewhileQnil,ForallTL,ForallDropwhile]) 1);
 (* Case a~:A, a~:B *)
-
 by (fast_tac (claset() addSIs [ext_is_act] 
                       addss (simpset() addsimps [externals_of_par]) ) 1);
 qed"FilterA_mksch_is_tr";

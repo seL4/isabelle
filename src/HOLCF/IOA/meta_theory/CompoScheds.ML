@@ -233,11 +233,11 @@ by (Seq_case_simp_tac "exB" 1);
 by (Asm_full_simp_tac 1);
 
 (* Case y:A, y~:B *)
-by (Seq_case_simp_tac "exB" 1);
+by (Seq_case_simp_tac "exA" 1);
 by (Asm_full_simp_tac 1);
 
 (* Case y~:A, y:B *)
-by (Seq_case_simp_tac "exA" 1);
+by (Seq_case_simp_tac "exB" 1);
 by (Asm_full_simp_tac 1);
 
 (* Case y~:A, y~:B *)
@@ -254,9 +254,9 @@ fun mkex_induct_tac sch exA exB =
            Seq_case_simp_tac exA,
            Seq_case_simp_tac exB,
            Asm_full_simp_tac,
-           Seq_case_simp_tac exB,
-           Asm_full_simp_tac,
            Seq_case_simp_tac exA,
+           Asm_full_simp_tac,
+           Seq_case_simp_tac exB,
            Asm_full_simp_tac,
            asm_full_simp_tac (simpset() addsimps [asig_of_par,actions_asig_comp])
           ];
@@ -340,7 +340,7 @@ goal thy "! exA exB s t. \
 \ --> Filter_ex2 (asig_of A)`(ProjA2`(snd (mkex A B sch (s,exA) (t,exB)))) =   \
 \     Zip`(Filter (%a. a:act A)`sch)`(Map snd`exA)";
 
-by (mkex_induct_tac "sch" "exA" "exB");
+by (mkex_induct_tac "sch" "exB" "exA");
 
 qed"filter_mkex_is_exA_tmp";
 
@@ -358,15 +358,6 @@ qed"Zip_Map_fst_snd";
       filter A`sch = proj1`ex   -->  zip`(filter A`sch)`(proj2`ex) = ex 
          lemma for eliminating non admissible equations in assumptions      
   --------------------------------------------------------------------------- *)
-
-(* Versuich 
-goal thy "(y~= nil & Map fst`x <<y) --> x= Zip`y`(Map snd`x)";
-by (Seq_induct_tac "x" [] 1);
-by (Seq_case_simp_tac "y" 2);
-by (pair_tac "a" 1);
-by Auto_tac;
-
-*)
 
 goal thy "!! sch ex. \
 \ Filter (%a. a:act AB)`sch = filter_act`ex  \
@@ -414,7 +405,7 @@ goal thy "! exA exB s t. \
 \     Zip`(Filter (%a. a:act B)`sch)`(Map snd`exB)";
 
 (* notice necessary change of arguments exA and exB *)
-by (mkex_induct_tac "sch" "exB" "exA");
+by (mkex_induct_tac "sch" "exA" "exB");
 
 qed"filter_mkex_is_exB_tmp";
 
