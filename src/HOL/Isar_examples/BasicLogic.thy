@@ -113,7 +113,7 @@ text {*
 *}
 
 lemma "A --> B --> A"
-proof intro
+proof (intro impI)
   assume A
   show A .
 qed
@@ -123,7 +123,7 @@ text {*
 *}
 
 lemma "A --> B --> A"
-  by intro
+  by (intro impI)
 
 text {*
  Just like $\idt{rule}$, the $\idt{intro}$ and $\idt{elim}$ proof
