@@ -19,10 +19,10 @@ sig
   val ml_path: string -> Path.T
   val check_file: Path.T -> (Path.T * File.info) option
   val load_file: Path.T -> (Path.T * File.info)
-  val check_thy: Path.T option -> string -> bool -> (Path.T * File.info) list
-  val deps_thy: Path.T option -> string -> bool ->
+  val check_thy: Path.T -> string -> bool -> (Path.T * File.info) list
+  val deps_thy: Path.T -> string -> bool ->
     (Path.T * File.info) list * (string list * Path.T list)
-  val load_thy: Path.T option -> string -> bool -> bool -> (Path.T * File.info) list
+  val load_thy: Path.T -> string -> bool -> bool -> (Path.T * File.info) list
 end;
 
 (*backdoor sealed later*)
@@ -80,8 +80,8 @@ fun load_file raw_path =
 
 (* check_thy *)
 
-fun tmp_path None f x = f x
-  | tmp_path (Some path) f x = Library.setmp load_path [path] f x;
+fun tmp_path path f x =
+  if Path.is_current path then f x else Library.setmp load_path [path] f x;
 
 fun check_thy_aux name ml =
   (case check_file (thy_path name) of
@@ -104,7 +104,7 @@ val load_thy_fn = ref (undefined: string -> bool -> bool -> Path.T -> unit);
 
 fun process_thy dir f name ml =
   let val master = check_thy dir name ml
-  in (master, f (#1 (hd master))) end;
+  in (master, tmp_path dir f (#1 (hd master))) end;
 
 fun deps_thy dir name ml = process_thy dir (! deps_thy_fn name ml) name ml;
 fun load_thy dir name ml time = #1 (process_thy dir (! load_thy_fn name ml time) name ml);

@@ -249,16 +249,15 @@ fun current_deps ml strict dir name =
               end)
       end);
 
-fun require_thy ml time strict keep_strict initiators s =
+fun require_thy ml time strict keep_strict initiators prfx s =
   let
     val path = Path.expand (Path.unpack s);
     val name = Path.pack (Path.base path);
-    val dir = Path.dir path;
-    val opt_dir = if Path.is_current dir then None else Some dir;
+    val dir = Path.append prfx (Path.dir path);
 
     val require_parent =
-      #1 o require_thy ml time (strict andalso keep_strict) keep_strict (name :: initiators);
-    val (current, (new_deps, parents)) = current_deps ml strict opt_dir name handle ERROR =>
+      #1 o require_thy ml time (strict andalso keep_strict) keep_strict (name :: initiators) dir;
+    val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
       error (loader_msg "The error(s) above occurred while examining theory" [name] ^
         (if null initiators then "" else "\n" ^ required_by initiators));
     val parents_current = map require_parent parents;
@@ -269,11 +268,12 @@ fun require_thy ml time strict keep_strict initiators s =
         ((case new_deps of
           Some deps => change_thys (update_node name parents (untouch_deps deps, None))
         | None => ());
-          load_thy ml time initiators opt_dir name parents;
+          load_thy ml time initiators dir name parents;
           false);
   in (result, name) end;
 
-fun gen_use_thy f s = let val (_, name) = f s in Context.context (get_theory name) end;
+fun gen_use_thy f s =
+  let val (_, name) = f Path.current s in Context.context (get_theory name) end;
 
 val weak_use_thy = gen_use_thy (require_thy true false false false []);
 val use_thy      = gen_use_thy (require_thy true false true false []);
