@@ -176,7 +176,7 @@ Goal
 by( rtac eval_evals_exec.induct 1);
 by( rewtac c_hupd_def);
 
-(* several simplifications, XcptE, XcptEs, XcptS, Skip *)
+(* several simplifications, XcptE, XcptEs, XcptS, Skip, Nil?? *)
 by( ALLGOALS Asm_full_simp_tac);
 by( ALLGOALS strip_tac);
 by( ALLGOALS (eresolve_tac ty_expr_ty_exprs_wt_stmt.elims 
@@ -186,7 +186,7 @@ by( rewtac wf_java_prog_def);
 
 (* Level 7 *)
 
-(* 14 NewC *)
+(* 15 NewC *)
 by( dtac new_AddrD 1);
 by( etac disjE 1);
 by(  Asm_simp_tac 2);
@@ -200,10 +200,10 @@ by( Simp_tac 1);
 (* for Cast *)
 by( defer_tac 1);
 
-(* 13 Lit *)
+(* 14 Lit *)
 by( etac conf_litval 1);
 
-(* 12 BinOp *)
+(* 13 BinOp *)
 by forward_hyp_tac;
 by forward_hyp_tac;
 by( EVERY'[rtac conjI, eatac hext_trans 1] 1);
@@ -212,11 +212,8 @@ by( Clarsimp_tac 1);
 by( dtac eval_no_xcpt 1);
 by( asm_full_simp_tac (simpset() addsplits [binop.split]) 1);
 
-(* 11 LAcc *)
+(* 12 LAcc *)
 by( fast_tac (claset() addEs [conforms_localD RS lconfD]) 1);
-
-(* 10 Nil *)
-by( Simp_tac 5);
 
 (* for FAss *)
 by( EVERY'[eresolve_tac ty_expr_ty_exprs_wt_stmt.elims THEN_ALL_NEW Full_simp_tac, 
@@ -227,13 +224,14 @@ by( (case_tac "the_Bool v" THEN_ALL_NEW Asm_full_simp_tac) 8);
 
 by forward_hyp_tac;
 
-(* 10+1 if *)
+(* 11+1 if *)
 by(  fast_tac (HOL_cs addIs [hext_trans]) 8);
 by( fast_tac (HOL_cs addIs [hext_trans]) 8);
 
-(* 9 Expr *)
+(* 10 Expr *)
 by( Fast_tac 6);
 
+(* 9 ??? *)
 by( ALLGOALS Asm_full_simp_tac);
 
 (* 8 Cast *)
@@ -251,7 +249,7 @@ by( fast_tac (claset() addSEs [FAcc_type_sound]) 1);
 (* 5 While *)
 by(thin_tac "?a \\<longrightarrow> ?b" 5);
 by(datac ty_expr_ty_exprs_wt_stmt.Loop 1 5);
-by(force_tac (claset() addEs [hext_trans], simpset()addsplits[split_if_asm]) 5);
+by(force_tac (claset() addEs [hext_trans], simpset()) 5);
 
 by forward_hyp_tac;
 

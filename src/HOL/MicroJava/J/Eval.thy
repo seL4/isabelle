@@ -112,7 +112,7 @@ inductive "eval G" "evals G" "exec G" intrs
 (* execution of statements *)
 
   (* cf. 14.1 *)
-  XcptS "G\\<turnstile>(Some xc,s) -s0-> (Some xc,s)"
+  XcptS "G\\<turnstile>(Some xc,s) -c-> (Some xc,s)"
 
   (* cf. 14.5 *)
   Skip  "G\\<turnstile>Norm s -Skip-> Norm s"
@@ -122,20 +122,21 @@ inductive "eval G" "evals G" "exec G" intrs
          G\\<turnstile>Norm s0 -Expr e-> s1"
 
   (* cf. 14.2 *)
-  Comp  "[| G\\<turnstile>Norm s0 -s-> s1;
-            G\\<turnstile> s1 -t -> s2|] ==>
-         G\\<turnstile>Norm s0 -s;; t-> s2"
+  Comp  "[| G\\<turnstile>Norm s0 -c1-> s1;
+            G\\<turnstile>     s1 -c2-> s2|] ==>
+         G\\<turnstile>Norm s0 -c1;; c2-> s2"
 
   (* cf. 14.8.2 *)
   Cond  "[| G\\<turnstile>Norm s0  -e\\<succ>v-> s1;
-            G\\<turnstile> s1 -(if the_Bool v then s else t)-> s2|] ==>
-         G\\<turnstile>Norm s0 -If(e) s Else t-> s2"
+            G\\<turnstile> s1 -(if the_Bool v then c1 else c2)-> s2|] ==>
+         G\\<turnstile>Norm s0 -If(e) c1 Else c2-> s2"
 
   (* cf. 14.10, 14.10.1 *)
-  Loop  "[| G\\<turnstile>Norm s0 -e\\<succ>v-> s1;
-	    if the_Bool v then G\\<turnstile>s1 -s-> s2 \\<and> G\\<turnstile>s2 -While(e) s-> s3
-	                  else s3 = s1 |] ==>
-         G\\<turnstile>Norm s0 -While(e) s-> s3"
+  LoopF "[| G\\<turnstile>Norm s0 -e\\<succ>v-> s1; \\<not>the_Bool v |] ==>
+         G\\<turnstile>Norm s0 -While(e) c-> s1"
+  LoopT "[| G\\<turnstile>Norm s0 -e\\<succ>v-> s1;  the_Bool v;
+	    G\\<turnstile>s1 -c-> s2; G\\<turnstile>s2 -While(e) c-> s3 |] ==>
+         G\\<turnstile>Norm s0 -While(e) c-> s3"
 
 monos
   if_def2
