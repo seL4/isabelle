@@ -4,12 +4,7 @@
 
 This directory contains the source files for Isabelle's syntax module,
 which includes a lexer, parser, pretty printer and macro system. Note
-that only the following structures are supposed to be exported:
-
-  Pretty        (generic pretty printing module)
-  Scan          (generic scanner toolbox)
-  Source	(co-algebraic data sources)
-  Symbol	(generalized characters)
+that only the following structures are exported:
 
   Syntax        (internal interface to the syntax module)
   BasicSyntax   (part of Syntax made pervasive)

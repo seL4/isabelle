@@ -12,6 +12,10 @@ use "position.ML";
 use "path.ML";
 use "file.ML";
 use "history.ML";
+use "scan.ML";
+use "source.ML";
+use "symbol.ML";
+use "pretty.ML";
 
 structure PureGeneral =
 struct
@@ -23,4 +27,8 @@ struct
   structure Path = Path;
   structure File = File;
   structure History = History;
+  structure Scan = Scan;
+  structure Source = Source;
+  structure Symbol = Symbol;
+  structure Pretty = Pretty;
 end;

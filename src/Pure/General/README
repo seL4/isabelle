@@ -1,0 +1,20 @@
+
+                                Pure/General/
+
+
+This directory contains general purpose modules, all of which are
+exported.
+
+  TableFun      (generic tables)
+  Symtab        (tables indexed by strings)
+  Object        (generic objects of arbitrary type)
+  Seq           (unbounded sequences)
+  NameSpace     (hierarchically structured name spaces)
+  Position      (input positions)
+  Path          (abstract algebra of file paths)
+  File          (file system operations)
+  History       (histories of values, with undo and redo)
+  Scan          (generic scanner toolbox)
+  Source        (co-algebraic data sources)
+  Symbol        (generalized characters)
+  Pretty        (generic pretty printing module)
