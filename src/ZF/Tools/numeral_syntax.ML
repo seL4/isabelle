@@ -18,8 +18,6 @@ end;
 structure NumeralSyntax: NUMERAL_SYNTAX =
 struct
 
-open Syntax;
-
 (* Bits *)
 
 val zero = Const("0", iT);
@@ -39,16 +37,6 @@ fun dest_bit (Const ("0", _)) = 0
 fun prefix_len _ [] = 0
   | prefix_len pred (x :: xs) =
       if pred x then 1 + prefix_len pred xs else 0;
-
-fun scan_int str =
-  let val (sign, digs) =
-       (case Symbol.explode str of
-	 "#" :: "-" :: cs => (~1, cs)
-       | "#" :: cs => (1, cs)
-       | _ => raise ERROR);
-
-  in  sign * (#1 (read_int digs))  end;
-
 
 val pls_const = Const ("Bin.bin.Pls", iT)
 and min_const = Const ("Bin.bin.Min", iT)
@@ -102,11 +90,10 @@ fun show_int t =
 (* translation of integer constant tokens to and from binary *)
 
 fun int_tr (*"_Int"*) [t as Free (str, _)] =
-      (const "integ_of" $
-	(mk_bin (scan_int str) handle ERROR => raise TERM ("int_tr", [t])))
+      Syntax.const "integ_of" $ mk_bin (Syntax.read_xnum str)
   | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
 
-fun int_tr' _ _ (*"integ_of"*) [t] = const "_Int" $ free (show_int t)
+fun int_tr' _ _ (*"integ_of"*) [t] = Syntax.const "_Int" $ Syntax.free (show_int t)
   | int_tr' (_:bool) (_:typ)     _ = raise Match;
 
 
