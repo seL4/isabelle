@@ -212,7 +212,7 @@ Goal "sqrt(x ^ 2) = abs(x)";
 by (rtac (abs_realpow_two RS subst) 1);
 by (rtac (real_sqrt_abs_abs RS subst) 1);
 by (stac real_pow_sqrt_eq_sqrt_pow 1);
-by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2, abs_mult,abs_ge_zero]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2, abs_mult]));
 qed "real_sqrt_abs";
 Addsimps [real_sqrt_abs];
 
@@ -288,11 +288,9 @@ by (rtac real_mult_le_le_mono2 1);
 by (res_inst_tac [("w1","abs x")] (real_mult_commute RS ssubst) 2);
 by (stac fact_Suc 2);
 by (stac real_of_nat_mult 2);
-by (auto_tac (claset(),simpset() addsimps [abs_mult,real_inverse_distrib,
-    abs_ge_zero]));
+by (auto_tac (claset(),simpset() addsimps [abs_mult,real_inverse_distrib]));
 by (auto_tac (claset(), simpset() addsimps 
-     [real_mult_assoc RS sym, abs_ge_zero, abs_eqI2,
-      real_inverse_gt_0]));
+     [real_mult_assoc RS sym, abs_eqI2, real_inverse_gt_0]));
 by (rtac (CLAIM "x < (y::real) ==> x <= y") 1);
 by (res_inst_tac [("z1","real (Suc na)")] (real_mult_less_iff1
     RS iffD1) 1);
@@ -316,9 +314,9 @@ by (res_inst_tac [("g","(%n. inverse (real (fact n)) * abs(x) ^ n)")]
 by (rtac summable_exp 2);
 by (res_inst_tac [("x","0")] exI 1);
 by (auto_tac (claset(), simpset() addsimps [realpow_abs RS sym,
-    abs_ge_zero,abs_mult,real_0_le_mult_iff]));
+    abs_mult,real_0_le_mult_iff]));
 by (auto_tac (claset() addIs [real_mult_le_le_mono2],
-    simpset() addsimps [real_inverse_gt_0,abs_eqI2,abs_ge_zero]));
+    simpset() addsimps [real_inverse_gt_0,abs_eqI2]));
 qed "summable_sin";
 
 Goalw [real_divide_def] 
@@ -329,10 +327,10 @@ by (res_inst_tac [("g","(%n. inverse (real (fact n)) * abs(x) ^ n)")]
     summable_comparison_test 1);
 by (rtac summable_exp 2);
 by (res_inst_tac [("x","0")] exI 1);
-by (auto_tac (claset(), simpset() addsimps [realpow_abs RS sym,abs_ge_zero,abs_mult,
+by (auto_tac (claset(), simpset() addsimps [realpow_abs RS sym,abs_mult,
     real_0_le_mult_iff]));
 by (auto_tac (claset() addSIs [real_mult_le_le_mono2],
-    simpset() addsimps [real_inverse_gt_0,abs_eqI2,abs_ge_zero]));
+    simpset() addsimps [real_inverse_gt_0,abs_eqI2]));
 qed "summable_cos";
 
 Goal "(if even n then 0 \
@@ -455,8 +453,7 @@ by (res_inst_tac [("z","abs (x ^ n)")] (CLAIM_SIMP
 by (auto_tac (claset(),
     simpset() addsimps [real_mult_assoc,realpow_abs]));
 by (dres_inst_tac [("x","0")] spec 2 THEN Force_tac 2); 
-by (auto_tac (claset(),simpset() addsimps [abs_ge_zero,
-    abs_mult,realpow_abs] @ real_mult_ac));
+by (auto_tac (claset(),simpset() addsimps [abs_mult,realpow_abs] @ real_mult_ac));
 by (res_inst_tac [("x2","z ^ n")] (abs_ge_zero RS real_le_imp_less_or_eq
     RS disjE) 1 THEN dtac sym 2);
 by (auto_tac (claset() addSIs [real_mult_le_le_mono2],
@@ -476,8 +473,7 @@ by (auto_tac (claset() addSIs [geometric_sums],simpset() addsimps
     [realpow_abs,real_divide_eq_inverse RS sym]));
 by (res_inst_tac [("z","abs(x)")] (CLAIM_SIMP 
     "[|(0::real)<z; x*z<y*z |] ==> x<y" [real_mult_less_cancel1]) 1);
-by (auto_tac (claset(),simpset() addsimps [abs_ge_zero,
-    abs_mult RS sym,real_mult_assoc]));
+by (auto_tac (claset(),simpset() addsimps [abs_mult RS sym,real_mult_assoc]));
 qed "powser_insidea";
 
 Goal "[| summable (%n. f(n) * (x ^ n)); abs(z) < abs(x) |] \
@@ -587,33 +583,27 @@ by (stac real_mult_commute 2);
 by (rtac (sumr_rabs RS real_le_trans) 2);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 2);
 by (rtac (real_mult_commute RS subst) 2);
-by (auto_tac (claset() addSIs [sumr_bound2],simpset() addsimps 
-    [abs_ge_zero,abs_mult]));
+by (auto_tac (claset() addSIs [sumr_bound2],simpset() addsimps [abs_mult]));
 by (case_tac "n" 1 THEN Auto_tac);
 by (dtac less_add_one 1);
 by (auto_tac (claset(),simpset() addsimps [realpow_add,real_add_assoc RS sym,
     CLAIM_SIMP "(a * b) * c = a * (c * (b::real))" real_mult_ac] 
     delsimps [sumr_Suc]));
-by (auto_tac (claset() addSIs [real_mult_le_mono],simpset() addsimps 
-    [abs_ge_zero] delsimps [sumr_Suc])); 
+by (auto_tac (claset() addSIs [real_mult_le_mono],simpset()delsimps [sumr_Suc])); 
 by (auto_tac (claset() addSIs [realpow_le2],simpset() addsimps 
-    [realpow_abs,abs_ge_zero] delsimps [sumr_Suc] ));
+    [realpow_abs] delsimps [sumr_Suc] ));
 by (res_inst_tac [("j","real (Suc d) * (K ^ d)")] real_le_trans 1);
 by (subgoal_tac "0 <= K" 2);
 by (arith_tac 3);
 by (dres_inst_tac [("n","d")] realpow_ge_zero2 2);
-by (auto_tac (claset(),simpset() addsimps 
-    [real_of_nat_le_iff RS sym] delsimps [sumr_Suc] ));
+by (auto_tac (claset(),simpset() delsimps [sumr_Suc] ));
 by (rtac (sumr_rabs RS real_le_trans) 1);
 by (rtac sumr_bound2 1 THEN auto_tac (claset() addSDs [less_add_one]
-    addSIs [real_mult_le_mono],simpset() addsimps [abs_mult,
-    realpow_add,abs_ge_zero]));
+    addSIs [real_mult_le_mono],simpset() addsimps [abs_mult, realpow_add]));
 by (auto_tac (claset() addSIs [realpow_le2,realpow_ge_zero],simpset() addsimps 
-    [realpow_abs,abs_ge_zero]));
+    [realpow_abs]));
 by (ALLGOALS(arith_tac));
 qed "lemma_termdiff3";
-
-Addsimps [abs_ge_zero];
 
 Goalw [LIM_def]
   "[| 0 < k; \
