@@ -117,7 +117,7 @@ txt {* We take this maximal element $g$.  *};
           & is_subspace H E & is_subspace F H
           & graph F f <= graph H h
           & (ALL x:H. h x <= p x)"; by (simp! add: norm_pres_extension_D);
-        thus ?thesis; by blast;
+        thus ?thesis; by (elim exE conjE) rule;
       qed;
       have h: "is_vectorspace H"; ..;
 
@@ -185,7 +185,7 @@ txt {* Define $H_0$ as the direct sum of $H$ and the linear closure of $x_0$.  *
                 thus "- p (u + x0) - h u <= p (v + x0) - h v";
                   by (rule real_diff_ineq_swap);
               qed;
-              thus ?thesis; by blast;
+              thus ?thesis; by rule rule;
             qed;
 
 txt {* Define the extension $h_0$ of $h$ to $H_0$ using $\xi$.  *};
