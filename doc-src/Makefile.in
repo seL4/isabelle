@@ -36,11 +36,11 @@ isabelle_hol.eps:
 isabelle_zf.eps:
 	test -r isabelle_zf.eps || ln -s ../gfx/isabelle_zf.eps .
 
-isabelle.png:
-	test -r isabelle.png || ln -s ../gfx/isabelle.png .
+isabelle.pdf:
+	test -r isabelle.pdf || ln -s ../gfx/isabelle.pdf .
 
-isabelle_hol.png:
-	test -r isabelle_hol.png || ln -s ../gfx/isabelle_hol.png .
+isabelle_hol.pdf:
+	test -r isabelle_hol.pdf || ln -s ../gfx/isabelle_hol.pdf .
 
-isabelle_zf.png:
-	test -r isabelle_zf.png || ln -s ../gfx/isabelle_zf.png .
+isabelle_zf.pdf:
+	test -r isabelle_zf.pdf || ln -s ../gfx/isabelle_zf.pdf .

@@ -30,7 +30,7 @@ $(NAME).dvi: $(FILES) isabelle.eps
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle.png
+$(NAME).pdf: $(FILES) isabelle.pdf
 	touch $(NAME).ind
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
