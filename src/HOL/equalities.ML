@@ -706,6 +706,11 @@ Goal "(A-B) Int C = (A Int C) - (B Int C)";
 by (Blast_tac 1);
 qed "Diff_Int_distrib2";
 
+Goal "A - - B = A Int B";
+by Auto_tac;
+qed "Diff_Compl";
+Addsimps [Diff_Compl];
+
 
 section "Quantification over type \"bool\"";
 
