@@ -156,7 +156,7 @@ val const_decs = flatten_consts
 
 val con_thy = thy
               |> add_consts const_decs
-              |> add_axioms axpairs
+              |> add_axioms_i axpairs
               |> add_thyname (big_rec_name ^ "_Constructors");
 
 (*1st element is the case definition; others are the constructors*)

@@ -209,7 +209,7 @@ val axpairs = map (mk_defpair sign)
 
 val thy = 
   Ind.thy
-  |> add_axioms axpairs
+  |> add_axioms_i axpairs
   |> add_thyname (big_rec_name ^ "_Inductive");
 
 val defs = map (get_axiom thy o #1) axpairs;

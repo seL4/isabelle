@@ -12,22 +12,19 @@ fun flatten_typ sign T =
     let val {syn,...} = Sign.rep_sg sign 
     in  Pretty.str_of (Syntax.pretty_typ syn T)
     end;
-fun flatten_term sign t = Pretty.str_of (Sign.pretty_term sign t);
 
 (*Make a definition, lhs==rhs, checking that vars on lhs contain *)
-fun mk_defpair sign (lhs,rhs) = 
-  let val Const(name,_) = head_of lhs
+fun mk_defpair sign (lhs, rhs) = 
+  let val Const(name, _) = head_of lhs
       val dummy = assert (term_vars rhs subset term_vars lhs
-		       andalso
-		       term_frees rhs subset term_frees lhs
-		       andalso
-		       term_tvars rhs subset term_tvars lhs
-		       andalso
-		       term_tfrees rhs subset term_tfrees lhs)
+		          andalso
+		          term_frees rhs subset term_frees lhs
+		          andalso
+		          term_tvars rhs subset term_tvars lhs
+		          andalso
+		          term_tfrees rhs subset term_tfrees lhs)
 	          ("Extra variables on RHS in definition of " ^ name)
-  in  (name ^ "_def",
-       flatten_term sign (Logic.mk_equals (lhs,rhs)))
-  end;
+  in (name ^ "_def", Logic.mk_equals (lhs, rhs)) end;
 
 fun lookup_const sign a = Symtab.lookup(#const_tab (Sign.rep_sg sign), a);
 
