@@ -339,7 +339,6 @@ with negated assumptions.\index{assumptions!negated}
 \begin{ttbox} 
 prop_cs    : claset
 FOL_cs     : claset
-FOL_dup_cs : claset
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{prop_cs}] contains the propositional rules, namely
@@ -351,13 +350,6 @@ extends {\tt prop_cs} with the safe rules {\tt allI} and~{\tt exE}
 and the unsafe rules {\tt allE} and~{\tt exI}, as well as rules for
 unique existence.  Search using this is incomplete since quantified
 formulae are used at most once.
-
-\item[\ttindexbold{FOL_dup_cs}] 
-extends {\tt prop_cs} with the safe rules {\tt allI} and~{\tt exE}
-and the unsafe rules {\tt all_dupE} and~{\tt exCI}, as well as
-rules for unique existence.  Search using this is complete --- quantified
-formulae may be duplicated --- but frequently fails to terminate.  It is
-generally unsuitable for depth-first search.
 \end{ttdescription}
 \noindent
 See the file {\tt FOL/FOL.ML} for derivations of the
