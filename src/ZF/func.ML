@@ -310,11 +310,6 @@ by (fast_tac (ZF_cs addSDs [bspec RS bspec]) 1);
 	(*by (Blast_tac 1);  takes too long...*)
 qed "function_Union";
 
-(*Nice Blast_tac benchmark.  Proved in 0.3s; old tactics can't manage it!*)
-goal ZF.thy "!!S. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
-by (Blast_tac 1);
-result();
-
 goalw ZF.thy [Pi_def]
     "!!S. [| ALL f:S. EX C D. f:C->D; \
 \            ALL f:S. ALL y:S. f<=y | y<=f  |] ==>  \
