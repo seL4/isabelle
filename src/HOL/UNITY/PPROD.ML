@@ -10,9 +10,6 @@ It is not clear that any of this is good for anything.
 *)
 
 
-val rinst = read_instantiate_sg (sign_of thy);
-
-
 (*** Basic properties ***)
 
 Goalw [PLam_def] "Init (PLam I F) = (INT i:I. lift_set i (Init (F i)))";
@@ -46,12 +43,12 @@ by (fast_tac (claset() addIs [component_JN]) 1);
 qed "component_PLam";
 
 
-(** Safety **)
+(** Safety & Progress **)
 
 Goal "i : I ==>  \
 \     (PLam I F : (lift_set i A) co (lift_set i B))  =  \
 \     (F i : A co B)";
-by (asm_simp_tac (simpset() addsimps [PLam_def, constrains_JN]) 1);
+by (asm_simp_tac (simpset() addsimps [PLam_def, JN_constrains]) 1);
 by (blast_tac (claset() addIs [lift_prog_constrains RS iffD1, 
 			       constrains_imp_lift_prog_constrains]) 1);
 qed "PLam_constrains";
@@ -60,21 +57,25 @@ Goal "i : I ==> (PLam I F : stable (lift_set i A)) = (F i : stable A)";
 by (asm_simp_tac (simpset() addsimps [stable_def, PLam_constrains]) 1);
 qed "PLam_stable";
 
-(*Possibly useful in Lift_set.ML?*)
-Goal "[| lift_prog i F : AA co BB |] \
-\     ==> F : (drop_set i AA) co (drop_set i BB)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, drop_set_def]));
-by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
-	       simpset()) 1);
-qed "lift_prog_constrains_drop_set";
+Goal "i : I ==> \
+\   PLam I F : transient A = (EX i:I. lift_prog i (F i) : transient A)";
+by (asm_simp_tac (simpset() addsimps [JN_transient, PLam_def]) 1);
+qed "PLam_transient";
+
+Addsimps [PLam_constrains, PLam_stable, PLam_transient];
+
+Goal "[| i : I;  F i : (A-B) co (A Un B);  F i : transient (A-B) |] ==>  \
+\     PLam I F : (lift_set i A) leadsTo lift_set i B";
+by (rtac (ensuresI RS leadsTo_Basis) 1);
+by (auto_tac (claset(), simpset() addsimps [lift_prog_transient_eq_disj]));
+qed "PLam_leadsTo_Basis";
 
 Goal "[| PLam I F : AA co BB;  i: I |] \
 \     ==> F i : (drop_set i AA) co (drop_set i BB)";
 by (rtac lift_prog_constrains_drop_set 1);
 (*rotate this assumption to be last*)
 by (dres_inst_tac [("psi", "PLam I F : ?C")] asm_rl 1);
-by (asm_full_simp_tac (simpset() addsimps [PLam_def, constrains_JN]) 1);
+by (asm_full_simp_tac (simpset() addsimps [PLam_def, JN_constrains]) 1);
 qed "PLam_constrains_drop_set";
 
 
@@ -83,14 +84,14 @@ qed "PLam_constrains_drop_set";
 Goal "[| F i : invariant A;  i : I |] \
 \     ==> PLam I F : invariant (lift_set i A)";
 by (auto_tac (claset(),
-	      simpset() addsimps [invariant_def, PLam_stable]));
+	      simpset() addsimps [invariant_def]));
 qed "invariant_imp_PLam_invariant";
 
 (*The f0 premise ensures that the product is well-defined.*)
 Goal "[| PLam I F : invariant (lift_set i A);  i : I;  \
 \        f0: Init (PLam I F) |] ==> F i : invariant A";
 by (auto_tac (claset(),
-	      simpset() addsimps [invariant_def, PLam_stable]));
+	      simpset() addsimps [invariant_def]));
 by (dres_inst_tac [("c", "f0(i:=x)")] subsetD 1);
 by Auto_tac;
 qed "PLam_invariant_imp_invariant";
@@ -106,7 +107,7 @@ qed "PLam_invariant";
 Goal "i : I \
 \     ==> ((plam x:I. F) : invariant (lift_set i A)) = (F : invariant A)";
 by (auto_tac (claset(),
-	      simpset() addsimps [invariant_def, PLam_stable]));
+	      simpset() addsimps [invariant_def]));
 qed "const_PLam_invariant";
 
 
@@ -190,7 +191,7 @@ qed "Constrains_imp_PLam_Constrains";
 
 Goal "[| ALL j:I. f0 j : A j;   i: I |] \
 \     ==> drop_set i (INT j:I. lift_set j (A j)) = A i";
-by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
+by (force_tac (claset() addSIs [image_eqI'],
 	       simpset() addsimps [drop_set_def]) 1);
 qed "drop_set_INT_lift_set";
 
@@ -205,7 +206,7 @@ by (blast_tac (claset() addIs [reachable.Init]) 2);
 by (dtac PLam_constrains_drop_set 1);
 by (assume_tac 1);
 by (asm_full_simp_tac
-    (simpset() addsimps [drop_set_lift_set_Int2,
+    (simpset() addsimps [drop_set_Int_lift_set2,
 			 drop_set_INT_lift_set, reachable_PLam_eq]) 1);
 qed "PLam_Constrains_imp_Constrains";
 
@@ -234,7 +235,7 @@ by (dtac PLam_constrains_drop_set 1);
 by (assume_tac 1);
 by (asm_full_simp_tac
     (simpset() addsimps [drop_set_INT,
-			 drop_set_lift_set_Int2, Collect_conj_eq RS sym,
+			 drop_set_Int_lift_set2, Collect_conj_eq RS sym,
 			 reachable_PLam_eq]) 1);
 qed "const_PLam_Constrains_imp_Constrains";
 

@@ -19,7 +19,7 @@ Goal "(F Join G) : Always invFG";
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac (constrains_imp_Constrains RS StableI) 1);
-by (auto_tac (claset(), simpset() addsimps [constrains_Join]));
+by (auto_tac (claset(), simpset() addsimps [Join_constrains]));
 by (constrains_tac 2);
 by (auto_tac (claset() addIs [order_antisym] addSEs [le_SucE], simpset()));
 by (constrains_tac 1);
@@ -27,17 +27,16 @@ qed "invFG";
 
 Goal "(F Join G) : ({s. NF s = k} - {s. BB s}) LeadsTo \
 \                  ({s. NF s = k} Int {s. BB s})";
-by (rtac (ensures_stable_Join1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
+by (rtac (stable_Join_ensures1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (ensures_tac "cmdG" 2);
 by (constrains_tac 1);
 qed "lemma2_1";
 
 Goal "(F Join G) : ({s. NF s = k} Int {s. BB s}) LeadsTo {s. k < NF s}";
-by (rtac (ensures_stable_Join2 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
+by (rtac (stable_Join_ensures2 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (constrains_tac 2);
 by (ensures_tac "cmdF" 1);
 qed "lemma2_2";
-
 
 Goal "(F Join G) : UNIV LeadsTo {s. m < NF s}";
 by (rtac LeadsTo_weaken_R 1);
