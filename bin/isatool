@@ -1,29 +1,18 @@
-#!/bin/bash -norc
+#!/bin/bash -x
 #
 # $Id$
 #
-# Isabelle tool starter -- keeps your PATH name space clean.
+# Isabelle tool starter -- provides settings environment,
+#   also keeps your PATH name space clean.
 
 
 ## settings
 
 PRG=$(basename $0)
 
-ISABELLE_HOME=$(dirname $(dirname $0))
-case "$ISABELLE_HOME" in
-  /*)
-    if [ -f $ISABELLE_HOME/lib/scripts/getsettings ]; then
-      . $ISABELLE_HOME/lib/scripts/getsettings || exit 2
-    else
-      echo "ERROR: $PRG probably not called from its original place!"
-      exit 1
-    fi
-    ;;
-  *)
-    echo "ERROR: $PRG not called with absolute path specification!"
-    exit 1
-    ;;
-esac
+ISABELLE_HOME=$(dirname $0)/..
+. $ISABELLE_HOME/lib/scripts/getsettings || \
+  { echo "$PRG probably not called from its original place!"; exit 2 }
 
 
 ## diagnostics
