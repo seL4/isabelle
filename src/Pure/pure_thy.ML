@@ -7,6 +7,8 @@ Theorem database, derived theory operations, and the Pure theories.
 
 signature BASIC_PURE_THY =
 sig
+  val print_theorems: theory -> unit
+  val print_theory: theory -> unit
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
   val thms_of: theory -> (string * thm) list
@@ -39,6 +41,7 @@ sig
   val local_path: theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
+  val transaction: (theory -> theory) -> theory -> theory * bool * exn option
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
   val proto_pure: theory
   val pure: theory
@@ -53,17 +56,15 @@ struct
 
 (** data kind 'Pure/theorems' **)
 
-val theoremsK = "Pure/theorems";
-
-exception Theorems of
- {space: NameSpace.T,
-  thms_tab: tthm list Symtab.table,
-  const_idx: int * (int * tthm) list Symtab.table} ref;
-
-
-(* methods *)
-
 local
+  val theoremsK = Object.kind "Pure/theorems";
+
+  exception Theorems of
+   {space: NameSpace.T,
+    thms_tab: tthm list Symtab.table,
+    const_idx: int * (int * tthm) list Symtab.table} ref;
+
+
   fun mk_empty _ =
     Theorems (ref {space = NameSpace.empty,
       thms_tab = Symtab.empty, const_idx = (0, Symtab.empty)});
@@ -83,18 +84,17 @@ local
       Pretty.writeln (Pretty.big_list "theorems:" (map prt_thms thmss))
     end;
 in
-  val theorems_setup = Theory.init_data [(theoremsK, (mk_empty (), mk_empty, mk_empty, print))];
+  val init_theorems = Theory.init_data theoremsK (mk_empty (), mk_empty, mk_empty, print);
+  val print_theorems = Theory.print_data theoremsK;
+  val get_theorems_sg = Sign.get_data theoremsK (fn Theorems r => r);
+  val get_theorems = get_theorems_sg o Theory.sign_of;
 end;
 
 
-(* get data record *)
+(* print theory *)
 
-fun get_theorems_sg sg =
-  (case Sign.get_data sg theoremsK of
-    Theorems r => r
-  | _ => type_error theoremsK);
-
-val get_theorems = get_theorems_sg o Theory.sign_of;
+fun print_theory thy =
+  (Display.print_theory thy; print_theorems thy);
 
 
 
@@ -103,7 +103,7 @@ val get_theorems = get_theorems_sg o Theory.sign_of;
 (* thms_closure *)
 
 (*note: we avoid life references to the theory, so users may safely
-  keep thms_closure without too much space consumption*)
+  keep thms_closure with moderate space consumption*)
 
 fun thms_closure_aux thy =
   let val ref {space, thms_tab, ...} = get_theorems thy
@@ -287,27 +287,27 @@ fun add_defs_x defs thy = add_defs (map (apsnd (map (Attribute.global_attr thy))
 
 (** theory management **)
 
-(* data kind 'Pure/theory' *)		(* FIXME push down to sign.ML *)
-
-val theoryK = "Pure/theory";
-exception Theory of string;
+(* data kind 'Pure/theory' *)
 
 local
-  fun mk_empty _ = Theory "";
-  fun print _ (Theory name) = writeln name;
+  val theoryK = Object.kind "Pure/theory";
+  exception Theory of {name: string, generation: int};
+
+  val empty = Theory {name = "", generation = 0};
+  fun prep_ext (x as Theory _) = x;
+  fun merge _ = empty;
+  fun print _ (Theory _) = ();
 in
-  val theory_setup = Theory.init_data [(theoryK, (mk_empty (), mk_empty, mk_empty, print))];
+  val init_theory = Theory.init_data theoryK (empty, prep_ext, merge, print);
+  val get_info = Theory.get_data theoryK (fn Theory info => info);
+  val put_info = Theory.put_data theoryK Theory;
 end;
 
 
 (* get / put name *)
 
-fun get_name thy =
-  (case Theory.get_data thy theoryK of
-    Theory name => name
-  | _ => type_error theoryK);
-
-fun put_name name = Theory.put_data (theoryK, Theory name);
+val get_name = #name o get_info;
+fun put_name name = put_info {name = name, generation = 0};
 
 
 (* control prefixing of theory name *)
@@ -331,6 +331,23 @@ fun begin_theory name thys =
   |> local_path;
 
 fun end_theory thy = Theory.add_name (get_name thy) thy;
+
+
+(* atomic transactions *)
+
+fun transaction f thy =
+  let
+    val {name, generation} = get_info thy;
+    val copy_thy =
+      thy
+      |> Theory.prep_ext
+      |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int generation)	(* FIXME !!?? *)
+      |> put_info {name = name, generation = generation + 1};
+  in
+    (transform_error f thy, false, None) handle exn =>
+      if Sign.is_stale (Theory.sign_of thy) then (copy_thy, true, Some exn)
+      else (thy, false, Some exn)
+  end;
 
 
 
@@ -361,7 +378,7 @@ fun add_typedecls decls thy =
 
 val proto_pure =
   Theory.pre_pure
-  |> Theory.apply [Attribute.setup, theorems_setup, theory_setup]
+  |> Theory.apply (Attribute.setup @ [init_theorems, init_theory])
   |> put_name "ProtoPure"
   |> global_path
   |> Theory.add_types
