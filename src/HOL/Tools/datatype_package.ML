@@ -167,26 +167,39 @@ fun occs_in_prems tacf vars =
              else ();
             tacf i));
 
+
 (* generic induction tactic for datatypes *)
 
-fun gen_induct_tac (vars, opt_rule) i state =
+local
+
+fun prep_var (Var (ixn, _), Some x) = Some (implode (tl (explode (Syntax.string_of_vname ixn))), x)
+  | prep_var _ = None;
+
+fun prep_inst (concl, xs) =	(*exception LIST*)
+  let val vs = InductMethod.vars_of concl
+  in mapfilter prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
+
+in
+
+fun gen_induct_tac (varss, opt_rule) i state =
   let
-    val (_, _, Bi, _) = dest_state (state, i);
-    val {sign, ...} = rep_thm state;
+    val (_, _, Bi, _) = Thm.dest_state (state, i);
+    val {sign, ...} = Thm.rep_thm state;
     val (rule, rule_name) =
       (case opt_rule of
         Some r => (r, "Induction rule")
       | None =>
-          let val tn = find_tname (hd vars) Bi
+          let val tn = find_tname (hd (mapfilter I (flat varss))) Bi
           in (#induction (datatype_info_sg_err sign tn), "Induction rule for type " ^ tn) end);
-    val ind_vnames = map (fn (_ $ Var (ixn, _)) =>
-      implode (tl (explode (Syntax.string_of_vname ixn))))
-        (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule)));
-    val insts = (ind_vnames ~~ vars) handle LIST _ =>
-      error (rule_name ^ " has different number of variables");
-  in occs_in_prems (Tactic.res_inst_tac insts rule) vars i state end;
 
-fun induct_tac s = gen_induct_tac (Syntax.read_idents s, None);
+    val concls = HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule));
+    val insts = flat (map2 prep_inst (concls, varss)) handle LIST _ =>
+      error (rule_name ^ " has different numbers of variables");
+  in occs_in_prems (Tactic.res_inst_tac insts rule) (map #2 insts) i state end;
+
+fun induct_tac s = gen_induct_tac (map (Library.single o Some) (Syntax.read_idents s), None);
+
+end;
 
 
 (* generic case tactic for datatypes *)
@@ -213,19 +226,21 @@ fun case_tac t = gen_case_tac (t, None);
 
 local
 
-val rule_spec = Args.$$$ "rule" -- Args.$$$ ":";
-val opt_rule = Scan.option (Scan.lift rule_spec |-- Attrib.local_thm);
+val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.$$$ ":");
+val opt_rule = Scan.option (rule_spec |-- Attrib.local_thm);
+
+val varss = Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift Args.name_dummy)));
 
 fun tactic_syntax args tac =
-  #2 oo Method.syntax (Args.goal_spec HEADGOAL -- (Scan.lift args -- opt_rule) >>
+  #2 oo Method.syntax (Args.goal_spec HEADGOAL -- (args -- opt_rule) >>
     (fn (quant, x) => Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac x))));
 
 in
 
 val tactic_emulations =
- [("induct_tac", tactic_syntax (Scan.repeat1 (Scan.unless rule_spec Args.name)) gen_induct_tac,
+ [("induct_tac", tactic_syntax varss gen_induct_tac,
     "induct_tac emulation (dynamic instantiation!)"),
-  ("case_tac", tactic_syntax Args.name gen_case_tac,
+  ("case_tac", tactic_syntax (Scan.lift Args.name) gen_case_tac,
     "case_tac emulation (dynamic instantiation!)")];
 
 end;
