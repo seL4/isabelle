@@ -556,9 +556,9 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
      safeEs	= safeEs,
      hazIs	= hazIs,
      hazEs	= hazEs,
-     swrappers 	= (case assoc_string (swrappers, name) of None =>
-	   warning("safe wrapper "^ name ^" not in claset") | Some x => (); 
-		   filter_out (fn (n,f) => n = name) swrappers),
+     swrappers 	= let val (del,rest) = partition (fn (n,_) => n=name) swrappers
+               in if null del then (warning ("No such safe wrapper in claset: "
+				 ^ name); swrappers) else rest end,
      uwrappers  = uwrappers,
      safe0_netpair = safe0_netpair,
      safep_netpair = safep_netpair,
@@ -574,9 +574,9 @@ fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
      hazIs	= hazIs,
      hazEs	= hazEs,
      swrappers  = swrappers,
-     uwrappers 	= (case assoc_string (uwrappers, name) of None =>
-	   warning("unsafe wrapper "^ name ^" not in claset") | Some x => (); 
-		   filter_out (fn (n,f) => n = name) uwrappers),
+     uwrappers 	= let val (del,rest) = partition (fn (n,_) => n=name) uwrappers
+             in if null del then (warning ("No such unsafe wrapper in claset: "
+				^ name); uwrappers) else rest end,
      safe0_netpair = safe0_netpair,
      safep_netpair = safep_netpair,
      haz_netpair = haz_netpair,
