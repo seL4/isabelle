@@ -68,7 +68,7 @@ struct
 val mono_name = "HOL.mono";
 val gfp_name = "Gfp.gfp";
 val lfp_name = "Lfp.lfp";
-val vimage_name = "Inverse_Image.vimage";
+val vimage_name = "Set.vimage";
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (Thm.concl_of vimageD);
 
 val inductive_forall_name = "HOL.induct_forall";
