@@ -13,7 +13,7 @@
 
 # Standard ML of New Jersey 110 or later
 ML_SYSTEM=smlnj-110
-ML_HOME=/usr/share/smlnj/bin
+ML_HOME=$ISABELLE_HOME/../smlnj/bin
 ML_OPTIONS="@SMLdebug=/dev/null"
 ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys 2>/dev/null); echo $HEAP_SUFFIX)
 
