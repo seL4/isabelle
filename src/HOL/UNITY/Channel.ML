@@ -26,8 +26,7 @@ by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "minSet_nonempty";
 
-Goal
-    "leadsTo Acts (minSet -`` {Some x}) (minSet -`` (Some``greaterThan x))";
+Goal "leadsTo acts (minSet -`` {Some x}) (minSet -`` (Some``greaterThan x))";
 by (rtac leadsTo_weaken 1);
 by (rtac ([UC2, UC1] MRS PSP) 1);
 by (ALLGOALS Asm_simp_tac);
@@ -39,7 +38,7 @@ qed "minSet_greaterThan";
 
 
 (*The induction*)
-Goal "leadsTo Acts (UNIV-{{}}) (minSet -`` (Some``atLeast y))";
+Goal "leadsTo acts (UNIV-{{}}) (minSet -`` (Some``atLeast y))";
 by (rtac leadsTo_weaken_R 1);
 by (res_inst_tac  [("l", "y"), ("f", "the o minSet"), ("B", "{}")]
      greaterThan_bounded_induct 1);
@@ -55,7 +54,7 @@ by (Asm_full_simp_tac 1);
 val lemma = result();
 
 
-Goal "!!y::nat. leadsTo Acts (UNIV-{{}}) {s. y ~: s}";
+Goal "!!y::nat. leadsTo acts (UNIV-{{}}) {s. y ~: s}";
 by (rtac (lemma RS leadsTo_weaken_R) 1);
 by (Clarify_tac 1);
 by (forward_tac [minSet_nonempty] 1);

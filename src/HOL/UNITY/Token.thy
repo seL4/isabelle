@@ -44,18 +44,18 @@ constdefs
 rules
   N_positive "0<N"
 
-  skip "id: Acts"
+  skip "id: acts"
 
-  TR2  "constrains Acts (T i) (T i Un H i)"
+  TR2  "constrains acts (T i) (T i Un H i)"
 
-  TR3  "constrains Acts (H i) (H i Un E i)"
+  TR3  "constrains acts (H i) (H i Un E i)"
 
-  TR4  "constrains Acts (H i - HasTok i) (H i)"
+  TR4  "constrains acts (H i - HasTok i) (H i)"
 
-  TR5  "constrains Acts (HasTok i) (HasTok i Un Compl(E i))"
+  TR5  "constrains acts (HasTok i) (HasTok i Un Compl(E i))"
 
-  TR6  "leadsTo Acts (H i Int HasTok i) (E i)"
+  TR6  "leadsTo acts (H i Int HasTok i) (E i)"
 
-  TR7  "leadsTo Acts (HasTok i) (HasTok (next i))"
+  TR7  "leadsTo acts (HasTok i) (HasTok (next i))"
 
 end

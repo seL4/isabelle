@@ -26,6 +26,9 @@ record state =
   VV :: bool
 
 constdefs
+  
+  (** The program for process U **)
+  
   cmd0U :: "(state*state) set"
     "cmd0U == {(s,s'). s' = s (|UU:=True, MM:=1|) & MM s = 0}"
 
@@ -41,6 +44,8 @@ constdefs
   cmd4U :: "(state*state) set"
     "cmd4U == {(s,s'). s' = s (|PP:=True, MM:=0|) & MM s = 4}"
 
+  (** The program for process V **)
+  
   cmd0V :: "(state*state) set"
     "cmd0V == {(s,s'). s' = s (|VV:=True, NN:=1|) & NN s = 0}"
 
@@ -56,10 +61,12 @@ constdefs
   cmd4V :: "(state*state) set"
     "cmd4V == {(s,s'). s' = s (|PP:=False, NN:=0|) & NN s = 4}"
 
-  mutex :: "(state*state) set set"
-    "mutex == {id,
-	       cmd0U, cmd1U, cmd2U, cmd3U, cmd4U, 
-	       cmd0V, cmd1V, cmd2V, cmd3V, cmd4V}"
+  Mprg :: state program
+    "Mprg == (|Init = {s. ~ UU s & ~ VV s & MM s = 0 & NN s = 0},
+	       Acts = {id,
+	               cmd0U, cmd1U, cmd2U, cmd3U, cmd4U, 
+	               cmd0V, cmd1V, cmd2V, cmd3V, cmd4V}|)"
+
 
   (** The correct invariants **)
 
@@ -76,8 +83,5 @@ constdefs
   bad_invariantU :: "state set"
     "bad_invariantU == {s. (UU s = (1 <= MM s & MM s <= 3)) &
 		           (3 <= MM s & MM s <= 4 --> ~ PP s)}"
-
-  MInit :: "state set"
-    "MInit == {s. ~ UU s & ~ VV s & MM s = 0 & NN s = 0}"
 
 end

@@ -9,74 +9,25 @@ Definitions of
 
 *)
 
-(****
-Now simulate the inductive definition (illegal due to paired arguments)
+Goal "reachable prg = {s. EX evs. (s,evs): traces (Init prg) (Acts prg)}";
+by Safe_tac;
+by (etac traces.induct 2);
+be reachable.induct 1;
+by (ALLGOALS (blast_tac (claset() addIs (reachable.intrs @ traces.intrs))));
+qed "reachable_equiv_traces";
 
-inductive "reachable(Init,Acts)"
-  intrs 
-    Init  "s: Init ==> s : reachable(Init,Acts)"
-
-    Acts  "[| act: Acts;  s : reachable(Init,Acts);  (s,s'): act |]
-	   ==> s' : reachable(Init,Acts)"
-
-This amounts to an equivalence proof for the definition actually used, 
-****)
-
-
-(** reachable: Deriving the Introduction rules **)
-
-Goal "s: Init ==> s : reachable(Init,Acts)";
-by (simp_tac (simpset() addsimps [reachable_def]) 1);
-by (blast_tac (claset() addIs traces.intrs) 1);
-qed "reachable_Init";
-
-
-Goal "[| act: Acts;  s : reachable(Init,Acts) |] \
-\     ==> (s,s'): act --> s' : reachable(Init,Acts)";
-by (asm_full_simp_tac (simpset() addsimps [reachable_def]) 1);
-by (etac exE 1);
-by (etac traces.induct 1);
-by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS (blast_tac (claset() addIs traces.intrs)));
-qed_spec_mp "reachable_Acts";
-
-
-val major::prems = 
-Goalw [reachable_def] 
-  "[| za : reachable(Init,Acts);  \
-\     !!s. s : Init ==> P s;      \
-\     !!act s s'.  \
-\        [| act : Acts; s : reachable(Init,Acts); P s; (s, s') : act |]  \
-\        ==> P s' |] \
-\  ==> P za";
-by (cut_facts_tac [major] 1);
-by Auto_tac;
-by (etac traces.induct 1);
-by (ALLGOALS (blast_tac (claset() addIs prems)));
-qed "reachable_induct";
-
-structure reachable = 
-  struct 
-  val Init = reachable_Init
-  val Acts = reachable_Acts
-  val intrs = [reachable_Init, reachable_Acts]
-  val induct = reachable_induct
-  end;
-
-
-
-Goal "stable Acts (reachable(Init,Acts))";
+Goal "stable (Acts prg) (reachable prg)";
 by (blast_tac (claset() addIs ([stableI, constrainsI] @ reachable.intrs)) 1);
 qed "stable_reachable";
 
 (*The set of all reachable states is an invariant...*)
-Goal "invariant (Init,Acts) (reachable(Init,Acts))";
+Goal "invariant prg (reachable prg)";
 by (simp_tac (simpset() addsimps [invariant_def]) 1);
 by (blast_tac (claset() addIs (stable_reachable::reachable.intrs)) 1);
 qed "invariant_reachable";
 
 (*...in fact the strongest invariant!*)
-Goal "invariant (Init,Acts) A ==> reachable(Init,Acts) <= A";
+Goal "invariant prg A ==> reachable prg <= A";
 by (full_simp_tac 
     (simpset() addsimps [stable_def, constrains_def, invariant_def]) 1);
 by (rtac subsetI 1);
@@ -86,15 +37,15 @@ qed "invariant_includes_reachable";
 
 (*If "A" includes the initial states and is stable then "A" is invariant.
   Result is trivial from the definition, but it is handy.*)
-Goal "[| Init<=A;  stable Acts A |] ==> invariant (Init,Acts) A";
+Goal "[| (Init prg)<=A;  stable (Acts prg) A |] ==> invariant prg A";
 by (asm_simp_tac (simpset() addsimps [invariant_def]) 1);
 qed "invariantI";
 
 
 (** Conjoining invariants **)
 
-Goal "[| invariant (Init,Acts) A;  invariant (Init,Acts) B |] \
-\     ==> invariant (Init,Acts) (A Int B)";
+Goal "[| invariant prg A;  invariant prg B |] \
+\     ==> invariant prg (A Int B)";
 by (asm_full_simp_tac (simpset() addsimps [invariant_def, stable_Int]) 1);
 by Auto_tac;
 qed "invariant_Int";

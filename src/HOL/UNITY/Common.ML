@@ -10,12 +10,9 @@ The state is identified with the one variable in existence.
 From Misra, "A Logic for Concurrent Programming" (1994), sections 5.1 and 13.1.
 *)
 
-
-open Common;
-
 (*Misra's property CMT4: t exceeds no common meeting time*)
-Goal "[| ALL m. constrains Acts {m} (maxfg m); n: common |] \
-\     ==> stable Acts (atMost n)";
+Goal "[| ALL m. constrains acts {m} (maxfg m); n: common |] \
+\     ==> stable acts (atMost n)";
 by (dres_inst_tac [("P", "%t. t<=n")] elimination_sing 1);
 by (asm_full_simp_tac
     (simpset() addsimps [atMost_def, stable_def, common_def, maxfg_def,
@@ -27,8 +24,8 @@ by (blast_tac (claset() addSEs [subsetCE]
 			addIs [order_eq_refl, fmono, gmono, le_trans]) 1);
 qed "common_stable";
 
-Goal "[| ALL m. constrains Acts {m} (maxfg m); n: common |] \
-\     ==> invariant ({0},Acts) (atMost n)";
+Goal "[| ALL m. constrains acts {m} (maxfg m); n: common |] \
+\     ==> invariant (|Init={0}, Acts=acts|) (atMost n)";
 by (rtac invariantI 1);
 by (asm_simp_tac (simpset() addsimps [common_stable]) 2);
 by (simp_tac (simpset() addsimps [atMost_def]) 1);
@@ -75,10 +72,10 @@ result();
 Addsimps [atMost_Int_atLeast];
 
 Goal
-    "[| ALL m. constrains Acts {m} (maxfg m); \
-\               ALL m: lessThan n. leadsTo Acts {m} (greaterThan m); \
-\               n: common;  id: Acts |]  \
-\            ==> leadsTo Acts (atMost n) common";
+    "[| ALL m. constrains acts {m} (maxfg m); \
+\               ALL m: lessThan n. leadsTo acts {m} (greaterThan m); \
+\               n: common;  id: acts |]  \
+\            ==> leadsTo acts (atMost n) common";
 by (rtac leadsTo_weaken_R 1);
 by (res_inst_tac [("f","%x. x"), ("l", "n")] greaterThan_bounded_induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -89,10 +86,10 @@ val lemma = result();
 
 (*The "ALL m: Compl common" form echoes CMT6.*)
 Goal
-    "[| ALL m. constrains Acts {m} (maxfg m); \
-\               ALL m: Compl common. leadsTo Acts {m} (greaterThan m); \
-\               n: common;  id: Acts |]  \
-\            ==> leadsTo Acts (atMost (LEAST n. n: common)) common";
+    "[| ALL m. constrains acts {m} (maxfg m); \
+\               ALL m: Compl common. leadsTo acts {m} (greaterThan m); \
+\               n: common;  id: acts |]  \
+\            ==> leadsTo acts (atMost (LEAST n. n: common)) common";
 by (rtac lemma 1);
 by (ALLGOALS Asm_simp_tac);
 by (etac LeastI 2);

@@ -18,12 +18,12 @@ constdefs
 
 rules
 
-  skip "id: Acts"
+  skip "id: acts"
 
-  UC1  "constrains Acts (minSet -`` {Some x}) (minSet -`` (Some``atLeast x))"
+  UC1  "constrains acts (minSet -`` {Some x}) (minSet -`` (Some``atLeast x))"
 
-  (*  UC1  "constrains Acts {s. minSet s = x} {s. x <= minSet s}"  *)
+  (*  UC1  "constrains acts {s. minSet s = x} {s. x <= minSet s}"  *)
 
-  UC2  "leadsTo Acts (minSet -`` {Some x}) {s. x ~: s}"
+  UC2  "leadsTo acts (minSet -`` {Some x}) {s. x ~: s}"
 
 end

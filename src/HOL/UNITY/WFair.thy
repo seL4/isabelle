@@ -15,37 +15,37 @@ constdefs
   (*This definition specifies weak fairness.  The rest of the theory
     is generic to all forms of fairness.*)
   transient :: "[('a * 'a)set set, 'a set] => bool"
-    "transient Acts A == EX act:Acts. A <= Domain act & act^^A <= Compl A"
+    "transient acts A == EX act:acts. A <= Domain act & act^^A <= Compl A"
 
   ensures :: "[('a * 'a)set set, 'a set, 'a set] => bool"
-    "ensures Acts A B == constrains Acts (A-B) (A Un B) & transient Acts (A-B)"
-			(*(unless Acts A B) would be equivalent*)
+    "ensures acts A B == constrains acts (A-B) (A Un B) & transient acts (A-B)"
+			(*(unless acts A B) would be equivalent*)
 
 consts leadsTo :: "[('a * 'a)set set, 'a set, 'a set] => bool"
        leadsto :: "[('a * 'a)set set] => ('a set * 'a set) set"
   
 translations
-  "leadsTo Acts A B" == "(A,B) : leadsto Acts"
+  "leadsTo acts A B" == "(A,B) : leadsto acts"
 
-inductive "leadsto Acts"
+inductive "leadsto acts"
   intrs 
 
-    Basis  "ensures Acts A B ==> leadsTo Acts A B"
+    Basis  "ensures acts A B ==> leadsTo acts A B"
 
-    Trans  "[| leadsTo Acts A B;  leadsTo Acts B C |]
-	   ==> leadsTo Acts A C"
+    Trans  "[| leadsTo acts A B;  leadsTo acts B C |]
+	   ==> leadsTo acts A C"
 
     (*Encoding using powerset of the desired axiom
-       (!!A. A : S ==> leadsTo Acts A B) ==> leadsTo Acts (Union S) B
+       (!!A. A : S ==> leadsTo acts A B) ==> leadsTo acts (Union S) B
     *)
-    Union  "(UN A:S. {(A,B)}) : Pow (leadsto Acts)
-	   ==> leadsTo Acts (Union S) B"
+    Union  "(UN A:S. {(A,B)}) : Pow (leadsto acts)
+	   ==> leadsTo acts (Union S) B"
 
   monos "[Pow_mono]"
 
 
-(*wlt Acts B is the largest set that leads to B*)
+(*wlt acts B is the largest set that leads to B*)
 constdefs wlt :: "[('a * 'a)set set, 'a set] => 'a set"
-  "wlt Acts B == Union {A. leadsTo Acts A B}"
+  "wlt acts B == Union {A. leadsTo acts A B}"
 
 end

@@ -23,11 +23,9 @@ constdefs
   asgt  :: "[vertex,vertex] => (state*state) set"
     "asgt u v == {(s,s'). s' = s(v:= s u | s v)}"
 
-  racts :: "(state*state) set set"
-    "racts == insert id (UN (u,v): edges. {asgt u v})"
-
-  rinit :: "state set"
-    "rinit == {%v. v=init}"
+  Rprg :: state program
+    "Rprg == (|Init = {%v. v=init},
+	       Acts = insert id (UN (u,v): edges. {asgt u v})|)"
 
   reach_invariant :: state set
     "reach_invariant == {s. (ALL v. s v --> (init, v) : edges^*) & s init}"
