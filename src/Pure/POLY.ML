@@ -38,12 +38,24 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
 
 (*** File information ***)
 
-(*Get time of last modification.*)
+(*Get a string containing the time of last modification, attributes, owner
+  and size of file (but not the path) *)
 fun file_info "" = ""
   | file_info name =
-        let val (is, os) = ExtendedIO.execute ("ls -l " ^ name)
-            val result = ExtendedIO.input_line is;
-            val dummy = close_in is;
-            val dummy = close_out os;
-        in result end;
+      let
+          (*These are functions from library.ML *)
+          fun take_suffix _ [] = ([], [])
+            | take_suffix pred (x :: xs) =
+                (case take_suffix pred xs of
+                  ([], sffx) => if pred x then ([], x :: sffx) else ([x], sffx)
+                | (prfx, sffx) => (x :: prfx, sffx));
+          fun apr (f,y) x = f(x,y);
 
+          val (is, os) = ExtendedIO.execute ("ls -l " ^ name)
+          val (result, _) = take_suffix (apr(op<>," ")) 
+                              (explode (ExtendedIO.input_line is))
+                (*Remove the part after the last " " (i.e. the path/filename) *)
+        in close_in is;
+           close_out os;
+           implode result
+        end;
