@@ -34,23 +34,6 @@ primrec
                          Some( $S2 o S1, t2, m2) )"
 
 
-lemmas W_rules =
- le_env_Cons 
- le_type_scheme_refl 
- le_env_refl 
- bound_typ_instance_BVar 
- not_FVar_le_Fun 
- not_BVar_le_Fun 
- le_env_Cons 
- le_type_scheme_refl 
- le_env_refl 
- bound_typ_instance_BVar 
- not_FVar_le_Fun 
- not_BVar_le_Fun
- has_type.intros
- equalityE
-
-
 declare Suc_le_lessD [simp]
 declare less_imp_le [simp del]  (*the combination loops*)
 
@@ -230,7 +213,7 @@ apply (erule_tac x = "S" in allE)
 apply (erule_tac x = "t" in allE)
 apply (erule_tac x = "n1" in allE)
 apply (erule_tac x = "v" in allE)
-apply (bestsimp del: W_rules intro: cod_app_subst simp add: less_Suc_eq)
+apply (bestsimp intro: cod_app_subst simp add: less_Suc_eq)
 (* case App e1 e2 *)
 apply (simp (no_asm) split add: split_option_bind del: all_simps)
 apply (intro strip)
