@@ -319,21 +319,29 @@ bind_thm ("Always_ConstrainsD", Always_Constrains_post RS iffD2);
 
 (** Conjoining Always properties **)
 
+Goal "Always (A Int B) = Always A Int Always B";
+by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
+qed "Always_Int_distrib";
+
+Goal "Always (INTER I A) = (INT i:I. Always (A i))";
+by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
+qed "Always_INT_distrib";
+
 Goal "[| F : Always A;  F : Always B |] ==> F : Always (A Int B)";
 by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
-qed "Always_Int";
+qed "Always_Int_I";
 
 (*Delete the nearest invariance assumption (which will be the second one
-  used by Always_Int) *)
+  used by Always_Int_I) *)
 val Always_thin =
     read_instantiate_sg (sign_of thy)
                 [("V", "?F : Always ?A")] thin_rl;
 
 (*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
-val Always_Int_tac = dtac Always_Int THEN' assume_tac THEN' etac Always_thin;
+val Always_Int_tac = dtac Always_Int_I THEN' assume_tac THEN' etac Always_thin;
 
 (*Combines a list of invariance THEOREMS into one.*)
-val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Always_Int);
+val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Always_Int_I);
 
 
 (*To allow expansion of the program's definition when appropriate*)
