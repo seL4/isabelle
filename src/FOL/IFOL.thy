@@ -63,6 +63,9 @@ syntax (symbols)
   "EX! "        :: [idts, o] => o               ("(3\\<exists>!_./ _)" [0, 10] 10)
   "op ~="       :: ['a, 'a] => o                (infixl "\\<noteq>" 50)
 
+syntax (xsymbols)
+  "op -->"      :: [o, o] => o                  (infixr "\\<longrightarrow>" 25)
+  "op <->"      :: [o, o] => o                  (infixr "\\<longleftrightarrow>" 25)
 
 local
 

@@ -30,7 +30,8 @@ sig
   val pure_syntax: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
   val pure_applC_syntax: (string * string * mixfix) list
-  val pure_sym_syntax: (string * string * mixfix) list
+  val pure_sym_syntax:  (string * string * mixfix) list
+  val pure_xsym_syntax: (string * string * mixfix) list
 end;
 
 signature MIXFIX =
@@ -220,5 +221,8 @@ val pure_sym_syntax =
   ("==",       "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>", 2)),
   ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0))];
 
+val pure_xsym_syntax =
+ [("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
+  ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1))];
 
 end;

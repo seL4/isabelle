@@ -141,6 +141,8 @@ syntax (symbols output)
   "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
 
 
+syntax (xsymbols)
+  "op -->"      :: [bool, bool] => bool             (infixr "\\<longrightarrow>" 25)
 
 (** Rules and definitions **)
 
