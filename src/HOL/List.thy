@@ -474,6 +474,10 @@ lemma Cons_eq_map_conv[iff]:
  "(x#xs = map f ys) = (\<exists>z zs. ys = z#zs \<and> x = f z \<and> xs = map f zs)"
 by (cases ys) auto
 
+lemma ex_map_conv:
+  "(EX xs. ys = map f xs) = (ALL y : set ys. EX x. y = f x)"
+by(induct ys, auto)
+
 lemma map_injective:
  "!!xs. map f xs = map f ys ==> (\<forall>x y. f x = f y --> x = y) ==> xs = ys"
 by (induct ys) auto
