@@ -16,13 +16,25 @@ Goal "a ~= b ==> a:?X & b ~: ?X";
 by (Blast_tac 1);
 result();
 
-(*Nice demonstration of blast_tac--and its limitations*)
+(** Examples for the Blast_tac paper **)
+
+(*Union-image, called Un_Union_image on equalities.ML*)
+Goal "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
+by (Blast_tac 1);
+result();
+
+(*Inter-image, called Int_Inter_image on equalities.ML*)
+Goal "(INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)";
+by (Blast_tac 1);
+result();
+
+(*Singleton I.  Nice demonstration of blast_tac--and its limitations*)
 Goal "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 (*for some unfathomable reason, UNIV_I increases the search space greatly*)
 by (blast_tac (claset() delrules [UNIV_I]) 1);
 result();
 
-(*variant of the benchmark above*)
+(*Singleton II.  variant of the benchmark above*)
 Goal "ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
 by (blast_tac (claset() delrules [UNIV_I]) 1);
 (*just Blast_tac takes 5 seconds instead of 1*)
