@@ -267,6 +267,8 @@ Goalw [Always_def, invariant_def, Stable_def, stable_def]
 by (blast_tac (claset() addIs [constrains_imp_Constrains]) 1);
 qed "invariant_imp_Always";
 
+bind_thm ("Always_reachable", invariant_reachable RS invariant_imp_Always);
+
 Goal "Always A = {F. F : invariant (reachable F Int A)}";
 by (simp_tac (simpset() addsimps [Always_def, invariant_def, Stable_def, 
 				  Constrains_eq_constrains, stable_def]) 1);
