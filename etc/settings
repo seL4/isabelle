@@ -32,7 +32,7 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 #ML_HOME=/usr/local/sml107/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
-# Standard ML of New Jersey 1.09.27
+# Standard ML of New Jersey 1.09.27, or later
 #ML_SYSTEM=smlnj-1.09
 #ML_HOME=/usr/local/sml109.27/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
