@@ -1,0 +1,188 @@
+(*  Title: 	HOLCF/lift1.ML
+    ID:         $Id$
+    Author: 	Franz Regensburger
+    Copyright   1993  Technische Universitaet Muenchen
+*)
+
+open Lift1;
+
+val Exh_Lift = prove_goalw Lift1.thy [UU_lift_def,Iup_def ]
+	"z = UU_lift | (? x. z = Iup(x))"
+ (fn prems =>
+	[
+	(rtac (Rep_Lift_inverse RS subst) 1),
+	(res_inst_tac [("s","Rep_Lift(z)")] sumE 1),
+	(rtac disjI1 1),
+	(res_inst_tac [("f","Abs_Lift")] arg_cong 1),
+	(rtac (unique_void2 RS subst) 1),
+	(atac 1),
+	(rtac disjI2 1),
+	(rtac exI 1),
+	(res_inst_tac [("f","Abs_Lift")] arg_cong 1),
+	(atac 1)
+	]);
+
+val inj_Abs_Lift = prove_goal Lift1.thy "inj(Abs_Lift)"
+ (fn prems =>
+	[
+	(rtac inj_inverseI 1),
+	(rtac Abs_Lift_inverse 1)
+	]);
+
+val inj_Rep_Lift = prove_goal Lift1.thy "inj(Rep_Lift)"
+ (fn prems =>
+	[
+	(rtac inj_inverseI 1),
+	(rtac Rep_Lift_inverse 1)
+	]);
+
+val inject_Iup = prove_goalw Lift1.thy [Iup_def] "Iup(x)=Iup(y) ==> x=y"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(rtac (inj_Inr RS injD) 1),
+	(rtac (inj_Abs_Lift RS injD) 1),
+	(atac 1)
+	]);
+
+val defined_Iup=prove_goalw Lift1.thy [Iup_def,UU_lift_def] "~ Iup(x)=UU_lift"
+ (fn prems =>
+	[
+	(rtac notI 1),
+	(rtac notE 1),
+	(rtac Inl_not_Inr 1),
+	(rtac sym 1),
+	(etac (inj_Abs_Lift RS  injD) 1)
+	]);
+
+
+val liftE = prove_goal  Lift1.thy
+	"[| p=UU_lift ==> Q; !!x. p=Iup(x)==>Q|] ==>Q"
+ (fn prems =>
+	[
+	(rtac (Exh_Lift RS disjE) 1),
+	(eresolve_tac prems 1),
+	(etac exE 1),
+	(eresolve_tac prems 1)
+	]);
+
+val Ilift1 = prove_goalw  Lift1.thy [Ilift_def,UU_lift_def]
+	"Ilift(f)(UU_lift)=UU"
+ (fn prems =>
+	[
+	(rtac (Abs_Lift_inverse RS ssubst) 1),
+	(rtac (case_Inl RS ssubst) 1),
+	(rtac refl 1)
+	]);
+
+val Ilift2 = prove_goalw  Lift1.thy [Ilift_def,Iup_def]
+	"Ilift(f)(Iup(x))=f[x]"
+ (fn prems =>
+	[
+	(rtac (Abs_Lift_inverse RS ssubst) 1),
+	(rtac (case_Inr RS ssubst) 1),
+	(rtac refl 1)
+	]);
+
+val Lift_ss = Cfun_ss addsimps [Ilift1,Ilift2];
+
+val less_lift1a = prove_goalw  Lift1.thy [less_lift_def,UU_lift_def]
+	"less_lift(UU_lift)(z)"
+ (fn prems =>
+	[
+	(rtac (Abs_Lift_inverse RS ssubst) 1),
+	(rtac (case_Inl RS ssubst) 1),
+	(rtac TrueI 1)
+	]);
+
+val less_lift1b = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
+	"~less_lift(Iup(x),UU_lift)"
+ (fn prems =>
+	[
+	(rtac notI 1),
+	(rtac iffD1 1),
+	(atac 2),
+	(rtac (Abs_Lift_inverse RS ssubst) 1),
+	(rtac (Abs_Lift_inverse RS ssubst) 1),
+	(rtac (case_Inr RS ssubst) 1),
+	(rtac (case_Inl RS ssubst) 1),
+	(rtac refl 1)
+	]);
+
+val less_lift1c = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
+	"less_lift(Iup(x),Iup(y))=(x<<y)"
+ (fn prems =>
+	[
+	(rtac (Abs_Lift_inverse RS ssubst) 1),
+	(rtac (Abs_Lift_inverse RS ssubst) 1),
+	(rtac (case_Inr RS ssubst) 1),
+	(rtac (case_Inr RS ssubst) 1),
+	(rtac refl 1)
+	]);
+
+
+val refl_less_lift = prove_goal  Lift1.thy "less_lift(p,p)"
+ (fn prems =>
+	[
+	(res_inst_tac [("p","p")] liftE 1),
+	(hyp_subst_tac 1),
+	(rtac less_lift1a 1),
+	(hyp_subst_tac 1),
+	(rtac (less_lift1c RS iffD2) 1),
+	(rtac refl_less 1)
+	]);
+
+val antisym_less_lift = prove_goal  Lift1.thy 
+	"[|less_lift(p1,p2);less_lift(p2,p1)|] ==> p1=p2"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(res_inst_tac [("p","p1")] liftE 1),
+	(hyp_subst_tac 1),
+	(res_inst_tac [("p","p2")] liftE 1),
+	(hyp_subst_tac 1),
+	(rtac refl 1),
+	(hyp_subst_tac 1),
+	(res_inst_tac [("P","less_lift(Iup(x),UU_lift)")] notE 1),
+	(rtac less_lift1b 1),
+	(atac 1),
+	(hyp_subst_tac 1),
+	(res_inst_tac [("p","p2")] liftE 1),
+	(hyp_subst_tac 1),
+	(res_inst_tac [("P","less_lift(Iup(x),UU_lift)")] notE 1),
+	(rtac less_lift1b 1),
+	(atac 1),
+	(hyp_subst_tac 1),
+	(rtac arg_cong 1),
+	(rtac antisym_less 1),
+	(etac (less_lift1c RS iffD1) 1),
+	(etac (less_lift1c RS iffD1) 1)
+	]);
+
+val trans_less_lift = prove_goal  Lift1.thy 
+	"[|less_lift(p1,p2);less_lift(p2,p3)|] ==> less_lift(p1,p3)"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(res_inst_tac [("p","p1")] liftE 1),
+	(hyp_subst_tac 1),
+	(rtac less_lift1a 1),
+	(hyp_subst_tac 1),
+	(res_inst_tac [("p","p2")] liftE 1),
+	(hyp_subst_tac 1),
+	(rtac notE 1),
+	(rtac less_lift1b 1),
+	(atac 1),
+	(hyp_subst_tac 1),
+	(res_inst_tac [("p","p3")] liftE 1),
+	(hyp_subst_tac 1),
+	(rtac notE 1),
+	(rtac less_lift1b 1),
+	(atac 1),
+	(hyp_subst_tac 1),
+	(rtac (less_lift1c RS iffD2) 1),
+	(rtac trans_less 1),
+	(etac (less_lift1c RS iffD1) 1),
+	(etac (less_lift1c RS iffD1) 1)
+	]);
+
