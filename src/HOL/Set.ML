@@ -125,7 +125,7 @@ seq (fn a => Blast.overloaded (a, HOLogic.dest_setT o domain_type))
 (*need UNION, INTER also?*)
 
 (*Image: retain the type of the set being expressed*)
-Blast.overloaded ("op ``", domain_type o domain_type);
+Blast.overloaded ("op ``", domain_type);
 
 (*Rule in Modus Ponens style*)
 Goalw [subset_def] "[| A <= B;  c:A |] ==> c:B";
