@@ -1104,8 +1104,7 @@ fun finish_html () = if not (!make_html) then () else
       val subdirs = space_explode "/" subdir;
 
       (*Look for index.html in superdirectories*)
-      fun find_super_index [] _ =
-            error "finish_html: Unable to find super index file."
+      fun find_super_index [] n = ("", n)
         | find_super_index (p::ps) n =
           let val index_path = "/" ^ space_implode "/" (rev ps);
           in if file_exists (index_path ^ "/index.html") then (index_path, n)
@@ -1138,11 +1137,12 @@ fun finish_html () = if not (!make_html) then () else
        \<IMG SRC = \"" ^ tack_on gif_path "red_arrow.gif\
        \\" ALT = \\/></A> stands for subtheories (child theories)<BR>\n\
        \<IMG SRC = \"" ^ tack_on gif_path "blue_arrow.gif\
-       \\" ALT = /\\></A> stands for supertheories (parent theories)\
-       \<P>\n<A HREF = \"" ^ relative_path (!index_path) super_index ^ 
-       "/index.html\">Back</A> to the index of " ^
-       (if level = 0 then "Isabelle logics"
-        else space_implode "/" (take (level, subdirs))) ^
+       \\" ALT = /\\></A> stands for supertheories (parent theories)" ^
+       (if super_index = "" then "" else
+        ("<P>\n<A HREF = \"" ^ relative_path (!index_path) super_index ^ 
+         "/index.html\">Back</A> to the index of " ^
+         (if level = 0 then "Isabelle logics"
+          else space_implode "/" (take (level, subdirs))))) ^
        "\n" ^
        (if file_exists (tack_on (!index_path) "README.html") then
           "<BR>View the <A HREF = \"README.html\">ReadMe</A> file.\n"
@@ -1151,7 +1151,7 @@ fun finish_html () = if not (!make_html) then () else
         else "") ^
        "<HR>" ^ implode (map main_entry theories) ^ "<!-->");
      close_out out;
-     if level = 0 then () else link_directory ()
+     if super_index = "" orelse level = 0 then () else link_directory ()
   end;
 
 
@@ -1180,9 +1180,7 @@ fun store_datatype (name, cons) =
                    thy_ss = thy_ss, simpset = simpset,
                    datatypes = (name, cons) :: datatypes}
       | None => error "store_datatype: theory not found";
-  in
-writeln ("*** Storing datatype " ^ name ^ " (" ^ commas cons ^ ") for theory " ^ (!cur_thyname));
-     loaded_thys := Symtab.update ((!cur_thyname, tinfo), !loaded_thys) end;
+  in loaded_thys := Symtab.update ((!cur_thyname, tinfo), !loaded_thys) end;
 
 fun datatypes_of thy =
   let val (_, ThyInfo {datatypes, ...}) = thyinfo_of_sign (sign_of thy);
