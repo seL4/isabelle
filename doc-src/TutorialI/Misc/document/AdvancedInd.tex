@@ -1,5 +1,6 @@
 %
 \begin{isabellebody}%
+\def\isabellecontext{AdvancedInd}%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -85,16 +86,16 @@ application of modus ponens and \isa{spec}:%
 \begin{isamarkuptext}%
 \noindent
 or the wholesale stripping of \isa{{\isasymforall}} and
-\isa{{\isasymlongrightarrow}} in the conclusion via \isa{rulify}%
+\isa{{\isasymlongrightarrow}} in the conclusion via \isa{rulified}%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ myrule\ {\isacharequal}\ simple{\isacharbrackleft}rulify{\isacharbrackright}%
+\isacommand{lemmas}\ myrule\ {\isacharequal}\ simple{\isacharbrackleft}rulified{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 yielding \isa{{\isasymlbrakk}A\ y{\isacharsemicolon}\ B\ y{\isasymrbrakk}\ {\isasymLongrightarrow}\ B\ y\ {\isasymand}\ A\ y}.
 You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ myrule{\isacharbrackleft}rulify{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isacharampersand}\ A\ y{\isachardoublequote}%
+\isacommand{lemma}\ myrule{\isacharbrackleft}rulified{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ y\ {\isasymlongrightarrow}\ B\ y\ {\isasymlongrightarrow}\ B\ y\ {\isacharampersand}\ A\ y{\isachardoublequote}%
 \begin{isamarkuptext}%
 \bigskip
 
@@ -119,12 +120,10 @@ be helpful. We show how to apply such induction schemas by an example.
 Structural induction on \isa{nat} is
 usually known as ``mathematical induction''. There is also ``complete
 induction'', where you must prove $P(n)$ under the assumption that $P(m)$
-holds for all $m<n$. In Isabelle, this is the theorem \isa{less{\isacharunderscore}induct}:
-%
+holds for all $m<n$. In Isabelle, this is the theorem \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}:
 \begin{isabelle}%
 \ \ \ \ \ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n%
-\end{isabelle}%
-
+\end{isabelle}
 Here is an example of its application.%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isacharequal}{\isachargreater}\ nat{\isachardoublequote}\isanewline
@@ -142,11 +141,11 @@ above, we have to phrase the proposition as follows to allow induction:%
 \isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-To perform induction on \isa{k} using \isa{less{\isacharunderscore}induct}, we use the same
+To perform induction on \isa{k} using \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}, we use the same
 general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}less{\isacharunderscore}induct{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 which leaves us with the following proof state:
@@ -163,7 +162,7 @@ the other case:
 \ \ \ \ \ \ \ {\isasymLongrightarrow}\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%
+\isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 It is not surprising if you find the last step puzzling.
@@ -186,13 +185,13 @@ proofs.
 
 We can now derive the desired \isa{i\ {\isasymle}\ f\ i} from \isa{f{\isacharunderscore}incr}:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rulify{\isacharcomma}\ OF\ refl{\isacharbrackright}%
+\isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rulified{\isacharcomma}\ OF\ refl{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
 The final \isa{refl} gets rid of the premise \isa{{\isacharquery}k\ {\isacharequal}\ f\ {\isacharquery}i}. Again,
 we could have included this derivation in the original statement of the lemma:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rulify{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
+\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rulified{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
 \begin{isamarkuptext}%
 \begin{exercise}
 From the above axiom and lemma for \isa{f} show that \isa{f} is the
@@ -220,7 +219,7 @@ which case the application is
 \label{sec:derive-ind}
 Induction schemas are ordinary theorems and you can derive new ones
 whenever you wish.  This section shows you how to, using the example
-of \isa{less{\isacharunderscore}induct}. Assume we only have structural induction
+of \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}. Assume we only have structural induction
 available for \isa{nat} and want to derive complete induction. This
 requires us to generalize the statement first:%
 \end{isamarkuptext}%
@@ -240,32 +239,28 @@ the induction hypothesis:%
 \begin{isamarkuptext}%
 \noindent
 The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction:
-%
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}m\ {\isacharless}\ Suc\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ m\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
-\end{isabelle}%
-
+\end{isabelle}
 
 Now it is straightforward to derive the original version of
-\isa{less{\isacharunderscore}induct} by manipulting the conclusion of the above lemma:
+\isa{nat{\isacharunderscore}less{\isacharunderscore}induct} by manipulting the conclusion of the above lemma:
 instantiate \isa{n} by \isa{Suc\ n} and \isa{m} by \isa{n} and
 remove the trivial condition \isa{n\ {\isacharless}\ Sc\ n}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:%
 \end{isamarkuptext}%
-\isacommand{theorem}\ less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
+\isacommand{theorem}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Finally we should mention that HOL already provides the mother of all
 inductions, \emph{wellfounded induction} (\isa{wf{\isacharunderscore}induct}):
-%
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}wf\ r{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}y{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ P\ y\ {\isasymLongrightarrow}\ P\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a%
-\end{isabelle}%
-
+\end{isabelle}
 where \isa{wf\ r} means that the relation \isa{r} is wellfounded.
-For example \isa{less{\isacharunderscore}induct} is the special case where \isa{r} is
+For example \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} is the special case where \isa{r} is
 \isa{{\isacharless}} on \isa{nat}. For details see the library.%
 \end{isamarkuptext}%
 \end{isabellebody}%

@@ -1,24 +1,21 @@
 %
 \begin{isabellebody}%
+\def\isabellecontext{prime_def}%
 %
 \begin{isamarkuptext}%
 \begin{warn}
 A common mistake when writing definitions is to introduce extra free
 variables on the right-hand side as in the following fictitious definition:
-%
 \begin{isabelle}%
 \ \ \ \ \ {\isachardoublequote}prime\ p\ {\isasymequiv}\ \isadigit{1}\ {\isacharless}\ p\ {\isasymand}\ {\isacharparenleft}m\ dvd\ p\ {\isasymlongrightarrow}\ m\ {\isacharequal}\ \isadigit{1}\ {\isasymor}\ m\ {\isacharequal}\ p{\isacharparenright}{\isachardoublequote}%
-\end{isabelle}%
-
+\end{isabelle}
 where \isa{dvd} means ``divides''.
 Isabelle rejects this ``definition'' because of the extra \isa{m} on the
 right-hand side, which would introduce an inconsistency (why?). What you
 should have written is
-%
 \begin{isabelle}%
 \ \ \ \ \ {\isachardoublequote}prime\ p\ {\isasymequiv}\ \isadigit{1}\ {\isacharless}\ p\ {\isasymand}\ {\isacharparenleft}{\isasymforall}m{\isachardot}\ m\ dvd\ p\ {\isasymlongrightarrow}\ m\ {\isacharequal}\ \isadigit{1}\ {\isasymor}\ m\ {\isacharequal}\ p{\isacharparenright}{\isachardoublequote}%
-\end{isabelle}%
-
+\end{isabelle}
 \end{warn}%
 \end{isamarkuptext}%
 \end{isabellebody}%

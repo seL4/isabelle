@@ -1,5 +1,6 @@
 %
 \begin{isabellebody}%
+\def\isabellecontext{Fundata}%
 \isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Branch\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
@@ -10,11 +11,9 @@ type over which the tree branches. If \isa{{\isacharprime}i} is instantiated to
 \isa{nat}, we have an infinitely branching tree because each node
 has as many subtrees as there are natural numbers. How can we possibly
 write down such a tree? Using functional notation! For example, the term
-%
 \begin{isabelle}%
 \ \ \ \ \ Branch\ \isadigit{0}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ Branch\ i\ {\isacharparenleft}{\isasymlambda}n{\isachardot}\ Tip{\isacharparenright}{\isacharparenright}%
-\end{isabelle}%
-
+\end{isabelle}
 of type \isa{{\isacharparenleft}nat{\isacharcomma}\ nat{\isacharparenright}\ bigtree} is the tree whose
 root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely \isa{Tip}s as further subtrees.

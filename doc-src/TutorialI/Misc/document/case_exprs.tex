@@ -1,5 +1,6 @@
 %
 \begin{isabellebody}%
+\def\isabellecontext{case_exprs}%
 %
 \isamarkupsubsection{Case expressions}
 %
@@ -7,11 +8,9 @@
 \label{sec:case-expressions}
 HOL also features \isaindexbold{case}-expressions for analyzing
 elements of a datatype. For example,
-%
 \begin{isabelle}%
 \ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y%
-\end{isabelle}%
-
+\end{isabelle}
 evaluates to \isa{\isadigit{1}} if \isa{xs} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{y} if 
 \isa{xs} is \isa{y\ {\isacharhash}\ ys}. (Since the result in both branches must be of
 the same type, it follows that \isa{y} is of type \isa{nat} and hence
@@ -36,18 +35,14 @@ error messages.
 \noindent
 Nested patterns can be simulated by nested \isa{case}-expressions: instead
 of
-%
 \begin{isabelle}%
 \ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ \isadigit{1}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ x\ {\isacharbar}\ x\ {\isacharhash}\ {\isacharparenleft}y\ {\isacharhash}\ zs{\isacharparenright}\ {\isacharequal}{\isachargreater}\ y%
-\end{isabelle}%
-
+\end{isabelle}
 write
-%
 \begin{isabelle}%
 \ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\isanewline
 \ \ \ \ \ {\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y%
-\end{isabelle}%
-
+\end{isabelle}
 
 Note that \isa{case}-expressions may need to be enclosed in parentheses to
 indicate their scope%
