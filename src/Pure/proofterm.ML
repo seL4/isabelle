@@ -118,8 +118,8 @@ datatype proof =
    PBound of int
  | Abst of string * typ option * proof
  | AbsP of string * term option * proof
- | % of proof * term option
- | %% of proof * proof
+ | op % of proof * term option
+ | op %% of proof * proof
  | Hyp of term
  | PThm of (string * (string * string list) list) * proof * term * typ list option
  | PAxm of string * term * typ list option
@@ -366,7 +366,8 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 
 fun norm_proof env =
   let
-    fun norm (Abst (s, T, prf)) = (Abst (s, apsome' (norm_type_same env) T, normh prf)
+    val envT = type_env env;
+    fun norm (Abst (s, T, prf)) = (Abst (s, apsome' (norm_type_same envT) T, normh prf)
           handle SAME => Abst (s, T, norm prf))
       | norm (AbsP (s, t, prf)) = (AbsP (s, apsome' (norm_term_same env) t, normh prf)
           handle SAME => AbsP (s, t, norm prf))
@@ -374,8 +375,8 @@ fun norm_proof env =
           handle SAME => prf % apsome' (norm_term_same env) t)
       | norm (prf1 %% prf2) = (norm prf1 %% normh prf2
           handle SAME => prf1 %% norm prf2)
-      | norm (PThm (s, prf, t, Ts)) = PThm (s, prf, t, apsome' (norm_types_same env) Ts)
-      | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (norm_types_same env) Ts)
+      | norm (PThm (s, prf, t, Ts)) = PThm (s, prf, t, apsome' (norm_types_same envT) Ts)
+      | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (norm_types_same envT) Ts)
       | norm _ = raise SAME
     and normh prf = (norm prf handle SAME => prf);
   in normh end;
