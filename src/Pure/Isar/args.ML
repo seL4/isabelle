@@ -36,6 +36,7 @@ sig
   val local_prop: Proof.context * T list -> term * (Proof.context * T list)
   val local_term_pat: Proof.context * T list -> term * (Proof.context * T list)
   val local_prop_pat: Proof.context * T list -> term * (Proof.context * T list)
+  val bang_facts: Proof.context * T list -> thm list * (Proof.context * T list)
   type src
   val src: (string * T list) * Position.T -> src
   val dest_src: src -> (string * T list) * Position.T
@@ -138,6 +139,12 @@ val local_term = gen_item ProofContext.read_term;
 val local_prop = gen_item ProofContext.read_prop;
 val local_term_pat = gen_item ProofContext.read_term_pat;
 val local_prop_pat = gen_item ProofContext.read_prop_pat;
+
+
+(* bang facts *)
+
+val bang_facts = Scan.depend (fn ctxt =>
+  ($$$ "!" >> K (ProofContext.prems_of ctxt) || Scan.succeed []) >> pair ctxt);
 
 
 (* args *)
