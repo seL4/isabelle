@@ -5,7 +5,7 @@
 
 A naive prover for intuitionistic logic
 
-BEWARE OF NAME CLASHES WITH CLASSICAL TACTICS -- use Int.fast_tac ...
+BEWARE OF NAME CLASHES WITH CLASSICAL TACTICS -- use IntPr.fast_tac ...
 
 Completeness (for propositional logic) is proved in 
 
@@ -29,7 +29,7 @@ signature INT_PROVER =
   end;
 
 
-structure Int : INT_PROVER   = 
+structure IntPr : INT_PROVER   = 
 struct
 
 (*Negation is treated as a primitive symbol, with rules notI (introduction),

@@ -7,7 +7,7 @@ For ex/if.thy.  First-Order Logic: the 'if' example
 *)
 
 open If;
-open Cla;    (*in case structure Int is open!*)
+open Cla;    (*in case structure IntPr is open!*)
 
 val prems = goalw If.thy [if_def]
     "[| P ==> Q; ~P ==> R |] ==> if(P,Q,R)";

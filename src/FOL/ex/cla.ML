@@ -8,7 +8,7 @@ Classical First-Order Logic
 
 writeln"File FOL/ex/cla.ML";
 
-open Cla;    (*in case structure Int is open!*)
+open Cla;    (*in case structure IntPr is open!*)
 
 goal FOL.thy "(P --> Q | R) --> (P-->Q) | (P-->R)";
 by (Fast_tac 1);

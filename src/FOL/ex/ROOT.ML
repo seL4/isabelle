@@ -20,7 +20,7 @@ time_use_thy "Prolog";
 writeln"\n** Intuitionistic examples **\n";
 time_use     "int.ML";
 
-val thy = IFOL.thy  and  tac = Int.fast_tac 1;
+val thy = IFOL.thy  and  tac = IntPr.fast_tac 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
 

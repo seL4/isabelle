@@ -12,7 +12,7 @@ fun int_prove_fun s =
  (writeln s;  
   prove_goal IFOL.thy s
    (fn prems => [ (cut_facts_tac prems 1), 
-                  (Int.fast_tac 1) ]));
+                  (IntPr.fast_tac 1) ]));
 
 val conj_simps = map int_prove_fun
  ["P & True <-> P",      "True & P <-> P",
@@ -123,7 +123,7 @@ val all_simps = map prove_fun
 
 fun int_prove nm thm  = qed_goal nm IFOL.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
-                   (Int.fast_tac 1) ]);
+                   (IntPr.fast_tac 1) ]);
 
 fun prove nm thm  = qed_goal nm FOL.thy thm (fn _ => [fast_tac FOL_cs 1]);
 
