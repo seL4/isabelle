@@ -8,6 +8,17 @@ Datatype definition of binary trees
 
 Addsimps bt.intrs;
 
+Goal "l : bt(A) ==> ALL x r. Br(x,l,r) ~= l";
+by (induct_tac "l" 1);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps bt.free_iffs)));
+qed_spec_mp "Br_neq_left";
+
+(*Proving a freeness theorem*)
+val Br_iff = bt.mk_free "Br(a,l,r) = Br(a',l',r') <-> a=a' & l=l' & r=r'";
+
+(*An elimination rule, for type-checking*)
+val BrE = bt.mk_cases bt.con_defs "Br(a,l,r) : bt(A)";
+
 (**  Lemmas to justify using "bt" in other recursive type definitions **)
 
 Goalw bt.defs "A<=B ==> bt(A) <= bt(B)";
@@ -26,7 +37,7 @@ qed "bt_univ";
 bind_thm ("bt_subset_univ", [bt_mono, bt_univ] MRS subset_trans);
 
 
-(*Type checking -- proved by induction, as usual*)
+(*Type checking for recursor -- example only; not really needed*)
 val major::prems = goal BT.thy
     "[| t: bt(A);    \
 \       c: C(Lf);       \
@@ -58,14 +69,13 @@ qed "n_leaves_type";
 Goal "t: bt(A) ==> bt_reflect(t) : bt(A)";
 by (induct_tac "t" 1);
 by Auto_tac;
-by (REPEAT (ares_tac (bt.intrs @ [bt_rec_type]) 1));
 qed "bt_reflect_type";
 
 
 (** BT simplification **)
 
 
-Addsimps [bt_rec_type, n_nodes_type, n_leaves_type, bt_reflect_type];
+Addsimps [n_nodes_type, n_leaves_type, bt_reflect_type];
 
 
 (*** theorems about n_leaves ***)

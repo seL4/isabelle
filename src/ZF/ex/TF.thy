@@ -8,19 +8,21 @@ Trees & forests, a mutually recursive type definition.
 
 TF = List +
 consts
-  map      :: [i=>i, i] => i
-  size     :: i=>i
-  preorder :: i=>i
-  list_of_TF  :: i=>i
-  of_list  :: i=>i
-  reflect  :: i=>i
-
   tree, forest, tree_forest    :: i=>i
 
 datatype
   "tree(A)"   = Tcons ("a: A",  "f: forest(A)")
 and
   "forest(A)" = Fnil  |  Fcons ("t: tree(A)",  "f: forest(A)")
+
+
+consts
+  map      :: [i=>i, i] => i
+  size     :: i=>i
+  preorder :: i=>i
+  list_of_TF  :: i=>i
+  of_list  :: i=>i
+  reflect  :: i=>i
 
 primrec
   "list_of_TF (Tcons(x,f))  = [Tcons(x,f)]"

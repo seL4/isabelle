@@ -9,12 +9,6 @@ Illustrates the list functor (essentially the same type as in Trees & Forests)
 
 Term = List +
 consts
-  term_rec  :: [i, [i,i,i]=>i] => i
-  term_map  :: [i=>i, i] => i
-  term_size :: i=>i
-  reflect   :: i=>i
-  preorder  :: i=>i
-
   term      :: i=>i
 
 datatype
@@ -25,6 +19,14 @@ datatype
 (*Or could have
     type_intrs  "[list_univ RS subsetD]"
 *)
+
+consts
+  term_rec  :: [i, [i,i,i]=>i] => i
+  term_map  :: [i=>i, i] => i
+  term_size :: i=>i
+  reflect   :: i=>i
+  preorder  :: i=>i
+  postorder :: i=>i
 
 defs
   term_rec_def
@@ -38,5 +40,7 @@ defs
   reflect_def   "reflect(t) == term_rec(t, %x zs rs. Apply(x, rev(rs)))"
 
   preorder_def  "preorder(t) == term_rec(t, %x zs rs. Cons(x, flat(rs)))"
+
+  postorder_def "postorder(t) == term_rec(t, %x zs rs. flat(rs) @ [x])"
 
 end

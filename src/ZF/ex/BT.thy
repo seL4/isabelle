@@ -6,17 +6,17 @@
 Binary trees
 *)
 
-BT = Datatype +
+BT = Main +
 consts
-    n_nodes     :: i=>i
-    n_leaves    :: i=>i
-    bt_reflect  :: i=>i
-
     bt          :: i=>i
 
 datatype
   "bt(A)" = Lf  |  Br ("a: A",  "t1: bt(A)",  "t2: bt(A)")
-  
+
+consts
+    n_nodes     :: i=>i
+    n_leaves    :: i=>i
+    bt_reflect  :: i=>i
 
 primrec
   "n_nodes(Lf) = 0"

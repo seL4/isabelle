@@ -29,5 +29,6 @@ val ZF_typechecks =
   drawback: does not simplify conjunctions*)
 fun type_auto_tac tyrls hyps = SELECT_GOAL
     (DEPTH_SOLVE (typechk_step_tac (tyrls@hyps)
-           ORELSE ares_tac [TrueI,refl,iff_refl,ballI,allI,conjI,impI] 1));
+           ORELSE ares_tac [TrueI,refl,reflexive_thm,iff_refl,
+			    ballI,allI,conjI,impI] 1));
 

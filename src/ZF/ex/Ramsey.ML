@@ -103,11 +103,7 @@ by (REPEAT (eresolve_tac [asm_rl, Atleast_Diff_succI, notE] 2));
 (*proving the condition*)
 by (Asm_simp_tac 1);
 by (etac Atleast_superset 1 THEN Fast_tac 1);
-qed "pigeon2_lemma";
-
-(* [| m:nat;  n:nat;  Atleast(m #+ n #- succ(0), A Un B) |] ==> 
-   Atleast(m,A) | Atleast(n,B) *)
-bind_thm ("pigeon2", (pigeon2_lemma RS bspec RS spec RS spec RS mp));
+qed_spec_mp "pigeon2";
 
 
 (**** Ramsey's Theorem ****)

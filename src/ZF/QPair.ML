@@ -122,11 +122,9 @@ qed "QPair_qfst_qsnd_eq";
 (*** Eliminator - qsplit ***)
 
 (*A META-equality, so that it applies to higher types as well...*)
-qed_goalw "qsplit" thy [qsplit_def]
-    "qsplit(%x y. c(x,y), <a;b>) == c(a,b)"
- (fn _ => [ (Simp_tac 1),
-            (rtac reflexive_thm 1) ]);
-
+Goalw [qsplit_def] "qsplit(%x y. c(x,y), <a;b>) == c(a,b)";
+by (Simp_tac 1);
+qed "qsplit";
 Addsimps [qsplit];
 
 qed_goal "qsplit_type" thy

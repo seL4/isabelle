@@ -140,7 +140,7 @@ val rep_datatype_decl =
   (("elim" $$-- ident) -- 
    ("induct" $$-- ident) --
    ("case_eqns" $$-- list1 ident) -- 
-   ("recursor_eqns" $$-- list1 ident)) >> mk_rep_dt_string;
+   optional ("recursor_eqns" $$-- list1 ident) []) >> mk_rep_dt_string;
 
 
 (** primrec **)

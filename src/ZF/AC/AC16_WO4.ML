@@ -328,11 +328,10 @@ by (resolve_tac [Diff_Finite_eqpoll RS eqpoll_sym RS
 by (res_inst_tac 
      [("f3", "lam b:y-a. THE c. c: s(u) & a <= c & b:c")]
      (exI RS (lepoll_def RS def_imp_iff RS iffD2)) 1);
-by (resolve_tac [inj_def RS def_imp_eq RS ssubst] 1);
-by (rtac CollectI 1);
+by (simp_tac (simpset() addsimps [inj_def]) 1);
+by (rtac conjI 1);
 by (rtac lam_type 1);
-by (forward_tac [ex1_superset_a RS theI] 1
-        THEN REPEAT (Fast_tac 1));
+by (forward_tac [ex1_superset_a RS theI] 1 THEN REPEAT (Fast_tac 1));
 by (Asm_simp_tac 1);
 by (Clarify_tac 1);
 by (rtac cons_eqE 1);
@@ -387,17 +386,16 @@ Goal "[| ALL v:s(u). succ(l) eqpoll v Int y;  \
 \     ==> {v:s(u). a <= v} lepoll {v:Pow(x). v eqpoll m}";
 by (res_inst_tac [("f3","lam w:{v:s(u). a <= v}. w Int (x - {u})")] 
         (exI RS (lepoll_def RS def_imp_iff RS iffD2)) 1);
-by (resolve_tac [inj_def RS def_imp_eq RS ssubst] 1);
-by (rtac CollectI 1);
+by (simp_tac (simpset() addsimps [inj_def]) 1);
+by (rtac conjI 1);
 by (rtac lam_type 1);
 by (rtac CollectI 1);
 by (Fast_tac 1);
 by (rtac w_Int_eqpoll_m 1 THEN REPEAT (assume_tac 1));
-by (simp_tac (simpset() delsimps ball_simps) 1);
 by (REPEAT (resolve_tac [ballI, impI] 1));
-(** LEVEL 9 **)
-by (resolve_tac [w_Int_eqpoll_m RS eqpoll_m_not_empty RS not_emptyE] 1
-        THEN REPEAT (assume_tac 1));
+(** LEVEL 8 **)
+by (resolve_tac [w_Int_eqpoll_m RS eqpoll_m_not_empty RS not_emptyE] 1);
+by (EVERY (map Blast_tac [4,3,2,1]));
 by (dresolve_tac [equalityD1 RS subsetD] 1 THEN (assume_tac 1));
 by (forward_tac [cons_cons_in] 1 THEN REPEAT (assume_tac 1));
 by (etac ex1_two_eq 1);

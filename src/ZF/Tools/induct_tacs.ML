@@ -111,7 +111,9 @@ fun exhaust_induct_tac exh var i state =
 	if exh then #exhaustion (datatype_info_sg sign tn)
 	       else #induct  (datatype_info_sg sign tn)
     val (Const("op :",_) $ Var(ixn,_) $ _) = 
-	FOLogic.dest_Trueprop (hd (prems_of rule))
+        (case prems_of rule of
+	     [] => error "induction is not available for this datatype"
+	   | major::_ => FOLogic.dest_Trueprop major)
     val ind_vname = Syntax.string_of_vname ixn
     val vname' = (*delete leading question mark*)
 	String.substring (ind_vname, 1, size ind_vname-1)
@@ -139,9 +141,11 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 	map (head_of o const_of o FOLogic.dest_Trueprop o
 	     #prop o rep_thm) case_eqns;
 
-    val Const ("op :", _) $ _ $ Const(big_rec_name, _) =
+    val Const ("op :", _) $ _ $ data =
 	FOLogic.dest_Trueprop (hd (prems_of elim));	
     
+    val Const(big_rec_name, _) = head_of data;
+
     val simps = case_eqns @ recursor_eqns;
 
     val dt_info =

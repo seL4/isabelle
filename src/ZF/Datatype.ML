@@ -15,8 +15,9 @@ structure Data_Arg =
        Pair_in_univ, Inl_in_univ, Inr_in_univ, 
        zero_in_univ, A_into_univ, nat_into_univ, UnCI];
 
-  (*Needed for mutual recursion*)
-  val elims = [make_elim InlD, make_elim InrD];
+
+  val elims = [make_elim InlD, make_elim InrD,   (*for mutual recursion*)
+	       SigmaE, sumE];			 (*allows * and + in spec*)
   end;
 
 
@@ -36,7 +37,8 @@ structure CoData_Arg =
        QPair_in_quniv, QInl_in_quniv, QInr_in_quniv, 
        zero_in_quniv, A_into_quniv, nat_into_quniv, UnCI];
 
-  val elims = [make_elim QInlD, make_elim QInrD];
+  val elims = [make_elim QInlD, make_elim QInrD,   (*for mutual recursion*)
+	       QSigmaE, qsumE];			   (*allows * and + in spec*)
   end;
 
 structure CoData_Package = 

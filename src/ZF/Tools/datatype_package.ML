@@ -19,7 +19,7 @@ type datatype_result =
     recursor_eqns : thm list,          (*equations for the recursor*)
     free_iffs  : thm list,             (*freeness rewrite rules*)
     free_SEs   : thm list,             (*freeness destruct rules*)
-    mk_free    : string -> thm};      (*makes freeness theorems*)
+    mk_free    : string -> thm};       (*function to make freeness theorems*)
 
 
 signature DATATYPE_ARG =
@@ -302,7 +302,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
 	   (cterm_of (sign_of thy1) (mk_case_eqn arg)))
 	(case_tacsf con_def);
 
-  val con_iffs = con_defs RL [Ind_Syntax.def_swap_iff];
+  val free_iffs = con_defs RL [Ind_Syntax.def_swap_iff];
 
   val case_eqns = 
       map prove_case_eqn 
@@ -353,10 +353,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
   val constructors =
       map (head_of o #1 o Logic.dest_equals o #prop o rep_thm) (tl con_defs);
 
-  val free_iffs = con_iffs @ 
-    [Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff, Pr.pair_iff];
-
-  val free_SEs = Ind_Syntax.mk_free_SEs con_iffs @ Su.free_SEs;
+  val free_SEs = Ind_Syntax.mk_free_SEs free_iffs;
 
   val {elim, induct, mutual_induct, ...} = ind_result
 
@@ -366,7 +363,7 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
       prove_goalw (theory_of_thm elim)   (*Don't use thy1: it will be stale*)
                   con_defs s
 	(fn prems => [cut_facts_tac prems 1, 
-		      fast_tac (ZF_cs addSEs free_SEs) 1]);
+		      fast_tac (ZF_cs addSEs free_SEs @ Su.free_SEs) 1]);
 
   val simps = case_eqns @ recursor_eqns;
 
@@ -413,11 +410,12 @@ fun add_datatype (sdom, srec_tms, scon_ty_lists,
 		  monos, type_intrs, type_elims) thy =
   let val sign = sign_of thy
       val rec_tms = map (readtm sign Ind_Syntax.iT) srec_tms
+      val con_ty_lists = Ind_Syntax.read_constructs sign scon_ty_lists
       val dom_sum = 
           if sdom = "" then
-	      Ind_Syntax.data_domain (#1 (dest_Const Fp.oper) <> "Fixedpt.lfp") rec_tms
+	      Ind_Syntax.data_domain (#1(dest_Const Fp.oper) <> "Fixedpt.lfp") 
+	                             (rec_tms, con_ty_lists)
           else readtm sign Ind_Syntax.iT sdom
-      and con_ty_lists	= Ind_Syntax.read_constructs sign scon_ty_lists
   in 
       add_datatype_i (dom_sum, rec_tms, con_ty_lists, 
 		      monos, type_intrs, type_elims) thy

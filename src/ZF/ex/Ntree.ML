@@ -9,8 +9,6 @@ Demonstrates a simple use of function space in a datatype definition
 Based upon ex/Term.ML
 *)
 
-open Ntree;
-
 (** ntree **)
 
 Goal "ntree(A) = A * (UN n: nat. n -> ntree(A))";

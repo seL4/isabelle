@@ -107,13 +107,13 @@ by (etac redexes.induct 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [lift_rec_Var,
 				       lift_rec_Fun, lift_rec_App])));
-bind_thm ("lift_rec_type", result() RS bspec);
+qed_spec_mp "lift_rec_type";
 
 Goal "v:redexes ==>  ALL n:nat. ALL u:redexes. subst_rec(u,v,n):redexes";
 by (etac redexes.induct 1);
 by (ALLGOALS(asm_simp_tac 
     (simpset() addsimps [subst_Var, lift_rec_type])));
-bind_thm ("subst_type", result() RS bspec RS bspec);
+qed_spec_mp "subst_type";
 
 
 Addsimps [subst_eq, subst_gt, subst_lt, subst_type,

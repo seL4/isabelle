@@ -18,11 +18,12 @@ rules
 consts
   Exp   :: i                    (* Datatype of expressions *)
   ExVar :: i                    (* Abstract type of variables *)
-datatype <= "univ(Const Un ExVar)"
-  "Exp" = e_const("c:Const")
-        | e_var("x:ExVar")
-        | e_fn("x:ExVar","e:Exp")
-        | e_fix("x1:ExVar","x2:ExVar","e:Exp")
-        | e_app("e1:Exp","e2:Exp")
+
+datatype
+  "Exp" = e_const ("c:Const")
+        | e_var ("x:ExVar")
+        | e_fn ("x:ExVar","e:Exp")
+        | e_fix ("x1:ExVar","x2:ExVar","e:Exp")
+        | e_app ("e1:Exp","e2:Exp")
 
 end

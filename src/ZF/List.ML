@@ -34,11 +34,11 @@ Goalw (list.defs@list.con_defs) "list(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
 by (blast_tac (claset() addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
-                            Pair_in_univ]) 1);
+				Pair_in_univ]) 1);
 qed "list_univ";
 
 (*These two theorems justify datatypes involving list(nat), list(A), ...*)
-bind_thm ("list_subset_univ", ([list_mono, list_univ] MRS subset_trans));
+bind_thm ("list_subset_univ", [list_mono, list_univ] MRS subset_trans);
 
 Goal "[| l: list(A);  A <= univ(B) |] ==> l: univ(B)";
 by (REPEAT (ares_tac [list_subset_univ RS subsetD] 1));
@@ -177,6 +177,7 @@ Goal "l: list(A) ==> map(%u. u, l) = l";
 by (induct_tac "l" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_ident";
+Addsimps [map_ident];
 
 Goal "l: list(A) ==> map(h, map(j,l)) = map(%u. h(j(u)), l)";
 by (induct_tac "l" 1);
@@ -203,7 +204,7 @@ qed "list_rec_map";
 (** theorems about list(Collect(A,P)) -- used in ex/term.ML **)
 
 (* c : list(Collect(B,P)) ==> c : list(B) *)
-bind_thm ("list_CollectD", (Collect_subset RS list_mono RS subsetD));
+bind_thm ("list_CollectD", Collect_subset RS list_mono RS subsetD);
 
 Goal "l: list({x:A. h(x)=j(x)}) ==> map(h,l) = map(j,l)";
 by (induct_tac "l" 1);
@@ -222,13 +223,9 @@ by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "length_app";
 
-(* [| m: nat; n: nat |] ==> m #+ succ(n) = succ(n) #+ m 
-   Used for rewriting below*)
-val add_commute_succ = nat_succI RSN (2,add_commute);
-
 Goal "xs: list(A) ==> length(rev(xs)) = length(xs)";
 by (induct_tac "xs" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app, add_commute_succ])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [length_app])));
 qed "length_rev";
 
 Goal "ls: list(list(A)) ==> length(flat(ls)) = list_add(map(length,ls))";
@@ -244,22 +241,19 @@ Goal "xs: list(A) ==> \
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
-qed "drop_length_Cons_lemma";
-bind_thm ("drop_length_Cons", (drop_length_Cons_lemma RS spec));
+qed_spec_mp "drop_length_Cons";
 
-Goal "l: list(A) ==> ALL i: length(l).  EX z zs. drop(i,l) = Cons(z,zs)";
+Goal "l: list(A) ==> ALL i:length(l). (EX z zs. drop(i,l) = Cons(z,zs))";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (rtac conjI 1);
+by Safe_tac;
 by (etac drop_length_Cons 1);
-by (rtac ballI 1);
 by (rtac natE 1);
 by (etac ([asm_rl, length_type, Ord_nat] MRS Ord_trans) 1);
 by (assume_tac 1);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS (blast_tac (claset() addIs [succ_in_naturalD, length_type])));
-qed "drop_length_lemma";
-bind_thm ("drop_length", (drop_length_lemma RS bspec));
+qed_spec_mp "drop_length";
 
 
 (*** theorems about app ***)
@@ -268,6 +262,7 @@ Goal "xs: list(A) ==> xs@Nil=xs";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "app_right_Nil";
+Addsimps [app_right_Nil];
 
 Goal "xs: list(A) ==> (xs@ys)@zs = xs@(ys@zs)";
 by (induct_tac "xs" 1);
@@ -292,18 +287,20 @@ qed "rev_map_distrib";
 *)
 Goal "[| xs: list(A);  ys: list(A) |] ==> rev(xs@ys) = rev(ys)@rev(xs)";
 by (etac list.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [app_right_Nil,app_assoc])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [app_assoc])));
 qed "rev_app_distrib";
 
 Goal "l: list(A) ==> rev(rev(l))=l";
 by (induct_tac "l" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [rev_app_distrib])));
 qed "rev_rev_ident";
+Addsimps [rev_rev_ident];
 
 Goal "ls: list(list(A)) ==> rev(flat(ls)) = flat(map(rev,rev(ls)))";
 by (induct_tac "ls" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps 
-       [map_app_distrib, flat_app_distrib, rev_app_distrib, app_right_Nil])));
+by (ALLGOALS
+    (asm_simp_tac (simpset() addsimps 
+		   [map_app_distrib, flat_app_distrib, rev_app_distrib])));
 qed "rev_flat";
 
 

@@ -30,13 +30,12 @@ qed "lambda_unmark";
 Goal "v:lambda ==> ALL k:nat. lift_rec(v,k):lambda";
 by (etac lambda.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lift_rec_Var])));
-bind_thm ("liftL_type", result() RS bspec);
+qed_spec_mp "liftL_type";
 
 Goal "v:lambda ==>  ALL n:nat. ALL u:lambda. subst_rec(u,v,n):lambda";
 by (etac lambda.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [liftL_type,subst_Var])));
-qed "substL_typea";
-bind_thm ("substL_type", result() RS bspec RS bspec);
+qed_spec_mp "substL_type";
 
 
 (* ------------------------------------------------------------------------- *)

@@ -13,8 +13,6 @@ datatype
   "redexes" = Var ("n: nat")            
             | Fun ("t: redexes")
             | App ("b:bool" ,"f:redexes" , "a:redexes")
-  type_intrs "[bool_into_univ]"
-  
 
 
 consts

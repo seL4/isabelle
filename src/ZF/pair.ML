@@ -135,10 +135,9 @@ qed_goal "Pair_fst_snd_eq" thy
 (*** Eliminator - split ***)
 
 (*A META-equality, so that it applies to higher types as well...*)
-qed_goalw "split" thy [split_def] "split(%x y. c(x,y), <a,b>) == c(a,b)"
- (fn _ => [ (Simp_tac 1),
-            (rtac reflexive_thm 1) ]);
-
+Goalw [split_def] "split(%x y. c(x,y), <a,b>) == c(a,b)";
+by (Simp_tac 1);
+qed "split";
 Addsimps [split];
 
 qed_goal "split_type" thy

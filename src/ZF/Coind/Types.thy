@@ -9,18 +9,20 @@ Types = Language +
 consts
   Ty :: i                       (* Datatype of types *)
   TyConst :: i          (* Abstract type of type constants *)
-datatype <= "univ(TyConst)"
-  "Ty" = t_const("tc:TyConst")
-       | t_fun("t1:Ty","t2:Ty")
+
+datatype
+  "Ty" = t_const ("tc:TyConst")
+       | t_fun ("t1:Ty","t2:Ty")
   
 
 (* Definition of type environments and associated operators *)
 
 consts
   TyEnv :: i
-datatype <= "univ(Ty Un ExVar)"
+
+datatype
   "TyEnv" = te_emp
-          | te_owr("te:TyEnv","x:ExVar","t:Ty") 
+          | te_owr ("te:TyEnv","x:ExVar","t:Ty") 
 
 consts
   te_dom :: i => i

@@ -8,8 +8,20 @@ A small universe for lazy recursive types.
 
 QUniv = Univ + QPair + mono + equalities +
 
+(*Disjoint sums as a datatype*)
+rep_datatype 
+  elim		sumE
+  induct	TrueI
+  case_eqns	case_Inl, case_Inr
+
+(*Variant disjoint sums as a datatype*)
+rep_datatype 
+  elim		qsumE
+  induct	TrueI
+  case_eqns	qcase_QInl, qcase_QInr
+
 constdefs
   quniv :: i => i
-  "quniv(A) == Pow(univ(eclose(A)))"
+   "quniv(A) == Pow(univ(eclose(A)))"
 
 end

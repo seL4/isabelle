@@ -77,7 +77,7 @@ by (rtac ballI 3);
 by (rename_tac "w'" 3);
 by (induct_tac "w'" 3);
 by Auto_tac;
-bind_thm ("bin_add_type", result() RS bspec);
+qed_spec_mp "bin_add_type";
 Addsimps [bin_add_type];
 
 Goal "[| v: bin; w: bin |] ==> bin_mult(v,w) : bin";
@@ -169,8 +169,7 @@ by (Simp_tac 1);
 by (rtac ballI 1);
 by (induct_tac "wa" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac setloop (etac boolE))));
-bind_thm("integ_of_add", result() RS bspec);
-
+qed_spec_mp "integ_of_add";
 Addsimps [integ_of_add];
 
 

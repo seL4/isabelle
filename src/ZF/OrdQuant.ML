@@ -5,8 +5,6 @@
 Quantifiers and union operator for ordinals. 
 *)
 
-open OrdQuant;
-
 (*** universal quantifier for ordinals ***)
 
 qed_goalw "oallI" thy [oall_def]

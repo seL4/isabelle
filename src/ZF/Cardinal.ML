@@ -8,8 +8,6 @@ Cardinals in Zermelo-Fraenkel Set Theory
 This theory does NOT assume the Axiom of Choice
 *)
 
-open Cardinal;
-
 (*** The Schroeder-Bernstein Theorem -- see Davey & Priestly, page 106 ***)
 
 (** Lemma: Banach's Decomposition Theorem **)
@@ -457,11 +455,9 @@ by (blast_tac (claset() addSIs [nat_0_le]) 1);
 by (rtac ballI 1);
 by (eres_inst_tac [("n","n")] natE 1);
 by (asm_simp_tac (simpset() addsimps [lepoll_def, inj_def, 
-                                  succI1 RS Pi_empty2]) 1);
+				      succI1 RS Pi_empty2]) 1);
 by (blast_tac (claset() addSIs [succ_leI] addSDs [succ_lepoll_succD]) 1);
-qed "nat_lepoll_imp_le_lemma";
-
-bind_thm ("nat_lepoll_imp_le", nat_lepoll_imp_le_lemma RS bspec RS mp);
+qed_spec_mp "nat_lepoll_imp_le";
 
 Goal "[| m:nat; n: nat |] ==> m eqpoll n <-> m = n";
 by (rtac iffI 1);

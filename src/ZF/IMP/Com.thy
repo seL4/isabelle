@@ -78,7 +78,7 @@ inductive
 (** Commands **)
 consts  com :: i
 
-datatype <= "univ(loc Un aexp Un bexp)"
+datatype 
   "com" = skip
         | asgt  ("x:loc", "a:aexp")             (infixl 60)
         | semic ("c0:com", "c1:com")            ("_; _"  [60, 60] 10)

@@ -203,8 +203,8 @@ qed "wf_trancl";
 
 (** r-``{a} is the set of everything under a in r **)
 
-bind_thm ("underI", (vimage_singleton_iff RS iffD2));
-bind_thm ("underD", (vimage_singleton_iff RS iffD1));
+bind_thm ("underI", vimage_singleton_iff RS iffD2);
+bind_thm ("underD", vimage_singleton_iff RS iffD1);
 
 (** is_recfun **)
 
@@ -223,7 +223,7 @@ qed "apply_recfun";
 (*eresolve_tac transD solves <a,b>:r using transitivity AT MOST ONCE
   spec RS mp  instantiates induction hypotheses*)
 fun indhyp_tac hyps =
-    resolve_tac (TrueI::refl::hyps) ORELSE' 
+    resolve_tac (TrueI::refl::reflexive_thm::hyps) ORELSE' 
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI, ballI] ORELSE'
                         eresolve_tac [underD, transD, spec RS mp]));
@@ -238,8 +238,7 @@ by (wf_ind_tac "x" [] 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
 by (rewtac restrict_def);
 by (asm_simp_tac (wf_super_ss addsimps [vimage_singleton_iff]) 1);
-qed "is_recfun_equal_lemma";
-bind_thm ("is_recfun_equal", (is_recfun_equal_lemma RS mp RS mp));
+qed_spec_mp "is_recfun_equal";
 
 val prems as [wfr,transr,recf,recg,_] = goal WF.thy
     "[| wf(r);  trans(r);       \

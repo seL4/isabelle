@@ -70,8 +70,7 @@ by (induct_tac "j" 1);
 by (etac (succ_leI RS lt_trans1) 2);
 by (rtac (nat_0I RS nat_0_le RS lt_trans) 1);
 by Auto_tac;
-qed "lt_ack2_lemma";
-bind_thm ("lt_ack2", (lt_ack2_lemma RS bspec));
+qed_spec_mp "lt_ack2";
 
 (*PROPERTY A 5-, the single-step lemma*)
 Goal "[| i:nat; j:nat |] ==> ack(i,j) < ack(i, succ(j))";

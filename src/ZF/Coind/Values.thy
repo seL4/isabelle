@@ -10,11 +10,12 @@ Values = Language + Map +
 
 consts
   Val, ValEnv, Val_ValEnv  :: i
-codatatype <= "quniv(Const Un ExVar Un Exp)"
-    "Val" = v_const("c:Const")
-          | v_clos("x:ExVar","e:Exp","ve:ValEnv")
+
+codatatype
+    "Val" = v_const ("c:Const")
+          | v_clos ("x:ExVar","e:Exp","ve:ValEnv")
   and
-    "ValEnv" = ve_mk("m:PMap(ExVar,Val)")
+    "ValEnv" = ve_mk ("m:PMap(ExVar,Val)")
   monos      "[map_mono]"
   type_intrs "[A_into_univ, mapQU]"
 

@@ -107,17 +107,32 @@ and univ        = Const("Univ.univ", iT-->iT)
 and quniv       = Const("QUniv.quniv", iT-->iT);
 
 (*Make a datatype's domain: form the union of its set parameters*)
-fun union_params rec_tm =
+fun union_params (rec_tm, cs) =
   let val (_,args) = strip_comb rec_tm
-  in  case (filter (fn arg => type_of arg = iT) args) of
-         []    => empty
-       | iargs => fold_bal (app Un) iargs
+      fun is_ind arg = (type_of arg = iT)
+  in  case filter is_ind (args @ cs) of
+         []     => empty
+       | u_args => fold_bal (app Un) u_args
   end;
 
-(*Previously these both did    replicate (length rec_tms);  however now
-  [q]univ itself constitutes the sum domain for mutual recursion!*)
-fun data_domain false rec_tms = univ $ union_params (hd rec_tms)
-  | data_domain true  rec_tms = quniv $ union_params (hd rec_tms);
+(*univ or quniv constitutes the sum domain for mutual recursion;
+  it is applied to the datatype parameters and to Consts occurring in the
+  definition other than Nat.nat and the datatype sets themselves.
+  FIXME: could insert all constant set expressions, e.g. nat->nat.*)
+fun data_domain co (rec_tms, con_ty_lists) = 
+    let val rec_names = (*nat doesn't have to be added*)
+	    "Nat.nat" :: map (#1 o dest_Const o head_of) rec_tms
+	val u = if co then quniv else univ
+	fun is_OK (Const(a,T)) = not (a mem_string rec_names)
+	  | is_OK _            = false
+	val add_term_consts_2 =
+	    foldl_aterms (fn (cs, Const c) => Const c ins cs | (cs, _) => cs);
+	fun fourth (_, name, args, prems) = prems
+	fun add_consts_in_cts cts = 
+	    foldl (foldl add_term_consts_2) ([], map fourth (flat cts));
+	val cs = filter is_OK (add_consts_in_cts con_ty_lists)
+    in  u $ union_params (hd rec_tms, cs)  end;
+
 
 (*Could go to FOL, but it's hardly general*)
 val def_swap_iff = prove_goal IFOL.thy "a==b ==> a=c <-> c=b"
@@ -141,3 +156,6 @@ fun mk_free_SEs iffs = map (gen_make_elim [conjE,FalseE]) (iffs RL [iffD1]);
 
 end;
 
+
+(*For convenient access by the user*)
+val trace_induct = Ind_Syntax.trace;

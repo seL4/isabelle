@@ -56,9 +56,9 @@ by (rtac eqpoll_trans 1);
 by (fast_tac (claset() addSEs [well_ord_cardinal_eqpoll]) 2);
 by (resolve_tac [eqpoll_sym RS eqpoll_trans] 1);
 by (fast_tac (claset() addSEs [well_ord_cardinal_eqpoll]) 1);
-by (resolve_tac [cadd_def RS def_imp_eq RS subst] 1);
+by (fold_tac [cadd_def]);
 by (resolve_tac [Card_cardinal RSN (2, Inf_Card_is_InfCard) RS 
-                        InfCard_cdouble_eq RS ssubst] 1);
+		 InfCard_cdouble_eq RS ssubst] 1);
 by (rtac eqpoll_refl 2);
 by (rtac notI 1);
 by (etac notE 1);
