@@ -7,8 +7,7 @@ header {* Classical first-order logic *}
 
 theory FOL = IFOL
 files
-  ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML")
-  ("simpdata.ML") ("FOL_lemmas2.ML"):
+  ("FOL_lemmas1.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML"):
 
 
 subsection {* The classical axiom *}
