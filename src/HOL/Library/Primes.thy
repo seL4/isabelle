@@ -63,15 +63,12 @@ text {*
   conjunctions don't seem provable separately.
 *}
 
-lemma gcd_dvd_both: "gcd (m, n) dvd m \<and> gcd (m, n) dvd n"
+lemma gcd_dvd1 [iff]: "gcd (m, n) dvd m"
+  and gcd_dvd2 [iff]: "gcd (m, n) dvd n"
   apply (induct m n rule: gcd_induct)
    apply (simp_all add: gcd_non_0)
   apply (blast dest: dvd_mod_imp_dvd)
   done
-
-lemmas gcd_dvd1 [iff] = gcd_dvd_both [THEN conjunct1, standard]
-lemmas gcd_dvd2 [iff] = gcd_dvd_both [THEN conjunct2, standard]
-
 
 text {*
   \medskip Maximality: for all @{term m}, @{term n}, @{term k}
