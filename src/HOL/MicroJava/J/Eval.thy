@@ -193,6 +193,13 @@ apply (drule eval_evals_exec_no_xcpt [THEN conjunct2, THEN conjunct1, THEN mp])
 apply (fast)
 done
 
+lemma exec_no_xcpt: "G \<turnstile> (x, s) -c-> (None, s')
+\<Longrightarrow> x = None"
+apply (drule eval_evals_exec_no_xcpt [THEN conjunct2 [THEN conjunct2], rule_format])
+apply simp+
+done
+
+
 lemma eval_evals_exec_xcpt: 
 "!!s s'. (G\<turnstile>(x,s) -e \<succ>  v -> (x',s') --> x=Some xc --> x'=Some xc \<and> s'=s) \<and>  
          (G\<turnstile>(x,s) -es[\<succ>]vs-> (x',s') --> x=Some xc --> x'=Some xc \<and> s'=s) \<and>  
