@@ -124,12 +124,12 @@ Goal "((m+n)-1 = 0) = (m=0 & n-1 = 0 | m-1 = 0 & n=0)";
 by (exhaust_tac "m" 1);
 by (ALLGOALS (fast_tac (claset() addss (simpset()))));
 qed "pred_add_is_0";
-Addsimps [pred_add_is_0];
+(*Addsimps [pred_add_is_0];*)
 
 (* Could be generalized, eg to "k<n ==> m+(n-(Suc k)) = (m+n)-(Suc k)" *)
 Goal "0<n ==> m + (n-1) = (m+n)-1";
 by (exhaust_tac "m" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc, Suc_n_not_n]
                                       addsplits [nat.split])));
 qed "add_pred";
 Addsimps [add_pred];
@@ -365,7 +365,7 @@ qed "diff_less_Suc";
 
 Goal "m - n <= (m::nat)";
 by (res_inst_tac [("m","m"), ("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [le_SucI])));
 qed "diff_le_self";
 Addsimps [diff_le_self];
 
@@ -929,8 +929,7 @@ local
 fun prep_pat s = Thm.read_cterm (sign_of Arith.thy) (s, HOLogic.boolT);
 
 val pats = map prep_pat
-  ["(m::nat) < n","(m::nat) <= n", "~ (m::nat) < n","~ (m::nat) <= n",
-   "(m::nat) = n"]
+  ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"]
 
 in
 val fast_nat_arith_simproc =

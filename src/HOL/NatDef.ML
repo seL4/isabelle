@@ -283,7 +283,7 @@ Addsimps [Suc_less_eq];
 Goal "~(Suc(n) < n)";
 by (blast_tac (claset() addEs [Suc_lessD RS less_irrefl]) 1);
 qed "not_Suc_n_less_n";
-Addsimps [not_Suc_n_less_n];
+(*Addsimps [not_Suc_n_less_n];*)
 
 Goal "i<j ==> j<k --> Suc i < k";
 by (nat_ind_tac "k" 1);
@@ -318,6 +318,7 @@ bind_thm ("le_imp_less_Suc", less_Suc_eq_le RS iffD2);
 Goalw [le_def] "0 <= n";
 by (rtac not_less0 1);
 qed "le0";
+AddIffs [le0];
 
 Goalw [le_def] "~ Suc n <= n";
 by (Simp_tac 1);
@@ -328,10 +329,6 @@ by (nat_ind_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "le_0_eq";
 AddIffs [le_0_eq];
-
-Addsimps [(*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
-          Suc_n_not_le_n,
-          n_not_Suc_n, Suc_n_not_n];
 
 Goal "(m <= Suc(n)) = (m<=n | m = Suc n)";
 by (simp_tac (simpset() delsimps [less_Suc_eq_le]
