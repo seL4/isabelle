@@ -47,40 +47,28 @@ theorem exec_pres_type:
  apply clarify
  apply (case_tac "bs!p")
 
+ apply (fastsimp simp add: not_Err_eq dest: subsetD nth_mem)
  apply fastsimp
+ apply (fastsimp simp add: not_None_eq typeof_empty_is_type)
  apply fastsimp
- apply fastsimp
- apply fastsimp
- apply clarsimp
- defer
- apply fastsimp
- apply fastsimp
- apply clarsimp
- defer
- apply fastsimp
- apply fastsimp
- apply fastsimp
- apply fastsimp
- apply fastsimp
- apply fastsimp
- apply fastsimp
+ apply (fastsimp dest: field_fields fields_is_type)
  apply fastsimp
  apply fastsimp
  defer
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
+ apply fastsimp
 
  (* Invoke *)
- apply (simp add: Un_subset_iff)
+ apply (clarsimp simp add: Un_subset_iff)
  apply (drule method_wf_mdecl, assumption+)
  apply (simp add: wf_mdecl_def wf_mhead_def)
-
- (* Getfield *)
- apply (rule_tac fn = "(vname,cname)" in fields_is_type)
- defer
- apply assumption+
- apply (simp add: field_def)
- apply (drule map_of_SomeD)
- apply (rule map_of_SomeI)
- apply (auto simp add: unique_fields)
  done
 
 

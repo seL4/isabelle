@@ -49,9 +49,9 @@ app' :: "instr \<times> jvm_prog \<times> nat \<times> ty \<times> state_type =>
 recdef app' "{}"
 "app' (Load idx, G, maxs, rT, s)                  = (idx < length (snd s) \<and> 
                                                     (snd s) ! idx \<noteq> Err \<and> 
-                                                    maxs < length (fst s))"
+                                                    length (fst s) < maxs)"
 "app' (Store idx, G, maxs, rT, (ts#ST, LT))       = (idx < length LT)"
-"app' (LitPush v, G, maxs, rT, s)                  = (maxs < length (fst s) \<and> typeof (\<lambda>t. None) v \<noteq> None)"
+"app' (LitPush v, G, maxs, rT, s)                  = (length (fst s) < maxs \<and> typeof (\<lambda>t. None) v \<noteq> None)"
 "app' (Getfield F C, G, maxs, rT, (oT#ST, LT))    = (is_class G C \<and>
                                               field (G,C) F \<noteq> None \<and>
                                               fst (the (field (G,C) F)) = C \<and>
@@ -61,12 +61,12 @@ recdef app' "{}"
                                               fst (the (field (G,C) F)) = C \<and>
                                               G \<turnstile> oT \<preceq> (Class C) \<and>
                                               G \<turnstile> vT \<preceq> (snd (the (field (G,C) F))))" 
-"app' (New C, G, maxs, rT, s)                     = (is_class G C \<and> maxs < length (fst s))"
+"app' (New C, G, maxs, rT, s)                     = (is_class G C \<and> length (fst s) < maxs)"
 "app' (Checkcast C, G, maxs, rT, (RefT rt#ST,LT)) = (is_class G C)"
 "app' (Pop, G, maxs, rT, (ts#ST,LT))              = True"
-"app' (Dup, G, maxs, rT, (ts#ST,LT))              = (maxs < Suc (length ST))"
-"app' (Dup_x1, G, maxs, rT, (ts1#ts2#ST,LT))      = (maxs < Suc (Suc (length ST)))"
-"app' (Dup_x2, G, maxs, rT, (ts1#ts2#ts3#ST,LT))  = (maxs < Suc (Suc (Suc (length ST))))"
+"app' (Dup, G, maxs, rT, (ts#ST,LT))              = (1+length ST < maxs)"
+"app' (Dup_x1, G, maxs, rT, (ts1#ts2#ST,LT))      = (2+length ST < maxs)"
+"app' (Dup_x2, G, maxs, rT, (ts1#ts2#ts3#ST,LT))  = (3+length ST < maxs)"
 "app' (Swap, G, maxs, rT, (ts1#ts2#ST,LT))        = True"
 "app' (IAdd, G, maxs, rT, (PrimT Integer#PrimT Integer#ST,LT)) 
                                                  = True"
@@ -147,7 +147,7 @@ lemma appNone[simp]:
 
 
 lemma appLoad[simp]:
-"(app (Load idx) G maxs rT (Some s)) = (idx < length (snd s) \<and> (snd s) ! idx \<noteq> Err \<and> maxs < length (fst s))"
+"(app (Load idx) G maxs rT (Some s)) = (idx < length (snd s) \<and> (snd s) ! idx \<noteq> Err \<and> length (fst s) < maxs)"
   by (simp add: app_def)
 
 lemma appStore[simp]:
@@ -155,7 +155,7 @@ lemma appStore[simp]:
   by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 lemma appLitPush[simp]:
-"(app (LitPush v) G maxs rT (Some s)) = (maxs < length (fst s) \<and> typeof (\<lambda>v. None) v \<noteq> None)"
+"(app (LitPush v) G maxs rT (Some s)) = (length (fst s) < maxs \<and> typeof (\<lambda>v. None) v \<noteq> None)"
   by (cases s, simp add: app_def)
 
 lemma appGetField[simp]:
@@ -171,7 +171,7 @@ lemma appPutField[simp]:
   by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest!: 1 2 simp add: app_def)
 
 lemma appNew[simp]:
-"(app (New C) G maxs rT (Some s)) = (is_class G C \<and> maxs < length (fst s))"
+"(app (New C) G maxs rT (Some s)) = (is_class G C \<and> length (fst s) < maxs)"
   by (simp add: app_def)
 
 lemma appCheckcast[simp]:
@@ -185,17 +185,17 @@ lemma appPop[simp]:
 
 
 lemma appDup[simp]:
-"(app Dup G maxs rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT) \<and> maxs < Suc (length ST))" 
+"(app Dup G maxs rT (Some s)) = (\<exists>ts ST LT. s = (ts#ST,LT) \<and> 1+length ST < maxs)" 
   by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup_x1[simp]:
-"(app Dup_x1 G maxs rT (Some s)) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> maxs < Suc (Suc (length ST)))" 
+"(app Dup_x1 G maxs rT (Some s)) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 2+length ST < maxs)" 
   by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 
 lemma appDup_x2[simp]:
-"(app Dup_x2 G maxs rT (Some s)) = (\<exists>ts1 ts2 ts3 ST LT. s = (ts1#ts2#ts3#ST,LT) \<and> maxs < Suc (Suc (Suc (length ST))))"
+"(app Dup_x2 G maxs rT (Some s)) = (\<exists>ts1 ts2 ts3 ST LT. s = (ts1#ts2#ts3#ST,LT) \<and> 3+length ST < maxs)"
   by (cases s, cases "Suc (Suc 0) < length (fst s)", auto dest: 1 2 simp add: app_def)
 
 

@@ -169,7 +169,6 @@ proof -
   from phi_pc ins wt
   obtain ST' LT' where
     is_class_X: "is_class G X" and
-    maxs:       "maxs < length ST" and
     suc_pc:     "Suc pc < length ins" and
     phi_suc:    "phi C sig ! Suc pc = Some (ST', LT')" and
     less:       "G \<turnstile> (Class X # ST, LT) <=s (ST', LT')"
