@@ -151,7 +151,7 @@ fun pretty_sort [c] = Pretty.str c
 
 (** print signature **)
 
-val stamp_names = rev o map !;
+fun stamp_names stamps = rev (map ! stamps);
 
 fun print_sg sg =
   let
@@ -424,8 +424,8 @@ fun ext_abbrs rd_abbr (syn, tsig, ctab) abbrs =
     (syn1, Type.ext_tsig_abbrs tsig (map decl_of abbrs), ctab)
   end;
 
-val ext_tyabbrs_i = ext_abbrs (K (K I));
-val ext_tyabbrs = ext_abbrs read_abbr;
+fun ext_tyabbrs_i arg = ext_abbrs (K (K I)) arg;
+fun ext_tyabbrs   arg = ext_abbrs read_abbr arg;
 
 
 (* add type arities *)

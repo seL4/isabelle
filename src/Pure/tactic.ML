@@ -352,7 +352,7 @@ fun untaglist [] = []
       else    x :: untaglist rest;
 
 (*return list elements in original order*)
-val orderlist = untaglist o sort (fn(x,y)=> #1 x < #1 y); 
+fun orderlist kbrls = untaglist (sort (fn(x,y)=> #1 x < #1 y) kbrls); 
 
 (*insert one tagged brl into the pair of nets*)
 fun insert_tagged_brl (kbrl as (k,(eres,th)), (inet,enet)) =

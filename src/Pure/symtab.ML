@@ -136,7 +136,7 @@ fun make alst =
 fun extend eq (tab, alst) =
   generic_extend (eq_pair eq) dest make tab alst;
 
-val extend_new = extend (K false);
+fun extend_new (tab, alst) = extend (K false) (tab, alst);
 
 fun merge eq (tab1, tab2) =
   generic_merge (eq_pair eq) dest make tab1 tab2;
