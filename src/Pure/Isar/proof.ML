@@ -818,12 +818,12 @@ fun finish_global state =
       |> (case locale_spec of None => I | Some (loc, (loc_atts, loc_attss)) => fn thy =>
         if length names <> length loc_attss then
           raise THEORY ("Bad number of locale attributes", [thy])
-        else (locale_ctxt, thy)
+        else (thy, locale_ctxt)
           |> Locale.add_thmss loc ((names ~~ Library.unflat tss locale_results) ~~ loc_attss)
-          |> (fn ((ctxt', thy'), res) =>
+          |> (fn ((thy', ctxt'), res) =>
             if name = "" andalso null loc_atts then thy'
-            else (ctxt', thy')
-              |> (#2 o #1 o Locale.add_thmss loc [((name, flat res), loc_atts)])))
+            else (thy', ctxt')
+              |> (#1 o #1 o Locale.add_thmss loc [((name, flat res), loc_atts)])))
       |> Locale.smart_have_thmss k locale_spec
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
       |> (fn (thy, res) => (thy, res)
