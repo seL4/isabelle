@@ -1107,7 +1107,7 @@ by (arith_tac 1);
 qed "diff_less";
 
 
-(** (Anti)Monotonicity of subtraction -- by Stefan Merz **)
+(** (Anti)Monotonicity of subtraction -- by Stephan Merz **)
 
 (* Monotonicity of subtraction in first argument *)
 Goal "m <= (n::nat) ==> (m-l) <= (n-l)";
