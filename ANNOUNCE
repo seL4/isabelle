@@ -1,43 +1,18 @@
 
-Subject: Announcing Isabelle99-2
+Subject: Announcing Isabelle2001
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle99-2 is now available.  This release continues the line of
-Isabelle99, introducing various improvements in robustness and
-usability.
+Isabelle2001 is now available.
 
-The most prominent highlights of Isabelle99-2 are as follows.  See the
+The most prominent highlights of Isabelle2001 are as follows.  See the
 NEWS file distributed with Isabelle for more details.
 
-  * Poly/ML 4.0 used by default
-    More robust, less disk space required.
+  * Specific support for Poly/ML 4.1.1
+    Faster, manages large heaps.
 
-  * Simplifier (Stefan Berghofer)
-    Proper implementation as a derived rule, outside the kernel!
+  * Meta-level proof terms (Stefan Berghofer)
 
-  * Improved document preparation (Markus Wenzel)
-    Near math-mode, sub/super scripts, more symbols etc.
-
-  * Isabelle/Isar (Markus Wenzel)
-    Numerous usability improvements, e.g. support for initial
-    schematic goals, failure prediction of subgoal statements,
-    handling of non-atomic statements in induction.
-
-  * HOL/Library (Gertrud Bauer, Tobias Nipkow, Lawrence C Paulson,
-      Thomas M Rasmussen, Markus Wenzel)
-    A collection of generic theories to be used together with main HOL.
-
-  * HOL/Real and HOL/Hyperreal (Jacques Fleuriot, Lawrence C Paulson)
-    General cleanup, more on nonstandard real analysis.
-
-  * HOL/Unix (Markus Wenzel)
-    Some Aspects of Unix file-system security; demonstrates
-    Isabelle/Isar in typical system modelling and verification tasks.
-
-  * HOL/Tutorial (Tobias Nipkow, Lawrence C Paulson)
-    Extended version of the Isabelle/HOL tutorial.
-
-You may get Isabelle99-2 from any of the following mirror sites:
+You may get Isabelle2001 from any of the following mirror sites:
 
   Cambridge (UK)    http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
   Munich (Germany)  http://isabelle.in.tum.de/dist/
