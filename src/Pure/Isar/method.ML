@@ -74,7 +74,7 @@ sig
     Try of text |
     Repeat1 of text
   val refine: text -> Proof.state -> Proof.state Seq.seq
-  val refine_no_facts: text -> Proof.state -> Proof.state Seq.seq
+  val refine_end: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
   val local_qed: text option
     -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
@@ -201,7 +201,7 @@ val succeed = METHOD (K all_tac);
 
 (* shuffle *)
 
-fun prefer i = METHOD (K (PRIMITIVE (Thm.permute_prems 0 (i - 1))));
+fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 1)));
 fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
 
 
@@ -299,6 +299,18 @@ fun assumption_tac ctxt [] = assm_tac ctxt
   | assumption_tac _ _ = K no_tac;
 
 fun assumption ctxt = METHOD (FINDGOAL o assumption_tac ctxt);
+
+
+(* res_inst tactic emulation *)
+
+(*Note: insts refer to the hidden (!) goal context; use with care*)
+fun gen_res_inst tac ((i, insts), thm) =
+  METHOD (fn facts => (insert_tac facts THEN' tac insts thm) i);
+
+val res_inst = gen_res_inst Tactic.res_inst_tac;
+val eres_inst = gen_res_inst Tactic.eres_inst_tac;
+val dres_inst = gen_res_inst Tactic.dres_inst_tac;
+val forw_inst = gen_res_inst Tactic.forw_inst_tac;
 
 
 
@@ -428,6 +440,16 @@ fun thms_args f = thms_ctxt_args (K o f);
 end;
 
 
+(* insts *)
+
+val insts =
+  Scan.lift (Scan.optional (Args.$$$ "(" |-- Args.!!! (Args.nat --| Args.$$$ ")")) 1) --
+    Args.enum1 "and" (Scan.lift (Args.name -- Args.!!! (Args.$$$ "=" |-- Args.name))) --
+    (Scan.lift (Args.$$$ "in") |-- Attrib.local_thm);
+
+fun inst_args f src ctxt = f ((#2 oo syntax insts) ctxt src);
+
+
 
 (** method text **)
 
@@ -444,25 +466,20 @@ datatype text =
 
 (* refine *)
 
-fun refine text state =
+fun gen_refine f text state =
   let
     val thy = Proof.theory_of state;
 
-    fun eval (Basic mth) = Proof.refine mth
-      | eval (Source src) = Proof.refine (method thy src)
+    fun eval (Basic mth) = f mth
+      | eval (Source src) = f (method thy src)
       | eval (Then txts) = Seq.EVERY (map eval txts)
       | eval (Orelse txts) = Seq.FIRST (map eval txts)
       | eval (Try txt) = Seq.TRY (eval txt)
       | eval (Repeat1 txt) = Seq.REPEAT1 (eval txt);
   in eval text state end;
 
-fun refine_no_facts text state =
-  let val (_, (goal_facts, _)) = Proof.get_goal state in
-    state
-    |> Proof.goal_facts (K [])
-    |> refine text
-    |> Seq.map (Proof.goal_facts (K goal_facts))
-  end;
+val refine = gen_refine Proof.refine;
+val refine_end = gen_refine Proof.refine_end;
 
 
 (* structured proof steps *)
@@ -525,7 +542,11 @@ val pure_methods =
   ("drule", thms_ctxt_args some_drule, "apply some rule in destruct manner (improper!)"),
   ("frule", thms_ctxt_args some_frule, "apply some rule in forward manner (improper!)"),
   ("this", no_args this, "apply current facts as rules"),
-  ("assumption", ctxt_args assumption, "proof by assumption, preferring facts")];
+  ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
+  ("res_inst_tac", inst_args res_inst, "res_inst_tac emulation (beware!)"),
+  ("eres_inst_tac", inst_args eres_inst, "eres_inst_tac emulation (beware!)"),
+  ("dres_inst_tac", inst_args dres_inst, "dres_inst_tac emulation (beware!)"),
+  ("forw_inst_tac", inst_args forw_inst, "forw_inst_tac emulation (beware!)")];
 
 
 (* setup *)
