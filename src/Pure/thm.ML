@@ -29,6 +29,7 @@ signature THM =
   val biresolution: bool -> (bool*thm)list -> int -> thm -> thm Sequence.seq   
   val combination: thm -> thm -> thm   
   val concl_of: thm -> term   
+  val del_simps: meta_simpset * thm list -> meta_simpset
   val dest_state: thm * int -> (term*term)list * term list * term * term
   val empty_mss: meta_simpset
   val eq_assumption: int -> thm -> thm   
@@ -811,21 +812,37 @@ fun mk_rrule (thm as Thm{hyps,sign,prop,maxidx,...}) =
      else Some{thm=thm,lhs=lhs}
   end;
 
+local
+ fun eq({thm=Thm{prop=p1,...},...}:rrule,
+        {thm=Thm{prop=p2,...},...}:rrule) = p1 aconv p2
+in
+
 fun add_simp(mss as Mss{net,congs,primes,prems,mk_rews},
              thm as Thm{sign,prop,...}) =
-  let fun eq({thm=Thm{prop=p1,...},...}:rrule,
-             {thm=Thm{prop=p2,...},...}:rrule) = p1 aconv p2
-  in case mk_rrule thm of
-       None => mss
-     | Some(rrule as {lhs,...}) =>
-         Mss{net= (Net.insert_term((lhs,rrule),net,eq)
-                   handle Net.INSERT =>
-                   (prtm "Warning: ignoring duplicate rewrite rule" sign prop;
-                    net)),
+  case mk_rrule thm of
+    None => mss
+  | Some(rrule as {lhs,...}) =>
+      Mss{net= (Net.insert_term((lhs,rrule),net,eq)
+                handle Net.INSERT =>
+                  (prtm "Warning: ignoring duplicate rewrite rule" sign prop;
+                   net)),
+          congs=congs, primes=primes, prems=prems,mk_rews=mk_rews};
+
+fun del_simp(mss as Mss{net,congs,primes,prems,mk_rews},
+             thm as Thm{sign,prop,...}) =
+  case mk_rrule thm of
+    None => mss
+  | Some(rrule as {lhs,...}) =>
+      Mss{net= (Net.delete_term((lhs,rrule),net,eq)
+                handle Net.INSERT =>
+                 (prtm "Warning: rewrite rule not in simpset" sign prop;
+                  net)),
              congs=congs, primes=primes, prems=prems,mk_rews=mk_rews}
-  end;
+
+end;
 
 val add_simps = foldl add_simp;
+val del_simps = foldl del_simp;
 
 fun mss_of thms = add_simps(empty_mss,thms);
 
