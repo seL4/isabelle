@@ -62,7 +62,7 @@ text "First version: `proof-by-induction'";
 theorem sum_of_odds: "sum (%i. Suc (i + i)) n = n * n" (is "??P n");
 proof (induct n);
   show "??P 0"; by simp;
-  fix m; assume hyp: "??P m"; show "??P (Suc m)"; by (simp add: hyp);
+  fix m; assume hyp: "??P m"; show "??P (Suc m)"; by (simp, rule hyp);
 qed;
 
 text "The second version tells more about what is going on during the
