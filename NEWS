@@ -19,8 +19,9 @@ needed;
 
 * HOL: the constant for f``x is now "image" rather than "op ``";
 
-* HOL: the cartesian product is now "<*>" instead of "Times"; the
-lexicographic product is now "<*lex*>" instead of "**";
+* HOL: the disjoint sum is now "<+>" instead of "Plus"; the cartesian
+product is now "<*>" instead of "Times"; the lexicographic product is
+now "<*lex*>" instead of "**";
 
 * HOL: exhaust_tac on datatypes superceded by new generic case_tac;
 
@@ -44,15 +45,18 @@ internally;
   [| inj ?f;          ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
 use instead the strong form,
   [| inj ?f; ~ ?W ==> ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
-In HOL, FOR and ZF the function cla_make_elim will create such rules
-from destruct-rules;
+In HOL, FOL and ZF the function cla_make_elim will create such rules
+from destruct-rules.
 
 * ML: renamed flags Syntax.trace_norm_ast to Syntax.trace_ast; global
 timing flag supersedes proof_timing and Toplevel.trace;
 
 * ML: PureThy.add_thms/add_axioms/add_defs return theorems as well;
 
-* LaTeX: several improvements of isabelle.sty;
+* ML: PureThy.add_defs gets additional argument to indicate potential
+overloading (usually false);
+
+* LaTeX: several changes of isabelle.sty;
 
 
 *** Document preparation ***
@@ -95,6 +99,12 @@ language element refers to local contexts symbolically, as produced by
 certain proof methods; internally, case names are attached to theorems
 as "tags";
 
+* Pure: theory command 'hide' removes declarations from
+class/type/const name spaces;
+
+* Pure: theory command 'defs' supports option "(overloaded)" to
+indicate potential overloading;
+
 * Pure: changed syntax of local blocks from {{ }} to { };
 
 * Pure: syntax of sorts made inner, i.e. have to write "{a, b, c}"
@@ -109,9 +119,6 @@ name 'antecedent';
 
 * Pure: removed obsolete 'transfer' attribute (transfer of thms to the
 current context is now done automatically);
-
-* Pure: theory command 'hide' removes declarations from
-class/type/const name spaces;
 
 * Pure: theory command 'method_setup' provides a simple interface for
 definining proof methods in ML;
@@ -235,6 +242,9 @@ order;
 
 * ML: renamed flags Syntax.trace_norm_ast to Syntax.trace_ast; global
 timing flag supersedes proof_timing and Toplevel.trace;
+
+* ML: PureThy.add_defs gets additional argument to indicate potential
+overloading (usually false);
 
 * ML: new combinators |>> and |>>> for incremental transformations
 with secondary results (e.g. certain theory extensions):
