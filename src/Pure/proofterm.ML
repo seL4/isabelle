@@ -46,6 +46,7 @@ sig
   val add_prf_names : string list * proof -> string list
   val add_prf_tfree_names : string list * proof -> string list
   val add_prf_tvar_ixns : indexname list * proof -> indexname list
+  val maxidx_of_proof : proof -> int
   val prf_abstract_over : term -> proof -> proof
   val prf_incr_bv : int -> int -> int -> int -> proof -> proof
   val incr_pboundvars : int -> int -> proof -> proof
@@ -263,6 +264,9 @@ fun fold_proof_terms f g (a, Abst (_, Some T, prf)) = fold_proof_terms f g (g (T
 val add_prf_names = fold_proof_terms add_term_names ((uncurry K) o swap);
 val add_prf_tfree_names = fold_proof_terms add_term_tfree_names add_typ_tfree_names;
 val add_prf_tvar_ixns = fold_proof_terms add_term_tvar_ixns (add_typ_ixns o swap);
+
+fun maxidx_of_proof prf = fold_proof_terms
+  (Int.max o apfst maxidx_of_term) (Int.max o apfst maxidx_of_typ) (~1, prf); 
 
 
 (***** utilities *****)
