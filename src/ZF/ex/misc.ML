@@ -19,32 +19,6 @@ by (best_tac ZF_cs 1);
 result();
 
 
-(*** Cantor's Theorem: There is no surjection from a set to its powerset. ***)
-
-val cantor_cs = FOL_cs   (*precisely the rules needed for the proof*)
-  addSIs [ballI, CollectI, PowI, subsetI] addIs [bexI]
-  addSEs [CollectE, equalityCE];
-
-(*The search is undirected and similar proof attempts fail*)
-goal ZF.thy "ALL f: A->Pow(A). EX S: Pow(A). ALL x:A. f`x ~= S";
-by (best_tac cantor_cs 1);
-result();
-
-(*This form displays the diagonal term, {x: A . x ~: f`x} *)
-val [prem] = goal ZF.thy
-    "f: A->Pow(A) ==> (ALL x:A. f`x ~= ?S) & ?S: Pow(A)";
-by (best_tac cantor_cs 1);
-result();
-
-(*yet another version...*)
-goalw Perm.thy [surj_def] "f ~: surj(A,Pow(A))";
-by (safe_tac ZF_cs);
-by (etac ballE 1);
-by (best_tac (cantor_cs addSEs [bexE]) 1);
-by (fast_tac ZF_cs 1);
-result();
-
-
 (*** Composition of homomorphisms is a homomorphism ***)
 
 (*Given as a challenge problem in
@@ -56,23 +30,16 @@ result();
 (*collecting the relevant lemmas*)
 val hom_ss = ZF_ss addsimps [comp_fun,comp_fun_apply,SigmaI,apply_funtype];
 
-(*The problem below is proving conditions of rewrites such as comp_fun_apply;
-  rewriting does not instantiate Vars; we must prove the conditions
-  explicitly.*)
-fun hom_tac hyps =
-    resolve_tac (TrueI::refl::iff_refl::hyps) ORELSE' 
-    (cut_facts_tac hyps THEN' fast_tac prop_cs);
-
-(*This version uses a super application of simp_tac*)
+(*This version uses a super application of simp_tac.  Needs setloop to help
+  proving conditions of rewrites such as comp_fun_apply;
+  rewriting does not instantiate Vars*)
 goal Perm.thy
     "(ALL A f B g. hom(A,f,B,g) = \
 \          {H: A->B. f:A*A->A & g:B*B->B & \
 \                    (ALL x:A. ALL y:A. H`(f`<x,y>) = g`<H`x,H`y>)}) --> \
 \    J : hom(A,f,B,g) & K : hom(B,g,C,h) -->  \
 \    (K O J) : hom(A,f,C,h)";
-by (simp_tac (hom_ss setsolver hom_tac) 1);
-(*Also works but slower:
-    by (asm_simp_tac (hom_ss setloop (K (safe_tac FOL_cs))) 1); *)
+by (asm_simp_tac (hom_ss setloop (K (safe_tac FOL_cs))) 1);
 val comp_homs = result();
 
 (*This version uses meta-level rewriting, safe_tac and asm_simp_tac*)
