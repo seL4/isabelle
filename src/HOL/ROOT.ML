@@ -35,11 +35,12 @@ use "simpdata.ML";
 
 use_thy "Ord";
 use_thy "subset";
-use "typedef.ML";
+use "Tools/typedef_package.ML";
 use_thy "Sum";
 use_thy "Gfp";
 
-use "record.ML";
+use "Tools/record_package.ML";
+use_thy "Record";
 
 use "datatype.ML";
 use_thy "Arith";
