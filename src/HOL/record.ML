@@ -209,8 +209,7 @@ fun check_parent None name thy = []
      in 
        case opt_info of 
          None => ["Parent " ^ quote parent ^" not defined"]
-       | Some {args = pargs, parent = pparent, 
-               fields = pfields, sign_ref = psign_ref} =>
+       | Some {args = pargs, parent = pparent, fields = pfields} =>
            if (length args = length pargs) 
              then check_sorts pargs args
              else ["Mismatching arities for parent " ^ quote (base parent)] 
@@ -256,8 +255,7 @@ fun ext_record (args, name) opt_parent current_fields thy =
     val full = Sign.full_name sign;
 
     val current_fullfields = map (apfst full) current_fields;
-    val info = {args = args, fields = current_fullfields, 
-                    parent = opt_parent, sign_ref = Sign.self_ref sign};
+    val info = {args = args, fields = current_fullfields, parent = opt_parent};
     val thy = thy |> put_record thy full_name info;
     val all_types = record_field_types thy info; 
     val all_fields = record_field_names thy info ~~ all_types;
