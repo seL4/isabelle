@@ -282,7 +282,7 @@ val fromP =
 
 val factsP =
   OuterSyntax.command "note" "define facts" K.prf_decl
-    (facts -- P.marg_comment >> (Toplevel.proof o IsarThy.have_facts));
+    (facts -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.have_facts)));
 
 
 (* proof context *)
