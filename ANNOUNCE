@@ -42,8 +42,7 @@ NEWS of the distribution for more details).
 
   * HOL/HoareParallel: large application concerning verification of
     parallel imperative programs (Owicki-Gries method, Rely-Guarantee
-    method, including examples of garbage collection, mutual
-    exclusion, etc.)
+    method, examples of garbage collection, mutual exclusion, etc.)
     (by Leonor Prensa Nieto).
 
   * HOL/GroupTheory: group theory examples including Sylow's theorem
