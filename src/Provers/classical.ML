@@ -759,7 +759,7 @@ fun print_claset thy = Display.print_data thy clasetK;
 fun claset_ref_of_sg sg =
   (case Sign.get_data sg clasetK of
     ClasetData (ref (CSData r)) => r
-  | _ => sys_error "claset_ref_of_sg");
+  | _ => type_error clasetK);
 
 val claset_ref_of = claset_ref_of_sg o sign_of;
 val claset_of_sg = ! o claset_ref_of_sg;

@@ -127,7 +127,7 @@ end;
 fun get_attributes_sg sg =
   (case Sign.get_data sg attributesK of
     Attributes x => x
-  | _ => sys_error "get_attributes_sg");
+  | _ => type_error attributesK);
 
 val get_attributes = get_attributes_sg o Theory.sign_of;
 

@@ -86,7 +86,7 @@ end;
 fun get_theorems_sg sg =
   (case Sign.get_data sg theoremsK of
     Theorems r => r
-  | _ => sys_error "get_theorems_sg");
+  | _ => type_error theoremsK);
 
 val get_theorems = get_theorems_sg o Theory.sign_of;
 

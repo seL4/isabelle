@@ -234,6 +234,7 @@ sig
   val scanwords: (string -> bool) -> string list -> string list
   datatype 'a mtree = Join of 'a * 'a mtree list
   type object
+  val type_error: string -> 'a
 end;
 
 structure Library: LIBRARY =
@@ -1004,7 +1005,7 @@ fun warning s = !warning_fn s;
 exception ERROR;
 fun error_msg s = !error_fn s;	  (*promise to raise ERROR later!*)
 fun error s = (error_msg s; raise ERROR);
-fun sys_error msg = (error_msg " !! SYSTEM ERROR !!\n"; error msg);
+fun sys_error msg = error ("!! SYSTEM ERROR !!\n" ^ msg);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
@@ -1206,7 +1207,11 @@ datatype 'a mtree = Join of 'a * 'a mtree list;
 
 
 (* generic objects -- fool the ML type system via exception constructors *)
+
 type object = exn;
+
+fun type_error name =
+  error ("!! RUNTIME TYPE ERROR !!\nFailed to access " ^ quote name ^ " data");
 
 
 end;
