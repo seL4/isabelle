@@ -1,6 +1,7 @@
 (* Title:       HOL/datatype.ML
    ID:          $Id$
-   Author:      Max Breitling, Carsten Clasohm, Tobias Nipkow, Norbert Voelker
+   Author:      Max Breitling, Carsten Clasohm, Tobias Nipkow, Norbert Voelker,
+                Konrad Slind
    Copyright 1995 TU Muenchen
 *)
 
@@ -400,7 +401,6 @@ in
         in add_defs_i [defpairT] thy end;
 
     in
-      datatypes := map (fn (x,_,_) => x) cons_list' @ (!datatypes);
       (thy |> add_types types
            |> add_arities arities
            |> add_consts consts
@@ -482,3 +482,369 @@ implementation of prim. rec. function definitions. (N. Voelker, Feb. 1995)
   Note the de-Bruijn indices counting the number of lambdas between the
   variable and its binding. 
 *)
+
+
+
+(* ----------------------------------------------- *)
+(* The following has been written by Konrad Slind. *)
+
+
+type dtype_info = {case_const:term, case_rewrites:thm list,
+                   constructors:term list, nchotomy:thm, case_cong:thm};
+
+signature Dtype_sig =
+sig
+  val build_case_cong: Sign.sg -> thm list -> cterm
+  val build_nchotomy: Sign.sg -> thm list -> cterm
+
+  val prove_case_cong: thm -> thm list -> cterm -> thm
+  val prove_nchotomy: (string -> int -> tactic) -> thm list -> cterm -> thm
+
+  val case_thms : Sign.sg -> thm list -> (string -> int -> tactic)
+                   -> {nchotomy:thm, case_cong:thm}
+
+  val build_record : (theory * (string * string list)
+                      * (string -> int -> tactic))
+                     -> (string * dtype_info) 
+
+end;
+
+
+(*---------------------------------------------------------------------------
+ * This structure is support for the Isabelle datatype package. It provides
+ * entrypoints for 1) building and proving the case congruence theorem for
+ * a datatype and 2) building and proving the "exhaustion" theorem for
+ * a datatype (I have called this theorem "nchotomy" for no good reason).
+ *
+ * It also brings all these together in the function "build_record", which
+ * is probably what will be used.
+ *
+ * Since these routines are required in order to support TFL, they have
+ * been written so they will compile "stand-alone", i.e., in Isabelle-HOL
+ * without any TFL code around.
+ *---------------------------------------------------------------------------*)
+structure Dtype : Dtype_sig =
+struct
+
+exception DTYPE_ERR of {func:string, mesg:string};
+
+(*---------------------------------------------------------------------------
+ * General support routines
+ *---------------------------------------------------------------------------*)
+fun itlist f L base_value =
+   let fun it [] = base_value
+         | it (a::rst) = f a (it rst)
+   in it L 
+   end;
+
+fun end_itlist f =
+let fun endit [] = raise DTYPE_ERR{func="end_itlist", mesg="list too short"}
+      | endit alist = 
+         let val (base::ralist) = rev alist
+         in itlist f (rev ralist) base  end
+in endit
+end;
+
+fun unzip L = itlist (fn (x,y) => fn (l1,l2) =>((x::l1),(y::l2))) L ([],[]);
+
+
+(*---------------------------------------------------------------------------
+ * Miscellaneous Syntax manipulation
+ *---------------------------------------------------------------------------*)
+val mk_var = Free;
+val mk_const = Const
+fun mk_comb(Rator,Rand) = Rator $ Rand;
+fun mk_abs(r as (Var((s,_),ty),_))  = Abs(s,ty,abstract_over r)
+  | mk_abs(r as (Free(s,ty),_))     = Abs(s,ty,abstract_over r)
+  | mk_abs _ = raise DTYPE_ERR{func="mk_abs", mesg="1st not a variable"};
+
+fun dest_var(Var((s,i),ty)) = (s,ty)
+  | dest_var(Free(s,ty))    = (s,ty)
+  | dest_var _ = raise DTYPE_ERR{func="dest_var", mesg="not a variable"};
+
+fun dest_const(Const p) = p
+  | dest_const _ = raise DTYPE_ERR{func="dest_const", mesg="not a constant"};
+
+fun dest_comb(t1 $ t2) = (t1,t2)
+  | dest_comb _ =  raise DTYPE_ERR{func = "dest_comb", mesg = "not a comb"};
+val rand = #2 o dest_comb;
+val rator = #1 o dest_comb;
+
+fun dest_abs(a as Abs(s,ty,M)) = 
+     let val v = Free(s, ty)
+      in (v, betapply (a,v)) end
+  | dest_abs _ =  raise DTYPE_ERR{func="dest_abs", mesg="not an abstraction"};
+
+
+val bool = Type("bool",[])
+and prop = Type("prop",[]);
+
+fun mk_eq(lhs,rhs) = 
+   let val ty = type_of lhs
+       val c = mk_const("op =", ty --> ty --> bool)
+   in list_comb(c,[lhs,rhs])
+   end
+
+fun dest_eq(Const("op =",_) $ M $ N) = (M, N)
+  | dest_eq _ = raise DTYPE_ERR{func="dest_eq", mesg="not an equality"};
+
+fun mk_disj(disj1,disj2) =
+   let val c = Const("op |", bool --> bool --> bool)
+   in list_comb(c,[disj1,disj2])
+   end;
+
+fun mk_forall (r as (Bvar,_)) = 
+  let val ty = type_of Bvar
+      val c = Const("All", (ty --> bool) --> bool)
+  in mk_comb(c, mk_abs r)
+  end;
+
+fun mk_exists (r as (Bvar,_)) = 
+  let val ty = type_of Bvar 
+      val c = Const("Ex", (ty --> bool) --> bool)
+  in mk_comb(c, mk_abs r)
+  end;
+
+fun mk_prop (tm as Const("Trueprop",_) $ _) = tm
+  | mk_prop tm = mk_comb(Const("Trueprop", bool --> prop),tm);
+
+fun drop_prop (Const("Trueprop",_) $ X) = X
+  | drop_prop X = X;
+
+fun mk_all (r as (Bvar,_)) = mk_comb(all (type_of Bvar), mk_abs r);
+fun list_mk_all(V,t) = itlist(fn v => fn b => mk_all(v,b)) V t;
+fun list_mk_exists(V,t) = itlist(fn v => fn b => mk_exists(v,b)) V t;
+val list_mk_disj = end_itlist(fn d1 => fn tm => mk_disj(d1,tm))
+
+
+fun dest_thm thm = 
+   let val {prop,hyps,...} = rep_thm thm
+   in (map drop_prop hyps, drop_prop prop)
+   end;
+
+val concl = #2 o dest_thm;
+
+
+(*---------------------------------------------------------------------------
+ * Names of all variables occurring in a term, including bound ones. These
+ * are added into the second argument.
+ *---------------------------------------------------------------------------*)
+fun add_term_names tm =
+let fun insert (x:string) = 
+     let fun canfind[] = [x] 
+           | canfind(alist as (y::rst)) = 
+              if (x<y) then x::alist
+              else if (x=y) then y::rst
+              else y::canfind rst 
+     in canfind end
+    fun add (Free(s,_)) V = insert s V
+      | add (Var((s,_),_)) V = insert s V
+      | add (Abs(s,_,body)) V = add body (insert s V)
+      | add (f$t) V = add t (add f V)
+      | add _ V = V
+in add tm
+end;
+
+
+(*---------------------------------------------------------------------------
+ * We need to make everything free, so that we can put the term into a
+ * goalstack, or submit it as an argument to prove_goalw_cterm.
+ *---------------------------------------------------------------------------*)
+fun make_free_ty(Type(s,alist)) = Type(s,map make_free_ty alist)
+  | make_free_ty(TVar((s,i),srt)) = TFree(s,srt)
+  | make_free_ty x = x;
+
+fun make_free (Var((s,_),ty)) = Free(s,make_free_ty ty)
+  | make_free (Abs(s,x,body)) = Abs(s,make_free_ty x, make_free body)
+  | make_free (f$t) = (make_free f $ make_free t)
+  | make_free (Const(s,ty)) = Const(s, make_free_ty ty)
+  | make_free (Free(s,ty)) = Free(s, make_free_ty ty)
+  | make_free b = b;
+
+
+(*---------------------------------------------------------------------------
+ * Structure of case congruence theorem looks like this:
+ *
+ *    (M = M') 
+ *    ==> (!!x1,...,xk. (M' = C1 x1..xk) ==> (f1 x1..xk = f1' x1..xk)) 
+ *    ==> ... 
+ *    ==> (!!x1,...,xj. (M' = Cn x1..xj) ==> (fn x1..xj = fn' x1..xj)) 
+ *    ==>
+ *      (ty_case f1..fn M = ty_case f1'..fn' m')
+ *
+ * The input is the list of rules for the case construct for the type, i.e.,
+ * that found in the "ty.cases" field of a theory where datatype "ty" is
+ * defined.
+ *---------------------------------------------------------------------------*)
+
+fun build_case_cong sign case_rewrites =
+ let val clauses = map concl case_rewrites
+     val clause1 = hd clauses
+     val left = (#1 o dest_eq) clause1
+     val ty = type_of ((#2 o dest_comb) left)
+     val varnames = itlist add_term_names clauses []
+     val M = variant varnames "M"
+     val Mvar = Free(M, ty)
+     val M' = variant (M::varnames) M
+     val M'var = Free(M', ty)
+     fun mk_clause clause =
+       let val (lhs,rhs) = dest_eq clause
+           val func = (#1 o strip_comb) rhs
+           val (constr,xbar) = strip_comb(rand lhs)
+           val (Name,Ty) = dest_var func
+           val func'name = variant (M::M'::varnames) (Name^"a")
+           val func' = mk_var(func'name,Ty)
+       in (func', list_mk_all
+                  (xbar, Logic.mk_implies
+                         (mk_prop(mk_eq(M'var, list_comb(constr,xbar))),
+                          mk_prop(mk_eq(list_comb(func, xbar),
+                                        list_comb(func',xbar))))))   end
+     val (funcs',clauses') = unzip (map mk_clause clauses)
+     val lhsM = mk_comb(rator left, Mvar)
+     val c = #1(strip_comb left)
+ in
+ cterm_of sign
+  (make_free
+   (Logic.list_implies(mk_prop(mk_eq(Mvar, M'var))::clauses',
+                       mk_prop(mk_eq(lhsM, list_comb(c,(funcs'@[M'var])))))))
+ end
+ handle _ => raise DTYPE_ERR{func="build_case_cong",mesg="failed"};
+
+  
+(*---------------------------------------------------------------------------
+ * Proves the result of "build_case_cong". 
+ *---------------------------------------------------------------------------*)
+fun prove_case_cong nchotomy case_rewrites ctm =
+ let val {sign,t,...} = rep_cterm ctm
+     val (Const("==>",_) $ tm $ _) = t
+     val (Const("Trueprop",_) $ (Const("op =",_) $ _ $ Ma)) = tm
+     val (Free(str,_)) = Ma
+     val thm = prove_goalw_cterm[] ctm
+              (fn prems =>
+               [simp_tac (HOL_ss addsimps [hd prems]) 1,
+                cut_inst_tac [("x",str)] (nchotomy RS spec) 1,
+                REPEAT (SOMEGOAL (etac disjE ORELSE' etac exE)),
+                ALLGOALS(asm_simp_tac(HOL_ss addsimps (prems@case_rewrites)))])
+ in standard (thm RS eq_reflection)
+ end
+ handle _ => raise DTYPE_ERR{func="prove_case_cong",mesg="failed"};
+
+
+(*---------------------------------------------------------------------------
+ * Structure of exhaustion theorem looks like this:
+ *
+ *    !v. (EX y1..yi. v = C1 y1..yi) | ... | (EX y1..yj. v = Cn y1..yj)
+ *
+ * As for "build_case_cong", the input is the list of rules for the case 
+ * construct (the case "rewrites").
+ *---------------------------------------------------------------------------*)
+fun build_nchotomy sign case_rewrites =
+ let val clauses = map concl case_rewrites
+     val C_ybars = map (rand o #1 o dest_eq) clauses
+     val varnames = itlist add_term_names C_ybars []
+     val vname = variant varnames "v"
+     val ty = type_of (hd C_ybars)
+     val v = mk_var(vname,ty)
+     fun mk_disj C_ybar =
+       let val ybar = #2(strip_comb C_ybar)
+       in list_mk_exists(ybar, mk_eq(v,C_ybar))
+       end
+ in
+ cterm_of sign
+   (make_free(mk_prop (mk_forall(v, list_mk_disj (map mk_disj C_ybars)))))
+ end
+ handle _ => raise DTYPE_ERR{func="build_nchotomy",mesg="failed"};
+
+
+(*---------------------------------------------------------------------------
+ * Takes the induction tactic for the datatype, and the result from 
+ * "build_nchotomy" and proves the theorem.
+ *---------------------------------------------------------------------------*)
+
+fun prove_nchotomy induct_tac case_rewrites ctm =
+ let val {sign,t,...} = rep_cterm ctm
+     val (Const ("Trueprop",_) $ g) = t
+     val (Const ("All",_) $ Abs (v,_,_)) = g
+ in 
+ prove_goalw_cterm[] ctm
+     (fn _ => [rtac allI 1,
+               induct_tac v 1,
+               ALLGOALS (simp_tac (HOL_ss addsimps case_rewrites)),
+               ALLGOALS (fast_tac HOL_cs)])
+ end
+ handle _ => raise DTYPE_ERR {func="prove_nchotomy", mesg="failed"};
+
+
+(*---------------------------------------------------------------------------
+ * Brings the preceeding functions together.
+ *---------------------------------------------------------------------------*)
+fun case_thms sign case_rewrites induct_tac =
+  let val nchotomy = prove_nchotomy induct_tac case_rewrites
+                            (build_nchotomy sign case_rewrites)
+      val cong = prove_case_cong nchotomy case_rewrites
+                                 (build_case_cong sign case_rewrites)
+  in {nchotomy=nchotomy, case_cong=cong}
+  end;
+
+(*---------------------------------------------------------------------------
+ * Tests
+ *
+ * 
+     Dtype.case_thms (sign_of List.thy) List.list.cases List.list.induct_tac;
+     Dtype.case_thms (sign_of Prod.thy) [split] 
+                     (fn s => res_inst_tac [("p",s)] PairE_lemma);
+     Dtype.case_thms (sign_of Nat.thy) [nat_case_0, nat_case_Suc] nat_ind_tac;
+
+ *
+ *---------------------------------------------------------------------------*)
+
+
+(*---------------------------------------------------------------------------
+ * Given a theory and the name (and constructors) of a datatype declared in 
+ * an ancestor of that theory and an induction tactic for that datatype, 
+ * return the information that TFL needs. This should only be called once for
+ * a datatype, because "build_record" proves various facts, and thus is slow. 
+ * It fails on the datatype of pairs, which must be included for TFL to work. 
+ * The test shows how to  build the record for pairs.
+ *---------------------------------------------------------------------------*)
+
+local fun mk_rw th = (th RS eq_reflection) handle _ => th
+      fun get_fact thy s = (get_axiom thy s handle _ => get_thm thy s)
+in
+fun build_record (thy,(ty,cl),itac) =
+ let val sign = sign_of thy
+     fun const s = Const(s, the(Sign.const_type sign s))
+     val case_rewrites = map (fn c => get_fact thy (ty^"_case_"^c)) cl
+     val {nchotomy,case_cong} = case_thms sign case_rewrites itac
+ in
+  (ty, {constructors = map(fn s => const s handle _ => const("op "^s)) cl,
+        case_const = const (ty^"_case"),
+        case_rewrites = map mk_rw case_rewrites,
+        nchotomy = nchotomy,
+        case_cong = case_cong})
+ end
+end;
+
+
+(*---------------------------------------------------------------------------
+ * Test
+ *
+ * 
+    map Dtype.build_record 
+          [(Nat.thy, ("nat",["0", "Suc"]), nat_ind_tac),
+           (List.thy,("list",["[]", "#"]), List.list.induct_tac)]
+    @
+    [let val prod_case_thms = Dtype.case_thms (sign_of Prod.thy) [split] 
+                                 (fn s => res_inst_tac [("p",s)] PairE_lemma)
+         fun const s = Const(s, the(Sign.const_type (sign_of Prod.thy) s))
+     in ("*", 
+         {constructors = [const "Pair"],
+            case_const = const "split",
+         case_rewrites = [split RS eq_reflection],
+             case_cong = #case_cong prod_case_thms,
+              nchotomy = #nchotomy prod_case_thms}) end];
+
+ *
+ *---------------------------------------------------------------------------*)
+
+end;

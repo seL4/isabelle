@@ -408,12 +408,17 @@ in add_thydata "HOL"
      ("simpset", ThyMethods {merge = merge, put = put, get = get})
 end;
 
-exception DT_DATA of string list;
-val datatypes = ref [] : string list ref;
+
+type dtype_info = {case_const:term, case_rewrites:thm list,
+                   constructors:term list, nchotomy:thm, case_cong:thm};
+
+exception DT_DATA of (string * dtype_info) list;
+val datatypes = ref [] : (string * dtype_info) list ref;
 
 let fun merge [] = DT_DATA []
-      | merge ds = let val ds = map (fn DT_DATA x => x) ds;
-                   in DT_DATA (foldl (op union) (hd ds, tl ds)) end;
+      | merge ds =
+          let val ds = map (fn DT_DATA x => x) ds;
+          in DT_DATA (foldl (gen_union eq_fst) (hd ds, tl ds)) end;
 
     fun put (DT_DATA ds) = datatypes := ds;
 

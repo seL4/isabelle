@@ -116,7 +116,7 @@ local
   fun mk_rules tname cons pre = " map (get_axiom thy) " ^
     mk_list (map (fn ((s, _), _) => quote (tname ^ pre ^ strip_quotes s)) cons);
 
-  (*generate string for calling add_datatype*)
+  (*generate string for calling add_datatype and build_record*)
   fun mk_params ((ts, tname), cons) =
    ("val (thy, " ^ tname ^ "_add_primrec) = Datatype.add_datatype\n"
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
@@ -139,6 +139,9 @@ local
     \ val simps = inject @ distinct @ cases @ recs;\n\
     \ fun induct_tac a = res_inst_tac [(" ^ quote tname ^ ", a)] induct;\n\
     \end;\n\
+    \val dummy = datatypes := Dtype.build_record (thy, " ^
+      mk_pair (quote tname, mk_list (map (fst o fst) cons)) ^
+      ", " ^ tname ^ ".induct_tac) :: (!datatypes);\n\
     \val dummy = Addsimps " ^ tname ^ ".simps;\n");
 
   (*parsers*)
