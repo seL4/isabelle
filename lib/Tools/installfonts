@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# DESCRIPTION: install Isabelle symbol fonts
+# DESCRIPTION: install the isabelle fonts into your X11 server
 
 
 PRG=$(basename $0)
@@ -12,7 +12,7 @@ function usage()
   echo
   echo "Usage: $PRG"
   echo
-  echo "  Install the Isabelle symbol fonts into your X11 server."
+  echo "  Install the isabelle fonts into your X11 server."
   echo "  (May be savely called repeatedly.)"
   echo
   exit 1
@@ -23,7 +23,7 @@ function usage()
 
 function checkfonts()
 {
-  RESULT=$(xlsfonts -fn "-isabelle-*-isabelle-0" 2>&1) || return 1
+  RESULT=$(xlsfonts -fn "-isabelle-fixed-*-isabelle-0" 2>&1) || return 1
 
   case "$RESULT" in
     xlsfonts:*)
