@@ -619,7 +619,8 @@ val lemma_i = global_goal ProofContext.bind_propp_schematic_i Lemma;
 
 
 (*local goals*)
-fun local_goal' prepp kind check f name atts args int state =
+fun local_goal' prepp kind (check: bool -> state -> state)
+    f name atts args int state =
   state
   |> setup_goal open_block prepp kind f name atts args
   |> warn_extra_tfrees state
