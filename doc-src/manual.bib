@@ -27,7 +27,9 @@
 @string{JLP="Journal of Logic Programming"}
 @string{JSC="Journal of Symbolic Computation"}
 @string{JSL="Journal of Symbolic Logic"}
+@string{PROYAL="Proceedings of the Royal Society of London"}
 @string{SIGPLAN="{SIGPLAN} Notices"}
+@string{TISSEC="ACM Transactions on Information and System Security"}
 
 %conferences
 @string{CADE="International Conference on Automated Deduction"}
@@ -180,6 +182,14 @@ publisher=PH,year=1998}
   volume	= 34,
   pages		= {381-392},
   year		= 1972}
+
+@Article{ban89,
+  author	= {M. Burrows and M. Abadi and R. M. Needham},
+  title		= {A Logic of Authentication},
+  journal	= PROYAL,
+  year		= 1989,
+  volume	= 426,
+  pages		= {233-271}}
 
 %C
 
@@ -485,6 +495,21 @@ title={The Haskell School of Expression},publisher=CUP,year=2000}
   publisher	= NH,
   year		= 1980}
 
+%L
+
+@InProceedings{lowe-fdr,
+  author	= {Gavin Lowe},
+  title		= {Breaking and Fixing the {Needham}-{Schroeder} Public-Key
+		  Protocol using {CSP} and {FDR}},
+  booktitle = 	 {Tools and Algorithms for the Construction and Analysis 
+                  of Systems:  second international workshop, TACAS '96},
+  editor =	 {T. Margaria and B. Steffen},
+  series =	 {LNCS 1055},
+  year =	 1996,
+  publisher =	 {Springer},
+  pages		= {147-166}}
+
+
 %M
 
 @Article{mw81,
@@ -591,6 +616,17 @@ title={{HOLCF = HOL + LCF}},journal=JFP,year=1999,volume=9,pages={191--223}}
   crossref	= {tphols96},
   pages		= {331-345},
   year		= 1996}
+
+@Article{needham-schroeder,
+  author =       "Roger M. Needham and Michael D. Schroeder",
+  title =        "Using Encryption for Authentication in Large Networks
+                 of Computers",
+  journal =      cacm,
+  volume =       21,
+  number =       12,
+  pages =        "993-999",
+  month =        dec,
+  year =         1978}
 
 @inproceedings{nipkow-W,
   author	= {Wolfgang Naraschewski and Tobias Nipkow},
@@ -871,6 +907,17 @@ title={{HOLCF = HOL + LCF}},journal=JFP,year=1999,volume=9,pages={191--223}}
   year		= 1998,
   volume	= 6,
   pages		= {85-128}}
+
+@Article{paulson-tls,
+  author = 	 {Lawrence C. Paulson},
+  title = 	 {Inductive Analysis of the {Internet} Protocol {TLS}},
+  journal = 	 TISSEC,
+  month =        aug,
+  year = 	 1999,
+  volume	= 2,
+  number        = 3,
+  pages		= {332-351}}
+
 
 @article{pelletier86,
   author	= {F. J. Pelletier},
