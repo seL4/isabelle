@@ -8,136 +8,14 @@ Proof by cases and induction on types and sets.
 
 signature INDUCT_METHOD =
 sig
-  val dest_global_rules: theory ->
-    {type_cases: (string * thm) list, set_cases: (string * thm) list,
-      type_induct: (string * thm) list, set_induct: (string * thm) list}
-  val print_global_rules: theory -> unit
-  val dest_local_rules: Proof.context ->
-    {type_cases: (string * thm) list, set_cases: (string * thm) list,
-      type_induct: (string * thm) list, set_induct: (string * thm) list}
-  val print_local_rules: Proof.context -> unit
   val vars_of: term -> term list
   val concls_of: thm -> term list
-  val cases_type_global: string -> theory attribute
-  val cases_set_global: string -> theory attribute
-  val cases_type_local: string -> Proof.context attribute
-  val cases_set_local: string -> Proof.context attribute
-  val induct_type_global: string -> theory attribute
-  val induct_set_global: string -> theory attribute
-  val induct_type_local: string -> Proof.context attribute
-  val induct_set_local: string -> Proof.context attribute
   val simp_case_tac: bool -> simpset -> int -> tactic
   val setup: (theory -> theory) list
 end;
 
 structure InductMethod: INDUCT_METHOD =
 struct
-
-
-(** global and local induct data **)
-
-(* rules *)
-
-type rules = (string * thm) NetRules.T;
-
-fun eq_rule ((s1:string, th1), (s2, th2)) = s1 = s2 andalso Thm.eq_thm (th1, th2);
-
-val type_rules = NetRules.init eq_rule (Thm.concl_of o #2);
-val set_rules = NetRules.init eq_rule (Thm.major_prem_of o #2);
-
-fun lookup_rule (rs:rules) name = Library.assoc (NetRules.rules rs, name);
-
-fun print_rules kind sg rs =
-  let val thms = map snd (NetRules.rules rs)
-  in Pretty.writeln (Pretty.big_list kind (map (Display.pretty_thm_sg sg) thms)) end;
-
-
-(* theory data kind 'HOL/induct_method' *)
-
-structure GlobalInductArgs =
-struct
-  val name = "HOL/induct_method";
-  type T = (rules * rules) * (rules * rules);
-
-  val empty = ((type_rules, set_rules), (type_rules, set_rules));
-  val copy = I;
-  val prep_ext = I;
-  fun merge (((casesT1, casesS1), (inductT1, inductS1)),
-      ((casesT2, casesS2), (inductT2, inductS2))) =
-    ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesS1, casesS2)),
-      (NetRules.merge (inductT1, inductT2), NetRules.merge (inductS1, inductS2)));
-
-  fun print sg ((casesT, casesS), (inductT, inductS)) =
-    (print_rules "type cases:" sg casesT;
-      print_rules "set cases:" sg casesS;
-      print_rules "type induct:" sg inductT;
-      print_rules "set induct:" sg inductS);
-
-  fun dest ((casesT, casesS), (inductT, inductS)) =
-    {type_cases = NetRules.rules casesT,
-     set_cases = NetRules.rules casesS,
-     type_induct = NetRules.rules inductT,
-     set_induct = NetRules.rules inductS};
-end;
-
-structure GlobalInduct = TheoryDataFun(GlobalInductArgs);
-val print_global_rules = GlobalInduct.print;
-val dest_global_rules = GlobalInductArgs.dest o GlobalInduct.get;
-
-
-(* proof data kind 'HOL/induct_method' *)
-
-structure LocalInductArgs =
-struct
-  val name = "HOL/induct_method";
-  type T = GlobalInductArgs.T;
-
-  fun init thy = GlobalInduct.get thy;
-  fun print x = GlobalInductArgs.print (ProofContext.sign_of x);
-end;
-
-structure LocalInduct = ProofDataFun(LocalInductArgs);
-val print_local_rules = LocalInduct.print;
-val dest_local_rules = GlobalInductArgs.dest o LocalInduct.get;
-
-
-(* access rules *)
-
-val get_cases = #1 o LocalInduct.get;
-val get_induct = #2 o LocalInduct.get;
-
-val lookup_casesT = lookup_rule o #1 o get_cases;
-val lookup_casesS = lookup_rule o #2 o get_cases;
-val lookup_inductT = lookup_rule o #1 o get_induct;
-val lookup_inductS = lookup_rule o #2 o get_induct;
-
-
-
-(** attributes **)
-
-local
-
-fun mk_att f g name (x, thm) = (f (g (name, thm)) x, thm);
-
-fun add_casesT rule x = apfst (apfst (NetRules.insert rule)) x;
-fun add_casesS rule x = apfst (apsnd (NetRules.insert rule)) x;
-fun add_inductT rule x = apsnd (apfst (NetRules.insert rule)) x;
-fun add_inductS rule x = apsnd (apsnd (NetRules.insert rule)) x;
-
-in
-
-val cases_type_global = mk_att GlobalInduct.map add_casesT;
-val cases_set_global = mk_att GlobalInduct.map add_casesS;
-val induct_type_global = mk_att GlobalInduct.map add_inductT;
-val induct_set_global = mk_att GlobalInduct.map add_inductS;
-
-val cases_type_local = mk_att LocalInduct.map add_casesT;
-val cases_set_local = mk_att LocalInduct.map add_casesS;
-val induct_type_local = mk_att LocalInduct.map add_inductT;
-val induct_set_local = mk_att LocalInduct.map add_inductS;
-
-end;
-
 
 
 (** misc utils **)
@@ -211,13 +89,6 @@ val case_split = RuleCases.name ["True", "False"] case_split_thm;
 
 local
 
-(* FIXME
-fun cases_vars thm =
-  (case try (vars_of o hd o Logic.strip_assums_hyp o Library.last_elem o Thm.prems_of) thm of
-    None => raise THM ("Malformed cases rule", 0, [thm])
-  | Some xs => xs);
-*)
-
 fun simplified_cases ctxt cases thm =
   let
     val nprems = Thm.nprems_of thm;
@@ -245,7 +116,7 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
         |> Drule.cterm_instantiate) thm;
 
     fun find_cases th =
-      NetRules.may_unify (#2 (get_cases ctxt))
+      NetRules.may_unify (#2 (InductAttrib.get_cases ctxt))
         (Logic.strip_assums_concl (#prop (Thm.rep_thm th)));
 
     val rules =
@@ -256,7 +127,7 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
             val name = type_name (hd (flat (map (mapfilter I) insts)))
               handle Library.LIST _ => error "Unable to figure out type cases rule"
           in
-            (case lookup_casesT ctxt name of
+            (case InductAttrib.lookup_casesT ctxt name of
               None => error ("No cases rule for type: " ^ quote name)
             | Some thm => [(inst_rule insts thm, RuleCases.get thm)])
           end
@@ -303,7 +174,7 @@ fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
 
 fun induct_rule ctxt t =
   let val name = type_name t in
-    (case lookup_inductT ctxt name of
+    (case InductAttrib.lookup_inductT ctxt name of
       None => error ("No induct rule for type: " ^ quote name)
     | Some thm => (name, thm))
   end;
@@ -342,7 +213,7 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
         |> Drule.cterm_instantiate) thm;
 
     fun find_induct th =
-      NetRules.may_unify (#2 (get_induct ctxt))
+      NetRules.may_unify (#2 (InductAttrib.get_induct ctxt))
         (Logic.strip_assums_concl (#prop (Thm.rep_thm th)));
 
     val rules =
@@ -379,38 +250,10 @@ end;
 
 (** concrete syntax **)
 
-val casesN = "cases";
-val inductN = "induct";
-
 val simplifiedN = "simplified";
 val strippedN = "stripped";
 val openN = "open";
-
-val typeN = "type";
-val setN = "set";
 val ruleN = "rule";
-
-
-(* attributes *)
-
-fun spec k = (Args.$$$ k -- Args.colon) |-- Args.!!! Args.name;
-
-fun attrib sign_of add_type add_set = Scan.depend (fn x =>
-  let val sg = sign_of x in
-    spec typeN >> (add_type o Sign.intern_tycon sg) ||
-    spec setN  >> (add_set o Sign.intern_const sg)
-  end >> pair x);
-
-val cases_attr =
-  (Attrib.syntax (attrib Theory.sign_of cases_type_global cases_set_global),
-   Attrib.syntax (attrib ProofContext.sign_of cases_type_local cases_set_local));
-
-val induct_attr =
-  (Attrib.syntax (attrib Theory.sign_of induct_type_global induct_set_global),
-   Attrib.syntax (attrib ProofContext.sign_of induct_type_local induct_set_local));
-
-
-(* methods *)
 
 local
 
@@ -418,18 +261,21 @@ fun err k get name =
   (case get name of Some x => x
   | None => error ("No rule for " ^ k ^ " " ^ quote name));
 
+fun spec k = (Args.$$$ k -- Args.colon) |-- Args.!!! Args.name;
+
 fun rule get_type get_set =
   Scan.depend (fn ctxt =>
     let val sg = ProofContext.sign_of ctxt in
-      spec typeN >> (err typeN (get_type ctxt) o Sign.intern_tycon sg) ||
-      spec setN >> (err setN (get_set ctxt) o Sign.intern_const sg)
+      spec InductAttrib.typeN >> (err InductAttrib.typeN (get_type ctxt) o Sign.intern_tycon sg) ||
+      spec InductAttrib.setN >> (err InductAttrib.setN (get_set ctxt) o Sign.intern_const sg)
     end >> pair ctxt) ||
   Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.local_thm;
 
-val cases_rule = rule lookup_casesT lookup_casesS;
-val induct_rule = rule lookup_inductT lookup_inductS;
+val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS;
+val induct_rule = rule InductAttrib.lookup_inductT InductAttrib.lookup_inductS;
 
-val kind = (Args.$$$ typeN || Args.$$$ setN || Args.$$$ ruleN) -- Args.colon;
+val kind =
+  (Args.$$$ InductAttrib.typeN || Args.$$$ InductAttrib.setN || Args.$$$ ruleN) -- Args.colon;
 val term = Scan.unless (Scan.lift kind) Args.local_term;
 val term_dummy = Scan.unless (Scan.lift kind)
   (Scan.lift (Args.$$$ "_") >> K None || Args.local_term >> Some);
@@ -451,13 +297,9 @@ end;
 (** theory setup **)
 
 val setup =
-  [GlobalInduct.init, LocalInduct.init,
-   Attrib.add_attributes
-    [(casesN, cases_attr, "declaration of cases rule for type or set"),
-     (inductN, induct_attr, "declaration of induction rule for type or set")],
-   Method.add_methods
-    [("cases", cases_meth oo cases_args, "case analysis on types or sets"),
-     ("induct", induct_meth oo induct_args, "induction on types or sets")],
+  [Method.add_methods
+    [(InductAttrib.casesN, cases_meth oo cases_args, "case analysis on types or sets"),
+     (InductAttrib.inductN, induct_meth oo induct_args, "induction on types or sets")],
    (#1 o PureThy.add_thms [(("case_split", case_split), [])])];
 
 end;
