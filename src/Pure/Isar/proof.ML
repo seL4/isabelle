@@ -59,6 +59,8 @@ sig
     (xstring * context attribute list) list) list -> state -> state
   val with_thmss_i: ((bstring * context attribute list) *
     (thm list * context attribute list) list) list -> state -> state
+  val using_thmss: ((xstring * context attribute list) list) list -> state -> state
+  val using_thmss_i: ((thm list * context attribute list) list) list -> state -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
   val assm: ProofContext.exporter
@@ -539,6 +541,26 @@ in
 
 val with_thmss = gen_with_thmss have_thmss;
 val with_thmss_i = gen_with_thmss have_thmss_i;
+
+end;
+
+
+(* using_thmss *)
+
+local
+
+fun gen_using_thmss f args state =
+  state
+  |> assert_backward
+  |> map_context_result (f (map (pair ("", [])) args))
+  |> (fn (st, named_facts) =>
+    let val (_, (_, ((result, (facts, thm)), f))) = find_goal st;
+    in st |> map_goal I (K ((result, (facts @ flat (map snd named_facts), thm)), f)) end);
+
+in
+
+val using_thmss = gen_using_thmss ProofContext.have_thmss;
+val using_thmss_i = gen_using_thmss ProofContext.have_thmss_i;
 
 end;
 
