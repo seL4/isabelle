@@ -6,7 +6,7 @@
 Inductive relation "recur" for the Recursive Authentication protocol.
 *)
 
-Recur = Shared + 
+Recur = HPair + Shared +
 
 syntax
   newK2    :: "nat*nat => key"
@@ -23,9 +23,9 @@ inductive "respond i"	(*Server's response to the nested message*)
   intrs
     (*The message "Agent Server" marks the end of a list.*)
 
-    One  "[| A ~= Server;
-	     MA = {|Agent A, Agent B, Nonce NA, Agent Server|} |]
-          ==> (j, {|Hash{|Key(shrK A), MA|}, MA|}, 
+    One  "A ~= Server
+          ==> (j, HPair (Key(shrK A)) 
+                        {|Agent A, Agent B, Nonce NA, Agent Server|}, 
                   {|Agent A, 
                     Crypt (shrK A) {|Key(newK2(i,j)), Agent B, Nonce NA|}, 
                     Agent Server|})
@@ -33,11 +33,9 @@ inductive "respond i"	(*Server's response to the nested message*)
 
     (*newK2(i,Suc j) is the key for A & B; newK2(i,j) is the key for B & C*)
     Cons "[| (Suc j, PA, RA) : respond i;
-             B ~= Server;
-	     MB = {|Agent B, Agent C, Nonce NB, PA|};
-             PA = {|Hash{|Key(shrK A), MA|}, MA|};
-             MA = {|Agent A, Agent B, Nonce NA, P|} |]
-          ==> (j, {|Hash{|Key(shrK B), MB|}, MB|}, 
+             PA = HPair (Key(shrK A)) {|Agent A, Agent B, Nonce NA, P|};
+             B ~= Server |]
+          ==> (j, HPair (Key(shrK B)) {|Agent B, Agent C, Nonce NB, PA|}, 
                   {|Agent B, 
                     Crypt (shrK B) {|Key(newK2(i,Suc j)), Agent A, Nonce NB|},
                     Agent B, 
@@ -46,7 +44,7 @@ inductive "respond i"	(*Server's response to the nested message*)
               : respond i"
 
 
-(*Induction over "respond" can be difficult, due to the complexity of the
+(*Induction over "respond" can be difficult due to the complexity of the
   subgoals.  The "responses" relation formalizes the general form of its
   third component.
 *)
@@ -77,9 +75,11 @@ inductive "recur lost"
 
          (*Alice initiates a protocol run.
            "Agent Server" is just a placeholder, to terminate the nesting.*)
-    RA1  "[| evs: recur lost;  A ~= B;  A ~= Server;
-             MA = {|Agent A, Agent B, Nonce(newN(length evs)), Agent Server|}|]
-          ==> Says A B {|Hash{|Key(shrK A),MA|}, MA|} # evs : recur lost"
+    RA1  "[| evs: recur lost;  A ~= B;  A ~= Server |]
+          ==> Says A B 
+                (HPair (Key(shrK A)) 
+                 {|Agent A, Agent B, Nonce(newN(length evs)), Agent Server|})
+              # evs : recur lost"
 
          (*Bob's response to Alice's message.  C might be the Server.
            XA should be the Hash of the remaining components with KA, but
@@ -87,9 +87,11 @@ inductive "recur lost"
            P is the previous recur message from Alice's caller.*)
     RA2  "[| evs: recur lost;  B ~= C;  B ~= Server;
              Says A' B PA : set_of_list evs;  
-             PA = {|XA, Agent A, Agent B, Nonce NA, P|};
-             MB = {|Agent B, Agent C, Nonce (newN(length evs)), PA|} |]
-          ==> Says B C {|Hash{|Key(shrK B),MB|}, MB|} # evs : recur lost"
+             PA = {|XA, Agent A, Agent B, Nonce NA, P|} |]
+          ==> Says B C 
+                (HPair (Key(shrK B))
+                 {|Agent B, Agent C, Nonce (newN(length evs)), PA|})
+              # evs : recur lost"
 
          (*The Server receives and decodes Bob's message.  Then he generates
            a new session key and a response.*)

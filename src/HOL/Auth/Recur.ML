@@ -19,7 +19,7 @@ Pretty.setdepth 25;
 **)
 
 (*Simplest case: Alice goes directly to the server*)
-goal thy 
+goal thy
  "!!A. A ~= Server   \
 \ ==> EX K NA. EX evs: recur lost.          \
 \     Says Server A {|Agent A,              \
@@ -29,13 +29,15 @@ goal thy
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (recur.Nil RS recur.RA1 RS 
 	  (respond.One RSN (4,recur.RA3))) 2);
-by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
-by (REPEAT_FIRST (eq_assume_tac ORELSE' resolve_tac [refl, conjI]));
+by (REPEAT
+    (ALLGOALS (asm_simp_tac (!simpset setsolver safe_solver))
+     THEN
+     REPEAT_FIRST (eq_assume_tac ORELSE' resolve_tac [refl, conjI])));
 result();
 
 
 (*Case two: Alice, Bob and the server*)
-goal thy 
+goal thy
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \ ==> EX K. EX NA. EX evs: recur lost.          \
 \       Says B A {|Agent A, Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
@@ -45,6 +47,7 @@ by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS 
 	  (respond.One RS respond.Cons RSN (4,recur.RA3)) RS
 	  recur.RA4) 2);
+bw HPair_def;
 by (REPEAT
     (REPEAT_FIRST (eq_assume_tac ORELSE' resolve_tac [refl, conjI])
      THEN
@@ -53,7 +56,7 @@ result();
 
 
 (*Case three: Alice, Bob, Charlie and the server*)
-goal thy 
+goal thy
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \ ==> EX K. EX NA. EX evs: recur lost.          \
 \       Says B A {|Agent A, Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
@@ -63,6 +66,7 @@ by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS recur.RA2 RS 
 	  (respond.One RS respond.Cons RS respond.Cons RSN
 	   (4,recur.RA3)) RS recur.RA4 RS recur.RA4) 2);
+bw HPair_def;
 by (REPEAT	(*SLOW: 37 seconds*)
     (REPEAT_FIRST (eq_assume_tac ORELSE' resolve_tac [refl, conjI])
      THEN
@@ -313,6 +317,8 @@ val analz_Fake_tac =
     dres_inst_tac [("lost","lost")] RA4_analz_sees_Spy 6;
 
 
+Delsimps [image_insert];
+
 (** Session keys are not used to encrypt other session keys **)
 
 (*Version for "responses" relation.  Handles case RA3 in the theorem below.  
@@ -339,8 +345,8 @@ goal thy
 \  ALL K I. (Key K : analz (Key``(newK``I) Un (sees lost Spy evs))) = \
 \           (K : newK``I | Key K : analz (sees lost Spy evs))";
 by (etac recur.induct 1);
+be subst 4;	(*RA2: DELETE needless definition of PA!*)
 by analz_Fake_tac;
-be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
 by (REPEAT_FIRST (ares_tac [allI, analz_image_newK_lemma]));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [resp_analz_image_newK_lemma])));
 (*Base*)
@@ -381,7 +387,7 @@ goal thy "!!i. evs : recur lost ==>              \
 \                (Nonce (newN i) : parts {X} --> \
 \                 Hash X ~: parts (sees lost Spy evs))";
 be recur.induct 1;
-be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
+be subst 4;	(*RA2: DELETE needless definition of PA!*)
 by parts_Fake_tac;
 (*RA3 requires a further induction*)
 be responses.induct 5;
@@ -416,7 +422,7 @@ goal thy
 \        Hash {|Key(shrK A), Agent A, Agent B, Nonce NA, P|} \
 \          : parts (sees lost Spy evs)  -->  B=B' & P=P'";
 be recur.induct 1;
-be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
+be subst 4;	(*RA2: DELETE needless definition of PA!*)
 (*For better simplification of RA2*)
 by (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 4);
 by parts_Fake_tac;
@@ -431,9 +437,8 @@ by (best_tac (!claset addSIs [exI]
                       addDs [impOfSubs analz_subset_parts,
 			     impOfSubs Fake_parts_insert]
 		      addss (!simpset)) 2);
-(*Base*)
+(*Base*) (** LEVEL 9 **)
 by (fast_tac (!claset addss (!simpset)) 1);
-
 by (ALLGOALS (simp_tac (!simpset addsimps [all_conj_distrib]))); 
 (*RA1: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NA = ?y" 1);
@@ -450,13 +455,14 @@ by (best_tac (!claset addSIs [exI]
 by (best_tac (!claset addss  (!simpset)) 1);
 val lemma = result();
 
-goal thy 
- "!!evs.[| Hash {|Key(shrK A), Agent A, Agent B, Nonce NA, P|}   \
+goalw thy [HPair_def]
+ "!!evs.[| HPair (Key(shrK A)) {|Agent A, Agent B, Nonce NA, P|}   \
 \            : parts (sees lost Spy evs);                        \
-\          Hash {|Key(shrK A), Agent A, Agent B', Nonce NA, P'|} \
+\          HPair (Key(shrK A)) {|Agent A, Agent B', Nonce NA, P'|} \
 \            : parts (sees lost Spy evs);                        \
 \          evs : recur lost;  A ~: lost |]                      \
 \        ==> B=B' & P=P'";
+by (REPEAT (eresolve_tac partsEs 1));
 by (prove_unique_tac lemma 1);
 qed "unique_NA";
 
@@ -464,17 +470,6 @@ qed "unique_NA";
 (*** Lemmas concerning the Server's response
       (relations "respond" and "responses") 
 ***)
-
-(*The response never contains Hashes*)
-(*NEEDED????????????????*)
-goal thy
- "!!evs. (j,PB,RB) : respond i \
-\        ==> Hash {|Key (shrK B), M|} : parts (insert RB H) --> \
-\            Hash {|Key (shrK B), M|} : parts H";
-be (respond_imp_responses RS responses.induct) 1;
-by (Auto_tac());
-bind_thm ("Hash_in_parts_respond", result() RSN (2, rev_mp));
-
 
 goal thy
  "!!evs. [| RB : responses i;  evs : recur lost |] \
@@ -556,7 +551,7 @@ goal thy
 \          Crypt (shrK A') {|Key K, Agent B', N'|} : parts {RB};   \
 \          (j,PB,RB) : respond i |]               \
 \ ==>   (A'=A & B'=B) | (A'=B & B'=A)";
-by (prove_unique_tac lemma 1);	(*33 seconds, due to the disjunctions*)
+by (prove_unique_tac lemma 1);	(*50 seconds??, due to the disjunctions*)
 qed "unique_session_keys";
 
 
@@ -565,7 +560,7 @@ qed "unique_session_keys";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!j. (j, {|Hash {|Key(shrK A), Agent A, B, NA, P|}, X|}, RA) : respond i \
+ "!!j. (j, HPair (Key(shrK A)) {|Agent A, B, NA, P|}, RA) : respond i \
 \ ==> Crypt (shrK A) {|Key (newK2 (i,j)), B, NA|} : parts {RA}";
 be respond.elim 1;
 by (ALLGOALS Asm_full_simp_tac);
@@ -579,7 +574,7 @@ goal thy
 \            Key K ~: analz (insert RB (sees lost Spy evs))";
 be respond.induct 1;
 by (forward_tac [respond_imp_responses] 2);
-by (ALLGOALS
+by (ALLGOALS (*4 MINUTES???*)
     (asm_simp_tac 
      (!simpset addsimps 
 	  ([analz_image_newK, not_parts_not_analz,
@@ -615,8 +610,8 @@ goal thy
 \            Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
 \            Key K ~: analz (sees lost Spy evs)";
 by (etac recur.induct 1);
+be subst 4;	(*RA2: DELETE needless definition of PA!*)
 by analz_Fake_tac;
-be ssubst 4;	(*RA2: DELETE needless definition of PA!*)
 by (ALLGOALS
     (asm_simp_tac
      (!simpset addsimps [not_parts_not_analz, analz_insert_Key_newK] 
@@ -654,14 +649,23 @@ qed "Agent_not_see_encrypted_key";
 
 (**** Authenticity properties for Agents ****)
 
+(*The response never contains Hashes*)
+(*NEEDED????????????????*)
+goal thy
+ "!!evs. (j,PB,RB) : respond i \
+\        ==> Hash {|Key (shrK B), M|} : parts (insert RB H) --> \
+\            Hash {|Key (shrK B), M|} : parts H";
+be (respond_imp_responses RS responses.induct) 1;
+by (Auto_tac());
+bind_thm ("Hash_in_parts_respond", result() RSN (2, rev_mp));
+
 (*NEEDED????????????????*)
 (*Only RA1 or RA2 can have caused such a part of a message to appear.*)
-goal thy 
+goalw thy [HPair_def]
  "!!evs. [| Hash {|Key(shrK A), Agent A, Agent B, NA, P|}         \
 \             : parts (sees lost Spy evs);                        \
 \            A ~: lost;  evs : recur lost |]                        \
-\        ==> Says A B {|Hash{|Key(shrK A), Agent A, Agent B, NA, P|},  \
-\                       Agent A, Agent B, NA, P|}  \
+\        ==> Says A B (HPair (Key(shrK A)) {|Agent A, Agent B, NA, P|})  \
 \             : set_of_list evs";
 be rev_mp 1;
 by (parts_induct_tac 1);
@@ -674,14 +678,6 @@ by (best_tac (!claset addSEs partsEs
                       addDs [parts_cut]
                       addss  (!simpset)) 1);
 qed_spec_mp "Hash_auth_sender";
-
-
-(*NEEDED????????????????*)
-goal thy "!!i. {|Hash {|Key (shrK Server), M|}, M|} : responses i ==> R";
-be setup_induction 1;
-be responses.induct 1;
-by (ALLGOALS Asm_simp_tac); 
-qed "responses_no_Hash_Server";
 
 
 val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
