@@ -36,7 +36,7 @@ sig
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (ast list -> ast)) list -> syntax
-  val extend_trfunsT: syntax -> (string * (typ -> term list -> term)) list -> syntax
+  val extend_trfunsT: syntax -> (string * (bool -> typ -> term list -> term)) list -> syntax
   val extend_tokentrfuns: syntax -> (string * string * (string -> string * int)) list -> syntax
   val extend_trrules: syntax -> (string * string) trrule list -> syntax
   val extend_trrules_i: syntax -> ast trrule list -> syntax
@@ -169,7 +169,7 @@ datatype syntax =
     parse_ast_trtab: ast trtab,
     parse_ruletab: ruletab,
     parse_trtab: term trtab,
-    print_trtab: ((typ -> term list -> term) * stamp) Symtab.table,
+    print_trtab: ((bool -> typ -> term list -> term) * stamp) Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ast trtab,
     tokentrtab: (string * (string * ((string -> string * int) * stamp)) list) list,
