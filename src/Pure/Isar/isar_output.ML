@@ -97,7 +97,7 @@ fun boolean "" = true
 fun integer s =
   let
     fun int ss =
-      (case Term.read_int ss of (i, []) => i | _ => error ("Bad integer value: " ^ quote s));
+      (case Library.read_int ss of (i, []) => i | _ => error ("Bad integer value: " ^ quote s));
   in (case Symbol.explode s of "-" :: ss => ~ (int ss) | ss => int ss) end;
 
 
@@ -282,20 +282,20 @@ fun cond_quote prt =
 
 fun cond_display prt =
   if ! display then
-    Pretty.string_of (Pretty.indent (! indent) prt)
+    Output.output (Pretty.string_of (Pretty.indent (! indent) prt))
     |> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
   else
-    (if ! break then Pretty.string_of else Pretty.str_of) prt
+    Output.output ((if ! break then Pretty.string_of else Pretty.str_of) prt)
     |> enclose "\\isa{" "}";
 
 fun cond_seq_display prts =
   if ! display then
-    map (Pretty.string_of o Pretty.indent (! indent)) prts
+    map (Output.output o Pretty.string_of o Pretty.indent (! indent)) prts
     |> separate "\\isasep\\isanewline%\n"
     |> implode
     |> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
   else
-    map (if ! break then Pretty.string_of else Pretty.str_of) prts
+    map (Output.output o (if ! break then Pretty.string_of else Pretty.str_of)) prts
     |> separate "\\isasep\\isanewline%\n"
     |> implode
     |> enclose "\\isa{" "}";

@@ -360,7 +360,7 @@ val dest_skolem = unsuffix "__";
 (* read_nat *)
 
 fun read_nat str =
-  apsome (#1 o Term.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
+  apsome (#1 o Library.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
 
 
 (* read_xnum *)
@@ -373,7 +373,7 @@ fun read_xnum str =
       | "#" :: cs => (1, cs)
       | "-" :: cs => (~1, cs)
       | cs => (1, cs));
-  in sign * #1 (Term.read_int digs) end;
+  in sign * #1 (Library.read_int digs) end;
 
 
 (* read_ident(s) *)

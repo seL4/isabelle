@@ -149,7 +149,7 @@ val semicolon = $$$ ";";
 
 val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #1;
 
-val nat = number >> (fst o Term.read_int o Symbol.explode);
+val nat = number >> (#1 o Library.read_int o Symbol.explode);
 
 val not_eof = Scan.one T.not_eof;
 
