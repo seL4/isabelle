@@ -27,9 +27,9 @@ consts
   eqv :: "('a::eqv) => 'a => bool"    (infixl "\<sim>" 50)
 
 axclass equiv < eqv
-  eqv_refl [intro]: "x \<sim> x"
-  eqv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
-  eqv_sym [elim?]: "x \<sim> y ==> y \<sim> x"
+  equiv_refl [intro]: "x \<sim> x"
+  equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
+  equiv_sym [elim?]: "x \<sim> y ==> y \<sim> x"
 
 text {*
  \medskip The quotient type @{text "'a quot"} consists of all
