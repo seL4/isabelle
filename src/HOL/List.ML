@@ -69,6 +69,47 @@ bind_thm("list_eq_cases",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (conjI RS (result() RS mp))))));
 
 
+(** length **)
+(* needs to come before "@" because of thm append_eq_append_conv *)
+
+section "length";
+
+goal thy "length(xs@ys) = length(xs)+length(ys)";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed"length_append";
+Addsimps [length_append];
+
+goal thy "length (map f l) = length l";
+by (induct_tac "l" 1);
+by (ALLGOALS Simp_tac);
+qed "length_map";
+Addsimps [length_map];
+
+goal thy "length(rev xs) = length(xs)";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "length_rev";
+Addsimps [length_rev];
+
+goal thy "(length xs = 0) = (xs = [])";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "length_0_conv";
+AddIffs [length_0_conv];
+
+goal thy "(0 = length xs) = (xs = [])";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "zero_length_conv";
+AddIffs [zero_length_conv];
+
+goal thy "(0 < length xs) = (xs ~= [])";
+by (induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "length_greater_0_conv";
+AddIffs [length_greater_0_conv];
+
 (** @ - append **)
 
 section "@ - append";
@@ -110,6 +151,24 @@ by (Blast_tac 1);
 qed "self_append_conv";
 AddIffs [append_self_conv,self_append_conv];
 
+goal thy "!ys. length xs = length ys | length us = length vs \
+\              --> (xs@us = ys@vs) = (xs=ys & us=vs)";
+by(induct_tac "xs" 1);
+ by(rtac allI 1);
+ by(exhaust_tac "ys" 1);
+  by(Asm_simp_tac 1);
+ by(fast_tac (!claset addIs [less_add_Suc2] addss !simpset
+                      addEs [less_not_refl2 RSN (2,rev_notE)]) 1);
+by(rtac allI 1);
+by(exhaust_tac "ys" 1);
+ by(fast_tac (!claset addIs [less_add_Suc2] addss !simpset
+                      addEs [(less_not_refl2 RS not_sym) RSN (2,rev_notE)]) 1);
+by(Asm_simp_tac 1);
+qed_spec_mp "append_eq_append_conv";
+Addsimps [append_eq_append_conv];
+
+(* Still needed? Unconditional and hence AddIffs.
+
 goal thy "(xs @ ys = xs @ zs) = (ys=zs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -136,6 +195,7 @@ by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "append_same_eq";
 AddIffs [append_same_eq];
+*)
 
 goal thy "xs ~= [] --> hd xs # tl xs = xs";
 by (induct_tac "xs" 1);
@@ -208,6 +268,19 @@ by(ALLGOALS Asm_simp_tac);
 val lemma = result();
 bind_thm("map_cong",impI RSN (2,allI RSN (2,lemma RS mp RS mp)));
 
+goal List.thy "(map f xs = []) = (xs = [])";
+by(induct_tac "xs" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "map_is_Nil_conv";
+AddIffs [map_is_Nil_conv];
+
+goal List.thy "([] = map f xs) = (xs = [])";
+by(induct_tac "xs" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "Nil_is_map_conv";
+AddIffs [Nil_is_map_conv];
+
+
 (** rev **)
 
 section "rev";
@@ -223,6 +296,18 @@ by (induct_tac "l" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "rev_rev_ident";
 Addsimps[rev_rev_ident];
+
+goal thy "(rev xs = []) = (xs = [])";
+by(induct_tac "xs" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "rev_is_Nil_conv";
+AddIffs [rev_is_Nil_conv];
+
+goal thy "([] = rev xs) = (xs = [])";
+by(induct_tac "xs" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "Nil_is_rev_conv";
+AddIffs [Nil_is_rev_conv];
 
 
 (** mem **)
@@ -350,41 +435,6 @@ goal thy "rev(concat xs) = concat (map rev (rev xs))";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "rev_concat";
-
-(** length **)
-
-section "length";
-
-goal thy "length(xs@ys) = length(xs)+length(ys)";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-qed"length_append";
-Addsimps [length_append];
-
-goal thy "length (map f l) = length l";
-by (induct_tac "l" 1);
-by (ALLGOALS Simp_tac);
-qed "length_map";
-Addsimps [length_map];
-
-goal thy "length(rev xs) = length(xs)";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "length_rev";
-Addsimps [length_rev];
-
-goal thy "(length xs = 0) = (xs = [])";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "length_0_conv";
-AddIffs [length_0_conv];
-
-goal thy "(0 < length xs) = (xs ~= [])";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "length_greater_0_conv";
-AddIffs [length_greater_0_conv];
-
 
 (** nth **)
 

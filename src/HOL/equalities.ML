@@ -103,9 +103,6 @@ goal Set.thy "f``(range g) = range (%x. f (g x))";
 by (Blast_tac 1);
 qed "image_range";
 
-qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
- (fn _ => [Blast_tac 1]);
-
 goal Set.thy "!!x. x:A ==> insert (f x) (f``A) = f``A";
 by (Blast_tac 1);
 qed "insert_image";
@@ -521,8 +518,8 @@ qed "Un_INT_distrib2";
 
 section"Bounded quantifiers";
 
-(** These are not added to the default simpset because (a) they duplicate the
-    body and (b) there are no similar rules for Int. **)
+(** The following are not added to the default simpset because
+    (a) they duplicate the body and (b) there are no similar rules for Int. **)
 
 goal Set.thy "(ALL x:A Un B. P x) = ((ALL x:A. P x) & (ALL x:B. P x))";
 by (Blast_tac 1);
@@ -686,7 +683,9 @@ val ball_simps = map prover
      "(ALL x:{}. P x) = True",
      "(ALL x:insert a B. P x) = (P(a) & (ALL x:B. P x))",
      "(ALL x:Union(A). P x) = (ALL y:A. ALL x:y. P x)",
-     "(ALL x:Collect Q. P x) = (ALL x. Q x --> P x)"];
+     "(ALL x:Collect Q. P x) = (ALL x. Q x --> P x)",
+     "(ALL x:f``A. P x) = (ALL x:A. P(f x))",
+     "(~(ALL x:A. P x)) = (EX x:A. ~P x)"];
 
 val ball_conj_distrib = 
     prover "(ALL x:A. P x & Q x) = ((ALL x:A. P x) & (ALL x:A. Q x))";
@@ -697,7 +696,9 @@ val bex_simps = map prover
      "(EX x:{}. P x) = False",
      "(EX x:insert a B. P x) = (P(a) | (EX x:B. P x))",
      "(EX x:Union(A). P x) = (EX y:A. EX x:y.  P x)",
-     "(EX x:Collect Q. P x) = (EX x. Q x & P x)"];
+     "(EX x:Collect Q. P x) = (EX x. Q x & P x)",
+     "(EX x:f``A. P x) = (EX x:A. P(f x))",
+     "(~(EX x:A. P x)) = (ALL x:A. ~P x)"];
 
 val bex_disj_distrib = 
     prover "(EX x:A. P x | Q x) = ((EX x:A. P x) | (EX x:A. Q x))";
