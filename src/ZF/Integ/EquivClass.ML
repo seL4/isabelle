@@ -120,7 +120,7 @@ qed "quotient_disj";
 **)
 
 (*Conversion rule*)
-val prems as [equivA,bcong,_] = goal EquivClass.thy
+val prems as [equivA,bcong,_] = goal (the_context ())
     "[| equiv(A,r);  congruent(r,b);  a: A |] ==> (UN x:r``{a}. b(x)) = b(a)";
 by (cut_facts_tac prems 1);
 by (rtac ([refl RS UN_cong, UN_constant] MRS trans) 1);
@@ -165,7 +165,7 @@ Goalw [congruent_def,congruent2_def,equiv_def,refl_def]
 by (Blast_tac 1);
 qed "congruent2_implies_congruent";
 
-val equivA::prems = goalw EquivClass.thy [congruent_def]
+val equivA::prems = goalw (the_context ()) [congruent_def]
     "[| equiv(A,r);  congruent2(r,b);  a: A |] ==> \
 \    congruent(r, %x1. UN x2:r``{a}. b(x1,x2))";
 by (cut_facts_tac (equivA::prems) 1);
@@ -178,7 +178,7 @@ by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
 by (Blast_tac 1);
 qed "congruent2_implies_congruent_UN";
 
-val prems as equivA::_ = goal EquivClass.thy
+val prems as equivA::_ = goal (the_context ())
     "[| equiv(A,r);  congruent2(r,b);  a1: A;  a2: A |]  \
 \    ==> (UN x1:r``{a1}. UN x2:r``{a2}. b(x1,x2)) = b(a1,a2)";
 by (cut_facts_tac prems 1);

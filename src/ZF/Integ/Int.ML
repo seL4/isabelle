@@ -36,7 +36,7 @@ Goalw [intrel_def]
 by (Fast_tac 1);
 qed "intrelE_lemma";
 
-val [major,minor] = goal thy
+val [major,minor] = goal (the_context ())
   "[| p: intrel;  \
 \     !!x1 y1 x2 y2. [| p = <<x1,y1>,<x2,y2>>;  x1#+y2 = x2#+y1; \
 \                       x1: nat; y1: nat; x2: nat; y2: nat |] ==> Q |] \
@@ -69,7 +69,7 @@ Addsimps [equiv_intrel RS eq_equiv_class_iff, intrel_iff,
 	  add_0_right, add_succ_right];
 Addcongs [conj_cong];
 
-val eq_intrelD = equiv_intrel RSN (2,eq_equiv_class);
+bind_thm ("eq_intrelD", equiv_intrel RSN (2,eq_equiv_class));
 
 (** int_of: the injection from nat to int **)
 
@@ -486,7 +486,7 @@ by (asm_simp_tac (simpset() addsimps [zadd_commute]) 1);
 qed "zadd_left_commute";
 
 (*Integer addition is an AC operator*)
-val zadd_ac = [zadd_assoc, zadd_commute, zadd_left_commute];
+bind_thms ("zadd_ac", [zadd_assoc, zadd_commute, zadd_left_commute]);
 
 Goalw [int_of_def] "$# (m #+ n) = ($#m) $+ ($#n)";
 by (asm_simp_tac (simpset() addsimps [zadd]) 1);
@@ -643,7 +643,7 @@ by (asm_simp_tac (simpset() addsimps [zmult_commute]) 1);
 qed "zmult_left_commute";
 
 (*Integer multiplication is an AC operator*)
-val zmult_ac = [zmult_assoc, zmult_commute, zmult_left_commute];
+bind_thms ("zmult_ac", [zmult_assoc, zmult_commute, zmult_left_commute]);
 
 Goalw [int_def]
     "[| z1: int;  z2: int;  w: int |]  \
@@ -664,8 +664,8 @@ by (simp_tac (simpset() addsimps [inst "z" "w" zmult_commute,
                                   zadd_zmult_distrib]) 1);
 qed "zadd_zmult_distrib2";
 
-val int_typechecks =
-    [int_of_type, zminus_type, zmagnitude_type, zadd_type, zmult_type];
+bind_thms ("int_typechecks",
+  [int_of_type, zminus_type, zmagnitude_type, zadd_type, zmult_type]);
 
 
 (*** Subtraction laws ***)
@@ -680,20 +680,13 @@ by (simp_tac (simpset() addsimps [zdiff_def, zadd_commute])1);
 qed "zminus_zdiff_eq";
 Addsimps [zminus_zdiff_eq];
 
-Goal "$- (z $- y) = y $- z";
-by (simp_tac (simpset() addsimps [zdiff_def, zadd_commute])1);
-qed "zminus_zdiff_eq";
-Addsimps [zminus_zdiff_eq];
-
 Goalw [zdiff_def] "(z1 $- z2) $* w = (z1 $* w) $- (z2 $* w)";
 by (stac zadd_zmult_distrib 1);
 by (simp_tac (simpset() addsimps [zmult_zminus]) 1);
 qed "zdiff_zmult_distrib";
 
-val zmult_commute'= inst "z" "w" zmult_commute;
-
 Goal "w $* (z1 $- z2) = (w $* z1) $- (w $* z2)";
-by (simp_tac (simpset() addsimps [zmult_commute',zdiff_zmult_distrib]) 1);
+by (simp_tac (simpset() addsimps [inst "z" "w" zmult_commute, zdiff_zmult_distrib]) 1);
 qed "zdiff_zmult_distrib2";
 
 Goal "x $+ (y $- z) = (x $+ y) $- z";

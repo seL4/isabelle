@@ -29,9 +29,10 @@ Goal "NCons(w BIT x,b) = w BIT x BIT b";
 by (asm_simp_tac (simpset() addsimps bin.case_eqns) 1);
 qed "NCons_BIT";
 
-val NCons_simps = [NCons_Pls_0, NCons_Pls_1, 
-		   NCons_Min_0, NCons_Min_1,
-		   NCons_BIT];
+bind_thms ("NCons_simps",
+ [NCons_Pls_0, NCons_Pls_1,
+  NCons_Min_0, NCons_Min_1,
+  NCons_BIT]);
 Addsimps NCons_simps;
 
 
