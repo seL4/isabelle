@@ -389,7 +389,7 @@ information.
   ('fast' | 'best' | 'slow' | slowbest) ('!' ?) (clamod * )
   ;
 
-  clamod: (('intro' | 'elim' | 'dest') (() | '!' | '!!') | 'del') ':' thmrefs
+  clamod: (('intro' | 'elim' | 'dest') (() | '?' | '??') | 'del') ':' thmrefs
   ;
 \end{rail}
 
@@ -422,7 +422,7 @@ context of assumptions to be included as well.\footnote{This is slightly less
   ;
 
   clasimpmod: ('simp' ('add' | 'del' | 'only') | 'other' |
-    (('intro' | 'elim' | 'dest') (() | '!' | '!!') | 'del')) ':' thmrefs
+    (('intro' | 'elim' | 'dest') (() | '?' | '??') | 'del')) ':' thmrefs
 \end{rail}
 
 \begin{descr}
@@ -452,14 +452,14 @@ context of assumptions to be included as well.\footnote{This is slightly less
 \end{matharray}
 
 \begin{rail}
-  ('intro' | 'elim' | 'dest') (() | '!' | '!!')
+  ('intro' | 'elim' | 'dest') (() | '?' | '??')
   ;
 \end{rail}
 
 \begin{descr}
 \item [$intro$, $elim$, $dest$] add introduction, elimination, destruct rules,
   respectively.  By default, rules are considered as \emph{safe}, while a
-  single ``!'' classifies as \emph{unsafe}, and ``!!'' as \emph{extra} (i.e.\ 
+  single ``?'' classifies as \emph{unsafe}, and ``??'' as \emph{extra} (i.e.\ 
   not applied in the search-oriented automated methods, but only in
   single-step methods such as $rule$).
   
@@ -470,6 +470,7 @@ context of assumptions to be included as well.\footnote{This is slightly less
   Note that destruction rules would have to be turned into elimination rules
   first, e.g.\ by using the $elimify$ attribute.
 \end{descr}
+
 
 %%% Local Variables: 
 %%% mode: latex

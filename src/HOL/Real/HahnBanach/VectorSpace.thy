@@ -106,22 +106,22 @@ lemma diff_eq2:
   "[| is_vectorspace V; x:V; y:V |] ==> x + - y = x - y";
   by (unfold is_vectorspace_def) simp;  
 
-lemma vs_not_empty [intro !!]: "is_vectorspace V ==> (V ~= {})"; 
+lemma vs_not_empty [intro??]: "is_vectorspace V ==> (V ~= {})"; 
   by (unfold is_vectorspace_def) simp;
  
-lemma vs_add_closed [simp, intro!!]: 
+lemma vs_add_closed [simp, intro??]: 
   "[| is_vectorspace V; x:V; y:V |] ==> x + y : V"; 
   by (unfold is_vectorspace_def) simp;
 
-lemma vs_mult_closed [simp, intro!!]: 
+lemma vs_mult_closed [simp, intro??]: 
   "[| is_vectorspace V; x:V |] ==> a <*> x : V"; 
   by (unfold is_vectorspace_def) simp;
 
-lemma vs_diff_closed [simp, intro!!]: 
+lemma vs_diff_closed [simp, intro??]: 
  "[| is_vectorspace V; x:V; y:V |] ==> x - y : V";
   by (simp add: diff_eq1 negate_eq1);
 
-lemma vs_neg_closed  [simp, intro!!]: 
+lemma vs_neg_closed  [simp, intro??]: 
   "[| is_vectorspace V; x:V |] ==> - x : V";
   by (simp add: negate_eq1);
 

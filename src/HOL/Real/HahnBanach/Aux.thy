@@ -10,8 +10,8 @@ theory Aux = Real + Zorn:;
 text {* Some existing theorems are declared as extra introduction
 or elimination rules, respectively. *};
 
-lemmas [intro!!] = isLub_isUb;
-lemmas [intro!!] = chainD; 
+lemmas [intro??] = isLub_isUb;
+lemmas [intro??] = chainD; 
 lemmas chainE2 = chainD2 [elimify];
 
 text_raw {* \medskip *};

@@ -1021,11 +1021,11 @@ val destN = "dest";
 val delN = "del";
 val delruleN = "delrule";
 
-val bang = Args.$$$ "!";
-val bbang = Args.$$$ "!!";
+val query = Args.$$$ "?";
+val qquery = Args.$$$ "??";
 
 fun cla_att change xtra haz safe = Attrib.syntax
-  (Scan.lift ((bbang >> K xtra || bang >> K haz || Scan.succeed safe) >> change));
+  (Scan.lift ((qquery >> K xtra || query >> K haz || Scan.succeed safe) >> change));
 
 fun cla_attr f g h = (cla_att change_global_cs f g h, cla_att change_local_cs f g h);
 val del_attr = (Attrib.no_args delrule_global, Attrib.no_args delrule_local);
@@ -1134,14 +1134,14 @@ val contradiction = Method.rule [Data.not_elim, Data.not_elim COMP Drule.swap_pr
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- bbang >> K ((I, xtra_dest_local):Method.modifier),
-  Args.$$$ destN -- bang >> K (I, haz_dest_local),
+ [Args.$$$ destN -- qquery >> K ((I, xtra_dest_local):Method.modifier),
+  Args.$$$ destN -- query >> K (I, haz_dest_local),
   Args.$$$ destN >> K (I, safe_dest_local),
-  Args.$$$ elimN -- bbang >> K (I, xtra_elim_local),
-  Args.$$$ elimN -- bang >> K (I, haz_elim_local),
+  Args.$$$ elimN -- qquery >> K (I, xtra_elim_local),
+  Args.$$$ elimN -- query >> K (I, haz_elim_local),
   Args.$$$ elimN >> K (I, safe_elim_local),
-  Args.$$$ introN -- bbang >> K (I, xtra_intro_local),
-  Args.$$$ introN -- bang >> K (I, haz_intro_local),
+  Args.$$$ introN -- qquery >> K (I, xtra_intro_local),
+  Args.$$$ introN -- query >> K (I, haz_intro_local),
   Args.$$$ introN >> K (I, safe_intro_local),
   Args.$$$ delN >> K (I, delrule_local)];
 

@@ -30,11 +30,11 @@ proof (unfold is_continuous_def, intro exI conjI ballI);
   fix x; assume "x:V"; show "rabs (f x) <= c * norm x"; by (rule r);
 qed;
   
-lemma continuous_linearform [intro!!]: 
+lemma continuous_linearform [intro??]: 
   "is_continuous V norm f ==> is_linearform V f";
   by (unfold is_continuous_def) force;
 
-lemma continuous_bounded [intro!!]:
+lemma continuous_bounded [intro??]:
   "is_continuous V norm f 
   ==> EX c. ALL x:V. rabs (f x) <= c * norm x";
   by (unfold is_continuous_def) force;
@@ -90,7 +90,7 @@ lemma B_not_empty: "0r : B V norm f";
 text {* The following lemma states that every continuous linear form
 on a normed space $(V, \norm{\cdot})$ has a function norm. *};
 
-lemma ex_fnorm [intro!!]: 
+lemma ex_fnorm [intro??]: 
   "[| is_normed_vectorspace V norm; is_continuous V norm f|]
      ==> is_function_norm V norm f (function_norm V norm f)"; 
 proof (unfold function_norm_def is_function_norm_def 
@@ -190,7 +190,7 @@ qed;
 
 text {* The norm of a continuous function is always $\geq 0$. *};
 
-lemma fnorm_ge_zero [intro!!]: 
+lemma fnorm_ge_zero [intro??]: 
   "[| is_continuous V norm f; is_normed_vectorspace V norm|]
    ==> 0r <= function_norm V norm f";
 proof -;
