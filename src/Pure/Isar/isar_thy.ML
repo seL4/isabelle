@@ -60,23 +60,23 @@ sig
     -> theory -> theory
   val apply_theorems: (xstring * Args.src list) list -> theory -> theory * thm list
   val apply_theorems_i: (thm * theory attribute list) list -> theory -> theory * thm list
-  val have_theorems: ((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text
+  val have_theorems: (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
     -> theory -> theory
-  val have_theorems_i: ((bstring * theory attribute list) * (thm * theory attribute list) list)
-    * Comment.text -> theory -> theory
-  val have_lemmas: ((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text
+  val have_theorems_i: (((bstring * theory attribute list) * (thm * theory attribute list) list)
+    * Comment.text) list -> theory -> theory
+  val have_lemmas: (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
     -> theory -> theory
-  val have_lemmas_i: ((bstring * theory attribute list) * (thm * theory attribute list) list)
-    * Comment.text -> theory -> theory
-  val have_facts: ((string * Args.src list) * (string * Args.src list) list) * Comment.text
+  val have_lemmas_i: (((bstring * theory attribute list) * (thm * theory attribute list) list)
+    * Comment.text) list -> theory -> theory
+  val have_facts: (((string * Args.src list) * (string * Args.src list) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
-  val have_facts_i: ((string * Proof.context attribute list) *
-    (thm * Proof.context attribute list) list) * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val from_facts: (string * Args.src list) list * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val from_facts_i: (thm * Proof.context attribute list) list * Comment.text
+  val have_facts_i: (((string * Proof.context attribute list) *
+    (thm * Proof.context attribute list) list) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val from_facts: ((string * Args.src list) list * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val from_facts_i: ((thm * Proof.context attribute list) list * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
-  val with_facts: (string * Args.src list) list * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val with_facts_i: (thm * Proof.context attribute list) list * Comment.text
+  val with_facts: ((string * Args.src list) list * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val with_facts_i: ((thm * Proof.context attribute list) list * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
   val fix: ((string list * string option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
@@ -157,6 +157,7 @@ sig
   val typed_print_translation: string -> theory -> theory
   val print_ast_translation: string -> theory -> theory
   val token_translation: string -> theory -> theory
+  val method_setup: (bstring * string * string) * Comment.text -> theory -> theory
   val add_oracle: (bstring * string) * Comment.text -> theory -> theory
   val begin_theory: string -> string list -> (string * bool) list -> theory
   val end_theory: theory -> theory
@@ -280,47 +281,49 @@ fun add_constdefs_i args = gen_add_constdefs Theory.add_consts_i add_defs_i args
 
 (* theorems *)
 
-fun gen_have_thmss get attrib f ((name, more_srcs), th_srcs) x =
-  f name (map (attrib x) more_srcs)
-    (map (fn (s, srcs) => (get x s, map (attrib x) srcs)) th_srcs) x;
+fun prep_thmss get attrib = map (fn ((name, more_srcs), th_srcs) =>
+  ((name, map attrib more_srcs), map (fn (s, srcs) => (get s, map attrib srcs)) th_srcs));
 
-fun global_have_thmss kind f (x as ((name, _), _)) thy =
-  let val (thy', thms) = gen_have_thmss PureThy.get_thms Attrib.global_attribute f x thy in
-    if kind <> "" then Context.setmp (Some thy') (Present.results kind name) thms else ();
-    (thy', thms)
+fun flat_unnamed (x, ys) = (x, flat (map snd ys));
+
+fun global_have_thmss kind f args thy =
+  let
+    val args' = prep_thmss (PureThy.get_thms thy) (Attrib.global_attribute thy) args
+    val (thy', named_thmss) = f args' thy;
+    fun present (name, thms) = Present.results kind name thms;
+  in
+    if kind = "" then ()
+    else Context.setmp (Some thy') (fn () => seq present named_thmss) ();
+    (thy', named_thmss)
   end;
 
-fun local_have_thmss x =
-  gen_have_thmss (ProofContext.get_thms o Proof.context_of)
-    (Attrib.local_attribute o Proof.theory_of) x;
+fun local_have_thmss f args state =
+  let
+    val args' = prep_thmss (ProofContext.get_thms (Proof.context_of state))
+      (Attrib.local_attribute (Proof.theory_of state)) args;
+  in f args' state end;
 
-fun gen_have_thmss_i f ((name, more_atts), th_atts) =
-  f name more_atts (map (apfst single) th_atts);
+fun gen_have_thmss_i f args = f (map (fn ((name, more_atts), th_atts) =>
+  ((name, more_atts), map (apfst single) th_atts)) args);
 
-fun have_lemss name atts = PureThy.have_thmss name (atts @ [Drule.tag_lemma]);
-
-
-fun apply_theorems th_srcs = global_have_thmss "" PureThy.have_thmss (("", []), th_srcs);
-fun apply_theorems_i th_srcs = gen_have_thmss_i PureThy.have_thmss (("", []), th_srcs);
-val have_theorems = #1 oo (global_have_thmss "theorems" PureThy.have_thmss o Comment.ignore);
-val have_theorems_i = #1 oo (gen_have_thmss_i PureThy.have_thmss o Comment.ignore);
-val have_lemmas = #1 oo (global_have_thmss "lemmas" have_lemss o Comment.ignore);
-val have_lemmas_i = #1 oo (gen_have_thmss_i have_lemss o Comment.ignore);
-val have_facts = ProofHistory.apply o local_have_thmss (Proof.have_thmss []) o Comment.ignore;
-val have_facts_i = ProofHistory.apply o gen_have_thmss_i (Proof.have_thmss []) o Comment.ignore;
+fun apply_theorems th_srcs = flat_unnamed o global_have_thmss "" (PureThy.have_thmss []) [(("", []), th_srcs)];
+fun apply_theorems_i th_srcs = flat_unnamed o gen_have_thmss_i (PureThy.have_thmss []) [(("", []), th_srcs)];
+val have_theorems = #1 oo (global_have_thmss "theorems" (PureThy.have_thmss []) o map Comment.ignore);
+val have_theorems_i = #1 oo (gen_have_thmss_i (PureThy.have_thmss []) o map Comment.ignore);
+val have_lemmas = #1 oo (global_have_thmss "lemmas" (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
+val have_lemmas_i = #1 oo (gen_have_thmss_i (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
+val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss o map Comment.ignore;
+val have_facts_i = ProofHistory.apply o gen_have_thmss_i Proof.have_thmss o map Comment.ignore;
 
 
 (* forward chaining *)
 
-fun gen_from_facts f = ProofHistory.apply o (Proof.chain oo curry f ("", []));
+fun gen_from_facts f args = ProofHistory.apply (Proof.chain o f (map (pair ("", [])) args));
 
-fun add_thmss name atts ths_atts state =
-  Proof.have_thmss (Proof.the_facts state) name atts ths_atts state;
-
-val from_facts = gen_from_facts (local_have_thmss (Proof.have_thmss [])) o Comment.ignore;
-val from_facts_i = gen_from_facts (gen_have_thmss_i (Proof.have_thmss [])) o Comment.ignore;
-val with_facts = gen_from_facts (local_have_thmss add_thmss) o Comment.ignore;
-val with_facts_i = gen_from_facts (gen_have_thmss_i add_thmss) o Comment.ignore;
+val from_facts = gen_from_facts (local_have_thmss Proof.have_thmss) o map Comment.ignore;
+val from_facts_i = gen_from_facts (gen_have_thmss_i Proof.have_thmss) o map Comment.ignore;
+val with_facts = gen_from_facts (local_have_thmss Proof.with_thmss) o map Comment.ignore;
+val with_facts_i = gen_from_facts (gen_have_thmss_i Proof.with_thmss) o map Comment.ignore;
 
 fun chain comment_ignore = ProofHistory.apply Proof.chain;
 
@@ -496,7 +499,7 @@ fun gen_calc get f (args, _) prt state =
 
 in
 
-fun get_thmss srcs = Proof.the_facts o local_have_thmss (Proof.have_thmss []) (("", []), srcs); 
+fun get_thmss srcs = Proof.the_facts o local_have_thmss Proof.have_thmss [(("", []), srcs)];
 fun get_thmss_i thms _ = thms;
 
 fun also x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.also x);
@@ -534,6 +537,15 @@ val typed_print_translation =
 val token_translation =
   Context.use_let "token_translation: (string * string * (string -> string * int)) list"
     "Theory.add_tokentrfuns token_translation";
+
+
+(* add method *)
+
+fun method_setup ((name, txt, cmt), comment_ignore) =
+  Context.use_let
+    "method: bstring * (Args.src -> Proof.context -> Proof.method) * string"
+    "PureIsar.Method.add_method method"
+    ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")");
 
 
 (* add_oracle *)
