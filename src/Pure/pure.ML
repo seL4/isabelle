@@ -11,8 +11,9 @@ local
     Locale.setup @
     HTML.setup @
     ProofContext.setup @
-    Method.setup @
     Attrib.setup @
+    Method.setup @
+    Calculation.setup @
     AxClass.setup @
     BrowserInfo.setup @
     Isamode.setup @
