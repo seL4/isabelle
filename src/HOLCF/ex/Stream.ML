@@ -384,7 +384,7 @@ Goalw [slen_def, stream.finite_def] "#\\<bottom> = 0";
 by (Simp_tac 1);
 by (stac Least_equality 1);
 by    Auto_tac;
-by (simp_tac(simpset() addsimps [Fin_0]) 1);
+by (simp_tac(simpset() addsimps [thm "Fin_0"]) 1);
 qed "slen_empty";
 
 Goalw [slen_def] "x ~= \\<bottom> ==> #(x&&xs) = iSuc (#xs)";
@@ -393,7 +393,7 @@ by Safe_tac;
 by (rtac (split_if RS iffD2) 2);
 by  Safe_tac;
 by   (fast_tac (claset() addIs [stream_finite_lemma1]) 2);
-by  (rtac (iSuc_Infty RS sym) 2);
+by  (rtac (thm "iSuc_Infty" RS sym) 2);
 by (rtac (split_if RS iffD2) 1);
 by (Simp_tac 1);
 by Safe_tac;
@@ -409,8 +409,8 @@ Addsimps [slen_empty, slen_scons];
 
 Goal "#x < Fin 1 = (x = UU)";
 by (stream_case_tac "x" 1);
-by (auto_tac (claset(), simpset() delsimps [iSuc_Fin] addsimps
- [Fin_0, iSuc_Fin RS sym,i0_iless_iSuc, iSuc_mono]));
+by (auto_tac (claset(), simpset() delsimps [thm "iSuc_Fin"] addsimps
+ [thm "Fin_0", thm "iSuc_Fin" RS sym, thm "i0_iless_iSuc", thm "iSuc_mono"]));
 qed "slen_less_1_eq";
 
 Goal "(#x = 0) = (x = \\<bottom>)";
@@ -422,8 +422,8 @@ qed "slen_empty_eq";
 
 Goal "Fin (Suc n) < #x = (? a y. x = a && y &  a ~= \\<bottom> &  Fin n < #y)";
 by (stream_case_tac "x" 1);
-by (auto_tac (claset(), simpset() delsimps [iSuc_Fin] addsimps
-                [iSuc_Fin RS sym, iSuc_mono]));
+by (auto_tac (claset(), simpset() delsimps [thm "iSuc_Fin"] addsimps
+                [thm "iSuc_Fin" RS sym, thm "iSuc_mono"]));
 by  (dtac sym 1);
 by  (rotate_tac 2 2);
 by  Auto_tac;
@@ -438,15 +438,15 @@ qed_spec_mp "slen_iSuc";
 
 Goal 
 "#x < Fin (Suc (Suc n)) = (!a y. x ~= a && y |  a = \\<bottom> |  #y < Fin (Suc n))";
-by (stac (iSuc_Fin RS sym) 1);
-by (stac (iSuc_Fin RS sym) 1);
+by (stac (thm "iSuc_Fin" RS sym) 1);
+by (stac (thm "iSuc_Fin" RS sym) 1);
 by (safe_tac HOL_cs);
 by  (rotate_tac ~1 1);
-by  (asm_full_simp_tac (HOL_ss addsimps [slen_scons, iSuc_mono]) 1);
+by  (asm_full_simp_tac (HOL_ss addsimps [slen_scons, thm "iSuc_mono"]) 1);
 by  (Asm_full_simp_tac 1);
 by (stream_case_tac "x" 1);
-by ( simp_tac (HOL_ss addsimps [slen_empty, i0_iless_iSuc]) 1);
-by (asm_simp_tac (HOL_ss addsimps [slen_scons, iSuc_mono]) 1);
+by ( simp_tac (HOL_ss addsimps [slen_empty, thm "i0_iless_iSuc"]) 1);
+by (asm_simp_tac (HOL_ss addsimps [slen_scons, thm "iSuc_mono"]) 1);
 by (etac allE 1);
 by (etac allE 1);
 by (safe_tac HOL_cs);
@@ -457,7 +457,7 @@ qed "slen_scons_eq_rev";
 
 Goal "!x. Fin n < #x = (stream_take n\\<cdot>x ~= x)";
 by (nat_ind_tac "n" 1);
-by  (simp_tac(simpset() addsimps [slen_empty_eq, Fin_0]) 1);
+by  (simp_tac(simpset() addsimps [slen_empty_eq, thm "Fin_0"]) 1);
 by  (Fast_tac 1);
 by (rtac allI 1);
 by (asm_simp_tac (simpset() addsimps [slen_scons_eq]) 1);
@@ -469,7 +469,7 @@ by (rotate_tac ~1 2);
 by Auto_tac;
 qed_spec_mp "slen_take_eq";
 
-Goalw [ile_def] "#x <= Fin n = (stream_take n\\<cdot>x = x)";
+Goalw [thm "ile_def"] "#x <= Fin n = (stream_take n\\<cdot>x = x)";
 by (simp_tac (simpset() addsimps [slen_take_eq]) 1);
 qed "slen_take_eq_rev";
 
@@ -479,10 +479,10 @@ qed "slen_take_lemma1";
 
 Goal "!x. ~stream_finite x --> #(stream_take i\\<cdot>x) = Fin i";
 by (nat_ind_tac "i" 1);
-by  (simp_tac(simpset() addsimps [Fin_0]) 1);
+by  (simp_tac(simpset() addsimps [thm "Fin_0"]) 1);
 by (rtac allI 1);
 by (stream_case_tac "x" 1);
-by  (auto_tac (claset()addSIs [stream_finite_lemma1], simpset() delsimps [iSuc_Fin] addsimps [iSuc_Fin RS sym]));
+by  (auto_tac (claset()addSIs [stream_finite_lemma1], simpset() delsimps [thm "iSuc_Fin"] addsimps [thm "iSuc_Fin" RS sym]));
 by (force_tac (claset(), simpset() addsimps [stream.finite_def]) 1);
 qed_spec_mp "slen_take_lemma2";
 
@@ -491,9 +491,9 @@ by (rtac iffI 1);
 by  (etac stream_finite_ind 1);
 by   (Simp_tac 1);
 by  (etac (slen_scons RS ssubst) 1);
-by  (stac (iSuc_Infty RS sym) 1);
+by  (stac (thm "iSuc_Infty" RS sym) 1);
 by  (etac contrapos_nn 1);
-by  (etac (iSuc_inject RS iffD1) 1);
+by  (etac (thm "iSuc_inject" RS iffD1) 1);
 by (case_tac "#x" 1);
 by (auto_tac (claset()addSDs [slen_take_lemma1],
         simpset() addsimps [stream.finite_def]));
@@ -510,9 +510,9 @@ by (etac (stream_finite_ind) 1);
 by  (Simp_tac 1);
 by (rtac allI 1);
 by (stream_case_tac "x" 1);
-by  (asm_simp_tac (HOL_ss addsimps [slen_empty, i0_lb]) 1);
+by  (asm_simp_tac (HOL_ss addsimps [slen_empty, thm "i0_lb"]) 1);
 by (asm_simp_tac (HOL_ss addsimps [slen_scons]) 1);
-by (fast_tac(claset() addSIs [iSuc_ile_mono RS iffD2] addSDs stream.inverts) 1);
+by (fast_tac(claset() addSIs [thm "iSuc_ile_mono" RS iffD2] addSDs stream.inverts) 1);
 qed "slen_mono";
 
 Goal "!(x::'a::flat stream) y. Fin n <= #x --> x << y --> \
@@ -522,14 +522,14 @@ by ( simp_tac(simpset() addsimps [slen_empty_eq]) 1);
 by (strip_tac 1);
 by (stream_case_tac "x" 1);
 by  (asm_full_simp_tac (HOL_ss addsimps [slen_empty, 
-              iSuc_Fin RS sym, not_iSuc_ilei0]) 1);
+              thm "iSuc_Fin" RS sym, thm "not_iSuc_ilei0"]) 1);
 by (fatac stream_prefix 1 1);
 by (safe_tac (claset() addSDs [stream_flat_prefix]));
 by (Simp_tac 1);
 by (rtac cfun_arg_cong 1);
 by (rotate_tac 3 1);
-by (asm_full_simp_tac (simpset() delsimps [iSuc_Fin] addsimps 
-        [iSuc_Fin RS sym, iSuc_ile_mono]) 1);
+by (asm_full_simp_tac (simpset() delsimps [thm "iSuc_Fin"] addsimps 
+        [thm "iSuc_Fin" RS sym, thm "iSuc_ile_mono"]) 1);
 qed_spec_mp "slen_take_lemma3";
 
 Goal "stream_finite t ==> \
@@ -548,7 +548,7 @@ by (Asm_full_simp_tac 1);
 qed "slen_strict_mono_lemma";
 
 Goal "[|stream_finite t; s ~= t; s << (t::'a::flat stream) |] ==> #s < #t";
-by (rtac ilessI1 1);
+by (rtac (thm "ilessI1") 1);
 by  (etac slen_mono 1);
 by (dtac slen_strict_mono_lemma 1);
 by (Fast_tac 1);
@@ -559,12 +559,12 @@ by (nat_ind_tac "i" 1);
 by  (Simp_tac 1);
 by (strip_tac 1);
 by (stream_case_tac "x" 1);
-by  (asm_full_simp_tac (simpset() delsimps [iSuc_Fin] 
-             addsimps [iSuc_Fin RS sym]) 1);
+by  (asm_full_simp_tac (simpset() delsimps [thm "iSuc_Fin"] 
+             addsimps [thm "iSuc_Fin" RS sym]) 1);
 by (stac iterate_Suc2 1);
 by (rotate_tac 2 1);
-by (asm_full_simp_tac  (simpset() delsimps [iSuc_Fin] 
-    addsimps [iSuc_Fin RS sym, iSuc_ile_mono]) 1);
+by (asm_full_simp_tac  (simpset() delsimps [thm "iSuc_Fin"] 
+    addsimps [thm "iSuc_Fin" RS sym, thm "iSuc_ile_mono"]) 1);
 qed_spec_mp "slen_rt_mult";
 
 

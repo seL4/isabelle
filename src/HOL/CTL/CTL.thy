@@ -4,13 +4,16 @@ theory CTL = Main:
 section {* CTL formulae *}
 
 text {*
-  \tweakskip By using the common technique of ``shallow embedding'', a
-  CTL formula is identified with the corresponding set of states where
-  it holds.  Consequently, CTL operations such as negation,
-  conjunction, disjunction simply become complement, intersection,
-  union of sets.  We only require a separate operation for
-  implication, as point-wise inclusion is usually not encountered in
-  plain set-theory.
+  \tweakskip We formalize basic concepts of Computational Tree Logic
+  (CTL) \cite{McMillan-PhDThesis,McMillan-LectureNotes} within the
+  simply-typed set theory of HOL.
+
+  By using the common technique of ``shallow embedding'', a CTL
+  formula is identified with the corresponding set of states where it
+  holds.  Consequently, CTL operations such as negation, conjunction,
+  disjunction simply become complement, intersection, union of sets.
+  We only require a separate operation for implication, as point-wise
+  inclusion is usually not encountered in plain set-theory.
 *}
 
 lemmas [intro!] = Int_greatest Un_upper2 Un_upper1 Int_lower1 Int_lower2
@@ -25,16 +28,16 @@ lemma [intro!]: "p \<subseteq> (q \<rightarrow> p)" by (unfold imp_def) rule
 
 
 text {*
-  \smallskip The CTL path operators are more interesting; they are 
-  based on an arbitrary, but fixed model @{text \<M>}, which is simply 
-  a transition relation over states @{typ "'a"}. 
+  \smallskip The CTL path operators are more interesting; they are
+  based on an arbitrary, but fixed model @{text \<M>}, which is simply
+  a transition relation over states @{typ "'a"}.
 *}
 
 consts model :: "('a \<times> 'a) set"    ("\<M>")
 
 text {*
-  The operators @{text \<EX>}, @{text \<EF>}, @{text \<EG>} are taken as
-  primitives, while @{text \<AX>}, @{text \<AF>}, @{text \<AG>} are
+  The operators @{text \<EX>}, @{text \<EF>}, @{text \<EG>} are taken
+  as primitives, while @{text \<AX>}, @{text \<AF>}, @{text \<AG>} are
   defined as derived ones.  The formula @{text "\<EX> p"} holds in a
   state @{term s}, iff there is a successor state @{term s'} (with
   respect to the model @{term \<M>}), such that @{term p} holds in
@@ -55,8 +58,9 @@ constdefs
   EG :: "'a ctl \<Rightarrow> 'a ctl"    ("\<EG> _" [80] 90)    "\<EG> p \<equiv> gfp (\<lambda>s. p \<inter> \<EX> s)"
 
 text {*
-  @{text "\<AX>"}, @{text "\<AF>"} and @{text "\<AG>"} are now defined 
-  dually in terms of @{text "\<EX>"}, @{text "\<EF>"} and @{text "\<EG>"}.
+  @{text "\<AX>"}, @{text "\<AF>"} and @{text "\<AG>"} are now defined
+  dually in terms of @{text "\<EX>"}, @{text "\<EF>"} and @{text
+  "\<EG>"}.
 *}
 
 constdefs
@@ -67,11 +71,11 @@ constdefs
 lemmas [simp] = EX_def EG_def AX_def EF_def AF_def AG_def
 
 
-
 section {* Basic fixed point properties *}
 
 text {*
-  \tweakskip First of all, we use the de-Morgan property of fixed points
+  \tweakskip First of all, we use the de-Morgan property of fixed
+  points
 *}
 
 lemma lfp_gfp: "lfp f = - gfp (\<lambda>s . - (f (- s)))"
@@ -131,7 +135,6 @@ proof -
   then show ?thesis by (simp only: EG_def) (rule gfp_unfold)
 qed
 
-
 text {*
   From the greatest fixed point definition of @{term "\<AG> p"}, we
   derive as a consequence of the Knaster-Tarski theorem on the one
@@ -141,8 +144,8 @@ text {*
 
 lemma AG_fp: "\<AG> p = p \<inter> \<AX> \<AG> p"
 proof -
-  have "mono (\<lambda>s. p \<inter> \<AX> s)" sorry (* by rule (auto simp add: AX_def EX_def) *)
-  then show ?thesis sorry (* by (simp only: AG_gfp) (rule gfp_unfold) *)
+  have "mono (\<lambda>s. p \<inter> \<AX> s)" by rule (auto simp add: AX_def EX_def)
+  then show ?thesis by (simp only: AG_gfp) (rule gfp_unfold)
 qed
 
 text {*
@@ -188,7 +191,8 @@ text {*
 
 lemma AX_int: "\<AX> (p \<inter> q) = \<AX> p \<inter> \<AX> q" by auto 
 lemma AX_mono: "p \<subseteq> q \<Longrightarrow> \<AX> p \<subseteq> \<AX> q" by auto
-lemma AG_mono: "p \<subseteq> q \<Longrightarrow> \<AG> p \<subseteq> \<AG> q" by (simp only: AG_gfp, rule gfp_mono) auto 
+lemma AG_mono: "p \<subseteq> q \<Longrightarrow> \<AG> p \<subseteq> \<AG> q"
+  by (simp only: AG_gfp, rule gfp_mono) auto 
 
 text {*
   The formula @{term "AG p"} implies @{term "AX p"} (we use
@@ -221,15 +225,14 @@ next
 qed
 
 text {*
-  \smallskip We now give an alternative characterization of the
-  @{text "\<AG>"} operator, which describes the @{text "\<AG>"}
-  operator in an ``operational'' way by tree induction:
-  In a state holds @{term "AG p"} iff
-  in that state holds @{term p}, and in all reachable states @{term s}
-  follows from the fact that @{term p} holds in @{term s}, that @{term
-  p} also holds in all successor states of @{term s}.  We use the
-  co-induction principle @{thm [source] AG_I} to establish this in a
-  purely algebraic manner.
+  \smallskip We now give an alternative characterization of the @{text
+  "\<AG>"} operator, which describes the @{text "\<AG>"} operator in
+  an ``operational'' way by tree induction: In a state holds @{term
+  "AG p"} iff in that state holds @{term p}, and in all reachable
+  states @{term s} follows from the fact that @{term p} holds in
+  @{term s}, that @{term p} also holds in all successor states of
+  @{term s}.  We use the co-induction principle @{thm [source] AG_I}
+  to establish this in a purely algebraic manner.
 *}
 
 theorem AG_induct: "p \<inter> \<AG> (p \<rightarrow> \<AX> p) = \<AG> p"

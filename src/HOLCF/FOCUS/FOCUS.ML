@@ -1,5 +1,5 @@
 (*  Title: 	HOLCF/FOCUS/FOCUS.ML
-    ID:         $ $
+    ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
@@ -18,5 +18,5 @@ qed "fstream_exhaust_slen_eq";
 
 Addsimps[slen_less_1_eq, fstream_exhaust_slen_eq,
 		   slen_fscons_eq, slen_fscons_less_eq];
-Addsimps[Suc_ile_eq];
+Addsimps[thm "Suc_ile_eq"];
 AddEs  [strictI];

@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/FOCUS/ROOT.ML
-    ID:         $$
+    ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 

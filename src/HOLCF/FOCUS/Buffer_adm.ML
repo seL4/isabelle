@@ -1,5 +1,5 @@
 (*  Title: 	HOLCF/FOCUS/Buffer_adm.ML
-    ID:         $ $
+    ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
@@ -8,7 +8,7 @@ infixr 0 y;
 fun _ y t = by t;
 val b=9999;
 
-Addsimps [Fin_0];
+Addsimps [thm "Fin_0"];
 
 val BufAC_Asm_d2 = prove_forw "a\\<leadsto>s:BufAC_Asm ==> ? d. a=Md d" BufAC_Asm_unfold;
 val BufAC_Asm_d3 = prove_forw 
@@ -58,7 +58,7 @@ b y res_inst_tac [("x","2")] exI 1;
 b y rtac conjI 1;
 b y  strip_tac 2;
 b y  dtac slen_mono 2;
-b y  datac ile_trans 1 2;
+b y  datac (thm "ile_trans") 1 2;
 b y ALLGOALS Force_tac;
 qed "BufAC_Asm_F_stream_antiP";
 

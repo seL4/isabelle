@@ -1,5 +1,5 @@
 (*  Title: 	HOLCF/ex/Stream_adm.ML
-    ID:         $ $
+    ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
@@ -20,7 +20,7 @@ by (etac thin_rl 1);
 by (EVERY'[eresolve_tac (premises()), atac, etac thin_rl] 1);
 by (rtac allI 1);
 by (case_tac "!j. stream_finite (Y j)" 1);
-by ( rtac chain_incr 1);
+by ( rtac (thm "chain_incr") 1);
 by ( rtac allI 1);
 by ( dtac spec 1);
 by ( Safe_tac);
@@ -33,8 +33,8 @@ by (dtac (not_ex RS iffD1) 1);
 by (stac slen_infinite 1);
 by (etac thin_rl 1);
 by (dtac spec 1);
-by (fold_goals_tac [ile_def]);
-by (etac (ile_iless_trans RS (Infty_eq RS iffD1)) 1);
+by (fold_goals_tac [thm "ile_def"]);
+by (etac (thm "ile_iless_trans" RS (thm "Infty_eq" RS iffD1)) 1);
 by (Simp_tac 1);
 qed "flatstream_adm_lemma";
 
@@ -50,7 +50,7 @@ qed "flatstream_admI";
 
 (* context (theory "Nat_InFinity");*)
 Goal "Fin (i + j) <= x ==> Fin i <= x";
-by (rtac ile_trans 1);
+by (rtac (thm "ile_trans") 1);
 by  (atac 2);
 by (Simp_tac 1);
 qed "ile_lemma";
@@ -67,7 +67,7 @@ by (strip_tac 1);
 by (etac allE 1 THEN etac all_dupE 1 THEN dtac mp 1 THEN etac ile_lemma 1);
 by (dres_inst_tac [("P","%x. x")] subst 1 THEN atac 1);
 by (etac allE 1 THEN dtac mp 1 THEN rtac ile_lemma 1);
-by ( etac ile_trans 1);
+by ( etac (thm "ile_trans") 1);
 by ( etac slen_mono 1);
 by (etac ssubst 1);
 by (safe_tac HOL_cs);
@@ -93,10 +93,10 @@ byev[	etac (INTER_down_iterate_is_gfp RS ssubst) 1, (* cont *)
 	etac exE 1,
 	etac allE 1 THEN etac exE 1,
 	etac allE 1 THEN etac allE 1 THEN dtac mp 1, (* stream_monoP *)
-	 dtac ileI1 1,
-	 dtac ile_trans 1,
-	  rtac ile_iSuc 1,
-	 dtac (iSuc_ile_mono RS iffD1) 1,
+	 dtac (thm "ileI1") 1,
+	 dtac (thm "ile_trans") 1,
+	  rtac (thm "ile_iSuc") 1,
+	 dtac (thm "iSuc_ile_mono" RS iffD1) 1,
 	 atac 1,
 	dtac mp 1,
 	 etac is_ub_thelub 1,
@@ -117,7 +117,7 @@ qed_goalw "stream_antiP2I" thy [stream_antiP_def]
 	etac conjE 1,
 	case_tac "#x < Fin ia" 1,
 	 fast_tac HOL_cs 1,
-	fold_goals_tac [ile_def],
+	fold_goals_tac [thm "ile_def"],
 	mp_tac 1,
 	etac all_dupE 1 THEN dtac mp 1 THEN rtac refl_less 1,
 	etac ssubst 1,
