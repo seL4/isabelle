@@ -161,6 +161,9 @@ by (unfold chg_map_def, auto)
 lemma chg_map_upd[simp]: "m a = Some b ==> chg_map f a m = m(a|->f b)"
 by (unfold chg_map_def, auto)
 
+lemma chg_map_other [simp]: "a \<noteq> b \<Longrightarrow> chg_map f a m b = m b"
+by (auto simp: chg_map_def split add: option.split)
+
 
 subsection {* @{term map_of} *}
 
