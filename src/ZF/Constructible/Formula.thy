@@ -820,7 +820,7 @@ done
 text{*The rank function for the constructible universe*}
 constdefs
   lrank :: "i=>i" --{*Kunen's definition VI 1.7*}
-    "lrank(x) == \<mu>i. x \<in> Lset(succ(i))"
+    "lrank(x) == \<mu> i. x \<in> Lset(succ(i))"
 
 lemma L_I: "[|x \<in> Lset(i); Ord(i)|] ==> L(x)"
 by (simp add: L_def, blast)

@@ -4,6 +4,20 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle release
 ----------------------------
 
+*** General ***
+
+* Pure: Greek letters (except small lambda, \<lambda>), as well as gothic
+  (\<aa>,...\<zz>,\<AA>,...,\<ZZ>), caligraphic (\<A>...\<Z>), and
+  euler (\<a>...\<z>), are now considered normal letters, and can
+  therefore be used anywhere where an ASCII letter (a...zA...Z) has
+  until now.  Similarily, the symbol digits \<0>...\<9> are now
+  considered normal digits.  COMPATIBILITY: This obviously changes the
+  parsing of some terms, especially where a symbol has been used as a
+  binder, say '\<Pi>x. ...', which is now a type error since \<Pi>x
+  will be parsed as an identifier.  Fix it by inserting a space around
+  former symbols.  Call 'isatool fixgreek' to try to fix parsing
+  errors in existing theory and ML files.
+
 *** HOL ***
 
 * 'specification' command added, allowing for definition by

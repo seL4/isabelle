@@ -208,8 +208,8 @@ apply (fast intro!: lam_Least_HH_inj lam_surj_sing f_sing_imp_HH_sing)
 done
 
 lemma lam_singI:
-     "f \<in> (\<Pi>X \<in> Pow(x)-{0}. F(X))   
-      ==> (\<lambda>X \<in> Pow(x)-{0}. {f`X}) \<in> (\<Pi>X \<in> Pow(x)-{0}. {{z}. z \<in> F(X)})"
+     "f \<in> (\<Pi> X \<in> Pow(x)-{0}. F(X))   
+      ==> (\<lambda>X \<in> Pow(x)-{0}. {f`X}) \<in> (\<Pi> X \<in> Pow(x)-{0}. {{z}. z \<in> F(X)})"
 by (fast del: DiffI DiffE
 	    intro!: lam_type singleton_eq_iff [THEN iffD2] dest: apply_type)
 
@@ -233,7 +233,7 @@ converse
 Perhaps it could be simplified. *)
 
 lemma bijection:
-     "f \<in> (\<Pi>X \<in> Pow(x) - {0}. X) 
+     "f \<in> (\<Pi> X \<in> Pow(x) - {0}. X) 
       ==> \<exists>g. g \<in> bij(x, LEAST i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X}, x, i) = {x})"
 apply (rule exI) 
 apply (rule bij_Least_HH_x [THEN bij_converse_bij])

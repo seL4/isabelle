@@ -84,7 +84,7 @@ locale cub_family =
   assumes closed:    "a\<in>A ==> Closed(P(a))"
       and unbounded: "a\<in>A ==> Unbounded(P(a))"
       and A_non0: "A\<noteq>0"
-  defines "next_greater(a,x) == \<mu>y. x<y \<and> P(a,y)"
+  defines "next_greater(a,x) == \<mu> y. x<y \<and> P(a,y)"
       and "sup_greater(x) == \<Union>a\<in>A. next_greater(a,x)"
  
 

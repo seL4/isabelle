@@ -14,7 +14,7 @@ theory AC17_AC1 = HH:
 (** AC0 is equivalent to AC1.  
     AC0 comes from Suppes, AC1 from Rubin & Rubin **)
 
-lemma AC0_AC1_lemma: "[| f:(\<Pi>X \<in> A. X); D \<subseteq> A |] ==> \<exists>g. g:(\<Pi>X \<in> D. X)"
+lemma AC0_AC1_lemma: "[| f:(\<Pi> X \<in> A. X); D \<subseteq> A |] ==> \<exists>g. g:(\<Pi> X \<in> D. X)"
 by (fast intro!: lam_type apply_type)
 
 lemma AC0_AC1: "AC0 ==> AC1"
@@ -28,7 +28,7 @@ by (unfold AC0_def AC1_def, blast)
 
 (**** The proof of AC1 ==> AC17 ****)
 
-lemma AC1_AC17_lemma: "f \<in> (\<Pi>X \<in> Pow(A) - {0}. X) ==> f \<in> (Pow(A) - {0} -> A)"
+lemma AC1_AC17_lemma: "f \<in> (\<Pi> X \<in> Pow(A) - {0}. X) ==> f \<in> (Pow(A) - {0} -> A)"
 apply (rule Pi_type, assumption)
 apply (drule apply_type, assumption, fast)
 done
@@ -143,7 +143,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC1_AC2_aux1:
-     "[| f:(\<Pi>X \<in> A. X);  B \<in> A;  0\<notin>A |] ==> {f`B} \<subseteq> B Int {f`C. C \<in> A}"
+     "[| f:(\<Pi> X \<in> A. X);  B \<in> A;  0\<notin>A |] ==> {f`B} \<subseteq> B Int {f`C. C \<in> A}"
 by (fast elim!: apply_type)
 
 lemma AC1_AC2_aux2: 
@@ -177,7 +177,7 @@ done
 
 lemma AC2_AC1_aux3:
      "\<forall>D \<in> {E*{E}. E \<in> A}. \<exists>y. D Int C = {y}   
-      ==> (\<lambda>x \<in> A. fst(THE z. (x*{x} Int C = {z}))) \<in> (\<Pi>X \<in> A. X)"
+      ==> (\<lambda>x \<in> A. fst(THE z. (x*{x} Int C = {z}))) \<in> (\<Pi> X \<in> A. X)"
 apply (rule lam_type)
 apply (drule bspec, blast)
 apply (blast intro: AC2_AC1_aux2 fst_type)
@@ -233,7 +233,7 @@ done
 (* ********************************************************************** *)
 
 lemma AC3_AC1_lemma:
-     "b\<notin>A ==> (\<Pi>x \<in> {a \<in> A. id(A)`a\<noteq>b}. id(A)`x) = (\<Pi>x \<in> A. x)"
+     "b\<notin>A ==> (\<Pi> x \<in> {a \<in> A. id(A)`a\<noteq>b}. id(A)`x) = (\<Pi> x \<in> A. x)"
 apply (simp add: id_def cong add: Pi_cong)
 apply (rule_tac b = A in subst_context, fast)
 done
@@ -276,7 +276,7 @@ apply (frule domain_of_fun, fast)
 done
 
 lemma AC5_AC4_aux4: "[| R \<subseteq> A*B; g \<in> C->R; \<forall>x \<in> C. (\<lambda>z \<in> R. fst(z))` (g`x) = x |]  
-                ==> (\<lambda>x \<in> C. snd(g`x)): (\<Pi>x \<in> C. R``{x})"
+                ==> (\<lambda>x \<in> C. snd(g`x)): (\<Pi> x \<in> C. R``{x})"
 apply (rule lam_type)
 apply (force dest: apply_type)
 done

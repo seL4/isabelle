@@ -85,13 +85,57 @@ val stopper = (eof, is_eof);
 
 fun is_ascii s = size s = 1 andalso ord s < 128;
 
+local
+    fun wrap s = "\\<" ^ s ^ ">"
+    val pre_digits =
+	["zero","one","two","three","four",
+	 "five","six","seven","eight","nine"]
+
+    val cal_letters =
+	["A","B","C","D","E","F","G","H","I","J","K","L","M",
+	 "N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+
+    val small_letters =
+	["a","b","c","d","e","f","g","h","i","j","k","l","m",
+	 "n","o","p","q","r","s","t","u","v","w","x","y","z"]
+
+    val goth_letters =
+	["AA","BB","CC","DD","EE","FF","GG","HH","II","JJ","KK","LL","MM",
+	 "NN","OO","PP","QQ","RR","SS","TT","UU","VV","WW","XX","YY","ZZ",
+	 "aa","bb","cc","dd","ee","ff","gg","hh","ii","jj","kk","ll","mm",
+	 "nn","oo","pp","qq","rr","ss","tt","uu","vv","ww","xx","yy","zz"]
+
+    val greek_letters =
+	["alpha","beta","gamma","delta","epsilon","zeta","eta","theta",
+	 "iota","kappa",(*"lambda",*)"mu","nu","xi","pi","rho","sigma","tau",
+	 "upsilon","phi","psi","omega","Gamma","Delta","Theta","Lambda",
+	 "Xi","Pi","Sigma","Upsilon","Phi","Psi","Omega"]
+
+    val bbb_letters = ["bool","complex","nat","rat","real","int"]
+
+    val pre_letters =
+	cal_letters   @
+	small_letters @
+	goth_letters  @
+	greek_letters
+in
+val ext_digits  = map wrap pre_digits
+val ext_letters = map wrap pre_letters
+val ext_letdigs = ext_digits @ ext_letters
+fun is_ext_digit  s = String.isPrefix "\\<" s andalso s mem ext_digits
+fun is_ext_letter s = String.isPrefix "\\<" s andalso s mem ext_letters
+fun is_ext_letdig s = String.isPrefix "\\<" s andalso s mem ext_letdigs
+end
+     
 fun is_letter s =
-  size s = 1 andalso
-   (ord "A" <= ord s andalso ord s <= ord "Z" orelse
-    ord "a" <= ord s andalso ord s <= ord "z");
+    (size s = 1 andalso
+     (ord "A" <= ord s andalso ord s <= ord "Z" orelse
+      ord "a" <= ord s andalso ord s <= ord "z"))
+    orelse is_ext_letter s
 
 fun is_digit s =
-  size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9";
+    (size s = 1 andalso ord "0" <= ord s andalso ord s <= ord "9")
+    orelse is_ext_digit s
 
 fun is_quasi "_" = true
   | is_quasi "'" = true
@@ -107,10 +151,12 @@ val is_blank =
 fun is_letdig s = is_quasi_letter s orelse is_digit s;
 
 fun is_symbolic s =
-  size s > 2 andalso nth_elem_string (2, s) <> "^";
+  size s > 2 andalso nth_elem_string (2, s) <> "^"
+  andalso not (is_ext_letdig s);
 
 fun is_printable s =
   size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
+  is_ext_letdig s orelse
   is_symbolic s;
 
 fun is_identifier s =

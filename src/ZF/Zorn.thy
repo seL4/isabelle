@@ -197,14 +197,14 @@ apply (rule Collect_subset)
 done
 
 lemma choice_super:
-     "[| ch \<in> (\<Pi>X \<in> Pow(chain(S)) - {0}. X); X \<in> chain(S);  X \<notin> maxchain(S) |]
+     "[| ch \<in> (\<Pi> X \<in> Pow(chain(S)) - {0}. X); X \<in> chain(S);  X \<notin> maxchain(S) |]
       ==> ch ` super(S,X) \<in> super(S,X)"
 apply (erule apply_type)
 apply (unfold super_def maxchain_def, blast)
 done
 
 lemma choice_not_equals:
-     "[| ch \<in> (\<Pi>X \<in> Pow(chain(S)) - {0}. X); X \<in> chain(S);  X \<notin> maxchain(S) |]
+     "[| ch \<in> (\<Pi> X \<in> Pow(chain(S)) - {0}. X); X \<in> chain(S);  X \<notin> maxchain(S) |]
       ==> ch ` super(S,X) \<noteq> X"
 apply (rule notI)
 apply (drule choice_super, assumption, assumption)
@@ -213,7 +213,7 @@ done
 
 text{*This justifies Definition 4.4*}
 lemma Hausdorff_next_exists:
-     "ch \<in> (\<Pi>X \<in> Pow(chain(S))-{0}. X) ==>
+     "ch \<in> (\<Pi> X \<in> Pow(chain(S))-{0}. X) ==>
       \<exists>next \<in> increasing(S). \<forall>X \<in> Pow(S).
                    next`X = if(X \<in> chain(S)-maxchain(S), ch`super(S,X), X)"
 apply (rule_tac x="\<lambda>X\<in>Pow(S).
@@ -237,7 +237,7 @@ done
 text{*Lemma 4*}
 lemma TFin_chain_lemma4:
      "[| c \<in> TFin(S,next);
-         ch \<in> (\<Pi>X \<in> Pow(chain(S))-{0}. X);
+         ch \<in> (\<Pi> X \<in> Pow(chain(S))-{0}. X);
          next \<in> increasing(S);
          \<forall>X \<in> Pow(S). next`X =
                           if(X \<in> chain(S)-maxchain(S), ch`super(S,X), X) |]
@@ -344,14 +344,14 @@ done
 text{** Defining the "next" operation for Zermelo's Theorem **}
 
 lemma choice_Diff:
-     "[| ch \<in> (\<Pi>X \<in> Pow(S) - {0}. X);  X \<subseteq> S;  X\<noteq>S |] ==> ch ` (S-X) \<in> S-X"
+     "[| ch \<in> (\<Pi> X \<in> Pow(S) - {0}. X);  X \<subseteq> S;  X\<noteq>S |] ==> ch ` (S-X) \<in> S-X"
 apply (erule apply_type)
 apply (blast elim!: equalityE)
 done
 
 text{*This justifies Definition 6.1*}
 lemma Zermelo_next_exists:
-     "ch \<in> (\<Pi>X \<in> Pow(S)-{0}. X) ==>
+     "ch \<in> (\<Pi> X \<in> Pow(S)-{0}. X) ==>
            \<exists>next \<in> increasing(S). \<forall>X \<in> Pow(S).
                       next`X = (if X=S then S else cons(ch`(S-X), X))"
 apply (rule_tac x="\<lambda>X\<in>Pow(S). if X=S then S else cons(ch`(S-X), X)"
@@ -371,7 +371,7 @@ done
 
 text{*The construction of the injection*}
 lemma choice_imp_injection:
-     "[| ch \<in> (\<Pi>X \<in> Pow(S)-{0}. X);
+     "[| ch \<in> (\<Pi> X \<in> Pow(S)-{0}. X);
          next \<in> increasing(S);
          \<forall>X \<in> Pow(S). next`X = if(X=S, S, cons(ch`(S-X), X)) |]
       ==> (\<lambda> x \<in> S. Union({y \<in> TFin(S,next). x \<notin> y}))

@@ -17,14 +17,14 @@ constdefs
 (* ********************************************************************** *)
 
 lemma PROD_subsets:
-     "[| f \<in> (\<Pi>b \<in> {P(a). a \<in> A}. b);  \<forall>a \<in> A. P(a)<=Q(a) |]   
-      ==> (\<lambda>a \<in> A. f`P(a)) \<in> (\<Pi>a \<in> A. Q(a))"
+     "[| f \<in> (\<Pi> b \<in> {P(a). a \<in> A}. b);  \<forall>a \<in> A. P(a)<=Q(a) |]   
+      ==> (\<lambda>a \<in> A. f`P(a)) \<in> (\<Pi> a \<in> A. Q(a))"
 by (rule lam_type, drule apply_type, auto)
 
 lemma lemma_AC18:
-     "[| \<forall>A. 0 \<notin> A --> (\<exists>f. f \<in> (\<Pi>X \<in> A. X)); A \<noteq> 0 |] 
+     "[| \<forall>A. 0 \<notin> A --> (\<exists>f. f \<in> (\<Pi> X \<in> A. X)); A \<noteq> 0 |] 
       ==> (\<Inter>a \<in> A. \<Union>b \<in> B(a). X(a, b)) \<subseteq> 
-          (\<Union>f \<in> \<Pi>a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a))"
+          (\<Union>f \<in> \<Pi> a \<in> A. B(a). \<Inter>a \<in> A. X(a, f`a))"
 apply (rule subsetI)
 apply (erule_tac x = "{{b \<in> B (a) . x \<in> X (a,b) }. a \<in> A}" in allE)
 apply (erule impE, fast)
@@ -67,12 +67,12 @@ apply (fast elim: notE subst_elem)
 done
 
 lemma lemma1_2: 
-        "[| f`(uu(a)) \<notin> a; f \<in> (\<Pi>B \<in> {uu(a). a \<in> A}. B); a \<in> A |]   
+        "[| f`(uu(a)) \<notin> a; f \<in> (\<Pi> B \<in> {uu(a). a \<in> A}. B); a \<in> A |]   
                 ==> f`(uu(a))-{0} \<in> a"
 apply (unfold uu_def, fast elim!: lemma1_1 dest!: apply_type)
 done
 
-lemma lemma1: "\<exists>f. f \<in> (\<Pi>B \<in> {uu(a). a \<in> A}. B) ==> \<exists>f. f \<in> (\<Pi>B \<in> A. B)"
+lemma lemma1: "\<exists>f. f \<in> (\<Pi> B \<in> {uu(a). a \<in> A}. B) ==> \<exists>f. f \<in> (\<Pi> B \<in> A. B)"
 apply (erule exE)
 apply (rule_tac x = "\<lambda>a\<in>A. if (f` (uu(a)) \<in> a, f` (uu(a)), f` (uu(a))-{0})" 
        in exI)

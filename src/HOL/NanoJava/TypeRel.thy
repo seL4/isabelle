@@ -55,7 +55,7 @@ apply auto
 done
 
 lemma subcls1_def2: 
-"subcls1 = (\<Sigma>C\<in>{C. is_class C} . {D. C\<noteq>Object \<and> super (the (class C)) = D})"
+"subcls1 = (\<Sigma> C\<in>{C. is_class C} . {D. C\<noteq>Object \<and> super (the (class C)) = D})"
 apply (unfold subcls1_def is_class_def)
 apply auto
 done

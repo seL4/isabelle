@@ -26,7 +26,7 @@ apply (rule AC_Pi)
 apply (erule bspec, assumption)
 done
 
-lemma AC_Pi_Pow: "\<exists>f. f \<in> (\<Pi>X \<in> Pow(C)-{0}. X)"
+lemma AC_Pi_Pow: "\<exists>f. f \<in> (\<Pi> X \<in> Pow(C)-{0}. X)"
 apply (rule_tac B1 = "%x. x" in AC_Pi [THEN exE])
 apply (erule_tac [2] exI, blast)
 done
@@ -52,7 +52,7 @@ prefer 2 apply assumption
 apply (erule_tac [2] fun_weaken_type, blast+)
 done
 
-lemma AC_Pi0: "0 \<notin> A ==> \<exists>f. f \<in> (\<Pi>x \<in> A. x)"
+lemma AC_Pi0: "0 \<notin> A ==> \<exists>f. f \<in> (\<Pi> x \<in> A. x)"
 apply (rule AC_Pi)
 apply (simp_all add: non_empty_family) 
 done

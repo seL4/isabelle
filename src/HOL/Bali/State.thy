@@ -266,7 +266,7 @@ subsection "memory allocation"
 
 constdefs
   new_Addr     :: "heap \<Rightarrow> loc option"
- "new_Addr h   \<equiv> if (\<forall>a. h a \<noteq> None) then None else Some (\<epsilon>a. h a = None)"
+ "new_Addr h   \<equiv> if (\<forall>a. h a \<noteq> None) then None else Some (\<epsilon> a. h a = None)"
 
 lemma new_AddrD: "new_Addr h = Some a \<Longrightarrow> h a = None"
 apply (unfold new_Addr_def)

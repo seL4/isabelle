@@ -262,7 +262,7 @@ by (fast elim!: not_emptyE lepoll_1_is_sing)
 
 lemma AC13_AC1_lemma:
      "\<forall>B \<in> A. f(B)\<noteq>0 & f(B)<=B & f(B) \<lesssim> 1   
-      ==> (\<lambda>x \<in> A. THE y. f(x)={y}) \<in> (\<Pi>X \<in> A. X)"
+      ==> (\<lambda>x \<in> A. THE y. f(x)={y}) \<in> (\<Pi> X \<in> A. X)"
 apply (rule lam_type)
 apply (drule bspec, assumption)
 apply (elim conjE)

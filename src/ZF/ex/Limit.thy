@@ -103,8 +103,8 @@ constdefs
   (* Twice, constructions on cpos are more difficult. *)
   iprod     :: "i=>i"
     "iprod(DD) ==
-     <(\<Pi>n \<in> nat. set(DD`n)),
-      {x:(\<Pi>n \<in> nat. set(DD`n))*(\<Pi>n \<in> nat. set(DD`n)).
+     <(\<Pi> n \<in> nat. set(DD`n)),
+      {x:(\<Pi> n \<in> nat. set(DD`n))*(\<Pi> n \<in> nat. set(DD`n)).
        \<forall>n \<in> nat. rel(DD`n,fst(x)`n,snd(x)`n)}>"
 
   mkcpo     :: "[i,i=>o]=>i"
@@ -1024,18 +1024,18 @@ lemmas Rp_comp = comp_lemma [THEN Rp_unique]
 (*----------------------------------------------------------------------*)
 
 lemma iprodI:
-    "x:(\<Pi>n \<in> nat. set(DD`n)) ==> x \<in> set(iprod(DD))"
+    "x:(\<Pi> n \<in> nat. set(DD`n)) ==> x \<in> set(iprod(DD))"
 by (simp add: set_def iprod_def)
 
 lemma iprodE:
-    "x \<in> set(iprod(DD)) ==> x:(\<Pi>n \<in> nat. set(DD`n))"
+    "x \<in> set(iprod(DD)) ==> x:(\<Pi> n \<in> nat. set(DD`n))"
 by (simp add: set_def iprod_def)
 
 (* Contains typing conditions in contrast to HOL-ST *)
 
 lemma rel_iprodI:
-    "[|!!n. n \<in> nat ==> rel(DD`n,f`n,g`n); f:(\<Pi>n \<in> nat. set(DD`n));
-       g:(\<Pi>n \<in> nat. set(DD`n))|] ==> rel(iprod(DD),f,g)"
+    "[|!!n. n \<in> nat ==> rel(DD`n,f`n,g`n); f:(\<Pi> n \<in> nat. set(DD`n));
+       g:(\<Pi> n \<in> nat. set(DD`n))|] ==> rel(iprod(DD),f,g)"
 by (simp add: iprod_def rel_I)
 
 lemma rel_iprodE:
@@ -1205,14 +1205,14 @@ by (simp add: emb_chain_def)
 (*----------------------------------------------------------------------*)
 
 lemma DinfI:
-    "[|x:(\<Pi>n \<in> nat. set(DD`n));
+    "[|x:(\<Pi> n \<in> nat. set(DD`n));
        !!n. n \<in> nat ==> Rp(DD`n,DD`succ(n),ee`n)`(x`succ(n)) = x`n|]
      ==> x \<in> set(Dinf(DD,ee))"
 apply (simp add: Dinf_def)
 apply (blast intro: mkcpoI iprodI)
 done
 
-lemma Dinf_prod: "x \<in> set(Dinf(DD,ee)) ==> x:(\<Pi>n \<in> nat. set(DD`n))"
+lemma Dinf_prod: "x \<in> set(Dinf(DD,ee)) ==> x:(\<Pi> n \<in> nat. set(DD`n))"
 apply (simp add: Dinf_def)
 apply (erule mkcpoD1 [THEN iprodE])
 done
@@ -1226,7 +1226,7 @@ done
 
 lemma rel_DinfI:
     "[|!!n. n \<in> nat ==> rel(DD`n,x`n,y`n);
-       x:(\<Pi>n \<in> nat. set(DD`n)); y:(\<Pi>n \<in> nat. set(DD`n))|] 
+       x:(\<Pi> n \<in> nat. set(DD`n)); y:(\<Pi> n \<in> nat. set(DD`n))|] 
      ==> rel(Dinf(DD,ee),x,y)"
 apply (simp add: Dinf_def)
 apply (blast intro: rel_mkcpo [THEN iffD2] rel_iprodI iprodI)

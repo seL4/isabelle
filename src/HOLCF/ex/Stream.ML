@@ -358,7 +358,7 @@ qed "adm_not_stream_finite";
 section "smap";
 
 bind_thm ("smap_unfold", fix_prover2 thy smap_def 
-	"smap = (\\<Lambda>f s. case s of x && l => f\\<cdot>x && smap\\<cdot>f\\<cdot>l)");
+	"smap = (\\<Lambda> f s. case s of x && l => f\\<cdot>x && smap\\<cdot>f\\<cdot>l)");
 
 Goal "smap\\<cdot>f\\<cdot>\\<bottom> = \\<bottom>";
 by (stac smap_unfold 1);
@@ -570,7 +570,7 @@ qed_spec_mp "slen_rt_mult";
 section "sfilter";
 
 bind_thm ("sfilter_unfold", fix_prover2 thy sfilter_def 
-	"sfilter = (\\<Lambda>p s. case s of x && xs => \
+	"sfilter = (\\<Lambda> p s. case s of x && xs => \
 \  If p\\<cdot>x then x && sfilter\\<cdot>p\\<cdot>xs else sfilter\\<cdot>p\\<cdot>xs fi)");
 
 Goal "sfilter\\<cdot>\\<bottom> = \\<bottom>";

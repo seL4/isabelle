@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Sebastian Skalberg, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+#
+# DESCRIPTION: fix problems with greek and other foreign letters
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [FILES|DIRS...]"
+  echo
+  echo "  Recursively find .thy files, fixing parse problems stemming"
+  echo "  from the classification change of greek and other foreign"
+  echo "  letters from symbols to letters."
+  echo
+  echo "  Renames old versions of FILES by appending \"~~\"."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
+SPECS="$@"; shift "$#"
+
+
+## main
+
+#set by configure
+AUTO_PERL=perl
+
+find $SPECS -name \*.thy -print | xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixgreek.pl"
+find $SPECS -name \*.ML -print | xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixgreek.pl"

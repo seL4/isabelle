@@ -23,7 +23,7 @@ constdefs
    "map_emp == 0"
 
   map_owr :: "[i,i,i]=>i"
-   "map_owr(m,a,b) == \<Sigma>x \<in> {a} Un domain(m). if x=a then b else m``{x}"
+   "map_owr(m,a,b) == \<Sigma> x \<in> {a} Un domain(m). if x=a then b else m``{x}"
 
   map_app :: "[i,i]=>i"
    "map_app(m,a) == m``{a}"

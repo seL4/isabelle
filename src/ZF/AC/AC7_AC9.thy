@@ -52,16 +52,16 @@ by (unfold AC6_def AC7_def, blast)
 (* the proof.                                                             *)
 (* ********************************************************************** *)
 
-lemma lemma1_1: "y \<in> (\<Pi>B \<in> A. Y*B) ==> (\<lambda>B \<in> A. snd(y`B)) \<in> (\<Pi>B \<in> A. B)"
+lemma lemma1_1: "y \<in> (\<Pi> B \<in> A. Y*B) ==> (\<lambda>B \<in> A. snd(y`B)) \<in> (\<Pi> B \<in> A. B)"
 by (fast intro!: lam_type snd_type apply_type)
 
 lemma lemma1_2:
-     "y \<in> (\<Pi>B \<in> {Y*C. C \<in> A}. B) ==> (\<lambda>B \<in> A. y`(Y*B)) \<in> (\<Pi>B \<in> A. Y*B)"
+     "y \<in> (\<Pi> B \<in> {Y*C. C \<in> A}. B) ==> (\<lambda>B \<in> A. y`(Y*B)) \<in> (\<Pi> B \<in> A. Y*B)"
 apply (fast intro!: lam_type apply_type)
 done
 
 lemma AC7_AC6_lemma1:
-     "(\<Pi>B \<in> {(nat->Union(A))*C. C \<in> A}. B) \<noteq> 0 ==> (\<Pi>B \<in> A. B) \<noteq> 0"
+     "(\<Pi> B \<in> {(nat->Union(A))*C. C \<in> A}. B) \<noteq> 0 ==> (\<Pi> B \<in> A. B) \<noteq> 0"
 by (fast intro!: equals0I lemma1_1 lemma1_2)
 
 lemma AC7_AC6_lemma2: "0 \<notin> A ==> 0 \<notin> {(nat -> Union(A)) * C. C \<in> A}"
@@ -91,7 +91,7 @@ apply (unfold eqpoll_def, auto)
 done
 
 lemma AC1_AC8_lemma2:
-     "[| f \<in> (\<Pi>X \<in> RepFun(A,p). X); D \<in> A |] ==> (\<lambda>x \<in> A. f`p(x))`D \<in> p(D)" 
+     "[| f \<in> (\<Pi> X \<in> RepFun(A,p). X); D \<in> A |] ==> (\<lambda>x \<in> A. f`p(x))`D \<in> p(D)" 
 apply (simp, fast elim!: apply_type)
 done
 
@@ -151,7 +151,7 @@ lemma AC9_AC1_lemma2:
      "\<forall>B1 \<in> {(F*B)*N. B \<in> A} Un {cons(0,(F*B)*N). B \<in> A}.   
       \<forall>B2 \<in> {(F*B)*N. B \<in> A} Un {cons(0,(F*B)*N). B \<in> A}.   
         f`<B1,B2> \<in> bij(B1, B2)   
-      ==> (\<lambda>B \<in> A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) \<in> (\<Pi>X \<in> A. X)"
+      ==> (\<lambda>B \<in> A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) \<in> (\<Pi> X \<in> A. X)"
 apply (intro lam_type snd_type fst_type)
 apply (rule apply_type [OF _ consI1]) 
 apply (fast intro!: fun_weaken_type bij_is_fun)

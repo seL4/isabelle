@@ -189,7 +189,7 @@ subsection{*Instantiation of the locale @{text reflection}*}
 text{*instances of locale constants*}
 constdefs
   L_F0 :: "[i=>o,i] => i"
-    "L_F0(P,y) == \<mu>b. (\<exists>z. L(z) \<and> P(<y,z>)) --> (\<exists>z\<in>Lset(b). P(<y,z>))"
+    "L_F0(P,y) == \<mu> b. (\<exists>z. L(z) \<and> P(<y,z>)) --> (\<exists>z\<in>Lset(b). P(<y,z>))"
 
   L_FF :: "[i=>o,i] => i"
     "L_FF(P)   == \<lambda>a. \<Union>y\<in>Lset(a). L_F0(P,y)"

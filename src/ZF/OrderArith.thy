@@ -556,7 +556,7 @@ done
 text{*As a special case, we have @{term "bij(Pow(A*B), A -> Pow(B))"} *}
 lemma Pow_Sigma_bij:
     "(\<lambda>r \<in> Pow(Sigma(A,B)). \<lambda>x \<in> A. r``{x})  
-     \<in> bij(Pow(Sigma(A,B)), \<Pi>x \<in> A. Pow(B(x)))"
+     \<in> bij(Pow(Sigma(A,B)), \<Pi> x \<in> A. Pow(B(x)))"
 apply (rule_tac d = "%f. \<Union>x \<in> A. \<Union>y \<in> f`x. {<x,y>}" in lam_bijective)
 apply (blast intro: lam_type)
 apply (blast dest: apply_type, simp_all)

@@ -537,19 +537,19 @@ lemma Sigma_succ2: "A * succ(B) = A*{B} Un A*B"
 by blast
 
 lemma SUM_UN_distrib1:
-     "(\<Sigma>x \<in> (\<Union>y\<in>A. C(y)). B(x)) = (\<Union>y\<in>A. \<Sigma>x\<in>C(y). B(x))"
+     "(\<Sigma> x \<in> (\<Union>y\<in>A. C(y)). B(x)) = (\<Union>y\<in>A. \<Sigma> x\<in>C(y). B(x))"
 by blast
 
 lemma SUM_UN_distrib2:
-     "(\<Sigma>i\<in>I. \<Union>j\<in>J. C(i,j)) = (\<Union>j\<in>J. \<Sigma>i\<in>I. C(i,j))"
+     "(\<Sigma> i\<in>I. \<Union>j\<in>J. C(i,j)) = (\<Union>j\<in>J. \<Sigma> i\<in>I. C(i,j))"
 by blast
 
 lemma SUM_Un_distrib1:
-     "(\<Sigma>i\<in>I Un J. C(i)) = (\<Sigma>i\<in>I. C(i)) Un (\<Sigma>j\<in>J. C(j))"
+     "(\<Sigma> i\<in>I Un J. C(i)) = (\<Sigma> i\<in>I. C(i)) Un (\<Sigma> j\<in>J. C(j))"
 by blast
 
 lemma SUM_Un_distrib2:
-     "(\<Sigma>i\<in>I. A(i) Un B(i)) = (\<Sigma>i\<in>I. A(i)) Un (\<Sigma>i\<in>I. B(i))"
+     "(\<Sigma> i\<in>I. A(i) Un B(i)) = (\<Sigma> i\<in>I. A(i)) Un (\<Sigma> i\<in>I. B(i))"
 by blast
 
 (*First-order version of the above, for rewriting*)
@@ -557,11 +557,11 @@ lemma prod_Un_distrib2: "I * (A Un B) = I*A Un I*B"
 by (rule SUM_Un_distrib2)
 
 lemma SUM_Int_distrib1:
-     "(\<Sigma>i\<in>I Int J. C(i)) = (\<Sigma>i\<in>I. C(i)) Int (\<Sigma>j\<in>J. C(j))"
+     "(\<Sigma> i\<in>I Int J. C(i)) = (\<Sigma> i\<in>I. C(i)) Int (\<Sigma> j\<in>J. C(j))"
 by blast
 
 lemma SUM_Int_distrib2:
-     "(\<Sigma>i\<in>I. A(i) Int B(i)) = (\<Sigma>i\<in>I. A(i)) Int (\<Sigma>i\<in>I. B(i))"
+     "(\<Sigma> i\<in>I. A(i) Int B(i)) = (\<Sigma> i\<in>I. A(i)) Int (\<Sigma> i\<in>I. B(i))"
 by blast
 
 (*First-order version of the above, for rewriting*)
@@ -569,7 +569,7 @@ lemma prod_Int_distrib2: "I * (A Int B) = I*A Int I*B"
 by (rule SUM_Int_distrib2)
 
 (*Cf Aczel, Non-Well-Founded Sets, page 115*)
-lemma SUM_eq_UN: "(\<Sigma>i\<in>I. A(i)) = (\<Union>i\<in>I. {i} * A(i))"
+lemma SUM_eq_UN: "(\<Sigma> i\<in>I. A(i)) = (\<Union>i\<in>I. {i} * A(i))"
 by blast
 
 lemma times_subset_iff:
@@ -577,7 +577,7 @@ lemma times_subset_iff:
 by blast
 
 lemma Int_Sigma_eq:
-     "(\<Sigma>x \<in> A'. B'(x)) Int (\<Sigma>x \<in> A. B(x)) = (\<Sigma>x \<in> A' Int A. B'(x) Int B(x))"
+     "(\<Sigma> x \<in> A'. B'(x)) Int (\<Sigma> x \<in> A. B(x)) = (\<Sigma> x \<in> A' Int A. B'(x) Int B(x))"
 by blast
 
 (** Domain **)

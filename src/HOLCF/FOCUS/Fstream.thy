@@ -39,7 +39,7 @@ translations
 
 defs
 
-  fscons_def	"fscons a   \\<equiv> \\<Lambda>s. Def a && s"
+  fscons_def	"fscons a   \\<equiv> \\<Lambda> s. Def a && s"
   fsfilter_def  "fsfilter A \\<equiv> sfilter\\<cdot>(flift2 (\\<lambda>x. x\\<in>A))"
 
 end

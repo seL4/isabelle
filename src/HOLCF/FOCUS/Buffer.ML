@@ -247,7 +247,7 @@ qed "Buf_St_imp_Eq";
 Goalw [BufSt_def, BufSt_P_def] "BufEq <= BufSt";
 by Safe_tac;
 by (EVERY'[rename_tac "f", res_inst_tac 
-        [("x","\\<lambda>s. case s of Sd d => \\<Lambda>x. f\\<cdot>(Md d\\<leadsto>x)| \\<currency> => f")] bexI] 1);
+        [("x","\\<lambda>s. case s of Sd d => \\<Lambda> x. f\\<cdot>(Md d\\<leadsto>x)| \\<currency> => f")] bexI] 1);
 by ( Simp_tac 1);
 by (etac weak_coinduct_image 1);
 by (rewtac BufSt_F_def); 

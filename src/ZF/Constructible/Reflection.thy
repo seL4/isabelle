@@ -42,7 +42,7 @@ locale reflection =
   fixes F0 --{*ordinal for a specific value @{term y}*}
   fixes FF --{*sup over the whole level, @{term "y\<in>Mset(a)"}*}
   fixes ClEx --{*Reflecting ordinals for the formula @{term "\<exists>z. P"}*}
-  defines "F0(P,y) == \<mu>b. (\<exists>z. M(z) & P(<y,z>)) --> 
+  defines "F0(P,y) == \<mu> b. (\<exists>z. M(z) & P(<y,z>)) --> 
                                (\<exists>z\<in>Mset(b). P(<y,z>))"
       and "FF(P)   == \<lambda>a. \<Union>y\<in>Mset(a). F0(P,y)"
       and "ClEx(P,a) == Limit(a) & normalize(FF(P),a) = a"
@@ -354,8 +354,8 @@ text{*Example 4: Axiom of Choice.  Possibly wrong, since @{text \<Pi>} needs
 to be relativized.*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>A. 0\<notin>A --> (\<exists>f. M(f) & f \<in> (\<Pi>X \<in> A. X)),
-               \<lambda>a A. 0\<notin>A --> (\<exists>f\<in>Mset(a). f \<in> (\<Pi>X \<in> A. X)))"
+               \<lambda>A. 0\<notin>A --> (\<exists>f. M(f) & f \<in> (\<Pi> X \<in> A. X)),
+               \<lambda>a A. 0\<notin>A --> (\<exists>f\<in>Mset(a). f \<in> (\<Pi> X \<in> A. X)))"
 by fast
 
 end

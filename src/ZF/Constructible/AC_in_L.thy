@@ -244,7 +244,7 @@ constdefs
 
   DPow_least :: "[i,i,i,i]=>i"
     --{*function yielding the smallest index for @{term X}*}
-   "DPow_least(f,r,A,X) == \<mu>k. DPow_ord(f,r,A,X,k)"
+   "DPow_least(f,r,A,X) == \<mu> k. DPow_ord(f,r,A,X,k)"
 
   DPow_r :: "[i,i,i]=>i"
     --{*a wellordering on @{term "DPow(A)"}*}
