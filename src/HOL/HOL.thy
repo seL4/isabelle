@@ -174,9 +174,6 @@ defs
   o_def         "(f::'b=>'c) o g == (%(x::'a). f(g(x)))"
   if_def        "If P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
-(* start 8bit 1 *)
-(* end 8bit 1 *)
-
 end
 
 
@@ -198,6 +195,3 @@ fun alt_ast_tr' (name, alt_name) =
 
 val print_ast_translation =
   map alt_ast_tr' [("! ", "*All"), ("? ", "*Ex"), ("?! ", "*Ex1")];
-
-(* start 8bit 2 *)
-(* end 8bit 2 *)

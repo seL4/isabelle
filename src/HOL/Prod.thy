@@ -47,7 +47,6 @@ syntax
   "@pttrn"      :: [pttrn, pttrns] => pttrn     ("'(_,/_')")
   ""            :: pttrn => pttrns              ("_")
   "@pttrns"     :: [pttrn, pttrns] => pttrns    ("_,/_")
-
   "@Sigma"      :: "[idt, 'a set, 'b set] => ('a * 'b) set"     ("(3SIGMA _:_./ _)" 10)
   "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ Times _" [81, 80] 80)
 
@@ -70,8 +69,8 @@ syntax (symbols)
 
 defs
   Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
-  fst_def       "fst(p) == @a. ? b. p = (a, b)"
-  snd_def       "snd(p) == @b. ? a. p = (a, b)"
+  fst_def       "fst p == @a. ? b. p = (a, b)"
+  snd_def       "snd p == @b. ? a. p = (a, b)"
   split_def     "split == (%c p. c (fst p) (snd p))"
   prod_fun_def  "prod_fun f g == split(%x y.(f(x), g(y)))"
   Sigma_def     "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
@@ -87,10 +86,7 @@ consts
   "()"          :: unit                           ("'(')")
 
 defs
-  Unity_def     "() == Abs_Unit(True)"
-
-(* start 8bit 1 *)
-(* end 8bit 1 *)
+  Unity_def     "() == Abs_Unit True"
 
 end
 

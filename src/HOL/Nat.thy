@@ -56,9 +56,15 @@ syntax
   "2"       :: nat                ("2")
 
 translations
-   "1"  == "Suc(0)"
-   "2"  == "Suc(1)"
-  "case p of 0 => a | Suc(y) => b" == "nat_case a (%y.b) p"
+   "1"  == "Suc 0"
+   "2"  == "Suc 1"
+  "case p of 0 => a | Suc y => b" == "nat_case a (%y.b) p"
+
+(*
+syntax (symbols)
+
+  "LEAST "	:: [idts, bool] => nat		("(3\\<mu>_./ _)" [0, 10] 10)
+*)
 
 defs
   Zero_def      "0 == Abs_Nat(Zero_Rep)"
@@ -66,8 +72,8 @@ defs
 
   (*nat operations and recursion*)
   nat_case_def  "nat_case a f n == @z.  (n=0 --> z=a)  
-                                        & (!x. n=Suc(x) --> z=f(x))"
-  pred_nat_def  "pred_nat == {p. ? n. p = (n, Suc(n))}"
+                                        & (!x. n=Suc x --> z=f(x))"
+  pred_nat_def  "pred_nat == {p. ? n. p = (n, Suc n)}"
 
   less_def      "m<n == (m,n):trancl(pred_nat)"
 
@@ -76,9 +82,6 @@ defs
   nat_rec_def   "nat_rec c d ==
                  wfrec pred_nat (%f. nat_case c (%m. d m (f m)))"
   (*least number operator*)
-  Least_def     "Least(P) == @k. P(k) & (ALL j. j<k --> ~P(j))"
-
-(* start 8bit 1 *)
-(* end 8bit 1 *)
+  Least_def     "Least P == @k. P(k) & (ALL j. j<k --> ~P(j))"
 
 end
