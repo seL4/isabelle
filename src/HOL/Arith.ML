@@ -336,7 +336,13 @@ by (induct_tac "m" 1);
 by (induct_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
 qed "mult_is_0";
-Addsimps [mult_is_0];
+
+Goal "(0 = m*n) = (0=m | 0=n)";
+by (cut_facts_tac [mult_is_0] 1);
+by (full_simp_tac (simpset() addsimps [eq_commute]) 1);
+qed "zero_is_mult";
+
+Addsimps [mult_is_0, zero_is_mult];
 
 Goal "m <= m*(m::nat)";
 by (induct_tac "m" 1);
