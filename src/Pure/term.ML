@@ -126,6 +126,7 @@ sig
   val atless: term * term -> bool
   val insert_aterm: term * term list -> term list
   val abstract_over: term * term -> term
+  val lambda: term -> term -> term
   val absfree: string * typ * term -> term
   val list_abs_free: (string * typ) list * term -> term
   val list_all_free: (string * typ) list * term -> term
@@ -617,6 +618,9 @@ fun abstract_over (v,body) =
         | _ => u)
   in  abst(0,body)  end;
 
+fun lambda v t =
+  let val (x, T) = dest_Free v
+  in Abs (x, T, abstract_over (v, t)) end;
 
 (*Form an abstraction over a free variable.*)
 fun absfree (a,T,body) = Abs(a, T, abstract_over (Free(a,T), body));
