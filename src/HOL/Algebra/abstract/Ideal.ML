@@ -168,14 +168,14 @@ Goal "[| b dvd a; ~ a dvd b |] ==> ideal_of {a::'a::ring} < ideal_of {b}";
 by (rtac psubsetI 1);
 by (etac dvd_imp_subideal 1);
 by (blast_tac (claset() addIs [dvd_imp_subideal, subideal_imp_dvd]) 1); 
-qed "not_dvd_psubideal";
+qed "not_dvd_psubideal_singleton";
 
 Goal "(ideal_of {a::'a::ring} < ideal_of {b}) = (b dvd a & ~ a dvd b)";
 by (rtac iffI 1);
 by (REPEAT (ares_tac
   [conjI, psubideal_not_dvd, psubset_imp_subset RS subideal_imp_dvd] 1));
 by (etac conjE 1);
-by (REPEAT (ares_tac [not_dvd_psubideal] 1));
+by (REPEAT (ares_tac [not_dvd_psubideal_singleton] 1));
 qed "psubideal_is_dvd";
 
 Goal "[| a dvd b; b dvd a |] ==> ideal_of {a::'a::ring} = ideal_of {b}";
