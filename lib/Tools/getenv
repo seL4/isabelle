@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# DESCRIPTION: get value from Isabelle settings
+#
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG VARNAME"
+  echo
+  echo "  Get value of VARNAME from the Isabelle settings."
+  echo
+  exit 1
+}
+
+
+## main
+
+[ $# -ne 1 ] && usage
+
+eval "echo \$$1"
