@@ -6,7 +6,7 @@
 Tactic for solving arithmetical Goals in Presburger Arithmetic
 *)
 
-(* This version of presburger deals with occurences of functional symbols in the subgoal and abstract over them to try to prove the more general formula. It then resolves with the subgoal. To disable this feature call the procedure with the parameter no_abs
+(* This version of presburger deals with occurences of functional symbols in the subgoal and abstract over them to try to prove the more general formula. It then resolves with the subgoal. To enable this feature call the procedure with the parameter abs
 *)
 
 signature PRESBURGER = 
@@ -279,11 +279,11 @@ fun presburger_tac q a i = ObjectLogic.atomize_tac i THEN (fn st =>
 fun presburger_args meth =
  let val parse_flag = 
          Args.$$$ "no_quantify" >> K (apfst (K false))
-      || Args.$$$ "no_abs" >> K (apsnd (K false));
+      || Args.$$$ "abs" >> K (apsnd (K true));
  in
    Method.simple_args 
   (Scan.optional (Args.$$$ "(" |-- Args.list1 parse_flag --| Args.$$$ ")") [] >>
-    curry (foldl op |>) (true, true))
+    curry (foldl op |>) (true, false))
     (fn (q,a) => fn _ => meth q a 1)
   end;
 
@@ -296,7 +296,7 @@ val setup =
      "decision procedure for Presburger arithmetic"),
    ArithTheoryData.map (fn {splits, inj_consts, discrete, presburger} =>
      {splits = splits, inj_consts = inj_consts, discrete = discrete,
-      presburger = Some (presburger_tac true true)})];
+      presburger = Some (presburger_tac true false)})];
 
 end;
 
