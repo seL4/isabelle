@@ -52,6 +52,8 @@ signature GOALS =
   val print_current_goals_fn : (int -> int -> thm -> unit) ref
   val pop_proof		: unit -> thm list
   val pr		: unit -> unit
+  val disable_pr        : unit -> unit
+  val enable_pr         : unit -> unit
   val prlev		: int -> unit
   val prlim		: int -> unit
   val premises		: unit -> thm list
@@ -330,9 +332,15 @@ fun print_current_goals_default n max th =
 
 val print_current_goals_fn = ref print_current_goals_default;
 
-(*Print a level of the goal stack.*)
+(* Print a level of the goal stack -- subject to quiet mode *)
+
+val quiet = ref false;
+fun disable_pr () = quiet := true;
+fun enable_pr () = quiet := false;
+
 fun print_top ((th, _), pairs) =
-  !print_current_goals_fn (length pairs) (!goals_limit) th;
+  if ! quiet then ()
+  else ! print_current_goals_fn (length pairs) (! goals_limit) th;
 
 (*Printing can raise exceptions, so the assignment occurs last.
   Can do   setstate[(st,Seq.empty)]  to set st as the state.  *)
@@ -384,8 +392,8 @@ fun chop_level n (pair,pairs) =
   end;
 
 (*Print the given level of the proof; prlev ~1 prints previous level*)
-fun prlev n = apply_fun (print_top o pop o (chop_level n));
-fun pr () = apply_fun print_top;
+fun prlev n = (enable_pr (); apply_fun (print_top o pop o (chop_level n)));
+fun pr () = (enable_pr (); apply_fun print_top);
 
 (*Set goals_limit and print again*)
 fun prlim n = (goals_limit:=n; pr());
