@@ -9,6 +9,21 @@ Lemmas for theory porder.thy
 open Porder0;
 open Porder;
 
+
+(* ------------------------------------------------------------------------ *)
+(* the reverse law of anti--symmetrie of <<                                 *)
+(* ------------------------------------------------------------------------ *)
+
+val antisym_less_inverse = prove_goal Porder.thy "x=y ==> x << y & y << x"
+(fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(rtac conjI 1),
+	((rtac subst 1) THEN (rtac refl_less 2) THEN (atac 1)),
+	((rtac subst 1) THEN (rtac refl_less 2) THEN (etac sym 1))
+	]);
+
+
 val box_less = prove_goal Porder.thy 
 "[| a << b; c << a; b << d|] ==> c << d"
  (fn prems =>
@@ -72,20 +87,6 @@ val chain_mono3 = prove_goal  Porder.thy
 	(rtac refl_less 1)
 	]);
 
-(* ------------------------------------------------------------------------ *)
-(* Lemma for reasoning by cases on the natural numbers                      *)
-(* ------------------------------------------------------------------------ *)
-
-val nat_less_cases = prove_goal Porder.thy 
-	"[| (m::nat) < n ==> P(n,m); m=n ==> P(n,m);n < m ==> P(n,m)|]==>P(n,m)"
-( fn prems =>
-	[
-	(res_inst_tac [("m1","n"),("n1","m")] (less_linear RS disjE) 1),
-	(etac disjE 2),
-	(etac (hd (tl (tl prems))) 1),
-	(etac (sym RS hd (tl prems)) 1),
-	(etac (hd prems) 1)
-	]);
 
 (* ------------------------------------------------------------------------ *)
 (* The range of a chain is a totaly ordered     <<                           *)
@@ -123,7 +124,7 @@ val chain_is_tord = prove_goalw Porder.thy [is_tord]
 
 
 (* ------------------------------------------------------------------------ *)
-(* technical lemmas about lub and is_lub, use above results about @         *)
+(* technical lemmas about lub and is_lub                                    *)
 (* ------------------------------------------------------------------------ *)
 
 val lubI = prove_goal Porder.thy "(? x. M <<| x) ==> M <<| lub(M)"
@@ -301,19 +302,6 @@ val cpo_void = prove_goal Porder.thy
 (* end of prototype lemmas for class pcpo                                   *)
 (* ------------------------------------------------------------------------ *)
 
-
-(* ------------------------------------------------------------------------ *)
-(* the reverse law of anti--symmetrie of <<                                 *)
-(* ------------------------------------------------------------------------ *)
-
-val antisym_less_inverse = prove_goal Porder.thy "x=y ==> x << y & y << x"
-(fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(rtac conjI 1),
-	((rtac subst 1) THEN (rtac refl_less 2) THEN (atac 1)),
-	((rtac subst 1) THEN (rtac refl_less 2) THEN (etac sym 1))
-	]);
 
 (* ------------------------------------------------------------------------ *)
 (* results about finite chains                                              *)

@@ -18,6 +18,8 @@ consts
 	ssnd         :: "('a**'b)->'b"
 	ssplit       :: "('a->'b->'c)->('a**'b)->'c"
 
+translations "x##y" => "spair[x][y]"
+
 rules 
 
 inst_sprod_pcpo	"(UU::'a**'b) = Ispair(UU,UU)"
@@ -28,12 +30,5 @@ ssplit_def	"ssplit == (LAM f. strictify[LAM p.f[sfst[p]][ssnd[p]]])"
 
 end
 
-ML
-
-(* ----------------------------------------------------------------------*)
-(* parse translations for the above mixfix                               *)
-(* ----------------------------------------------------------------------*)
-
-val parse_translation = [("@spair",mk_cinfixtr "@spair")];
 
 

@@ -3,7 +3,18 @@
     Author: 	Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Theory for streams without defined empty stream
+Theory for streams without defined empty stream 
+  'a stream = 'a ** ('a stream)u
+
+The type is axiomatized as the least solution of the domain equation above.
+The functor term that specifies the domain equation is: 
+
+  FT = <**,K_{'a},U>
+
+For details see chapter 5 of:
+
+[Franz Regensburger] HOLCF: Eine konservative Erweiterung von HOL um LCF,
+                     Dissertation, Technische Universit"at M"unchen, 1994
 *)
 
 Stream = Dnat2 +
@@ -44,8 +55,9 @@ rules
 (* axiomatization of recursive type 'a stream                              *)
 (* ----------------------------------------------------------------------- *)
 (* ('a stream,stream_abs) is the initial F-algebra where                   *)
-(* F is the locally continuous functor determined by domain equation       *)
-(* X = 'a ** (X)u                                                          *)
+(* F is the locally continuous functor determined by functor term FT.      *)
+(* domain equation: 'a stream = 'a ** ('a stream)u                         *)
+(* functor term:    FT = <**,K_{'a},U>                                     *)
 (* ----------------------------------------------------------------------- *)
 (* stream_abs is an isomorphism with inverse stream_rep                    *)
 (* identity is the least endomorphism on 'a stream                         *)

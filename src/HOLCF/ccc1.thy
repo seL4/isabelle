@@ -16,6 +16,7 @@ consts
 	"@oo"		:: "('b->'c)=>('a->'b)=>'a->'c" ("_ oo _" [101,100] 100)
 	"cop @oo"	:: "('b->'c)->('a->'b)->'a->'c" ("cfcomp")
 
+translations "f1 oo f2" => "cfcomp[f1][f2]"
 
 rules
 
@@ -23,15 +24,6 @@ rules
   oo_def	"cfcomp == (LAM f g x.f[g[x]])" 
 
 end
-
-ML
-
-(* ----------------------------------------------------------------------*)
-(* parse translations for the above mixfix  oo                           *)
-(* ----------------------------------------------------------------------*)
-
-val parse_translation = [("@oo",mk_cinfixtr "@oo")];
-val print_translation = [];
 
 
 

@@ -12,7 +12,7 @@ open Dnat;
 (* The isomorphisms dnat_rep_iso and dnat_abs_iso are strict               *)
 (* ------------------------------------------------------------------------*)
 
-val dnat_iso_strict= dnat_rep_iso RS (dnat_abs_iso RS 
+val dnat_iso_strict = dnat_rep_iso RS (dnat_abs_iso RS 
 	(allI  RSN (2,allI RS iso_strict)));
 
 val dnat_rews = [dnat_iso_strict RS conjunct1,
@@ -526,6 +526,8 @@ val dnat_flat = prove_goalw Dnat.thy [flat_def] "flat(dzero)"
 	(resolve_tac  dnat_invert 1),
 	(REPEAT (atac 1))
 	]);
+
+
 
 
 

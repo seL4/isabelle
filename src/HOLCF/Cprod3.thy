@@ -20,6 +20,8 @@ consts
 	csnd         :: "('a*'b)->'b"
 	csplit       :: "('a->'b->'c)->('a*'b)->'c"
 
+translations "x#y" => "cpair[x][y]"
+
 rules 
 
 inst_cprod_pcpo	"(UU::'a*'b) = <UU,UU>"
@@ -31,13 +33,6 @@ csplit_def	"csplit == (LAM f p.f[cfst[p]][csnd[p]])"
 
 end
 
-ML
-
-(* ----------------------------------------------------------------------*)
-(* parse translations for the above mixfix                               *)
-(* ----------------------------------------------------------------------*)
-
-val parse_translation = [("@cpair",mk_cinfixtr "@cpair")];
 
 
 

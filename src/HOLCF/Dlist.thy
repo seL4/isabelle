@@ -4,7 +4,19 @@
     ID:         $ $
     Copyright   1994 Technische Universitaet Muenchen
 
-Theory for lists
+Theory for finite lists  'a dlist = one ++ ('a ** 'a dlist)
+
+The type is axiomatized as the least solution of the domain equation above.
+The functor term that specifies the domain equation is: 
+
+  FT = <++,K_{one},<**,K_{'a},I>>
+
+For details see chapter 5 of:
+
+[Franz Regensburger] HOLCF: Eine konservative Erweiterung von HOL um LCF,
+                     Dissertation, Technische Universit"at M"unchen, 1994
+
+
 *)
 
 Dlist = Stream2 +
@@ -47,8 +59,9 @@ rules
 (* axiomatization of recursive type 'a dlist                               *)
 (* ----------------------------------------------------------------------- *)
 (* ('a dlist,dlist_abs) is the initial F-algebra where                     *)
-(* F is the locally continuous functor determined by domain equation       *)
-(* X = one ++ 'a ** X                                                      *)
+(* F is the locally continuous functor determined by functor term FT.      *)
+(* domain equation: 'a dlist = one ++ ('a ** 'a dlist)                     *)
+(* functor term:    FT = <++,K_{one},<**,K_{'a},I>>                        *)
 (* ----------------------------------------------------------------------- *)
 (* dlist_abs is an isomorphism with inverse dlist_rep                      *)
 (* identity is the least endomorphism on 'a dlist                          *)

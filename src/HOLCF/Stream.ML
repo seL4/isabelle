@@ -419,6 +419,30 @@ val stream_finite_ind3 = prove_goal Stream.thy
 	(REPEAT (atac 1))
 	]);
 
+(* prove induction using definition of admissibility 
+   stream_reach rsp. stream_reach2 
+   and finite induction stream_finite_ind *)
+
+val stream_ind = prove_goal Stream.thy
+"[|adm(P);\
+\  P(UU);\
+\  !! x s1.[|x~=UU;P(s1)|] ==> P(scons[x][s1])\
+\  |] ==> P(s)"
+ (fn prems =>
+	[
+	(rtac (stream_reach2 RS subst) 1),
+	(rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
+	(resolve_tac prems 1),
+	(SELECT_GOAL (rewrite_goals_tac [stream_take_def]) 1),
+	(rtac ch2ch_fappL 1),
+	(rtac is_chain_iterate 1),
+	(rtac allI 1),
+	(rtac (stream_finite_ind RS spec) 1),
+	(REPEAT (resolve_tac prems 1)),
+	(REPEAT (atac 1))
+	]);
+
+(* prove induction with usual LCF-Method using fixed point induction *)
 val stream_ind = prove_goal Stream.thy
 "[|adm(P);\
 \  P(UU);\
@@ -439,6 +463,7 @@ val stream_ind = prove_goal Stream.thy
 	(REPEAT (resolve_tac prems 1)),
 	(REPEAT (atac 1))
 	]);
+
 
 (* ------------------------------------------------------------------------*)
 (* simplify use of Co-induction                                            *)

@@ -68,15 +68,17 @@ val dist_eq_one = dist_eq_one @ (map (fn thm => (thm RS not_sym)) dist_eq_one);
 (* one is flat                                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw One.thy [flat_def] "flat(one)";
-by (rtac allI 1);
-by (rtac allI 1);
-by (res_inst_tac [("p","x")] oneE 1);
-by (asm_simp_tac ccc1_ss  1);
-by (res_inst_tac [("p","y")] oneE 1);
-by (asm_simp_tac (ccc1_ss addsimps dist_less_one) 1);
-by (asm_simp_tac ccc1_ss  1);
-val flat_one = result();
+val flat_one = prove_goalw One.thy [flat_def] "flat(one)"
+ (fn prems =>
+	[
+	(rtac allI 1),
+	(rtac allI 1),
+	(res_inst_tac [("p","x")] oneE 1),
+	(asm_simp_tac ccc1_ss  1),
+	(res_inst_tac [("p","y")] oneE 1),
+	(asm_simp_tac (ccc1_ss addsimps dist_less_one) 1),
+	(asm_simp_tac ccc1_ss  1)
+	]);
 
 
 (* ------------------------------------------------------------------------ *)

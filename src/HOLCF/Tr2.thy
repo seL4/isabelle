@@ -20,6 +20,10 @@ consts
 
         "neg"           :: "tr -> tr"
 
+translations "x andalso y" => "trand[x][y]"
+             "x orelse y"  => "tror[x][y]"
+             "If b then e1 else e2 fi" => "Icifte[b][e1][e2]"
+              
 rules
 
   ifte_def    "Icifte == (LAM t e1 e2.tr_when[e1][e2][t])"
@@ -28,28 +32,6 @@ rules
   neg_def     "neg == (LAM t. tr_when[FF][TT][t])"
 
 end
-
-ML
-
-(* ----------------------------------------------------------------------*)
-(* translations for the above mixfixes                                   *)
-(* ----------------------------------------------------------------------*)
-
-fun ciftetr ts =
-	let val Cfapp = Const("fapp",dummyT) in	
-	Cfapp $ 
-	   	(Cfapp $
-			(Cfapp$Const("Icifte",dummyT)$(nth_elem (0,ts)))$
-		(nth_elem (1,ts)))$
-	(nth_elem (2,ts))
-	end;
-
-
-val parse_translation = [("@andalso",mk_cinfixtr "@andalso"),
-			("@orelse",mk_cinfixtr "@orelse"),
-			("@cifte",ciftetr)];
-
-val print_translation = [];
 
 
 

@@ -9,10 +9,10 @@ Lemmas for Holcfb.thy
 open Holcfb;
 
 (* ------------------------------------------------------------------------ *)
-(* <::nat=>nat=>bool is well-founded                                        *)
+(* <::nat=>nat=>bool is a well-ordering                                     *)
 (* ------------------------------------------------------------------------ *)
 
-val well_founded_nat = prove_goal  Nat.thy 
+val well_ordering_nat = prove_goal  Nat.thy 
 	"!P. P(x::nat) --> (? y. P(y) & (! x. P(x) --> y <= x))"
  (fn prems =>
 	[
@@ -45,7 +45,7 @@ val theleast = prove_goalw  Holcfb.thy [theleast_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rtac (well_founded_nat RS spec RS mp RS exE) 1),
+	(rtac (well_ordering_nat RS spec RS mp RS exE) 1),
 	(atac 1),
 	(rtac selectI 1),
 	(atac 1)
@@ -149,4 +149,22 @@ val classical2 = prove_goal HOL.thy "[|Q ==> R; ~Q ==> R|]==>R"
 
 val classical3 = (notE RS notI);
 (* [| ?P ==> ~ ?P1; ?P ==> ?P1 |] ==> ~ ?P *)
+
+
+val nat_less_cases = prove_goal Nat.thy 
+    "[| (m::nat) < n ==> P(n,m); m=n ==> P(n,m);n < m ==> P(n,m)|]==>P(n,m)"
+( fn prems =>
+	[
+	(res_inst_tac [("m1","n"),("n1","m")] (less_linear RS disjE) 1),
+	(etac disjE 2),
+	(etac (hd (tl (tl prems))) 1),
+	(etac (sym RS hd (tl prems)) 1),
+	(etac (hd prems) 1)
+	]);
+
+
+
+
+
+
 

@@ -3,27 +3,17 @@
     Author: 	Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Introduve atomic type one = (void)u
+Introduce atomic type one = (void)u
 
-This is the first type that is introduced using a domain isomorphism.
-The type axiom 
+The type is axiomatized as the least solution of a domain equation.
+The functor term that specifies the domain equation is: 
 
-	arities one :: pcpo
+  FT = <U,K_{void}>
 
-and the continuity of the Isomorphisms are taken for granted. Since the
-type is not recursive, it could be easily introduced in a purely conservative
-style as it was used for the types sprod, ssum, lift. The definition of the 
-ordering is canonical using abstraction and representation, but this would take
-again a lot of internal constants. It can easily be seen that the axioms below
-are consistent.
+For details see chapter 5 of:
 
-The partial ordering on type one is implicitly defined via the
-isomorphism axioms and the continuity of abs_one and rep_one.
-
-We could also introduce the function less_one with definition
-
-less_one(x,y) = rep_one[x] << rep_one[y]
-
+[Franz Regensburger] HOLCF: Eine konservative Erweiterung von HOL um LCF,
+                     Dissertation, Technische Universit"at M"unchen, 1994
 
 *)
 

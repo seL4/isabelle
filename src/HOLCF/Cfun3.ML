@@ -17,11 +17,11 @@ val contlub_fapp1 = prove_goal Cfun3.thy "contlub(fapp)"
 	(strip_tac 1),
 	(rtac (expand_fun_eq RS iffD2) 1),
 	(strip_tac 1),
-	(rtac (lub_cfun RS thelubI RS ssubst) 1),
+	(rtac (thelub_cfun RS ssubst) 1),
 	(atac 1),
 	(rtac (Cfunapp2 RS ssubst) 1),
 	(etac contX_lubcfun 1),
-	(rtac (lub_fun RS thelubI RS ssubst) 1),
+	(rtac (thelub_fun RS ssubst) 1),
 	(etac (monofun_fapp1 RS ch2ch_monofun) 1),
 	(rtac refl 1)
 	]);

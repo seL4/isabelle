@@ -55,7 +55,7 @@ use_thy "ccc1";
 use_thy "One";
 use_thy "Tr1";
 use_thy "Tr2";
-
+ 
 use_thy "HOLCF";
 
 use_thy "Dnat";
@@ -63,7 +63,6 @@ use_thy "Dnat2";
 use_thy "Stream";
 use_thy "Stream2";
 use_thy "Dlist";
-
 
 use "../Pure/install_pp.ML";
 print_depth 8;  

@@ -3,7 +3,17 @@
     Author: 	Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Theory for the domain of natural numbers
+Theory for the domain of natural numbers  dnat = one ++ dnat
+
+The type is axiomatized as the least solution of the domain equation above.
+The functor term that specifies the domain equation is: 
+
+  FT = <++,K_{one},I>
+
+For details see chapter 5 of:
+
+[Franz Regensburger] HOLCF: Eine konservative Erweiterung von HOL um LCF,
+                     Dissertation, Technische Universit"at M"unchen, 1994
 
 *)
 
@@ -44,8 +54,9 @@ rules
 (* axiomatization of recursive type dnat                                   *)
 (* ----------------------------------------------------------------------- *)
 (* (dnat,dnat_abs) is the initial F-algebra where                          *)
-(* F is the locally continuous functor determined by domain equation       *)
-(* X = one ++ X                                                            *)
+(* F is the locally continuous functor determined by functor term FT.      *)
+(* domain equation: dnat = one ++ dnat                                     *)
+(* functor term:    FT = <++,K_{one},I>                                    *) 
 (* ----------------------------------------------------------------------- *)
 (* dnat_abs is an isomorphism with inverse dnat_rep                        *)
 (* identity is the least endomorphism on dnat                              *)

@@ -3,22 +3,17 @@
     Author: 	Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Introduve the domain of truth values tr = {UU,TT,FF}
+Introduce the domain of truth values tr = one ++ one
 
-This type is introduced using a domain isomorphism.
+The type is axiomatized as the least solution of a domain equation.
+The functor term that specifies the domain equation is: 
 
-The type axiom 
+  FT = <++,K_{one},K_{one}>
 
-	arities tr :: pcpo
+For details see chapter 5 of:
 
-and the continuity of the Isomorphisms are taken for granted. Since the
-type is not recursive, it could be easily introduced in a purely conservative
-style as it was used for the types sprod, ssum, lift. The definition of the 
-ordering is canonical using abstraction and representation, but this would take
-again a lot of internal constants. It can be easily seen that the axioms below
-are consistent.
-
-Partial Ordering is implicit in isomorphims abs_tr,rep_tr and their continuity
+[Franz Regensburger] HOLCF: Eine konservative Erweiterung von HOL um LCF,
+                     Dissertation, Technische Universit"at M"unchen, 1994
 
 *)
 
