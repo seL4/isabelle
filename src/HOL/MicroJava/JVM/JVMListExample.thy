@@ -72,10 +72,10 @@ constdefs
         Load 0,
         Load 1,
         Invoke list_name append_name [Class list_name],
+        Pop,
         Load 0,
         Load 2,
         Invoke list_name append_name [Class list_name],
-        LitPush Unit,
         Return]"
 
   test_class :: "jvm_method class"

@@ -37,11 +37,10 @@ consts
 wtl_inst_list :: "'a list \<Rightarrow> 's certificate \<Rightarrow> 's binop \<Rightarrow> 's ord \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow>
                   's step_type \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's"
 primrec
-"wtl_inst_list []      cert f r T B step pc s = s"
-"wtl_inst_list (i#ins) cert f r T B step pc s = 
+"wtl_inst_list []     cert f r T B step pc s = s"
+"wtl_inst_list (i#is) cert f r T B step pc s = 
     (let s' = wtl_cert cert f r T B step pc s in
-      if s' = T \<or> s = T then T else wtl_inst_list ins cert f r T B step (pc+1) s')"
-
+      if s' = T \<or> s = T then T else wtl_inst_list is cert f r T B step (pc+1) s')"
 
 constdefs
   cert_ok :: "'s certificate \<Rightarrow> nat \<Rightarrow> 's \<Rightarrow> 's \<Rightarrow> 's set \<Rightarrow> bool"

@@ -24,9 +24,9 @@ axioms
   distinct_classes: "list_nam \<noteq> test_nam"
   distinct_fields:  "val_nam \<noteq> next_nam"
 
-text {* Shorthands for definitions we will have to use often in the
+text {* Abbreviations for definitions we will have to use often in the
 proofs below: *}
-lemmas name_defs   = list_name_def test_name_def val_name_def next_name_def
+lemmas name_defs   = list_name_def test_name_def val_name_def next_name_def 
 lemmas system_defs = SystemClasses_def ObjectC_def NullPointerC_def 
                      OutOfMemoryC_def ClassCastC_def
 lemmas class_defs  = list_class_def test_class_def
@@ -306,10 +306,10 @@ constdefs
     (                               [list], [OK list, OK list, OK list]),
     (                         [list, list], [OK list, OK list, OK list]),
     (                         [PrimT Void], [OK list, OK list, OK list]),
-    (                   [list, PrimT Void], [OK list, OK list, OK list]),
-    (             [list, list, PrimT Void], [OK list, OK list, OK list]),
-    (             [PrimT Void, PrimT Void], [OK list, OK list, OK list]),
-    ( [PrimT Void, PrimT Void, PrimT Void], [OK list, OK list, OK list])]"
+    (                                   [], [OK list, OK list, OK list]),
+    (                               [list], [OK list, OK list, OK list]),
+    (                         [list, list], [OK list, OK list, OK list]),
+    (                         [PrimT Void], [OK list, OK list, OK list])]"
 
 lemma wt_makelist [simp]:
   "wt_method E test_name [] (PrimT Void) 3 2 make_list_ins [] \<phi>\<^sub>m"
@@ -336,29 +336,29 @@ lemma wt_makelist [simp]:
   apply (simp add: match_exception_entry_def) 
   apply simp
   apply (simp add: app_def xcpt_app_def)
+  apply simp 
   apply simp
   apply simp
-  apply (simp add: app_def xcpt_app_def)
-  apply simp
+  apply (simp add: app_def xcpt_app_def) 
   apply simp
   done
 
 text {* The whole program is welltyped: *}
 constdefs 
   Phi :: prog_type ("\<Phi>")
-  "\<Phi> C sig \<equiv> if C = test_name \<and> sig = (makelist_name, []) then \<phi>\<^sub>m else
-              if C = list_name \<and> sig = (append_name, [Class list_name]) then \<phi>\<^sub>a else []"
+  "\<Phi> C sg \<equiv> if C = test_name \<and> sg = (makelist_name, []) then \<phi>\<^sub>m else          
+             if C = list_name \<and> sg = (append_name, [Class list_name]) then \<phi>\<^sub>a else []"
   
 lemma wf_prog:
-  "wt_jvm_prog E \<Phi>"
+  "wt_jvm_prog E \<Phi>" 
   apply (unfold wt_jvm_prog_def)
   apply (rule wf_mb'E [OF wf_struct])
   apply (simp add: E_def)
   apply clarify
   apply (fold E_def)
-  apply (simp add: system_defs class_defs Phi_def)
+  apply (simp add: system_defs class_defs Phi_def) 
   apply auto
-  done
+  done 
 
 
 section "Conformance"
@@ -443,7 +443,7 @@ lemmas [code] =
 
 lemmas [code ind] = rtrancl_refl converse_rtrancl_into_rtrancl
 
-generate_code
+generate_code 
   test1 = "test_kil E list_name [Class list_name] (PrimT Void) 3 0
     [(Suc 0, 2, 8, Xcpt NullPointer)] append_ins"
   test2 = "test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
