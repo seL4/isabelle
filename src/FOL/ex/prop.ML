@@ -11,66 +11,66 @@ writeln"File FOL/ex/prop.";
 
 
 writeln"commutative laws of & and | ";
-goal thy "P & Q  -->  Q & P";
+Goal "P & Q  -->  Q & P";
 by tac;
 result();
 
-goal thy "P | Q  -->  Q | P";
+Goal "P | Q  -->  Q | P";
 by tac;
 result();
 
 
 writeln"associative laws of & and | ";
-goal thy "(P & Q) & R  -->  P & (Q & R)";
+Goal "(P & Q) & R  -->  P & (Q & R)";
 by tac;
 result();
 
-goal thy "(P | Q) | R  -->  P | (Q | R)";
+Goal "(P | Q) | R  -->  P | (Q | R)";
 by tac;
 result();
 
 
 
 writeln"distributive laws of & and | ";
-goal thy "(P & Q) | R  --> (P | R) & (Q | R)";
+Goal "(P & Q) | R  --> (P | R) & (Q | R)";
 by tac;
 result();
 
-goal thy "(P | R) & (Q | R)  --> (P & Q) | R";
+Goal "(P | R) & (Q | R)  --> (P & Q) | R";
 by tac;
 result();
 
-goal thy "(P | Q) & R  --> (P & R) | (Q & R)";
+Goal "(P | Q) & R  --> (P & R) | (Q & R)";
 by tac;
 result();
 
 
-goal thy "(P & R) | (Q & R)  --> (P | Q) & R";
+Goal "(P & R) | (Q & R)  --> (P | Q) & R";
 by tac;
 result();
 
 
 writeln"Laws involving implication";
 
-goal thy "(P-->R) & (Q-->R) <-> (P|Q --> R)";
+Goal "(P-->R) & (Q-->R) <-> (P|Q --> R)";
 by tac;
 result();
 
 
-goal thy "(P & Q --> R) <-> (P--> (Q-->R))";
+Goal "(P & Q --> R) <-> (P--> (Q-->R))";
 by tac;
 result();
 
 
-goal thy "((P-->R)-->R) --> ((Q-->R)-->R) --> (P&Q-->R) --> R";
+Goal "((P-->R)-->R) --> ((Q-->R)-->R) --> (P&Q-->R) --> R";
 by tac;
 result();
 
-goal thy "~(P-->R) --> ~(Q-->R) --> ~(P&Q-->R)";
+Goal "~(P-->R) --> ~(Q-->R) --> ~(P&Q-->R)";
 by tac;
 result();
 
-goal thy "(P --> Q & R) <-> (P-->Q)  &  (P-->R)";
+Goal "(P --> Q & R) <-> (P-->Q)  &  (P-->R)";
 by tac;
 result();
 
@@ -78,22 +78,22 @@ result();
 writeln"Propositions-as-types";
 
 (*The combinator K*)
-goal thy "P --> (Q --> P)";
+Goal "P --> (Q --> P)";
 by tac;
 result();
 
 (*The combinator S*)
-goal thy "(P-->Q-->R)  --> (P-->Q) --> (P-->R)";
+Goal "(P-->Q-->R)  --> (P-->Q) --> (P-->R)";
 by tac;
 result();
 
 
 (*Converse is classical*)
-goal thy "(P-->Q) | (P-->R)  -->  (P --> Q | R)";
+Goal "(P-->Q) | (P-->R)  -->  (P --> Q | R)";
 by tac;
 result();
 
-goal thy "(P-->Q)  -->  (~Q --> ~P)";
+Goal "(P-->Q)  -->  (~Q --> ~P)";
 by tac;
 result();
 
@@ -101,39 +101,39 @@ result();
 writeln"Schwichtenberg's examples (via T. Nipkow)";
 
 (* stab-imp *)
-goal thy "(((Q-->R)-->R)-->Q) --> (((P-->Q)-->R)-->R)-->P-->Q";
+Goal "(((Q-->R)-->R)-->Q) --> (((P-->Q)-->R)-->R)-->P-->Q";
 by tac;
 result();
 
 (* stab-to-peirce *)
-goal thy "(((P --> R) --> R) --> P) --> (((Q --> R) --> R) --> Q) \
+Goal "(((P --> R) --> R) --> P) --> (((Q --> R) --> R) --> Q) \
 \             --> ((P --> Q) --> P) --> P";
 by tac;
 result();
 
 (* peirce-imp1 *)
-goal thy "(((Q --> R) --> Q) --> Q) \
+Goal "(((Q --> R) --> Q) --> Q) \
 \              --> (((P --> Q) --> R) --> P --> Q) --> P --> Q";
 by tac;
 result();
   
 (* peirce-imp2 *)
-goal thy "(((P --> R) --> P) --> P) --> ((P --> Q --> R) --> P) --> P";
+Goal "(((P --> R) --> P) --> P) --> ((P --> Q --> R) --> P) --> P";
 by tac;
 result();
 
 (* mints  *)
-goal thy "((((P --> Q) --> P) --> P) --> Q) --> Q";
+Goal "((((P --> Q) --> P) --> P) --> Q) --> Q";
 by tac;
 result();
 
 (* mints-solovev *)
-goal thy "(P --> (Q --> R) --> Q) --> ((P --> Q) --> R) --> R";
+Goal "(P --> (Q --> R) --> Q) --> ((P --> Q) --> R) --> R";
 by tac;
 result();
 
 (* tatsuta *)
-goal thy "(((P7 --> P1) --> P10) --> P4 --> P5) \
+Goal "(((P7 --> P1) --> P10) --> P4 --> P5) \
 \         --> (((P8 --> P2) --> P9) --> P3 --> P10) \
 \         --> (P1 --> P8) --> P6 --> P7 \
 \         --> (((P3 --> P2) --> P9) --> P4) \
@@ -142,7 +142,7 @@ by tac;
 result();
 
 (* tatsuta1 *)
-goal thy "(((P8 --> P2) --> P9) --> P3 --> P10) \
+Goal "(((P8 --> P2) --> P9) --> P3 --> P10) \
 \    --> (((P3 --> P2) --> P9) --> P4) \
 \    --> (((P6 --> P1) --> P2) --> P9) \
 \    --> (((P7 --> P1) --> P10) --> P4 --> P5) \

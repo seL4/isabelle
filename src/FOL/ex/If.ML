@@ -21,7 +21,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "ifE";
 
 
-goal If.thy
+Goal
     "if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))";
 by (rtac iffI 1);
 by (etac ifE 1);
@@ -36,7 +36,7 @@ by (Blast_tac 1);
 qed "if_commute";
 
 
-goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
+Goal "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
 by (Blast_tac 1);
 qed "nested_ifs";
 
@@ -47,7 +47,7 @@ result();
 
 
 (*An invalid formula.  High-level rules permit a simpler diagnosis*)
-goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
+Goal "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
 by (Blast_tac 1) handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1; 
