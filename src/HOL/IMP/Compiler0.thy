@@ -215,18 +215,24 @@ text {*
   Second proof; statement is generalized to cater for prefixes and suffixes;
   needs none of the lifting lemmas, but instantiations of pre/suffix.
   *}
-theorem "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t \<Longrightarrow> 
-  !a z. a@compile c@z \<turnstile> \<langle>s,length a\<rangle> -*\<rightarrow> \<langle>t,length a + length(compile c)\<rangle>";
-apply(erule evalc.induct)
-      apply simp
-     apply(force intro!: ASIN)
-    apply(intro strip)
-    apply(erule_tac x = a in allE)
-    apply(erule_tac x = "a@compile c0" in allE)
-    apply(erule_tac x = "compile c1@z" in allE)
-    apply(erule_tac x = z in allE)
-    apply(simp add:add_assoc[THEN sym])
-    apply(blast intro:rtrancl_trans)
+
+theorem assumes A: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
+shows "\<And>a z. a@compile c@z \<turnstile> \<langle>s,size a\<rangle> -*\<rightarrow> \<langle>t,size a + size(compile c)\<rangle>"
+      (is "\<And>a z. ?P c s t a z")
+proof -
+  from A show "\<And>a z. ?thesis a z"
+  proof induct
+    case Skip thus ?case by simp
+  next
+    case Assign thus ?case by (force intro!: ASIN)
+  next
+    fix c1 c2 s s' s'' a z
+    assume IH1: "\<And>a z. ?P c1 s s' a z" and IH2: "\<And>a z. ?P c2 s' s'' a z"
+    from IH1 IH2[of "a@compile c1"]
+    show "?P (c1;c2) s s'' a z"
+      by(simp add:add_assoc[THEN sym])(blast intro:rtrancl_trans)
+  next
+(* at this point I gave up converting to structured proofs *)
 (* \<IF> b \<THEN> c0 \<ELSE> c1; case b is true *)
    apply(intro strip)
    (* instantiate assumption sufficiently for later: *)
