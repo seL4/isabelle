@@ -40,6 +40,9 @@ internally;
 
 * Isar: changed syntax of local blocks from {{ }} to { };
 
+* ML: renamed flags Syntax.trace_norm_ast to Syntax.trace_ast; global
+timing flag supersedes proof_timing and Toplevel.trace;
+
 * ML: PureThy.add_thms/add_axioms/add_defs return theorems as well;
 
 * LaTeX: several improvements of isabelle.sty;
@@ -192,6 +195,9 @@ hiding of names;
 
 * compression of ML heaps images may now be controlled via -c option
 of isabelle and isatool usedir (currently only observed by Poly/ML);
+
+* ML: renamed flags Syntax.trace_norm_ast to Syntax.trace_ast; global
+timing flag supersedes proof_timing and Toplevel.trace;
 
 * ML: new combinators |>> and |>>> for incremental transformations
 with secondary results (e.g. certain theory extensions):
