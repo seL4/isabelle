@@ -93,13 +93,16 @@ if [ -z "$BATCH" ]; then
   echo
   echo "Please check $ISABELLE_HOME/etc/settings"
   [ -f $ISABELLE_HOME_USER/etc/settings ] && echo "AND $ISABELLE_HOME_USER/etc/settings"
-  echo "to make sure that Isabelle's ML system settings are appropriate."
+  echo "to make sure that Isabelle's ML system settings and compilation options"
+  echo "are appropriate."
   echo
-  echo "Your current values are:"
+  echo "The current values are:"
   echo
   echo "  ML_SYSTEM=$ML_SYSTEM"
   echo "  ML_HOME=$ML_HOME"
   echo "  ML_OPTIONS=$ML_OPTIONS"
+  echo
+  echo "  ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
 fi
 
 
