@@ -17,9 +17,12 @@ end;
 signature PRINTER =
 sig
   include PRINTER0
-  val term_to_ast: (string -> (typ -> term list -> term) option) -> term -> Ast.ast
-  val typ_to_ast: (string -> (typ -> term list -> term) option) -> typ -> Ast.ast
-  val sort_to_ast: (string -> (typ -> term list -> term) option) -> sort -> Ast.ast
+  val term_to_ast: (string -> (bool -> typ -> term list -> term) option)
+    -> term -> Ast.ast
+  val typ_to_ast: (string -> (bool -> typ -> term list -> term) option)
+    -> typ -> Ast.ast
+  val sort_to_ast: (string -> (bool -> typ -> term list -> term) option)
+    -> sort -> Ast.ast
   type prtabs
   val empty_prtabs: prtabs
   val extend_prtabs: prtabs -> string -> SynExt.xprod list -> prtabs
@@ -57,6 +60,8 @@ fun apply_trans name a f args =
     Match => raise Match
   | exn => (writeln ("Error in " ^ name ^ " for " ^ quote a); raise exn));
 
+fun uncurry3 f (x, y, z) = f x y z;
+
 
 (* simple_ast_of *)
 
@@ -87,7 +92,8 @@ fun ast_of_termT trf tm =
       | ast_of t = raise TERM ("ast_of_termT: bad term encoding of type", [t])
     and trans a args =
       (case trf a of
-        Some f => ast_of (apply_trans "print translation" a (uncurry f) (dummyT, args))
+        Some f => ast_of (apply_trans "print translation" a (uncurry3 f)
+          (false, dummyT, args))
       | None => raise Match)
           handle Match => mk_appl (Constant a) (map ast_of args);
   in
@@ -144,7 +150,9 @@ fun ast_of_term trf no_freeTs show_types show_sorts tm =
 
     and trans a T args =
       (case trf a of
-        Some f => ast_of (apply_trans "print translation" a (uncurry f) (T, args))
+        Some f =>
+          ast_of (apply_trans "print translation" a (uncurry3 f)
+            (show_sorts, T, args))
       | None => raise Match)
           handle Match => mk_appl (Constant a) (map ast_of args)
 
@@ -155,7 +163,7 @@ fun ast_of_term trf no_freeTs show_types show_sorts tm =
       else simple_ast_of t
   in
     tm
-    |> prop_tr' show_sorts
+    |> prop_tr'
     |> (if show_types then #1 o prune_typs o rpair [] else I)
     |> mark_freevars
     |> ast_of
