@@ -123,6 +123,8 @@ qed_goalw "notI" HOL.thy [not_def] "(P ==> False) ==> ~P"
 qed_goalw "notE" HOL.thy [not_def] "[| ~P;  P |] ==> R"
  (fn prems => [rtac (prems MRS mp RS FalseE) 1]);
 
+bind_thm ("classical2", notE RS notI);
+
 qed_goal "rev_notE" HOL.thy "!!P R. [| P; ~P |] ==> R"
  (fn _ => [REPEAT (ares_tac [notE] 1)]);
 
@@ -343,6 +345,12 @@ in trans funs end;
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())
   in bind_thm(name, thm) end;
+
+fun qed_goal_spec_mp name thy s p = 
+	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goal thy s p));
+
+fun qed_goalw_spec_mp name thy defs s p = 
+	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goalw thy defs s p));
 
 end;
 
