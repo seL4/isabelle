@@ -50,7 +50,6 @@ by (rtac LeadsTo_weaken_R 1);
 by (res_inst_tac [("f", "NF"), ("l","Suc m"), ("B","{}")] 
     GreaterThan_bounded_induct 1);
 by (auto_tac (claset(), simpset() addsimps [vimage_def]));
-by (trans_tac 2);
 (*The inductive step: LeadsTo (Join prgF prgG) {x. NF x = ma} {x. ma < NF x}*)
 by (rtac LeadsTo_Diff 1);
 by (rtac lemma2_2 2);

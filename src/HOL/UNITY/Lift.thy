@@ -27,25 +27,44 @@ constdefs
   
   (** Abbreviations: the "always" part **)
   
-  above :: "state set"
+  above :: state set
     "above == {s. EX i. floor s < i & i <= max & i : req s}"
 
-  below :: "state set"
+  below :: state set
     "below == {s. EX i. min <= i & i < floor s & i : req s}"
 
-  queueing :: "state set"
+  queueing :: state set
     "queueing == above Un below"
 
-  goingup :: "state set"
+  goingup :: state set
     "goingup == above Int ({s. up s} Un Compl below)"
 
-  goingdown :: "state set"
+  goingdown :: state set
     "goingdown == below Int ({s. ~ up s} Un Compl above)"
 
-  ready :: "state set"
+  ready :: state set
     "ready == {s. stop s & ~ open s & move s}"
 
+ 
+  (** Further abbreviations **)
 
+  moving :: state set
+    "moving ==  {s. ~ stop s & ~ open s}"
+
+  stopped :: state set
+    "stopped == {s. stop s  & ~ open s &  move s}"
+
+  opened :: state set
+    "opened ==  {s. stop s  &  open s  &  move s}"
+
+  closed :: state set
+    "closed ==  {s. stop s  & ~ open s &  move s}"
+
+  atFloor :: nat => state set
+    "atFloor n ==  {s. floor s = n}"
+
+
+  
   (** The program **)
   
   request_act :: "(state*state) set"
@@ -99,11 +118,6 @@ constdefs
   bounded :: state set
     "bounded == {s. min <= floor s & floor s <= max}"
 
-  (** ???
-		    (~ stop s & up s --> floor s < max) &
-		    (~ stop s & ~ up s --> min < floor s)}"
-  **)
-
   open_stop :: state set
     "open_stop == {s. open s --> stop s}"
   
@@ -121,7 +135,8 @@ constdefs
     "moving_down == {s. ~ stop s & ~ up s -->
                      (EX f. min <= f & f <= floor s & f : req s)}"
   
-  valid :: "state set"
+  (*intersection of all invariants: NECESSARY??*)
+  valid :: state set
     "valid == bounded Int open_stop Int open_move"
 
 end

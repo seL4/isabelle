@@ -33,10 +33,18 @@ Addsimps [bounded_def, open_stop_def, open_move_def, stop_floor_def,
 	  moving_up_def, moving_down_def];
 
 
+val nat_exhaust_less_pred = 
+    read_instantiate_sg (sign_of thy) [("P", "?m < ?y-1")] nat.exhaust;
+
+val nat_exhaust_le_pred = 
+    read_instantiate_sg (sign_of thy) [("P", "?m <= ?y-1")] nat.exhaust;
+
+val nat_exhaust_pred_le = 
+    read_instantiate_sg (sign_of thy) [("P", "?y-1 <= ?m")] nat.exhaust;
+
 Goal "0 < n ==> (m <= n-1) = (m<n)";
 by (exhaust_tac "n" 1);
 by Auto_tac;
-by (REPEAT_FIRST trans_tac);
 qed "le_pred_eq";
 
 Goal "m < n ==> m <= n-1";
@@ -82,57 +90,44 @@ by (auto_tac (claset(),
 qed "moving_down";
 
 
-xxxxxxxxxxxxxxxx;
-
-Goalw [Lprg_def] "Invariant Lprg bounded";
+Goal "Invariant Lprg bounded";
 by (rtac InvariantI 1);
+br (Invariant_Int_rule [moving_up, moving_down] RS Invariant_StableI) 2;
+bw Lprg_def;
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [gr_implies_gr0 RS le_pred_eq])));
-by (REPEAT_FIRST trans_tac);
-by (blast_tac (claset() addIs [diff_le_self, le_trans]) 1);
-by (blast_tac (claset() addIs [diff_le_self, le_trans]) 1);
-by (blast_tac (claset() addIs [diff_le_self, le_trans]) 3);
+by (TRYALL (resolve_tac [nat_exhaust_le_pred, nat_exhaust_pred_le]));
+by (auto_tac (claset(), simpset() addsimps [less_Suc_eq]));
+by (auto_tac (claset(), simpset() addsimps [less_Suc_eq, le_eq_less_or_eq]));
 qed "bounded";
 
-Goalw [Lprg_def] "Invariant Lprg invariantV";
-by (rtac InvariantI 1);
-by (constrains_tac cmd_defs 2);
-by Auto_tac;
-qed "invariantV";
-
-val invariantUV = invariant_Int_rule [invariantU, invariantV];
 
 
-(*The safety property: mutual exclusion*)
-Goal "(reachable Lprg) Int {s. MM s = 3 & NN s = 3} = {}";
-by (cut_facts_tac [invariantUV RS invariant_includes_reachable] 1);
-by Auto_tac;
-qed "mutual_exclusion";
+(*** Progress ***)
 
 
-(*** Progress for U ***)
+val abbrev_defs = [moving_def, stopped_def, 
+		   opened_def, closed_def, atFloor_def];
 
-Goalw [unless_def] "unless (Acts Lprg) {s. MM s=2} {s. MM s=3}";
-by (constrains_tac cmd_defs 1);
-qed "U_F0";
+val defs = cmd_defs@always_defs@abbrev_defs;
 
-Goal "LeadsTo Lprg {s. MM s=1} {s. PP s = VV s & MM s = 2}";
-by (ensures_tac cmd_defs "cmd1U" 1);
+(***
+
+Goal "LeadsTo Lprg (stopped Int atFloor n) (opened Int atFloor n)";
+by (ensures_tac defs "open_act" 1);
 qed "U_F1";
 
 Goal "LeadsTo Lprg {s. ~ PP s & MM s = 2} {s. MM s = 3}";
 by (cut_facts_tac [invariantUV] 1);
 by (rewtac Lprg_def);
-by (ensures_tac cmd_defs "cmd2U" 1);
+by (ensures_tac defs "cmd2U" 1);
 qed "U_F2";
 
 Goal "LeadsTo Lprg {s. MM s = 3} {s. PP s}";
 by (rtac leadsTo_imp_LeadsTo 1); 
 by (res_inst_tac [("B", "{s. MM s = 4}")] leadsTo_Trans 1);
-by (ensures_tac cmd_defs "cmd4U" 2);
-by (ensures_tac cmd_defs "cmd3U" 1);
+by (ensures_tac defs "cmd4U" 2);
+by (ensures_tac defs "cmd3U" 1);
 qed "U_F3";
 
 Goal "LeadsTo Lprg {s. MM s = 2} {s. PP s}";
@@ -142,3 +137,4 @@ by (rtac ([U_F2, U_F3] MRS LeadsTo_Trans) 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 val U_lemma2 = result();
 
+***)

@@ -7,6 +7,9 @@ lessThan, greaterThan, atLeast, atMost
 *)
 
 
+claset_ref() := claset() addaltern ("trans_tac",trans_tac);
+
+
 (*** lessThan ***)
 
 Goalw [lessThan_def] "(i: lessThan k) = (i<k)";

@@ -56,7 +56,6 @@ Goalw [Mprg_def, bad_invariantU_def] "Invariant Mprg bad_invariantU";
 by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac cmd_defs 1);
-by (REPEAT (trans_tac 1));
 by (safe_tac (claset() addSEs [le_SucE]));
 by (Asm_full_simp_tac 1);
 (*Resulting state: n=1, p=false, m=4, u=false.  
