@@ -16,7 +16,6 @@ end;
 signature ATTRIB =
 sig
   include BASIC_ATTRIB
-  val help_attributes: theory option -> Pretty.T list
   exception ATTRIB_FAIL of (string * Position.T) * exn
   val global_attribute: theory -> Args.src -> theory attribute
   val local_attribute: theory -> Args.src -> Proof.context attribute
@@ -63,23 +62,18 @@ struct
       attrs = Symtab.merge eq_snd (attrs1, attrs2) handle Symtab.DUPS dups =>
         error ("Attempt to merge different versions of attributes " ^ commas_quote dups)};
 
-  fun pretty_atts verbose ({space, attrs}) =
+  fun print _ {space, attrs} =
     let
       fun prt_attr (name, ((_, comment), _)) = Pretty.block
         [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     in
-      (if not verbose then [] else [Display.pretty_name_space ("attribute name space", space)]) @
       [Pretty.big_list "attributes:" (map prt_attr (NameSpace.cond_extern_table space attrs))]
+      |> Pretty.chunks |> Pretty.writeln
     end;
-
-   fun print _ = Pretty.writeln o Pretty.chunks o pretty_atts true;
 end;
 
 structure AttributesData = TheoryDataFun(AttributesDataArgs);
 val print_attributes = AttributesData.print;
-
-fun help_attributes None = [Pretty.str "attributes: (unkown theory context)"]
-  | help_attributes (Some thy) = AttributesDataArgs.pretty_atts false (AttributesData.get thy);
 
 
 (* get global / local attributes *)
@@ -276,6 +270,7 @@ fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> Rul
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
 fun elimify x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
+fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 
 fun global_export x = no_args (Drule.rule_attribute (Proof.export_thm o ProofContext.init)) x;
 fun local_export x = no_args (Drule.rule_attribute Proof.export_thm) x;
@@ -298,6 +293,7 @@ val pure_attributes =
   ("fold", (global_fold, local_fold), "fold definitions"),
   ("standard", (standard, standard), "put theorem into standard form"),
   ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
+  ("no_vars", (no_vars, no_vars), "freeze schematic vars"),
   ("case_names", (case_names, case_names), "name rule cases"),
   ("params", (params, params), "name rule parameters"),
   ("export", (global_export, local_export), "export theorem from context")];
