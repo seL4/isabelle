@@ -33,6 +33,7 @@ end
 signature THEORY =
 sig
   include BASIC_THEORY
+  val apply: (theory -> theory) list -> theory -> theory
   val axiomK: string
   val oracleK: string
   (*theory extendsion primitives*)
@@ -43,6 +44,7 @@ sig
   val add_defsort: xsort -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (bstring * int * mixfix) list -> theory -> theory
+  val add_nonterminals: bstring list -> theory -> theory
   val add_tyabbrs: (bstring * string list * string * mixfix) list
     -> theory -> theory
   val add_tyabbrs_i: (bstring * string list * typ * mixfix) list
@@ -72,15 +74,17 @@ sig
   val add_defs: (bstring * string) list -> theory -> theory
   val add_defs_i: (bstring * term) list -> theory -> theory
   val add_path: string -> theory -> theory
+  val parent_path: theory -> theory
+  val root_path: theory -> theory
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
   val init_data: (string * (object * (object -> object) *
     (object * object -> object) * (Sign.sg -> object -> unit))) list -> theory -> theory
   val get_data: theory -> string -> object
   val put_data: string * object -> theory -> theory
-  val setup: (theory -> theory) list -> theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
+  val require: theory -> string -> string -> unit
   val pre_pure: theory
 end;
 
@@ -120,10 +124,17 @@ exception THEORY of string * theory list;
 val subthy = Sign.subsig o pairself sign_of;
 val eq_thy = Sign.eq_sg o pairself sign_of;
 
+(*check for some named theory*)
+fun require thy name what =
+  if exists (equal name) (Sign.stamp_names_of (sign_of thy)) then ()
+  else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
 
-(* partial Pure theory *)
-
+(*partial Pure theory*)
 val pre_pure = make_thy Sign.pre_pure Symtab.empty Symtab.empty [] [];
+
+(*apply transformers*)
+fun apply [] thy = thy
+  | apply (f :: fs) thy = apply fs (f thy);
 
 
 
@@ -172,6 +183,7 @@ val add_classrel_i   = ext_sg Sign.add_classrel_i;
 val add_defsort      = ext_sg Sign.add_defsort;
 val add_defsort_i    = ext_sg Sign.add_defsort_i;
 val add_types        = ext_sg Sign.add_types;
+val add_nonterminals = ext_sg Sign.add_nonterminals;
 val add_tyabbrs      = ext_sg Sign.add_tyabbrs;
 val add_tyabbrs_i    = ext_sg Sign.add_tyabbrs_i;
 val add_arities      = ext_sg Sign.add_arities;
@@ -188,6 +200,8 @@ val add_tokentrfuns  = ext_sg Sign.add_tokentrfuns;
 val add_trrules      = ext_sg Sign.add_trrules;
 val add_trrules_i    = ext_sg Sign.add_trrules_i;
 val add_path         = ext_sg Sign.add_path;
+val parent_path      = add_path "..";
+val root_path        = add_path "/";
 val add_space        = ext_sg Sign.add_space;
 val add_name         = ext_sg Sign.add_name;
 val prep_ext         = ext_sg (K Sign.prep_ext) ();
@@ -384,10 +398,6 @@ val add_defs = ext_defns read_axm;
 fun init_data ds = foldl (op o) (I, map (ext_sg Sign.init_data) ds);
 val get_data = Sign.get_data o sign_of;
 val put_data = ext_sg Sign.put_data;
-
-(*generic setup*)
-fun setup [] thy = thy
-  | setup (f :: fs) thy = setup fs (f thy);
 
 
 
