@@ -889,6 +889,12 @@ apply (induct m, auto)
 apply (case_tac xs, auto)
 done
 
+lemma drop_take: "!!m n. drop n (take m xs) = take (m-n) (drop n xs)"
+apply(induct xs)
+ apply simp
+apply(simp add: take_Cons drop_Cons split:nat.split)
+done
+
 lemma append_take_drop_id [simp]: "!!xs. take n xs @ drop n xs = xs"
 apply (induct n, auto)
 apply (case_tac xs, auto)
