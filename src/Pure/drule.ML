@@ -14,40 +14,50 @@ signature DRULE =
   local open Thm  in
   val asm_rl: thm
   val assume_ax: theory -> string -> thm
+  val cterm_fun: (term -> term) -> (cterm -> cterm)
   val COMP: thm * thm -> thm
   val compose: thm * int * thm -> thm list
-  val cterm_instantiate: (Sign.cterm*Sign.cterm)list -> thm -> thm
+  val cterm_instantiate: (cterm*cterm)list -> thm -> thm
   val cut_rl: thm
-  val equal_abs_elim: Sign.cterm  -> thm -> thm
-  val equal_abs_elim_list: Sign.cterm list -> thm -> thm
+  val equal_abs_elim: cterm  -> thm -> thm
+  val equal_abs_elim_list: cterm list -> thm -> thm
   val eq_sg: Sign.sg * Sign.sg -> bool
   val eq_thm: thm * thm -> bool
   val eq_thm_sg: thm * thm -> bool
-  val flexpair_abs_elim_list: Sign.cterm list -> thm -> thm
-  val forall_intr_list: Sign.cterm list -> thm -> thm
+  val flexpair_abs_elim_list: cterm list -> thm -> thm
+  val forall_intr_list: cterm list -> thm -> thm
   val forall_intr_frees: thm -> thm
-  val forall_elim_list: Sign.cterm list -> thm -> thm
+  val forall_elim_list: cterm list -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
-  val implies_intr_list: Sign.cterm list -> thm -> thm
+  val implies_intr_list: cterm list -> thm -> thm
   val MRL: thm list list * thm list -> thm list
   val MRS: thm list * thm -> thm
-  val print_cterm: Sign.cterm -> unit
-  val print_ctyp: Sign.ctyp -> unit
+  val pprint_cterm: cterm -> pprint_args -> unit
+  val pprint_ctyp: ctyp -> pprint_args -> unit
+  val pprint_sg: Sign.sg -> pprint_args -> unit
+  val pprint_theory: theory -> pprint_args -> unit
+  val pprint_thm: thm -> pprint_args -> unit
+  val pretty_thm: thm -> Sign.Syntax.Pretty.T
+  val print_cterm: cterm -> unit
+  val print_ctyp: ctyp -> unit
   val print_goals: int -> thm -> unit
   val print_goals_ref: (int -> thm -> unit) ref
   val print_sg: Sign.sg -> unit
   val print_theory: theory -> unit
-  val pprint_sg: Sign.sg -> pprint_args -> unit
-  val pprint_theory: theory -> pprint_args -> unit
-  val pretty_thm: thm -> Sign.Syntax.Pretty.T
   val print_thm: thm -> unit
   val prth: thm -> thm
   val prthq: thm Sequence.seq -> thm Sequence.seq
   val prths: thm list -> thm list
+  val read_ctyp: Sign.sg -> string -> ctyp
   val read_instantiate: (string*string)list -> thm -> thm
   val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
+  val read_insts: 
+          Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
+                  -> (indexname -> typ option) * (indexname -> sort option)
+                  -> (string*string)list
+                  -> (indexname*ctyp)list * (cterm*cterm)list
   val reflexive_thm: thm
   val revcut_rl: thm
   val rewrite_goal_rule: bool*bool -> (meta_simpset -> thm -> thm option)
@@ -61,9 +71,10 @@ signature DRULE =
   val show_hyps: bool ref
   val size_of_thm: thm -> int
   val standard: thm -> thm
+  val string_of_cterm: cterm -> string
+  val string_of_ctyp: ctyp -> string
   val string_of_thm: thm -> string
   val symmetric_thm: thm
-  val pprint_thm: thm -> pprint_args -> unit
   val transitive_thm: thm
   val triv_forall_equality: thm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
@@ -81,6 +92,145 @@ local open Thm
 in
 
 (**** More derived rules and operations on theorems ****)
+
+fun cterm_fun f ct =
+ let val {sign,t,...} = rep_cterm ct in cterm_of sign (f t) end;
+
+fun read_ctyp sign = ctyp_of sign o Sign.read_typ(sign, K None);
+
+
+(** reading of instantiations **)
+
+fun indexname cs = case Syntax.scan_varname cs of (v,[]) => v
+        | _ => error("Lexical error in variable name " ^ quote (implode cs));
+
+fun absent ixn =
+  error("No such variable in term: " ^ Syntax.string_of_vname ixn);
+
+fun inst_failure ixn =
+  error("Instantiation of " ^ Syntax.string_of_vname ixn ^ " fails");
+
+fun read_insts sign (rtypes,rsorts) (types,sorts) insts =
+let val {tsig,...} = Sign.rep_sg sign
+    fun split([],tvs,vs) = (tvs,vs)
+      | split((sv,st)::l,tvs,vs) = (case explode sv of
+                  "'"::cs => split(l,(indexname cs,st)::tvs,vs)
+                | cs => split(l,tvs,(indexname cs,st)::vs));
+    val (tvs,vs) = split(insts,[],[]);
+    fun readT((a,i),st) =
+        let val ixn = ("'" ^ a,i);
+            val S = case rsorts ixn of Some S => S | None => absent ixn;
+            val T = Sign.read_typ (sign,sorts) st;
+        in if Type.typ_instance(tsig,T,TVar(ixn,S)) then (ixn,T)
+           else inst_failure ixn
+        end
+    val tye = map readT tvs;
+    fun add_cterm ((cts,tye), (ixn,st)) =
+        let val T = case rtypes ixn of
+                      Some T => typ_subst_TVars tye T
+                    | None => absent ixn;
+            val (ct,tye2) = read_def_cterm (sign,types,sorts) (st,T);
+            val cv = cterm_of sign (Var(ixn,typ_subst_TVars tye2 T))
+        in ((cv,ct)::cts,tye2 @ tye) end
+    val (cterms,tye') = foldl add_cterm (([],tye), vs);
+in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye', cterms) end;
+
+
+(*** Printing of theorems ***)
+
+(*If false, hypotheses are printed as dots*)
+val show_hyps = ref true;
+
+fun pretty_thm th =
+let val {sign, hyps, prop,...} = rep_thm th
+    val hsymbs = if null hyps then []
+		 else if !show_hyps then
+		      [Pretty.brk 2,
+		       Pretty.lst("[","]") (map (Sign.pretty_term sign) hyps)]
+		 else Pretty.str" [" :: map (fn _ => Pretty.str".") hyps @
+		      [Pretty.str"]"];
+in Pretty.blk(0, Sign.pretty_term sign prop :: hsymbs) end;
+
+val string_of_thm = Pretty.string_of o pretty_thm;
+
+val pprint_thm = Pretty.pprint o Pretty.quote o pretty_thm;
+
+
+(** Top-level commands for printing theorems **)
+val print_thm = writeln o string_of_thm;
+
+fun prth th = (print_thm th; th);
+
+(*Print and return a sequence of theorems, separated by blank lines. *)
+fun prthq thseq =
+    (Sequence.prints (fn _ => print_thm) 100000 thseq;
+     thseq);
+
+(*Print and return a list of theorems, separated by blank lines. *)
+fun prths ths = (print_list_ln print_thm ths; ths);
+
+(*Other printing commands*)
+fun pprint_ctyp cT = 
+ let val {sign,T} = rep_ctyp cT in  Sign.pprint_typ sign T  end;
+
+fun string_of_ctyp cT = 
+ let val {sign,T} = rep_ctyp cT in  Sign.string_of_typ sign T  end;
+
+val print_ctyp = writeln o string_of_ctyp;
+
+fun pprint_cterm ct = 
+ let val {sign,t,...} = rep_cterm ct in  Sign.pprint_term sign t  end;
+
+fun string_of_cterm ct = 
+ let val {sign,t,...} = rep_cterm ct in  Sign.string_of_term sign t  end;
+
+val print_cterm = writeln o string_of_cterm;
+
+fun pretty_sg sg = 
+  Pretty.lst ("{", "}") (map (Pretty.str o !) (#stamps (Sign.rep_sg sg)));
+
+val pprint_sg = Pretty.pprint o pretty_sg;
+
+val pprint_theory = pprint_sg o sign_of;
+
+val print_sg = writeln o Pretty.string_of o pretty_sg;
+val print_theory = print_sg o sign_of;
+
+
+(** Print thm A1,...,An/B in "goal style" -- premises as numbered subgoals **)
+
+fun prettyprints es = writeln(Pretty.string_of(Pretty.blk(0,es)));
+
+fun print_goals maxgoals th : unit =
+let val {sign, hyps, prop,...} = rep_thm th;
+    fun printgoals (_, []) = ()
+      | printgoals (n, A::As) =
+	let val prettyn = Pretty.str(" " ^ string_of_int n ^ ". ");
+	    val prettyA = Sign.pretty_term sign A
+	in prettyprints[prettyn,prettyA]; 
+           printgoals (n+1,As) 
+        end;
+    fun prettypair(t,u) =
+        Pretty.blk(0, [Sign.pretty_term sign t, Pretty.str" =?=", Pretty.brk 1,
+		       Sign.pretty_term sign u]);
+    fun printff [] = ()
+      | printff tpairs =
+	 writeln("\nFlex-flex pairs:\n" ^
+		 Pretty.string_of(Pretty.lst("","") (map prettypair tpairs)))
+    val (tpairs,As,B) = Logic.strip_horn(prop);
+    val ngoals = length As
+in 
+   writeln (Sign.string_of_term sign B);
+   if ngoals=0 then writeln"No subgoals!"
+   else if ngoals>maxgoals 
+        then (printgoals (1, take(maxgoals,As));
+	      writeln("A total of " ^ string_of_int ngoals ^ " subgoals..."))
+        else printgoals (1, As);
+   printff tpairs
+end;
+
+(*"hook" for user interfaces: allows print_goals to be replaced*)
+val print_goals_ref = ref print_goals;
 
 (*** Find the type (sort) associated with a (T)Var or (T)Free in a term 
      Used for establishing default types (of variables) and sorts (of
@@ -111,7 +261,7 @@ fun forall_intr_list [] th = th
 fun forall_intr_frees th =
     let val {prop,sign,...} = rep_thm th
     in  forall_intr_list
-         (map (Sign.cterm_of sign) (sort atless (term_frees prop))) 
+         (map (cterm_of sign) (sort atless (term_frees prop))) 
          th
     end;
 
@@ -121,7 +271,7 @@ fun forall_elim_var i th =
     let val {prop,sign,...} = rep_thm th
     in case prop of
 	  Const("all",_) $ Abs(a,T,_) =>
-	      forall_elim (Sign.cterm_of sign (Var((a,i), T)))  th
+	      forall_elim (cterm_of sign (Var((a,i), T)))  th
 	| _ => raise THM("forall_elim_var", i, [th])
     end;
 
@@ -147,12 +297,12 @@ fun zero_var_indexes th =
 	val inrs = add_term_tvars(prop,[]);
 	val nms' = rev(foldl add_new_id ([], map (#1 o #1) inrs));
 	val tye = map (fn ((v,rs),a) => (v, TVar((a,0),rs))) (inrs ~~ nms')
-	val ctye = map (fn (v,T) => (v,Sign.ctyp_of sign T)) tye;
+	val ctye = map (fn (v,T) => (v,ctyp_of sign T)) tye;
 	fun varpairs([],[]) = []
 	  | varpairs((var as Var(v,T)) :: vars, b::bs) =
 		let val T' = typ_subst_TVars tye T
-		in (Sign.cterm_of sign (Var(v,T')),
-		    Sign.cterm_of sign (Var((b,0),T'))) :: varpairs(vars,bs)
+		in (cterm_of sign (Var(v,T')),
+		    cterm_of sign (Var((b,0),T'))) :: varpairs(vars,bs)
 		end
 	  | varpairs _ = raise TERM("varpairs", []);
     in instantiate (ctye, varpairs(vars,rev bs)) th end;
@@ -173,9 +323,9 @@ fun standard th =
 	     [ !(A,P,a)[| ALL x:A. P(x) |] ==> [| P(a) |] ]    *)
 fun assume_ax thy sP =
     let val sign = sign_of thy
-	val prop = Logic.close_form (Sign.term_of (Sign.read_cterm sign
+	val prop = Logic.close_form (term_of (read_cterm sign
 			 (sP, propT)))
-    in forall_elim_vars 0 (assume (Sign.cterm_of sign prop))  end;
+    in forall_elim_vars 0 (assume (cterm_of sign prop))  end;
 
 (*Resolution: exactly one resolvent must be produced.*) 
 fun tha RSN (i,thb) =
@@ -223,8 +373,7 @@ fun tha COMP thb =
 (*Instantiate theorem th, reading instantiations under signature sg*)
 fun read_instantiate_sg sg sinsts th =
     let val ts = types_sorts th;
-        val instpair = Sign.read_insts sg ts ts sinsts
-    in  instantiate instpair th  end;
+    in  instantiate (read_insts sg ts ts sinsts) th  end;
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
 fun read_instantiate sinsts th =
@@ -235,8 +384,8 @@ fun read_instantiate sinsts th =
   Instantiates distinct Vars by terms, inferring type instantiations. *)
 local
   fun add_types ((ct,cu), (sign,tye)) =
-    let val {sign=signt, t=t, T= T, ...} = Sign.rep_cterm ct
-        and {sign=signu, t=u, T= U, ...} = Sign.rep_cterm cu
+    let val {sign=signt, t=t, T= T, ...} = rep_cterm ct
+        and {sign=signu, t=u, T= U, ...} = rep_cterm cu
         val sign' = Sign.merge(sign, Sign.merge(signt, signu))
 	val tye' = Type.unify (#tsig(Sign.rep_sg sign')) ((T,U), tye)
 	  handle Type.TUNIFY => raise TYPE("add_types", [T,U], [t,u])
@@ -246,96 +395,14 @@ fun cterm_instantiate ctpairs0 th =
   let val (sign,tye) = foldr add_types (ctpairs0, (#sign(rep_thm th),[]))
       val tsig = #tsig(Sign.rep_sg sign);
       fun instT(ct,cu) = let val inst = subst_TVars tye
-			 in (Sign.cfun inst ct, Sign.cfun inst cu) end
-      fun ctyp2 (ix,T) = (ix, Sign.ctyp_of sign T)
+			 in (cterm_fun inst ct, cterm_fun inst cu) end
+      fun ctyp2 (ix,T) = (ix, ctyp_of sign T)
   in  instantiate (map ctyp2 tye, map instT ctpairs0) th  end
   handle TERM _ => 
            raise THM("cterm_instantiate: incompatible signatures",0,[th])
        | TYPE _ => raise THM("cterm_instantiate: types", 0, [th])
 end;
 
-
-(*** Printing of theorems ***)
-
-(*If false, hypotheses are printed as dots*)
-val show_hyps = ref true;
-
-fun pretty_thm th =
-let val {sign, hyps, prop,...} = rep_thm th
-    val hsymbs = if null hyps then []
-		 else if !show_hyps then
-		      [Pretty.brk 2,
-		       Pretty.lst("[","]") (map (Sign.pretty_term sign) hyps)]
-		 else Pretty.str" [" :: map (fn _ => Pretty.str".") hyps @
-		      [Pretty.str"]"];
-in Pretty.blk(0, Sign.pretty_term sign prop :: hsymbs) end;
-
-val string_of_thm = Pretty.string_of o pretty_thm;
-
-val pprint_thm = Pretty.pprint o Pretty.quote o pretty_thm;
-
-
-(** Top-level commands for printing theorems **)
-val print_thm = writeln o string_of_thm;
-
-fun prth th = (print_thm th; th);
-
-(*Print and return a sequence of theorems, separated by blank lines. *)
-fun prthq thseq =
-    (Sequence.prints (fn _ => print_thm) 100000 thseq;
-     thseq);
-
-(*Print and return a list of theorems, separated by blank lines. *)
-fun prths ths = (print_list_ln print_thm ths; ths);
-
-(*Other printing commands*)
-val print_cterm = writeln o Sign.string_of_cterm;
-val print_ctyp = writeln o Sign.string_of_ctyp;
-fun pretty_sg sg = 
-  Pretty.lst ("{", "}") (map (Pretty.str o !) (#stamps (Sign.rep_sg sg)));
-
-val pprint_sg = Pretty.pprint o pretty_sg;
-
-val pprint_theory = pprint_sg o sign_of;
-
-val print_sg = writeln o Pretty.string_of o pretty_sg;
-val print_theory = print_sg o sign_of;
-
-
-(** Print thm A1,...,An/B in "goal style" -- premises as numbered subgoals **)
-
-fun prettyprints es = writeln(Pretty.string_of(Pretty.blk(0,es)));
-
-fun print_goals maxgoals th : unit =
-let val {sign, hyps, prop,...} = rep_thm th;
-    fun printgoals (_, []) = ()
-      | printgoals (n, A::As) =
-	let val prettyn = Pretty.str(" " ^ string_of_int n ^ ". ");
-	    val prettyA = Sign.pretty_term sign A
-	in prettyprints[prettyn,prettyA]; 
-           printgoals (n+1,As) 
-        end;
-    fun prettypair(t,u) =
-        Pretty.blk(0, [Sign.pretty_term sign t, Pretty.str" =?=", Pretty.brk 1,
-		       Sign.pretty_term sign u]);
-    fun printff [] = ()
-      | printff tpairs =
-	 writeln("\nFlex-flex pairs:\n" ^
-		 Pretty.string_of(Pretty.lst("","") (map prettypair tpairs)))
-    val (tpairs,As,B) = Logic.strip_horn(prop);
-    val ngoals = length As
-in 
-   writeln (Sign.string_of_term sign B);
-   if ngoals=0 then writeln"No subgoals!"
-   else if ngoals>maxgoals 
-        then (printgoals (1, take(maxgoals,As));
-	      writeln("A total of " ^ string_of_int ngoals ^ " subgoals..."))
-        else printgoals (1, As);
-   printff tpairs
-end;
-
-(*"hook" for user interfaces: allows print_goals to be replaced*)
-val print_goals_ref = ref print_goals;
 
 (** theorem equality test is exported and used by BEST_FIRST **)
 
@@ -363,42 +430,40 @@ val size_of_thm = size_of_term o #prop o rep_thm;
 
 
 val reflexive_thm =
-  let val cx = Sign.cterm_of Sign.pure (Var(("x",0),TVar(("'a",0),["logic"])))
+  let val cx = cterm_of Sign.pure (Var(("x",0),TVar(("'a",0),["logic"])))
   in Thm.reflexive cx end;
 
 val symmetric_thm =
-  let val xy = Sign.read_cterm Sign.pure ("x::'a::logic == y",propT)
+  let val xy = read_cterm Sign.pure ("x::'a::logic == y",propT)
   in standard(Thm.implies_intr_hyps(Thm.symmetric(Thm.assume xy))) end;
 
 val transitive_thm =
-  let val xy = Sign.read_cterm Sign.pure ("x::'a::logic == y",propT)
-      val yz = Sign.read_cterm Sign.pure ("y::'a::logic == z",propT)
+  let val xy = read_cterm Sign.pure ("x::'a::logic == y",propT)
+      val yz = read_cterm Sign.pure ("y::'a::logic == z",propT)
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
   in standard(Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
-(** Below, a "conversion" has type sign->term->thm **)
+(** Below, a "conversion" has type cterm -> thm **)
+
+val refl_cimplies = reflexive (cterm_of Sign.pure implies);
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 (*Do not rewrite flex-flex pairs*)
-fun goals_conv pred cv sign = 
-  let val triv = reflexive o Sign.fake_cterm_of sign
-      fun gconv i t =
-        let val (A,B) = Logic.dest_implies t
-            val (thA,j) = case A of
-                  Const("=?=",_)$_$_ => (triv A,i)
-                | _ => (if pred i then cv sign A else triv A, i+1)
-	in  combination (combination (triv implies) thA) (gconv j B) end
-        handle TERM _ => triv t
+fun goals_conv pred cv = 
+  let fun gconv i ct =
+        let val (A,B) = Thm.dest_cimplies ct
+            val (thA,j) = case term_of A of
+                  Const("=?=",_)$_$_ => (reflexive A, i)
+                | _ => (if pred i then cv A else reflexive A, i+1)
+	in  combination (combination refl_cimplies thA) (gconv j B) end
+        handle TERM _ => reflexive ct
   in gconv 1 end;
 
 (*Use a conversion to transform a theorem*)
-fun fconv_rule cv th =
-  let val {sign,prop,...} = rep_thm th
-  in  equal_elim (cv sign prop) th  end;
+fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
 (*rewriting conversion*)
-fun rew_conv mode prover mss sign t =
-  rewrite_cterm mode mss prover (Sign.fake_cterm_of sign t);
+fun rew_conv mode prover mss = rewrite_cterm mode mss prover;
 
 (*Rewrite a theorem*)
 fun rewrite_rule thms =
@@ -420,11 +485,11 @@ fun rewrite_goal_rule mode prover mss i thm =
 
 (*Given the term "a", takes (%x.t)==(%x.u) to t[a/x]==u[a/x]*)
 fun equal_abs_elim ca eqth =
-  let val {sign=signa, t=a, ...} = Sign.rep_cterm ca
+  let val {sign=signa, t=a, ...} = rep_cterm ca
       and combth = combination eqth (reflexive ca)
       val {sign,prop,...} = rep_thm eqth
       val (abst,absu) = Logic.dest_equals prop
-      val cterm = Sign.cterm_of (Sign.merge (sign,signa))
+      val cterm = cterm_of (Sign.merge (sign,signa))
   in  transitive (symmetric (beta_conversion (cterm (abst$a))))
            (transitive combth (beta_conversion (cterm (absu$a))))
   end
@@ -439,7 +504,7 @@ local
   fun err th = raise THM("flexpair_inst: ", 0, [th])
   fun flexpair_inst def th =
     let val {prop = Const _ $ t $ u,  sign,...} = rep_thm th
-	val cterm = Sign.cterm_of sign
+	val cterm = cterm_of sign
 	fun cvar a = cterm(Var((a,0),alpha))
 	val def' = cterm_instantiate [(cvar"t", cterm t), (cvar"u", cterm u)] 
 		   def
@@ -459,17 +524,17 @@ fun flexpair_abs_elim_list cts =
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = trivial(Sign.read_cterm Sign.pure ("PROP ?psi",propT));
+val asm_rl = trivial(read_cterm Sign.pure ("PROP ?psi",propT));
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
-val cut_rl = trivial(Sign.read_cterm Sign.pure 
+val cut_rl = trivial(read_cterm Sign.pure 
 	("PROP ?psi ==> PROP ?theta", propT));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises: 
      [| PROP V;  PROP V ==> PROP W |] ==> PROP W *)
 val revcut_rl =
-  let val V = Sign.read_cterm Sign.pure ("PROP V", propT)
-      and VW = Sign.read_cterm Sign.pure ("PROP V ==> PROP W", propT);
+  let val V = read_cterm Sign.pure ("PROP V", propT)
+      and VW = read_cterm Sign.pure ("PROP V ==> PROP W", propT);
   in  standard (implies_intr V 
 		(implies_intr VW
 		 (implies_elim (assume VW) (assume V))))
@@ -477,9 +542,9 @@ val revcut_rl =
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
 val triv_forall_equality =
-  let val V  = Sign.read_cterm Sign.pure ("PROP V", propT)
-      and QV = Sign.read_cterm Sign.pure ("!!x::'a. PROP V", propT)
-      and x  = Sign.read_cterm Sign.pure ("x", TFree("'a",["logic"]));
+  let val V  = read_cterm Sign.pure ("PROP V", propT)
+      and QV = read_cterm Sign.pure ("!!x::'a. PROP V", propT)
+      and x  = read_cterm Sign.pure ("x", TFree("'a",["logic"]));
   in  standard (equal_intr (implies_intr QV (forall_elim x (assume QV)))
 		           (implies_intr V  (forall_intr x (assume V))))
   end;
