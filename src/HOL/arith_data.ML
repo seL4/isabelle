@@ -365,7 +365,8 @@ structure Fast_Arith =
 
 val fast_arith_tac    = Fast_Arith.lin_arith_tac false
 and fast_ex_arith_tac = Fast_Arith.lin_arith_tac
-and trace_arith    = Fast_Arith.trace;
+and trace_arith    = Fast_Arith.trace
+and fast_arith_neq_limit = Fast_Arith.fast_arith_neq_limit;
 
 local
 
