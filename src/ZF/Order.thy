@@ -247,7 +247,7 @@ by (simp add: ord_iso_def)
 (*Needed?  But ord_iso_converse is!*)
 lemma ord_iso_apply:
     "[| f: ord_iso(A,r,B,s);  <x,y>: r;  x:A;  y:A |] ==> <f`x, f`y> : s"
-by (simp add: ord_iso_def, blast)
+by (simp add: ord_iso_def)
 
 lemma ord_iso_converse:
     "[| f: ord_iso(A,r,B,s);  <x,y>: s;  x:B;  y:B |]

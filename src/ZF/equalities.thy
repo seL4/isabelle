@@ -491,7 +491,7 @@ lemma INT_Union_eq:
 apply (simp add: Inter_def)
 apply (subgoal_tac "ALL x:A. x~=0")
 prefer 2 apply blast
-apply force
+apply (tactic "first_best_tac (claset() addss' simpset()) 1")
 done
 
 lemma INT_UN_eq: "(ALL x:A. B(x) ~= 0)  

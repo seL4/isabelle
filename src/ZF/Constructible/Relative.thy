@@ -967,7 +967,7 @@ lemma (in M_basic) cartprod_iff_lemma:
 apply (simp add: powerset_def) 
 apply (rule equalityI, clarify, simp)
  apply (frule transM, assumption) 
- apply (frule transM, assumption, simp) 
+ apply (frule transM, assumption, simp (no_asm_simp))
  apply blast 
 apply clarify
 apply (frule transM, assumption, force) 

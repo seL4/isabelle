@@ -467,7 +467,6 @@ lemma inj_disjoint_Un:
 apply (rule_tac d = "%z. if z:B then converse (f) `z else converse (g) `z" 
        in lam_injective)
 apply (auto simp add: inj_is_fun [THEN apply_type])
-apply (blast intro: inj_is_fun [THEN apply_type])
 done
 
 lemma surj_disjoint_Un: 

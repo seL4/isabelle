@@ -1089,7 +1089,6 @@ apply (induct_tac "j", simp)
 apply (simp add: nth_append le_iff split add: nat_diff_split)
 apply (auto dest!: not_lt_imp_le 
             simp add: nth_append diff_self_eq_0 less_diff_conv add_commute)
-apply (drule_tac j = x in lt_trans2, auto)
 done
 
 lemma take_upt [rule_format,simp]:

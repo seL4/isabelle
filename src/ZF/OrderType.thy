@@ -520,10 +520,10 @@ apply (simp add: ordertype_pred_Inr_eq well_ord_Memrel lt_pred_Memrel
 done
 
 lemma oadd_lt_cancel2: "[| i++j < i++k;  Ord(j) |] ==> j<k"
-apply (simp add: oadd_eq_if_raw_oadd split add: split_if_asm)
+apply (simp (asm_lr) add: oadd_eq_if_raw_oadd split add: split_if_asm)
  prefer 2
  apply (frule_tac i = i and j = j in oadd_le_self)
- apply (simp add: oadd_def ordify_def lt_Ord not_lt_iff_le [THEN iff_sym])
+ apply (simp (asm_lr) add: oadd_def ordify_def lt_Ord not_lt_iff_le [THEN iff_sym])
 apply (rule Ord_linear_lt, auto) 
 apply (simp_all add: raw_oadd_eq_oadd)
 apply (blast dest: oadd_lt_mono2 elim: lt_irrefl lt_asym)+

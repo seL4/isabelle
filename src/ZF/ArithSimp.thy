@@ -119,7 +119,7 @@ lemma raw_mod_geq:
      "[| 0<n; n le m;  m:nat |] ==> raw_mod (m, n) = raw_mod (m#-n, n)"
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (rule raw_mod_def [THEN def_transrec, THEN trans])
-apply (simp add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2], blast)
+apply (simp (no_asm_simp) add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2], blast)
 done
 
 
@@ -160,7 +160,7 @@ apply (subgoal_tac "n ~= 0")
 prefer 2 apply blast
 apply (frule lt_nat_in_nat, erule nat_succI)
 apply (rule raw_div_def [THEN def_transrec, THEN trans])
-apply (simp add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2] ) 
+apply (simp (no_asm_simp) add: div_termination [THEN ltD] not_lt_iff_le [THEN iffD2] ) 
 done
 
 lemma div_geq [simp]:

@@ -408,8 +408,7 @@ done
 
 lemma (in M_basic) omap_yields_Ord:
      "[| omap(M,A,r,f); \<langle>a,x\<rangle> \<in> f; M(a); M(x) |]  ==> Ord(x)"
-apply (simp add: omap_def, blast) 
-done
+  by (simp add: omap_def)
 
 lemma (in M_basic) otype_iff:
      "[| otype(M,A,r,i); M(A); M(r); M(i) |] 
