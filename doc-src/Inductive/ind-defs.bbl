@@ -125,13 +125,6 @@ Paulin-Mohring, C.,
 \newblock In {\em Typed Lambda Calculi and Applications\/} (1993), M.~Bezem
   J.~Groote, Eds., LNCS 664, Springer, pp.~328--345
 
-\bibitem{paulson-markt}
-Paulson, L.~C.,
-\newblock Tool support for logics of programs,
-\newblock In {\em Mathematical Methods in Program Development: Summer School
-  Marktoberdorf 1996}, M.~Broy, Ed., NATO ASI Series F. Springer,
-\newblock In press
-
 \bibitem{paulson87}
 Paulson, L.~C.,
 \newblock {\em Logic and Computation: Interactive proof with Cambridge LCF},
@@ -162,6 +155,14 @@ Paulson, L.~C.,
 Paulson, L.~C.,
 \newblock A concrete final coalgebra theorem for {ZF} set theory,
 \newblock In Dybjer et~al. \cite{types94}, pp.~120--139
+
+\bibitem{paulson-markt}
+Paulson, L.~C.,
+\newblock Tool support for logics of programs,
+\newblock In {\em Mathematical Methods in Program Development: Summer School
+  Marktoberdorf 1996}, M.~Broy, Ed., NATO ASI Series F. Springer, Published
+  1997,
+\newblock In press
 
 \bibitem{paulson-gr}
 Paulson, L.~C., Gr\c{a}bczewski, K.,
