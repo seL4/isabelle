@@ -6,7 +6,7 @@
 The datatype of finite lists.
 *)
 
-List = Datatype + WF_Rel + NatBin +
+List = PreList +
 
 datatype 'a list = Nil ("[]") | Cons 'a ('a list) (infixr "#" 65)
 
