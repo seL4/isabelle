@@ -194,7 +194,7 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   by (rtac impI 1);
   by (rtac impI 1);
   by (REPEAT (etac conjE 1));
-  by (dres_inst_tac [("k","count (rsch s) (~sbit(sen s))")] le_imp_add_le 1);
+  by (dres_inst_tac [("m","count (rsch s) (~sbit(sen s))")] trans_le_add1 1);
   by (Asm_full_simp_tac 1);
 
   (* 1 *)
@@ -205,7 +205,7 @@ val tac2 = asm_full_simp_tac (ss addsimps [inv2_def]);
   by (rtac impI 1);
   by (REPEAT (etac conjE 1));
   by (fold_tac  [rewrite_rule[Packet.hdr_def]Impl.hdr_sum_def]);
-  by (dres_inst_tac [("k","hdr_sum (srch s) (sbit(sen s))")] le_imp_add_le 1);
+  by (dres_inst_tac [("m","hdr_sum (srch s) (sbit(sen s))")] trans_le_add1 1);
   by (Asm_full_simp_tac 1);
 qed "inv2";
 
