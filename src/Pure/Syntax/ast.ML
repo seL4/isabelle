@@ -6,18 +6,17 @@ Abstract syntax trees, translation rules, matching and normalization of asts.
 *)
 
 signature AST0 =
-sig
+  sig
   datatype ast =
     Constant of string |
     Variable of string |
     Appl of ast list
   exception AST of string * ast list
-end;
+  end;
 
 signature AST1 =
-sig
+  sig
   include AST0
-  structure Pretty: PRETTY
   val mk_appl: ast -> ast list -> ast
   val str_of_ast: ast -> string
   val pretty_ast: ast -> Pretty.T
@@ -25,10 +24,10 @@ sig
   val pprint_ast: ast -> pprint_args -> unit
   val trace_norm_ast: bool ref
   val stat_norm_ast: bool ref
-end;
+  end;
 
 signature AST =
-sig
+  sig
   include AST1
   val raise_ast: string -> ast list -> 'a
   val head_of_rule: ast * ast -> string
@@ -39,13 +38,10 @@ sig
   val unfold_ast_p: string -> ast -> ast list * ast
   val normalize: bool -> bool -> (string -> (ast * ast) list) option -> ast -> ast
   val normalize_ast: (string -> (ast * ast) list) option -> ast -> ast
-end;
+  end;
 
-functor AstFun(Pretty: PRETTY): AST =
+structure Ast : AST =
 struct
-
-structure Pretty = Pretty;
-
 
 (** abstract syntax trees **)
 
@@ -293,5 +289,5 @@ fun normalize trace stat get_rules pre_ast =
 fun normalize_ast get_rules ast =
   normalize (! trace_norm_ast) (! stat_norm_ast) get_rules ast;
 
-
 end;
+
