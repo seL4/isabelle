@@ -8,7 +8,7 @@
 #              Send email if it fails.
 
 ## global settings
-LOGPREFIX=~
+LOGPREFIX=~/log
 
 ## diagnostics
 
