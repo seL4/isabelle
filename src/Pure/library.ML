@@ -225,6 +225,12 @@ fun last_elem [] = raise LIST "last_elem"
   | last_elem [x] = x
   | last_elem (_ :: xs) = last_elem xs;
 
+(*rear decomposition*)
+fun split_last [] = raise LIST "split_last"
+  | split_last [x] = ([], x)
+  | split_last (x :: xs) = apfst (cons x) (split_last xs);
+
+
 (*find the position of an element in a list*)
 fun find (x, ys) =
   let fun f (y :: ys, i) = if x = y then i else f (ys, i + 1)
