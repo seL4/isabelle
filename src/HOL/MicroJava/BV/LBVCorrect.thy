@@ -133,12 +133,51 @@ next
   also from wtl have "\<dots> \<noteq> \<top>" by (rule wtl_take)
   finally show ?thesis .
 qed
-    
+
+
+lemma (in lbvs) phi0:
+  assumes wtl: "wtl ins c 0 s0 \<noteq> \<top>"
+  assumes 0:   "0 < length ins"
+  shows "s0 <=_r \<phi>!0"
+proof (cases "c!0 = \<bottom>")
+  case True
+  with 0 have "\<phi>!0 = wtl (take 0 ins) c 0 s0" ..
+  moreover have "wtl (take 0 ins) c 0 s0 = s0" by simp
+  ultimately have "\<phi>!0 = s0" by simp
+  thus ?thesis by simp
+next
+  case False
+  with 0 have "phi!0 = c!0" ..
+  moreover 
+  have "wtl (take 1 ins) c 0 s0 \<noteq> \<top>"  by (rule wtl_take)
+  with 0 False 
+  have "s0 <=_r c!0" by (auto simp add: neq_Nil_conv wtc split: split_if_asm)
+  ultimately
+  show ?thesis by simp
+qed
+
 
 theorem (in lbvs) wtl_sound:
   assumes "wtl ins c 0 s0 \<noteq> \<top>" 
   assumes "s0 \<in> A" 
   shows "\<exists>ts. wt_step r \<top> step ts"
+proof -
+  have "wt_step r \<top> step \<phi>"
+  proof (unfold wt_step_def, intro strip conjI)
+    fix pc assume "pc < length \<phi>"
+    then obtain "pc < length ins" by simp
+    show "\<phi>!pc \<noteq> \<top>" by (rule phi_not_top)
+    show "stable r step \<phi> pc" by (rule wtl_stable)
+  qed
+  thus ?thesis ..
+qed
+
+
+theorem (in lbvs) wtl_sound_strong:
+  assumes "wtl ins c 0 s0 \<noteq> \<top>" 
+  assumes "s0 \<in> A" 
+  assumes "0 < length ins"
+  shows "\<exists>ts. wt_step r \<top> step ts \<and> s0 <=_r ts!0"
 proof -  
   have "wt_step r \<top> step \<phi>"
   proof (unfold wt_step_def, intro strip conjI)
@@ -146,8 +185,11 @@ proof -
     then obtain "pc < length ins" by simp
     show "\<phi>!pc \<noteq> \<top>" by (rule phi_not_top)
     show "stable r step \<phi> pc" by (rule wtl_stable)
-  qed    
-  thus ?thesis .. 
+  qed
+  moreover
+  have "s0 <=_r \<phi>!0" by (rule phi0)
+  ultimately
+  show ?thesis by fast
 qed
 
 end
