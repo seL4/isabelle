@@ -206,23 +206,57 @@ struct
 				val (fm2', new'') = defcnf_from_nnf (fm2, new')
 				(* prop_formula * prop_formula -> int -> prop_formula * int *)
 				fun defcnf_or (And (fm11, fm12), fm2) new =
-					let
-						val aux            = BoolVar new
-						val (fm_a, new')   = defcnf_or (fm11, aux)     (new+1)
-						val (fm_b, new'')  = defcnf_or (fm12, aux)     new'
-						val (fm_c, new''') = defcnf_or (fm2,  Not aux) new''
-					in
-						(And (And (fm_a, fm_b), fm_c), new''')
-					end
+					(case fm2 of
+					(* do not introduce an auxiliary variable for literals *)
+					  BoolVar _ =>
+						let
+							val (fm_a, new')  = defcnf_or (fm11, fm2) new
+							val (fm_b, new'') = defcnf_or (fm12, fm2) new'
+						in
+							(And (fm_a, fm_b), new'')
+						end
+					| Not _ =>
+						let
+							val (fm_a, new')  = defcnf_or (fm11, fm2) new
+							val (fm_b, new'') = defcnf_or (fm12, fm2) new'
+						in
+							(And (fm_a, fm_b), new'')
+						end
+					| _ =>
+						let
+							val aux            = BoolVar new
+							val (fm_a, new')   = defcnf_or (fm11, aux)     (new+1)
+							val (fm_b, new'')  = defcnf_or (fm12, aux)     new'
+							val (fm_c, new''') = defcnf_or (fm2,  Not aux) new''
+						in
+							(And (And (fm_a, fm_b), fm_c), new''')
+						end)
 				  | defcnf_or (fm1, And (fm21, fm22)) new =
-					let
-						val aux            = BoolVar new
-						val (fm_a, new')   = defcnf_or (fm1,  Not aux) (new+1)
-						val (fm_b, new'')  = defcnf_or (fm21, aux)     new'
-						val (fm_c, new''') = defcnf_or (fm22, aux)     new''
-					in
-						(And (fm_a, And (fm_b, fm_c)), new''')
-					end
+					(case fm1 of
+					(* do not introduce an auxiliary variable for literals *)
+					  BoolVar _ =>
+						let
+							val (fm_a, new')  = defcnf_or (fm1, fm21) new
+							val (fm_b, new'') = defcnf_or (fm1, fm22) new'
+						in
+							(And (fm_a, fm_b), new'')
+						end
+					| Not _ =>
+						let
+							val (fm_a, new')  = defcnf_or (fm1, fm21) new
+							val (fm_b, new'') = defcnf_or (fm1, fm22) new'
+						in
+							(And (fm_a, fm_b), new'')
+						end
+					| _ =>
+						let
+							val aux            = BoolVar new
+							val (fm_a, new')   = defcnf_or (fm1,  Not aux) (new+1)
+							val (fm_b, new'')  = defcnf_or (fm21, aux)     new'
+							val (fm_c, new''') = defcnf_or (fm22, aux)     new''
+						in
+							(And (fm_a, And (fm_b, fm_c)), new''')
+						end)
 				(* neither subformula contains 'and' *)
 				  | defcnf_or (fm1, fm2) new =
 					(Or (fm1, fm2), new)
@@ -237,7 +271,7 @@ struct
 			in
 				(And (fm1', fm2'), new'')
 			end
-		val fm'    = nnf fm
+		val fm' = nnf fm
 	in
 		(fst o defcnf_from_nnf) (fm', (maxidx fm')+1)
 	end;
