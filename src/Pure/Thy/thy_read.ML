@@ -47,6 +47,7 @@ sig
                  -> unit
   val get_thm: theory -> string -> thm
   val thms_of: theory -> (string * thm) list
+  val print_theory: theory -> unit
 end;
 
 
@@ -527,6 +528,20 @@ fun get_thm thy name =
 
 (*Get stored theorems of a theory*)
 val thms_of = Symtab.dest o thmtab;
+
+
+(* print theory *)
+
+fun print_thms thy =
+  let
+    val thms = thms_of thy;
+    fun prt_thm (s, th) = Pretty.block [Pretty.str (s ^ ":"), Pretty.brk 1,
+      Pretty.quote (pretty_thm th)];
+  in
+    Pretty.writeln (Pretty.big_list "stored theorems:" (map prt_thm thms))
+  end;
+
+fun print_theory thy = (Drule.print_theory thy; print_thms thy);
 
 
 end;
