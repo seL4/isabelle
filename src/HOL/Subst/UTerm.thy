@@ -1,8 +1,8 @@
-(*  Title: 	Substitutions/UTerm.thy
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Substitutions/UTerm.thy
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Simple term structure for unifiation.
+Simple term structure for unification.
 Binary trees with leaves that are constants or variables.
 *)
 
@@ -30,32 +30,32 @@ consts
 
 defs
      (*defining the concrete constructors*)
-  VAR_def  	"VAR(v) == In0(v)"
-  CONST_def  	"CONST(v) == In1(In0(v))"
-  COMB_def 	"COMB t u == In1(In1(t $ u))"
+  VAR_def       "VAR(v) == In0(v)"
+  CONST_def     "CONST(v) == In1(In0(v))"
+  COMB_def      "COMB t u == In1(In1(t $ u))"
 
 inductive "uterm(A)"
   intrs
-    VAR_I	   "v:A ==> VAR(v) : uterm(A)"
+    VAR_I          "v:A ==> VAR(v) : uterm(A)"
     CONST_I  "c:A ==> CONST(c) : uterm(A)"
     COMB_I   "[| M:uterm(A);  N:uterm(A) |] ==> COMB M N : uterm(A)"
 
 rules
     (*faking a type definition...*)
-  Rep_uterm 		"Rep_uterm(xs): uterm(range(Leaf))"
-  Rep_uterm_inverse 	"Abs_uterm(Rep_uterm(xs)) = xs"
-  Abs_uterm_inverse 	"M: uterm(range(Leaf)) ==> Rep_uterm(Abs_uterm(M)) = M"
+  Rep_uterm             "Rep_uterm(xs): uterm(range(Leaf))"
+  Rep_uterm_inverse     "Abs_uterm(Rep_uterm(xs)) = xs"
+  Abs_uterm_inverse     "M: uterm(range(Leaf)) ==> Rep_uterm(Abs_uterm(M)) = M"
 
 defs
      (*defining the abstract constructors*)
-  Var_def  	"Var(v) == Abs_uterm(VAR(Leaf(v)))"
-  Const_def  	"Const(c) == Abs_uterm(CONST(Leaf(c)))"
-  Comb_def 	"Comb t u == Abs_uterm (COMB (Rep_uterm t) (Rep_uterm u))"
+  Var_def       "Var(v) == Abs_uterm(VAR(Leaf(v)))"
+  Const_def     "Const(c) == Abs_uterm(CONST(Leaf(c)))"
+  Comb_def      "Comb t u == Abs_uterm (COMB (Rep_uterm t) (Rep_uterm u))"
 
      (*uterm recursion*)
-  UTerm_rec_def	
-   "UTerm_rec M b c d == wfrec (trancl pred_sexp) M 
-          (Case (%x g.b(x)) (Case (%y g. c(y)) (Split (%x y g. d x y (g x) (g y)))))"
+  UTerm_rec_def 
+   "UTerm_rec M b c d == wfrec (trancl pred_sexp) 
+    (%g. Case (%x.b(x)) (Case (%y. c(y)) (Split (%x y. d x y (g x) (g y))))) M"
 
   uterm_rec_def
    "uterm_rec t b c d == 

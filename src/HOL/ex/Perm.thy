@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/Perm.thy
+(*  Title:      HOL/ex/Perm.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
 Permutations: example of an inductive definition

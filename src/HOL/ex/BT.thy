@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/BT.thy
+(*  Title:      HOL/ex/BT.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
 Binary trees (based on the ZF version)
@@ -11,9 +11,9 @@ BT = List +
 datatype 'a bt = Lf  |  Br 'a ('a bt) ('a bt)
   
 consts
-    n_nodes	:: 'a bt => nat
-    n_leaves   	:: 'a bt => nat
-    reflect 	:: 'a bt => 'a bt
+    n_nodes     :: 'a bt => nat
+    n_leaves    :: 'a bt => nat
+    reflect     :: 'a bt => 'a bt
     bt_map      :: ('a=>'b) => ('a bt => 'b bt)
     preorder    :: 'a bt => 'a list
     inorder     :: 'a bt => 'a list

@@ -227,8 +227,19 @@ bind_thm ("Fcons_inject", Fcons_Fcons_eq RS iffD1 RS conjE);
 
 (*** TF_rec -- by wf recursion on pred_sexp ***)
 
-val TF_rec_unfold =
-    wf_pred_sexp RS wf_trancl RS (TF_rec_def RS def_wfrec);
+goal Simult.thy
+   "(%M. TF_rec M b c d) = wfrec (trancl pred_sexp) \
+                         \       (%g. Case (Split(%x y. b x y (g y))) \
+                         \           (List_case c (%x y. d x y (g x) (g y))))";
+by (simp_tac (HOL_ss addsimps [TF_rec_def]) 1);
+val TF_rec_unfold = (wf_pred_sexp RS wf_trancl) RS 
+                    ((result() RS eq_reflection) RS def_wfrec);
+
+(*---------------------------------------------------------------------------
+ * Old: 
+ * val TF_rec_unfold =
+ *   wf_pred_sexp RS wf_trancl RS (TF_rec_def RS def_wfrec);
+ *---------------------------------------------------------------------------*)
 
 (** conversion rules for TF_rec **)
 

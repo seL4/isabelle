@@ -41,15 +41,15 @@ sender_trans_def "sender_trans ==
                   sbit(t)=sbit(s)  |                                 
       R_msg(m) => False |                                            
       S_pkt(pkt) => sq(s) ~= []  &                                   
-		     hdr(pkt) = sbit(s)      &                        
+                     hdr(pkt) = sbit(s)      &                        
                     msg(pkt) = hd(sq(s))    &                   
                     sq(t) = sq(s)           &                        
                     sbit(t) = sbit(s) |                              
       R_pkt(pkt) => False |                                          
       S_ack(b)   => False |                                          
       R_ack(b)   => if b = sbit(s) then                              
-		     sq(t)=tl(sq(s)) & sbit(t)=(~sbit(s)) else   
-		     sq(t)=sq(s) & sbit(t)=sbit(s)}"
+                     sq(t)=tl(sq(s)) & sbit(t)=(~sbit(s)) else   
+                     sq(t)=sq(s) & sbit(t)=sbit(s)}"
 
 sender_ioa_def "sender_ioa == 
  (sender_asig, {([],True)}, sender_trans)"

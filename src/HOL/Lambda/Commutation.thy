@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Lambda/Commutation.thy
+(*  Title:      HOL/Lambda/Commutation.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1995  TU Muenchen
 
 Abstract commutation and confluence notions.

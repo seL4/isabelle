@@ -30,16 +30,16 @@ val prems = goal Nat.thy
 \       !!x y z. [| P x y z |] ==> P (Suc x) (Suc y) (Suc z)  \
 \    |] ==> P m n k";
 by (res_inst_tac [("x","m")] spec 1);
-by (rtac diff_induct 1);
-by (rtac allI 1);
-by (rtac allI 2);
+br diff_induct 1;
+br allI 1;
+br allI 2;
 by (res_inst_tac [("m","xa"),("n","x")] diff_induct 1);
 by (res_inst_tac [("m","x"),("n","Suc y")] diff_induct 4);
-by (rtac allI 7);
+br allI 7;
 by (nat_ind_tac "xa" 7);
 by (ALLGOALS (resolve_tac prems));
-by (assume_tac 1);
-by (assume_tac 1);
+ba 1;
+ba 1;
 by (fast_tac HOL_cs 1);
 by (fast_tac HOL_cs 1);
 qed "diff_induct3";
@@ -48,33 +48,33 @@ qed "diff_induct3";
 
 val prems=goal Arith.thy "~m<n+k ==> (m - n) - k = m - ((n + k)::nat)";
 by (cut_facts_tac prems 1);
-by (rtac mp 1);
-by (assume_tac 2);
+br mp 1;
+ba 2;
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_not_assoc";
 
 val prems=goal Arith.thy "[|~m<n; ~n<k|] ==> (m - n) + k = m - ((n - k)::nat)";
 by (cut_facts_tac prems 1);
-by (dtac conjI 1);
-by (assume_tac 1);
+bd conjI 1;
+ba 1;
 by (res_inst_tac [("P","~m<n & ~n<k")] mp 1);
-by (assume_tac 2);
+ba 2;
 by (res_inst_tac [("m","m"),("n","n"),("k","k")] diff_induct3 1);
 by (ALLGOALS Asm_simp_tac);
-by (rtac impI 1);
+br impI 1;
 by (dres_inst_tac [("P","~x<y")] conjE 1);
-by (assume_tac 2);
-by (rtac (Suc_diff_n RS sym) 1);
-by (rtac le_less_trans 1);
-by (etac (not_less_eq RS subst) 2);
-by (rtac (hd ([diff_less_Suc RS lessD] RL [Suc_le_mono RS subst])) 1);
+ba 2;
+br (Suc_diff_n RS sym) 1;
+br le_less_trans 1;
+be (not_less_eq RS subst) 2;
+br (hd ([diff_less_Suc RS lessD] RL [Suc_le_mono RS subst])) 1;
 qed "diff_add_not_assoc";
 
 val prems=goal Arith.thy "~n<k ==> (m + n) - k = m + ((n - k)::nat)";
 by (cut_facts_tac prems 1);
-by (rtac mp 1);
-by (assume_tac 2);
+br mp 1;
+ba 2;
 by (res_inst_tac [("m","n"),("n","k")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "add_diff_assoc";
@@ -82,12 +82,12 @@ qed "add_diff_assoc";
 (*** more ***)
 
 val prems = goal Arith.thy "m~=(n::nat) = (m<n | n<m)";
-by (rtac iffI 1);
+br iffI 1;
 by (cut_inst_tac [("m","m"),("n","n")] less_linear 1);
 by (Asm_full_simp_tac 1);
-by (etac disjE 1);
-by (etac (less_not_refl2 RS not_sym) 1);
-by (etac less_not_refl2 1);
+be disjE 1;
+be (less_not_refl2 RS not_sym) 1;
+be less_not_refl2 1;
 qed "not_eq_eq_less_or_gr";
 
 val [prem] = goal Arith.thy "m<n ==> n-m~=0";
@@ -115,7 +115,7 @@ by (cut_facts_tac prems 1);
 by (res_inst_tac [("n","k")] natE 1);
 by (ALLGOALS Asm_full_simp_tac);
 by (nat_ind_tac "x" 1);
-by (etac add_less_mono 2);
+be add_less_mono 2;
 by (ALLGOALS Asm_full_simp_tac);
 qed "mult_less_mono_r";
 
@@ -124,8 +124,8 @@ by (cut_facts_tac prems 1);
 by (nat_ind_tac "k" 1);
 by (ALLGOALS Simp_tac);
 by (fold_goals_tac [le_def]);
-by (etac add_le_mono 1);
-by (assume_tac 1);
+be add_le_mono 1;
+ba 1;
 qed "mult_not_less_mono_r";
 
 val prems = goal Arith.thy "m=(n::nat) ==> m*k=n*k";
@@ -137,10 +137,10 @@ qed "mult_eq_mono_r";
 val prems = goal Arith.thy "[|0<k; m~=(n::nat)|] ==> m*k~=n*k";
 by (cut_facts_tac prems 1);
 by (res_inst_tac [("P","m<n"),("Q","n<m")] disjE 1);
-by (rtac (less_not_refl2 RS not_sym) 2);
-by (etac mult_less_mono_r 2);
-by (rtac less_not_refl2 3);
-by (etac mult_less_mono_r 3);
+br (less_not_refl2 RS not_sym) 2;
+be mult_less_mono_r 2;
+br less_not_refl2 3;
+be mult_less_mono_r 3;
 by (ALLGOALS (asm_full_simp_tac ((simpset_of "Arith") addsimps [not_eq_eq_less_or_gr])));
 qed "mult_not_eq_mono_r";
 
@@ -149,23 +149,28 @@ qed "mult_not_eq_mono_r";
 val prems = goal Arith.thy "(m - n)*k = (m*k) - ((n*k)::nat)";
 by (res_inst_tac [("P","m*k<n*k")] case_split_thm 1);
 by (forward_tac [mult_not_less_mono_r COMP not_imp_swap] 1);
-by (dtac (less_not_sym RS (not_less_eq RS iffD1) RS less_imp_diff_is_0) 1);
-by (dtac (less_not_sym RS (not_less_eq RS iffD1) RS less_imp_diff_is_0) 1);
-by (rtac mp 2);
-by (assume_tac 3);
+bd (less_not_sym RS (not_less_eq RS iffD1) RS less_imp_diff_is_0) 1;
+bd (less_not_sym RS (not_less_eq RS iffD1) RS less_imp_diff_is_0) 1;
+br mp 2;
+ba 3;
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 2);
 by (ALLGOALS Asm_simp_tac);
-by (rtac impI 1);
-by (dtac (refl RS iffD1) 1);
+br impI 1;
+bd (refl RS iffD1) 1;
 by (dres_inst_tac [("k","k")] add_not_less_mono_l 1);
-by (dtac (refl RS iffD1) 1);
-by (dtac (refl RS iffD1) 1);
-by (dtac diff_not_assoc 1);
+bd (refl RS iffD1) 1;
+bd (refl RS iffD1) 1;
+bd diff_not_assoc 1;
 by (asm_full_simp_tac ((simpset_of "Arith") addsimps [diff_add_inverse]) 1);
 qed "diff_mult_distrib_r";
 
 
 (*** mod ***)
+
+goal Arith.thy "(%m. m mod n) = wfrec (trancl pred_nat) \
+             \                      (%f j. if j<n then j else f (j-n))";
+by (simp_tac (HOL_ss addsimps [mod_def]) 1);
+val mod_def = result() RS eq_reflection;
 
 (* Alternativ-Beweis zu mod_nn_is_0: Spezialfall zu mod_prod_nn_is_0 *)
 (*
@@ -178,29 +183,29 @@ by (fast_tac HOL_cs 1);
 
 val prems=goal thy "0<n ==> n mod n = 0";
 by (cut_facts_tac prems 1);
-by (rtac (mod_def RS wf_less_trans) 1);
+br (mod_def RS wf_less_trans) 1;
 by (asm_full_simp_tac ((simpset_of "Arith") addsimps [diff_self_eq_0,cut_def,less_eq]) 1);
-by (etac mod_less 1);
+be mod_less 1;
 qed "mod_nn_is_0";
 
 val prems=goal thy "0<n ==> m mod n = (m+n) mod n";
 by (cut_facts_tac prems 1);
 by (res_inst_tac [("s","n+m"),("t","m+n")] subst 1);
-by (rtac add_commute 1);
+br add_commute 1;
 by (res_inst_tac [("s","n+m-n"),("P","%x.x mod n = (n + m) mod n")] subst 1);
-by (rtac diff_add_inverse 1);
-by (rtac sym 1);
-by (etac mod_geq 1);
+br diff_add_inverse 1;
+br sym 1;
+be mod_geq 1;
 by (res_inst_tac [("s","n<=n+m"),("t","~n+m<n")] subst 1);
 by (simp_tac ((simpset_of "Arith") addsimps [le_def]) 1);
-by (rtac le_add1 1);
+br le_add1 1;
 qed "mod_eq_add";
 
 val prems=goal thy "0<n ==> m*n mod n = 0";
 by (cut_facts_tac prems 1);
 by (nat_ind_tac "m" 1);
 by (Simp_tac 1);
-by (etac mod_less 1);
+be mod_less 1;
 by (dres_inst_tac [("n","n"),("m","m1*n")] mod_eq_add 1);
 by (asm_full_simp_tac ((simpset_of "Arith") addsimps [add_commute]) 1);
 qed "mod_prod_nn_is_0";
@@ -208,37 +213,38 @@ qed "mod_prod_nn_is_0";
 val prems=goal thy "[|0<x; m mod x = 0; n mod x = 0|] ==> (m+n) mod x = 0";
 by (cut_facts_tac prems 1);
 by (res_inst_tac [("s","m div x * x + m mod x"),("t","m")] subst 1);
-by (etac mod_div_equality 1);
+be mod_div_equality 1;
 by (res_inst_tac [("s","n div x * x + n mod x"),("t","n")] subst 1);
-by (etac mod_div_equality 1);
+be mod_div_equality 1;
 by (Asm_simp_tac 1);
 by (res_inst_tac [("s","(m div x + n div x) * x"),("t","m div x * x + n div x * x")] subst 1);
-by (rtac add_mult_distrib 1);
-by (etac mod_prod_nn_is_0 1);
+br add_mult_distrib 1;
+be mod_prod_nn_is_0 1;
 qed "mod0_sum";
 
 val prems=goal thy "[|0<x; m mod x = 0; n mod x = 0; n<=m|] ==> (m-n) mod x = 0";
 by (cut_facts_tac prems 1);
 by (res_inst_tac [("s","m div x * x + m mod x"),("t","m")] subst 1);
-by (etac mod_div_equality 1);
+be mod_div_equality 1;
 by (res_inst_tac [("s","n div x * x + n mod x"),("t","n")] subst 1);
-by (etac mod_div_equality 1);
+be mod_div_equality 1;
 by (Asm_simp_tac 1);
 by (res_inst_tac [("s","(m div x - n div x) * x"),("t","m div x * x - n div x * x")] subst 1);
-by (rtac diff_mult_distrib_r 1);
-by (etac mod_prod_nn_is_0 1);
+br diff_mult_distrib_r 1;
+be mod_prod_nn_is_0 1;
 qed "mod0_diff";
 
 
 (*** div ***)
 
+
 val prems = goal thy "0<n ==> m*n div n = m";
 by (cut_facts_tac prems 1);
-by (rtac (mult_not_eq_mono_r RS not_imp_swap) 1);
-by (assume_tac 1);
-by (assume_tac 1);
+br (mult_not_eq_mono_r RS not_imp_swap) 1;
+ba 1;
+ba 1;
 by (res_inst_tac [("P","%x.m*n div n * n = x")] (mod_div_equality RS subst) 1);
-by (assume_tac 1);
+ba 1;
 by (dres_inst_tac [("m","m")] mod_prod_nn_is_0 1);
 by (Asm_simp_tac 1);
 qed "div_prod_nn_is_m";
@@ -254,32 +260,32 @@ qed "divides_nn";
 
 val prems=goalw thy [divides_def] "x divides n ==> x<=n";
 by (cut_facts_tac prems 1);
-by (rtac ((mod_less COMP rev_contrapos) RS (le_def RS meta_eq_to_obj_eq RS iffD2)) 1);
+br ((mod_less COMP rev_contrapos) RS (le_def RS meta_eq_to_obj_eq RS iffD2)) 1;
 by (Asm_simp_tac 1);
-by (rtac (less_not_refl2 RS not_sym) 1);
+br (less_not_refl2 RS not_sym) 1;
 by (Asm_simp_tac 1);
 qed "divides_le";
 
 val prems=goalw thy [divides_def] "[|x divides m; x divides n|] ==> x divides (m+n)";
 by (cut_facts_tac prems 1);
 by (REPEAT ((dtac conjE 1) THEN (atac 2)));
-by (rtac conjI 1);
+br conjI 1;
 by (dres_inst_tac [("m","0"),("n","m")] less_imp_add_less 1);
-by (assume_tac 1);
-by (etac conjI 1);
-by (rtac mod0_sum 1);
+ba 1;
+be conjI 1;
+br mod0_sum 1;
 by (ALLGOALS atac);
 qed "divides_sum";
 
 val prems=goalw thy [divides_def] "[|x divides m; x divides n; n<m|] ==> x divides (m-n)";
 by (cut_facts_tac prems 1);
 by (REPEAT ((dtac conjE 1) THEN (atac 2)));
-by (rtac conjI 1);
-by (etac less_imp_diff_positive 1);
-by (etac conjI 1);
-by (rtac mod0_diff 1);
+br conjI 1;
+be less_imp_diff_positive 1;
+be conjI 1;
+br mod0_diff 1;
 by (ALLGOALS (asm_simp_tac ((simpset_of "Arith") addsimps [le_def])));
-by (etac less_not_sym 1);
+be less_not_sym 1;
 qed "divides_diff";
 
 
@@ -288,16 +294,16 @@ qed "divides_diff";
 
 val prems=goalw thy [cd_def] "0<n ==> cd n n n";
 by (cut_facts_tac prems 1);
-by (dtac divides_nn 1);
+bd divides_nn 1;
 by (Asm_simp_tac 1);
 qed "cd_nnn";
 
 val prems=goalw thy [cd_def] "cd x m n ==> x<=m & x<=n";
 by (cut_facts_tac prems 1);
-by (dtac conjE 1);
-by (assume_tac 2);
-by (dtac divides_le 1);
-by (dtac divides_le 1);
+bd conjE 1;
+ba 2;
+bd divides_le 1;
+bd divides_le 1;
 by (Asm_simp_tac 1);
 qed "cd_le";
 
@@ -307,32 +313,32 @@ qed "cd_swap";
 
 val prems=goalw thy [cd_def] "n<m ==> cd x m n = cd x (m-n) n";
 by (cut_facts_tac prems 1);
-by (rtac iffI 1);
-by (dtac conjE 1);
-by (assume_tac 2);
-by (rtac conjI 1);
-by (rtac divides_diff 1);
-by (dtac conjE 5);
-by (assume_tac 6);
-by (rtac conjI 5);
-by (dtac less_not_sym 5);
-by (dtac add_diff_inverse 5);
+br iffI 1;
+bd conjE 1;
+ba 2;
+br conjI 1;
+br divides_diff 1;
+bd conjE 5;
+ba 6;
+br conjI 5;
+bd less_not_sym 5;
+bd add_diff_inverse 5;
 by (dres_inst_tac [("m","n"),("n","m-n")] divides_sum 5);
 by (ALLGOALS Asm_full_simp_tac);
 qed "cd_diff_l";
 
 val prems=goalw thy [cd_def] "m<n ==> cd x m n = cd x m (n-m)";
 by (cut_facts_tac prems 1);
-by (rtac iffI 1);
-by (dtac conjE 1);
-by (assume_tac 2);
-by (rtac conjI 1);
-by (rtac divides_diff 2);
-by (dtac conjE 5);
-by (assume_tac 6);
-by (rtac conjI 5);
-by (dtac less_not_sym 6);
-by (dtac add_diff_inverse 6);
+br iffI 1;
+bd conjE 1;
+ba 2;
+br conjI 1;
+br divides_diff 2;
+bd conjE 5;
+ba 6;
+br conjI 5;
+bd less_not_sym 6;
+bd add_diff_inverse 6;
 by (dres_inst_tac [("n","n-m")] divides_sum 6);
 by (ALLGOALS Asm_full_simp_tac);
 qed "cd_diff_r";
@@ -342,15 +348,15 @@ qed "cd_diff_r";
 
 val prems = goalw thy [gcd_def] "0<n ==> n = gcd n n";
 by (cut_facts_tac prems 1);
-by (dtac cd_nnn 1);
-by (rtac (select_equality RS sym) 1);
-by (etac conjI 1);
-by (rtac allI 1);
-by (rtac impI 1);
-by (dtac cd_le 1);
-by (dtac conjE 2);
-by (assume_tac 3);
-by (rtac le_anti_sym 2);
+bd cd_nnn 1;
+br (select_equality RS sym) 1;
+be conjI 1;
+br allI 1;
+br impI 1;
+bd cd_le 1;
+bd conjE 2;
+ba 3;
+br le_anti_sym 2;
 by (dres_inst_tac [("x","x")] cd_le 2);
 by (dres_inst_tac [("x","n")] spec 3);
 by (ALLGOALS Asm_full_simp_tac);
@@ -364,16 +370,16 @@ val prems=goalw thy [gcd_def] "n<m ==> gcd m n = gcd (m-n) n";
 by (cut_facts_tac prems 1);
 by (subgoal_tac "n<m ==> !x.cd x m n = cd x (m-n) n" 1);
 by (Asm_simp_tac 1);
-by (rtac allI 1);
-by (etac cd_diff_l 1);
+br allI 1;
+be cd_diff_l 1;
 qed "gcd_diff_l";
 
 val prems=goalw thy [gcd_def] "m<n ==> gcd m n = gcd m (n-m)";
 by (cut_facts_tac prems 1);
 by (subgoal_tac "m<n ==> !x.cd x m n = cd x m (n-m)" 1);
 by (Asm_simp_tac 1);
-by (rtac allI 1);
-by (etac cd_diff_r 1);
+br allI 1;
+be cd_diff_r 1;
 qed "gcd_diff_r";
 
 
@@ -392,7 +398,7 @@ goalw thy [pow_def] "m pow n pow k = m pow (n*k)";
 by (nat_ind_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
 by (fold_goals_tac [pow_def]);
-by (rtac (pow_add_reduce RS sym) 1);
+br (pow_add_reduce RS sym) 1;
 qed "pow_pow_reduce";
 
 (*** fac ***)

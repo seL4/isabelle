@@ -1,5 +1,5 @@
-(*  Title: 	Substitutions/subst.thy
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Substitutions/subst.thy
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Substitutions on uterms
@@ -22,8 +22,8 @@ rules
   subst_eq_def  "r =s= s == ALL t.t <| r = t <| s"
 
   subst_def    
-  "t <| al == uterm_rec t (%x.assoc x (Var x) al)	
-                         (%x.Const(x))			
+  "t <| al == uterm_rec t (%x.assoc x (Var x) al)       
+                         (%x.Const(x))                  
                          (%u v q r.Comb q r)"
 
   comp_def    "al <> bl == alist_rec al bl (%x y xs g.(x,y <| bl)#g)"

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/IMP/Hoare.thy
+(*  Title:      HOL/IMP/Hoare.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1995 TUM
 
 Inductive definition of Hoare logic
@@ -27,8 +27,8 @@ intrs
   hoare_if   "[| {{%s. P s & B b s}}c{{Q}}; {{%s. P s & ~B b s}}d{{Q}} |] ==>
               {{P}} ifc b then c else d {{Q}}"
   hoare_while "[| {{%s. P s & B b s}} c {{P}} |] ==>
-	       {{P}} while b do c {{%s. P s & ~B b s}}"
+               {{P}} while b do c {{%s. P s & ~B b s}}"
   hoare_conseq "[| !s. P' s --> P s; {{P}}c{{Q}}; !s. Q s --> Q' s |] ==>
-		{{P'}}c{{Q'}}"
+                {{P'}}c{{Q'}}"
 
 end

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/IMP/VC.thy
+(*  Title:      HOL/IMP/VC.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1996 TUM
 
 acom: annotated commands

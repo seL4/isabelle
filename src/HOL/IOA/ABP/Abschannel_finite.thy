@@ -54,8 +54,8 @@ ch_fin_trans_def "ch_fin_trans ==
         of S(b) => ((t = s) |                                    
                    (if (b=hd(reverse(s)) & s~=[]) then  t=s else  t=s@[b])) |    
            R(b) => s ~= [] &                                   
-	            b = hd(s) &                                 
-	            ((t = s) | (t = tl(s)))    }"
+                    b = hd(s) &                                 
+                    ((t = s) | (t = tl(s)))    }"
   
 ch_fin_ioa_def "ch_fin_ioa == (ch_fin_asig, {[]}, ch_fin_trans)"
 

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/insort.thy
+(*  Title:      HOL/ex/insort.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 Insertion sort

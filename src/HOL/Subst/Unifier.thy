@@ -1,5 +1,5 @@
-(*  Title: 	Subst/unifier.thy
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Subst/unifier.thy
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Definition of most general idempotent unifier
@@ -22,7 +22,7 @@ rules  (*Definitions*)
   Unifier_def      "Unifier s t u == t <| s = u <| s"
   MoreGeneral_def  "r >> s == ? q.s =s= r <> q"
   MGUnifier_def    "MGUnifier s t u == Unifier s t u & 
-		    (! r.Unifier r t u --> s >> r)"
+                    (! r.Unifier r t u --> s >> r)"
   MGIUnifier_def   "MGIUnifier s t u == MGUnifier s t u & Idem(s)"
 
   UWFD_def

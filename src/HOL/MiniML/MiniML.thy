@@ -10,11 +10,11 @@ MiniML = Type +
 
 (* expressions *)
 datatype
-	expr = Var nat | Abs expr | App expr expr
+        expr = Var nat | Abs expr | App expr expr
 
 (* type inference rules *)
 consts
-	has_type :: "(typ list * expr * typ)set"
+        has_type :: "(typ list * expr * typ)set"
 syntax
         "@has_type" :: [typ list, expr, typ] => bool
                        ("((_) |-/ (_) :: (_))" 60)
@@ -23,10 +23,10 @@ translations
 
 inductive "has_type"
 intrs
-	VarI "[| n < length a |] ==> a |- Var n :: nth n a"
-	AbsI "[| t1#a |- e :: t2 |] ==> a |- Abs e :: t1 -> t2"
-	AppI "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |] 
-     	      ==> a |- App e1 e2 :: t1"
+        VarI "[| n < length a |] ==> a |- Var n :: nth n a"
+        AbsI "[| t1#a |- e :: t2 |] ==> a |- Abs e :: t1 -> t2"
+        AppI "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |] 
+              ==> a |- App e1 e2 :: t1"
 
 end
 

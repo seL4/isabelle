@@ -206,8 +206,18 @@ qed "u_not_Comb_u";
 
 (*** UTerm_rec -- by wf recursion on pred_sexp ***)
 
-val UTerm_rec_unfold =
-    [UTerm_rec_def, wf_pred_sexp RS wf_trancl] MRS def_wfrec;
+goal UTerm.thy
+   "(%M. UTerm_rec M b c d) = wfrec (trancl pred_sexp) \
+   \ (%g. Case (%x.b(x)) (Case (%y. c(y)) (Split (%x y. d x y (g x) (g y)))))";
+by (simp_tac (HOL_ss addsimps [UTerm_rec_def]) 1);
+bind_thm("UTerm_rec_unfold", (wf_pred_sexp RS wf_trancl) RS 
+                            ((result() RS eq_reflection) RS def_wfrec));
+
+(*---------------------------------------------------------------------------
+ * Old:
+ * val UTerm_rec_unfold =
+ *   [UTerm_rec_def, wf_pred_sexp RS wf_trancl] MRS def_wfrec;
+ *---------------------------------------------------------------------------*)
 
 (** conversion rules **)
 

@@ -27,7 +27,7 @@ consts
   NIL       :: 'a item
   CONS      :: ['a item, 'a item] => 'a item
   Nil       :: 'a list
-  "#"       :: ['a, 'a list] => 'a list                   	(infixr 65)
+  "#"       :: ['a, 'a list] => 'a list                         (infixr 65)
   List_case :: ['b, ['a item, 'a item]=>'b, 'a item] => 'b
   List_rec  :: ['a item, 'b, ['a item, 'a item, 'b]=>'b] => 'b
   list_case :: ['b, ['a, 'a list]=>'b, 'a list] => 'b
@@ -37,10 +37,10 @@ consts
   null      :: 'a list => bool
   hd        :: 'a list => 'a
   tl,ttl    :: 'a list => 'a list
-  mem		:: ['a, 'a list] => bool			(infixl 55)
+  mem           :: ['a, 'a list] => bool                        (infixl 55)
   list_all  :: ('a => bool) => ('a list => bool)
   map       :: ('a=>'b) => ('a list => 'b list)
-  "@"	    :: ['a list, 'a list] => 'a list			(infixr 65)
+  "@"       :: ['a list, 'a list] => 'a list                    (infixr 65)
   filter    :: ['a => bool, 'a list] => 'a list
 
   (* list Enumeration *)
@@ -49,8 +49,8 @@ consts
   "@list"   :: args => 'a list                    ("[(_)]")
 
   (* Special syntax for list_all and filter *)
-  "@Alls"	:: [idt, 'a list, bool] => bool	("(2Alls _:_./ _)" 10)
-  "@filter"	:: [idt, 'a list, bool] => 'a list	("(1[_:_ ./ _])")
+  "@Alls"       :: [idt, 'a list, bool] => bool ("(2Alls _:_./ _)" 10)
+  "@filter"     :: [idt, 'a list, bool] => 'a list      ("(1[_:_ ./ _])")
 
 translations
   "[x, xs]"     == "x#[xs]"
@@ -59,8 +59,8 @@ translations
 
   "case xs of Nil => a | y#ys => b" == "list_case a (%y ys.b) xs"
 
-  "[x:xs . P]"	== "filter (%x.P) xs"
-  "Alls x:xs.P"	== "list_all (%x.P) xs"
+  "[x:xs . P]"  == "filter (%x.P) xs"
+  "Alls x:xs.P" == "list_all (%x.P) xs"
 
 defs
   (* Defining the Concrete Constructors *)
@@ -89,8 +89,8 @@ defs
   (* list Recursion -- the trancl is Essential; see list.ML *)
 
   List_rec_def
-   "List_rec M c d == wfrec (trancl pred_sexp) M 
-                           (List_case (%g.c) (%x y g. d x y (g y)))"
+   "List_rec M c d == wfrec (trancl pred_sexp)
+                            (%g. List_case c (%x y. d x y (g y))) M"
 
   list_rec_def
    "list_rec l c d == 
@@ -105,14 +105,14 @@ defs
   hd_def        "hd(xs)              == list_rec xs (@x.True) (%x xs r.x)"
   tl_def        "tl(xs)              == list_rec xs (@xs.True) (%x xs r.xs)"
   (* a total version of tl: *)
-  ttl_def 	"ttl(xs)             == list_rec xs [] (%x xs r.xs)"
+  ttl_def       "ttl(xs)             == list_rec xs [] (%x xs r.xs)"
 
-  mem_def 	"x mem xs            == 
-		   list_rec xs False (%y ys r. if y=x then True else r)"
+  mem_def       "x mem xs            == 
+                   list_rec xs False (%y ys r. if y=x then True else r)"
   list_all_def  "list_all P xs       == list_rec xs True (%x l r. P(x) & r)"
   map_def       "map f xs            == list_rec xs [] (%x l r. f(x)#r)"
-  append_def 	"xs@ys               == list_rec xs ys (%x l r. x#r)"
-  filter_def 	"filter P xs         == 
+  append_def    "xs@ys               == list_rec xs ys (%x l r. x#r)"
+  filter_def    "filter P xs         == 
                   list_rec xs [] (%x xs r. if P(x) then x#r else r)"
 
   list_case_def  "list_case a f xs == list_rec xs a (%x xs r.f x xs)"

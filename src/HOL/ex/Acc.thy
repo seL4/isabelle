@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/Acc.thy
+(*  Title:      HOL/ex/Acc.thy
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Inductive definition of acc(r)
@@ -12,8 +12,8 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 Acc = WF + 
 
 consts
-  pred :: "['b, ('a * 'b)set] => 'a set"	(*Set of predecessors*)
-  acc  :: "('a * 'a)set => 'a set"		(*Accessible part*)
+  pred :: "['b, ('a * 'b)set] => 'a set"        (*Set of predecessors*)
+  acc  :: "('a * 'a)set => 'a set"              (*Accessible part*)
 
 defs
   pred_def  "pred x r == {y. (y,x):r}"

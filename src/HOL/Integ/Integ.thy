@@ -1,7 +1,7 @@
-(*  Title: 	Integ.thy
+(*  Title:      Integ.thy
     ID:         $Id$
-    Authors: 	Riccardo Mattolini, Dip. Sistemi e Informatica
-        	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Authors:    Riccardo Mattolini, Dip. Sistemi e Informatica
+                Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994 Universita' di Firenze
     Copyright   1993  University of Cambridge
 
@@ -16,16 +16,16 @@ defs
   intrel_def
    "intrel == {p. ? x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
-subtype (Integ)
-  int = "{x::(nat*nat).True}/intrel"		(Equiv.quotient_def)
+typedef (Integ)
+  int = "{x::(nat*nat).True}/intrel"            (Equiv.quotient_def)
 
 instance
   int :: {ord, plus, times, minus}
 
 consts
   zNat        :: nat set
-  znat	      :: nat => int	   ("$# _" [80] 80)
-  zminus      :: int => int	   ("$~ _" [80] 80)
+  znat        :: nat => int        ("$# _" [80] 80)
+  zminus      :: int => int        ("$~ _" [80] 80)
   znegative   :: int => bool
   zmagnitude  :: int => int
   zdiv,zmod   :: [int,int]=>int  (infixl 70)
@@ -37,7 +37,7 @@ defs
   znat_def    "$# m == Abs_Integ(intrel ^^ {(m,0)})"
 
   zminus_def
-	"$~ Z == Abs_Integ(UN p:Rep_Integ(Z). split (%x y. intrel^^{(y,x)}) p)"
+        "$~ Z == Abs_Integ(UN p:Rep_Integ(Z). split (%x y. intrel^^{(y,x)}) p)"
 
   znegative_def
       "znegative(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"

@@ -148,8 +148,18 @@ qed "List_case_CONS";
 (* The trancl(pred_sexp) is essential because pred_sexp_CONS_I1,2 would not
    hold if pred_sexp^+ were changed to pred_sexp. *)
 
-val List_rec_unfold = [List_rec_def, wf_pred_sexp RS wf_trancl] MRS def_wfrec
-                      |> standard;
+goal SList.thy
+   "(%M. List_rec M c d) = wfrec (trancl pred_sexp) \
+                           \     (%g. List_case c (%x y. d x y (g y)))";
+by (simp_tac (HOL_ss addsimps [List_rec_def]) 1);
+val List_rec_unfold = standard 
+  ((wf_pred_sexp RS wf_trancl) RS ((result() RS eq_reflection) RS def_wfrec));
+
+(*---------------------------------------------------------------------------
+ * Old:
+ * val List_rec_unfold = [List_rec_def,wf_pred_sexp RS wf_trancl] MRS def_wfrec
+ *                     |> standard;
+ *---------------------------------------------------------------------------*)
 
 (** pred_sexp lemmas **)
 

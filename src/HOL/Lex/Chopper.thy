@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Lex/Chopper.thy
+(*  Title:      HOL/Lex/Chopper.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1995 TUM
 
 A 'chopper' is a function which returns
@@ -25,10 +25,10 @@ consts
 defs
   is_longest_prefix_chopper_def
     "is_longest_prefix_chopper L chopper == !xs.   \
-\	 (!zs. chopper(xs) = ([],zs) --> \
-\	       zs=xs & (!ys. ys ~= [] & ys <= xs --> ~L(ys))) &  \
-\ 	 (!ys yss zs. chopper(xs) = (ys#yss,zs) -->                \
-\	    ys ~= [] & L(ys) & xs=ys@flat(yss)@zs &   \
+\        (!zs. chopper(xs) = ([],zs) --> \
+\              zs=xs & (!ys. ys ~= [] & ys <= xs --> ~L(ys))) &  \
+\        (!ys yss zs. chopper(xs) = (ys#yss,zs) -->                \
+\           ys ~= [] & L(ys) & xs=ys@flat(yss)@zs &   \
 \           chopper(flat(yss)@zs) = (yss,zs) &     \
 \           (!as. as <= xs & ys <= as & ys ~= as --> ~L(as)))"
 end

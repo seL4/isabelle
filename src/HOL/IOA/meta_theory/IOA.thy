@@ -22,7 +22,7 @@ consts
   asig_of    ::"('action,'state)ioa => 'action signature"
   starts_of  ::"('action,'state)ioa => 'state set"
   trans_of   ::"('action,'state)ioa => ('action,'state)transition set"
-  IOA	     ::"('action,'state)ioa => bool"
+  IOA        ::"('action,'state)ioa => bool"
 
   (* Executions, schedules, and traces *)
 

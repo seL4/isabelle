@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/Simult
+(*  Title:      HOL/ex/Simult
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 A simultaneous recursive type definition: trees & forests
@@ -40,35 +40,35 @@ consts
 
 defs
      (*the concrete constants*)
-  TCONS_def 	"TCONS M N == In0(M $ N)"
-  FNIL_def	"FNIL      == In1(NIL)"
-  FCONS_def	"FCONS M N == In1(CONS M N)"
+  TCONS_def     "TCONS M N == In0(M $ N)"
+  FNIL_def      "FNIL      == In1(NIL)"
+  FCONS_def     "FCONS M N == In1(CONS M N)"
      (*the abstract constants*)
-  Tcons_def 	"Tcons a ts == Abs_Tree(TCONS (Leaf a) (Rep_Forest ts))"
-  Fnil_def  	"Fnil       == Abs_Forest(FNIL)"
-  Fcons_def 	"Fcons t ts == Abs_Forest(FCONS (Rep_Tree t) (Rep_Forest ts))"
+  Tcons_def     "Tcons a ts == Abs_Tree(TCONS (Leaf a) (Rep_Forest ts))"
+  Fnil_def      "Fnil       == Abs_Forest(FNIL)"
+  Fcons_def     "Fcons t ts == Abs_Forest(FCONS (Rep_Tree t) (Rep_Forest ts))"
 
-  TF_def	"TF(A) == lfp(%Z. A <*> Part Z In1 
+  TF_def        "TF(A) == lfp(%Z. A <*> Part Z In1 
                            <+> ({Numb(0)} <+> Part Z In0 <*> Part Z In1))"
 
 rules
   (*faking a type definition for tree...*)
-  Rep_Tree 	   "Rep_Tree(n): Part (TF(range Leaf)) In0"
+  Rep_Tree         "Rep_Tree(n): Part (TF(range Leaf)) In0"
   Rep_Tree_inverse "Abs_Tree(Rep_Tree(t)) = t"
   Abs_Tree_inverse "z: Part (TF(range Leaf)) In0 ==> Rep_Tree(Abs_Tree(z)) = z"
     (*faking a type definition for forest...*)
-  Rep_Forest 	     "Rep_Forest(n): Part (TF(range Leaf)) In1"
+  Rep_Forest         "Rep_Forest(n): Part (TF(range Leaf)) In1"
   Rep_Forest_inverse "Abs_Forest(Rep_Forest(ts)) = ts"
   Abs_Forest_inverse 
-	"z: Part (TF(range Leaf)) In1 ==> Rep_Forest(Abs_Forest(z)) = z"
+        "z: Part (TF(range Leaf)) In1 ==> Rep_Forest(Abs_Forest(z)) = z"
 
 
 defs
      (*recursion*)
-  TF_rec_def	
-   "TF_rec M b c d == wfrec (trancl pred_sexp) M   
-               (Case (Split(%x y g. b x y (g y))) 
-	              (List_case (%g.c) (%x y g. d x y (g x) (g y))))"
+  TF_rec_def    
+   "TF_rec M b c d == wfrec (trancl pred_sexp)
+               (%g. Case (Split(%x y. b x y (g y))) 
+                      (List_case c (%x y. d x y (g x) (g y)))) M"
 
   tree_rec_def
    "tree_rec t b c d == 

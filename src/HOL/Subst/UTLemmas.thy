@@ -1,5 +1,5 @@
-(*  Title: 	Substitutions/utermlemmas.thy
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Substitutions/utermlemmas.thy
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Additional definitions for uterms that are not part of the basic inductive definition.

@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/qsort.thy
+(*  Title:      HOL/ex/qsort.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 Quicksort

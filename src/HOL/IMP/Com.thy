@@ -1,6 +1,6 @@
-(*  Title: 	HOL/IMP/Com.thy
+(*  Title:      HOL/IMP/Com.thy
     ID:         $Id$
-    Author: 	Heiko Loetzbeyer & Robert Sandner, TUM
+    Author:     Heiko Loetzbeyer & Robert Sandner, TUM
     Copyright   1994 TUM
 
 Arithmetic expressions, Boolean expressions, Commands
@@ -32,7 +32,7 @@ translations
 inductive "evala"
   intrs 
     N   "<N(n),s> -a-> n"
-    X  	"<X(x),s> -a-> s(x)"
+    X   "<X(x),s> -a-> s(x)"
     Op1 "<e,s> -a-> n ==> <Op1 f e,s> -a-> f(n)"
     Op2 "[| <e0,s> -a-> n0;  <e1,s>  -a-> n1 |] 
            ==> <Op2 f e0 e1,s> -a-> f n0 n1"
@@ -46,11 +46,11 @@ datatype
        | false
        | ROp  n2n2b aexp aexp
        | noti bexp
-       | andi bexp bexp 	(infixl 60)
-       | ori  bexp bexp 	(infixl 60)
+       | andi bexp bexp         (infixl 60)
+       | ori  bexp bexp         (infixl 60)
 
 (** Evaluation of boolean expressions **)
-consts evalb	:: "(bexp*state*bool)set"	
+consts evalb    :: "(bexp*state*bool)set"       
        "@evalb" :: [bexp,state,bool] => bool ("<_,_>/ -b-> _"  [0,0,50] 50)
 
 translations
@@ -61,32 +61,32 @@ inductive "evalb"
     tru   "<true,s> -b-> True"
     fls   "<false,s> -b-> False"
     ROp   "[| <a0,s> -a-> n0; <a1,s> -a-> n1 |] 
-	   ==> <ROp f a0 a1,s> -b-> f n0 n1"
+           ==> <ROp f a0 a1,s> -b-> f n0 n1"
     noti  "<b,s> -b-> w ==> <noti(b),s> -b-> (~w)"
     andi  "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] 
           ==> <b0 andi b1,s> -b-> (w0 & w1)"
     ori   "[| <b0,s> -b-> w0; <b1,s> -b-> w1 |] 
-	    ==> <b0 ori b1,s> -b-> (w0 | w1)"
+            ==> <b0 ori b1,s> -b-> (w0 | w1)"
 
 (** Commands **)
 
 datatype
   com = skip
-      | ":="   loc aexp	         (infixl  60)
-      | semic  com com	         ("_; _"  [60, 60] 10)
-      | whileC bexp com	         ("while _ do _"  60)
-      | ifC    bexp com com	 ("ifc _ then _ else _"  60)
+      | ":="   loc aexp          (infixl  60)
+      | semic  com com           ("_; _"  [60, 60] 10)
+      | whileC bexp com          ("while _ do _"  60)
+      | ifC    bexp com com      ("ifc _ then _ else _"  60)
 
 (** Execution of commands **)
 consts  evalc    :: "(com*state*state)set"
         "@evalc" :: [com,state,state] => bool ("<_,_>/ -c-> _" [0,0,50] 50)
-	"assign" :: [state,nat,loc] => state  ("_[_'/_]"       [95,0,0] 95)
+        "assign" :: [state,nat,loc] => state  ("_[_'/_]"       [95,0,0] 95)
 
 translations
        "<ce,sig> -c-> s" == "(ce,sig,s) : evalc"
 
 rules 
-	assign_def	"s[m/x] == (%y. if y=x then m else s y)"
+        assign_def      "s[m/x] == (%y. if y=x then m else s y)"
 
 inductive "evalc"
   intrs

@@ -57,26 +57,26 @@ ch_ioa_def "ch_ioa == (ch_asig, {{|}}, ch_trans)"
 
 
 rsch_actions_def "rsch_actions (act) ==        
-	    case act of                
+            case act of                
            S_msg(m) => None |         
-	    R_msg(m) => None |         
+            R_msg(m) => None |         
            S_pkt(packet) => None |    
-	    R_pkt(packet) => None |    
-	    S_ack(b) => Some(S(b)) |   
-	    R_ack(b) => Some(R(b)) |   
+            R_pkt(packet) => None |    
+            S_ack(b) => Some(S(b)) |   
+            R_ack(b) => Some(R(b)) |   
            C_m_s =>  None  |          
            C_m_r =>  None |           
            C_r_s =>  None  |          
            C_r_r(m) => None"
 
 srch_actions_def "srch_actions (act) ==         
-	    case act of                
+            case act of                
            S_msg(m) => None |         
-	    R_msg(m) => None |         
+            R_msg(m) => None |         
            S_pkt(p) => Some(S(p)) |   
-	    R_pkt(p) => Some(R(p)) |   
-	    S_ack(b) => None |         
-	    R_ack(b) => None |         
+            R_pkt(p) => Some(R(p)) |   
+            S_ack(b) => None |         
+            R_ack(b) => None |         
            C_m_s => None |            
            C_m_r => None |            
            C_r_s => None |            

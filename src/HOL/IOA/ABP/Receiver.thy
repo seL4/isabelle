@@ -41,13 +41,13 @@ receiver_trans_def "receiver_trans ==
       Next    =>  False |     
       S_msg(m) => False |                                               
       R_msg(m) => (rq(s) ~= [])  &                                     
-		   m = hd(rq(s))  &                             
-		   rq(t) = tl(rq(s))   &                              
+                   m = hd(rq(s))  &                             
+                   rq(t) = tl(rq(s))   &                              
                   rbit(t)=rbit(s)  |                                 
       S_pkt(pkt) => False |                                          
       R_pkt(pkt) => if (hdr(pkt) ~= rbit(s))&rq(s)=[] then            
-		         rq(t) = (rq(s)@[msg(pkt)]) &rbit(t) = (~rbit(s)) else  
-		         rq(t) =rq(s) & rbit(t)=rbit(s)  |   
+                         rq(t) = (rq(s)@[msg(pkt)]) &rbit(t) = (~rbit(s)) else  
+                         rq(t) =rq(s) & rbit(t)=rbit(s)  |   
       S_ack(b) => b = rbit(s)                        &               
                       rq(t) = rq(s)                    &             
                       rbit(t)=rbit(s) |                              

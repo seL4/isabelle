@@ -1,6 +1,6 @@
-(*  Title: 	HOL/Lex/Auto.thy
+(*  Title:      HOL/Lex/Auto.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1995 TUM
 
 Automata expressed as triples of

@@ -23,7 +23,7 @@ defs
 
 (* duals *)
 
-subtype
+typedef
   'a dual = "{x::'a. True}"
 
 instance

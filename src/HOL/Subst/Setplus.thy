@@ -1,5 +1,5 @@
-(*  Title: 	Substitutions/setplus.thy
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Substitutions/setplus.thy
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Minor additions to HOL's set theory

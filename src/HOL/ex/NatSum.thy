@@ -1,6 +1,6 @@
-(*  Title: 	HOL/ex/natsum.thy
+(*  Title:      HOL/ex/natsum.thy
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 
 A summation operator. sum(f,n+1) is the sum of all f(i), i=0...n.

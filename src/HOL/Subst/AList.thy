@@ -1,5 +1,5 @@
-(*  Title: 	Substitutions/alist.thy
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+(*  Title:      Substitutions/alist.thy
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Association lists.
