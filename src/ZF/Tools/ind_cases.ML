@@ -55,9 +55,9 @@ fun inductive_cases args thy =
     val read_prop = ProofContext.read_prop (ProofContext.init thy);
     val mk_cases = smart_cases thy (Simplifier.simpset_of thy) read_prop;
     val facts = args |> map (fn ((name, srcs), props) =>
-      (((name, map (Attrib.global_attribute thy) srcs), map (Thm.no_attributes o mk_cases) props),
-        Comment.none));
-  in thy |> IsarThy.have_theorems_i Drule.lemmaK facts end;
+      (((name, map (Attrib.global_attribute thy) srcs),
+        map (Thm.no_attributes o single o mk_cases) props), Comment.none));
+  in thy |> IsarThy.theorems_i Drule.lemmaK facts |> #1 end;
 
 
 (* ind_cases method *)
