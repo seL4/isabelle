@@ -155,6 +155,7 @@ fun thms_of_proof tab (Abst (_, _, prf)) = thms_of_proof tab prf
          None => thms_of_proof (Symtab.update ((s, [(prop, prf')]), tab)) prf
        | Some ps => if exists (equal prop o fst) ps then tab else
            thms_of_proof (Symtab.update ((s, (prop, prf')::ps), tab)) prf)
+  | thms_of_proof tab (MinProof prfs) = foldl (uncurry thms_of_proof) (tab, prfs)
   | thms_of_proof tab _ = tab;
 
 fun axms_of_proof tab (Abst (_, _, prf)) = axms_of_proof tab prf
@@ -162,6 +163,7 @@ fun axms_of_proof tab (Abst (_, _, prf)) = axms_of_proof tab prf
   | axms_of_proof tab (prf1 %% prf2) = axms_of_proof (axms_of_proof tab prf1) prf2
   | axms_of_proof tab (prf % _) = axms_of_proof tab prf
   | axms_of_proof tab (prf as PAxm (s, _, _)) = Symtab.update ((s, prf), tab)
+  | axms_of_proof tab (MinProof prfs) = foldl (uncurry axms_of_proof) (tab, prfs)
   | axms_of_proof tab _ = tab;
 
 (** collect all theorems, axioms and oracles **)
