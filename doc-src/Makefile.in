@@ -9,7 +9,7 @@
 LATEX = latex
 PDFLATEX = pdflatex
 BIBTEX = bibtex
-RAIL = rail
+RAIL = rail -a
 SEDINDEX = ../sedindex
 FIXBOOKMARKS = perl -pi ../fixbookmarks.pl
 
