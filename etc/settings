@@ -27,9 +27,14 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 #ML_HOME=/usr/local/ldist/DIR/sml-0.93/src
 #ML_OPTIONS=""
 
-# Standard ML of New Jersey 1.09.27 or later
-#ML_SYSTEM=smlnj-1.09
-#ML_HOME=/usr/local/sml109.27/bin
+# Standard ML of New Jersey 109.27 to 109.33
+#ML_SYSTEM=smlnj-109
+#ML_HOME=/usr/proj/smlnj/109.32/bin
+#ML_OPTIONS="@SMLdebug=/dev/null"
+
+# Standard ML of New Jersey 110 or later
+#ML_SYSTEM=smlnj-110
+#ML_HOME=/usr/proj/smlnj/110/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
 
