@@ -582,7 +582,7 @@ by(simp add:inj_on_def)
 
 lemma rev_induct [case_names Nil snoc]:
   "[| P []; !!x xs. P xs ==> P (xs @ [x]) |] ==> P xs"
-apply(subst rev_rev_ident[symmetric])
+apply(simplesubst rev_rev_ident[symmetric])
 apply(rule_tac list = "rev xs" in list.induct, simp_all)
 done
 
