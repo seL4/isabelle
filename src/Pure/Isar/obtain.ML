@@ -111,7 +111,7 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms state =
     |> (fn state' =>
       state'
       |> Proof.from_facts chain_facts
-      |> Proof.have_i after_qed "" [] (bound_thesis, ([], []))
+      |> Proof.have_i after_qed [(("", []), [(bound_thesis, ([], []))])]
       |> Method.refine (Method.Basic (K (Method.insert (Proof.the_facts state')))))
   end;
 
