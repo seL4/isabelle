@@ -140,7 +140,7 @@ by (simp_tac (simpset() addsimps [part_ord_Int_iff, linear_Int_iff]) 1);
 qed "tot_ord_Int_iff";
 
 goalw Order.thy [wf_on_def, wf_def] "wf[A](r Int A*A) <-> wf[A](r)";
-by (Blast_tac 1);
+by (Fast_tac 1);   (*10 times faster than Blast_tac!*) 
 qed "wf_on_Int_iff";
 
 goalw Order.thy [well_ord_def] "well_ord(A,r Int A*A) <-> well_ord(A,r)";
@@ -591,12 +591,12 @@ qed "well_ord_trichotomy";
 
 goalw Order.thy [irrefl_def] 
             "!!A. irrefl(A,r) ==> irrefl(A,converse(r))";
-by (blast_tac (claset() addSIs [converseI]) 1);
+by (Blast_tac 1);
 qed "irrefl_converse";
 
 goalw Order.thy [trans_on_def] 
     "!!A. trans[A](r) ==> trans[A](converse(r))";
-by (blast_tac (claset() addSIs [converseI]) 1);
+by (Blast_tac 1);
 qed "trans_on_converse";
 
 goalw Order.thy [part_ord_def] 
@@ -606,7 +606,7 @@ qed "part_ord_converse";
 
 goalw Order.thy [linear_def] 
     "!!A. linear(A,r) ==> linear(A,converse(r))";
-by (blast_tac (claset() addSIs [converseI]) 1);
+by (Blast_tac 1);
 qed "linear_converse";
 
 goalw Order.thy [tot_ord_def] 
