@@ -17,7 +17,7 @@ constdefs
   order :: "('a, 'b) semigroup_scheme => nat"
   "order S == card (carrier S)"
 
-theorem (in coset) lagrange:
+theorem (in group) lagrange:
      "[| finite(carrier G); subgroup H G |]
       ==> card(rcosets G H) * card(H) = order(G)"
 apply (simp (no_asm_simp) add: order_def setrcos_part_G [symmetric])
@@ -32,12 +32,12 @@ done
 
 text{*The combinatorial argument is in theory Exponent*}
 
-locale sylow = coset +
+locale sylow = group +
   fixes p and a and m and calM and RelM
   assumes prime_p:   "p \<in> prime"
       and order_G:   "order(G) = (p^a) * m"
       and finite_G [iff]:  "finite (carrier G)"
-  defines "calM == {s. s <= carrier(G) & card(s) = p^a}"
+  defines "calM == {s. s \<subseteq> carrier(G) & card(s) = p^a}"
       and "RelM == {(N1,N2). N1 \<in> calM & N2 \<in> calM &
                              (\<exists>g \<in> carrier(G). N1 = (N2 #> g) )}"
 
@@ -64,7 +64,7 @@ apply (unfold equiv_def)
 apply (blast intro: RelM_refl RelM_sym RelM_trans)
 done
 
-lemma (in sylow) M_subset_calM_prep: "M' \<in> calM // RelM  ==> M' <= calM"
+lemma (in sylow) M_subset_calM_prep: "M' \<in> calM // RelM  ==> M' \<subseteq> calM"
 apply (unfold RelM_def)
 apply (blast elim!: quotientE)
 done
@@ -79,7 +79,7 @@ locale sylow_central = sylow +
       and M1_in_M:    "M1 \<in> M"
   defines "H == {g. g\<in>carrier G & M1 #> g = M1}"
 
-lemma (in sylow_central) M_subset_calM: "M <= calM"
+lemma (in sylow_central) M_subset_calM: "M \<subseteq> calM"
 by (rule M_in_quot [THEN M_subset_calM_prep])
 
 lemma (in sylow_central) card_M1: "card(M1) = p^a"
@@ -97,7 +97,7 @@ apply (cut_tac prime_p [THEN prime_imp_one_less])
 apply (simp (no_asm_simp) add: card_M1)
 done
 
-lemma (in sylow_central) M1_subset_G [simp]: "M1 <= carrier G"
+lemma (in sylow_central) M1_subset_G [simp]: "M1 \<subseteq> carrier G"
 apply (rule subsetD [THEN PowD])
 apply (rule_tac [2] M1_in_M)
 apply (rule M_subset_calM [THEN subset_trans])
@@ -332,7 +332,7 @@ apply (rule H_is_subgroup)
 apply (simp add: H_I coset_mult_inv2 M1_subset_G H_elem_map_carrier)
 done
 
-lemma (in sylow_central) calM_subset_PowG: "calM <= Pow(carrier G)"
+lemma (in sylow_central) calM_subset_PowG: "calM \<subseteq> Pow(carrier G)"
 by (auto simp add: calM_def)
 
 
@@ -352,7 +352,7 @@ done
 lemma (in sylow_central) index_lem: "card(M) * card(H) = order(G)"
 by (simp add: cardMeqIndexH lagrange H_is_subgroup)
 
-lemma (in sylow_central) lemma_leq1: "p^a <= card(H)"
+lemma (in sylow_central) lemma_leq1: "p^a \<le> card(H)"
 apply (rule dvd_imp_le)
  apply (rule div_combine [OF prime_p not_dvd_M])
  prefer 2 apply (blast intro: subgroup.finite_imp_card_positive H_is_subgroup)
@@ -360,7 +360,7 @@ apply (simp add: index_lem order_G power_add mult_dvd_mono power_exponent_dvd
                  zero_less_m)
 done
 
-lemma (in sylow_central) lemma_leq2: "card(H) <= p^a"
+lemma (in sylow_central) lemma_leq2: "card(H) \<le> p^a"
 apply (subst card_M1 [symmetric])
 apply (cut_tac M1_inj_H)
 apply (blast intro!: M1_subset_G intro:
