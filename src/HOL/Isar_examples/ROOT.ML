@@ -14,3 +14,4 @@ time_use_thy "Summation";
 time_use_thy "KnasterTarski";
 time_use_thy "MutilatedCheckerboard";
 with_path "../Induct" time_use_thy "MultisetOrder";
+with_path "../W0" time_use_thy "W_correct";
