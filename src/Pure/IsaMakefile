@@ -24,7 +24,7 @@ LOG = $(OUT)/log
 Pure: $(OUT)/Pure
 
 $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
-  General/graph.ML General/history.ML General/name_space.ML		\
+  General/graph.ML General/history.ML General/heap.ML General/name_space.ML \
   General/object.ML General/path.ML General/position.ML			\
   General/pretty.ML General/scan.ML General/seq.ML General/source.ML	\
   General/symbol.ML General/table.ML General/url.ML Interface/ROOT.ML	\
