@@ -861,7 +861,9 @@ fun rename_params_rule (cs, i) state =
 
 (*Scan a pair of terms; while they are similar,
   accumulate corresponding bound vars in "al"*)
-fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) = match_bvs(s,t,(x,y)::al)
+fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) = 
+      match_bvs(s, t, if x="" orelse y="" then al
+		                          else (x,y)::al)
   | match_bvs(f$s, g$t, al) = match_bvs(f,g,match_bvs(s,t,al))
   | match_bvs(_,_,al) = al;
 
