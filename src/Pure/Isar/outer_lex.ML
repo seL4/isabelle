@@ -10,7 +10,7 @@ sig
   datatype token_kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | String | Verbatim | Space | Comment | Sync | Malformed | EOF
-  type token
+  eqtype token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
   val not_sync: token -> bool
