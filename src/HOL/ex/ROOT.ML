@@ -17,7 +17,7 @@ time_use_thy "Fib";
 with_path "../Induct" use_thy "Factorization";
 time_use_thy "Primrec";
 
-time_use     "NatSum";
+time_use_thy "NatSum";
 time_use     "cla.ML";
 time_use     "meson.ML";
 time_use     "mesontest.ML";
