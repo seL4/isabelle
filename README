@@ -37,10 +37,10 @@ directory.  When using Poly/ML, ISABELLEBIN must be an absolute pathname
 ML_DBASE is an *absolute* pathname to the initial Poly/ML database.  It is not
 required for New Jersey ML.
 
-ISABELLECOMP is the ML compiler, typically "poly -noDisplay" or "sml".  If
-ISABELLECOMP begins with the letters "poly" then the Makefiles assume that
-it is Poly/ML; if it begins with the letters "sml" then they assume
-Standard ML of New Jersey.  
+ISABELLECOMP is the ML compiler, typically "poly -noDisplay" or "/bin/sml".
+If, after stripping a leading pathname, the compiler begins with the letters
+"poly" then the Makefiles assume Poly/ML.  If it begins with the letters "sml"
+then they assume Standard ML of New Jersey.
 
 If a Poly/ML session fails with the message "Run out of store" then you
 have used up the entire heap.  If your tactic is not in a loop, allocating
