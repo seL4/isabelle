@@ -165,25 +165,20 @@ definitions in HOL.
 
 \section{(Co)Inductive sets}
 
-\indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisarcmd{inductive-cases}
-\indexisaratt{mono}
+\indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisaratt{mono}
 \begin{matharray}{rcl}
   \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
-  \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
+  \isarcmd{coinductive}^* & : & \isartrans{theory}{theory} \\
   mono & : & \isaratt \\
-  \isarcmd{inductive_cases} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
 \railalias{condefs}{con\_defs}
-\railalias{indcases}{inductive\_cases}
-\railterm{condefs,indcases}
+\railterm{condefs}
 
 \begin{rail}
   ('inductive' | 'coinductive') (term comment? +) \\
-    'intrs' attributes? (thmdecl? prop comment? +) \\
+    'intros' attributes? (thmdecl? prop comment? +) \\
     'monos' thmrefs comment? \\ condefs thmrefs comment?
-  ;
-  indcases thmdef? nameref ':' \\ (prop +) comment?
   ;
   'mono' (() | 'add' | 'del')
   ;
@@ -194,18 +189,6 @@ definitions in HOL.
   (co)inductive sets from the given introduction rules.
 \item [$mono$] declares monotonicity rules.  These rule are involved in the
   automated monotonicity proof of $\isarkeyword{inductive}$.
-\item [$\isarkeyword{inductive_cases}$] creates instances of elimination rules
-  of (co)inductive sets, solving obvious cases by simplification.
-  
-  The $cases$ proof method (see \S\ref{sec:induct-method}) provides a more
-  direct way for reasoning by cases (including optional simplification).
-  
-  Unlike the \texttt{mk_cases} ML function exported with any inductive
-  definition \cite{isabelle-HOL}, $\isarkeyword{inductive_cases}$ it does
-  \emph{not} modify cases by simplification that are not solved completely
-  anyway (e.g.\ due to contradictory assumptions).  Thus
-  $\isarkeyword{inductive_cases}$ conforms to the way Isar proofs are
-  conducted, rather than old-style tactic scripts.
 \end{descr}
 
 See \cite{isabelle-HOL} for further information on inductive definitions in
@@ -231,7 +214,7 @@ via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 about large specifications.
 
 \begin{rail}
-  'cases' ('(simplified)')? ('(opaque)')? \\ term? rule?  ;
+  'cases' ('(simplified)')? ('(opaque)')? \\ (insts * 'and') rule?  ;
 
   'induct' ('(stripped)')? ('(opaque)')? \\ (insts * 'and') rule?
   ;
@@ -241,9 +224,9 @@ about large specifications.
 \end{rail}
 
 \begin{descr}
-\item [$cases~t~R$] applies method $rule$ with an appropriate case distinction
-  theorem, instantiated to the subject $t$.  Symbolic case names are bound
-  according to the rule's local contexts.
+\item [$cases~insts~R$] applies method $rule$ with an appropriate case
+  distinction theorem, instantiated to the subjects $insts$.  Symbolic case
+  names are bound according to the rule's local contexts.
   
   The rule is determined as follows, according to the facts and arguments
   passed to the $cases$ method:
@@ -254,6 +237,12 @@ about large specifications.
     \edrv a \in A   & cases & \dots     & \text{inductive set elimination (of $A$)} \\
     \dots           & cases & \dots ~ R & \text{explicit rule $R$} \\
   \end{matharray}
+  
+  Several instantiations may be given, referring to the \emph{suffix} of
+  premises of the case rule; within each premise, the \emph{prefix} of
+  variables is instantiated.  In most situations, only a single term needs to
+  be specified; this refers to the first variable of the last premise (it is
+  usually the same for all cases).
 
   The $simplified$ option causes ``obvious cases'' of the rule to be solved
   beforehand, while the others are left unscathed.
@@ -301,7 +290,7 @@ induction both the predicates and variables have to be specified.  Otherwise
 the $\CASENAME$ command would refuse to invoke cases containing schematic
 variables.
 
-The $\isarkeyword{print_cases}$ command (\S\ref{sec:diag}) prints all named
+The $\isarkeyword{print_cases}$ command (\S\ref{sec:cases}) prints all named
 cases present in the current proof state.
 
 
@@ -335,44 +324,68 @@ adjust names of cases and parameters of a rule.
 \subsection{Emulating tactic scripts}\label{sec:induct_tac}
 
 \indexisarmeth{case-tac}\indexisarmeth{induct-tac}
+\indexisarmeth{mk-cases-tac}\indexisarcmd{inductive-cases}
 \begin{matharray}{rcl}
   case_tac & : & \isarmeth \\
   induct_tac & : & \isarmeth \\
+  mk_cases_tac & : & \isarmeth \\
+  \isarcmd{inductive_cases} & : & \isartrans{theory}{theory} \\
 \end{matharray}
-
-These proof methods directly correspond to the ML tactics of the same name
-\cite{isabelle-HOL}.  In particular, the instantiation given refers to the
-\emph{dynamic} proof state, rather than the current proof text.  This enables
-proof scripts to refer to parameters of some subgoal, for example.
 
 \railalias{casetac}{case\_tac}
 \railterm{casetac}
+
 \railalias{inducttac}{induct\_tac}
 \railterm{inducttac}
+
+\railalias{mkcasestac}{mk\_cases\_tac}
+\railterm{mkcasestac}
+
+\railalias{indcases}{inductive\_cases}
+\railterm{indcases}
 
 \begin{rail}
   casetac goalspec? term rule?
   ;
   inducttac goalspec? (insts * 'and') rule?
   ;
+  mkcasestac (prop +)
+  ;
+  indcases thmdef? (prop +) comment?
+  ;
 
   rule: ('rule' ':' thmref)
   ;
 \end{rail}
 
-By default, $case_tac$ and $induct_tac$ admit to reason about inductive
-datatypes only, unless an alternative rule is given explicitly.  Furthermore,
-$case_tac$ does a classical case split on booleans; $induct_tac$ allows only
-variables to be given as instantiation.  Also note that named local contexts
-(see \S\ref{sec:cases}) are not provided as would be by the proper $induct$
-and $cases$ proof methods (see \S\ref{sec:induct-method-proper}).
+\begin{descr}
+\item [$case_tac$ and $induct_tac$] admit to reason about inductive datatypes
+  only (unless an alternative rule is given explicitly).  Furthermore,
+  $case_tac$ does a classical case split on booleans; $induct_tac$ allows only
+  variables to be given as instantiation.  These tactic emulations feature
+  both goal addressing and dynamic instantiation.  Note that named local
+  contexts (see \S\ref{sec:cases}) are \emph{not} provided as would be by the
+  proper $induct$ and $cases$ proof methods (see
+  \S\ref{sec:induct-method-proper}).
+  
+\item [$mk_cases_tac$ and $\isarkeyword{inductive_cases}$] provide an
+  interface to the \texttt{mk_cases} operation.  Rules are simplified in an
+  unrestricted forward manner, unlike the proper $cases$ method (see
+  \S\ref{sec:induct-method-proper}) which requires simplified cases to be
+  solved completely.
+  
+  While $mk_cases_tac$ is a proof method to apply the result immediately as
+  elimination rules, $\isarkeyword{inductive_cases}$ provides case split
+  theorems at the theory level for later use,
+\end{descr}
 
 
 \section{Arithmetic}
 
-\indexisarmeth{arith}
+\indexisarmeth{arith}\indexisaratt{arith_split}
 \begin{matharray}{rcl}
   arith & : & \isarmeth \\
+  arith_split & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
@@ -383,7 +396,8 @@ and $cases$ proof methods (see \S\ref{sec:induct-method-proper}).
 The $arith$ method decides linear arithmetic problems (on types $nat$, $int$,
 $real$).  Any current facts are inserted into the goal before running the
 procedure.  The ``!''~argument causes the full context of assumptions to be
-included.
+included.  The $arith_split$ attribute declares case split rules to be
+expanded before the arithmetic procedure is invoked.
 
 Note that a simpler (but faster) version of arithmetic reasoning is already
 performed by the Simplifier.
