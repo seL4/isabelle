@@ -5,7 +5,7 @@
     Logic Image: ZF
 *)
 
-Redex = Univ +
+Redex = Datatype +
 consts
   redexes     :: i
 

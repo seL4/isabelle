@@ -4,7 +4,7 @@
     Copyright   1995  University of Cambridge
 *)
 
-Language ="Datatype" + QUniv +
+Language = Datatype + QUniv +
 
 consts
   Const :: i                    (* Abstract type of constants *)
