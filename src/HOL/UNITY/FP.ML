@@ -8,12 +8,6 @@ Fixed Point of a Program
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-Goal "Union(B) Int A = (UN C:B. C Int A)";
-by (Blast_tac 1);
-qed "Int_Union2";
-
-open FP;
-
 Goalw [FP_Orig_def, stable_def] "stable Acts (FP_Orig Acts Int B)";
 by (stac Int_Union2 1);
 by (rtac ball_constrains_UN 1);

@@ -8,11 +8,7 @@ The Token Ring.
 From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 13.2.
 *)
 
-
-open Token;
-
-
-val Token_defs = [WellTyped_def, Token_def, HasTok_def, H_def, E_def, T_def];
+val Token_defs = [HasTok_def, H_def, E_def, T_def];
 
 AddIffs [N_positive, skip];
 
@@ -20,33 +16,14 @@ Goalw [HasTok_def] "[| s: HasTok i; s: HasTok j |] ==> i=j";
 by Auto_tac;
 qed "HasToK_partition";
 
-Goalw Token_defs "s : WellTyped ==> (s ~: E i) = (s : H i | s : T i)";
+Goalw Token_defs "(s ~: E i) = (s : H i | s : T i)";
 by (Simp_tac 1);
-by (exhaust_tac "s (Suc i)" 1);
+by (exhaust_tac "proc s i" 1);
 by Auto_tac;
 qed "not_E_eq";
 
-(** We should be able to prove WellTyped as a separate Invariant.  Then
-    the Invariant rule should let us assume that the initial
-    state is reachable, and therefore contained in any Invariant.  Then
-    we'd not have to mention WellTyped in the statement of this theorem.
-**)
-
-Goalw [stable_def]
-    "stable Acts (WellTyped Int {s. s : E i --> s : HasTok i})";
-by (rtac (stable_WT RS stable_constrains_Int) 1);
-by (cut_facts_tac [TR2,TR4,TR5] 1);
-by (asm_full_simp_tac (simpset() addsimps [constrains_def]) 1);
-by (REPEAT_FIRST (rtac ballI ORELSE' (dtac bspec THEN' assume_tac)));
-by (auto_tac (claset(), simpset() addsimps [not_E_eq]));
-by (case_tac "xa : HasTok i" 1);
-by (auto_tac (claset(), simpset() addsimps [H_def, E_def, T_def]));
-qed "token_stable";
-
 (*This proof is in the "massaging" style and is much faster! *)
-Goalw [stable_def]
-    "stable Acts (WellTyped Int (Compl(E i) Un (HasTok i)))";
-by (rtac (stable_WT RS stable_constrains_Int) 1);
+Goalw [stable_def] "stable Acts (Compl(E i) Un (HasTok i))";
 by (rtac constrains_weaken 1);
 by (rtac ([[TR2, TR4] MRS constrains_Un, TR5] MRS constrains_Un) 1);
 by (auto_tac (claset(), simpset() addsimps [not_E_eq]));
@@ -99,9 +76,8 @@ qed "nodeOrder_eq";
 
 (*From "A Logic for Concurrent Programming", but not used in Chapter 4.
   Note the use of case_tac.  Reasoning about leadsTo takes practice!*)
-Goal
- "[| i<N; j<N |] ==> \
-\      leadsTo Acts (HasTok i) ({s. (Token s, i) : nodeOrder j} Un HasTok j)";
+Goal "[| i<N; j<N |] ==>   \
+\     leadsTo Acts (HasTok i) ({s. (token s, i) : nodeOrder j} Un HasTok j)";
 by (case_tac "i=j" 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
 by (rtac (TR7 RS leadsTo_weaken_R) 1);
@@ -111,27 +87,25 @@ qed "TR7_nodeOrder";
 
 
 (*Chapter 4 variant, the one actually used below.*)
-Goal
- "[| i<N; j<N; i~=j |] ==> \
-\      leadsTo Acts (HasTok i) {s. (Token s, i) : nodeOrder j}";
+Goal "[| i<N; j<N; i~=j |]    \
+\     ==> leadsTo Acts (HasTok i) {s. (token s, i) : nodeOrder j}";
 by (rtac (TR7 RS leadsTo_weaken_R) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [HasTok_def, nodeOrder_eq]) 1);
 qed "TR7_aux";
 
-Goal "({s. Token s < N} Int Token -`` {m}) = \
-\         (if m<N then Token -`` {m} else {})";
+Goal "({s. token s < N} Int token -`` {m}) = \
+\     (if m<N then token -`` {m} else {})";
 by Auto_tac;
-val Token_lemma = result();
+val token_lemma = result();
 
 
 (*Misra's TR9: the token reaches an arbitrary node*)
-Goal
- "j<N ==> leadsTo Acts {s. Token s < N} (HasTok j)";
+Goal "j<N ==> leadsTo Acts {s. token s < N} (HasTok j)";
 by (rtac leadsTo_weaken_R 1);
-by (res_inst_tac [("I", "Compl{j}"), ("f", "Token"), ("B", "{}")]
+by (res_inst_tac [("I", "Compl{j}"), ("f", "token"), ("B", "{}")]
      (wf_nodeOrder RS bounded_induct) 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [Token_lemma, vimage_Diff,
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [token_lemma, vimage_Diff,
 						HasTok_def])));
 by (Blast_tac 2);
 by (Clarify_tac 1);
@@ -141,10 +115,10 @@ by (ALLGOALS Blast_tac);
 qed "leadsTo_j";
 
 (*Misra's TR8: a hungry process eventually eats*)
-Goal "j<N ==> leadsTo Acts ({s. Token s < N} Int H j) (E j)";
+Goal "j<N ==> leadsTo Acts ({s. token s < N} Int H j) (E j)";
 by (rtac (leadsTo_cancel1 RS leadsTo_Un_duplicate) 1);
 by (rtac TR6 2);
 by (rtac leadsTo_weaken_R 1);
 by (rtac ([leadsTo_j, TR3] MRS PSP) 1);
 by (ALLGOALS Blast_tac);
-qed "Token_progress";
+qed "token_progress";

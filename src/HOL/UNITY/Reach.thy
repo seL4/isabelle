@@ -6,7 +6,7 @@
 Reachability in Directed Graphs.  From Chandy and Misra, section 6.4.
 *)
 
-Reach = Update + FP + Traces + SubstAx +
+Reach = FP + Traces + SubstAx +
 
 types   vertex
         state = "vertex=>bool"

@@ -8,8 +8,6 @@ The Communication Network
 From Misra, "A Logic for Concurrent Programming" (1994), section 5.7
 *)
 
-open Network;
-
 val [rsA, rsB, sent_nondec, rcvd_nondec, rcvd_idle, sent_idle] = 
 Goalw [stable_def]
    "[| !! m. stable Acts {s. s(Bproc,Rcvd) <= s(Aproc,Sent)};  \

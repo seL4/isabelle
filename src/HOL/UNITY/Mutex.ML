@@ -6,10 +6,12 @@
 Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 *)
 
-open Mutex;
+(*split_all_tac causes a big blow-up*)
+claset_ref() := claset() delSWrapper "split_all_tac";
 
-val cmd_defs = [mutex_def, cmd0_def, cmd1u_def, cmd1v_def, 
-		cmd2_def, cmd3_def, cmd4_def];
+val cmd_defs = [mutex_def, 
+		cmd0U_def, cmd1U_def, cmd2U_def, cmd3U_def, cmd4U_def, 
+		cmd0V_def, cmd1V_def, cmd2V_def, cmd3V_def, cmd4V_def];
 
 Goalw [mutex_def] "id : mutex";
 by (Simp_tac 1);
@@ -17,7 +19,16 @@ qed "id_in_mutex";
 AddIffs [id_in_mutex];
 
 
-(** Constrains/Ensures tactics: NEED TO BE GENERALIZED OVER ALL PROGRAMS **)
+(*Simplification for records*)
+val select_defs = thms"state.select_defs"
+and update_defs = thms"state.update_defs"
+and dest_defs   = thms"state.dest_defs";
+
+Addsimps update_defs;
+
+
+(** Constrains/Ensures tactics: NEED TO BE GENERALIZED OVER ALL PROGRAMS
+     [They have free occurrences of mutex_def and cmd_defs] **)
 
 (*proves "constrains" properties when the program is specified*)
 val constrains_tac = 
@@ -32,82 +43,67 @@ val constrains_tac =
 (*proves "ensures" properties when the program is specified*)
 fun ensures_tac sact = 
     SELECT_GOAL
-      (EVERY [REPEAT (resolve_tac [LeadsTo_Basis, leadsTo_Basis, ensuresI] 1),
+      (EVERY [etac reachable_LeadsTo_Basis 1 
+	          ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
+		  REPEAT (ares_tac [leadsTo_imp_LeadsTo, leadsTo_Basis, 
+				    ensuresI] 1),
 	      res_inst_tac [("act", sact)] transient_mem 2,
-	      Simp_tac 2,
+	      simp_tac (simpset() addsimps (Domain_partial_func::cmd_defs)) 3,
+	      simp_tac (simpset() addsimps [mutex_def]) 2,
 	      constrains_tac 1,
 	      rewrite_goals_tac cmd_defs,
+	      ALLGOALS Clarify_tac,
 	      Auto_tac]);
 
 
-(*The booleans p, u, v are always either 0 or 1*)
-Goalw [stable_def, boolVars_def]
-    "stable mutex boolVars";
+Goalw [stable_def, invariantU_def] "stable mutex invariantU";
 by (constrains_tac 1);
-by (auto_tac (claset() addSEs [less_SucE], simpset()));
-qed "stable_boolVars";
+qed "stable_invariantU";
 
-Goal "reachable (MInit,mutex) <= boolVars";
-by (rtac strongest_invariant 1);
-by (rtac stable_boolVars 2);
-by (rewrite_goals_tac [MInit_def, boolVars_def]);
-by Auto_tac;
-qed "reachable_subset_boolVars";
-
-val reachable_subset_boolVars' = 
-    rewrite_rule [boolVars_def] reachable_subset_boolVars;
-
-Goalw [stable_def, invariant_def]
-    "stable mutex (invariant 0 UU MM)";
+Goalw [stable_def, invariantV_def] "stable mutex invariantV";
 by (constrains_tac 1);
-qed "stable_invar_0um";
+qed "stable_invariantV";
 
-Goalw [stable_def, invariant_def]
-    "stable mutex (invariant 1 VV NN)";
-by (constrains_tac 1);
-qed "stable_invar_1vn";
-
-Goalw [MInit_def, invariant_def] "MInit <= invariant 0 UU MM";
+Goalw [MInit_def, invariantU_def] "MInit <= invariantU";
 by Auto_tac;
-qed "MInit_invar_0um";
+qed "MInit_invariantU";
 
-Goalw [MInit_def, invariant_def] "MInit <= invariant 1 VV NN";
+Goalw [MInit_def, invariantV_def] "MInit <= invariantV";
 by Auto_tac;
-qed "MInit_invar_1vn";
+qed "MInit_invariantV";
 
 (*The intersection is an invariant of the system*)
-Goal "reachable (MInit,mutex) <= invariant 0 UU MM Int invariant 1 VV NN";
+Goal "reachable (MInit,mutex) <= invariantU Int invariantV";
 by (simp_tac (simpset() addsimps
 	      [strongest_invariant, Int_greatest, stable_Int, 
-	       stable_invar_0um, stable_invar_1vn, 
-	       MInit_invar_0um,MInit_invar_1vn]) 1); 
+	       stable_invariantU, stable_invariantV, 
+	       MInit_invariantU,MInit_invariantV]) 1); 
 qed "reachable_subset_invariant";
 
 val reachable_subset_invariant' = 
-    rewrite_rule [invariant_def] reachable_subset_invariant;
+    rewrite_rule [invariantU_def, invariantV_def] reachable_subset_invariant;
 
 
 (*The safety property (mutual exclusion) follows from the claimed invar_s*)
-Goalw [invariant_def]
-    "{s. s MM = 3 & s NN = 3} <= \
-\    Compl (invariant 0 UU MM Int invariant 1 VV NN)";
+Goalw [invariantU_def, invariantV_def]
+    "{s. MM s = 3 & NN s = 3} <= Compl (invariantU Int invariantV)";
 by Auto_tac;
 val lemma = result();
 
-Goal "{s. s MM = 3 & s NN = 3} <= Compl (reachable (MInit,mutex))";
-by (rtac ([lemma, reachable_subset_invariant RS Compl_anti_mono] MRS subset_trans) 1);
+Goal "{s. MM s = 3 & NN s = 3} <= Compl (reachable (MInit,mutex))";
+by (rtac ([lemma, reachable_subset_invariant RS Compl_anti_mono] 
+	  MRS subset_trans) 1);
 qed "mutual_exclusion";
 
 
-(*The bad invariant FAILS in cmd1v*)
-Goalw [stable_def, bad_invariant_def]
-    "stable mutex (bad_invariant 0 UU MM)";
+(*The bad invariant FAILS in cmd1V*)
+Goalw [stable_def, bad_invariantU_def] "stable mutex bad_invariantU";
 by (constrains_tac 1);
-by (trans_tac 1);
+by (REPEAT (trans_tac 1));
 by (safe_tac (claset() addSEs [le_SucE]));
 by (Asm_full_simp_tac 1);
 (*Resulting state: n=1, p=false, m=4, u=false.  
-  Execution of cmd1v (the command of process v guarded by n=1) sets p:=true,
+  Execution of cmd1V (the command of process v guarded by n=1) sets p:=true,
   violating the invariant!*)
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;  
@@ -115,42 +111,40 @@ getgoal 1;
 
 (*** Progress for U ***)
 
-Goalw [unless_def] "unless mutex {s. s MM=2} {s. s MM=3}";
+Goalw [unless_def] "unless mutex {s. MM s=2} {s. MM s=3}";
 by (constrains_tac 1);
 qed "U_F0";
 
-Goal "LeadsTo(MInit,mutex) {s. s MM=1} {s. s PP = s VV & s MM = 2}";
-by (rtac leadsTo_imp_LeadsTo 1);   (*makes the proof much faster*)
-by (ensures_tac "cmd1u" 1);
+Goal "LeadsTo(MInit,mutex) {s. MM s=1} {s. PP s = VV s & MM s = 2}";
+by (ensures_tac "cmd1U" 1);
 qed "U_F1";
 
-Goal "LeadsTo(MInit,mutex) {s. s PP = 0 & s MM = 2} {s. s MM = 3}";
+Goal "LeadsTo(MInit,mutex) {s. ~ PP s & MM s = 2} {s. MM s = 3}";
 by (cut_facts_tac [reachable_subset_invariant'] 1);
-by (ensures_tac "cmd2 0 MM" 1);
+by (ensures_tac "cmd2U" 1);
 qed "U_F2";
 
-Goalw [mutex_def] "LeadsTo(MInit,mutex) {s. s MM = 3} {s. s PP = 1}";
+Goalw [mutex_def] "LeadsTo(MInit,mutex) {s. MM s = 3} {s. PP s}";
 by (rtac leadsTo_imp_LeadsTo 1); 
-by (res_inst_tac [("B", "{s. s MM = 4}")] leadsTo_Trans 1);
-by (ensures_tac "cmd4 1 MM" 2);
-by (ensures_tac "cmd3 UU MM" 1);
+by (res_inst_tac [("B", "{s. MM s = 4}")] leadsTo_Trans 1);
+by (ensures_tac "cmd4U" 2);
+by (ensures_tac "cmd3U" 1);
 qed "U_F3";
 
-Goal "LeadsTo(MInit,mutex) {s. s MM = 2} {s. s PP = 1}";
+Goal "LeadsTo(MInit,mutex) {s. MM s = 2} {s. PP s}";
 by (rtac ([LeadsTo_weaken_L, subset_refl RS subset_imp_LeadsTo] 
 	  MRS LeadsTo_Diff) 1);
 by (rtac ([U_F2, U_F3] MRS LeadsTo_Trans) 1);
-by (cut_facts_tac [reachable_subset_boolVars'] 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 val lemma2 = result();
 
-Goal "LeadsTo(MInit,mutex) {s. s MM = 1} {s. s PP = 1}";
+Goal "LeadsTo(MInit,mutex) {s. MM s = 1} {s. PP s}";
 by (rtac ([U_F1 RS LeadsTo_weaken_R, lemma2] MRS LeadsTo_Trans) 1);
 by (Blast_tac 1);
 val lemma1 = result();
 
 
-Goal "LeadsTo(MInit,mutex) {s. 1 <= s MM & s MM <= 3} {s. s PP = 1}";
+Goal "LeadsTo(MInit,mutex) {s. 1 <= MM s & MM s <= 3} {s. PP s}";
 by (simp_tac (simpset() addsimps [le_Suc_eq, conj_disj_distribL] 
 	                addcongs [rev_conj_cong]) 1);
 by (simp_tac (simpset() addsimps [Collect_disj_eq, LeadsTo_Un_distrib,
@@ -159,7 +153,7 @@ val lemma123 = result();
 
 
 (*Misra's F4*)
-Goal "LeadsTo(MInit,mutex) {s. s UU = 1} {s. s PP = 1}";
+Goal "LeadsTo(MInit,mutex) {s. UU s} {s. PP s}";
 by (rtac LeadsTo_weaken_L 1);
 by (rtac lemma123 1);
 by (cut_facts_tac [reachable_subset_invariant'] 1);
@@ -170,42 +164,40 @@ qed "u_leadsto_p";
 (*** Progress for V ***)
 
 
-Goalw [unless_def] "unless mutex {s. s NN=2} {s. s NN=3}";
+Goalw [unless_def] "unless mutex {s. NN s=2} {s. NN s=3}";
 by (constrains_tac 1);
 qed "V_F0";
 
-Goal "LeadsTo(MInit,mutex) {s. s NN=1} {s. s PP = 1 - s UU & s NN = 2}";
-by (rtac leadsTo_imp_LeadsTo 1);   (*makes the proof much faster*)
-by (ensures_tac "cmd1v" 1);
+Goal "LeadsTo(MInit,mutex) {s. NN s=1} {s. PP s = (~ UU s) & NN s = 2}";
+by (ensures_tac "cmd1V" 1);
 qed "V_F1";
 
-Goal "LeadsTo(MInit,mutex) {s. s PP = 1 & s NN = 2} {s. s NN = 3}";
+Goal "LeadsTo(MInit,mutex) {s. PP s & NN s = 2} {s. NN s = 3}";
 by (cut_facts_tac [reachable_subset_invariant'] 1);
-by (ensures_tac "cmd2 1 NN" 1);
+by (ensures_tac "cmd2V" 1);
 qed "V_F2";
 
-Goalw [mutex_def] "LeadsTo(MInit,mutex) {s. s NN = 3} {s. s PP = 0}";
+Goalw [mutex_def] "LeadsTo(MInit,mutex) {s. NN s = 3} {s. ~ PP s}";
 by (rtac leadsTo_imp_LeadsTo 1); 
-by (res_inst_tac [("B", "{s. s NN = 4}")] leadsTo_Trans 1);
-by (ensures_tac "cmd4 0 NN" 2);
-by (ensures_tac "cmd3 VV NN" 1);
+by (res_inst_tac [("B", "{s. NN s = 4}")] leadsTo_Trans 1);
+by (ensures_tac "cmd4V" 2);
+by (ensures_tac "cmd3V" 1);
 qed "V_F3";
 
-Goal "LeadsTo(MInit,mutex) {s. s NN = 2} {s. s PP = 0}";
+Goal "LeadsTo(MInit,mutex) {s. NN s = 2} {s. ~ PP s}";
 by (rtac ([LeadsTo_weaken_L, subset_refl RS subset_imp_LeadsTo] 
 	  MRS LeadsTo_Diff) 1);
 by (rtac ([V_F2, V_F3] MRS LeadsTo_Trans) 1);
-by (cut_facts_tac [reachable_subset_boolVars'] 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 val lemma2 = result();
 
-Goal "LeadsTo(MInit,mutex) {s. s NN = 1} {s. s PP = 0}";
+Goal "LeadsTo(MInit,mutex) {s. NN s = 1} {s. ~ PP s}";
 by (rtac ([V_F1 RS LeadsTo_weaken_R, lemma2] MRS LeadsTo_Trans) 1);
 by (Blast_tac 1);
 val lemma1 = result();
 
 
-Goal "LeadsTo(MInit,mutex) {s. 1 <= s NN & s NN <= 3} {s. s PP = 0}";
+Goal "LeadsTo(MInit,mutex) {s. 1 <= NN s & NN s <= 3} {s. ~ PP s}";
 by (simp_tac (simpset() addsimps [le_Suc_eq, conj_disj_distribL] 
 	                addcongs [rev_conj_cong]) 1);
 by (simp_tac (simpset() addsimps [Collect_disj_eq, LeadsTo_Un_distrib,
@@ -214,7 +206,7 @@ val lemma123 = result();
 
 
 (*Misra's F4*)
-Goal "LeadsTo(MInit,mutex) {s. s VV = 1} {s. s PP = 0}";
+Goal "LeadsTo(MInit,mutex) {s. VV s} {s. ~ PP s}";
 by (rtac LeadsTo_weaken_L 1);
 by (rtac lemma123 1);
 by (cut_facts_tac [reachable_subset_invariant'] 1);
@@ -225,7 +217,7 @@ qed "v_leadsto_not_p";
 (** Absence of starvation **)
 
 (*Misra's F6*)
-Goal "LeadsTo(MInit,mutex) {s. s MM = 1} {s. s MM = 3}";
+Goal "LeadsTo(MInit,mutex) {s. MM s = 1} {s. MM s = 3}";
 by (rtac LeadsTo_Un_duplicate 1);
 by (rtac LeadsTo_cancel2 1);
 by (rtac U_F2 2);
@@ -234,13 +226,12 @@ by (stac Un_commute 1);
 by (rtac LeadsTo_Un_duplicate 1);
 by (rtac ([v_leadsto_not_p, U_F0] MRS R_PSP_unless RSN(2, LeadsTo_cancel2)) 1);
 by (rtac (U_F1 RS LeadsTo_weaken_R) 1);
-by (cut_facts_tac [reachable_subset_boolVars'] 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 qed "m1_leadsto_3";
 
 
 (*The same for V*)
-Goal "LeadsTo(MInit,mutex) {s. s NN = 1} {s. s NN = 3}";
+Goal "LeadsTo(MInit,mutex) {s. NN s = 1} {s. NN s = 3}";
 by (rtac LeadsTo_Un_duplicate 1);
 by (rtac LeadsTo_cancel2 1);
 by (rtac V_F2 2);
@@ -249,6 +240,5 @@ by (stac Un_commute 1);
 by (rtac LeadsTo_Un_duplicate 1);
 by (rtac ([u_leadsto_p, V_F0] MRS R_PSP_unless  RSN(2, LeadsTo_cancel2)) 1);
 by (rtac (V_F1 RS LeadsTo_weaken_R) 1);
-by (cut_facts_tac [reachable_subset_boolVars'] 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
 qed "n1_leadsto_3";

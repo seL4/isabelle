@@ -8,10 +8,7 @@ Unordered Channel
 From Misra, "A Logic for Concurrent Programming" (1994), section 13.3
 *)
 
-open Channel;
-
 AddIffs [skip];
-
 
 (*None represents "infinity" while Some represents proper integers*)
 Goalw [minSet_def] "minSet A = Some x --> x : A";

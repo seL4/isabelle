@@ -8,12 +8,6 @@ Weak Fairness versions of transient, ensures, leadsTo.
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-open WFair;
-
-Goal "Union(B) Int A = Union((%C. C Int A)``B)";
-by (Blast_tac 1);
-qed "Int_Union_Union";
-
 
 (*** transient ***)
 
@@ -121,7 +115,7 @@ val major::prems = goal thy
 \              ==> P A C; \
 \     !!B S. ALL A:S. leadsTo Acts A B & P A B ==> P (Union S) B \
 \  |] ==> P za zb";
-br (major RS leadsto.induct) 1;
+by (rtac (major RS leadsto.induct) 1);
 by (REPEAT (blast_tac (claset() addIs prems) 1));
 qed "leadsTo_induct";
 

@@ -6,7 +6,7 @@
 lessThan, greaterThan, atLeast, atMost
 *)
 
-LessThan = List +
+LessThan = Main +
 
 constdefs
 

@@ -6,7 +6,7 @@
 Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 *)
 
-Mutex = Update + UNITY + Traces + SubstAx +
+Mutex = UNITY + Traces + SubstAx +
 
 (*WE NEED A GENERAL TREATMENT OF NUMBERS!!*)
 syntax
@@ -18,57 +18,66 @@ translations
    "4"  == "Suc 3"
 
 
-(*program variables*)
-datatype pvar = PP | MM | NN | UU | VV
-
-(*No booleans; instead True=1 and False=0*)
-types state = pvar => nat
+record state =
+  PP :: bool
+  MM :: nat
+  NN :: nat
+  UU :: bool
+  VV :: bool
 
 constdefs
-  cmd0 :: "[pvar,pvar] => (state*state) set"
-    "cmd0 u m == {(s,s'). s' = s(u:=1,m:=1) & s m = 0}"
+  cmd0U :: "(state*state) set"
+    "cmd0U == {(s,s'). s' = s (|UU:=True, MM:=1|) & MM s = 0}"
 
-  cmd1u :: "(state*state) set"
-    "cmd1u == {(s,s'). s' = s(PP:= s VV,MM:=2) & s MM = 1}"
+  cmd1U :: "(state*state) set"
+    "cmd1U == {(s,s'). s' = s (|PP:= VV s, MM:=2|) & MM s = 1}"
 
-  cmd1v :: "(state*state) set"
-    "cmd1v == {(s,s'). s' = s(PP:= 1 - s UU,NN:=2) & s NN = 1}"
+  cmd2U :: "(state*state) set"
+    "cmd2U == {(s,s'). s' = s (|MM:=3|) & ~ PP s & MM s = 2}"
 
-  (*Put pv=0 for u's program and pv=1 for v's program*)
-  cmd2 :: "[nat,pvar] => (state*state) set"
-    "cmd2 pv m == {(s,s'). s' = s(m:=3) & s PP = pv & s m = 2}"
+  cmd3U :: "(state*state) set"
+    "cmd3U == {(s,s'). s' = s (|UU:=False, MM:=4|) & MM s = 3}"
 
-  cmd3 :: "[pvar,pvar] => (state*state) set"
-    "cmd3 u m == {(s,s'). s' = s(u:=0,m:=4) & s m = 3}"
+  cmd4U :: "(state*state) set"
+    "cmd4U == {(s,s'). s' = s (|PP:=True, MM:=0|) & MM s = 4}"
 
-  (*Put pv=1 for u's program and pv=0 for v's program*)
-  cmd4 :: "[nat,pvar] => (state*state) set"
-    "cmd4 pv m == {(s,s'). s' = s(PP:=pv,m:=0) & s m = 4}"
+  cmd0V :: "(state*state) set"
+    "cmd0V == {(s,s'). s' = s (|VV:=True, NN:=1|) & NN s = 0}"
+
+  cmd1V :: "(state*state) set"
+    "cmd1V == {(s,s'). s' = s (|PP:= ~ UU s, NN:=2|) & NN s = 1}"
+
+  cmd2V :: "(state*state) set"
+    "cmd2V == {(s,s'). s' = s (|NN:=3|) & PP s & NN s = 2}"
+
+  cmd3V :: "(state*state) set"
+    "cmd3V == {(s,s'). s' = s (|VV:=False, NN:=4|) & NN s = 3}"
+
+  cmd4V :: "(state*state) set"
+    "cmd4V == {(s,s'). s' = s (|PP:=False, NN:=0|) & NN s = 4}"
 
   mutex :: "(state*state) set set"
     "mutex == {id,
-	       cmd0 UU MM, cmd0 VV NN,
-	       cmd1u, cmd1v,
-	       cmd2 0 MM, cmd2 1 NN,
-	       cmd3 UU MM, cmd3 VV NN,
-	       cmd4 1 MM, cmd4 0 NN}"
+	       cmd0U, cmd1U, cmd2U, cmd3U, cmd4U, 
+	       cmd0V, cmd1V, cmd2V, cmd3V, cmd4V}"
+
+  (** The correct invariants **)
+
+  invariantU :: "state set"
+    "invariantU == {s. (UU s = (1 <= MM s & MM s <= 3)) &
+		       (MM s = 3 --> ~ PP s)}"
+
+  invariantV :: "state set"
+    "invariantV == {s. (VV s = (1 <= NN s & NN s <= 3)) &
+		       (NN s = 3 --> PP s)}"
+
+  (** The faulty invariant (for U alone) **)
+
+  bad_invariantU :: "state set"
+    "bad_invariantU == {s. (UU s = (1 <= MM s & MM s <= 3)) &
+		           (3 <= MM s & MM s <= 4 --> ~ PP s)}"
 
   MInit :: "state set"
-    "MInit == {s. s PP < 2 & s UU = 0 & s VV = 0 & s MM = 0 & s NN = 0}"
-
-  boolVars :: "state set"
-    "boolVars == {s. s PP<2 & s UU < 2 & s VV < 2}"
-
-  (*Put pv=0 for u's program and pv=1 for v's program*)
-  invariant :: "[nat,pvar,pvar] => state set"
-    "invariant pv u m == {s. ((s u=1) = (1 <= s m & s m <= 3)) &
-			     (s m = 3 --> s PP = pv)}"
-
-  bad_invariant :: "[nat,pvar,pvar] => state set"
-    "bad_invariant pv u m == {s. ((s u=1) = (1 <= s m & s m <= 3)) &
-			         (3 <= s m & s m <= 4 --> s PP = pv)}"
-
-
-  
+    "MInit == {s. ~ UU s & ~ VV s & MM s = 0 & NN s = 0}"
 
 end

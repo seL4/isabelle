@@ -12,9 +12,11 @@ From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 13.2.
 Token = WFair +
 
 (*process states*)
-datatype pstate = Hungry | Eating | Thinking | Pnum nat
+datatype pstate = Hungry | Eating | Thinking
 
-types state = nat => pstate
+record state =
+  token :: nat
+  proc  :: nat => pstate
 
 consts
   N :: nat	(*number of nodes in the ring*)
@@ -27,32 +29,20 @@ constdefs
   next      :: nat => nat
     "next i == (Suc i) mod N"
 
-  WellTyped :: state set
-    "WellTyped == {s. ALL i j. s (Suc i) ~= Pnum j}"
-
-  Token :: state => nat
-    "Token s == case s 0 of 
-                    Hungry => 0
-                  | Eating => 0
-                  | Thinking => 0
-                  | Pnum i => i"
-
   HasTok :: nat => state set
-    "HasTok i == Token -`` {i}"
+    "HasTok i == {s. token s = i}"
 
   H :: nat => state set
-    "H i == {s. s (Suc i) = Hungry}"
+    "H i == {s. proc s i = Hungry}"
 
   E :: nat => state set
-    "E i == {s. s (Suc i) = Eating}"
+    "E i == {s. proc s i = Eating}"
 
   T :: nat => state set
-    "T i == {s. s (Suc i) = Thinking}"
+    "T i == {s. proc s i = Thinking}"
 
 rules
   N_positive "0<N"
-
-  stable_WT  "stable Acts WellTyped"
 
   skip "id: Acts"
 

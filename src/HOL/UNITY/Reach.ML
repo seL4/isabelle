@@ -7,8 +7,6 @@ Reachability in Directed Graphs.  From Chandy and Misra, section 6.4.
 	[ this example took only four days!]
 *)
 
-open Reach;
-
 (*TO SIMPDATA.ML??  FOR CLASET??  *)
 val major::prems = goal thy 
     "[| if P then Q else R;    \

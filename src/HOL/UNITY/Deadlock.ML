@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Traces
+(*  Title:      HOL/UNITY/Deadlock
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge

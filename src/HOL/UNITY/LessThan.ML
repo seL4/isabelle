@@ -7,9 +7,6 @@ lessThan, greaterThan, atLeast, atMost
 *)
 
 
-open LessThan;
-
-
 (*** lessThan ***)
 
 Goalw [lessThan_def] "(i: lessThan k) = (i<k)";
@@ -143,4 +140,56 @@ Goal "atMost n Int atLeast n = {n}";
 by (blast_tac (claset() addIs [le_anti_sym]) 1);
 qed "atMost_Int_atLeast";
 
+
+
+
+(*** Finally, a few set-theoretic laws...
+     CAN BOOLEAN SIMPLIFICATION BE AUTOMATED? ***)
+
+context Set.thy;
+
+(** Rewrites rules to eliminate A.  Conditions can be satisfied by letting B
+    be any set including A Int C and contained in A Un C, such as B=A or B=C.
+**)
+
+Goal "[| A Int C <= B; B <= A Un C |] \
+\     ==> (A Int B) Un (Compl A Int C) = B Un C";
+by (Blast_tac 1);
+
+Goal "[| A Int C <= B; B <= A Un C |] \
+\     ==> (A Un B) Int (Compl A Un C) = B Int C";
+by (Blast_tac 1);
+
+(*The base B=A*)
+Goal "A Un (Compl A Int C) = A Un C";
+by (Blast_tac 1);
+
+Goal "A Int (Compl A Un C) = A Int C";
+by (Blast_tac 1);
+
+(*The base B=C*)
+Goal "(A Int C) Un (Compl A Int C) = C";
+by (Blast_tac 1);
+
+Goal "(A Un C) Int (Compl A Un C) = C";
+by (Blast_tac 1);
+
+
+(** More ad-hoc rules **)
+
+Goal "A Un B - (A - B) = B";
+by (Blast_tac 1);
+qed "Un_Diff_Diff";
+
+Goal "A Int (B - C) Un C = A Int B Un C";
+by (Blast_tac 1);
+qed "Int_Diff_Un";
+
+Goal "Union(B) Int A = (UN C:B. C Int A)";
+by (Blast_tac 1);
+qed "Int_Union2";
+
+Goal "Union(B) Int A = Union((%C. C Int A)``B)";
+by (Blast_tac 1);
+qed "Int_Union_Union";
 
