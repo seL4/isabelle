@@ -26,8 +26,8 @@ simpset_ref() := simpset() setmksimps ((mksimps mksimps_pairs) o maybe_unlift);
 (* The reliable memory is an implementation of the unreliable one *)
 qed_goal "ReliableImplementsUnReliable" Memory.thy 
    "IRSpec ch mm rs .-> IUSpec ch mm rs"
-   (fn _ => [auto_tac (temp_css addsimps2 ([square_def,UNext_def] @ 
-			RM_temp_defs @ UM_temp_defs) addSEs2 [STL4E])]);
+   (K [force_tac (temp_css addsimps2 ([square_def,UNext_def] @ 
+			RM_temp_defs @ UM_temp_defs) addSEs2 [STL4E]) 1]);
 
 (* The memory spec implies the memory invariant *)
 qed_goal "MemoryInvariant" Memory.thy 
@@ -129,11 +129,9 @@ qed_goal "RWRNext_enabled" Memory.thy
    "($(rs@p) .= #NotAResult) .& (RALL l. $(MemInv mm l))  \
 \      .& $(Enabled (Read ch mm rs p .| (REX l. Write ch mm rs p l))) \
 \   .-> $(Enabled (<RNext ch mm rs p>_<rtrner ch @ p, rs@p>))"
-   (fn _ => [auto_tac
-	       (action_css addsimps2 [RNext_def,angle_def]
-		     addSEs2 [enabled_mono2]
-		     addEs2[action_conjimpE ReadResult,action_impE WriteResult])
-	    ]);
+   (K [force_tac (action_css addsimps2 [RNext_def,angle_def]
+	     addSEs2 [enabled_mono2]
+	     addEs2[action_conjimpE ReadResult,action_impE WriteResult]) 1]);
 
 
 (* Combine previous lemmas: the memory can make a visible step if there is an

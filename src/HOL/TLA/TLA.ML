@@ -464,9 +464,8 @@ qed_goal "Stable" TLA.thy
 (* Generalization of INV1 *)
 qed_goalw "StableBox" TLA.thy [stable_def]
    "!!sigma. (sigma |= stable P) ==> (sigma |= [](Init P .-> []P))"
-   (fn _ => [etac dup_boxE 1,
-	     auto_tac (temp_css addsimps2 [stable_def] addEs2 [STL4E, INV1I])
-	    ]);
+   (K [etac dup_boxE 1,
+       force_tac (temp_css addsimps2 [stable_def] addEs2 [STL4E, INV1I]) 1]);
      
 (* useful for WF2 / SF2 *)
 qed_goal "DmdStable" TLA.thy 
@@ -616,10 +615,9 @@ qed_goal "leadsto_infinite" TLA.thy
 *)
 qed_goalw "leadsto_SF" TLA.thy [SF_def]
   "!!sigma. (sigma |= $(Enabled(<A>_v)) ~> <A>_v) ==> sigma |= SF(A)_v"
-  (fn _ => [step_tac temp_cs 1,
+        (K [REPEAT(step_tac temp_cs 1),
             rtac leadsto_infinite 1,
-            ALLGOALS atac
-           ]);
+            ALLGOALS atac]);
 
 bind_thm("leadsto_WF", leadsto_SF RS SFImplWF);
 

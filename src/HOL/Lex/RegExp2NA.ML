@@ -235,8 +235,8 @@ Goal
 \            (? r. (p,r) : steps L u & fin L r & \
 \            (? s. (start R,s) : step R a & \
 \            (? t. (s,t) : steps R v & q = False#t)))))";
-by(fast_tac (claset() addDs [True_steps_concD]
-     addIs [True_True_steps_concI] addss simpset()) 1);
+by(force_tac (claset() addDs [True_steps_concD]
+     addIs [True_True_steps_concI],simpset()) 1);
 qed "True_steps_conc";
 
 (** starting from the start **)
@@ -439,7 +439,7 @@ br iffI 1;
   by(Simp_tac 1);
   by(Blast_tac 1);
  by(Blast_tac 1);
-by(Auto_tac);
+by(Force_tac 1);
 qed "accepts_star";
 
 (***** Correctness of r2n *****)

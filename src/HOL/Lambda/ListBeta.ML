@@ -7,16 +7,15 @@
 Goal
  "v -> v' ==> !rs. v = (Var n)$$rs --> (? ss. rs => ss & v' = (Var n)$$ss)";
 by (etac beta.induct 1);
-by (Asm_full_simp_tac 1);
-by (rtac allI 1);
-by (res_inst_tac [("xs","rs")] rev_exhaust 1);
-by (Asm_full_simp_tac 1);
-by (force_tac (claset() addIs [append_step1I],simpset()) 1);
-by (rtac allI 1);
-by (res_inst_tac [("xs","rs")] rev_exhaust 1);
-by (Asm_full_simp_tac 1);
-by (force_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 1);
-by (Asm_full_simp_tac 1);
+   by (Asm_full_simp_tac 1);
+  by (rtac allI 1);
+  by (res_inst_tac [("xs","rs")] rev_exhaust 1);
+   by (Asm_full_simp_tac 1);
+  by (force_tac (claset() addIs [append_step1I],simpset()) 1);
+ by (rtac allI 1);
+ by (res_inst_tac [("xs","rs")] rev_exhaust 1);
+  by (Asm_full_simp_tac 1);
+ by (mk_auto_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 0 3);
 val lemma = result();
 
 Goal "(Var n)$$rs -> v ==> (? ss. rs => ss & v = (Var n)$$ss)";
@@ -52,8 +51,7 @@ by (etac beta.induct 1);
  by (split_asm_tac [split_if_asm] 1);
   by (Asm_full_simp_tac 1);
   by (Blast_tac 1);
- by (force_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 1);
-by (Asm_full_simp_tac 1);
+ by (mk_auto_tac (claset() addIs [disjI2 RS append_step1I],simpset()) 0 3);
 val lemma = result();
 
 val major::prems =

@@ -144,8 +144,7 @@ Goalw [znegative_def, znat_def]  "~ znegative($# n)";
 by Safe_tac;
 by (dres_inst_tac [("psi", "?lhs=?rhs")] asm_rl 1);
 by (dres_inst_tac [("psi", "?lhs<?rhs")] asm_rl 1);
-by (fast_tac (claset() addss
-              (simpset() addsimps [add_le_self2 RS le_imp_not_lt])) 1);
+by (force_tac (claset(), simpset() addsimps [add_le_self2 RS le_imp_not_lt]) 1);
 qed "not_znegative_znat";
 
 Addsimps [not_znegative_znat];

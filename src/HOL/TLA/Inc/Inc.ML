@@ -230,20 +230,19 @@ qed_goal "N1_enabled_at_b" Inc.thy
 
 (* Now assemble the bits and pieces to prove that Psi is fair. *)
 
-qed_goal "Fair_M1_lemma" Inc.thy
-  "[](PsiInv .& [(N1 .| N2)]_<x,y,sem,pc1,pc2>)              \
+goal Inc.thy  "[](PsiInv .& [(N1 .| N2)]_<x,y,sem,pc1,pc2>)              \
 \            .& SF(N1)_<x,y,sem,pc1,pc2> .& [] SF(N2)_<x,y,sem,pc1,pc2>  \
-\  .-> SF(M1)_<x,y>"
-  (fn _ => [res_inst_tac [("B","beta1"),("P","$pc1 .= #b")] SF2 1,
-	    (* the action premises are simple *)
-	    SELECT_GOAL (auto_tac (Inc_css addsimps2 [angle_def,M1_def,beta1_def])) 1,
-	    SELECT_GOAL (auto_tac (Inc_css addsimps2 angle_def::Psi_defs)) 1,
-	    SELECT_GOAL (auto_tac (Inc_css addSEs2 [action_mp N1_enabled_at_b])) 1,
-	    (* temporal premise: use previous lemmas and simple TL *)
-	    auto_tac (Inc_css addSIs2 DmdStable::(map temp_mp [N1_live,Stuck_at_b]) 
-                              addEs2 [STL4E]
-		              addsimps2 [square_def])
-	   ]);
+\  .-> SF(M1)_<x,y>";
+by (res_inst_tac [("B","beta1"),("P","$pc1 .= #b")] SF2 1);
+
+(* the action premises are simple *)
+   by (force_tac (Inc_css addsimps2 [angle_def,M1_def,beta1_def]) 1);
+  by (force_tac (Inc_css addsimps2 angle_def::Psi_defs) 1);
+ by (force_tac (Inc_css addSEs2 [action_mp N1_enabled_at_b]) 1);
+(* temporal premise: use previous lemmas and simple TL *)
+by (force_tac (Inc_css addSIs2 DmdStable::(map temp_mp [N1_live,Stuck_at_b]) 
+                              addEs2 [STL4E] addsimps2 [square_def]) 1);
+qed "Fair_M1_lemma";
 
 qed_goal "Fair_M1" Inc.thy "Psi .-> WF(M1)_<x,y>"
   (fn _ => [auto_tac (Inc_css addSIs2 SFImplWF::(map temp_mp [Fair_M1_lemma, PsiInv])

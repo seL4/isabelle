@@ -85,7 +85,7 @@ fun op delcongs2 arg = pair_upd2 Data.delcongs arg;
 fun cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
 			CHANGED o Simplifier.safe_asm_full_simp_tac ss);
 fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", 
-				  Simplifier.asm_full_simp_tac ss);
+			CHANGED o Simplifier.asm_full_simp_tac ss);
 
 (* tacticals *)
 
@@ -108,17 +108,15 @@ fun blast_depth_tac cs m i thm =
 
 (* a variant of depth_tac that avoids interference of the simplifier 
    with dup_step_tac when they are combined by auto_tac *)
-fun nodup_depth_tac cs m i state = 
-  SELECT_GOAL 
-   (Classical.appWrappers cs
-    (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
-                             (Classical.safe_step_tac cs i)) THEN_ELSE
-     (DEPTH_SOLVE (nodup_depth_tac cs m i),
-      Classical.inst0_step_tac cs i  APPEND
-      COND (K(m=0)) no_tac
-        ((Classical.instp_step_tac cs i APPEND Classical.step_tac cs i)
-         THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) i)))) 1)
-  i state;
+fun nodup_depth_tac cs m i state = CHANGED (SELECT_GOAL 
+   (REPEAT_DETERM1 (COND (has_fewer_prems 1) no_tac
+                                             (Classical.safe_step_tac cs 1))
+    THEN_ELSE (DEPTH_SOLVE (nodup_depth_tac cs m 1),
+	Classical.appWrappers cs (fn i => Classical.inst0_step_tac cs i APPEND
+        COND (K(m=0)) no_tac
+            ((Classical.instp_step_tac cs i APPEND Classical.step_tac cs i)
+            THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) i))) 1))
+  i) state;
 
 (*Designed to be idempotent, except if best_tac instantiates variables
   in some of the subgoals*)
@@ -129,7 +127,7 @@ fun mk_auto_tac (cs, ss) m n =
           ORELSE'
           nodup_depth_tac cs' n;	(*slower but more general*)
     in  EVERY [ALLGOALS (Simplifier.asm_full_simp_tac ss),
-	       TRY (Classical.safe_tac cs'),
+	       TRY (Classical.safe_tac cs),
 	       REPEAT (FIRSTGOAL maintac),
                TRY (Classical.safe_tac (cs addSss ss)),
 	       prune_params_tac] 

@@ -860,9 +860,9 @@ by (cut_inst_tac[("M","lam xa:nat. lam xb:nat. X`xa`(Y`xb`x)")]
 by (Asm_full_simp_tac 3);
 by (rtac matrix_chainI 1);
 by (Asm_simp_tac 1);
-by (Asm_simp_tac 2); 
-by (fast_tac (claset() addDs [chain_in RS cf_cont,
-			      chain_cf RSN(2,cont_chain)]
+by (Asm_simp_tac 2);
+by (dtac (chain_in RS cf_cont) 1 THEN atac 1);
+by (fast_tac (claset() addDs [chain_cf RSN(2,cont_chain)]
 	      addss simpset()) 1);
 by (rtac chain_cf 1);
 by (REPEAT (ares_tac [cont_fun RS apply_type, chain_in RS cf_cont, 

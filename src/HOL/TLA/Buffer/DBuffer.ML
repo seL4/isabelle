@@ -48,8 +48,8 @@ qed "DBPass_visible";
 Goal "$Enabled (<DBPass>_<inp,mid,out,q1,q2>) .= ($q1 .~= .[])";
 by (rewtac (action_rewrite DBPass_visible));
 by (cut_facts_tac [DB_base] 1);
-by (auto_tac (db_css addSEs2 [base_enabled,enabledE] 
-                     addsimps2 [angle_def,DBPass_def,Deq_def]));
+by (force_tac (db_css addSEs2 [base_enabled,enabledE] 
+                     addsimps2 [angle_def,DBPass_def,Deq_def]) 1);
 qed "DBPass_enabled";
 
 
@@ -115,5 +115,5 @@ qed "DBFair";
 
 (*** Main theorem ***)
 Goalw [DBuffer_def,Buffer_def,IBuffer_def] "DBuffer .-> Buffer inp out";
-by (auto_tac (db_css addSIs2 (map temp_mp [eexI,DBInit,DB_step_simulation RS STL4,DBFair])));
+by (ALLGOALS (force_tac (db_css addSIs2 (map temp_mp [eexI,DBInit,DB_step_simulation RS STL4,DBFair]))));
 qed "DBuffer_impl_Buffer";

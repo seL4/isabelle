@@ -544,8 +544,8 @@ qed "inj_succ_restrict";
 Goalw [inj_def]
     "[| f: inj(A,B);  a~:A;  b~:B |]  ==> \
 \         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
-by (fast_tac (claset() addIs [apply_type]
-               addss (simpset() addsimps [fun_extend, fun_extend_apply2,
-						fun_extend_apply1])) 1);
+by (force_tac (claset() addIs [apply_type],
+               simpset() addsimps [fun_extend, fun_extend_apply2,
+						fun_extend_apply1]) 1);
 qed "inj_extend";
 
