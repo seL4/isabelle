@@ -472,7 +472,10 @@ subsection{*Cancellation Laws for Relationships With a Common Factor*}
 text{*Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
    also with the relations @{text "\<le>"} and equality.*}
 
-lemma mult_less_cancel_right:
+text{*These ``disjunction'' versions produce two cases when the comparison is
+ an assumption, but effectively four when the comparison is a goal.*}
+
+lemma mult_less_cancel_right_disj:
     "(a*c < b*c) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
 apply (case_tac "c = 0")
 apply (auto simp add: linorder_neq_iff mult_strict_right_mono 
@@ -485,7 +488,7 @@ apply (auto simp add: order_less_imp_le mult_right_mono
                       mult_right_mono_neg)
 done
 
-lemma mult_less_cancel_left:
+lemma mult_less_cancel_left_disj:
     "(c*a < c*b) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
 apply (case_tac "c = 0")
 apply (auto simp add: linorder_neq_iff mult_strict_left_mono 
@@ -498,13 +501,27 @@ apply (auto simp add: order_less_imp_le mult_left_mono
                       mult_left_mono_neg)
 done
 
+
+text{*The ``conjunction of implication'' lemmas produce two cases when the
+comparison is a goal, but give four when the comparison is an assumption.*}
+
+lemma mult_less_cancel_right:
+  fixes c :: "'a :: ordered_ring_strict"
+  shows      "(a*c < b*c) = ((0 \<le> c --> a < b) & (c \<le> 0 --> b < a))"
+by (insert mult_less_cancel_right_disj [of a c b], auto)
+
+lemma mult_less_cancel_left:
+  fixes c :: "'a :: ordered_ring_strict"
+  shows      "(c*a < c*b) = ((0 \<le> c --> a < b) & (c \<le> 0 --> b < a))"
+by (insert mult_less_cancel_left_disj [of c a b], auto)
+
 lemma mult_le_cancel_right:
      "(a*c \<le> b*c) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring_strict)))"
-by (simp add: linorder_not_less [symmetric] mult_less_cancel_right)
+by (simp add: linorder_not_less [symmetric] mult_less_cancel_right_disj)
 
 lemma mult_le_cancel_left:
      "(c*a \<le> c*b) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring_strict)))"
-by (simp add: linorder_not_less [symmetric] mult_less_cancel_left)
+by (simp add: linorder_not_less [symmetric] mult_less_cancel_left_disj)
 
 lemma mult_less_imp_less_left:
       assumes less: "c*a < c*b" and nonneg: "0 \<le> c"
@@ -544,6 +561,85 @@ apply (cut_tac linorder_less_linear [of 0 c])
 apply (force dest: mult_strict_left_mono_neg mult_strict_left_mono
              simp add: linorder_neq_iff)
 done
+
+
+subsubsection{*Special Cancellation Simprules for Multiplication*}
+
+text{*These also produce two cases when the comparison is a goal.*}
+
+lemma mult_le_cancel_right1:
+  fixes c :: "'a :: ordered_idom"
+  shows "(c \<le> b*c) = ((0<c --> 1\<le>b) & (c<0 --> b \<le> 1))"
+by (insert mult_le_cancel_right [of 1 c b], simp)
+
+lemma mult_le_cancel_right2:
+  fixes c :: "'a :: ordered_idom"
+  shows "(a*c \<le> c) = ((0<c --> a\<le>1) & (c<0 --> 1 \<le> a))"
+by (insert mult_le_cancel_right [of a c 1], simp)
+
+lemma mult_le_cancel_left1:
+  fixes c :: "'a :: ordered_idom"
+  shows "(c \<le> c*b) = ((0<c --> 1\<le>b) & (c<0 --> b \<le> 1))"
+by (insert mult_le_cancel_left [of c 1 b], simp)
+
+lemma mult_le_cancel_left2:
+  fixes c :: "'a :: ordered_idom"
+  shows "(c*a \<le> c) = ((0<c --> a\<le>1) & (c<0 --> 1 \<le> a))"
+by (insert mult_le_cancel_left [of c a 1], simp)
+
+lemma mult_less_cancel_right1:
+  fixes c :: "'a :: ordered_idom"
+  shows "(c < b*c) = ((0 \<le> c --> 1<b) & (c \<le> 0 --> b < 1))"
+by (insert mult_less_cancel_right [of 1 c b], simp)
+
+lemma mult_less_cancel_right2:
+  fixes c :: "'a :: ordered_idom"
+  shows "(a*c < c) = ((0 \<le> c --> a<1) & (c \<le> 0 --> 1 < a))"
+by (insert mult_less_cancel_right [of a c 1], simp)
+
+lemma mult_less_cancel_left1:
+  fixes c :: "'a :: ordered_idom"
+  shows "(c < c*b) = ((0 \<le> c --> 1<b) & (c \<le> 0 --> b < 1))"
+by (insert mult_less_cancel_left [of c 1 b], simp)
+
+lemma mult_less_cancel_left2:
+  fixes c :: "'a :: ordered_idom"
+  shows "(c*a < c) = ((0 \<le> c --> a<1) & (c \<le> 0 --> 1 < a))"
+by (insert mult_less_cancel_left [of c a 1], simp)
+
+lemma mult_cancel_right1 [simp]:
+fixes c :: "'a :: ordered_idom"
+  shows "(c = b*c) = (c = 0 | b=1)"
+by (insert mult_cancel_right [of 1 c b], force)
+
+lemma mult_cancel_right2 [simp]:
+fixes c :: "'a :: ordered_idom"
+  shows "(a*c = c) = (c = 0 | a=1)"
+by (insert mult_cancel_right [of a c 1], simp)
+ 
+lemma mult_cancel_left1 [simp]:
+fixes c :: "'a :: ordered_idom"
+  shows "(c = c*b) = (c = 0 | b=1)"
+by (insert mult_cancel_left [of c 1 b], force)
+
+lemma mult_cancel_left2 [simp]:
+fixes c :: "'a :: ordered_idom"
+  shows "(c*a = c) = (c = 0 | a=1)"
+by (insert mult_cancel_left [of c a 1], simp)
+
+
+text{*Simprules for comparisons where common factors can be cancelled.*}
+lemmas mult_compare_simps =
+    mult_le_cancel_right mult_le_cancel_left
+    mult_le_cancel_right1 mult_le_cancel_right2
+    mult_le_cancel_left1 mult_le_cancel_left2
+    mult_less_cancel_right mult_less_cancel_left
+    mult_less_cancel_right1 mult_less_cancel_right2
+    mult_less_cancel_left1 mult_less_cancel_left2
+    mult_cancel_right mult_cancel_left
+    mult_cancel_right1 mult_cancel_right2
+    mult_cancel_left1 mult_cancel_left2
+
 
 text{*This list of rewrites decides ring equalities by ordered rewriting.*}
 lemmas ring_eq_simps =  
@@ -824,7 +920,7 @@ lemma mult_divide_cancel_eq_if:
 lemma divide_1 [simp]: "a/1 = (a::'a::field)"
   by (simp add: divide_inverse)
 
-lemma times_divide_eq_right [simp]: "a * (b/c) = (a*b) / (c::'a::field)"
+lemma times_divide_eq_right: "a * (b/c) = (a*b) / (c::'a::field)"
 by (simp add: divide_inverse mult_assoc)
 
 lemma times_divide_eq_left: "(b/c) * a = (b*a) / (c::'a::field)"
@@ -837,6 +933,59 @@ by (simp add: divide_inverse mult_ac)
 lemma divide_divide_eq_left [simp]:
      "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
 by (simp add: divide_inverse mult_assoc)
+
+
+subsubsection{*Special Cancellation Simprules for Division*}
+
+lemma mult_divide_cancel_left_if [simp]:
+  fixes c :: "'a :: {field,division_by_zero}"
+  shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
+by (simp add: mult_divide_cancel_left)
+
+lemma mult_divide_cancel_right_if [simp]:
+  fixes c :: "'a :: {field,division_by_zero}"
+  shows "(a*c) / (b*c) = (if c=0 then 0 else a/b)"
+by (simp add: mult_divide_cancel_right)
+
+lemma mult_divide_cancel_left_if1 [simp]:
+  fixes c :: "'a :: {field,division_by_zero}"
+  shows "c / (c*b) = (if c=0 then 0 else 1/b)"
+apply (insert mult_divide_cancel_left_if [of c 1 b]) 
+apply (simp del: mult_divide_cancel_left_if)
+done
+
+lemma mult_divide_cancel_left_if2 [simp]:
+  fixes c :: "'a :: {field,division_by_zero}"
+  shows "(c*a) / c = (if c=0 then 0 else a)" 
+apply (insert mult_divide_cancel_left_if [of c a 1]) 
+apply (simp del: mult_divide_cancel_left_if)
+done
+
+lemma mult_divide_cancel_right_if1 [simp]:
+  fixes c :: "'a :: {field,division_by_zero}"
+  shows "c / (b*c) = (if c=0 then 0 else 1/b)"
+apply (insert mult_divide_cancel_right_if [of 1 c b]) 
+apply (simp del: mult_divide_cancel_right_if)
+done
+
+lemma mult_divide_cancel_right_if2 [simp]:
+  fixes c :: "'a :: {field,division_by_zero}"
+  shows "(a*c) / c = (if c=0 then 0 else a)" 
+apply (insert mult_divide_cancel_right_if [of a c 1]) 
+apply (simp del: mult_divide_cancel_right_if)
+done
+
+text{*Two lemmas for cancelling the denominator*}
+
+lemma times_divide_self_right [simp]: 
+  fixes a :: "'a :: {field,division_by_zero}"
+  shows "a * (b/a) = (if a=0 then 0 else b)"
+by (simp add: times_divide_eq_right)
+
+lemma times_divide_self_left [simp]: 
+  fixes a :: "'a :: {field,division_by_zero}"
+  shows "(b/a) * a = (if a=0 then 0 else b)"
+by (simp add: times_divide_eq_left)
 
 
 subsection {* Division and Unary Minus *}
@@ -1167,7 +1316,7 @@ lemma pos_less_divide_eq:
 proof -
   assume less: "0<c"
   hence "(a < b/c) = (a*c < (b/c)*c)"
-    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj order_less_not_sym [OF less])
   also have "... = (a*c < b)"
     by (simp add: order_less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -1178,7 +1327,7 @@ lemma neg_less_divide_eq:
 proof -
   assume less: "c<0"
   hence "(a < b/c) = ((b/c)*c < a*c)"
-    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj order_less_not_sym [OF less])
   also have "... = (b < a*c)"
     by (simp add: order_less_imp_not_eq [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -1198,7 +1347,7 @@ lemma pos_divide_less_eq:
 proof -
   assume less: "0<c"
   hence "(b/c < a) = ((b/c)*c < a*c)"
-    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj order_less_not_sym [OF less])
   also have "... = (b < a*c)"
     by (simp add: order_less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -1209,7 +1358,7 @@ lemma neg_divide_less_eq:
 proof -
   assume less: "c<0"
   hence "(b/c < a) = (a*c < (b/c)*c)"
-    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+    by (simp add: mult_less_cancel_right_disj order_less_not_sym [OF less])
   also have "... = (a*c < b)"
     by (simp add: order_less_imp_not_eq [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
@@ -1251,6 +1400,7 @@ qed
 lemma divide_eq_eq:
   "(b/c = (a::'a::{field,division_by_zero})) = (if c\<noteq>0 then b = a*c else a=0)"
 by (force simp add: nonzero_divide_eq_eq) 
+
 
 subsection{*Cancellation Laws for Division*}
 
@@ -1365,6 +1515,17 @@ by (simp add: zero_less_two pos_divide_less_eq right_distrib)
 
 lemma dense: "a < b ==> \<exists>r::'a::ordered_field. a < r & r < b"
 by (blast intro!: less_half_sum gt_half_sum)
+
+
+lemmas times_divide_eq = times_divide_eq_right times_divide_eq_left
+
+text{*It's not obvious whether these should be simprules or not. 
+  Their effect is to gather terms into one big fraction, like
+  a*b*c / x*y*z. The rationale for that is unclear, but many proofs 
+  seem to need them.*}
+
+declare times_divide_eq [simp]
+
 
 subsection {* Absolute Value *}
 
@@ -1486,7 +1647,7 @@ lemma nonzero_abs_divide:
      "b \<noteq> 0 ==> abs (a / (b::'a::ordered_field)) = abs a / abs b"
 by (simp add: divide_inverse abs_mult nonzero_abs_inverse) 
 
-lemma abs_divide:
+lemma abs_divide [simp]:
      "abs (a / (b::'a::{ordered_field,division_by_zero})) = abs a / abs b"
 apply (case_tac "b=0", simp) 
 apply (simp add: nonzero_abs_divide) 
@@ -1512,9 +1673,6 @@ apply (simp add: order_less_le abs_le_iff)
 apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff)
 apply (simp add: le_minus_self_iff linorder_neq_iff) 
 done
-
-text{*Moving this up spoils many proofs using @{text mult_le_cancel_right}*}
-declare times_divide_eq_left [simp]
 
 lemma linprog_dual_estimate:
   assumes
@@ -1670,6 +1828,8 @@ val mult_strict_mono = thm "mult_strict_mono";
 val mult_strict_mono' = thm "mult_strict_mono'";
 val mult_mono = thm "mult_mono";
 val less_1_mult = thm "less_1_mult";
+val mult_less_cancel_right_disj = thm "mult_less_cancel_right_disj";
+val mult_less_cancel_left_disj = thm "mult_less_cancel_left_disj";
 val mult_less_cancel_right = thm "mult_less_cancel_right";
 val mult_less_cancel_left = thm "mult_less_cancel_left";
 val mult_le_cancel_right = thm "mult_le_cancel_right";

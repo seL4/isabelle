@@ -252,7 +252,7 @@ by (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def
 lemmas numerals = nat_numeral_0_eq_0 nat_numeral_1_eq_1 numeral_2_eq_2
 
 
-subsection{*General Theorems About Powers Involving Binary Numerals*}
+subsection{*Powers with Numeric Exponents*}
 
 text{*We cannot refer to the number @{term 2} in @{text Ring_and_Field.thy}.
 We cannot prove general results about the numeral @{term "-1"}, so we have to
@@ -276,6 +276,11 @@ lemma zero_le_power2 [simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpow
 lemma zero_less_power2 [simp]:
      "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_idom,recpower}))"
   by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
+
+lemma power2_less_0 [simp]:
+  fixes a :: "'a::{ordered_idom,recpower}"
+  shows "~ (a\<twosuperior> < 0)"
+by (force simp add: power2_eq_square mult_less_0_iff) 
 
 lemma zero_eq_power2 [simp]:
      "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_idom,recpower}))"
@@ -340,6 +345,14 @@ apply (insert odd_power_less_zero [of a n])
 apply (force simp add: linorder_not_less [symmetric]) 
 done
 
+text{*Simprules for comparisons where common factors can be cancelled.*}
+lemmas zero_compare_simps =
+    add_strict_increasing add_strict_increasing2 add_increasing
+    zero_le_mult_iff zero_le_divide_iff 
+    zero_less_mult_iff zero_less_divide_iff 
+    mult_le_0_iff divide_le_0_iff 
+    mult_less_0_iff divide_less_0_iff 
+    zero_le_power2 power2_less_0
 
 subsubsection{*Nat *}
 

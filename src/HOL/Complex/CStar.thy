@@ -218,6 +218,13 @@ apply (rule arg_cong [where f = Abs_hcomplex])
 apply (auto iff add: hcomplexrel_iff, ultra)
 done
 
+lemma cstarfun_if_eq:
+     "w \<noteq> hcomplex_of_complex x
+       ==> ( *fc* (\<lambda>z. if z = x then a else g z)) w = ( *fc* g) w" 
+apply (cases w) 
+apply (simp add: hcomplex_of_complex_def starfunC, ultra)
+done
+
 lemma starfunRC:
       "( *fRc* f) (Abs_hypreal(hyprel``{%n. X n})) =
        Abs_hcomplex(hcomplexrel `` {%n. f (X n)})"

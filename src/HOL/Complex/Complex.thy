@@ -212,10 +212,10 @@ by (simp add: complex_inverse_def)
 lemma complex_mult_inv_left: "z \<noteq> (0::complex) ==> inverse(z) * z = 1"
 apply (induct z)
 apply (rename_tac x y)
-apply (auto simp add: complex_mult complex_inverse complex_one_def
-      complex_zero_def add_divide_distrib [symmetric] power2_eq_square mult_ac)
-apply (drule_tac y = y in real_sum_squares_not_zero)
-apply (drule_tac [2] x = x in real_sum_squares_not_zero2, auto)
+apply (auto simp add: times_divide_eq complex_mult complex_inverse 
+             complex_one_def complex_zero_def add_divide_distrib [symmetric] 
+             power2_eq_square mult_ac)
+apply (simp_all add: real_sum_squares_not_zero real_sum_squares_not_zero2) 
 done
 
 

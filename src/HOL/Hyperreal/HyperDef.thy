@@ -506,9 +506,7 @@ proof
 qed
 
 lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
-apply auto
-apply (rule OrderedGroup.add_right_cancel [of _ "-y", THEN iffD1], auto)
-done
+by auto
 
 lemma hypreal_mult_left_cancel: "(c::hypreal) \<noteq> 0 ==> (c*a=c*b) = (a=b)"
 by auto

@@ -326,37 +326,35 @@ done
 
 subsection{*Products and 1, by T. M. Rasmussen*}
 
-lemma zmult_eq_self_iff: "(m = m*(n::int)) = (n = 1 | m = 0)"
-apply auto
-apply (subgoal_tac "m*1 = m*n")
-apply (drule mult_cancel_left [THEN iffD1], auto)
+lemma zabs_less_one_iff [simp]: "(\<bar>z\<bar> < 1) = (z = (0::int))"
+by arith
+
+lemma abs_zmult_eq_1: "(\<bar>m * n\<bar> = 1) ==> \<bar>m\<bar> = (1::int)"
+apply (case_tac "\<bar>n\<bar>=1") 
+apply (simp add: abs_mult) 
+apply (rule ccontr) 
+apply (auto simp add: linorder_neq_iff abs_mult) 
+apply (subgoal_tac "2 \<le> \<bar>m\<bar> & 2 \<le> \<bar>n\<bar>")
+ prefer 2 apply arith 
+apply (subgoal_tac "2*2 \<le> \<bar>m\<bar> * \<bar>n\<bar>", simp) 
+apply (rule mult_mono, auto) 
 done
 
-text{*FIXME: tidy*}
+lemma pos_zmult_eq_1_iff_lemma: "(m * n = 1) ==> m = (1::int) | m = -1"
+by (insert abs_zmult_eq_1 [of m n], arith)
+
 lemma pos_zmult_eq_1_iff: "0 < (m::int) ==> (m * n = 1) = (m = 1 & n = 1)"
-apply auto
-apply (case_tac "m=1")
-apply (case_tac [2] "n=1")
-apply (case_tac [4] "m=1")
-apply (case_tac [5] "n=1", auto)
-apply (tactic"distinct_subgoals_tac")
-apply (subgoal_tac "1<m*n", simp)
-apply (rule less_1_mult, arith)
-apply (subgoal_tac "0<n", arith)
-apply (subgoal_tac "0<m*n")
-apply (drule zero_less_mult_iff [THEN iffD1], auto)
+apply (auto dest: pos_zmult_eq_1_iff_lemma) 
+apply (simp add: mult_commute [of m]) 
+apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
 
 lemma zmult_eq_1_iff: "(m*n = (1::int)) = ((m = 1 & n = 1) | (m = -1 & n = -1))"
-apply (case_tac "0<m")
-apply (simp add: pos_zmult_eq_1_iff)
-apply (case_tac "m=0")
-apply (simp del: number_of_reorient)
-apply (subgoal_tac "0 < -m")
-apply (drule_tac n = "-n" in pos_zmult_eq_1_iff, auto)
+apply (rule iffI) 
+ apply (frule pos_zmult_eq_1_iff_lemma)
+ apply (simp add: mult_commute [of m]) 
+ apply (frule pos_zmult_eq_1_iff_lemma, auto) 
 done
-
-
 
 ML
 {*
@@ -376,7 +374,6 @@ val nat_less_eq_zless = thm "nat_less_eq_zless";
 val nat_le_eq_zle = thm "nat_le_eq_zle";
 
 val nat_intermed_int_val = thm "nat_intermed_int_val";
-val zmult_eq_self_iff = thm "zmult_eq_self_iff";
 val pos_zmult_eq_1_iff = thm "pos_zmult_eq_1_iff";
 val zmult_eq_1_iff = thm "zmult_eq_1_iff";
 val nat_add_distrib = thm "nat_add_distrib";

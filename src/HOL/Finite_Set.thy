@@ -1297,7 +1297,7 @@ lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   apply (subgoal_tac "f a * setprod f F / f a = setprod f F * f a / f a")
   apply (erule ssubst)
   apply (subst times_divide_eq_right [THEN sym])
-  apply (auto simp add: mult_ac divide_self)
+  apply (auto simp add: mult_ac times_divide_eq_right divide_self)
   done
 
 lemma setprod_inversef: "finite A ==>

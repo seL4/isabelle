@@ -314,8 +314,21 @@ lemma add_le_imp_le_right:
       "a + c \<le> b + c ==> a \<le> (b::'a::pordered_ab_semigroup_add_imp_le)"
 by simp
 
-lemma add_increasing: "[|0\<le>a; b\<le>c|] ==> b \<le> a + (c::'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add})"
+lemma add_increasing:
+  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  shows  "[|0\<le>a; b\<le>c|] ==> b \<le> a + c"
 by (insert add_mono [of 0 a b c], simp)
+
+lemma add_strict_increasing:
+  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  shows "[|0<a; b\<le>c|] ==> b < a + c"
+by (insert add_less_le_mono [of 0 a b c], simp)
+
+lemma add_strict_increasing2:
+  fixes c :: "'a::{pordered_ab_semigroup_add_imp_le, comm_monoid_add}"
+  shows "[|0\<le>a; b<c|] ==> b < a + c"
+by (insert add_le_less_mono [of 0 a b c], simp)
+
 
 subsection {* Ordering Rules for Unary Minus *}
 

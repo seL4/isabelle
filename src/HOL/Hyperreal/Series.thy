@@ -259,11 +259,12 @@ done
 
 
 lemma sumr_pos_lt_pair:
-     "[|summable f; \<forall>d. 0 < (f(n + (Suc(Suc 0) * d))) + f(n + ((Suc(Suc 0) * d) + 1))|]  
+     "[|summable f; 
+        \<forall>d. 0 < (f(n + (Suc(Suc 0) * d))) + f(n + ((Suc(Suc 0) * d) + 1))|]  
       ==> sumr 0 n f < suminf f"
 apply (drule summable_sums)
 apply (auto simp add: sums_def LIMSEQ_def)
-apply (drule_tac x = "f (n) + f (n + 1) " in spec)
+apply (drule_tac x = "f (n) + f (n + 1)" in spec)
 apply (auto iff: real_0_less_add_iff)
    --{*legacy proof: not necessarily better!*}
 apply (rule_tac [2] ccontr, drule_tac [2] linorder_not_less [THEN iffD1])
@@ -312,17 +313,18 @@ text{*Sum of a geometric progression.*}
 lemma sumr_geometric: "x ~= 1 ==> sumr 0 n (%n. x ^ n) = (x ^ n - 1) / (x - 1)"
 apply (induct_tac "n", auto)
 apply (rule_tac c1 = "x - 1" in real_mult_right_cancel [THEN iffD1])
-apply (auto simp add: real_mult_assoc left_distrib)
-apply (simp add: right_distrib real_diff_def real_mult_commute)
+apply (auto simp add: mult_assoc left_distrib  times_divide_eq)
+apply (simp add: right_distrib diff_minus mult_commute)
 done
 
 lemma geometric_sums: "abs(x) < 1 ==> (%n. x ^ n) sums (1/(1 - x))"
 apply (case_tac "x = 1")
-apply (auto dest!: LIMSEQ_rabs_realpow_zero2 simp add: sumr_geometric sums_def real_diff_def add_divide_distrib)
+apply (auto dest!: LIMSEQ_rabs_realpow_zero2 
+        simp add: sumr_geometric sums_def diff_minus add_divide_distrib)
 apply (subgoal_tac "1 / (1 + -x) = 0/ (x - 1) + - 1/ (x - 1) ")
 apply (erule ssubst)
 apply (rule LIMSEQ_add, rule LIMSEQ_divide)
-apply (auto intro: LIMSEQ_const simp add: real_diff_def minus_divide_right LIMSEQ_rabs_realpow_zero2)
+apply (auto intro: LIMSEQ_const simp add: diff_minus minus_divide_right LIMSEQ_rabs_realpow_zero2)
 done
 
 text{*Cauchy-type criterion for convergence of series (c.f. Harrison)*}
@@ -433,18 +435,19 @@ lemma ratio_test:
      "[| c < 1; \<forall>n. N \<le> n --> abs(f(Suc n)) \<le> c*abs(f n) |]  
       ==> summable f"
 apply (frule ratio_test_lemma2, auto)
-apply (rule_tac g = "%n. (abs (f N) / (c ^ N))*c ^ n" in summable_comparison_test)
+apply (rule_tac g = "%n. (abs (f N) / (c ^ N))*c ^ n" 
+       in summable_comparison_test)
 apply (rule_tac x = N in exI, safe)
 apply (drule le_Suc_ex_iff [THEN iffD1])
 apply (auto simp add: power_add realpow_not_zero)
-apply (induct_tac "na", auto)
+apply (induct_tac "na", auto simp add: times_divide_eq)
 apply (rule_tac y = "c*abs (f (N + n))" in order_trans)
 apply (auto intro: mult_right_mono simp add: summable_def)
 apply (simp add: mult_ac)
-apply (rule_tac x = "abs (f N) * (1/ (1 - c)) / (c ^ N) " in exI)
-apply (rule sums_divide)
-apply (rule sums_mult)
-apply (auto intro!: sums_mult geometric_sums simp add: abs_if)
+apply (rule_tac x = "abs (f N) * (1/ (1 - c)) / (c ^ N)" in exI)
+apply (rule sums_divide) 
+apply (rule sums_mult) 
+apply (auto intro!: geometric_sums)
 done
 
 

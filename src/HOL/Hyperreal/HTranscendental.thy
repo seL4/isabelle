@@ -386,14 +386,12 @@ done
 lemma starfun_ln_not_eq_zero [simp]: "[| 0 < x; x \<noteq> 1 |] ==> ( *f* ln) x \<noteq> 0"
 apply (cases x)
 apply (auto simp add: starfun hypreal_zero_num hypreal_less hypreal_one_num, ultra)
-apply (auto dest: ln_not_eq_zero) 
 done
 
 lemma starfun_ln_HFinite: "[| x \<in> HFinite; 1 \<le> x |] ==> ( *f* ln) x \<in> HFinite"
 apply (rule HFinite_bounded)
-apply (rule_tac [2] order_less_imp_le)
-apply (rule_tac [2] starfun_ln_less_self)
-apply (rule_tac [2] order_less_le_trans, auto)
+apply assumption 
+apply (simp_all add: starfun_ln_less_self order_less_imp_le)
 done
 
 lemma starfun_ln_inverse: "0 < x ==> ( *f* ln) (inverse x) = -( *f* ln) x"
@@ -453,7 +451,6 @@ done
 lemma starfun_ln_less_zero: "[| 0 < x; x < 1 |] ==> ( *f* ln) x < 0"
 apply (cases x)
 apply (simp add: hypreal_zero_num hypreal_one_num hypreal_less starfun, ultra)
-apply (auto intro: ln_less_zero) 
 done
 
 lemma starfun_ln_Infinitesimal_less_zero:

@@ -808,7 +808,7 @@ proof -
       also with ypos have "... = (r/y) * (y + ?d)"
 	by (simp only: right_distrib divide_inverse mult_ac, simp)
       also have "... = r*x" using ypos
-	by simp
+	by (simp add: times_divide_eq_left) 
       finally show "r + ?d < r*x" .
     qed
     with r notin rdpos

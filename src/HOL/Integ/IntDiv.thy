@@ -241,7 +241,7 @@ lemma zdiv_zmod_equality: "(b * (a div b) + (a mod b)) + k = (a::int)+k"
 by(simp add: zmod_zdiv_equality[symmetric])
 
 lemma zdiv_zmod_equality2: "((a div b) * b + (a mod b)) + k = (a::int)+k"
-by(simp add: zmult_commute zmod_zdiv_equality[symmetric])
+by(simp add: mult_commute zmod_zdiv_equality[symmetric])
 
 use "IntDiv_setup.ML"
 
@@ -606,7 +606,7 @@ lemma zmod_zmult1_eq': "(a*b) mod (c::int) = ((a mod c) * b) mod c"
 apply (rule trans)
 apply (rule_tac s = "b*a mod c" in trans)
 apply (rule_tac [2] zmod_zmult1_eq)
-apply (simp_all add: zmult_commute)
+apply (simp_all add: mult_commute)
 done
 
 lemma zmod_zmult_distrib: "(a*b) mod (c::int) = ((a mod c) * (b mod c)) mod c"
@@ -618,13 +618,13 @@ lemma zdiv_zmult_self1 [simp]: "b \<noteq> (0::int) ==> (a*b) div b = a"
 by (simp add: zdiv_zmult1_eq)
 
 lemma zdiv_zmult_self2 [simp]: "b \<noteq> (0::int) ==> (b*a) div b = a"
-by (subst zmult_commute, erule zdiv_zmult_self1)
+by (subst mult_commute, erule zdiv_zmult_self1)
 
 lemma zmod_zmult_self1 [simp]: "(a*b) mod b = (0::int)"
 by (simp add: zmod_zmult1_eq)
 
 lemma zmod_zmult_self2 [simp]: "(b*a) mod b = (0::int)"
-by (simp add: zmult_commute zmod_zmult1_eq)
+by (simp add: mult_commute zmod_zmult1_eq)
 
 lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
 proof
@@ -773,7 +773,7 @@ done
 
 lemma zdiv_zmult_zmult2: "c \<noteq> (0::int) ==> (a*c) div (b*c) = a div b"
 apply (drule zdiv_zmult_zmult1)
-apply (auto simp add: zmult_commute)
+apply (auto simp add: mult_commute)
 done
 
 
@@ -798,7 +798,7 @@ done
 
 lemma zmod_zmult_zmult2: "(a*c) mod (b*c) = (a mod b) * (c::int)"
 apply (cut_tac c = c in zmod_zmult_zmult1)
-apply (auto simp add: zmult_commute)
+apply (auto simp add: mult_commute)
 done
 
 
@@ -922,7 +922,7 @@ apply (subgoal_tac "1 < a * 2")
  prefer 2 apply arith
 apply (subgoal_tac "2* (1 + b mod a) \<le> 2*a")
  apply (rule_tac [2] mult_left_mono)
-apply (auto simp add: add_commute [of 1] zmult_commute add1_zle_eq 
+apply (auto simp add: add_commute [of 1] mult_commute add1_zle_eq 
                       pos_mod_bound)
 apply (subst zmod_zadd1_eq)
 apply (simp add: zmod_zmult_zmult2 mod_pos_pos_trivial)
@@ -1009,7 +1009,7 @@ lemma zdvd_refl [simp]: "m dvd (m::int)"
 by (auto simp add: dvd_def intro: zmult_1_right [symmetric])
 
 lemma zdvd_trans: "m dvd n ==> n dvd k ==> m dvd (k::int)"
-by (auto simp add: dvd_def intro: zmult_assoc)
+by (auto simp add: dvd_def intro: mult_assoc)
 
 lemma zdvd_zminus_iff: "(m dvd -n) = (m dvd (n::int))"
   apply (simp add: dvd_def, auto)
@@ -1024,7 +1024,7 @@ lemma zdvd_zminus2_iff: "(-m dvd n) = (m dvd (n::int))"
 lemma zdvd_anti_sym:
     "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
   apply (simp add: dvd_def, auto)
-  apply (simp add: zmult_assoc zmult_eq_self_iff zero_less_mult_iff zmult_eq_1_iff)
+  apply (simp add: mult_assoc zero_less_mult_iff zmult_eq_1_iff)
   done
 
 lemma zdvd_zadd: "k dvd m ==> k dvd n ==> k dvd (m + n :: int)"
@@ -1049,7 +1049,7 @@ lemma zdvd_zmult: "k dvd (n::int) ==> k dvd m * n"
   done
 
 lemma zdvd_zmult2: "k dvd (m::int) ==> k dvd m * n"
-  apply (subst zmult_commute)
+  apply (subst mult_commute)
   apply (erule zdvd_zmult)
   done
 
@@ -1065,12 +1065,12 @@ lemma [iff]: "(k::int) dvd k * m"
 
 lemma zdvd_zmultD2: "j * k dvd n ==> j dvd (n::int)"
   apply (simp add: dvd_def)
-  apply (simp add: zmult_assoc, blast)
+  apply (simp add: mult_assoc, blast)
   done
 
 lemma zdvd_zmultD: "j * k dvd n ==> k dvd (n::int)"
   apply (rule zdvd_zmultD2)
-  apply (subst zmult_commute, assumption)
+  apply (subst mult_commute, assumption)
   done
 
 lemma zdvd_zmult_mono: "i dvd m ==> j dvd (n::int) ==> i * j dvd m * n"

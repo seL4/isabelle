@@ -324,10 +324,8 @@ apply (auto dest!: HFiniteD simp add: Infinitesimal_def)
 apply (frule hrabs_less_gt_zero)
 apply (drule_tac x = "r/t" in bspec)
 apply (blast intro: SReal_divide)
-apply (simp add: zero_less_divide_iff)
-apply (case_tac "x=0 | y=0")
-apply (cut_tac [2] a = "abs x" and b = "r/t" and c = "abs y" in mult_strict_mono)
-apply (auto simp add: zero_less_divide_iff)
+apply (cut_tac a = "abs x" and b = "r/t" and c = "abs y" in mult_strict_mono)
+apply (auto simp add: times_divide_eq_left zero_less_divide_iff)
 done
 
 lemma Infinitesimal_HFinite_mult2:

@@ -1014,16 +1014,11 @@ lemma CARAT_NSCDERIV:
       \<exists>g. (\<forall>z. f z - f x = g z * (z - x)) & isNSContc g x & g x = l"
 by (simp add: NSCDERIV_CDERIV_iff isNSContc_isContc_iff CARAT_CDERIV)
 
-(* FIXME tidy! How about a NS proof? *)
 lemma CARAT_CDERIVD:
      "(\<forall>z. f z - f x = g z * (z - x)) & isNSContc g x & g x = l
       ==> NSCDERIV f x :> l"
-apply (simp only: NSCDERIV_iff2) 
-apply (tactic {*(auto_tac (claset(), 
-              simpset() delsimprocs field_cancel_factor
-                        addsimps [thm"NSCDERIV_iff2"])) *})
-apply (simp add: isNSContc_def)
-done
+by (auto simp add: NSCDERIV_iff2 isNSContc_def cstarfun_if_eq); 
+
 
 ML
 {*

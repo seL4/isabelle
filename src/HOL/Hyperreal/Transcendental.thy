@@ -424,9 +424,8 @@ apply (auto simp add: power_abs [symmetric])
 apply (subgoal_tac "x \<noteq> 0")
 apply (subgoal_tac [3] "x \<noteq> 0")
 apply (auto simp del: abs_inverse abs_mult simp add: abs_inverse [symmetric] realpow_not_zero abs_mult [symmetric] power_inverse power_mult_distrib [symmetric])
-apply (auto intro!: geometric_sums simp add: power_abs inverse_eq_divide)
-apply (rule_tac c="\<bar>x\<bar>" in mult_right_less_imp_less) 
-apply (auto simp add: abs_mult [symmetric] mult_assoc)
+apply (auto intro!: geometric_sums 
+            simp add: power_abs inverse_eq_divide times_divide_eq)
 done
 
 lemma powser_inside:
@@ -912,7 +911,7 @@ proof -
   hence "exp x * inverse (exp x) < exp y * inverse (exp x)"
     by (auto simp add: exp_add exp_minus)
   thus ?thesis
-    by (simp add: divide_inverse [symmetric] pos_less_divide_eq 
+    by (simp add: divide_inverse [symmetric] pos_less_divide_eq times_divide_eq
              del: divide_self_if)
 qed
 
@@ -1008,7 +1007,7 @@ apply (rule_tac [2] ln_add_one_self_le_self)
 apply (rule ln_less_cancel_iff [THEN iffD2], auto)
 done
 
-lemma ln_ge_zero:
+lemma ln_ge_zero [simp]:
   assumes x: "1 \<le> x" shows "0 \<le> ln x"
 proof -
   have "0 < x" using x by arith
@@ -1028,6 +1027,9 @@ qed
 
 lemma ln_ge_zero_iff [simp]: "0 < x ==> (0 \<le> ln x) = (1 \<le> x)"
 by (blast intro: ln_ge_zero ln_ge_zero_imp_ge_one)
+
+lemma ln_less_zero_iff [simp]: "0 < x ==> (ln x < 0) = (x < 1)"
+by (insert ln_ge_zero_iff [of x], arith)
 
 lemma ln_gt_zero:
   assumes x: "1 < x" shows "0 < ln x"
@@ -1050,16 +1052,11 @@ qed
 lemma ln_gt_zero_iff [simp]: "0 < x ==> (0 < ln x) = (1 < x)"
 by (blast intro: ln_gt_zero ln_gt_zero_imp_gt_one)
 
-lemma ln_not_eq_zero [simp]: "[| 0 < x; x \<noteq> 1 |] ==> ln x \<noteq> 0"
-apply safe
-apply (drule exp_inj_iff [THEN iffD2])
-apply (drule exp_ln_iff [THEN iffD2], auto)
-done
+lemma ln_eq_zero_iff [simp]: "0 < x ==> (ln x = 0) = (x = 1)"
+by (insert ln_less_zero_iff [of x] ln_gt_zero_iff [of x], arith)
 
 lemma ln_less_zero: "[| 0 < x; x < 1 |] ==> ln x < 0"
-apply (rule exp_less_cancel_iff [THEN iffD1])
-apply (auto simp add: exp_ln_iff [symmetric] simp del: exp_ln_iff)
-done
+by simp
 
 lemma exp_ln_eq: "exp u = x ==> ln x = u"
 by auto
@@ -1364,9 +1361,10 @@ apply (auto simp del: fact_Suc realpow_Suc)
 apply (erule sums_summable)
 apply (case_tac "m=0")
 apply (simp (no_asm_simp))
-apply (subgoal_tac "6 * (x * (x * x) / real (Suc (Suc (Suc (Suc (Suc (Suc 0))))))) < 6 * x")
-apply (simp only: mult_less_cancel_left, simp)
-apply (simp (no_asm_simp) add: numeral_2_eq_2 [symmetric] mult_assoc [symmetric])
+apply (subgoal_tac "6 * (x * (x * x) / real (Suc (Suc (Suc (Suc (Suc (Suc 0))))))) < 6 * x") 
+apply (simp only: mult_less_cancel_left, simp add: times_divide_eq)  
+apply (simp (no_asm_simp) add: times_divide_eq 
+               numeral_2_eq_2 [symmetric] mult_assoc [symmetric])
 apply (subgoal_tac "x*x < 2*3", simp) 
 apply (rule mult_strict_mono)
 apply (auto simp add: real_0_less_add_iff real_of_nat_Suc simp del: fact_Suc)
@@ -1425,10 +1423,10 @@ lemma cos_two_less_zero: "cos (2) < 0"
 apply (cut_tac x = 2 in cos_paired)
 apply (drule sums_minus)
 apply (rule neg_less_iff_less [THEN iffD1]) 
-apply (frule sums_unique, auto)
+apply (frule sums_unique, auto simp add: times_divide_eq)
 apply (rule_tac y = "sumr 0 (Suc (Suc (Suc 0))) (%n. - ((- 1) ^ n / (real (fact (2 * n))) * 2 ^ (2 * n)))" in order_less_trans)
 apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow_Suc)
-apply (simp (no_asm) add: mult_assoc del: sumr_Suc)
+apply (simp (no_asm) add: mult_assoc times_divide_eq del: sumr_Suc)
 apply (rule sumr_pos_lt_pair)
 apply (erule sums_summable, safe)
 apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] 
@@ -1522,10 +1520,10 @@ apply (auto simp add: numeral_2_eq_2)
 done
 
 lemma cos_pi [simp]: "cos pi = -1"
-by (cut_tac x = "pi/2" and y = "pi/2" in cos_add, simp)
+by (cut_tac x = "pi/2" and y = "pi/2" in cos_add, simp add: times_divide_eq)
 
 lemma sin_pi [simp]: "sin pi = 0"
-by (cut_tac x = "pi/2" and y = "pi/2" in sin_add, simp)
+by (cut_tac x = "pi/2" and y = "pi/2" in sin_add, simp add: times_divide_eq)
 
 lemma sin_cos_eq: "sin x = cos (pi/2 - x)"
 by (simp add: diff_minus cos_add)
@@ -1703,7 +1701,7 @@ apply (drule cos_zero_lemma, assumption+)
 apply (cut_tac x="-x" in cos_zero_lemma, simp, simp) 
 apply (force simp add: minus_equation_iff [of x]) 
 apply (auto simp only: odd_Suc_mult_two_ex real_of_nat_Suc left_distrib) 
-apply (auto simp add: cos_add)
+apply (auto simp add: cos_add times_divide_eq)
 done
 
 (* ditto: but to a lesser extent *)
@@ -1716,7 +1714,7 @@ apply (cut_tac linorder_linear [of 0 x], safe)
 apply (drule sin_zero_lemma, assumption+)
 apply (cut_tac x="-x" in sin_zero_lemma, simp, simp, safe)
 apply (force simp add: minus_equation_iff [of x]) 
-apply (auto simp add: even_mult_two_ex)
+apply (auto simp add: even_mult_two_ex times_divide_eq)
 done
 
 
@@ -1746,7 +1744,7 @@ apply (auto simp del: inverse_mult_distrib
 apply (rule_tac c1 = "cos x * cos y" in real_mult_right_cancel [THEN subst])
 apply (auto simp del: inverse_mult_distrib 
             simp add: mult_assoc left_diff_distrib cos_add)
-done
+done  
 
 lemma add_tan_eq: 
       "[| cos x \<noteq> 0; cos y \<noteq> 0 |]  
@@ -1754,7 +1752,7 @@ lemma add_tan_eq:
 apply (simp add: tan_def)
 apply (rule_tac c1 = "cos x * cos y" in real_mult_right_cancel [THEN subst])
 apply (auto simp add: mult_assoc left_distrib)
-apply (simp (no_asm) add: sin_add)
+apply (simp add: sin_add times_divide_eq)
 done
 
 lemma tan_add:
@@ -2065,7 +2063,7 @@ lemma isCont_exp [simp]: "isCont exp x"
 by (rule DERIV_exp [THEN DERIV_isCont])
 
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
-by (auto simp add: sin_zero_iff even_mult_two_ex)
+by (auto simp add: sin_zero_iff even_mult_two_ex times_divide_eq)
 
 lemma exp_eq_one_iff [simp]: "(exp x = 1) = (x = 0)"
 apply auto
@@ -2130,13 +2128,17 @@ lemma real_root_mult:
      "[| 0 \<le> x; 0 \<le> y |] 
       ==> root(Suc n) (x * y) = root(Suc n) x * root(Suc n) y"
 apply (rule real_root_pos_unique)
-apply (auto intro!: real_root_pos_pos_le simp add: power_mult_distrib zero_le_mult_iff real_root_pow_pos2 simp del: realpow_Suc)
+apply (auto intro!: real_root_pos_pos_le 
+            simp add: power_mult_distrib zero_le_mult_iff real_root_pow_pos2 
+            simp del: realpow_Suc)
 done
 
 lemma real_root_inverse:
      "0 \<le> x ==> (root(Suc n) (inverse x) = inverse(root(Suc n) x))"
 apply (rule real_root_pos_unique)
-apply (auto intro: real_root_pos_pos_le simp add: power_inverse [symmetric] real_root_pow_pos2 simp del: realpow_Suc)
+apply (auto intro: real_root_pos_pos_le 
+            simp add: power_inverse [symmetric] real_root_pow_pos2 
+            simp del: realpow_Suc)
 done
 
 lemma real_root_divide: 
@@ -2449,11 +2451,11 @@ lemma real_sqrt_two_gt_one [simp]: "1 < sqrt 2"
 apply (rule order_less_le_trans [of _ "7/5"], simp) 
 apply (rule_tac n = 1 in realpow_increasing)
   prefer 3 apply (simp add: numeral_2_eq_2 [symmetric] del: realpow_Suc)
-apply (simp_all add: numeral_2_eq_2)
+apply (simp_all add: numeral_2_eq_2 times_divide_eq)
 done
 
 lemma lemma_real_divide_sqrt_less: "0 < u ==> u / sqrt 2 < u"
-by (rule_tac z1 = "inverse u" in real_mult_less_iff1 [THEN iffD1], auto)
+by (simp add: divide_less_eq mult_compare_simps) 
 
 lemma four_x_squared: 
   fixes x::real
@@ -2690,7 +2692,6 @@ val ln_add_one_self_le_self = thm "ln_add_one_self_le_self";
 val ln_less_self = thm "ln_less_self";
 val ln_ge_zero = thm "ln_ge_zero";
 val ln_gt_zero = thm "ln_gt_zero";
-val ln_not_eq_zero = thm "ln_not_eq_zero";
 val ln_less_zero = thm "ln_less_zero";
 val exp_ln_eq = thm "exp_ln_eq";
 val sin_zero = thm "sin_zero";

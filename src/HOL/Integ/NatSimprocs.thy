@@ -174,6 +174,23 @@ declare divide_less_0_iff [of "number_of w", standard, simp]
 declare zero_le_divide_iff [of "number_of w", standard, simp]
 declare divide_le_0_iff [of "number_of w", standard, simp]
 
+(****
+IF times_divide_eq_right and times_divide_eq_left are removed as simprules,
+then these special-case declarations may be useful.
+
+text{*These simprules move numerals into numerators and denominators.*}
+lemma times_recip_eq_right [simp]: "a * (1/c) = a / (c::'a::field)"
+by (simp add: times_divide_eq)
+
+lemma times_recip_eq_left [simp]: "(1/c) * a = a / (c::'a::field)"
+by (simp add: times_divide_eq)
+
+declare times_divide_eq_right [of "number_of w", standard, simp]
+declare times_divide_eq_right [of _ _ "number_of w", standard, simp]
+declare times_divide_eq_left [of _ "number_of w", standard, simp]
+declare times_divide_eq_left [of _ _ "number_of w", standard, simp]
+****)
+
 text {*Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
   strange, but then other simprocs simplify the quotient.*}
 

@@ -424,7 +424,11 @@ val init_lin_arith_data =
     mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [Suc_leI],
-    simpset = HOL_basic_ss addsimps add_rules addsimprocs nat_cancel_sums_add}),
+    simpset = HOL_basic_ss addsimps add_rules
+                   addsimprocs [ab_group_add_cancel.sum_conv, 
+                                ab_group_add_cancel.rel_conv]
+                   (*abel_cancel helps it work in abstract algebraic domains*)
+                   addsimprocs nat_cancel_sums_add}),
   ArithTheoryData.init, arith_discrete "nat"];
 
 end;
