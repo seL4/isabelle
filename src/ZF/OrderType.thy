@@ -38,7 +38,10 @@ defs
   (*ordinal subtraction*)
   odiff_def     "i -- j == ordertype(i-j, Memrel(i))"
 
-syntax (xsymbols)
+syntax (symbols)
+  "op **"     :: [i,i] => i          (infixl "\\<times>\\<times>" 70)
+
+syntax (HTML output)
   "op **"     :: [i,i] => i          (infixl "\\<times>\\<times>" 70)
 
 end

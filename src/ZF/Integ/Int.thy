@@ -80,4 +80,7 @@ syntax (symbols)
   "zmult"     :: [i,i] => i          (infixr "$\\<times>" 70)
   "zle"       :: [i,i] => o          (infixl "$\\<le>" 50)  (*less than or equals*)
 
+syntax (HTML output)
+  "zmult"     :: [i,i] => i          (infixr "$\\<times>" 70)
+
 end

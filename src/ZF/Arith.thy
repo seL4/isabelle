@@ -56,7 +56,10 @@ constdefs
   mod  :: [i,i]=>i                    (infixl "mod" 70)
     "m mod n == raw_mod (natify(m), natify(n))"
 
-syntax (xsymbols)
+syntax (symbols)
+  "mult"      :: [i, i] => i               (infixr "#\\<times>" 70)
+
+syntax (HTML output)
   "mult"      :: [i, i] => i               (infixr "#\\<times>" 70)
 
 end
