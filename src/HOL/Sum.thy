@@ -30,7 +30,7 @@ consts
   sum_case      :: "['a => 'c, 'b => 'c, 'a + 'b] => 'c"
 
   (*disjoint sum for sets; the operator + is overloaded with wrong type!*)
-  "plus"        :: "['a set, 'b set] => ('a + 'b) set"        (infixr 65)
+  Plus          :: "['a set, 'b set] => ('a + 'b) set"        (infixr 65)
   Part          :: ['a set, 'b => 'a] => 'a set
 
 translations
@@ -42,7 +42,7 @@ defs
   sum_case_def  "sum_case f g p == @z.  (!x. p=Inl(x) --> z=f(x))      
                                       & (!y. p=Inr(y) --> z=g(y))"
 
-  sum_def       "A plus B == (Inl``A) Un (Inr``B)"
+  sum_def       "A Plus B == (Inl``A) Un (Inr``B)"
 
   (*for selecting out the components of a mutually recursive definition*)
   Part_def      "Part A h == A Int {x. ? z. x = h(z)}"

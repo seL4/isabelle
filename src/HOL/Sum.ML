@@ -91,29 +91,29 @@ AddIffs [Inl_eq, Inr_eq];
 
 (** Introduction rules for the injections **)
 
-goalw Sum.thy [sum_def] "!!a A B. a : A ==> Inl(a) : A plus B";
+goalw Sum.thy [sum_def] "!!a A B. a : A ==> Inl(a) : A Plus B";
 by (Fast_tac 1);
 qed "InlI";
 
-goalw Sum.thy [sum_def] "!!b A B. b : B ==> Inr(b) : A plus B";
+goalw Sum.thy [sum_def] "!!b A B. b : B ==> Inr(b) : A Plus B";
 by (Fast_tac 1);
 qed "InrI";
 
 (** Elimination rules **)
 
 val major::prems = goalw Sum.thy [sum_def]
-    "[| u: A plus B;  \
+    "[| u: A Plus B;  \
 \       !!x. [| x:A;  u=Inl(x) |] ==> P; \
 \       !!y. [| y:B;  u=Inr(y) |] ==> P \
 \    |] ==> P";
 by (rtac (major RS UnE) 1);
 by (REPEAT (rtac refl 1
      ORELSE eresolve_tac (prems@[imageE,ssubst]) 1));
-qed "plusE";
+qed "PlusE";
 
 
 AddSIs [InlI, InrI]; 
-AddSEs [plusE];
+AddSEs [PlusE];
 
 
 (** sum_case -- the selection operator for sums **)
