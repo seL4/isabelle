@@ -1062,7 +1062,7 @@ lifted rule is
   \lbrakk\;& P\disj P \Imp \Var{P@1}\disj\Var{Q@1}; \\
            & \List{P\disj P ;\; \Var{P@1}} \Imp \Var{R@1};    \\
            & \List{P\disj P ;\; \Var{Q@1}} \Imp \Var{R@1}     \\
-  \rbrakk\;& \Imp \Var{R@1}
+  \rbrakk\;& \Imp (P\disj P \Imp \Var{R@1})
   \end{array} 
 \]
 Unification takes the simultaneous equations
