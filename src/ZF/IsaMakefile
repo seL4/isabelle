@@ -122,8 +122,7 @@ $(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML \
   UNITY/AllocBase.thy UNITY/AllocImpl.thy\
   UNITY/ClientImpl.thy UNITY/Distributor.thy\
   UNITY/Follows.thy UNITY/Increasing.thy UNITY/Merge.thy\
-  UNITY/Monotonicity.thy\
-  UNITY/MultisetSum.ML UNITY/MultisetSum.thy\
+  UNITY/Monotonicity.thy UNITY/MultisetSum.thy\
   UNITY/WFair.ML UNITY/WFair.thy
 	@$(ISATOOL) usedir $(OUT)/ZF UNITY
 
