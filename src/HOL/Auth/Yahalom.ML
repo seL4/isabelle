@@ -331,13 +331,13 @@ by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
+     (!simpset addsimps ([not_parts_not_analz,
                           analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
 (*YM3*)
 by (Fast_tac 2);  (*uses Says_too_new_key*)
 (*OR4, Fake*) 
-by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*Oops*) (** LEVEL 6 **)
 by (fast_tac (!claset delrules [disjE] 
                       addDs [unique_session_keys]
@@ -451,6 +451,7 @@ by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
 by (fast_tac (!claset addSDs [spec]) 1);
 qed "unique_NB";
 
+(*OLD VERSION
 fun lost_tac s =
     case_tac ("(" ^ s ^ ") : lost") THEN'
     SELECT_GOAL 
@@ -458,6 +459,7 @@ fun lost_tac s =
        REPEAT_DETERM (etac MPair_analz 1) THEN
        dres_inst_tac [("A", s)] Crypt_Spy_analz_lost 1 THEN
        assume_tac 1 THEN Fast_tac 1);
+*)
 
 fun lost_tac s =
     case_tac ("(" ^ s ^ ") : lost") THEN'
@@ -610,7 +612,7 @@ fun grind_tac i =
    (Safe_step_tac ORELSE' (dtac spec THEN' mp_tac) ORELSE'
     assume_tac ORELSE'
     depth_tac (!claset delrules [conjI]
-                       addSIs [exI, impOfSubs (subset_insertI RS analz_mono),
+                       addSIs [exI, analz_insertI,
                                impOfSubs (Un_upper2 RS analz_mono)]) 2)) i;
 
 (*The only nonces that can be found with the help of session keys are
@@ -627,7 +629,7 @@ by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS  (*28 seconds*)
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
+     (!simpset addsimps ([not_parts_not_analz,
                           analz_image_newK,
                           insert_Key_singleton, insert_Key_image]
                          @ pushes)
@@ -649,8 +651,7 @@ by (fast_tac (!claset delrules [bexI]
 (*YM4*)
 (** LEVEL 11 **)
 by (rtac (impI RS allI) 1);
-by (dtac (impOfSubs Fake_analz_insert) 1 THEN etac synth.Inj 1 THEN 
-    Fast_tac 1);
+by (dtac (impOfSubs Fake_analz_insert) 1 THEN etac synth.Inj 1);
 by (eres_inst_tac [("P","Nonce NB : ?HH")] rev_mp 1);
 by (asm_simp_tac (!simpset addsimps [analz_image_newK]
                            setloop split_tac [expand_if]) 1);
@@ -662,7 +663,7 @@ by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1
     THEN REPEAT (assume_tac 1));
 by (fast_tac (!claset delrules [allE, conjI] addSIs [bexI, exI]) 1);
 by (fast_tac (!claset delrules [conjI]
-                      addIs [impOfSubs (subset_insertI RS analz_mono)]
+                      addIs [analz_insertI]
                       addss (!simpset)) 1);
 val Nonce_secrecy = result() RS spec RSN (2, rev_mp) |> standard;
 
@@ -695,14 +696,14 @@ by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
+     (!simpset addsimps ([not_parts_not_analz,
                           analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
 by (fast_tac (!claset addSIs [parts_insertI]
                       addSEs partsEs
                       addEs [Says_imp_old_nonces RS less_irrefl]
                       addss (!simpset)) 2);
-(*Proof of YM2*) (** LEVEL 5 **)
+(*Proof of YM2*) (** LEVEL 4 **)
 by (REPEAT (Safe_step_tac 2 ORELSE Fast_tac 2)); 
 by (fast_tac (!claset addIs [parts_insertI]
                       addSEs partsEs
@@ -712,21 +713,21 @@ by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 2);
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (REPEAT (Safe_step_tac 2 ORELSE no_nonce_tac 2));
 by (deepen_tac (!claset addDs [Says_unique_NB]) 1 2);
-(*Fake*) (** LEVEL 10 **)
-by (SELECT_GOAL (REPEAT (Safe_step_tac 1 ORELSE spy_analz_tac 1)) 1);
-(*YM4*)
+(*Fake*)
+by (spy_analz_tac 1);
+(*YM4*) (** LEVEL 10 **)
 by (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1);
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (SELECT_GOAL (REPEAT_FIRST (Safe_step_tac ORELSE' spy_analz_tac)) 1);
-(** LEVEL 14 **)
+by (SELECT_GOAL (REPEAT_FIRST (spy_analz_tac ORELSE' Safe_step_tac)) 1);
+(** LEVEL 13 **)
 by (lost_tac "Aa" 1);
 by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1);
 by (forward_tac [Says_Server_message_form] 3);
 by (forward_tac [Says_Server_imp_YM2] 4);
 by (REPEAT_FIRST ((eresolve_tac [asm_rl, bexE, exE, disjE])));
 by (Full_simp_tac 1);
-(** LEVEL 20 **)
 by (REPEAT_FIRST hyp_subst_tac);
+(** LEVEL 20 **)
 by (lost_tac "Ba" 1);
 by (dtac (Says_imp_sees_Spy RS parts.Inj RS parts.Snd RS unique_NB) 1);
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS parts.Inj]
@@ -735,7 +736,7 @@ by (REPEAT (assume_tac 1 ORELSE Safe_step_tac 1));
 by (dtac Spy_not_see_encrypted_key 1);
 by (REPEAT (assume_tac 1 ORELSE Fast_tac 1)); 
 by (spy_analz_tac 1);
-(*Oops case*) (** LEVEL 28 **)
+(*Oops case*) (** LEVEL 27 **)
 by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 1);
 by (step_tac (!claset delrules [disjE, conjI]) 1);
 by (forward_tac [Says_Server_imp_YM2] 1 THEN assume_tac 1 THEN etac exE 1);
@@ -743,7 +744,7 @@ by (expand_case_tac "NB = NBa" 1);
 by (deepen_tac (!claset addDs [Says_unique_NB]) 1 1);
 by (rtac conjI 1);
 by (no_nonce_tac 1);
-(** LEVEL 35 **)
+(** LEVEL 34 **)
 by (thin_tac "?PP|?QQ" 1);  (*subsumption!*)
 by (fast_tac (!claset addSDs [single_Nonce_secrecy]) 1);
 val Spy_not_see_NB = result() RSN(2,rev_mp) RSN(2,rev_mp) |> standard;
@@ -776,6 +777,4 @@ by (forward_tac [Says_Server_imp_YM2] 1 THEN assume_tac 1);
 by (dtac unique_session_keys 1 THEN REPEAT (assume_tac 1));
 by (deepen_tac (!claset addDs [Says_unique_NB] addss (!simpset)) 0 1);
 qed "B_trusts_YM4";
-
-
 

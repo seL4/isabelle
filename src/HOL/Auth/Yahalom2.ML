@@ -296,7 +296,7 @@ by (etac yahalom.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
+     (!simpset addsimps ([not_parts_not_analz,
                           analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
 (*YM3*)
@@ -304,7 +304,7 @@ by (fast_tac (!claset addIs [parts_insertI]
                       addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset)) 2);
 (*OR4, Fake*) 
-by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*Oops*)
 by (fast_tac (!claset delrules [disjE] 
                       addDs [unique_session_keys]
