@@ -220,10 +220,7 @@ fun proper_inform_file_processed file state =
 (* misc commands for ProofGeneral/isa *)
 
 fun thms_containing ss =
-  let
-    val thy = the_context ();
-    fun read_term s = Thm.term_of (Thm.read_cterm (Theory.sign_of thy) (s, TypeInfer.logicT));
-  in ThmDatabase.print_thms_containing thy (map read_term ss) end;
+  ProofContext.print_thms_containing (ProofContext.init (the_context ())) ss;
 
 val welcome = priority o Session.welcome;
 val help = welcome;

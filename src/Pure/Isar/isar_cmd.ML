@@ -225,8 +225,8 @@ val print_methods = Toplevel.unknown_theory o
 val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 
 fun print_thms_containing ss = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  ThmDatabase.print_thms_containing (Toplevel.theory_of state)
-    (map (ProofContext.read_term (Toplevel.context_of state)) ss));
+  ProofContext.print_thms_containing
+    (Toplevel.node_case ProofContext.init Proof.context_of state) ss);
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (IsarThy.get_thmss args (Toplevel.enter_forward_proof state)));
