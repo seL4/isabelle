@@ -713,15 +713,15 @@ extend {\tt Arith} using a theory file:
 \begin{ttbox}
 NatSum = Arith +
 consts sum     :: [nat=>nat, nat] => nat
-rules  sum_0      "sum f 0 = 0"
-       sum_Suc    "sum f (Suc n) = f n + sum f n"
+primrec "sum" nat 
+  "sum f 0 = 0"
+  "sum f (Suc n) = f(n) + sum f n"
 end
 \end{ttbox}
-We make the required simpset by adding the AC-rules for~$+$ and the
-axioms for~{\tt sum}:
+The \texttt{primrec} declaration automatically adds rewrite rules for
+\texttt{sum} to the default simpset.  We now insert the AC-rules for~$+$:
 \begin{ttbox}
-val natsum_ss = simpset_of "Arith" addsimps ([sum_0,sum_Suc] \at add_ac);
-{\out val natsum_ss = \ldots : simpset}
+Addsimps add_ac;
 \end{ttbox}
 Our desired theorem now reads ${\tt sum} \, (\lambda i.i) \, (n+1) =
 n\times(n+1)/2$.  The Isabelle goal has both sides multiplied by~$2$:
@@ -734,7 +734,7 @@ goal NatSum.thy "2 * sum (\%i.i) (Suc n) = n * Suc n";
 Induction should not be applied until the goal is in the simplest
 form:
 \begin{ttbox}
-by (simp_tac natsum_ss 1);
+by (Simp_tac 1);
 {\out Level 1}
 {\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
 {\out  1. n + (sum (\%i. i) n + sum (\%i. i) n) = n * n}
@@ -742,29 +742,30 @@ by (simp_tac natsum_ss 1);
 Ordered rewriting has sorted the terms in the left-hand side.  The
 subgoal is now ready for induction:
 \begin{ttbox}
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 {\out Level 2}
 {\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
 {\out  1. 0 + (sum (\%i. i) 0 + sum (\%i. i) 0) = 0 * 0}
 \ttbreak
-{\out  2. !!n1. n1 + (sum (\%i. i) n1 + sum (\%i. i) n1) = n1 * n1}
-{\out           ==> Suc n1 + (sum (\%i. i) (Suc n1) + sum (\%i. i) (Suc n1)) =}
-{\out               Suc n1 * Suc n1}
+{\out  2. !!n. n + (sum (\%i. i) n + sum (\%i. i) n) = n * n}
+{\out           ==> Suc n + (sum (\%i. i) (Suc n) + sum (\%i. i) (Suc n)) =}
+{\out               Suc n * Suc n}
 \end{ttbox}
 Simplification proves both subgoals immediately:\index{*ALLGOALS}
 \begin{ttbox}
-by (ALLGOALS (asm_simp_tac natsum_ss));
+by (ALLGOALS Asm_simp_tac);
 {\out Level 3}
 {\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
 {\out No subgoals!}
 \end{ttbox}
-If we had omitted {\tt add_ac} from the simpset, simplification would have
-failed to prove the induction step:
+Simplification cannot prove the induction step if we omit {\tt add_ac} from
+the simpset.  Observe that like terms have not been collected:
 \begin{ttbox}
-2 * sum (\%i. i) (Suc n) = n * Suc n
- 1. !!n1. n1 + sum (\%i. i) n1 + (n1 + sum (\%i. i) n1) = n1 + n1 * n1
-          ==> n1 + (n1 + sum (\%i. i) n1) + (n1 + (n1 + sum (\%i.i) n1)) =
-              n1 + (n1 + (n1 + n1 * n1))
+{\out Level 3}
+{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
+{\out  1. !!n. n + sum (\%i. i) n + (n + sum (\%i. i) n) = n + n * n}
+{\out           ==> n + (n + sum (\%i. i) n) + (n + (n + sum (\%i. i) n)) =}
+{\out               n + (n + (n + n * n))}
 \end{ttbox}
 Ordered rewriting proves this by sorting the left-hand side.  Proving
 arithmetic theorems without ordered rewriting requires explicit use of
