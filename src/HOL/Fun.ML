@@ -434,7 +434,8 @@ by (simp_tac (simpset() addsimps [fun_upd_def]) 1);
 qed "fun_upd_apply";
 Addsimps [fun_upd_apply];
 
-(*fun_upd_apply supersedes these two*)
+(* fun_upd_apply supersedes these two,   but they are useful 
+   if fun_upd_apply is intentionally removed from the simpset *)
 Goal "(f(x:=y)) x = y";
 by (Simp_tac 1);
 qed "fun_upd_same";
@@ -448,6 +449,27 @@ by (rtac ext 1);
 by (Simp_tac 1);
 qed "fun_upd_upd";
 Addsimps [fun_upd_upd];
+
+(* simplifies terms of the form f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *)
+local 
+  fun gen_fun_upd  None    T _ _ = None
+  |   gen_fun_upd (Some f) T x y = Some (Const ("Fun.fun_upd",T) $ f $ x $ y)
+  fun dest_fun_T1 (Type (_,T::Ts)) = T
+  fun find_double (t as Const ("Fun.fun_upd",T) $ f $ x $ y) = let
+      fun find         (Const ("Fun.fun_upd",T) $ g $ v $ w) = 
+          if v aconv x then Some g else gen_fun_upd (find g) T v w
+      |   find t = None
+      in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
+  val fun_upd_prover = K [rtac eq_reflection 1, rtac ext 1, 
+                          simp_tac (simpset_of Fun.thy) 1]
+  fun mk_eq_cterm sg T l r = Thm.cterm_of sg (equals T $ l $ r)
+in 
+  val fun_upd2_simproc = Simplifier.mk_simproc "fun_upd2"
+   [Thm.read_cterm (sign_of Fun.thy) ("f(v:=w,x:=y)", HOLogic.termT)] 
+   (fn sg => (K (fn t => case find_double t of (T,None)=> None | (T,Some rhs)=> 
+       Some (prove_goalw_cterm [] (mk_eq_cterm sg T t rhs) fun_upd_prover))))
+end;
+Addsimprocs[fun_upd2_simproc];
 
 Goal "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)";
 by (rtac ext 1);

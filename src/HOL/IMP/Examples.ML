@@ -4,13 +4,6 @@
     Copyright   2000 TUM
 *)
 
-(*###should go to Fun.ML*)
-Goal "f(x:=y,a:=b,x:=z) = f(a:=b,x:=z)";
-by (rtac ext 1);
-by (Simp_tac 1);
-qed "fun_upd_upd2";
-Addsimps [fun_upd_upd2];
-
 Addsimps[update_def];
 
 section "Examples";
