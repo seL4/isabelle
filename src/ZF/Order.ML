@@ -525,15 +525,15 @@ qed "ord_iso_map_ord_iso";
 (*One way of saying that domain(ord_iso_map(A,r,B,s)) is downwards-closed*)
 goalw Order.thy [ord_iso_map_def]
   "!!B. [| well_ord(A,r);  well_ord(B,s);    		\
-\          x: A;  x ~: domain(ord_iso_map(A,r,B,s)) 	\
-\       |] ==>  domain(ord_iso_map(A,r,B,s)) <= pred(A, x, r)";
-by (step_tac (ZF_cs addSIs [predI]) 1);
-(*Case analysis on  xaa vs x in r *)
+\          a: A;  a ~: domain(ord_iso_map(A,r,B,s)) 	\
+\       |] ==>  domain(ord_iso_map(A,r,B,s)) <= pred(A, a, r)";
+by (safe_tac (ZF_cs addSIs [predI]));
+(*Case analysis on  xaa vs a in r *)
 by (forw_inst_tac [("A","A")] well_ord_is_linear 1);
 by (linear_case_tac 1);
-(*Trivial case: xaa=x*)
-by (fast_tac ZF_cs 1);
-(*Harder case: <x, xaa>: r*)
+(*Trivial case: a=xa*)
+by (fast_tac ZF_cs 2);
+(*Harder case: <a, xa>: r*)
 by (forward_tac [ord_iso_is_bij RS bij_is_fun RS apply_type] 1  THEN
     REPEAT1 (eresolve_tac [asm_rl, predI, predE] 1));
 by (forward_tac [ord_iso_restrict_pred] 1  THEN
