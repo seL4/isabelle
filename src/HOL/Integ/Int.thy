@@ -16,4 +16,7 @@ constdefs
   nat  :: int => nat
   "nat(Z) == if neg Z then 0 else (@ m. Z = int m)"
 
+defs
+  zabs_def  "abs(i::int) == if i < 0 then -i else i"
+
 end

@@ -397,6 +397,15 @@ Goal "(number_of x <= (number_of y::int)) = \
 by (rtac (linorder_not_less RS sym) 1);
 qed "le_number_of_eq_not_less"; 
 
+(** Absolute value (abs) **)
+
+Goalw [zabs_def]
+ "abs(number_of x::int) = \
+\ (if number_of x < (0::int) then -number_of x else number_of x)";
+by(rtac refl 1);
+qed "abs_number_of";
+
+
 (*Delete the original rewrites, with their clumsy conditional expressions*)
 Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT, 
           NCons_Pls, NCons_Min, bin_add_BIT, bin_mult_BIT];
@@ -418,7 +427,7 @@ bind_thms ("bin_arith_extra_simps",
      bin_minus_1, bin_minus_0,  
      bin_add_Pls_right, bin_add_Min_right,
      bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
-     diff_number_of_eq, 
+     diff_number_of_eq, abs_number_of,
      bin_mult_1, bin_mult_0] @ NCons_simps);
 
 (*For making a minimal simpset, one must include these default simprules

@@ -558,6 +558,19 @@ by Auto_tac;
 qed_spec_mp "zdiff_int";
 
 
+(*** abs: absolute value, as an integer ****)
+
+Goalw [zabs_def] "abs(abs(x::int)) = abs(x)";
+by(Simp_tac 1);
+qed "abs_abs";
+Addsimps [abs_abs];
+
+Goalw [zabs_def] "abs(-(x::int)) = abs(x)";
+by(Simp_tac 1);
+qed "abs_minus";
+Addsimps [abs_minus];
+
+
 (*** Some convenient biconditionals for products of signs ***)
 
 Goal "[| (#0::int) < i; #0 < j |] ==> #0 < i*j";
