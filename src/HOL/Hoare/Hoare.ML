@@ -225,4 +225,4 @@ val hoare_method =
 
 val hoare_setup =
  [Method.add_methods
-  [("hoare_vcg", Method.no_args hoare_method, "verification condition generator for Hoare logic")]];
+  [("hoare", Method.no_args hoare_method, "verification condition generator for Hoare logic")]];
