@@ -45,6 +45,7 @@ sig
   val strip_assums_hyp  : term -> term list
   val strip_assums_concl: term -> term
   val strip_params      : term -> (string * typ) list
+  val is_norm_hhf       : term -> bool
   val has_meta_prems    : term -> int -> bool
   val flatten_params    : int -> term -> term
   val auto_rename       : bool ref
@@ -252,6 +253,12 @@ fun strip_params (Const("==>", _) $ H $ B) = strip_params B
   | strip_params (Const("all",_)$Abs(a,T,t)) = (a,T) :: strip_params t
   | strip_params B = [];
 
+(*test for HHF normal form*)
+fun is_norm_hhf (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
+  | is_norm_hhf (t $ u) = is_norm_hhf t andalso is_norm_hhf u
+  | is_norm_hhf (Abs (_, _, t)) = is_norm_hhf t
+  | is_norm_hhf _ = true;
+
 (*test for meta connectives in prems of a 'subgoal'*)
 fun has_meta_prems prop i =
   let
@@ -320,8 +327,8 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
   We need nparams_i only when the parameters aren't flattened; then we
     must call incr_boundvars to make up the difference.  See assum_pairs.
   Without this refinement we can get the wrong answer, e.g. by
-	Goal "!!f. EX B. Q(f,B) ==> (!!y. P(f,y))";
-	by (etac exE 1);
+        Goal "!!f. EX B. Q(f,B) ==> (!!y. P(f,y))";
+        by (etac exE 1);
  *)
 fun strip_assums_aux (HPs, params, Const("==>", _) $ H $ B) =
         strip_assums_aux ((H,length params)::HPs, params, B)
@@ -339,12 +346,12 @@ fun assum_pairs A =
   let val (HPs, params, B) = strip_assums A
       val nparams = length params
       val D = Unify.rlist_abs(params, B)
-      fun incr_hyp(H,np) = 
-	  Unify.rlist_abs(params, incr_boundvars (nparams-np) H)
+      fun incr_hyp(H,np) =
+          Unify.rlist_abs(params, incr_boundvars (nparams-np) H)
       fun pairrev ([],pairs) = pairs
         | pairrev ((H,np)::HPs, pairs) =
             pairrev(HPs,  (incr_hyp(H,np),D) :: pairs)
-  in  pairrev (HPs,[]) 
+  in  pairrev (HPs,[])
   end;
 
 (*Converts Frees to Vars and TFrees to TVars so that axioms can be written
