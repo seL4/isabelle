@@ -195,6 +195,9 @@ val pure_applC_syntax =
 val pure_sym_syntax =
  [("fun",      "[type, type] => type",  Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
   ("_bracket", "[types, type] => type", Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
+  ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [max_pri, 0], max_pri)),
+  ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
+  ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
   ("_lambda",  "[idts, 'a] => logic",   Mixfix ("(3\\<lambda>_./ _)", [], 0)),
   ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
   ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
