@@ -57,7 +57,7 @@ struct
   val empty = Symtab.empty;
   val copy = I;
   val prep_ext = I;
-  val merge = Symtab.merge op =;
+  val merge : T * T -> T = Symtab.merge op =;
   fun print sg _ = ();
 end;
 
