@@ -89,10 +89,9 @@ qed "n_not_Suc_n";
 
 bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 
-Goal "(!x. x = (0::nat)) = False";
+Goal "(ALL x. x = (0::nat)) = False";
 by Auto_tac;
 qed "nat_not_singleton";
-Addsimps[nat_not_singleton];
 
 (*** Basic properties of "less than" ***)
 

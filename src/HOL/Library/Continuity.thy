@@ -82,7 +82,7 @@ lemma up_cont_mono: "up_cont f ==> mono f"
    apply (rule up_chainI)
    apply  simp+
   apply (drule Un_absorb1)
-  apply auto
+  apply (auto simp add: nat_not_singleton)
   done
 
 
@@ -110,7 +110,7 @@ lemma down_cont_mono: "down_cont f ==> mono f"
    apply (rule down_chainI)
    apply simp+
   apply (drule Int_absorb1)
-  apply auto
+  apply (auto simp add: nat_not_singleton)
   done
 
 
