@@ -89,9 +89,8 @@ val adm_name = Sign.intern_const (sign_of HOLCF.thy) "adm";
 (*** check whether type of terms in list is chain finite ***)
 
 fun is_chfin sign T params ((t, _)::_) =
-  let val {tsig, ...} = Sign.rep_sg sign;
-      val parTs = map snd (rev params)
-  in Type.of_sort tsig (fastype_of1 (T::parTs, t), chfin_pcpoS) end;
+  let val parTs = map snd (rev params)
+  in Sign.of_sort sign (fastype_of1 (T::parTs, t), chfin_pcpoS) end;
 
 
 (*** try to prove that terms in list are continuous

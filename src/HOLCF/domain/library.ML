@@ -77,7 +77,7 @@ fun rep_Type  (Type  x) = x | rep_Type  _ = Imposs "library:rep_Type";
 fun rep_TFree (TFree x) = x | rep_TFree _ = Imposs "library:rep_TFree";
 val tsig_of = #tsig o Sign.rep_sg;
 
-fun pcpo_type sg t = Type.of_sort (tsig_of sg) (Sign.certify_typ sg t, pcpoS);
+fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, pcpoS);
 fun string_of_typ sg = Sign.string_of_typ sg o Sign.certify_typ sg;
 fun str2typ sg = typ_of o read_ctyp sg;
 
