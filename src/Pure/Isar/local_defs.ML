@@ -17,7 +17,7 @@ structure LocalDefs: LOCAL_DEFS =
 struct
 
 
-val refl_tac = Tactic.rtac (standard (Drule.reflexive_thm RS Drule.triv_goal));
+val refl_tac = Tactic.rtac (Drule.standard (Drule.reflexive_thm RS Drule.triv_goal));
 
 
 fun gen_def fix prep_term match_binds raw_name atts ((x, raw_T), (raw_rhs, raw_pats)) state =
