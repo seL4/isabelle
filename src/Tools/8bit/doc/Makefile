@@ -26,9 +26,11 @@ CHECKOUT=co
 
 FONTDOCFILES = fontindex.dvi keyindex.dvi fkmatrix.dvi
 
+all: manual.dvi fontdocfiles
+
 fontdocfiles: $(FONTDOCFILES)
 
-manual: manual.dvi
+manual.dvi: manual.itex
 
 clean:
-	rm -f *.aux *.log
+	rm -f *.tex *.aux *.log
