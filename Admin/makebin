@@ -7,7 +7,7 @@
 
 ## global settings
 
-FAKE_BUILD="true"
+FAKE_BUILD=""
 DISTBASE=~/tmp/isadist
 TMP="/tmp/isabelle-makebin$$"
 
