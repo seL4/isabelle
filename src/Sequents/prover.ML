@@ -28,8 +28,7 @@ val empty_pack = Pack([],[]);
 
 fun warn_duplicates [] = []
   | warn_duplicates dups =
-      (warning (String.concat ("Ignoring duplicate theorems:\n"::
-			       map (suffix "\n" o string_of_thm) dups));
+      (warning (cat_lines ("Ignoring duplicate theorems:" :: map string_of_thm dups));
        dups);
 
 fun (Pack(safes,unsafes)) add_safes ths   = 
