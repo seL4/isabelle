@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Scanner combinators and Isabelle's main lexer (used for terms and types).
+Scanner combinators and the main lexer (for terms and types).
 *)
 
 infix 5 -- ^^;
@@ -10,7 +10,7 @@ infix 3 >>;
 infix 0 ||;
 
 signature SCANNER =
-  sig
+sig
   exception LEXICAL_ERROR
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
   val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
@@ -38,11 +38,13 @@ signature SCANNER =
   val make_lexicon: string list -> lexicon
   val merge_lexicons: lexicon -> lexicon -> lexicon
   val scan_literal: lexicon -> string list -> string * string list
-  end;
+end;
 
 signature LEXICON0 =
-  sig
+sig
   val is_identifier: string -> bool
+  val implode_xstr: string list -> string
+  val explode_xstr: string -> string list
   val string_of_vname: indexname -> string
   val string_of_vname': indexname -> string
   val scan_varname: string list -> indexname * string list
@@ -50,10 +52,10 @@ signature LEXICON0 =
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
-  end;
+end;
 
 signature LEXICON =
-  sig
+sig
   include SCANNER
   include LEXICON0
   val is_xid: string -> bool
@@ -82,10 +84,11 @@ signature LEXICON =
   val valued_token: token -> bool
   val predef_term: string -> token option
   val tokenize: lexicon -> bool -> string list -> token list
-  end;
+end;
 
 structure Lexicon : LEXICON =
 struct
+
 
 (** is_identifier etc. **)
 
@@ -225,6 +228,14 @@ fun predef_term "id" = Some (IdentSy "id")
   | predef_term "xnum" = Some (NumSy "xnum")
   | predef_term "xstr" = Some (StrSy "xstr")
   | predef_term _ = None;
+
+
+(*  xstr tokens *)
+
+fun implode_xstr cs = enclose "''" "''" (implode cs);
+
+fun explode_xstr str =
+  rev (tl (tl (rev (tl (tl (explode str))))));
 
 
 
@@ -417,7 +428,7 @@ fun tokenize lex xids chs =
               error ("Lexical error: missing quotes at end of string " ^
                 quote (implode chs));
           in
-            scan (StrSy (implode cs') :: rev_toks, cs'')
+            scan (StrSy (implode_xstr cs') :: rev_toks, cs'')
           end
       | scan (rev_toks, chs as c :: cs) =
           if is_blank c then scan (rev_toks, cs)
@@ -481,5 +492,5 @@ fun scan_var str =
     #1 (scan (explode str))
   end;
 
-end;
 
+end;
