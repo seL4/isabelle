@@ -18,10 +18,10 @@ val True_implies_equals = prove_goal IFOL.thy
 
 (*** Rewrite rules ***)
 
-fun int_prove_fun s = 
- (writeln s;  
+fun int_prove_fun s =
+ (writeln s;
   prove_goal IFOL.thy s
-   (fn prems => [ (cut_facts_tac prems 1), 
+   (fn prems => [ (cut_facts_tac prems 1),
                   (IntPr.fast_tac 1) ]));
 
 val conj_simps = map int_prove_fun
@@ -43,7 +43,7 @@ val not_simps = map int_prove_fun
 
 val imp_simps = map int_prove_fun
  ["(P --> False) <-> ~P",       "(P --> True) <-> True",
-  "(False --> P) <-> True",     "(True --> P) <-> P", 
+  "(False --> P) <-> True",     "(True --> P) <-> P",
   "(P --> P) <-> True",         "(P --> ~P) <-> ~P"];
 
 val iff_simps = map int_prove_fun
@@ -53,16 +53,16 @@ val iff_simps = map int_prove_fun
 
 (*The x=t versions are needed for the simplification procedures*)
 val quant_simps = map int_prove_fun
- ["(ALL x. P) <-> P",   
+ ["(ALL x. P) <-> P",
   "(ALL x. x=t --> P(x)) <-> P(t)",
   "(ALL x. t=x --> P(x)) <-> P(t)",
   "(EX x. P) <-> P",
-  "(EX x. x=t & P(x)) <-> P(t)", 
+  "(EX x. x=t & P(x)) <-> P(t)",
   "(EX x. t=x & P(x)) <-> P(t)"];
 
 (*These are NOT supplied by default!*)
 val distrib_simps  = map int_prove_fun
- ["P & (Q | R) <-> P&Q | P&R", 
+ ["P & (Q | R) <-> P&Q | P&R",
   "(Q | R) & P <-> Q&P | R&P",
   "(P | Q --> R) <-> (P --> R) & (Q --> R)"];
 
@@ -81,7 +81,7 @@ val iff_reflection_T = P_iff_T RS iff_reflection;
 fun mk_meta_eq th = case concl_of th of
     _ $ (Const("op =",_)$_$_)   => th RS eq_reflection
   | _ $ (Const("op <->",_)$_$_) => th RS iff_reflection
-  | _                           => 
+  | _                           =>
   error("conclusion must be a =-equality or <->");;
 
 fun mk_eq th = case concl_of th of
@@ -92,8 +92,8 @@ fun mk_eq th = case concl_of th of
   | _                           => th RS iff_reflection_T;
 
 (*Replace premises x=y, X<->Y by X==Y*)
-val mk_meta_prems = 
-    rule_by_tactic 
+val mk_meta_prems =
+    rule_by_tactic
       (REPEAT_FIRST (resolve_tac [meta_eq_to_obj_eq, def_imp_iff]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
@@ -127,32 +127,32 @@ fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
 
 (*** Classical laws ***)
 
-fun prove_fun s = 
- (writeln s;  
+fun prove_fun s =
+ (writeln s;
   prove_goal (the_context ()) s
-   (fn prems => [ (cut_facts_tac prems 1), 
+   (fn prems => [ (cut_facts_tac prems 1),
                   (Cla.fast_tac FOL_cs 1) ]));
 
-(*Avoids duplication of subgoals after expand_if, when the true and false 
-  cases boil down to the same thing.*) 
+(*Avoids duplication of subgoals after expand_if, when the true and false
+  cases boil down to the same thing.*)
 val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
 
 
 (*** Miniscoping: pushing quantifiers in
      We do NOT distribute of ALL over &, or dually that of EX over |
-     Baaz and Leitsch, On Skolemization and Proof Complexity (1994) 
+     Baaz and Leitsch, On Skolemization and Proof Complexity (1994)
      show that this step can increase proof length!
 ***)
 
 (*existential miniscoping*)
-val int_ex_simps = map int_prove_fun 
+val int_ex_simps = map int_prove_fun
                      ["(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
                       "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
                       "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
                       "(EX x. P | Q(x)) <-> P | (EX x. Q(x))"];
 
 (*classical rules*)
-val cla_ex_simps = map prove_fun 
+val cla_ex_simps = map prove_fun
                      ["(EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
                       "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
 
@@ -176,7 +176,7 @@ val all_simps = int_all_simps @ cla_all_simps;
 (*** Named rewrite rules proved for IFOL ***)
 
 fun int_prove nm thm  = qed_goal nm IFOL.thy thm
-    (fn prems => [ (cut_facts_tac prems 1), 
+    (fn prems => [ (cut_facts_tac prems 1),
                    (IntPr.fast_tac 1) ]);
 
 fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [Blast_tac 1]);
@@ -301,7 +301,7 @@ val meta_simps =
     True_implies_equals];  (* prune asms `True' *)
 
 val IFOL_simps =
-    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
+    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @
     imp_simps @ iff_simps @ quant_simps;
 
 val notFalseI = int_prove_fun "~False";
@@ -314,20 +314,19 @@ fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
                                  eq_assume_tac, ematch_tac [FalseE]];
 
 (*No simprules, but basic infastructure for simplification*)
-val FOL_basic_ss =
-  empty_ss setsubgoaler asm_simp_tac
-    addsimprocs [defALL_regroup, defEX_regroup]
-    setSSolver (mk_solver "FOL safe" safe_solver)
-    setSolver (mk_solver "FOL unsafe" unsafe_solver)
-    setmksimps (mksimps mksimps_pairs)
-    setmkcong mk_meta_cong;
+val FOL_basic_ss = empty_ss
+  setsubgoaler asm_simp_tac
+  setSSolver (mk_solver "FOL safe" safe_solver)
+  setSolver (mk_solver "FOL unsafe" unsafe_solver)
+  setmksimps (mksimps mksimps_pairs)
+  setmkcong mk_meta_cong;
 
 
 (*intuitionistic simprules only*)
-val IFOL_ss =
-    FOL_basic_ss addsimps (meta_simps @ IFOL_simps @
-                           int_ex_simps @ int_all_simps)
-                 addcongs [imp_cong];
+val IFOL_ss = FOL_basic_ss
+  addsimps (meta_simps @ IFOL_simps @ int_ex_simps @ int_all_simps)
+  addsimprocs [defALL_regroup, defEX_regroup]    
+  addcongs [imp_cong];
 
 val cla_simps =
     [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,
