@@ -19,8 +19,8 @@ POLYML_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/polyml" \
   "$ISABELLE_HOME/../polyml")
 ML_PLATFORM=$($POLYML_HOME/bin/polyml-platform 2>/dev/null)
-ML_HOME=$POLYML_HOME/$ML_PLATFORM
 ML_SYSTEM=$($POLYML_HOME/bin/polyml-version 2>/dev/null)
+ML_HOME=$POLYML_HOME/$ML_PLATFORM
 ML_OPTIONS="-h 30000"
 
 # Standard ML of New Jersey 110 or later
