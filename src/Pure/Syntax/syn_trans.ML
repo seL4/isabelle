@@ -50,20 +50,20 @@ open TypeExt Lexicon Ast SynExt Parser;
 (* application *)
 
 fun appl_ast_tr [f, args] = Appl (f :: unfold_ast "_args" args)
-  | appl_ast_tr asts = raise_ast "appl_ast_tr" asts;
+  | appl_ast_tr asts = raise AST ("appl_ast_tr", asts);
 
 fun applC_ast_tr [f, args] = Appl (f :: unfold_ast "_cargs" args)
-  | applC_ast_tr asts = raise_ast "applC_ast_tr" asts;
+  | applC_ast_tr asts = raise AST ("applC_ast_tr", asts);
 
 
 (* abstraction *)
 
 fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Appl [Constant constrainC, x, ty]
-  | idtyp_ast_tr (*"_idtyp"*) asts = raise_ast "idtyp_ast_tr" asts;
+  | idtyp_ast_tr (*"_idtyp"*) asts = raise AST ("idtyp_ast_tr", asts);
 
 fun lambda_ast_tr (*"_lambda"*) [pats, body] =
       fold_ast_p "_abs" (unfold_ast "_pttrns" pats, body)
-  | lambda_ast_tr (*"_lambda"*) asts = raise_ast "lambda_ast_tr" asts;
+  | lambda_ast_tr (*"_lambda"*) asts = raise AST ("lambda_ast_tr", asts);
 
 val constrainAbsC = "_constrainAbs";
 
@@ -71,14 +71,14 @@ fun abs_tr (*"_abs"*) [Free (x, T), body] = absfree (x, T, body)
   | abs_tr (*"_abs"*) (ts as [Const (c, _) $ Free (x, T) $ tT, body]) =
       if c = constrainC
         then const constrainAbsC $ absfree (x, T, body) $ tT
-      else raise_term "abs_tr" ts
-  | abs_tr (*"_abs"*) ts = raise_term "abs_tr" ts;
+      else raise TERM ("abs_tr", ts)
+  | abs_tr (*"_abs"*) ts = raise TERM ("abs_tr", ts);
 
 
 (* nondependent abstraction *)
 
 fun k_tr (*"_K"*) [t] = Abs ("uu", dummyT, incr_boundvars 1 t)
-  | k_tr (*"_K"*) ts = raise_term "k_tr" ts;
+  | k_tr (*"_K"*) ts = raise TERM ("k_tr", ts);
 
 
 (* binder *)
@@ -90,11 +90,11 @@ fun mk_binder_tr (sy, name) =
       | tr (t1 as Const (c, _) $ Free (x, T) $ tT, t) =
           if c = constrainC then
             const name $ (const constrainAbsC $ absfree (x, T, t) $ tT)
-          else raise_term "binder_tr" [t1, t]
-      | tr (t1, t2) = raise_term "binder_tr" [t1, t2];
+          else raise TERM ("binder_tr", [t1, t])
+      | tr (t1, t2) = raise TERM ("binder_tr", [t1, t2]);
 
     fun binder_tr (*sy*) [idts, body] = tr (idts, body)
-      | binder_tr (*sy*) ts = raise_term "binder_tr" ts;
+      | binder_tr (*sy*) ts = raise TERM ("binder_tr", ts);
   in
     (sy, binder_tr)
   end;
@@ -103,18 +103,18 @@ fun mk_binder_tr (sy, name) =
 (* meta propositions *)
 
 fun aprop_tr (*"_aprop"*) [t] = const constrainC $ t $ const "prop"
-  | aprop_tr (*"_aprop"*) ts = raise_term "aprop_tr" ts;
+  | aprop_tr (*"_aprop"*) ts = raise TERM ("aprop_tr", ts);
 
 fun ofclass_tr (*"_ofclass"*) [ty, cls] =
       cls $ (const constrainC $ const "TYPE" $ (const "itself" $ ty))
-  | ofclass_tr (*"_ofclass"*) ts = raise_term "ofclass_tr" ts;
+  | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
 
 
 (* meta implication *)
 
 fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
       fold_ast_p "==>" (unfold_ast "_asms" asms, concl)
-  | bigimpl_ast_tr (*"_bigimpl"*) asts = raise_ast "bigimpl_ast_tr" asts;
+  | bigimpl_ast_tr (*"_bigimpl"*) asts = raise AST ("bigimpl_ast_tr", asts);
 
 
 
@@ -122,10 +122,10 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
 
 (* application *)
 
-fun appl_ast_tr' (f, []) = raise_ast "appl_ast_tr'" [f]
+fun appl_ast_tr' (f, []) = raise AST ("appl_ast_tr'", [f])
   | appl_ast_tr' (f, args) = Appl [Constant "_appl", f, fold_ast "_args" args];
 
-fun applC_ast_tr' (f, []) = raise_ast "applC_ast_tr'" [f]
+fun applC_ast_tr' (f, []) = raise AST ("applC_ast_tr'", [f])
   | applC_ast_tr' (f, args) =
       Appl [Constant "_applC", f, fold_ast "_cargs" args];
 
@@ -173,7 +173,7 @@ fun abs_tr' tm =
 
 fun abs_ast_tr' (*"_abs"*) asts =
   (case unfold_ast_p "_abs" (Appl (Constant "_abs" :: asts)) of
-    ([], _) => raise_ast "abs_ast_tr'" asts
+    ([], _) => raise AST ("abs_ast_tr'", asts)
   | (xs, body) => Appl [Constant "_lambda", fold_ast "_pttrns" xs, body]);
 
 
@@ -240,11 +240,11 @@ fun prop_tr' show_sorts tm =
 
 fun mk_ofclass_tr' (*"_mk_ofclass"*) T [t] =
       const "_ofclass" $ term_of_typ false T $ t
-  | mk_ofclass_tr' (*"_mk_ofclass"*) T ts = raise_type "mk_ofclass_tr'" [T] ts;
+  | mk_ofclass_tr' (*"_mk_ofclass"*) T ts = raise TYPE ("mk_ofclass_tr'", [T], ts);
 
 fun mk_ofclassS_tr' (*"_mk_ofclassS"*) T [t] =
       const "_ofclass" $ term_of_typ true T $ t
-  | mk_ofclassS_tr' (*"_mk_ofclassS"*) T ts = raise_type "mk_ofclassS_tr'" [T] ts;
+  | mk_ofclassS_tr' (*"_mk_ofclassS"*) T ts = raise TYPE ("mk_ofclassS_tr'", [T], ts);
 
 
 (* meta implication *)
@@ -326,7 +326,7 @@ fun ast_to_term trf ast =
           trans a (map term_of asts)
       | term_of (Appl (ast :: (asts as _ :: _))) =
           list_comb (term_of ast, map term_of asts)
-      | term_of (ast as Appl _) = raise_ast "ast_to_term: malformed ast" [ast];
+      | term_of (ast as Appl _) = raise AST ("ast_to_term: malformed ast", [ast]);
   in
     term_of ast
   end;
