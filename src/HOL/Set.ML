@@ -650,6 +650,11 @@ Addsimps [image_eqI];
 
 bind_thm ("imageI", refl RS image_eqI);
 
+(*This version's more effective when we already have the required x*)
+Goalw [image_def] "[| x:A;  b=f(x) |] ==> b : f``A";
+by (Blast_tac 1);
+qed "rev_image_eqI";
+
 (*The eta-expansion gives variable-name preservation.*)
 val major::prems = Goalw [image_def]
     "[| b : (%x. f(x))``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P"; 
