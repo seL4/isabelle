@@ -3,6 +3,22 @@ Implementation
 
 - (#2 * x) = #2 * - x is not proved by arith
 
+a simp command for terms
+
+----------------------------------------------------------------------
+primrec 
+"(foorec [] []) = []"
+"(foorec [] (y # ys)) = (y # (foorec [] ys))"
+
+*** Primrec definition error:
+*** extra variables on rhs: "y", "ys"
+*** in
+*** "((foorec [] ((y::'a_1) # (ys::'a_1 list))) = (y # (foorec [] ys)))"
+*** At command "primrec".
+
+Bessere Fehlermeldung!
+----------------------------------------------------------------------
+
 Relation: comp -> composition
 
 Add map_cong?? (upto 10% slower)
@@ -36,6 +52,12 @@ defs with = and pattern matching??
 
 Minor fixes in the tutorial
 ===========================
+
+recdef: failed tcs no longer shown!
+
+Advanced recdef: explain recdef_tc?
+
+say something about definitional approach. In recdef section? At the end?
 
 I guess we should say "HOL" everywhere, with a remark early on about the
 differences between our HOL and the other one.

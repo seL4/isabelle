@@ -52,8 +52,11 @@ account, just as in functional programming:%
 \ \ {\isachardoublequote}sep{\isadigit{1}}{\isacharparenleft}a{\isacharcomma}\ xs{\isacharparenright}\ \ \ \ \ {\isacharequal}\ xs{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-This defines exactly the same function as \isa{sep} above, i.e.\
-\isa{sep{\isadigit{1}}\ {\isacharequal}\ sep}.
+To guarantee that the second equation can only be applied if the first
+one does not match, Isabelle internally replaces the second equation
+by the two possibilities that are left: \isa{sep{\isadigit{1}}\ {\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} and
+\isa{sep{\isadigit{1}}\ {\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}}.  Thus the functions \isa{sep} and
+\isa{sep{\isadigit{1}}} are identical.
 
 \begin{warn}
   \isacommand{recdef} only takes the first argument of a (curried)
