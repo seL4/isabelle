@@ -5,7 +5,7 @@
 \contentsline {section}{\numberline {1.4}Printing of terms and theorems}{3}
 \contentsline {subsection}{Printing limits}{3}
 \contentsline {subsection}{Printing of meta-level hypotheses}{3}
-\contentsline {subsection}{Printing of types and sorts}{4}
+\contentsline {subsection}{Printing of types and sorts}{3}
 \contentsline {subsection}{$\eta $-contraction before printing}{4}
 \contentsline {section}{\numberline {1.5}Displaying exceptions as error messages}{4}
 \contentsline {section}{\numberline {1.6}Shell scripts}{5}

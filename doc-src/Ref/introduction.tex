@@ -94,9 +94,7 @@ use_thy         : string -> unit
 time_use        : string -> unit
 time_use_thy    : string -> unit
 update          : unit -> unit
-unlink_thy      : string -> unit
 loadpath        : string list ref
-delete_tmpfiles : bool ref
 \end{ttbox}
 \begin{description}
 \item[\ttindexbold{cd} \tt"{\it dir}";]  changes to {\it dir\/} the default
@@ -123,18 +121,9 @@ performs {\tt use_thy "$tname$"} and prints the total execution time.
 reads all theories that have changed since the last time they have been read.
 See Chapter~\ref{theories} for details.
 
-\item[\ttindexbold{unlink_thy} \tt"$tname$";]  
-removes theory {\it tname} from internal list of theory dependencies and has to
-be used after removing a theory's files. Else {\tt update} would keep on
-searching for them. See Chapter~\ref{theories} for details.
-
 \item[\ttindexbold{loadpath}] contains a list of paths that is used by 
 {\tt use_thy} and {\tt update} to find {\it tname}{\tt.ML} and {\it tname}
 {\tt.thy}. See Chapter~\ref{theories} for details.
-
-\item[\ttindexbold{delete_tmpfiles}] is used by use_thy and controls the
-removal of temporary files created during the reading of {\it tname}{\tt.thy}.
-See Chapter~\ref{theories} for details.
 \end{description}
 
 
