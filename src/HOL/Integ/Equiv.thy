@@ -8,16 +8,13 @@ Equivalence relations in Higher-Order Set Theory
 
 Equiv = Relation + Finite + 
 consts
-    refl,equiv  ::      "['a set,('a*'a) set]=>bool"
-    sym         ::      "('a*'a) set=>bool"
-    "'/"        ::      "['a set,('a*'a) set]=>'a set set"  (infixl 90) 
-                        (*set of equiv classes*)
-    congruent   ::      "[('a*'a) set,'a=>'b]=>bool"
-    congruent2  ::      "[('a*'a) set,['a,'a]=>'b]=>bool"
+    equiv      :: "['a set, ('a*'a) set] => bool"
+    quotient   :: "['a set, ('a*'a) set] => 'a set set"  (infixl "'/" 90) 
+                         (*set of equiv classes*)
+    congruent  :: "[('a*'a) set, 'a=>'b] => bool"
+    congruent2 :: "[('a*'a) set, ['a,'a]=>'b] => bool"
 
 defs
-    refl_def      "refl A r == r <= A Times A & (ALL x: A. (x,x) : r)"
-    sym_def       "sym(r)    == ALL x y. (x,y): r --> (y,x): r"
     equiv_def     "equiv A r == refl A r & sym(r) & trans(r)"
     quotient_def  "A/r == UN x:A. {r^^{x}}"  
     congruent_def   "congruent r b  == ALL y z. (y,z):r --> b(y)=b(z)"
