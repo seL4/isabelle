@@ -7,7 +7,7 @@
 ## targets
 
 default: HOL
-images: HOL HOL-Real HOL-Hyperreal TLA
+images: HOL HOL-Real TLA
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -17,6 +17,7 @@ test: \
   HOL-AxClasses \
   HOL-CTL \
       HOL-Real-HahnBanach \
+      HOL-Real-Hyperreal \
       HOL-Real-ex \
   HOL-GroupTheory \
   HOL-Hoare \
@@ -127,29 +128,26 @@ $(OUT)/HOL-Real: $(OUT)/HOL \
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
 
 
-## HOL-Hyperreal
+## HOL-Real-Hyperreal
 
-HOL-Hyperreal: HOL-Real $(OUT)/HOL-Hyperreal
+HOL-Real-Hyperreal: HOL-Real $(LOG)/HOL-Real-Hyperreal.gz
 
-$(OUT)/HOL-Hyperreal: $(OUT)/HOL-Real Hyperreal/ROOT.ML \
-  Hyperreal/Filter.ML Hyperreal/Filter.thy \
-  Hyperreal/HRealAbs.ML Hyperreal/HRealAbs.thy \
-  Hyperreal/HSeries.ML Hyperreal/HSeries.thy \
-  Hyperreal/HyperArith0.ML Hyperreal/HyperArith0.thy Hyperreal/HyperArith.thy \
-  Hyperreal/hypreal_arith0.ML Hyperreal/hypreal_arith.ML \
-  Hyperreal/HyperBin.ML Hyperreal/HyperBin.thy \
-  Hyperreal/HyperDef.ML Hyperreal/HyperDef.thy Hyperreal/HyperNat.ML \
-  Hyperreal/HyperNat.thy Hyperreal/HyperOrd.ML \
-  Hyperreal/HyperOrd.thy Hyperreal/HyperPow.ML \
-  Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy \
-  Hyperreal/Lim.ML Hyperreal/Lim.thy Hyperreal/NSA.ML \
-  Hyperreal/NSA.thy Hyperreal/NatStar.ML \
-  Hyperreal/NatStar.thy Hyperreal/SEQ.ML \
-  Hyperreal/SEQ.thy Hyperreal/Series.ML \
-  Hyperreal/Series.thy Hyperreal/Star.ML \
-  Hyperreal/Star.thy Hyperreal/Zorn.ML \
-  Hyperreal/Zorn.thy Hyperreal/fuf.ML
-	@cd Hyperreal; $(ISATOOL) usedir -b $(OUT)/HOL-Real HOL-Hyperreal
+$(LOG)/HOL-Real-Hyperreal.gz: $(OUT)/HOL-Real \
+  Hyperreal/Filter.ML Hyperreal/Filter.thy Hyperreal/HRealAbs.ML \
+  Hyperreal/HRealAbs.thy Hyperreal/HSeries.ML Hyperreal/HSeries.thy \
+  Hyperreal/HyperArith.thy Hyperreal/HyperArith0.ML \
+  Hyperreal/HyperArith0.thy Hyperreal/HyperBin.ML \
+  Hyperreal/HyperBin.thy Hyperreal/HyperDef.ML Hyperreal/HyperDef.thy \
+  Hyperreal/HyperNat.ML Hyperreal/HyperNat.thy Hyperreal/HyperOrd.ML \
+  Hyperreal/HyperOrd.thy Hyperreal/HyperPow.ML Hyperreal/HyperPow.thy \
+  Hyperreal/Hyperreal.thy Hyperreal/Lim.ML Hyperreal/Lim.thy \
+  Hyperreal/NSA.ML Hyperreal/NSA.thy Hyperreal/NatStar.ML \
+  Hyperreal/NatStar.thy Hyperreal/ROOT.ML Hyperreal/SEQ.ML \
+  Hyperreal/SEQ.thy Hyperreal/Series.ML Hyperreal/Series.thy \
+  Hyperreal/Star.ML Hyperreal/Star.thy Hyperreal/Zorn.ML \
+  Hyperreal/Zorn.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
+  Hyperreal/hypreal_arith0.ML
+	@$(ISATOOL) usedir $(OUT)/HOL-Real Hyperreal
 
 
 ## HOL-Real-ex
@@ -613,6 +611,7 @@ clean:
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
+		$(LOG)/HOL-Real-Hyperreal.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
 		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 
