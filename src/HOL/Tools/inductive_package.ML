@@ -288,7 +288,7 @@ fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
 fun con_elim_tac simps =
   let val elim_tac = REPEAT o (eresolve_tac elim_rls)
   in ALLGOALS(EVERY'[elim_tac,
-                 asm_full_simp_tac (simpset_of Nat.thy addsimps simps),
+                 asm_full_simp_tac (simpset_of NatDef.thy addsimps simps),
                  elim_tac,
                  REPEAT o bound_hyp_subst_tac])
      THEN prune_params_tac
