@@ -512,7 +512,7 @@ fun merge (sg1, sg2) =
 (** the Pure signature **)
 
 val pure =
-  make_sign (Syntax.type_syn, tsig0, Symtab.null) [] "#"
+  make_sign (Syntax.pure_syn, tsig0, Symtab.null) [] "#"
   |> add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
