@@ -137,49 +137,44 @@ theorem prefix_cases:
 
 theorem parallel_decomp:
   "xs \<parallel> ys ==> \<exists>as b bs c cs. b \<noteq> c \<and> xs = as @ b # bs \<and> ys = as @ c # cs"
-  (concl is "?E xs")
-proof -
-  assume "xs \<parallel> ys"
-  have "?this --> ?E xs" (is "?P xs")
-  proof (induct (stripped) xs rule: rev_induct)
-    assume "[] \<parallel> ys" hence False by auto
-    thus "?E []" ..
-  next
-    fix x xs
-    assume hyp: "?P xs"
-    assume asm: "xs @ [x] \<parallel> ys"
-    show "?E (xs @ [x])"
-    proof (rule prefix_cases)
-      assume le: "xs \<le> ys"
-      then obtain ys' where ys: "ys = xs @ ys'" ..
-      show ?thesis
-      proof (cases ys')
-        assume "ys' = []" with ys have "xs = ys" by simp
-        with asm have "[x] \<parallel> []" by auto
-        hence False by blast
-        thus ?thesis ..
-      next
-        fix c cs assume ys': "ys' = c # cs"
-        with asm ys have "xs @ [x] \<parallel> xs @ c # cs" by (simp only:)
-        hence "x \<noteq> c" by auto
-        moreover have "xs @ [x] = xs @ x # []" by simp
-        moreover from ys ys' have "ys = xs @ c # cs" by (simp only:)
-        ultimately show ?thesis by blast
-      qed
-    next
-      assume "ys \<le> xs" hence "ys \<le> xs @ [x]" by simp
-      with asm have False by blast
+  (is "PROP ?P xs" concl is "?E xs")
+proof (induct xs rule: rev_induct)
+  assume "[] \<parallel> ys" hence False by auto
+  thus "?E []" ..
+next
+  fix x xs
+  assume hyp: "PROP ?P xs"
+  assume asm: "xs @ [x] \<parallel> ys"
+  show "?E (xs @ [x])"
+  proof (rule prefix_cases)
+    assume le: "xs \<le> ys"
+    then obtain ys' where ys: "ys = xs @ ys'" ..
+    show ?thesis
+    proof (cases ys')
+      assume "ys' = []" with ys have "xs = ys" by simp
+      with asm have "[x] \<parallel> []" by auto
+      hence False by blast
       thus ?thesis ..
     next
-      assume "xs \<parallel> ys"
-      with hyp obtain as b bs c cs where neq: "(b::'a) \<noteq> c"
-          and xs: "xs = as @ b # bs" and ys: "ys = as @ c # cs"
-	by blast
-      from xs have "xs @ [x] = as @ b # (bs @ [x])" by simp
-      with neq ys show ?thesis by blast
+      fix c cs assume ys': "ys' = c # cs"
+      with asm ys have "xs @ [x] \<parallel> xs @ c # cs" by (simp only:)
+      hence "x \<noteq> c" by auto
+      moreover have "xs @ [x] = xs @ x # []" by simp
+      moreover from ys ys' have "ys = xs @ c # cs" by (simp only:)
+      ultimately show ?thesis by blast
     qed
+  next
+    assume "ys \<le> xs" hence "ys \<le> xs @ [x]" by simp
+    with asm have False by blast
+    thus ?thesis ..
+  next
+    assume "xs \<parallel> ys"
+    with hyp obtain as b bs c cs where neq: "(b::'a) \<noteq> c"
+      and xs: "xs = as @ b # bs" and ys: "ys = as @ c # cs"
+      by blast
+    from xs have "xs @ [x] = as @ b # (bs @ [x])" by simp
+    with neq ys show ?thesis by blast
   qed
-  thus ?thesis ..
 qed
 
 end

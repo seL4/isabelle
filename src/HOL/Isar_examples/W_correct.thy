@@ -27,7 +27,7 @@ consts
   has_type :: "(typ list * expr * typ) set"
 
 syntax
-  "_has_type" :: "[typ list, expr, typ] => bool"
+  "_has_type" :: "typ list => expr => typ => bool"
     ("((_) |-/ (_) :: (_))" [60, 0, 60] 60)
 translations
   "a |- e :: t" == "(a, e, t) : has_type"
@@ -74,7 +74,7 @@ qed
 subsection {* Type inference algorithm W *}
 
 consts
-  W :: "[expr, typ list, nat] => (subst * typ * nat) maybe"
+  W :: "expr => typ list => nat => (subst * typ * nat) maybe"
 
 primrec
   "W (Var i) a n =
@@ -91,59 +91,52 @@ primrec
 
 subsection {* Correctness theorem *}
 
-theorem W_correct: "W e a n = Ok (s, t, m) ==> $ s a |- e :: t"
-proof -
-  assume W_ok: "W e a n = Ok (s, t, m)"
-  have "ALL a s t m n. Ok (s, t, m) = W e a n --> $ s a |- e :: t"
-    (is "?P e")
-  proof (induct (stripped) e)
-    fix a s t m n
-    {
-      fix i
-      assume "Ok (s, t, m) = W (Var i) a n"
-      thus "$ s a |- Var i :: t" by (simp split: if_splits)
-    next
-      fix e assume hyp: "?P e"
-      assume "Ok (s, t, m) = W (Abs e) a n"
-      then obtain t' where "t = s n -> t'"
-	  and "Ok (s, t', m) = W e (TVar n # a) (Suc n)"
-	by (auto split: bind_splits)
-      with hyp show "$ s a |- Abs e :: t"
-	by (force intro: has_type.Abs)
-    next
-      fix e1 e2 assume hyp1: "?P e1" and hyp2: "?P e2"
-      assume "Ok (s, t, m) = W (App e1 e2) a n"
-      then obtain s1 t1 n1 s2 t2 n2 u where
+theorem W_correct: "!!a s t m n. Ok (s, t, m) = W e a n ==> $ s a |- e :: t"
+  (is "PROP ?P e")
+proof (induct e)
+  fix a s t m n
+  {
+    fix i
+    assume "Ok (s, t, m) = W (Var i) a n"
+    thus "$ s a |- Var i :: t" by (simp split: if_splits)
+  next
+    fix e assume hyp: "PROP ?P e"
+    assume "Ok (s, t, m) = W (Abs e) a n"
+    then obtain t' where "t = s n -> t'"
+        and "Ok (s, t', m) = W e (TVar n # a) (Suc n)"
+      by (auto split: bind_splits)
+    with hyp show "$ s a |- Abs e :: t"
+      by (force intro: has_type.Abs)
+  next
+    fix e1 e2 assume hyp1: "PROP ?P e1" and hyp2: "PROP ?P e2"
+    assume "Ok (s, t, m) = W (App e1 e2) a n"
+    then obtain s1 t1 n1 s2 t2 n2 u where
           s: "s = $ u o $ s2 o s1"
-          and t: "t = u n2"
-          and mgu_ok: "mgu ($ s2 t1) (t2 -> TVar n2) = Ok u"
-          and W1_ok: "W e1 a n = Ok (s1, t1, n1)"
-          and W2_ok: "W e2 ($ s1 a) n1 = Ok (s2, t2, n2)"
-	by (auto split: bind_splits simp: that)
-      show "$ s a |- App e1 e2 :: t"
-      proof (rule has_type.App)
-        from s have s': "$ u ($ s2 ($ s1 a)) = $s a"
-          by (simp add: subst_comp_tel o_def)
-        show "$s a |- e1 :: $ u t2 -> t"
-        proof -
-          from hyp1 W1_ok [symmetric] have "$ s1 a |- e1 :: t1"
-            by blast
-          hence "$ u ($ s2 ($ s1 a)) |- e1 :: $ u ($ s2 t1)"
-            by (intro has_type_subst_closed)
-          with s' t mgu_ok show ?thesis by simp
-        qed
-        show "$ s a |- e2 :: $ u t2"
-        proof -
-          from hyp2 W2_ok [symmetric]
-          have "$ s2 ($ s1 a) |- e2 :: t2" by blast
-          hence "$ u ($ s2 ($ s1 a)) |- e2 :: $ u t2"
-            by (rule has_type_subst_closed)
-          with s' show ?thesis by simp
-        qed
+        and t: "t = u n2"
+        and mgu_ok: "mgu ($ s2 t1) (t2 -> TVar n2) = Ok u"
+        and W1_ok: "Ok (s1, t1, n1) = W e1 a n"
+        and W2_ok: "Ok (s2, t2, n2) = W e2 ($ s1 a) n1"
+      by (auto split: bind_splits simp: that)
+    show "$ s a |- App e1 e2 :: t"
+    proof (rule has_type.App)
+      from s have s': "$ u ($ s2 ($ s1 a)) = $s a"
+        by (simp add: subst_comp_tel o_def)
+      show "$s a |- e1 :: $ u t2 -> t"
+      proof -
+        from W1_ok have "$ s1 a |- e1 :: t1" by (rule hyp1)
+        hence "$ u ($ s2 ($ s1 a)) |- e1 :: $ u ($ s2 t1)"
+          by (intro has_type_subst_closed)
+        with s' t mgu_ok show ?thesis by simp
       qed
-    }
-  qed
-  with W_ok [symmetric] show ?thesis by blast
+      show "$ s a |- e2 :: $ u t2"
+      proof -
+        from W2_ok have "$ s2 ($ s1 a) |- e2 :: t2" by (rule hyp2)
+        hence "$ u ($ s2 ($ s1 a)) |- e2 :: $ u t2"
+          by (rule has_type_subst_closed)
+        with s' show ?thesis by simp
+      qed
+    qed
+  }
 qed
 
 end

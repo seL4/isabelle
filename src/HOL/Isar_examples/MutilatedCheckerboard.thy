@@ -23,31 +23,38 @@ consts
 inductive "tiling A"
   intros
     empty: "{} : tiling A"
-    Un:    "a : A ==> t : tiling A ==> a <= - t
-              ==> a Un t : tiling A"
+    Un: "a : A ==> t : tiling A ==> a <= - t ==> a Un t : tiling A"
 
 
 text "The union of two disjoint tilings is a tiling."
 
 lemma tiling_Un:
-  "t : tiling A --> u : tiling A --> t Int u = {}
-    --> t Un u : tiling A"
-proof
-  assume "t : tiling A" (is "_ : ?T")
-  thus "u : ?T --> t Int u = {} --> t Un u : ?T" (is "?P t")
-  proof (induct (stripped) t)
-    assume "u : ?T" "{} Int u = {}"
-    thus "{} Un u : ?T" by simp
+  "t : tiling A ==> u : tiling A ==> t Int u = {}
+    ==> t Un u : tiling A"
+proof -
+  let ?T = "tiling A"
+  assume u: "u : ?T"
+  assume "t : ?T"
+  thus "t Int u = {} ==> t Un u : ?T" (is "PROP ?P t")
+  proof (induct t)
+    from u show "{} Un u : ?T" by simp
   next
     fix a t
-    assume "a : A" "t : ?T" "?P t" "a <= - t"
-    assume "u : ?T" "(a Un t) Int u = {}"
-    have hyp: "t Un u: ?T" by (blast!)
-    have "a <= - (t Un u)" by (blast!)
-    with _ hyp have "a Un (t Un u) : ?T" by (rule tiling.Un)
-    also have "a Un (t Un u) = (a Un t) Un u"
-      by (simp only: Un_assoc)
-    finally show "... : ?T" .
+    assume "a : A" and hyp: "PROP ?P t"
+      and at: "a <= - t" and atu: "(a Un t) Int u = {}"
+    show "(a Un t) Un u : ?T"
+    proof -
+      have "a Un (t Un u) : ?T"
+      proof (rule tiling.Un)
+        show "a : A" .
+        from atu have "t Int u = {}" by blast
+        thus "t Un u: ?T" by (rule hyp)
+        from at atu show "a <= - (t Un u)" by blast
+      qed
+      also have "a Un (t Un u) = (a Un t) Un u"
+        by (simp only: Un_assoc)
+      finally show ?thesis .
+    qed
   qed
 qed
 
@@ -112,13 +119,13 @@ lemma evnodd_insert: "evnodd (insert (i, j) C) b =
 
 subsection {* Dominoes *}
 
-consts 
+consts
   domino :: "(nat * nat) set set"
 
 inductive domino
   intros
-    horiz:  "{(i, j), (i, j + 1)} : domino"
-    vertl:  "{(i, j), (i + 1, j)} : domino"
+    horiz: "{(i, j), (i, j + 1)} : domino"
+    vertl: "{(i, j), (i + 1, j)} : domino"
 
 lemma dominoes_tile_row:
   "{i} <*> below (2 * n) : tiling domino"
@@ -154,7 +161,7 @@ proof (induct m)
 
   have "?B (Suc m) = ?t Un ?B m" by (simp add: Sigma_Suc)
   also have "... : ?T"
-  proof (rule tiling_Un [rule_format])
+  proof (rule tiling_Un)
     show "?t : ?T" by (rule dominoes_tile_row)
     from hyp show "?B m : ?T" .
     show "?t Int ?B m = {}" by blast
@@ -178,10 +185,14 @@ proof -
 qed
 
 lemma domino_finite: "d: domino ==> finite d"
-proof (induct set: domino)
-  fix i j :: nat
-  show "finite {(i, j), (i, j + 1)}" by (intro Finites.intros)
-  show "finite {(i, j), (i + 1, j)}" by (intro Finites.intros)
+proof -
+  assume "d: domino"
+  thus ?thesis
+  proof induct
+    fix i j :: nat
+    show "finite {(i, j), (i, j + 1)}" by (intro Finites.intros)
+    show "finite {(i, j), (i + 1, j)}" by (intro Finites.intros)
+  qed
 qed
 
 
@@ -211,27 +222,27 @@ proof -
 
     fix a t
     let ?e = evnodd
-    assume "a : domino" "t : ?T"
+    assume "a : domino" and "t : ?T"
       and hyp: "card (?e t 0) = card (?e t 1)"
-      and "a <= - t"
+      and at: "a <= - t"
 
     have card_suc:
       "!!b. b < 2 ==> card (?e (a Un t) b) = Suc (card (?e t b))"
     proof -
       fix b assume "b < 2"
       have "?e (a Un t) b = ?e a b Un ?e t b" by (rule evnodd_Un)
-      also obtain i j where "?e a b = {(i, j)}"
+      also obtain i j where e: "?e a b = {(i, j)}"
       proof -
-	have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
-	thus ?thesis by (blast intro: that)
+        have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
+        thus ?thesis by (blast intro: that)
       qed
       also have "... Un ?e t b = insert (i, j) (?e t b)" by simp
       also have "card ... = Suc (card (?e t b))"
       proof (rule card_insert_disjoint)
-	show "finite (?e t b)"
+        show "finite (?e t b)"
           by (rule evnodd_finite, rule tiling_domino_finite)
-	have "(i, j) : ?e a b" by (simp!)
-	thus "(i, j) ~: ?e t b" by (blast! dest: evnoddD)
+        from e have "(i, j) : ?e a b" by simp
+        with at show "(i, j) ~: ?e t b" by (blast dest: evnoddD)
       qed
       finally show "?thesis b" .
     qed
@@ -274,9 +285,9 @@ proof (unfold mutilated_board_def)
       have "card (?e ?t' 0 - {(2 * m + 1, 2 * n + 1)})
         < card (?e ?t' 0)"
       proof (rule card_Diff1_less)
-	from _ fin show "finite (?e ?t' 0)"
+        from _ fin show "finite (?e ?t' 0)"
           by (rule finite_subset) auto
-	show "(2 * m + 1, 2 * n + 1) : ?e ?t' 0" by simp
+        show "(2 * m + 1, 2 * n + 1) : ?e ?t' 0" by simp
       qed
       thus ?thesis by simp
     qed

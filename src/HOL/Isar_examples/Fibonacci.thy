@@ -126,28 +126,34 @@ qed
 
 lemma gcd_fib_mod:
   "0 < m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
-proof (induct n rule: nat_less_induct)
-  fix n
+proof -
   assume m: "0 < m"
-  and hyp: "ALL ma. ma < n
-           --> gcd (fib m, fib (ma mod m)) = gcd (fib m, fib ma)"
-  have "n mod m = (if n < m then n else (n - m) mod m)"
-    by (rule mod_if)
-  also have "gcd (fib m, fib ...) = gcd (fib m, fib n)"
-  proof cases
-    assume "n < m" thus ?thesis by simp
-  next
-    assume not_lt: "~ n < m" hence le: "m <= n" by simp
-    have "n - m < n" by (simp! add: diff_less)
-    with hyp have "gcd (fib m, fib ((n - m) mod m))
-       = gcd (fib m, fib (n - m))" by simp
-    also from le have "... = gcd (fib m, fib n)"
-      by (rule gcd_fib_diff)
-    finally have "gcd (fib m, fib ((n - m) mod m)) =
-      gcd (fib m, fib n)" .
-    with not_lt show ?thesis by simp
+  show ?thesis
+  proof (induct n rule: nat_less_induct)
+    fix n
+    assume hyp: "ALL ma. ma < n
+      --> gcd (fib m, fib (ma mod m)) = gcd (fib m, fib ma)"
+    show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
+    proof -
+      have "n mod m = (if n < m then n else (n - m) mod m)"
+	by (rule mod_if)
+      also have "gcd (fib m, fib ...) = gcd (fib m, fib n)"
+      proof cases
+	assume "n < m" thus ?thesis by simp
+      next
+	assume not_lt: "~ n < m" hence le: "m <= n" by simp
+	have "n - m < n" by (simp! add: diff_less)
+	with hyp have "gcd (fib m, fib ((n - m) mod m))
+	  = gcd (fib m, fib (n - m))" by simp
+	also from le have "... = gcd (fib m, fib n)"
+	  by (rule gcd_fib_diff)
+	finally have "gcd (fib m, fib ((n - m) mod m)) =
+	  gcd (fib m, fib n)" .
+	with not_lt show ?thesis by simp
+      qed
+      finally show ?thesis .
+    qed
   qed
-  finally show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)" .
 qed
 
 
