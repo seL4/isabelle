@@ -1,4 +1,4 @@
-(*  Title:      HOL/Real/ex/Sqrt_Irrational.thy
+(*  Title:      HOL/Real/ex/Sqrt.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
@@ -6,7 +6,7 @@
 
 header {*  Square roots of primes are irrational *}
 
-theory Sqrt_Irrational = Real + Primes:
+theory Sqrt = Primes + Real:
 
 syntax (xsymbols)                        (* FIXME move to main HOL (!?) *)
   "_square" :: "'a => 'a"  ("(_\<twosuperior>)" [1000] 999)
@@ -63,7 +63,8 @@ proof -
 qed
 
 lemma [elim?]: "r \<in> \<rat> ==>
-    (!!m n. n \<noteq> 0 ==> \<bar>r\<bar> = real m / real n ==> gcd (m, n) = 1 ==> C) ==> C"
+  (!!m n. n \<noteq> 0 ==> \<bar>r\<bar> = real m / real n ==> gcd (m, n) = 1 ==> C)
+    ==> C"
   by (insert rationals_rep) blast
 
 
