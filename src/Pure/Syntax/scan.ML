@@ -45,10 +45,9 @@ sig
     -> 'b * ''a list -> 'c * ('d * ''a list)
   val finite: ''a -> (''a list -> 'b * ''a list) -> ''a list -> 'b * ''a list
   val error: ('a -> 'b) -> 'a -> 'b
-  val source: string -> (string -> 'a -> 'b list * 'a)
-    -> ('c * 'a -> 'd) -> ('b list -> 'e * 'c) -> 'a -> 'e * 'd
-  val single: ('a -> 'b * 'c) -> 'a -> 'b list * 'c
-  val many: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
+  val source: string -> (string -> 'a -> 'b list * 'a) ->
+    ('c * 'a -> 'd) -> ('e * 'b list -> 'f * ('g * 'c)) -> 'e * 'a -> 'f * ('g * 'd)
+  val bulk: bool -> ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
   val dest_lexicon: lexicon -> string list list
   val make_lexicon: string list list -> lexicon
@@ -169,22 +168,23 @@ fun finite stopper scan xs =
   in (y, xs') end;
 
 
-(* infinite scans *)
+(* infinite scans -- draining state-based source *)
 
-fun source def_prmpt get unget scan src =
+fun source def_prmpt get unget scan (state, src) =
   let
     fun drain (xs, s) =
-      (scan xs, s)
+      (scan (state, xs), s)
         handle MORE prmpt =>
-          let val (more_xs, s') = get (if_none prmpt def_prmpt) s in
-            if null more_xs then raise ABORT "Input source exhausted"
-            else drain (xs @ more_xs, s')
+          let val (xs', s') = get (if_none prmpt def_prmpt) s in
+            if null xs' then raise ABORT "Input source exhausted"
+            else drain (xs @ xs', s')
           end;
-    val ((ys, xs'), src') = drain (get def_prmpt src);
-  in (ys, unget (xs', src')) end;
+    val ((ys, (state', rest)), src') = drain (get def_prmpt src);
+  in (ys, (state', unget (rest, src'))) end;
 
 fun single scan = scan >> (fn x => [x]);
 fun many scan = scan -- repeat (try scan) >> (op ::);
+fun bulk do_many = if do_many then many else single;
 
 
 
