@@ -64,7 +64,7 @@ bind_thm("MemoryidleE", action_impE Memoryidle);
 
 qed_goal "MemReturn_change" Memory.thy
    "MemReturn ch rs p .-> <MemReturn ch rs p>_<rtrner ch @ p, rs@p>"
-   (fn _ => [ auto_tac (action_css addsimps2 [MemReturn_def,angle_def]) ]);
+   (K [ force_tac (action_css addsimps2 [MemReturn_def,angle_def]) 1]);
 
 qed_goal "MemReturn_enabled" Memory.thy
    "!!p. base_var <rtrner ch @ p, rs@p> ==> \

@@ -38,16 +38,15 @@ qed_goal "PsiInv_gamma2" Inc.thy "gamma2 .& PsiInv .-> PsiInv`"
 qed_goal "PsiInv_stutter" Inc.thy "unchanged <x,y,sem,pc1,pc2> .& PsiInv .-> PsiInv`"
   (fn _ => [ auto_tac (Inc_css addsimps2 PsiInv_defs) ]);
 
-qed_goal "PsiInv" Inc.thy "Psi .-> []PsiInv"
-  (fn _ => [inv_tac (Inc_css addsimps2 [Psi_def]) 1,
+qed_goal "PsiInv" Inc.thy "Psi .-> []PsiInv" (K [
+	    inv_tac (Inc_css addsimps2 [Psi_def]) 1,
 	    SELECT_GOAL (auto_tac (Inc_css addSIs2 [action_mp PsiInv_Init]
 				           addsimps2 [Init_def])) 1,
-	    auto_tac (Inc_css addSEs2 (map action_conjimpE
-				           [PsiInv_alpha1,PsiInv_alpha2,PsiInv_beta1,
-					    PsiInv_beta2,PsiInv_gamma1,PsiInv_gamma2])
-		              addIs2 [action_mp PsiInv_stutter]
-                              addsimps2 [square_def,N1_def, N2_def])
-	   ]);
+	    force_tac (Inc_css addSEs2 (map action_conjimpE
+				   [PsiInv_alpha1,PsiInv_alpha2,PsiInv_beta1,
+				    PsiInv_beta2,PsiInv_gamma1,PsiInv_gamma2])
+		               addIs2 [action_mp PsiInv_stutter]
+                               addsimps2 [square_def,N1_def, N2_def]) 1]);
 
 
 

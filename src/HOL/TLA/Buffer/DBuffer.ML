@@ -87,8 +87,8 @@ Goal
   "[][DBNext]_<inp,mid,out,q1,q2> .& WF(DBPass)_<inp,mid,out,q1,q2> \
 \  .-> ($Enabled (<Deq inp qc out>_<inp,qc,out>) ~> $q2 .~= .[])";
 by (auto_tac (temp_css addSIs2 [leadsto_classical] addSEs2 [temp_conjimpE DBFair_1a]));
-by (auto_tac (temp_css addsimps2 [leadsto,Init_def] addDs2 [STL2bD]
-                       addSDs2 [action_mp Deq_enabledE] addSEs2 [STL4E]));
+by (force_tac (temp_css addsimps2 [leadsto,Init_def] addDs2 [STL2bD]
+                        addSDs2 [action_mp Deq_enabledE] addSEs2 [STL4E]) 1);
 qed "DBFair_1";
 
 (* Condition (2) *)
