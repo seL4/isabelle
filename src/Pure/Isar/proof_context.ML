@@ -49,6 +49,7 @@ sig
   val generalizeT: context -> context -> typ -> typ
   val generalize: context -> context -> term -> term
   val find_free: term -> string -> term option
+  val norm_hhf: thm -> thm
   val export_wrt: bool -> context -> context option -> (thm -> thm Seq.seq) * (int -> tactic) list
   val auto_bind_goal: term -> context -> context
   val auto_bind_facts: string -> term list -> context -> context
@@ -652,19 +653,23 @@ fun generalizeT inner outer =
 val generalize = Term.map_term_types oo generalizeT;
 
 
-(* export theorems *)
+
+(** export theorems **)
 
 fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
   | get_free _ (opt, _) = opt;
 
 fun find_free t x = foldl_aterms (get_free x) (None, t);
 
+val norm_hhf =
+  Drule.forall_elim_vars_safe o Tactic.rewrite_rule [Drule.norm_hhf_eq];
+
 
 local
 
 fun export tfrees fixes goal_asms thm =
   thm
-  |> Drule.forall_elim_vars 0
+  |> norm_hhf
   |> Seq.EVERY (rev (map op |> goal_asms))
   |> Seq.map (fn rule =>
     let
@@ -673,7 +678,7 @@ fun export tfrees fixes goal_asms thm =
     in
       rule
       |> Drule.forall_intr_list frees
-      |> Drule.forall_elim_vars 0
+      |> norm_hhf
       |> Drule.tvars_intr_list tfrees
     end);
 
@@ -892,7 +897,7 @@ fun gen_assm prepp (ctxt, (name, attrs, raw_prop_pats)) =
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
 
     val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
-    val asms = map (Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
+    val asms = map (norm_hhf o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', [(_, thms)]) =
