@@ -722,6 +722,7 @@ by (Clarify_tac 1);
 by (cut_inst_tac [("F", "xa")] Acts_type 1);
 by (asm_full_simp_tac (simpset() addsimps [Inter_iff, mono_map_def]) 1);
 by Auto_tac;
+by (rename_tac "xa xc xd act xe xf" 1);
 by (dres_inst_tac [("psi", "ALL x:A. ALL xa:A. ?u(x,xa)")] asm_rl 1); 
 by (dres_inst_tac [("x", "f`xf")] bspec 1);
 by Auto_tac;

@@ -57,9 +57,7 @@ done
 
 (*Applying a function outside its domain yields 0*)
 lemma apply_0: "a ~: domain(f) ==> f`a = 0"
-apply (unfold apply_def)
-apply (blast intro: elim:); 
-done
+by (unfold apply_def, blast)
 
 lemma Pi_memberD: "[| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>"
 apply (frule fun_is_rel)
@@ -67,12 +65,9 @@ apply (blast dest: apply_equality)
 done
 
 lemma function_apply_Pair: "[| function(f);  a : domain(f)|] ==> <a,f`a>: f"
-apply (simp add: function_def)
-apply (clarify ); 
-apply (subgoal_tac "f`a = y") 
-apply (blast intro: elim:); 
-apply (simp add: apply_def); 
-apply (blast intro: elim:); 
+apply (simp add: function_def, clarify) 
+apply (subgoal_tac "f`a = y", blast) 
+apply (simp add: apply_def, blast) 
 done
 
 lemma apply_Pair: "[| f: Pi(A,B);  a:A |] ==> <a,f`a>: f"
@@ -141,7 +136,7 @@ lemma lam_type [TC]:
 by (simp add: lam_def Pi_def function_def, blast)
 
 lemma lam_funtype: "(lam x:A. b(x)) : A -> {b(x). x:A}"
-by (blast intro: lam_type);
+by (blast intro: lam_type)
 
 lemma function_lam: "function (lam x:A. b(x))"
 by (simp add: function_def lam_def) 
@@ -150,14 +145,10 @@ lemma relation_lam: "relation (lam x:A. b(x))"
 by (simp add: relation_def lam_def) 
 
 lemma beta_if [simp]: "(lam x:A. b(x)) ` a = (if a : A then b(a) else 0)"
-apply (simp add: apply_def lam_def) 
-apply (blast intro: elim:); 
-done
+by (simp add: apply_def lam_def, blast)
 
 lemma beta: "a : A ==> (lam x:A. b(x)) ` a = b(a)"
-apply (simp add: apply_def lam_def) 
-apply (blast intro: elim:); 
-done
+by (simp add: apply_def lam_def, blast)
 
 lemma lam_empty [simp]: "(lam x:0. b(x)) = 0"
 by (simp add: lam_def)
@@ -173,7 +164,7 @@ by (simp only: lam_def cong add: RepFun_cong)
 lemma lam_theI:
     "(!!x. x:A ==> EX! y. Q(x,y)) ==> EX f. ALL x:A. Q(x, f`x)"
 apply (rule_tac x = "lam x: A. THE y. Q (x,y)" in exI)
-apply (simp add: ); 
+apply simp 
 apply (blast intro: theI)
 done
 
@@ -273,9 +264,7 @@ lemma restrict_type2: "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A) : Pi(A,B)"
 by (simp add: Pi_iff function_def restrict_def, blast)
 
 lemma restrict: "a : A ==> restrict(f,A) ` a = f`a"
-apply (simp add: apply_def restrict_def)
-apply (blast intro: elim:); 
-done
+by (simp add: apply_def restrict_def, blast)
 
 lemma restrict_empty [simp]: "restrict(f,0) = 0"
 apply (unfold restrict_def)
@@ -395,14 +384,14 @@ lemma fun_extend3:
      "[| f: A->B;  c~:A;  b: B |] ==> cons(<c,b>,f) : cons(c,A) -> B"
 by (blast intro: fun_extend [THEN fun_weaken_type])
 
-lemma fun_extend_apply1: "[| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a"
-apply (rule apply_Pair [THEN consI2, THEN apply_equality])
-apply (rule_tac [3] fun_extend, assumption+)
-done
+lemma extend_apply:
+     "c ~: domain(f) ==> cons(<c,b>,f)`a = (if a=c then b else f`a)"
+by (auto simp add: apply_def) 
 
-lemma fun_extend_apply2: "[| f: A->B;  c~:A |] ==> cons(<c,b>,f)`c = b"
-apply (rule consI1 [THEN apply_equality])
-apply (rule fun_extend, assumption+)
+lemma fun_extend_apply [simp]:
+     "[| f: A->B;  c~:A |] ==> cons(<c,b>,f)`a = (if a=c then b else f`a)" 
+apply (rule extend_apply) 
+apply (simp add: Pi_def, blast) 
 done
 
 lemmas singleton_apply = apply_equality [OF singletonI singleton_fun, simp]
@@ -423,8 +412,7 @@ apply (simp (no_asm))
 apply (rule fun_extension) 
   apply assumption
  apply (blast intro: fun_extend) 
-apply (erule consE)
-apply (simp_all add: restrict fun_extend_apply1 fun_extend_apply2)
+apply (erule consE, simp_all)
 done
 
 ML
@@ -497,8 +485,7 @@ val apply_rangeI = thm "apply_rangeI";
 val range_of_fun = thm "range_of_fun";
 val fun_extend = thm "fun_extend";
 val fun_extend3 = thm "fun_extend3";
-val fun_extend_apply1 = thm "fun_extend_apply1";
-val fun_extend_apply2 = thm "fun_extend_apply2";
+val fun_extend_apply = thm "fun_extend_apply";
 val singleton_apply = thm "singleton_apply";
 val cons_fun_eq = thm "cons_fun_eq";
 *}

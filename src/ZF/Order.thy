@@ -436,8 +436,7 @@ apply (frule ord_iso_converse)
 apply (blast intro!: bij_converse_bij
              intro: bij_is_fun apply_funtype)+
 apply (erule notE)
-apply (simp add: left_inverse_bij bij_converse_bij bij_is_fun
-                 comp_fun_apply [of _ A B _ A])
+apply (simp add: left_inverse_bij bij_is_fun comp_fun_apply [of _ A B])
 done
 
 

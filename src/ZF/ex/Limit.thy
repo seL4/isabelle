@@ -772,21 +772,20 @@ lemma id_cont [TC,intro!]:
     "cpo(D) ==> id(set(D)) \<in> cont(D,D)"
 by (simp add: id_type contI cpo_lub [THEN islub_in] chain_fun [THEN eta])
 
-
-lemmas comp_cont_apply =  cont_fun [THEN comp_fun_apply, OF _ cont_fun];
+lemmas comp_cont_apply =  cont_fun [THEN comp_fun_apply]
 
 lemma comp_pres_cont [TC]:
     "[| f \<in> cont(D',E); g \<in> cont(D,D'); cpo(D)|] ==> f O g \<in> cont(D,E)"
 apply (rule contI)
 apply (rule_tac [2] comp_cont_apply [THEN ssubst])
-apply (rule_tac [5] comp_cont_apply [THEN ssubst])
-apply (rule_tac [8] cont_mono)
-apply (rule_tac [9] cont_mono) (* 15 subgoals *)
+apply (rule_tac [4] comp_cont_apply [THEN ssubst])
+apply (rule_tac [6] cont_mono)
+apply (rule_tac [7] cont_mono) (* 13 subgoals *)
 apply typecheck (* proves all but the lub case *)
 apply (subst comp_cont_apply)
-apply (rule_tac [4] cont_lub [THEN ssubst])
-apply (rule_tac [6] cont_lub [THEN ssubst])
-prefer 8 apply (simp add: comp_cont_apply chain_in)
+apply (rule_tac [3] cont_lub [THEN ssubst])
+apply (rule_tac [5] cont_lub [THEN ssubst])
+prefer 7 apply (simp add: comp_cont_apply chain_in)
 apply (auto intro: cpo_lub [THEN islub_in] cont_chain)
 done
 
@@ -797,8 +796,8 @@ lemma comp_mono:
      ==> rel(cf(D,E),f O g,f' O g')"
 apply (rule rel_cfI) 
 apply (subst comp_cont_apply)
-apply (rule_tac [4] comp_cont_apply [THEN ssubst])
-apply (rule_tac [7] cpo_trans)
+apply (rule_tac [3] comp_cont_apply [THEN ssubst])
+apply (rule_tac [5] cpo_trans)
 apply (assumption | rule rel_cf cont_mono cont_map comp_pres_cont)+
 done
 
@@ -810,10 +809,10 @@ defer 1
 apply simp
 apply (rule rel_cfI)
 apply (rule comp_cont_apply [THEN ssubst])
-apply (rule_tac [4] comp_cont_apply [THEN ssubst])
-apply (rule_tac [7] cpo_trans)
-apply (rule_tac [8] rel_cf)
-apply (rule_tac [10] cont_mono) 
+apply (rule_tac [3] comp_cont_apply [THEN ssubst])
+apply (rule_tac [5] cpo_trans)
+apply (rule_tac [6] rel_cf)
+apply (rule_tac [8] cont_mono) 
 apply (blast intro: lam_type comp_pres_cont cont_cf chain_in [THEN cf_cont] 
                     cont_map chain_rel rel_cf)+
 done
@@ -826,8 +825,7 @@ apply (rule_tac [3] lub_cf [THEN ssubst])
 apply (assumption | 
        rule comp_fun cf_cont [THEN cont_fun]  cpo_lub [THEN islub_in]  
             cpo_cf chain_cf_comp)+
-apply (simp add: chain_in [THEN cf_cont, THEN comp_cont_apply,
-                           OF _ _ chain_in [THEN cf_cont]])
+apply (simp add: chain_in [THEN cf_cont, THEN comp_cont_apply])
 apply (subst comp_cont_apply)
 apply (assumption | rule cpo_lub [THEN islub_in, THEN cf_cont]  cpo_cf)+
 apply (simp add: lub_cf chain_cf chain_in [THEN cf_cont, THEN cont_lub] 
@@ -1790,15 +1788,15 @@ apply (rule_tac y = "x`xa" in emb_chain_emb [THEN emb_cont, THEN cont_mono])
 apply (assumption | rule e_less_cont [THEN cont_fun]  apply_type Dinf_prod)+
 apply (rule_tac x1 = x and n1 = xa in Dinf_eq [THEN subst])
 apply (rule_tac [3] comp_fun_apply [THEN subst])
-apply (rename_tac [6] y)
-apply (rule_tac [6] P = 
+apply (rename_tac [5] y)
+apply (rule_tac [5] P = 
          "%z. rel(DD`succ(y), 
                   (ee`y O Rp(?DD(y)`y,?DD(y)`succ(y),?ee(y)`y)) ` (x`succ(y)),
                   z)"
        in id_conv [THEN subst])
-apply (rule_tac [7] rel_cf)
+apply (rule_tac [6] rel_cf)
 (* Dinf and cont_fun doesn't go well together, both Pi(_,%x._). *)
-(* solves 11 of 12 subgoals *)
+(* solves 10 of 11 subgoals *)
 apply (assumption |
        rule Dinf_prod [THEN apply_type] cont_fun Rp_cont e_less_cont
             emb_cont emb_chain_emb emb_chain_cpo apply_type embRp_rel
@@ -1825,7 +1823,7 @@ apply (erule disjE)
 apply (drule mp, assumption)
 apply (subst e_gr_le)
 apply (rule_tac [4] comp_fun_apply [THEN ssubst])
-apply (rule_tac [7] Dinf_eq [THEN ssubst])
+apply (rule_tac [6] Dinf_eq [THEN ssubst])
 apply (assumption | 
        rule emb_chain_emb emb_chain_cpo Rp_cont e_gr_cont cont_fun emb_cont 
             apply_type Dinf_prod nat_succI)+
@@ -1871,8 +1869,8 @@ apply (assumption | rule lam_Dinf_cont)+
 apply (rule fun_extension)
 apply (rule_tac [3] id_conv [THEN ssubst])
 apply (rule_tac [4] comp_fun_apply [THEN ssubst])
-apply (rule_tac [7] beta [THEN ssubst])
-apply (rule_tac [8] rho_emb_id [THEN ssubst])
+apply (rule_tac [6] beta [THEN ssubst])
+apply (rule_tac [7] rho_emb_id [THEN ssubst])
 apply (assumption | 
        rule comp_fun id_type lam_type rho_emb_fun Dinf_prod [THEN apply_type]
             apply_type refl)+
@@ -1880,10 +1878,10 @@ apply (assumption |
 apply (rule rel_cfI) (* ------------------>>>Yields type cond, not in HOL *)
 apply (subst id_conv)
 apply (rule_tac [2] comp_fun_apply [THEN ssubst])
-apply (rule_tac [5] beta [THEN ssubst])
-apply (rule_tac [6] rho_emb_apply1 [THEN ssubst])
-apply (rule_tac [7] rel_DinfI) 
-apply (rule_tac [7] beta [THEN ssubst])
+apply (rule_tac [4] beta [THEN ssubst])
+apply (rule_tac [5] rho_emb_apply1 [THEN ssubst])
+apply (rule_tac [6] rel_DinfI) 
+apply (rule_tac [6] beta [THEN ssubst])
 (* Dinf_prod bad with lam_type *)
 apply (assumption |
        rule eps1 lam_type rho_emb_fun eps_fun
@@ -1928,11 +1926,11 @@ apply (rule commuteI)
 apply (assumption | rule emb_rho_emb)+
 apply (rule fun_extension) (* Manual instantiation in HOL. *)
 apply (rule_tac [3] comp_fun_apply [THEN ssubst])
-apply (rule_tac [6] fun_extension) (*Next, clean up and instantiate unknowns *)
+apply (rule_tac [5] fun_extension) (*Next, clean up and instantiate unknowns *)
 apply (assumption | rule comp_fun rho_emb_fun eps_fun Dinf_prod apply_type)+
 apply (simp add: rho_emb_apply2 eps_fun [THEN apply_type])
 apply (rule comp_fun_apply [THEN subst])
-apply (rule_tac [4] eps_split_left [THEN subst])
+apply (rule_tac [3] eps_split_left [THEN subst])
 apply (auto intro: eps_fun)
 done
 

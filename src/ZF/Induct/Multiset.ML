@@ -696,9 +696,7 @@ by (rotate_simp_tac "M:?u" 1);
 by (rtac fun_extension 1 THEN rtac lam_type 1);
 by (ALLGOALS(Asm_full_simp_tac));
 by (auto_tac (claset(), simpset()  
-        addsimps [multiset_fun_iff,
-                 fun_extend_apply1,
-                 fun_extend_apply2]));
+        addsimps [multiset_fun_iff, fun_extend_apply]));
 by (dres_inst_tac [("c", "a"), ("b", "1")] fun_extend3 1);
 by (stac Un_commute 3);
 by (auto_tac (claset(), simpset() addsimps [cons_eq]));
