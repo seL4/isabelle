@@ -1,11 +1,27 @@
+(*<*)
 theory Rules = Main:
+(*>*)
 
-section{*The  Rules of the Game*}
+section{*The Rules of the Game*}
 
 
 subsection{*Introduction Rules*}
 
+text{* Introduction rules for propositional logic:
+\begin{center}
+\begin{tabular}{ll}
+@{thm[source]impI} & @{thm impI[no_vars]} \\
+@{thm[source]conjI} & @{thm conjI[no_vars]} \\
+@{thm[source]disjI1} & @{thm disjI1[no_vars]} \\
+@{thm[source]disjI2} & @{thm disjI2[no_vars]} \\
+@{thm[source]iffI} & @{thm iffI[no_vars]}
+\end{tabular}
+\end{center}
+*}
+
+(*<*)
 thm impI conjI disjI1 disjI2 iffI
+(*>*)
 
 lemma "A \<Longrightarrow> B \<longrightarrow> A \<and> (B \<and> A)"
 apply(rule impI)
@@ -19,11 +35,24 @@ done
 
 subsection{*Elimination Rules*}
 
+text{* Elimination rules for propositional logic:
+\begin{center}
+\begin{tabular}{ll}
+@{thm[source]impE} & @{thm impE[no_vars]} \\
+@{thm[source]mp} & @{thm mp[no_vars]} \\
+@{thm[source]conjE} & @{thm conjE[no_vars]} \\
+@{thm[source]disjE} & @{thm disjE[no_vars]}
+\end{tabular}
+\end{center}
+*}
+
+(*<*)
 thm impE mp
 thm conjE
 thm disjE
+(*>*)
 
-lemma disj_swap: "P | Q \<Longrightarrow> Q | P"
+lemma disj_swap: "P \<or> Q \<Longrightarrow> Q \<or> P"
 apply (erule disjE)
  apply (rule disjI2)
  apply assumption
@@ -34,7 +63,21 @@ done
 
 subsection{*Destruction Rules*}
 
+text{* Destruction rules for propositional logic:
+\begin{center}
+\begin{tabular}{ll}
+@{thm[source]conjunct1} & @{thm conjunct1[no_vars]} \\
+@{thm[source]conjunct2} & @{thm conjunct2[no_vars]} \\
+@{thm[source]iffD1} & @{thm iffD1[no_vars]} \\
+@{thm[source]iffD2} & @{thm iffD2[no_vars]}
+\end{tabular}
+\end{center}
+*}
+
+(*<*)
 thm conjunct1 conjunct1 iffD1 iffD2
+(*>*)
+
 lemma conj_swap: "P \<and> Q \<Longrightarrow> Q \<and> P"
 apply (rule conjI)
  apply (drule conjunct2)
@@ -46,13 +89,26 @@ done
 
 subsection{*Quantifiers*}
 
+text{* Quantifier rules:
+\begin{center}
+\begin{tabular}{ll}
+@{thm[source]allI} & @{thm allI[no_vars]} \\
+@{thm[source]exI} & @{thm exI[no_vars]} \\
+@{thm[source]allE} & @{thm allE[no_vars]} \\
+@{thm[source]exE} & @{thm exE[no_vars]} \\
+@{thm[source]spec} & @{thm spec[no_vars]}
+\end{tabular}
+\end{center}
+*}
 
+(*<*)
 thm allI exI
 thm allE exE
 thm spec
+(*>*)
 
 lemma "\<exists>x.\<forall>y. P x y \<Longrightarrow> \<forall>y.\<exists>x. P x y"
-oops
+(*<*)oops(*>*)
 
 subsection{*Instantiation*}
 
@@ -63,13 +119,6 @@ by simp
 lemma "\<forall>xs. f(xs @ xs) = xs \<Longrightarrow> f [] = []"
 apply(erule_tac x = "[]" in allE)
 by simp
-
-
-subsection{*Hilbert's epsilon Operator*}
-
-theorem axiom_of_choice:
-     "\<forall>x. \<exists>y. P x y \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
-by (fast elim!: someI)
 
 
 subsection{*Automation*}
@@ -93,12 +142,32 @@ by blast
 
 subsection{*Forward Proof*}
 
-thm rev_rev_ident
-thm rev_rev_ident[of "[]"]
-thm sym
-thm sym[OF rev_rev_ident]
-thm rev_rev_ident[THEN sym]
+text{*
+Instantiation of unknowns (in left-to-right order):
+\begin{center}
+\begin{tabular}{@ {}ll@ {}}
+@{thm[source]append_self_conv} & @{thm append_self_conv} \\
+@{thm[source]append_self_conv[of _ "[]"]} & @{thm append_self_conv[of _ "[]"]}
+\end{tabular}
+\end{center}
+Applying one theorem to another
+by unifying the premise of one theorem with the conclusion of another:
+\begin{center}
+\begin{tabular}{@ {}ll@ {}}
+@{thm[source]sym} & @{thm sym} \\
+@{thm[source]sym[OF append_self_conv]} & @{thm sym[OF append_self_conv]}\\
+@{thm[source]append_self_conv[THEN sym]} & @{thm append_self_conv[THEN sym]}
+\end{tabular}
+\end{center}
+*}
 
+(*<*)
+thm append_self_conv
+thm append_self_conv[of _ "[]"]
+thm sym
+thm sym[OF append_self_conv]
+thm append_self_conv[THEN sym]
+(*>*)
 
 subsection{*Further Useful Methods*}
 
@@ -108,6 +177,7 @@ apply(subgoal_tac "n=1")
 apply arith
 done
 
+text{* And a cute example: *}
 
 lemma "\<lbrakk> 2 \<in> Q; sqrt 2 \<notin> Q;
          \<forall>x y z. sqrt x * sqrt x = x \<and>
@@ -122,5 +192,7 @@ apply(rule_tac x = "" in exI)
 apply simp
 done
 *)
+(*<*)
 oops
 end
+(*>*)

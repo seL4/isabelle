@@ -10,11 +10,44 @@
 
 \begin{document}
 
-\title{Overview}\maketitle
+\title{A Compact Overview of Isabelle/HOL}
+\author{Tobias Nipkow}
+\date{}
+\maketitle
 
-\input{session}
+\noindent
+This document is a very compact introduction to the proof assistant
+Isabelle/HOL and is based directly on the published tutorial~\cite{LNCS2283}
+where full explanations and a wealth of additional material can be found.
 
-%\bibliographystyle{plain}
-%\bibliography{root}
+While reading this document it is recommended to single-step through the
+corresponding theories using Isabelle/HOL to follow the proofs.
+
+\section{Functional Programming/Modelling}
+
+\subsection{An Introductory Theory}
+\input{FP0.tex}
+
+\subsection{More Constructs}
+\input{FP1.tex}
+
+\input{RECDEF.tex}
+
+\input{Rules.tex}
+
+\input{Sets.tex}
+
+\input{Ind.tex}
+
+\input{Isar.tex}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
+
+
+\bibliographystyle{plain}
+\bibliography{root}
 
 \end{document}

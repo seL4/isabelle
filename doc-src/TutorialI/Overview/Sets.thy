@@ -1,32 +1,42 @@
+(*<*)
 theory Sets = Main:
-
+(*>*)
 section{*Sets, Functions and Relations*}
 
 subsection{*Set Notation*}
 
-term "A \<union> B"
-term "A \<inter> B"
-term "A - B"
-term "a \<in> A"
-term "b \<notin> A"
-term "{a,b}"
-term "{x. P x}"
-term "{x+y+eps |x y. x < y}"
-term "\<Union> M"
-term "\<Union>a \<in> A. F a"
+text{*
+\begin{center}
+\begin{tabular}{ccc}
+@{term "A \<union> B"} & @{term "A \<inter> B"} & @{term "A - B"} \\
+@{term "a \<in> A"} & @{term "b \<notin> A"} \\
+@{term "{a,b}"} & @{text "{x. P x}"} \\
+@{term "\<Union> M"} & @{text "\<Union>a \<in> A. F a"}
+\end{tabular}
+\end{center}
+*}
 
-subsection{*Functions*}
+subsection{*Some Functions*}
 
+text{*
+\begin{tabular}{l}
+@{thm id_def}\\
+@{thm o_def[no_vars]}\\
+@{thm image_def[no_vars]}\\
+@{thm vimage_def[no_vars]}
+\end{tabular}
+*}
+(*<*)
 thm id_def
-thm o_assoc
-thm image_Int
-thm vimage_Compl
+thm o_def[no_vars]
+thm image_def[no_vars]
+thm vimage_def[no_vars]
+(*>*)
 
-
-subsection{*Relations*}
+subsection{*Some Relations*}
 
 thm Id_def
-thm converse_comp
+thm converse_def
 thm Image_def
 thm relpow.simps
 thm rtrancl_idemp
@@ -117,7 +127,6 @@ Show that the semantics for @{term EF} satisfies the following recursion equatio
 @{prop[display]"(s \<Turnstile> EF f) = (s \<Turnstile> f | s \<Turnstile> EN(EF f))"}
 \end{exercise}
 *}
-
+(*<*)
 end
-
-
+(*>*)

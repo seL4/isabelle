@@ -1,4 +1,3 @@
-
 ## targets
 
 default: Overview
@@ -13,7 +12,7 @@ all: images test
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-USEDIR = $(ISATOOL) usedir -i true -d dvi -D document
+USEDIR = $(ISATOOL) usedir -i true -d ps -D document -v true
 
 
 ## Overview

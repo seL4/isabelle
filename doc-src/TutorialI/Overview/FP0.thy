@@ -1,7 +1,5 @@
 theory FP0 = PreList:
 
-section{*Functional Programming/Modelling*}
-
 datatype 'a list = Nil                          ("[]")
                  | Cons 'a "'a list"            (infixr "#" 65)
 
@@ -16,10 +14,8 @@ primrec
 "rev []        = []"
 "rev (x # xs)  = (rev xs) @ (x # [])"
 
-subsection{*An Introductory Proof*}
-
 theorem rev_rev [simp]: "rev(rev xs) = xs"
-oops
+(*<*)oops(*>*)
 
 
 text{*

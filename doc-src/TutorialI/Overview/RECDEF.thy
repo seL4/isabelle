@@ -1,4 +1,6 @@
+(*<*)
 theory RECDEF = Main:
+(*>*)
 
 subsection{*Wellfounded Recursion*}
 
@@ -7,7 +9,7 @@ subsubsection{*Examples*}
 consts fib :: "nat \<Rightarrow> nat";
 recdef fib "measure(\<lambda>n. n)"
   "fib 0 = 0"
-  "fib 1 = 1"
+  "fib (Suc 0) = 1"
   "fib (Suc(Suc x)) = fib x + fib (Suc x)";
 
 consts sep :: "'a \<times> 'a list \<Rightarrow> 'a list";
@@ -21,14 +23,22 @@ recdef last "measure (\<lambda>xs. length xs)"
   "last [x]      = x"
   "last (x#y#zs) = last (y#zs)";
 
-
 consts sep1 :: "'a \<times> 'a list \<Rightarrow> 'a list";
 recdef sep1 "measure (\<lambda>(a,xs). length xs)"
   "sep1(a, x#y#zs) = x # a # sep1(a,y#zs)"
   "sep1(a, xs)     = xs";
 
+text{*
+This is what the rules for @{term sep1} are turned into:
+@{thm[display,indent=5] sep1.simps[no_vars]}
+*}
+(*<*)
 thm sep1.simps
+(*>*)
 
+text{*
+Pattern matching is also useful for nonrecursive functions:
+*}
 
 consts swap12 :: "'a list \<Rightarrow> 'a list";
 recdef swap12 "{}"
@@ -37,6 +47,10 @@ recdef swap12 "{}"
 
 
 subsubsection{*Beyond Measure*}
+
+text{*
+The lexicographic product of two relations:
+*}
 
 consts ack :: "nat\<times>nat \<Rightarrow> nat";
 recdef ack "measure(\<lambda>m. m) <*lex*> measure(\<lambda>n. n)"
@@ -77,10 +91,13 @@ apply(simp add: rev_map sym[OF map_compose] cong: map_cong)
 done
 
 text{*
+Figure out how that proof worked!
+
 \begin{exercise}
 Define a function for merging two ordered lists (of natural numbers) and
 show that if the two input lists are ordered, so is the output.
 \end{exercise}
 *}
-
+(*<*)
 end
+(*>*)

@@ -1,6 +1,6 @@
+(*<*)
 theory FP1 = Main:
-
-subsection{*More Constructs*}
+(*>*)
 
 lemma "if xs = ys
        then rev xs = rev ys
@@ -28,14 +28,22 @@ apply(induct_tac n)
 apply(auto)
 done
 
-lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
+text{*
+Some examples of linear arithmetic:
+*}
+
+lemma "\<lbrakk> \<not> m < n; m < n+(1::int) \<rbrakk> \<Longrightarrow> m = n"
 by(auto)
 
 lemma "min i (max j k) = max (min k i) (min i (j::nat))"
 by(arith)
 
-lemma "n*n = n \<Longrightarrow> n=0 \<or> n=1"
-oops
+text{*
+Not proved automatically because it involves multiplication:
+*}
+
+lemma "n*n = n \<Longrightarrow> n=0 \<or> n=(1::int)"
+(*<*)oops(*>*)
 
 
 subsubsection{*Pairs*}
@@ -67,83 +75,90 @@ subsubsection{*Simplification Rules*}
 lemma fst_conv[simp]: "fst(x,y) = x"
 by auto
 
+text{*
+Setting and resetting the @{text simp} attribute:
+*}
+
 declare fst_conv[simp]
 declare fst_conv[simp del]
 
 
 subsubsection{*The Simplification Method*}
 
-lemma "x*(y+1) = y*(x+1)"
+lemma "x*(y+1) = y*(x+1::nat)"
 apply simp
-oops
+(*<*)oops(*>*)
 
 
 subsubsection{*Adding and Deleting Simplification Rules*}
 
 lemma "\<forall>x::nat. x*(y+z) = r"
 apply (simp add: add_mult_distrib2)
-oops
+(*<*)oops(*>*)text_raw {* \isanewline\isanewline *}
 
 lemma "rev(rev(xs @ [])) = xs"
 apply (simp del: rev_rev_ident)
-oops
-
+(*<*)oops(*>*)
 
 subsubsection{*Assumptions*}
 
 lemma "\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \<rbrakk> \<Longrightarrow> ys = zs"
-apply simp
-done
+by simp
 
 lemma "\<forall>x. f x = g (f (g x)) \<Longrightarrow> f [] = f [] @ []"
-apply(simp (no_asm))
-done
-
+by(simp (no_asm))
 
 subsubsection{*Rewriting with Definitions*}
 
 lemma "xor A (\<not>A)"
 apply(simp only: xor_def)
-by simp
+apply simp
+done
 
 
 subsubsection{*Conditional Equations*}
 
 lemma hd_Cons_tl[simp]: "xs \<noteq> []  \<Longrightarrow>  hd xs # tl xs = xs"
-apply(case_tac xs, simp, simp)
-done
+by(case_tac xs, simp_all)
 
 lemma "xs \<noteq> [] \<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs"
-by(simp)
+by simp
 
 
 subsubsection{*Automatic Case Splits*}
 
 lemma "\<forall>xs. if xs = [] then A else B"
 apply simp
-oops
+(*<*)oops(*>*)text_raw {* \isanewline\isanewline *}
 
 lemma "case xs @ [] of [] \<Rightarrow> P | y#ys \<Rightarrow> Q ys y"
 apply simp
 apply(simp split: list.split)
-oops
+(*<*)oops(*>*)
 
 
 subsubsection{*Arithmetic*}
 
-lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
+text{*
+Is simple enough for the default arithmetic:
+*}
+lemma "\<lbrakk> \<not> m < n; m < n+(1::nat) \<rbrakk> \<Longrightarrow> m = n"
 by simp
 
-lemma "\<not> m < n \<and> m < n+1 \<Longrightarrow> m = n"
+text{*
+Contains boolean combinations and needs full arithmetic:
+*}
+lemma "\<not> m < n \<and> m < n+(1::nat) \<Longrightarrow> m = n"
 apply simp
 by(arith)
 
-
+(*<*)
 subsubsection{*Tracing*}
 
 lemma "rev [a] = []"
 apply(simp)
 oops
+(*>*)
 
 
 
@@ -189,7 +204,7 @@ primrec
 "comp (Bex f e1 e2) = (comp e2) @ (comp e1) @ [Apply f]"
 
 theorem "exec (comp e) s [] = [value e s]"
-oops
+(*<*)oops(*>*)
 
 
 
@@ -246,8 +261,10 @@ subsubsection{*Nested Recursion*}
 
 datatype tree = C "tree list"
 
-term "C[]"
-term "C[C[C[]],C[]]"
+text{*Some trees:*}
+
+term "C []"
+term "C [C [C []], C []]"
 
 consts
 mirror :: "tree \<Rightarrow> tree"
@@ -262,7 +279,7 @@ primrec
 lemma "mirror(mirror t) = t \<and> mirrors(mirrors ts) = ts"
 apply(induct_tac t and ts)
 apply simp_all
-oops
+(*<*)oops(*>*)
 
 text{*
 \begin{exercise}
@@ -275,6 +292,7 @@ subsubsection{*Datatypes Involving Functions*}
 
 datatype ('a,'i)bigtree = Tip | Br 'a "'i \<Rightarrow> ('a,'i)bigtree"
 
+text{*A big tree:*}
 term "Br 0 (\<lambda>i. Br i (\<lambda>n. Tip))"
 
 consts map_bt :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a,'i)bigtree \<Rightarrow> ('b,'i)bigtree"
@@ -287,14 +305,17 @@ apply(induct_tac T, rename_tac[2] F)
 apply simp_all
 done
 
-(* This is NOT allowed:
-datatype lambda = C "lambda \<Rightarrow> lambda"
-*)
+text{* This is \emph{not} allowed:
+\begin{verbatim}
+datatype lambda = C "lambda => lambda"
+\end{verbatim}
+*}
 
 text{*
 \begin{exercise}
 Define a datatype of ordinals and the ordinal $\Gamma_0$.
 \end{exercise}
 *}
-
+(*<*)
 end
+(*>*)
