@@ -307,6 +307,12 @@ val presumeP =
     ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
 
+val defP =
+  OuterSyntax.command "def" "local definition" K.prf_asm
+    ((P.opt_thm_name ":" -- (P.name -- Scan.option (P.$$$ "::" |-- P.typ) --
+      (P.$$$ "=" |-- P.termp)) >> P.triple1) -- P.marg_comment
+      >> (Toplevel.print oo (Toplevel.proof o IsarThy.local_def)));
+
 val fixP =
   OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_asm
     (Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ)) -- P.marg_comment
@@ -334,12 +340,6 @@ val nextP =
 
 
 (* end proof *)
-
-val qed_withP =
-  OuterSyntax.improper_command "qed_with" "conclude proof, may patch name and attributes"
-    K.qed_block
-    (Scan.option P.name -- Scan.option P.attribs -- Scan.option (P.method -- P.interest)
-      >> (uncurry IsarThy.global_qed_with));
 
 val qedP =
   OuterSyntax.command "qed" "conclude (sub-)proof" K.qed_block
@@ -535,9 +535,10 @@ val breakP =
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
 val keywords =
- ["!", "%", "(", ")", "*", "+", ",", "--", ":", "::", ";", "<", "<=",
-  "=", "==", "=>", "?", "[", "]", "and", "as", "binder", "concl",
-  "files", "infixl", "infixr", "is", "output", "{", "|", "}"];
+ ["!", "!!", "%", "(", ")", "*", "+", ",", "--", ":", "::", ";", "<",
+  "<=", "=", "==", "=>", "?", "[", "]", "and", "as", "binder",
+  "concl", "files", "infixl", "infixr", "is", "output", "{", "|",
+  "}"];
 
 val parsers = [
   (*theory structure*)
@@ -552,11 +553,10 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
-  fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
-  nextP, qed_withP, qedP, terminal_proofP, immediate_proofP,
-  default_proofP, skip_proofP, applyP, then_applyP, proofP, alsoP,
-  finallyP, backP, cannot_undoP, clear_undoP, redoP, undos_proofP,
-  kill_proofP, undoP,
+  defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
+  nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
+  skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, backP,
+  cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
