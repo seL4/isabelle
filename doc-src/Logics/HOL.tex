@@ -973,8 +973,18 @@ $\lambda$-abstraction. Some important examples are
 \item[Set operations:] {\tt UN~{\it pattern}:$A$.~$B$}
 \item[Sets:] {\tt \{~{\it pattern}~.~$P$~\}}
 \end{description}
-% FIXME: remove comment in HOL/Prod.thy concerning printing
-% FIXME: remove ML code from HOL/Prod.thy
+
+There is a simple tactic which supports reasoning about patterns:
+\begin{ttdescription}
+\item[\ttindexbold{split_all_tac} $i$] replaces in subgoal $i$ all
+  {\tt!!}-quantified variables of product type by individual variables for
+  each component. A simple example:
+\begin{ttbox}
+{\out 1. !!p. (\%(x,y,z). (x, y, z)) p = p}
+by(split_all_tac 1);
+{\out 1. !!x xa ya. (\%(x,y,z). (x, y, z)) (x, xa, ya) = (x, xa, ya)}
+\end{ttbox}
+\end{ttdescription}
 
 Theory {\tt Prod} also introduces the degenerate product type {\tt unit}
 which contains only a single element named {\tt()} with the property
