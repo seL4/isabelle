@@ -420,7 +420,7 @@ fun excur [] x = x
   | excur ((tr, f) :: trs) (st, res) =
       (case apply false tr st of
         Some (st', None) =>
-          excur trs (st', f st' res handle exn =>
+          excur trs (st', transform_error (fn () => f st' res) () handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed.\n" ^ at_command tr))
       | Some (st', Some exn_info) => raise EXCURSION_FAIL exn_info
       | None => raise EXCURSION_FAIL (TERMINATE, at_command tr));
