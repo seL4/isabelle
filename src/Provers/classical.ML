@@ -568,13 +568,14 @@ fun clarify_tac cs = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac cs 1));
 
 (*** Unsafe steps instantiate variables or lose information ***)
 
-(*But these unsafe steps at least solve a subgoal!*)
+(*Backtracking is allowed among the various these unsafe ways of
+  proving a subgoal.  *)
 fun inst0_step_tac (CS{safe0_netpair,safep_netpair,...}) =
   assume_tac 			  APPEND' 
   contr_tac 			  APPEND' 
   biresolve_from_nets_tac safe0_netpair;
 
-(*These are much worse since they could generate more and more subgoals*)
+(*These unsafe steps could generate more subgoals.*)
 fun instp_step_tac (CS{safep_netpair,...}) =
   biresolve_from_nets_tac safep_netpair;
 
