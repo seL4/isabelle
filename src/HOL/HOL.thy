@@ -77,7 +77,7 @@ consts
 
 (** Additional concrete syntax **)
 
-types
+nonterminals
   letbinds  letbind
   case_syn  cases_syn
 
@@ -186,15 +186,18 @@ defs
   arbitrary_def "False ==> arbitrary == (@x. False)"
 
 
+
+(** initial HOL theory setup **)
+
+setup Simplifier.setup
+setup ClasetThyData.setup
+setup ThyData.setup
+
+
 end
 
 
 ML
-
-
-(** initial HOL theory setup **)
-
-val thy_setup = [Simplifier.setup, ClasetThyData.setup, ThyData.setup];
 
 
 (** Choice between the HOL and Isabelle style of quantifiers **)
