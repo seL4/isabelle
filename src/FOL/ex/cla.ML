@@ -354,6 +354,8 @@ by (mini_tac 1);
 by (deepen_tac FOL_cs 5 1);
 (*Faster alternative proof!
         by (asm_simp_tac FOL_ss 1); by (fast_tac FOL_cs 1);     
+Can use just deepen_tac but it requires 253 secs?!?
+	by (deepen_tac FOL_cs 0 1);     
 *)
 result();
 
