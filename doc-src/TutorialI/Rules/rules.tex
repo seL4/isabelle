@@ -1800,7 +1800,7 @@ A table illustrates the relationships among four of these methods.
 Forward proof means deriving new facts from old ones.  It is  the
 most fundamental type of proof.  Backward proof, by working  from goals to
 subgoals, can help us find a difficult proof.  But it is
-not always the best way of presenting the proof so found.  Forward
+not always the best way of presenting the proof thus found.  Forward
 proof is particularly good for reasoning from the general
 to the specific.  For example, consider this distributive law for
 the greatest common divisor:
@@ -1816,7 +1816,8 @@ Substituting values for variables --- instantiation --- is a forward step.
 Re-orientation works by applying the symmetry of equality to 
 an equation, so it too is a forward step.  
 
-\subsection{Modifying a Theorem using {\tt\slshape of} and {\tt\slshape THEN}}
+\subsection{Modifying a Theorem using {\tt\slshape of},  {\tt\slshape where}
+ and {\tt\slshape THEN}}
 
 Let us reproduce our examples in Isabelle.  Recall that in
 {\S}\ref{sec:recdef-simplification} we declared the recursive function
@@ -1852,18 +1853,31 @@ displays the result:
 \begin{isabelle}
 \ \ \ \ \ k\ *\ gcd\ (1,\ ?n)\ =\ gcd\ (k\ *\ 1,\ k\ *\ ?n)
 \end{isabelle}
-Something is odd: {\isa{k}} is an ordinary variable, while {\isa{?n}} 
+Something is odd: \isa{k} is an ordinary variable, while \isa{?n} 
 is schematic.  We did not specify an instantiation 
-for {\isa{?n}}.  In its present form, the theorem does not allow 
-substitution for {\isa{k}}.  One solution is to avoid giving an instantiation for
+for \isa{?n}.  In its present form, the theorem does not allow 
+substitution for \isa{k}.  One solution is to avoid giving an instantiation for
 \isa{?k}: instead of a term we can put an underscore~(\isa{_}).  For example,
 \begin{isabelle}
 \ \ \ \ \ gcd_mult_distrib2\ [of\ _\ 1]
 \end{isabelle}
 replaces \isa{?m} by~\isa{1} but leaves \isa{?k} unchanged.  
 
-The next step is to put
-the theorem \isa{gcd_mult_0} into a simplified form, performing the steps 
+An equivalent solution is to use the attribute \isa{where}. 
+\begin{isabelle}
+\ \ \ \ \ gcd\_mult\_distrib2\ [where\ m=1]
+\end{isabelle}
+While \isa{of} refers to
+variables by their position, \isa{where} refers to variables by name. Multiple
+instantiations are separated by~\isa{and}, as in this example:
+\begin{isabelle}
+\ \ \ \ \ gcd\_mult\_distrib2\ [where\ m=1\ and\ k=1]
+\end{isabelle}
+
+We now continue the present example with the version of \isa{gcd_mult_0}
+shown above, which has \isa{k} instead of \isa{?k}.
+Once we have replaced \isa{?m} by~1, we must next simplify
+the theorem \isa{gcd_mult_0}, performing the steps 
 $\gcd(1,n)=1$ and $k\times1=k$.  The \attrdx{simplified}
 attribute takes a theorem
 and returns the result of simplifying it, with respect to the default

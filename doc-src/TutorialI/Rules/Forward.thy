@@ -58,8 +58,21 @@ of, simplified
 lemmas gcd_mult_0 = gcd_mult_distrib2 [of k 1];
 lemmas gcd_mult_1 = gcd_mult_0 [simplified];
 
+lemmas where1 = gcd_mult_distrib2 [where m=1]
+
+lemmas where2 = gcd_mult_distrib2 [where m=1 and k=1]
+
+lemmas where3 = gcd_mult_distrib2 [where m=1 and k="j+k"]
+
 text {*
+example using ``of'':
 @{thm[display] gcd_mult_distrib2 [of _ 1]}
+
+example using ``where'':
+@{thm[display] gcd_mult_distrib2 [where m=1]}
+
+example using ``where'', ``and'':
+@{thm[display] gcd_mult_distrib2 [where m=1 and k="j+k"]}
 
 @{thm[display] gcd_mult_0}
 \rulename{gcd_mult_0}
