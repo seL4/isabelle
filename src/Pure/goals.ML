@@ -142,8 +142,8 @@ fun prepare_proof rths chorn =
         let val state = Sequence.hd (flexflex_rule state)
 	    		handle _ => state   (*smash flexflex pairs*)
 	    val ngoals = nprems_of state
-            val th = implies_intr_list cAs state
-            val {hyps,prop,sign=sign',...} = rep_thm th
+            val th = strip_shyps (implies_intr_list cAs state)
+            val {shyps,hyps,prop,sign=sign',...} = rep_thm th
         in  if not check then standard th
 	    else if not (Sign.eq_sg(sign,sign')) then result_error state
 		("Signature of proof state has changed!" ^
@@ -153,6 +153,8 @@ fun prepare_proof rths chorn =
             else if not (null hyps) then result_error state
                 ("Additional hypotheses:\n" ^ 
                  cat_lines (map (Sign.string_of_term sign) hyps))
+	    else if not (null shyps) then result_error state
+                ("Pending sort hypotheses: " ^ commas (map Sign.Type.str_of_sort shyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
 		 then  standard th 
