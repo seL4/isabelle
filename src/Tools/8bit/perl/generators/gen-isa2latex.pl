@@ -384,6 +384,7 @@ print "closed $filename and /tmp/tmp.txt\n" if $do_ddebug;
 
 $status = system("cp /tmp/tmp.txt $filename") ;
 if ($status) { die "can't copy /tmp/tmp.txt to $filename: $!\n";}
+$status = system("rm /tmp/tmp.txt") ;
 
 ########################
 # configure conv-tables.h
@@ -481,6 +482,7 @@ print "closed $filename and /tmp/tmp.txt\n" if $do_ddebug;
 
 $status = system("cp /tmp/tmp.txt $filename") ;
 if ($status) { die "can't copy /tmp/tmp.txt to $filename: $!\n";}
+$status = system("rm /tmp/tmp.txt") ;
 
 ########################
 # configure conv-lex.x
@@ -545,6 +547,7 @@ print "closed $filename and /tmp/tmp.txt\n" if $do_ddebug;
 
 $status = system("cp /tmp/tmp.txt $filename") ;
 if ($status) { die "can't copy /tmp/tmp.txt to $filename: $!\n";}
+$status = system("rm /tmp/tmp.txt") ;
 
 ########################
 # execute  Makefile
