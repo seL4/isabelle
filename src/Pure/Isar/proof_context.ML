@@ -19,6 +19,7 @@ sig
   val prems_of: context -> thm list
   val print_proof_data: theory -> unit
   val init: theory -> context
+  val add_syntax: (string * typ option * mixfix option) list -> context -> context
   val is_fixed: context -> string -> bool
   val default_type: context -> string -> typ option
   val used_types: context -> string list
@@ -98,13 +99,13 @@ sig
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
   val fix_direct: (string list * typ option) list -> context -> context
+  val add_fixes: (string * typ option * mixfix option) list -> context -> context
   val fix_frees: term list -> context -> context
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
   val apply_case: RuleCases.T -> context -> context * ((indexname * term option) list * term list)
   val show_hyps: bool ref
-  val add_syntax: (string * typ option * mixfix option) list -> context -> context
   val pretty_term: context -> term -> Pretty.T
   val pretty_typ: context -> typ -> Pretty.T
   val pretty_sort: context -> sort -> Pretty.T
@@ -333,13 +334,13 @@ fun struct_tr structs (idx :: ts) = Syntax.free (the_struct structs (index_tr id
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
-(* add_syntax and syn_of *)
+(* add syntax *)
+
+fun mixfix_type mx = replicate (Syntax.mixfix_args mx) TypeInfer.logicT ---> TypeInfer.logicT;
 
 local
 
-val aT = TFree ("'a", logicS);
-
-fun mixfix x None mx = (fixedN ^ x, replicate (Syntax.mixfix_args mx) aT ---> aT, mx)
+fun mixfix x None mx = (fixedN ^ x, mixfix_type mx, mx)
   | mixfix x (Some T) mx = (fixedN ^ x, T, mx);
 
 fun prep_mixfix (_, _, None) = None
@@ -1120,11 +1121,15 @@ fun gen_fix prep add raw_vars ctxt =
     ctxt' |> add xs Ts
   end;
 
+fun prep_type (x, None, Some mx) = ([x], Some (mixfix_type mx))
+  | prep_type (x, opt_T, _) = ([x], opt_T);
+
 in
 
 val fix = gen_fix read_vars add_vars;
 val fix_i = gen_fix cert_vars add_vars;
 val fix_direct = gen_fix cert_vars add_vars_direct;
+fun add_fixes decls = add_syntax decls o fix_direct (map prep_type decls);
 
 end;
 
