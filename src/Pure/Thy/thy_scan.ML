@@ -98,8 +98,6 @@ fun comment ("*" :: ")" :: cs) n 1 = (cs, n)
 
 (** tokenize **)
 
-val scan_longid = scan_id ^^ (repeat1 ($$ "." ^^ scan_id) >> implode);
-
 fun scan_word lex =
   max_of
     (scan_literal lex >> pair Keyword)
