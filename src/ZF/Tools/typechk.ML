@@ -30,6 +30,8 @@ sig
   val TC_del_local: Proof.context attribute
   val Typecheck_tac: tactic
   val Type_solver_tac: thm list -> int -> tactic
+  val local_tcset_of: Proof.context -> tcset
+  val context_type_solver: context_solver
 end;
 
 signature TYPE_CHECK =
@@ -175,6 +177,13 @@ struct
 end;
 
 structure LocalTypecheckingData = ProofDataFun(LocalTypecheckingArgs);
+val local_tcset_of = LocalTypecheckingData.get;
+
+
+(* solver *)
+
+val context_type_solver =
+  Simplifier.mk_context_solver "context types" (type_solver_tac o local_tcset_of);
 
 
 (* attributes *)
@@ -202,7 +211,7 @@ fun TC_args x = Method.only_sectioned_args
    Args.del -- Args.colon >> K (I, TC_del_local)] x;
 
 fun typecheck ctxt =
-  Method.SIMPLE_METHOD (CHANGED (typecheck_tac (LocalTypecheckingData.get ctxt)));
+  Method.SIMPLE_METHOD (CHANGED (typecheck_tac (local_tcset_of ctxt)));
 
 
 
@@ -210,6 +219,7 @@ fun typecheck ctxt =
 
 val setup =
  [TypecheckingData.init, LocalTypecheckingData.init,
+  Simplifier.add_context_unsafe_solver context_type_solver,
   Attrib.add_attributes [("TC", TC_attr, "declaration of typecheck rule")],
   Method.add_methods [("typecheck", TC_args typecheck, "ZF typecheck")]];
 
