@@ -75,6 +75,7 @@ Goal "n mod n = (0::nat)";
 by (div_undefined_case_tac "n=0" 1);
 by (asm_simp_tac (simpset() addsimps [mod_geq]) 1);
 qed "mod_self";
+Addsimps [mod_self];
 
 Goal "(m+n) mod n = m mod (n::nat)";
 by (subgoal_tac "(n + m) mod n = (n+m-n) mod n" 1);
@@ -172,6 +173,208 @@ by (full_simp_tac (simpset() addsimps mult_ac) 1);
 by (arith_tac 1);
 qed "mult_div_cancel";
 
+Goal "0<n ==> m mod n < (n::nat)";
+by (induct_thm_tac nat_less_induct "m" 1);
+by (case_tac "na<n" 1);
+(*case n le na*)
+by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 2);
+(*case na<n*)
+by (Asm_simp_tac 1);
+qed "mod_less_divisor";
+Addsimps [mod_less_divisor];
+
+(*** More division laws ***)
+
+Goal "0<n ==> (m*n) div n = (m::nat)";
+by (cut_inst_tac [("m", "m*n"),("n","n")] mod_div_equality 1);
+by Auto_tac;
+qed "div_mult_self_is_m";
+
+Goal "0<n ==> (n*m) div n = (m::nat)";
+by (asm_simp_tac (simpset() addsimps [mult_commute, div_mult_self_is_m]) 1);
+qed "div_mult_self1_is_m";
+Addsimps [div_mult_self_is_m, div_mult_self1_is_m];
+
+(*mod_mult_distrib2 above is the counterpart for remainder*)
+
+
+(*** Proving facts about div and mod using quorem ***)
+
+Goal "[| b*q' + r'  <= b*q + r;  0 < b;  r < b |] \
+\     ==> q' <= (q::nat)";
+by (rtac leI 1); 
+by (stac less_iff_Suc_add 1);
+by (auto_tac (claset(), simpset() addsimps [add_mult_distrib2]));   
+qed "unique_quotient_lemma";
+
+Goal "[| quorem ((a,b), (q,r));  quorem ((a,b), (q',r'));  0 < b |] \
+\     ==> q = q'";
+by (asm_full_simp_tac 
+    (simpset() addsimps split_ifs @ [quorem_def]) 1);
+by Auto_tac;  
+by (REPEAT 
+    (blast_tac (claset() addIs [order_antisym]
+			 addDs [order_eq_refl RS unique_quotient_lemma, 
+				sym]) 1));
+qed "unique_quotient";
+
+Goal "[| quorem ((a,b), (q,r));  quorem ((a,b), (q',r'));  0 < b |] \
+\     ==> r = r'";
+by (subgoal_tac "q = q'" 1);
+by (blast_tac (claset() addIs [unique_quotient]) 2);
+by (asm_full_simp_tac (simpset() addsimps [quorem_def]) 1);
+qed "unique_remainder";
+
+Goal "0 < b ==> quorem ((a, b), (a div b, a mod b))";
+by (cut_inst_tac [("m","a"),("n","b")] mod_div_equality 1);
+by (auto_tac
+    (claset() addEs [sym],
+     simpset() addsimps mult_ac@[quorem_def]));
+qed "quorem_div_mod";
+
+Goal "[| quorem((a,b),(q,r));  0 < b |] ==> a div b = q";
+by (asm_simp_tac (simpset() addsimps [quorem_div_mod RS unique_quotient]) 1);
+qed "quorem_div";
+
+Goal "[| quorem((a,b),(q,r));  0 < b |] ==> a mod b = r";
+by (asm_simp_tac (simpset() addsimps [quorem_div_mod RS unique_remainder]) 1);
+qed "quorem_mod";
+
+(** proving (a*b) div c = a * (b div c) + a * (b mod c) **)
+
+Goal "[| quorem((b,c),(q,r));  0 < c |] \
+\     ==> quorem ((a*b, c), (a*q + a*r div c, a*r mod c))";
+by (cut_inst_tac [("m", "a*r"), ("n","c")] mod_div_equality 1);
+by (auto_tac
+    (claset(),
+     simpset() addsimps split_ifs@mult_ac@
+                        [quorem_def, add_mult_distrib2]));
+val lemma = result();
+
+Goal "(a*b) div c = a*(b div c) + a*(b mod c) div (c::nat)";
+by (div_undefined_case_tac "c = 0" 1);
+by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_div]) 1);
+qed "div_mult1_eq";
+
+Goal "(a*b) mod c = a*(b mod c) mod (c::nat)";
+by (div_undefined_case_tac "c = 0" 1);
+by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_mod]) 1);
+qed "mod_mult1_eq";
+
+Goal "(a*b) mod (c::nat) = ((a mod c) * b) mod c";
+by (rtac trans 1);
+by (res_inst_tac [("s","b*a mod c")] trans 1);
+by (rtac mod_mult1_eq 2);
+by (ALLGOALS (simp_tac (simpset() addsimps [mult_commute])));
+qed "mod_mult1_eq'";
+
+Goal "(a*b) mod (c::nat) = ((a mod c) * (b mod c)) mod c";
+by (rtac (mod_mult1_eq' RS trans) 1);
+by (rtac mod_mult1_eq 1);
+qed "mod_mult_distrib_mod";
+
+(** proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) **)
+
+Goal "[| quorem((a,c),(aq,ar));  quorem((b,c),(bq,br));  0 < c |] \
+\     ==> quorem ((a+b, c), (aq + bq + (ar+br) div c, (ar+br) mod c))";
+by (cut_inst_tac [("m", "ar+br"), ("n","c")] mod_div_equality 1);
+by (auto_tac
+    (claset(),
+     simpset() addsimps split_ifs@mult_ac@
+                        [quorem_def, add_mult_distrib2]));
+val lemma = result();
+
+(*NOT suitable for rewriting: the RHS has an instance of the LHS*)
+Goal "(a+b) div (c::nat) = a div c + b div c + ((a mod c + b mod c) div c)";
+by (div_undefined_case_tac "c = 0" 1);
+by (blast_tac (claset() addIs [[quorem_div_mod,quorem_div_mod]
+			       MRS lemma RS quorem_div]) 1);
+qed "div_add1_eq";
+
+Goal "(a+b) mod (c::nat) = (a mod c + b mod c) mod c";
+by (div_undefined_case_tac "c = 0" 1);
+by (blast_tac (claset() addIs [[quorem_div_mod,quorem_div_mod]
+			       MRS lemma RS quorem_mod]) 1);
+qed "mod_add1_eq";
+
+
+(*** proving  a div (b*c) = (a div b) div c ***)
+
+(** first, two lemmas to bound the remainder for the cases b<0 and b>0 **)
+
+Goal "[| (0::nat) < c;  r < b |] ==> 0 <= b * (q mod c) + r";
+by (subgoal_tac "0 <= b * (q mod c)" 1);
+by Auto_tac;  
+val lemma3 = result();
+
+Goal "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c";
+by (cut_inst_tac [("m","q"),("n","c")] mod_less_divisor 1);
+by (dres_inst_tac [("m","q mod c")] less_imp_Suc_add 2); 
+by Auto_tac;  
+by (eres_inst_tac [("P","%x. ?lhs < ?rhs x")] ssubst 1); 
+by (asm_simp_tac (simpset() addsimps [add_mult_distrib2]) 1);
+val lemma4 = result();
+
+Goal "[| quorem ((a,b), (q,r));  0 < b;  0 < c |] \
+\     ==> quorem ((a, b*c), (q div c, b*(q mod c) + r))";
+by (cut_inst_tac [("m", "q"), ("n","c")] mod_div_equality 1);
+by (auto_tac  
+    (claset(),
+     simpset() addsimps mult_ac@
+                        [quorem_def, add_mult_distrib2 RS sym,
+			 lemma3, lemma4]));
+val lemma = result();
+
+Goal "(0::nat) < c ==> a div (b*c) = (a div b) div c";
+by (div_undefined_case_tac "b = 0" 1);
+by (force_tac (claset(),
+	       simpset() addsimps [quorem_div_mod RS lemma RS quorem_div]) 1);
+qed "div_mult2_eq";
+
+Goal "(0::nat) < c ==> a mod (b*c) = b*(a div b mod c) + a mod b";
+by (div_undefined_case_tac "b = 0" 1);
+by (force_tac (claset(),
+	       simpset() addsimps [quorem_div_mod RS lemma RS quorem_mod]) 1);
+qed "mod_mult2_eq";
+
+
+(*** Cancellation of common factors in "div" ***)
+
+Goal "[| (0::nat) < b;  0 < c |] ==> (c*a) div (c*b) = a div b";
+by (stac div_mult2_eq 1);
+by Auto_tac;
+val lemma1 = result();
+
+Goal "(0::nat) < c ==> (c*a) div (c*b) = a div b";
+by (div_undefined_case_tac "b = 0" 1);
+by (auto_tac
+    (claset(), 
+     simpset() addsimps [read_instantiate [("x", "b")] linorder_neq_iff, 
+			 lemma1, lemma2]));
+qed "div_mult_mult1";
+
+Goal "(0::nat) < c ==> (a*c) div (b*c) = a div b";
+by (dtac div_mult_mult1 1);
+by (auto_tac (claset(), simpset() addsimps [mult_commute]));
+qed "div_mult_mult2";
+
+Addsimps [div_mult_mult1, div_mult_mult2];
+
+
+(*** Distribution of factors over "mod"
+
+Could prove these as in Integ/IntDiv.ML, but we already have
+mod_mult_distrib and mod_mult_distrib2 above!
+
+Goal "(c*a) mod (c*b) = (c::nat) * (a mod b)";
+qed "mod_mult_mult1";
+
+Goal "(a*c) mod (b*c) = (a mod b) * (c::nat)";
+qed "mod_mult_mult2";
+ ***)
+
+(*** Further facts about div and mod ***)
+
 Goal "m div 1 = m";
 by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [div_geq])));
@@ -181,7 +384,7 @@ Addsimps [div_1];
 Goal "0<n ==> n div n = (1::nat)";
 by (asm_simp_tac (simpset() addsimps [div_geq]) 1);
 qed "div_self";
-
+Addsimps [div_self];
 
 Goal "0<n ==> (m+n) div n = Suc (m div n)";
 by (subgoal_tac "(n + m) div n = Suc ((n+m-n) div n)" 1);
@@ -194,8 +397,9 @@ by (asm_simp_tac (simpset() addsimps [add_commute, div_add_self2]) 1);
 qed "div_add_self1";
 
 Goal "!!n::nat. 0<n ==> (m + k*n) div n = k + m div n";
-by (induct_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps add_ac @ [div_add_self1])));
+by (stac div_add1_eq 1); 
+by (stac div_mult1_eq 1); 
+by (Asm_simp_tac 1); 
 qed "div_mult_self1";
 
 Goal "0<n ==> (m + n*k) div n = k + m div (n::nat)";
@@ -295,45 +499,6 @@ by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, le_Suc_eq,
 by (auto_tac (claset(), 
 	      simpset() addsimps [Suc_diff_le, diff_less, le_mod_geq]));
 qed "mod_Suc";
-
-Goal "0<n ==> m mod n < (n::nat)";
-by (induct_thm_tac nat_less_induct "m" 1);
-by (case_tac "na<n" 1);
-(*case n le na*)
-by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 2);
-(*case na<n*)
-by (Asm_simp_tac 1);
-qed "mod_less_divisor";
-Addsimps [mod_less_divisor];
-
-(*** More division laws ***)
-
-Goal "0<n ==> (m*n) div n = (m::nat)";
-by (cut_inst_tac [("m", "m*n"),("n","n")] mod_div_equality 1);
-by Auto_tac;
-qed "div_mult_self_is_m";
-
-Goal "0<n ==> (n*m) div n = (m::nat)";
-by (asm_simp_tac (simpset() addsimps [mult_commute, div_mult_self_is_m]) 1);
-qed "div_mult_self1_is_m";
-Addsimps [div_mult_self_is_m, div_mult_self1_is_m];
-
-(*Cancellation law for division*)
-Goal "0<k ==> (k*m) div (k*n) = m div (n::nat)";
-by (div_undefined_case_tac "n=0" 1);
-by (induct_thm_tac nat_less_induct "m" 1);
-by (case_tac "na<n" 1);
-by (asm_simp_tac (simpset() addsimps [zero_less_mult_iff, mult_less_mono2]) 1);
-by (subgoal_tac "~ k*na < k*n" 1);
-by (asm_simp_tac
-     (simpset() addsimps [zero_less_mult_iff, div_geq,
-			  diff_mult_distrib2 RS sym, diff_less]) 1);
-by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, 
-                                          le_refl RS mult_le_mono]) 1);
-qed "div_cancel";
-Addsimps [div_cancel];
-
-(*mod_mult_distrib2 above is the counterpart for remainder*)
 
 
 (************************************************)

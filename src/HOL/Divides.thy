@@ -36,4 +36,12 @@ defs
 (*The definition of dvd is polymorphic!*)
   dvd_def   "m dvd n == EX k. n = m*k"
 
+(*This definition helps prove the harder properties of div and mod.
+  It is copied from IntDiv.thy; should it be overloaded?*)
+constdefs
+  quorem :: "(nat*nat) * (nat*nat) => bool"
+    "quorem == %((a,b), (q,r)).
+                      a = b*q + r &
+                      (if 0<b then 0<=r & r<b else b<r & r <=0)"
+
 end
