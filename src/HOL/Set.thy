@@ -56,8 +56,8 @@ syntax
 
   (* Big Intersection / Union *)
 
-  INTER1        :: [pttrns, 'a => 'b set] => 'b set   ("(3INT _./ _)" 10)
-  UNION1        :: [pttrns, 'a => 'b set] => 'b set   ("(3UN _./ _)" 10)
+  "@INTER1"     :: [pttrns, 'b set] => 'b set   ("(3INT _./ _)" 10)
+  "@UNION1"     :: [pttrns, 'b set] => 'b set   ("(3UN _./ _)" 10)
 
   "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3INT _:_./ _)" 10)
   "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3UN _:_./ _)" 10)
@@ -104,8 +104,8 @@ syntax (symbols)
   "op ~:"       :: ['a, 'a set] => bool               ("(_/ \\<notin> _)" [50, 51] 50)
   "UN "         :: [idts, bool] => bool               ("(3\\<Union> _./ _)" 10)
   "INT "        :: [idts, bool] => bool               ("(3\\<Inter> _./ _)" 10)
-  "UNION1"      :: [pttrn, 'b set] => 'b set          ("(3\\<Union> _./ _)" 10)
-  "INTER1"      :: [pttrn, 'b set] => 'b set          ("(3\\<Inter> _./ _)" 10)
+  "@UNION1"     :: [pttrn, 'b set] => 'b set          ("(3\\<Union> _./ _)" 10)
+  "@INTER1"     :: [pttrn, 'b set] => 'b set          ("(3\\<Inter> _./ _)" 10)
   "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Union> _\\<in>_./ _)" 10)
   "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Inter> _\\<in>_./ _)" 10)
   Union         :: (('a set) set) => 'a set           ("\\<Union> _" [90] 90)
