@@ -64,6 +64,25 @@ by (auto_tac (claset(), simpset() addsplits [nat_diff_split]
 qed "nat_le_add_iff2";
 
 
+(** For cancel_numeral_factors **)
+
+Goal "(#0::nat) < k ==> (k*m <= k*n) = (m<=n)";
+by Auto_tac;  
+qed "nat_mult_le_cancel1";
+
+Goal "(#0::nat) < k ==> (k*m < k*n) = (m<n)";
+by Auto_tac;  
+qed "nat_mult_less_cancel1";
+
+Goal "(#0::nat) < k ==> (k*m = k*n) = (m=n)";
+by Auto_tac;  
+qed "nat_mult_eq_cancel1";
+
+Goal "(#0::nat) < k ==> (k*m) div (k*n) = (m div n)";
+by Auto_tac;  
+qed "nat_mult_div_cancel1";
+
+
 structure Nat_Numeral_Simprocs =
 struct
 
@@ -117,7 +136,8 @@ val prove_conv = Int_Numeral_Simprocs.prove_conv;
 
 val bin_simps = [add_nat_number_of, nat_number_of_add_left,
                  diff_nat_number_of, le_nat_number_of_eq_not_less,
-                 less_nat_number_of, Let_number_of, nat_number_of] @
+                 less_nat_number_of, mult_nat_number_of, 
+                 Let_number_of, nat_number_of] @
                 bin_arith_simps @ bin_rel_simps;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
@@ -171,6 +191,9 @@ val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
          [numeral_0_eq_0, numeral_1_eq_1, add_0, add_0_right,
          mult_0, mult_0_right, mult_1, mult_1_right];
+
+
+(*** Instantiating CancelNumeralsFun ***)
 
 structure CancelNumeralsCommon =
   struct
@@ -252,6 +275,8 @@ val cancel_numerals =
      DiffCancelNumerals.proc)];
 
 
+(*** Instantiating CombineNumeralsFun ***)
+
 structure CombineNumeralsData =
   struct
   val add		= op + : int*int -> int 
@@ -280,11 +305,78 @@ val combine_numerals =
                   prep_pats ["(i::nat) + j", "Suc (i + j)"],
                   CombineNumerals.proc);
 
+
+(*** Instantiating CancelNumeralFactorFun ***)
+
+structure CancelNumeralFactorCommon =
+  struct
+  val mk_coeff		= mk_coeff
+  val dest_coeff	= dest_coeff
+  val trans_tac         = trans_tac
+  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps 
+                                             [Suc_eq_add_numeral_1]@mult_1s))
+                 THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@mult_ac))
+  val numeral_simp_tac	= ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
+  val simplify_meta_eq  = simplify_meta_eq
+  end
+
+structure DivCancelNumeralFactor = CancelNumeralFactorFun
+ (open CancelNumeralFactorCommon
+  val prove_conv = prove_conv "natdiv_cancel_numeral_factor"
+  val mk_bal   = HOLogic.mk_binop "Divides.op div"
+  val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.natT
+  val cancel = nat_mult_div_cancel1 RS trans
+  val neg_exchanges = false
+)
+
+structure EqCancelNumeralFactor = CancelNumeralFactorFun
+ (open CancelNumeralFactorCommon
+  val prove_conv = prove_conv "nateq_cancel_numeral_factor"
+  val mk_bal   = HOLogic.mk_eq
+  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
+  val cancel = nat_mult_eq_cancel1 RS trans
+  val neg_exchanges = false
+)
+
+structure LessCancelNumeralFactor = CancelNumeralFactorFun
+ (open CancelNumeralFactorCommon
+  val prove_conv = prove_conv "natless_cancel_numeral_factor"
+  val mk_bal   = HOLogic.mk_binrel "op <"
+  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
+  val cancel = nat_mult_less_cancel1 RS trans
+  val neg_exchanges = true
+)
+
+structure LeCancelNumeralFactor = CancelNumeralFactorFun
+ (open CancelNumeralFactorCommon
+  val prove_conv = prove_conv "natle_cancel_numeral_factor"
+  val mk_bal   = HOLogic.mk_binrel "op <="
+  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
+  val cancel = nat_mult_le_cancel1 RS trans
+  val neg_exchanges = true
+)
+
+val cancel_numeral_factors = 
+  map prep_simproc
+   [("nateq_cancel_numeral_factors",
+     prep_pats ["(l::nat) * m = n", "(l::nat) = m * n"], 
+     EqCancelNumeralFactor.proc),
+    ("natless_cancel_numeral_factors", 
+     prep_pats ["(l::nat) * m < n", "(l::nat) < m * n"], 
+     LessCancelNumeralFactor.proc),
+    ("natle_cancel_numeral_factors", 
+     prep_pats ["(l::nat) * m <= n", "(l::nat) <= m * n"], 
+     LeCancelNumeralFactor.proc),
+    ("natdiv_cancel_numeral_factors", 
+     prep_pats ["((l::nat) * m) div n", "(l::nat) div (m * n)"], 
+     DivCancelNumeralFactor.proc)];
+
 end;
 
 
 Addsimprocs Nat_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Nat_Numeral_Simprocs.combine_numerals];
+Addsimprocs Nat_Numeral_Simprocs.cancel_numeral_factors;
 
 
 (*examples:
@@ -344,6 +436,12 @@ test "Suc (j*i + i + k + #5 + #3*k + i*j*#4) = (u::nat)";
 test "(#2*n*m) + (#3*(m*n)) = (u::nat)";
 (*negative numerals: FAIL*)
 test "Suc (i + j + #-3 + k) = u";
+
+(*cancel_numeral_factor*)
+test "#9*x = #12 * (y::nat)";
+test "(#9*x) div (#12 * (y::nat)) = z";
+test "#9*x < #12 * (y::nat)";
+test "#9*x <= #12 * (y::nat)";
 *)
 
 
