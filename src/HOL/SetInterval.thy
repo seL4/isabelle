@@ -53,7 +53,7 @@ translations
 
 text{* A note of warning when using @{term"{..<n}"} on type @{typ
 nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
-@{term"{m..<n}"} may not exist for in @{term"{..<n}"}-form as well. *}
+@{term"{m..<n}"} may not exist in @{term"{..<n}"}-form as well. *}
 
 syntax
   "@UNION_le"   :: "nat => nat => 'b set => 'b set"       ("(3UN _<=_./ _)" 10)
@@ -537,15 +537,6 @@ lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
 
 subsection {* Summation indexed over intervals *}
 
-text{* We introduce the obvious syntax @{text"\<Sum>x=a..b. e"} for
-@{term"\<Sum>x\<in>{a..b}. e"}, @{text"\<Sum>x=a..<b. e"} for
-@{term"\<Sum>x\<in>{a..<b}. e"}, and @{text"\<Sum>x<b. e"} for @{term"\<Sum>x\<in>{..<b}. e"}.
-
-Note that for uniformity on @{typ nat} it is better to use
-@{text"\<Sum>x=0..<n. e"} rather than @{text"\<Sum>x<n. e"}: @{text setsum} may
-not provide all lemmas available for @{term"{m..<n}"} also in the
-special form for @{term"{..<n}"}. *}
-
 syntax
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _ = _.._./ _)" [0,0,0,10] 10)
   "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(SUM _ = _..<_./ _)" [0,0,0,10] 10)
@@ -558,11 +549,34 @@ syntax (HTML output)
   "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _.._./ _)" [0,0,0,10] 10)
   "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_ = _..<_./ _)" [0,0,0,10] 10)
   "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Sum>_<_./ _)" [0,0,10] 10)
+syntax (latex output)
+  "_from_to_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+ ("(3\<^raw:$\sum_{>_ = _\<^raw:}^{>_\<^raw:}$> _)" [0,0,0,10] 10)
+  "_from_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+ ("(3\<^raw:$\sum_{>_ = _\<^raw:}^{<>_\<^raw:}$> _)" [0,0,0,10] 10)
+  "_upto_setsum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+ ("(3\<^raw:$\sum_{>_ < _\<^raw:}$> _)" [0,0,10] 10)
 
 translations
   "\<Sum>x=a..b. t" == "setsum (%x. t) {a..b}"
   "\<Sum>x=a..<b. t" == "setsum (%x. t) {a..<b}"
   "\<Sum>i<n. t" == "setsum (\<lambda>i. t) {..<n}"
+
+text{* The above introduces some pretty alternative syntaxes for
+summation over intervals as shown on the left-hand side:
+\begin{center}
+\begin{tabular}{lll}
+Sets & Indexed & TeX\\
+@{term[source]"\<Sum>x\<in>{a..b}. e"} & @{term[source]"\<Sum>x=a..b. e"} & @{term"\<Sum>x=a..b. e"}\\
+@{term[source]"\<Sum>x\<in>{a..<b}. e"} & @{term[source]"\<Sum>x=a..<b. e"} & @{term"\<Sum>x=a..<b. e"}\\
+@{term[source]"\<Sum>x\<in>{..<b}. e"} & @{term[source]"\<Sum>x<b. e"} & @{term"\<Sum>x<b. e"}
+\end{tabular}
+\end{center}
+
+Note that for uniformity on @{typ nat} it is better to use
+@{term"\<Sum>x::nat=0..<n. e"} rather than @{text"\<Sum>x<n. e"}: @{text setsum} may
+not provide all lemmas available for @{term"{m..<n}"} also in the
+special form for @{term"{..<n}"}. *}
 
 
 lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
