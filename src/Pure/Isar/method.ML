@@ -28,7 +28,8 @@ sig
   val METHOD: (thm list -> tactic) -> Proof.method
   val METHOD_CASES:
     (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> Proof.method
-  val METHOD0: tactic -> Proof.method
+  val SIMPLE_METHOD: tactic -> Proof.method
+  val SIMPLE_METHOD': ((int -> tactic) -> tactic) -> (int -> tactic) -> Proof.method
   val fail: Proof.method
   val succeed: Proof.method
   val defer: int option -> Proof.method
@@ -80,6 +81,7 @@ sig
   val thms_ctxt_args: (thm list -> Proof.context -> Proof.method)
     -> Args.src -> Proof.context -> Proof.method
   val thms_args: (thm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val thm_args: (thm -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   datatype text =
     Basic of (Proof.context -> Proof.method) |
     Source of Args.src |
@@ -212,8 +214,6 @@ val rule_atts =
 val METHOD = Proof.method;
 val METHOD_CASES = Proof.method_cases;
 
-fun METHOD0 tac = METHOD (fn [] => tac | _ => error "Cannot handle current facts");
-
 
 (* primitive *)
 
@@ -248,13 +248,16 @@ fun insert thms = METHOD (fn _ => ALLGOALS (insert_tac thms));
 end;
 
 
+(* simple methods *)
+
+fun SIMPLE_METHOD tac = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN tac);
+fun SIMPLE_METHOD' quant tac = METHOD (fn facts => quant (insert_tac facts THEN' tac));
+
+
 (* unfold / fold definitions *)
 
-fun unfold thms = METHOD (fn facts =>
-  ALLGOALS (insert_tac facts) THEN CHANGED (rewrite_goals_tac thms));
-
-fun fold thms = METHOD (fn facts =>
-  ALLGOALS (insert_tac facts) THEN CHANGED (fold_goals_tac thms));
+fun unfold thms = SIMPLE_METHOD (CHANGED (rewrite_goals_tac thms));
+fun fold thms = SIMPLE_METHOD (CHANGED (fold_goals_tac thms));
 
 
 (* atomize meta-connectives *)
@@ -508,6 +511,7 @@ fun only_sectioned_args ss f = sectioned_args (Scan.succeed ()) ss (fn () => f);
 
 fun thms_ctxt_args f = sectioned_args (thmss []) [] f;
 fun thms_args f = thms_ctxt_args (K o f);
+fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expected");
 
 end;
 
@@ -523,7 +527,7 @@ fun inst_args f = f oo (#2 oo syntax (Args.goal_spec HEADGOAL -- insts));
 
 
 fun goal_args' args tac = #2 oo syntax (Args.goal_spec HEADGOAL -- args >>
-  (fn (quant, s) => METHOD (fn facts => quant (insert_tac facts THEN' tac s))));
+  (fn (quant, s) => SIMPLE_METHOD' quant (tac s)));
 
 fun goal_args args tac = goal_args' (Scan.lift args) tac;
 
@@ -564,7 +568,7 @@ val refine_end = gen_refine Proof.refine_end;
 
 val default_text = Source (Args.src (("default", []), Position.none));
 val this_text = Basic (K this);
-val done_text = Basic (K (METHOD0 all_tac));
+val done_text = Basic (K (SIMPLE_METHOD all_tac));
 
 fun close_text asm = Basic (fn ctxt => METHOD (K
   (FILTER Thm.no_prems ((if asm then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac))));
