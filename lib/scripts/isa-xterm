@@ -59,7 +59,7 @@ function getoptions()
         HILITE="$OPTARG"
         ;;
       m)
-        PASS_MODE="$PASS_MODE -m $OPTARG"
+        PASS_MODE="$PASS_MODE -m$OPTARG"
         ;;
       p)
         PASS="$PASS $OPTARG"
@@ -86,9 +86,9 @@ shift $(($OPTIND - 1))
 ## main
 
 if [ "$HILITE" = bold ]; then
-  PASS="-m xterm $PASS"
+  PASS="-mxterm $PASS"
 elif [ "$HILITE" = color ]; then
-  PASS="-m xterm_color $PASS"
+  PASS="-mxterm_color $PASS"
 elif [ -n "$HILITE" -a "$HILITE" != false ]; then
   echo "WARNING: unknown highlight mode '$HILITE'" >&2
 fi
