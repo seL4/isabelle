@@ -496,18 +496,18 @@ fun dest_equal(Const ("==",_) $
 
 fun get_lhs tm = #lhs(dest_equal (HOLogic.dest_Trueprop tm));
 
-fun dest_all(Const("all",_) $ (a as Abs _)) = S.dest_abs a
-  | dest_all _ = raise RULES_ERR{func = "dest_all", mesg = "not a !!"};
+fun dest_all used (Const("all",_) $ (a as Abs _)) = S.dest_abs used a
+  | dest_all _ _ = raise RULES_ERR{func = "dest_all", mesg = "not a !!"};
 
-val is_all = Utils.can dest_all;
+val is_all = Utils.can (dest_all []);
 
-fun strip_all fm =
+fun strip_all used fm =
    if (is_all fm)
-   then let val {Bvar,Body} = dest_all fm
-            val (bvs,core)  = strip_all Body
-        in ((Bvar::bvs), core)
+   then let val ({Bvar, Body}, used') = dest_all used fm
+            val (bvs, core, used'') = strip_all used' Body
+        in ((Bvar::bvs), core, used'')
         end
-   else ([],fm);
+   else ([], fm, used);
 
 fun break_all(Const("all",_) $ Abs (_,_,body)) = body
   | break_all _ = raise RULES_ERR{func = "break_all", mesg = "not a !!"};
@@ -594,19 +594,18 @@ fun mk_aabs(vstr,body) = S.mk_abs{Bvar=vstr,Body=body}
 fun list_mk_aabs (vstrl,tm) =
     U.itlist (fn vstr => fn tm => mk_aabs(vstr,tm)) vstrl tm;
 
-fun dest_aabs tm = 
-   let val {Bvar,Body} = S.dest_abs tm
-   in (Bvar,Body)
-   end handle _ => let val {varstruct,body} = S.dest_pabs tm (* FIXME do not handle _ !!! *)
-                   in (varstruct,body)
-                   end;
+fun dest_aabs used tm = 
+   let val ({Bvar,Body}, used') = S.dest_abs used tm
+   in (Bvar, Body, used') end handle _ => (* FIXME do not handle _ !!! *)
+     let val {varstruct, body, used} = S.dest_pabs used tm
+     in (varstruct, body, used) end;
 
-fun strip_aabs tm =
-   let val (vstr,body) = dest_aabs tm
-       val (bvs, core) = strip_aabs body
-   in (vstr::bvs, core)
+fun strip_aabs used tm =
+   let val (vstr, body, used') = dest_aabs used tm
+       val (bvs, core, used'') = strip_aabs used' body
+   in (vstr::bvs, core, used'')
    end
-   handle _ => ([],tm); (* FIXME do not handle _ !!! *)
+   handle _ => ([], tm, used); (* FIXME do not handle _ !!! *)
 
 fun dest_combn tm 0 = (tm,[])
   | dest_combn tm n = 
@@ -671,13 +670,13 @@ fun PGEN tych a vstr th =
  *
  *     (([x,y],N),vstr)
  *---------------------------------------------------------------------------*)
-fun dest_pbeta_redex M n = 
+fun dest_pbeta_redex used M n = 
   let val (f,args) = dest_combn M n
-      val dummy = dest_aabs f
-  in (strip_aabs f,args)
+      val dummy = dest_aabs used f
+  in (strip_aabs used f,args)
   end;
 
-fun pbeta_redex M n = U.can (U.C dest_pbeta_redex n) M;
+fun pbeta_redex M n = U.can (U.C (dest_pbeta_redex []) n) M;
 
 fun dest_impl tm = 
   let val ants = Logic.strip_imp_prems tm
@@ -697,7 +696,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
      val dummy = thm_ref  := []
      val dummy = mss_ref  := []
      val cut_lemma' = cut_lemma RS eq_reflection
-     fun prover mss thm =
+     fun prover used mss thm =
      let fun cong_prover mss thm =
          let val dummy = say "cong_prover:"
              val cntxt = prems_of_mss mss
@@ -714,7 +713,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
                      val mss' = add_prems(mss, map ASSUME ants)
-                     val lhs_eq_lhs1 = Thm.rewrite_cterm(false,true,false)mss' prover lhs
+                     val lhs_eq_lhs1 = Thm.rewrite_cterm (false,true,false) mss' (prover used) lhs
                        handle _ => reflexive lhs (* FIXME do not handle _ !!! *)
                      val dummy = print_thms "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
@@ -723,7 +722,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   lhs_eeq_lhs2 COMP thm
                   end
              fun pq_eliminate (thm,sign,vlist,imp_body,lhs_eq) =
-              let val ((vstrl,_),args) = dest_pbeta_redex lhs_eq(length vlist)
+              let val ((vstrl, _, used'), args) = dest_pbeta_redex used lhs_eq (length vlist)
                   val dummy = assert (forall (op aconv)
                                       (ListPair.zip (vlist, args)))
                                "assertion failed in CONTEXT_REWRITE_RULE"
@@ -736,7 +735,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val QeqQ1 = pbeta_reduce (tych Q)
                   val Q1 = #2(D.dest_eq(cconcl QeqQ1))
                   val mss' = add_prems(mss, map ASSUME ants1)
-                  val Q1eeqQ2 = Thm.rewrite_cterm (false,true,false) mss' prover Q1
+                  val Q1eeqQ2 = Thm.rewrite_cterm (false,true,false) mss' (prover used') Q1
                                 handle _ => reflexive Q1 (* FIXME do not handle _ !!! *)
                   val Q2 = #2 (Logic.dest_equals (#prop(rep_thm Q1eeqQ2)))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
@@ -753,7 +752,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               in ant_th COMP thm
               end
              fun q_eliminate (thm,imp,sign) =
-              let val (vlist,imp_body) = strip_all imp
+              let val (vlist, imp_body, used') = strip_all used imp
                   val (ants,Q) = dest_impl imp_body
               in if (pbeta_redex Q) (length vlist)
                  then pq_eliminate (thm,sign,vlist,imp_body,Q)
@@ -761,8 +760,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                  let val tych = cterm_of sign
                      val ants1 = map tych ants
                      val mss' = add_prems(mss, map ASSUME ants1)
-                     val Q_eeq_Q1 = Thm.rewrite_cterm(false,true,false) mss' 
-                                                     prover (tych Q)
+                     val Q_eeq_Q1 = Thm.rewrite_cterm
+                        (false,true,false) mss' (prover used') (tych Q)
                       handle _ => reflexive (tych Q) (* FIXME do not handle _ !!! *)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
                      val lhs_eq_lhs2 = lhs_eeq_lhs2 RS meta_eq_to_obj_eq
@@ -831,9 +830,9 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     (if (is_cong thm) then cong_prover else restrict_prover) mss thm
     end
     val ctm = cprop_of th
+    val names = add_term_names (term_of ctm, [])
     val th1 = Thm.rewrite_cterm(false,true,false) 
-                      (add_congs(mss_of [cut_lemma'], congs))
-                            prover ctm
+      (add_congs(mss_of [cut_lemma'], congs)) (prover names) ctm
     val th2 = equal_elim th1 th
  in
  (th2, filter (not o restricted) (!tc_list))

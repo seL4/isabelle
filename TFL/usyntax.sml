@@ -44,7 +44,7 @@ sig
   (* Destruction routines *)
   val dest_const: term -> {Name : string, Ty : typ}
   val dest_comb : term -> {Rator : term, Rand : term}
-  val dest_abs  : term -> {Bvar : term, Body : term}
+  val dest_abs  : string list -> term -> {Bvar : term, Body : term} * string list
   val dest_eq     : term -> {lhs : term, rhs : term}
   val dest_imp    : term -> {ant : term, conseq : term}
   val dest_forall : term -> {Bvar : term, Body : term}
@@ -53,7 +53,7 @@ sig
   val dest_conj   : term -> {conj1 : term, conj2 : term}
   val dest_disj   : term -> {disj1 : term, disj2 : term}
   val dest_pair   : term -> {fst : term, snd : term}
-  val dest_pabs   : term -> {varstruct : term, body : term}
+  val dest_pabs   : string list -> term -> {varstruct : term, body : term, used : string list}
 
   val lhs   : term -> term
   val rhs   : term -> term
@@ -243,11 +243,13 @@ fun dest_const(Const(s,ty)) = {Name = s, Ty = ty}
 fun dest_comb(t1 $ t2) = {Rator = t1, Rand = t2}
   | dest_comb _ =  raise USYN_ERR{func = "dest_comb", mesg = "not a comb"};
 
-fun dest_abs(a as Abs(s,ty,M)) = 
-     let val v = Free(s,ty)
-     in {Bvar = v, Body = betapply (a,v)}
+fun dest_abs used (a as Abs(s, ty, M)) = 
+     let
+       val s' = variant used s;
+       val v = Free(s', ty);
+     in ({Bvar = v, Body = betapply (a,v)}, s'::used)
      end
-  | dest_abs _ =  raise USYN_ERR{func = "dest_abs", mesg = "not an abstraction"};
+  | dest_abs _ _ =  raise USYN_ERR{func = "dest_abs", mesg = "not an abstraction"};
 
 fun dest_eq(Const("op =",_) $ M $ N) = {lhs=M, rhs=N}
   | dest_eq _ = raise USYN_ERR{func = "dest_eq", mesg = "not an equality"};
@@ -255,10 +257,10 @@ fun dest_eq(Const("op =",_) $ M $ N) = {lhs=M, rhs=N}
 fun dest_imp(Const("op -->",_) $ M $ N) = {ant=M, conseq=N}
   | dest_imp _ = raise USYN_ERR{func = "dest_imp", mesg = "not an implication"};
 
-fun dest_forall(Const("All",_) $ (a as Abs _)) = dest_abs a
+fun dest_forall(Const("All",_) $ (a as Abs _)) = fst (dest_abs [] a)
   | dest_forall _ = raise USYN_ERR{func = "dest_forall", mesg = "not a forall"};
 
-fun dest_exists(Const("Ex",_) $ (a as Abs _)) = dest_abs a
+fun dest_exists(Const("Ex",_) $ (a as Abs _)) = fst (dest_abs [] a)
   | dest_exists _ = raise USYN_ERR{func = "dest_exists", mesg="not an existential"};
 
 fun dest_neg(Const("not",_) $ M) = M
@@ -284,16 +286,16 @@ fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
 local  fun ucheck t = (if #Name(dest_const t) = "split" then t
                        else raise Match)
 in
-fun dest_pabs tm =
-   let val {Bvar,Body} = dest_abs tm
-   in {varstruct = Bvar, body = Body}
+fun dest_pabs used tm =
+   let val ({Bvar,Body}, used') = dest_abs used tm
+   in {varstruct = Bvar, body = Body, used = used'}
    end 
     handle (* FIXME do not handle _ !!! *)
      _ => let val {Rator,Rand} = dest_comb tm
               val _ = ucheck Rator
-              val {varstruct = lv,body} = dest_pabs Rand
-              val {varstruct = rv,body} = dest_pabs body
-          in {varstruct = mk_pair{fst = lv, snd = rv}, body = body}
+              val {varstruct = lv, body, used = used'} = dest_pabs used Rand
+              val {varstruct = rv, body, used = used''} = dest_pabs used' body
+          in {varstruct = mk_pair {fst = lv, snd = rv}, body = body, used = used''}
           end
 end;
 
@@ -311,7 +313,7 @@ val is_neg    = can dest_neg
 val is_conj   = can dest_conj
 val is_disj   = can dest_disj
 val is_pair   = can dest_pair
-val is_pabs   = can dest_pabs
+val is_pabs   = can (dest_pabs [])
 
 
 (* Construction of a cterm from a list of Terms *)
@@ -335,7 +337,7 @@ fun strip_comb tm =
    end;
 
 fun strip_abs(tm as Abs _) =
-       let val {Bvar,Body} = dest_abs tm
+       let val ({Bvar,Body}, _) = dest_abs [] tm
            val (bvs, core) = strip_abs Body
        in (Bvar::bvs, core)
        end
