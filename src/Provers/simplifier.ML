@@ -463,7 +463,6 @@ val congN = "cong";
 val addN = "add";
 val delN = "del";
 val onlyN = "only";
-val otherN = "other";
 
 val simp_attr =
  (Attrib.add_del_args simp_add_global simp_del_global,
@@ -512,14 +511,14 @@ val simp_modifiers =
  [Args.$$$ simpN -- Args.colon >> K (I, simp_add_local),
   Args.$$$ simpN -- Args.$$$ addN -- Args.colon >> K (I, simp_add_local),
   Args.$$$ simpN -- Args.$$$ delN -- Args.colon >> K (I, simp_del_local),
-  Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local),
-  Args.$$$ otherN -- Args.colon >> K (I, I)] @ cong_modifiers;
+  Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
+   @ cong_modifiers;
 
 val simp_modifiers' =
  [Args.$$$ addN -- Args.colon >> K (I, simp_add_local),
   Args.$$$ delN -- Args.colon >> K (I, simp_del_local),
-  Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local),
-  Args.$$$ otherN -- Args.colon >> K (I, I)] @ cong_modifiers;
+  Args.$$$ onlyN -- Args.colon >> K (map_local_simpset clear_ss, simp_add_local)]
+   @ cong_modifiers;
 
 fun simp_args more_mods =
   Method.sectioned_args (Args.bang_facts -- Scan.lift simp_options) (more_mods @ simp_modifiers');
