@@ -19,8 +19,8 @@ struct
 
 (* bits *)
 
-fun mk_bit 0 = Syntax.const "False"
-  | mk_bit 1 = Syntax.const "True"
+fun mk_bit 0 = HOLogic.false_const
+  | mk_bit 1 = HOLogic.true_const
   | mk_bit _ = sys_error "mk_bit";
 
 fun dest_bit (Const ("False", _)) = 0
@@ -40,10 +40,9 @@ fun mk_bin n =
       | bin_of ~1 = [~1]
       | bin_of n  = (n mod 2) :: bin_of (n div 2);
 
-    fun term_of []   = Syntax.const "Numeral.bin.Pls"
-      | term_of [~1] = Syntax.const "Numeral.bin.Min"
-      | term_of (b :: bs) = Syntax.const "Numeral.bin.Bit" $ term_of bs 
-                                                           $ mk_bit b;
+    fun term_of []   = HOLogic.pls_const
+      | term_of [~1] = HOLogic.min_const
+      | term_of (b :: bs) = HOLogic.bit_const $ term_of bs $ mk_bit b;
     in term_of (bin_of n) end;
 
 fun bin_of_string str =
