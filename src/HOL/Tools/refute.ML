@@ -600,7 +600,7 @@ struct
 									Library.exists (fn c =>
 										(case c of
 										  Const (cname, ctype) =>
-											cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy), T, ctype)
+											cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T, ctype)
 										| _ =>
 											raise REFUTE ("collect_axioms", "IDT constructor is not a constant")))
 										constrs
@@ -1566,7 +1566,7 @@ struct
 											())
 									(* split the constructors into those occuring before/after 'Const (s, T)' *)
 									val (constrs1, constrs2) = take_prefix (fn (cname, ctypes) =>
-										not (cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy), T,
+										not (cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T,
 											map (typ_of_dtyp descr typ_assoc) ctypes ---> Type (s', Ts')))) constrs
 								in
 									case constrs2 of
