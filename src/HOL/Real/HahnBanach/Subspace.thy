@@ -22,6 +22,8 @@ locale subspace = var U + var V +
     and add_closed [iff]: "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x + y \<in> U"
     and mult_closed [iff]: "x \<in> U \<Longrightarrow> a \<cdot> x \<in> U"
 
+declare vectorspace.intro [intro?] subspace.intro [intro?]
+
 syntax (symbols)
   subspace :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"    (infix "\<unlhd>" 50)
 

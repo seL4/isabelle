@@ -887,17 +887,6 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val ((import_ctxt, axioms'), (import_elemss, _)) =
       activate_facts prep_facts ((context, axioms), ps);
 
-(* CB: testing *)
-(*
-val axioms' = if true (* null axioms *) then axioms' else
-let val {view = (ax3_view, ax3_axioms), ...} =
-  the_locale (ProofContext.theory_of context) "Type.ax3";
-val ax_TrueFalse = Thm.assume (read_cterm (sign_of_thm (hd axioms))
-  ("True <-> False", propT));
-val {view = (ax4_view, ax4_axioms), ...} =
-  the_locale (ProofContext.theory_of context) "Type.ax4";
-in axioms' @ ax3_axioms @ [ax_TrueFalse] @ (tl ax4_axioms) end;
-*)
     val ((ctxt, _), (elemss, _)) =
       activate_facts prep_facts ((import_ctxt, axioms'), qs);
   in
@@ -1126,7 +1115,7 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
             [(("", []), [Assumes [((bname ^ "_" ^ axiomsN, []), [(statement, ([], []))])]])];
         in
           def_thy |> have_thmss_qualified "" aname
-            [((introN, [ContextRules.intro_query_global None]), [([intro], [])])]
+            [((introN, []), [([intro], [])])]
           |> #1 |> rpair (elemss', [statement])
         end;
     val (thy'', view) =
@@ -1138,8 +1127,8 @@ fun define_preds bname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val cstatement = Thm.cterm_of (Theory.sign_of def_thy) statement;
         in
           def_thy |> have_thmss_qualified "" bname
-            [((introN, [ContextRules.intro_query_global None]), [([intro], [])]),
-             ((axiomsN, [ContextRules.elim_query_global None]), [(map Drule.standard axioms, [])])]
+            [((introN, []), [([intro], [])]),
+             ((axiomsN, []), [(map Drule.standard axioms, [])])]
           |> #1 |> rpair ([cstatement], axioms)
         end;
   in (thy'', (elemss', view)) end;

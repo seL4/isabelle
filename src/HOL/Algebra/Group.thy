@@ -415,7 +415,7 @@ declare (in subgroup) group.intro [intro]
 lemma (in subgroup) group_axiomsI [intro]:
   includes group G
   shows "group_axioms (G(| carrier := H |))"
-  by rule (auto intro: l_inv r_inv simp add: Units_def)
+  by (rule group_axioms.intro) (auto intro: l_inv r_inv simp add: Units_def)
 
 lemma (in subgroup) groupI [intro]:
   includes group G
@@ -440,8 +440,8 @@ lemma (in group) subgroupI:
     and inv: "!!a. a \<in> H ==> inv a \<in> H"
     and mult: "!!a b. [|a \<in> H; b \<in> H|] ==> a \<otimes> b \<in> H"
   shows "subgroup H G"
-proof
-  from subset and mult show "submagma H G" ..
+proof (rule subgroup.intro)
+  from subset and mult show "submagma H G" by (rule submagma.intro)
 next
   have "\<one> \<in> H" by (rule one_in_subset) (auto simp only: prems)
   with inv show "subgroup_axioms H G"
@@ -472,7 +472,7 @@ lemma subgroup_nonempty:
 lemma (in subgroup) finite_imp_card_positive:
   "finite (carrier G) ==> 0 < card H"
 proof (rule classical)
-  have sub: "subgroup H G" using prems ..
+  have sub: "subgroup H G" using prems by (rule subgroup.intro)
   assume fin: "finite (carrier G)"
     and zero: "~ 0 < card H"
   then have "finite H" by (blast intro: finite_subset dest: subset)
@@ -505,12 +505,13 @@ constdefs
 lemma DirProdSemigroup_magma:
   includes magma G + magma H
   shows "magma (G \<times>\<^sub>s H)"
-  by rule (auto simp add: DirProdSemigroup_def)
+  by (rule magma.intro) (auto simp add: DirProdSemigroup_def)
 
 lemma DirProdSemigroup_semigroup_axioms:
   includes semigroup G + semigroup H
   shows "semigroup_axioms (G \<times>\<^sub>s H)"
-  by rule (auto simp add: DirProdSemigroup_def G.m_assoc H.m_assoc)
+  by (rule semigroup_axioms.intro)
+    (auto simp add: DirProdSemigroup_def G.m_assoc H.m_assoc)
 
 lemma DirProdSemigroup_semigroup:
   includes semigroup G + semigroup H
@@ -522,13 +523,13 @@ lemma DirProdSemigroup_semigroup:
 lemma DirProdGroup_magma:
   includes magma G + magma H
   shows "magma (G \<times>\<^sub>g H)"
-  by rule
+  by (rule magma.intro)
     (auto simp add: DirProdGroup_def DirProdSemigroup_def)
 
 lemma DirProdGroup_semigroup_axioms:
   includes semigroup G + semigroup H
   shows "semigroup_axioms (G \<times>\<^sub>g H)"
-  by rule
+  by (rule semigroup_axioms.intro)
     (auto simp add: DirProdGroup_def DirProdSemigroup_def
       G.m_assoc H.m_assoc)
 
@@ -581,12 +582,12 @@ constdefs
 lemma (in semigroup) hom:
   includes semigroup G
   shows "semigroup (| carrier = hom G G, mult = op o |)"
-proof
+proof (rule semigroup.intro)
   show "magma (| carrier = hom G G, mult = op o |)"
-    by rule (simp add: Pi_def hom_def)
+    by (rule magma.intro) (simp add: Pi_def hom_def)
 next
   show "semigroup_axioms (| carrier = hom G G, mult = op o |)"
-    by rule (simp add: o_assoc)
+    by (rule semigroup_axioms.intro) (simp add: o_assoc)
 qed
 
 lemma hom_mult:

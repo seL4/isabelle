@@ -23,6 +23,8 @@ text {*
 locale continuous = var V + norm_syntax + linearform +
   assumes bounded: "\<exists>c. \<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
 
+declare continuous.intro [intro?] continuous_axioms.intro [intro?]
+
 lemma continuousI [intro]:
   includes norm_syntax + linearform
   assumes r: "\<And>x. x \<in> V \<Longrightarrow> \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"

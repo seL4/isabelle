@@ -23,6 +23,8 @@ locale seminorm = var V + norm_syntax +
     and abs_homogenous [iff?]: "x \<in> V \<Longrightarrow> \<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
     and subadditive [iff?]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
 
+declare seminorm.intro [intro?]
+
 lemma (in seminorm) diff_subadditive:
   includes vectorspace
   shows "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x - y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
@@ -70,6 +72,8 @@ text {*
 *}
 
 locale normed_vectorspace = vectorspace + norm
+
+declare normed_vectorspace.intro [intro?]
 
 lemma (in normed_vectorspace) gt_zero [intro?]:
   "x \<in> V \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> 0 < \<parallel>x\<parallel>"

@@ -16,6 +16,8 @@ locale linearform = var V + var f +
   assumes add [iff]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> f (x + y) = f x + f y"
     and mult [iff]: "x \<in> V \<Longrightarrow> f (a \<cdot> x) = a * f x"
 
+declare linearform.intro [intro?]
+
 lemma (in linearform) neg [iff]:
   includes vectorspace
   shows "x \<in> V \<Longrightarrow> f (- x) = - f x"

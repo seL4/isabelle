@@ -321,6 +321,9 @@ locale group = semigroup G +
   assumes left_inv: "x\<inv> \<cdot> x = \<one>"
     and left_one: "\<one> \<cdot> x = x"
 
+declare semigroup.intro [intro?]
+  group.intro [intro?] group_axioms.intro [intro?]
+
 text {*
   Note that we prefer to call the @{text group} record structure
   @{text G} rather than @{text S} inherited from @{text semigroup}.

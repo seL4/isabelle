@@ -46,7 +46,7 @@ text {*
 *}
 lemma (in group) is_coset:
   "coset G"
-  ..
+  by (rule coset.intro)
 
 text{*Lemmas useful for Sylow's Theorem*}
 
