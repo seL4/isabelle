@@ -310,7 +310,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in
-    thy |> IsarThy.theorem_i Drule.internalK
+    thy |> IsarThy.theorem_i Drule.internalK None
       (((bname, atts), (HOLogic.mk_Trueprop tc, ([], []))), Comment.none) int
   end;
 
