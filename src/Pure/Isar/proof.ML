@@ -310,11 +310,14 @@ fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
 
 val verbose = ProofContext.verbose;
 
+fun pretty_goals_local ctxt = Display.pretty_goals_aux
+  (ProofContext.pretty_sort ctxt, ProofContext.pretty_typ ctxt, ProofContext.pretty_term ctxt);
+
 fun pretty_facts _ _ None = []
   | pretty_facts s ctxt (Some ths) =
       [Pretty.big_list (s ^ "this:") (map (ProofContext.pretty_thm ctxt) ths), Pretty.str ""];
 
-fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes)) =
+fun print_state nr (state as State (Node {context = ctxt, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Display.current_goals_markers;
 
@@ -327,16 +330,16 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       | subgoals n = ", " ^ string_of_int n ^ " subgoals";
       
     fun pretty_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
-      pretty_facts "using " context
+      pretty_facts "using " ctxt
         (if mode <> Backward orelse null goal_facts then None else Some goal_facts) @
       [Pretty.str ("goal (" ^ kind_name (sign_of state) kind ^
           (if name = "" then "" else " " ^ name) ^
             levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
-      Display.pretty_goals_marker begin_goal (! goals_limit) thm;
+      pretty_goals_local ctxt begin_goal (true, true) (! Display.goals_limit) thm;
 
     val ctxt_prts =
-      if ! verbose orelse mode = Forward then ProofContext.pretty_context context
-      else if mode = Backward then ProofContext.pretty_asms context
+      if ! verbose orelse mode = Forward then ProofContext.pretty_context ctxt
+      else if mode = Backward then ProofContext.pretty_asms ctxt
       else [];
 
     val prts =
@@ -345,14 +348,14 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
         else "")), Pretty.str ""] @
      (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
      (if ! verbose orelse mode = Forward then
-       (pretty_facts "" context facts @ pretty_goal (find_goal state))
-      else if mode = ForwardChain then pretty_facts "picking " context facts
+       (pretty_facts "" ctxt facts @ pretty_goal (find_goal state))
+      else if mode = ForwardChain then pretty_facts "picking " ctxt facts
       else pretty_goal (find_goal state))
   in Pretty.writeln (Pretty.chunks prts) end;
 
-fun pretty_goals main_goal state =
-  let val (_, (_, ((_, (_, thm)), _))) = find_goal state
-  in Display.pretty_sub_goals main_goal (! goals_limit) thm end;
+fun pretty_goals main state =
+  let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state
+  in pretty_goals_local ctxt "" (false, main) (! Display.goals_limit) thm end;
 
 
 
@@ -442,7 +445,9 @@ fun prep_result state t raw_thm =
     val ngoals = Thm.nprems_of raw_thm;
     val _ =
       if ngoals = 0 then ()
-      else (Display.print_goals ngoals raw_thm; err (string_of_int ngoals ^ " unsolved goal(s)!"));
+      else (err (Pretty.string_of (Pretty.chunks (pretty_goals_local ctxt "" (true, true)
+            (! Display.goals_limit) raw_thm @
+          [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")]))));
 
     val thm = raw_thm RS Drule.rev_triv_goal;
     val {hyps, prop, sign, ...} = Thm.rep_thm thm;
@@ -713,6 +718,9 @@ fun local_qed finalize print state =
 
 (* global_qed *)
 
+fun locale_prefix None f thy = f thy
+  | locale_prefix (Some (loc, _)) f thy = thy |> Theory.add_path loc |> f |>> Theory.parent_path;
+
 fun locale_store_thm _ None _ = I
   | locale_store_thm name (Some (loc, atts)) th = Locale.store_thm loc ((name, th), atts);
 
@@ -735,7 +743,7 @@ fun finish_global state =
       | _ => err_malformed "finish_global" state);
     val (thy', result') =
       theory_of state
-      |> PureThy.store_thm ((name, result), atts)
+      |> locale_prefix locale (PureThy.store_thm ((name, result), atts))
       |>> locale_store_thm name locale locale_result;
   in (thy', {kind = kname, name = name, thm = result'}) end;
 
