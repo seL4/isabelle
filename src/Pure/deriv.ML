@@ -13,7 +13,7 @@ signature DERIV =
 		 | Asm of int
 		 | Res of deriv
 		 | Equal of deriv
-		 | Thm   of string
+		 | Thm   of string * tag list
 		 | Other of deriv;
 
   val size : deriv -> int
@@ -49,7 +49,7 @@ datatype orule = Subgoal of cterm
 	       | Asm of int
                | Res of deriv
                | Equal of deriv
-               | Thm   of string
+               | Thm   of string * tag list
                | Other of deriv;
 
 (*At position i, splice in value x, removing ngoal elements*)
