@@ -371,12 +371,12 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
 
 HOL-BCV: HOL $(LOG)/HOL-BCV.gz
 
-$(LOG)/HOL-BCV.gz: $(OUT)/HOL BCV/DFAandWTI.ML \
-  BCV/DFAandWTI.thy BCV/DFAimpl.ML BCV/DFAimpl.thy \
-  BCV/Fixpoint.ML BCV/Fixpoint.thy BCV/Machine.ML BCV/Machine.thy \
-  BCV/Orders.ML BCV/Orders.thy BCV/Orders0.ML BCV/Orders0.thy \
-  BCV/Plus.ML BCV/Plus.thy BCV/ROOT.ML BCV/SemiLattice.ML BCV/SemiLattice.thy \
-  BCV/Types0.ML BCV/Types0.thy BCV/Types.ML BCV/Types.thy
+$(LOG)/HOL-BCV.gz: $(OUT)/HOL \
+  BCV/DFA_Framework.thy BCV/DFA_Framework.ML BCV/Err.thy BCV/Err.ML \
+  BCV/JType.ML BCV/JType.thy BCV/JVM.ML BCV/JVM.thy \
+  BCV/Kildall.ML BCV/Kildall.thy BCV/Listn.ML BCV/Listn.thy \
+  BCV/Opt.ML BCV/Opt.thy BCV/ROOT.ML BCV/Semilat.ML BCV/Semilat.thy \
+  BCV/Product.ML BCV/Product.thy
 	@$(ISATOOL) usedir $(OUT)/HOL BCV
 
 ## HOL-IOA
