@@ -95,7 +95,7 @@ signature THM =
   val concl_of          : thm -> term
   val cprop_of          : thm -> cterm
   val extra_shyps       : thm -> sort list
-  val force_strip_shyps : bool ref      (* FIXME tmp *)
+  val force_strip_shyps : bool ref      (* FIXME tmp (since 1995/08/01) *)
   val strip_shyps       : thm -> thm
   val implies_intr_shyps: thm -> thm
   val get_axiom         : theory -> string -> thm
@@ -488,7 +488,7 @@ fun fix_shyps thms Ts thm =
 
 (* strip_shyps *)       (* FIXME improve? (e.g. only minimal extra sorts) *)
 
-val force_strip_shyps = ref true;  (* FIXME tmp *)
+val force_strip_shyps = ref true;  (* FIXME tmp (since 1995/08/01) *)
 
 (*remove extra sorts that are known to be syntactically non-empty*)
 fun strip_shyps thm =
@@ -502,7 +502,7 @@ fun strip_shyps thm =
          shyps =
          (if eq_set_sort (shyps',sorts) orelse 
              not (!force_strip_shyps) then shyps'
-          else    (* FIXME tmp *)
+          else    (* FIXME tmp (since 1995/08/01) *)
               (warning ("Removed sort hypotheses: " ^
                         commas (map Sorts.str_of_sort (shyps' \\ sorts)));
                warning "Let's hope these sorts are non-empty!";
