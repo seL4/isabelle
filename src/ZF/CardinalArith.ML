@@ -412,7 +412,7 @@ by (safe_tac (claset() addSEs [mem_irrefl]
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lt_def, succI2])));
 qed "csquareD";
 
-Goalw [Order.pred_def]
+Goalw [thm "Order.pred_def"]
  "z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)";
 by (safe_tac (claset() delrules [SigmaI, succCI]));  
 by (etac (csquareD RS conjE) 1);
