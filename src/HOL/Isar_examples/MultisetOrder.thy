@@ -11,6 +11,44 @@ HOL/Induct/Multiset).  Pen-and-paper proof by Wilfried Buchholz.
 
 theory MultisetOrder = Multiset:;
 
+(* FIXME *)
+theorems [intro!!] = disjI1 disjI2;
+
+
+lemma less_add: "(N, M0 + {#a#}) : mult1 r ==>
+    (EX M. (M, M0) : mult1 r & N = M + {#a#}) |
+    (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K)"
+  (concl is "?case1 (mult1 r) | ?case2");
+proof (unfold mult1_def);
+  let ?r = "%K a. ALL b. elem K b --> (b, a) : r";
+  let ?R = "%N M. EX a M0 K. M = M0 + {#a#} & N = M0 + K & ?r K a";
+  let ?case1 = "?case1 {(N, M). ?R N M}";
+
+  assume "(N, M0 + {#a#}) : {(N, M). ?R N M}";
+  hence "EX a' M0' K. M0 + {#a#} = M0' + {#a'#} & N = M0' + K & ?r K a'"; by simp;
+  thus "?case1 | ?case2";
+  proof (elim exE conjE);
+    fix a' M0' K; assume N: "N = M0' + K" and r: "?r K a'";
+    assume "M0 + {#a#} = M0' + {#a'#}";
+    hence "M0 = M0' & a = a' | (EX K'. M0 = K' + {#a'#} & M0' = K' + {#a#})";
+      by (simp only: add_eq_conv_ex);
+    thus ?thesis;
+    proof (elim disjE conjE exE);
+      assume "M0 = M0'" "a = a'";
+      with N r; have "?r K a & N = M0 + K"; by simp;
+      hence ?case2; ..; thus ?thesis; ..;
+    next;
+      fix K';
+      assume "M0' = K' + {#a#}";
+      with N; have n: "N = K' + K + {#a#}"; by (simp add: union_ac);
+
+      assume "M0 = K' + {#a'#}";
+      with r; have "?R (K' + K) M0"; by simp blast;
+      with n; have ?case1; by simp; thus ?thesis; ..;
+    qed;
+  qed;
+qed;
+
 
 lemma all_accessible: "wf r ==> ALL M. M : acc (mult1 r)";
 proof;
@@ -28,7 +66,7 @@ proof;
       fix N; assume "(N, M0 + {#a#}) : ?R";
       hence "((EX M. (M, M0) : ?R & N = M + {#a#}) |
              (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K))";
-	by (simp only: less_add_conv);
+	by (rule less_add);
       thus "N : ?W";
       proof (elim exE disjE conjE);
 	fix M; assume "(M, M0) : ?R" and N: "N = M + {#a#}";
@@ -40,7 +78,7 @@ proof;
 	assume N: "N = M0 + K";
 	assume "ALL b. elem K b --> (b, a) : r";
 	have "?this --> M0 + K : ?W" (is "?P K");
-	proof (rule multiset_induct [of _ K]);
+	proof (induct K rule: multiset_induct);
 	  from M0; have "M0 + {#} : ?W"; by simp;
 	  thus "?P {#}"; ..;
 
@@ -66,7 +104,7 @@ proof;
   assume wf: "wf r";
   fix M;
   show "M : ?W";
-  proof (rule multiset_induct [of _ M]);
+  proof (induct M rule: multiset_induct);
     show "{#} : ?W";
     proof (rule accI);
       fix b; assume "(b, {#}) : ?R";
