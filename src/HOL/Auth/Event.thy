@@ -73,10 +73,12 @@ primrec
   used_Nil:   "used []         = (UN B. parts (initState B))"
   used_Cons:  "used (ev # evs) =
 		     (case ev of
-			Says A B X => parts {X} \<union> (used evs)
+			Says A B X => parts {X} \<union> used evs
 		      | Gets A X   => used evs
-		      | Notes A X  => parts {X} \<union> (used evs))"
-
+		      | Notes A X  => parts {X} \<union> used evs)"
+    --{*The case for @{term Gets} seems anomalous, but @{term Gets} always
+        follows @{term Says} in real protocols.  Seems difficult to change.
+        See @{text Gets_correct} in theory @{text "Guard/Extensions.thy"}. *}
 
 lemma Notes_imp_used [rule_format]: "Notes A X \<in> set evs --> X \<in> used evs"
 apply (induct_tac evs)
@@ -101,7 +103,7 @@ text{*Simplifying   @term{"parts (insert X (knows Spy evs))
       = parts {X} \<union> parts (knows Spy evs)"}.  The general case loops.*)
 
 text{*This version won't loop with the simplifier.*}
-lemmas parts_insert_knows_Spy = parts_insert [of _ "knows Spy evs", standard]
+lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs", standard]
 
 lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
@@ -118,15 +120,15 @@ lemma knows_Spy_Gets [simp]: "knows Spy (Gets A X # evs) = knows Spy evs"
 by simp
 
 lemma knows_Spy_subset_knows_Spy_Says:
-     "knows Spy evs <= knows Spy (Says A B X # evs)"
+     "knows Spy evs \<subseteq> knows Spy (Says A B X # evs)"
 by (simp add: subset_insertI)
 
 lemma knows_Spy_subset_knows_Spy_Notes:
-     "knows Spy evs <= knows Spy (Notes A X # evs)"
+     "knows Spy evs \<subseteq> knows Spy (Notes A X # evs)"
 by force
 
 lemma knows_Spy_subset_knows_Spy_Gets:
-     "knows Spy evs <= knows Spy (Gets A X # evs)"
+     "knows Spy evs \<subseteq> knows Spy (Gets A X # evs)"
 by (simp add: subset_insertI)
 
 text{*Spy sees what is sent on the traffic*}
@@ -152,7 +154,7 @@ lemmas knows_Spy_partsEs =
 text{*Compatibility for the old "spies" function*}
 lemmas spies_partsEs = knows_Spy_partsEs
 lemmas Says_imp_spies = Says_imp_knows_Spy
-lemmas parts_insert_spies = parts_insert_knows_Spy
+lemmas parts_insert_spies = parts_insert_knows_A [of _ Spy]
 
 
 subsection{*Knowledge of Agents*}
@@ -168,17 +170,14 @@ lemma knows_Gets:
 by simp
 
 
-lemma knows_subset_knows_Says: "knows A evs <= knows A (Says A' B X # evs)"
-apply (simp add: subset_insertI)
-done
+lemma knows_subset_knows_Says: "knows A evs \<subseteq> knows A (Says A' B X # evs)"
+by (simp add: subset_insertI)
 
-lemma knows_subset_knows_Notes: "knows A evs <= knows A (Notes A' X # evs)"
-apply (simp add: subset_insertI)
-done
+lemma knows_subset_knows_Notes: "knows A evs \<subseteq> knows A (Notes A' X # evs)"
+by (simp add: subset_insertI)
 
-lemma knows_subset_knows_Gets: "knows A evs <= knows A (Gets A' X # evs)"
-apply (simp add: subset_insertI)
-done
+lemma knows_subset_knows_Gets: "knows A evs \<subseteq> knows A (Gets A' X # evs)"
+by (simp add: subset_insertI)
 
 text{*Agents know what they say*}
 lemma Says_imp_knows [rule_format]: "Says A B X \<in> set evs --> X \<in> knows A evs"
@@ -224,27 +223,16 @@ apply (simp_all (no_asm_simp) split add: event.split)
 apply blast
 done
 
-
-
-
-text{*NOTE REMOVAL--laws above are cleaner, as they don't involve "case"*}
-declare knows_Cons [simp del]
-
-
-subsection{*Fresh Nonces*}
-
-lemma parts_knows_Spy_subset_used: "parts (knows Spy evs) <= used evs"
-apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: parts_insert_knows_Spy split add: event.split)
-apply blast+
+lemma parts_knows_Spy_subset_used: "parts (knows Spy evs) \<subseteq> used evs"
+apply (induct_tac "evs", force)  
+apply (simp add: parts_insert_knows_A knows_Cons add: event.split, blast) 
 done
 
 lemmas usedI = parts_knows_Spy_subset_used [THEN subsetD, intro]
 
 lemma initState_into_used: "X \<in> parts (initState B) ==> X \<in> used evs"
 apply (induct_tac "evs")
-apply (simp_all (no_asm_simp) add: parts_insert_knows_Spy split add: event.split)
-apply blast
+apply (simp_all add: parts_insert_knows_A split add: event.split, blast)
 done
 
 lemma used_Says [simp]: "used (Says A B X # evs) = parts{X} \<union> used evs"
@@ -256,13 +244,14 @@ by simp
 lemma used_Gets [simp]: "used (Gets A X # evs) = used evs"
 by simp
 
-lemma used_nil_subset: "used [] <= used evs"
-apply (simp)
+lemma used_nil_subset: "used [] \<subseteq> used evs"
+apply simp
 apply (blast intro: initState_into_used)
 done
 
 text{*NOTE REMOVAL--laws above are cleaner, as they don't involve "case"*}
-declare used_Nil [simp del] used_Cons [simp del]
+declare knows_Cons [simp del]
+        used_Nil [simp del] used_Cons [simp del]
 
 
 text{*For proving theorems of the form @{term "X \<notin> analz (knows Spy evs) --> P"}
@@ -291,7 +280,7 @@ val analz_mono_contra_tac =
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"
 by (induct e, auto simp: knows_Cons)
 
-lemma initState_subset_knows: "initState A <= knows A evs"
+lemma initState_subset_knows: "initState A \<subseteq> knows A evs"
 apply (induct_tac evs, simp) 
 apply (blast intro: knows_subset_knows_Cons [THEN subsetD])
 done
@@ -322,31 +311,17 @@ val used_Cons      = thm "used_Cons"
 val Notes_imp_used = thm "Notes_imp_used";
 val Says_imp_used = thm "Says_imp_used";
 val MPair_used = thm "MPair_used";
-val parts_insert_knows_Spy = thm "parts_insert_knows_Spy";
-val knows_Spy_Says = thm "knows_Spy_Says";
-val knows_Spy_Notes = thm "knows_Spy_Notes";
-val knows_Spy_Gets = thm "knows_Spy_Gets";
-val knows_Spy_subset_knows_Spy_Says = thm "knows_Spy_subset_knows_Spy_Says";
-val knows_Spy_subset_knows_Spy_Notes = thm "knows_Spy_subset_knows_Spy_Notes";
-val knows_Spy_subset_knows_Spy_Gets = thm "knows_Spy_subset_knows_Spy_Gets";
 val Says_imp_knows_Spy = thm "Says_imp_knows_Spy";
 val Notes_imp_knows_Spy = thm "Notes_imp_knows_Spy";
 val knows_Spy_partsEs = thms "knows_Spy_partsEs";
 val spies_partsEs = thms "spies_partsEs";
 val Says_imp_spies = thm "Says_imp_spies";
 val parts_insert_spies = thm "parts_insert_spies";
-val knows_Says = thm "knows_Says";
-val knows_Notes = thm "knows_Notes";
-val knows_Gets = thm "knows_Gets";
-val knows_subset_knows_Says = thm "knows_subset_knows_Says";
-val knows_subset_knows_Notes = thm "knows_subset_knows_Notes";
-val knows_subset_knows_Gets = thm "knows_subset_knows_Gets";
 val Says_imp_knows = thm "Says_imp_knows";
 val Notes_imp_knows = thm "Notes_imp_knows";
 val Gets_imp_knows_agents = thm "Gets_imp_knows_agents";
 val knows_imp_Says_Gets_Notes_initState = thm "knows_imp_Says_Gets_Notes_initState";
 val knows_Spy_imp_Says_Notes_initState = thm "knows_Spy_imp_Says_Notes_initState";
-val parts_knows_Spy_subset_used = thm "parts_knows_Spy_subset_used";
 val usedI = thm "usedI";
 val initState_into_used = thm "initState_into_used";
 val used_Says = thm "used_Says";
@@ -360,6 +335,11 @@ val keysFor_parts_insert = thm "keysFor_parts_insert";
 
 
 val synth_analz_mono = thm "synth_analz_mono";
+
+val knows_Spy_subset_knows_Spy_Says = thm "knows_Spy_subset_knows_Spy_Says";
+val knows_Spy_subset_knows_Spy_Notes = thm "knows_Spy_subset_knows_Spy_Notes";
+val knows_Spy_subset_knows_Spy_Gets = thm "knows_Spy_subset_knows_Spy_Gets";
+
 
 val synth_analz_mono_contra_tac = 
   let val syan_impI = inst "P" "?Y \<notin> synth (analz (knows Spy ?evs))" impI

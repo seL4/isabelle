@@ -302,9 +302,9 @@ apply (analz_mono_contra, simp_all, blast)
 apply (force dest!: Crypt_imp_keysFor)     
 txt{*NS3*}
 apply blast 
-txt{*NS4*}
-apply (blast dest!: B_trusts_NS3
-	     dest: Says_imp_knows_Spy [THEN analz.Inj]
+txt{*NS4*} 
+apply (blast dest: B_trusts_NS3
+	           Says_imp_knows_Spy [THEN analz.Inj]
                    Crypt_Spy_analz_bad unique_session_keys)
 done
 
@@ -334,7 +334,7 @@ apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)
 txt{*NS3*}
 apply blast
 txt{*NS4*}
-apply (blast dest!: B_trusts_NS3
+apply (blast dest: B_trusts_NS3
 	     dest: Says_imp_knows_Spy [THEN analz.Inj]
                    unique_session_keys Crypt_Spy_analz_bad)
 done

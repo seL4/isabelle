@@ -176,9 +176,10 @@ primrec
        (Key ` range pubEK) \<union> (Key ` range pubSK)"
 
 
-
 text{*These lemmas allow reasoning about @{term "used evs"} rather than
-   @{term "knows Spy evs"}, which is useful when there are private Notes. *}
+   @{term "knows Spy evs"}, which is useful when there are private Notes. 
+   Because they depend upon the definition of @{term initState}, they cannot
+   be moved up.*}
 
 lemma used_parts_subset_parts [rule_format]:
      "\<forall>X \<in> used evs. parts {X} \<subseteq> used evs"
@@ -186,14 +187,10 @@ apply (induct evs)
  prefer 2
  apply (simp add: used_Cons)
  apply (rule ballI)  
- apply (case_tac a, auto)
- apply (drule parts_cut, assumption, simp) 
- apply (drule parts_cut, assumption, simp) 
+ apply (case_tac a, auto)  
+apply (auto dest!: parts_cut) 
 txt{*Base case*}
-apply (simp add: used_Nil, clarify) 
-apply (rename_tac B) 
-apply (rule_tac x=B in exI) 
-apply (case_tac B, auto) 
+apply (simp add: used_Nil) 
 done
 
 lemma MPair_used_D: "{|X,Y|} \<in> used H ==> X \<in> used H & Y \<in> used H"
@@ -217,6 +214,9 @@ done
 
 lemma Crypt_notin_initState: "Crypt K X \<notin> parts (initState B)"
 by (induct B, auto)
+
+lemma Crypt_notin_used_empty [simp]: "Crypt K X \<notin> used []"
+by (simp add: Crypt_notin_initState used_Nil)
 
 
 (*** Basic properties of shrK ***)
