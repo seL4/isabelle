@@ -103,8 +103,8 @@ val simp_thms = map prover
    "(P | P) = P", "(P | (P | Q)) = (P | Q)",
    "((~P) = (~Q)) = (P=Q)",
    "(!x.P) = P", "(? x.P) = P", "? x. x=t", "? x. t=x", 
-   "(? x. x=t & P(x)) = P(t)", "(? x. t=x & P(x)) = P(t)", 
-   "(! x. x=t --> P(x)) = P(t)", "(! x. t=x --> P(x)) = P(t)" ];
+   "(? x. x=t & P(x)) = P(t)", "(? x. t=x & P(x)) = P(t)",
+   "(! x. t=x --> P(x)) = P(t)" ];
 
 (*Add congruence rules for = (instead of ==) *)
 infix 4 addcongs delcongs;
@@ -138,6 +138,52 @@ val all_simps = map prover
                  "(ALL x. P x --> Q) = ((EX x.P x) --> Q)",
                  "(ALL x. P --> Q x) = (P --> (ALL x.Q x))"];
 
+(*** Simplification procedure for turning  ? x. ... & x = t & ...
+     into                                  ? x. x = t & ... & ...
+     where the latter can be rewritten via (? x. x = t & P(x)) = P(t)
+ ***)
+
+local
+
+fun def(eq as (c as Const("op =",_)) $ s $ t) =
+      if s = Bound 0 andalso not(loose_bvar1(t,0)) then Some eq else
+      if t = Bound 0 andalso not(loose_bvar1(s,0)) then Some(c$t$s)
+      else None
+  | def _ = None;
+
+fun extract(Const("op &",_) $ P $ Q) =
+      (case def P of
+         Some eq => Some(eq,Q)
+       | None => (case def Q of
+                   Some eq => Some(eq,P)
+                 | None =>
+       (case extract P of
+         Some(eq,P') => Some(eq, HOLogic.conj $ P' $ Q)
+       | None => (case extract Q of
+                   Some(eq,Q') => Some(eq,HOLogic.conj $ P $ Q')
+                 | None => None))))
+  | extract _ = None;
+
+fun prove_eq(ceqt) =
+  let val tac = rtac eq_reflection 1 THEN rtac iffI 1 THEN
+                ALLGOALS(EVERY'[etac exE, REPEAT o (etac conjE),
+                 rtac exI, REPEAT o (ares_tac [conjI] ORELSE' etac sym)])
+  in rule_by_tactic tac (trivial ceqt) end;
+
+fun rearrange sg (F as ex $ Abs(x,T,P)) =
+     (case extract P of
+        None => None
+      | Some(eq,Q) =>
+          let val ceqt = cterm_of sg
+                       (Logic.mk_equals(F,ex $ Abs(x,T,HOLogic.conj$eq$Q)))
+          in Some(prove_eq ceqt) end)
+  | rearrange _ _ = None;
+
+val pattern = read_cterm (sign_of HOL.thy) ("? x.P(x) & Q(x)",HOLogic.boolT)
+
+in
+val defEX_regroup = mk_simproc "defined EX" [pattern] rearrange;
+end;
 
 
 (* elimination of existential quantifiers in assumptions *)
@@ -314,6 +360,7 @@ val HOL_ss =
        de_Morgan_conj, de_Morgan_disj, not_imp,
        not_all, not_ex, cases_simp]
      @ ex_simps @ all_simps @ simp_thms)
+     addsimprocs [defEX_regroup]
      addcongs [imp_cong];
 
 qed_goal "if_distrib" HOL.thy

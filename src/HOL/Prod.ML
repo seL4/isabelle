@@ -78,16 +78,62 @@ val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
 
 end;
 
+(* Could be nice, but breaks too many proofs:
+claset := !claset addbefore split_all_tac;
+*)
+
+(*** lemmas for splitting paired `!!'
+Does not work with simplifier because it also affects premises in
+congrence rules, where is can lead to premises of the form
+!!a b. ... = ?P(a,b)
+which cannot be solved by reflexivity.
+   
+val [prem] = goal Prod.thy "(!!x.PROP P x) ==> (!!a b. PROP P(a,b))";
+br prem 1;
+val lemma1 = result();
+
+local
+    val psig = sign_of Prod.thy;
+    val pT = Sign.read_typ (psig, K None) "?'a*?'b=>prop";
+    val PeqP = reflexive(read_cterm psig ("P", pT));
+    val psplit = zero_var_indexes(read_instantiate [("p","x")]
+                                  surjective_pairing RS eq_reflection)
+in
+val adhoc = combination PeqP psplit
+end;
+
+
+val [prem] = goal Prod.thy "(!!a b. PROP P(a,b)) ==> PROP P x";
+bw adhoc;
+br prem 1;
+val lemma = result();
+
+val [prem] = goal Prod.thy "(!!a b. PROP P(a,b)) ==> (!!x. PROP P x)";
+br lemma 1;
+br prem 1;
+val lemma2 = result();
+
+bind_thm("split_paired_all", equal_intr lemma1 lemma2);
+Addsimps [split_paired_all];
+***)
+
 goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
 by (fast_tac (!claset addbefore split_all_tac) 1);
 qed "split_paired_All";
+Addsimps [split_paired_All];
+(* AddIffs is not a good idea because it makes Blast_tac loop *)
+
+goal Prod.thy "(? x. P x) = (? a b. P(a,b))";
+by (fast_tac (!claset addbefore split_all_tac) 1);
+qed "split_paired_Ex";
+(* Addsimps [split_paired_Ex]; breaks a number of IOA proofs *)
 
 goalw Prod.thy [split_def] "split c (a,b) = c a b";
 by (EVERY1[stac fst_conv, stac snd_conv]);
 by (rtac refl 1);
 qed "split";
 
-Addsimps [fst_conv, snd_conv, split_paired_All, split];
+Addsimps [fst_conv, snd_conv, split];
 
 goal Prod.thy "(s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
 by (res_inst_tac[("p","s")] PairE 1);
@@ -120,6 +166,12 @@ by (stac surjective_pairing 1);
 by (stac split 1);
 by (Blast_tac 1);
 qed "expand_split";
+
+(* could be done after split_tac has been speeded up significantly:
+simpset := (!simpset setloop split_tac[expand_split]);
+   precompute the constants involved and don't do anything unless
+   the current goal contains one of those constants
+*)
 
 (** split used as a logical connective or set former **)
 
@@ -252,7 +304,7 @@ Addsimps [Sigma_empty1,Sigma_empty2];
 goal Prod.thy "((a,b): Sigma A B) = (a:A & b:B(a))";
 by (Blast_tac 1);
 qed "mem_Sigma_iff";
-Addsimps [mem_Sigma_iff]; 
+AddIffs [mem_Sigma_iff]; 
 
 
 (*Suggested by Pierre Chartier*)
