@@ -57,7 +57,7 @@ inductive "parcontract"
     refl  "x =1=> x"
     K     "K#x#y =1=> x"
     S     "S#x#y#z =1=> (x#z)#(y#z)"
-    Ap    "[| x=1=>y;  z=1=>s |] ==> x#z =1=> y#s"
+    Ap    "[| x=1=>y;  z=1=>w |] ==> x#z =1=> y#w"
 
 
 (*Misc definitions*)
