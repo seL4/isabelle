@@ -12,6 +12,9 @@ complement;
 
 * HOL: the predicate "inj" is now defined by translation to "inj_on";
 
+* HOL/typedef: fixed type inference for representing set; type
+arguments now have to occur explicitly on the rhs as type constraints;
+
 * ZF: The con_defs part of an inductive definition may no longer refer
 to constants declared in the same theory;
 
@@ -73,6 +76,9 @@ int(m) < int(n)'.
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
 changed syntax and (many) tactics;
 
+* HOL/typedef: fixed type inference for representing set; type
+arguments now have to occur explicitly on the rhs as type constraints;
+
 
 *** ZF ***
 
@@ -98,6 +104,8 @@ if(P,x,y);
 
 
 *** Internal programming interfaces ***
+
+* AxClass.axclass_tac lost the theory argument;
 
 * tuned current_goals_markers semantics: begin / end goal avoids
 printing empty lines;
