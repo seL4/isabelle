@@ -20,13 +20,6 @@ lemma isRef_def2:
   "isRef v = (v = Null \<or> (\<exists>loc. v = Addr loc))"
   by (cases v) (auto simp add: isRef_def)
 
-
-(* fixme: move to List.thy *)
-lemma list_all2I:
-  "\<forall>x \<in> set (zip a b). split P x \<Longrightarrow> length a = length b \<Longrightarrow> list_all2 P a b"
-  by (simp add: list_all2_def)
-
-
 lemma app'Store[simp]:
   "app' (Store idx, G, pc, maxs, rT, (ST,LT)) = (\<exists>T ST'. ST = T#ST' \<and> idx < length LT)"
   by (cases ST, auto)
