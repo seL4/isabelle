@@ -23,4 +23,8 @@ constdefs
   Invariant :: "'a set => 'a program set"
     "Invariant A == {F. Init F <= A} Int Stable A"
 
+  (*Polymorphic in both states and the meaning of <= *)
+  Increasing :: "['a => 'b::{ord}] => 'a program set"
+    "Increasing f == INT z. Stable {s. z <= f s}"
+
 end
