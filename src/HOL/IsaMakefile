@@ -325,8 +325,9 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL \
   MicroJava/BV/BVSpec.thy MicroJava/BV/BVSpec.ML \
   MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/BVSpecTypeSafe.ML \
   MicroJava/BV/Convert.thy MicroJava/BV/Convert.ML \
-  MicroJava/BV/Correct.thy MicroJava/BV/Correct.ML
+  MicroJava/BV/Correct.thy MicroJava/BV/Correct.ML MicroJava/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL MicroJava
+
 
 ## HOL-BCV
 
