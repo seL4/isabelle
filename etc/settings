@@ -17,10 +17,10 @@
 #ML_OPTIONS="-h 30000"
 
 # Poly/ML 3.1
-#ML_SYSTEM=polyml-3.1
-#ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
-#ML_OPTIONS="-h 30000"
-#LM_LICENSE_FILE=$ML_HOME/license.dat
+ML_SYSTEM=polyml-3.1
+ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
+ML_OPTIONS="-h 30000"
+LM_LICENSE_FILE=$ML_HOME/license.dat
 
 # Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
@@ -33,9 +33,9 @@
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
 # Standard ML of New Jersey 110 or later
-ML_SYSTEM=smlnj-110
-ML_HOME=/usr/local/smlnj-110/bin
-ML_OPTIONS="@SMLdebug=/dev/null"
+#ML_SYSTEM=smlnj-110
+#ML_HOME=/usr/local/smlnj-110/bin
+#ML_OPTIONS="@SMLdebug=/dev/null"
 
 
 ###
@@ -63,7 +63,8 @@ ISABELLE_TMP_PREFIX=/tmp/isabelle
 
 ISABELLE_PATH=$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps
 
-#A hack! Isabelle build tells us to store heaps within the distribution.
+#A hack! Isabelle build tells us to store heaps etc. within the
+#distribution.
 if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
   ISABELLE_OUTPUT=$ISABELLE_HOME/heaps
   ISABELLE_BROWSER_INFO=$ISABELLE_HOME/browser_info
