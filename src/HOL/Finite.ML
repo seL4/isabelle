@@ -320,11 +320,9 @@ by (Simp_tac 1);
 by (Clarify_tac 1);
 by (case_tac "x:B" 1);
  by (dres_inst_tac [("A","B")] mk_disjoint_insert 1);
- by (SELECT_GOAL Safe_tac 1);
- by (rotate_tac ~1 1);
- by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
-by (rotate_tac ~1 1);
-by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
+by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff]) 2);
+by (fast_tac (claset() addss
+	      (simpset() addsimps [subset_insert_iff, finite_subset])) 1);
 qed_spec_mp "card_mono";
 
 goal Finite.thy "!!A B. [| finite A; finite B |]\
@@ -399,23 +397,20 @@ Addsimps [card_Pow];
 
 (*Proper subsets*)
 goalw Finite.thy [psubset_def]
-"!!B. finite B ==> !A. A < B --> card(A) < card(B)";
+    "!!B. finite B ==> !A. A < B --> card(A) < card(B)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
 by (Clarify_tac 1);
 by (case_tac "x:A" 1);
 (*1*)
 by (dres_inst_tac [("A","A")]mk_disjoint_insert 1);
-by (etac exE 1);
-by (etac conjE 1);
-by (hyp_subst_tac 1);
-by (rotate_tac ~1 1);
-by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
+by (Clarify_tac 1);
+by (rotate_tac ~3 1);
+by (asm_full_simp_tac (simpset() addsimps [finite_subset]) 1);
 by (Blast_tac 1);
 (*2*)
-by (rotate_tac ~1 1);
 by (eres_inst_tac [("P","?a<?b")] notE 1);
-by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff,finite_subset]) 1);
+by (asm_full_simp_tac (simpset() addsimps [subset_insert_iff]) 1);
 by (case_tac "A=F" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "psubset_card" ;
