@@ -37,6 +37,11 @@ by (rtac (mod_eq RS wf_less_trans) 1);
 by (asm_simp_tac (simpset() addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "mod_geq";
 
+(*NOT suitable for rewriting: loops*)
+goal thy "!!m. 0<n ==> m mod n = (if m<n then m else (m-n) mod n)";
+by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq]) 1);
+qed "mod_if";
+
 goal thy "m mod 1 = 0";
 by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_less, mod_geq])));
@@ -55,22 +60,18 @@ qed "mod_eq_add";
 
 goal thy "!!k. [| 0<k; 0<n |] ==> (m mod n)*k = (m*k) mod (n*k)";
 by (res_inst_tac [("n","m")] less_induct 1);
-by (case_tac "na<n" 1);
-(*case na<n*)
-by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
-(*case n<=na*)
-by (asm_simp_tac (simpset() addsimps [mod_geq, diff_less, zero_less_mult_iff, 
-				     diff_mult_distrib]) 1);
+by (stac mod_if 1);
+by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq, 
+				      diff_less, diff_mult_distrib]) 1);
 qed "mod_mult_distrib";
 
 goal thy "!!k. [| 0<k; 0<n |] ==> k*(m mod n) = (k*m) mod (k*n)";
 by (res_inst_tac [("n","m")] less_induct 1);
-by (case_tac "na<n" 1);
-(*case na<n*)
-by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
-(*case n<=na*)
-by (asm_simp_tac (simpset() addsimps [mod_geq, diff_less, zero_less_mult_iff, 
-				     diff_mult_distrib2]) 1);
+by (stac mod_if 1);
+by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq, 
+				      diff_less, diff_mult_distrib2]) 1);
 qed "mod_mult_distrib2";
 
 goal thy "!!n. 0<n ==> m*n mod n = 0";
@@ -98,14 +99,19 @@ by (rtac (div_eq RS wf_less_trans) 1);
 by (asm_simp_tac (simpset() addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "div_geq";
 
+(*NOT suitable for rewriting: loops*)
+goal thy "!!m. 0<n ==> m div n = (if m<n then 0 else Suc((m-n) div n))";
+by (asm_simp_tac (simpset() addsimps [div_less, div_geq]) 1);
+qed "div_if";
+
 (*Main Result about quotient and remainder.*)
 goal thy "!!m. 0<n ==> (m div n)*n + m mod n = m";
 by (res_inst_tac [("n","m")] less_induct 1);
-by (rename_tac "k" 1);    (*Variable name used in line below*)
-by (case_tac "k<n" 1);
-by (ALLGOALS (asm_simp_tac(simpset() addsimps ([add_assoc] @
-                       [mod_less, mod_geq, div_less, div_geq,
-                        add_diff_inverse, diff_less]))));
+by (stac mod_if 1);
+by (ALLGOALS (asm_simp_tac 
+	      (simpset() addsimps ([add_assoc] @
+				   [div_less, div_geq,
+				    add_diff_inverse, diff_less]))));
 qed "mod_div_equality";
 
 (* a simple rearrangement of mod_div_equality: *)
