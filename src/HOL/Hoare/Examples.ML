@@ -37,6 +37,30 @@ by  (force_tac (claset(),
 by (asm_simp_tac (simpset() addsimps [gcd_diff_r,less_imp_le]) 1);
 qed "Euclid_GCD";
 
+(** Dijkstra's extension of Euclid's algorithm for simultaneous GCD and SCM **)
+(* From E.W. Disjkstra. Selected Writings on Computing, p 98 (EWD474),
+   where it is given without the invariant. Instead of defining scm
+   explicitly we have used the theorem scm x y = x*y/gcd x y and avoided
+   division by mupltiplying with gcd x y.
+*)
+
+val distribs =
+  [diff_mult_distrib,diff_mult_distrib2,add_mult_distrib,add_mult_distrib2];
+
+Goal "|- VARS a b x y. \
+\ {0<A & 0<B & a=A & b=B & x=B & y=A} \
+\ WHILE  a ~= b  \
+\ INV {0<a & 0<b & gcd A B = gcd a b & #2*A*B = a*x + b*y} \
+\ DO IF a<b THEN (b := b-a; x := x+y) ELSE (a := a-b; y := y+x) FI OD \
+\ {a = gcd A B & #2*A*B = a*(x+y)}";
+by (hoare_tac (K all_tac) 1);
+by(Asm_simp_tac 1);
+by(asm_simp_tac (simpset() addsimps
+    (distribs @ [gcd_diff_r,not_less_iff_le, gcd_diff_l])) 1);
+by(arith_tac 1);
+by(asm_full_simp_tac (simpset() addsimps (distribs @ [gcd_nnn])) 1);
+qed "gcd_scm";
+
 (** Power by iterated squaring and multiplication **)
 
 Goal "|- VARS a b c. \

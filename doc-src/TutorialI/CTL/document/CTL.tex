@@ -1,0 +1,228 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{CTL}%
+\isacommand{theory}\ CTL\ {\isacharequal}\ Main{\isacharcolon}\isanewline
+\isanewline
+\isacommand{typedecl}\ atom\isanewline
+\isacommand{types}\ state\ {\isacharequal}\ {\isachardoublequote}atom\ set{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{datatype}\ ctl{\isacharunderscore}form\ {\isacharequal}\ Atom\ atom\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ NOT\ ctl{\isacharunderscore}form\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ ctl{\isacharunderscore}form\ ctl{\isacharunderscore}form\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AX\ ctl{\isacharunderscore}form\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ EF\ ctl{\isacharunderscore}form\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ ctl{\isacharunderscore}form\isanewline
+\isanewline
+\isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ ctl{\isacharunderscore}form\ {\isasymRightarrow}\ bool{\isachardoublequote}\ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}\isadigit{8}\isadigit{0}{\isacharcomma}\isadigit{8}\isadigit{0}{\isacharbrackright}\ \isadigit{8}\isadigit{0}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ M\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}state\ {\isasymtimes}\ state{\isacharparenright}set{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{constdefs}\ Paths\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}set{\isachardoublequote}\isanewline
+{\isachardoublequote}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{primrec}\isanewline
+{\isachardoublequote}s\ {\isasymTurnstile}\ Atom\ a\ \ {\isacharequal}\ \ {\isacharparenleft}a{\isasymin}s{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}s\ {\isasymTurnstile}\ NOT\ f\ \ \ {\isacharequal}\ {\isacharparenleft}{\isachartilde}{\isacharparenleft}s\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}s\ {\isasymTurnstile}\ And\ f\ g\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymand}\ s\ {\isasymTurnstile}\ g{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}s\ {\isasymTurnstile}\ AX\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}s\ {\isasymTurnstile}\ EF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}s\ {\isasymTurnstile}\ AF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{constdefs}\ af\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
+{\isachardoublequote}af\ A\ T\ {\isasymequiv}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymin}\ T{\isacharbraceright}{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{lemma}\ mono{\isacharunderscore}af{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ intro{\isacharcolon}monoI{\isacharparenright}\isanewline
+\isanewline
+\isacommand{consts}\ mc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ctl{\isacharunderscore}form\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
+\isacommand{primrec}\isanewline
+{\isachardoublequote}mc{\isacharparenleft}Atom\ a{\isacharparenright}\ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ a{\isasymin}s{\isacharbraceright}{\isachardoublequote}\isanewline
+{\isachardoublequote}mc{\isacharparenleft}NOT\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequote}\isanewline
+{\isachardoublequote}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequote}\isanewline
+{\isachardoublequote}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequote}\isanewline
+{\isachardoublequote}mc{\isacharparenleft}EF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ mc\ f\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t{\isasymin}T{\isacharbraceright}{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}mc{\isacharparenleft}AF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}af{\isacharparenleft}mc\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isanewline
+\isacommand{lemma}\ mono{\isacharunderscore}ef{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t{\isasymin}T{\isacharbraceright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ monoI{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isanewline
+\isacommand{lemma}\ lfp{\isacharunderscore}conv{\isacharunderscore}EF{\isacharcolon}\isanewline
+{\isachardoublequote}lfp{\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t{\isasymin}T{\isacharbraceright}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ equalityI{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}erule\ Lfp{\isachardot}induct{\isacharparenright}\isanewline
+\ \ \isacommand{apply}{\isacharparenleft}rule\ mono{\isacharunderscore}ef{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ r{\isacharunderscore}into{\isacharunderscore}rtrancl\ rtrancl{\isacharunderscore}trans{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ conjE{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequote}t{\isasymin}A{\isachardoublequote}\ \isakeyword{in}\ rev{\isacharunderscore}mp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ converse{\isacharunderscore}rtrancl{\isacharunderscore}induct{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}rule\ ssubst\ {\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ ssubst\ {\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}ef{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isanewline
+\isacommand{theorem}\ lfp{\isacharunderscore}subset{\isacharunderscore}AF{\isacharcolon}\isanewline
+{\isachardoublequote}lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymsubseteq}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ Lfp{\isachardot}induct{\isacharbrackleft}OF\ {\isacharunderscore}\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ disjE{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}p\ \isadigit{1}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}i{\isachardot}\ p{\isacharparenleft}i{\isacharplus}\isadigit{1}{\isacharparenright}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast{\isacharparenright}%
+\begin{isamarkuptext}%
+The opposite direction is proved by contradiction: if some state
+{term s} is not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then we can construct an
+infinite \isa{A}-avoiding path starting from \isa{s}. The reason is
+that by unfolding \isa{lfp} we find that if \isa{s} is not in
+\isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then \isa{s} is not in \isa{A} and there is a
+direct successor of \isa{s} that is again not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Iterating this argument yields the promised infinite
+\isa{A}-avoiding path. Let us formalize this sketch.
+
+The one-step argument in the above sketch%
+\end{isamarkuptext}%
+\isacommand{lemma}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharcolon}\isanewline
+\ {\isachardoublequote}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ swap{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ ssubst{\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}af{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+is proved by a variant of contraposition (\isa{swap}:
+\isa{{\isasymlbrakk}{\isasymnot}\ Pa{\isacharsemicolon}\ {\isasymnot}\ P\ {\isasymLongrightarrow}\ Pa{\isasymrbrakk}\ {\isasymLongrightarrow}\ P}), i.e.\ assuming the negation of the conclusion
+and proving \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Unfolding \isa{lfp} once and
+simplifying with the definition of \isa{af} finishes the proof.
+
+Now we iterate this process. The following construction of the desired
+path is parameterized by a predicate \isa{P} that should hold along the path:%
+\end{isamarkuptext}%
+\isacommand{consts}\ path\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}state\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{primrec}\isanewline
+{\isachardoublequote}path\ s\ P\ \isadigit{0}\ {\isacharequal}\ s{\isachardoublequote}\isanewline
+{\isachardoublequote}path\ s\ P\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ P\ n{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+Element \isa{n\ {\isacharplus}\ \isadigit{1}} on this path is some arbitrary successor
+\isa{t} of element \isa{n} such that \isa{P\ t} holds.  Of
+course, such a \isa{t} may in general not exist, but that is of no
+concern to us since we will only use \isa{path} in such cases where a
+suitable \isa{t} does exist.
+
+Now we prove that if each state \isa{s} that satisfies \isa{P}
+has a successor that again satisfies \isa{P}, then there exists an infinite \isa{P}-path.%
+\end{isamarkuptext}%
+\isacommand{lemma}\ seq{\isacharunderscore}lemma{\isacharcolon}\isanewline
+{\isachardoublequote}{\isasymlbrakk}\ P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ P{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+First we rephrase the conclusion slightly because we need to prove both the path property
+and the fact that \isa{P} holds simultaneously:%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}{\isasymexists}\ p{\isachardot}\ s\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}\ i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}p{\isacharparenleft}i{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+From this proposition the original goal follows easily%
+\end{isamarkuptxt}%
+\ \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharcomma}\ blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}path\ s\ P{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}intro\ strip{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI\isadigit{2}EX{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isanewline
+\isacommand{lemma}\ seq{\isacharunderscore}lemma{\isacharcolon}\isanewline
+{\isachardoublequote}{\isasymlbrakk}\ P\ s{\isacharsemicolon}\ {\isasymforall}\ s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}{\isasymin}M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\isanewline
+\ {\isasymexists}\ p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}\ i{\isachardot}\ P{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\isanewline
+\ {\isachardoublequote}{\isasymexists}\ p{\isachardot}\ s\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}\ i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}p{\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}{\isasymin}M\ {\isasymand}\ P{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}nat{\isacharunderscore}rec\ s\ {\isacharparenleft}{\isasymlambda}n\ t{\isachardot}\ SOME\ u{\isachardot}\ {\isacharparenleft}t{\isacharcomma}u{\isacharparenright}{\isasymin}M\ {\isasymand}\ P\ u{\isacharparenright}{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}intro\ strip{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI\isadigit{2}EX{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isanewline
+\isacommand{theorem}\ AF{\isacharunderscore}subset{\isacharunderscore}lfp{\isacharcolon}\isanewline
+{\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ contrapos\isadigit{2}{\isacharparenright}\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{apply}{\isacharparenleft}drule\ seq{\isacharunderscore}lemma{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}auto\ dest{\isacharcolon}not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
+\isanewline
+\isanewline
+\isanewline
+\isanewline
+\isacommand{consts}\ Avoid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
+\isacommand{inductive}\ {\isachardoublequote}Avoid\ s\ A{\isachardoublequote}\isanewline
+\isakeyword{intros}\ {\isachardoublequote}s\ {\isasymin}\ Avoid\ s\ A{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ {\isachardoublequote}{\isasymlbrakk}\ t\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\ t\ {\isasymnotin}\ A{\isacharsemicolon}\ {\isacharparenleft}t{\isacharcomma}u{\isacharparenright}\ {\isasymin}\ M\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ u\ {\isasymin}\ Avoid\ s\ A{\isachardoublequote}\isanewline
+\isanewline
+\isanewline
+\isacommand{lemma}\ ex{\isacharunderscore}infinite{\isacharunderscore}path{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
+{\isachardoublequote}t\ {\isasymin}\ Avoid\ s\ A\ \ {\isasymLongrightarrow}\isanewline
+\ {\isasymforall}f{\isachardot}\ t\ {\isacharequal}\ f\ \isadigit{0}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}f\ i{\isacharcomma}\ f\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ f\ i\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ f\ i\ {\isasymnotin}\ A{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ Avoid{\isachardot}induct{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ allI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}i{\isachardot}\ case\ i\ of\ \isadigit{0}\ {\isasymRightarrow}\ t\ {\isacharbar}\ Suc\ i\ {\isasymRightarrow}\ f\ i{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}force\ split{\isacharcolon}nat{\isachardot}split{\isacharparenright}\isanewline
+\isanewline
+\isacommand{lemma}\ Avoid{\isacharunderscore}in{\isacharunderscore}lfp{\isacharbrackleft}rule{\isacharunderscore}format{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharbrackright}{\isacharcolon}\isanewline
+{\isachardoublequote}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ Avoid\ s\ A\ {\isasymlongrightarrow}\ t\ {\isasymin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}wf{\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isasymin}M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}{\isachardoublequote}{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ a\ {\isacharequal}\ t\ \isakeyword{in}\ wf{\isacharunderscore}induct{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}rule\ ssubst\ {\isacharbrackleft}OF\ lfp{\isacharunderscore}Tarski{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharbrackright}{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}unfold\ af{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ contrapos\isadigit{2}{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}wf{\isacharunderscore}iff{\isacharunderscore}no{\isacharunderscore}infinite{\isacharunderscore}down{\isacharunderscore}chain{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ ex{\isacharunderscore}infinite{\isacharunderscore}path{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}auto{\isacharparenright}\isanewline
+\isanewline
+\isacommand{theorem}\ AF{\isacharunderscore}subset{\isacharunderscore}lfp{\isacharcolon}\isanewline
+{\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}erule\ Avoid{\isacharunderscore}in{\isacharunderscore}lfp{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}rule\ Avoid{\isachardot}intros{\isacharparenright}\isanewline
+\isanewline
+\isanewline
+\isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
+\isacommand{by}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lfp{\isacharunderscore}conv{\isacharunderscore}EF\ equalityI{\isacharbrackleft}OF\ lfp{\isacharunderscore}subset{\isacharunderscore}AF\ AF{\isacharunderscore}subset{\isacharunderscore}lfp{\isacharbrackright}{\isacharparenright}\isanewline
+\isanewline
+\isacommand{end}\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
