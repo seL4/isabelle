@@ -205,14 +205,14 @@ qed "not_neg_eq_ge_int0";
 
 Goalw [nat_def] "nat(int n) = n";
 by Auto_tac;
-qed "nat_nat";
+qed "nat_int";
 
 Goalw [nat_def] "nat(- int n) = 0";
 by (auto_tac (claset(),
 	      simpset() addsimps [neg_eq_less_int0, zminus_zless])); 
-qed "nat_zminus_nat";
+qed "nat_zminus_int";
 
-Addsimps [nat_nat, nat_zminus_nat];
+Addsimps [nat_int, nat_zminus_int];
 
 Goal "~ neg z ==> int (nat z) = z"; 
 by (dtac (not_neg_eq_ge_int0 RS iffD1) 1); 
@@ -245,12 +245,12 @@ Goal "z <= int 0 ==> nat z = 0";
 by (auto_tac (claset(), 
 	      simpset() addsimps [order_le_less, neg_eq_less_int0, 
 				  zle_def, neg_nat])); 
-qed "nat_le_0"; 
+qed "nat_le_int0"; 
 
 Goal "(nat w < nat z) = (int 0 < z & w < z)";
 by (case_tac "int 0 < z" 1);
 by (auto_tac (claset(), 
-	      simpset() addsimps [lemma, nat_le_0, linorder_not_less])); 
+	      simpset() addsimps [lemma, nat_le_int0, linorder_not_less])); 
 qed "zless_nat_conj";
 
 
