@@ -266,10 +266,10 @@ qed "invariant_Int";
 (*** increasing ***)
 
 Goalw [increasing_def, stable_def, constrains_def]
-     "increasing f <= increasing (length o f)";
+     "mono g ==> increasing f <= increasing (g o f)";
 by Auto_tac;
-by (blast_tac (claset() addIs [prefix_length_le, le_trans]) 1);
-qed "increasing_size";
+by (blast_tac (claset() addIs [monoD, order_trans]) 1);
+qed "mono_increasing_o";
 
 Goalw [increasing_def]
      "increasing f <= {F. ALL z::nat. F: stable {s. z < f s}}";
