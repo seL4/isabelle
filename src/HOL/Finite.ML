@@ -56,10 +56,22 @@ qed "finite_subset";
 
 Goal "finite(F Un G) = (finite F & finite G)";
 by (blast_tac (claset() 
-	         addIs [read_instantiate [("B", "?AA Un ?BB")] finite_subset, 
+	         addIs [read_instantiate [("B", "?X Un ?Y")] finite_subset, 
 			finite_UnI]) 1);
 qed "finite_Un";
 AddIffs[finite_Un];
+
+Goal "finite F ==> finite(F Int G)";
+by (blast_tac (claset() addIs [finite_subset]) 1);
+qed "finite_Int1";
+
+Goal "finite G ==> finite(F Int G)";
+by (blast_tac (claset() addIs [finite_subset]) 1);
+qed "finite_Int2";
+
+Addsimps[finite_Int1, finite_Int2];
+AddIs[finite_Int1, finite_Int2];
+
 
 Goal "finite(insert a A) = finite A";
 by (stac insert_is_Un 1);
