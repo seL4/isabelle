@@ -3,7 +3,7 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Finite powerset operator
+Finite powerset operator; finite function space
 
 prove X:Fin(A) ==> |X| < nat
 
@@ -11,6 +11,8 @@ prove:  b: Fin(A) ==> inj(b,b)<=surj(b,b)
 *)
 
 open Finite;
+
+(*** Finite powerset operator ***)
 
 goalw Finite.thy Fin.defs "!!A B. A<=B ==> Fin(A) <= Fin(B)";
 by (rtac lfp_mono 1);
@@ -55,9 +57,10 @@ val Fin_UnionI = result();
 goal Finite.thy "!!b A. b: Fin(A) ==> ALL z. z<=b --> z: Fin(A)";
 by (etac Fin_induct 1);
 by (simp_tac (Fin_ss addsimps [subset_empty_iff]) 1);
-by (safe_tac (ZF_cs addSDs [subset_cons_iff RS iffD1]));
-by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 2);
-by (ALLGOALS (asm_simp_tac Fin_ss));
+by (asm_simp_tac (ZF_ss addsimps subset_cons_iff::distrib_rews) 1);
+by (safe_tac ZF_cs);
+by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 1);
+by (asm_simp_tac Fin_ss 1);
 val Fin_subset_lemma = result();
 
 goal Finite.thy "!!c b A. [| c<=b;  b: Fin(A) |] ==> c: Fin(A)";
@@ -92,3 +95,47 @@ by (simp_tac (ZF_ss addsimps [Pi_empty1, Fin.emptyI, subset_iff, cons_iff]) 1);
 by (asm_simp_tac (ZF_ss addsimps [succ_def, mem_not_refl RS cons_fun_eq]) 1);
 by (fast_tac (ZF_cs addSIs [Fin.consI]) 1);
 val nat_fun_subset_Fin = result();
+
+
+(*** Finite function space ***)
+
+goalw Finite.thy FiniteFun.defs
+    "!!A B C D. [| A<=C;  B<=D |] ==> A -||> B  <=  C -||> D";
+by (rtac lfp_mono 1);
+by (REPEAT (rtac FiniteFun.bnd_mono 1));
+by (REPEAT (ares_tac (Fin_mono::Sigma_mono::basic_monos) 1));
+val FiniteFun_mono = result();
+
+goal Finite.thy "!!A B. A<=B ==> A -||> A  <=  B -||> B";
+by (REPEAT (ares_tac [FiniteFun_mono] 1));
+val FiniteFun_mono1 = result();
+
+goal Finite.thy "!!h. h: A -||>B ==> h: domain(h) -> B";
+by (etac FiniteFun.induct 1);
+by (simp_tac (ZF_ss addsimps [empty_fun, domain_0]) 1);
+by (asm_simp_tac (ZF_ss addsimps [fun_extend3, domain_cons]) 1);
+val FiniteFun_is_fun = result();
+
+goal Finite.thy "!!h. h: A -||>B ==> domain(h) : Fin(A)";
+by (etac FiniteFun.induct 1);
+by (simp_tac (Fin_ss addsimps [domain_0]) 1);
+by (asm_simp_tac (Fin_ss addsimps [domain_cons]) 1);
+val FiniteFun_domain_Fin = result();
+
+val FiniteFun_apply_type = FiniteFun_is_fun RS apply_type |> standard;
+
+(*Every subset of a finite function is a finite function.*)
+goal Finite.thy "!!b A. b: A-||>B ==> ALL z. z<=b --> z: A-||>B";
+by (etac FiniteFun.induct 1);
+by (simp_tac (ZF_ss addsimps subset_empty_iff::FiniteFun.intrs) 1);
+by (asm_simp_tac (ZF_ss addsimps subset_cons_iff::distrib_rews) 1);
+by (safe_tac ZF_cs);
+by (eres_inst_tac [("b","z")] (cons_Diff RS subst) 1);
+by (dtac (spec RS mp) 1 THEN assume_tac 1);
+by (fast_tac (ZF_cs addSIs FiniteFun.intrs) 1);
+val FiniteFun_subset_lemma = result();
+
+goal Finite.thy "!!c b A. [| c<=b;  b: A-||>B |] ==> c: A-||>B";
+by (REPEAT (ares_tac [FiniteFun_subset_lemma RS spec RS mp] 1));
+val FiniteFun_subset = result();
+

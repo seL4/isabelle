@@ -3,11 +3,12 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Datatype Definitions involving ->
-	Even infinite-branching!
+Datatype Definitions involving function space and/or infinite-branching
 *)
 
-(*** Closure under finite powerset ***)
+(*** FINITE BRANCHING ***)
+
+(** Closure under finite powerset **)
 
 val Fin_Univ_thy = merge_theories (Univ.thy,Finite.thy);
 
@@ -34,6 +35,12 @@ val Fin_VLimit = result();
 val Fin_subset_VLimit = 
     [Fin_mono, Fin_VLimit] MRS subset_trans |> standard;
 
+goalw Fin_Univ_thy [univ_def] "Fin(univ(A)) <= univ(A)";
+by (rtac (Limit_nat RS Fin_VLimit) 1);
+val Fin_univ = result();
+
+(** Closure under finite powers (functions from a fixed natural number) **)
+
 goal Fin_Univ_thy
     "!!i. [| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)";
 by (eresolve_tac [nat_fun_subset_Fin RS subset_trans] 1);
@@ -44,19 +51,47 @@ val nat_fun_VLimit = result();
 val nat_fun_subset_VLimit = 
     [Pi_mono, nat_fun_VLimit] MRS subset_trans |> standard;
 
-
-goalw Fin_Univ_thy [univ_def] "Fin(univ(A)) <= univ(A)";
-by (rtac (Limit_nat RS Fin_VLimit) 1);
-val Fin_univ = result();
-
-val Fin_subset_univ = [Fin_mono, Fin_univ] MRS subset_trans |> standard;
-
 goalw Fin_Univ_thy [univ_def] "!!i. n: nat ==> n -> univ(A) <= univ(A)";
 by (etac (Limit_nat RSN (2,nat_fun_VLimit)) 1);
 val nat_fun_univ = result();
 
 
-(*** Infinite branching ***)
+(** Closure under finite function space **)
+
+(*General but seldom-used version; normally the domain is fixed*)
+goal Fin_Univ_thy
+    "!!i. Limit(i) ==> Vfrom(A,i) -||> Vfrom(A,i) <= Vfrom(A,i)";
+by (resolve_tac [FiniteFun.dom_subset RS subset_trans] 1);
+by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit, subset_refl] 1));
+val FiniteFun_VLimit1 = result();
+
+goalw Fin_Univ_thy [univ_def] "univ(A) -||> univ(A) <= univ(A)";
+by (rtac (Limit_nat RS FiniteFun_VLimit1) 1);
+val FiniteFun_univ1 = result();
+
+(*Version for a fixed domain*)
+goal Fin_Univ_thy
+   "!!i.  [| W <= Vfrom(A,i); Limit(i) |] ==> W -||> Vfrom(A,i) <= Vfrom(A,i)";
+by (eresolve_tac [subset_refl RSN (2, FiniteFun_mono) RS subset_trans] 1);
+by (eresolve_tac [FiniteFun_VLimit1] 1);
+val FiniteFun_VLimit = result();
+
+goalw Fin_Univ_thy [univ_def]
+    "!!W. W <= univ(A) ==> W -||> univ(A) <= univ(A)";
+by (etac (Limit_nat RSN (2, FiniteFun_VLimit)) 1);
+val FiniteFun_univ = result();
+
+goal Fin_Univ_thy
+    "!!W. [| f: W -||> univ(A);  W <= univ(A) |] ==> f : univ(A)";
+by (eresolve_tac [FiniteFun_univ RS subsetD] 1);
+by (assume_tac 1);
+val FiniteFun_in_univ = result();
+
+(*Remove <= from the rule above*)
+val FiniteFun_in_univ' = subsetI RSN (2, FiniteFun_in_univ);
+
+
+(*** INFINITE BRANCHING ***)
 
 val fun_Limit_VfromE = 
     [apply_funtype, InfCard_csucc RS InfCard_is_Limit] MRS Limit_VfromE
@@ -88,7 +123,7 @@ val subset_Vcsucc = result();
 
 (*Version for arbitrary index sets*)
 goal InfDatatype.thy
-    "!!K. [| |W| le K;  W <= Vfrom(A,csucc(K));  InfCard(K) |] ==> \
+    "!!K. [| |W| le K;  InfCard(K);  W <= Vfrom(A,csucc(K)) |] ==> \
 \         W -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))";
 by (safe_tac (ZF_cs addSDs [fun_Vcsucc_lemma, subset_Vcsucc]));
 by (resolve_tac [Vfrom RS ssubst] 1);
