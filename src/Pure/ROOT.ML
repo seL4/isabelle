@@ -49,6 +49,7 @@ use "tctical.ML";
 use "search.ML";
 use "tactic.ML";
 use "goals.ML";
+use "object_logic.ML";
 
 (*proof term operations*)
 cd "Proof";
