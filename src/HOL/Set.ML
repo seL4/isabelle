@@ -44,6 +44,8 @@ val prems = Goalw [Ball_def]
 by (REPEAT (ares_tac (prems @ [allI,impI]) 1));
 qed "ballI";
 
+bind_thms ("strip", [impI, allI, ballI]);
+
 Goalw [Ball_def] "[| ! x:A. P(x);  x:A |] ==> P(x)";
 by (Blast_tac 1);
 qed "bspec";
