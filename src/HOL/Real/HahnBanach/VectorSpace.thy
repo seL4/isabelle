@@ -5,8 +5,6 @@
 
 header {* Vector spaces *}
 
-(* theory VectorSpace = Aux: *)
-
 theory VectorSpace = Real + Bounds + Zorn:
 
 subsection {* Signature *}
