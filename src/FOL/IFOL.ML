@@ -51,8 +51,7 @@ qed_goal "not_to_imp" IFOL.thy
     "[| ~P;  (P-->False) ==> Q |] ==> Q"
  (fn prems=> [ (REPEAT (ares_tac (prems@[impI,notE]) 1)) ]);
 
-
-(* For substitution int an assumption P, reduce Q to P-->Q, substitute into
+(* For substitution into an assumption P, reduce Q to P-->Q, substitute into
    this implication, then apply impI to move P back into the assumptions.
    To specify P use something like
       eres_inst_tac [ ("P","ALL y. ?S(x,y)") ] rev_mp 1   *)
