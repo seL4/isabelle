@@ -28,9 +28,9 @@ sig
   val clasetK: string
   exception ClasetData of object ref
   val thy_data: string * (object * (object -> object) *
-    (object * object -> object) * (object -> unit))
+    (object * object -> object) * (Sign.sg -> object -> unit))
   val fix_methods: object * (object -> object) *
-    (object * object -> object) * (object -> unit) -> unit
+    (object * object -> object) * (Sign.sg -> object -> unit) -> unit
 end;
 
 signature CLASSICAL_DATA =
@@ -147,12 +147,12 @@ local
   val empty_ref = ref ERROR;
   val prep_ext_fn = ref (undef: object -> object);
   val merge_fn = ref (undef: object * object -> object);
-  val print_fn = ref (undef: object -> unit);
+  val print_fn = ref (undef: Sign.sg -> object -> unit);
 
   val empty = ClasetData empty_ref;
   fun prep_ext exn = ! prep_ext_fn exn;
   fun merge exn = ! merge_fn exn;
-  fun print exn = ! print_fn exn;
+  fun print sg exn = ! print_fn sg exn;
 in
   val thy_data = (clasetK, (empty, prep_ext, merge, print));
   fun fix_methods (e, ext, mrg, prt) =
@@ -728,7 +728,7 @@ local
   fun merge (ClasetData (ref (CSData (ref cs1))), ClasetData (ref (CSData (ref cs2)))) =
     ClasetData (ref (CSData (ref (merge_cs (cs1, cs2)))));
 
-  fun print (ClasetData (ref (CSData (ref cs)))) = print_cs cs;
+  fun print (_: Sign.sg) (ClasetData (ref (CSData (ref cs)))) = print_cs cs;
 in
   val _ = fix_methods (empty, prep_ext, merge, print);
 end;

@@ -47,7 +47,7 @@ sig
   val prems_of_ss:  simpset -> thm list
 
   val simpset_thy_data: string * (object * (object -> object) *
-    (object * object -> object) * (object -> unit))
+    (object * object -> object) * (Sign.sg -> object -> unit))
   val simpset_ref_of_sg: Sign.sg -> simpset ref
   val simpset_ref_of: theory -> simpset ref
   val simpset_of_sg: Sign.sg -> simpset
@@ -259,7 +259,7 @@ local
   fun merge (SimpsetData (ref ss1), SimpsetData (ref ss2)) =
     SimpsetData (ref (merge_ss (ss1, ss2)));
 
-  fun print (SimpsetData (ref ss)) = print_ss ss;
+  fun print (_: Sign.sg) (SimpsetData (ref ss)) = print_ss ss;
 in
   val simpset_thy_data = (simpsetK, (empty, prep_ext, merge, print));
 end;

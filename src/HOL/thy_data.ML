@@ -8,7 +8,7 @@ HOL theory data: simpset, claset, records, datatypes.
 (*for records*)
 type record_info =
  {parent: string option,
-  fields: (string * ctyp) list};
+  fields: (string * typ) list};
 
 (*for datatypes*)
 type datatype_info =
@@ -30,7 +30,7 @@ sig
   val get_datatypes: theory -> datatype_info Symtab.table
   val put_datatypes: datatype_info Symtab.table -> theory -> theory
   val hol_data: (string * (object * (object -> object) *
-    (object * object -> object) * (object -> unit))) list
+    (object * object -> object) * (Sign.sg -> object -> unit))) list
 end;
 
 structure ThyData: THY_DATA =
@@ -52,8 +52,9 @@ local
   fun merge (DatatypeInfo tab1, DatatypeInfo tab2) =
     DatatypeInfo (Symtab.merge (K true) (tab1, tab2));
 
-  fun print (DatatypeInfo tab) =
-    Pretty.writeln (Pretty.strs ("datatypes:" :: map fst (Symtab.dest tab)));
+  fun print sg (DatatypeInfo tab) =
+    Pretty.writeln (Pretty.strs ("datatypes:" ::
+      map (Sign.cond_extern sg Sign.typeK o fst) (Symtab.dest tab)));
 in
   val datatypes_thy_data = (datatypesK, (empty, prep_ext, merge, print));
 end;
@@ -91,13 +92,15 @@ local
   fun merge (Records tab1, Records tab2) =
     Records (Symtab.merge (K true) (tab1, tab2));
 
-  fun print (Records tab) =
+  fun print sg (Records tab) =
     let
       fun pretty_parent None = []
-        | pretty_parent (Some name) = [Pretty.str (name ^ " +")];
+        | pretty_parent (Some name) =
+            [Pretty.str (Sign.cond_extern sg Sign.typeK name ^ " +")];
 
       fun pretty_field (c, T) = Pretty.block
-        [Pretty.str (c ^ " :: "), Pretty.brk 1, Pretty.quote (Display.pretty_ctyp T)];
+        [Pretty.str (Sign.cond_extern sg Sign.constK c ^ " :: "),
+          Pretty.brk 1, Pretty.quote (Sign.pretty_typ sg T)];
 
       fun pretty_record (name, {parent, fields}) =
         Pretty.big_list (name ^ " =") (pretty_parent parent @ map pretty_field fields);
@@ -124,8 +127,8 @@ fun put_records tab thy =
 (** hol_data **)
 
 val hol_data =
- [Simplifier.simpset_thy_data,          (*see Provers/simplifier.ML*)
-  ClasetThyData.thy_data,               (*see Provers/classical.ML*)
+ [Simplifier.simpset_thy_data,
+  ClasetThyData.thy_data,
   datatypes_thy_data,
   record_thy_data];
 
