@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/DC.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Theory file for the proofs concernind the Axiom of Dependent Choice
 *)

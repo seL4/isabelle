@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/Transrec2.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Transfinite recursion introduced to handle definitions based on the three
 cases of ordinals.

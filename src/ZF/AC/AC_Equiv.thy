@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/AC_Equiv.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Axioms AC1 -- AC19 come from "Equivalents of the Axiom of Choice, II"
 by H. Rubin and J.E. Rubin, 1985.

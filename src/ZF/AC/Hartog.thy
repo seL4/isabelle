@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/Hartog.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Hartog's function.
 *)

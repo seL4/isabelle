@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/first.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 Theory helpful in proofs using first element of a well ordered set
 *)

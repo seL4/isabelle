@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/WO6_WO1.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 
 The proof of "WO6 ==> WO1".
 

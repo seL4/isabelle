@@ -1,6 +1,6 @@
 (*  Title: 	ZF/AC/AC16_WO4.thy
     ID:         $Id$
-    Author: 	Krzysztof Gr`abczewski
+    Author: 	Krzysztof Grabczewski
 *)
 
 AC16_WO4 = OrderType + AC16_lemmas + Cardinal_aux +
