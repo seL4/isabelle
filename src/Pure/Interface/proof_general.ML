@@ -189,15 +189,15 @@ fun repeat_undo 0 = ()
 local
 
 fun restart isar =
- (ThyInfo.touch_all_thys ();
-  if isar then tell_clear_goals () else kill_goal ();
+ (if isar then tell_clear_goals () else kill_goal ();
   tell_clear_response ();
   writeln (Session.welcome ()));
 
 in
 
-fun isa_restart () = restart false;
-fun isar_restart () = (restart true; raise Toplevel.RESTART);
+fun isa_start () = restart false;
+fun isa_restart () = (ThyInfo.touch_all_thys (); restart false);
+fun isar_restart () = (ThyInfo.touch_all_thys (); restart true; raise Toplevel.RESTART);
 
 end;
 
@@ -261,7 +261,7 @@ fun init isar =
   ThmDeps.enable ();
   if isar then ml_prompts "ML> " "ML# "
   else ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
-  if isar then Isar.sync_main () else isa_restart ());
+  if isar then Isar.sync_main () else isa_start ());
 
 
 
