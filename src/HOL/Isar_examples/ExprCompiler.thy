@@ -13,8 +13,8 @@ title {* Correctness of a simple expression/stack-machine compiler *};
 section {* Basics *};
 
 text {*
-  First we define a type abbreviation for binary operations over some
-  type @{type "'val"} of values.
+ First we define a type abbreviation for binary operations over some
+ type @{type "'val"} of values.
 *};
 
 types
@@ -24,7 +24,7 @@ types
 section {* Machine *};
 
 text {*
-  Next we model a simple stack machine, with three instructions.
+ Next we model a simple stack machine, with three instructions.
 *};
 
 datatype ('adr, 'val) instr =
@@ -33,8 +33,8 @@ datatype ('adr, 'val) instr =
   Apply "'val binop";
 
 text {*
-  Execution of a list of stack machine instructions is
-  straight-forward.
+ Execution of a list of stack machine instructions is
+ straight-forward.
 *};
 
 consts
@@ -56,8 +56,8 @@ constdefs
 section {* Expressions *};
 
 text {*
-  We introduce a simple language of expressions: variables ---
-  constants --- binary operations.
+ We introduce a simple language of expressions: variables ---
+ constants --- binary operations.
 *};
 
 datatype ('adr, 'val) expr =
@@ -66,7 +66,7 @@ datatype ('adr, 'val) expr =
   Binop "'val binop" "('adr, 'val) expr" "('adr, 'val) expr";
 
 text {*
-  Evaluation of expressions does not do any unexpected things.
+ Evaluation of expressions does not do any unexpected things.
 *};
 
 consts
@@ -81,8 +81,8 @@ primrec
 section {* Compiler *};
 
 text {*
-  So we are ready to define the compilation function of expressions to
-  lists of stack machine instructions.
+ So we are ready to define the compilation function of expressions to
+ lists of stack machine instructions.
 *};
 
 consts
@@ -95,8 +95,8 @@ primrec
 
 
 text {*
-  The main result of this developement is the correctness theorem for
-  @{term "comp"}.  We first establish some lemmas.
+ The main result of this development is the correctness theorem for
+ @{term "comp"}.  We first establish some lemmas.
 *};
 
 lemma exec_append:
