@@ -171,15 +171,15 @@ by (Blast_tac 1);
 qed "converseD";
 
 (*More general than converseD, as it "splits" the member of the relation*)
-qed_goalw "converseE" thy [converse_def]
+
+val [major,minor] = Goalw [converse_def]
     "[| yx : r^-1;  \
 \       !!x y. [| yx=(y,x);  (x,y):r |] ==> P \
-\    |] ==> P"
- (fn [major,minor]=>
-  [ (rtac (major RS CollectE) 1),
-    (REPEAT (eresolve_tac [splitE, bexE,exE, conjE, minor] 1)),
-    (assume_tac 1) ]);
-
+\    |] ==> P";
+by (rtac (major RS CollectE) 1);
+by (REPEAT (eresolve_tac [splitE, bexE,exE, conjE, minor] 1));
+by (assume_tac 1);
+qed "converseE";
 AddSEs [converseE];
 
 Goalw [converse_def] "(r^-1)^-1 = r";
@@ -252,15 +252,16 @@ Goalw [Domain_def, Range_def] "a: Range(r) = (EX y. (y,a): r)";
 by (Blast_tac 1);
 qed "Range_iff";
 
-qed_goalw "RangeI" thy [Range_def] "!!a b r.(a,b): r ==> b : Range(r)"
- (fn _ => [ (etac (converseI RS DomainI) 1) ]);
+Goalw [Range_def] "(a,b): r ==> b : Range(r)";
+by (etac (converseI RS DomainI) 1);
+qed "RangeI";
 
-qed_goalw "RangeE" thy [Range_def]
-    "[| b : Range(r);  !!x. (x,b): r ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS DomainE) 1),
-    (resolve_tac prems 1),
-    (etac converseD 1) ]);
+val major::prems = Goalw [Range_def] 
+    "[| b : Range(r);  !!x. (x,b): r ==> P |] ==> P";
+by (rtac (major RS DomainE) 1);
+by (resolve_tac prems 1);
+by (etac converseD 1) ;
+qed "RangeE";
 
 AddIs  [RangeI];
 AddSEs [RangeE];
@@ -296,16 +297,15 @@ qed "Range_Union";
 
 overload_1st_set "Relation.op ^^";
 
-qed_goalw "Image_iff" thy [Image_def]
-    "b : r^^A = (? x:A. (x,b):r)"
- (fn _ => [(Blast_tac 1)]);
+Goalw [Image_def] "b : r^^A = (? x:A. (x,b):r)";
+by (Blast_tac 1);
+qed "Image_iff";
 
-qed_goalw "Image_singleton" thy [Image_def]
-    "r^^{a} = {b. (a,b):r}"
- (fn _ => [(Blast_tac 1)]);
+Goalw [Image_def] "r^^{a} = {b. (a,b):r}";
+by (Blast_tac 1);
+qed "Image_singleton";
 
-Goal
-    "(b : r^^{a}) = ((a,b):r)";
+Goal "(b : r^^{a}) = ((a,b):r)";
 by (rtac (Image_iff RS trans) 1);
 by (Blast_tac 1);
 qed "Image_singleton_iff";
@@ -316,20 +316,19 @@ Goalw [Image_def] "[| (a,b): r;  a:A |] ==> b : r^^A";
 by (Blast_tac 1);
 qed "ImageI";
 
-qed_goalw "ImageE" thy [Image_def]
-    "[| b: r^^A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS CollectE) 1),
-    (Clarify_tac 1),
-    (rtac (hd prems) 1),
-    (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ]);
+val major::prems = Goalw [Image_def]
+    "[| b: r^^A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P";
+by (rtac (major RS CollectE) 1);
+by (Clarify_tac 1);
+by (rtac (hd prems) 1);
+by (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ;
+qed "ImageE";
 
 AddIs  [ImageI];
 AddSEs [ImageE];
 
 
-Goal
-    "R^^{} = {}";
+Goal "R^^{} = {}";
 by (Blast_tac 1);
 qed "Image_empty";
 
@@ -366,11 +365,15 @@ qed "Image_eq_UN";
 
 section "Univalent";
 
-qed_goalw "UnivalentI" Relation.thy [Univalent_def] 
-   "!!r. !x y. (x,y):r --> (!z. (x,z):r --> y=z) ==> Univalent r" (K [atac 1]);
+Goalw [Univalent_def]
+     "!x y. (x,y):r --> (!z. (x,z):r --> y=z) ==> Univalent r";
+by (assume_tac 1);
+qed "UnivalentI";
 
-qed_goalw "UnivalentD" Relation.thy [Univalent_def] 
-	"!!r. [| Univalent r; (x,y):r; (x,z):r|] ==> y=z" (K [Auto_tac]);
+Goalw [Univalent_def]
+     "[| Univalent r;  (x,y):r;  (x,z):r|] ==> y=z";
+by Auto_tac;
+qed "UnivalentD";
 
 
 (** Graphs of partial functions **)

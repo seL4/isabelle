@@ -61,8 +61,11 @@ by (pair_tac "p" 1);
 by (Asm_simp_tac 1);
 qed "surjective_pairing";
 
-val surj_pair = prove_goal Prod.thy "? x y. z = (x, y)" (K [
-	rtac exI 1, rtac exI 1, rtac surjective_pairing 1]);
+Goal "? x y. z = (x, y)";
+by (rtac exI 1);
+by (rtac exI 1);
+by (rtac surjective_pairing 1);
+qed "surj_pair";
 Addsimps [surj_pair];
 
 
@@ -120,17 +123,20 @@ by (Asm_simp_tac 1);
 qed "Pair_fst_snd_eq";
 
 (*Prevents simplification of c: much faster*)
-qed_goal "split_weak_cong" Prod.thy
-  "p=q ==> split c p = split c q"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
+val [prem] = goal Prod.thy
+  "p=q ==> split c p = split c q";
+by (rtac (prem RS arg_cong) 1);
+qed "split_weak_cong";
 
-qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
-  (K [rtac ext 1, split_all_tac 1, rtac split 1]);
+Goal "(%(x,y). f(x,y)) = f";
+by (rtac ext 1);
+by (split_all_tac 1);
+by (rtac split 1);
+qed "split_eta";
 
-qed_goal "cond_split_eta" Prod.thy 
-	"!!f. (!!x y. f x y = g(x,y)) ==> (%(x,y). f x y) = g"
-  (K [asm_simp_tac (simpset() addsimps [split_eta]) 1]);
-
+val prems = Goal "(!!x y. f x y = g(x,y)) ==> (%(x,y). f x y) = g";
+by (asm_simp_tac (simpset() addsimps prems@[split_eta]) 1);
+qed "cond_split_eta";
 
 (*simplification procedure for cond_split_eta. 
   using split_eta a rewrite rule is not general enough, and using 
@@ -171,9 +177,9 @@ end;
 
 Addsimprocs [split_eta_proc];
 
-
-qed_goal "split_beta" Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
-	(K [stac surjective_pairing 1, stac split 1, rtac refl 1]);
+Goal "(%(x,y). P x y) z = P (fst z) (snd z)";
+by (stac surjective_pairing 1 THEN rtac split 1);
+qed "split_beta";
 
 (*For use with split_tac and the simplifier*)
 Goal "R (split c p) = (! x y. p = (x,y) --> R (c x y))";
@@ -212,11 +218,12 @@ val prems = Goalw [split_def]
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 qed "splitE";
 
-val splitE2 = prove_goal Prod.thy 
-"[|Q (split P z); !!x y. [|z = (x, y); Q (P x y)|] ==> R|] ==> R" (fn prems => [
-	REPEAT (resolve_tac (prems@[surjective_pairing]) 1),
-	rtac (split_beta RS subst) 1,
-	rtac (hd prems) 1]);
+val major::prems = goal Prod.thy 
+    "[| Q (split P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R  \
+\    |] ==> R";
+by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
+by (rtac (split_beta RS subst) 1 THEN rtac major 1);
+qed "splitE2";
 
 Goal "split R (a,b) ==> R a b";
 by (etac (split RS iffD1) 1);
@@ -305,20 +312,20 @@ AddSEs [prod_fun_imageE];
 
 (*** Disjoint union of a family of sets - Sigma ***)
 
-qed_goalw "SigmaI" Prod.thy [Sigma_def]
-    "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B"
- (fn prems=> [ (REPEAT (resolve_tac (prems@[singletonI,UN_I]) 1)) ]);
+Goalw [Sigma_def] "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B";
+by (REPEAT (ares_tac [singletonI,UN_I] 1));
+qed "SigmaI";
 
 AddSIs [SigmaI];
 
 (*The general elimination rule*)
-qed_goalw "SigmaE" Prod.thy [Sigma_def]
+val major::prems = Goalw [Sigma_def]
     "[| c: Sigma A B;  \
 \       !!x y.[| x:A;  y:B(x);  c=(x,y) |] ==> P \
-\    |] ==> P"
- (fn major::prems=>
-  [ (cut_facts_tac [major] 1),
-    (REPEAT (eresolve_tac [UN_E, singletonE] 1 ORELSE ares_tac prems 1)) ]);
+\    |] ==> P";
+by (cut_facts_tac [major] 1);
+by (REPEAT (eresolve_tac [UN_E, singletonE] 1 ORELSE ares_tac prems 1)) ;
+qed "SigmaE";
 
 (** Elimination of (a,b):A*B -- introduces no eigenvariables **)
 
@@ -375,8 +382,10 @@ qed "Times_eq_cancel2";
 
 (*** Complex rules for Sigma ***)
 
-val Collect_split = prove_goal Prod.thy 
-	"{(a,b). P a & Q b} = Collect P Times Collect Q" (K [Blast_tac 1]);
+Goal "{(a,b). P a & Q b} = Collect P Times Collect Q";
+by (Blast_tac 1);
+qed "Collect_split";
+
 Addsimps [Collect_split];
 
 (*Suggested by Pierre Chartier*)

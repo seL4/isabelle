@@ -6,8 +6,6 @@
 The disjoint sum of two types
 *)
 
-open Sum;
-
 (** Inl_Rep and Inr_Rep: Representations of the constructors **)
 
 (*This counts as a non-emptiness result for admitting 'a+'b as a type*)
@@ -157,15 +155,16 @@ by (res_inst_tac [("s","s")] sumE 1);
 by Auto_tac;
 qed "split_sum_case";
 
-qed_goal "split_sum_case_asm" Sum.thy "P (sum_case f g s) = \
-\ (~((? x. s = Inl x & ~P (f x)) | (? y. s = Inr y & ~P (g y))))"
-    (K [stac split_sum_case 1,
-	Blast_tac 1]);
+Goal "P (sum_case f g s) = \
+\     (~ ((? x. s = Inl x & ~P (f x)) | (? y. s = Inr y & ~P (g y))))";
+by (stac split_sum_case 1);
+by (Blast_tac 1);
+qed "split_sum_case_asm";
 
 (*Prevents simplification of f and g: much faster*)
-qed_goal "sum_case_weak_cong" Sum.thy
-  "s=t ==> sum_case f g s = sum_case f g t"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
+Goal "s=t ==> sum_case f g s = sum_case f g t";
+by (etac arg_cong 1);
+qed "sum_case_weak_cong";
 
 val [p1,p2] = Goal "[| sum_case f1 f2 = sum_case g1 g2;  \
   \  [| f1 = g1; f2 = g2 |] ==> P |] ==> P";

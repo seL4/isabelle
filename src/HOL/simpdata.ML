@@ -89,12 +89,14 @@ val simpdata_setup =
 end;
 
 
-qed_goal "meta_eq_to_obj_eq" HOL.thy "x==y ==> x=y"
-  (fn [prem] => [rewtac prem, rtac refl 1]);
+val [prem] = goal HOL.thy "x==y ==> x=y";
+by (rewtac prem);
+by (rtac refl 1);
+qed "meta_eq_to_obj_eq";
 
 local
 
-  fun prover s = prove_goal HOL.thy s (K [Blast_tac 1]);
+  fun prover s = prove_goal HOL.thy s (fn _ => [(Blast_tac 1)]);
 
 in
 
@@ -156,7 +158,7 @@ fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
 
 val imp_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
-        (fn _=> [Blast_tac 1]) RS mp RS mp);
+        (fn _=> [(Blast_tac 1)]) RS mp RS mp);
 
 (*Miniscoping: pushing in existential quantifiers*)
 val ex_simps = map prover 
@@ -185,7 +187,7 @@ val ex_all_equiv =
         (fn prems => [resolve_tac prems 1, etac exI 1]);
       val lemma2 = prove_goalw HOL.thy [Ex_def]
         "(!!x. P(x) ==> PROP Q) ==> (? x. P(x) ==> PROP Q)"
-        (fn prems => [REPEAT(resolve_tac prems 1)])
+        (fn prems => [(REPEAT(resolve_tac prems 1))])
   in equal_intr lemma1 lemma2 end;
 
 end;
@@ -194,11 +196,11 @@ end;
 
 val True_implies_equals = prove_goal HOL.thy
  "(True ==> PROP P) == PROP P"
-(K [rtac equal_intr_rule 1, atac 2,
+(fn _ => [rtac equal_intr_rule 1, atac 2,
           METAHYPS (fn prems => resolve_tac prems 1) 1,
           rtac TrueI 1]);
 
-fun prove nm thm  = qed_goal nm HOL.thy thm (K [Blast_tac 1]);
+fun prove nm thm  = qed_goal nm HOL.thy thm (fn _ => [(Blast_tac 1)]);
 
 prove "conj_commute" "(P&Q) = (Q&P)";
 prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
@@ -255,19 +257,19 @@ prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 
 let val th = prove_goal HOL.thy 
                 "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
-                (fn _=> [Blast_tac 1])
+                (fn _=> [(Blast_tac 1)])
 in  bind_thm("conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
 let val th = prove_goal HOL.thy 
                 "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
-                (fn _=> [Blast_tac 1])
+                (fn _=> [(Blast_tac 1)])
 in  bind_thm("rev_conj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
 (* '|' congruence rule: not included by default! *)
 
 let val th = prove_goal HOL.thy 
                 "(P=P')--> (~P'--> (Q=Q'))--> ((P|Q) = (P'|Q'))"
-                (fn _=> [Blast_tac 1])
+                (fn _=> [(Blast_tac 1)])
 in  bind_thm("disj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 
 prove "eq_sym_conv" "(x=y) = (y=x)";
@@ -275,48 +277,58 @@ prove "eq_sym_conv" "(x=y) = (y=x)";
 
 (** if-then-else rules **)
 
-qed_goalw "if_True" HOL.thy [if_def] "(if True then x else y) = x"
- (K [Blast_tac 1]);
+Goalw [if_def] "(if True then x else y) = x";
+by (Blast_tac 1);
+qed "if_True";
 
-qed_goalw "if_False" HOL.thy [if_def] "(if False then x else y) = y"
- (K [Blast_tac 1]);
+Goalw [if_def] "(if False then x else y) = y";
+by (Blast_tac 1);
+qed "if_False";
 
-qed_goalw "if_P" HOL.thy [if_def] "!!P. P ==> (if P then x else y) = x"
- (K [Blast_tac 1]);
+Goalw [if_def] "!!P. P ==> (if P then x else y) = x";
+by (Blast_tac 1);
+qed "if_P";
 
-qed_goalw "if_not_P" HOL.thy [if_def] "!!P. ~P ==> (if P then x else y) = y"
- (K [Blast_tac 1]);
+Goalw [if_def] "!!P. ~P ==> (if P then x else y) = y";
+by (Blast_tac 1);
+qed "if_not_P";
 
-qed_goal "split_if" HOL.thy
-    "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))" (K [
-	res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1,
-         stac if_P 2,
-         stac if_not_P 1,
-         ALLGOALS (Blast_tac)]);
+Goal "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))";
+by (res_inst_tac [("Q","Q")] (excluded_middle RS disjE) 1);
+by (stac if_P 2);
+by (stac if_not_P 1);
+by (ALLGOALS (Blast_tac));
+qed "split_if";
+
 (* for backwards compatibility: *)
 val expand_if = split_if;
 
-qed_goal "split_if_asm" HOL.thy
-    "P(if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))"
-    (K [stac split_if 1,
-	Blast_tac 1]);
+Goal "P(if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))";
+by (stac split_if 1);
+by (Blast_tac 1);
+qed "split_if_asm";
 
-qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
-  (K [stac split_if 1, Blast_tac 1]);
+Goal "(if c then x else x) = x";
+by (stac split_if 1);
+by (Blast_tac 1);
+qed "if_cancel";
 
-qed_goal "if_eq_cancel" HOL.thy "(if x = y then y else x) = x"
-  (K [stac split_if 1, Blast_tac 1]);
+Goal "(if x = y then y else x) = x";
+by (stac split_if 1);
+by (Blast_tac 1);
+qed "if_eq_cancel";
 
 (*This form is useful for expanding IFs on the RIGHT of the ==> symbol*)
-qed_goal "if_bool_eq_conj" HOL.thy
-    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
-    (K [rtac split_if 1]);
+Goal
+    "(if P then Q else R) = ((P-->Q) & (~P-->R))";
+by (rtac split_if 1);
+qed "if_bool_eq_conj";
 
 (*And this form is useful for expanding IFs on the LEFT*)
-qed_goal "if_bool_eq_disj" HOL.thy
-    "(if P then Q else R) = ((P&Q) | (~P&R))"
-    (K [stac split_if 1,
-	Blast_tac 1]);
+Goal "(if P then Q else R) = ((P&Q) | (~P&R))";
+by (stac split_if 1);
+by (Blast_tac 1);
+qed "if_bool_eq_disj";
 
 
 (*** make simplification procedures for quantifier elimination ***)
@@ -453,18 +465,18 @@ by (asm_simp_tac (HOL_ss addsimps prems) 1);
 qed "if_cong";
 
 (*Prevents simplification of x and y: much faster*)
-qed_goal "if_weak_cong" HOL.thy
-  "b=c ==> (if b then x else y) = (if c then x else y)"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
+Goal "b=c ==> (if b then x else y) = (if c then x else y)";
+by (etac arg_cong 1);
+qed "if_weak_cong";
 
 (*Prevents simplification of t: much faster*)
-qed_goal "let_weak_cong" HOL.thy
-  "a = b ==> (let x=a in t(x)) = (let x=b in t(x))"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
+Goal "a = b ==> (let x=a in t(x)) = (let x=b in t(x))";
+by (etac arg_cong 1);
+qed "let_weak_cong";
 
-qed_goal "if_distrib" HOL.thy
-  "f(if c then x else y) = (if c then f x else f y)" 
-  (K [simp_tac (HOL_ss setloop (split_tac [split_if])) 1]);
+Goal "f(if c then x else y) = (if c then f x else f y)";
+by (simp_tac (HOL_ss setloop (split_tac [split_if])) 1);
+qed "if_distrib";
 
 
 (*For expand_case_tac*)

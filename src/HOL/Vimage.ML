@@ -6,33 +6,32 @@
 Inverse image of a function
 *)
 
-open Vimage;
-
 (** Basic rules **)
 
-qed_goalw "vimage_eq" thy [vimage_def]
-    "(a : f-``B) = (f a : B)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [vimage_def] "(a : f-``B) = (f a : B)";
+by (Blast_tac 1) ;
+qed "vimage_eq";
 
 Addsimps [vimage_eq];
 
-qed_goal "vimage_singleton_eq" thy
-    "(a : f-``{b}) = (f a = b)"
- (fn _ => [ simp_tac (simpset() addsimps [vimage_eq]) 1 ]);
+Goal "(a : f-``{b}) = (f a = b)";
+by (simp_tac (simpset() addsimps [vimage_eq]) 1) ;
+qed "vimage_singleton_eq";
 
-qed_goalw "vimageI" thy [vimage_def]
-    "!!A B f. [| f a = b;  b:B |] ==> a : f-``B"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [vimage_def]
+    "!!A B f. [| f a = b;  b:B |] ==> a : f-``B";
+by (Blast_tac 1) ;
+qed "vimageI";
 
 Goalw [vimage_def] "f a : A ==> a : f -`` A";
 by (Fast_tac 1);
 qed "vimageI2";
 
-qed_goalw "vimageE" thy [vimage_def]
-    "[| a: f-``B;  !!x.[| f a = x;  x:B |] ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS CollectE) 1),
-    (blast_tac (claset() addIs prems) 1) ]);
+val major::prems = Goalw [vimage_def]
+    "[| a: f-``B;  !!x.[| f a = x;  x:B |] ==> P |] ==> P";
+by (rtac (major RS CollectE) 1);
+by (blast_tac (claset() addIs prems) 1) ;
+qed "vimageE";
 
 Goalw [vimage_def] "a : f -`` A ==> f a : A";
 by (Fast_tac 1);

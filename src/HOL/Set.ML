@@ -71,7 +71,7 @@ Goalw [Bex_def] "[| x:A;  P(x) |] ==> ? x:A. P(x)";
 by (Blast_tac 1);
 qed "rev_bexI";
 
-val prems = goal Set.thy 
+val prems = Goal 
    "[| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A. P(x)";
 by (rtac classical 1);
 by (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1))  ;
@@ -223,14 +223,18 @@ qed "setup_induction";
 
 section "The universal set -- UNIV";
 
-qed_goalw "UNIV_I" Set.thy [UNIV_def] "x : UNIV"
-  (fn _ => [rtac CollectI 1, rtac TrueI 1]);
+Goalw [UNIV_def] "x : UNIV";
+by (rtac CollectI 1);
+by (rtac TrueI 1);
+qed "UNIV_I";
 
 Addsimps [UNIV_I];
 AddIs    [UNIV_I];  (*unsafe makes it less likely to cause problems*)
 
-qed_goal "subset_UNIV" Set.thy "A <= UNIV"
-  (fn _ => [rtac subsetI 1, rtac UNIV_I 1]);
+Goal "A <= UNIV";
+by (rtac subsetI 1);
+by (rtac UNIV_I 1);
+qed "subset_UNIV";
 
 (** Eta-contracting these two rules (to remove P) causes them to be ignored
     because of their interaction with congruence rules. **)
@@ -266,7 +270,7 @@ qed "empty_subsetI";
 (*One effect is to delete the ASSUMPTION {} <= A*)
 AddIffs [empty_subsetI];
 
-val [prem]= goal Set.thy "[| !!y. y:A ==> False |] ==> A={}";
+val [prem]= Goal "[| !!y. y:A ==> False |] ==> A={}";
 by (blast_tac (claset() addIs [prem RS FalseE]) 1) ;
 qed "equals0I";
 
@@ -301,11 +305,11 @@ qed "Pow_iff";
 
 AddIffs [Pow_iff]; 
 
-Goalw [Pow_def] "!!A B. A <= B ==> A : Pow(B)";
+Goalw [Pow_def] "A <= B ==> A : Pow(B)";
 by (etac CollectI 1);
 qed "PowI";
 
-Goalw [Pow_def] "!!A B. A : Pow(B)  ==>  A<=B";
+Goalw [Pow_def] "A : Pow(B)  ==>  A<=B";
 by (etac CollectD 1);
 qed "PowD";
 
@@ -316,8 +320,9 @@ val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 
 section "Set complement";
 
-qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : -A) = (c~:A)"
- (fn _ => [ (Blast_tac 1) ]);
+Goalw [Compl_def] "(c : -A) = (c~:A)";
+by (Blast_tac 1);
+qed "Compl_iff";
 
 Addsimps [Compl_iff];
 
@@ -340,9 +345,9 @@ AddSEs [ComplE];
 
 section "Binary union -- Un";
 
-qed_goalw "Un_iff" Set.thy [Un_def] "(c : A Un B) = (c:A | c:B)"
- (fn _ => [ Blast_tac 1 ]);
-
+Goalw [Un_def] "(c : A Un B) = (c:A | c:B)";
+by (Blast_tac 1);
+qed "Un_iff";
 Addsimps [Un_iff];
 
 Goal "c:A ==> c : A Un B";
@@ -355,7 +360,7 @@ qed "UnI2";
 
 (*Classical introduction rule: no commitment to A vs B*)
 
-val prems= goal Set.thy "(c~:B ==> c:A) ==> c : A Un B";
+val prems = Goal "(c~:B ==> c:A) ==> c : A Un B";
 by (Simp_tac 1);
 by (REPEAT (ares_tac (prems@[disjCI]) 1)) ;
 qed "UnCI";
@@ -372,9 +377,9 @@ AddSEs [UnE];
 
 section "Binary intersection -- Int";
 
-qed_goalw "Int_iff" Set.thy [Int_def] "(c : A Int B) = (c:A & c:B)"
- (fn _ => [ (Blast_tac 1) ]);
-
+Goalw [Int_def] "(c : A Int B) = (c:A & c:B)";
+by (Blast_tac 1);
+qed "Int_iff";
 Addsimps [Int_iff];
 
 Goal "[| c:A;  c:B |] ==> c : A Int B";
@@ -401,9 +406,9 @@ AddSEs [IntE];
 
 section "Set difference";
 
-qed_goalw "Diff_iff" Set.thy [set_diff_def] "(c : A-B) = (c:A & c~:B)"
- (fn _ => [ (Blast_tac 1) ]);
-
+Goalw [set_diff_def] "(c : A-B) = (c:A & c~:B)";
+by (Blast_tac 1);
+qed "Diff_iff";
 Addsimps [Diff_iff];
 
 Goal "[| c : A;  c ~: B |] ==> c : A - B";
@@ -418,7 +423,7 @@ Goal "[| c : A - B;  c : B |] ==> P";
 by (Asm_full_simp_tac 1) ;
 qed "DiffD2";
 
-val prems= goal Set.thy "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P";
+val prems = Goal "[| c : A - B;  [| c:A; c~:B |] ==> P |] ==> P";
 by (resolve_tac prems 1);
 by (REPEAT (ares_tac (prems RL [DiffD1, DiffD2 RS notI]) 1)) ;
 qed "DiffE";
@@ -429,12 +434,12 @@ AddSEs [DiffE];
 
 section "Augmenting a set -- insert";
 
-qed_goalw "insert_iff" Set.thy [insert_def] "a : insert b A = (a=b | a:A)"
- (fn _ => [Blast_tac 1]);
-
+Goalw [insert_def] "a : insert b A = (a=b | a:A)";
+by (Blast_tac 1);
+qed "insert_iff";
 Addsimps [insert_iff];
 
-val _ = goal Set.thy "a : insert a B";
+Goal "a : insert a B";
 by (Simp_tac 1);
 qed "insertI1";
 
@@ -449,7 +454,7 @@ by (REPEAT (eresolve_tac (prems @ [CollectE]) 1));
 qed "insertE";
 
 (*Classical introduction rule*)
-val prems= goal Set.thy "(a~:B ==> a=b) ==> a: insert b B";
+val prems = Goal "(a~:B ==> a=b) ==> a: insert b B";
 by (Simp_tac 1);
 by (REPEAT (ares_tac (prems@[disjCI]) 1)) ;
 qed "insertCI";
