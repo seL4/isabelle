@@ -747,7 +747,7 @@ fun use_thy1 tmp_loadpath_valid name =
           init_thyinfo ();
           delete_thms tname;
           read_thy tname thy_file;
-          use (out_name tname);
+          SymbolInput.use (out_name tname);
           save_data true;
 
           (*Store axioms of theory
@@ -773,7 +773,7 @@ fun use_thy1 tmp_loadpath_valid name =
 
        if ml_file = "" then ()
        else (writeln ("Reading \"" ^ name ^ ".ML\"");
-             use ml_file);
+             SymbolInput.use ml_file);
        save_data false;
 
        (*Store theory again because it could have been redefined*)
