@@ -257,9 +257,12 @@ fun inst_split Ts t tt thm TB state =
 
 fun split_tac [] i = no_tac
   | split_tac splits i =
-  let fun const(thm) = let val _$(t as _$lhs)$_ = concl_of thm
-                           val (Const(a,_),args) = strip_comb lhs
-                       in (a,(thm,fastype_of t,length args)) end
+  let fun const(thm) =
+            (case concl_of thm of _$(t as _$lhs)$_ =>
+               (case strip_comb lhs of (Const(a,_),args) =>
+                  (a,(thm,fastype_of t,length args))
+                | _ => error("Wrong format for split rule"))
+             | _ => error("Wrong format for split rule"))
       val cmap = map const splits;
       fun lift_tac Ts t p st = (rtac (inst_lift Ts t p st trlift i) i) st
       fun lift_split_tac st = st |>
