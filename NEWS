@@ -15,6 +15,15 @@ Isabelle NEWS -- history user-relevant changes
 (should now use \isamath{...} and \isatext{...} in custom symbol
 definitions);
 
+* support sub/super scripts (for single symbols only), input syntax is
+like this: "A\<^sup>*" or "A\<^sup>\<star>";
+
+* antiquotation @{goals} for output of *dynamic* goals state; Note
+that presentation of goal states does not conform to actual
+human-readable proof documents.  Please do not include goal states
+into document output unless you really know what you are doing!
+
+
 
 *** Isar ***
 
