@@ -40,6 +40,7 @@ sig
   val zero_var_indexes  : thm -> thm
   val standard          : thm -> thm
   val rotate_prems      : int -> thm -> thm
+  val rearrange_prems   : int list -> thm -> thm
   val assume_ax         : theory -> string -> thm
   val RSN               : thm * (int * thm) -> thm
   val RS                : thm * thm -> thm
@@ -367,6 +368,15 @@ fun freeze_thaw th =
 (*Rotates a rule's premises to the left by k*)
 val rotate_prems = permute_prems 0;
 
+(* permute prems, where the i-th position in the argument list (counting from 0)
+   gives the position within the original thm to be transferred to position i.
+   Any remaining trailing positions are left unchanged. *)
+val rearrange_prems = let
+  fun rearr new []      thm = thm
+  |   rearr new (p::ps) thm = rearr (new+1) 
+     (map (fn q => if new<=q andalso q<p then q+1 else q) ps)
+     (permute_prems (new+1) (new-p) (permute_prems new (p-new) thm))
+  in rearr 0 end;
 
 (*Assume a new formula, read following the same conventions as axioms.
   Generalizes over Free variables,

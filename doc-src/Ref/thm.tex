@@ -193,6 +193,7 @@ make_elim        :               thm -> thm
 rule_by_tactic   :     tactic -> thm -> thm
 rotate_prems     :        int -> thm -> thm
 permute_prems    : int -> int -> thm -> thm
+rearrange_prems  :   int list -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{standard} $thm$] puts $thm$ into the standard form
@@ -232,6 +233,11 @@ is the basis for destruct-resolution: {\tt dresolve_tac}, etc.
   requires $0\leq j\leq n$, where $n$ is the number of premises.  If $k$ is
   positive then it rotates the remaining $n-j$ premises to the left; if $k$ is
   negative then it rotates the premises to the right.
+
+\item[\ttindexbold{rearrange_prems} $ps$ $thm$] permutes the premises of $thm$
+   where the value at the $i$-th position (counting from $0$) in the list $ps$
+   gives the position within the original thm to be transferred to position $i$.
+   Any remaining trailing positions are left unchanged.
 \end{ttdescription}
 
 
