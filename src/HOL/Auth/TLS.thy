@@ -41,8 +41,10 @@ consts
   (*Pseudo-random function of Section 5*)
   PRF  :: "nat*nat*nat => nat"
 
-  (*Client, server write keys implicitly include the MAC secrets.*)
-  clientK, serverK :: "nat*nat*nat => key"
+  (*Client, server write keys generated uniformly by function sessionK
+    to avoid duplicating their properties.
+    Theyimplicitly include the MAC secrets.*)
+  sessionK :: "bool*nat*nat*nat => key"
 
   certificate      :: "[agent,key] => msg"
 
@@ -50,16 +52,24 @@ defs
   certificate_def
     "certificate A KA == Crypt (priK Server) {|Agent A, Key KA|}"
 
+syntax
+    clientK, serverK :: "nat*nat*nat => key"
+
+translations
+  "clientK x"	== "sessionK(True,x)"
+  "serverK x"	== "sessionK(False,x)"
+
 rules
   inj_PRF       "inj PRF"	
 
-  (*clientK is collision-free and makes symmetric keys*)
-  inj_clientK   "inj clientK"	
-  isSym_clientK "isSymKey (clientK x)"	(*client write keys are symmetric*)
+  (*sessionK is collision-free and makes symmetric keys*)
+  inj_sessionK  "inj sessionK"	
+
+  isSym_sessionK "isSymKey (sessionK x)"
 
   (*serverK is similar*)
   inj_serverK   "inj serverK"	
-  isSym_serverK "isSymKey (serverK x)"	(*server write keys are symmetric*)
+  isSym_serverK "isSymKey (serverK x)"
 
   (*Clashes with pubK and priK are impossible, but this axiom is needed.*)
   clientK_range "range clientK <= Compl (range serverK)"
@@ -178,6 +188,37 @@ inductive tls
 			       Nonce NA, Number XA, Agent A, 
 			       Nonce NB, Number XB, Agent B|}))
               # evsSF  :  tls"
+
+	(*Having transmitted CLIENT FINISHED and received an identical
+          message encrypted with serverK, the client stores the parameters
+          needed to resume this session.*)
+    ClientAccepts
+         "[| evsCA: tls;
+             Notes A {|Agent B, Nonce PMS|} : set evsCA;
+	     M = PRF(PMS,NA,NB);  
+	     X = Hash{|Nonce M, Number SID,
+	               Nonce NA, Number XA, Agent A, 
+		       Nonce NB, Number XB, Agent B|};
+             Says A  B (Crypt (clientK(NA,NB,M)) X) : set evsCA;
+             Says B' A (Crypt (serverK(NA,NB,M)) X) : set evsCA |]
+          ==> 
+             Notes A {|Number SID, Agent A, Agent B, Nonce M|} # evsCA  :  tls"
+
+	(*Having transmitted SERVER FINISHED and received an identical
+          message encrypted with clientK, the server stores the parameters
+          needed to resume this session.*)
+    ServerAccepts
+         "[| evsSA: tls;
+             Says A'' B {|certificate A KA, Crypt (pubK B) (Nonce PMS)|}
+	       : set evsSA;
+	     M = PRF(PMS,NA,NB);  
+	     X = Hash{|Nonce M, Number SID,
+	               Nonce NA, Number XA, Agent A, 
+		       Nonce NB, Number XB, Agent B|};
+             Says B  A (Crypt (serverK(NA,NB,M)) X) : set evsSA;
+             Says A' B (Crypt (clientK(NA,NB,M)) X) : set evsSA |]
+          ==> 
+             Notes B {|Number SID, Agent A, Agent B, Nonce M|} # evsSA  :  tls"
 
   (**Oops message??**)
 
