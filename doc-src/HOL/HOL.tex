@@ -2188,8 +2188,8 @@ automatically.  Only induction or exhaustion are usually invoked by hand.
 \item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
  applies structural induction on variable $x$ to subgoal $i$, provided the
  type of $x$ is a datatype.
-\item[\ttindexbold{mutual_induct_tac}
-  {\tt["}$x@1${\tt",}$\ldots${\tt,"}$x@n${\tt"]} $i$] applies simultaneous
+\item[\texttt{induct_tac}
+  {\tt"}$x@1$ $\ldots$ $x@n${\tt"} $i$] applies simultaneous
   structural induction on the variables $x@1,\ldots,x@n$ to subgoal $i$.  This
   is the canonical way to prove properties of mutually recursive datatypes
   such as \texttt{aexp} and \texttt{bexp}, or datatypes with nested recursion such as
@@ -2517,7 +2517,7 @@ Goal
      evala (env(v := evala env a')) a &
    evalb env (substb (Var(v := a')) b) =
      evalb (env(v := evala env a')) b";
-by (mutual_induct_tac ["a","b"] 1);
+by (induct_tac "a b" 1);
 by (ALLGOALS Asm_full_simp_tac);
 \end{ttbox}
 
@@ -2551,7 +2551,7 @@ Goal
      (subst_term f1 (subst_term f2 t)) &
    (subst_term_list ((subst_term f1) o f2) ts) =
      (subst_term_list f1 (subst_term_list f2 ts))";
-by (mutual_induct_tac ["t", "ts"] 1);
+by (induct_tac "t ts" 1);
 by (ALLGOALS Asm_full_simp_tac);
 \end{ttbox}
 
