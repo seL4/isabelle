@@ -1177,10 +1177,10 @@ qed_goal "adm_impl"  Fix.thy
 
 
 qed_goal "adm_not_conj"  Fix.thy  
- "Ë adm (³x. ¿ P x); adm (³x. ¿ Q x) Ì êë adm (³x. ¿ (P x À Q x))" (fn prems =>[
+"[| adm (%x. ~ P x); adm (%x. ~ Q x) |] ==> adm (%x. ~ (P x & Q x))"(fn prems=>[
 	cut_facts_tac prems 1,
 	subgoal_tac 
-	"(³x. ¿ (P x À Q x)) = (³x. ¿ P x Á ¿ Q x)" 1,
+	"(%x. ~ (P x & Q x)) = (%x. ~ P x | ~ Q x)" 1,
 	rtac ext 2,
 	fast_tac HOL_cs 2,
 	etac ssubst 1,
@@ -1188,8 +1188,8 @@ qed_goal "adm_not_conj"  Fix.thy
 	atac 1]);
 
 qed_goalw "admI" Fix.thy [adm_def]
- "(ÄY. Ë is_chain Y ; Âi. P(Y i) ; Âi. Ãj. i < j À Y i Û Y j À Y i Ý Y j Ì êë \
-\ P(lub (range Y))) êë adm P" 
+ "(!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |]\
+\ ==> P(lub (range Y))) ==> adm P" 
  (fn prems => [
 	strip_tac 1,
 	case_tac "finite_chain Y" 1,
