@@ -34,6 +34,9 @@ sig
   val make_size : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       theory -> term list
+  val make_weak_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
+    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
+      theory -> term list
   val make_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       theory -> term list
@@ -429,6 +432,24 @@ fun make_size new_type_names descr sorts thy =
   end;
 
 (************************* additional rules for TFL ***************************)
+
+fun make_weak_case_congs new_type_names descr sorts thy =
+  let
+    val case_combs = make_case_combs new_type_names descr sorts thy "f";
+
+    fun mk_case_cong comb =
+      let 
+        val Type ("fun", [T, _]) = fastype_of comb;
+        val M = Free ("M", T);
+        val M' = Free ("M'", T);
+      in
+        Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (M, M')),
+          HOLogic.mk_Trueprop (HOLogic.mk_eq (comb $ M, comb $ M')))
+      end
+  in
+    map mk_case_cong case_combs
+  end;
+ 
 
 (*---------------------------------------------------------------------------
  * Structure of case congruence theorem looks like this:

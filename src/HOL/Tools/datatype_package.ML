@@ -514,6 +514,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       (DatatypeProp.make_nchotomys descr sorts) thy8;
     val (thy10, case_congs) = add_and_get_axioms "case_cong" new_type_names
       (DatatypeProp.make_case_congs new_type_names descr sorts thy9) thy9;
+    val (thy11, weak_case_congs) = add_and_get_axioms "weak_case_cong" new_type_names
+      (DatatypeProp.make_weak_case_congs new_type_names descr sorts thy10) thy10;
 
     val dt_infos = map (make_dt_info descr' induct reccomb_names' rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names' ~~ case_thms ~~
@@ -522,17 +524,18 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
-    val thy11 = thy10 |>
+    val thy12 = thy11 |>
       Theory.add_path (space_implode "_" new_type_names) |>
       (#1 o PureThy.add_thmss [(("simps", simps), []),
         (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
-        (("", flat (inject @ distinct)), [iff_add_global])]) |>
+        (("", flat (inject @ distinct)), [iff_add_global]),
+        (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path;
 
   in
-    (thy11,
+    (thy12,
      {distinct = distinct,
       inject = inject,
       exhaustion = exhaustion,
@@ -568,8 +571,10 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       descr sorts casedist_thms thy7;
     val (thy9, case_congs) = DatatypeAbsProofs.prove_case_congs new_type_names
       descr sorts nchotomys case_thms thy8;
-    val (thy10, size_thms) = DatatypeAbsProofs.prove_size_thms flat_names new_type_names
-      descr sorts reccomb_names rec_thms thy9;
+    val (thy10, weak_case_congs) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
+      descr sorts thy9;
+    val (thy11, size_thms) = DatatypeAbsProofs.prove_size_thms flat_names new_type_names
+      descr sorts reccomb_names rec_thms thy10;
 
     val dt_infos = map (make_dt_info (flat descr) induct reccomb_names rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names ~~ case_thms ~~
@@ -577,17 +582,18 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
-    val thy11 = thy10 |>
+    val thy12 = thy11 |>
       Theory.add_path (space_implode "_" new_type_names) |>
       (#1 o PureThy.add_thmss [(("simps", simps), []),
         (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
-        (("", flat (inject @ distinct)), [iff_add_global])]) |>
+        (("", flat (inject @ distinct)), [iff_add_global]),
+        (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path;
 
   in
-    (thy11,
+    (thy12,
      {distinct = distinct,
       inject = inject,
       exhaustion = casedist_thms,
@@ -663,11 +669,13 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       [descr] sorts casedist_thms thy5;
     val (thy7, case_congs) = DatatypeAbsProofs.prove_case_congs new_type_names
       [descr] sorts nchotomys case_thms thy6;
-    val (thy8, size_thms) =
-      if exists (equal "Arith") (Sign.stamp_names_of (Theory.sign_of thy7)) then
+    val (thy8, weak_case_congs) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
+      [descr] sorts thy7;
+    val (thy9, size_thms) =
+      if exists (equal "Arith") (Sign.stamp_names_of (Theory.sign_of thy8)) then
         DatatypeAbsProofs.prove_size_thms false new_type_names
-          [descr] sorts reccomb_names rec_thms thy7
-      else (thy7, []);
+          [descr] sorts reccomb_names rec_thms thy8
+      else (thy8, []);
 
     val dt_infos = map (make_dt_info descr induction reccomb_names rec_thms)
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~
@@ -675,20 +683,21 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
-    val (thy9, [induction']) = thy8 |>
+    val (thy10, [induction']) = thy9 |>
       (#1 o store_thmss "inject" new_type_names inject) |>
       (#1 o store_thmss "distinct" new_type_names distinct) |>
       Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_thms [(("induct", induction), [case_names_induct])] |>>
       (#1 o PureThy.add_thmss [(("simps", simps), []),
         (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
-        (("", flat (inject @ distinct)), [iff_add_global])]) |>>
+        (("", flat (inject @ distinct)), [iff_add_global]),
+        (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>>
       add_cases_induct dt_infos |>>
       Theory.parent_path;
 
   in
-    (thy9,
+    (thy10,
      {distinct = distinct,
       inject = inject,
       exhaustion = casedist_thms,

@@ -38,6 +38,9 @@ sig
   val prove_nchotomys : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       thm list -> theory -> theory * thm list
+  val prove_weak_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
+    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
+      theory -> theory * thm list
   val prove_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       thm list -> thm list list -> theory -> theory * thm list
@@ -461,6 +464,16 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     Theory.parent_path |> apsnd flat
   end;
 
+fun prove_weak_case_congs new_type_names descr sorts thy =
+  let
+    fun prove_weak_case_cong t =
+       prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) t)
+         (fn prems => [rtac ((hd prems) RS arg_cong) 1])
+
+    val weak_case_congs = map prove_weak_case_cong (DatatypeProp.make_weak_case_congs
+      new_type_names descr sorts thy)
+
+  in thy |> store_thms "weak_case_cong" new_type_names weak_case_congs end;
 
 (************************* additional theorems for TFL ************************)
 
