@@ -122,9 +122,9 @@ sig
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val hence_i: (string * Proof.context attribute list * (term * (term list * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val begin_block: ProofHistory.T -> ProofHistory.T
-  val next_block: ProofHistory.T -> ProofHistory.T
-  val end_block: ProofHistory.T -> ProofHistory.T
+  val begin_block: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val next_block: Comment.text -> ProofHistory.T -> ProofHistory.T
+  val end_block: Comment.text -> ProofHistory.T -> ProofHistory.T
   val defer: int option * Comment.text -> ProofHistory.T -> ProofHistory.T
   val prefer: int * Comment.text -> ProofHistory.T -> ProofHistory.T
   val apply: Method.text * Comment.text -> ProofHistory.T -> ProofHistory.T
@@ -387,9 +387,9 @@ end;
 
 (* blocks *)
 
-val begin_block = ProofHistory.apply Proof.begin_block;
-val next_block = ProofHistory.apply Proof.next_block;
-val end_block = ProofHistory.applys Proof.end_block;
+fun begin_block comment_ignore = ProofHistory.apply Proof.begin_block;
+fun next_block comment_ignore = ProofHistory.apply Proof.next_block;
+fun end_block comment_ignore = ProofHistory.applys Proof.end_block;
 
 
 (* shuffle state *)

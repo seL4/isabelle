@@ -349,15 +349,15 @@ val caseP =
 
 val beginP =
   OuterSyntax.command "{" "begin explicit proof block" K.prf_block
-    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.begin_block));
+    (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.begin_block)));
 
 val endP =
   OuterSyntax.command "}" "end explicit proof block" K.prf_block
-    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.end_block));
+    (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.end_block)));
 
 val nextP =
   OuterSyntax.command "next" "enter next proof block" K.prf_block
-    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.next_block));
+    (P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.next_block)));
 
 
 (* end proof *)
