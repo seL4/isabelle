@@ -11,6 +11,7 @@ sig
   val exit: Toplevel.transition -> Toplevel.transition
   val restart: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
+  val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
   val clear_undo: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
@@ -55,6 +56,8 @@ val quit = Toplevel.imperative quit;
 
 
 (* history commands *)
+
+fun cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
 
 val clear_undo = Toplevel.history History.clear o Toplevel.proof ProofHistory.clear;
 val redo = Toplevel.history History.redo o Toplevel.proof ProofHistory.redo;
