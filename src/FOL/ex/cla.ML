@@ -374,6 +374,17 @@ by (Blast_tac 1);
 result();
 
 
+writeln"Problem 46";
+goal FOL.thy
+    "(ALL x. f(x) & (ALL y. f(y) & h(y,x) --> g(y)) --> g(x)) &      \
+\    ((EX x. f(x) & ~g(x)) -->                                    \
+\     (EX x. f(x) & ~g(x) & (ALL y. f(y) & ~g(y) --> j(x,y)))) &    \
+\    (ALL x y. f(x) & f(y) & h(x,y) --> ~j(y,x))                    \
+\     --> (ALL x. f(x) --> g(x))";
+by (Blast_tac 1); 
+result();
+
+
 writeln"Problems (mainly) involving equality or functions";
 
 writeln"Problem 48";
