@@ -7,18 +7,19 @@ header {* Bounds *};
 
 theory Bounds = Main + Real:;
 
+text_raw {* \begin{comment} *};
 
 subsection {* The sets of lower and upper bounds *};
 
 constdefs
   is_LowerBound :: "('a::order) set => 'a set => 'a => bool"
-  "is_LowerBound A B == %x. x:A & (ALL y:B. x <= y)"
+  "is_LowerBound A B == \<lambda>x. x:A & (ALL y:B. x <= y)"
    
   LowerBounds :: "('a::order) set => 'a set => 'a set"
   "LowerBounds A B == Collect (is_LowerBound A B)"
 
   is_UpperBound :: "('a::order) set => 'a set => 'a => bool"
-  "is_UpperBound A B == %x. x:A & (ALL y:B. y <= x)"
+  "is_UpperBound A B == \<lambda>x. x:A & (ALL y:B. y <= x)"
  
   UpperBounds :: "('a::order) set => 'a set => 'a set"
   "UpperBounds A B == Collect (is_UpperBound A B)";
@@ -34,9 +35,9 @@ syntax
     ("(3LOWER'_BOUNDS _./ _)" 10);
 
 translations
-  "UPPER_BOUNDS x:A. P" == "UpperBounds A (Collect (%x. P))"
+  "UPPER_BOUNDS x:A. P" == "UpperBounds A (Collect (\<lambda>x. P))"
   "UPPER_BOUNDS x. P" == "UPPER_BOUNDS x:UNIV. P"
-  "LOWER_BOUNDS x:A. P" == "LowerBounds A (Collect (%x. P))"
+  "LOWER_BOUNDS x:A. P" == "LowerBounds A (Collect (\<lambda>x. P))"
   "LOWER_BOUNDS x. P" == "LOWER_BOUNDS x:UNIV. P";
 
 
@@ -68,42 +69,67 @@ translations
 
 subsection {* Infimum and Supremum *};
 
+text_raw {* \end{comment} *};
+
+text {* A supremum of an ordered set $B$ w.~r.~t.~$A$ 
+is defined as a least upperbound of $B$, which lies in $A$.
+The definition of the supremum is based on the
+existing definition (see HOL/Real/Lubs.thy).*};
+   
+text{* If a supremum exists, then $\idt{Sup}\ap A\ap B$
+is equal to the supremum. *};
+
 constdefs
   is_Sup :: "('a::order) set => 'a set => 'a => bool"
   "is_Sup A B x == isLub A B x"
-   
-  Sup :: "('a::order) set => 'a set => 'a"
-  "Sup A B == Eps (is_Sup A B)"
 
-  is_Inf :: "('a::order) set => 'a set => 'a => bool"  
+  Sup :: "('a::order) set => 'a set => 'a"
+  "Sup A B == Eps (is_Sup A B)";
+;
+text_raw {* \begin{comment} *};
+
+constdefs
+  is_Inf :: "('a::order) set => 'a set => 'a => bool"
   "is_Inf A B x == x:A & is_Greatest (LowerBounds A B) x"
 
   Inf :: "('a::order) set => 'a set => 'a"
   "Inf A B == Eps (is_Inf A B)";
 
 syntax
-  "_SUP" :: "[pttrn, 'a set, 'a => bool] => 'a set"     
+  "_SUP" :: "[pttrn, 'a set, 'a => bool] => 'a set"
     ("(3SUP _:_./ _)" 10)
-  "_SUP_U" :: "[pttrn, 'a => bool] => 'a set"           
+  "_SUP_U" :: "[pttrn, 'a => bool] => 'a set"
     ("(3SUP _./ _)" 10)
-  "_INF" :: "[pttrn, 'a set, 'a => bool] => 'a set"     
+  "_INF" :: "[pttrn, 'a set, 'a => bool] => 'a set"
     ("(3INF _:_./ _)" 10)
-  "_INF_U" :: "[pttrn, 'a => bool] => 'a set"           
+  "_INF_U" :: "[pttrn, 'a => bool] => 'a set"
     ("(3INF _./ _)" 10);
 
 translations
-  "SUP x:A. P" == "Sup A (Collect (%x. P))"
+  "SUP x:A. P" == "Sup A (Collect (\<lambda>x. P))"
   "SUP x. P" == "SUP x:UNIV. P"
-  "INF x:A. P" == "Inf A (Collect (%x. P))"
+  "INF x:A. P" == "Inf A (Collect (\<lambda>x. P))"
   "INF x. P" == "INF x:UNIV. P";
+
+text_raw {* \end{comment} *};
+;
+
+text{* The supremum of $B$ is less than every upper bound
+of $B$.*};
 
 lemma sup_le_ub: "isUb A B y ==> is_Sup A B s ==> s <= y";
   by (unfold is_Sup_def, rule isLub_le_isUb);
 
+text {* The supremum $B$ is an upperbound for $B$. *};
+
 lemma sup_ub: "y:B ==> is_Sup A B s ==> y <= s";
   by (unfold is_Sup_def, rule isLubD2);
 
-lemma sup_ub1: "ALL y:B. a <= y ==> is_Sup A B s ==> x:B ==> a <= s";
+text{* The supremum of a non-empty set $B$ is greater
+than a lower bound of $B$. *};
+
+lemma sup_ub1: 
+  "[| ALL y:B. a <= y; is_Sup A B s; x:B |] ==> a <= s";
 proof -; 
   assume "ALL y:B. a <= y" "is_Sup A B s" "x:B";
   have "a <= x"; by (rule bspec);

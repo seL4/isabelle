@@ -7,17 +7,42 @@ header {* Auxiliary theorems *};
 
 theory Aux = Real + Zorn:;
 
+text {* Some existing theorems are declared as extra introduction
+or elimination rules, respectively. *};
+
+lemmas [intro!!] = isLub_isUb;
 lemmas [intro!!] = chainD; 
 lemmas chainE2 = chainD2 [elimify];
-lemmas [intro!!] = isLub_isUb;
 
-theorem real_linear_split:
- "[| x < a ==> Q; x = a ==> Q; a < (x::real) ==> Q |] ==> Q";
-  by (rule real_linear [of x a, elimify], elim disjE, force+);
+text_raw {* \medskip *};
+text{* Lemmas about sets: *};
+
+lemma Int_singletonD: "[| A Int B = {v}; x:A; x:B |] ==> x = v";
+  by (fast elim: equalityE);
+
+lemma set_less_imp_diff_not_empty: "H < E ==> EX x0:E. x0 ~: H";
+ by (force simp add: psubset_eq);
+
+text_raw {* \medskip *};
+text{* Some lemmas about orders: *};
+
+lemma lt_imp_not_eq: "x < (y::'a::order) ==> x ~= y"; 
+  by (rule order_less_le[RS iffD1, RS conjunct2]);
+
+lemma le_noteq_imp_less: 
+  "[| x <= (r::'a::order); x ~= r |] ==> x < r";
+proof -;
+  assume "x <= (r::'a::order)" and ne:"x ~= r";
+  hence "x < r | x = r"; by (simp add: order_le_less);
+  with ne; show ?thesis; by simp;
+qed;
+
+text_raw {* \medskip *};
+text {* Some lemmas about linear orders. *};
 
 theorem linorder_linear_split: 
 "[| x < a ==> Q; x = a ==> Q; a < (x::'a::linorder) ==> Q |] ==> Q";
-  by (rule linorder_less_linear [of x a, elimify], elim disjE, force+);
+  by (rule linorder_less_linear [of x a, elimify]) force+;
 
 lemma le_max1: "x <= max x (y::'a::linorder)";
   by (simp add: le_max_iff_disj[of x x y]);
@@ -25,11 +50,8 @@ lemma le_max1: "x <= max x (y::'a::linorder)";
 lemma le_max2: "y <= max x (y::'a::linorder)"; 
   by (simp add: le_max_iff_disj[of y x y]);
 
-lemma lt_imp_not_eq: "x < (y::'a::order) ==> x ~= y"; 
-  by (rule order_less_le[RS iffD1, RS conjunct2]);
-
-lemma Int_singletonD: "[| A Int B = {v}; x:A; x:B |] ==> x = v";
-  by (fast elim: equalityE);
+text_raw {* \medskip *};
+text{* Some lemmas for the reals. *};
 
 lemma real_add_minus_eq: "x - y = 0r ==> x = y";
 proof -;
@@ -106,22 +128,11 @@ proof -;
   finally; show ?thesis; .;
 qed;
 
-lemma le_noteq_imp_less: 
-  "[| x <= (r::'a::order); x ~= r |] ==> x < r";
-proof -;
-  assume "x <= (r::'a::order)" and ne:"x ~= r";
-  then; have "x < r | x = r"; by (simp add: order_le_less);
-  with ne; show ?thesis; by simp;
-qed;
-
 lemma real_minus_le: "- (x::real) <= y ==> - y <= x";
   by simp;
 
 lemma real_diff_ineq_swap: 
   "(d::real) - b <= c + a ==> - a - b <= c - d";
   by simp;
-
-lemma set_less_imp_diff_not_empty: "H < E ==> EX x0:E. x0 ~: H";
- by (force simp add: psubset_eq);
 
 end;

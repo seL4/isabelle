@@ -101,12 +101,12 @@ HOL-Real-HahnBanach: HOL-Real $(LOG)/HOL-Real-HahnBanach.gz
 $(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
   Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
   Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy \
-  Real/HahnBanach/HahnBanach_h0_lemmas.thy	\
-  Real/HahnBanach/HahnBanach_lemmas.thy		\
-  Real/HahnBanach/LinearSpace.thy Real/HahnBanach/Linearform.thy \
-  Real/HahnBanach/NormedSpace.thy Real/HahnBanach/ROOT.ML \
-  Real/HahnBanach/Subspace.thy Real/HahnBanach/Zorn_Lemma.thy \
-  Real/HahnBanach/document/notation.tex		\
+  Real/HahnBanach/HahnBanachExtLemmas.thy	\
+  Real/HahnBanach/HahnBanachSupLemmas.thy	\
+  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy \
+  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML \
+  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy \
+  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/notation.tex \
   Real/HahnBanach/document/root.tex
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real HahnBanach
 

@@ -1,5 +1,7 @@
 
 \renewcommand{\isamarkupheader}[1]{\section{#1}}
+\newcommand{\isasymbollambda}{${\mathtt{\lambda}}$}
+
 \parindent 0pt \parskip 0.5ex
 
 \newcommand{\name}[1]{\textsf{#1}}
@@ -9,12 +11,50 @@
 \DeclareMathSymbol{\dshsym}{\mathalpha}{letters}{"2D}
 \newcommand{\dsh}{\dshsym}
 
+\newenvironment{matharray}[1]{\[\begin{array}{#1}}{\end{array}\]}
+
+\newcommand{\ty}{{\mathbin{:\,}}}
 \newcommand{\To}{\to}
 \newcommand{\dt}{{\mathpunct.}}
-\newcommand{\ap}{\mathbin{\!}}
-\newcommand{\lam}[1]{\mathop{\lambda} #1\dt\;}
 \newcommand{\all}[1]{\forall #1\dt\;}
 \newcommand{\ex}[1]{\exists #1\dt\;}
+\newcommand{\EX}[1]{\exists #1\dt\;}
+\newcommand{\eps}[1]{\epsilon\; #1}
+%\newcommand{\Forall}{\mathop\bigwedge}
+\newcommand{\Forall}{\forall}
+\newcommand{\All}[1]{\Forall #1\dt\;}
+\newcommand{\ALL}[1]{\Forall #1\dt\;}
+\newcommand{\Eps}[1]{\Epsilon #1\dt\;}
+\newcommand{\Eq}{\mathbin{\,\equiv\,}}
+\newcommand{\True}{\name{true}}
+\newcommand{\False}{\name{false}}
+\newcommand{\Impl}{\Rightarrow}
+\newcommand{\And}{\;\land\;}
+\newcommand{\Or}{\;\lor\;}
+\newcommand{\Le}{\le}
+\newcommand{\Lt}{\lt}
+\newcommand{\lam}[1]{\mathop{\lambda} #1\dt\;}
+\newcommand{\ap}{\mathbin{\!}}
+
+
+\newcommand{\norm}[1]{\|\, #1\,\|}
+\newcommand{\fnorm}[1]{\|\, #1\,\|}
+\newcommand{\zero}{{\mathord{\mathbf {0}}}}
+\newcommand{\plus}{{\mathbin{\;\mathtt {+}\;}}}
+\newcommand{\minus}{{\mathbin{\;\mathtt {-}\;}}}
+\newcommand{\mult}{{\mathbin{\;\mathbf {\odot}\;}}}
+\newcommand{\1}{{\mathord{\mathrm{1}}}}
+%\newcommand{\zero}{{\mathord{\small\sl\tt {<0>}}}}
+%\newcommand{\plus}{{\mathbin{\;\small\sl\tt {[+]}\;}}}
+%\newcommand{\minus}{{\mathbin{\;\small\sl\tt {[-]}\;}}}
+%\newcommand{\mult}{{\mathbin{\;\small\sl\tt {[*]}\;}}}
+%\newcommand{\1}{{\mathord{\mathrb{1}}}}
+\newcommand{\fl}{{\mathord{\bf\underline{\phantom{i}}}}}
+\renewcommand{\times}{\;{\mathbin{\cdot}}\;}
+\newcommand{\qed}{\hfill~$\Box$}
+
+\newcommand{\isasymbolprod}{$\mult$}
+\newcommand{\isasymbolzero}{$\zero$}
 
 %%% Local Variables: 
 %%% mode: latex

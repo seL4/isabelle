@@ -1,21 +1,63 @@
 
-\documentclass[11pt,a4paper]{article}
-\usepackage{isabelle,pdfsetup}
+\documentclass[11pt,a4paper,twoside]{article}
+
+\usepackage{comment}
+\usepackage{latexsym,theorem}
+\usepackage{isabelle,pdfsetup} %last one!
 
 \input{notation}
 
 \begin{document}
+
+\pagestyle{headings}
+\pagenumbering{arabic}
 
 \title{The Hahn-Banach Theorem for Real Vectorspaces}
 \author{Gertrud Bauer}
 \maketitle
 
 \begin{abstract}
-  FIXME
+The Hahn-Banach theorem is one of the most important theorems
+of functional analysis. We present the fully formal proof of two versions of
+the theorem, one for general linear spaces and one for normed spaces
+as a corollary of the first. 
+
+The first part contains the definition of basic notions of
+linear algebra, such as vector spaces, subspaces, normed spaces,
+continous linearforms, norm of functions and an order on
+functions by domain extension.
+
+The second part contains some lemmas about the supremum w.r.t. the
+function order and the extension of a non-maximal function, 
+which are needed for the proof of the main theorem.
+
+The third part is the proof of the theorem in its two different versions.
+
 \end{abstract}
 
 \tableofcontents
 
-\input{session}
+\part {Basic notions}
+
+\input{Bounds.tex}
+\input{Aux.tex}
+\input{VectorSpace.tex}
+\input{Subspace.tex}
+\input{NormedSpace.tex}
+\input{Linearform.tex}
+\input{FunctionOrder.tex}
+\input{FunctionNorm.tex}
+\input{ZornLemma.tex}
+
+\part {Lemmas for the proof}
+
+\input{HahnBanachSupLemmas.tex}
+\input{HahnBanachExtLemmas.tex}
+
+\part {The proof}
+
+\input{HahnBanach.tex}
+\bibliographystyle{abbrv}
+\bibliography{bib}
 
 \end{document}

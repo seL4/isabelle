@@ -3,28 +3,29 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* An Order on Functions *};
+header {* An Order on functions *};
 
 theory FunctionOrder = Subspace + Linearform:;
 
 
+subsection {* The graph of a function *};
 
-subsection {* The graph of a function *}
+text{* We define the \emph{graph} of a (real) function $f$ with the 
+domain $F$ as the set 
+\begin{matharray}{l}
+\{(x, f\ap x). \ap x:F\}.
+\end{matharray}
+So we are modelling partial functions by specifying the domain and 
+the mapping function. We use the notion 'function' also for the graph
+of a function. 
+*};
 
-
-types 'a graph = "('a * real) set";
+types 'a graph = "('a::{minus, plus} * real) set";
 
 constdefs
   graph :: "['a set, 'a => real] => 'a graph "
-  "graph F f == {p. EX x. p = (x, f x) & x:F}"; (* == {(x, f x). x:F} *)
-
-constdefs
-  domain :: "'a graph => 'a set" 
-  "domain g == {x. EX y. (x, y):g}";
-
-constdefs
-  funct :: "'a graph => ('a => real)"
-  "funct g == %x. (@ y. (x, y):g)";
+  "graph F f == {p. EX x. p = (x, f x) & x:F}"; (* 
+   == {(x, f x). x:F} *)
 
 lemma graphI [intro!!]: "x:F ==> (x, f x) : graph F f";
   by (unfold graph_def, intro CollectI exI) force;
@@ -38,16 +39,46 @@ lemma graphD1 [intro!!]: "(x, y): graph F f ==> x:F";
 lemma graphD2 [intro!!]: "(x, y): graph H h ==> y = h x";
   by (unfold graph_def, elim CollectE exE) force; 
 
+subsection {* Functions ordered by domain extension *};
+
+text{* The function $h'$ is an extension of $h$, iff the graph of 
+$h$ is a subset of the graph of $h'$.*};
+
+lemma graph_extI: 
+  "[| !! x. x: H ==> h x = h' x; H <= H'|]
+  ==> graph H h <= graph H' h'";
+  by (unfold graph_def, force);
+
 lemma graph_extD1 [intro!!]: 
   "[| graph H h <= graph H' h'; x:H |] ==> h x = h' x";
   by (unfold graph_def, force);
 
-lemma graph_extD2 [intro!!]: "[| graph H h <= graph H' h' |] ==> H <= H'";
+lemma graph_extD2 [intro!!]: 
+  "[| graph H h <= graph H' h' |] ==> H <= H'";
   by (unfold graph_def, force);
 
-lemma graph_extI: 
-  "[| !! x. x: H ==> h x = h' x; H <= H'|] ==> graph H h <= graph H' h'";
-  by (unfold graph_def, force);
+subsection {* Domain and function of a graph *};
+
+text{* The inverse functions to $\idt{graph}$ are $\idt{domain}$ and 
+$\idt{funct}$.*};
+
+constdefs
+  domain :: "'a graph => 'a set" 
+  "domain g == {x. EX y. (x, y):g}"
+
+  funct :: "'a graph => ('a => real)"
+  "funct g == \<lambda>x. (SOME y. (x, y):g)";
+
+(*text{*  The equations 
+\begin{matharray}
+\idt{domain} graph F f = F {\rm and}\\ 
+\idt{funct} graph F f = f
+\end{matharray}
+hold, but are not proved here.
+*};*)
+
+text {* The following lemma states that $g$ is the graph of a function
+if the relation induced by $g$ is unique. *};
 
 lemma graph_domain_funct: 
   "(!!x y z. (x, y):g ==> (x, z):g ==> z = y) 
@@ -65,46 +96,50 @@ qed;
 
 
 
-subsection {* The set of norm preserving extensions of a function *}
+subsection {* Norm preserving extensions of a function *};
+
+text {* Given a function $f$ on the space $F$ and a quasinorm $p$ on 
+$E$. The set of all linear extensions of $f$, to superspaces $H$ of 
+$F$, which are bounded by $p$, is defined as follows. *};
 
 
 constdefs
   norm_pres_extensions :: 
-   "['a set, 'a  => real, 'a set, 'a => real] => 'a graph set"
-  "norm_pres_extensions E p F f == {g. EX H h. graph H h = g 
-                                             & is_linearform H h 
-                                             & is_subspace H E
-                                             & is_subspace F H
-                                             & (graph F f <= graph H h)
-                                             & (ALL x:H. h x <= p x)}";
+    "['a::{minus, plus} set, 'a  => real, 'a set, 'a => real] 
+    => 'a graph set"
+    "norm_pres_extensions E p F f 
+    == {g. EX H h. graph H h = g 
+                & is_linearform H h 
+                & is_subspace H E
+                & is_subspace F H
+                & graph F f <= graph H h
+                & (ALL x:H. h x <= p x)}";
                        
 lemma norm_pres_extension_D:  
-  "(g: norm_pres_extensions E p F f) ==> (EX H h. graph H h = g 
-                                              & is_linearform H h 
-                                              & is_subspace H E
-                                              & is_subspace F H
-                                              & (graph F f <= graph H h)
-                                              & (ALL x:H. h x <= p x))";
- by (unfold norm_pres_extensions_def) force;
+  "g : norm_pres_extensions E p F f
+  ==> EX H h. graph H h = g 
+            & is_linearform H h 
+            & is_subspace H E
+            & is_subspace F H
+            & graph F f <= graph H h
+            & (ALL x:H. h x <= p x)";
+  by (unfold norm_pres_extensions_def) force;
 
 lemma norm_pres_extensionI2 [intro]:  
-   "[| is_linearform H h;    
-       is_subspace H E;
-       is_subspace F H;
-       (graph F f <= graph H h);
-       (ALL x:H. h x <= p x) |]
-   ==> (graph H h : norm_pres_extensions E p F f)";
+  "[| is_linearform H h; is_subspace H E; is_subspace F H;
+  graph F f <= graph H h; ALL x:H. h x <= p x |]
+  ==> (graph H h : norm_pres_extensions E p F f)";
  by (unfold norm_pres_extensions_def) force;
 
 lemma norm_pres_extensionI [intro]:  
-   "(EX H h. graph H h = g 
-             & is_linearform H h    
-             & is_subspace H E
-             & is_subspace F H
-             & (graph F f <= graph H h)
-             & (ALL x:H. h x <= p x))
-   ==> (g: norm_pres_extensions E p F f) ";
- by (unfold norm_pres_extensions_def) force;
+  "EX H h. graph H h = g 
+         & is_linearform H h    
+         & is_subspace H E
+         & is_subspace F H
+         & graph F f <= graph H h
+         & (ALL x:H. h x <= p x)
+  ==> g: norm_pres_extensions E p F f";
+  by (unfold norm_pres_extensions_def) force;
 
 end;
 
