@@ -169,16 +169,15 @@ done
 lemma (in M_axioms) restrict_Y_lemma:
    "[| wellfounded(M,r); trans(r); M(r);
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(Y);
-       \<forall>b. M(b) -->
+       \<forall>b[M]. 
 	   b \<in> Y <->
-	   (\<exists>x\<in>r -`` {a1}. \<exists>y[M]. \<exists>g[M]. 
-              b = \<langle>x,y\<rangle> & is_recfun(r,x,H,g) \<and> y = H(x,g));
-          \<langle>x,a1\<rangle> \<in> r; M(f); is_recfun(r,x,H,f) |]
+	   (\<exists>x[M]. <x,a1> \<in> r &
+            (\<exists>y[M]. b = \<langle>x,y\<rangle> & (\<exists>g[M]. is_recfun(r,x,H,g) \<and> y = H(x,g))));
+          \<langle>x,a1\<rangle> \<in> r; is_recfun(r,x,H,f); M(f) |]
        ==> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y <-> <y,z>:f") 
  apply (simp (no_asm_simp) add: restrict_def) 
  apply (thin_tac "rall(M,?P)")+  --{*essential for efficiency*}
- apply (thin_tac "All(?P)")+  --{*essential for efficiency*}
  apply (frule is_recfun_type [THEN fun_is_rel], blast)
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (rule iffI)
@@ -205,6 +204,7 @@ apply (simp add: univalent_def)
 apply (blast dest: is_recfun_functional) 
 done
 
+
 text{*Proof of the inductive step for @{text exists_is_recfun}, since
       we must prove two versions.*}
 lemma (in M_axioms) exists_is_recfun_indstep:
@@ -225,13 +225,17 @@ txt{*Unfold only the top-level occurrence of @{term is_recfun}*}
 apply (simp (no_asm_simp) add: is_recfun_relativize [of concl: _ a1])
 txt{*The big iff-formula defining @{term Y} is now redundant*}
 apply safe 
- apply (simp add: vimage_singleton_iff restrict_Y_lemma [of r H]) 
+ apply (simp add: vimage_singleton_iff restrict_Y_lemma [of r H _ a1]) 
 txt{*one more case*}
 apply (simp (no_asm_simp) add: Bex_def vimage_singleton_iff)
 apply (drule_tac x1=x in spec [THEN mp], assumption, clarify) 
 apply (rename_tac f) 
 apply (rule_tac x=f in rexI) 
 apply (simp_all add: restrict_Y_lemma [of r H])
+txt{*FIXME: should not be needed!*}
+apply (subst restrict_Y_lemma [of r H])
+apply (simp add: vimage_singleton_iff)+
+apply blast+
 done
 
 text{*Relativized version, when we have the (currently weaker) premise

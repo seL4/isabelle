@@ -221,7 +221,7 @@ apply (rename_tac Z x)
 apply (subgoal_tac "M({x\<in>A. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+})")
  prefer 2
  apply (blast intro: wellfounded_trancl_separation) 
-apply (drule_tac x = "{x\<in>A. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+}" in spec, safe)
+apply (drule_tac x = "{x\<in>A. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+}" in rspec, safe)
 apply (blast dest: transM, simp)
 apply (rename_tac y w)
 apply (drule_tac x=w in bspec, assumption, clarify)

@@ -47,29 +47,28 @@ constdefs
 
   is_converse :: "[i=>o,i,i] => o"
     "is_converse(M,r,z) == 
-	\<forall>x. M(x) --> 
-            (x \<in> z <-> 
-             (\<exists>w[M]. w\<in>r & (\<exists>u[M]. \<exists>v[M]. pair(M,u,v,w) & pair(M,v,u,x))))"
+	\<forall>x[M]. x \<in> z <-> 
+             (\<exists>w[M]. w\<in>r & (\<exists>u[M]. \<exists>v[M]. pair(M,u,v,w) & pair(M,v,u,x)))"
 
   pre_image :: "[i=>o,i,i,i] => o"
     "pre_image(M,r,A,z) == 
-	\<forall>x. M(x) --> (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w))))"
+	\<forall>x[M]. x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w)))"
 
   is_domain :: "[i=>o,i,i] => o"
     "is_domain(M,r,z) == 
-	\<forall>x. M(x) --> (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))"
+	\<forall>x[M]. (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))"
 
   image :: "[i=>o,i,i,i] => o"
     "image(M,r,A,z) == 
-        \<forall>y. M(y) --> (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))"
+        \<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))"
 
   is_range :: "[i=>o,i,i] => o"
     --{*the cleaner 
-      @{term "\<exists>r'. M(r') & is_converse(M,r,r') & is_domain(M,r',z)"}
+      @{term "\<exists>r'[M]. is_converse(M,r,r') & is_domain(M,r',z)"}
       unfortunately needs an instance of separation in order to prove 
         @{term "M(converse(r))"}.*}
     "is_range(M,r,z) == 
-	\<forall>y. M(y) --> (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))"
+	\<forall>y[M]. (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))"
 
   is_field :: "[i=>o,i,i] => o"
     "is_field(M,r,z) == 
@@ -82,18 +81,17 @@ constdefs
 
   is_function :: "[i=>o,i] => o"
     "is_function(M,r) == 
-	(\<forall>x y y' p p'. M(x) --> M(y) --> M(y') --> M(p) --> M(p') --> 
-                      pair(M,x,y,p) --> pair(M,x,y',p') --> p\<in>r --> p'\<in>r --> 
-                      y=y')"
+	\<forall>x[M]. \<forall>y[M]. \<forall>y'[M]. \<forall>p[M]. \<forall>p'[M]. 
+           pair(M,x,y,p) --> pair(M,x,y',p') --> p\<in>r --> p'\<in>r --> y=y'"
 
   fun_apply :: "[i=>o,i,i,i] => o"
     "fun_apply(M,f,x,y) == 
-	(\<forall>y'. M(y') --> ((\<exists>u\<in>f. M(u) & pair(M,x,y',u)) <-> y=y'))"
+	(\<forall>y'[M]. (\<exists>u[M]. u\<in>f & pair(M,x,y',u)) <-> y=y')"
 
   typed_function :: "[i=>o,i,i,i] => o"
     "typed_function(M,A,B,r) == 
         is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
-        (\<forall>u\<in>r. M(u) --> (\<forall>x y. M(x) & M(y) & pair(M,x,y,u) --> y\<in>B))"
+        (\<forall>u[M]. u\<in>r --> (\<forall>x y. M(x) & M(y) & pair(M,x,y,u) --> y\<in>B))"
 
   is_funspace :: "[i=>o,i,i,i] => o"
     "is_funspace(M,A,B,F) == 
@@ -101,8 +99,8 @@ constdefs
 
   composition :: "[i=>o,i,i,i] => o"
     "composition(M,r,s,t) == 
-        \<forall>p. M(p) --> (p \<in> t <-> 
-                      (\<exists>x. M(x) & (\<exists>y. M(y) & (\<exists>z. M(z) & 
+        \<forall>p[M]. (p \<in> t <-> 
+                      (\<exists>x[M]. (\<exists>y[M]. (\<exists>z[M]. 
                            p = \<langle>x,z\<rangle> & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r))))"
 
 
@@ -116,29 +114,29 @@ constdefs
   surjection :: "[i=>o,i,i,i] => o"
     "surjection(M,A,B,f) == 
         typed_function(M,A,B,f) &
-        (\<forall>y\<in>B. M(y) --> (\<exists>x\<in>A. M(x) & fun_apply(M,f,x,y)))"
+        (\<forall>y[M]. y\<in>B --> (\<exists>x[M]. x\<in>A & fun_apply(M,f,x,y)))"
 
   bijection :: "[i=>o,i,i,i] => o"
     "bijection(M,A,B,f) == injection(M,A,B,f) & surjection(M,A,B,f)"
 
   restriction :: "[i=>o,i,i,i] => o"
     "restriction(M,r,A,z) == 
-	\<forall>x. M(x) --> 
+	\<forall>x[M]. 
             (x \<in> z <-> 
-             (x \<in> r & (\<exists>u\<in>A. M(u) & (\<exists>v. M(v) & pair(M,u,v,x)))))"
+             (x \<in> r & (\<exists>u[M]. u\<in>A & (\<exists>v[M]. pair(M,u,v,x)))))"
 
   transitive_set :: "[i=>o,i] => o"
-    "transitive_set(M,a) == \<forall>x\<in>a. M(x) --> subset(M,x,a)"
+    "transitive_set(M,a) == \<forall>x[M]. x\<in>a --> subset(M,x,a)"
 
   ordinal :: "[i=>o,i] => o"
      --{*an ordinal is a transitive set of transitive sets*}
-    "ordinal(M,a) == transitive_set(M,a) & (\<forall>x\<in>a. M(x) --> transitive_set(M,x))"
+    "ordinal(M,a) == transitive_set(M,a) & (\<forall>x[M]. x\<in>a --> transitive_set(M,x))"
 
   limit_ordinal :: "[i=>o,i] => o"
     --{*a limit ordinal is a non-empty, successor-closed ordinal*}
     "limit_ordinal(M,a) == 
 	ordinal(M,a) & ~ empty(M,a) & 
-        (\<forall>x\<in>a. M(x) --> (\<exists>y\<in>a. M(y) & successor(M,x,y)))"
+        (\<forall>x[M]. x\<in>a --> (\<exists>y[M]. y\<in>a & successor(M,x,y)))"
 
   successor_ordinal :: "[i=>o,i] => o"
     --{*a successor ordinal is any ordinal that is neither empty nor limit*}
@@ -149,20 +147,20 @@ constdefs
     --{*an ordinal is finite if neither it nor any of its elements are limit*}
     "finite_ordinal(M,a) == 
 	ordinal(M,a) & ~ limit_ordinal(M,a) & 
-        (\<forall>x\<in>a. M(x) --> ~ limit_ordinal(M,x))"
+        (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x))"
 
   omega :: "[i=>o,i] => o"
     --{*omega is a limit ordinal none of whose elements are limit*}
-    "omega(M,a) == limit_ordinal(M,a) & (\<forall>x\<in>a. M(x) --> ~ limit_ordinal(M,x))"
+    "omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x))"
 
   number1 :: "[i=>o,i] => o"
-    "number1(M,a) == (\<exists>x. M(x) & empty(M,x) & successor(M,x,a))"
+    "number1(M,a) == (\<exists>x[M]. empty(M,x) & successor(M,x,a))"
 
   number2 :: "[i=>o,i] => o"
-    "number2(M,a) == (\<exists>x. M(x) & number1(M,x) & successor(M,x,a))"
+    "number2(M,a) == (\<exists>x[M]. number1(M,x) & successor(M,x,a))"
 
   number3 :: "[i=>o,i] => o"
-    "number3(M,a) == (\<exists>x. M(x) & number2(M,x) & successor(M,x,a))"
+    "number3(M,a) == (\<exists>x[M]. number2(M,x) & successor(M,x,a))"
 
 
 subsection {*The relativized ZF axioms*}
@@ -179,32 +177,32 @@ constdefs
 	\<forall>z[M]. \<exists>y[M]. \<forall>x[M]. x \<in> y <-> x \<in> z & P(x)"
 
   upair_ax :: "(i=>o) => o"
-    "upair_ax(M) == \<forall>x y. M(x) --> M(y) --> (\<exists>z. M(z) & upair(M,x,y,z))"
+    "upair_ax(M) == \<forall>x y. M(x) --> M(y) --> (\<exists>z[M]. upair(M,x,y,z))"
 
   Union_ax :: "(i=>o) => o"
-    "Union_ax(M) == \<forall>x. M(x) --> (\<exists>z. M(z) & big_union(M,x,z))"
+    "Union_ax(M) == \<forall>x[M]. (\<exists>z[M]. big_union(M,x,z))"
 
   power_ax :: "(i=>o) => o"
-    "power_ax(M) == \<forall>x. M(x) --> (\<exists>z. M(z) & powerset(M,x,z))"
+    "power_ax(M) == \<forall>x[M]. (\<exists>z[M]. powerset(M,x,z))"
 
   univalent :: "[i=>o, i, [i,i]=>o] => o"
     "univalent(M,A,P) == 
-	(\<forall>x\<in>A. M(x) --> (\<forall>y z. M(y) --> M(z) --> P(x,y) & P(x,z) --> y=z))"
+	(\<forall>x[M]. x\<in>A --> (\<forall>y z. M(y) --> M(z) --> P(x,y) & P(x,z) --> y=z))"
 
   replacement :: "[i=>o, [i,i]=>o] => o"
     "replacement(M,P) == 
-      \<forall>A. M(A) --> univalent(M,A,P) -->
-      (\<exists>Y. M(Y) & (\<forall>b. M(b) --> ((\<exists>x\<in>A. M(x) & P(x,b)) --> b \<in> Y)))"
+      \<forall>A[M]. univalent(M,A,P) -->
+      (\<exists>Y[M]. (\<forall>b[M]. ((\<exists>x[M]. x\<in>A & P(x,b)) --> b \<in> Y)))"
 
   strong_replacement :: "[i=>o, [i,i]=>o] => o"
     "strong_replacement(M,P) == 
-      \<forall>A. M(A) --> univalent(M,A,P) -->
-      (\<exists>Y. M(Y) & (\<forall>b. M(b) --> (b \<in> Y <-> (\<exists>x\<in>A. M(x) & P(x,b)))))"
+      \<forall>A[M]. univalent(M,A,P) -->
+      (\<exists>Y[M]. (\<forall>b[M]. (b \<in> Y <-> (\<exists>x[M]. x\<in>A & P(x,b)))))"
 
   foundation_ax :: "(i=>o) => o"
     "foundation_ax(M) == 
-	\<forall>x. M(x) --> (\<exists>y\<in>x. M(y))
-                 --> (\<exists>y\<in>x. M(y) & ~(\<exists>z\<in>x. M(z) & z \<in> y))"
+	\<forall>x[M]. (\<exists>y\<in>x. M(y))
+                 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
 
 
 subsection{*A trivial consistency proof for $V_\omega$ *}
@@ -281,8 +279,10 @@ done
 
 text{*Union axiom*}
 lemma "Union_ax(\<lambda>x. x \<in> univ(0))"  
-apply (simp add: Union_ax_def big_union_def)  
-apply (blast intro: Union_in_univ Transset_0 univ0_downwards_mem) 
+apply (simp add: Union_ax_def big_union_def, clarify) 
+apply (rule_tac x="\<Union>x" in bexI)  
+ apply (blast intro: univ0_downwards_mem)
+apply (blast intro: Union_in_univ Transset_0) 
 done
 
 text{*Powerset axiom*}
@@ -293,14 +293,17 @@ apply (simp add: univ_def Pow_in_VLimit Limit_nat)
 done
 
 lemma "power_ax(\<lambda>x. x \<in> univ(0))"  
-apply (simp add: power_ax_def powerset_def subset_def)  
-apply (blast intro: Pow_in_univ Transset_0 univ0_downwards_mem) 
+apply (simp add: power_ax_def powerset_def subset_def, clarify) 
+apply (rule_tac x="Pow(x)" in bexI)
+ apply (blast intro: univ0_downwards_mem)
+apply (blast intro: Pow_in_univ Transset_0) 
 done
 
 text{*Foundation axiom*}
 lemma "foundation_ax(\<lambda>x. x \<in> univ(0))"  
 apply (simp add: foundation_ax_def, clarify)
-apply (cut_tac A=x in foundation, blast) 
+apply (cut_tac A=x in foundation) 
+apply (blast intro: univ0_downwards_mem)
 done
 
 lemma "replacement(\<lambda>x. x \<in> univ(0), P)"  
@@ -341,12 +344,12 @@ done
 
 lemma replacementD:
     "[| replacement(M,P); M(A);  univalent(M,A,P) |]
-     ==> \<exists>Y. M(Y) & (\<forall>b. M(b) --> ((\<exists>x\<in>A. M(x) & P(x,b)) --> b \<in> Y))"
+     ==> \<exists>Y[M]. (\<forall>b[M]. ((\<exists>x[M]. x\<in>A & P(x,b)) --> b \<in> Y))"
 by (simp add: replacement_def) 
 
 lemma strong_replacementD:
     "[| strong_replacement(M,P); M(A);  univalent(M,A,P) |]
-     ==> \<exists>Y. M(Y) & (\<forall>b. M(b) --> (b \<in> Y <-> (\<exists>x\<in>A. M(x) & P(x,b))))"
+     ==> \<exists>Y[M]. (\<forall>b[M]. (b \<in> Y <-> (\<exists>x[M]. x\<in>A & P(x,b))))"
 by (simp add: strong_replacement_def) 
 
 lemma separationD:
@@ -368,12 +371,11 @@ constdefs
 
   pred_set :: "[i=>o,i,i,i,i] => o"
     "pred_set(M,A,x,r,B) == 
-	\<forall>y. M(y) --> (y \<in> B <-> (\<exists>p\<in>r. M(p) & y \<in> A & pair(M,y,x,p)))"
+	\<forall>y[M]. y \<in> B <-> (\<exists>p[M]. p\<in>r & y \<in> A & pair(M,y,x,p))"
 
   membership :: "[i=>o,i,i] => o" --{*membership relation*}
     "membership(M,A,r) == 
-	\<forall>p. M(p) --> 
-             (p \<in> r <-> (\<exists>x\<in>A. \<exists>y\<in>A. M(x) & M(y) & x\<in>y & pair(M,x,y,p)))"
+	\<forall>p[M]. p \<in> r <-> (\<exists>x\<in>A. \<exists>y\<in>A. M(x) & M(y) & x\<in>y & pair(M,x,y,p))"
 
 
 subsection{*Absoluteness for a transitive class model*}
@@ -407,7 +409,7 @@ lemma (in M_triv_axioms) rex_abs [simp]:
 by (blast intro: transM) 
 
 lemma (in M_triv_axioms) ball_iff_equiv: 
-     "M(A) ==> (\<forall>x. M(x) --> (x\<in>A <-> P(x))) <-> 
+     "M(A) ==> (\<forall>x[M]. (x\<in>A <-> P(x))) <-> 
                (\<forall>x\<in>A. P(x)) & (\<forall>x. P(x) --> M(x) --> x\<in>A)" 
 by (blast intro: transM)
 
@@ -525,13 +527,14 @@ done
 
 text{*Probably the premise and conclusion are equivalent*}
 lemma (in M_triv_axioms) strong_replacementI [rule_format]:
-    "[| \<forall>A. M(A) --> separation(M, %u. \<exists>x\<in>A. P(x,u)) |]
+    "[| \<forall>A[M]. separation(M, %u. \<exists>x\<in>A. P(x,u)) |]
      ==> strong_replacement(M,P)"
 apply (simp add: strong_replacement_def, clarify) 
 apply (frule replacementD [OF replacement], assumption, clarify) 
-apply (drule_tac x=A in spec, clarify)  
+apply (drule_tac x=A in rspec, clarify)  
 apply (drule_tac z=Y in separationD, assumption, clarify) 
-apply (blast dest: transM) 
+apply (rule_tac x=y in rexI) 
+apply (blast dest: transM)+
 done
 
 
@@ -540,7 +543,7 @@ lemma (in M_triv_axioms) strong_replacement_closed [intro,simp]:
      "[| strong_replacement(M,P); M(A); univalent(M,A,P); 
        !!x y. [| x\<in>A; P(x,y); M(x) |] ==> M(y) |] ==> M(Replace(A,P))"
 apply (simp add: strong_replacement_def) 
-apply (drule spec [THEN mp], auto) 
+apply (drule rspec, auto) 
 apply (subgoal_tac "Replace(A,P) = Y")
  apply simp 
 apply (rule equality_iffI) 
@@ -548,7 +551,7 @@ apply (simp add: Replace_iff, safe)
  apply (blast dest: transM) 
 apply (frule transM, assumption) 
  apply (simp add: univalent_def)
- apply (drule spec [THEN mp, THEN iffD1], assumption, assumption)
+ apply (drule rspec [THEN iffD1], assumption, assumption)
  apply (blast dest: transM) 
 done
 
@@ -636,7 +639,7 @@ apply (simp add: lt_def, blast)
 done
 
 lemma (in M_triv_axioms) successor_ordinal_abs [simp]: 
-     "M(a) ==> successor_ordinal(M,a) <-> Ord(a) & (\<exists>b. M(b) & a = succ(b))"
+     "M(a) ==> successor_ordinal(M,a) <-> Ord(a) & (\<exists>b[M]. a = succ(b))"
 apply (simp add: successor_ordinal_def, safe)
 apply (drule Ord_cases_disj, auto) 
 done
@@ -694,7 +697,7 @@ text{*Kunen continued to 20...*}
   primrec
       "natnumber_aux(M,0) = (\<lambda>x\<in>nat. if empty(M,x) then 1 else 0)"
       "natnumber_aux(M,succ(n)) = 
-	   (\<lambda>x\<in>nat. if (\<exists>y. M(y) & natnumber_aux(M,n)`y=1 & successor(M,y,x)) 
+	   (\<lambda>x\<in>nat. if (\<exists>y[M]. natnumber_aux(M,n)`y=1 & successor(M,y,x)) 
 		     then 1 else 0)"
 
   constdefs
@@ -742,12 +745,12 @@ assumes Inter_separation:
                 pair(M,f,b,p) & pair(M,n,b,nb) & z = {cons(nb,f)})"
   and well_ord_iso_separation:
      "[| M(A); M(f); M(r) |] 
-      ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y. M(y) & (\<exists>p. M(p) & 
+      ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y[M]. (\<exists>p[M]. 
 		     fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
   and obase_equals_separation:
      "[| M(A); M(r) |] 
       ==> separation
-      (M, \<lambda>x. x\<in>A --> ~(\<exists>y. M(y) & (\<exists>g. M(g) &
+      (M, \<lambda>x. x\<in>A --> ~(\<exists>y[M]. (\<exists>g. M(g) &
 	      ordinal(M,y) & (\<exists>my pxr. M(my) & M(pxr) &
 	      membership(M,y,my) & pred_set(M,A,x,r,pxr) &
 	      order_isomorphism(M,pxr,r,y,my,g)))))"
@@ -786,24 +789,25 @@ defer 1
  apply blast 
 txt{*Final, difficult case: the left-to-right direction of the theorem.*}
 apply (insert power_ax, simp add: power_ax_def) 
-apply (frule_tac x="A Un B" and P="\<lambda>x. M(x) --> Ex(?Q(x))" in spec) 
-apply (erule impE, blast, clarify) 
-apply (drule_tac x=z and P="\<lambda>x. M(x) --> Ex(?Q(x))" in spec) 
+apply (frule_tac x="A Un B" and P="\<lambda>x. rex(M,?Q(x))" in rspec) 
+apply (blast, clarify) 
+apply (drule_tac x=z and P="\<lambda>x. rex(M,?Q(x))" in rspec)
+apply assumption
 apply (blast intro: cartprod_iff_lemma) 
 done
 
 lemma (in M_axioms) cartprod_closed_lemma:
-     "[| M(A); M(B) |] ==> \<exists>C. M(C) & cartprod(M,A,B,C)"
+     "[| M(A); M(B) |] ==> \<exists>C[M]. cartprod(M,A,B,C)"
 apply (simp del: cartprod_abs add: cartprod_iff)
 apply (insert power_ax, simp add: power_ax_def) 
-apply (frule_tac x="A Un B" and P="\<lambda>x. M(x) --> Ex(?Q(x))" in spec) 
-apply (erule impE, blast, clarify) 
-apply (drule_tac x=z and P="\<lambda>x. M(x) --> Ex(?Q(x))" in spec) 
-apply (erule impE, blast, clarify)
-apply (intro exI conjI) 
-prefer 6 apply (rule refl) 
-prefer 4 apply assumption
-prefer 4 apply assumption
+apply (frule_tac x="A Un B" and P="\<lambda>x. rex(M,?Q(x))" in rspec) 
+apply (blast, clarify) 
+apply (drule_tac x=z and P="\<lambda>x. rex(M,?Q(x))" in rspec) 
+apply (blast, clarify)
+apply (intro rexI exI conjI) 
+prefer 5 apply (rule refl) 
+prefer 3 apply assumption
+prefer 3 apply assumption
 apply (insert cartprod_separation [of A B], auto)
 done
 

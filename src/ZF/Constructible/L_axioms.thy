@@ -17,21 +17,21 @@ done
 
 lemma upair_ax: "upair_ax(L)"
 apply (simp add: upair_ax_def upair_def, clarify)
-apply (rule_tac x="{x,y}" in exI)  
-apply (simp add: doubleton_in_L) 
+apply (rule_tac x="{x,y}" in rexI)  
+apply (simp_all add: doubleton_in_L) 
 done
 
 lemma Union_ax: "Union_ax(L)"
 apply (simp add: Union_ax_def big_union_def, clarify)
-apply (rule_tac x="Union(x)" in exI)  
-apply (simp add: Union_in_L, auto) 
+apply (rule_tac x="Union(x)" in rexI)  
+apply (simp_all add: Union_in_L, auto) 
 apply (blast intro: transL) 
 done
 
 lemma power_ax: "power_ax(L)"
 apply (simp add: power_ax_def powerset_def Relative.subset_def, clarify)
-apply (rule_tac x="{y \<in> Pow(x). L(y)}" in exI)  
-apply (simp add: LPow_in_L, auto)
+apply (rule_tac x="{y \<in> Pow(x). L(y)}" in rexI)  
+apply (simp_all add: LPow_in_L, auto)
 apply (blast intro: transL) 
 done
 
@@ -63,8 +63,8 @@ done
 lemma replacement: "replacement(L,P)"
 apply (simp add: replacement_def, clarify)
 apply (frule LReplace_in_L, assumption+, clarify) 
-apply (rule_tac x=Y in exI)   
-apply (simp add: Replace_iff univalent_def, blast) 
+apply (rule_tac x=Y in rexI)   
+apply (simp_all add: Replace_iff univalent_def, blast) 
 done
 
 subsection{*Instantiation of the locale @{text M_triv_axioms}*}

@@ -13,27 +13,27 @@ subsection{*Wellorderings*}
 
 constdefs
   irreflexive :: "[i=>o,i,i]=>o"
-    "irreflexive(M,A,r) == \<forall>x\<in>A. M(x) --> <x,x> \<notin> r"
+    "irreflexive(M,A,r) == \<forall>x[M]. x\<in>A --> <x,x> \<notin> r"
   
   transitive_rel :: "[i=>o,i,i]=>o"
     "transitive_rel(M,A,r) == 
-	\<forall>x\<in>A. M(x) --> (\<forall>y\<in>A. M(y) --> (\<forall>z\<in>A. M(z) --> 
+	\<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> (\<forall>z[M]. z\<in>A --> 
                           <x,y>\<in>r --> <y,z>\<in>r --> <x,z>\<in>r))"
 
   linear_rel :: "[i=>o,i,i]=>o"
     "linear_rel(M,A,r) == 
-	\<forall>x\<in>A. M(x) --> (\<forall>y\<in>A. M(y) --> <x,y>\<in>r | x=y | <y,x>\<in>r)"
+	\<forall>x[M]. x\<in>A --> (\<forall>y[M]. y\<in>A --> <x,y>\<in>r | x=y | <y,x>\<in>r)"
 
   wellfounded :: "[i=>o,i]=>o"
     --{*EVERY non-empty set has an @{text r}-minimal element*}
     "wellfounded(M,r) == 
-	\<forall>x. M(x) --> ~ empty(M,x) 
-                 --> (\<exists>y\<in>x. M(y) & ~(\<exists>z\<in>x. M(z) & <z,y> \<in> r))"
+	\<forall>x[M]. ~ empty(M,x) 
+                 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
   wellfounded_on :: "[i=>o,i,i]=>o"
     --{*every non-empty SUBSET OF @{text A} has an @{text r}-minimal element*}
     "wellfounded_on(M,A,r) == 
-	\<forall>x. M(x) --> ~ empty(M,x) --> subset(M,x,A)
-                 --> (\<exists>y\<in>x. M(y) & ~(\<exists>z\<in>x. M(z) & <z,y> \<in> r))"
+	\<forall>x[M]. ~ empty(M,x) --> subset(M,x,A)
+                 --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & <z,y> \<in> r))"
 
   wellordered :: "[i=>o,i,i]=>o"
     --{*every non-empty subset of @{text A} has an @{text r}-minimal element*}
@@ -82,7 +82,7 @@ lemma  (in M_axioms) wellfounded_on_iff_wellfounded:
      "wellfounded_on(M,A,r) <-> wellfounded(M, r \<inter> A*A)"
 apply (simp add: wellfounded_on_def wellfounded_def, safe)
  apply blast 
-apply (drule_tac x=x in spec, blast) 
+apply (drule_tac x=x in rspec, assumption, blast) 
 done
 
 lemma (in M_axioms) wellfounded_on_imp_wellfounded:
@@ -104,8 +104,8 @@ lemma (in M_axioms) wellfounded_induct:
          \<forall>x. M(x) & (\<forall>y. <y,x> \<in> r --> P(y)) --> P(x) |]
       ==> P(a)";
 apply (simp (no_asm_use) add: wellfounded_def)
-apply (drule_tac x="{z \<in> domain(r). ~P(z)}" in spec)
-apply (blast dest: transM)
+apply (drule_tac x="{z \<in> domain(r). ~P(z)}" in rspec)
+apply (blast dest: transM)+
 done
 
 lemma (in M_axioms) wellfounded_on_induct: 
@@ -114,8 +114,8 @@ lemma (in M_axioms) wellfounded_on_induct:
        \<forall>x\<in>A. M(x) & (\<forall>y\<in>A. <y,x> \<in> r --> P(y)) --> P(x) |]
       ==> P(a)";
 apply (simp (no_asm_use) add: wellfounded_on_def)
-apply (drule_tac x="{z\<in>A. z\<in>A --> ~P(z)}" in spec)
-apply (blast intro: transM) 
+apply (drule_tac x="{z\<in>A. z\<in>A --> ~P(z)}" in rspec)
+apply (blast intro: transM)+
 done
 
 text{*The assumption @{term "r \<subseteq> A*A"} justifies strengthening the induction
@@ -284,9 +284,8 @@ done
 lemma (in M_axioms) wellfounded_on_asym:
      "[| wellfounded_on(M,A,r);  <a,x>\<in>r;  a\<in>A; x\<in>A;  M(A) |] ==> <x,a>\<notin>r"
 apply (simp add: wellfounded_on_def) 
-apply (drule_tac x="{x,a}" in spec) 
-apply (simp add: cons_closed) 
-apply (blast dest: transM) 
+apply (drule_tac x="{x,a}" in rspec) 
+apply (blast dest: transM)+
 done
 
 lemma (in M_axioms) wellordered_asym:
@@ -319,12 +318,12 @@ apply (frule apply_type, blast intro: ltD)
   --{*thus @{term "converse(f)`j \<in> Order.pred(A,x,r)"}*}
 apply (simp add: pred_iff) 
 apply (subgoal_tac
-       "\<exists>h. M(h) & h \<in> ord_iso(Order.pred(A,y,r), r, 
+       "\<exists>h[M]. h \<in> ord_iso(Order.pred(A,y,r), r, 
                                Order.pred(A, converse(f)`j, r), r)")
  apply (clarify, frule wellordered_iso_pred_eq, assumption+)
  apply (blast dest: wellordered_asym)  
-apply (intro exI conjI) 
- prefer 2 apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans)+
+apply (intro rexI)
+ apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans)+
 done
 
 
@@ -358,7 +357,7 @@ constdefs
    "omap(M,A,r,f) == 
 	\<forall>z[M].
          z \<in> f <-> 
-          (\<exists>a\<in>A. M(a) & 
+          (\<exists>a[M]. a\<in>A & 
            (\<exists>x g mx par. M(x) & M(g) & M(mx) & M(par) & ordinal(M,x) & 
                          pair(M,a,x,z) & membership(M,x,mx) & 
                          pred_set(M,A,a,r,par) &  
@@ -366,7 +365,7 @@ constdefs
 
 
   otype :: "[i=>o,i,i,i] => o"  --{*the order types themselves*}
-   "otype(M,A,r,i) == \<exists>f. M(f) & omap(M,A,r,f) & is_range(M,f,i)"
+   "otype(M,A,r,i) == \<exists>f[M]. omap(M,A,r,f) & is_range(M,f,i)"
 
 
 
@@ -560,7 +559,8 @@ apply (rule equalityI, force simp add: obase_iff, clarify)
 apply (subst obase_iff [of A r B, THEN iffD1], assumption+, simp) 
 apply (frule wellordered_is_wellfounded_on, assumption)
 apply (erule wellfounded_on_induct, assumption+)
- apply (insert obase_equals_separation, simp add: Memrel_closed pred_closed, clarify) 
+ apply (insert obase_equals_separation)
+ apply (simp add: rex_def, clarify) 
 apply (rename_tac b) 
 apply (subgoal_tac "Order.pred(A,b,r) <= B") 
  prefer 2 apply (force simp add: pred_iff obase_iff)  
@@ -593,7 +593,7 @@ apply (insert obase_exists [of A r])
 apply (simp add: omap_def) 
 apply (insert omap_replacement [of A r])
 apply (simp add: strong_replacement_def, clarify) 
-apply (drule_tac x=x in spec, clarify) 
+apply (drule_tac x=x in rspec, clarify) 
 apply (simp add: Memrel_closed pred_closed obase_iff)
 apply (erule impE) 
  apply (clarsimp simp add: univalent_def)
@@ -605,17 +605,18 @@ done
 declare rall_simps [simp] rex_simps [simp]
 
 lemma (in M_axioms) otype_exists:
-     "[| wellordered(M,A,r); M(A); M(r) |] ==> \<exists>i. M(i) & otype(M,A,r,i)"
+     "[| wellordered(M,A,r); M(A); M(r) |] ==> \<exists>i[M]. otype(M,A,r,i)"
 apply (insert omap_exists [of A r])  
 apply (simp add: otype_def, safe)
-apply (rule_tac x="range(x)" in exI) 
-apply blast 
+apply (rule_tac x="range(x)" in rexI) 
+apply blast+
 done
 
 theorem (in M_axioms) omap_ord_iso_otype:
      "[| wellordered(M,A,r); M(A); M(r) |]
-      ==> \<exists>f. M(f) & (\<exists>i. M(i) & Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
+      ==> \<exists>f[M]. (\<exists>i[M]. Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
 apply (insert obase_exists [of A r] omap_exists [of A r] otype_exists [of A r], simp, clarify)
+apply (rename_tac i) 
 apply (subgoal_tac "Ord(i)", blast intro: omap_ord_iso_otype) 
 apply (rule Ord_otype) 
     apply (force simp add: otype_def range_closed) 
@@ -624,8 +625,9 @@ done
 
 lemma (in M_axioms) ordertype_exists:
      "[| wellordered(M,A,r); M(A); M(r) |]
-      ==> \<exists>f. M(f) & (\<exists>i. M(i) & Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
+      ==> \<exists>f[M]. (\<exists>i[M]. Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
 apply (insert obase_exists [of A r] omap_exists [of A r] otype_exists [of A r], simp, clarify)
+apply (rename_tac i) 
 apply (subgoal_tac "Ord(i)", blast intro: omap_ord_iso_otype) 
 apply (rule Ord_otype) 
     apply (force simp add: otype_def range_closed) 
