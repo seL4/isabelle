@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/natsum.ML
+(*  Title:      HOL/ex/NatSum.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
@@ -7,6 +7,7 @@ Summing natural numbers, squares and cubes. Could be continued...
 *)
 
 Addsimps ([NatSum.sum_0,NatSum.sum_Suc] @ add_ac);
+Addsimps [add_mult_distrib,add_mult_distrib2];
 
 (*The sum of the first n positive integers equals n(n+1)/2.*)
 goal NatSum.thy "2*sum (%i.i) (Suc n) = n*Suc(n)";
@@ -17,8 +18,7 @@ by (Asm_simp_tac 1);
 qed "sum_of_naturals";
 
 goal NatSum.thy
-  "Suc(Suc(Suc(Suc(Suc(Suc(0))))))*sum (%i.i*i) (Suc n) = \
-\  n*Suc(n)*Suc(Suc(Suc(0))*n)";
+  "Suc(Suc(Suc(Suc(Suc(Suc(0))))))*sum (%i.i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
 by (Simp_tac 1);
 by (nat_ind_tac "n" 1);
 by (Simp_tac 1);
