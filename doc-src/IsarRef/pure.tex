@@ -769,6 +769,13 @@ calculational proofs (see \S\ref{sec:calculation}).
 
 \subsection{Block structure}
 
+\indexisarcmd{next}\indexisarcmd{\{\{}\indexisarcmd{\}\}}
+\begin{matharray}{rcl}
+  \isarcmd{next} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{\{\{} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{\}\}} & : & \isartrans{proof(state)}{proof(state)} \\
+\end{matharray}
+
 While Isar is inherently block-structured, opening and closing blocks is
 mostly handled rather casually, with little explicit user-intervention.  Any
 local goal statement automatically opens \emph{two} blocks, which are closed
@@ -781,13 +788,6 @@ goal focus involved here!
 
 For slightly more advanced applications, there are explicit block parentheses
 as well.  These typically achieve a strong forward style of reasoning.
-
-\indexisarcmd{next}\indexisarcmd{\{\{}\indexisarcmd{\}\}}
-\begin{matharray}{rcl}
-  \isarcmd{next} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{\{\{} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{\}\}} & : & \isartrans{proof(state)}{proof(state)} \\
-\end{matharray}
 
 \begin{descr}
 \item [$\isarkeyword{next}$] switches to a fresh block within a sub-proof,
@@ -861,8 +861,8 @@ theory or proof configuration is not changed.
   $\isarkeyword{update_thy}$, and $\isarkeyword{update_thy_only}$] load some
   theory given as $name$ argument.  These commands are exactly the same as the
   corresponding ML functions (see also \cite[\S1,\S6]{isabelle-ref}).  Note
-  that both the ML and Isar versions of these commands may load new- and
-  old-style theories alike.
+  that both the ML and Isar versions may load new- and old-style theories
+  alike.
 \end{descr}
 
 Note that these system commands are scarcely used when working with
