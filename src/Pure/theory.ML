@@ -82,7 +82,6 @@ sig
   val copy: theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
-  val merge_theories: string -> theory * theory -> theory
   val requires: theory -> string -> string -> unit
   val assert_super: theory -> theory -> theory
   val pre_pure: theory
@@ -444,10 +443,6 @@ fun prep_ext_merge thys =
     in
       make_theory sign' axioms' oracles' parents' ancestors'
     end;
-
-fun merge_theories name (thy1, thy2) =
-  prep_ext_merge [thy1, thy2]
-  |> add_name name;
 
 
 end;
