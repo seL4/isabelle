@@ -333,14 +333,14 @@ end;
 
 local
 
-val scan_markup =
-  Scan.one T.not_eof :-- (fn tok =>
-    if T.is_kind T.Command tok andalso is_markup (T.val_of tok) then
-      (Scan.any (not o T.is_proper) |-- P.text) >> Some
-    else Scan.succeed None);
+val improper = Scan.any (not o T.is_proper);
+val markup = Scan.one (T.is_kind T.Command andf is_markup o T.val_of) >> T.val_of;
 
-fun invisible_token (tok, arg) =
-  is_none arg andalso T.keyword_with (equal ";") tok orelse T.is_kind T.Comment tok;
+val present_token =
+  improper |-- markup -- (improper |-- P.text --| (improper -- Scan.option semicolon -- improper))
+    >> Present.markup_token ||
+  (P.$$$ "--" >> K "cmt") -- (improper |-- P.text) >> Present.markup_token ||
+  Scan.one T.not_eof >> Present.basic_token;
 
 in
 
@@ -348,9 +348,8 @@ in
 
 fun present_toks text pos () =
   token_source (Source.of_list (Library.untabify text), pos)
-  |> Source.source T.stopper (Scan.bulk scan_markup) None
-  |> Source.exhaust
-  |> filter_out invisible_token;
+  |> Source.source T.stopper (Scan.bulk present_token) None
+  |> Source.exhaust;
 
 fun present_text text () =
   Source.exhaust (Symbol.source false (Source.of_list (Library.untabify text)));
