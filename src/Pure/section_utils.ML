@@ -1,6 +1,6 @@
-(*  Title:      Pure/section-utils
+(*  Title: 	Pure/section-utils
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Utilities for writing new theory sections
@@ -49,16 +49,16 @@ fun is_backslash c = c = "\\";
   Does not handle the \ddd form;  no error checking*)
 fun escape [] = []
   | escape cs = (case take_prefix (not o is_backslash) cs of
-         (front, []) => front
+	 (front, []) => front
        | (front, _::"n"::rest) => front @ ("\n" :: escape rest)
        | (front, _::"t"::rest) => front @ ("\t" :: escape rest)
        | (front, _::"^"::c::rest) => front @ (chr(ord(c)-64) :: escape rest)
        | (front, _::"\""::rest) => front @ ("\"" :: escape rest)
        | (front, _::"\\"::rest) => front @ ("\\" :: escape rest)
        | (front, b::c::rest) => 
-           if is_blank c   (*remove any further blanks and the following \ *)
-           then front @ escape (tl (snd (take_prefix is_blank rest)))
-           else error ("Unrecognized string escape: " ^ implode(b::c::rest)));
+	   if is_blank c   (*remove any further blanks and the following \ *)
+	   then front @ escape (tl (snd (take_prefix is_blank rest)))
+	   else error ("Unrecognized string escape: " ^ implode(b::c::rest)));
 
 (*Remove the first and last charaters -- presumed to be quotes*)
 val trim = implode o escape o rev o tl o rev o tl o explode;

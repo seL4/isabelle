@@ -1,6 +1,6 @@
-(*  Title:      tactic
+(*  Title: 	tactic
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Tactics 
@@ -83,8 +83,8 @@ end;
 
 
 functor TacticFun (structure Logic: LOGIC and Drule: DRULE and 
-                   Tactical: TACTICAL and Net: NET
-          sharing Drule.Thm = Tactical.Thm) : TACTIC = 
+		   Tactical: TACTICAL and Net: NET
+	  sharing Drule.Thm = Tactical.Thm) : TACTIC = 
 struct
 structure Tactical = Tactical;
 structure Thm = Tactical.Thm;
@@ -97,9 +97,9 @@ in
 (*Discover what goal is chosen:  SOMEGOAL(trace_goalno_tac tac) *)
 fun trace_goalno_tac tf i = Tactic (fn state => 
     case Sequence.pull(tapply(tf i, state)) of
-        None    => Sequence.null
+	None    => Sequence.null
       | seqcell => (prs("Subgoal " ^ string_of_int i ^ " selected\n"); 
-                         Sequence.seqof(fn()=> seqcell)));
+    			 Sequence.seqof(fn()=> seqcell)));
 
 fun string_of (a,0) = a
   | string_of (a,i) = a ^ "_" ^ string_of_int i;
@@ -109,22 +109,22 @@ fun freeze th =
   let val fth = freezeT th
       val {prop,sign,...} = rep_thm fth
       fun mk_inst (Var(v,T)) = 
-          (cterm_of sign (Var(v,T)),
-           cterm_of sign (Free(string_of v, T)))
+	  (cterm_of sign (Var(v,T)),
+	   cterm_of sign (Free(string_of v, T)))
       val insts = map mk_inst (term_vars prop)
   in  instantiate ([],insts) fth  end;
 
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic (Tactic tf) rl =
     case Sequence.pull(tf (freeze (standard rl))) of
-        None        => raise THM("rule_by_tactic", 0, [rl])
+	None        => raise THM("rule_by_tactic", 0, [rl])
       | Some(rl',_) => standard rl';
  
 (*** Basic tactics ***)
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm seq.*)
 fun PRIMSEQ thmfun = Tactic (fn state => thmfun state
-                                         handle THM _ => Sequence.null);
+			                 handle THM _ => Sequence.null);
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm.*)
 fun PRIMITIVE thmfun = PRIMSEQ (Sequence.single o thmfun);
@@ -164,9 +164,9 @@ fun forward_tac rls = resolve_tac (map make_elim rls) THEN' assume_tac;
 fun dresolve_tac rls = eresolve_tac (map make_elim rls);
 
 (*Shorthand versions: for resolution with a single theorem*)
-fun rtac rl = rtac rl ;
-fun etac rl = etac rl ;
-fun dtac rl = dtac rl ;
+fun rtac rl = resolve_tac [rl];
+fun etac rl = eresolve_tac [rl];
+fun dtac rl = dresolve_tac [rl];
 val atac = assume_tac;
 
 (*Use an assumption or some rules ... A popular combination!*)
@@ -185,19 +185,19 @@ val flexflex_tac = PRIMSEQ flexflex_rule;
 fun lift_inst_rule (state, i, sinsts, rule) =
 let val {maxidx,sign,...} = rep_thm state
     val (_, _, Bi, _) = dest_state(state,i)
-    val params = Logic.strip_params Bi          (*params of subgoal i*)
+    val params = Logic.strip_params Bi	        (*params of subgoal i*)
     val params = rev(rename_wrt_term Bi params) (*as they are printed*)
     val paramTs = map #2 params
     and inc = maxidx+1
     fun liftvar (Var ((a,j), T)) = Var((a, j+inc), paramTs---> incr_tvar inc T)
       | liftvar t = raise TERM("Variable expected", [t]);
     fun liftterm t = list_abs_free (params, 
-                                    Logic.incr_indexes(paramTs,inc) t)
+				    Logic.incr_indexes(paramTs,inc) t)
     (*Lifts instantiation pair over params*)
     fun liftpair (cv,ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct)
     fun lifttvar((a,i),ctyp) =
-        let val {T,sign} = rep_ctyp ctyp
-        in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
+	let val {T,sign} = rep_ctyp ctyp
+	in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
     val rts = types_sorts rule and (types,sorts) = types_sorts state
     fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
       | types'(ixn) = types ixn;
@@ -215,10 +215,10 @@ end;
 (*compose version: arguments are as for bicompose.*)
 fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i =
   STATE ( fn state => 
-           compose_tac (bires_flg, lift_inst_rule (state, i, sinsts, rule),
-                        nsubgoal) i
-           handle TERM (msg,_) => (writeln msg;  no_tac)
-                | THM  (msg,_,_) => (writeln msg;  no_tac) );
+	   compose_tac (bires_flg, lift_inst_rule (state, i, sinsts, rule),
+			nsubgoal) i
+	   handle TERM (msg,_) => (writeln msg;  no_tac)
+		| THM  (msg,_,_) => (writeln msg;  no_tac) );
 
 (*"Resolve" version.  Note: res_inst_tac cannot behave sensibly if the
   terms that are substituted contain (term or type) unknowns from the
@@ -242,8 +242,8 @@ fun make_elim_preserve rl =
   let val {maxidx,...} = rep_thm rl
       fun cvar ixn = cterm_of Sign.proto_pure (Var(ixn,propT));
       val revcut_rl' = 
-          instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
-                             (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
+	  instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
+			     (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
       val arg = (false, rl, nprems_of rl)
       val [th] = Sequence.list_of_s (bicompose false arg 1 revcut_rl')
   in  th  end
@@ -262,7 +262,7 @@ fun dres_inst_tac sinsts rule = eres_inst_tac sinsts (make_elim_preserve rule);
 
 (*Used by metacut_tac*)
 fun bires_cut_tac arg i =
-    rtac cut_rl i  THEN  biresolve_tac arg (i+1) ;
+    resolve_tac [cut_rl] i  THEN  biresolve_tac arg (i+1) ;
 
 (*The conclusion of the rule gets assumed in subgoal i,
   while subgoal i+1,... are the premises of the rule.*)
@@ -271,7 +271,7 @@ fun metacut_tac rule = bires_cut_tac [(false,rule)];
 (*Recognizes theorems that are not rules, but simple propositions*)
 fun is_fact rl =
     case prems_of rl of
-        [] => true  |  _::_ => false;
+	[] => true  |  _::_ => false;
 
 (*"Cut" all facts from theorem list into the goal as assumptions. *)
 fun cut_facts_tac ths i =
@@ -287,15 +287,15 @@ fun subgoals_tac sprops = EVERY' (map subgoal_tac sprops);
 (**** Indexing and filtering of theorems ****)
 
 (*Returns the list of potentially resolvable theorems for the goal "prem",
-        using the predicate  could(subgoal,concl).
+	using the predicate  could(subgoal,concl).
   Resulting list is no longer than "limit"*)
 fun filter_thms could (limit, prem, ths) =
   let val pb = Logic.strip_assums_concl prem;   (*delete assumptions*)
       fun filtr (limit, []) = []
-        | filtr (limit, th::ths) =
-            if limit=0 then  []
-            else if could(pb, concl_of th)  then th :: filtr(limit-1, ths)
-            else filtr(limit,ths)
+	| filtr (limit, th::ths) =
+	    if limit=0 then  []
+	    else if could(pb, concl_of th)  then th :: filtr(limit-1, ths)
+	    else filtr(limit,ths)
   in  filtr(limit,ths)  end;
 
 
@@ -320,9 +320,9 @@ val orderlist = untaglist o sort (fn(x,y)=> #1 x < #1 y);
 (*insert one tagged brl into the pair of nets*)
 fun insert_tagged_brl (kbrl as (k,(eres,th)), (inet,enet)) =
     if eres then 
-        case prems_of th of
-            prem::_ => (inet, Net.insert_term ((prem,kbrl), enet, K false))
-          | [] => error"insert_tagged_brl: elimination rule with no premises"
+	case prems_of th of
+	    prem::_ => (inet, Net.insert_term ((prem,kbrl), enet, K false))
+	  | [] => error"insert_tagged_brl: elimination rule with no premises"
     else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
 
 (*build a pair of nets for biresolution*)
@@ -366,9 +366,9 @@ fun filt_resolution_from_net_tac match pred net =
     (fn (prem,i) =>
       let val krls = Net.unify_term net (Logic.strip_assums_concl prem)
       in 
-         if pred krls  
+	 if pred krls  
          then PRIMSEQ
-                (biresolution match (map (pair false) (orderlist krls)) i)
+		(biresolution match (map (pair false) (orderlist krls)) i)
          else no_tac
       end);
 
@@ -414,7 +414,7 @@ fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 (*Rewrite subgoals only, not main goal. *)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 
-fun rewtac def = rewtac def;
+fun rewtac def = rewrite_goals_tac [def];
 
 
 (*** Tactic for folding definitions, handling critical pairs ***)
@@ -451,7 +451,7 @@ fun rename_tac str i =
   in  
   if !Logic.auto_rename 
   then (writeln"Note: setting Logic.auto_rename := false"; 
-        Logic.auto_rename := false)
+	Logic.auto_rename := false)
   else ();
   case #2 (take_prefix (is_letdig orf is_blank) cs) of
       [] => PRIMITIVE (rename_params_rule (scanwords is_letdig cs, i))

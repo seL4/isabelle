@@ -12,77 +12,77 @@ signature DRULE =
   sig
   structure Thm : THM
   local open Thm  in
-  val add_defs          : (string * string) list -> theory -> theory
-  val add_defs_i        : (string * term) list -> theory -> theory
-  val asm_rl            : thm
-  val assume_ax         : theory -> string -> thm
-  val COMP              : thm * thm -> thm
-  val compose           : thm * int * thm -> thm list
-  val cprems_of         : thm -> cterm list
-  val cskip_flexpairs   : cterm -> cterm
-  val cstrip_imp_prems  : cterm -> cterm list
-  val cterm_instantiate : (cterm*cterm)list -> thm -> thm
-  val cut_rl            : thm
-  val equal_abs_elim    : cterm  -> thm -> thm
+  val add_defs		: (string * string) list -> theory -> theory
+  val add_defs_i	: (string * term) list -> theory -> theory
+  val asm_rl		: thm
+  val assume_ax		: theory -> string -> thm
+  val COMP		: thm * thm -> thm
+  val compose		: thm * int * thm -> thm list
+  val cprems_of		: thm -> cterm list
+  val cskip_flexpairs	: cterm -> cterm
+  val cstrip_imp_prems	: cterm -> cterm list
+  val cterm_instantiate	: (cterm*cterm)list -> thm -> thm
+  val cut_rl		: thm
+  val equal_abs_elim	: cterm  -> thm -> thm
   val equal_abs_elim_list: cterm list -> thm -> thm
-  val eq_thm            : thm * thm -> bool
-  val same_thm          : thm * thm -> bool
-  val eq_thm_sg         : thm * thm -> bool
+  val eq_thm		: thm * thm -> bool
+  val same_thm		: thm * thm -> bool
+  val eq_thm_sg		: thm * thm -> bool
   val flexpair_abs_elim_list: cterm list -> thm -> thm
-  val forall_intr_list  : cterm list -> thm -> thm
-  val forall_intr_frees : thm -> thm
-  val forall_intr_vars  : thm -> thm
-  val forall_elim_list  : cterm list -> thm -> thm
-  val forall_elim_var   : int -> thm -> thm
-  val forall_elim_vars  : int -> thm -> thm
-  val implies_elim_list : thm -> thm list -> thm
-  val implies_intr_list : cterm list -> thm -> thm
-  val MRL               : thm list list * thm list -> thm list
-  val MRS               : thm list * thm -> thm
-  val pprint_cterm      : cterm -> pprint_args -> unit
-  val pprint_ctyp       : ctyp -> pprint_args -> unit
-  val pprint_theory     : theory -> pprint_args -> unit
-  val pprint_thm        : thm -> pprint_args -> unit
-  val pretty_thm        : thm -> Sign.Syntax.Pretty.T
-  val print_cterm       : cterm -> unit
-  val print_ctyp        : ctyp -> unit
-  val print_goals       : int -> thm -> unit
-  val print_goals_ref   : (int -> thm -> unit) ref
-  val print_syntax      : theory -> unit
-  val print_theory      : theory -> unit
-  val print_thm         : thm -> unit
-  val prth              : thm -> thm
-  val prthq             : thm Sequence.seq -> thm Sequence.seq
-  val prths             : thm list -> thm list
-  val read_instantiate  : (string*string)list -> thm -> thm
+  val forall_intr_list	: cterm list -> thm -> thm
+  val forall_intr_frees	: thm -> thm
+  val forall_intr_vars	: thm -> thm
+  val forall_elim_list	: cterm list -> thm -> thm
+  val forall_elim_var	: int -> thm -> thm
+  val forall_elim_vars	: int -> thm -> thm
+  val implies_elim_list	: thm -> thm list -> thm
+  val implies_intr_list	: cterm list -> thm -> thm
+  val MRL		: thm list list * thm list -> thm list
+  val MRS		: thm list * thm -> thm
+  val pprint_cterm	: cterm -> pprint_args -> unit
+  val pprint_ctyp	: ctyp -> pprint_args -> unit
+  val pprint_theory	: theory -> pprint_args -> unit
+  val pprint_thm	: thm -> pprint_args -> unit
+  val pretty_thm	: thm -> Sign.Syntax.Pretty.T
+  val print_cterm	: cterm -> unit
+  val print_ctyp	: ctyp -> unit
+  val print_goals	: int -> thm -> unit
+  val print_goals_ref	: (int -> thm -> unit) ref
+  val print_syntax	: theory -> unit
+  val print_theory	: theory -> unit
+  val print_thm		: thm -> unit
+  val prth		: thm -> thm
+  val prthq		: thm Sequence.seq -> thm Sequence.seq
+  val prths		: thm list -> thm list
+  val read_instantiate	: (string*string)list -> thm -> thm
   val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
-  val read_insts        :
+  val read_insts	:
           Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
                   -> (indexname -> typ option) * (indexname -> sort option)
                   -> string list -> (string*string)list
                   -> (indexname*ctyp)list * (cterm*cterm)list
-  val reflexive_thm     : thm
-  val revcut_rl         : thm
-  val rewrite_goal_rule : bool*bool -> (meta_simpset -> thm -> thm option)
+  val reflexive_thm	: thm
+  val revcut_rl		: thm
+  val rewrite_goal_rule	: bool*bool -> (meta_simpset -> thm -> thm option)
         -> meta_simpset -> int -> thm -> thm
   val rewrite_goals_rule: thm list -> thm -> thm
-  val rewrite_rule      : thm list -> thm -> thm
-  val RS                : thm * thm -> thm
-  val RSN               : thm * (int * thm) -> thm
-  val RL                : thm list * thm list -> thm list
-  val RLN               : thm list * (int * thm list) -> thm list
-  val show_hyps         : bool ref
-  val size_of_thm       : thm -> int
-  val standard          : thm -> thm
-  val string_of_cterm   : cterm -> string
-  val string_of_ctyp    : ctyp -> string
-  val string_of_thm     : thm -> string
-  val symmetric_thm     : thm
-  val thin_rl           : thm
-  val transitive_thm    : thm
+  val rewrite_rule	: thm list -> thm -> thm
+  val RS		: thm * thm -> thm
+  val RSN		: thm * (int * thm) -> thm
+  val RL		: thm list * thm list -> thm list
+  val RLN		: thm list * (int * thm list) -> thm list
+  val show_hyps		: bool ref
+  val size_of_thm	: thm -> int
+  val standard		: thm -> thm
+  val string_of_cterm	: cterm -> string
+  val string_of_ctyp	: ctyp -> string
+  val string_of_thm	: thm -> string
+  val symmetric_thm	: thm
+  val thin_rl		: thm
+  val transitive_thm	: thm
   val triv_forall_equality: thm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
-  val zero_var_indexes  : thm -> thm
+  val zero_var_indexes	: thm -> thm
   end
   end;
 
@@ -226,8 +226,8 @@ val add_defs = ext_defns read_axm;
 (*Discard flexflex pairs; return a cterm*)
 fun cskip_flexpairs ct =
     case term_of ct of
-        (Const("==>", _) $ (Const("=?=",_)$_$_) $ _) =>
-            cskip_flexpairs (#2 (dest_cimplies ct))
+	(Const("==>", _) $ (Const("=?=",_)$_$_) $ _) =>
+	    cskip_flexpairs (#2 (dest_cimplies ct))
       | _ => ct;
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
@@ -732,15 +732,15 @@ fun rew_conv mode prover mss = rewrite_cterm mode mss prover;
 (*Rewrite a theorem*)
 fun rewrite_rule []   th = th
   | rewrite_rule thms th =
-        fconv_rule (rew_conv (true,false) (K(K None)) (Thm.mss_of thms)) th;
+	fconv_rule (rew_conv (true,false) (K(K None)) (Thm.mss_of thms)) th;
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
 fun rewrite_goals_rule []   th = th
   | rewrite_goals_rule thms th =
-        fconv_rule (goals_conv (K true) 
-                    (rew_conv (true,false) (K(K None))
-                     (Thm.mss_of thms))) 
-                   th;
+	fconv_rule (goals_conv (K true) 
+		    (rew_conv (true,false) (K(K None))
+		     (Thm.mss_of thms))) 
+	           th;
 
 (*Rewrite the subgoal of a proof state (represented by a theorem) *)
 fun rewrite_goal_rule mode prover mss i thm =

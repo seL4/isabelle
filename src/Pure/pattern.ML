@@ -1,6 +1,6 @@
-(*  Title:      pattern
+(*  Title: 	pattern
     ID:         $Id$
-    Author:     Tobias Nipkow and Christine Heinzelmann, TU Muenchen
+    Author: 	Tobias Nipkow and Christine Heinzelmann, TU Muenchen
     Copyright   1993  TU Muenchen
 
 Unification of Higher-Order Patterns.
@@ -229,8 +229,8 @@ fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
 fun eta_contract (Abs(a,T,body)) = 
       (case eta_contract body  of
         body' as (f $ Bound i) => 
-          if i=0 andalso not (0 mem loose_bnos f) then incr_boundvars ~1 f 
-          else Abs(a,T,body')
+	  if i=0 andalso not (0 mem loose_bnos f) then incr_boundvars ~1 f 
+	  else Abs(a,T,body')
       | body' => Abs(a,T,body'))
   | eta_contract(f$t) = eta_contract f $ eta_contract t
   | eta_contract t = t;
@@ -247,22 +247,22 @@ exception MATCH;
   Does not notice eta-equality, thus f does not match %(x)f(x)  *)
 fun fomatch tsig (pat,obj) =
   let fun typ_match args = (Type.typ_match tsig args)
-                           handle Type.TYPE_MATCH => raise MATCH;
+			   handle Type.TYPE_MATCH => raise MATCH;
       fun mtch (tyinsts,insts) = fn
-        (Var(ixn,T), t)  =>
-          if loose_bvar(t,0) then raise MATCH
-          else (case assoc(insts,ixn) of
-                  None => (typ_match (tyinsts, (T, fastype_of t)), 
-                           (ixn,t)::insts)
-                | Some u => if t aconv u then (tyinsts,insts) else raise MATCH)
+	(Var(ixn,T), t)  =>
+	  if loose_bvar(t,0) then raise MATCH
+	  else (case assoc(insts,ixn) of
+		  None => (typ_match (tyinsts, (T, fastype_of t)), 
+			   (ixn,t)::insts)
+		| Some u => if t aconv u then (tyinsts,insts) else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
-          if  a=b  then (typ_match (tyinsts,(T,U)), insts)  else raise MATCH
+	  if  a=b  then (typ_match (tyinsts,(T,U)), insts)  else raise MATCH
       | (Const (a,T), Const (b,U))  =>
-          if  a=b  then (typ_match (tyinsts,(T,U)), insts)  else raise MATCH
+	  if  a=b  then (typ_match (tyinsts,(T,U)), insts)  else raise MATCH
       | (Bound i, Bound j)  =>
           if  i=j  then  (tyinsts,insts)  else raise MATCH
       | (Abs(_,T,t), Abs(_,U,u))  =>
-          mtch (typ_match (tyinsts,(T,U)),insts) (t,u)
+	  mtch (typ_match (tyinsts,(T,U)),insts) (t,u)
       | (f$t, g$u) => mtch (mtch (tyinsts,insts) (f,g)) (t, u)
       | _ => raise MATCH
   in mtch([],[]) (eta_contract pat,eta_contract obj) end;

@@ -1,6 +1,6 @@
-(*  Title:      Pure/goals.ML
+(*  Title: 	Pure/goals.ML
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Goal stack package.  The goal stack initially holds a dummy proof, and can
@@ -15,63 +15,63 @@ signature GOALS =
   structure Tactical: TACTICAL
   local open Tactical Tactical.Thm in
   type proof
-  val ba                : int -> unit
-  val back              : unit -> unit
-  val bd                : thm -> int -> unit
-  val bds               : thm list -> int -> unit
-  val be                : thm -> int -> unit
-  val bes               : thm list -> int -> unit
-  val br                : thm -> int -> unit
-  val brs               : thm list -> int -> unit
-  val bw                : thm -> unit
-  val bws               : thm list -> unit
-  val by                : tactic -> unit
-  val byev              : tactic list -> unit
-  val chop              : unit -> unit
-  val choplev           : int -> unit
-  val fa                : unit -> unit
-  val fd                : thm -> unit
-  val fds               : thm list -> unit
-  val fe                : thm -> unit
-  val fes               : thm list -> unit
-  val filter_goal       : (term*term->bool) -> thm list -> int -> thm list
-  val fr                : thm -> unit
-  val frs               : thm list -> unit
-  val getgoal           : int -> term
-  val gethyps           : int -> thm list
-  val goal              : theory -> string -> thm list
-  val goalw             : theory -> thm list -> string -> thm list
-  val goalw_cterm       : thm list -> cterm -> thm list
-  val pop_proof         : unit -> thm list
-  val pr                : unit -> unit
-  val premises          : unit -> thm list
-  val prin              : term -> unit
-  val printyp           : typ -> unit
-  val pprint_term       : term -> pprint_args -> unit
-  val pprint_typ        : typ -> pprint_args -> unit
-  val print_exn         : exn -> 'a
-  val print_sign_exn    : Sign.sg -> exn -> 'a
-  val prlev             : int -> unit
-  val proof_timing      : bool ref
-  val prove_goal        : theory -> string -> (thm list -> tactic list) -> thm
+  val ba		: int -> unit
+  val back		: unit -> unit
+  val bd		: thm -> int -> unit
+  val bds		: thm list -> int -> unit
+  val be		: thm -> int -> unit
+  val bes		: thm list -> int -> unit
+  val br		: thm -> int -> unit
+  val brs		: thm list -> int -> unit
+  val bw		: thm -> unit
+  val bws		: thm list -> unit
+  val by		: tactic -> unit
+  val byev		: tactic list -> unit
+  val chop		: unit -> unit
+  val choplev		: int -> unit
+  val fa		: unit -> unit
+  val fd		: thm -> unit
+  val fds		: thm list -> unit
+  val fe		: thm -> unit
+  val fes		: thm list -> unit
+  val filter_goal	: (term*term->bool) -> thm list -> int -> thm list
+  val fr		: thm -> unit
+  val frs		: thm list -> unit
+  val getgoal		: int -> term
+  val gethyps		: int -> thm list
+  val goal		: theory -> string -> thm list
+  val goalw		: theory -> thm list -> string -> thm list
+  val goalw_cterm	: thm list -> cterm -> thm list
+  val pop_proof		: unit -> thm list
+  val pr		: unit -> unit
+  val premises		: unit -> thm list
+  val prin		: term -> unit
+  val printyp		: typ -> unit
+  val pprint_term	: term -> pprint_args -> unit
+  val pprint_typ	: typ -> pprint_args -> unit
+  val print_exn		: exn -> 'a
+  val print_sign_exn	: Sign.sg -> exn -> 'a
+  val prlev		: int -> unit
+  val proof_timing	: bool ref
+  val prove_goal	: theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
-  val prove_goalw_cterm : thm list->cterm->(thm list->tactic list)->thm
-  val push_proof        : unit -> unit
-  val read              : string -> term
-  val ren               : string -> int -> unit
-  val restore_proof     : proof -> thm list
-  val result            : unit -> thm  
-  val rotate_proof      : unit -> thm list
-  val uresult           : unit -> thm  
-  val save_proof        : unit -> proof
-  val topthm            : unit -> thm
-  val undo              : unit -> unit
+  val prove_goalw_cterm	: thm list->cterm->(thm list->tactic list)->thm
+  val push_proof	: unit -> unit
+  val read		: string -> term
+  val ren		: string -> int -> unit
+  val restore_proof	: proof -> thm list
+  val result		: unit -> thm  
+  val rotate_proof	: unit -> thm list
+  val uresult		: unit -> thm  
+  val save_proof	: unit -> proof
+  val topthm		: unit -> thm
+  val undo		: unit -> unit
   end
   end;
 
 functor GoalsFun (structure Logic: LOGIC and Drule: DRULE and Tactic: TACTIC
                         and Pattern:PATTERN
-          sharing type Pattern.type_sig = Drule.Thm.Sign.Type.type_sig
+	  sharing type Pattern.type_sig = Drule.Thm.Sign.Type.type_sig
               and Drule.Thm = Tactic.Tactical.Thm) : GOALS =
 struct
 structure Tactical = Tactic.Tactical
@@ -132,39 +132,39 @@ fun prepare_proof rths chorn =
       and st0 = (rewrite_goals_rule rths o trivial) (cterm_of sign B)
       fun result_error state msg = 
         (writeln ("Bad final proof state:");
-         !print_goals_ref (!goals_limit) state;
-         error msg)
+ 	 !print_goals_ref (!goals_limit) state;
+	 error msg)
       (*discharges assumptions from state in the order they appear in goal;
-        checks (if requested) that resulting theorem is equivalent to goal. *)
+	checks (if requested) that resulting theorem is equivalent to goal. *)
       fun mkresult (check,state) =
         let val state = Sequence.hd (flexflex_rule state)
-                        handle _ => state   (*smash flexflex pairs*)
-            val ngoals = nprems_of state
+	    		handle _ => state   (*smash flexflex pairs*)
+	    val ngoals = nprems_of state
             val th = strip_shyps (implies_intr_list cAs state)
             val {hyps,prop,sign=sign',...} = rep_thm th
             val xshyps = extra_shyps th;
         in  if not check then standard th
-            else if not (Sign.eq_sg(sign,sign')) then result_error state
-                ("Signature of proof state has changed!" ^
-                 sign_error (sign,sign'))
+	    else if not (Sign.eq_sg(sign,sign')) then result_error state
+		("Signature of proof state has changed!" ^
+		 sign_error (sign,sign'))
             else if ngoals>0 then result_error state
-                (string_of_int ngoals ^ " unsolved goals!")
+		(string_of_int ngoals ^ " unsolved goals!")
             else if not (null hyps) then result_error state
                 ("Additional hypotheses:\n" ^ 
                  cat_lines (map (Sign.string_of_term sign) hyps))
-            else if not (null xshyps) then result_error state
+	    else if not (null xshyps) then result_error state
                 ("Extra sort hypotheses: " ^
                  commas (map Sign.Type.str_of_sort xshyps))
-            else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
-                                    (term_of chorn, prop)
-                 then  standard th 
-            else  result_error state "proved a different theorem"
+	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
+			            (term_of chorn, prop)
+		 then  standard th 
+	    else  result_error state "proved a different theorem"
         end
   in
      if Sign.eq_sg(sign, #sign(rep_thm st0))
      then (prems, st0, mkresult)
      else error ("Definitions would change the proof state's signature" ^
-                 sign_error (sign, #sign(rep_thm st0)))
+		 sign_error (sign, #sign(rep_thm st0)))
   end
   handle THM(s,_,_) => error("prepare_proof: exception THM was raised!\n" ^ s);
 
@@ -172,18 +172,18 @@ fun prepare_proof rths chorn =
 fun print_sign_exn_unit sign e = 
   case e of
      THM (msg,i,thms) =>
-         (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-          seq print_thm thms)
+	 (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
+	  seq print_thm thms)
    | THEORY (msg,thys) =>
-         (writeln ("Exception THEORY raised:\n" ^ msg);
-          seq print_theory thys)
+	 (writeln ("Exception THEORY raised:\n" ^ msg);
+	  seq print_theory thys)
    | TERM (msg,ts) =>
-         (writeln ("Exception TERM raised:\n" ^ msg);
-          seq (writeln o Sign.string_of_term sign) ts)
+	 (writeln ("Exception TERM raised:\n" ^ msg);
+	  seq (writeln o Sign.string_of_term sign) ts)
    | TYPE (msg,Ts,ts) =>
-         (writeln ("Exception TYPE raised:\n" ^ msg);
-          seq (writeln o Sign.string_of_typ sign) Ts;
-          seq (writeln o Sign.string_of_term sign) ts)
+	 (writeln ("Exception TYPE raised:\n" ^ msg);
+	  seq (writeln o Sign.string_of_typ sign) Ts;
+	  seq (writeln o Sign.string_of_term sign) ts)
    | e => raise e;
 
 (*Prints an exception, then fails*)
@@ -199,13 +199,13 @@ fun prove_goalw_cterm rths chorn tacsf =
   let val (prems, st0, mkresult) = prepare_proof rths chorn
       val tac = EVERY (tacsf prems)
       fun statef() = 
-          (case Sequence.pull (tapply(tac,st0)) of 
-               Some(st,_) => st
-             | _ => error ("prove_goal: tactic failed"))
+	  (case Sequence.pull (tapply(tac,st0)) of 
+	       Some(st,_) => st
+	     | _ => error ("prove_goal: tactic failed"))
   in  mkresult (true, cond_timeit (!proof_timing) statef)  end
   handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
-               error ("The exception above was raised for\n" ^ 
-                      string_of_cterm chorn));
+	       error ("The exception above was raised for\n" ^ 
+		      string_of_cterm chorn));
 
 
 (*Version taking the goal as a string*)
@@ -214,7 +214,7 @@ fun prove_goalw thy rths agoal tacsf =
       val chorn = read_cterm sign (agoal,propT)
   in  prove_goalw_cterm rths chorn tacsf end
   handle ERROR => error (*from read_cterm?*)
-                ("The error above occurred for " ^ quote agoal);
+		("The error above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
 fun prove_goal thy = prove_goalw thy [];
@@ -262,8 +262,8 @@ fun uresult () = !curr_mkresult (false, topthm());
 (*Get subgoal i from goal stack*)
 fun getgoal i = 
       (case  drop (i-1, prems_of (topthm()))  of
-            [] => error"getgoal: Goal number out of range"
-          | Q::_ => Q);
+	    [] => error"getgoal: Goal number out of range"
+	  | Q::_ => Q);
 
 (*Return subgoal i's hypotheses as meta-level assumptions.
   For debugging uses of METAHYPS*)
@@ -283,7 +283,7 @@ fun chop_level n (pair,pairs) =
   in  if 0<=n andalso n<= level
       then  drop (level - n, pair::pairs) 
       else  error ("Level number must lie between 0 and " ^ 
-                   string_of_int level)
+		   string_of_int level)
   end;
 
 (*Print the given level of the proof*)
@@ -309,7 +309,7 @@ fun goalw_cterm rths chorn =
 fun goalw thy rths agoal = 
   goalw_cterm rths (read_cterm(sign_of thy)(agoal,propT))
   handle ERROR => error (*from type_assign, etc via prepare_proof*)
-            ("The error above occurred for " ^ quote agoal);
+	    ("The error above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
 fun goal thy = goalw thy [];
@@ -320,10 +320,10 @@ fun by_com tac ((th,ths), pairs) : gstack =
      None      => error"by: tactic failed"
    | Some(th2,ths2) => 
        (if eq_thm(th,th2) 
-          then writeln"Warning: same as previous level"
-          else if eq_thm_sg(th,th2) then ()
-          else writeln("Warning: signature of proof state has changed" ^
-                       sign_error (#sign(rep_thm th), #sign(rep_thm th2)));
+	  then writeln"Warning: same as previous level"
+	  else if eq_thm_sg(th,th2) then ()
+	  else writeln("Warning: signature of proof state has changed" ^
+		       sign_error (#sign(rep_thm th), #sign(rep_thm th2)));
        ((th2,ths2)::(th,ths)::pairs)));
 
 fun by tac = cond_timeit (!proof_timing) 
@@ -339,13 +339,13 @@ val byev = by o EVERY;
 fun backtrack [] = error"back: no alternatives"
   | backtrack ((th,thstr) :: pairs) =
      (case Sequence.pull thstr of
-          None      => (writeln"Going back a level..."; backtrack pairs)
-        | Some(th2,thstr2) =>  
-           (if eq_thm(th,th2) 
-              then writeln"Warning: same as previous choice at this level"
-              else if eq_thm_sg(th,th2) then ()
-              else writeln"Warning: signature of proof state has changed";
-            (th2,thstr2)::pairs));
+	  None      => (writeln"Going back a level..."; backtrack pairs)
+	| Some(th2,thstr2) =>  
+	   (if eq_thm(th,th2) 
+	      then writeln"Warning: same as previous choice at this level"
+	      else if eq_thm_sg(th,th2) then ()
+	      else writeln"Warning: signature of proof state has changed";
+	    (th2,thstr2)::pairs));
 
 fun back() = setstate (backtrack (getstate()));
 
@@ -371,7 +371,7 @@ fun restore_proof(Proof(ul,prems,mk)) =
 
 
 fun top_proof() = case !proofstack of
-        [] => error("Stack of proof attempts is empty!")
+	[] => error("Stack of proof attempts is empty!")
     | p::ps => (p,ps);
 
 (*  push a copy of the current proof state on to the stack *)
@@ -385,11 +385,11 @@ fun pop_proof() =
 
 (* rotate the stack so that the top element goes to the bottom *)
 fun rotate_proof() = let val (p,ps) = top_proof()
-                    in proofstack := ps@[save_proof()];
-                       restore_proof p;
-                       pr();
-                       !curr_prems
-                    end;
+		    in proofstack := ps@[save_proof()];
+		       restore_proof p;
+		       pr();
+		       !curr_prems
+		    end;
 
 
 (** Shortcuts for commonly-used tactics **)
@@ -428,7 +428,7 @@ fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
 fun top_sg() = #sign(rep_thm(topthm()));
 
 fun read s = term_of (read_cterm (top_sg())
-                                           (s, (TVar(("DUMMY",0),[]))));
+			                   (s, (TVar(("DUMMY",0),[]))));
 
 (*Print a term under the current signature of the proof state*)
 fun prin t = writeln (Sign.string_of_term (top_sg()) t);

@@ -266,13 +266,13 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 (*Package error messages from type checking*)
 fun exn_type_msg sg (msg, Ts, ts) =
     let val show_typ = string_of_typ sg
-        val show_term = string_of_term sg
-        fun term_err [] = ""
-          | term_err [t] = "\nInvolving this term:\n" ^ show_term t
-          | term_err ts =
-            "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
+	val show_term = string_of_term sg
+	fun term_err [] = ""
+	  | term_err [t] = "\nInvolving this term:\n" ^ show_term t
+	  | term_err ts =
+	    "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
     in  "\nType checking error: " ^ msg ^ "\n" ^
-        cat_lines (map show_typ Ts) ^ term_err ts ^ "\n"
+	cat_lines (map show_typ Ts) ^ term_err ts ^ "\n"
     end; 
 
 
@@ -308,7 +308,7 @@ fun infer_types sg types sorts used freeze (ts, T) =
 
     fun process_term(res,(t,i)) =
        let val ([u],tye) = 
-               Type.infer_types(tsig,ct,types,sorts,used,freeze,[T'],[t])
+	       Type.infer_types(tsig,ct,types,sorts,used,freeze,[T'],[t])
        in case res of
             One(_,t0,_) => Ambigs([u,t0])
           | Errs _ => One(i,u,tye)
@@ -406,9 +406,9 @@ fun read_const syn tsig (c, ty_src, mx) =
 fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
   let
     fun prep_const (c, ty, mx) = 
-          (c, 
-           compress_type (varifyT (cert_typ tsig (no_tvars ty))), 
-           mx)
+	  (c, 
+	   compress_type (varifyT (cert_typ tsig (no_tvars ty))), 
+	   mx)
       handle TYPE (msg, _, _) => (writeln msg; err_in_const (Syntax.const_name c mx));
 
     val consts = map (prep_const o rd_const syn tsig) raw_consts;
