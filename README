@@ -5,15 +5,15 @@ ISABELLE-94 IS INCOMPATIBLE WITH EARLIER VERSIONS.  PLEASE CONSULT THE
 DOCUMENTATION.  
 
 In particular, theory files are no longer forced into lower case, but must
-be identical to the actual theory name.  The command
-	conv-theory-files.pl | grep mv
-generates commands to rename all theory files in a directory hierarchy.  
+be identical to the actual theory name.  See the script
+conv-theory-files.pl on directory Tools.
 ------------------------------------------------------------------------------
 
-This directory contains the complete Isabelle system.  To build and test the
-entire system, including all object-logics, use the shell script make-all.
-Pure Isabelle and each of the object-logics can be built separately using the
-Makefiles in the respective directories; read them for more information.
+This directory contains the complete Isabelle system.  To build and test
+all the Isabelle object-logics, use the shell script make-all (on directory
+Tools).  Pure Isabelle and each of the object-logics can be built
+separately using the Makefiles in the respective directories; read them for
+more information.
 
 				THE MAKEFILES
 
@@ -26,8 +26,8 @@ free and its code sometimes runs faster.  Both compilers are perfectly
 satisfactory for running Isabelle.
 
 The Makefiles and make-all use environment variables that you should set
-according to your site configuration.  See file make-all-nj for an example
-using the Bourne shell, sh.
+according to your site configuration.  See file Tools/make-all-nj for an
+example using the Bourne shell, sh.
 
 ISABELLEBIN is the directory to hold Poly/ML databases or New Jersey ML
 images.  This directory *must* be different from the Isabelle source
@@ -50,30 +50,10 @@ more heap at startup should correct the problem.  For instance, "poly -h
 
 			 STRUCTURE OF THIS DIRECTORY
 
-The directory Pure containes pure Isabelle, which has no object-logic.
-
-Other important files include...
-  COPYRIGHT   		Copyright notice and Disclaimer of Warranty
-  make-all		shell script for building entire system
-  make-all-poly		sample make-all invocation for Poly/ML
-  make-all-nj		sample make-all invocation for SML of NJ
-  change_simp		shell script to help convert sources to new simplifier
-  conv-theory-files.pl  perl script to rename old theory files
-  expandshort		shell script to expand "shortcuts" in files
-  prove_goal.el       	Emacs command to change proof format
-  xlisten		shell script for running Isabelle under X
-  teeinput		shell script to run Isabelle, logging inputs to a file
-  Pure			directory of source files for Pure Isabelle
-  Provers		directory of generic theorem provers
-
-David Aspinall has written a user interface for Isabelle.  It runs under
-GNU Emacs.  It's useful to both novices and experts.  You can get it by ftp
-from ftp.dcs.ed.ac.uk, file /pub/da/Isamode.tar.gz.
-
-A *very* primitive alternative, xlisten sets up a window running Isabelle,
-with a separate small "listener" window, which keeps a log of all input
-lines.  If you are not running the X Window System, teeinput can still be
-used to record the log.
+Important files include...
+  COPYRIGHT 	Copyright notice and Disclaimer of Warranty
+  Pure		contains source files for Pure Isabelle (no object-logic)
+  Provers	contains generic theorem provers: simplifier, etc.
 
 The following subdirectories contain object-logics:
   FOL 	  Natural deduction First-Order Logic (intuitionistic and classical)
@@ -87,6 +67,10 @@ The following subdirectories contain object-logics:
   Modal	  The modal logics T, S4, S43
   CCL	  Martin Coen's Classical Computational Logic
   Cube	  Barendregt's Lambda Cube
+
+David Aspinall has written a user interface for Isabelle.  It runs under
+GNU Emacs.  It's useful to both novices and experts.  You can get it by ftp
+from ftp.dcs.ed.ac.uk, file /pub/da/Isamode.tar.gz.
 
 Object-logics include examples files in subdirectory ex or file ex.ML.
 These files can be loaded in batch mode.  The commands can also be
