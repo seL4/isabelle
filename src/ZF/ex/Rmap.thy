@@ -19,7 +19,7 @@ inductive
     ConsI "[| <x,y>: r;  <xs,ys> : rmap(r) |] ==> 
           <Cons(x,xs), Cons(y,ys)> : rmap(r)"
 
-  type_intrs "[domainI,rangeI] @ list. intrs"
+  type_intrs "[domainI,rangeI] @ list.intrs"
 
 end
   

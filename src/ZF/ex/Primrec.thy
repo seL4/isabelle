@@ -57,7 +57,7 @@ inductive
     PREC     "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
   monos      "[list_mono]"
   con_defs   "[SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]"
-  type_intrs "nat_typechecks @ list. intrs @                     
+  type_intrs "nat_typechecks @ list.intrs @                     
               [lam_type, list_case_type, drop_type, map_type,   
               apply_type, rec_type]"
 

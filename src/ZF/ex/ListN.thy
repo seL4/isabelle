@@ -16,5 +16,5 @@ inductive
   intrs
     NilI  "<0,Nil> : listn(A)"
     ConsI "[| a: A;  <n,l> : listn(A) |] ==> <succ(n), Cons(a,l)> : listn(A)"
-  type_intrs "nat_typechecks @ list. intrs"
+  type_intrs "nat_typechecks @ list.intrs"
 end
