@@ -28,7 +28,7 @@ struct
 
 (** theory context references **)
 
-val type_definitionN = "subset.type_definition";
+val type_definitionN = "Typedef.type_definition";
 val type_definition_def = thm "type_definition_def";
 
 val Rep = thm "Rep";
@@ -98,7 +98,7 @@ fun err_in_typedef name =
 
 fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
   let
-    val _ = Theory.requires thy "subset" "typedefs";
+    val _ = Theory.requires thy "Typedef" "typedefs";
     val sign = Theory.sign_of thy;
     val full = Sign.full_name sign;
 
