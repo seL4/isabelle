@@ -10,7 +10,6 @@ sig
   val main: unit -> unit
   val loop: unit -> unit
   val help: unit -> unit
-  val load: string -> unit
 end;
 
 signature OUTER_SYNTAX =
@@ -24,16 +23,13 @@ sig
   val commands: unit -> string list
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
-  val get_header: Position.T -> (string, 'a) Source.source -> (bstring * bstring list) option
-  val read_text: Position.T -> (string, 'a) Source.source -> Toplevel.transition list
-  val read_file: string -> Toplevel.transition list
+  val deps_thy: string -> bool -> Path.T -> string list * Path.T list
+  val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: Toplevel.isar
 end;
 
 structure OuterSyntax: OUTER_SYNTAX =
 struct
-
-open OuterParse;
 
 
 (** outer syntax **)
@@ -51,6 +47,8 @@ fun parser int_only name comment parse = Parser (name, comment, int_only, parse)
 
 (* parse command *)
 
+local open OuterParse in
+
 fun command_name cmd =
   group "command"
     (position (Scan.one (OuterLex.keyword_pred (is_some o cmd)) >> OuterLex.val_of));
@@ -64,6 +62,8 @@ fun command cmd =
   command_name cmd :-- command_body cmd >> (fn ((name, pos), (int_only, f)) =>
     Some (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
       Toplevel.interactive int_only |> f));
+
+end;
 
 
 
@@ -128,37 +128,101 @@ fun recover cmd =
 
 fun source do_recover cmd src =
   src
-  |> Source.source OuterLex.stopper (Scan.bulk (fn xs => !!! (command (cmd ())) xs))
+  |> Source.source OuterLex.stopper (Scan.bulk (fn xs => OuterParse.!!! (command (cmd ())) xs))
     (if do_recover then Some (fn xs => recover (cmd ()) xs) else None)
   |> Source.mapfilter I;
 
 
 (* detect header *)
 
-val head_lexicon =
-  Scan.make_lexicon (map Symbol.explode ["+", ":", "=", "theory"]);
-
-val head_parser =
-  $$$ "theory" |-- !!! (name -- ($$$ "=" |-- enum "+" name --| (Scan.ahead eof || $$$ ":")));
-
-fun get_header pos src =
+fun scan_header get_lexicon scan (src, pos) =
   src
   |> Symbol.source false
-  |> OuterLex.source false (K head_lexicon) pos
-  |> Source.source OuterLex.stopper (Scan.single (Scan.option head_parser)) None
+  |> OuterLex.source false get_lexicon pos
+  |> Source.source OuterLex.stopper (Scan.single scan) None
   |> (fst o the o Source.get_single);
 
+val check_header_lexicon = Scan.make_lexicon [Symbol.explode "theory"];
 
-(* read text (including header) *)
+fun is_old_theory src =
+  is_none (scan_header (K check_header_lexicon) (Scan.option (OuterParse.$$$ "theory")) src);
 
-fun read_text pos src =
+fun warn_theory_style path is_old =
+  let
+    val style = if is_old then "old" else "new";
+    val _ = warning ("Assuming " ^ style ^ "-style theory format for " ^ quote (Path.pack path));
+  in is_old end;
+
+
+(* deps_thy --- inspect theory header *)
+
+val new_header_lexicon =
+  Scan.make_lexicon (map Symbol.explode ["+", ":", "=", "files", "theory"]);
+
+local open OuterParse in
+
+val new_header =
+  $$$ "theory" |-- !!! (name -- ($$$ "=" |-- enum1 "+" name) --
+    Scan.optional ($$$ "files" |-- !!! (Scan.repeat1 name)) [] --| (Scan.ahead eof || $$$ ":"));
+
+val old_header =
+  name -- ($$$ "=" |-- name -- Scan.repeat ($$$ "+" |-- name))
+  >> (fn (A, (B, Bs)) => ((A, B :: Bs), []));
+
+end;
+
+fun deps_thy name ml path =
+  let
+    val src = Source.of_file path;
+    val is_old = warn_theory_style path (is_old_theory src);
+    val ((name', parents), files) =
+      (*Note: old style headers dynamically depend on the current lexicon :-( *)
+      if is_old then scan_header ThySyn.get_lexicon (Scan.error old_header) src
+      else scan_header (K new_header_lexicon) (Scan.error new_header) src;
+
+    val ml_path = ThyLoad.ml_path name;
+    val ml_file = if not ml orelse is_none (ThyLoad.check_file ml_path) then [] else [ml_path];
+  in
+    if name <> name' then
+      error ("Filename " ^ quote (Path.pack path) ^ " does not match theory name " ^ quote name)
+    else (parents, map Path.unpack files @ ml_file)
+  end;
+
+
+(* load_thy --- read text (including header) *)
+
+fun try_ml_file name ml =
+  let
+    val path = ThyLoad.ml_path name;
+    val tr = Toplevel.imperative (fn () => ThyInfo.load_file path);
+  in
+    if not ml orelse is_none (ThyLoad.check_file path) then ()
+    else Toplevel.excursion [Toplevel.empty |> Toplevel.name "use" |> tr]
+  end;
+
+fun parse_thy (src, pos) =
   src
   |> Symbol.source false
   |> OuterLex.source false (K (get_lexicon ())) pos
   |> source false (K (get_parser ()))
   |> Source.exhaust;
 
-fun read_file name = read_text (Position.line_name 1 (quote name)) (Source.of_file name);
+fun read_thy name ml path =
+  let
+    val (src, pos) = Source.of_file path;
+    val _ =
+      if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
+      else (Toplevel.excursion (parse_thy (src, pos))
+        handle exn => error (Toplevel.exn_message exn));
+    val theory = ThyInfo.get_theory name;
+  in Context.setmp theory try_ml_file name ml end;
+
+fun load_thy name ml time path =
+  if not time then read_thy name ml path
+  else timeit (fn () =>
+   (writeln ("\n**** Starting Theory " ^ quote name ^ " ****");
+    setmp Goals.proof_timing true (read_thy name ml) path;
+    writeln ("**** Finished Theory " ^ quote name ^ " ****\n")));
 
 
 (* interactive source of state transformers *)
@@ -180,14 +244,8 @@ fun loop () = (Context.reset_context (); Toplevel.loop isar);
 fun main () =
  (Toplevel.set_state Toplevel.toplevel;
   ml_prompts "ML> " "ML# ";
-  writeln (Context.welcome ());
+  writeln (Session.welcome ());
   loop ());
-
-
-(* load *)
-
-fun load name = Toplevel.excursion (read_file (name ^ ".thy"))
-  handle exn => error (Toplevel.exn_message exn);
 
 
 (* help *)
@@ -198,6 +256,11 @@ fun help () =
 
 
 end;
+
+(*setup theory syntax dependent operations*)
+ThyLoad.deps_thy_fn := OuterSyntax.deps_thy;
+ThyLoad.load_thy_fn := OuterSyntax.load_thy;
+structure ThyLoad: THY_LOAD = ThyLoad;
 
 structure BasicOuterSyntax: BASIC_OUTER_SYNTAX = OuterSyntax;
 open BasicOuterSyntax;
