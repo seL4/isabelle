@@ -40,4 +40,5 @@ Addsimps [result()];
 goal InSort.thy "!!f. [| total(f); transf(f) |] ==>  sorted f (insort f xs)";
 by(list.induct_tac "xs" 1);
 by(ALLGOALS Asm_simp_tac);
-result();
+qed "sorted_insort";
+
