@@ -278,8 +278,8 @@ pleases.  This is the only way the simplifier can handle a conditional
 rewrite rule whose condition contains extra variables. When a simplification 
 tactic is to be combined with other provers, especially with the classical 
 reasoner, it is important whether it can be considered safe or not. Therefore,
-solver is split into a safe and anunsafe part. Both parts of the solver,
-which are stored within the simpset, can be set independently using 
+the solver is split into a safe and anunsafe part. Both parts can be set 
+independently of each other using 
 \ttindex{setSSolver} (with a safe tactic as argument) and \ttindex{setSolver}
 (with an unsafe tactic) . Additional solvers, which are tried after the already
 set solvers, may be added using \ttindex{addSSolver} and \ttindex{addSolver}. 
@@ -369,11 +369,6 @@ infix 4 setsubgoaler setloop addloop setSSolver addSSolver setSolver addSolver
 
 signature SIMPLIFIER =
 sig
-  type simproc
-  val mk_simproc: string -> cterm list -> (Sign.sg -> term -> thm option) -> simproc
-  val name_of_simproc: simproc -> string
-  val conv_prover: (term * term -> term) -> thm -> (thm -> thm)
-    -> tactic -> (int -> tactic) -> Sign.sg -> term -> term -> thm      (* FIXME move?, rename? *)
   type simpset
   val empty_ss: simpset
   val rep_ss: simpset -> {simps: thm list, procs: string list, congs: thm list,
@@ -977,9 +972,9 @@ rules such as $\neg\neg P\bimp P$.
 \index{*setmksimps}\index{*setSSolver}\index{*setSolver}\index{*setsubgoaler}
 \index{*addsimps}\index{*addcongs}
 \begin{ttbox}
-fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
+fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls \at prems),
                                  atac, etac FalseE];
-fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
+fun   safe_solver prems = FIRST'[match_tac (triv_rls \at prems),
                                  eq_assume_tac, ematch_tac [FalseE]];
 val IFOL_ss = empty_ss setsubgoaler asm_simp_tac
                        setSSolver   safe_solver
