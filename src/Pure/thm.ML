@@ -1505,7 +1505,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
  in  if eres_flg then eres(rev rAs)
      else res(Seq.pull(Unify.unifiers(sign, env, dpairs)))
  end;
-end;  (*open Sequence*)
+end;
 
 
 fun bicompose match arg i state =
