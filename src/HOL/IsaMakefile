@@ -36,7 +36,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/assoc_fold.ML		\
   $(SRC)/Provers/Arith/combine_numerals.ML	\
   $(SRC)/Provers/Arith/cancel_numerals.ML	\
-  $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/Arith/fast_lin_arith.ML \
+  $(SRC)/Provers/blast.ML $(SRC)/Provers/make_elim.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/simplifier.ML \
   $(SRC)/Provers/split_paired_all.ML $(SRC)/Provers/splitter.ML \
