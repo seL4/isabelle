@@ -3009,6 +3009,100 @@ may be found on other subdirectories of \texttt{HOL}, such as \texttt{IMP},
 \index{*coinductive|)} \index{*inductive|)}
 
 
+\section{Executable specifications}
+\index{code generator}
+
+For validation purposes, it is often useful to {\em execute} specifications.
+In principle, specifications could be ``executed'' using Isabelle's
+inference kernel, i.e. by a combination of resolution and simplification.
+Unfortunately, this approach is rather inefficient. A more efficient way
+of executing specifications is to translate them into a functional
+programming language such as ML. Isabelle's built-in code generator
+supports this.
+
+\begin{figure}
+\begin{rail}
+codegen : 'generate_code' ( () | '(' string ')') (code +);
+
+code : name '=' string;
+
+constscode : 'consts_code' (codespec +);
+
+codespec : name ( () | '::' type) '(' mixfix ')';
+
+typescode : 'types_code' (tycodespec +);
+
+tycodespec : name '(' mixfix ')';
+\end{rail}
+\caption{Code generator syntax}
+\label{fig:HOL:codegen}
+\end{figure}
+
+\subsection{Invoking the code generator}
+
+The code generator is invoked via the \ttindex{generate_code} command
+(see Fig.~\ref{fig:HOL:codegen}). The code can either be written to a file,
+in which case a file name has to be specified in parentheses, or be
+loaded directly into Isabelle's ML environment. In the latter case,
+the \texttt{ML} theory command can be used to inspect the results
+interactively.
+The \texttt{generate_code} command takes a list of pairs, consisting
+of an ML identifier and a string representing a term. The result of
+compiling the term is bound to the corresponding ML identifier.
+For example,
+\begin{ttbox}
+generate_code
+  test = "foldl op + (0::int) [1,2,3,4,5]"
+\end{ttbox}
+binds the result of compiling the term
+\texttt{foldl op + (0::int) [1,2,3,4,5]}
+(i.e.~\texttt{15}) to the ML identifier \texttt{test}.
+
+\subsection{Configuring the code generator}
+
+When generating code for a complex term, the code generator recursively
+calls itself for all subterms.
+When it arrives at a constant, the default strategy of the code
+generator is to look up its definition and try to generate code for it.
+Some primitive constants of a logic, which have no definitions that
+are immediately executable, may be associated with a piece of ML
+code manually using the \ttindex{consts_code} command
+(see Fig.~\ref{fig:HOL:codegen}).
+It takes a list whose elements consist of a constant name, together
+with an optional type constraint (to account for overloading), and a
+mixfix template describing the ML code. The latter is very much the
+same as the mixfix templates used when declaring new constants.
+The most notable difference is that terms may be included in the ML
+template using antiquotation brackets \verb|{*|~$\ldots$~\verb|*}|.
+A similar mechanism is available for
+types: \ttindex{types_code} associates type constructors with
+specific ML code.
+
+Another possibility of configuring the code generator is to register
+theorems to be used for code generation. Theorems can be registered
+via the \ttindex{code} attribute. It takes an optional name as
+an argument, which indicates the format of the theorem. Currently
+supported formats are equations (this is the default when no name
+is specified) and horn clauses (this is indicated by the name
+\texttt{ind}). The left-hand sides of equations may only contain
+constructors and distinct variables, whereas horn clauses must have
+the same format as introduction rules of inductive definitions.
+
+\subsection{Specific HOL code generators}
+
+The basic code generator framework offered by Isabelle/Pure has
+already been extended with additional code generators for specific
+HOL constructs. These include datatypes, recursive functions and
+inductive relations. The code generator for inductive relations
+can handle expressions of the form $(t@1,\ldots,t@n) \in r$, where
+$r$ is an inductively defined relation. In case at least one of the
+$t@i$ is a dummy pattern $_$, the above expression evaluates to a
+sequence of possible answers. If all of the $t@i$ are proper
+terms, the expression evaluates to a boolean value. The theory
+underlying the HOL code generator is described more detailed in
+\cite{Berghofer-Nipkow:2002}.
+
+
 \section{The examples directories}
 
 Directory \texttt{HOL/Auth} contains theories for proving the correctness of
