@@ -36,7 +36,7 @@ inductive "leadsto F"
     *)
     Union  "(UN A:S. {(A,B)}) : Pow (leadsto F) ==> (Union S, B) : leadsto F"
 
-  monos "[Pow_mono]"
+  monos Pow_mono
 
 
   
