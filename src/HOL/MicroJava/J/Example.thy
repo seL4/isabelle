@@ -100,7 +100,7 @@ defs
 			     [(vee, PrimT Boolean)], 
 			     [((foo,[Class Base]),Class Base,foo_Base)]))"
   foo_Ext_def:"foo_Ext == ([x],[],Expr( {Ext}Cast Ext
-				       (LAcc x)..vee:=Lit (Intg Numeral1)),
+				       (LAcc x)..vee:=Lit (Intg 1)),
 				   Lit Null)"
   ExtC_def: "ExtC  == (Ext,  (Base  , 
 			     [(vee, PrimT Integer)], 
@@ -127,7 +127,7 @@ translations
   "NP"   == "NullPointer"
   "tprg" == "[ObjectC, BaseC, ExtC]"
   "obj1"    <= "(Ext, empty((vee, Base)\<mapsto>Bool False)
-			   ((vee, Ext )\<mapsto>Intg Numeral0))"
+			   ((vee, Ext )\<mapsto>Intg 0))"
   "s0" == " Norm    (empty, empty)"
   "s1" == " Norm    (empty(a\<mapsto>obj1),empty(e\<mapsto>Addr a))"
   "s2" == " Norm    (empty(a\<mapsto>obj1),empty(x\<mapsto>Null)(This\<mapsto>Addr a))"

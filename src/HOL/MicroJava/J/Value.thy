@@ -40,7 +40,7 @@ consts
 primrec
   "defpval Void    = Unit"
   "defpval Boolean = Bool False"
-  "defpval Integer = Intg (Numeral0)"
+  "defpval Integer = Intg 0"
 
 primrec
   "default_val (PrimT pt) = defpval pt"
