@@ -7,8 +7,9 @@ Pretty printing of asts, terms, types and print (ast) translation.
 
 signature PRINTER0 =
 sig
-  val show_types: bool ref
+  val show_brackets: bool ref
   val show_sorts: bool ref
+  val show_types: bool ref
 end;
 
 signature PRINTER =
@@ -44,7 +45,7 @@ open SExtension.Parser.Lexicon SynExt.Ast SynExt TypeExt SExtension;
 
 val show_types = ref false;
 val show_sorts = ref false;
-
+val show_brackets = ref false;
 
 
 (** convert term or typ to ast **)
@@ -227,7 +228,7 @@ fun pretty prtab trf type_mode ast0 p0 =
       | synT (_ :: _, []) = sys_error "synT"
 
     and parT (pr, args, p, p': int) =
-      if p > p' then
+      if p > p' orelse !show_brackets then
         #1 (synT ([Block (1, String "(" :: pr @ [String ")"])], args))
       else #1 (synT (pr, args))
 
