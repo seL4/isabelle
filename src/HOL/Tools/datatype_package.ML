@@ -348,9 +348,6 @@ fun make_dt_info descr induct reccomb_names rec_thms
        nchotomy = nchotomy,
        case_cong = case_cong});
 
-fun store_clasimp thy (cla, simp) =
-  (claset_ref_of thy := cla; simpset_ref_of thy := simp);
-
 
 (********************* axiomatic introduction of datatypes ********************)
 
@@ -517,14 +514,12 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy11 = thy10 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      (#1 o PureThy.add_thmss [(("simps", simps), [])]) |>
+      (#1 o PureThy.add_thmss [(("simps", simps), []),
+        (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
+        (("", flat (inject @ distinct)), [iff_add_global])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path;
-
-    val _ = store_clasimp thy11 ((claset_of thy11, simpset_of thy11)
-      addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
-      addIffs flat (inject @ distinct));
 
   in
     (thy11,
@@ -553,7 +548,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val (thy3, casedist_thms) = DatatypeAbsProofs.prove_casedist_thms new_type_names descr
       sorts induct case_names_exhausts thy2;
-    val (thy4, reccomb_names, rec_thms) = DatatypeAbsProofs.prove_primrec_thms
+    val (thy4, (reccomb_names, rec_thms)) = DatatypeAbsProofs.prove_primrec_thms
       flat_names new_type_names descr sorts dt_info inject dist_rewrites dist_ss induct thy3;
     val (thy6, (case_thms, case_names)) = DatatypeAbsProofs.prove_case_thms
       flat_names new_type_names descr sorts reccomb_names rec_thms thy4;
@@ -574,14 +569,12 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy11 = thy10 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      (#1 o PureThy.add_thmss [(("simps", simps), [])]) |>
+      (#1 o PureThy.add_thmss [(("simps", simps), []),
+        (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
+        (("", flat (inject @ distinct)), [iff_add_global])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path;
-
-    val _ = store_clasimp thy11 ((claset_of thy11, simpset_of thy11)
-      addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
-      addIffs flat (inject @ distinct));
 
   in
     (thy11,
@@ -650,7 +643,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val (thy2, casedist_thms) = thy1 |>
       DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction
         case_names_exhausts;
-    val (thy3, reccomb_names, rec_thms) = DatatypeAbsProofs.prove_primrec_thms
+    val (thy3, (reccomb_names, rec_thms)) = DatatypeAbsProofs.prove_primrec_thms
       false new_type_names [descr] sorts dt_info inject distinct dist_ss induction thy2;
     val (thy4, (case_thms, case_names)) = DatatypeAbsProofs.prove_case_thms false
       new_type_names [descr] sorts reccomb_names rec_thms thy3;
@@ -677,15 +670,13 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       (#1 o store_thmss "distinct" new_type_names distinct) |>
       Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_thms [(("induct", induction), [case_names_induct])] |>>
-      (#1 o PureThy.add_thmss [(("simps", simps), [])]) |>>
+      (#1 o PureThy.add_thmss [(("simps", simps), []),
+        (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
+        (("", flat (inject @ distinct)), [iff_add_global])]) |>>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>>
       add_cases_induct dt_infos |>>
       Theory.parent_path;
 
-    (* FIXME use attributes *)
-    val _ = store_clasimp thy9 ((claset_of thy9, simpset_of thy9)
-      addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
-      addIffs flat (inject @ distinct));
   in
     (thy9,
      {distinct = distinct,
