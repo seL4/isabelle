@@ -58,6 +58,9 @@ by (safe_tac subset_cs);
 by (etac counit2.elim 1);
 by (etac counit2.elim 1);
 by (rewrite_goals_tac counit2.con_defs);
+val lleq_cs = subset_cs
+	addSIs [QPair_Int_Vset_subset_UN RS subset_trans, QPair_mono]
+        addSEs [Ord_in_Ord, Pair_inject];
 by (fast_tac lleq_cs 1);
 val counit2_Int_Vset_subset_lemma = result();
 
