@@ -9,7 +9,7 @@
 
 FAKE_BUILD=""
 DISTBASE=~/tmp/isadist
-TMP="/tmp/isabelle-makebin$$"
+TMP="/var/tmp/isabelle-makebin$$"
 
 TAR=tar
 type -path gtar >/dev/null && TAR=gtar
