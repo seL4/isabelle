@@ -62,7 +62,7 @@ structure Goals = GoalsFun(structure Logic=Logic and Drule=Drule
                            and Tactic=Tactic and Pattern=Pattern);
 structure AxClass = AxClassFun(structure Logic = Logic
   and Goals = Goals and Tactic = Tactic);
-open BasicSyntax Thm Drule Tactical Tactic Goals AxClass;
+open BasicSyntax Thm Drule Tactical Tactic Goals;
 
 structure Pure = struct val thy = pure_thy end;
 
