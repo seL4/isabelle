@@ -178,11 +178,13 @@ rules
   True_or_False "(P=True) | (P=False)"
 
 defs
-  (* Misc Definitions *)
-
+  (*misc definitions*)
   Let_def       "Let s f == f(s)"
   o_def         "(f::'b=>'c) o g == (%(x::'a). f(g(x)))"
   if_def        "If P x y == @z::'a. (P=True --> z=x) & (P=False --> z=y)"
+
+  (*arbitrary is completely unspecified, but is made to appear as a
+    definition syntactically*)
   arbitrary_def "False ==> arbitrary == (@x. False)"
 
 

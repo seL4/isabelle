@@ -14,7 +14,7 @@ qed_goalw "Gamma_mono" Denotation.thy [mono_def,Gamma_def]
      (fn _ => [Fast_tac 1]);
 
 
-goal Denotation.thy "C(WHILE b DO c) = C(IF b THEN c;WHILE b DO c ELSE SKIP)";
+Goal "C(WHILE b DO c) = C(IF b THEN c;WHILE b DO c ELSE SKIP)";
 by (Simp_tac 1);
 by (EVERY[stac (Gamma_mono RS lfp_Tarski) 1,
           stac (Gamma_def RS meta_eq_to_obj_eq RS fun_cong) 1,
@@ -25,7 +25,7 @@ qed "C_While_If";
 
 (* Operational Semantics implies Denotational Semantics *)
 
-goal Denotation.thy "!!c s t. <c,s> -c-> t ==> (s,t) : C(c)";
+Goal "!!c s t. <c,s> -c-> t ==> (s,t) : C(c)";
 
 (* start with rule induction *)
 by (etac evalc.induct 1);
@@ -41,7 +41,7 @@ qed "com1";
 
 (* Denotational Semantics implies Operational Semantics *)
 
-goal Denotation.thy "!s t. (s,t):C(c) --> <c,s> -c-> t";
+Goal "!s t. (s,t):C(c) --> <c,s> -c-> t";
 by (com.induct_tac "c" 1);
 
 by (ALLGOALS Full_simp_tac);
@@ -58,6 +58,6 @@ qed_spec_mp "com2";
 
 (**** Proof of Equivalence ****)
 
-goal Denotation.thy "(s,t) : C(c)  =  (<c,s> -c-> t)";
+Goal "(s,t) : C(c)  =  (<c,s> -c-> t)";
 by (fast_tac (claset() addEs [com2] addDs [com1]) 1);
 qed "denotational_is_natural";

@@ -20,26 +20,26 @@ AddSEs par_beta_cases;
 
 (*** beta <= par_beta <= beta^* ***)
 
-goal ParRed.thy "(Var n => t) = (t = Var n)";
+Goal "(Var n => t) = (t = Var n)";
 by (Blast_tac 1);
 qed "par_beta_varL";
 Addsimps [par_beta_varL];
 
-goal ParRed.thy "t => t";
+Goal "t => t";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 qed"par_beta_refl";
 Addsimps [par_beta_refl];
 (* AddSIs [par_beta_refl]; causes search to blow up *)
 
-goal ParRed.thy "beta <= par_beta";
+Goal "beta <= par_beta";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac beta.induct 1);
 by (ALLGOALS(blast_tac (claset() addSIs [par_beta_refl])));
 qed "beta_subset_par_beta";
 
-goal ParRed.thy "par_beta <= beta^*";
+Goal "par_beta <= beta^*";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac par_beta.induct 1);
@@ -51,13 +51,13 @@ qed "par_beta_subset_beta";
 
 (*** => ***)
 
-goal ParRed.thy "!t' n. t => t' --> lift t n => lift t' n";
+Goal "!t' n. t => t' --> lift t n => lift t' n";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(fast_tac (claset() addss (simpset()))));
 qed_spec_mp "par_beta_lift";
 Addsimps [par_beta_lift];
 
-goal ParRed.thy
+Goal
   "!s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]";
 by (dB.induct_tac "t" 1);
   by (asm_simp_tac (addsplit(simpset())) 1);
@@ -71,7 +71,7 @@ qed_spec_mp "par_beta_subst";
 
 (*** Confluence (directly) ***)
 
-goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
+Goalw [diamond_def,commute_def,square_def] "diamond(par_beta)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac par_beta.induct 1);
 by (ALLGOALS(blast_tac (claset() addSIs [par_beta_subst])));
@@ -80,7 +80,7 @@ qed "diamond_par_beta";
 
 (*** cd ***)
 
-goal ParRed.thy "!t. s => t --> t => cd s";
+Goal "!t. s => t --> t => cd s";
 by (dB.induct_tac "s" 1);
   by (Simp_tac 1);
  by (etac rev_mp 1);
@@ -91,11 +91,11 @@ qed_spec_mp "par_beta_cd";
 
 (*** Confluence (via cd) ***)
 
-goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
+Goalw [diamond_def,commute_def,square_def] "diamond(par_beta)";
 by (blast_tac (claset() addIs [par_beta_cd]) 1);
 qed "diamond_par_beta2";
 
-goal ParRed.thy "confluent(beta)";
+Goal "confluent(beta)";
 by (blast_tac (HOL_cs addIs [diamond_par_beta2, diamond_to_confluence,
 			     par_beta_subset_beta, beta_subset_par_beta]) 1);
 qed"beta_confluent";

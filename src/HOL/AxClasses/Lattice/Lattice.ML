@@ -6,11 +6,11 @@ open Lattice;
 
 (* unique existence *)
 
-goalw thy [inf_def] "is_inf x y (x && y)";
+Goalw [inf_def] "is_inf x y (x && y)";
   by (rtac (ex_inf RS spec RS spec RS selectI1) 1);
 qed "inf_is_inf";
 
-goal thy "is_inf x y inf --> x && y = inf";
+Goal "is_inf x y inf --> x && y = inf";
   by (rtac impI 1);
   by (rtac (is_inf_uniq RS mp) 1);
   by (rtac conjI 1);
@@ -18,7 +18,7 @@ goal thy "is_inf x y inf --> x && y = inf";
   by (assume_tac 1);
 qed "inf_uniq";
 
-goalw thy [Ex1_def] "ALL x y. EX! inf::'a::lattice. is_inf x y inf";
+Goalw [Ex1_def] "ALL x y. EX! inf::'a::lattice. is_inf x y inf";
   by Safe_tac;
   by (Step_tac 1);
   by (Step_tac 1);
@@ -28,11 +28,11 @@ goalw thy [Ex1_def] "ALL x y. EX! inf::'a::lattice. is_inf x y inf";
 qed "ex1_inf";
 
 
-goalw thy [sup_def] "is_sup x y (x || y)";
+Goalw [sup_def] "is_sup x y (x || y)";
   by (rtac (ex_sup RS spec RS spec RS selectI1) 1);
 qed "sup_is_sup";
 
-goal thy "is_sup x y sup --> x || y = sup";
+Goal "is_sup x y sup --> x || y = sup";
   by (rtac impI 1);
   by (rtac (is_sup_uniq RS mp) 1);
   by (rtac conjI 1);
@@ -40,7 +40,7 @@ goal thy "is_sup x y sup --> x || y = sup";
   by (assume_tac 1);
 qed "sup_uniq";
 
-goalw thy [Ex1_def] "ALL x y. EX! sup::'a::lattice. is_sup x y sup";
+Goalw [Ex1_def] "ALL x y. EX! sup::'a::lattice. is_sup x y sup";
   by Safe_tac;
   by (Step_tac 1);
   by (Step_tac 1);
@@ -57,11 +57,11 @@ val tac =
   rewrite_goals_tac [inf_def, is_inf_def] THEN
   Fast_tac 1;
 
-goal thy "x && y [= x";
+Goal "x && y [= x";
   by tac;
 qed "inf_lb1";
 
-goal thy "x && y [= y";
+Goal "x && y [= y";
   by tac;
 qed "inf_lb2";
 
@@ -76,11 +76,11 @@ val tac =
   rewrite_goals_tac [sup_def, is_sup_def] THEN
   Fast_tac 1;
 
-goal thy "x [= x || y";
+Goal "x [= x || y";
   by tac;
 qed "sup_ub1";
 
-goal thy "y [= x || y";
+Goal "y [= x || y";
   by tac;
 qed "sup_ub2";
 
@@ -95,7 +95,7 @@ qed "sup_lb_ubs";
 
 (* the Connection Theorems: "[=" expressed via "&&" or "||" *)
 
-goal thy "(x && y = x) = (x [= y)";
+Goal "(x && y = x) = (x [= y)";
   by (rtac iffI 1);
   (*==>*)
     by (etac subst 1);
@@ -109,7 +109,7 @@ goal thy "(x && y = x) = (x [= y)";
     by (Fast_tac 1);
 qed "inf_connect";
 
-goal thy "(x || y = y) = (x [= y)";
+Goal "(x || y = y) = (x [= y)";
   by (rtac iffI 1);
   (*==>*)
     by (etac subst 1);
@@ -126,7 +126,7 @@ qed "sup_connect";
 
 (* minorized infs / majorized sups *)
 
-goal thy "(x [= y && z) = (x [= y & x [= z)";
+Goal "(x [= y && z) = (x [= y & x [= z)";
   by (rtac iffI 1);
   (*==> (level 1)*)
     by (cut_facts_tac [inf_lb1, inf_lb2] 1);
@@ -143,7 +143,7 @@ goal thy "(x [= y && z) = (x [= y & x [= z)";
     by (assume_tac 1);
 qed "le_inf_eq";
 
-goal thy "(x || y [= z) = (x [= z & y [= z)";
+Goal "(x || y [= z) = (x [= z & y [= z)";
   by (rtac iffI 1);
   (*==> (level 1)*)
     by (cut_facts_tac [sup_ub1, sup_ub2] 1);
@@ -165,7 +165,7 @@ qed "ge_sup_eq";
 
 (* associativity *)
 
-goal thy "(x && y) && z = x && (y && z)";
+Goal "(x && y) && z = x && (y && z)";
   by (stac (inf_uniq RS mp RS sym) 1);
   back();
   back();
@@ -181,7 +181,7 @@ goal thy "(x && y) && z = x && (y && z)";
   by (REPEAT_FIRST (rtac inf_is_inf));
 qed "inf_assoc";
 
-goal thy "(x || y) || z = x || (y || z)";
+Goal "(x || y) || z = x || (y || z)";
   by (stac (sup_uniq RS mp RS sym) 1);
   back();
   back();
@@ -200,12 +200,12 @@ qed "sup_assoc";
 
 (* commutativity *)
 
-goalw thy [inf_def] "x && y = y && x";
+Goalw [inf_def] "x && y = y && x";
   by (stac (is_inf_commut RS ext) 1);
   by (rtac refl 1);
 qed "inf_commut";
 
-goalw thy [sup_def] "x || y = y || x";
+Goalw [sup_def] "x || y = y || x";
   by (stac (is_sup_commut RS ext) 1);
   by (rtac refl 1);
 qed "sup_commut";
@@ -213,12 +213,12 @@ qed "sup_commut";
 
 (* idempotency *)
 
-goal thy "x && x = x";
+Goal "x && x = x";
   by (stac inf_connect 1);
   by (rtac le_refl 1);
 qed "inf_idemp";
 
-goal thy "x || x = x";
+Goal "x || x = x";
   by (stac sup_connect 1);
   by (rtac le_refl 1);
 qed "sup_idemp";
@@ -226,13 +226,13 @@ qed "sup_idemp";
 
 (* absorption *)
 
-goal thy "x || (x && y) = x";
+Goal "x || (x && y) = x";
   by (stac sup_commut 1);
   by (stac sup_connect 1);
   by (rtac inf_lb1 1);
 qed "sup_inf_absorb";
 
-goal thy "x && (x || y) = x";
+Goal "x && (x || y) = x";
   by (stac inf_connect 1);
   by (rtac sup_ub1 1);
 qed "inf_sup_absorb";

@@ -18,13 +18,13 @@ by (etac ax_per_trans 1);
 by (assume_tac 1);
 qed "per_trans";
 
-goalw thy [per_def] "(x::'a::er) === x";
+Goalw [per_def] "(x::'a::er) === x";
 by (rtac ax_er_refl 1);
 qed "er_refl";
 
 (* now everything works without axclasses *)
 
-goal thy "x===y=y===x";
+Goal "x===y=y===x";
 by (rtac iffI 1);
 by (etac per_sym 1);
 by (etac per_sym 1);
@@ -52,13 +52,13 @@ by (cut_facts_tac prems 1);
 by (fast_tac set_cs 1);
 qed "DomainI";
 
-goal thy "x:D = x===x";
+Goal "x:D = x===x";
 by (rtac iffI 1);
 by (etac DomainD 1);
 by (etac DomainI 1);
 qed "DomainEq";
 
-goal thy "(~ x === y) = (~ y === x)";
+Goal "(~ x === y) = (~ y === x)";
 by (rtac (per_sym2 RS arg_cong) 1);
 qed "per_not_sym";
 
@@ -88,7 +88,7 @@ by (fast_tac set_cs 1);
 qed "notDomainE2"; 
 
 (* theorems for equivalence relations *)
-goal thy "(x::'a::er) : D";
+Goal "(x::'a::er) : D";
 by (rtac DomainI 1);
 by (rtac er_refl 1);
 qed "er_Domain";

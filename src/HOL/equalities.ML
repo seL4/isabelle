@@ -12,26 +12,26 @@ AddSIs [equalityI];
 
 section "{}";
 
-goal thy "{x. False} = {}";
+Goal "{x. False} = {}";
 by (Blast_tac 1);
 qed "Collect_False_empty";
 Addsimps [Collect_False_empty];
 
-goal thy "(A <= {}) = (A = {})";
+Goal "(A <= {}) = (A = {})";
 by (Blast_tac 1);
 qed "subset_empty";
 Addsimps [subset_empty];
 
-goalw thy [psubset_def] "~ (A < {})";
+Goalw [psubset_def] "~ (A < {})";
 by (Blast_tac 1);
 qed "not_psubset_empty";
 AddIffs [not_psubset_empty];
 
-goal thy "{x. P x | Q x} = {x. P x} Un {x. Q x}";
+Goal "{x. P x | Q x} = {x. P x} Un {x. Q x}";
 by (Blast_tac 1);
 qed "Collect_disj_eq";
 
-goal thy "{x. P x & Q x} = {x. P x} Int {x. Q x}";
+Goal "{x. P x & Q x} = {x. P x} Int {x. Q x}";
 by (Blast_tac 1);
 qed "Collect_conj_eq";
 
@@ -39,11 +39,11 @@ qed "Collect_conj_eq";
 section "insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a {}*)
-goal thy "insert a A = {a} Un A";
+Goal "insert a A = {a} Un A";
 by (Blast_tac 1);
 qed "insert_is_Un";
 
-goal thy "insert a A ~= {}";
+Goal "insert a A ~= {}";
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed"insert_not_empty";
 Addsimps[insert_not_empty];
@@ -51,33 +51,33 @@ Addsimps[insert_not_empty];
 bind_thm("empty_not_insert",insert_not_empty RS not_sym);
 Addsimps[empty_not_insert];
 
-goal thy "!!a. a:A ==> insert a A = A";
+Goal "!!a. a:A ==> insert a A = A";
 by (Blast_tac 1);
 qed "insert_absorb";
 (* Addsimps [insert_absorb] causes recursive (ie quadtratic) calls
    in case of nested inserts!
 *)
 
-goal thy "insert x (insert x A) = insert x A";
+Goal "insert x (insert x A) = insert x A";
 by (Blast_tac 1);
 qed "insert_absorb2";
 Addsimps [insert_absorb2];
 
-goal thy "insert x (insert y A) = insert y (insert x A)";
+Goal "insert x (insert y A) = insert y (insert x A)";
 by (Blast_tac 1);
 qed "insert_commute";
 
-goal thy "(insert x A <= B) = (x:B & A <= B)";
+Goal "(insert x A <= B) = (x:B & A <= B)";
 by (Blast_tac 1);
 qed "insert_subset";
 Addsimps[insert_subset];
 
-goal thy "!!a. insert a A ~= insert a B ==> A ~= B";
+Goal "!!a. insert a A ~= insert a B ==> A ~= B";
 by (Blast_tac 1);
 qed "insert_lim";
 
 (* use new B rather than (A-{a}) to avoid infinite unfolding *)
-goal thy "!!a. a:A ==> ? B. A = insert a B & a ~: B";
+Goal "!!a. a:A ==> ? B. A = insert a B & a ~: B";
 by (res_inst_tac [("x","A-{a}")] exI 1);
 by (Blast_tac 1);
 qed "mk_disjoint_insert";
@@ -85,46 +85,46 @@ qed "mk_disjoint_insert";
 bind_thm ("insert_Collect", prove_goal thy 
 	"insert a (Collect P) = {u. u ~= a --> P u}" (K [Auto_tac]));
 
-goal thy
+Goal
     "!!A. A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
 by (Blast_tac 1);
 qed "UN_insert_distrib";
 
 section "``";
 
-goal thy "f``{} = {}";
+Goal "f``{} = {}";
 by (Blast_tac 1);
 qed "image_empty";
 Addsimps[image_empty];
 
-goal thy "f``insert a B = insert (f a) (f``B)";
+Goal "f``insert a B = insert (f a) (f``B)";
 by (Blast_tac 1);
 qed "image_insert";
 Addsimps[image_insert];
 
-goal thy  "(f `` (UNION A B)) = (UN x:A.(f `` (B x)))";
+Goal  "(f `` (UNION A B)) = (UN x:A.(f `` (B x)))";
 by (Blast_tac 1);
 qed "image_UNION";
 
-goal thy "(%x. x) `` Y = Y";
+Goal "(%x. x) `` Y = Y";
 by (Blast_tac 1);
 qed "image_id";
 
-goal thy "f``(g``A) = (%x. f (g x)) `` A";
+Goal "f``(g``A) = (%x. f (g x)) `` A";
 by (Blast_tac 1);
 qed "image_image";
 
-goal thy "!!x. x:A ==> insert (f x) (f``A) = f``A";
+Goal "!!x. x:A ==> insert (f x) (f``A) = f``A";
 by (Blast_tac 1);
 qed "insert_image";
 Addsimps [insert_image];
 
-goal thy "(f``A = {}) = (A = {})";
+Goal "(f``A = {}) = (A = {})";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "image_is_empty";
 AddIffs [image_is_empty];
 
-goalw thy [image_def]
+Goalw [image_def]
 "(%x. if P x then f x else g x) `` S                    \
 \ = (f `` (S Int {x. P x})) Un (g `` (S Int {x. ~(P x)}))";
 by (Simp_tac 1);
@@ -140,218 +140,218 @@ qed "image_cong";
 
 section "Int";
 
-goal thy "A Int A = A";
+Goal "A Int A = A";
 by (Blast_tac 1);
 qed "Int_absorb";
 Addsimps[Int_absorb];
 
-goal thy " A Int (A Int B) = A Int B";
+Goal " A Int (A Int B) = A Int B";
 by (Blast_tac 1);
 qed "Int_left_absorb";
 
-goal thy "A Int B  =  B Int A";
+Goal "A Int B  =  B Int A";
 by (Blast_tac 1);
 qed "Int_commute";
 
-goal thy "A Int (B Int C) = B Int (A Int C)";
+Goal "A Int (B Int C) = B Int (A Int C)";
 by (Blast_tac 1);
 qed "Int_left_commute";
 
-goal thy "(A Int B) Int C  =  A Int (B Int C)";
+Goal "(A Int B) Int C  =  A Int (B Int C)";
 by (Blast_tac 1);
 qed "Int_assoc";
 
 (*Intersection is an AC-operator*)
 val Int_ac = [Int_assoc, Int_left_absorb, Int_commute, Int_left_commute];
 
-goal thy "!!A B. B<=A ==> A Int B = B";
+Goal "!!A B. B<=A ==> A Int B = B";
 by (Blast_tac 1);
 qed "Int_absorb1";
 
-goal thy "!!A B. A<=B ==> A Int B = A";
+Goal "!!A B. A<=B ==> A Int B = A";
 by (Blast_tac 1);
 qed "Int_absorb2";
 
-goal thy "{} Int B = {}";
+Goal "{} Int B = {}";
 by (Blast_tac 1);
 qed "Int_empty_left";
 Addsimps[Int_empty_left];
 
-goal thy "A Int {} = {}";
+Goal "A Int {} = {}";
 by (Blast_tac 1);
 qed "Int_empty_right";
 Addsimps[Int_empty_right];
 
-goal thy "(A Int B = {}) = (A <= Compl B)";
+Goal "(A Int B = {}) = (A <= Compl B)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "disjoint_eq_subset_Compl";
 
-goal thy "UNIV Int B = B";
+Goal "UNIV Int B = B";
 by (Blast_tac 1);
 qed "Int_UNIV_left";
 Addsimps[Int_UNIV_left];
 
-goal thy "A Int UNIV = A";
+Goal "A Int UNIV = A";
 by (Blast_tac 1);
 qed "Int_UNIV_right";
 Addsimps[Int_UNIV_right];
 
-goal thy "A Int B = Inter{A,B}";
+Goal "A Int B = Inter{A,B}";
 by (Blast_tac 1);
 qed "Int_eq_Inter";
 
-goal thy "A Int (B Un C)  =  (A Int B) Un (A Int C)";
+Goal "A Int (B Un C)  =  (A Int B) Un (A Int C)";
 by (Blast_tac 1);
 qed "Int_Un_distrib";
 
-goal thy "(B Un C) Int A =  (B Int A) Un (C Int A)";
+Goal "(B Un C) Int A =  (B Int A) Un (C Int A)";
 by (Blast_tac 1);
 qed "Int_Un_distrib2";
 
-goal thy "(A<=B) = (A Int B = A)";
+Goal "(A<=B) = (A Int B = A)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "subset_Int_eq";
 
-goal thy "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
+Goal "(A Int B = UNIV) = (A = UNIV & B = UNIV)";
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Int_UNIV";
 Addsimps[Int_UNIV];
 
 section "Un";
 
-goal thy "A Un A = A";
+Goal "A Un A = A";
 by (Blast_tac 1);
 qed "Un_absorb";
 Addsimps[Un_absorb];
 
-goal thy " A Un (A Un B) = A Un B";
+Goal " A Un (A Un B) = A Un B";
 by (Blast_tac 1);
 qed "Un_left_absorb";
 
-goal thy "A Un B  =  B Un A";
+Goal "A Un B  =  B Un A";
 by (Blast_tac 1);
 qed "Un_commute";
 
-goal thy "A Un (B Un C) = B Un (A Un C)";
+Goal "A Un (B Un C) = B Un (A Un C)";
 by (Blast_tac 1);
 qed "Un_left_commute";
 
-goal thy "(A Un B) Un C  =  A Un (B Un C)";
+Goal "(A Un B) Un C  =  A Un (B Un C)";
 by (Blast_tac 1);
 qed "Un_assoc";
 
 (*Union is an AC-operator*)
 val Un_ac = [Un_assoc, Un_left_absorb, Un_commute, Un_left_commute];
 
-goal thy "!!A B. A<=B ==> A Un B = B";
+Goal "!!A B. A<=B ==> A Un B = B";
 by (Blast_tac 1);
 qed "Un_absorb1";
 
-goal thy "!!A B. B<=A ==> A Un B = A";
+Goal "!!A B. B<=A ==> A Un B = A";
 by (Blast_tac 1);
 qed "Un_absorb2";
 
-goal thy "{} Un B = B";
+Goal "{} Un B = B";
 by (Blast_tac 1);
 qed "Un_empty_left";
 Addsimps[Un_empty_left];
 
-goal thy "A Un {} = A";
+Goal "A Un {} = A";
 by (Blast_tac 1);
 qed "Un_empty_right";
 Addsimps[Un_empty_right];
 
-goal thy "UNIV Un B = UNIV";
+Goal "UNIV Un B = UNIV";
 by (Blast_tac 1);
 qed "Un_UNIV_left";
 Addsimps[Un_UNIV_left];
 
-goal thy "A Un UNIV = UNIV";
+Goal "A Un UNIV = UNIV";
 by (Blast_tac 1);
 qed "Un_UNIV_right";
 Addsimps[Un_UNIV_right];
 
-goal thy "A Un B = Union{A,B}";
+Goal "A Un B = Union{A,B}";
 by (Blast_tac 1);
 qed "Un_eq_Union";
 
-goal thy "(insert a B) Un C = insert a (B Un C)";
+Goal "(insert a B) Un C = insert a (B Un C)";
 by (Blast_tac 1);
 qed "Un_insert_left";
 Addsimps[Un_insert_left];
 
-goal thy "A Un (insert a B) = insert a (A Un B)";
+Goal "A Un (insert a B) = insert a (A Un B)";
 by (Blast_tac 1);
 qed "Un_insert_right";
 Addsimps[Un_insert_right];
 
-goal thy "(insert a B) Int C = (if a:C then insert a (B Int C) \
+Goal "(insert a B) Int C = (if a:C then insert a (B Int C) \
 \                                      else        B Int C)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "Int_insert_left";
 
-goal thy "A Int (insert a B) = (if a:A then insert a (A Int B) \
+Goal "A Int (insert a B) = (if a:A then insert a (A Int B) \
 \                                      else        A Int B)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "Int_insert_right";
 
-goal thy "A Un (B Int C)  =  (A Un B) Int (A Un C)";
+Goal "A Un (B Int C)  =  (A Un B) Int (A Un C)";
 by (Blast_tac 1);
 qed "Un_Int_distrib";
 
-goal thy "(B Int C) Un A =  (B Un A) Int (C Un A)";
+Goal "(B Int C) Un A =  (B Un A) Int (C Un A)";
 by (Blast_tac 1);
 qed "Un_Int_distrib2";
 
-goal thy
+Goal
  "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
 by (Blast_tac 1);
 qed "Un_Int_crazy";
 
-goal thy "(A<=B) = (A Un B = B)";
+Goal "(A<=B) = (A Un B = B)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "subset_Un_eq";
 
-goal thy "(A <= insert b C) = (A <= C | b:A & A-{b} <= C)";
+Goal "(A <= insert b C) = (A <= C | b:A & A-{b} <= C)";
 by (Blast_tac 1);
 qed "subset_insert_iff";
 
-goal thy "(A Un B = {}) = (A = {} & B = {})";
+Goal "(A Un B = {}) = (A = {} & B = {})";
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Un_empty";
 Addsimps[Un_empty];
 
 section "Compl";
 
-goal thy "A Int Compl(A) = {}";
+Goal "A Int Compl(A) = {}";
 by (Blast_tac 1);
 qed "Compl_disjoint";
 Addsimps[Compl_disjoint];
 
-goal thy "A Un Compl(A) = UNIV";
+Goal "A Un Compl(A) = UNIV";
 by (Blast_tac 1);
 qed "Compl_partition";
 
-goal thy "Compl(Compl(A)) = A";
+Goal "Compl(Compl(A)) = A";
 by (Blast_tac 1);
 qed "double_complement";
 Addsimps[double_complement];
 
-goal thy "Compl(A Un B) = Compl(A) Int Compl(B)";
+Goal "Compl(A Un B) = Compl(A) Int Compl(B)";
 by (Blast_tac 1);
 qed "Compl_Un";
 
-goal thy "Compl(A Int B) = Compl(A) Un Compl(B)";
+Goal "Compl(A Int B) = Compl(A) Un Compl(B)";
 by (Blast_tac 1);
 qed "Compl_Int";
 
-goal thy "Compl(UN x:A. B(x)) = (INT x:A. Compl(B(x)))";
+Goal "Compl(UN x:A. B(x)) = (INT x:A. Compl(B(x)))";
 by (Blast_tac 1);
 qed "Compl_UN";
 
-goal thy "Compl(INT x:A. B(x)) = (UN x:A. Compl(B(x)))";
+Goal "Compl(INT x:A. B(x)) = (UN x:A. Compl(B(x)))";
 by (Blast_tac 1);
 qed "Compl_INT";
 
@@ -359,68 +359,68 @@ Addsimps [Compl_Un, Compl_Int, Compl_UN, Compl_INT];
 
 (*Halmos, Naive Set Theory, page 16.*)
 
-goal thy "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
+Goal "((A Int B) Un C = A Int (B Un C)) = (C<=A)";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Un_Int_assoc_eq";
 
 
 section "Union";
 
-goal thy "Union({}) = {}";
+Goal "Union({}) = {}";
 by (Blast_tac 1);
 qed "Union_empty";
 Addsimps[Union_empty];
 
-goal thy "Union(UNIV) = UNIV";
+Goal "Union(UNIV) = UNIV";
 by (Blast_tac 1);
 qed "Union_UNIV";
 Addsimps[Union_UNIV];
 
-goal thy "Union(insert a B) = a Un Union(B)";
+Goal "Union(insert a B) = a Un Union(B)";
 by (Blast_tac 1);
 qed "Union_insert";
 Addsimps[Union_insert];
 
-goal thy "Union(A Un B) = Union(A) Un Union(B)";
+Goal "Union(A Un B) = Union(A) Un Union(B)";
 by (Blast_tac 1);
 qed "Union_Un_distrib";
 Addsimps[Union_Un_distrib];
 
-goal thy "Union(A Int B) <= Union(A) Int Union(B)";
+Goal "Union(A Int B) <= Union(A) Int Union(B)";
 by (Blast_tac 1);
 qed "Union_Int_subset";
 
-goal thy "(Union M = {}) = (! A : M. A = {})"; 
+Goal "(Union M = {}) = (! A : M. A = {})"; 
 by (blast_tac (claset() addEs [equalityCE]) 1);
 qed "Union_empty_conv"; 
 AddIffs [Union_empty_conv];
 
-goal thy "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
+Goal "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Union_disjoint";
 
 section "Inter";
 
-goal thy "Inter({}) = UNIV";
+Goal "Inter({}) = UNIV";
 by (Blast_tac 1);
 qed "Inter_empty";
 Addsimps[Inter_empty];
 
-goal thy "Inter(UNIV) = {}";
+Goal "Inter(UNIV) = {}";
 by (Blast_tac 1);
 qed "Inter_UNIV";
 Addsimps[Inter_UNIV];
 
-goal thy "Inter(insert a B) = a Int Inter(B)";
+Goal "Inter(insert a B) = a Int Inter(B)";
 by (Blast_tac 1);
 qed "Inter_insert";
 Addsimps[Inter_insert];
 
-goal thy "Inter(A) Un Inter(B) <= Inter(A Int B)";
+Goal "Inter(A) Un Inter(B) <= Inter(A Int B)";
 by (Blast_tac 1);
 qed "Inter_Un_subset";
 
-goal thy "Inter(A Un B) = Inter(A) Int Inter(B)";
+Goal "Inter(A Un B) = Inter(A) Int Inter(B)";
 by (Blast_tac 1);
 qed "Inter_Un_distrib";
 
@@ -431,138 +431,138 @@ section "UN and INT";
 val not_empty = prove_goal Set.thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]);
 (*Addsimps[not_empty];*)
 
-goal thy "(UN x:{}. B x) = {}";
+Goal "(UN x:{}. B x) = {}";
 by (Blast_tac 1);
 qed "UN_empty";
 Addsimps[UN_empty];
 
-goal thy "(UN x:A. {}) = {}";
+Goal "(UN x:A. {}) = {}";
 by (Blast_tac 1);
 qed "UN_empty2";
 Addsimps[UN_empty2];
 
-goal thy "(UN x:A. {x}) = A";
+Goal "(UN x:A. {x}) = A";
 by (Blast_tac 1);
 qed "UN_singleton";
 Addsimps [UN_singleton];
 
-goal thy "!!k. k:I ==> A k Un (UN i:I. A i) = (UN i:I. A i)";
+Goal "!!k. k:I ==> A k Un (UN i:I. A i) = (UN i:I. A i)";
 by (Blast_tac 1);
 qed "UN_absorb";
 
-goal thy "(INT x:{}. B x) = UNIV";
+Goal "(INT x:{}. B x) = UNIV";
 by (Blast_tac 1);
 qed "INT_empty";
 Addsimps[INT_empty];
 
-goal thy "!!k. k:I ==> A k Int (INT i:I. A i) = (INT i:I. A i)";
+Goal "!!k. k:I ==> A k Int (INT i:I. A i) = (INT i:I. A i)";
 by (Blast_tac 1);
 qed "INT_absorb";
 
-goal thy "(UN x:insert a A. B x) = B a Un UNION A B";
+Goal "(UN x:insert a A. B x) = B a Un UNION A B";
 by (Blast_tac 1);
 qed "UN_insert";
 Addsimps[UN_insert];
 
-goal thy "(UN i: A Un B. M i) = ((UN i: A. M i) Un (UN i:B. M i))";
+Goal "(UN i: A Un B. M i) = ((UN i: A. M i) Un (UN i:B. M i))";
 by (Blast_tac 1);
 qed "UN_Un";
 
-goal thy "(UN x : (UN y:A. B y). C x) = (UN y:A. UN x: B y. C x)";
+Goal "(UN x : (UN y:A. B y). C x) = (UN y:A. UN x: B y. C x)";
 by (Blast_tac 1);
 qed "UN_UN_flatten";
 
-goal thy "(INT x:insert a A. B x) = B a Int INTER A B";
+Goal "(INT x:insert a A. B x) = B a Int INTER A B";
 by (Blast_tac 1);
 qed "INT_insert";
 Addsimps[INT_insert];
 
-goal thy
+Goal
     "!!A. A~={} ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
 by (Blast_tac 1);
 qed "INT_insert_distrib";
 
-goal thy "Union(B``A) = (UN x:A. B(x))";
+Goal "Union(B``A) = (UN x:A. B(x))";
 by (Blast_tac 1);
 qed "Union_image_eq";
 
-goal thy "Inter(B``A) = (INT x:A. B(x))";
+Goal "Inter(B``A) = (INT x:A. B(x))";
 by (Blast_tac 1);
 qed "Inter_image_eq";
 
-goal thy "!!A. A~={} ==> (UN y:A. c) = c";
+Goal "!!A. A~={} ==> (UN y:A. c) = c";
 by (Blast_tac 1);
 qed "UN_constant";
 Addsimps[UN_constant];
 
-goal thy "!!A. A~={} ==> (INT y:A. c) = c";
+Goal "!!A. A~={} ==> (INT y:A. c) = c";
 by (Blast_tac 1);
 qed "INT_constant";
 Addsimps[INT_constant];
 
-goal thy "(UN x:A. B(x)) = Union({Y. ? x:A. Y=B(x)})";
+Goal "(UN x:A. B(x)) = Union({Y. ? x:A. Y=B(x)})";
 by (Blast_tac 1);
 qed "UN_eq";
 
 (*Look: it has an EXISTENTIAL quantifier*)
-goal thy "(INT x:A. B(x)) = Inter({Y. ? x:A. Y=B(x)})";
+Goal "(INT x:A. B(x)) = Inter({Y. ? x:A. Y=B(x)})";
 by (Blast_tac 1);
 qed "INT_eq";
 
-goalw thy [o_def] "UNION A (g o f) = UNION (f``A) g";
+Goalw [o_def] "UNION A (g o f) = UNION (f``A) g";
 by (Blast_tac 1);
 qed "UNION_o";
 
 
 (*Distributive laws...*)
 
-goal thy "A Int Union(B) = (UN C:B. A Int C)";
+Goal "A Int Union(B) = (UN C:B. A Int C)";
 by (Blast_tac 1);
 qed "Int_Union";
 
-goal thy "Union(B) Int A = (UN C:B. C Int A)";
+Goal "Union(B) Int A = (UN C:B. C Int A)";
 by (Blast_tac 1);
 qed "Int_Union2";
 
 (* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
    Union of a family of unions **)
-goal thy "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
+Goal "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
 by (Blast_tac 1);
 qed "Un_Union_image";
 
 (*Equivalent version*)
-goal thy "(UN i:I. A(i) Un B(i)) = (UN i:I. A(i))  Un  (UN i:I. B(i))";
+Goal "(UN i:I. A(i) Un B(i)) = (UN i:I. A(i))  Un  (UN i:I. B(i))";
 by (Blast_tac 1);
 qed "UN_Un_distrib";
 
-goal thy "A Un Inter(B) = (INT C:B. A Un C)";
+Goal "A Un Inter(B) = (INT C:B. A Un C)";
 by (Blast_tac 1);
 qed "Un_Inter";
 
-goal thy "(INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)";
+Goal "(INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)";
 by (Blast_tac 1);
 qed "Int_Inter_image";
 
 (*Equivalent version*)
-goal thy "(INT i:I. A(i) Int B(i)) = (INT i:I. A(i)) Int (INT i:I. B(i))";
+Goal "(INT i:I. A(i) Int B(i)) = (INT i:I. A(i)) Int (INT i:I. B(i))";
 by (Blast_tac 1);
 qed "INT_Int_distrib";
 
 (*Halmos, Naive Set Theory, page 35.*)
-goal thy "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))";
+Goal "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))";
 by (Blast_tac 1);
 qed "Int_UN_distrib";
 
-goal thy "B Un (INT i:I. A(i)) = (INT i:I. B Un A(i))";
+Goal "B Un (INT i:I. A(i)) = (INT i:I. B Un A(i))";
 by (Blast_tac 1);
 qed "Un_INT_distrib";
 
-goal thy
+Goal
     "(UN i:I. A(i)) Int (UN j:J. B(j)) = (UN i:I. UN j:J. A(i) Int B(j))";
 by (Blast_tac 1);
 qed "Int_UN_distrib2";
 
-goal thy
+Goal
     "(INT i:I. A(i)) Un (INT j:J. B(j)) = (INT i:I. INT j:J. A(i) Un B(j))";
 by (Blast_tac 1);
 qed "Un_INT_distrib2";
@@ -573,155 +573,155 @@ section"Bounded quantifiers";
 (** The following are not added to the default simpset because
     (a) they duplicate the body and (b) there are no similar rules for Int. **)
 
-goal thy "(ALL x:A Un B. P x) = ((ALL x:A. P x) & (ALL x:B. P x))";
+Goal "(ALL x:A Un B. P x) = ((ALL x:A. P x) & (ALL x:B. P x))";
 by (Blast_tac 1);
 qed "ball_Un";
 
-goal thy "(EX x:A Un B. P x) = ((EX x:A. P x) | (EX x:B. P x))";
+Goal "(EX x:A Un B. P x) = ((EX x:A. P x) | (EX x:B. P x))";
 by (Blast_tac 1);
 qed "bex_Un";
 
-goal thy "(ALL z: UNION A B. P z) = (ALL x:A. ALL z:B x. P z)";
+Goal "(ALL z: UNION A B. P z) = (ALL x:A. ALL z:B x. P z)";
 by (Blast_tac 1);
 qed "ball_UN";
 
-goal thy "(EX z: UNION A B. P z) = (EX x:A. EX z:B x. P z)";
+Goal "(EX z: UNION A B. P z) = (EX x:A. EX z:B x. P z)";
 by (Blast_tac 1);
 qed "bex_UN";
 
 
 section "-";
 
-goal thy "A-B = A Int Compl B";
+Goal "A-B = A Int Compl B";
 by (Blast_tac 1);
 qed "Diff_eq";
 
-goal thy "A-A = {}";
+Goal "A-A = {}";
 by (Blast_tac 1);
 qed "Diff_cancel";
 Addsimps[Diff_cancel];
 
-goal thy "!!A B. A Int B = {} ==> A-B = A";
+Goal "!!A B. A Int B = {} ==> A-B = A";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Diff_triv";
 
-goal thy "{}-A = {}";
+Goal "{}-A = {}";
 by (Blast_tac 1);
 qed "empty_Diff";
 Addsimps[empty_Diff];
 
-goal thy "A-{} = A";
+Goal "A-{} = A";
 by (Blast_tac 1);
 qed "Diff_empty";
 Addsimps[Diff_empty];
 
-goal thy "A-UNIV = {}";
+Goal "A-UNIV = {}";
 by (Blast_tac 1);
 qed "Diff_UNIV";
 Addsimps[Diff_UNIV];
 
-goal thy "!!x. x~:A ==> A - insert x B = A-B";
+Goal "!!x. x~:A ==> A - insert x B = A-B";
 by (Blast_tac 1);
 qed "Diff_insert0";
 Addsimps [Diff_insert0];
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a 0*)
-goal thy "A - insert a B = A - B - {a}";
+Goal "A - insert a B = A - B - {a}";
 by (Blast_tac 1);
 qed "Diff_insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a 0*)
-goal thy "A - insert a B = A - {a} - B";
+Goal "A - insert a B = A - {a} - B";
 by (Blast_tac 1);
 qed "Diff_insert2";
 
-goal thy "insert x A - B = (if x:B then A-B else insert x (A-B))";
+Goal "insert x A - B = (if x:B then A-B else insert x (A-B))";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "insert_Diff_if";
 
-goal thy "!!x. x:B ==> insert x A - B = A-B";
+Goal "!!x. x:B ==> insert x A - B = A-B";
 by (Blast_tac 1);
 qed "insert_Diff1";
 Addsimps [insert_Diff1];
 
-goal thy "!!a. a:A ==> insert a (A-{a}) = A";
+Goal "!!a. a:A ==> insert a (A-{a}) = A";
 by (Blast_tac 1);
 qed "insert_Diff";
 
-goal thy "A Int (B-A) = {}";
+Goal "A Int (B-A) = {}";
 by (Blast_tac 1);
 qed "Diff_disjoint";
 Addsimps[Diff_disjoint];
 
-goal thy "!!A. A<=B ==> A Un (B-A) = B";
+Goal "!!A. A<=B ==> A Un (B-A) = B";
 by (Blast_tac 1);
 qed "Diff_partition";
 
-goal thy "!!A. [| A<=B; B<= C |] ==> (B - (C - A)) = (A :: 'a set)";
+Goal "!!A. [| A<=B; B<= C |] ==> (B - (C - A)) = (A :: 'a set)";
 by (Blast_tac 1);
 qed "double_diff";
 
-goal thy "A Un (B-A) = A Un B";
+Goal "A Un (B-A) = A Un B";
 by (Blast_tac 1);
 qed "Un_Diff_cancel";
 
-goal thy "(B-A) Un A = B Un A";
+Goal "(B-A) Un A = B Un A";
 by (Blast_tac 1);
 qed "Un_Diff_cancel2";
 
 Addsimps [Un_Diff_cancel, Un_Diff_cancel2];
 
-goal thy "A - (B Un C) = (A-B) Int (A-C)";
+Goal "A - (B Un C) = (A-B) Int (A-C)";
 by (Blast_tac 1);
 qed "Diff_Un";
 
-goal thy "A - (B Int C) = (A-B) Un (A-C)";
+Goal "A - (B Int C) = (A-B) Un (A-C)";
 by (Blast_tac 1);
 qed "Diff_Int";
 
-goal thy "(A Un B) - C = (A - C) Un (B - C)";
+Goal "(A Un B) - C = (A - C) Un (B - C)";
 by (Blast_tac 1);
 qed "Un_Diff";
 
-goal thy "(A Int B) - C = A Int (B - C)";
+Goal "(A Int B) - C = A Int (B - C)";
 by (Blast_tac 1);
 qed "Int_Diff";
 
-goal thy "C Int (A-B) = (C Int A) - (C Int B)";
+Goal "C Int (A-B) = (C Int A) - (C Int B)";
 by (Blast_tac 1);
 qed "Diff_Int_distrib";
 
-goal thy "(A-B) Int C = (A Int C) - (B Int C)";
+Goal "(A-B) Int C = (A Int C) - (B Int C)";
 by (Blast_tac 1);
 qed "Diff_Int_distrib2";
 
 
 section "Miscellany";
 
-goal thy "(A = B) = ((A <= (B::'a set)) & (B<=A))";
+Goal "(A = B) = ((A <= (B::'a set)) & (B<=A))";
 by (Blast_tac 1);
 qed "set_eq_subset";
 
-goal thy "A <= B =  (! t. t:A --> t:B)";
+Goal "A <= B =  (! t. t:A --> t:B)";
 by (Blast_tac 1);
 qed "subset_iff";
 
-goalw thy [psubset_def] "((A::'a set) <= B) = ((A < B) | (A=B))";
+Goalw [psubset_def] "((A::'a set) <= B) = ((A < B) | (A=B))";
 by (Blast_tac 1);
 qed "subset_iff_psubset_eq";
 
-goal thy "(!x. x ~: A) = (A={})";
+Goal "(!x. x ~: A) = (A={})";
 by (Blast_tac 1);
 qed "all_not_in_conv";
 AddIffs [all_not_in_conv];
 
-goalw thy [Pow_def] "Pow {} = {{}}";
+Goalw [Pow_def] "Pow {} = {{}}";
 by Auto_tac;
 qed "Pow_empty";
 Addsimps [Pow_empty];
 
-goal thy "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
+Goal "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
 by Safe_tac;
 by (etac swap 1);
 by (res_inst_tac [("x", "x-{a}")] image_eqI 1);

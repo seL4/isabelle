@@ -24,7 +24,7 @@ open Comb;
 val [_, spec_mp] = [spec] RL [mp];
 
 (*Strip lemma.  The induction hyp is all but the last diamond of the strip.*)
-goalw Comb.thy [diamond_def]
+Goalw [diamond_def]
     "!!r. [| diamond(r);  (x,y):r^* |] ==> \ 
 \         ALL y'. (x,y'):r --> (EX z. (y',z): r^* & (y,z): r)";
 by (etac rtrancl_induct 1);
@@ -55,41 +55,41 @@ AddSIs [contract.K, contract.S];
 AddIs  [contract.Ap1, contract.Ap2];
 AddSEs [K_contractE, S_contractE, Ap_contractE];
 
-goalw Comb.thy [I_def] "!!z. I -1-> z ==> P";
+Goalw [I_def] "!!z. I -1-> z ==> P";
 by (Blast_tac 1);
 qed "I_contract_E";
 AddSEs [I_contract_E];
 
-goal Comb.thy "!!x z. K#x -1-> z ==> (EX x'. z = K#x' & x -1-> x')";
+Goal "!!x z. K#x -1-> z ==> (EX x'. z = K#x' & x -1-> x')";
 by (Blast_tac 1);
 qed "K1_contractD";
 AddSEs [K1_contractD];
 
-goal Comb.thy "!!x z. x ---> y ==> x#z ---> y#z";
+Goal "!!x z. x ---> y ==> x#z ---> y#z";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce1";
 
-goal Comb.thy "!!x z. x ---> y ==> z#x ---> z#y";
+Goal "!!x z. x ---> y ==> z#x ---> z#y";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [r_into_rtrancl, rtrancl_trans])));
 qed "Ap_reduce2";
 
 (** Counterexample to the diamond property for -1-> **)
 
-goal Comb.thy "K#I#(I#I) -1-> I";
+Goal "K#I#(I#I) -1-> I";
 by (rtac contract.K 1);
 qed "KIII_contract1";
 
-goalw Comb.thy [I_def] "K#I#(I#I) -1-> K#I#((K#I)#(K#I))";
+Goalw [I_def] "K#I#(I#I) -1-> K#I#((K#I)#(K#I))";
 by (Blast_tac 1);
 qed "KIII_contract2";
 
-goal Comb.thy "K#I#((K#I)#(K#I)) -1-> I";
+Goal "K#I#((K#I)#(K#I)) -1-> I";
 by (Blast_tac 1);
 qed "KIII_contract3";
 
-goalw Comb.thy [diamond_def] "~ diamond(contract)";
+Goalw [diamond_def] "~ diamond(contract)";
 by (blast_tac (claset() addIs [KIII_contract1,KIII_contract2,KIII_contract3]) 1);
 qed "not_diamond_contract";
 
@@ -108,17 +108,17 @@ AddSEs [K_parcontractE, S_parcontractE,Ap_parcontractE];
 
 (*** Basic properties of parallel contraction ***)
 
-goal Comb.thy "!!x z. K#x =1=> z ==> (EX x'. z = K#x' & x =1=> x')";
+Goal "!!x z. K#x =1=> z ==> (EX x'. z = K#x' & x =1=> x')";
 by (Blast_tac 1);
 qed "K1_parcontractD";
 AddSDs [K1_parcontractD];
 
-goal Comb.thy "!!x z. S#x =1=> z ==> (EX x'. z = S#x' & x =1=> x')";
+Goal "!!x z. S#x =1=> z ==> (EX x'. z = S#x' & x =1=> x')";
 by (Blast_tac 1);
 qed "S1_parcontractD";
 AddSDs [S1_parcontractD];
 
-goal Comb.thy
+Goal
  "!!x y z. S#x#y =1=> z ==> (EX x' y'. z = S#x'#y' & x =1=> x' & y =1=> y')";
 by (Blast_tac 1);
 qed "S2_parcontractD";
@@ -128,7 +128,7 @@ AddSDs [S2_parcontractD];
 
 
 (*Church-Rosser property for parallel contraction*)
-goalw Comb.thy [diamond_def] "diamond parcontract";
+Goalw [diamond_def] "diamond parcontract";
 by (rtac (impI RS allI RS allI) 1);
 by (etac parcontract.induct 1 THEN prune_params_tac);
 by Safe_tac;
@@ -138,7 +138,7 @@ qed "diamond_parcontract";
 
 (*** Equivalence of x--->y and x===>y ***)
 
-goal Comb.thy "contract <= parcontract";
+Goal "contract <= parcontract";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac contract.induct 1);
@@ -151,25 +151,25 @@ qed "contract_subset_parcontract";
 AddIs [Ap_reduce1, Ap_reduce2, r_into_rtrancl, rtrancl_trans];
 
 (*Example only: not used*)
-goalw Comb.thy [I_def] "I#x ---> x";
+Goalw [I_def] "I#x ---> x";
 by (Blast_tac 1);
 qed "reduce_I";
 
-goal Comb.thy "parcontract <= contract^*";
+Goal "parcontract <= contract^*";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac parcontract.induct 1 THEN prune_params_tac);
 by (ALLGOALS Blast_tac);
 qed "parcontract_subset_reduce";
 
-goal Comb.thy "contract^* = parcontract^*";
+Goal "contract^* = parcontract^*";
 by (REPEAT 
     (resolve_tac [equalityI, 
                   contract_subset_parcontract RS rtrancl_mono, 
                   parcontract_subset_reduce RS rtrancl_subset_rtrancl] 1));
 qed "reduce_eq_parreduce";
 
-goal Comb.thy "diamond(contract^*)";
+Goal "diamond(contract^*)";
 by (simp_tac (simpset() addsimps [reduce_eq_parreduce, diamond_rtrancl, 
                                  diamond_parcontract]) 1);
 qed "diamond_reduce";

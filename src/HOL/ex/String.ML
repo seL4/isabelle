@@ -1,20 +1,20 @@
-goal String.thy "hd(''ABCD'') = CHR ''A''";
+Goal "hd(''ABCD'') = CHR ''A''";
 by (Simp_tac 1);
 result();
 
-goal String.thy "hd(''ABCD'') ~= CHR ''B''";
+Goal "hd(''ABCD'') ~= CHR ''B''";
 by (Simp_tac 1);
 result();
 
-goal String.thy "''ABCD'' ~= ''ABCX''";
+Goal "''ABCD'' ~= ''ABCX''";
 by (Simp_tac 1);
 result();
 
-goal String.thy "''ABCD'' = ''ABCD''";
+Goal "''ABCD'' = ''ABCD''";
 by (Simp_tac 1);
 result();
 
-goal String.thy
+Goal
   "''ABCDEFGHIJKLMNOPQRSTUVWXYZ'' ~= ''ABCDEFGHIJKLMNOPQRSTUVWXY''";
 by (Simp_tac 1);
 result();

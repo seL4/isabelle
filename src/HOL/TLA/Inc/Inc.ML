@@ -54,7 +54,7 @@ qed_goal "PsiInv" Inc.thy "Psi .-> []PsiInv"
 (* Automatic proof works too, but it make take a while on a slow machine.
    More substantial examples require manual guidance anyway.
 
-goal Inc.thy "Psi .-> []PsiInv";
+Goal "Psi .-> []PsiInv";
 by (auto_inv_tac (simpset() addsimps PsiInv_defs @ Psi_defs @ pcount.simps) 1);
 
 *)

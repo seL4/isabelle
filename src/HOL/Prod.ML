@@ -9,7 +9,7 @@ For prod.thy.  Ordered Pairs, the Cartesian product type, the unit type
 open Prod;
 
 (*This counts as a non-emptiness result for admitting 'a * 'b as a type*)
-goalw Prod.thy [Prod_def] "Pair_Rep a b : Prod";
+Goalw [Prod_def] "Pair_Rep a b : Prod";
 by (EVERY1 [rtac CollectI, rtac exI, rtac exI, rtac refl]);
 qed "ProdI";
 
@@ -19,7 +19,7 @@ by (EVERY1 [rtac (major RS fun_cong RS fun_cong RS subst),
             rtac conjI, rtac refl, rtac refl]);
 qed "Pair_Rep_inject";
 
-goal Prod.thy "inj_on Abs_Prod Prod";
+Goal "inj_on Abs_Prod Prod";
 by (rtac inj_on_inverseI 1);
 by (etac Abs_Prod_inverse 1);
 qed "inj_on_Abs_Prod";
@@ -30,20 +30,20 @@ by (rtac (inj_on_Abs_Prod RS inj_onD RS Pair_Rep_inject RS conjE) 1);
 by (REPEAT (ares_tac (prems@[ProdI]) 1));
 qed "Pair_inject";
 
-goal Prod.thy "((a,b) = (a',b')) = (a=a' & b=b')";
+Goal "((a,b) = (a',b')) = (a=a' & b=b')";
 by (blast_tac (claset() addSEs [Pair_inject]) 1);
 qed "Pair_eq";
 AddIffs [Pair_eq];
 
-goalw Prod.thy [fst_def] "fst((a,b)) = a";
+Goalw [fst_def] "fst((a,b)) = a";
 by (Blast_tac 1);
 qed "fst_conv";
-goalw Prod.thy [snd_def] "snd((a,b)) = b";
+Goalw [snd_def] "snd((a,b)) = b";
 by (Blast_tac 1);
 qed "snd_conv";
 Addsimps [fst_conv, snd_conv];
 
-goalw Prod.thy [Pair_def] "? x y. p = (x,y)";
+Goalw [Pair_def] "? x y. p = (x,y)";
 by (rtac (rewrite_rule [Prod_def] Rep_Prod RS CollectE) 1);
 by (EVERY1[etac exE, etac exE, rtac exI, rtac exI,
            rtac (Rep_Prod_inverse RS sym RS trans),  etac arg_cong]);
@@ -58,7 +58,7 @@ fun pair_tac s = EVERY' [res_inst_tac [("p",s)] PairE, hyp_subst_tac,
 			 K prune_params_tac];
 
 (* Do not add as rewrite rule: invalidates some proofs in IMP *)
-goal Prod.thy "p = (fst(p),snd(p))";
+Goal "p = (fst(p),snd(p))";
 by (pair_tac "p" 1);
 by (Asm_simp_tac 1);
 qed "surjective_pairing";
@@ -107,29 +107,29 @@ end;
 claset_ref() := claset() addSWrapper ("split_all_tac", 
 				      fn tac2 => split_all_tac ORELSE' tac2);
 
-goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
+Goal "(!x. P x) = (!a b. P(a,b))";
 by (Fast_tac 1);
 qed "split_paired_All";
 Addsimps [split_paired_All];
 (* AddIffs is not a good idea because it makes Blast_tac loop *)
 
-goal Prod.thy "(? x. P x) = (? a b. P(a,b))";
+Goal "(? x. P x) = (? a b. P(a,b))";
 by (Fast_tac 1);
 qed "split_paired_Ex";
 Addsimps [split_paired_Ex];
 
-goalw Prod.thy [split_def] "split c (a,b) = c a b";
+Goalw [split_def] "split c (a,b) = c a b";
 by (Simp_tac 1);
 qed "split";
 Addsimps [split];
 
-goal Prod.thy "split Pair p = p";
+Goal "split Pair p = p";
 by (pair_tac "p" 1);
 by (Simp_tac 1);
 qed "split_Pair";
 (*unused: val surjective_pairing2 = split_Pair RS sym;*)
 
-goal Prod.thy "!!s t. (s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
+Goal "!!s t. (s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
 by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "Pair_fst_snd_eq";
@@ -162,7 +162,7 @@ qed_goal "split_beta" Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
 	(K [stac surjective_pairing 1, stac split 1, rtac refl 1]);
 
 (*For use with split_tac and the simplifier*)
-goal Prod.thy "R (split c p) = (! x y. p = (x,y) --> R (c x y))";
+Goal "R (split c p) = (! x y. p = (x,y) --> R (c x y))";
 by (stac surjective_pairing 1);
 by (stac split 1);
 by (Blast_tac 1);
@@ -174,7 +174,7 @@ simpset_ref() := simpset() addsplits [split_split];
    the current goal contains one of those constants
 *)
 
-goal Prod.thy "R (split c p) = (~(? x y. p = (x,y) & (~R (c x y))))";
+Goal "R (split c p) = (~(? x y. p = (x,y) & (~R (c x y))))";
 by (stac split_split 1);
 by (Simp_tac 1);
 qed "expand_split_asm";
@@ -184,12 +184,12 @@ qed "expand_split_asm";
 (*These rules are for use with blast_tac.
   Could instead call simp_tac/asm_full_simp_tac using split as rewrite.*)
 
-goal Prod.thy "!!p. [| !!a b. p=(a,b) ==> c a b |] ==> split c p";
+Goal "!!p. [| !!a b. p=(a,b) ==> c a b |] ==> split c p";
 by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "splitI2";
 
-goal Prod.thy "!!a b c. c a b ==> split c (a,b)";
+Goal "!!a b c. c a b ==> split c (a,b)";
 by (Asm_simp_tac 1);
 qed "splitI";
 
@@ -204,15 +204,15 @@ val splitE2 = prove_goal Prod.thy
 	rtac (split_beta RS subst) 1,
 	rtac (hd prems) 1]);
 
-goal Prod.thy "!!R a b. split R (a,b) ==> R a b";
+Goal "!!R a b. split R (a,b) ==> R a b";
 by (etac (split RS iffD1) 1);
 qed "splitD";
 
-goal Prod.thy "!!a b c. z: c a b ==> z: split c (a,b)";
+Goal "!!a b c. z: c a b ==> z: split c (a,b)";
 by (Asm_simp_tac 1);
 qed "mem_splitI";
 
-goal Prod.thy "!!p. [| !!a b. p=(a,b) ==> z: c a b |] ==> z: split c p";
+Goal "!!p. [| !!a b. p=(a,b) ==> z: c a b |] ==> z: split c p";
 by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "mem_splitI2";
@@ -226,13 +226,13 @@ AddSIs [splitI, splitI2, mem_splitI, mem_splitI2];
 AddSEs [splitE, mem_splitE];
 
 (* allows simplifications of nested splits in case of independent predicates *)
-goal Prod.thy "(%(a,b). P & Q a b) = (%ab. P & split Q ab)";
+Goal "(%(a,b). P & Q a b) = (%ab. P & split Q ab)";
 by (rtac ext 1);
 by (Blast_tac 1);
 qed "split_part";
 Addsimps [split_part];
 
-goal Prod.thy "(@(x',y'). x = x' & y = y') = (x,y)";
+Goal "(@(x',y'). x = x' & y = y') = (x,y)";
 by (Blast_tac 1);
 qed "Eps_split_eq";
 Addsimps [Eps_split_eq];
@@ -241,7 +241,7 @@ the following  would be slightly more general,
 but cannot be used as rewrite rule:
 ### Cannot add premise as rewrite rule because it contains (type) unknowns:
 ### ?y = .x
-goal Prod.thy "!!P. [| P y; !!x. P x ==> x = y |] ==> (@(x',y). x = x' & P y) = (x,y)";
+Goal "!!P. [| P y; !!x. P x ==> x = y |] ==> (@(x',y). x = x' & P y) = (x,y)";
 by (rtac select_equality 1);
 by ( Simp_tac 1);
 by (split_all_tac 1);
@@ -251,19 +251,19 @@ qed "Eps_split_eq";
 
 (*** prod_fun -- action of the product functor upon functions ***)
 
-goalw Prod.thy [prod_fun_def] "prod_fun f g (a,b) = (f(a),g(b))";
+Goalw [prod_fun_def] "prod_fun f g (a,b) = (f(a),g(b))";
 by (rtac split 1);
 qed "prod_fun";
 Addsimps [prod_fun];
 
-goal Prod.thy 
+Goal 
     "prod_fun (f1 o f2) (g1 o g2) = ((prod_fun f1 g1) o (prod_fun f2 g2))";
 by (rtac ext 1);
 by (pair_tac "x" 1);
 by (Asm_simp_tac 1);
 qed "prod_fun_compose";
 
-goal Prod.thy "prod_fun (%x. x) (%y. y) = (%z. z)";
+Goal "prod_fun (%x. x) (%y. y) = (%z. z)";
 by (rtac ext 1);
 by (pair_tac "z" 1);
 by (Asm_simp_tac 1);
@@ -340,7 +340,7 @@ qed_goal "Sigma_empty2" Prod.thy "A Times {} = {}"
 
 Addsimps [Sigma_empty1,Sigma_empty2]; 
 
-goal Prod.thy "((a,b): Sigma A B) = (a:A & b:B(a))";
+Goal "((a,b): Sigma A B) = (a:A & b:B(a))";
 by (Blast_tac 1);
 qed "mem_Sigma_iff";
 AddIffs [mem_Sigma_iff]; 
@@ -350,7 +350,7 @@ val Collect_split = prove_goal Prod.thy
 Addsimps [Collect_split];
 
 (*Suggested by Pierre Chartier*)
-goal Prod.thy
+Goal
      "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
 by (Blast_tac 1);
 qed "UNION_Times_distrib";
@@ -393,7 +393,7 @@ qed "snd_imageE";
 
 (** Exhaustion rule for unit -- a degenerate form of induction **)
 
-goalw Prod.thy [Unity_def]
+Goalw [Unity_def]
     "u = ()";
 by (stac (rewrite_rule [unit_def] Rep_unit RS singletonD RS sym) 1);
 by (rtac (Rep_unit_inverse RS sym) 1);

@@ -7,7 +7,7 @@ Lemmas about functions.
 *)
 
 
-goal thy "(f = g) = (!x. f(x)=g(x))";
+Goal "(f = g) = (!x. f(x)=g(x))";
 by (rtac iffI 1);
 by (Asm_simp_tac 1);
 by (rtac ext 1 THEN Asm_simp_tac 1);
@@ -97,7 +97,7 @@ by (rtac (major RS bspec RS bspec RS mp) 1);
 by (REPEAT (resolve_tac prems 1));
 qed "inj_onD";
 
-goal thy "!!x y.[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
+Goal "!!x y.[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
 by (blast_tac (claset() addSDs [inj_onD]) 1);
 qed "inj_on_iff";
 
@@ -108,7 +108,7 @@ by (etac (major RS inj_onD) 2);
 by (REPEAT (resolve_tac prems 1));
 qed "inj_on_contraD";
 
-goalw thy [inj_on_def]
+Goalw [inj_on_def]
     "!!A B. [| A<=B; inj_on f B |] ==> inj_on f A";
 by (Blast_tac 1);
 qed "subset_inj_on";
@@ -116,7 +116,7 @@ qed "subset_inj_on";
 
 (*** Lemmas about inj ***)
 
-goalw thy [o_def]
+Goalw [o_def]
     "!!f g. [| inj(f);  inj_on g (range f) |] ==> inj(g o f)";
 by (fast_tac (claset() addIs [injI] addEs [injD, inj_onD]) 1);
 qed "comp_inj";
@@ -135,26 +135,26 @@ by (rtac (arg_cong RS box_equals) 1);
 by (REPEAT (resolve_tac (prems @ [f_inv_f]) 1));
 qed "inv_injective";
 
-goal thy "!!f. [| inj(f);  A<=range(f) |] ==> inj_on (inv f) A";
+Goal "!!f. [| inj(f);  A<=range(f) |] ==> inj_on (inv f) A";
 by (fast_tac (claset() addIs [inj_onI] 
                       addEs [inv_injective,injD]) 1);
 qed "inj_on_inv";
 
-goalw thy [inj_on_def]
+Goalw [inj_on_def]
    "!!f. [| inj_on f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);
 qed "inj_on_image_Int";
 
-goalw thy [inj_on_def]
+Goalw [inj_on_def]
    "!!f. [| inj_on f C;  A<=C;  B<=C |] ==> f``(A-B) = f``A - f``B";
 by (Blast_tac 1);
 qed "inj_on_image_set_diff";
 
-goalw thy [inj_def] "!!f. inj f ==> f``(A Int B) = f``A Int f``B";
+Goalw [inj_def] "!!f. inj f ==> f``(A Int B) = f``A Int f``B";
 by (Blast_tac 1);
 qed "image_Int";
 
-goalw thy [inj_def] "!!f. inj f ==> f``(A-B) = f``A - f``B";
+Goalw [inj_def] "!!f. inj f ==> f``(A-B) = f``A - f``B";
 by (Blast_tac 1);
 qed "image_set_diff";
 

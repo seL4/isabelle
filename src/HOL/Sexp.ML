@@ -10,15 +10,15 @@ open Sexp;
 
 (** sexp_case **)
 
-goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
+Goalw [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
 by (Blast_tac 1);
 qed "sexp_case_Leaf";
 
-goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
+Goalw [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
 by (Blast_tac 1);
 qed "sexp_case_Numb";
 
-goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
+Goalw [sexp_case_def] "sexp_case c d e (M$N) = e M N";
 by (Blast_tac 1);
 qed "sexp_case_Scons";
 
@@ -37,7 +37,7 @@ qed "sexp_In1I";
 
 AddIs (sexp.intrs@[SigmaI, uprodI]);
 
-goal Sexp.thy "range(Leaf) <= sexp";
+Goal "range(Leaf) <= sexp";
 by (Blast_tac 1);
 qed "range_Leaf_subset_sexp";
 
@@ -49,7 +49,7 @@ qed "Scons_D";
 
 (** Introduction rules for 'pred_sexp' **)
 
-goalw Sexp.thy [pred_sexp_def] "pred_sexp <= sexp Times sexp";
+Goalw [pred_sexp_def] "pred_sexp <= sexp Times sexp";
 by (Blast_tac 1);
 qed "pred_sexp_subset_Sigma";
 
@@ -59,12 +59,12 @@ val trancl_pred_sexpD1 =
 and trancl_pred_sexpD2 = 
     pred_sexp_subset_Sigma RS trancl_subset_Sigma RS subsetD RS SigmaD2;
 
-goalw Sexp.thy [pred_sexp_def]
+Goalw [pred_sexp_def]
     "!!M. [| M: sexp;  N: sexp |] ==> (M, M$N) : pred_sexp";
 by (Blast_tac 1);
 qed "pred_sexpI1";
 
-goalw Sexp.thy [pred_sexp_def]
+Goalw [pred_sexp_def]
     "!!M. [| M: sexp;  N: sexp |] ==> (N, M$N) : pred_sexp";
 by (Blast_tac 1);
 qed "pred_sexpI2";
@@ -89,7 +89,7 @@ by (cut_facts_tac [major] 1);
 by (REPEAT (eresolve_tac ([asm_rl,emptyE,insertE,UN_E]@prems) 1));
 qed "pred_sexpE";
 
-goal Sexp.thy "wf(pred_sexp)";
+Goal "wf(pred_sexp)";
 by (rtac (pred_sexp_subset_Sigma RS wfI) 1);
 by (etac sexp.induct 1);
 by (ALLGOALS (blast_tac (claset() addSEs [allE, pred_sexpE])));
@@ -98,7 +98,7 @@ qed "wf_pred_sexp";
 
 (*** sexp_rec -- by wf recursion on pred_sexp ***)
 
-goal Sexp.thy
+Goal
    "(%M. sexp_rec M c d e) = wfrec pred_sexp \
                        \ (%g. sexp_case c d (%N1 N2. e N1 N2 (g N1) (g N2)))";
 by (simp_tac (HOL_ss addsimps [sexp_rec_def]) 1);
@@ -114,17 +114,17 @@ bind_thm("sexp_rec_unfold",
 
 (** conversion rules **)
 
-goal Sexp.thy "sexp_rec (Leaf a) c d h = c(a)";
+Goal "sexp_rec (Leaf a) c d h = c(a)";
 by (stac sexp_rec_unfold 1);
 by (rtac sexp_case_Leaf 1);
 qed "sexp_rec_Leaf";
 
-goal Sexp.thy "sexp_rec (Numb k) c d h = d(k)";
+Goal "sexp_rec (Numb k) c d h = d(k)";
 by (stac sexp_rec_unfold 1);
 by (rtac sexp_case_Numb 1);
 qed "sexp_rec_Numb";
 
-goal Sexp.thy "!!M. [| M: sexp;  N: sexp |] ==> \
+Goal "!!M. [| M: sexp;  N: sexp |] ==> \
 \    sexp_rec (M$N) c d h = h M N (sexp_rec M c d h) (sexp_rec N c d h)";
 by (rtac (sexp_rec_unfold RS trans) 1);
 by (asm_simp_tac (simpset() addsimps [pred_sexpI1, pred_sexpI2]) 1);

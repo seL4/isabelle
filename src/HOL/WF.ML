@@ -78,14 +78,14 @@ by (rtac (wfr RS spec RS mp RS spec) 1);
 by (Blast_tac 1);
 val lemma1 = result();
 
-goalw WF.thy [wf_def]
+Goalw [wf_def]
     "!!r. (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
 by (Clarify_tac 1);
 by (dres_inst_tac [("x", "{x. ~ P x}")] spec 1);
 by (Blast_tac 1);
 val lemma2 = result();
 
-goal WF.thy "wf r = (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q))";
+Goal "wf r = (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q))";
 by (blast_tac (claset() addSIs [lemma1, lemma2]) 1);
 qed "wf_eq_minimal";
 
@@ -93,7 +93,7 @@ qed "wf_eq_minimal";
  * Wellfoundedness of subsets
  *---------------------------------------------------------------------------*)
 
-goal thy "!!r. [| wf(r);  p<=r |] ==> wf(p)";
+Goal "!!r. [| wf(r);  p<=r |] ==> wf(p)";
 by (full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
 by (Fast_tac 1);
 qed "wf_subset";
@@ -102,7 +102,7 @@ qed "wf_subset";
  * Wellfoundedness of the empty relation.
  *---------------------------------------------------------------------------*)
 
-goal thy "wf({})";
+Goal "wf({})";
 by (simp_tac (simpset() addsimps [wf_def]) 1);
 qed "wf_empty";
 AddSIs [wf_empty];
@@ -111,7 +111,7 @@ AddSIs [wf_empty];
  * Wellfoundedness of `insert'
  *---------------------------------------------------------------------------*)
 
-goal WF.thy "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)";
+Goal "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)";
 by (rtac iffI 1);
  by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl] 
 	addIs [rtrancl_into_trancl1,wf_subset,impOfSubs rtrancl_mono]) 1);
@@ -139,19 +139,19 @@ AddIffs [wf_insert];
 val acyclicI = prove_goalw WF.thy [acyclic_def] 
 "!!r. !x. (x, x) ~: r^+ ==> acyclic r" (K [atac 1]);
 
-goalw WF.thy [acyclic_def]
+Goalw [acyclic_def]
  "!!r. wf r ==> acyclic r";
 by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl]) 1);
 qed "wf_acyclic";
 
-goalw WF.thy [acyclic_def]
+Goalw [acyclic_def]
   "acyclic(insert (y,x) r) = (acyclic r & (x,y) ~: r^*)";
 by (simp_tac (simpset() addsimps [trancl_insert]) 1);
 by (blast_tac (claset() addEs [make_elim rtrancl_trans]) 1);
 qed "acyclic_insert";
 AddIffs [acyclic_insert];
 
-goalw WF.thy [acyclic_def] "acyclic(r^-1) = acyclic r";
+Goalw [acyclic_def] "acyclic(r^-1) = acyclic r";
 by (simp_tac (simpset() addsimps [trancl_converse]) 1);
 qed "acyclic_converse";
 
@@ -159,18 +159,18 @@ qed "acyclic_converse";
 
 (*This rewrite rule works upon formulae; thus it requires explicit use of
   H_cong to expose the equality*)
-goalw WF.thy [cut_def]
+Goalw [cut_def]
     "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
 by (simp_tac (HOL_ss addsimps [expand_fun_eq]) 1);
 qed "cuts_eq";
 
-goalw WF.thy [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
+Goalw [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
 by (asm_simp_tac HOL_ss 1);
 qed "cut_apply";
 
 (*** is_recfun ***)
 
-goalw WF.thy [is_recfun_def,cut_def]
+Goalw [is_recfun_def,cut_def]
     "!!f. [| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = arbitrary";
 by (etac ssubst 1);
 by (asm_simp_tac HOL_ss 1);
@@ -260,7 +260,7 @@ qed "unfold_the_recfun";
 val th = rewrite_rule[is_recfun_def]
                      (trans_trancl RSN (2,(wf_trancl RS unfold_the_recfun)));
 
-goalw WF.thy [wfrec_def]
+Goalw [wfrec_def]
     "!!r. wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
 by (rtac H_cong 1);
 by (rtac refl 2);
@@ -296,7 +296,7 @@ by (atac 1);
 qed "wfrec";
 
 (*--------------Old proof-----------------------------------------------------
-goalw WF.thy [wfrec_def]
+Goalw [wfrec_def]
     "!!r. wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
 by (etac (wf_trancl RS wftrec RS ssubst) 1);
 by (rtac trans_trancl 1);
@@ -317,7 +317,7 @@ qed "def_wfrec";
 
 (**** TFL variants ****)
 
-goal WF.thy
+Goal
     "!R. wf R --> (!P. (!x. (!y. (y,x):R --> P y) --> P x) --> (!x. P x))";
 by (Clarify_tac 1);
 by (res_inst_tac [("r","R"),("P","P"), ("a","x")] wf_induct 1);
@@ -325,13 +325,13 @@ by (assume_tac 1);
 by (Blast_tac 1);
 qed"tfl_wf_induct";
 
-goal WF.thy "!f R. (x,a):R --> (cut f R a)(x) = f(x)";
+Goal "!f R. (x,a):R --> (cut f R a)(x) = f(x)";
 by (Clarify_tac 1);
 by (rtac cut_apply 1);
 by (assume_tac 1);
 qed"tfl_cut_apply";
 
-goal WF.thy "!M R f. (f=wfrec R M) --> wf R --> (!x. f x = M (cut f R x) x)";
+Goal "!M R f. (f=wfrec R M) --> wf R --> (!x. f x = M (cut f R x) x)";
 by (Clarify_tac 1);
 by (etac wfrec 1);
 qed "tfl_wfrec";

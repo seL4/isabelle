@@ -8,7 +8,7 @@ Equivalence of W and I.
 
 open I;
 
-goal thy
+Goal
   "! a m s s' t n.  \
 \    (new_tv m a & new_tv m s) --> I e a m s = Ok(s',t,n) -->   \
 \    ( ? r. W e ($ s a) m = Ok(r, $ s' t, n) & s' = ($ r o s) )";
@@ -123,7 +123,7 @@ qed_spec_mp "I_correct_wrt_W";
 (***
 We actually want the corollary
 
-goal I.thy
+Goal
   "I e [] m id_subst = Ok(s,t,n) --> W e [] m = Ok(s, $s t, n)";
 by (cut_facts_tac [(read_instantiate[("x","id_subst")]
  (read_instantiate[("x","[]")](thm RS spec)
@@ -141,7 +141,7 @@ val lemma = I_correct_wrt_W COMP swap_prems_rl;
 
 Addsimps [split_paired_Ex];
 
-goal I.thy "!a m s. \
+Goal "!a m s. \
 \  new_tv m a & new_tv m s --> I e a m s = Fail --> W e ($s a) m = Fail";
 by (expr.induct_tac "e" 1);
   by (simp_tac (simpset() addsimps [app_subst_list]) 1);

@@ -8,7 +8,7 @@ open Relation;
 
 (** Identity relation **)
 
-goalw thy [id_def] "(a,a) : id";  
+Goalw [id_def] "(a,a) : id";  
 by (Blast_tac 1);
 qed "idI";
 
@@ -20,7 +20,7 @@ by (etac exE 1);
 by (eresolve_tac prems 1);
 qed "idE";
 
-goalw thy [id_def] "(a,b):id = (a=b)";
+Goalw [id_def] "(a,b):id = (a=b)";
 by (Blast_tac 1);
 qed "pair_in_id_conv";
 Addsimps [pair_in_id_conv];
@@ -28,7 +28,7 @@ Addsimps [pair_in_id_conv];
 
 (** Composition of two relations **)
 
-goalw thy [comp_def]
+Goalw [comp_def]
     "!!r s. [| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
 by (Blast_tac 1);
 qed "compI";
@@ -54,25 +54,25 @@ qed "compEpair";
 AddIs [compI, idI];
 AddSEs [compE, idE];
 
-goal thy "R O id = R";
+Goal "R O id = R";
 by (Fast_tac 1);
 qed "R_O_id";
 
-goal thy "id O R = R";
+Goal "id O R = R";
 by (Fast_tac 1);
 qed "id_O_R";
 
 Addsimps [R_O_id,id_O_R];
 
-goal thy "(R O S) O T = R O (S O T)";
+Goal "(R O S) O T = R O (S O T)";
 by (Blast_tac 1);
 qed "O_assoc";
 
-goal thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
+Goal "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
 qed "comp_mono";
 
-goal thy
+Goal
     "!!r s. [| s <= A Times B;  r <= B Times C |] ==> (r O s) <= A Times C";
 by (Blast_tac 1);
 qed "comp_subset_Sigma";
@@ -84,24 +84,24 @@ val prems = goalw thy [trans_def]
 by (REPEAT (ares_tac (prems@[allI,impI]) 1));
 qed "transI";
 
-goalw thy [trans_def]
+Goalw [trans_def]
     "!!r. [| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
 by (Blast_tac 1);
 qed "transD";
 
 (** Natural deduction for r^-1 **)
 
-goalw thy [converse_def] "!!a b r. ((a,b): r^-1) = ((b,a):r)";
+Goalw [converse_def] "!!a b r. ((a,b): r^-1) = ((b,a):r)";
 by (Simp_tac 1);
 qed "converse_iff";
 
 AddIffs [converse_iff];
 
-goalw thy [converse_def] "!!a b r. (a,b):r ==> (b,a): r^-1";
+Goalw [converse_def] "!!a b r. (a,b):r ==> (b,a): r^-1";
 by (Simp_tac 1);
 qed "converseI";
 
-goalw thy [converse_def] "!!a b r. (a,b) : r^-1 ==> (b,a) : r";
+Goalw [converse_def] "!!a b r. (a,b) : r^-1 ==> (b,a) : r";
 by (Blast_tac 1);
 qed "converseD";
 
@@ -117,16 +117,16 @@ qed_goalw "converseE" thy [converse_def]
 
 AddSEs [converseE];
 
-goalw thy [converse_def] "(r^-1)^-1 = r";
+Goalw [converse_def] "(r^-1)^-1 = r";
 by (Blast_tac 1);
 qed "converse_converse";
 Addsimps [converse_converse];
 
-goal thy "(r O s)^-1 = s^-1 O r^-1";
+Goal "(r O s)^-1 = s^-1 O r^-1";
 by (Blast_tac 1);
 qed "converse_comp";
 
-goal thy "id^-1 = id";
+Goal "id^-1 = id";
 by (Blast_tac 1);
 qed "converse_id";
 Addsimps [converse_id];
@@ -149,7 +149,7 @@ qed_goal "DomainE" thy
 AddIs  [DomainI];
 AddSEs [DomainE];
 
-goal thy "Domain id = UNIV";
+Goal "Domain id = UNIV";
 by (Blast_tac 1);
 qed "Domain_id";
 Addsimps [Domain_id];
@@ -169,7 +169,7 @@ qed_goalw "RangeE" thy [Range_def]
 AddIs  [RangeI];
 AddSEs [RangeE];
 
-goal thy "Range id = UNIV";
+Goal "Range id = UNIV";
 by (Blast_tac 1);
 qed "Range_id";
 Addsimps [Range_id];
@@ -213,7 +213,7 @@ qed_goal "Image_empty" thy
 
 Addsimps [Image_empty];
 
-goal thy "id ^^ A = A";
+Goal "id ^^ A = A";
 by (Blast_tac 1);
 qed "Image_id";
 
@@ -232,7 +232,7 @@ qed_goal "Image_subset" thy "!!A B r. r <= A Times B ==> r^^C <= B"
     (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ]);
 
 (*NOT suitable for rewriting*)
-goal thy "r^^B = (UN y: B. r^^{y})";
+Goal "r^^B = (UN y: B. r^^{y})";
 by (Blast_tac 1);
 qed "Image_eq_UN";
 

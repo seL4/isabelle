@@ -18,7 +18,7 @@ case drop(i-1,prems_of state) of
 end;
 
 
-goalw thy [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
+Goalw [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))";
   by (rtac ext 1);
   by (stac (surjective_pairing RS sym) 1);
   by (rtac refl 1);

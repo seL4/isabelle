@@ -10,7 +10,7 @@ open Trancl;
 
 (** The relation rtrancl **)
 
-goal Trancl.thy "mono(%s. id Un (r O s))";
+Goal "mono(%s. id Un (r O s))";
 by (rtac monoI 1);
 by (REPEAT (ares_tac [monoI, subset_refl, comp_mono, Un_mono] 1));
 qed "rtrancl_fun_mono";
@@ -18,7 +18,7 @@ qed "rtrancl_fun_mono";
 val rtrancl_unfold = rtrancl_fun_mono RS (rtrancl_def RS def_lfp_Tarski);
 
 (*Reflexivity of rtrancl*)
-goal Trancl.thy "(a,a) : r^*";
+Goal "(a,a) : r^*";
 by (stac rtrancl_unfold 1);
 by (Blast_tac 1);
 qed "rtrancl_refl";
@@ -28,19 +28,19 @@ AddSIs   [rtrancl_refl];
 
 
 (*Closure under composition with r*)
-goal Trancl.thy "!!r. [| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
+Goal "!!r. [| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
 by (stac rtrancl_unfold 1);
 by (Blast_tac 1);
 qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
-goal Trancl.thy "!!p. p : r ==> p : r^*";
+Goal "!!p. p : r ==> p : r^*";
 by (split_all_tac 1);
 by (etac (rtrancl_refl RS rtrancl_into_rtrancl) 1);
 qed "r_into_rtrancl";
 
 (*monotonicity of rtrancl*)
-goalw Trancl.thy [rtrancl_def] "!!r s. r <= s ==> r^* <= s^*";
+Goalw [rtrancl_def] "!!r s. r <= s ==> r^* <= s^*";
 by (REPEAT(ares_tac [lfp_mono,Un_mono,comp_mono,subset_refl] 1));
 qed "rtrancl_mono";
 
@@ -77,7 +77,7 @@ bind_thm
      (read_instantiate [("a","(ax,ay)"), ("b","(bx,by)")] rtrancl_induct));
 
 (*transitivity of transitive closure!! -- by induction.*)
-goalw Trancl.thy [trans_def] "trans(r^*)";
+Goalw [trans_def] "trans(r^*)";
 by Safe_tac;
 by (eres_inst_tac [("b","z")] rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_into_rtrancl])));
@@ -103,7 +103,7 @@ bind_thm ("rtrancl_into_rtrancl2", r_into_rtrancl RS rtrancl_trans);
 
 (*** More r^* equations and inclusions ***)
 
-goal Trancl.thy "(r^*)^* = r^*";
+Goal "(r^*)^* = r^*";
 by (rtac set_ext 1);
 by (res_inst_tac [("p","x")] PairE 1);
 by (hyp_subst_tac 1);
@@ -115,51 +115,51 @@ by (etac r_into_rtrancl 1);
 qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
 
-goal thy "R^* O R^* = R^*";
+Goal "R^* O R^* = R^*";
 br set_ext 1;
 by(split_all_tac 1);
 by(blast_tac (claset() addIs [rtrancl_trans]) 1);
 qed "rtrancl_idemp_self_comp";
 Addsimps [rtrancl_idemp_self_comp];
 
-goal Trancl.thy "!!r s. r <= s^* ==> r^* <= s^*";
+Goal "!!r s. r <= s^* ==> r^* <= s^*";
 by (dtac rtrancl_mono 1);
 by (Asm_full_simp_tac 1);
 qed "rtrancl_subset_rtrancl";
 
-goal Trancl.thy "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
+Goal "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
 by (dtac rtrancl_mono 1);
 by (dtac rtrancl_mono 1);
 by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
 qed "rtrancl_subset";
 
-goal Trancl.thy "!!R. (R^* Un S^*)^* = (R Un S)^*";
+Goal "!!R. (R^* Un S^*)^* = (R Un S)^*";
 by (blast_tac (claset() addSIs [rtrancl_subset]
                        addIs [r_into_rtrancl, rtrancl_mono RS subsetD]) 1);
 qed "rtrancl_Un_rtrancl";
 
-goal Trancl.thy "(R^=)^* = R^*";
+Goal "(R^=)^* = R^*";
 by (blast_tac (claset() addSIs [rtrancl_subset]
                        addIs  [rtrancl_refl, r_into_rtrancl]) 1);
 qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
-goal Trancl.thy "!!r. (x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";
+Goal "!!r. (x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";
 by (rtac converseI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseD";
 
-goal Trancl.thy "!!r. (x,y) : (r^*)^-1 ==> (x,y) : (r^-1)^*";
+Goal "!!r. (x,y) : (r^*)^-1 ==> (x,y) : (r^-1)^*";
 by (dtac converseD 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseI";
 
-goal Trancl.thy "(r^-1)^* = (r^*)^-1";
+Goal "(r^-1)^* = (r^*)^-1";
 by (safe_tac (claset() addSDs [rtrancl_converseD] addSIs [rtrancl_converseI]));
 qed "rtrancl_converse";
 
@@ -198,7 +198,7 @@ by (blast_tac (claset() addIs prems) 2);
 by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE2";
 
-goal Trancl.thy "r O r^* = r^* O r";
+Goal "r O r^* = r^* O r";
 by (blast_tac (claset() addEs [rtranclE, rtranclE2] 
 	               addIs [rtrancl_into_rtrancl, rtrancl_into_rtrancl2]) 1);
 qed "r_comp_rtrancl_eq";
@@ -206,13 +206,13 @@ qed "r_comp_rtrancl_eq";
 
 (**** The relation trancl ****)
 
-goalw Trancl.thy [trancl_def] "!!p.[| p:r^+; r <= s |] ==> p:s^+";
+Goalw [trancl_def] "!!p.[| p:r^+; r <= s |] ==> p:s^+";
 by (blast_tac (claset() addIs [rtrancl_mono RS subsetD]) 1);
 qed "trancl_mono";
 
 (** Conversions between trancl and rtrancl **)
 
-goalw Trancl.thy [trancl_def]
+Goalw [trancl_def]
     "!!p. p : r^+ ==> p : r^*";
 by (split_all_tac 1);
 by (etac compEpair 1);
@@ -220,7 +220,7 @@ by (REPEAT (ares_tac [rtrancl_into_rtrancl] 1));
 qed "trancl_into_rtrancl";
 
 (*r^+ contains r*)
-goalw Trancl.thy [trancl_def]
+Goalw [trancl_def]
    "!!p. p : r ==> p : r^+";
 by (split_all_tac 1);
 by (REPEAT (ares_tac [prem,compI,rtrancl_refl] 1));
@@ -273,7 +273,7 @@ qed "tranclE";
 
 (*Transitivity of r^+.
   Proved by unfolding since it uses transitivity of rtrancl. *)
-goalw Trancl.thy [trancl_def] "trans(r^+)";
+Goalw [trancl_def] "trans(r^+)";
 by (rtac transI 1);
 by (REPEAT (etac compEpair 1));
 by (rtac (rtrancl_into_rtrancl RS (rtrancl_trans RS compI)) 1);
@@ -282,7 +282,7 @@ qed "trans_trancl";
 
 bind_thm ("trancl_trans", trans_trancl RS transD);
 
-goalw Trancl.thy [trancl_def]
+Goalw [trancl_def]
   "!!r. [| (x,y):r^*; (y,z):r^+ |] ==> (x,z):r^+";
 by (blast_tac (claset() addIs [rtrancl_trans,r_into_rtrancl]) 1);
 qed "rtrancl_trancl_trancl";
@@ -295,7 +295,7 @@ by (resolve_tac prems 1);
 qed "trancl_into_trancl2";
 
 (* primitive recursion for trancl over finite relations: *)
-goal Trancl.thy "(insert (y,x) r)^+ = r^+ Un {(a,b). (a,y):r^* & (x,b):r^*}";
+Goal "(insert (y,x) r)^+ = r^+ Un {(a,b). (a,y):r^* & (x,b):r^*}";
 by (rtac equalityI 1);
  by (rtac subsetI 1);
  by (split_all_tac 1);
@@ -309,7 +309,7 @@ by (blast_tac (claset() addIs
       impOfSubs rtrancl_mono, trancl_mono]) 1);
 qed "trancl_insert";
 
-goalw Trancl.thy [trancl_def] "(r^-1)^+ = (r^+)^-1";
+Goalw [trancl_def] "(r^-1)^+ = (r^+)^-1";
 by (simp_tac (simpset() addsimps [rtrancl_converse,converse_comp]) 1);
 by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,r_comp_rtrancl_eq])1);
 qed "trancl_converse";
@@ -331,13 +331,13 @@ by (rtac (refl RS disjI1) 1);
 by (Blast_tac 1);
 val lemma = result();
 
-goalw Trancl.thy [trancl_def]
+Goalw [trancl_def]
     "!!r. r <= A Times A ==> r^+ <= A Times A";
 by (blast_tac (claset() addSDs [lemma]) 1);
 qed "trancl_subset_Sigma";
 
 
-goal Trancl.thy "(r^+)^= = r^*";
+Goal "(r^+)^= = r^*";
 by Safe_tac;
 by  (etac trancl_into_rtrancl 1);
 by (etac rtranclE 1);
@@ -347,7 +347,7 @@ ba 1;
 qed "reflcl_trancl";
 Addsimps[reflcl_trancl];
 
-goal Trancl.thy "(r^=)^+ = r^*";
+Goal "(r^=)^+ = r^*";
 by Safe_tac;
 by  (dtac trancl_into_rtrancl 1);
 by  (Asm_full_simp_tac 1);

@@ -1,4 +1,4 @@
-goal thy
+Goal
 "{x=X} \
 \ y := []; \
 \ WHILE x ~= [] \
@@ -12,7 +12,7 @@ by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "imperative_reverse";
 
-goal thy
+Goal
 "{x=X & y = Y} \
 \ x := rev(x); \
 \ WHILE x ~= [] \

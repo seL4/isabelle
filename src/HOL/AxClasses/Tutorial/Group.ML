@@ -11,7 +11,7 @@ fun sub r = standard (r RS subst);
 fun ssub r = standard (r RS ssubst);
 
 
-goal Group.thy "x <*> inverse x = (1::'a::group)";
+Goal "x <*> inverse x = (1::'a::group)";
 by (rtac (sub left_unit) 1);
 back();
 by (rtac (sub assoc) 1);
@@ -28,7 +28,7 @@ by (rtac refl 1);
 qed "right_inverse";
 
 
-goal Group.thy "x <*> 1 = (x::'a::group)";
+Goal "x <*> 1 = (x::'a::group)";
 by (rtac (sub left_inverse) 1);
 by (rtac (sub assoc) 1);
 by (rtac (ssub right_inverse) 1);
@@ -37,7 +37,7 @@ by (rtac refl 1);
 qed "right_unit";
 
 
-goal Group.thy "e <*> x = x --> e = (1::'a::group)";
+Goal "e <*> x = x --> e = (1::'a::group)";
 by (rtac impI 1);
 by (rtac (sub right_unit) 1);
 back();
@@ -49,7 +49,7 @@ by (assume_tac 1);
 qed "strong_one_unit";
 
 
-goal Group.thy "EX! e. ALL x. e <*> x = (x::'a::group)";
+Goal "EX! e. ALL x. e <*> x = (x::'a::group)";
 by (rtac ex1I 1);
 by (rtac allI 1);
 by (rtac left_unit 1);
@@ -60,7 +60,7 @@ by (assume_tac 1);
 qed "ex1_unit";
 
 
-goal Group.thy "ALL x. EX! e. e <*> x = (x::'a::group)";
+Goal "ALL x. EX! e. e <*> x = (x::'a::group)";
 by (rtac allI 1);
 by (rtac ex1I 1);
 by (rtac left_unit 1);
@@ -69,7 +69,7 @@ by (assume_tac 1);
 qed "ex1_unit'";
 
 
-goal Group.thy "y <*> x = 1 --> y = inverse (x::'a::group)";
+Goal "y <*> x = 1 --> y = inverse (x::'a::group)";
 by (rtac impI 1);
 by (rtac (sub right_unit) 1);
 back();
@@ -85,7 +85,7 @@ by (assume_tac 1);
 qed "one_inverse";
 
 
-goal Group.thy "ALL x. EX! y. y <*> x = (1::'a::group)";
+Goal "ALL x. EX! y. y <*> x = (1::'a::group)";
 by (rtac allI 1);
 by (rtac ex1I 1);
 by (rtac left_inverse 1);
@@ -95,7 +95,7 @@ by (assume_tac 1);
 qed "ex1_inverse";
 
 
-goal Group.thy "inverse (x <*> y) = inverse y <*> inverse (x::'a::group)";
+Goal "inverse (x <*> y) = inverse y <*> inverse (x::'a::group)";
 by (rtac sym 1);
 by (rtac mp 1);
 by (rtac one_inverse 1);
@@ -109,7 +109,7 @@ by (rtac refl 1);
 qed "inverse_product";
 
 
-goal Group.thy "inverse (inverse x) = (x::'a::group)";
+Goal "inverse (inverse x) = (x::'a::group)";
 by (rtac sym 1);
 by (rtac (one_inverse RS mp) 1);
 by (rtac (ssub right_inverse) 1);

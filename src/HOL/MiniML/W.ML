@@ -14,7 +14,7 @@ val has_type_casesE = map(has_type.mk_cases expr.simps)
         [" A |- Var n :: t"," A |- Abs e :: t","A |- App e1 e2 ::t","A |- LET e1 e2 ::t" ];
 
 (* the resulting type variable is always greater or equal than the given one *)
-goal thy
+Goal
         "!A n S t m. W e A n  = Some (S,t,m) --> n<=m";
 by (expr.induct_tac "e" 1);
 (* case Var(n) *)
@@ -32,19 +32,19 @@ qed_spec_mp "W_var_ge";
 
 Addsimps [W_var_ge];
 
-goal thy
+Goal
         "!! s. Some (S,t,m) = W e A n ==> n<=m";
 by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 qed "W_var_geD";
 
-goal thy "!! s. new_tv n A ==> Some (S,t,m) = W e A n ==> new_tv m A";
+Goal "!! s. new_tv n A ==> Some (S,t,m) = W e A n ==> new_tv m A";
 by (dtac W_var_geD 1);
 by (rtac new_scheme_list_le 1);
 by (assume_tac 1);
 by (assume_tac 1);
 qed "new_tv_compatible_W";
 
-goal thy "!!sch. new_tv n sch --> new_tv (n + (min_new_bound_tv sch)) (bound_typ_inst (%b. TVar (b + n)) sch)";
+Goal "!!sch. new_tv n sch --> new_tv (n + (min_new_bound_tv sch)) (bound_typ_inst (%b. TVar (b + n)) sch)";
 by (type_scheme.induct_tac "sch" 1);
   by (Asm_full_simp_tac 1);
  by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
@@ -71,7 +71,7 @@ qed_spec_mp "new_tv_bound_typ_inst_sch";
 Addsimps [new_tv_bound_typ_inst_sch];
 
 (* resulting type variable is new *)
-goal thy
+Goal
      "!n A S t m. new_tv n A --> W e A n = Some (S,t,m) -->    \
 \                 new_tv m S & new_tv m t";
 by (expr.induct_tac "e" 1);
@@ -155,7 +155,7 @@ by (assume_tac 1);
 by (assume_tac 1);
 qed_spec_mp "new_tv_W";
 
-goal thy "!!sch. (v ~: free_tv sch) --> (v : free_tv (bound_typ_inst (TVar o S) sch)) --> (? x. v = S x)";
+Goal "!!sch. (v ~: free_tv sch) --> (v : free_tv (bound_typ_inst (TVar o S) sch)) --> (? x. v = S x)";
 by (type_scheme.induct_tac "sch" 1);
 by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
@@ -167,7 +167,7 @@ qed_spec_mp "free_tv_bound_typ_inst1";
 
 Addsimps [free_tv_bound_typ_inst1];
 
-goal thy
+Goal
      "!n A S t m v. W e A n = Some (S,t,m) -->            \
 \         (v:free_tv S | v:free_tv t) --> v<n --> v:free_tv A";
 by (expr.induct_tac "e" 1);
@@ -254,16 +254,16 @@ by (fast_tac (claset() addSDs [codD,free_tv_app_subst_scheme_list RS subsetD,W_v
               addDs [less_le_trans]) 1);
 qed_spec_mp "free_tv_W"; 
 
-goal thy "!!A. (!x. x : A --> x ~: B) ==> A Int B = {}";
+Goal "!!A. (!x. x : A --> x ~: B) ==> A Int B = {}";
 by (Fast_tac 1);
 val weaken_A_Int_B_eq_empty = result();
 
-goal thy "!!A. x ~: A | x : B ==> x ~: A - B";
+Goal "!!A. x ~: A | x : B ==> x ~: A - B";
 by (Fast_tac 1);
 val weaken_not_elem_A_minus_B = result();
 
 (* correctness of W with respect to has_type *)
-goal W.thy
+Goal
         "!A S t m n . new_tv n A --> Some (S,t,m) = W e A n --> $S A |- e :: t";
 by (expr.induct_tac "e" 1);
 (* case Var n *)
@@ -384,7 +384,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le]) 1);
 qed_spec_mp "W_correct_lemma";
 
 (* Completeness of W w.r.t. has_type *)
-goal thy
+Goal
  "!S' A t' n. $S' A |- e :: t' --> new_tv n A -->     \
 \             (? S t. (? m. W e A n = Some (S,t,m)) &  \
 \                     (? R. $S' A = $R ($S A) & t' = $R t))";
@@ -558,7 +558,7 @@ by (res_inst_tac [("x","Ra")] exI 1);
 by (simp_tac (simpset() addsimps [o_def,subst_comp_scheme_list RS sym]) 1);
 qed_spec_mp "W_complete_lemma";
 
-goal W.thy
+Goal
  "!!e. [] |- e :: t' ==>  (? S t. (? m. W e [] n = Some(S,t,m)) &  \
 \                                 (? R. t' = $ R t))";
 by (cut_inst_tac [("A","[]"),("S'","id_subst"),("e","e"),("t'","t'")]

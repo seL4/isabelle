@@ -11,29 +11,29 @@ open Sum;
 (** Inl_Rep and Inr_Rep: Representations of the constructors **)
 
 (*This counts as a non-emptiness result for admitting 'a+'b as a type*)
-goalw Sum.thy [Sum_def] "Inl_Rep(a) : Sum";
+Goalw [Sum_def] "Inl_Rep(a) : Sum";
 by (EVERY1 [rtac CollectI, rtac disjI1, rtac exI, rtac refl]);
 qed "Inl_RepI";
 
-goalw Sum.thy [Sum_def] "Inr_Rep(b) : Sum";
+Goalw [Sum_def] "Inr_Rep(b) : Sum";
 by (EVERY1 [rtac CollectI, rtac disjI2, rtac exI, rtac refl]);
 qed "Inr_RepI";
 
-goal Sum.thy "inj_on Abs_Sum Sum";
+Goal "inj_on Abs_Sum Sum";
 by (rtac inj_on_inverseI 1);
 by (etac Abs_Sum_inverse 1);
 qed "inj_on_Abs_Sum";
 
 (** Distinctness of Inl and Inr **)
 
-goalw Sum.thy [Inl_Rep_def, Inr_Rep_def] "Inl_Rep(a) ~= Inr_Rep(b)";
+Goalw [Inl_Rep_def, Inr_Rep_def] "Inl_Rep(a) ~= Inr_Rep(b)";
 by (EVERY1 [rtac notI,
             etac (fun_cong RS fun_cong RS fun_cong RS iffE), 
             rtac (notE RS ccontr),  etac (mp RS conjunct2), 
             REPEAT o (ares_tac [refl,conjI]) ]);
 qed "Inl_Rep_not_Inr_Rep";
 
-goalw Sum.thy [Inl_def,Inr_def] "Inl(a) ~= Inr(b)";
+Goalw [Inl_def,Inr_def] "Inl(a) ~= Inr(b)";
 by (rtac (inj_on_Abs_Sum RS inj_on_contraD) 1);
 by (rtac Inl_Rep_not_Inr_Rep 1);
 by (rtac Inl_RepI 1);
@@ -61,7 +61,7 @@ by (rtac (major RS fun_cong RS fun_cong RS fun_cong RS iffE) 1);
 by (Blast_tac 1);
 qed "Inr_Rep_inject";
 
-goalw Sum.thy [Inl_def] "inj(Inl)";
+Goalw [Inl_def] "inj(Inl)";
 by (rtac injI 1);
 by (etac (inj_on_Abs_Sum RS inj_onD RS Inl_Rep_inject) 1);
 by (rtac Inl_RepI 1);
@@ -69,7 +69,7 @@ by (rtac Inl_RepI 1);
 qed "inj_Inl";
 val Inl_inject = inj_Inl RS injD;
 
-goalw Sum.thy [Inr_def] "inj(Inr)";
+Goalw [Inr_def] "inj(Inr)";
 by (rtac injI 1);
 by (etac (inj_on_Abs_Sum RS inj_onD RS Inr_Rep_inject) 1);
 by (rtac Inr_RepI 1);
@@ -77,11 +77,11 @@ by (rtac Inr_RepI 1);
 qed "inj_Inr";
 val Inr_inject = inj_Inr RS injD;
 
-goal Sum.thy "(Inl(x)=Inl(y)) = (x=y)";
+Goal "(Inl(x)=Inl(y)) = (x=y)";
 by (blast_tac (claset() addSDs [Inl_inject]) 1);
 qed "Inl_eq";
 
-goal Sum.thy "(Inr(x)=Inr(y)) = (x=y)";
+Goal "(Inr(x)=Inr(y)) = (x=y)";
 by (blast_tac (claset() addSDs [Inr_inject]) 1);
 qed "Inr_eq";
 
@@ -91,11 +91,11 @@ AddIffs [Inl_eq, Inr_eq];
 
 (** Introduction rules for the injections **)
 
-goalw Sum.thy [sum_def] "!!a A B. a : A ==> Inl(a) : A Plus B";
+Goalw [sum_def] "!!a A B. a : A ==> Inl(a) : A Plus B";
 by (Blast_tac 1);
 qed "InlI";
 
-goalw Sum.thy [sum_def] "!!b A B. b : B ==> Inr(b) : A Plus B";
+Goalw [sum_def] "!!b A B. b : B ==> Inr(b) : A Plus B";
 by (Blast_tac 1);
 qed "InrI";
 
@@ -118,11 +118,11 @@ AddSEs [PlusE];
 
 (** sum_case -- the selection operator for sums **)
 
-goalw Sum.thy [sum_case_def] "sum_case f g (Inl x) = f(x)";
+Goalw [sum_case_def] "sum_case f g (Inl x) = f(x)";
 by (Blast_tac 1);
 qed "sum_case_Inl";
 
-goalw Sum.thy [sum_case_def] "sum_case f g (Inr x) = g(x)";
+Goalw [sum_case_def] "sum_case f g (Inr x) = g(x)";
 by (Blast_tac 1);
 qed "sum_case_Inr";
 
@@ -140,13 +140,13 @@ by (REPEAT (eresolve_tac [disjE,exE] 1
                     rtac (Rep_Sum_inverse RS sym)]));
 qed "sumE";
 
-goal Sum.thy "sum_case (%x::'a. f(Inl x)) (%y::'b. f(Inr y)) s = f(s)";
+Goal "sum_case (%x::'a. f(Inl x)) (%y::'b. f(Inr y)) s = f(s)";
 by (EVERY1 [res_inst_tac [("s","s")] sumE, 
             etac ssubst, rtac sum_case_Inl,
             etac ssubst, rtac sum_case_Inr]);
 qed "surjective_sum";
 
-goal Sum.thy "R(sum_case f g s) = \
+Goal "R(sum_case f g s) = \
 \             ((! x. s = Inl(x) --> R(f(x))) & (! y. s = Inr(y) --> R(g(y))))";
 by (res_inst_tac [("s","s")] sumE 1);
 by Auto_tac;
@@ -166,7 +166,7 @@ qed_goal "sum_case_weak_cong" Sum.thy
 
 (** Rules for the Part primitive **)
 
-goalw Sum.thy [Part_def]
+Goalw [Part_def]
     "!!a b A h. [| a : A;  a=h(b) |] ==> a : Part A h";
 by (Blast_tac 1);
 qed "Part_eqI";
@@ -185,29 +185,29 @@ qed "PartE";
 AddIs  [Part_eqI];
 AddSEs [PartE];
 
-goalw Sum.thy [Part_def] "Part A h <= A";
+Goalw [Part_def] "Part A h <= A";
 by (rtac Int_lower1 1);
 qed "Part_subset";
 
-goal Sum.thy "!!A B. A<=B ==> Part A h <= Part B h";
+Goal "!!A B. A<=B ==> Part A h <= Part B h";
 by (Blast_tac 1);
 qed "Part_mono";
 
 val basic_monos = basic_monos @ [Part_mono];
 
-goalw Sum.thy [Part_def] "!!a. a : Part A h ==> a : A";
+Goalw [Part_def] "!!a. a : Part A h ==> a : A";
 by (etac IntD1 1);
 qed "PartD1";
 
-goal Sum.thy "Part A (%x. x) = A";
+Goal "Part A (%x. x) = A";
 by (Blast_tac 1);
 qed "Part_id";
 
-goal Sum.thy "Part (A Int B) h = (Part A h) Int (Part B h)";
+Goal "Part (A Int B) h = (Part A h) Int (Part B h)";
 by (Blast_tac 1);
 qed "Part_Int";
 
 (*For inductive definitions*)
-goal Sum.thy "Part (A Int {x. P x}) h = (Part A h) Int {x. P x}";
+Goal "Part (A Int {x. P x}) h = (Part A h) Int {x. P x}";
 by (Blast_tac 1);
 qed "Part_Collect";

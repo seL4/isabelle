@@ -15,7 +15,7 @@ open Simult;
 
 (*** Monotonicity and unfolding of the function ***)
 
-goal Simult.thy "mono(%Z.  A <*> Part Z In1 \
+Goal "mono(%Z.  A <*> Part Z In1 \
 \                      <+> ({Numb(0)} <+> Part Z In0 <*> Part Z In1))";
 by (REPEAT (ares_tac [monoI, subset_refl, usum_mono, uprod_mono,
                       Part_mono] 1));
@@ -23,11 +23,11 @@ qed "TF_fun_mono";
 
 val TF_unfold = TF_fun_mono RS (TF_def RS def_lfp_Tarski);
 
-goalw Simult.thy [TF_def] "!!A B. A<=B ==> TF(A) <= TF(B)";
+Goalw [TF_def] "!!A B. A<=B ==> TF(A) <= TF(B)";
 by (REPEAT (ares_tac [lfp_mono, subset_refl, usum_mono, uprod_mono] 1));
 qed "TF_mono";
 
-goalw Simult.thy [TF_def] "TF(sexp) <= sexp";
+Goalw [TF_def] "TF(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
 by (blast_tac (claset() addIs  sexp.intrs@[sexp_In0I, sexp_In1I]
                       addSEs [PartE]) 1);
@@ -55,7 +55,7 @@ by (blast_tac (claset() addIs (prems@[PartI])
 qed "TF_induct";
 
 (*This lemma replaces a use of subgoal_tac to prove tree_forest_induct*)
-goalw Simult.thy [Part_def]
+Goalw [Part_def]
  "!!A.  ! M: TF(A). (M: Part (TF A) In0 --> P(M)) & \
 \                   (M: Part (TF A) In1 --> Q(M)) \
 \  ==> (! M: Part (TF A) In0. P(M)) & (! M: Part (TF A) In1. Q(M))";
@@ -104,22 +104,22 @@ qed "tree_forest_induct";
 
 (*** Isomorphisms ***)
 
-goal Simult.thy "inj(Rep_Tree)";
+Goal "inj(Rep_Tree)";
 by (rtac inj_inverseI 1);
 by (rtac Rep_Tree_inverse 1);
 qed "inj_Rep_Tree";
 
-goal Simult.thy "inj_on Abs_Tree (Part (TF(range Leaf)) In0)";
+Goal "inj_on Abs_Tree (Part (TF(range Leaf)) In0)";
 by (rtac inj_on_inverseI 1);
 by (etac Abs_Tree_inverse 1);
 qed "inj_on_Abs_Tree";
 
-goal Simult.thy "inj(Rep_Forest)";
+Goal "inj(Rep_Forest)";
 by (rtac inj_inverseI 1);
 by (rtac Rep_Forest_inverse 1);
 qed "inj_Rep_Forest";
 
-goal Simult.thy "inj_on Abs_Forest (Part (TF(range Leaf)) In1)";
+Goal "inj_on Abs_Forest (Part (TF(range Leaf)) In1)";
 by (rtac inj_on_inverseI 1);
 by (etac Abs_Forest_inverse 1);
 qed "inj_on_Abs_Forest";
@@ -134,17 +134,17 @@ val TF_I = TF_unfold RS equalityD2 RS subsetD;
 AddIs [TF_I, uprodI, usum_In0I, usum_In1I];
 AddSEs [Scons_inject];
 
-goalw Simult.thy TF_Rep_defs
+Goalw TF_Rep_defs
     "!!A. [| a: A;  M: Part (TF A) In1 |] ==> TCONS a M : Part (TF A) In0";
 by (Blast_tac 1);
 qed "TCONS_I";
 
 (* FNIL is a TF(A) -- this also justifies the type definition*)
-goalw Simult.thy TF_Rep_defs "FNIL: Part (TF A) In1";
+Goalw TF_Rep_defs "FNIL: Part (TF A) In1";
 by (Blast_tac 1);
 qed "FNIL_I";
 
-goalw Simult.thy TF_Rep_defs
+Goalw TF_Rep_defs
     "!!A. [| M: Part (TF A) In0;  N: Part (TF A) In1 |] ==> \
 \         FCONS M N : Part (TF A) In1";
 by (Blast_tac 1);
@@ -152,19 +152,19 @@ qed "FCONS_I";
 
 (** Injectiveness of TCONS and FCONS **)
 
-goalw Simult.thy TF_Rep_defs "(TCONS K M=TCONS L N) = (K=L & M=N)";
+Goalw TF_Rep_defs "(TCONS K M=TCONS L N) = (K=L & M=N)";
 by (Blast_tac 1);
 qed "TCONS_TCONS_eq";
 bind_thm ("TCONS_inject", (TCONS_TCONS_eq RS iffD1 RS conjE));
 
-goalw Simult.thy TF_Rep_defs "(FCONS K M=FCONS L N) = (K=L & M=N)";
+Goalw TF_Rep_defs "(FCONS K M=FCONS L N) = (K=L & M=N)";
 by (Blast_tac 1);
 qed "FCONS_FCONS_eq";
 bind_thm ("FCONS_inject", (FCONS_FCONS_eq RS iffD1 RS conjE));
 
 (** Distinctness of TCONS, FNIL and FCONS **)
 
-goalw Simult.thy TF_Rep_defs "TCONS M N ~= FNIL";
+Goalw TF_Rep_defs "TCONS M N ~= FNIL";
 by (Blast_tac 1);
 qed "TCONS_not_FNIL";
 bind_thm ("FNIL_not_TCONS", (TCONS_not_FNIL RS not_sym));
@@ -172,7 +172,7 @@ bind_thm ("FNIL_not_TCONS", (TCONS_not_FNIL RS not_sym));
 bind_thm ("TCONS_neq_FNIL", (TCONS_not_FNIL RS notE));
 val FNIL_neq_TCONS = sym RS TCONS_neq_FNIL;
 
-goalw Simult.thy TF_Rep_defs "FCONS M N ~= FNIL";
+Goalw TF_Rep_defs "FCONS M N ~= FNIL";
 by (Blast_tac 1);
 qed "FCONS_not_FNIL";
 bind_thm ("FNIL_not_FCONS", (FCONS_not_FNIL RS not_sym));
@@ -180,7 +180,7 @@ bind_thm ("FNIL_not_FCONS", (FCONS_not_FNIL RS not_sym));
 bind_thm ("FCONS_neq_FNIL", (FCONS_not_FNIL RS notE));
 val FNIL_neq_FCONS = sym RS FCONS_neq_FNIL;
 
-goalw Simult.thy TF_Rep_defs "TCONS M N ~= FCONS K L";
+Goalw TF_Rep_defs "TCONS M N ~= FCONS K L";
 by (Blast_tac 1);
 qed "TCONS_not_FCONS";
 bind_thm ("FCONS_not_TCONS", (TCONS_not_FCONS RS not_sym));
@@ -204,12 +204,12 @@ AddSDs [inj_on_Abs_Tree RS inj_onD,
                            inj_Rep_Tree RS injD, inj_Rep_Forest RS injD,
                            Leaf_inject];
 
-goalw Simult.thy [Tcons_def] "(Tcons x xs=Tcons y ys) = (x=y & xs=ys)";
+Goalw [Tcons_def] "(Tcons x xs=Tcons y ys) = (x=y & xs=ys)";
 by (Blast_tac 1);
 qed "Tcons_Tcons_eq";
 bind_thm ("Tcons_inject", (Tcons_Tcons_eq RS iffD1 RS conjE));
 
-goalw Simult.thy [Fcons_def,Fnil_def] "Fcons x xs ~= Fnil";
+Goalw [Fcons_def,Fnil_def] "Fcons x xs ~= Fnil";
 by (Blast_tac 1);
 qed "Fcons_not_Fnil";
 
@@ -219,7 +219,7 @@ val Fnil_neq_Fcons = sym RS Fcons_neq_Fnil;
 
 (** Injectiveness of Fcons **)
 
-goalw Simult.thy [Fcons_def] "(Fcons x xs=Fcons y ys) = (x=y & xs=ys)";
+Goalw [Fcons_def] "(Fcons x xs=Fcons y ys) = (x=y & xs=ys)";
 by (Blast_tac 1);
 qed "Fcons_Fcons_eq";
 bind_thm ("Fcons_inject", Fcons_Fcons_eq RS iffD1 RS conjE);
@@ -227,7 +227,7 @@ bind_thm ("Fcons_inject", Fcons_Fcons_eq RS iffD1 RS conjE);
 
 (*** TF_rec -- by wf recursion on pred_sexp ***)
 
-goal Simult.thy
+Goal
    "(%M. TF_rec M b c d) = wfrec (trancl pred_sexp) \
                          \       (%g. Case (Split(%x y. b x y (g y))) \
                          \           (List_case c (%x y. d x y (g x) (g y))))";
@@ -243,7 +243,7 @@ val TF_rec_unfold = (wf_pred_sexp RS wf_trancl) RS
 
 (** conversion rules for TF_rec **)
 
-goalw Simult.thy [TCONS_def]
+Goalw [TCONS_def]
     "!!M N. [| M: sexp;  N: sexp |] ==>         \
 \           TF_rec (TCONS M N) b c d = b M N (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
@@ -251,12 +251,12 @@ by (simp_tac (simpset() addsimps [Case_In0, Split]) 1);
 by (asm_simp_tac (simpset() addsimps [In0_def]) 1);
 qed "TF_rec_TCONS";
 
-goalw Simult.thy [FNIL_def] "TF_rec FNIL b c d = c";
+Goalw [FNIL_def] "TF_rec FNIL b c d = c";
 by (rtac (TF_rec_unfold RS trans) 1);
 by (simp_tac (HOL_ss addsimps [Case_In1, List_case_NIL]) 1);
 qed "TF_rec_FNIL";
 
-goalw Simult.thy [FCONS_def]
+Goalw [FCONS_def]
  "!!M N. [| M: sexp;  N: sexp |] ==>    \
 \        TF_rec (FCONS M N) b c d = d M N (TF_rec M b c d) (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
@@ -282,16 +282,16 @@ val tf_rec_ss = HOL_ss addsimps
    inj_Leaf, inv_f_f, sexp.LeafI, range_eqI,
    Rep_Tree_in_sexp, Rep_Forest_in_sexp];
 
-goalw Simult.thy [tree_rec_def, forest_rec_def, Tcons_def]
+Goalw [tree_rec_def, forest_rec_def, Tcons_def]
     "tree_rec (Tcons a tf) b c d = b a tf (forest_rec tf b c d)";
 by (simp_tac tf_rec_ss 1);
 qed "tree_rec_Tcons";
 
-goalw Simult.thy [forest_rec_def, Fnil_def] "forest_rec Fnil b c d = c";
+Goalw [forest_rec_def, Fnil_def] "forest_rec Fnil b c d = c";
 by (simp_tac tf_rec_ss 1);
 qed "forest_rec_Fnil";
 
-goalw Simult.thy [tree_rec_def, forest_rec_def, Fcons_def]
+Goalw [tree_rec_def, forest_rec_def, Fcons_def]
     "forest_rec (Fcons t tf) b c d = \
 \    d t tf (tree_rec t b c d) (forest_rec tf b c d)";
 by (simp_tac tf_rec_ss 1);

@@ -42,7 +42,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "finite_UnI";
 
 (*Every subset of a finite set is finite*)
-goal Finite.thy "!!B. finite B ==> ALL A. A<=B --> finite A";
+Goal "!!B. finite B ==> ALL A. A<=B --> finite A";
 by (etac finite_induct 1);
 by (Simp_tac 1);
 by (safe_tac (claset() addSDs [subset_insert_iff RS iffD1]));
@@ -50,19 +50,19 @@ by (eres_inst_tac [("t","A")] (insert_Diff RS subst) 2);
 by (ALLGOALS Asm_simp_tac);
 val lemma = result();
 
-goal Finite.thy "!!A. [| A<=B;  finite B |] ==> finite A";
+Goal "!!A. [| A<=B;  finite B |] ==> finite A";
 by (dtac lemma 1);
 by (Blast_tac 1);
 qed "finite_subset";
 
-goal Finite.thy "finite(F Un G) = (finite F & finite G)";
+Goal "finite(F Un G) = (finite F & finite G)";
 by (blast_tac (claset() 
 	         addIs [read_instantiate [("B", "?AA Un ?BB")] finite_subset, 
 			finite_UnI]) 1);
 qed "finite_Un";
 AddIffs[finite_Un];
 
-goal Finite.thy "finite(insert a A) = finite A";
+Goal "finite(insert a A) = finite A";
 by (stac insert_is_Un 1);
 by (simp_tac (HOL_ss addsimps [finite_Un]) 1);
 by (Blast_tac 1);
@@ -70,7 +70,7 @@ qed "finite_insert";
 Addsimps[finite_insert];
 
 (*The image of a finite set is finite *)
-goal Finite.thy  "!!F. finite F ==> finite(h``F)";
+Goal  "!!F. finite F ==> finite(h``F)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
@@ -102,7 +102,7 @@ qed "finite_empty_induct";
 bind_thm ("finite_Diff", Diff_subset RS finite_subset);
 Addsimps [finite_Diff];
 
-goal Finite.thy "finite(A-{a}) = finite(A)";
+Goal "finite(A-{a}) = finite(A)";
 by (case_tac "a:A" 1);
 by (rtac (finite_insert RS sym RS trans) 1);
 by (stac insert_Diff 1);
@@ -111,7 +111,7 @@ qed "finite_Diff_singleton";
 AddIffs [finite_Diff_singleton];
 
 (*Lemma for proving finite_imageD*)
-goal Finite.thy "!!A. finite B ==> !A. f``A = B --> inj_on f A --> finite A";
+Goal "!!A. finite B ==> !A. f``A = B --> inj_on f A --> finite A";
 by (etac finite_induct 1);
  by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
@@ -127,7 +127,7 @@ by (ALLGOALS
     (asm_full_simp_tac (simpset() addsimps [inj_on_image_set_diff])));
 val lemma = result();
 
-goal Finite.thy "!!A. [| finite(f``A);  inj_on f A |] ==> finite A";
+Goal "!!A. [| finite(f``A);  inj_on f A |] ==> finite A";
 by (dtac lemma 1);
 by (Blast_tac 1);
 qed "finite_imageD";
@@ -143,7 +143,7 @@ Addsimps [finite_UnionI];
 
 (** Sigma of finite sets **)
 
-goalw Finite.thy [Sigma_def]
+Goalw [Sigma_def]
  "!!A. [| finite A; !a:A. finite(B a) |] ==> finite(SIGMA a:A. B a)";
 by (blast_tac (claset() addSIs [finite_UnionI]) 1);
 bind_thm("finite_SigmaI", ballI RSN (2,result()));
@@ -151,7 +151,7 @@ Addsimps [finite_SigmaI];
 
 (** The powerset of a finite set **)
 
-goal Finite.thy "!!A. finite(Pow A) ==> finite A";
+Goal "!!A. finite(Pow A) ==> finite A";
 by (subgoal_tac "finite ((%x.{x})``A)" 1);
 by (rtac finite_subset 2);
 by (assume_tac 3);
@@ -159,7 +159,7 @@ by (ALLGOALS
     (fast_tac (claset() addSDs [rewrite_rule [inj_on_def] finite_imageD])));
 val lemma = result();
 
-goal Finite.thy "finite(Pow A) = finite A";
+Goal "finite(Pow A) = finite A";
 by (rtac iffI 1);
 by (etac lemma 1);
 (*Opposite inclusion: finite A ==> finite (Pow A) *)
@@ -170,7 +170,7 @@ by (ALLGOALS
 qed "finite_Pow_iff";
 AddIffs [finite_Pow_iff];
 
-goal Finite.thy "finite(r^-1) = finite r";
+Goal "finite(r^-1) = finite r";
 by (subgoal_tac "r^-1 = (%(x,y).(y,x))``r" 1);
  by (Asm_simp_tac 1);
  by (rtac iffI 1);
@@ -191,7 +191,7 @@ goal Set.thy "{f i |i. (P i | i=n)} = insert (f n) {f i|i. P i}";
 by (Blast_tac 1);
 val Collect_conv_insert = result();
 
-goalw Finite.thy [card_def] "card {} = 0";
+Goalw [card_def] "card {} = 0";
 by (rtac Least_equality 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "card_empty";
@@ -211,7 +211,7 @@ by (asm_simp_tac (simpset() addsimps [Collect_conv_insert, less_Suc_eq]
                           addcongs [rev_conj_cong]) 1);
 qed "finite_has_card";
 
-goal Finite.thy
+Goal
   "!!A.[| x ~: A; insert x A = {f i|i. i<n} |] ==> \
 \  ? m::nat. m<n & (? g. A = {g i|i. i<m})";
 by (res_inst_tac [("n","n")] natE 1);
@@ -273,7 +273,7 @@ by (Simp_tac 1);
 by (Blast_tac 1);
 val lemma = result();
 
-goal Finite.thy "!!A. [| finite A; x ~: A |] ==> \
+Goal "!!A. [| finite A; x ~: A |] ==> \
 \ (LEAST n. ? f. insert x A = {f i|i. i<n}) = Suc(LEAST n. ? f. A={f i|i. i<n})";
 by (rtac Least_equality 1);
  by (dtac finite_has_card 1);
@@ -302,19 +302,19 @@ by (hyp_subst_tac 1);
 by (Asm_full_simp_tac 1);
 val lemma = result();
 
-goalw Finite.thy [card_def]
+Goalw [card_def]
   "!!A. [| finite A; x ~: A |] ==> card(insert x A) = Suc(card A)";
 by (etac lemma 1);
 by (assume_tac 1);
 qed "card_insert_disjoint";
 Addsimps [card_insert_disjoint];
 
-goal Finite.thy "!!A. finite A ==> card A <= card (insert x A)";
+Goal "!!A. finite A ==> card A <= card (insert x A)";
 by (case_tac "x: A" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [insert_absorb])));
 qed "card_insert_le";
 
-goal Finite.thy  "!!A. finite A ==> !B. B <= A --> card(B) <= card(A)";
+Goal  "!!A. finite A ==> !B. B <= A --> card(B) <= card(A)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
 by (Clarify_tac 1);
@@ -325,13 +325,13 @@ by (fast_tac (claset() addss
 	      (simpset() addsimps [subset_insert_iff, finite_subset])) 1);
 qed_spec_mp "card_mono";
 
-goal Finite.thy "!!A B. [| finite A; finite B |]\
+Goal "!!A B. [| finite A; finite B |]\
 \                       ==> A Int B = {} --> card(A Un B) = card A + card B";
 by (etac finite_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Int_insert_left])));
 qed_spec_mp "card_Un_disjoint";
 
-goal Finite.thy "!!A. [| finite A; B<=A |] ==> card A - card B = card (A - B)";
+Goal "!!A. [| finite A; B<=A |] ==> card A - card B = card (A - B)";
 by (subgoal_tac "(A-B) Un B = A" 1);
 by (Blast_tac 2);
 by (rtac (add_right_cancel RS iffD1) 1);
@@ -344,18 +344,18 @@ by (ALLGOALS
 			 add_diff_inverse, card_mono, finite_subset])));
 qed "card_Diff_subset";
 
-goal Finite.thy "!!A. [| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
+Goal "!!A. [| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
 by (res_inst_tac [("t", "A")] (insert_Diff RS subst) 1);
 by (assume_tac 1);
 by (Asm_simp_tac 1);
 qed "card_Suc_Diff";
 
-goal Finite.thy "!!A. [| finite A; x: A |] ==> card(A-{x}) < card A";
+Goal "!!A. [| finite A; x: A |] ==> card(A-{x}) < card A";
 by (rtac Suc_less_SucD 1);
 by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 1);
 qed "card_Diff";
 
-goal Finite.thy "!!A. finite A ==> card(A-{x}) <= card A";
+Goal "!!A. finite A ==> card(A-{x}) <= card A";
 by (case_tac "x: A" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [card_Diff, less_imp_le])));
 qed "card_Diff_le";
@@ -363,14 +363,14 @@ qed "card_Diff_le";
 
 (*** Cardinality of the Powerset ***)
 
-goal Finite.thy "!!A. finite A ==> card(insert x A) = Suc(card(A-{x}))";
+Goal "!!A. finite A ==> card(insert x A) = Suc(card(A-{x}))";
 by (case_tac "x:A" 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [card_Suc_Diff, insert_absorb])));
 qed "card_insert";
 Addsimps [card_insert];
 
-goal Finite.thy "!!A. finite(A) ==> inj_on f A --> card (f `` A) = card A";
+Goal "!!A. finite(A) ==> inj_on f A --> card (f `` A) = card A";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by Safe_tac;
@@ -382,7 +382,7 @@ by (Blast_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "card_image";
 
-goal thy "!!A. finite A ==> card (Pow A) = 2 ^ card A";
+Goal "!!A. finite A ==> card (Pow A) = 2 ^ card A";
 by (etac finite_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Pow_insert])));
 by (stac card_Un_disjoint 1);
@@ -396,7 +396,7 @@ Addsimps [card_Pow];
 
 
 (*Proper subsets*)
-goalw Finite.thy [psubset_def]
+Goalw [psubset_def]
     "!!B. finite B ==> !A. A < B --> card(A) < card(B)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
@@ -418,7 +418,7 @@ qed_spec_mp "psubset_card" ;
 
 (*Relates to equivalence classes.   Based on a theorem of F. Kammueller's.
   The "finite C" premise is redundant*)
-goal thy "!!C. finite C ==> finite (Union C) --> \
+Goal "!!C. finite C ==> finite (Union C) --> \
 \          (! c : C. k dvd card c) -->  \
 \          (! c1: C. ! c2: C. c1 ~= c2 --> c1 Int c2 = {}) \
 \          --> k dvd card(Union C)";

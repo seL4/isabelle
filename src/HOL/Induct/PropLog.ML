@@ -11,13 +11,13 @@ Prove: If H|=p then G|=p where G:Fin(H)
 open PropLog;
 
 (** Monotonicity **)
-goalw PropLog.thy thms.defs "!!G H. G<=H ==> thms(G) <= thms(H)";
+Goalw thms.defs "!!G H. G<=H ==> thms(G) <= thms(H)";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "thms_mono";
 
 (*Rule is called I for Identity Combinator, not for Introduction*)
-goal PropLog.thy "H |- p->p";
+Goal "H |- p->p";
 by (best_tac (claset() addIs [thms.K,thms.S,thms.MP]) 1);
 qed "thms_I";
 
@@ -34,12 +34,12 @@ val weaken_left_insert = subset_insertI RS weaken_left;
 val weaken_left_Un1  =    Un_upper1 RS weaken_left;
 val weaken_left_Un2  =    Un_upper2 RS weaken_left;
 
-goal PropLog.thy "!!H. H |- q ==> H |- p->q";
+Goal "!!H. H |- q ==> H |- p->q";
 by (fast_tac (claset() addIs [thms.K,thms.MP]) 1);
 qed "weaken_right";
 
 (*The deduction theorem*)
-goal PropLog.thy "!!H. insert p H |- q  ==>  H |- p->q";
+Goal "!!H. insert p H |- q  ==>  H |- p->q";
 by (etac thms.induct 1);
 by (ALLGOALS 
     (fast_tac (claset() addIs [thms_I, thms.H, thms.K, thms.S, thms.DN, 
@@ -60,22 +60,22 @@ bind_thm ("thms_notE", (thms.MP RS thms_falseE));
 
 (** The function eval **)
 
-goalw PropLog.thy [eval_def] "tt[false] = False";
+Goalw [eval_def] "tt[false] = False";
 by (Simp_tac 1);
 qed "eval_false";
 
-goalw PropLog.thy [eval_def] "tt[#v] = (v:tt)";
+Goalw [eval_def] "tt[#v] = (v:tt)";
 by (Simp_tac 1);
 qed "eval_var";
 
-goalw PropLog.thy [eval_def] "tt[p->q] = (tt[p]-->tt[q])";
+Goalw [eval_def] "tt[p->q] = (tt[p]-->tt[q])";
 by (Simp_tac 1);
 qed "eval_imp";
 
 Addsimps [eval_false, eval_var, eval_imp];
 
 (*Soundness of the rules wrt truth-table semantics*)
-goalw PropLog.thy [sat_def] "!!H. H |- p ==> H |= p";
+Goalw [sat_def] "!!H. H |- p ==> H |= p";
 by (etac thms.induct 1);
 by (fast_tac (claset() addSDs [eval_imp RS iffD1 RS mp]) 5);
 by (ALLGOALS Asm_simp_tac);
@@ -83,7 +83,7 @@ qed "soundness";
 
 (*** Towards the completeness proof ***)
 
-goal PropLog.thy "!!H. H |- p->false ==> H |- p->q";
+Goal "!!H. H |- p->false ==> H |- p->q";
 by (rtac deduction 1);
 by (etac (weaken_left_insert RS thms_notE) 1);
 by (rtac thms.H 1);
@@ -100,7 +100,7 @@ by (rtac (premp RS weaken_left_insert) 1);
 qed "imp_false";
 
 (*This formulation is required for strong induction hypotheses*)
-goal PropLog.thy "hyps p tt |- (if tt[p] then p else p->false)";
+Goal "hyps p tt |- (if tt[p] then p else p->false)";
 by (rtac (split_if RS iffD2) 1);
 by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [thms_I, thms.H])));
@@ -122,7 +122,7 @@ AddSIs [deduction];
 AddIs [thms.H, thms.H RS thms.MP];
 
 (*The excluded middle in the form of an elimination rule*)
-goal PropLog.thy "H |- (p->q) -> ((p->false)->q) -> q";
+Goal "H |- (p->q) -> ((p->false)->q) -> q";
 by (rtac (deduction RS deduction) 1);
 by (rtac (thms.DN RS thms.MP) 1);
 by (ALLGOALS (best_tac (claset() addSIs prems)));
@@ -139,7 +139,7 @@ qed "thms_excluded_middle_rule";
 
 (*For the case hyps(p,t)-insert(#v,Y) |- p;
   we also have hyps(p,t)-{#v} <= hyps(p, t-{v}) *)
-goal PropLog.thy "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})";
+Goal "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})";
 by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS Simp_tac);
 by (Fast_tac 1);
@@ -147,7 +147,7 @@ qed "hyps_Diff";
 
 (*For the case hyps(p,t)-insert(#v -> false,Y) |- p;
   we also have hyps(p,t)-{#v->false} <= hyps(p, insert(v,t)) *)
-goal PropLog.thy "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})";
+Goal "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})";
 by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS Simp_tac);
 by (Fast_tac 1);
@@ -163,12 +163,12 @@ goal Set.thy "insert a (B-{c}) - D <= insert a (B-insert c D)";
 by (Fast_tac 1);
 qed "insert_Diff_subset2";
 
-goal PropLog.thy "finite(hyps p t)";
+Goal "finite(hyps p t)";
 by (induct_tac "p" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "hyps_finite";
 
-goal PropLog.thy "hyps p t <= (UN v. {#v, #v->false})";
+Goal "hyps p t <= (UN v. {#v, #v->false})";
 by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS Simp_tac);
 by (Blast_tac 1);
@@ -206,12 +206,12 @@ by (rtac (sat RS (completeness_0_lemma RS spec)) 1);
 qed "completeness_0";
 
 (*A semantic analogue of the Deduction Theorem*)
-goalw PropLog.thy [sat_def] "!!p H. insert p H |= q ==> H |= p->q";
+Goalw [sat_def] "!!p H. insert p H |= q ==> H |= p->q";
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "sat_imp";
 
-goal PropLog.thy "!!H. finite H ==> !p. H |= p --> H |- p";
+Goal "!!H. finite H ==> !p. H |= p --> H |- p";
 by (etac finite_induct 1);
 by (safe_tac ((claset_of Fun.thy) addSIs [completeness_0]));
 by (rtac (weaken_left_insert RS thms.MP) 1);
@@ -221,6 +221,6 @@ qed "completeness_lemma";
 
 val completeness = completeness_lemma RS spec RS mp;
 
-goal PropLog.thy "!!H. finite H ==> (H |- p) = (H |= p)";
+Goal "!!H. finite H ==> (H |- p) = (H |= p)";
 by (fast_tac (claset() addSEs [soundness, completeness]) 1);
 qed "syntax_iff_semantics";

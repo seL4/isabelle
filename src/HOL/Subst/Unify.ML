@@ -57,7 +57,7 @@ qed "tc0";
  * Termination proof.
  *---------------------------------------------------------------------------*)
 
-goalw Unify.thy [unifyRel_def, measure_def] "trans unifyRel";
+Goalw [unifyRel_def, measure_def] "trans unifyRel";
 by (REPEAT (resolve_tac [trans_inv_image, trans_lex_prod, 
 			 trans_finite_psubset, trans_less_than,
 			 trans_inv_image] 1));
@@ -69,7 +69,7 @@ qed "trans_unifyRel";
  * the nested call in Unify.  Loosely, it says that unifyRel doesn't care
  * about term structure.
  *---------------------------------------------------------------------------*)
-goalw Unify.thy [unifyRel_def,lex_prod_def, inv_image_def]
+Goalw [unifyRel_def,lex_prod_def, inv_image_def]
      "!!x. ((X,Y), (Comb A (Comb B C), Comb D (Comb E F))) : unifyRel  ==> \
     \      ((X,Y), (Comb (Comb A B) C, Comb (Comb D E) F)) : unifyRel";
 by (asm_full_simp_tac (simpset() addsimps [measure_def, 
@@ -87,7 +87,7 @@ qed "Rassoc";
  * This lemma proves the nested termination condition for the base cases 
  * 3, 4, and 6. 
  *---------------------------------------------------------------------------*)
-goal Unify.thy
+Goal
  "!!x. ~(Var x <: M) ==>        \
 \   ((N1 <| [(x,M)], N2 <| [(x,M)]), (Comb M N1, Comb(Var x) N2)) : unifyRel \
 \ & ((N1 <| [(x,M)], N2 <| [(x,M)]), (Comb(Var x) N1, Comb M N2)) : unifyRel";
@@ -175,7 +175,7 @@ qed_spec_mp "unify_TC";
  *---------------------------------------------------------------------------*)
 
 (*Desired rule, copied from the theory file.  Could it be made available?*)
-goal Unify.thy 
+Goal 
   "unify(Comb M1 N1, Comb M2 N2) =      \
 \      (case unify(M1,M2)               \
 \        of None => None                \
@@ -204,7 +204,7 @@ bind_thm ("unifyInduct",
  * approach of M&W, who used idempotence and MGU-ness in the termination proof.
  *---------------------------------------------------------------------------*)
 
-goal Unify.thy "!theta. unify(M,N) = Some theta --> MGUnifier theta M N";
+Goal "!theta. unify(M,N) = Some theta --> MGUnifier theta M N";
 by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
 by (ALLGOALS Asm_simp_tac);
 (*Const-Const case*)
@@ -240,7 +240,7 @@ qed_spec_mp "unify_gives_MGU";
 (*---------------------------------------------------------------------------
  * Unify returns idempotent substitutions, when it succeeds.
  *---------------------------------------------------------------------------*)
-goal Unify.thy "!theta. unify(M,N) = Some theta --> Idem theta";
+Goal "!theta. unify(M,N) = Some theta --> Idem theta";
 by (res_inst_tac [("u","M"),("v","N")] unifyInduct 1);
 by (ALLGOALS 
     (asm_simp_tac 

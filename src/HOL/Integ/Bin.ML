@@ -138,7 +138,7 @@ val bin_add_simps = [add_Plus,add_Minus,bin_add_Bcons_Plus,
                      integ_of_bin_norm_Bcons];
 val bin_simps = [iob_Plus,iob_Minus,iob_Bcons];
 
-goal Bin.thy
+Goal
     "! w. integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
 by (bin.induct_tac "v" 1);
 by (simp_tac (simpset() addsimps bin_add_simps) 1);
@@ -153,7 +153,7 @@ by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
 by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
 val integ_of_bin_add_lemma = result();
 
-goal Bin.thy "integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
+Goal "integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
 by (cut_facts_tac [integ_of_bin_add_lemma] 1);
 by (Fast_tac 1);
 qed "integ_of_bin_add";
@@ -161,7 +161,7 @@ qed "integ_of_bin_add";
 val bin_mult_simps = [integ_of_bin_minus, integ_of_bin_add,
                       integ_of_bin_norm_Bcons];
 
-goal Bin.thy "integ_of_bin(bin_mult v w) = integ_of_bin v * integ_of_bin w";
+Goal "integ_of_bin(bin_mult v w) = integ_of_bin v * integ_of_bin w";
 by (bin.induct_tac "v" 1);
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
@@ -195,7 +195,7 @@ Addsimps [integ_of_bin_add RS sym,
 
 Addsimps [zadd_assoc];
 
-goal Bin.thy  
+Goal  
     "(integ_of_bin x = integ_of_bin y) \ 
 \   = (integ_of_bin (bin_add x (bin_minus y)) = $# 0)"; 
   by (simp_tac (HOL_ss addsimps
@@ -209,16 +209,16 @@ goal Bin.thy
                        zadd_zminus_inverse2]) 1); 
 val iob_eq_eq_diff_0 = result(); 
 
-goal Bin.thy "(integ_of_bin PlusSign = $# 0) = True"; 
+Goal "(integ_of_bin PlusSign = $# 0) = True"; 
   by (stac iob_Plus 1); by (Simp_tac 1); 
 val iob_Plus_eq_0 = result(); 
 
-goal Bin.thy "(integ_of_bin MinusSign = $# 0) = False"; 
+Goal "(integ_of_bin MinusSign = $# 0) = False"; 
   by (stac iob_Minus 1); 
   by (Simp_tac 1);
 val iob_Minus_not_eq_0 = result(); 
 
-goal Bin.thy 
+Goal 
     "(integ_of_bin (Bcons w x) = $# 0) = (~x & integ_of_bin w = $# 0)"; 
   by (stac iob_Bcons 1);
   by (case_tac "x" 1); 
@@ -233,21 +233,21 @@ goal Bin.thy
   by (Asm_full_simp_tac 1); 
 val iob_Bcons_eq_0 = result(); 
 
-goalw Bin.thy [zless_def,zdiff_def] 
+Goalw [zless_def,zdiff_def] 
     "integ_of_bin x < integ_of_bin y \
 \    = (integ_of_bin (bin_add x (bin_minus y)) < $# 0)";
   by (Simp_tac 1); 
 val iob_less_eq_diff_lt_0 = result(); 
 
-goal Bin.thy "(integ_of_bin PlusSign < $# 0) = False"; 
+Goal "(integ_of_bin PlusSign < $# 0) = False"; 
   by (stac iob_Plus 1); by (Simp_tac 1); 
 val iob_Plus_not_lt_0 = result(); 
 
-goal Bin.thy "(integ_of_bin MinusSign < $# 0) = True"; 
+Goal "(integ_of_bin MinusSign < $# 0) = True"; 
   by (stac iob_Minus 1); by (Simp_tac 1);
 val iob_Minus_lt_0 = result(); 
 
-goal Bin.thy 
+Goal 
     "(integ_of_bin (Bcons w x) < $# 0) = (integ_of_bin w < $# 0)"; 
   by (stac iob_Bcons 1);
   by (case_tac "x" 1); 
@@ -262,7 +262,7 @@ goal Bin.thy
   by (Simp_tac 1); 
 val iob_Bcons_lt_0 = result(); 
 
-goal Bin.thy
+Goal
   "integ_of_bin x <= integ_of_bin y \
 \  = ( integ_of_bin (bin_add x (bin_minus y)) < $# 0 \
 \    | integ_of_bin (bin_add x (bin_minus y)) = $# 0)";
@@ -283,66 +283,66 @@ Addsimps [zdiff_def, iob_eq_eq_diff_0, iob_less_eq_diff_lt_0,
 
 (*** Examples of performing binary arithmetic by simplification ***)
 
-goal Bin.thy "#13  +  #19 = #32";
+Goal "#13  +  #19 = #32";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#1234  +  #5678 = #6912";
+Goal "#1234  +  #5678 = #6912";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#1359  +  #~2468 = #~1109";
+Goal "#1359  +  #~2468 = #~1109";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#93746 +  #~46375 = #47371";
+Goal "#93746 +  #~46375 = #47371";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "$~ #65745 = #~65745";
+Goal "$~ #65745 = #~65745";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "$~ #~54321 = #54321";
+Goal "$~ #~54321 = #54321";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#13  *  #19 = #247";
+Goal "#13  *  #19 = #247";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#~84  *  #51 = #~4284";
+Goal "#~84  *  #51 = #~4284";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#255  *  #255 = #65025";
+Goal "#255  *  #255 = #65025";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#1359  *  #~2468 = #~3354012";
+Goal "#1359  *  #~2468 = #~3354012";
 by (Simp_tac 1);
 result();
 
-goal Bin.thy "#89 * #10 ~= #889";  
+Goal "#89 * #10 ~= #889";  
 by (Simp_tac 1); 
 result();
 
-goal Bin.thy "#13 < #18 - #4";  
+Goal "#13 < #18 - #4";  
 by (Simp_tac 1); 
 result();
 
-goal Bin.thy "#~345 < #~242 + #~100";  
+Goal "#~345 < #~242 + #~100";  
 by (Simp_tac 1); 
 result();
 
-goal Bin.thy "#13557456 < #18678654";  
+Goal "#13557456 < #18678654";  
 by (Simp_tac 1); 
 result();
 
-goal Bin.thy "#999999 <= (#1000001 + #1)-#2";  
+Goal "#999999 <= (#1000001 + #1)-#2";  
 by (Simp_tac 1); 
 result();
 
-goal Bin.thy "#1234567 <= #1234567";  
+Goal "#1234567 <= #1234567";  
 by (Simp_tac 1); 
 result();

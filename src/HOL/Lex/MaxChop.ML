@@ -6,7 +6,7 @@
 
 (* Termination of chop *)
 
-goalw thy [reducing_def] "reducing(%qs. maxsplit P ([],qs) [] qs)";
+Goalw [reducing_def] "reducing(%qs. maxsplit P ([],qs) [] qs)";
 by(asm_full_simp_tac (simpset() addsimps [maxsplit_eq]) 1);
 qed "reducing_maxsplit";
 
@@ -17,7 +17,7 @@ val lemma = result();
 
 val chopr_rule = let val [chopr_rule] = chopr.rules in lemma RS chopr_rule end;
 
-goalw thy [chop_def] "!!splitf. reducing splitf ==> \
+Goalw [chop_def] "!!splitf. reducing splitf ==> \
 \ chop splitf xs = (let (pre,post) = splitf xs \
 \                   in if pre=[] then ([],xs) \
 \                      else let (xss,zs) = chop splitf post \
@@ -26,12 +26,12 @@ by(asm_simp_tac (simpset() addsimps [chopr_rule] addcongs [if_weak_cong]) 1);
 by(simp_tac (simpset() addsimps [Let_def] addsplits [split_split]) 1);
 qed "chop_rule";
 
-goalw thy [is_maxsplitter_def,reducing_def]
+Goalw [is_maxsplitter_def,reducing_def]
  "!!splitf. is_maxsplitter P splitf ==> reducing splitf";
 by(Asm_full_simp_tac 1);
 qed "is_maxsplitter_reducing";
 
-goal thy "!!P. is_maxsplitter P splitf ==> \
+Goal "!!P. is_maxsplitter P splitf ==> \
 \ !yss zs. chop splitf xs = (yss,zs) --> xs = concat yss @ zs";
 by(res_inst_tac [("xs","xs")] length_induct 1);
 by(asm_simp_tac (simpset() delsplits [split_if]
@@ -41,7 +41,7 @@ by(asm_full_simp_tac (simpset() addsimps [Let_def,is_maxsplitter_def]
                                 addsplits [split_split]) 1);
 qed_spec_mp "chop_concat";
 
-goal thy "!!P. is_maxsplitter P splitf ==> \
+Goal "!!P. is_maxsplitter P splitf ==> \
 \ !yss zs. chop splitf xs = (yss,zs) --> (!ys : set yss. ys ~= [])";
 by(res_inst_tac [("xs","xs")] length_induct 1);
 by(asm_simp_tac (simpset() addsimps [chop_rule,is_maxsplitter_reducing]

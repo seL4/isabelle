@@ -12,20 +12,20 @@ val tac =
   Fast_tac 1;
 
 
-goalw thy [is_inf_def] "is_inf x y inf & is_inf x y inf' --> inf = inf'";
+Goalw [is_inf_def] "is_inf x y inf & is_inf x y inf' --> inf = inf'";
   by tac;
 qed "is_inf_uniq";
 
-goalw thy [is_sup_def] "is_sup x y sup & is_sup x y sup' --> sup = sup'";
+Goalw [is_sup_def] "is_sup x y sup & is_sup x y sup' --> sup = sup'";
   by tac;
 qed "is_sup_uniq";
 
 
-goalw thy [is_Inf_def] "is_Inf A inf & is_Inf A inf' --> inf = inf'";
+Goalw [is_Inf_def] "is_Inf A inf & is_Inf A inf' --> inf = inf'";
   by tac;
 qed "is_Inf_uniq";
 
-goalw thy [is_Sup_def] "is_Sup A sup & is_Sup A sup' --> sup = sup'";
+Goalw [is_Sup_def] "is_Sup A sup & is_Sup A sup' --> sup = sup'";
   by tac;
 qed "is_Sup_uniq";
 
@@ -33,18 +33,18 @@ qed "is_Sup_uniq";
 
 (* commutativity *)
 
-goalw thy [is_inf_def] "is_inf x y inf = is_inf y x inf";
+Goalw [is_inf_def] "is_inf x y inf = is_inf y x inf";
   by (Fast_tac 1);
 qed "is_inf_commut";
 
-goalw thy [is_sup_def] "is_sup x y sup = is_sup y x sup";
+Goalw [is_sup_def] "is_sup x y sup = is_sup y x sup";
   by (Fast_tac 1);
 qed "is_sup_commut";
 
 
 (* associativity *)
 
-goalw thy [is_inf_def] "is_inf x y xy & is_inf y z yz & is_inf xy z xyz --> is_inf x yz xyz";
+Goalw [is_inf_def] "is_inf x y xy & is_inf y z yz & is_inf xy z xyz --> is_inf x yz xyz";
   by Safe_tac;
   (*level 1*)
     by (rtac (le_trans RS mp) 1);
@@ -78,7 +78,7 @@ goalw thy [is_inf_def] "is_inf x y xy & is_inf y z yz & is_inf xy z xyz --> is_i
 qed "is_inf_assoc";
 
 
-goalw thy [is_sup_def] "is_sup x y xy & is_sup y z yz & is_sup xy z xyz --> is_sup x yz xyz";
+Goalw [is_sup_def] "is_sup x y xy & is_sup y z yz & is_sup xy z xyz --> is_sup x yz xyz";
   by Safe_tac;
   (*level 1*)
     by (rtac (le_trans RS mp) 1);
@@ -114,7 +114,7 @@ qed "is_sup_assoc";
 
 (** limits in linear orders **)
 
-goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::linear_order) y (minimum x y)";
+Goalw [minimum_def, is_inf_def] "is_inf (x::'a::linear_order) y (minimum x y)";
   by (stac split_if 1);
   by (REPEAT_FIRST (resolve_tac [conjI, impI]));
   (*case "x [= y"*)
@@ -130,7 +130,7 @@ goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::linear_order) y (minimum x y
     by (Fast_tac 1);
 qed "min_is_inf";
 
-goalw thy [maximum_def, is_sup_def] "is_sup (x::'a::linear_order) y (maximum x y)";
+Goalw [maximum_def, is_sup_def] "is_sup (x::'a::linear_order) y (maximum x y)";
   by (stac split_if 1);
   by (REPEAT_FIRST (resolve_tac [conjI, impI]));
   (*case "x [= y"*)
@@ -150,7 +150,7 @@ qed "max_is_sup";
 
 (** general vs. binary limits **)
 
-goalw thy [is_inf_def, is_Inf_def] "is_Inf {x, y} inf = is_inf x y inf";
+Goalw [is_inf_def, is_Inf_def] "is_Inf {x, y} inf = is_inf x y inf";
   by (rtac iffI 1);
   (*==>*)
     by (Fast_tac 1);
@@ -161,7 +161,7 @@ goalw thy [is_inf_def, is_Inf_def] "is_Inf {x, y} inf = is_inf x y inf";
     by (Fast_tac 1);
 qed "bin_is_Inf_eq";
 
-goalw thy [is_sup_def, is_Sup_def] "is_Sup {x, y} sup = is_sup x y sup";
+Goalw [is_sup_def, is_Sup_def] "is_Sup {x, y} sup = is_sup x y sup";
   by (rtac iffI 1);
   (*==>*)
     by (Fast_tac 1);

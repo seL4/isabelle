@@ -1046,7 +1046,7 @@ qed_goal "aall_mono" TLA.thy
 (* ----------------------------------------------------------------------
    example of a history variable: existence of a clock
 
-goal TLA.thy "(EEX h. Init($h .= #True) .& [](h$ .~= $h))";
+Goal "(EEX h. Init($h .= #True) .& [](h$ .~= $h))";
 by (rtac tempI 1);
 by (rtac historyI 1);
 by (rewrite_goals_tac action_rews);

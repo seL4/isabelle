@@ -4,15 +4,15 @@
     Copyright   1998 TUM
 *)
 
-goalw thy [start_def] "start(q,d,f) = q";
+Goalw [start_def] "start(q,d,f) = q";
 by(Simp_tac 1);
 qed "start_conv";
 
-goalw thy [next_def] "next(q,d,f) = d";
+Goalw [next_def] "next(q,d,f) = d";
 by(Simp_tac 1);
 qed "next_conv";
 
-goalw thy [fin_def] "fin(q,d,f) = f";
+Goalw [fin_def] "fin(q,d,f) = f";
 by(Simp_tac 1);
 qed "fin_conv";
 

@@ -5,23 +5,23 @@
 *)
 
 (* constructor laws for option_bind *)
-goalw thy [option_bind_def] "option_bind (Some s) f = (f s)";
+Goalw [option_bind_def] "option_bind (Some s) f = (f s)";
 by (Simp_tac 1);
 qed "option_bind_Some";
 
-goalw thy [option_bind_def] "option_bind None f = None";
+Goalw [option_bind_def] "option_bind None f = None";
 by (Simp_tac 1);
 qed "option_bind_None";
 
 Addsimps [option_bind_Some,option_bind_None];
 
 (* expansion of option_bind *)
-goalw thy [option_bind_def] "P(option_bind res f) = \
+Goalw [option_bind_def] "P(option_bind res f) = \
 \         ((res = None --> P None) & (!s. res = Some s --> P(f s)))";
 by (rtac split_option_case 1);
 qed "split_option_bind";
 
-goal thy
+Goal
   "((option_bind m f) = None) = ((m=None) | (? p. m = Some p & f p = None))";
 by (simp_tac (simpset() addsplits [split_option_bind]) 1);
 qed "option_bind_eq_None";
@@ -29,6 +29,6 @@ qed "option_bind_eq_None";
 Addsimps [option_bind_eq_None];
 
 (* auxiliary lemma *)
-goal Maybe.thy "(y = Some x) = (Some x = y)";
+Goal "(y = Some x) = (Some x = y)";
 by ( simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 qed "rotate_Some";

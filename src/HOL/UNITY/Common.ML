@@ -14,7 +14,7 @@ From Misra, "A Logic for Concurrent Programming" (1994), sections 5.1 and 13.1.
 open Common;
 
 (*Misra's property CMT4: t exceeds no common meeting time*)
-goal thy
+Goal
   "!!Acts. [| ALL m. constrains Acts {m} (maxfg m); n: common |] \
 \           ==> stable Acts (atMost n)";
 by (dres_inst_tac [("P", "%t. t<=n")] elimination_sing 1);
@@ -28,7 +28,7 @@ by (blast_tac (claset() addSEs [subsetCE]
 			addIs [order_eq_refl, fmono, gmono, le_trans]) 1);
 qed "common_stable";
 
-goal thy
+Goal
   "!!Acts. [| ALL m. constrains Acts {m} (maxfg m); n: common |] \
 \           ==> reachable {0} Acts <= atMost n";
 by (rtac strongest_invariant 1);
@@ -40,13 +40,13 @@ qed "common_invariant";
 (*** Some programs that implement the safety property above ***)
 
 (*This one is just Skip*)
-goal thy "constrains {id} {m} (maxfg m)";
+Goal "constrains {id} {m} (maxfg m)";
 by (simp_tac (simpset() addsimps [constrains_def, maxfg_def, le_max_iff_disj,
 				  fasc, gasc]) 1);
 result();
 
 (*This one is  t := ftime t || t := gtime t    really needs Skip too*)
-goal thy "constrains {range(%t.(t,ftime t)), range(%t.(t,gtime t))} \
+Goal "constrains {range(%t.(t,ftime t)), range(%t.(t,gtime t))} \
 \                    {m} (maxfg m)";
 by (simp_tac (simpset() addsimps [constrains_def, maxfg_def, 
 				  le_max_iff_disj]) 1);
@@ -54,14 +54,14 @@ by (Blast_tac 1);
 result();
 
 (*This one is  t := max (ftime t) (gtime t)    really needs Skip too*)
-goal thy "constrains {range(%t.(t, max (ftime t) (gtime t)))} \
+Goal "constrains {range(%t.(t, max (ftime t) (gtime t)))} \
 \                    {m} (maxfg m)";
 by (simp_tac (simpset() addsimps [constrains_def, maxfg_def]) 1);
 by (Blast_tac 1);
 result();
 
 (*This one is  t := t+1 if t <max (ftime t) (gtime t) *)
-goalw thy [constrains_def, maxfg_def] 
+Goalw [constrains_def, maxfg_def] 
     "constrains { {(t, Suc t) | t. t < max (ftime t) (gtime t)} } \
 \               {m} (maxfg m)";
 by (blast_tac (claset() addIs [Suc_leI]) 1);
@@ -76,7 +76,7 @@ result();
 
 Addsimps [atMost_Int_atLeast];
 
-goal thy
+Goal
     "!!Acts. [| ALL m. constrains Acts {m} (maxfg m); \
 \               ALL m: lessThan n. leadsTo Acts {m} (greaterThan m); \
 \               n: common;  id: Acts |]  \
@@ -90,7 +90,7 @@ by (blast_tac (claset() addDs [PSP_stable2]
 val lemma = result();
 
 (*The "ALL m: Compl common" form echoes CMT6.*)
-goal thy
+Goal
     "!!Acts. [| ALL m. constrains Acts {m} (maxfg m); \
 \               ALL m: Compl common. leadsTo Acts {m} (greaterThan m); \
 \               n: common;  id: Acts |]  \

@@ -25,7 +25,7 @@ Addsimps [fib_0, fib_1];
 val fib_Suc3 = read_instantiate [("x", "(Suc ?n)")] fib_Suc_Suc;
 
 (*Concrete Mathematics, page 280*)
-goal thy "fib (Suc (n + k)) = fib(Suc k) * fib(Suc n) + fib k * fib n";
+Goal "fib (Suc (n + k)) = fib(Suc k) * fib(Suc n) + fib k * fib n";
 by (res_inst_tac [("u","n")] fib.induct 1);
 (*Simplify the LHS just enough to apply the induction hypotheses*)
 by (asm_full_simp_tac
@@ -37,7 +37,7 @@ by (ALLGOALS
 qed "fib_add";
 
 
-goal thy "fib (Suc n) ~= 0";
+Goal "fib (Suc n) ~= 0";
 by (res_inst_tac [("u","n")] fib.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [fib_Suc_Suc])));
 qed "fib_Suc_neq_0";
@@ -45,14 +45,14 @@ qed "fib_Suc_neq_0";
 (* Also add  0 < fib (Suc n) *)
 Addsimps [fib_Suc_neq_0, [neq0_conv, fib_Suc_neq_0] MRS iffD1];
 
-goal thy "!!n. 0<n ==> 0 < fib n";
+Goal "!!n. 0<n ==> 0 < fib n";
 by (rtac (not0_implies_Suc RS exE) 1);
 by Auto_tac;
 qed "fib_gr_0";
 
 
 (*Concrete Mathematics, page 278: Cassini's identity*)
-goal thy "fib (Suc (Suc n)) * fib n = \
+Goal "fib (Suc (Suc n)) * fib n = \
 \              (if n mod 2 = 0 then (fib(Suc n) * fib(Suc n)) - 1 \
 \                              else Suc (fib(Suc n) * fib(Suc n)))";
 by (res_inst_tac [("u","n")] fib.induct 1);
@@ -73,7 +73,7 @@ qed "fib_Cassini";
 
 (** Towards Law 6.111 of Concrete Mathematics **)
 
-goal thy "gcd(fib n, fib (Suc n)) = 1";
+Goal "gcd(fib n, fib (Suc n)) = 1";
 by (res_inst_tac [("u","n")] fib.induct 1);
 by (asm_simp_tac (simpset() addsimps [fib_Suc3, gcd_commute, gcd_add2]) 3);
 by (ALLGOALS (simp_tac (simpset() addsimps [fib_Suc_Suc])));
@@ -82,7 +82,7 @@ qed "gcd_fib_Suc_eq_1";
 val gcd_fib_commute = 
     read_instantiate_sg (sign_of thy) [("m", "fib m")] gcd_commute;
 
-goal thy "gcd(fib m, fib (n+m)) = gcd(fib m, fib n)";
+Goal "gcd(fib m, fib (n+m)) = gcd(fib m, fib n)";
 by (simp_tac (simpset() addsimps [gcd_fib_commute]) 1);
 by (case_tac "m=0" 1);
 by (Asm_simp_tac 1);
@@ -93,12 +93,12 @@ by (asm_simp_tac (simpset() addsimps [gcd_non_0 RS sym]) 1);
 by (asm_simp_tac (simpset() addsimps [gcd_fib_Suc_eq_1, gcd_mult_cancel]) 1);
 qed "gcd_fib_add";
 
-goal thy "!!m. m <= n ==> gcd(fib m, fib (n-m)) = gcd(fib m, fib n)";
+Goal "!!m. m <= n ==> gcd(fib m, fib (n-m)) = gcd(fib m, fib n)";
 by (rtac (gcd_fib_add RS sym RS trans) 1);
 by (Asm_simp_tac 1);
 qed "gcd_fib_diff";
 
-goal thy "!!m. 0<m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
+Goal "!!m. 0<m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
 by (res_inst_tac [("n","n")] less_induct 1);
 by (stac mod_if 1);
 by (Asm_simp_tac 1);
@@ -107,7 +107,7 @@ by (asm_simp_tac (simpset() addsimps [gcd_fib_diff, mod_less, mod_geq,
 qed "gcd_fib_mod";
 
 (*Law 6.111*)
-goal thy "fib(gcd(m,n)) = gcd(fib m, fib n)";
+Goal "fib(gcd(m,n)) = gcd(fib m, fib n)";
 by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
 by (Asm_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [gcd_non_0]) 1);

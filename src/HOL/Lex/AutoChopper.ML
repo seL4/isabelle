@@ -13,12 +13,12 @@ fun th1 repeat_RS th2 = ((th1 RS th2) repeat_RS th2) handle _ => th1;
 
 Addsimps [Let_def];
 
-goalw thy [acc_prefix_def] "~acc_prefix A [] s";
+Goalw [acc_prefix_def] "~acc_prefix A [] s";
 by (Simp_tac 1);
 qed"acc_prefix_Nil";
 Addsimps [acc_prefix_Nil];
 
-goalw thy [acc_prefix_def]
+Goalw [acc_prefix_def]
  "acc_prefix A (x#xs) s = (fin A (next A x s) | acc_prefix A xs (next A x s))";
 by (simp_tac (simpset() addsimps [prefix_Cons]) 1);
 by Safe_tac;
@@ -34,14 +34,14 @@ by (Asm_simp_tac 1);
 qed"acc_prefix_Cons";
 Addsimps [acc_prefix_Cons];
 
-goal thy "!st us p y ys. acc A st p (ys@[y]) xs us ~= ([],zs)";
+Goal "!st us p y ys. acc A st p (ys@[y]) xs us ~= ([],zs)";
 by (induct_tac "xs" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 val accept_not_Nil = result() repeat_RS spec;
 Addsimps [accept_not_Nil];
 
-goal thy
+Goal
 "!st us. acc A st ([],ys) [] xs us = ([], zs) --> \
 \        zs = ys & (!ys. ys ~= [] & ys<=xs --> ~fin A (delta A ys st))";
 by (induct_tac "xs" 1);
@@ -67,7 +67,7 @@ by (Fast_tac 1);
 val ex_special = result();
 
 
-goal thy
+Goal
 "! r erk l rst st ys yss zs::'a list. \
 \    acc A st (l,rst) erk xs r = (ys#yss, zs) --> \
 \    ys@concat(yss)@zs = (if acc_prefix A xs st then r@xs else erk@concat(l)@rst)";
@@ -86,7 +86,7 @@ by (Asm_simp_tac 1);
 val step2_a = (result() repeat_RS spec) RS mp;
 
 
-goal thy
+Goal
  "! st erk r l rest ys yss zs.\
 \   acc A st (l,rest) erk xs r = (ys#yss, zs) --> \
 \     (if acc_prefix A xs st \
@@ -109,7 +109,7 @@ by (Simp_tac 1);
 val step2_b = (result() repeat_RS spec) RS mp;
 
 
-goal thy  
+Goal  
  "! st erk r l rest ys yss zs. \
 \   acc A st (l,rest) erk xs r = (ys#yss, zs) --> \
 \     (if acc_prefix A xs st                   \
@@ -148,7 +148,7 @@ by (Fast_tac 1);
 val step2_c = (result() repeat_RS spec) RS mp;
 
 
-goal thy
+Goal
  "! st erk r l rest ys yss zs. \
 \   acc A st (l,rest) erk xs r = (ys#yss, zs) --> \
 \     (if acc_prefix A xs st       \
@@ -187,7 +187,7 @@ by (Simp_tac 1);
 val step2_d = (result() repeat_RS spec) RS mp;
 
 Delsimps [split_paired_All];
-goal thy 
+Goal 
 "! st erk r p ys yss zs. \
 \  acc A st p erk xs r = (ys#yss, zs) --> \
 \  (if acc_prefix A xs st  \
@@ -238,7 +238,7 @@ by (Fast_tac 1);
 val step2_e = (result() repeat_RS spec) RS mp;
 Addsimps[split_paired_All];
 
-goalw thy [accepts_def, is_auto_chopper_def, auto_chopper_def,
+Goalw [accepts_def, is_auto_chopper_def, auto_chopper_def,
            Chopper.is_longest_prefix_chopper_def]
  "is_auto_chopper(auto_chopper)";
 by (REPEAT(ares_tac [no_acc,allI,impI,conjI] 1));

@@ -10,7 +10,7 @@ open Examples;
 
 (*** multiplication by successive addition ***)
 
-goal thy
+Goal
  "{m=0 & s=0} \
 \ WHILE m ~= a DO {s = m*b} s := s+b; m := Suc(m) END\
 \ {s = a*b}";
@@ -21,7 +21,7 @@ qed "multiply_by_add";
 
 (*** Euclid's algorithm for GCD ***)
 
-goal thy
+Goal
 " {0<A & 0<B & a=A & b=B}   \
 \ WHILE a ~= b  \
 \ DO  {0<a & 0<b & gcd A B = gcd a b} \
@@ -48,7 +48,7 @@ qed "Euclid_GCD";
 
 (*** Power by interated squaring and multiplication ***)
 
-goal thy
+Goal
 " {a=A & b=B}   \
 \ c:=1;   \
 \ WHILE b~=0   \
@@ -74,7 +74,7 @@ qed "power_by_mult";
 
 (*** factorial ***)
 
-goal thy
+Goal
 " {a=A}   \
 \ b:=1;   \
 \ WHILE a~=0    \

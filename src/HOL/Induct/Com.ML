@@ -19,7 +19,7 @@ val exec_WHILE_case = exec.mk_cases exp.simps "(WHILE b DO c,s) -[eval]-> t";
 AddSEs exec_elim_cases;
 
 (*This theorem justifies using "exec" in the inductive definition of "eval"*)
-goalw thy exec.defs "!!A B. A<=B ==> exec(A) <= exec(B)";
+Goalw exec.defs "!!A B. A<=B ==> exec(A) <= exec(B)";
 by (rtac lfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "exec_mono";
@@ -29,7 +29,7 @@ Unify.trace_bound := 30;
 Unify.search_bound := 60;
 
 (*Command execution is functional (deterministic) provided evaluation is*)
-goal thy "!!x. Function ev ==> Function(exec ev)";
+Goal "!!x. Function ev ==> Function(exec ev)";
 by (simp_tac (simpset() addsimps [Function_def, Unique_def]) 1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
@@ -44,15 +44,15 @@ by (REPEAT (blast_tac (claset() addEs [exec_WHILE_case]) 1));
 qed "Function_exec";
 
 
-goalw thy [assign_def] "(s[v/x])x = v";
+Goalw [assign_def] "(s[v/x])x = v";
 by (Simp_tac 1);
 qed "assign_same";
 
-goalw thy [assign_def] "!!y. y~=x ==> (s[v/x])y = s y";
+Goalw [assign_def] "!!y. y~=x ==> (s[v/x])y = s y";
 by (Asm_simp_tac 1);
 qed "assign_different";
 
-goalw thy [assign_def] "s[s x/x] = s";
+Goalw [assign_def] "s[s x/x] = s";
 by (rtac ext 1);
 by (Simp_tac 1);
 qed "assign_triv";

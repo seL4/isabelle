@@ -8,14 +8,14 @@ and order_less_irrefl.  We do not add the "nat" versions to the basic claset
 because the type will be promoted to type class "order".
 *)
 
-goal thy "mono(%X. {Zero_Rep} Un (Suc_Rep``X))";
+Goal "mono(%X. {Zero_Rep} Un (Suc_Rep``X))";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));
 qed "Nat_fun_mono";
 
 val Nat_unfold = Nat_fun_mono RS (Nat_def RS def_lfp_Tarski);
 
 (* Zero is a natural number -- this also justifies the type definition*)
-goal thy "Zero_Rep: Nat";
+Goal "Zero_Rep: Nat";
 by (stac Nat_unfold 1);
 by (rtac (singletonI RS UnI1) 1);
 qed "Zero_RepI";
@@ -80,19 +80,19 @@ qed "natE";
 (*We can't take these properties as axioms, or take Abs_Nat==Inv(Rep_Nat),
   since we assume the isomorphism equations will one day be given by Isabelle*)
 
-goal thy "inj(Rep_Nat)";
+Goal "inj(Rep_Nat)";
 by (rtac inj_inverseI 1);
 by (rtac Rep_Nat_inverse 1);
 qed "inj_Rep_Nat";
 
-goal thy "inj_on Abs_Nat Nat";
+Goal "inj_on Abs_Nat Nat";
 by (rtac inj_on_inverseI 1);
 by (etac Abs_Nat_inverse 1);
 qed "inj_on_Abs_Nat";
 
 (*** Distinctness of constructors ***)
 
-goalw thy [Zero_def,Suc_def] "Suc(m) ~= 0";
+Goalw [Zero_def,Suc_def] "Suc(m) ~= 0";
 by (rtac (inj_on_Abs_Nat RS inj_on_contraD) 1);
 by (rtac Suc_Rep_not_Zero_Rep 1);
 by (REPEAT (resolve_tac [Rep_Nat, Suc_RepI, Zero_RepI] 1));
@@ -107,7 +107,7 @@ val Zero_neq_Suc = sym RS Suc_neq_Zero;
 
 (** Injectiveness of Suc **)
 
-goalw thy [Suc_def] "inj(Suc)";
+Goalw [Suc_def] "inj(Suc)";
 by (rtac injI 1);
 by (dtac (inj_on_Abs_Nat RS inj_onD) 1);
 by (REPEAT (resolve_tac [Rep_Nat, Suc_RepI] 1));
@@ -117,20 +117,20 @@ qed "inj_Suc";
 
 val Suc_inject = inj_Suc RS injD;
 
-goal thy "(Suc(m)=Suc(n)) = (m=n)";
+Goal "(Suc(m)=Suc(n)) = (m=n)";
 by (EVERY1 [rtac iffI, etac Suc_inject, etac arg_cong]); 
 qed "Suc_Suc_eq";
 
 AddIffs [Suc_Suc_eq];
 
-goal thy "n ~= Suc(n)";
+Goal "n ~= Suc(n)";
 by (nat_ind_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "n_not_Suc_n";
 
 bind_thm ("Suc_n_not_n", n_not_Suc_n RS not_sym);
 
-goal thy "!!n. n ~= 0 ==> EX m. n = Suc m";
+Goal "!!n. n ~= 0 ==> EX m. n = Suc m";
 by (rtac natE 1);
 by (REPEAT (Blast_tac 1));
 qed "not0_implies_Suc";
@@ -138,15 +138,15 @@ qed "not0_implies_Suc";
 
 (*** nat_case -- the selection operator for nat ***)
 
-goalw thy [nat_case_def] "nat_case a f 0 = a";
+Goalw [nat_case_def] "nat_case a f 0 = a";
 by (Blast_tac 1);
 qed "nat_case_0";
 
-goalw thy [nat_case_def] "nat_case a f (Suc k) = f(k)";
+Goalw [nat_case_def] "nat_case a f (Suc k) = f(k)";
 by (Blast_tac 1);
 qed "nat_case_Suc";
 
-goalw thy [wf_def, pred_nat_def] "wf(pred_nat)";
+Goalw [wf_def, pred_nat_def] "wf(pred_nat)";
 by (Clarify_tac 1);
 by (nat_ind_tac "x" 1);
 by (ALLGOALS Blast_tac);
@@ -156,7 +156,7 @@ qed "wf_pred_nat";
 (*** nat_rec -- by wf recursion on pred_nat ***)
 
 (* The unrolling rule for nat_rec *)
-goal thy
+Goal
    "nat_rec c d = wfrec pred_nat (%f. nat_case c (%m. d m (f m)))";
   by (simp_tac (HOL_ss addsimps [nat_rec_def]) 1);
 bind_thm("nat_rec_unfold", wf_pred_nat RS 
@@ -169,12 +169,12 @@ bind_thm("nat_rec_unfold", wf_pred_nat RS
 
 (** conversion rules **)
 
-goal thy "nat_rec c h 0 = c";
+Goal "nat_rec c h 0 = c";
 by (rtac (nat_rec_unfold RS trans) 1);
 by (simp_tac (simpset() addsimps [nat_case_0]) 1);
 qed "nat_rec_0";
 
-goal thy "nat_rec c h (Suc n) = h n (nat_rec c h n)";
+Goal "nat_rec c h (Suc n) = h n (nat_rec c h n)";
 by (rtac (nat_rec_unfold RS trans) 1);
 by (simp_tac (simpset() addsimps [nat_case_Suc, pred_nat_def, cut_apply]) 1);
 qed "nat_rec_Suc";
@@ -200,7 +200,7 @@ fun nat_recs def =
 (*** Basic properties of "less than" ***)
 
 (*Used in TFL/post.sml*)
-goalw thy [less_def] "(m,n) : pred_nat^+ = (m<n)";
+Goalw [less_def] "(m,n) : pred_nat^+ = (m<n)";
 by (rtac refl 1);
 qed "less_eq";
 
@@ -212,7 +212,7 @@ by (resolve_tac prems 1);
 by (resolve_tac prems 1);
 qed "less_trans";
 
-goalw thy [less_def, pred_nat_def] "n < Suc(n)";
+Goalw [less_def, pred_nat_def] "n < Suc(n)";
 by (simp_tac (simpset() addsimps [r_into_trancl]) 1);
 qed "lessI";
 AddIffs [lessI];
@@ -221,7 +221,7 @@ AddIffs [lessI];
 bind_thm("less_SucI", lessI RSN (2, less_trans));
 Addsimps [less_SucI];
 
-goal thy "0 < Suc(n)";
+Goal "0 < Suc(n)";
 by (nat_ind_tac "n" 1);
 by (rtac lessI 1);
 by (etac less_trans 1);
@@ -238,7 +238,7 @@ qed "less_not_sym";
 (* [| n<m; m<n |] ==> R *)
 bind_thm ("less_asym", (less_not_sym RS notE));
 
-goalw thy [less_def] "~ n<(n::nat)";
+Goalw [less_def] "~ n<(n::nat)";
 by (rtac notI 1);
 by (etac (wf_pred_nat RS wf_trancl RS wf_irrefl) 1);
 qed "less_not_refl";
@@ -246,7 +246,7 @@ qed "less_not_refl";
 (* n<n ==> R *)
 bind_thm ("less_irrefl", (less_not_refl RS notE));
 
-goal thy "!!m. n<m ==> m ~= (n::nat)";
+Goal "!!m. n<m ==> m ~= (n::nat)";
 by (blast_tac (claset() addSEs [less_irrefl]) 1);
 qed "less_not_refl2";
 
@@ -260,7 +260,7 @@ by (REPEAT_FIRST (bound_hyp_subst_tac ORELSE'
                   eresolve_tac (prems@[asm_rl, Pair_inject])));
 qed "lessE";
 
-goal thy "~ n<0";
+Goal "~ n<0";
 by (rtac notI 1);
 by (etac lessE 1);
 by (etac Zero_neq_Suc 1);
@@ -281,11 +281,11 @@ by (rtac less 1);
 by (Blast_tac 1);
 qed "less_SucE";
 
-goal thy "(m < Suc(n)) = (m < n | m = n)";
+Goal "(m < Suc(n)) = (m < n | m = n)";
 by (blast_tac (claset() addSEs [less_SucE] addIs [less_trans]) 1);
 qed "less_Suc_eq";
 
-goal thy "(n<1) = (n=0)";
+Goal "(n<1) = (n=0)";
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 qed "less_one";
 AddIffs [less_one];
@@ -296,7 +296,7 @@ by (cut_facts_tac prems 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 
-goal thy "(n ~= 0) = (0 < n)";
+Goal "(n ~= 0) = (0 < n)";
 by (rtac natE 1);
 by (Blast_tac 1);
 by (Blast_tac 1);
@@ -306,28 +306,28 @@ AddIffs [neq0_conv];
 (*This theorem is useful with blast_tac: (n=0 ==> False) ==> 0<n *)
 bind_thm ("gr0I", [neq0_conv, notI] MRS iffD1);
 
-goal thy "(~(0 < n)) = (n=0)";
+Goal "(~(0 < n)) = (n=0)";
 by (rtac iffI 1);
  by (etac swap 1);
  by (ALLGOALS Asm_full_simp_tac);
 qed "not_gr0";
 Addsimps [not_gr0];
 
-goal thy "!!m. m<n ==> 0 < n";
+Goal "!!m. m<n ==> 0 < n";
 by (dtac gr_implies_not0 1);
 by (Asm_full_simp_tac 1);
 qed "gr_implies_gr0";
 Addsimps [gr_implies_gr0];
 
 
-goal thy "!!m n. m<n ==> Suc(m) < Suc(n)";
+Goal "!!m n. m<n ==> Suc(m) < Suc(n)";
 by (etac rev_mp 1);
 by (nat_ind_tac "n" 1);
 by (ALLGOALS (fast_tac (claset() addEs  [less_trans, lessE])));
 qed "Suc_mono";
 
 (*"Less than" is a linear ordering*)
-goal thy "m<n | m=n | n<(m::nat)";
+Goal "m<n | m=n | n<(m::nat)";
 by (nat_ind_tac "m" 1);
 by (nat_ind_tac "n" 1);
 by (rtac (refl RS disjI1 RS disjI2) 1);
@@ -335,7 +335,7 @@ by (rtac (zero_less_Suc RS disjI1) 1);
 by (blast_tac (claset() addIs [Suc_mono, less_SucI] addEs [lessE]) 1);
 qed "less_linear";
 
-goal thy "!!m::nat. (m ~= n) = (m<n | n<m)";
+Goal "!!m::nat. (m ~= n) = (m<n | n<m)";
 by (cut_facts_tac [less_linear] 1);
 by (blast_tac (claset() addSEs [less_irrefl]) 1);
 qed "nat_neq_iff";
@@ -354,7 +354,7 @@ qed_goal "nat_less_cases" thy
 
 (** Inductive (?) properties **)
 
-goal thy "!!m. [| m<n; Suc m ~= n |] ==> Suc(m) < n";
+Goal "!!m. [| m<n; Suc m ~= n |] ==> Suc(m) < n";
 by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
 by (blast_tac (claset() addSEs [less_irrefl, less_SucE] addEs [less_asym]) 1);
 qed "Suc_lessI";
@@ -375,22 +375,22 @@ by (etac (Suc_lessD RS minor) 1);
 by (assume_tac 1);
 qed "Suc_lessE";
 
-goal thy "!!m n. Suc(m) < Suc(n) ==> m<n";
+Goal "!!m n. Suc(m) < Suc(n) ==> m<n";
 by (blast_tac (claset() addEs [lessE, make_elim Suc_lessD]) 1);
 qed "Suc_less_SucD";
 
 
-goal thy "(Suc(m) < Suc(n)) = (m<n)";
+Goal "(Suc(m) < Suc(n)) = (m<n)";
 by (EVERY1 [rtac iffI, etac Suc_less_SucD, etac Suc_mono]);
 qed "Suc_less_eq";
 Addsimps [Suc_less_eq];
 
-goal thy "~(Suc(n) < n)";
+Goal "~(Suc(n) < n)";
 by (blast_tac (claset() addEs [Suc_lessD RS less_irrefl]) 1);
 qed "not_Suc_n_less_n";
 Addsimps [not_Suc_n_less_n];
 
-goal thy "!!i. i<j ==> j<k --> Suc i < k";
+Goal "!!i. i<j ==> j<k --> Suc i < k";
 by (nat_ind_tac "k" 1);
 by (ALLGOALS (asm_simp_tac (simpset())));
 by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
@@ -398,7 +398,7 @@ by (blast_tac (claset() addDs [Suc_lessD]) 1);
 qed_spec_mp "less_trans_Suc";
 
 (*Can be used with less_Suc_eq to get n=m | n<m *)
-goal thy "(~ m < n) = (n < Suc(m))";
+Goal "(~ m < n) = (n < Suc(m))";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "not_less_eq";
@@ -430,22 +430,22 @@ qed_goal "nat_induct2" thy
 
 (*** Properties of <= ***)
 
-goalw thy [le_def] "(m <= n) = (m < Suc n)";
+Goalw [le_def] "(m <= n) = (m < Suc n)";
 by (rtac not_less_eq 1);
 qed "le_eq_less_Suc";
 
 (*  m<=n ==> m < Suc n  *)
 bind_thm ("le_imp_less_Suc", le_eq_less_Suc RS iffD1);
 
-goalw thy [le_def] "0 <= n";
+Goalw [le_def] "0 <= n";
 by (rtac not_less0 1);
 qed "le0";
 
-goalw thy [le_def] "~ Suc n <= n";
+Goalw [le_def] "~ Suc n <= n";
 by (Simp_tac 1);
 qed "Suc_n_not_le_n";
 
-goalw thy [le_def] "(i <= 0) = (i = 0)";
+Goalw [le_def] "(i <= 0) = (i = 0)";
 by (nat_ind_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "le_0_eq";
@@ -456,7 +456,7 @@ Addsimps [(*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
           n_not_Suc_n, Suc_n_not_n,
           nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
 
-goal thy "!!m. (m <= Suc(n)) = (m<=n | m = Suc n)";
+Goal "!!m. (m <= Suc(n)) = (m<=n | m = Suc n)";
 by (simp_tac (simpset() addsimps [le_eq_less_Suc]) 1);
 by (blast_tac (claset() addSEs [less_SucE] addIs [less_SucI]) 1);
 qed "le_Suc_eq";
@@ -465,7 +465,7 @@ qed "le_Suc_eq";
 bind_thm ("le_SucE", le_Suc_eq RS iffD1 RS disjE);
 
 (*
-goal thy "(Suc m < n | Suc m = n) = (m < n)";
+Goal "(Suc m < n | Suc m = n) = (m < n)";
 by (stac (less_Suc_eq RS sym) 1);
 by (rtac Suc_less_eq 1);
 qed "Suc_le_eq";
@@ -497,108 +497,108 @@ qed "leD";
 
 val leE = make_elim leD;
 
-goal thy "(~n<m) = (m<=(n::nat))";
+Goal "(~n<m) = (m<=(n::nat))";
 by (blast_tac (claset() addIs [leI] addEs [leE]) 1);
 qed "not_less_iff_le";
 
-goalw thy [le_def] "!!m. ~ m <= n ==> n<(m::nat)";
+Goalw [le_def] "!!m. ~ m <= n ==> n<(m::nat)";
 by (Blast_tac 1);
 qed "not_leE";
 
-goalw thy [le_def] "(~n<=m) = (m<(n::nat))";
+Goalw [le_def] "(~n<=m) = (m<(n::nat))";
 by (Simp_tac 1);
 qed "not_le_iff_less";
 
-goalw thy [le_def] "!!m. m < n ==> Suc(m) <= n";
+Goalw [le_def] "!!m. m < n ==> Suc(m) <= n";
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (blast_tac (claset() addSEs [less_irrefl,less_asym]) 1);
 qed "Suc_leI";  (*formerly called lessD*)
 
-goalw thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
+Goalw [le_def] "!!m. Suc(m) <= n ==> m <= n";
 by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 qed "Suc_leD";
 
 (* stronger version of Suc_leD *)
-goalw thy [le_def] 
+Goalw [le_def] 
         "!!m. Suc m <= n ==> m < n";
 by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (cut_facts_tac [less_linear] 1);
 by (Blast_tac 1);
 qed "Suc_le_lessD";
 
-goal thy "(Suc m <= n) = (m < n)";
+Goal "(Suc m <= n) = (m < n)";
 by (blast_tac (claset() addIs [Suc_leI, Suc_le_lessD]) 1);
 qed "Suc_le_eq";
 
-goalw thy [le_def] "!!m. m <= n ==> m <= Suc n";
+Goalw [le_def] "!!m. m <= n ==> m <= Suc n";
 by (blast_tac (claset() addDs [Suc_lessD]) 1);
 qed "le_SucI";
 Addsimps[le_SucI];
 
 bind_thm ("le_Suc", not_Suc_n_less_n RS leI);
 
-goalw thy [le_def] "!!m. m < n ==> m <= (n::nat)";
+Goalw [le_def] "!!m. m < n ==> m <= (n::nat)";
 by (blast_tac (claset() addEs [less_asym]) 1);
 qed "less_imp_le";
 
 (** Equivalence of m<=n and  m<n | m=n **)
 
-goalw thy [le_def] "!!m. m <= n ==> m < n | m=(n::nat)";
+Goalw [le_def] "!!m. m <= n ==> m < n | m=(n::nat)";
 by (cut_facts_tac [less_linear] 1);
 by (blast_tac (claset() addEs [less_irrefl,less_asym]) 1);
 qed "le_imp_less_or_eq";
 
-goalw thy [le_def] "!!m. m<n | m=n ==> m <=(n::nat)";
+Goalw [le_def] "!!m. m<n | m=n ==> m <=(n::nat)";
 by (cut_facts_tac [less_linear] 1);
 by (blast_tac (claset() addSEs [less_irrefl] addEs [less_asym]) 1);
 qed "less_or_eq_imp_le";
 
-goal thy "(m <= (n::nat)) = (m < n | m=n)";
+Goal "(m <= (n::nat)) = (m < n | m=n)";
 by (REPEAT(ares_tac [iffI,less_or_eq_imp_le,le_imp_less_or_eq] 1));
 qed "le_eq_less_or_eq";
 
 (*Useful with Blast_tac.   m=n ==> m<=n *)
 bind_thm ("eq_imp_le", disjI2 RS less_or_eq_imp_le);
 
-goal thy "n <= (n::nat)";
+Goal "n <= (n::nat)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
 
-goal thy "!!i. [| i <= j; j < k |] ==> i < (k::nat)";
+Goal "!!i. [| i <= j; j < k |] ==> i < (k::nat)";
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]
 	                addIs [less_trans]) 1);
 qed "le_less_trans";
 
-goal thy "!!i. [| i < j; j <= k |] ==> i < (k::nat)";
+Goal "!!i. [| i < j; j <= k |] ==> i < (k::nat)";
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]
 	                addIs [less_trans]) 1);
 qed "less_le_trans";
 
-goal thy "!!i. [| i <= j; j <= k |] ==> i <= (k::nat)";
+Goal "!!i. [| i <= j; j <= k |] ==> i <= (k::nat)";
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]
 	                addIs [less_or_eq_imp_le, less_trans]) 1);
 qed "le_trans";
 
-goal thy "!!m. [| m <= n; n <= m |] ==> m = (n::nat)";
+Goal "!!m. [| m <= n; n <= m |] ==> m = (n::nat)";
 (*order_less_irrefl could make this proof fail*)
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]
 	                addSEs [less_irrefl] addEs [less_asym]) 1);
 qed "le_anti_sym";
 
-goal thy "(Suc(n) <= Suc(m)) = (n <= m)";
+Goal "(Suc(n) <= Suc(m)) = (n <= m)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 qed "Suc_le_mono";
 
 AddIffs [Suc_le_mono];
 
 (* Axiom 'order_le_less' of class 'order': *)
-goal thy "(m::nat) < n = (m <= n & m ~= n)";
+Goal "(m::nat) < n = (m <= n & m ~= n)";
 by (simp_tac (simpset() addsimps [le_def, nat_neq_iff]) 1);
 by (blast_tac (claset() addSEs [less_asym]) 1);
 qed "nat_less_le";
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
-goal thy "(m::nat) <= n | n <= m";
+Goal "(m::nat) <= n | n <= m";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 by (cut_facts_tac [less_linear] 1);
 by(Blast_tac 1);
@@ -607,12 +607,12 @@ qed "nat_le_linear";
 
 (** max
 
-goalw thy [max_def] "!!z::nat. (z <= max x y) = (z <= x | z <= y)";
+Goalw [max_def] "!!z::nat. (z <= max x y) = (z <= x | z <= y)";
 by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "le_max_iff_disj";
 
-goalw thy [max_def] "!!z::nat. (max x y <= z) = (x <= z & y <= z)";
+Goalw [max_def] "!!z::nat. (max x y <= z) = (x <= z & y <= z)";
 by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "max_le_iff_conj";
@@ -620,12 +620,12 @@ qed "max_le_iff_conj";
 
 (** min **)
 
-goalw thy [min_def] "!!z::nat. (z <= min x y) = (z <= x & z <= y)";
+Goalw [min_def] "!!z::nat. (z <= min x y) = (z <= x & z <= y)";
 by (simp_tac (simpset() addsimps [not_le_iff_less]) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "le_min_iff_conj";
 
-goalw thy [min_def] "!!z::nat. (min x y <= z) = (x <= z | y <= z)";
+Goalw [min_def] "!!z::nat. (min x y <= z) = (x <= z | y <= z)";
 by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "min_le_iff_disj";
@@ -633,12 +633,12 @@ qed "min_le_iff_disj";
 
 (** LEAST -- the least number operator **)
 
-goal thy "(! m::nat. P m --> n <= m) = (! m. m < n --> ~ P m)";
+Goal "(! m::nat. P m --> n <= m) = (! m. m < n --> ~ P m)";
 by (blast_tac (claset() addIs [leI] addEs [leE]) 1);
 val lemma = result();
 
 (* This is an old def of Least for nat, which is derived for compatibility *)
-goalw thy [Least_def]
+Goalw [Least_def]
   "(LEAST n::nat. P n) == (@n. P(n) & (ALL m. m < n --> ~P(m)))";
 by (simp_tac (simpset() addsimps [lemma]) 1);
 qed "Least_nat_def";

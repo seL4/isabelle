@@ -56,7 +56,7 @@ by (rtac (mono RS mono_Un) 1);
 qed "coinduct_lemma";
 
 (*strong version, thanks to Coen & Frost*)
-goal Gfp.thy
+Goal
     "!!X. [| mono(f);  a: X;  X <= f(X Un gfp(f)) |] ==> a : gfp(f)";
 by (rtac (coinduct_lemma RSN (2, weak_coinduct)) 1);
 by (REPEAT (ares_tac [UnI1, Un_least] 1));

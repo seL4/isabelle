@@ -6,7 +6,7 @@
 *)
 open NPAIR;
 
-goalw thy [rep_NP_def] "rep_NP(abs_NP np) = np";
+Goalw [rep_NP_def] "rep_NP(abs_NP np) = np";
 by Auto_tac;
 qed "rep_abs_NP";
 

@@ -13,7 +13,7 @@ val prems = goal Nat.thy "[| P(0); !!n. P(Suc(n)) |] ==> !n. P(n)";
 by (EVERY1 [rtac (nat_induct RS allI), resolve_tac prems, resolve_tac prems]);
 qed "nat_exh";
 
-goal Puzzle.thy "! n. k=f(n) --> n <= f(n)";
+Goal "! n. k=f(n) --> n <= f(n)";
 by (res_inst_tac [("n","k")] less_induct 1);
 by (rtac nat_exh 1);
 by (Simp_tac 1);
@@ -27,11 +27,11 @@ by (fast_tac (claset() delrules [order_refl]
                       addIs [Puzzle.f_ax, le_less_trans]) 1);
 val lemma = result() RS spec RS mp;
 
-goal Puzzle.thy "n <= f(n)";
+Goal "n <= f(n)";
 by (fast_tac (claset() addIs [lemma]) 1);
 qed "lemma1";
 
-goal Puzzle.thy "f(n) < f(Suc(n))";
+Goal "f(n) < f(Suc(n))";
 by (deepen_tac (claset() addIs [Puzzle.f_ax, le_less_trans, lemma1]) 0 1);
 qed "lemma2";
 
@@ -53,7 +53,7 @@ val prems = goal Puzzle.thy "m <= n ==> f(m) <= f(n)";
 by (fast_tac (claset() addIs ([mono_lemma,less_imp_le,lemma2]@prems)) 1);
 qed "f_mono";
 
-goal Puzzle.thy "f(n) = n";
+Goal "f(n) = n";
 by (rtac le_anti_sym 1);
 by (rtac lemma1 2);
 by (fast_tac (claset() addIs [Puzzle.f_ax,leI] addDs [leD,f_mono,Suc_leI]) 1);

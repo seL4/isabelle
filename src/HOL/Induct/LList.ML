@@ -14,13 +14,13 @@ simpset_ref() := simpset() addsplits [split_split, split_sum_case];
 
 
 (*This justifies using llist in other recursive type definitions*)
-goalw LList.thy llist.defs "!!A B. A<=B ==> llist(A) <= llist(B)";
+Goalw llist.defs "!!A B. A<=B ==> llist(A) <= llist(B)";
 by (rtac gfp_mono 1);
 by (REPEAT (ares_tac basic_monos 1));
 qed "llist_mono";
 
 
-goal LList.thy "llist(A) = {Numb(0)} <+> (A <*> llist(A))";
+Goal "llist(A) = {Numb(0)} <+> (A <*> llist(A))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
 by (fast_tac (claset() addSIs (map rew llist.intrs)
                       addEs [rew llist.elim]) 1)
@@ -32,19 +32,19 @@ qed "llist_unfold";
      THE COINDUCTIVE DEFINITION PACKAGE COULD DO THIS!
 ***)
 
-goalw LList.thy [list_Fun_def]
+Goalw [list_Fun_def]
     "!!M. [| M : X;  X <= list_Fun A (X Un llist(A)) |] ==>  M : llist(A)";
 by (etac llist.coinduct 1);
 by (etac (subsetD RS CollectD) 1);
 by (assume_tac 1);
 qed "llist_coinduct";
 
-goalw LList.thy [list_Fun_def, NIL_def] "NIL: list_Fun A X";
+Goalw [list_Fun_def, NIL_def] "NIL: list_Fun A X";
 by (Fast_tac 1);
 qed "list_Fun_NIL_I";
 AddIffs [list_Fun_NIL_I];
 
-goalw LList.thy [list_Fun_def,CONS_def]
+Goalw [list_Fun_def,CONS_def]
     "!!M N. [| M: A;  N: X |] ==> CONS M N : list_Fun A X";
 by (Fast_tac 1);
 qed "list_Fun_CONS_I";
@@ -52,7 +52,7 @@ Addsimps [list_Fun_CONS_I];
 AddSIs   [list_Fun_CONS_I];
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
-goalw LList.thy (llist.defs @ [list_Fun_def])
+Goalw (llist.defs @ [list_Fun_def])
     "!!M N. M: llist(A) ==> M : list_Fun A (X Un llist(A))";
 by (etac (llist.mono RS gfp_fun_UnI2) 1);
 qed "list_Fun_llist_I";
@@ -60,7 +60,7 @@ qed "list_Fun_llist_I";
 (*** LList_corec satisfies the desired recurion equation ***)
 
 (*A continuity result?*)
-goalw LList.thy [CONS_def] "CONS M (UN x. f(x)) = (UN x. CONS M (f x))";
+Goalw [CONS_def] "CONS M (UN x. f(x)) = (UN x. CONS M (f x))";
 by (simp_tac (simpset() addsimps [In1_UN1, Scons_UN1_y]) 1);
 qed "CONS_UN1";
 
@@ -84,7 +84,7 @@ Addsimps [LList_corec_fun_def RS def_nat_rec_0,
 
 (** The directions of the equality are proved separately **)
 
-goalw LList.thy [LList_corec_def]
+Goalw [LList_corec_def]
     "LList_corec a f <= sum_case (%u. NIL) \
 \                          (split(%z w. CONS z (LList_corec w f))) (f a)";
 by (rtac UN_least 1);
@@ -94,7 +94,7 @@ by (REPEAT (resolve_tac [allI, impI, subset_refl RS CONS_mono,
 			 UNIV_I RS UN_upper] 1));
 qed "LList_corec_subset1";
 
-goalw LList.thy [LList_corec_def]
+Goalw [LList_corec_def]
     "sum_case (%u. NIL) (split(%z w. CONS z (LList_corec w f))) (f a) <= \
 \    LList_corec a f";
 by (simp_tac (simpset() addsimps [CONS_UN1]) 1);
@@ -104,7 +104,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "LList_corec_subset2";
 
 (*the recursion equation for LList_corec -- NOT SUITABLE FOR REWRITING!*)
-goal LList.thy
+Goal
     "LList_corec a f = sum_case (%u. NIL) \
 \                           (split(%z w. CONS z (LList_corec w f))) (f a)";
 by (REPEAT (resolve_tac [equalityI, LList_corec_subset1, 
@@ -121,7 +121,7 @@ qed "def_LList_corec";
 
 (*A typical use of co-induction to show membership in the gfp. 
   Bisimulation is  range(%x. LList_corec x f) *)
-goal LList.thy "LList_corec a f : llist({u. True})";
+Goal "LList_corec a f : llist({u. True})";
 by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
 by Safe_tac;
@@ -130,7 +130,7 @@ by (Simp_tac 1);
 qed "LList_corec_type";
 
 (*Lemma for the proof of llist_corec*)
-goal LList.thy
+Goal
    "LList_corec a (%z. sum_case Inl (split(%v w. Inr((Leaf(v),w)))) (f z)) : \
 \   llist(range Leaf)";
 by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
@@ -144,14 +144,14 @@ qed "LList_corec_type2";
 (**** llist equality as a gfp; the bisimulation principle ****)
 
 (*This theorem is actually used, unlike the many similar ones in ZF*)
-goal LList.thy "LListD(r) = diag({Numb(0)}) <++> (r <**> LListD(r))";
+Goal "LListD(r) = diag({Numb(0)}) <++> (r <**> LListD(r))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
 by (fast_tac (claset() addSIs (map rew LListD.intrs)
                       addEs [rew LListD.elim]) 1)
 end;
 qed "LListD_unfold";
 
-goal LList.thy "!M N. (M,N) : LListD(diag(A)) --> ntrunc k M = ntrunc k N";
+Goal "!M N. (M,N) : LListD(diag(A)) --> ntrunc k M = ntrunc k N";
 by (res_inst_tac [("n", "k")] less_induct 1);
 by (safe_tac ((claset_of Fun.thy) delrules [equalityI]));
 by (etac LListD.elim 1);
@@ -165,7 +165,7 @@ by (asm_simp_tac (simpset() addsimps [CONS_def, less_Suc_eq]) 1);
 qed "LListD_implies_ntrunc_equality";
 
 (*The domain of the LListD relation*)
-goalw LList.thy (llist.defs @ [NIL_def, CONS_def])
+Goalw (llist.defs @ [NIL_def, CONS_def])
     "fst``LListD(diag(A)) <= llist(A)";
 by (rtac gfp_upperbound 1);
 (*avoids unfolding LListD on the rhs*)
@@ -175,7 +175,7 @@ by (Fast_tac 1);
 qed "fst_image_LListD";
 
 (*This inclusion justifies the use of coinduction to show M=N*)
-goal LList.thy "LListD(diag(A)) <= diag(llist(A))";
+Goal "LListD(diag(A)) <= diag(llist(A))";
 by (rtac subsetI 1);
 by (res_inst_tac [("p","x")] PairE 1);
 by Safe_tac;
@@ -191,35 +191,35 @@ qed "LListD_subset_diag";
     THE COINDUCTIVE DEFINITION PACKAGE COULD DO THIS!
  **)
 
-goalw thy [LListD_Fun_def] "!!A B. A<=B ==> LListD_Fun r A <= LListD_Fun r B";
+Goalw [LListD_Fun_def] "!!A B. A<=B ==> LListD_Fun r A <= LListD_Fun r B";
 by (REPEAT (ares_tac basic_monos 1));
 qed "LListD_Fun_mono";
 
-goalw LList.thy [LListD_Fun_def]
+Goalw [LListD_Fun_def]
     "!!M. [| M : X;  X <= LListD_Fun r (X Un LListD(r)) |] ==>  M : LListD(r)";
 by (etac LListD.coinduct 1);
 by (etac (subsetD RS CollectD) 1);
 by (assume_tac 1);
 qed "LListD_coinduct";
 
-goalw LList.thy [LListD_Fun_def,NIL_def] "(NIL,NIL) : LListD_Fun r s";
+Goalw [LListD_Fun_def,NIL_def] "(NIL,NIL) : LListD_Fun r s";
 by (Fast_tac 1);
 qed "LListD_Fun_NIL_I";
 
-goalw LList.thy [LListD_Fun_def,CONS_def]
+Goalw [LListD_Fun_def,CONS_def]
  "!!x. [| x:A;  (M,N):s |] ==> (CONS x M, CONS x N) : LListD_Fun (diag A) s";
 by (Fast_tac 1);
 qed "LListD_Fun_CONS_I";
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
-goalw LList.thy (LListD.defs @ [LListD_Fun_def])
+Goalw (LListD.defs @ [LListD_Fun_def])
     "!!M N. M: LListD(r) ==> M : LListD_Fun r (X Un LListD(r))";
 by (etac (LListD.mono RS gfp_fun_UnI2) 1);
 qed "LListD_Fun_LListD_I";
 
 
 (*This converse inclusion helps to strengthen LList_equalityI*)
-goal LList.thy "diag(llist(A)) <= LListD(diag(A))";
+Goal "diag(llist(A)) <= LListD(diag(A))";
 by (rtac subsetI 1);
 by (etac LListD_coinduct 1);
 by (rtac subsetI 1);
@@ -231,12 +231,12 @@ by (ALLGOALS
 				       LListD_Fun_CONS_I])));
 qed "diag_subset_LListD";
 
-goal LList.thy "LListD(diag(A)) = diag(llist(A))";
+Goal "LListD(diag(A)) = diag(llist(A))";
 by (REPEAT (resolve_tac [equalityI, LListD_subset_diag, 
                          diag_subset_LListD] 1));
 qed "LListD_eq_diag";
 
-goal LList.thy 
+Goal 
     "!!M N. M: llist(A) ==> (M,M) : LListD_Fun (diag A) (X Un diag(llist(A)))";
 by (rtac (LListD_eq_diag RS subst) 1);
 by (rtac LListD_Fun_LListD_I 1);
@@ -247,7 +247,7 @@ qed "LListD_Fun_diag_I";
 (** To show two LLists are equal, exhibit a bisimulation! 
       [also admits true equality]
    Replace "A" by some particular set, like {x.True}??? *)
-goal LList.thy 
+Goal 
     "!!r. [| (M,N) : r;  r <= LListD_Fun (diag A) (r Un diag(llist(A))) \
 \         |] ==>  M=N";
 by (rtac (LListD_subset_diag RS subsetD RS diagE) 1);
@@ -291,11 +291,11 @@ qed "equals_LList_corec";
 
 (** Obsolete LList_corec_unique proof: complete induction, not coinduction **)
 
-goalw LList.thy [CONS_def] "ntrunc (Suc 0) (CONS M N) = {}";
+Goalw [CONS_def] "ntrunc (Suc 0) (CONS M N) = {}";
 by (rtac ntrunc_one_In1 1);
 qed "ntrunc_one_CONS";
 
-goalw LList.thy [CONS_def]
+Goalw [CONS_def]
     "ntrunc (Suc(Suc(k))) (CONS M N) = CONS (ntrunc k M) (ntrunc k N)";
 by (Simp_tac 1);
 qed "ntrunc_CONS";
@@ -327,7 +327,7 @@ result();
 
 (*** Lconst -- defined directly using lfp, but equivalent to a LList_corec ***)
 
-goal LList.thy "mono(CONS(M))";
+Goal "mono(CONS(M))";
 by (REPEAT (ares_tac [monoI, subset_refl, CONS_mono] 1));
 qed "Lconst_fun_mono";
 
@@ -336,21 +336,21 @@ bind_thm ("Lconst", (Lconst_fun_mono RS (Lconst_def RS def_lfp_Tarski)));
 
 (*A typical use of co-induction to show membership in the gfp.
   The containing set is simply the singleton {Lconst(M)}. *)
-goal LList.thy "!!M A. M:A ==> Lconst(M): llist(A)";
+Goal "!!M A. M:A ==> Lconst(M): llist(A)";
 by (rtac (singletonI RS llist_coinduct) 1);
 by Safe_tac;
 by (res_inst_tac [("P", "%u. u: ?A")] (Lconst RS ssubst) 1);
 by (REPEAT (ares_tac [list_Fun_CONS_I, singletonI, UnI1] 1));
 qed "Lconst_type";
 
-goal LList.thy "Lconst(M) = LList_corec M (%x. Inr((x,x)))";
+Goal "Lconst(M) = LList_corec M (%x. Inr((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac Lconst 1);
 qed "Lconst_eq_LList_corec";
 
 (*Thus we could have used gfp in the definition of Lconst*)
-goal LList.thy "gfp(%N. CONS M N) = LList_corec M (%x. Inr((x,x)))";
+Goal "gfp(%N. CONS M N) = LList_corec M (%x. Inr((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac (Lconst_fun_mono RS gfp_Tarski) 1);
@@ -359,19 +359,19 @@ qed "gfp_Lconst_eq_LList_corec";
 
 (*** Isomorphisms ***)
 
-goal LList.thy "inj(Rep_llist)";
+Goal "inj(Rep_llist)";
 by (rtac inj_inverseI 1);
 by (rtac Rep_llist_inverse 1);
 qed "inj_Rep_llist";
 
-goal LList.thy "inj_on Abs_llist (llist(range Leaf))";
+Goal "inj_on Abs_llist (llist(range Leaf))";
 by (rtac inj_on_inverseI 1);
 by (etac Abs_llist_inverse 1);
 qed "inj_on_Abs_llist";
 
 (** Distinctness of constructors **)
 
-goalw LList.thy [LNil_def,LCons_def] "~ LCons x xs = LNil";
+Goalw [LNil_def,LCons_def] "~ LCons x xs = LNil";
 by (rtac (CONS_not_NIL RS (inj_on_Abs_llist RS inj_on_contraD)) 1);
 by (REPEAT (resolve_tac (llist.intrs @ [rangeI, Rep_llist]) 1));
 qed "LCons_not_LNil";
@@ -383,12 +383,12 @@ AddIffs [LCons_not_LNil, LNil_not_LCons];
 
 (** llist constructors **)
 
-goalw LList.thy [LNil_def]
+Goalw [LNil_def]
     "Rep_llist(LNil) = NIL";
 by (rtac (llist.NIL_I RS Abs_llist_inverse) 1);
 qed "Rep_llist_LNil";
 
-goalw LList.thy [LCons_def]
+Goalw [LCons_def]
     "Rep_llist(LCons x l) = CONS (Leaf x) (Rep_llist l)";
 by (REPEAT (resolve_tac [llist.CONS_I RS Abs_llist_inverse,
                          rangeI, Rep_llist] 1));
@@ -396,7 +396,7 @@ qed "Rep_llist_LCons";
 
 (** Injectiveness of CONS and LCons **)
 
-goalw LList.thy [CONS_def] "(CONS M N=CONS M' N') = (M=M' & N=N')";
+Goalw [CONS_def] "(CONS M N=CONS M' N') = (M=M' & N=N')";
 by (fast_tac (claset() addSEs [Scons_inject]) 1);
 qed "CONS_CONS_eq2";
 
@@ -409,7 +409,7 @@ AddIs ([Rep_llist]@llist.intrs);
 AddSDs [inj_on_Abs_llist RS inj_onD,
         inj_Rep_llist RS injD, Leaf_inject];
 
-goalw LList.thy [LCons_def] "(LCons x xs=LCons y ys) = (x=y & xs=ys)";
+Goalw [LCons_def] "(LCons x xs=LCons y ys) = (x=y & xs=ys)";
 by (Fast_tac 1);
 qed "LCons_LCons_eq";
 
@@ -449,12 +449,12 @@ qed "LList_fun_equalityI";
 
 (*** The functional "Lmap" ***)
 
-goal LList.thy "Lmap f NIL = NIL";
+Goal "Lmap f NIL = NIL";
 by (rtac (Lmap_def RS def_LList_corec RS trans) 1);
 by (Simp_tac 1);
 qed "Lmap_NIL";
 
-goal LList.thy "Lmap f (CONS M N) = CONS (f M) (Lmap f N)";
+Goal "Lmap f (CONS M N) = CONS (f M) (Lmap f N)";
 by (rtac (Lmap_def RS def_LList_corec RS trans) 1);
 by (Simp_tac 1);
 qed "Lmap_CONS";
@@ -502,18 +502,18 @@ qed "Lmap_ident";
 
 (*** Lappend -- its two arguments cause some complications! ***)
 
-goalw LList.thy [Lappend_def] "Lappend NIL NIL = NIL";
+Goalw [Lappend_def] "Lappend NIL NIL = NIL";
 by (rtac (LList_corec RS trans) 1);
 by (Simp_tac 1);
 qed "Lappend_NIL_NIL";
 
-goalw LList.thy [Lappend_def]
+Goalw [Lappend_def]
     "Lappend NIL (CONS N N') = CONS N (Lappend NIL N')";
 by (rtac (LList_corec RS trans) 1);
 by (Simp_tac 1);
 qed "Lappend_NIL_CONS";
 
-goalw LList.thy [Lappend_def]
+Goalw [Lappend_def]
     "Lappend (CONS M M') N = CONS M (Lappend M' N)";
 by (rtac (LList_corec RS trans) 1);
 by (Simp_tac 1);
@@ -523,12 +523,12 @@ Addsimps [llist.NIL_I, Lappend_NIL_NIL, Lappend_NIL_CONS,
           Lappend_CONS, LListD_Fun_CONS_I, range_eqI, image_eqI];
 
 
-goal LList.thy "!!M. M: llist(A) ==> Lappend NIL M = M";
+Goal "!!M. M: llist(A) ==> Lappend NIL M = M";
 by (etac LList_fun_equalityI 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Lappend_NIL";
 
-goal LList.thy "!!M. M: llist(A) ==> Lappend M NIL = M";
+Goal "!!M. M: llist(A) ==> Lappend M NIL = M";
 by (etac LList_fun_equalityI 1);
 by (ALLGOALS Asm_simp_tac);
 qed "Lappend_NIL2";
@@ -539,7 +539,7 @@ Addsimps [Lappend_NIL, Lappend_NIL2];
 (** Alternative type-checking proofs for Lappend **)
 
 (*weak co-induction: bisimulation and case analysis on both variables*)
-goal LList.thy
+Goal
     "!!M N. [| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
 by (res_inst_tac
     [("X", "UN u:llist(A). UN v: llist(A). {Lappend u v}")] llist_coinduct 1);
@@ -552,7 +552,7 @@ by (Blast_tac 1);
 qed "Lappend_type";
 
 (*strong co-induction: bisimulation and case analysis on one variable*)
-goal LList.thy
+Goal
     "!!M N. [| M: llist(A); N: llist(A) |] ==> Lappend M N: llist(A)";
 by (res_inst_tac [("X", "(%u. Lappend u N)``llist(A)")] llist_coinduct 1);
 by (etac imageI 1);
@@ -569,11 +569,11 @@ qed "Lappend_type";
 Addsimps ([Abs_llist_inverse, Rep_llist_inverse,
            Rep_llist, rangeI, inj_Leaf, inv_f_f] @ llist.intrs);
 
-goalw LList.thy [llist_case_def,LNil_def]  "llist_case c d LNil = c";
+Goalw [llist_case_def,LNil_def]  "llist_case c d LNil = c";
 by (Simp_tac 1);
 qed "llist_case_LNil";
 
-goalw LList.thy [llist_case_def,LCons_def]
+Goalw [llist_case_def,LCons_def]
     "llist_case c d (LCons M N) = d M N";
 by (Simp_tac 1);
 qed "llist_case_LCons";
@@ -596,7 +596,7 @@ qed "llistE";
 
 (** llist_corec: corecursion for 'a llist **)
 
-goalw LList.thy [llist_corec_def,LNil_def,LCons_def]
+Goalw [llist_corec_def,LNil_def,LCons_def]
     "llist_corec a f = sum_case (%u. LNil) \
 \                           (split(%z w. LCons z (llist_corec w f))) (f a)";
 by (stac LList_corec 1);
@@ -620,7 +620,7 @@ qed "def_llist_corec";
 
 (*** Deriving llist_equalityI -- llist equality is a bisimulation ***)
 
-goalw LList.thy [LListD_Fun_def]
+Goalw [LListD_Fun_def]
     "!!r A. r <= (llist A) Times (llist A) ==> \
 \           LListD_Fun (diag A) r <= (llist A) Times (llist A)";
 by (stac llist_unfold 1);
@@ -628,7 +628,7 @@ by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
 by (Fast_tac 1);
 qed "LListD_Fun_subset_Sigma_llist";
 
-goal LList.thy
+Goal
     "prod_fun Rep_llist Rep_llist `` r <= \
 \    (llist(range Leaf)) Times (llist(range Leaf))";
 by (fast_tac (claset() delrules [image_subsetI]
@@ -644,7 +644,7 @@ by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [Abs_llist_inverse]) 1);
 qed "prod_fun_lemma";
 
-goal LList.thy
+Goal
     "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
 \    diag(llist(range Leaf))";
 by (rtac equalityI 1);
@@ -654,7 +654,7 @@ by (fast_tac (claset() delSWrapper "split_all_tac"
 qed "prod_fun_range_eq_diag";
 
 (*Surprisingly hard to prove.  Used with lfilter*)
-goalw thy [llistD_Fun_def, prod_fun_def]
+Goalw [llistD_Fun_def, prod_fun_def]
     "!!A B. A<=B ==> llistD_Fun A <= llistD_Fun B";
 by Auto_tac;
 by (rtac image_eqI 1);
@@ -682,7 +682,7 @@ by (rtac diag_subset_Sigma 1);
 qed "llist_equalityI";
 
 (** Rules to prove the 2nd premise of llist_equalityI **)
-goalw LList.thy [llistD_Fun_def,LNil_def] "(LNil,LNil) : llistD_Fun(r)";
+Goalw [llistD_Fun_def,LNil_def] "(LNil,LNil) : llistD_Fun(r)";
 by (rtac (LListD_Fun_NIL_I RS prod_fun_imageI) 1);
 qed "llistD_Fun_LNil_I";
 
@@ -693,7 +693,7 @@ by (rtac (prem RS prod_fun_imageI) 1);
 qed "llistD_Fun_LCons_I";
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
-goalw LList.thy [llistD_Fun_def]
+Goalw [llistD_Fun_def]
      "!!l. (l,l) : llistD_Fun(r Un range(%x.(x,x)))";
 by (rtac (Rep_llist_inverse RS subst) 1);
 by (rtac prod_fun_imageI 1);
@@ -728,12 +728,12 @@ Addsimps [llist_case_LNil, llist_case_LCons,
 
 (*** The functional "lmap" ***)
 
-goal LList.thy "lmap f LNil = LNil";
+Goal "lmap f LNil = LNil";
 by (rtac (lmap_def RS def_llist_corec RS trans) 1);
 by (Simp_tac 1);
 qed "lmap_LNil";
 
-goal LList.thy "lmap f (LCons M N) = LCons (f M) (lmap f N)";
+Goal "lmap f (LCons M N) = LCons (f M) (lmap f N)";
 by (rtac (lmap_def RS def_llist_corec RS trans) 1);
 by (Simp_tac 1);
 qed "lmap_LCons";
@@ -743,12 +743,12 @@ Addsimps [lmap_LNil, lmap_LCons];
 
 (** Two easy results about lmap **)
 
-goal LList.thy "lmap (f o g) l = lmap f (lmap g l)";
+Goal "lmap (f o g) l = lmap f (lmap g l)";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS Simp_tac);
 qed "lmap_compose";
 
-goal LList.thy "lmap (%x. x) l = l";
+Goal "lmap (%x. x) l = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS Simp_tac);
 qed "lmap_ident";
@@ -756,12 +756,12 @@ qed "lmap_ident";
 
 (*** iterates -- llist_fun_equalityI cannot be used! ***)
 
-goal LList.thy "iterates f x = LCons x (iterates f (f x))";
+Goal "iterates f x = LCons x (iterates f (f x))";
 by (rtac (iterates_def RS def_llist_corec RS trans) 1);
 by (Simp_tac 1);
 qed "iterates";
 
-goal LList.thy "lmap f (iterates f x) = iterates f (f x)";
+Goal "lmap f (iterates f x) = iterates f (f x)";
 by (res_inst_tac [("r", "range(%u.(lmap f (iterates f u),iterates f (f u)))")] 
     llist_equalityI 1);
 by (rtac rangeI 1);
@@ -771,7 +771,7 @@ by (res_inst_tac [("x1", "u")] (iterates RS ssubst) 1);
 by (Simp_tac 1);
 qed "lmap_iterates";
 
-goal LList.thy "iterates f x = LCons x (lmap f (iterates f x))";
+Goal "iterates f x = LCons x (lmap f (iterates f x))";
 by (stac lmap_iterates 1);
 by (rtac iterates 1);
 qed "iterates_lmap";
@@ -780,7 +780,7 @@ qed "iterates_lmap";
 
 (** Two lemmas about natrec n x (%m.g), which is essentially (g^n)(x) **)
 
-goal LList.thy
+Goal
     "nat_rec (LCons b l) (%m. lmap(f)) n =      \
 \    LCons (nat_rec b (%m. f) n) (nat_rec l (%m. lmap(f)) n)";
 by (nat_ind_tac "n" 1);
@@ -821,18 +821,18 @@ qed "iterates_equality";
 
 (*** lappend -- its two arguments cause some complications! ***)
 
-goalw LList.thy [lappend_def] "lappend LNil LNil = LNil";
+Goalw [lappend_def] "lappend LNil LNil = LNil";
 by (rtac (llist_corec RS trans) 1);
 by (Simp_tac 1);
 qed "lappend_LNil_LNil";
 
-goalw LList.thy [lappend_def]
+Goalw [lappend_def]
     "lappend LNil (LCons l l') = LCons l (lappend LNil l')";
 by (rtac (llist_corec RS trans) 1);
 by (Simp_tac 1);
 qed "lappend_LNil_LCons";
 
-goalw LList.thy [lappend_def]
+Goalw [lappend_def]
     "lappend (LCons l l') N = LCons l (lappend l' N)";
 by (rtac (llist_corec RS trans) 1);
 by (Simp_tac 1);
@@ -840,12 +840,12 @@ qed "lappend_LCons";
 
 Addsimps [lappend_LNil_LNil, lappend_LNil_LCons, lappend_LCons];
 
-goal LList.thy "lappend LNil l = l";
+Goal "lappend LNil l = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS Simp_tac);
 qed "lappend_LNil";
 
-goal LList.thy "lappend l LNil = l";
+Goal "lappend l LNil = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (ALLGOALS Simp_tac);
 qed "lappend_LNil2";
@@ -853,7 +853,7 @@ qed "lappend_LNil2";
 Addsimps [lappend_LNil, lappend_LNil2];
 
 (*The infinite first argument blocks the second*)
-goal LList.thy "lappend (iterates f x) N = iterates f x";
+Goal "lappend (iterates f x) N = iterates f x";
 by (res_inst_tac [("r", "range(%u.(lappend (iterates f u) N,iterates f u))")] 
     llist_equalityI 1);
 by (rtac rangeI 1);
@@ -865,7 +865,7 @@ qed "lappend_iterates";
 (** Two proofs that lmap distributes over lappend **)
 
 (*Long proof requiring case analysis on both both arguments*)
-goal LList.thy "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)";
+Goal "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)";
 by (res_inst_tac 
     [("r",  
       "UN n. range(%l.(lmap f (lappend l n),lappend (lmap f l) (lmap f n)))")] 
@@ -880,14 +880,14 @@ by (REPEAT_SOME (ares_tac [llistD_Fun_LCons_I, UN1_I RS UnI1, rangeI]));
 qed "lmap_lappend_distrib";
 
 (*Shorter proof of theorem above using llist_equalityI as strong coinduction*)
-goal LList.thy "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)";
+Goal "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 qed "lmap_lappend_distrib";
 
 (*Without strong coinduction, three case analyses might be needed*)
-goal LList.thy "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)";
+Goal "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)";
 by (res_inst_tac [("l","l1")] llist_fun_equalityI 1);
 by (Simp_tac 1);
 by (Simp_tac 1);

@@ -4,7 +4,7 @@ open LatMorph;
 
 (** monotone functions vs. "&&"- / "||"-semi-morphisms **)
 
-goalw thy [is_mono_def] "is_mono f = (ALL x y. f (x && y) [= f x && f y)";
+Goalw [is_mono_def] "is_mono f = (ALL x y. f (x && y) [= f x && f y)";
   by Safe_tac;
   (*==> (level 1)*)
     by (stac le_inf_eq 1);
@@ -27,7 +27,7 @@ goalw thy [is_mono_def] "is_mono f = (ALL x y. f (x && y) [= f x && f y)";
     by (assume_tac 1);
 qed "mono_inf_eq";
 
-goalw thy [is_mono_def] "is_mono f = (ALL x y. f x || f y [= f (x || y))";
+Goalw [is_mono_def] "is_mono f = (ALL x y. f x || f y [= f (x || y))";
   by Safe_tac;
   (*==> (level 1)*)
     by (stac ge_sup_eq 1);

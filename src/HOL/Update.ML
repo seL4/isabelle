@@ -8,7 +8,7 @@ Function updates: like theory Map, but for ordinary functions
 
 open Update;
 
-goalw thy [update_def] "(f[x:=y] = f) = (f x = y)";
+Goalw [update_def] "(f[x:=y] = f) = (f x = y)";
 by Safe_tac;
 by (etac subst 1);
 by (rtac ext 2);
@@ -20,7 +20,7 @@ bind_thm("update_idem", update_idem_iff RS iffD2);
 
 AddIffs [refl RS update_idem];
 
-goal thy "(f[x:=y])z = (if x=z then y else f z)";
+Goal "(f[x:=y])z = (if x=z then y else f z)";
 by (simp_tac (simpset() addsimps [update_def]) 1);
 qed "update_apply";
 Addsimps [update_apply];

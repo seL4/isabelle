@@ -10,13 +10,13 @@ Addsimps [image_eqI];
 
 (* Lists *)
 
-goal thy "(butlast xs = []) = (case xs of [] => True | y#ys => ys=[])";
+Goal "(butlast xs = []) = (case xs of [] => True | y#ys => ys=[])";
 by (exhaust_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "butlast_empty";
 AddIffs [butlast_empty];
 
-goal thy "x:set(butlast xs) --> xs:set xss --> x:set(butlast(concat xss))";
+Goal "x:set(butlast xs) --> xs:set xss --> x:set(butlast(concat xss))";
 by (induct_tac "xss" 1);
  by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [butlast_append] delsimps ball_simps) 1);
@@ -37,7 +37,7 @@ qed_spec_mp "in_set_butlast_concatI";
 (* The main lemma:
    how to decompose a trace into a prefix, a list of loops and a suffix.
 *)
-goal thy "!i. k : set(trace d i xs) --> (? pref mids suf. \
+Goal "!i. k : set(trace d i xs) --> (? pref mids suf. \
 \ xs = pref @ concat mids @ suf & \
 \ deltas d pref i = k & (!n:set(butlast(trace d i pref)). n ~= k) & \
 \ (!mid:set mids. (deltas d mid k = k) & \
@@ -77,38 +77,38 @@ by (res_inst_tac[("x","suf")]exI 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "decompose";
 
-goal thy "!i. length(trace d i xs) = length xs";
+Goal "!i. length(trace d i xs) = length xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "length_trace";
 Addsimps [length_trace];
 
-goal thy "!i. deltas d (xs@ys) i = deltas d ys (deltas d xs i)";
+Goal "!i. deltas d (xs@ys) i = deltas d ys (deltas d xs i)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "deltas_append";
 Addsimps [deltas_append];
 
-goal thy "!i. trace d i (xs@ys) = trace d i xs @ trace d (deltas d xs i) ys";
+Goal "!i. trace d i (xs@ys) = trace d i xs @ trace d (deltas d xs i) ys";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "trace_append";
 Addsimps [trace_append];
 
-goal thy "(!xs: set xss. deltas d xs i = i) --> \
+Goal "(!xs: set xss. deltas d xs i = i) --> \
 \         trace d i (concat xss) = concat (map (trace d i) xss)";
 by (induct_tac "xss" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "trace_concat";
 Addsimps [trace_concat];
 
-goal thy "!i. (trace d i xs = []) = (xs = [])";
+Goal "!i. (trace d i xs = []) = (xs = [])";
 by (exhaust_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "trace_is_Nil";
 Addsimps [trace_is_Nil];
 
-goal thy "(trace d i xs = n#ns) = \
+Goal "(trace d i xs = n#ns) = \
 \         (case xs of [] => False | y#ys => n = d y i & ns = trace d n ys)";
 by (exhaust_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -116,14 +116,14 @@ by (Blast_tac 1);
 qed_spec_mp "trace_is_Cons_conv";
 Addsimps [trace_is_Cons_conv];
 
-goal thy "!i. set(trace d i xs) = \
+Goal "!i. set(trace d i xs) = \
 \ (if xs=[] then {} else insert(deltas d xs i)(set(butlast(trace d i xs))))";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [insert_commute]) 1);
 qed "set_trace_conv";
 
-goal thy
+Goal
  "(!mid:set mids. deltas d mid k = k) --> deltas d (concat mids) k = k";
 by (induct_tac "mids" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -136,7 +136,7 @@ by (ALLGOALS trans_tac);
 val lemma = result();
 
 
-goal thy
+Goal
  "!i j xs. xs : regset d i j k = \
 \          ((!n:set(butlast(trace d i xs)). n < k) & deltas d xs i = j)";
 by (induct_tac "k" 1);
@@ -186,28 +186,28 @@ by (EVERY[dtac bspec 1, atac 2]);
 by (Asm_simp_tac 1);
 qed_spec_mp "regset_spec";
 
-goalw thy [bounded_def]
+Goalw [bounded_def]
  "!!d. bounded d k ==> !i. i < k --> (!n:set(trace d i xs). n < k)";
 by (induct_tac "xs" 1);
  by (ALLGOALS Simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "trace_below";
 
-goal thy "!!d. [| bounded d k; i < k; j < k |] ==> \
+Goal "!!d. [| bounded d k; i < k; j < k |] ==> \
 \         regset d i j k = {xs. deltas d xs i = j}";
 by (rtac set_ext 1);
 by (simp_tac (simpset() addsimps [regset_spec]) 1);
 by (blast_tac (claset() addDs [trace_below,in_set_butlastD]) 1);
 qed "regset_below";
 
-goalw thy [bounded_def]
+Goalw [bounded_def]
  "!!d. bounded d k ==> !i. i < k --> deltas d w i < k";
 by (induct_tac "w" 1);
  by (ALLGOALS Simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "deltas_below";
 
-goalw thy [regset_of_DA_def]
+Goalw [regset_of_DA_def]
  "!!d. [| bounded (next A) k; start A < k; j < k |] ==> \
 \      w : regset_of_DA A k = accepts A w";
 by(asm_simp_tac (simpset() addcongs [conj_cong] addsimps

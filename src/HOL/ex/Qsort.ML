@@ -24,12 +24,12 @@ val wf_minimal = result();
 
 Addsimps ([Qsort.qsort_Nil,Qsort.qsort_Cons]@conj_comms);
 
-goal Qsort.thy "!x. mset (qsort le xs) x = mset xs x";
+Goal "!x. mset (qsort le xs) x = mset xs x";
 by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
 by (ALLGOALS Asm_simp_tac);
 qed "qsort_permutes";
 
-goal Qsort.thy "set(qsort le xs) = set xs";
+Goal "set(qsort le xs) = set xs";
 by (simp_tac (simpset() addsimps [set_via_mset,qsort_permutes]) 1);
 qed "set_qsort";
 Addsimps [set_qsort];
@@ -41,7 +41,7 @@ by (ALLGOALS Asm_simp_tac);
 qed"Ball_set_filter";
 Addsimps [Ball_set_filter];
 
-goal Qsort.thy
+Goal
  "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
 \                     (!x:set xs. !y:set ys. le x y))";
 by (list.induct_tac "xs" 1);
@@ -49,7 +49,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "sorted_append";
 Addsimps [sorted_append];
 
-goal Qsort.thy 
+Goal 
  "!!le. [| total(le); transf(le) |] ==>  sorted le (qsort le xs)";
 by (res_inst_tac[("xs","xs"),("p","le")]Qsort.qsort_ind 1);
 by (ALLGOALS Asm_simp_tac);

@@ -36,60 +36,60 @@ AddSEs [vimageE];
 
 (*** Simple equalities ***)
 
-goal thy "(%x. x) -`` B = B";
+Goal "(%x. x) -`` B = B";
 by (Blast_tac 1);
 qed "ident_vimage";
 Addsimps [ident_vimage];
 
-goal thy "f-``{} = {}";
+Goal "f-``{} = {}";
 by (Blast_tac 1);
 qed "vimage_empty";
 
-goal thy "f-``(Compl A) = Compl (f-``A)";
+Goal "f-``(Compl A) = Compl (f-``A)";
 by (Blast_tac 1);
 qed "vimage_Compl";
 
-goal thy "f-``(A Un B) = (f-``A) Un (f-``B)";
+Goal "f-``(A Un B) = (f-``A) Un (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Un";
 
-goal thy "f-``(UN x:A. B x) = (UN x:A. f -`` B x)";
+Goal "f-``(UN x:A. B x) = (UN x:A. f -`` B x)";
 by (Blast_tac 1);
 qed "vimage_UN";
 
 Addsimps [vimage_empty, vimage_Un];
 
 (*NOT suitable for rewriting because of the recurrence of {a}*)
-goal thy "f-``(insert a B) = (f-``{a}) Un (f-``B)";
+Goal "f-``(insert a B) = (f-``{a}) Un (f-``B)";
 by (Blast_tac 1);
 qed "vimage_insert";
 
-goal thy "f-``(A Int B) = (f-``A) Int (f-``B)";
+Goal "f-``(A Int B) = (f-``A) Int (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Int";
 
-goal thy "f-``(A-B) = (f-``A) - (f-``B)";
+Goal "f-``(A-B) = (f-``A) - (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Diff";
 
-goal thy "f-``UNIV = UNIV";
+Goal "f-``UNIV = UNIV";
 by (Blast_tac 1);
 qed "vimage_UNIV";
 Addsimps [vimage_UNIV];
 
-goal thy "(UN x:A. f -`` B x) = f -`` (UN x:A. B x)";
+Goal "(UN x:A. f -`` B x) = f -`` (UN x:A. B x)";
 by (Blast_tac 1);
 qed "UN_vimage";
 Addsimps [UN_vimage];
 
 (*NOT suitable for rewriting*)
-goal thy "f-``B = (UN y: B. f-``{y})";
+Goal "f-``B = (UN y: B. f-``{y})";
 by (Blast_tac 1);
 qed "vimage_eq_UN";
 
 
 (** monotonicity **)
 
-goal thy "!!f. A<=B ==> f-``A <= f-``B";
+Goal "!!f. A<=B ==> f-``A <= f-``B";
 by (Blast_tac 1);
 qed "vimage_mono";

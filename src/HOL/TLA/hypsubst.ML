@@ -17,16 +17,16 @@ Local changes for TLA (Stephan Merz):
 
 Test data:
 
-goal thy "!!x.[| Q(x,y,z); y=x; a=x; z=y; P(y) |] ==> P(z)";
-goal thy "!!x.[| Q(x,y,z); z=f(x); x=z |] ==> P(z)";
-goal thy "!!y. [| ?x=y; P(?x) |] ==> y = a";
-goal thy "!!z. [| ?x=y; P(?x) |] ==> y = a";
+Goal "!!x.[| Q(x,y,z); y=x; a=x; z=y; P(y) |] ==> P(z)";
+Goal "!!x.[| Q(x,y,z); z=f(x); x=z |] ==> P(z)";
+Goal "!!y. [| ?x=y; P(?x) |] ==> y = a";
+Goal "!!z. [| ?x=y; P(?x) |] ==> y = a";
 
 by (hyp_subst_tac 1);
 by (bound_hyp_subst_tac 1);
 
 Here hyp_subst_tac goes wrong; harder still to prove P(f(f(a))) & P(f(a))
-goal thy "P(a) --> (EX y. a=y --> P(f(a)))";
+Goal "P(a) --> (EX y. a=y --> P(f(a)))";
 *)
 
 (*** Signatures unchanged (but renamed) from the original hypsubst.ML ***)

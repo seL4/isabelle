@@ -6,18 +6,18 @@
 Correctness proof of insertion sort.
 *)
 
-goal thy "!y. mset(ins f x xs) y = mset (x#xs) y";
+Goal "!y. mset(ins f x xs) y = mset (x#xs) y";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "mset_ins";
 Addsimps [mset_ins];
 
-goal thy "!x. mset(insort f xs) x = mset xs x";
+Goal "!x. mset(insort f xs) x = mset xs x";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "insort_permutes";
 
-goal thy "set(ins f x xs) = insert x (set xs)";
+Goal "set(ins f x xs) = insert x (set xs)";
 by (asm_simp_tac (simpset() addsimps [set_via_mset]) 1);
 by (Fast_tac 1);
 qed "set_ins";
@@ -32,7 +32,7 @@ by (Fast_tac 1);
 qed "sorted_ins";
 Addsimps [sorted_ins];
 
-goal InSort.thy "!!f. [| total(f); transf(f) |] ==>  sorted f (insort f xs)";
+Goal "!!f. [| total(f); transf(f) |] ==>  sorted f (insort f xs)";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "sorted_insort";

@@ -18,7 +18,7 @@ by (fast_tac (claset() addIs (prems @
                             map (rewrite_rule [pred_def]) acc.intrs)) 1);
 qed "accI";
 
-goal Acc.thy "!!a b r. [| b: acc(r);  (a,b): r |] ==> a: acc(r)";
+Goal "!!a b r. [| b: acc(r);  (a,b): r |] ==> a: acc(r)";
 by (etac acc.elim 1);
 by (rewtac pred_def);
 by (Fast_tac 1);
@@ -58,6 +58,6 @@ by (fast_tac (claset() addSIs [SigmaI,
                              major RS acc_wfD_lemma RS spec RS mp]) 1);
 qed "acc_wfD";
 
-goal Acc.thy "wf(r)  =  (r <= (acc r) Times (acc r))";
+Goal "wf(r)  =  (r <= (acc r) Times (acc r))";
 by (EVERY1 [rtac iffI, etac acc_wfD, etac acc_wfI]);
 qed "wf_acc_iff";

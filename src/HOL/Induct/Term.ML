@@ -11,19 +11,19 @@ open Term;
 
 (*** Monotonicity and unfolding of the function ***)
 
-goal Term.thy "term(A) = A <*> list(term(A))";
+Goal "term(A) = A <*> list(term(A))";
 by (fast_tac (claset() addSIs term.intrs
                       addEs [term.elim]) 1);
 qed "term_unfold";
 
 (*This justifies using term in other recursive type definitions*)
-goalw Term.thy term.defs "!!A B. A<=B ==> term(A) <= term(B)";
+Goalw term.defs "!!A B. A<=B ==> term(A) <= term(B)";
 by (REPEAT (ares_tac ([lfp_mono, list_mono] @ basic_monos) 1));
 qed "term_mono";
 
 (** Type checking -- term creates well-founded sets **)
 
-goalw Term.thy term.defs "term(sexp) <= sexp";
+Goalw term.defs "term(sexp) <= sexp";
 by (rtac lfp_lowerbound 1);
 by (fast_tac (claset() addIs [sexp.SconsI, list_sexp RS subsetD]) 1);
 qed "term_sexp";
@@ -110,7 +110,7 @@ fun term_ind2_tac a i =
 
 (*** Term_rec -- by wf recursion on pred_sexp ***)
 
-goal Term.thy
+Goal
    "(%M. Term_rec M d) = wfrec (trancl pred_sexp) \
                              \ (%g. Split(%x y. d x y (Abs_map g y)))";
 by (simp_tac (HOL_ss addsimps [Term_rec_def]) 1);

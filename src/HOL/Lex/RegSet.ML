@@ -8,12 +8,12 @@ AddIffs [star.NilI];
 Addsimps [star.ConsI];
 AddIs [star.ConsI];
 
-goal thy "(!xs: set xss. xs:S) --> concat xss : star S";
+Goal "(!xs: set xss. xs:S) --> concat xss : star S";
 by (induct_tac "xss" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "concat_in_star";
 
-goal thy
+Goal
  "w : star U = (? us. (!u : set(us). u : U) & (w = concat us))";
 br iffI 1;
  be star.induct 1;

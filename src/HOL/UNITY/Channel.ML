@@ -14,22 +14,22 @@ AddIffs [skip];
 
 
 (*None represents "infinity" while Some represents proper integers*)
-goalw thy [minSet_def] "!!A. minSet A = Some x --> x : A";
+Goalw [minSet_def] "!!A. minSet A = Some x --> x : A";
 by (Simp_tac 1);
 by (fast_tac (claset() addIs [LeastI]) 1);
 qed_spec_mp "minSet_eq_SomeD";
 
-goalw thy [minSet_def] " minSet{} = None";
+Goalw [minSet_def] " minSet{} = None";
 by (Asm_simp_tac 1);
 qed_spec_mp "minSet_empty";
 Addsimps [minSet_empty];
 
-goalw thy [minSet_def] "!!A. x:A ==> minSet A = Some (LEAST x. x: A)";
+Goalw [minSet_def] "!!A. x:A ==> minSet A = Some (LEAST x. x: A)";
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "minSet_nonempty";
 
-goal thy
+Goal
     "leadsTo Acts (minSet -`` {Some x}) (minSet -`` (Some``greaterThan x))";
 by (rtac leadsTo_weaken 1);
 by (rtac ([UC2, UC1] MRS PSP) 1);
@@ -42,7 +42,7 @@ qed "minSet_greaterThan";
 
 
 (*The induction*)
-goal thy "leadsTo Acts (UNIV-{{}}) (minSet -`` (Some``atLeast y))";
+Goal "leadsTo Acts (UNIV-{{}}) (minSet -`` (Some``atLeast y))";
 by (rtac leadsTo_weaken_R 1);
 by (res_inst_tac  [("l", "y"), ("f", "the o minSet"), ("B", "{}")]
      greaterThan_bounded_induct 1);
@@ -58,7 +58,7 @@ by (Asm_full_simp_tac 1);
 val lemma = result();
 
 
-goal thy "!!y::nat. leadsTo Acts (UNIV-{{}}) {s. y ~: s}";
+Goal "!!y::nat. leadsTo Acts (UNIV-{{}}) {s. y ~: s}";
 by (rtac (lemma RS leadsTo_weaken_R) 1);
 by (Clarify_tac 1);
 by (forward_tac [minSet_nonempty] 1);

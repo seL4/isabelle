@@ -9,7 +9,7 @@ sums of fours squares, provided all prime numbers are. However, this is an
 abstract thm about commutative rings and has a priori nothing to do with nat.
 *)
 
-goalw Lagrange.thy [Lagrange.sq_def] "!!x1::'a::cring. \
+Goalw [Lagrange.sq_def] "!!x1::'a::cring. \
 \  (sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) = \
 \  sq(x1*y1 - x2*y2 - x3*y3 - x4*y4)  + \
 \  sq(x1*y2 + x2*y1 + x3*y4 - x4*y3)  + \
@@ -22,7 +22,7 @@ qed "Lagrange_lemma";
 (* A challenge by John Harrison.
    Takes forever because of the naive bottom-up strategy of the rewriter.
 
-goalw Lagrange.thy [Lagrange.sq_def] "!!p1::'a::cring.\
+Goalw [Lagrange.sq_def] "!!p1::'a::cring.\
 \ (sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) * \
 \ (sq p2 + sq q2 + sq r2 + sq s2 + sq t2 + sq u2 + sq v2 + sq w2) \
 \  = sq (p1*p2 - q1*q2 - r1*r2 - s1*s2 - t1*t2 - u1*u2 - v1*v2 - w1*w2) + \

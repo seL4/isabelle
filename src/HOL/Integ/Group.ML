@@ -10,21 +10,21 @@
    based on the unary inverse zero-x.
 *)
 
-goal Group.thy "!!x::'a::add_group. (zero-x)+(x+y) = y";
+Goal "!!x::'a::add_group. (zero-x)+(x+y) = y";
 by (rtac trans 1);
 by (rtac (plus_assoc RS sym) 1);
 by (stac left_inv 1);
 by (rtac zeroL 1);
 qed "left_inv2";
 
-goal Group.thy "!!x::'a::add_group. (zero-(zero-x)) = x";
+Goal "!!x::'a::add_group. (zero-(zero-x)) = x";
 by (rtac trans 1);
 by (res_inst_tac [("x","zero-x")] left_inv2 2);
 by (stac left_inv 1);
 by (rtac (zeroR RS sym) 1);
 qed "inv_inv";
 
-goal Group.thy "zero-zero = (zero::'a::add_group)";
+Goal "zero-zero = (zero::'a::add_group)";
 by (rtac trans 1);
 by (rtac (zeroR RS sym) 1);
 by (rtac trans 1);
@@ -32,14 +32,14 @@ by (res_inst_tac [("x","zero")] left_inv2 2);
 by (simp_tac (simpset() addsimps [zeroR]) 1);
 qed "inv_zero";
 
-goal Group.thy "!!x::'a::add_group. x+(zero-x) = zero";
+Goal "!!x::'a::add_group. x+(zero-x) = zero";
 by (rtac trans 1);
 by (res_inst_tac [("x","zero-x")] left_inv 2);
 by (stac inv_inv 1);
 by (rtac refl 1);
 qed "right_inv";
 
-goal Group.thy "!!x::'a::add_group. x+((zero-x)+y) = y";
+Goal "!!x::'a::add_group. x+((zero-x)+y) = y";
 by (rtac trans 1);
 by (res_inst_tac [("x","zero-x")] left_inv2 2);
 by (stac inv_inv 1);
@@ -48,7 +48,7 @@ qed "right_inv2";
 
 val plus_cong = read_instantiate [("f1","op +")] (arg_cong RS cong);
 
-goal Group.thy "!!x::'a::add_group. zero-(x+y) = (zero-y)+(zero-x)";
+Goal "!!x::'a::add_group. zero-(x+y) = (zero-y)+(zero-x)";
 by (rtac trans 1);
  by (rtac zeroR 2);
 by (rtac trans 1);
@@ -102,19 +102,19 @@ end;
 (* The following two equations are not used in any of the decision procedures,
    but are still very useful. They also demonstrate mk_group1_tac.
 *)
-goal Group.thy "x-x = (zero::'a::add_group)";
+Goal "x-x = (zero::'a::add_group)";
 by (mk_group1_tac 1);
 by (group1_tac 1);
 qed "minus_self_zero";
 
-goal Group.thy "x-zero = (x::'a::add_group)";
+Goal "x-zero = (x::'a::add_group)";
 by (mk_group1_tac 1);
 by (group1_tac 1);
 qed "minus_zero";
 
 (*** Abelian Groups ***)
 
-goal Group.thy "x+(y+z)=y+(x+z::'a::add_agroup)";
+Goal "x+(y+z)=y+(x+z::'a::add_agroup)";
 by (rtac trans 1);
 by (rtac plus_commute 1);
 by (rtac trans 1);
@@ -143,32 +143,32 @@ val agroup1_tac =
    2. and for moving `-' over to the other side:
       (x-y = z) = (x = z+y) and (x = y-z) = (x+z = y)
 *)
-goal Group.thy "x + (y - z) = (x + y) - (z::'a::add_group)";
+Goal "x + (y - z) = (x + y) - (z::'a::add_group)";
 by (mk_group1_tac 1);
 by (group1_tac 1);
 qed "plus_minusR";
 
-goal Group.thy "(x - y) + z = (x + z) - (y::'a::add_agroup)";
+Goal "(x - y) + z = (x + z) - (y::'a::add_agroup)";
 by (mk_group1_tac 1);
 by (agroup1_tac 1);
 qed "plus_minusL";
 
-goal Group.thy "(x - y) - z = x - (y + (z::'a::add_agroup))";
+Goal "(x - y) - z = x - (y + (z::'a::add_agroup))";
 by (mk_group1_tac 1);
 by (agroup1_tac 1);
 qed "minus_minusL";
 
-goal Group.thy "x - (y - z) = (x + z) - (y::'a::add_agroup)";
+Goal "x - (y - z) = (x + z) - (y::'a::add_agroup)";
 by (mk_group1_tac 1);
 by (agroup1_tac 1);
 qed "minus_minusR";
 
-goal Group.thy "!!x::'a::add_group. (x-y = z) = (x = z+y)";
+Goal "!!x::'a::add_group. (x-y = z) = (x = z+y)";
 by (stac minus_inv 1);
 by (fast_tac (claset() addss (HOL_basic_ss addsimps group1_simps)) 1);
 qed "minusL_iff";
 
-goal Group.thy "!!x::'a::add_group. (x = y-z) = (x+z = y)";
+Goal "!!x::'a::add_group. (x = y-z) = (x+z = y)";
 by (stac minus_inv 1);
 by (fast_tac (claset() addss (HOL_basic_ss addsimps group1_simps)) 1);
 qed "minusR_iff";
@@ -182,34 +182,34 @@ val agroup2_simps =
    it merely decides equality.
 (* Phase 1 *)
 
-goal Group.thy "!!x::'a::add_agroup. (x+(zero-y))+z = (x+z)+(zero-y)";
+Goal "!!x::'a::add_agroup. (x+(zero-y))+z = (x+z)+(zero-y)";
 by (Simp_tac 1);
 val lemma = result();
 bind_thm("plus_minusL",rewrite_rule[minus_inv RS sym RS eq_reflection]lemma);
 
-goal Group.thy "!!x::'a::add_agroup. x+(zero-(y+z)) = (x+(zero-y))+(zero-z)";
+Goal "!!x::'a::add_agroup. x+(zero-(y+z)) = (x+(zero-y))+(zero-z)";
 by (Simp_tac 1);
 val lemma = result();
 bind_thm("minus_plusR",rewrite_rule[minus_inv RS sym RS eq_reflection]lemma);
 
-goal Group.thy "!!x::'a::add_agroup. x+(zero-(y+(zero-z))) = (x+z)+(zero-y)";
+Goal "!!x::'a::add_agroup. x+(zero-(y+(zero-z))) = (x+z)+(zero-y)";
 by (Simp_tac 1);
 val lemma = result();
 bind_thm("minus_minusR",rewrite_rule[minus_inv RS sym RS eq_reflection]lemma);
 
-goal Group.thy "!!x::'a::add_agroup. x+(y+(zero-z)) = (x+y)+(zero-z)";
+Goal "!!x::'a::add_agroup. x+(y+(zero-z)) = (x+y)+(zero-z)";
 by (Simp_tac 1);
 val lemma = result();
 bind_thm("plus_minusR",rewrite_rule[minus_inv RS sym RS eq_reflection]lemma);
 
 (* Phase 2 *)
 
-goal Group.thy "!!x::'a::add_agroup. (x+y)+(zero-z) = x+(y+(zero-z))";
+Goal "!!x::'a::add_agroup. (x+y)+(zero-z) = x+(y+(zero-z))";
 by (Simp_tac 1);
 val lemma = result();
 bind_thm("minus_plusL2",rewrite_rule[minus_inv RS sym RS eq_reflection]lemma);
 
-goal Group.thy "!!x::'a::add_agroup. (x+y)+(zero-x) = y";
+Goal "!!x::'a::add_agroup. (x+y)+(zero-x) = y";
 by (rtac (plus_assoc RS trans) 1);
 by (rtac trans 1);
  by (rtac plus_cong 1);

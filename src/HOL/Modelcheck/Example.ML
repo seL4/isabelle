@@ -7,7 +7,7 @@
 val reach_rws = [reach_def,INIT_def,N_def];
 
 
-goal thy "reach (True,True,True)";
+Goal "reach (True,True,True)";
 by (simp_tac (MC_ss addsimps reach_rws) 1);
 
 (*show the current proof state using the model checker syntax*)
@@ -23,6 +23,6 @@ setmp print_mode ["Eindhoven"] pr ();
 
 
 (* just to make a proof in this file :-) *)
-goalw thy [INIT_def] "INIT (a,b,c) = (~a & ~b &~c)";
+Goalw [INIT_def] "INIT (a,b,c) = (~a & ~b &~c)";
 by (Simp_tac 1);
 qed"init_state";

@@ -6,12 +6,12 @@
 
 AddSEs [equalityE];
 
-goal thy "!!A B. free_tv A = free_tv B ==> gen A t = gen B t";
+Goal "!!A B. free_tv A = free_tv B ==> gen A t = gen B t";
 by (typ.induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "gen_eq_on_free_tv";
 
-goal thy "!!t.(free_tv t) <= (free_tv sch) --> gen sch t = (mk_scheme t)";
+Goal "!!t.(free_tv t) <= (free_tv sch) --> gen sch t = (mk_scheme t)";
 by (typ.induct_tac "t" 1);
 by (Asm_simp_tac 1);
 by (Simp_tac 1);
@@ -20,7 +20,7 @@ qed_spec_mp "gen_without_effect";
 
 Addsimps [gen_without_effect];
 
-goal thy "!!A. free_tv (gen ($ S A) t) = free_tv t Int free_tv ($ S A)";
+Goal "!!A. free_tv (gen ($ S A) t) = free_tv t Int free_tv ($ S A)";
 by (typ.induct_tac "t" 1);
 by (Simp_tac 1);
 by (case_tac "nat : free_tv ($ S A)" 1);
@@ -34,14 +34,14 @@ qed "free_tv_gen";
 
 Addsimps [free_tv_gen];
 
-goal thy "!!A. free_tv (gen ($ S A) t # $ S A) = free_tv ($ S A)";
+Goal "!!A. free_tv (gen ($ S A) t # $ S A) = free_tv ($ S A)";
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "free_tv_gen_cons";
 
 Addsimps [free_tv_gen_cons];
 
-goal thy "!!A. bound_tv (gen A t1) = (free_tv t1) - (free_tv A)";
+Goal "!!A. bound_tv (gen A t1) = (free_tv t1) - (free_tv A)";
 by (typ.induct_tac "t1" 1);
 by (Simp_tac 1);
 by (case_tac "nat : free_tv A" 1);
@@ -54,7 +54,7 @@ qed "bound_tv_gen";
 
 Addsimps [bound_tv_gen];
 
-goal thy "!!A. new_tv n t --> new_tv n (gen A t)";
+Goal "!!A. new_tv n t --> new_tv n (gen A t)";
 by (typ.induct_tac "t" 1);
 by (Simp_tac 1);
 by (case_tac "nat : free_tv A" 1);
@@ -62,13 +62,13 @@ by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "new_tv_compatible_gen";
 
-goalw thy [gen_ML_def] "!!A. gen A t = gen_ML A t";
+Goalw [gen_ML_def] "!!A. gen A t = gen_ML A t";
 by (typ.induct_tac "t" 1);
 by (simp_tac (simpset() addsimps [free_tv_ML_scheme_list]) 1);
 by (asm_simp_tac (simpset() addsimps [free_tv_ML_scheme_list]) 1);
 qed "gen_eq_gen_ML";
 
-goal thy "!!S. (free_tv S) Int ((free_tv t) - (free_tv A)) = {} \
+Goal "!!S. (free_tv S) Int ((free_tv t) - (free_tv A)) = {} \
 \          --> gen ($ S A) ($ S t) = $ S (gen A t)";
 by (induct_tac "t" 1);
  by (strip_tac 1);
@@ -84,14 +84,14 @@ by (Asm_simp_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "gen_subst_commutes";
 
-goal Generalize.thy "free_tv(t::typ) <= free_tv(A) --> bound_typ_inst S (gen A t) = t";
+Goal "free_tv(t::typ) <= free_tv(A) --> bound_typ_inst S (gen A t) = t";
 by (typ.induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 by (Fast_tac 1);
 qed_spec_mp "bound_typ_inst_gen";
 Addsimps [bound_typ_inst_gen];
 
-goalw Generalize.thy [le_type_scheme_def,is_bound_typ_instance]
+Goalw [le_type_scheme_def,is_bound_typ_instance]
   "gen ($ S A) ($ S t) <= $ S (gen A t)";
 by Safe_tac;
 by (rename_tac "R" 1);
@@ -101,7 +101,7 @@ by (typ.induct_tac "t" 1);
 by (Asm_simp_tac 1);
 qed "gen_bound_typ_instance";
 
-goalw Generalize.thy [le_type_scheme_def,is_bound_typ_instance]
+Goalw [le_type_scheme_def,is_bound_typ_instance]
   "!!A B. free_tv B <= free_tv A ==> gen A t <= gen B t";
 by Safe_tac;
 by (rename_tac "S" 1);
@@ -112,7 +112,7 @@ by (typ.induct_tac "t" 1);
 by (Asm_simp_tac 1);
 qed "free_tv_subset_gen_le";
 
-goalw thy [le_type_scheme_def,is_bound_typ_instance] 
+Goalw [le_type_scheme_def,is_bound_typ_instance] 
       "!!A. new_tv n A --> gen A t <= gen A ($ (%x. TVar (if x : free_tv A then x else n + x)) t)";
 by (strip_tac 1);
 by (etac exE 1);

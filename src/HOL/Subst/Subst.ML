@@ -11,19 +11,19 @@ open Subst;
 
 (**** Substitutions ****)
 
-goal Subst.thy "t <| [] = t";
+Goal "t <| [] = t";
 by (induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "subst_Nil";
 
 Addsimps [subst_Nil];
 
-goal Subst.thy "t <: u --> t <| s <: u <| s";
+Goal "t <: u --> t <| s <: u <| s";
 by (induct_tac "u" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "subst_mono";
 
-goal Subst.thy  "~ (Var(v) <: t) --> t <| (v,t <| s) # s = t <| s";
+Goal  "~ (Var(v) <: t) --> t <| (v,t <| s) # s = t <| s";
 by (case_tac "t = Var(v)" 1);
 by (etac rev_mp 2);
 by (res_inst_tac [("P",
@@ -33,14 +33,14 @@ by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed_spec_mp "Var_not_occs";
 
-goal Subst.thy
+Goal
     "(t <|r = t <|s) = (! v. v : vars_of(t) --> Var(v) <|r = Var(v) <|s)";
 by (induct_tac "t" 1);
 by (ALLGOALS Asm_full_simp_tac);
 by (ALLGOALS Blast_tac);
 qed "agreement";
 
-goal Subst.thy   "~ v: vars_of(t) --> t <| (v,u)#s = t <| s";
+Goal   "~ v: vars_of(t) --> t <| (v,u)#s = t <| s";
 by (simp_tac (simpset() addsimps [agreement]) 1);
 qed_spec_mp"repl_invariance";
 
@@ -53,7 +53,7 @@ qed_spec_mp"Var_in_subst";
 
 (**** Equality between Substitutions ****)
 
-goalw Subst.thy [subst_eq_def] "r =$= s = (! t. t <| r = t <| s)";
+Goalw [subst_eq_def] "r =$= s = (! t. t <| r = t <| s)";
 by (Simp_tac 1);
 qed "subst_eq_iff";
 
@@ -96,18 +96,18 @@ Addsimps
 end;
 
 
-goal Subst.thy "s <> [] = s";
+Goal "s <> [] = s";
 by (alist_ind_tac "s" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "comp_Nil";
 
 Addsimps [comp_Nil];
 
-goal Subst.thy "s =$= s <> []";
+Goal "s =$= s <> []";
 by (Simp_tac 1);
 qed "subst_comp_Nil";
 
-goal Subst.thy "(t <| r <> s) = (t <| r <| s)";
+Goal "(t <| r <> s) = (t <| r <| s)";
 by (induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 by (alist_ind_tac "r" 1);
@@ -116,17 +116,17 @@ qed "subst_comp";
 
 Addsimps [subst_comp];
 
-goal Subst.thy "(q <> r) <> s =$= q <> (r <> s)";
+Goal "(q <> r) <> s =$= q <> (r <> s)";
 by (simp_tac (simpset() addsimps [subst_eq_iff]) 1);
 qed "comp_assoc";
 
-goal Subst.thy "!!s. [| theta =$= theta1; sigma =$= sigma1|] ==> \
+Goal "!!s. [| theta =$= theta1; sigma =$= sigma1|] ==> \
              \       (theta <> sigma) =$= (theta1 <> sigma1)";
 by (asm_full_simp_tac (simpset() addsimps [subst_eq_def]) 1);
 qed "subst_cong";
 
 
-goal Subst.thy "(w, Var(w) <| s) # s =$= s"; 
+Goal "(w, Var(w) <| s) # s =$= s"; 
 by (simp_tac (simpset() addsimps [subst_eq_iff]) 1);
 by (rtac allI 1);
 by (induct_tac "t" 1);
@@ -134,49 +134,49 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "Cons_trivial";
 
 
-goal Subst.thy "!!s. q <> r =$= s ==>  t <| q <| r = t <| s";
+Goal "!!s. q <> r =$= s ==>  t <| q <| r = t <| s";
 by (asm_full_simp_tac (simpset() addsimps [subst_eq_iff]) 1);
 qed "comp_subst_subst";
 
 
 (****  Domain and range of Substitutions ****)
 
-goal Subst.thy  "(v : sdom(s)) = (Var(v) <| s ~= Var(v))";
+Goal  "(v : sdom(s)) = (Var(v) <| s ~= Var(v))";
 by (alist_ind_tac "s" 1);
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 qed "sdom_iff";
 
 
-goalw Subst.thy [srange_def]  
+Goalw [srange_def]  
    "v : srange(s) = (? w. w : sdom(s) & v : vars_of(Var(w) <| s))";
 by (Blast_tac 1);
 qed "srange_iff";
 
-goalw thy [empty_def] "(A = {}) = (ALL a.~ a:A)";
+Goalw [empty_def] "(A = {}) = (ALL a.~ a:A)";
 by (Blast_tac 1);
 qed "empty_iff_all_not";
 
-goal Subst.thy  "(t <| s = t) = (sdom(s) Int vars_of(t) = {})";
+Goal  "(t <| s = t) = (sdom(s) Int vars_of(t) = {})";
 by (induct_tac "t" 1);
 by (ALLGOALS
     (asm_full_simp_tac (simpset() addsimps [empty_iff_all_not, sdom_iff])));
 by (ALLGOALS Blast_tac);
 qed "invariance";
 
-goal Subst.thy  "v : sdom(s) -->  v : vars_of(t <| s) --> v : srange(s)";
+Goal  "v : sdom(s) -->  v : vars_of(t <| s) --> v : srange(s)";
 by (induct_tac "t" 1);
 by (case_tac "a : sdom(s)" 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [sdom_iff, srange_iff])));
 by (ALLGOALS Blast_tac);
 qed_spec_mp "Var_in_srange";
 
-goal Subst.thy 
+Goal 
      "!!v. [| v : sdom(s); v ~: srange(s) |] ==>  v ~: vars_of(t <| s)";
 by (blast_tac (claset() addIs [Var_in_srange]) 1);
 qed "Var_elim";
 
-goal Subst.thy  "v : vars_of(t <| s) --> v : srange(s) | v : vars_of(t)";
+Goal  "v : vars_of(t <| s) --> v : srange(s) | v : vars_of(t)";
 by (induct_tac "t" 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [sdom_iff,srange_iff])));
 by (Blast_tac 2);
@@ -184,24 +184,24 @@ by (safe_tac (claset() addSIs [exI, vars_var_iff RS iffD1 RS sym]));
 by Auto_tac;
 qed_spec_mp "Var_intro";
 
-goal Subst.thy
+Goal
     "v : srange(s) --> (? w. w : sdom(s) & v : vars_of(Var(w) <| s))";
 by (simp_tac (simpset() addsimps [srange_iff]) 1);
 qed_spec_mp "srangeD";
 
-goal Subst.thy
+Goal
    "sdom(s) Int srange(s) = {} = (! t. sdom(s) Int vars_of(t <| s) = {})";
 by (simp_tac (simpset() addsimps [empty_iff_all_not]) 1);
 by (fast_tac (claset() addIs [Var_in_srange] addDs [srangeD]) 1);
 qed "dom_range_disjoint";
 
-goal Subst.thy "!!u. ~ u <| s = u ==> (? x. x : sdom(s))";
+Goal "!!u. ~ u <| s = u ==> (? x. x : sdom(s))";
 by (full_simp_tac (simpset() addsimps [empty_iff_all_not, invariance]) 1);
 by (Blast_tac 1);
 qed "subst_not_empty";
 
 
-goal Subst.thy "(M <| [(x, Var x)]) = M";
+Goal "(M <| [(x, Var x)]) = M";
 by (induct_tac "M" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "id_subst_lemma";

@@ -21,18 +21,18 @@ Addsimps [tl_not_self];
 (* ---------------------------- Action lemmas ---------------------------- *)
 
 (* Dequeue is visible *)
-goal Buffer.thy "<Deq ic q oc>_<ic,q,oc> .= Deq ic q oc";
+Goal "<Deq ic q oc>_<ic,q,oc> .= Deq ic q oc";
 by (auto_tac (claset(), simpset() addsimps [angle_def,Deq_def]));
 qed "Deq_visible";
 
 (* Enabling condition for dequeue -- NOT NEEDED *)
-goalw Buffer.thy [temp_rewrite Deq_visible]
+Goalw [temp_rewrite Deq_visible]
    "!!q. base_var <ic,q,oc> ==> $Enabled (<Deq ic q oc>_<ic,q,oc>) .= ($q .~= .[])";
 by (auto_tac (claset() addSEs [base_enabled,enabledE], simpset() addsimps [Deq_def]));
 qed "Deq_enabled";
 
 (* For the left-to-right implication, we don't need the base variable stuff *)
-goalw Buffer.thy [temp_rewrite Deq_visible] 
+Goalw [temp_rewrite Deq_visible] 
    "$Enabled (<Deq ic q oc>_<ic,q,oc>) .-> ($q .~= .[])";
 by (auto_tac (claset() addSEs [enabledE], simpset() addsimps [Deq_def]));
 qed "Deq_enabledE";

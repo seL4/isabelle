@@ -23,7 +23,7 @@ AddSEs [ifE];
 
 val cmd_defs = [racts_def, asgt_def, update_def];
 
-goalw thy [racts_def] "id : racts";
+Goalw [racts_def] "id : racts";
 by (Simp_tac 1);
 qed "id_in_racts";
 AddIffs [id_in_racts];
@@ -55,17 +55,17 @@ fun ensures_tac sact =
 	      Auto_tac]);
 
 
-goalw thy [stable_def, invariant_def]
+Goalw [stable_def, invariant_def]
     "stable racts invariant";
 by (constrains_tac 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "stable_invariant";
 
-goalw thy [rinit_def, invariant_def] "rinit <= invariant";
+Goalw [rinit_def, invariant_def] "rinit <= invariant";
 by Auto_tac;
 qed "rinit_invariant";
 
-goal thy "reachable rinit racts <= invariant";
+Goal "reachable rinit racts <= invariant";
 by (simp_tac (simpset() addsimps
 	      [strongest_invariant, stable_invariant, rinit_invariant]) 1); 
 qed "reachable_subset_invariant";
@@ -77,7 +77,7 @@ val reachable_subset_invariant' =
 (*** Fixedpoint ***)
 
 (*If it reaches a fixedpoint, it has found a solution*)
-goalw thy [fixedpoint_def, invariant_def]
+Goalw [fixedpoint_def, invariant_def]
     "fixedpoint Int invariant = { %v. (init, v) : edges^* }";
 by (rtac equalityI 1);
 by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 2);
@@ -86,7 +86,7 @@ by (etac rtrancl_induct 1);
 by Auto_tac;
 qed "fixedpoint_invariant_correct";
 
-goalw thy (cmd_defs @ [FP_def, fixedpoint_def, stable_def, constrains_def])
+Goalw (cmd_defs @ [FP_def, fixedpoint_def, stable_def, constrains_def])
     "FP racts <= fixedpoint";
 by Auto_tac;
 by (dtac bspec 1); 
@@ -96,12 +96,12 @@ by (dtac fun_cong 1);
 by Auto_tac;
 val lemma1 = result();
 
-goalw thy (cmd_defs @ [FP_def, fixedpoint_def, stable_def, constrains_def])
+Goalw (cmd_defs @ [FP_def, fixedpoint_def, stable_def, constrains_def])
     "fixedpoint <= FP racts";
 by (auto_tac (claset() addIs [ext], simpset()));
 val lemma2 = result();
 
-goal thy "FP racts = fixedpoint";
+Goal "FP racts = fixedpoint";
 by (rtac ([lemma1,lemma2] MRS equalityI) 1);
 qed "FP_fixedpoint";
 
@@ -112,7 +112,7 @@ qed "FP_fixedpoint";
   a LEADSTO assertion that the metric decreases if we are not at a fixedpoint.
   *)
 
-goal thy "Compl fixedpoint = (UN (u,v): edges. {s. s u & ~ s v})";
+Goal "Compl fixedpoint = (UN (u,v): edges. {s. s u & ~ s v})";
 by (simp_tac (simpset() addsimps
 	      ([Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym, 
 		racts_def, asgt_def])) 1);
@@ -126,7 +126,7 @@ by (Simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [update_idem_iff]) 1);
 qed "Compl_fixedpoint";
 
-goal thy "A - fixedpoint = (UN (u,v): edges. A Int {s. s u & ~ s v})";
+Goal "A - fixedpoint = (UN (u,v): edges. A Int {s. s u & ~ s v})";
 by (simp_tac (simpset() addsimps [Diff_eq, Compl_fixedpoint]) 1);
 by (Blast_tac 1);
 qed "Diff_fixedpoint";
@@ -134,25 +134,25 @@ qed "Diff_fixedpoint";
 
 (*** Progress ***)
 
-goalw thy [metric_def] "!!s. ~ s x ==> Suc (metric (s[x:=True])) = metric s";
+Goalw [metric_def] "!!s. ~ s x ==> Suc (metric (s[x:=True])) = metric s";
 by (subgoal_tac "{v. ~ (s[x:=True]) v} = {v. ~ s v} - {x}" 1);
 by Auto_tac;
 by (asm_simp_tac (simpset() addsimps [card_Suc_Diff]) 1);
 qed "Suc_metric";
 
-goal thy "!!s. ~ s x ==> metric (s[x:=True]) < metric s";
+Goal "!!s. ~ s x ==> metric (s[x:=True]) < metric s";
 by (etac (Suc_metric RS subst) 1);
 by (Blast_tac 1);
 qed "metric_less";
 AddSIs [metric_less];
 
-goal thy "metric (s[y:=s x | s y]) <= metric s";
+Goal "metric (s[y:=s x | s y]) <= metric s";
 by (case_tac "s x --> s y" 1);
 by (auto_tac (claset() addIs [less_imp_le],
 	      simpset() addsimps [update_idem]));
 qed "metric_le";
 
-goal thy "!!m. (u,v): edges ==> \
+Goal "!!m. (u,v): edges ==> \
 \              ensures racts ((metric-``{m}) Int {s. s u & ~ s v})  \
 \                            (metric-``(lessThan m))";
 by (ensures_tac "asgt u v" 1);
@@ -160,27 +160,27 @@ by (cut_facts_tac [metric_le] 1);
 by (fast_tac (claset() addSDs [le_imp_less_or_eq]) 1);
 qed "edges_ensures";
 
-goal thy "leadsTo racts ((metric-``{m}) - fixedpoint) (metric-``(lessThan m))";
+Goal "leadsTo racts ((metric-``{m}) - fixedpoint) (metric-``(lessThan m))";
 by (simp_tac (simpset() addsimps [Diff_fixedpoint]) 1);
 by (rtac leadsTo_UN 1);
 by (split_all_tac 1);
 by (asm_simp_tac (simpset() addsimps [edges_ensures RS leadsTo_Basis]) 1);
 qed "leadsTo_Diff_fixedpoint";
 
-goal thy "leadsTo racts (metric-``{m}) (metric-``(lessThan m) Un fixedpoint)";
+Goal "leadsTo racts (metric-``{m}) (metric-``(lessThan m) Un fixedpoint)";
 by (rtac (leadsTo_Diff_fixedpoint RS leadsTo_weaken_R RS leadsTo_Diff) 1);
 by (ALLGOALS (blast_tac (claset() addIs [subset_imp_leadsTo])));
 qed "leadsTo_Un_fixedpoint";
 
 
 (*Execution in any state leads to a fixedpoint (i.e. can terminate)*)
-goal thy "leadsTo racts UNIV fixedpoint";
+Goal "leadsTo racts UNIV fixedpoint";
 by (rtac lessThan_induct 1);
 by Auto_tac;
 by (rtac leadsTo_Un_fixedpoint 1);
 qed "leadsTo_fixedpoint";
 
-goal thy "LeadsTo rinit racts UNIV { %v. (init, v) : edges^* }";
+Goal "LeadsTo rinit racts UNIV { %v. (init, v) : edges^* }";
 by (stac (fixedpoint_invariant_correct RS sym) 1);
 by (rtac (leadsTo_fixedpoint RS leadsTo_imp_LeadsTo RS LeadsTo_weaken_R) 1); 
 by (cut_facts_tac [reachable_subset_invariant] 1);

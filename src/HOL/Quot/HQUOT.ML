@@ -7,7 +7,7 @@
 open HQUOT;
 
 (* first prove some helpful lemmas *)
-goalw thy [quot_def] "{y. y===x}:quot";
+Goalw [quot_def] "{y. y===x}:quot";
 by (Asm_simp_tac 1);
 by (fast_tac (set_cs addIs [per_sym]) 1);
 qed "per_class_rep_quot";
@@ -28,7 +28,7 @@ by (dres_inst_tac [("x","Rep_quot x")] spec 1);
 by (asm_full_simp_tac (HOL_ss addsimps [Rep_quot,Rep_quot_inverse]) 1);
 qed "all_q";
 
-goal thy "? s. s:quot & x=Abs_quot s";
+Goal "? s. s:quot & x=Abs_quot s";
 by (res_inst_tac [("x","Rep_quot x")] exI 1);
 by (asm_full_simp_tac (HOL_ss addsimps [Rep_quot,Rep_quot_inverse]) 1);
 qed "exh_q";
@@ -64,7 +64,7 @@ by (dres_inst_tac [("c","x")] equalityCE 1);by (assume_tac 3);
 by (safe_tac set_cs);
 qed "per_class_eqE";
 
-goal thy "<[(x::'a::er)]>=<[y]>=x===y";
+Goal "<[(x::'a::er)]>=<[y]>=x===y";
 by (rtac iffI 1);
 by (etac er_class_eqE 1);
 by (etac per_class_eqI 1);
@@ -106,14 +106,14 @@ by (etac per_class_neqE 1);
 by (etac per_class_neqI 1);by (assume_tac 1);
 qed "per_class_not";
 
-goal thy "<[(x::'a::er)]>~=<[y]>=(~x===y)";
+Goal "<[(x::'a::er)]>~=<[y]>=(~x===y)";
 by (rtac iffI 1);
 by (etac per_class_neqE 1);
 by (etac er_class_neqI 1);
 qed "er_class_not";
 
 (* exhaustiveness and induction *)
-goalw thy [peclass_def] "? s. x=<[s]>";
+Goalw [peclass_def] "? s. x=<[s]>";
 by (rtac all_q 1);
 by (strip_tac 1);
 by (asm_full_simp_tac (HOL_ss addsimps [mem_Collect_eq,quot_def]) 1);
@@ -135,7 +135,7 @@ by (fast_tac set_cs 1);
 qed "per_class_all";
 
 (* theorems for any_in *)
-goalw thy [any_in_def,peclass_def] "any_in<[(s::'a::er)]>===s";
+Goalw [any_in_def,peclass_def] "any_in<[(s::'a::er)]>===s";
 fr selectI2;
 fr refl;
 by (fold_goals_tac [peclass_def]);

@@ -16,17 +16,17 @@ Delrules [equalityI];
 
 (** first half: equiv A r ==> r^-1 O r = r **)
 
-goalw Equiv.thy [trans_def,sym_def,converse_def]
+Goalw [trans_def,sym_def,converse_def]
     "!!r. [| sym(r); trans(r) |] ==> r^-1 O r <= r";
 by (Blast_tac 1);
 qed "sym_trans_comp_subset";
 
-goalw Equiv.thy [refl_def]
+Goalw [refl_def]
     "!!A r. refl A r ==> r <= r^-1 O r";
 by (Blast_tac 1);
 qed "refl_comp_subset";
 
-goalw Equiv.thy [equiv_def]
+Goalw [equiv_def]
     "!!A r. equiv A r ==> r^-1 O r = r";
 by (Clarify_tac 1);
 by (rtac equalityI 1);
@@ -34,7 +34,7 @@ by (REPEAT (ares_tac [sym_trans_comp_subset, refl_comp_subset] 1));
 qed "equiv_comp_eq";
 
 (*second half*)
-goalw Equiv.thy [equiv_def,refl_def,sym_def,trans_def]
+Goalw [equiv_def,refl_def,sym_def,trans_def]
     "!!A r. [| r^-1 O r = r;  Domain(r) = A |] ==> equiv A r";
 by (etac equalityE 1);
 by (subgoal_tac "ALL x y. (x,y) : r --> (y,x) : r" 1);
@@ -44,35 +44,35 @@ qed "comp_equivI";
 (** Equivalence classes **)
 
 (*Lemma for the next result*)
-goalw Equiv.thy [equiv_def,trans_def,sym_def]
+Goalw [equiv_def,trans_def,sym_def]
     "!!A r. [| equiv A r;  (a,b): r |] ==> r^^{a} <= r^^{b}";
 by (Blast_tac 1);
 qed "equiv_class_subset";
 
-goal Equiv.thy "!!A r. [| equiv A r;  (a,b): r |] ==> r^^{a} = r^^{b}";
+Goal "!!A r. [| equiv A r;  (a,b): r |] ==> r^^{a} = r^^{b}";
 by (REPEAT (ares_tac [equalityI, equiv_class_subset] 1));
 by (rewrite_goals_tac [equiv_def,sym_def]);
 by (Blast_tac 1);
 qed "equiv_class_eq";
 
-goalw Equiv.thy [equiv_def,refl_def]
+Goalw [equiv_def,refl_def]
     "!!A r. [| equiv A r;  a: A |] ==> a: r^^{a}";
 by (Blast_tac 1);
 qed "equiv_class_self";
 
 (*Lemma for the next result*)
-goalw Equiv.thy [equiv_def,refl_def]
+Goalw [equiv_def,refl_def]
     "!!A r. [| equiv A r;  r^^{b} <= r^^{a};  b: A |] ==> (a,b): r";
 by (Blast_tac 1);
 qed "subset_equiv_class";
 
-goal Equiv.thy
+Goal
     "!!A r. [| r^^{a} = r^^{b};  equiv A r;  b: A |] ==> (a,b): r";
 by (REPEAT (ares_tac [equalityD2, subset_equiv_class] 1));
 qed "eq_equiv_class";
 
 (*thus r^^{a} = r^^{b} as well*)
-goalw Equiv.thy [equiv_def,trans_def,sym_def]
+Goalw [equiv_def,trans_def,sym_def]
     "!!A r. [| equiv A r;  x: (r^^{a} Int r^^{b}) |] ==> (a,b): r";
 by (Blast_tac 1);
 qed "equiv_class_nondisjoint";
@@ -82,13 +82,13 @@ val [major] = goalw Equiv.thy [equiv_def,refl_def]
 by (rtac (major RS conjunct1 RS conjunct1) 1);
 qed "equiv_type";
 
-goal Equiv.thy
+Goal
     "!!A r. equiv A r ==> ((x,y): r) = (r^^{x} = r^^{y} & x:A & y:A)";
 by (blast_tac (claset() addSIs [equiv_class_eq]
 	               addDs [eq_equiv_class, equiv_type]) 1);
 qed "equiv_class_eq_iff";
 
-goal Equiv.thy
+Goal
     "!!A r. [| equiv A r;  x: A;  y: A |] ==> (r^^{x} = r^^{y}) = ((x,y): r)";
 by (blast_tac (claset() addSIs [equiv_class_eq]
 	               addDs [eq_equiv_class, equiv_type]) 1);
@@ -98,7 +98,7 @@ qed "eq_equiv_class_iff";
 
 (** Introduction/elimination rules -- needed? **)
 
-goalw Equiv.thy [quotient_def] "!!A. x:A ==> r^^{x}: A/r";
+Goalw [quotient_def] "!!A. x:A ==> r^^{x}: A/r";
 by (Blast_tac 1);
 qed "quotientI";
 
@@ -111,12 +111,12 @@ by (assume_tac 2);
 by (Fast_tac 1);   (*Blast_tac FAILS to prove it*)
 qed "quotientE";
 
-goalw Equiv.thy [equiv_def,refl_def,quotient_def]
+Goalw [equiv_def,refl_def,quotient_def]
     "!!A r. equiv A r ==> Union(A/r) = A";
 by (blast_tac (claset() addSIs [equalityI]) 1);
 qed "Union_quotient";
 
-goalw Equiv.thy [quotient_def]
+Goalw [quotient_def]
     "!!A r. [| equiv A r;  X: A/r;  Y: A/r |] ==> X=Y | (X Int Y = {})";
 by (safe_tac (claset() addSIs [equiv_class_eq]));
 by (assume_tac 1);
@@ -139,7 +139,7 @@ val UN_singleton = ballI RSN (2,UN_singleton_lemma);
 **)
 
 (*Conversion rule*)
-goal Equiv.thy "!!A r. [| equiv A r;  congruent r b;  a: A |] \
+Goal "!!A r. [| equiv A r;  congruent r b;  a: A |] \
 \                      ==> (UN x:r^^{a}. b(x)) = b(a)";
 by (rtac (equiv_class_self RS UN_singleton) 1 THEN REPEAT (assume_tac 1));
 by (rewrite_goals_tac [equiv_def,congruent_def,sym_def]);
@@ -177,12 +177,12 @@ qed "UN_equiv_class_inject";
 (**** Defining binary operations upon equivalence classes ****)
 
 
-goalw Equiv.thy [congruent_def,congruent2_def,equiv_def,refl_def]
+Goalw [congruent_def,congruent2_def,equiv_def,refl_def]
     "!!A r. [| equiv A r;  congruent2 r b;  a: A |] ==> congruent r (b a)";
 by (Blast_tac 1);
 qed "congruent2_implies_congruent";
 
-goalw Equiv.thy [congruent_def]
+Goalw [congruent_def]
     "!!A r. [| equiv A r;  congruent2 r b;  a: A |] ==> \
 \    congruent r (%x1. UN x2:r^^{a}. b x1 x2)";
 by (Clarify_tac 1);
@@ -193,7 +193,7 @@ by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
 by (Blast_tac 1);
 qed "congruent2_implies_congruent_UN";
 
-goal Equiv.thy
+Goal
     "!!A r. [| equiv A r;  congruent2 r b;  a1: A;  a2: A |]  \
 \    ==> (UN x1:r^^{a1}. UN x2:r^^{a2}. b x1 x2) = b a1 a2";
 by (asm_simp_tac (simpset() addsimps [UN_equiv_class,
@@ -244,21 +244,21 @@ qed "congruent2_commuteI";
 (*** Cardinality results suggested by Florian Kammueller ***)
 
 (*Recall that  equiv A r  implies  r <= A Times A   (equiv_type) *)
-goal thy "!!A. [| finite A; r <= A Times A |] ==> finite (A/r)";
+Goal "!!A. [| finite A; r <= A Times A |] ==> finite (A/r)";
 by (rtac finite_subset 1);
 by (etac (finite_Pow_iff RS iffD2) 2);
 by (rewtac quotient_def);
 by (Blast_tac 1);
 qed "finite_quotient";
 
-goalw thy [quotient_def]
+Goalw [quotient_def]
     "!!A. [| finite A;  r <= A Times A;  X : A/r |] ==> finite X";
 by (rtac finite_subset 1);
 by (assume_tac 2);
 by (Blast_tac 1);
 qed "finite_equiv_class";
 
-goal thy "!!A. [| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] \
+Goal "!!A. [| finite A;  equiv A r;  ! X : A/r. k dvd card(X) |] \
 \              ==> k dvd card(A)";
 by (rtac (Union_quotient RS subst) 1);
 by (assume_tac 1);
