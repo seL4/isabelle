@@ -224,7 +224,7 @@ fun thms_containing thy consts =
 (* naming *)
 
 fun gen_names len name =
-  map (fn i => name ^ "_" ^ string_of_int i) (1 upto len);
+  map (fn i => name ^ ":" ^ string_of_int i) (1 upto len);
 
 fun name_single name x = [(name, x)];
 fun name_multi name xs = gen_names (length xs) name ~~ xs;
