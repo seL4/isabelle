@@ -89,7 +89,7 @@ by (Blast_tac 1);
 result();
 
 (*11.  Proved in each direction (incorrectly, says Pelletier!!)  *)
-goal HOL.thy "P=P::bool";
+goal HOL.thy "P=(P::bool)";
 by (Blast_tac 1);
 result();
 
