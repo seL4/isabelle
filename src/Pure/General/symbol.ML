@@ -208,8 +208,8 @@ fun scanner msg scan chs =
 (* scan *)
 
 val scan_id = Scan.one is_letter ^^ (Scan.any is_letdig >> implode);
-val scan_ctrlid = Scan.one is_letter ^^ (Scan.any is_ctrl_letter >> implode);
-val scan_rawctrlid = $$ "r" ^^ $$ "a" ^^ $$ "w" ^^ scan_ctrlid;
+val scan_rawctrlid = 
+    $$ "r" ^^ $$ "a" ^^ $$ "w" ^^ (Scan.any is_ctrl_letter >> implode);
 
 val scan =
   $$ "\\" ^^ $$ "<" ^^
