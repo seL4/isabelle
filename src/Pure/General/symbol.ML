@@ -133,7 +133,7 @@ local
 in
 val ext_letters = map wrap pre_letters 
 
-fun is_ext_letter s = String.isPrefix "\\<" s andalso s mem ext_letters
+fun is_ext_letter s = String.isPrefix "\\<" s andalso s mem_string ext_letters
 end
      
 fun is_letter s =
