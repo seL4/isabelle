@@ -74,7 +74,7 @@ by (res_inst_tac [("x",
 \    %i. fst (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac (claset() delWrapper"split_all_tac" delSWrapper"split_all_tac")1);
+ by (fast_tac (claset() delSWrapper"split_all_tac")1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,
@@ -94,7 +94,7 @@ by (res_inst_tac [("x",
 \    %i. snd (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac (claset() delWrapper"split_all_tac" delSWrapper"split_all_tac")1);
+ by (fast_tac (claset() delSWrapper"split_all_tac")1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,

@@ -63,9 +63,8 @@ Addsimps [map_of_append];
 goal thy "map_of xs k = Some y --> (k,y):set xs";
 by (list.induct_tac "xs" 1);
 by  (Simp_tac 1);
-by (Asm_simp_tac 1);
 by (split_all_tac 1);
-by (Simp_tac 1);
+by (Asm_simp_tac 1);
 qed_spec_mp "map_of_SomeD";
 
 section "dom";

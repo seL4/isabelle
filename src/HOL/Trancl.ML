@@ -160,8 +160,7 @@ by (blast_tac (claset() addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseI";
 
 goal Trancl.thy "(r^-1)^* = (r^*)^-1";
-by (safe_tac (claset() addSDs [rtrancl_converseD] addSIs [rtrancl_converseI]
-			addSaltern ("split_all_tac", split_all_tac)));
+by (safe_tac (claset() addSDs [rtrancl_converseD] addSIs [rtrancl_converseI]));
 qed "rtrancl_converse";
 
 val major::prems = goal Trancl.thy
@@ -339,7 +338,7 @@ qed "trancl_subset_Sigma";
 
 
 goal Trancl.thy "(r^+)^= = r^*";
-by (safe_tac (claset() addSaltern ("split_all_tac", split_all_tac)));
+by Safe_tac;
 by  (etac trancl_into_rtrancl 1);
 by (etac rtranclE 1);
 by  (Auto_tac );
@@ -349,7 +348,7 @@ qed "reflcl_trancl";
 Addsimps[reflcl_trancl];
 
 goal Trancl.thy "(r^=)^+ = r^*";
-by (safe_tac (claset() addSaltern ("split_all_tac", split_all_tac)));
+by Safe_tac;
 by  (dtac trancl_into_rtrancl 1);
 by  (Asm_full_simp_tac 1);
 by (etac rtranclE 1);
