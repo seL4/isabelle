@@ -481,11 +481,55 @@ fun arith_method prems =
 
 end;
 
+(* antisymmetry:
+   combines x <= y (or ~(y < x)) and y <= x (or ~(x < y)) into x = y *)
+
+local
+val antisym = mk_meta_eq order_antisym
+val not_lessD = linorder_not_less RS iffD1
+fun prp t thm = (#prop(rep_thm thm) = t)
+in
+fun antisym_eq prems thm =
+  let
+    val r = #prop(rep_thm thm);
+  in
+    case r of
+      Tr $ ((c as Const("op <=",T)) $ s $ t) =>
+        let val r' = Tr $ (c $ t $ s)
+        in
+          case Library.find_first (prp r') prems of
+            None =>
+              let val r' = Tr $ (HOLogic.not_const $ (Const("op <",T) $ s $ t))
+              in case Library.find_first (prp r') prems of
+                   None => []
+                 | Some thm' => [(thm' RS not_lessD) RS (thm RS antisym)]
+              end
+          | Some thm' => [thm' RS (thm RS antisym)]
+        end
+    | Tr $ (Const("Not",_) $ (Const("op <",T) $ s $ t)) =>
+        let val r' = Tr $ (Const("op <=",T) $ s $ t)
+        in
+          case Library.find_first (prp r') prems of
+            None =>
+              let val r' = Tr $ (HOLogic.not_const $ (Const("op <",T) $ t $ s))
+              in case Library.find_first (prp r') prems of
+                   None => []
+                 | Some thm' =>
+                     [(thm' RS not_lessD) RS ((thm RS not_lessD) RS antisym)]
+              end
+          | Some thm' => [thm' RS ((thm RS not_lessD) RS antisym)]
+        end
+    | _ => []
+  end
+  handle THM _ => []
+end;
+
 
 (* theory setup *)
 
 val arith_setup =
- [Simplifier.change_simpset_of (op addsimprocs) nat_cancel_sums] @
+ [Simplifier.change_simpset_of (op setmksimps2) antisym_eq,
+  Simplifier.change_simpset_of (op addsimprocs) nat_cancel_sums] @
   init_lin_arith_data @
   [Simplifier.change_simpset_of (op addSolver)
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac),

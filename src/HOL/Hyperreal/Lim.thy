@@ -1507,8 +1507,6 @@ apply (drule_tac x = "ba-x" in spec)
 apply (simp_all add: abs_if)
 apply (drule_tac x = "aa-x" in spec)
 apply (case_tac "x \<le> aa", simp_all)
-apply (drule_tac x = x and y = aa in order_antisym)
-apply (assumption, simp)
 done
 
 lemma IVT2: "[| f(b) \<le> y; y \<le> f(a);
@@ -1603,7 +1601,7 @@ proof -
     proof (rule ccontr)
       assume "\<not> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
       with M1 have M3: "\<forall>x. a \<le> x & x \<le> b --> f x < M"
-        by (auto simp add: linorder_not_le [symmetric] intro: order_antisym)
+        by (fastsimp simp add: linorder_not_le [symmetric])
       hence "\<forall>x. a \<le> x & x \<le> b --> isCont (%x. inverse (M - f x)) x"
         by (auto simp add: isCont_inverse isCont_diff con)
       from isCont_bounded [OF le this]
@@ -1851,8 +1849,8 @@ proof -
         assume az: "a \<le> z" and zb: "z \<le> b"
         show "f z = f b"
         proof (rule order_antisym)
-          show "f z \<le> f b" by (simp add: fb_eq_fx x_max az zb) 
-          show "f b \<le> f z" by (simp add: fb_eq_fx' x'_min az zb) 
+          show "f z \<le> f b" by (simp add: fb_eq_fx x_max az zb)
+          show "f b \<le> f z" by (simp add: fb_eq_fx' x'_min az zb)
         qed
       qed
       have bound': "\<forall>y. \<bar>r-y\<bar> < d \<longrightarrow> f r = f y"
