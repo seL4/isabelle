@@ -349,6 +349,3 @@ fun constrains_tac i =
 	      REPEAT (FIRSTGOAL (etac disjE)),
 	      ALLGOALS Clarify_tac,
 	      ALLGOALS Asm_full_simp_tac]) i;
-
-
-leadsTo_wf_induct
