@@ -483,7 +483,8 @@ fun strip_shyps thm =
   in
     Thm {sign = sign, der = der, maxidx = maxidx,
 	 shyps =
-	 (if eq_set (shyps',sorts) orelse not (!force_strip_shyps) then shyps'
+	 (if eq_set_sort (shyps',sorts) orelse 
+	     not (!force_strip_shyps) then shyps'
 	  else    (* FIXME tmp *)
 	      (writeln ("WARNING Removed sort hypotheses: " ^
 			commas (map Type.str_of_sort (shyps' \\ sorts)));
@@ -503,7 +504,7 @@ fun implies_intr_shyps thm =
   | xshyps =>
       let
         val Thm {sign, der, maxidx, shyps, hyps, prop} = thm;
-        val shyps' = logicS ins (shyps \\ xshyps);
+        val shyps' = ins_sort (logicS, shyps \\ xshyps);
         val used_names = foldr add_term_tfree_names (prop :: hyps, []);
         val names =
           tl (variantlist (replicate (length xshyps + 1) "'", used_names));
@@ -1412,7 +1413,7 @@ fun vperm(Var _, Var _) = true
   | vperm(t,u) = (t=u);
 
 fun var_perm(t,u) = vperm(t,u) andalso
-                    eq_set(add_term_vars(t,[]), add_term_vars(u,[]))
+                    eq_set_term (term_vars t, term_vars u)
 
 (*simple test for looping rewrite*)
 fun loops sign prems (lhs,rhs) =

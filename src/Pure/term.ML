@@ -322,6 +322,12 @@ fun (Const(a,T)) aconv (Const(b,U)) = a=b  andalso  T=U
 fun mem_term (_, []) = false
   | mem_term (t, t'::ts) = t aconv t' orelse mem_term(t,ts);
 
+fun subset_term ([], ys) = true
+  | subset_term (x :: xs, ys) = mem_term (x, ys) andalso subset_term(xs, ys);
+
+fun eq_set_term (xs, ys) =
+    xs = ys orelse (subset_term (xs, ys) andalso subset_term (ys, xs));
+
 fun ins_term(t,ts) = if mem_term(t,ts) then ts else t :: ts;
 
 fun union_term (xs, []) = xs
@@ -354,6 +360,12 @@ fun ins_sort(S,Ss) = if mem_sort(S,Ss) then Ss else S :: Ss;
 fun union_sort (xs, []) = xs
   | union_sort ([], ys) = ys
   | union_sort ((x :: xs), ys) = union_sort (xs, ins_sort (x, ys));
+
+fun subset_sort ([], ys) = true
+  | subset_sort (x :: xs, ys) = mem_sort (x, ys) andalso subset_sort(xs, ys);
+
+fun eq_set_sort (xs, ys) =
+    xs = ys orelse (subset_sort (xs, ys) andalso subset_sort (ys, xs));
 
 (*are two term lists alpha-convertible in corresponding elements?*)
 fun aconvs ([],[]) = true

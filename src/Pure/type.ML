@@ -187,7 +187,7 @@ val err_ty_confl = error o ty_confl;
 *)
 
 fun less a (C, D) = case assoc (a, C) of
-     Some ss => D mem ss
+     Some ss => D mem_string ss
    | None => err_undcl_class C;
 
 fun leq a (C, D)  =  C = D orelse less a (C, D);
@@ -413,8 +413,8 @@ fun typ_errors tsig (typ, errors) =
     val TySg {classes, tycons, abbrs, ...} = tsig;
 
     fun class_err (errs, c) =
-      if c mem classes then errs
-      else undcl_class c ins errs;
+      if c mem_string classes then errs
+      else undcl_class c ins_string errs;
 
     val sort_err = foldl class_err;
 
@@ -423,19 +423,19 @@ fun typ_errors tsig (typ, errors) =
             val errs' = foldr typ_errs (Us, errs);
             fun nargs n =
               if n = length Us then errs'
-              else ("Wrong number of arguments: " ^ quote c) ins errs';
+              else ("Wrong number of arguments: " ^ quote c) ins_string errs';
           in
             (case assoc (tycons, c) of
               Some n => nargs n
             | None =>
                 (case assoc (abbrs, c) of
                   Some (vs, _) => nargs (length vs)
-                | None => undcl_type c ins errs))
+                | None => undcl_type c ins_string errs))
           end
     | typ_errs (TFree (_, S), errs) = sort_err (errs, S)
     | typ_errs (TVar ((x, i), S), errs) =
         if i < 0 then
-          ("Negative index for TVar " ^ quote x) ins sort_err (errs, S)
+          ("Negative index for TVar " ^ quote x) ins_string sort_err (errs, S)
         else sort_err (errs, S);
   in
     typ_errs (typ, errors)
@@ -460,16 +460,18 @@ fun cert_typ tsig ty =
 
 fun assoc_union (as1, []) = as1
   | assoc_union (as1, (key, l2) :: as2) =
-      (case assoc (as1, key) of
-        Some l1 => assoc_union (overwrite (as1, (key, l1 union l2)), as2)
+      (case assoc_string (as1, key) of
+        Some l1 => assoc_union 
+	              (overwrite (as1, (key, l1 union_string l2)), as2)
       | None => assoc_union ((key, l2) :: as1, as2));
 
 
 (* merge subclass *)
 
 fun merge_subclass (subclass1, subclass2) =
-  let val subclass = transitive_closure (assoc_union (subclass1, subclass2)) in
-    if exists (op mem) subclass then
+  let val subclass = transitive_closure (assoc_union (subclass1, subclass2)) 
+  in
+    if exists (op mem_string) subclass then
       error ("Cyclic class structure!")   (* FIXME improve msg, raise TERM *)
     else subclass
   end;
@@ -543,7 +545,7 @@ fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1,
                      tycons=tycons1, arities=arities1, abbrs=abbrs1},
                 TySg{classes=classes2, default=default2, subclass=subclass2,
                      tycons=tycons2, arities=arities2, abbrs=abbrs2}) =
-  let val classes' = classes1 union classes2;
+  let val classes' = classes1 union_string classes2;
       val subclass' = merge_subclass (subclass1, subclass2);
       val tycons' = foldl add_tycons (tycons1, tycons2)
       val arities' = merge_arities subclass' (arities1, arities2);
@@ -558,7 +560,7 @@ fun merge_tsigs(TySg{classes=classes1, default=default1, subclass=subclass1,
 (** add classes and subclass relations**)
 
 fun add_classes classes cs =
-  (case cs inter classes of
+  (case cs inter_string classes of
     [] => cs @ classes
   | dups => err_dup_classes cs);
 
@@ -573,12 +575,13 @@ fun add_classes classes cs =
 fun add_subclass classes (subclass, (s, ges)) =
   let
     fun upd (subclass, s') =
-      if s' mem classes then
+      if s' mem_string classes then
         let val ges' = the (assoc (subclass, s))
         in case assoc (subclass, s') of
-             Some sups => if s mem sups
+             Some sups => if s mem_string sups
                            then error(" Cycle :" ^ s^" <= "^ s'^" <= "^ s )
-                           else overwrite (subclass, (s, sups union ges'))
+                           else overwrite 
+			          (subclass, (s, sups union_string ges'))
            | None => subclass
         end
       else err_undcl_class s'
@@ -707,7 +710,7 @@ fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
    the 'arities' association list of the given type signatrure  *)
 
 fun coregular (classes, subclass, tycons) =
-  let fun ex C = if C mem classes then () else err_undcl_class(C);
+  let fun ex C = if C mem_string classes then () else err_undcl_class(C);
 
       fun addar(arities, (t, (w, C))) = case assoc(tycons, t) of
             Some(n) => if n <> length w then varying_decls(t) else
@@ -1010,7 +1013,7 @@ fun newtvars used =
   let fun new([],_,vmap) = vmap
         | new(ixn::ixns,p as (pref,c),vmap) =
             let val nm = pref ^ c
-            in if nm mem used then new(ixn::ixns,nextname p, vmap)
+            in if nm mem_string used then new(ixn::ixns,nextname p, vmap)
                else new(ixns, nextname p, (ixn,nm)::vmap)
             end
   in new end;

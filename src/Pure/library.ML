@@ -492,23 +492,11 @@ fun ([]:int list) subset_int ys = true
 fun ([]:string list) subset_string ys = true
   | (x :: xs) subset_string ys = x mem_string ys andalso xs subset_string ys;
 
-fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
-
-
-(*eq_set*)
-
-fun eq_set (xs, ys) =
-  xs = ys orelse (xs subset ys andalso ys subset xs);
-
-(*eq_set, optimized version for ints*)
-
-fun eq_set_int ((xs:int list), ys) =
-  xs = ys orelse (xs subset_int ys andalso ys subset_int xs);
-
-(*eq_set, optimized version for strings*)
-
+(*set equality for strings*)
 fun eq_set_string ((xs:string list), ys) =
   xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
+
+fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
 
 
 (*removing an element from a list WITHOUT duplicates*)
@@ -886,8 +874,9 @@ val sort_strings = sort (op <= : string * string -> bool);
 fun transitive_closure [] = []
   | transitive_closure ((x, ys)::ps) =
       let val qs = transitive_closure ps
-          val zs = foldl (fn (zs, y) => assocs qs y union zs) (ys, ys)
-          fun step(u, us) = (u, if x mem us then zs union us else us)
+          val zs = foldl (fn (zs, y) => assocs qs y union_string zs) (ys, ys)
+          fun step(u, us) = (u, if x mem_string us then zs union_string us 
+				else us)
       in (x, zs) :: map step qs end;
 
 
