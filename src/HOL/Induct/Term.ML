@@ -12,7 +12,7 @@ open Term;
 (*** Monotonicity and unfolding of the function ***)
 
 goal Term.thy "term(A) = A <*> list(term(A))";
-by (fast_tac (!claset addSIs (equalityI :: term.intrs)
+by (fast_tac (!claset addSIs term.intrs
                       addEs [term.elim]) 1);
 qed "term_unfold";
 

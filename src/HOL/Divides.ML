@@ -178,7 +178,7 @@ qed "mod2_neq_0";
 goal thy "(m+m) mod 2 = 0";
 by (induct_tac "m" 1);
 by (simp_tac (!simpset addsimps [mod_less]) 1);
-by (asm_simp_tac (!simpset addsimps [mod2_Suc_Suc, add_Suc_right]) 1);
+by (Asm_simp_tac 1);
 qed "mod2_add_self";
 Addsimps [mod2_add_self];
 

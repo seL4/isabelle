@@ -39,8 +39,8 @@ goalw Equiv.thy [equiv_def,refl_def,sym_def,trans_def]
 by (etac equalityE 1);
 by (subgoal_tac "ALL x y. (x,y) : r --> (y,x) : r" 1);
 by (Step_tac 1);
-by (fast_tac (!claset addSIs [converseI] addIs [compI]) 3);
-by (ALLGOALS (fast_tac (!claset addIs [compI] addSEs [compE])));
+by (fast_tac (!claset addIs [compI]) 3);
+by (ALLGOALS (fast_tac (!claset addIs [compI])));
 qed "comp_equivI";
 
 (** Equivalence classes **)

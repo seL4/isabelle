@@ -83,7 +83,7 @@ AddIffs[finite_Un];
 goal Finite.thy "finite(insert a A) = finite A";
 by (stac insert_is_Un 1);
 by (simp_tac (HOL_ss addsimps [finite_Un]) 1);
-by (blast_tac (!claset addSIs Finites.intrs) 1);
+by (Blast_tac 1);
 qed "finite_insert";
 Addsimps[finite_insert];
 

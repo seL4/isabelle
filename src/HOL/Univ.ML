@@ -257,7 +257,7 @@ qed "ntrunc_Numb";
 
 goalw Univ.thy [Scons_def,ntrunc_def]
     "ntrunc (Suc k) (M$N) = ntrunc k M $ ntrunc k N";
-by (safe_tac (!claset addSIs [equalityI, imageI]));
+by (safe_tac (!claset addSIs [imageI]));
 by (REPEAT (stac ndepth_Push_Node 3 THEN etac Suc_mono 3));
 by (REPEAT (rtac Suc_less_SucD 1 THEN 
             rtac (ndepth_Push_Node RS subst) 1 THEN 

@@ -27,7 +27,7 @@ qed "llist_mono";
 
 goal LList.thy "llist(A) = {Numb(0)} <+> (A <*> llist(A))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
-by (fast_tac (!claset addSIs (equalityI :: map rew llist.intrs)
+by (fast_tac (!claset addSIs (map rew llist.intrs)
                       addEs [rew llist.elim]) 1)
 end;
 qed "llist_unfold";
@@ -148,7 +148,7 @@ qed "LList_corec_type2";
 (*This theorem is actually used, unlike the many similar ones in ZF*)
 goal LList.thy "LListD(r) = diag({Numb(0)}) <++> (r <**> LListD(r))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
-by (fast_tac (!claset addSIs (equalityI :: map rew LListD.intrs)
+by (fast_tac (!claset addSIs (map rew LListD.intrs)
                       addEs [rew LListD.elim]) 1)
 end;
 qed "LListD_unfold";
@@ -157,7 +157,7 @@ goal LList.thy "!M N. (M,N) : LListD(diag(A)) --> ntrunc k M = ntrunc k N";
 by (res_inst_tac [("n", "k")] less_induct 1);
 by (safe_tac ((claset_of "Fun") delrules [equalityI]));
 by (etac LListD.elim 1);
-by (safe_tac (((claset_of "Prod") delrules [equalityI]) addSEs [diagE]));
+by (safe_tac (claset_of "Prod" delrules [equalityI] addSEs [diagE]));
 by (res_inst_tac [("n", "n")] natE 1);
 by (asm_simp_tac (!simpset addsimps [ntrunc_0]) 1);
 by (rename_tac "n'" 1);
@@ -392,7 +392,7 @@ qed "Rep_llist_LCons";
 (** Injectiveness of CONS and LCons **)
 
 goalw LList.thy [CONS_def] "(CONS M N=CONS M' N') = (M=M' & N=N')";
-by (fast_tac (!claset addSEs [Scons_inject, make_elim In1_inject]) 1);
+by (fast_tac (!claset addSEs [Scons_inject]) 1);
 qed "CONS_CONS_eq2";
 
 bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
