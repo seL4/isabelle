@@ -182,9 +182,8 @@ definitions in HOL.
 \begin{descr}
 \item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] define
   (co)inductive sets from the given introduction rules.
-\item [$mono$] adds or deletes monotonicity rules from the theory or proof
-  context (the default is to add).  These rule are involved in the automated
-  monotonicity proof of $\isarkeyword{inductive}$.
+\item [$mono$] declares monotonicity rules.  These rule are involved in the
+  automated monotonicity proof of $\isarkeyword{inductive}$.
 \item [$\isarkeyword{inductive_cases}$] creates instances of elimination rules
   of (co)inductive sets, solving obvious cases by simplification.
   
@@ -193,10 +192,10 @@ definitions in HOL.
   
   Unlike the \texttt{mk_cases} ML function exported with any inductive
   definition \cite{isabelle-HOL}, $\isarkeyword{inductive_cases}$ it does
-  \emph{not} modify cases by simplification, apart from trying to solve
-  completely (e.g.\ due to contradictory assumptions.  Thus
-  $\isarkeyword{inductive_cases}$ conforms to way Isar proofs are conducted,
-  rather than old-style tactic scripts.
+  \emph{not} modify cases by simplification that are not solved completely
+  anyway (e.g.\ due to contradictory assumptions).  Thus
+  $\isarkeyword{inductive_cases}$ conforms to the way Isar proofs are
+  conducted, rather than old-style tactic scripts.
 \end{descr}
 
 See \cite{isabelle-HOL} for further information on inductive definitions in
@@ -269,7 +268,8 @@ about large specifications.
   
   The $stripped$ option causes implications and (bounded) universal
   quantifiers to be removed from each new subgoal emerging from the
-  application of the induction rule.
+  application of the induction rule.  This accommodates typical
+  ``strengthening of induction'' predicates.
 \end{descr}
 
 Above methods produce named local contexts (cf.\ \S\ref{sec:cases}), as
@@ -279,11 +279,11 @@ internal proof state.\footnote{As a general principle, Isar proof text may
 cases usually require the rule to be instantiated fully, as far as the
 emerging local contexts and subgoals are concerned.  In particular, for
 induction both the predicates and variables have to be specified.  Otherwise
-the $\CASENAME$ command would refuse to invoke cases that contain schematic
+the $\CASENAME$ command would refuse to invoke cases containing schematic
 variables.
 
 The $\isarkeyword{print_cases}$ command (\S\ref{sec:diag}) prints all named
-cases present in the current proof context.
+cases present in the current proof state.
 
 
 \subsection{Declaring rules}

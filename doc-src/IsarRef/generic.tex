@@ -12,10 +12,10 @@
 
 Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
 interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
-may make use of this light-weight mechanism of abstract theories.  See
-\cite{Wenzel:1997:TPHOL} for more information.  There is also a tutorial on
-\emph{Using Axiomatic Type Classes in Isabelle} that is part of the standard
-Isabelle documentation.
+may make use of this light-weight mechanism of abstract theories
+\cite{Wenzel:1997:TPHOL}.  There is also a tutorial on \emph{Using Axiomatic
+  Type Classes in Isabelle} that is part of the standard Isabelle
+documentation.
 %FIXME cite
 
 \begin{rail}
@@ -35,8 +35,8 @@ Isabelle documentation.
   class.
   
 \item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~t ::
-  (\vec s)c$] setup up a goal stating the class relation or type arity.  The
-  proof would usually proceed by $intro_classes$, and then establish the
+  (\vec s)c$] setup a goal stating a class relation or type arity.  The proof
+  would usually proceed by $intro_classes$, and then establish the
   characteristic theorems of the type classes involved.  After finishing the
   proof, the theory will be augmented by a type signature declaration
   corresponding to the resulting theorem.
@@ -86,15 +86,15 @@ command required.
 \end{rail}
 
 \begin{descr}
-\item [$\ALSO~(thms)$] maintains the auxiliary $calculation$ register as
+\item [$\ALSO~(\vec a)$] maintains the auxiliary $calculation$ register as
   follows.  The first occurrence of $\ALSO$ in some calculational thread
   initializes $calculation$ by $this$. Any subsequent $\ALSO$ on the same
   level of block-structure updates $calculation$ by some transitivity rule
   applied to $calculation$ and $this$ (in that order).  Transitivity rules are
-  picked from the current context plus those given as $thms$ (the latter have
-  precedence).
+  picked from the current context plus those given as explicit arguments (the
+  latter have precedence).
   
-\item [$\FINALLY~(thms)$] maintaining $calculation$ in the same way as
+\item [$\FINALLY~(\vec a)$] maintaining $calculation$ in the same way as
   $\ALSO$, and concludes the current calculational thread.  The final result
   is exhibited as fact for forward chaining towards the next goal. Basically,
   $\FINALLY$ just abbreviates $\ALSO~\FROM{calculation}$.  Note that
@@ -102,8 +102,7 @@ command required.
   ``$\FINALLY~\HAVE{}{\phi}~\DOT$'' are typical idioms for concluding
   calculational proofs.
   
-\item [$trans$] maintains the set of transitivity rules of the theory or proof
-  context, by adding or deleting theorems (the default is to add).
+\item [$trans$] declares theorems as transitivity rules.
 \end{descr}
 
 
@@ -141,10 +140,10 @@ from certain pieces of specification that appear in the theory somewhere else
 \medskip
 
 Named cases may be exhibited in the current proof context only if both the
-proof method and the corresponding rule support this.  Case names and
-parameters of basic rules may be declared by hand as well, by using
-appropriate attributes.  Thus variant versions of rules that have been derived
-manually may be used in advanced case analysis later.
+proof method and the rules involved support this.  Case names and parameters
+of basic rules may be declared by hand as well, by using appropriate
+attributes.  Thus variant versions of rules that have been derived manually
+may be used in advanced case analysis later.
 
 \railalias{casenames}{case\_names}
 \railterm{casenames}
@@ -157,20 +156,21 @@ manually may be used in advanced case analysis later.
   'params' ((name * ) + 'and')
   ;
 \end{rail}
+%FIXME bug in rail
 
 \begin{descr}
 \item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \phi$,
-  as provided by an appropriate proof method (such as $cases$ and $induct$,
-  see \S\ref{sec:induct-method}).  The command $\CASE{c}$ abbreviates
-  $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
+  as provided by an appropriate proof method (such as $cases$ and $induct$ in
+  Isabelle/HOL, see \S\ref{sec:induct-method}).  The command $\CASE{c}$
+  abbreviates $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
 \item [$\isarkeyword{print_cases}$] prints all local contexts of the current
-  goal context, using Isar proof language notation.  This is a diagnostic
-  command; $undo$ does not apply.
+  state, using Isar proof language notation.  This is a diagnostic command;
+  $undo$ does not apply.
 \item [$case_names~\vec c$] declares names for the local contexts of premises
-  of some theorem ($\vec c$ refers to the \emph{suffix} of the list premises).
+  of some theorem; $\vec c$ refers to the \emph{suffix} of the list premises.
 \item [$params~\vec p@1 \dots \vec p@n$] renames the innermost parameters of
-  premises $1, \dots, n$ of some theorem.  An empty list of names be be given
-  to skip positions, leaving the corresponding parameters unchanged.
+  premises $1, \dots, n$ of some theorem.  An empty list of names may be given
+  to skip positions, leaving the present parameters unchanged.
 \end{descr}
 
 
@@ -185,17 +185,17 @@ Generalized existence reasoning means that additional elements with certain
 properties are introduced, together with a soundness proof of that context
 change (the rest of the main goal is left unchanged).
 
-Syntactically, the $\OBTAINNAME$ language element is like a proof method to
-the present goal, followed by a proof of its additional claim, followed by the
-actual context commands (cf.\ $\FIXNAME$ and $\ASSUMENAME$,
-\S\ref{sec:proof-context}).
+Syntactically, the $\OBTAINNAME$ language element is like an initial proof
+method to the present goal, followed by a proof of its additional claim,
+followed by the actual context commands (using the syntax of $\FIXNAME$ and
+$\ASSUMENAME$, see \S\ref{sec:proof-context}).
 
 \begin{rail}
   'obtain' (vars + 'and') comment? \\ 'where' (assm comment? + 'and')
   ;
 \end{rail}
 
-$\OBTAINNAME$ is defined as a derived Isar command as follows, where the
+$\OBTAINNAME$ is defined as a derived Isar command as follows; here the
 preceding goal shall be $\psi$, with (optional) facts $\vec b$ indicated for
 forward chaining.
 \begin{matharray}{l}
@@ -212,13 +212,13 @@ Typically, the soundness proof is relatively straight-forward, often just by
 canonical automated tools such as $\BY{simp}$ (see \S\ref{sec:simp}) or
 $\BY{blast}$ (see \S\ref{sec:classical-auto}).  Note that the ``$that$''
 presumption above is usually declared as simplification and (unsafe)
-introduction rule, somewhat depending on the object-logic's policy,
-though.\footnote{Major object-logics such as HOL and HOLCF do this already.}
+introduction rule, depending on the object-logic's policy,
+though.\footnote{HOL and HOLCF do this already.}
 
 The original goal statement is wrapped into a local definition in order to
 avoid any automated tools descending into it.  Usually, any statement would
-admit the intended reduction; only in very rare cases $thesis_def$ has to be
-expanded to complete the soundness proof.
+admit the intended reduction anyway; only in very rare cases $thesis_def$ has
+to be expanded to complete the soundness proof.
 
 \medskip
 
@@ -250,18 +250,18 @@ over results of symbolic evaluation of recursive definitions, for example.
 \end{rail}
 
 \begin{descr}
-\item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
+\item [$unfold~\vec a$ and $fold~\vec a$] expand and fold back again the given
   meta-level definitions throughout all goals; any facts provided are inserted
   into the goal and subject to rewriting as well.
-\item [$erule~thms$, $drule~thms$, and $frule~thms$] are similar to the basic
-  $rule$ method (see \S\ref{sec:pure-meth-att}), but apply rules by
+\item [$erule~\vec a$, $drule~\vec a$, and $frule~\vec a$] are similar to the
+  basic $rule$ method (see \S\ref{sec:pure-meth-att}), but apply rules by
   elim-resolution, destruct-resolution, and forward-resolution, respectively
   \cite{isabelle-ref}.  These are improper method, mainly for experimentation
   and emulating tactic scripts.
   
   Different modes of basic rule application are usually expressed in Isar at
   the proof language level, rather than via implicit proof state
-  modifications.  For example, a proper single-step elimination would be done
+  manipulations.  For example, a proper single-step elimination would be done
   using the basic $rule$ method, with forward chaining of current facts.
 \item [$succeed$] yields a single (unchanged) result; it is the identity of
   the ``\texttt{,}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
@@ -312,16 +312,16 @@ over results of symbolic evaluation of recursive definitions, for example.
   tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
   result).  The first string is considered the tag name, the rest its
   arguments.  Note that untag removes any tags of the same name.
-\item [$RS~n~thm$ and $COMP~n~thm$] compose rules.  $RS$ resolves with the
-  $n$-th premise of $thm$; $COMP$ is a version of $RS$ that skips the
-  automatic lifting process that is normally intended (cf.\ \texttt{RS} and
-  \texttt{COMP} in \cite[\S5]{isabelle-ref}).
+\item [$RS~n~a$ and $COMP~n~a$] compose rules.  $RS$ resolves with the $n$-th
+  premise of $a$; $COMP$ is a version of $RS$ that skips the automatic lifting
+  process that is normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
+  \cite[\S5]{isabelle-ref}).
 \item [$where~\vec x = \vec t$] perform named instantiation of schematic
   variables occurring in a theorem.  Unlike instantiation tactics (such as
   \texttt{res_inst_tac}, see \cite{isabelle-ref}), actual schematic variables
   have to be specified (e.g.\ $\Var{x@3}$).
   
-\item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
+\item [$unfold~\vec a$ and $fold~\vec a$] expand and fold back again the given
   meta-level definitions throughout a rule.
  
 \item [$standard$] puts a theorem into the standard form of object-rules, just
@@ -332,12 +332,12 @@ over results of symbolic evaluation of recursive definitions, for example.
   
 \item [$export$] lifts a local result out of the current proof context,
   generalizing all fixed variables and discharging all assumptions.  Note that
-  (partial) export is usually done automatically behind the scenes.  This
-  attribute is mainly for experimentation.
+  proper incremental export is already done as part of the basic Isar
+  machinery.  This attribute is mainly for experimentation.
   
 \item [$transfer$] promotes a theorem to the current theory context, which has
-  to enclose the former one.  Normally, this is done automatically when rules
-  are joined by inference.
+  to enclose the former one.  This is done automatically whenever rules are
+  joined by inference.
 
 \end{descr}
 
@@ -364,32 +364,31 @@ over results of symbolic evaluation of recursive definitions, for example.
 \end{rail}
 
 \begin{descr}
-\item [$simp$] invokes Isabelle's simplifier, after modifying the context by
-  adding or deleting rules as specified.  The \railtoken{only} modifier first
-  removes all other rewrite rules, congruences, and looper tactics (including
-  splits), and then behaves like \railtoken{add}.
+\item [$simp$] invokes Isabelle's simplifier, after declaring additional rules
+  according to the arguments given.  Note that the \railtoken{only} modifier
+  first removes all other rewrite rules, congruences, and looper tactics
+  (including splits), and then behaves like \railtoken{add}.
   
   The \railtoken{split} modifiers add or delete rules for the Splitter (see
   also \cite{isabelle-ref}), the default is to add.  This works only if the
   Simplifier method has been properly setup to include the Splitter (all major
   object logics such HOL, HOLCF, FOL, ZF do this already).
   
-  The \railtoken{other} modifier ignores its arguments.  Nevertheless there
-  may be side-effects on the context via attributes.\footnote{This provides a
-    back door for arbitrary context manipulation.}
-  
+  The \railtoken{other} modifier ignores its arguments.  Nevertheless,
+  additional kinds of rules may be declared by including appropriate
+  attributes in the specification.
 \item [$simp_all$] is similar to $simp$, but acts on all goals.
 \end{descr}
 
-The $simp$ methods are based on \texttt{asm_full_simp_tac}
+Internally, the $simp$ method is based on \texttt{asm_full_simp_tac}
 \cite[\S10]{isabelle-ref}, but is much better behaved in practice.  Just the
 local premises of the actual goal are involved by default.  Additional facts
 may be inserted via forward-chaining (using $\THEN$, $\FROMNAME$ etc.).  The
-full context of assumptions is only included in the $simp!$ versions, which
+full context of assumptions is only included in the $simp!$ version, which
 should be used with some care, though.
 
 Note that there is no separate $split$ method.  The effect of
-\texttt{split_tac} can be simulated by $(simp~only\colon~split\colon~thms)$.
+\texttt{split_tac} can be simulated by $(simp~only\colon~split\colon~\vec a)$.
 
 
 \subsection{Declaring rules}
@@ -406,9 +405,8 @@ Note that there is no separate $split$ method.  The effect of
 \end{rail}
 
 \begin{descr}
-\item [$simp$] adds or deletes rules from the theory or proof context (the
-  default is to add).
-\item [$split$] is similar to $simp$, but refers to split rules.
+\item [$simp$] declares simplification rules.
+\item [$split$] declares split rules.
 \end{descr}
 
 
@@ -424,7 +422,7 @@ Note that there is no separate $split$ method.  The effect of
 \end{matharray}
 
 These attributes provide forward rules for simplification, which should be
-used only very rarely.  There are no separate options for adding or deleting
+used only very rarely.  There are no separate options for declaring
 simplification rules locally.
 
 See the ML functions of the same name in \cite[\S10]{isabelle-ref} for more
@@ -445,7 +443,7 @@ information.
 \end{matharray}
 
 \begin{rail}
-  ('rule' | 'intro' | 'elim') thmrefs
+  ('rule' | 'intro' | 'elim') thmrefs?
   ;
 \end{rail}
 
@@ -460,11 +458,11 @@ information.
   
 \item [$intro$ and $elim$] repeatedly refine some goal by intro- or
   elim-resolution, after having inserted any facts.  Omitting the arguments
-  refers to any suitable rules from the context, otherwise only the explicitly
-  given ones may be applied.  The latter form admits better control of what
-  actually happens, thus it is very appropriate as an initial method for
-  $\PROOFNAME$ that splits up certain connectives of the goal, before entering
-  the actual sub-proof.
+  refers to any suitable rules declared in the context, otherwise only the
+  explicitly given ones may be applied.  The latter form admits better control
+  of what actually happens, thus it is very appropriate as an initial method
+  for $\PROOFNAME$ that splits up certain connectives of the goal, before
+  entering the actual sub-proof.
   
 \item [$contradiction$] solves some goal by contradiction, deriving any result
   from both $\neg A$ and $A$.  Facts, which are guaranteed to participate, may
@@ -507,10 +505,12 @@ information.
 
 Any of above methods support additional modifiers of the context of classical
 rules.  Their semantics is analogous to the attributes given in
-\S\ref{sec:classical-mod}.  Facts provided by forward chaining are inserted
-into the goal before doing the search.  The ``!''~argument causes the full
-context of assumptions to be included as well.\footnote{This is slightly less
-  hazardous than for the Simplifier (see \S\ref{sec:simp}).}
+\S\ref{sec:classical-mod}.  Facts provided by forward chaining are
+inserted\footnote{These methods usually cannot make proper use of actual rules
+  inserted that way, though.} into the goal before doing the search.  The
+``!''~argument causes the full context of assumptions to be included as well.
+This is slightly less hazardous than for the Simplifier (see
+\S\ref{sec:simp}).
 
 
 \subsection{Combined automated methods}
@@ -568,8 +568,8 @@ context of assumptions to be included as well.\footnote{This is slightly less
   \emph{extra} (i.e.\ not applied in the search-oriented automated methods,
   but only in single-step methods such as $rule$).
   
-\item [$iff$] declares equations both as rewrite rules for the simplifier and
-  classical reasoning rules.
+\item [$iff$] declares equations both as rules for the Simplifier and
+  Classical Reasoner.
 
 \item [$delrule$] deletes introduction or elimination rules from the context.
   Note that destruction rules would have to be turned into elimination rules

@@ -2,7 +2,7 @@
 \chapter{Basic Isar Language Elements}\label{ch:pure-syntax}
 
 Subsequently, we introduce the main part of Pure Isar theory and proof
-commands, together with a few fundamental proof methods and attributes.
+commands, together with fundamental proof methods and attributes.
 Chapter~\ref{ch:gen-tools} describes further Isar elements provided by generic
 tools and packages (such as the Simplifier) that are either part of Pure
 Isabelle or pre-installed by most object logics.  Chapter~\ref{ch:hol-tools}
@@ -17,7 +17,7 @@ are subsequently marked by $^*$, are often helpful when developing proof
 documents, while their use is discouraged for the final outcome.  Typical
 examples are diagnostic commands that print terms or theorems according to the
 current context; other commands even emulate old-style tactical theorem
-proving, which facilitates porting of legacy proof scripts.
+proving.
 
 
 \section{Theory commands}
@@ -45,7 +45,7 @@ document preparation only; it acts very much like a special pre-theory markup
 command (cf.\ \S\ref{sec:markup-thy} and \S\ref{sec:markup-thy}).  The theory
 context may be also changed by $\CONTEXT$ without creating a new theory.  In
 both cases, $\END$ concludes the theory development; it has to be the very
-last command in a theory file.
+last command of any theory file.
 
 \begin{rail}
   'header' text
@@ -62,7 +62,7 @@ last command in a theory file.
 
 \begin{descr}
 \item [$\isarkeyword{header}~text$] provides plain text markup just preceding
-  the formal begin of a theory.  In actual document preparation the
+  the formal beginning of a theory.  In actual document preparation the
   corresponding {\LaTeX} macro \verb,\isamarkupheader, may be redefined to
   produce chapter or section headings.  See also \S\ref{sec:markup-thy} and
   \S\ref{sec:markup-prf} for further markup commands.
@@ -128,7 +128,7 @@ tools).
   becomes available.  A typical application would be to emit
   \verb,\begin{comment}, and \verb,\end{comment}, commands to exclude certain
   parts from the final document.\footnote{This requires the \texttt{comment}
-    package to be included in {\LaTeX}.}
+    package to be included in {\LaTeX}, of course.}
 \end{descr}
 
 Any markup command (except $\isarkeyword{text_raw}$) corresponds to a {\LaTeX}
@@ -172,7 +172,7 @@ elements just preceding the actual theory definition.
   introduce proven class relations.
 \item [$\isarkeyword{defaultsort}~s$] makes sort $s$ the new default sort for
   any type variables given without sort constraints.  Usually, the default
-  sort would be only changed when defining new logics.
+  sort would be only changed when defining new object-logics.
 \end{descr}
 
 
@@ -245,8 +245,8 @@ elements just preceding the actual theory definition.
   existing constant.  See \cite[\S6]{isabelle-ref} for more details on the
   form of equations admitted as constant definitions.
 \item [$\isarkeyword{constdefs}~c::\sigma~eqn$] combines declarations and
-  definitions of constants, using canonical name $c_def$ for the definitional
-  axiom.
+  definitions of constants, using the canonical name $c_def$ for the
+  definitional axiom.
 \end{descr}
 
 
@@ -272,9 +272,9 @@ elements just preceding the actual theory definition.
   except that the actual logical signature extension is omitted.  Thus the
   context free grammar of Isabelle's inner syntax may be augmented in
   arbitrary ways, independently of the logic.  The $mode$ argument refers to
-  the print mode that the grammar rules belong; unless there is the
-  \texttt{output} flag given, all productions are added both to the input and
-  output grammar.
+  the print mode that the grammar rules belong; unless the \texttt{output}
+  flag is given, all productions are added both to the input and output
+  grammar.
 \item [$\isarkeyword{translations}~rules$] specifies syntactic translation
   rules (i.e.\ \emph{macros}): parse~/ print rules (\texttt{==}), parse rules
   (\texttt{=>}), or print rules (\texttt{<=}).  Translation patterns may be
@@ -306,10 +306,10 @@ elements just preceding the actual theory definition.
   
   Axioms are usually only introduced when declaring new logical systems.
   Everyday work is typically done the hard way, with proper definitions and
-  actual theorems.
+  actual proven theorems.
 \item [$\isarkeyword{theorems}~a = \vec b$] stores lists of existing theorems.
-  Typical applications would also involve attributes, to augment the
-  Simplifier context, for example.
+  Typical applications would also involve attributes, to declare Simplifier
+  rules, for example.
 \item [$\isarkeyword{lemmas}$] is similar to $\isarkeyword{theorems}$, but
   tags the results as ``lemma''.
 \end{descr}
@@ -324,9 +324,9 @@ elements just preceding the actual theory definition.
 \end{matharray}
 
 Isabelle organizes any kind of name declarations (of types, constants,
-theorems etc.)  by hierarchically structured name spaces.  Normally the user
-never has to control the behavior of name space entry by hand, yet the
-following commands provide some way to do so.
+theorems etc.) by separate hierarchically structured name spaces.  Normally
+the user never has to control the behavior of name space entry by hand, yet
+the following commands provide some way to do so.
 
 \begin{descr}
 \item [$\isarkeyword{global}$ and $\isarkeyword{local}$] change the current
@@ -374,8 +374,8 @@ following commands provide some way to do so.
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
   applying $text$, which refers to an ML expression of type
   \texttt{(theory~->~theory)~list}.  The $\isarkeyword{setup}$ command is the
-  canonical way to initialize object-logic specific tools and packages written
-  in ML.
+  canonical way to initialize any object-logic specific tools and packages
+  written in ML.
 \end{descr}
 
 
@@ -439,12 +439,12 @@ oracle invocation.  See \cite[\S6]{isabelle-ref} for more information.
 Proof commands perform transitions of Isar/VM machine configurations, which
 are block-structured, consisting of a stack of nodes with three main
 components: logical proof context, current facts, and open goals.  Isar/VM
-transitions are \emph{typed} according to the following three three different
-modes of operation:
+transitions are \emph{typed} according to the following three different modes
+of operation:
 \begin{descr}
 \item [$proof(prove)$] means that a new goal has just been stated that is now
-  to be \emph{proven}; the next command may refine it by some proof method
-  (read: tactic), and enter a sub-proof to establish the actual result.
+  to be \emph{proven}; the next command may refine it by some proof method,
+  and enter a sub-proof to establish the actual result.
 \item [$proof(state)$] is like an internal theory mode: the context may be
   augmented by \emph{stating} additional assumptions, intermediate results
   etc.
@@ -532,8 +532,8 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 \end{rail}
 
 \begin{descr}
-\item [$\FIX{\vec x}$] introduces a local \emph{arbitrary, but fixed}
-  variables $\vec x$.
+\item [$\FIX{\vec x}$] introduces local \emph{arbitrary, but fixed} variables
+  $\vec x$.
 \item [$\ASSUME{a}{\vec\phi}$ and $\PRESUME{a}{\vec\phi}$] introduce local
   theorems $\vec\phi$ by assumption.  Subsequent results applied to an
   enclosing goal (e.g.\ by $\SHOWNAME$) are handled as follows: $\ASSUMENAME$
@@ -567,7 +567,7 @@ current context as a list of theorems.
 
 New facts are established either by assumption or proof of local statements.
 Any fact will usually be involved in further proofs, either as explicit
-arguments of proof methods or when forward chaining towards the next goal via
+arguments of proof methods, or when forward chaining towards the next goal via
 $\THEN$ (and variants).  Note that the special theorem name
 $this$\indexisarthm{this} refers to the most recently established facts.
 \begin{rail}
@@ -589,7 +589,8 @@ $this$\indexisarthm{this} refers to the most recently established facts.
   also \S\ref{sec:proof-steps}).  For example, method $rule$ (see
   \S\ref{sec:pure-meth-att}) would typically do an elimination rather than an
   introduction.  Automatic methods usually insert the facts into the goal
-  state before operation.
+  state before operation.  This provides a simple scheme to control relevance
+  of facts in automated proof search.
 \item [$\FROM{\vec b}$] abbreviates $\NOTE{}{\vec b}~\THEN$; thus $\THEN$ is
   equivalent to $\FROM{this}$.
 \item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~facts}$; thus the forward
@@ -599,9 +600,10 @@ $this$\indexisarthm{this} refers to the most recently established facts.
 Basic proof methods (such as $rule$, see \S\ref{sec:pure-meth-att}) expect
 multiple facts to be given in their proper order, corresponding to a prefix of
 the premises of the rule involved.  Note that positions may be easily skipped
-using a form like $\FROM{\text{\texttt{_}}~a~b}$, for example.  This involves
-the trivial rule $\PROP\psi \Imp \PROP\psi$, which happens to be bound in
-Isabelle/Pure as ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
+using something like $\FROM{\text{\texttt{_}}~a~b}$, for example.  This
+involves the trivial rule $\PROP\psi \Imp \PROP\psi$, which happens to be
+bound in Isabelle/Pure as ``\texttt{_}''
+(underscore).\indexisarthm{_@\texttt{_}}
 
 
 \subsection{Goal statements}
@@ -620,7 +622,7 @@ Isabelle/Pure as ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
 Proof mode is entered from theory mode by initial goal commands $\THEOREMNAME$
 and $\LEMMANAME$.  New local goals may be claimed within proof mode as well.
 Four variants are available, indicating whether the result is meant to solve
-some pending goal or whether forward chaining is employed.
+some pending goal or whether forward chaining is indicated.
 
 \begin{rail}
   ('theorem' | 'lemma') goal
@@ -634,7 +636,8 @@ some pending goal or whether forward chaining is employed.
 
 \begin{descr}
 \item [$\THEOREM{a}{\phi}$] enters proof mode with $\phi$ as main goal,
-  eventually resulting in some theorem $\turn \phi$ put back into the theory.
+  eventually resulting in some theorem $\turn \phi$ to be put back into the
+  theory.
 \item [$\LEMMA{a}{\phi}$] is similar to $\THEOREMNAME$, but tags the result as
   ``lemma''.
 \item [$\HAVE{a}{\phi}$] claims a local goal, eventually resulting in a
@@ -663,7 +666,7 @@ some pending goal or whether forward chaining is employed.
   \isarcmd{sorry} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
 \end{matharray}
 
-Arbitrary goal refinement via tactics is considered harmful.  Consequently the
+Arbitrary goal refinement via tactics is considered harmful.  Properly, the
 Isar framework admits proof methods to be invoked in two places only.
 \begin{enumerate}
 \item An \emph{initial} refinement step $\PROOF{m@1}$ reduces a newly stated
@@ -674,8 +677,8 @@ Isar framework admits proof methods to be invoked in two places only.
   remaining goals.  No facts are passed to $m@2$.
 \end{enumerate}
 
-The only other proper way to affect pending goals is by $\SHOWNAME$ (or
-$\THUSNAME$), which involves an explicit statement of what is to be solved.
+The only other proper way to affect pending goals is by $\SHOWNAME$, which
+involves an explicit statement of what is to be solved.
 
 \medskip
 
@@ -687,11 +690,10 @@ way.
 
 \medskip
 
-Unless given explicitly by the user, the default initial method is
-``$default$'', which is usually set up to apply a single standard elimination
-or introduction rule according to the topmost symbol involved.  There is no
-separate default terminal method.  In any case, any goals left after that are
-solved by assumption as the very last step.
+Unless given explicitly by the user, the default initial method is ``$rule$'',
+which applies a single standard elimination or introduction rule according to
+the topmost symbol involved.  There is no separate default terminal method.
+Any remaining goals are always solved by assumption in the very last step.
 
 \begin{rail}
   'proof' interest? meth? comment?
@@ -740,10 +742,10 @@ solved by assumption as the very last step.
 
 \subsection{Fundamental methods and attributes}\label{sec:pure-meth-att}
 
-The following proof methods and attributes refer to some basic logical
-operations of Isar.  Further methods and attributes are provided by several
-generic and object-logic specific tools and packages (see chapters
-\ref{ch:gen-tools} and \ref{ch:hol-tools}).
+The following proof methods and attributes refer to basic logical operations
+of Isar.  Further methods and attributes are provided by several generic and
+object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
+\ref{ch:hol-tools}).
 
 \indexisarmeth{assumption}\indexisarmeth{this}\indexisarmeth{rule}\indexisarmeth{$-$}
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
@@ -762,7 +764,7 @@ generic and object-logic specific tools and packages (see chapters
 \end{matharray}
 
 \begin{rail}
-  'rule' thmrefs
+  'rule' thmrefs?
   ;
   'OF' thmrefs
   ;
@@ -780,25 +782,26 @@ generic and object-logic specific tools and packages (see chapters
   remaining sub-goals by assumption.
 \item [$this$] applies all of the current facts directly as rules.  Recall
   that ``$\DOT$'' (dot) abbreviates $\BY{this}$.
-\item [$rule~thms$] applies some rule given as argument in backward manner;
+\item [$rule~\vec a$] applies some rule given as argument in backward manner;
   facts are used to reduce the rule before applying it to the goal.  Thus
   $rule$ without facts is plain \emph{introduction}, while with facts it
   becomes \emph{elimination}.
   
-  When omitting the $thms$ argument, the $rule$ method tries to pick
-  appropriate rules automatically, as declared in the current context using
-  the $intro$, $elim$, $dest$ attributes (see below).  This is the default
-  behavior of $\PROOFNAME$ and ``$\DDOT$'' (double-dot) steps (see
+  When no arguments are given, the $rule$ method tries to pick appropriate
+  rules automatically, as declared in the current context using the $intro$,
+  $elim$, $dest$ attributes (see below).  This is the default behavior of
+  $\PROOFNAME$ and ``$\DDOT$'' (double-dot) steps (see
   \S\ref{sec:proof-steps}).
 \item [``$-$''] does nothing but insert the forward chaining facts as premises
   into the goal.  Note that command $\PROOFNAME$ without any method actually
   performs a single reduction step using the $rule$ method; thus a plain
   \emph{do-nothing} proof step would be $\PROOF{-}$ rather than $\PROOFNAME$
   alone.
-\item [$OF~thms$] applies $thms$ in parallel (cf.\ \texttt{MRS} in
-  \cite[\S5]{isabelle-ref}, but note the reversed order).  Some premises may
-  be skipped by including ``$\_$'' (underscore) as argument.
-\item [$of~ts$] performs positional instantiation.  The terms $ts$ are
+\item [$OF~\vec a$] applies some theorem to given rules $\vec a$ (in
+  parallel).  This corresponds to the \texttt{MRS} operator in ML
+  \cite[\S5]{isabelle-ref}, but note the reversed order.  Positions may be
+  skipped by including ``$\_$'' (underscore) as argument.
+\item [$of~\vec t$] performs positional instantiation.  The terms $\vec t$ are
   substituted for any schematic variables occurring in a theorem from left to
   right; ``\texttt{_}'' (underscore) indicates to skip a position.  Arguments
   following a ``$concl\colon$'' specification refer to positions of the
@@ -856,7 +859,7 @@ and facts are available as well.  For any open goal,
 $\Var{thesis_prop}$\indexisarvar{thesis-prop} refers to the full proposition
 (which may be a rule), $\Var{thesis_concl}$\indexisarvar{thesis-concl} to its
 (atomic) conclusion, and $\Var{thesis}$\indexisarvar{thesis} to its
-object-logical statement.  The latter two abstract over any meta-level
+object-level statement.  The latter two abstract over any meta-level
 parameters.
 
 Fact statements resulting from assumptions or finished goals are bound as
@@ -968,8 +971,8 @@ preparation, for example).
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in an initial
-  position, but retains ``$prove$'' mode (unlike $\PROOFNAME$).  Thus
+\item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in initial
+  position, but unlike $\PROOFNAME$ it retains ``$proof(prove)$'' mode.  Thus
   consecutive method applications may be given just as in tactic scripts.  In
   order to complete the proof properly, any of the actual structured proof
   commands (e.g.\ ``$\DOT$'') has to be given eventually.
@@ -992,7 +995,7 @@ preparation, for example).
     \cite{isabelle-ref}, the Isar command does not search upwards for further
     branch points.} Basically, any proof command may return multiple results.
 \item [$tactic~text$] produces a proof method from any ML text of type
-  \texttt{tactic}.  Apart from the usual ML environment, and the current
+  \texttt{tactic}.  Apart from the usual ML environment and the current
   implicit theory context, the ML code may refer to the following locally
   bound values:
 %%FIXME ttbox produces too much trailing space (why?)
@@ -1014,7 +1017,7 @@ val thms  : string -> thm list
   type-checked according to the dynamic goal state, rather than the static
   proof context!  In particular, locally fixed variables and term
   abbreviations may not be included in the term specifications.
-\item [$subgoal_tac$] emulates the ML tactic of the same name, see
+\item [$subgoal_tac~\phi$] emulates the ML tactic of the same name, see
   \cite[\S3]{isabelle-ref}.  Syntactically, the given proposition is handled
   as the instantiations in $res_inst_tac$ etc.
   
@@ -1045,15 +1048,9 @@ can be discussed in a logically sound manner.  Note that the Isabelle {\LaTeX}
 macros can be easily adapted to print something like ``$\dots$'' instead of an
 ``$\OOPS$'' keyword.
 
-\medskip The $\OOPS$ command is undoable, in contrast to $\isarkeyword{kill}$
-(see \S\ref{sec:history}).  The effect is to get back to the theory
-\emph{before} the opening of the proof.
-
-%FIXME remove
-% \begin{descr}
-% \item [$\isarkeyword{oops}$] dismisses the current proof, leaving the text in
-%   as properly processed.
-% \end{descr}
+\medskip The $\OOPS$ command is undoable, unlike $\isarkeyword{kill}$ (see
+\S\ref{sec:history}).  The effect is to get back to the theory \emph{before}
+the opening of the proof.
 
 
 \section{Other commands}
@@ -1101,11 +1098,11 @@ theory or proof configuration is not changed.
   current facts and goals.  The optional argument $n$ affects the implicit
   limit of goals to be displayed, which is initially 10.  Omitting the limit
   leaves the value unchanged.
-\item [$\isarkeyword{thm}~thms$] retrieves lists of theorems from the current
-  theory or proof context.  Note that any attributes included in the theorem
+\item [$\isarkeyword{thm}~\vec a$] retrieves theorems from the current theory
+  or proof context.  Note that any attributes included in the theorem
   specifications are applied to a temporary context derived from the current
-  theory or proof; the result is discarded, i.e.\ attributes involved in
-  $thms$ do not have any permanent effect.
+  theory or proof; the result is discarded, i.e.\ attributes involved in $\vec
+  a$ do not have any permanent effect.
 \item [$\isarkeyword{term}~t$, $\isarkeyword{prop}~\phi$] read, type-check and
   print terms or propositions according to the current theory or proof
   context; the inferred type of $t$ is output as well.  Note that these
@@ -1124,17 +1121,14 @@ which is appended to the current print mode (see also \cite{isabelle-ref}).
 Thus the output behavior may be modified according particular print mode
 features.
 
-\medskip
-
 For example, $\isarkeyword{pr}~(latex~xsymbols~symbols)$ would print the
 current proof state with mathematical symbols and special characters
 represented in {\LaTeX} source, according to the Isabelle style
-\cite{isabelle-sys}.  The resulting text can be directly pasted into and
-\verb,\begin{isabelle},\dots\verb,\end{isabelle}, environment.
-
-Note that $\isarkeyword{pr}~(latex)$ is sufficient to achieve the same output,
-if the current Isabelle session has the other modes already activated, say due
-to some particular user interface configuration such as Proof~General
+\cite{isabelle-sys}.  The resulting text can be directly pasted into a
+\verb,\begin{isabelle},\dots\verb,\end{isabelle}, environment.  Note that
+$\isarkeyword{pr}~(latex)$ is sufficient to achieve the same output, if the
+current Isabelle session has the other modes already activated, say due to
+some particular user interface configuration such as Proof~General
 \cite{proofgeneral,Aspinall:TACAS:2000} with X-Symbol mode \cite{x-symbol}.
 
 
@@ -1157,9 +1151,9 @@ discontinuing a proof or even the whole theory.  This operation is \emph{not}
 undoable.
 
 \begin{warn}
-  History commands may not be used with user interfaces such as Proof~General
-  \cite{proofgeneral,Aspinall:TACAS:2000}, which takes care of stepping forth
-  and back itself.  Interfering with manual $\isarkeyword{undo}$,
+  History commands should never be used with user interfaces such as
+  Proof~General \cite{proofgeneral,Aspinall:TACAS:2000}, which takes care of
+  stepping forth and back itself.  Interfering by manual $\isarkeyword{undo}$,
   $\isarkeyword{redo}$, or even $\isarkeyword{kill}$ commands would quickly
   result in utter confusion.
 \end{warn}

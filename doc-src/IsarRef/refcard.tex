@@ -58,10 +58,14 @@
   \ALSO@0 & \approx & \NOTE{calculation}{this} \\
   \ALSO@{n+1} & \approx & \NOTE{calculation}{trans~[OF~calculation~this]} \\
   \FINALLY & \approx & \ALSO~\FROM{calculation} \\[0.5ex]
-  \PRESUME{a}{\vec\phi} & \approx & \ASSUME{a}{\vec\phi}~~\text{(permissive assumption)} \\
-  \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t}~~\text{(definitional assumption)} \\
-  \OBTAIN{\vec x}{a}{\vec\phi} & \approx & \dots~\FIX{\vec x}~\ASSUME{a}{\vec\phi}~~\text{(generalized existence)} \\
-  \CASE{c} & \approx & \FIX{\vec x}~\ASSUME{c}{\vec\phi}~~\text{(named context)} \\[0.5ex]
+  \PRESUME{a}{\vec\phi} & \approx & \ASSUME{a}{\vec\phi} \\
+%  & & \text{(permissive assumption)} \\
+  \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t} \\
+%  & & \text{(definitional assumption)} \\
+  \OBTAIN{\vec x}{a}{\vec\phi} & \approx & \dots~\FIX{\vec x}~\ASSUME{a}{\vec\phi} \\
+%  & & \text{(generalized existence)} \\
+  \CASE{c} & \approx & \FIX{\vec x}~\ASSUME{c}{\vec\phi} \\
+%  & & \text{(named context)} \\[0.5ex]
   \SORRY & \approx & \BY{cheating} \\
 \end{matharray}
 
@@ -90,8 +94,8 @@
   $rule~\vec a$ & apply some rule  \\
   $rule$ & apply standard rule (default for $\PROOFNAME$) \\
   $contradiction$ & apply $\neg{}$ elimination rule (any order) \\
-  $cases~x$ & case analysis (provides cases) \\
-  $induct~x$ & proof by induction (provides cases) \\[2ex]
+  $cases~t$ & case analysis (provides cases) \\
+  $induct~\vec x$ & proof by induction (provides cases) \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
   $-$ & \text{no rules} \\
@@ -130,17 +134,17 @@
 
 \section{Emulating tactic scripts}
 
-\subsection{Proof commands}
+\subsection{Commands}
 
 \begin{tabular}{ll}
-  $\isarkeyword{apply}~(m)$ & apply proof method (at initial position) \\
-  $\isarkeyword{apply_end}~(m)$ & apply proof method (near terminal position) \\
+  $\isarkeyword{apply}~(m)$ & apply proof method at initial position \\
+  $\isarkeyword{apply_end}~(m)$ & apply proof method near terminal position \\
   $\isarkeyword{defer}~n$ & move subgoal to end \\
   $\isarkeyword{prefer}~n$ & move subgoal to beginning \\
   $\isarkeyword{back}$ & backtrack last command \\
 \end{tabular}
 
-\subsection{Proof methods}
+\subsection{Methods}
 
 \begin{tabular}{ll}
   $tactic~text$ & method from ML tactic \\
@@ -150,7 +154,7 @@
   $forw_inst_tac~insts$ & forward-resolution with instantiation \\
   $subgoal_tac~\phi$ & insert new claim \\
   $case_tac~t$ & datatype exhaustion \\
-  $induct_tac~xs$ & datatype induction \\
+  $induct_tac~\vec x$ & datatype induction \\
 \end{tabular}
 
 

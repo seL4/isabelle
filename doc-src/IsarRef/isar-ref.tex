@@ -53,20 +53,20 @@
   
   The current version of Isabelle offers Isar as an alternative proof language
   interface layer.  The Isabelle/Isar system provides an interpreter for the
-  Isar formal proof document language.  The input may consist either of proper
-  document constructors, or improper auxiliary commands (for diagnostics,
-  exploration etc.).  Proof texts consisting of proper document constructors
-  only, admit a purely static reading, thus being intelligible later without
-  requiring dynamic replay that is so typical for traditional proof scripts.
-  Any of the Isabelle/Isar commands may be executed in single-steps, so
-  basically the interpreter has a proof text debugger already built-in.
+  Isar formal proof language.  The input may consist either of proper document
+  constructors, or improper auxiliary commands (for diagnostics, exploration
+  etc.).  Proof texts consisting of proper elements only, admit a purely
+  static reading, thus being intelligible later without requiring dynamic
+  replay that is so typical for traditional proof scripts.  Any of the
+  Isabelle/Isar commands may be executed in single-steps, so basically the
+  interpreter has a proof text debugger already built-in.
   
   Employing the Isar instantiation of \emph{Proof~General}, a generic Emacs
   interface for interactive proof assistants, we arrive at a reasonable
   environment for \emph{live document editing}.  Thus proof texts may be
-  developed incrementally by issuing proper document constructors, including
-  forward and backward tracing of partial documents; intermediate states may
-  be inspected by diagnostic commands.
+  developed incrementally by issuing proof commands, including forward and
+  backward tracing of partial documents; intermediate states may be inspected
+  by diagnostic commands.
   
   The Isar subsystem is tightly integrated into the Isabelle/Pure meta-logic
   implementation.  Theories, theorems, proof procedures etc.\ may be used
