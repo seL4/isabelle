@@ -78,6 +78,7 @@ sig
   val dest_binum: term -> int
   val mk_bin: int -> term
   val mk_list: ('a -> term) -> typ -> 'a list -> term
+  val dest_list: term -> term list
 end;
 
 
@@ -339,5 +340,9 @@ fun mk_list f T [] = Const ("List.list.Nil", Type ("List.list", [T]))
   | mk_list f T (x :: xs) = Const ("List.list.Cons",
       T --> Type ("List.list", [T]) --> Type ("List.list", [T])) $ f x $
         mk_list f T xs;
+
+fun dest_list (Const ("List.list.Nil", _)) = []
+  | dest_list (Const ("List.list.Cons", _) $ x $ xs) = x :: dest_list xs
+  | dest_list t = raise TERM ("dest_list", [t]);
 
 end;
