@@ -164,7 +164,7 @@ goal thy
 by (etac yahalom.induct 1);
 by analz_sees_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
-by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
+by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
 (*Fake*) 
 by (spy_analz_tac 2);
@@ -383,14 +383,13 @@ by (REPEAT_FIRST (rtac lemma));
 (*For Oops, simplification proves NBa~=NB.  By Says_Server_KeyWithNonce,
   we get (~ KeyWithNonce K NB evsa); then simplification can apply the
   induction hypothesis with KK = {K}.*)
-by (ALLGOALS  (*22 seconds*)
+by (ALLGOALS  (*17 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss addsimps
-        ([all_conj_distrib, analz_image_freshK,
-	  KeyWithNonce_Says, fresh_not_KeyWithNonce, 
-	  imp_disj_not1,  (*Moves NBa~=NB to the front*)
-	  Says_Server_KeyWithNonce] 
-	 @ pushes))));
+        [all_conj_distrib, analz_image_freshK,
+	 KeyWithNonce_Says, fresh_not_KeyWithNonce, 
+	 imp_disj_not1,			      (*Moves NBa~=NB to the front*)
+	 Says_Server_KeyWithNonce])));
 (*Base*)
 by (Blast_tac 1);
 (*Fake*) 
@@ -506,7 +505,7 @@ by (etac yahalom.induct 1);
 by analz_sees_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([analz_insert_eq, analz_insert_freshK] @ pushes)
+     (!simpset addsimps [analz_insert_eq, analz_insert_freshK]
                setloop split_tac [expand_if])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (!claset addDs [Says_imp_sees_Spy RS parts.Inj]

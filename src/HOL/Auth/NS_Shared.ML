@@ -276,14 +276,14 @@ by (ALLGOALS
                setloop split_tac [expand_if])));
 (*Oops*)
 by (blast_tac (!claset addDs [unique_session_keys]) 5);
-(*NS4*) 
+(*NS3, replay sub-case*) 
 by (Blast_tac 4);
 (*NS2*)
 by (blast_tac (!claset addSEs sees_Spy_partsEs
                        addIs [parts_insertI, impOfSubs analz_subset_parts]) 2);
 (*Fake*) 
 by (spy_analz_tac 1);
-(*NS3*) (**LEVEL 6 **)
+(*NS3, Server sub-case*) (**LEVEL 6 **)
 by (step_tac (!claset delrules [impCE]) 1);
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
