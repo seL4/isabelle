@@ -108,9 +108,7 @@ qed "prealE_lemma4a";
 Goal "EX x. x~: Rep_preal X";
 by (cut_inst_tac [("x","X")] Rep_preal 1);
 by (dtac prealE_lemma2 1);
-by (rtac ccontr 1);
 by (auto_tac (claset(),simpset() addsimps [psubset_def]));
-by (blast_tac (claset() addIs [set_ext] addEs [swap]) 1);
 qed "not_mem_Rep_preal_Ex";
 
 (** preal_of_prat: the injection from prat to preal **)
@@ -178,7 +176,7 @@ by (asm_full_simp_tac (simpset() addsimps [preal_less_not_refl]) 1);
 qed "preal_less_not_sym";
 
 (* [| x < y;  ~P ==> y < x |] ==> P *)
-bind_thm ("preal_less_asym", preal_less_not_sym RS swap);
+bind_thm ("preal_less_asym", preal_less_not_sym RS contrapos_np);
 
 Goalw [preal_less_def] 
       "(r1::preal) < r2 | r1 = r2 | r2 < r1";
@@ -812,9 +810,6 @@ qed "not_less_not_eq_preal_less";
 
 (* useful lemmas - proved elsewhere? *)
 Goalw [psubset_def] "A < B ==> EX x. x ~: A & x : B";
-by (etac conjE 1);
-by (etac swap 1);
-by (etac equalityI 1);
 by Auto_tac;
 qed "lemma_psubset_mem";
 
@@ -1204,7 +1199,7 @@ by (rotate_tac 4 1);
 by (asm_full_simp_tac (simpset() addsimps [psubset_def]) 1);
 by (dtac bspec 1 THEN assume_tac 1);
 by (REPEAT(etac conjE 1));
-by (EVERY1[rtac swap, assume_tac, rtac set_ext]);
+by (EVERY1[rtac contrapos_np, assume_tac, rtac set_ext]);
 by (auto_tac (claset() addSDs [lemma_psubset_mem],simpset()));
 by (cut_inst_tac [("r1.0","Xa"),("r2.0","Ya")] preal_linear 1);
 by (auto_tac (claset() addDs [psubsetD],simpset() addsimps [preal_less_def]));

@@ -5,8 +5,6 @@
     Description : The positive rationals
 *) 
 
-Delrules [equalityI];
-
 (*** Many theorems similar to those in theory Integ ***)
 (*** Proving that ratrel is an equivalence relation ***)
 
@@ -109,8 +107,7 @@ qed "eq_Abs_prat";
 (**** qinv: inverse on prat ****)
 
 Goalw [congruent_def] "congruent ratrel (%(x,y). ratrel^^{(y,x)})";
-by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [pnat_mult_commute]) 1);
+by (auto_tac (claset(), simpset() addsimps [pnat_mult_commute]));  
 qed "qinv_congruent";
 
 Goalw [qinv_def]
@@ -150,7 +147,8 @@ qed "prat_add_congruent2_lemma";
 Goal "congruent2 ratrel (%p1 p2.                  \
 \        (%(x1,y1). (%(x2,y2). ratrel^^{(x1*y2 + x2*y1, y1*y2)}) p2) p1)";
 by (rtac (equiv_ratrel RS congruent2_commuteI) 1);
-by (auto_tac (claset(),simpset() addsimps [prat_add_congruent2_lemma]));
+by (auto_tac (claset() delrules [equalityI],
+              simpset() addsimps [prat_add_congruent2_lemma]));
 by (asm_simp_tac (simpset() addsimps [pnat_mult_commute,pnat_add_commute]) 1);
 qed "prat_add_congruent2";
 
@@ -193,7 +191,7 @@ Goalw [congruent2_def]
     "congruent2 ratrel (%p1 p2.                  \
 \         (%(x1,y1). (%(x2,y2). ratrel^^{(x1*x2, y1*y2)}) p2) p1)";
 (*Proof via congruent2_commuteI seems longer*)
-by Safe_tac;
+by (Clarify_tac 1);
 by (asm_simp_tac (simpset() addsimps [pnat_mult_assoc]) 1);
 (*The rest should be trivial, but rearranging terms is hard*)
 by (res_inst_tac [("x1","x1a")] (pnat_mult_left_commute RS ssubst) 1);
@@ -385,7 +383,7 @@ by (asm_full_simp_tac (simpset() addsimps [prat_less_not_refl]) 1);
 qed "prat_less_not_sym";
 
 (* [| x < y;  ~P ==> y < x |] ==> P *)
-bind_thm ("prat_less_asym", prat_less_not_sym RS swap);
+bind_thm ("prat_less_asym", prat_less_not_sym RS contrapos_np);
 
 (* half of positive fraction exists- Gleason p. 120- Proposition 9-2.6(i)*)
 Goal "!(q::prat). EX x. x + x = q";
