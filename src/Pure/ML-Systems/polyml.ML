@@ -59,10 +59,11 @@ val drop_last_char = implode o drop_last o explode;
 
 in
 
-fun use_text print verbose txt =
+fun use_text (print, err) verbose txt =
   let
     val in_buffer = ref (explode txt);
     val out_buffer = ref ([]: string list);
+    fun output () = drop_last_char (implode (rev (! out_buffer)));
 
     fun get () =
       (case ! in_buffer of
@@ -74,11 +75,9 @@ fun use_text print verbose txt =
       (case ! in_buffer of
         [] => ()
       | _ => (PolyML.compiler (get, put) (); exec ()));
-
-    fun show_output () = print (drop_last_char (implode (rev (! out_buffer))));
   in
-    exec () handle exn => (show_output (); raise exn);
-    if verbose then show_output () else ()
+    exec () handle exn => (err (output ()); raise exn);
+    if verbose then print (output ()) else ()
   end;
 
 

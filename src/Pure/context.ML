@@ -22,6 +22,7 @@ sig
   val pass_theory: theory -> ('a -> 'b) -> 'a -> 'b * theory
   val save: ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
+  val ml_output: (string -> unit) * (string -> unit)
   val use_mltext: string -> bool -> theory option -> unit
   val use_mltext_theory: string -> bool -> theory -> theory
   val use_let: string -> string -> string -> theory -> theory
@@ -69,8 +70,10 @@ fun >> f = set_context (Some (f (the_context ())));
 
 (* use ML text *)
 
-fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_text priority verb txt) ();
-fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_text priority verb) txt);
+val ml_output = (writeln, error_msg: string -> unit);
+
+fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_text ml_output verb txt) ();
+fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_text ml_output verb) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 
