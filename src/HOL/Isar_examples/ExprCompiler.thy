@@ -97,17 +97,17 @@ text {*
 *};
 
 consts
-  comp :: "('adr, 'val) expr => (('adr, 'val) instr) list";
+  compile :: "('adr, 'val) expr => (('adr, 'val) instr) list";
 
 primrec
-  "comp (Variable x) = [Load x]"
-  "comp (Constant c) = [Const c]"
-  "comp (Binop f e1 e2) = comp e2 @ comp e1 @ [Apply f]";
+  "compile (Variable x) = [Load x]"
+  "compile (Constant c) = [Const c]"
+  "compile (Binop f e1 e2) = compile e2 @ compile e1 @ [Apply f]";
 
 
 text {*
   The main result of this development is the correctness theorem for
-  $\idt{comp}$.  We first establish some lemmas about $\idt{exec}$.
+  $\idt{compile}$.  We first establish some lemmas about $\idt{exec}$.
 *};
 
 lemma exec_append:
@@ -128,8 +128,8 @@ proof (induct ?P xs type: list);
   qed;
 qed;
 
-lemma exec_comp:
-  "ALL stack. exec (comp e) stack env =
+lemma exec_compile:
+  "ALL stack. exec (compile e) stack env =
     eval e env # stack" (is "?P e");
 proof (induct ?P e type: expr);
   fix adr; show "?P (Variable adr)"; by (simp!);
@@ -143,7 +143,7 @@ qed;
 
 text {* Main theorem ahead. *};
 
-theorem correctness: "execute (comp e) env = eval e env";
-  by (simp add: execute_def exec_comp);
+theorem correctness: "execute (compile e) env = eval e env";
+  by (simp add: execute_def exec_compile);
 
 end;
