@@ -48,7 +48,7 @@ fun encode "<" = "&lt;"
 
 val text = Library.translate_string encode;
 
-val cdata = enclose "<![CDATA[" "]]>";
+val cdata = enclose "<![CDATA[" "]]>\n"
 
 
 (* elements *)
@@ -60,6 +60,7 @@ fun element name atts cs =
     if null cs then enclose "<" "/>" elem
     else enclose "<" ">" elem ^ implode cs ^ enclose "</" ">" name
   end;
+
 
 
 
