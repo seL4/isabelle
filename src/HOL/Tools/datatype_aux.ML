@@ -173,7 +173,8 @@ type datatype_info =
    distinct : simproc_dist,
    inject : thm list,
    nchotomy : thm,
-   case_cong : thm};
+   case_cong : thm,
+   weak_case_cong : thm};
 
 fun mk_Free s T i = Free (s ^ (string_of_int i), T);
 
