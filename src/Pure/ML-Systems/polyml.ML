@@ -109,9 +109,8 @@ fun execute command =
 
 (* file handling *)
 
-(*get time of last modification; if file doesn't exist return an empty string*)
-fun file_info "" = ""           (* FIXME !? *)
-  | file_info name = Int.toString (System.filedate name) handle _ => "";
+(*get time of last modification*)
+fun file_info name = Int.toString (System.filedate name) handle _ => "";
 
 structure OS =
 struct

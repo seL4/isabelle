@@ -174,12 +174,11 @@ fun execute command =
 
 (* file handling *)
 
-(*Get time of last modification; if file doesn't exist return an empty string*)
+(*get time of last modification*)
 local
   open System.Timer System.Unsafe.SysIO;
 in
-  fun file_info "" = ""
-    | file_info name = makestring (mtime (PATH name)) handle _ => "";
+  fun file_info name = makestring (mtime (PATH name)) handle _ => "";
 end;
 
 structure OS =
