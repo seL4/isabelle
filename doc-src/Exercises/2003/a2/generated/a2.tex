@@ -1,0 +1,75 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{2}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{Trees%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a datatype \isa{{\isacharprime}a\ tree} for binary trees. Both leaf
+and internal nodes store information.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\ {\isacharprime}a\ tree\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define the functions \isa{preOrder}, \isa{postOrder}, and \isa{inOrder} that traverse an \isa{{\isacharprime}a\ tree} in the respective order.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ preOrder\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\ \ postOrder\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\ \ inOrder\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a function \isa{mirror} that returns the mirror image of an \isa{{\isacharprime}a\ tree}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Suppose that \isa{xOrder} and \isa{yOrder} are tree traversal
+functions chosen from \isa{preOrder}, \isa{postOrder}, and \isa{inOrder}. Formulate and prove all valid properties of the form
+\mbox{\isa{xOrder\ {\isacharparenleft}mirror\ xt{\isacharparenright}\ {\isacharequal}\ rev\ {\isacharparenleft}yOrder\ xt{\isacharparenright}}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define the functions \isa{root}, \isa{leftmost} and \isa{rightmost}, that return the root, leftmost, and rightmost element
+respectively.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\ \ root\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\ \ leftmost\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\ \ rightmost\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Prove or disprove (by counter example) the theorems that follow. You may have to prove some lemmas first.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}last{\isacharparenleft}inOrder\ xt{\isacharparenright}\ {\isacharequal}\ rightmost\ xt{\isachardoublequote}\isamarkupfalse%
+\ \isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}hd\ {\isacharparenleft}inOrder\ xt{\isacharparenright}\ {\isacharequal}\ leftmost\ xt\ {\isachardoublequote}\isamarkupfalse%
+\ \isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}hd{\isacharparenleft}preOrder\ xt{\isacharparenright}\ {\isacharequal}\ last{\isacharparenleft}postOrder\ xt{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\ \isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}hd{\isacharparenleft}preOrder\ xt{\isacharparenright}\ {\isacharequal}\ root\ xt{\isachardoublequote}\isamarkupfalse%
+\ \isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}hd{\isacharparenleft}inOrder\ xt{\isacharparenright}\ {\isacharequal}\ root\ xt\ {\isachardoublequote}\isamarkupfalse%
+\ \isanewline
+\isamarkupfalse%
+\isacommand{theorem}\ {\isachardoublequote}last{\isacharparenleft}postOrder\ xt{\isacharparenright}\ {\isacharequal}\ root\ xt{\isachardoublequote}\isamarkupfalse%
+\ \isanewline
+\isanewline
+\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

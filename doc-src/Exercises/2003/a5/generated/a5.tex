@@ -1,0 +1,91 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{a{\isadigit{5}}}%
+\isamarkupfalse%
+%
+\isamarkupsubsection{BIGNAT - Specification and Verification%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Hardware platforms have a limit on the largest number they can represent. This is normally fixed by the bit lengths of registers and ALUs used. In order to be able to perform calculations that require arbitrarily large numbers, the provided arithmetic operations need to be extended in order for them to work on an abstract data type representing numbers of arbitrary size.
+
+In this exercise we will build and verify an implementation for BIGNAT, an abstract data type representing natural numbers of arbitrary size.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\subsubsection*{Representation}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A BIGNAT is represented as a list of natural numbers in a range supported by the target machine. In our case, this will be all natural numbers in the range [0, BASE-1]. (Note: natural numbers in Isabelle are of arbitrary size)%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{types}\ \isanewline
+\ \ bigNat\ {\isacharequal}\ {\isachardoublequote}nat\ list{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a function \isa{valid} that takes a value for BASE, and checks if the given BIGNAT is valid.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ bigNat\ {\isasymRightarrow}\ bool{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Define a function \isa{val} that takes a BIGNAT and its corresponding BASE, and returns the natural number represented by it.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ val\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ bigNat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\subsubsection*{Addition}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a function \isa{add} that adds two BIGNATs with the same value for BASE. Make sure that your algorithm preserves the validity of the BIGNAT representation.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ bigNat\ {\isasymRightarrow}\ bigNat\ {\isasymRightarrow}\ bigNat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Using \isa{val}, verify formally that your function \isa{add} computes the sum of two BIGNATs correctly.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Using \isa{valid}, verify formally that your function \isa{add} preserves the validity of the BIGNAT representation.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\subsubsection*{Multiplication}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Define a function \isa{mult} that multiplies two BIGNATs with the same value for BASE. You may use \isa{add}, but not so often as to make the solution trivial. Make sure that your algorithm preserves the validity of the BIGNAT representation.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ mult\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ bigNat\ {\isasymRightarrow}\ bigNat\ {\isasymRightarrow}\ bigNat{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Using \isa{val}, verify formally that your function \isa{mult} computes the product of two BIGNATs correctly.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Using \isa{valid}, verify formally that your function \isa{mult} preserves the validity of the BIGNAT representation.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isanewline
+\isanewline
+\isanewline
+\isanewline
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
