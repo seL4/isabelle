@@ -123,32 +123,17 @@ for case-analysis and induction, there are also emulations of ML tactics
 \section{Recursive functions}
 
 \indexisarcmd{primrec}\indexisarcmd{recdef}
-\indexisaratt{recdef-simp}\indexisaratt{recdef-cong}\indexisaratt{recdef-wf}
 \begin{matharray}{rcl}
   \isarcmd{primrec} & : & \isartrans{theory}{theory} \\
   \isarcmd{recdef} & : & \isartrans{theory}{theory} \\
-  recdef_simp & : & \isaratt \\
-  recdef_cong & : & \isaratt \\
-  recdef_wf & : & \isaratt \\
 %FIXME
 %  \isarcmd{defer_recdef} & : & \isartrans{theory}{theory} \\
 \end{matharray}
-
-\railalias{recdefsimp}{recdef\_simp}
-\railterm{recdefsimp}
-
-\railalias{recdefcong}{recdef\_cong}
-\railterm{recdefcong}
-
-\railalias{recdefwf}{recdef\_wf}
-\railterm{recdefwf}
 
 \begin{rail}
   'primrec' parname? (equation + )
   ;
   'recdef' name term (eqn + ) hints?
-  ;
-  (recdefsimp | recdefcong | recdefwf) (() | 'add' | 'del')
   ;
 
   equation: thmdecl? eqn
@@ -170,9 +155,6 @@ for case-analysis and induction, there are also emulations of ML tactics
   internal automated proof process of TFL; the other declarations refer to the
   Simplifier and Classical reasoner (\S\ref{sec:simplifier},
   \S\ref{sec:classical}, \S\ref{sec:clasimp}) that are used internally.
-
-\item [$recdef_simps$, $recdef_cong$, and $recdef_wf$] declare global hints
-  for $\isarkeyword{recdef}$.
 \end{descr}
 
 Both kinds of recursive definitions accommodate reasoning by induction (cf.\ 
@@ -187,6 +169,30 @@ $f\mathord.simps$, where $f$ is the (collective) name of the functions
 defined.  Individual equations may be named explicitly as well; note that for
 $\isarkeyword{recdef}$ each specification given by the user may result in
 several theorems.
+
+\medskip Hints for $\isarkeyword{recdef}$ may be also declared globally, using
+the following attributes.
+
+\indexisaratt{recdef-simp}\indexisaratt{recdef-cong}\indexisaratt{recdef-wf}
+\begin{matharray}{rcl}
+  recdef_simp & : & \isaratt \\
+  recdef_cong & : & \isaratt \\
+  recdef_wf & : & \isaratt \\
+\end{matharray}
+
+\railalias{recdefsimp}{recdef\_simp}
+\railterm{recdefsimp}
+
+\railalias{recdefcong}{recdef\_cong}
+\railterm{recdefcong}
+
+\railalias{recdefwf}{recdef\_wf}
+\railterm{recdefwf}
+
+\begin{rail}
+  (recdefsimp | recdefcong | recdefwf) (() | 'add' | 'del')
+  ;
+\end{rail}
 
 
 \section{(Co)Inductive sets}
