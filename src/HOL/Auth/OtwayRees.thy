@@ -36,7 +36,7 @@ inductive "otway lost"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.
-           We modify the published protocol by NOT encrypting NB.*)
+           Note that NB is encrypted.*)
     OR2  "[| evs: otway lost;  B ~= Server;
              Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
           ==> Says B Server 
