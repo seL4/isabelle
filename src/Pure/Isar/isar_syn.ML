@@ -233,7 +233,7 @@ val token_translationP =
 
 val oracleP =
   OuterSyntax.command "oracle" "install oracle" K.thy_decl
-    (P.name -- P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.add_oracle));
+    ((P.name --| P.$$$ "=") -- P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.add_oracle));
 
 
 
