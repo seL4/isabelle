@@ -13,6 +13,8 @@ sig
   val try_update_thy_only: string -> unit
   val inform_file_retracted: string -> unit
   val inform_file_processed: string -> unit
+  val options: (string * (string * (string * (unit -> string) * (string -> unit)))) list ref
+  val process_pgip: string -> unit
   val thms_containing: string list -> unit
   val print_intros: unit -> unit
   val help: unit -> unit
@@ -34,6 +36,8 @@ val proof_generalN = "ProofGeneral";
 val xsymbolsN = "xsymbols";
 val thm_depsN = "thm_deps";
 
+
+val pgml_version_supported = "1.0";
 val pgmlN = "PGML";
 fun pgml () = pgmlN mem_string ! print_mode;
 
@@ -241,6 +245,112 @@ fun proper_inform_file_processed file state =
     else Library.transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
       (warning msg; warning ("Failed to register theory " ^ quote name))
   end;
+
+
+(* options *)
+
+fun nat_option r = ("nat",
+  (fn () => string_of_int (!r)),
+  (fn s => (case Syntax.read_nat s of
+       None => error "nat_option: illegal value"
+     | Some i => r := i)));
+
+fun bool_option r = ("boolean",
+  (fn () => Bool.toString (!r)),
+  (fn "false" => r := false | "true" => r := true
+    | _ => error "bool_option: illegal value"));
+
+val proof_option = ("boolean",
+  (fn () => Bool.toString (!proofs >= 2)),
+  (fn "false" => proofs := 1 | "true" => proofs := 2
+    | _ => error "proof_option: illegal value"));
+
+val thm_deps_option = ("boolean",
+  (fn () => Bool.toString ("thm_deps" mem !print_mode)),
+  (fn "false" => print_mode := Library.gen_rems (op =) (!print_mode, ["thm_deps"])
+    | "true" => print_mode := (["thm_deps"] @ !print_mode)
+    | _ => error "thm_deps_option: illegal value"));
+
+val print_depth_option = ("nat",
+  (fn () => "10"),
+  (fn s => (case Syntax.read_nat s of
+       None => error "print_depth_option: illegal value"
+     | Some i => print_depth i)));
+
+val options = ref
+  [("show-types", ("Whether to show types in Isabelle.",
+      bool_option show_types)),
+   ("show-sorts", ("Whether to show sorts in Isabelle.",
+      bool_option show_sorts)),
+   ("show-consts", ("Whether to show types of consts in Isabelle goals.",
+      bool_option show_consts)),
+   ("long-names", ("Whether to show fully qualified names in Isabelle.",
+      bool_option long_names)),
+   ("eta-contract", ("Whether to print terms eta-contracted in Isabelle.",
+      bool_option Syntax.eta_contract)),
+   ("trace-simplifier", ("Whether to trace the Simplifier in Isabelle.",
+      bool_option trace_simp)),
+   ("trace-rules", ("Whether to trace the standard rules in Isabelle.",
+      bool_option trace_rules)),
+   ("quick-and-dirty", ("Whether to take a few short cuts occasionally.",
+      bool_option quick_and_dirty)),
+   ("full-proofs", ("Whether to record full proof objects internally.",
+      proof_option)),
+   ("trace-unification", ("Whether to output error diagnostics during unification.",
+      bool_option Pattern.trace_unify_fail)),
+   ("show-main-goal", ("Whether to show main goal.",
+      bool_option Proof.show_main_goal)),
+   ("global-timing", ("Whether to enable timing in Isabelle.",
+      bool_option Library.timing)),
+   ("theorem-dependencies", ("Whether to track theorem dependencies within Proof General.",
+      thm_deps_option)),
+   ("goals-limit", ("Setting for maximum number of goals printed in Isabelle.",
+      nat_option goals_limit)),
+   ("prems-limit", ("Setting for maximum number of premises printed in Isabelle/Isar.",
+      nat_option ProofContext.prems_limit)),
+   ("print-depth", ("Setting for the ML print depth in Isabelle.",
+      print_depth_option))];
+
+
+(* Sending PGIP commands to the interface *)
+
+fun issue_pgip pgips = notify (XML.element "pgip" [] pgips);
+
+fun usespgml () = 
+  issue_pgip [XML.element "usespgml" [("version", pgml_version_supported)] []];
+
+(* NB: the default returned here is actually the current value, so
+   repeated uses of <askprefs> will not work correctly. *)
+fun show_options () = issue_pgip (map 
+  (fn (name, (descr, (ty, get, _))) => (XML.element "haspref"
+    [("type", ty), ("descr", descr), ("default", get ())] [name])) (!options));
+
+fun set_option name value = (case assoc (!options, name) of
+      None => warning ("Unknown option: " ^ quote name)
+    | Some (_, (_, _, set)) => set value);
+
+fun get_option name = (case assoc (!options, name) of
+      None => warning ("Unknown option: " ^ quote name)
+    | Some (_, (_, get, _)) => 
+	issue_pgip [XML.element "prefval" [("name", name)] [get ()]]);
+
+
+(* Processing PGIP commands from the interface *)
+
+(* FIXME: matching on attributes is a bit too strict here *)
+
+fun process_pgip_element pgip = (case pgip of
+      XML.Elem ("askpgml", _, []) => usespgml ()
+    | XML.Elem ("askprefs", _, [])  => show_options ()
+    | XML.Elem ("getpref", [("name", name)], []) => get_option name
+    | XML.Elem ("setpref", [("name", name)], [XML.Text value]) =>
+        set_option name value
+    | XML.Elem (e, _, _) => warning ("Unrecognized PGIP command: " ^ e)
+    | XML.Text t => warning ("Unrecognized PGIP command:\n" ^ t));
+
+fun process_pgip s = (case XML.tree_of_string s of
+    XML.Elem ("pgip", _, pgips) => seq process_pgip_element pgips
+  | _ => warning ("Invalid PGIP packet received\n" ^ s));
 
 
 (* misc commands for ProofGeneral/isa *)
