@@ -44,14 +44,16 @@ instance
 
 consts
   "0"       :: nat                ("0")
-  "1"       :: nat                ("1")
-  "2"       :: nat                ("2")
   Suc       :: nat => nat
   nat_case  :: ['a, nat => 'a, nat] => 'a
   pred_nat  :: "(nat * nat) set"
   nat_rec   :: ['a, [nat, 'a] => 'a, nat] => 'a
 
   Least     :: (nat=>bool) => nat    (binder "LEAST " 10)
+
+syntax
+  "1"       :: nat                ("1")
+  "2"       :: nat                ("2")
 
 translations
    "1"  == "Suc(0)"
