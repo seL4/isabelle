@@ -59,6 +59,7 @@ lemmas [recdef_simp] =
   inv_image_def
   measure_def
   lex_prod_def
+  same_fst_def
   less_Suc_eq [THEN iffD2]
 
 lemmas [recdef_cong] = if_cong image_cong

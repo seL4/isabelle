@@ -46,8 +46,8 @@ lemma while_aux_unfold:
       then arbitrary
       else if b s then while_aux (b, c, c s)
       else s)"
+thm while_aux.simps
   apply (rule while_aux_tc [THEN while_aux.simps [THEN trans]])
-   apply (simp add: same_fst_def)
   apply (rule refl)
   done
 

@@ -74,8 +74,6 @@ apply  (drule_tac [2] subcls1D)
 apply  auto
 done
 
-declare same_fstI [intro!] (*### TO HOL/Wellfounded_Relations *)
-
 consts class_rec ::"'c prog \<times> cname \<Rightarrow> 
         'a \<Rightarrow> (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
 
@@ -84,7 +82,9 @@ recdef class_rec "same_fst (\<lambda>G. wf ((subcls1 G)^-1)) (\<lambda>G. (subcl
                          | Some (D,fs,ms) \<Rightarrow> if wf ((subcls1 G)^-1) then 
       f C fs ms (if C = Object then t else class_rec (G,D) t f) else arbitrary)"
 (hints intro: subcls1I)
+
 declare class_rec.simps [simp del]
+
 
 lemma class_rec_lemma: "\<lbrakk> wf ((subcls1 G)^-1); class G C = Some (D,fs,ms)\<rbrakk> \<Longrightarrow>
  class_rec (G,C) t f = f C fs ms (if C=Object then t else class_rec (G,D) t f)";
