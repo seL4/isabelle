@@ -356,11 +356,7 @@ fun delete_thms tname =
                    thy_time = thy_time, ml_time = ml_time,
                    theory = theory, thms = Symtab.null,
                    methods = methods, data = data}
-      | None => ThyInfo {path = "", children = [], parents = [],
-                         thy_time = None, ml_time = None,
-                         theory = None, thms = Symtab.null,
-                         methods = Symtab.null,
-                         data = (Symtab.null, Symtab.null)};
+      | None => error ("Theory " ^ tname ^ " not stored by loader");
 
     val ThyInfo {theory, ...} = tinfo;
   in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys);
@@ -694,7 +690,18 @@ fun use_thy name =
  
          robust_seq add_to_parents new_parents
       end
-      end
+      end;
+
+    (*Make sure that loaded_thys contains an entry for tname*)
+    fun init_thyinfo () =
+    let val tinfo = ThyInfo {path = "", children = [], parents = [],
+                             thy_time = None, ml_time = None,
+                             theory = None, thms = Symtab.null,
+                             methods = Symtab.null,
+                             data = (Symtab.null, Symtab.null)};
+    in if is_some (get_thyinfo tname) then ()
+       else loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys)
+    end;
   in if thy_uptodate andalso ml_uptodate then ()
      else
       (if thy_file = "" then ()
@@ -704,6 +711,7 @@ fun use_thy name =
        else
          (writeln ("Reading \"" ^ name ^ ".thy\"");
 
+          init_thyinfo ();
           delete_thms tname;
           read_thy tname thy_file;
           use (out_name tname);
