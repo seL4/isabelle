@@ -41,12 +41,15 @@ internally;
 
 * Isar: changed syntax of local blocks from {{ }} to { };
 
+* FOL, ZF: AddIffs now available, giving theorems of the form P<->Q to the
+  simplifier and classical reasoner simultaneously;
+
 * Provers: Blast_tac now warns of and ignores "weak elimination rules" e.g.
   [| inj ?f;          ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
 use instead the strong form,
   [| inj ?f; ~ ?W ==> ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
 In HOL, FOL and ZF the function cla_make_elim will create such rules
-from destruct-rules.
+from destruct-rules;
 
 * ML: renamed flags Syntax.trace_norm_ast to Syntax.trace_ast; global
 timing flag supersedes proof_timing and Toplevel.trace;
