@@ -11,6 +11,7 @@ sig
   val quick_and_dirty: bool ref
   val make_thm: theory -> term -> thm
   val cheat_tac: theory -> tactic
+  val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val local_skip_proof: ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit)
     -> Proof.state -> Proof.state Seq.seq
   val global_skip_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
@@ -40,7 +41,7 @@ fun skip_proof (_, SkipProof t) =
 val setup = [Theory.add_oracle (skip_proofN, skip_proof)];
 
 
-(* make_thm and cheat_tac *)
+(* basic cheating *)
 
 fun make_thm thy t =
   (*dynamic scoping of the oracle, cannot even qualify the name due to Pure/CPure!*)
@@ -48,6 +49,10 @@ fun make_thm thy t =
 
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
+
+fun prove thy xs asms prop tac =
+  Tactic.prove (Theory.sign_of thy) xs asms prop
+    (if ! quick_and_dirty then (K (cheat_tac thy)) else tac);
 
 
 (* "sorry" proof command *)
