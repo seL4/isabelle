@@ -308,21 +308,31 @@ fun add_header s = Toplevel.keep' (fn int => fn state =>
   (if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF;
     OuterSyntax.check_text s int state));
 
+local
+
 fun present_text assert_proof present (s, pos) = Toplevel.keep' (fn int => fn state =>
   (if can Toplevel.proof_of state = assert_proof then () else raise Toplevel.UNDEF;
+    Context.setmp (Some (Toplevel.theory_of state)) present s;
     OuterSyntax.check_text (s, pos) int state;
-    Context.setmp (Some (Toplevel.theory_of state)) present s));
+    raise Toplevel.UNDEF));
 
-val add_chapter = present_text false Present.section;
-val add_section = present_text false Present.section;
-val add_subsection = present_text false Present.subsection;
-val add_subsubsection = present_text false Present.subsubsection;
-val add_text = present_text false (K ());
+fun theory f x = Toplevel.theory I o present_text false f x;
+fun proof f x = Toplevel.print o Toplevel.proof (ProofHistory.apply I) o present_text true f x;
+
+in
+
+val add_chapter = theory Present.section;
+val add_section = theory Present.section;
+val add_subsection = theory Present.subsection;
+val add_subsubsection = theory Present.subsubsection;
+val add_text = theory (K ());
 val add_text_raw = add_text;
-val add_txt = present_text true (K ());
+val add_txt = proof (K ());
 val add_txt_raw = add_txt;
 val add_sect = add_txt;
 val add_subsect = add_txt;
 val add_subsubsect = add_txt;
+
+end;
 
 end;
