@@ -146,13 +146,18 @@ fun tell_pg msg name = writeln ("Proof General, " ^ msg ^ " " ^ quote name);
 fun trace_action action name =
   let
     val update = (action = ThyInfo.Update);
-    fun loaded ((path, _), really) =
+    fun loaded (path, really) =
       if update andalso not really then None
-      else Some (File.sysify_path path);
-    val files = mapfilter loaded (ThyInfo.loaded_files name);
+      else Some path;
+    val tell = tell_pg (if update then "this file is loaded:" else "you can unlock the file")
+      o File.sysify_path;
+
+    val (master, files) = ThyInfo.loaded_files name;
   in
-    if update then seq (tell_pg "this file is loaded:") files
-    else seq (tell_pg "you can unlock the file") files
+    (case master of
+      Some path => tell path
+    | None => tell (ThyLoad.thy_path name));     (*just to make sure ...*)
+    seq tell (mapfilter loaded files)
   end;
 
 in
