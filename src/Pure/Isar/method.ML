@@ -60,10 +60,10 @@ sig
   val local_immediate_proof: Proof.state -> Proof.state Seq.seq
   val local_default_proof: Proof.state -> Proof.state Seq.seq
   val global_qed: bstring option -> theory attribute list option -> text option
-    -> Proof.state -> theory * (string * string * thm)
-  val global_terminal_proof: text -> Proof.state -> theory * (string * string * thm)
-  val global_immediate_proof: Proof.state -> theory * (string * string * thm)
-  val global_default_proof: Proof.state -> theory * (string * string * thm)
+    -> Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val global_terminal_proof: text -> Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val global_immediate_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
+  val global_default_proof: Proof.state -> theory * {kind: string, name: string, thm: thm}
   val setup: (theory -> theory) list
 end;
 
@@ -103,6 +103,12 @@ val same = METHOD (ALLGOALS o same_tac);
 val assumption = METHOD (fn facts => FIRSTGOAL (same_tac facts THEN' assume_tac));
 
 val asm_finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
+
+
+(* fold / unfold definitions *)
+
+val fold = METHOD0 o fold_goals_tac;
+val unfold = METHOD0 o rewrite_goals_tac;
 
 
 (* rule *)
@@ -317,6 +323,8 @@ val pure_methods =
   ("same", no_args same, "insert facts, nothing else"),
   ("assumption", no_args assumption, "proof by assumption"),
   ("finish", no_args asm_finish, "finish proof by assumption"),
+  ("fold", thms_args fold, "fold definitions"),
+  ("unfold", thms_args unfold, "unfold definitions"),
   ("rule", thms_args rule, "apply primitive rule")];
 
 
