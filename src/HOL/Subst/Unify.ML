@@ -145,7 +145,7 @@ goalw_cterm [] (cterm_of (sign_of Unify.thy) (HOLogic.mk_Trueprop tc3));
  *---------------------------------------------------------------------------*)
 by (subgoal_tac "!M1 M2 theta.  \
  \   unify(M1, M2) = Some theta --> \
- \   (!N1 N2. ((N1<|theta, N2<|theta), Comb M1 N1, Comb M2 N2) : unifyRel)" 1);
+ \   (!N1 N2. ((N1<|theta, N2<|theta), (Comb M1 N1, Comb M2 N2)) : unifyRel)" 1);
 by (Blast_tac 1);
 by (rtac allI 1); 
 by (rtac allI 1);
