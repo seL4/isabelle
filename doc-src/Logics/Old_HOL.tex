@@ -1247,10 +1247,10 @@ rules that describe the new type. The theory definition section {\tt
 
 A datatype declaration has the following general structure:
 \[ \mbox{\tt datatype}~ (\alpha_1,\dots,\alpha_n)t ~=~
-      c_1(\tau_{11},\dots,\tau_{1k_1}) ~\mid~ \dots ~\mid~
-      c_m(\tau_{m1},\dots,\tau_{mk_m}) 
+      C_1(\tau_{11},\dots,\tau_{1k_1}) ~\mid~ \dots ~\mid~
+      C_m(\tau_{m1},\dots,\tau_{mk_m}) 
 \]
-where $\alpha_i$ are type variables, $c_i$ are distinct constructor names and
+where $\alpha_i$ are type variables, $C_i$ are distinct constructor names and
 $\tau_{ij}$ are one of the following:
 \begin{itemize}
 \item type variables $\alpha_1,\dots,\alpha_n$,
@@ -1262,17 +1262,24 @@ $\tau_{ij}$ are one of the following:
     least one constructor must consist of only non-recursive type
     components.}
 \end{itemize}
+If you would like one of the $\tau_{ij}$ to be a complex type expression
+$\tau$ you need to declare a new type synonym $syn = \tau$ first and use
+$syn$ in place of $\tau$. Of course this does not work if $\tau$ mentions the
+recursive type itself, thus ruling out problematic cases like \[ \mbox{\tt
+  datatype}~ t ~=~ C(t \To t) \] together with unproblematic ones like \[
+\mbox{\tt datatype}~ t ~=~ C(t~list). \]
+
 The constructors are automatically defined as functions of their respective
 type:
-\[ c_j : [\tau_{j1},\dots,\tau_{jk_j}] \To (\alpha_1,\dots,\alpha_n)t \]
+\[ C_j : [\tau_{j1},\dots,\tau_{jk_j}] \To (\alpha_1,\dots,\alpha_n)t \]
 These functions have certain {\em freeness} properties:
 \begin{description}
 \item[\tt distinct] They are distinct:
-\[ c_i(x_1,\dots,x_{k_i}) \neq c_j(y_1,\dots,y_{k_j}) \qquad
+\[ C_i(x_1,\dots,x_{k_i}) \neq C_j(y_1,\dots,y_{k_j}) \qquad
    \mbox{for all}~ i \neq j.
 \]
 \item[\tt inject] They are injective:
-\[ (c_j(x_1,\dots,x_{k_j}) = c_j(y_1,\dots,y_{k_j})) =
+\[ (C_j(x_1,\dots,x_{k_j}) = C_j(y_1,\dots,y_{k_j})) =
    (x_1 = y_1 \land \dots \land x_{k_j} = y_{k_j})
 \]
 \end{description}
@@ -1282,9 +1289,9 @@ a certain value, currently 4. In that case every constructor is mapped to a
 natural number
 \[
 \begin{array}{lcl}
-\mbox{\it t\_ord}(c_1(x_1,\dots,x_{k_1})) & = & 0 \\
+\mbox{\it t\_ord}(C_1(x_1,\dots,x_{k_1})) & = & 0 \\
 & \vdots & \\
-\mbox{\it t\_ord}(c_m(x_1,\dots,x_{k_m})) & = & m-1
+\mbox{\it t\_ord}(C_m(x_1,\dots,x_{k_m})) & = & m-1
 \end{array}
 \]
 and distinctness of constructors is expressed by:
@@ -1297,11 +1304,11 @@ In addition a structural induction axiom {\tt induct} is provided:
 {\begin{array}{lcl}
 \Forall x_1\dots x_{k_1}.
   \List{P(x_{r_{11}}); \dots; P(x_{r_{1l_1}})} &
-  \Imp  & P(c_1(x_1,\dots,x_{k_1})) \\
+  \Imp  & P(C_1(x_1,\dots,x_{k_1})) \\
  & \vdots & \\
 \Forall x_1\dots x_{k_m}.
   \List{P(x_{r_{m1}}); \dots; P(x_{r_{ml_m}})} &
-  \Imp & P(c_m(x_1,\dots,x_{k_m}))
+  \Imp & P(C_m(x_1,\dots,x_{k_m}))
 \end{array}}
 \]
 where $\{r_{j1},\dots,r_{jl_j}\} = \{i \in \{1,\dots k_j\} ~\mid~ \tau_{ji}
@@ -1311,9 +1318,9 @@ all arguments of the recursive type.
 The type also comes with an \ML-like \sdx{case}-construct:
 \[
 \begin{array}{rrcl}
-\mbox{\tt case}~e~\mbox{\tt of} & c_1(x_{11},\dots,x_{1k_1}) & \To & e_1 \\
+\mbox{\tt case}~e~\mbox{\tt of} & C_1(x_{11},\dots,x_{1k_1}) & \To & e_1 \\
                            \vdots \\
-                           \mid & c_m(x_{m1},\dots,x_{mk_m}) & \To & e_m
+                           \mid & C_m(x_{m1},\dots,x_{mk_m}) & \To & e_m
 \end{array}
 \]
 In contrast to \ML, {\em all} constructors must be present, their order is
@@ -1553,7 +1560,7 @@ Directory {\tt HOL/ex} contains other examples and experimental proofs in
 \item[HOL/ex/InSort.ML] and {\tt HOL/ex/Qsort.ML} contain correctness
   proofs about insertion sort and quick sort.
 
-\item[HOL/ex/PL.ML] proves the soundness and completeness of classical
+\item[HOL/ex/PropLog.ML] proves the soundness and completeness of classical
   propositional logic, given a truth table semantics.  The only connective
   is $\imp$.  A Hilbert-style axiom system is specified, and its set of
   theorems defined inductively.  A similar proof in \ZF{} is described
