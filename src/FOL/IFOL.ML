@@ -441,3 +441,18 @@ fun qed_goalw_spec_mp name thy defs s p =
       bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goalw thy defs s p));
 
 end;
+
+
+(* attributes *)
+
+local
+
+fun gen_rulify x = Attrib.no_args (Attribute.rule (K (normalize_thm [RSspec, RSmp]))) x;
+
+in
+
+val attrib_setup =
+ [Attrib.add_attributes
+  [("rulify", (gen_rulify, gen_rulify), "put theorem into standard rule form")]];
+
+end;
