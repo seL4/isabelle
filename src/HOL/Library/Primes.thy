@@ -72,17 +72,6 @@ lemma gcd_dvd_both: "gcd (m, n) dvd m \<and> gcd (m, n) dvd n"
 lemmas gcd_dvd1 [iff] = gcd_dvd_both [THEN conjunct1, standard]
 lemmas gcd_dvd2 [iff] = gcd_dvd_both [THEN conjunct2, standard]
 
-lemma gcd_zero: "(gcd (m, n) = 0) = (m = 0 \<and> n = 0)"
-proof
-  have "gcd (m, n) dvd m \<and> gcd (m, n) dvd n" by simp
-  also assume "gcd (m, n) = 0"
-  finally have "0 dvd m \<and> 0 dvd n" .
-  thus "m = 0 \<and> n = 0" by (simp add: dvd_0_left)
-next
-  assume "m = 0 \<and> n = 0"
-  thus "gcd (m, n) = 0" by simp
-qed
-
 
 text {*
   \medskip Maximality: for all @{term m}, @{term n}, @{term k}
@@ -98,6 +87,9 @@ lemma gcd_greatest: "k dvd m ==> k dvd n ==> k dvd gcd (m, n)"
 lemma gcd_greatest_iff [iff]: "(k dvd gcd (m, n)) = (k dvd m \<and> k dvd n)"
   apply (blast intro!: gcd_greatest intro: dvd_trans)
   done
+
+lemma gcd_zero: "(gcd (m, n) = 0) = (m = 0 \<and> n = 0)"
+  by (simp only: dvd_0_left_iff [THEN sym] gcd_greatest_iff)
 
 
 text {*
