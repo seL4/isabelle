@@ -10,6 +10,7 @@ time_use_thy "Acc";
 time_use_thy "MultisetOrder";
 time_use_thy "PropLog";
 time_use_thy "SList";
+setmp quick_and_dirty false     (* FIXME tmp hack *)
 time_use_thy "LFilter";
 time_use_thy "Term";
 time_use_thy "ABexp";
