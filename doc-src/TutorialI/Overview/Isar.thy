@@ -14,12 +14,14 @@ proof
   show "?toA \<subseteq> lfp ?F"
   proof
     fix s assume "s \<in> ?toA"
-    then obtain t where stM: "(s,t) \<in> M\<^sup>*" and tA: "t \<in> A" by blast
+    then obtain t where stM: "(s,t) \<in> M\<^sup>*" and tA: "t \<in> A"
+         by blast
     from stM show "s \<in> lfp ?F"
     proof (rule converse_rtrancl_induct)
       from tA have "t \<in> ?F (lfp ?F)" by blast
       with mono_ef show "t \<in> lfp ?F" ..
-      fix s s' assume "(s,s') \<in> M" and "(s',t) \<in> M\<^sup>*" and "s' \<in> lfp ?F"
+      fix s s' assume "(s,s') \<in> M" and "(s',t) \<in> M\<^sup>*"
+                  and "s' \<in> lfp ?F"
       then have "s \<in> ?F (lfp ?F)" by blast
       with mono_ef show "s \<in> lfp ?F" ..
     qed
