@@ -27,6 +27,8 @@ the current theory context;
 
 * new theory section 'nonterminals';
 
+* new theory section 'setup';
+
 
 *** HOL ***
 
