@@ -129,8 +129,7 @@ val bt_ss = arith_ss
 val prems = goal BT.thy
     "t: bt(A) ==> n_leaves(bt_reflect(t)) = n_leaves(t)";
 by (bt_ind_tac "t" prems 1);
-by (ALLGOALS (asm_simp_tac bt_ss));
-by (REPEAT (ares_tac [add_commute, n_leaves_type] 1));
+by (ALLGOALS (asm_simp_tac (bt_ss addsimps [add_commute, n_leaves_type])));
 qed "n_leaves_reflect";
 
 val prems = goal BT.thy
