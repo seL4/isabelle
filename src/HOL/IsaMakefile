@@ -91,7 +91,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Inverse_Image.ML Inverse_Image.thy Lfp.ML \
   Lfp.thy List.ML List.thy Main.ML Main.thy Map.ML Map.thy Nat.ML \
   Nat.thy NatArith.ML NatArith.thy NatDef.ML NatDef.thy Numeral.thy \
-  Option.ML Option.thy Ord.thy Power.ML Power.thy PreList.thy \
+  Option.ML Option.thy Power.ML Power.thy PreList.thy \
   Product_Type_lemmas.ML Product_Type.thy ROOT.ML Recdef.thy Record.thy \
   Relation.ML Relation.thy Relation_Power.ML Relation_Power.thy \
   SVC_Oracle.ML SVC_Oracle.thy Set.ML Set.thy SetInterval.ML \
