@@ -223,7 +223,7 @@ qed "bij_converse_bij";
 
 (** Composition of two relations **)
 
-(*The inductive definition package could derive these theorems for R o S*)
+(*The inductive definition package could derive these theorems for (r O s)*)
 
 goalw Perm.thy [comp_def] "!!r s. [| <a,b>:s; <b,c>:r |] ==> <a,c> : r O s";
 by (fast_tac ZF_cs 1);
@@ -444,7 +444,7 @@ by (rtac equalityI 1);
 by (DEPTH_SOLVE_1 
       (resolve_tac [Un_least,converse_mono, Un_upper1,Un_upper2] 2));
 by (fast_tac ZF_cs 1);
-qed "converse_of_Un";
+qed "converse_Un";
 
 goalw Perm.thy [surj_def]
     "!!f g. [| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
@@ -461,7 +461,7 @@ goal Perm.thy
     "!!f g. [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
 \           (f Un g) : bij(A Un C, B Un D)";
 by (rtac invertible_imp_bijective 1);
-by (rtac (converse_of_Un RS ssubst) 1);
+by (rtac (converse_Un RS ssubst) 1);
 by (REPEAT (ares_tac [fun_disjoint_Un, bij_is_fun, bij_converse_bij] 1));
 qed "bij_disjoint_Un";
 
