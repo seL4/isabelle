@@ -204,8 +204,6 @@ fun exhaust_tac aterm i state =
 
 (**** simplification procedure for showing distinctness of constructors ****)
 
-(* oracle *)
-
 val distinctN = "constr_distinct";
 
 exception ConstrDistinct of term;
@@ -248,7 +246,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
   | distinct_proc sg _ _ = None;
 
 val distinct_pats = [Thm.read_cterm (Theory.sign_of HOL.thy) ("s = t", HOLogic.termTVar)];
-val distinct_simproc = mk_simproc "distinct_simproc" distinct_pats distinct_proc;
+val distinct_simproc = mk_simproc distinctN distinct_pats distinct_proc;
 
 val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 
@@ -297,15 +295,6 @@ fun make_dt_info descr induct reccomb_names rec_thms
 
 fun store_clasimp thy (cla, simp) =
   (claset_ref_of thy := cla; simpset_ref_of thy := simp);
-
-infix 4 addDistinct;
-
-fun clasimp addDistinct ([], _) = clasimp
-  | clasimp addDistinct (thms::thmss, (_, (_, _, constrs))::descr) =
-      if length constrs < !DatatypeProp.dtK then
-        clasimp addIffs thms addDistinct (thmss, descr)
-      else
-        clasimp addsimps2 thms addDistinct (thmss, descr);
 
 
 (********************* axiomatic introduction of datatypes ********************)
