@@ -314,7 +314,9 @@ qed_goal "succ_inject" ZF.thy "!!m n. succ(m) = succ(n) ==> m=n"
 qed_goal "succ_inject_iff" ZF.thy "succ(m) = succ(n) <-> m=n"
  (fn _=> [ (fast_tac (FOL_cs addSEs [succ_inject]) 1) ]);
 
-(*UpairI1/2 should become UpairCI;  mem_irrefl as a hazE? *)
+(*UpairI1/2 should become UpairCI? 
+  mem_irrefl should NOT be added as an elim-rule here; 
+      it would be tried on most goals, making proof slower!*)
 val upair_cs = lemmas_cs
   addSIs [singletonI, DiffI, IntI, UnCI, consCI, succCI, UpairI1,UpairI2]
   addSEs [singletonE, DiffE, IntE, UnE, consE, succE, UpairE];
