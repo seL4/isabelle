@@ -21,13 +21,19 @@ open Codegen;
 structure CodegenArgs =
 struct
   val name = "HOL/inductive_codegen";
-  type T = thm list Symtab.table * unit Graph.T;
-  val empty = (Symtab.empty, Graph.empty);
+  type T =
+    {intros : thm list Symtab.table,
+     graph : unit Graph.T,
+     eqns : thm list Symtab.table};
+  val empty =
+    {intros = Symtab.empty, graph = Graph.empty, eqns = Symtab.empty};
   val copy = I;
   val prep_ext = I;
-  fun merge ((tab1, graph1), (tab2, graph2)) =
-    (Symtab.merge_multi Drule.eq_thm_prop (tab1, tab2),
-     Graph.merge (K true) (graph1, graph2));
+  fun merge ({intros=intros1, graph=graph1, eqns=eqns1},
+    {intros=intros2, graph=graph2, eqns=eqns2}) =
+    {intros = Symtab.merge_multi Drule.eq_thm_prop (intros1, intros2),
+     graph = Graph.merge (K true) (graph1, graph2),
+     eqns = Symtab.merge_multi Drule.eq_thm_prop (eqns1, eqns2)};
   fun print _ _ = ();
 end;
 
@@ -39,24 +45,31 @@ fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
 fun add_node (g, x) = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
 
 fun add (p as (thy, thm)) =
-  let val (tab, graph) = CodegenData.get thy;
+  let val {intros, graph, eqns} = CodegenData.get thy;
   in (case concl_of thm of
       _ $ (Const ("op :", _) $ _ $ t) => (case head_of t of
         Const (s, _) =>
           let val cs = foldr add_term_consts (prems_of thm, [])
           in (CodegenData.put
-            (Symtab.update ((s,
-               if_none (Symtab.lookup (tab, s)) [] @ [thm]), tab),
-             foldr (uncurry (Graph.add_edge o pair s))
-               (cs, foldl add_node (graph, s :: cs))) thy, thm)
+            {intros = Symtab.update ((s,
+               if_none (Symtab.lookup (intros, s)) [] @ [thm]), intros),
+             graph = foldr (uncurry (Graph.add_edge o pair s))
+               (cs, foldl add_node (graph, s :: cs)),
+             eqns = eqns} thy, thm)
           end
+      | _ => (warn thm; p))
+    | _ $ (Const ("op =", _) $ t $ _) => (case head_of t of
+        Const (s, _) =>
+          (CodegenData.put {intros = intros, graph = graph,
+             eqns = Symtab.update ((s,
+               if_none (Symtab.lookup (eqns, s)) [] @ [thm]), eqns)} thy, thm)
       | _ => (warn thm; p))
     | _ => (warn thm; p))
   end;
 
 fun get_clauses thy s =
-  let val (tab, graph) = CodegenData.get thy
-  in case Symtab.lookup (tab, s) of
+  let val {intros, graph, ...} = CodegenData.get thy
+  in case Symtab.lookup (intros, s) of
       None => (case InductivePackage.get_inductive thy s of
         None => None
       | Some ({names, ...}, {intrs, ...}) => Some (names, intrs))
@@ -64,7 +77,7 @@ fun get_clauses thy s =
         let val Some names = find_first
           (fn xs => s mem xs) (Graph.strong_conn graph)
         in Some (names,
-          flat (map (fn s => the (Symtab.lookup (tab, s))) names))
+          flat (map (fn s => the (Symtab.lookup (intros, s))) names))
         end
   end;
 
@@ -79,6 +92,10 @@ fun split_prod p ps t = if p mem ps then (case t of
        Const ("Pair", _) $ t $ u =>
          split_prod (1::p) ps t @ split_prod (2::p) ps u
      | _ => error "Inconsistent use of products") else [t];
+
+fun full_split_prod (Const ("Pair", _) $ t $ u) =
+      full_split_prod t @ full_split_prod u
+  | full_split_prod t = [t];
 
 datatype factors = FVar of int list list | FFix of int list list;
 
@@ -143,17 +160,9 @@ fun is_eqT (Type (s, Ts)) = s <> "fun" andalso forall is_eqT Ts
 val term_vs = map (fst o fst o dest_Var) o term_vars;
 val terms_vs = distinct o flat o (map term_vs);
 
-fun assoc' s tab key = (case assoc (tab, key) of
-      None => error ("Unable to determine " ^ s ^ " of " ^ quote key)
-    | Some x => x);
-
 (** collect all Vars in a term (with duplicates!) **)
 fun term_vTs t = map (apfst fst o dest_Var)
   (filter is_Var (foldl_aterms (op :: o Library.swap) ([], t)));
-
-fun known_args _ _ [] = []
-  | known_args vs i (t::ts) = if term_vs t subset vs then i::known_args vs (i+1) ts
-      else known_args vs (i+1) ts;
 
 fun get_args _ _ [] = ([], [])
   | get_args is i (x::xs) = (if i mem is then apfst else apsnd) (cons x)
@@ -183,7 +192,7 @@ fun modes_of modes t =
         (fn (None, _) => [None]
           | (Some js, arg) => map Some
               (filter (fn Mode ((_, js'), _) => js=js') (modes_of modes arg)))
-                (iss ~~ args)))) (assoc' "modes" modes name))
+                (iss ~~ args)))) (the (assoc (modes, name))))
 
   in (case strip_comb t of
       (Const ("op =", Type (_, [T, _])), _) =>
@@ -200,17 +209,18 @@ fun select_mode_prem thy modes vs ps =
   find_first (is_some o snd) (ps ~~ map
     (fn Prem (us, t) => find_first (fn Mode ((_, is), _) =>
           let
-            val (_, out_ts) = get_args is 1 us;
-            val vTs = flat (map term_vTs out_ts);
+            val (in_ts, out_ts) = get_args is 1 us;
+            val (out_ts', in_ts') = partition (is_constrt thy) out_ts;
+            val vTs = flat (map term_vTs out_ts');
             val dupTs = map snd (duplicates vTs) @
               mapfilter (curry assoc vTs) vs;
           in
-            is subset known_args vs 1 us andalso
-            forall (is_constrt thy) (snd (get_args is 1 us)) andalso
+            terms_vs (in_ts @ in_ts') subset vs andalso
+            forall (is_eqT o fastype_of) in_ts' andalso
             term_vs t subset vs andalso
             forall is_eqT dupTs
           end)
-            (modes_of modes t)
+            (modes_of modes t handle OPTION => [Mode (([], []), [])])
       | Sidecond t => if term_vs t subset vs then Some (Mode (([], []), []))
           else None) ps);
 
@@ -261,6 +271,51 @@ fun mk_eq (x::xs) =
 fun mk_tuple xs = Pretty.block (Pretty.str "(" ::
   flat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
   [Pretty.str ")"]);
+
+(* convert nested pairs to n-tuple *)
+
+fun conv_ntuple [_] t ps = ps
+  | conv_ntuple [_, _] t ps = ps
+  | conv_ntuple us t ps =
+      let
+        val xs = map (fn i => Pretty.str ("x" ^ string_of_int i))
+          (1 upto length us);
+        fun ntuple (ys as (x, T) :: xs) U =
+          if T = U then (x, xs)
+          else
+            let
+              val Type ("*", [U1, U2]) = U;
+              val (p1, ys1) = ntuple ys U1;
+              val (p2, ys2) = ntuple ys1 U2
+            in (mk_tuple [p1, p2], ys2) end
+      in
+        [Pretty.str "Seq.map (fn", Pretty.brk 1,
+         fst (ntuple (xs ~~ map fastype_of us) (HOLogic.dest_setT (fastype_of t))),
+         Pretty.str " =>", Pretty.brk 1, mk_tuple xs, Pretty.str ")",
+         Pretty.brk 1, parens (Pretty.block ps)]
+      end;
+
+(* convert n-tuple to nested pairs *)
+
+fun conv_ntuple' fs T ps =
+  let
+    fun mk_x i = Pretty.str ("x" ^ string_of_int i);
+    fun conv i js (Type ("*", [T, U])) =
+          if js mem fs then
+            let
+              val (p, i') = conv i (1::js) T;
+              val (q, i'') = conv i' (2::js) U
+            in (mk_tuple [p, q], i'') end
+          else (mk_x i, i+1)
+      | conv i js _ = (mk_x i, i+1)
+    val (p, i) = conv 1 [] T
+  in
+    if i > 3 then
+      [Pretty.str "Seq.map (fn", Pretty.brk 1,
+       mk_tuple (map mk_x (1 upto i-1)), Pretty.str " =>", Pretty.brk 1,
+       p, Pretty.str ")", Pretty.brk 1, parens (Pretty.block ps)]
+    else ps
+  end;
 
 fun mk_v ((names, vs), s) = (case assoc (vs, s) of
       None => ((names, (s, [s])::vs), s)
@@ -319,23 +374,32 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
         let val s = variant names "x";
         in ((s::names, (s, t)::eqs), Var ((s, 0), fastype_of t)) end;
 
+    fun compile_eq (gr, (s, t)) =
+      apsnd (Pretty.block o cons (Pretty.str (s ^ " = ")) o single)
+        (invoke_codegen thy dep false (gr, t));
+
     val (in_ts, out_ts) = get_args is 1 ts;
     val ((all_vs', eqs), in_ts') =
       foldl_map check_constrt ((all_vs, []), in_ts);
+
+    fun is_ind t = (case head_of t of
+          Const (s, _) => s = "op =" orelse is_some (assoc (modes, s))
+        | Var ((s, _), _) => s mem arg_vs);
 
     fun compile_prems out_ts' vs names gr [] =
           let
             val (gr2, out_ps) = foldl_map
               (invoke_codegen thy dep false) (gr, out_ts);
-            val (gr3, eq_ps) = foldl_map (fn (gr, (s, t)) =>
-              apsnd (Pretty.block o cons (Pretty.str (s ^ " = ")) o single)
-                (invoke_codegen thy dep false (gr, t))) (gr2, eqs);
-            val (nvs, out_ts'') = foldl_map distinct_v
-              ((names, map (fn x => (x, [x])) vs), out_ts');
+            val (gr3, eq_ps) = foldl_map compile_eq (gr2, eqs);
+            val ((names', eqs'), out_ts'') =
+              foldl_map check_constrt ((names, []), out_ts');
+            val (nvs, out_ts''') = foldl_map distinct_v
+              ((names', map (fn x => (x, [x])) vs), out_ts'');
             val (gr4, out_ps') = foldl_map
-              (invoke_codegen thy dep false) (gr3, out_ts'');
+              (invoke_codegen thy dep false) (gr3, out_ts''');
+            val (gr5, eq_ps') = foldl_map compile_eq (gr4, eqs')
           in
-            (gr4, compile_match (snd nvs) eq_ps out_ps'
+            (gr5, compile_match (snd nvs) (eq_ps @ eq_ps') out_ps'
               (Pretty.block [Pretty.str "Seq.single", Pretty.brk 1, mk_tuple out_ps])
               (Pretty.str "Seq.empty"))
           end
@@ -345,36 +409,40 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
             val Some (p, mode as Some (Mode ((_, js), _))) =
               select_mode_prem thy modes' (arg_vs union vs') ps;
             val ps' = filter_out (equal p) ps;
+            val ((names', eqs), out_ts') =
+              foldl_map check_constrt ((names, []), out_ts);
+            val (nvs, out_ts'') = foldl_map distinct_v
+              ((names', map (fn x => (x, [x])) vs), out_ts');
+            val (gr0, out_ps) = foldl_map
+              (invoke_codegen thy dep false) (gr, out_ts'');
+            val (gr1, eq_ps) = foldl_map compile_eq (gr0, eqs)
           in
             (case p of
                Prem (us, t) =>
                  let
-                   val (in_ts, out_ts') = get_args js 1 us;
-                   val (gr1, in_ps) = foldl_map
-                     (invoke_codegen thy dep false) (gr, in_ts);
-                   val (nvs, out_ts'') = foldl_map distinct_v
-                     ((names, map (fn x => (x, [x])) vs), out_ts);
-                   val (gr2, out_ps) = foldl_map
-                     (invoke_codegen thy dep false) (gr1, out_ts'');
-                   val (gr3, ps) = compile_expr thy dep false (gr2, (mode, t));
-                   val (gr4, rest) = compile_prems out_ts' vs' (fst nvs) gr3 ps';
+                   val (in_ts, out_ts''') = get_args js 1 us;
+                   val (gr2, in_ps) = foldl_map
+                     (invoke_codegen thy dep false) (gr1, in_ts);
+                   val (gr3, ps) = if is_ind t then
+                       apsnd (fn ps => ps @ [Pretty.brk 1, mk_tuple in_ps])
+                         (compile_expr thy dep false (gr2, (mode, t)))
+                     else
+                       apsnd (fn p => conv_ntuple us t
+                         [Pretty.str "Seq.of_list", Pretty.brk 1, p])
+                           (invoke_codegen thy dep true (gr2, t));
+                   val (gr4, rest) = compile_prems out_ts''' vs' (fst nvs) gr3 ps';
                  in
-                   (gr4, compile_match (snd nvs) [] out_ps
+                   (gr4, compile_match (snd nvs) eq_ps out_ps
                       (Pretty.block (ps @
-                         [Pretty.brk 1, mk_tuple in_ps,
-                          Pretty.str " :->", Pretty.brk 1, rest]))
+                         [Pretty.str " :->", Pretty.brk 1, rest]))
                       (Pretty.str "Seq.empty"))
                  end
              | Sidecond t =>
                  let
-                   val (gr1, side_p) = invoke_codegen thy dep true (gr, t);
-                   val (nvs, out_ts') = foldl_map distinct_v
-                     ((names, map (fn x => (x, [x])) vs), out_ts);
-                   val (gr2, out_ps) = foldl_map
-                     (invoke_codegen thy dep false) (gr1, out_ts')
+                   val (gr2, side_p) = invoke_codegen thy dep true (gr1, t);
                    val (gr3, rest) = compile_prems [] vs' (fst nvs) gr2 ps';
                  in
-                   (gr3, compile_match (snd nvs) [] out_ps
+                   (gr3, compile_match (snd nvs) eq_ps out_ps
                       (Pretty.block [Pretty.str "?? ", side_p,
                         Pretty.str " :->", Pretty.brk 1, rest])
                       (Pretty.str "Seq.empty"))
@@ -432,26 +500,35 @@ fun print_factors factors = message ("Factors:\n" ^
       (fn None => "X" | Some f' => string_of_factors [] f')
         (fs @ [Some f]))) factors));
 
+fun prep_intrs intrs = map (rename_term o #prop o rep_thm o standard) intrs;
+
+fun constrain cs [] = []
+  | constrain cs ((s, xs) :: ys) = (s, case assoc (cs, s) of
+      None => xs
+    | Some xs' => xs inter xs') :: constrain cs ys;
+
 fun mk_extra_defs thy gr dep names ts =
   foldl (fn (gr, name) =>
     if name mem names then gr
     else (case get_clauses thy name of
         None => gr
       | Some (names, intrs) =>
-          mk_ind_def thy gr dep names intrs))
+          mk_ind_def thy gr dep names [] [] (prep_intrs intrs)))
             (gr, foldr add_term_consts (ts, []))
 
-and mk_ind_def thy gr dep names intrs =
+and mk_ind_def thy gr dep names modecs factorcs intrs =
   let val ids = map (mk_const_id (sign_of thy)) names
   in Graph.add_edge (hd ids, dep) gr handle Graph.UNDEF _ =>
     let
+      val _ $ (_ $ _ $ u) = Logic.strip_imp_concl (hd intrs);
+      val (_, args) = strip_comb u;
+      val arg_vs = flat (map term_vs args);
+
       fun dest_prem factors (_ $ (p as (Const ("op :", _) $ t $ u))) =
-            (case head_of u of
-               Const (name, _) => (case assoc (factors, name) of
-                   None => Sidecond p
-                 | Some f => Prem (split_prod [] f t, u))
-             | Var ((name, _), _) => Prem (split_prod []
-                 (the (assoc (factors, name))) t, u))
+            (case assoc (factors, case head_of u of
+                 Const (name, _) => name | Var ((name, _), _) => name) of
+               None => Prem (full_split_prod t, u)
+             | Some f => Prem (split_prod [] f t, u))
         | dest_prem factors (_ $ ((eq as Const ("op =", _)) $ t $ u)) =
             Prem ([t, u], eq)
         | dest_prem factors (_ $ t) = Sidecond t;
@@ -466,41 +543,44 @@ and mk_ind_def thy gr dep names intrs =
              [(split_prod [] (the (assoc (factors, name))) t, prems)])))
         end;
 
+      fun check_set (Const (s, _)) = s mem names orelse is_some (get_clauses thy s)
+        | check_set (Var ((s, _), _)) = s mem arg_vs
+        | check_set _ = false;
+
       fun add_prod_factors extra_fs (fs, _ $ (Const ("op :", _) $ t $ u)) =
-          (case apsome (get_clauses thy o fst) (try dest_Const (head_of u)) of
-             Some None => fs
-           | _ => infer_factors (sign_of thy) extra_fs
-              (fs, (Some (FVar (prod_factors [] t)), u)))
+            if check_set (head_of u)
+            then infer_factors (sign_of thy) extra_fs
+              (fs, (Some (FVar (prod_factors [] t)), u))
+            else fs
         | add_prod_factors _ (fs, _) = fs;
 
-      val intrs' = map (rename_term o #prop o rep_thm o standard) intrs;
-      val _ $ (_ $ _ $ u) = Logic.strip_imp_concl (hd intrs');
-      val (_, args) = strip_comb u;
-      val arg_vs = flat (map term_vs args);
       val gr' = mk_extra_defs thy
         (Graph.add_edge (hd ids, dep)
-          (Graph.new_node (hd ids, (None, "")) gr)) (hd ids) names intrs';
+          (Graph.new_node (hd ids, (None, "")) gr)) (hd ids) names intrs;
       val (extra_modes, extra_factors) = lookup_modes gr' (hd ids);
-      val fs = map (apsnd dest_factors)
+      val fs = constrain factorcs (map (apsnd dest_factors)
         (foldl (add_prod_factors extra_factors) ([], flat (map (fn t =>
-          Logic.strip_imp_concl t :: Logic.strip_imp_prems t) intrs')));
-      val _ = (case map fst fs \\ names \\ arg_vs of
-          [] => ()
-        | xs => error ("Non-inductive sets: " ^ commas_quote xs));
+          Logic.strip_imp_concl t :: Logic.strip_imp_prems t) intrs))));
       val factors = mapfilter (fn (name, f) =>
         if name mem arg_vs then None
         else Some (name, (map (curry assoc fs) arg_vs, f))) fs;
       val clauses =
-        foldl (add_clause (fs @ map (apsnd snd) extra_factors)) ([], intrs');
-      val modes = infer_modes thy extra_modes factors arg_vs clauses;
+        foldl (add_clause (fs @ map (apsnd snd) extra_factors)) ([], intrs);
+      val modes = constrain modecs
+        (infer_modes thy extra_modes factors arg_vs clauses);
       val _ = print_factors factors;
       val _ = print_modes modes;
-      val (gr'', s) = compile_preds thy gr' (hd ids) (terms_vs intrs') arg_vs
+      val (gr'', s) = compile_preds thy gr' (hd ids) (terms_vs intrs) arg_vs
         (modes @ extra_modes) clauses;
     in
       (Graph.map_node (hd ids) (K (Some (Modes (modes, factors)), s)) gr'')
     end      
   end;
+
+fun find_mode s u modes is = (case find_first (fn Mode ((_, js), _) => is=js)
+  (modes_of modes u handle OPTION => []) of
+     None => error ("No such mode for " ^ s ^ ": " ^ string_of_mode ([], is))
+   | mode => mode);
 
 fun mk_ind_call thy gr dep t u is_query = (case head_of u of
   Const (s, T) => (case (get_clauses thy s, get_assoc_code thy s T) of
@@ -512,17 +592,13 @@ fun mk_ind_call thy gr dep t u is_query = (case head_of u of
             | mk_mode (((ts, mode), i), t) = ((ts @ [t], mode @ [i]), i+1);
 
            val gr1 = mk_extra_defs thy
-             (mk_ind_def thy gr dep names intrs) dep names [u];
+             (mk_ind_def thy gr dep names [] [] (prep_intrs intrs)) dep names [u];
            val (modes, factors) = lookup_modes gr1 dep;
            val ts = split_prod [] (snd (the (assoc (factors, s)))) t;
            val (ts', is) = if is_query then
                fst (foldl mk_mode ((([], []), 1), ts))
              else (ts, 1 upto length ts);
-           val mode = (case find_first (fn Mode ((_, js), _) => is=js)
-                  (modes_of modes u) of
-                None => error ("No such mode for " ^ s ^ ": " ^
-                  string_of_mode ([], is))
-              | mode => mode);
+           val mode = find_mode s u modes is;
            val (gr2, in_ps) = foldl_map
              (invoke_codegen thy dep false) (gr1, ts');
            val (gr3, ps) = compile_expr thy dep false (gr2, (mode, u))
@@ -533,13 +609,83 @@ fun mk_ind_call thy gr dep t u is_query = (case head_of u of
      | _ => None)
   | _ => None);
 
+fun list_of_indset thy gr dep brack u = (case head_of u of
+  Const (s, T) => (case (get_clauses thy s, get_assoc_code thy s T) of
+       (None, _) => None
+     | (Some (names, intrs), None) =>
+         let
+           val gr1 = mk_extra_defs thy
+             (mk_ind_def thy gr dep names [] [] (prep_intrs intrs)) dep names [u];
+           val (modes, factors) = lookup_modes gr1 dep;
+           val mode = find_mode s u modes [];
+           val (gr2, ps) = compile_expr thy dep false (gr1, (mode, u))
+         in
+           Some (gr2, (if brack then parens else I)
+             (Pretty.block ([Pretty.str "Seq.list_of", Pretty.brk 1,
+               Pretty.str "("] @
+               conv_ntuple' (snd (the (assoc (factors, s))))
+                 (HOLogic.dest_setT (fastype_of u))
+                 (ps @ [Pretty.brk 1, Pretty.str "()"]) @
+               [Pretty.str ")"])))
+         end
+     | _ => None)
+  | _ => None);
+
+fun clause_of_eqn eqn =
+  let
+    val (t, u) = HOLogic.dest_eq (HOLogic.dest_Trueprop (concl_of eqn));
+    val (Const (s, T), ts) = strip_comb t;
+    val (Ts, U) = strip_type T
+  in
+    rename_term
+      (Logic.list_implies (prems_of eqn, HOLogic.mk_Trueprop (HOLogic.mk_mem
+        (foldr1 HOLogic.mk_prod (ts @ [u]), Const (Sign.base_name s ^ "_aux",
+          HOLogic.mk_setT (foldr1 HOLogic.mk_prodT (Ts @ [U])))))))
+  end;
+
+fun mk_fun thy name eqns dep gr = 
+  let val id = mk_const_id (sign_of thy) name
+  in Graph.add_edge (id, dep) gr handle Graph.UNDEF _ =>
+    let
+      val clauses = map clause_of_eqn eqns;
+      val pname = mk_const_id (sign_of thy) (Sign.base_name name ^ "_aux");
+      val arity = length (snd (strip_comb (fst (HOLogic.dest_eq
+        (HOLogic.dest_Trueprop (concl_of (hd eqns)))))));
+      val mode = 1 upto arity;
+      val vars = map (fn i => Pretty.str ("x" ^ string_of_int i)) mode;
+      val s = Pretty.string_of (Pretty.block
+        [mk_app false (Pretty.str ("fun " ^ id)) vars, Pretty.str " =",
+         Pretty.brk 1, Pretty.str "Seq.hd", Pretty.brk 1,
+         parens (Pretty.block [Pretty.str (modename thy pname ([], mode)),
+           Pretty.brk 1, mk_tuple vars])]) ^ ";\n\n";
+      val gr' = mk_ind_def thy (Graph.add_edge (id, dep)
+        (Graph.new_node (id, (None, s)) gr)) id [pname]
+        [(pname, [([], mode)])]
+        [(pname, map (fn i => replicate i 2) (0 upto arity-1))]
+        clauses;
+      val (modes, _) = lookup_modes gr' dep;
+      val _ = find_mode pname (snd (HOLogic.dest_mem (HOLogic.dest_Trueprop
+        (Logic.strip_imp_concl (hd clauses))))) modes mode
+    in gr' end
+  end;
+
 fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
       ((case mk_ind_call thy gr dep (Term.no_dummy_patterns t) u false of
          None => None
        | Some (gr', call_p) => Some (gr', (if brack then parens else I)
            (Pretty.block [Pretty.str "?! (", call_p, Pretty.str ")"])))
         handle TERM _ => mk_ind_call thy gr dep t u true)
-  | inductive_codegen thy gr dep brack _ = None;
+  | inductive_codegen thy gr dep brack t = (case strip_comb t of
+      (Const (s, _), ts) => (case Symtab.lookup (#eqns (CodegenData.get thy), s) of
+        None => list_of_indset thy gr dep brack t
+      | Some eqns =>
+          let
+            val gr' = mk_fun thy s eqns dep gr
+            val (gr'', ps) = foldl_map (invoke_codegen thy dep true) (gr', ts);
+          in Some (gr'', mk_app brack (Pretty.str (mk_const_id
+            (sign_of thy) s)) ps)
+          end)
+    | _ => None);
 
 val setup =
   [add_codegen "inductive" inductive_codegen,
