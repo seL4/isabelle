@@ -581,7 +581,8 @@ val print_antiquotationsP =
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
 
 val thms_containingP =
-  OuterSyntax.improper_command "thms_containing" "print theorems containing certain constants"
+  OuterSyntax.improper_command "thms_containing"
+    "print facts containing certain constants or variables"
     K.diag (Scan.repeat P.term >> (Toplevel.no_timing oo IsarCmd.print_thms_containing));
 
 val thm_depsP =
