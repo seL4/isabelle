@@ -6,10 +6,10 @@
 Isabelle provides several ways to present the outcome of formal developments,
 including WWW-based browsable libraries or actual printable documents.
 Presentation is centered around the concept of \emph{logic sessions}.  The
-structure of sessions is that of a tree, with Isabelle \texttt{Pure} at its
-root, further derived object-logics (e.g.\ \texttt{HOLCF} from \texttt{HOL},
-and \texttt{HOL} from \texttt{Pure}), and application sessions at its leaves.
-The latter usually do not have a separate {\ML} image.
+global session structure is that of a tree, with Isabelle \texttt{Pure} at its
+root, further object-logics derived (e.g.\ \texttt{HOLCF} from \texttt{HOL},
+and \texttt{HOL} from \texttt{Pure}), and application sessions in leave
+positions.  The latter usually do not have a separate {\ML} image.
 
 The \texttt{usedir} utility (see \S\ref{sec:tool-usedir}) provides the prime
 means for managing Isabelle sessions, including proper setup for presentation.
@@ -23,8 +23,8 @@ theory browsing information, including HTML documents that show a theory's
 definition, the theorems proved in its ML file and the relationship with its
 ancestors and descendants.  Besides the HTML file that is generated for every
 theory, Isabelle stores links to all theories in an index file. These indexes
-are linked with other indexes to represent the tree structure of Isabelle's
-logics.
+are linked with other indexes to represent the overall tree structure of logic
+sessions.
 
 Isabelle also generates graph files that represent the theory hierarchy of a
 logic.  There is a graph browser Java applet embedded in the generated HTML
@@ -35,10 +35,9 @@ the applet version.  See \S\ref{sec:browse} for further information.
 
 \medskip
 
-In order to let Isabelle generate theory browsing information for logics that
-are part of the Isabelle distribution, simply append ``\texttt{-i true}'' to
-the \settdx{ISABELLE_USEDIR_OPTIONS} setting before making a logic.  For
-example, in order to do this for {\FOL}, add something like this to your
+In order to let Isabelle generate theory browsing information, simply append
+``\texttt{-i true}'' to the \settdx{ISABELLE_USEDIR_OPTIONS} setting before
+making a logic.  For example, in order to do this for {\FOL}, add this to your
 Isabelle settings file
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
@@ -47,8 +46,8 @@ and then change into the \texttt{src/FOL} directory of the Isabelle
 distribution and run \texttt{isatool make}, or even \texttt{isatool make all}.
 
 Some sessions (such as \texttt{HOL/Isar_examples}) even provide actual
-printable documents.  These are prepared automatically as well if enabled by
-giving an appropriate \texttt{-d} option, e.g.\
+printable documents.  These are prepared automatically as well if enabled like
+this, using the \texttt{-d} option
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true -d dvi"
 \end{ttbox}
@@ -72,8 +71,8 @@ the Isabelle distribution is available at
 The generated HTML document of any theory includes all theorems proved in the
 corresponding {\ML} file, provided these have been stored properly via
 \ttindex{qed}, \ttindex{qed_goal}, \ttindex{qed_goalw}, \ttindex{bind_thm},
-\ttindex{bind_thms} or \ttindex{store_thm}.  Section headings may be included
-in the presentation via the {\ML} function
+\ttindex{bind_thms} or \ttindex{store_thm} (see also \cite{isabelle-ref}).
+Section headings may be included in the presentation via the {\ML} function
 \begin{ttbox}\index{*section}
 section: string -> unit
 \end{ttbox}
@@ -101,12 +100,11 @@ isatool usedir -i true -P http://isabelle.in.tum.de/library/ HOL Foo
 \section{Browsing theory graphs} \label{sec:browse}
 \index{theory graph browser|bold} 
 
-The graph browser is a tool for visualizing dependency graphs of
-Isabelle theories. Certain nodes of the graph (i.e.~theories) can be
-grouped together in ``directories'', whose contents may be hidden,
-thus enabling the user to filter out irrelevant information.  The
-browser is written in Java, it can be used both as a stand-alone
-application and as an applet.
+The graph browser is a tool for visualizing dependency graphs. Certain nodes
+of the graph (i.e.~theories) can be grouped together in ``directories'', whose
+contents may be hidden, thus enabling the user to filter out irrelevant
+information.  The browser is written in Java, it can be used both as a
+stand-alone application and as an applet.
 
 
 \subsection{Invoking the graph browser}
@@ -121,8 +119,8 @@ the directory \texttt{ISABELLE_BROWSER_INFO/graph/data}.
 
 \medskip The applet version of the browser can be invoked by opening the {\tt
   index.html} file in the directory \texttt{ISABELLE_BROWSER_INFO} from your
-Web browser and selecting ``version for Java capable browsers''.  There is
-also a link to the corresponding theory graph in every logic's {\tt
+Web browser and selecting the version ``including theory graph browser''.
+There is also a link to the corresponding theory graph in every logic's {\tt
   index.html} file.
 
 
@@ -140,8 +138,8 @@ displayed in the right sub-window.
 
 \subsubsection*{The directory tree window}
 
-This section describes the usage of the directory browser and the
-meaning of the different items in the browser window.
+We describe the usage of the directory browser and the meaning of the
+different items in the browser window.
 \begin{itemize}
   
 \item A red arrow before a directory name indicates that the directory
@@ -157,10 +155,10 @@ meaning of the different items in the browser window.
   also be unfolded by clicking on the corresponding node in the right
   sub-window.
   
-\item Blue arrows stand before ordinary node (i.e.~theory) names. When
-  clicking on such a name, the graph display window focuses to the
-  corresponding node. Double clicking invokes a text viewer window in
-  which the contents of the theory file are displayed.
+\item Blue arrows stand before ordinary node names. When clicking on such a
+  name (i.e.\ that of a theory), the graph display window focuses to the
+  corresponding node. Double clicking invokes a text viewer window in which
+  the contents of the theory file are displayed.
 
 \end{itemize}
 
@@ -186,7 +184,7 @@ available in the applet version. The meaning of the menu items is as
 follows:
 \begin{description}
   
-\item[Open$\ldots$] Open a new graph file.
+\item[Open \dots] Open a new graph file.
   
 \item[Export to PostScript] Outputs the current graph in {\sc
     PostScript} format, appropriately scaled to fit on one single
@@ -239,7 +237,7 @@ The meaning of the items in a vertex description is as follows:
 \label{sec:tool-document}
 
 The \tooldx{document} utility prepares logic session documents, processing the
-sources both provided by the user and generated by Isabelle.  Its usage is:
+sources both as provided by the user and generated by Isabelle.  Its usage is:
 \begin{ttbox}
 Usage: document [OPTIONS] [DIR]
 
@@ -251,14 +249,14 @@ Usage: document [OPTIONS] [DIR]
   producing the specified output format.
 \end{ttbox}
 This tool is usually run automatically as part of the corresponding session,
-provided document preparation is enabled (cf.\ the \texttt{-d} option of the
-\texttt{usedir} utility, \S\ref{sec:tool-usedir}).  It may be manually invoked
-on the generated browser information document output as well.
+provided document preparation has been enabled (cf.\ the \texttt{-d} option of
+the \texttt{usedir} utility, \S\ref{sec:tool-usedir}).  It may be manually
+invoked on the generated browser information document output as well.
 
 \medskip Document preparation requires a properly setup ``\texttt{document}''
 directory within the logic session sources.  This directory is supposed to
-contain all the files needed to produce the actual document, apart from the
-actual theories as generated by Isabelle.
+contain all the files needed to produce the final document --- apart from the
+actual theories which are generated by Isabelle.
 
 \medskip For simple documents, the \texttt{document} tool is smart enough to
 create any of the output formats, taking \texttt{root.tex} supplied by the
@@ -284,9 +282,9 @@ The {\LaTeX} versions of the theories require some macros defined in
 \texttt{isabelle.sty} as distributed with Isabelle.  Doing
 \verb,\usepackage{isabelle}, somewhere in \texttt{root.tex} should work fine;
 the underlying Isabelle \texttt{latex} utility already includes an appropriate
-{\TeX} inputs path.  For proper setup of hyperlinks and bookmarks in PDF
-documents we recommend to include \verb,pdfsetup.sty, as well.\footnote{It is
-  safe to do so even without using PDF~\LaTeX.}
+{\TeX} inputs path.  For proper setup of PDF documents (with hyperlinks,
+bookmarks, and thumbnail images), we recommend to include \verb,pdfsetup.sty,
+as well.\footnote{It is safe to do so even without using PDF~\LaTeX.}
 
 \medskip As a final step, \texttt{isatool document} is run on the resulting
 \texttt{document} directory.  Thus the actual output document is built and
@@ -314,7 +312,7 @@ Appropriate {\LaTeX}-related programs are run on the input file, according to
 the given output format: \texttt{latex}, \texttt{pdflatex}, \texttt{dvips},
 \texttt{bibtex} (for \texttt{bbl}), and \texttt{thumbpdf} (for \texttt{png}).
 The actual commands are determined from the settings environment
-(\texttt{ISABELLE_LATEX} etc.).
+(\texttt{ISABELLE_LATEX} etc., see \S\ref{sec:settings}).
 
 It is important to note that the {\LaTeX} inputs file space has to be properly
 setup to include the Isabelle styles.  Usually, this may be done by modifying
@@ -354,14 +352,13 @@ implicitly prefixed to \emph{any} \texttt{usedir} call. Since the
 \ttindex{IsaMakefile}s of all object-logics distributed with Isabelle just
 invoke \texttt{usedir} for the real work, one may control compilation options
 globally via above variable. In particular, generation of \rmindex{HTML}
-browsing information and document preparation is controlled this way.
+browsing information and document preparation is controlled here.
 
 
 \subsection*{Options}
 
-Basically, there are two different modes of operation: \emph{build
-  mode} (enabled through the \texttt{-b} option) and \emph{example
-  mode} (default).
+Basically, there are two different modes of operation: \emph{build mode}
+(enabled through the \texttt{-b} option) and \emph{example mode} (default).
 
 Calling \texttt{usedir} with \texttt{-b} runs \texttt{isabelle} with input
 image \texttt{LOGIC} and output to \texttt{NAME}, as provided on the command
@@ -374,34 +371,32 @@ process environment.  This usually causes the \texttt{ISABELLE\_OUTPUT} and
 Isabelle distribution directory, rather than the user's home directory.
 
 In example mode, \texttt{usedir} runs a read-only session of \texttt{LOGIC}
-(typically just built before) and automatically runs \texttt{ROOT.ML} from
-within directory \texttt{NAME}.  It assumes that file \texttt{ROOT.ML} in
-directory \texttt{NAME} contains appropriate {\ML} commands to run the desired
-examples.
+and automatically runs \texttt{ROOT.ML} from within directory \texttt{NAME}.
+It assumes that this file contains appropriate {\ML} commands to run the
+desired examples.
 
-\medskip The \texttt{-i} option controls theory browsing data generation. It
-may be explicitly turned on or off --- the last occurrence of \texttt{-i} on
-the command line wins.  The \texttt{-P} option specifies a path (or actual
-URL) to be prefixed to any \emph{non-local} reference of existing theories.
-Thus user sessions may easily link to existing Isabelle libraries already
-present on the WWW.
+\medskip The \texttt{-i} option controls theory browser data generation. It
+may be explicitly turned on or off --- as usual, the last occurrence of
+\texttt{-i} on the command line wins.  The \texttt{-P} option specifies a path
+(or actual URL) to be prefixed to any \emph{non-local} reference of existing
+theories.  Thus user sessions may easily link to existing Isabelle libraries
+already present on the WWW.
 
 \medskip The \texttt{-d} option controls document preparation.  Valid
-arguments are \texttt{false} (do not prepare document; this is default), or
-any of \texttt{dvi}, \texttt{dvi.gz}, \texttt{ps}, \texttt{ps.gz},
+arguments are \texttt{false} (do not prepare any document; this is default),
+or any of \texttt{dvi}, \texttt{dvi.gz}, \texttt{ps}, \texttt{ps.gz},
 \texttt{pdf}.  The logic session has to provide a properly setup
 \texttt{document} directory.  See \S\ref{sec:tool-document} and
 \S\ref{sec:tool-latex} for more details.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
-  identifier}. These accumulate, documenting the way sessions depend
-on others. For example, consider \texttt{Pure/FOL/ex}, which refers to
-the examples of {\FOL} which is built upon {\Pure}.
+  identifier}. These accumulate, documenting the way sessions depend on
+others. For example, consider \texttt{Pure/FOL/ex}, which refers to the
+examples of {\FOL}, which in turn is built upon {\Pure}.
 
-The current session's identifier is by default just the base name of
-the \texttt{LOGIC} argument (in build mode), or of the \texttt{NAME}
-argument (in example mode). This may be overridden explicitely via the
-\texttt{-s} option.
+The current session's identifier is by default just the base name of the
+\texttt{LOGIC} argument (in build mode), or of the \texttt{NAME} argument (in
+example mode). This may be overridden explicitly via the \texttt{-s} option.
 
 
 \subsection*{Examples}

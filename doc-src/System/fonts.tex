@@ -3,74 +3,68 @@
 
 \chapter{Fonts and character encodings}
 
-With the advent of print modes in Isabelle, variant forms of output
-have become very easy. As the canonical application of this feature,
-{\Pure} and major object-logics (\FOL, \ZF, \HOL, \HOLCF) support
-optional input and output of nice mathematical symbols as built-in
-option.
+Using the print mode mechanism of Isabelle, variant forms of output become
+very easy. As the canonical application of this feature, {\Pure} and major
+object-logics (\FOL, \ZF, \HOL, \HOLCF) support optional input and output of
+proper mathematical symbols as built-in option.
 
-Symbolic output is enabled by activating the \ttindex{symbols} print
-mode. User interfaces (e.g.\ \texttt{isa-xterm}, see
-\S\ref{sec:interface}) usually do this already by default.
+Symbolic output is enabled by activating the ``\ttindex{symbols}'' print mode.
+User interfaces (e.g.\ \texttt{isa-xterm}, see \S\ref{sec:interface}) usually
+do this already by default.
 
-\medskip Displaying non-standard characters requires special screen
-fonts, of course. The \texttt{installfonts} utility takes care of this
-(see \S\ref{sec:tool-installfonts}). Furthermore, some {\ML} systems
-disallow non-\textsc{ascii} characters in literal string constants.
-This problem is avoided by appropriate input filtering (see
-\S\ref{sec:tool-symbolinput}).
+\medskip Displaying non-standard characters requires special screen fonts. The
+\texttt{installfonts} utility takes care of this (see
+\S\ref{sec:tool-installfonts}). Furthermore, some {\ML} systems disallow
+non-\textsc{ascii} characters in literal string constants.  This problem is
+avoided by appropriate input filtering (see \S\ref{sec:tool-symbolinput}).
 
-These things usually happen behind the scenes.  Users normally do not
-have to read the explanations below, unless something really fails to
-work.
+These things usually happen behind the scenes.  Users normally do not have to
+read the explanations below, unless something really fails to work.
 
 
 \section{Telling X11 about the Isabelle fonts --- \texttt{isatool installfonts}}
 \label{sec:tool-installfonts}
 
-The \tooldx{installfonts} utility ensures that your currently running
-X11 display server (as determined by the \texttt{DISPLAY} environment
-variable) knows about the Isabelle fonts. Its usage is:
+The \tooldx{installfonts} utility ensures that your currently running X11
+display server (as determined by the \texttt{DISPLAY} environment variable)
+knows about the Isabelle fonts. Its usage is:
 \begin{ttbox}
 Usage: isatool installfonts
 
   Install the isabelle fonts into your X11 server.
   (May be safely called repeatedly.)
 \end{ttbox}
-Note that this need not be called manually under normal circumstances
---- user interfaces depending on the Isabelle fonts usually invoke
+Note that this need not be called manually under normal circumstances --- user
+interfaces depending on the Isabelle fonts usually invoke
 \texttt{installfonts} automatically.
 
-\medskip As simple as this might appear to be, it is not! X11 fonts
-are a surprisingly complicated matter. Depending on your network
-structure, fonts might have to be installed differently. This has to
-be specified via the \settdx{ISABELLE_INSTALLFONTS} variable in your
-local settings.
+\medskip As simple as this might appear to be, it is not! X11 fonts are a
+surprisingly complicated matter. Depending on your network structure, fonts
+might have to be installed differently. This has to be specified via the
+\settdx{ISABELLE_INSTALLFONTS} variable in your local settings.
 
-\medskip In the simplest situation, X11 is used only locally, i.e.\ 
-the client program (Isabelle) and the display server are run on the
-same machine. In this case, most X11 display servers should be happy
-by being told about the Isabelle fonts directory as follows:
+\medskip In the simplest situation, X11 is used only locally, i.e.\ the client
+program (Isabelle) and the display server are run on the same machine. In that
+case, most X11 display servers should be happy by being told about the
+Isabelle fonts directory as follows:
 \begin{ttbox}
 ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"%$
 \end{ttbox}
-The same also works for remote X11 sessions in a somewhat homogeneous
-network, where any X11 display machine also mounts the Isabelle
-distribution under the \emph{same} name as the client side.
+The same also works for remote X11 sessions in a largely homogeneous network,
+where any X11 display machine also mounts the Isabelle distribution under the
+\emph{same} name as the client side.
 
-\medskip Above method fails, though, if the display machine does have
-the font files at the same location as the client. In case your server
-is a full workstation with its own file system, you could in principle
-just copy the fonts there and do an appropriate \texttt{xset~fp+}
-manually before running the Isabelle interface. This is very awkward,
-of course. It is even impossible for proper X11 terminals that do not
-have their own file system.
+\medskip Above method fails, though, if the display machine does have the font
+files at the same location as the client. In case your server is a full
+workstation with its own file system, you could in principle just copy the
+fonts there and do an appropriate \texttt{xset~fp+} manually before running
+the Isabelle interface. This is very awkward, of course. It is even impossible
+for proper X11 terminals that do not have their own file system.
 
-A much better solution is to have a \emph{font server} offer the
-Isabelle fonts to any X11 display on the network.  There are already
-suitable servers running at Munich and Cambridge. So in case you have
-a sensible Internet connection to either site, you may just attach
-yourself as follows:
+A much better solution is to have a \emph{font server} offer the Isabelle
+fonts to any X11 display on the network.  There are already suitable servers
+running at Munich and Cambridge. So in case you have a permanent Internet
+connection to either site, you may just attach yourself as follows:
 \begin{ttbox}
 ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 \end{ttbox}
@@ -79,59 +73,55 @@ or
 ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv.cl.cam.ac.uk:7100"
 \end{ttbox}
 
-\medskip In the unfortunate case that neither local fonts work, nor
-accessing our world-wide font service is practical, it might be best
-to start your own in-house font service. This is in principle easy to
-setup. The program is called \texttt{xfs} (sometimes just
-\texttt{fs)}, see the \texttt{man} pages of your system. There is an
-example fontserver configuration available in the
-\texttt{lib/fontserver} directory of the Isabelle distribution.
+\medskip In the unfortunate case that neither local fonts work, nor accessing
+our world-wide font service is practical, it might be best to start your own
+in-house font service. This is in principle quite easy to setup. The program
+is called \texttt{xfs} (sometimes just \texttt{fs)}, see the \texttt{man}
+pages of your system. There is an example fontserver configuration available
+in the \texttt{lib/fontserver} directory of the Isabelle distribution.
 
 
 \section{Check for non-ASCII characters --- \texttt{isatool nonascii}}
 \label{sec:tool-nonascii}
 
-The \tooldx{nonascii} utility checks files for non-\textsc{ascii}
-characters:
+The \tooldx{nonascii} utility checks files for non-\textsc{ascii} characters:
 \begin{ttbox}
 Usage: nonascii [FILES|DIRS...]
 
 Recursively find .thy/.ML files and check for non-\textsc{ascii}
 characters.
 \end{ttbox}
-Under normal circumstances, non-\textsc{ascii} characters do not
-appear in theories and proof scripts.
+Under normal circumstances, non-\textsc{ascii} characters do not appear in
+theories and proof scripts.
 
 
 \section{Filtering non-ASCII characters --- \texttt{isatool symbolinput}}
 \label{sec:tool-symbolinput}
 
-Processing non-\textsc{ascii} text is notoriously difficult.  In
-particular, some {\ML} systems reject character codes outside the
-range 32--127 as part of literal string constants. In order to
-circumvent such restrictions, Isabelle employs a general notation
-where glyphs are referred by some symbolic name instead of their
-actual encoding: The general form is \verb|\<|$charname$\verb|>|.
+Processing non-\textsc{ascii} text is notoriously difficult.  In particular,
+some {\ML} systems reject character codes outside the range 32--127 as part of
+literal string constants. In order to circumvent such restrictions, Isabelle
+employs a general notation where glyphs are referred by some symbolic name
+instead of their actual encoding: the general form is
+\verb|\<|$charname$\verb|>|.
 
-The \tooldx{symbolinput} utility converts a input stream encoded
-according to the standard Isabelle font layout into pure
-\textsc{ascii} text. There is no usage --- \texttt{symbolinput} just
-works from standard input to standard output, without any options
-available.
+The \tooldx{symbolinput} utility converts an input stream encoded according to
+the standard Isabelle font layout into pure \textsc{ascii} text. There is no
+usage --- \texttt{symbolinput} just works from standard input to standard
+output, without any options available.
 
-\medskip For example, the non-\textsc{ascii} input string \texttt{"A
-  $\land$ B $\lor$ C"} will be replaced by \verb|"A \\<and> B \\<or> C"|.
-Note that the \verb|\| are escaped, accomodating concrete {\ML} string
-syntax.
+\medskip For example, the non-\textsc{ascii} input string \texttt{"A $\land$ B
+  $\lor$ C"} will be replaced by \verb|"A \\<and> B \\<or> C"|.  Note that the
+\verb|\| are escaped, accommodating concrete {\ML} string syntax.
 
-\medskip In many cases, it might be wise not to rely on symbolic
-characters and avoid non-\textsc{ascii} text in files altogether (see
-also \S\ref{sec:tool-nonascii}). Then symbolic syntax would be really
-optional, with always suitable \textsc{ascii} representations
-available: In theory definitions, symbols appear only in mixfix
-annotations --- using the \verb|\<|$charname$\verb|>| form, proof
-scripts are just left in plain \textsc{ascii}.  Thus users with
-\textsc{ascii}-only facilities will still be able to read your files.
+\medskip In many cases, it might be wise not to rely on symbolic characters
+and avoid non-\textsc{ascii} text in files altogether (see also
+\S\ref{sec:tool-nonascii}). Then symbolic syntax would be really optional,
+with always suitable \textsc{ascii} representations available.  In syntax
+definitions, symbols appear only in mixfix annotations (using the
+\verb|\<|$charname$\verb|>| form), while proof texts are left in plain
+\textsc{ascii}.  Thus users with \textsc{ascii}-only facilities will still be
+able to read your files.
 
 %%% Local Variables: 
 %%% mode: latex

@@ -15,15 +15,14 @@ Usage: isatool doc [DOC]
 
   View Isabelle documentation DOC, or show list of available documents.
 \end{ttbox}
-If called without arguments, it lists all available documents. Each
-line starts with an identifier, followed by some comment. Any of these
-identifiers may be specified as the first argument in order to have
-the corresponding document displayed.
+If called without arguments, it lists all available documents. Each line
+starts with an identifier, followed by a short description. Any of these
+identifiers may be specified as the first argument in order to have the
+corresponding document displayed.
 
-\medskip The \texttt{ISABELLE_DOCS} setting specifies the list of
-directories (separated by colons) to be scanned for documentations.
-The program for viewing \texttt{dvi} files is determined by the
-\texttt{DVI_VIEWER} setting.
+\medskip The \texttt{ISABELLE_DOCS} setting specifies the list of directories
+(separated by colons) to be scanned for documentations.  The program for
+viewing \texttt{dvi} files is determined by the \texttt{DVI_VIEWER} setting.
 
 
 \section{Tuning proof scripts --- \texttt{isatool expandshort}}
@@ -40,17 +39,16 @@ Usage: expandshort [FILES|DIRS...]
 
   Renames old versions of files by appending "~~".
 \end{ttbox}
-In the files or directories supplied as arguments, all occurrences of
-the shorthand commands \texttt{br}, \texttt{be} etc.\ in proof scripts
-are replaced with the corresponding full commands.  The old versions
-of the files are renamed to have the suffix~\verb'~~'.
+In the files or directories supplied as arguments, all occurrences of the
+shorthand commands \texttt{br}, \texttt{be} etc.\ in proof scripts are
+replaced with the corresponding full commands.  The old versions of the files
+are renamed to have the suffix``~\verb'~~'''.
 
 
 \section{Getting logic images --- \texttt{isatool findlogics}}
 
 The \tooldx{findlogics} utility traverses all directories specified in
-\texttt{ISABELLE_PATH}, looking for Isabelle logic images. Its usage
-is:
+\texttt{ISABELLE_PATH}, looking for Isabelle logic images. Its usage is:
 \begin{ttbox}
 Usage: isatool findlogics
 
@@ -65,9 +63,9 @@ upon \texttt{ML_SYSTEM} and \texttt{ML_PLATFORM}. Thus switching to another
 \section{Inspecting the settings environment -- \texttt{isatool getenv}}
 \label{sec:tool-getenv}
 
-The Isabelle settings environment --- as provided by the site-default
-and user-specific settings files --- can be inspected with the
-\tooldx{getenv} utility:
+The Isabelle settings environment --- as provided by the site-default and
+user-specific settings files --- can be inspected with the \tooldx{getenv}
+utility:
 \begin{ttbox}
 Usage: isatool getenv [OPTIONS] [VARNAMES ...]
 
@@ -78,26 +76,25 @@ Usage: isatool getenv [OPTIONS] [VARNAMES ...]
   Get value of VARNAMES from the Isabelle settings.
 \end{ttbox}
 
-With the \texttt{-a} option, one may inspect the full process
-environment that Isabelle related programs are run in. This usually
-contains much more variables than are actually Isabelle settings.
-Normally, output is a list of lines of the form
-\mbox{$name$\texttt{=}$value$}. The \texttt{-b} option causes only the
-values to be printed.
+With the \texttt{-a} option, one may inspect the full process environment that
+Isabelle related programs are run in. This usually contains much more
+variables than are actually Isabelle settings.  Normally, output is a list of
+lines of the form \mbox{$name$\texttt{=}$value$}. The \texttt{-b} option
+causes only the values to be printed.
 
 
 \subsection*{Examples}
 
-Get the {\ML} system identifier and the location where the compiler
-binaries are supposed to reside as follows:
+Get the {\ML} system identifier and the location where the compiler binaries
+are supposed to reside as follows:
 \begin{ttbox}
 isatool getenv ML_SYSTEM ML_HOME
 {\out ML_SYSTEM=smlnj-110}
 {\out ML_HOME=/usr/local/smlnj-110/bin}
 \end{ttbox}
 
-The next one peeks at the search path that \texttt{isabelle} uses to
-locate logic images:
+The next one peeks at the search path that \texttt{isabelle} uses to locate
+logic images:
 \begin{ttbox}
 isatool getenv -b ISABELLE_PATH
 {\out /home/me/isabelle/heaps/smlnj-110:/usr/local/isabelle/heaps/smlnj-110}
@@ -108,15 +105,16 @@ following assignment in the default settings file:
 \begin{ttbox}
 ISABELLE_PATH=\$ISABELLE_HOME_USER/heaps:\$ISABELLE_HOME/heaps
 \end{ttbox}
-Note how the \texttt{ML_SYSTEM} value got appended automatically to
-each path component. This is a special feature of
-\texttt{ISABELLE_PATH} (and also of \texttt{ISABELLE_OUTPUT}).
+Note how the \texttt{ML_SYSTEM} value got appended automatically to each path
+component. This is a special feature of \texttt{ISABELLE_PATH} (and also of
+\texttt{ISABELLE_OUTPUT}).
 
 
 \section{Installing standalone Isabelle executables -- \texttt{isatool install}}
+\label{sec:tool-install}
 
-Usually, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool} etc.) are
-just run from their location within the distribution directory, probably
+By default, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool} etc.)
+are just run from their location within the distribution directory, probably
 indirectly by the shell through its \texttt{PATH}.  Other schemes of
 installation are supported by the \tooldx{install} utility:
 \begin{ttbox}
@@ -142,8 +140,9 @@ shell's \texttt{PATH}, such as \texttt{/usr/local/bin}.  It is important to
 note that a plain manual copy of the original Isabelle executables just would
 not work!
 
-The \texttt{-k} option creates an Isabelle application object for the K
-desktop environment.  The icon will appear directly on Desktop.
+The \texttt{-k} option creates an Isabelle application object for the popular
+\textsl{K~Desktop Environment} (KDE)\index{KDE}.  The icon will appear
+directly on Desktop.
 
 
 \section{Creating instances of the Isabelle logo -- \texttt{isatool
