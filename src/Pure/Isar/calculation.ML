@@ -102,9 +102,9 @@ val trans_add_local = local_att (apfst o NetRules.insert);
 val trans_del_local = local_att (apfst o NetRules.delete);
 
 val sym_add_global = global_att (apsnd o Drule.add_rule) o ContextRules.elim_query_global None;
-val sym_del_global = global_att (apsnd o Drule.del_rule);
+val sym_del_global = global_att (apsnd o Drule.del_rule) o ContextRules.rule_del_global;
 val sym_add_local = local_att (apsnd o Drule.add_rule) o ContextRules.elim_query_local None;
-val sym_del_local = local_att (apsnd o Drule.del_rule);
+val sym_del_local = local_att (apsnd o Drule.del_rule) o ContextRules.rule_del_local;
 
 
 (* symmetry *)
