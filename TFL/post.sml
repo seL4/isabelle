@@ -72,8 +72,8 @@ fun std_postprocessor ss =
    {WFtac      = REPEAT (ares_tac [wf_measure, wf_inv_image, wf_lex_prod, 
 				   wf_less_than, wf_trancl] 1),
     terminator = asm_simp_tac ss 1
-		 THEN TRY(best_tac
-			  (!claset addSDs [not0_implies_Suc] addss ss) 1),
+		 THEN TRY(CLASET' (fn cs => best_tac
+			  (cs addSDs [not0_implies_Suc] addss ss)) 1),
     simplifier = Rules.simpl_conv ss []};
 
 
