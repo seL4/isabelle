@@ -1022,10 +1022,9 @@ preparation, for example).
   command would always work in a purely backward manner.
   
 \item [$\isarkeyword{done}$] completes a proof script, provided that the
-  current goal state is solved completely.
-    
-  Note that actual structured proof commands (e.g.\ ``$\DOT$'', $\SORRY$) may
-  be used to conclude proof scripts as well.
+  current goal state is already solved completely.  Note that actual
+  structured proof commands (e.g.\ ``$\DOT$'' or $\SORRY$) may be used to
+  conclude proof scripts as well.
 
 \item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
   terminal position.  Basically, this simulates a multi-step tactic script for
