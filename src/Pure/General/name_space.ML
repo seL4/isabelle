@@ -30,6 +30,7 @@ sig
   val extern: T -> string -> string
   val long_names: bool ref
   val short_names: bool ref
+  val unique_names: bool ref
   val cond_extern: T -> string -> string
   val cond_extern_table: T -> 'a Symtab.table -> (string * 'a) list
   val dest: T -> (string * string list) list
@@ -140,19 +141,24 @@ fun lookup (NameSpace tab) xname =
 
 fun intern spc xname = #1 (lookup spc xname);
 
-fun extern space name =
+fun unique_extern mkunique space name =
   let
     fun try [] = hidden name
       | try (nm :: nms) =
           let val (full_nm, uniq) = lookup space nm
-          in if full_nm = name andalso uniq then nm else try nms end
+          in if full_nm = name andalso (uniq orelse (not mkunique)) then nm else try nms end
   in try (accesses' name) end;
+
+(*output unique names by default*)
+val unique_names = ref true;
 
 (*prune names on output by default*)
 val long_names = ref false;
 
 (*output only base name*)
 val short_names = ref false;
+
+fun extern space name = unique_extern (!unique_names) space name; 
 
 fun cond_extern space =
   if ! long_names then I
