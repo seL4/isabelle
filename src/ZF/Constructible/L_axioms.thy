@@ -619,43 +619,67 @@ apply (blast intro: nth_0 nth_ConsI)
 apply (simp_all add: succ_Un_distrib [symmetric])
 done
 
+subsubsection{*Separation for Predecessors in an Order*}
+
+lemma pred_Reflects:
+     "L_Reflects(?Cl, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p),
+                    \<lambda>i y. \<exists>p \<in> Lset(i). p\<in>r & pair(**Lset(i),y,x,p))"
+by fast
+
+lemma pred_separation:
+     "[| L(r); L(x) |] ==> separation(L, \<lambda>y. \<exists>p[L]. p\<in>r & pair(L,y,x,p))"
+apply (rule separation_CollectI) 
+apply (rule_tac A="{r,x,z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF pred_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2, clarify)
+apply (rule DPowI2)
+apply (rename_tac u) 
+apply (rule bex_iff_sats)
+apply (rule conj_iff_sats)
+apply (rule_tac env = "[p,u,r,x]" in mem_iff_sats) 
+apply (blast intro: nth_0 nth_ConsI) 
+apply (blast intro: nth_0 nth_ConsI, simp) 
+apply (rule pair_iff_sats)
+apply (blast intro: nth_0 nth_ConsI) 
+apply (blast intro: nth_0 nth_ConsI) 
+apply (blast intro: nth_0 nth_ConsI, simp_all)
+apply (simp_all add: succ_Un_distrib [symmetric])
+done
+
+
+subsubsection{*Separation for the Membership Relation*}
+
+lemma Memrel_Reflects:
+     "L_Reflects(?Cl, \<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y,
+            \<lambda>i z. \<exists>x \<in> Lset(i). \<exists>y \<in> Lset(i). pair(**Lset(i),x,y,z) & x \<in> y)"
+by fast
+
+lemma Memrel_separation:
+     "separation(L, \<lambda>z. \<exists>x[L]. \<exists>y[L]. pair(L,x,y,z) & x \<in> y)"
+apply (rule separation_CollectI) 
+apply (rule_tac A="{z}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF Memrel_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (rule DPowI2)
+apply (rename_tac u) 
+apply (rule bex_iff_sats)+
+apply (rule conj_iff_sats)
+apply (rule_tac env = "[y,x,u]" in pair_iff_sats) 
+apply (blast intro: nth_0 nth_ConsI) 
+apply (blast intro: nth_0 nth_ConsI) 
+apply (blast intro: nth_0 nth_ConsI, simp_all) 
+apply (rule mem_iff_sats)
+apply (blast intro: nth_0 nth_ConsI) 
+apply (blast intro: nth_0 nth_ConsI)
+apply (simp_all add: succ_Un_distrib [symmetric])
+done
+
+
 
 
 
 end
-
-(*
-
-  and pred_separation:
-     "[| L(r); L(x) |] ==> separation(L, \<lambda>y. \<exists>p\<in>r. L(p) & pair(L,y,x,p))"
-  and Memrel_separation:
-     "separation(L, \<lambda>z. \<exists>x y. L(x) & L(y) & pair(L,x,y,z) \<and> x \<in> y)"
-  and obase_separation:
-     --{*part of the order type formalization*}
-     "[| L(A); L(r) |] 
-      ==> separation(L, \<lambda>a. \<exists>x g mx par. L(x) & L(g) & L(mx) & L(par) & 
-	     ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
-	     order_isomorphism(L,par,r,x,mx,g))"
-  and well_ord_iso_separation:
-     "[| L(A); L(f); L(r) |] 
-      ==> separation (L, \<lambda>x. x\<in>A --> (\<exists>y. L(y) \<and> (\<exists>p. L(p) \<and> 
-		     fun_apply(L,f,x,y) \<and> pair(L,y,x,p) \<and> p \<in> r)))"
-  and obase_equals_separation:
-     "[| L(A); L(r) |] 
-      ==> separation
-      (L, \<lambda>x. x\<in>A --> ~(\<exists>y. L(y) & (\<exists>g. L(g) &
-	      ordinal(L,y) & (\<exists>my pxr. L(my) & L(pxr) &
-	      membership(L,y,my) & pred_set(L,A,x,r,pxr) &
-	      order_isomorphism(L,pxr,r,y,my,g)))))"
-  and is_recfun_separation:
-     --{*for well-founded recursion.  NEEDS RELATIVIZATION*}
-     "[| L(A); L(f); L(g); L(a); L(b) |] 
-     ==> separation(L, \<lambda>x. x \<in> A --> \<langle>x,a\<rangle> \<in> r \<and> \<langle>x,b\<rangle> \<in> r \<and> f`x \<noteq> g`x)"
-  and omap_replacement:
-     "[| L(A); L(r) |] 
-      ==> strong_replacement(L,
-             \<lambda>a z. \<exists>x g mx par. L(x) & L(g) & L(mx) & L(par) &
-	     ordinal(L,x) & pair(L,a,x,z) & membership(L,x,mx) & 
-	     pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g))"
-
-*)
