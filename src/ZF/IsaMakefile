@@ -59,8 +59,8 @@ $(LOG)/ZF-AC.gz: $(OUT)/ZF \
   AC/AC16_lemmas.thy AC/AC17_AC1.thy AC/AC18_AC19.thy AC/AC7_AC9.thy \
   AC/AC_Equiv.thy AC/Cardinal_aux.thy \
   AC/DC.thy AC/HH.thy AC/Hartog.thy AC/WO1_AC.thy AC/WO1_WO7.thy \
-  AC/WO2_AC16.thy AC/WO6_WO1.thy 
-	@$(ISATOOL) usedir $(OUT)/ZF AC
+  AC/WO2_AC16.thy AC/WO6_WO1.thy AC/document/root.bib AC/document/root.tex
+	@$(ISATOOL) usedir -g true $(OUT)/ZF AC
 
 
 ## ZF-Coind
@@ -87,7 +87,7 @@ $(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
   Constructible/Rec_Separation.thy Constructible/Separation.thy \
   Constructible/Satisfies_absolute.thy Constructible/WF_absolute.thy \
   Constructible/Reflection.thy  Constructible/WFrec.thy \
-  Constructible/document/root.tex
+  Constructible/document/root.bib Constructible/document/root.tex
 	@$(ISATOOL) usedir -g true $(OUT)/ZF Constructible
 
 

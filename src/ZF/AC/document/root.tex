@@ -1,0 +1,41 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{graphicx}
+\usepackage{isabelle,amssymb,isabellesym}
+\usepackage{pdfsetup}\urlstyle{rm}
+
+%table of contents is too crowded!
+\usepackage{tocloft}
+\addtolength\cftsubsecnumwidth {0.5em}
+\addtolength\cftsubsubsecnumwidth {1.0em}
+
+\begin{document}
+
+\title{Equivalents of the Axiom of Choice}
+\author{Krzysztof Gr\c{a}bczewski}
+\maketitle
+
+\begin{abstract}
+  This development~\cite{paulson-gr} proves the equivalence of seven
+  formulations of the well-ordering theorem and twenty formulations of the
+  axiom of choice. It formalizes the first two chapters of the monograph
+  \emph{Equivalents of the Axiom of Choice} by Rubin and
+  Rubin~\cite{rubin&rubin}. Some of this mmaterial involves extremely complex
+  techniques.
+\end{abstract}
+
+\tableofcontents
+
+\begin{center}
+  \includegraphics[scale=0.7]{session_graph}
+\end{center}
+
+\newpage
+
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\bibliographystyle{plain}
+\bibliography{root}
+
+\end{document}
