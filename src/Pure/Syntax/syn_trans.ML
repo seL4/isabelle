@@ -36,6 +36,11 @@ sig
       (string * (term list -> term)) list *
       (string * (Ast.ast list -> Ast.ast)) list
   val pure_trfunsT: (string * (bool -> typ -> term list -> term)) list
+  val struct_trfuns: string list ->
+      (string * (Ast.ast list -> Ast.ast)) list *
+      (string * (term list -> term)) list *
+      (string * (bool -> typ -> term list -> term)) list *
+      (string * (Ast.ast list -> Ast.ast)) list
 end;
 
 signature SYN_TRANS =
@@ -165,10 +170,43 @@ fun quote_antiquote_tr quoteN antiquoteN name =
   in (quoteN, tr) end;
 
 
-(* index variable *)
+(* indexed syntax *)
 
-fun indexvar_ast_tr [] = Ast.Variable "some_index"
-  | indexvar_ast_tr asts = raise Ast.AST ("indexvar_ast_tr", asts);
+fun struct_ast_tr (*"_struct"*) [Ast.Appl [Ast.Constant "_index", ast]] = ast
+  | struct_ast_tr (*"_struct"*) asts = Ast.mk_appl (Ast.Constant "_struct") asts;
+
+fun index_ast_tr ast =
+  Ast.mk_appl (Ast.Constant "_index") [Ast.mk_appl (Ast.Constant "_struct") [ast]];
+
+fun indexdefault_ast_tr (*"_indexdefault"*) [] =
+      index_ast_tr (Ast.Constant "_indexdefault")
+  | indexdefault_ast_tr (*"_indexdefault"*) asts =
+      raise Ast.AST ("indexdefault_ast_tr", asts);
+
+fun indexnum_ast_tr (*"_indexnum"*) [ast] =
+      index_ast_tr (Ast.mk_appl (Ast.Constant "_indexnum") [ast])
+  | indexnum_ast_tr (*"_indexnum"*) asts = raise Ast.AST ("indexnum_ast_tr", asts);
+
+fun indexvar_ast_tr (*"_indexvar"*) [] =
+      Ast.mk_appl (Ast.Constant "_index") [Ast.Variable "some_index"]
+  | indexvar_ast_tr (*"_indexvar"*) asts = raise Ast.AST ("indexvar_ast_tr", asts);
+
+fun index_tr (*"_index"*) [t] = t
+  | index_tr (*"_index"*) ts = raise TERM ("index_tr", ts);
+
+
+(* implicit structures *)
+
+fun the_struct structs i =
+  if 1 <= i andalso i <= length structs then Library.nth_elem (i - 1, structs)
+  else raise ERROR_MESSAGE ("Illegal reference to implicit structure #" ^ string_of_int i);
+
+fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
+      Lexicon.free (the_struct structs 1)
+  | struct_tr structs (*"_struct"*) [t as (Const ("_indexnum", _) $ Const (s, _))] =
+      Lexicon.free (the_struct structs
+        (case Lexicon.read_nat s of Some n => n | None => raise TERM ("struct_tr", [t])))
+  | struct_tr _ (*"_struct"*) ts = raise TERM ("struct_tr", ts);
 
 
 
@@ -233,10 +271,9 @@ fun abs_tr' tm =
   foldr (fn (x, t) => Lexicon.const "_abs" $ x $ t)
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
-
-fun atomic_abs_tr' (x,T,t) = 
-  let val [xT] = rename_wrt_term t [(x,T)];
-  in  (mark_boundT xT, subst_bound (mark_bound(fst xT), t)) end;
+fun atomic_abs_tr' (x, T, t) =
+  let val [xT] = rename_wrt_term t [(x, T)]
+  in (mark_boundT xT, subst_bound (mark_bound (fst xT), t)) end;
 
 fun abs_ast_tr' (*"_abs"*) asts =
   (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
@@ -370,21 +407,48 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
   in (name, tr') end;
 
 
+(* indexed syntax *)
 
-(** pure_trfuns **)
+fun index_ast_tr' (*"_index"*) [Ast.Appl [Ast.Constant "_struct", ast]] = ast
+  | index_ast_tr' _ = raise Match;
+
+
+(* implicit structures *)
+
+fun the_struct' structs s =
+  [(case Lexicon.read_nat s of
+    Some i => Ast.Variable (the_struct structs i handle ERROR_MESSAGE _ => raise Match)
+  | None => raise Match)] |> Ast.mk_appl (Ast.Constant "_free");
+;
+
+fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
+      the_struct' structs "1"
+  | struct_ast_tr' structs (*"_struct"*) [Ast.Appl [Ast.Constant "_indexnum", Ast.Constant s]] =
+      the_struct' structs s
+  | struct_ast_tr' _ _ = raise Match;
+
+
+
+(** Pure translations **)
 
 val pure_trfuns =
  ([("_constify", constify_ast_tr), ("_appl", appl_ast_tr), ("_applC", applC_ast_tr),
    ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr), ("_bigimpl", bigimpl_ast_tr),
-   ("_indexvar", indexvar_ast_tr)],
+   ("_indexdefault", indexdefault_ast_tr), ("_indexnum", indexnum_ast_tr),
+   ("_indexvar", indexvar_ast_tr), ("_struct", struct_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("_TYPE", type_tr), ("_DDDOT", dddot_tr), ("_K", k_tr)],
+   ("_TYPE", type_tr), ("_DDDOT", dddot_tr), ("_K", k_tr),
+   ("_index", index_tr)],
   [("all", meta_conjunction_tr')],
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
-   ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr')]);
+   ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr'),
+   ("_index", index_ast_tr')]);
 
 val pure_trfunsT =
   [("_mk_ofclass", mk_ofclass_tr'), ("TYPE", type_tr')];
+
+fun struct_trfuns structs =
+  ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
 
 
 

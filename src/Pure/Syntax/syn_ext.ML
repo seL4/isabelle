@@ -267,17 +267,18 @@ fun mfix_to_xprod convert logtypes (mfix as Mfix (sy, typ, const, pris, pri)) =
       if not (exists is_index args) then (const, typ, [])
       else
         let
-          val c = if const <> "" then "_indexed_" ^ const
+          val indexed_const = if const <> "" then "_indexed_" ^ const
             else err_in_mfix "Missing constant name for indexed syntax" mfix;
-          val T = Term.range_type typ handle Match =>
+          val rangeT = Term.range_type typ handle Match =>
             err_in_mfix "Missing structure argument for indexed syntax" mfix;
 
-          val xs = map Ast.Variable (Term.invent_names [] "x" (length args - 1));
+          val xs = map Ast.Variable (Term.invent_names [] "xa" (length args - 1));
+          val (xs1, xs2) = Library.splitAt (Library.find_index is_index args, xs);
           val i = Ast.Variable "i";
-          val n = Library.find_index is_index args;
-          val lhs = Ast.mk_appl (Ast.Constant c) (take (n, xs) @ [i] @ drop (n, xs));
-          val rhs = Ast.mk_appl (Ast.Constant const) (Ast.Appl [Ast.Constant "_struct", i] :: xs);
-        in (c, T, [(lhs, rhs)]) end;
+          val lhs = Ast.mk_appl (Ast.Constant indexed_const)
+            (xs1 @ [Ast.mk_appl (Ast.Constant "_index") [i]] @ xs2);
+          val rhs = Ast.mk_appl (Ast.Constant const) (i :: xs);
+        in (indexed_const, rangeT, [(lhs, rhs)]) end;
 
     val (symbs, lhs) = add_args raw_symbs typ' pris;
 
