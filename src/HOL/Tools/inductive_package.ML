@@ -276,12 +276,6 @@ fun try' f msg sign t = (case (try f t) of
 
 (** elimination rules **)
 
-fun tune_names raw_names =
-  let
-    fun tune ("", i) = Library.string_of_int i
-      | tune (s, _) = s;
-  in map2 tune (raw_names, 0 upto (length raw_names - 1)) end;
-
 fun mk_elims cs cTs params intr_ts intr_names =
   let
     val used = foldr add_term_names (intr_ts, []);
@@ -293,7 +287,7 @@ fun mk_elims cs cTs params intr_ts intr_names =
         HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
       in (u, t, Logic.strip_imp_prems r) end;
 
-    val intrs = map dest_intr intr_ts ~~ tune_names intr_names;
+    val intrs = map dest_intr intr_ts ~~ intr_names;
 
     fun mk_elim (c, T) =
       let
@@ -407,8 +401,7 @@ fun add_cases_induct no_elim no_ind names elims induct induct_cases =
     val cases_specs = if no_elim then [] else map2 cases_spec (names, elims);
 
     fun induct_spec (name, th) =
-      (("", th), [RuleCases.case_names (tune_names induct_cases),
-        InductMethod.induct_set_global name]);
+      (("", th), [RuleCases.case_names induct_cases, InductMethod.induct_set_global name]);
     val induct_specs =
       if no_ind then []
       else map induct_spec (project_rules names induct);
