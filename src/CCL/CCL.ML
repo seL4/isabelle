@@ -10,8 +10,7 @@ open CCL;
 
 val ccl_data_defs = [apply_def,fix_def];
 
-val CCL_ss = FOL_ss addcongs set_congs
-                    addsimps  ([po_refl RS P_iff_T] @ mem_rews);
+val CCL_ss = set_ss addsimps [po_refl RS P_iff_T];
 
 (*** Congruence Rules ***)
 
