@@ -188,7 +188,7 @@ fun opt_fix fix =
   Scan.optional ($$$ "(" |-- !!! (fix --| $$$ ")")) Syntax.NoSyn;
 
 val opt_infix = opt_fix (infxl || infxr);
-val opt_mixfix = opt_fix (mixfix || infxl || infxr || binder);
+val opt_mixfix = opt_fix (mixfix || binder || infxl || infxr);
 
 
 (* consts *)
