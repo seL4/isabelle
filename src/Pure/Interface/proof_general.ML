@@ -160,11 +160,14 @@ end;
 
 (* some top-level commands for ProofGeneral/isa *)
 
-fun print_thm (a, th) =
-  Pretty.writeln (Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
-    Display.pretty_thm_no_quote (#1 (Drule.freeze_thaw th))]);
+fun prt_thm (a, th) =
+  Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
+    Display.pretty_thm_no_quote (#1 (Drule.freeze_thaw th))];
 
-val thms_containing = seq print_thm o ThmDatabase.thms_containing;
+fun thms_containing cs =
+  Pretty.blk (0, Pretty.fbreaks (map prt_thm (ThmDatabase.thms_containing cs)))
+  |> Pretty.writeln;
+
 
 val help = writeln o Session.welcome;
 val show_context = Context.the_context;
