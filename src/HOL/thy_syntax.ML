@@ -9,7 +9,7 @@ TODO:
 *)
 
 (*the kind of distinctiveness axioms depends on number of constructors*)
-val dtK = 5;  (* FIXME rename?, move? *)
+val dtK = 7;  (* FIXME rename?, move? *)
 
 structure ThySynData: THY_SYN_DATA =
 struct
@@ -143,7 +143,11 @@ local
     \val dummy = datatypes := Dtype.build_record (thy, " ^
       mk_pair (quote tname, mk_list (map (fst o fst) cons)) ^
       ", " ^ tname ^ ".induct_tac) :: (!datatypes);\n\
-    \val dummy = Addsimps " ^ tname ^ ".simps;\n");
+    \val dummy = Addsimps(" ^ tname ^ ".cases @ " ^ tname ^ ".recs);\n\
+    \val dummy = AddIffs " ^ tname ^ ".inject;\n\
+    \val dummy = " ^
+      (if length cons < dtK then "AddIffs " else "Addsimps ") ^
+      tname ^ ".distinct;");
 
   (*parsers*)
   val tvars = type_args >> map (cat "dtVar");
