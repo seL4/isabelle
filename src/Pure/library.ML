@@ -873,6 +873,8 @@ fun absolute_path cwd file =
                   (rm_points (space_explode "/" (tack_on cwd file)) [])
   end;
 
+fun file_exists file = (file_info file <> "");
+
 
 (** misc functions **)
 
