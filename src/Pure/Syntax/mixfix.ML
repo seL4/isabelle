@@ -111,10 +111,10 @@ fun syn_ext_types logtypes type_decls =
       let val t = name_of decl in
         (case decl of
           (_, _, NoSyn) => None
-        | (_, 2, InfixlName (sy, p)) => Some (mk_infix t sy p (p + 1) p)
-        | (_, 2, InfixrName (sy, p)) => Some (mk_infix t sy (p + 1) p p)
-        | (sy, 2, Infixl p) => Some (mk_infix t sy p (p + 1) p)
-        | (sy, 2, Infixr p) => Some (mk_infix t sy (p + 1) p p)
+        | (_, 2, InfixlName (sy, p)) => Some (mk_infix sy t p (p + 1) p)
+        | (_, 2, InfixrName (sy, p)) => Some (mk_infix sy t (p + 1) p p)
+        | (sy, 2, Infixl p) => Some (mk_infix sy t p (p + 1) p)
+        | (sy, 2, Infixr p) => Some (mk_infix sy t (p + 1) p p)
         | _ => error ("Bad mixfix declaration for type " ^ quote t))
       end;
 
