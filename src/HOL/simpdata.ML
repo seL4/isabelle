@@ -483,8 +483,7 @@ fun expand_case_tac P i =
 
 (* install implicit simpset *)
 
-simpset_ref() := HOL_ss;
-
+simpset_ref() := HOL_ss addcongs [if_weak_cong];
 
 
 (*** integration of simplifier with classical reasoner ***)

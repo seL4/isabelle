@@ -176,14 +176,10 @@ val ClientKeyExch_tac =
 fun analz_induct_tac i = 
     etac tls.induct i   THEN
     ClientKeyExch_tac  (i+6)  THEN	(*ClientKeyExch*)
-    ALLGOALS (asm_simp_tac 
-              (simpset() addcongs [if_weak_cong]
-                         addsimps split_ifs @ pushes))  THEN
+    ALLGOALS (asm_simp_tac (simpset() addsimps split_ifs @ pushes))  THEN
     (*Remove instances of pubK B:  the Spy already knows all public keys.
       Combining the two simplifier calls makes them run extremely slowly.*)
-    ALLGOALS (asm_simp_tac 
-              (simpset() addcongs [if_weak_cong]
-			 addsimps [insert_absorb]));
+    ALLGOALS (asm_simp_tac (simpset() addsimps [insert_absorb]));
 
 
 (*** Properties of items found in Notes ***)

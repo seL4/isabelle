@@ -241,7 +241,7 @@ Goal "[| A ~: bad;  B ~: bad;  evs : otway |]                   \
 by (etac otway.induct 1);
 by analz_knows_Spy_tac;
 by (ALLGOALS
-    (asm_simp_tac (simpset() addcongs [conj_cong, if_weak_cong] 
+    (asm_simp_tac (simpset() addcongs [conj_cong] 
                              addsimps [analz_insert_eq, analz_insert_freshK]
                                       @ pushes @ split_ifs)));
 (*Oops*)

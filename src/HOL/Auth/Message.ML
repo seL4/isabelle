@@ -906,7 +906,7 @@ fun spy_analz_tac i =
 fun ex_strip_tac i = REPEAT (swap_res_tac [exI, conjI] i) THEN 
                      assume_tac (i+1);
 
-(*Apply the EX-ALL quantifification to prove uniqueness theorems in 
+(*Apply the EX-ALL quantification to prove uniqueness theorems in 
   their standard form*)
 fun prove_unique_tac lemma = 
   EVERY' [dtac lemma,

@@ -235,14 +235,13 @@ qed "insert_Key_image";
   the set of keys.  Use analz_insert_eq with (Un_upper2 RS analz_mono) to
   erase occurrences of forwarded message components (X).*)
 val analz_image_freshK_ss = 
-     simpset() addcongs [if_weak_cong]
-	      delsimps [image_insert, image_Un]
-              delsimps [imp_disjL]    (*reduces blow-up*)
-              addsimps [image_insert RS sym, image_Un RS sym,
-			analz_insert_eq, impOfSubs (Un_upper2 RS analz_mono),
-			insert_Key_singleton, subset_Compl_range,
-			Key_not_used, insert_Key_image, Un_assoc RS sym]
-                       @disj_comms;
+     simpset() delsimps [image_insert, image_Un]
+	       delsimps [imp_disjL]    (*reduces blow-up*)
+	       addsimps [image_insert RS sym, image_Un RS sym,
+			 analz_insert_eq, impOfSubs (Un_upper2 RS analz_mono),
+			 insert_Key_singleton, subset_Compl_range,
+			 Key_not_used, insert_Key_image, Un_assoc RS sym]
+			@disj_comms;
 
 (*Lemma for the trivial direction of the if-and-only-if*)
 Goal "(Key K : analz (Key``nE Un H)) --> (K : nE | Key K : analz H)  ==> \
