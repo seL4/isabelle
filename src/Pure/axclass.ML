@@ -6,42 +6,29 @@ User interfaces for axiomatic type classes.
 *)
 
 signature AX_CLASS =
-sig
-  structure Tactical: TACTICAL
-  local open Tactical Tactical.Thm in
-    val add_thms_as_axms: (string * thm) list -> theory -> theory
-    val add_classrel_thms: thm list -> theory -> theory
-    val add_arity_thms: thm list -> theory -> theory
-    val add_axclass: class * class list -> (string * string) list
-      -> theory -> theory
-    val add_axclass_i: class * class list -> (string * term) list
-      -> theory -> theory
-    val add_inst_subclass: class * class -> string list -> thm list
-      -> tactic option -> theory -> theory
-    val add_inst_arity: string * sort list * class list -> string list
-      -> thm list -> tactic option -> theory -> theory
-    val axclass_tac: theory -> thm list -> tactic
-    val prove_subclass: theory -> class * class -> thm list
-      -> tactic option -> thm
-    val prove_arity: theory -> string * sort list * class -> thm list
-      -> tactic option -> thm
-    val goal_subclass: theory -> class * class -> thm list
-    val goal_arity: theory -> string * sort list * class -> thm list
-  end
-end;
+  sig
+  val add_thms_as_axms: (string * thm) list -> theory -> theory
+  val add_classrel_thms: thm list -> theory -> theory
+  val add_arity_thms: thm list -> theory -> theory
+  val add_axclass: class * class list -> (string * string) list
+    -> theory -> theory
+  val add_axclass_i: class * class list -> (string * term) list
+    -> theory -> theory
+  val add_inst_subclass: class * class -> string list -> thm list
+    -> tactic option -> theory -> theory
+  val add_inst_arity: string * sort list * class list -> string list
+    -> thm list -> tactic option -> theory -> theory
+  val axclass_tac: theory -> thm list -> tactic
+  val prove_subclass: theory -> class * class -> thm list
+    -> tactic option -> thm
+  val prove_arity: theory -> string * sort list * class -> thm list
+    -> tactic option -> thm
+  val goal_subclass: theory -> class * class -> thm list
+  val goal_arity: theory -> string * sort list * class -> thm list
+  end;
 
-functor AxClassFun(structure Logic: LOGIC and Goals: GOALS and Tactic: TACTIC
-  sharing Goals.Tactical = Tactic.Tactical): AX_CLASS =
+structure AxClass : AX_CLASS =
 struct
-
-structure Tactical = Goals.Tactical;
-structure Thm = Tactical.Thm;
-structure Sign = Thm.Sign;
-structure Type = Sign.Type;
-structure Pretty = Sign.Syntax.Pretty;
-
-open Logic Thm Tactical Tactic Goals;
-
 
 (** utilities **)
 
@@ -63,7 +50,7 @@ fun get_ax thy name =
 
 val get_axioms = mapfilter o get_ax;
 
-val is_def = is_equals o #prop o rep_thm;
+val is_def = Logic.is_equals o #prop o rep_thm;
 
 fun witnesses thy axms thms =
   map (get_axiom thy) axms @ thms @ filter is_def (map snd (axioms_of thy));
@@ -74,13 +61,14 @@ fun witnesses thy axms thms =
 
 (* subclass relations as terms *)
 
-fun mk_classrel (c1, c2) = mk_inclass (aT [c1], c2);
+fun mk_classrel (c1, c2) = Logic.mk_inclass (aT [c1], c2);
 
 fun dest_classrel tm =
   let
     fun err () = raise_term "dest_classrel" [tm];
 
-    val (ty, c2) = dest_inclass (freeze_vars tm) handle TERM _ => err ();
+    val (ty, c2) = Logic.dest_inclass (Logic.freeze_vars tm)
+	           handle TERM _ => err ();
     val c1 = (case ty of TFree (_, [c]) => c | _ => err ());
   in
     (c1, c2)
@@ -94,14 +82,15 @@ fun mk_arity (t, ss, c) =
     val names = tl (variantlist (replicate (length ss + 1) "'", []));
     val tfrees = map TFree (names ~~ ss);
   in
-    mk_inclass (Type (t, tfrees), c)
+    Logic.mk_inclass (Type (t, tfrees), c)
   end;
 
 fun dest_arity tm =
   let
     fun err () = raise_term "dest_arity" [tm];
 
-    val (ty, c) = dest_inclass (freeze_vars tm) handle TERM _ => err ();
+    val (ty, c) = Logic.dest_inclass (Logic.freeze_vars tm) 
+	          handle TERM _ => err ();
     val (t, tfrees) =
       (case ty of
         Type (t, tys) => (t, map (fn TFree x => x | _ => err ()) tys)
@@ -189,7 +178,7 @@ fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
 
     fun abs_axm ax =
       if null (term_tfrees ax) then
-        mk_implies (mk_inclass (aT logicS, class), ax)
+        Logic.mk_implies (Logic.mk_inclass (aT logicS, class), ax)
       else
         map_term_tfrees (K (aT [class])) ax;
 
@@ -212,10 +201,10 @@ fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
 
     val axS = Sign.norm_sort sign (logicC :: flat (map axm_sort axioms));
 
-    val int_axm = close_form o map_term_tfrees (K (aT axS));
-    fun inclass c = mk_inclass (aT axS, c);
+    val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
+    fun inclass c = Logic.mk_inclass (aT axS, c);
 
-    val intro_axm = list_implies
+    val intro_axm = Logic.list_implies
       (map inclass super_classes @ map (int_axm o snd) axioms, inclass class);
   in
     add_axioms_i ((class ^ "I", intro_axm) :: abs_axioms) thy
