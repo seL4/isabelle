@@ -2,11 +2,34 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Cantor's theorem (see also 'Isabelle's Object-Logics').
+Cantor's theorem -- Isar'ized version of the final section of the HOL
+chapter of 'Isabelle's Object-Logics' (by Larry Paulson).
 *)
 
 theory Cantor = Main:;
 
+
+section "Example: Cantor's Theorem"
+
+text {|
+  Cantor's Theorem states that every set has more subsets than it has
+  elements.  It has become a favourite example in higher-order logic
+  since it is so easily expressed: @{display term[show_types] "ALL f
+  :: 'a => 'a => bool. EX S :: 'a => bool. ALL x::'a. f x ~= S"}
+
+  Viewing types as sets, @{type "'a => bool"} represents the powerset
+  of @{type 'a}.  This version states that for every function from
+  @{type 'a} to its powerset, some subset is outside its range.
+
+  The Isabelle/Isar proofs below use HOL's set theory, with the type
+  @{type "'a set"} and the operator @{term range}.
+|}
+
+text {|
+  We first consider a rather verbose version of the proof, with the
+  reasoning expressed quite naively.  We only make use of the pure
+  core of the Isar proof language.
+|}
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
 proof;
@@ -23,17 +46,22 @@ proof;
         assume y_in_S: "y : ??S";
         assume y_in_fy: "y : f y";
         from y_in_S; have y_notin_fy: "y ~: f y"; ..;
-        from y_notin_fy y_in_fy; show ??thesis; ..;
+        from y_notin_fy y_in_fy; show ??thesis; by contradiction;
       next;
         assume y_notin_S: "y ~: ??S";
         assume y_notin_fy: "y ~: f y";
         from y_notin_S; have y_in_fy: "y : f y"; ..;
-        from y_notin_fy y_in_fy; show ??thesis; ..;
+        from y_notin_fy y_in_fy; show ??thesis; by contradiction;
       qed;
     qed;
   qed;
 qed;
 
+text {|
+  The following version essentially does the same reasoning, only that
+  it is expressed more neatly, with some derived Isar language
+  elements involved.
+|}
 
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
 proof;
@@ -41,27 +69,44 @@ proof;
   show "??S ~: range f";
   proof;
     assume "??S : range f";
-    then; show False;
+    thus False;
     proof;
       fix y; 
       assume "??S = f y";
-      then; show ??thesis;
+      thus ??thesis;
       proof (rule equalityCE);
-        assume "y : ??S"; then; have y_notin_fy: "y ~: f y"; ..;
         assume "y : f y";
-        from y_notin_fy it; show ??thesis; ..;
+        assume "y : ??S"; hence "y ~: f y"; ..;
+        thus ??thesis; by contradiction;
       next;
-        assume "y ~: ??S"; then; have y_in_fy: "y : f y"; ..;
         assume "y ~: f y";
-        from it y_in_fy; show ??thesis; ..;
+        assume "y ~: ??S"; hence "y : f y"; ..;
+        thus ??thesis; by contradiction;
       qed;
     qed;
   qed;
 qed;
 
 
+text {|
+  How much creativity is required?  As it happens, Isabelle can prove
+  this theorem automatically.  The default classical set contains
+  rules for most of the constructs of HOL's set theory.  We must
+  augment it with @{thm equalityCE} to break up set equalities, and
+  then apply best-first search.  Depth-first search would diverge, but
+  best-first search successfully navigates through the large search
+  space.
+|}
+
 theorem "EX S. S ~: range(f :: 'a => 'a set)";
   by (best elim: equalityCE);
 
+text {|
+  While this establishes the same theorem internally, we do not get
+  any idea of how the actually works.  There is currently no way to
+  transform internal system-level representations of proofs back into
+  Isar documents.  Writing Isabelle/Isar proof documents actually
+  \emph{is} an creative process.
+|}
 
 end;
