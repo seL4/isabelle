@@ -536,7 +536,7 @@ bind_thm ("univalent_is_recfun", axiomsL (thm "M_axioms.univalent_is_recfun"));
 bind_thm ("exists_is_recfun_indstep", axiomsL (thm "M_axioms.exists_is_recfun_indstep"));
 bind_thm ("wellfounded_exists_is_recfun", axiomsL (thm "M_axioms.wellfounded_exists_is_recfun"));
 bind_thm ("wf_exists_is_recfun", axiomsL (thm "M_axioms.wf_exists_is_recfun")); 
-bind_thm ("is_recfun_iff_M", axiomsL (thm "M_axioms.is_recfun_iff_M"));
+bind_thm ("is_recfun_abs", axiomsL (thm "M_axioms.is_recfun_abs"));
 bind_thm ("irreflexive_abs", axiomsL (thm "M_axioms.irreflexive_abs"));  
 bind_thm ("transitive_rel_abs", axiomsL (thm "M_axioms.transitive_rel_abs"));  
 bind_thm ("linear_rel_abs", axiomsL (thm "M_axioms.linear_rel_abs"));  

@@ -49,6 +49,12 @@ constdefs
     "cartprod(M,A,B,z) == 
 	\<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,u)))"
 
+  is_sum :: "[i=>o,i,i,i] => o"
+    "is_sum(M,A,B,Z) == 
+       \<exists>A0[M]. \<exists>n1[M]. \<exists>s1[M]. \<exists>B1[M]. 
+       number1(M,n1) & cartprod(M,n1,A,A0) & upair(M,n1,n1,s1) &
+       cartprod(M,s1,B,B1) & union(M,A0,B1,Z)"
+
   is_converse :: "[i=>o,i,i] => o"
     "is_converse(M,r,z) == 
 	\<forall>x[M]. x \<in> z <-> 
@@ -162,6 +168,15 @@ constdefs
 
   number3 :: "[i=>o,i] => o"
     "number3(M,a) == (\<exists>x[M]. number2(M,x) & successor(M,x,a))"
+
+  is_quasinat :: "[i=>o,i] => o"
+    "is_quasinat(M,z) == empty(M,z) | (\<exists>m[M]. successor(M,m,z))"
+
+  is_nat_case :: "[i=>o, i, [i,i]=>o, i, i] => o"
+    "is_nat_case(M, a, is_b, k, z) == 
+       (empty(M,k) --> z=a) &
+       (\<forall>m[M]. successor(M,m,k) --> is_b(m,z)) &
+       (is_quasinat(M,k) | z=0)"
 
 
 subsection {*The relativized ZF axioms*}
@@ -607,11 +622,28 @@ lemma (in M_triv_axioms) nat_into_M [intro]:
      "n \<in> nat ==> M(n)"
 by (induct n rule: nat_induct, simp_all)
 
-lemma (in M_triv_axioms) nat_case_closed:
+lemma (in M_triv_axioms) nat_case_closed [intro,simp]:
   "[|M(k); M(a); \<forall>m[M]. M(b(m))|] ==> M(nat_case(a,b,k))"
 apply (case_tac "k=0", simp) 
 apply (case_tac "\<exists>m. k = succ(m)", force)
 apply (simp add: nat_case_def) 
+done
+
+lemma (in M_triv_axioms) quasinat_abs [simp]: 
+     "M(z) ==> is_quasinat(M,z) <-> quasinat(z)"
+by (auto simp add: is_quasinat_def quasinat_def)
+
+lemma (in M_triv_axioms) nat_case_abs [simp]: 
+  assumes b_abs: "!!x y. M(x) --> M(y) --> (is_b(x,y) <-> y = b(x))"
+  shows
+     "[| M(k); M(z) |] ==> is_nat_case(M,a,is_b,k,z) <-> z = nat_case(a,b,k)"
+apply (case_tac "quasinat(k)") 
+ prefer 2 
+ apply (simp add: is_nat_case_def non_nat_case) 
+ apply (force simp add: quasinat_def) 
+apply (simp add: quasinat_def is_nat_case_def)
+apply (elim disjE exE) 
+ apply (simp_all add: b_abs) 
 done
 
 lemma (in M_triv_axioms) Inl_in_M_iff [iff]:
@@ -830,6 +862,10 @@ by (frule cartprod_closed_lemma, assumption, force)
 lemma (in M_axioms) sum_closed [intro,simp]: 
      "[| M(A); M(B) |] ==> M(A+B)"
 by (simp add: sum_def)
+
+lemma (in M_axioms) sum_abs [simp]:
+     "[| M(A); M(B); M(Z) |] ==> is_sum(M,A,B,Z) <-> (Z = A+B)"
+by (simp add: is_sum_def sum_def singleton_0 nat_into_M)
 
 
 subsubsection {*converse of a relation*}
@@ -1095,5 +1131,6 @@ lemma (in M_axioms) finite_funspace_closed [intro,simp]:
 apply (induct_tac n, simp)
 apply (simp add: funspace_succ nat_into_M) 
 done
+
 
 end

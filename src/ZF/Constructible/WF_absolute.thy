@@ -262,7 +262,7 @@ lemma (in M_wfrank) wfrank_separation':
       separation
 	   (M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r^+, x, %x f. range(f), f)))"
 apply (insert wfrank_separation [of r])
-apply (simp add: is_recfun_iff_M [of concl: _ _ "%x. range", THEN iff_sym])
+apply (simp add: is_recfun_abs [of "%x. range"])
 done
 
 lemma (in M_wfrank) wfrank_strong_replacement':
@@ -271,7 +271,7 @@ lemma (in M_wfrank) wfrank_strong_replacement':
 		  pair(M,x,y,z) & is_recfun(r^+, x, %x f. range(f), f) &
 		  y = range(f))"
 apply (insert wfrank_strong_replacement [of r])
-apply (simp add: is_recfun_iff_M [of concl: _ _ "%x. range", THEN iff_sym])
+apply (simp add: is_recfun_abs [of "%x. range"])
 done
 
 lemma (in M_wfrank) Ord_wfrank_separation':
@@ -279,7 +279,7 @@ lemma (in M_wfrank) Ord_wfrank_separation':
       separation (M, \<lambda>x. 
          ~ (\<forall>f[M]. is_recfun(r^+, x, \<lambda>x. range, f) --> Ord(range(f))))" 
 apply (insert Ord_wfrank_separation [of r])
-apply (simp add: is_recfun_iff_M [of concl: _ _ "%x. range", THEN iff_sym])
+apply (simp add: is_recfun_abs [of "%x. range"])
 done
 
 text{*This function, defined using replacement, is a rank function for

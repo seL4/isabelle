@@ -283,10 +283,10 @@ constdefs
                pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
                xa \<in> r & MH(x, f_r_sx, y))"
 
-lemma (in M_axioms) is_recfun_iff_M:
-     "[| M(r); M(a); M(f); \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));
-       \<forall>x g y. M(x) --> M(g) --> M(y) --> MH(x,g,y) <-> y = H(x,g) |] ==>
-       is_recfun(r,a,H,f) <-> M_is_recfun(M,r,a,MH,f)"
+lemma (in M_axioms) is_recfun_abs:
+     "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(r); M(a); M(f); 
+         \<forall>x g y. M(x) --> M(g) --> M(y) --> MH(x,g,y) <-> y = H(x,g) |] 
+      ==> M_is_recfun(M,r,a,MH,f) <-> is_recfun(r,a,H,f)"
 apply (simp add: M_is_recfun_def is_recfun_relativize)
 apply (rule rall_cong)
 apply (blast dest: transM)
@@ -300,7 +300,7 @@ by (simp add: M_is_recfun_def)
 
 
 constdefs
- (*This expresses ordinal addition as a formula in the LAST.  It also 
+ (*This expresses ordinal addition in the language of ZF.  It also 
    provides an abbreviation that can be used in the instance of strong
    replacement below.  Here j is used to define the relation, namely
    Memrel(succ(j)), while x determines the domain of f.*)
@@ -367,7 +367,7 @@ lemma (in M_ord_arith) is_oadd_fun_iff:
 	f \<in> a \<rightarrow> range(f) & (\<forall>x. M(x) --> x < a --> f`x = i Un f``x)"
 apply (frule lt_Ord) 
 apply (simp add: is_oadd_fun_def Memrel_closed Un_closed 
-             is_recfun_iff_M [of concl: _ _ "%x g. i Un g``x", THEN iff_sym]
+             is_recfun_abs [of "%x g. i Un g``x"]
              image_closed is_recfun_iff_equation  
              Ball_def lt_trans [OF ltI, of _ a] lt_Memrel)
 apply (simp add: lt_def) 
@@ -382,8 +382,7 @@ lemma (in M_ord_arith) oadd_strong_replacement':
 		  (\<exists>g[M]. is_recfun(Memrel(succ(j)),x,%x g. i Un g``x,g) & 
 		  y = i Un g``x))" 
 apply (insert oadd_strong_replacement [of i j]) 
-apply (simp add: Memrel_closed Un_closed image_closed is_oadd_fun_def
-                 is_recfun_iff_M)  
+apply (simp add: is_oadd_fun_def is_recfun_abs [of "%x g. i Un g``x"])  
 done
 
 
