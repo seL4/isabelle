@@ -117,3 +117,11 @@ fun execute command =
      close_in is;
      result
   end;
+
+
+(* symbol input *)
+
+val needs_filtered_use =
+  (case explode ml_system of
+    "p" :: "o" :: "l" :: "y" :: "m" :: "l" :: "-" :: "3" :: _ => true
+  | _ => false);

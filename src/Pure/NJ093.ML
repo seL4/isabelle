@@ -120,3 +120,6 @@ val output = fn(s, t) => (output(s, t); flush_out s);
 
 (*For use in Makefiles -- saves space*)
 fun xML filename banner = (exportML filename;  print(banner^"\n"));
+
+
+val needs_filtered_use = false;

@@ -107,3 +107,8 @@ fun execute command =
      OS.FileSys.remove tmp_name;
      result
   end;
+
+
+(* symbol input *)
+
+val needs_filtered_use = false;
