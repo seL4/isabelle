@@ -175,8 +175,11 @@ val show_context = Context.the_context;
 fun kill_goal () =
   (Goals.reset_goals (); writeln "Proof General, please clear the goals buffer.");
 
+fun no_print_goals f = setmp print_current_goals_fn (fn _ => fn _ => fn _ => ()) f;
+
 fun repeat_undo 0 = ()
-  | repeat_undo n = (undo(); repeat_undo (n - 1));
+  | repeat_undo 1 = undo ()
+  | repeat_undo n = (no_print_goals undo (); repeat_undo (n - 1));
 
 fun isa_restart () =
  (ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
