@@ -82,7 +82,7 @@ by (afs [P_carrier,P_bin_op, Group_G' RS bin_op_closed,
 qed "prodgroup_is_group";
 val ProdGroup_is_Group = export prodgroup_is_group;
 
-Delsimps [Group_G', Group_G];
+Delsimps [P_def, Group_G', Group_G];
 
 Close_locale "prodgroup";
 Close_locale "r_group";

@@ -24,6 +24,7 @@ qed "card_bij";
 
 
 Open_locale "coset";
+Addsimps [Group_G, simp_G];
 
 val rcos_def = thm "rcos_def";
 val lcos_def = thm "lcos_def";
@@ -282,8 +283,10 @@ qed "rcos_prod_step2";
 
 Goal "[| H <| G; x \\<in> carrier G; y \\<in> carrier G |]\
 \ ==> (H <#> (H #> x)) #> y = H #> (x ## y)";
-by (afs [setprod_rcos_assoc,normal_imp_subgroup RS subgroup_imp_subset,r_coset_subset_G,
-         coset_mul_assoc, setprod_subset_G,normal_imp_subgroup RS subgroup_imp_subset,subgroup_prod_id,normal_imp_subgroup] 1);
+by (afs [setprod_rcos_assoc,normal_imp_subgroup RS subgroup_imp_subset,
+         r_coset_subset_G, coset_mul_assoc, setprod_subset_G,
+         normal_imp_subgroup RS subgroup_imp_subset,subgroup_prod_id,
+         normal_imp_subgroup] 1);
 qed "rcos_prod_step3";
 
 Goal "[| H <| G; x \\<in> carrier G; y \\<in> carrier G |]\
@@ -299,7 +302,6 @@ by (auto_tac (claset(),
                                   rcos_prod, setrcos_eq]));
 qed "setprod_closed";
 
-
 Goal "[| H <| G; H1 \\<in> {*H*} |] ==> I(H1) \\<in> {*H*}";
 by (auto_tac (claset(), 
               simpset() addsimps [normal_imp_subgroup RS subgroup_imp_subset, 
@@ -311,6 +313,32 @@ by (simp_tac (simpset() addsimps [setrcos_eq]) 1);
 by (blast_tac (claset() delrules [equalityI]
           addSIs [subgroup_e_closed, e_closed, coset_join2 RS sym]) 1);
 qed "setrcos_unit_closed";
+
+Goal "[|H <| G; M \\<in> {*H*}|] ==> I M <#> M = H";
+by (asm_full_simp_tac (simpset() addsimps [setrcos_eq]) 1); 
+by (Clarify_tac 1); 
+by (asm_simp_tac 
+    (simpset() addsimps [rcos_inv, rcos_prod, normal_imp_subgroup, 
+                         subgroup_imp_subset, coset_mul_e]) 1); 
+qed "setrcos_inv_prod_eq";
+
+(*generalizes subgroup_prod_id*)
+Goal "[|H <| G; M \\<in> {*H*}|] ==> H <#> M = M";
+by (asm_full_simp_tac (simpset() addsimps [setrcos_eq]) 1); 
+by (Clarify_tac 1); 
+by (asm_simp_tac 
+    (simpset() addsimps [normal_imp_subgroup, subgroup_imp_subset, 
+                         setprod_rcos_assoc, subgroup_prod_id]) 1); 
+qed "setrcos_prod_eq";
+
+Goal "[|H <| G; M1 \\<in> {*H*}; M2 \\<in> {*H*}; M3 \\<in> {*H*}|]  \
+\     ==> M1 <#> M2 <#> M3 = M1 <#> (M2 <#> M3)";
+by (asm_full_simp_tac (simpset() addsimps [setrcos_eq]) 1); 
+by (Clarify_tac 1); 
+by (asm_simp_tac 
+    (simpset() addsimps [rcos_prod, normal_imp_subgroup, 
+                         subgroup_imp_subset, binop_assoc]) 1); 
+qed "setrcos_prod_assoc";
 
 
 (**** back to Sylow again, i.e. direction Lagrange ****)

@@ -4,6 +4,11 @@
     Copyright   1998-2001  University of Cambridge
 
 Sylow's theorem using locales (combinatorial argument in Exponent.thy)
+
+See Florian Kamm\"uller and L. C. Paulson,
+    A Formal Proof of Sylow's theorem:
+	An Experiment in Abstract Algebra with Isabelle HOL
+    J. Automated Reasoning 23 (1999), 235-264
 *)
 
 Sylow =  Coset +

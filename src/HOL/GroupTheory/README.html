@@ -1,0 +1,48 @@
+<!-- $Id$ -->
+<HTML><HEAD><TITLE>HOL/UNITY/README</TITLE></HEAD><BODY>
+
+<H2>GroupTheory -- Group Theory using Locales, including Sylow's Theorem</H2>
+
+<P>This directory presents proofs about group theory, by
+Florian Kammüller.  (Later, Larry Paulson simplified some of the proofs.)
+These theories use locales and were indeed the original motivation for
+locales.  However, this treatment of groups must still be regarded as
+experimental.  We can expect to see refinements in the future.
+
+Here is an outline of the directory's contents:
+
+<UL> 
+<LI>Theory <A HREF="Bij.thy"><CODE>Bij</CODE></A>
+defines bijections over sets and operations on them and shows that they
+are a group.
+
+<LI>Theory <A HREF="DirProd.thy"><CODE>DirProd</CODE></A>
+defines the product of two groups and proves that it is a group again.
+
+<LI>Theory <A HREF="FactGroup.thy"><CODE>FactGroup</CODE></A>
+defines the factorization of a group and shows that the factorization a
+normal subgroup is a group.
+
+<LI>Theory <A HREF="Homomorphism.thy"><CODE>Homomorphism</CODE></A>
+defines homomorphims and automorphisms for groups and rings and shows that
+ring automorphisms are a group by using the previous result for
+bijections.
+
+<LI>Theory <A HREF="Ring.thy"><CODE>Ring</CODE></A>
+and <A HREF="RingConstr.thy"><CODE>RingConstr</CODE></A>
+defines rings, proves a few basic theorems and constructs a lambda
+function to extract the group that is part of the ring showing that it is
+an abelian group. 
+
+<LI>Theory <A HREF="Sylow.thy"><CODE>Sylow</CODE></A>
+contains a proof of the first Sylow theorem.
+
+</UL>
+
+<HR>
+<P>Last modified on $Date$
+
+<ADDRESS>
+<A NAME="lcp@cl.cam.ac.uk" HREF="mailto:lcp@cl.cam.ac.uk">lcp@cl.cam.ac.uk</A>
+</ADDRESS>
+</BODY></HTML>

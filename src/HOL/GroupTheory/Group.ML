@@ -204,4 +204,20 @@ qed "Abel_subset_Group";
 
 val Abel_imp_Group = Abel_subset_Group RS subsetD;
 
+Delsimps [simp_G, Group_G];
 Close_locale "group";
+
+Goal "G \\<in> Group ==> (| carrier = G .<cr>, bin_op = G .<f>, inverse = G .<inv>,\
+\                unit = G .<e> |) \\<in> Group";
+by (blast_tac
+    (claset() addIs [GroupI, export binop_funcset, export inv_funcset, export e_closed, export inv_ax2, export e_ax1, export binop_assoc]) 1); 
+qed "Group_Group";
+
+Goal "G \\<in> AbelianGroup \
+\     ==> (| carrier = G .<cr>, bin_op = G .<f>, inverse = G .<inv>,\
+\            unit = G .<e> |) \\<in> AbelianGroup";
+by (asm_full_simp_tac (simpset() addsimps [AbelianGroup_def]) 1);
+by (rtac Group_Group 1);  
+by Auto_tac; 
+qed "Abel_Abel";
+
