@@ -127,6 +127,9 @@ recdef) support case names and properly name parameters;
 * HOL: removed 'case_split' thm binding, should use 'cases' proof
 method anyway;
 
+* HOL/Calculation: new rules for substitution in inequalities
+(monotonicity conditions are extracted to be proven terminally);
+
 * names of theorems etc. may be natural numbers as well;
 
 * Provers: intro/elim/dest attributes: changed ! / !! flags to ? / ??;
