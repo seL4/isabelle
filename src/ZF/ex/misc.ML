@@ -91,10 +91,10 @@ val comp_homs = result();
 
 (** A characterization of functions, suggested by Tobias Nipkow **)
 
-goalw ZF.thy [Pi_def]
+goalw ZF.thy [Pi_def, function_def]
     "r: domain(r)->B  <->  r <= domain(r)*B & (ALL X. r `` (r -`` X) <= X)";
 by (safe_tac ZF_cs);
-by (fast_tac (ZF_cs addSDs [bspec RS ex1_equalsE]) 1);
+by (fast_tac ZF_cs 1);
 by (eres_inst_tac [("x", "{y}")] allE 1);
 by (fast_tac ZF_cs 1);
 result();
@@ -175,29 +175,14 @@ val pastre6 = result();
 
 (** Yet another example... **)
 
-goalw (merge_theories(Sum.thy,Perm.thy)) [bij_def,inj_def,surj_def]
+goal (merge_theories(Sum.thy,Perm.thy))
     "(lam Z:Pow(A+B). <{x:A. Inl(x):Z}, {y:B. Inr(y):Z}>) \
 \    : bij(Pow(A+B), Pow(A)*Pow(B))";
-by (DO_GOAL
-      [rtac IntI,
-       DO_GOAL
-	 [rtac CollectI,
-	  fast_tac (ZF_cs addSIs [lam_type]),
-	  simp_tac ZF_ss,
-	  fast_tac (eq_cs addSEs [sumE]
-			  addEs  [equalityD1 RS subsetD RS CollectD2,
-				  equalityD2 RS subsetD RS CollectD2])],
-       DO_GOAL
-	 [rtac CollectI,
-	  fast_tac (ZF_cs addSIs [lam_type]),
-	  simp_tac ZF_ss,
-	  K(safe_tac ZF_cs),
-	  res_inst_tac [("x", "{Inl(u). u: ?U} Un {Inr(v). v: ?V}")] bexI,
-	  DO_GOAL
-	    [res_inst_tac [("t", "Pair")] subst_context2,
-	    fast_tac (sum_cs addSIs [equalityI]),
-	    fast_tac (sum_cs addSIs [equalityI])],
-	  DO_GOAL [fast_tac sum_cs]]] 1);
+by (res_inst_tac [("d", "split(%X Y.{Inl(x).x:X} Un {Inr(y).y:Y})")] 
+    lam_bijective 1);
+by (TRYALL (etac SigmaE));
+by (ALLGOALS (asm_simp_tac ZF_ss));
+by (ALLGOALS (fast_tac (sum_cs addSIs [equalityI])));
 val Pow_bij = result();
 
 writeln"Reached end of file.";
