@@ -727,7 +727,7 @@ simpset_ref() := simpset() setmksimps (mksimps mksimps_pairs);
 Addsimps[subset_UNIV, subset_refl];
 
 
-(*** < ***)
+(*** The 'proper subset' relation (<) ***)
 
 Goalw [psubset_def] "!!A::'a set. [| A <= B; A ~= B |] ==> A<B";
 by (Blast_tac 1);
@@ -749,6 +749,10 @@ qed "psubset_subset_trans";
 Goal"[| (A::'a set) <= B; B < C|] ==> A < C";
 by (auto_tac (claset(), simpset() addsimps [psubset_eq]));
 qed "subset_psubset_trans";
+
+Goalw [psubset_def] "A < B ==> EX b. b : (B - A)";
+by (Blast_tac 1);
+qed "psubset_imp_ex_mem";
 
 
 (* attributes *)
