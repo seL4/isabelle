@@ -18,8 +18,6 @@ AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];
 
-AddIffs [Spy_in_bad];
-
 (*For other theories, e.g. Mutex and Lift, using AddIffs slows proofs down.
   Here, it facilitates re-use of the Auth proofs.*)
 
@@ -118,26 +116,23 @@ val nonce_NS1_NS2_E = impOfAlways no_nonce_NS1_NS2 RSN (2, rev_notE);
 
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
-Goal
- "Nprg \
-\  : Always {s. Nonce NA ~: analz (spies s)  --> \
-\               (EX A' B'. ALL A B. \
-     \            Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies s) --> \
-\                   A=A' & B=B')}";
+Goal "Nprg \
+\  : Always {s. Nonce NA ~: analz (spies s) --> \
+\               Crypt(pubK B) {|Nonce NA, Agent A|} : parts(spies s) --> \
+\               Crypt(pubK B') {|Nonce NA, Agent A'|} : parts(spies s) --> \
+\               A=A' & B=B'}";
 by (ns_induct_tac 1);
-by (ALLGOALS (simp_tac (simpset() addsimps [all_conj_distrib])));
-(*NS1*)
-by (expand_case_tac "NA = ?y" 2 THEN Blast_tac 2);
-(*Fake*)
-by (Blast_tac 1);
-val lemma = result();
+by Auto_tac;  
+(*Fake, NS1 are non-trivial*)
+val unique_NA_lemma = result();
 
+(*Unicity for NS1: nonce NA identifies agents A and B*)
 Goal "[| Crypt(pubK B)  {|Nonce NA, Agent A|}  : parts(spies s); \
 \        Crypt(pubK B') {|Nonce NA, Agent A'|} : parts(spies s); \
 \        Nonce NA ~: analz (spies s);                            \
 \        s : reachable Nprg |]                                   \
 \     ==> A=A' & B=B'";
-by (prove_unique_tac (impOfAlways lemma) 1);
+by (blast_tac (claset() addDs [impOfAlways unique_NA_lemma]) 1); 
 qed "unique_NA";
 
 
@@ -197,23 +192,20 @@ qed "B_trusts_NS1";
 Goal
  "Nprg \
 \  : Always {s. Nonce NB ~: analz (spies s)  --> \
-\               (EX A' NA'. ALL A NA. \
-\                 Crypt (pubK A) {|Nonce NA, Nonce NB|} : parts (spies s)  \
-\                    -->  A=A' & NA=NA')}";
+\               Crypt (pubK A) {|Nonce NA, Nonce NB|} : parts (spies s) -->  \
+\               Crypt(pubK A'){|Nonce NA', Nonce NB|} : parts(spies s) -->  \
+\               A=A' & NA=NA'}";
 by (ns_induct_tac 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-(*NS2*)
-by (expand_case_tac "NB = ?y" 2 THEN Blast_tac 2);
-(*Fake*)
-by (Blast_tac 1);
-val lemma = result();
+by Auto_tac;  
+(*Fake, NS2 are non-trivial*)
+val unique_NB_lemma = result();
 
 Goal "[| Crypt(pubK A) {|Nonce NA, Nonce NB|}  : parts(spies s); \
 \        Crypt(pubK A'){|Nonce NA', Nonce NB|} : parts(spies s); \
 \        Nonce NB ~: analz (spies s);                            \
 \        s : reachable Nprg |]                                        \
 \     ==> A=A' & NA=NA'";
-by (prove_unique_tac (impOfAlways lemma) 1);
+by (blast_tac (claset() addDs [impOfAlways unique_NB_lemma]) 1); 
 qed "unique_NB";
 
 
