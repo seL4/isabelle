@@ -10,7 +10,7 @@ book~\cite{andrews86} is a full description of the original
 Church-style higher-order logic.  Experience with the {\sc hol} system
 has demonstrated that higher-order logic is widely applicable in many
 areas of mathematics and computer science, not just hardware
-verification, {\sc hol}'s original \textit{raison d'\^etre\/}.  It is
+verification, {\sc hol}'s original \textit{raison d'{\^e}tre\/}.  It is
 weaker than {\ZF} set theory but for most applications this does not
 matter.  If you prefer {\ML} to Lisp, you will probably prefer \HOL\ 
 to~{\ZF}.
@@ -46,7 +46,7 @@ system.  Beginners should work with \texttt{show_types} (or even
 \begin{constants}
   \it name      &\it meta-type  & \it description \\
   \cdx{Trueprop}& $bool\To prop$                & coercion to $prop$\\
-  \cdx{Not}     & $bool\To bool$                & negation ($\neg$) \\
+  \cdx{Not}     & $bool\To bool$                & negation ($\lnot$) \\
   \cdx{True}    & $bool$                        & tautology ($\top$) \\
   \cdx{False}   & $bool$                        & absurdity ($\bot$) \\
   \cdx{If}      & $[bool,\alpha,\alpha]\To\alpha$ & conditional \\
@@ -132,13 +132,13 @@ system.  Beginners should work with \texttt{show_types} (or even
 Figure~\ref{hol-constants} lists the constants (including infixes and
 binders), while Fig.\ts\ref{hol-grammar} presents the grammar of
 higher-order logic.  Note that $a$\verb|~=|$b$ is translated to
-$\neg(a=b)$.
+$\lnot(a=b)$.
 
 \begin{warn}
   \HOL\ has no if-and-only-if connective; logical equivalence is expressed
   using equality.  But equality has a high priority, as befitting a
   relation, while if-and-only-if typically has the lowest priority.  Thus,
-  $\neg\neg P=P$ abbreviates $\neg\neg (P=P)$ and not $(\neg\neg P)=P$.
+  $\lnot\lnot P=P$ abbreviates $\lnot\lnot (P=P)$ and not $(\lnot\lnot P)=P$.
   When using $=$ to mean logical equivalence, enclose both operands in
   parentheses.
 \end{warn}
@@ -157,14 +157,14 @@ function types, is overloaded with arity {\tt(term,\thinspace
 functions.
 
 \HOL\ offers various methods for introducing new types.
-See~\S\ref{sec:HOL:Types} and~\S\ref{sec:HOL:datatype}.
+See~{\S}\ref{sec:HOL:Types} and~{\S}\ref{sec:HOL:datatype}.
 
 Theory \thydx{Ord} defines the syntactic class \cldx{ord} of order
 signatures; the relations $<$ and $\leq$ are polymorphic over this
 class, as are the functions \cdx{mono}, \cdx{min} and \cdx{max}, and
 the \cdx{LEAST} operator. \thydx{Ord} also defines a subclass
 \cldx{order} of \cldx{ord} which axiomatizes partially ordered types
-(w.r.t.\ $\le$).
+(w.r.t.\ $\leq$).
 
 Three other syntactic type classes --- \cldx{plus}, \cldx{minus} and
 \cldx{times} --- permit overloading of the operators {\tt+},\index{*"+
@@ -175,10 +175,10 @@ on natural numbers.
 If you state a goal containing overloaded functions, you may need to include
 type constraints.  Type inference may otherwise make the goal more
 polymorphic than you intended, with confusing results.  For example, the
-variables $i$, $j$ and $k$ in the goal $i \le j \Imp i \le j+k$ have type
+variables $i$, $j$ and $k$ in the goal $i \leq j \Imp i \leq j+k$ have type
 $\alpha::\{ord,plus\}$, although you may have expected them to have some
 numeric type, e.g. $nat$.  Instead you should have stated the goal as
-$(i::nat) \le j \Imp i \le j+k$, which causes all three variables to have
+$(i::nat) \leq j \Imp i \leq j+k$, which causes all three variables to have
 type $nat$.
 
 \begin{warn}
@@ -231,12 +231,12 @@ then~{\tt!}\ and~{\tt?}\ are displayed.
 
 If $\tau$ is a type of class \cldx{ord}, $P$ a formula and $x$ a
 variable of type $\tau$, then the term \cdx{LEAST}~$x. P[x]$ is defined
-to be the least (w.r.t.\ $\le$) $x$ such that $P~x$ holds (see
+to be the least (w.r.t.\ $\leq$) $x$ such that $P~x$ holds (see
 Fig.~\ref{hol-defs}).  The definition uses Hilbert's $\varepsilon$
 choice operator, so \texttt{Least} is always meaningful, but may yield
 nothing useful in case there is not a unique least element satisfying
 $P$.\footnote{Class $ord$ does not require much of its instances, so
-  $\le$ need not be a well-ordering, not even an order at all!}
+  $\leq$ need not be a well-ordering, not even an order at all!}
 
 \medskip All these binders have priority 10.
 
@@ -260,7 +260,7 @@ and \sdx{of} are reserved words.  Initially, this is mere syntax and has no
 logical meaning.  By declaring translations, you can cause instances of the
 \texttt{case} construct to denote applications of particular case operators.
 This is what happens automatically for each \texttt{datatype} definition
-(see~\S\ref{sec:HOL:datatype}).
+(see~{\S}\ref{sec:HOL:datatype}).
 
 \begin{warn}
 Both \texttt{if} and \texttt{case} constructs have as low a priority as
@@ -335,7 +335,7 @@ meta-equality~({\tt==}) for definitions.
 The definitions above should never be expanded and are shown for completeness
 only.  Instead users should reason in terms of the derived rules shown below
 or, better still, using high-level tactics
-(see~\S\ref{sec:HOL:generic-packages}).
+(see~{\S}\ref{sec:HOL:generic-packages}).
 \end{warn}
 
 Some of the rules mention type variables; for example, \texttt{refl}
@@ -441,7 +441,14 @@ The following simple tactics are occasionally useful:
   from subgoal $i$.
 \item[\ttindexbold{case_tac} {\tt"}$P${\tt"} $i$] performs case distinction
   on $P$ for subgoal $i$: the latter is replaced by two identical subgoals
-  with the added assumptions $P$ and $\neg P$, respectively.
+  with the added assumptions $P$ and $\lnot P$, respectively.
+\item[\ttindexbold{smp_tac} $j$ $i$] applies $j$ times \texttt{spec} and then
+  \texttt{mp} in subgoal $i$, which is typically useful when forward-chaining 
+  from an induction hypothesis. As a generalization of \texttt{mp_tac}, 
+  if there are assumptions $\forall \vec{x}. P \vec{x} \imp Q \vec{x}$ and 
+  $P \vec{a}$, ($\vec{x}$ being a vector of $j$ variables)
+  then it replaces the universally quantified implication by $Q \vec{a}$. 
+  It may instantiate unknowns. It fails if it can do nothing.
 \end{ttdescription}
 
 
@@ -592,7 +599,7 @@ translations.  Figure~\ref{hol-set-syntax2} presents the grammar of the new
 constructs.  Infix operators include union and intersection ($A\un B$
 and $A\int B$), the subset and membership relations, and the image
 operator~{\tt``}\@.  Note that $a$\verb|~:|$b$ is translated to
-$\neg(a\in b)$.  
+$\lnot(a\in b)$.  
 
 The $\{a@1,\ldots\}$ notation abbreviates finite sets constructed in
 the obvious manner using~\texttt{insert} and~$\{\}$:
@@ -955,7 +962,7 @@ then\dots else\dots} often require a case distinction on $b$. This is
 expressed by the theorem \tdx{split_if}:
 $$
 \Var{P}(\mbox{\tt if}~\Var{b}~{\tt then}~\Var{x}~\mbox{\tt else}~\Var{y})~=~
-((\Var{b} \to \Var{P}(\Var{x})) \land (\neg \Var{b} \to \Var{P}(\Var{y})))
+((\Var{b} \to \Var{P}(\Var{x})) \land (\lnot \Var{b} \to \Var{P}(\Var{y})))
 \eqno{(*)}
 $$
 For example, a simple instance of $(*)$ is
@@ -992,8 +999,8 @@ In general, \texttt{addsplits} accepts rules of the form
 where $c$ is a constant and $rhs$ is arbitrary. Note that $(*)$ is of the
 right form because internally the left-hand side is
 $\Var{P}(\mathtt{If}~\Var{b}~\Var{x}~~\Var{y})$. Important further examples
-are splitting rules for \texttt{case} expressions (see~\S\ref{subsec:list}
-and~\S\ref{subsec:datatype:basics}).
+are splitting rules for \texttt{case} expressions (see~{\S}\ref{subsec:list}
+and~{\S}\ref{subsec:datatype:basics}).
 
 Analogous to \texttt{Addsimps} and \texttt{Delsimps}, there are also
 imperative versions of \texttt{addsplits} and \texttt{delsplits}
@@ -1117,7 +1124,7 @@ This section describes \HOL's basic predefined types ($\alpha \times
 \beta$, $\alpha + \beta$, $nat$ and $\alpha \; list$) and ways for
 introducing new types in general.  The most important type
 construction, the \texttt{datatype}, is treated separately in
-\S\ref{sec:HOL:datatype}.
+{\S}\ref{sec:HOL:datatype}.
 
 
 \subsection{Product and sum types}\index{*"* type}\index{*"+ type}
@@ -1225,7 +1232,7 @@ The definition of products and sums in terms of existing types is not
 shown.  The constructions are fairly standard and can be found in the
 respective theory files. Although the sum and product types are
 constructed manually for foundational reasons, they are represented as
-actual datatypes later (see \S\ref{subsec:datatype:rep_datatype}).
+actual datatypes later (see {\S}\ref{subsec:datatype:rep_datatype}).
 Therefore, the theory \texttt{Datatype} should be used instead of
 \texttt{Sum} or \texttt{Prod}.
 
@@ -1335,7 +1342,7 @@ recursion equations for the operators \texttt{+}, \texttt{-} and \texttt{*} on
 \texttt{nat} are part of the default simpset.
 
 Functions on \tydx{nat} can be defined by primitive or well-founded recursion;
-see \S\ref{sec:HOL:recursive}.  A simple example is addition.
+see {\S}\ref{sec:HOL:recursive}.  A simple example is addition.
 Here, \texttt{op +} is the name of the infix operator~\texttt{+}, following
 the standard convention.
 \begin{ttbox}
@@ -1352,7 +1359,7 @@ Note that Isabelle insists on precisely this format; you may not even change
 the order of the two cases.
 Both \texttt{primrec} and \texttt{case} are realized by a recursion operator
 \cdx{nat_rec}, which is available because \textit{nat} is represented as
-a datatype (see \S\ref{subsec:datatype:rep_datatype}).
+a datatype (see {\S}\ref{subsec:datatype:rep_datatype}).
 
 %The predecessor relation, \cdx{pred_nat}, is shown to be well-founded.
 %Recursion along this relation resembles primitive recursion, but is
@@ -1513,7 +1520,7 @@ lists.  A \sdx{case} construct of the form
 \begin{center}\tt
 case $e$ of [] => $a$  |  \(x\)\#\(xs\) => b
 \end{center}
-is defined by translation.  For details see~\S\ref{sec:HOL:datatype}. There
+is defined by translation.  For details see~{\S}\ref{sec:HOL:datatype}. There
 is also a case splitting rule \tdx{split_list_case}
 \[
 \begin{array}{l}
@@ -1524,10 +1531,10 @@ P(\mathtt{case}~e~\mathtt{of}~\texttt{[] =>}~a ~\texttt{|}~
 \end{array}
 \]
 which can be fed to \ttindex{addsplits} just like
-\texttt{split_if} (see~\S\ref{subsec:HOL:case:splitting}).
+\texttt{split_if} (see~{\S}\ref{subsec:HOL:case:splitting}).
 
 \texttt{List} provides a basic library of list processing functions defined by
-primitive recursion (see~\S\ref{sec:HOL:primrec}).  The recursion equations
+primitive recursion (see~{\S}\ref{sec:HOL:primrec}).  The recursion equations
 are shown in Fig.\ts\ref{fig:HOL:list-simps}.
 
 \index{list@{\textit{list}} type|)}
@@ -1543,7 +1550,7 @@ syntactic abbreviations that have no logical meaning.
 
 \begin{warn}
   Types in \HOL\ must be non-empty; otherwise the quantifier rules would be
-  unsound, because $\exists x. x=x$ is a theorem \cite[\S7]{paulson-COLOG}.
+  unsound, because $\exists x. x=x$ is a theorem \cite[{\S}7]{paulson-COLOG}.
 \end{warn}
 A \bfindex{type definition} identifies the new type with a subset of
 an existing type.  More precisely, the new type is defined by
@@ -1699,11 +1706,11 @@ language like HOL feasible:
 
 In Isabelle/HOL record types have to be defined explicitly, fixing their field
 names and types, and their (optional) parent record (see
-\S\ref{sec:HOL:record-def}).  Afterwards, records may be formed using above
+{\S}\ref{sec:HOL:record-def}).  Afterwards, records may be formed using above
 syntax, while obeying the canonical order of fields as given by their
 declaration.  The record package also provides several operations like
-selectors and updates (see \S\ref{sec:HOL:record-ops}), together with
-characteristic properties (see \S\ref{sec:HOL:record-thms}).
+selectors and updates (see {\S}\ref{sec:HOL:record-ops}), together with
+characteristic properties (see {\S}\ref{sec:HOL:record-thms}).
 
 There is an example theory demonstrating most basic aspects of extensible
 records (see theory \texttt{HOL/ex/Points} in the Isabelle sources).
@@ -1891,7 +1898,7 @@ stroke of \texttt{Auto_tac} or \texttt{Force_tac}.  Most of the time, plain
 
 Inductive datatypes, similar to those of \ML, frequently appear in
 applications of Isabelle/HOL.  In principle, such types could be defined by
-hand via \texttt{typedef} (see \S\ref{sec:typedef}), but this would be far too
+hand via \texttt{typedef} (see {\S}\ref{sec:typedef}), but this would be far too
 tedious.  The \ttindex{datatype} definition package of Isabelle/HOL (cf.\ 
 \cite{Berghofer-Wenzel:1999:TPHOL}) automates such chores.  It generates an
 appropriate \texttt{typedef} based on a least fixed-point construction, and
@@ -1931,7 +1938,7 @@ newly defined type constructors $t@1,\ldots,t@n$, or
 \item $\tau = (\tau'@1,\ldots,\tau'@{h'})t'$, where $t'$ is
 the type constructor of an already existing datatype and $\tau'@1,\ldots,\tau'@{h'}$
 are admissible types.
-\item $\tau = \sigma \rightarrow \tau'$, where $\tau'$ is an admissible
+\item $\tau = \sigma \to \tau'$, where $\tau'$ is an admissible
 type and $\sigma$ is non-recursive (i.e. the occurrences of the newly defined
 types are {\em strictly positive})
 \end{itemize}
@@ -1972,7 +1979,7 @@ datatype 'a tree = Atom 'a | Branch "nat => 'a tree"
 \medskip
 
 Types in HOL must be non-empty. Each of the new datatypes
-$(\alpha@1,\ldots,\alpha@h)t@j$ with $1 \le j \le n$ is non-empty iff it has a
+$(\alpha@1,\ldots,\alpha@h)t@j$ with $1 \leq j \leq n$ is non-empty iff it has a
 constructor $C^j@i$ with the following property: for all argument types
 $\tau^j@{i,i'}$ of the form $(\alpha@1,\ldots,\alpha@h)t@{j'}$ the datatype
 $(\alpha@1,\ldots,\alpha@h)t@{j'}$ is non-empty.
@@ -2014,7 +2021,7 @@ of the default simpset, may be referred to by the ML identifier
 The datatype package also provides structural induction rules.  For
 datatypes without nested recursion, this is of the following form:
 \[
-\infer{P@1~x@1 \wedge \dots \wedge P@n~x@n}
+\infer{P@1~x@1 \land \dots \land P@n~x@n}
   {\begin{array}{lcl}
      \Forall x@1 \dots x@{m^1@1}.
        \List{P@{s^1@{1,1}}~x@{r^1@{1,1}}; \dots;
@@ -2044,7 +2051,7 @@ Rec^j@i & := &
    \left\{\left(r^j@{i,1},s^j@{i,1}\right),\ldots,
      \left(r^j@{i,l^j@i},s^j@{i,l^j@i}\right)\right\} = \\[2ex]
 && \left\{(i',i'')~\left|~
-     1\leq i' \leq m^j@i \wedge 1 \leq i'' \leq n \wedge
+     1\leq i' \leq m^j@i \land 1 \leq i'' \leq n \land
        \tau^j@{i,i'} = (\alpha@1,\ldots,\alpha@h)t@{i''}\right.\right\}
 \end{array}
 \]
@@ -2070,7 +2077,7 @@ the original (isomorphic) type \texttt{(('a, 'b) term) list} and its existing
 constructors \texttt{Nil} and \texttt{Cons}. Thus, the structural induction rule for
 \texttt{term} gets the form
 \[
-\infer{P@1~x@1 \wedge P@2~x@2}
+\infer{P@1~x@1 \land P@2~x@2}
   {\begin{array}{l}
      \Forall x.~P@1~(\mathtt{Var}~x) \\
      \Forall x@1~x@2.~P@2~x@2 \Imp P@1~(\mathtt{App}~x@1~x@2) \\
@@ -2105,7 +2112,7 @@ The type comes with an \ML-like \texttt{case}-construct:
 \end{array}
 \]
 where the $x@{i,j}$ are either identifiers or nested tuple patterns as in
-\S\ref{subsec:prod-sum}.
+{\S}\ref{subsec:prod-sum}.
 \begin{warn}
   All constructors must be present, their order is fixed, and nested patterns
   are not supported (with the exception of tuples).  Violating this
@@ -2126,7 +2133,7 @@ P(t@j_\mathtt{case}~f@1~\dots~f@{k@j}~e) &\!\!\!=&
 \]
 where $t@j$\texttt{_case} is the internal name of the \texttt{case}-construct.
 This theorem can be added to a simpset via \ttindex{addsplits}
-(see~\S\ref{subsec:HOL:case:splitting}).
+(see~{\S}\ref{subsec:HOL:case:splitting}).
 
 \subsubsection{The function \cdx{size}}\label{sec:HOL:size}
 
@@ -2456,7 +2463,7 @@ by (ALLGOALS Asm\_simp\_tac);
 \subsubsection{Example: Evaluation of expressions}
 Using mutual primitive recursion, we can define evaluation functions \texttt{evala}
 and \texttt{eval_bexp} for the datatypes of arithmetic and boolean expressions mentioned in
-\S\ref{subsec:datatype:basics}:
+{\S}\ref{subsec:datatype:basics}:
 \begin{ttbox}
 consts
   evala :: "['a => nat, 'a aexp] => nat"
@@ -2516,7 +2523,7 @@ by (ALLGOALS Asm_full_simp_tac);
 
 \subsubsection{Example: A substitution function for terms}
 Functions on datatypes with nested recursion, such as the type
-\texttt{term} mentioned in \S\ref{subsec:datatype:basics}, are
+\texttt{term} mentioned in {\S}\ref{subsec:datatype:basics}, are
 also defined by mutual primitive recursion. A substitution
 function \texttt{subst_term} on type \texttt{term}, similar to the functions
 \texttt{substa} and \texttt{substb} described above, can
@@ -2536,7 +2543,7 @@ primrec
      subst_term f t # subst_term_list f ts"
 \end{ttbox}
 The recursion scheme follows the structure of the unfolded definition of type
-\texttt{term} shown in \S\ref{subsec:datatype:basics}. To prove properties of
+\texttt{term} shown in {\S}\ref{subsec:datatype:basics}. To prove properties of
 this substitution function, mutual induction is needed:
 \begin{ttbox}
 Goal
@@ -2625,7 +2632,7 @@ well-founded.  Here are those operators, in order of importance:
   Typically, $f$ takes the recursive function's arguments (as a tuple) and
   returns a result expressed in terms of the function \texttt{size}.  It is
   called a \textbf{measure function}.  Recall that \texttt{size} is overloaded
-  and is defined on all datatypes (see \S\ref{sec:HOL:size}).
+  and is defined on all datatypes (see {\S}\ref{sec:HOL:size}).
                                                     
 \item $\mathop{\mathtt{inv_image}} f\;R$ is a generalisation of
   \texttt{measure}.  It specifies a relation such that $x\prec y$ iff $f(x)$
@@ -2989,7 +2996,7 @@ Directory \texttt{HOL/ex} contains other examples and experimental proofs in
   procedure.  These are mostly taken from Pelletier \cite{pelletier86}.
 
 \item File \texttt{set.ML} proves Cantor's Theorem, which is presented in
-  \S\ref{sec:hol-cantor} below, and the Schr\"oder-Bernstein Theorem.
+  {\S}\ref{sec:hol-cantor} below, and the Schr{\"o}der-Bernstein Theorem.
 
 \item Theory \texttt{MT} contains Jacob Frost's formalization~\cite{frost93} of
   Milner and Tofte's coinduction example~\cite{milner-coind}.  This

@@ -424,8 +424,21 @@ fun stac th =
   in  CHANGED_GOAL (rtac (th' RS ssubst))
   end;
 
-fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
+(* combination of (spec RS spec RS ...(j times) ... spec RS mp *) 
+local
+  fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
+  |   wrong_prem (Bound _) = true
+  |   wrong_prem _ = false;
+  fun wrong (Const ("==>", _) $ (Const ("Trueprop", _) $ t) $ _) = wrong_prem t
+  |   wrong _ = true;
+  val filter_right = filter (fn t => not (wrong (#prop (rep_thm t))));
+in
+  fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp]);
+  fun smp_tac j = EVERY'[dresolve_tac (smp j), atac]
+end;
 
+
+fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
 
 (** strip ! and --> from proved goal while preserving !-bound var names **)
 
