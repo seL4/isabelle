@@ -232,7 +232,7 @@ qed "less_linear";
 
 Goal "!!m::nat. (m ~= n) = (m<n | n<m)";
 by (cut_facts_tac [less_linear] 1);
-by (blast_tac (claset() addSEs [less_irrefl]) 1);
+by (Blast_tac 1);
 qed "nat_neq_iff";
 
 qed_goal "nat_less_cases" thy 
@@ -307,12 +307,13 @@ qed "less_induct";
 
 (*** Properties of <= ***)
 
-Goalw [le_def] "(m <= n) = (m < Suc n)";
-by (rtac not_less_eq 1);
-qed "le_eq_less_Suc";
+(*Was le_eq_less_Suc, but this orientation is more useful*)
+Goalw [le_def] "(m < Suc n) = (m <= n)";
+by (rtac (not_less_eq RS sym) 1);
+qed "less_Suc_eq_le";
 
 (*  m<=n ==> m < Suc n  *)
-bind_thm ("le_imp_less_Suc", le_eq_less_Suc RS iffD1);
+bind_thm ("le_imp_less_Suc", less_Suc_eq_le RS iffD2);
 
 Goalw [le_def] "0 <= n";
 by (rtac not_less0 1);
@@ -333,22 +334,12 @@ Addsimps [(*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
           n_not_Suc_n, Suc_n_not_n];
 
 Goal "(m <= Suc(n)) = (m<=n | m = Suc n)";
-by (simp_tac (simpset() addsimps [le_eq_less_Suc]) 1);
-by (blast_tac (claset() addSEs [less_SucE] addIs [less_SucI]) 1);
+by (simp_tac (simpset() delsimps [less_Suc_eq_le]
+			addsimps [less_Suc_eq_le RS sym, less_Suc_eq]) 1);
 qed "le_Suc_eq";
 
 (* [| m <= Suc n;  m <= n ==> R;  m = Suc n ==> R |] ==> R *)
 bind_thm ("le_SucE", le_Suc_eq RS iffD1 RS disjE);
-
-(*
-Goal "(Suc m < n | Suc m = n) = (m < n)";
-by (stac (less_Suc_eq RS sym) 1);
-by (rtac Suc_less_eq 1);
-qed "Suc_le_eq";
-
-this could make the simpset (with less_Suc_eq added again) more confluent,
-but less_Suc_eq makes additional problems with terms of the form 0 < Suc (...)
-*)
 
 Goalw [le_def] "~n<m ==> m<=(n::nat)";
 by (assume_tac 1);
@@ -391,6 +382,10 @@ qed "Suc_le_lessD";
 Goal "(Suc m <= n) = (m < n)";
 by (blast_tac (claset() addIs [Suc_leI, Suc_le_lessD]) 1);
 qed "Suc_le_eq";
+
+(*For instance, (Suc m < Suc n)  =   (Suc m <= n)  =  (m<n) *)
+val le_simps = [less_Suc_eq_le, Suc_le_eq];
+
 
 Goalw [le_def] "m <= n ==> m <= Suc n";
 by (blast_tac (claset() addDs [Suc_lessD]) 1);
@@ -455,12 +450,12 @@ by (blast_tac (claset() addSDs [le_imp_less_or_eq]
 qed "le_anti_sym";
 
 Goal "(Suc(n) <= Suc(m)) = (n <= m)";
-by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (simp_tac (simpset() addsimps le_simps) 1);
 qed "Suc_le_mono";
 
 AddIffs [Suc_le_mono];
 
-(* Axiom 'order_le_less' of class 'order': *)
+(* Axiom 'order_less_le' of class 'order': *)
 Goal "(m::nat) < n = (m <= n & m ~= n)";
 by (simp_tac (simpset() addsimps [le_def, nat_neq_iff]) 1);
 by (blast_tac (claset() addSEs [less_asym]) 1);
@@ -583,7 +578,7 @@ val eqI = prove_goal thy "!!m. [| m < Suc n; n < Suc m |] ==> m=n"
             blast_tac (claset() addSDs [Suc_less_SucD] addSEs [less_irrefl]
                               addDs [less_trans_Suc]) 1,
             assume_tac 1]);
-val leD = le_eq_less_Suc RS iffD1;
+val leD = le_imp_less_Suc;
 val not_lessD = nat_leI RS leD;
 val not_leD = not_leE
 val eqD1 = prove_goal thy  "!!n. m = n ==> m < Suc n"
