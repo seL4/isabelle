@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Formal comments.
+Internal markup of formal comments -- mostly dummy.
 *)
 
 signature COMMENT =
@@ -19,12 +19,13 @@ sig
   val default_interest: interest
   val ignore_interest: 'a * interest -> 'a
   val ignore_interest': interest * 'a -> 'a
+  exception OUTPUT_FAIL of (string * Position.T) * exn
 end;
 
 structure Comment: COMMENT =
 struct
 
-(** text **)
+(* text *)
 
 datatype text = Text of string list;
 
@@ -35,8 +36,7 @@ val none = plain [];
 fun ignore (x, _) = x;
 
 
-
-(** interest **)
+(* interest *)
 
 datatype interest = Interest of int;
 val interest = Interest;
@@ -46,5 +46,10 @@ val default_interest = interest 0;
 fun ignore_interest (x, _) = x;
 fun ignore_interest' (_, x) = x;
 
+
+(* output errors *)
+
+(*note: actually belongs to isar_output.ML*)
+exception OUTPUT_FAIL of (string * Position.T) * exn;
 
 end;
