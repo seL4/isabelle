@@ -168,25 +168,17 @@ done
 
 subsection {*Two-sided intervals*}
 
-text {* @{text greaterThanLessThan} *}
-
 lemma greaterThanLessThan_iff [simp]:
   "(i : {l<..<u}) = (l < i & i < u)"
 by (simp add: greaterThanLessThan_def)
-
-text {* @{text atLeastLessThan} *}
 
 lemma atLeastLessThan_iff [simp]:
   "(i : {l..<u}) = (l <= i & i < u)"
 by (simp add: atLeastLessThan_def)
 
-text {* @{text greaterThanAtMost} *}
-
 lemma greaterThanAtMost_iff [simp]:
   "(i : {l<..u}) = (l < i & i <= u)"
 by (simp add: greaterThanAtMost_def)
-
-text {* @{text atLeastAtMost} *}
 
 lemma atLeastAtMost_iff [simp]:
   "(i : {l..u}) = (l <= i & i <= u)"
@@ -196,6 +188,16 @@ text {* The above four lemmas could be declared as iffs.
   If we do so, a call to blast in Hyperreal/Star.ML, lemma @{text STAR_Int}
   seems to take forever (more than one hour). *}
 
+subsubsection{* Emptyness and singletons *}
+
+lemma atLeastAtMost_empty [simp]: "n < m ==> {m::'a::order..n} = {}";
+  by (auto simp add: atLeastAtMost_def atMost_def atLeast_def);
+
+lemma atLeastLessThan_empty[simp]: "n \<le> m ==> {m..<n::'a::order} = {}"
+by (auto simp add: atLeastLessThan_def)
+
+lemma atLeastAtMost_singleton [simp]: "{a::'a::order..a} = {a}";
+  by (auto simp add: atLeastAtMost_def atMost_def atLeast_def);
 
 subsection {* Intervals of natural numbers *}
 
@@ -268,12 +270,6 @@ by(simp add:lessThan_def atLeastLessThan_def)
 lemma atLeastLessThan0 [simp]: "{m..<0::nat} = {}"
 by (simp add: atLeastLessThan_def)
 
-lemma atLeastLessThan_self [simp]: "{n::'a::order..<n} = {}"
-by (auto simp add: atLeastLessThan_def)
-
-lemma atLeastLessThan_empty: "n \<le> m ==> {m..<n::'a::order} = {}"
-by (auto simp add: atLeastLessThan_def)
-
 subsubsection {* Intervals of nats with @{term Suc} *}
 
 text{*Not a simprule because the RHS is too messy.*}
@@ -300,6 +296,9 @@ lemma atLeastSucAtMost_greaterThanAtMost: "{Suc l..u} = {l<..u}"
 lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
   by (simp add: atLeast_Suc_greaterThan atLeastLessThan_def
     greaterThanLessThan_def)
+
+lemma atLeastAtMostSuc_conv: "m \<le> Suc n \<Longrightarrow> {m..Suc n} = insert (Suc n) {m..n}"
+by (auto simp add: atLeastAtMost_def)
 
 subsubsection {* Finiteness *}
 
@@ -388,8 +387,6 @@ lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
   apply (case_tac "0 \<le> u")
   apply (subst image_atLeastZeroLessThan_int, assumption)
   apply (rule finite_imageI)
-  apply auto
-  apply (subgoal_tac "{0..<u} = {}")
   apply auto
   done
 
@@ -615,8 +612,14 @@ lemma setsum_ivl_cong:
  setsum f {a..<b} = setsum g {c..<d}"
 by(rule setsum_cong, simp_all)
 
+lemma setsum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
+    (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
+by (auto simp:add_ac atLeastAtMostSuc_conv)
+
+(* FIXME delete
 lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
 by (simp add:lessThan_Suc)
+*)
 
 lemma setsum_add_nat_ivl: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
   setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"

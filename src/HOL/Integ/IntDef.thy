@@ -764,31 +764,31 @@ subsection{*More Properties of @{term setsum} and  @{term setprod}*}
 text{*By Jeremy Avigad*}
 
 
-lemma setsum_of_nat: "of_nat (setsum f A) = setsum (of_nat \<circ> f) A"
+lemma of_nat_setsum: "of_nat (setsum f A) = (\<Sum>x\<in>A. of_nat(f x))"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
   done
 
-lemma setsum_of_int: "of_int (setsum f A) = setsum (of_int \<circ> f) A"
+lemma of_int_setsum: "of_int (setsum f A) = (\<Sum>x\<in>A. of_int(f x))"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
   done
 
-lemma int_setsum: "int (setsum f A) = setsum (int \<circ> f) A"
-  by (simp add: int_eq_of_nat setsum_of_nat) 
+lemma int_setsum: "int (setsum f A) = (\<Sum>x\<in>A. int(f x))"
+  by (simp add: int_eq_of_nat of_nat_setsum)
 
-lemma setprod_of_nat: "of_nat (setprod f A) = setprod (of_nat \<circ> f) A"
+lemma of_nat_setprod: "of_nat (setprod f A) = (\<Prod>x\<in>A. of_nat(f x))"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
   done
 
-lemma setprod_of_int: "of_int (setprod f A) = setprod (of_int \<circ> f) A"
+lemma of_int_setprod: "of_int (setprod f A) = (\<Prod>x\<in>A. of_int(f x))"
   apply (case_tac "finite A")
   apply (erule finite_induct, auto)
   done
 
-lemma int_setprod: "int (setprod f A) = setprod (int \<circ> f) A"
-  by (simp add: int_eq_of_nat setprod_of_nat)
+lemma int_setprod: "int (setprod f A) = (\<Prod>x\<in>A. int(f x))"
+  by (simp add: int_eq_of_nat of_nat_setprod)
 
 lemma setprod_nonzero_nat:
     "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::nat)) ==> setprod f A \<noteq> 0"

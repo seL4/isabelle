@@ -895,8 +895,11 @@ lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
 by(fastsimp simp: setsum_def intro: ACf.fold_cong[OF ACf_add])
 
+lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A";
+  by (rule setsum_cong[OF refl], auto);
+
 lemma setsum_reindex_cong:
-     "[|inj_on f A; B = f ` A; !!a. g a = h (f a)|] 
+     "[|inj_on f A; B = f ` A; !!a. a:A \<Longrightarrow> g a = h (f a)|] 
       ==> setsum h B = setsum g A"
   by (simp add: setsum_reindex cong: setsum_cong)
 
@@ -1064,6 +1067,17 @@ next
   case False
   thus ?thesis
     by (simp add: setsum_def)
+qed
+
+lemma setsum_strict_mono:
+fixes f :: "'a \<Rightarrow> 'b::{pordered_cancel_ab_semigroup_add,comm_monoid_add}"
+assumes fin_ne: "finite A"  "A \<noteq> {}"
+shows "(!!x. x:A \<Longrightarrow> f x < g x) \<Longrightarrow> setsum f A < setsum g A"
+using fin_ne
+proof (induct rule: finite_ne_induct)
+  case singleton thus ?case by simp
+next
+  case insert thus ?case by (auto simp: add_strict_mono)
 qed
 
 lemma setsum_negf:

@@ -520,6 +520,10 @@ lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
   apply (rule Collect_mem_eq)
   done
 
+(* Due to Brian Huffman *)
+lemma expand_set_eq: "(A = B) = (ALL x. (x:A) = (x:B))"
+by(auto intro:set_ext)
+
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
   -- {* Anti-symmetry of the subset relation. *}
   by (rules intro: set_ext subsetD)
