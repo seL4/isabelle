@@ -214,9 +214,9 @@ via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 about large specifications.
 
 \begin{rail}
-  'cases' ('(simplified)')? ('(open)')? \\ (insts * 'and') rule?  ;
+  'cases' ('(' 'simplified' ')')? ('(' 'open' ')')? \\ (insts * 'and') rule?  ;
 
-  'induct' ('(stripped)')? ('(open)')? \\ (insts * 'and') rule?
+  'induct' ('(' 'stripped' ')')? ('(' 'open' ')')? \\ (insts * 'and') rule?
   ;
 
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
