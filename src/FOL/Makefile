@@ -25,10 +25,9 @@ FILES =  ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
 	 ../Provers/hypsubst.ML ../Provers/classical.ML \
 	 ../Provers/simplifier.ML ../Provers/splitter.ML ../Provers/ind.ML
 
-EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML\
-	   ex/intro.ML ex/List.ML ex/List.thy ex/Nat.ML ex/Nat.thy\
-	   ex/Nat2.ML ex/Nat2.thy ex/Prolog.ML ex/Prolog.thy ex/prop.ML\
-	   ex/quant.ML
+EX_NAMES = If List Nat Nat2 Prolog declIffOracle IffOracle
+EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML  ex/int.ML ex/intro.ML\
+	   ex/prop.ML ex/quant.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 $(BIN)/FOL:   $(BIN)/Pure  $(FILES) 
 	if [ -d $${ISABELLEBIN:?}/Pure ];\
