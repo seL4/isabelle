@@ -68,7 +68,6 @@ Other basic laws about a datatype are applied automatically during
 simplification, so no special methods are provided for them.
 
 \begin{warn}
- 
   Induction is only allowed on free (or \isasymAnd-bound) variables that
   should not occur among the assumptions of the subgoal; see
   \S\ref{sec:ind-var-in-prems} for details. Case distinction

@@ -120,7 +120,7 @@ presented so far, we are ready to prove a few simple theorems. This will
 illustrate not just the basic proof commands but also the typical proof
 process.
 
-\subsubsection*{Main Goal}
+\subsubsection*{Main Goal.}
 
 Our goal is to show that reversing a list twice produces the original
 list.
@@ -140,9 +140,8 @@ It gives that theorem the name @{text"rev_rev"}, for later reference.
 It tells Isabelle (via the bracketed attribute \attrdx{simp}) to take the eventual theorem as a simplification rule: future proofs involving
 simplification will replace occurrences of @{term"rev(rev xs)"} by
 @{term"xs"}.
-
-The name and the simplification attribute are optional.
 \end{itemize}
+The name and the simplification attribute are optional.
 Isabelle's response is to print
 \begin{isabelle}
 proof(prove):~step~0\isanewline

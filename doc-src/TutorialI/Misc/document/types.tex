@@ -29,6 +29,11 @@ Here \commdx{defs} is a keyword and
 \isa{nand{\isacharunderscore}def} and \isa{xor{\isacharunderscore}def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
+Pattern-matching is not allowed: each definition must be of
+the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
+Section~\ref{sec:Simp-with-Defs} explains how definitions are used
+in proofs.
+
 A \commdx{constdefs} command combines the effects of \isacommand{consts} and 
 \isacommand{defs}.  For instance, we can introduce \isa{nand} and \isa{xor} by a 
 single command:%

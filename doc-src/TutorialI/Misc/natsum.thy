@@ -74,8 +74,8 @@ For efficiency's sake, this built-in prover ignores quantified formulae and all
 arithmetic operations apart from addition.
 
 The method \methdx{arith} is more general.  It attempts to prove
-the first subgoal provided it is a quantifier free \textbf{linear arithmetic} formula.
-Such formulas may involve the
+the first subgoal provided it is a quantifier-free \textbf{linear arithmetic}
+formula.  Such formulas may involve the
 usual logical connectives (@{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"},
 @{text"\<longrightarrow>"}), the relations @{text"="}, @{text"\<le>"} and @{text"<"},
 and the operations

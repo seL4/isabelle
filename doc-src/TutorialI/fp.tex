@@ -31,7 +31,7 @@ We will now examine it line by line.
 \label{fig:ToyList}
 \end{figure}
 
-\index{*ToyList (example)|(}
+\index{*ToyList example|(}
 {\makeatother\input{ToyList/document/ToyList.tex}}
 
 The complete proof script is shown in Fig.\ts\ref{fig:ToyList-proofs}. The
@@ -39,7 +39,7 @@ concatenation of Figs.\ts\ref{fig:ToyList} and~\ref{fig:ToyList-proofs}
 constitutes the complete theory \texttt{ToyList} and should reside in file
 \texttt{ToyList.thy}. It is good practice to present all declarations and
 definitions at the beginning of a theory to facilitate browsing.%
-\index{*ToyList (example)|)}
+\index{*ToyList example|)}
 
 \begin{figure}[htbp]
 \begin{ttbox}\makeatother
@@ -163,7 +163,8 @@ case study.
 \subsection{Lists}
 
 \index{*list (type)}%
-Lists are one of the essential datatypes in computing.  You need to be familiar with their basic operations.
+Lists are one of the essential datatypes in computing.  We expect that you
+are already familiar with their basic operations.
 Theory \isa{ToyList} is only a small fragment of HOL's predefined theory
 \thydx{List}\footnote{\url{http://isabelle.in.tum.de/library/HOL/List.html}}.
 The latter contains many further operations. For example, the functions
@@ -202,10 +203,10 @@ the natural numbers (see~{\S}\ref{sec:nat} below). For lists, \isa{size} is
 just the length, i.e.\ \isa{size [] = 0} and \isa{size(x \# xs) = size xs +
   1}.  In general, \cdx{size} returns 
 \begin{itemize}
-\item \isa{0} for all constructors
+\item zero for all constructors
 that do not have an argument of type $t$\\
-\item for all other constructors,
-one plus the sum of the sizes of all arguments of type~$t$.
+\item one plus the sum of the sizes of all arguments of type~$t$,
+for all other constructors
 \end{itemize}
 Note that because
 \isa{size} is defined on every datatype, it is overloaded; on lists
@@ -241,6 +242,9 @@ A more general method for defining total recursive functions is introduced in
 
 \section{Some Basic Types}
 
+This section introduces the types of natural numbers and ordered pairs.  Also
+described is type \isa{option}, which is useful for modelling exceptional
+cases. 
 
 \subsection{Natural Numbers}
 \label{sec:nat}\index{natural numbers}%
@@ -276,11 +280,6 @@ Type synonyms are similar to those found in ML\@. They are created by a
 \commdx{types} command:
 
 \input{Misc/document/types.tex}%
-
-Pattern-matching is not allowed, i.e.\ each definition must be of
-the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
-Section~{\S}\ref{sec:Simp-with-Defs} explains how definitions are used
-in proofs.%
 \index{type synonyms|)}
 
 \input{Misc/document/prime_def.tex}
@@ -291,17 +290,20 @@ in proofs.%
 \section{The Definitional Approach}
 \label{sec:definitional}
 
+\index{Definitional Approach}%
 As we pointed out at the beginning of the chapter, asserting arbitrary
 axioms such as $f(n) = f(n) + 1$ can easily lead to contradictions. In order
-to avoid this danger, this tutorial advocates the definitional rather than
+to avoid this danger, we advocate the definitional rather than
 the axiomatic approach: introduce new concepts by definitions. However,  Isabelle/HOL seems to
 support many richer definitional constructs, such as
 \isacommand{primrec}. The point is that Isabelle reduces such constructs to first principles. For example, each
 \isacommand{primrec} function definition is turned into a proper
 (nonrecursive!) definition from which the user-supplied recursion equations are
-derived as theorems.  This process is
+automatically proved.  This process is
 hidden from the user, who does not have to understand the details.  Other commands described
-later, like \isacommand{recdef} and \isacommand{inductive}, are treated similarly.  This strict adherence to the definitional approach reduces the risk of soundness errors.
+later, like \isacommand{recdef} and \isacommand{inductive}, work similarly.  
+This strict adherence to the definitional approach reduces the risk of 
+soundness errors.
 
 \chapter{More Functional Programming}
 
