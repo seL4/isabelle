@@ -2,9 +2,11 @@
 %% Author: Markus Wenzel, TU Muenchen
 %% License: GPL (GNU GENERAL PUBLIC LICENSE)
 %%
-%% conditional url/hyperref setup
+%% smart url or hyperref setup
 %%
 
-\@ifundefined{pdfoutput}{\usepackage{url}}
-{\usepackage[pdftex,a4paper,colorlinks=true]{hyperref}
+\@ifundefined{pdfoutput}
+{\usepackage{url}}
+{\usepackage{color}\definecolor{darkblue}{rgb}{0,0,0.5}
+  \usepackage[pdftex,a4paper,colorlinks=true,linkcolor=darkblue,citecolor=darkblue,filecolor=darkblue,pagecolor=darkblue,urlcolor=darkblue]{hyperref}
   \IfFileExists{thumbpdf.sty}{\usepackage{thumbpdf}}{}}
