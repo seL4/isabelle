@@ -13,6 +13,5 @@ consts
 
 defs
    LeadsTo_def
-    "A LeadsTo B == {F. F : (reachable F  Int  A) leadsTo
-	   	            (reachable F  Int  B)}"
+    "A LeadsTo B == {F. F : (reachable F Int A) leadsTo  B}"
 end

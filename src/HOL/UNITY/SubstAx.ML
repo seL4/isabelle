@@ -9,6 +9,14 @@ LeadsTo relation, restricted to the set of reachable states.
 overload_1st_set "SubstAx.op LeadsTo";
 
 
+(*Resembles the previous definition of LeadsTo*)
+Goalw [LeadsTo_def]
+     "A LeadsTo B = {F. F : (reachable F Int A) leadsTo (reachable F Int B)}";
+by (blast_tac (claset() addDs [psp_stable2] 
+                        addIs [leadsTo_weaken, stable_reachable]) 1);
+qed "LeadsTo_eq_leadsTo";
+
+
 (*** Specialized laws for handling invariants ***)
 
 (** Conjoining an Always property **)
@@ -23,7 +31,7 @@ qed "Always_LeadsToI";
 Goal "[| F : Always C;  F : A LeadsTo A' |]   \
 \     ==> F : A LeadsTo (C Int A')";
 by (asm_full_simp_tac
-    (simpset() addsimps [LeadsTo_def, Always_eq_includes_reachable, 
+    (simpset() addsimps [LeadsTo_eq_leadsTo, Always_eq_includes_reachable, 
 			 Int_absorb2, Int_assoc RS sym]) 1);
 qed "Always_LeadsToD";
 
@@ -32,11 +40,11 @@ qed "Always_LeadsToD";
 
 Goal "F : A leadsTo B ==> F : A LeadsTo B";
 by (simp_tac (simpset() addsimps [LeadsTo_def]) 1);
-by (blast_tac (claset() addIs [psp_stable2, stable_reachable]) 1);
+by (blast_tac (claset() addIs [leadsTo_weaken_L]) 1);
 qed "leadsTo_imp_LeadsTo";
 
 Goal "[| F : A LeadsTo B;  F : B LeadsTo C |] ==> F : A LeadsTo C";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
+by (full_simp_tac (simpset() addsimps [LeadsTo_eq_leadsTo]) 1);
 by (blast_tac (claset() addIs [leadsTo_Trans]) 1);
 qed "LeadsTo_Trans";
 
@@ -51,8 +59,7 @@ qed "LeadsTo_Union";
 (*** Derived rules ***)
 
 Goal "F : A LeadsTo UNIV";
-by (asm_simp_tac 
-    (simpset() addsimps [LeadsTo_def, Int_lower1 RS subset_imp_leadsTo]) 1);
+by (simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 qed "LeadsTo_UNIV";
 Addsimps [LeadsTo_UNIV];
 
@@ -142,7 +149,8 @@ qed "LeadsTo_Union_distrib";
 
 Goal "[| F : (A-A') Co (A Un A');  F : transient (A-A') |]   \
 \     ==> F : A LeadsTo A'";
-by (asm_full_simp_tac (simpset() addsimps [LeadsTo_def, Constrains_def]) 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [LeadsTo_def, Constrains_eq_constrains]) 1);
 by (rtac (ensuresI RS leadsTo_Basis) 1);
 by (blast_tac (claset() addIs [transient_strengthen]) 2);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
@@ -244,7 +252,8 @@ qed "LeadsTo_empty";
 (*Special case of PSP: Misra's "stable conjunction"*)
 Goal "[| F : A LeadsTo A';  F : Stable B |] \
 \     ==> F : (A Int B) LeadsTo (A' Int B)";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def, Stable_eq_stable]) 1);
+by (full_simp_tac
+    (simpset() addsimps [LeadsTo_eq_leadsTo, Stable_eq_stable]) 1);
 by (dtac psp_stable 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps Int_ac) 1);
@@ -255,9 +264,10 @@ Goal "[| F : A LeadsTo A'; F : Stable B |] \
 by (asm_simp_tac (simpset() addsimps PSP_stable::Int_ac) 1);
 qed "PSP_stable2";
 
-Goalw [LeadsTo_def, Constrains_def]
-     "[| F : A LeadsTo A'; F : B Co B' |] \
+Goal "[| F : A LeadsTo A'; F : B Co B' |] \
 \     ==> F : (A Int B) LeadsTo ((A' Int B) Un (B' - B))";
+by (full_simp_tac
+    (simpset() addsimps [LeadsTo_def, Constrains_eq_constrains]) 1);
 by (blast_tac (claset() addDs [psp] addIs [leadsTo_weaken]) 1);
 qed "PSP";
 
@@ -292,7 +302,7 @@ Goal "[| wf r;     \
 \        ALL m. F : (A Int f-``{m}) LeadsTo                     \
 \                           ((A Int f-``(r^-1 ^^ {m})) Un B) |] \
 \     ==> F : A LeadsTo B";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
+by (full_simp_tac (simpset() addsimps [LeadsTo_eq_leadsTo]) 1);
 by (etac leadsTo_wf_induct 1);
 by (blast_tac (claset() addIs [leadsTo_weaken]) 1);
 qed "LeadsTo_wf_induct";
@@ -355,7 +365,8 @@ qed "GreaterThan_bounded_induct";
 Goal "[| F : A LeadsTo A';  F : Stable A';   \
 \        F : B LeadsTo B';  F : Stable B' |] \
 \     ==> F : (A Int B) LeadsTo (A' Int B')";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def, Stable_eq_stable]) 1);
+by (full_simp_tac
+    (simpset() addsimps [LeadsTo_eq_leadsTo, Stable_eq_stable]) 1);
 by (blast_tac (claset() addIs [stable_completion, leadsTo_weaken]) 1);
 qed "Stable_completion";
 
@@ -373,7 +384,8 @@ qed_spec_mp "Finite_stable_completion";
 Goal "[| F : A LeadsTo (A' Un C);  F : A' Co (A' Un C); \
 \        F : B LeadsTo (B' Un C);  F : B' Co (B' Un C) |] \
 \     ==> F : (A Int B) LeadsTo ((A' Int B') Un C)";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def, Constrains_def,
+by (full_simp_tac
+    (simpset() addsimps [LeadsTo_eq_leadsTo, Constrains_eq_constrains,
 				       Int_Un_distrib]) 1);
 by (blast_tac (claset() addIs [completion, leadsTo_weaken]) 1);
 qed "Completion";

@@ -36,7 +36,7 @@ consts
 
 defs
   Constrains_def
-    "A Co B == {F. F : (reachable F  Int  A) co (reachable F  Int  B)}"
+    "A Co B == {F. F : (reachable F Int A)  co  B}"
 
   Unless_def
     "A Unless B == (A-B) Co (A Un B)"

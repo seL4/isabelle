@@ -51,8 +51,15 @@ bind_thm ("constrains_reachable_Int",
 	  rewrite_rule [stable_def] stable_reachable RS 
 	  constrains_Int);
 
+(*Resembles the previous definition of Constrains*)
+Goalw [Constrains_def]
+     "A Co B = {F. F : (reachable F  Int  A) co (reachable F  Int  B)}";
+by (blast_tac (claset() addDs [constrains_reachable_Int]
+			addIs [constrains_weaken]) 1);
+qed "Constrains_eq_constrains";
+
 Goalw [Constrains_def] "F : A co A' ==> F : A Co A'";
-by (blast_tac (claset() addIs [constrains_reachable_Int]) 1);
+by (blast_tac (claset() addIs [constrains_weaken_L]) 1);
 qed "constrains_imp_Constrains";
 
 Goalw [stable_def, Stable_def] "F : stable A ==> F : Stable A";
@@ -74,7 +81,6 @@ Goal "F : A Co UNIV";
 by (blast_tac (claset() addIs [ConstrainsI]) 1);
 qed "Constrains_UNIV";
 AddIffs [Constrains_empty, Constrains_UNIV];
-
 
 Goalw [Constrains_def]
     "[| F : A Co A'; A'<=B' |] ==> F : A Co B'";
@@ -123,22 +129,18 @@ by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "ball_Constrains_INT";
 
 Goal "F : A Co A' ==> reachable F Int A <= A'";
-by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
-by (dtac constrains_imp_subset 1);
-by (ALLGOALS
-    (full_simp_tac (simpset() addsimps [Int_subset_iff, Int_lower1])));
+by (asm_full_simp_tac (simpset() addsimps [constrains_imp_subset, 
+					   Constrains_def]) 1);
 qed "Constrains_imp_subset";
 
-Goalw [Constrains_def]
-    "[| F : A Co B; F : B Co C |]   \
-\    ==> F : A Co C";
+Goal "[| F : A Co B; F : B Co C |] ==> F : A Co C";
+by (full_simp_tac (simpset() addsimps [Constrains_eq_constrains]) 1);
 by (blast_tac (claset() addIs [constrains_trans, constrains_weaken]) 1);
 qed "Constrains_trans";
 
-Goalw [Constrains_def, constrains_def]
-   "[| F : A Co (A' Un B); F : B Co B' |] \
-\   ==> F : A Co (A' Un B')";
-by (Clarify_tac 1);
+Goal "[| F : A Co (A' Un B); F : B Co B' |] ==> F : A Co (A' Un B')";
+by (full_simp_tac (simpset() addsimps [Constrains_eq_constrains, 
+				       constrains_def]) 1);
 by (Blast_tac 1);
 qed "Constrains_cancel";
 
@@ -146,7 +148,8 @@ qed "Constrains_cancel";
 (*** Stable ***)
 
 Goal "(F : Stable A) = (F : stable (reachable F Int A))";
-by (simp_tac (simpset() addsimps [Stable_def, Constrains_def, stable_def]) 1);
+by (simp_tac (simpset() addsimps [Stable_def, Constrains_eq_constrains, 
+				  stable_def]) 1);
 qed "Stable_eq_stable";
 
 Goalw [Stable_def] "F : A Co A ==> F : Stable A";
@@ -259,13 +262,14 @@ by (etac reachable.induct 1);
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "Always_includes_reachable";
 
-Goalw [Always_def, invariant_def, Stable_def, Constrains_def, stable_def]
+Goalw [Always_def, invariant_def, Stable_def, stable_def]
      "F : invariant A ==> F : Always A";
-by (blast_tac (claset() addIs [constrains_reachable_Int]) 1);
+by (blast_tac (claset() addIs [constrains_imp_Constrains]) 1);
 qed "invariant_imp_Always";
 
-Goalw [Always_def, invariant_def, Stable_def, Constrains_def, stable_def]
-     "Always A = {F. F : invariant (reachable F Int A)}";
+Goal "Always A = {F. F : invariant (reachable F Int A)}";
+by (simp_tac (simpset() addsimps [Always_def, invariant_def, Stable_def, 
+				  Constrains_eq_constrains, stable_def]) 1);
 by (blast_tac (claset() addIs reachable.intrs) 1);
 qed "Always_eq_invariant_reachable";
 
@@ -291,8 +295,7 @@ qed "Always_weaken";
 
 (*** "Co" rules involving Always ***)
 
-Goal "[| F : Always INV;  F : (INV Int A) Co A' |]   \
-\     ==> F : A Co A'";
+Goal "[| F : Always INV;  F : (INV Int A) Co A' |] ==> F : A Co A'";
 by (asm_full_simp_tac
     (simpset() addsimps [Always_includes_reachable RS Int_absorb2,
 			 Constrains_def, Int_assoc RS sym]) 1);
@@ -306,7 +309,7 @@ Goal "[| F : Always INV;  F : A Co A' |]   \
 \     ==> F : A Co (INV Int A')";
 by (asm_full_simp_tac
     (simpset() addsimps [Always_includes_reachable RS Int_absorb2,
-			 Constrains_def, Int_assoc RS sym]) 1);
+			 Constrains_eq_constrains, Int_assoc RS sym]) 1);
 qed "Always_ConstrainsD";
 
 bind_thm ("Always_StableD", StableD RSN (2,Always_ConstrainsD));

@@ -245,12 +245,12 @@ by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
 	       simpset() addsimps [Applyall_def, lift_set_def]) 1);
 qed "Applyall_Int_depend";
 
-(*Again, we need the f0 premise because otherwise holds Co trivially
-  for PPROD I F.*)
+(*Again, we need the f0 premise so that PPROD I F has an initial state;
+  otherwise its Co-property is vacuous.*)
 Goal "[| PPROD I F : (lift_set i A) Co (lift_set i B);  \
 \        i: I;  finite I;  f0: Init (PPROD I F) |]  \
 \     ==> F i : A Co B";
-by (full_simp_tac (simpset() addsimps [Constrains_def]) 1);
+by (full_simp_tac (simpset() addsimps [Constrains_eq_constrains]) 1);
 by (subgoal_tac "ALL i:I. f0 i : reachable (F i)" 1);
 by (blast_tac (claset() addIs [reachable.Init]) 2);
 by (dtac PPROD_constrains_projection 1);
@@ -284,7 +284,7 @@ qed "Applyall_Int";
 Goal "[| (PPI x:I. F) : (lift_set i A) Co (lift_set i B);  \
 \        i: I;  finite I |]  \
 \     ==> F : A Co B";
-by (full_simp_tac (simpset() addsimps [Constrains_def]) 1);
+by (full_simp_tac (simpset() addsimps [Constrains_eq_constrains]) 1);
 by (dtac PPROD_constrains_projection 1);
 by (assume_tac 1);
 by (asm_full_simp_tac
