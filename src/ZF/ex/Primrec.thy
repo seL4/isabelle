@@ -30,11 +30,11 @@ translations
 
 defs
 
-  SC_def    "SC == lam l:list(nat).list_case(0, %x xs.succ(x), l)"
+  SC_def    "SC == lam l:list(nat).list_case(0, %x xs. succ(x), l)"
 
   CONST_def "CONST(k) == lam l:list(nat).k"
 
-  PROJ_def  "PROJ(i) == lam l:list(nat). list_case(0, %x xs.x, drop(i,l))"
+  PROJ_def  "PROJ(i) == lam l:list(nat). list_case(0, %x xs. x, drop(i,l))"
 
   COMP_def  "COMP(g,fs) == lam l:list(nat). g ` map(%f. f`l, fs)"
 
@@ -57,7 +57,7 @@ inductive
     PREC     "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"
   monos      "[list_mono]"
   con_defs   "[SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]"
-  type_intrs "nat_typechecks @ list.intrs @                     
+  type_intrs "nat_typechecks @ list. intrs @                     
               [lam_type, list_case_type, drop_type, map_type,   
               apply_type, rec_type]"
 

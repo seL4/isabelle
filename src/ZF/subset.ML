@@ -77,15 +77,15 @@ by (blast_tac (!claset addSEs [equalityE]) 1);
 qed "subset_UN_iff_eq";
 
 qed_goal "UN_subset_iff" ZF.thy
-     "(UN x:A.B(x)) <= C <-> (ALL x:A. B(x) <= C)"
+     "(UN x:A. B(x)) <= C <-> (ALL x:A. B(x) <= C)"
  (fn _ => [ Blast_tac 1 ]);
 
 qed_goal "UN_upper" ZF.thy
-    "!!x A. x:A ==> B(x) <= (UN x:A.B(x))"
+    "!!x A. x:A ==> B(x) <= (UN x:A. B(x))"
  (fn _ => [ etac (RepFunI RS Union_upper) 1 ]);
 
 qed_goal "UN_least" ZF.thy
-    "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A.B(x)) <= C"
+    "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A. B(x)) <= C"
  (fn [prem]=>
   [ (rtac (ballI RS (UN_subset_iff RS iffD2)) 1),
     (etac prem 1) ]);
@@ -109,11 +109,11 @@ qed_goal "Inter_greatest" ZF.thy
 (*** Intersection of a family of sets  ***)
 
 qed_goal "INT_lower" ZF.thy
-    "!!x. x:A ==> (INT x:A.B(x)) <= B(x)"
+    "!!x. x:A ==> (INT x:A. B(x)) <= B(x)"
  (fn _ => [ Blast_tac 1 ]);
 
 qed_goal "INT_greatest" ZF.thy
-    "[| a:A;  !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A.B(x))"
+    "[| a:A;  !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A. B(x))"
  (fn [nonempty,prem] =>
   [ rtac (nonempty RS RepFunI RS Inter_greatest) 1,
     REPEAT (eresolve_tac [RepFunE, prem, ssubst] 1) ]);

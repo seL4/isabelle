@@ -44,13 +44,13 @@ val resD3 =Sres.dom_subset RS subsetD RS SigmaD2 RS SigmaD2;
 (* ------------------------------------------------------------------------- *)
 
 goal Residuals.thy 
-    "!!u.residuals(u,v,w) ==> ALL w1.residuals(u,v,w1) --> w1 = w";
+    "!!u. residuals(u,v,w) ==> ALL w1. residuals(u,v,w1) --> w1 = w";
 by (etac Sres.induct 1);
 by (ALLGOALS Fast_tac);
 qed_spec_mp "residuals_function";
 
 goal Residuals.thy 
-    "!!u.u~v ==> regular(v) --> (EX w.residuals(u,v,w))";
+    "!!u. u~v ==> regular(v) --> (EX w. residuals(u,v,w))";
 by (etac Scomp.induct 1);
 by (ALLGOALS Fast_tac);
 qed "residuals_intro";
@@ -74,7 +74,7 @@ val resfunc_cs = (!claset addIs  [the_equality,residuals_function]
                           addSEs [comp_resfuncE]);
 
 goalw Residuals.thy [res_func_def]
-    "!!n.n:nat ==> Var(n) |> Var(n) = Var(n)";
+    "!!n. n:nat ==> Var(n) |> Var(n) = Var(n)";
 by (fast_tac resfunc_cs 1);
 qed "res_Var";
 
@@ -119,13 +119,13 @@ val res1L_ss = !simpset setloop (SELECT_GOAL (safe_tac (!claset)));
 (* ------------------------------------------------------------------------- *)
 
 goal Residuals.thy 
-    "!!u.u<==v ==> u~v";
+    "!!u. u<==v ==> u~v";
 by (etac Ssub.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "sub_comp";
 
 goal Residuals.thy 
-    "!!u.u<==v  ==> regular(v) --> regular(u)";
+    "!!u. u<==v  ==> regular(v) --> regular(u)";
 by (etac Ssub.induct 1);
 by (ALLGOALS (asm_simp_tac res1L_ss));
 qed "sub_preserve_reg";
@@ -136,13 +136,13 @@ goal Residuals.thy
 by (etac Scomp.induct 1);
 by Safe_tac;
 by (ALLGOALS (asm_full_simp_tac ((addsplit (!simpset)) addsimps [lift_subst])));
-by (dres_inst_tac [("psi", "ALL x:nat.Fun(?u(x)) |> ?v(x) = ?w(x)")] asm_rl 1);
+by (dres_inst_tac [("psi", "ALL x:nat. Fun(?u(x)) |> ?v(x) = ?w(x)")] asm_rl 1);
 by (Asm_full_simp_tac 1);
 qed "residuals_lift_rec";
 
 goal Residuals.thy 
-    "!!u.u1~u2 ==>  ALL v1 v2.v1~v2 --> regular(v2) --> regular(u2) -->\
-\   (ALL n:nat.subst_rec(v1,u1,n) |> subst_rec(v2,u2,n) = \
+    "!!u. u1~u2 ==>  ALL v1 v2. v1~v2 --> regular(v2) --> regular(u2) -->\
+\   (ALL n:nat. subst_rec(v1,u1,n) |> subst_rec(v2,u2,n) = \
 \              subst_rec(v1 |> v2, u1 |> u2,n))";
 by (etac Scomp.induct 1);
 by Safe_tac;
@@ -164,7 +164,7 @@ qed "commutation";
 (* ------------------------------------------------------------------------- *)
 
 goal Residuals.thy 
-    "!!u.u~v ==> ALL w. u~w --> v~w --> regular(w) --> (u|>w) ~ (v|>w)";
+    "!!u. u~v ==> ALL w. u~w --> v~w --> regular(w) --> (u|>w) ~ (v|>w)";
 by (etac Scomp.induct 1);
 by (ALLGOALS (asm_simp_tac res1L_ss));
 by (dresolve_tac [spec RS mp RS mp RS mp] 1 
@@ -176,7 +176,7 @@ qed_spec_mp "residuals_preserve_comp";
 
 
 goal Residuals.thy 
-    "!!u.u~v ==> regular(u) --> regular(v) --> regular(u|>v)";
+    "!!u. u~v ==> regular(u) --> regular(v) --> regular(u|>v)";
 by (etac Scomp.induct 1);
 by (safe_tac (!claset));
 by (TRYALL (dres_inst_tac [("psi", "regular(Fun(?u) |> ?v)")] asm_rl));
@@ -188,13 +188,13 @@ qed "residuals_preserve_reg";
 (* ------------------------------------------------------------------------- *)
 
 goal Residuals.thy 
-    "!!u.u~v ==> v ~ (u un v)";
+    "!!u. u~v ==> v ~ (u un v)";
 by (etac Scomp.induct 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "union_preserve_comp";
 
 goal Residuals.thy 
-    "!!u.u ~ v ==> regular(v) --> u|>v = (u un v)|>v";
+    "!!u. u ~ v ==> regular(v) --> u|>v = (u un v)|>v";
 by (etac Scomp.induct 1);
 by (safe_tac (!claset));
 by (dres_inst_tac [("psi", "Fun(?u) |> ?v = ?w")] asm_rl 3);

@@ -164,15 +164,15 @@ by (REPEAT (eresolve_tac [asm_rl,lamE,Pair_inject,ssubst] 1));
 qed "lamD";
 
 val prems = goalw ZF.thy [lam_def, Pi_def, function_def]
-    "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A.b(x)) : Pi(A,B)";  
+    "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)";  
 by (blast_tac (!claset addIs prems) 1);
 qed "lam_type";
 
-goal ZF.thy "(lam x:A.b(x)) : A -> {b(x). x:A}";
+goal ZF.thy "(lam x:A. b(x)) : A -> {b(x). x:A}";
 by (REPEAT (ares_tac [refl,lam_type,RepFunI] 1));
 qed "lam_funtype";
 
-goal ZF.thy "!!a A. a : A ==> (lam x:A.b(x)) ` a = b(a)";
+goal ZF.thy "!!a A. a : A ==> (lam x:A. b(x)) ` a = b(a)";
 by (REPEAT (ares_tac [apply_equality,lam_funtype,lamI] 1));
 qed "beta";
 
@@ -230,7 +230,7 @@ Addsimps [eta];
 (*Every element of Pi(A,B) may be expressed as a lambda abstraction!*)
 val prems = goal ZF.thy
     "[| f: Pi(A,B);        \
-\       !!b. [| ALL x:A. b(x):B(x);  f = (lam x:A.b(x)) |] ==> P   \
+\       !!b. [| ALL x:A. b(x):B(x);  f = (lam x:A. b(x)) |] ==> P   \
 \    |] ==> P";
 by (resolve_tac prems 1);
 by (rtac (eta RS sym) 2);
@@ -240,7 +240,7 @@ qed "Pi_lamE";
 
 (** Images of functions **)
 
-goalw ZF.thy [lam_def] "!!C A. C <= A ==> (lam x:A.b(x)) `` C = {b(x). x:C}";
+goalw ZF.thy [lam_def] "!!C A. C <= A ==> (lam x:A. b(x)) `` C = {b(x). x:C}";
 by (Blast_tac 1);
 qed "image_lam";
 

@@ -103,8 +103,8 @@ qed "cadd_le_mono";
 
 goalw CardinalArith.thy [eqpoll_def] "succ(A)+B eqpoll succ(A+B)";
 by (rtac exI 1);
-by (res_inst_tac [("c", "%z.if(z=Inl(A),A+B,z)"), 
-                  ("d", "%z.if(z=A+B,Inl(A),z)")] 
+by (res_inst_tac [("c", "%z. if(z=Inl(A),A+B,z)"), 
+                  ("d", "%z. if(z=A+B,Inl(A),z)")] 
     lam_bijective 1);
 by (ALLGOALS
     (asm_simp_tac (!simpset addsimps [succI2, mem_imp_not_eq]
@@ -269,7 +269,7 @@ qed "cmult_le_mono";
 goalw CardinalArith.thy [eqpoll_def] "succ(A)*B eqpoll B + A*B";
 by (rtac exI 1);
 by (res_inst_tac [("c", "%<x,y>. if(x=A, Inl(y), Inr(<x,y>))"), 
-                  ("d", "case(%y. <A,y>, %z.z)")] 
+                  ("d", "case(%y. <A,y>, %z. z)")] 
     lam_bijective 1);
 by (safe_tac (!claset addSEs [sumE]));
 by (ALLGOALS
@@ -315,7 +315,7 @@ by (res_inst_tac [("x",
     "lam z:cons(u,A). if(z=u, f`0,      \
 \                        if(z: range(f), f`succ(converse(f)`z), z))")] exI 1);
 by (res_inst_tac [("d", "%y. if(y: range(f),    \
-\                               nat_case(u, %z.f`z, converse(f)`y), y)")] 
+\                               nat_case(u, %z. f`z, converse(f)`y), y)")] 
     lam_injective 1);
 by (fast_tac (!claset addSIs [if_type, nat_succI, apply_type]
                       addIs  [inj_is_fun, inj_converse_fun]) 1);

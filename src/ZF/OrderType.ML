@@ -310,7 +310,7 @@ qed "Ord_alt_is_Ord";
 
 (** Addition with 0 **)
 
-goal OrderType.thy "(lam z:A+0. case(%x.x, %y.y, z)) : bij(A+0, A)";
+goal OrderType.thy "(lam z:A+0. case(%x. x, %y. y, z)) : bij(A+0, A)";
 by (res_inst_tac [("d", "Inl")] lam_bijective 1);
 by (safe_tac (!claset));
 by (ALLGOALS Asm_simp_tac);
@@ -323,7 +323,7 @@ by (assume_tac 2);
 by (fast_tac (!claset addss (!simpset addsimps [radd_Inl_iff, Memrel_iff])) 1);
 qed "ordertype_sum_0_eq";
 
-goal OrderType.thy "(lam z:0+A. case(%x.x, %y.y, z)) : bij(0+A, A)";
+goal OrderType.thy "(lam z:0+A. case(%x. x, %y. y, z)) : bij(0+A, A)";
 by (res_inst_tac [("d", "Inr")] lam_bijective 1);
 by (safe_tac (!claset));
 by (ALLGOALS Asm_simp_tac);
@@ -343,7 +343,7 @@ goalw OrderType.thy [pred_def]
  "!!A B. a:A ==>  \
 \        (lam x:pred(A,a,r). Inl(x))    \
 \        : bij(pred(A,a,r), pred(A+B, Inl(a), radd(A,r,B,s)))";
-by (res_inst_tac [("d", "case(%x.x, %y.y)")] lam_bijective 1);
+by (res_inst_tac [("d", "case(%x. x, %y. y)")] lam_bijective 1);
 by (safe_tac (!claset));
 by (ALLGOALS
     (asm_full_simp_tac 
@@ -363,7 +363,7 @@ goalw OrderType.thy [pred_def, id_def]
  "!!A B. b:B ==>  \
 \        id(A+pred(B,b,s))      \
 \        : bij(A+pred(B,b,s), pred(A+B, Inr(b), radd(A,r,B,s)))";
-by (res_inst_tac [("d", "%z.z")] lam_bijective 1);
+by (res_inst_tac [("d", "%z. z")] lam_bijective 1);
 by (safe_tac (!claset));
 by (ALLGOALS (Asm_full_simp_tac));
 qed "pred_Inr_bij";
@@ -592,7 +592,7 @@ qed "oadd_le_iff2";
 
 goal OrderType.thy
     "!!A B. A<=B ==> (lam y:B. if(y:A, Inl(y), Inr(y))) : bij(B, A+(B-A))";
-by (res_inst_tac [("d", "case(%x.x, %y.y)")] lam_bijective 1);
+by (res_inst_tac [("d", "case(%x. x, %y. y)")] lam_bijective 1);
 by (blast_tac (!claset addSIs [if_type]) 1);
 by (fast_tac (!claset addSIs [case_type]) 1);
 by (etac sumE 2);

@@ -21,7 +21,7 @@ qed "strip_lemma_r";
 
 
 goalw Confluence.thy [confluence_def,strip_def] 
-    "!!u.strip==> confluence(Spar_red)";
+    "!!u. strip==> confluence(Spar_red)";
 by (resolve_tac [impI RS allI RS allI] 1);
 by (etac Spar_red.induct 1);
 by (Fast_tac  1);

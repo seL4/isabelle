@@ -48,7 +48,7 @@ defs
 
   prop_rec_def
    "prop_rec(p,b,c,h) == 
-   Vrec(p, %p g.prop_case(b, c, %x y. h(x, y, g`x, g`y), p))"
+   Vrec(p, %p g. prop_case(b, c, %x y. h(x, y, g`x, g`y), p))"
 
   (** Semantics of propositional logic **)
   is_true_def

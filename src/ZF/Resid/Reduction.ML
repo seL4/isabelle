@@ -76,23 +76,23 @@ qed "red_beta";
 (* ------------------------------------------------------------------------- *)
 
 
-goal Reduction.thy "!!u.m:lambda==> m =1=> m";
+goal Reduction.thy "!!u. m:lambda==> m =1=> m";
 by (eresolve_tac [lambda.induct] 1);
 by (ALLGOALS (Asm_simp_tac ));
 qed "refl_par_red1";
 
-goal Reduction.thy "!!u.m-1->n ==> m=1=>n";
+goal Reduction.thy "!!u. m-1->n ==> m=1=>n";
 by (etac Sred1.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [refl_par_red1]) ));
 qed "red1_par_red1";
 
-goal Reduction.thy "!!u.m--->n ==> m===>n";
+goal Reduction.thy "!!u. m--->n ==> m===>n";
 by (etac Sred.induct 1);
 by (resolve_tac [Spar_red.trans] 3);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [refl_par_red1,red1_par_red1]) ));
 qed "red_par_red";
 
-goal Reduction.thy "!!u.m===>n ==> m--->n";
+goal Reduction.thy "!!u. m===>n ==> m--->n";
 by (etac Spar_red.induct 1);
 by (etac Spar_red1.induct 1);
 by (resolve_tac [Sred.trans] 5);
@@ -105,7 +105,7 @@ qed "par_red_red";
 (* ------------------------------------------------------------------------- *)
 
 goal Reduction.thy  
-    "!!u.m=1=>n ==> EX v. m|>v = n & m~v & regular(v)";
+    "!!u. m=1=>n ==> EX v. m|>v = n & m~v & regular(v)";
 by (etac Spar_red1.induct 1);
 by Safe_tac;
 by (ALLGOALS (REPEAT o (resolve_tac [exI,conjI])));
@@ -119,14 +119,14 @@ qed "simulation";
 (* ------------------------------------------------------------------------- *)
 
 goal Reduction.thy  
-    "!!u.u:redexes ==> \
+    "!!u. u:redexes ==> \
 \           ALL k:nat. unmark(lift_rec(u,k)) = lift_rec(unmark(u),k)";
 by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS (asm_full_simp_tac (addsplit (!simpset))));
 qed "unmmark_lift_rec";
 
 goal Reduction.thy  
-    "!!u.v:redexes ==> ALL k:nat.ALL u:redexes.  \
+    "!!u. v:redexes ==> ALL k:nat. ALL u:redexes.  \
 \         unmark(subst_rec(u,v,k)) = subst_rec(unmark(u),unmark(v),k)";
 by (eresolve_tac [redexes.induct] 1);
 by (ALLGOALS (asm_full_simp_tac 
@@ -139,7 +139,7 @@ qed "unmmark_subst_rec";
 (* ------------------------------------------------------------------------- *)
 
 goal Reduction.thy  
-    "!!u.u~v ==> regular(v) --> unmark(u) =1=> unmark(u|>v)";
+    "!!u. u~v ==> regular(v) --> unmark(u) =1=> unmark(u|>v)";
 by (etac Scomp.induct 1);
 by (ALLGOALS (asm_full_simp_tac (reducL_ss addsimps [unmmark_subst_rec]) ));
 by (dres_inst_tac [("psi", "Fun(?u) =1=> ?w")] asm_rl 1);

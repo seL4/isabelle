@@ -27,14 +27,14 @@ consts
 defs
   te_rec_def
     "te_rec(te,c,h) ==   
-    Vrec(te,%te g.TyEnv_case(c,%tem x t.h(tem,x,t,g`tem),te))"
+    Vrec(te,%te g. TyEnv_case(c,%tem x t. h(tem,x,t,g`tem),te))"
   
 consts
   te_dom :: i => i
   te_app :: [i,i] => i
 defs
-  te_dom_def "te_dom(te) == te_rec(te,0,% te x t r.r Un {x})"
-  te_app_def "te_app(te,x) == te_rec(te,0, % te y t r.if(x=y,t,r))"
+  te_dom_def "te_dom(te) == te_rec(te,0,% te x t r. r Un {x})"
+  te_app_def "te_app(te,x) == te_rec(te,0, % te y t r. if(x=y,t,r))"
   
 
 end

@@ -489,7 +489,7 @@ qed "Ord_lt_mono_imp_le_mono";
 (*le monotonicity, 1st argument*)
 goal Arith.thy
     "!!i j k. [| i le j; j:nat; k:nat |] ==> i#+k le j#+k";
-by (res_inst_tac [("f", "%j.j#+k")] Ord_lt_mono_imp_le_mono 1);
+by (res_inst_tac [("f", "%j. j#+k")] Ord_lt_mono_imp_le_mono 1);
 by (REPEAT (ares_tac [add_lt_mono1, add_type RS nat_into_Ord] 1));
 qed "add_le_mono1";
 

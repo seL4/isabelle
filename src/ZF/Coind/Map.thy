@@ -10,7 +10,7 @@ consts
   TMap :: [i,i] => i
   PMap :: [i,i] => i
 defs
-  TMap_def "TMap(A,B) == {m:Pow(A*Union(B)).ALL a:A.m``{a}:B}"
+  TMap_def "TMap(A,B) == {m:Pow(A*Union(B)).ALL a:A. m``{a}:B}"
   PMap_def "PMap(A,B) == TMap(A,cons(0,B))"
 
 (* Note: 0:B ==> TMap(A,B) = PMap(A,B) *)

@@ -20,7 +20,7 @@ datatype
   
 defs
   bt_rec_def
-    "bt_rec(t,c,h) == Vrec(t, %t g.bt_case(c, %x y z. h(x,y,z,g`y,g`z), t))"
+    "bt_rec(t,c,h) == Vrec(t, %t g. bt_case(c, %x y z. h(x,y,z,g`y,g`z), t))"
 
   n_nodes_def   "n_nodes(t) == bt_rec(t,  0,  %x y z r s. succ(r#+s))"
   n_leaves_def  "n_leaves(t) == bt_rec(t,  succ(0),  %x y z r s. r#+s)"

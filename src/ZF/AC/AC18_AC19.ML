@@ -47,7 +47,7 @@ qed "AC1_AC18";
 
 val [prem] = goalw thy [AC18_def, AC19_def] "AC18 ==> AC19";
 by (rtac allI 1);
-by (res_inst_tac [("B1","%x.x")] (forall_elim_vars 0 prem RS revcut_rl) 1);
+by (res_inst_tac [("B1","%x. x")] (forall_elim_vars 0 prem RS revcut_rl) 1);
 by (Fast_tac 1);
 qed "AC18_AC19";
 

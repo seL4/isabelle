@@ -26,7 +26,7 @@ defs
   is_recfun_def  "is_recfun(r,a,H,f) == 
                         (f = (lam x: r-``{a}. H(x, restrict(f, r-``{x}))))"
 
-  the_recfun_def "the_recfun(r,a,H) == (THE f.is_recfun(r,a,H,f))"
+  the_recfun_def "the_recfun(r,a,H) == (THE f. is_recfun(r,a,H,f))"
 
   wftrec_def     "wftrec(r,a,H) == H(a, the_recfun(r,a,H))"
 

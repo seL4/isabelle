@@ -37,7 +37,7 @@ val prems = goal Perm.thy
     "[| !!x. x:A ==> c(x): B;           \
 \       !!y. y:B ==> d(y): A;           \
 \       !!y. y:B ==> c(d(y)) = y        \
-\    |] ==> (lam x:A.c(x)) : surj(A,B)";
+\    |] ==> (lam x:A. c(x)) : surj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_surjective 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps ([lam_type]@prems)) ));
 qed "lam_surjective";
@@ -77,7 +77,7 @@ bind_thm ("f_imp_injective", ballI RSN (2,result()));
 val prems = goal Perm.thy
     "[| !!x. x:A ==> c(x): B;           \
 \       !!x. x:A ==> d(c(x)) = x        \
-\    |] ==> (lam x:A.c(x)) : inj(A,B)";
+\    |] ==> (lam x:A. c(x)) : inj(A,B)";
 by (res_inst_tac [("d", "d")] f_imp_injective 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps ([lam_type]@prems)) ));
 qed "lam_injective";
@@ -100,7 +100,7 @@ val prems = goalw Perm.thy [bij_def]
 \       !!y. y:B ==> d(y): A;           \
 \       !!x. x:A ==> d(c(x)) = x;       \
 \       !!y. y:B ==> c(d(y)) = y        \
-\    |] ==> (lam x:A.c(x)) : bij(A,B)";
+\    |] ==> (lam x:A. c(x)) : bij(A,B)";
 by (REPEAT (ares_tac (prems @ [IntI, lam_injective, lam_surjective]) 1));
 qed "lam_bijective";
 
@@ -329,7 +329,7 @@ Addsimps [comp_fun_apply];
 (*Simplifies compositions of lambda-abstractions*)
 val [prem] = goal Perm.thy
     "[| !!x. x:A ==> b(x): B    \
-\    |] ==> (lam y:B.c(y)) O (lam x:A. b(x)) = (lam x:A. c(b(x)))";
+\    |] ==> (lam y:B. c(y)) O (lam x:A. b(x)) = (lam x:A. c(b(x)))";
 by (rtac fun_extension 1);
 by (rtac comp_fun 1);
 by (rtac lam_funtype 2);
@@ -427,7 +427,7 @@ goalw Perm.thy [id_def]
     "!!f A B. [| f: A->B;  g: B->A |] ==> \
 \             f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
 by (safe_tac (!claset));
-by (dres_inst_tac [("t", "%h.h`y ")] subst_context 1);
+by (dres_inst_tac [("t", "%h. h`y ")] subst_context 1);
 by (Asm_full_simp_tac 1);
 by (rtac fun_extension 1);
 by (REPEAT (ares_tac [comp_fun, lam_type] 1));

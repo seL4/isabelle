@@ -200,11 +200,11 @@ goalw Sum.thy [Part_def] "!!a. a : Part(A,h) ==> a : A";
 by (etac CollectD1 1);
 qed "PartD1";
 
-goal Sum.thy "Part(A,%x.x) = A";
+goal Sum.thy "Part(A,%x. x) = A";
 by (Blast_tac 1);
 qed "Part_id";
 
-goal Sum.thy "Part(A+B, %x.Inr(h(x))) = {Inr(y). y: Part(B,h)}";
+goal Sum.thy "Part(A+B, %x. Inr(h(x))) = {Inr(y). y: Part(B,h)}";
 by (Blast_tac 1);
 qed "Part_Inr2";
 

@@ -49,7 +49,7 @@ qed_goalw "oexI" thy [oex_def]
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
 qed_goal "oexCI" thy 
-   "[| ALL x<A. ~P(x) ==> P(a);  a<A |] ==> EX x<A.P(x)"
+   "[| ALL x<A. ~P(x) ==> P(a);  a<A |] ==> EX x<A. P(x)"
  (fn prems=>
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[oexI,oallI,notI,notE]) 1)) ]);
@@ -85,7 +85,7 @@ qed_goalw "OUN_iff" thy [oex_def]
  (fn _=> [ (fast_tac (!claset addIs [OUN_I] addSEs [OUN_E]) 1) ]);
 
 qed_goal "OUN_cong" thy
-    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i.C(x)) = (UN x<j.D(x))"
+    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
  (fn prems=>
       [ rtac equality_iffI 1,
         simp_tac (!simpset addcongs [oex_cong] addsimps (OUN_iff::prems)) 1 ]);

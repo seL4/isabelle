@@ -53,7 +53,7 @@ AddEs  [rev_ballE];
 val ball_tac = dtac bspec THEN' assume_tac;
 
 (*Trival rewrite rule;   (ALL x:A.P)<->P holds only if A is nonempty!*)
-qed_goal "ball_triv" ZF.thy "(ALL x:A.P) <-> ((EX x. x:A) --> P)"
+qed_goal "ball_triv" ZF.thy "(ALL x:A. P) <-> ((EX x. x:A) --> P)"
  (fn _=> [ simp_tac (!simpset addsimps [Ball_def]) 1 ]);
 Addsimps [ball_triv];
 
@@ -70,7 +70,7 @@ qed_goalw "bexI" ZF.thy [Bex_def]
 
 (*Not of the general form for such rules; ~EX has become ALL~ *)
 qed_goal "bexCI" ZF.thy 
-   "[| ALL x:A. ~P(x) ==> P(a);  a: A |] ==> EX x:A.P(x)"
+   "[| ALL x:A. ~P(x) ==> P(a);  a: A |] ==> EX x:A. P(x)"
  (fn prems=>
   [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[bexI,ballI,notI,notE]) 1)) ]);
@@ -86,7 +86,7 @@ AddIs  [bexI];
 AddSEs [bexE];
 
 (*We do not even have (EX x:A. True) <-> True unless A is nonempty!!*)
-qed_goal  "bex_triv" ZF.thy "(EX x:A.P) <-> ((EX x. x:A) & P)"
+qed_goal  "bex_triv" ZF.thy "(EX x:A. P) <-> ((EX x. x:A) & P)"
  (fn _=> [ simp_tac (!simpset addsimps [Bex_def]) 1 ]);
 Addsimps [bex_triv];
 
@@ -101,7 +101,7 @@ Addcongs [ball_cong, bex_cong];
 (*** Rules for subsets ***)
 
 qed_goalw "subsetI" ZF.thy [subset_def]
-    "(!!x.x:A ==> x:B) ==> A <= B"
+    "(!!x. x:A ==> x:B) ==> A <= B"
  (fn prems=> [ (REPEAT (ares_tac (prems @ [ballI]) 1)) ]);
 
 (*Rule in Modus Ponens style [was called subsetE] *)
@@ -271,7 +271,7 @@ qed_goalw "RepFun_iff" ZF.thy [Bex_def]
     "b : {f(x). x:A} <-> (EX x:A. b=f(x))"
  (fn _ => [Blast_tac 1]);
 
-goal ZF.thy "{x.x:A} = A";
+goal ZF.thy "{x. x:A} = A";
 by (Blast_tac 1);
 qed "triv_RepFun";
 
@@ -344,7 +344,7 @@ qed_goal "UN_E" ZF.thy
     (REPEAT (eresolve_tac (prems@[asm_rl, RepFunE, subst]) 1)) ]);
 
 qed_goal "UN_cong" ZF.thy
-    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (UN x:A.C(x)) = (UN x:B.D(x))"
+    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (UN x:A. C(x)) = (UN x:B. D(x))"
  (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
 
 (*No "Addcongs [UN_cong]" because UN is a combination of constants*)
@@ -404,7 +404,7 @@ qed_goal "INT_E" ZF.thy
     (rtac (minor RS RepFunI) 1) ]);
 
 qed_goal "INT_cong" ZF.thy
-    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (INT x:A.C(x)) = (INT x:B.D(x))"
+    "[| A=B;  !!x. x:B ==> C(x)=D(x) |] ==> (INT x:A. C(x)) = (INT x:B. D(x))"
  (fn prems=> [ (simp_tac (!simpset addsimps prems) 1) ]);
 
 (*No "Addcongs [INT_cong]" because INT is a combination of constants*)

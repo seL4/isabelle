@@ -265,13 +265,13 @@ simpset := !simpset setSolver (type_auto_tac list_typechecks);
 (*** theorems about map ***)
 
 val prems = goal List.thy
-    "l: list(A) ==> map(%u.u, l) = l";
+    "l: list(A) ==> map(%u. u, l) = l";
 by (list_ind_tac "l" prems 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_ident";
 
 val prems = goal List.thy
-    "l: list(A) ==> map(h, map(j,l)) = map(%u.h(j(u)), l)";
+    "l: list(A) ==> map(h, map(j,l)) = map(%u. h(j(u)), l)";
 by (list_ind_tac "l" prems 1);
 by (ALLGOALS Asm_simp_tac);
 qed "map_compose";

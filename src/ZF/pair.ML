@@ -131,7 +131,7 @@ qed_goal "Pair_fst_snd_eq" ZF.thy
 (*** Eliminator - split ***)
 
 (*A META-equality, so that it applies to higher types as well...*)
-qed_goalw "split" ZF.thy [split_def] "split(%x y.c(x,y), <a,b>) == c(a,b)"
+qed_goalw "split" ZF.thy [split_def] "split(%x y. c(x,y), <a,b>) == c(a,b)"
  (fn _ => [ (Simp_tac 1),
             (rtac reflexive_thm 1) ]);
 
@@ -140,7 +140,7 @@ Addsimps [split];
 qed_goal "split_type" ZF.thy
     "[|  p:Sigma(A,B);   \
 \        !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x,y>) \
-\    |] ==> split(%x y.c(x,y), p) : C(p)"
+\    |] ==> split(%x y. c(x,y), p) : C(p)"
  (fn major::prems=>
   [ (rtac (major RS SigmaE) 1),
     (asm_simp_tac (!simpset addsimps prems) 1) ]);

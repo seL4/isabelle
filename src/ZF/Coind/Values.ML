@@ -42,7 +42,7 @@ qed "ValE";
 
 (* Nonempty sets *)
 
-val prems = goal Values.thy "A ~= 0 ==> EX a.a:A";
+val prems = goal Values.thy "A ~= 0 ==> EX a. a:A";
 by (cut_facts_tac prems 1);
 by (rtac (foundation RS disjE) 1);
 by (Fast_tac 1);
@@ -60,7 +60,7 @@ by (Fast_tac 1);
 qed "v_closNE";
 
 goalw Values.thy (sum_def::QPair_def::QInl_def::QInr_def::Val_ValEnv.con_defs)
-  "!!c.c:Const ==> v_const(c) ~= 0";
+  "!!c. c:Const ==> v_const(c) ~= 0";
 by (dtac constNEE 1);
 by (etac not_emptyE 1);
 by (rtac not_emptyI 1);
@@ -75,7 +75,7 @@ qed "v_constNE";
 
 (* Proving that the empty set is not a value *)
 
-goal Values.thy "!!v.v:Val ==> v ~= 0";
+goal Values.thy "!!v. v:Val ==> v ~= 0";
 by (etac ValE 1);
 by (ALLGOALS hyp_subst_tac);
 by (etac v_constNE 1);
@@ -102,7 +102,7 @@ by (rtac map_app_owr1 1);
 qed "ve_app_owr1";
 
 goalw Values.thy [ve_app_def,ve_owr_def]
- "!!ve.ve:ValEnv ==> x ~= y ==> ve_app(ve_owr(ve,x,v),y) = ve_app(ve,y)";
+ "!!ve. ve:ValEnv ==> x ~= y ==> ve_app(ve_owr(ve,x,v),y) = ve_app(ve,y)";
 by (etac ValEnvE 1);
 by (asm_full_simp_tac (!simpset addsimps Val_ValEnv.case_eqns) 1);
 by (rtac map_app_owr2 1);

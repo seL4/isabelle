@@ -137,7 +137,7 @@ qed "ack_lt_mono2";
 (*PROPERTY A 5', monotonicity for le *)
 goal Primrec.thy
     "!!i j k. [| j le k;  i: nat;  k:nat |] ==> ack(i,j) le ack(i,k)";
-by (res_inst_tac [("f", "%j.ack(i,j)")] Ord_lt_mono_imp_le_mono 1);
+by (res_inst_tac [("f", "%j. ack(i,j)")] Ord_lt_mono_imp_le_mono 1);
 by (REPEAT (ares_tac [ack_lt_mono2, ack_type RS nat_into_Ord] 1));
 qed "ack_le_mono2";
 
@@ -170,7 +170,7 @@ qed "ack_lt_mono1";
 (*PROPERTY A 7', monotonicity for le *)
 goal Primrec.thy
     "!!i j k. [| i le j; j:nat; k:nat |] ==> ack(i,k) le ack(j,k)";
-by (res_inst_tac [("f", "%j.ack(j,k)")] Ord_lt_mono_imp_le_mono 1);
+by (res_inst_tac [("f", "%j. ack(j,k)")] Ord_lt_mono_imp_le_mono 1);
 by (REPEAT (ares_tac [ack_lt_mono1, ack_type RS nat_into_Ord] 1));
 qed "ack_le_mono1";
 

@@ -18,8 +18,8 @@ val prism_ss = (res1L_ss addsimps
 
 (* Having more assumptions than needed -- removed below  *)
 goal Cube.thy 
-    "!!u.v<==u ==> \
-\   regular(u)-->(ALL w.w~v-->w~u-->  \
+    "!!u. v<==u ==> \
+\   regular(u)-->(ALL w. w~v-->w~u-->  \
 \             w |> u = (w|>v) |> (u|>v))";
 by (etac Ssub.induct 1);
 by (ALLGOALS (asm_simp_tac prism_ss));

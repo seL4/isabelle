@@ -238,7 +238,7 @@ qed "congruent2_commuteI";
 (*Obsolete?*)
 val [equivA,ZinA,congt,commute] = goalw EquivClass.thy [quotient_def]
     "[| equiv(A,r);  Z: A/r;  \
-\       !!w. [| w: A |] ==> congruent(r, %z.b(w,z));    \
+\       !!w. [| w: A |] ==> congruent(r, %z. b(w,z));    \
 \       !!x y. [| x: A;  y: A |] ==> b(y,x) = b(x,y)    \
 \    |] ==> congruent(r, %w. UN z: Z. b(w,z))";
 val congt' = rewrite_rule [congruent_def] congt;

@@ -129,7 +129,7 @@ translations
   "<x, y, z>"   == "<x, <y, z>>"
   "<x, y>"      == "Pair(x, y)"
   "%<x,y,zs>.b" == "split(%x <y,zs>.b)"
-  "%<x,y>.b"    == "split(%x y.b)"
+  "%<x,y>.b"    == "split(%x y. b)"
 
 
 syntax (symbols)
@@ -190,7 +190,7 @@ defs
      The resulting set (for functional P) is the same as with
      PrimReplace, but the rules are simpler. *)
 
-  Replace_def   "Replace(A,P) == PrimReplace(A, %x y. (EX!z.P(x,z)) & P(x,y))"
+  Replace_def   "Replace(A,P) == PrimReplace(A, %x y. (EX!z. P(x,z)) & P(x,y))"
 
   (* Functional form of replacement -- analgous to ML's map functional *)
 
@@ -246,7 +246,7 @@ defs
   Pi_def        "Pi(A,B)  == {f: Pow(Sigma(A,B)). A<=domain(f) & function(f)}"
 
   (* Restrict the function f to the domain A *)
-  restrict_def  "restrict(f,A) == lam x:A.f`x"
+  restrict_def  "restrict(f,A) == lam x:A. f`x"
 
 end
 

@@ -136,7 +136,7 @@ qed "sum_ord_iso_cong";
      ord_iso(A+B, radd(A,r,B,s), A Un B, r Un s) *)
 goal OrderArith.thy
     "!!A B. A Int B = 0 ==>     \
-\           (lam z:A+B. case(%x.x, %y.y, z)) : bij(A+B, A Un B)";
+\           (lam z:A+B. case(%x. x, %y. y, z)) : bij(A+B, A Un B)";
 by (res_inst_tac [("d", "%z. if(z:A, Inl(z), Inr(z))")] 
     lam_bijective 1);
 by (blast_tac (!claset addSIs [if_type]) 2);
@@ -149,15 +149,15 @@ qed "sum_disjoint_bij";
 (** Associativity **)
 
 goal OrderArith.thy
- "(lam z:(A+B)+C. case(case(Inl, %y.Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
+ "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
 \ : bij((A+B)+C, A+(B+C))";
-by (res_inst_tac [("d", "case(%x.Inl(Inl(x)), case(%x.Inl(Inr(x)), Inr))")] 
+by (res_inst_tac [("d", "case(%x. Inl(Inl(x)), case(%x. Inl(Inr(x)), Inr))")] 
     lam_bijective 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop etac sumE)));
 qed "sum_assoc_bij";
 
 goal OrderArith.thy
- "(lam z:(A+B)+C. case(case(Inl, %y.Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
+ "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
 \ : ord_iso((A+B)+C, radd(A+B, radd(A,r,B,s), C, t),    \
 \           A+(B+C), radd(A, r, B+C, radd(B,s,C,t)))";
 by (resolve_tac [sum_assoc_bij RS ord_isoI] 1);
@@ -283,7 +283,7 @@ qed "singleton_prod_ord_iso";
   case_cong, id_conv, comp_lam, case_case.*)
 goal OrderArith.thy
  "!!a. a~:C ==> \
-\      (lam x:C*B + D. case(%x.x, %y.<a,y>, x)) \
+\      (lam x:C*B + D. case(%x. x, %y.<a,y>, x)) \
 \      : bij(C*B + D, C*B Un {a}*D)";
 by (rtac subst_elem 1);
 by (resolve_tac [id_bij RS sum_bij RS comp_bij] 1);
@@ -298,7 +298,7 @@ qed "prod_sum_singleton_bij";
 
 goal OrderArith.thy
  "!!A. [| a:A;  well_ord(A,r) |] ==> \
-\   (lam x:pred(A,a,r)*B + pred(B,b,s). case(%x.x, %y.<a,y>, x)) \
+\   (lam x:pred(A,a,r)*B + pred(B,b,s). case(%x. x, %y.<a,y>, x)) \
 \   : ord_iso(pred(A,a,r)*B + pred(B,b,s),              \
 \                 radd(A*B, rmult(A,r,B,s), B, s),      \
 \             pred(A,a,r)*B Un {a}*pred(B,b,s), rmult(A,r,B,s))";
@@ -314,7 +314,7 @@ qed "prod_sum_singleton_ord_iso";
 (** Distributive law **)
 
 goal OrderArith.thy
- "(lam <x,z>:(A+B)*C. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x)) \
+ "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
 \ : bij((A+B)*C, (A*C)+(B*C))";
 by (res_inst_tac
     [("d", "case(%<x,y>.<Inl(x),y>, %<x,y>.<Inr(x),y>)")] lam_bijective 1);
@@ -323,7 +323,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "sum_prod_distrib_bij";
 
 goal OrderArith.thy
- "(lam <x,z>:(A+B)*C. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x)) \
+ "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x)) \
 \ : ord_iso((A+B)*C, rmult(A+B, radd(A,r,B,s), C, t), \
 \           (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))";
 by (resolve_tac [sum_prod_distrib_bij RS ord_isoI] 1);

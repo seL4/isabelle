@@ -25,7 +25,7 @@ by (assume_tac 1);
 qed "AC_ball_Pi";
 
 goal AC.thy "EX f. f: (PROD X: Pow(C)-{0}. X)";
-by (res_inst_tac [("B1", "%x.x")] (AC_Pi RS exE) 1);
+by (res_inst_tac [("B1", "%x. x")] (AC_Pi RS exE) 1);
 by (etac exI 2);
 by (Blast_tac 1);
 qed "AC_Pi_Pow";
@@ -33,7 +33,7 @@ qed "AC_Pi_Pow";
 val [nonempty] = goal AC.thy
      "[| !!x. x:A ==> (EX y. y:x)       \
 \     |] ==> EX f: A->Union(A). ALL x:A. f`x : x";
-by (res_inst_tac [("B1", "%x.x")] (AC_Pi RS exE) 1);
+by (res_inst_tac [("B1", "%x. x")] (AC_Pi RS exE) 1);
 by (etac nonempty 1);
 by (blast_tac (!claset addDs [apply_type] addIs [Pi_type]) 1);
 qed "AC_func";

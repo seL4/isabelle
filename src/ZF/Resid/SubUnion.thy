@@ -51,9 +51,8 @@ inductive
 
 defs
   union_def  "u un v == redex_rec(u,   
-         %i.lam t:redexes.redexes_case(%j.Var(i), %x.0, %b x y.0, t),   
-      %x m.lam t:redexes.redexes_case(%j.0, %y.Fun(m`y), %b y z.0, t),   
-%b x y m p.lam t:redexes.redexes_case(%j.0, %y.0,   
+         %i. lam t:redexes. redexes_case(%j. Var(i), %x.0, %b x y.0, t),   
+      %x m. lam t:redexes. redexes_case(%j.0, %y. Fun(m`y), %b y z.0, t),   
+%b x y m p. lam t:redexes. redexes_case(%j.0, %y.0,   
                                        %c z u. App(b or c, m`z, p`u), t))`v"
 end
-

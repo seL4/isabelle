@@ -187,7 +187,7 @@ qed "lepoll_lesspoll_lesspoll";
 (** LEAST -- the least number operator [from HOL/Univ.ML] **)
 
 val [premP,premOrd,premNot] = goalw Cardinal.thy [Least_def]
-    "[| P(i);  Ord(i);  !!x. x<i ==> ~P(x) |] ==> (LEAST x.P(x)) = i";
+    "[| P(i);  Ord(i);  !!x. x<i ==> ~P(x) |] ==> (LEAST x. P(x)) = i";
 by (rtac the_equality 1);
 by (blast_tac (!claset addSIs [premP,premOrd,premNot]) 1);
 by (REPEAT (etac conjE 1));
@@ -195,7 +195,7 @@ by (etac (premOrd RS Ord_linear_lt) 1);
 by (ALLGOALS (blast_tac (!claset addSIs [premP] addSDs [premNot])));
 qed "Least_equality";
 
-goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> P(LEAST x.P(x))";
+goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> P(LEAST x. P(x))";
 by (etac rev_mp 1);
 by (trans_ind_tac "i" [] 1);
 by (rtac impI 1);
@@ -206,7 +206,7 @@ by (blast_tac (!claset addSEs [ltE]) 1);
 qed "LeastI";
 
 (*Proof is almost identical to the one above!*)
-goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> (LEAST x.P(x)) le i";
+goal Cardinal.thy "!!i. [| P(i);  Ord(i) |] ==> (LEAST x. P(x)) le i";
 by (etac rev_mp 1);
 by (trans_ind_tac "i" [] 1);
 by (rtac impI 1);
@@ -217,7 +217,7 @@ by (blast_tac (!claset addEs [ltE] addIs [leI, ltI, lt_trans1]) 1);
 qed "Least_le";
 
 (*LEAST really is the smallest*)
-goal Cardinal.thy "!!i. [| P(i);  i < (LEAST x.P(x)) |] ==> Q";
+goal Cardinal.thy "!!i. [| P(i);  i < (LEAST x. P(x)) |] ==> Q";
 by (rtac (Least_le RSN (2,lt_trans2) RS lt_irrefl) 1);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "less_LeastE";
@@ -232,12 +232,12 @@ qed_goal "LeastI2" Cardinal.thy
 
 (*If there is no such P then LEAST is vacuously 0*)
 goalw Cardinal.thy [Least_def]
-    "!!P. [| ~ (EX i. Ord(i) & P(i)) |] ==> (LEAST x.P(x)) = 0";
+    "!!P. [| ~ (EX i. Ord(i) & P(i)) |] ==> (LEAST x. P(x)) = 0";
 by (rtac the_0 1);
 by (Blast_tac 1);
 qed "Least_0";
 
-goal Cardinal.thy "Ord(LEAST x.P(x))";
+goal Cardinal.thy "Ord(LEAST x. P(x))";
 by (excluded_middle_tac "EX i. Ord(i) & P(i)" 1);
 by (safe_tac (!claset));
 by (rtac (Least_le RS ltE) 2);
@@ -251,7 +251,7 @@ qed "Ord_Least";
 
 (*Not needed for simplification, but helpful below*)
 val prems = goal Cardinal.thy
-    "[| !!y. P(y) <-> Q(y) |] ==> (LEAST x.P(x)) = (LEAST x.Q(x))";
+    "[| !!y. P(y) <-> Q(y) |] ==> (LEAST x. P(x)) = (LEAST x. Q(x))";
 by (simp_tac (!simpset addsimps prems) 1);
 qed "Least_cong";
 
@@ -570,7 +570,7 @@ goalw Cardinal.thy [lepoll_def]
     "!!A B. [| A lepoll B;  b ~: B |] ==> cons(a,A) lepoll cons(b,B)";
 by (safe_tac (!claset));
 by (res_inst_tac [("x", "lam y: cons(a,A).if(y=a, b, f`y)")] exI 1);
-by (res_inst_tac [("d","%z.if(z:B, converse(f)`z, a)")] 
+by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, a)")] 
     lam_injective 1);
 by (asm_simp_tac (!simpset addsimps [inj_is_fun RS apply_type, cons_iff]
                         setloop etac consE') 1);

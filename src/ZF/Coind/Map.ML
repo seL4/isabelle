@@ -18,7 +18,7 @@ goal Map.thy "!!A. a~:A ==> Sigma(A,B)``{a} = 0";
 by (Fast_tac 1);
 qed "qbeta_emp";
 
-goal Map.thy "!!A.a ~: A ==> Sigma(A,B)``{a}=0";
+goal Map.thy "!!A. a ~: A ==> Sigma(A,B)``{a}=0";
 by (Fast_tac 1);
 qed "image_Sigma1";
 
@@ -44,7 +44,7 @@ qed "MapQU_lemma";
 (* Theorems *)
 
 val prems = goalw Map.thy [PMap_def,TMap_def]
-  "[| m:PMap(A,quniv(B)); !!x.x:A ==> x:univ(B) |] ==> m:quniv(B)";
+  "[| m:PMap(A,quniv(B)); !!x. x:A ==> x:univ(B) |] ==> m:quniv(B)";
 by (cut_facts_tac prems 1);
 by (rtac (MapQU_lemma RS subsetD) 1);
 by (rtac subsetI 1);
@@ -56,7 +56,7 @@ qed "mapQU";
 (* Monotonicity                                                 *)
 (* ############################################################ *)
 
-goalw Map.thy [PMap_def,TMap_def] "!!A.B<=C ==> PMap(A,B)<=PMap(A,C)";
+goalw Map.thy [PMap_def,TMap_def] "!!A. B<=C ==> PMap(A,B)<=PMap(A,C)";
 by (Fast_tac 1);
 qed "map_mono";
 
@@ -139,11 +139,11 @@ qed "pmap_domainD";
 
 (* Lemmas *)
 
-goal Map.thy  "domain(UN x:A.B(x)) = (UN x:A.domain(B(x)))";
+goal Map.thy  "domain(UN x:A. B(x)) = (UN x:A. domain(B(x)))";
 by (Fast_tac 1);
 qed "domain_UN";
 
-goal Map.thy  "domain(Sigma(A,B)) = {x:A.EX y.y:B(x)}";
+goal Map.thy  "domain(Sigma(A,B)) = {x:A. EX y. y:B(x)}";
 by (simp_tac (!simpset addsimps [domain_UN,domain_0,domain_cons]) 1);
 by (Fast_tac 1);
 qed "domain_Sigma";
@@ -155,7 +155,7 @@ by (Fast_tac 1);
 qed "map_domain_emp";
 
 goalw Map.thy [map_owr_def] 
-  "!!a.b ~= 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)";
+  "!!a. b ~= 0 ==> domain(map_owr(f,a,b)) = {a} Un domain(f)";
 by (simp_tac (!simpset addsimps [domain_Sigma]) 1);
 by (rtac equalityI 1);
 by (Fast_tac 1);
@@ -179,7 +179,7 @@ by (Simp_tac 1);
 qed "map_app_owr1";
 
 goalw Map.thy [map_app_def,map_owr_def] 
-  "!!a.c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
+  "!!a. c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
 by (rtac (excluded_middle RS disjE) 1);
 by (stac qbeta_emp 1);
 by (assume_tac 1);

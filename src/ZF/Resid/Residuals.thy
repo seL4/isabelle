@@ -31,6 +31,6 @@ inductive
   type_intrs    "[subst_type]@nat_typechecks@redexes.intrs@bool_typechecks"
 
 rules
-  res_func_def  "u |> v == THE w.residuals(u,v,w)"
+  res_func_def  "u |> v == THE w. residuals(u,v,w)"
 end
 

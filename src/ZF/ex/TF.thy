@@ -37,13 +37,13 @@ defs
     "TF_of_list(f) == list_rec(f, Fnil,  %t f r. Fcons(t,r))"
 
   TF_map_def
-    "TF_map(h,z) == TF_rec(z, %x f r.Tcons(h(x),r), Fnil, 
+    "TF_map(h,z) == TF_rec(z, %x f r. Tcons(h(x),r), Fnil, 
                            %t f r1 r2. Fcons(r1,r2))"
 
   TF_size_def
-    "TF_size(z) == TF_rec(z, %x f r.succ(r), 0, %t f r1 r2. r1#+r2)"
+    "TF_size(z) == TF_rec(z, %x f r. succ(r), 0, %t f r1 r2. r1#+r2)"
 
   TF_preorder_def
-    "TF_preorder(z) == TF_rec(z, %x f r.Cons(x,r), Nil, %t f r1 r2. r1@r2)"
+    "TF_preorder(z) == TF_rec(z, %x f r. Cons(x,r), Nil, %t f r1 r2. r1@r2)"
 
 end

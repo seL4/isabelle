@@ -150,7 +150,7 @@ by (REPEAT(ares_tac prems 1));
 qed "isubI";
 
 val prems = goalw Limit.thy [isub_def]  (* isubE *)
-    "!!z.[|isub(D,X,x);[|x:set(D);  !!n.n:nat==>rel(D,X`n,x)|] ==> P|] ==> P";
+    "!!z.[|isub(D,X,x);[|x:set(D);  !!n. n:nat==>rel(D,X`n,x)|] ==> P|] ==> P";
 by (safe_tac (!claset));
 by (Asm_simp_tac 1);
 qed "isubE";
@@ -248,7 +248,7 @@ qed "chain_rel_gen";
 (*----------------------------------------------------------------------*)
 
 val prems = goalw Limit.thy [pcpo_def]  (* pcpoI *)
-    "[|!!y.y:set(D)==>rel(D,x,y); x:set(D); cpo(D)|]==>pcpo(D)";
+    "[|!!y. y:set(D)==>rel(D,x,y); x:set(D); cpo(D)|]==>pcpo(D)";
 by (rtac conjI 1);
 by (resolve_tac prems 1);
 by (rtac bexI 1);
@@ -322,7 +322,7 @@ by (Blast_tac 1);
 qed "islub_const";
 
 val prems = goal Limit.thy  (* lub_const *)
-    "[|x:set(D); cpo(D)|] ==> lub(D,lam n:nat.x) = x";
+    "[|x:set(D); cpo(D)|] ==> lub(D,lam n:nat. x) = x";
 by (rtac islub_unique 1);
 by (rtac cpo_lub 1);
 by (rtac chain_const 1);
@@ -512,7 +512,7 @@ brr(lam_type::matrix_in::matrix_rel_1_0::prems) 1;
 qed "matrix_chain_right";
 
 val prems = goalw Limit.thy [matrix_def]  (* matrix_chainI *)
-    "[|!!x.x:nat==>chain(D,M`x);  !!y.y:nat==>chain(D,lam x:nat. M`x`y);   \
+    "[|!!x. x:nat==>chain(D,M`x);  !!y. y:nat==>chain(D,lam x:nat. M`x`y);   \
 \      M:nat->nat->set(D); cpo(D)|] ==> matrix(D,M)";
 by (safe_tac (!claset addSIs [ballI]));
 by (cut_inst_tac[("y1","m"),("n","n")](hd(tl prems) RS chain_rel) 2);
@@ -529,7 +529,7 @@ val lemma = prove_goal Limit.thy
     (fn prems => [Asm_full_simp_tac 1]);
 
 val lemma2 = prove_goal Limit.thy
-    "!!z.[|x:nat; m:nat; rel(D,(lam n:nat.M`n`m1)`x,(lam n:nat.M`n`m1)`m)|] ==> \
+    "!!z.[|x:nat; m:nat; rel(D,(lam n:nat. M`n`m1)`x,(lam n:nat. M`n`m1)`m)|] ==> \
 \        rel(D,M`x`m1,M`m`m1)"
     (fn prems => [Asm_full_simp_tac 1]);
 
@@ -574,7 +574,7 @@ by (REPEAT(ares_tac
 qed "isub_lemma";
 
 val prems = goalw Limit.thy [chain_def]  (* matrix_chain_lub *)
-    "[|matrix(D,M); cpo(D)|] ==> chain(D,lam n:nat.lub(D,lam m:nat.M`n`m))";
+    "[|matrix(D,M); cpo(D)|] ==> chain(D,lam n:nat. lub(D,lam m:nat. M`n`m))";
 by (safe_tac (!claset));
 by (rtac lam_type 1);
 by (rtac islub_in 1);
@@ -1335,7 +1335,7 @@ qed "rel_iprodE";
 
 val prems = goalw Limit.thy [chain_def]  (* chain_iprod *)
     "[|chain(iprod(DD),X);  !!n. n:nat ==> cpo(DD`n); n:nat|] ==>  \
-\    chain(DD`n,lam m:nat.X`m`n)";
+\    chain(DD`n,lam m:nat. X`m`n)";
 by (safe_tac (!claset));
 by (rtac lam_type 1);
 by (rtac apply_type 1);
@@ -1350,7 +1350,7 @@ qed "chain_iprod";
 
 val prems = goalw Limit.thy [islub_def,isub_def]  (* islub_iprod *)
     "[|chain(iprod(DD),X);  !!n. n:nat ==> cpo(DD`n)|] ==>   \
-\    islub(iprod(DD),X,lam n:nat. lub(DD`n,lam m:nat.X`m`n))";
+\    islub(iprod(DD),X,lam n:nat. lub(DD`n,lam m:nat. X`m`n))";
 by (safe_tac (!claset));
 by (rtac iprodI 1);
 by (rtac lam_type 1); 
@@ -1391,7 +1391,7 @@ qed "cpo_iprod";
 
 val prems = goalw Limit.thy [islub_def,isub_def]  (* lub_iprod *)
     "[|chain(iprod(DD),X);  !!n. n:nat ==> cpo(DD`n)|] ==>   \
-\    lub(iprod(DD),X) = (lam n:nat. lub(DD`n,lam m:nat.X`m`n))";
+\    lub(iprod(DD),X) = (lam n:nat. lub(DD`n,lam m:nat. X`m`n))";
 brr((cpo_lub RS islub_unique)::islub_iprod::cpo_iprod::prems) 1;
 qed "lub_iprod";
 
@@ -2758,7 +2758,7 @@ brr(emb_r::add_type::eps_fun::add_le_self::refl::emb_chain_cpo::prems) 1;
 qed "suffix_lemma";
 
 val mediatingI = prove_goalw Limit.thy [mediating_def]
-  "[|emb(E,G,t);  !!n.n:nat ==> f(n) = t O r(n) |]==>mediating(E,G,r,f,t)"
+  "[|emb(E,G,t);  !!n. n:nat ==> f(n) = t O r(n) |]==>mediating(E,G,r,f,t)"
  (fn prems => [safe_tac (!claset),trr prems 1]);
 
 val mediating_emb = prove_goalw Limit.thy [mediating_def]

@@ -178,13 +178,13 @@ by (assume_tac 1);
 qed "imp_refl";
 
 val [PQimp] = goal IFOL.thy
-    "[| !!x. P(x) --> Q(x) |] ==> (EX x.P(x)) --> (EX x.Q(x))";
+    "[| !!x. P(x) --> Q(x) |] ==> (EX x. P(x)) --> (EX x. Q(x))";
 by IntPr.safe_tac;
 by (etac (PQimp RS mp RS exI) 1);
 qed "ex_mono";
 
 val [PQimp] = goal IFOL.thy
-    "[| !!x. P(x) --> Q(x) |] ==> (ALL x.P(x)) --> (ALL x.Q(x))";
+    "[| !!x. P(x) --> Q(x) |] ==> (ALL x. P(x)) --> (ALL x. Q(x))";
 by IntPr.safe_tac;
 by (etac (spec RS (PQimp RS mp)) 1);
 qed "all_mono";

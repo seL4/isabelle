@@ -229,13 +229,13 @@ qed "tree_list_iso";
 
 (** theorems about TF_map **)
 
-goal TF.thy "!!z A. z: tree_forest(A) ==> TF_map(%u.u, z) = z";
+goal TF.thy "!!z A. z: tree_forest(A) ==> TF_map(%u. u, z) = z";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "TF_map_ident";
 
 goal TF.thy
- "!!z A. z: tree_forest(A) ==> TF_map(h, TF_map(j,z)) = TF_map(%u.h(j(u)), z)";
+ "!!z A. z: tree_forest(A) ==> TF_map(h, TF_map(j,z)) = TF_map(%u. h(j(u)), z)";
 by (etac tree_forest.induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "TF_map_compose";

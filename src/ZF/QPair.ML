@@ -125,7 +125,7 @@ qed "QPair_qfst_qsnd_eq";
 
 (*A META-equality, so that it applies to higher types as well...*)
 qed_goalw "qsplit" thy [qsplit_def]
-    "qsplit(%x y.c(x,y), <a;b>) == c(a,b)"
+    "qsplit(%x y. c(x,y), <a;b>) == c(a,b)"
  (fn _ => [ (Simp_tac 1),
             (rtac reflexive_thm 1) ]);
 
@@ -134,7 +134,7 @@ Addsimps [qsplit];
 qed_goal "qsplit_type" thy
     "[|  p:QSigma(A,B);   \
 \        !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x;y>) \
-\    |] ==> qsplit(%x y.c(x,y), p) : C(p)"
+\    |] ==> qsplit(%x y. c(x,y), p) : C(p)"
  (fn major::prems=>
   [ (rtac (major RS QSigmaE) 1),
     (asm_simp_tac (!simpset addsimps prems) 1) ]);
@@ -322,7 +322,7 @@ goal thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
 by (Blast_tac 1);
 qed "Part_QInr";
 
-goal thy "Part(A <+> B, %x.QInr(h(x))) = {QInr(y). y: Part(B,h)}";
+goal thy "Part(A <+> B, %x. QInr(h(x))) = {QInr(y). y: Part(B,h)}";
 by (Blast_tac 1);
 qed "Part_QInr2";
 

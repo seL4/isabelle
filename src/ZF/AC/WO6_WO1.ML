@@ -244,7 +244,7 @@ goalw thy [gg2_def]
     "!!a. [| ALL g<a. ALL d<a. domain(uu(f,b,g,d)) ~= 0 -->             \
 \            domain(uu(f,b,g,d)) eqpoll succ(m);                        \
 \            ALL b<a. f`b lepoll succ(m); y*y<=y;                       \
-\            (UN b<a.f`b)=y;  Ord(a);  m:nat;  s:f`b;  b<a              \
+\            (UN b<a. f`b)=y;  Ord(a);  m:nat;  s:f`b;  b<a              \
 \         |] ==> (UN g<a++a. gg2(f,a,b,s) ` g) = y";
 by (dtac sym 1);
 by (asm_simp_tac

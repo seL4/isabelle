@@ -187,7 +187,7 @@ qed "UN_eq_UN_Diffs";
 
 goalw thy [eqpoll_def] "!!A B. A Int B = 0 ==> A Un B eqpoll A + B";
 by (res_inst_tac [("x","lam a:A Un B. if(a:A,Inl(a),Inr(a))")] exI 1);
-by (res_inst_tac [("d","%z. case(%x.x, %x.x, z)")] lam_bijective 1);
+by (res_inst_tac [("d","%z. case(%x. x, %x. x, z)")] lam_bijective 1);
 by (fast_tac (!claset addSIs [if_type, InlI, InrI]) 1);
 by (TRYALL (etac sumE ));
 by (TRYALL (split_tac [expand_if]));

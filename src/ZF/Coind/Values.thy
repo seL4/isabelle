@@ -27,11 +27,11 @@ defs
   ve_emp_def "ve_emp == ve_mk(map_emp)"
   ve_owr_def
     "ve_owr(ve,x,v) ==   
-    ve_mk(Val_ValEnv_case(%x.0,%x y z.0,%m.map_owr(m,x,v),ve))"
+    ve_mk(Val_ValEnv_case(%x.0,%x y z.0,%m. map_owr(m,x,v),ve))"
   ve_dom_def
-    "ve_dom(ve) == Val_ValEnv_case(%x.0,%x y z.0,%m.domain(m),ve)"
+    "ve_dom(ve) == Val_ValEnv_case(%x.0,%x y z.0,%m. domain(m),ve)"
   ve_app_def
-    "ve_app(ve,a) == Val_ValEnv_case(%x.0,%x y z.0,%m.map_app(m,a),ve)"
+    "ve_app(ve,a) == Val_ValEnv_case(%x.0,%x y z.0,%m. map_app(m,a),ve)"
 
 end
 

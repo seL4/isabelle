@@ -213,7 +213,7 @@ qed_goal "theI" ZF.thy "EX! x. P(x) ==> P(THE x. P(x))"
 
 (*Easier to apply than theI: conclusion has only one occurrence of P*)
 qed_goal "theI2" ZF.thy
-    "[| EX! x. P(x);  !!x. P(x) ==> Q(x) |] ==> Q(THE x.P(x))"
+    "[| EX! x. P(x);  !!x. P(x) ==> Q(x) |] ==> Q(THE x. P(x))"
  (fn prems => [ resolve_tac prems 1, 
                 rtac theI 1, 
                 resolve_tac prems 1 ]);

@@ -31,16 +31,16 @@ translations
 
 constdefs
   hd      :: i=>i
-  "hd(l)       == list_case(0, %x xs.x, l)"
+  "hd(l)       == list_case(0, %x xs. x, l)"
   
   tl      :: i=>i
-  "tl(l)       == list_case(Nil, %x xs.xs, l)"
+  "tl(l)       == list_case(Nil, %x xs. xs, l)"
   
   drop       :: [i,i]=>i
   "drop(i,l)   == rec(i, l, %j r. tl(r))"
 
   list_rec   :: [i, i, [i,i,i]=>i] => i
-  "list_rec(l,c,h) == Vrec(l, %l g.list_case(c, %x xs. h(x, xs, g`xs), l))"
+  "list_rec(l,c,h) == Vrec(l, %l g. list_case(c, %x xs. h(x, xs, g`xs), l))"
 
   map        :: [i=>i, i] => i
   "map(f,l)    == list_rec(l,  Nil,  %x xs r. Cons(f(x), r))"

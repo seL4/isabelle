@@ -56,7 +56,7 @@ qed "Well_induct2";
 
 (*In fact it's isomorphic to nat, but we need a recursion operator for
   Well to prove this.*)
-goal Brouwer.thy "Well(bool, %x.x) = 1 + (1 -> Well(bool, %x.x))";
+goal Brouwer.thy "Well(bool, %x. x) = 1 + (1 -> Well(bool, %x. x))";
 by (resolve_tac [Well_unfold RS trans] 1);
 by (simp_tac (!simpset addsimps [Sigma_bool, Pi_empty1, succ_def]) 1);
 qed "Well_bool_unfold";

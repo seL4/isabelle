@@ -105,7 +105,7 @@ qed "term_rec_type";
 
 val [rew,tslist] = goal Term.thy
     "[| !!t. j(t)==term_rec(t,d);  ts: list(A) |] ==> \
-\    j(Apply(a,ts)) = d(a, ts, map(%Z.j(Z), ts))";
+\    j(Apply(a,ts)) = d(a, ts, map(%Z. j(Z), ts))";
 by (rewtac rew);
 by (rtac (tslist RS term_rec) 1);
 qed "def_term_rec";
@@ -177,13 +177,13 @@ simpset := !simpset
 
 (** theorems about term_map **)
 
-goal Term.thy "!!t A. t: term(A) ==> term_map(%u.u, t) = t";
+goal Term.thy "!!t A. t: term(A) ==> term_map(%u. u, t) = t";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (!simpset addsimps [map_ident]) 1);
 qed "term_map_ident";
 
 goal Term.thy
-  "!!t A. t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u.f(g(u)), t)";
+  "!!t A. t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u. f(g(u)), t)";
 by (etac term_induct_eqn 1);
 by (asm_simp_tac (!simpset addsimps [map_compose]) 1);
 qed "term_map_compose";
