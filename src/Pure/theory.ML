@@ -73,7 +73,7 @@ sig
   val add_path: string -> theory -> theory
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
-  val init_data: string -> exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit)
+  val init_data: (string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))) list
     -> theory -> theory
   val get_data: theory -> string -> exn
   val put_data: string * exn -> theory -> theory
@@ -374,7 +374,7 @@ val add_defs = ext_defns read_axm;
 
 (** additional theory data **)
 
-val init_data = curry (ext_sg Sign.init_data);
+fun init_data ds = foldl (op o) (I, map (ext_sg Sign.init_data) ds);
 val get_data = Sign.get_data o sign_of;
 val put_data = ext_sg Sign.put_data;
 
