@@ -18,7 +18,7 @@ Comb = Main +
 (** Datatype definition of combinators S and K, with infixed application **)
 datatype comb = K
               | S
-              | "#" comb comb (infixl 90)
+              | "##" comb comb (infixl 90)
 
 (** Inductive definition of contractions, -1->
              and (multi-step) reductions, --->
@@ -34,10 +34,10 @@ translations
 
 inductive contract
   intrs
-    K     "K#x#y -1-> x"
-    S     "S#x#y#z -1-> (x#z)#(y#z)"
-    Ap1   "x-1->y ==> x#z -1-> y#z"
-    Ap2   "x-1->y ==> z#x -1-> z#y"
+    K     "K##x##y -1-> x"
+    S     "S##x##y##z -1-> (x##z)##(y##z)"
+    Ap1   "x-1->y ==> x##z -1-> y##z"
+    Ap2   "x-1->y ==> z##x -1-> z##y"
 
 
 (** Inductive definition of parallel contractions, =1=>
@@ -55,15 +55,15 @@ translations
 inductive parcontract
   intrs
     refl  "x =1=> x"
-    K     "K#x#y =1=> x"
-    S     "S#x#y#z =1=> (x#z)#(y#z)"
-    Ap    "[| x=1=>y;  z=1=>w |] ==> x#z =1=> y#w"
+    K     "K##x##y =1=> x"
+    S     "S##x##y##z =1=> (x##z)##(y##z)"
+    Ap    "[| x=1=>y;  z=1=>w |] ==> x##z =1=> y##w"
 
 
 (*Misc definitions*)
 constdefs
   I :: comb
-  "I == S#K#K"
+  "I == S##K##K"
 
   (*confluence; Lambda/Commutation treats this more abstractly*)
   diamond   :: "('a * 'a)set => bool"	

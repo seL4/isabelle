@@ -47,7 +47,7 @@ qed "diamond_rtrancl";
 (*Derive a case for each combinator constructor*)
 val K_contractE  = contract.mk_cases "K -1-> z";
 val S_contractE  = contract.mk_cases "S -1-> z";
-val Ap_contractE = contract.mk_cases "x#y -1-> z";
+val Ap_contractE = contract.mk_cases "x##y -1-> z";
 
 AddSIs [contract.K, contract.S];
 AddIs  [contract.Ap1, contract.Ap2];
@@ -58,32 +58,32 @@ by (Blast_tac 1);
 qed "I_contract_E";
 AddSEs [I_contract_E];
 
-Goal "K#x -1-> z ==> (EX x'. z = K#x' & x -1-> x')";
+Goal "K##x -1-> z ==> (EX x'. z = K##x' & x -1-> x')";
 by (Blast_tac 1);
 qed "K1_contractD";
 AddSEs [K1_contractD];
 
-Goal "x ---> y ==> x#z ---> y#z";
+Goal "x ---> y ==> x##z ---> y##z";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_trans])));
 qed "Ap_reduce1";
 
-Goal "x ---> y ==> z#x ---> z#y";
+Goal "x ---> y ==> z##x ---> z##y";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_trans])));
 qed "Ap_reduce2";
 
 (** Counterexample to the diamond property for -1-> **)
 
-Goal "K#I#(I#I) -1-> I";
+Goal "K##I##(I##I) -1-> I";
 by (rtac contract.K 1);
 qed "KIII_contract1";
 
-Goalw [I_def] "K#I#(I#I) -1-> K#I#((K#I)#(K#I))";
+Goalw [I_def] "K##I##(I##I) -1-> K##I##((K##I)##(K##I))";
 by (Blast_tac 1);
 qed "KIII_contract2";
 
-Goal "K#I#((K#I)#(K#I)) -1-> I";
+Goal "K##I##((K##I)##(K##I)) -1-> I";
 by (Blast_tac 1);
 qed "KIII_contract3";
 
@@ -98,7 +98,7 @@ qed "not_diamond_contract";
 (*Derive a case for each combinator constructor*)
 val K_parcontractE  = parcontract.mk_cases "K =1=> z";
 val S_parcontractE  = parcontract.mk_cases "S =1=> z";
-val Ap_parcontractE = parcontract.mk_cases "x#y =1=> z";
+val Ap_parcontractE = parcontract.mk_cases "x##y =1=> z";
 
 AddSIs [parcontract.refl, parcontract.K, parcontract.S];
 AddIs  [parcontract.Ap];
@@ -106,17 +106,17 @@ AddSEs [K_parcontractE, S_parcontractE,Ap_parcontractE];
 
 (*** Basic properties of parallel contraction ***)
 
-Goal "K#x =1=> z ==> (EX x'. z = K#x' & x =1=> x')";
+Goal "K##x =1=> z ==> (EX x'. z = K##x' & x =1=> x')";
 by (Blast_tac 1);
 qed "K1_parcontractD";
 AddSDs [K1_parcontractD];
 
-Goal "S#x =1=> z ==> (EX x'. z = S#x' & x =1=> x')";
+Goal "S##x =1=> z ==> (EX x'. z = S##x' & x =1=> x')";
 by (Blast_tac 1);
 qed "S1_parcontractD";
 AddSDs [S1_parcontractD];
 
-Goal "S#x#y =1=> z ==> (EX x' y'. z = S#x'#y' & x =1=> x' & y =1=> y')";
+Goal "S##x##y =1=> z ==> (EX x' y'. z = S##x'##y' & x =1=> x' & y =1=> y')";
 by (Blast_tac 1);
 qed "S2_parcontractD";
 AddSDs [S2_parcontractD];
@@ -148,7 +148,7 @@ qed "contract_subset_parcontract";
 AddIs [Ap_reduce1, Ap_reduce2, r_into_rtrancl, rtrancl_trans];
 
 (*Example only: not used*)
-Goalw [I_def] "I#x ---> x";
+Goalw [I_def] "I##x ---> x";
 by (Blast_tac 1);
 qed "reduce_I";
 
