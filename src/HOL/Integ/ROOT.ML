@@ -8,7 +8,4 @@ The Integers in HOL (ported from ZF by Riccardo Mattolini)
 
 HOL_build_completed;    (*Cause examples to fail if HOL did*)
 
-loadpath := ["Integ"];
 time_use_thy "Integ";
-
-make_chart ();   (*make HTML chart*)

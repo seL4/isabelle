@@ -16,7 +16,5 @@ ZF_build_completed;	(*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/IMP";
 proof_timing := true;
-loadpath := [".","IMP"];
-time_use_thy "Equiv";
 
-make_chart ();   (*make HTML chart*)
+time_use_thy "Equiv";

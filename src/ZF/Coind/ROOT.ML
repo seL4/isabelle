@@ -17,7 +17,5 @@ ZF_build_completed;	(*Make examples fail if ZF did*)
 
 writeln"Root file for ZF/Coind";
 proof_timing := true;
-loadpath     := [".","Coind"];
-time_use_thy "MT";
 
-make_chart ();   (*make HTML chart*)
+time_use_thy "MT";

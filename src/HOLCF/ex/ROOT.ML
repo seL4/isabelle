@@ -10,11 +10,11 @@ HOLCF_build_completed;    (*Cause examples to fail if HOLCF did*)
 
 writeln"Root file for HOLCF examples";
 proof_timing := true;
-time_use_thy "ex/Hoare";
-time_use_thy "ex/Loop";
-time_use_thy "ex/Fix2";
-time_use "ex/loeckx.ML";
 
-make_chart ();   (*make HTML chart*)
+time_use_thy "Hoare";
+time_use_thy "Loop";
+time_use_thy "Fix2";
+time_use "loeckx.ML";
 
+cd "..";
 maketest     "END: Root file for HOLCF examples";

@@ -26,10 +26,7 @@ To load, go to the parent directory and type use"Subst/ROOT.ML";
 HOL_build_completed;    (*Cause examples to fail if HOL did*)
 
 writeln"Root file for Substitutions and Unification";
-loadpath := ["Subst"];
 
 use_thy "Unifier";
-
-make_chart ();   (*make HTML chart*)
 
 writeln"END: Root file for Substitutions and Unification";
