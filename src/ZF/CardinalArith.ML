@@ -5,10 +5,10 @@
 
 Cardinal arithmetic -- WITHOUT the Axiom of Choice
 
-Note: Could omit proving the associative laws for cardinal addition and
+Note: Could omit proving the algebraic laws for cardinal addition and
 multiplication.  On finite cardinals these operations coincide with
 addition and multiplication of natural numbers; on infinite cardinals they
-coincide with union (maximum).  Either way we get associativity for free.
+coincide with union (maximum).  Either way we get most laws for free.
 *)
 
 open CardinalArith;
@@ -63,10 +63,7 @@ qed "cadd_commute";
 
 goalw CardinalArith.thy [eqpoll_def] "(A+B)+C eqpoll A+(B+C)";
 by (rtac exI 1);
-by (res_inst_tac [("c", "case(case(Inl, %y.Inr(Inl(y))), %y. Inr(Inr(y)))"),
-		  ("d", "case(%x.Inl(Inl(x)), case(%x.Inl(Inr(x)), Inr))")] 
-    lam_bijective 1);
-by (ALLGOALS (asm_simp_tac (case_ss setloop etac sumE)));
+by (resolve_tac [sum_assoc_bij] 1);
 qed "sum_assoc_eqpoll";
 
 (*Unconditional version requires AC*)
@@ -86,9 +83,7 @@ qed "well_ord_cadd_assoc";
 
 goalw CardinalArith.thy [eqpoll_def] "0+A eqpoll A";
 by (rtac exI 1);
-by (res_inst_tac [("c", "case(%x.x, %y.y)"), ("d", "Inr")] 
-    lam_bijective 1);
-by (ALLGOALS (asm_simp_tac (case_ss setloop eresolve_tac [sumE,emptyE])));
+by (rtac bij_0_sum 1);
 qed "sum_0_eqpoll";
 
 goalw CardinalArith.thy [cadd_def] "!!K. Card(K) ==> 0 |+| K = K";
@@ -121,7 +116,7 @@ by (res_inst_tac [("x", "lam z:A+B. case(%w. Inl(f`w), %y. Inr(fa`y), z)")]
 by (res_inst_tac 
       [("d", "case(%w. Inl(converse(f)`w), %y. Inr(converse(fa)`y))")] 
       lam_injective 1);
-by (typechk_tac ([inj_is_fun,case_type, InlI, InrI] @ ZF_typechecks));
+by (typechk_tac ([inj_is_fun, case_type, InlI, InrI] @ ZF_typechecks));
 by (etac sumE 1);
 by (ALLGOALS (asm_simp_tac (sum_ss addsimps [left_inverse])));
 qed "sum_lepoll_mono";
@@ -187,11 +182,7 @@ qed "cmult_commute";
 
 goalw CardinalArith.thy [eqpoll_def] "(A*B)*C eqpoll A*(B*C)";
 by (rtac exI 1);
-by (res_inst_tac [("c", "split(%w z. split(%x y. <x,<y,z>>, w))"),
-		  ("d", "split(%x.   split(%y z. <<x,y>, z>))")] 
-    lam_bijective 1);
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_simp_tac ZF_ss));
+by (resolve_tac [prod_assoc_bij] 1);
 qed "prod_assoc_eqpoll";
 
 (*Unconditional version requires AC*)
@@ -211,13 +202,20 @@ qed "well_ord_cmult_assoc";
 
 goalw CardinalArith.thy [eqpoll_def] "(A+B)*C eqpoll (A*C)+(B*C)";
 by (rtac exI 1);
-by (res_inst_tac
-    [("c", "split(%x z. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x))"),
-     ("d", "case(split(%x y.<Inl(x),y>), split(%x y.<Inr(x),y>))")] 
-    lam_bijective 1);
-by (safe_tac (ZF_cs addSEs [sumE]));
-by (ALLGOALS (asm_simp_tac case_ss));
+by (resolve_tac [sum_prod_distrib_bij] 1);
 qed "sum_prod_distrib_eqpoll";
+
+goalw CardinalArith.thy [cadd_def, cmult_def]
+    "!!i j k. [| well_ord(i,ri); well_ord(j,rj); well_ord(k,rk) |] ==>	\
+\             (i |+| j) |*| k = (i |*| k) |+| (j |*| k)";
+by (rtac cardinal_cong 1);
+by (rtac ([well_ord_cardinal_eqpoll, eqpoll_refl] MRS prod_eqpoll_cong RS
+	  eqpoll_trans) 1);
+by (rtac (sum_prod_distrib_eqpoll RS eqpoll_trans) 2);
+by (rtac ([well_ord_cardinal_eqpoll, well_ord_cardinal_eqpoll] MRS sum_eqpoll_cong RS
+	  eqpoll_sym) 2);
+by (REPEAT (ares_tac [well_ord_rmult, well_ord_radd] 1));
+qed "well_ord_cadd_cmult_distrib";
 
 (** Multiplication by 0 yields 0 **)
 
@@ -236,9 +234,7 @@ qed "cmult_0";
 
 goalw CardinalArith.thy [eqpoll_def] "{x}*A eqpoll A";
 by (rtac exI 1);
-by (res_inst_tac [("c", "snd"), ("d", "%z.<x,z>")] lam_bijective 1);
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_simp_tac ZF_ss));
+by (resolve_tac [singleton_prod_bij RS bij_converse_bij] 1);
 qed "prod_singleton_eqpoll";
 
 goalw CardinalArith.thy [cmult_def, succ_def] "!!K. Card(K) ==> 1 |*| K = K";
@@ -479,12 +475,12 @@ qed "csquare_or_eqI";
 (** The cardinality of initial segments **)
 
 goal CardinalArith.thy
-    "!!K. [| InfCard(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
+    "!!K. [| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
 \         ordermap(K*K, csquare_rel(K)) ` <x,y> lepoll 		\
 \         ordermap(K*K, csquare_rel(K)) ` <z,z>";
 by (subgoals_tac ["z<K", "well_ord(K*K, csquare_rel(K))"] 1);
-by (etac (InfCard_is_Card RS Card_is_Ord RS well_ord_csquare) 2);
-by (fast_tac (ZF_cs addSIs [Un_least_lt, InfCard_is_Limit, Limit_has_succ]) 2);
+by (etac (Limit_is_Ord RS well_ord_csquare) 2);
+by (fast_tac (ZF_cs addSIs [Un_least_lt, Limit_has_succ]) 2);
 by (rtac (OrdmemD RS subset_imp_lepoll) 1);
 by (res_inst_tac [("z1","z")] (csquare_ltI RS ordermap_mono) 1);
 by (etac well_ord_is_wf 4);
@@ -495,17 +491,16 @@ qed "ordermap_z_lepoll";
 
 (*Kunen: "each <x,y>: K*K has no more than z*z predecessors..." (page 29) *)
 goalw CardinalArith.thy [cmult_def]
-  "!!K. [| InfCard(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
+  "!!K. [| Limit(K);  x<K;  y<K;  z=succ(x Un y) |] ==> \
 \       | ordermap(K*K, csquare_rel(K)) ` <x,y> | le  |succ(z)| |*| |succ(z)|";
 by (rtac (well_ord_rmult RS well_ord_lepoll_imp_Card_le) 1);
 by (REPEAT (ares_tac [Ord_cardinal, well_ord_Memrel] 1));
 by (subgoals_tac ["z<K"] 1);
-by (fast_tac (ZF_cs addSIs [Un_least_lt, InfCard_is_Limit, 
-                            Limit_has_succ]) 2);
+by (fast_tac (ZF_cs addSIs [Un_least_lt, Limit_has_succ]) 2);
 by (rtac (ordermap_z_lepoll RS lepoll_trans) 1);
 by (REPEAT_SOME assume_tac);
 by (rtac (ordermap_eqpoll_pred RS eqpoll_imp_lepoll RS lepoll_trans) 1);
-by (etac (InfCard_is_Card RS Card_is_Ord RS well_ord_csquare) 1);
+by (etac (Limit_is_Ord RS well_ord_csquare) 1);
 by (fast_tac (ZF_cs addIs [ltD]) 1);
 by (rtac (pred_csquare_subset RS subset_imp_lepoll RS lepoll_trans) 1 THEN
     assume_tac 1);
@@ -529,7 +524,7 @@ by (asm_full_simp_tac (ZF_ss addsimps [ordertype_unfold]) 1);
 by (safe_tac (ZF_cs addSEs [ltE]));
 by (subgoals_tac ["Ord(xb)", "Ord(y)"] 1);
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 2));
-by (rtac (ordermap_csquare_le RS lt_trans1) 1  THEN
+by (rtac (InfCard_is_Limit RS ordermap_csquare_le RS lt_trans1) 1  THEN
     REPEAT (ares_tac [refl] 1 ORELSE etac ltI 1));
 by (res_inst_tac [("i","xb Un y"), ("j","nat")] Ord_linear2 1  THEN
     REPEAT (ares_tac [Ord_Un, Ord_nat] 1));
@@ -539,22 +534,13 @@ by (asm_full_simp_tac (FOL_ss addsimps [InfCard_def]) 2);
 by (asm_full_simp_tac
     (ZF_ss addsimps [lt_def, nat_cmult_eq_mult, nat_succI, mult_type,
 		     nat_into_Card RS Card_cardinal_eq, Ord_nat]) 1);
-(*case nat le (xb Un y), equivalently InfCard(xb Un y)  *)
+(*case nat le (xb Un y) *)
 by (asm_full_simp_tac
     (ZF_ss addsimps [le_imp_subset RS nat_succ_eqpoll RS cardinal_cong,
 		     le_succ_iff, InfCard_def, Card_cardinal, Un_least_lt, 
 		     Ord_Un, ltI, nat_le_cardinal,
 		     Ord_cardinal_le RS lt_trans1 RS ltD]) 1);
 qed "ordertype_csquare_le";
-
-(*This lemma can easily be generalized to premise well_ord(A*A,r) *)
-goalw CardinalArith.thy [cmult_def]
-    "!!K. Ord(K) ==> K |*| K  =  |ordertype(K*K, csquare_rel(K))|";
-by (rtac cardinal_cong 1);
-by (rewtac eqpoll_def);
-by (rtac exI 1);
-by (etac (well_ord_csquare RS ordermap_bij) 1);
-qed "csquare_eq_ordertype";
 
 (*Main result: Kunen's Theorem 10.12*)
 goal CardinalArith.thy "!!K. InfCard(K) ==> K |*| K = K";
@@ -568,7 +554,9 @@ by (rtac (ordertype_csquare_le RSN (2, le_trans)) 1);
 by (assume_tac 2);
 by (assume_tac 2);
 by (asm_simp_tac 
-    (ZF_ss addsimps [csquare_eq_ordertype, Ord_cardinal_le,
+    (ZF_ss addsimps [cmult_def, Ord_cardinal_le,
+		     well_ord_csquare RS ordermap_bij RS 
+		          bij_imp_eqpoll RS cardinal_cong,
                      well_ord_csquare RS Ord_ordertype]) 1);
 qed "InfCard_csquare_eq";
 
@@ -650,10 +638,11 @@ by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
 by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
 by (rewtac Transset_def);
 by (safe_tac ZF_cs);
-by (rtac (ordertype_subset RS exE) 1 THEN REPEAT (assume_tac 1));
+by (asm_full_simp_tac (ZF_ss addsimps [ordertype_pred_unfold]) 1);
+by (safe_tac ZF_cs);
 by (rtac UN_I 1);
 by (rtac ReplaceI 2);
-by (ALLGOALS (fast_tac (ZF_cs addSEs [well_ord_subset])));
+by (ALLGOALS (fast_tac (ZF_cs addSEs [well_ord_subset, predE])));
 qed "Ord_jump_cardinal";
 
 (*Allows selective unfolding.  Less work than deriving intro/elim rules*)
