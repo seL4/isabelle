@@ -117,6 +117,12 @@ logics (again);
 
 * HOL/Map: new theory of `maps' a la VDM;
 
+* HOL/simplifier: simplification procedures nat_cancel_sums for
+cancelling out common nat summands from =, <, <= (in)equalities, or
+differences; simplification procedures nat_cancel_factor for
+cancelling common factor from =, <, <= (in)equalities over natural
+sums;  nat_cancel contains both kinds of procedures;
+
 * HOL/simplifier: terms of the form
   `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)'  (or t=x)
   are rewritten to
