@@ -153,16 +153,15 @@ fun get_local_clasimpset ctxt =
   (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
 
 val clasimp_modifiers = Classical.cla_modifiers @ Simplifier.simp_modifiers;
-val clasimp_args = Method.only_sectioned_args clasimp_modifiers;
 
-fun clasimp_meth tac ctxt = Method.METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac facts) THEN tac (get_local_clasimpset ctxt));
+fun clasimp_meth tac prems ctxt = Method.METHOD (fn facts =>
+  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_clasimpset ctxt));
 
-fun clasimp_meth' tac ctxt = Method.METHOD (fn facts =>
-  FIRSTGOAL (Method.insert_tac facts THEN' tac (get_local_clasimpset ctxt)));
+fun clasimp_meth' tac prems ctxt = Method.METHOD (fn facts =>
+  FIRSTGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_clasimpset ctxt)));
 
-val clasimp_method = clasimp_args o clasimp_meth;
-val clasimp_method' = clasimp_args o clasimp_meth';
+val clasimp_method = Method.bang_sectioned_args clasimp_modifiers o clasimp_meth;
+val clasimp_method' = Method.bang_sectioned_args clasimp_modifiers o clasimp_meth';
 
 
 val setup =

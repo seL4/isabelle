@@ -68,7 +68,7 @@ signature BLAST_DATA =
 		 safe0_netpair: netpair, safep_netpair: netpair,
 		 haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: netpair}
   val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
+  val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
   end;
 
 
@@ -1330,11 +1330,11 @@ fun tryInThy thy lim s =
 
 (** method setup **)
 
-val blast_args =
-  Method.sectioned_args (K (Scan.lift (Scan.option Args.nat))) Data.cla_modifiers;
+fun blast_args m =
+  Method.sectioned_args (K (Args.bang_facts -- Scan.lift (Scan.option Args.nat))) Data.cla_modifiers m;
 
-fun blast_meth None = Data.cla_meth' blast_tac
-  | blast_meth (Some lim) = Data.cla_meth' (fn cs => depth_tac cs lim);
+fun blast_meth (prems, None) = Data.cla_meth' blast_tac prems
+  | blast_meth (prems, Some lim) = Data.cla_meth' (fn cs => depth_tac cs lim) prems;
 
 val setup = [Method.add_methods [("blast", blast_args blast_meth, "tableau prover")]];
 

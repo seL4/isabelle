@@ -162,8 +162,8 @@ sig
   val xtra_intro_local: Proof.context attribute
   val delrule_local: Proof.context attribute
   val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val cla_meth: (claset -> tactic) -> Proof.context -> Proof.method
-  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
+  val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
+  val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
   val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   val setup: (theory -> theory) list
@@ -347,7 +347,7 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwr
 	  cs)
   else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          partition (fn rl => nprems_of rl=0) [th]
+          partition Thm.no_prems [th]
       val nI = length safeIs + 1
       and nE = length safeEs
   in warn_dup th cs;
@@ -530,7 +530,7 @@ fun delSI th
           (cs as CS{safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, swrappers, uwrappers,
 		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm (th, safeIs) then
-   let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=0) [th]
+   let val (safe0_rls, safep_rls) = partition Thm.no_prems [th]
    in CS{safe0_netpair = delete (safe0_rls, []) safe0_netpair,
 	 safep_netpair = delete (safep_rls, []) safep_netpair,
 	 safeIs	= rem_thm (safeIs,th),
@@ -1145,16 +1145,14 @@ val cla_modifiers =
   Args.$$$ introN >> K (I, safe_intro_local),
   Args.$$$ delN >> K (I, delrule_local)];
 
-val cla_args = Method.only_sectioned_args cla_modifiers;
+fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
+  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_claset ctxt));
 
-fun cla_meth tac ctxt = Method.METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac facts) THEN tac (get_local_claset ctxt));
+fun cla_meth' tac prems ctxt = Method.METHOD (fn facts =>
+  FIRSTGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_claset ctxt)));
 
-fun cla_meth' tac ctxt = Method.METHOD (fn facts =>
-  FIRSTGOAL (Method.insert_tac facts THEN' tac (get_local_claset ctxt)));
-
-val cla_method = cla_args o cla_meth;
-val cla_method' = cla_args o cla_meth';
+val cla_method = Method.bang_sectioned_args cla_modifiers o cla_meth;
+val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';
 
 
 
