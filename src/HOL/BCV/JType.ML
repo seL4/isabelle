@@ -112,7 +112,7 @@ qed "closed_err_types";
 
 AddIffs [OK_le_conv];
 
-Goalw [semilat_def,split RS eq_reflection,JType.esl_def,Err.sl_def]
+Goalw [semilat_def, split_conv RS eq_reflection,JType.esl_def,Err.sl_def]
  "[| single_valued S; acyclic S |] ==> err_semilat (JType.esl S)";
 by (asm_full_simp_tac (simpset() addsimps [acyclic_impl_order_subtype,closed_err_types]) 1);
 

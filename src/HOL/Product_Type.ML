@@ -167,8 +167,9 @@ Addsimps [split_paired_Ex];
 
 Goalw [split_def] "split c (a,b) = c a b";
 by (Simp_tac 1);
-qed "split";
-Addsimps [split];
+qed "split_conv";
+Addsimps [split_conv];
+(*bind_thm ("split", split_conv);                  (*for compatibility*)*)
 
 (*Subsumes the old split_Pair when f is the identity function*)
 Goal "split (%x y. f(x,y)) = f";
@@ -200,7 +201,7 @@ qed "split_weak_cong";
 Goal "(%(x,y). f(x,y)) = f";
 by (rtac ext 1);
 by (split_all_tac 1);
-by (rtac split 1);
+by (rtac split_conv 1);
 qed "split_eta";
 
 val prems = Goal "(!!x y. f x y = g(x,y)) ==> (%(x,y). f x y) = g";
@@ -260,13 +261,13 @@ end;
 Addsimprocs [split_beta_proc,split_eta_proc];
 
 Goal "(%(x,y). P x y) z = P (fst z) (snd z)";
-by (stac surjective_pairing 1 THEN rtac split 1);
+by (stac surjective_pairing 1 THEN rtac split_conv 1);
 qed "split_beta";
 
 (*For use with split_tac and the simplifier*)
 Goal "R (split c p) = (! x y. p = (x,y) --> R (c x y))";
 by (stac surjective_pairing 1);
-by (stac split 1);
+by (stac split_conv 1);
 by (Blast_tac 1);
 qed "split_split";
 
@@ -318,7 +319,7 @@ by (rtac (split_beta RS subst) 1 THEN rtac major 1);
 qed "splitE2";
 
 Goal "split R (a,b) ==> R a b";
-by (etac (split RS iffD1) 1);
+by (etac (split_conv RS iffD1) 1);
 qed "splitD";
 
 Goal "z: c a b ==> z: split c (a,b)";
@@ -377,7 +378,7 @@ qed "Eps_split_eq";
 (*** prod_fun -- action of the product functor upon functions ***)
 
 Goalw [prod_fun_def] "prod_fun f g (a,b) = (f(a),g(b))";
-by (rtac split 1);
+by (rtac split_conv 1);
 qed "prod_fun";
 Addsimps [prod_fun];
 
@@ -569,7 +570,7 @@ qed "Times_Diff_distrib1";
 
 
 (*Attempts to remove occurrences of split, and pair-valued parameters*)
-val remove_split = rewrite_rule [split RS eq_reflection] o split_all;
+val remove_split = rewrite_rule [split_conv RS eq_reflection] o split_all;
 
 local
 

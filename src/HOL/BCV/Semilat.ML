@@ -39,7 +39,7 @@ by (blast_tac (claset() addIs [order_antisym]) 1);
 qed "top_le_conv";
 Addsimps [top_le_conv];
 
-Goalw [semilat_def,split RS eq_reflection]
+Goalw [semilat_def, split_conv RS eq_reflection]
 "semilat(A,r,f) == order r & closed A f & \
 \                (!x:A. !y:A. x <=_r x +_f y)  & \
 \                (!x:A. !y:A. y <=_r x +_f y)  & \

@@ -340,7 +340,7 @@ lemma semilat_Listn_sl:
   "!!L. semilat L ==> semilat (Listn.sl n L)"
 apply (unfold Listn.sl_def)
 apply (simp (no_asm_simp) only: split_tupled_all)
-apply (simp (no_asm) only: semilat_Def Product_Type.split)
+apply (simp (no_asm) only: semilat_Def split_conv)
 apply (rule conjI)
  apply simp
 apply (rule conjI)
@@ -471,7 +471,7 @@ lemma err_semilat_sup:
   "err_semilat (A,r,f) ==> 
   err_semilat (list n A, Listn.le r, sup f)"
 apply (unfold Err.sl_def)
-apply (simp only: Product_Type.split)
+apply (simp only: split_conv)
 apply (simp (no_asm) only: semilat_Def plussub_def)
 apply (simp (no_asm_simp) only: semilatDclosedI closed_lift2_sup)
 apply (rule conjI)

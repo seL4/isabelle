@@ -360,7 +360,7 @@ Goal "lift_map i ` (A <*> UNIV) = \
 \     (UN s:A. UN f. {insert_map i s f}) <*> UNIV";
 by (auto_tac (claset() addSIs [bexI, image_eqI],
               simpset() addsimps [lift_map_def]));
-by (rtac (split RS sym) 1);
+by (rtac (split_conv RS sym) 1);
 qed "lift_map_image_Times";
 
 Goal "(lift i F : preserves v) = (F : preserves (v o lift_map i))";

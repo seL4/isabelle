@@ -665,7 +665,7 @@ fun restricted t = is_some (S.find_term
 
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  let val globals = func::G
-     val pbeta_reduce = simpl_conv empty_ss [split RS eq_reflection];
+     val pbeta_reduce = simpl_conv empty_ss [split_conv RS eq_reflection];
      val tc_list = ref[]: term list ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []

@@ -50,7 +50,7 @@ qed "le_None";
 AddIffs [le_None];
 
 
-Goalw [Opt.sl_def,semilat_def,closed_def,split RS eq_reflection]
+Goalw [Opt.sl_def,semilat_def,closed_def, split_conv RS eq_reflection]
  "!!L. semilat L ==> semilat (Opt.sl L)";
 by (split_all_tac 1);
 by (asm_full_simp_tac (simpset() addsplits [option.split]

@@ -269,7 +269,7 @@ qed "closed_listI";
 Goalw [Listn.sl_def]
  "!!L. semilat L ==> semilat (Listn.sl n L)";
 by (split_all_tac 1);
-by (simp_tac (HOL_basic_ss addsimps [semilat_Def,split]) 1);
+by (simp_tac (HOL_basic_ss addsimps [semilat_Def, split_conv]) 1);
 by (rtac conjI 1);
  by (Asm_simp_tac 1);
 by (rtac conjI 1);
@@ -400,7 +400,7 @@ qed "closed_lift2_sup";
 Goalw [Err.sl_def]
  "err_semilat (A,r,f) ==> \
 \ err_semilat (list n A, Listn.le r, sup f)";
-by (asm_full_simp_tac (HOL_basic_ss addsimps [split]) 1);
+by (asm_full_simp_tac (HOL_basic_ss addsimps [split_conv]) 1);
 by (simp_tac (HOL_basic_ss addsimps [semilat_Def,plussub_def]) 1);
 by (asm_simp_tac(HOL_basic_ss addsimps [semilatDclosedI,closed_lift2_sup]) 1);
 by (rtac conjI 1);

@@ -147,7 +147,7 @@ val Compl_Collect = prove_goal (the_context ()) "-(Collect b) = {x. ~(b x)}"
 val before_set2pred_simp_tac =
   (simp_tac (HOL_basic_ss addsimps [Collect_conj_eq RS sym,Compl_Collect]));
 
-val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [split]));
+val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [split_conv]));
 
 (*****************************************************************************)
 (** set2pred transforms sets inclusion into predicates implication,         **)
@@ -171,7 +171,7 @@ fun set2pred i thm = let fun mk_string [] = ""
                   dtac CollectD i,
                   (TRY(split_all_tac i)) THEN_MAYBE
                   ((rename_tac var_string i) THEN
-                   (full_simp_tac (HOL_basic_ss addsimps [split]) i)) ])) thm
+                   (full_simp_tac (HOL_basic_ss addsimps [split_conv]) i)) ])) thm
       end;
 
 (*****************************************************************************)
@@ -186,7 +186,7 @@ fun MaxSimpTac tac = FIRST'[rtac subset_refl, set2pred THEN_MAYBE' tac];
 
 fun BasicSimpTac tac =
   simp_tac
-    (HOL_basic_ss addsimps [mem_Collect_eq,split] addsimprocs [record_simproc])
+    (HOL_basic_ss addsimps [mem_Collect_eq,split_conv] addsimprocs [record_simproc])
   THEN_MAYBE' MaxSimpTac tac;
 
 (** HoareRuleTac **)

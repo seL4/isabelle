@@ -102,7 +102,7 @@ lemma semilat_Def:
                  (!x:A. !y:A. x <=_r x +_f y) & 
                  (!x:A. !y:A. y <=_r x +_f y) & 
                  (!x:A. !y:A. !z:A. x <=_r z & y <=_r z --> x +_f y <=_r z)"
-apply (unfold semilat_def Product_Type.split [THEN eq_reflection])
+apply (unfold semilat_def split_conv [THEN eq_reflection])
 apply (rule refl [THEN eq_reflection])
 done
 
