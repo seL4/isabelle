@@ -148,8 +148,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Hyperreal/Filter.ML Hyperreal/Filter.thy Hyperreal/HSeries.thy\
   Hyperreal/HTranscendental.thy Hyperreal/HyperArith.thy\
   Hyperreal/HyperDef.thy Hyperreal/HyperNat.thy\
-  Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy\
-  Hyperreal/IntFloor.thy Hyperreal/IntFloor.ML\
+  Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy Hyperreal/IntFloor.thy\
   Hyperreal/Lim.ML Hyperreal/Lim.thy Hyperreal/Log.thy\
   Hyperreal/MacLaurin.ML Hyperreal/MacLaurin.thy Hyperreal/NatStar.thy\
   Hyperreal/NSA.thy Hyperreal/NthRoot.thy\
