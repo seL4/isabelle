@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow, with minor changes by Konrad Slind
     Copyright   1992  University of Cambridge/1995 TU Munich
 
-For WF.thy.  Wellfoundedness, induction, and  recursion
+Wellfoundedness, induction, and  recursion
 *)
 
 open WF;
@@ -61,6 +61,28 @@ by (etac tranclE 1);
 by (Blast_tac 1);
 by (Blast_tac 1);
 qed "wf_trancl";
+
+
+(*----------------------------------------------------------------------------
+ * Minimal-element characterization of well-foundedness
+ *---------------------------------------------------------------------------*)
+
+val wfr::_ = goalw WF.thy [wf_def]
+    "wf r ==> x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)";
+by (rtac (wfr RS spec RS mp RS spec) 1);
+by (Blast_tac 1);
+val lemma1 = result();
+
+goalw WF.thy [wf_def]
+    "!!r. (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
+by (strip_tac 1);
+by (dres_inst_tac [("x", "{x. ~ P x}")] spec 1);
+by (Blast_tac 1);
+val lemma2 = result();
+
+goal WF.thy "wf r = (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q))";
+by (blast_tac (!claset addSIs [lemma1, lemma2]) 1);
+qed "wf_eq_minimal";
 
 
 (** cut **)
@@ -225,4 +247,29 @@ val rew::prems = goal WF.thy
 by (rewtac rew);
 by (REPEAT (resolve_tac (prems@[wfrec]) 1));
 qed "def_wfrec";
+
+
+(**** TFL variants ****)
+
+goal WF.thy
+    "!R. wf R --> (!P. (!x. (!y. (y,x):R --> P y) --> P x) --> (!x. P x))";
+by (strip_tac 1);
+by (res_inst_tac [("r","R"),("P","P"), ("a","x")] wf_induct 1);
+by (assume_tac 1);
+by (Blast_tac 1);
+qed"tfl_wf_induct";
+
+goal WF.thy "!f R. (x,a):R --> (cut f R a)(x) = f(x)";
+by (strip_tac 1);
+by (rtac cut_apply 1);
+by (assume_tac 1);
+qed"tfl_cut_apply";
+
+goal WF.thy "!M R f. (f=wfrec R M) --> wf R --> (!x. f x = M (cut f R x) x)";
+by (strip_tac 1);
+by (res_inst_tac [("r","R"), ("H","M"),
+                  ("a","x"), ("f","f")] (eq_reflection RS def_wfrec) 1);
+by (assume_tac 1);
+by (assume_tac 1);
+qed "tfl_wfrec";
 
