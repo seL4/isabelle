@@ -370,4 +370,29 @@ apply(case_tac bs)
  apply auto
 done
 
+lemma map_le_implies_dom_le: "(f \<subseteq>\<^sub>m g) \<Longrightarrow> (dom f \<subseteq> dom g)"
+  by (fastsimp simp add: map_le_def dom_def)
+
+lemma map_le_refl [simp]: "f \<subseteq>\<^sub>m f"
+  by (simp add: map_le_def)
+
+lemma map_le_trans: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m h \<rbrakk> \<Longrightarrow> f \<subseteq>\<^sub>m h"
+  apply (clarsimp simp add: map_le_def)
+  apply (drule_tac x="a" in bspec, fastsimp)+
+  apply assumption
+done
+
+lemma map_le_antisym: "\<lbrakk> f \<subseteq>\<^sub>m g; g \<subseteq>\<^sub>m f \<rbrakk> \<Longrightarrow> f = g"
+  apply (unfold map_le_def)
+  apply (rule ext)
+  apply (case_tac "x \<in> dom f")
+    apply simp
+  apply (case_tac "x \<in> dom g")
+    apply simp
+  apply fastsimp
+done
+
+lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"
+  by (fastsimp simp add: map_le_def)
+
 end
