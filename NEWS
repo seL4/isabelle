@@ -95,7 +95,7 @@ logics (again);
 
 *** HOL ***
 
-* HOL: there is a new splitter `split_prem_tac' that can be used e.g. 
+* HOL: there is a new splitter `split_asm_tac' that can be used e.g. 
   with `addloop' of the simplifier to faciliate case splitting in premises.
 
 * HOL/TLA: Stephan Merz's formalization of Lamport's Temporal Logic of Actions;
@@ -131,7 +131,7 @@ logics (again);
   expand_list_case and expand_option_case have been renamed to
   split_list_case and split_option_case.
 
-  Additionally, there is a theorem `split_t_case_prem' of the form
+  Additionally, there is a theorem `split_t_case_asm' of the form
 
   P(t_case f1 ... fn x) =
     ~( (? y1 ... ym1. x = C1 y1 ... ym1 & ~P(f1 y1 ... ym1)) |
@@ -139,7 +139,7 @@ logics (again);
        (? y1 ... ymn. x = Cn y1 ... ymn & ~P(f1 y1 ... ymn))
      )
 
-  it be used with the new `split_prem_tac'.
+  it be used with the new `split_asm_tac'.
 
 * HOL/Lists: the function "set_of_list" has been renamed "set"
   (and its theorems too);
@@ -175,7 +175,7 @@ adm (%x. P (t x)), where P is chainfinite and t continuous;
 
 *** FOL and ZF ***
 
-* FOL: there is a new splitter `split_prem_tac' that can be used e.g. 
+* FOL: there is a new splitter `split_asm_tac' that can be used e.g. 
   with `addloop' of the simplifier to faciliate case splitting in premises.
 
 * qed_spec_mp, qed_goal_spec_mp, qed_goalw_spec_mp are available, as
