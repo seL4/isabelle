@@ -1,3 +1,4 @@
+<!-- $Id$ -->
 <HTML><HEAD><TITLE>HOL/ReadMe</TITLE></HEAD><BODY>
 
 <H2>HOL: Higher-Order Logic with curried functions</H2>
@@ -12,10 +13,32 @@ Isabelle and type: use "ROOT.ML";<P>
 
 <DT>Makefile
 <DD>compiles the files under Poly/ML or SML of New Jersey<P>
+</DL>
 
+<P>There are several subdirectories.  To execute them, issue the command
+<PRE>
+        use_dir "<I>&lt;DIR&gt;</I>";
+</PRE>
+where <I>&lt;DIR&gt;</I> is the desired directory 
+
+<DL>
 <DT>ex
-<DD>subdirectory containing examples.  To execute them, enter an ML image
-containing HOL and type: use "ex/ROOT.ML";<P>
+<DD>general examples
+
+<DT>Auth
+<DD>a new approach to verifying authentication protocols 
+
+<DT>IMP
+<DD>mechanization of a large part of a semantics text by Glynn Winskel
+
+<DT>Integ
+<DD>a theory of the integers including efficient integer calculations
+
+<DT>IOA
+<DD>extended example of Input/Output Automata (takes a long time to run!)
+
+<DT>Lambda
+<DD>a proof of the Church-Rosser theorem for lambda-calculus
 
 <DT>Subst
 <DD>subdirectory defining a theory of substitution and unification.
