@@ -48,7 +48,7 @@ consts
   (*Client, server write keys generated uniformly by function sessionK
     to avoid duplicating their properties.
     Theyimplicitly include the MAC secrets.*)
-  sessionK :: "bool*nat*nat*nat => key"
+  sessionK :: "(nat*nat*nat)*bool => key"
 
   certificate      :: "[agent,key] => msg"
 
@@ -60,8 +60,8 @@ syntax
     clientK, serverK :: "nat*nat*nat => key"
 
 translations
-  "clientK (x)"	== "sessionK(True,x)"
-  "serverK (x)"	== "sessionK(False,x)"
+  "clientK (x)"	== "sessionK(x,True)"
+  "serverK (x)"	== "sessionK(x,False)"
 
 rules
   inj_PRF       "inj PRF"	
@@ -252,6 +252,12 @@ inductive tls
 			       Nonce NB, Number XB, Agent B|}))
               # evsCR  :  tls"
 
-  (**Oops message??**)
+    Oops 
+         (*The most plausible compromise is of an old session key.  Losing
+           the MASTER SECRET or PREMASTER SECRET is more serious but
+           rather unlikely.*)
+         "[| evso: tls;  A ~= Spy;  
+	     Says A B (Crypt (sessionK((NA,NB,M),b)) X) : set evso |]
+          ==> Says A Spy (Key (sessionK((NA,NB,M),b))) # evso  :  tls"
 
 end
