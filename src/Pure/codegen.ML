@@ -44,8 +44,12 @@ sig
   val parens: Pretty.T -> Pretty.T
   val mk_app: bool -> Pretty.T -> Pretty.T list -> Pretty.T
   val eta_expand: term -> term list -> int -> term
+  val strip_tname: string -> string
   val mk_type: bool -> typ -> Pretty.T
   val mk_term_of: Sign.sg -> bool -> typ -> Pretty.T
+  val mk_gen: Sign.sg -> bool -> string list -> string -> typ -> Pretty.T
+  val test_fn: (int -> (string * term) list option) ref
+  val test_term: theory -> int -> int -> term -> (string * term) list option
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
   val parsers: OuterSyntax.parser list
   val setup: (theory -> theory) list
@@ -87,11 +91,40 @@ fun num_args x = length (filter is_arg x);
 
 (**** theory data ****)
 
-(* data kind 'Pure/codegen' *)
+(* type of code generators *)
 
 type 'a codegen = theory -> (exn option * string) Graph.T ->
   string -> bool -> 'a -> ((exn option * string) Graph.T * Pretty.T) option;
 
+(* parameters for random testing *)
+
+type test_params =
+  {size: int, iterations: int, default_type: typ option};
+
+fun merge_test_params
+  {size = size1, iterations = iterations1, default_type = default_type1}
+  {size = size2, iterations = iterations2, default_type = default_type2} =
+  {size = Int.max (size1, size2),
+   iterations = Int.max (iterations1, iterations2),
+   default_type = case default_type1 of
+       None => default_type2
+     | _ => default_type1};
+
+val default_test_params : test_params =
+  {size = 10, iterations = 100, default_type = None};
+
+fun set_size size ({iterations, default_type, ...} : test_params) =
+  {size = size, iterations = iterations, default_type = default_type};
+
+fun set_iterations iterations ({size, default_type, ...} : test_params) =
+  {size = size, iterations = iterations, default_type = default_type};
+
+fun set_default_type s sg ({size, iterations, ...} : test_params) =
+  {size = size, iterations = iterations,
+   default_type = Some (typ_of (read_ctyp sg s))};
+
+(* data kind 'Pure/codegen' *)
+ 
 structure CodegenArgs =
 struct
   val name = "Pure/codegen";
@@ -100,23 +133,28 @@ struct
      tycodegens : (string * typ codegen) list,
      consts : ((string * typ) * term mixfix list) list,
      types : (string * typ mixfix list) list,
-     attrs: (string * theory attribute) list};
+     attrs: (string * theory attribute) list,
+     test_params: test_params};
 
   val empty =
-    {codegens = [], tycodegens = [], consts = [], types = [], attrs = []};
+    {codegens = [], tycodegens = [], consts = [], types = [], attrs = [],
+     test_params = default_test_params};
   val copy = I;
   val prep_ext = I;
 
   fun merge
     ({codegens = codegens1, tycodegens = tycodegens1,
-      consts = consts1, types = types1, attrs = attrs1},
+      consts = consts1, types = types1, attrs = attrs1,
+      test_params = test_params1},
      {codegens = codegens2, tycodegens = tycodegens2,
-      consts = consts2, types = types2, attrs = attrs2}) =
+      consts = consts2, types = types2, attrs = attrs2,
+      test_params = test_params2}) =
     {codegens = rev (merge_alists (rev codegens1) (rev codegens2)),
      tycodegens = rev (merge_alists (rev tycodegens1) (rev tycodegens2)),
      consts = merge_alists consts1 consts2,
      types = merge_alists types1 types2,
-     attrs = merge_alists attrs1 attrs2};
+     attrs = merge_alists attrs1 attrs2,
+     test_params = merge_test_params test_params1 test_params2};
 
   fun print sg ({codegens, tycodegens, ...} : T) =
     Pretty.writeln (Pretty.chunks
@@ -128,23 +166,38 @@ structure CodegenData = TheoryDataFun(CodegenArgs);
 val print_codegens = CodegenData.print;
 
 
+(**** access parameters for random testing ****)
+
+fun get_test_params thy = #test_params (CodegenData.get thy);
+
+fun map_test_params f thy =
+  let val {codegens, tycodegens, consts, types, attrs, test_params} =
+    CodegenData.get thy;
+  in CodegenData.put {codegens = codegens, tycodegens = tycodegens,
+    consts = consts, types = types, attrs = attrs,
+    test_params = f test_params} thy
+  end;
+
+
 (**** add new code generators to theory ****)
 
 fun add_codegen name f thy =
-  let val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy
+  let val {codegens, tycodegens, consts, types, attrs, test_params} =
+    CodegenData.get thy
   in (case assoc (codegens, name) of
       None => CodegenData.put {codegens = (name, f) :: codegens,
         tycodegens = tycodegens, consts = consts, types = types,
-        attrs = attrs} thy
+        attrs = attrs, test_params = test_params} thy
     | Some _ => error ("Code generator " ^ name ^ " already declared"))
   end;
 
 fun add_tycodegen name f thy =
-  let val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy
+  let val {codegens, tycodegens, consts, types, attrs, test_params} =
+    CodegenData.get thy
   in (case assoc (tycodegens, name) of
       None => CodegenData.put {tycodegens = (name, f) :: tycodegens,
         codegens = codegens, consts = consts, types = types,
-        attrs = attrs} thy
+        attrs = attrs, test_params = test_params} thy
     | Some _ => error ("Code generator " ^ name ^ " already declared"))
   end;
 
@@ -152,11 +205,12 @@ fun add_tycodegen name f thy =
 (**** code attribute ****)
 
 fun add_attribute name att thy =
-  let val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy
+  let val {codegens, tycodegens, consts, types, attrs, test_params} =
+    CodegenData.get thy
   in (case assoc (attrs, name) of
       None => CodegenData.put {tycodegens = tycodegens,
         codegens = codegens, consts = consts, types = types,
-        attrs = (name, att) :: attrs} thy
+        attrs = (name, att) :: attrs, test_params = test_params} thy
     | Some _ => error ("Code attribute " ^ name ^ " already declared"))
   end;
 
@@ -172,7 +226,8 @@ val code_attr =
 fun gen_assoc_consts prep_type xs thy = foldl (fn (thy, (s, tyopt, syn)) =>
   let
     val sg = sign_of thy;
-    val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy;
+    val {codegens, tycodegens, consts, types, attrs, test_params} =
+      CodegenData.get thy;
     val cname = Sign.intern_const sg s;
   in
     (case Sign.const_type sg cname of
@@ -188,7 +243,7 @@ fun gen_assoc_consts prep_type xs thy = foldl (fn (thy, (s, tyopt, syn)) =>
              None => CodegenData.put {codegens = codegens,
                tycodegens = tycodegens,
                consts = ((cname, T'), syn) :: consts,
-               types = types, attrs = attrs} thy
+               types = types, attrs = attrs, test_params = test_params} thy
            | Some _ => error ("Constant " ^ cname ^ " already associated with code"))
          end
      | _ => error ("Not a constant: " ^ s))
@@ -201,13 +256,15 @@ val assoc_consts = gen_assoc_consts (fn sg => typ_of o read_ctyp sg);
 
 fun assoc_types xs thy = foldl (fn (thy, (s, syn)) =>
   let
-    val {codegens, tycodegens, consts, types, attrs} = CodegenData.get thy;
+    val {codegens, tycodegens, consts, types, attrs, test_params} =
+      CodegenData.get thy;
     val tc = Sign.intern_tycon (sign_of thy) s
   in
     (case assoc (types, tc) of
        None => CodegenData.put {codegens = codegens,
          tycodegens = tycodegens, consts = consts,
-         types = (tc, syn) :: types, attrs = attrs} thy
+         types = (tc, syn) :: types, attrs = attrs,
+         test_params = test_params} thy
      | Some _ => error ("Type " ^ tc ^ " already associated with code"))
   end) (thy, xs);
 
@@ -341,15 +398,19 @@ fun default_codegen thy gr dep brack t =
     val (u, ts) = strip_comb t;
     fun codegens brack = foldl_map (invoke_codegen thy dep brack)
   in (case u of
-      Var ((s, i), _) =>
-        let val (gr', ps) = codegens true (gr, ts)
-        in Some (gr', mk_app brack (Pretty.str (s ^
+      Var ((s, i), T) =>
+        let
+          val (gr', ps) = codegens true (gr, ts);
+          val (gr'', _) = invoke_tycodegen thy dep false (gr', T)
+        in Some (gr'', mk_app brack (Pretty.str (s ^
            (if i=0 then "" else string_of_int i))) ps)
         end
 
-    | Free (s, _) =>
-        let val (gr', ps) = codegens true (gr, ts)
-        in Some (gr', mk_app brack (Pretty.str s) ps) end
+    | Free (s, T) =>
+        let
+          val (gr', ps) = codegens true (gr, ts);
+          val (gr'', _) = invoke_tycodegen thy dep false (gr', T)
+        in Some (gr'', mk_app brack (Pretty.str s) ps) end
 
     | Const (s, T) =>
       (case get_assoc_code thy s T of
@@ -473,6 +534,79 @@ fun mk_term_of sg p (TVar ((s, i), _)) = Pretty.str
         flat (map (fn T => [mk_term_of sg true T, mk_type true T]) Ts))));
 
 
+(**** Test data generators ****)
+
+fun mk_gen sg p xs a (TVar ((s, i), _)) = Pretty.str
+      (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "G")
+  | mk_gen sg p xs a (TFree (s, _)) = Pretty.str (strip_tname s ^ "G")
+  | mk_gen sg p xs a (Type (s, Ts)) = (if p then parens else I) (Pretty.block
+      (separate (Pretty.brk 1) (Pretty.str ("gen_" ^ mk_type_id sg s ^
+        (if s mem xs then "'" else "")) :: map (mk_gen sg true xs a) Ts @
+        (if s mem xs then [Pretty.str a] else []))));
+
+val test_fn : (int -> (string * term) list option) ref = ref (fn _ => None);
+
+fun test_term thy sz i t =
+  let
+    val _ = assert (null (term_tvars t) andalso null (term_tfrees t))
+      "Term to be tested contains type variables";
+    val _ = assert (null (term_vars t))
+      "Term to be tested contains schematic variables";
+    val sg = sign_of thy;
+    val frees = map dest_Free (term_frees t);
+    val s = "structure TestTerm =\nstruct\n\n" ^
+      setmp mode ["term_of", "test"] (generate_code_i thy)
+        [("testf", list_abs_free (frees, t))] ^
+      "\n" ^ Pretty.string_of
+        (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
+          Pretty.brk 1, Pretty.str "(fn i =>", Pretty.brk 1,
+          Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
+            Pretty.blk (0, separate Pretty.fbrk (map (fn (s, T) =>
+              Pretty.block [Pretty.str ("val " ^ s ^ " ="), Pretty.brk 1,
+              mk_gen sg false [] "" T, Pretty.brk 1,
+              Pretty.str "i;"]) frees)),
+            Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
+            Pretty.block [Pretty.str "if ",
+              mk_app false (Pretty.str "testf") (map (Pretty.str o fst) frees),
+              Pretty.brk 1, Pretty.str "then None",
+              Pretty.brk 1, Pretty.str "else ",
+              Pretty.block [Pretty.str "Some ", Pretty.block (Pretty.str "[" ::
+                flat (separate [Pretty.str ",", Pretty.brk 1]
+                  (map (fn (s, T) => [Pretty.block
+                    [Pretty.str ("(" ^ quote s ^ ","), Pretty.brk 1,
+                     mk_app false (mk_term_of sg false T)
+                       [Pretty.str s], Pretty.str ")"]]) frees)) @
+                  [Pretty.str "]"])]],
+            Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
+      "\n\nend;\n";
+    val _ = use_text Context.ml_output false s;
+    fun iter f k = if k > i then None
+      else (case f () of None => iter f (k+1) | Some x => Some x);
+    fun test k = if k > sz then None
+      else (priority ("Test data size: " ^ string_of_int k);
+        case iter (fn () => !test_fn k) 1 of
+          None => test (k+1) | Some x => Some x);
+  in test 0 end;
+
+fun test_goal ({size, iterations, default_type}, tvinsts) i st =
+  let
+    val sg = Toplevel.sign_of st;
+    fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
+      | strip t = t;
+    val (gi, frees) = Logic.goal_params
+      (prop_of (snd (snd (Proof.get_goal (Toplevel.proof_of st))))) i;
+    val gi' = ObjectLogic.atomize_term sg (map_term_types
+      (map_type_tfree (fn p as (s, _) => if_none (assoc (tvinsts, s))
+        (if_none default_type (TFree p)))) (subst_bounds (frees, strip gi)));
+  in case test_term (Toplevel.theory_of st) size iterations gi' of
+      None => writeln "No counterexamples found."
+    | Some cex => writeln ("Counterexample found:\n" ^
+        Pretty.string_of (Pretty.chunks (map (fn (s, t) =>
+          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1,
+            Sign.pretty_term sg t]) cex)))
+  end;
+
+
 (**** Interface ****)
 
 val str = setmp print_mode [] Pretty.str;
@@ -526,7 +660,38 @@ val generate_codeP =
           | Some fname => File.write (Path.unpack fname))
               (setmp mode mode' (generate_code thy) xs); thy))));
 
-val parsers = [assoc_typeP, assoc_constP, generate_codeP];
+val params =
+  [("size", P.nat >> (K o set_size)),
+   ("iterations", P.nat >> (K o set_iterations)),
+   ("default_type", P.typ >> set_default_type)];
+
+val parse_test_params = P.short_ident :-- (fn s =>
+  P.$$$ "=" |-- if_none (assoc (params, s)) Scan.fail) >> snd;
+
+fun parse_tyinst xs =
+  (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn sg =>
+    fn (x, ys) => (x, (v, typ_of (read_ctyp sg s)) :: ys))) xs;
+
+fun app [] x = x
+  | app (f :: fs) x = app fs (f x);
+
+val test_paramsP =
+  OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
+    (P.$$$ "[" |-- P.list1 parse_test_params --| P.$$$ "]" >>
+      (fn fs => Toplevel.theory (fn thy =>
+         map_test_params (app (map (fn f => f (sign_of thy)) fs)) thy)));
+
+val testP =
+  OuterSyntax.command "quickcheck" "try to find counterexample for subgoal" K.diag
+  (Scan.option (P.$$$ "[" |-- P.list1
+    (   parse_test_params >> (fn f => fn sg => apfst (f sg))
+     || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
+    (fn (ps, g) => Toplevel.keep (fn st =>
+      test_goal (app (if_none (apsome
+          (map (fn f => f (Toplevel.sign_of st))) ps) [])
+        (get_test_params (Toplevel.theory_of st), [])) g st)));
+
+val parsers = [assoc_typeP, assoc_constP, generate_codeP, test_paramsP, testP];
 
 val setup =
   [CodegenData.init,
