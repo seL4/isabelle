@@ -20,9 +20,5 @@ use (if smlversion = 93 then "NJ093.ML" else "NJ1xx.ML");
 
 (** Other functions which are not specific to 0.93 or 1.xx*)
 
-(*redefine to flush its output immediately -- temporary patch suggested
-  by Kim Dam Petersen*)
-val output = fn(s, t) => (output(s, t); flush_out s);
-
 (*Dummy version of the Poly/ML function*)
 fun commit() = ();
