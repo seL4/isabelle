@@ -25,8 +25,8 @@ sig
   val old_symbol_source: string -> (unit -> Symbol.symbol list) -> unit
   val theory_output: string -> string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
-  val multi_result: string * (string * thm list) list -> unit
-  val results: string -> string -> thm list -> unit
+  val add_hook: (string -> (string * thm list) list -> unit) -> unit
+  val results: string -> (string * thm list) list -> unit
   val theorem: string -> thm -> unit
   val theorems: string -> thm list -> unit
   val chapter: string -> unit
@@ -469,10 +469,15 @@ fun begin_theory name raw_parents orig_files thy =
   end);
 
 
-fun multi_result res = with_session () (fn _ => with_context add_html (HTML.multi_result res));
-fun results k a thms = with_session () (fn _ => with_context add_html (HTML.results k a thms));
-fun theorem a thm = with_session () (fn _ => with_context add_html (HTML.theorem a thm));
-fun theorems a thms = with_session () (fn _ => with_context add_html (HTML.theorems a thms));
+val hooks = ref ([]: (string -> (string * thm list) list -> unit) list);
+fun add_hook f = hooks := (f :: ! hooks);
+
+fun results k xs =
+ (seq (fn f => (try (fn () => f k xs) (); ())) (! hooks);
+  with_session () (fn _ => with_context add_html (HTML.results k xs)));
+
+fun theorem a th = results "theorem" [(a, [th])];
+fun theorems a ths = results "theorems" [(a, ths)];
 fun chapter s = with_session () (fn _ => with_context add_html (HTML.chapter s));
 fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
 fun subsection s = with_session () (fn _ => with_context add_html (HTML.subsection s));
