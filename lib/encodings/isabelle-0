@@ -4,8 +4,7 @@
 # The isabelle-0 encoding table.
 #
 
-161-255:
-
+161:
 Gamma
 Delta
 Theta
