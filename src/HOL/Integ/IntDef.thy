@@ -153,7 +153,7 @@ lemma zadd_left_commute: "x + (y + z) = y + ((x + z)  ::int)"
 
 lemmas zadd_ac = zadd_assoc zadd_commute zadd_left_commute
 
-lemmas zmult_ac = Ring_and_Field.mult_ac
+lemmas zmult_ac = OrderedGroup.mult_ac
 
 lemma zadd_int: "(int m) + (int n) = int (m + n)"
 by (simp add: int_def add)
@@ -164,7 +164,7 @@ by (simp add: zadd_int zadd_assoc [symmetric])
 lemma int_Suc: "int (Suc m) = 1 + (int m)"
 by (simp add: One_int_def zadd_int)
 
-(*also for the instance declaration int :: plus_ac0*)
+(*also for the instance declaration int :: comm_monoid_add*)
 lemma zadd_0: "(0::int) + z = z"
 apply (simp add: Zero_int_def int_def)
 apply (cases z, simp add: add)
@@ -235,8 +235,8 @@ lemma zmult_1_right: "z * (1::int) = z"
 by (rule trans [OF zmult_commute zmult_1])
 
 
-text{*The Integers Form A Ring*}
-instance int :: ring
+text{*The Integers Form A comm_ring_1*}
+instance int :: comm_ring_1
 proof
   fix i j k :: int
   show "(i + j) + k = i + (j + k)" by (simp add: zadd_assoc)
@@ -368,8 +368,8 @@ defs (overloaded)
     zabs_def:  "abs(i::int) == if i < 0 then -i else i"
 
 
-text{*The Integers Form an Ordered Ring*}
-instance int :: ordered_ring
+text{*The Integers Form an Ordered comm_ring_1*}
+instance int :: ordered_idom
 proof
   fix i j k :: int
   show "i \<le> j ==> k + i \<le> k + j" by (rule zadd_left_mono)
@@ -510,7 +510,7 @@ text{*This version is proved for all ordered rings, not just integers!
       in theory @{text Ring_and_Field}.
       But is it really better than just rewriting with @{text abs_if}?*}
 lemma abs_split [arith_split]:
-     "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
+     "P(abs(a::'a::ordered_idom)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
 by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
 
 
@@ -519,11 +519,11 @@ subsection{*The Constants @{term neg} and @{term iszero}*}
 
 constdefs
 
-  neg   :: "'a::ordered_ring => bool"
+  neg   :: "'a::ordered_idom => bool"
   "neg(Z) == Z < 0"
 
   (*For simplifying equalities*)
-  iszero :: "'a::semiring => bool"
+  iszero :: "'a::comm_semiring_1_cancel => bool"
   "iszero z == z = (0)"
 
 
@@ -560,9 +560,9 @@ lemma not_neg_nat: "~ neg z ==> int (nat z) = z"
 by (simp add: linorder_not_less neg_def)
 
 
-subsection{*Embedding of the Naturals into any Semiring: @{term of_nat}*}
+subsection{*Embedding of the Naturals into any comm_semiring_1_cancel: @{term of_nat}*}
 
-consts of_nat :: "nat => 'a::semiring"
+consts of_nat :: "nat => 'a::comm_semiring_1_cancel"
 
 primrec
   of_nat_0:   "of_nat 0 = 0"
@@ -581,27 +581,27 @@ apply (induct m)
 apply (simp_all add: mult_ac add_ac right_distrib)
 done
 
-lemma zero_le_imp_of_nat: "0 \<le> (of_nat m::'a::ordered_semiring)"
+lemma zero_le_imp_of_nat: "0 \<le> (of_nat m::'a::ordered_semidom)"
 apply (induct m, simp_all)
 apply (erule order_trans)
 apply (rule less_add_one [THEN order_less_imp_le])
 done
 
 lemma less_imp_of_nat_less:
-     "m < n ==> of_nat m < (of_nat n::'a::ordered_semiring)"
+     "m < n ==> of_nat m < (of_nat n::'a::ordered_semidom)"
 apply (induct m n rule: diff_induct, simp_all)
 apply (insert add_le_less_mono [OF zero_le_imp_of_nat zero_less_one], force)
 done
 
 lemma of_nat_less_imp_less:
-     "of_nat m < (of_nat n::'a::ordered_semiring) ==> m < n"
+     "of_nat m < (of_nat n::'a::ordered_semidom) ==> m < n"
 apply (induct m n rule: diff_induct, simp_all)
 apply (insert zero_le_imp_of_nat)
 apply (force simp add: linorder_not_less [symmetric])
 done
 
 lemma of_nat_less_iff [simp]:
-     "(of_nat m < (of_nat n::'a::ordered_semiring)) = (m<n)"
+     "(of_nat m < (of_nat n::'a::ordered_semidom)) = (m<n)"
 by (blast intro: of_nat_less_imp_less less_imp_of_nat_less)
 
 text{*Special cases where either operand is zero*}
@@ -609,17 +609,17 @@ declare of_nat_less_iff [of 0, simplified, simp]
 declare of_nat_less_iff [of _ 0, simplified, simp]
 
 lemma of_nat_le_iff [simp]:
-     "(of_nat m \<le> (of_nat n::'a::ordered_semiring)) = (m \<le> n)"
+     "(of_nat m \<le> (of_nat n::'a::ordered_semidom)) = (m \<le> n)"
 by (simp add: linorder_not_less [symmetric])
 
 text{*Special cases where either operand is zero*}
 declare of_nat_le_iff [of 0, simplified, simp]
 declare of_nat_le_iff [of _ 0, simplified, simp]
 
-text{*The ordering on the semiring is necessary to exclude the possibility of
+text{*The ordering on the comm_semiring_1_cancel is necessary to exclude the possibility of
 a finite field, which indeed wraps back to zero.*}
 lemma of_nat_eq_iff [simp]:
-     "(of_nat m = (of_nat n::'a::ordered_semiring)) = (m = n)"
+     "(of_nat m = (of_nat n::'a::ordered_semidom)) = (m = n)"
 by (simp add: order_eq_iff)
 
 text{*Special cases where either operand is zero*}
@@ -627,7 +627,7 @@ declare of_nat_eq_iff [of 0, simplified, simp]
 declare of_nat_eq_iff [of _ 0, simplified, simp]
 
 lemma of_nat_diff [simp]:
-     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::ring)"
+     "n \<le> m ==> of_nat (m - n) = of_nat m - (of_nat n :: 'a::comm_ring_1)"
 by (simp del: of_nat_add
 	 add: compare_rls of_nat_add [symmetric] split add: nat_diff_split)
 
@@ -635,7 +635,7 @@ by (simp del: of_nat_add
 subsection{*The Set of Natural Numbers*}
 
 constdefs
-   Nats  :: "'a::semiring set"
+   Nats  :: "'a::comm_semiring_1_cancel set"
     "Nats == range of_nat"
 
 syntax (xsymbols)    Nats :: "'a set"   ("\<nat>")
@@ -681,10 +681,10 @@ proof
 qed
 
 
-subsection{*Embedding of the Integers into any Ring: @{term of_int}*}
+subsection{*Embedding of the Integers into any comm_ring_1: @{term of_int}*}
 
 constdefs
-   of_int :: "int => 'a::ring"
+   of_int :: "int => 'a::comm_ring_1"
    "of_int z == contents (\<Union>(i,j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 
 
@@ -719,7 +719,7 @@ apply (simp add: compare_rls of_int left_diff_distrib right_diff_distrib
 done
 
 lemma of_int_le_iff [simp]:
-     "(of_int w \<le> (of_int z::'a::ordered_ring)) = (w \<le> z)"
+     "(of_int w \<le> (of_int z::'a::ordered_idom)) = (w \<le> z)"
 apply (cases w)
 apply (cases z)
 apply (simp add: compare_rls of_int le diff_int_def add minus
@@ -731,16 +731,16 @@ declare of_int_le_iff [of 0, simplified, simp]
 declare of_int_le_iff [of _ 0, simplified, simp]
 
 lemma of_int_less_iff [simp]:
-     "(of_int w < (of_int z::'a::ordered_ring)) = (w < z)"
+     "(of_int w < (of_int z::'a::ordered_idom)) = (w < z)"
 by (simp add: linorder_not_le [symmetric])
 
 text{*Special cases where either operand is zero*}
 declare of_int_less_iff [of 0, simplified, simp]
 declare of_int_less_iff [of _ 0, simplified, simp]
 
-text{*The ordering on the ring is necessary. See @{text of_nat_eq_iff} above.*}
+text{*The ordering on the comm_ring_1 is necessary. See @{text of_nat_eq_iff} above.*}
 lemma of_int_eq_iff [simp]:
-     "(of_int w = (of_int z::'a::ordered_ring)) = (w = z)"
+     "(of_int w = (of_int z::'a::ordered_idom)) = (w = z)"
 by (simp add: order_eq_iff)
 
 text{*Special cases where either operand is zero*}
@@ -759,7 +759,7 @@ qed
 subsection{*The Set of Integers*}
 
 constdefs
-   Ints  :: "'a::ring set"
+   Ints  :: "'a::comm_ring_1 set"
     "Ints == range of_int"
 
 

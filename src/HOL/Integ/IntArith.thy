@@ -126,11 +126,11 @@ proof -
   finally show ?thesis .
 qed
 
-lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_ring,number_ring})"
+lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: abs_if)
 
 lemma abs_power_minus_one [simp]:
-     "abs(-1 ^ n) = (1::'a::{ordered_ring,number_ring,ringpower})"
+     "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring,ringpower})"
 by (simp add: power_abs)
 
 lemma of_int_number_of_eq:

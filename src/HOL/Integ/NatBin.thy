@@ -256,42 +256,42 @@ text{*We cannot refer to the number @{term 2} in @{text Ring_and_Field.thy}.
 We cannot prove general results about the numeral @{term "-1"}, so we have to
 use @{term "- 1"} instead.*}
 
-lemma power2_eq_square: "(a::'a::{semiring,ringpower})\<twosuperior> = a * a"
+lemma power2_eq_square: "(a::'a::{comm_semiring_1_cancel,ringpower})\<twosuperior> = a * a"
   by (simp add: numeral_2_eq_2 Power.power_Suc)
 
-lemma [simp]: "(0::'a::{semiring,ringpower})\<twosuperior> = 0"
+lemma [simp]: "(0::'a::{comm_semiring_1_cancel,ringpower})\<twosuperior> = 0"
   by (simp add: power2_eq_square)
 
-lemma [simp]: "(1::'a::{semiring,ringpower})\<twosuperior> = 1"
+lemma [simp]: "(1::'a::{comm_semiring_1_cancel,ringpower})\<twosuperior> = 1"
   by (simp add: power2_eq_square)
 
 text{*Squares of literal numerals will be evaluated.*}
 declare power2_eq_square [of "number_of w", standard, simp]
 
-lemma zero_le_power2 [simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_ring,ringpower})"
+lemma zero_le_power2 [simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,ringpower})"
   by (simp add: power2_eq_square zero_le_square)
 
 lemma zero_less_power2 [simp]:
-     "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_ring,ringpower}))"
+     "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_idom,ringpower}))"
   by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
 
 lemma zero_eq_power2 [simp]:
-     "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_ring,ringpower}))"
+     "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_idom,ringpower}))"
   by (force simp add: power2_eq_square mult_eq_0_iff)
 
 lemma abs_power2 [simp]:
-     "abs(a\<twosuperior>) = (a\<twosuperior>::'a::{ordered_ring,ringpower})"
+     "abs(a\<twosuperior>) = (a\<twosuperior>::'a::{ordered_idom,ringpower})"
   by (simp add: power2_eq_square abs_mult abs_mult_self)
 
 lemma power2_abs [simp]:
-     "(abs a)\<twosuperior> = (a\<twosuperior>::'a::{ordered_ring,ringpower})"
+     "(abs a)\<twosuperior> = (a\<twosuperior>::'a::{ordered_idom,ringpower})"
   by (simp add: power2_eq_square abs_mult_self)
 
 lemma power2_minus [simp]:
-     "(- a)\<twosuperior> = (a\<twosuperior>::'a::{ring,ringpower})"
+     "(- a)\<twosuperior> = (a\<twosuperior>::'a::{comm_ring_1,ringpower})"
   by (simp add: power2_eq_square)
 
-lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{ring,ringpower})"
+lemma power_minus1_even: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,ringpower})"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc power_add)
 done
@@ -303,11 +303,11 @@ lemma power_odd_eq: "(a::int) ^ Suc(2*n) = a * (a^n)^2"
 by (simp add: power_even_eq) 
 
 lemma power_minus_even [simp]:
-     "(-a) ^ (2*n) = (a::'a::{ring,ringpower}) ^ (2*n)"
+     "(-a) ^ (2*n) = (a::'a::{comm_ring_1,ringpower}) ^ (2*n)"
 by (simp add: power_minus1_even power_minus [of a]) 
 
 lemma zero_le_even_power:
-     "0 \<le> (a::'a::{ordered_ring,ringpower}) ^ (2*n)"
+     "0 \<le> (a::'a::{ordered_idom,ringpower}) ^ (2*n)"
 proof (induct "n")
   case 0
     show ?case by (simp add: zero_le_one)
@@ -320,7 +320,7 @@ next
 qed
 
 lemma odd_power_less_zero:
-     "(a::'a::{ordered_ring,ringpower}) < 0 ==> a ^ Suc(2*n) < 0"
+     "(a::'a::{ordered_idom,ringpower}) < 0 ==> a ^ Suc(2*n) < 0"
 proof (induct "n")
   case 0
     show ?case by (simp add: Power.power_Suc)
@@ -333,7 +333,7 @@ next
 qed
 
 lemma odd_0_le_power_imp_0_le:
-     "0 \<le> a  ^ Suc(2*n) ==> 0 \<le> (a::'a::{ordered_ring,ringpower})"
+     "0 \<le> a  ^ Suc(2*n) ==> 0 \<le> (a::'a::{ordered_idom,ringpower})"
 apply (insert odd_power_less_zero [of a n]) 
 apply (force simp add: linorder_not_less [symmetric]) 
 done
@@ -473,7 +473,7 @@ lemma eq_number_of_BIT_BIT:
      "((number_of (v BIT x) ::int) = number_of (w BIT y)) =  
       (x=y & (((number_of v) ::int) = number_of w))"
 by (simp only: simp_thms number_of_BIT lemma1 lemma2 eq_commute
-               Ring_and_Field.add_left_cancel add_assoc Ring_and_Field.add_0
+               OrderedGroup.add_left_cancel add_assoc OrderedGroup.add_0
             split add: split_if cong: imp_cong) 
 
 

@@ -195,7 +195,7 @@ by (simp add: times_matrix_def mult_ncols)
 
 (*
 constdefs
-  one_matrix :: "nat \<Rightarrow> ('a::semiring) matrix"
+  one_matrix :: "nat \<Rightarrow> ('a::comm_semiring_1_cancel) matrix"
   "one_matrix n == Abs_matrix (% j i. if j = i & j < n then 1 else 0)"
 
 lemma Rep_one_matrix[simp]: "Rep_matrix (one_matrix n) j i = (if (j = i & j < n) then 1 else 0)"
@@ -235,9 +235,9 @@ apply (simp_all)
 by (simp add: max_def nrows)
 
 constdefs
-  right_inverse_matrix :: "('a::semiring) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+  right_inverse_matrix :: "('a::comm_semiring_1_cancel) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "right_inverse_matrix A X == (A * X = one_matrix (max (nrows A) (ncols X)))"
-  inverse_matrix :: "('a::semiring) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+  inverse_matrix :: "('a::comm_semiring_1_cancel) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "inverse_matrix A X == (right_inverse_matrix A X) \<and> (right_inverse_matrix X A)"
 
 lemma right_inverse_matrix_dim: "right_inverse_matrix A X \<Longrightarrow> nrows A = ncols X"

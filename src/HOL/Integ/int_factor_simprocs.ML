@@ -116,16 +116,16 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
 val ring_cancel_numeral_factors =
   map Bin_Simprocs.prep_simproc
    [("ring_eq_cancel_numeral_factor",
-     ["(l::'a::{ordered_ring,number_ring}) * m = n",
-      "(l::'a::{ordered_ring,number_ring}) = m * n"],
+     ["(l::'a::{ordered_idom,number_ring}) * m = n",
+      "(l::'a::{ordered_idom,number_ring}) = m * n"],
      EqCancelNumeralFactor.proc),
     ("ring_less_cancel_numeral_factor",
-     ["(l::'a::{ordered_ring,number_ring}) * m < n",
-      "(l::'a::{ordered_ring,number_ring}) < m * n"],
+     ["(l::'a::{ordered_idom,number_ring}) * m < n",
+      "(l::'a::{ordered_idom,number_ring}) < m * n"],
      LessCancelNumeralFactor.proc),
     ("ring_le_cancel_numeral_factor",
-     ["(l::'a::{ordered_ring,number_ring}) * m <= n",
-      "(l::'a::{ordered_ring,number_ring}) <= m * n"],
+     ["(l::'a::{ordered_idom,number_ring}) * m <= n",
+      "(l::'a::{ordered_idom,number_ring}) <= m * n"],
      LeCancelNumeralFactor.proc),
     ("int_div_cancel_numeral_factors",
      ["((l::int) * m) div n", "(l::int) div (m * n)"],
@@ -249,7 +249,7 @@ structure CancelFactorCommon =
   val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_1s@mult_ac))
   end;
 
-(*mult_cancel_left requires an ordered ring, such as int. The version in
+(*mult_cancel_left requires an ordered comm_ring_1, such as int. The version in
   rat_arith.ML works for all fields.*)
 structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon

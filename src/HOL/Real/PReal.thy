@@ -15,7 +15,7 @@ by (rule_tac x="b-a" in exI, simp)
 
 text{*As a special case, the sum of two positives is positive.  One of the
 premises could be weakened to the relation @{text "\<le>"}.*}
-lemma pos_add_strict: "[|0<a; b<c|] ==> b < a + (c::'a::ordered_semiring)"
+lemma pos_add_strict: "[|0<a; b<c|] ==> b < a + (c::'a::ordered_semidom)"
 by (insert add_strict_mono [of 0 a b c], simp)
 
 lemma interval_empty_iff:

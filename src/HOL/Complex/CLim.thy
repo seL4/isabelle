@@ -17,7 +17,7 @@ lemma lemma_complex_mult_inverse_squared [simp]:
 by (simp add: numeral_2_eq_2)
 
 text{*Changing the quantified variable. Install earlier?*}
-lemma all_shift: "(\<forall>x::'a::ring. P x) = (\<forall>x. P (x-a))";
+lemma all_shift: "(\<forall>x::'a::comm_ring_1. P x) = (\<forall>x. P (x-a))";
 apply auto 
 apply (drule_tac x="x+a" in spec) 
 apply (simp add: diff_minus add_assoc) 

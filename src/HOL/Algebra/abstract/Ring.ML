@@ -5,9 +5,9 @@
 *)
 
 (*
-val a_assoc = thm "plus_ac0.assoc";
-val l_zero = thm "plus_ac0.zero";
-val a_comm = thm "plus_ac0.commute";
+val a_assoc = thm "semigroup_add.add_assoc";
+val l_zero = thm "comm_monoid_add.add_0";
+val a_comm = thm "ab_semigroup_add.add_commute";
 
 section "Rings";
 

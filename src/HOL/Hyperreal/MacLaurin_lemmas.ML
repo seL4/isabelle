@@ -449,51 +449,6 @@ bind_thm ("real_mult_le_lemma",
           simplify (simpset()) (inst "b" "1" mult_right_mono));
 
 
-Goal "abs(sin x - \
-\          sumr 0 n (%m. (if even m then 0 \
-\                         else ((- 1) ^ ((m - (Suc 0)) div 2)) / real (fact m)) * \
-\                         x ^ m)) \
-\      <= inverse(real (fact n)) * abs(x) ^ n";
-by (cut_inst_tac [("f","sin"),("n","n"),("x","x"),
-       ("diff","%n x. if n mod 4 = 0 then sin(x) \
-\                     else if n mod 4 = 1 then cos(x) \
-\                     else if n mod 4 = 2 then -sin(x) \
-\                     else -cos(x)")] Maclaurin_all_le_objl 1);
-by (Step_tac 1);
-by (Asm_full_simp_tac 1);
-by (stac mod_Suc_eq_Suc_mod 1);
-by (cut_inst_tac [("m1","m")] (CLAIM "0 < (4::nat)" RS mod_less_divisor
-    RS lemma_exhaust_less_4) 1);
-by (Step_tac 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
-by (rtac DERIV_minus 1 THEN Simp_tac 1);
-by (Asm_simp_tac 1);
-by (rtac lemma_DERIV_subst 1 THEN rtac DERIV_minus 1 THEN rtac DERIV_cos 1);
-by (Simp_tac 1);
-by (dtac ssubst 1 THEN assume_tac 2);
-by (rtac (ARITH_PROVE "[|x = y; abs u <= (v::real) |] ==> abs ((x + u) - y) <= v") 1);
-by (rtac sumr_fun_eq 1);
-by (Step_tac 1);
-by (rtac (CLAIM "x = y ==> x * z = y * (z::real)") 1);
-by (stac even_even_mod_4_iff 1);
-by (cut_inst_tac [("m1","r")] (CLAIM "0 < (4::nat)" RS mod_less_divisor
-    RS lemma_exhaust_less_4) 1);
-by (Step_tac 1);
-by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [even_num_iff]) 2);
-by (asm_simp_tac (simpset() addsimps [even_num_iff]) 1);
-by (asm_simp_tac (simpset() addsimps [even_num_iff]) 2);
-by (dtac lemma_even_mod_4_div_2 1);
-by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2,real_divide_def]) 1);
-by (dtac lemma_odd_mod_4_div_2 1);
-by (asm_full_simp_tac (simpset() addsimps [numeral_2_eq_2, real_divide_def]) 1);
-by (auto_tac (claset() addSIs [real_mult_le_lemma,mult_right_mono],
-      simpset() addsimps [real_divide_def,abs_mult,abs_inverse,power_abs RS
-sym]));
-qed "Maclaurin_sin_bound";
-
 Goal "0 < n --> Suc (Suc (2 * n - 2)) = 2*n";
 by (induct_tac "n" 1);
 by Auto_tac;

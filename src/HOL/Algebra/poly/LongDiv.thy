@@ -22,7 +22,7 @@ lemma SUM_shrink_below_lemma:
   apply (simp)
   apply (force)
   apply (simp)
-  apply (subst plus_ac0.commute[of m])
+  apply (subst ab_semigroup_add.add_commute[of m])
   apply (simp)
   done
 

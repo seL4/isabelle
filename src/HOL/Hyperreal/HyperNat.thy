@@ -158,7 +158,7 @@ apply (cases z)
 apply (simp add: hypnat_zero_def hypnat_add)
 done
 
-instance hypnat :: plus_ac0
+instance hypnat :: comm_monoid_add
   by intro_classes
     (assumption |
       rule hypnat_add_commute hypnat_add_assoc hypnat_add_zero_left)+
@@ -280,13 +280,10 @@ by (auto simp add: hypnat_zero_def hypnat_one_def)
 declare hypnat_zero_not_eq_one [THEN not_sym, simp]
 
 
-text{*The Hypernaturals Form A Semiring*}
-instance hypnat :: semiring
+text{*The Hypernaturals Form A comm_semiring_1_cancel*}
+instance hypnat :: comm_semiring_1_cancel
 proof
   fix i j k :: hypnat
-  show "(i + j) + k = i + (j + k)" by (rule hypnat_add_assoc)
-  show "i + j = j + i" by (rule hypnat_add_commute)
-  show "0 + i = i" by simp
   show "(i * j) * k = i * (j * k)" by (rule hypnat_mult_assoc)
   show "i * j = j * i" by (rule hypnat_mult_commute)
   show "1 * i = i" by (rule hypnat_mult_1)
@@ -352,9 +349,9 @@ apply (auto simp add: hypnat_le, ultra)
 done
 
 
-subsection{*The Hypernaturals Form an Ordered Semiring*}
+subsection{*The Hypernaturals Form an Ordered comm_semiring_1_cancel*}
 
-instance hypnat :: ordered_semiring
+instance hypnat :: ordered_semidom
 proof
   fix x y z :: hypnat
   show "0 < (1::hypnat)"
@@ -456,7 +453,7 @@ next
 qed
 
 
-subsection{*The Embedding @{term hypnat_of_nat} Preserves Ring and 
+subsection{*The Embedding @{term hypnat_of_nat} Preserves comm_ring_1 and 
       Order Properties*}
 
 constdefs

@@ -383,20 +383,20 @@ val cancel_numerals =
       "(l::'a::number_ring) = m * n"],
      EqCancelNumerals.proc),
     ("intless_cancel_numerals",
-     ["(l::'a::{ordered_ring,number_ring}) + m < n",
-      "(l::'a::{ordered_ring,number_ring}) < m + n",
-      "(l::'a::{ordered_ring,number_ring}) - m < n",
-      "(l::'a::{ordered_ring,number_ring}) < m - n",
-      "(l::'a::{ordered_ring,number_ring}) * m < n",
-      "(l::'a::{ordered_ring,number_ring}) < m * n"],
+     ["(l::'a::{ordered_idom,number_ring}) + m < n",
+      "(l::'a::{ordered_idom,number_ring}) < m + n",
+      "(l::'a::{ordered_idom,number_ring}) - m < n",
+      "(l::'a::{ordered_idom,number_ring}) < m - n",
+      "(l::'a::{ordered_idom,number_ring}) * m < n",
+      "(l::'a::{ordered_idom,number_ring}) < m * n"],
      LessCancelNumerals.proc),
     ("intle_cancel_numerals",
-     ["(l::'a::{ordered_ring,number_ring}) + m <= n",
-      "(l::'a::{ordered_ring,number_ring}) <= m + n",
-      "(l::'a::{ordered_ring,number_ring}) - m <= n",
-      "(l::'a::{ordered_ring,number_ring}) <= m - n",
-      "(l::'a::{ordered_ring,number_ring}) * m <= n",
-      "(l::'a::{ordered_ring,number_ring}) <= m * n"],
+     ["(l::'a::{ordered_idom,number_ring}) + m <= n",
+      "(l::'a::{ordered_idom,number_ring}) <= m + n",
+      "(l::'a::{ordered_idom,number_ring}) - m <= n",
+      "(l::'a::{ordered_idom,number_ring}) <= m - n",
+      "(l::'a::{ordered_idom,number_ring}) * m <= n",
+      "(l::'a::{ordered_idom,number_ring}) <= m * n"],
      LeCancelNumerals.proc)];
 
 
@@ -488,7 +488,7 @@ structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
 
 val assoc_fold_simproc =
   Bin_Simprocs.prep_simproc
-   ("semiring_assoc_fold", ["(a::'a::semiring) * b"],
+   ("semiring_assoc_fold", ["(a::'a::comm_semiring_1_cancel) * b"],
     Semiring_Times_Assoc.proc);
 
 Addsimprocs [assoc_fold_simproc];
@@ -545,9 +545,9 @@ end;
 val fast_int_arith_simproc =
   Simplifier.simproc (Theory.sign_of (the_context()))
   "fast_int_arith" 
-     ["(m::'a::{ordered_ring,number_ring}) < n",
-      "(m::'a::{ordered_ring,number_ring}) <= n",
-      "(m::'a::{ordered_ring,number_ring}) = n"] Fast_Arith.lin_arith_prover;
+     ["(m::'a::{ordered_idom,number_ring}) < n",
+      "(m::'a::{ordered_idom,number_ring}) <= n",
+      "(m::'a::{ordered_idom,number_ring}) = n"] Fast_Arith.lin_arith_prover;
 
 Addsimprocs [fast_int_arith_simproc]
 

@@ -54,7 +54,7 @@ done
 
 lemma bag_of_append [simp]: "bag_of (l@l') = bag_of l + bag_of l'"
 apply (induct_tac "l", simp)
- apply (simp add: plus_ac0)
+ apply (simp add: add_ac)
 done
 
 lemma mono_bag_of: "mono (bag_of :: 'a list => ('a::order) multiset)"
@@ -80,7 +80,7 @@ lemma bag_of_sublist:
       (\<Sum>i: A Int lessThan (length l). {# l!i #})"
 apply (rule_tac xs = l in rev_induct, simp)
 apply (simp add: sublist_append Int_insert_right lessThan_Suc nth_append 
-                 bag_of_sublist_lemma plus_ac0)
+                 bag_of_sublist_lemma add_ac)
 done
 
 

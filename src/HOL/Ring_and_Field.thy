@@ -2,285 +2,131 @@
     ID:      $Id$
     Author:  Gertrud Bauer and Markus Wenzel, TU Muenchen
              Lawrence C Paulson, University of Cambridge
+             Revised and splitted into Ring_and_Field.thy and Group.thy 
+             by Steven Obua, TU Muenchen, in May 2004
     License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {* Ring and field structures *}
+header {* (Ordered) Rings and Fields *}
 
-theory Ring_and_Field = Inductive:
+theory Ring_and_Field = OrderedGroup:
 
-subsection {* Abstract algebraic structures *}
+text {*
+  The theory of partially ordered rings is taken from the books:
+  \begin{itemize}
+  \item \emph{Lattice Theory} by Garret Birkhoff, American Mathematical Society 1979 
+  \item \emph{Partially Ordered Algebraic Systems}, Pergamon Press 1963
+  \end{itemize}
+  Most of the used notions can also be looked up in 
+  \begin{itemize}
+  \item \emph{www.mathworld.com} by Eric Weisstein et. al.
+  \item \emph{Algebra I} by van der Waerden, Springer.
+  \end{itemize}
+*}
 
-subsection {* Types Classes @{text plus_ac0} and @{text times_ac1} *}
-
-axclass plus_ac0 \<subseteq> plus, zero
-  commute:     "x + y = y + x"
-  assoc:       "(x + y) + z = x + (y + z)"
-  zero [simp]: "0 + x = x"
-
-lemma plus_ac0_left_commute: "x + (y+z) = y + ((x+z)::'a::plus_ac0)"
-by(rule mk_left_commute[of "op +",OF plus_ac0.assoc plus_ac0.commute])
-
-lemma plus_ac0_zero_right [simp]: "x + 0 = (x ::'a::plus_ac0)"
-apply (rule plus_ac0.commute [THEN trans])
-apply (rule plus_ac0.zero)
-done
-
-lemmas plus_ac0 = plus_ac0.assoc plus_ac0.commute plus_ac0_left_commute
-                  plus_ac0.zero plus_ac0_zero_right
-
-axclass times_ac1 \<subseteq> times, one
-  commute:     "x * y = y * x"
-  assoc:       "(x * y) * z = x * (y * z)"
-  one [simp]:  "1 * x = x"
-
-theorem times_ac1_left_commute: "(x::'a::times_ac1) * ((y::'a) * z) =
-  y * (x * z)"
-by(rule mk_left_commute[of "op *",OF times_ac1.assoc times_ac1.commute])
-
-theorem times_ac1_one_right [simp]: "(x::'a::times_ac1) * 1 = x"
-proof -
-  have "x * 1 = 1 * x"
-    by (rule times_ac1.commute)
-  also have "... = x"
-    by (rule times_ac1.one)
-  finally show ?thesis .
-qed
-
-theorems times_ac1 = times_ac1.assoc times_ac1.commute times_ac1_left_commute
-  times_ac1.one times_ac1_one_right
-
-
-text{*This class is the same as @{text plus_ac0}, while using the same axiom
-names as the other axclasses.*}
-axclass abelian_semigroup \<subseteq> zero, plus
-  add_assoc: "(a + b) + c = a + (b + c)"
-  add_commute: "a + b = b + a"
-  add_0 [simp]: "0 + a = a"
-
-text{*This class underlies both @{text semiring} and @{text ring}*}
-axclass almost_semiring \<subseteq> abelian_semigroup, one, times
-  mult_assoc: "(a * b) * c = a * (b * c)"
-  mult_commute: "a * b = b * a"
-  mult_1 [simp]: "1 * a = a"
-
+axclass semiring \<subseteq> ab_semigroup_add, semigroup_mult
   left_distrib: "(a + b) * c = a * c + b * c"
-  zero_neq_one [simp]: "0 \<noteq> 1"
+  right_distrib: "a * (b + c) = a * b + a * c"
 
+axclass semiring_0 \<subseteq> semiring, comm_monoid_add
 
-axclass semiring \<subseteq> almost_semiring
-  add_left_imp_eq: "a + b = a + c ==> b=c"
-    --{*This axiom is needed for semirings only: for rings, etc., it is
-        redundant. Including it allows many more of the following results
-        to be proved for semirings too.*}
+axclass comm_semiring \<subseteq> ab_semigroup_add, ab_semigroup_mult  
+  mult_commute: "a * b = b * a"
+  distrib: "(a + b) * c = a * c + b * c"
 
-instance abelian_semigroup \<subseteq> plus_ac0
-proof
-  fix x y z :: 'a
-  show "x + y = y + x" by (rule add_commute)
-  show "x + y + z = x + (y + z)" by (rule add_assoc)
-  show "0+x = x" by (rule add_0)
-qed
-
-instance almost_semiring \<subseteq> times_ac1
-proof
-  fix x y z :: 'a
-  show "x * y = y * x" by (rule mult_commute)
-  show "x * y * z = x * (y * z)" by (rule mult_assoc)
-  show "1*x = x" by simp
-qed
-
-axclass abelian_group \<subseteq> abelian_semigroup, minus
-   left_minus [simp]: "-a + a = 0"
-   diff_minus: "a - b = a + -b"
-
-axclass ring \<subseteq> almost_semiring, abelian_group
-
-text{*Proving axiom @{text add_left_imp_eq} makes all @{text semiring}
-      theorems available to members of @{term ring} *}
-instance ring \<subseteq> semiring
+instance comm_semiring \<subseteq> semiring
 proof
   fix a b c :: 'a
-  assume "a + b = a + c"
-  hence  "-a + a + b = -a + a + c" by (simp only: add_assoc)
-  thus "b = c" by simp
+  show "(a + b) * c = a * c + b * c" by (simp add: distrib)
+  have "a * (b + c) = (b + c) * a" by (simp add: mult_ac)
+  also have "... = b * a + c * a" by (simp only: distrib)
+  also have "... = a * b + a * c" by (simp add: mult_ac)
+  finally show "a * (b + c) = a * b + a * c" by blast
 qed
 
-text{*This class underlies @{text ordered_semiring} and @{text ordered_ring}*}
-axclass almost_ordered_semiring \<subseteq> semiring, linorder
-  add_left_mono: "a \<le> b ==> c + a \<le> c + b"
-  mult_strict_left_mono: "a < b ==> 0 < c ==> c * a < c * b"
+axclass comm_semiring_0 \<subseteq> comm_semiring, comm_monoid_add
 
-axclass ordered_semiring \<subseteq> almost_ordered_semiring
-  zero_less_one [simp]: "0 < 1" --{*This too is needed for semirings only.*}
+instance comm_semiring_0 \<subseteq> semiring_0 ..
 
-axclass ordered_ring \<subseteq> almost_ordered_semiring, ring
-  abs_if: "\<bar>a\<bar> = (if a < 0 then -a else a)"
+axclass axclass_0_neq_1 \<subseteq> zero, one
+  zero_neq_one [simp]: "0 \<noteq> 1"
 
-axclass field \<subseteq> ring, inverse
+axclass semiring_1 \<subseteq> axclass_0_neq_1, semiring_0, monoid_mult
+
+axclass comm_semiring_1 \<subseteq> axclass_0_neq_1, comm_semiring_0, comm_monoid_mult (* previously almost_semiring *)
+
+instance comm_semiring_1 \<subseteq> semiring_1 ..
+
+axclass axclass_no_zero_divisors \<subseteq> zero, times
+  no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
+
+axclass comm_semiring_1_cancel \<subseteq> comm_semiring_1, cancel_ab_semigroup_add (* previously semiring *)
+
+axclass ring \<subseteq> semiring, ab_group_add
+
+instance ring \<subseteq> semiring_0 ..
+
+axclass comm_ring \<subseteq> comm_semiring_0, ab_group_add
+
+instance comm_ring \<subseteq> ring ..
+
+instance comm_ring \<subseteq> comm_semiring_0 ..
+
+axclass ring_1 \<subseteq> ring, semiring_1
+
+axclass comm_ring_1 \<subseteq> comm_ring, comm_semiring_1 (* previously ring *)
+
+instance comm_ring_1 \<subseteq> ring_1 ..
+
+instance comm_ring_1 \<subseteq> comm_semiring_1_cancel ..
+
+axclass idom \<subseteq> comm_ring_1, axclass_no_zero_divisors
+
+axclass field \<subseteq> comm_ring_1, inverse
   left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = 1"
   divide_inverse:      "a / b = a * inverse b"
 
-axclass ordered_field \<subseteq> ordered_ring, field
-
-axclass division_by_zero \<subseteq> zero, inverse
-  inverse_zero [simp]: "inverse 0 = 0"
-
-
-subsection {* Derived Rules for Addition *}
-
-lemma add_0_right [simp]: "a + 0 = (a::'a::plus_ac0)"
-proof -
-  have "a + 0 = 0 + a" by (rule plus_ac0.commute)
-  also have "... = a" by simp
-  finally show ?thesis .
-qed
-
-lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::plus_ac0))"
-  by (rule mk_left_commute [of "op +", OF plus_ac0.assoc plus_ac0.commute])
-
-theorems add_ac = add_assoc add_commute add_left_commute
-
-lemma right_minus [simp]: "a + -(a::'a::abelian_group) = 0"
-proof -
-  have "a + -a = -a + a" by (simp add: add_ac)
-  also have "... = 0" by simp
-  finally show ?thesis .
-qed
-
-lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::abelian_group))"
-proof
-  have "a = a - b + b" by (simp add: diff_minus add_ac)
-  also assume "a - b = 0"
-  finally show "a = b" by simp
-next
-  assume "a = b"
-  thus "a - b = 0" by (simp add: diff_minus)
-qed
-
-lemma add_left_cancel [simp]:
-     "(a + b = a + c) = (b = (c::'a::semiring))"
-by (blast dest: add_left_imp_eq) 
-
-lemma add_right_cancel [simp]:
-     "(b + a = c + a) = (b = (c::'a::semiring))"
-  by (simp add: add_commute)
-
-lemma minus_minus [simp]: "- (- (a::'a::abelian_group)) = a" 
-apply (rule right_minus_eq [THEN iffD1]) 
-apply (simp add: diff_minus) 
-done
-
-lemma equals_zero_I: "a+b = 0 ==> -a = (b::'a::abelian_group)"
-apply (rule right_minus_eq [THEN iffD1, symmetric])
-apply (simp add: diff_minus add_commute) 
-done
-
-lemma minus_zero [simp]: "- 0 = (0::'a::abelian_group)"
-by (simp add: equals_zero_I)
-
-lemma diff_self [simp]: "a - (a::'a::abelian_group) = 0"
-  by (simp add: diff_minus)
-
-lemma diff_0 [simp]: "(0::'a::abelian_group) - a = -a"
-by (simp add: diff_minus)
-
-lemma diff_0_right [simp]: "a - (0::'a::abelian_group) = a" 
-by (simp add: diff_minus)
-
-lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::abelian_group)"
-by (simp add: diff_minus)
-
-lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::abelian_group))" 
-proof 
-  assume "- a = - b"
-  hence "- (- a) = - (- b)"
-    by simp
-  thus "a=b" by simp
-next
-  assume "a=b"
-  thus "-a = -b" by simp
-qed
-
-lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::abelian_group))"
-by (subst neg_equal_iff_equal [symmetric], simp)
-
-lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::abelian_group))"
-by (subst neg_equal_iff_equal [symmetric], simp)
-
-lemma add_minus_self [simp]: "a + b - b = (a::'a::abelian_group)"; 
-  by (simp add: diff_minus add_assoc)
-
-lemma add_minus_self_left [simp]:  "a + (b - a)  = (b::'a::abelian_group)";
-by (simp add: diff_minus add_left_commute [of a]) 
-
-lemma add_minus_self_right  [simp]:  "a + b - a  = (b::'a::abelian_group)";
-by (simp add: diff_minus add_left_commute [of a] add_assoc) 
-
-lemma minus_add_self [simp]: "a - b + b = (a::'a::abelian_group)"; 
-by (simp add: diff_minus add_assoc) 
-
-text{*The next two equations can make the simplifier loop!*}
-
-lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::abelian_group))"
-proof -
-  have "(- (-a) = - b) = (- a = b)" by (rule neg_equal_iff_equal)
-  thus ?thesis by (simp add: eq_commute)
-qed
-
-lemma minus_equation_iff: "(- a = b) = (- (b::'a::abelian_group) = a)"
-proof -
-  have "(- a = - (-b)) = (a = -b)" by (rule neg_equal_iff_equal)
-  thus ?thesis by (simp add: eq_commute)
-qed
-
-
-subsection {* Derived rules for multiplication *}
-
-lemma mult_1_right [simp]: "a * (1::'a::almost_semiring) = a"
-proof -
-  have "a * 1 = 1 * a" by (simp add: mult_commute)
-  also have "... = a" by simp
-  finally show ?thesis .
-qed
-
-lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::almost_semiring))"
-  by (rule mk_left_commute [of "op *", OF mult_assoc mult_commute])
-
-theorems mult_ac = mult_assoc mult_commute mult_left_commute
-
-lemma mult_zero_left [simp]: "0 * a = (0::'a::semiring)"
+lemma mult_zero_left [simp]: "0 * a = (0::'a::{semiring_0, cancel_semigroup_add})"
 proof -
   have "0*a + 0*a = 0*a + 0"
     by (simp add: left_distrib [symmetric])
-  thus ?thesis by (simp only: add_left_cancel)
+  thus ?thesis 
+    by (simp only: add_left_cancel)
 qed
 
-lemma mult_zero_right [simp]: "a * 0 = (0::'a::semiring)"
-  by (simp add: mult_commute)
+lemma mult_zero_right [simp]: "a * 0 = (0::'a::{semiring_0, cancel_semigroup_add})"
+proof -
+  have "a*0 + a*0 = a*0 + 0"
+    by (simp add: right_distrib [symmetric])
+  thus ?thesis 
+    by (simp only: add_left_cancel)
+qed
 
+lemma field_mult_eq_0_iff [simp]: "(a*b = (0::'a::field)) = (a = 0 | b = 0)"
+proof cases
+  assume "a=0" thus ?thesis by simp
+next
+  assume anz [simp]: "a\<noteq>0"
+  { assume "a * b = 0"
+    hence "inverse a * (a * b) = 0" by simp
+    hence "b = 0"  by (simp (no_asm_use) add: mult_assoc [symmetric])}
+  thus ?thesis by force
+qed
+
+instance field \<subseteq> idom
+by (intro_classes, simp)
+  
+axclass division_by_zero \<subseteq> zero, inverse
+  inverse_zero [simp]: "inverse 0 = 0"
 
 subsection {* Distribution rules *}
-
-lemma right_distrib: "a * (b + c) = a * b + a * (c::'a::almost_semiring)"
-proof -
-  have "a * (b + c) = (b + c) * a" by (simp add: mult_ac)
-  also have "... = b * a + c * a" by (simp only: left_distrib)
-  also have "... = a * b + a * c" by (simp add: mult_ac)
-  finally show ?thesis .
-qed
 
 theorems ring_distrib = right_distrib left_distrib
 
 text{*For the @{text combine_numerals} simproc*}
 lemma combine_common_factor:
-     "a*e + (b*e + c) = (a+b)*e + (c::'a::almost_semiring)"
+     "a*e + (b*e + c) = (a+b)*e + (c::'a::semiring)"
 by (simp add: left_distrib add_ac)
-
-lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::abelian_group)"
-apply (rule equals_zero_I)
-apply (simp add: plus_ac0) 
-done
 
 lemma minus_mult_left: "- (a * b) = (-a) * (b::'a::ring)"
 apply (rule equals_zero_I)
@@ -303,237 +149,86 @@ by (simp add: right_distrib diff_minus
               minus_mult_left [symmetric] minus_mult_right [symmetric]) 
 
 lemma left_diff_distrib: "(a - b) * c = a * c - b * (c::'a::ring)"
-by (simp add: mult_commute [of _ c] right_diff_distrib) 
+by (simp add: left_distrib diff_minus 
+              minus_mult_left [symmetric] minus_mult_right [symmetric]) 
 
-lemma minus_diff_eq [simp]: "- (a - b) = b - (a::'a::ring)"
-by (simp add: diff_minus add_commute) 
+axclass pordered_semiring \<subseteq> semiring_0, pordered_ab_semigroup_add 
+  mult_left_mono: "a <= b \<Longrightarrow> 0 <= c \<Longrightarrow> c * a <= c * b"
+  mult_right_mono: "a <= b \<Longrightarrow> 0 <= c \<Longrightarrow> a * c <= b * c"
 
+axclass pordered_cancel_semiring \<subseteq> pordered_semiring, cancel_ab_semigroup_add
 
-subsection {* Ordering Rules for Addition *}
+axclass ordered_semiring_strict \<subseteq> semiring_0, ordered_cancel_ab_semigroup_add
+  mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+  mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
 
-lemma add_right_mono: "a \<le> (b::'a::almost_ordered_semiring) ==> a + c \<le> b + c"
-by (simp add: add_commute [of _ c] add_left_mono)
-
-text {* non-strict, in both arguments *}
-lemma add_mono:
-     "[|a \<le> b;  c \<le> d|] ==> a + c \<le> b + (d::'a::almost_ordered_semiring)"
-  apply (erule add_right_mono [THEN order_trans])
-  apply (simp add: add_commute add_left_mono)
-  done
-
-lemma add_strict_left_mono:
-     "a < b ==> c + a < c + (b::'a::almost_ordered_semiring)"
- by (simp add: order_less_le add_left_mono) 
-
-lemma add_strict_right_mono:
-     "a < b ==> a + c < b + (c::'a::almost_ordered_semiring)"
- by (simp add: add_commute [of _ c] add_strict_left_mono)
-
-text{*Strict monotonicity in both arguments*}
-lemma add_strict_mono: "[|a<b; c<d|] ==> a + c < b + (d::'a::almost_ordered_semiring)"
-apply (erule add_strict_right_mono [THEN order_less_trans])
-apply (erule add_strict_left_mono)
+instance ordered_semiring_strict \<subseteq> pordered_cancel_semiring
+apply intro_classes
+apply (case_tac "a < b & 0 < c")
+apply (auto simp add: mult_strict_left_mono order_less_le)
+apply (auto simp add: mult_strict_left_mono order_le_less)
+apply (simp add: mult_strict_right_mono)
 done
 
-lemma add_less_le_mono:
-     "[| a<b; c\<le>d |] ==> a + c < b + (d::'a::almost_ordered_semiring)"
-apply (erule add_strict_right_mono [THEN order_less_le_trans])
-apply (erule add_left_mono) 
+axclass pordered_comm_semiring \<subseteq> comm_semiring_0, pordered_ab_semigroup_add
+  mult_mono: "a <= b \<Longrightarrow> 0 <= c \<Longrightarrow> c * a <= c * b"
+
+axclass pordered_cancel_comm_semiring \<subseteq> pordered_comm_semiring, cancel_ab_semigroup_add
+
+instance pordered_cancel_comm_semiring \<subseteq> pordered_comm_semiring ..
+
+axclass ordered_comm_semiring_strict \<subseteq> comm_semiring_0, ordered_cancel_ab_semigroup_add
+  mult_strict_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+
+instance pordered_comm_semiring \<subseteq> pordered_semiring
+by (intro_classes, insert mult_mono, simp_all add: mult_commute, blast+)
+
+instance pordered_cancel_comm_semiring \<subseteq> pordered_cancel_semiring ..
+
+instance ordered_comm_semiring_strict \<subseteq> ordered_semiring_strict
+by (intro_classes, insert mult_strict_mono, simp_all add: mult_commute, blast+)
+
+instance ordered_comm_semiring_strict \<subseteq> pordered_cancel_comm_semiring
+apply (intro_classes)
+apply (case_tac "a < b & 0 < c")
+apply (auto simp add: mult_strict_left_mono order_less_le)
+apply (auto simp add: mult_strict_left_mono order_le_less)
 done
 
-lemma add_le_less_mono:
-     "[| a\<le>b; c<d |] ==> a + c < b + (d::'a::almost_ordered_semiring)"
-apply (erule add_right_mono [THEN order_le_less_trans])
-apply (erule add_strict_left_mono) 
-done
+axclass pordered_ring \<subseteq> ring, pordered_semiring 
 
-lemma add_less_imp_less_left:
-      assumes less: "c + a < c + b"  shows "a < (b::'a::almost_ordered_semiring)"
-proof (rule ccontr)
-  assume "~ a < b"
-  hence "b \<le> a" by (simp add: linorder_not_less)
-  hence "c+b \<le> c+a" by (rule add_left_mono)
-  with this and less show False 
-    by (simp add: linorder_not_less [symmetric])
-qed
+instance pordered_ring \<subseteq> pordered_ab_group_add ..
 
-lemma add_less_imp_less_right:
-      "a + c < b + c ==> a < (b::'a::almost_ordered_semiring)"
-apply (rule add_less_imp_less_left [of c])
-apply (simp add: add_commute)  
-done
+instance pordered_ring \<subseteq> pordered_cancel_semiring ..
 
-lemma add_less_cancel_left [simp]:
-    "(c+a < c+b) = (a < (b::'a::almost_ordered_semiring))"
-by (blast intro: add_less_imp_less_left add_strict_left_mono) 
+axclass lordered_ring \<subseteq> pordered_ring, lordered_ab_group_abs
 
-lemma add_less_cancel_right [simp]:
-    "(a+c < b+c) = (a < (b::'a::almost_ordered_semiring))"
-by (blast intro: add_less_imp_less_right add_strict_right_mono)
+axclass axclass_abs_if \<subseteq> minus, ord, zero
+  abs_if: "abs a = (if (a < 0) then (-a) else a)"
 
-lemma add_le_cancel_left [simp]:
-    "(c+a \<le> c+b) = (a \<le> (b::'a::almost_ordered_semiring))"
-by (simp add: linorder_not_less [symmetric]) 
+axclass ordered_ring_strict \<subseteq> ring, ordered_semiring_strict, axclass_abs_if
 
-lemma add_le_cancel_right [simp]:
-    "(a+c \<le> b+c) = (a \<le> (b::'a::almost_ordered_semiring))"
-by (simp add: linorder_not_less [symmetric]) 
+instance ordered_ring_strict \<subseteq> lordered_ab_group ..
 
-lemma add_le_imp_le_left:
-      "c + a \<le> c + b ==> a \<le> (b::'a::almost_ordered_semiring)"
-by simp
+instance ordered_ring_strict \<subseteq> lordered_ring
+by (intro_classes, simp add: abs_if join_eq_if)
 
-lemma add_le_imp_le_right:
-      "a + c \<le> b + c ==> a \<le> (b::'a::almost_ordered_semiring)"
-by simp
+axclass pordered_comm_ring \<subseteq> comm_ring, pordered_comm_semiring
 
-lemma add_increasing: "[|0\<le>a; b\<le>c|] ==> b \<le> a + (c::'a::almost_ordered_semiring)"
-by (insert add_mono [of 0 a b c], simp)
+axclass ordered_semidom \<subseteq> comm_semiring_1_cancel, ordered_comm_semiring_strict (* previously ordered_semiring *)
+  zero_less_one [simp]: "0 < 1"
 
+axclass ordered_idom \<subseteq> comm_ring_1, ordered_comm_semiring_strict, axclass_abs_if (* previously ordered_ring *)
 
-subsection {* Ordering Rules for Unary Minus *}
+instance ordered_idom \<subseteq> ordered_ring_strict ..
 
-lemma le_imp_neg_le:
-      assumes "a \<le> (b::'a::ordered_ring)" shows "-b \<le> -a"
-proof -
-  have "-a+a \<le> -a+b"
-    by (rule add_left_mono) 
-  hence "0 \<le> -a+b"
-    by simp
-  hence "0 + (-b) \<le> (-a + b) + (-b)"
-    by (rule add_right_mono) 
-  thus ?thesis
-    by (simp add: add_assoc)
-qed
-
-lemma neg_le_iff_le [simp]: "(-b \<le> -a) = (a \<le> (b::'a::ordered_ring))"
-proof 
-  assume "- b \<le> - a"
-  hence "- (- a) \<le> - (- b)"
-    by (rule le_imp_neg_le)
-  thus "a\<le>b" by simp
-next
-  assume "a\<le>b"
-  thus "-b \<le> -a" by (rule le_imp_neg_le)
-qed
-
-lemma neg_le_0_iff_le [simp]: "(-a \<le> 0) = (0 \<le> (a::'a::ordered_ring))"
-by (subst neg_le_iff_le [symmetric], simp)
-
-lemma neg_0_le_iff_le [simp]: "(0 \<le> -a) = (a \<le> (0::'a::ordered_ring))"
-by (subst neg_le_iff_le [symmetric], simp)
-
-lemma neg_less_iff_less [simp]: "(-b < -a) = (a < (b::'a::ordered_ring))"
-by (force simp add: order_less_le) 
-
-lemma neg_less_0_iff_less [simp]: "(-a < 0) = (0 < (a::'a::ordered_ring))"
-by (subst neg_less_iff_less [symmetric], simp)
-
-lemma neg_0_less_iff_less [simp]: "(0 < -a) = (a < (0::'a::ordered_ring))"
-by (subst neg_less_iff_less [symmetric], simp)
-
-text{*The next several equations can make the simplifier loop!*}
-
-lemma less_minus_iff: "(a < - b) = (b < - (a::'a::ordered_ring))"
-proof -
-  have "(- (-a) < - b) = (b < - a)" by (rule neg_less_iff_less)
-  thus ?thesis by simp
-qed
-
-lemma minus_less_iff: "(- a < b) = (- b < (a::'a::ordered_ring))"
-proof -
-  have "(- a < - (-b)) = (- b < a)" by (rule neg_less_iff_less)
-  thus ?thesis by simp
-qed
-
-lemma le_minus_iff: "(a \<le> - b) = (b \<le> - (a::'a::ordered_ring))"
-apply (simp add: linorder_not_less [symmetric])
-apply (rule minus_less_iff) 
-done
-
-lemma minus_le_iff: "(- a \<le> b) = (- b \<le> (a::'a::ordered_ring))"
-apply (simp add: linorder_not_less [symmetric])
-apply (rule less_minus_iff) 
-done
-
-
-subsection{*Subtraction Laws*}
-
-lemma add_diff_eq: "a + (b - c) = (a + b) - (c::'a::abelian_group)"
-by (simp add: diff_minus plus_ac0)
-
-lemma diff_add_eq: "(a - b) + c = (a + c) - (b::'a::abelian_group)"
-by (simp add: diff_minus plus_ac0)
-
-lemma diff_eq_eq: "(a-b = c) = (a = c + (b::'a::abelian_group))"
-by (auto simp add: diff_minus add_assoc)
-
-lemma eq_diff_eq: "(a = c-b) = (a + (b::'a::abelian_group) = c)"
-by (auto simp add: diff_minus add_assoc)
-
-lemma diff_diff_eq: "(a - b) - c = a - (b + (c::'a::abelian_group))"
-by (simp add: diff_minus plus_ac0)
-
-lemma diff_diff_eq2: "a - (b - c) = (a + c) - (b::'a::abelian_group)"
-by (simp add: diff_minus plus_ac0)
-
-text{*Further subtraction laws for ordered rings*}
-
-lemma less_iff_diff_less_0: "(a < b) = (a - b < (0::'a::ordered_ring))"
-proof -
-  have  "(a < b) = (a + (- b) < b + (-b))"  
-    by (simp only: add_less_cancel_right)
-  also have "... =  (a - b < 0)" by (simp add: diff_minus)
-  finally show ?thesis .
-qed
-
-lemma diff_less_eq: "(a-b < c) = (a < c + (b::'a::ordered_ring))"
-apply (subst less_iff_diff_less_0)
-apply (rule less_iff_diff_less_0 [of _ c, THEN ssubst])
-apply (simp add: diff_minus add_ac)
-done
-
-lemma less_diff_eq: "(a < c-b) = (a + (b::'a::ordered_ring) < c)"
-apply (subst less_iff_diff_less_0)
-apply (rule less_iff_diff_less_0 [of _ "c-b", THEN ssubst])
-apply (simp add: diff_minus add_ac)
-done
-
-lemma diff_le_eq: "(a-b \<le> c) = (a \<le> c + (b::'a::ordered_ring))"
-by (simp add: linorder_not_less [symmetric] less_diff_eq)
-
-lemma le_diff_eq: "(a \<le> c-b) = (a + (b::'a::ordered_ring) \<le> c)"
-by (simp add: linorder_not_less [symmetric] diff_less_eq)
-
-text{*This list of rewrites simplifies (in)equalities by bringing subtractions
-  to the top and then moving negative terms to the other side.
-  Use with @{text add_ac}*}
-lemmas compare_rls =
-       diff_minus [symmetric]
-       add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-       diff_less_eq less_diff_eq diff_le_eq le_diff_eq
-       diff_eq_eq eq_diff_eq
-
-text{*This list of rewrites decides ring equalities by ordered rewriting.*}
-lemmas ring_eq_simps =
-  times_ac1.assoc times_ac1.commute times_ac1_left_commute
-  left_distrib right_distrib left_diff_distrib right_diff_distrib
-  plus_ac0.assoc plus_ac0.commute plus_ac0_left_commute
-  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-  diff_eq_eq eq_diff_eq
-
-subsection{*Lemmas for the @{text cancel_numerals} simproc*}
-
-lemma eq_iff_diff_eq_0: "(a = b) = (a-b = (0::'a::abelian_group))"
-by (simp add: compare_rls)
-
-lemma le_iff_diff_le_0: "(a \<le> b) = (a-b \<le> (0::'a::ordered_ring))"
-by (simp add: compare_rls)
+axclass ordered_field \<subseteq> field, ordered_idom
 
 lemma eq_add_iff1:
      "(a*e + c = b*e + d) = ((a-b)*e + c = (d::'a::ring))"
+apply (simp add: diff_minus left_distrib)
 apply (simp add: diff_minus left_distrib add_ac)
-apply (simp add: compare_rls minus_mult_left [symmetric]) 
+apply (simp add: compare_rls minus_mult_left [symmetric])
 done
 
 lemma eq_add_iff2:
@@ -543,167 +238,199 @@ apply (simp add: compare_rls minus_mult_left [symmetric])
 done
 
 lemma less_add_iff1:
-     "(a*e + c < b*e + d) = ((a-b)*e + c < (d::'a::ordered_ring))"
+     "(a*e + c < b*e + d) = ((a-b)*e + c < (d::'a::pordered_ring))"
 apply (simp add: diff_minus left_distrib add_ac)
 apply (simp add: compare_rls minus_mult_left [symmetric]) 
 done
 
 lemma less_add_iff2:
-     "(a*e + c < b*e + d) = (c < (b-a)*e + (d::'a::ordered_ring))"
+     "(a*e + c < b*e + d) = (c < (b-a)*e + (d::'a::pordered_ring))"
 apply (simp add: diff_minus left_distrib add_ac)
 apply (simp add: compare_rls minus_mult_left [symmetric]) 
 done
 
 lemma le_add_iff1:
-     "(a*e + c \<le> b*e + d) = ((a-b)*e + c \<le> (d::'a::ordered_ring))"
+     "(a*e + c \<le> b*e + d) = ((a-b)*e + c \<le> (d::'a::pordered_ring))"
 apply (simp add: diff_minus left_distrib add_ac)
 apply (simp add: compare_rls minus_mult_left [symmetric]) 
 done
 
 lemma le_add_iff2:
-     "(a*e + c \<le> b*e + d) = (c \<le> (b-a)*e + (d::'a::ordered_ring))"
+     "(a*e + c \<le> b*e + d) = (c \<le> (b-a)*e + (d::'a::pordered_ring))"
 apply (simp add: diff_minus left_distrib add_ac)
 apply (simp add: compare_rls minus_mult_left [symmetric]) 
 done
 
-
 subsection {* Ordering Rules for Multiplication *}
 
-lemma mult_strict_right_mono:
-     "[|a < b; 0 < c|] ==> a * c < b * (c::'a::almost_ordered_semiring)"
-by (simp add: mult_commute [of _ c] mult_strict_left_mono)
-
-lemma mult_left_mono:
-     "[|a \<le> b; 0 \<le> c|] ==> c * a \<le> c * (b::'a::almost_ordered_semiring)"
-  apply (case_tac "c=0", simp)
-  apply (force simp add: mult_strict_left_mono order_le_less) 
-  done
-
-lemma mult_right_mono:
-     "[|a \<le> b; 0 \<le> c|] ==> a*c \<le> b * (c::'a::almost_ordered_semiring)"
-  by (simp add: mult_left_mono mult_commute [of _ c]) 
-
 lemma mult_left_le_imp_le:
-     "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::almost_ordered_semiring)"
+     "[|c*a \<le> c*b; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
   by (force simp add: mult_strict_left_mono linorder_not_less [symmetric])
  
 lemma mult_right_le_imp_le:
-     "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::almost_ordered_semiring)"
+     "[|a*c \<le> b*c; 0 < c|] ==> a \<le> (b::'a::ordered_semiring_strict)"
   by (force simp add: mult_strict_right_mono linorder_not_less [symmetric])
 
 lemma mult_left_less_imp_less:
-     "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::almost_ordered_semiring)"
+     "[|c*a < c*b; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
   by (force simp add: mult_left_mono linorder_not_le [symmetric])
  
 lemma mult_right_less_imp_less:
-     "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::almost_ordered_semiring)"
+     "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring_strict)"
   by (force simp add: mult_right_mono linorder_not_le [symmetric])
 
 lemma mult_strict_left_mono_neg:
-     "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring)"
+     "[|b < a; c < 0|] ==> c * a < c * (b::'a::ordered_ring_strict)"
 apply (drule mult_strict_left_mono [of _ _ "-c"])
 apply (simp_all add: minus_mult_left [symmetric]) 
 done
 
+lemma mult_left_mono_neg:
+     "[|b \<le> a; c \<le> 0|] ==> c * a \<le>  c * (b::'a::pordered_ring)"
+apply (drule mult_left_mono [of _ _ "-c"])
+apply (simp_all add: minus_mult_left [symmetric]) 
+done
+
 lemma mult_strict_right_mono_neg:
-     "[|b < a; c < 0|] ==> a * c < b * (c::'a::ordered_ring)"
+     "[|b < a; c < 0|] ==> a * c < b * (c::'a::ordered_ring_strict)"
 apply (drule mult_strict_right_mono [of _ _ "-c"])
 apply (simp_all add: minus_mult_right [symmetric]) 
 done
 
+lemma mult_right_mono_neg:
+     "[|b \<le> a; c \<le> 0|] ==> a * c \<le>  (b::'a::pordered_ring) * c"
+apply (drule mult_right_mono [of _ _ "-c"])
+apply (simp)
+apply (simp_all add: minus_mult_right [symmetric]) 
+done
 
 subsection{* Products of Signs *}
 
-lemma mult_pos: "[| (0::'a::almost_ordered_semiring) < a; 0 < b |] ==> 0 < a*b"
+lemma mult_pos: "[| (0::'a::ordered_semiring_strict) < a; 0 < b |] ==> 0 < a*b"
 by (drule mult_strict_left_mono [of 0 b], auto)
 
-lemma mult_pos_neg: "[| (0::'a::almost_ordered_semiring) < a; b < 0 |] ==> a*b < 0"
+lemma mult_pos_le: "[| (0::'a::pordered_cancel_semiring) \<le> a; 0 \<le> b |] ==> 0 \<le> a*b"
+by (drule mult_left_mono [of 0 b], auto)
+
+lemma mult_pos_neg: "[| (0::'a::ordered_semiring_strict) < a; b < 0 |] ==> a*b < 0"
 by (drule mult_strict_left_mono [of b 0], auto)
 
-lemma mult_neg: "[| a < (0::'a::ordered_ring); b < 0 |] ==> 0 < a*b"
+lemma mult_pos_neg_le: "[| (0::'a::pordered_cancel_semiring) \<le> a; b \<le> 0 |] ==> a*b \<le> 0"
+by (drule mult_left_mono [of b 0], auto)
+
+lemma mult_pos_neg2: "[| (0::'a::ordered_semiring_strict) < a; b < 0 |] ==> b*a < 0" 
+by (drule mult_strict_right_mono[of b 0], auto)
+
+lemma mult_pos_neg2_le: "[| (0::'a::pordered_cancel_semiring) \<le> a; b \<le> 0 |] ==> b*a \<le> 0" 
+by (drule mult_right_mono[of b 0], auto)
+
+lemma mult_neg: "[| a < (0::'a::ordered_ring_strict); b < 0 |] ==> 0 < a*b"
 by (drule mult_strict_right_mono_neg, auto)
 
+lemma mult_neg_le: "[| a \<le> (0::'a::pordered_ring); b \<le> 0 |] ==> 0 \<le> a*b"
+by (drule mult_right_mono_neg[of a 0 b ], auto)
+
 lemma zero_less_mult_pos:
-     "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::almost_ordered_semiring)"
+     "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::ordered_semiring_strict)"
 apply (case_tac "b\<le>0") 
  apply (auto simp add: order_le_less linorder_not_less)
 apply (drule_tac mult_pos_neg [of a b]) 
  apply (auto dest: order_less_not_sym)
 done
 
+lemma zero_less_mult_pos2:
+     "[| 0 < b*a; 0 < a|] ==> 0 < (b::'a::ordered_semiring_strict)"
+apply (case_tac "b\<le>0") 
+ apply (auto simp add: order_le_less linorder_not_less)
+apply (drule_tac mult_pos_neg2 [of a b]) 
+ apply (auto dest: order_less_not_sym)
+done
+
 lemma zero_less_mult_iff:
-     "((0::'a::ordered_ring) < a*b) = (0 < a & 0 < b | a < 0 & b < 0)"
+     "((0::'a::ordered_ring_strict) < a*b) = (0 < a & 0 < b | a < 0 & b < 0)"
 apply (auto simp add: order_le_less linorder_not_less mult_pos mult_neg)
 apply (blast dest: zero_less_mult_pos) 
-apply (simp add: mult_commute [of a b]) 
-apply (blast dest: zero_less_mult_pos) 
+apply (blast dest: zero_less_mult_pos2)
 done
 
 text{*A field has no "zero divisors", and this theorem holds without the
       assumption of an ordering.  See @{text field_mult_eq_0_iff} below.*}
-lemma mult_eq_0_iff [simp]: "(a*b = (0::'a::ordered_ring)) = (a = 0 | b = 0)"
+lemma mult_eq_0_iff [simp]: "(a*b = (0::'a::ordered_ring_strict)) = (a = 0 | b = 0)"
 apply (case_tac "a < 0")
 apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
 apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
 done
 
 lemma zero_le_mult_iff:
-     "((0::'a::ordered_ring) \<le> a*b) = (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
+     "((0::'a::ordered_ring_strict) \<le> a*b) = (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
 by (auto simp add: eq_commute [of 0] order_le_less linorder_not_less
                    zero_less_mult_iff)
 
 lemma mult_less_0_iff:
-     "(a*b < (0::'a::ordered_ring)) = (0 < a & b < 0 | a < 0 & 0 < b)"
+     "(a*b < (0::'a::ordered_ring_strict)) = (0 < a & b < 0 | a < 0 & 0 < b)"
 apply (insert zero_less_mult_iff [of "-a" b]) 
 apply (force simp add: minus_mult_left[symmetric]) 
 done
 
 lemma mult_le_0_iff:
-     "(a*b \<le> (0::'a::ordered_ring)) = (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
+     "(a*b \<le> (0::'a::ordered_ring_strict)) = (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
 apply (insert zero_le_mult_iff [of "-a" b]) 
 apply (force simp add: minus_mult_left[symmetric]) 
 done
 
-lemma zero_le_square: "(0::'a::ordered_ring) \<le> a*a"
+lemma split_mult_pos_le: "(0 \<le> a & 0 \<le> b) | (a \<le> 0 & b \<le> 0) \<Longrightarrow> 0 \<le> a * (b::_::pordered_ring)"
+by (auto simp add: mult_pos_le mult_neg_le)
+
+lemma split_mult_neg_le: "(0 \<le> a & b \<le> 0) | (a \<le> 0 & 0 \<le> b) \<Longrightarrow> a * b \<le> (0::_::pordered_cancel_semiring)" 
+by (auto simp add: mult_pos_neg_le mult_pos_neg2_le)
+
+lemma zero_le_square: "(0::'a::ordered_ring_strict) \<le> a*a"
 by (simp add: zero_le_mult_iff linorder_linear) 
 
-text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semiring}
-      theorems available to members of @{term ordered_ring} *}
-instance ordered_ring \<subseteq> ordered_semiring
+text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semidom}
+      theorems available to members of @{term ordered_idom} *}
+
+instance ordered_idom \<subseteq> ordered_semidom
 proof
   have "(0::'a) \<le> 1*1" by (rule zero_le_square)
   thus "(0::'a) < 1" by (simp add: order_le_less) 
 qed
 
+instance ordered_ring_strict \<subseteq> axclass_no_zero_divisors 
+by (intro_classes, simp)
+
+instance ordered_idom \<subseteq> idom ..
+
 text{*All three types of comparision involving 0 and 1 are covered.*}
 
 declare zero_neq_one [THEN not_sym, simp]
 
-lemma zero_le_one [simp]: "(0::'a::ordered_semiring) \<le> 1"
+lemma zero_le_one [simp]: "(0::'a::ordered_semidom) \<le> 1"
   by (rule zero_less_one [THEN order_less_imp_le]) 
 
-lemma not_one_le_zero [simp]: "~ (1::'a::ordered_semiring) \<le> 0"
-by (simp add: linorder_not_le zero_less_one) 
+lemma not_one_le_zero [simp]: "~ (1::'a::ordered_semidom) \<le> 0"
+by (simp add: linorder_not_le) 
 
-lemma not_one_less_zero [simp]: "~ (1::'a::ordered_semiring) < 0"
-by (simp add: linorder_not_less zero_le_one) 
-
+lemma not_one_less_zero [simp]: "~ (1::'a::ordered_semidom) < 0"
+by (simp add: linorder_not_less) 
 
 subsection{*More Monotonicity*}
 
 lemma mult_left_mono_neg:
-     "[|b \<le> a; c \<le> 0|] ==> c * a \<le> c * (b::'a::ordered_ring)"
+     "[|b \<le> a; c \<le> 0|] ==> c * a \<le> c * (b::'a::pordered_ring)"
 apply (drule mult_left_mono [of _ _ "-c"]) 
 apply (simp_all add: minus_mult_left [symmetric]) 
 done
 
 lemma mult_right_mono_neg:
-     "[|b \<le> a; c \<le> 0|] ==> a * c \<le> b * (c::'a::ordered_ring)"
-  by (simp add: mult_left_mono_neg mult_commute [of _ c]) 
+     "[|b \<le> a; c \<le> 0|] ==> a * c \<le> b * (c::'a::pordered_ring)"
+apply (drule mult_right_mono [of _ _ "-c"]) 
+apply (simp_all add: minus_mult_right [symmetric]) 
+done  
 
 text{*Strict monotonicity in both arguments*}
 lemma mult_strict_mono:
-     "[|a<b; c<d; 0<b; 0\<le>c|] ==> a * c < b * (d::'a::ordered_semiring)"
+     "[|a<b; c<d; 0<b; 0\<le>c|] ==> a * c < b * (d::'a::ordered_semiring_strict)"
 apply (case_tac "c=0")
  apply (simp add: mult_pos) 
 apply (erule mult_strict_right_mono [THEN order_less_trans])
@@ -713,23 +440,22 @@ done
 
 text{*This weaker variant has more natural premises*}
 lemma mult_strict_mono':
-     "[| a<b; c<d; 0 \<le> a; 0 \<le> c|] ==> a * c < b * (d::'a::ordered_semiring)"
+     "[| a<b; c<d; 0 \<le> a; 0 \<le> c|] ==> a * c < b * (d::'a::ordered_semiring_strict)"
 apply (rule mult_strict_mono)
 apply (blast intro: order_le_less_trans)+
 done
 
 lemma mult_mono:
      "[|a \<le> b; c \<le> d; 0 \<le> b; 0 \<le> c|] 
-      ==> a * c  \<le>  b * (d::'a::ordered_semiring)"
+      ==> a * c  \<le>  b * (d::'a::pordered_semiring)"
 apply (erule mult_right_mono [THEN order_trans], assumption)
 apply (erule mult_left_mono, assumption)
 done
 
-lemma less_1_mult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::'a::ordered_semiring)"
+lemma less_1_mult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::'a::ordered_semidom)"
 apply (insert mult_strict_mono [of 1 m 1 n]) 
 apply (simp add:  order_less_trans [OF zero_less_one]) 
 done
-
 
 subsection{*Cancellation Laws for Relationships With a Common Factor*}
 
@@ -737,7 +463,7 @@ text{*Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
    also with the relations @{text "\<le>"} and equality.*}
 
 lemma mult_less_cancel_right:
-    "(a*c < b*c) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring)))"
+    "(a*c < b*c) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
 apply (case_tac "c = 0")
 apply (auto simp add: linorder_neq_iff mult_strict_right_mono 
                       mult_strict_right_mono_neg)
@@ -750,20 +476,29 @@ apply (auto simp add: order_less_imp_le mult_right_mono
 done
 
 lemma mult_less_cancel_left:
-    "(c*a < c*b) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring)))"
-by (simp add: mult_commute [of c] mult_less_cancel_right)
+    "(c*a < c*b) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
+apply (case_tac "c = 0")
+apply (auto simp add: linorder_neq_iff mult_strict_left_mono 
+                      mult_strict_left_mono_neg)
+apply (auto simp add: linorder_not_less 
+                      linorder_not_le [symmetric, of "c*a"]
+                      linorder_not_le [symmetric, of a])
+apply (erule_tac [!] notE)
+apply (auto simp add: order_less_imp_le mult_left_mono 
+                      mult_left_mono_neg)
+done
 
 lemma mult_le_cancel_right:
-     "(a*c \<le> b*c) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring)))"
+     "(a*c \<le> b*c) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring_strict)))"
 by (simp add: linorder_not_less [symmetric] mult_less_cancel_right)
 
 lemma mult_le_cancel_left:
-     "(c*a \<le> c*b) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring)))"
-by (simp add: mult_commute [of c] mult_le_cancel_right)
+     "(c*a \<le> c*b) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring_strict)))"
+by (simp add: linorder_not_less [symmetric] mult_less_cancel_left)
 
 lemma mult_less_imp_less_left:
       assumes less: "c*a < c*b" and nonneg: "0 \<le> c"
-      shows "a < (b::'a::ordered_semiring)"
+      shows "a < (b::'a::ordered_semiring_strict)"
 proof (rule ccontr)
   assume "~ a < b"
   hence "b \<le> a" by (simp add: linorder_not_less)
@@ -773,12 +508,19 @@ proof (rule ccontr)
 qed
 
 lemma mult_less_imp_less_right:
-    "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
-  by (rule mult_less_imp_less_left, simp add: mult_commute)
+  assumes less: "a*c < b*c" and nonneg: "0 <= c"
+  shows "a < (b::'a::ordered_semiring_strict)"
+proof (rule ccontr)
+  assume "~ a < b"
+  hence "b \<le> a" by (simp add: linorder_not_less)
+  hence "b*c \<le> a*c" by (rule mult_right_mono)
+  with this and less show False 
+    by (simp add: linorder_not_less [symmetric])
+qed  
 
 text{*Cancellation of equalities with a common factor*}
 lemma mult_cancel_right [simp]:
-     "(a*c = b*c) = (c = (0::'a::ordered_ring) | a=b)"
+     "(a*c = b*c) = (c = (0::'a::ordered_ring_strict) | a=b)"
 apply (cut_tac linorder_less_linear [of 0 c])
 apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono
              simp add: linorder_neq_iff)
@@ -787,10 +529,21 @@ done
 text{*These cancellation theorems require an ordering. Versions are proved
       below that work for fields without an ordering.*}
 lemma mult_cancel_left [simp]:
-     "(c*a = c*b) = (c = (0::'a::ordered_ring) | a=b)"
-by (simp add: mult_commute [of c] mult_cancel_right)
+     "(c*a = c*b) = (c = (0::'a::ordered_ring_strict) | a=b)"
+apply (cut_tac linorder_less_linear [of 0 c])
+apply (force dest: mult_strict_left_mono_neg mult_strict_left_mono
+             simp add: linorder_neq_iff)
+done
 
-
+text{*This list of rewrites decides ring equalities by ordered rewriting.*}
+lemmas ring_eq_simps =
+  mult_ac
+  left_distrib right_distrib left_diff_distrib right_diff_distrib
+  add_ac
+  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
+  diff_eq_eq eq_diff_eq
+    
+thm ring_eq_simps
 subsection {* Fields *}
 
 lemma right_inverse [simp]:
@@ -1571,14 +1324,14 @@ done
 
 subsection {* Ordered Fields are Dense *}
 
-lemma less_add_one: "a < (a+1::'a::ordered_semiring)"
+lemma less_add_one: "a < (a+1::'a::ordered_semidom)"
 proof -
-  have "a+0 < (a+1::'a::ordered_semiring)"
+  have "a+0 < (a+1::'a::ordered_semidom)"
     by (blast intro: zero_less_one add_strict_left_mono) 
   thus ?thesis by simp
 qed
 
-lemma zero_less_two: "0 < (1+1::'a::ordered_semiring)"
+lemma zero_less_two: "0 < (1+1::'a::ordered_semidom)"
   by (blast intro: order_less_trans zero_less_one less_add_one) 
 
 lemma less_half_sum: "a < b ==> a < (a+b) / (1+1::'a::ordered_field)"
@@ -1590,61 +1343,101 @@ by (simp add: zero_less_two pos_divide_less_eq right_distrib)
 lemma dense: "a < b ==> \<exists>r::'a::ordered_field. a < r & r < b"
 by (blast intro!: less_half_sum gt_half_sum)
 
-
 subsection {* Absolute Value *}
 
-lemma abs_zero [simp]: "abs 0 = (0::'a::ordered_ring)"
-by (simp add: abs_if)
-
-lemma abs_one [simp]: "abs 1 = (1::'a::ordered_ring)"
+lemma abs_one [simp]: "abs 1 = (1::'a::ordered_idom)"
   by (simp add: abs_if zero_less_one [THEN order_less_not_sym]) 
 
-lemma abs_mult: "abs (a * b) = abs a * abs (b::'a::ordered_ring)" 
-apply (case_tac "a=0 | b=0", force) 
-apply (auto elim: order_less_asym
-            simp add: abs_if mult_less_0_iff linorder_neq_iff
-                  minus_mult_left [symmetric] minus_mult_right [symmetric])  
-done
+lemma abs_le_mult: "abs (a * b) \<le> (abs a) * (abs (b::'a::lordered_ring))" 
+proof -
+  let ?x = "pprt a * pprt b - pprt a * nprt b - nprt a * pprt b + nprt a * nprt b"
+  let ?y = "pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
+  have a: "(abs a) * (abs b) = ?x"
+    by (simp only: abs_prts[of a] abs_prts[of b] ring_eq_simps)
+  {
+    fix u v :: 'a
+    have bh: "\<lbrakk>u = a; v = b\<rbrakk> \<Longrightarrow> u * v = ?y"
+      apply (subst prts[of u], subst prts[of v])
+      apply (simp add: left_distrib right_distrib add_ac) 
+      done
+  }
+  note b = this[OF refl[of a] refl[of b]]
+  note addm = add_mono[of "0::'a" _ "0::'a", simplified]
+  note addm2 = add_mono[of _ "0::'a" _ "0::'a", simplified]
+  have xy: "- ?x <= ?y"
+    apply (simp add: compare_rls)
+    apply (rule add_le_imp_le_left[of "-(pprt a * nprt b + nprt a * pprt b)"])
+    apply (simp add: add_ac)
+    proof -
+      let ?r = "nprt a * nprt b +(nprt a * nprt b + (nprt a * pprt b + (pprt a * nprt b + (pprt a * pprt b + (pprt a * pprt b +
+	(- (nprt a * pprt b) + - (pprt a * nprt b)))))))"
+      let ?rr = "nprt a * nprt b + nprt a * nprt b + ((nprt a * pprt b) + (- (nprt a * pprt b))) + ((pprt a * nprt b) + - (pprt a * nprt b))
+	+ pprt a * pprt b + pprt a * pprt b"
+      have a:"?r = ?rr" by (simp only: add_ac)      
+      have "0 <= ?rr"
+	apply (simp)
+	apply (rule addm)+
+	apply (simp_all add: mult_neg_le mult_pos_le)
+	done
+      with a show "0 <= ?r" by simp
+    qed
+  have yx: "?y <= ?x"
+    apply (simp add: add_ac)
+    apply (simp add: compare_rls)
+    apply (rule add_le_imp_le_right[of _ "-(pprt a * pprt b)"])
+    apply (simp add: add_ac)
+    apply (rule addm2, (simp add: mult_pos_neg_le mult_pos_neg2_le)+)+
+    done
+  have i1: "a*b <= abs a * abs b" by (simp only: a b yx)
+  have i2: "- (abs a * abs b) <= a*b" by (simp only: a b xy)
+  show ?thesis
+    apply (rule abs_leI)
+    apply (simp add: i1)
+    apply (simp add: i2[simplified minus_le_iff])
+    done
+qed
 
-lemma abs_mult_self: "abs a * abs a = a * (a::'a::ordered_ring)"
+lemma abs_eq_mult: 
+  assumes "(0 \<le> a \<or> a \<le> 0) \<and> (0 \<le> b \<or> b \<le> 0)"
+  shows "abs (a*b) = abs a * abs (b::'a::lordered_ring)"
+proof -
+  have s: "(0 <= a*b) | (a*b <= 0)"
+    apply (auto)    
+    apply (rule_tac split_mult_pos_le)
+    apply (rule_tac contrapos_np[of "a*b <= 0"])
+    apply (simp)
+    apply (rule_tac split_mult_neg_le)
+    apply (insert prems)
+    apply (blast)
+    done
+  have mulprts: "a * b = (pprt a + nprt a) * (pprt b + nprt b)"
+    by (simp add: prts[symmetric])
+  show ?thesis
+  proof cases
+    assume "0 <= a * b"
+    then show ?thesis
+      apply (simp_all add: mulprts abs_prts)
+      apply (insert prems)
+      apply (auto simp add: ring_eq_simps iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
+	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id] order_antisym mult_pos_neg_le[of a b] mult_pos_neg2_le[of b a])
+      done
+  next
+    assume "~(0 <= a*b)"
+    with s have "a*b <= 0" by simp
+    then show ?thesis
+      apply (simp_all add: mulprts abs_prts)
+      apply (insert prems)
+      apply (auto simp add: ring_eq_simps iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
+	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id] order_antisym mult_pos_le[of a b] mult_neg_le[of a b])
+      done
+  qed
+qed
+
+lemma abs_mult: "abs (a * b) = abs a * abs (b::'a::ordered_idom)" 
+by (simp add: abs_eq_mult linorder_linear)
+
+lemma abs_mult_self: "abs a * abs a = a * (a::'a::ordered_idom)"
 by (simp add: abs_if) 
-
-lemma abs_eq_0 [simp]: "(abs a = 0) = (a = (0::'a::ordered_ring))"
-by (simp add: abs_if)
-
-lemma zero_less_abs_iff [simp]: "(0 < abs a) = (a \<noteq> (0::'a::ordered_ring))"
-by (simp add: abs_if linorder_neq_iff)
-
-lemma abs_not_less_zero [simp]: "~ abs a < (0::'a::ordered_ring)"
-apply (simp add: abs_if)
-by (simp add: abs_if  order_less_not_sym [of a 0])
-
-lemma abs_le_zero_iff [simp]: "(abs a \<le> (0::'a::ordered_ring)) = (a = 0)" 
-by (simp add: order_le_less) 
-
-lemma abs_minus_cancel [simp]: "abs (-a) = abs(a::'a::ordered_ring)"
-apply (auto simp add: abs_if linorder_not_less order_less_not_sym [of 0 a])  
-apply (drule order_antisym, assumption, simp) 
-done
-
-lemma abs_ge_zero [simp]: "(0::'a::ordered_ring) \<le> abs a"
-apply (simp add: abs_if order_less_imp_le)
-apply (simp add: linorder_not_less) 
-done
-
-lemma abs_idempotent [simp]: "abs (abs a) = abs (a::'a::ordered_ring)"
-  by (force elim: order_less_asym simp add: abs_if)
-
-lemma abs_zero_iff [simp]: "(abs a = 0) = (a = (0::'a::ordered_ring))"
-by (simp add: abs_if)
-
-lemma abs_ge_self: "a \<le> abs (a::'a::ordered_ring)"
-apply (simp add: abs_if)
-apply (simp add: order_less_imp_le order_trans [of _ 0])
-done
-
-lemma abs_ge_minus_self: "-a \<le> abs (a::'a::ordered_ring)"
-by (insert abs_ge_self [of "-a"], simp)
 
 lemma nonzero_abs_inverse:
      "a \<noteq> 0 ==> abs (inverse (a::'a::ordered_field)) = inverse (abs a)"
@@ -1670,72 +1463,8 @@ apply (case_tac "b=0", simp)
 apply (simp add: nonzero_abs_divide) 
 done
 
-lemma abs_leI: "[|a \<le> b; -a \<le> b|] ==> abs a \<le> (b::'a::ordered_ring)"
-by (simp add: abs_if)
-
-lemma le_minus_self_iff: "(a \<le> -a) = (a \<le> (0::'a::ordered_ring))"
-proof 
-  assume ale: "a \<le> -a"
-  show "a\<le>0"
-    apply (rule classical) 
-    apply (simp add: linorder_not_le) 
-    apply (blast intro: ale order_trans order_less_imp_le
-                        neg_0_le_iff_le [THEN iffD1]) 
-    done
-next
-  assume "a\<le>0"
-  hence "0 \<le> -a" by (simp only: neg_0_le_iff_le)
-  thus "a \<le> -a"  by (blast intro: prems order_trans) 
-qed
-
-lemma minus_le_self_iff: "(-a \<le> a) = (0 \<le> (a::'a::ordered_ring))"
-by (insert le_minus_self_iff [of "-a"], simp)
-
-lemma eq_minus_self_iff: "(a = -a) = (a = (0::'a::ordered_ring))"
-by (force simp add: order_eq_iff le_minus_self_iff minus_le_self_iff)
-
-lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::ordered_ring))"
-by (simp add: order_less_le le_minus_self_iff eq_minus_self_iff)
-
-lemma abs_le_D1: "abs a \<le> b ==> a \<le> (b::'a::ordered_ring)"
-apply (simp add: abs_if split: split_if_asm)
-apply (rule order_trans [of _ "-a"]) 
- apply (simp add: less_minus_self_iff order_less_imp_le, assumption)
-done
-
-lemma abs_le_D2: "abs a \<le> b ==> -a \<le> (b::'a::ordered_ring)"
-by (insert abs_le_D1 [of "-a"], simp)
-
-lemma abs_le_iff: "(abs a \<le> b) = (a \<le> b & -a \<le> (b::'a::ordered_ring))"
-by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
-
-lemma abs_less_iff: "(abs a < b) = (a < b & -a < (b::'a::ordered_ring))" 
-apply (simp add: order_less_le abs_le_iff)  
-apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff)
-apply (simp add: le_minus_self_iff linorder_neq_iff) 
-done
-(*
-apply (simp add: order_less_le abs_le_iff)  
-apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff) 
- apply (simp add:  linorder_not_less [symmetric])
-apply (simp add: le_minus_self_iff linorder_neq_iff) 
-apply (simp add:  linorder_not_less [symmetric]) 
-done
-*)
-
-lemma abs_triangle_ineq: "abs (a+b) \<le> abs a + abs (b::'a::ordered_ring)"
-by (force simp add: abs_le_iff abs_ge_self abs_ge_minus_self add_mono)
-
-lemma abs_diff_triangle_ineq:
-     "\<bar>(a::'a::ordered_ring) + b - (c+d)\<bar> \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>"
-proof -
-  have "\<bar>a + b - (c+d)\<bar> = \<bar>(a-c) + (b-d)\<bar>" by (simp add: diff_minus add_ac)
-  also have "... \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>" by (rule abs_triangle_ineq)
-  finally show ?thesis .
-qed
-
 lemma abs_mult_less:
-     "[| abs a < c; abs b < d |] ==> abs a * abs b < c*(d::'a::ordered_ring)"
+     "[| abs a < c; abs b < d |] ==> abs a * abs b < c*(d::'a::ordered_idom)"
 proof -
   assume ac: "abs a < c"
   hence cpos: "0<c" by (blast intro: order_le_less_trans abs_ge_zero)
@@ -1743,272 +1472,221 @@ proof -
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
 
+lemma eq_minus_self_iff: "(a = -a) = (a = (0::'a::ordered_idom))"
+by (force simp add: order_eq_iff le_minus_self_iff minus_le_self_iff)
+
+lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::ordered_idom))"
+by (simp add: order_less_le le_minus_self_iff eq_minus_self_iff)
+
+lemma abs_less_iff: "(abs a < b) = (a < b & -a < (b::'a::ordered_idom))" 
+apply (simp add: order_less_le abs_le_iff)  
+apply (auto simp add: abs_if minus_le_self_iff eq_minus_self_iff)
+apply (simp add: le_minus_self_iff linorder_neq_iff) 
+done
+
 text{*Moving this up spoils many proofs using @{text mult_le_cancel_right}*}
 declare times_divide_eq_left [simp]
 
-ML
-{*
-val add_assoc = thm"add_assoc";
-val add_commute = thm"add_commute";
-val mult_assoc = thm"mult_assoc";
-val mult_commute = thm"mult_commute";
-val zero_neq_one = thm"zero_neq_one";
-val diff_minus = thm"diff_minus";
-val abs_if = thm"abs_if";
-val divide_inverse = thm"divide_inverse";
-val inverse_zero = thm"inverse_zero";
-val divide_zero = thm"divide_zero";
-
-val add_0 = thm"add_0";
-val add_0_right = thm"add_0_right";
-val add_zero_left = thm"add_0";
-val add_zero_right = thm"add_0_right";
-
-val add_left_commute = thm"add_left_commute";
-val left_minus = thm"left_minus";
-val right_minus = thm"right_minus";
-val right_minus_eq = thm"right_minus_eq";
-val add_left_cancel = thm"add_left_cancel";
-val add_right_cancel = thm"add_right_cancel";
-val minus_minus = thm"minus_minus";
-val equals_zero_I = thm"equals_zero_I";
-val minus_zero = thm"minus_zero";
-val diff_self = thm"diff_self";
-val diff_0 = thm"diff_0";
-val diff_0_right = thm"diff_0_right";
-val diff_minus_eq_add = thm"diff_minus_eq_add";
-val neg_equal_iff_equal = thm"neg_equal_iff_equal";
-val neg_equal_0_iff_equal = thm"neg_equal_0_iff_equal";
-val neg_0_equal_iff_equal = thm"neg_0_equal_iff_equal";
-val equation_minus_iff = thm"equation_minus_iff";
-val minus_equation_iff = thm"minus_equation_iff";
-val mult_1 = thm"mult_1";
-val mult_1_right = thm"mult_1_right";
-val mult_left_commute = thm"mult_left_commute";
-val mult_zero_left = thm"mult_zero_left";
-val mult_zero_right = thm"mult_zero_right";
+ML {*
 val left_distrib = thm "left_distrib";
-val right_distrib = thm"right_distrib";
-val combine_common_factor = thm"combine_common_factor";
-val minus_add_distrib = thm"minus_add_distrib";
-val minus_mult_left = thm"minus_mult_left";
-val minus_mult_right = thm"minus_mult_right";
-val minus_mult_minus = thm"minus_mult_minus";
-val minus_mult_commute = thm"minus_mult_commute";
-val right_diff_distrib = thm"right_diff_distrib";
-val left_diff_distrib = thm"left_diff_distrib";
-val minus_diff_eq = thm"minus_diff_eq";
-val add_left_mono = thm"add_left_mono";
-val add_right_mono = thm"add_right_mono";
-val add_mono = thm"add_mono";
-val add_strict_left_mono = thm"add_strict_left_mono";
-val add_strict_right_mono = thm"add_strict_right_mono";
-val add_strict_mono = thm"add_strict_mono";
-val add_less_le_mono = thm"add_less_le_mono";
-val add_le_less_mono = thm"add_le_less_mono";
-val add_less_imp_less_left = thm"add_less_imp_less_left";
-val add_less_imp_less_right = thm"add_less_imp_less_right";
-val add_less_cancel_left = thm"add_less_cancel_left";
-val add_less_cancel_right = thm"add_less_cancel_right";
-val add_le_cancel_left = thm"add_le_cancel_left";
-val add_le_cancel_right = thm"add_le_cancel_right";
-val add_le_imp_le_left = thm"add_le_imp_le_left";
-val add_le_imp_le_right = thm"add_le_imp_le_right";
-val le_imp_neg_le = thm"le_imp_neg_le";
-val neg_le_iff_le = thm"neg_le_iff_le";
-val neg_le_0_iff_le = thm"neg_le_0_iff_le";
-val neg_0_le_iff_le = thm"neg_0_le_iff_le";
-val neg_less_iff_less = thm"neg_less_iff_less";
-val neg_less_0_iff_less = thm"neg_less_0_iff_less";
-val neg_0_less_iff_less = thm"neg_0_less_iff_less";
-val less_minus_iff = thm"less_minus_iff";
-val minus_less_iff = thm"minus_less_iff";
-val le_minus_iff = thm"le_minus_iff";
-val minus_le_iff = thm"minus_le_iff";
-val add_diff_eq = thm"add_diff_eq";
-val diff_add_eq = thm"diff_add_eq";
-val diff_eq_eq = thm"diff_eq_eq";
-val eq_diff_eq = thm"eq_diff_eq";
-val diff_diff_eq = thm"diff_diff_eq";
-val diff_diff_eq2 = thm"diff_diff_eq2";
-val less_iff_diff_less_0 = thm"less_iff_diff_less_0";
-val diff_less_eq = thm"diff_less_eq";
-val less_diff_eq = thm"less_diff_eq";
-val diff_le_eq = thm"diff_le_eq";
-val le_diff_eq = thm"le_diff_eq";
-val eq_iff_diff_eq_0 = thm"eq_iff_diff_eq_0";
-val le_iff_diff_le_0 = thm"le_iff_diff_le_0";
-val eq_add_iff1 = thm"eq_add_iff1";
-val eq_add_iff2 = thm"eq_add_iff2";
-val less_add_iff1 = thm"less_add_iff1";
-val less_add_iff2 = thm"less_add_iff2";
-val le_add_iff1 = thm"le_add_iff1";
-val le_add_iff2 = thm"le_add_iff2";
-val mult_strict_left_mono = thm"mult_strict_left_mono";
-val mult_strict_right_mono = thm"mult_strict_right_mono";
-val mult_left_mono = thm"mult_left_mono";
-val mult_right_mono = thm"mult_right_mono";
-val mult_left_le_imp_le = thm"mult_left_le_imp_le";
-val mult_right_le_imp_le = thm"mult_right_le_imp_le";
-val mult_left_less_imp_less = thm"mult_left_less_imp_less";
-val mult_right_less_imp_less = thm"mult_right_less_imp_less";
-val mult_strict_left_mono_neg = thm"mult_strict_left_mono_neg";
-val mult_strict_right_mono_neg = thm"mult_strict_right_mono_neg";
-val mult_pos = thm"mult_pos";
-val mult_pos_neg = thm"mult_pos_neg";
-val mult_neg = thm"mult_neg";
-val zero_less_mult_pos = thm"zero_less_mult_pos";
-val zero_less_mult_iff = thm"zero_less_mult_iff";
-val mult_eq_0_iff = thm"mult_eq_0_iff";
-val zero_le_mult_iff = thm"zero_le_mult_iff";
-val mult_less_0_iff = thm"mult_less_0_iff";
-val mult_le_0_iff = thm"mult_le_0_iff";
-val zero_le_square = thm"zero_le_square";
-val zero_less_one = thm"zero_less_one";
-val zero_le_one = thm"zero_le_one";
-val not_one_less_zero = thm"not_one_less_zero";
-val not_one_le_zero = thm"not_one_le_zero";
-val mult_left_mono_neg = thm"mult_left_mono_neg";
-val mult_right_mono_neg = thm"mult_right_mono_neg";
-val mult_strict_mono = thm"mult_strict_mono";
-val mult_strict_mono' = thm"mult_strict_mono'";
-val mult_mono = thm"mult_mono";
-val mult_less_cancel_right = thm"mult_less_cancel_right";
-val mult_less_cancel_left = thm"mult_less_cancel_left";
-val mult_le_cancel_right = thm"mult_le_cancel_right";
-val mult_le_cancel_left = thm"mult_le_cancel_left";
-val mult_less_imp_less_left = thm"mult_less_imp_less_left";
-val mult_less_imp_less_right = thm"mult_less_imp_less_right";
-val mult_cancel_right = thm"mult_cancel_right";
-val mult_cancel_left = thm"mult_cancel_left";
+val right_distrib = thm "right_distrib";
+val mult_commute = thm "mult_commute";
+val distrib = thm "distrib";
+val zero_neq_one = thm "zero_neq_one";
+val no_zero_divisors = thm "no_zero_divisors";
 val left_inverse = thm "left_inverse";
-val right_inverse = thm"right_inverse";
-val right_inverse_eq = thm"right_inverse_eq";
-val nonzero_inverse_eq_divide = thm"nonzero_inverse_eq_divide";
-val divide_self = thm"divide_self";
-val inverse_divide = thm"inverse_divide";
-val divide_zero_left = thm"divide_zero_left";
-val inverse_eq_divide = thm"inverse_eq_divide";
-val add_divide_distrib = thm"add_divide_distrib";
-val field_mult_eq_0_iff = thm"field_mult_eq_0_iff";
-val field_mult_cancel_right = thm"field_mult_cancel_right";
-val field_mult_cancel_left = thm"field_mult_cancel_left";
-val nonzero_imp_inverse_nonzero = thm"nonzero_imp_inverse_nonzero";
-val inverse_zero_imp_zero = thm"inverse_zero_imp_zero";
-val inverse_nonzero_imp_nonzero = thm"inverse_nonzero_imp_nonzero";
-val inverse_nonzero_iff_nonzero = thm"inverse_nonzero_iff_nonzero";
-val nonzero_inverse_minus_eq = thm"nonzero_inverse_minus_eq";
-val inverse_minus_eq = thm"inverse_minus_eq";
-val nonzero_inverse_eq_imp_eq = thm"nonzero_inverse_eq_imp_eq";
-val inverse_eq_imp_eq = thm"inverse_eq_imp_eq";
-val inverse_eq_iff_eq = thm"inverse_eq_iff_eq";
-val nonzero_inverse_inverse_eq = thm"nonzero_inverse_inverse_eq";
-val inverse_inverse_eq = thm"inverse_inverse_eq";
-val inverse_1 = thm"inverse_1";
-val nonzero_inverse_mult_distrib = thm"nonzero_inverse_mult_distrib";
-val inverse_mult_distrib = thm"inverse_mult_distrib";
-val inverse_add = thm"inverse_add";
-val nonzero_mult_divide_cancel_left = thm"nonzero_mult_divide_cancel_left";
-val mult_divide_cancel_left = thm"mult_divide_cancel_left";
-val nonzero_mult_divide_cancel_right = thm"nonzero_mult_divide_cancel_right";
-val mult_divide_cancel_right = thm"mult_divide_cancel_right";
-val mult_divide_cancel_eq_if = thm"mult_divide_cancel_eq_if";
-val divide_1 = thm"divide_1";
-val times_divide_eq_right = thm"times_divide_eq_right";
-val times_divide_eq_left = thm"times_divide_eq_left";
-val divide_divide_eq_right = thm"divide_divide_eq_right";
-val divide_divide_eq_left = thm"divide_divide_eq_left";
-val nonzero_minus_divide_left = thm"nonzero_minus_divide_left";
-val nonzero_minus_divide_right = thm"nonzero_minus_divide_right";
-val nonzero_minus_divide_divide = thm"nonzero_minus_divide_divide";
-val minus_divide_left = thm"minus_divide_left";
-val minus_divide_right = thm"minus_divide_right";
-val minus_divide_divide = thm"minus_divide_divide";
-val positive_imp_inverse_positive = thm"positive_imp_inverse_positive";
-val negative_imp_inverse_negative = thm"negative_imp_inverse_negative";
-val inverse_le_imp_le = thm"inverse_le_imp_le";
-val inverse_positive_imp_positive = thm"inverse_positive_imp_positive";
-val inverse_positive_iff_positive = thm"inverse_positive_iff_positive";
-val inverse_negative_imp_negative = thm"inverse_negative_imp_negative";
-val inverse_negative_iff_negative = thm"inverse_negative_iff_negative";
-val inverse_nonnegative_iff_nonnegative = thm"inverse_nonnegative_iff_nonnegative";
-val inverse_nonpositive_iff_nonpositive = thm"inverse_nonpositive_iff_nonpositive";
-val less_imp_inverse_less = thm"less_imp_inverse_less";
-val inverse_less_imp_less = thm"inverse_less_imp_less";
-val inverse_less_iff_less = thm"inverse_less_iff_less";
-val le_imp_inverse_le = thm"le_imp_inverse_le";
-val inverse_le_iff_le = thm"inverse_le_iff_le";
-val inverse_le_imp_le_neg = thm"inverse_le_imp_le_neg";
-val less_imp_inverse_less_neg = thm"less_imp_inverse_less_neg";
-val inverse_less_imp_less_neg = thm"inverse_less_imp_less_neg";
-val inverse_less_iff_less_neg = thm"inverse_less_iff_less_neg";
-val le_imp_inverse_le_neg = thm"le_imp_inverse_le_neg";
-val inverse_le_iff_le_neg = thm"inverse_le_iff_le_neg";
-val zero_less_divide_iff = thm"zero_less_divide_iff";
-val divide_less_0_iff = thm"divide_less_0_iff";
-val zero_le_divide_iff = thm"zero_le_divide_iff";
-val divide_le_0_iff = thm"divide_le_0_iff";
-val divide_eq_0_iff = thm"divide_eq_0_iff";
-val pos_le_divide_eq = thm"pos_le_divide_eq";
-val neg_le_divide_eq = thm"neg_le_divide_eq";
-val le_divide_eq = thm"le_divide_eq";
-val pos_divide_le_eq = thm"pos_divide_le_eq";
-val neg_divide_le_eq = thm"neg_divide_le_eq";
-val divide_le_eq = thm"divide_le_eq";
-val pos_less_divide_eq = thm"pos_less_divide_eq";
-val neg_less_divide_eq = thm"neg_less_divide_eq";
-val less_divide_eq = thm"less_divide_eq";
-val pos_divide_less_eq = thm"pos_divide_less_eq";
-val neg_divide_less_eq = thm"neg_divide_less_eq";
-val divide_less_eq = thm"divide_less_eq";
-val nonzero_eq_divide_eq = thm"nonzero_eq_divide_eq";
-val eq_divide_eq = thm"eq_divide_eq";
-val nonzero_divide_eq_eq = thm"nonzero_divide_eq_eq";
-val divide_eq_eq = thm"divide_eq_eq";
-val divide_cancel_right = thm"divide_cancel_right";
-val divide_cancel_left = thm"divide_cancel_left";
-val divide_strict_right_mono = thm"divide_strict_right_mono";
-val divide_right_mono = thm"divide_right_mono";
-val divide_strict_left_mono = thm"divide_strict_left_mono";
-val divide_left_mono = thm"divide_left_mono";
-val divide_strict_left_mono_neg = thm"divide_strict_left_mono_neg";
-val divide_strict_right_mono_neg = thm"divide_strict_right_mono_neg";
-val zero_less_two = thm"zero_less_two";
-val less_half_sum = thm"less_half_sum";
-val gt_half_sum = thm"gt_half_sum";
-val dense = thm"dense";
-val abs_zero = thm"abs_zero";
-val abs_one = thm"abs_one";
-val abs_mult = thm"abs_mult";
-val abs_mult_self = thm"abs_mult_self";
-val abs_eq_0 = thm"abs_eq_0";
-val zero_less_abs_iff = thm"zero_less_abs_iff";
-val abs_not_less_zero = thm"abs_not_less_zero";
-val abs_le_zero_iff = thm"abs_le_zero_iff";
-val abs_minus_cancel = thm"abs_minus_cancel";
-val abs_ge_zero = thm"abs_ge_zero";
-val abs_idempotent = thm"abs_idempotent";
-val abs_zero_iff = thm"abs_zero_iff";
-val abs_ge_self = thm"abs_ge_self";
-val abs_ge_minus_self = thm"abs_ge_minus_self";
-val nonzero_abs_inverse = thm"nonzero_abs_inverse";
-val abs_inverse = thm"abs_inverse";
-val nonzero_abs_divide = thm"nonzero_abs_divide";
-val abs_divide = thm"abs_divide";
-val abs_leI = thm"abs_leI";
-val le_minus_self_iff = thm"le_minus_self_iff";
-val minus_le_self_iff = thm"minus_le_self_iff";
-val eq_minus_self_iff = thm"eq_minus_self_iff";
-val less_minus_self_iff = thm"less_minus_self_iff";
-val abs_le_D1 = thm"abs_le_D1";
-val abs_le_D2 = thm"abs_le_D2";
-val abs_le_iff = thm"abs_le_iff";
-val abs_less_iff = thm"abs_less_iff";
-val abs_triangle_ineq = thm"abs_triangle_ineq";
-val abs_mult_less = thm"abs_mult_less";
-
-val compare_rls = thms"compare_rls";
+val divide_inverse = thm "divide_inverse";
+val mult_zero_left = thm "mult_zero_left";
+val mult_zero_right = thm "mult_zero_right";
+val field_mult_eq_0_iff = thm "field_mult_eq_0_iff";
+val inverse_zero = thm "inverse_zero";
+val ring_distrib = thms "ring_distrib";
+val combine_common_factor = thm "combine_common_factor";
+val minus_mult_left = thm "minus_mult_left";
+val minus_mult_right = thm "minus_mult_right";
+val minus_mult_minus = thm "minus_mult_minus";
+val minus_mult_commute = thm "minus_mult_commute";
+val right_diff_distrib = thm "right_diff_distrib";
+val left_diff_distrib = thm "left_diff_distrib";
+val mult_left_mono = thm "mult_left_mono";
+val mult_right_mono = thm "mult_right_mono";
+val mult_strict_left_mono = thm "mult_strict_left_mono";
+val mult_strict_right_mono = thm "mult_strict_right_mono";
+val mult_mono = thm "mult_mono";
+val mult_strict_mono = thm "mult_strict_mono";
+val abs_if = thm "abs_if";
+val zero_less_one = thm "zero_less_one";
+val eq_add_iff1 = thm "eq_add_iff1";
+val eq_add_iff2 = thm "eq_add_iff2";
+val less_add_iff1 = thm "less_add_iff1";
+val less_add_iff2 = thm "less_add_iff2";
+val le_add_iff1 = thm "le_add_iff1";
+val le_add_iff2 = thm "le_add_iff2";
+val mult_left_le_imp_le = thm "mult_left_le_imp_le";
+val mult_right_le_imp_le = thm "mult_right_le_imp_le";
+val mult_left_less_imp_less = thm "mult_left_less_imp_less";
+val mult_right_less_imp_less = thm "mult_right_less_imp_less";
+val mult_strict_left_mono_neg = thm "mult_strict_left_mono_neg";
+val mult_left_mono_neg = thm "mult_left_mono_neg";
+val mult_strict_right_mono_neg = thm "mult_strict_right_mono_neg";
+val mult_right_mono_neg = thm "mult_right_mono_neg";
+val mult_pos = thm "mult_pos";
+val mult_pos_le = thm "mult_pos_le";
+val mult_pos_neg = thm "mult_pos_neg";
+val mult_pos_neg_le = thm "mult_pos_neg_le";
+val mult_pos_neg2 = thm "mult_pos_neg2";
+val mult_pos_neg2_le = thm "mult_pos_neg2_le";
+val mult_neg = thm "mult_neg";
+val mult_neg_le = thm "mult_neg_le";
+val zero_less_mult_pos = thm "zero_less_mult_pos";
+val zero_less_mult_pos2 = thm "zero_less_mult_pos2";
+val zero_less_mult_iff = thm "zero_less_mult_iff";
+val mult_eq_0_iff = thm "mult_eq_0_iff";
+val zero_le_mult_iff = thm "zero_le_mult_iff";
+val mult_less_0_iff = thm "mult_less_0_iff";
+val mult_le_0_iff = thm "mult_le_0_iff";
+val split_mult_pos_le = thm "split_mult_pos_le";
+val split_mult_neg_le = thm "split_mult_neg_le";
+val zero_le_square = thm "zero_le_square";
+val zero_le_one = thm "zero_le_one";
+val not_one_le_zero = thm "not_one_le_zero";
+val not_one_less_zero = thm "not_one_less_zero";
+val mult_left_mono_neg = thm "mult_left_mono_neg";
+val mult_right_mono_neg = thm "mult_right_mono_neg";
+val mult_strict_mono = thm "mult_strict_mono";
+val mult_strict_mono' = thm "mult_strict_mono'";
+val mult_mono = thm "mult_mono";
+val less_1_mult = thm "less_1_mult";
+val mult_less_cancel_right = thm "mult_less_cancel_right";
+val mult_less_cancel_left = thm "mult_less_cancel_left";
+val mult_le_cancel_right = thm "mult_le_cancel_right";
+val mult_le_cancel_left = thm "mult_le_cancel_left";
+val mult_less_imp_less_left = thm "mult_less_imp_less_left";
+val mult_less_imp_less_right = thm "mult_less_imp_less_right";
+val mult_cancel_right = thm "mult_cancel_right";
+val mult_cancel_left = thm "mult_cancel_left";
+val ring_eq_simps = thms "ring_eq_simps";
+val right_inverse = thm "right_inverse";
+val right_inverse_eq = thm "right_inverse_eq";
+val nonzero_inverse_eq_divide = thm "nonzero_inverse_eq_divide";
+val divide_self = thm "divide_self";
+val divide_zero = thm "divide_zero";
+val divide_zero_left = thm "divide_zero_left";
+val inverse_eq_divide = thm "inverse_eq_divide";
+val add_divide_distrib = thm "add_divide_distrib";
+val field_mult_eq_0_iff = thm "field_mult_eq_0_iff";
+val field_mult_cancel_right_lemma = thm "field_mult_cancel_right_lemma";
+val field_mult_cancel_right = thm "field_mult_cancel_right";
+val field_mult_cancel_left = thm "field_mult_cancel_left";
+val nonzero_imp_inverse_nonzero = thm "nonzero_imp_inverse_nonzero";
+val inverse_zero_imp_zero = thm "inverse_zero_imp_zero";
+val inverse_nonzero_imp_nonzero = thm "inverse_nonzero_imp_nonzero";
+val inverse_nonzero_iff_nonzero = thm "inverse_nonzero_iff_nonzero";
+val nonzero_inverse_minus_eq = thm "nonzero_inverse_minus_eq";
+val inverse_minus_eq = thm "inverse_minus_eq";
+val nonzero_inverse_eq_imp_eq = thm "nonzero_inverse_eq_imp_eq";
+val inverse_eq_imp_eq = thm "inverse_eq_imp_eq";
+val inverse_eq_iff_eq = thm "inverse_eq_iff_eq";
+val nonzero_inverse_inverse_eq = thm "nonzero_inverse_inverse_eq";
+val inverse_inverse_eq = thm "inverse_inverse_eq";
+val inverse_1 = thm "inverse_1";
+val nonzero_inverse_mult_distrib = thm "nonzero_inverse_mult_distrib";
+val inverse_mult_distrib = thm "inverse_mult_distrib";
+val inverse_add = thm "inverse_add";
+val inverse_divide = thm "inverse_divide";
+val nonzero_mult_divide_cancel_left = thm "nonzero_mult_divide_cancel_left";
+val mult_divide_cancel_left = thm "mult_divide_cancel_left";
+val nonzero_mult_divide_cancel_right = thm "nonzero_mult_divide_cancel_right";
+val mult_divide_cancel_right = thm "mult_divide_cancel_right";
+val mult_divide_cancel_eq_if = thm "mult_divide_cancel_eq_if";
+val divide_1 = thm "divide_1";
+val times_divide_eq_right = thm "times_divide_eq_right";
+val times_divide_eq_left = thm "times_divide_eq_left";
+val divide_divide_eq_right = thm "divide_divide_eq_right";
+val divide_divide_eq_left = thm "divide_divide_eq_left";
+val nonzero_minus_divide_left = thm "nonzero_minus_divide_left";
+val nonzero_minus_divide_right = thm "nonzero_minus_divide_right";
+val nonzero_minus_divide_divide = thm "nonzero_minus_divide_divide";
+val minus_divide_left = thm "minus_divide_left";
+val minus_divide_right = thm "minus_divide_right";
+val minus_divide_divide = thm "minus_divide_divide";
+val diff_divide_distrib = thm "diff_divide_distrib";
+val positive_imp_inverse_positive = thm "positive_imp_inverse_positive";
+val negative_imp_inverse_negative = thm "negative_imp_inverse_negative";
+val inverse_le_imp_le = thm "inverse_le_imp_le";
+val inverse_positive_imp_positive = thm "inverse_positive_imp_positive";
+val inverse_positive_iff_positive = thm "inverse_positive_iff_positive";
+val inverse_negative_imp_negative = thm "inverse_negative_imp_negative";
+val inverse_negative_iff_negative = thm "inverse_negative_iff_negative";
+val inverse_nonnegative_iff_nonnegative = thm "inverse_nonnegative_iff_nonnegative";
+val inverse_nonpositive_iff_nonpositive = thm "inverse_nonpositive_iff_nonpositive";
+val less_imp_inverse_less = thm "less_imp_inverse_less";
+val inverse_less_imp_less = thm "inverse_less_imp_less";
+val inverse_less_iff_less = thm "inverse_less_iff_less";
+val le_imp_inverse_le = thm "le_imp_inverse_le";
+val inverse_le_iff_le = thm "inverse_le_iff_le";
+val inverse_le_imp_le_neg = thm "inverse_le_imp_le_neg";
+val less_imp_inverse_less_neg = thm "less_imp_inverse_less_neg";
+val inverse_less_imp_less_neg = thm "inverse_less_imp_less_neg";
+val inverse_less_iff_less_neg = thm "inverse_less_iff_less_neg";
+val le_imp_inverse_le_neg = thm "le_imp_inverse_le_neg";
+val inverse_le_iff_le_neg = thm "inverse_le_iff_le_neg";
+val one_less_inverse_iff = thm "one_less_inverse_iff";
+val inverse_eq_1_iff = thm "inverse_eq_1_iff";
+val one_le_inverse_iff = thm "one_le_inverse_iff";
+val inverse_less_1_iff = thm "inverse_less_1_iff";
+val inverse_le_1_iff = thm "inverse_le_1_iff";
+val zero_less_divide_iff = thm "zero_less_divide_iff";
+val divide_less_0_iff = thm "divide_less_0_iff";
+val zero_le_divide_iff = thm "zero_le_divide_iff";
+val divide_le_0_iff = thm "divide_le_0_iff";
+val divide_eq_0_iff = thm "divide_eq_0_iff";
+val pos_le_divide_eq = thm "pos_le_divide_eq";
+val neg_le_divide_eq = thm "neg_le_divide_eq";
+val le_divide_eq = thm "le_divide_eq";
+val pos_divide_le_eq = thm "pos_divide_le_eq";
+val neg_divide_le_eq = thm "neg_divide_le_eq";
+val divide_le_eq = thm "divide_le_eq";
+val pos_less_divide_eq = thm "pos_less_divide_eq";
+val neg_less_divide_eq = thm "neg_less_divide_eq";
+val less_divide_eq = thm "less_divide_eq";
+val pos_divide_less_eq = thm "pos_divide_less_eq";
+val neg_divide_less_eq = thm "neg_divide_less_eq";
+val divide_less_eq = thm "divide_less_eq";
+val nonzero_eq_divide_eq = thm "nonzero_eq_divide_eq";
+val eq_divide_eq = thm "eq_divide_eq";
+val nonzero_divide_eq_eq = thm "nonzero_divide_eq_eq";
+val divide_eq_eq = thm "divide_eq_eq";
+val divide_cancel_right = thm "divide_cancel_right";
+val divide_cancel_left = thm "divide_cancel_left";
+val divide_eq_1_iff = thm "divide_eq_1_iff";
+val one_eq_divide_iff = thm "one_eq_divide_iff";
+val zero_eq_1_divide_iff = thm "zero_eq_1_divide_iff";
+val one_divide_eq_0_iff = thm "one_divide_eq_0_iff";
+val divide_strict_right_mono = thm "divide_strict_right_mono";
+val divide_right_mono = thm "divide_right_mono";
+val divide_strict_left_mono = thm "divide_strict_left_mono";
+val divide_left_mono = thm "divide_left_mono";
+val divide_strict_left_mono_neg = thm "divide_strict_left_mono_neg";
+val divide_strict_right_mono_neg = thm "divide_strict_right_mono_neg";
+val less_add_one = thm "less_add_one";
+val zero_less_two = thm "zero_less_two";
+val less_half_sum = thm "less_half_sum";
+val gt_half_sum = thm "gt_half_sum";
+val dense = thm "dense";
+val abs_one = thm "abs_one";
+val abs_le_mult = thm "abs_le_mult";
+val abs_eq_mult = thm "abs_eq_mult";
+val abs_mult = thm "abs_mult";
+val abs_mult_self = thm "abs_mult_self";
+val nonzero_abs_inverse = thm "nonzero_abs_inverse";
+val abs_inverse = thm "abs_inverse";
+val nonzero_abs_divide = thm "nonzero_abs_divide";
+val abs_divide = thm "abs_divide";
+val abs_mult_less = thm "abs_mult_less";
+val eq_minus_self_iff = thm "eq_minus_self_iff";
+val less_minus_self_iff = thm "less_minus_self_iff";
+val abs_less_iff = thm "abs_less_iff";
 *}
-
 
 end

@@ -412,7 +412,7 @@ done
 
 lemma hcomplex_add_minus_eq_minus:
       "x + y = (0::hcomplex) ==> x = -y"
-apply (drule Ring_and_Field.equals_zero_I)
+apply (drule OrderedGroup.equals_zero_I)
 apply (simp add: minus_equation_iff [of x y])
 done
 
@@ -429,7 +429,7 @@ by (simp add: iii_def hcomplex_zero_def)
 subsection{*More Multiplication Laws*}
 
 lemma hcomplex_mult_one_right: "z * (1::hcomplex) = z"
-by (rule Ring_and_Field.mult_1_right)
+by (rule OrderedGroup.mult_1_right)
 
 lemma hcomplex_mult_minus_one [simp]: "- 1 * (z::hcomplex) = -z"
 by simp
@@ -454,7 +454,7 @@ lemma hcomplex_diff:
 by (simp add: hcomplex_diff_def hcomplex_minus hcomplex_add complex_diff_def)
 
 lemma hcomplex_diff_eq_eq [simp]: "((x::hcomplex) - y = z) = (x = z + y)"
-by (rule Ring_and_Field.diff_eq_eq)
+by (rule OrderedGroup.diff_eq_eq)
 
 lemma hcomplex_add_divide_distrib: "(x+y)/(z::hcomplex) = x/z + y/z"
 by (rule Ring_and_Field.add_divide_distrib)

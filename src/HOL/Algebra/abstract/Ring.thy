@@ -117,37 +117,37 @@ subsection {* Rings and the summation operator *}
 
 (* Basic facts --- move to HOL!!! *)
 
-lemma natsum_0 [simp]: "setsum f {..(0::nat)} = (f 0::'a::plus_ac0)"
+lemma natsum_0 [simp]: "setsum f {..(0::nat)} = (f 0::'a::comm_monoid_add)"
 by simp
 
 lemma natsum_Suc [simp]:
-  "setsum f {..Suc n} = (f (Suc n) + setsum f {..n}::'a::plus_ac0)"
+  "setsum f {..Suc n} = (f (Suc n) + setsum f {..n}::'a::comm_monoid_add)"
 by (simp add: atMost_Suc)
 
 lemma natsum_Suc2:
-  "setsum f {..Suc n} = (setsum (%i. f (Suc i)) {..n} + f 0::'a::plus_ac0)"
+  "setsum f {..Suc n} = (setsum (%i. f (Suc i)) {..n} + f 0::'a::comm_monoid_add)"
 proof (induct n)
   case 0 show ?case by simp
 next
-  case Suc thus ?case by (simp add: plus_ac0.assoc) 
+  case Suc thus ?case by (simp add: semigroup_add.add_assoc) 
 qed
 
 lemma natsum_cong [cong]:
-  "!!k. [| j = k; !!i::nat. i <= k ==> f i = (g i::'a::plus_ac0) |] ==>
+  "!!k. [| j = k; !!i::nat. i <= k ==> f i = (g i::'a::comm_monoid_add) |] ==>
         setsum f {..j} = setsum g {..k}"
 by (induct j) auto
 
-lemma natsum_zero [simp]: "setsum (%i. 0) {..n::nat} = (0::'a::plus_ac0)"
+lemma natsum_zero [simp]: "setsum (%i. 0) {..n::nat} = (0::'a::comm_monoid_add)"
 by (induct n) simp_all
 
 lemma natsum_add [simp]:
-  "!!f::nat=>'a::plus_ac0.
+  "!!f::nat=>'a::comm_monoid_add.
    setsum (%i. f i + g i) {..n::nat} = setsum f {..n} + setsum g {..n}"
-by (induct n) (simp_all add: plus_ac0)
+by (induct n) (simp_all add: add_ac)
 
 (* Facts specific to rings *)
 
-instance ring < plus_ac0
+instance ring < comm_monoid_add
 proof
   fix x y z
   show "(x::'a::ring) + y = y + x" by (rule a_comm)

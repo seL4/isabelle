@@ -742,15 +742,15 @@ qed
 subsection {* Generalized summation over a set *}
 
 constdefs
-  setsum :: "('a => 'b) => 'a set => 'b::plus_ac0"
+  setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
   "setsum f A == if finite A then fold (op + o f) 0 A else 0"
 
 syntax
-  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("(3\<Sum>_:_. _)" [0, 51, 10] 10)
+  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
-  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
+  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
-  "_setsum" :: "idt => 'a set => 'b => 'b::plus_ac0"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
+  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 translations
   "\<Sum>i:A. b" == "setsum (%i. b) A"  -- {* Beware of argument permutation! *}
 
@@ -761,7 +761,7 @@ lemma setsum_empty [simp]: "setsum f {} = 0"
 lemma setsum_insert [simp]:
     "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
   by (simp add: setsum_def
-    LC.fold_insert [OF LC.intro] plus_ac0_left_commute)
+    LC.fold_insert [OF LC.intro] add_left_commute)
 
 lemma setsum_reindex [rule_format]: "finite B ==>
                   inj_on f B --> setsum h (f ` B) = setsum (h \<circ> f) B"
@@ -820,7 +820,7 @@ lemma setsum_Un_Int: "finite A ==> finite B
     ==> setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
   -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
   apply (induct set: Finites, simp)
-  apply (simp add: plus_ac0 Int_insert_left insert_absorb)
+  apply (simp add: add_ac Int_insert_left insert_absorb)
   done
 
 lemma setsum_Un_disjoint: "finite A ==> finite B
@@ -874,7 +874,7 @@ lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
   apply (case_tac "finite A")
    prefer 2 apply (simp add: setsum_def)
   apply (erule finite_induct, auto)
-  apply (simp add: plus_ac0)
+  apply (simp add: add_ac)
   done
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -892,18 +892,18 @@ lemma setsum_eq_0_iff [simp]:
 
 lemma setsum_constant_nat [simp]:
     "finite A ==> (\<Sum>x: A. y) = (card A) * y"
-  -- {* Later generalized to any semiring. *}
+  -- {* Later generalized to any comm_semiring_1_cancel. *}
   by (erule finite_induct, auto)
 
 lemma setsum_Un: "finite A ==> finite B ==>
     (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
   -- {* For the natural numbers, we have subtraction. *}
-  by (subst setsum_Un_Int [symmetric], auto)
+  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
 
 lemma setsum_Un_ring: "finite A ==> finite B ==>
-    (setsum f (A Un B) :: 'a :: ring) =
+    (setsum f (A Un B) :: 'a :: comm_ring_1) =
       setsum f A + setsum f B - setsum f (A Int B)"
-  by (subst setsum_Un_Int [symmetric], auto)
+  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
 
 lemma setsum_diff1: "(setsum f (A - {a}) :: nat) =
     (if a:A then setsum f A - f a else setsum f A)"
@@ -914,16 +914,16 @@ lemma setsum_diff1: "(setsum f (A - {a}) :: nat) =
   apply (drule_tac a = a in mk_disjoint_insert, auto)
   done
 
-lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::ring) A =
+lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::comm_ring_1) A =
   - setsum f A"
   by (induct set: Finites, auto)
 
-lemma setsum_subtractf: "finite A ==> setsum (%x. ((f x)::'a::ring) - g x) A =
+lemma setsum_subtractf: "finite A ==> setsum (%x. ((f x)::'a::comm_ring_1) - g x) A =
   setsum f A - setsum g A"
   by (simp add: diff_minus setsum_addf setsum_negf)
 
 lemma setsum_nonneg: "[| finite A;
-    \<forall>x \<in> A. (0::'a::ordered_semiring) \<le> f x |] ==>
+    \<forall>x \<in> A. (0::'a::ordered_semidom) \<le> f x |] ==>
     0 \<le>  setsum f A";
   apply (induct set: Finites, auto)
   apply (subgoal_tac "0 + 0 \<le> f x + setsum f F", simp)
@@ -983,16 +983,16 @@ lemma card_cartesian_product: "[| finite A; finite B |] ==>
 subsection {* Generalized product over a set *}
 
 constdefs
-  setprod :: "('a => 'b) => 'a set => 'b::times_ac1"
+  setprod :: "('a => 'b) => 'a set => 'b::comm_monoid_mult"
   "setprod f A == if finite A then fold (op * o f) 1 A else 1"
 
 syntax
-  "_setprod" :: "idt => 'a set => 'b => 'b::times_ac1"  ("(3\<Prod>_:_. _)" [0, 51, 10] 10)
+  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_:_. _)" [0, 51, 10] 10)
 
 syntax (xsymbols)
-  "_setprod" :: "idt => 'a set => 'b => 'b::times_ac1"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
+  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
-  "_setprod" :: "idt => 'a set => 'b => 'b::times_ac1"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
+  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 translations
   "\<Prod>i:A. b" == "setprod (%i. b) A"  -- {* Beware of argument permutation! *}
 
@@ -1002,7 +1002,7 @@ lemma setprod_empty [simp]: "setprod f {} = 1"
 lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
     setprod f (insert a A) = f a * setprod f A"
   by (auto simp add: setprod_def LC_def LC.fold_insert
-      times_ac1_left_commute)
+      mult_left_commute)
 
 lemma setprod_reindex [rule_format]: "finite B ==>
                   inj_on f B --> setprod h (f ` B) = setprod (h \<circ> f) B"
@@ -1043,7 +1043,7 @@ lemma setprod_cong:
 
 lemma setprod_1: "setprod (%i. 1) A = 1"
   apply (case_tac "finite A")
-  apply (erule finite_induct, auto simp add: times_ac1)
+  apply (erule finite_induct, auto simp add: mult_ac)
   apply (simp add: setprod_def)
   done
 
@@ -1056,13 +1056,13 @@ lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
 lemma setprod_Un_Int: "finite A ==> finite B
     ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
   apply (induct set: Finites, simp)
-  apply (simp add: times_ac1 insert_absorb)
-  apply (simp add: times_ac1 Int_insert_left insert_absorb)
+  apply (simp add: mult_ac insert_absorb)
+  apply (simp add: mult_ac Int_insert_left insert_absorb)
   done
 
 lemma setprod_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
-  apply (subst setprod_Un_Int [symmetric], auto simp add: times_ac1)
+  apply (subst setprod_Un_Int [symmetric], auto simp add: mult_ac)
   done
 
 lemma setprod_UN_disjoint:
@@ -1110,9 +1110,9 @@ lemma setprod_cartesian_product: "finite A ==> finite B ==>
 lemma setprod_timesf: "setprod (%x. f x * g x) A =
     (setprod f A * setprod g A)"
   apply (case_tac "finite A")
-   prefer 2 apply (simp add: setprod_def times_ac1)
+   prefer 2 apply (simp add: setprod_def mult_ac)
   apply (erule finite_induct, auto)
-  apply (simp add: times_ac1)
+  apply (simp add: mult_ac)
   done
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -1127,13 +1127,13 @@ lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::ringpower)) =
   apply (auto simp add: power_Suc)
   done
 
-lemma setprod_zero: "finite A ==> EX x: A. f x = (0::'a::semiring) ==>
+lemma setprod_zero: "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1_cancel) ==>
     setprod f A = 0"
   apply (induct set: Finites, force, clarsimp)
   apply (erule disjE, auto)
   done
 
-lemma setprod_nonneg [rule_format]: "(ALL x: A. (0::'a::ordered_ring) \<le> f x)
+lemma setprod_nonneg [rule_format]: "(ALL x: A. (0::'a::ordered_idom) \<le> f x)
      --> 0 \<le> setprod f A"
   apply (case_tac "finite A")
   apply (induct set: Finites, force, clarsimp)
@@ -1142,7 +1142,7 @@ lemma setprod_nonneg [rule_format]: "(ALL x: A. (0::'a::ordered_ring) \<le> f x)
   apply (auto simp add: setprod_def)
   done
 
-lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_ring) < f x)
+lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_idom) < f x)
      --> 0 < setprod f A"
   apply (case_tac "finite A")
   apply (induct set: Finites, force, clarsimp)
@@ -1152,13 +1152,13 @@ lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_ring) < f x)
   done
 
 lemma setprod_nonzero [rule_format]:
-    "(ALL x y. (x::'a::semiring) * y = 0 --> x = 0 | y = 0) ==>
+    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
       finite A ==> (ALL x: A. f x \<noteq> (0::'a)) --> setprod f A \<noteq> 0"
   apply (erule finite_induct, auto)
   done
 
 lemma setprod_zero_eq:
-    "(ALL x y. (x::'a::semiring) * y = 0 --> x = 0 | y = 0) ==>
+    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
      finite A ==> (setprod f A = (0::'a)) = (EX x: A. f x = 0)"
   apply (insert setprod_zero [of A f] setprod_nonzero [of A f], blast)
   done

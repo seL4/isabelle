@@ -386,10 +386,10 @@ val add_rules =
 val add_mono_thms_ordered_semiring = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,
                blast_tac (claset() addIs [add_mono]) 1]))
-["(i <= j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semiring)",
- "(i  = j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semiring)",
- "(i <= j) & (k  = l) ==> i + k <= j + (l::'a::ordered_semiring)",
- "(i  = j) & (k  = l) ==> i + k  = j + (l::'a::ordered_semiring)"
+["(i <= j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semidom)",
+ "(i  = j) & (k <= l) ==> i + k <= j + (l::'a::ordered_semidom)",
+ "(i <= j) & (k  = l) ==> i + k <= j + (l::'a::ordered_semidom)",
+ "(i  = j) & (k  = l) ==> i + k  = j + (l::'a::ordered_semidom)"
 ];
 
 in

@@ -332,7 +332,7 @@ done
 lemma hypreal_add_zero_left: "(0::hypreal) + z = z"
 by (cases z, simp add: hypreal_zero_def hypreal_add)
 
-instance hypreal :: plus_ac0
+instance hypreal :: comm_monoid_add
   by intro_classes
     (assumption | 
       rule hypreal_add_commute hypreal_add_assoc hypreal_add_zero_left)+
@@ -423,9 +423,6 @@ by (simp add: hypreal_mult_inverse hypreal_mult_commute)
 instance hypreal :: field
 proof
   fix x y z :: hypreal
-  show "(x + y) + z = x + (y + z)" by (rule hypreal_add_assoc)
-  show "x + y = y + x" by (rule hypreal_add_commute)
-  show "0 + x = x" by simp
   show "- x + x = 0" by (simp add: hypreal_add_minus_left)
   show "x - y = x + (-y)" by (simp add: hypreal_diff_def)
   show "(x * y) * z = x * (y * z)" by (rule hypreal_mult_assoc)
@@ -512,7 +509,7 @@ qed
 
 lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
 apply auto
-apply (rule Ring_and_Field.add_right_cancel [of _ "-y", THEN iffD1], auto)
+apply (rule OrderedGroup.add_right_cancel [of _ "-y", THEN iffD1], auto)
 done
 
 lemma hypreal_mult_left_cancel: "(c::hypreal) \<noteq> 0 ==> (c*a=c*b) = (a=b)"

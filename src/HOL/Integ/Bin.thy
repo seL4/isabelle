@@ -10,7 +10,7 @@ header{*Arithmetic on Binary Integers*}
 
 theory Bin = IntDef + Numeral:
 
-axclass number_ring \<subseteq> number, ring
+axclass number_ring \<subseteq> number, comm_ring_1
   number_of_Pls: "number_of bin.Pls = 0"
   number_of_Min: "number_of bin.Min = - 1"
   number_of_BIT: "number_of(w BIT x) = (if x then 1 else 0) +
@@ -118,7 +118,7 @@ by (simp add: iszero_def numeral_m1_eq_minus_1 eq_commute)
 
 subsection{*Comparisons, for Ordered Rings*}
 
-lemma double_eq_0_iff: "(a + a = 0) = (a = (0::'a::ordered_ring))"
+lemma double_eq_0_iff: "(a + a = 0) = (a = (0::'a::ordered_idom))"
 proof -
   have "a + a = (1+1)*a" by (simp add: left_distrib)
   with zero_less_two [where 'a = 'a]
@@ -157,7 +157,7 @@ qed
 
 
 text{*The premise involving @{term Ints} prevents @{term "a = 1/2"}.*}
-lemma Ints_odd_nonzero: "a \<in> Ints ==> 1 + a + a \<noteq> (0::'a::ordered_ring)"
+lemma Ints_odd_nonzero: "a \<in> Ints ==> 1 + a + a \<noteq> (0::'a::ordered_idom)"
 proof (unfold Ints_def) 
   assume "a \<in> range of_int"
   then obtain z where a: "a = of_int z" ..
@@ -175,17 +175,17 @@ by (induct_tac "w", simp_all add: number_of)
 
 lemma iszero_number_of_BIT:
      "iszero (number_of (w BIT x)::'a) = 
-      (~x & iszero (number_of w::'a::{ordered_ring,number_ring}))"
+      (~x & iszero (number_of w::'a::{ordered_idom,number_ring}))"
 by (simp add: iszero_def compare_rls zero_reorient double_eq_0_iff 
               number_of Ints_odd_nonzero [OF Ints_number_of])
 
 lemma iszero_number_of_0:
-     "iszero (number_of (w BIT False) :: 'a::{ordered_ring,number_ring}) = 
+     "iszero (number_of (w BIT False) :: 'a::{ordered_idom,number_ring}) = 
       iszero (number_of w :: 'a)"
 by (simp only: iszero_number_of_BIT simp_thms)
 
 lemma iszero_number_of_1:
-     "~ iszero (number_of (w BIT True)::'a::{ordered_ring,number_ring})"
+     "~ iszero (number_of (w BIT True)::'a::{ordered_idom,number_ring})"
 by (simp only: iszero_number_of_BIT simp_thms)
 
 
@@ -193,7 +193,7 @@ by (simp only: iszero_number_of_BIT simp_thms)
 subsection{*The Less-Than Relation*}
 
 lemma less_number_of_eq_neg:
-    "((number_of x::'a::{ordered_ring,number_ring}) < number_of y)
+    "((number_of x::'a::{ordered_idom,number_ring}) < number_of y)
      = neg (number_of (bin_add x (bin_minus y)) :: 'a)"
 apply (subst less_iff_diff_less_0) 
 apply (simp add: neg_def diff_minus number_of_add number_of_minus)
@@ -202,14 +202,14 @@ done
 text{*If @{term Numeral0} is rewritten to 0 then this rule can't be applied:
   @{term Numeral0} IS @{term "number_of Pls"} *}
 lemma not_neg_number_of_Pls:
-     "~ neg (number_of bin.Pls ::'a::{ordered_ring,number_ring})"
+     "~ neg (number_of bin.Pls ::'a::{ordered_idom,number_ring})"
 by (simp add: neg_def numeral_0_eq_0)
 
 lemma neg_number_of_Min:
-     "neg (number_of bin.Min ::'a::{ordered_ring,number_ring})"
+     "neg (number_of bin.Min ::'a::{ordered_idom,number_ring})"
 by (simp add: neg_def zero_less_one numeral_m1_eq_minus_1)
 
-lemma double_less_0_iff: "(a + a < 0) = (a < (0::'a::ordered_ring))"
+lemma double_less_0_iff: "(a + a < 0) = (a < (0::'a::ordered_idom))"
 proof -
   have "(a + a < 0) = ((1+1)*a < 0)" by (simp add: left_distrib)
   also have "... = (a < 0)"
@@ -231,7 +231,7 @@ qed
 
 text{*The premise involving @{term Ints} prevents @{term "a = 1/2"}.*}
 lemma Ints_odd_less_0: 
-     "a \<in> Ints ==> (1 + a + a < 0) = (a < (0::'a::ordered_ring))";
+     "a \<in> Ints ==> (1 + a + a < 0) = (a < (0::'a::ordered_idom))";
 proof (unfold Ints_def) 
   assume "a \<in> range of_int"
   then obtain z where a: "a = of_int z" ..
@@ -244,7 +244,7 @@ qed
 
 lemma neg_number_of_BIT:
      "neg (number_of (w BIT x)::'a) = 
-      neg (number_of w :: 'a::{ordered_ring,number_ring})"
+      neg (number_of w :: 'a::{ordered_idom,number_ring})"
 by (simp add: number_of neg_def double_less_0_iff
               Ints_odd_less_0 [OF Ints_number_of])
 
@@ -257,7 +257,7 @@ lemmas le_number_of_eq_not_less =
                           standard]
 
 lemma le_number_of_eq:
-    "((number_of x::'a::{ordered_ring,number_ring}) \<le> number_of y)
+    "((number_of x::'a::{ordered_idom,number_ring}) \<le> number_of y)
      = (~ (neg (number_of (bin_add y (bin_minus x)) :: 'a)))"
 by (simp add: le_number_of_eq_not_less less_number_of_eq_neg)
 
@@ -265,7 +265,7 @@ by (simp add: le_number_of_eq_not_less less_number_of_eq_neg)
 text{*Absolute value (@{term abs})*}
 
 lemma abs_number_of:
-     "abs(number_of x::'a::{ordered_ring,number_ring}) =
+     "abs(number_of x::'a::{ordered_idom,number_ring}) =
       (if number_of x < (0::'a) then -number_of x else number_of x)"
 by (simp add: abs_if)
 

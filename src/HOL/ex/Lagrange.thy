@@ -23,7 +23,7 @@ with nat.*)
 
 (*once a slow step, but now (2001) just three seconds!*)
 lemma Lagrange_lemma:
- "!!x1::'a::ring.
+ "!!x1::'a::comm_ring_1.
   (sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) =
   sq(x1*y1 - x2*y2 - x3*y3 - x4*y4)  +
   sq(x1*y2 + x2*y1 + x3*y4 - x4*y3)  +
@@ -34,7 +34,7 @@ by(simp add: sq_def ring_eq_simps)
 
 (* A challenge by John Harrison. Takes about 4 mins on a 3GHz machine.
 
-lemma "!!p1::'a::ring.
+lemma "!!p1::'a::comm_ring_1.
  (sq p1 + sq q1 + sq r1 + sq s1 + sq t1 + sq u1 + sq v1 + sq w1) * 
  (sq p2 + sq q2 + sq r2 + sq s2 + sq t2 + sq u2 + sq v2 + sq w2) 
   = sq (p1*p2 - q1*q2 - r1*r2 - s1*s2 - t1*t2 - u1*u2 - v1*v2 - w1*w2) + 

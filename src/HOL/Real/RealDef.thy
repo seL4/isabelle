@@ -169,7 +169,7 @@ by (cases z1, cases z2, cases z3, simp add: real_add preal_add_assoc)
 lemma real_add_zero_left: "(0::real) + z = z"
 by (cases z, simp add: real_add real_zero_def preal_add_ac)
 
-instance real :: plus_ac0
+instance real :: comm_monoid_add
   by (intro_classes,
       (assumption | 
        rule real_add_commute real_add_assoc real_add_zero_left)+)
@@ -281,9 +281,6 @@ subsection{*The Real Numbers form a Field*}
 instance real :: field
 proof
   fix x y z :: real
-  show "(x + y) + z = x + (y + z)" by (rule real_add_assoc)
-  show "x + y = y + x" by (rule real_add_commute)
-  show "0 + x = x" by simp
   show "- x + x = 0" by (rule real_add_minus_left)
   show "x - y = x + (-y)" by (simp add: real_diff_def)
   show "(x * y) * z = x * (y * z)" by (rule real_mult_assoc)
@@ -312,7 +309,7 @@ declare minus_mult_right [symmetric, simp]
         minus_mult_left [symmetric, simp]
 
 lemma real_mult_1_right: "z * (1::real) = z"
-  by (rule Ring_and_Field.mult_1_right)
+  by (rule OrderedGroup.mult_1_right)
 
 
 subsection{*The @{text "\<le>"} Ordering*}
@@ -554,11 +551,11 @@ lemma real_less_all_real2: "~ 0 < y ==> \<forall>x. y < real_of_preal x"
 by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
 lemma real_add_less_le_mono: "[| w'<w; z'\<le>z |] ==> w' + z' < w + (z::real)"
-  by (rule Ring_and_Field.add_less_le_mono)
+  by (rule OrderedGroup.add_less_le_mono)
 
 lemma real_add_le_less_mono:
      "!!z z'::real. [| w'\<le>w; z'<z |] ==> w' + z' < w + z"
-  by (rule Ring_and_Field.add_le_less_mono)
+  by (rule OrderedGroup.add_le_less_mono)
 
 lemma real_le_square [simp]: "(0::real) \<le> x*x"
  by (rule Ring_and_Field.zero_le_square)
@@ -597,7 +594,7 @@ lemma real_mult_less_mono':
 
 text{*FIXME: delete or at least combine the next two lemmas*}
 lemma real_sum_squares_cancel: "x * x + y * y = 0 ==> x = (0::real)"
-apply (drule Ring_and_Field.equals_zero_I [THEN sym])
+apply (drule OrderedGroup.equals_zero_I [THEN sym])
 apply (cut_tac x = y in real_le_square) 
 apply (auto, drule order_antisym, auto)
 done
@@ -848,7 +845,7 @@ lemma abs_interval_iff: "(abs x < r) = (-r < x & x < (r::real))"
 by (force simp add: Ring_and_Field.abs_less_iff)
 
 lemma abs_le_interval_iff: "(abs x \<le> r) = (-r\<le>x & x\<le>(r::real))"
-by (force simp add: Ring_and_Field.abs_le_iff)
+by (force simp add: OrderedGroup.abs_le_iff)
 
 (*FIXME: used only once, in SEQ.ML*)
 lemma abs_add_one_gt_zero [simp]: "(0::real) < 1 + abs(x)"
@@ -892,7 +889,7 @@ val abs_eqI2 = thm"abs_eqI2";
 val abs_minus_eqI2 = thm"abs_minus_eqI2";
 val abs_ge_zero = thm"abs_ge_zero";
 val abs_idempotent = thm"abs_idempotent";
-val abs_zero_iff = thm"abs_zero_iff";
+val abs_eq_0 = thm"abs_eq_0";
 val abs_ge_self = thm"abs_ge_self";
 val abs_ge_minus_self = thm"abs_ge_minus_self";
 val abs_mult = thm"abs_mult";

@@ -704,7 +704,7 @@ next
     have "P x \<longrightarrow> P (x - i * d)" using step.hyps by blast
     also have "\<dots> \<longrightarrow> P(x - (i + 1) * d)"
       using minus[THEN spec, of "x - i * d"]
-      by (simp add:int_distrib Ring_and_Field.diff_diff_eq[symmetric])
+      by (simp add:int_distrib OrderedGroup.diff_diff_eq[symmetric])
     ultimately show "P x \<longrightarrow> P(x - (i + 1) * d)" by blast
   qed
 qed

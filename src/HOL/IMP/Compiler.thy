@@ -86,7 +86,7 @@ primrec
 lemma [simp]:
  "\<And>m n. closed m n (C1@C2) =
          (closed m (n+size C2) C1 \<and> closed (m+size C1) n C2)"
-by(induct C1, simp, simp add:plus_ac0)
+by(induct C1, simp, simp add:add_ac)
 
 theorem [simp]: "\<And>m n. closed m n (compile c)"
 by(induct c, simp_all add:backws_def forws_def)
