@@ -110,6 +110,8 @@ end
 structure Proofterm : PROOFTERM =
 struct
 
+open Envir;
+
 datatype proof =
    PBound of int
  | Abst of string * typ option * proof
@@ -218,13 +220,31 @@ fun strip_thm prf = (case strip_combt (fst (strip_combP prf)) of
 val mk_Abst = foldr (fn ((s, T:typ), prf) => Abst (s, None, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", None, prf)) prf;
 
-fun map_proof_terms f g (Abst (s, T, prf)) = Abst (s, apsome g T, map_proof_terms f g prf)
-  | map_proof_terms f g (AbsP (s, t, prf)) = AbsP (s, apsome f t, map_proof_terms f g prf)
-  | map_proof_terms f g (prf % t) = map_proof_terms f g prf % apsome f t
-  | map_proof_terms f g (prf1 %% prf2) = map_proof_terms f g prf1 %% map_proof_terms f g prf2
-  | map_proof_terms _ g (PThm (a, prf, prop, Some Ts)) = PThm (a, prf, prop, Some (map g Ts))
-  | map_proof_terms _ g (PAxm (a, prop, Some Ts)) = PAxm (a, prop, Some (map g Ts))
-  | map_proof_terms _ _ prf = prf;
+fun apsome' f None = raise SAME
+  | apsome' f (Some x) = Some (f x);
+
+fun same f x =
+  let val x' = f x
+  in if x = x' then raise SAME else x' end;
+
+fun map_proof_terms f g =
+  let
+    fun mapp (Abst (s, T, prf)) = (Abst (s, apsome' (same g) T, mapph prf)
+          handle SAME => Abst (s, T, mapp prf))
+      | mapp (AbsP (s, t, prf)) = (AbsP (s, apsome' (same f) t, mapph prf)
+          handle SAME => AbsP (s, t, mapp prf))
+      | mapp (prf % t) = (mapp prf % apsome f t
+          handle SAME => prf % apsome' (same f) t)
+      | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
+          handle SAME => prf1 %% mapp prf2)
+      | mapp (PThm (a, prf, prop, Some Ts)) =
+          PThm (a, prf, prop, Some (same (map g) Ts))
+      | mapp (PAxm (a, prop, Some Ts)) =
+          PAxm (a, prop, Some (same (map g) Ts))
+      | mapp _ = raise SAME
+    and mapph prf = (mapp prf handle SAME => prf)
+
+  in mapph end;
 
 fun fold_proof_terms f g (a, Abst (_, Some T, prf)) = fold_proof_terms f g (g (T, a), prf)
   | fold_proof_terms f g (a, Abst (_, None, prf)) = fold_proof_terms f g (a, prf)
@@ -257,15 +277,25 @@ fun mk_abs Ts t = foldl (fn (t', T) => Abs ("", T, t')) (t, Ts);
 
 fun prf_abstract_over v =
   let
-    fun abst' Ts t = strip_abs Ts (abstract_over (v, mk_abs Ts t));
+    fun abst' lev u = if v aconv u then Bound lev else
+      (case u of
+         Abs (a, T, t) => Abs (a, T, abst' (lev + 1) t)
+       | f $ t => (abst' lev f $ absth' lev t handle SAME => f $ abst' lev t)
+       | _ => raise SAME)
+    and absth' lev t = (abst' lev t handle SAME => t);
 
-    fun abst Ts (AbsP (a, t, prf)) = AbsP (a, apsome (abst' Ts) t, abst Ts prf)
-      | abst Ts (Abst (a, T, prf)) = Abst (a, T, abst (dummyT::Ts) prf)
-      | abst Ts (prf1 %% prf2) = abst Ts prf1 %% abst Ts prf2
-      | abst Ts (prf % t) = abst Ts prf % apsome (abst' Ts) t
-      | abst _ prf = prf
+    fun abst lev (AbsP (a, t, prf)) =
+          (AbsP (a, apsome' (abst' lev) t, absth lev prf)
+           handle SAME => AbsP (a, t, abst lev prf))
+      | abst lev (Abst (a, T, prf)) = Abst (a, T, abst (lev + 1) prf)
+      | abst lev (prf1 %% prf2) = (abst lev prf1 %% absth lev prf2
+          handle SAME => prf1 %% abst lev prf2)
+      | abst lev (prf % t) = (abst lev prf % apsome (absth' lev) t
+          handle SAME => prf % apsome' (abst' lev) t)
+      | abst _ _ = raise SAME
+    and absth lev prf = (abst lev prf handle SAME => prf)
 
-  in abst [] end;
+  in absth 0 end;
 
 
 (*increments a proof term's non-local bound variables
@@ -275,16 +305,23 @@ fun prf_abstract_over v =
 
 fun incr_bv' inct tlev t = incr_bv (inct, tlev, t);
 
-fun prf_incr_bv incP inct Plev tlev (u as PBound i) = if i>=Plev then PBound(i+incP) else u 
-  | prf_incr_bv incP inct Plev tlev (AbsP (a, t, body)) =
-      AbsP (a, apsome (incr_bv' inct tlev) t, prf_incr_bv incP inct (Plev+1) tlev body)
-  | prf_incr_bv incP inct Plev tlev (Abst (a, T, body)) =
-      Abst (a, T, prf_incr_bv incP inct Plev (tlev+1) body)
-  | prf_incr_bv incP inct Plev tlev (prf %% prf') = 
-      prf_incr_bv incP inct Plev tlev prf %% prf_incr_bv incP inct Plev tlev prf'
-  | prf_incr_bv incP inct Plev tlev (prf % t) = 
-      prf_incr_bv incP inct Plev tlev prf % apsome (incr_bv' inct tlev) t
-  | prf_incr_bv _ _ _ _ prf = prf;
+fun prf_incr_bv' incP inct Plev tlev (PBound i) =
+      if i >= Plev then PBound (i+incP) else raise SAME 
+  | prf_incr_bv' incP inct Plev tlev (AbsP (a, t, body)) =
+      (AbsP (a, apsome' (same (incr_bv' inct tlev)) t,
+         prf_incr_bv incP inct (Plev+1) tlev body) handle SAME =>
+           AbsP (a, t, prf_incr_bv' incP inct (Plev+1) tlev body))
+  | prf_incr_bv' incP inct Plev tlev (Abst (a, T, body)) =
+      Abst (a, T, prf_incr_bv' incP inct Plev (tlev+1) body)
+  | prf_incr_bv' incP inct Plev tlev (prf %% prf') = 
+      (prf_incr_bv' incP inct Plev tlev prf %% prf_incr_bv incP inct Plev tlev prf'
+       handle SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
+  | prf_incr_bv' incP inct Plev tlev (prf % t) = 
+      (prf_incr_bv' incP inct Plev tlev prf % apsome (incr_bv' inct tlev) t
+       handle SAME => prf % apsome' (same (incr_bv' inct tlev)) t)
+  | prf_incr_bv' _ _ _ _ _ = raise SAME
+and prf_incr_bv incP inct Plev tlev prf =
+      (prf_incr_bv' incP inct Plev tlev prf handle SAME => prf);
 
 fun incr_pboundvars  0 0 prf = prf
   | incr_pboundvars incP inct prf = prf_incr_bv incP inct 0 0 prf;
@@ -307,11 +344,6 @@ fun prf_loose_Pbvar1 (PBound i) k = i = k
 
 
 (**** substitutions ****)
-
-local open Envir in
-
-fun apsome' f None = raise SAME
-  | apsome' f (Some x) = Some (f x);
 
 fun norm_proof env =
   let
@@ -383,8 +415,6 @@ fun prf_subst_pbounds args prf =
     and substh prf Plev tlev = (subst prf Plev tlev handle SAME => prf)
   in case args of [] => prf | _ => substh prf 0 0 end;
 
-end;
-
 
 (**** Freezing and thawing of variables in proof terms ****)
 
@@ -446,14 +476,16 @@ fun freeze_thaw_prf prf =
 
 fun implies_intr_proof h prf =
   let
-    fun abshyp i (Hyp t) = if h aconv t then PBound i else Hyp t
+    fun abshyp i (Hyp t) = if h aconv t then PBound i else raise SAME
       | abshyp i (Abst (s, T, prf)) = Abst (s, T, abshyp i prf)
       | abshyp i (AbsP (s, t, prf)) = AbsP (s, t, abshyp (i+1) prf)
       | abshyp i (prf % t) = abshyp i prf % t
-      | abshyp i (prf1 %% prf2) = abshyp i prf1 %% abshyp i prf2
-      | abshyp _ prf = prf;
+      | abshyp i (prf1 %% prf2) = (abshyp i prf1 %% abshyph i prf2
+          handle SAME => prf1 %% abshyp i prf2)
+      | abshyp _ _ = raise SAME
+    and abshyph i prf = (abshyp i prf handle SAME => prf)
   in
-    AbsP ("H", None (*h*), abshyp 0 prf)
+    AbsP ("H", None (*h*), abshyph 0 prf)
   end;
 
 
@@ -545,13 +577,22 @@ fun lift_proof Bi inc prop prf =
 
     fun lift'' Us Ts t = strip_abs Ts (Logic.incr_indexes (Us, inc) (mk_abs Ts t));
 
-    fun lift' Us Ts (Abst (s, T, prf)) = Abst (s, apsome (incr_tvar inc) T, lift' Us (dummyT::Ts) prf)
-      | lift' Us Ts (AbsP (s, t, prf)) = AbsP (s, apsome (lift'' Us Ts) t, lift' Us Ts prf)
-      | lift' Us Ts (prf % t) = lift' Us Ts prf % apsome (lift'' Us Ts) t
-      | lift' Us Ts (prf1 %% prf2) = lift' Us Ts prf1 %% lift' Us Ts prf2
-      | lift' _ _ (PThm (s, prf, prop, Ts)) = PThm (s, prf, prop, apsome (map (incr_tvar inc)) Ts)
-      | lift' _ _ (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome (map (incr_tvar inc)) Ts)
-      | lift' _ _ prf = prf;
+    fun lift' Us Ts (Abst (s, T, prf)) =
+          (Abst (s, apsome' (same (incr_tvar inc)) T, lifth' Us (dummyT::Ts) prf)
+           handle SAME => Abst (s, T, lift' Us (dummyT::Ts) prf))
+      | lift' Us Ts (AbsP (s, t, prf)) =
+          (AbsP (s, apsome' (same (lift'' Us Ts)) t, lifth' Us Ts prf)
+           handle SAME => AbsP (s, t, lift' Us Ts prf))
+      | lift' Us Ts (prf % t) = (lift' Us Ts prf % apsome (lift'' Us Ts) t
+          handle SAME => prf % apsome' (same (lift'' Us Ts)) t)
+      | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
+          handle SAME => prf1 %% lift' Us Ts prf2)
+      | lift' _ _ (PThm (s, prf, prop, Ts)) =
+          PThm (s, prf, prop, apsome' (same (map (incr_tvar inc))) Ts)
+      | lift' _ _ (PAxm (s, prop, Ts)) =
+          PAxm (s, prop, apsome' (same (map (incr_tvar inc))) Ts)
+      | lift' _ _ _ = raise SAME
+    and lifth' Us Ts prf = (lift' Us Ts prf handle SAME => prf);
 
     val ps = map lift_all (Logic.strip_imp_prems (snd (Logic.strip_flexpairs prop)));
     val k = length ps;
@@ -563,7 +604,7 @@ fun lift_proof Bi inc prop prf =
 	    AbsP ("H", None (*A*), lift Us (true::bs) (i+1) j B)
       | lift Us bs i j (Const ("all", _) $ Abs (a, T, t)) = 
 	    Abst (a, None (*T*), lift (T::Us) (false::bs) i (j+1) t)
-      | lift Us bs i j _ = proof_combP (lift' (rev Us) [] prf,
+      | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
             map (fn k => (#3 (foldr mk_app (bs, (i-1, j-1, PBound k)))))
               (i + k - 1 downto i));
   in
@@ -945,7 +986,7 @@ fun rewrite_prf tmatch (rules, procs) prf =
 fun rewrite_proof tsig = rewrite_prf (fn (tab, f) =>
   Type.typ_match tsig (tab, f ()) handle Type.TYPE_MATCH => raise PMatch);
 
-fun rewrite_proof_notypes tsig = rewrite_prf fst tsig;
+fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
 (**** theory data ****)
 
