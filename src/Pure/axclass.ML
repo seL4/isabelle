@@ -64,7 +64,7 @@ fun dest_varT (TFree (x, S)) = ((x, ~1), S)
 val is_def = Logic.is_equals o #prop o rep_thm;
 
 fun witnesses thy names thms =
-  PureThy.get_thmss thy names @ thms @ filter is_def (map snd (axioms_of thy));
+  PureThy.get_thmss thy (map (rpair None) names) @ thms @ filter is_def (map snd (axioms_of thy));
 
 
 

@@ -981,8 +981,8 @@ in
 	 val s =  post_last_dot(fst(qtn a));
 	 fun param_types ((Const("Trueprop",_)) $ (_ $ (Var(_,Type(_,t)))))  = t |
 	 param_types _ = error "malformed induct-theorem in preprocess_td";	
-	 val pl = param_types (concl_of (get_thm (theory_of_sign sg) (s ^ ".induct")));		
-         val l = split_constrs sg (snd(qtn a)) pl (prems_of (get_thm (theory_of_sign sg) (s ^ ".induct")));
+	 val pl = param_types (concl_of (get_thm (theory_of_sign sg) (s ^ ".induct", None)));		
+         val l = split_constrs sg (snd(qtn a)) pl (prems_of (get_thm (theory_of_sign sg) (s ^ ".induct", None)));
 	 val ntl = new_types l;
         in 
         ((a,l) :: (preprocess_td sg (ntl @ b) (a :: done)))

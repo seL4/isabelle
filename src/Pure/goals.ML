@@ -330,7 +330,7 @@ fun get_thm_locale name ((_, {thms, ...}: locale)) = assoc (thms, name);
 fun get_thmx f get thy name =
   (case get_first (get_thm_locale name) (get_scope thy) of
     Some thm => f thm
-  | None => get thy name);
+  | None => get thy (name, None));
 
 val get_thm = get_thmx I PureThy.get_thm;
 val get_thms = get_thmx (fn x => [x]) PureThy.get_thms;

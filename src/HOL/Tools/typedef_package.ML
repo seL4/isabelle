@@ -101,7 +101,7 @@ fun message s = if ! quiet_mode then () else writeln s;
 fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
   let
     val is_def = Logic.is_equals o #prop o Thm.rep_thm;
-    val thms = PureThy.get_thmss thy witn_names @ witn_thms;
+    val thms = PureThy.get_thmss thy (map (rpair None) witn_names) @ witn_thms;
     val tac =
       witn1_tac THEN
       TRY (rewrite_goals_tac (filter is_def thms)) THEN

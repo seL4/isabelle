@@ -12,10 +12,10 @@ local
 
 (* --- generation of bindings for axioms and theorems in .thy.ML - *)
 
-  fun get      dname name   = "get_thm thy " ^ Library.quote (dname^"."^name);
+  fun get      dname name   = "get_thm thy (" ^ Library.quote (dname ^ "." ^ name) ^ ", None)";
   fun gen_vals dname name   = "val "^ name ^ " = get_thm" ^ 
 			(if hd (rev (Symbol.explode name)) = "s" then "s" else "")^
-			" thy " ^ Library.quote (dname^"."^name)^";";
+			" thy (" ^ Library.quote (dname ^ "." ^ name) ^ ", None);";
   fun gen_vall       name l = "val "^name^" = "^ mk_list l^";";
   val rews = "iso_rews @ when_rews @\n\
  	   \  con_rews @ sel_rews @ dis_rews @ dist_les @ dist_eqs @\n\

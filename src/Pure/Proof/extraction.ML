@@ -734,7 +734,7 @@ val realizersP =
     (Scan.repeat1 (P.xname -- parse_vars --| P.$$$ ":" -- P.string -- P.string) >>
      (fn xs => Toplevel.theory (fn thy => add_realizers
        (map (fn (((a, vs), s1), s2) =>
-         (PureThy.get_thm thy a, (vs, s1, s2))) xs) thy)));
+         (PureThy.get_thm thy (a, None), (vs, s1, s2))) xs) thy)));
 
 val realizabilityP =
   OuterSyntax.command "realizability"
@@ -749,7 +749,7 @@ val typeofP =
 val extractP =
   OuterSyntax.command "extract" "extract terms from proofs" K.thy_decl
     (Scan.repeat1 (P.xname -- parse_vars) >> (fn xs => Toplevel.theory
-      (fn thy => extract (map (apfst (PureThy.get_thm thy)) xs) thy)));
+      (fn thy => extract (map (apfst (PureThy.get_thm thy o rpair None)) xs) thy)));
 
 val parsers = [realizersP, realizabilityP, typeofP, extractP];
 

@@ -51,8 +51,8 @@ sig
        induction : thm,
        size : thm list,
        simps : thm list}
-  val rep_datatype : string list option -> (xstring * Args.src list) list list ->
-    (xstring * Args.src list) list list -> xstring * Args.src list -> theory -> theory *
+  val rep_datatype : string list option -> (thmref * Args.src list) list list ->
+    (thmref * Args.src list) list list -> thmref * Args.src list -> theory -> theory *
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -355,7 +355,7 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
                                  val eq_ct = cterm_of sg eq_t;
                                  val Datatype_thy = theory "Datatype";
                                  val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
-                                   map (get_thm Datatype_thy)
+                                   map (get_thm Datatype_thy o rpair None)
                                      ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"]
                              in (case (#distinct (datatype_info_sg_err sg tname1)) of
                                  QuickAndDirty => Some (Thm.invoke_oracle
@@ -583,21 +583,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
         (cname, map (typ_of_dtyp descr' sorts) cargs ---> T, mx))
           (constrs ~~ constr_syntax')) ((hd descr) ~~ newTs ~~ constr_syntax);
 
-    val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
-      replicate (length descr') HOLogic.typeS);
-
-    val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
-      map (fn (_, cargs) =>
-        let
-          val Ts = map (typ_of_dtyp descr' sorts) cargs;
-          val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
-
-          fun mk_argT (dt, T) =
-            binder_types T ---> nth_elem (body_index dt, rec_result_Ts);
-
-          val argTs = Ts @ map mk_argT recs
-        in argTs ---> nth_elem (i, rec_result_Ts)
-        end) constrs) descr');
+    val (rec_result_Ts, reccomb_fn_Ts) = DatatypeProp.make_primrec_Ts descr sorts used;
 
     val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
     val reccomb_names = if length descr' = 1 then [big_reccomb_name] else
@@ -674,7 +660,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.parent_path |>>>
       add_and_get_axiomss "inject" new_type_names
         (DatatypeProp.make_injs descr sorts);
-    val size_thms = if no_size then [] else get_thms thy3 "size";
+    val size_thms = if no_size then [] else get_thms thy3 ("size", None);
     val (thy4, distinct) = add_and_get_axiomss "distinct" new_type_names
       (DatatypeProp.make_distincts new_type_names descr sorts thy3) thy3;
 
