@@ -294,19 +294,24 @@ val type_decl = type_args -- name --
   optional ("=" $$-- (string || (const_type false >> quote)) >> Some) None
   -- opt_infix >> mk_type_decl;
 
-val type_decls = repeat1 (old_type_decl || type_decl) >>
-                 (mk_type_decls o flat);
+val type_decls =
+  repeat1 (old_type_decl || type_decl) >> (mk_type_decls o flat);
 
 
 (* consts *)
 
-val const_decls = repeat1 (names1 --$$ "::" -- !!
-                    ((string || const_type false >> quote) -- opt_mixfix)) >>
-                  (mk_big_list o map mk_triple2 o split_decls);
+val const_decls =
+  repeat1
+    (names1 --$$ "::" -- !! ((string || const_type false >> quote) -- opt_mixfix))
+  >> (mk_big_list o map mk_triple2 o split_decls);
 
-val syntax_decls =
-  optional ("(" $$-- !! (name --$$ ")")) "\"\"" -- const_decls
-    >> (fn (mode, txt) => mode ^ "\n" ^ txt);
+val opt_mode =
+  optional
+    ("(" $$-- !! (name -- optional ($$ "output" >> K "false") "true" --$$ ")"))
+    ("\"\"", "true")
+  >> mk_pair;
+
+val syntax_decls = opt_mode -- const_decls >> (fn (mode, txt) => mode ^ "\n" ^ txt);
 
 
 (* translations *)
@@ -530,8 +535,8 @@ fun section name pretxt parse =
 
 
 val pure_keywords =
- ["end", "ML", "mixfix", "infixr", "infixl", "binder", "=", "+", ",", "<",
-  "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
+ ["end", "ML", "mixfix", "infixr", "infixl", "binder", "output", "=",
+  "+", ",", "<", "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
 
 val pure_sections =
  [section "oracle" "|> set_oracle" (name >> strip_quotes),
