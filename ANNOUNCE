@@ -4,8 +4,9 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2002 is now available.
 
-In this release many important aspects of Isabelle have been reworked,
-to improve robustness and usability.  This occasionally causes
+This release provides major improvements.  The Isar language has reached a
+mature state; the treatment of numerals has been streamlined; several
+substantial case studies have been added.  This occasionally causes
 incompatibility with earlier versions.
 
 The most prominent highlights of Isabelle2002 are as follows (see the
@@ -30,9 +31,9 @@ NEWS of the distribution for more details).
   * Pure/HOL: infrastructure for generating functional and relational
     code, using the ML run-time environment (by Stefan Berghofer).
 
-  * HOL/library: sane numerals on all number types; several
+  * HOL/library: numerals on all number types; several
     improvements of tuple and record types; new definite description
-    operator; keep Hilbert's choice out of basic theories.
+    operator; keep Hilbert's epsilon (Axiom of Choice) out of basic theories.
 
   * HOL/Bali: large application concerning formal treatment of Java.
     (by David von Oheimb and Norbert Schirmer).
