@@ -26,8 +26,8 @@ sig
     val is_draft: sg -> bool
     val const_type: sg -> string -> typ option
     val classes: sg -> class list
-    val subsort: sg -> sort * sort -> bool      (* FIXME move? *)
-    val norm_sort: sg -> sort -> sort           (* FIXME move? *)
+    val subsort: sg -> sort * sort -> bool
+    val norm_sort: sg -> sort -> sort
     val print_sg: sg -> unit
     val pretty_sg: sg -> Pretty.T
     val pprint_sg: sg -> pprint_args -> unit
@@ -243,7 +243,7 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
 
 
 
-(** infer_types **)         (*exception ERROR*)   (* FIXME check *)
+(** infer_types **)         (*exception ERROR*)
 
 fun infer_types sg types sorts (t, T) =
   let
@@ -279,9 +279,6 @@ fun varify_typ (Type (t, tys)) = Type (t, map varify_typ tys)
 
 fun ext_tsig_classes tsig classes =
   extend_tsig tsig (classes, [], [], []);
-
-fun ext_tsig_types tsig types =
-  extend_tsig tsig ([], [], map (fn (t, n) => ([t], n)) types, []);
 
 (* FIXME varify_typ, rem_sorts; norm_typ (?) *)
 fun ext_tsig_abbrs tsig abbrs = Type.ext_tsig_abbrs tsig
