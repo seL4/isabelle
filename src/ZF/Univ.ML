@@ -163,21 +163,6 @@ by (rtac (Vfrom RS ssubst) 1);
 by (fast_tac ZF_cs 1);
 qed "Vfrom_Union";
 
-goal Univ.thy "!!i. Ord(i) ==> i=0 | (EX j. i=succ(j)) | Limit(i)";
-by (fast_tac (ZF_cs addSIs [non_succ_LimitI, Ord_0_lt]) 1);
-qed "Ord_cases_lemma";
-
-val major::prems = goal Univ.thy
-    "[| Ord(i);			\
-\       i=0            ==> P;	\
-\       !!j. i=succ(j) ==> P;	\
-\       Limit(i)       ==> P	\
-\    |] ==> P";
-by (cut_facts_tac [major RS Ord_cases_lemma] 1);
-by (REPEAT (eresolve_tac (prems@[disjE, exE]) 1));
-qed "Ord_cases";
-
-
 (*** Vfrom applied to Limit ordinals ***)
 
 (*NB. limit ordinals are non-empty;
