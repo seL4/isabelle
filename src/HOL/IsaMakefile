@@ -16,6 +16,7 @@ test: \
   HOL-Auth \
   HOL-AxClasses \
   HOL-BCV \
+  HOL-CTL \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
   HOL-Hoare \
@@ -459,6 +460,16 @@ $(LOG)/HOL-BCV.gz: $(OUT)/HOL \
   BCV/Product.ML BCV/Product.thy
 	@$(ISATOOL) usedir $(OUT)/HOL BCV
 
+
+## HOL-CTL
+
+HOL-CTL: HOL $(LOG)/HOL-CTL.gz
+
+$(LOG)/HOL-CTL.gz: $(OUT)/HOL \
+  CTL/CTL.thy CTL/ROOT.ML CTL/document/root.tex CTL/document/root.bib
+	@$(ISATOOL) usedir $(OUT)/HOL CTL
+
+
 ## HOL-IOA
 
 HOL-IOA: HOL $(LOG)/HOL-IOA.gz
@@ -579,7 +590,7 @@ clean:
 		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
 		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
-		$(LOG)/HOL-BCV.gz $(LOG)/HOL-MicroJava.gz \
+		$(LOG)/HOL-BCV.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-MicroJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
