@@ -558,7 +558,9 @@ val token_translation =
 
 fun method_setup ((name, txt, cmt), comment_ignore) =
   Context.use_let
-    "val method: bstring * (Args.src -> Proof.context -> Proof.method) * string"
+    "val thm = PureThy.get_thm_closure (Context.the_context ());\n\
+    \val thms = PureThy.get_thms_closure (Context.the_context ());\n\
+    \val method: bstring * (Args.src -> Proof.context -> Proof.method) * string"
     "PureIsar.Method.add_method method"
     ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")");
 
