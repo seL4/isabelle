@@ -288,7 +288,6 @@ fun exported_global x = no_args (Drule.rule_attribute (Proof.export_thm o ProofC
 fun exported_local x = no_args (Drule.rule_attribute Proof.export_thm) x;
 
 
-
 (** theory setup **)
 
 (* pure_attributes *)
@@ -309,7 +308,9 @@ val pure_attributes =
   ("consumes", (consumes, consumes), "number of consumed facts"),
   ("case_names", (case_names, case_names), "named rule cases"),
   ("params", (params, params), "named rule parameters"),
-  ("exported", (exported_global, exported_local), "theorem exported from context")];
+  ("exported", (exported_global, exported_local), "theorem exported from context"),
+  ("atomize", (no_args ObjectLogic.atomize, no_args undef_local_attribute),
+    "declaration of atomize rule")];
 
 
 (* setup *)
