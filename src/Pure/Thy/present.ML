@@ -1,9 +1,9 @@
 (*  Title:      Pure/Thy/present.ML
     ID:         $Id$
-    Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
+    Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Theory presentation (HTML, graph files, (PDF)LaTeX documents).
+Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 *)
 
 signature BASIC_PRESENT =
@@ -29,7 +29,7 @@ sig
   val subsection: string -> unit
   val subsubsection: string -> unit
   val setup: (theory -> theory) list
-  val get_info: theory -> {session: string list, is_local: bool}
+  val get_info: theory -> {name: string, session: string list, is_local: bool}
 end;
 
 structure Present: PRESENT =
@@ -55,7 +55,7 @@ val pre_index_path = Path.unpack ".session/pre-index";
 
 fun mk_rel_path [] ys = Path.make ys
   | mk_rel_path xs [] = Path.appends (replicate (length xs) Path.parent)
-  | mk_rel_path (ps as x::xs) (qs as y::ys) = if x=y then mk_rel_path xs ys else
+  | mk_rel_path (ps as x :: xs) (qs as y :: ys) = if x = y then mk_rel_path xs ys else
       Path.appends (replicate (length ps) Path.parent @ [Path.make qs]);
 
 
@@ -64,9 +64,9 @@ fun mk_rel_path [] ys = Path.make ys
 structure BrowserInfoArgs =
 struct
   val name = "Pure/browser_info";
-  type T = {session: string list, is_local: bool};
+  type T = {name: string, session: string list, is_local: bool};
 
-  val empty = {session = [], is_local = false};
+  val empty = {name = "Pure", session = [], is_local = false};
   val copy = I;
   fun prep_ext _ = empty;
   fun merge _ = empty;
@@ -87,44 +87,32 @@ type graph_node =
   {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list};
 
-fun get_graph path = map (fn (a :: b :: c :: d :: e :: r) =>
-  {name = unenclose a, ID = unenclose b,
-   dir = unenclose c, unfold = (d = "+"),
-   path = unenclose (if d = "+" then e else d),
-   parents = map unenclose (fst (split_last (if d = "+" then tl r else r)))})
-     (map (filter_out (equal "") o space_explode " ") (split_lines (File.read path)));
+fun write_graph gr path =
+  File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents} =>
+    "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
+    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") gr));
 
-fun put_graph gr path =
-    File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents} =>
-      "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
-      path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") gr));
+fun ID_of sess s = space_implode "/" (sess @ [s]);
 
-fun dir_of sess = space_implode "/" (case sess of
-  [] => ["Pure"] | [x] => [x, "base"] | xs => xs);
-
-fun ID_of sess s = dir_of sess ^ "/" ^ s;
-
-
-(* retrieve graph data from theory loader database *)
-
-fun make_graph remote_path unfold curr_sess = map (fn name =>
+(*retrieve graph data from initial theory loader database*)
+fun init_graph remote_path curr_sess = map (fn name =>
   let
-    val {session, is_local} = get_info (ThyInfo.theory name);
-    val path' = Path.append (Path.make session) (html_path name)
+    val {name = sess_name, session, is_local} = get_info (ThyInfo.theory name);
+    val path' = Path.append (Path.make session) (html_path name);
   in
-    {name = name, ID = ID_of session name, dir = dir_of session,
-     path = if null session then "" else
-            if is_some remote_path andalso not is_local then
-              Url.pack (Url.append (the remote_path) (Url.file
-                (Path.append (Path.make session) (html_path name))))
-            else Path.pack (Path.append
-              (mk_rel_path curr_sess session) (html_path name)),
-     unfold = unfold andalso (length session = 1),
-     parents = map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s)
-       (ThyInfo.get_preds name)}
+   {name = name, ID = ID_of session name, dir = sess_name,
+    path =
+      if null session then "" else
+      if is_some remote_path andalso not is_local then
+        Url.pack (Url.append (the remote_path) (Url.file
+          (Path.append (Path.make session) (html_path name))))
+      else Path.pack (Path.append (mk_rel_path curr_sess session) (html_path name)),
+    unfold = false,
+    parents =
+      map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) (ThyInfo.get_preds name)}
   end) (ThyInfo.names ());
 
-fun add_graph_entry' (entry as {ID, ...}) (gr : graph_node list) =
+fun ins_graph_entry (entry as {ID, ...}) (gr: graph_node list) =
   filter_out (fn entry' => #ID entry' = ID) gr @ [entry];
 
 
@@ -147,20 +135,19 @@ fun map_theory_info f {tex_source, html_source, html} =
 (* type browser_info *)
 
 type browser_info = {theories: theory_info Symtab.table, tex_index: Buffer.T,
-  html_index: Buffer.T, graph: graph_node list, all_graph: graph_node list};
+  html_index: Buffer.T, graph: graph_node list};
 
-fun make_browser_info (theories, tex_index, html_index, graph, all_graph) =
+fun make_browser_info (theories, tex_index, html_index, graph) =
   {theories = theories, tex_index = tex_index, html_index = html_index,
-    graph = graph, all_graph = all_graph}: browser_info;
+    graph = graph}: browser_info;
 
-val empty_browser_info = make_browser_info (Symtab.empty, Buffer.empty, Buffer.empty, [], []);
+val empty_browser_info = make_browser_info (Symtab.empty, Buffer.empty, Buffer.empty, []);
 
-fun initial_browser_info remote_path graph_path curr_sess = make_browser_info
-  (Symtab.empty, Buffer.empty, Buffer.empty, make_graph remote_path false curr_sess,
-   if_none (try get_graph graph_path) (make_graph remote_path true [hd curr_sess]));
+fun init_browser_info remote_path curr_sess = make_browser_info
+  (Symtab.empty, Buffer.empty, Buffer.empty, init_graph remote_path curr_sess);
 
-fun map_browser_info f {theories, tex_index, html_index, graph, all_graph} =
-  make_browser_info (f (theories, tex_index, html_index, graph, all_graph));
+fun map_browser_info f {theories, tex_index, html_index, graph} =
+  make_browser_info (f (theories, tex_index, html_index, graph));
 
 
 (* state *)
@@ -170,34 +157,28 @@ val browser_info = ref empty_browser_info;
 fun change_browser_info f = browser_info := map_browser_info f (! browser_info);
 
 fun init_theory_info name info =
-  change_browser_info (fn (theories, tex_index, html_index, graph, all_graph) =>
-    (Symtab.update ((name, info), theories), tex_index, html_index, graph, all_graph));
+  change_browser_info (fn (theories, tex_index, html_index, graph) =>
+    (Symtab.update ((name, info), theories), tex_index, html_index, graph));
 
 fun change_theory_info name f =
-  change_browser_info (fn (info as (theories, tex_index, html_index, graph, all_graph)) =>
+  change_browser_info (fn (info as (theories, tex_index, html_index, graph)) =>
     (case Symtab.lookup (theories, name) of
       None => (warning ("Browser info: cannot access theory document " ^ quote name); info)
     | Some info => (Symtab.update ((name, map_theory_info f info), theories),
-        tex_index, html_index, graph, all_graph)));
+        tex_index, html_index, graph)));
 
 
 fun add_tex_index txt =
-  change_browser_info (fn (theories, tex_index, html_index, graph, all_graph) =>
-    (theories, Buffer.add txt tex_index, html_index, graph, all_graph));
+  change_browser_info (fn (theories, tex_index, html_index, graph) =>
+    (theories, Buffer.add txt tex_index, html_index, graph));
 
 fun add_html_index txt =
-  change_browser_info (fn (theories, tex_index, html_index, graph, all_graph) =>
-    (theories, tex_index, Buffer.add txt html_index, graph, all_graph));
+  change_browser_info (fn (theories, tex_index, html_index, graph) =>
+    (theories, tex_index, Buffer.add txt html_index, graph));
 
-(*add entry to graph for current session*)
 fun add_graph_entry e =
-  change_browser_info (fn (theories, tex_index, html_index, graph, all_graph) =>
-    (theories, tex_index, html_index, add_graph_entry' e graph, all_graph));
-
-(*add entry to graph for all sessions*)
-fun add_all_graph_entry e =
-  change_browser_info (fn (theories, tex_index, html_index, graph, all_graph) =>
-    (theories, tex_index, html_index, graph, add_graph_entry' e all_graph));
+  change_browser_info (fn (theories, tex_index, html_index, graph) =>
+    (theories, tex_index, html_index, ins_graph_entry e graph));
 
 fun add_tex_source name txt = change_theory_info name (fn (tex_source, html_source, html) =>
   (Buffer.add txt tex_source, html_source, html));
@@ -216,14 +197,12 @@ fun add_html name txt = change_theory_info name (fn (tex_source, html_source, ht
 
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
-    doc_format: string, doc_prefixes: (Path.T * Path.T option) option,
-    all_graph_path: Path.T, remote_path: Url.T option};
+    doc_format: string, doc_prefixes: (Path.T * Path.T option) option, remote_path: Url.T option};
 
-fun make_session_info (name, parent, session, path, html_prefix, doc_format, doc_prefixes,
-    all_graph_path, remote_path) =
+fun make_session_info
+    (name, parent, session, path, html_prefix, doc_format, doc_prefixes, remote_path) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
-    doc_format = doc_format, doc_prefixes = doc_prefixes,
-    all_graph_path = all_graph_path, remote_path = remote_path}: session_info;
+    doc_format = doc_format, doc_prefixes = doc_prefixes, remote_path = remote_path}: session_info;
 
 
 (* state *)
@@ -274,10 +253,11 @@ fun copy_files path1 path2 =
    File.system_command
      ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));
 
+
 fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := None)
   | init true doc path name dump_path (remote_path, first_time) =
       let
-        val parent_name = name_of_session (take (length path - 1, path));
+        val parent_name = name_of_session (Library.take (length path - 1, path));
         val session_name = name_of_session path;
         val sess_prefix = Path.make path;
 
@@ -289,8 +269,6 @@ fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := 
           else (Some (Path.append html_prefix doc_path, dump_path), Some (Path.ext doc doc_path));
 
         val graph_up_lnk = (Url.file index_path, session_name);
-        val all_graph_path = Path.appends [out_path,
-          Path.basic (hd path), graph_path "all_sessions"];
 
         val _ =
           (copy_files (Path.unpack "~~/lib/browser/awtUtilities/*.class")
@@ -319,10 +297,10 @@ fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := 
         File.write (Path.append html_prefix session_entries_path) "";
         if is_some doc_prefixes then File.copy_all doc_path html_prefix else ();
         seq (fn (name, txt) => File.write (Path.append html_prefix (Path.basic name)) txt)
-          (HTML.applet_pages session_name graph_up_lnk (length path = 1));
+          (HTML.applet_pages session_name graph_up_lnk);
         session_info := Some (make_session_info (name, parent_name, session_name, path,
-          html_prefix, doc, doc_prefixes, all_graph_path, remote_path));
-        browser_info := initial_browser_info remote_path all_graph_path path;
+          html_prefix, doc, doc_prefixes, remote_path));
+        browser_info := init_browser_info remote_path path;
         add_html_index index_text
       end;
 
@@ -346,9 +324,10 @@ fun write_texes src name (path, None) = write_tex src name path
 
 
 fun finish () = with_session ()
-    (fn {name, html_prefix, doc_format, doc_prefixes, all_graph_path, path, ...} =>
+    (fn {name, html_prefix, doc_format, doc_prefixes, path, ...} =>
   let
-    val {theories, tex_index, html_index, graph, all_graph} = ! browser_info;
+    val {theories, tex_index, html_index, graph} = ! browser_info;
+    val parent_html_prefix = Path.append html_prefix Path.parent;
 
     fun finish_node (a, {tex_source, html_source = _, html}) =
      (doc_prefixes |> apsome (write_texes tex_source a);
@@ -358,10 +337,9 @@ fun finish () = with_session ()
     Buffer.write (Path.append html_prefix pre_index_path) html_index;
     doc_prefixes |> apsome (write_texes tex_index doc_indexN);
     doc_prefixes |> apsome (isatool_document doc_format o #1);
-    put_graph graph (Path.append html_prefix (graph_path "session"));
-    put_graph all_graph all_graph_path;
+    write_graph graph (Path.append html_prefix (graph_path "session"));
     create_index html_prefix;
-    if length path > 1 then update_index (Path.append html_prefix Path.parent) name else ();
+    if length path > 1 then update_index parent_html_prefix name else ();
     browser_info := empty_browser_info;
     session_info := None
   end);
@@ -382,7 +360,7 @@ fun theory_output name s =
 
 
 fun parent_link remote_path curr_session name =
-  let val {session, is_local} = get_info (ThyInfo.theory name)
+  let val {name = _, session, is_local} = get_info (ThyInfo.theory name)
   in (if null session then None else
      Some (if is_some remote_path andalso not is_local then
        Url.append (the remote_path) (Url.file
@@ -392,7 +370,7 @@ fun parent_link remote_path curr_session name =
   end;
 
 fun begin_theory name raw_parents orig_files thy =
-  with_session thy (fn {session, path, html_prefix, remote_path, ...} =>
+    with_session thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
   let
     val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
@@ -421,19 +399,17 @@ fun begin_theory name raw_parents orig_files thy =
           name parents files_html (Buffer.content html_source)
       in (tex_source, Buffer.empty, Buffer.add txt html) end;
 
-    fun make_entry unfold all =
-      {name = name, ID = ID_of path name, dir = dir_of path, unfold = unfold,
-       path = Path.pack (Path.append
-         (mk_rel_path (if all then [hd path] else path) path) (html_path name)),
-       parents = map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) raw_parents};
+    val entry =
+     {name = name, ID = ID_of path name, dir = sess_name, unfold = true,
+      path = Path.pack (html_path name),
+      parents = map (fn s => ID_of (#session (get_info (ThyInfo.theory s))) s) raw_parents};
 
   in
     change_theory_info name prep_html_source;
-    add_all_graph_entry (make_entry (length path = 1) true);
-    add_graph_entry (make_entry true false);
+    add_graph_entry entry;
     add_html_index (HTML.theory_entry (Url.file (html_path name), name));
     add_tex_index (Latex.theory_entry name);
-    BrowserInfoData.put {session = path, is_local = is_some remote_path} thy
+    BrowserInfoData.put {name = sess_name, session = path, is_local = is_some remote_path} thy
   end);
 
 
