@@ -1242,7 +1242,7 @@ see \S\ref{sec:HOL:recursive}.  A simple example is addition.
 Here, \texttt{op +} is the name of the infix operator~\texttt{+}, following
 the standard convention.
 \begin{ttbox}
-\sdx{primrec} "op +" nat 
+\sdx{primrec}
   "    0 + n = n"
   "Suc m + n = Suc(m + n)"
 \end{ttbox}
@@ -1539,17 +1539,80 @@ in your theory file to tell Isabelle that $ty$ is in class \texttt{term}, the
 class of all \HOL\ types.
 \end{warn}
 
-\section{Record types}
+
+\section{Records}
 
 At a first approximation, records are just a minor generalization of tuples,
 where components may be addressed by labels instead of just position.  The
 version of records offered by Isabelle/HOL is slightly more advanced, though,
-supporting \emph{extensible record schemes}.  This admits polymorphic
-operations wrt.\ record extensions, yielding ``object-oriented'' effects like
+supporting \emph{extensible record schemes}.  This admits operations that are
+polymorphic wrt.\ record extensions, yielding ``object-oriented'' effects like
 (single) inheritance.  See also \cite{Naraschewski-Wenzel:1998:TPHOL} for more
 details on object-oriented verification and record subtyping in HOL.
 
-\subsection{Defining records}
+\subsection{Basics}
+
+Isabelle/HOL supports concrete syntax for both fixed and schematic record
+terms and types:
+
+\begin{tabular}{l|l|l}
+  & terms & types \\ \hline
+  fixed & $\record{x = a\fs y = b}$ & $\record{x \ty A\fs y \ty B}$ \\
+  scheme & $\record{x = a\fs y = b\fs \more = more}$ &
+    $\record{x \ty A\fs y \ty B\fs \more \ty \mu}$ \\
+\end{tabular}
+
+The \textsc{ascii} representation of $\record{~}$ is \texttt{(|~|)}.
+
+A fixed record $\record{x = a\fs y = b}$ has field $x$ of value $a$ and field
+$y$ of value $b$.  The corresponding type is $\record{x \ty A\fs y \ty B}$,
+assuming $a \ty A$ and $b \ty B$.
+
+A record scheme like $\record{x = a\fs y = b\fs \more = more}$ contains fields
+$x$ and $y$ as before, but also possibly further fields as indicated by above
+``$\more$'' notation.  We call ``$\more$'' the \emph{more part}; logically it
+is just a free variable.  In the literature this is also referred to as
+\emph{row variable}.  The more part of record schemes may be instantiated by
+zero or more further components.  For example, above scheme might get
+instantiated to $\record{x = a\fs y = b\fs z = c\fs \more = more'}$, where
+$more'$ refers to a different more part.
+
+Fixed records are special instances of record schemes, where $more$ is
+properly terminated by the $unit$ element $()$.  Thus $\record{x = a\fs y =
+  b}$ is just an abbreviation of $\record{x = a\fs y = b\fs \more = ()}$.
+
+\medskip
+
+There are two key features that make extensible records in a simply typed
+language like HOL feasible:
+\begin{enumerate}
+\item the ``more'' part is internalized (as a free term or type variable),
+\item field names are externalized, i.e.\ cannot be reasoned about within the
+  logic as first class values.
+\end{enumerate}
+
+\medskip
+
+Records have to be defined explicitly, fixing their field names and types,
+and (optional) parent record scheme (see \S\ref{sec:HOL:record-def}).
+Afterwards, records may be formed using above syntax, while obeying the
+canonical order of fields according to the declaration hierarchy.
+
+The record package also provides several operations like selectors and updates
+(see \S\ref{sec:HOL:record-ops}, together with their characteristics properties
+(see \S\ref{sec:HOL:record-thms}).
+
+There is a simple example exhibiting most basic aspects of extensible records
+available.  See theory \texttt{HOL/ex/Points} in the Isabelle sources.
+
+
+\subsection{Defining records}\label{sec:HOL:record-def}
+
+The theory syntax for record type definitions is shown in
+Fig.~\ref{fig:HOL:record}.  For the definition of `typevarlist' and `type' see
+\iflabelundefined{chap:classical}
+{the appendix of the {\em Reference Manual\/}}%
+{Appendix~\ref{app:TheorySyntax}}.
 
 \begin{figure}[htbp]
 \begin{rail}
@@ -1561,17 +1624,114 @@ field   : name '::' type;
 \label{fig:HOL:record}
 \end{figure}
 
-Records have to be defined explicitely, fixing their field names and types,
-and (optional) parent record scheme.  The theory syntax for record type
-definitions is shown in Fig.~\ref{fig:HOL:record}.  For the definition of
-`typevarlist' and `type' see \iflabelundefined{chap:classical}
-{the appendix of the {\em Reference Manual\/}}%
-{Appendix~\ref{app:TheorySyntax}}.
+A general \ttindex{record} specification is of the following form:
+\[
+\mathtt{record}~(\alpha@1, \dots, \alpha@n) \, t ~=~
+  (\tau@1, \dots, \tau@m) \, s + c@1 :: \sigma@1 ~ \dots c@l :: \sigma@k
+\]
+where $\alpha@i$ are distinct type variables, and $\tau@i$, $\sigma@i$ types
+containing at most variables $\alpha@1, \dots, \alpha@n$; type constructor $t$
+has to be new, while $s$ specifies an existing one.  Also, the $c@i$ have to
+be distinct fields names (which may be safely reused from other records).
+Note that there has to be at least one field.
+
+\medskip
+
+Above definition introduces a new record type $(\alpha@1, \dots, \alpha@n) \,
+t$ by extending an existing one $(\tau@1, \dots, \tau@m) \, s$ by new fields
+$c@1, \dots, c@n$.  The parent record specification is optional.  By omitting
+it, $(\alpha@1, \dots, \alpha@n) \,t$ becomes a root record which is not
+derived from any other one.  The hierarchy of records declared within any
+theory forms a forest structure.
+
+The new type $(\alpha@1, \dots, \alpha@n) \, t$ is made an abbreviation for
+the fixed record type $\record{c@1 \ty \sigma@1\fs \dots\fs c@k \ty
+  \sigma@k}$, and $(\alpha@1\fs \dots\fs \alpha@n\fs \mu) \, t_scheme$ is made
+an abbreviation for $\record{c@1 \ty \sigma@1\fs \dots\fs c@k \ty \sigma@k\fs
+  \more \ty \mu}$.
 
 
-\subsection{Record operations and syntax}
+\subsection{Record operations}\label{sec:HOL:record-ops}
 
-\subsection{Proof tools}
+Any record definition as above produces selectors, updates and derived
+constructors (make).  To simplify the presentation we assume that $(\alpha@1,
+\dots, \alpha@n) \, t$ is a root record with fields $c@i \ty \sigma@i$.
+
+Selectors and updates are available for any field proper field and the
+pseudo-field $more$ as follows:
+\begin{matharray}{lll}
+  c@i & \ty & (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \To \sigma@i \\
+  c@i_update & \ty & \sigma@i \To (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \To
+    (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \To
+\end{matharray}
+
+There is special syntax for updates: $r \, \record{x \asn a}$ abbreviates
+$x_update \, a \, r$.  Repeated updates are also supported like $r \,
+\record{x \asn a} \, \record{y \asn b} \, \record{z \asn c}$ may be written as
+$r \, \record{x \asn a\fs y \asn b\fs z \asn c}$.  Note that because of
+postfix notation the order of fields printed is reverse in the actual term.
+This might be confusion under rare circumstances in conjunction with proof
+tools like ordered rewriting.
+
+Updates are just function applications, so fields may be freely permuted in
+the $\record{x \asn a\fs y \asn b}$ notation, as far as the logic is
+concerned.  Thus commutativity of updates can be proven within the logic for
+any two fields, not as a general theorem (remember that fields are not
+first-class).
+
+\medskip
+
+For convenience there are also derived record constructors as follows:
+\begin{matharray}{lll}
+  make & \ty & \sigma@1 \To \dots \To \sigma@k \To
+    (\alpha@1, \dots, \alpha@n) \, t \\
+  make_scheme & \ty & \sigma@1 \To \dots \To \sigma@k \To \mu \To
+    (\alpha@1, \dots, \alpha@n, \mu) \, t_scheme \\
+\end{matharray}
+
+\medskip
+
+Any of these operations are declared within a local name space for $t$.  In
+case that different records share field (base) names, one has to qualify
+explicitly, e.g.\ $t.c_update$.  This is recommended especially for generic
+names like $make$, which should be rather $t.make$ to avoid confusion.
+
+\medskip
+
+Reconsider the case of records that are derived of some parent record.  In
+general, the latter may depend on another parent as well, resulting in a list
+of ancestor records.  Appending the lists of fields of all ancestors results
+in a certain field prefix.  The Isabelle/HOL record package automatically
+takes care of this context of parent fields when defining selectors, updates
+etc.
+
+
+\subsection{Proof tools}\label{sec:HOL:record-thms}
+
+The record package provides the following proof rules for any record $t$:
+\begin{enumerate}
+
+\item standard conversions (selectors or updates applied to record constructor
+  terms) are part of the standard simpset,
+  
+\item inject equations of the form analogous to $((x, y) = (x', y')) \equiv
+  x=x' \conj y=y'$ are made part of standard simpset and claset (via
+  \texttt{addIffs}),
+  
+\item a tactic for record field splitting (\ttindex{record_split_tac}) is made
+  part of the standard claset (as sage wrapper); this is based on a rule like
+  this: $(\all x PROP~P~x) \equiv (\all{a~b} PROP~P(a, b))$.
+\end{enumerate}
+
+The first two kinds of rules are also stored within the theory as $t.simps$
+and $t.iffs$, respectively.
+
+The example \texttt{HOL/ex/Points} demonstrates typical proofs concerning
+records.  The basic idea is to make \ttindex{record_split_tac} expand
+quantified record variables and then simplify by the conversion rules.  By
+using a combination of the simplifier and classical prover together with the
+default simpset and claset, record problems should be solved (e.g.\ 
+\texttt{Auto_tac} or \texttt{Force_tac}) with a single stroke.
 
 
 \section{Datatype definitions}
@@ -2423,8 +2583,8 @@ paper,%
 \footnote{It appeared in CADE~\cite{paulson-CADE}; a longer version is
   distributed with Isabelle.}  %
 which you should refer to in case of difficulties.  The package is simpler
-than \ZF's thanks to \HOL's automatic type-checking.  The type of the
-(co)inductive determines the domain of the fixedpoint definition, and the
+than \ZF's thanks to \HOL's automatic type-checking.  The types of the
+(co)inductive sets determine the domain of the fixedpoint definition, and the
 package does not use inference rules for type-checking.
 
 
@@ -2446,7 +2606,7 @@ names given them in the theory file.
 \item[\tt elims] is the list of elimination rule.
 
 \item[\tt elim] is the head of the list {\tt elims}.
-
+  
 \item[\tt mk_cases] is a function to create simplified instances of {\tt
 elim}, using freeness reasoning on some underlying datatype.
 \end{description}
@@ -2513,11 +2673,7 @@ The package has a few notable restrictions:
 \item The theory must separately declare the recursive sets as
   constants.
   
-\item The names of the recursive sets must be alphanumeric
-  identifiers.
-
-\item Side-conditions of the form $x=t$, where the variable~$x$ does not
-  occur in~$t$, will be substituted through the rule \verb|mutual_induct|.
+\item The names of the recursive sets should be alphanumeric identifiers.
 \end{itemize}
 
 
