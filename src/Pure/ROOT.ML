@@ -60,20 +60,17 @@ structure Tactic = TacticFun(structure Logic=Logic and Drule=Drule
                              and Tactical=Tactical and Net=Net);
 structure Goals = GoalsFun(structure Logic=Logic and Drule=Drule
                            and Tactic=Tactic and Pattern=Pattern);
-structure AxClass = AxClassFun(structure Logic = Logic 
+structure AxClass = AxClassFun(structure Logic = Logic
   and Goals = Goals and Tactic = Tactic);
 open BasicSyntax Thm Drule Tactical Tactic Goals AxClass;
 
 structure Pure = struct val thy = pure_thy end;
 
-use "install_pp.ML";
-
-
-
-(*Theory parser
-  (The new Thy/read.ML needs Thm so this has to be done AFTER Thm is
-   created.) *)
+(*Theory parser and loader*)
 cd "Thy";
 use "ROOT.ML";
 cd "..";
+
+use "install_pp.ML";
+fun init_database () = (init_thy_reader (); init_pps ());
 
