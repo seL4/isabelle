@@ -107,11 +107,7 @@ goal thy "!!evs. evs : otway ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
-by (best_tac
-      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addIs  [impOfSubs analz_subset_parts]
-               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-               addss  (simpset())) 1);
+by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
 (*OR1-3*)
 by (ALLGOALS Blast_tac);
 qed_spec_mp "new_keys_not_used";

@@ -101,11 +101,7 @@ goal thy "!!evs. evs : yahalom ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
-by (best_tac
-      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-                addIs  [impOfSubs analz_subset_parts]
-                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-                addss  (simpset())) 1);
+by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
 (*YM2-4: Because Key K is not fresh, etc.*)
 by (REPEAT (blast_tac (claset() addSEs spies_partsEs) 1));
 qed_spec_mp "new_keys_not_used";
@@ -587,7 +583,7 @@ by (etac yahalom.induct 1);
 by (ALLGOALS Asm_simp_tac);
 (*YM4*)
 by (Blast_tac 2);
-(*YM3*)
+(*YM3 [blast_tac is 50% slower] *)
 by (best_tac (claset() addSDs [B_Said_YM2, Says_imp_spies RS parts.Inj]
 		       addSEs [MPair_parts]) 1);
 val lemma = result() RSN (2, rev_mp) RS mp |> standard;

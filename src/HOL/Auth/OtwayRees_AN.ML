@@ -99,11 +99,7 @@ goal thy "!!evs. evs : otway ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
-by (best_tac
-      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-		addIs  [impOfSubs analz_subset_parts]
-		addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-		addss  (simpset())) 1);
+by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
 (*OR3*)
 by (Blast_tac 1);
 qed_spec_mp "new_keys_not_used";
@@ -195,7 +191,7 @@ by (Blast_tac 2);
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message and handle this case by contradiction*)
-by (Blast_tac 1);
+by (blast_tac (claset() addSEs spies_partsEs) 1);
 val lemma = result();
 
 
@@ -263,8 +259,8 @@ by (etac otway.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac (simpset() addcongs [conj_cong, if_weak_cong] 
-                            addsimps [analz_insert_eq, analz_insert_freshK]
-                            addsimps (pushes@expand_ifs))));
+                             addsimps [analz_insert_eq, analz_insert_freshK]
+                             addsimps (pushes@expand_ifs))));
 (*Oops*)
 by (blast_tac (claset() addSDs [unique_session_keys]) 4);
 (*OR4*) 

@@ -28,6 +28,16 @@ by Auto_tac;
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
+(*Specialized to shared-key model: no need for addss in protocol proofs*)
+goal thy "!!X. [| K: keysFor (parts (insert X H));  X : synth (analz H) |] \
+\              ==> K : keysFor (parts H) | Key K : parts H";
+by (fast_tac
+      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono),
+			impOfSubs (analz_subset_parts RS keysFor_mono)]
+		addIs  [impOfSubs analz_subset_parts]
+                addss  (simpset())) 1);
+qed "keysFor_parts_insert";
+
 goal thy "!!H. Crypt K X : H ==> K : keysFor H";
 by (dtac Crypt_imp_invKey_keysFor 1);
 by (Asm_full_simp_tac 1);

@@ -97,11 +97,7 @@ goal thy "!!evs. evs : ns_shared ==>      \
 \         Key K ~: used evs --> K ~: keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
-by (best_tac
-      (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-                addIs  [impOfSubs analz_subset_parts]
-                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-                addss  (simpset())) 1);
+by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
 (*NS2, NS4, NS5*)
 by (ALLGOALS (Blast_tac));
 qed_spec_mp "new_keys_not_used";
@@ -271,7 +267,7 @@ by (ALLGOALS
      (simpset() addsimps ([analz_insert_eq, analz_insert_freshK] @ 
 			  pushes @ expand_ifs))));
 (*Oops*)
-by (blast_tac (claset() addDs [unique_session_keys]) 5);
+by (blast_tac (claset() addSDs [unique_session_keys]) 5);
 (*NS3, replay sub-case*) 
 by (Blast_tac 4);
 (*NS2*)

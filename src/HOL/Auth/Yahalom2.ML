@@ -105,11 +105,7 @@ by (blast_tac (claset() addSEs spies_partsEs) 3);
 (*YM3*)
 by (blast_tac (claset() addss (simpset())) 2);
 (*Fake*)
-by (best_tac
-     (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addIs  [impOfSubs analz_subset_parts]
-               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-               addss  (simpset())) 1);
+by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
 qed_spec_mp "new_keys_not_used";
 
 bind_thm ("new_keys_not_analzd",
