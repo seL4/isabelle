@@ -56,7 +56,7 @@ by (res_inst_tac [("u2","u"),("v2","v")](preservation RS ssubst) 1
 by (res_inst_tac [("u2","v"),("v2","u")](preservation RS ssubst) 1);
 by (etac comp_sym 1);
 by (atac 1);
-by(rtac (prism RS sym RS ssubst) 1);
+by (stac (prism RS sym) 1);
 by (asm_full_simp_tac (res1_ss addsimps 
     [prism RS sym,union_l,union_preserve_regular,
      comp_sym_iff, union_sym]) 4);

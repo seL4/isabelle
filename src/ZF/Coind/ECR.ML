@@ -50,16 +50,16 @@ goalw ECR.thy [hastyenv_def]
   "!!ve.[| ve:ValEnv; te:TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
 \   hastyenv(ve_owr(ve,x,v),te_owr(te,x,t))";
 by (safe_tac ZF_cs);
-by (rtac (ve_dom_owr RS ssubst) 1);
+by (stac ve_dom_owr 1);
 by (assume_tac 1);
 by (etac (HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE) 1);
-by (rtac (te_dom_owr RS ssubst) 1);
+by (stac te_dom_owr 1);
 by (asm_simp_tac ZF_ss 1);
 by (rtac (excluded_middle RS disjE) 1);
-by (rtac (ve_app_owr2 RS ssubst) 1);
+by (stac ve_app_owr2 1);
 by (assume_tac 1);
 by (assume_tac 1);
-by (rtac (te_app_owr2 RS ssubst) 1);
+by (stac te_app_owr2 1);
 by (assume_tac 1);
 by (dtac (ve_dom_owr RS subst) 1);
 by (etac (HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE) 1);

@@ -23,9 +23,9 @@ val eqa::eqb::prems = goal Arith.thy
 by (res_inst_tac [("k","x2")] add_left_cancel 1);
 by (resolve_tac prems 2);
 by (rtac (add_left_commute RS trans) 1 THEN typechk_tac prems);
-by (rtac (eqb RS ssubst) 1);
+by (stac eqb 1);
 by (rtac (add_left_commute RS trans) 1 THEN typechk_tac prems);
-by (rtac (eqa RS ssubst) 1);
+by (stac eqa 1);
 by (rtac (add_left_commute) 1 THEN typechk_tac prems);
 qed "integ_trans_lemma";
 

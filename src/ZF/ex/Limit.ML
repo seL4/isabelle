@@ -852,7 +852,7 @@ by (assume_tac 1);
 by (asm_simp_tac ZF_ss 1);
 by (REPEAT(ares_tac ((chain_in RS cf_cont RS cont_mono)::prems) 1));
 by (REPEAT(ares_tac ((chain_cf RS chain_fun)::prems) 1));
-by (rtac (beta RS ssubst) 1);
+by (stac beta 1);
 by (REPEAT(ares_tac((cpo_lub RS islub_in)::prems) 1));
 by (asm_simp_tac(ZF_ss addsimps[hd prems RS chain_in RS cf_cont RS cont_lub]) 1);
 by (forward_tac[hd prems RS matrix_lemma RS lub_matrix_diag]1);
@@ -980,14 +980,14 @@ val comp_cont_apply = cont_fun RSN(2,cont_fun RS comp_fun_apply);
 val prems = goal Limit.thy  (* comp_pres_cont *)
     "[| f:cont(D',E); g:cont(D,D'); cpo(D)|] ==> f O g : cont(D,E)";
 by (rtac contI 1);
-by (rtac (comp_cont_apply RS ssubst) 2);
-by (rtac (comp_cont_apply RS ssubst) 5);
+by (stac comp_cont_apply 2);
+by (stac comp_cont_apply 5);
 by (rtac cont_mono 8);
 by (rtac cont_mono 9); (* 15 subgoals *)
 brr(comp_fun::cont_fun::cont_map::prems) 1; (* proves all but the lub case *)
-by (rtac (comp_cont_apply RS ssubst) 1);
-by (rtac (cont_lub RS ssubst) 4);
-by (rtac (cont_lub RS ssubst) 6);
+by (stac comp_cont_apply 1);
+by (stac cont_lub 4);
+by (stac cont_lub 6);
 by (asm_full_simp_tac(ZF_ss addsimps (* RS: new subgoals contain unknowns *)
     [hd prems RS (hd(tl prems) RS comp_cont_apply),chain_in]) 8);
 brr((cpo_lub RS islub_in)::cont_chain::prems) 1;
@@ -998,8 +998,8 @@ val prems = goal Limit.thy  (* comp_mono *)
 \       rel(cf(D',E),f,f'); rel(cf(D,D'),g,g'); cpo(D); cpo(E) |] ==>   \
 \    rel(cf(D,E),f O g,f' O g')";
 by (rtac rel_cfI 1); (* extra proof obl: f O g and f' O g' cont. Extra asm cpo(D). *)
-by (rtac (comp_cont_apply RS ssubst) 1);
-by (rtac (comp_cont_apply RS ssubst) 4);
+by (stac comp_cont_apply 1);
+by (stac comp_cont_apply 4);
 by (rtac cpo_trans 7);
 brr(rel_cf::cont_mono::cont_map::comp_pres_cont::prems) 1;
 val comp_mono = result();
@@ -1010,8 +1010,8 @@ val prems = goal Limit.thy  (* chain_cf_comp *)
 by (rtac chainI 1);
 by (asm_simp_tac arith_ss 2);
 by (rtac rel_cfI 2);
-by (rtac (comp_cont_apply RS ssubst) 2);
-by (rtac (comp_cont_apply RS ssubst) 5); 
+by (stac comp_cont_apply 2);
+by (stac comp_cont_apply 5); 
 by (rtac cpo_trans 8); 
 by (rtac rel_cf 9);
 by (rtac cont_mono 11);
@@ -1023,13 +1023,13 @@ val prems = goal Limit.thy  (* comp_lubs *)
     "[| chain(cf(D',E),X); chain(cf(D,D'),Y); cpo(D); cpo(D'); cpo(E)|] ==>  \
 \    lub(cf(D',E),X) O lub(cf(D,D'),Y) = lub(cf(D,E),lam n:nat. X`n O Y`n)";
 by (rtac fun_extension 1);
-by (rtac (lub_cf RS ssubst) 3);
+by (stac lub_cf 3);
 brr(comp_fun::(cf_cont RS cont_fun)::(cpo_lub RS islub_in)::cpo_cf::
     chain_cf_comp::prems) 1;
 by (cut_facts_tac[hd prems,hd(tl prems)]1);
 by (asm_simp_tac(ZF_ss addsimps((chain_in RS cf_cont RSN(3,chain_in RS 
     cf_cont RS comp_cont_apply))::(tl(tl prems)))) 1);
-by (rtac (comp_cont_apply RS ssubst) 1);
+by (stac comp_cont_apply 1);
 brr((cpo_lub RS islub_in RS cf_cont)::cpo_cf::prems) 1;
 by (asm_simp_tac(ZF_ss addsimps(lub_cf::
  (hd(tl prems)RS chain_cf RSN(2,hd prems RS chain_in RS cf_cont RS cont_lub))::
@@ -1134,7 +1134,7 @@ by (rtac cpo_trans 1);
 brr(cpo_cf::prems) 1; 
 (* The following corresponds to EXISTS_TAC, non-trivial instantiation. *)
 by (res_inst_tac[("f","p O (e' O p')")]cont_cf 4);
-by (rtac (comp_assoc RS ssubst) 1);
+by (stac comp_assoc 1);
 brr(cpo_refl::cpo_cf::cont_cf::comp_mono::comp_pres_cont::(contl@prems)) 1;
 by (res_inst_tac[("P","%x. rel(cf(E,D),p O e' O p',x)")]
     (p1 RS projpair_p_cont RS cont_fun RS comp_id RS subst) 1);
@@ -1154,7 +1154,7 @@ by (rtac (p2 RS projpair_eq RS subst) 1);
 by (rtac cpo_trans 1);
 brr(cpo_cf::prems) 1; 
 by (res_inst_tac[("f","(e O p) O e'")]cont_cf 4);
-by (rtac (comp_assoc RS ssubst) 1);
+by (stac comp_assoc 1);
 brr((cpo_cf RS cpo_refl)::cont_cf::comp_mono::comp_pres_cont::(contl@prems)) 1;
 by (res_inst_tac[("P","%x. rel(cf(D,E),(e O p) O e',x)")]
     (p2 RS projpair_e_cont RS cont_fun RS id_comp RS subst) 1);
@@ -1236,7 +1236,7 @@ val prems = goal Limit.thy  (* embRp_eq_thm *)
     "[|emb(D,E,e); x:set(D); cpo(D); cpo(E)|] ==> Rp(D,E,e)`(e`x) = x";
 by (rtac (comp_fun_apply RS subst) 1);
 brr(Rp_cont::emb_cont::cont_fun::prems) 1;
-by (rtac (embRp_eq RS ssubst) 1);
+by (stac embRp_eq 1);
 brr(id_apply::prems) 1;
 val embRp_eq_thm = result();
 
@@ -1249,7 +1249,7 @@ val prems = goalw Limit.thy [projpair_def]  (* projpair_id *)
     "cpo(D) ==> projpair(D,D,id(set(D)),id(set(D)))";
 by (safe_tac lemmas_cs);
 brr(id_cont::id_comp::id_type::prems) 1;
-by (rtac (id_comp RS ssubst) 1); (* Matches almost anything *)
+by (stac id_comp 1); (* Matches almost anything *)
 brr(id_cont::id_type::cpo_refl::cpo_cf::cont_cf::prems) 1;
 val projpair_id = result();
 
@@ -1278,9 +1278,9 @@ by (safe_tac lemmas_cs);
 brr(comp_pres_cont::Rp_cont::emb_cont::prems) 1;
 by (rtac (comp_assoc RS subst) 1);
 by (res_inst_tac[("t1","e'")](comp_assoc RS ssubst) 1);
-by (rtac (embRp_eq RS ssubst) 1); (* Matches everything due to subst/ssubst. *)
+by (stac embRp_eq 1); (* Matches everything due to subst/ssubst. *)
 brr prems 1;
-by (rtac (comp_id RS ssubst) 1);
+by (stac comp_id 1);
 brr(cont_fun::Rp_cont::embRp_eq::prems) 1;
 by (rtac (comp_assoc RS subst) 1);
 by (res_inst_tac[("t1","Rp(D,D',e)")](comp_assoc RS ssubst) 1);
@@ -1293,7 +1293,7 @@ brr(cpo_cf::prems) 6;
 by (rtac comp_mono 5);
 brr(embRp_rel::prems) 10;
 brr((cpo_cf RS cpo_refl)::cont_cf::Rp_cont::prems) 9;
-by (rtac (comp_id RS ssubst) 10);
+by (stac comp_id 10);
 by (rtac embRp_rel 11); 
 (* There are 16 subgoals at this point. All are proved immediately by: *)
 brr(comp_pres_cont::Rp_cont::id_cont::emb_cont::cont_fun::cont_cf::prems) 1;
@@ -1664,10 +1664,10 @@ val prems = goalw Limit.thy [Dinf_def]  (* subcpo_Dinf *)
 by (rtac subcpo_mkcpo 1);
 by (fold_tac [Dinf_def]);
 by (rtac ballI 1);
-by (rtac (lub_iprod RS ssubst) 1);
+by (stac lub_iprod 1);
 brr(chain_Dinf::(hd prems RS emb_chain_cpo)::[]) 1;
 by (asm_simp_tac arith_ss 1);
-by (rtac (Rp_cont RS cont_lub RS ssubst) 1);
+by (stac (Rp_cont RS cont_lub) 1);
 brr(emb_chain_cpo::emb_chain_emb::nat_succI::chain_iprod::chain_Dinf::prems) 1;
 (* Useful simplification, ugly in HOL. *)
 by (asm_simp_tac(arith_ss addsimps(DinfD2::chain_in::[])) 1);
@@ -1688,7 +1688,7 @@ val cpo_Dinf = result();
 val prems = goal Limit.thy  (* lub_Dinf *)
     "[|chain(Dinf(DD,ee),X); emb_chain(DD,ee)|] ==>  \
 \    lub(Dinf(DD,ee),X) = (lam n:nat. lub(DD`n,lam m:nat. X`m`n))";
-by (rtac (subcpo_Dinf RS lub_subcpo RS ssubst) 1);
+by (stac (subcpo_Dinf RS lub_subcpo) 1);
 brr(cpo_iprod::emb_chain_cpo::lub_iprod::chain_Dinf::prems) 1;
 val lub_Dinf = result();
 
@@ -1758,7 +1758,7 @@ by (asm_full_simp_tac arith_ss 1);
 by (fast_tac lt_cs 1); 
 by (asm_simp_tac (nat_ss addsimps[add_succ, add_succ_right RS sym]) 1);
 by (rtac bexI 1);
-by (rtac (succ_sub1 RS mp RS ssubst) 1);
+by (stac (succ_sub1 RS mp) 1);
 (* Instantiation. *)
 by (rtac refl 3);
 by (assume_tac 1);
@@ -1796,7 +1796,7 @@ val prems = goal Limit.thy  (* e_less_succ_emb *)
     "[|!!n. n:nat ==> emb(DD`n,DD`succ(n),ee`n); m:nat|] ==>   \
 \    e_less(DD,ee,m,succ(m)) = ee`m";
 by (asm_simp_tac(arith_ss addsimps(e_less_succ::prems)) 1);
-by (rtac (comp_id RS ssubst) 1);
+by (stac comp_id 1);
 brr(emb_cont::cont_fun::refl::prems) 1;
 val e_less_succ_emb = result();
 
@@ -1851,13 +1851,13 @@ by (assume_tac 1);
 by (asm_simp_tac(ZF_ss addsimps(add_succ_right::e_less_add::
     add_type::nat_succI::prems)) 1);
 (* Again and again, simplification is a pain. When does it work, when not? *)
-by (rtac (e_less_le RS ssubst) 1);
+by (stac e_less_le 1);
 brr(add_le_mono::nat_le_refl::add_type::nat_succI::prems) 1;
-by (rtac (comp_assoc RS ssubst) 1);
+by (stac comp_assoc 1);
 brr(comp_mono_eq::refl::[]) 1;
 (* by(asm_simp_tac ZF_ss 1); *)
 by (asm_simp_tac(ZF_ss addsimps(e_less_eq::add_type::nat_succI::prems)) 1);
-by (rtac (id_comp RS ssubst) 1); (* simp cannot unify/inst right, use brr below(?). *)
+by (stac id_comp 1); (* simp cannot unify/inst right, use brr below(?). *)
 brr((emb_e_less_add RS emb_cont RS cont_fun)::refl::nat_succI::prems) 1;
 val e_less_split_add_lemma = result();
 
@@ -1899,7 +1899,7 @@ val prems = goal Limit.thy  (* e_gr_succ_emb *)
     "[|emb_chain(DD,ee); m:nat|] ==>   \
 \    e_gr(DD,ee,succ(m),m) = Rp(DD`m,DD`succ(m),ee`m)";
 by (asm_simp_tac(arith_ss addsimps(e_gr_succ::prems)) 1);
-by (rtac (id_comp RS ssubst) 1);
+by (stac id_comp 1);
 brr(Rp_cont::cont_fun::refl::emb_chain_cpo::emb_chain_emb::nat_succI::prems) 1;
 val e_gr_succ_emb = result();
 
@@ -1940,13 +1940,13 @@ by (assume_tac 1);
 by (asm_simp_tac(ZF_ss addsimps(add_succ_right::e_gr_add::
     add_type::nat_succI::prems)) 1);
 (* Again and again, simplification is a pain. When does it work, when not? *)
-by (rtac (e_gr_le RS ssubst) 1);
+by (stac e_gr_le 1);
 brr(add_le_mono::nat_le_refl::add_type::nat_succI::prems) 1;
-by (rtac (comp_assoc RS ssubst) 1);
+by (stac comp_assoc 1);
 brr(comp_mono_eq::refl::[]) 1;
 (* New direct subgoal *)
 by (asm_simp_tac(ZF_ss addsimps(e_gr_eq::add_type::nat_succI::prems)) 1);
-by (rtac (comp_id RS ssubst) 1); (* simp cannot unify/inst right, use brr below(?). *)
+by (stac comp_id 1); (* simp cannot unify/inst right, use brr below(?). *)
 brr(e_gr_fun::add_type::refl::add_le_self::nat_succI::prems) 1;
 val e_gr_split_add_lemma = result();
 
@@ -2003,14 +2003,14 @@ by (etac impE 1);
 by (assume_tac 1);
 by (asm_simp_tac(ZF_ss addsimps(add_succ_right::e_gr_le::e_less_le::
    add_le_self::nat_le_refl::add_le_mono::add_type::prems)) 1);
-by (rtac (comp_assoc RS ssubst) 1);
+by (stac comp_assoc 1);
 by (res_inst_tac[("s1","ee`(m#+x)")](comp_assoc RS subst) 1);
-by (rtac (embRp_eq RS ssubst) 1);
+by (stac embRp_eq 1);
 brr(emb_chain_emb::add_type::emb_chain_cpo::nat_succI::prems) 1;
-by (rtac (id_comp RS ssubst) 1);
+by (stac id_comp 1);
 brr((e_less_cont RS cont_fun)::add_type::add_le_self::refl::prems) 1;
 by (asm_full_simp_tac(ZF_ss addsimps(e_gr_eq::nat_succI::add_type::prems)) 1);
-by (rtac (id_comp RS ssubst) 1);
+by (stac id_comp 1);
 brr((e_less_cont RS cont_fun)::add_type::nat_succI::add_le_self::refl::prems) 1;
 val e_less_e_gr_split_add = result();
 
@@ -2033,15 +2033,15 @@ by (etac impE 1);
 by (assume_tac 1);
 by (asm_simp_tac(ZF_ss addsimps(add_succ_right::e_gr_le::e_less_le::
    add_le_self::nat_le_refl::add_le_mono::add_type::prems)) 1);
-by (rtac (comp_assoc RS ssubst) 1);
+by (stac comp_assoc 1);
 by (res_inst_tac[("s1","ee`(n#+x)")](comp_assoc RS subst) 1);
-by (rtac (embRp_eq RS ssubst) 1);
+by (stac embRp_eq 1);
 brr(emb_chain_emb::add_type::emb_chain_cpo::nat_succI::prems) 1;
-by (rtac (id_comp RS ssubst) 1);
+by (stac id_comp 1);
 brr((e_less_cont RS cont_fun)::add_type::add_le_mono::nat_le_refl::refl::
     prems) 1;
 by (asm_full_simp_tac(ZF_ss addsimps(e_less_eq::nat_succI::add_type::prems)) 1);
-by (rtac (comp_id RS ssubst) 1);
+by (stac comp_id 1);
 brr((e_gr_cont RS cont_fun)::add_type::nat_succI::add_le_self::refl::prems) 1;
 val e_gr_e_less_split_add = result();
 
@@ -2274,21 +2274,21 @@ by (assume_tac 1);
 by (resolve_tac prems 1);
 (* The easiest would be to apply add1 everywhere also in the assumptions, 
    but since x le y is x<succ(y) simplification does too much with this thm. *)
-by (rtac (eps_split_right_le RS ssubst) 1);
+by (stac eps_split_right_le 1);
 by (assume_tac 2);
 by (asm_simp_tac(ZF_ss addsimps (add1::[])) 1);
 brr(add_le_self::nat_0I::nat_succI::prems) 1;
 by (asm_simp_tac(ZF_ss addsimps(eps_succ_Rp::prems)) 1);
-by (rtac (comp_fun_apply RS ssubst) 1);
+by (stac comp_fun_apply 1);
 brr(eps_fun::nat_succI::(Rp_cont RS cont_fun)::emb_chain_emb::
     emb_chain_cpo::refl::prems) 1;
 (* Now the second part of the proof. Slightly different than HOL. *)
 by (asm_simp_tac(ZF_ss addsimps(eps_e_less::nat_succI::prems)) 1);
 by (etac (le_iff RS iffD1 RS disjE) 1);
 by (asm_simp_tac(ZF_ss addsimps(e_less_le::prems)) 1);
-by (rtac (comp_fun_apply RS ssubst) 1);
+by (stac comp_fun_apply 1);
 brr(e_less_cont::cont_fun::emb_chain_emb::emb_cont::prems) 1;
-by (rtac (embRp_eq_thm RS ssubst) 1);
+by (stac embRp_eq_thm 1);
 brr(emb_chain_emb::(e_less_cont RS cont_fun RS apply_type)::emb_chain_cpo::
     nat_succI::prems) 1;
 by (asm_simp_tac(ZF_ss addsimps(eps_e_less::prems)) 1);
@@ -2321,7 +2321,7 @@ by (SELECT_GOAL(rewtac rho_emb_def) 1);
 by (asm_simp_tac ZF_ss 1);
 brr((eps_cont RS cont_mono)::Dinf_prod::apply_type::rho_emb_fun::prems) 1;
 (* Continuity, different order, slightly different proofs. *)
-by (rtac (lub_Dinf RS ssubst) 1);
+by (stac lub_Dinf 1);
 by (rtac chainI 1);
 brr(lam_type::(rho_emb_fun RS apply_type)::chain_in::prems) 1;
 by (asm_simp_tac arith_ss 1);
@@ -2331,7 +2331,7 @@ brr((eps_cont RS cont_mono)::chain_rel::Dinf_prod::
     (rho_emb_fun RS apply_type)::chain_in::nat_succI::prems) 1;
 (* Now, back to the result of applying lub_Dinf *)
 by (asm_simp_tac(arith_ss addsimps (rho_emb_apply2::chain_in::[])) 1);
-by (rtac (rho_emb_apply1 RS ssubst) 1);
+by (stac rho_emb_apply1 1);
 brr((cpo_lub RS islub_in)::emb_chain_cpo::prems) 1;
 by (rtac fun_extension 1);
 brr(lam_type::(eps_cont RS cont_fun RS apply_type)::(cpo_lub RS islub_in)::
@@ -2350,16 +2350,16 @@ by (rtac impE 1 THEN atac 3 THEN rtac(hd prems) 2);  (* For induction proof *)
 by (res_inst_tac[("n","n")]nat_induct 1);
 by (rtac impI 2);
 by (asm_full_simp_tac (arith_ss addsimps (e_less_eq::prems)) 2);
-by (rtac (id_thm RS ssubst) 2);
+by (stac id_thm 2);
 brr(apply_type::Dinf_prod::cpo_refl::emb_chain_cpo::nat_0I::prems) 1;
 by (asm_full_simp_tac (arith_ss addsimps [le_succ_iff]) 1);
 by (rtac impI 1);
 by (etac disjE 1);
 by (dtac mp 1 THEN atac 1);
 by (rtac cpo_trans 1);
-by (rtac (e_less_le RS ssubst) 2);
+by (stac e_less_le 2);
 brr(emb_chain_cpo::nat_succI::prems) 1;
-by (rtac (comp_fun_apply RS ssubst) 1);
+by (stac comp_fun_apply 1);
 brr((emb_chain_emb RS emb_cont)::e_less_cont::cont_fun::apply_type::
     Dinf_prod::prems) 1;
 by (res_inst_tac[("y","x`xa")](emb_chain_emb RS emb_cont RS cont_mono) 1);
@@ -2378,7 +2378,7 @@ brr((hd(tl(tl prems)) RS Dinf_prod RS apply_type)::cont_fun::Rp_cont::
     e_less_cont::emb_cont::emb_chain_emb::emb_chain_cpo::apply_type::
     embRp_rel::(disjI1 RS (le_succ_iff RS iffD2))::nat_succI::prems) 1;
 by (asm_full_simp_tac (arith_ss addsimps (e_less_eq::prems)) 1);
-by (rtac (id_thm RS ssubst) 1);
+by (stac id_thm 1);
 brr(apply_type::Dinf_prod::cpo_refl::emb_chain_cpo::nat_succI::prems) 1;
 val lemma1 = result();
 
@@ -2391,19 +2391,19 @@ by (rtac impE 1 THEN atac 3 THEN rtac(hd prems) 2);  (* For induction proof *)
 by (res_inst_tac[("n","m")]nat_induct 1);
 by (rtac impI 2);
 by (asm_full_simp_tac (arith_ss addsimps (e_gr_eq::prems)) 2);
-by (rtac (id_thm RS ssubst) 2);
+by (stac id_thm 2);
 brr(apply_type::Dinf_prod::cpo_refl::emb_chain_cpo::nat_0I::prems) 1;
 by (asm_full_simp_tac (arith_ss addsimps [le_succ_iff]) 1);
 by (rtac impI 1);
 by (etac disjE 1);
 by (dtac mp 1 THEN atac 1);
-by (rtac (e_gr_le RS ssubst) 1);
-by (rtac (comp_fun_apply RS ssubst) 4);
-by (rtac (Dinf_eq RS ssubst) 7);
+by (stac e_gr_le 1);
+by (stac comp_fun_apply 4);
+by (stac Dinf_eq 7);
 brr(emb_chain_emb::emb_chain_cpo::Rp_cont::e_gr_cont::cont_fun::emb_cont::
     apply_type::Dinf_prod::nat_succI::prems) 1;
 by (asm_full_simp_tac (arith_ss addsimps (e_gr_eq::prems)) 1);
-by (rtac (id_thm RS ssubst) 1);
+by (stac id_thm 1);
 brr(apply_type::Dinf_prod::cpo_refl::emb_chain_cpo::nat_succI::prems) 1;
 val lemma2 = result();
 
@@ -2433,7 +2433,7 @@ by (rtac contI 1);
 brr(lam_type::apply_type::Dinf_prod::prems) 1;
 by (asm_simp_tac ZF_ss 1);
 brr(rel_Dinf::prems) 1;
-by (rtac (beta RS ssubst) 1);
+by (stac beta 1);
 brr(cpo_Dinf::islub_in::cpo_lub::prems) 1;
 by (asm_simp_tac(ZF_ss addsimps(chain_in::lub_Dinf::prems)) 1);
 val lam_Dinf_cont = result();
@@ -2448,20 +2448,20 @@ brr(lam_Dinf_cont::prems) 1;
 (*-----------------------------------------------*)
 (* This part is 7 lines, but 30 in HOL (75% reduction!) *)
 by (rtac fun_extension 1);
-by (rtac (id_thm RS ssubst) 3);
-by (rtac (comp_fun_apply RS ssubst) 4);
-by (rtac (beta RS ssubst) 7);
-by (rtac (rho_emb_id RS ssubst) 8);
+by (stac id_thm 3);
+by (stac comp_fun_apply 4);
+by (stac beta 7);
+by (stac rho_emb_id 8);
 brr(comp_fun::id_type::lam_type::rho_emb_fun::(Dinf_prod RS apply_type)::
     apply_type::refl::prems) 1;
 (*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*)
 by (rtac rel_cfI 1); (* ------------------>>>Yields type cond, not in HOL *)
-by (rtac (id_thm RS ssubst) 1);
-by (rtac (comp_fun_apply RS ssubst) 2);
-by (rtac (beta RS ssubst) 5);
-by (rtac (rho_emb_apply1 RS ssubst) 6);
+by (stac id_thm 1);
+by (stac comp_fun_apply 2);
+by (stac beta 5);
+by (stac rho_emb_apply1 6);
 by (rtac rel_DinfI 7); (* ------------------>>>Yields type cond, not in HOL *)
-by (rtac (beta RS ssubst) 7);
+by (stac beta 7);
 brr(eps1::lam_type::rho_emb_fun::eps_fun:: (* Dinf_prod bad with lam_type *)
     (Dinf_prod RS apply_type)::refl::prems) 1;
 brr(apply_type::eps_fun::Dinf_prod::comp_pres_cont::rho_emb_cont::
@@ -2509,7 +2509,7 @@ val prems = goal Limit.thy (* rho_emb_commute *)
 by (rtac commuteI 1);
 brr(emb_rho_emb::prems) 1;
 by (rtac fun_extension 1);       (* Manual instantiation in HOL. *)
-by (rtac (comp_fun_apply RS ssubst) 3);
+by (stac comp_fun_apply 3);
 by (rtac fun_extension 6); (* Next, clean up and instantiate unknowns *)
 brr(comp_fun::rho_emb_fun::eps_fun::Dinf_prod::apply_type::prems) 1; 
 by (asm_simp_tac
@@ -2536,7 +2536,7 @@ brr(lam_type::cont_cf::comp_pres_cont::emb_r::Rp_cont::emb_cont::
 by (asm_simp_tac arith_ss 1);
 by (res_inst_tac[("r1","r"),("m1","n")](commute_eq RS subst) 1);
 brr(le_succ::nat_succI::prems) 1;
-by (rtac (Rp_comp RS ssubst) 1);
+by (stac Rp_comp 1);
 brr(emb_eps::emb_r::emb_chain_cpo::le_succ::nat_succI::prems) 1;
 by (rtac (comp_assoc RS subst) 1);   (* Remember that comp_assoc is simpler in Isa *)
 by (res_inst_tac[("r1","r(succ(n))")](comp_assoc RS ssubst) 1);
@@ -2547,7 +2547,7 @@ by (res_inst_tac[("b","r(succ(n))")](comp_id RS subst) 1); (* 1 subst too much *
 by (rtac comp_mono 2);
 brr(comp_pres_cont::eps_cont::emb_eps::emb_id::emb_r::Rp_cont::emb_cont::
     cont_fun::emb_chain_cpo::le_succ::nat_succI::prems) 1;
-by (rtac (comp_id RS ssubst) 1); (* Undo's "1 subst too much", typing next anyway *)
+by (stac comp_id 1); (* Undo's "1 subst too much", typing next anyway *)
 brr(cont_fun::Rp_cont::emb_cont::emb_r::cpo_refl::cont_cf::cpo_cf::
     emb_chain_cpo::embRp_rel::emb_eps::le_succ::nat_succI::prems) 1;
 val commute_chain = result();
@@ -2605,7 +2605,7 @@ by (rtac rel_cfI 1);
 by (asm_simp_tac
     (ZF_ss addsimps(id_thm::lub_cf::rho_emb_chain::cpo_Dinf::prems)) 1);
 by (rtac rel_DinfI 1); (* Addtional assumptions *)
-by (rtac (lub_Dinf RS ssubst) 1);
+by (stac lub_Dinf 1);
 brr(rho_emb_chain_apply1::prems) 1;  
 brr(Dinf_prod::(cpo_lub RS islub_in)::id_cont::cpo_Dinf::cpo_cf::cf_cont::
     rho_emb_chain::rho_emb_chain_apply1::(id_cont RS cont_cf)::prems) 2;
@@ -2619,12 +2619,12 @@ brr(islub_const::apply_type::Dinf_prod::emb_chain_cpo::chain_fun::
 by (rtac dominateI 1);
 by (assume_tac 1); 
 by (asm_simp_tac ZF_ss 1);
-by (rtac (comp_fun_apply RS ssubst) 1);
+by (stac comp_fun_apply 1);
 brr(cont_fun::Rp_cont::emb_cont::emb_rho_emb::cpo_Dinf::emb_chain_cpo::prems) 1;
-by (rtac ((rho_projpair RS Rp_unique) RS ssubst) 1);
+by (stac ((rho_projpair RS Rp_unique)) 1);
 by (SELECT_GOAL(rewtac rho_proj_def) 5);
 by (asm_simp_tac ZF_ss 5);
-by (rtac (rho_emb_id RS ssubst) 5);
+by (stac rho_emb_id 5);
 brr(cpo_refl::cpo_Dinf::apply_type::Dinf_prod::emb_chain_cpo::prems) 1;
 val rho_emb_lub = result();
 
@@ -2641,7 +2641,7 @@ by (asm_simp_tac arith_ss 1);
 by (res_inst_tac[("r1","r"),("m1","n")](commute_eq RS subst) 1);
 by (res_inst_tac[("r1","f"),("m1","n")](commute_eq RS subst) 5);
 brr(le_succ::nat_succI::prems) 1;
-by (rtac (Rp_comp RS ssubst) 1);
+by (stac Rp_comp 1);
 brr(emb_eps::emb_r::emb_chain_cpo::le_succ::nat_succI::prems) 1;
 by (rtac (comp_assoc RS subst) 1);   (* Remember that comp_assoc is simpler in Isa *)
 by (res_inst_tac[("r1","f(succ(n))")](comp_assoc RS ssubst) 1);
@@ -2652,7 +2652,7 @@ by (res_inst_tac[("b","f(succ(n))")](comp_id RS subst) 1); (* 1 subst too much *
 by (rtac comp_mono 2);
 brr(comp_pres_cont::eps_cont::emb_eps::emb_id::emb_r::emb_f::Rp_cont::
     emb_cont::cont_fun::emb_chain_cpo::le_succ::nat_succI::prems) 1;
-by (rtac (comp_id RS ssubst) 1); (* Undo's "1 subst too much", typing next anyway *)
+by (stac comp_id 1); (* Undo's "1 subst too much", typing next anyway *)
 brr(cont_fun::Rp_cont::emb_cont::emb_r::emb_f::cpo_refl::cont_cf::
     cpo_cf::emb_chain_cpo::embRp_rel::emb_eps::le_succ::nat_succI::prems) 1;
 val theta_chain = result();
@@ -2668,7 +2668,7 @@ by (asm_simp_tac arith_ss 1);
 by (res_inst_tac[("r1","r"),("m1","n")](commute_eq RS subst) 1);
 by (res_inst_tac[("r1","f"),("m1","n")](commute_eq RS subst) 5);
 brr(le_succ::nat_succI::prems) 1;
-by (rtac (Rp_comp RS ssubst) 1);
+by (stac Rp_comp 1);
 brr(emb_eps::emb_f::emb_chain_cpo::le_succ::nat_succI::prems) 1;
 by (rtac (comp_assoc RS subst) 1);   (* Remember that comp_assoc is simpler in Isa *)
 by (res_inst_tac[("r1","r(succ(n))")](comp_assoc RS ssubst) 1);
@@ -2679,7 +2679,7 @@ by (res_inst_tac[("b","r(succ(n))")](comp_id RS subst) 1); (* 1 subst too much *
 by (rtac comp_mono 2);
 brr(comp_pres_cont::eps_cont::emb_eps::emb_id::emb_r::emb_f::Rp_cont::
     emb_cont::cont_fun::emb_chain_cpo::le_succ::nat_succI::prems) 1;
-by (rtac (comp_id RS ssubst) 1); (* Undo's "1 subst too much", typing next anyway *)
+by (stac comp_id 1); (* Undo's "1 subst too much", typing next anyway *)
 brr(cont_fun::Rp_cont::emb_cont::emb_r::emb_f::cpo_refl::cont_cf::
     cpo_cf::emb_chain_cpo::embRp_rel::emb_eps::le_succ::nat_succI::prems) 1;
 val theta_proj_chain = result();
@@ -2697,8 +2697,8 @@ val prems = goal Limit.thy
 \  r(x) O Rp(DD ` x, G, f(x)) O f(x) O Rp(DD ` x, E, r(x)) =  \
 \  r(x) O Rp(DD ` x, E, r(x))";
 by (res_inst_tac[("s1","f(x)")](comp_assoc RS subst) 1);
-by (rtac (embRp_eq RS ssubst) 1);
-by (rtac (id_comp RS ssubst) 4);
+by (stac embRp_eq 1);
+by (stac id_comp 4);
 brr(cont_fun::Rp_cont::emb_r::emb_f::emb_chain_cpo::refl::prems) 1;
 val lemma = result();
 
@@ -2718,12 +2718,12 @@ val prems = goalw Limit.thy [projpair_def,rho_proj_def] (* theta_projpair *)
 \    lub(cf(E,G), lam n:nat. f(n) O Rp(DD`n,E,r(n))),  \
 \    lub(cf(G,E), lam n:nat. r(n) O Rp(DD`n,G,f(n))))";
 by (safe_tac lemmas_cs);
-by (rtac (comp_lubs RS ssubst) 3);
+by (stac comp_lubs 3);
 (* The following one line is 15 lines in HOL, and includes existentials. *)
 brr(cf_cont::islub_in::cpo_lub::cpo_cf::theta_chain::theta_proj_chain::prems) 1;
 by (simp_tac (ZF_ss addsimps[comp_assoc]) 1);
 by (simp_tac (ZF_ss addsimps[(tl prems) MRS lemma]) 1);
-by (rtac (comp_lubs RS ssubst) 2);
+by (stac comp_lubs 2);
 brr(cf_cont::islub_in::cpo_lub::cpo_cf::theta_chain::theta_proj_chain::prems) 1;
 by (simp_tac (ZF_ss addsimps[comp_assoc]) 1);
 by (simp_tac (ZF_ss addsimps[
@@ -2770,11 +2770,11 @@ val prems = goal Limit.thy
 \  ((lam n:nat. f(n) O Rp(DD ` n, E, r(n))) ` na)) =  \
 \   (lam na:nat. (f(na) O Rp(DD ` na, E, r(na))) O r(n))";
 by (rtac fun_extension 1);
-by (rtac (beta RS ssubst) 3);
-by (rtac (beta RS ssubst) 4);
-by (rtac (beta RS ssubst) 5);
+by (stac beta 3);
+by (stac beta 4);
+by (stac beta 5);
 by (rtac lam_type 1);
-by (rtac (beta RS ssubst) 1);
+by (stac beta 1);
 by (ALLGOALS(asm_simp_tac (ZF_ss addsimps prems)));
 brr(lam_type::comp_pres_cont::Rp_cont::emb_cont::emb_r::emb_f::
     emb_chain_cpo::prems) 1;
@@ -2803,11 +2803,11 @@ brr(lam_type::comp_fun::cont_fun::Rp_cont::emb_cont::emb_r::emb_f::
 by (asm_simp_tac ZF_ss 1);
 by (res_inst_tac[("r1","r"),("m1","x")](commute_eq RS subst) 1);
 brr(emb_r::add_le_self::add_type::prems) 1;
-by (rtac (comp_assoc RS ssubst) 1);
-by (rtac (lemma_assoc RS ssubst) 1);
-by (rtac (embRp_eq RS ssubst) 1);
-by (rtac (id_comp RS ssubst) 4);
-by (rtac ((hd(tl prems) RS commute_eq) RS ssubst) 5); (* avoid eta_contraction:=true. *)
+by (stac comp_assoc 1);
+by (stac lemma_assoc 1);
+by (stac embRp_eq 1);
+by (stac id_comp 4);
+by (stac ((hd(tl prems) RS commute_eq)) 5); (* avoid eta_contraction:=true. *)
 brr(emb_r::add_type::eps_fun::add_le_self::refl::emb_chain_cpo::prems) 1;
 val suffix_lemma = result();
 
@@ -2830,14 +2830,14 @@ val prems = goal Limit.thy (* lub_universal_mediating *)
 \  mediating(E,G,r,f,lub(cf(E,G), lam n:nat. f(n) O Rp(DD`n,E,r(n))))";
 brr(mediatingI::emb_theta::prems) 1;
 by (res_inst_tac[("b","r(n)")](lub_const RS subst) 1);
-by (rtac (comp_lubs RS ssubst) 3);
+by (stac comp_lubs 3);
 brr(cont_cf::emb_cont::emb_r::cpo_cf::theta_chain::chain_const::
     emb_chain_cpo::prems) 1;
 by (simp_tac ZF_ss 1);
 by (rtac (lub_suffix RS subst) 1);
 brr(chain_lemma::cpo_cf::emb_chain_cpo::prems) 1;
-by (rtac ((tl prems MRS suffix_lemma) RS ssubst) 1);
-by (rtac (lub_const RS ssubst) 3);
+by (stac (tl prems MRS suffix_lemma) 1);
+by (stac lub_const 3);
 brr(cont_cf::emb_cont::emb_f::cpo_cf::emb_chain_cpo::refl::prems) 1;
 val lub_universal_mediating = result();
 
@@ -2850,7 +2850,7 @@ val prems = goal Limit.thy (* lub_universal_unique *)
 by (res_inst_tac[("b","t")](comp_id RS subst) 1);
 by (rtac (hd(tl prems) RS subst) 2);
 by (res_inst_tac[("b","t")](lub_const RS subst) 2);
-by (rtac (comp_lubs RS ssubst) 4);
+by (stac comp_lubs 4);
 by (simp_tac (ZF_ss addsimps(comp_assoc::(hd prems RS mediating_eq)::prems)) 9);
 brr(cont_fun::emb_cont::mediating_emb::cont_cf::cpo_cf::chain_const::
     commute_chain::emb_chain_cpo::prems) 1;

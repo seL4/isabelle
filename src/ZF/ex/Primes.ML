@@ -51,7 +51,7 @@ qed "dvd_anti_sym";
 (* GCD by Euclid's Algorithm *)
 
 goalw thy [egcd_def] "!!m. m:nat ==> egcd(m,0) = m";
-by (rtac (transrec RS ssubst) 1);
+by (stac transrec 1);
 by (asm_simp_tac ZF_ss 1);
 qed "egcd_0";
 

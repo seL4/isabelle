@@ -97,7 +97,7 @@ val major::prems = goal Term.thy
 \    |] ==> term_rec(t,d) : C(t)";
 by (rtac (major RS term.induct) 1);
 by (forward_tac [list_CollectD] 1);
-by (rtac (term_rec RS ssubst) 1);
+by (stac term_rec 1);
 by (REPEAT (ares_tac prems 1));
 by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (list_ss addsimps [term_rec])));

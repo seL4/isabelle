@@ -175,7 +175,7 @@ qed "map_domain_owr";
 
 goalw Map.thy [map_app_def,map_owr_def] 
   "map_app(map_owr(f,a,b),a) = b";
-by (rtac (qbeta RS ssubst) 1);
+by (stac qbeta 1);
 by (fast_tac ZF_cs 1);
 by (simp_tac if_ss 1);
 qed "map_app_owr1";
@@ -183,7 +183,7 @@ qed "map_app_owr1";
 goalw Map.thy [map_app_def,map_owr_def] 
   "!!a.c ~= a ==> map_app(map_owr(f,a,b),c)= map_app(f,c)";
 by (rtac (excluded_middle RS disjE) 1);
-by (rtac (qbeta_emp RS ssubst) 1);
+by (stac qbeta_emp 1);
 by (assume_tac 1);
 by (fast_tac eq_cs 1);
 by (etac (qbeta RS ssubst) 1);

@@ -53,7 +53,7 @@ by (etac TyEnv.induct 1);
 by (simp_tac (ZF_ss addsimps [te_dom_emp]) 1);
 by (rtac impI 1);
 by (rtac (excluded_middle RS disjE) 1);
-by (rtac (te_app_owr2 RS ssubst) 1);
+by (stac te_app_owr2 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (ZF_ss addsimps [te_dom_owr]) 1);
 by (fast_tac ZF_cs 1);

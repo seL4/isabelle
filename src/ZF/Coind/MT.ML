@@ -71,14 +71,14 @@ by (assume_tac 1);
 by (rtac ElabRel.elab_fnI 1);
 by clean_tac;
 by (asm_simp_tac MT_ss 1);
-by (rtac (ve_dom_owr RS ssubst) 1);
+by (stac ve_dom_owr 1);
 by (assume_tac 1);
 by (etac subst 1);
 by (rtac v_closNE 1);
 by (asm_simp_tac ZF_ss 1);
 
 by (rtac PowI 1);
-by (rtac (ve_dom_owr RS ssubst) 1);
+by (stac ve_dom_owr 1);
 by (assume_tac 1);
 by (etac subst 1);
 by (rtac v_closNE 1);

@@ -89,7 +89,7 @@ val prems = goalw Values.thy [ve_dom_def,ve_owr_def]
 by (cut_facts_tac prems 1);
 by (etac ValEnvE 1);
 by (asm_full_simp_tac (ZF_ss addsimps Val_ValEnv.case_eqns) 1);
-by (rtac (map_domain_owr RS ssubst) 1);
+by (stac map_domain_owr 1);
 by (assume_tac 1);
 by (rtac Un_commute 1);
 qed "ve_dom_owr";
