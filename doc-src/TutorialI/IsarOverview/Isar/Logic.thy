@@ -310,9 +310,9 @@ and adds further facts to those piped into the proof. Here @{text AB}
 is the only such fact and it triggers $\land$-elimination. Another
 frequent idiom is as follows:
 \begin{center}
-\isakeyword{from} \emph{major facts}~
+\isakeyword{from} \emph{major-facts}~
 \isakeyword{show} \emph{proposition}~
-\isakeyword{using} \emph{minor facts}~
+\isakeyword{using} \emph{minor-facts}~
 \emph{proof}
 \end{center}
 \medskip
@@ -389,6 +389,8 @@ proof
   thus "\<exists>x. P x y" ..
 qed
 
+subsection{*Making bigger steps*}
+
 text{* So far we have confined ourselves to single step proofs. Of course
 powerful automatic methods can be used just as well. Here is an example,
 Cantor's theorem that there is no surjective function from a set to its
@@ -460,12 +462,88 @@ navigates through the large search space:
 theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 by best
 text{*\noindent Of course this only works in the context of HOL's carefully
-constructed introduction and elimination rules for set theory.
+constructed introduction and elimination rules for set theory.*}
+
+subsection{*Raw proof blocks*}
+
+text{* Although we have shown how to employ powerful automatic methods like
+@{text blast} to achieve bigger proof steps, there may still be the
+tendency to use the default introduction and elimination rules to
+decompose goals and facts. This can lead to very tedious proofs:
 *}
+(*<*)ML"set quick_and_dirty"(*>*)
+lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"
+proof
+  fix x show "\<forall>y. A x y \<and> B x y \<longrightarrow> C x y"
+  proof
+    fix y show "A x y \<and> B x y \<longrightarrow> C x y"
+    proof
+      assume "A x y \<and> B x y"
+      show "C x y" sorry
+    qed
+  qed
+qed
+text{*\noindent Since we are only interested in the decomposition and not the
+actual proof, the latter has been replaced by
+\isakeyword{sorry}. Command \isakeyword{sorry} proves anything but is
+only allowed in quick and dirty mode, the default interactive mode. It
+is very convenient for top down proof development.
+
+Luckily we can avoid this step by step decomposition very easily: *}
+
+lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"
+proof -
+  have "\<And>x y. \<lbrakk> A x y; B x y \<rbrakk> \<Longrightarrow> C x y"
+  proof -
+    fix x y assume "A x y" "B x y"
+    show "C x y" sorry
+  qed
+  thus ?thesis by blast
+qed
+
+text{*\noindent
+This can be simplified further by \emph{raw proof blocks},
+which are proofs enclosed in braces: *}
+
+lemma "\<forall>x y. A x y \<and> B x y \<longrightarrow> C x y"
+proof -
+  { fix x y assume "A x y" "B x y"
+    have "C x y" sorry }
+  thus ?thesis by blast
+qed
+
+text{*\noindent The result of the raw proof block is the same theorem
+as above, namely @{prop"\<And>x y. \<lbrakk> A x y; B x y \<rbrakk> \<Longrightarrow> C x y"}.  Raw
+proof blocks are like ordinary proofs except that they do not prove
+some explicitly stated property but that the property emerges directly
+out of the \isakeyword{fixe}s, \isakeyword{assume}s and
+\isakeyword{have} in the block. Thus they again serve to avoid
+duplication. Note that the conclusion of a raw proof block is stated with
+\isakeyword{have} rather than \isakeyword{show} because it is not the
+conclusion of some pending goal but some independent claim.  If you
+would like to name the result of a raw proof block simply follow it
+with *}
+
+(*<*)
+lemma "P"
+proof -
+  { assume A hence A . }
+(*>*)
+note some_name = this
+(*<*)oops(*>*)
+
+text{* The general idea demonstrated in this subsection is very
+important in Isar and distinguishes it from tactic-style proofs:
+\begin{quote}\em
+Do not manipulate the proof state into a particular form by applying
+tactics but state the desired form explictly and let the tactic verify
+that from this form the original goal follows.
+\end{quote}
+This yields more readable and also more robust proofs. *}
 
 subsection{*Further refinements*}
 
-text{* Thus subsection discusses some further tricks that can make
+text{* This subsection discusses some further tricks that can make
 life easier although they are not essential. We start with some small
 syntactic items.*}
 
