@@ -22,11 +22,11 @@ inductive otway
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway;  B ~= Spy;  X: synth (analz (spies evs)) |]
+    Fake "[| evs: otway;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
-    OR1  "[| evs1: otway;  A ~= B;  B ~= Server;  Nonce NA ~: used evs1 |]
+    OR1  "[| evs1: otway;  Nonce NA ~: used evs1 |]
           ==> Says A B {|Nonce NA, Agent A, Agent B, 
                          Crypt (shrK A) {|Nonce NA, Agent A, Agent B|} |} 
                  # evs1 : otway"
@@ -34,7 +34,7 @@ inductive otway
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.
            We modify the published protocol by NOT encrypting NB.*)
-    OR2  "[| evs2: otway;  B ~= Server;  Nonce NB ~: used evs2;
+    OR2  "[| evs2: otway;  Nonce NB ~: used evs2;
              Says A' B {|Nonce NA, Agent A, Agent B, X|} : set evs2 |]
           ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, Nonce NB,
@@ -44,7 +44,7 @@ inductive otway
          (*The Server receives Bob's message and checks that the three NAs
            match.  Then he sends a new session key to Bob with a packet for
            forwarding to Alice.*)
-    OR3  "[| evs3: otway;  B ~= Server;  Key KAB ~: used evs3;
+    OR3  "[| evs3: otway;  Key KAB ~: used evs3;
              Says B' Server 
                   {|Nonce NA, Agent A, Agent B, 
                     Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}, 
@@ -58,8 +58,9 @@ inductive otway
                  # evs3 : otway"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
-	   those in the message he previously sent the Server.*)
-    OR4  "[| evs4: otway;  A ~= B;
+	   those in the message he previously sent the Server.
+           Need B ~= Server because we allow messages to self.*)
+    OR4  "[| evs4: otway;  A ~= B;  B ~= Server;
              Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB,
                              Crypt (shrK B) {|Nonce NA, Agent A, Agent B|}|}
                : set evs4;

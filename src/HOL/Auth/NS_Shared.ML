@@ -16,7 +16,7 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]       \
+Goal "[| A ~= Server |]       \
 \        ==> EX N K. EX evs: ns_shared.               \
 \               Says A B (Crypt K {|Nonce N, Nonce N|}) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -34,14 +34,6 @@ by (rtac (ns_shared.Nil RS ns_shared.NS1 RS ns_shared.NS2 RS
 by possibility_tac;
 
 (**** Inductive proofs about ns_shared ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs : ns_shared ==> ALL X. Says A A X ~: set evs";
-by (etac ns_shared.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (*For reasoning about the encrypted portion of message NS3*)
 Goal "Says S A (Crypt KA {|N, B, K, X|}) : set evs \

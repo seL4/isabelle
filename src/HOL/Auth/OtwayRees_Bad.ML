@@ -21,10 +21,10 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]   \
-\  ==> EX K. EX NA. EX evs: otway.          \
-\         Says B A {|Nonce NA, Crypt (shrK A) {|Nonce NA, Key K|}|} \
-\           : set evs";
+Goal "[| A ~= B; B ~= Server |]   \
+\     ==> EX K. EX NA. EX evs: otway.          \
+\           Says B A {|Nonce NA, Crypt (shrK A) {|Nonce NA, Key K|}|} \
+\             : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (otway.Nil RS otway.OR1 RS otway.OR2 RS otway.OR3 RS otway.OR4) 2);
 by possibility_tac;
@@ -32,14 +32,6 @@ result();
 
 
 (**** Inductive proofs about otway ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs : otway ==> ALL X. Says A A X ~: set evs";
-by (etac otway.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 
 (** For reasoning about the encrypted portion of messages **)
@@ -232,9 +224,8 @@ qed "Spy_not_see_encrypted_key";
 (*** Attempting to prove stronger properties ***)
 
 (*Only OR1 can have caused such a part of a message to appear.
-  I'm not sure why A ~= B premise is needed: OtwayRees.ML doesn't need it.
-  Perhaps it's because OR2 has two similar-looking encrypted messages in
-        this version.*)
+  The premise A ~= B prevents OR2's similar-looking cryptogram from being
+  picked up.  Original Otway-Rees doesn't need it.*)
 Goal "[| A ~: bad;  A ~= B;  evs : otway |]                \
 \     ==> Crypt (shrK A) {|NA, Agent A, Agent B|} : parts (spies evs) --> \
 \         Says A B {|NA, Agent A, Agent B,                  \

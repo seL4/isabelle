@@ -24,17 +24,16 @@ inductive "yahalom"
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: yahalom;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
+    Fake "[| evs: yahalom;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : yahalom"
 
          (*Alice initiates a protocol run*)
-    YM1  "[| evs1: yahalom;  A ~= B;  Nonce NA ~: used evs1 |]
+    YM1  "[| evs1: yahalom;  Nonce NA ~: used evs1 |]
           ==> Says A B {|Agent A, Nonce NA|} # evs1 : yahalom"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
-    YM2  "[| evs2: yahalom;  B ~= Server;  Nonce NB ~: used evs2;
+    YM2  "[| evs2: yahalom;  Nonce NB ~: used evs2;
              Says A' B {|Agent A, Nonce NA|} : set evs2 |]
           ==> Says B Server 
                   {|Agent B, Nonce NB, Crypt (shrK B) {|Agent A, Nonce NA|}|}
@@ -43,7 +42,7 @@ inductive "yahalom"
          (*The Server receives Bob's message.  He responds by sending a
            new session key to Alice, with a certificate for forwarding to Bob.
            Both agents are quoted in the 2nd certificate to prevent attacks!*)
-    YM3  "[| evs3: yahalom;  A ~= B;  A ~= Server;  Key KAB ~: used evs3;
+    YM3  "[| evs3: yahalom;  Key KAB ~: used evs3;
              Says B' Server {|Agent B, Nonce NB,
 			      Crypt (shrK B) {|Agent A, Nonce NA|}|}
                : set evs3 |]
@@ -55,7 +54,7 @@ inductive "yahalom"
 
          (*Alice receives the Server's (?) message, checks her Nonce, and
            uses the new session key to send Bob his Nonce.*)
-    YM4  "[| evs4: yahalom;  A ~= Server;  
+    YM4  "[| evs4: yahalom;  
              Says S A {|Nonce NB, Crypt (shrK A) {|Agent B, Key K, Nonce NA|},
                         X|}  : set evs4;
              Says A B {|Agent A, Nonce NA|} : set evs4 |]

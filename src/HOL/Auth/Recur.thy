@@ -8,6 +8,10 @@ Inductive relation "recur" for the Recursive Authentication protocol.
 
 Recur = Shared +
 
+(*End marker for message bundles*)
+syntax        END :: msg
+translations "END" == "Number 0"
+
 (*Two session keys are distributed to each agent except for the initiator,
         who receives one.
   Perhaps the two session keys could be bundled into a single message.
@@ -15,17 +19,15 @@ Recur = Shared +
 consts     respond :: "event list => (msg*msg*key)set"
 inductive "respond evs" (*Server's response to the nested message*)
   intrs
-    (*The message "Agent Server" marks the end of a list.*)
-    One  "[| A ~= Server;  Key KAB ~: used evs |]
-          ==> (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, Agent Server|}, 
-               {|Crypt (shrK A) {|Key KAB, Agent B, Nonce NA|}, Agent Server|},
+    One  "[| Key KAB ~: used evs |]
+          ==> (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, END|}, 
+               {|Crypt (shrK A) {|Key KAB, Agent B, Nonce NA|}, END|},
                KAB)   : respond evs"
 
     (*The most recent session key is passed up to the caller*)
     Cons "[| (PA, RA, KAB) : respond evs;  
              Key KBC ~: used evs;  Key KBC ~: parts {RA};
-             PA = Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, P|};
-             B ~= Server |]
+             PA = Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, P|} |]
           ==> (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|}, 
                {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 
                  Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
@@ -41,7 +43,7 @@ consts     responses :: event list => msg set
 inductive "responses evs"       
   intrs
     (*Server terminates lists*)
-    Nil  "Agent Server : responses evs"
+    Nil  "END : responses evs"
 
     Cons "[| RA : responses evs;  Key KAB ~: used evs |]
           ==> {|Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|},
@@ -56,35 +58,31 @@ inductive "recur"
 
          (*The spy MAY say anything he CAN say.  Common to
            all similar protocols.*)
-    Fake "[| evs: recur;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
+    Fake "[| evs: recur;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : recur"
 
          (*Alice initiates a protocol run.
-           "Agent Server" is just a placeholder, to terminate the nesting.*)
-    RA1  "[| evs1: recur;  A ~= B;  A ~= Server;  Nonce NA ~: used evs1 |]
-          ==> Says A B 
-                (Hash[Key(shrK A)] 
-                 {|Agent A, Agent B, Nonce NA, Agent Server|})
+           END is a placeholder to terminate the nesting.*)
+    RA1  "[| evs1: recur;  Nonce NA ~: used evs1 |]
+          ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, END|})
               # evs1 : recur"
 
          (*Bob's response to Alice's message.  C might be the Server.
            We omit PA = {|XA, Agent A, Agent B, Nonce NA, P|} because
            it complicates proofs, so B may respond to any message at all!*)
-    RA2  "[| evs2: recur;  B ~= C;  B ~= Server;  Nonce NB ~: used evs2;
+    RA2  "[| evs2: recur;  Nonce NB ~: used evs2;
              Says A' B PA : set evs2 |]
           ==> Says B C (Hash[Key(shrK B)] {|Agent B, Agent C, Nonce NB, PA|})
               # evs2 : recur"
 
          (*The Server receives Bob's message and prepares a response.*)
-    RA3  "[| evs3: recur;  B ~= Server;
-             Says B' Server PB : set evs3;
+    RA3  "[| evs3: recur;  Says B' Server PB : set evs3;
              (PB,RB,K) : respond evs3 |]
           ==> Says Server B RB # evs3 : recur"
 
          (*Bob receives the returned message and compares the Nonces with
            those in the message he previously sent the Server.*)
-    RA4  "[| evs4: recur;  A ~= B;  
+    RA4  "[| evs4: recur;  
              Says B  C {|XH, Agent B, Agent C, Nonce NB, 
                          XA, Agent A, Agent B, Nonce NA, P|} : set evs4;
              Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 

@@ -48,18 +48,16 @@ inductive "kerberos_ban"
 
     Nil  "[]: kerberos_ban"
 
-
-    Fake "[| evs: kerberos_ban;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
+    Fake "[| evs: kerberos_ban;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X # evs : kerberos_ban"
 
 
-    Kb1  "[| evs1: kerberos_ban;  A ~= Server |]
+    Kb1  "[| evs1: kerberos_ban |]
           ==> Says A Server {|Agent A, Agent B|} # evs1
                 :  kerberos_ban"
 
 
-    Kb2  "[| evs2: kerberos_ban;  A ~= B;  A ~= Server;  Key KAB ~: used evs2;
+    Kb2  "[| evs2: kerberos_ban;  Key KAB ~: used evs2;
              Says A' Server {|Agent A, Agent B|} : set evs2 |]
           ==> Says Server A 
                 (Crypt (shrK A)
@@ -68,7 +66,7 @@ inductive "kerberos_ban"
                 # evs2 : kerberos_ban"
 
 
-    Kb3  "[| evs3: kerberos_ban;  A ~= B; 
+    Kb3  "[| evs3: kerberos_ban;  
              Says S A (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|}) 
                : set evs3;
              Says A Server {|Agent A, Agent B|} : set evs3;
@@ -77,21 +75,19 @@ inductive "kerberos_ban"
                # evs3 : kerberos_ban"
 
 
-    Kb4  "[| evs4: kerberos_ban;  A ~= B;  
+    Kb4  "[| evs4: kerberos_ban;  
              Says A' B {|(Crypt (shrK B) {|Number Ts, Agent A, Key K|}), 
 		         (Crypt K {|Agent A, Number Ta|}) |}: set evs4;
-             ~ Expired Ts evs4; 
-             RecentAuth Ta evs4|]
+             ~ Expired Ts evs4;  RecentAuth Ta evs4 |]
           ==> Says B A (Crypt K (Number Ta)) # evs4
                 : kerberos_ban"
 
-
-(*The session key has EXPIRED when it gets lost *)
-    Oops "[| evso: kerberos_ban;  A ~= Spy;
+         (*Old session keys may become compromised*)
+    Oops "[| evso: kerberos_ban;  
              Says Server A (Crypt (shrK A) {|Number Ts, Agent B, Key K, X|})
                : set evso;
              Expired Ts evso |]
-          ==> Says A Spy {|Number Ts, Key K|} # evso : kerberos_ban"
+          ==> Notes Spy {|Number Ts, Key K|} # evso : kerberos_ban"
 
 
 end

@@ -8,7 +8,6 @@ Inductive relation "recur" for the Recursive Authentication protocol.
 
 Pretty.setdepth 30;
 
-
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];
 AddDs [impOfSubs Fake_parts_insert];
@@ -21,27 +20,24 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*Simplest case: Alice goes directly to the server*)
-Goal "A ~= Server                                                      \
-\ ==> EX K NA. EX evs: recur.                                           \
-\  Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|}, \
-\                  Agent Server|}  : set evs";
+Goal "EX K NA. EX evs: recur.                                           \
+\  Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|},   \
+\                  END|}  : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (rtac (recur.Nil RS recur.RA1 RS 
-          (respond.One RSN (4,recur.RA3))) 2);
+by (rtac (recur.Nil RS recur.RA1 RS (respond.One RSN (3,recur.RA3))) 2);
 by possibility_tac;
 result();
 
 
 (*Case two: Alice, Bob and the server*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]                 \
-\ ==> EX K. EX NA. EX evs: recur.                               \
-\    Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
-\               Agent Server|}  : set evs";
+Goal "EX K. EX NA. EX evs: recur.                               \
+\       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
+\                  END|}  : set evs";
 by (cut_facts_tac [Nonce_supply2, Key_supply2] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS 
-          (respond.One RS respond.Cons RSN (4,recur.RA3)) RS
+          (respond.One RS respond.Cons RSN (3,recur.RA3)) RS
           recur.RA4) 2);
 by basic_possibility_tac;
 by (DEPTH_SOLVE (eresolve_tac [asm_rl, less_not_refl2, less_not_refl3] 1));
@@ -50,17 +46,16 @@ result();
 
 (*Case three: Alice, Bob, Charlie and the server
   TOO SLOW to run every time!
-Goal "[| A ~= B; B ~= C; A ~= Server; B ~= Server; C ~= Server |]   \
-\ ==> EX K. EX NA. EX evs: recur.                                      \
-\    Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},        \
-\               Agent Server|}  : set evs";
+Goal "EX K. EX NA. EX evs: recur.                                      \
+\       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},        \
+\                  END|}  : set evs";
 by (cut_facts_tac [Nonce_supply3, Key_supply3] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (recur.Nil RS recur.RA1 RS recur.RA2 RS recur.RA2 RS 
           (respond.One RS respond.Cons RS respond.Cons RSN
-           (4,recur.RA3)) RS recur.RA4 RS recur.RA4) 2);
-(*SLOW: 70 seconds*)
+           (3,recur.RA3)) RS recur.RA4 RS recur.RA4) 2);
+(*SLOW: 33 seconds*)
 by basic_possibility_tac;
 by (DEPTH_SOLVE (swap_res_tac [refl, conjI, disjCI] 1 
 		 ORELSE
@@ -69,15 +64,6 @@ result();
 ****************)
 
 (**** Inductive proofs about recur ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs : recur ==> ALL X. Says A A X ~: set evs";
-by (etac recur.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
-
 
 
 Goal "(PA,RB,KAB) : respond evs ==> Key KAB : parts{RB}";
@@ -253,7 +239,7 @@ by (parts_induct_tac 1);
 by (etac responses.induct 2);
 by (ALLGOALS Asm_simp_tac);
 (*Fake*)
-by (Fake_parts_insert_tac 1);
+by (blast_tac (claset() addIs [parts_insertI]) 1);
 qed "Hash_imp_body";
 
 
@@ -321,17 +307,6 @@ qed "resp_analz_insert_lemma";
 bind_thm ("resp_analz_insert",
           raw_analz_image_freshK RSN
             (2, resp_analz_insert_lemma) RSN(2, rev_mp));
-
-
-(*The Server does not send such messages.  This theorem lets us avoid
-  assuming B~=Server in RA4.*)
-Goal "evs : recur \
-\     ==> ALL C X Y. Says Server C {|X, Agent Server, Y|} ~: set evs";
-by (etac recur.induct 1);
-by (etac (respond.induct) 5);
-by Auto_tac;
-qed_spec_mp "Says_Server_not";
-AddSEs [Says_Server_not RSN (2,rev_notE)];
 
 
 (*The last key returned by respond indeed appears in a certificate*)

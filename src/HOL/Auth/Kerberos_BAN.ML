@@ -24,8 +24,7 @@ AddIffs [SesKeyLife_LB, AutLife_LB];
 
 
 (*A "possibility property": there are traces that reach the end.*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]       \
-\     ==> EX Timestamp K. EX evs: kerberos_ban.    \
+Goal "EX Timestamp K. EX evs: kerberos_ban.    \
 \            Says B A (Crypt K (Number Timestamp)) \
 \                 : set evs";
 by (cut_facts_tac [SesKeyLife_LB] 1);
@@ -40,15 +39,6 @@ result();
 
 
 (**** Inductive proofs about kerberos_ban ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs : kerberos_ban ==> ALL X. Says A A X ~: set evs";
-by (etac kerberos_ban.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
-
 
 (*Forwarding Lemma for reasoning about the encrypted portion of message Kb3*)
 Goal "Says S A (Crypt KA {|Timestamp, B, K, X|}) : set evs \

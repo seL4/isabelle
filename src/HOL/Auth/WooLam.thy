@@ -22,20 +22,20 @@ inductive woolam
          (*Initial trace is empty*)
     Nil  "[]: woolam"
 
+         (** These rules allow agents to send messages to themselves **)
+
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: woolam;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
+    Fake "[| evs: woolam;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : woolam"
 
          (*Alice initiates a protocol run*)
-    WL1  "[| evs1: woolam;  A ~= B |]
+    WL1  "[| evs1: woolam |]
           ==> Says A B (Agent A) # evs1 : woolam"
 
          (*Bob responds to Alice's message with a challenge.*)
-    WL2  "[| evs2: woolam;  A ~= B;  
-             Says A' B (Agent A) : set evs2 |]
+    WL2  "[| evs2: woolam;  Says A' B (Agent A) : set evs2 |]
           ==> Says B A (Nonce NB) # evs2 : woolam"
 
          (*Alice responds to Bob's challenge by encrypting NB with her key.
@@ -50,13 +50,13 @@ inductive woolam
            the messages are shown in chronological order, for clarity.
            But here, exchanging the two events would cause the lemma
            WL4_analz_spies to pick up the wrong assumption!*)
-    WL4  "[| evs4: woolam;  B ~= Server;  
+    WL4  "[| evs4: woolam;  
              Says A'  B X         : set evs4;
              Says A'' B (Agent A) : set evs4 |]
           ==> Says B Server {|Agent A, Agent B, X|} # evs4 : woolam"
 
          (*Server decrypts Alice's response for Bob.*)
-    WL5  "[| evs5: woolam;  B ~= Server;
+    WL5  "[| evs5: woolam;  
              Says B' Server {|Agent A, Agent B, Crypt (shrK A) (Nonce NB)|}
                : set evs5 |]
           ==> Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|})

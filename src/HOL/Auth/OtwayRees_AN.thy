@@ -28,24 +28,23 @@ inductive "otway"
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
+    Fake "[| evs: otway;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
-    OR1  "[| evs1: otway;  A ~= B;  B ~= Server |]
+    OR1  "[| evs1: otway |]
           ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs1 : otway"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
-    OR2  "[| evs2: otway;  B ~= Server;
+    OR2  "[| evs2: otway;  
              Says A' B {|Agent A, Agent B, Nonce NA|} : set evs2 |]
           ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                  # evs2 : otway"
 
          (*The Server receives Bob's message.  Then he sends a new
            session key to Bob with a packet for forwarding to Alice.*)
-    OR3  "[| evs3: otway;  B ~= Server;  A ~= B;  Key KAB ~: used evs3;
+    OR3  "[| evs3: otway;  Key KAB ~: used evs3;
              Says B' Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                : set evs3 |]
           ==> Says Server B 
@@ -54,8 +53,9 @@ inductive "otway"
               # evs3 : otway"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
-	   those in the message he previously sent the Server.*)
-    OR4  "[| evs4: otway;  A ~= B;
+	   those in the message he previously sent the Server.
+           Need B ~= Server because we allow messages to self.*)
+    OR4  "[| evs4: otway;  B ~= Server; 
              Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} : set evs4;
              Says S' B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
                : set evs4 |]

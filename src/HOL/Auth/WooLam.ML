@@ -16,8 +16,7 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]   \
-\     ==> EX NB. EX evs: woolam.               \
+Goal "EX NB. EX evs: woolam.  \
 \           Says Server B (Crypt (shrK B) {|Agent A, Nonce NB|}) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (woolam.Nil RS woolam.WL1 RS woolam.WL2 RS woolam.WL3 RS 
@@ -27,15 +26,6 @@ result();
 
 
 (**** Inductive proofs about woolam ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs : woolam ==> ALL X. Says A A X ~: set evs";
-by (etac woolam.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
-
 
 (** For reasoning about the encrypted portion of messages **)
 

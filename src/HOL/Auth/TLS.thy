@@ -82,8 +82,7 @@ inductive tls
          "[]: tls"
 
     Fake (*The spy, an active attacker, MAY say anything he CAN say.*)
-         "[| evs: tls;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
+         "[| evs: tls;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X # evs : tls"
 
     SpyKeys (*The spy may apply PRF & sessionK to available nonces*)
@@ -100,7 +99,7 @@ inductive tls
            UNIX TIME is omitted because the protocol doesn't use it.
            May assume NA ~: range PRF because CLIENT RANDOM is 28 bytes
 	   while MASTER SECRET is 48 bytes*)
-         "[| evsCH: tls;  A ~= B;  Nonce NA ~: used evsCH;  NA ~: range PRF |]
+         "[| evsCH: tls;  Nonce NA ~: used evsCH;  NA ~: range PRF |]
           ==> Says A B {|Agent A, Nonce NA, Number SID, Number PA|}
 	        # evsCH  :  tls"
 
@@ -109,14 +108,14 @@ inductive tls
 	   PB represents CLIENT_VERSION, CIPHER_SUITE and COMPRESSION_METHOD.
            SERVER CERTIFICATE (7.4.2) is always present.
            CERTIFICATE_REQUEST (7.4.4) is implied.*)
-         "[| evsSH: tls;  A ~= B;  Nonce NB ~: used evsSH;  NB ~: range PRF;
+         "[| evsSH: tls;  Nonce NB ~: used evsSH;  NB ~: range PRF;
              Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       : set evsSH |]
           ==> Says B A {|Nonce NB, Number SID, Number PB|} # evsSH  :  tls"
 
     Certificate
          (*SERVER (7.4.2) or CLIENT (7.4.6) CERTIFICATE.*)
-         "[| evsC: tls;  A ~= B |]
+         "[| evsC: tls |]
           ==> Says B A (certificate B (pubK B)) # evsC  :  tls"
 
     ClientKeyExch
@@ -128,7 +127,7 @@ inductive tls
 	   both items have the same length, 48 bytes).
            The Note event records in the trace that she knows PMS
                (see REMARK at top). *)
-         "[| evsCX: tls;  A ~= B;  Nonce PMS ~: used evsCX;  PMS ~: range PRF;
+         "[| evsCX: tls;  Nonce PMS ~: used evsCX;  PMS ~: range PRF;
              Says B' A (certificate B KB) : set evsCX |]
           ==> Says A B (Crypt KB (Nonce PMS))
 	      # Notes A {|Agent B, Nonce PMS|}
@@ -140,7 +139,7 @@ inductive tls
           It adds the pre-master-secret, which is also essential!
           Checking the signature, which is the only use of A's certificate,
           assures B of A's presence*)
-         "[| evsCV: tls;  A ~= B;  
+         "[| evsCV: tls;  
              Says B' A {|Nonce NB, Number SID, Number PB|} : set evsCV;
 	     Notes A {|Agent B, Nonce PMS|} : set evsCV |]
           ==> Says A B (Crypt (priK A) (Hash{|Nonce NB, Agent B, Nonce PMS|}))
@@ -206,6 +205,7 @@ inductive tls
           needed to resume this session.  The "Says A'' B ..." premise is
           used to prove Notes_master_imp_Crypt_PMS.*)
          "[| evsSA: tls;
+	     A ~= B;
              Says A'' B (Crypt (pubK B) (Nonce PMS)) : set evsSA;
 	     M = PRF(PMS,NA,NB);  
 	     X = Hash{|Number SID, Nonce M,
@@ -245,8 +245,9 @@ inductive tls
     Oops 
          (*The most plausible compromise is of an old session key.  Losing
            the MASTER SECRET or PREMASTER SECRET is more serious but
-           rather unlikely.*)
-         "[| evso: tls;  A ~= Spy;  
+           rather unlikely.  The assumption A ~= Spy is essential: otherwise
+           the Spy could learn session keys merely by replaying messages!*)
+         "[| evso: tls;  A ~= Spy;
 	     Says A B (Crypt (sessionK((NA,NB,M),b)) X) : set evso |]
           ==> Says A Spy (Key (sessionK((NA,NB,M),b))) # evso  :  tls"
 

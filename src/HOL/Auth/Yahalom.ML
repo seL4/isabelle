@@ -14,7 +14,7 @@ Pretty.setdepth 25;
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]   \
+Goal "A ~= Server \
 \     ==> EX X NB K. EX evs: yahalom.          \
 \            Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -25,14 +25,6 @@ result();
 
 
 (**** Inductive proofs about yahalom ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs: yahalom ==> ALL X. Says A A X ~: set evs";
-by (etac yahalom.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 
 (** For reasoning about the encrypted portion of messages **)
@@ -109,8 +101,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*Describes the form of K when the Server sends this message.  Useful for
   Oops as well as main secrecy property.*)
 Goal "[| Says Server A {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|} \
-\          : set evs;                                                   \
-\        evs : yahalom |]                                          \
+\          : set evs;   evs : yahalom |]                                \
 \     ==> K ~: range shrK";
 by (etac rev_mp 1);
 by (etac yahalom.induct 1);

@@ -14,8 +14,8 @@ AddDs [impOfSubs Fake_parts_insert];
 AddIffs [Spy_in_bad];
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "A ~= B ==> EX NB. EX evs: ns_public.               \
-\                  Says A B (Crypt (pubK B) (Nonce NB)) : set evs";
+Goal
+   "EX NB. EX evs: ns_public. Says A B (Crypt (pubK B) (Nonce NB)) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (ns_public.Nil RS ns_public.NS1 RS ns_public.NS2 RS ns_public.NS3) 2);
 by possibility_tac;
@@ -23,15 +23,6 @@ result();
 
 
 (**** Inductive proofs about ns_public ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs : ns_public ==> ALL X. Says A A X ~: set evs";
-by (etac ns_public.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
-
 
 (*Induction for regularity theorems.  If induction formula has the form
    X ~: analz (spies evs) --> ... then it shortens the proof by discarding

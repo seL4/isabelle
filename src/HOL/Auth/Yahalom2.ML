@@ -18,8 +18,7 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]   \
-\     ==> EX X NB K. EX evs: yahalom.          \
+Goal "EX X NB K. EX evs: yahalom.          \
 \            Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (yahalom.Nil RS yahalom.YM1 RS yahalom.YM2 RS yahalom.YM3 RS 
@@ -29,15 +28,6 @@ result();
 
 
 (**** Inductive proofs about yahalom ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs: yahalom ==> ALL X. Says A A X ~: set evs";
-by (etac yahalom.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
-
 
 (** For reasoning about the encrypted portion of messages **)
 
@@ -114,7 +104,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 Goal "[| Says Server A {|nb', Crypt (shrK A) {|Agent B, Key K, na|}, X|} \
 \         : set evs;                                            \
 \        evs : yahalom |]                                       \
-\     ==> K ~: range shrK & A ~= B";
+\     ==> K ~: range shrK";
 by (etac rev_mp 1);
 by (etac yahalom.induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -191,8 +181,7 @@ qed "unique_session_keys";
 
 (** Crucial secrecy property: Spy does not see the keys sent in msg YM3 **)
 
-Goal "[| A ~: bad;  B ~: bad;  A ~= B;                       \
-\        evs : yahalom |]                                    \
+Goal "[| A ~: bad;  B ~: bad;  evs : yahalom |]              \
 \     ==> Says Server A                                      \
 \           {|nb, Crypt (shrK A) {|Agent B, Key K, na|},     \
 \                 Crypt (shrK B) {|Agent A, Agent B, Key K, nb|}|} \

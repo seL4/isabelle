@@ -19,17 +19,16 @@ inductive ns_public
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: ns_public;  B ~= Spy;  
-             X: synth (analz (spies evs)) |]
+    Fake "[| evs: ns_public;  X: synth (analz (spies evs)) |]
           ==> Says Spy B X  # evs : ns_public"
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)
-    NS1  "[| evs1: ns_public;  A ~= B;  Nonce NA ~: used evs1 |]
+    NS1  "[| evs1: ns_public;  Nonce NA ~: used evs1 |]
           ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|})
                  # evs1  :  ns_public"
 
          (*Bob responds to Alice's message with a further nonce*)
-    NS2  "[| evs2: ns_public;  A ~= B;  Nonce NB ~: used evs2;
+    NS2  "[| evs2: ns_public;  Nonce NB ~: used evs2;
              Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs2 |]
           ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})
                 # evs2  :  ns_public"

@@ -18,7 +18,7 @@ AddDs [impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
-Goal "[| A ~= B; A ~= Server; B ~= Server |]   \
+Goal "[| B ~= Server |]   \
 \     ==> EX K. EX NA. EX evs: otway.          \
 \            Says B A {|Nonce NA, Crypt (shrK A) {|Nonce NA, Key K|}|} \
 \              : set evs";
@@ -29,15 +29,6 @@ result();
 
 
 (**** Inductive proofs about otway ****)
-
-(*Nobody sends themselves messages*)
-Goal "evs : otway ==> ALL X. Says A A X ~: set evs";
-by (etac otway.induct 1);
-by Auto_tac;
-qed_spec_mp "not_Says_to_self";
-Addsimps [not_Says_to_self];
-AddSEs   [not_Says_to_self RSN (2, rev_notE)];
-
 
 (** For reasoning about the encrypted portion of messages **)
 
