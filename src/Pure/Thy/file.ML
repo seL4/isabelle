@@ -5,14 +5,8 @@
 File system operations.
 *)
 
-signature BASIC_FILE =
-sig
-  val maketest: string -> unit
-end;
-
 signature FILE =
 sig
-  include BASIC_FILE
   val tmp_name: string -> string
   val exists: string -> bool
   val info: string -> string
@@ -67,13 +61,4 @@ fun copy infile outfile =
   else write outfile (read infile);
 
 
-(*for the "test" target in IsaMakefiles -- signifies successful termination*)
-fun maketest msg =
-  (writeln msg; write "test" "Test examples ran successfully\n");
-
-
 end;
-
-
-structure BasicFile: BASIC_FILE = File;
-open BasicFile;
