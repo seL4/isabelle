@@ -84,12 +84,12 @@ ARGS=""
 [ "$INITFILE" = false ] && ARGS="$ARGS -q"
 
 
-ARGS="$ARGS -l \"$ISAMODE_HOME/elisp/isa-site.el\""
+ARGS="$ARGS -l $ISAMODE_HOME/elisp/isa-site.el"
 
 for FILE in "$ISABELLE_HOME/etc/isa-settings.el" \
     "$ISABELLE_HOME_USER/etc/isa-settings.el"
 do
-  [ -f "$FILE" ] && ARGS="$ARGS -l \"$FILE\""
+  [ -f "$FILE" ] && ARGS="$ARGS -l $FILE"
 done
 
 ARGS="$ARGS -f isabelle"
