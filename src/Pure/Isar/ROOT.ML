@@ -28,7 +28,7 @@ use "obtain.ML";
 use "skip_proof.ML";
 
 (*outer syntax*)
-(*use "outer_lex.ML";*)	  (*see ../Thy/ROOT.ML*)
+(*use "outer_lex.ML";*)   (*see ../Thy/ROOT.ML*)
 use "antiquote.ML";
 use "comment.ML";
 use "outer_parse.ML";
