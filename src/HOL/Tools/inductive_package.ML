@@ -203,13 +203,6 @@ fun unify_consts sign cs intr_ts =
 
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (concl_of vimageD);
 
-(*Delete needless equality assumptions*)
-val refl_thin = prove_goal HOL.thy "!!P. [| a=a;  P |] ==> P"
-     (fn _ => [assume_tac 1]);
-
-(*For simplifying the elimination rule*)
-val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE, Pair_inject];
-
 val vimage_name = Sign.intern_const (Theory.sign_of Vimage.thy) "op -``";
 val mono_name = Sign.intern_const (Theory.sign_of Ord.thy) "mono";
 
@@ -493,20 +486,13 @@ fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
   the given defs.  Cannot simply use the local con_defs because con_defs=[] 
   for inference systems.
  *)
-fun con_elim_tac ss =
-  let val elim_tac = REPEAT o (eresolve_tac elim_rls)
-  in ALLGOALS(EVERY'[elim_tac,
-		     asm_full_simp_tac ss,
-		     elim_tac,
-		     REPEAT o bound_hyp_subst_tac])
-     THEN prune_params_tac
-  end;
 
 (*cprop should have the form t:Si where Si is an inductive set*)
-fun mk_cases_i elims ss cprop =
+fun mk_cases_i solved elims ss cprop =
   let
     val prem = Thm.assume cprop;
-    fun mk_elim rl = standard (rule_by_tactic (con_elim_tac ss) (prem RS rl));
+    val tac = if solved then InductMethod.con_elim_solved_tac else InductMethod.con_elim_tac;
+    fun mk_elim rl = Drule.standard (Tactic.rule_by_tactic (tac ss) (prem RS rl));
   in
     (case get_first (try mk_elim) elims of
       Some r => r
@@ -516,7 +502,7 @@ fun mk_cases_i elims ss cprop =
   end;
 
 fun mk_cases elims s =
-  mk_cases_i elims (simpset()) (Thm.read_cterm (Thm.sign_of_thm (hd elims)) (s, propT));
+  mk_cases_i false elims (simpset()) (Thm.read_cterm (Thm.sign_of_thm (hd elims)) (s, propT));
 
 
 (* inductive_cases(_i) *)
@@ -529,7 +515,7 @@ fun gen_inductive_cases prep_att prep_const prep_prop
     val atts = map (prep_att thy) raw_atts;
     val (_, {elims, ...}) = get_inductive thy (prep_const sign raw_set);
     val cprops = map (Thm.cterm_of sign o prep_prop (ProofContext.init thy)) raw_props;
-    val thms = map (mk_cases_i elims (Simplifier.simpset_of thy)) cprops;
+    val thms = map (mk_cases_i true elims (Simplifier.simpset_of thy)) cprops;
   in
     thy
     |> IsarThy.have_theorems_i (((name, atts), map Thm.no_attributes thms), comment)
