@@ -59,14 +59,13 @@ val implode = String.concat;
 
 (*** Timing functions ***)
 
-val CPUtimer = Timer.startCPUTimer();
-
 (*A conditional timing function: applies f to () and, if the flag is true,
   prints its runtime. *)
 fun cond_timeit flag f =
   if flag then
     let open Time  (*...for Time.toString, Time.+ and Time.- *)
-	val {gc=gct1,sys=syst1,usr=usrt1} = Timer.checkCPUTimer(CPUtimer);
+	val CPUtimer = Timer.startCPUTimer();
+        val {gc=gct1,sys=syst1,usr=usrt1} = Timer.checkCPUTimer(CPUtimer);
         val result = f();
         val {gc=gct2,sys=syst2,usr=usrt2} = Timer.checkCPUTimer(CPUtimer)
     in  print("User " ^ toString (usrt2-usrt1) ^
