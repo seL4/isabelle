@@ -55,6 +55,7 @@ cd "..";
 
 use "install_pp.ML";
 
+(*if true then some packages won't be too serious about actually proving things*)
 val quick_and_dirty = ref false;
 
 (*several object-logics declare theories named List or Option, hiding
