@@ -329,13 +329,6 @@ by (etac rev_mp 1);
 by (asm_simp_tac (simpset() addsimps metric_simps) 1);
 by (auto_tac (claset() addIs [zleI, zle_anti_sym], 
 	      simpset() addsimps zcompare_rls@[zadd_int, integ_of_Min]));
-(*trans_tac (or decision procedures) could do the rest*)
-by (dres_inst_tac [("w1","Min")] (zle_iff_zadd RS iffD1) 2);
-by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 1);
-by (ALLGOALS (clarify_tac (claset() addSDs [zless_iff_Suc_zadd RS iffD1])));
-by (REPEAT_FIRST (eres_inst_tac [("P", "?x+?y = ?z")] rev_mp));
-by (REPEAT_FIRST (etac ssubst));
-by (auto_tac (claset(), simpset() addsimps [zadd_int]));
 qed "metric_eq_0D";
 
 AddDs [metric_eq_0D];
