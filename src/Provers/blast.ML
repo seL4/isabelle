@@ -678,14 +678,21 @@ and eta_contract2 (f$t) = f $ eta_contract_atom t
   Prefer to eliminate Bound variables if possible.
   Result:  true = use as is,  false = reorient first *)
 
-(*Does t occur in u?  For substitution.  
-  Does NOT check args of Skolem terms: substitution does not affect them.
+(*Can t occur in u?  For substitution.  
+  Does NOT examine the args of Skolem terms: substitution does not affect them.
   REFLEXIVE because hyp_subst_tac fails on x=x.*)
 fun substOccur t = 
-  let fun occEq u = (t aconv u) orelse occ u
-      and occ (Var(ref None))    = false
-	| occ (Var(ref(Some u))) = occEq u
-        | occ (Abs(_,u))         = occEq u
+  let (*NO vars are permitted in u except the arguments of t, if it is 
+        a Skolem term.  This ensures that no equations are deleted that could
+        be instantiated to a cycle.  For example, x=?a is rejected because ?a
+	could be instantiated to Suc(x).*)
+      val vars = case t of
+                     Skolem(_,vars) => vars
+		   | _ => []
+      fun occEq u = (t aconv u) orelse occ u
+      and occ (Var(ref(Some u))) = occEq u
+        | occ (Var v)            = not (mem_var (v, vars))
+	| occ (Abs(_,u))         = occEq u
         | occ (f$u)              = occEq u  orelse  occEq f
         | occ (_)                = false;
   in  occEq  end;
@@ -989,10 +996,7 @@ fun prove (sign, cs, brs, cont) =
 	  in tracing sign brs0; 
 	     if lim<0 then (traceMsg "Limit reached.  "; backtrack choices)
 	     else
-	     prv ((TRY  o  Data.vars_gen_hyp_subst_tac false)  ::  tacs, 
-		  (*The TRY above allows the substitution to fail, e.g. if
-		    the real version is z = f(?x z).  Rest of proof might
-		    still succeed!*)
+	     prv (Data.vars_gen_hyp_subst_tac false  ::  tacs, 
 		  brs0::trs,  choices,
 		  equalSubst sign (G, (br,haz)::pairs, lits, vars, lim) :: brs)
 	     handle DEST_EQ =>   closeF lits
