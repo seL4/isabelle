@@ -61,6 +61,7 @@
 \indexisaratt{tag}\indexisaratt{untag}\indexisaratt{COMP}\indexisaratt{RS}
 \indexisaratt{OF}\indexisaratt{where}\indexisaratt{of}\indexisaratt{standard}
 \indexisaratt{elimify}\indexisaratt{transfer}\indexisaratt{export}
+\indexisaratt{unfold}\indexisaratt{fold}
 \begin{matharray}{rcl}
   tag & : & \isaratt \\
   untag & : & \isaratt \\[0.5ex]
@@ -69,10 +70,12 @@
   COMP & : & \isaratt \\[0.5ex]
   of & : & \isaratt \\
   where & : & \isaratt \\[0.5ex]
+  unfold & : & \isaratt \\
+  fold & : & \isaratt \\[0.5ex]
   standard & : & \isaratt \\
   elimify & : & \isaratt \\
   export^* & : & \isaratt \\
-  transfer & : & \isaratt \\
+  transfer & : & \isaratt \\[0.5ex]
 \end{matharray}
 
 \begin{rail}
@@ -85,6 +88,8 @@
   'of' (inst * ) ('concl' ':' (inst * ))?
   ;
   'where' (name '=' term * 'and')
+  ;
+  ('unfold' | 'fold') thmrefs
   ;
 
   inst: underscore | term
@@ -108,7 +113,12 @@
 \item [$of~\vec t$ and $where~\vec x = \vec t$] perform positional and named
   instantiation, respectively.  The terms given in $of$ are substituted for
   any schematic variables occurring in a theorem from left to right;
-  ``\texttt{_}'' (underscore) indicates to skip a position.
+  ``\texttt{_}'' (underscore) indicates to skip a position.  Arguments
+  following a ``$concl\colon$'' specification refer to positions of the
+  conclusion of a rule.
+  
+\item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
+  meta-level definitions throughout a rule.
  
 \item [$standard$] puts a theorem into the standard form of object-rules, just
   as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
@@ -447,7 +457,8 @@ context of assumptions to be included as well.\footnote{This is slightly less
 \item [$intro$, $elim$, $dest$] add introduction, elimination, destruct rules,
   respectively.  By default, rules are considered as \emph{safe}, while a
   single ``!'' classifies as \emph{unsafe}, and ``!!'' as \emph{extra} (i.e.\ 
-  not applied in the search-oriented automated methods, but only $rule$).
+  not applied in the search-oriented automated methods, but only in
+  single-step methods such as $rule$).
   
 \item [$iff$] declares equations both as rewrite rules for the simplifier and
   classical reasoning rules.

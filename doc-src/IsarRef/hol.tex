@@ -1,6 +1,27 @@
 
 \chapter{Isabelle/HOL Tools and Packages}\label{ch:hol-tools}
 
+\section{Miscellaneous attributes}
+
+\indexisaratt{rulify}\indexisaratt{rulify-prems}
+\begin{matharray}{rcl}
+  rulify & : & \isaratt \\
+  rulify_prems & : & \isaratt \\
+\end{matharray}
+
+\begin{descr}
+
+\item [$rulify$] puts a theorem into object-rule form, replacing implication
+  and universal quantification of HOL by the corresponding meta-logical
+  connectives.  This is the same operation as performed by the
+  \texttt{qed_spec_mp} ML function.
+  
+\item [$rulify_prems$] is similar to $rulify$, but acts on the premises of a
+  rule.
+
+\end{descr}
+
+
 \section{Primitive types}
 
 \indexisarcmd{typedecl}\indexisarcmd{typedef}
@@ -119,9 +140,11 @@ See \cite{isabelle-HOL} for more information on both mechanisms.
 \section{(Co)Inductive sets}
 
 \indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisarcmd{inductive-cases}
+\indexisaratt{mono}
 \begin{matharray}{rcl}
   \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
   \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
+  mono & : & \isaratt \\
   \isarcmd{inductive_cases} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
@@ -136,11 +159,16 @@ See \cite{isabelle-HOL} for more information on both mechanisms.
   ;
   indcases thmdef? nameref ':' \\ (prop +) comment?
   ;
+  'mono' (() | 'add' | 'del')
+  ;
 \end{rail}
 
 \begin{descr}
 \item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] define
   (co)inductive sets from the given introduction rules.
+\item [$mono$] adds or deletes monotonicity rules from the theory or proof
+  context (the default is to add).  These rule are involved in the automated
+  monotonicity proof of $\isarkeyword{inductive}$.
 \item [$\isarkeyword{inductive_cases}$] creates simplified instances of
   elimination rules of (co)inductive sets.
 \end{descr}

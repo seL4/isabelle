@@ -502,7 +502,8 @@ to prove the goal.
 
 \subsection{*The subgoaler}\label{sec:simp-subgoaler}
 \begin{ttbox}
-setsubgoaler : simpset *  (simpset -> int -> tactic) -> simpset \hfill{\bf infix 4}
+setsubgoaler :
+  simpset *  (simpset -> int -> tactic) -> simpset \hfill{\bf infix 4}
 prems_of_ss  : simpset -> thm list
 \end{ttbox}
 
@@ -794,7 +795,7 @@ argument.
 \end{warn}
 
 
-\section{Examples of using the simplifier}
+\section{Examples of using the Simplifier}
 \index{examples!of simplification} Assume we are working within {\tt
   FOL} (see the file \texttt{FOL/ex/Nat}) and that
 \begin{ttdescription}
@@ -1239,7 +1240,7 @@ matching.  Usually, procedures would do some more work, in particular
 prove particular theorems depending on the current redex.
 
 
-\section{*Setting up the simplifier}\label{sec:setting-up-simp}
+\section{*Setting up the Simplifier}\label{sec:setting-up-simp}
 \index{simplification!setting up}
 
 Setting up the simplifier for new logics is complicated.  This section

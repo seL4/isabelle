@@ -670,6 +670,17 @@ Delrules : thm list -> unit
 \end{ttbox}
 deletes rules from the current claset. 
 
+\medskip A few further functions are available as uppercase versions only:
+\begin{ttbox}
+AddXIs, AddXEs, AddXDs: thm list -> unit
+\end{ttbox}
+\indexbold{*AddXIs} \indexbold{*AddXEs} \indexbold{*AddXDs} augment the
+current claset by \emph{extra} introduction, elimination, or destruct rules.
+These provide additional hints for the basic non-automated proof methods of
+Isabelle/Isar \cite{isabelle-isar-ref}.  The corresponding Isar attributes are
+``$intro!!$'', ``$elim!!$'', and ``$dest!!$''.  Note that these extra rules do
+not have any effect on classic Isabelle tactics.
+
 
 \subsection{Accessing the current claset}
 \label{sec:access-current-claset}
