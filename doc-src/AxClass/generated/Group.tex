@@ -214,7 +214,7 @@ So far we have covered the case of the form
  exclusive-or as operation $\TIMES$, identity as $\isasyminv$, and
  $False$ as $1$ forms an Abelian group.%
 \end{isamarkuptext}%
-\isacommand{defs}\isanewline
+\isacommand{defs}~(\isakeyword{overloaded})\isanewline
 ~~times\_bool\_def:~~~{"}x~{\isasymOtimes}~y~{\isasymequiv}~x~{\isasymnoteq}~(y{\isasymColon}bool){"}\isanewline
 ~~inverse\_bool\_def:~{"}x{\isasyminv}~{\isasymequiv}~x{\isasymColon}bool{"}\isanewline
 ~~unit\_bool\_def:~~~~{"}{\isasymunit}~{\isasymequiv}~False{"}%
@@ -269,7 +269,7 @@ As already mentioned above, overloading in the simply-typed HOL
  products, direct sums or function spaces.  Subsequently we lift
  $\TIMES$ component-wise to binary products $\alpha \times \beta$.%
 \end{isamarkuptext}%
-\isacommand{defs}\isanewline
+\isacommand{defs}~(\isakeyword{overloaded})\isanewline
 ~~times\_prod\_def:~{"}p~{\isasymOtimes}~q~{\isasymequiv}~(fst~p~{\isasymOtimes}~fst~q,~snd~p~{\isasymOtimes}~snd~q){"}%
 \begin{isamarkuptext}%
 It is very easy to see that associativity of $\TIMES^\alpha$ and
