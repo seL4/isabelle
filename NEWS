@@ -191,7 +191,8 @@ other packages
 * \<euro> now needs package babel/greek instead of marvosym (which
 broke \Rightarrow)
 
-* normal size for \<0>...\<9> (uses \mathbf instead of textcomp package)
+* normal size for \<zero>...\<nine> (uses \mathbf instead of 
+textcomp package)
 
 
 New in Isabelle2002 (March 2002)
