@@ -249,7 +249,7 @@ else
 % include generated text of all theories
 \input{session}
 
-%\bibliographystyle{plain}
+%\bibliographystyle{abbrv}
 %\bibliography{root}
 
 \end{document}
