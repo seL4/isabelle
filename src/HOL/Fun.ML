@@ -7,7 +7,7 @@ Lemmas about functions.
 *)
 
 
-Goal "(f = g) = (!x. f(x)=g(x))";
+Goal "(f = g) = (! x. f(x)=g(x))";
 by (rtac iffI 1);
 by (Asm_simp_tac 1);
 by (rtac ext 1 THEN Asm_simp_tac 1);
@@ -33,25 +33,34 @@ qed "bchoice";
 
 section "id";
 
-qed_goalw "id_apply" thy [id_def] "id x = x" (K [rtac refl 1]);
+Goalw [id_def] "id x = x";
+by (rtac refl 1);
+qed "id_apply";
 Addsimps [id_apply];
 
 
 section "o";
 
-qed_goalw "o_apply" thy [o_def] "(f o g) x = f (g x)"
- (K [rtac refl 1]);
+Goalw [o_def] "(f o g) x = f (g x)";
+by (rtac refl 1);
+qed "o_apply";
 Addsimps [o_apply];
 
-qed_goalw "o_assoc" thy [o_def] "f o (g o h) = f o g o h"
-  (K [rtac ext 1, rtac refl 1]);
+Goalw [o_def] "f o (g o h) = f o g o h";
+by (rtac ext 1);
+by (rtac refl 1);
+qed "o_assoc";
 
-qed_goalw "id_o" thy [id_def] "id o g = g"
- (K [rtac ext 1, Simp_tac 1]);
+Goalw [id_def] "id o g = g";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "id_o";
 Addsimps [id_o];
 
-qed_goalw "o_id" thy [id_def] "f o id = f"
- (K [rtac ext 1, Simp_tac 1]);
+Goalw [id_def] "f o id = f";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "o_id";
 Addsimps [o_id];
 
 Goalw [o_def] "(f o g)``r = f``(g``r)";
@@ -66,12 +75,12 @@ qed "UN_o";
 (** datatypes involving function types                            **)
 
 Goalw [o_def]
-  "[| !x y. g (f x) = g y --> f x = y; g o f = g o fa |] ==> f = fa";
-br ext 1;
-be allE 1;
-be allE 1;
-be mp 1;
-be fun_cong 1;
+  "[| ! x y. g (f x) = g y --> f x = y; g o f = g o fa |] ==> f = fa";
+by (rtac ext 1);
+by (etac allE 1);
+by (etac allE 1);
+by (etac mp 1);
+by (etac fun_cong 1);
 qed "inj_fun_lemma";
 
 
@@ -272,15 +281,20 @@ by (simp_tac (simpset() addsimps [fun_upd_def]) 1);
 qed "fun_upd_apply";
 Addsimps [fun_upd_apply];
 
-qed_goal "fun_upd_same" thy "(f(x:=y)) x = y" 
-	(K [Simp_tac 1]);
-qed_goal "fun_upd_other" thy "!!X. z~=x ==> (f(x:=y)) z = f z"
-	(K [Asm_simp_tac 1]);
-(*Addsimps [fun_upd_same, fun_upd_other];*)
+Goal "(f(x:=y)) x = y";
+by (Simp_tac 1);
+qed "fun_upd_same";
+
+Goal "z~=x ==> (f(x:=y)) z = f z";
+by (Asm_simp_tac 1);
+qed "fun_upd_other";
+
+(*Currently unused?
+  We could try Addsimps [fun_upd_same, fun_upd_other];*)
 
 Goal "a ~= c ==> m(a:=b)(c:=d) = m(c:=d)(a:=b)";
 by (rtac ext 1);
-by (Auto_tac);
+by Auto_tac;
 qed "fun_upd_twist";
 
 

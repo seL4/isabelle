@@ -33,14 +33,13 @@ qed "gr_implies_not0";
 
 Goal "(n ~= 0) = (0 < n)";
 by (exhaust_tac "n" 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
+by Auto_tac;
 qed "neq0_conv";
 AddIffs [neq0_conv];
 
 Goal "(0 ~= n) = (0 < n)";
 by (exhaust_tac "n" 1);
-by (Auto_tac);
+by Auto_tac;
 qed "zero_neq_conv";
 AddIffs [zero_neq_conv];
 
@@ -75,33 +74,16 @@ by (Blast_tac 1);
 by (hyp_subst_tac 1);
 by (rewtac Least_nat_def);
 by (rtac (select_equality RS arg_cong RS sym) 1);
-by (Safe_tac);
-by (dtac Suc_mono 1);
-by (Blast_tac 1);
-by (cut_facts_tac [less_linear] 1);
-by (Safe_tac);
-by (atac 2);
-by (Blast_tac 2);
-by (dtac Suc_mono 1);
-by (Blast_tac 1);
+by (blast_tac (claset() addDs [Suc_mono]) 1);
+by (cut_inst_tac [("m","m")] less_linear 1);
+by (blast_tac (claset() addIs [Suc_mono]) 1);
 qed "Least_Suc";
 
 val prems = Goal "[| P 0; P 1; !!k. P k ==> P (Suc (Suc k)) |] ==> P n";
-by (cut_facts_tac prems 1);
 by (rtac less_induct 1);
 by (exhaust_tac "n" 1);
-by (hyp_subst_tac 1);
-by (atac 1);
-by (hyp_subst_tac 1);
-by (exhaust_tac "nat" 1);
-by (hyp_subst_tac 1);
-by (atac 1);
-by (hyp_subst_tac 1);
-by (resolve_tac prems 1);
-by (dtac spec 1);
-by (etac mp 1);
-by (rtac (lessI RS less_trans) 1);
-by (rtac (lessI RS Suc_mono) 1);
+by (exhaust_tac "nat" 2);
+by (ALLGOALS (blast_tac (claset() addIs prems@[less_trans])));
 qed "nat_induct2";
 
 Goal "min 0 n = 0";
