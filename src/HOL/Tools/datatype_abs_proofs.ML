@@ -417,15 +417,12 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
-    val big_size_name = space_implode "_" new_type_names ^ "_size";
     val size_name = Sign.intern_const (Theory.sign_of (theory "Arith")) "size";
     val size_names = replicate (length (hd descr)) size_name @
-      map (Sign.full_name (Theory.sign_of thy1))
-        (if length (flat (tl descr)) = 1 then [big_size_name] else
-          map (fn i => big_size_name ^ "_" ^ string_of_int i)
-            (1 upto length (flat (tl descr))));
-    val def_names = map (fn i => big_size_name ^ "_def_" ^ string_of_int i)
-      (1 upto length recTs);
+      map (Sign.full_name (Theory.sign_of thy1)) (DatatypeProp.indexify_names
+        (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs))));
+    val def_names = map (fn s => s ^ "_def") (DatatypeProp.indexify_names
+      (map (fn T => name_of_typ T ^ "_size") recTs));
 
     fun plus (t1, t2) = Const ("op +", [HOLogic.natT, HOLogic.natT] ---> HOLogic.natT) $ t1 $ t2;
 
@@ -456,7 +453,7 @@ fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
     val size_thms = map (fn t => prove_goalw_cterm rewrites
       (cterm_of (Theory.sign_of thy') t) (fn _ => [rtac refl 1]))
-        (DatatypeProp.make_size new_type_names descr sorts thy')
+        (DatatypeProp.make_size descr sorts thy')
 
   in
     thy' |> Theory.add_path big_name |>

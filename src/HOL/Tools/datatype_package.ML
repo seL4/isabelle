@@ -456,10 +456,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
         (1 upto (length descr')));
 
-    val big_size_name = space_implode "_" new_type_names ^ "_size";
-    val size_names = if length (flat (tl descr)) = 1 then [big_size_name] else
-      map (fn i => big_size_name ^ "_" ^ string_of_int i)
-        (1 upto length (flat (tl descr)));
+    val size_names = DatatypeProp.indexify_names
+      (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs)));
 
     val freeT = TFree (variant used "'t", HOLogic.termS);
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
@@ -517,7 +515,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     (**** introduction of axioms ****)
 
     val rec_axs = DatatypeProp.make_primrecs new_type_names descr sorts thy2;
-    val size_axs = if no_size then [] else DatatypeProp.make_size new_type_names descr sorts thy2;
+    val size_axs = if no_size then [] else DatatypeProp.make_size descr sorts thy2;
 
     val (thy3, (([induct], [rec_thms]), inject)) =
       thy2 |>

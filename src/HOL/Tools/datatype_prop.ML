@@ -31,7 +31,7 @@ sig
       theory -> (term * term) list
   val make_case_trrules : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> ast Syntax.trrule list
-  val make_size : string list -> (int * (string * DatatypeAux.dtyp list *
+  val make_size : (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       theory -> term list
   val make_weak_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
@@ -393,18 +393,15 @@ fun make_case_trrules new_type_names descr =
 
 (******************************* size functions *******************************)
 
-fun make_size new_type_names descr sorts thy =
+fun make_size descr sorts thy =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
-    val big_size_name = space_implode "_" new_type_names ^ "_size";
     val size_name = Sign.intern_const (Theory.sign_of (theory "Arith")) "size";
     val size_names = replicate (length (hd descr)) size_name @
-      map (Sign.intern_const (Theory.sign_of thy))
-        (if length (flat (tl descr)) = 1 then [big_size_name] else
-          map (fn i => big_size_name ^ "_" ^ string_of_int i)
-            (1 upto length (flat (tl descr))));
+      map (Sign.intern_const (Theory.sign_of thy)) (indexify_names
+        (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs))));
     val size_consts = map (fn (s, T) =>
       Const (s, T --> HOLogic.natT)) (size_names ~~ recTs);
 
