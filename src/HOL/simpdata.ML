@@ -72,16 +72,23 @@ local
 
 in
 
-  fun meta_eq r = r RS eq_reflection;
+(*Make meta-equalities.  The operator below is Trueprop*)
 
-  fun mk_meta_eq th = case concl_of th of
+  fun mk_meta_eq r = r RS eq_reflection;
+
+  fun mk_eq th = case concl_of th of
           Const("==",_)$_$_       => th
-      |   _$(Const("op =",_)$_$_) => meta_eq th
+      |   _$(Const("op =",_)$_$_) => mk_meta_eq th
       |   _$(Const("Not",_)$_)    => th RS not_P_imp_P_eq_False
       |   _                       => th RS P_imp_P_eq_True;
   (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
 
-  fun mk_meta_eq_True r = Some(r RS meta_eq_to_obj_eq RS P_imp_P_eq_True);
+  fun mk_eq_True r = Some(r RS meta_eq_to_obj_eq RS P_imp_P_eq_True);
+
+  fun mk_meta_cong rl =
+    standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
+    handle THM _ =>
+    error("Premises and conclusion of congruence rules must be =-equalities");
 
 
 val simp_thms = map prover
@@ -106,20 +113,16 @@ val simp_thms = map prover
    "(? x. x=t & P(x)) = P(t)",		(*essential for termination!!*)
    "(! x. t=x --> P(x)) = P(t)" ];      (*covers a stray case*)
 
-(*Add congruence rules for = (instead of ==) *)
+(* Add congruence rules for = (instead of ==) *)
+
+(* ###FIXME: Move to simplifier, 
+   taking mk_meta_cong as input, eliminating addeqcongs and deleqcongs *)
 infix 4 addcongs delcongs;
-
-fun mk_meta_cong rl =
-  standard(meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
-  handle THM _ =>
-  error("Premises and conclusion of congruence rules must be =-equalities");
-
 fun ss addcongs congs = ss addeqcongs (map mk_meta_cong congs);
-
 fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
-
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
+
 
 val imp_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
@@ -328,7 +331,7 @@ end;
 structure SplitterData =
   struct
   structure Simplifier = Simplifier
-  val mk_meta_eq     = mk_meta_eq
+  val mk_eq          = mk_eq
   val meta_eq_to_iff = meta_eq_to_obj_eq
   val iffD           = iffD2
   val disjE          = disjE
@@ -382,10 +385,10 @@ val mksimps_pairs =
    ("All", [spec]), ("True", []), ("False", []),
    ("If", [if_bool_eq_conj RS iffD1])];
 
-(* FIXME: move to Provers/simplifier.ML
+(* ###FIXME: move to Provers/simplifier.ML
 val mk_atomize:      (string * thm list) list -> thm -> thm list
 *)
-(* FIXME: move to Provers/simplifier.ML*)
+(* ###FIXME: move to Provers/simplifier.ML *)
 fun mk_atomize pairs =
   let fun atoms th =
         (case concl_of th of
@@ -399,7 +402,7 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs = (map mk_meta_eq o mk_atomize pairs o gen_all);
+fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
 
 fun unsafe_solver prems = FIRST'[resolve_tac (reflexive_thm::TrueI::refl::prems),
 				 atac, etac FalseE];
@@ -411,7 +414,7 @@ val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 			    setSSolver   safe_solver
 			    setSolver  unsafe_solver
 			    setmksimps (mksimps mksimps_pairs)
-			    setmkeqTrue mk_meta_eq_True;
+			    setmkeqTrue mk_eq_True;
 
 val HOL_ss = 
     HOL_basic_ss addsimps 
@@ -454,10 +457,9 @@ simpset_ref() := HOL_ss;
 (*** integration of simplifier with classical reasoner ***)
 
 structure Clasimp = ClasimpFun
- (structure Simplifier = Simplifier and Classical = Classical and Blast = Blast
-  val op addcongs = op addcongs and op delcongs = op delcongs
-  and op addSaltern = op addSaltern and op addbefore = op addbefore);
-
+ (structure Simplifier = Simplifier 
+        and Classical  = Classical 
+        and Blast      = Blast);
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);
