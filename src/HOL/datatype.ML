@@ -713,6 +713,7 @@ fun build_case_cong sign case_rewrites =
   
 (*---------------------------------------------------------------------------
  * Proves the result of "build_case_cong". 
+ * This one solves it a disjunct at a time, and builds the ss only once.
  *---------------------------------------------------------------------------*)
 fun prove_case_cong nchotomy case_rewrites ctm =
  let val {sign,t,...} = rep_cterm ctm
@@ -720,11 +721,13 @@ fun prove_case_cong nchotomy case_rewrites ctm =
      val (Const("Trueprop",_) $ (Const("op =",_) $ _ $ Ma)) = tm
      val (Free(str,_)) = Ma
      val thm = prove_goalw_cterm[] ctm
-              (fn prems =>
-               [simp_tac (HOL_ss addsimps [hd prems]) 1,
-                cut_inst_tac [("x",str)] (nchotomy RS spec) 1,
-                REPEAT (SOMEGOAL (etac disjE ORELSE' etac exE)),
-                ALLGOALS(asm_simp_tac(HOL_ss addsimps (prems@case_rewrites)))])
+      (fn prems => 
+        let val simplify = asm_simp_tac(HOL_ss addsimps (prems@case_rewrites))
+        in [simp_tac (HOL_ss addsimps [hd prems]) 1,
+            cut_inst_tac [("x",str)] (nchotomy RS spec) 1,
+            REPEAT (etac disjE 1 THEN REPEAT (etac exE 1) THEN simplify 1),
+            REPEAT (etac exE 1) THEN simplify 1 (* Get last disjunct *)]
+        end) 
  in standard (thm RS eq_reflection)
  end
  handle _ => raise DTYPE_ERR{func="prove_case_cong",mesg="failed"};
