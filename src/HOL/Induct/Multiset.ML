@@ -82,9 +82,11 @@ Goalw [union_def]
 by (simp_tac (simpset() addsimps add_ac) 1);
 qed "union_assoc";
 
-qed_goal "union_lcomm" thy "M+(N+K) = N+((M+K)::'a multiset)"
- (fn _ => [rtac (union_commute RS trans) 1, rtac (union_assoc RS trans) 1,
-           rtac (union_commute RS arg_cong) 1]);
+Goal "M+(N+K) = N+((M+K)::'a multiset)";
+by (rtac (union_commute RS trans) 1);
+by (rtac (union_assoc RS trans) 1);
+by (rtac (union_commute RS arg_cong) 1);
+qed "union_lcomm";
 
 bind_thms ("union_ac", [union_assoc, union_commute, union_lcomm]);
 

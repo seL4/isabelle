@@ -275,10 +275,11 @@ by (rtac bexI 1);
 by (auto_tac (claset() addSIs [exI],simpset() addsimps prat_add_ac));
 qed "preal_add_assoc";
 
-qed_goal "preal_add_left_commute" thy
-    "(z1::preal) + (z2 + z3) = z2 + (z1 + z3)"
- (fn _ => [rtac (preal_add_commute RS trans) 1, rtac (preal_add_assoc RS trans) 1,
-           rtac (preal_add_commute RS arg_cong) 1]);
+Goal "(z1::preal) + (z2 + z3) = z2 + (z1 + z3)";
+by (rtac (preal_add_commute RS trans) 1);
+by (rtac (preal_add_assoc RS trans) 1);
+by (rtac (preal_add_commute RS arg_cong) 1);
+qed "preal_add_left_commute";
 
 (* Positive Reals addition is an AC operator *)
 bind_thms ("preal_add_ac", [preal_add_assoc, preal_add_commute, preal_add_left_commute]);
@@ -360,11 +361,11 @@ by (rtac bexI 1);
 by (auto_tac (claset() addSIs [exI],simpset() addsimps prat_mult_ac));
 qed "preal_mult_assoc";
 
-qed_goal "preal_mult_left_commute" thy
-    "(z1::preal) * (z2 * z3) = z2 * (z1 * z3)"
- (fn _ => [rtac (preal_mult_commute RS trans) 1, 
-           rtac (preal_mult_assoc RS trans) 1,
-           rtac (preal_mult_commute RS arg_cong) 1]);
+Goal "(z1::preal) * (z2 * z3) = z2 * (z1 * z3)";
+by (rtac (preal_mult_commute RS trans) 1);
+by (rtac (preal_mult_assoc RS trans) 1);
+by (rtac (preal_mult_commute RS arg_cong) 1);
+qed "preal_mult_left_commute";
 
 (* Positive Reals multiplication is an AC operator *)
 bind_thms ("preal_mult_ac", [preal_mult_assoc, 
@@ -397,12 +398,13 @@ qed "preal_mult_1_right";
 
 (** Lemmas **)
 
-qed_goal "preal_add_assoc_cong" thy
-    "!!z. (z::preal) + v = z' + v' ==> z + (v + w) = z' + (v' + w)"
- (fn _ => [(asm_simp_tac (simpset() addsimps [preal_add_assoc RS sym]) 1)]);
+Goal "(z::preal) + v = z' + v' ==> z + (v + w) = z' + (v' + w)";
+by (asm_simp_tac (simpset() addsimps [preal_add_assoc RS sym]) 1);
+qed "preal_add_assoc_cong";
 
-qed_goal "preal_add_assoc_swap" thy "(z::preal) + (v + w) = v + (z + w)"
- (fn _ => [(REPEAT (ares_tac [preal_add_commute RS preal_add_assoc_cong] 1))]);
+Goal "(z::preal) + (v + w) = v + (z + w)";
+by (REPEAT (ares_tac [preal_add_commute RS preal_add_assoc_cong] 1));
+qed "preal_add_assoc_swap";
 
 (** Distribution of multiplication across addition **)
 (** lemmas for the proof **)

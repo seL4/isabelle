@@ -434,12 +434,13 @@ qed "real_minus_mult_commute";
 
 (** Lemmas **)
 
-qed_goal "real_add_assoc_cong" thy
-    "!!z. (z::real) + v = z' + v' ==> z + (v + w) = z' + (v' + w)"
- (fn _ => [(asm_simp_tac (simpset() addsimps [real_add_assoc RS sym]) 1)]);
+Goal "(z::real) + v = z' + v' ==> z + (v + w) = z' + (v' + w)";
+by (asm_simp_tac (simpset() addsimps [real_add_assoc RS sym]) 1);
+qed "real_add_assoc_cong";
 
-qed_goal "real_add_assoc_swap" thy "(z::real) + (v + w) = v + (z + w)"
- (fn _ => [(REPEAT (ares_tac [real_add_commute RS real_add_assoc_cong] 1))]);
+Goal "(z::real) + (v + w) = v + (z + w)";
+by (REPEAT (ares_tac [real_add_commute RS real_add_assoc_cong] 1));
+qed "real_add_assoc_swap";
 
 Goal "((z1::real) + z2) * w = (z1 * w) + (z2 * w)";
 by (res_inst_tac [("z","z1")] eq_Abs_real 1);
