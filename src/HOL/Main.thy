@@ -88,6 +88,7 @@ fun gen_fun_type _ G i =
 setup eq_codegen_setup
 
 lemma [code]: "((n::nat) < 0) = False" by simp
-lemmas [code] = less_Suc_eq imp_conv_disj
+lemma [code]: "(0 < Suc n) = True" by simp
+lemmas [code] = Suc_less_eq imp_conv_disj
 
 end
