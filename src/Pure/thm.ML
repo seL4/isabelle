@@ -494,7 +494,8 @@ fun axioms_of thy =
 
 (* name and tags -- make proof objects more readable *)
 
-fun get_name_tags (Thm {prop, der = (_, prf), ...}) = Pt.get_name_tags prop prf;
+fun get_name_tags (Thm {hyps, prop, der = (_, prf), ...}) =
+  Pt.get_name_tags hyps prop prf;
 
 fun put_name_tags x (Thm {sign_ref, der = (ora, prf), maxidx, shyps, hyps, prop}) =
   Thm {sign_ref = sign_ref,

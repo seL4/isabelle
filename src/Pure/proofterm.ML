@@ -97,7 +97,7 @@ sig
   val oracle_proof : string -> term -> proof
   val thm_proof : Sign.sg -> string * (string * string list) list ->
     term list -> term -> proof -> proof
-  val get_name_tags : term -> proof -> string * (string * string list) list
+  val get_name_tags : term list -> term -> proof -> string * (string * string list) list
 
   (** rewriting on proof terms **)
   val add_prf_rrules : (proof * proof) list -> theory -> theory
@@ -886,7 +886,7 @@ exception PMatch;
 
 (** see pattern.ML **)
 
-fun flt i = filter (fn n => n < i);
+fun flt (i: int) = filter (fn n => n < i);
 
 fun fomatch Ts tymatch j =
   let
@@ -1108,15 +1108,14 @@ fun add_prf_rprocs ps thy =
 
 fun thm_proof sign (name, tags) hyps prop prf =
   let
-    val hyps' = gen_distinct op aconv hyps;
-    val prop = Logic.list_implies (hyps', prop);
+    val prop = Logic.list_implies (hyps, prop);
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
         if ixn mem nvs then Some v else None) (vars_of prop) @
       map Some (sort (make_ord atless) (term_frees prop));
     val opt_prf = if ! proofs = 2 then
         #4 (shrink [] 0 (rewrite_prf fst (ProofData.get_sg sign)
-          (foldr (uncurry implies_intr_proof) (hyps', prf))))
+          (foldr (uncurry implies_intr_proof) (hyps, prf))))
       else MinProof (mk_min_proof ([], prf));
     val head = (case strip_combt (fst (strip_combP prf)) of
         (PThm ((old_name, _), prf', prop', None), args') =>
@@ -1127,15 +1126,18 @@ fun thm_proof sign (name, tags) hyps prop prf =
             PThm ((name, tags), opt_prf, prop, None)
       | _ => PThm ((name, tags), opt_prf, prop, None))
   in
-    proof_combP (proof_combt' (head, args), map Hyp hyps')
+    proof_combP (proof_combt' (head, args), map Hyp hyps)
   end;
 
-fun get_name_tags prop prf = (case strip_combt (fst (strip_combP prf)) of
+fun get_name_tags hyps prop prf =
+  let val prop = Logic.list_implies (hyps, prop) in
+    (case strip_combt (fst (strip_combP prf)) of
       (PThm ((name, tags), _, prop', _), _) =>
         if prop=prop' then (name, tags) else ("", [])
     | (PAxm (name, prop', _), _) =>
         if prop=prop' then (name, []) else ("", [])
-    | _ => ("", []));
+    | _ => ("", []))
+  end;
 
 end;
 
