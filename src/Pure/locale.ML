@@ -160,7 +160,9 @@ fun lookup_locale thy xname =
 
 (* access scope *)
 
-val get_scope_sg = ! o #scope o LocalesData.get_sg;
+fun get_scope_sg sg =
+  if Sign.eq_sg (sg, Theory.sign_of ProtoPure.thy) then []
+  else ! (#scope (LocalesData.get_sg sg));
 
 val get_scope = get_scope_sg o Theory.sign_of;
 
