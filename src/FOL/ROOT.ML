@@ -21,7 +21,6 @@ use "~~/src/Provers/blast.ML";
 use "~~/src/Provers/clasimp.ML";
 use "~~/src/Provers/quantifier1.ML";
 
-use_thy "IFOL";
 use_thy "FOL";
 
 print_depth 8;
