@@ -224,11 +224,9 @@ lemma wset_mem [rule_format]:
   "p \<in> zprime -->
     a < p - 1 --> 1 < b --> b \<le> a --> b \<in> wset (a, p)"
   apply (induct a p rule: wset.induct, auto)
-   apply (subgoal_tac "b = a")
-    apply (rule_tac [2] zle_anti_sym)
-     apply (rule_tac [4] wset_subset)
-      apply (simp (no_asm_simp))
-     apply auto
+  apply (rule_tac wset_subset)
+  apply (simp (no_asm_simp))
+  apply auto
   done
 
 lemma wset_mem_inv_mem [rule_format]:

@@ -739,9 +739,8 @@ apply (assumption+)
 apply (rule partition [THEN iffD2])
 apply (frule partition [THEN iffD1])
 apply (auto intro: partition_lt_gen)
-apply (drule_tac n = n in partition_lt_gen)
-apply (assumption, arith, blast)
-apply (drule partition_lt_cancel, auto)
+ apply (drule (1) partition_lt_cancel, arith)
+apply (drule (1) partition_lt_cancel, arith)
 done
 
 lemma fine_left1:

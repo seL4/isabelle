@@ -1434,8 +1434,9 @@ proof -
       apply (auto simp add: 
 	ring_eq_simps 
 	iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
-	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id] 
-	order_antisym mult_pos_neg_le[of a b] mult_pos_neg2_le[of b a])
+	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id])
+	apply(drule (1) mult_pos_neg_le[of a b], simp)
+	apply(drule (1) mult_pos_neg2_le[of b a], simp)
       done
   next
     assume "~(0 <= a*b)"
@@ -1444,7 +1445,9 @@ proof -
       apply (simp_all add: mulprts abs_prts)
       apply (insert prems)
       apply (auto simp add: ring_eq_simps iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
-	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id] order_antisym mult_pos_le[of a b] mult_neg_le[of a b])
+	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id])
+      apply(drule (1) mult_pos_le[of a b],simp)
+      apply(drule (1) mult_neg_le[of a b],simp)
       done
   qed
 qed

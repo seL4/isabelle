@@ -92,10 +92,9 @@ lemma funprod_zdvd [rule_format]:
     "k \<le> i --> i \<le> k + l --> mf i dvd funprod mf k l"
   apply (induct l)
    apply auto
-    apply (rule_tac [2] zdvd_zmult2)
-    apply (rule_tac [3] zdvd_zmult)
-    apply (subgoal_tac "i = k")
-    apply (subgoal_tac [3] "i = Suc (k + n)")
+    apply (rule_tac [1] zdvd_zmult2)
+    apply (rule_tac [2] zdvd_zmult)
+    apply (subgoal_tac "i = Suc (k + n)")
     apply (simp_all (no_asm_simp))
   done
 

@@ -102,11 +102,6 @@ lemma Bnor_mem_zg [rule_format]: "b \<in> BnorRset (a, m) --> 0 < b"
 lemma Bnor_mem_if [rule_format]:
     "zgcd (b, m) = 1 --> 0 < b --> b \<le> a --> b \<in> BnorRset (a, m)"
   apply (induct a m rule: BnorRset.induct, auto)
-   apply (case_tac "a = b")
-    prefer 2
-    apply (simp add: order_less_le)
-   apply (simp (no_asm_simp))
-   prefer 2
    apply (subst BnorRset.simps)
    defer
    apply (subst BnorRset.simps)

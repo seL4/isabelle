@@ -8,6 +8,7 @@ header {* The basis of Higher-Order Logic *}
 theory HOL
 imports CPure
 files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+      ("antisym_setup.ML")
 begin
 
 subsection {* Primitive logic *}
@@ -737,6 +738,8 @@ lemma order_less_asym: "x < (y::'a::order) ==> (~P ==> y < x) ==> P"
 lemma order_eq_iff: "!!x::'a::order. (x = y) = (x \<le> y & y \<le> x)"  
 by (blast intro: order_antisym)
 
+lemma order_antisym_conv: "(y::'a::order) <= x ==> (x <= y) = (x = y)"
+by(blast intro:order_antisym)
 
 text {* Transitivity. *}
 
@@ -848,6 +851,17 @@ by (cut_tac x = x and y = y in linorder_less_linear, auto)
 lemma linorder_neqE: "x ~= (y::'a::linorder) ==> (x < y ==> R) ==> (y < x ==> R) ==> R"
 by (simp add: linorder_neq_iff, blast)
 
+lemma linorder_antisym_conv1: "~ (x::'a::linorder) < y ==> (x <= y) = (x = y)"
+by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
+
+lemma linorder_antisym_conv2: "(x::'a::linorder) <= y ==> (~ x < y) = (x = y)"
+by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
+
+lemma linorder_antisym_conv3: "~ (y::'a::linorder) < x ==> (~ x < y) = (x = y)"
+by(blast intro:order_antisym dest:linorder_not_less[THEN iffD1])
+
+use "antisym_setup.ML";
+setup antisym_setup
 
 subsubsection "Min and max on (linear) orders"
 
@@ -927,8 +941,6 @@ done
 
 lemma max_commute: "!!x::'a::linorder. max x y = max y x"
 apply(simp add:max_def)
-apply(rule conjI)
-apply(blast intro:order_antisym)
 apply(simp add:linorder_not_le)
 apply(blast dest: order_less_trans)
 done
@@ -946,8 +958,6 @@ done
 
 lemma min_commute: "!!x::'a::linorder. min x y = min y x"
 apply(simp add:min_def)
-apply(rule conjI)
-apply(blast intro:order_antisym)
 apply(simp add:linorder_not_le)
 apply(blast dest: order_less_trans)
 done

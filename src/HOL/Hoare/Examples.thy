@@ -32,9 +32,6 @@ lemma "VARS M N P :: int
 apply vcg_simp
  apply (simp add:int_distrib)
 apply clarsimp
-apply(subgoal_tac "M=0")
- prefer 2 apply simp
-apply clarsimp
 apply(rule conjI)
  apply clarsimp
 apply clarsimp

@@ -661,10 +661,7 @@ lemma join_eq_if: "join a (-a) = (if a < 0 then -a else (a::'a::{lordered_ab_gro
 proof -
   note b = add_le_cancel_right[of a a "-a",symmetric,simplified]
   have c: "a + a = 0 \<Longrightarrow> -a = a" by (rule add_right_imp_eq[of _ a], simp)
-  show ?thesis
-    apply (auto simp add: join_max max_def b linorder_not_less)
-    apply (drule order_antisym, auto)
-    done
+  show ?thesis by (auto simp add: join_max max_def b linorder_not_less)
 qed
 
 lemma abs_if_lattice: "\<bar>a\<bar> = (if a < 0 then -a else (a::'a::{lordered_ab_group_abs, linorder}))"

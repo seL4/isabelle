@@ -100,7 +100,7 @@ by (simp_tac
     (simpset() addsimps [unifyRel_def, lex_prod_def,
 			measure_def, inv_image_def]) 1);
 by (simp_tac (simpset() addsimps [finite_psubset_def, finite_vars_of,
-				 psubset_def, set_eq_subset]) 1);
+				 psubset_def]) 1);
 by (Blast_tac 1);
 (** LEVEL 9 **)
 (*Final case, also finite_psubset*)
@@ -112,7 +112,7 @@ by (cut_inst_tac [("s","[(x,M)]"), ("v", "x"), ("t","N1")] Var_elim 3);
 by (ALLGOALS (asm_simp_tac(simpset() addsimps [srange_iff, vars_iff_occseq])));
 by (REPEAT_FIRST (resolve_tac [conjI, disjI1, psubsetI]));
 by (ALLGOALS (asm_full_simp_tac 
-	      (simpset() addsimps [srange_iff, set_eq_subset]))); 
+	      (simpset() addsimps [srange_iff]))); 
 by (ALLGOALS
     (fast_tac (claset() addEs [Var_intro RS disjE]
 	               addss (simpset() addsimps [srange_iff]))));

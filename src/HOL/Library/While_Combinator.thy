@@ -143,6 +143,13 @@ text {*
  An example of using the @{term while} combinator.
 *}
 
+text{* Cannot use @{thm[source]set_eq_subset} because it leads to
+looping because the antisymmetry simproc turns the subset relationship
+back into equality. *}
+
+lemma seteq: "(A = B) = ((!a : A. a:B) & (!b:B. b:A))"
+by blast
+
 theorem "P (lfp (\<lambda>N::int set. {0} \<union> {(n + 2) mod 6 | n. n \<in> N})) =
   P {0, 4, 2}"
 proof -
@@ -156,7 +163,7 @@ proof -
      apply simp
     apply (simp add: aux set_eq_subset)
     txt {* The fixpoint computation is performed purely by rewriting: *}
-    apply (simp add: while_unfold aux set_eq_subset del: subset_empty)
+    apply (simp add: while_unfold aux seteq del: subset_empty)
     done
 qed
 

@@ -482,7 +482,7 @@ fun arith_method prems =
 end;
 
 (* antisymmetry:
-   combines x <= y (or ~(y < x)) and y <= x (or ~(x < y)) into x = y *)
+   combines x <= y (or ~(y < x)) and y <= x (or ~(x < y)) into x = y
 
 local
 val antisym = mk_meta_eq order_antisym
@@ -523,13 +523,12 @@ fun antisym_eq prems thm =
   end
   handle THM _ => []
 end;
-
+*)
 
 (* theory setup *)
 
 val arith_setup =
- [Simplifier.change_simpset_of (op setmksimps2) antisym_eq,
-  Simplifier.change_simpset_of (op addsimprocs) nat_cancel_sums] @
+ [Simplifier.change_simpset_of (op addsimprocs) nat_cancel_sums] @
   init_lin_arith_data @
   [Simplifier.change_simpset_of (op addSolver)
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac),

@@ -128,7 +128,6 @@ apply safe
 apply(simp_all add:nth_list_update)
   apply (erule less_SucE)
    apply simp+
- apply(drule le_imp_less_or_eq)
  apply force
 apply force
 done

@@ -496,8 +496,6 @@ qed
 lemma foldseq_tail: "M <= N \<Longrightarrow> foldseq f S N = foldseq f (% k. (if k < M then (S k) else (foldseq f (% k. S(k+M)) (N-M)))) M" (is "?p \<Longrightarrow> ?concl")
 proof -
   have suc: "!! a b. \<lbrakk>a <= Suc b; a \<noteq> Suc b\<rbrakk> \<Longrightarrow> a <= b" by arith
-  have suc2: "!! a b. \<lbrakk>a <= Suc b; ~ (a <= b)\<rbrakk> \<Longrightarrow> a = (Suc b)" by arith
-  have eq: "!! (a::nat) b. \<lbrakk>~(a < b); a <= b\<rbrakk> \<Longrightarrow> a = b" by arith
   have a:"!! a b c . a = b \<Longrightarrow> f c a = f c b" by blast
   have "!! n. ! m s. m <= n \<longrightarrow> foldseq f s n = foldseq f (% k. (if k < m then (s k) else (foldseq f (% k. s(k+m)) (n-m)))) m"
     apply (induct_tac n)
@@ -508,8 +506,7 @@ proof -
     apply (simp)
     apply (rule a)
     apply (rule foldseq_significant_positions)
-    apply (simp, auto)
-    apply (drule eq, simp+)
+    apply (auto)
     apply (drule suc, simp+)
     proof -
       fix na m s
@@ -540,17 +537,12 @@ lemma foldseq_zerotail:
   and nm: "n <= m"
   shows
   "foldseq f s n = foldseq f s m"
-proof -
-  have a: "!! a b. ~(a < b) \<Longrightarrow> a <= b \<Longrightarrow> (a::nat) = b" by simp
-  show "foldseq f s n = foldseq f s m"
     apply (simp add: foldseq_tail[OF nm, of f s])
     apply (rule foldseq_significant_positions)
     apply (auto)
-    apply (drule a)
-    apply (simp+)
     apply (subst foldseq_zero)
     by (simp add: fz sz)+
-qed
+
 
 lemma foldseq_zerotail2:
   assumes "! x. f x 0 = x"
@@ -560,7 +552,6 @@ lemma foldseq_zerotail2:
   "foldseq f s n = foldseq f s m" (is ?concl)
 proof -
   have "f 0 0 = 0" by (simp add: prems)
-  have a:"!! (i::nat) m. ~(i < m) \<Longrightarrow> i <= m \<Longrightarrow> i = m" by arith
   have b:"!! m n. n <= m \<Longrightarrow> m \<noteq> n \<Longrightarrow> ? k. m-n = Suc k" by arith
   have c: "0 <= m" by simp
   have d: "!! k. k \<noteq> 0 \<Longrightarrow> ? l. k = Suc l" by arith
@@ -569,11 +560,9 @@ proof -
     apply (rule foldseq_significant_positions)
     apply (auto)
     apply (case_tac "m=n")
-    apply (drule a, simp+)
+    apply (simp+)
     apply (drule b[OF nm])
     apply (auto)
-    apply (drule a)
-    apply simp+
     apply (case_tac "k=0")
     apply (simp add: prems)
     apply (drule d)
@@ -674,7 +663,7 @@ lemma mult_matrix_nm:
   assumes prems: "ncols A <= n" "nrows B <= n" "ncols A <= m" "nrows B <= m" "fadd 0 0 = 0" "fmul 0 0 = 0"
   shows "mult_matrix_n n fmul fadd A B = mult_matrix_n m fmul fadd A B"
 proof -
-  from prems have "mult_matrix_n n fmul fadd A B = mult_matrix fmul fadd A B" by (simp add: mult_matrix_n)
+  from prems have "mult_matrix_n n fmul fadd A B = mult_matrix fmul fadd A B" by (simp add: mult_matrix_n[where n = n])
   also from prems have "\<dots> = mult_matrix_n m fmul fadd A B" by (simp add: mult_matrix_n[THEN sym])
   finally show "mult_matrix_n n fmul fadd A B = mult_matrix_n m fmul fadd A B" by simp
 qed

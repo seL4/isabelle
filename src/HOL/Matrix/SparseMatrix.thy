@@ -188,8 +188,6 @@ lemma sparse_row_vector_addmult_spvec: "sparse_row_vector (addmult_spvec (y::'a:
   (sparse_row_vector a) + (scalar_mult y (sparse_row_vector b))"
   apply (rule addmult_spvec.induct[of _ y])
   apply (simp add: scalar_mult_add smult_spvec_cons sparse_row_vector_smult singleton_matrix_add)+
-  apply (case_tac "a=aa")
-  apply (auto)
   done
 
 lemma sorted_smult_spvec[rule_format]: "sorted_spvec a \<Longrightarrow> sorted_spvec (smult_spvec y a)"
@@ -403,8 +401,6 @@ lemma add_spvec_empty2[simp]: "add_spvec (a, []) = a"
 lemma sparse_row_vector_add: "sparse_row_vector (add_spvec (a,b)) = (sparse_row_vector a) + (sparse_row_vector b)"
   apply (rule add_spvec.induct[of _ a b])
   apply (simp_all add: singleton_matrix_add)
-  apply (case_tac "a = aa")
-  apply (simp_all)
   done
 
 recdef add_spmat "measure (% (A,B). (length A)+(length B))"
@@ -421,7 +417,6 @@ recdef add_spmat "measure (% (A,B). (length A)+(length B))"
 lemma sparse_row_add_spmat: "sparse_row_matrix (add_spmat (A, B)) = (sparse_row_matrix A) + (sparse_row_matrix B)"
   apply (rule add_spmat.induct)
   apply (auto simp add: sparse_row_matrix_cons sparse_row_vector_add move_matrix_add)
-  apply (case_tac "a=aa", simp, simp)+
   done
 
 lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr, brr) = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
