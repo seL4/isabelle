@@ -251,8 +251,9 @@ apply(blast intro:converse_rtrancl_into_rtrancl
 done
 
 
-lemma "\<lbrakk> acyclic r; !x y. (x,y) \<in> r \<longrightarrow> f x = y; is_lub (r\<^sup>*) x y u \<rbrakk> \<Longrightarrow>
-       exec_lub r f x y = u";
+lemma exec_lub_conv:
+  "\<lbrakk> acyclic r; !x y. (x,y) \<in> r \<longrightarrow> f x = y; is_lub (r\<^sup>*) x y u \<rbrakk> \<Longrightarrow>
+  exec_lub r f x y = u";
 apply(unfold exec_lub_def)
 apply(rule_tac P = "\<lambda>z. (y,z) \<in> r\<^sup>* \<and> (z,u) \<in> r\<^sup>*" and
                r = "(r \<inter> {(a,b). (y,a) \<in> r\<^sup>* \<and> (b,u) \<in> r\<^sup>*})^-1" in while_rule)
@@ -284,5 +285,10 @@ apply(erule_tac z = u in converse_rtranclE)
  apply(blast dest: is_lubD is_ubD)
 apply(blast dest:rtrancl_into_rtrancl)
 done
+
+lemma is_lub_exec_lub:
+  "\<lbrakk> single_valued r; acyclic r; (x,u):r^*; (y,u):r^*; !x y. (x,y) \<in> r \<longrightarrow> f x = y \<rbrakk>
+  \<Longrightarrow> is_lub (r^* ) x y (exec_lub r f x y)"
+  by (fastsimp dest: single_valued_has_lubs simp add: exec_lub_conv)
 
 end

@@ -9,6 +9,14 @@ header "The Java Type System as Semilattice"
 theory JType = WellForm + Err:
 
 constdefs
+  super :: "'a prog \<Rightarrow> cname \<Rightarrow> cname"
+  "super G C == fst (the (class G C))"
+
+lemma superI:
+  "(C,D) \<in> subcls1 G \<Longrightarrow> super G C = D"
+  by (unfold super_def) (auto dest: subcls1D)
+
+constdefs
   is_ref :: "ty => bool"
   "is_ref T == case T of PrimT t => False | RefT r => True"
 
@@ -19,7 +27,7 @@ constdefs
            | RefT R1 => (case T2 of PrimT P => Err | RefT R2 => 
   (case R1 of NullT => (case R2 of NullT => OK NT | ClassT C => OK (Class C))
             | ClassT C => (case R2 of NullT => OK (Class C) 
-                           | ClassT D => OK (Class (some_lub ((subcls1 G)^* ) C D)))))"
+                           | ClassT D => OK (Class (exec_lub (subcls1 G) (super G) C D)))))"
 
   subtype :: "'c prog => ty => ty => bool"
   "subtype G T1 T2 == G \<turnstile> T1 \<preceq> T2"
@@ -27,6 +35,7 @@ constdefs
   is_ty :: "'c prog => ty => bool"
   "is_ty G T == case T of PrimT P => True | RefT R =>
                (case R of NullT => True | ClassT C => (C,Object):(subcls1 G)^*)"
+
 
 translations
   "types G" == "Collect (is_type G)"
@@ -156,8 +165,8 @@ lemma closed_err_types:
   apply (auto split: err.split)
   apply (drule is_tyI, assumption)
   apply (auto simp add: is_ty_def is_type_conv simp del: is_type.simps 
-              split: ty.split ref_ty.split)
-  apply (blast dest!: is_lub_some_lub is_lubD is_ubD intro!: is_ubI)
+              split: ty.split ref_ty.split)  
+  apply (blast dest!: is_lub_exec_lub is_lubD is_ubD intro!: is_ubI superI)
   done
 
 
@@ -181,10 +190,15 @@ proof -
     obtain u where
       "is_lub ((subcls1 G)^* ) c1 c2 u"      
       by (blast dest: single_valued_has_lubs)
-    with acyclic
-    have "G \<turnstile> c1 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2 \<and>
-          G \<turnstile> c2 \<preceq>C some_lub ((subcls1 G)^* ) c1 c2"
-      by (simp add: some_lub_conv) (blast dest: is_lubD is_ubD)
+    moreover
+    note acyclic
+    moreover
+    have "\<forall>x y. (x, y) \<in> subcls1 G \<longrightarrow> super G x = y"
+      by (blast intro: superI)
+    ultimately
+    have "G \<turnstile> c1 \<preceq>C exec_lub (subcls1 G) (super G) c1 c2 \<and>
+          G \<turnstile> c2 \<preceq>C exec_lub (subcls1 G) (super G) c1 c2"
+      by (simp add: exec_lub_conv) (blast dest: is_lubD is_ubD)
   } note this [simp]
       
   assume "is_type G t1" "is_type G t2" "sup G t1 t2 = OK s"
@@ -218,14 +232,14 @@ proof -
       lub: "is_lub ((subcls1 G)^* ) c1 c2 u"
       by (blast dest: single_valued_has_lubs)   
     with acyclic
-    have "some_lub ((subcls1 G)^* ) c1 c2 = u"
-      by (rule some_lub_conv)
+    have "exec_lub (subcls1 G) (super G) c1 c2 = u"
+      by (blast intro: superI exec_lub_conv)
     moreover
     from lub le
     have "G \<turnstile> u \<preceq>C D" 
       by (simp add: is_lub_def is_ub_def)
     ultimately     
-    have "G \<turnstile> some_lub ((subcls1 G)\<^sup>*) c1 c2 \<preceq>C D"
+    have "G \<turnstile> exec_lub (subcls1 G) (super G) c1 c2 \<preceq>C D"
       by blast
   } note this [intro]
 
