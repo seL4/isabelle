@@ -221,7 +221,7 @@ gzip "${DISTNAME}_pdf.tar"
 mv "$DISTNAME" "${DISTNAME}-old"
 mkdir "$DISTNAME"
 
-mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" "$DISTNAME"
+mv "${DISTNAME}-old/README.html" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" "$DISTNAME"
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf "$DISTNAME/doc"
 
