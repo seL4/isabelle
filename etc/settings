@@ -225,3 +225,6 @@ XSYMBOL_HOME=$(choosefrom \
 
 # Einhoven model checker
 #EINDHOVEN_HOME=/usr/local/bin
+
+# ZChaff SAT solver
+#ZCHAFF_HOME=/usr/local/bin
