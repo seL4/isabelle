@@ -648,7 +648,7 @@ fun print_locale thy raw_expr =
       | prt_elem (Defines defs) = items "defines" (map prt_def defs)
       | prt_elem (Notes facts) = items "notes" (map prt_fact facts);
   in
-    Pretty.big_list "locale elements:" (map (Pretty.chunks o prt_elem) (flat (map #2 elemss)))
+    Pretty.big_list "context elements:" (map (Pretty.chunks o prt_elem) (flat (map #2 elemss)))
     |> Pretty.writeln
   end;
 
