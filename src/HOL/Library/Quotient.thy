@@ -73,7 +73,7 @@ text {*
  relation.
 *}
 
-theorem equivalence_class_eq [iff?]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
+theorem equivalence_class_iff [iff?]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
 proof
   assume eq: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
   show "a \<sim> b"
@@ -136,19 +136,59 @@ text {*
  on quotient types.
 *}
 
-theorem quot_definition1:
+theorem quot_cond_definition1:
   "(!!X. f X == \<lfloor>g (pick X)\<rfloor>) ==>
-    (!!x x'. x \<sim> x' ==> g x \<sim> g x') ==>
-    f \<lfloor>a\<rfloor> = \<lfloor>g a\<rfloor>"
+    (!!x x'. x \<sim> x' ==> P x ==> P x' ==> g x \<sim> g x') ==>
+    (!!x x'. x \<sim> x' ==> P x = P x') ==>
+  P a ==> f \<lfloor>a\<rfloor> = \<lfloor>g a\<rfloor>"
 proof -
-  assume cong: "!!x x'. x \<sim> x' ==> g x \<sim> g x'"
+  assume cong_g: "!!x x'. x \<sim> x' ==> P x ==> P x' ==> g x \<sim> g x'"
+  assume cong_P: "!!x x'. x \<sim> x' ==> P x = P x'"
+  assume P: "P a"
   assume "!!X. f X == \<lfloor>g (pick X)\<rfloor>"
   hence "f \<lfloor>a\<rfloor> = \<lfloor>g (pick \<lfloor>a\<rfloor>)\<rfloor>" by (simp only:)
   also have "\<dots> = \<lfloor>g a\<rfloor>"
   proof
     show "g (pick \<lfloor>a\<rfloor>) \<sim> g a"
-    proof (rule cong)
+    proof (rule cong_g)
       show "pick \<lfloor>a\<rfloor> \<sim> a" ..
+      hence "P (pick \<lfloor>a\<rfloor>) = P a" by (rule cong_P)
+      also show "P a" .
+      finally show "P (pick \<lfloor>a\<rfloor>)" .
+    qed
+  qed
+  finally show ?thesis .
+qed
+
+theorem quot_definition1:
+  "(!!X. f X == \<lfloor>g (pick X)\<rfloor>) ==>
+    (!!x x'. x \<sim> x' ==> g x \<sim> g x') ==>
+    f \<lfloor>a\<rfloor> = \<lfloor>g a\<rfloor>"
+proof -
+  case antecedent from this refl TrueI
+  show ?thesis by (rule quot_cond_definition1)
+qed
+
+theorem quot_cond_definition2:
+  "(!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>) ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y' ==> g x y \<sim> g x' y') ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y = P x' y') ==>
+    P a b ==> f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g a b\<rfloor>"
+proof -
+  assume cong_g: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y ==> P x' y' ==> g x y \<sim> g x' y'"
+  assume cong_P: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> P x y = P x' y'"
+  assume P: "P a b"
+  assume "!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>"
+  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)\<rfloor>" by (simp only:)
+  also have "\<dots> = \<lfloor>g a b\<rfloor>"
+  proof
+    show "g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) \<sim> g a b"
+    proof (rule cong_g)
+      show "pick \<lfloor>a\<rfloor> \<sim> a" ..
+      moreover show "pick \<lfloor>b\<rfloor> \<sim> b" ..
+      ultimately have "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) = P a b" by (rule cong_P)
+      also show "P a b" .
+      finally show "P (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" .
     qed
   qed
   finally show ?thesis .
@@ -159,20 +199,9 @@ theorem quot_definition2:
     (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y \<sim> g x' y') ==>
     f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g a b\<rfloor>"
 proof -
-  assume cong: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y \<sim> g x' y'"
-  assume "!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>"
-  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)\<rfloor>" by (simp only:)
-  also have "\<dots> = \<lfloor>g a b\<rfloor>"
-  proof
-    show "g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) \<sim> g a b"
-    proof (rule cong)
-      show "pick \<lfloor>a\<rfloor> \<sim> a" ..
-      show "pick \<lfloor>b\<rfloor> \<sim> b" ..
-    qed
-  qed
-  finally show ?thesis .
+  case antecedent from this refl TrueI
+  show ?thesis by (rule quot_cond_definition2)
 qed
-
 
 text {*
  \medskip HOL's collection of overloaded standard operations is lifted
@@ -186,6 +215,7 @@ instance quot :: (times) times ..
 instance quot :: (inverse) inverse ..
 instance quot :: (power) power ..
 instance quot :: (number) number ..
+instance quot :: (ord) ord ..
 
 defs (overloaded)
   zero_quot_def: "0 == \<lfloor>0\<rfloor>"
@@ -198,5 +228,7 @@ defs (overloaded)
   divide_quot_def: "X / Y == \<lfloor>pick X / pick Y\<rfloor>"
   power_quot_def: "X^n == \<lfloor>(pick X)^n\<rfloor>"
   number_of_quot_def: "number_of b == \<lfloor>number_of b\<rfloor>"
+  le_quot_def: "X \<le> Y == pick X \<le> pick Y"
+  less_quot_def: "X < Y == pick X < pick Y"
 
 end
