@@ -392,7 +392,8 @@ txt{*Base case of respond*}
 apply blast
 txt{*Inductive step of respond*}
 apply (intro allI conjI impI, simp_all)
-txt{*by unicity, either B=Aa or B=A', a contradiction if B \<in> bad*}   
+txt{*by unicity, either @{term "B=Aa"} or @{term "B=A'"}, a contradiction
+     if @{term "B \<in> bad"}*}   
 apply (blast dest: unique_session_keys respond_certificate)
 apply (blast dest!: respond_certificate)
 apply (blast dest!: resp_analz_insert)

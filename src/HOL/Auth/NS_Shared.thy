@@ -240,7 +240,7 @@ done
 
 subsubsection{*Crucial secrecy property: Spy does not see the keys sent in msg NS2*}
 
-text{*Beware of [rule_format] and the universal quantifier!*}
+text{*Beware of @{text "[rule_format]"} and the universal quantifier!*}
 lemma secrecy_lemma:
      "\<lbrakk>Says Server A (Crypt (shrK A) \<lbrace>NA, Agent B, Key K,
                                       Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>\<rbrace>)

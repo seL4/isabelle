@@ -3,13 +3,13 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
-Theory of events for security protocols
-
 Datatype of events; function "spies"; freshness
 
 "bad" agents have been broken by the Spy; their private keys and internal
     stores are visible to him
 *)
+
+header{*Theory of Events for Security Protocols*}
 
 theory Event = Message:
 
@@ -99,10 +99,9 @@ done
 
 subsection{*Function @{term knows}*}
 
-text{*Simplifying   @term{"parts (insert X (knows Spy evs))
-      = parts {X} \<union> parts (knows Spy evs)"}.  The general case loops.*)
-
-text{*This version won't loop with the simplifier.*}
+(*Simplifying   
+ parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
+  This version won't loop with the simplifier.*)
 lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs", standard]
 
 lemma knows_Spy_Says [simp]:

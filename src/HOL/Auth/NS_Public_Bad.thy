@@ -11,6 +11,8 @@ From page 260 of
   Proc. Royal Soc. 426 (1989)
 *)
 
+header{*Verifying the Needham-Schroeder Public-Key Protocol*}
+
 theory NS_Public_Bad = Public:
 
 consts  ns_public  :: "event list set"

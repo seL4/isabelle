@@ -314,7 +314,7 @@ apply (rule Nonce_supply_lemma [THEN exE])
 apply (rule someI, fast)
 done
 
-subsection{*Specialized rewriting for the analz_image_... theorems*}
+subsection{*Specialized Rewriting for Theorems About @{term analz} and Image*}
 
 lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} Un H"
 by blast

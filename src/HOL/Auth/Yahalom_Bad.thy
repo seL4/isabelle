@@ -10,6 +10,8 @@ it doesn't keep NB secret, but without Oops it can be "verified" anyway.
 The issues are discussed in lcp's LICS 2000 invited lecture.
 *)
 
+header{*The Yahalom Protocol: A Flawed Version*}
+
 theory Yahalom_Bad = Shared:
 
 consts  yahalom   :: "event list set"

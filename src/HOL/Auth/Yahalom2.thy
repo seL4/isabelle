@@ -11,7 +11,7 @@ From page 259 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-header{*Inductive Analysis of the Yahalom protocol, Variant 2*}
+header{*The Yahalom Protocol, Variant 2*}
 
 theory Yahalom2 = Shared:
 

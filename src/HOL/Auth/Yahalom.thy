@@ -12,6 +12,8 @@ From page 257 of
 This theory has the prototypical example of a secrecy relation, KeyCryptNonce.
 *)
 
+header{*The Yahalom Protocol*}
+
 theory Yahalom = Shared:
 
 consts  yahalom   :: "event list set"

@@ -7,6 +7,8 @@ Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.
 Version incorporating Lowe's fix (inclusion of B's identity in round 2).
 *)
 
+header{*Verifying the Needham-Schroeder-Lowe Public-Key Protocol*}
+
 theory NS_Public = Public:
 
 consts  ns_public  :: "event list set"

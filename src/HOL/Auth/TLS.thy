@@ -39,6 +39,8 @@ about that message (which B receives) and the stronger event
 	Notes A {|Agent B, Nonce PMS|}.
 *)
 
+header{*The TLS Protocol: Transport Layer Security*}
+
 theory TLS = Public:
 
 constdefs
@@ -95,7 +97,8 @@ inductive tls
          "[| evsf \<in> tls;  X \<in> synth (analz (spies evsf)) |]
           ==> Says Spy B X # evsf \<in> tls"
 
-   SpyKeys: --{*The spy may apply PRF & sessionK to available nonces*}
+   SpyKeys: --{*The spy may apply @{term PRF} and @{term sessionK}
+                to available nonces*}
          "[| evsSK \<in> tls;
 	     {Nonce NA, Nonce NB, Nonce M} <= analz (spies evsSK) |]
           ==> Notes Spy {| Nonce (PRF(M,NA,NB)),
@@ -103,21 +106,21 @@ inductive tls
 
    ClientHello:
 	 --{*(7.4.1.2)
-	   PA represents CLIENT_VERSION, CIPHER_SUITES and COMPRESSION_METHODS.
+	   PA represents @{text CLIENT_VERSION}, @{text CIPHER_SUITES} and @{text COMPRESSION_METHODS}.
 	   It is uninterpreted but will be confirmed in the FINISHED messages.
-	   NA is CLIENT RANDOM, while SID is SESSION_ID.
+	   NA is CLIENT RANDOM, while SID is @{text SESSION_ID}.
            UNIX TIME is omitted because the protocol doesn't use it.
-           May assume NA \<notin> range PRF because CLIENT RANDOM is 28 bytes
-	   while MASTER SECRET is 48 bytes*}
+           May assume @{term "NA \<notin> range PRF"} because CLIENT RANDOM is 
+           28 bytes while MASTER SECRET is 48 bytes*}
          "[| evsCH \<in> tls;  Nonce NA \<notin> used evsCH;  NA \<notin> range PRF |]
           ==> Says A B {|Agent A, Nonce NA, Number SID, Number PA|}
 	        # evsCH  \<in>  tls"
 
    ServerHello:
          --{*7.4.1.3 of the TLS Internet-Draft
-	   PB represents CLIENT_VERSION, CIPHER_SUITE and COMPRESSION_METHOD.
+	   PB represents @{text CLIENT_VERSION}, @{text CIPHER_SUITE} and @{text COMPRESSION_METHOD}.
            SERVER CERTIFICATE (7.4.2) is always present.
-           CERTIFICATE_REQUEST (7.4.4) is implied.*}
+           @{text CERTIFICATE_REQUEST} (7.4.4) is implied.*}
          "[| evsSH \<in> tls;  Nonce NB \<notin> used evsSH;  NB \<notin> range PRF;
              Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
 	       \<in> set evsSH |]
@@ -131,7 +134,7 @@ inductive tls
          --{*CLIENT KEY EXCHANGE (7.4.7).
            The client, A, chooses PMS, the PREMASTER SECRET.
            She encrypts PMS using the supplied KB, which ought to be pubK B.
-           We assume PMS \<notin> range PRF because a clash betweem the PMS
+           We assume @{term "PMS \<notin> range PRF"} because a clash betweem the PMS
            and another MASTER SECRET is highly unlikely (even though
 	   both items have the same length, 48 bytes).
            The Note event records in the trace that she knows PMS
@@ -163,7 +166,7 @@ inductive tls
           rule's applying when the Spy has satisfied the "Says A B" by
           repaying messages sent by the true client; in that case, the
           Spy does not know PMS and could not send ClientFinished.  One
-          could simply put A\<noteq>Spy into the rule, but one should not
+          could simply put @{term "A\<noteq>Spy"} into the rule, but one should not
           expect the spy to be well-behaved.*}
          "[| evsCF \<in> tls;
 	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
@@ -196,7 +199,7 @@ inductive tls
 	--{*Having transmitted ClientFinished and received an identical
           message encrypted with serverK, the client stores the parameters
           needed to resume this session.  The "Notes A ..." premise is
-          used to prove Notes_master_imp_Crypt_PMS.*}
+          used to prove @{text Notes_master_imp_Crypt_PMS}.*}
          "[| evsCA \<in> tls;
 	     Notes A {|Agent B, Nonce PMS|} \<in> set evsCA;
 	     M = PRF(PMS,NA,NB);
@@ -212,7 +215,7 @@ inductive tls
 	--{*Having transmitted ServerFinished and received an identical
           message encrypted with clientK, the server stores the parameters
           needed to resume this session.  The "Says A'' B ..." premise is
-          used to prove Notes_master_imp_Crypt_PMS.*}
+          used to prove @{text Notes_master_imp_Crypt_PMS}.*}
          "[| evsSA \<in> tls;
 	     A \<noteq> B;
              Says A'' B (Crypt (pubK B) (Nonce PMS)) \<in> set evsSA;
@@ -226,8 +229,8 @@ inductive tls
              Notes B {|Number SID, Agent A, Agent B, Nonce M|} # evsSA  \<in>  tls"
 
    ClientResume:
-         --{*If A recalls the SESSION_ID, then she sends a FINISHED message
-           using the new nonces and stored MASTER SECRET.*}
+         --{*If A recalls the @{text SESSION_ID}, then she sends a FINISHED
+             message using the new nonces and stored MASTER SECRET.*}
          "[| evsCR \<in> tls;
 	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsCR;
              Says B' A {|Nonce NB, Number SID, Number PB|} \<in> set evsCR;
@@ -239,8 +242,8 @@ inductive tls
               # evsCR  \<in>  tls"
 
    ServerResume:
-         --{*Resumption (7.3):  If B finds the SESSION_ID then he can send
-           a FINISHED message using the recovered MASTER SECRET*}
+         --{*Resumption (7.3):  If B finds the @{text SESSION_ID} then he can 
+             send a FINISHED message using the recovered MASTER SECRET*}
          "[| evsSR \<in> tls;
 	     Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsSR;
 	     Says B  A {|Nonce NB, Number SID, Number PB|} \<in> set evsSR;
@@ -254,8 +257,9 @@ inductive tls
    Oops:
          --{*The most plausible compromise is of an old session key.  Losing
            the MASTER SECRET or PREMASTER SECRET is more serious but
-           rather unlikely.  The assumption A \<noteq> Spy is essential: otherwise
-           the Spy could learn session keys merely by replaying messages!*}
+           rather unlikely.  The assumption @{term "A\<noteq>Spy"} is essential: 
+           otherwise the Spy could learn session keys merely by 
+           replaying messages!*}
          "[| evso \<in> tls;  A \<noteq> Spy;
 	     Says A B (Crypt (sessionK((NA,NB,M),role)) X) \<in> set evso |]
           ==> Says A Spy (Key (sessionK((NA,NB,M),role))) # evso  \<in>  tls"
@@ -546,7 +550,7 @@ done
 
 subsection{*Secrecy Theorems*}
 
-text{*Key compromise lemma needed to prove analz_image_keys.
+text{*Key compromise lemma needed to prove @{term analz_image_keys}.
   No collection of keys can help the spy get new private keys.*}
 lemma analz_image_priK [rule_format]:
      "evs \<in> tls
@@ -647,7 +651,7 @@ text{*Write keys are never sent if M (MASTER SECRET) is secure.
   Converse fails; betraying M doesn't force the keys to be sent!
   The strong Oops condition can be weakened later by unicity reasoning,
   with some effort.
-  NO LONGER USED: see clientK_not_spied and serverK_not_spied*}
+  NO LONGER USED: see @{text clientK_not_spied} and @{text serverK_not_spied}*}
 lemma sessionK_not_spied:
      "[| \<forall>A. Says A Spy (Key (sessionK((NA,NB,M),role))) \<notin> set evs;
          Nonce M \<notin> analz (spies evs);  evs \<in> tls |]
@@ -676,7 +680,7 @@ txt{*ClientHello, ServerHello, ClientKeyExch: mostly freshness reasoning*}
 apply (blast dest: Notes_Crypt_parts_spies)
 apply (blast dest: Notes_Crypt_parts_spies)
 apply (blast dest: Notes_Crypt_parts_spies)
-txt{*ClientAccepts and ServerAccepts: because PMS \<notin> range PRF*}
+txt{*ClientAccepts and ServerAccepts: because @{term "PMS \<notin> range PRF"}*}
 apply force+
 done
 
@@ -787,8 +791,7 @@ done
 
 subsubsection{*Protocol goals: if A receives ServerFinished, then B is present
      and has used the quoted values PA, PB, etc.  Note that it is up to A
-     to compare PA with what she originally sent.
-***)
+     to compare PA with what she originally sent.*}
 
 text{*The mention of her name (A) in X assures A that B knows who she is.*}
 lemma TrustServerFinished [rule_format]:
@@ -861,8 +864,7 @@ done
 
 subsubsection{*Protocol goal: if B receives ClientFinished, and if B is able to
      check a CertVerify from A, then A has used the quoted
-     values PA, PB, etc.  Even this one requires A to be uncompromised.
-*}
+     values PA, PB, etc.  Even this one requires A to be uncompromised.*}
 lemma AuthClientFinished:
      "[| M = PRF(PMS,NA,NB);
          Says A Spy (Key(clientK(Na,Nb,M))) \<notin> set evs;

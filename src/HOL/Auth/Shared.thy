@@ -242,7 +242,7 @@ fun basic_possibility_tac st = st |>
      REPEAT_FIRST (resolve_tac [refl, conjI]))
 *}
 
-subsection{*Specialized rewriting for analz_insert_freshK*}
+subsection{*Specialized Rewriting for Theorems About @{term analz} and Image*}
 
 lemma subset_Compl_range: "A <= - (range shrK) ==> shrK x \<notin> A"
 by blast
@@ -250,7 +250,7 @@ by blast
 lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} \<union> H"
 by blast
 
-lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK) \<union> C"
+lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key`(insert K KK) \<union> C"
 by blast
 
 (** Reverse the normal simplification of "image" to build up (not break down)
