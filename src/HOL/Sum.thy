@@ -41,7 +41,7 @@ defs
   Inl_def       "Inl == (%a. Abs_Sum(Inl_Rep(a)))"
   Inr_def       "Inr == (%b. Abs_Sum(Inr_Rep(b)))"
   sum_case_def  "sum_case f g p == @z.  (!x. p=Inl(x) --> z=f(x))      
-                                     & (!y. p=Inr(y) --> z=g(y))"
+                                      & (!y. p=Inr(y) --> z=g(y))"
 
   sum_def       "A plus B == (Inl``A) Un (Inr``B)"
 
