@@ -18,6 +18,8 @@ struct
 
 (* symbol output *)
 
+local
+
 val output_chr = fn
   " " => "~" |
   "\n" => "\\isanewline\n" |
@@ -34,8 +36,19 @@ val output_chr = fn
   "\\" => "{\\isabackslash}" |
   c => c;
 
-(* FIXME replace \<forall> etc. *)
-val output_sym = implode o map output_chr o explode;
+fun output_sym s =
+  if size s = 1 then output_chr s
+  else
+    (case explode s of
+      cs as "\\" :: "<" :: "^" :: _ => implode (map output_chr cs)
+    | "\\" :: "<" :: cs => "{\\isasymbol" ^ implode (#1 (Library.split_last cs)) ^ "}"
+    | _ => sys_error "output_sym");
+
+in
+
+val output_syms = implode o map output_sym o Symbol.explode;
+
+end;
 
 
 (* token output *)
@@ -57,12 +70,12 @@ fun output_tok (Basic tok) =
         else if T.is_kind T.Command tok then
           if s = "{{" then "{\\isabeginblock}"
           else if s = "}}" then "{\\isaendblock}"
-          else "\\isacommand{" ^ output_sym s ^ "}"
+          else "\\isacommand{" ^ output_syms s ^ "}"
         else if T.is_kind T.Keyword tok andalso Syntax.is_identifier s then
-          "\\isakeyword{" ^ output_sym s ^ "}"
-        else if T.is_kind T.String tok then output_sym (quote s)
-        else if T.is_kind T.Verbatim tok then output_sym (enclose "{*" "*}" s)
-        else output_sym s
+          "\\isakeyword{" ^ output_syms s ^ "}"
+        else if T.is_kind T.String tok then output_syms (quote s)
+        else if T.is_kind T.Verbatim tok then output_syms (enclose "{*" "*}" s)
+        else output_syms s
       end
   | output_tok (Markup (cmd, txt)) = "%\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks txt ^ "}\n"
   | output_tok (Verbatim txt) = "%\n" ^ strip_blanks txt ^ "\n";
