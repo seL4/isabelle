@@ -505,13 +505,14 @@ AddSDs [singleton_inject];
 AddSEs [singletonE];
 
 Goal "{b} = insert a A = (a = b & A <= {b})";
-by (safe_tac (claset() addSEs [equalityE]));
-by   (ALLGOALS Blast_tac);
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "singleton_insert_inj_eq";
 
-Goal "(insert a A = {b} ) = (a = b & A <= {b})";
-by (rtac (singleton_insert_inj_eq RS (eq_sym_conv RS trans)) 1);
+Goal "(insert a A = {b}) = (a = b & A <= {b})";
+by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "singleton_insert_inj_eq'";
+
+AddIffs [singleton_insert_inj_eq, singleton_insert_inj_eq'];
 
 Goal "A <= {x} ==> A={} | A = {x}";
 by (Fast_tac 1);
