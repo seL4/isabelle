@@ -99,12 +99,17 @@ fi
 
 KDEHOME=~/.kde
 KDEAPP=~/Desktop/Isabelle.kdelnk
+KDEICONS=$KDEHOME/share/icons
 
 if [ "$KDE" = true ]; then
-  mkdir -p $KDEHOME/share/icons || fail "Bad directory: $KDEHOME/share/icons"
+  mkdir -p $KDEICONS || fail "Bad directory: $KDEICONS"
+  mkdir -p $KDEICONS/mini || fail "Bad directory: $KDEICONS/mini"
 
-  ICON=$KDEHOME/share/icons/isabelle.xpm
-  [ -f $ICON ] || cp $ISABELLE_HOME/lib/logo/isabelle-tiny.xpm $ICON || fail "Cannot write file: $ICON"
+  [ -f $KDEICONS/isabelle.xpm ] || cp $ISABELLE_HOME/lib/icons/isabelle.xpm $KDEICONS || \
+    fail "Cannot write file: $KDEICONS/isabelle.xpm"
+  [ -f $KDEICONS/mini/isabelle.xpm ] || \
+    cp $ISABELLE_HOME/lib/icons/isabelle-mini.xpm $KDEICONS/mini/isabelle.xpm || \
+    fail "Cannot write file: $KDEICONS/mini/isabelle.xpm"
 
   echo "installing $KDEAPP"
   echo "# KDE Config File" >$KDEAPP || fail "Cannot write file: $KDEAPP"
