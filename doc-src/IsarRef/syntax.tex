@@ -405,16 +405,13 @@ $\ASSUMENAME$ in \S\ref{sec:proof-context}.
 
 \subsection{Antiquotations}\label{sec:antiq}
 
-\begin{matharray}{rcl}
-  thm & : & \isarantiq \\
-  prop & : & \isarantiq \\
-  term & : & \isarantiq \\
-  typ & : & \isarantiq \\
-  text & : & \isarantiq \\
-  goals & : & \isarantiq \\
-  subgoals & : & \isarantiq \\
-  prf & : & \isarantiq \\
-  full_prf & : & \isarantiq \\
+\begin{matharray}{rcl@{\hspace*{2cm}}rcl}
+  thm & : & \isarantiq & text & : & \isarantiq \\
+  lhs & : & \isarantiq & goals & : & \isarantiq \\
+  rhs & : & \isarantiq & subgoals & : & \isarantiq \\
+  prop & : & \isarantiq & prf & : & \isarantiq \\
+  term & : & \isarantiq & full_prf & : & \isarantiq \\
+  typ & : & \isarantiq \\  
 \end{matharray}
 
 The text body of formal comments (see also \S\ref{sec:comments}) may contain
@@ -432,7 +429,7 @@ antiquotations may involve attributes as well.  For example,
 statement where all schematic variables have been replaced by fixed ones,
 which are easier to read.
 
-\indexisarant{thm}\indexisarant{prop}\indexisarant{term}
+\indexisarant{thm}\indexisarant{lhs}\indexisarant{rhs}\indexisarant{prop}\indexisarant{term}
 \indexisarant{typ}\indexisarant{text}\indexisarant{goals}\indexisarant{subgoals}
 \begin{rail}
   atsign lbrace antiquotation rbrace
@@ -440,6 +437,8 @@ which are easier to read.
 
   antiquotation:
     'thm' options thmrefs |
+    'lhs' options thmrefs |
+    'rhs' options thmrefs |
     'prop' options prop |
     'term' options term |
     'typ' options type |
@@ -464,6 +463,15 @@ Note that the syntax of antiquotations may \emph{not} include source comments
   specifications may be included as well (see also \S\ref{sec:syn-att}); the
   $no_vars$ operation (see \S\ref{sec:misc-meth-att}) would be particularly
   useful to suppress printing of schematic variables.
+
+\item [$\at\{lhs~\vec a\}$] prints the left hand sides of theorems $\vec a$.
+  The antiquotation only works for $\vec a$ that are definitions,
+  equations or other binary operators.  It understands the same
+  options and attributes as $\at\{thm~\vec a\}$.
+
+\item [$\at\{rhs~\vec a\}$] prints the right hand sides of theorems $\vec a$.
+  As for $\at\{lhs~\vec a\}$, $\vec a$ must be definitions, equations or
+  other binary operators.
 
 \item [$\at\{prop~\phi\}$] prints a well-typed proposition $\phi$.
 
