@@ -10,41 +10,43 @@ infix occs;
 
 signature LOGIC = 
   sig
-  val assum_pairs: term -> (term*term)list
-  val auto_rename: bool ref   
-  val close_form: term -> term   
-  val count_prems: term * int -> int
-  val dest_equals: term -> term * term
-  val dest_flexpair: term -> term * term
-  val dest_implies: term -> term * term
-  val dest_inclass: term -> typ * class
-  val dest_type: term -> typ
-  val flatten_params: int -> term -> term
-  val freeze_vars: term -> term
-  val incr_indexes: typ list * int -> term -> term
-  val lift_fns: term * int -> (term -> term) * (term -> term)
-  val list_flexpairs: (term*term)list * term -> term
-  val list_implies: term list * term -> term
+  val assum_pairs	: term -> (term*term)list
+  val auto_rename	: bool ref   
+  val close_form	: term -> term   
+  val count_prems	: term * int -> int
+  val dest_equals	: term -> term * term
+  val dest_flexpair	: term -> term * term
+  val dest_implies	: term -> term * term
+  val dest_inclass	: term -> typ * class
+  val dest_type		: term -> typ
+  val flatten_params	: int -> term -> term
+  val freeze_vars	: term -> term
+  val incr_indexes	: typ list * int -> term -> term
+  val lift_fns		: term * int -> (term -> term) * (term -> term)
+  val list_flexpairs	: (term*term)list * term -> term
+  val list_implies	: term list * term -> term
   val list_rename_params: string list * term -> term
-  val mk_equals: term * term -> term
-  val mk_flexpair: term * term -> term
-  val mk_implies: term * term -> term
-  val mk_inclass: typ * class -> term
-  val mk_type: typ -> term
-  val occs: term * term -> bool
-  val rule_of: (term*term)list * term list * term -> term
-  val set_rename_prefix: string -> unit   
-  val skip_flexpairs: term -> term
+  val mk_equals		: term * term -> term
+  val mk_flexpair	: term * term -> term
+  val mk_implies	: term * term -> term
+  val mk_inclass	: typ * class -> term
+  val mk_type		: typ -> term
+  val occs		: term * term -> bool
+  val rule_of		: (term*term)list * term list * term -> term
+  val set_rename_prefix	: string -> unit   
+  val skip_flexpairs	: term -> term
   val strip_assums_concl: term -> term
-  val strip_assums_hyp: term -> term list
-  val strip_flexpairs: term -> (term*term)list * term
-  val strip_horn: term -> (term*term)list * term list * term
-  val strip_imp_concl: term -> term
-  val strip_imp_prems: term -> term list
-  val strip_params: term -> (string * typ) list
-  val strip_prems: int * term list * term -> term list * term
-  val thaw_vars: term -> term
-  val varify: term -> term  
+  val strip_assums_hyp	: term -> term list
+  val strip_flexpairs	: term -> (term*term)list * term
+  val strip_horn	: term -> (term*term)list * term list * term
+  val strip_imp_concl	: term -> term
+  val strip_imp_prems	: term -> term list
+  val strip_params	: term -> (string * typ) list
+  val strip_prems	: int * term list * term -> term list * term
+  val thaw_vars		: term -> term
+  val unvarifyT		: typ -> typ  
+  val unvarify		: term -> term  
+  val varify		: term -> term  
   end;
 
 functor LogicFun (structure Unify: UNIFY and Net:NET): LOGIC =
@@ -317,5 +319,18 @@ fun varify (Const(a,T)) = Const(a, Type.varifyT T)
   | varify (Abs (a,T,body)) = Abs (a, Type.varifyT T, varify body)
   | varify (f$t) = varify f $ varify t
   | varify t = t;
+
+(*Inverse of varifyT.  Move to Pure/type.ML?*)
+fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
+  | unvarifyT (TVar ((a, 0), S)) = TFree (a, S)
+  | unvarifyT T = T;
+
+(*Inverse of varify.  Converts axioms back to their original form.*)
+fun unvarify (Const(a,T))    = Const(a, unvarifyT T)
+  | unvarify (Var((a,0), T)) = Free(a, unvarifyT T)
+  | unvarify (Var(ixn,T))    = Var(ixn, unvarifyT T)	(*non-zero index!*)
+  | unvarify (Abs (a,T,body)) = Abs (a, unvarifyT T, unvarify body)
+  | unvarify (f$t) = unvarify f $ unvarify t
+  | unvarify t = t;
 
 end;
