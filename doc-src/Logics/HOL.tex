@@ -1950,8 +1950,8 @@ and      ('a, 'b) term_list = Nil'
                             | Cons' (('a,'b) term) (('a,'b) term_list)
 \end{ttbox}
 Note however, that the type {\tt ('a,'b) term_list} and the constructors {\tt
-  Nil'} and {\tt Cons'} are not really introduced.  One can directly work the
-original (isomorphic) type {\tt (('a, 'b) term) list} and its existing
+  Nil'} and {\tt Cons'} are not really introduced.  One can directly work with
+the original (isomorphic) type {\tt (('a, 'b) term) list} and its existing
 constructors {\tt Nil} and {\tt Cons}. Thus, the structural induction rule for
 {\tt term} gets the form
 \[
