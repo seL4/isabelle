@@ -60,7 +60,7 @@ for SETTINGS in $@; do
 
     # logfile setup
 
-    DATE=$(date "+%d-%b-%Y")
+    DATE=$(date "+%Y-%m-%d")
     SHORT=${SETTINGS##*/}
     TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME.log
 
@@ -79,7 +79,7 @@ for SETTINGS in $@; do
     else
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
 	FAIL="$FAIL$SHORT "
-	LOGS="${LOGS}$HOSTNAME:$TESTLOG "
+	LOGS="${LOGS}$TESTLOG "
     fi
 
 done
@@ -90,7 +90,14 @@ if [ "$FAIL" != "" ]; then
 	echo "$(date) $HOSTNAME $PRG: targets ${FAIL}FAILED, elapsed time $ELAPSED." >> $MASTERLOG
 	
 	echo "Test for platform(s) ${FAIL}failed. Log file(s) available at" > $TMP
-	for L in $LOGS; do echo "$L" >> $TMP; done
+	for L in $LOGS; do 
+		echo "$HOSTNAME:$L" >> $TMP 
+		echo "[...]" >> $TMP
+		tail -3 $L >> $TMP
+		echo >> $TMP
+	done
+	echo "Have a nice day," >> $TMP
+	echo "  isatest" >> $TMP
 
         for R in $MAILTO; do
 	    $MAIL "isabelle test failed" $R $TMP
