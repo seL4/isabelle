@@ -5,11 +5,6 @@ Isabelle NEWS -- history user-relevant changes
 New in Isabelle2001 (?? 2001)
 -----------------------------
 
-*** Isar ***
-
-* renamed "antecedent" case to "rule_context";
-
-
 *** Document preparation ***
 
 * support bold style (for single symbols only), input syntax is like
@@ -19,9 +14,21 @@ this: "\<^bold>\<alpha>" or "\<^bold>A";
 better in printed text;
 
 
+*** Isar ***
+
+* Isar/Pure: renamed "antecedent" case to "rule_context";
+
+* Isar/HOL: 'recdef' now fails on unfinished automated proofs, use
+"(permissive)" option to recover old behavior;
+
+* Isar/HOL: 'inductive' now longer features separate (collective)
+attributes for 'intros';
+
+
 *** HOL ***
 
-* HOL: added "The" definite description operator;
+* HOL: added "The" definite description operator; move Hilbert's "Eps"
+to peripheral theory "Hilbert_Choice";
 
 * HOL: made split_all_tac safe; EXISTING PROOFS MAY FAIL OR LOOP, so
 in this (rare) case use:
@@ -49,7 +56,6 @@ Florian Kammüller;
   type "unit" -> "Product_Type.unit"
 
 
-
 *** ZF ***
 
 * ZF: the integer library now covers quotients and remainders, with
@@ -58,16 +64,18 @@ many laws relating division to addition, multiplication, etc.;
 
 *** General ***
 
+* Meta-level proof terms (by Stefan Berghofer), see also ref manual;
+
 * Classical reasoner: renamed addaltern to addafter, addSaltern to
 addSafter;
 
 * print modes "type_brackets" and "no_type_brackets" control output of
 nested => (types); the default behavior is "brackets";
 
-* Proof General keywords specification is now part of the Isabelle
-distribution (see etc/isar-keywords.el);
-
 * system: support Poly/ML 4.1.1 (now able to manage large heaps);
+
+* system: Proof General keywords specification is now part of the
+Isabelle distribution (see etc/isar-keywords.el);
 
 * system: smart selection of Isabelle process versus Isabelle
 interface, accommodates case-insensitive file systems (e.g. HFS+); may
