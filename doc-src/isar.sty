@@ -8,10 +8,17 @@
 
 \newcommand{\isarkeyword}[1]{{\mathord{\mathbf{#1}}}}
 
+\newcommand{\indexoutertoken}[1]{\index{#1 (syntax)|bold}}
+\newcommand{\indexouternonterm}[1]{\index{#1 (syntax)|bold}}
 \newcommand{\indexisarcmd}[1]{\index{#1 (command)|bold}}
+\newcommand{\indexisarmeth}[1]{\index{#1 (method)|bold}}
+\newcommand{\indexisaratt}[1]{\index{#1 (attribute)|bold}}
+
 \newcommand{\isarcmd}[1]{\isarkeyword{#1}}
 \newcommand{\isartrans}[2]{#1 \mathbin{\,\to\,} #2}
 \newcommand{\isarkeep}[1]{#1 \mathbin{\,\to\,} #1}
+\newcommand{\isarmeth}{method}
+\newcommand{\isaratt}{attribute}
 
 \newcommand{\I@optname}[1]{\ifthenelse{\equal{}{#1}}{}{~#1\colon}}
 \newcommand{\I@optoptname}[1]{\ifthenelse{\equal{}{#1}}{}{~[#1\colon]}}
