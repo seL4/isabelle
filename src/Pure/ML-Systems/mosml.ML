@@ -140,8 +140,3 @@ fun getenv var =
   (case Process.getEnv var of
     NONE => ""
   | SOME txt => txt);
-
-
-(* non-ASCII input (see also Thy/use.ML) *)
-
-val needs_filtered_use = false;

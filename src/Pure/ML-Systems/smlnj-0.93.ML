@@ -220,8 +220,3 @@ in
   fun getenv var = drop_last_char
     (execute ("env | grep '^" ^ var ^ "=' | sed -e 's/" ^ var ^ "=//'"));
 end;
-
-
-(* non-ASCII input (see also Thy/use.ML) *)
-
-val needs_filtered_use = false;

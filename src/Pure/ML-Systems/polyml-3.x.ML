@@ -129,8 +129,3 @@ fun getenv var = drop_last_char
 
 
 end;
-
-
-(* non-ASCII input (see also Thy/use.ML) *)
-
-val needs_filtered_use = true;
