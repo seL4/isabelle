@@ -103,7 +103,7 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma real_mult_inv_right1: "x \<noteq> #0 ==> x*rinv(x) = #1"
+lemma real_mult_inv_right1: "x \<noteq> #0 ==> x * rinv(x) = #1"
   by simp
 
 lemma real_mult_inv_left1: "x \<noteq> #0 ==> rinv(x) * x = #1"

@@ -167,7 +167,7 @@ proof -
         qed blast
         def H' == "H + lin x'"
         -- {* Define $H'$ as the direct sum of $H$ and the linear closure of $x'$. \skp *}
-        obtain xi where "\<forall>y \<in> H. - p (y + x') - h y <= xi 
+        obtain xi where "\<forall>y \<in> H. - p (y + x') - h y <= xi  
                           \<and> xi <= p (y + x') - h y" 
         -- {* Pick a real number $\xi$ that fulfills certain inequations; this will *}
         -- {* be used to establish that $h'$ is a norm-preserving extension of $h$. 
@@ -198,7 +198,7 @@ proof -
         qed
 
         def h' == "\<lambda>x. let (y,a) = SOME (y,a). x = y + a \<cdot> x' \<and> y \<in> H
-                       in (h y) + a * xi"
+                       in h y + a * xi"
         -- {* Define the extension $h'$ of $h$ to $H'$ using $\xi$. \skp *}
         show ?thesis
         proof
