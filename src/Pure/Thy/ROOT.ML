@@ -15,11 +15,14 @@ structure ThyParse = ThyParseFun(structure Symtab = Symtab
 
 use "thy_syn.ML";
 use "thm_database.ML";
+use "../../Provers/simplifier.ML";
 use "thy_read.ML";
 
 structure ThySyn = ThySynFun(val user_keywords = [] and user_sections = []);
-structure ThmDB = ThmDBFun();
-structure Readthy = ReadthyFUN(structure ThySyn = ThySyn and ThmDB = ThmDB);
+structure ThmDB = ThmDBFUN();
+structure Simplifier = SimplifierFUN();
+structure Readthy = ReadthyFUN(structure ThySyn = ThySyn and ThmDB = ThmDB
+                               and Simplifier = Simplifier);
 open ThmDB Readthy;
 
 (* hide functors; saves space in PolyML *)
@@ -28,9 +31,11 @@ functor ThyParseFun() = struct end;
 
 fun init_thy_reader () =
   use_string
-   ["structure ThmDB = ThmDBFun();",
+   ["structure ThmDB = ThmDBFUN();",
+    "structure Simplifier = SimplifierFUN();",
     "structure Readthy = ReadthyFUN(structure ThySyn = ThySyn \
-                                   \and ThmDB = ThmDB);",
+                                   \and ThmDB = ThmDB \
+                                   \and Simplifier = Simplifier);",
     "Readthy.loaded_thys := !loaded_thys;",
     "ThmDB.thm_db := !thm_db;",
     "val first_init_readthy = false;",

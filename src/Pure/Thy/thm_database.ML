@@ -16,7 +16,7 @@ sig
   val findE:  int -> int -> (string * thm)list
 end;
 
-functor ThmDBFun(): THMDB =
+functor ThmDBFUN(): THMDB =
 struct
 
 (*** ignore and top_const could be turned into functor-parameters, but are
@@ -57,32 +57,29 @@ fun store_thm_db (named_thm as (name, thm)) =
 
       val tagged_thm = (num + 1, named_thm);
 
-      fun update_db _ [] result = result
-        | update_db warned (c :: cs) result =
+      fun update_db [] result = result
+        | update_db (c :: cs) result =
             let
               val old_thms = Symtab.lookup_multi (result, c);
 
-              val warned' =
+              val duplicate =
                 case find_first (fn (_, (n, _)) => n = name) old_thms of
                     Some (_, (_, t)) =>
-                      if eq_thm (t, thm) then
-                        (if not warned then
-                           writeln ("Warning: Theorem database already \
-                                    \contains copy of theorem " ^ quote name)
-                         else ();
-                         true)
-                     else error ("Duplicate theorem name " ^ quote name
-                                 ^ " used in theorem database")
-                 | None => warned;
-            in update_db warned' cs
-                 (if warned' then result
+                      if same_thm (t, thm) then true
+                      else
+                        (writeln ("Warning: Duplicate theorem name "
+                                  ^ quote name ^ " used in theorem database");
+                         false)
+                 | None => false;
+            in update_db cs
+                 (if duplicate then result
                   else (Symtab.update ((c, tagged_thm :: old_thms), result)))
             end;
   in if consts = [] then writeln ("Warning: Theorem " ^ name ^
                                   " cannot be stored in ThmDB\n\t because it \
                                   \contains no or only ignored constants.")
                     else ();
-     thm_db := (num+1, update_db false consts db);
+     thm_db := (num+1, update_db consts db);
      thm
   end;
 
