@@ -40,6 +40,9 @@ sig
   val mono_add_global: theory attribute
   val mono_del_global: theory attribute
   val get_monos: theory -> thm list
+  val inductive_forall_name: string
+  val inductive_forall_def: thm
+  val rulify: thm -> thm
   val inductive_cases: ((bstring * Args.src list) * string list) * Comment.text
     -> theory -> theory
   val inductive_cases_i: ((bstring * theory attribute list) * term list) * Comment.text
@@ -69,6 +72,8 @@ val lfp_name = "Lfp.lfp";
 val vimage_name = "Inverse_Image.vimage";
 val Const _ $ (vimage_f $ _) $ _ = HOLogic.dest_Trueprop (Thm.concl_of vimageD);
 
+val inductive_forall_name = "Inductive.forall";
+val inductive_forall_def = thm "forall_def";
 val inductive_conj_name = "Inductive.conj";
 val inductive_conj_def = thm "conj_def";
 val inductive_conj = thms "inductive_conj";
