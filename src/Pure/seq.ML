@@ -28,11 +28,22 @@ sig
   val interleave: 'a seq * 'a seq -> 'a seq
   val print: (int -> 'a -> unit) -> int -> 'a seq -> unit
   val it_right : ('a * 'b seq -> 'b seq) -> 'a seq * 'b seq -> 'b seq
+  val succeed: 'a -> 'a seq
+  val fail: 'a -> 'b seq
+  val THEN: ('a -> 'b seq) * ('b -> 'c seq) -> 'a -> 'c seq
+  val ORELSE: ('a -> 'b seq) * ('a -> 'b seq) -> 'a -> 'b seq
+  val APPEND: ('a -> 'b seq) * ('a -> 'b seq) -> 'a -> 'b seq
+  val EVERY: ('a -> 'a seq) list -> 'a -> 'a seq
+  val FIRST: ('a -> 'b seq) list -> 'a -> 'b seq
+  val TRY: ('a -> 'a seq) -> 'a -> 'a seq
+  val REPEAT: ('a -> 'a seq) -> 'a -> 'a seq
 end;
 
 structure Seq: SEQ =
 struct
 
+
+(** lazy sequences **)
 
 datatype 'a seq = Seq of unit -> ('a * 'a seq) option;
 
@@ -150,6 +161,44 @@ fun it_right f (xq, yq) =
           None => pull yq
         | Some (a, s') => pull (f (a, its s'))))
   in its xq end;
+
+
+
+(** sequence functions **)      (*some code duplicated from Pure/tctical.ML*)
+
+fun succeed x = single x;
+fun fail _ = empty;
+
+
+fun THEN (f, g) x = flat (map g (f x));
+
+fun ORELSE (f, g) x =
+  (case pull (f x) of
+    None => g x
+  | some => make (fn () => some));
+
+fun APPEND (f, g) x =
+  append (f x, make (fn () => pull (g x)));
+
+
+fun EVERY fs = foldr THEN (fs, succeed);
+fun FIRST fs = foldr ORELSE (fs, fail);
+
+
+fun TRY f = ORELSE (f, succeed);
+
+fun REPEAT f =
+  let
+    fun rep qs x =
+      (case pull (f x) of
+        None => Some (x, make (fn () => repq qs))
+      | Some (x', q) => rep (q :: qs) x')
+    and repq [] = None
+      | repq (q :: qs) =
+          (case pull q of
+            None => repq qs
+          | Some (x, q) => rep (q :: qs) x);
+  in fn x => make (fn () => rep [] x) end;
 
 
 end;
