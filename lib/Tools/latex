@@ -16,7 +16,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz,"
-  echo "                 pdf, bbl, png, sty"
+  echo "                 pdf, bbl, png, sty, syms"
   echo
   echo "  Run LaTeX (and related tools) on FILE (default root.tex),"
   echo "  producing the specified output format."
@@ -73,6 +73,9 @@ function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"; }
 
 # operations
 
+#set by configure
+AUTO_PERL=perl
+
 function run_latex () { $ISABELLE_LATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_pdflatex () { $ISABELLE_PDFLATEX "\\nonstopmode\\input{$FILEBASE.tex}"; }
 function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
@@ -80,6 +83,16 @@ function run_makeindex () { $ISABELLE_MAKEINDEX </dev/null "$FILEBASE"; }
 function run_dvips () { $ISABELLE_DVIPS -q -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
 function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$FILEBASE"; }
 function copy_styles () { cp -f "$ISABELLE_HOME/lib/texinputs"/*.sty "$DIR"; }
+
+function extract_syms ()
+{
+  "$AUTO_PERL" -n \
+    -e '!m,%requires, && m,\\newcommand\{\\isasym(\w+)\}, && print "$1\n";' \
+    "$ISABELLE_HOME/lib/texinputs/isabellesym.sty" > "$DIR/syms.lst"
+  "$AUTO_PERL" -n \
+    -e 'm,\\newcommand\{\\isactrl(\w+)\}, && print "$1\n";' \
+    "$ISABELLE_HOME/lib/texinputs/isabelle.sty" > "$DIR/ctrls.lst"
+}
 
 case "$OUTFORMAT" in
   dvi)
@@ -128,6 +141,10 @@ case "$OUTFORMAT" in
     ;;
   sty)
     copy_styles
+    RC="$?"
+    ;;
+  syms)
+    extract_syms
     RC="$?"
     ;;
   *)

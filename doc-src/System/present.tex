@@ -553,7 +553,7 @@ Usage: latex [OPTIONS] [FILE]
 
   Options are:
     -o FORMAT    specify output format: dvi (default), dvi.gz, ps,
-                 ps.gz, pdf, bbl, png, sty
+                 ps.gz, pdf, bbl, png, sty, syms
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.
@@ -569,6 +569,9 @@ from the distribution.  This is useful in special situations where the
 document sources are to be processed another time by separate tools (cf.\ 
 option \texttt{-D} of the \texttt{usedir} utility, see
 \S\ref{sec:tool-usedir}).
+
+The \texttt{syms} output is for internal use; it generates lists of symbols
+that are available without loading additional {\LaTeX} packages.
 
 
 \subsubsection*{Examples}
