@@ -569,7 +569,7 @@ goal HOL.thy "! x. P x (f x) = (? y. (! z. P z y --> P z (f x)) & P x y)";
 by (safe_meson_tac 1);
 result();
 
-writeln"Problem 62 as corrected in AAR newletter #31";
+writeln"Problem 62 as corrected in JAR 18 (1997), page 135";
 goal HOL.thy
     "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =   \
 \    (ALL x. (~ p a | p x | p(f(f x))) &                        \
