@@ -31,7 +31,14 @@ syntax  "@fapp"     :: "('a -> 'b)=>('a => 'b)" ("_`_" [999,1000] 999)
 
 translations "f`x" == "fapp f x"
 
+syntax (symbols)
+
+  "->"		:: [type, type] => type		("(_ \\<rightarrow>/ _)" [6,5]5)
+  "LAM "	:: "[idts, 'a => 'b] => ('a -> 'b)"
+					("(3\\<Lambda>_./ _)" [0, 10] 10)
+
 defs 
+
   Cfun_def      "Cfun == {f. cont(f)}"
 
 rules
@@ -47,11 +54,4 @@ defs
   (*defining the abstract constants*)
   less_cfun_def         "less_cfun fo1 fo2 == ( fapp fo1 << fapp fo2 )"
 
-(* start 8bit 1 *)
-(* end 8bit 1 *)
-
-
 end
-
-(* start 8bit 2 *)
-(* end 8bit 2 *)

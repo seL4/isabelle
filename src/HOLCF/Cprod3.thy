@@ -44,7 +44,7 @@ csplit_def      "csplit == (LAM f p.f`(cfst`p)`(csnd`p))"
 
    and
 
-   ¤<x,y,z>.e
+   LAM <x,y,z>.e
 *)
 
 types
@@ -81,8 +81,6 @@ translations
   "LAM <x,y>.b"      == "csplit`(LAM x.LAM y.b)"
   (* reverse translation <= does not work yet !! *)
 
-(* start 8bit 1 *)
-(* end 8bit 1 *)
 end
 
 

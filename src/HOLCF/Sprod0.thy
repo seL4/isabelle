@@ -14,6 +14,10 @@ types "**" 2        (infixr 20)
 
 arities "**" :: (pcpo,pcpo)term 
 
+syntax (symbols)
+ 
+  "**"		:: [type, type] => type		("(_ \\<otimes>/ _)" [21,20] 20)
+
 consts
   Sprod         :: "('a => 'b => bool)set"
   Spair_Rep     :: "['a,'b] => ['a,'b] => bool"
@@ -50,8 +54,6 @@ defs
                                         (p=Ispair UU UU  --> z=UU)
                 &(! a b. ~a=UU & ~b=UU & p=Ispair a b    --> z=b)"  
 
-(* start 8bit 1 *)
-(* end 8bit 1 *)
 
 end
 

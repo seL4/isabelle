@@ -10,7 +10,7 @@ Lift1 = Tr2 +
 
 default term
 
-datatype 'a lift  = Undef | Def('a)
+datatype 'a lift = Undef | Def 'a
 
 arities "lift" :: (term)term
 

@@ -20,13 +20,19 @@ classes po < term
 
 arities void :: po
 
-consts  "<<"    ::      "['a,'a::po] => bool"   (infixl 55)
+consts
+
+  "<<"		:: "['a,'a::po] => bool"	(infixl 55)
+
+syntax (symbols)
+
+  "op <<"	:: "['a,'a::po] => bool"	(infixl "\\<sqsubseteq>" 55)
 
 rules
 
 (* class axioms: justification is theory Void *)
 
-refl_less       "x << x"        
+refl_less       "x<<x"        
                                 (* witness refl_less_void    *)
 
 antisym_less    "[|x<<y ; y<<x |] ==> x = y"    
@@ -38,9 +44,6 @@ trans_less      "[|x<<y ; y<<z |] ==> x<<z"
 (* instance of << for the prototype void *)
 
 inst_void_po    "((op <<)::[void,void]=>bool) = less_void"
-
-(* start 8bit 1 *)
-(* end 8bit 1 *)
 
 end 
 

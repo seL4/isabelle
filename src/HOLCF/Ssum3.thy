@@ -29,7 +29,4 @@ sswhen_def      "sswhen   == (LAM f g s.Iwhen(f)(g)(s))"
 translations
 "case s of sinl`x => t1 | sinr`y => t2" == "sswhen`(LAM x.t1)`(LAM y.t2)`s"
 
-(* start 8bit 1 *)
-(* end 8bit 1 *)
-
 end

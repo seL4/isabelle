@@ -42,8 +42,4 @@ defs
   tr_when_def "tr_when == 
         (LAM e1 e2 t. sswhen`(LAM x.e1)`(LAM y.e2)`(rep_tr`t))"
 
-(* start 8bit 1 *)
-(* end 8bit 1 *)
-
-
 end

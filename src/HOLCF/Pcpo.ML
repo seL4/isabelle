@@ -34,7 +34,7 @@ bind_thm ("is_lub_thelub", cpo RS lubI RS is_lub_lub);
 (* [| is_chain(?S5); range(?S5) <| ?x1 |] ==> lub(range(?S5)) << ?x1        *)
 
 qed_goal "maxinch_is_thelub" Pcpo.thy "is_chain Y ==> \
-\	max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::pcpo))" 
+\       max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::pcpo))" 
 (fn prems => 
 	[
 	cut_facts_tac prems 1,

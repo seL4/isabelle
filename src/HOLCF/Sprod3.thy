@@ -11,17 +11,20 @@ Sprod3 = Sprod2 +
 arities "**" :: (pcpo,pcpo)pcpo                 (* Witness sprod2.ML *)
 
 consts  
-        spair        :: "'a -> 'b -> ('a**'b)" (* continuous strict pairing *)
-        sfst         :: "('a**'b)->'a"
-        ssnd         :: "('a**'b)->'b"
-        ssplit       :: "('a->'b->'c)->('a**'b)->'c"
+  spair		:: "'a -> 'b -> ('a**'b)" (* continuous strict pairing *)
+  sfst		:: "('a**'b)->'a"
+  ssnd		:: "('a**'b)->'b"
+  ssplit	:: "('a->'b->'c)->('a**'b)->'c"
 
 syntax  
-        "@stuple"    :: "['a, args] => 'a ** 'b"        ("(1'(|_,/ _|'))")
+  "@stuple"	:: "['a, args] => 'a ** 'b"		("(1'(|_,/ _|'))")
 
 translations
         "(|x, y, z|)"   == "(|x, (|y, z|)|)"
         "(|x, y|)"      == "spair`x`y"
+
+syntax (symbols)
+  "@stuple"	:: "['a, args] => 'a ** 'b"		("(1É_,/ _Ê)")
 
 rules 
 
@@ -33,8 +36,6 @@ sfst_def        "sfst   == (LAM p.Isfst p)"
 ssnd_def        "ssnd   == (LAM p.Issnd p)"     
 ssplit_def      "ssplit == (LAM f. strictify`(LAM p.f`(sfst`p)`(ssnd`p)))"
 
-(* start 8bit 1 *)
-(* end 8bit 1 *)
 
 end
 
