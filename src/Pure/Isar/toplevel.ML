@@ -412,7 +412,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
       if int orelse not int_only then ()
       else warning (command_msg "Interactive-only " tr);
     val (result, opt_exn) =
-      (if ! Library.timing andalso not no_timing then (warning (command_msg "" tr); timeap) else I)
+      (if ! Output.timing andalso not no_timing then (warning (command_msg "" tr); timeap) else I)
         (apply_trans int trans) state;
     val _ = if int andalso print andalso not (! quiet) then print_state false result else ();
   in (result, apsome (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;

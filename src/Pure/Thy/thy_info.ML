@@ -341,7 +341,7 @@ fun require_thy really ml time strict keep_strict initiators prfx (visited, str)
             ((case new_deps of
               Some deps => change_thys (update_node name parents (deps, thy))
             | None => ());
-             load_thy really ml (time orelse ! Library.timing) initiators dir name parents;
+             load_thy really ml (time orelse ! Output.timing) initiators dir name parents;
              false);
       in (visited', (result, name)) end
   end;

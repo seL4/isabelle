@@ -825,7 +825,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 	  (case Seq.pull (tac st0) of 
 	       Some(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
-  in  mkresult (check, cond_timeit (!Library.timing) statef)  end
+  in  mkresult (check, cond_timeit (!Output.timing) statef)  end
   handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
 	       writeln ("The exception above was raised for\n" ^ 
 		      Display.string_of_cterm chorn); raise e);
@@ -833,9 +833,9 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
 (*Two variants: one checking the result, one not.  
   Neither prints runtime messages: they are for internal packages.*)
 fun prove_goalw_cterm rths chorn = 
-	setmp Library.timing false (prove_goalw_cterm_general true rths chorn)
+	setmp Output.timing false (prove_goalw_cterm_general true rths chorn)
 and prove_goalw_cterm_nocheck rths chorn = 
-	setmp Library.timing false (prove_goalw_cterm_general false rths chorn);
+	setmp Output.timing false (prove_goalw_cterm_general false rths chorn);
 
 
 (*Version taking the goal as a string*)
@@ -997,7 +997,7 @@ fun by_com tac ((th,ths), pairs) : gstack =
 		       sign_error (Thm.sign_of_thm th, Thm.sign_of_thm th2));
        ((th2,ths2)::(th,ths)::pairs)));
 
-fun by tac = cond_timeit (!Library.timing) 
+fun by tac = cond_timeit (!Output.timing) 
     (fn() => make_command (by_com tac));
 
 (* byev[tac1,...,tacn] applies tac1 THEN ... THEN tacn.
