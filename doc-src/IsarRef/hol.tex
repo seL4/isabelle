@@ -105,6 +105,10 @@
   recursion etc.).
 \end{descr}
 
+The induction and exhaustion theorems generated provide case names according
+to the constructors involved, while parameters are named after the types (see
+also \S\ref{sec:induct-method}).
+
 See \cite{isabelle-HOL} for more details on datatypes.  Note that the theory
 syntax above has been slightly simplified over the old version, usually
 requiring more quotes and less parentheses.
@@ -134,7 +138,15 @@ requiring more quotes and less parentheses.
   functions (using the TFL package).
 \end{descr}
 
-See \cite{isabelle-HOL} for more information on both mechanisms.
+Both definitions accommodate reasoning proof by induction (cf.\ 
+\S\ref{sec:induct-method}): rule $c\mathord{.}induct$ (where $c$ is the name
+of the function definition) refers to a specific induction rule, with
+parameters named according to the user-specified equations.  Case names of
+$\isarkeyword{primrec}$ are that of the datatypes involved, while those of
+$\isarkeyword{recdef}$ are numbered (starting from $1$).
+
+See \cite{isabelle-HOL} for further information on recursive function
+definitions in HOL.
 
 
 \section{(Co)Inductive sets}
@@ -169,48 +181,129 @@ See \cite{isabelle-HOL} for more information on both mechanisms.
 \item [$mono$] adds or deletes monotonicity rules from the theory or proof
   context (the default is to add).  These rule are involved in the automated
   monotonicity proof of $\isarkeyword{inductive}$.
-\item [$\isarkeyword{inductive_cases}$] creates simplified instances of
-  elimination rules of (co)inductive sets.
+\item [$\isarkeyword{inductive_cases}$] creates instances of elimination rules
+  of (co)inductive sets, solving obvious cases by simplification.
+  
+  The $cases$ proof method (see \S\ref{sec:induct-method}) provides a more
+  direct way for reasoning by cases (including optional simplification).
+  
+  Unlike the \texttt{mk_cases} ML function exported with any inductive
+  definition \cite{isabelle-HOL}, $\isarkeyword{inductive_cases}$ it does
+  \emph{not} modify cases by simplification, apart from trying to solve
+  completely (e.g.\ due to contradictory assumptions.  Thus
+  $\isarkeyword{inductive_cases}$ conforms to way Isar proofs are conducted,
+  rather than old-style tactic scripts.
 \end{descr}
 
-See \cite{isabelle-HOL} for more information.  Note that
-$\isarkeyword{inductive_cases}$ corresponds to the \texttt{mk_cases} ML
-function.
+See \cite{isabelle-HOL} for further information on inductive definitions in
+HOL.
 
 
-\section{Proof by induction}
+\section{Proof by cases and induction}\label{sec:induct-method}
 
-\indexisarmeth{induct}
+\subsection{Proof methods}
+
+\indexisarmeth{cases}\indexisarmeth{induct}
 \begin{matharray}{rcl}
+  cases & : & \isarmeth \\
   induct & : & \isarmeth \\
 \end{matharray}
 
-The $induct$ method provides a uniform interface to induction over datatypes,
-inductive sets, recursive functions etc.  Basically, it is just an interface
-to the $rule$ method applied to appropriate instances of the corresponding
-induction rules.
+The $cases$ and $induct$ methods provide a uniform interface to case analysis
+and induction over datatypes, inductive sets, and recursive functions.  The
+corresponding rules may be specified and instantiated in a casual manner.
+Furthermore, these methods provide named local contexts that may be invoked
+via the $\CASENAME$ proof command within the subsequent proof text (cf.\ 
+\S\ref{sec:proof-context}).  This accommodates compact proof texts even when
+reasoning about large specifications.
 
 \begin{rail}
-  'induct' (inst * 'and') kind?
+  'cases' ('simplified' ':')? term? rule?  ;
+
+  'induct' ('stripped' ':')? (inst * 'and') rule?
   ;
 
-  inst: term term?
+  inst: (term +)
   ;
-  kind: ('type' | 'set' | 'function' | 'rule') ':' nameref
+  rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
   ;
 \end{rail}
 
 \begin{descr}
-\item [$induct~insts~kind$] abbreviates method $rule~R$, where $R$ is the
-  induction rule specified by $kind$ and instantiated by $insts$.  The rule is
-  either that of some type, set, or recursive function (defined via TFL), or
-  given explicitly.
+\item [$cases~t~R$] applies method $rule$ with an appropriate case distinction
+  theorem, instantiated to the subject $t$.  Symbolic case names are bound
+  according to the rule's local contexts.
   
-  The instantiation basically consists of a list of $P$ $x$ (induction
-  predicate and variable) specifications, where $P$ is optional.  If $kind$ is
-  omitted, the default is to pick a datatype induction rule according to the
-  type of some induction variable, which may not be omitted that case.
+  The rule is determined as follows, according to the facts and arguments
+  passed to the $cases$ method:
+  \begin{matharray}{llll}
+    \text{facts}    &       & \text{arguments} & \text{rule} \\\hline
+                    & cases &           & \text{classical case split} \\
+                    & cases & t         & \text{datatype exhaustion (type of $t$)} \\
+    \edrv a \in A   & cases & \dots     & \text{inductive set elimination (of $A$)} \\
+    \dots           & cases & \dots ~ R & \text{explicit rule $R$} \\
+  \end{matharray}
+
+  The $simplified$ option causes ``obvious cases'' of the rule to be solved
+  beforehand, while the others are left unscathed.
+  
+\item [$induct~insts~R$] is analogous to the $cases$ method, but refers to
+  induction rules, which are determined as follows:
+  \begin{matharray}{llll}
+    \text{facts}    &        & \text{arguments} & \text{rule} \\\hline
+                    & induct & P ~ x ~ \dots & \text{datatype induction (type of $x$)} \\
+    \edrv x \in A   & induct & \dots         & \text{set induction (of $A$)} \\
+    \dots           & induct & \dots ~ R     & \text{explicit rule $R$} \\
+  \end{matharray}
+  
+  Several instantiations may be given, each referring to some part of a mutual
+  inductive definition or datatype --- only related partial induction rules
+  may be used together, though.  Any of the lists of terms $P, x, \dots$
+  refers to the \emph{suffix} of variables present in the induction rule.
+  This enables the writer to specify only induction variables, or both
+  predicates and variables, for example.
+  
+  The $stripped$ option causes implications and (bounded) universal
+  quantifiers to be removed from each new subgoal emerging from the
+  application of the induction rule.
 \end{descr}
+
+Above methods produce named local contexts (cf.\ \S\ref{sec:proof-context}),
+as determined by the instantiated rule \emph{before} it has been applied to
+the internal proof state.\footnote{As a general principle, Isar proof text may
+  never refer to parts of proof states directly.} Thus proper use of symbolic
+cases usually require the rule to be instantiated fully, as far as the
+emerging local contexts and subgoals are concerned.  In particular, for
+induction both the predicates and variables have to be specified.  Otherwise
+the $\CASENAME$ command would refuse to invoke cases that contain schematic
+variables.
+
+The $\isarkeyword{print_cases}$ command (\S\ref{sec:diag}) prints all named
+cases present in the current proof context.
+
+
+\subsection{Augmenting the context}
+
+\indexisaratt{cases}\indexisaratt{induct}
+\begin{matharray}{rcl}
+  cases & : & \isaratt \\
+  induct & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  'cases' spec
+  ;
+  'induct' spec
+  ;
+
+  spec: ('type' | 'set') ':' nameref
+  ;
+\end{rail}
+
+The $cases$ and $induct$ attributes augment the corresponding context of rules
+for reasoning about inductive sets and types.  The standard rules are already
+declared by HOL definitional packages.  For special applications, these may be
+replaced manually by variant versions.
 
 
 \section{Arithmetic}
