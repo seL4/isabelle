@@ -22,7 +22,7 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF \
-       mono Lfp Gfp Nat Inductive Finite Arith Sexp Univ List 
+       mono Lfp Gfp Nat Inductive Finite Arith Sexp Univ List RelPow
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
 	ind_syntax.ML indrule.ML intr_elim.ML simpdata.ML\
