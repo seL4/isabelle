@@ -13,11 +13,9 @@ Prod = Fun +
 
 (* type definition *)
 
-consts
+constdefs
   Pair_Rep      :: ['a, 'b] => ['a, 'b] => bool
-
-defs
-  Pair_Rep_def  "Pair_Rep == (%a b. %x y. x=a & y=b)"
+  "Pair_Rep == (%a b. %x y. x=a & y=b)"
 
 typedef (Prod)
   ('a, 'b) "*"          (infixr 20)

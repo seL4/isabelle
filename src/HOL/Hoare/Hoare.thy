@@ -27,31 +27,30 @@ syntax
 
   "@Spec"       :: [bool, 'a prog, bool] => bool        ("{_}//_//{_}")
 
-consts
-  (* semantics *)
-
-  Skip          :: 'a com
-  Assign        :: [pvar, 'a exp] => 'a com
-  Seq           :: ['a com, 'a com] => 'a com
-  Cond          :: ['a bexp, 'a com, 'a com] => 'a com
-  While         :: ['a bexp, 'a bexp, 'a com] => 'a com
-  Iter          :: [nat, 'a bexp, 'a com] => 'a com
-
-  Spec          :: ['a bexp, 'a com, 'a bexp] => bool
-
-defs
+constdefs
   (* denotational semantics *)
 
-  SkipDef       "Skip s s' == (s=s')"
-  AssignDef     "Assign v e s s' == (s' = (%x.if x=v then e(s) else s(x)))"
-  SeqDef        "Seq c c' s s' == ? s''. c s s'' & c' s'' s'"
-  CondDef       "Cond b c c' s s' == (b(s) --> c s s') & (~b s --> c' s s')"
-  WhileDef      "While b inv c s s' == ? n. Iter n b c s s'"
+  Skip          :: 'a com
+  "Skip s s' == (s=s')"
 
-  IterDef       "Iter n b c == nat_rec n (%s s'.~b(s) & (s=s'))
-                           (%n_rec iter_rec.%s s'.b(s) & Seq c iter_rec s s')"
+  Assign        :: [pvar, 'a exp] => 'a com
+  "Assign v e s s' == (s' = (%x.if x=v then e(s) else s(x)))"
 
-  SpecDef       "Spec p c q == !s s'. c s s' --> p s --> q s'"
+  Seq           :: ['a com, 'a com] => 'a com
+  "Seq c c' s s' == ? s''. c s s'' & c' s'' s'"
+
+  Cond          :: ['a bexp, 'a com, 'a com] => 'a com
+  "Cond b c c' s s' == (b(s) --> c s s') & (~b s --> c' s s')"
+
+  While         :: ['a bexp, 'a bexp, 'a com] => 'a com
+  "While b inv c s s' == ? n. Iter n b c s s'"
+
+  Iter          :: [nat, 'a bexp, 'a com] => 'a com
+  "Iter n b c == nat_rec n (%s s'.~b(s) & (s=s'))
+             (%n_rec iter_rec.%s s'.b(s) & Seq c iter_rec s s')"
+
+  Spec          :: ['a bexp, 'a com, 'a bexp] => bool
+  "Spec p c q == !s s'. c s s' --> p s --> q s'"
 
 end
 

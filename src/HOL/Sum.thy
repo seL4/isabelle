@@ -10,13 +10,12 @@ Sum = mono + Prod +
 
 (* type definition *)
 
-consts
+constdefs
   Inl_Rep       :: ['a, 'a, 'b, bool] => bool
-  Inr_Rep       :: ['b, 'a, 'b, bool] => bool
+  "Inl_Rep == (%a. %x y p. x=a & p)"
 
-defs
-  Inl_Rep_def   "Inl_Rep == (%a. %x y p. x=a & p)"
-  Inr_Rep_def   "Inr_Rep == (%b. %x y p. y=b & ~p)"
+  Inr_Rep       :: ['b, 'a, 'b, bool] => bool
+  "Inr_Rep == (%b. %x y p. y=b & ~p)"
 
 typedef (Sum)
   ('a, 'b) "+"          (infixr 10)

@@ -11,14 +11,18 @@ reflcl is reflexive closure
 *)
 
 Trancl = Lfp + Relation + 
-consts
-    rtrancl :: "('a * 'a)set => ('a * 'a)set"   ("(_^*)" [100] 100)
-    trancl  :: "('a * 'a)set => ('a * 'a)set"   ("(_^+)" [100] 100)  
+
+constdefs
+  rtrancl :: "('a * 'a)set => ('a * 'a)set"   ("(_^*)" [100] 100)
+  "r^*  ==  lfp(%s. id Un (r O s))"
+
+  trancl  :: "('a * 'a)set => ('a * 'a)set"   ("(_^+)" [100] 100)
+  "r^+  ==  r O rtrancl(r)"
+
 syntax
-    reflcl  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [100] 100)
-defs   
-  rtrancl_def   "r^*  ==  lfp(%s. id Un (r O s))"
-  trancl_def    "r^+  ==  r O rtrancl(r)"
+  reflcl  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [100] 100)
+
 translations
-                "r^=" == "r Un id"
+  "r^=" == "r Un id"
+
 end
