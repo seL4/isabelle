@@ -139,17 +139,25 @@ local
 
   (*parsers*)
   val tvars = type_args >> map (cat "dtVar");
-  fun complex_typ toks =
-    (("(" $$-- complex_typ  --$$ ")" >> (fn x => [x]) || tvars)
-     -- (ident>>quote) >> (cat "dtTyp" o mk_pair o apfst mk_list)
-     || type_var >> cat "dtVar") toks;
-  val simple_typ = ident>>(cat "dtTyp" o curry mk_pair "[]" o quote) ||
+
+  val simple_typ = ident >> (cat "dtTyp" o curry mk_pair "[]" o quote) ||
     type_var >> cat "dtVar";
+
+  fun complex_typ toks =
+    let val typ = simple_typ || "(" $$-- complex_typ --$$ ")";
+        val typ2 = complex_typ || "(" $$-- complex_typ --$$ ")";
+    in
+     (typ -- repeat (ident>>quote) >>
+        (foldl (fn (x,y) => "dtTyp " ^ mk_pair (brackets x, y))) ||
+      "(" $$-- !! (list1 typ2) --$$ ")" -- !! (repeat1 (ident>>quote)) >>
+       (fn (fst, ids) => foldl (fn (x,y) => "dtTyp " ^
+                         mk_pair (brackets x, y)) (commas fst, ids))) toks
+    end;
+
   val opt_typs = repeat (simple_typ || ("(" $$-- complex_typ --$$ ")"));
   val constructor = name -- opt_typs -- opt_mixfix;
 in
   val datatype_decl =
-    (* FIXME tvars -> type_args *)
     tvars -- ident --$$ "=" -- enum1 "|" constructor >> mk_params;
 end;
 
