@@ -378,7 +378,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (Library.LIST msg) = raised_msg "Library.LIST" msg
   | exn_message exn = General.exnMessage exn
 and fail_message kind ((name, pos), exn) =
-  "Error in " ^ kind ^ " " ^ name ^ Position.str_of pos ^ ":\n" ^ exn_message exn;
+  "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_message exn;
 
 fun print_exn None = ()
   | print_exn (Some (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
