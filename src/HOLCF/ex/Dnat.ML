@@ -19,57 +19,49 @@ bind_thm ("iterator_def2", fix_prover2 Dnat.thy iterator_def
 (* recursive  properties                                                     *)
 (* ------------------------------------------------------------------------- *)
 
-qed_goal "iterator1" Dnat.thy "iterator`UU`f`x = UU"
- (fn prems =>
-	[
-	(stac iterator_def2 1),
-	(simp_tac (HOLCF_ss addsimps dnat.rews) 1)
-	]);
+Goal "iterator`UU`f`x = UU";
+by (stac iterator_def2 1);
+by (simp_tac (HOLCF_ss addsimps dnat.rews) 1);
+qed "iterator1";
 
-qed_goal "iterator2" Dnat.thy "iterator`dzero`f`x = x"
- (fn prems =>
-	[
-	(stac iterator_def2 1),
-	(simp_tac (HOLCF_ss addsimps dnat.rews) 1)
-	]);
+Goal "iterator`dzero`f`x = x";
+by (stac iterator_def2 1);
+by (simp_tac (HOLCF_ss addsimps dnat.rews) 1);
+qed "iterator2";
 
-qed_goal "iterator3" Dnat.thy 
-"n~=UU ==> iterator`(dsucc`n)`f`x = f`(iterator`n`f`x)"
- (fn prems =>
-	[
-	(cut_facts_tac prems 1),
-	(rtac trans 1),
-	(stac iterator_def2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat.rews) 1),
-	(rtac refl 1)
-	]);
+Goal "n~=UU ==> iterator`(dsucc`n)`f`x = f`(iterator`n`f`x)";
+by (rtac trans 1);
+by (stac iterator_def2 1);
+by (asm_simp_tac (HOLCF_ss addsimps dnat.rews) 1);
+by (rtac refl 1);
+qed "iterator3";
 
 val iterator_rews = 
 	[iterator1, iterator2, iterator3];
 
-val dnat_flat = prove_goal Dnat.thy "!x y::dnat. x<<y --> x=UU | x=y" 
-(fn _ => [
-	(rtac allI 1),
-	(res_inst_tac [("x","x")] dnat.ind 1),
-	(fast_tac HOL_cs 1),
-	(rtac allI 1),
-	(res_inst_tac [("x","y")] dnat.casedist 1),
-	(fast_tac (HOL_cs addSIs [UU_I]) 1),
-	(Asm_simp_tac 1),
-	(asm_simp_tac (simpset() addsimps dnat.dist_les) 1),
-	(rtac allI 1),
-	(res_inst_tac [("x","y")] dnat.casedist 1),
-	(fast_tac (HOL_cs addSIs [UU_I]) 1),
-	(asm_simp_tac (simpset() addsimps dnat.dist_les) 1),
-	(asm_simp_tac (simpset() addsimps dnat.rews) 1),
-	(strip_tac 1),
-	(subgoal_tac "d<<da" 1),
-	(etac allE 1),
-	(dtac mp 1),
-	(atac 1),
-	(etac disjE 1),
-	(contr_tac 1),
-	(Asm_simp_tac 1),
-	(resolve_tac  dnat.inverts 1),
-	(REPEAT (atac 1))]);
+Goal "ALL x y::dnat. x<<y --> x=UU | x=y";
+by (rtac allI 1);
+by (res_inst_tac [("x","x")] dnat.ind 1);
+by (fast_tac HOL_cs 1);
+by (rtac allI 1);
+by (res_inst_tac [("x","y")] dnat.casedist 1);
+by (fast_tac (HOL_cs addSIs [UU_I]) 1);
+by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps dnat.dist_les) 1);
+by (rtac allI 1);
+by (res_inst_tac [("x","y")] dnat.casedist 1);
+by (fast_tac (HOL_cs addSIs [UU_I]) 1);
+by (asm_simp_tac (simpset() addsimps dnat.dist_les) 1);
+by (asm_simp_tac (simpset() addsimps dnat.rews) 1);
+by (strip_tac 1);
+by (subgoal_tac "d<<da" 1);
+by (etac allE 1);
+by (dtac mp 1);
+by (atac 1);
+by (etac disjE 1);
+by (contr_tac 1);
+by (Asm_simp_tac 1);
+by (resolve_tac  dnat.inverts 1);
+by (REPEAT (atac 1));
+qed "dnat_flat";
 
