@@ -61,7 +61,6 @@ sig
     (thm list * context attribute list) list) list -> state -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
-  val norm_hhf_tac: int -> tactic
   val hard_asm_tac: int -> tactic
   val soft_asm_tac: int -> tactic
   val assm: ProofContext.exporter
@@ -203,6 +202,7 @@ fun map_context_result f (state as State (Node {context, facts, mode, goal}, nod
 
 fun put_data kind f = map_context o ProofContext.put_data kind f;
 val warn_extra_tfrees = map_context o ProofContext.warn_extra_tfrees o context_of;
+val add_binds_i = map_context o ProofContext.add_binds_i;
 val auto_bind_goal = map_context o ProofContext.auto_bind_goal;
 val auto_bind_facts = map_context oo ProofContext.auto_bind_facts;
 val put_thms = map_context o ProofContext.put_thms;
@@ -515,9 +515,8 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 (* assume *)
 
-val norm_hhf_tac = Tactic.rewrite_goal_tac [Drule.norm_hhf_eq];
 val hard_asm_tac = Tactic.etac Drule.triv_goal;
-val soft_asm_tac = Tactic.rtac Drule.triv_goal THEN' norm_hhf_tac;
+val soft_asm_tac = Tactic.rtac Drule.triv_goal THEN' Tactic.norm_hhf_tac;
 
 local
 
@@ -530,8 +529,8 @@ fun gen_assume f exp args state =
     |> put_thms ("prems", prems));
 
 fun simple_exporter tac1 tac2 =
-  (Seq.single oo Drule.implies_intr_list,
-    fn is_goal => fn n => replicate n (norm_hhf_tac THEN' (if is_goal then tac1 else tac2)));
+  (Seq.single oo Drule.implies_intr_list, fn is_goal => fn n =>
+    replicate n (Tactic.norm_hhf_tac THEN' (if is_goal then tac1 else tac2)));
 
 in
 
@@ -549,12 +548,12 @@ end;
 
 fun invoke_case (name, atts) state =
   let
-    val (vars, props) = get_case state name;
-    val bind_skolem = ProofContext.bind_skolem (context_of state) (map #1 vars);
+    val (fixes, lets, asms) = ProofContext.apply_case (context_of state) (get_case state name);
   in
     state
-    |> fix_i (map (fn (x, T) => ([x], Some T)) vars)
-    |> assume_i [((name, atts), map (fn t => (t, ([], []))) (map bind_skolem props))]
+    |> fix_i (map (fn (x, T) => ([x], Some T)) fixes)
+    |> add_binds_i lets
+    |> assume_i [((name, atts), map (fn t => (t, ([], []))) asms)]
   end;
 
 
