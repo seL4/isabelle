@@ -729,9 +729,7 @@ by (subgoal_tac "schA=UU" 1);
 by (Asm_simp_tac 1);
 (* first side: mksch = UU *)
 by (SELECT_GOAL (auto_tac (claset() addSIs [ForallQFilterPUU,
-                                           (finiteR_mksch RS mp COMP rev_contrapos),
-                                            ForallBnAmksch],
-                           simpset())) 1);
+        (finiteR_mksch RS mp COMP rev_contrapos),ForallBnAmksch],simpset())) 1);
 (* schA = UU *)
 by (eres_inst_tac [("A","A")] LastActExtimplUU 1);
 by (Asm_simp_tac 1);
