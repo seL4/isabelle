@@ -18,4 +18,11 @@ theory Inductive = Fixedpt + mono
 setup IndCases.setup
 setup DatatypeTactics.setup
 
+
+(*belongs to theory ZF*)
+declare bspec [dest?]
+
+(*belongs to theory upair*)
+declare UnI1 [elim?]  UnI2 [elim?]
+
 end

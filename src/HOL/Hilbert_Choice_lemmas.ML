@@ -17,7 +17,6 @@ Goal "EX x. P x ==> P (SOME x. P x)";
 by (etac exE 1);
 by (etac someI 1);
 qed "someI_ex";
-AddXEs [someI_ex];
 
 (*Easier to apply than someI: conclusion has only one occurrence of P*)
 val prems = Goal "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";

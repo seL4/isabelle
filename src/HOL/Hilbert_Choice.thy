@@ -37,6 +37,8 @@ constdefs
 
 
 use "Hilbert_Choice_lemmas.ML"
+declare someI_ex [elim?];
+
 
 lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
   -- {* dynamically-scoped fact for TFL *}
