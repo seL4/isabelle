@@ -1049,6 +1049,13 @@ lemma insert_Collect: "insert a (Collect P) = {u. u \<noteq> a --> P u}"
 lemma UN_insert_distrib: "u \<in> A ==> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
   by blast
 
+lemma insert_disjoint[simp]:
+ "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
+by blast
+
+lemma disjoint_insert[simp]:
+ "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
+by blast
 
 text {* \medskip @{text image}. *}
 

@@ -1,4 +1,3 @@
-
 header {* \section{Examples} *}
 
 theory RG_Examples = RG_Syntax:
@@ -340,12 +339,7 @@ apply(rule While)
        apply simp+
      apply(erule_tac x=j in allE)
      apply force
-    apply simp
-    apply clarify
-    apply(rule conjI)
-     apply clarify  
-     apply simp
-     apply(erule not_sym)
+    apply clarsimp
     apply force
 apply force+
 done
