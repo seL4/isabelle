@@ -206,17 +206,17 @@ text {*REALS
 @{thm[display] realpow_abs[no_vars]}
 \rulename{realpow_abs}
 
-@{thm[display] real_times_divide1_eq[no_vars]}
-\rulename{real_times_divide1_eq}
+@{thm[display] times_divide_eq_right[no_vars]}
+\rulename{times_divide_eq_right}
 
-@{thm[display] real_times_divide2_eq[no_vars]}
-\rulename{real_times_divide2_eq}
+@{thm[display] times_divide_eq_left[no_vars]}
+\rulename{times_divide_eq_left}
 
-@{thm[display] real_divide_divide1_eq[no_vars]}
-\rulename{real_divide_divide1_eq}
+@{thm[display] divide_divide_eq_right[no_vars]}
+\rulename{divide_divide_eq_right}
 
-@{thm[display] real_divide_divide2_eq[no_vars]}
-\rulename{real_divide_divide2_eq}
+@{thm[display] divide_divide_eq_left[no_vars]}
+\rulename{divide_divide_eq_left}
 
 @{thm[display] real_minus_divide_eq[no_vars]}
 \rulename{real_minus_divide_eq}

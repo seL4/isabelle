@@ -425,7 +425,7 @@ lemma eq_number_of_BIT_BIT:
      "((number_of (v BIT x) ::int) = number_of (w BIT y)) =  
       (x=y & (((number_of v) ::int) = number_of w))"
 by (simp only: simp_thms number_of_BIT lemma1 lemma2 eq_commute
-               Ring_and_Field.add_left_cancel add_assoc left_zero
+               Ring_and_Field.add_left_cancel add_assoc Ring_and_Field.add_0
             split add: split_if cong: imp_cong) 
 
 

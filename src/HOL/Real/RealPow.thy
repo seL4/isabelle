@@ -146,9 +146,10 @@ by auto
 
 lemma realpow_Suc_less [rule_format]:
      "(0::real) < r & r < (1::real) --> r ^ Suc n < r ^ n"
-  by (induct_tac "n", auto)
+  by (induct_tac "n", auto simp add: mult_less_cancel_left)
 
-lemma realpow_Suc_le [rule_format]: "0 \<le> r & r < (1::real) --> r ^ Suc n \<le> r ^ n"
+lemma realpow_Suc_le [rule_format]:
+     "0 \<le> r & r < (1::real) --> r ^ Suc n \<le> r ^ n"
 apply (induct_tac "n")
 apply (auto intro: order_less_imp_le dest!: order_le_imp_less_or_eq)
 done
@@ -188,7 +189,7 @@ lemma realpow_le_Suc [rule_format]: "(1::real) \<le> r --> r ^ n \<le> r ^ Suc n
 by (induct_tac "n", auto)
 
 lemma realpow_less_Suc [rule_format]: "(1::real) < r --> r ^ n < r ^ Suc n"
-by (induct_tac "n", auto)
+by (induct_tac "n", auto simp add: mult_less_cancel_left)
 
 lemma realpow_le_Suc2 [rule_format]: "(1::real) < r --> r ^ n \<le> r ^ Suc n"
 by (blast intro!: order_less_imp_le realpow_less_Suc)

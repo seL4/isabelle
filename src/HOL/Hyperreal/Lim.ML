@@ -5,6 +5,8 @@
                   differentiation of real=>real functions
 *)
 
+val times_divide_eq_right = thm"times_divide_eq_right";
+
 fun ARITH_PROVE str = prove_goal thy str 
                       (fn prems => [cut_facts_tac prems 1,arith_tac 1]);
 
@@ -1048,9 +1050,9 @@ qed "DERIV_mult";
 Goal "NSDERIV f x :> D \
 \     ==> NSDERIV (%x. c * f x) x :> c*D";
 by (asm_full_simp_tac 
-    (simpset() addsimps [real_times_divide1_eq RS sym, NSDERIV_NSLIM_iff,
+    (simpset() addsimps [times_divide_eq_right RS sym, NSDERIV_NSLIM_iff,
                          real_minus_mult_eq2, real_add_mult_distrib2 RS sym] 
-             delsimps [real_times_divide1_eq, real_mult_minus_eq2]) 1);
+             delsimps [times_divide_eq_right, real_mult_minus_eq2]) 1);
 by (etac (NSLIM_const RS NSLIM_mult) 1);
 qed "NSDERIV_cmult";
 
@@ -1061,9 +1063,9 @@ Goalw [deriv_def]
       "DERIV f x :> D \
 \      ==> DERIV (%x. c * f x) x :> c*D";
 by (asm_full_simp_tac 
-    (simpset() addsimps [real_times_divide1_eq RS sym, NSDERIV_NSLIM_iff,
+    (simpset() addsimps [times_divide_eq_right RS sym, NSDERIV_NSLIM_iff,
                          real_minus_mult_eq2, real_add_mult_distrib2 RS sym] 
-             delsimps [real_times_divide1_eq, real_mult_minus_eq2]) 1);
+             delsimps [times_divide_eq_right, real_mult_minus_eq2]) 1);
 by (etac (LIM_const RS LIM_mult2) 1);
 qed "DERIV_cmult";
 

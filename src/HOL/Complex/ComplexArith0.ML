@@ -5,11 +5,6 @@
 		 Also, common factor cancellation (see e.g. HyperArith0)
 *)
 
-Goal "x - - y = x + (y::complex)";
-by (Simp_tac 1);
-qed "real_diff_minus_eq";
-Addsimps [real_diff_minus_eq];
-
 (** Division and inverse **)
 
 Goal "0/x = (0::complex)";

@@ -404,14 +404,14 @@ Here is a selection of rules about the division operator.  The following
 are installed as default simplification rules in order to express
 combinations of products and quotients as rational expressions:
 \begin{isabelle}
-x\ *\ (y\ /\ z)\ =\ x\ *\ y\ /\ z
-\rulename{real_times_divide1_eq}\isanewline
-y\ /\ z\ *\ x\ =\ y\ *\ x\ /\ z
-\rulename{real_times_divide2_eq}\isanewline
-x\ /\ (y\ /\ z)\ =\ x\ *\ z\ /\ y
-\rulename{real_divide_divide1_eq}\isanewline
-x\ /\ y\ /\ z\ =\ x\ /\ (y\ *\ z)
-\rulename{real_divide_divide2_eq}
+a\ *\ (b\ /\ c)\ =\ a\ *\ b\ /\ c
+\rulename{times_divide_eq_right}\isanewline
+b\ /\ c\ *\ a\ =\ b\ *\ a\ /\ c
+\rulename{times_divide_eq_left}\isanewline
+a\ /\ (b\ /\ c)\ =\ a\ *\ c\ /\ b
+\rulename{divide_divide_eq_right}\isanewline
+a\ /\ b\ /\ c\ =\ a\ /\ (b\ *\ c)
+\rulename{divide_divide_eq_left}
 \end{isabelle}
 
 Signs are extracted from quotients in the hope that complementary terms can

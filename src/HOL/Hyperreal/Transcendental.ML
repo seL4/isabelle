@@ -12,6 +12,8 @@ fun multr_by_tac x i =
            res_inst_tac [("z",x)] cancel_thm i 
        end;
 
+val mult_less_cancel_left = thm"mult_less_cancel_left";
+
 Goalw [root_def] "root (Suc n) 0 = 0";
 by (safe_tac (claset() addSIs [some_equality,realpow_zero] 
     addSEs [realpow_zero_zero]));
@@ -285,24 +287,24 @@ by (cut_facts_tac [real_zero_less_one RS real_dense] 1);
 by (Step_tac 1);
 by (cut_inst_tac [("x","r")] reals_Archimedean3 1);
 by Auto_tac;
-by (dres_inst_tac [("x","abs x")] spec 1 THEN Step_tac 1);
+by (dres_inst_tac [("x","abs x")] spec 1 THEN Safe_tac);
 by (res_inst_tac [("N","n"),("c","r")] ratio_test 1);
 by (auto_tac (claset(),simpset() addsimps [abs_mult,real_mult_assoc RS sym]
     delsimps [fact_Suc]));
 by (rtac real_mult_le_le_mono2 1);
-by (res_inst_tac [("w1","abs x")] (real_mult_commute RS ssubst) 2);
+by (res_inst_tac [("b1","abs x")] (mult_commute RS ssubst) 2);
 by (stac fact_Suc 2);
 by (stac real_of_nat_mult 2);
 by (auto_tac (claset(),simpset() addsimps [abs_mult,real_inverse_distrib]));
 by (auto_tac (claset(), simpset() addsimps 
-     [real_mult_assoc RS sym, abs_eqI2, real_inverse_gt_0]));
-by (rtac (CLAIM "x < (y::real) ==> x <= y") 1);
+     [mult_assoc RS sym, abs_eqI2, real_inverse_gt_0]));
+by (rtac order_less_imp_le 1);
 by (res_inst_tac [("z1","real (Suc na)")] (real_mult_less_iff1
     RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [real_not_refl2 RS not_sym,
-    real_mult_assoc,abs_inverse]));
-by (rtac real_less_trans 1);
-by (auto_tac (claset(),simpset() addsimps real_mult_ac));
+    mult_assoc,abs_inverse]));
+by (etac order_less_trans 1);
+by (auto_tac (claset(),simpset() addsimps [mult_less_cancel_left]@mult_ac));
 qed "summable_exp";
 
 Addsimps [real_of_nat_fact_gt_zero,
@@ -636,9 +638,10 @@ by (res_inst_tac [("y","K * abs x")] order_le_less_trans 1);
 by (res_inst_tac [("R2.0","K * e")] real_less_trans 2);
 by (res_inst_tac [("z","inverse K")] (CLAIM_SIMP 
     "[|(0::real) <z; z*x<z*y |] ==> x<y" [real_mult_less_cancel1]) 3);
-by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 4);
-by Auto_tac;
-by (auto_tac (claset(),simpset() addsimps real_mult_ac));
+by (asm_full_simp_tac (simpset() addsimps [mult_assoc RS sym]) 4);
+by (Force_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [mult_less_cancel_left]) 1); 
+by (auto_tac (claset(),simpset() addsimps mult_ac));
 qed "lemma_termdiff4";
 
 Goal "[| 0 < k; \
@@ -1577,11 +1580,12 @@ by (auto_tac (claset(),simpset() delsimps [fact_Suc,realpow_Suc]));
 by (etac sums_summable 1);
 by (case_tac "m=0" 1);
 by (Asm_simp_tac 1);
-by (res_inst_tac [("z","real (Suc (Suc (Suc (Suc 2))))")]
-    (CLAIM "[|(0::real)<z; z*x<z*y |] ==> x<y") 1);
-by (asm_simp_tac (simpset() addsimps [numeral_2_eq_2 RS sym, real_mult_assoc RS sym]) 2);
-by (stac (CLAIM "6 = 2 * (3::real)") 2);
-by (rtac real_mult_less_mono 2);  
+by (subgoal_tac "6 * (x * (x * x) / real (Suc (Suc (Suc (Suc (Suc (Suc 0))))))) < 6 * x" 1); 
+by (asm_full_simp_tac (HOL_ss addsimps [mult_less_cancel_left]) 1); 
+by (asm_full_simp_tac (simpset() addsimps []) 1); 
+by (asm_simp_tac (simpset() addsimps [numeral_2_eq_2 RS sym, real_mult_assoc RS sym]) 1);
+by (stac (CLAIM "6 = 2 * (3::real)") 1);
+by (rtac real_mult_less_mono 1);  
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_Suc] delsimps [fact_Suc]));
 by (stac fact_Suc 1);
 by (stac fact_Suc 1);
@@ -1599,13 +1603,14 @@ by (multr_by_tac "real (Suc (Suc (4*m)))" 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc] 
     delsimps [fact_Suc]));
 by (multr_by_tac "real (Suc (Suc (Suc (4*m))))" 1);
-by (auto_tac (claset(),simpset() addsimps [real_mult_assoc] 
+by (auto_tac (claset(),simpset() addsimps [mult_assoc,mult_less_cancel_left] 
     delsimps [fact_Suc]));
-by (auto_tac (claset(),simpset() addsimps [CLAIM 
-    "x * (x * x ^ (4*m)) = (x ^ (4*m)) * (x * (x::real))"] 
+by (auto_tac (claset(),simpset() addsimps [
+        CLAIM "x * (x * x ^ (4*m)) = (x ^ (4*m)) * (x * (x::real))"] 
     delsimps [fact_Suc]));
-by (auto_tac (claset(),simpset() addsimps [real_mult_assoc,realpow_gt_zero] 
-    delsimps [fact_Suc]));
+by (subgoal_tac "0 < x ^ (4 * m)" 1);
+by (asm_simp_tac (simpset() addsimps [realpow_gt_zero]) 2); 
+by (asm_simp_tac (simpset() addsimps [mult_less_cancel_left]) 1); 
 by (rtac real_mult_less_mono 1);
 by (ALLGOALS(Asm_simp_tac));
 by (TRYALL(rtac real_less_trans));

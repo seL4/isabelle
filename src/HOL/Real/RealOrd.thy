@@ -280,6 +280,9 @@ lemma real_inverse_not_zero: "x ~= 0 ==> inverse(x::real) ~= 0"
 lemma real_mult_not_zero: "[| x ~= 0; y ~= 0 |] ==> x * y ~= (0::real)"
 by simp
 
+lemma real_inverse_eq_divide: "inverse (x::real) = 1/x"
+  by (rule Ring_and_Field.inverse_eq_divide) 
+
 lemma real_inverse_inverse: "inverse(inverse (x::real)) = x"
   by (rule Ring_and_Field.inverse_inverse_eq)
 
@@ -291,22 +294,6 @@ lemma real_minus_inverse: "inverse(-x) = -inverse(x::real)"
 
 lemma real_inverse_distrib: "inverse(x*y) = inverse(x)*inverse(y::real)"
   by (rule Ring_and_Field.inverse_mult_distrib)
-
-lemma real_times_divide1_eq: "(x::real) * (y/z) = (x*y)/z"
-by (simp add: real_divide_def real_mult_assoc)
-
-lemma real_times_divide2_eq: "(y/z) * (x::real) = (y*x)/z"
-by (simp add: real_divide_def real_mult_ac)
-
-declare real_times_divide1_eq [simp] real_times_divide2_eq [simp]
-
-lemma real_divide_divide1_eq: "(x::real) / (y/z) = (x*z)/y"
-by (simp add: real_divide_def real_inverse_distrib real_mult_ac)
-
-lemma real_divide_divide2_eq: "((x::real) / y) / z = x/(y*z)"
-by (simp add: real_divide_def real_inverse_distrib real_mult_assoc)
-
-declare real_divide_divide1_eq [simp] real_divide_divide2_eq [simp]
 
 (** As with multiplication, pull minus signs OUT of the / operator **)
 
@@ -374,6 +361,38 @@ lemma real_add_right_cancel_le [simp]: "(v+z \<le> w+z) = (v \<le> (w::real))"
 
 lemma real_add_left_cancel_le [simp]: "(z+v \<le> z+w) = (v \<le> (w::real))"
   by (rule Ring_and_Field.add_le_cancel_left)
+
+
+subsection{*Factor Cancellation Theorems for Type @{text real}*}
+
+lemma real_mult_less_cancel2:
+     "(m*k < n*k) = (((0::real) < k & m<n) | (k < 0 & n<m))"
+  by (rule Ring_and_Field.mult_less_cancel_right) 
+
+lemma real_mult_le_cancel2:
+     "(m*k <= n*k) = (((0::real) < k --> m<=n) & (k < 0 --> n<=m))"
+  by (rule Ring_and_Field.mult_le_cancel_right) 
+
+lemma real_mult_less_cancel1:
+     "(k*m < k*n) = (((0::real) < k & m<n) | (k < 0 & n<m))"
+  by (rule Ring_and_Field.mult_less_cancel_left) 
+
+lemma real_mult_le_cancel1:
+     "!!k::real. (k*m <= k*n) = ((0 < k --> m<=n) & (k < 0 --> n<=m))"
+  by (rule Ring_and_Field.mult_le_cancel_left) 
+
+lemma real_mult_eq_cancel1: "!!k::real. (k*m = k*n) = (k = 0 | m=n)"
+  by (rule Ring_and_Field.mult_cancel_left) 
+
+lemma real_mult_eq_cancel2: "!!k::real. (m*k = n*k) = (k = 0 | m=n)"
+  by (rule Ring_and_Field.mult_cancel_right) 
+
+lemma real_mult_div_cancel1: "!!k::real. k~=0 ==> (k*m) / (k*n) = (m/n)"
+  by (rule Ring_and_Field.mult_divide_cancel_left) 
+
+lemma real_mult_div_cancel_disj:
+     "(k*m) / (k*n) = (if k = (0::real) then 0 else m/n)"
+  by (rule Ring_and_Field.mult_divide_cancel_eq_if) 
 
 
 subsection{*For the @{text abel_cancel} Simproc (DELETE)*}
@@ -563,15 +582,6 @@ lemma real_inverse_gt_0: "0 < x ==> 0 < inverse (x::real)"
 lemma real_inverse_less_0: "x < 0 ==> inverse (x::real) < 0"
   by (rule Ring_and_Field.negative_imp_inverse_negative)
 
-lemma real_mult_less_cancel1: "[| (0::real) < z; x * z < y * z |] ==> x < y"
-by (force simp add: Ring_and_Field.mult_less_cancel_right 
-          elim: order_less_asym) 
-
-lemma real_mult_less_cancel2: "[| (0::real) < z; z*x < z*y |] ==> x < y"
-apply (erule real_mult_less_cancel1)
-apply (simp add: real_mult_commute)
-done
-
 lemma real_mult_less_mono1: "[| (0::real) < z; x < y |] ==> x*z < y*z"
  by (rule Ring_and_Field.mult_strict_right_mono)
 
@@ -580,17 +590,15 @@ lemma real_mult_less_mono:
  by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
 
 lemma real_mult_less_iff1 [simp]: "(0::real) < z ==> (x*z < y*z) = (x < y)"
-by (blast intro: real_mult_less_mono1 real_mult_less_cancel1)
+  by (force elim: order_less_asym
+            simp add: Ring_and_Field.mult_less_cancel_right)
 
-lemma real_mult_less_iff2 [simp]: "(0::real) < z ==> (z*x < z*y) = (x < y)"
-by (blast intro: real_mult_less_mono2 real_mult_less_cancel2)
-
-(* 05/00 *)
 lemma real_mult_le_cancel_iff1 [simp]: "(0::real) < z ==> (x*z \<le> y*z) = (x\<le>y)"
 by (auto simp add: real_le_def)
 
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
-by (auto simp add: real_le_def)
+  by (force elim: order_less_asym
+            simp add: Ring_and_Field.mult_le_cancel_left)
 
 lemma real_mult_less_mono':
      "[| x < y;  r1 < r2;  (0::real) \<le> r1;  0 \<le> x|] ==> r1 * x < r2 * y"
@@ -605,17 +613,23 @@ lemma real_inverse_less_swap:
      "[| 0 < r; r < x |] ==> inverse x < inverse (r::real)"
   by (rule Ring_and_Field.less_imp_inverse_less)
 
+lemma real_inverse_less_iff:
+     "[| 0 < r; 0 < x|] ==> (inverse x < inverse (r::real)) = (r < x)"
+by (rule Ring_and_Field.inverse_less_iff_less)
+
+lemma real_inverse_le_iff:
+     "[| 0 < r; 0 < x|] ==> (inverse x \<le> inverse r) = (r \<le> (x::real))"
+by (rule Ring_and_Field.inverse_le_iff_le)
+
+(*FIXME: remove the [iff], since the general theorem is already [simp]*)
 lemma real_mult_is_0 [iff]: "(x*y = 0) = (x = 0 | y = (0::real))"
-by auto
+by (rule Ring_and_Field.mult_eq_0_iff)
 
 lemma real_inverse_add: "[| x \<noteq> 0; y \<noteq> 0 |]  
       ==> inverse x + inverse y = (x + y) * inverse (x * (y::real))"
-apply (simp add: real_inverse_distrib real_add_mult_distrib real_mult_assoc [symmetric])
-apply (subst real_mult_assoc)
-apply (rule real_mult_left_commute [THEN subst])
-apply (simp add: real_add_commute)
-done
+by (simp add: Ring_and_Field.inverse_add mult_assoc)
 
+text{*FIXME: delete or at least combine the next two lemmas*}
 lemma real_sum_squares_cancel: "x * x + y * y = 0 ==> x = (0::real)"
 apply (drule Ring_and_Field.equals_zero_I [THEN sym])
 apply (cut_tac x = y in real_le_square) 
@@ -657,13 +671,8 @@ apply (drule order_le_imp_less_or_eq)+
 apply (auto intro: real_add_order order_less_imp_le)
 done
 
-(*One use in HahnBanach/Aux.thy*)
-lemma real_mult_le_less_mono1: "[| (0::real) \<le> z; x < y |] ==> x*z \<le> y*z"
-apply (rule real_less_or_eq_imp_le)
-apply (drule order_le_imp_less_or_eq)
-apply (auto intro: real_mult_less_mono1)
-done
 
+subsection{*Results About @{term real_of_posnat}: to be Deleted*}
 
 lemma real_of_posnat_gt_zero: "0 < real_of_posnat n"
 apply (unfold real_of_posnat_def)
@@ -753,7 +762,8 @@ lemma real_mult_less_cancel3: "[| (0::real)<z; x*z<y*z |] ==> x<y"
 by auto
 
 lemma real_mult_less_cancel4: "[| (0::real)<z; z*x<z*y |] ==> x<y"
-by auto
+  by (force elim: order_less_asym
+            simp add: Ring_and_Field.mult_less_cancel_left)
 
 lemma real_of_posnat_less_inv_iff: "0 < u  ==> (u < inverse (real_of_posnat n)) = (real_of_posnat n < inverse(u))"
 apply safe
@@ -771,6 +781,13 @@ by auto
 lemma real_add_one_minus_inv_ge_zero: "0 <= 1 + -inverse(real_of_posnat n)"
 apply (rule_tac C = "inverse (real_of_posnat n) " in real_le_add_right_cancel)
 apply (simp (no_asm) add: real_add_assoc real_of_posnat_inv_le_iff)
+done
+
+(*Used just below and in HahnBanach/Aux.thy*)
+lemma real_mult_le_less_mono1: "[| (0::real) \<le> z; x < y |] ==> x*z \<le> y*z"
+apply (rule real_less_or_eq_imp_le)
+apply (drule order_le_imp_less_or_eq)
+apply (auto intro: real_mult_less_mono1)
 done
 
 lemma real_mult_add_one_minus_ge_zero: "0 < r ==> 0 <= r*(1 + -inverse(real_of_posnat n))"
@@ -953,10 +970,7 @@ val real_of_nat_zero_iff = thm "real_of_nat_zero_iff";
 val real_of_nat_neg_int = thm "real_of_nat_neg_int";
 val real_inverse_gt_0 = thm "real_inverse_gt_0";
 val real_inverse_less_0 = thm "real_inverse_less_0";
-val real_mult_less_cancel1 = thm "real_mult_less_cancel1";
-val real_mult_less_cancel2 = thm "real_mult_less_cancel2";
 val real_mult_less_iff1 = thm "real_mult_less_iff1";
-val real_mult_less_iff2 = thm "real_mult_less_iff2";
 val real_mult_le_cancel_iff1 = thm "real_mult_le_cancel_iff1";
 val real_mult_le_cancel_iff2 = thm "real_mult_le_cancel_iff2";
 val real_mult_less_mono = thm "real_mult_less_mono";
@@ -986,8 +1000,6 @@ val real_mult_le_le_mono2 = thm "real_mult_le_le_mono2";
 val real_of_posnat_inv_le_iff = thm "real_of_posnat_inv_le_iff";
 val real_of_posnat_less_iff = thm "real_of_posnat_less_iff";
 val real_of_posnat_le_iff = thm "real_of_posnat_le_iff";
-val real_mult_less_cancel3 = thm "real_mult_less_cancel3";
-val real_mult_less_cancel4 = thm "real_mult_less_cancel4";
 val real_of_posnat_less_inv_iff = thm "real_of_posnat_less_inv_iff";
 val real_of_posnat_inv_eq_iff = thm "real_of_posnat_inv_eq_iff";
 val real_add_one_minus_inv_ge_zero = thm "real_add_one_minus_inv_ge_zero";
@@ -1012,10 +1024,6 @@ val real_inverse_inverse = thm"real_inverse_inverse";
 val real_inverse_1 = thm"real_inverse_1";
 val real_minus_inverse = thm"real_minus_inverse";
 val real_inverse_distrib = thm"real_inverse_distrib";
-val real_times_divide1_eq = thm"real_times_divide1_eq";
-val real_times_divide2_eq = thm"real_times_divide2_eq";
-val real_divide_divide1_eq = thm"real_divide_divide1_eq";
-val real_divide_divide2_eq = thm"real_divide_divide2_eq";
 val real_minus_divide_eq = thm"real_minus_divide_eq";
 val real_divide_minus_eq = thm"real_divide_minus_eq";
 val real_add_divide_distrib = thm"real_add_divide_distrib";

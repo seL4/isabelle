@@ -68,8 +68,7 @@ theorem prime_sqrt_irrational:
   apply clarify
   apply (erule_tac P = "real m / real n * ?x = ?y" in rev_mp)
   apply (simp del: real_of_nat_mult
-    add: real_divide_eq_eq prime_not_square
-    real_of_nat_mult [symmetric])
+              add: divide_eq_eq prime_not_square real_of_nat_mult [symmetric])
   done
 
 lemmas two_sqrt_irrational =

@@ -6,9 +6,7 @@
 Common factor cancellation
 *)
 
-val real_diff_minus_eq = thm"real_diff_minus_eq";
 val real_inverse_eq_divide = thm"real_inverse_eq_divide";
-val real_0_le_divide_iff = thm"real_0_le_divide_iff";
 val real_mult_less_cancel2 = thm"real_mult_less_cancel2";
 val real_mult_le_cancel2 = thm"real_mult_le_cancel2";
 val real_mult_less_cancel1 = thm"real_mult_less_cancel1";
@@ -207,33 +205,10 @@ test "(a*(b*c)) / (d*(b::real)*(x*a)) = (uu::real)";
 test "a*(b*c)/(y*z) = d*(b::real)*(x*a)/z";
 *)
 
-val real_add_minus_iff = thm"real_add_minus_iff";
-val real_add_eq_0_iff = thm"real_add_eq_0_iff";
-val real_add_less_0_iff = thm"real_add_less_0_iff";
-val real_0_less_add_iff = thm"real_0_less_add_iff";
-val real_add_le_0_iff = thm"real_add_le_0_iff";
-val real_0_le_add_iff = thm"real_0_le_add_iff";
-val real_0_less_diff_iff = thm"real_0_less_diff_iff";
-val real_0_le_diff_iff = thm"real_0_le_diff_iff";
-val real_divide_eq_cancel2 = thm"real_divide_eq_cancel2";
-val real_divide_eq_cancel1 = thm"real_divide_eq_cancel1";
 val real_inverse_less_iff = thm"real_inverse_less_iff";
 val real_inverse_le_iff = thm"real_inverse_le_iff";
-val real_divide_1 = thm"real_divide_1";
-val real_divide_minus1 = thm"real_divide_minus1";
-val real_minus1_divide = thm"real_minus1_divide";
-val real_lbound_gt_zero = thm"real_lbound_gt_zero";
-val real_less_half_sum = thm"real_less_half_sum";
-val real_gt_half_sum = thm"real_gt_half_sum";
-val real_dense = thm"real_dense";
 
-val pos_real_less_divide_eq = thm"pos_real_less_divide_eq";
-val neg_real_less_divide_eq = thm"neg_real_less_divide_eq";
-val pos_real_divide_less_eq = thm"pos_real_divide_less_eq";
-val neg_real_divide_less_eq = thm"neg_real_divide_less_eq";
-val pos_real_le_divide_eq = thm"pos_real_le_divide_eq";
-val neg_real_le_divide_eq = thm"neg_real_le_divide_eq";
-val pos_real_divide_le_eq = thm"pos_real_divide_le_eq";
-val neg_real_divide_le_eq = thm"neg_real_divide_le_eq";
-val real_eq_divide_eq = thm"real_eq_divide_eq";
-val real_divide_eq_eq = thm"real_divide_eq_eq";
+val pos_real_less_divide_eq = thm"pos_less_divide_eq";
+val pos_real_divide_less_eq = thm"pos_divide_less_eq";
+val pos_real_le_divide_eq = thm"pos_le_divide_eq";
+val pos_real_divide_le_eq = thm"pos_divide_le_eq";

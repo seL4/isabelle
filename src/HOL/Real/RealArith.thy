@@ -1,9 +1,79 @@
 theory RealArith = RealArith0
 files ("real_arith.ML"):
 
+lemma real_divide_1: "(x::real)/1 = x"
+by (simp add: real_divide_def)
+
 use "real_arith.ML"
 
 setup real_arith_setup
+
+subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}
+
+text{*Needed in this non-standard form by Hyperreal/Transcendental*}
+lemma real_0_le_divide_iff:
+     "((0::real) <= x/y) = ((x <= 0 | 0 <= y) & (0 <= x | y <= 0))"
+by (simp add: real_divide_def zero_le_mult_iff, auto)
+
+lemma real_add_minus_iff [simp]: "(x + - a = (0::real)) = (x=a)" 
+by arith
+
+lemma real_add_eq_0_iff [iff]: "(x+y = (0::real)) = (y = -x)"
+by auto
+
+lemma real_add_less_0_iff [iff]: "(x+y < (0::real)) = (y < -x)"
+by auto
+
+lemma real_0_less_add_iff [iff]: "((0::real) < x+y) = (-x < y)"
+by auto
+
+lemma real_add_le_0_iff [iff]: "(x+y \<le> (0::real)) = (y \<le> -x)"
+by auto
+
+lemma real_0_le_add_iff [iff]: "((0::real) \<le> x+y) = (-x \<le> y)"
+by auto
+
+
+(** Simprules combining x-y and 0; see also real_less_iff_diff_less_0, etc.,
+    in RealBin
+**)
+
+lemma real_0_less_diff_iff [iff]: "((0::real) < x-y) = (y < x)"
+by auto
+
+lemma real_0_le_diff_iff [iff]: "((0::real) \<le> x-y) = (y \<le> x)"
+by auto
+
+(*
+FIXME: we should have this, as for type int, but many proofs would break.
+It replaces x+-y by x-y.
+Addsimps [symmetric real_diff_def]
+*)
+
+(** Division by 1, -1 **)
+
+lemma real_divide_minus1 [simp]: "x/-1 = -(x::real)"
+by simp
+
+lemma real_minus1_divide [simp]: "-1/(x::real) = - (1/x)"
+by (simp add: real_divide_def real_minus_inverse)
+
+lemma real_lbound_gt_zero:
+     "[| (0::real) < d1; 0 < d2 |] ==> \<exists>e. 0 < e & e < d1 & e < d2"
+apply (rule_tac x = " (min d1 d2) /2" in exI)
+apply (simp add: min_def)
+done
+
+(*** Density of the Reals ***)
+
+lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
+by auto
+
+lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
+by auto
+
+lemma real_dense: "x < y ==> \<exists>r::real. x < r & r < y"
+by (blast intro!: real_less_half_sum real_gt_half_sum)
 
 subsection{*Absolute Value Function for the Reals*}
 
@@ -214,8 +284,25 @@ apply (rule real_add_assoc [THEN subst])
 apply (rule abs_triangle_ineq)
 done
 
+
 ML
 {*
+val real_0_le_divide_iff = thm"real_0_le_divide_iff";
+val real_add_minus_iff = thm"real_add_minus_iff";
+val real_add_eq_0_iff = thm"real_add_eq_0_iff";
+val real_add_less_0_iff = thm"real_add_less_0_iff";
+val real_0_less_add_iff = thm"real_0_less_add_iff";
+val real_add_le_0_iff = thm"real_add_le_0_iff";
+val real_0_le_add_iff = thm"real_0_le_add_iff";
+val real_0_less_diff_iff = thm"real_0_less_diff_iff";
+val real_0_le_diff_iff = thm"real_0_le_diff_iff";
+val real_divide_minus1 = thm"real_divide_minus1";
+val real_minus1_divide = thm"real_minus1_divide";
+val real_lbound_gt_zero = thm"real_lbound_gt_zero";
+val real_less_half_sum = thm"real_less_half_sum";
+val real_gt_half_sum = thm"real_gt_half_sum";
+val real_dense = thm"real_dense";
+
 val abs_nat_number_of = thm"abs_nat_number_of";
 val abs_split = thm"abs_split";
 val abs_iff = thm"abs_iff";

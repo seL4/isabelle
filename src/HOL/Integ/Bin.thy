@@ -226,54 +226,8 @@ by simp
 lemma int_numeral_1_eq_1: "Numeral1 = (1::int)"
 by (simp add: int_1 int_Suc0_eq_1)
 
-
-subsubsection{*Special Simplification for Constants*}
-
-text{*These distributive laws move literals inside sums and differences.*}
-declare left_distrib [of _ _ "number_of v", standard, simp]
-declare right_distrib [of "number_of v", standard, simp]
-
-declare left_diff_distrib [of _ _ "number_of v", standard, simp]
-declare right_diff_distrib [of "number_of v", standard, simp]
-
-text{*These are actually for fields, like real: but where else to put them?*}
-declare zero_less_divide_iff [of "number_of w", standard, simp]
-declare divide_less_0_iff [of "number_of w", standard, simp]
-declare zero_le_divide_iff [of "number_of w", standard, simp]
-declare divide_le_0_iff [of "number_of w", standard, simp]
-
-(*Replaces "inverse #nn" by 1/#nn *)
-declare inverse_eq_divide [of "number_of w", standard, simp]
-
-text{*These laws simplify inequalities, moving unary minus from a term
-into the literal.*}
-declare less_minus_iff [of "number_of v", standard, simp]
-declare le_minus_iff [of "number_of v", standard, simp]
-declare equation_minus_iff [of "number_of v", standard, simp]
-
-declare minus_less_iff [of _ "number_of v", standard, simp]
-declare minus_le_iff [of _ "number_of v", standard, simp]
-declare minus_equation_iff [of _ "number_of v", standard, simp]
-
-text{*These simplify inequalities where one side is the constant 1.*}
-declare less_minus_iff [of 1, simplified, simp]
-declare le_minus_iff [of 1, simplified, simp]
-declare equation_zminus [of 1, simplified, simp]
-
-declare minus_less_iff [of _ 1, simplified, simp]
-declare minus_le_iff [of _ 1, simplified, simp]
-declare minus_equation_iff [of _ 1, simplified, simp]
-
-
-(*Moving negation out of products*)
+(*Moving negation out of products: so far for type "int" only*)
 declare zmult_zminus [simp] zmult_zminus_right [simp]
-
-(*Cancellation of constant factors in comparisons (< and \<le>) *)
-
-declare mult_less_cancel_left [of "number_of v", standard, simp]
-declare mult_less_cancel_right [of _ "number_of v", standard, simp]
-declare mult_le_cancel_left [of "number_of v", standard, simp]
-declare mult_le_cancel_right [of _ "number_of v", standard, simp]
 
 
 (** Special-case simplification for small constants **)

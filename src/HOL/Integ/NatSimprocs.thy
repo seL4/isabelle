@@ -132,4 +132,65 @@ by (simp add: Suc3_eq_add_3)
 declare Suc_div_eq_add3_div [of _ "number_of v", standard, simp]
 declare Suc_mod_eq_add3_mod [of _ "number_of v", standard, simp]
 
+
+subsection{*Special Simplification for Constants*}
+
+text{*These belong here, late in the development of HOL, to prevent their
+interfering with proofs of abstract properties of instances of the function
+@{term number_of}*}
+
+text{*These distributive laws move literals inside sums and differences.*}
+declare left_distrib [of _ _ "number_of v", standard, simp]
+declare right_distrib [of "number_of v", standard, simp]
+
+declare left_diff_distrib [of _ _ "number_of v", standard, simp]
+declare right_diff_distrib [of "number_of v", standard, simp]
+
+text{*These are actually for fields, like real: but where else to put them?*}
+declare zero_less_divide_iff [of "number_of w", standard, simp]
+declare divide_less_0_iff [of "number_of w", standard, simp]
+declare zero_le_divide_iff [of "number_of w", standard, simp]
+declare divide_le_0_iff [of "number_of w", standard, simp]
+
+(*Replaces "inverse #nn" by 1/#nn *)
+declare inverse_eq_divide [of "number_of w", standard, simp]
+
+text{*These laws simplify inequalities, moving unary minus from a term
+into the literal.*}
+declare less_minus_iff [of "number_of v", standard, simp]
+declare le_minus_iff [of "number_of v", standard, simp]
+declare equation_minus_iff [of "number_of v", standard, simp]
+
+declare minus_less_iff [of _ "number_of v", standard, simp]
+declare minus_le_iff [of _ "number_of v", standard, simp]
+declare minus_equation_iff [of _ "number_of v", standard, simp]
+
+text{*These simplify inequalities where one side is the constant 1.*}
+declare less_minus_iff [of 1, simplified, simp]
+declare le_minus_iff [of 1, simplified, simp]
+declare equation_minus_iff [of 1, simplified, simp]
+
+declare minus_less_iff [of _ 1, simplified, simp]
+declare minus_le_iff [of _ 1, simplified, simp]
+declare minus_equation_iff [of _ 1, simplified, simp]
+
+
+(*Cancellation of constant factors in comparisons (< and \<le>) *)
+
+declare mult_less_cancel_left [of "number_of v", standard, simp]
+declare mult_less_cancel_right [of _ "number_of v", standard, simp]
+declare mult_le_cancel_left [of "number_of v", standard, simp]
+declare mult_le_cancel_right [of _ "number_of v", standard, simp]
+
+
+(*Multiplying out constant divisors in comparisons (< \<le> and =) *)
+
+declare le_divide_eq [of _ _ "number_of w", standard, simp]
+declare divide_le_eq [of _ "number_of w", standard, simp]
+declare less_divide_eq [of _ _ "number_of w", standard, simp]
+declare divide_less_eq [of _ "number_of w", standard, simp]
+declare eq_divide_eq [of _ _ "number_of w", standard, simp]
+declare divide_eq_eq [of _ "number_of w", standard, simp]
+
+
 end

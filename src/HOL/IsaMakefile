@@ -224,6 +224,8 @@ $(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.ML Subst/AList.thy \
 HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 
 $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
+  Induct/BinaryTree.thy Induct/BinaryTree_Map.thy\
+  Induct/BinaryTree_TacticStyle.thy\
   Induct/Com.thy Induct/Comb.thy Induct/LFilter.thy \
   Induct/LList.thy Induct/Mutil.thy Induct/Ordinals.thy \
   Induct/PropLog.thy Induct/ROOT.ML \

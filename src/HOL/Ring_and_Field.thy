@@ -19,7 +19,7 @@ subsection {* Abstract algebraic structures *}
 axclass semiring \<subseteq> zero, one, plus, times
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
-  left_zero [simp]: "0 + a = a"
+  add_0 [simp]: "0 + a = a"
 
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
@@ -52,7 +52,7 @@ axclass division_by_zero \<subseteq> zero, inverse
 
 subsection {* Derived Rules for Addition *}
 
-lemma right_zero [simp]: "a + 0 = (a::'a::semiring)"
+lemma add_0_right [simp]: "a + 0 = (a::'a::semiring)"
 proof -
   have "a + 0 = 0 + a" by (simp only: add_commute)
   also have "... = a" by simp
@@ -120,6 +120,9 @@ by (simp add: diff_minus)
 lemma diff_0_right [simp]: "a - (0::'a::ring) = a" 
 by (simp add: diff_minus)
 
+lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::ring)"
+by (simp add: diff_minus)
+
 lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::ring))" 
   proof 
     assume "- a = - b"
@@ -165,33 +168,6 @@ lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::semiring))"
   by (rule mk_left_commute [of "op *", OF mult_assoc mult_commute])
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
-
-lemma right_inverse [simp]:
-      assumes not0: "a \<noteq> 0" shows "a * inverse (a::'a::field) = 1"
-proof -
-  have "a * inverse a = inverse a * a" by (simp add: mult_ac)
-  also have "... = 1" using not0 by simp
-  finally show ?thesis .
-qed
-
-lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
-proof
-  assume neq: "b \<noteq> 0"
-  {
-    hence "a = (a / b) * b" by (simp add: divide_inverse mult_ac)
-    also assume "a / b = 1"
-    finally show "a = b" by simp
-  next
-    assume "a = b"
-    with neq show "a / b = 1" by (simp add: divide_inverse)
-  }
-qed
-
-lemma nonzero_inverse_eq_divide: "a \<noteq> 0 ==> inverse (a::'a::field) = 1/a"
-by (simp add: divide_inverse)
-
-lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
-  by (simp add: divide_inverse)
 
 lemma mult_left_zero [simp]: "0 * a = (0::'a::ring)"
 proof -
@@ -690,6 +666,33 @@ by (simp add: abs_if linorder_neq_iff)
 
 subsection {* Fields *}
 
+lemma right_inverse [simp]:
+      assumes not0: "a \<noteq> 0" shows "a * inverse (a::'a::field) = 1"
+proof -
+  have "a * inverse a = inverse a * a" by (simp add: mult_ac)
+  also have "... = 1" using not0 by simp
+  finally show ?thesis .
+qed
+
+lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
+proof
+  assume neq: "b \<noteq> 0"
+  {
+    hence "a = (a / b) * b" by (simp add: divide_inverse mult_ac)
+    also assume "a / b = 1"
+    finally show "a = b" by simp
+  next
+    assume "a = b"
+    with neq show "a / b = 1" by (simp add: divide_inverse)
+  }
+qed
+
+lemma nonzero_inverse_eq_divide: "a \<noteq> 0 ==> inverse (a::'a::field) = 1/a"
+by (simp add: divide_inverse)
+
+lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
+  by (simp add: divide_inverse)
+
 lemma divide_inverse_zero: "a/b = a * inverse(b::'a::{field,division_by_zero})"
 apply (case_tac "b = 0")
 apply (simp_all add: divide_inverse)
@@ -904,6 +907,22 @@ lemma mult_divide_cancel_eq_if:
 lemma divide_1 [simp]: "a/1 = (a::'a::field)"
   by (simp add: divide_inverse [OF not_sym])
 
+lemma times_divide_eq_right [simp]:
+     "a * (b/c) = (a*b) / (c::'a::{field,division_by_zero})"
+by (simp add: divide_inverse_zero mult_assoc)
+
+lemma times_divide_eq_left [simp]:
+     "(b/c) * a = (b*a) / (c::'a::{field,division_by_zero})"
+by (simp add: divide_inverse_zero mult_ac)
+
+lemma divide_divide_eq_right [simp]:
+     "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
+by (simp add: divide_inverse_zero mult_ac)
+
+lemma divide_divide_eq_left [simp]:
+     "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
+by (simp add: divide_inverse_zero mult_assoc)
+
 
 subsection {* Ordered Fields *}
 
@@ -1084,11 +1103,180 @@ lemma zero_le_divide_iff:
 by (simp add: divide_inverse_zero zero_le_mult_iff)
 
 lemma divide_le_0_iff:
-     "(a/b \<le> (0::'a::{ordered_field,division_by_zero})) = (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
+     "(a/b \<le> (0::'a::{ordered_field,division_by_zero})) =
+      (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
 by (simp add: divide_inverse_zero mult_le_0_iff)
 
 lemma divide_eq_0_iff [simp]:
      "(a/b = 0) = (a=0 | b=(0::'a::{field,division_by_zero}))"
 by (simp add: divide_inverse_zero field_mult_eq_0_iff)
+
+
+subsection{*Simplification of Inequalities Involving Literal Divisors*}
+
+lemma pos_le_divide_eq: "0 < (c::'a::ordered_field) ==> (a \<le> b/c) = (a*c \<le> b)"
+proof -
+  assume less: "0<c"
+  hence "(a \<le> b/c) = (a*c \<le> (b/c)*c)"
+    by (simp add: mult_le_cancel_right order_less_not_sym [OF less])
+  also have "... = (a*c \<le> b)"
+    by (simp add: order_less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+
+lemma neg_le_divide_eq: "c < (0::'a::ordered_field) ==> (a \<le> b/c) = (b \<le> a*c)"
+proof -
+  assume less: "c<0"
+  hence "(a \<le> b/c) = ((b/c)*c \<le> a*c)"
+    by (simp add: mult_le_cancel_right order_less_not_sym [OF less])
+  also have "... = (b \<le> a*c)"
+    by (simp add: order_less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma le_divide_eq:
+  "(a \<le> b/c) = 
+   (if 0 < c then a*c \<le> b
+             else if c < 0 then b \<le> a*c
+             else  a \<le> (0::'a::{ordered_field,division_by_zero}))"
+apply (case_tac "c=0", simp) 
+apply (force simp add: pos_le_divide_eq neg_le_divide_eq linorder_neq_iff) 
+done
+
+lemma pos_divide_le_eq: "0 < (c::'a::ordered_field) ==> (b/c \<le> a) = (b \<le> a*c)"
+proof -
+  assume less: "0<c"
+  hence "(b/c \<le> a) = ((b/c)*c \<le> a*c)"
+    by (simp add: mult_le_cancel_right order_less_not_sym [OF less])
+  also have "... = (b \<le> a*c)"
+    by (simp add: order_less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma neg_divide_le_eq: "c < (0::'a::ordered_field) ==> (b/c \<le> a) = (a*c \<le> b)"
+proof -
+  assume less: "c<0"
+  hence "(b/c \<le> a) = (a*c \<le> (b/c)*c)"
+    by (simp add: mult_le_cancel_right order_less_not_sym [OF less])
+  also have "... = (a*c \<le> b)"
+    by (simp add: order_less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma divide_le_eq:
+  "(b/c \<le> a) = 
+   (if 0 < c then b \<le> a*c
+             else if c < 0 then a*c \<le> b
+             else 0 \<le> (a::'a::{ordered_field,division_by_zero}))"
+apply (case_tac "c=0", simp) 
+apply (force simp add: pos_divide_le_eq neg_divide_le_eq linorder_neq_iff) 
+done
+
+
+lemma pos_less_divide_eq:
+     "0 < (c::'a::ordered_field) ==> (a < b/c) = (a*c < b)"
+proof -
+  assume less: "0<c"
+  hence "(a < b/c) = (a*c < (b/c)*c)"
+    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+  also have "... = (a*c < b)"
+    by (simp add: order_less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma neg_less_divide_eq:
+ "c < (0::'a::ordered_field) ==> (a < b/c) = (b < a*c)"
+proof -
+  assume less: "c<0"
+  hence "(a < b/c) = ((b/c)*c < a*c)"
+    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+  also have "... = (b < a*c)"
+    by (simp add: order_less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma less_divide_eq:
+  "(a < b/c) = 
+   (if 0 < c then a*c < b
+             else if c < 0 then b < a*c
+             else  a < (0::'a::{ordered_field,division_by_zero}))"
+apply (case_tac "c=0", simp) 
+apply (force simp add: pos_less_divide_eq neg_less_divide_eq linorder_neq_iff) 
+done
+
+lemma pos_divide_less_eq:
+     "0 < (c::'a::ordered_field) ==> (b/c < a) = (b < a*c)"
+proof -
+  assume less: "0<c"
+  hence "(b/c < a) = ((b/c)*c < a*c)"
+    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+  also have "... = (b < a*c)"
+    by (simp add: order_less_imp_not_eq2 [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma neg_divide_less_eq:
+ "c < (0::'a::ordered_field) ==> (b/c < a) = (a*c < b)"
+proof -
+  assume less: "c<0"
+  hence "(b/c < a) = (a*c < (b/c)*c)"
+    by (simp add: mult_less_cancel_right order_less_not_sym [OF less])
+  also have "... = (a*c < b)"
+    by (simp add: order_less_imp_not_eq [OF less] divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma divide_less_eq:
+  "(b/c < a) = 
+   (if 0 < c then b < a*c
+             else if c < 0 then a*c < b
+             else 0 < (a::'a::{ordered_field,division_by_zero}))"
+apply (case_tac "c=0", simp) 
+apply (force simp add: pos_divide_less_eq neg_divide_less_eq linorder_neq_iff) 
+done
+
+lemma nonzero_eq_divide_eq: "c\<noteq>0 ==> ((a::'a::field) = b/c) = (a*c = b)"
+proof -
+  assume [simp]: "c\<noteq>0"
+  have "(a = b/c) = (a*c = (b/c)*c)"
+    by (simp add: field_mult_cancel_right)
+  also have "... = (a*c = b)"
+    by (simp add: divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma eq_divide_eq:
+  "((a::'a::{field,division_by_zero}) = b/c) = (if c\<noteq>0 then a*c = b else a=0)"
+by (simp add: nonzero_eq_divide_eq) 
+
+lemma nonzero_divide_eq_eq: "c\<noteq>0 ==> (b/c = (a::'a::field)) = (b = a*c)"
+proof -
+  assume [simp]: "c\<noteq>0"
+  have "(b/c = a) = ((b/c)*c = a*c)"
+    by (simp add: field_mult_cancel_right)
+  also have "... = (b = a*c)"
+    by (simp add: divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma divide_eq_eq:
+  "(b/c = (a::'a::{field,division_by_zero})) = (if c\<noteq>0 then b = a*c else a=0)"
+by (force simp add: nonzero_divide_eq_eq) 
+
+subsection{*Cancellation Laws for Division*}
+
+lemma divide_cancel_right [simp]:
+     "(a/c = b/c) = (c = 0 | a = (b::'a::{field,division_by_zero}))"
+apply (case_tac "c=0", simp) 
+apply (simp add: divide_inverse_zero field_mult_cancel_right) 
+done
+
+lemma divide_cancel_left [simp]:
+     "(c/a = c/b) = (c = 0 | a = (b::'a::{field,division_by_zero}))" 
+apply (case_tac "c=0", simp) 
+apply (simp add: divide_inverse_zero field_mult_cancel_left) 
+done
+
 
 end

@@ -6,11 +6,17 @@
 Augmentation of real linear arithmetic with rational coefficient handling
 *)
 
+val real_divide_1 = thm"real_divide_1";
+
 local
 
+val times_divide_eq_left = thm"times_divide_eq_left";
+val times_divide_eq_right = thm"times_divide_eq_right";
+
 (* reduce contradictory <= to False *)
-val simps = [True_implies_equals,inst "w" "number_of ?v" real_add_mult_distrib2,
-             real_divide_1,real_times_divide1_eq,real_times_divide2_eq];
+val simps = [True_implies_equals,
+             inst "w" "number_of ?v" real_add_mult_distrib2,
+             real_divide_1,times_divide_eq_right,times_divide_eq_left];
 
 val simprocs = [real_cancel_numeral_factors_divide];
 
