@@ -98,7 +98,7 @@ text {* \medskip Surjective pairing *}
 lemma "r = (| xpos = xpos r, ypos = ypos r |)"
   by simp
 
-lemma "r = (| xpos = xpos r, ypos = ypos r, ... = more r |)"
+lemma "r = (| xpos = xpos r, ypos = ypos r, ... = point.more r |)"
   by simp
 
 
