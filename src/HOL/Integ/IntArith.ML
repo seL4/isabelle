@@ -108,7 +108,7 @@ Goal "abs (x * y) = abs x * abs (y::int)";
 by (simp_tac (simpset () addsplits [zabs_split] addsimps [zmult_less_0_iff, zle_def]) 1);
 qed "abs_mult";
 
-Goal "(abs x = 0) = (x = (0::int))";
+Goal "(abs x = #0) = (x = (#0::int))";
 by (simp_tac (simpset () addsplits [zabs_split]) 1);
 qed "abs_eq_0";
 AddIffs [abs_eq_0];
