@@ -804,6 +804,12 @@ exception SIMPLIFIER of string * thm;
 
 fun prtm a sg t = (writeln a; writeln(Sign.string_of_term sg t));
 
+val trace_simp = ref false;
+
+fun trace_term a sg t = if !trace_simp then prtm a sg t else ();
+
+fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
+
 (*simple test for looping rewrite*)
 fun loops sign prems (lhs,rhs) =
   null(prems) andalso
@@ -829,11 +835,12 @@ fun add_simp(mss as Mss{net,congs,primes,prems,mk_rews},
   case mk_rrule thm of
     None => mss
   | Some(rrule as {lhs,...}) =>
-      Mss{net= (Net.insert_term((lhs,rrule),net,eq)
-                handle Net.INSERT =>
+      (trace_thm "Adding rewrite rule:" thm;
+       Mss{net= (Net.insert_term((lhs,rrule),net,eq)
+                 handle Net.INSERT =>
                   (prtm "Warning: ignoring duplicate rewrite rule" sign prop;
                    net)),
-          congs=congs, primes=primes, prems=prems,mk_rews=mk_rews};
+           congs=congs, primes=primes, prems=prems,mk_rews=mk_rews});
 
 fun del_simp(mss as Mss{net,congs,primes,prems,mk_rews},
              thm as Thm{sign,prop,...}) =
@@ -883,12 +890,6 @@ fun mk_rews_of_mss(Mss{mk_rews,...}) = mk_rews;
 type prover = meta_simpset -> thm -> thm option;
 type termrec = (Sign.sg * term list) * term;
 type conv = meta_simpset -> termrec -> termrec;
-
-val trace_simp = ref false;
-
-fun trace_term a sg t = if !trace_simp then prtm a sg t else ();
-
-fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
 
 fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
   let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm; None)
@@ -992,7 +993,6 @@ fun bottomc (prover,sign) =
               if maxidx_of_term s' <> ~1 then ([],mss)
               else let val thm = Thm{sign=sign,hyps=[s'],prop=s',maxidx= ~1}
                    in (mk_rews thm, add_prems(mss,[thm])) end
-            val unit = seq (trace_thm "Adding rewrite rule:") rthms
             val mss' = add_simps(mss,rthms)
             val (hyps2,u') = botc mss' (hyps1,u)
             val hyps2' = if s' mem hyps1 then hyps2 else hyps2\s'
