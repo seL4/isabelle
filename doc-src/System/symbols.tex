@@ -5,21 +5,22 @@
 
 Isabelle supports an infinite number of non-ASCII symbols, which are
 represented in source text as \verb,\<,$name$\verb,>, (where $name$ may be any
-identifier).  It is left to front-end tools how these symbols are presented to
-the user.  The following predefined standard symbols are available by default
-for Isabelle document output; most of these are also supported by
-Proof~General when used together with the X-Symbol package.
+identifier).  It is left to front-end tools how to present these symbols to
+the user.  The collection of predefined standard symbols given below is
+available by default for Isabelle document output, due to appropriate
+definitions of \verb,\isasym,$name$ for each \verb,\<,$name$\verb,>, in the
+\verb,isabellesym.sty, file.  Most of these symbols are displayed properly in
+Proof~General if used with the X-Symbol package.
 
-Any symbol (or plain ASCII character) may be prefixed by \verb,\<^sup>, for
-superscript and \verb,\<^sub>, for subscript; e.g.\ \verb,A\<^sup>\<star>, is
-presented in {\LaTeX} as \isa{A\isactrlsup{\isasymstar}}.  Most symbols (and
-all ASCII characters) may be printed in bold by prefixing \verb,\<^bold>,, as
-in \verb,\<^bold>\<alpha>, which is printed as
-\isa{\isactrlbold{\isasymalpha}}.  Note that super- and subscripts may
-\emph{not} be combined with bold style.
+Moreover, any single symbol (or ASCII character) may be prefixed by
+\verb,\<^sup>, for superscript and \verb,\<^sub>, for subscript, such as
+\verb,A\<^sup>\<star>, for \isa{A\isactrlsup{\isasymstar}}.  Most symbols (and
+all ASCII characters) may be printed in bold by prefixing \verb,\<^bold>,,
+such as \verb,\<^bold>\<alpha>, for \isa{\isactrlbold{\isasymalpha}}.  Note
+that super- and subscripts may \emph{not} be combined with bold style.
 
-See also Chapter~\ref{ch:present} for more details on Isabelle document
-preparation.
+Further details of Isabelle document preparation are covered in
+chapter~\ref{ch:present}.
 
 \begin{center}
   \begin{isabellebody}
