@@ -145,16 +145,10 @@ text{* So far we have unfolded the separation logic connectives in
 proofs. Here comes a simple example of a program proof that uses a law
 of separation logic instead. *}
 
-(* move to Map.thy *)
-lemma override_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
-apply(rule ext)
-apply(fastsimp simp:override_def split:option.split)
-done
-
 (* a law of separation logic *)
 lemma star_comm: "P ** Q = Q ** P"
 apply(simp add:star_def ortho_def)
-apply(blast intro:override_comm)
+apply(blast intro:map_add_comm)
 done
 
 lemma "VARS H x y z w
