@@ -26,7 +26,7 @@ struct
 local
 
 val output_chr = fn
-  " " => "~" |
+  " " => "\\ " |
   "\n" => "\\isanewline\n" |
   "$" => "\\$" |
   "&" => "\\&" |
