@@ -98,8 +98,8 @@ fun use_text _ _ txt =
 
 exception Interrupt;
 
-fun mask_interrupt f x = f x;           
-fun exhibit_interrupt f x = f x;
+fun ignore_interrupt f x = f x;           
+fun raise_interrupt f x = f x;
 
 
 

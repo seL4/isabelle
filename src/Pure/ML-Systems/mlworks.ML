@@ -24,7 +24,7 @@ val _ =
     let val max_stack = MLWorks.Internal.Runtime.Memory.max_stack_blocks
     in max_stack := (!max_stack * 3) div 2 + 5;
        print ("#### Increasing stack to " ^ Int.toString (64 * !max_stack) ^
-	      "KB\n")
+              "KB\n")
     end);
   MLWorks.Internal.Runtime.Memory.gc_message_level := 10;
   (*Is this of any use at all?*)
@@ -91,14 +91,14 @@ fun use_text _ _ txt =
 
 
 
-(** interrupts **)	(*Note: may get into race conditions*)
+(** interrupts **)      (*Note: may get into race conditions*)
 
 exception Interrupt;
 
 MLWorks.Internal.Runtime.Event.interrupt_handler (fn () => raise Interrupt);
 
-fun mask_interrupt f x = f x;           
-fun exhibit_interrupt f x = f x;
+fun ignore_interrupt f x = f x;
+fun raise_interrupt f x = f x;
 
 
 

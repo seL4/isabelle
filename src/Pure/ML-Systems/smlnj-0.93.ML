@@ -96,6 +96,8 @@ fun use_text _ _ = System.Compile.use_stream o open_string;
 
 (** interrupts **)
 
+exception Interrupt;
+
 local
 
 datatype 'a result =
@@ -125,18 +127,9 @@ fun change_mask ok change unchange f x =
 
 in
 
+fun ignore_interrupt f = change_mask (not o interruptible) mask_signals unmask_signals f;
 
-(* mask / unmask interrupt *)
-
-fun mask_interrupt f = change_mask (not o interruptible) mask_signals unmask_signals f;
-fun unmask_interrupt f = change_mask interruptible unmask_signals mask_signals f;
-
-
-(* exhibit interrupt (via exception) *)
-
-exception Interrupt;
-
-fun exhibit_interrupt f x =
+fun raise_interrupt f x =
   let
     val orig_handler = System.Signals.inqHandler sig_int;
     fun reset_handler () = (System.Signals.setHandler (sig_int, orig_handler); ());
