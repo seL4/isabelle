@@ -64,7 +64,7 @@ fun make eq weight index rules = foldr (uncurry add) (rules, init eq weight inde
 
 
 fun merge (Rules {eq, weight, index, rules = rules1, ...}, Rules {rules = rules2, ...}) =
-  make eq weight index (Library.generic_merge eq I I rules1 rules2);
+  make eq weight index (Library.gen_merge_lists' eq rules1 rules2);
 
 fun delete rule (rs as Rules {eq, weight, index, rules, next, net}) =
   if not (Library.gen_mem eq (rule, rules)) then rs
