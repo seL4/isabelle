@@ -18,16 +18,20 @@ sig
   val remove_thy: string -> unit
   val time_use_thy: string -> unit
   val use_thy_only: string -> unit
+  val update_thy_only: string -> unit
 end;
 
 signature THY_INFO =
 sig
   include BASIC_THY_INFO
+  datatype action = Update | Outdate | Remove
+  val str_of_action: action -> string
+  val add_hook: (action -> string -> unit) -> unit
   val names: unit -> string list
   val get_theory: string -> theory
-  val put_theory: theory -> unit
   val get_preds: string -> string list
   val loaded_files: string -> (Path.T * File.info) list
+  val touch_all_thys: unit -> unit
   val load_file: bool -> Path.T -> unit
   val use_path: Path.T -> unit
   val use: string -> unit
@@ -39,6 +43,20 @@ end;
 
 structure ThyInfo: THY_INFO =
 struct
+
+
+(** theory loader actions and hooks **)
+
+datatype action = Update | Outdate | Remove;
+val str_of_action = fn Update => "Update" | Outdate => "Outdate" | Remove => "Remove";
+
+local
+  val hooks = ref ([]: (action -> string -> unit) list);
+in
+  fun add_hook f = hooks := f :: ! hooks;
+  fun perform action name = seq (fn f => f action name) (! hooks);
+end;
+
 
 
 (** thy database **)
@@ -130,8 +148,7 @@ fun get_theory name =
 val theory_of_sign = get_theory o Sign.name_of;
 val theory_of_thm = theory_of_sign o Thm.sign_of_thm;
 
-fun put_theory theory =
-  change_thy (PureThy.get_name theory) (fn (deps, _) => (deps, Some theory));
+fun put_theory name theory = change_thy name (fn (deps, _) => (deps, Some theory));
 
 
 
@@ -139,51 +156,27 @@ fun put_theory theory =
 
 (* maintain 'outdated' flag *)
 
+local
+
 fun is_outdated name =
   (case lookup_deps name of
     Some (Some {outdated, ...}) => outdated
   | _ => false);
 
 fun outdate_thy name =
-  if is_finished name then ()
-  else change_deps name (apsome (fn {present, outdated = _, master, files} =>
-    make_deps present true master files));
+  if is_finished name orelse is_outdated name then ()
+  else (change_deps name (apsome (fn {present, outdated = _, master, files} =>
+    make_deps present true master files)); perform Outdate name);
+
+in
 
 fun touch_thy name =
-  if is_outdated name then ()
-  else if is_finished name then warning (loader_msg "tried to touch finished theory" [name])
-  else
-    (case filter_out is_outdated (thy_graph Graph.all_succs [name]) \ name of
-      [] => outdate_thy name
-    | names =>
-       (warning (loader_msg "the following theories become out-of-date:" names);
-        seq outdate_thy names; outdate_thy name));
+  if is_finished name then warning (loader_msg "tried to touch finished theory" [name])
+  else seq outdate_thy (thy_graph Graph.all_succs [name]);
 
-val untouch_deps = apsome (fn {present, outdated = _, master, files}: deps =>
-  make_deps present false master files);
+fun touch_all_thys () = seq outdate_thy (get_names ());
 
-
-(* load_thy *)
-
-fun required_by [] = ""
-  | required_by initiators = " (required by " ^ show_path (rev initiators) ^ ")";
-
-fun load_thy ml time initiators dir name parents =
-  let
-    val _ = if name mem_string initiators then error (cycle_msg name (rev initiators)) else ();
-    val _ = writeln ("Loading theory " ^ quote name ^ required_by initiators);
-
-    val _ = seq touch_thy (thy_graph Graph.all_succs [name]);
-    val master = ThyLoad.load_thy dir name ml time;
-
-    val files = get_files name;
-    val missing_files = mapfilter (fn (path, None) => Some (Path.pack path) | _ => None) files;
-  in
-    if null missing_files then ()
-    else warning (loader_msg "unresolved dependencies of theory" [name] ^
-      "\nfile(s): " ^ commas_quote missing_files);
-    change_deps name (fn _ => Some (make_deps true false master files))
-  end;
+end;
 
 
 (* load_file *)
@@ -218,9 +211,33 @@ val use = use_path o Path.unpack;
 val time_use = load_file true o Path.unpack;
 
 
+(* load_thy *)
+
+fun required_by [] = ""
+  | required_by initiators = " (required by " ^ show_path (rev initiators) ^ ")";
+
+fun load_thy ml time initiators dir name parents =
+  let
+    val _ = if name mem_string initiators then error (cycle_msg name (rev initiators)) else ();
+    val _ = writeln ("Loading theory " ^ quote name ^ required_by initiators);
+
+    val _ = touch_thy name;
+    val master = ThyLoad.load_thy dir name ml time;
+
+    val files = get_files name;
+    val missing_files = mapfilter (fn (path, None) => Some (Path.pack path) | _ => None) files;
+  in
+    if null missing_files then ()
+    else warning (loader_msg "unresolved dependencies of theory" [name] ^
+      "\nfile(s): " ^ commas_quote missing_files);
+    change_deps name (fn _ => Some (make_deps true false master files));
+    perform Update name
+  end;
+
+
 (* require_thy *)
 
-fun init_deps master files = Some (make_deps false false master (map (rpair None) files));
+fun init_deps master files = Some (make_deps false true master (map (rpair None) files));
 
 fun load_deps dir name ml =
   let val (master, (parents, files)) = ThyLoad.deps_thy dir name ml
@@ -258,7 +275,7 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
           require_thy ml time (strict andalso keep_strict) keep_strict (name :: initiators) dir;
 
         val (current, (new_deps, parents)) = current_deps ml strict dir name handle ERROR =>
-          error (loader_msg "The error(s) above occurred while examining theory" [name] ^
+          error (loader_msg "the error(s) above occurred while examining theory" [name] ^
             (if null initiators then "" else "\n" ^ required_by initiators));
         val (visited', parent_results) = foldl_map req_parent (name :: visited, parents);
 
@@ -266,10 +283,10 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
           if current andalso forall #1 parent_results then true
           else
             ((case new_deps of
-              Some deps => change_thys (update_node name parents (untouch_deps deps, None))
+              Some deps => change_thys (update_node name parents (deps, None))
             | None => ());
-              load_thy ml time initiators dir name parents;
-              false);
+             load_thy ml time initiators dir name parents;
+             false);
       in (visited', (result, name)) end
   end;
 
@@ -277,11 +294,12 @@ fun gen_use_thy req s =
   let val (_, (_, name)) = req [] Path.current ([], s)
   in Context.context (get_theory name) end;
 
-val weak_use_thy = gen_use_thy (require_thy true false false false);
-val use_thy      = gen_use_thy (require_thy true false true false);
-val update_thy   = gen_use_thy (require_thy true false true true);
-val time_use_thy = gen_use_thy (require_thy true true true false);
-val use_thy_only = gen_use_thy (require_thy false false true false);
+val weak_use_thy    = gen_use_thy (require_thy true false false false);
+val use_thy         = gen_use_thy (require_thy true false true false);
+val time_use_thy    = gen_use_thy (require_thy true true true false);
+val use_thy_only    = gen_use_thy (require_thy false false true false);
+val update_thy      = gen_use_thy (require_thy true false true true);
+val update_thy_only = gen_use_thy (require_thy false false true true);
 
 
 (* remove_thy *)
@@ -291,7 +309,8 @@ fun remove_thy name =
   else
     let val succs = thy_graph Graph.all_succs [name] in
       writeln (loader_msg "removing" succs);
-      change_thys (Graph.del_nodes succs)
+      change_thys (Graph.del_nodes succs);
+      seq (perform Remove) succs
     end;
 
 
@@ -310,8 +329,10 @@ fun begin_theory name parents paths =
   in Context.setmp (Some theory) (seq use_path) use_paths; theory end;
 
 fun end_theory theory =
-  let val theory' = PureThy.end_theory theory
-  in put_theory theory'; theory' end;
+  let
+    val theory' = PureThy.end_theory theory;
+    val name = PureThy.get_name theory;
+  in put_theory name theory'; theory' end;
 
 
 (* finish all theories *)
@@ -343,7 +364,7 @@ fun register_theory theory =
   in
     if not (null nonfinished) then err "non-finished parent theories" nonfinished
     else if not (null variants) then err "different versions of parent theories" variants
-    else change_thys register
+    else (change_thys register; perform Update name)
   end;
 
 
