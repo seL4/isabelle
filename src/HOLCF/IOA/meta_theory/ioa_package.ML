@@ -5,30 +5,19 @@
 
 signature IOA_PACKAGE =
 sig
-  val add_ioa: string -> string ->
+ val add_ioa: string -> string ->
 		 (string) list -> (string) list -> (string) list ->
 		(string * string) list -> string ->
 		(string * string * (string * string)list) list
 	-> theory -> theory
- val add_ioa_i : string -> string ->
-                 (string) list -> (string) list -> (string) list ->
-                (string * string) list -> string ->
-                (string * string * (string * string)list) list
-	-> theory -> theory
  val add_composition : string -> (string)list -> theory -> theory
- val add_composition_i : string -> (string)list -> theory -> theory
  val add_hiding : string -> string -> (string)list -> theory -> theory
- val add_hiding_i : string -> string -> (string)list -> theory -> theory
  val add_restriction : string -> string -> (string)list -> theory -> theory
- val add_restriction_i : string -> string -> (string)list -> theory -> theory
  val add_rename : string -> string -> string -> theory -> theory
- val add_rename_i : string -> string -> string -> theory -> theory
 end;
 
 structure IoaPackage: IOA_PACKAGE =
 struct
-
-local
 
 exception malformed;
 
@@ -274,7 +263,7 @@ in
 write_alts thy ("","") inp out int cl ttr
 end;
 
-(* used in gen_add_ioa *)
+(* used in add_ioa *)
 fun check_free_primed (Free(a,_)) = 
 let
 val (f::r) = rev(explode a)
@@ -334,9 +323,10 @@ fun clist [] = "" |
 clist [a] = a |
 clist (a::r) = a ^ " || " ^ (clist r);
 
-(* gen_add_ioa *)
 
-fun gen_add_ioa prep_term automaton_name action_type inp out int statetupel ini trans thy =
+(* add_ioa *)
+
+fun add_ioa automaton_name action_type inp out int statetupel ini trans thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val state_type_string = type_product_of_varlist(statetupel);
@@ -385,7 +375,7 @@ error("Precondition or assignment terms in postconditions contain following prim
 )
 end)
 
-fun gen_add_composition prep_term automaton_name aut_list thy =
+fun add_composition automaton_name aut_list thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val acttyp = check_ac thy aut_list; 
@@ -406,7 +396,7 @@ Type("*",
 automaton_name ^ " == " ^ comp_list)]
 end)
 
-fun gen_add_restriction prep_term automaton_name aut_source actlist thy =
+fun add_restriction automaton_name aut_source actlist thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val auttyp = aut_type_of thy aut_source;
@@ -420,7 +410,7 @@ thy
 [(automaton_name ^ "_def",
 automaton_name ^ " == restrict " ^ aut_source ^ " " ^ rest_set)] 
 end)
-fun gen_add_hiding prep_term automaton_name aut_source actlist thy =
+fun add_hiding automaton_name aut_source actlist thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val auttyp = aut_type_of thy aut_source;
@@ -446,7 +436,7 @@ arg_typ_of(#T(rep_cterm(cterm_of (sign_of thy) (read(funct)))))
 handle malformed => error ("could not extract argument type of renaming function term")
 end;
  
-fun gen_add_rename prep_term automaton_name aut_source fun_name thy =
+fun add_rename automaton_name aut_source fun_name thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val auttyp = aut_type_of thy aut_source;
@@ -466,30 +456,6 @@ Type("*",
 [(automaton_name ^ "_def",
 automaton_name ^ " == rename " ^ aut_source ^ " (" ^ fun_name ^ ")")]
 end)
-
-(* external interfaces *)
-
-fun read_term sg str =
-  read_cterm sg (str, HOLogic.termT);
-
-fun cert_term sg tm =
-  cterm_of sg tm handle TERM (msg, _) => error msg;
-
-in
-
-val add_ioa = gen_add_ioa read_term;
-val add_ioa_i = gen_add_ioa cert_term;
-val add_composition = gen_add_composition read_term;
-val add_composition_i = gen_add_composition cert_term;
-val add_hiding = gen_add_hiding read_term;
-val add_hiding_i = gen_add_hiding cert_term;
-val add_restriction = gen_add_restriction read_term;
-val add_restriction_i = gen_add_restriction cert_term;
-val add_rename = gen_add_rename read_term;
-val add_rename_i = gen_add_rename cert_term;
-
-end
-
 
 
 (** outer syntax **)
