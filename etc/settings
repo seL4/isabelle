@@ -129,7 +129,7 @@ PROOFGENERAL_OPTIONS=""
 ### External reasoning tools
 ###
 
-## set FOO_HOME only for tools you have installed
+## Set HOME only for tools you have installed!
 
 # SVC (Stanford Validity Checker)
 #SVC_HOME=
