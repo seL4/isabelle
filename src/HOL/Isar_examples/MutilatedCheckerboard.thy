@@ -21,7 +21,7 @@ consts
   tiling :: "'a set set => 'a set set";
 
 inductive "tiling A"
-  intrs
+  intros
     empty: "{} : tiling A"
     Un:    "a : A ==> t : tiling A ==> a <= - t
               ==> a Un t : tiling A";
@@ -115,7 +115,7 @@ consts
   domino  :: "(nat * nat) set set";
 
 inductive domino
-  intrs
+  intros
     horiz:  "{(i, j), (i, j + 1)} : domino"
     vertl:  "{(i, j), (i + 1, j)} : domino";
 
@@ -179,8 +179,8 @@ qed;
 lemma domino_finite: "d: domino ==> finite d";
 proof (induct set: domino);
   fix i j :: nat;
-  show "finite {(i, j), (i, j + 1)}"; by (intro Finites.intrs);
-  show "finite {(i, j), (i + 1, j)}"; by (intro Finites.intrs);
+  show "finite {(i, j), (i, j + 1)}"; by (intro Finites.intros);
+  show "finite {(i, j), (i + 1, j)}"; by (intro Finites.intros);
 qed;
 
 

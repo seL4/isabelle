@@ -17,7 +17,7 @@ consts
   acc  :: "('a * 'a)set => 'a set"  -- {* accessible part *}
 
 inductive "acc r"
-  intrs
+  intros
     accI [rulify_prems]:
       "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
 
