@@ -12,11 +12,11 @@ open BT_Fn;
 
 (** bt_rec -- by Vset recursion **)
 
-goalw BT.thy BT.con_defs "rank(l) : rank(Br(a,l,r))";
+goalw BT.thy BT.con_defs "rank(l) < rank(Br(a,l,r))";
 by (simp_tac rank_ss 1);
 val rank_Br1 = result();
 
-goalw BT.thy BT.con_defs "rank(r) : rank(Br(a,l,r))";
+goalw BT.thy BT.con_defs "rank(r) < rank(Br(a,l,r))";
 by (simp_tac rank_ss 1);
 val rank_Br2 = result();
 
@@ -28,8 +28,7 @@ val bt_rec_Lf = result();
 goal BT_Fn.thy
     "bt_rec(Br(a,l,r), c, h) = h(a, l, r, bt_rec(l,c,h), bt_rec(r,c,h))";
 by (rtac (bt_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (ZF_ss addsimps 
-	      (BT.case_eqns @ [Vset_rankI, rank_Br1, rank_Br2])) 1);
+by (simp_tac (rank_ss addsimps (BT.case_eqns @ [rank_Br1, rank_Br2])) 1);
 val bt_rec_Br = result();
 
 (*Type checking -- proved by induction, as usual*)

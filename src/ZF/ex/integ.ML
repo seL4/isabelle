@@ -175,19 +175,18 @@ val zminus_0 = result();
 goalw Integ.thy [znegative_def, znat_def]
     "~ znegative($# n)";
 by (safe_tac intrel_cs);
-by (rtac (add_not_less_self RS notE) 1);
+by (rtac (add_le_self2 RS le_imp_not_lt RS notE) 1);
 by (etac ssubst 3);
 by (asm_simp_tac (arith_ss addsimps [add_0_right]) 3);
 by (REPEAT (assume_tac 1));
 val not_znegative_znat = result();
 
-val [nnat] = goalw Integ.thy [znegative_def, znat_def]
-    "n: nat ==> znegative($~ $# succ(n))";
-by (simp_tac (intrel_ss addsimps [zminus,nnat]) 1);
+goalw Integ.thy [znegative_def, znat_def]
+    "!!n. n: nat ==> znegative($~ $# succ(n))";
+by (asm_simp_tac (intrel_ss addsimps [zminus]) 1);
 by (REPEAT 
-    (resolve_tac [refl, exI, conjI, nat_0_in_succ,
-		  refl RS intrelI RS imageI, consI1, nnat, nat_0I,
-		  nat_succI] 1));
+    (ares_tac [refl, exI, conjI, nat_0_le,
+	       refl RS intrelI RS imageI, consI1, nat_0I, nat_succI] 1));
 val znegative_zminus_znat = result();
 
 
@@ -227,14 +226,14 @@ by (asm_simp_tac
     (ZF_ss addsimps (prems@[zmagnitude_ize UN_equiv_class, SigmaI])) 1);
 val zmagnitude = result();
 
-val [nnat] = goalw Integ.thy [znat_def]
-    "n: nat ==> zmagnitude($# n) = n";
-by (simp_tac (intrel_ss addsimps [zmagnitude,nnat]) 1);
+goalw Integ.thy [znat_def]
+    "!!n. n: nat ==> zmagnitude($# n) = n";
+by (asm_simp_tac (intrel_ss addsimps [zmagnitude]) 1);
 val zmagnitude_znat = result();
 
-val [nnat] = goalw Integ.thy [znat_def]
-    "n: nat ==> zmagnitude($~ $# n) = n";
-by (simp_tac (intrel_ss addsimps [zmagnitude,zminus,nnat,add_0_right]) 1);
+goalw Integ.thy [znat_def]
+    "!!n. n: nat ==> zmagnitude($~ $# n) = n";
+by (asm_simp_tac (intrel_ss addsimps [zmagnitude, zminus ,add_0_right]) 1);
 val zmagnitude_zminus_znat = result();
 
 

@@ -33,7 +33,7 @@ rules
     zminus_def	"$~ Z == UN p:Z. split(%x y. intrel``{<y,x>}, p)"
     
     znegative_def
-	"znegative(Z) == EX x y. x:y & y:nat & <x,y>:Z"
+	"znegative(Z) == EX x y. x<y & y:nat & <x,y>:Z"
     
     zmagnitude_def
 	"zmagnitude(Z) == UN p:Z. split(%x y. (y#-x) #+ (x#-y), p)"

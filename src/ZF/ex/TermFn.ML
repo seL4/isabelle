@@ -16,13 +16,13 @@ open TermFn;
 (*Lemma: map works correctly on the underlying list of terms*)
 val [major,ordi] = goal ListFn.thy
     "[| l: list(A);  Ord(i) |] ==>  \
-\    rank(l): i --> map(%z. (lam x:Vset(i).h(x)) ` z, l) = map(h,l)";
+\    rank(l)<i --> map(%z. (lam x:Vset(i).h(x)) ` z, l) = map(h,l)";
 by (rtac (major RS List.induct) 1);
 by (simp_tac list_ss 1);
 by (rtac impI 1);
-by (forward_tac [rank_Cons1 RS Ord_trans] 1);
-by (dtac (rank_Cons2 RS Ord_trans) 2);
-by (ALLGOALS (asm_simp_tac (list_ss addsimps [ordi, VsetI])));
+by (forward_tac [rank_Cons1 RS lt_trans] 1);
+by (dtac (rank_Cons2 RS lt_trans) 1);
+by (asm_simp_tac (list_ss addsimps [ordi, VsetI]) 1);
 val map_lemma = result();
 
 (*Typing premise is necessary to invoke map_lemma*)
