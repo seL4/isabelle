@@ -130,7 +130,7 @@ qed_goalw "contlub_iterate" thy  [contlub] "contlub(iterate(i))"
         (induct_tac "i" 1),
         (Asm_simp_tac 1),
         (rtac (lub_const RS thelubI RS sym) 1),
-        (Asm_simp_tac 1),
+        (asm_simp_tac (simpset() delsimps [range_composition]) 1),
         (rtac ext 1),
         (stac thelub_fun 1),
         (rtac chainI 1),

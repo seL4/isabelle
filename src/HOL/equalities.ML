@@ -164,6 +164,11 @@ Goal "{u. ? x. u = f x} = range f";
 by Auto_tac;
 qed "full_SetCompr_eq";
 
+Goal "range (%x. f (g x)) = f``range g";
+by (stac image_image 1);
+by (Simp_tac 1);
+qed "range_composition";
+Addsimps[range_composition];
 
 section "Int";
 

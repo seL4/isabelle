@@ -192,22 +192,19 @@ qed_goal "ssum_lemma10" Ssum3.thy
         (etac is_ub_thelub 1)
         ]);
 
-qed_goal "ssum_lemma11" Ssum3.thy 
+Goal  
 "[| chain(Y); lub(range(Y)) = Isinl(UU) |] ==>\
-\   Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (asm_simp_tac Ssum0_ss 1),
-        (rtac (chain_UU_I_inverse RS sym) 1),
-        (rtac allI 1),
-        (res_inst_tac [("s","Isinl(UU)"),("t","Y(i)")] subst 1),
-        (rtac (inst_ssum_pcpo RS subst) 1),
-        (rtac (chain_UU_I RS spec RS sym) 1),
-        (atac 1),
-        (etac (inst_ssum_pcpo RS ssubst) 1),
-        (asm_simp_tac Ssum0_ss 1)
-        ]);
+\   Iwhen f g (lub(range Y)) = lub(range(%i. Iwhen f g (Y i)))";
+by (asm_simp_tac Ssum0_ss 1);
+by (rtac (chain_UU_I_inverse RS sym) 1);
+by (rtac allI 1);
+by (res_inst_tac [("s","Isinl(UU)"),("t","Y(i)")] subst 1);
+by (rtac (inst_ssum_pcpo RS subst) 1);
+by (rtac (chain_UU_I RS spec RS sym) 1);
+by (atac 1);
+by (etac (inst_ssum_pcpo RS ssubst) 1);
+by (asm_simp_tac Ssum0_ss 1);
+qed "ssum_lemma11";
 
 qed_goal "ssum_lemma12" Ssum3.thy 
 "[| chain(Y); lub(range(Y)) = Isinl(x); x ~= UU |] ==>\

@@ -84,52 +84,50 @@ qed_goal "contlub_Ifup1" thy "contlub(Ifup)"
         ]);
 
 
-qed_goal "contlub_Ifup2" thy "contlub(Ifup(f))"
- (fn prems =>
-        [
-        (rtac contlubI 1),
-        (strip_tac 1),
-        (rtac disjE 1),
-        (stac thelub_up1a 2),
-        (atac 2),
-        (atac 2),
-        (asm_simp_tac Up0_ss 2),
-        (stac thelub_up1b 3),
-        (atac 3),
-        (atac 3),
-        (fast_tac HOL_cs 1),
-        (asm_simp_tac Up0_ss 2),
-        (rtac (chain_UU_I_inverse RS sym) 2),
-        (rtac allI 2),
-        (res_inst_tac [("p","Y(i)")] upE 2),
-        (asm_simp_tac Up0_ss 2),
-        (rtac notE 2),
-        (dtac spec 2),
-        (etac spec 2),
-        (atac 2),
-        (stac contlub_cfun_arg 1),
-        (etac (monofun_Ifup2 RS ch2ch_monofun) 1),
-        (rtac lub_equal2 1),
-        (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 2),
-        (etac (monofun_Ifup2 RS ch2ch_monofun) 2),
-        (etac (monofun_Ifup2 RS ch2ch_monofun) 2),
-        (rtac (chain_mono2 RS exE) 1),
-        (atac 2),
-        (etac exE 1),
-        (etac exE 1),
-        (rtac exI 1),
-        (res_inst_tac [("s","Iup(x)"),("t","Y(i)")] ssubst 1),
-        (atac 1),
-        (rtac defined_Iup2 1),
-        (rtac exI 1),
-        (strip_tac 1),
-        (res_inst_tac [("p","Y(i)")] upE 1),
-        (asm_simp_tac Up0_ss 2),
-        (res_inst_tac [("P","Y(i) = UU")] notE 1),
-        (fast_tac HOL_cs 1),
-        (stac inst_up_pcpo 1),
-        (atac 1)
-        ]);
+Goal "contlub(Ifup(f))";
+by (rtac contlubI 1);
+by (strip_tac 1);
+by (rtac disjE 1);
+by   (stac thelub_up1a 2);
+by     (atac 2);
+by    (atac 2);
+by   (asm_simp_tac Up0_ss 2);
+by   (stac thelub_up1b 3);
+by     (atac 3);
+by    (atac 3);
+by   (fast_tac HOL_cs 1);
+by  (asm_simp_tac Up0_ss 2);
+by  (rtac (chain_UU_I_inverse RS sym) 2);
+by  (rtac allI 2);
+by  (res_inst_tac [("p","Y(i)")] upE 2);
+by   (asm_simp_tac Up0_ss 2);
+by  (rtac notE 2);
+by   (dtac spec 2);
+by   (etac spec 2);
+by  (atac 2);
+by (stac contlub_cfun_arg 1);
+by  (etac (monofun_Ifup2 RS ch2ch_monofun) 1);
+by (rtac lub_equal2 1);
+by   (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 2);
+by   (etac (monofun_Ifup2 RS ch2ch_monofun) 2);
+by  (etac (monofun_Ifup2 RS ch2ch_monofun) 2);
+by (rtac (chain_mono2 RS exE) 1);
+by   (atac 2);
+by  (etac exE 1);
+by  (etac exE 1);
+by  (rtac exI 1);
+by  (res_inst_tac [("s","Iup(x)"),("t","Y(i)")] ssubst 1);
+by   (atac 1);
+by  (rtac defined_Iup2 1);
+by (rtac exI 1);
+by (strip_tac 1);
+by (res_inst_tac [("p","Y(i)")] upE 1);
+by  (asm_simp_tac Up0_ss 2);
+by (res_inst_tac [("P","Y(i) = UU")] notE 1);
+by  (fast_tac HOL_cs 1);
+by (stac inst_up_pcpo 1);
+by (atac 1);
+qed "contlub_Ifup2";
 
 qed_goal "cont_Ifup1" thy "cont(Ifup)"
  (fn prems =>

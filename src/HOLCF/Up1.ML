@@ -90,7 +90,8 @@ qed_goalw "Ifup2"  thy [Ifup_def,Iup_def]
         (rtac refl 1)
         ]);
 
-val Up0_ss = (simpset_of Cfun3.thy) addsimps [Ifup1,Ifup2];
+val Up0_ss = (simpset_of Cfun3.thy) delsimps [range_composition] 
+	     addsimps [Ifup1,Ifup2];
 
 qed_goalw "less_up1a"  thy [less_up_def]
         "Abs_Up(Inl ())<< z"
