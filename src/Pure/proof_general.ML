@@ -1127,6 +1127,7 @@ fun process_pgip_element pgipxml = (case pgipxml of
 			      | None => raise PGIP ("closefile when no file is open!"))
      | "abortfile"      => (currently_open_file := None) (* perhaps error for no file open *)
      | "changecwd"      => ThyLoad.add_path (xmlattr attrs dirname_attr)
+     | "systemcmd"	=> isarscript data
      (* unofficial command for debugging *)
      | "quitpgip" => raise PGIP_QUIT  
      | _ => raise PGIP ("Unrecognized PGIP element: " ^ elem)))
