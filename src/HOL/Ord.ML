@@ -62,6 +62,16 @@ by (asm_full_simp_tac (simpset() addsimps [order_less_le]) 1);
 by (blast_tac (claset() addIs [order_trans,order_antisym]) 1);
 qed "order_less_trans";
 
+Goal "!!x::'a::order. [| x <= y; y < z |] ==> x < z";
+by (asm_full_simp_tac (simpset() addsimps [order_less_le]) 1);
+by (blast_tac (claset() addIs [order_trans,order_antisym]) 1);
+qed "order_le_less_trans";
+
+Goal "!!x::'a::order. [| x < y; y <= z |] ==> x < z";
+by (asm_full_simp_tac (simpset() addsimps [order_less_le]) 1);
+by (blast_tac (claset() addIs [order_trans,order_antisym]) 1);
+qed "order_less_le_trans";
+
 
 (** Useful for simplification, but too risky to include by default. **)
 
