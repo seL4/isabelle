@@ -8,7 +8,7 @@ Finite sets and their cardinality
 
 open Finite;
 
-(*** Fin ***)
+section "The finite powerset operator -- Fin";
 
 goalw Finite.thy Fin.defs "!!A B. A<=B ==> Fin(A) <= Fin(B)";
 by (rtac lfp_mono 1);
@@ -98,7 +98,7 @@ by (REPEAT (ares_tac (subset_refl::prems) 1));
 qed "Fin_empty_induct";
 
 
-(*** finite ***)
+section "The predicate 'finite'";
 
 val major::prems = goalw Finite.thy [finite_def]
     "[| finite F;  P({}); \
@@ -163,7 +163,7 @@ by (REPEAT (ares_tac (subset_refl::prems) 1));
 qed "finite_empty_induct";
 
 
-(*** Cardinality ***)
+section "Finite cardinality -- 'card'";
 
 goal Set.thy "{f i |i. P i | i=n} = insert (f n) {f i|i. P i}";
 by(fast_tac eq_cs 1);
@@ -174,8 +174,6 @@ br Least_equality 1;
 by(ALLGOALS Asm_full_simp_tac);
 qed "card_empty";
 Addsimps [card_empty];
-
-(*Addsimps [Collect_conv_insert];*)
 
 val [major] = goal Finite.thy
   "finite A ==> ? (n::nat) f. A = {f i |i. i<n}";
@@ -188,7 +186,7 @@ by(hyp_subst_tac 1);
 by(res_inst_tac [("x","Suc n")] exI 1);
 by(res_inst_tac [("x","%i. if i<n then f i else x")] exI 1);
 by(asm_simp_tac (!simpset addsimps [Collect_conv_insert]
-                          addcongs [Collect_cong1]) 1);
+                          addcongs [rev_conj_cong]) 1);
 qed "finite_has_card";
 
 goal Finite.thy
@@ -265,7 +263,7 @@ br Least_equality 1;
  by(res_inst_tac
    [("x","%i. if i<(LEAST n. ? f. A={f i |i. i < n}) then f i else x")] exI 1);
  by(simp_tac
-    (!simpset addsimps [Collect_conv_insert] addcongs [Collect_cong1]) 1);
+    (!simpset addsimps [Collect_conv_insert] addcongs [rev_conj_cong]) 1);
  be subst 1;
  br refl 1;
 br notI 1;

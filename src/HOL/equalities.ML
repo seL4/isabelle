@@ -10,6 +10,8 @@ writeln"File HOL/equalities";
 
 val eq_cs = set_cs addSIs [equalityI];
 
+section "{}";
+
 goal Set.thy "{x.False} = {}";
 by(fast_tac eq_cs 1);
 qed "Collect_False_empty";
@@ -20,7 +22,7 @@ by(fast_tac eq_cs 1);
 qed "subset_empty";
 Addsimps [subset_empty];
 
-(** The membership relation, : **)
+section ":";
 
 goal Set.thy "x ~: {}";
 by(fast_tac set_cs 1);
@@ -32,7 +34,7 @@ by(fast_tac set_cs 1);
 qed "in_insert";
 Addsimps[in_insert];
 
-(** insert **)
+section "insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a {}*)
 goal Set.thy "insert a A = {a} Un A";
@@ -67,7 +69,7 @@ by(res_inst_tac [("x","A-{a}")] exI 1);
 by(fast_tac eq_cs 1);
 qed "mk_disjoint_insert";
 
-(** Image **)
+section "''";
 
 goal Set.thy "f``{} = {}";
 by (fast_tac eq_cs 1);
@@ -79,7 +81,7 @@ by (fast_tac eq_cs 1);
 qed "image_insert";
 Addsimps[image_insert];
 
-(** Binary Intersection **)
+section "Int";
 
 goal Set.thy "A Int A = A";
 by (fast_tac eq_cs 1);
@@ -127,7 +129,7 @@ by (fast_tac (eq_cs addEs [equalityCE]) 1);
 qed "Int_UNIV";
 Addsimps[Int_UNIV];
 
-(** Binary Union **)
+section "Un";
 
 goal Set.thy "A Un A = A";
 by (fast_tac eq_cs 1);
@@ -188,7 +190,7 @@ by (fast_tac (eq_cs addEs [equalityCE]) 1);
 qed "Un_empty";
 Addsimps[Un_empty];
 
-(** Simple properties of Compl -- complement of a set **)
+section "Compl";
 
 goal Set.thy "A Int Compl(A) = {}";
 by (fast_tac eq_cs 1);
@@ -227,7 +229,7 @@ by (fast_tac (eq_cs addSEs [equalityE]) 1);
 qed "Un_Int_assoc_eq";
 
 
-(** Big Union and Intersection **)
+section "Union";
 
 goal Set.thy "Union({}) = {}";
 by (fast_tac eq_cs 1);
@@ -258,6 +260,8 @@ val prems = goal Set.thy
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
+section "Inter";
+
 goal Set.thy "Inter({}) = UNIV";
 by (fast_tac eq_cs 1);
 qed "Inter_empty";
@@ -284,7 +288,7 @@ goal Set.thy "Inter(A Un B) = Inter(A) Int Inter(B)";
 by (best_tac eq_cs 1);
 qed "Inter_Un_distrib";
 
-(** Unions and Intersections of Families **)
+section "UN and INT";
 
 (*Basic identities*)
 
@@ -410,7 +414,7 @@ goal Set.thy
 by (fast_tac eq_cs 1);
 qed "Un_INT_distrib2";
 
-(** Simple properties of Diff -- set difference **)
+section "-";
 
 goal Set.thy "A-A = {}";
 by (fast_tac eq_cs 1);
@@ -481,21 +485,5 @@ qed "Diff_Un";
 goal Set.thy "A - (B Int C) = (A-B) Un (A-C)";
 by (fast_tac eq_cs 1);
 qed "Diff_Int";
-
-(* Congruence rule for set comprehension *)
-val prems = goal Set.thy
-  "[| !!x. P x = Q x; !!x. Q x ==> f x = g x |] ==> \
-\  {f x |x. P x} = {g x|x. Q x}";
-by(simp_tac (!simpset addsimps prems) 1);
-br set_ext 1;
-br iffI 1;
-by(fast_tac (eq_cs addss (!simpset addsimps prems)) 1);
-be CollectE 1;
-be exE 1;
-by(Asm_simp_tac 1);
-be conjE 1;
-by(rtac exI 1 THEN rtac conjI 1 THEN atac 2);
-by(asm_simp_tac (!simpset addsimps prems) 1);
-qed "Collect_cong1";
 
 Addsimps[subset_UNIV, empty_subsetI, subset_refl];

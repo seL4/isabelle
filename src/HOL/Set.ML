@@ -8,7 +8,9 @@ For set.thy.  Set theory for higher-order logic.  A set is simply a predicate.
 
 open Set;
 
-val [prem] = goal Set.thy "[| P(a) |] ==> a : {x.P(x)}";
+section "Relating predicates and sets";
+
+val [prem] = goal Set.thy "P(a) ==> a : {x.P(x)}";
 by (rtac (mem_Collect_eq RS ssubst) 1);
 by (rtac prem 1);
 qed "CollectI";
@@ -29,7 +31,7 @@ qed "Collect_cong";
 
 val CollectE = make_elim CollectD;
 
-(*** Bounded quantifiers ***)
+section "Bounded quantifiers";
 
 val prems = goalw Set.thy [Ball_def]
     "[| !!x. x:A ==> P(x) |] ==> ! x:A. P(x)";
@@ -91,7 +93,7 @@ by (REPEAT (etac bexE 1
      ORELSE ares_tac ([bexI,iffI] @ (prems RL [iffD1,iffD2])) 1));
 qed "bex_cong";
 
-(*** Subsets ***)
+section "Subsets";
 
 val prems = goalw Set.thy [subset_def] "(!!x.x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
@@ -126,7 +128,7 @@ by (REPEAT (ares_tac [subsetI] 1 ORELSE set_mp_tac 1));
 qed "subset_trans";
 
 
-(*** Equality ***)
+section "Equality";
 
 (*Anti-symmetry of the subset relation*)
 val prems = goal Set.thy "[| A <= B;  B <= A |] ==> A = (B::'a set)";
@@ -168,7 +170,7 @@ by (REPEAT (resolve_tac (refl::prems) 1));
 qed "setup_induction";
 
 
-(*** Set complement -- Compl ***)
+section "Set complement -- Compl";
 
 val prems = goalw Set.thy [Compl_def]
     "[| c:A ==> False |] ==> c : Compl(A)";
@@ -186,7 +188,7 @@ qed "ComplD";
 val ComplE = make_elim ComplD;
 
 
-(*** Binary union -- Un ***)
+section "Binary union -- Un";
 
 val prems = goalw Set.thy [Un_def] "c:A ==> c : A Un B";
 by (REPEAT (resolve_tac (prems @ [CollectI,disjI1]) 1));
@@ -210,7 +212,7 @@ by (REPEAT (eresolve_tac prems 1));
 qed "UnE";
 
 
-(*** Binary intersection -- Int ***)
+section "Binary intersection -- Int";
 
 val prems = goalw Set.thy [Int_def]
     "[| c:A;  c:B |] ==> c : A Int B";
@@ -233,7 +235,7 @@ by (rtac (major RS IntD2) 1);
 qed "IntE";
 
 
-(*** Set difference ***)
+section "Set difference";
 
 qed_goalw "DiffI" Set.thy [set_diff_def]
     "[| c : A;  c ~: B |] ==> c : A - B"
@@ -257,7 +259,7 @@ qed_goal "DiffE" Set.thy
 qed_goal "Diff_iff" Set.thy "(c : A-B) = (c:A & c~:B)"
  (fn _ => [ (fast_tac (HOL_cs addSIs [DiffI] addSEs [DiffE]) 1) ]);
 
-(*** The empty set -- {} ***)
+section "The empty set -- {}";
 
 qed_goalw "emptyE" Set.thy [empty_def] "a:{} ==> P"
  (fn [prem] => [rtac (prem RS CollectD RS FalseE) 1]);
@@ -275,7 +277,7 @@ qed_goal "equals0D" Set.thy "[| A={};  a:A |] ==> P"
   [ (rtac (minor RS (major RS equalityD1 RS subsetD RS emptyE)) 1) ]);
 
 
-(*** Augmenting a set -- insert ***)
+section "Augmenting a set -- insert";
 
 qed_goalw "insertI1" Set.thy [insert_def] "a : insert a B"
  (fn _ => [rtac (CollectI RS UnI1) 1, rtac refl 1]);
@@ -298,7 +300,7 @@ qed_goal "insertCI" Set.thy "(a~:B ==> a=b) ==> a: insert b B"
   [ (rtac (disjCI RS (insert_iff RS iffD2)) 1),
     (etac prem 1) ]);
 
-(*** Singletons, using insert ***)
+section "Singletons, using insert";
 
 qed_goal "singletonI" Set.thy "a : {a}"
  (fn _=> [ (rtac insertI1 1) ]);
@@ -320,13 +322,13 @@ by (rtac singletonI 1);
 qed "singleton_inject";
 
 
-(*** UNIV - The universal set ***)
+section "The universal set -- UNIV";
 
 qed_goal "subset_UNIV" Set.thy "A <= UNIV"
   (fn _ => [rtac subsetI 1, rtac ComplI 1, etac emptyE 1]);
 
 
-(*** Unions of families -- UNION x:A. B(x) is Union(B``A)  ***)
+section "Unions of families -- UNION x:A. B(x) is Union(B``A)";
 
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
 val prems = goalw Set.thy [UNION_def]
@@ -349,7 +351,7 @@ by (REPEAT (etac UN_E 1
 qed "UN_cong";
 
 
-(*** Intersections of families -- INTER x:A. B(x) is Inter(B``A) *)
+section "Intersections of families -- INTER x:A. B(x) is Inter(B``A)";
 
 val prems = goalw Set.thy [INTER_def]
     "(!!x. x:A ==> b: B(x)) ==> b : (INT x:A. B(x))";
@@ -378,7 +380,7 @@ by (REPEAT (dtac INT_D 1
 qed "INT_cong";
 
 
-(*** Unions over a type; UNION1(B) = Union(range(B)) ***)
+section "Unions over a type; UNION1(B) = Union(range(B))";
 
 (*The order of the premises presupposes that A is rigid; b may be flexible*)
 val prems = goalw Set.thy [UNION1_def]
@@ -393,7 +395,7 @@ by (REPEAT (ares_tac prems 1));
 qed "UN1_E";
 
 
-(*** Intersections over a type; INTER1(B) = Inter(range(B)) *)
+section "Intersections over a type; INTER1(B) = Inter(range(B))";
 
 val prems = goalw Set.thy [INTER1_def]
     "(!!x. b: B(x)) ==> b : (INT x. B(x))";
@@ -405,7 +407,7 @@ val [major] = goalw Set.thy [INTER1_def]
 by (rtac (TrueI RS (CollectI RS (major RS INT_D))) 1);
 qed "INT1_D";
 
-(*** Unions ***)
+section "Union";
 
 (*The order of the premises presupposes that C is rigid; A may be flexible*)
 val prems = goalw Set.thy [Union_def]
@@ -419,7 +421,7 @@ by (rtac (major RS UN_E) 1);
 by (REPEAT (ares_tac prems 1));
 qed "UnionE";
 
-(*** Inter ***)
+section "Inter";
 
 val prems = goalw Set.thy [Inter_def]
     "[| !!X. X:C ==> A:X |] ==> A : Inter(C)";
@@ -441,7 +443,7 @@ by (rtac (major RS INT_E) 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "InterE";
 
-(*** Powerset ***)
+section "The Powerset operator -- Pow";
 
 qed_goalw "PowI" Set.thy [Pow_def] "!!A B. A <= B ==> A : Pow(B)"
  (fn _ => [ (etac CollectI 1) ]);

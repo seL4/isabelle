@@ -143,6 +143,10 @@ val conj_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P&Q) = (P'&Q'))"
         (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
 
+val rev_conj_cong = impI RSN
+    (2, prove_goal HOL.thy "(Q=Q')--> (Q'--> (P=P'))--> ((P&Q) = (P'&Q'))"
+        (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
+
 (** 'if' congruence rules: neither included by default! *)
 
 (*Simplifies x assuming c and y assuming ~c*)
