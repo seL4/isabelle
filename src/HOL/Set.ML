@@ -779,18 +779,22 @@ by (Blast_tac 1);
 qed "psubset_imp_ex_mem";
 
 
-(* attributes *)
+(* rulify setup *)
+
+Goal "(!!x. x:A ==> P x) == Trueprop (ALL x:A. P x)";
+by (simp_tac (simpset () addsimps (Ball_def :: thms "atomize")) 1);
+qed "ball_eq";
 
 local
-
-fun gen_rulify_prems x =
-  Attrib.no_args (Drule.rule_attribute (fn _ => (standard o
-    rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, ballI, impI])))))) x;
-
+  val ss = HOL_basic_ss addsimps
+    (Drule.norm_hhf_eq :: map Thm.symmetric (ball_eq :: thms "atomize"));
 in
 
-val rulify_prems_attrib_setup =
- [Attrib.add_attributes
-  [("rulify_prems", (gen_rulify_prems, gen_rulify_prems), "put theorem into standard rule form")]];
+structure Rulify = RulifyFun
+ (val make_meta = Simplifier.simplify ss
+  val full_make_meta = Simplifier.full_simplify ss);
+
+structure BasicRulify: BASIC_RULIFY = Rulify;
+open BasicRulify;
 
 end;
