@@ -168,12 +168,14 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event.ML Auth/Event.thy \
 HOL-UNITY: HOL $(LOG)/HOL-UNITY.gz
 
 $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
+  UNITY/Alloc.ML UNITY/Alloc.thy\
   UNITY/Channel.ML UNITY/Channel.thy UNITY/Common.ML UNITY/Common.thy\
   UNITY/Client.ML UNITY/Client.thy  UNITY/Comp.ML UNITY/Comp.thy\
   UNITY/Deadlock.ML UNITY/Deadlock.thy UNITY/FP.ML UNITY/FP.thy\
   UNITY/Union.ML UNITY/Union.thy UNITY/Handshake.ML UNITY/Handshake.thy\
   UNITY/Extend.ML UNITY/Extend.thy\
   UNITY/Follows.ML UNITY/Follows.thy\
+  UNITY/GenPrefix.thy UNITY/GenPrefix.ML \
   UNITY/LessThan.ML UNITY/LessThan.thy UNITY/ListOrder.thy\
   UNITY/Mutex.ML UNITY/Mutex.thy\
   UNITY/Network.ML UNITY/Network.thy UNITY/Reach.ML UNITY/Reach.thy\
