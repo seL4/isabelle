@@ -458,13 +458,16 @@ qed "Un_INT_distrib2";
 
 section"Bounded quantifiers";
 
-goal Set.thy "(!x:insert a A.P x) = (P a & (!x:A.P x))";
-by (Fast_tac 1);
-qed "Ball_insert";
+(** These are not added to the default simpset because (a) they duplicate the
+    body and (b) there are no similar rules for Int. **)
 
-goal Set.thy "(!x:A Un B.P x) = ((!x:A.P x) & (!x:B.P x))";
+goal Set.thy "(ALL x:A Un B.P x) = ((ALL x:A.P x) & (ALL x:B.P x))";
 by (Fast_tac 1);
-qed "Ball_Un";
+qed "ball_Un";
+
+goal Set.thy "(EX x:A Un B.P x) = ((EX x:A.P x) | (EX x:B.P x))";
+by (Fast_tac 1);
+qed "bex_Un";
 
 
 section "-";
