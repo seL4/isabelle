@@ -67,13 +67,11 @@ translations
 syntax (xsymbols)
   "@-->"    :: "[t,t]=>t"           ("(_ \\<longrightarrow>/ _)" [31,30] 30)
   "@*"      :: "[t,t]=>t"           ("(_ \\<times>/ _)"          [51,50] 50)
-
-syntax (symbols)
-  Elem      :: "[i, t]=>prop"     ("(_ /\\<in> _)" [10,10] 5)
-  Eqelem    :: "[i,i,t]=>prop"    ("(2_ =/ _ \\<in>/ _)" [10,10,10] 5)
-  "@SUM"    :: "[idt,t,t] => t"   ("(3\\<Sigma> _\\<in>_./ _)" 10)
-  "@PROD"   :: "[idt,t,t] => t"   ("(3\\<Pi> _\\<in>_./ _)"    10)
-  "lam "    :: "[idts, i] => i"   ("(3\\<lambda>\\<lambda>_./ _)" 10)
+  Elem      :: "[i, t]=>prop"       ("(_ /\\<in> _)" [10,10] 5)
+  Eqelem    :: "[i,i,t]=>prop"      ("(2_ =/ _ \\<in>/ _)" [10,10,10] 5)
+  "@SUM"    :: "[idt,t,t] => t"     ("(3\\<Sigma> _\\<in>_./ _)" 10)
+  "@PROD"   :: "[idt,t,t] => t"     ("(3\\<Pi> _\\<in>_./ _)"    10)
+  "lam "    :: "[idts, i] => i"     ("(3\\<lambda>\\<lambda>_./ _)" 10)
 
 rules
 
