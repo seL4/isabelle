@@ -72,7 +72,7 @@ open Logic Ind_Syntax;
 fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy = 
   let
     val dummy = (*has essential ancestors?*)
-	require_thy thy "Inductive" "(co)inductive definitions" 
+	Theory.require thy "Inductive" "(co)inductive definitions" 
 
     val sign = sign_of thy;
 
@@ -158,7 +158,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
     val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
     (*The individual sets must already be declared*)
-    val axpairs = map mk_defpair 
+    val axpairs = map Logic.mk_defpair 
           ((big_rec_tm, lfp_rhs) ::
            (case parts of 
                [_] => []                        (*no mutual recursion*)
@@ -170,7 +170,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
 		seq (writeln o Sign.string_of_term sign o #2) axpairs
             else ()
 
-  in  thy |> PureThy.add_store_defs_i axpairs  end
+  in  thy |> PureThy.add_defs_i (map Attribute.none axpairs)  end
 
 
 (*Expects the recursive sets to have been defined already.
@@ -178,7 +178,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
 fun add_constructs_def (rec_base_names, con_ty_lists) thy = 
   let
     val dummy = (*has essential ancestors?*)
-      require_thy thy "Datatype" "(co)datatype definitions";
+      Theory.require thy "Datatype" "(co)datatype definitions";
 
     val sign = sign_of thy;
     val full_name = Sign.full_name sign;
@@ -263,7 +263,7 @@ fun add_constructs_def (rec_base_names, con_ty_lists) thy =
   in
     thy
     |> Theory.add_consts_i const_decs
-    |> PureThy.add_store_defs_i axpairs
+    |> PureThy.add_defs_i (map Attribute.none axpairs)
   end;
 
 
