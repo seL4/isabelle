@@ -273,7 +273,7 @@ lemma zgcd_non_0: "0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
   done
 
 lemma zgcd_eq: "zgcd (m, n) = zgcd (n, m mod n)"
-  apply (tactic {* zdiv_undefined_case_tac "n = 0" 1 *})
+  apply (case_tac "n = 0", simp add: DIVISION_BY_ZERO)
   apply (auto simp add: linorder_neq_iff zgcd_non_0)
   apply (cut_tac m = "-m" and n = "-n" in zgcd_non_0)
    apply auto
@@ -664,7 +664,7 @@ lemma zcong_zero [iff]: "[a = b] (mod 0) = (a = b)"
   done
 
 lemma "[a = b] (mod m) = (a mod m = b mod m)"
-  apply (tactic {* zdiv_undefined_case_tac "m = 0" 1 *})
+  apply (case_tac "m = 0", simp add: DIVISION_BY_ZERO)
   apply (case_tac "0 < m")
    apply (simp add: zcong_zmod_eq)
   apply (rule_tac t = m in zminus_zminus [THEN subst])

@@ -159,7 +159,7 @@ Goal "(0::int) <= z ==> nat (z div z') = nat z div nat z'";
 by (case_tac "0 <= z'" 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [div_nonneg_neg_le0, DIVISION_BY_ZERO_DIV]));
-by (zdiv_undefined_case_tac "z' = 0" 1);
+by (case_tac "z' = 0" 1 THEN asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO]) 1);
  by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_DIV]) 1);
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
 by (rename_tac "m m'" 1);
@@ -192,7 +192,7 @@ Addsimps [div_nat_number_of];
 
 (*Fails if z'<0: the LHS collapses to (nat z) but the RHS doesn't*)
 Goal "[| (0::int) <= z;  0 <= z' |] ==> nat (z mod z') = nat z mod nat z'";
-by (zdiv_undefined_case_tac "z' = 0" 1);
+by (case_tac "z' = 0" 1 THEN asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO]) 1);
  by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_MOD]) 1);
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
 by (rename_tac "m m'" 1);
