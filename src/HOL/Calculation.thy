@@ -175,8 +175,8 @@ lemmas basic_trans_rules [trans] =
   set_mp
   order_neq_le_trans
   order_le_neq_trans
-  order_less_asym'
   order_less_trans
+  order_less_asym'
   order_le_less_trans
   order_less_le_trans
   order_trans
