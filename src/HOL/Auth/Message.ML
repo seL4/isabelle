@@ -268,6 +268,8 @@ AddIs  [analyze.Inj];
 AddSEs [MPair_analyze];
 AddDs  [analyze.Decrypt];
 
+Addsimps [analyze.Inj];
+
 goal thy "H <= analyze(H)";
 by (Fast_tac 1);
 qed "analyze_increasing";
@@ -288,6 +290,13 @@ by (Simp_tac 1);
 by (fast_tac (!claset addDs [analyze_increasing RS parts_mono RS subsetD]) 1);
 qed "parts_analyze";
 Addsimps [parts_analyze];
+
+goal thy "analyze (parts H) = parts H";
+by (Auto_tac());
+be analyze.induct 1;
+by (Auto_tac());
+qed "analyze_parts";
+Addsimps [analyze_parts];
 
 (*Monotonicity; Lemma 1 of Lowe*)
 goalw thy analyze.defs "!!G H. G<=H ==> analyze(G) <= analyze(H)";
@@ -342,6 +351,17 @@ be analyze.induct 1;
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
 qed "analyze_insert_Key";
 
+goal thy "analyze (insert {|X,Y|} H) = \
+\         insert {|X,Y|} (analyze (insert X (insert Y H)))";
+br equalityI 1;
+br subsetI 1;
+be analyze.induct 1;
+by (Auto_tac());
+be analyze.induct 1;
+by (ALLGOALS (deepen_tac (!claset addIs [analyze.Fst, analyze.Snd, analyze.Decrypt]) 0));
+qed "analyze_insert_MPair";
+
+(*Can pull out enCrypted message if the Key is not known*)
 goal thy "!!H. Key (invKey K) ~: analyze H ==>  \
 \              analyze (insert (Crypt X K) H) = \
 \              insert (Crypt X K) (analyze H)";
@@ -375,69 +395,30 @@ goal thy "!!H. Key (invKey K) : analyze H ==>  \
 by (REPEAT (ares_tac [equalityI, lemma1, lemma2] 1));
 qed "analyze_insert_Decrypt";
 
-Addsimps [analyze_insert_Agent, analyze_insert_Nonce, 
-	  analyze_insert_Key, analyze_insert_Crypt,
-	  analyze_insert_Decrypt];
+(*Case analysis: either the message is secure, or it is not!
+  Use with expand_if;  apparently split_tac does not cope with patterns
+  such as "analyze (insert (Crypt X' K) H)" *)
+goal thy "analyze (insert (Crypt X' K) H) = \
+\         (if (Key (invKey K)  : analyze H) then    \
+\               insert (Crypt X' K) (analyze (insert X' H)) \
+\          else insert (Crypt X' K) (analyze H))";
+by (excluded_middle_tac "Key (invKey K)  : analyze H " 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [analyze_insert_Crypt, 
+					       analyze_insert_Decrypt])));
+qed "analyze_Crypt_if";
 
+Addsimps [analyze_insert_Agent, analyze_insert_Nonce, 
+	  analyze_insert_Key, analyze_insert_MPair, 
+	  analyze_Crypt_if];
 
 (*This rule supposes "for the sake of argument" that we have the key.*)
 goal thy  "analyze (insert (Crypt X K) H) <=  \
-\         insert (Crypt X K) (analyze (insert X H))";
+\          insert (Crypt X K) (analyze (insert X H))";
 br subsetI 1;
 be analyze.induct 1;
 by (Auto_tac());
 qed "analyze_insert_Crypt_subset";
 
-
-(** Rewrite rules for pulling out atomic parts of messages **)
-
-goal thy "analyze (insert X H) <= analyze (insert {|X,Y|} H)";
-br subsetI 1;
-be analyze.induct 1;
-by (ALLGOALS (best_tac (!claset addIs [analyze.Fst]))); 
-qed "analyze_insert_subset_MPair1";
-
-goal thy "analyze (insert Y H) <= analyze (insert {|X,Y|} H)";
-br subsetI 1;
-be analyze.induct 1;
-by (ALLGOALS (best_tac (!claset addIs [analyze.Snd]))); 
-qed "analyze_insert_subset_MPair2";
-
-goal thy "analyze (insert {|Agent agt,Y|} H) = \
-\         insert {|Agent agt,Y|} (insert (Agent agt) (analyze (insert Y H)))";
-by (rtac equalityI 1);
-by (best_tac (!claset addIs [analyze.Fst,
-			     impOfSubs analyze_insert_subset_MPair2]) 2); 
-br subsetI 1;
-be analyze.induct 1;
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
-qed "analyze_insert_Agent_MPair";
-
-goal thy "analyze (insert {|Nonce N,Y|} H) = \
-\         insert {|Nonce N,Y|} (insert (Nonce N) (analyze (insert Y H)))";
-by (rtac equalityI 1);
-by (best_tac (!claset addIs [analyze.Fst,
-			     impOfSubs analyze_insert_subset_MPair2]) 2); 
-br subsetI 1;
-be analyze.induct 1;
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
-qed "analyze_insert_Nonce_MPair";
-
-(*Can only pull out Keys if they are not needed to decrypt the rest*)
-goalw thy [keysFor_def]
-    "!!K. K ~: keysFor (analyze (insert Y H)) ==>  \
-\         analyze (insert {|Key K, Y|} H) = \
-\         insert {|Key K, Y|} (insert (Key K) (analyze (insert Y H)))";
-by (rtac equalityI 1);
-by (best_tac (!claset addIs [analyze.Fst,
-			     impOfSubs analyze_insert_subset_MPair2]) 2); 
-br subsetI 1;
-be analyze.induct 1;
-by (ALLGOALS (fast_tac (!claset addss (!simpset))));
-qed "analyze_insert_Key_MPair";
-
-Addsimps [analyze_insert_Agent_MPair, analyze_insert_Nonce_MPair,
-	  analyze_insert_Key_MPair];
 
 (** Idempotence and transitivity **)
 
@@ -466,6 +447,29 @@ qed "analyze_cut";
 (*Cut can be proved easily by induction on
    "!!H. Y: analyze (insert X H) ==> X: analyze H --> Y: analyze H"
 *)
+
+
+(** A congruence rule for "analyze" **)
+
+goal thy "!!H. [| analyze G <= analyze G'; analyze H <= analyze H' \
+\              |] ==> analyze (G Un H) <= analyze (G' Un H')";
+by (Step_tac 1);
+be analyze.induct 1;
+by (ALLGOALS (best_tac (!claset addIs [analyze_mono RS subsetD])));
+qed "analyze_subset_cong";
+
+goal thy "!!H. [| analyze G = analyze G'; analyze H = analyze H' \
+\              |] ==> analyze (G Un H) = analyze (G' Un H')";
+by (REPEAT_FIRST (ares_tac [equalityI, analyze_subset_cong]
+	  ORELSE' etac equalityE));
+qed "analyze_cong";
+
+
+goal thy "!!H. analyze H = analyze H'  ==>    \
+\              analyze (insert X H) = analyze (insert X H')";
+by (asm_simp_tac (!simpset addsimps [insert_def] 
+		           setloop (rtac analyze_cong)) 1);
+qed "analyze_insert_cong";
 
 (*If there are no pairs or encryptions then analyze does nothing*)
 goal thy "!!H. [| ALL X Y. {|X,Y|} ~: H;  ALL X K. Crypt X K ~: H |] ==> \
@@ -510,6 +514,10 @@ goal thy "synthesize(G) Un synthesize(H) <= synthesize(G Un H)";
 by (REPEAT (ares_tac [Un_least, synthesize_mono, Un_upper1, Un_upper2] 1));
 qed "synthesize_Un";
 
+goal thy "insert X (synthesize H) <= synthesize(insert X H)";
+by (fast_tac (!claset addEs [impOfSubs synthesize_mono]) 1);
+qed "synthesize_insert";
+
 (** Idempotence and transitivity **)
 
 goal thy "!!H. X: synthesize (synthesize H) ==> X: synthesize H";
@@ -539,6 +547,7 @@ qed "synthesize_cut";
   but can synthesize a pair or encryption from its components...*)
 val mk_cases = synthesize.mk_cases msg.simps;
 
+(*NO Agent_synthesize, as any Agent name can be synthesized*)
 val Nonce_synthesize = mk_cases "Nonce n : synthesize H";
 val Key_synthesize   = mk_cases "Key K : synthesize H";
 val MPair_synthesize = mk_cases "{|X,Y|} : synthesize H";
@@ -565,14 +574,6 @@ Addsimps [keysFor_synthesize];
 
 
 (*** Combinations of parts, analyze and synthesize ***)
-
-(*Not that useful, in view of the following one...*)
-goal thy "parts (synthesize H) <= synthesize (parts H)";
-by (Step_tac 1);
-be parts.induct 1;
-be (parts_increasing RS synthesize_mono RS subsetD) 1;
-by (ALLGOALS Fast_tac);
-qed "parts_synthesize_subset";
 
 goal thy "parts (synthesize H) = parts H Un synthesize H";
 br equalityI 1;

@@ -26,7 +26,7 @@ consts  (*Initial states of agents -- parameter of the construction*)
 
 primrec initState agent
         (*Server knows all keys; other agents know only their own*)
-  initState_Server  "initState Server     = range (Key o serverKey)"
+  initState_Server  "initState Server     = Key `` range serverKey"
   initState_Friend  "initState (Friend i) = {Key (serverKey (Friend i))}"
   initState_Enemy   "initState Enemy  = {Key (serverKey Enemy)}"
 
@@ -111,7 +111,7 @@ inductive traces
                    (serverKey A))) # evs : traces"
 
            (*We can't assume S=Server.  Agent A "remembers" her nonce.
-             May assume WLOG that she is NOT the Enemy, as the Fake rule.
+             May assume WLOG that she is NOT the Enemy: the Fake rule
              covers this case.  Can inductively show A ~= Server*)
     NS3  "[| evs: traces;  A ~= B;
              evs = (Says S A (Crypt {|Nonce NA, Agent B, Key K, X|}
