@@ -85,4 +85,9 @@ lemma trancl_domain [simp]: "Domain (r^+) = Domain r"
 lemma trancl_range [simp]: "Range (r^+) = Range r"
   by (simp add: Range_def trancl_converse [symmetric])
 
+lemma Not_Domain_rtrancl:
+	"x ~: Domain R ==> ((x, y) : R^*) = (x = y)"
+ apply (auto)
+ by (erule rev_mp, erule rtrancl_induct, auto)
+ 
 end
