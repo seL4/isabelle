@@ -99,21 +99,19 @@ Addsimps [ball_triv, bex_triv];
 
 (** Congruence rules **)
 
-val prems = Goal
+val prems = Goalw [Ball_def]
     "[| A=B;  !!x. x:B ==> P(x) = Q(x) |] ==> \
 \    (! x:A. P(x)) = (! x:B. Q(x))";
-by (resolve_tac (prems RL [ssubst]) 1);
-by (REPEAT (ares_tac [ballI,iffI] 1
-     ORELSE eresolve_tac ([make_elim bspec, mp] @ (prems RL [iffE])) 1));
+by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "ball_cong";
 
-val prems = Goal
+val prems = Goalw [Bex_def]
     "[| A=B;  !!x. x:B ==> P(x) = Q(x) |] ==> \
 \    (? x:A. P(x)) = (? x:B. Q(x))";
-by (resolve_tac (prems RL [ssubst]) 1);
-by (REPEAT (etac bexE 1
-     ORELSE ares_tac ([bexI,iffI] @ (prems RL [iffD1,iffD2])) 1));
+by (asm_simp_tac (simpset() addcongs [conj_cong] addsimps prems) 1);
 qed "bex_cong";
+
+Addcongs [ball_cong,bex_cong];
 
 section "Subsets";
 
@@ -496,12 +494,10 @@ qed "UN_E";
 AddIs  [UN_I];
 AddSEs [UN_E];
 
-val prems = Goal
+val prems = Goalw [UNION_def]
     "[| A=B;  !!x. x:B ==> C(x) = D(x) |] ==> \
 \    (UN x:A. C(x)) = (UN x:B. D(x))";
-by (REPEAT (etac UN_E 1
-     ORELSE ares_tac ([UN_I,equalityI,subsetI] @ 
-                      (prems RL [equalityD1,equalityD2] RL [subsetD])) 1));
+by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "UN_cong";
 
 
@@ -532,12 +528,10 @@ qed "INT_E";
 AddSIs [INT_I];
 AddEs  [INT_D, INT_E];
 
-val prems = Goal
+val prems = Goalw [INTER_def]
     "[| A=B;  !!x. x:B ==> C(x) = D(x) |] ==> \
 \    (INT x:A. C(x)) = (INT x:B. D(x))";
-by (REPEAT_FIRST (resolve_tac [INT_I,equalityI,subsetI]));
-by (REPEAT (dtac INT_D 1
-     ORELSE ares_tac (prems RL [equalityD1,equalityD2] RL [subsetD]) 1));
+by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "INT_cong";
 
 
@@ -676,8 +670,7 @@ val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff,
 
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 
-simpset_ref() := simpset() addcongs [ball_cong,bex_cong]
-                    setmksimps (mksimps mksimps_pairs);
+simpset_ref() := simpset() setmksimps (mksimps mksimps_pairs);
 
 Addsimps[subset_UNIV, subset_refl];
 
