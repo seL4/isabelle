@@ -4,6 +4,8 @@
     Copyright   1995  TU Munich
 
 Generic case-splitter, suitable for most logics.
+Deals with equalities of the form ?P(f args) = ...
+where "f args" must be a first-order term without duplicate variables.
 *)
 
 infix 4 addsplits delsplits;
@@ -194,6 +196,31 @@ fun mk_split_pack(thm, T, T', n, ts, apsns, pos, TB, t) =
    t    : the term to be scanned
 ******************************************************************************)
 
+(* Simplified first-order matching;
+   assumes that all Vars in the pattern are distinct;
+   see Pure/pattern.ML for the full version;
+*)
+local
+exception MATCH
+in
+fun typ_match tsig args = (Type.typ_match tsig args)
+                          handle Type.TYPE_MATCH => raise MATCH;
+fun fomatch tsig args =
+  let
+    fun mtch tyinsts = fn
+        (Ts,Var(_,T), t)  => typ_match tsig (tyinsts, (T, fastype_of1(Ts,t)))
+      | (_,Free (a,T), Free (b,U)) =>
+          if a=b then typ_match tsig (tyinsts,(T,U)) else raise MATCH
+      | (_,Const (a,T), Const (b,U))  =>
+          if a=b then typ_match tsig (tyinsts,(T,U)) else raise MATCH
+      | (_,Bound i, Bound j)  =>  if  i=j  then tyinsts else raise MATCH
+      | (Ts,Abs(_,T,t), Abs(_,U,u))  =>
+          mtch (typ_match tsig (tyinsts,(T,U))) (U::Ts,t,u)
+      | (Ts, f$t, g$u) => mtch (mtch tyinsts (Ts,f,g)) (Ts, t, u)
+      | _ => raise MATCH
+  in (mtch Vartab.empty args; true) handle MATCH => false end;
+end
+
 fun split_posns cmap sg Ts t =
   let
     val T' = fastype_of1 (Ts, t);
@@ -207,13 +234,13 @@ fun split_posns cmap sg Ts t =
             val a = case h of
               Const(c, cT) =>
                 let fun find [] = []
-                      | find ((gcT, thm, T, n)::tups) =
-                          if Sign.typ_instance sg (cT, gcT)
-                          then
-                            let val t2 = list_comb (h, take (n, ts))
-                            in mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
-                            end
-                          else find tups
+                      | find ((gcT, pat, thm, T, n)::tups) =
+                          let val t2 = list_comb (h, take (n, ts))
+                          in if Sign.typ_instance sg (cT, gcT)
+                                andalso fomatch (Sign.tsig_of sg) (Ts,pat,t2)
+                             then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
+                             else find tups
+                          end
                 in find (assocs cmap c) end
             | _ => []
           in snd(foldl iter ((0, a), ts)) end
@@ -304,7 +331,7 @@ fun split_tac [] i = no_tac
       fun add_thm(cmap,thm) =
             (case concl_of thm of _$(t as _$lhs)$_ =>
                (case strip_comb lhs of (Const(a,aT),args) =>
-                  let val info = (aT,thm,fastype_of t,length args)
+                  let val info = (aT,lhs,thm,fastype_of t,length args)
                   in case assoc(cmap,a) of
                        Some infos => overwrite(cmap,(a,info::infos))
                      | None => (a,[info])::cmap
