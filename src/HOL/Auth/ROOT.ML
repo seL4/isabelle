@@ -6,6 +6,8 @@
 Root file for protocol proofs.
 *)
 
+no_document use_thy "NatPair";
+
 set timing;
 
 (*Shared-key protocols*)
