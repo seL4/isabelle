@@ -64,8 +64,8 @@ use "codegen.ML";
 (*old-style goal package*)
 use "goals.ML";
 
-(*specific support for user-interfaces*)
-cd "Interface"; use "ROOT.ML"; cd "..";
+(*configuration for Proof General*)
+use "proof_general.ML";
 
 (*final Pure theory setup*)
 use "pure.ML";

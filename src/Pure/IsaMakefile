@@ -28,7 +28,7 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
   General/name_space.ML General/object.ML General/path.ML		\
   General/position.ML General/pretty.ML General/scan.ML General/seq.ML	\
   General/source.ML General/symbol.ML General/table.ML General/url.ML	\
-  General/xml.ML Interface/ROOT.ML Interface/proof_general.ML		\
+  General/xml.ML 		\
   Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML Isar/attrib.ML		\
   Isar/auto_bind.ML Isar/calculation.ML Isar/comment.ML			\
   Isar/context_rules.ML Isar/induct_attrib.ML Isar/isar.ML		\
@@ -51,7 +51,7 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
   Thy/thy_parse.ML Thy/thy_scan.ML Thy/thy_syn.ML axclass.ML basis.ML	\
   codegen.ML context.ML display.ML drule.ML envir.ML goals.ML		\
   install_pp.ML library.ML logic.ML meta_simplifier.ML net.ML		\
-  pattern.ML proofterm.ML pure.ML pure_thy.ML search.ML sign.ML		\
+  pattern.ML proof_general.ML proofterm.ML pure.ML pure_thy.ML search.ML sign.ML		\
   sorts.ML tactic.ML tctical.ML term.ML theory.ML theory_data.ML	\
   thm.ML type.ML type_infer.ML unify.ML
 	@./mk
