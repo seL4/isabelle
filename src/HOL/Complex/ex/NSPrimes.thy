@@ -153,7 +153,6 @@ lemma prime_two:  "2 : prime"
 apply (unfold prime_def, auto)
 apply (frule dvd_imp_le)
 apply (auto dest: dvd_0_left)
-(*????arith raises exception Match!!??*)
 apply (case_tac m, simp, arith)
 done
 declare prime_two [simp]
