@@ -9,7 +9,7 @@ exported.
   Symtab        (tables indexed by strings)
   GraphFun	(generic directed graphs)
   Graph		(graphs indexed by strings)
-  LeftistHeap	(heaps over linearly ordered types)
+  HeapFun	(heaps over linearly ordered types)
   Object        (generic objects of arbitrary type)
   Seq           (unbounded sequences)
   NameSpace     (hierarchically structured name spaces)
