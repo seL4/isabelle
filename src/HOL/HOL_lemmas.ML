@@ -6,7 +6,7 @@
 Derived rules from Appendix of Mike Gordons HOL Report, Cambridge TR 68.
 *)
 
-(* ML bindings *)
+(* legacy ML bindings *)
 
 val plusI = thm "plusI";
 val minusI = thm "minusI";
