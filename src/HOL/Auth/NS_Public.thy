@@ -9,8 +9,9 @@ Version incorporating Lowe's fix (inclusion of B's identity in round 2).
 
 NS_Public = Public + 
 
-consts  lost    :: agent set        (*No need for it to be a variable*)
+consts  lost       :: agent set        (*No need for it to be a variable*)
 	ns_public  :: event list set
+
 inductive ns_public
   intrs 
          (*Initial trace is empty*)

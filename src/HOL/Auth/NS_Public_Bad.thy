@@ -13,8 +13,9 @@ From page 260 of
 
 NS_Public_Bad = Public + 
 
-consts  lost    :: agent set        (*No need for it to be a variable*)
+consts  lost       :: agent set        (*No need for it to be a variable*)
 	ns_public  :: event list set
+
 inductive ns_public
   intrs 
          (*Initial trace is empty*)
