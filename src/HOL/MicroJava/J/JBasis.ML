@@ -67,6 +67,10 @@ val not_None_tac = EVERY' [dtac (not_None_eq RS iffD1),rotate_tac ~1,etac exE,
 		rotate_tac ~1,asm_full_simp_tac 
 	(simpset() delsimps [split_paired_All,split_paired_Ex])];
 
+Goal "{y. x = Some y} \\<subseteq> {the x}";
+by Auto_tac;
+qed "some_subset_the";
+
 fun ex_ftac thm = EVERY' [forward_tac [thm], REPEAT o (etac exE), rotate_tac ~1,
   asm_full_simp_tac (simpset() delsimps [split_paired_All,split_paired_Ex])];
 
@@ -133,21 +137,6 @@ val split_Pair_eq = prove_goal Prod.thy
 	etac imageE 1,
 	split_all_tac 1,
 	auto_tac(claset_of Prod.thy,simpset_of Prod.thy)]);
-
-
-section "list_all2";
-
-val list_all2_lengthD = prove_goalw thy [list_all2_def] 
- "\\<And>X. list_all2 P as bs \\<Longrightarrow> length as = length bs" (K [Auto_tac]);
-
-val list_all2_Nil = prove_goalw thy [list_all2_def] 
- "list_all2 P [] []" (K [Auto_tac]);
-Addsimps[list_all2_Nil];
-AddSIs[list_all2_Nil];
-
-val list_all2_Cons = prove_goalw thy [list_all2_def] 
- "\\<And>X. list_all2 P (a#as) (b#bs) = (P a b \\<and> list_all2 P as bs)" (K [Auto_tac]);
-AddIffs[list_all2_Cons];
 
 
 (* More about Maps *)

@@ -135,16 +135,15 @@ by  (Fast_tac 1);
 qed_spec_mp "non_np_objD'";
 
 Goal "wf_prog wf_mb G \\<Longrightarrow> \\<forall>Ts Ts'. list_all2 (conf G h) vs Ts \\<longrightarrow> list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') Ts Ts' \\<longrightarrow>  list_all2 (conf G h) vs Ts'";
-by( induct_tac "vs" 1);
-by(  ALLGOALS Clarsimp_tac);
-by(  ALLGOALS (forward_tac [list_all2_lengthD RS sym]));
-by(  ALLGOALS (full_simp_tac (simpset()addsimps[length_Suc_conv])));
-by(  Safe_tac);
-by(  rotate_tac ~1 1);
-by(  ALLGOALS (forward_tac [list_all2_lengthD RS sym]));
-by(  ALLGOALS (full_simp_tac (simpset()addsimps[length_Suc_conv])));
-by(  ALLGOALS Clarify_tac);
-by( fast_tac (claset() addEs [conf_widen]) 1);
+by(induct_tac "vs" 1);
+ by(ALLGOALS Clarsimp_tac);
+by(forward_tac [list_all2_lengthD RS sym] 1);
+by(full_simp_tac (simpset()addsimps[length_Suc_conv]) 1);
+by(Safe_tac);
+by(forward_tac [list_all2_lengthD RS sym] 1);
+by(full_simp_tac (simpset()addsimps[length_Suc_conv]) 1);
+by(Clarify_tac 1);
+by(fast_tac (claset() addEs [conf_widen]) 1);
 qed_spec_mp "conf_list_gext_widen";
 
 
