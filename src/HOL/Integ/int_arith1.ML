@@ -5,74 +5,184 @@
 Simprocs and decision procedure for linear arithmetic.
 *)
 
-val zadd_ac = thms "Ring_and_Field.add_ac";
-val zmult_ac = thms "Ring_and_Field.mult_ac";
+val NCons_Pls = thm"NCons_Pls";
+val NCons_Min = thm"NCons_Min";
+val NCons_BIT = thm"NCons_BIT";
+val number_of_Pls = thm"number_of_Pls";
+val number_of_Min = thm"number_of_Min";
+val number_of_BIT = thm"number_of_BIT";
+val bin_succ_Pls = thm"bin_succ_Pls";
+val bin_succ_Min = thm"bin_succ_Min";
+val bin_succ_BIT = thm"bin_succ_BIT";
+val bin_pred_Pls = thm"bin_pred_Pls";
+val bin_pred_Min = thm"bin_pred_Min";
+val bin_pred_BIT = thm"bin_pred_BIT";
+val bin_minus_Pls = thm"bin_minus_Pls";
+val bin_minus_Min = thm"bin_minus_Min";
+val bin_minus_BIT = thm"bin_minus_BIT";
+val bin_add_Pls = thm"bin_add_Pls";
+val bin_add_Min = thm"bin_add_Min";
+val bin_mult_Pls = thm"bin_mult_Pls";
+val bin_mult_Min = thm"bin_mult_Min";
+val bin_mult_BIT = thm"bin_mult_BIT";
+
+val zadd_ac = thms "Ring_and_Field.add_ac"
+val zmult_ac = thms "Ring_and_Field.mult_ac"
+val NCons_Pls_0 = thm"NCons_Pls_0";
+val NCons_Pls_1 = thm"NCons_Pls_1";
+val NCons_Min_0 = thm"NCons_Min_0";
+val NCons_Min_1 = thm"NCons_Min_1";
+val bin_succ_1 = thm"bin_succ_1";
+val bin_succ_0 = thm"bin_succ_0";
+val bin_pred_1 = thm"bin_pred_1";
+val bin_pred_0 = thm"bin_pred_0";
+val bin_minus_1 = thm"bin_minus_1";
+val bin_minus_0 = thm"bin_minus_0";
+val bin_add_BIT_11 = thm"bin_add_BIT_11";
+val bin_add_BIT_10 = thm"bin_add_BIT_10";
+val bin_add_BIT_0 = thm"bin_add_BIT_0";
+val bin_add_Pls_right = thm"bin_add_Pls_right";
+val bin_add_Min_right = thm"bin_add_Min_right";
+val bin_add_BIT_BIT = thm"bin_add_BIT_BIT";
+val bin_mult_1 = thm"bin_mult_1";
+val bin_mult_0 = thm"bin_mult_0";
+val number_of_NCons = thm"number_of_NCons";
+val number_of_succ = thm"number_of_succ";
+val number_of_pred = thm"number_of_pred";
+val number_of_minus = thm"number_of_minus";
+val number_of_add = thm"number_of_add";
+val diff_number_of_eq = thm"diff_number_of_eq";
+val number_of_mult = thm"number_of_mult";
+val double_number_of_BIT = thm"double_number_of_BIT";
+val int_numeral_0_eq_0 = thm"int_numeral_0_eq_0";
+val int_numeral_1_eq_1 = thm"int_numeral_1_eq_1";
+val zmult_minus1 = thm"zmult_minus1";
+val zmult_minus1_right = thm"zmult_minus1_right";
+val zminus_number_of_zmult = thm"zminus_number_of_zmult";
+val zminus_1_eq_m1 = thm"zminus_1_eq_m1";
+val zero_less_nat_eq = thm"zero_less_nat_eq";
+val eq_number_of_eq = thm"eq_number_of_eq";
+val iszero_number_of_Pls = thm"iszero_number_of_Pls";
+val nonzero_number_of_Min = thm"nonzero_number_of_Min";
+val iszero_number_of_BIT = thm"iszero_number_of_BIT";
+val iszero_number_of_0 = thm"iszero_number_of_0";
+val iszero_number_of_1 = thm"iszero_number_of_1";
+val less_number_of_eq_neg = thm"less_number_of_eq_neg";
+val not_neg_number_of_Pls = thm"not_neg_number_of_Pls";
+val neg_number_of_Min = thm"neg_number_of_Min";
+val neg_number_of_BIT = thm"neg_number_of_BIT";
+val le_number_of_eq_not_less = thm"le_number_of_eq_not_less";
+val zabs_number_of = thm"zabs_number_of";
+val zabs_0 = thm"zabs_0";
+val zabs_1 = thm"zabs_1";
+val number_of_reorient = thm"number_of_reorient";
+val add_number_of_left = thm"add_number_of_left";
+val mult_number_of_left = thm"mult_number_of_left";
+val add_number_of_diff1 = thm"add_number_of_diff1";
+val add_number_of_diff2 = thm"add_number_of_diff2";
+val less_iff_diff_less_0 = thm"less_iff_diff_less_0";
+val eq_iff_diff_eq_0 = thm"eq_iff_diff_eq_0";
+val le_iff_diff_le_0 = thm"le_iff_diff_le_0";
+
+val bin_mult_simps = thms"bin_mult_simps";
+val NCons_simps = thms"NCons_simps";
+val bin_arith_extra_simps = thms"bin_arith_extra_simps";
+val bin_arith_simps = thms"bin_arith_simps";
+val bin_rel_simps = thms"bin_rel_simps";
+
+val zless_imp_add1_zle = thm "zless_imp_add1_zle";
+
+val combine_common_factor = thm"combine_common_factor";
+val eq_add_iff1 = thm"eq_add_iff1";
+val eq_add_iff2 = thm"eq_add_iff2";
+val less_add_iff1 = thm"less_add_iff1";
+val less_add_iff2 = thm"less_add_iff2";
+val le_add_iff1 = thm"le_add_iff1";
+val le_add_iff2 = thm"le_add_iff2";
 
 
-Addsimps [int_numeral_0_eq_0, int_numeral_1_eq_1];
+structure Bin_Simprocs =
+  struct
+  fun prove_conv tacs sg (hyps: thm list) xs (t, u) =
+    if t aconv u then None
+    else
+      let val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
+      in Some (Tactic.prove sg xs [] eq (K (EVERY tacs))) end
 
-(*** Simprocs for numeric literals ***)
+  fun prove_conv_nohyps tacs sg = prove_conv tacs sg [];
+  fun prove_conv_nohyps_novars tacs sg = prove_conv tacs sg [] [];
 
-(** Combining of literal coefficients in sums of products **)
+  fun prep_simproc (name, pats, proc) =
+    Simplifier.simproc (Theory.sign_of (the_context())) name pats proc;
 
-Goal "(x < y) = (x-y < (0::int))";
-by (simp_tac (simpset() addsimps compare_rls) 1);
-qed "zless_iff_zdiff_zless_0";
+  fun is_numeral (Const("Numeral.number_of", _) $ w) = true
+    | is_numeral _ = false
 
-Goal "(x = y) = (x-y = (0::int))";
-by (simp_tac (simpset() addsimps compare_rls) 1);
-qed "eq_iff_zdiff_eq_0";
+  fun simplify_meta_eq f_number_of_eq f_eq =
+      mk_meta_eq ([f_eq, f_number_of_eq] MRS trans)
 
-Goal "(x <= y) = (x-y <= (0::int))";
-by (simp_tac (simpset() addsimps compare_rls) 1);
-qed "zle_iff_zdiff_zle_0";
+  structure IntAbstractNumeralsData =
+    struct
+    val dest_eq		= HOLogic.dest_eq o HOLogic.dest_Trueprop o concl_of
+    val is_numeral	= is_numeral
+    val numeral_0_eq_0    = int_numeral_0_eq_0
+    val numeral_1_eq_1    = int_numeral_1_eq_1
+    val prove_conv	= prove_conv_nohyps_novars
+    fun norm_tac simps	= ALLGOALS (simp_tac (HOL_ss addsimps simps))
+    val simplify_meta_eq  = simplify_meta_eq 
+    end
+
+  structure IntAbstractNumerals = AbstractNumeralsFun (IntAbstractNumeralsData)
 
 
-(** For combine_numerals **)
+  (*For addition, we already have rules for the operand 0.
+    Multiplication is omitted because there are already special rules for 
+    both 0 and 1 as operands.  Unary minus is trivial, just have - 1 = -1.
+    For the others, having three patterns is a compromise between just having
+    one (many spurious calls) and having nine (just too many!) *)
+  val eval_numerals = 
+    map prep_simproc
+     [("int_add_eval_numerals",
+       ["(m::int) + 1", "(m::int) + number_of v"], 
+       IntAbstractNumerals.proc (number_of_add RS sym)),
+      ("int_diff_eval_numerals",
+       ["(m::int) - 1", "(m::int) - number_of v"], 
+       IntAbstractNumerals.proc diff_number_of_eq),
+      ("int_eq_eval_numerals",
+       ["(m::int) = 0", "(m::int) = 1", "(m::int) = number_of v"], 
+       IntAbstractNumerals.proc eq_number_of_eq),
+      ("int_less_eval_numerals",
+       ["(m::int) < 0", "(m::int) < 1", "(m::int) < number_of v"], 
+       IntAbstractNumerals.proc less_number_of_eq_neg),
+      ("int_le_eval_numerals",
+       ["(m::int) <= 0", "(m::int) <= 1", "(m::int) <= number_of v"],
+       IntAbstractNumerals.proc le_number_of_eq_not_less)]
 
-Goal "i*u + (j*u + k) = (i+j)*u + (k::int)";
-by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
-qed "left_zadd_zmult_distrib";
+  (*reorientation simprules using ==, for the following simproc*)
+  val meta_zero_reorient = zero_reorient RS eq_reflection
+  val meta_one_reorient = one_reorient RS eq_reflection
+  val meta_number_of_reorient = number_of_reorient RS eq_reflection
+
+  (*reorientation simplification procedure: reorients (polymorphic) 
+    0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
+  fun reorient_proc sg _ (_ $ t $ u) =
+    case u of
+	Const("0", _) => None
+      | Const("1", _) => None
+      | Const("Numeral.number_of", _) $ _ => None
+      | _ => Some (case t of
+		  Const("0", _) => meta_zero_reorient
+		| Const("1", _) => meta_one_reorient
+		| Const("Numeral.number_of", _) $ _ => meta_number_of_reorient)
+
+  val reorient_simproc = 
+      prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc)
+
+  end;
 
 
-(** For cancel_numerals **)
-
-val rel_iff_rel_0_rls = map (inst "y" "?u+?v")
-                          [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0,
-                           zle_iff_zdiff_zle_0] @
-                        map (inst "y" "n")
-                          [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0,
-                           zle_iff_zdiff_zle_0];
-
-Goal "!!i::int. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
-                                     zadd_ac@rel_iff_rel_0_rls) 1);
-qed "eq_add_iff1";
-
-Goal "!!i::int. (i*u + m = j*u + n) = (m = (j-i)*u + n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
-                                     zadd_ac@rel_iff_rel_0_rls) 1);
-qed "eq_add_iff2";
-
-Goal "!!i::int. (i*u + m < j*u + n) = ((i-j)*u + m < n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
-                                     zadd_ac@rel_iff_rel_0_rls) 1);
-qed "less_add_iff1";
-
-Goal "!!i::int. (i*u + m < j*u + n) = (m < (j-i)*u + n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
-                                     zadd_ac@rel_iff_rel_0_rls) 1);
-qed "less_add_iff2";
-
-Goal "!!i::int. (i*u + m <= j*u + n) = ((i-j)*u + m <= n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
-                                     zadd_ac@rel_iff_rel_0_rls) 1);
-qed "le_add_iff1";
-
-Goal "!!i::int. (i*u + m <= j*u + n) = (m <= (j-i)*u + n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]
-                                     @zadd_ac@rel_iff_rel_0_rls) 1);
-qed "le_add_iff2";
+Addsimprocs Bin_Simprocs.eval_numerals;
+Addsimprocs [Bin_Simprocs.reorient_simproc];
 
 
 structure Int_Numeral_Simprocs =
@@ -285,7 +395,7 @@ structure CombineNumeralsData =
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
-  val left_distrib      = left_zadd_zmult_distrib RS trans
+  val left_distrib      = combine_common_factor RS trans
   val prove_conv        = Bin_Simprocs.prove_conv_nohyps
   val trans_tac          = trans_tac
   val norm_tac =
@@ -436,7 +546,7 @@ val int_arith_setup =
    {add_mono_thms = add_mono_thms @ add_mono_thms_int,
     mult_mono_thms = mult_mono_thms,
     inj_thms = [zle_int RS iffD2,int_int_eq RS iffD2] @ inj_thms,
-    lessD = lessD @ [add1_zle_eq RS iffD2],
+    lessD = lessD @ [zless_imp_add1_zle],
     simpset = simpset addsimps add_rules
                       addsimprocs simprocs
                       addcongs [if_weak_cong]}),

@@ -137,6 +137,20 @@ by (subst neg_equal_iff_equal [symmetric], simp)
 lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::ring))"
 by (subst neg_equal_iff_equal [symmetric], simp)
 
+text{*The next two equations can make the simplifier loop!*}
+
+lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::ring))"
+  proof -
+  have "(- (-a) = - b) = (- a = b)" by (rule neg_equal_iff_equal)
+  thus ?thesis by (simp add: eq_commute)
+  qed
+
+lemma minus_equation_iff: "(- a = b) = (- (b::'a::ring) = a)"
+  proof -
+  have "(- a = - (-b)) = (a = -b)" by (rule neg_equal_iff_equal)
+  thus ?thesis by (simp add: eq_commute)
+  qed
+
 
 subsection {* Derived rules for multiplication *}
 
@@ -199,6 +213,10 @@ qed
 
 theorems ring_distrib = right_distrib left_distrib
 
+text{*For the @{text combine_numerals} simproc*}
+lemma combine_common_factor: "a*e + (b*e + c) = (a+b)*e + (c::'a::semiring)"
+by (simp add: left_distrib add_ac)
+
 lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::ring)"
 apply (rule equals_zero_I)
 apply (simp add: add_ac) 
@@ -220,6 +238,9 @@ lemma minus_mult_minus [simp]: "(- a) * (- b) = a * (b::'a::ring)"
 lemma right_diff_distrib: "a * (b - c) = a * b - a * (c::'a::ring)"
 by (simp add: right_distrib diff_minus 
               minus_mult_left [symmetric] minus_mult_right [symmetric]) 
+
+lemma left_diff_distrib: "(a - b) * c = a * c - b * (c::'a::ring)"
+by (simp add: mult_commute [of _ c] right_diff_distrib) 
 
 lemma minus_diff_eq [simp]: "- (a - b) = b - (a::'a::ring)"
 by (simp add: diff_minus add_commute) 
@@ -330,6 +351,30 @@ by (subst neg_less_iff_less [symmetric], simp)
 lemma neg_0_less_iff_less [simp]: "(0 < -a) = (a < (0::'a::ordered_ring))"
 by (subst neg_less_iff_less [symmetric], simp)
 
+text{*The next several equations can make the simplifier loop!*}
+
+lemma less_minus_iff: "(a < - b) = (b < - (a::'a::ordered_ring))"
+  proof -
+  have "(- (-a) < - b) = (b < - a)" by (rule neg_less_iff_less)
+  thus ?thesis by simp
+  qed
+
+lemma minus_less_iff: "(- a < b) = (- b < (a::'a::ordered_ring))"
+  proof -
+  have "(- a < - (-b)) = (- b < a)" by (rule neg_less_iff_less)
+  thus ?thesis by simp
+  qed
+
+lemma le_minus_iff: "(a \<le> - b) = (b \<le> - (a::'a::ordered_ring))"
+apply (simp add: linorder_not_less [symmetric])
+apply (rule minus_less_iff) 
+done
+
+lemma minus_le_iff: "(- a \<le> b) = (- b \<le> (a::'a::ordered_ring))"
+apply (simp add: linorder_not_less [symmetric])
+apply (rule less_minus_iff) 
+done
+
 
 subsection{*Subtraction Laws*}
 
@@ -353,7 +398,7 @@ by (simp add: diff_minus add_ac)
 
 text{*Further subtraction laws for ordered rings*}
 
-lemma less_eq_diff: "(a < b) = (a - b < (0::'a::ordered_ring))"
+lemma less_iff_diff_less_0: "(a < b) = (a - b < (0::'a::ordered_ring))"
 proof -
   have  "(a < b) = (a + (- b) < b + (-b))"  
     by (simp only: add_less_cancel_right)
@@ -362,14 +407,14 @@ proof -
 qed
 
 lemma diff_less_eq: "(a-b < c) = (a < c + (b::'a::ordered_ring))"
-apply (subst less_eq_diff)
-apply (rule less_eq_diff [of _ c, THEN ssubst])
+apply (subst less_iff_diff_less_0)
+apply (rule less_iff_diff_less_0 [of _ c, THEN ssubst])
 apply (simp add: diff_minus add_ac)
 done
 
 lemma less_diff_eq: "(a < c-b) = (a + (b::'a::ordered_ring) < c)"
-apply (subst less_eq_diff)
-apply (rule less_eq_diff [of _ "c-b", THEN ssubst])
+apply (subst less_iff_diff_less_0)
+apply (rule less_iff_diff_less_0 [of _ "c-b", THEN ssubst])
 apply (simp add: diff_minus add_ac)
 done
 
@@ -387,6 +432,51 @@ lemmas compare_rls =
        add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
        diff_less_eq less_diff_eq diff_le_eq le_diff_eq
        diff_eq_eq eq_diff_eq
+
+
+subsection{*Lemmas for the @{text cancel_numerals} simproc*}
+
+lemma eq_iff_diff_eq_0: "(a = b) = (a-b = (0::'a::ring))"
+by (simp add: compare_rls)
+
+lemma le_iff_diff_le_0: "(a \<le> b) = (a-b \<le> (0::'a::ordered_ring))"
+by (simp add: compare_rls)
+
+lemma eq_add_iff1:
+     "(a*e + c = b*e + d) = ((a-b)*e + c = (d::'a::ring))"
+apply (simp add: diff_minus left_distrib add_ac)
+apply (simp add: compare_rls minus_mult_left [symmetric]) 
+done
+
+lemma eq_add_iff2:
+     "(a*e + c = b*e + d) = (c = (b-a)*e + (d::'a::ring))"
+apply (simp add: diff_minus left_distrib add_ac)
+apply (simp add: compare_rls minus_mult_left [symmetric]) 
+done
+
+lemma less_add_iff1:
+     "(a*e + c < b*e + d) = ((a-b)*e + c < (d::'a::ordered_ring))"
+apply (simp add: diff_minus left_distrib add_ac)
+apply (simp add: compare_rls minus_mult_left [symmetric]) 
+done
+
+lemma less_add_iff2:
+     "(a*e + c < b*e + d) = (c < (b-a)*e + (d::'a::ordered_ring))"
+apply (simp add: diff_minus left_distrib add_ac)
+apply (simp add: compare_rls minus_mult_left [symmetric]) 
+done
+
+lemma le_add_iff1:
+     "(a*e + c \<le> b*e + d) = ((a-b)*e + c \<le> (d::'a::ordered_ring))"
+apply (simp add: diff_minus left_distrib add_ac)
+apply (simp add: compare_rls minus_mult_left [symmetric]) 
+done
+
+lemma le_add_iff2:
+     "(a*e + c \<le> b*e + d) = (c \<le> (b-a)*e + (d::'a::ordered_ring))"
+apply (simp add: diff_minus left_distrib add_ac)
+apply (simp add: compare_rls minus_mult_left [symmetric]) 
+done
 
 
 subsection {* Ordering Rules for Multiplication *}

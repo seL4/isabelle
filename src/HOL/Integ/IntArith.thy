@@ -8,13 +8,34 @@ header {* Integer arithmetic *}
 theory IntArith = Bin
 files ("int_arith1.ML"):
 
+subsection{*Inequality Reasoning for the Arithmetic Simproc*}
+
+lemma zless_imp_add1_zle: "w<z ==> w + (1::int) \<le> z"
+  proof (auto simp add: zle_def zless_iff_Suc_zadd) 
+  fix m n
+  assume "w + 1 = w + (1 + int m) + (1 + int n)"
+  hence "(w + 1) + (1 + int (m + n)) = (w + 1) + 0" 
+    by (simp add: add_ac zadd_int [symmetric])
+  hence "int (Suc(m+n)) = 0" 
+    by (simp only: Ring_and_Field.add_left_cancel int_Suc)
+  thus False by (simp only: int_eq_0_conv)
+  qed
+
 use "int_arith1.ML"
 setup int_arith_setup
 
-lemma zle_diff1_eq [simp]: "(w <= z - (1::int)) = (w<(z::int))"
+subsection{*More inequality reasoning*}
+
+lemma zless_add1_eq: "(w < z + (1::int)) = (w<z | w=z)"
 by arith
 
-lemma zle_add1_eq_le [simp]: "(w < z + 1) = (w<=(z::int))"
+lemma add1_zle_eq: "(w + (1::int) \<le> z) = (w<z)"
+by arith
+
+lemma zle_diff1_eq [simp]: "(w \<le> z - (1::int)) = (w<(z::int))"
+by arith
+
+lemma zle_add1_eq_le [simp]: "(w < z + 1) = (w\<le>(z::int))"
 by arith
 
 lemma zadd_left_cancel0 [simp]: "(z = z + w) = (w = (0::int))"
@@ -22,22 +43,22 @@ by arith
 
 subsection{*Results about @{term nat}*}
 
-lemma nonneg_eq_int: "[| 0 <= z;  !!m. z = int m ==> P |] ==> P"
+lemma nonneg_eq_int: "[| 0 \<le> z;  !!m. z = int m ==> P |] ==> P"
 by (blast dest: nat_0_le sym)
 
-lemma nat_eq_iff: "(nat w = m) = (if 0 <= w then w = int m else m=0)"
+lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = int m else m=0)"
 by auto
 
-lemma nat_eq_iff2: "(m = nat w) = (if 0 <= w then w = int m else m=0)"
+lemma nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = int m else m=0)"
 by auto
 
-lemma nat_less_iff: "0 <= w ==> (nat w < m) = (w < int m)"
+lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < int m)"
 apply (rule iffI)
 apply (erule nat_0_le [THEN subst])
 apply (simp_all del: zless_int add: zless_int [symmetric]) 
 done
 
-lemma int_eq_iff: "(int m = z) = (m = nat z & 0 <= z)"
+lemma int_eq_iff: "(int m = z) = (m = nat z & 0 \<le> z)"
 by (auto simp add: nat_eq_iff2)
 
 
@@ -57,13 +78,13 @@ by (subst nat_eq_iff, simp)
 lemma nat_2: "nat 2 = Suc (Suc 0)"
 by (subst nat_eq_iff, simp)
 
-lemma nat_less_eq_zless: "0 <= w ==> (nat w < nat z) = (w<z)"
+lemma nat_less_eq_zless: "0 \<le> w ==> (nat w < nat z) = (w<z)"
 apply (case_tac "neg z")
 apply (auto simp add: nat_less_iff)
 apply (auto intro: zless_trans simp add: neg_eq_less_0 zle_def)
 done
 
-lemma nat_le_eq_zle: "0 < w | 0 <= z ==> (nat w <= nat z) = (w<=z)"
+lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
 by (auto simp add: linorder_not_less [symmetric] zless_nat_conj)
 
 subsection{*@{term abs}: Absolute Value, as an Integer*}
@@ -72,10 +93,10 @@ subsection{*@{term abs}: Absolute Value, as an Integer*}
    but arith_tac is not parameterized by such simp rules
 *)
 
-lemma zabs_split: "P(abs(i::int)) = ((0 <= i --> P i) & (i < 0 --> P(-i)))"
+lemma zabs_split: "P(abs(i::int)) = ((0 \<le> i --> P i) & (i < 0 --> P(-i)))"
 by (simp add: zabs_def)
 
-lemma zero_le_zabs [iff]: "0 <= abs (z::int)"
+lemma zero_le_zabs [iff]: "0 \<le> abs (z::int)"
 by (simp add: zabs_def)
 
 
@@ -86,7 +107,7 @@ declare int_eq_iff [of _ "number_of v", standard, simp]
 declare zabs_split [arith_split]
 
 lemma zabs_eq_iff:
-    "(abs (z::int) = w) = (z = w \<and> 0 <= z \<or> z = -w \<and> z < 0)"
+    "(abs (z::int) = w) = (z = w \<and> 0 \<le> z \<or> z = -w \<and> z < 0)"
   by (auto simp add: zabs_def)
 
 lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
@@ -117,7 +138,7 @@ theorem int_ge_induct[case_names base step,induct set:int]:
         step: "\<And>i. \<lbrakk>k \<le> i; P i\<rbrakk> \<Longrightarrow> P(i+1)"
   shows "P i"
 proof -
-  { fix n have "\<And>i::int. n = nat(i-k) \<Longrightarrow> k <= i \<Longrightarrow> P i"
+  { fix n have "\<And>i::int. n = nat(i-k) \<Longrightarrow> k \<le> i \<Longrightarrow> P i"
     proof (induct n)
       case 0
       hence "i = k" by arith
@@ -153,7 +174,7 @@ theorem int_le_induct[consumes 1,case_names base step]:
         step: "\<And>i. \<lbrakk>i \<le> k; P i\<rbrakk> \<Longrightarrow> P(i - 1)"
   shows "P i"
 proof -
-  { fix n have "\<And>i::int. n = nat(k-i) \<Longrightarrow> i <= k \<Longrightarrow> P i"
+  { fix n have "\<And>i::int. n = nat(k-i) \<Longrightarrow> i \<le> k \<Longrightarrow> P i"
     proof (induct n)
       case 0
       hence "i = k" by arith
@@ -193,7 +214,7 @@ by arith
 lemma abs_minus [simp]: "abs(-(x::int)) = abs(x)"
 by arith
 
-lemma triangle_ineq: "abs(x+y) <= abs(x) + abs(y::int)"
+lemma triangle_ineq: "abs(x+y) \<le> abs(x) + abs(y::int)"
 by arith
 
 

@@ -56,7 +56,7 @@ by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
 
 subsection{*Comparison laws*}
 
-(*ring and field?*)
+(*RING AND FIELD????????????????????????????????????????????????????????????*)
 
 lemma zminus_zless_zminus [simp]: "(- x < - y) = (y < (x::int))"
 by (simp add: zless_def zdiff_def zadd_ac)
@@ -408,8 +408,6 @@ struct
 end;
 
 structure Int_Cancel = Abel_Cancel (Int_Cancel_Data);
-
-Addsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv];
 *}
 
 
@@ -427,37 +425,11 @@ apply (drule not_neg_nat [symmetric], auto)
 done
 
 
-subsection{*Inequality reasoning*}
-
-text{*Are they needed????*}
-lemma zless_add1_eq: "(w < z + (1::int)) = (w<z | w=z)"
-apply (auto simp add: zless_iff_Suc_zadd int_Suc gr0_conv_Suc zero_reorient)
-apply (rule_tac x = "Suc n" in exI)
-apply (simp add: int_Suc)
-done
-
-lemma add1_zle_eq: "(w + (1::int) \<le> z) = (w<z)"
-apply (simp add: zle_def zless_add1_eq)
-apply (auto intro: zless_asym zle_anti_sym
-            simp add: order_less_imp_le symmetric zle_def)
-done
-
-lemma add1_left_zle_eq: "((1::int) + w \<le> z) = (w<z)"
-apply (subst zadd_commute)
-apply (rule add1_zle_eq)
-done
-
-
-
-
 ML
 {*
 val zless_eq_neg = thm "zless_eq_neg";
 val eq_eq_iszero = thm "eq_eq_iszero";
 val zle_eq_not_neg = thm "zle_eq_not_neg";
-val zless_add1_eq = thm "zless_add1_eq";
-val add1_zle_eq = thm "add1_zle_eq";
-val add1_left_zle_eq = thm "add1_left_zle_eq";
 val zadd_right_cancel_zless = thm "zadd_right_cancel_zless";
 val zadd_left_cancel_zless = thm "zadd_left_cancel_zless";
 val zadd_right_cancel_zle = thm "zadd_right_cancel_zle";

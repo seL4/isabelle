@@ -6,6 +6,8 @@
 Simprocs for nat numerals (see also nat_simprocs.ML).
 *)
 
+val ss_Int = simpset_of Int_thy;
+
 (** For simplifying  Suc m - #n **)
 
 Goal "Numeral0 < n ==> Suc m - n = m - (n - Numeral1)";
