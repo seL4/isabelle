@@ -14,10 +14,15 @@ Proof~General if used with the X-Symbol package.
 
 Moreover, any single symbol (or ASCII character) may be prefixed by
 \verb,\<^sup>, for superscript and \verb,\<^sub>, for subscript, such as
-\verb,A\<^sup>\<star>, for \isa{A\isactrlsup{\isasymstar}}.  Most symbols (and
-all ASCII characters) may be printed in bold by prefixing \verb,\<^bold>,,
-such as \verb,\<^bold>\<alpha>, for \isa{\isactrlbold{\isasymalpha}}.  Note
-that super- and subscripts may \emph{not} be combined with bold style.
+\verb,A\<^sup>\<star>, for \isa{A\isactrlsup{\isasymstar}}; the alternative
+versions \verb,\<^isub>, and \verb,\<^isup>, are considered as quasi letters
+and may be used within identifiers.  Sub- and superscripts that span a region
+of text are marked up with \verb,\<^bsub>,\dots\verb,\<^esub>, and
+\verb,\<^bsup>,\dots\verb,\<^esup>,, respectively.  Furthermore, all ASCII
+characters and most other symbols may be printed in bold by prefixing
+\verb,\<^bold>,, such as \verb,\<^bold>\<alpha>, for
+\isa{\isactrlbold{\isasymalpha}}.  Note that \verb,\<^bold>, may \emph{not} be
+combined with sub- or superscripts for single symbols.
 
 Further details of Isabelle document preparation are covered in
 chapter~\ref{ch:present}.
