@@ -306,10 +306,9 @@ lemma induct_conj_curry: "(induct_conj A B ==> C) == (A ==> B ==> C)"
 lemma induct_impliesI: "(A ==> B) ==> induct_implies A B"
   by (simp add: induct_implies_def)
 
-lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq
-lemmas induct_rulify1 = induct_atomize [symmetric, standard]
-lemmas induct_rulify2 =
-  induct_forall_def induct_implies_def induct_equal_def induct_conj_def
+lemmas induct_atomize = atomize_conj induct_forall_eq induct_implies_eq induct_equal_eq
+lemmas induct_rulify1 [symmetric, standard] = induct_forall_eq induct_implies_eq induct_equal_eq
+lemmas induct_rulify2 = induct_forall_def induct_implies_def induct_equal_def induct_conj_def
 lemmas induct_conj = induct_forall_conj induct_implies_conj induct_conj_curry
 
 hide const induct_forall induct_implies induct_equal induct_conj
@@ -322,6 +321,7 @@ ML {*
   (struct
     val dest_concls = HOLogic.dest_concls;
     val cases_default = thm "case_split";
+    val local_imp_def = thm "induct_implies_def";
     val local_impI = thm "induct_impliesI";
     val conjI = thm "conjI";
     val atomize = thms "induct_atomize";
