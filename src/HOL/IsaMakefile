@@ -676,6 +676,6 @@ clean:
 		$(LOG)/HOL-Lattice \
 		$(LOG)/HOL-Complex.gz \
 		$(LOG)/HOL-Complex-ex.gz \
-		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
+		$(LOG)/HOL-Complex-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
 		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 
