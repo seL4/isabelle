@@ -37,8 +37,8 @@ let
 
   fun con_def outer recu m n (_,args) = let
      fun idxs z x arg = (if is_lazy arg then fn t => %%"up"`t else Id)
-			(if recu andalso is_rec arg then (cproj (Bound z) 
-			(length eqs) (rec_of arg))`Bound(z-x) else Bound(z-x));
+			(if recu andalso is_rec arg then (cproj (Bound z) eqs
+				  (rec_of arg))`Bound(z-x) else Bound(z-x));
      fun parms [] = %%"ONE"
      |   parms vs = foldr'(fn(x,t)=> %%"spair"`x`t)(mapn (idxs(length vs))1 vs);
      fun inj y 1 _ = y
@@ -72,11 +72,10 @@ let
 
 (* ----- axiom and definitions concerning induction ------------------------- *)
 
-  fun cproj' T = cproj T (length eqs) n;
-  val reach_ax = ("reach", mk_trp(cproj'(%%"fix"`%%(comp_dname^"_copy"))
+  val reach_ax = ("reach", mk_trp(cproj (%%"fix"`%%(comp_dname^"_copy")) eqs n
 					`%x_name === %x_name));
-  val take_def = ("take_def",%%(dname^"_take") == mk_lam("n",cproj'
-		    (%%"iterate" $ Bound 0 $ %%(comp_dname^"_copy") $ %%"UU")));
+  val take_def = ("take_def",%%(dname^"_take") == mk_lam("n",cproj' 
+	     (%%"iterate" $ Bound 0 $ %%(comp_dname^"_copy") $ %%"UU") eqs n));
   val finite_def = ("finite_def",%%(dname^"_finite") == mk_lam(x_name,
 	mk_ex("n",(%%(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));
 
@@ -113,7 +112,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 	val rec_idxs    = (recs_cnt-1) downto 0;
 	val nonlazy_idxs = map snd (filter_out (fn (arg,_) => is_lazy arg)
 					 (allargs~~((allargs_cnt-1) downto 0)));
-	fun rel_app i ra = proj (Bound(allargs_cnt+2)) (length eqs) (rec_of ra) $ 
+	fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
 			   Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
 	val capps = foldr mk_conj (mapn rel_app 1 rec_args, mk_conj(
 	   Bound(allargs_cnt+1)===mk_cfapp(%%con,map (bound_arg allvns) vns1),
@@ -121,7 +120,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
         in foldr mk_ex (allvns, foldr mk_conj 
 			      (map (defined o Bound) nonlazy_idxs,capps)) end;
       fun one_comp n (_,cons) =mk_all(x_name(n+1),mk_all(x_name(n+1)^"'",mk_imp(
-	 		proj (Bound 2) (length eqs) n $ Bound 1 $ Bound 0,
+	 		proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
          		foldr' mk_disj (mk_conj(Bound 1 === UU,Bound 0 === UU)
 					::map one_con cons))));
     in foldr' mk_conj (mapn one_comp 0 eqs)end ));

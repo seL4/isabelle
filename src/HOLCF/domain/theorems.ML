@@ -55,14 +55,6 @@ val dist_eqI = prove_goal Porder.thy "~(x::'a::po) << y ==> x ~= y" (fn prems =>
                                 rtac rev_contrapos 1,
                                 etac (antisym_less_inverse RS conjunct1) 1,
                                 resolve_tac prems 1]);
-
-in
-
-fun theorems (((dname,_),cons) : eq, eqs : eq list) thy =
-let
-
-val dummy = writeln ("Proving isomorphism properties of domain "^dname^" ...");
-val pg = pg' thy;
 (*
 infixr 0 y;
 val b = 0;
@@ -71,6 +63,14 @@ fun g defs t = let val sg = sign_of thy;
                      val ct = Thm.cterm_of sg (inferT sg t);
                  in goalw_cterm defs ct end;
 *)
+
+in
+
+fun theorems (((dname,_),cons) : eq, eqs : eq list) thy =
+let
+
+val dummy = writeln ("Proving isomorphism properties of domain "^dname^" ...");
+val pg = pg' thy;
 
 
 (* ----- getting the axioms and definitions --------------------------------- *)
@@ -309,7 +309,7 @@ val copy_strict = pg[ax_copy_def](mk_trp(strict(dc_copy`%"f"))) [
 val copy_apps = map (fn (con,args) => pg [ax_copy_def]
                     (lift_defined % (nonlazy_rec args,
                         mk_trp(dc_copy`%"f"`(con_app con args) ===
-                (con_app2 con (app_rec_arg (cproj (%"f") (length eqs))) args))))
+                (con_app2 con (app_rec_arg (cproj (%"f") eqs)) args))))
                         (map (case_UU_tac (abs_strict::when_strict::con_stricts)
                                  1 o vname)
                          (filter (fn a => not (is_rec a orelse is_lazy a)) args)
@@ -554,7 +554,7 @@ val (finites,ind) = if is_finite then
                                 strip_tac 1,
                                 rtac (rewrite_rule axs_take_def finite_ind) 1,
                                 ind_prems_tac prems])
-)
+  handle ERROR => (warning "Cannot prove infinite induction rule"; refl))
 end; (* local *)
 
 (* ----- theorem concerning coinduction ------------------------------------- *)
@@ -563,10 +563,10 @@ local
   val xs = mapn (fn n => K (x_name n)) 1 dnames;
   fun bnd_arg n i = Bound(2*(n_eqs - n)-i-1);
   val take_ss = HOL_ss addsimps take_rews;
-  val sproj   = prj (fn s => "fst("^s^")") (fn s => "snd("^s^")");
+  val sproj   = prj (fn s => K("fst("^s^")")) (fn s => K("snd("^s^")"));
   val coind_lemma=pg[ax_bisim_def](mk_trp(mk_imp(%%(comp_dname^"_bisim") $ %"R",
                 foldr (fn (x,t)=> mk_all(x,mk_all(x^"'",t))) (xs,
-                  foldr mk_imp (mapn (fn n => K(proj (%"R") n_eqs n $ 
+                  foldr mk_imp (mapn (fn n => K(proj (%"R") eqs n $ 
                                       bnd_arg n 0 $ bnd_arg n 1)) 0 dnames,
                     foldr' mk_conj (mapn (fn n => fn dn => 
                                 (dc_take dn $ %"n" `bnd_arg n 0 === 
@@ -578,7 +578,7 @@ local
                                 flat(mapn (fn n => fn x => [
                                   rotate_tac (n+1) 1,
                                   etac all2E 1,
-                                  eres_inst_tac [("P1", sproj "R" n_eqs n^
+                                  eres_inst_tac [("P1", sproj "R" eqs n^
                                         " "^x^" "^x^"'")](mp RS disjE) 1,
                                   TRY(safe_tac HOL_cs),
                                   REPEAT(CHANGED(asm_simp_tac take_ss 1))]) 
@@ -586,7 +586,7 @@ local
 in
 val coind = pg [] (mk_trp(%%(comp_dname^"_bisim") $ %"R") ===>
                 foldr (op ===>) (mapn (fn n => fn x => 
-                  mk_trp(proj (%"R") n_eqs n $ %x $ %(x^"'"))) 0 xs,
+                  mk_trp(proj (%"R") eqs n $ %x $ %(x^"'"))) 0 xs,
                   mk_trp(foldr' mk_conj (map (fn x => %x === %(x^"'")) xs)))) ([
                                 TRY(safe_tac HOL_cs)] @
                                 flat(map (fn take_lemma => [
