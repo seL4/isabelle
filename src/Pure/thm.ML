@@ -1510,8 +1510,8 @@ fun mk_simproc (name, proc, lhs, id) =
   A "mss" contains data needed during conversion:
     rules: discrimination net of rewrite rules;
     congs: association list of congruence rules and
-           a flag iff all of the congruences are 'full'.
-          A congruence is 'full' if it enforces normalization of all arguments.
+           a list of `weak' congruence constants.
+           A congruence is `weak' if it avoids normalization of some argument.
     procs: discrimination net of simplification procedures
       (functions that prove rewrite rules on the fly);
     bounds: names of bound variables already used
@@ -1526,7 +1526,7 @@ fun mk_simproc (name, proc, lhs, id) =
 datatype meta_simpset =
   Mss of {
     rules: rrule Net.net,
-    congs: (string * cong) list * bool,
+    congs: (string * cong) list * string list,
     procs: simproc Net.net,
     bounds: string list,
     prems: thm list,
@@ -1544,7 +1544,7 @@ fun upd_rules(Mss{rules,congs,procs,bounds,prems,mk_rews,termless}, rules') =
 
 val empty_mss =
   let val mk_rews = {mk = K [], mk_sym = K None, mk_eq_True = K None}
-  in mk_mss (Net.empty, ([],true), Net.empty, [], [], mk_rews, Term.termless)
+  in mk_mss (Net.empty, ([],[]), Net.empty, [], [], mk_rews, Term.termless)
   end;
 
 
@@ -1565,14 +1565,14 @@ fun dest_mss (Mss {rules, congs, procs, ...}) =
 (* merge_mss *)		(*NOTE: ignores mk_rews and termless of 2nd mss*)
 
 fun merge_mss
- (Mss {rules = rules1, congs = (congs1,full1), procs = procs1,
+ (Mss {rules = rules1, congs = (congs1,weak1), procs = procs1,
        bounds = bounds1, prems = prems1, mk_rews, termless},
-  Mss {rules = rules2, congs = (congs2,full2), procs = procs2,
+  Mss {rules = rules2, congs = (congs2,weak2), procs = procs2,
        bounds = bounds2, prems = prems2, ...}) =
       mk_mss
        (Net.merge (rules1, rules2, eq_rrule),
         (generic_merge (eq_cong o pairself snd) I I congs1 congs2,
-         full1 andalso full2),
+        merge_lists weak1 weak2),
         Net.merge (procs1, procs2, eq_simproc),
         merge_lists bounds1 bounds2,
         generic_merge eq_prem I I prems1 prems2,
@@ -1751,10 +1751,10 @@ fun add_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thm) =
 (*   val lhs = Pattern.eta_contract lhs; *)
     val (a, _) = dest_Const (head_of lhs) handle TERM _ =>
       raise SIMPLIFIER ("Congruence must start with a constant", thm);
-    val (alist,full) = congs
-    val full2 = full andalso is_full_cong thm
+    val (alist,weak) = congs
+    val weak2 = if is_full_cong thm then weak else a::weak
   in
-    mk_mss (rules, ((a, {lhs = lhs, thm = thm}) :: alist, full2),
+    mk_mss (rules, ((a, {lhs = lhs, thm = thm}) :: alist, weak2),
             procs, bounds, prems, mk_rews, termless)
   end;
 
@@ -1770,11 +1770,13 @@ fun del_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thm) =
 (*   val lhs = Pattern.eta_contract lhs; *)
     val (a, _) = dest_Const (head_of lhs) handle TERM _ =>
       raise SIMPLIFIER ("Congruence must start with a constant", thm);
-    val (alist,full) = congs
+    val (alist,_) = congs
     val alist2 = filter (fn (x,_)=> x<>a) alist
-    val full2 = forall (fn(_,{thm,...}) => is_full_cong thm) alist2
+    val weak2 = mapfilter (fn(a,{thm,...}) => if is_full_cong thm then None
+                                              else Some a)
+                   alist2
   in
-    mk_mss (rules, (alist2,full2), procs, bounds, prems, mk_rews, termless)
+    mk_mss (rules, (alist2,weak2), procs, bounds, prems, mk_rews, termless)
   end;
 
 val (op del_congs) = foldl del_cong;
@@ -1918,6 +1920,23 @@ fun mk_procrule thm =
 *)
 val skel0 = Bound 0;
 
+(* Use rhs as skeleton only if the lhs does not contain unnormalized bits.
+   The latter may happen iff there are weak congruence rules for constants
+   in the lhs.
+*)
+fun uncond_skel((_,weak),(lhs,rhs)) =
+  if null weak then rhs (* optimization *)
+  else if exists_Const (fn (c,_) => c mem weak) lhs then skel0
+       else rhs;
+
+(* Behaves like unconditional rule if rhs does not contain vars not in the lhs.
+   Otherwise those vars may become instantiated with unnormalized terms
+   while the premises are solved.
+*)
+fun cond_skel(args as (congs,(lhs,rhs))) =
+  if term_vars rhs subset term_vars lhs then uncond_skel(args)
+  else skel0;
+
 (*
   we try in order:
     (1) beta reduction
@@ -1959,20 +1978,25 @@ fun rewritec (prover,sign_reft,maxt)
         val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
       in
         if perm andalso not(termless(rhs',lhs')) then None
-        else (trace_thm false "Applying instance of rewrite rule:" thm;
-              if unconditional
-              then (trace_thm false "Rewriting:" thm';
-                    let val (_,rhs) = Logic.dest_equals prop
-                    in Some((rhs', (shyps', hyps', der'::ders)),
-                            if snd congs then rhs else skel0)
-                        (* use rhs as depth-limit only if all congs are full *)
-                    end)
-              else (trace_thm false "Trying to rewrite:" thm';
-                    case prover mss thm' of
-                      None       => (trace_thm false "FAILED" thm'; None)
-                    | Some(thm2) =>
-                        (case check_conv(thm2,prop',ders) of
-                           None => None | Some trec => Some(trec,skel0))))
+        else
+          (trace_thm false "Applying instance of rewrite rule:" thm;
+           if unconditional
+           then
+             (trace_thm false "Rewriting:" thm';
+              let val lr = Logic.dest_equals prop
+                  val trec' = (rhs', (shyps', hyps', der'::ders))
+              in Some(trec',uncond_skel(congs,lr)) end)
+           else
+             (trace_thm false "Trying to rewrite:" thm';
+              case prover mss thm' of
+                None       => (trace_thm false "FAILED" thm'; None)
+              | Some(thm2) =>
+                  (case check_conv(thm2,prop',ders) of
+                     None => None |
+                     Some trec =>
+                       let val concl = Logic.strip_imp_concl prop
+                           val lr = Logic.dest_equals concl
+                       in Some(trec,cond_skel(congs,lr)) end)))
       end
 
     fun rews [] = None
