@@ -19,12 +19,6 @@ Protocol goals:
 
 open TLS;
 
-val if_distrib_parts = 
-    read_instantiate_sg (sign_of Message.thy) [("f", "parts")] if_distrib;
-
-val if_distrib_analz = 
-    read_instantiate_sg (sign_of Message.thy) [("f", "analz")] if_distrib;
-
 proof_timing:=true;
 HOL_quantifiers := false;
 
