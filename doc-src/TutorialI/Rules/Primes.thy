@@ -6,7 +6,7 @@ theory Primes = Main:
 consts
   gcd     :: "nat*nat \<Rightarrow> nat"
 
-recdef gcd "measure ((\<lambda>(m,n).n) ::nat*nat \<Rightarrow> nat)"
+recdef gcd "measure snd"
     "gcd (m, n) = (if n=0 then m else gcd(n, m mod n))"
 
 
