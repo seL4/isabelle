@@ -60,6 +60,7 @@ sig
   val Delsimps: thm list -> unit
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
+  val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
   val               simp_tac: simpset -> int -> tactic
   val           asm_simp_tac: simpset -> int -> tactic
   val          full_simp_tac: simpset -> int -> tactic
@@ -382,32 +383,27 @@ fun solve_all_tac (subgoal_tac, loop_tacs, unsafe_solvers) mss =
 
 fun loop_tac loop_tacs = FIRST'(map snd loop_tacs);
 
-(*unsafe: may instantiate unknowns that appear also in other subgoals*)
-fun basic_gen_simp_tac mode solvers =
-  fn (Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, ...}) =>
+(*note: may instantiate unknowns that appear also in other subgoals*)
+fun generic_simp_tac safe mode =
+  fn (Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, solvers, ...}) =>
     let
+      val solvs = app_sols (if safe then solvers else unsafe_solvers);
       fun simp_loop_tac i =
         asm_rewrite_goal_tac mode
           (solve_all_tac (subgoal_tac,loop_tacs,unsafe_solvers))
           mss i
-        THEN (solvers (prems_of_mss mss) i ORELSE
+        THEN (solvs (prems_of_mss mss) i ORELSE
               TRY ((loop_tac loop_tacs THEN_ALL_NEW simp_loop_tac) i))
     in simp_loop_tac end;
 
-fun gen_simp_tac mode 
-      (ss as Simpset {mss, subgoal_tac, loop_tacs, unsafe_solvers, ...}) =
-  basic_gen_simp_tac mode (app_sols unsafe_solvers) ss;
-
-val          simp_tac = gen_simp_tac (false, false, false);
-val      asm_simp_tac = gen_simp_tac (false, true, false);
-val     full_simp_tac = gen_simp_tac (true,  false, false);
-val   asm_lr_simp_tac = gen_simp_tac (true,  true, false);
-val asm_full_simp_tac = gen_simp_tac (true,  true, true);
+val          simp_tac = generic_simp_tac false (false, false, false);
+val      asm_simp_tac = generic_simp_tac false (false, true, false);
+val     full_simp_tac = generic_simp_tac false (true,  false, false);
+val   asm_lr_simp_tac = generic_simp_tac false (true,  true, false);
+val asm_full_simp_tac = generic_simp_tac false (true,  true, true);
 
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
-fun safe_asm_full_simp_tac (ss as Simpset {mss, subgoal_tac, loop_tacs, 
-	unsafe_solvers, solvers}) = 
-  basic_gen_simp_tac (true, true, true) (app_sols solvers) ss;
+val safe_asm_full_simp_tac = generic_simp_tac true (true, true, true);
 
 (*the abstraction over the proof state delays the dereferencing*)
 fun          Simp_tac i st =          simp_tac (simpset ()) i st;
