@@ -6,19 +6,19 @@ Pretty printing of asts, terms, types and print (ast) translation.
 *)
 
 signature PRINTER0 =
-  sig
+sig
   val show_brackets: bool ref
   val show_sorts: bool ref
   val show_types: bool ref
   val show_no_free_types: bool ref
   val print_mode: string list ref
-  end;
+end;
 
 signature PRINTER =
-  sig
+sig
   include PRINTER0
-  val term_to_ast: (string -> (term list -> term) option) -> term -> Ast.ast
-  val typ_to_ast: (string -> (term list -> term) option) -> typ -> Ast.ast
+  val term_to_ast: (string -> (typ -> term list -> term) option) -> term -> Ast.ast
+  val typ_to_ast: (string -> (typ -> term list -> term) option) -> typ -> Ast.ast
   type prtabs
   val prmodes_of: prtabs -> string list
   val empty_prtabs: prtabs
@@ -28,8 +28,7 @@ signature PRINTER =
     -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
   val pretty_typ_ast: bool -> prtabs
     -> (string -> (Ast.ast list -> Ast.ast) option) -> Ast.ast -> Pretty.T
-  val chartrans_of: prtabs -> (string * string) list
-  end;
+end;
 
 structure Printer: PRINTER =
 struct
@@ -81,19 +80,19 @@ fun ast_of_term trf show_types show_sorts tm =
           end;
 
 
-    fun ast_of (Const (a, _)) = trans a []
+    fun ast_of (Const (a, T)) = trans a T []
       | ast_of (Free (x, ty)) = constrain x (free x) ty
       | ast_of (Var (xi, ty)) = constrain (string_of_vname xi) (var xi) ty
       | ast_of (Bound i) = Variable ("B." ^ string_of_int i)
       | ast_of (t as Abs _) = ast_of (abs_tr' t)
       | ast_of (t as _ $ _) =
           (case strip_comb t of
-            (Const (a, _), args) => trans a args
+            (Const (a, T), args) => trans a T args
           | (f, args) => Appl (map ast_of (f :: args)))
 
-    and trans a args =
+    and trans a T args =
       (case trf a of
-        Some f => ast_of (apply_trans "print translation" a f args)
+        Some f => ast_of (apply_trans "print translation" a (uncurry f) (T, args))
       | None => raise Match)
           handle Match => mk_appl (Constant a) (map ast_of args)
 
@@ -152,16 +151,19 @@ fun get_fmts [] _ = []
 fun xprod_to_fmt (XProd (_, _, "", _)) = None
   | xprod_to_fmt (XProd (_, xsymbs, const, pri)) =
       let
+        fun cons_str s (String s' :: syms) = String (s ^ s') :: syms
+          | cons_str s syms = String s :: syms;
+
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
           (if is_terminal s then max_pri else p);
 
         fun xsyms_to_syms (Delim s :: xsyms) =
-              apfst (cons (String s)) (xsyms_to_syms xsyms)
+              apfst (cons_str s) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Space s :: xsyms) =
-              apfst (cons (String s)) (xsyms_to_syms xsyms)
+              apfst (cons_str s) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
@@ -260,7 +262,10 @@ fun pretty tabs trf type_mode curried ast0 p0 =
             else pr, args))
 
     and prefixT (_, a, [], _) = [Pretty.str a]
-      | prefixT (c, _, args, p) = astT (appT (c, args), p)
+      | prefixT (c, _, args, p) =
+          if c = Constant "_appl" orelse c = Constant "_applC" then
+            error "Syntax insufficient for printing prefix applications"
+          else astT (appT (c, args), p)
 
     and splitT 0 ([x], ys) = (x, ys)
       | splitT 0 (rev_xs, ys) = (Appl (rev rev_xs), ys)
@@ -306,58 +311,6 @@ fun pretty_term_ast curried prtabs trf ast =
 
 fun pretty_typ_ast _ prtabs trf ast =
   Pretty.blk (0, pretty (tabs_of prtabs (! print_mode)) trf true false ast 0);
-
-
-
-(** character translations - generated from "symbols" syntax **)
-
-(* match_symbs *)
-
-(*match with symbs pattern, ignoring spaces, breaks, blocks*)
-
-local
-  exception NO_MATCH;
-
-  fun strip ((sym as Arg _) :: syms) = sym :: strip syms
-    | strip (TypArg p :: syms) = Arg p :: strip syms
-    | strip ((sym as String s) :: syms) =
-        if forall is_blank (explode s) then strip syms
-        else sym :: strip syms
-    | strip (Break _ :: syms) = strip syms
-    | strip (Block (_, bsyms) :: syms) = strip bsyms @ strip syms
-    | strip [] = [];
-
-  fun match (Arg p :: syms) (Arg p' :: syms') tr =
-        if p = p' then match syms syms' tr
-        else raise NO_MATCH
-    | match (String s :: syms) (String s' :: syms') tr =
-        if s = s' then match syms syms' tr
-        else if size s = 1 then match syms syms' ((s, s') :: tr)
-        else raise NO_MATCH
-    | match [] [] tr = tr
-    | match _ _ _ = raise NO_MATCH;
-in
-  fun match_symbs (syms, n, p) (syms', n', p') =
-    if n = n' andalso p = p' then
-      match (strip syms) (strip syms') [] handle NO_MATCH => []
-    else []
-end;
-
-
-(* chartrans_of *)
-
-fun chartrans_of prtabs =
-  let
-    val def_tab = get_tab prtabs "";
-    val sym_tab = get_tab prtabs "symbols";
-
-    fun trans_of (c, symb) =
-      flat (map (match_symbs symb) (Symtab.lookup_multi (def_tab, c)));
-  in
-    distinct (flat (map trans_of (Symtab.dest_multi sym_tab)))
-(* FIXME    Symtab.make tr handle Symtab.DUPS cs
-      => error ("Ambiguous printer syntax of symbols: " ^ commas cs)  *)
-  end;
 
 
 end;
