@@ -14,12 +14,12 @@ open Zorn;
 (*** Section 1.  Mathematical Preamble ***)
 
 goal ZF.thy "!!A B C. (ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_lemma0";
 
 goal ZF.thy
     "!!A B C. [| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_lemma0";
 
 
@@ -73,7 +73,7 @@ val major::prems = goal Zorn.thy
 \    |] ==> n<=m | next`m<=n";
 by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
-by (etac Union_lemma0 2);               (*or just Fast_tac*)
+by (etac Union_lemma0 2);               (*or just Blast_tac*)
 by (fast_tac (subset_cs addIs [increasing_trans]) 1);
 qed "TFin_linear_lemma1";
 
@@ -173,7 +173,7 @@ goal Zorn.thy
 \         |] ==> ch ` super(S,X) : super(S,X)";
 by (etac apply_type 1);
 by (rewrite_goals_tac [super_def, maxchain_def]);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "choice_super";
 
 goal Zorn.thy
@@ -210,7 +210,7 @@ by (safe_tac (!claset));
 by (dtac choice_super 1);
 by (REPEAT (assume_tac 1));
 by (rewtac super_def);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Hausdorff_next_exists";
 
 (*Lemma 4*)
@@ -227,13 +227,10 @@ by (asm_simp_tac
                      choice_super RS (super_subset_chain RS subsetD)]
            setloop split_tac [expand_if]) 1);
 by (rewtac chain_def);
-by (rtac CollectI 1 THEN Fast_tac 1);
-(*Cannot use safe_tac: the disjunction must be left alone*)
-by (REPEAT (rtac ballI 1 ORELSE etac UnionE 1));
+by (rtac CollectI 1 THEN Blast_tac 1);
+by (safe_tac(!claset));
 by (res_inst_tac  [("m1","B"), ("n1","Ba")] (TFin_subset_linear RS disjE) 1);
-(*fast_tac is just too slow here!*)
-by (DEPTH_SOLVE (eresolve_tac [asm_rl, subsetD] 1
-       ORELSE ball_tac 1 THEN etac (CollectD2 RS bspec RS bspec) 1));
+by (ALLGOALS Fast_tac);
 qed "TFin_chain_lemma4";
 
 goal Zorn.thy "EX c. c : maxchain(S)";
@@ -265,7 +262,7 @@ qed "Hausdorff";
 (*Used in the proof of Zorn's Lemma*)
 goalw Zorn.thy [chain_def]
     "!!c. [| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "chain_extend";
 
 goal Zorn.thy
@@ -274,16 +271,16 @@ by (resolve_tac [Hausdorff RS exE] 1);
 by (asm_full_simp_tac (!simpset addsimps [maxchain_def]) 1);
 by (rename_tac "c" 1);
 by (res_inst_tac [("x", "Union(c)")] bexI 1);
-by (Fast_tac 2);
+by (Blast_tac 2);
 by (safe_tac (!claset));
 by (rename_tac "z" 1);
 by (rtac classical 1);
 by (subgoal_tac "cons(z,c): super(S,c)" 1);
-by (fast_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (!claset addEs [equalityE]) 1);
 by (rewtac super_def);
 by (safe_tac (!claset));
 by (fast_tac (!claset addEs [chain_extend]) 1);
-by (best_tac (!claset addEs [equalityE]) 1);
+by (blast_tac (!claset addEs [equalityE]) 1);
 qed "Zorn";
 
 
@@ -295,13 +292,13 @@ val major::prems = goal Zorn.thy
 \    |] ==> ALL m:Z. n<=m";
 by (cut_facts_tac prems 1);
 by (rtac (major RS TFin_induct) 1);
-by (Fast_tac 2);                  (*second induction step is easy*)
+by (Blast_tac 2);                  (*second induction step is easy*)
 by (rtac ballI 1);
 by (rtac (bspec RS TFin_subsetD RS disjE) 1);
 by (REPEAT_SOME (eresolve_tac [asm_rl,subsetD]));
 by (subgoal_tac "x = Inter(Z)" 1);
-by (Fast_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
 qed "TFin_well_lemma5";
 
 (*Well-ordering of TFin(S,next)*)
@@ -324,17 +321,17 @@ by (rewrite_goals_tac [Subset_rel_def, linear_def]);
 (*Prove the linearity goal first*)
 by (REPEAT (rtac ballI 2));
 by (excluded_middle_tac "x=y" 2);
-by (Fast_tac 3);
+by (Blast_tac 3);
 (*The x~=y case remains*)
 by (res_inst_tac [("n1","x"), ("m1","y")] 
     (TFin_subset_linear RS disjE) 2  THEN  REPEAT (assume_tac 2));
-by (Fast_tac 2);
-by (Fast_tac 2);
+by (Blast_tac 2);
+by (Blast_tac 2);
 (*Now prove the well_foundedness goal*)
 by (rtac wf_onI 1);
 by (forward_tac [well_ord_TFin_lemma] 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","Inter(Z)")] bspec 1 THEN assume_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "well_ord_TFin";
 
 (** Defining the "next" operation for Zermelo's Theorem **)

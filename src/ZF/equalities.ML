@@ -532,8 +532,8 @@ Addsimps [Union_Pow_eq, Int_Pow_eq];
 (** RepFun **)
 
 goal ZF.thy "{f(x).x:A}=0 <-> A=0";
-	(*blast_tac takes too long to search depth 5*)
-by (Blast.depth_tac (!claset addSEs [equalityE]) 6 1);
+	(*blast_tac takes too long to find a good depth*)
+by (Blast.depth_tac (!claset addSEs [equalityE]) 10 1);
 qed "RepFun_eq_0_iff";
 
 (** Collect **)

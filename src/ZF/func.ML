@@ -306,7 +306,8 @@ goalw ZF.thy [function_def]
     "!!S. [| ALL x:S. function(x); \
 \            ALL x:S. ALL y:S. x<=y | y<=x  |] ==>  \
 \         function(Union(S))";
-by (blast_tac (!claset addSDs [bspec RS bspec]) 1);
+by (fast_tac (ZF_cs addSDs [bspec RS bspec]) 1);
+	(*by (Blast_tac 1);  takes too long...*)
 qed "function_Union";
 
 goalw ZF.thy [Pi_def]
@@ -323,13 +324,12 @@ val Un_rls = [Un_subset_iff, domain_Un_eq, SUM_Un_distrib1, prod_Un_distrib2,
               Un_upper1 RSN (2, subset_trans), 
               Un_upper2 RSN (2, subset_trans)];
 
-goal ZF.thy
-    "!!f. [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  \
-\         (f Un g) : (A Un C) -> (B Un D)";
+goal ZF.thy "!!f. [| f: A->B;  g: C->D;  A Int C = 0  |]  \
+\                 ==> (f Un g) : (A Un C) -> (B Un D)";
 (*Prove the product and domain subgoals using distributive laws*)
 by (asm_full_simp_tac (!simpset addsimps [Pi_iff,extension]@Un_rls) 1);
 by (rewtac function_def);
-by (Blast_tac 1);
+by (Blast.depth_tac (!claset) 11 1);	(*11 secs*)
 qed "fun_disjoint_Un";
 
 goal ZF.thy

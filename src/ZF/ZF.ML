@@ -438,7 +438,6 @@ qed_goal "empty_subsetI" ZF.thy "0 <= A"
  (fn _=> [ Blast_tac 1 ]);
 
 Addsimps [empty_subsetI];
-AddSIs [empty_subsetI];
 
 qed_goal "equals0I" ZF.thy "[| !!y. y:A ==> False |] ==> A=0"
  (fn prems=> [ blast_tac (!claset addDs prems) 1 ]);
