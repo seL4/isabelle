@@ -15,11 +15,6 @@ files "Tools/prop_logic.ML"
       "Tools/refute.ML"
       "Tools/refute_isar.ML":
 
-use "Tools/prop_logic.ML"
-use "Tools/sat_solver.ML"
-use "Tools/refute.ML"
-use "Tools/refute_isar.ML"
-
 setup Refute.setup
 
 text {*
