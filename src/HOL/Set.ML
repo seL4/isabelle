@@ -608,9 +608,13 @@ goal thy "f``(A Un B) = f``A Un f``B";
 by (Blast_tac 1);
 qed "image_Un";
 
-goal Set.thy "(z : f``A) = (EX x:A. z = f x)";
+goal thy "(z : f``A) = (EX x:A. z = f x)";
 by (Blast_tac 1);
 qed "image_iff";
+
+val prems = goal thy "(!!x. x:A ==> f(x) : B) ==> f``A <= B";
+by (blast_tac (claset() addIs prems) 1);
+qed "image_subsetI";
 
 
 (*** Range of a function -- just a translation for image! ***)
