@@ -51,10 +51,13 @@ shift
 
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
+NICE=nice
+
 case $HOSTNAME in
         atbroy51)
 	MFLAGS="-j 2"
 	# MFLAGS=""
+  NICE=""
 	;;
 
         atbroy31)
@@ -98,7 +101,7 @@ for SETTINGS in $@; do
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
-    nice $DISTPREFIX/Isabelle/bin/isatool makeall $MFLAGS all >> $TESTLOG 2>&1 
+    $NICE $DISTPREFIX/Isabelle/bin/isatool makeall $MFLAGS all >> $TESTLOG 2>&1 
 
     if [ $? -eq 0 ]
     then
