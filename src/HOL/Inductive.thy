@@ -2,13 +2,12 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-Setup packages for inductive sets and types etc.
 *)
+
+header {* Support for inductive sets and types *}
 
 theory Inductive = Gfp + Sum_Type + Relation
 files
-  ("Tools/induct_method.ML")
   ("Tools/inductive_package.ML")
   ("Tools/datatype_aux.ML")
   ("Tools/datatype_prop.ML")
@@ -18,7 +17,9 @@ files
   ("Tools/primrec_package.ML"):
 
 
-(* handling of proper rules *)
+subsection {* Proof by cases and induction *}
+
+text {* Proper handling of non-atomic rule statements. *}
 
 constdefs
   forall :: "('a => bool) => bool"
@@ -56,7 +57,26 @@ lemmas inductive_conj = forall_conj implies_conj conj_curry
 hide const forall implies equal conj
 
 
-(* inversion of injective functions *)
+text {* Method setup. *}
+
+ML {*
+  structure InductMethod = InductMethodFun
+  (struct
+    val dest_concls = HOLogic.dest_concls;
+    val cases_default = thm "case_split";
+    val conjI = thm "conjI";
+    val atomize = thms "inductive_atomize";
+    val rulify1 = thms "inductive_rulify1";
+    val rulify2 = thms "inductive_rulify2";
+  end);
+*}
+
+setup InductMethod.setup
+
+
+subsection {* Inductive sets *}
+
+text {* Inversion of injective functions. *}
 
 constdefs
   myinv :: "('a => 'b) => ('b => 'a)"
@@ -88,13 +108,21 @@ qed
 hide const myinv
 
 
-(* setup packages *)
-
-use "Tools/induct_method.ML"
-setup InductMethod.setup
+text {* Package setup. *}
 
 use "Tools/inductive_package.ML"
 setup InductivePackage.setup
+
+theorems basic_monos [mono] =
+  subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_def2
+  Collect_mono in_mono vimage_mono
+  imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
+  not_all not_ex
+  Ball_def Bex_def
+  inductive_rulify2
+
+
+subsubsection {* Inductive datatypes and primitive recursion *}
 
 use "Tools/datatype_aux.ML"
 use "Tools/datatype_prop.ML"
@@ -105,13 +133,5 @@ setup DatatypePackage.setup
 
 use "Tools/primrec_package.ML"
 setup PrimrecPackage.setup
-
-theorems basic_monos [mono] =
-  subset_refl imp_refl disj_mono conj_mono ex_mono all_mono if_def2
-  Collect_mono in_mono vimage_mono
-  imp_conv_disj not_not de_Morgan_disj de_Morgan_conj
-  not_all not_ex
-  Ball_def Bex_def
-  inductive_rulify2
 
 end
