@@ -70,9 +70,9 @@ val parts_Fake_tac =
 (*For proving the easier theorems about X ~: parts (sees lost Spy evs) *)
 fun parts_induct_tac i = SELECT_GOAL
     (DETERM (etac ns_shared.induct 1 THEN parts_Fake_tac THEN
-	     (*Fake message*)
-	     TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-					   impOfSubs Fake_parts_insert]
+             (*Fake message*)
+             TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
+                                           impOfSubs Fake_parts_insert]
                                     addss (!simpset)) 2)) THEN
      (*Base case*)
      fast_tac (!claset addss (!simpset)) 1 THEN
@@ -143,10 +143,10 @@ goal thy "!!evs. evs : ns_shared lost ==>     \
 by (parts_induct_tac 1);
 by (REPEAT_FIRST
     (fast_tac (!claset addSEs partsEs
-	               addSDs  [Says_imp_sees_Spy RS parts.Inj]
-		       addDs  [impOfSubs analz_subset_parts,
-			       impOfSubs parts_insert_subset_Un, Suc_leD]
-		       addss (!simpset))));
+                       addSDs  [Says_imp_sees_Spy RS parts.Inj]
+                       addDs  [impOfSubs analz_subset_parts,
+                               impOfSubs parts_insert_subset_Un, Suc_leD]
+                       addss (!simpset))));
 qed_spec_mp "new_nonces_not_seen";
 Addsimps [new_nonces_not_seen];
 
@@ -230,7 +230,7 @@ by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj] 1);
 by (fast_tac (!claset addEs  partsEs
                       addSDs [A_trust_NS2, Says_Server_message_form]
-		      addIs [Says_imp_old_keys]
+                      addIs [Says_imp_old_keys]
                       addss (!simpset)) 1);
 qed "Says_S_message_form";
 
@@ -342,7 +342,7 @@ by (REPEAT (etac exE 1));
 (*Duplicate the assumption*)
 by (forw_inst_tac [("psi", "ALL A.?P(A)")] asm_rl 1);
 by (fast_tac (!claset addSDs [ spec] 
-	              delrules [conjI] addss (!simpset)) 1);
+                      delrules [conjI] addss (!simpset)) 1);
 qed "unique_session_keys";
 
 
@@ -373,16 +373,16 @@ by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
 (*NS3 and Oops subcases*) (**LEVEL 7 **)
 by (step_tac (!claset delrules [impCE]) 1);
 by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 2);
-be conjE 2;
+by (etac conjE 2);
 by (mp_tac 2);
 (**LEVEL 11 **)
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trust_NS2] 2);
-ba 3;
+by (assume_tac 3);
 by (fast_tac (!claset addSEs [Says_Crypt_not_lost]) 2);
 by (fast_tac (!claset addDs [unique_session_keys] addss (!simpset)) 2);
 (*NS3*)
 by (forward_tac [Says_imp_sees_Spy RS parts.Inj RS A_trust_NS2] 1);
-ba 2;
+by (assume_tac 2);
 by (fast_tac (!claset addSEs [Says_Crypt_not_lost]) 1);
 by (fast_tac (!claset addDs [unique_session_keys] addss (!simpset)) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
@@ -460,10 +460,10 @@ by (Fast_tac 2);
 by (REPEAT_FIRST (rtac impI ORELSE' etac conjE ORELSE' hyp_subst_tac));
 (*Contradiction from the assumption   
    Crypt (Nonce NB) (newK evsa) : parts (sees lost Spy evsa) *)
-bd Crypt_imp_invKey_keysFor 1;
+by (dtac Crypt_imp_invKey_keysFor 1);
 (**LEVEL 10**)
 by (Asm_full_simp_tac 1);
-br disjI1 1;
+by (rtac disjI1 1);
 by (thin_tac "?PP-->?QQ" 1);
 by (case_tac "Ba : lost" 1);
 by (dtac Says_Crypt_lost 1 THEN assume_tac 1 THEN Fast_tac 1);
@@ -480,5 +480,5 @@ goal thy
 \           A ~: lost;  B ~: lost;  evs : ns_shared lost |]           \
 \        ==> Says B A (Crypt (Nonce NB) K) : set_of_list evs";
 by (fast_tac (!claset addSIs [lemma RS mp RS mp RS mp]
-		      addSEs [Spy_not_see_encrypted_key RSN (2, rev_notE)]) 1);
+                      addSEs [Spy_not_see_encrypted_key RSN (2, rev_notE)]) 1);
 qed "A_trust_NS4";

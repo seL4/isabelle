@@ -80,9 +80,9 @@ val parts_Fake_tac =
 (*For proving the easier theorems about X ~: parts (sees lost Spy evs) *)
 fun parts_induct_tac i = SELECT_GOAL
     (DETERM (etac yahalom.induct 1 THEN parts_Fake_tac THEN
-	     (*Fake message*)
-	     TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-					   impOfSubs Fake_parts_insert]
+             (*Fake message*)
+             TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
+                                           impOfSubs Fake_parts_insert]
                                     addss (!simpset)) 2)) THEN
      (*Base case*)
      fast_tac (!claset addss (!simpset)) 1 THEN
@@ -157,16 +157,16 @@ goal thy "!!evs. evs : yahalom lost ==> \
 \                length evs <= length evs' --> \
 \                newK evs' ~: keysFor (parts (sees lost Spy evs))";
 by (parts_induct_tac 1);
-by (dresolve_tac [YM4_Key_parts_sees_Spy] 5);
+by (dtac YM4_Key_parts_sees_Spy 5);
 (*YM1, YM2 and YM3*)
 by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,3,2]));
 (*Fake and Oops: these messages send unknown (X) components*)
 by (EVERY
     (map (fast_tac
-	  (!claset addDs [impOfSubs analz_subset_parts,
-			  impOfSubs (analz_subset_parts RS keysFor_mono),
-			  impOfSubs (parts_insert_subset_Un RS keysFor_mono),
-			  Suc_leD]
+          (!claset addDs [impOfSubs analz_subset_parts,
+                          impOfSubs (analz_subset_parts RS keysFor_mono),
+                          impOfSubs (parts_insert_subset_Un RS keysFor_mono),
+                          Suc_leD]
                    addss (!simpset))) [3,1]));
 (*YM4: if K was used then it had been seen, contradicting new_keys_not_seen*)
 by (fast_tac
@@ -307,8 +307,8 @@ by (fast_tac (!claset addIs [parts_insertI]
 by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
 (*Oops*)
 by (fast_tac (!claset delrules [disjE] 
-		      addDs [unique_session_keys]
-	              addss (!simpset)) 1);
+                      addDs [unique_session_keys]
+                      addss (!simpset)) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 
@@ -392,6 +392,6 @@ goal thy
 \                      Crypt {|Agent B, Key K, Nonce NA|} (shrK A),     \
 \                      Crypt {|Nonce NB, Key K, Agent A|} (shrK B)|}    \
 \                   : set_of_list evs";
-be (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1;
+by (etac (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1);
 by (fast_tac (!claset addSDs [B_trusts_YM4_shrK]) 1);
 qed "B_trust_YM4";

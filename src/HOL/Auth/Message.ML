@@ -664,7 +664,7 @@ goal thy
 \             Key K ~: analz G |]                                   \
 \          ==> Crypt Y K : parts G Un parts H";
 by (dtac (impOfSubs Fake_parts_insert) 1);
-ba 1;
+by (assume_tac 1);
 by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]
                       addss (!simpset)) 1);
 qed "Crypt_Fake_parts_insert";
