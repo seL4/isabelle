@@ -69,10 +69,12 @@ fun flatten_consts ((names, typ, mfix) :: cs) =
 
 (*Constructors with types and arguments*)
 fun mk_con_ty_list cons_pairs = 
-  let fun mk_con_ty (a, st, syn) =
+  let fun mk_con_ty (id, st, syn) =
 	  let val T = rdty st;
 	      val args = mk_frees "xa" (binder_types T);
-              val name = const_name a syn; (* adds "op" to infix constructors*)
+              val name = const_name id syn;
+                            (* because of mixfix annotations the internal name 
+                               can be different from 'id' *)
 	  in (name, T, args) end;
 
       fun pairtypes c = flatten_consts [c];
