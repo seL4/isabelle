@@ -13,7 +13,7 @@ val trace_mc = ref false;
 local
 
 fun termtext sign term =
-  setmp print_mode ["Eindhoven"] (Output.output o Sign.string_of_term sign) term;
+  setmp print_mode ["Eindhoven"] (Sign.string_of_term sign) term;
 
 fun call_mc s =
   execute ( "echo \"" ^ s ^ "\" | pmu -w" );

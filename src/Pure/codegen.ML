@@ -471,11 +471,11 @@ fun default_codegen thy gr dep brack t =
                         (Graph.new_node (id, (None, "")) gr'), rhs');
                    val (gr2, xs) = codegens false (gr1, args');
                    val (gr3, ty) = invoke_tycodegen thy id false (gr2, T);
-                 in Graph.map_node id (K (None, Output.output (Pretty.string_of (Pretty.block
+                 in Graph.map_node id (K (None, Pretty.string_of (Pretty.block
                    (separate (Pretty.brk 1) (if null args' then
                        [Pretty.str ("val " ^ id ^ " :"), ty]
                      else Pretty.str ("fun " ^ id) :: xs) @
-                    [Pretty.str " =", Pretty.brk 1, p, Pretty.str ";"])) ^ "\n\n"))) gr3
+                    [Pretty.str " =", Pretty.brk 1, p, Pretty.str ";"])) ^ "\n\n")) gr3
                  end, mk_app brack (Pretty.str id) ps)
              end))
 
@@ -527,7 +527,7 @@ fun gen_generate_code prep_term thy =
       space_implode "\n\n" (map (fn (s', p) => Pretty.string_of (Pretty.block
         [Pretty.str ("val " ^ s' ^ " ="), Pretty.brk 1, p, Pretty.str ";"])) ps) ^
       "\n\nend;\n\nopen Generated;\n";
-  in Output.output code end));
+  in code end));
 
 val generate_code_i = gen_generate_code (K I);
 val generate_code = gen_generate_code
@@ -581,7 +581,7 @@ fun test_term thy sz i t =
     val s = "structure TestTerm =\nstruct\n\n" ^
       setmp mode ["term_of", "test"] (generate_code_i thy)
         [("testf", list_abs_free (frees, t))] ^
-      "\n" ^ Output.output (Pretty.string_of
+      "\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
           Pretty.brk 1, Pretty.str ("(fn " ^ szname ^ " =>"), Pretty.brk 1,
           Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
@@ -601,7 +601,7 @@ fun test_term thy sz i t =
                      mk_app false (mk_term_of sg false T)
                        [Pretty.str (mk_id s)], Pretty.str ")"]]) frees)) @
                   [Pretty.str "]"])]],
-            Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"])) ^
+            Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
       "\n\nend;\n";
     val _ = use_text Context.ml_output false s;
     fun iter f k = if k > i then None

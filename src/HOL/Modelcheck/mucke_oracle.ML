@@ -487,7 +487,7 @@ end;
 fun string_of_terms sign terms =
 let fun make_string sign [] = "" |
  	make_string sign (trm::list) =
-           ((Output.output (Sign.string_of_term sign trm)) ^ "\n" ^(make_string sign list))
+           Sign.string_of_term sign trm ^ "\n" ^ make_string sign list
 in
 (setmp print_mode ["Mucke"] (make_string sign) terms)
 end;
