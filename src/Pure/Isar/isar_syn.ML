@@ -357,6 +357,12 @@ val usingP =
   OuterSyntax.command "using" "augment goal facts" K.prf_decl
     (facts >> (Toplevel.print oo (Toplevel.proof o IsarThy.using_facts)));
 
+val instantiateP =
+  OuterSyntax.command "instantiate" "instantiate locale" K.prf_decl
+    (P.name --| P.$$$ ":" -- P.xname
+(*    (P.xname -- (P.$$$ "[" |-- P.name --| P.$$$ "]") *)
+      >> (Toplevel.print oo (Toplevel.proof o IsarThy.instantiate_locale)));
+
 
 (* proof context *)
 
@@ -756,7 +762,7 @@ val parsers = [
   default_proofP, immediate_proofP, done_proofP, skip_proofP,
   forget_proofP, deferP, preferP, applyP, apply_endP, proofP, alsoP,
   finallyP, moreoverP, ultimatelyP, backP, cannot_undoP, clear_undosP,
-  redoP, undos_proofP, undoP, killP,
+  redoP, undos_proofP, undoP, killP, instantiateP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_localesP, print_localeP,

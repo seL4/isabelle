@@ -52,7 +52,8 @@ New in this Isabelle release
 
 *** Isar ***
 
-* Tactic emulation methods ?rule_tac, cut_tac, subgoal_tac and thin_tac:
+* Tactic emulation methods rule_tac, erule_tac, drule_tac, frule_tac,
+  cut_tac, subgoal_tac and thin_tac:
   - Now understand static (Isar) contexts.  As a consequence, users of Isar
     locales are no longer forced to write Isar proof scripts.
     For details see Isar Reference Manual, paragraph 4.3.2: Further tactic
@@ -79,6 +80,14 @@ New in this Isabelle release
     specification and "includes" elements in goal statement.
   - Rule sets <locale>.intro and <locale>.axioms no longer declared as
     [intro?] and [elim?] (respectively) by default.
+  - Experimental command for instantiation of locales in proof contexts:
+        instantiate <label>: <loc>
+    Instantiates locale <loc> and adds all its theorems to the current context
+    taking into account their attributes, and qualifying their names with
+    <label>.  If the locale has assumptions, a chained fact of the form
+    "<loc> t1 ... tn" is expected from which instantiations of the parameters
+    are derived.
+    A few (very simple) examples can be found in FOL/ex/LocaleInst.thy.
 
 * HOL: Tactic emulation methods induct_tac and case_tac understand static
   (Isar) contexts.

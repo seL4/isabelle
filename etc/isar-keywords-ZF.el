@@ -55,6 +55,7 @@
     "exit"
     "extract"
     "extract_type"
+    "finalconsts"
     "finally"
     "fix"
     "from"
@@ -69,6 +70,7 @@
     "inductive_cases"
     "init_toplevel"
     "instance"
+    "instantiate"
     "judgment"
     "kill"
     "kill_thy"
@@ -308,6 +310,7 @@
     "defs"
     "extract"
     "extract_type"
+    "finalconsts"
     "generate_code"
     "global"
     "hide"
@@ -393,6 +396,7 @@
 
 (defconst isar-keywords-proof-decl
   '("also"
+    "instantiate"
     "let"
     "moreover"
     "note"

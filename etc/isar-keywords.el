@@ -73,6 +73,7 @@
     "inductive_cases"
     "init_toplevel"
     "instance"
+    "instantiate"
     "judgment"
     "kill"
     "kill_thy"
@@ -429,6 +430,7 @@
 
 (defconst isar-keywords-proof-decl
   '("also"
+    "instantiate"
     "let"
     "moreover"
     "note"

@@ -44,6 +44,7 @@ FOL-ex: FOL $(LOG)/FOL-ex.gz
 
 $(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy \
   ex/If.thy ex/IffOracle.ML ex/IffOracle.thy ex/List.ML ex/List.thy	\
+  ex/LocaleInst.thy \
   ex/Nat.ML ex/Nat.thy ex/Nat2.ML ex/Nat2.thy ex/Natural_Numbers.thy	\
   ex/Prolog.ML ex/Prolog.thy ex/ROOT.ML ex/Classical.thy ex/document/root.tex\
   ex/foundn.ML ex/Intuitionistic.thy ex/intro.ML ex/prop.ML ex/quant.ML

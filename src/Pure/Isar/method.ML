@@ -368,7 +368,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
 	val params = Logic.strip_params Bi
 			     (* params of subgoal i as string typ pairs *)
 	val params = rev(Term.rename_wrt_term Bi params)
-						 (* as they are printed *)
+			   (* as they are printed: bound variables with *)
+                           (* the same name are renamed during printing *)
         fun types' (a, ~1) = (case assoc (params, a) of
                 None => types (a, ~1)
               | some => some)

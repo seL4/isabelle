@@ -174,7 +174,8 @@ val xname = group "name reference" (short_ident || long_ident || sym_ident || st
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 
 val uname = underscore >> K None || name >> Some;
-
+  (* CB: underscore yields None, any other name Some with that string.
+     Used, for example, in the renaming of locale parameters.  *)
 
 (* sorts and arities *)
 

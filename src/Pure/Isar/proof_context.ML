@@ -160,9 +160,17 @@ datatype context =
       ((cterm list * exporter) list *                         (*assumes: A ==> _*)
         (string * thm list) list) *
       (string * string) list,                                 (*fixes: !!x. _*)
+    (* CB: asms is of the form ((asms, prems), fixed) *)
     binds: (term * typ) option Vartab.table,                  (*term bindings*)
     thms: bool * NameSpace.T * thm list option Symtab.table
       * FactIndex.T,                                          (*local thms*)
+    (* CB: thms is of the form (q, n, t, i) where
+       q: indicates whether theorems with qualified names may be stored;
+          this is initially forbidden (false); flag may be changed with
+          qualified and restore_qualified;
+       n: theorem namespace;
+       t: table of theorems;
+       i: index for theorem lookup (find theorem command) *) 
     cases: (string * RuleCases.T) list,                       (*local contexts*)
     defs:
       typ Vartab.table *                                      (*type constraints*)
@@ -1214,6 +1222,8 @@ val fix_direct = gen_fix cert_vars add_vars_direct;
 fun add_fixes decls = add_syntax decls o fix_direct (map prep_type decls);
 
 end;
+
+(* CB: fix free variables occuring in ts, unless already fixed. *)
 
 fun fix_frees ts ctxt =
   let
