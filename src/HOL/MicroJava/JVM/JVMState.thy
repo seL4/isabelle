@@ -8,7 +8,7 @@
 header {* State of the JVM *}
 
 
-theory JVMState = Store:
+theory JVMState = Conform:
 
 
 text {* frame stack :*}
