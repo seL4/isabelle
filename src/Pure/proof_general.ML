@@ -134,6 +134,7 @@ fun setup_messages () =
 fun tell_clear_goals () = notify "Proof General, please clear the goals buffer.";
 fun tell_clear_response () = notify "Proof General, please clear the response buffer.";
 fun tell_file msg path = notify ("Proof General, " ^ msg ^ " " ^ quote (File.sysify_path path));
+val tell_unlock = tell_file "you can unlock the file";
 
 end;
 
@@ -204,7 +205,7 @@ fun trace_action action name =
   if action = ThyInfo.Update then
     seq (tell_file "this file is loaded:") (ThyInfo.loaded_files name)
   else if action = ThyInfo.Outdate orelse action = ThyInfo.Remove then
-    seq (tell_file "you can unlock the file") (add_master_files name (ThyInfo.loaded_files name))
+    seq tell_unlock (add_master_files name (ThyInfo.loaded_files name))
   else ();
 
 in
@@ -215,7 +216,7 @@ end;
 
 (* prepare theory context *)
 
-val thy_name = Path.pack o Path.drop_ext o Path.base o Path.unpack;
+val thy_name = Path.pack o #1 o Path.split_ext o Path.base o Path.unpack;
 val update_thy_only = setmp MetaSimplifier.trace_simp false ThyInfo.update_thy_only;
 
 fun which_context () =
@@ -239,12 +240,17 @@ val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_
 
 fun proper_inform_file_processed file state =
   let val name = thy_name file in
-    ThyInfo.if_known_thy ThyInfo.touch_child_thys name;
-    if not (Toplevel.is_toplevel state) then
-      warning ("Not at toplevel -- cannot register theory " ^ quote name)
-    else transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
-      (warning msg; warning ("Failed to register theory " ^ quote name))
+    if Toplevel.is_toplevel state andalso ThyInfo.known_thy name then
+     (ThyInfo.touch_child_thys name;
+      transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
+       (warning msg; warning ("Failed to register theory: " ^ quote name);
+        tell_unlock (Path.base (Path.unpack file))))
+    else raise Toplevel.UNDEF
   end;
+
+fun vacuous_inform_file_processed file state =
+ (warning ("No theory " ^ quote (thy_name file));
+  tell_unlock (Path.base (Path.unpack file)));
 
 
 (* options *)
@@ -423,13 +429,15 @@ val kill_proofP =
 
 val inform_file_processedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
-    (P.name >> (Toplevel.no_timing oo
-      (fn name => Toplevel.keep (proper_inform_file_processed name))));
+    (P.name >> (fn file => Toplevel.no_timing o
+      Toplevel.keep (vacuous_inform_file_processed file) o
+      Toplevel.kill o
+      Toplevel.keep (proper_inform_file_processed file)));
 
 val inform_file_retractedP =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
     (P.name >> (Toplevel.no_timing oo
-      (fn name => Toplevel.imperative (fn () => inform_file_retracted name))));
+      (fn file => Toplevel.imperative (fn () => inform_file_retracted file))));
 
 val process_pgipP =
   OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" K.control
