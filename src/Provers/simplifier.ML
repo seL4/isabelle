@@ -161,7 +161,7 @@ fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac})
 fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac})
     addsimps rews =
   let val rews' = flat (map (Thm.mk_rews_of_mss mss) rews) in
-    make_ss (Thm.add_simps (mss, rews'), rews' @ simps,
+    make_ss (Thm.add_simps (mss, rews'), gen_union eq_thm (rews', simps),
       procs, congs, subgoal_tac, finish_tac, loop_tac)
   end;
 
@@ -176,7 +176,8 @@ fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac})
 fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac})
     addeqcongs newcongs =
   make_ss (Thm.add_congs (mss, newcongs),
-    simps, procs, newcongs @ congs, subgoal_tac, finish_tac, loop_tac);
+    simps, procs, gen_union eq_thm (newcongs, congs),
+    subgoal_tac, finish_tac, loop_tac);
 
 fun addsimproc ((Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac}),
       simproc as Simproc {name = _, procs = procs'}) =
