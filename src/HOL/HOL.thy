@@ -380,6 +380,18 @@ lemma all_simps:
   -- {* Miniscoping: pushing in universal quantifiers. *}
   by (rules | blast)+
 
+lemma disj_absorb: "(A | A) = A"
+  by blast
+
+lemma disj_left_absorb: "(A | (A | B)) = (A | B)"
+  by blast
+
+lemma conj_absorb: "(A & A) = A"
+  by blast
+
+lemma conj_left_absorb: "(A & (A & B)) = (A & B)"
+  by blast
+
 lemma eq_ac:
   shows eq_commute: "(a=b) = (b=a)"
     and eq_left_commute: "(P=(Q=R)) = (Q=(P=R))"
@@ -514,10 +526,14 @@ lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
 lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) rules
 lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) rules
 
+subsubsection {* Actual Installation of the Simplifier *}
+
 use "simpdata.ML"
 setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
+
+declare disj_absorb [simp] conj_absorb [simp] 
 
 lemma ex1_eq[iff]: "EX! x. x = t" "EX! x. t = x"
 by blast+
