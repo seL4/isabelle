@@ -43,7 +43,8 @@ fun get_consumes thm =
     | _ => err ())
   end;
 
-fun put_consumes n = Drule.tag_rule (consumes_tagN, [Library.string_of_int n]);
+fun put_consumes n =
+  Drule.tag_rule (consumes_tagN, [Library.string_of_int n]) o Drule.untag_rule consumes_tagN;
 val save_consumes = put_consumes o get_consumes;
 
 fun consumes n x = Drule.rule_attribute (K (put_consumes n)) x;
