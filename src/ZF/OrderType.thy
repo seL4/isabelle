@@ -17,6 +17,7 @@ consts
 
   "**"      :: "[i,i]=>i"           (infixl 70)
   "++"      :: "[i,i]=>i"           (infixl 65)
+  "--"      :: "[i,i]=>i"           (infixl 65)
  
 
 defs
@@ -33,5 +34,8 @@ defs
 
   (*ordinal addition*)
   oadd_def      "i ++ j == ordertype(i+j, radd(i,Memrel(i),j,Memrel(j)))"
+
+  (*ordinal subtraction*)
+  odiff_def     "i -- j == ordertype(i-j, Memrel(i))"
 
 end
