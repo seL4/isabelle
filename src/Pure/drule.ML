@@ -590,10 +590,6 @@ val equal_intr_rule =
 
 (*(PROP ?phi ==> (!!x. PROP ?psi(x))) == (!!x. PROP ?phi ==> PROP ?psi(x))
   Rewrite rule for HHF normalization.
-
-  Note: the syntax of ProtoPure is insufficient to handle this
-  statement; storing it would be asking for trouble, e.g. when someone
-  tries to print the theory later.
 *)
 
 val norm_hhf_eq =
