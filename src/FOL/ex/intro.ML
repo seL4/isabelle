@@ -32,7 +32,7 @@ by (REPEAT (assume_tac 1));
 result();
 
 (*Correct version, delaying use of "spec" until last*)
-goal FOL.thy "(ALL x y.P(x,y))  -->  (ALL z w.P(w,z))";
+goal FOL.thy "(ALL x y. P(x,y))  -->  (ALL z w. P(w,z))";
 by (rtac impI 1);
 by (rtac allI 1);
 by (rtac allI 1);

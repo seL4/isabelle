@@ -32,7 +32,7 @@ let
 val lift =
   let val ct = read_cterm (#sign(rep_thm iffD))
            ("[| !!x::'b::logic. Q(x) == R(x) |] ==> \
-            \P(%x.Q(x)) == P(%x.R(x))::'a::logic",propT)
+            \P(%x. Q(x)) == P(%x. R(x))::'a::logic",propT)
   in prove_goalw_cterm [] ct
      (fn [prem] => [rewtac prem, rtac reflexive_thm 1])
   end;

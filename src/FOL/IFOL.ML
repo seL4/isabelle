@@ -26,12 +26,12 @@ qed_goal "impE" IFOL.thy
  (fn prems=> [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
 
 qed_goal "allE" IFOL.thy 
-    "[| ALL x.P(x); P(x) ==> R |] ==> R"
+    "[| ALL x. P(x); P(x) ==> R |] ==> R"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[spec]) 1)) ]);
 
 (*Duplicates the quantifier; for use with eresolve_tac*)
 qed_goal "all_dupE" IFOL.thy 
-    "[| ALL x.P(x);  [| P(x); ALL x.P(x) |] ==> R \
+    "[| ALL x. P(x);  [| P(x); ALL x. P(x) |] ==> R \
 \    |] ==> R"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[spec]) 1)) ]);
 
@@ -126,12 +126,12 @@ qed_goalw "ex1I" IFOL.thy [ex1_def]
 
 (*Sometimes easier to use: the premises have no shared variables.  Safe!*)
 qed_goal "ex_ex1I" IFOL.thy
-    "[| EX x.P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)"
+    "[| EX x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)"
  (fn [ex,eq] => [ (rtac (ex RS exE) 1),
                   (REPEAT (ares_tac [ex1I,eq] 1)) ]);
 
 qed_goalw "ex1E" IFOL.thy [ex1_def]
-    "[| EX! x.P(x);  !!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R |] ==> R"
+    "[| EX! x. P(x);  !!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R |] ==> R"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT (eresolve_tac [exE,conjE] 1 ORELSE ares_tac prems 1)) ]);
@@ -194,21 +194,21 @@ qed_goal "not_cong" IFOL.thy
       ORELSE  eresolve_tac [iffE,notE] 1)) ]);
 
 qed_goal "all_cong" IFOL.thy 
-    "(!!x.P(x) <-> Q(x)) ==> (ALL x.P(x)) <-> (ALL x.Q(x))"
+    "(!!x. P(x) <-> Q(x)) ==> (ALL x. P(x)) <-> (ALL x. Q(x))"
  (fn prems =>
   [ (REPEAT   (ares_tac [iffI,allI] 1
       ORELSE   mp_tac 1
       ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ]);
 
 qed_goal "ex_cong" IFOL.thy 
-    "(!!x.P(x) <-> Q(x)) ==> (EX x.P(x)) <-> (EX x.Q(x))"
+    "(!!x. P(x) <-> Q(x)) ==> (EX x. P(x)) <-> (EX x. Q(x))"
  (fn prems =>
   [ (REPEAT   (etac exE 1 ORELSE ares_tac [iffI,exI] 1
       ORELSE   mp_tac 1
       ORELSE   iff_tac prems 1)) ]);
 
 qed_goal "ex1_cong" IFOL.thy 
-    "(!!x.P(x) <-> Q(x)) ==> (EX! x.P(x)) <-> (EX! x.Q(x))"
+    "(!!x. P(x) <-> Q(x)) ==> (EX! x. P(x)) <-> (EX! x. Q(x))"
  (fn prems =>
   [ (REPEAT   (eresolve_tac [ex1E, spec RS mp] 1 ORELSE ares_tac [iffI,ex1I] 1
       ORELSE   mp_tac 1
@@ -231,7 +231,7 @@ fun stac th = CHANGED o rtac (th RS ssubst);
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 qed_goal "ex1_equalsE" IFOL.thy
-    "[| EX! x.P(x);  P(a);  P(b) |] ==> a=b"
+    "[| EX! x. P(x);  P(a);  P(b) |] ==> a=b"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (etac ex1E 1),
@@ -352,13 +352,13 @@ qed_goal "iff_impE" IFOL.thy
 
 (*What if (ALL x.~~P(x)) --> ~~(ALL x.P(x)) is an assumption? UNSAFE*)
 qed_goal "all_impE" IFOL.thy 
-    "[| (ALL x.P(x))-->S;  !!x.P(x);  S ==> R |] ==> R"
+    "[| (ALL x. P(x))-->S;  !!x. P(x);  S ==> R |] ==> R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([allI, impI, major RS mp]@prems) 1)) ]);
 
 (*Unsafe: (EX x.P(x))-->S  is equivalent to  ALL x.P(x)-->S.  *)
 qed_goal "ex_impE" IFOL.thy 
-    "[| (EX x.P(x))-->S;  P(x)-->S ==> R |] ==> R"
+    "[| (EX x. P(x))-->S;  P(x)-->S ==> R |] ==> R"
  (fn major::prems=>
   [ (REPEAT (ares_tac ([exI, impI, major RS mp]@prems) 1)) ]);
 

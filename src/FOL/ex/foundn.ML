@@ -99,7 +99,7 @@ getgoal 1;
 
 
 (*Parallel lifting example. *)
-goal IFOL.thy "EX u.ALL x.EX v.ALL y.EX w. P(u,x,v,y,w)";
+goal IFOL.thy "EX u. ALL x. EX v. ALL y. EX w. P(u,x,v,y,w)";
 by (resolve_tac [exI, allI] 1);
 by (resolve_tac [exI, allI] 1);
 by (resolve_tac [exI, allI] 1);
@@ -108,7 +108,7 @@ by (resolve_tac [exI, allI] 1);
 
 
 val prems =
-goal IFOL.thy "(EX z.F(z)) & B ==> (EX z. F(z) & B)";
+goal IFOL.thy "(EX z. F(z)) & B ==> (EX z. F(z) & B)";
 by (rtac conjE 1);
 by (resolve_tac prems 1);
 by (rtac exE 1);

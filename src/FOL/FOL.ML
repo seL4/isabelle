@@ -22,14 +22,14 @@ qed_goal "disjCI" FOL.thy
 
 (*introduction rule involving only EX*)
 qed_goal "ex_classical" FOL.thy 
-   "( ~(EX x. P(x)) ==> P(a)) ==> EX x.P(x)"
+   "( ~(EX x. P(x)) ==> P(a)) ==> EX x. P(x)"
  (fn prems=>
   [ (rtac classical 1),
     (eresolve_tac (prems RL [exI]) 1) ]);
 
 (*version of above, simplifying ~EX to ALL~ *)
 qed_goal "exCI" FOL.thy 
-   "(ALL x. ~P(x) ==> P(a)) ==> EX x.P(x)"
+   "(ALL x. ~P(x) ==> P(a)) ==> EX x. P(x)"
  (fn [prem]=>
   [ (rtac ex_classical 1),
     (resolve_tac [notI RS allI RS prem] 1),

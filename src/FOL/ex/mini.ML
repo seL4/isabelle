@@ -26,8 +26,8 @@ val demorgans = map prove_fun
                   ["~(P&Q) <-> ~P | ~Q",
                    "~(P|Q) <-> ~P & ~Q",
                    "~~P <-> P",
-                   "~(ALL x.P(x)) <-> (EX x. ~P(x))",
-                   "~(EX x.P(x)) <-> (ALL x. ~P(x))"];
+                   "~(ALL x. P(x)) <-> (EX x. ~P(x))",
+                   "~(EX x. P(x)) <-> (ALL x. ~P(x))"];
 
 (*** Removal of --> and <-> (positive and negative occurrences) ***)
 (*Last one is important for computing a compact CNF*)
@@ -43,21 +43,21 @@ val nnf_simps = map prove_fun
 
 val ex_simps = map prove_fun 
                 ["(EX x. P) <-> P",
-                 "(EX x. P(x) & Q) <-> (EX x.P(x)) & Q",
-                 "(EX x. P & Q(x)) <-> P & (EX x.Q(x))",
-                 "(EX x. P(x) | Q(x)) <-> (EX x.P(x)) | (EX x.Q(x))",
-                 "(EX x. P(x) | Q) <-> (EX x.P(x)) | Q",
-                 "(EX x. P | Q(x)) <-> P | (EX x.Q(x))"];
+                 "(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
+                 "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
+                 "(EX x. P(x) | Q(x)) <-> (EX x. P(x)) | (EX x. Q(x))",
+                 "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
+                 "(EX x. P | Q(x)) <-> P | (EX x. Q(x))"];
 
 (*** Pushing in the universal quantifiers ***)
 
 val all_simps = map prove_fun
                 ["(ALL x. P) <-> P",
-                 "(ALL x. P(x) & Q(x)) <-> (ALL x.P(x)) & (ALL x.Q(x))",
-                 "(ALL x. P(x) & Q) <-> (ALL x.P(x)) & Q",
-                 "(ALL x. P & Q(x)) <-> P & (ALL x.Q(x))",
-                 "(ALL x. P(x) | Q) <-> (ALL x.P(x)) | Q",
-                 "(ALL x. P | Q(x)) <-> P | (ALL x.Q(x))"];
+                 "(ALL x. P(x) & Q(x)) <-> (ALL x. P(x)) & (ALL x. Q(x))",
+                 "(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
+                 "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
+                 "(ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
+                 "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"];
 
 
 val mini_ss=FOL_basic_ss addsimps (demorgans @ nnf_simps @ ex_simps @ all_simps);

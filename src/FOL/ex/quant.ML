@@ -9,40 +9,40 @@ Needs declarations of the theory "thy" and the tactic "tac"
 
 writeln"File FOL/ex/quant.";
 
-goal thy "(ALL x y.P(x,y))  -->  (ALL y x.P(x,y))";
+goal thy "(ALL x y. P(x,y))  -->  (ALL y x. P(x,y))";
 by tac;
 result();  
 
 
-goal thy "(EX x y.P(x,y)) --> (EX y x.P(x,y))";
+goal thy "(EX x y. P(x,y)) --> (EX y x. P(x,y))";
 by tac;
 result();  
 
 
 (*Converse is false*)
-goal thy "(ALL x.P(x)) | (ALL x.Q(x)) --> (ALL x. P(x) | Q(x))";
+goal thy "(ALL x. P(x)) | (ALL x. Q(x)) --> (ALL x. P(x) | Q(x))";
 by tac;
 result();  
 
-goal thy "(ALL x. P-->Q(x))  <->  (P--> (ALL x.Q(x)))";
+goal thy "(ALL x. P-->Q(x))  <->  (P--> (ALL x. Q(x)))";
 by tac;
 result();  
 
 
-goal thy "(ALL x.P(x)-->Q)  <->  ((EX x.P(x)) --> Q)";
+goal thy "(ALL x. P(x)-->Q)  <->  ((EX x. P(x)) --> Q)";
 by tac;
 result();  
 
 
 writeln"Some harder ones";
 
-goal thy "(EX x. P(x) | Q(x)) <-> (EX x.P(x)) | (EX x.Q(x))";
+goal thy "(EX x. P(x) | Q(x)) <-> (EX x. P(x)) | (EX x. Q(x))";
 by tac;
 result();  
 (*6 secs*)
 
 (*Converse is false*)
-goal thy "(EX x. P(x)&Q(x)) --> (EX x.P(x))  &  (EX x.Q(x))";
+goal thy "(EX x. P(x)&Q(x)) --> (EX x. P(x))  &  (EX x. Q(x))";
 by tac;
 result();  
 
@@ -70,26 +70,26 @@ goal thy "(EX x. Q(x))  -->  (ALL x. Q(x))";
 by tac handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal thy "P(?a) --> (ALL x.P(x))";
+goal thy "P(?a) --> (ALL x. P(x))";
 by tac handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1;  
 
 goal thy
-    "(P(?a) --> (ALL x.Q(x))) --> (ALL x. P(x) --> Q(x))";
+    "(P(?a) --> (ALL x. Q(x))) --> (ALL x. P(x) --> Q(x))";
 by tac handle ERROR => writeln"Failed, as expected";
 getgoal 1;  
 
 
 writeln"Back to things that are provable...";
 
-goal thy "(ALL x.P(x)-->Q(x)) & (EX x.P(x)) --> (EX x.Q(x))";
+goal thy "(ALL x. P(x)-->Q(x)) & (EX x. P(x)) --> (EX x. Q(x))";
 by tac;  
 result();  
 
 
 (*An example of why exI should be delayed as long as possible*)
-goal thy "(P --> (EX x.Q(x))) & P --> (EX x.Q(x))";
+goal thy "(P --> (EX x. Q(x))) & P --> (EX x. Q(x))";
 by tac;  
 result();  
 

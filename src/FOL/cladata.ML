@@ -25,7 +25,7 @@ open Cla;
 
 (*Better for fast_tac: needs no quantifier duplication!*)
 qed_goal "alt_ex1E" IFOL.thy
-    "[| EX! x.P(x);                                              \
+    "[| EX! x. P(x);                                              \
 \       !!x. [| P(x);  ALL y y'. P(y) & P(y') --> y=y' |] ==> R  \
 \    |] ==> R"
  (fn major::prems =>

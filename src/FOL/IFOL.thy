@@ -96,11 +96,11 @@ rules
 
   (* Quantifiers *)
 
-  allI          "(!!x. P(x)) ==> (ALL x.P(x))"
-  spec          "(ALL x.P(x)) ==> P(x)"
+  allI          "(!!x. P(x)) ==> (ALL x. P(x))"
+  spec          "(ALL x. P(x)) ==> P(x)"
 
-  exI           "P(x) ==> (EX x.P(x))"
-  exE           "[| EX x.P(x);  !!x. P(x) ==> R |] ==> R"
+  exI           "P(x) ==> (EX x. P(x))"
+  exE           "[| EX x. P(x);  !!x. P(x) ==> R |] ==> R"
 
   (* Reflection *)
 

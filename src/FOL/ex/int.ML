@@ -211,11 +211,11 @@ writeln"****Examples with quantifiers****";
 
 writeln"The converse is classical in the following implications...";
 
-goal IFOL.thy "(EX x.P(x)-->Q)  -->  (ALL x.P(x)) --> Q";
+goal IFOL.thy "(EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOL.thy "((ALL x.P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)";
+goal IFOL.thy "((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)";
 by (IntPr.fast_tac 1); 
 result();  
 
@@ -223,7 +223,7 @@ goal IFOL.thy "((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))";
 by (IntPr.fast_tac 1); 
 result();  
 
-goal IFOL.thy "(ALL x.P(x)) | Q  -->  (ALL x. P(x) | Q)";
+goal IFOL.thy "(ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)";
 by (IntPr.fast_tac 1); 
 result();  
 
@@ -237,15 +237,15 @@ result();
 writeln"The following are not constructively valid!";
 (*The attempt to prove them terminates quickly!*)
 
-goal IFOL.thy "((ALL x.P(x))-->Q) --> (EX x.P(x)-->Q)";
+goal IFOL.thy "((ALL x. P(x))-->Q) --> (EX x. P(x)-->Q)";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal IFOL.thy "(P --> (EX x.Q(x))) --> (EX x. P-->Q(x))";
+goal IFOL.thy "(P --> (EX x. Q(x))) --> (EX x. P-->Q(x))";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
-goal IFOL.thy "(ALL x. P(x) | Q) --> ((ALL x.P(x)) | Q)";
+goal IFOL.thy "(ALL x. P(x) | Q) --> ((ALL x. P(x)) | Q)";
 by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";  
 getgoal 1; 
 
@@ -294,7 +294,7 @@ result();
 
 writeln"Problem 24";
 goal IFOL.thy "~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    (~(EX x.P(x)) --> (EX x.Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
+\    (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> ~~(EX x. P(x)&R(x))";
 (*Not clear why fast_tac, best_tac, ASTAR and ITER_DEEPEN all take forever*)
 by IntPr.safe_tac; 
@@ -330,7 +330,7 @@ result();
 writeln"Problem ~~28.  AMENDED";
 goal IFOL.thy "(ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       (~~(ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &  \
-\       (~~(EX x.S(x)) --> (ALL x. L(x) --> M(x)))  \
+\       (~~(EX x. S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
 by (IntPr.fast_tac 1);  (*48 secs*)
 result();
@@ -350,7 +350,7 @@ by (IntPr.fast_tac 1);
 result();
 
 writeln"Problem 31";
-goal IFOL.thy "~(EX x.P(x) & (Q(x) | R(x))) & \
+goal IFOL.thy "~(EX x. P(x) & (Q(x) | R(x))) & \
 \       (EX x. L(x) & P(x)) & \
 \       (ALL x. ~ R(x) --> M(x))  \
 \   --> (EX x. L(x) & M(x))";
@@ -384,7 +384,7 @@ result();
 writeln"Problem 37";
 goal IFOL.thy
        "(ALL z. EX w. ALL x. EX y. \
-\          ~~(P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u.Q(u,w)))) & \
+\          ~~(P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u. Q(u,w)))) & \
 \       (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) & \
 \       (~~(EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
 \   --> ~~(ALL x. EX y. R(x,y))";

@@ -42,7 +42,7 @@ val iff_simps = map int_prove_fun
   "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
 
 val quant_simps = map int_prove_fun
- ["(ALL x.P) <-> P",    "(EX x.P) <-> P"];
+ ["(ALL x. P) <-> P",    "(EX x. P) <-> P"];
 
 (*These are NOT supplied by default!*)
 val distrib_simps  = map int_prove_fun
@@ -103,23 +103,23 @@ val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
 val ex_simps = map prove_fun 
                 ["(EX x. x=t & P(x)) <-> P(t)",
                  "(EX x. t=x & P(x)) <-> P(t)",
-                 "(EX x. P(x) & Q) <-> (EX x.P(x)) & Q",
-                 "(EX x. P & Q(x)) <-> P & (EX x.Q(x))",
-                 "(EX x. P(x) | Q) <-> (EX x.P(x)) | Q",
-                 "(EX x. P | Q(x)) <-> P | (EX x.Q(x))",
-                 "(EX x. P(x) --> Q) <-> (ALL x.P(x)) --> Q",
-                 "(EX x. P --> Q(x)) <-> P --> (EX x.Q(x))"];
+                 "(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
+                 "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
+                 "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
+                 "(EX x. P | Q(x)) <-> P | (EX x. Q(x))",
+                 "(EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
+                 "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
 
 (*Miniscoping: pushing in universal quantifiers*)
 val all_simps = map prove_fun
                 ["(ALL x. x=t --> P(x)) <-> P(t)",
                  "(ALL x. t=x --> P(x)) <-> P(t)",
-                 "(ALL x. P(x) & Q) <-> (ALL x.P(x)) & Q",
-                 "(ALL x. P & Q(x)) <-> P & (ALL x.Q(x))",
-                 "(ALL x. P(x) | Q) <-> (ALL x.P(x)) | Q",
-                 "(ALL x. P | Q(x)) <-> P | (ALL x.Q(x))",
-                 "(ALL x. P(x) --> Q) <-> (EX x.P(x)) --> Q",
-                 "(ALL x. P --> Q(x)) <-> P --> (ALL x.Q(x))"];
+                 "(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
+                 "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
+                 "(ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
+                 "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))",
+                 "(ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
+                 "(ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"];
 
 fun int_prove nm thm  = qed_goal nm IFOL.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
@@ -150,9 +150,9 @@ prove     "de_Morgan_conj" "(~(P & Q)) <-> (~P | ~Q)";
 
 prove     "not_iff" "~(P <-> Q) <-> (P <-> ~Q)";
 
-prove     "not_all" "(~ (ALL x.P(x))) <-> (EX x.~P(x))";
-prove     "imp_all" "((ALL x.P(x)) --> Q) <-> (EX x.P(x) --> Q)";
-int_prove "not_ex"  "(~ (EX x.P(x))) <-> (ALL x.~P(x))";
+prove     "not_all" "(~ (ALL x. P(x))) <-> (EX x.~P(x))";
+prove     "imp_all" "((ALL x. P(x)) --> Q) <-> (EX x. P(x) --> Q)";
+int_prove "not_ex"  "(~ (EX x. P(x))) <-> (ALL x.~P(x))";
 int_prove "imp_ex" "((EX x. P(x)) --> Q) <-> (ALL x. P(x) --> Q)";
 
 int_prove "ex_disj_distrib"

@@ -127,22 +127,22 @@ goal FOL.thy "(ALL x. P(x) & Q(x)) <-> (ALL x. P(x))  &  (ALL x. Q(x))";
 by (Blast_tac 1);
 result(); 
 
-goal FOL.thy "(EX x. P-->Q(x))  <->  (P --> (EX x.Q(x)))";
+goal FOL.thy "(EX x. P-->Q(x))  <->  (P --> (EX x. Q(x)))";
 by (Blast_tac 1);
 result(); 
 
-goal FOL.thy "(EX x.P(x)-->Q)  <->  (ALL x.P(x)) --> Q";
+goal FOL.thy "(EX x. P(x)-->Q)  <->  (ALL x. P(x)) --> Q";
 by (Blast_tac 1);
 result(); 
 
-goal FOL.thy "(ALL x.P(x)) | Q  <->  (ALL x. P(x) | Q)";
+goal FOL.thy "(ALL x. P(x)) | Q  <->  (ALL x. P(x) | Q)";
 by (Blast_tac 1);
 result(); 
 
 (*Discussed in Avron, Gentzen-Type Systems, Resolution and Tableaux,
   JAR 10 (265-281), 1993.  Proof is trivial!*)
 goal FOL.thy
-    "~ ((EX x.~P(x)) & ((EX x.P(x)) | (EX x.P(x) & Q(x))) & ~ (EX x.P(x)))";
+    "~ ((EX x.~P(x)) & ((EX x. P(x)) | (EX x. P(x) & Q(x))) & ~ (EX x. P(x)))";
 by (Blast_tac 1);
 result();
 
@@ -207,7 +207,7 @@ result();
 
 writeln"Problem 24";
 goal FOL.thy "~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    (~(EX x.P(x)) --> (EX x.Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
+\    (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> (EX x. P(x)&R(x))";
 by (Blast_tac 1); 
 result();
@@ -240,7 +240,7 @@ result();
 writeln"Problem 28.  AMENDED";
 goal FOL.thy "(ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       ((ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &  \
-\       ((EX x.S(x)) --> (ALL x. L(x) --> M(x)))  \
+\       ((EX x. S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
 by (Blast_tac 1);  
 result();
@@ -260,7 +260,7 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 31";
-goal FOL.thy "~(EX x.P(x) & (Q(x) | R(x))) & \
+goal FOL.thy "~(EX x. P(x) & (Q(x) | R(x))) & \
 \       (EX x. L(x) & P(x)) & \
 \       (ALL x. ~ R(x) --> M(x))  \
 \   --> (EX x. L(x) & M(x))";
@@ -306,7 +306,7 @@ result();
 
 writeln"Problem 37";
 goal FOL.thy "(ALL z. EX w. ALL x. EX y. \
-\          (P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u.Q(u,w)))) & \
+\          (P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u. Q(u,w)))) & \
 \       (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) & \
 \       ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
 \   --> (ALL x. EX y. R(x,y))";
@@ -385,7 +385,7 @@ writeln"Problem 49  NOT PROVED AUTOMATICALLY";
 (*Hard because it involves substitution for Vars;
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
 goal FOL.thy "(EX x y::'a. ALL z. z=x | z=y) & P(a) & P(b) & a~=b \
-\               --> (ALL u::'a.P(u))";
+\               --> (ALL u::'a. P(u))";
 by Safe_tac;
 by (res_inst_tac [("x","a")] allE 1);
 by (assume_tac 1);
@@ -396,7 +396,7 @@ result();
 
 writeln"Problem 50";  
 (*What has this to do with equality?*)
-goal FOL.thy "(ALL x. P(a,x) | (ALL y.P(x,y))) --> (EX x. ALL y.P(x,y))";
+goal FOL.thy "(ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))";
 by (Blast_tac 1);
 result();
 
