@@ -69,8 +69,11 @@ example, some arguments can be simplified under additional assumptions:
 \]
 Given this rule, the simplifier assumes $Q@1$ and extracts rewrite rules
 from it when simplifying~$P@2$.  Such local assumptions are effective for
-rewriting formulae such as $x=0\imp y+x=y$.  The congruence rule for bounded
-quantifiers can also supply contextual information:
+rewriting formulae such as $x=0\imp y+x=y$.  The local assumptions are also
+provided as theorems to the solver; see page~\pageref{sec:simp-solver} below.
+
+Here are some more examples.  The congruence rule for bounded quantifiers
+also supplies contextual information, this time about the bound variable:
 \begin{eqnarray*}
   &&\List{\Var{A}=\Var{B};\; 
           \Forall x. x\in \Var{B} \Imp \Var{P}(x) = \Var{Q}(x)} \Imp{} \\
@@ -83,8 +86,7 @@ information for simplifying the arms:
          \neg\Var{q} \Imp \Var{b}=\Var{d}} \Imp
    if(\Var{p},\Var{a},\Var{b}) \equiv if(\Var{q},\Var{c},\Var{d})
 \]
-
-A congruence rule can also suppress simplification of certain arguments.
+A congruence rule can also {\em prevent\/} simplification of some arguments.
 Here is an alternative congruence rule for conditional expressions:
 \[ \Var{p}=\Var{q} \Imp
    if(\Var{p},\Var{a},\Var{b}) \equiv if(\Var{q},\Var{a},\Var{b})
@@ -121,7 +123,7 @@ tries to solve the subgoal by assumption or with one of the premises, calling
 simplification only if that fails; here {\tt prems_of_ss} extracts the
 current premises from a simpset.
 
-\subsection{*The solver}
+\subsection{*The solver}\label{sec:simp-solver}
 The solver is a tactic that attempts to solve a subgoal after
 simplification.  Typically it just proves trivial subgoals such as {\tt
   True} and $t=t$.  It could use sophisticated means such as {\tt
@@ -157,8 +159,8 @@ theorem $\neg False$.
 \begin{warn}
   If the simplifier aborts with the message {\tt Failed congruence proof!},
   then the subgoaler or solver has failed to prove a premise of a
-  congruence rule.  This should never occur and indicates that the
-  subgoaler or solver is faulty.
+  congruence rule.  This should never occur; it indicates that some
+  congruence rule, or possibly the subgoaler or solver, is faulty.
 \end{warn}
 
 
