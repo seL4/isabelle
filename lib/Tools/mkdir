@@ -12,14 +12,15 @@ PRG=$(basename $0)
 function usage()
 {
   echo
-  echo "Usage: $PRG LOGIC NAME"
+  echo "Usage: $PRG [LOGIC] NAME"
   echo
   echo "  Options are:"
   echo "    -b           setup build mode (session outputs heap image)"
   echo "    -d           setup document"
   echo "    -p           include parent logic target"
   echo
-  echo "  Prepare logic session directory, including IsaMakefile, document etc."
+  echo "  Prepare session directory, including IsaMakefile, document etc."
+  echo "  with parent LOGIC (default \$ISABELLE_LOGIC=$ISABELLE_LOGIC)"
   echo
   exit 1
 }
@@ -62,10 +63,16 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ $# -ne 2 ] && usage
 
-LOGIC="$1"; shift
-NAME="$1"; shift
+if [ $# -eq 1 ]; then
+  LOGIC="$ISABELLE_LOGIC"
+  NAME="$1"; shift
+elif [ $# -eq 2 ]; then
+  LOGIC="$1"; shift
+  NAME="$1"; shift
+else
+  usage
+fi
 
 [ -z "$SESSION" ] && SESSION=$(basename $NAME)
 
@@ -79,12 +86,12 @@ if [ -n "$BUILD" ]; then
   IMAGES="$NAME"
   TEST=""
   TARGET="\$(OUT)/$NAME"
-  USEDIR="usedir -b"
+  USEDIR="\$(USEDIR) -b -P http://isabelle.in.tum.de/library"
 else
   IMAGES=""
   TEST="$NAME"
   TARGET="\$(LOG)/$NAME.gz"
-  USEDIR="usedir"
+  USEDIR="\$(USEDIR)"
 fi
 
 if [ -f IsaMakefile ]; then
@@ -105,7 +112,7 @@ else
     echo "SRC = \$(ISABELLE_HOME)/src"
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
-    echo "INFO = \$(ISABELLE_BROWSER_INFO)"
+    echo "USEDIR = \$(ISATOOL) usedir -i true -d dvi"
     echo
     echo
     echo "## $NAME"
@@ -117,12 +124,12 @@ else
       echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
       echo
       echo "$TARGET: \$(OUT)/$LOGIC     ## add $NAME sources here"
-      echo -e "\t@\$(ISATOOL) $USEDIR \$(OUT)/$LOGIC $NAME"
+      echo -e "\t@$USEDIR \$(OUT)/$LOGIC $NAME"
     else
       echo "$NAME: $TARGET"
       echo
       echo "$TARGET:                    ## add $NAME sources here"
-      echo -e "\t@\$(ISATOOL) $USEDIR $LOGIC $NAME"
+      echo -e "\t@$USEDIR $LOGIC $NAME"
     fi
     echo
     echo
