@@ -52,7 +52,7 @@ val bexp2 = bexp_iff RS iffD2;
 goal Equiv.thy "!!c. <c,sigma> -c-> sigma' ==> <sigma,sigma'> : C(c)";
 
 (* start with rule induction *)
-by (etac (evalc.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp)) 1);
+by (etac evalc.induct 1);
 
 by (rewrite_tac (Gamma_def::C_rewrite_rules));
 (* skip *)

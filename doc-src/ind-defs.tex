@@ -387,18 +387,21 @@ eigenvariables, subject to the usual ``not free in \ldots'' proviso.
 
 
 \section{Induction and coinduction rules}
-Here we must consider inductive and coinductive definitions separately.
-For an inductive definition, the package returns an induction rule derived
-directly from the properties of least fixedpoints, as well as a modified
-rule for mutual recursion and inductively defined relations.  For a
-coinductive definition, the package returns a basic coinduction rule.
+Here we must consider inductive and coinductive definitions separately.  For
+an inductive definition, the package returns an induction rule derived
+directly from the properties of least fixedpoints, as well as a modified rule
+for mutual recursion.  For a coinductive definition, the package returns a
+basic coinduction rule.
 
 \subsection{The basic induction rule}\label{basic-ind-sec}
 The basic rule, called {\tt induct}, is appropriate in most situations.
 For inductive definitions, it is strong rule induction~\cite{camilleri92}; for
 datatype definitions (see below), it is just structural induction.  
 
-The induction rule for an inductively defined set~$R$ has the following form.
+The induction rule for an inductively defined set~$R$ has the form described
+below.  For the time being, assume that $R$'s domain is not a Cartesian
+product; inductively defined relations are treated slightly differently.
+
 The major premise is $x\in R$.  There is a minor premise for each
 introduction rule:
 \begin{itemize}
@@ -427,12 +430,24 @@ Stronger induction rules often suggest themselves.  We can derive a rule
 for $\Fin(A)$ whose third premise discharges the extra assumption $a\not\in
 b$.  The Isabelle/\textsc{zf} theory defines the \defn{rank} of a
 set~\cite[\S3.4]{paulson-set-II}, which supports well-founded induction and
-recursion over datatypes.  The package proves a rule for mutual induction
-and inductive relations.
+recursion over datatypes.  The package proves a rule for mutual induction, and
+modifies the default rule if~$R$ is a relation.
 
-\subsection{Mutual induction}
+
+\subsection{Modified induction rules}
+
+If the domain of $R$ is a Cartesian product $A_1\times\cdots\times A_m$
+(however nested), then the corresponding predicate $P_i$ takes $m$ arguments.
+The major premise becomes $\pair{z_1,\ldots,z_m}\in R$ instead of $x\in R$;
+the conclusion becomes $P(z_1,\ldots,z_m)$.  This simplifies reasoning about
+inductively defined relations, eliminating the need to express properties of
+$z_1$, \ldots,~$z_m$ as properties of the tuple $\pair{z_1,\ldots,z_m}$.
+Occasionally it may require you to split up the induction variable
+using {\tt SigmaE} and {\tt dom\_subset}, especially if the constant {\tt
+  split} appears in the rule.
+
 The mutual induction rule is called {\tt
-mutual\_induct}.  It differs from the basic rule in several respects:
+mutual\_induct}.  It differs from the basic rule in two respects:
 \begin{itemize}
 \item Instead of a single predicate~$P$, it uses $n$ predicates $P_1$,
 \ldots,~$P_n$: one for each recursive set.
@@ -444,17 +459,12 @@ refers to all the recursive sets:
 \]
 Proving the premises establishes $P_i(z)$ for $z\in R_i$ and $i=1$,
 \ldots,~$n$.
-
-\item If the domain of some $R_i$ is the Cartesian product
-  $A_1\times\cdots\times A_m$ (associated to the right), then the
-  corresponding predicate $P_i$ takes $m$ arguments and the corresponding
-  conjunct of the conclusion is
-\[ (\forall z_1\ldots z_m.\pair{z_1,\ldots,z_m}\in R_i\imp P_i(z_1,\ldots,z_m))
-\]
 \end{itemize}
-The last point above simplifies reasoning about inductively defined
-relations.  It eliminates the need to express properties of $z_1$,
-\ldots,~$z_m$ as properties of the tuple $\pair{z_1,\ldots,z_m}$.
+%
+If the domain of some $R_i$ is a Cartesian product, then the mutual induction
+rule is modified accordingly.  The predicates are made to take $m$ separate
+arguments instead of a tuple, and the quantification in the conclusion is over
+the separate variables $z_1$, \ldots, $z_m$.
 
 \subsection{Coinduction}\label{coind-sec}
 A coinductive definition yields a primitive coinduction rule, with no
@@ -581,18 +591,12 @@ package always includes the rules for ordered pairs.
 
 The package returns introduction, elimination and induction rules for
 $\listn$.  The basic induction rule, {\tt listn.induct}, is
-\[ \infer{P(x)}{x\in\listn(A) & P(\pair{0,\Nil}) &
-             \infer*{P(\pair{\succ(n),\Cons(a,l)})}
-                {[a\in A & \pair{n,l}\in\listn(A) & P(\pair{n,l})]_{a,l,n}}}
-\]
-This rule requires the induction formula to be a 
-unary property of pairs,~$P(\pair{n,l})$.  The alternative rule, {\tt
-listn.mutual\_induct}, uses a binary property instead:
-\[ \infer{\forall n\,l. \pair{n,l}\in\listn(A) \imp P(n,l)}
-         {P(0,\Nil) &
-          \infer*{P(\succ(n),\Cons(a,l))}
+\[ \infer{P(z_1,z_2)}{\pair{z_1,z_2}\in\listn(A) & P(0,\Nil) &
+             \infer*{P(\succ(n),\Cons(a,l))}
                 {[a\in A & \pair{n,l}\in\listn(A) & P(n,l)]_{a,l,n}}}
 \]
+This rule lets the induction formula to be a 
+binary property of pairs, $P(n,l)$.  
 It is now a simple matter to prove theorems about $\listn(A)$, such as
 \[ \forall l\in\lst(A). \pair{\length(l),\, l}\in\listn(A) \]
 \[ \listn(A)``\{n\} = \{l\in\lst(A). \length(l)=n\} \]
@@ -682,10 +686,9 @@ R^+$, where $R^+$ is the relation
 \[ \{\pair{\LNil,\LNil}\} \un 
    \{\pair{\LCons(a,l),\LCons(a,l')} . a\in A \conj \pair{l,l'}\in R\}.
 \]
-
-A pair of lazy lists are \defn{equivalent} if they belong to some bisimulation. 
-Equivalence can be coinductively defined as the greatest fixedpoint for the
-introduction rules
+A pair of lazy lists are \defn{equivalent} if they belong to some
+bisimulation.  Equivalence can be coinductively defined as the greatest
+fixedpoint for the introduction rules
 \[  \pair{\LNil,\LNil} \in\lleq(A)  \qquad 
     \infer[(-)]{\pair{\LCons(a,l),\LCons(a,l')} \in\lleq(A)}
           {a\in A & \pair{l,l'}\in \lleq(A)}
@@ -894,8 +897,8 @@ involving any pair of constructors.
 
 \subsection{Constructors and their domain}\label{univ-sec}
 A (co)inductive definition selects a subset of an existing set; a (co)datatype
-definition creates a new set.  The package reduces the latter to the
-former.  Isabelle/\textsc{zf} supplies sets having strong closure properties to serve
+definition creates a new set.  The package reduces the latter to the former.
+Isabelle/\textsc{zf} supplies sets having strong closure properties to serve
 as domains for (co)inductive definitions.
 
 Isabelle/\textsc{zf} defines the Cartesian product $A\times
@@ -904,7 +907,6 @@ disjoint sum $A+B$, containing injections $\Inl(a)\equiv\pair{0,a}$ and
 $\Inr(b)\equiv\pair{1,b}$.  For use below, define the $m$-tuple
 $\pair{x_1,\ldots,x_m}$ to be the empty set~$\emptyset$ if $m=0$, simply $x_1$
 if $m=1$ and $\pair{x_1,\pair{x_2,\ldots,x_m}}$ if $m\geq2$.
-
 
 A datatype constructor $\Con(x_1,\ldots,x_m)$ is defined to be
 $h(\pair{x_1,\ldots,x_m})$, where $h$ is composed of $\Inl$ and~$\Inr$.
@@ -1342,11 +1344,10 @@ names given them in the theory file.
 elim}, using freeness reasoning on some underlying datatype.
 \end{description}
 
-For an inductive definition, the result structure contains two induction rules,
-{\tt induct} and \verb|mutual_induct|.  (To save storage, the latter rule is
-replaced by {\tt True} if it is not significantly different from
-{\tt induct}.)  For a coinductive definition, it
-contains the rule \verb|coinduct|.
+For an inductive definition, the result structure contains two induction
+rules, {\tt induct} and \verb|mutual_induct|.  (To save storage, the latter
+rule is just {\tt True} unless more than one set is being defined.)  For a
+coinductive definition, it contains the rule \verb|coinduct|.
 
 Figure~\ref{def-result-fig} summarizes the two result signatures,
 specifying the types of all these components.
