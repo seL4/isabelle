@@ -555,6 +555,18 @@ Addsimps [converse_Un, converse_Int, converse_Diff, converse_UN, converse_INT];
 
 (** Pow **)
 
+Goal "Pow(0) = {0}";
+by (Blast_tac 1);
+qed "Pow_0";
+
+Goal "Pow (cons(a,A)) = Pow(A) Un {cons(a,X) . X: Pow(A)}";
+br equalityI 1;
+by Safe_tac;
+by (etac swap 1);
+by (res_inst_tac [("a", "x-{a}")] RepFun_eqI 1);
+by (ALLGOALS Blast_tac);
+qed "Pow_insert";
+
 Goal "Pow(A) Un Pow(B) <= Pow(A Un B)";
 by (Blast_tac 1);
 qed "Un_Pow_subset";
@@ -573,13 +585,13 @@ qed "Union_Pow_eq";
 
 Goal "Pow(A Int B) = Pow(A) Int Pow(B)";
 by (Blast_tac 1);
-qed "Int_Pow_eq";
+qed "Pow_Int_eq";
 
-Goal "x:A ==> (INT x:A. Pow(B(x))) = Pow(INT x:A. B(x))";
+Goal "x:A ==> Pow(INT x:A. B(x)) = (INT x:A. Pow(B(x)))";
 by (Blast_tac 1);
-qed "INT_Pow_subset";
+qed "Pow_INT_eq";
 
-Addsimps [Union_Pow_eq, Int_Pow_eq];
+Addsimps [Pow_0, Union_Pow_eq, Pow_Int_eq];
 
 (** RepFun **)
 
