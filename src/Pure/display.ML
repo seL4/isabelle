@@ -228,7 +228,7 @@ fun pretty_full_theory thy =
   end;
 
 
-(*also show consts in case of showing types?*)
+(*show consts with types in proof state output?*)
 val show_consts = ref false;
 
 

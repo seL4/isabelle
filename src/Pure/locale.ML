@@ -639,7 +639,7 @@ in
               [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
           else pretty_subgoals As) @
         pretty_ffpairs tpairs @
-        (if types andalso ! show_consts then pretty_consts prop else []) @
+        (if ! show_consts then pretty_consts prop else []) @
         (if types then pretty_vars prop else []) @
         (if sorts then pretty_varsT prop else []);
     in
