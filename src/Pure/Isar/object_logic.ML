@@ -1,4 +1,4 @@
-(*  Title:      Pure/object_logic.ML
+(*  Title:      Pure/Isar/object_logic.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
