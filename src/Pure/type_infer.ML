@@ -160,7 +160,7 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
     fun pre_of (ps, Const (c, T)) =
           (case const_type c of
             Some U => constrain (ps, PConst (c, snd (pretyp_of (K true) ([], U)))) T
-          | None => raise_type ("No such constant: " ^ quote c) [] [])
+          | None => raise TYPE ("No such constant: " ^ quote c, [], []))
       | pre_of (ps, Free (x, T)) = constrain (ps, PFree (x, var_param (x, ~1))) T
       | pre_of (ps, Var (xi, T)) = constrain (ps, PVar (xi, var_param xi)) T
       | pre_of (ps, Const ("_type_constraint_", T) $ t) = constrain (pre_of (ps, t)) T
@@ -331,7 +331,7 @@ fun infer prt prT classrel arities =
       in (ts'', Ts') end;
 
     fun err_loose i =
-      raise_type ("Loose bound variable: B." ^ string_of_int i) [] [];
+      raise TYPE ("Loose bound variable: B." ^ string_of_int i, [], []);
 
     fun err_appl msg bs t T u U =
       let
@@ -348,7 +348,7 @@ fun infer prt prT classrel arities =
             Pretty.str " :: ", prT T']),
           str_of (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u',
             Pretty.str " :: ", prT U']), ""];
-      in raise_type text [T', U'] [t', u'] end;
+      in raise TYPE (text, [T', U'], [t', u']) end;
 
     fun err_constraint msg bs t T U =
       let
@@ -360,7 +360,7 @@ fun infer prt prT classrel arities =
           str_of (Pretty.block [Pretty.str "Term:", Pretty.brk 2, prt t',
             Pretty.str " :: ", prT T']),
           str_of (Pretty.block [Pretty.str "Type:", Pretty.brk 2, prT U']), ""];
-      in raise_type text [T', U'] [t'] end;
+      in raise TYPE (text, [T', U'], [t']) end;
 
 
     (* main *)
