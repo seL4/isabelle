@@ -3,11 +3,52 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-For OrderType.thy.  Order types in Zermelo-Fraenkel Set Theory 
+Order types in Zermelo-Fraenkel Set Theory 
 *)
 
 
 open OrderType;
+
+(*** Proofs needing the combination of Ordinal.thy and Order.thy ***)
+
+goal OrderType.thy "!!i. Ord(i) ==> well_ord(i, Memrel(i))";
+by (rtac well_ordI 1);
+by (rtac (wf_Memrel RS wf_imp_wf_on) 1);
+by (asm_simp_tac (ZF_ss addsimps [linear_def, Memrel_iff]) 1);
+by (REPEAT (resolve_tac [ballI, Ord_linear] 1));;
+by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));;
+qed "well_ord_Memrel";
+
+(*Kunen's Theorem 7.3 (i), page 16;  see also Ordinal/Ord_in_Ord
+  The smaller ordinal is an initial segment of the larger *)
+goalw OrderType.thy [pred_def, lt_def]
+    "!!i j. j<i ==> j = pred(i, j, Memrel(i))";
+by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
+by (fast_tac (eq_cs addEs [Ord_trans]) 1);
+qed "lt_eq_pred";
+
+goal OrderType.thy
+    "!!i. [| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j)) |] ==> R";
+by (forward_tac [lt_eq_pred] 1);
+by (etac ltE 1);
+by (rtac (well_ord_Memrel RS well_ord_iso_predE) 1 THEN
+    assume_tac 3 THEN assume_tac 1);
+by (etac subst 1);
+by (asm_full_simp_tac (ZF_ss addsimps [ord_iso_def]) 1);
+(*Combining the two simplifications causes looping*)
+by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
+by (fast_tac (ZF_cs addSEs [bij_is_fun RS apply_type] addEs [Ord_trans]) 1);
+qed "Ord_iso_implies_eq_lemma";
+
+(*Kunen's Theorem 7.3 (ii), page 16.  Isomorphic ordinals are equal*)
+goal OrderType.thy
+    "!!i. [| Ord(i);  Ord(j);  f:  ord_iso(i,Memrel(i),j,Memrel(j))	\
+\         |] ==> i=j";
+by (res_inst_tac [("i","i"),("j","j")] Ord_linear_lt 1);
+by (REPEAT (eresolve_tac [asm_rl, ord_iso_sym, Ord_iso_implies_eq_lemma] 1));
+qed "Ord_iso_implies_eq";
+
+(*** Ordermap and ordertype ***)
 
 goalw OrderType.thy [ordermap_def,ordertype_def]
     "ordermap(A,r) : A -> ordertype(A,r)";
@@ -110,6 +151,8 @@ by (REPEAT_SOME assume_tac);
 by (ALLGOALS (asm_full_simp_tac (ZF_ss addsimps [mem_not_refl])));
 qed "ordermap_bij";
 
+(** Isomorphisms involving ordertype **)
+
 goalw OrderType.thy [ord_iso_def]
  "!!r. well_ord(A,r) ==> \
 \      ordermap(A,r) : ord_iso(A,r, ordertype(A,r), Memrel(ordertype(A,r)))";
@@ -122,6 +165,16 @@ by (fast_tac (ZF_cs addSIs [MemrelI, ordermap_mono,
 			    ordermap_type RS apply_type]) 1);
 qed "ordertype_ord_iso";
 
+goal OrderType.thy
+    "!!f. [| f: ord_iso(A,r,B,s);  well_ord(B,s) |] ==>	\
+\    ordertype(A,r) = ordertype(B,s)";
+by (forward_tac [well_ord_ord_iso] 1 THEN assume_tac 1);
+by (resolve_tac [Ord_iso_implies_eq] 1
+    THEN REPEAT (eresolve_tac [Ord_ordertype] 1));
+by (deepen_tac (ZF_cs addIs [ord_iso_trans, ord_iso_sym]
+                    addSEs [ordertype_ord_iso]) 0 1);
+qed "ordertype_eq";
+
 
 (** Unfolding of ordertype **)
 
@@ -130,62 +183,17 @@ goalw OrderType.thy [ordertype_def]
 by (rtac ([ordermap_type, subset_refl] MRS image_fun) 1);
 qed "ordertype_unfold";
 
-
-(** Ordertype of Memrel **)
-
-(*Requires Ordinal.thy as parent; otherwise could be in Order.ML*)
-goal OrderType.thy "!!i. Ord(i) ==> well_ord(i, Memrel(i))";
-by (rtac well_ordI 1);
-by (rtac (wf_Memrel RS wf_imp_wf_on) 1);
-by (asm_simp_tac (ZF_ss addsimps [linear_def, Memrel_iff]) 1);
-by (REPEAT (resolve_tac [ballI, Ord_linear] 1));;
-by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));;
-qed "well_ord_Memrel";
-
-goal OrderType.thy "!!i. [| Ord(i);  j:i |] ==> ordermap(i,Memrel(i)) ` j = j";
-by (etac Ord_induct 1);
-by (assume_tac 1);
-by (asm_simp_tac (ZF_ss addsimps
-	     [well_ord_Memrel RS well_ord_is_wf RS ordermap_pred_unfold]) 1);
-by (asm_simp_tac (ZF_ss addsimps [pred_def, Memrel_iff]) 1);
-by (dtac OrdmemD 1);
-by (assume_tac 1);
-by (fast_tac eq_cs 1);
-qed "ordermap_Memrel";
-
+(*Ordertype of Memrel*)
 goal OrderType.thy "!!i. Ord(i) ==> ordertype(i,Memrel(i)) = i";
-by (asm_simp_tac (ZF_ss addsimps [ordertype_unfold, ordermap_Memrel]) 1);
+by (resolve_tac [Ord_iso_implies_eq RS sym] 1);
+by (resolve_tac [ordertype_ord_iso] 3);
+by (REPEAT (ares_tac [well_ord_Memrel, Ord_ordertype] 1));
 qed "ordertype_Memrel";
 
-(** Ordertype of rvimage **)
+(*Ordertype of rvimage*)
+bind_thm ("bij_ordertype_vimage", ord_iso_rvimage RS ordertype_eq);
 
-goal OrderType.thy
-    "!!f. [| f: bij(A,B);  well_ord(B,r);  x:A |] ==>	\
-\         ordermap(A,rvimage(A,f,r)) ` x = ordermap(B,r) ` (f`x)";
-by (metacut_tac well_ord_rvimage 1 THEN 
-    etac bij_is_inj 2 THEN assume_tac 2);
-by (res_inst_tac [("A","A"), ("a","x")] wf_on_induct 1 THEN
-    REPEAT (ares_tac [well_ord_is_wf] 1));
-by (asm_simp_tac
-    (bij_inverse_ss addsimps [ordermap_pred_unfold, well_ord_is_wf]) 1);
-by (asm_simp_tac (ZF_ss addsimps [pred_def, rvimage_iff]) 1);
-by (safe_tac eq_cs);
-by (fast_tac bij_apply_cs 1);
-by (res_inst_tac [("a", "converse(f)`xb")] RepFun_eqI 1);
-by (ALLGOALS (asm_simp_tac bij_inverse_ss));
-qed "bij_ordermap_vimage";
-
-goal OrderType.thy
-    "!!f. [| f: bij(A,B);  well_ord(B,r) |] ==>	\
-\    ordertype(A,rvimage(A,f,r)) = ordertype(B,r)";
-by (asm_simp_tac (ZF_ss addsimps [ordertype_unfold, bij_ordermap_vimage]) 1);
-by (safe_tac eq_cs);
-by (fast_tac bij_apply_cs 1);
-by (res_inst_tac [("a", "converse(f)`xa")] RepFun_eqI 1);
-by (ALLGOALS (asm_simp_tac bij_inverse_ss));
-qed "bij_ordertype_vimage";
-
-
+(*Ordermap returns the same result if applied to an initial segment*)
 goal OrderType.thy
     "!!r. [| well_ord(A,r);  y:A;  z: pred(A,y,r) |] ==>	\
 \	  ordermap(pred(A,y,r), r) ` z = ordermap(A, r) ` z";
@@ -202,48 +210,15 @@ by (dtac well_ord_is_trans_on 1);
 by (fast_tac (eq_cs addSEs [trans_onD]) 1);
 qed "ordermap_pred_eq_ordermap";
 
-
+(*Lemma for proving there exist ever larger cardinals*)
 goal OrderType.thy
     "!!r. [| well_ord(A,r);  i: ordertype(A,r) |] ==>	\
 \	  EX B. B<=A & i = ordertype(B,r)";
 by (dresolve_tac [ordertype_unfold RS equalityD1 RS subsetD] 1);
-by (res_inst_tac [("x", "pred(A, converse(ordermap(A,r))`i, r)")]  exI  1);
-by (safe_tac (ZF_cs addSEs [predE]));
-by (asm_simp_tac (ZF_ss addsimps [ordermap_bij RS left_inverse_bij]) 1);
-by (asm_simp_tac (ZF_ss addsimps
-		  [well_ord_is_wf RS ordermap_pred_unfold]) 1);
-by (asm_simp_tac (ZF_ss addsimps [ordertype_unfold,
-				  ordermap_pred_eq_ordermap]) 1);
+by (etac RepFunE 1);
+by (res_inst_tac [("x", "pred(A,y,r)")] exI 1);
+by (asm_simp_tac
+    (ZF_ss addsimps [pred_subset, well_ord_is_wf RS ordermap_pred_unfold, 
+		     ordertype_unfold, ordermap_pred_eq_ordermap]) 1);
 qed "ordertype_subset";
 
-
-(*Kunen's Theorem 7.3 (i), page 16;  see also Ordinal/Ord_in_Ord
-  The smaller ordinal is an initial segment of the larger *)
-goalw OrderType.thy [pred_def, lt_def]
-    "!!i j. j<i ==> j = pred(i, j, Memrel(i))";
-by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
-by (fast_tac (eq_cs addEs [Ord_trans]) 1);
-qed "lt_eq_pred";
-
-goal OrderType.thy
-    "!!i. [| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j))	\
-\         |] ==> R";
-by (forward_tac [lt_eq_pred] 1);
-by (etac ltE 1);
-by (rtac (well_ord_Memrel RS well_ord_iso_predE) 1 THEN
-    assume_tac 3 THEN assume_tac 1);
-by (etac subst 1);
-by (asm_full_simp_tac (ZF_ss addsimps [ord_iso_def]) 1);
-(*Combining the two simplifications causes looping*)
-by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
-by (fast_tac (ZF_cs addSEs [bij_is_fun RS apply_type]  
-                    addEs  [Ord_trans]) 1);
-qed "Ord_iso_implies_eq_lemma";
-
-(*Kunen's Theorem 7.3 (ii), page 16.  Isomorphic ordinals are equal*)
-goal OrderType.thy
-    "!!i. [| Ord(i);  Ord(j);  f:  ord_iso(i,Memrel(i),j,Memrel(j))	\
-\         |] ==> i=j";
-by (res_inst_tac [("i","i"),("j","j")] Ord_linear_lt 1);
-by (REPEAT (eresolve_tac [asm_rl, ord_iso_sym, Ord_iso_implies_eq_lemma] 1));
-qed "Ord_iso_implies_eq";
