@@ -1,4 +1,4 @@
-(*  Title: 	Provers/classical
+(*  Title: 	Provers/classical.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -6,7 +6,7 @@
 Theorem prover for classical reasoning, including predicate calculus, set
 theory, etc.
 
-Rules must be classified as intr, elim, safe, hazardous.
+Rules must be classified as intr, elim, safe, hazardous (unsafe).
 
 A rule is unsafe unless it can be applied blindly without harmful results.
 For a rule to be safe, its premises and conclusion should be logically
@@ -14,28 +14,44 @@ equivalent.  There should be no variables in the premises that are not in
 the conclusion.
 *)
 
-(*Should be a type abbreviation in signature CLASSICAL*)
-type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
+(*higher precedence than := facilitates use of references*)
+infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
+  setSWrapper compSWrapper setWrapper compWrapper
+  addSbefore addSaltern addbefore addaltern;
+
+
+(*should be a type abbreviation in signature CLASSICAL*)
+type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
+
+signature CLASET_THY_DATA =
+sig
+  val clasetK: string
+  exception ClasetData of exn ref
+  val thy_data: string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))
+  val fix_methods: exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit) -> unit
+end;
 
 signature CLASSICAL_DATA =
-  sig
+sig
   val mp	: thm    	(* [| P-->Q;  P |] ==> Q *)
   val not_elim	: thm		(* [| ~P;  P |] ==> R *)
   val classical	: thm		(* (~P ==> P) ==> P *)
   val sizef 	: thm -> int	(* size function for BEST_FIRST *)
   val hyp_subst_tacs: (int -> tactic) list
-  end;
-
-(*Higher precedence than := facilitates use of references*)
-infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
-        setSWrapper compSWrapper setWrapper compWrapper 
-	addSbefore addSaltern addbefore addaltern;
-
+end;
 
 signature CLASSICAL =
-  sig
+sig
   type claset
-  val empty_cs		: claset
+  val empty_cs: claset
+  val print_cs: claset -> unit
+  val rep_claset:
+    claset -> {safeIs: thm list, safeEs: thm list,
+		 hazIs: thm list, hazEs: thm list,
+		 uwrapper: (int -> tactic) -> (int -> tactic),
+		 swrapper: (int -> tactic) -> (int -> tactic),
+		 safe0_netpair: netpair, safep_netpair: netpair,
+		 haz_netpair: netpair, dup_netpair: netpair}
   val merge_cs		: claset * claset -> claset
   val addDs 		: claset * thm list -> claset
   val addEs 		: claset * thm list -> claset
@@ -52,17 +68,17 @@ signature CLASSICAL =
   val addSaltern 	: claset * (int -> tactic) -> claset
   val addbefore 	: claset * (int -> tactic) -> claset
   val addaltern	 	: claset * (int -> tactic) -> claset
-
-  val print_cs		: claset -> unit
-  val rep_claset	: 
-      claset -> {safeIs: thm list, safeEs: thm list, 
-		 hazIs: thm list, hazEs: thm list,
-		 uwrapper: (int -> tactic) -> (int -> tactic),
-		 swrapper: (int -> tactic) -> (int -> tactic),
-		 safe0_netpair: netpair, safep_netpair: netpair,
-		 haz_netpair: netpair, dup_netpair: netpair}
   val getWrapper	: claset -> (int -> tactic) -> (int -> tactic)
   val getSWrapper	: claset -> (int -> tactic) -> (int -> tactic)
+
+  val claset_ref_of_sg: Sign.sg -> claset ref
+  val claset_ref_of: theory -> claset ref
+  val claset_of_sg: Sign.sg -> claset
+  val claset_of: theory -> claset
+  val CLASET: (claset -> tactic) -> tactic
+  val CLASET': (claset -> 'a -> tactic) -> 'a -> tactic
+  val claset: unit -> claset
+  val claset_ref: unit -> claset ref
 
   val fast_tac 		: claset -> int -> tactic
   val slow_tac 		: claset -> int -> tactic
@@ -95,7 +111,6 @@ signature CLASSICAL =
   val inst0_step_tac 	: claset -> int -> tactic
   val instp_step_tac 	: claset -> int -> tactic
 
-  val claset : claset ref
   val AddDs 		: thm list -> unit
   val AddEs 		: thm list -> unit
   val AddIs 		: thm list -> unit
@@ -113,14 +128,43 @@ signature CLASSICAL =
   val Slow_tac 		: int -> tactic
   val Slow_best_tac     : int -> tactic
   val Deepen_tac	: int -> int -> tactic
+end;
 
-  end;
+
+structure ClasetThyData: CLASET_THY_DATA =
+struct
+
+(* data kind claset -- forward declaration *)
+
+val clasetK = "claset";
+exception ClasetData of exn ref;
+
+local
+  fun undef _ = raise Match;
+
+  val empty_ref = ref ERROR;
+  val prep_ext_fn = ref (undef: exn -> exn);
+  val merge_fn = ref (undef: exn * exn -> exn);
+  val print_fn = ref (undef: exn -> unit);
+
+  val empty = ClasetData empty_ref;
+  fun prep_ext exn = ! prep_ext_fn exn;
+  fun merge exn = ! merge_fn exn;
+  fun print exn = ! print_fn exn;
+in
+  val thy_data = (clasetK, (empty, prep_ext, merge, print));
+  fun fix_methods (e, ext, mrg, prt) =
+    (empty_ref := e; prep_ext_fn := ext; merge_fn := mrg; print_fn := prt);
+end;
+
+
+end;
 
 
 functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL = 
 struct
 
-local open Data in
+local open ClasetThyData Data in
 
 (*** Useful tactics for classical reasoning ***)
 
@@ -185,7 +229,7 @@ datatype claset =
 where build = build_netpair(Net.empty,Net.empty), 
       safe0_brls contains all brules that solve the subgoal, and
       safep_brls contains all brules that generate 1 or more new subgoals.
-The theorem lists are largely comments, though they are used in merge_cs.
+The theorem lists are largely comments, though they are used in merge_cs and print_cs.
 Nets must be built incrementally, to save space and time.
 *)
 
@@ -211,9 +255,11 @@ fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
 
 fun rep_claset (CS args) = args;
 
+
 fun getWrapper  (CS{uwrapper,...}) = uwrapper;
 
 fun getSWrapper (CS{swrapper,...}) = swrapper;
+
 
 
 (*** Adding (un)safe introduction or elimination rules.
@@ -252,13 +298,13 @@ and rem_thm = gen_rem eq_thm;
   is still allowed.*)
 fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) = 
        if mem_thm (th, safeIs) then 
-	 warning ("rule already in claset as Safe Intr\n" ^ string_of_thm th)
+	 warning ("Rule already in claset as Safe Intr\n" ^ string_of_thm th)
   else if mem_thm (th, safeEs) then
-         warning ("rule already in claset as Safe Elim\n" ^ string_of_thm th)
+         warning ("Rule already in claset as Safe Elim\n" ^ string_of_thm th)
   else if mem_thm (th, hazIs) then 
-         warning ("rule already in claset as unsafe Intr\n" ^ string_of_thm th)
+         warning ("Rule already in claset as unsafe Intr\n" ^ string_of_thm th)
   else if mem_thm (th, hazEs) then 
-         warning ("rule already in claset as unsafe Elim\n" ^ string_of_thm th)
+         warning ("Rule already in claset as unsafe Elim\n" ^ string_of_thm th)
   else ();
 
 (*** Safe rules ***)
@@ -267,7 +313,7 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th)  =
   if mem_thm (th, safeIs) then 
-	 (warning ("ignoring duplicate Safe Intr\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate Safe Intr\n" ^ string_of_thm th);
 	  cs)
   else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
@@ -291,7 +337,7 @@ fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th)  =
   if mem_thm (th, safeEs) then 
-	 (warning ("ignoring duplicate Safe Elim\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate Safe Elim\n" ^ string_of_thm th);
 	  cs)
   else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
@@ -325,7 +371,7 @@ fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	  th)=
   if mem_thm (th, hazIs) then 
-	 (warning ("ignoring duplicate unsafe Intr\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate unsafe Intr\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length hazIs + 1
@@ -347,7 +393,7 @@ fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	  th) =
   if mem_thm (th, hazEs) then 
-	 (warning ("ignoring duplicate unsafe Elim\n" ^ string_of_thm th);
+	 (warning ("Ignoring duplicate unsafe Elim\n" ^ string_of_thm th);
 	  cs)
   else
   let val nI = length hazIs 
@@ -452,7 +498,7 @@ fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, ...}, th) =
        if mem_thm (th, safeIs) orelse mem_thm (th, safeEs) orelse
 	  mem_thm (th, hazIs)  orelse mem_thm (th, hazEs) 
        then delSI th (delSE th (delI th (delE th cs)))
-       else (warning ("rule not in claset\n" ^ (string_of_thm th)); 
+       else (warning ("Rule not in claset\n" ^ (string_of_thm th)); 
 	     cs);
 
 val op delrules = foldl delrule;
@@ -662,45 +708,75 @@ fun safe_depth_tac cs m =
 
 fun deepen_tac cs = DEEPEN (2,10) (safe_depth_tac cs);
 
-val claset = ref empty_cs;
 
-fun AddDs ts = (claset := !claset addDs ts);
 
-fun AddEs ts = (claset := !claset addEs ts);
+(** claset theory data **)
 
-fun AddIs ts = (claset := !claset addIs ts);
+(* init data kind claset *)
 
-fun AddSDs ts = (claset := !claset addSDs ts);
+exception CSData of claset ref;
 
-fun AddSEs ts = (claset := !claset addSEs ts);
+local
+  val empty = CSData (ref empty_cs);
 
-fun AddSIs ts = (claset := !claset addSIs ts);
+  (*create new references*)
+  fun prep_ext (ClasetData (ref (CSData (ref cs)))) =
+    ClasetData (ref (CSData (ref cs)));
 
-fun Delrules ts = (claset := !claset delrules ts);
+  fun merge (ClasetData (ref (CSData (ref cs1))), ClasetData (ref (CSData (ref cs2)))) =
+    ClasetData (ref (CSData (ref (merge_cs (cs1, cs2)))));
 
-(** The abstraction over the proof state delays the dereferencing **)
-
-fun Safe_tac st		= safe_tac (!claset) st;
-
-fun Safe_step_tac i st	= safe_step_tac (!claset) i st; 
-
-fun Clarify_step_tac i st	= clarify_step_tac (!claset) i st;
-
-fun Clarify_tac i st	= clarify_tac (!claset) i st;
-
-fun Step_tac i st	= step_tac (!claset) i st; 
-
-fun Fast_tac i st	= fast_tac (!claset) i st; 
-
-fun Best_tac i st	= best_tac (!claset) i st; 
-
-fun Slow_tac i st	= slow_tac (!claset) i st; 
-
-fun Slow_best_tac i st	= slow_best_tac (!claset) i st; 
-
-fun Deepen_tac m	= deepen_tac (!claset) m; 
-
-end; 
+  fun print (ClasetData (ref (CSData (ref cs)))) = print_cs cs;
+in
+  val _ = fix_methods (empty, prep_ext, merge, print);
 end;
 
 
+(* access claset *)
+
+fun claset_ref_of_sg sg =
+  (case Sign.get_data sg clasetK of
+    ClasetData (ref (CSData r)) => r
+  | _ => sys_error "claset_ref_of_sg");
+
+val claset_ref_of = claset_ref_of_sg o sign_of;
+val claset_of_sg = ! o claset_ref_of_sg;
+val claset_of = claset_of_sg o sign_of;
+
+fun CLASET tacf state = tacf (claset_of_sg (sign_of_thm state)) state;
+fun CLASET' tacf i state = tacf (claset_of_sg (sign_of_thm state)) i state;
+
+val claset = claset_of o Context.get_context;
+val claset_ref = claset_ref_of_sg o sign_of o Context.get_context;
+
+
+(* change claset *)
+
+fun change_claset f x = claset_ref () := (f (claset (), x));
+
+val AddDs = change_claset (op addDs);
+val AddEs = change_claset (op addEs);
+val AddIs = change_claset (op addIs);
+val AddSDs = change_claset (op addSDs);
+val AddSEs = change_claset (op addSEs);
+val AddSIs = change_claset (op addSIs);
+val Delrules = change_claset (op delrules);
+
+
+(* tactics referring to the implicit claset *)
+
+(*the abstraction over the proof state delays the dereferencing*)
+fun Safe_tac st		  = safe_tac (claset()) st;
+fun Safe_step_tac i st	  = safe_step_tac (claset()) i st;
+fun Clarify_step_tac i st = clarify_step_tac (claset()) i st;
+fun Clarify_tac i st	  = clarify_tac (claset()) i st;
+fun Step_tac i st	  = step_tac (claset()) i st;
+fun Fast_tac i st	  = fast_tac (claset()) i st;
+fun Best_tac i st	  = best_tac (claset()) i st;
+fun Slow_tac i st	  = slow_tac (claset()) i st;
+fun Slow_best_tac i st	  = slow_best_tac (claset()) i st;
+fun Deepen_tac m	  = deepen_tac (claset()) m;
+
+
+end; 
+end;
