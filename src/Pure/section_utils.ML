@@ -38,10 +38,13 @@ fun gen_make_elim elim_rls rl =
 
 (** String manipulation **)
 
-(*Skipping initial blanks, find the first identifier*)
+(*Skipping initial blanks, find the first identifier*)	(* FIXME *)
 fun scan_to_id s = 
-    s |> explode |> take_prefix is_blank |> #2 |> Scanner.scan_id |> #1
-    handle LEXICAL_ERROR => error ("Expected to find an identifier in " ^ s);
+    s |> Symbol.explode
+    |> Scan.error (Scan.finite Symbol.eof
+      (!! (fn _ => "Expected to find an identifier in " ^ s)
+        (Scan.any Symbol.is_blank |-- Syntax.scan_id)))
+    |> #1;
 
 fun is_backslash c = c = "\\";
 
@@ -56,12 +59,12 @@ fun escape [] = []
        | (front, _::"\""::rest) => front @ ("\"" :: escape rest)
        | (front, _::"\\"::rest) => front @ ("\\" :: escape rest)
        | (front, b::c::rest) => 
-	   if is_blank c   (*remove any further blanks and the following \ *)
-	   then front @ escape (tl (snd (take_prefix is_blank rest)))
+	   if Symbol.is_blank c   (*remove any further blanks and the following \ *)
+	   then front @ escape (tl (snd (take_prefix Symbol.is_blank rest)))
 	   else error ("Unrecognized string escape: " ^ implode(b::c::rest)));
 
 (*Remove the first and last charaters -- presumed to be quotes*)
-val trim = implode o escape o rev o tl o rev o tl o explode;
+val trim = implode o escape o rev o tl o rev o tl o Symbol.explode;
 
 
 (*Check for some named theory*)
