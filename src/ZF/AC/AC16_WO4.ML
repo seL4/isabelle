@@ -31,9 +31,8 @@ val lemma1 = result();
 (* The case of infinite set                                               *)
 (* ********************************************************************** *)
 
-goal thy "!!x. well_ord(x,r) ==> well_ord({{y,z}. y:x},?s(x,z))";
-by (eresolve_tac [paired_bij RS bij_is_inj RS well_ord_rvimage] 1);
-val well_ord_paired = uresult();
+(* well_ord(x,r) ==> well_ord({{y,z}. y:x}, Something(x,z))  **)
+val well_ord_paired = standard (paired_bij RS bij_is_inj RS well_ord_rvimage);
 
 goal thy "!!A. [| A lepoll B; ~ A lepoll C |] ==> ~ B lepoll C";
 by (fast_tac (FOL_cs addEs [notE, lepoll_trans]) 1);
