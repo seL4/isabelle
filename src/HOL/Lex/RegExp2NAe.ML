@@ -137,17 +137,13 @@ AddIffs [True_epsclosure_union,False_epsclosure_union];
 Goal
  "!p. (True#p,q):steps (union L R) w = (? r. q = True # r & (p,r):steps L w)";
 by (induct_tac "w" 1);
-by (ALLGOALS Asm_simp_tac);
-(* Blast_tac produces PROOF FAILED for depth 8 *)
-by (Fast_tac 1);
+by Auto_tac;
 qed_spec_mp "lift_True_over_steps_union";
 
 Goal 
  "!p. (False#p,q):steps (union L R) w = (? r. q = False#r & (p,r):steps R w)";
 by (induct_tac "w" 1);
-by (ALLGOALS Asm_simp_tac);
-(* Blast_tac produces PROOF FAILED for depth 8 *)
-by (Fast_tac 1);
+by Auto_tac;
 qed_spec_mp "lift_False_over_steps_union";
 
 AddIffs [lift_True_over_steps_union,lift_False_over_steps_union];
@@ -196,24 +192,9 @@ Goal
 \          q = False # p & (start R,p) : steps R w) )";
 by (exhaust_tac "w" 1);
  by (Asm_simp_tac 1);
- (* Blast_tac produces PROOF FAILED! *)
- by (Fast_tac 1);
+ by (Blast_tac 1);
 by (Asm_simp_tac 1);
-(* The goal is now completely dual to the first one.
-   Fast/Best_tac don't return. Blast_tac produces PROOF FAILED!
-   The lemmas used in the explicit proof are part of the claset already!
-*)
-by (rtac iffI 1);
- by (Blast_tac 1);
-by (Clarify_tac 1);
-by (etac disjE 1);
- by (Blast_tac 1);
-by (Clarify_tac 1);
-by (rtac compI 1);
-by (rtac compI 1);
-by (Blast_tac 3);
-by (Blast_tac 2);
-by (Best_tac 1);
+by (Blast_tac 1);
 qed "steps_union";
 
 Goalw [union_def]
@@ -299,8 +280,7 @@ Goal
 by (induct_tac "w" 1);
  by (Simp_tac 1);
 by (Simp_tac 1);
-(* Blast_tac produces PROOF FAILED for depth 8 *)
-by (Fast_tac 1);
+by (Fast_tac 1);  (*MUCH faster than Blast_tac*)
 qed_spec_mp "False_steps_conc";
 AddIffs [False_steps_conc];
 
