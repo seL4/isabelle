@@ -15,7 +15,8 @@ val evalc1_SEs =
        ["(SKIP,s) -1-> t", 
 	"(x:=a,s) -1-> t",
 	"(c1;c2, s) -1-> t", 
-	"(IF b THEN c1 ELSE c2, s) -1-> t"];
+	"(IF b THEN c1 ELSE c2, s) -1-> t",
+        "(WHILE b DO c, s) -1-> t"];
 
 val evalc1_E = evalc1.mk_cases "(WHILE b DO c,s) -1-> t";
 
@@ -199,3 +200,30 @@ qed_spec_mp "FB_lemma2";
 Goal "(c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";
 by (fast_tac (claset() addEs [FB_lemma2]) 1);
 qed "evalc1_impl_evalc";
+
+
+section "The proof in Nielson and Nielson";
+
+(* The more precise n=i1+i2+1 is proved by the same script but complicates
+   life further down, where i1,i2 < n is needed.
+*)
+Goal "!c1 s. (c1;c2,s) -n-> (SKIP,t) --> \
+\     (? i1 i2 u. (c1,s) -i1-> (SKIP,u) & (c2,u) -i2-> (SKIP,t) & i1<n & i2<n)";
+by(induct_tac "n" 1);
+ by (fast_tac (claset() addSDs [hlemma]) 1);
+by(fast_tac (claset() addSIs [rel_pow_0_I,rel_pow_Suc_I2]
+                      addSDs [rel_pow_Suc_D2] addss simpset()) 1);
+qed_spec_mp "comp_decomp_lemma";
+
+Goal "!c s t. (c,s) -n-> (SKIP,t) --> <c,s> -c-> t";
+by(res_inst_tac [("n","n")] less_induct 1);
+by(Clarify_tac 1);
+be rel_pow_E2 1;
+ by (asm_full_simp_tac (simpset() addsimps evalc.intrs) 1);
+by(exhaust_tac "c" 1);
+    by (fast_tac (claset() addSDs [hlemma]) 1);
+   by(Blast_tac 1);
+  by(blast_tac (claset() addSDs [rel_pow_Suc_I2 RS comp_decomp_lemma]) 1);
+ by(Blast_tac 1);
+by(Blast_tac 1);
+qed_spec_mp "evalc1_impl_evalc";
