@@ -35,24 +35,24 @@ sig
   val refine: (context -> method) -> state -> state Seq.seq
   val bind: (indexname * string) list -> state -> state
   val bind_i: (indexname * term) list -> state -> state
-  val match_bind: (string * string) list -> state -> state
-  val match_bind_i: (term * term) list -> state -> state
+  val match_bind: (string list * string) list -> state -> state
+  val match_bind_i: (term list * term) list -> state -> state
   val have_tthmss: string -> context attribute list ->
     (tthm list * context attribute list) list -> state -> state
-  val assume: string -> context attribute list -> string list -> state -> state
-  val assume_i: string -> context attribute list -> term list -> state -> state
+  val assume: string -> context attribute list -> (string * string list) list -> state -> state
+  val assume_i: string -> context attribute list -> (term * term list) list -> state -> state
   val fix: (string * string option) list -> state -> state
   val fix_i: (string * typ) list -> state -> state
-  val theorem: bstring -> theory attribute list -> string -> theory -> state
-  val theorem_i: bstring -> theory attribute list -> term -> theory -> state
-  val lemma: bstring -> theory attribute list -> string -> theory -> state
-  val lemma_i: bstring -> theory attribute list -> term -> theory -> state
+  val theorem: bstring -> theory attribute list -> string * string list -> theory -> state
+  val theorem_i: bstring -> theory attribute list -> term * term list -> theory -> state
+  val lemma: bstring -> theory attribute list -> string * string list -> theory -> state
+  val lemma_i: bstring -> theory attribute list -> term * term list -> theory -> state
   val chain: state -> state
   val from_facts: tthm list -> state -> state
-  val show: string -> context attribute list -> string -> state -> state
-  val show_i: string -> context attribute list -> term -> state -> state
-  val have: string -> context attribute list -> string -> state -> state
-  val have_i: string -> context attribute list -> term -> state -> state
+  val show: string -> context attribute list -> string * string list -> state -> state
+  val show_i: string -> context attribute list -> term * term list -> state -> state
+  val have: string -> context attribute list -> string * string list -> state -> state
+  val have_i: string -> context attribute list -> term * term list -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: (context -> method) -> state -> state Seq.seq
@@ -83,8 +83,9 @@ datatype kind =
   Goal of context attribute list |      (*intermediate result, solving subgoal*)
   Aux of context attribute list ;       (*intermediate result*)
 
+val theoremN = "theorem";
 val kind_name =
-  fn Theorem _ => "theorem" | Lemma _ => "lemma" | Goal _ => "show" | Aux _ => "have";
+  fn Theorem _ => theoremN | Lemma _ => "lemma" | Goal _ => "show" | Aux _ => "have";
 
 type goal =
  (kind *		(*result kind*)
@@ -480,31 +481,27 @@ fun from_facts facts state =
 
 (* setup goals *)
 
-val read_prop = ProofContext.read_prop o context_of;
-val cert_prop = ProofContext.cert_prop o context_of;
-
-fun setup_goal opt_block prep kind name atts raw_prop state =
+fun setup_goal opt_block prepp kind name atts raw_propp state =
   let
-    val sign = sign_of state;
-    val ctxt = context_of state;
+    val (state', concl) =
+      state
+      |> assert_forward_or_chain
+      |> enter_forward
+      |> opt_block
+      |> map_context_result (fn c => prepp (c, raw_propp));
 
-    val casms = map (#prop o Thm.crep_thm o Attribute.thm_of) (ProofContext.assumptions ctxt);
+    val casms = map (#prop o Thm.crep_thm o Attribute.thm_of)
+      (ProofContext.assumptions (context_of state'));
     val asms = map Thm.term_of casms;
 
-    val prop = Logic.list_implies (asms, prep state raw_prop);
-    val cprop = Thm.cterm_of sign prop;
+    val prop = Logic.list_implies (asms, concl);
+    val cprop = Thm.cterm_of (sign_of state') prop;
     val thm = Drule.mk_triv_goal cprop;
   in
-    state
-    |> assert_forward_or_chain
-    |> enter_forward
-    |> opt_block
-
-    |> declare_term prop
+    state'
     |> put_goal (Some ((kind atts, (PureThy.default_name name), casms, prop), ([], thm)))
     |> bind_props [("thesis", prop)]
     |> (if is_chain state then use_facts else reset_facts)
-
     |> new_block
     |> enter_backward
   end;
@@ -514,20 +511,20 @@ fun setup_goal opt_block prep kind name atts raw_prop state =
 fun global_goal prep kind name atts x thy =
   setup_goal I prep kind name atts x (init_state thy);
 
-val theorem = global_goal read_prop Theorem;
-val theorem_i = global_goal cert_prop Theorem;
-val lemma = global_goal read_prop Lemma;
-val lemma_i = global_goal cert_prop Lemma;
+val theorem = global_goal ProofContext.bind_propp Theorem;
+val theorem_i = global_goal ProofContext.bind_propp_i Theorem;
+val lemma = global_goal ProofContext.bind_propp Lemma;
+val lemma_i = global_goal ProofContext.bind_propp_i Lemma;
 
 
 (*local goals*)
 fun local_goal prep kind name atts x =
   setup_goal open_block prep kind name atts x;
 
-val show   = local_goal read_prop Goal;
-val show_i = local_goal cert_prop Goal;
-val have   = local_goal read_prop Aux;
-val have_i = local_goal cert_prop Aux;
+val show   = local_goal ProofContext.bind_propp Goal;
+val show_i = local_goal ProofContext.bind_propp_i Goal;
+val have   = local_goal ProofContext.bind_propp Aux;
+val have_i = local_goal ProofContext.bind_propp_i Aux;
 
 
 
@@ -633,7 +630,7 @@ fun finish_global alt_name alt_atts state =
       | _ => raise STATE ("No global goal!", state));
 
     val (thy', result') = PureThy.store_tthm ((name, (result, [])), atts) (theory_of state);
-  in (thy', (kind_name kind, name, result')) end;
+  in (thy', (theoremN, name, result')) end;
 
 fun qed meth_fun alt_name alt_atts state =
   state
