@@ -104,6 +104,8 @@ fun Addcongs congs = (simpset := !simpset addcongs congs);
 infix 4 addss;
 fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
 
+fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
+
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", []),
