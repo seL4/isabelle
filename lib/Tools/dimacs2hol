@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Tjark Weber
+# Copyright 2004
+#
+# DESCRIPTION: convert DIMACS CNF files into Isabelle/HOL theories
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG FILES"
+  echo
+  echo "  Convert files in DIMACS CNF format [1] into Isabelle/HOL theories."
+  echo
+  echo "  For each CNF file, a theory file (with '.thy' appended to the original"
+  echo "  filename) is generated.  The CNF files are not modified."
+  echo
+  echo "  This script is not too strict about the format of the input file.  However,"
+  echo "  in rare cases it may produce a theory that will not be accepted by"
+  echo "  Isabelle/HOL (e.g. when a CNF file contains '\\end{verbatim}' or '*}' in a"
+  echo "  comment)."
+  echo
+  echo "  Each CNF file must contain at least one clause, and may not contain empty"
+  echo "  clauses (i.e. '0' immediately followed by another '0')."
+  echo
+  echo "  The CNF formula is negated, so that an unsatisfiable formula becomes"
+  echo "  provable."
+  echo
+  echo "  [1] ftp://dimacs.rutgers.edu/pub/challenge/satisfiability/doc/satformat.dvi"
+  echo
+  exit 1
+}
+
+
+## process command line
+
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
+
+## main
+
+#set by configure
+AUTO_PERL=perl
+
+"$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/dimacs2hol.pl" "$@"
