@@ -60,7 +60,7 @@ struct
 (** print thm **)
 
 val goals_limit = ref 10;       (*max number of goals to print -- set by user*)
-val show_hyps = ref true;       (*false: print meta-hypotheses as dots*)
+val show_hyps = ref false;      (*false: print meta-hypotheses as dots*)
 val show_tags = ref false;      (*false: suppress tags*)
 
 fun pretty_tag (name, args) = Pretty.strs (name :: map quote args);
