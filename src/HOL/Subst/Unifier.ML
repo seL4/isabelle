@@ -135,6 +135,28 @@ by (rtac Cons_Unifier 1);
 by (ALLGOALS (fast_tac (set_cs addIs [Cons_Unifier,MGIU_sdom_lemma])));
 val MGIU_sdom  = store_thm("MGIU_sdom", result() RS mp);
 
+
+(** COULD REPLACE THE TWO THEOREMS ABOVE BY THE FOLLOWING, IN THE PRESENCE
+    OF DEMORGAN LAWS.  DON'T KNOW WHAT TO DO WITH THE SIMILAR PROOF BELOW.
+val prems = goal Unifier.thy 
+    "x : sdom(s) -->  ~x : srange(s) --> \
+\   ~vars_of(Var(x) <| s<> (x,Var(x))#s) = \
+\      vars_of(Var(x) <| (x,Var(x))#s)";
+by (simp_tac (subst_ss addsimps [not_equal_iff]) 1);
+by (REPEAT (resolve_tac [impI,disjI2] 1));
+by(res_inst_tac [("x","x")] exI 1);
+by (rtac conjI 1);
+by (asm_simp_tac (subst_ss addsimps [Var_elim,subst_comp,repl_invariance]) 1);
+by (asm_simp_tac (subst_ss addsimps [Var_subst]) 1);
+val MGIU_sdom_lemma = result() RS mp RS mp RS lemma_lemma RSN (2, rev_notE);
+
+goal Unifier.thy "MGIUnifier s t u --> sdom(s) <= vars_of(t) Un vars_of(u)";
+by (asm_simp_tac (subst_ss addsimps [MGIU_iff,Idem_iff,subset_iff]) 1);
+by (deepen_tac (set_cs addIs [Cons_Unifier] addEs [MGIU_sdom_lemma]) 3 1);
+val MGIU_sdom  = store_thm("MGIU_sdom", result() RS mp);
+**)
+
+
 (*** The range of a MGIU is a subset of the variables in the terms ***)
 
 val prems = goal HOL.thy  "P = Q ==> (~P) = (~Q)";
