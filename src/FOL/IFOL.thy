@@ -116,10 +116,11 @@ axioms
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
 
-			setup Simplifier.setup
-use "IFOL_lemmas.ML"	setup attrib_setup
+setup Simplifier.setup
+use "IFOL_lemmas.ML"
 use "fologic.ML"
-use "hypsubstdata.ML"   setup hypsubst_setup
+use "hypsubstdata.ML"
+setup hypsubst_setup
 use "intprover.ML"
 
 
