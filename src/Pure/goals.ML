@@ -41,7 +41,7 @@ signature GOALS =
   val gethyps: int -> thm list
   val goal:  theory -> string -> thm list
   val goalw: theory -> thm list -> string -> thm list
-  val goalw_cterm:     thm list -> Sign.cterm -> thm list
+  val goalw_cterm:     thm list -> cterm -> thm list
   val pop_proof: unit -> thm list
   val pr: unit -> unit
   val premises: unit -> thm list
@@ -54,7 +54,7 @@ signature GOALS =
   val proof_timing: bool ref
   val prove_goal: theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw: theory->thm list->string->(thm list->tactic list)->thm
-  val prove_goalw_cterm: thm list->Sign.cterm->(thm list->tactic list)->thm
+  val prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
   val push_proof: unit -> unit
   val read: string -> term
   val ren: string -> int -> unit
@@ -99,7 +99,7 @@ val curr_mkresult =
     ref((fn _=> error"No goal has been supplied in subgoal module") 
        : bool*thm->thm);
 
-val dummy = trivial(Sign.read_cterm Sign.pure 
+val dummy = trivial(read_cterm Sign.pure 
     ("PROP No_goal_has_been_supplied",propT));
 
 (*List of previous goal stacks, for the undo operation.  Set by setstate. 
@@ -124,13 +124,13 @@ fun sign_error (sign,sign') =
 (*Common treatment of "goal" and "prove_goal":
   Return assumptions, initial proof state, and function to make result. *)
 fun prepare_proof rths chorn =
-  let val {sign, t=horn,...} = Sign.rep_cterm chorn;
+  let val {sign, t=horn,...} = rep_cterm chorn;
       val (_,As,B) = Logic.strip_horn(horn);
-      val cAs = map (Sign.cterm_of sign) As;
+      val cAs = map (cterm_of sign) As;
       val p_rew = if null rths then I else rewrite_rule rths;
       val c_rew = if null rths then I else rewrite_goals_rule rths;
       val prems = map (p_rew o forall_elim_vars(0) o assume) cAs
-      and st0 = c_rew (trivial (Sign.cterm_of sign B))
+      and st0 = c_rew (trivial (cterm_of sign B))
       fun result_error state msg = 
         (writeln ("Bad final proof state:");
  	 !print_goals_ref (!goals_limit) state;
@@ -151,7 +151,7 @@ fun prepare_proof rths chorn =
                 ("Additional hypotheses:\n" ^ 
                  cat_lines (map (Sign.string_of_term sign) hyps))
 	    else if Pattern.eta_matches (#tsig(Sign.rep_sg sign)) 
-			                (Sign.term_of chorn, prop)
+			                (term_of chorn, prop)
 		 then  standard th 
 	    else  result_error state "proved a different theorem"
         end
@@ -199,7 +199,7 @@ fun prove_goalw_cterm rths chorn tacsf =
 (*Version taking the goal as a string*)
 fun prove_goalw thy rths agoal tacsf =
   let val sign = sign_of thy
-      val chorn = Sign.read_cterm sign (agoal,propT)
+      val chorn = read_cterm sign (agoal,propT)
   in  prove_goalw_cterm rths chorn tacsf  
       handle ERROR => error (*from type_assign, etc via prepare_proof*)
 		("The error above occurred for " ^ quote agoal)
@@ -286,7 +286,7 @@ fun pr () = apply_fun print_top;
     Initial subgoal and premises are rewritten using rths. **)
 
 (*Version taking the goal as a cterm; if you have a term t and theory thy, use
-    goalw_cterm rths (Sign.cterm_of (sign_of thy) t);      *)
+    goalw_cterm rths (cterm_of (sign_of thy) t);      *)
 fun goalw_cterm rths chorn = 
   let val (prems, st0, mkresult) = prepare_proof rths chorn
   in  undo_list := [];
@@ -298,7 +298,7 @@ fun goalw_cterm rths chorn =
 
 (*Version taking the goal as a string*)
 fun goalw thy rths agoal = 
-  goalw_cterm rths (Sign.read_cterm(sign_of thy)(agoal,propT))
+  goalw_cterm rths (read_cterm(sign_of thy)(agoal,propT))
   handle ERROR => error (*from type_assign, etc via prepare_proof*)
 	    ("The error above occurred for " ^ quote agoal);
 
@@ -418,7 +418,7 @@ fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
 
 fun top_sg() = #sign(rep_thm(topthm()));
 
-fun read s = Sign.term_of (Sign.read_cterm (top_sg())
+fun read s = term_of (read_cterm (top_sg())
 			                   (s, (TVar(("DUMMY",0),[]))));
 
 (*Print a term under the current signature of the proof state*)

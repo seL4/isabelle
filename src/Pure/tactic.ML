@@ -99,8 +99,8 @@ fun freeze th =
   let val fth = freezeT th
       val {prop,sign,...} = rep_thm fth
       fun mk_inst (Var(v,T)) = 
-	  (Sign.cterm_of sign (Var(v,T)),
-	   Sign.cterm_of sign (Free(string_of v, T)))
+	  (cterm_of sign (Var(v,T)),
+	   cterm_of sign (Free(string_of v, T)))
       val insts = map mk_inst (term_vars prop)
   in  instantiate ([],insts) fth  end;
 
@@ -184,14 +184,14 @@ let val {maxidx,sign,...} = rep_thm state
     fun liftterm t = list_abs_free (params, 
 				    Logic.incr_indexes(paramTs,inc) t)
     (*Lifts instantiation pair over params*)
-    fun liftpair (cv,ct) = (Sign.cfun liftvar cv, Sign.cfun liftterm ct)
+    fun liftpair (cv,ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct)
     fun lifttvar((a,i),ctyp) =
-	let val {T,sign} = Sign.rep_ctyp ctyp
-	in  ((a,i+inc), Sign.ctyp_of sign (incr_tvar inc T)) end
+	let val {T,sign} = rep_ctyp ctyp
+	in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
     val rts = types_sorts rule and (types,sorts) = types_sorts state
     fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
       | types'(ixn) = types ixn;
-    val (Tinsts,insts) = Sign.read_insts sign rts (types',sorts) sinsts
+    val (Tinsts,insts) = read_insts sign rts (types',sorts) sinsts
 in instantiate (map lifttvar Tinsts, map liftpair insts)
 		(lift_rule (state,i) rule)
 end;

@@ -399,7 +399,7 @@ fun SUBGOAL goalfun i = Tactic(fn state =>
 (* (!!x. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
 val dummy_quant_rl = 
   standard (forall_elim_var 0 (assume 
-                  (Sign.read_cterm Sign.pure ("!!x::prop. PROP V",propT))));
+                  (read_cterm Sign.pure ("!!x::prop. PROP V",propT))));
 
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)
@@ -411,7 +411,7 @@ fun protect_subgoal state i =
 (*Does the work of SELECT_GOAL. *)
 fun select (Tactic tf) state i =
   let val prem::_ = drop(i-1, prems_of state)
-      val st0 = trivial (Sign.cterm_of (#sign(rep_thm state)) prem);
+      val st0 = trivial (cterm_of (#sign(rep_thm state)) prem);
       fun next st = bicompose false (false, st, nprems_of st) i state
   in  Sequence.flats (Sequence.maps next (tf st0))
   end;
@@ -469,7 +469,7 @@ in
 
 fun metahyps_aux_tac tacf (prem,i) = Tactic (fn state =>
   let val {sign,maxidx,...} = rep_thm state
-      val cterm = Sign.cterm_of sign
+      val cterm = cterm_of sign
       (*find all vars in the hyps -- should find tvars also!*)
       val hyps_vars = foldr add_term_vars (strip_assums_hyp prem, [])
       val insts = map mk_inst hyps_vars
