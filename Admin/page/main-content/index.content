@@ -35,6 +35,15 @@ workshops and courses.
 
 <p>
 
+<h2>Isabelle 2005 - Preview</h2>
+
+<ul>
+<li>New command for finding matching rewrite rules</li>
+<li>New syntax to allow &gt; and &gt;=</li>
+<li>New automatic transitivity reasoner</li>
+<li>New command for ad-hoc theory viewing and printing</li>
+</ul>
+
 <h2>Course Material, Exercises</h2>
 
 The <a
