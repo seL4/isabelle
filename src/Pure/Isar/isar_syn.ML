@@ -345,7 +345,7 @@ val letP =
 
 val caseP =
   OuterSyntax.command "case" "invoke local context" K.prf_asm
-    (P.xname -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.invoke_case)));
+    (P.xthm -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.invoke_case)));
 
 
 (* proof structure *)

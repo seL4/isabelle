@@ -67,7 +67,7 @@ sig
     -> state -> state
   val presume_i: (string * context attribute list * (term * (term list * term list)) list) list
     -> state -> state
-  val invoke_case: string -> state -> state
+  val invoke_case: string * context attribute list -> state -> state
   val theorem: bstring -> theory attribute list -> string * (string list * string list)
     -> theory -> state
   val theorem_i: bstring -> theory attribute list -> term * (term list * term list)
@@ -561,11 +561,11 @@ end;
 
 (* invoke_case *)
 
-fun invoke_case name state =
+fun invoke_case (name, atts) state =
   let val (vars, props) = get_case state name in
     state
     |> fix_i (map (fn (x, T) => ([x], Some T)) vars)
-    |> assume_i [(name, [], map (fn t => (t, ([], []))) props)]
+    |> assume_i [(name, atts, map (fn t => (t, ([], []))) props)]
   end;
 
 
