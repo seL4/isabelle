@@ -39,6 +39,8 @@ use "typedef.ML";
 use_thy "Sum";
 use_thy "Gfp";
 
+use "record.ML";
+
 use "datatype.ML";
 use_thy "Arith";
 use "arith_data.ML";
