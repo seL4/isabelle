@@ -331,6 +331,16 @@ apply (induct xs)
 apply (case_tac ys, force, simp)
 done
 
+lemma append_eq_append_conv2: "!!ys zs ts.
+ (xs @ ys = zs @ ts) =
+ (EX us. xs = zs @ us & us @ ys = ts | xs @ us = zs & ys = us@ ts)"
+apply (induct xs)
+ apply fastsimp
+apply(case_tac zs)
+ apply simp
+apply fastsimp
+done
+
 lemma same_append_eq [iff]: "(xs @ ys = xs @ zs) = (ys = zs)"
 by simp
 
