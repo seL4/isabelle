@@ -1,9 +1,9 @@
 (*  Title:      Pure/Thy/HTML.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-HTML presentation primitives.
+HTML presentation elements.
 *)
 
 signature HTML =
@@ -26,7 +26,7 @@ sig
   val begin_index: Url.T * string -> Url.T * string -> Url.T option
     -> Url.T option -> Url.T -> text
   val end_index: text
-  val applet_pages: string -> Url.T * string -> bool -> (string * string) list
+  val applet_pages: string -> Url.T * string -> (string * string) list
   val theory_entry: Url.T * string -> text
   val session_entries: (Url.T * string) list -> text
   val verbatim_source: Symbol.symbol list -> text
@@ -168,40 +168,27 @@ val end_index = end_document;
 fun choice chs s = space_implode " " (map (fn (s', lnk) =>
   enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
 
-fun applet_pages session back alt_graph =
+fun applet_pages session back =
   let
-    val choices = [("none", "small",  "small.html"),
-                   ("none", "medium", "medium.html"),
-                   ("none", "large",  "large.html"),
-                   ("all",  "small",  "small_all.html"),
-                   ("all",  "medium", "medium_all.html"),
-                   ("all",  "large",  "large_all.html")];
+    val sizes =
+     [("small", "small.html", ("500", "400")),
+      ("medium", "medium.html", ("650", "520")),
+      ("large", "large.html", ("800", "640"))];
 
-    val sizes = [("small",  ("500", "400")),
-                 ("medium", ("650", "520")),
-                 ("large",  ("800", "640"))];
-
-    fun applet_page (gtype, size, name) =
+    fun applet_page (size, name, (width, height)) =
       let
-        val (width, height) = the (assoc (sizes, size));
-        val subsessions =
-          if alt_graph then
-            "View subsessions: " ^ choice (map (fn (x, _, z) => (x, z))
-              (filter (fn (_, y, _) => y = size) choices)) gtype ^ "<br>\n"
-          else "";
         val browser_size = "Set browser size: " ^
-          choice (map (fn (_, y, z) => (y, z)) (filter (fn (x, _, _) => x = gtype) choices)) size;
+          choice (map (fn (y, z, _) => (y, z)) sizes) size;
       in
         (name, begin_document ("Theory dependencies of " ^ session) ^
           back_link back ^
-          para (subsessions ^ browser_size) ^
+          para browser_size ^
           "\n<hr>\n<applet code=\"GraphBrowser/GraphBrowser.class\" \
           \width=" ^ width ^ " height=" ^ height ^ ">\n\
-          \<param name=\"graphfile\" value=\"" ^
-          (if gtype = "all" then "all_sessions.graph" else "session.graph") ^ "\">\n\
+          \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\">\n\
           \</applet>\n<hr>" ^ end_document)
       end;
-  in map applet_page (take (if alt_graph then 6 else 3, choices)) end;
+  in map applet_page sizes end;
 
 
 fun entry (p, s) = "<li>" ^ href_path p (plain s) ^ "\n";
