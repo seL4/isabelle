@@ -384,14 +384,22 @@ goal thy "!!evs. evs : traces ==> \
 be traces.induct 1;
 bd NS3_msg_in_parts_sees_Enemy 5;
 by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS
-    (best_tac 
+(*NS1 and NS2*)
+map (by o fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [3,2];
+(*Fake and NS3*)
+map (by o best_tac
      (!claset addSDs [newK_invKey]
 	      addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
 		     impOfSubs (parts_insert_subset_Un RS keysFor_mono),
 		     Suc_leD]
 	      addEs [new_keys_not_seen RS not_parts_not_analz RSN (2,rev_notE)]
-	      addss (!simpset))));
+	      addss (!simpset)))
+    [2,1];
+(*NS4*)
+by (step_tac (!claset addSDs [Suc_leD, newK_invKey]) 1);
+by (deepen_tac (!claset addIs [impOfSubs keysFor_mono]) 0 2);
+by (fast_tac (!claset addDs [Says_imp_old_keys]
+	              addss (!simpset addsimps [le_def])) 1);
 val lemma = result();
 
 goal thy 
@@ -526,6 +534,7 @@ br (parts.Inj RS conjI) 1;
 by (auto_tac (!claset addIs [Says_imp_old_keys], !simpset));
 qed "Says_S_message_form";
 
+(*Currently unused.  Needed only to reason about the VERY LAST message.*)
 goal thy 
  "!!evs. [| evs = Says S A (Crypt {|Nonce NA, Agent B, Key K, X|}   \
 \                           (serverKey A)) # evs';                  \
@@ -537,7 +546,6 @@ by (forward_tac [traces_eq_ConsE] 1);
 by (dtac (set_of_list_eqI1 RS Says_S_message_form) 2);
 by (Auto_tac());	
 qed "Says_S_message_form_eq";
-
 
 
 
@@ -568,6 +576,7 @@ by (best_tac (!claset addSEs partsEs
 		      addDs [impOfSubs analz_subset_parts,
                              impOfSubs parts_insert_subset_Un]
                       addss (!simpset)) 1);
+by (fast_tac (!claset addss (!simpset)) 1);
 result();
 
 

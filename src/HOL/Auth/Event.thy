@@ -85,24 +85,27 @@ rules
 (*NS3 DOESN'T ALLOW INTERLEAVING -- that is, it only responds to the
   MOST RECENT message.*)
 
+(*Needham-Schroeder Shared-Key protocol (from BAN paper, page 247)*)
 consts  traces   :: "event list set"
 inductive traces
   intrs 
+         (*Initial trace is empty*)
     Nil  "[]: traces"
 
-    (*The enemy MAY say anything he CAN say.  We do not expect him to
-      invent new nonces here, but he can also use NS1.*)
-    Fake "[| evs: traces;  B ~= Enemy;  
-             X: synth(analz(sees Enemy evs))
+         (*The enemy MAY say anything he CAN say.  We do not expect him to
+           invent new nonces here, but he can also use NS1.  Common to
+           all similar protocols.*)
+    Fake "[| evs: traces;  B ~= Enemy;  X: synth (analz (sees Enemy evs))
           |] ==> (Says Enemy B X) # evs : traces"
 
+         (*Alice initiates a protocol run*)
     NS1  "[| evs: traces;  A ~= Server
           |] ==> (Says A Server {|Agent A, Agent B, Nonce (newN evs)|}) 
                  # evs : traces"
 
-          (*We can't trust the sender field, hence the A' in it.
-            This allows the Server to respond more than once to A's
-            request...*)
+         (*Server's response to Alice's message.
+           !! It may respond more than once to A's request !!
+	   We can't trust the sender field, hence the A' in it.*)
     NS2  "[| evs: traces;  A ~= B;  A ~= Server;
              (Says A' Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs
           |] ==> (Says Server A 
@@ -110,9 +113,9 @@ inductive traces
                            (Crypt {|Key (newK evs), Agent A|} (serverKey B))|}
                    (serverKey A))) # evs : traces"
 
-           (*We can't assume S=Server.  Agent A "remembers" her nonce.
-             May assume WLOG that she is NOT the Enemy: the Fake rule
-             covers this case.  Can inductively show A ~= Server*)
+          (*We can't assume S=Server.  Agent A "remembers" her nonce.
+            May assume WLOG that she is NOT the Enemy: the Fake rule
+            covers this case.  Can inductively show A ~= Server*)
     NS3  "[| evs: traces;  A ~= B;
              (Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (serverKey A))) 
                : set_of_list evs;
@@ -120,12 +123,8 @@ inductive traces
              (Says A Server {|Agent A, Agent B, Nonce NA|}) : set_of_list evs
           |] ==> (Says A B X) # evs : traces"
 
-(*Initial version of NS2 had 
-
-        {|Agent A, Agent B, Key (newK evs), Nonce NA|}
-
-  for the encrypted part; the version above is LESS explicit, hence
-  HARDER to prove.  Also it is precisely as in the BAN paper.
-*)
-
+    NS4  "[| evs: traces;  A ~= B;  
+             (Says A' B (Crypt {|Key K, Agent A|} (serverKey B))) 
+               : set_of_list evs
+          |] ==> (Says B A (Crypt (Nonce (newN evs)) K)) # evs : traces"
 end
