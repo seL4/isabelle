@@ -79,8 +79,9 @@ by (auto_tac (claset() addSEs [less_SucE], simpset()));
 qed "ask_bounded";
 
 
-(*Curiously, we no longer need to expand the program definition, and 
-  expanding it is extremely expensive!*)
+(*We no longer need constrains_tac to expand the program definition, and 
+  expanding it is extremely expensive!  Instead, Acts_Cli_Join_eq expands
+  the program.*)
 program_defs_ref := [];
 
 (*Safety property 2: clients return the right number of tokens*)
@@ -92,8 +93,7 @@ by (invariant_tac 1);
 by (Force_tac 1);
 by (subgoal_tac "rel s <= giv s'" 1);
 by (force_tac (claset(),
-	       simpset() delsimps [Acts_eq]
-			 addsimps [stable_def, constrains_def]) 2);
+	       simpset() addsimps [stable_def, constrains_def]) 2);
 by (dtac (Acts_Cli_Join_eq RS iffD1) 1);
 (*we note that "rel" is local to Client*)
 by (auto_tac (claset() addD2 ("x",localTo_imp_equals), simpset()));
