@@ -16,6 +16,8 @@ New in Isabelle2001 (?? 2001)
 * HOL: added safe wrapper "split_conv_tac" to claset.  EXISTING PROOFS
 MAY FAIL;
 
+* Classical reasoner: renamed addaltern to addafter, addSaltern to addSafter
+
 * HOL: introduced f^n = f o ... o f
   WARNING: due to the limits of Isabelle's type classes, ^ on functions and
   relations has too general a domain, namely ('a * 'b)set and 'a => 'b.
