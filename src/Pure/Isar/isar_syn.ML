@@ -161,7 +161,7 @@ val axiomsP =
 
 val defsP =
   OuterSyntax.command "defs" "define constants" K.thy_decl
-    (Scan.repeat1 (P.spec_opt_name -- P.marg_comment) >> (Toplevel.theory o IsarThy.add_defs));
+    (Scan.repeat1 (P.spec_name -- P.marg_comment) >> (Toplevel.theory o IsarThy.add_defs));
 
 val constdefsP =
   OuterSyntax.command "constdefs" "declare and define constants" K.thy_decl
