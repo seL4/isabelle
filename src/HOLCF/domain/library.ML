@@ -108,9 +108,9 @@ infixr 5 -->;
 
 (* ----- support for term expressions ----- *)
 
-fun % s = Free(s,dummyT);
-fun %# arg = %(vname arg);
-fun %% s = Const(s,dummyT);
+fun %: s = Free(s,dummyT);
+fun %# arg = %:(vname arg);
+fun %%: s = Const(s,dummyT);
 
 local open HOLogic in
 val mk_trp = mk_Trueprop;
@@ -120,36 +120,36 @@ fun mk_imp  (S,T) = imp  $ S $ T;
 fun mk_lam  (x,T) = Abs(x,dummyT,T);
 fun mk_all  (x,P) = HOLogic.mk_all (x,dummyT,P);
 local 
-		    fun sg [s]     = %s
-		    |   sg (s::ss) = %%"_classes" $ %s $ sg ss
+		    fun sg [s]     = %:s
+		    |   sg (s::ss) = %%:"_classes" $ %:s $ sg ss
 	 	    |   sg _       = Imposs "library:sg";
-		    fun sf [] = %%"_emptysort"
-		    |   sf s  = %%"_sort" $ sg s
-		    fun tf (Type (s,args)) = foldl (op $) (%s,map tf args)
-		    |   tf (TFree(s,sort)) = %%"_ofsort" $ %s $ sf sort
+		    fun sf [] = %%:"_emptysort"
+		    |   sf s  = %%:"_sort" $ sg s
+		    fun tf (Type (s,args)) = foldl (op $) (%:s,map tf args)
+		    |   tf (TFree(s,sort)) = %%:"_ofsort" $ %:s $ sf sort
 		    |   tf _               = Imposs "library:tf";
 in
-fun mk_constrain      (typ,T) = %%"_constrain" $ T $ tf typ;
-fun mk_constrainall (x,typ,P) = %%"All" $ (%%"_constrainAbs" $ mk_lam(x,P) $ tf typ);
+fun mk_constrain      (typ,T) = %%:"_constrain" $ T $ tf typ;
+fun mk_constrainall (x,typ,P) = %%:"All" $ (%%:"_constrainAbs" $ mk_lam(x,P) $ tf typ);
 end;
 fun mk_ex   (x,P) = mk_exists (x,dummyT,P);
 end;
 
-fun mk_All  (x,P) = %%"all" $ mk_lam(x,P); (* meta universal quantification *)
+fun mk_All  (x,P) = %%:"all" $ mk_lam(x,P); (* meta universal quantification *)
 
-infixr 0 ===>;fun S ===> T = %%"==>" $ S $ T;
+infixr 0 ===>;fun S ===> T = %%:"==>" $ S $ T;
 infixr 0 ==>;fun S ==> T = mk_trp S ===> mk_trp T;
-infix 0 ==;  fun S ==  T = %%"==" $ S $ T;
-infix 1 ===; fun S === T = %%"op =" $ S $ T;
+infix 0 ==;  fun S ==  T = %%:"==" $ S $ T;
+infix 1 ===; fun S === T = %%:"op =" $ S $ T;
 infix 1 ~=;  fun S ~=  T = mk_not (S === T);
-infix 1 <<;  fun S <<  T = %%"op <<" $ S $ T;
+infix 1 <<;  fun S <<  T = %%:"op <<" $ S $ T;
 infix 1 ~<<; fun S ~<< T = mk_not (S << T);
 
-infix 9 `  ; fun f`  x = %%"Rep_CFun" $ f $ x;
-infix 9 `% ; fun f`% s = f` % s;
-infix 9 `%%; fun f`%%s = f` %%s;
+infix 9 `  ; fun f`  x = %%:"Rep_CFun" $ f $ x;
+infix 9 `% ; fun f`% s = f` %: s;
+infix 9 `%%; fun f`%%s = f` %%:s;
 fun mk_cRep_CFun (F,As) = foldl (op `) (F,As);
-fun con_app2 con f args = mk_cRep_CFun(%%con,map f args);
+fun con_app2 con f args = mk_cRep_CFun(%%:con,map f args);
 fun con_app con = con_app2 con %#;
 fun if_rec  arg f y   = if is_rec arg then f (rec_of arg) else y;
 fun app_rec_arg p arg = if_rec arg (fn n => fn x => (p n)`x) Id (%# arg);
@@ -158,21 +158,21 @@ fun prj _  _  x (   _::[]) _ = x
 |   prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
 fun fix_tp (tn, args) = (tn, map (K oneT) args); (* instantiate type to
 						    avoid type varaibles *)
-fun  proj x      = prj (fn S => K(%%"fst" $S)) (fn S => K(%%"snd" $S)) x;
-fun cproj x      = prj (fn S => K(%%"cfst"`S)) (fn S => K(%%"csnd"`S)) x;
+fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
+fun cproj x      = prj (fn S => K(%%:"cfst"`S)) (fn S => K(%%:"csnd"`S)) x;
 fun cproj' T eqs = prj 
 	(fn S => fn t => Const("cfst",mk_prodT(dummyT,t)->>dummyT)`S) 
 	(fn S => fn t => Const("csnd",mk_prodT(t,dummyT)->>dummyT)`S) 
 		       T (map ((fn tp => tp ->> tp) o Type o fix_tp o fst) eqs);
 fun lift tfn = foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
-fun /\ v T = %%"Abs_CFun" $ mk_lam(v,T);
+fun /\ v T = %%:"Abs_CFun" $ mk_lam(v,T);
 fun /\# (arg,T) = /\ (vname arg) T;
-infixr 9 oo; fun S oo T = %%"cfcomp"`S`T;
-val UU = %%"UU";
+infixr 9 oo; fun S oo T = %%:"cfcomp"`S`T;
+val UU = %%:"UU";
 fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
-fun cpair (S,T) = %%"cpair"`S`T;
+fun cpair (S,T) = %%:"cpair"`S`T;
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 
@@ -192,14 +192,14 @@ fun when_body cons funarg = let
 	fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
 	|   one_fun n (_,args) = let
 		val l2 = length args;
-		fun idxs m arg = (if is_lazy arg then fn x=> %%"fup"`%%"ID"`x
+		fun idxs m arg = (if is_lazy arg then fn x=> %%:"fup"`%%"ID"`x
 					         else Id) (Bound(l2-m));
 		in cont_eta_contract (foldr'' 
-			(fn (a,t) => %%"ssplit"`(/\# (a,t)))
+			(fn (a,t) => %%:"ssplit"`(/\# (a,t)))
 			(args,
 			fn a=> /\#(a,(mk_cRep_CFun(funarg(l2,n),mapn idxs 1 args))))
 			) end;
 in (if length cons = 1 andalso length(snd(hd cons)) <= 1
-    then fn t => %%"strictify"`t else Id)
-     (foldr' (fn (x,y)=> %%"sscase"`x`y) (mapn one_fun 1 cons)) end;
+    then fn t => %%:"strictify"`t else Id)
+     (foldr' (fn (x,y)=> %%:"sscase"`x`y) (mapn one_fun 1 cons)) end;
 end; (* struct *)
