@@ -12,9 +12,9 @@ where function symbols can be applied to a list of arguments:%
 \noindent
 Note that we need to quote \isa{term} on the left to avoid confusion with
 the command \isacommand{term}.
-Parameter \isa{'a} is the type of variables and \isa{'b} the type of
+Parameter \isa{{\isacharprime}a} is the type of variables and \isa{{\isacharprime}b} the type of
 function symbols.
-A mathematical term like $f(x,g(y))$ becomes \isa{App\ \mbox{f}\ {\isacharbrackleft}Var\ \mbox{x}{\isacharcomma}\ App\ \mbox{g}\ {\isacharbrackleft}Var\ \mbox{y}{\isacharbrackright}{\isacharbrackright}}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
+A mathematical term like $f(x,g(y))$ becomes \isa{App\ f\ {\isacharbrackleft}term{\isachardot}Var\ x{\isacharcomma}\ App\ g\ {\isacharbrackleft}term{\isachardot}Var\ y{\isacharbrackright}{\isacharbrackright}}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
 suitable values, e.g.\ numbers or strings.
 
 What complicates the definition of \isa{term} is the nested occurrence of
@@ -49,7 +49,7 @@ substs{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\
 \ \ {\isachardoublequote}substs\ s\ {\isacharparenleft}t\ {\isacharhash}\ ts{\isacharparenright}\ {\isacharequal}\ subst\ s\ t\ {\isacharhash}\ substs\ s\ ts{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-You should ignore the label \isa{subst\_App} for the moment.
+You should ignore the label \isa{subst{\isacharunderscore}App} for the moment.
 
 Similarly, when proving a statement about terms inductively, we need
 to prove a related statement about term lists simultaneously. For example,
@@ -61,43 +61,47 @@ strengthened and proved as follows:%
 \isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-Note that \isa{Var} is the identity substitution because by definition it
-leaves variables unchanged: \isa{subst\ Var\ {\isacharparenleft}Var\ \mbox{x}{\isacharparenright}\ {\isacharequal}\ Var\ \mbox{x}}. Note also
+Note that \isa{term{\isachardot}Var} is the identity substitution because by definition it
+leaves variables unchanged: \isa{subst\ term{\isachardot}Var\ {\isacharparenleft}term{\isachardot}Var\ x{\isacharparenright}\ {\isacharequal}\ term{\isachardot}Var\ x}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
-parameters \isa{('a,'b)}. As a result, induction would fail
+parameters \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}}. As a result, induction would fail
 because the two halves of the goal would be unrelated.
 
 \begin{exercise}
 The fact that substitution distributes over composition can be expressed
 roughly as follows:
-\begin{ttbox}
-subst (f o g) t = subst f (subst g t)
-\end{ttbox}
-Correct this statement (you will find that it does not type-check),
-strengthen it, and prove it. (Note: \ttindexbold{o} is function composition;
-its definition is found in theorem \isa{o_def}).
-\end{exercise}
-\begin{exercise}\label{ex:trev-trev}
-  Define a function \isa{trev} of type \isa{{\isacharparenleft}\mbox{{\isacharprime}a}{\isacharcomma}\ \mbox{{\isacharprime}b}{\isacharparenright}\ term\ {\isasymRightarrow}\ {\isacharparenleft}\mbox{{\isacharprime}a}{\isacharcomma}\ \mbox{{\isacharprime}b}{\isacharparenright}\ term} that
-  recursively reverses the order of arguments of all function symbols in a
-  term. Prove that \isa{trev(trev t) = t}.
-\end{exercise}
-
-The experienced functional programmer may feel that our above definition of
-\isa{subst} is unnecessarily complicated in that \isa{substs} is completely
-unnecessary. The \isa{App}-case can be defined directly as
 \begin{quote}
 
 \begin{isabelle}%
-subst\ \mbox{s}\ {\isacharparenleft}App\ \mbox{f}\ \mbox{ts}{\isacharparenright}\ {\isacharequal}\ App\ \mbox{f}\ {\isacharparenleft}map\ {\isacharparenleft}subst\ \mbox{s}{\isacharparenright}\ \mbox{ts}{\isacharparenright}
+subst\ {\isacharparenleft}f\ o\ g{\isacharparenright}\ t\ {\isacharequal}\ subst\ f\ {\isacharparenleft}subst\ g\ t{\isacharparenright}
+\end{isabelle}%
+
+\end{quote}
+Correct this statement (you will find that it does not type-check),
+strengthen it, and prove it. (Note: \isaindexbold{o} is function composition;
+its definition is found in theorem \isa{o{\isacharunderscore}def}).
+\end{exercise}
+\begin{exercise}\label{ex:trev-trev}
+  Define a function \isa{trev} of type \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ term\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ term}
+that recursively reverses the order of arguments of all function symbols in a
+  term. Prove that \isa{trev\ {\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t}.
+\end{exercise}
+
+The experienced functional programmer may feel that our above definition of
+\isa{subst} is unnecessarily complicated in that \isa{substs} is
+completely unnecessary. The \isa{App}-case can be defined directly as
+\begin{quote}
+
+\begin{isabelle}%
+subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}
 \end{isabelle}%
 
 \end{quote}
 where \isa{map} is the standard list function such that
-\isa{map f [x1,...,xn] = [f x1,...,f xn]}. This is true, but Isabelle insists
-on the above fixed format. Fortunately, we can easily \emph{prove} that the
-suggested equation holds:%
+\isa{map\ f\ {\isacharbrackleft}x\isadigit{1}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}xn{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}f\ x\isadigit{1}{\isacharcomma}{\isachardot}{\isachardot}{\isachardot}{\isacharcomma}f\ xn{\isacharbrackright}}. This is true, but Isabelle
+insists on the above fixed format. Fortunately, we can easily \emph{prove}
+that the suggested equation holds:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}subst\ s\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}map\ {\isacharparenleft}subst\ s{\isacharparenright}\ ts{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
@@ -120,7 +124,7 @@ The details are explained in \S\ref{sec:advanced-recdef} below.
 
 Of course, you may also combine mutual and nested recursion. For example,
 constructor \isa{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
-expressions as its argument: \isa{Sum "'a aexp list"}.%
+expressions as its argument: \isa{Sum}~\isa{{\isachardoublequote}{\isacharprime}a\ aexp\ list{\isachardoublequote}}.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

@@ -3,9 +3,9 @@ theory Tree2 = Tree:
 (*>*)
 
 text{*\noindent In Exercise~\ref{ex:Tree} we defined a function
-\isa{flatten} from trees to lists. The straightforward version of
-\isa{flatten} is based on \isa{\at} and is thus, like \isa{rev}, quadratic.
-A linear time version of \isa{flatten} again reqires an extra
+@{term"flatten"} from trees to lists. The straightforward version of
+@{term"flatten"} is based on @{text"@"} and is thus, like @{term"rev"},
+quadratic. A linear time version of @{term"flatten"} again reqires an extra
 argument, the accumulator: *}
 
 consts flatten2 :: "'a tree => 'a list => 'a list"
@@ -15,7 +15,7 @@ primrec
 "flatten2 (Node l x r) xs = flatten2 l (x#(flatten2 r xs))"
 (*>*)
 
-text{*\noindent Define \isa{flatten2} and prove
+text{*\noindent Define @{term"flatten2"} and prove
 *}
 (*<*)
 lemma [simp]: "!xs. flatten2 t xs = flatten t @ xs";

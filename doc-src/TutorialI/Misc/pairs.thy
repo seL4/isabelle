@@ -4,7 +4,7 @@ theory pairs = Main:;
 text{*
 HOL also has pairs: \isa{($a@1$,$a@2$)} is of type \isa{$\tau@1$ *
   $\tau@2$} provided each $a@i$ is of type $\tau@i$. The components of a pair
-are extracted by \isa{fst} and \isa{snd}: \isa{fst($x$,$y$) = $x$} and
+are extracted by @{term"fst"} and @{term"snd"}: \isa{fst($x$,$y$) = $x$} and
 \isa{snd($x$,$y$) = $y$}. Tuples are simulated by pairs nested to the right:
 \isa{($a@1$,$a@2$,$a@3$)} stands for \isa{($a@1$,($a@2$,$a@3$))} and
 \isa{$\tau@1$ * $\tau@2$ * $\tau@3$} for \isa{$\tau@1$ * ($\tau@2$ *

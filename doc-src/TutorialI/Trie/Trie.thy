@@ -5,8 +5,8 @@ text{*
 To minimize running time, each node of a trie should contain an array that maps
 letters to subtries. We have chosen a (sometimes) more space efficient
 representation where the subtries are held in an association list, i.e.\ a
-list of (letter,trie) pairs.  Abstracting over the alphabet \isa{'a} and the
-values \isa{'v} we define a trie as follows:
+list of (letter,trie) pairs.  Abstracting over the alphabet @{typ"'a"} and the
+values @{typ"'v"} we define a trie as follows:
 *};
 
 datatype ('a,'v)trie = Trie  "'v option"  "('a * ('a,'v)trie)list";
@@ -47,7 +47,7 @@ primrec "lookup t [] = value t"
 
 text{*
 As a first simple property we prove that looking up a string in the empty
-trie \isa{Trie~None~[]} always returns \isa{None}. The proof merely
+trie @{term"Trie None []"} always returns @{term"None"}. The proof merely
 distinguishes the two cases whether the search string is empty or not:
 *};
 
@@ -70,14 +70,14 @@ primrec
 
 text{*\noindent
 The base case is obvious. In the recursive case the subtrie
-\isa{tt} associated with the first letter \isa{a} is extracted,
+@{term"tt"} associated with the first letter @{term"a"} is extracted,
 recursively updated, and then placed in front of the association list.
-The old subtrie associated with \isa{a} is still in the association list
-but no longer accessible via \isa{assoc}. Clearly, there is room here for
+The old subtrie associated with @{term"a"} is still in the association list
+but no longer accessible via @{term"assoc"}. Clearly, there is room here for
 optimizations!
 
-Before we start on any proofs about \isa{update} we tell the simplifier to
-expand all \isa{let}s and to split all \isa{case}-constructs over
+Before we start on any proofs about @{term"update"} we tell the simplifier to
+expand all @{text"let"}s and to split all @{text"case"}-constructs over
 options:
 *};
 
@@ -86,23 +86,23 @@ lemmas [split] = option.split;
 
 text{*\noindent
 The reason becomes clear when looking (probably after a failed proof
-attempt) at the body of \isa{update}: it contains both
-\isa{let} and a case distinction over type \isa{option}.
+attempt) at the body of @{term"update"}: it contains both
+@{text"let"} and a case distinction over type @{text"option"}.
 
-Our main goal is to prove the correct interaction of \isa{update} and
-\isa{lookup}:
+Our main goal is to prove the correct interaction of @{term"update"} and
+@{term"lookup"}:
 *};
 
 theorem "\\<forall>t v bs. lookup (update t as v) bs =
                     (if as=bs then Some v else lookup t bs)";
 
 txt{*\noindent
-Our plan is to induct on \isa{as}; hence the remaining variables are
+Our plan is to induct on @{term"as"}; hence the remaining variables are
 quantified. From the definitions it is clear that induction on either
-\isa{as} or \isa{bs} is required. The choice of \isa{as} is merely
-guided by the intuition that simplification of \isa{lookup} might be easier
-if \isa{update} has already been simplified, which can only happen if
-\isa{as} is instantiated.
+@{term"as"} or @{term"bs"} is required. The choice of @{term"as"} is merely
+guided by the intuition that simplification of @{term"lookup"} might be easier
+if @{term"update"} has already been simplified, which can only happen if
+@{term"as"} is instantiated.
 The start of the proof is completely conventional:
 *};
 apply(induct_tac as, auto);
@@ -112,27 +112,27 @@ Unfortunately, this time we are left with three intimidating looking subgoals:
 \begin{isabelle}
 ~1.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
 ~2.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
-~3.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs%
+~3.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs
 \end{isabelle}
-Clearly, if we want to make headway we have to instantiate \isa{bs} as
+Clearly, if we want to make headway we have to instantiate @{term"bs"} as
 well now. It turns out that instead of induction, case distinction
 suffices:
 *};
 by(case_tac[!] bs, auto);
 
 text{*\noindent
-All methods ending in \isa{tac} take an optional first argument that
-specifies the range of subgoals they are applied to, where \isa{[!]} means all
-subgoals, i.e.\ \isa{[1-3]} in our case. Individual subgoal numbers,
-e.g. \isa{[2]} are also allowed.
+All methods ending in @{text"tac"} take an optional first argument that
+specifies the range of subgoals they are applied to, where @{text"[!]"} means
+all subgoals, i.e.\ @{text"[1-3]"} in our case. Individual subgoal numbers,
+e.g. @{text"[2]"} are also allowed.
 
 This proof may look surprisingly straightforward. However, note that this
-comes at a cost: the proof script is unreadable because the
-intermediate proof states are invisible, and we rely on the (possibly
-brittle) magic of \isa{auto} (\isa{simp\_all} will not do---try it) to split the subgoals
-of the induction up in such a way that case distinction on \isa{bs} makes sense and
-solves the proof. Part~\ref{Isar} shows you how to write readable and stable
-proofs.
+comes at a cost: the proof script is unreadable because the intermediate
+proof states are invisible, and we rely on the (possibly brittle) magic of
+@{text"auto"} (@{text"simp_all"} will not do---try it) to split the subgoals
+of the induction up in such a way that case distinction on @{term"bs"} makes
+sense and solves the proof. Part~\ref{Isar} shows you how to write readable
+and stable proofs.
 *};
 
 (*<*)

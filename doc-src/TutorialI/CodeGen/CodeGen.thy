@@ -35,7 +35,7 @@ text{*
 The stack machine has three instructions: load a constant value onto the
 stack, load the contents of a certain address onto the stack, and apply a
 binary operation to the two topmost elements of the stack, replacing them by
-the result. As for \isa{expr}, addresses and values are type parameters:
+the result. As for @{text"expr"}, addresses and values are type parameters:
 *}
 
 datatype ('a,'v) instr = Const 'v
@@ -44,7 +44,7 @@ datatype ('a,'v) instr = Const 'v
 
 text{*
 The execution of the stack machine is modelled by a function
-\isa{exec} that takes a list of instructions, a store (modelled as a
+@{text"exec"} that takes a list of instructions, a store (modelled as a
 function from addresses to values, just like the environment for
 evaluating expressions), and a stack (modelled as a list) of values,
 and returns the stack at the end of the execution---the store remains
@@ -60,12 +60,12 @@ primrec
   | Apply f  \\<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))";
 
 text{*\noindent
-Recall that \isa{hd} and \isa{tl}
+Recall that @{term"hd"} and @{term"tl"}
 return the first element and the remainder of a list.
-Because all functions are total, \isa{hd} is defined even for the empty
+Because all functions are total, @{term"hd"} is defined even for the empty
 list, although we do not know what the result is. Thus our model of the
 machine always terminates properly, although the above definition does not
-tell us much about the result in situations where \isa{Apply} was executed
+tell us much about the result in situations where @{term"Apply"} was executed
 with fewer than two elements on the stack.
 
 The compiler is a function from expressions to a list of instructions. Its
@@ -91,7 +91,7 @@ This theorem needs to be generalized to
 theorem "\\<forall>vs. exec (comp e) s vs = (value e s) # vs";
 
 txt{*\noindent
-which is proved by induction on \isa{e} followed by simplification, once
+which is proved by induction on @{term"e"} followed by simplification, once
 we have the following lemma about executing the concatenation of two
 instruction sequences:
 *}
@@ -100,16 +100,16 @@ lemma exec_app[simp]:
   "\\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 
 txt{*\noindent
-This requires induction on \isa{xs} and ordinary simplification for the
+This requires induction on @{term"xs"} and ordinary simplification for the
 base cases. In the induction step, simplification leaves us with a formula
-that contains two \isa{case}-expressions over instructions. Thus we add
+that contains two @{text"case"}-expressions over instructions. Thus we add
 automatic case splitting as well, which finishes the proof:
 *}
 by(induct_tac xs, simp, simp split: instr.split);
 
 text{*\noindent
 Note that because \isaindex{auto} performs simplification, it can
-also be modified in the same way \isa{simp} can. Thus the proof can be
+also be modified in the same way @{text"simp"} can. Thus the proof can be
 rewritten as
 *}
 (*<*)

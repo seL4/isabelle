@@ -6,8 +6,8 @@ consts prime :: "nat \\<Rightarrow> bool"
 
     "prime(p) \\<equiv> 1 < p \\<and> (m dvd p \\<longrightarrow> (m=1 \\<or> m=p))";
 text{*\noindent\small
-where \isa{dvd} means ``divides''.
-Isabelle rejects this ``definition'' because of the extra \isa{m} on the
+where @{text"dvd"} means ``divides''.
+Isabelle rejects this ``definition'' because of the extra @{term"m"} on the
 right-hand side, which would introduce an inconsistency (why?). What you
 should have written is
 *}

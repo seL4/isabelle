@@ -4,10 +4,10 @@ theory Itrev = Main:;
 
 text{*
 Function @{term"rev"} has quadratic worst-case running time
-because it calls function @{term"@"} for each element of the list and
-@{term"@"} is linear in its first argument.  A linear time version of
+because it calls function @{text"@"} for each element of the list and
+@{text"@"} is linear in its first argument.  A linear time version of
 @{term"rev"} reqires an extra argument where the result is accumulated
-gradually, using only @{name"#"}:
+gradually, using only @{text"#"}:
 *}
 
 consts itrev :: "'a list \\<Rightarrow> 'a list \\<Rightarrow> 'a list";

@@ -5,8 +5,8 @@
 To minimize running time, each node of a trie should contain an array that maps
 letters to subtries. We have chosen a (sometimes) more space efficient
 representation where the subtries are held in an association list, i.e.\ a
-list of (letter,trie) pairs.  Abstracting over the alphabet \isa{'a} and the
-values \isa{'v} we define a trie as follows:%
+list of (letter,trie) pairs.  Abstracting over the alphabet \isa{{\isacharprime}a} and the
+values \isa{{\isacharprime}v} we define a trie as follows:%
 \end{isamarkuptext}%
 \isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}trie\ {\isacharequal}\ Trie\ \ {\isachardoublequote}{\isacharprime}v\ option{\isachardoublequote}\ \ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isacharasterisk}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}trie{\isacharparenright}list{\isachardoublequote}%
 \begin{isamarkuptext}%
@@ -41,7 +41,7 @@ recursion on the search string argument:%
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Some\ at\ {\isasymRightarrow}\ lookup\ at\ as{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 As a first simple property we prove that looking up a string in the empty
-trie \isa{Trie~None~[]} always returns \isa{None}. The proof merely
+trie \isa{Trie\ None\ {\isacharbrackleft}{\isacharbrackright}} always returns \isa{None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}lookup\ {\isacharparenleft}Trie\ None\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ as\ {\isacharequal}\ None{\isachardoublequote}\isanewline
@@ -101,7 +101,7 @@ Unfortunately, this time we are left with three intimidating looking subgoals:
 \begin{isabelle}
 ~1.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
 ~2.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
-~3.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs%
+~3.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs
 \end{isabelle}
 Clearly, if we want to make headway we have to instantiate \isa{bs} as
 well now. It turns out that instead of induction, case distinction
@@ -111,17 +111,17 @@ suffices:%
 \begin{isamarkuptext}%
 \noindent
 All methods ending in \isa{tac} take an optional first argument that
-specifies the range of subgoals they are applied to, where \isa{[!]} means all
-subgoals, i.e.\ \isa{[1-3]} in our case. Individual subgoal numbers,
-e.g. \isa{[2]} are also allowed.
+specifies the range of subgoals they are applied to, where \isa{{\isacharbrackleft}{\isacharbang}{\isacharbrackright}} means
+all subgoals, i.e.\ \isa{{\isacharbrackleft}\isadigit{1}{\isacharminus}\isadigit{3}{\isacharbrackright}} in our case. Individual subgoal numbers,
+e.g. \isa{{\isacharbrackleft}\isadigit{2}{\isacharbrackright}} are also allowed.
 
 This proof may look surprisingly straightforward. However, note that this
-comes at a cost: the proof script is unreadable because the
-intermediate proof states are invisible, and we rely on the (possibly
-brittle) magic of \isa{auto} (\isa{simp\_all} will not do---try it) to split the subgoals
-of the induction up in such a way that case distinction on \isa{bs} makes sense and
-solves the proof. Part~\ref{Isar} shows you how to write readable and stable
-proofs.%
+comes at a cost: the proof script is unreadable because the intermediate
+proof states are invisible, and we rely on the (possibly brittle) magic of
+\isa{auto} (\isa{simp{\isacharunderscore}all} will not do---try it) to split the subgoals
+of the induction up in such a way that case distinction on \isa{bs} makes
+sense and solves the proof. Part~\ref{Isar} shows you how to write readable
+and stable proofs.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

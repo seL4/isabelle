@@ -14,7 +14,7 @@ primrec
 "mirror (Node l x r) = Node (mirror r) x (mirror l)";(*>*)
 
 text{*\noindent
-and a function \isa{mirror} that mirrors a binary tree
+and a function @{term"mirror"} that mirrors a binary tree
 by swapping subtrees (recursively). Prove
 *}
 
@@ -30,7 +30,7 @@ primrec
 (*>*)
 
 text{*\noindent
-Define a function \isa{flatten} that flattens a tree into a list
+Define a function @{term"flatten"} that flattens a tree into a list
 by traversing it in infix order. Prove
 *}
 

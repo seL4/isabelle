@@ -508,16 +508,7 @@ only: \(list of theorem names\)
   $f$~\isasymequiv~\isasymlambda$x\,y.\;t$.
 \end{warn}
 
-\subsubsection{Simplifying let-expressions}
-\index{simplification!of let-expressions}
-
-Proving a goal containing \isaindex{let}-expressions almost invariably
-requires the \isa{let}-con\-structs to be expanded at some point. Since
-\isa{let}-\isa{in} is just syntactic sugar for a predefined constant (called
-\isa{Let}), expanding \isa{let}-constructs means rewriting with
-\isa{Let_def}:
-
-{\makeatother\input{Misc/document/let_rewr.tex}}
+\input{Misc/document/let_rewr.tex}
 
 \subsubsection{Conditional equations}
 
@@ -597,7 +588,7 @@ another, albeit weak heuristic that is not restricted to induction:
   \emph{The right-hand side of an equation should (in some sense) be simpler
     than the left-hand side.}
 \end{quote}
-The heuristic is tricky to apply because it is not obvious that
+This heuristic is tricky to apply because it is not obvious that
 \isa{rev xs \at\ ys} is simpler than \isa{itrev xs ys}. But see what
 happens if you try to prove \isa{rev xs \at\ ys = itrev xs ys}!
 
@@ -635,9 +626,9 @@ This section presents advanced forms of \isacommand{datatype}s.
 How far can we push nested recursion? By the unfolding argument above, we can
 reduce nested to mutual recursion provided the nested recursion only involves
 previously defined datatypes. This does not include functions:
-\begin{ttbox}
-datatype t = C (t => bool)
-\end{ttbox}
+\begin{isabelle}
+\isacommand{datatype} t = C "t \isasymRightarrow\ bool"
+\end{isabelle}
 is a real can of worms: in HOL it must be ruled out because it requires a type
 \isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have the
 same cardinality---an impossibility. For the same reason it is not possible
@@ -654,14 +645,14 @@ accepted:
 \input{Datatype/document/Fundata.tex}
 \bigskip
 
-If you need nested recursion on the left of a function arrow,
-there are alternatives to pure HOL: LCF~\cite{paulson87} is a logic where types like
-\begin{ttbox}
-datatype lam = C (lam -> lam)
-\end{ttbox}
-do indeed make sense (note the intentionally different arrow \isa{->}).
-There is even a version of LCF on top of HOL, called
-HOLCF~\cite{MuellerNvOS99}.
+If you need nested recursion on the left of a function arrow, there are
+alternatives to pure HOL: LCF~\cite{paulson87} is a logic where types like
+\begin{isabelle}
+\isacommand{datatype} lam = C "lam \isasymrightarrow\ lam"
+\end{isabelle}
+do indeed make sense (but note the intentionally different arrow
+\isa{\isasymrightarrow}). There is even a version of LCF on top of HOL,
+called HOLCF~\cite{MuellerNvOS99}.
 
 \index{*primrec|)}
 \index{*datatype|)}

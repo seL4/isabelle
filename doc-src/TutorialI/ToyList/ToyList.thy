@@ -1,10 +1,10 @@
 theory ToyList = PreList:
 
 text{*\noindent
-HOL already has a predefined theory of lists called \isa{List} ---
-\isa{ToyList} is merely a small fragment of it chosen as an example. In
+HOL already has a predefined theory of lists called @{text"List"} ---
+@{text"ToyList"} is merely a small fragment of it chosen as an example. In
 contrast to what is recommended in \S\ref{sec:Basic:Theories},
-\isa{ToyList} is not based on \isa{Main} but on \isa{PreList}, a
+@{text"ToyList"} is not based on @{text"Main"} but on @{text"PreList"}, a
 theory that contains pretty much everything but lists, thus avoiding
 ambiguities caused by defining lists twice.
 *}
@@ -16,27 +16,28 @@ text{*\noindent
 The datatype\index{*datatype} \isaindexbold{list} introduces two
 constructors \isaindexbold{Nil} and \isaindexbold{Cons}, the
 empty~list and the operator that adds an element to the front of a list. For
-example, the term \isa{Cons True (Cons False Nil)} is a value of type
-@{typ"bool list"}, namely the list with the elements \isa{True} and
-\isa{False}. Because this notation becomes unwieldy very quickly, the
+example, the term \isa{Cons True (Cons False Nil)} is a value of
+type @{typ"bool list"}, namely the list with the elements @{term"True"} and
+@{term"False"}. Because this notation becomes unwieldy very quickly, the
 datatype declaration is annotated with an alternative syntax: instead of
-\isa{Nil} and \isa{Cons x xs} we can write
-\isa{[]}\index{$HOL2list@\texttt{[]}|bold} and
+@{term[source]Nil} and \isa{Cons x xs} we can write
+@{term"[]"}\index{$HOL2list@\texttt{[]}|bold} and
 @{term"x # xs"}\index{$HOL2list@\texttt{\#}|bold}. In fact, this
 alternative syntax is the standard syntax. Thus the list \isa{Cons True
 (Cons False Nil)} becomes @{term"True # False # []"}. The annotation
-\isacommand{infixr}\indexbold{*infixr} means that \isa{\#} associates to
-the right, i.e.\ the term @{term"x # y # z"} is read as \isa{x
-\# (y \# z)} and not as \isa{(x \# y) \# z}.
+\isacommand{infixr}\indexbold{*infixr} means that @{text"#"} associates to
+the right, i.e.\ the term @{term"x # y # z"} is read as @{text"x # (y # z)"}
+and not as @{text"(x # y) # z"}.
 
 \begin{warn}
   Syntax annotations are a powerful but completely optional feature. You
-  could drop them from theory \isa{ToyList} and go back to the identifiers
-  \isa{Nil} and \isa{Cons}. However, lists are such a central datatype
+  could drop them from theory @{text"ToyList"} and go back to the identifiers
+  @{term[source]Nil} and @{term[source]Cons}. However, lists are such a
+  central datatype
   that their syntax is highly customized. We recommend that novices should
   not use syntax annotations in their own theories.
 \end{warn}
-Next, two functions \isa{app} and \isaindexbold{rev} are declared:
+Next, two functions @{text"app"} and \isaindexbold{rev} are declared:
 *}
 
 consts app :: "'a list \\<Rightarrow> 'a list \\<Rightarrow> 'a list"   (infixr "@" 65)
@@ -47,7 +48,7 @@ text{*
 In contrast to ML, Isabelle insists on explicit declarations of all functions
 (keyword \isacommand{consts}).  (Apart from the declaration-before-use
 restriction, the order of items in a theory file is unconstrained.) Function
-\isa{app} is annotated with concrete syntax too. Instead of the prefix
+@{term"app"} is annotated with concrete syntax too. Instead of the prefix
 syntax \isa{app xs ys} the infix
 @{term"xs @ ys"}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
 form. Both functions are defined recursively:
@@ -63,8 +64,8 @@ primrec
 
 text{*
 \noindent
-The equations for \isa{app} and \isa{rev} hardly need comments:
-\isa{app} appends two lists and \isa{rev} reverses a list.  The keyword
+The equations for @{term"app"} and @{term"rev"} hardly need comments:
+@{term"app"} appends two lists and @{term"rev"} reverses a list.  The keyword
 \isacommand{primrec}\index{*primrec} indicates that the recursion is of a
 particularly primitive kind where each recursive call peels off a datatype
 constructor from one of the arguments.  Thus the
@@ -114,7 +115,7 @@ presented so far, we are ready to prove a few simple theorems. This will
 illustrate not just the basic proof commands but also the typical proof
 process.
 
-\subsubsection*{Main goal: \texttt{rev(rev xs) = xs}}
+\subsubsection*{Main goal: @{text"rev(rev xs) = xs"}}
 
 Our goal is to show that reversing a list twice produces the original
 list. The input line
@@ -125,14 +126,15 @@ theorem rev_rev [simp]: "rev(rev xs) = xs";
 txt{*\index{*theorem|bold}\index{*simp (attribute)|bold}
 \begin{itemize}
 \item
-establishes a new theorem to be proved, namely \isa{rev(rev xs) = xs},
+establishes a new theorem to be proved, namely @{prop"rev(rev xs) = xs"},
 \item
-gives that theorem the name \isa{rev_rev} by which it can be referred to,
+gives that theorem the name @{text"rev_rev"} by which it can be
+referred to,
 \item
-and tells Isabelle (via \isa{[simp]}) to use the theorem (once it has been
+and tells Isabelle (via @{text"[simp]"}) to use the theorem (once it has been
 proved) as a simplification rule, i.e.\ all future proofs involving
-simplification will replace occurrences of \isa{rev(rev xs)} by
-\isa{xs}.
+simplification will replace occurrences of @{term"rev(rev xs)"} by
+@{term"xs"}.
 
 The name and the simplification attribute are optional.
 \end{itemize}
@@ -145,7 +147,7 @@ rev~(rev~xs)~=~xs\isanewline
 ~1.~rev~(rev~xs)~=~xs
 \end{isabelle}
 The first three lines tell us that we are 0 steps into the proof of
-theorem \isa{rev_rev}; for compactness reasons we rarely show these
+theorem @{text"rev_rev"}; for compactness reasons we rarely show these
 initial lines in this tutorial. The remaining lines display the current
 proof state.
 Until we have finished a proof, the proof state always looks like this:
@@ -158,26 +160,26 @@ $G$\isanewline
 where $G$
 is the overall goal that we are trying to prove, and the numbered lines
 contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$ that we need to prove to
-establish $G$. At \isa{step 0} there is only one subgoal, which is
+establish $G$. At @{text"step 0"} there is only one subgoal, which is
 identical with the overall goal.  Normally $G$ is constant and only serves as
 a reminder. Hence we rarely show it in this tutorial.
 
-Let us now get back to \isa{rev(rev xs) = xs}. Properties of recursively
+Let us now get back to @{prop"rev(rev xs) = xs"}. Properties of recursively
 defined functions are best established by induction. In this case there is
-not much choice except to induct on \isa{xs}:
+not much choice except to induct on @{term"xs"}:
 *}
 
 apply(induct_tac xs);
 
 txt{*\noindent\index{*induct_tac}%
-This tells Isabelle to perform induction on variable \isa{xs}. The suffix
-\isa{tac} stands for ``tactic'', a synonym for ``theorem proving function''.
+This tells Isabelle to perform induction on variable @{term"xs"}. The suffix
+@{term"tac"} stands for ``tactic'', a synonym for ``theorem proving function''.
 By default, induction acts on the first subgoal. The new proof state contains
-two subgoals, namely the base case (\isa{Nil}) and the induction step
-(\isa{Cons}):
+two subgoals, namely the base case (@{term[source]Nil}) and the induction step
+(@{term[source]Cons}):
 \begin{isabelle}
 ~1.~rev~(rev~[])~=~[]\isanewline
-~2.~{\isasymAnd}a~list.~rev(rev~list)~=~list~{\isasymLongrightarrow}~rev(rev(a~\#~list))~=~a~\#~list%
+~2.~{\isasymAnd}a~list.~rev(rev~list)~=~list~{\isasymLongrightarrow}~rev(rev(a~\#~list))~=~a~\#~list
 \end{isabelle}
 
 The induction step is an example of the general format of a subgoal:
@@ -191,12 +193,11 @@ The {\it assumptions} are the local assumptions for this subgoal and {\it
   conclusion} is the actual proposition to be proved. Typical proof steps
 that add new assumptions are induction or case distinction. In our example
 the only assumption is the induction hypothesis @{term"rev (rev list) =
-  list"}, where \isa{list} is a variable name chosen by Isabelle. If there
+  list"}, where @{term"list"} is a variable name chosen by Isabelle. If there
 are multiple assumptions, they are enclosed in the bracket pair
 \indexboldpos{\isasymlbrakk}{$Isabrl} and
 \indexboldpos{\isasymrbrakk}{$Isabrr} and separated by semicolons.
 
-%FIXME indent!
 Let us try to solve both goals automatically:
 *}
 
@@ -204,9 +205,9 @@ apply(auto);
 
 txt{*\noindent
 This command tells Isabelle to apply a proof strategy called
-\isa{auto} to all subgoals. Essentially, \isa{auto} tries to
+@{text"auto"} to all subgoals. Essentially, @{text"auto"} tries to
 ``simplify'' the subgoals.  In our case, subgoal~1 is solved completely (thanks
-to the equation \isa{rev [] = []}) and disappears; the simplified version
+to the equation @{prop"rev [] = []"}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
 \begin{isabelle}
 ~1.~\dots~rev(rev~list)~=~list~{\isasymLongrightarrow}~rev(rev~list~@~a~\#~[])~=~a~\#~list
@@ -217,7 +218,7 @@ In order to simplify this subgoal further, a lemma suggests itself.
 oops
 (*>*)
 
-subsubsection{*First lemma: \texttt{rev(xs \at~ys) = (rev ys) \at~(rev xs)}*}
+subsubsection{*First lemma: @{text"rev(xs @ ys) = (rev ys) @ (rev xs)"}*}
 
 text{*
 After abandoning the above proof attempt\indexbold{abandon
@@ -233,9 +234,9 @@ the importance we attach to a proposition. In general, we use the words
 \emph{theorem}\index{theorem} and \emph{lemma}\index{lemma} pretty much
 interchangeably.
 
-There are two variables that we could induct on: \isa{xs} and
-\isa{ys}. Because \isa{\at} is defined by recursion on
-the first argument, \isa{xs} is the correct one:
+There are two variables that we could induct on: @{term"xs"} and
+@{term"ys"}. Because @{text"@"} is defined by recursion on
+the first argument, @{term"xs"} is the correct one:
 *}
 
 apply(induct_tac xs);
@@ -259,7 +260,7 @@ the proof of a lemma usually remains implicit.
 oops
 (*>*)
 
-subsubsection{*Second lemma: \texttt{xs \at~[] = xs}*}
+subsubsection{*Second lemma: @{text"xs @ [] = xs"}*}
 
 text{*
 This time the canonical proof procedure
@@ -271,7 +272,7 @@ apply(auto);
 
 txt{*
 \noindent
-leads to the desired message \isa{No subgoals!}:
+leads to the desired message @{text"No subgoals!"}:
 \begin{isabelle}
 xs~@~[]~=~xs\isanewline
 No~subgoals!
@@ -284,12 +285,12 @@ We still need to confirm that the proof is now finished:
 
 text{*\noindent\indexbold{$Isar@\texttt{.}}%
 As a result of that final dot, Isabelle associates the lemma
-just proved with its name. Notice that in the lemma \isa{app_Nil2} (as
-printed out after the final dot) the free variable \isa{xs} has been
-replaced by the unknown \isa{?xs}, just as explained in
-\S\ref{sec:variables}. Note that instead of instead of \isacommand{apply}
+just proved with its name. Instead of \isacommand{apply}
 followed by a dot, you can simply write \isacommand{by}\indexbold{by},
-which we do most of the time.
+which we do most of the time. Notice that in lemma @{thm[source]app_Nil2}
+(as printed out after the final dot) the free variable @{term"xs"} has been
+replaced by the unknown @{text"?xs"}, just as explained in
+\S\ref{sec:variables}.
 
 Going back to the proof of the first lemma
 *}
@@ -300,24 +301,24 @@ apply(auto);
 
 txt{*
 \noindent
-we find that this time \isa{auto} solves the base case, but the
+we find that this time @{text"auto"} solves the base case, but the
 induction step merely simplifies to
 \begin{isabelle}
 ~1.~{\isasymAnd}a~list.\isanewline
 ~~~~~~~rev~(list~@~ys)~=~rev~ys~@~rev~list~{\isasymLongrightarrow}\isanewline
 ~~~~~~~(rev~ys~@~rev~list)~@~a~\#~[]~=~rev~ys~@~rev~list~@~a~\#~[]
 \end{isabelle}
-Now we need to remember that \isa{\at} associates to the right, and that
-\isa{\#} and \isa{\at} have the same priority (namely the \isa{65}
+Now we need to remember that @{text"@"} associates to the right, and that
+@{text"#"} and @{text"@"} have the same priority (namely the @{text"65"}
 in their \isacommand{infixr} annotation). Thus the conclusion really is
 \begin{isabelle}
-~~~~~(rev~ys~@~rev~list)~@~(a~\#~[])~=~rev~ys~@~(rev~list~@~(a~\#~[]))%
+~~~~~(rev~ys~@~rev~list)~@~(a~\#~[])~=~rev~ys~@~(rev~list~@~(a~\#~[]))
 \end{isabelle}
-and the missing lemma is associativity of \isa{\at}.
+and the missing lemma is associativity of @{text"@"}.
 *}
 (*<*)oops(*>*)
 
-subsubsection{*Third lemma: \texttt{(xs \at~ys) \at~zs = xs \at~(ys \at~zs)}*}
+subsubsection{*Third lemma: @{text"(xs @ ys) @ zs = xs @ (ys @ zs)"}*}
 
 text{*
 Abandoning the previous proof, the canonical proof procedure
@@ -346,7 +347,7 @@ apply(induct_tac xs);
 by(auto);
 
 text{*\noindent
-The final \isa{end} tells Isabelle to close the current theory because
+The final \isacommand{end} tells Isabelle to close the current theory because
 we are finished with its development:
 *}
 

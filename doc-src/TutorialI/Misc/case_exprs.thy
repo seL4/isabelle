@@ -17,10 +17,10 @@ that @{term"xs"} is of type @{typ"nat list"}.)
 
 In general, if $e$ is a term of the datatype $t$ defined in
 \S\ref{sec:general-datatype} above, the corresponding
-\isa{case}-expression analyzing $e$ is
+@{text"case"}-expression analyzing $e$ is
 \[
 \begin{array}{rrcl}
-\isa{case}~e~\isa{of} & C@1~x@ {11}~\dots~x@ {1k@1} & \To & e@1 \\
+@{text"case"}~e~@{text"of"} & C@1~x@ {11}~\dots~x@ {1k@1} & \To & e@1 \\
                            \vdots \\
                            \mid & C@m~x@ {m1}~\dots~x@ {mk@m} & \To & e@m
 \end{array}
@@ -32,18 +32,19 @@ patterns are not supported.  Violating these restrictions results in strange
 error messages.
 \end{warn}
 \noindent
-Nested patterns can be simulated by nested \isa{case}-expressions: instead
+Nested patterns can be simulated by nested @{text"case"}-expressions: instead
 of
-% case xs of [] => 1 | [x] => x | x#(y#zs) => y
-\begin{isabelle}
-~~~case~xs~of~[]~{\isasymRightarrow}~1~|~[x]~{\isasymRightarrow}~x~|~x~\#~y~\#~zs~{\isasymRightarrow}~y
-\end{isabelle}
+% 
+\begin{quote}
+@{text"case xs of [] => 1 | [x] => x | x#(y#zs) => y"}
+%~~~case~xs~of~[]~{\isasymRightarrow}~1~|~[x]~{\isasymRightarrow}~x~|~x~\#~y~\#~zs~{\isasymRightarrow}~y
+\end{quote}
 write
 \begin{quote}
 @{term[display,eta_contract=false,margin=50]"case xs of [] => 1 | x#ys => (case ys of [] => x | y#zs => y)"}
 \end{quote}
 
-Note that \isa{case}-expressions may need to be enclosed in parentheses to
+Note that @{text"case"}-expressions may need to be enclosed in parentheses to
 indicate their scope
 *}
 

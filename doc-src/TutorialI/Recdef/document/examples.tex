@@ -12,13 +12,13 @@ Here is a simple example, the Fibonacci function:%
 \begin{isamarkuptext}%
 \noindent
 The definition of \isa{fib} is accompanied by a \bfindex{measure function}
-\isa{{\isasymlambda}\mbox{n}{\isachardot}\ \mbox{n}} which maps the argument of \isa{fib} to a
+\isa{{\isasymlambda}n{\isachardot}\ n} which maps the argument of \isa{fib} to a
 natural number. The requirement is that in each equation the measure of the
 argument on the left-hand side is strictly greater than the measure of the
 argument of each recursive call. In the case of \isa{fib} this is
 obviously true because the measure function is the identity and
-\isa{Suc\ {\isacharparenleft}Suc\ \mbox{x}{\isacharparenright}} is strictly greater than both \isa{x} and
-\isa{Suc\ \mbox{x}}.
+\isa{Suc\ {\isacharparenleft}Suc\ x{\isacharparenright}} is strictly greater than both \isa{x} and
+\isa{Suc\ x}.
 
 Slightly more interesting is the insertion of a fixed element
 between any two elements of a list:%
@@ -50,7 +50,7 @@ account, just as in functional programming:%
 \begin{isamarkuptext}%
 \noindent
 This defines exactly the same function as \isa{sep} above, i.e.\
-\isa{sep1 = sep}.
+\isa{sep\isadigit{1}\ {\isacharequal}\ sep}.
 
 \begin{warn}
   \isacommand{recdef} only takes the first argument of a (curried)
@@ -76,7 +76,7 @@ for the definition of non-recursive functions:%
 \begin{isamarkuptext}%
 \noindent
 For non-recursive functions the termination measure degenerates to the empty
-set \isa{\{\}}.%
+set \isa{{\isacharbraceleft}{\isacharbraceright}}.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

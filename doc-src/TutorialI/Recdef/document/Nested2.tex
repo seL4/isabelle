@@ -21,12 +21,12 @@ induction schema for type \isa{term} but the simpler one arising from
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}trev{\isachardot}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-This leaves us with a trivial base case \isa{trev\ {\isacharparenleft}trev\ {\isacharparenleft}Var\ \mbox{x}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ Var\ \mbox{x}} and the step case
+This leaves us with a trivial base case \isa{trev\ {\isacharparenleft}trev\ {\isacharparenleft}Var\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ Var\ x} and the step case
 \begin{quote}
 
 \begin{isabelle}%
-{\isasymforall}\mbox{t}{\isachardot}\ \mbox{t}\ {\isasymin}\ set\ \mbox{ts}\ {\isasymlongrightarrow}\ trev\ {\isacharparenleft}trev\ \mbox{t}{\isacharparenright}\ {\isacharequal}\ \mbox{t}\ {\isasymLongrightarrow}\isanewline
-trev\ {\isacharparenleft}trev\ {\isacharparenleft}App\ \mbox{f}\ \mbox{ts}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ App\ \mbox{f}\ \mbox{ts}
+{\isasymforall}t{\isachardot}\ t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ trev\ {\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t\ {\isasymLongrightarrow}\isanewline
+trev\ {\isacharparenleft}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ App\ f\ ts
 \end{isabelle}%
 
 \end{quote}
@@ -50,7 +50,7 @@ the chain of simplification steps in detail; you will probably need the help of
 
 The above definition of \isa{trev} is superior to the one in
 \S\ref{sec:nested-datatype} because it brings \isa{rev} into play, about
-which already know a lot, in particular \isa{rev\ {\isacharparenleft}rev\ \mbox{xs}{\isacharparenright}\ {\isacharequal}\ \mbox{xs}}.
+which already know a lot, in particular \isa{rev\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ xs}.
 Thus this proof is a good example of an important principle:
 \begin{quote}
 \emph{Chose your definitions carefully\\
@@ -60,15 +60,15 @@ because they determine the complexity of your proofs.}
 Let us now return to the question of how \isacommand{recdef} can come up with
 sensible termination conditions in the presence of higher-order functions
 like \isa{map}. For a start, if nothing were known about \isa{map},
-\isa{map\ trev\ \mbox{ts}} might apply \isa{trev} to arbitrary terms, and thus
-\isacommand{recdef} would try to prove the unprovable \isa{size\ \mbox{t}\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ \mbox{ts}{\isacharparenright}}, without any assumption about \isa{\mbox{t}}.  Therefore
+\isa{map\ trev\ ts} might apply \isa{trev} to arbitrary terms, and thus
+\isacommand{recdef} would try to prove the unprovable \isa{size\ t\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}}, without any assumption about \isa{t}.  Therefore
 \isacommand{recdef} has been supplied with the congruence theorem
 \isa{map{\isacharunderscore}cong}:
 \begin{quote}
 
 \begin{isabelle}%
-{\isasymlbrakk}\mbox{xs}\ {\isacharequal}\ \mbox{ys}{\isacharsemicolon}\ {\isasymAnd}\mbox{x}{\isachardot}\ \mbox{x}\ {\isasymin}\ set\ \mbox{ys}\ {\isasymLongrightarrow}\ \mbox{f}\ \mbox{x}\ {\isacharequal}\ \mbox{g}\ \mbox{x}{\isasymrbrakk}\isanewline
-{\isasymLongrightarrow}\ map\ \mbox{f}\ \mbox{xs}\ {\isacharequal}\ map\ \mbox{g}\ \mbox{ys}
+{\isasymlbrakk}xs\ {\isacharequal}\ ys{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ ys\ {\isasymLongrightarrow}\ f\ x\ {\isacharequal}\ g\ x{\isasymrbrakk}\isanewline
+{\isasymLongrightarrow}\ map\ f\ xs\ {\isacharequal}\ map\ g\ ys
 \end{isabelle}%
 
 \end{quote}

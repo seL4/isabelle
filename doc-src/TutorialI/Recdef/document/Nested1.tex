@@ -23,7 +23,7 @@ unproved termination condition
 \begin{quote}
 
 \begin{isabelle}%
-\mbox{t}\ {\isasymin}\ set\ \mbox{ts}\ {\isasymlongrightarrow}\ size\ \mbox{t}\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ \mbox{ts}{\isacharparenright}
+t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}
 \end{isabelle}%
 
 \end{quote}
@@ -32,9 +32,9 @@ knowledge of sets is required in the following) and \isa{term{\isacharunderscore
 (when \isa{term} was defined).  First we have to understand why the
 recursive call of \isa{trev} underneath \isa{map} leads to the above
 condition. The reason is that \isacommand{recdef} ``knows'' that \isa{map}
-will apply \isa{trev} only to elements of \isa{\mbox{ts}}. Thus the above
-condition expresses that the size of the argument \isa{\mbox{t}\ {\isasymin}\ set\ \mbox{ts}} of any
-recursive call of \isa{trev} is strictly less than \isa{size\ {\isacharparenleft}App\ \mbox{f}\ \mbox{ts}{\isacharparenright}\ {\isacharequal}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ \mbox{ts}{\isacharparenright}}.  We will now prove the termination condition and
+will apply \isa{trev} only to elements of \isa{ts}. Thus the above
+condition expresses that the size of the argument \isa{t\ {\isasymin}\ set\ ts} of any
+recursive call of \isa{trev} is strictly less than \isa{size\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}}.  We will now prove the termination condition and
 continue with our definition.  Below we return to the question of how
 \isacommand{recdef} ``knows'' about \isa{map}.%
 \end{isamarkuptext}%

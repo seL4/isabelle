@@ -71,7 +71,7 @@ they look slightly different than the theories in this tutorial, and that all
 proofs are in separate ML files.
 
 \begin{warn}
-  HOL contains a theory \ttindexbold{Main}, the union of all the basic
+  HOL contains a theory \isaindexbold{Main}, the union of all the basic
   predefined theories like arithmetic, lists, sets, etc.\ (see the online
   library).  Unless you know what you are doing, always include \texttt{Main}
   as a direct or indirect parent theory of all your theories.
@@ -115,7 +115,7 @@ natural numbers. Parentheses around single arguments can be dropped (as in
   called \bfindex{type inference}) and keeps quiet about it. Occasionally
   this may lead to misunderstandings between you and the system. If anything
   strange happens, we recommend to set the \rmindex{flag}
-  \ttindexbold{show_types} that tells Isabelle to display type information
+  \isaindexbold{show_types} that tells Isabelle to display type information
   that is usually suppressed: simply type
 \begin{ttbox}
 ML "set show_types"
@@ -198,7 +198,7 @@ more rather than fewer parentheses. In those cases where Isabelle echoes your
 input, you can see which parentheses are dropped---they were superfluous. If
 you are unsure how to interpret Isabelle's output because you don't know
 where the (dropped) parentheses go, set (and possibly reset) the \rmindex{flag}
-\ttindexbold{show_brackets}:
+\isaindexbold{show_brackets}:
 \begin{ttbox}
 ML "set show_brackets"; \(\dots\); ML "reset show_brackets";
 \end{ttbox}

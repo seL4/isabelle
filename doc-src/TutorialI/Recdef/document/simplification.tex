@@ -19,7 +19,7 @@ each recursive call. The resulting termination condition
 \begin{quote}
 
 \begin{isabelle}%
-\mbox{n}\ {\isasymnoteq}\ \isadigit{0}\ {\isasymLongrightarrow}\ \mbox{m}\ mod\ \mbox{n}\ {\isacharless}\ \mbox{n}
+n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymLongrightarrow}\ m\ mod\ n\ {\isacharless}\ n
 \end{isabelle}%
 
 \end{quote}
@@ -34,7 +34,7 @@ example, simplification reduces
 \begin{quote}
 
 \begin{isabelle}%
-gcd\ {\isacharparenleft}\mbox{m}{\isacharcomma}\ \mbox{n}{\isacharparenright}\ {\isacharequal}\ \mbox{k}
+gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ k
 \end{isabelle}%
 
 \end{quote}
@@ -42,7 +42,7 @@ in one step to
 \begin{quote}
 
 \begin{isabelle}%
-{\isacharparenleft}if\ \mbox{n}\ {\isacharequal}\ \isadigit{0}\ then\ \mbox{m}\ else\ gcd\ {\isacharparenleft}\mbox{n}{\isacharcomma}\ \mbox{m}\ mod\ \mbox{n}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ \mbox{k}
+{\isacharparenleft}if\ n\ {\isacharequal}\ \isadigit{0}\ then\ m\ else\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ k
 \end{isabelle}%
 
 \end{quote}
@@ -50,19 +50,20 @@ where the condition cannot be reduced further, and splitting leads to
 \begin{quote}
 
 \begin{isabelle}%
-{\isacharparenleft}\mbox{n}\ {\isacharequal}\ \isadigit{0}\ {\isasymlongrightarrow}\ \mbox{m}\ {\isacharequal}\ \mbox{k}{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}\mbox{n}\ {\isasymnoteq}\ \isadigit{0}\ {\isasymlongrightarrow}\ gcd\ {\isacharparenleft}\mbox{n}{\isacharcomma}\ \mbox{m}\ mod\ \mbox{n}{\isacharparenright}\ {\isacharequal}\ \mbox{k}{\isacharparenright}
+{\isacharparenleft}n\ {\isacharequal}\ \isadigit{0}\ {\isasymlongrightarrow}\ m\ {\isacharequal}\ k{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymnoteq}\ \isadigit{0}\ {\isasymlongrightarrow}\ gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}\ {\isacharequal}\ k{\isacharparenright}
 \end{isabelle}%
 
 \end{quote}
-Since the recursive call \isa{gcd\ {\isacharparenleft}\mbox{n}{\isacharcomma}\ \mbox{m}\ mod\ \mbox{n}{\isacharparenright}} is no longer protected by
+Since the recursive call \isa{gcd\ {\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}} is no longer protected by
 an \isa{if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
-The most radical solution is to disable the offending \\isa{split{\isacharunderscore}if} as
-shown in the section on case splits in \S\ref{sec:Simplification}.  However,
-we do not recommend this because it means you will often have to invoke the
-rule explicitly when \isa{if} is involved.
+The most radical solution is to disable the offending
+\isa{split{\isacharunderscore}if} as shown in the section on case splits in
+\S\ref{sec:Simplification}.  However, we do not recommend this because it
+means you will often have to invoke the rule explicitly when \isa{if} is
+involved.
 
 If possible, the definition should be given by pattern matching on the left
 rather than \isa{if} on the right. In the case of \isa{gcd} the
@@ -75,7 +76,7 @@ following alternative definition suggests itself:%
 \begin{isamarkuptext}%
 \noindent
 Note that the order of equations is important and hides the side condition
-\isa{\mbox{n}\ {\isasymnoteq}\ \isadigit{0}}. Unfortunately, in general the case distinction
+\isa{n\ {\isasymnoteq}\ \isadigit{0}}. Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
 A very simple alternative is to replace \isa{if} by \isa{case}, which

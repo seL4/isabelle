@@ -26,9 +26,9 @@ and      'a bexp = Less "'a aexp" "'a aexp"
                  | Neg  "'a bexp";
 
 text{*\noindent
-Type \isa{aexp} is similar to \isa{expr} in \S\ref{sec:ExprCompiler},
-except that we have fixed the values to be of type \isa{nat} and that we
-have fixed the two binary operations \isa{Sum} and \isa{Diff}. Boolean
+Type @{text"aexp"} is similar to @{text"expr"} in \S\ref{sec:ExprCompiler},
+except that we have fixed the values to be of type @{typ"nat"} and that we
+have fixed the two binary operations @{term"Sum"} and @{term"Diff"}. Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is fixed via two evaluation functions
 *}
@@ -37,8 +37,8 @@ consts  evala :: "'a aexp \\<Rightarrow> ('a \\<Rightarrow> nat) \\<Rightarrow> 
         evalb :: "'a bexp \\<Rightarrow> ('a \\<Rightarrow> nat) \\<Rightarrow> bool";
 
 text{*\noindent
-that take an expression and an environment (a mapping from variables \isa{'a} to values
-\isa{nat}) and return its arithmetic/boolean
+that take an expression and an environment (a mapping from variables @{typ"'a"} to values
+@{typ"nat"}) and return its arithmetic/boolean
 value. Since the datatypes are mutually recursive, so are functions that
 operate on them. Hence they need to be defined in a single \isacommand{primrec}
 section:
@@ -66,8 +66,8 @@ consts substa :: "('a \\<Rightarrow> 'b aexp) \\<Rightarrow> 'a aexp \\<Rightarr
 text{*\noindent
 The first argument is a function mapping variables to expressions, the
 substitution. It is applied to all variables in the second argument. As a
-result, the type of variables in the expression may change from \isa{'a}
-to \isa{'b}. Note that there are only arithmetic and no boolean variables.
+result, the type of variables in the expression may change from @{typ"'a"}
+to @{typ"'b"}. Note that there are only arithmetic and no boolean variables.
 *}
 
 primrec
@@ -108,17 +108,17 @@ In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,
 an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
-\begin{ttbox}
-apply(induct_tac \(x@1\) \texttt{and} \(\dots\) \texttt{and} \(x@n\));
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}@{text"(induct_tac"} $x@1$ @{text"and"} \dots\ @{text"and"} $x@n$@{text")"}
+\end{isabelle}
 
 \begin{exercise}
-  Define a function \isa{norma} of type @{typ"'a aexp => 'a aexp"} that
-  replaces \isa{IF}s with complex boolean conditions by nested
-  \isa{IF}s where each condition is a \isa{Less} --- \isa{And} and
-  \isa{Neg} should be eliminated completely. Prove that \isa{norma}
-  preserves the value of an expression and that the result of \isa{norma}
-  is really normal, i.e.\ no more \isa{And}s and \isa{Neg}s occur in
+  Define a function @{text"norma"} of type @{typ"'a aexp => 'a aexp"} that
+  replaces @{term"IF"}s with complex boolean conditions by nested
+  @{term"IF"}s where each condition is a @{term"Less"} --- @{term"And"} and
+  @{term"Neg"} should be eliminated completely. Prove that @{text"norma"}
+  preserves the value of an expression and that the result of @{text"norma"}
+  is really normal, i.e.\ no more @{term"And"}s and @{term"Neg"}s occur in
   it.  ({\em Hint:} proceed as in \S\ref{sec:boolex}).
 \end{exercise}
 *}

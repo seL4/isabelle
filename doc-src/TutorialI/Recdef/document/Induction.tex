@@ -9,7 +9,7 @@ our function. Since the function is recursive, the natural proof principle is
 again induction. But this time the structural form of induction that comes
 with datatypes is unlikely to work well---otherwise we could have defined the
 function by \isacommand{primrec}. Therefore \isacommand{recdef} automatically
-proves a suitable induction rule $f$\isa{.induct} that follows the
+proves a suitable induction rule $f$\isa{{\isachardot}induct} that follows the
 recursion pattern of the particular function $f$. We call this
 \textbf{recursion induction}. Roughly speaking, it
 requires you to prove for each \isacommand{recdef} equation that the property
@@ -19,7 +19,7 @@ for all recursive calls on the right-hand side. Here is a simple example%
 \isacommand{lemma}\ {\isachardoublequote}map\ f\ {\isacharparenleft}sep{\isacharparenleft}x{\isacharcomma}xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep{\isacharparenleft}f\ x{\isacharcomma}\ map\ f\ xs{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-involving the predefined \isa{map} functional on lists: \isa{map f xs}
+involving the predefined \isa{map} functional on lists: \isa{map\ f\ xs}
 is the result of applying \isa{f} to all elements of \isa{xs}. We prove
 this lemma by recursion induction w.r.t. \isa{sep}:%
 \end{isamarkuptxt}%
@@ -45,13 +45,13 @@ are invented by Isabelle and have nothing to do with the names in the
 definition of \isa{sep}.
 
 In general, the format of invoking recursion induction is
-\begin{ttbox}
-apply(induct_tac \(x@1 \dots x@n\) rule: \(f\).induct)
-\end{ttbox}\index{*induct_tac}%
+\begin{quote}
+\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac\ {\isacharparenleft}}$x@1 \dots x@n$ \isa{rule{\isacharcolon}} $f$\isa{{\isachardot}induct{\isacharparenright}}
+\end{quote}\index{*induct_tac}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes an $n$-tuple. Usually the subgoal will
 contain the term $f~x@1~\dots~x@n$ but this need not be the case. The
-induction rules do not mention $f$ at all. For example \isa{sep.induct}
+induction rules do not mention $f$ at all. For example \isa{sep{\isachardot}induct}
 \begin{isabelle}
 {\isasymlbrakk}~{\isasymAnd}a.~P~a~[];\isanewline
 ~~{\isasymAnd}a~x.~P~a~[x];\isanewline

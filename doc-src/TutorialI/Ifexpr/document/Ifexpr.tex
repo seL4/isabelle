@@ -14,16 +14,16 @@ that purpose:%
 \noindent
 The two constants are represented by \isa{Const\ True} and
 \isa{Const\ False}. Variables are represented by terms of the form
-\isa{Var\ \mbox{n}}, where \isa{\mbox{n}} is a natural number (type \isa{nat}).
+\isa{Var\ n}, where \isa{n} is a natural number (type \isa{nat}).
 For example, the formula $P@0 \land \neg P@1$ is represented by the term
 \isa{And\ {\isacharparenleft}Var\ \isadigit{0}{\isacharparenright}\ {\isacharparenleft}Neg\ {\isacharparenleft}Var\ \isadigit{1}{\isacharparenright}{\isacharparenright}}.
 
 \subsubsection{What is the value of a boolean expression?}
 
 The value of a boolean expression depends on the value of its variables.
-Hence the function \isa{value} takes an additional parameter, an {\em
-  environment} of type \isa{nat\ {\isasymRightarrow}\ bool}, which maps variables to
-their values:%
+Hence the function \isa{value} takes an additional parameter, an
+\emph{environment} of type \isa{nat\ {\isasymRightarrow}\ bool}, which maps variables to their
+values:%
 \end{isamarkuptext}%
 \isacommand{consts}\ value\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}boolex\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
@@ -66,7 +66,7 @@ translate from \isa{boolex} into \isa{ifex}:%
 {\isachardoublequote}bool\isadigit{2}if\ {\isacharparenleft}And\ b\ c{\isacharparenright}\ {\isacharequal}\ IF\ {\isacharparenleft}bool\isadigit{2}if\ b{\isacharparenright}\ {\isacharparenleft}bool\isadigit{2}if\ c{\isacharparenright}\ {\isacharparenleft}CIF\ False{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-At last, we have something we can verify: that \isa{bool2if} preserves the
+At last, we have something we can verify: that \isa{bool\isadigit{2}if} preserves the
 value of its argument:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}valif\ {\isacharparenleft}bool\isadigit{2}if\ b{\isacharparenright}\ env\ {\isacharequal}\ value\ b\ env{\isachardoublequote}%
@@ -84,8 +84,8 @@ not show them below.
 More interesting is the transformation of If-expressions into a normal form
 where the first argument of \isa{IF} cannot be another \isa{IF} but
 must be a constant or variable. Such a normal form can be computed by
-repeatedly replacing a subterm of the form \isa{IF\ {\isacharparenleft}IF\ \mbox{b}\ \mbox{x}\ \mbox{y}{\isacharparenright}\ \mbox{z}\ \mbox{u}} by
-\isa{IF\ \mbox{b}\ {\isacharparenleft}IF\ \mbox{x}\ \mbox{z}\ \mbox{u}{\isacharparenright}\ {\isacharparenleft}IF\ \mbox{y}\ \mbox{z}\ \mbox{u}{\isacharparenright}}, which has the same value. The following
+repeatedly replacing a subterm of the form \isa{IF\ {\isacharparenleft}IF\ b\ x\ y{\isacharparenright}\ z\ u} by
+\isa{IF\ b\ {\isacharparenleft}IF\ x\ z\ u{\isacharparenright}\ {\isacharparenleft}IF\ y\ z\ u{\isacharparenright}}, which has the same value. The following
 primitive recursive functions perform this task:%
 \end{isamarkuptext}%
 \isacommand{consts}\ normif\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex{\isachardoublequote}\isanewline
@@ -116,7 +116,7 @@ lemma (which also helps to understand what \isa{normif} does):%
 \begin{isamarkuptext}%
 \noindent
 Note that the lemma does not have a name, but is implicitly used in the proof
-of the theorem shown above because of the \isa{[simp]} attribute.
+of the theorem shown above because of the \isa{{\isacharbrackleft}simp{\isacharbrackright}} attribute.
 
 But how can we be sure that \isa{norm} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality%
@@ -129,7 +129,7 @@ the above sense? We define a function that tests If-expressions for normality%
 \ \ \ \ \ {\isacharparenleft}case\ b\ of\ CIF\ b\ {\isasymRightarrow}\ True\ {\isacharbar}\ VIF\ x\ {\isasymRightarrow}\ True\ {\isacharbar}\ IF\ x\ y\ z\ {\isasymRightarrow}\ False{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-and prove \isa{normal(norm b)}. Of course, this requires a lemma about
+and prove \isa{normal\ {\isacharparenleft}norm\ b{\isacharparenright}}. Of course, this requires a lemma about
 normality of \isa{normif}:%
 \end{isamarkuptext}%
 \isacommand{lemma}{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ normal{\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e{\isacharparenright}{\isachardoublequote}\end{isabellebody}%

@@ -19,7 +19,7 @@ By making this theorem a simplification rule, \isacommand{recdef}
 applies it automatically and the above definition of @{term"trev"}
 succeeds now. As a reward for our effort, we can now prove the desired
 lemma directly. The key is the fact that we no longer need the verbose
-induction schema for type @{name"term"} but the simpler one arising from
+induction schema for type @{text"term"} but the simpler one arising from
 @{term"trev"}:
 *};
 
@@ -39,7 +39,7 @@ by(simp_all add:rev_map sym[OF map_compose]);
 text{*\noindent
 If the proof of the induction step mystifies you, we recommend to go through
 the chain of simplification steps in detail; you will probably need the help of
-@{name"trace_simp"}.
+@{text"trace_simp"}.
 %\begin{quote}
 %{term[display]"trev(trev(App f ts))"}\\
 %{term[display]"App f (rev(map trev (rev(map trev ts))))"}\\
@@ -66,7 +66,7 @@ like @{term"map"}. For a start, if nothing were known about @{term"map"},
 \isacommand{recdef} would try to prove the unprovable @{term"size t < Suc
 (term_list_size ts)"}, without any assumption about @{term"t"}.  Therefore
 \isacommand{recdef} has been supplied with the congruence theorem
-@{name"map_cong"}:
+@{thm[source]map_cong}:
 \begin{quote}
 @{thm[display,margin=50]"map_cong"[no_vars]}
 \end{quote}

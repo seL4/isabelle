@@ -19,7 +19,7 @@ text{*
 \label{sec:ConstDefinitions}
 \indexbold{definition}
 
-The above constants \isa{nand} and \isa{exor} are non-recursive and can
+The above constants @{term"nand"} and @{term"exor"} are non-recursive and can
 therefore be defined directly by
 *}
 
@@ -27,8 +27,8 @@ defs nand_def: "nand A B \\<equiv> \\<not>(A \\<and> B)"
      exor_def: "exor A B \\<equiv> A \\<and> \\<not>B \\<or> \\<not>A \\<and> B";
 
 text{*\noindent%
-where \isacommand{defs}\indexbold{*defs} is a keyword and \isa{nand_def} and
-\isa{exor_def} are user-supplied names.
+where \isacommand{defs}\indexbold{*defs} is a keyword and
+@{thm[source]nand_def} and @{thm[source]exor_def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
 Declarations and definitions can also be merged
@@ -40,7 +40,7 @@ constdefs nor :: gate
          "exor2 A B \\<equiv> (A \\<or> B) \\<and> (\\<not>A \\<or> \\<not>B)";
 
 text{*\noindent\indexbold{*constdefs}%
-in which case the default name of each definition is \isa{$f$_def}, where
+in which case the default name of each definition is $f$@{text"_def"}, where
 $f$ is the name of the defined constant.*}(*<*)
 end
 (*>*)

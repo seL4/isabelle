@@ -4,7 +4,7 @@ theory trace_simp = Main:;
 
 text{*
 Using the simplifier effectively may take a bit of experimentation.  Set the
-\ttindexbold{trace_simp} \rmindex{flag} to get a better idea of what is going
+\isaindexbold{trace_simp} \rmindex{flag} to get a better idea of what is going
 on:
 *}
 ML "set trace_simp";

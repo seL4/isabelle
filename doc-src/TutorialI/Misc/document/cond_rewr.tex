@@ -11,17 +11,17 @@ accepts \emph{conditional} equations, for example%
 \noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
 sequence of methods. Assuming that the simplification rule
-\isa{{\isacharparenleft}rev\ \mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}\mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}
+\isa{{\isacharparenleft}rev\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}
 is present as well,%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 is proved by plain simplification:
-the conditional equation \isa{hd_Cons_tl} above
-can simplify \isa{hd(rev~xs)~\#~tl(rev~xs)} to \isa{rev xs}
-because the corresponding precondition \isa{rev xs \isasymnoteq\ []}
-simplifies to \isa{xs \isasymnoteq\ []}, which is exactly the local
+the conditional equation \isa{hd{\isacharunderscore}Cons{\isacharunderscore}tl} above
+can simplify \isa{hd\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl\ {\isacharparenleft}rev\ xs{\isacharparenright}} to \isa{rev\ xs}
+because the corresponding precondition \isa{rev\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}
+simplifies to \isa{xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}}, which is exactly the local
 assumption of the subgoal.%
 \end{isamarkuptext}%
 \end{isabellebody}%

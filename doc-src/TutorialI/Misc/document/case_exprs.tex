@@ -10,14 +10,14 @@ elements of a datatype. For example,
 \begin{quote}
 
 \begin{isabelle}%
-case\ \mbox{xs}\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\ {\isacharbar}\ \mbox{y}\ {\isacharhash}\ \mbox{ys}\ {\isasymRightarrow}\ \mbox{y}
+case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ y
 \end{isabelle}%
 
 \end{quote}
-evaluates to \isa{\isadigit{1}} if \isa{\mbox{xs}} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{\mbox{y}} if 
-\isa{\mbox{xs}} is \isa{\mbox{y}\ {\isacharhash}\ \mbox{ys}}. (Since the result in both branches must be of
-the same type, it follows that \isa{\mbox{y}} is of type \isa{nat} and hence
-that \isa{\mbox{xs}} is of type \isa{nat\ list}.)
+evaluates to \isa{\isadigit{1}} if \isa{xs} is \isa{{\isacharbrackleft}{\isacharbrackright}} and to \isa{y} if 
+\isa{xs} is \isa{y\ {\isacharhash}\ ys}. (Since the result in both branches must be of
+the same type, it follows that \isa{y} is of type \isa{nat} and hence
+that \isa{xs} is of type \isa{nat\ list}.)
 
 In general, if $e$ is a term of the datatype $t$ defined in
 \S\ref{sec:general-datatype} above, the corresponding
@@ -38,16 +38,17 @@ error messages.
 \noindent
 Nested patterns can be simulated by nested \isa{case}-expressions: instead
 of
-% case xs of [] => 1 | [x] => x | x#(y#zs) => y
-\begin{isabelle}
-~~~case~xs~of~[]~{\isasymRightarrow}~1~|~[x]~{\isasymRightarrow}~x~|~x~\#~y~\#~zs~{\isasymRightarrow}~y
-\end{isabelle}
+% 
+\begin{quote}
+\isa{case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ \isadigit{1}\ {\isacharbar}\ {\isacharbrackleft}x{\isacharbrackright}\ {\isacharequal}{\isachargreater}\ x\ {\isacharbar}\ x{\isacharhash}{\isacharparenleft}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}{\isachargreater}\ y}
+%~~~case~xs~of~[]~{\isasymRightarrow}~1~|~[x]~{\isasymRightarrow}~x~|~x~\#~y~\#~zs~{\isasymRightarrow}~y
+\end{quote}
 write
 \begin{quote}
 
 \begin{isabelle}%
-case\ \mbox{xs}\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\isanewline
-{\isacharbar}\ \mbox{x}\ {\isacharhash}\ \mbox{ys}\ {\isasymRightarrow}\ case\ \mbox{ys}\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \mbox{x}\ {\isacharbar}\ \mbox{y}\ {\isacharhash}\ \mbox{zs}\ {\isasymRightarrow}\ \mbox{y}
+case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ \isadigit{1}\isanewline
+{\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y
 \end{isabelle}%
 
 \end{quote}

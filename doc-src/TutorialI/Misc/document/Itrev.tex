@@ -3,17 +3,18 @@
 %
 \begin{isamarkuptext}%
 Function \isa{rev} has quadratic worst-case running time
-because it calls function \isa{\at} for each element of the list and
-\isa{\at} is linear in its first argument.  A linear time version of
+because it calls function \isa{{\isacharat}} for each element of the list and
+\isa{{\isacharat}} is linear in its first argument.  A linear time version of
 \isa{rev} reqires an extra argument where the result is accumulated
-gradually, using only \isa{\#}:%
+gradually, using only \isa{{\isacharhash}}:%
 \end{isamarkuptext}%
 \isacommand{consts}\ itrev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
 {\isachardoublequote}itrev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ ys\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
 {\isachardoublequote}itrev\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x{\isacharhash}ys{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
-\noindent The behaviour of \isa{itrev} is simple: it reverses
+\noindent
+The behaviour of \isa{itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and returning that second argument when the first one becomes
 empty. Note that \isa{itrev} is tail-recursive, i.e.\ it can be
@@ -36,18 +37,18 @@ Unfortunately, this is not a complete success:
 \end{isabelle}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
-\isa{[]}. The corresponding heuristic:
+\isa{{\isacharbrackleft}{\isacharbrackright}}. The corresponding heuristic:
 \begin{quote}
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
-Of course one cannot do this na\"{\i}vely: \isa{itrev xs ys = rev xs} is
+Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs} is
 just not true---the correct generalization is%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-If \isa{ys} is replaced by \isa{[]}, the right-hand side simplifies to
-\isa{rev\ \mbox{xs}}, just as required.
+If \isa{ys} is replaced by \isa{{\isacharbrackleft}{\isacharbrackright}}, the right-hand side simplifies to
+\isa{rev\ xs}, just as required.
 
 In this particular instance it was easy to guess the right generalization,
 but in more complex situations a good deal of creativity is needed. This is
@@ -59,12 +60,12 @@ not there:
 \begin{isabelle}
 ~1.~{\isasymAnd}a~list.\isanewline
 ~~~~~~~itrev~list~ys~=~rev~list~@~ys~{\isasymLongrightarrow}\isanewline
-~~~~~~~itrev~list~(a~\#~ys)~=~rev~list~@~a~\#~ys%
+~~~~~~~itrev~list~(a~\#~ys)~=~rev~list~@~a~\#~ys
 \end{isabelle}
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \isa{ys} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
-\isa{\mbox{a}\ {\isacharhash}\ \mbox{ys}} instead of \isa{ys}. Hence we prove the theorem
+\isa{a\ {\isacharhash}\ ys} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one:%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%

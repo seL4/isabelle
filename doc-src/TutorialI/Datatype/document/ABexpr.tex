@@ -26,7 +26,7 @@ In Isabelle this becomes%
 \noindent
 Type \isa{aexp} is similar to \isa{expr} in \S\ref{sec:ExprCompiler},
 except that we have fixed the values to be of type \isa{nat} and that we
-have fixed the two binary operations \isa{Sum} and \isa{Diff}. Boolean
+have fixed the two binary operations \isa{aexp{\isachardot}Sum} and \isa{Diff}. Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is fixed via two evaluation functions%
 \end{isamarkuptext}%
@@ -34,7 +34,7 @@ The semantics is fixed via two evaluation functions%
 \ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-that take an expression and an environment (a mapping from variables \isa{'a} to values
+that take an expression and an environment (a mapping from variables \isa{{\isacharprime}a} to values
 \isa{nat}) and return its arithmetic/boolean
 value. Since the datatypes are mutually recursive, so are functions that
 operate on them. Hence they need to be defined in a single \isacommand{primrec}
@@ -61,8 +61,8 @@ In the same fashion we also define two functions that perform substitution:%
 \noindent
 The first argument is a function mapping variables to expressions, the
 substitution. It is applied to all variables in the second argument. As a
-result, the type of variables in the expression may change from \isa{'a}
-to \isa{'b}. Note that there are only arithmetic and no boolean variables.%
+result, the type of variables in the expression may change from \isa{{\isacharprime}a}
+to \isa{{\isacharprime}b}. Note that there are only arithmetic and no boolean variables.%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
 \ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}IF\ b\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\isanewline
@@ -98,12 +98,12 @@ In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,
 an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
-\begin{ttbox}
-apply(induct_tac \(x@1\) \texttt{and} \(\dots\) \texttt{and} \(x@n\));
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1$ \isa{and} \dots\ \isa{and} $x@n$\isa{{\isacharparenright}}
+\end{isabelle}
 
 \begin{exercise}
-  Define a function \isa{norma} of type \isa{\mbox{{\isacharprime}a}\ aexp\ {\isasymRightarrow}\ \mbox{{\isacharprime}a}\ aexp} that
+  Define a function \isa{norma} of type \isa{{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}a\ aexp} that
   replaces \isa{IF}s with complex boolean conditions by nested
   \isa{IF}s where each condition is a \isa{Less} --- \isa{And} and
   \isa{Neg} should be eliminated completely. Prove that \isa{norma}

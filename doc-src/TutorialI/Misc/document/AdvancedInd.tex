@@ -35,7 +35,7 @@ which, after simplification, becomes
 \ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
 \end{isabelle}
 We cannot prove this equality because we do not know what \isa{hd} and
-\isa{last} return when applied to \isa{[]}.
+\isa{last} return when applied to \isa{{\isacharbrackleft}{\isacharbrackright}}.
 
 The point is that we have violated the above warning. Because the induction
 formula is only the conclusion, the occurrence of \isa{xs} in the premises is
@@ -43,7 +43,7 @@ not modified by induction. Thus the case that should have been trivial
 becomes unprovable. Fortunately, the solution is easy:
 \begin{quote}
 \emph{Pull all occurrences of the induction variable into the conclusion
-using \isa{\isasymlongrightarrow}.}
+using \isa{{\isasymlongrightarrow}}.}
 \end{quote}
 This means we should prove%
 \end{isamarkuptxt}%
@@ -56,10 +56,11 @@ This time, induction leaves us with the following base case
 \end{isabelle}
 which is trivial, and \isa{auto} finishes the whole proof.
 
-If \isa{hd\_rev} is meant to be a simplification rule, you are done. But if you
-really need the \isa{\isasymLongrightarrow}-version of \isa{hd\_rev}, for
-example because you want to apply it as an introduction rule, you need to
-derive it separately, by combining it with modus ponens:%
+If \isa{hd{\isacharunderscore}rev} is meant to be a simplification rule, you are
+done. But if you really need the \isa{{\isasymLongrightarrow}}-version of
+\isa{hd{\isacharunderscore}rev}, for example because you want to apply it as an
+introduction rule, you need to derive it separately, by combining it with
+modus ponens:%
 \end{isamarkuptext}%
 \isacommand{lemmas}\ hd{\isacharunderscore}revI\ {\isacharequal}\ hd{\isacharunderscore}rev{\isacharbrackleft}THEN\ mp{\isacharbrackright}%
 \begin{isamarkuptext}%
@@ -83,13 +84,13 @@ application of modus ponens and \isa{spec}:%
 \isacommand{lemmas}\ myrule\ {\isacharequal}\ simple{\isacharbrackleft}THEN\ spec{\isacharcomma}\ THEN\ mp{\isacharcomma}\ THEN\ mp{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
-or the wholesale stripping of \isa{\isasymforall} and
-\isa{\isasymlongrightarrow} in the conclusion via \isa{rulify}%
+or the wholesale stripping of \isa{{\isasymforall}} and
+\isa{{\isasymlongrightarrow}} in the conclusion via \isa{rulify}%
 \end{isamarkuptext}%
 \isacommand{lemmas}\ myrule\ {\isacharequal}\ simple{\isacharbrackleft}rulify{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
-yielding \isa{{\isasymlbrakk}\mbox{A}\ \mbox{y}{\isacharsemicolon}\ \mbox{B}\ \mbox{y}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{B}\ \mbox{y}\ {\isasymand}\ \mbox{A}\ \mbox{y}}.
+yielding \isa{{\isasymlbrakk}A\ y{\isacharsemicolon}\ B\ y{\isasymrbrakk}\ {\isasymLongrightarrow}\ B\ y\ {\isasymand}\ A\ y}.
 You can go one step further and include these derivations already in the
 statement of your original lemma, thus avoiding the intermediate step:%
 \end{isamarkuptext}%
@@ -118,11 +119,11 @@ be helpful. We show how to apply such induction schemas by an example.
 Structural induction on \isa{nat} is
 usually known as ``mathematical induction''. There is also ``complete
 induction'', where you must prove $P(n)$ under the assumption that $P(m)$
-holds for all $m<n$. In Isabelle, this is the theorem \isa{less\_induct}:
+holds for all $m<n$. In Isabelle, this is the theorem \isa{less{\isacharunderscore}induct}:
 \begin{quote}
 
 \begin{isabelle}%
-{\isacharparenleft}{\isasymAnd}\mbox{n}{\isachardot}\ {\isasymforall}\mbox{m}{\isachardot}\ \mbox{m}\ {\isacharless}\ \mbox{n}\ {\isasymlongrightarrow}\ \mbox{P}\ \mbox{m}\ {\isasymLongrightarrow}\ \mbox{P}\ \mbox{n}{\isacharparenright}\ {\isasymLongrightarrow}\ \mbox{P}\ \mbox{n}
+{\isacharparenleft}{\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n
 \end{isabelle}%
 
 \end{quote}
@@ -136,14 +137,14 @@ From the above axiom\footnote{In general, the use of axioms is strongly
 discouraged, because of the danger of inconsistencies. The above axiom does
 not introduce an inconsistency because, for example, the identity function
 satisfies it.}
-for \isa{f} it follows that \isa{\mbox{n}\ {\isasymle}\ f\ \mbox{n}}, which can
-be proved by induction on \isa{f\ \mbox{n}}. Following the recipy outlined
+for \isa{f} it follows that \isa{n\ {\isasymle}\ f\ n}, which can
+be proved by induction on \isa{f\ n}. Following the recipy outlined
 above, we have to phrase the proposition as follows to allow induction:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-To perform induction on \isa{k} using \isa{less\_induct}, we use the same
+To perform induction on \isa{k} using \isa{less{\isacharunderscore}induct}, we use the same
 general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):%
 \end{isamarkuptxt}%
@@ -155,9 +156,9 @@ which leaves us with the following proof state:
 \ 1.\ {\isasymAnd}\mbox{n}.\ {\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i})\isanewline
 \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymforall}\mbox{i}.\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
 \end{isabelle}
-After stripping the \isa{\isasymforall i}, the proof continues with a case
-distinction on \isa{i}. The case \isa{i = 0} is trivial and we focus on the
-other case:
+After stripping the \isa{{\isasymforall}i}, the proof continues with a case
+distinction on \isa{i}. The case \isa{i\ {\isacharequal}\ \isadigit{0}} is trivial and we focus on
+the other case:
 \begin{isabelle}
 \ 1.\ {\isasymAnd}\mbox{n}\ \mbox{i}\ \mbox{nat}.\isanewline
 \ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i});\ \mbox{i}\ =\ Suc\ \mbox{nat}{\isasymrbrakk}\isanewline
@@ -169,15 +170,15 @@ other case:
 \noindent
 It is not surprising if you find the last step puzzling.
 The proof goes like this (writing \isa{j} instead of \isa{nat}).
-Since \isa{\mbox{i}\ {\isacharequal}\ Suc\ \mbox{j}} it suffices to show
-\isa{\mbox{j}\ {\isacharless}\ f\ {\isacharparenleft}Suc\ \mbox{j}{\isacharparenright}} (by \isa{Suc\_leI}: \isa{\mbox{m}\ {\isacharless}\ \mbox{n}\ {\isasymLongrightarrow}\ Suc\ \mbox{m}\ {\isasymle}\ \mbox{n}}). This is
-proved as follows. From \isa{f\_ax} we have \isa{f\ {\isacharparenleft}f\ \mbox{j}{\isacharparenright}\ {\isacharless}\ f\ {\isacharparenleft}Suc\ \mbox{j}{\isacharparenright}}
-(1) which implies \isa{f\ \mbox{j}\ {\isasymle}\ f\ {\isacharparenleft}f\ \mbox{j}{\isacharparenright}} (by the induction hypothesis).
-Using (1) once more we obtain \isa{f\ \mbox{j}\ {\isacharless}\ f\ {\isacharparenleft}Suc\ \mbox{j}{\isacharparenright}} (2) by transitivity
-(\isa{le_less_trans}: \isa{{\isasymlbrakk}\mbox{i}\ {\isasymle}\ \mbox{j}{\isacharsemicolon}\ \mbox{j}\ {\isacharless}\ \mbox{k}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{i}\ {\isacharless}\ \mbox{k}}).
-Using the induction hypothesis once more we obtain \isa{\mbox{j}\ {\isasymle}\ f\ \mbox{j}}
-which, together with (2) yields \isa{\mbox{j}\ {\isacharless}\ f\ {\isacharparenleft}Suc\ \mbox{j}{\isacharparenright}} (again by
-\isa{le_less_trans}).
+Since \isa{i\ {\isacharequal}\ Suc\ j} it suffices to show
+\isa{j\ {\isacharless}\ f\ {\isacharparenleft}Suc\ j{\isacharparenright}} (by \isa{Suc{\isacharunderscore}leI}: \isa{m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ Suc\ m\ {\isasymle}\ n}). This is
+proved as follows. From \isa{f{\isacharunderscore}ax} we have \isa{f\ {\isacharparenleft}f\ j{\isacharparenright}\ {\isacharless}\ f\ {\isacharparenleft}Suc\ j{\isacharparenright}}
+(1) which implies \isa{f\ j\ {\isasymle}\ f\ {\isacharparenleft}f\ j{\isacharparenright}} (by the induction hypothesis).
+Using (1) once more we obtain \isa{f\ j\ {\isacharless}\ f\ {\isacharparenleft}Suc\ j{\isacharparenright}} (2) by transitivity
+(\isa{le{\isacharunderscore}less{\isacharunderscore}trans}: \isa{{\isasymlbrakk}i\ {\isasymle}\ j{\isacharsemicolon}\ j\ {\isacharless}\ k{\isasymrbrakk}\ {\isasymLongrightarrow}\ i\ {\isacharless}\ k}).
+Using the induction hypothesis once more we obtain \isa{j\ {\isasymle}\ f\ j}
+which, together with (2) yields \isa{j\ {\isacharless}\ f\ {\isacharparenleft}Suc\ j{\isacharparenright}} (again by
+\isa{le{\isacharunderscore}less{\isacharunderscore}trans}).
 
 This last step shows both the power and the danger of automatic proofs: they
 will usually not tell you how the proof goes, because it can be very hard to
@@ -185,33 +186,34 @@ translate the internal proof into a human-readable format. Therefore
 \S\ref{sec:part2?} introduces a language for writing readable yet concise
 proofs.
 
-We can now derive the desired \isa{\mbox{i}\ {\isasymle}\ f\ \mbox{i}} from \isa{f\_incr}:%
+We can now derive the desired \isa{i\ {\isasymle}\ f\ i} from \isa{f{\isacharunderscore}incr}:%
 \end{isamarkuptext}%
 \isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rulify{\isacharcomma}\ OF\ refl{\isacharbrackright}%
 \begin{isamarkuptext}%
 \noindent
-The final \isa{refl} gets rid of the premise \isa{?k = f ?i}. Again, we could
-have included this derivation in the original statement of the lemma:%
+The final \isa{refl} gets rid of the premise \isa{{\isacharquery}k\ {\isacharequal}\ f\ {\isacharquery}i}. Again,
+we could have included this derivation in the original statement of the lemma:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rulify{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
 \begin{isamarkuptext}%
 \begin{exercise}
-From the above axiom and lemma for \isa{f} show that \isa{f} is the identity.
+From the above axiom and lemma for \isa{f} show that \isa{f} is the
+identity.
 \end{exercise}
 
-In general, \isa{induct\_tac} can be applied with any rule \isa{r}
-whose conclusion is of the form \isa{?P ?x1 \dots ?xn}, in which case the
+In general, \isa{induct{\isacharunderscore}tac} can be applied with any rule $r$
+whose conclusion is of the form ${?}P~?x@1 \dots ?x@n$, in which case the
 format is
-\begin{ttbox}
-apply(induct_tac y1 ... yn rule: r)
-\end{ttbox}\index{*induct_tac}%
-where \isa{y1}, \dots, \isa{yn} are variables in the first subgoal.
-In fact, \isa{induct\_tac} even allows the conclusion of
-\isa{r} to be an (iterated) conjunction of formulae of the above form, in
+\begin{quote}
+\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $y@1 \dots y@n$ \isa{rule{\isacharcolon}} $r$\isa{{\isacharparenright}}
+\end{quote}\index{*induct_tac}%
+where $y@1, \dots, y@n$ are variables in the first subgoal.
+In fact, \isa{induct{\isacharunderscore}tac} even allows the conclusion of
+$r$ to be an (iterated) conjunction of formulae of the above form, in
 which case the application is
-\begin{ttbox}
-apply(induct_tac y1 ... yn and ... and z1 ... zm rule: r)
-\end{ttbox}%
+\begin{quote}
+\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $y@1 \dots y@n$ \isa{and} \dots\ \isa{and} $z@1 \dots z@m$ \isa{rule{\isacharcolon}} $r$\isa{{\isacharparenright}}
+\end{quote}%
 \end{isamarkuptext}%
 %
 \isamarkupsubsection{Derivation of new induction schemas}
@@ -220,16 +222,16 @@ apply(induct_tac y1 ... yn and ... and z1 ... zm rule: r)
 \label{sec:derive-ind}
 Induction schemas are ordinary theorems and you can derive new ones
 whenever you wish.  This section shows you how to, using the example
-of \isa{less\_induct}. Assume we only have structural induction
+of \isa{less{\isacharunderscore}induct}. Assume we only have structural induction
 available for \isa{nat} and want to derive complete induction. This
 requires us to generalize the statement first:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ induct{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isacharequal}{\isacharequal}{\isachargreater}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m{\isachardoublequote}\isanewline
+\isacommand{lemma}\ induct{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-The base case is trivially true. For the induction step (\isa{\mbox{m}\ {\isacharless}\ Suc\ \mbox{n}}) we distinguish two cases: \isa{\mbox{m}\ {\isacharless}\ \mbox{n}} is true by induction
-hypothesis and \isa{\mbox{m}\ {\isacharequal}\ \mbox{n}} follow from the assumption again using
+The base case is trivially true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: \isa{m\ {\isacharless}\ n} is true by induction
+hypothesis and \isa{m\ {\isacharequal}\ n} follow from the assumption again using
 the induction hypothesis:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
@@ -239,38 +241,38 @@ the induction hypothesis:%
 \isacommand{ML}{\isachardoublequote}reset\ quick{\isacharunderscore}and{\isacharunderscore}dirty{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-The elimination rule \isa{less_SucE} expresses the case distinction:
+The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction:
 \begin{quote}
 
 \begin{isabelle}%
-{\isasymlbrakk}\mbox{m}\ {\isacharless}\ Suc\ \mbox{n}{\isacharsemicolon}\ \mbox{m}\ {\isacharless}\ \mbox{n}\ {\isasymLongrightarrow}\ \mbox{P}{\isacharsemicolon}\ \mbox{m}\ {\isacharequal}\ \mbox{n}\ {\isasymLongrightarrow}\ \mbox{P}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{P}
+{\isasymlbrakk}m\ {\isacharless}\ Suc\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ m\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P
 \end{isabelle}%
 
 \end{quote}
 
 Now it is straightforward to derive the original version of
-\isa{less\_induct} by manipulting the conclusion of the above lemma:
-instantiate \isa{n} by \isa{Suc\ \mbox{n}} and \isa{m} by \isa{n} and
-remove the trivial condition \isa{\mbox{n}\ {\isacharless}\ \mbox{Sc}\ \mbox{n}}. Fortunately, this
+\isa{less{\isacharunderscore}induct} by manipulting the conclusion of the above lemma:
+instantiate \isa{n} by \isa{Suc\ n} and \isa{m} by \isa{n} and
+remove the trivial condition \isa{n\ {\isacharless}\ Sc\ n}. Fortunately, this
 happens automatically when we add the lemma as a new premise to the
 desired goal:%
 \end{isamarkuptext}%
-\isacommand{theorem}\ less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isacharequal}{\isacharequal}{\isachargreater}\ P\ n{\isachardoublequote}\isanewline
+\isacommand{theorem}\ less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Finally we should mention that HOL already provides the mother of all
-inductions, \emph{wellfounded induction} (\isa{wf\_induct}):
+inductions, \emph{wellfounded induction} (\isa{wf{\isacharunderscore}induct}):
 \begin{quote}
 
 \begin{isabelle}%
-{\isasymlbrakk}wf\ \mbox{r}{\isacharsemicolon}\ {\isasymAnd}\mbox{x}{\isachardot}\ {\isasymforall}\mbox{y}{\isachardot}\ {\isacharparenleft}\mbox{y}{\isacharcomma}\ \mbox{x}{\isacharparenright}\ {\isasymin}\ \mbox{r}\ {\isasymlongrightarrow}\ \mbox{P}\ \mbox{y}\ {\isasymLongrightarrow}\ \mbox{P}\ \mbox{x}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{P}\ \mbox{a}
+{\isasymlbrakk}wf\ r{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}y{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ r\ {\isasymlongrightarrow}\ P\ y\ {\isasymLongrightarrow}\ P\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ a
 \end{isabelle}%
 
 \end{quote}
-where \isa{wf\ \mbox{r}} means that the relation \isa{r} is wellfounded.
-For example \isa{less\_induct} is the special case where \isa{r} is \isa{<} on \isa{nat}.
-For details see the library.%
+where \isa{wf\ r} means that the relation \isa{r} is wellfounded.
+For example \isa{less{\isacharunderscore}induct} is the special case where \isa{r} is
+\isa{{\isacharless}} on \isa{nat}. For details see the library.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:
