@@ -117,25 +117,21 @@ fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
         the Safe Intr     rule B==>A and
         the Safe Destruct rule A==>B.
   Also ~A goes to the Safe Elim rule A ==> ?R
-  Failing other cases, A is added as a Safe Intr rule and a warning is issued *)
+  Failing other cases, A is added as a Safe Intr rule*)
 local
 
 fun addIff dest elim intro simp ((cs, ss), th) =
   (          dest (intro (cs, [zero_var_indexes (th RS Data.iffD2)]),
                               [zero_var_indexes (th RS Data.iffD1)])
-   handle THM _ => (warning ("iff add: theorem is not an equivalence\n" 
-                  ^ Display.string_of_thm th);
-                    elim (cs, [zero_var_indexes (th RS Data.notE )])
-   handle THM _ => intro (cs, [th])),
+   handle THM _ => (elim (cs, [zero_var_indexes (th RS Data.notE )])
+                    handle THM _ => intro (cs, [th])),
    simp (ss, [th]));
 
 fun delIff ((cs, ss), th) =
-(                Classical.delrules (cs, [zero_var_indexes (th RS Data.iffD2),
-                      Data.cla_make_elim (zero_var_indexes (th RS Data.iffD1))])
- handle THM _ => (warning ("iff del: theorem is not an equivalence\n" 
-                  ^ Display.string_of_thm th);
-                 Classical.delrules (cs, [zero_var_indexes (th RS Data.notE)])
- handle THM _ => Classical.delrules (cs, [th])), 
+(             Classical.delrules (cs, [zero_var_indexes (th RS Data.iffD2),
+                   Data.cla_make_elim (zero_var_indexes (th RS Data.iffD1))])
+ handle THM _ => (Classical.delrules (cs, [zero_var_indexes (th RS Data.notE)])
+                  handle THM _ => Classical.delrules (cs, [th])), 
  Simplifier.delsimps (ss, [th]));
 
 fun store_clasimp (cs, ss) =
