@@ -12,6 +12,7 @@ use "name_space.ML";
 use "position.ML";
 use "path.ML";
 use "file.ML";
+use "buffer.ML";
 use "history.ML";
 use "scan.ML";
 use "source.ML";
@@ -28,6 +29,7 @@ struct
   structure Position = Position;
   structure Path = Path;
   structure File = File;
+  structure Buffer = Buffer;
   structure History = History;
   structure Scan = Scan;
   structure Source = Source;

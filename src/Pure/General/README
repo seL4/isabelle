@@ -15,6 +15,7 @@ exported.
   Position      (input positions)
   Path          (abstract algebra of file paths)
   File          (file system operations)
+  Buffer	(simple string buffers)
   History       (histories of values, with undo and redo)
   Scan          (generic scanner toolbox)
   Source        (co-algebraic data sources)
