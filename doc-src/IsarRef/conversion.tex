@@ -1,16 +1,221 @@
 
 \chapter{The Isabelle/Isar Conversion Guide}
 
+Subsequently, we give a few practical hints on working in a mixed environment
+with old Isabelle ML proof scripts and new Isabelle/Isar theories.  There are
+basically three ways to cope with this issue.
+\begin{enumerate}
+\item Do not convert old sources at all, but communicate directly at the level
+  of internal theory and theorem values.
+\item Manually port old-style theory files to new-style ones (very easy), and
+  ML proof scripts to Isar tactic emulation scripts (quite easy).
+\item Actually redo ML proof scripts as human readable Isar proof texts
+  (probably hard, depending who wrote the original scripts).
+\end{enumerate}
+
+
 \section{No conversion}
 
-FIXME thm, theory, bind_thm(s);
+Internally, Isabelle handles both old and new-style theories at the same time;
+the theory loader automatically detects the input format.  In any case, this
+results in certain internal ML values of type \texttt{theory} and
+\texttt{thm}.  These may be accessed from either the classic or Isar version,
+provided that some minimal care is taken.
+
+\subsection{Referring to theorem and theory values}
+
+\begin{ttbox}
+thm         : xstring -> thm
+thms        : xstring -> thm list
+the_context : unit -> theory
+theory      : string -> theory
+\end{ttbox}
+
+These above functions provide general means to refer to logical objects from
+ML.  While old-style theories used to emit many ML bindings to theorems (and
+theories), this is no longer done for new-style Isabelle/Isar theories.
+Nevertheless, it is often more appropriate to use these explicit functions in
+any case, even if referring to old theories.
+
+\begin{descr}
+\item [$\mathtt{thm}~name$ and $\mathtt{thms}~name$] retrieve theorems stored
+  in the current theory context, including any ancestor node.
+  
+  The convention of old-style theories was to bind any theorem as an ML value
+  as well.  New-style theories no longer do this, so ML code may have to use
+  \texttt{thm~"foo"} rather than just \texttt{foo}.
+  
+\item [$\mathtt{the_context()}$] refers to the current theory context.
+  
+  Old-style theories often use the ML binding \texttt{thy}, which is
+  dynamically created as part of producing ML code out of the theory source.
+  
+\item [$\mathtt{theory}~name$] retrieves the named theory from the global
+  theory loader database.
+  
+  The ML code generated from old style theories would include an ML binding
+  $name\mathtt{.thy}$ as part of an ML structure.
+\end{descr}
+
+
+\subsection{Enabling new-style theories to retrieve theory values}
+
+\begin{ttbox}
+qed        : string -> unit
+bind_thm   : string * thm -> unit
+bind_thms  : string * thm list -> unit
+\end{ttbox}
+
+ML proof scripts have to be well-behaved in storing theorems properly within
+the current theory context, in order to enable new-style theories to retrieve
+these these later.
+
+\begin{descr}
+\item [$\mathtt{qed}~name$] is the canonical way to conclude a proof script in
+  ML.  This already manages entry in the theorem database of the current
+  theory context.
+\item [$\mathtt{bind_thm}~(name, thm)$ and $\mathtt{bind_thms}~(name, thms)$]
+  store theorems that are produced in ML in an ad-hoc manner.
+  
+  Note that the original ``LCF'' system approach of binding theorem values on
+  the ML toplevel only has long been given up in Isabelle.  Nevertheless,
+  legacy proof scripts may occasionally contain ill-behaved code like this:
+  \texttt{val foo = result();} So far, this form did not give any immediate
+  feedback that there is something wrong, apart from theorems missing in the
+  WWW presentation, for example.  Now it prevents such theorems to be referred
+  from new-style theories.
+\end{descr}
+
+
+\subsection{Providing legacy ML bindings}
+
+\begin{matharray}{rcl}
+  \isarcmd{ML} & : & \isartrans{\cdot}{\cdot} \\
+\end{matharray}
+
+New-style theories may provide ML bindings to accommodate legacy ML scripts as
+follows.
+\[
+\isarkeyword{ML}~\{*~\mbox{\texttt{val foo = thm "foo"}}~*\}
+\]
+Note that this command cannot be undone; invalid theorem bindings in ML may
+persist.
+
+By providing an old-style ML binding in the way that legacy proof scripts
+usually expect, one may avoid to change all occurrences of a \texttt{foo}
+reference into \texttt{thm~"foo"}.
 
 
 \section{Porting proof scripts}
 
-FIXME
+Porting legacy theory and ML files to proper Isabelle/Isar theories has
+several advantages.  For example, the Proof~General user interface
+\cite{proofgeneral} for Isabelle/Isar is more robust and more comfortable than
+the classic Isabelle version.  This is due to the fact that the generic ML
+toplevel has been replaced by the new Isar interaction loop, with full control
+over input synchronization and errors.
 
-\subsection{Basic tactics}
+Furthermore, the Isabelle document preparation system only properly with
+new-style theories (see also \cite{isabelle-system}).  There is only very
+basic document output of the plain sources of legacy theories, lacking
+theorems and proof scripts.  Proper document markup is only available for
+Isabelle/Isar theories.
+
+
+\subsection{Theory syntax}
+
+Basically, the new-style Isabelle/Isar theory syntax is a proper superset of
+the old one.  Only a few quirks and legacy problems have been eliminated,
+resulting in simpler rules with less exceptions.
+
+\medskip The main differences in the new syntax are as follows.
+\begin{itemize}
+\item Types and terms have to be \emph{atomic} as far as the theory syntax is
+  concerned; this usually requires proper quoting of input strings.
+  
+  The old theory syntax used to fake part of the syntax of types in order to
+  require less quoting.  This has caused too many strange effects and is no
+  longer supported.
+  
+  Note that quotes are \emph{not} required for simple atomic terms, such as
+  plain identifiers (e.g.\ $x$), numerals (e.g.\ $1$), or non-ASCII symbols
+  (e.g.\ $\forall$, which is input as \verb,\<forall>,).
+\item Every name may be quoted, if required.  The old syntax would
+  occasionally demand plain identifiers vs.\ quoted strings to accommodate
+  certain (discontinued) syntactic features.
+\item Theorem declarations now require an explicit colon to separate the name
+  and the statement (e.g.\ see the syntax of $\DEFS$ in \S\ref{sec:consts}, or
+  $\THEOREMNAME$ in \S\ref{sec:axms-thms}).
+\end{itemize}
+
+Isabelle/Isar error messages are usually quite explicit about the problem, so
+doubtful cases of syntax may as well just tried interactively.
+
+
+\subsection{Basic goal statements}\label{sec:conv-goal}
+
+In ML scripts, the canonical a goal statement with completed proof script is
+as follows.
+\begin{ttbox}
+Goal "\(\phi\)";
+  by \(tac@1\);
+  \(\vdots\);
+  by \(tac@n\);
+qed "\(name\)";
+\end{ttbox}
+
+This form may be turned into an Isar tactic emulation script like this:
+\begin{matharray}{l}
+\LEMMA{name}\texttt"{\phi}\texttt" \\
+\quad \isarkeyword{apply}~meth@1 \\
+\quad \vdots \\
+\quad \isarkeyword{apply}~meth@n \\
+\quad \isarkeyword{done} \\
+\end{matharray}
+
+The main statement may be $\THEOREMNAME$ as well.  See \S\ref{sec:conv-tac}
+for further details on how to convert actual tactic expressions into proof
+methods.
+
+\medskip Classic Isabelle provides many variant forms of goal commands, see
+\cite{isabelle-ref} for further details.  The second most common one is
+\texttt{Goalw}, which expands definitions before commencing the actual proof
+script.
+\begin{ttbox}
+Goalw [defs] "\(\phi\)";
+  \(\vdots\)
+\end{ttbox}
+This may be replaced by an explicit invocation of the $unfold$ proof method.
+\begin{matharray}{l}
+\LEMMA{name}\texttt"{\phi}\texttt" \\
+\quad \isarkeyword{apply}~(unfold~defs) \\
+\quad \vdots \\
+\end{matharray}
+
+%FIXME "goal" and higher-order rules;
+
+
+\subsection{Tactics vs.\ proof methods}\label{sec:conv-tac}
+
+Proof methods closely resemble traditional tactics, when used in unstructured
+sequences of $\isarkeyword{apply}$ commands (cf.\ \S\ref{sec:conv-goal}).
+Unlike tactics, proof methods provide proper concrete syntax for additional
+arguments, options, and modifiers.  Thus a typical method text is usually more
+concise than the corresponding tactic expression in ML.
+
+Well-structured Isar proof texts usually demand much less diverse methods than
+traditional proof scripts, so basically a few methods would be sufficient.
+Isabelle/Isar provides emulations for any major ML tactic of classic Isabelle,
+mostly for the sake of easy porting of existing developments.  Nevertheless,
+the Isar versions often cover several old-style tactics by a single method.
+For example, $simp$ replaces all of \texttt{simp_tac}~/
+\texttt{asm_simp_tac}~/ \texttt{full_simp_tac}~/ \texttt{asm_full_simp_tac},
+including concrete syntax for augmenting the Simplifier context (the current
+``simpset'').
+
+\bigskip
+
+FIXME
 
 \begin{matharray}{llll}
   \texttt{rtac}~a~1 & & rule~a \\
@@ -27,10 +232,12 @@ FIXME
 \end{matharray}
 
 
-\section{Performing actual proof}
+\subsection{Declarations and ad-hoc operations}
 
-FIXME
 
+
+%\section{Performing actual proof}
+%FIXME
 
 %%% Local Variables: 
 %%% mode: latex
