@@ -255,7 +255,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
         [] => []
       | [(_, S)] => if Sign.subsort class_sign ([class], S) then S else err_bad_axsort name class
       | _ => err_bad_tfrees name);
-    val axS = Sign.norm_sort class_sign (logicC :: flat (map axm_sort axms));
+    val axS = Sign.certify_sort class_sign (logicC :: flat (map axm_sort axms));
 
     val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
     fun inclass c = Logic.mk_inclass (aT axS, c);
@@ -363,20 +363,14 @@ val prove_arity =
 
 fun read_class sg c = Sign.certify_class sg (Sign.intern_class sg c);
 
-fun cert_classrel sg cc = Library.pairself (Sign.certify_class sg) cc;
-fun read_classrel sg cc = Library.pairself (read_class sg) cc;
+fun test_classrel sg cc = (Type.add_classrel [cc] (Sign.tsig_of sg); cc);
+fun cert_classrel sg = test_classrel sg o Library.pairself (Sign.certify_class sg);
+fun read_classrel sg = test_classrel sg o Library.pairself (read_class sg);
 
-fun check_tycon sg t =
-  let val {tycons, abbrs, ...} = Type.rep_tsig (Sign.tsig_of sg) in
-    if is_some (Symtab.lookup (abbrs, t)) then
-      error ("Illegal type abbreviation: " ^ quote t)
-    else if is_none (Symtab.lookup (tycons, t)) then
-      error ("Undeclared type constructor: " ^ quote t)
-    else t
-  end;
+fun test_arity sg ar = (Type.add_arities [ar] (Sign.tsig_of sg); ar);
 
 fun prep_arity prep_tycon prep_sort prep_x sg (t, Ss, x) =
-  (check_tycon sg (prep_tycon sg t), map (prep_sort sg) Ss, prep_x sg x);
+  test_arity sg (prep_tycon sg t, map (prep_sort sg) Ss, prep_x sg x);  
 
 val read_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.read_sort;
 val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
