@@ -247,7 +247,7 @@ val Rep_uterm_in_sexp =
 
 Addsimps [UTerm_rec_VAR, UTerm_rec_CONST, UTerm_rec_COMB, 
           Abs_uterm_inverse, Rep_uterm_inverse, 
-          Rep_uterm, rangeI, inj_Leaf, Inv_f_f, Rep_uterm_in_sexp];
+          Rep_uterm, rangeI, inj_Leaf, inv_f_f, Rep_uterm_in_sexp];
 
 goalw UTerm.thy [uterm_rec_def, Var_def] "uterm_rec (Var x) b c d = b(x)";
 by (Simp_tac 1);

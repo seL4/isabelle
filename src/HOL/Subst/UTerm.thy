@@ -59,7 +59,7 @@ defs
 
   uterm_rec_def
    "uterm_rec t b c d == 
-   UTerm_rec (Rep_uterm t) (%x.b(Inv Leaf x)) (%x.c(Inv Leaf x)) 
+   UTerm_rec (Rep_uterm t) (%x.b(inv Leaf x)) (%x.c(inv Leaf x)) 
                            (%x y q r.d (Abs_uterm x) (Abs_uterm y) q r)"
 
 end
