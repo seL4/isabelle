@@ -356,7 +356,7 @@ apply (rule_tac f = Abs_preal in arg_cong)
 apply (force simp add: mult_commute)
 done
 
-text{*Multiplication of two positive reals gives a positive real.}
+text{*Multiplication of two positive reals gives a positive real.*}
 
 text{*Lemmas for proving positive reals multiplication set in @{typ preal}*}
 
