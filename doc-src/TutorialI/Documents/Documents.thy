@@ -106,7 +106,7 @@ text {*
 *}
 
 
-subsection {* Mathematical Symbols \label{sec:thy-present-symbols} *}
+subsection {* Mathematical Symbols *}
 
 text {*
   Concrete syntax based on plain ASCII characters has its inherent
@@ -137,7 +137,7 @@ text {*
   interpretation is left to further front-end tools.  For example, the
   \verb,\,\verb,<forall>, symbol of Isabelle is really displayed as
   $\forall$ --- both by the user-interface of Proof~General + X-Symbol
-  and the Isabelle document processor (see \S\ref{FIXME}).
+  and the Isabelle document processor (see \S\ref{sec:document-prep}).
 
   A list of standard Isabelle symbols is given in
   \cite[appendix~A]{isabelle-sys}.  Users may introduce their own
@@ -241,66 +241,99 @@ datatype currency =
   | Dollar nat  ("$")
 
 text {*
-  Here the degenerate mixfix annotations on the rightmost column
-  happen to consist of a single Isabelle symbol each:
+  \noindent Here the degenerate mixfix annotations on the rightmost
+  column happen to consist of a single Isabelle symbol each:
   \verb,\,\verb,<euro>,, \verb,\,\verb,<pounds>,,
-  \verb,\,\verb,<yen>,, \verb,$,.
+  \verb,\,\verb,<yen>,, and \verb,$,.
 
   Recall that a constructor like @{text Euro} actually is a function
   @{typ "nat \<Rightarrow> currency"}.  An expression like @{text "Euro 10"} will
-  be printed as @{term "\<euro> 10"}.  Only the head of the application is
-  subject to our concrete syntax; this simple form already achieves
+  be printed as @{term "\<euro> 10"}; only the head of the application is
+  subject to our concrete syntax.  This simple form already achieves
   conformance with notational standards of the European Commission.
 
   \medskip Certainly, the same idea of prefix syntax also works for
-  \isakeyword{consts}, \isakeyword{constdefs} etc.  For example, we
-  might introduce a (slightly unrealistic) function to calculate an
-  abstract currency value, by cases on the datatype constructors and
-  fixed exchange rates.  The funny symbol used here is that of
-  \verb,\<currency>,.
+  \isakeyword{consts}, \isakeyword{constdefs} etc.  The slightly
+  unusual syntax declaration below decorates the existing @{typ
+  currency} type with the international currency symbol @{text \<currency>}
+  (\verb,\,\verb,<currency>,).
+*}
+
+syntax
+  currency :: type    ("\<currency>")
+
+text {*
+  \noindent Here @{typ type} refers to the builtin syntactic category
+  of Isabelle types.  We could now write down funny things like @{text
+  "\<euro> :: nat \<Rightarrow> \<currency>"}, for example.
+*}
+
+
+subsection {* Syntax Translations \label{sec:syntax-translations} *}
+
+text{*
+  Mixfix syntax annotations work well for those situations, where a
+  constant application forms needs to be decorated by concrete syntax.
+  Just reconsider @{text "xor A B"} versus @{text "A \<oplus> B"} covered
+  before.  Occasionally, the relationship between some piece of
+  notation and its internal form is slightly more involved.
+
+  Here the concept of \bfindex{syntax translations} enters the scene.
+  Using the raw \isakeyword{syntax}\index{syntax (command)} command we
+  introduce uninterpreted notational elements, while
+  \commdx{translations} relates the input forms with certain logical
+  expressions.  This essentially provides a simple mechanism for for
+  syntactic macros; even heavier transformations may be programmed in
+  ML \cite{isabelle-ref}.
+
+  \medskip A typical example of syntax translations is to decorate an
+  relational expression (i.e.\ set membership of tuples) with nice
+  symbolic notation, such as @{text "(x, y) \<in> sim"} versus @{text "x \<approx>
+  y"}.
 *}
 
 consts
-  currency :: "currency \<Rightarrow> nat"    ("\<currency>")
+  sim :: "('a \<times> 'a) set"
 
+syntax
+  "_sim" :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infix "\<approx>" 50)
+translations
+  "x \<approx> y" \<rightleftharpoons> "(x, y) \<in> sim"
 
-subsection {* Syntax Translations \label{sec:def-translations} *}
+text {*
+  \noindent Here the name of the dummy constant @{text "_sim"} does
+  not really matter, as long as it is not used otherwise.  Prefixing
+  an underscore is a common convention.  The \isakeyword{translations}
+  declaration already uses concrete syntax on the left-hand side;
+  internally we relate a raw application @{text "_sim x y"} with
+  @{text "(x, y) \<in> sim"}.
 
-text{*
-  FIXME
-
-\index{syntax translations|(}%
-\index{translations@\isacommand {translations} (command)|(}
-Isabelle offers an additional definitional facility,
-\textbf{syntax translations}.
-They resemble macros: upon parsing, the defined concept is immediately
-replaced by its definition.  This effect is reversed upon printing.  For example,
-the symbol @{text"\<noteq>"} is defined via a syntax translation:
+  \medskip Another useful application of syntax translations is to
+  provide variant versions of fundamental relational expressions, such
+  as @{text \<noteq>} for negated equalities.  The following declaration
+  stems from Isabelle/HOL itself:
 *}
 
-translations "x \<noteq> y" \<rightleftharpoons> "\<not>(x = y)"
+syntax "_not_equal" :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<noteq>\<ignore>" 50)
+translations "x \<noteq>\<ignore> y" \<rightleftharpoons> "\<not> (x = y)"
 
-text{*\index{$IsaEqTrans@\isasymrightleftharpoons}
-\noindent
-Internally, @{text"\<noteq>"} never appears.
+text {*
+  \noindent Normally one would introduce derived concepts like this
+  within the logic, using \isakeyword{consts} and \isakeyword{defs}
+  instead of \isakeyword{syntax} and \isakeyword{translations}.  The
+  present formulation has the virtue that expressions are immediately
+  replaced by its ``definition'' upon parsing; the effect is reversed
+  upon printing.  Internally, @{text"\<noteq>"} never appears.
 
-In addition to @{text"\<rightleftharpoons>"} there are
-@{text"\<rightharpoonup>"}\index{$IsaEqTrans1@\isasymrightharpoonup}
-and @{text"\<leftharpoondown>"}\index{$IsaEqTrans2@\isasymleftharpoondown}
-for uni-directional translations, which only affect
-parsing or printing.  This tutorial will not cover the details of
-translations.  We have mentioned the concept merely because it
-crops up occasionally; a number of HOL's built-in constructs are defined
-via translations.  Translations are preferable to definitions when the new
-concept is a trivial variation on an existing one.  For example, we
-don't need to derive new theorems about @{text"\<noteq>"}, since existing theorems
-about @{text"="} still apply.%
-\index{syntax translations|)}%
-\index{translations@\isacommand {translations} (command)|)}
+  Simulating definitions via translations is adequate for very basic
+  variations of fundamental logical concepts, when the new
+  representation is a trivial variation on an existing one.  On the
+  other hand, syntax translations do not scale up well to large
+  hierarchies of concepts built on each other.
 *}
 
 
-section {* Document Preparation *}
+section {* Document Preparation \label{sec:document-prep} *}
 
 text {*
   Isabelle/Isar is centered around a certain notion of \bfindex{formal
@@ -424,8 +457,6 @@ subsection {* Structure Markup *}
 subsubsection {* Sections *}
 
 text {*
-  FIXME \verb,\label, within sections;
-
   The large-scale structure of Isabelle documents closely follows
   {\LaTeX} convention, with chapters, sections, subsubsections etc.
   The formal Isar language includes separate structure \bfindex{markup
@@ -524,6 +555,8 @@ subsection {* Formal Comments and Antiquotations *}
 text {*
   Comments of the form \verb,(,\verb,*,~\dots~\verb,*,\verb,),
 
+  FIXME
+
 *}
 
 
@@ -587,8 +620,44 @@ text {*
 
   \medskip
 
-  Ignoring portions of printed text like this demands some special
-  care. FIXME
+  Text may be suppressed at a very fine grain; thus we may even drop
+  vital parts of the formal text, preventing that things have been
+  simpler than in reality.  For example, the following ``fully
+  automatic'' proof is actually a fake:
+*}
+
+lemma "x \<noteq> (0::int) \<Longrightarrow> 0 < x * x"
+  by (auto(*<*)simp add: int_less_le(*>*))
+
+text {*
+  \noindent Here the real source of the proof has been as follows:
+
+\begin{verbatim}
+  by (auto(*<*)simp add: int_less_le(*>*))
+\end{verbatim} %(*
+
+  \medskip Ignoring portions of printed text generally demands some
+  care by the user.  First of all, the writer is responsible not to
+  obfuscate the underlying formal development in an unduly manner.  It
+  is fairly easy to scramble the remaining visible text by referring
+  to questionable formal items (strange definitions, arbitrary axioms
+  etc.) that have been hidden from sight.
+
+  Some minor technical subtleties of the
+  \verb,(,\verb,*,\verb,<,\verb,*,\verb,),~\verb,(,\verb,*,\verb,>,\verb,*,\verb,),
+  elements need to be observed as well, as the system performs little
+  sanity checks here.  Arguments of markup commands and formal
+  comments must not be hidden, otherwise presentation fails.  Open and
+  close parentheses need to be inserted carefully; it is fairly easy
+  to hide just the wrong parts, especially after rearranging the
+  sources.
+
+  \medskip Authentic reports of formal theories, say as part of a
+  library, should usually refrain from suppressing parts of the text
+  at all.  Other users may need the full information for their own
+  derivative work.  If a particular formalization works out as too
+  ugly for general public coverage, it is often better to think of a
+  better way in the first place.
 *}
 
 (*<*)
