@@ -37,10 +37,6 @@ by (res_inst_tac [("P", "%k. k <= n --> SUM k f = SUM k g")] nat_induct 1);
 (* Base case *)
 by (simp_tac (simpset() addsimps [p_context]) 1);
 (* Induction step *)
-by (rtac impI 1);
-by (etac impE 1);
-by (rtac Suc_leD 1);
-by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [p_context]) 1);
 qed "SUM_cong";
 
@@ -87,10 +83,6 @@ qed "SUM_rdistr";
 
 section "Results for the Construction of Polynomials";
 
-Goal "[| m <= j; Suc j <= n |] ==> (n - m) - Suc (j - m) = n - Suc j";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split']) 1);
-qed "Suc_diff_lemma";
-
 Goal
   "!!a::nat=>'a::ring. k <= n --> \
 \  SUM k (%j. SUM j (%i. a i * b (j-i)) * c (n-j)) = \
@@ -101,37 +93,19 @@ by (simp_tac (simpset() addsimps [m_assoc]) 1);
 (* Induction step *)
 by (rtac impI 1);
 by (etac impE 1);
-by (rtac Suc_leD 1);
-by (assume_tac 1);
+by (arith_tac 1);
 by (asm_simp_tac
     (simpset() addsimps a_ac@
                         [Suc_diff_le, l_distr, r_distr, m_assoc, SUM_add]) 1);
-by (asm_simp_tac
-    (simpset() addsimps a_ac@ [Suc_diff_lemma, SUM_ldistr, m_assoc]) 1);
-qed "poly_assoc_lemma1";
+by (asm_simp_tac (simpset() addsimps a_ac@ [SUM_ldistr, m_assoc]) 1);
+qed_spec_mp "poly_assoc_lemma1";
 
 Goal
   "!!a::nat=>'a::ring. \
 \  SUM n (%j. SUM j (%i. a i * b (j-i)) * c (n-j)) = \
-\  SUM n (%j. a j * SUM (n-j) (%i. b i * c (n-j-i)))";
-by (rtac (poly_assoc_lemma1 RS mp) 1);
-by (rtac le_refl 1);
+\  SUM n (%j. a j * SUM (n-j) (%i. b i * c (n-(j+i))))";
+by (asm_simp_tac (simpset() addsimps [poly_assoc_lemma1]) 1);
 qed "poly_assoc_lemma";
-
-goal Main.thy (* could go to Arith *)
-  "!! n. Suc i <= n ==> Suc (a + (n - Suc i)) = a + (n - i)";
-by (asm_simp_tac (simpset() delsimps [add_Suc] addsimps [add_Suc_right RS sym, Suc_diff_Suc]) 1);
-qed "Suc_add_diff_Suc";
-
-goal Main.thy (* could go to Arith *)
-  "!! n. [| Suc j <= n; i <= j |] ==> \
-\    n - Suc i - (n - Suc j) = n - i - (n - j)";
-by (res_inst_tac [("m1", "n - Suc i"), ("n1", "n - Suc j")]
-  (diff_Suc_Suc RS subst) 1);
-by (subgoal_tac "Suc i <= n" 1);
-by (asm_simp_tac (simpset() delsimps [diff_Suc_Suc] addsimps [Suc_diff_Suc]) 1);
-by (fast_arith_tac 1);
-qed "diff_lemma2";
 
 Goal
   "!! a::nat=>'a::ring. j <= n --> \
@@ -140,14 +114,8 @@ by (induct_tac "j" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
-by (rtac impI 1);
-by (etac impE 1);
-by (rtac Suc_leD 1);
-by (assume_tac 1);
 by (stac SUM_Suc2 1);
-by (stac SUM_Suc 1);
-by (asm_simp_tac (simpset()
-    addsimps [a_comm, Suc_add_diff_Suc, diff_diff_cancel, diff_lemma2]) 1);
+by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, a_comm]) 1);
 qed "poly_comm_lemma1";
 
 Goal
@@ -180,11 +148,6 @@ by (induct_tac "n" 1);
 by (Simp_tac 1);
 (* Induction step *)
 by (case_tac "m <= n" 1);
-by (rtac impI 1);
-by (etac impE 1);
-by (Force_tac 1);
-by (etac conjE 1);
-by (dres_inst_tac [("x", "Suc n")] spec 1);
 by Auto_tac;
 by (subgoal_tac "m = Suc n" 1);
 by (Asm_simp_tac 1);
@@ -237,12 +200,7 @@ by (induct_tac "j" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
-by (simp_tac (simpset() addsimps [Suc_diff_le]) 1);
-by (simp_tac (simpset() addsimps [SUM_add]) 1);
-by (rtac impI 1);
-by (etac impE 1);
-by (dtac Suc_leD 1);
-by (assume_tac 1);
+by (simp_tac (simpset() addsimps [Suc_diff_le, SUM_add]) 1);
 by (asm_simp_tac (simpset() addsimps a_ac) 1);
 val DiagSum_lemma = result();
 
