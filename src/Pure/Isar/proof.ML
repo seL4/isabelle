@@ -545,7 +545,8 @@ fun gen_assume f tac args state =
     |> put_facts (Some (flat (map #2 factss))));
 
 val hard_asm_tac = Tactic.etac Drule.triv_goal;
-val soft_asm_tac = Tactic.rtac Drule.triv_goal;
+val soft_asm_tac = Tactic.rtac Drule.triv_goal
+  THEN' Tactic.rtac asm_rl;	(* FIXME hack to norm goal *)
 
 in
 
