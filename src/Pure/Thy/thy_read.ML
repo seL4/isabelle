@@ -7,15 +7,13 @@
 Functions for reading theory files.
 *)
 
-signature READTHY =
+signature THY_READ =
 sig
   datatype basetype = Thy  of string
                     | File of string
 
   val loadpath       : string list ref
   val delete_tmpfiles: bool ref
-
-  val set_parser     : (string -> string -> string) -> unit
 
   val use_thy        : string -> unit
   val time_use_thy   : string -> unit
@@ -27,7 +25,7 @@ sig
 end;
 
 
-structure ReadThy : READTHY =
+structure ThyRead: THY_READ =
 struct
 
 open ThmDB ThyInfo BrowserInfo;
@@ -35,14 +33,6 @@ open ThmDB ThyInfo BrowserInfo;
 
 datatype basetype = Thy  of string
                   | File of string;
-
-
-(*parser for theory files*)
-val parser = ref ((K (K "")):string -> string -> string);
-
-
-(*set parser for theory files*)
-fun set_parser p = parser := p;
 
 
 (*Default search path for theory files*)
@@ -66,12 +56,13 @@ fun out_name tname = "." ^ tname ^ ".thy.ML";
 fun read_thy tname thy_file =
   let
     val instream  = TextIO.openIn thy_file;
+    val intext = TextIO.inputAll instream;
+    val _ = TextIO.closeIn instream;
+    val outext = ThySyn.parse tname intext;
     val outstream = TextIO.openOut (out_name tname);
-  in
-    TextIO.output (outstream, (!parser) tname (TextIO.inputAll instream));
-    TextIO.closeOut outstream;
-    TextIO.closeIn instream
-  end;
+    val _ = TextIO.output (outstream, outext);
+    val _ = TextIO.closeOut outstream;
+  in () end;
 
 
 (*Check if a theory was completly loaded *)
