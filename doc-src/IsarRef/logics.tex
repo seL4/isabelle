@@ -538,10 +538,11 @@ the following attributes.
 \indexisarcmdof{HOL}{specification}
 \begin{matharray}{rcl}
   \isarcmd{specification} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{ax_specification} & : & \isartrans{theory}{proof(prove)} \\
 \end{matharray}
 
 \begin{rail}
-'specification' '(' (decl +) ')' (thmdecl? prop +)
+('specification' | 'ax\_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
 ;
 decl: ((name ':')? term '(overloaded)'?)
 \end{rail}
@@ -552,11 +553,25 @@ decl: ((name ':')? term '(overloaded)'?)
   constants given in $\mathit{decls}$.  After finishing the proof, the
   theory will be augmented with definitions for the given constants,
   as well as with theorems stating the properties for these constants.
+\item [$\isarkeyword{ax_specification}~decls~\phi$] sets up a goal stating
+  the existence of terms with the properties specified to hold for the
+  constants given in $\mathit{decls}$.  After finishing the proof, the
+  theory will be augmented with axioms expressing the properties given
+  in the first place.
 \item[$decl$] declares a constant to be defined by the specification
   given.  The definition for the constant $c$ is bound to the name
   $c$\_def unless a theorem name is given in the declaration.
   Overloaded constants should be declared as such.
 \end{descr}
+
+Whether to use $\isarkeyword{specification}$ or $\isarkeyword{ax_specification}$
+is to some extent a matter of style.  $\isarkeyword{specification}$ introduces no new axioms,
+and so by construction cannot introduce inconsistencies, whereas $\isarkeyword{ax_specification}$
+does introduce axioms, but only after the user has explicitly proven it to be
+safe.  A practical issue must be considered, though: After introducing two constants
+with the same properties using $\isarkeyword{specification}$, one can prove
+that the two constants are, in fact, equal.  If this might be a problem,
+one should use $\isarkeyword{ax_specification}$.
 
 \subsection{(Co)Inductive sets}\label{sec:hol-inductive}
 
