@@ -114,6 +114,7 @@ fun prove_fun s =
   prove_goal FOL.thy s
    (fn prems => [ (cut_facts_tac prems 1), 
 		  (Cla.fast_tac FOL_cs 1) ]));
+
 val cla_rews = map prove_fun
  ["~(P&Q)  <-> ~P | ~Q",
   "P | ~P", 		"~P | P",
