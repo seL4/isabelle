@@ -262,6 +262,17 @@ qed_goal "if_bool_eq" HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
                    (fn _ => [rtac expand_if 1]);
 
+local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
+in
+fun split_tac splits = mktac (map mk_meta_eq splits)
+end;
+
+local val mktac = mk_case_split_inside_tac (meta_eq_to_obj_eq RS iffD2)
+in
+fun split_inside_tac splits = mktac (map mk_meta_eq splits)
+end;
+
+
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
   (fn _ => [split_tac [expand_if] 1, fast_tac HOL_cs 1]);
 
@@ -306,17 +317,6 @@ val HOL_ss = empty_ss
                  de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp]
         @ ex_simps @ all_simps @ simp_thms)
       addcongs [imp_cong];
-
-
-local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
-in
-fun split_tac splits = mktac (map mk_meta_eq splits)
-end;
-
-local val mktac = mk_case_split_inside_tac (meta_eq_to_obj_eq RS iffD2)
-in
-fun split_inside_tac splits = mktac (map mk_meta_eq splits)
-end;
 
 
 qed_goal "if_distrib" HOL.thy
