@@ -47,6 +47,8 @@ sig
   val force	  : int -> unit
   val change_global_css: (clasimpset * thm list -> clasimpset) -> theory attribute
   val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
+  val get_local_clasimpset: Proof.context -> clasimpset
+  val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val setup	  : (theory -> theory) list
 end;
 
