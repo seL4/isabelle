@@ -1,7 +1,6 @@
-theory CTL = Main:
+(*<*)theory CTL = Base:(*>*)
 
-typedecl atom;
-types state = "atom set";
+subsection{*Computation tree logic---CTL*}
 
 datatype ctl_form = Atom atom
                   | NOT ctl_form
@@ -11,13 +10,12 @@ datatype ctl_form = Atom atom
                   | AF ctl_form;
 
 consts valid :: "state \<Rightarrow> ctl_form \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80)
-       M :: "(state \<times> state)set";
 
 constdefs Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set"
 "Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}";
 
 primrec
-"s \<Turnstile> Atom a  =  (a\<in>s)"
+"s \<Turnstile> Atom a  =  (a \<in> L s)"
 "s \<Turnstile> NOT f   = (~(s \<Turnstile> f))"
 "s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)"
 "s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)"
@@ -32,7 +30,7 @@ by(force simp add: af_def intro:monoI);
 
 consts mc :: "ctl_form \<Rightarrow> state set";
 primrec
-"mc(Atom a)  = {s. a\<in>s}"
+"mc(Atom a)  = {s. a \<in> L s}"
 "mc(NOT f)   = -mc f"
 "mc(And f g) = mc f \<inter> mc g"
 "mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
@@ -231,4 +229,4 @@ theorem "mc f = {s. s \<Turnstile> f}";
 apply(induct_tac f);
 by(auto simp add: lfp_conv_EF equalityI[OF lfp_subset_AF AF_subset_lfp]);
 
-end;
+(*<*)end(*>*)

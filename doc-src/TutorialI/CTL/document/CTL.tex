@@ -1,11 +1,8 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{CTL}%
-\isacommand{theory}\ CTL\ {\isacharequal}\ Main{\isacharcolon}\isanewline
-\isanewline
-\isacommand{typedecl}\ atom\isanewline
-\isacommand{types}\ state\ {\isacharequal}\ {\isachardoublequote}atom\ set{\isachardoublequote}\isanewline
-\isanewline
+%
+\isamarkupsubsection{Computation tree logic---CTL}
 \isacommand{datatype}\ ctl{\isacharunderscore}form\ {\isacharequal}\ Atom\ atom\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ NOT\ ctl{\isacharunderscore}form\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ ctl{\isacharunderscore}form\ ctl{\isacharunderscore}form\isanewline
@@ -14,13 +11,12 @@
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ ctl{\isacharunderscore}form\isanewline
 \isanewline
 \isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ ctl{\isacharunderscore}form\ {\isasymRightarrow}\ bool{\isachardoublequote}\ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}\isadigit{8}\isadigit{0}{\isacharcomma}\isadigit{8}\isadigit{0}{\isacharbrackright}\ \isadigit{8}\isadigit{0}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ M\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}state\ {\isasymtimes}\ state{\isacharparenright}set{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{constdefs}\ Paths\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}set{\isachardoublequote}\isanewline
 {\isachardoublequote}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ \isadigit{0}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}\isadigit{1}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{primrec}\isanewline
-{\isachardoublequote}s\ {\isasymTurnstile}\ Atom\ a\ \ {\isacharequal}\ \ {\isacharparenleft}a{\isasymin}s{\isacharparenright}{\isachardoublequote}\isanewline
+{\isachardoublequote}s\ {\isasymTurnstile}\ Atom\ a\ \ {\isacharequal}\ \ {\isacharparenleft}a\ {\isasymin}\ L\ s{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}s\ {\isasymTurnstile}\ NOT\ f\ \ \ {\isacharequal}\ {\isacharparenleft}{\isachartilde}{\isacharparenleft}s\ {\isasymTurnstile}\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}s\ {\isasymTurnstile}\ And\ f\ g\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymTurnstile}\ f\ {\isasymand}\ s\ {\isasymTurnstile}\ g{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}s\ {\isasymTurnstile}\ AX\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isanewline
@@ -35,7 +31,7 @@
 \isanewline
 \isacommand{consts}\ mc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}ctl{\isacharunderscore}form\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
-{\isachardoublequote}mc{\isacharparenleft}Atom\ a{\isacharparenright}\ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ a{\isasymin}s{\isacharbraceright}{\isachardoublequote}\isanewline
+{\isachardoublequote}mc{\isacharparenleft}Atom\ a{\isacharparenright}\ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ a\ {\isasymin}\ L\ s{\isacharbraceright}{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}NOT\ f{\isacharparenright}\ \ \ {\isacharequal}\ {\isacharminus}mc\ f{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}And\ f\ g{\isacharparenright}\ {\isacharequal}\ mc\ f\ {\isasyminter}\ mc\ g{\isachardoublequote}\isanewline
 {\isachardoublequote}mc{\isacharparenleft}AX\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ \ {\isasymlongrightarrow}\ t\ {\isasymin}\ mc\ f{\isacharbraceright}{\isachardoublequote}\isanewline
@@ -138,11 +134,11 @@ From this proposition the original goal follows easily%
 \isacommand{apply}{\isacharparenleft}intro\ strip{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI\isadigit{2}EX{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI\isadigit{2}{\isacharunderscore}ex{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}{\isacharunderscore}ex{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}{\isacharunderscore}ex{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isanewline
@@ -158,11 +154,11 @@ From this proposition the original goal follows easily%
 \isacommand{apply}{\isacharparenleft}intro\ strip{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI\isadigit{2}EX{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI\isadigit{2}{\isacharunderscore}ex{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}{\isacharunderscore}ex{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}EX{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}rule\ someI\isadigit{2}{\isacharunderscore}ex{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isacommand{by}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isanewline
@@ -219,8 +215,6 @@ From this proposition the original goal follows easily%
 \isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
 \isacommand{by}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lfp{\isacharunderscore}conv{\isacharunderscore}EF\ equalityI{\isacharbrackleft}OF\ lfp{\isacharunderscore}subset{\isacharunderscore}AF\ AF{\isacharunderscore}subset{\isacharunderscore}lfp{\isacharbrackright}{\isacharparenright}\isanewline
-\isanewline
-\isacommand{end}\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
