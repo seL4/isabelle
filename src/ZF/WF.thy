@@ -66,6 +66,9 @@ by (unfold wf_on_def wf_def, fast)
 lemma wf_on_subset_r: "[| wf[A](r); s<=r |] ==> wf[A](s)"
 by (unfold wf_on_def wf_def, fast)
 
+lemma wf_subset: "[|wf(s); r<=s|] ==> wf(r)"
+by (simp add: wf_def, fast)
+
 (** Introduction rules for wf_on **)
 
 lemma wf_onI:

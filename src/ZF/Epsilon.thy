@@ -132,6 +132,9 @@ by (rule eclose_least [OF Transset_eclose singleton_subsetI, THEN subsetD],
 lemma under_Memrel: "[| Transset(i);  j:i |] ==> Memrel(i)-``{j} = j"
 by (unfold Transset_def, blast)
 
+lemma lt_Memrel: "j < i ==> Memrel(i) -`` {j} = j"
+by (simp add: lt_def Ord_def under_Memrel) 
+
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
 lemmas under_Memrel_eclose = Transset_eclose [THEN under_Memrel, standard]
 
