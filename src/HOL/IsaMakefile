@@ -33,6 +33,8 @@ Pure:
 
 $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML		\
+  $(SRC)/Provers/Arith/assoc_fold.ML		\
+  $(SRC)/Provers/Arith/combine_coeff.ML		\
   $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/simplifier.ML \
@@ -321,7 +323,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
   ex/mesontest.ML ex/set.ML ex/Group.ML ex/Group.thy ex/IntRing.ML \
   ex/IntRing.thy ex/IntRingDefs.ML ex/IntRingDefs.thy ex/Lagrange.ML \
   ex/Lagrange.thy ex/Ring.ML ex/Ring.thy ex/StringEx.ML \
-  ex/StringEx.thy ex/BinEx.ML ex/BinEx.thy ex/MonoidGroup.thy \
+  ex/StringEx.thy ex/Tarski.ML ex/Tarski.thy \
+  ex/BinEx.ML ex/BinEx.thy ex/MonoidGroup.thy \
   ex/PiSets.thy ex/PiSets.ML ex/LocaleGroup.thy ex/LocaleGroup.ML \
   ex/Antiquote.thy ex/Antiquote.ML ex/Points.thy
 	@$(ISATOOL) usedir $(OUT)/HOL ex
