@@ -1,4 +1,4 @@
-(*  Title:      HOL/BCV/Listn.thy
+(*  Title:      HOL/MicroJava/BV/Listn.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM

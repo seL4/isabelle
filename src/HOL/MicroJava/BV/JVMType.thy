@@ -1,11 +1,11 @@
-(*  Title:      HOL/BCV/JVM.thy
+(*  Title:      HOL/MicroJava/BV/JVM.thy
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 TUM
 
 *)
 
-header "JVM Type System"
+header "The JVM Type System as Semilattice"
 
 theory JVMType = Opt + Product + Listn + JType:
 
@@ -13,8 +13,8 @@ types
   locvars_type = "ty err list"
   opstack_type = "ty list"
   state_type   = "opstack_type \<times> locvars_type"
-  state        = "state_type option err"    (* for Kildall *)
-  method_type  = "state_type option list"   (* for BVSpec *)
+  state        = "state_type option err"    -- "for Kildall"
+  method_type  = "state_type option list"   -- "for BVSpec"
   class_type   = "sig => method_type"
   prog_type    = "cname => class_type"
 
@@ -50,7 +50,7 @@ constdefs
               ("_ |- _ <=l _"  [71,71] 70)
   "sup_loc G == Listn.le (sup_ty_opt G)"
 
-  sup_state :: "['code prog,state_type,state_type] => bool"	  
+  sup_state :: "['code prog,state_type,state_type] => bool"   
                ("_ |- _ <=s _"  [71,71] 70)
   "sup_state G == Product.le (Listn.le (subtype G)) (sup_loc G)"
 
@@ -64,7 +64,7 @@ syntax (xsymbols)
                    ("_ \<turnstile> _ <=o _" [71,71] 70)
   sup_loc       :: "['code prog,locvars_type,locvars_type] => bool" 
                    ("_ \<turnstile> _ <=l _" [71,71] 70)
-  sup_state     :: "['code prog,state_type,state_type] => bool"	
+  sup_state     :: "['code prog,state_type,state_type] => bool" 
                    ("_ \<turnstile> _ <=s _" [71,71] 70)
   sup_state_opt :: "['code prog,state_type option,state_type option] => bool"
                    ("_ \<turnstile> _ <=' _" [71,71] 70)
@@ -98,7 +98,8 @@ lemma JVM_le_Err_conv:
              sup_ty_opt_def JVM_le_unfold) simp
 
 lemma zip_map [rule_format]:
-  "\<forall>a. length a = length b --> zip (map f a) (map g b) = map (\<lambda>(x,y). (f x, g y)) (zip a b)"
+  "\<forall>a. length a = length b --> 
+  zip (map f a) (map g b) = map (\<lambda>(x,y). (f x, g y)) (zip a b)"
   apply (induct b) 
    apply simp
   apply clarsimp
@@ -148,7 +149,8 @@ qed
 
 
 lemma sup_state_conv:
-  "(G \<turnstile> s1 <=s s2) == (G \<turnstile> map OK (fst s1) <=l map OK (fst s2)) \<and> (G \<turnstile> snd s1 <=l snd s2)"
+  "(G \<turnstile> s1 <=s s2) == 
+  (G \<turnstile> map OK (fst s1) <=l map OK (fst s2)) \<and> (G \<turnstile> snd s1 <=l snd s2)"
   by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def split_beta)
 
 

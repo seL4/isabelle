@@ -1,10 +1,10 @@
-(*  Title:      HOL/BCV/JType.thy
+(*  Title:      HOL/MicroJava/BV/JType.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Gerwin Klein
     Copyright   2000 TUM
 *)
 
-header "Java Type System as Semilattice"
+header "The Java Type System as Semilattice"
 
 theory JType = WellForm + Err:
 
@@ -14,11 +14,12 @@ constdefs
 
   sup :: "'c prog => ty => ty => ty err"
   "sup G T1 T2 ==
-  case T1 of PrimT P1 => (case T2 of PrimT P2 => (if P1 = P2 then OK (PrimT P1) else Err) | RefT R => Err)
+  case T1 of PrimT P1 => (case T2 of PrimT P2 => 
+                         (if P1 = P2 then OK (PrimT P1) else Err) | RefT R => Err)
            | RefT R1 => (case T2 of PrimT P => Err | RefT R2 => 
   (case R1 of NullT => (case R2 of NullT => OK NT | ClassT C => OK (Class C))
             | ClassT C => (case R2 of NullT => OK (Class C) 
-                                    | ClassT D => OK (Class (some_lub ((subcls1 G)^* ) C D)))))"
+                           | ClassT D => OK (Class (some_lub ((subcls1 G)^* ) C D)))))"
 
   subtype :: "'c prog => ty => ty => bool"
   "subtype G T1 T2 == G \<turnstile> T1 \<preceq> T2"

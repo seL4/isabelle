@@ -6,7 +6,12 @@
 
 header {* Completeness of the LBV *}
 
-theory LBVComplete = BVSpec + LBVSpec + StepMono:
+(* This theory is currently broken. The port to exceptions
+  didn't make it into the Isabelle 2001 release. It is included for 
+  documentation only. See Isabelle 99-2 for a working copy of this
+  theory. *)
+
+theory LBVComplete = BVSpec + LBVSpec + EffectMono:
 
 constdefs
   contains_targets :: "[instr list, certificate, method_type, p_count] => bool"
@@ -86,36 +91,36 @@ proof -
   assume fits: "fits ins cert phi"
   assume G:    "G \<turnstile> s2 <=' s1"
   
-  let "?step s" = "step i G s"
+  let "?eff s" = "eff i G s"
 
   from wtl G
   have app: "app i G mxs rT s2" by (auto simp add: wtl_inst_OK app_mono)
   
   from wtl G
-  have step: "G \<turnstile> ?step s2 <=' ?step s1" 
-    by (auto intro: step_mono simp add: wtl_inst_OK)
+  have eff: "G \<turnstile> ?eff s2 <=' ?eff s1" 
+    by (auto intro: eff_mono simp add: wtl_inst_OK)
 
   { also
     fix pc'
     assume "pc' \<in> set (succs i pc)" "pc' \<noteq> pc+1"
     with wtl 
-    have "G \<turnstile> ?step s1 <=' cert!pc'"
+    have "G \<turnstile> ?eff s1 <=' cert!pc'"
       by (auto simp add: wtl_inst_OK) 
     finally
-    have "G\<turnstile> ?step s2 <=' cert!pc'" .
+    have "G\<turnstile> ?eff s2 <=' cert!pc'" .
   } note cert = this
     
   have "\<exists>s2'. wtl_inst i G rT s2 cert mxs mpc pc = OK s2' \<and> G \<turnstile> s2' <=' s1'"
   proof (cases "pc+1 \<in> set (succs i pc)")
     case True
     with wtl
-    have s1': "s1' = ?step s1" by (simp add: wtl_inst_OK)
+    have s1': "s1' = ?eff s1" by (simp add: wtl_inst_OK)
 
-    have "wtl_inst i G rT s2 cert mxs mpc pc = OK (?step s2) \<and> G \<turnstile> ?step s2 <=' s1'" 
+    have "wtl_inst i G rT s2 cert mxs mpc pc = OK (?eff s2) \<and> G \<turnstile> ?eff s2 <=' s1'" 
       (is "?wtl \<and> ?G")
     proof
       from True s1'
-      show ?G by (auto intro: step)
+      show ?G by (auto intro: eff)
 
       from True app wtl
       show ?wtl
@@ -191,7 +196,7 @@ lemma wt_instr_imp_wtl_inst:
   have pc': "!!pc'. pc' \<in> set (succs (ins!pc) pc) ==> pc' < length ins"
     by (simp add: wt_instr_def)
 
-  let ?s' = "step (ins!pc) G (phi!pc)"
+  let ?s' = "eff (ins!pc) G (phi!pc)"
 
   from wt fits pc
   have cert: "!!pc'. [|pc' \<in> set (succs (ins!pc) pc); pc' < max_pc; pc' \<noteq> pc+1|] 
@@ -215,7 +220,7 @@ proof -
   assume pc:   "Suc pc < length ins" "length ins = max_pc"
 
   { assume suc: "Suc pc \<in> set (succs (ins ! pc) pc)"
-    with wtl         have "s = step (ins!pc) G (phi!pc)"
+    with wtl have "s = eff (ins!pc) G (phi!pc)"
       by (simp add: wtl_inst_OK)
     also from suc wt have "G \<turnstile> ... <=' phi!Suc pc"
       by (simp add: wt_instr_def)

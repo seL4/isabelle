@@ -1,4 +1,4 @@
-(*  Title:      HOL/BCV/Product.thy
+(*  Title:      HOL/MicroJava/BV/Product.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM

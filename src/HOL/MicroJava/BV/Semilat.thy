@@ -1,4 +1,4 @@
-(*  Title:      HOL/BCV/Semilat.thy
+(*  Title:      HOL/MicroJava/BV/Semilat.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM

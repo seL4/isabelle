@@ -1,4 +1,4 @@
-(*  Title:      HOL/BCV/Opt.thy
+(*  Title:      HOL/MicroJava/BV/Opt.thy
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM
@@ -13,8 +13,8 @@ theory Opt = Err:
 constdefs
  le :: "'a ord => 'a option ord"
 "le r o1 o2 == case o2 of None => o1=None |
-                              Some y => (case o1 of None => True |
-                                                    Some x => x <=_r y)"
+                              Some y => (case o1 of None => True
+                                                  | Some x => x <=_r y)"
 
  opt :: "'a set => 'a option set"
 "opt A == insert None {x . ? y:A. x = Some y}"
@@ -22,7 +22,7 @@ constdefs
  sup :: "'a ebinop => 'a option ebinop"
 "sup f o1 o2 ==  
  case o1 of None => OK o2 | Some x => (case o2 of None => OK o1
-                                              | Some y => (case f x y of Err => Err | OK z => OK (Some z)))"
+     | Some y => (case f x y of Err => Err | OK z => OK (Some z)))"
 
  esl :: "'a esl => 'a option esl"
 "esl == %(A,r,f). (opt A, le r, sup f)"

@@ -1,6 +1,6 @@
 (*  Title:      HOL/MicroJava/BV/Correct.thy
     ID:         $Id$
-    Author:     Cornelia Pusch
+    Author:     Cornelia Pusch, Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
 
 The invariant for the type safety proof.
@@ -9,12 +9,6 @@ The invariant for the type safety proof.
 header "BV Type Safety Invariant"
 
 theory Correct = BVSpec:
-
-lemma list_all2_rev [simp]:
-  "list_all2 P (rev l) (rev l') = list_all2 P l l'"
-  apply (unfold list_all2_def)
-  apply (simp add: zip_rev cong: conj_cong)
-  done
 
 constdefs
   approx_val :: "[jvm_prog,aheap,val,ty err] => bool"
@@ -39,19 +33,19 @@ primrec
 
 "correct_frames G hp phi rT0 sig0 (f#frs) =
   (let (stk,loc,C,sig,pc) = f in
-  (\<exists>ST LT rT maxs maxl ins.
+  (\<exists>ST LT rT maxs maxl ins et.
     phi C sig ! pc = Some (ST,LT) \<and> is_class G C \<and> 
-    method (G,C) sig = Some(C,rT,(maxs,maxl,ins)) \<and>
-	(\<exists>C' mn pTs k. pc = k+1 \<and> ins!k = (Invoke C' mn pTs) \<and> 
+    method (G,C) sig = Some(C,rT,(maxs,maxl,ins,et)) \<and>
+  (\<exists>C' mn pTs. ins!pc = (Invoke C' mn pTs) \<and> 
          (mn,pTs) = sig0 \<and> 
          (\<exists>apTs D ST' LT'.
-         (phi C sig)!k = Some ((rev apTs) @ (Class D) # ST', LT') \<and>
+         (phi C sig)!pc = Some ((rev apTs) @ (Class D) # ST', LT') \<and>
          length apTs = length pTs \<and>
-         (\<exists>D' rT' maxs' maxl' ins'.
-           method (G,D) sig0 = Some(D',rT',(maxs',maxl',ins')) \<and>
+         (\<exists>D' rT' maxs' maxl' ins' et'.
+           method (G,D) sig0 = Some(D',rT',(maxs',maxl',ins',et')) \<and>
            G \<turnstile> rT0 \<preceq> rT') \<and>
-	 correct_frame G hp (tl ST, LT) maxl ins f \<and> 
-	 correct_frames G hp phi rT sig frs))))"
+   correct_frame G hp (ST, LT) maxl ins f \<and> 
+   correct_frames G hp phi rT sig frs))))"
 
 
 constdefs
@@ -60,17 +54,17 @@ constdefs
 "correct_state G phi == \<lambda>(xp,hp,frs).
    case xp of
      None => (case frs of
-	           [] => True
+             [] => True
              | (f#fs) => G\<turnstile>h hp\<surd> \<and>
-			(let (stk,loc,C,sig,pc) = f
-		         in
-                         \<exists>rT maxs maxl ins s.
+      (let (stk,loc,C,sig,pc) = f
+             in
+                         \<exists>rT maxs maxl ins et s.
                          is_class G C \<and>
-                         method (G,C) sig = Some(C,rT,(maxs,maxl,ins)) \<and>
+                         method (G,C) sig = Some(C,rT,(maxs,maxl,ins,et)) \<and>
                          phi C sig ! pc = Some s \<and>
-			 correct_frame G hp s maxl ins f \<and> 
-		         correct_frames G hp phi rT sig fs))
-   | Some x => True" 
+       correct_frame G hp s maxl ins f \<and> 
+             correct_frames G hp phi rT sig fs))
+   | Some x => frs = []" 
 
 
 syntax (xsymbols)
