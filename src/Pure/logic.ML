@@ -141,7 +141,7 @@ fun mk_type ty = Const ("TYPE", itselfT ty);
 fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
   | dest_type t = raise TERM ("dest_type", [t]);
 
-(* class constraints: (| ty : c_class |) *)
+(** class constraints **)
 
 fun mk_inclass (ty, c) =
   Const (Sign.const_of_class c, itselfT ty --> propT) $ mk_type ty;
