@@ -11,6 +11,7 @@ sig
   val mk_Trueprop	: term -> term
   val atomic_Trueprop	: string -> term
   val dest_Trueprop	: term -> term
+  val not		: term
   val conj		: term
   val disj		: term
   val imp		: term
@@ -50,10 +51,11 @@ fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
 
 (** Logical constants **)
 
-val conj = Const("op &", [oT,oT]--->oT)
-and disj = Const("op |", [oT,oT]--->oT)
-and imp = Const("op -->", [oT,oT]--->oT)
-and iff = Const("op <->", [oT,oT]--->oT);
+val not = Const ("Not", oT --> oT);
+val conj = Const("op &", [oT,oT]--->oT);
+val disj = Const("op |", [oT,oT]--->oT);
+val imp = Const("op -->", [oT,oT]--->oT)
+val iff = Const("op <->", [oT,oT]--->oT);
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
