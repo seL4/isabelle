@@ -43,7 +43,7 @@ apply clarify
 apply (drule subset_consI [THEN subset_imp_lepoll, THEN lepoll_Finite])
 apply (rule nat_not_Finite [THEN notE] )
 apply (subgoal_tac "x ~= 0")
-apply (blast intro: lepoll_Sigma [THEN lepoll_Finite] , blast) 
+apply (blast intro: lepoll_Sigma [THEN lepoll_Finite], blast) 
 done
 
 lemma lemma1: "[| Union(C)=A; a \<in> A |] ==> \<exists>B \<in> C. a \<in> B & B \<subseteq> A"
@@ -61,8 +61,7 @@ lemma lemma3:
 apply (unfold sets_of_size_between_def)
 apply (rule ballI)
 apply (erule_tac x="cons(0, B*nat)" in ballE)
- apply (blast dest: lemma1 intro!: lemma2) 
-apply blast
+ apply (blast dest: lemma1 intro!: lemma2, blast)
 done
 
 lemma lemma4: "[| A \<lesssim> i; Ord(i) |] ==> {P(a). a \<in> A} \<lesssim> i"
@@ -180,7 +179,7 @@ apply (rule_tac x = "LEAST i. HH (f,A,i) ={A}" in exI)
 apply (rule_tac x = "\<lambda>j \<in> (LEAST i. HH (f,A,i) ={A}) . HH (f,A,j) " in exI)
 apply simp
 apply (fast intro!: Ord_Least lam_type [THEN domain_of_fun]
-            elim!: less_Least_subset_x lemma1 lemma2, assumption); 
+            elim!: less_Least_subset_x lemma1 lemma2, assumption) 
 done
 
 
@@ -199,7 +198,7 @@ done
 theorem AC10_AC13: "[| n \<in> nat; 1\<le>n; AC10(n) |] ==> AC13(n)"
 apply (unfold AC10_def AC13_def, safe)
 apply (erule allE) 
-apply (erule impE [OF _ cons_times_nat_not_Finite], assumption); 
+apply (erule impE [OF _ cons_times_nat_not_Finite], assumption) 
 apply (fast elim!: impE [OF _ cons_times_nat_not_Finite] 
             dest!: ex_fun_AC13_AC15)
 done

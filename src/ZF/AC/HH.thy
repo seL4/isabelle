@@ -239,8 +239,7 @@ apply (rule exI)
 apply (rule bij_Least_HH_x [THEN bij_converse_bij])
 apply (rule f_subsets_imp_UN_HH_eq_x)
 apply (intro ballI apply_type) 
-apply (fast intro: lam_type apply_type del: DiffE)
-apply assumption; 
+apply (fast intro: lam_type apply_type del: DiffE, assumption) 
 apply (fast intro: Pi_weaken_type)
 done
 

@@ -66,7 +66,7 @@ done
 
 lemma lemma1_1: "[|c \<in> a; x = c Un {0}; x \<notin> a |] ==> x - {0} \<in> a"
 apply clarify 
-apply (rule subst_elem , (assumption))
+apply (rule subst_elem, assumption)
 apply (fast elim: notE subst_elem)
 done
 
@@ -98,10 +98,9 @@ apply (unfold AC19_def AC1_def, clarify)
 apply (case_tac "A=0", force)
 apply (erule_tac x = "{uu (a) . a \<in> A}" in allE)
 apply (erule impE)
-apply (erule RepRep_conj , (assumption))
+apply (erule RepRep_conj, assumption)
 apply (rule lemma1)
-apply (drule lemma2 , (assumption))
-apply auto 
+apply (drule lemma2, assumption, auto) 
 done
 
 end

@@ -25,7 +25,7 @@ apply (intro exI conjI)
   apply (erule inj_is_fun [THEN fun_is_rel, THEN image_subset])
  apply (rule well_ord_rvimage [OF bij_is_inj well_ord_Memrel]) 
   apply (erule restrict_bij [THEN bij_converse_bij]) 
-apply (rule subset_refl, assumption); 
+apply (rule subset_refl, assumption) 
 apply (rule trans) 
 apply (rule bij_ordertype_vimage) 
 apply (erule restrict_bij [THEN bij_converse_bij]) 
@@ -36,8 +36,7 @@ done
 
 lemma Ord_lepoll_imp_eq_ordertype:
      "[| Ord(a); a \<lesssim> X |] ==> \<exists>Y. Y \<subseteq> X & (\<exists>R. R \<subseteq> X*X & ordertype(Y,R)=a)"
-apply (drule Ord_lepoll_imp_ex_well_ord, (assumption))
-apply clarify
+apply (drule Ord_lepoll_imp_ex_well_ord, assumption, clarify)
 apply (intro exI conjI)
 apply (erule_tac [3] ordertype_Int, auto) 
 done

@@ -144,7 +144,7 @@ apply (erule_tac x = "B - {xa}" in allE)
 apply (erule impE)
 apply (simp add: add_succ)
 apply (fast intro!: Diff_sing_eqpoll lepoll_Diff_sing) 
-apply (subgoal_tac "A - {xa} - (B - {xa}) = A - B", simp); 
+apply (subgoal_tac "A - {xa} - (B - {xa}) = A - B", simp)
 apply blast 
 done
 
@@ -171,7 +171,7 @@ apply (erule_tac x = "A - {xa}" in allE)
 apply (erule_tac x = "B - {xa}" in allE)
 apply (erule impE)
 apply (force intro: eqpoll_sym intro!: Diff_sing_eqpoll)
-apply (subgoal_tac "A - {xa} - (B - {xa}) = A - B", simp); 
+apply (subgoal_tac "A - {xa} - (B - {xa}) = A - B", simp)
 apply blast 
 done
 
@@ -361,7 +361,7 @@ apply (intro ballI impI)
 (** LEVEL 8 **)
 apply (rule w_Int_eqpoll_m [THEN eqpoll_m_not_empty, THEN not_emptyE])
 apply (blast, assumption+)
-apply (drule equalityD1 [THEN subsetD], (assumption))
+apply (drule equalityD1 [THEN subsetD], assumption)
 apply (frule cons_cons_in, assumption+)
 apply (blast dest: ex1_two_eq intro: s_subset [THEN subsetD] in_s_imp_u_in)+
 done
@@ -385,7 +385,7 @@ apply (force intro!: well_ord_unit simp add: subsets_lepoll_0_eq_unit)
 apply (erule exE)
 apply (rule well_ord_subsets_eqpoll_n [THEN exE], assumption)
 apply (simp add: subsets_lepoll_succ)
-apply (drule well_ord_radd, (assumption))
+apply (drule well_ord_radd, assumption)
 apply (erule Int_empty [THEN disj_Un_eqpoll_sum,
                   THEN eqpoll_def [THEN def_imp_iff, THEN iffD1], THEN exE])
 apply (fast elim!: bij_is_inj [THEN well_ord_rvimage])
@@ -410,9 +410,8 @@ done
 
 lemma (in AC16) unique_superset_in_MM:
      "v \<in> LL ==> \<exists>! w. w \<in> MM & v \<subseteq> w"
-apply (unfold MM_def LL_def, safe)
-apply fast
-apply (rule lepoll_imp_eqpoll_subset [THEN exE], (assumption))
+apply (unfold MM_def LL_def, safe, fast)
+apply (rule lepoll_imp_eqpoll_subset [THEN exE], assumption)
 apply (rule_tac x = "x" in all_ex [THEN ballE]) 
 apply (blast intro: eqpoll_sym)+
 done

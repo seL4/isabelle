@@ -45,8 +45,7 @@ declare Ord_Union [intro,simp,TC]
 lemma Union_upper_le:
      "\<lbrakk>j: J;  i\<le>j;  Ord(\<Union>(J))\<rbrakk> \<Longrightarrow> i \<le> \<Union>J"
 apply (subst Union_eq_UN)  
-apply (rule UN_upper_le)
-apply auto
+apply (rule UN_upper_le, auto)
 done
 
 lemma zero_not_Limit [iff]: "~ Limit(0)"
@@ -61,8 +60,7 @@ apply (blast intro!: equalityI)
 done
 
 lemma increasing_LimitI: "\<lbrakk>0<l; \<forall>x\<in>l. \<exists>y\<in>l. x<y\<rbrakk> \<Longrightarrow> Limit(l)"
-apply (simp add: Limit_def lt_Ord2)
-apply clarify
+apply (simp add: Limit_def lt_Ord2, clarify)
 apply (drule_tac i=y in ltD) 
 apply (blast intro: lt_trans1 succ_leI ltI lt_Ord2)
 done
@@ -115,8 +113,7 @@ by (unfold OUnion_def lt_def, blast )
 
 lemma OUN_upper_le:
      "\<lbrakk>a<A;  i\<le>b(a);  Ord(\<Union>x<A. b(x))\<rbrakk> \<Longrightarrow> i \<le> (\<Union>x<A. b(x))"
-apply (unfold OUnion_def)
-apply auto
+apply (unfold OUnion_def, auto)
 apply (rule UN_upper_le )
 apply (auto simp add: lt_def) 
 done

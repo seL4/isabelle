@@ -8,7 +8,7 @@ Auxiliary lemmas concerning cardinalities
 theory Cardinal_aux = AC_Equiv:
 
 lemma Diff_lepoll: "[| A \<lesssim> succ(m); B \<subseteq> A; B\<noteq>0 |] ==> A-B \<lesssim> m"
-apply (rule not_emptyE, (assumption))
+apply (rule not_emptyE, assumption)
 apply (blast intro: lepoll_trans [OF subset_imp_lepoll Diff_sing_lepoll])
 done
 
@@ -151,7 +151,7 @@ lemma UN_lepoll:
          ~Finite(a); Ord(a); n \<in> nat |] 
       ==> (\<Union>b \<in> a. F(b)) \<lesssim> a"
 apply (rule rev_mp) 
-apply (rule_tac f="\<lambda>b \<in> a. F (b)" in UN_fun_lepoll);
+apply (rule_tac f="\<lambda>b \<in> a. F (b)" in UN_fun_lepoll)
 apply auto
 done
 
@@ -187,7 +187,7 @@ apply (frule_tac j=xa in Un_upper2_le [OF lt_Ord lt_Ord], assumption)
 apply (drule Un_least_lt, assumption)
 apply (drule eqpoll_imp_lepoll [THEN lepoll_trans], 
        rule le_imp_lepoll, assumption)+
-apply (case_tac "Finite(x Un xa)");
+apply (case_tac "Finite(x Un xa)")
 txt{*finite case*}
  apply (drule Finite_Un [OF lepoll_Finite lepoll_Finite], assumption+) 
  apply (drule subset_Un_Diff [THEN subset_imp_lepoll, THEN lepoll_Finite])

@@ -45,8 +45,7 @@ syntax (xsymbols)
 lemma oadd_eq_0_iff: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> (i ++ j) = 0 <-> i=0 & j=0"
 apply (erule trans_induct3 [of j])
 apply (simp_all add: oadd_Limit)
-apply (simp add: Union_empty_iff Limit_def lt_def)
-apply blast
+apply (simp add: Union_empty_iff Limit_def lt_def, blast)
 done
 
 lemma oadd_eq_lt_iff: "\<lbrakk>Ord(i); Ord(j)\<rbrakk> \<Longrightarrow> 0 < (i ++ j) <-> 0<i | 0<j"
@@ -66,8 +65,7 @@ apply (rule increasing_LimitI)
  apply (rule Ord_0_lt)
   apply (blast intro: Ord_in_Ord [OF Limit_is_Ord])
  apply (force simp add: Union_empty_iff oadd_eq_0_iff
-                        Limit_is_Ord [of j, THEN Ord_in_Ord])
-apply auto
+                        Limit_is_Ord [of j, THEN Ord_in_Ord], auto)
 apply (rule_tac x="succ(x)" in bexI)
  apply (simp add: ltI Limit_is_Ord [of j, THEN Ord_in_Ord])
 apply (simp add: Limit_def lt_def) 
@@ -110,7 +108,7 @@ apply (rule notI)
 apply (erule eqpollE)
 apply (rule succ_lepoll_natE)
 apply (blast intro: nat_succI [THEN OrdmemD, THEN subset_imp_lepoll] 
-                    lepoll_trans, assumption); 
+                    lepoll_trans, assumption) 
 done
 
 lemma in_Card_imp_lesspoll: "[| Card(K); b \<in> K |] ==> b \<prec> K"
@@ -133,12 +131,12 @@ apply (fast intro!: Fin.emptyI dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
 apply (rule allI)
 apply (rule impI)
 apply (erule conjE)
-apply (rule eqpoll_succ_imp_not_empty [THEN not_emptyE], (assumption))
-apply (frule Diff_sing_eqpoll, (assumption))
+apply (rule eqpoll_succ_imp_not_empty [THEN not_emptyE], assumption)
+apply (frule Diff_sing_eqpoll, assumption)
 apply (erule allE)
 apply (erule impE, fast)
-apply (drule subsetD, (assumption))
-apply (drule Fin.consI, (assumption))
+apply (drule subsetD, assumption)
+apply (drule Fin.consI, assumption)
 apply (simp add: cons_Diff)
 done
 

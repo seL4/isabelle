@@ -139,7 +139,7 @@ lemma rvimage_id: "rvimage(A,id(A),r) = r Int A*A"
 apply (unfold rvimage_def)
 apply (rule equalityI, safe)
 apply (drule_tac P = "%a. <id (A) `xb,a>:r" in id_conv [THEN subst],
-       (assumption))
+       assumption)
 apply (drule_tac P = "%a. <a,ya>:r" in id_conv [THEN subst], (assumption+))
 apply (fast intro: id_conv [THEN ssubst])
 done
@@ -179,7 +179,7 @@ by blast
 lemma surj_image_eq: "f \<in> surj(A, B) ==> f``A = B"
 apply (unfold surj_def)
 apply (erule CollectE)
-apply (rule image_fun [THEN ssubst], (assumption), rule subset_refl)
+apply (rule image_fun [THEN ssubst], assumption, rule subset_refl)
 apply (blast dest: apply_type) 
 done
 
@@ -217,7 +217,7 @@ apply (rule_tac d = "%y. fst (converse(f) ` y) " in lam_injective)
 apply (fast intro: LeastI2 nat_into_Ord [THEN Ord_in_Ord] 
                            inj_is_fun [THEN apply_type])
 apply (erule domainE)
-apply (frule inj_is_fun [THEN apply_type], (assumption))
+apply (frule inj_is_fun [THEN apply_type], assumption)
 apply (rule LeastI2)
 apply (auto elim!: nat_into_Ord [THEN Ord_in_Ord])
 done

@@ -363,8 +363,7 @@ lemma (in imp_DC0) f_n_pairs_in_R [rule_format]:
 apply (unfold XX_def)
 apply (drule apply_type, assumption)
 apply (elim UN_E CollectE)
-apply (drule domain_of_fun [symmetric, THEN trans], assumption)
-apply simp
+apply (drule domain_of_fun [symmetric, THEN trans], assumption, simp)
 done
 
 lemma (in imp_DC0) restrict_cons_eq_restrict: 
@@ -404,7 +403,7 @@ apply (force simp add: singleton_fun [THEN domain_of_fun] singleton_in_funs)
 (*induction step*) (** LEVEL 5 **)
 (*prevent simplification of ~\<exists> to \<forall>~ *)
 apply (simp only: separation split)
-apply (drule_tac x="succ(xa)" in ospec, blast intro: ltI);
+apply (drule_tac x="succ(xa)" in ospec, blast intro: ltI)
 apply (elim conjE disjE)
 apply (force elim!: trans subst_context
              intro!: UN_image_succ_eq_succ)
@@ -455,8 +454,7 @@ lemma (in imp_DC0) lemma3:
 apply (frule lemma2 [THEN conjunct1, THEN domain_of_fun], assumption+)
 apply (unfold allRR_def)
 apply (drule ospec) 
-apply (drule ltI [OF nat_succI Ord_nat], assumption)
-apply simp
+apply (drule ltI [OF nat_succI Ord_nat], assumption, simp)
 apply (elim conjE ballE)
 apply (erule restrict_eq_imp_val_eq [symmetric], force) 
 apply (simp add: image_fun OrdmemD) 
@@ -500,7 +498,7 @@ by (fast elim!: image_fun [THEN ssubst]);
 theorem DC_WO3: "(\<forall>K. Card(K) --> DC(K)) ==> WO3"
 apply (unfold DC_def WO3_def)
 apply (rule allI)
-apply (case_tac "A \<prec> Hartog (A)");
+apply (case_tac "A \<prec> Hartog (A)")
 apply (fast dest!: lesspoll_imp_ex_lt_eqpoll 
             intro!: Ord_Hartog leI [THEN le_imp_subset])
 apply (erule allE impE)+

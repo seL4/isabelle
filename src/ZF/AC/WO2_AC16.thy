@@ -31,8 +31,7 @@ constdefs
 (* ********************************************************************** *)
 
 lemma recfunAC16_0: "recfunAC16(f,h,0,a) = 0"
-apply (simp add: recfunAC16_def);
-done
+by (simp add: recfunAC16_def)
 
 lemma recfunAC16_succ: 
      "recfunAC16(f,h,succ(i),a) =   
@@ -41,7 +40,7 @@ lemma recfunAC16_succ:
             {f ` (LEAST j. h ` i \<subseteq> f ` j &   
              (\<forall>b<a. (h`b \<subseteq> f`j   
               --> (\<forall>t \<in> recfunAC16(f,h,i,a). ~ h`b \<subseteq> t))))})"
-apply (simp add: recfunAC16_def);
+apply (simp add: recfunAC16_def)
 done
 
 lemma recfunAC16_Limit: "Limit(i)   
@@ -55,12 +54,11 @@ by (simp add: recfunAC16_def transrec2_Limit);
 lemma transrec2_mono_lemma [rule_format]:
      "[| !!g r. r \<subseteq> B(g,r);  Ord(i) |]   
       ==> j<i --> transrec2(j, 0, B) \<subseteq> transrec2(i, 0, B)"
-apply (erule trans_induct);
-apply (rule Ord_cases , assumption+);
-apply fast
+apply (erule trans_induct)
+apply (rule Ord_cases, assumption+, fast)
 apply (simp (no_asm_simp))
-apply (blast elim!: leE); 
-apply (simp add: transrec2_Limit); 
+apply (blast elim!: leE) 
+apply (simp add: transrec2_Limit) 
 apply (blast intro: OUN_I ltI Ord_in_Ord [THEN le_refl]
              elim!: Limit_has_succ [THEN ltE])
 done
@@ -68,9 +66,9 @@ done
 lemma transrec2_mono:
      "[| !!g r. r \<subseteq> B(g,r); j\<le>i |] 
       ==> transrec2(j, 0, B) \<subseteq> transrec2(i, 0, B)"
-apply (erule leE);
+apply (erule leE)
 apply (rule transrec2_mono_lemma)
-apply (auto intro: lt_Ord2 ); 
+apply (auto intro: lt_Ord2 ) 
 done
 
 (* ********************************************************************** *)
@@ -80,8 +78,7 @@ done
 lemma recfunAC16_mono: 
        "i\<le>j ==> recfunAC16(f, g, i, a) \<subseteq> recfunAC16(f, g, j, a)"
 apply (unfold recfunAC16_def)
-apply (rule transrec2_mono)
-apply (auto ); 
+apply (rule transrec2_mono, auto) 
 done
 
 (* ********************************************************************** *)
@@ -95,8 +92,7 @@ lemma lemma3_1:
         V \<in> F(i); f(z)<=V; W \<in> F(j); f(z)<=W |]   
      ==> V = W"
 apply (erule asm_rl allE impE)+
-apply (drule subsetD, assumption)
-apply blast 
+apply (drule subsetD, assumption, blast) 
 done
 
 
@@ -118,8 +114,7 @@ lemma lemma4:
       ==> \<forall>y<x. \<forall>z<a. z < y | (\<exists>Y \<in> F(y). h(z) \<subseteq> Y) -->   
                        (\<exists>! Y. Y \<in> F(y) & h(z) \<subseteq> Y)"
 apply (intro oallI impI)
-apply (drule ospec, assumption)
-apply clarify
+apply (drule ospec, assumption, clarify)
 apply (blast elim!: oallE ) 
 done
 
@@ -134,8 +129,7 @@ lemma lemma5:
 apply (rule conjI)
 apply (rule subsetI)
 apply (erule OUN_E)
-apply (drule ospec, assumption)
-apply fast
+apply (drule ospec, assumption, fast)
 apply (drule lemma4, assumption)
 apply (rule oallI)
 apply (rule impI)
@@ -314,7 +308,7 @@ apply (rule dbl_Diff_eqpoll_Card, simp_all)
 apply (simp add: Union_recfunAC16_lesspoll)
 apply (rule Finite_lesspoll_infinite_Ord) 
 apply (rule Finite_def [THEN def_imp_iff, THEN iffD2]) 
-apply (blast dest: ltD bij_is_fun [THEN apply_type], assumption);  
+apply (blast dest: ltD bij_is_fun [THEN apply_type], assumption)  
 apply (blast intro: Card_is_Ord) 
 done;
 
@@ -528,7 +522,7 @@ apply (rule ballI)
 apply (erule imageE)
 apply (drule ltI, erule Limit_is_Ord) 
 apply (drule Limit_has_succ, assumption) 
-apply (frule_tac x1="succ(xa)" in spec [THEN mp], assumption);
+apply (frule_tac x1="succ(xa)" in spec [THEN mp], assumption)
 apply (erule conjE)
 apply (drule ospec) 
 (** LEVEL 10 **)
@@ -559,8 +553,7 @@ apply (unfold AC16_def)
 apply (rule allI)
 apply (rule impI)
 apply (frule WO2_infinite_subsets_eqpoll_X, assumption+)
-apply (frule_tac n="k #+ m" in WO2_infinite_subsets_eqpoll_X, simp) 
-apply simp 
+apply (frule_tac n="k #+ m" in WO2_infinite_subsets_eqpoll_X, simp, simp) 
 apply (frule WO2_imp_ex_Card)
 apply (elim exE conjE)
 apply (drule eqpoll_trans [THEN eqpoll_sym, 

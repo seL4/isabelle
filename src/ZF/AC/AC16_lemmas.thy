@@ -40,8 +40,7 @@ apply (drule eqpoll_1_iff_singleton [THEN iffD1])
 apply (fast intro!: RepFunI)
 apply (rule subsetI)
 apply (erule RepFunE)
-apply (rule CollectI)
-apply fast
+apply (rule CollectI, fast)
 apply (fast intro!: singleton_eqpoll_1)
 done
 
@@ -49,10 +48,8 @@ lemma eqpoll_RepFun_sing: "X\<approx>{{x}. x \<in> X}"
 apply (unfold eqpoll_def bij_def)
 apply (rule_tac x = "\<lambda>x \<in> X. {x}" in exI)
 apply (rule IntI)
-apply (unfold inj_def surj_def)
-apply simp
-apply (fast intro!: lam_type RepFunI intro: singleton_eq_iff [THEN iffD1])
-apply simp
+apply (unfold inj_def surj_def, simp)
+apply (fast intro!: lam_type RepFunI intro: singleton_eq_iff [THEN iffD1], simp)
 apply (fast intro!: lam_type)
 done
 
@@ -76,15 +73,15 @@ lemma subsets_lepoll_lemma1:
 apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>y \<in> {y \<in> Pow(x) . y\<approx>succ (succ (n))}. 
                       <LEAST i. i \<in> y, y-{LEAST i. i \<in> y}>" in exI)
-apply (rule_tac d = "%z. cons (fst(z), snd(z))" in lam_injective);
- apply (blast intro!: Diff_sing_eqpoll intro: InfCard_Least_in);
-apply (simp, blast intro: InfCard_Least_in);
+apply (rule_tac d = "%z. cons (fst(z), snd(z))" in lam_injective)
+ apply (blast intro!: Diff_sing_eqpoll intro: InfCard_Least_in)
+apply (simp, blast intro: InfCard_Least_in)
 done
 
 lemma set_of_Ord_succ_Union: "(\<forall>y \<in> z. Ord(y)) ==> z \<subseteq> succ(Union(z))"
 apply (rule subsetI)
-apply (case_tac "\<forall>y \<in> z. y \<subseteq> x", blast );
-apply (simp, erule bexE); 
+apply (case_tac "\<forall>y \<in> z. y \<subseteq> x", blast )
+apply (simp, erule bexE) 
 apply (rule_tac i=xa and j=x in Ord_linear_le)
 apply (blast dest: le_imp_subset elim: leE ltE)+
 done
@@ -94,8 +91,7 @@ by (fast elim!: mem_irrefl)
 
 lemma succ_Union_not_mem:
      "(!!y. y \<in> z ==> Ord(y)) ==> succ(Union(z)) \<notin> z"
-apply (rule set_of_Ord_succ_Union [THEN subset_not_mem]);
-apply blast
+apply (rule set_of_Ord_succ_Union [THEN subset_not_mem], blast)
 done
 
 lemma Union_cons_eq_succ_Union:
@@ -115,35 +111,31 @@ apply (fast dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
 apply (intro allI impI)
 apply (erule natE)
 apply (fast dest!: eqpoll_1_iff_singleton [THEN iffD1]
-            intro!: Union_singleton)
-apply (clarify ); 
+            intro!: Union_singleton, clarify) 
 apply (elim not_emptyE)
 apply (erule_tac x = "z-{xb}" in allE)
 apply (erule impE)
 apply (fast elim!: Diff_sing_eqpoll
                    Diff_sing_eqpoll [THEN eqpoll_succ_imp_not_empty])
-apply (subgoal_tac "xb \<union> \<Union>(z - {xb}) \<in> z");
-apply (simp add: Union_eq_Un [symmetric]);
+apply (subgoal_tac "xb \<union> \<Union>(z - {xb}) \<in> z")
+apply (simp add: Union_eq_Un [symmetric])
 apply (frule bspec, assumption)
-apply (drule bspec); 
-apply (erule Diff_subset [THEN subsetD]);
-apply (drule Un_Ord_disj, assumption)
-apply (auto ); 
+apply (drule bspec) 
+apply (erule Diff_subset [THEN subsetD])
+apply (drule Un_Ord_disj, assumption, auto) 
 done
 
 lemma Union_in: "[| \<forall>x \<in> z. Ord(x); z\<approx>n; z\<noteq>0; n \<in> nat |] ==> Union(z) \<in> z"
-apply (blast intro: Union_in_lemma); 
-done
+by (blast intro: Union_in_lemma)
 
 lemma succ_Union_in_x:
      "[| InfCard(x); z \<in> Pow(x); z\<approx>n; n \<in> nat |] ==> succ(Union(z)) \<in> x"
-apply (rule Limit_has_succ [THEN ltE]);
+apply (rule Limit_has_succ [THEN ltE])
 prefer 3 apply assumption
 apply (erule InfCard_is_Limit)
-apply (case_tac "z=0");
-apply (simp, fast intro!: InfCard_is_Limit [THEN Limit_has_0]);
-apply (rule ltI [OF PowD [THEN subsetD] InfCard_is_Card [THEN Card_is_Ord]]);
-apply assumption; 
+apply (case_tac "z=0")
+apply (simp, fast intro!: InfCard_is_Limit [THEN Limit_has_0])
+apply (rule ltI [OF PowD [THEN subsetD] InfCard_is_Card [THEN Card_is_Ord]], assumption)
 apply (blast intro: Union_in
                     InfCard_is_Card [THEN Card_is_Ord, THEN Ord_in_Ord])+
 done
@@ -151,18 +143,18 @@ done
 lemma succ_lepoll_succ_succ:
      "[| InfCard(x); n \<in> nat |] 
       ==> {y \<in> Pow(x). y\<approx>succ(n)} \<lesssim> {y \<in> Pow(x). y\<approx>succ(succ(n))}"
-apply (unfold lepoll_def);
+apply (unfold lepoll_def)
 apply (rule_tac x = "\<lambda>z \<in> {y\<in>Pow(x). y\<approx>succ(n)}. cons(succ(Union(z)), z)" 
        in exI)
 apply (rule_tac d = "%z. z-{Union (z) }" in lam_injective)
 apply (blast intro!: succ_Union_in_x succ_Union_not_mem
              intro: cons_eqpoll_succ Ord_in_Ord
              dest!: InfCard_is_Card [THEN Card_is_Ord])
-apply (simp only: Union_cons_eq_succ_Union); 
-apply (rule cons_Diff_eq);
+apply (simp only: Union_cons_eq_succ_Union) 
+apply (rule cons_Diff_eq)
 apply (fast dest!: InfCard_is_Card [THEN Card_is_Ord]
             elim: Ord_in_Ord 
-            intro!: succ_Union_not_mem);
+            intro!: succ_Union_not_mem)
 done
 
 lemma subsets_eqpoll_X:
@@ -170,9 +162,9 @@ lemma subsets_eqpoll_X:
 apply (induct_tac "n")
 apply (rule subsets_eqpoll_1_eqpoll)
 apply (rule eqpollI)
-apply (rule subsets_lepoll_lemma1 [THEN lepoll_trans], assumption+);
-apply (rule eqpoll_trans [THEN eqpoll_imp_lepoll]); 
- apply (erule eqpoll_refl [THEN prod_eqpoll_cong]);
+apply (rule subsets_lepoll_lemma1 [THEN lepoll_trans], assumption+)
+apply (rule eqpoll_trans [THEN eqpoll_imp_lepoll]) 
+ apply (erule eqpoll_refl [THEN prod_eqpoll_cong])
 apply (erule InfCard_square_eqpoll)
 apply (fast elim: eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans] 
             intro!: succ_lepoll_succ_succ)
@@ -185,8 +177,7 @@ apply (fast dest: apply_equality2 elim: apply_iff [THEN iffD2])
 done
 
 lemma vimage_image_eq: "[| f \<in> inj(A,B); y \<subseteq> A |] ==> converse(f)``(f``y) = y"
-apply (fast elim!: inj_is_fun [THEN apply_Pair] dest: inj_equality)
-done
+by (fast elim!: inj_is_fun [THEN apply_Pair] dest: inj_equality)
 
 lemma subsets_eqpoll:
      "A\<approx>B ==> {Y \<in> Pow(A). Y\<approx>n}\<approx>{Y \<in> Pow(B). Y\<approx>n}"
@@ -222,10 +213,10 @@ done
 lemma WO2_infinite_subsets_eqpoll_X: "[| WO2; n \<in> nat; ~Finite(X) |]   
         ==> {Y \<in> Pow(X). Y\<approx>succ(n)}\<approx>X"
 apply (drule WO2_imp_ex_Card)
-apply (elim allE exE conjE);
+apply (elim allE exE conjE)
 apply (frule eqpoll_imp_lepoll [THEN lepoll_infinite], assumption)
 apply (drule infinite_Card_is_InfCard, assumption)
-apply (blast intro: subsets_eqpoll subsets_eqpoll_X eqpoll_sym eqpoll_trans); 
+apply (blast intro: subsets_eqpoll subsets_eqpoll_X eqpoll_sym eqpoll_trans) 
 done
 
 lemma well_ord_imp_ex_Card: "well_ord(X,R) ==> \<exists>a. Card(a) & X\<approx>a"
@@ -238,7 +229,7 @@ apply (drule well_ord_imp_ex_Card)
 apply (elim allE exE conjE)
 apply (frule eqpoll_imp_lepoll [THEN lepoll_infinite], assumption)
 apply (drule infinite_Card_is_InfCard, assumption)
-apply (blast intro: subsets_eqpoll subsets_eqpoll_X eqpoll_sym eqpoll_trans); 
+apply (blast intro: subsets_eqpoll subsets_eqpoll_X eqpoll_sym eqpoll_trans) 
 done
 
 end

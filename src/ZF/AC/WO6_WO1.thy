@@ -446,9 +446,7 @@ done
 (* ********************************************************************** *)
 
 lemma WO6_imp_NN_not_empty: "WO6 ==> NN(y) \<noteq> 0"
-apply (unfold WO6_def NN_def, clarify) 
-apply blast
-done
+by (unfold WO6_def NN_def, clarify, blast)
 
 (* ********************************************************************** *)
 (*      1 \<in> NN(y) ==> y can be well-ordered                               *)
