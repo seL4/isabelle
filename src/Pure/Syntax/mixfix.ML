@@ -159,7 +159,7 @@ val pure_types =
       "pttrn", "idt", "idts", "aprop", "asms", any, sprop, "dummy"]);
 
 val pure_syntax =
- [("_lambda",      "[idts, 'a] => logic",           Mixfix ("(3%_./ _)", [], 0)),
+ [("_lambda",      "[idts, 'a] => logic",           Mixfix ("(3%_./ _)", [0, 3], 3)),
   ("_abs",         "'a",                            NoSyn),
   ("",             "'a => " ^ args,                 Delimfix "_"),
   ("_args",        "['a, " ^ args ^ "] => " ^ args, Delimfix "_,/ _"),
@@ -198,7 +198,7 @@ val pure_sym_syntax =
   ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [max_pri, 0], max_pri)),
   ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
   ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
-  ("_lambda",  "[idts, 'a] => logic",   Mixfix ("(3\\<lambda>_./ _)", [], 0)),
+  ("_lambda",  "[idts, 'a] => logic",   Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
   ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
   ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
   ("==",       "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>", 2)),
