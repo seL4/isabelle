@@ -156,11 +156,10 @@ qed "consistency_app2";
 
 fun mt_cases_tac t = ((rtac t 1) THEN (TRYALL assume_tac)); 
 
-val prems = goal MT.thy 
-  "<ve,e,v>:EvalRel ==>         \
-\  (ALL t te. hastyenv(ve,te) --> <te,e,t>:ElabRel --> <v,t>:HasTyRel)";
-by (rtac (EvalRel.mutual_induct RS spec RS spec RS spec RS impE) 1);
-by (resolve_tac prems 7 THEN assume_tac 7);
+goal MT.thy 
+  "!!e. <ve,e,v>:EvalRel ==>         \
+\       (ALL t te. hastyenv(ve,te) --> <te,e,t>:ElabRel --> <v,t>:HasTyRel)";
+by (etac EvalRel.induct 1);
 by (safe_tac ZF_cs);
 by (mt_cases_tac consistency_const);
 by (mt_cases_tac consistency_var);
