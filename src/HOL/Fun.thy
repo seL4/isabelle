@@ -158,6 +158,11 @@ lemma comp_inj_on:
      "[| inj_on f A;  inj_on g (f`A) |] ==> inj_on (g o f) A"
 by (simp add: comp_def inj_on_def)
 
+lemma inj_on_imageI: "inj_on (g o f) A \<Longrightarrow> inj_on g (f ` A)"
+apply(simp add:inj_on_def image_def)
+apply blast
+done
+
 lemma inj_on_contraD: "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)"
 by (unfold inj_on_def, blast)
 
@@ -167,7 +172,7 @@ by (simp add: inj_on_def)
 lemma inj_on_empty[iff]: "inj_on f {}"
 by(simp add: inj_on_def)
 
-lemma subset_inj_on: "[| A<=B; inj_on f B |] ==> inj_on f A"
+lemma subset_inj_on: "[| inj_on f B; A <= B |] ==> inj_on f A"
 by (unfold inj_on_def, blast)
 
 lemma inj_on_Un:
@@ -363,6 +368,9 @@ by (simp add: expand_fun_eq)
 
 lemma fun_upd_twist: "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)"
 by (rule ext, auto)
+
+lemma inj_on_fun_updI: "\<lbrakk> inj_on f A; y \<notin> f`A \<rbrakk> \<Longrightarrow> inj_on (f(x:=y)) A"
+by(fastsimp simp:inj_on_def image_def)
 
 subsection{* overwrite *}
 

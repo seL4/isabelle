@@ -130,6 +130,9 @@ lemma map_upd_Some_unfold:
   "((m(a|->b)) x = Some y) = (x = a \<and> b = y \<or> x \<noteq> a \<and> m x = Some y)"
 by auto
 
+lemma image_map_upd[simp]: "x \<notin> A \<Longrightarrow> m(x \<mapsto> y) ` A = m ` A"
+by fastsimp
+
 lemma finite_range_updI: "finite (range f) ==> finite (range (f(a|->b)))"
 apply (unfold image_def)
 apply (simp (no_asm_use) add: full_SetCompr_eq)
@@ -522,5 +525,11 @@ done
 
 lemma map_le_map_add [simp]: "f \<subseteq>\<^sub>m (g ++ f)"
   by (fastsimp simp add: map_le_def)
+
+lemma map_add_le_mapE: "f++g \<subseteq>\<^sub>m h \<Longrightarrow> g \<subseteq>\<^sub>m h"
+by (fastsimp simp add: map_le_def map_add_def dom_def)
+
+lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
+by (clarsimp simp add: map_le_def map_add_def dom_def split:option.splits)
 
 end

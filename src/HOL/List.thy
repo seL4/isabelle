@@ -507,6 +507,12 @@ done
 lemma inj_map[iff]: "inj (map f) = inj f"
 by (blast dest: inj_mapD intro: inj_mapI)
 
+lemma inj_on_mapI: "inj_on f (\<Union>(set ` A)) \<Longrightarrow> inj_on (map f) A"
+apply(rule inj_onI)
+apply(erule map_inj_on)
+apply(blast intro:inj_onI dest:inj_onD)
+done
+
 lemma map_idI: "(\<And>x. x \<in> set xs \<Longrightarrow> f x = x) \<Longrightarrow> map f xs = xs"
 by (induct xs, auto)
 

@@ -320,6 +320,16 @@ lemma equiv_imp_dvd_card:
     apply (simp_all add: Union_quotient equiv_type finite_quotient)
   done
 
+lemma card_quotient_disjoint:
+ "\<lbrakk> finite A; inj_on (\<lambda>x. {x} // r) A \<rbrakk> \<Longrightarrow> card(A//r) = card A"
+apply(simp add:quotient_def)
+apply(subst card_UN_disjoint)
+   apply assumption
+  apply simp
+ apply(fastsimp simp add:inj_on_def)
+apply (simp add:setsum_constant_nat)
+done
+
 ML
 {*
 val UN_UN_split_split_eq = thm "UN_UN_split_split_eq";
