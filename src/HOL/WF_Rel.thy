@@ -13,7 +13,9 @@ separately.
 WF_Rel = Finite +
 
 (* actually belongs to Finite.thy *)
-instance "*" :: (finite,finite) finite   (finite_Prod) 
+instance unit :: finite                  (finite_unit)
+instance "*" :: (finite,finite) finite   (finite_Prod)
+
 
 consts
   less_than :: "(nat*nat)set"
