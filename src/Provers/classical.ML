@@ -1149,7 +1149,7 @@ fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_claset ctxt));
 
 fun cla_meth' tac prems ctxt = Method.METHOD (fn facts =>
-  FINDGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_claset ctxt)));
+  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_claset ctxt)));
 
 val cla_method = Method.bang_sectioned_args cla_modifiers o cla_meth;
 val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';
