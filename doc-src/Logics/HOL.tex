@@ -1281,6 +1281,7 @@ the library.  The theory \texttt{NatDef} contains theorems about {\tt<} and
 \index{#@{\tt[]} symbol}
 \index{#@{\tt\#} symbol}
 \index{"@@{\tt\at} symbol}
+\index{*"! symbol}
 \begin{constants}
   \it symbol & \it meta-type & \it priority & \it description \\
   \tt[]    & $\alpha\,list$ & & empty list\\
@@ -1297,13 +1298,13 @@ the library.  The theory \texttt{NatDef} contains theorems about {\tt<} and
   \cdx{filter}  & $(\alpha \To bool) \To (\alpha\,list \To \alpha\,list)$
         & & filter functional\\
   \cdx{set}& $\alpha\,list \To \alpha\,set$ & & elements\\
-  \sdx{mem}  & $[\alpha,\alpha\,list]\To bool$    &  Left 55   & membership\\
+  \sdx{mem}  & $\alpha \To \alpha\,list \To bool$  &  Left 55   & membership\\
   \cdx{foldl}   & $(\beta\To\alpha\To\beta) \To \beta \To \alpha\,list \To \beta$ &
   & iteration \\
   \cdx{concat}   & $(\alpha\,list)list\To \alpha\,list$ & & concatenation \\
   \cdx{rev}     & $\alpha\,list \To \alpha\,list$ & & reverse \\
   \cdx{length}  & $\alpha\,list \To nat$ & & length \\
-  \cdx{nth}  & $nat \To \alpha\,list \To \alpha$ & & indexing \\
+  \tt! & $\alpha\,list \To nat \To \alpha$ & Left 100 & indexing \\
   \cdx{take}, \cdx{drop} & $nat \To \alpha\,list \To \alpha\,list$ &&
     take or drop a prefix \\
   \cdx{takeWhile},\\
@@ -1363,8 +1364,8 @@ rev(x#xs) = rev(xs) @ [x]
 length([]) = 0
 length(x#xs) = Suc(length(xs))
 
-nth 0 xs = hd xs
-nth (Suc n) xs = nth n (tl xs)
+xs!0 = hd xs
+xs!(Suc n) = (tl xs)!n
 
 take n [] = []
 take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)

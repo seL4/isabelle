@@ -1,6 +1,6 @@
 \begin{theindex}
 
-  \item {\tt !} symbol, 60, 62, 69, 70
+  \item {\tt !} symbol, 60, 62, 69, 70, 82
   \item {\tt[]} symbol, 82
   \item {\tt\#} symbol, 82
   \item {\tt\#*} symbol, 47, 128
@@ -600,7 +600,6 @@
   \item {\tt notL} theorem, 107
   \item {\tt notnotD} theorem, 11, 66
   \item {\tt notR} theorem, 107
-  \item {\tt nth} constant, 82
   \item {\tt null} constant, 82
 
   \indexspace
