@@ -147,7 +147,7 @@ qed "listsnE_nth_in";
 Goalw [listsn_def]
  "[| xs : listsn n A; x:A; i < n |] ==> xs[i := x] : listsn n A";
 by (Asm_full_simp_tac 1);
-by (blast_tac (claset() addDs [set_list_update_subset RS subsetD]) 1);
+by (blast_tac (claset() addDs [set_update_subset_insert RS subsetD]) 1);
 qed "list_update_in_listsn";
 Addsimps [list_update_in_listsn];
 AddSIs [list_update_in_listsn];

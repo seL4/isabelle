@@ -114,7 +114,7 @@ qed_spec_mp "approx_loc_imp_approx_loc_sup";
 Goalw [approx_loc_def,list_all2_def]
 "\\<forall>loc idx x X. (approx_loc G hp loc LT) \\<longrightarrow> (approx_val G hp x X) \
 \ \\<longrightarrow> (approx_loc G hp (loc[idx:=x]) (LT[idx:=X]))";
-by (fast_tac (claset() addDs [set_update_subset RS subsetD]
+by (fast_tac (claset() addDs [set_update_subset_insert RS subsetD]
               addss (simpset() addsimps [zip_update])) 1);
 qed_spec_mp "approx_loc_imp_approx_loc_subst";
 
