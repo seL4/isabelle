@@ -434,8 +434,7 @@ qed "right_comp_inverse";
 (** Proving that a function is a bijection **)
 
 Goalw [id_def]
-    "[| f: A->B;  g: B->A |] ==> \
-\             f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
+    "[| f: A->B;  g: B->A |] ==> f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
 by Safe_tac;
 by (dres_inst_tac [("t", "%h. h`y ")] subst_context 1);
 by (Asm_full_simp_tac 1);
@@ -445,8 +444,7 @@ by Auto_tac;
 qed "comp_eq_id_iff";
 
 Goalw [bij_def]
-    "[| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) \
-\             |] ==> f : bij(A,B)";
+    "[| f: A->B;  g: B->A;  f O g = id(B);  g O f = id(A) |] ==> f : bij(A,B)";
 by (asm_full_simp_tac (simpset() addsimps [comp_eq_id_iff]) 1);
 by (REPEAT (ares_tac [conjI, f_imp_injective, f_imp_surjective] 1
        ORELSE eresolve_tac [bspec, apply_type] 1));
@@ -474,16 +472,16 @@ by (blast_tac (claset() addIs [inj_is_fun RS apply_type]) 1);
 qed "inj_disjoint_Un";
 
 Goalw [surj_def]
-    "[| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
-\           (f Un g) : surj(A Un C, B Un D)";
+    "[| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |]  \
+\    ==> (f Un g) : surj(A Un C, B Un D)";
 by (blast_tac (claset() addIs [fun_disjoint_apply1, fun_disjoint_apply2,
 			      fun_disjoint_Un, trans]) 1);
 qed "surj_disjoint_Un";
 
 (*A simple, high-level proof; the version for injections follows from it,
   using  f:inj(A,B) <-> f:bij(A,range(f))  *)
-Goal "[| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> \
-\           (f Un g) : bij(A Un C, B Un D)";
+Goal "[| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] \
+\     ==> (f Un g) : bij(A Un C, B Un D)";
 by (rtac invertible_imp_bijective 1);
 by (stac converse_Un 1);
 by (REPEAT (ares_tac [fun_disjoint_Un, bij_is_fun, bij_converse_bij] 1));
@@ -543,8 +541,8 @@ by (fast_tac (claset() addEs [range_type, mem_irrefl]
 qed "inj_succ_restrict";
 
 Goalw [inj_def]
-    "[| f: inj(A,B);  a~:A;  b~:B |]  ==> \
-\         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
+    "[| f: inj(A,B);  a~:A;  b~:B |] \
+\    ==> cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
 by (force_tac (claset() addIs [apply_type],
                simpset() addsimps [fun_extend, fun_extend_apply2,
 						fun_extend_apply1]) 1);
