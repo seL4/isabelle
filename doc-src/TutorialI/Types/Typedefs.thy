@@ -102,7 +102,7 @@ where constant @{term three} is explicitly defined as the representing set:
 The situation is best summarized with the help of the following diagram,
 where squares denote types and the irregular region denotes a set:
 \begin{center}
-\includegraphics[scale=.8]{Types/typedef}
+\includegraphics[scale=.8]{typedef}
 \end{center}
 Finally, \isacommand{typedef} asserts that @{term Rep_three} is
 surjective on the subset @{term three} and @{term Abs_three} and @{term
