@@ -1056,7 +1056,7 @@ fun restrict maxidx1 tye =
   If freeze then internal TVars are turned into TFrees, else TVars.*)
 fun infer_types (tsig, const_type, types, sorts, used, freeze, Ts, ts) =
   let
-    val maxidx1 = max(map maxidx_of_typ Ts)+1;
+    val maxidx1 = maxidx_of_typs Ts + 1;
     val () = tyinit(maxidx1+1);
     val us = map (attach_types (tsig, const_type, types, sorts, maxidx1)) ts;
     val u = list_comb(Const("",Ts ---> propT),us)
