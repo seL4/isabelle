@@ -29,10 +29,12 @@ sig
   val add_hook: (action -> string -> unit) -> unit
   val names: unit -> string list
   val known_thy: string -> bool
+  val check_known_thy: string -> bool
+  val if_known_thy: (string -> unit) -> string -> unit
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val get_preds: string -> string list
-  val loaded_files: string -> Path.T option * (Path.T * bool) list
+  val loaded_files: string -> Path.T list
   val touch_child_thys: string -> unit
   val touch_all_thys: unit -> unit
   val may_load_file: bool -> bool -> Path.T -> unit
@@ -122,8 +124,12 @@ fun get_names () = Graph.keys (get_thys ());
 
 (* access thy *)
 
-fun lookup_thy name = Some (thy_graph Graph.get_node name) handle Graph.UNDEFINED _ => None;
+fun lookup_thy name =
+  Some (thy_graph Graph.get_node name) handle Graph.UNDEFINED _ => None;
+
 val known_thy = is_some o lookup_thy;
+fun check_known_thy name = known_thy name orelse (warning ("Unknown theory " ^ quote name); false);
+fun if_known_thy f name = if check_known_thy name then f name else ();
 
 fun get_thy name =
   (case lookup_thy name of
@@ -144,10 +150,10 @@ fun get_files name = (case get_deps name of Some {files, ...} => files | _ => []
 
 fun loaded_files name =
   (case get_deps name of
-    None => (None, [])
+    None => []
   | Some {master, files, ...} =>
-      (apsome (#1 o ThyLoad.get_thy) master,
-        map (fn ((p, _), r) => (p, r)) (mapfilter #2 files)));
+      (case master of Some m => [#1 (ThyLoad.get_thy m)] | None => []) @
+        map (#1 o #1) (mapfilter #2 files));
 
 fun get_preds name =
   (thy_graph Graph.imm_preds name) handle Graph.UNDEFINED _ =>
