@@ -337,6 +337,7 @@ val trfun_defs =
   " val parse_ast_translation = [];\n\
   \ val parse_translation = [];\n\
   \ val print_translation = [];\n\
+  \ val typed_print_translation = [];\n\
   \ val print_ast_translation = [];";
 
 val trfun_args =
@@ -480,6 +481,7 @@ fun mk_structure tname ((thy_name, old_thys), opt_txts) =
         \\n\
         \|> add_trfuns\n"
         ^ trfun_args ^ "\n\
+        \|> add_trfunsT typed_print_translation \n\
         \\n"
         ^ extxt ^ "\n\
         \\n\

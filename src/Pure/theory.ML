@@ -43,6 +43,8 @@ signature THEORY =
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
+  val add_trfunsT	:
+    (string * (typ -> term list -> term)) list -> theory -> theory
   val add_trrules     : (string * string)Syntax.trrule list -> theory -> theory
   val add_trrules_i	: Syntax.ast Syntax.trrule list -> theory -> theory
   val cert_axm          : Sign.sg -> string * term -> string * term
@@ -146,6 +148,7 @@ val add_syntax_i     = ext_sg Sign.add_syntax_i;
 val add_modesyntax   = curry (ext_sg Sign.add_modesyntax);
 val add_modesyntax_i = curry (ext_sg Sign.add_modesyntax_i);
 val add_trfuns       = ext_sg Sign.add_trfuns;
+val add_trfunsT      = ext_sg Sign.add_trfunsT;
 val add_trrules      = ext_sg Sign.add_trrules;
 val add_trrules_i    = ext_sg Sign.add_trrules_i;
 val add_thyname      = ext_sg Sign.add_name;

@@ -58,6 +58,8 @@ signature SIGN =
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (ast list -> ast)) list -> sg -> sg
+  val add_trfunsT:
+    (string * (typ -> term list -> term)) list -> sg -> sg
   val add_trrules: (string * string) Syntax.trrule list -> sg -> sg
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_name: string -> sg -> sg
@@ -549,6 +551,7 @@ val add_syntax_i     = extend_sign ext_syntax_i "#";
 val add_modesyntax   = extend_sign ext_modesyntax "#";
 val add_modesyntax_i = extend_sign ext_modesyntax_i "#";
 val add_trfuns       = extend_sign (ext_syn Syntax.extend_trfuns) "#";
+val add_trfunsT      = extend_sign (ext_syn Syntax.extend_trfunsT) "#";
 val add_trrules      = extend_sign (ext_syn Syntax.extend_trrules) "#";
 val add_trrules_i    = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
 
