@@ -126,12 +126,6 @@ next
 qed
 
 
-subsection {* Type class for record extensions *}
-
-axclass more < "term"
-instance unit :: more ..
-
-
 subsection {* Concrete record syntax *}
 
 nonterminals
