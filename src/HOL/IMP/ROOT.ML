@@ -2,6 +2,8 @@
     ID:         $Id$
     Author:     Heiko Loetzbeyer, Robert Sandner, Tobias Nipkow
     Copyright   1995 TUM
+
+Caveat: HOLCF/IMP depends on HOL/IMP
 *)
 
 time_use_thy "Expr";
