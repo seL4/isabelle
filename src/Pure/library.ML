@@ -288,12 +288,6 @@ fun inc i = i := ! i + 1;
 fun dec i = i := ! i - 1;
 
 
-fun square (n:int) = n * n;
-
-fun fact 0 = 1
-  | fact n = n * fact (n - 1);
-
-
 (* lists of integers *)
 
 (*make the list [from, from + 1, ..., to]*)
