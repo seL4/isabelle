@@ -598,7 +598,8 @@ fun dup_step_tac (cs as (CS{dup_netpair,...})) =
 fun depth_tac cs m i = STATE(fn state => 
   SELECT_GOAL 
    (getWrapper cs
-    (fn i => REPEAT_DETERM1 (safe_step_tac cs i) THEN_ELSE
+    (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
+			     (safe_step_tac cs i)) THEN_ELSE
      (DEPTH_SOLVE (depth_tac cs m i),
       inst0_step_tac cs i  APPEND
       COND (K(m=0)) no_tac
