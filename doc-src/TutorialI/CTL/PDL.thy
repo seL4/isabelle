@@ -58,14 +58,14 @@ primrec
 "mc(Neg f)   = -mc f"
 "mc(And f g) = mc f \<inter> mc g"
 "mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
-"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M\<inverse> ``` T)"
+"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M\<inverse> `` T)"
 
 text{*\noindent
 Only the equation for @{term EF} deserves some comments. Remember that the
-postfix @{text"\<inverse>"} and the infix @{text"```"} are predefined and denote the
+postfix @{text"\<inverse>"} and the infix @{text"``"} are predefined and denote the
 converse of a relation and the application of a relation to a set. Thus
-@{term "M\<inverse> ``` T"} is the set of all predecessors of @{term T} and the least
-fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M\<inverse> ``` T"} is the least set
+@{term "M\<inverse> `` T"} is the set of all predecessors of @{term T} and the least
+fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M\<inverse> `` T"} is the least set
 @{term T} containing @{term"mc f"} and all predecessors of @{term T}. If you
 find it hard to see that @{term"mc(EF f)"} contains exactly those states from
 which there is a path to a state where @{term f} is true, do not worry---that
@@ -74,7 +74,7 @@ will be proved in a moment.
 First we prove monotonicity of the function inside @{term lfp}
 *}
 
-lemma mono_ef: "mono(\<lambda>T. A \<union> M\<inverse> ``` T)"
+lemma mono_ef: "mono(\<lambda>T. A \<union> M\<inverse> `` T)"
 apply(rule monoI)
 apply blast
 done
@@ -87,7 +87,7 @@ a separate lemma:
 *}
 
 lemma EF_lemma:
-  "lfp(\<lambda>T. A \<union> M\<inverse> ``` T) = {s. \<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<in> A}"
+  "lfp(\<lambda>T. A \<union> M\<inverse> `` T) = {s. \<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<in> A}"
 
 txt{*\noindent
 The equality is proved in the canonical fashion by proving that each set
