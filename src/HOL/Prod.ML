@@ -141,12 +141,6 @@ val [prem] = goal Prod.thy
 by (rtac (prem RS arg_cong) 1);
 qed "split_weak_cong";
 
-Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P"; 
-by (rtac ext 1);
-by (Fast_tac 1);
-qed "split_eta_SetCompr";
-Addsimps [split_eta_SetCompr];
-
 Goal "(%(x,y). f(x,y)) = f";
 by (rtac ext 1);
 by (split_all_tac 1);
@@ -286,6 +280,18 @@ qed "mem_splitE";
 
 AddSIs [splitI, splitI2, splitI2', mem_splitI, mem_splitI2];
 AddSEs [splitE, splitE', mem_splitE];
+
+Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P"; 
+by (rtac ext 1);
+by (Fast_tac 1);
+qed "split_eta_SetCompr";
+Addsimps [split_eta_SetCompr];
+
+Goal "(%u. ? x y. u = (x, y) & P x y) = split P"; 
+br ext 1;
+by (Fast_tac 1);
+qed "split_eta_SetCompr2";
+Addsimps [split_eta_SetCompr2];
 
 (* allows simplifications of nested splits in case of independent predicates *)
 Goal "(%(a,b). P & Q a b) = (%ab. P & split Q ab)";
@@ -435,7 +441,7 @@ Goal "x:C ==> (A <*> C = B <*> C) = (A = B)";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Times_eq_cancel2";
 
-Goal "{(x,y) |x y. P x & Q x y} = (SIGMA x:Collect P. Collect (Q x))";
+Goal "Collect (split (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))";
 by (Fast_tac 1);
 qed "SetCompr_Sigma_eq";
 
