@@ -729,6 +729,7 @@ fun rev_order LESS = GREATER
   | rev_order EQUAL = EQUAL
   | rev_order GREATER = LESS;
 
+(*assume rel is a linear strict order*)
 fun make_ord rel (x, y) =
   if rel (x, y) then LESS
   else if rel (y, x) then GREATER
