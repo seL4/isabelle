@@ -19,6 +19,7 @@ sig
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
+  val assert_forward: state -> state
   val assert_backward: state -> state
   val enter_forward: state -> state
   val verbose: bool ref
@@ -280,7 +281,7 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
 
     val ctxt_strings = ProofContext.strings_of_context context;
   in
-    writeln ("Nesting level: " ^ string_of_int (length nodes div 2));
+    if ! verbose then writeln ("Nesting level: " ^ string_of_int (length nodes div 2)) else ();
     writeln "";
     writeln (mode_name mode ^ " mode");
     writeln "";
