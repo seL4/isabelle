@@ -113,15 +113,9 @@ by (etac injD 1);
 by (assume_tac 1);
 qed "inj_eq";
 
-Goal "inj(f) ==> (@x. f(x)=f(y)) = y";
-by (etac injD 1);
-by (rtac someI 1);
-by (rtac refl 1);
-qed "inj_select";
-
 (*A one-to-one function has an inverse (given using select).*)
 Goalw [inv_def] "inj(f) ==> inv f (f x) = x";
-by (etac inj_select 1);
+by (asm_simp_tac (simpset() addsimps [inj_eq]) 1); 
 qed "inv_f_f";
 Addsimps [inv_f_f];
 
@@ -425,6 +419,20 @@ by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [bij_is_surj RS surj_f_inv_f]) 2);
 by (blast_tac (claset() addIs [bij_is_inj RS inv_f_f RS sym]) 1);
 qed "bij_vimage_eq_inv_image";
+
+Goal "surj f ==> -(f``A) <= f``(-A)";
+by (auto_tac (claset(), simpset() addsimps [surj_def]));  
+qed "surj_Compl_image_subset";
+
+Goal "inj f ==> f``(-A) <= -(f``A)";
+by (auto_tac (claset(), simpset() addsimps [inj_on_def]));  
+qed "inj_image_Compl_subset";
+
+Goalw [bij_def] "bij f ==> f``(-A) = -(f``A)";
+by (rtac equalityI 1); 
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [inj_image_Compl_subset, 
+                                                surj_Compl_image_subset]))); 
+qed "bij_image_Compl_eq";
 
 val set_cs = claset() delrules [equalityI];
 
