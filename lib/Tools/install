@@ -47,7 +47,7 @@ do
     echo "install $B"
     echo "#!$BASH" >$B || fail "Cannot write file: $B"
     echo >>$B
-    echo "$BIN \"\$@\"" >>$B
+    echo "exec $BIN \"\$@\"" >>$B
     chmod +x $B
   fi
 done
