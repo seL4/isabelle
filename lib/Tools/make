@@ -12,7 +12,7 @@ function usage()
   echo
   echo "Usage: $PRG [ARGS ...]"
   echo
-  echo "  Compiles logic in current directory using IsaMakefile."
+  echo "  Compile the logic in current directory using IsaMakefile."
   echo "  ARGS are directly passed to the system make program."
   echo
   exit 1
