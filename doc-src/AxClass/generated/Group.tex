@@ -32,7 +32,7 @@ First we declare some polymorphic constants required later for the
  axioms are allowed for user convenience --- they simply represent the
  conjunction of their respective universal closures.%
 \end{isamarkuptext}%
-\isacommand{axclass}\ monoid\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\isacommand{axclass}\ monoid\ {\isasymsubseteq}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
 \ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymunit}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
 \ \ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymunit}\ {\isacharequal}\ x{\isachardoublequote}%
@@ -49,14 +49,14 @@ First we declare some polymorphic constants required later for the
  that the names of class axioms are automatically qualified with each
  class name, so we may re-use common names such as \isa{assoc}.%
 \end{isamarkuptext}%
-\isacommand{axclass}\ semigroup\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\isacommand{axclass}\ semigroup\ {\isasymsubseteq}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
 \ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \isanewline
-\isacommand{axclass}\ group\ {\isacharless}\ semigroup\isanewline
+\isacommand{axclass}\ group\ {\isasymsubseteq}\ semigroup\isanewline
 \ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymunit}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
 \ \ left{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymodot}\ x\ {\isacharequal}\ {\isasymunit}{\isachardoublequote}\isanewline
 \isanewline
-\isacommand{axclass}\ agroup\ {\isacharless}\ group\isanewline
+\isacommand{axclass}\ agroup\ {\isasymsubseteq}\ group\isanewline
 \ \ commute{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isacharequal}\ y\ {\isasymodot}\ x{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Class \isa{group} inherits associativity of \isa{{\isasymodot}}
@@ -165,14 +165,14 @@ From the definition, the \isa{monoid} and \isa{group} classes
    \end{center}
  \end{figure}%
 \end{isamarkuptext}%
-\isacommand{instance}\ monoid\ {\isacharless}\ semigroup\isanewline
+\isacommand{instance}\ monoid\ {\isasymsubseteq}\ semigroup\isanewline
 \isacommand{proof}\isanewline
 \ \ \isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}monoid{\isachardoublequote}\isanewline
 \ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \isacommand{by}\ {\isacharparenleft}rule\ monoid{\isachardot}assoc{\isacharparenright}\isanewline
 \isacommand{qed}\isanewline
 \isanewline
-\isacommand{instance}\ group\ {\isacharless}\ monoid\isanewline
+\isacommand{instance}\ group\ {\isasymsubseteq}\ monoid\isanewline
 \isacommand{proof}\isanewline
 \ \ \isacommand{fix}\ x\ y\ z\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a{\isasymColon}group{\isachardoublequote}\isanewline
 \ \ \isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
@@ -198,7 +198,7 @@ From the definition, the \isa{monoid} and \isa{group} classes
 }
 %
 \begin{isamarkuptext}%
-So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isadigit{1}}\ {\isacharless}\ c\isactrlsub {\isadigit{2}}}, namely \emph{abstract instantiation} ---
+So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}}, namely \emph{abstract instantiation} ---
  $c@1$ is more special than \isa{c\isactrlsub {\isadigit{1}}} and thus an instance
  of \isa{c\isactrlsub {\isadigit{2}}}.  Even more interesting for practical
  applications are \emph{concrete instantiations} of axiomatic type

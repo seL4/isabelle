@@ -23,11 +23,11 @@ text {*
  "\<sim> :: 'a => 'a => bool"}.
 *}
 
-axclass eqv < "term"
+axclass eqv \<subseteq> "term"
 consts
   eqv :: "('a::eqv) => 'a => bool"    (infixl "\<sim>" 50)
 
-axclass equiv < eqv
+axclass equiv \<subseteq> eqv
   equiv_refl [intro]: "x \<sim> x"
   equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
   equiv_sym [elim?]: "x \<sim> y ==> y \<sim> x"

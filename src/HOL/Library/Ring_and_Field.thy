@@ -12,7 +12,7 @@ theory Ring_and_Field = Main:
 
 subsection {* Abstract algebraic structures *}
 
-axclass ring < zero, plus, minus, times, number
+axclass ring \<subseteq> zero, plus, minus, times, number
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
   left_zero [simp]: "0 + a = a"
@@ -26,18 +26,18 @@ axclass ring < zero, plus, minus, times, number
 
   left_distrib: "(a + b) * c = a * c + b * c"
 
-axclass ordered_ring < ring, linorder
+axclass ordered_ring \<subseteq> ring, linorder
   add_left_mono: "a \<le> b ==> c + a \<le> c + b"
   mult_strict_left_mono: "a < b ==> 0 < c ==> c * a < c * b"
   abs_if: "\<bar>a\<bar> = (if a < 0 then -a else a)"
 
-axclass field < ring, inverse
+axclass field \<subseteq> ring, inverse
   left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = #1"
   divide_inverse: "b \<noteq> 0 ==> a / b = a * inverse b"
 
-axclass ordered_field < ordered_ring, field
+axclass ordered_field \<subseteq> ordered_ring, field
 
-axclass division_by_zero < zero, inverse
+axclass division_by_zero \<subseteq> zero, inverse
   inverse_zero: "inverse 0 = 0"
   divide_zero: "a / 0 = 0"
 

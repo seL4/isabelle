@@ -19,7 +19,7 @@ consts
   Suc :: "'a \<Rightarrow> 'a"
   rec :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
 
-axclass nat < "term"
+axclass nat \<subseteq> "term"
   induct: "P(\<zero>) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> P(Suc(x))) \<Longrightarrow> P(n)"
   Suc_inject: "Suc(m) = Suc(n) \<Longrightarrow> m = n"
   Suc_neq_0: "Suc(m) = \<zero> \<Longrightarrow> R"

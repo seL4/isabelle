@@ -18,7 +18,7 @@ text {*
 
 consts
   times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>" 70)
-axclass semigroup < "term"
+axclass semigroup \<subseteq> "term"
   assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
 
 text {*
@@ -41,7 +41,7 @@ text {*
 
 consts
   plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<oplus>" 70)
-axclass plus_semigroup < "term"
+axclass plus_semigroup \<subseteq> "term"
   assoc: "(x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
 
 text {*

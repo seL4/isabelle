@@ -18,7 +18,7 @@ text {*
 *}
 
 axclass
-  product < "term"
+  product \<subseteq> "term"
 consts
   product :: "'a\<Colon>product \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>" 70)
 

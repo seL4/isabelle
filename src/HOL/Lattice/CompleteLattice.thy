@@ -16,7 +16,7 @@ text {*
   bounds (see \S\ref{sec:connect-bounds}).
 *}
 
-axclass complete_lattice < partial_order
+axclass complete_lattice \<subseteq> partial_order
   ex_Inf: "\<exists>inf. is_Inf A inf"
 
 theorem ex_Sup: "\<exists>sup::'a::complete_lattice. is_Sup A sup"
@@ -274,7 +274,7 @@ proof -
   thus ?thesis by (simp only: is_Sup_binary)
 qed
 
-instance complete_lattice < lattice
+instance complete_lattice \<subseteq> lattice
 proof
   fix x y :: "'a::complete_lattice"
   from is_inf_binary show "\<exists>inf. is_inf x y inf" ..

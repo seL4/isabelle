@@ -15,7 +15,7 @@ text {*
   as well).
 *}
 
-axclass lattice < partial_order
+axclass lattice \<subseteq> partial_order
   ex_inf: "\<exists>inf. is_inf x y inf"
   ex_sup: "\<exists>sup. is_sup x y sup"
 
@@ -360,7 +360,7 @@ proof
   with leq_linear show "?max \<sqsubseteq> z" by (auto simp add: maximum_def)
 qed
 
-instance linear_order < lattice
+instance linear_order \<subseteq> lattice
 proof
   fix x y :: "'a::linear_order"
   from is_inf_minimum show "\<exists>inf. is_inf x y inf" ..

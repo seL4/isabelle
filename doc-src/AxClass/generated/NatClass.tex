@@ -20,7 +20,7 @@
 \ \ Suc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \ \ rec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \isanewline
-\isacommand{axclass}\ nat\ {\isacharless}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
+\isacommand{axclass}\ nat\ {\isasymsubseteq}\ {\isachardoublequote}term{\isachardoublequote}\isanewline
 \ \ induct{\isacharcolon}\ {\isachardoublequote}P{\isacharparenleft}{\isasymzero}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ P{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}Suc{\isacharparenleft}x{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P{\isacharparenleft}n{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ Suc{\isacharunderscore}inject{\isacharcolon}\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ Suc{\isacharparenleft}n{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isanewline
 \ \ Suc{\isacharunderscore}neq{\isacharunderscore}{\isadigit{0}}{\isacharcolon}\ {\isachardoublequote}Suc{\isacharparenleft}m{\isacharparenright}\ {\isacharequal}\ {\isasymzero}\ {\isasymLongrightarrow}\ R{\isachardoublequote}\isanewline

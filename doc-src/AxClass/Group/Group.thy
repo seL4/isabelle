@@ -32,7 +32,7 @@ text {*
  conjunction of their respective universal closures.
 *}
 
-axclass monoid < "term"
+axclass monoid \<subseteq> "term"
   assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
   left_unit: "\<unit> \<odot> x = x"
   right_unit: "x \<odot> \<unit> = x"
@@ -52,14 +52,14 @@ text {*
  class name, so we may re-use common names such as @{text assoc}.
 *}
 
-axclass semigroup < "term"
+axclass semigroup \<subseteq> "term"
   assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
 
-axclass group < semigroup
+axclass group \<subseteq> semigroup
   left_unit: "\<unit> \<odot> x = x"
   left_inverse: "x\<inv> \<odot> x = \<unit>"
 
-axclass agroup < group
+axclass agroup \<subseteq> group
   commute: "x \<odot> y = y \<odot> x"
 
 text {*
@@ -181,14 +181,14 @@ text {*
  \end{figure}
 *}
 
-instance monoid < semigroup
+instance monoid \<subseteq> semigroup
 proof
   fix x y z :: "'a\<Colon>monoid"
   show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
     by (rule monoid.assoc)
 qed
 
-instance group < monoid
+instance group \<subseteq> monoid
 proof
   fix x y z :: "'a\<Colon>group"
   show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
@@ -216,7 +216,7 @@ subsection {* Concrete instantiation \label{sec:inst-arity} *}
 
 text {*
  So far we have covered the case of the form $\INSTANCE$~@{text
- "c\<^sub>1 < c\<^sub>2"}, namely \emph{abstract instantiation} ---
+ "c\<^sub>1 \<subseteq> c\<^sub>2"}, namely \emph{abstract instantiation} ---
  $c@1$ is more special than @{text "c\<^sub>1"} and thus an instance
  of @{text "c\<^sub>2"}.  Even more interesting for practical
  applications are \emph{concrete instantiations} of axiomatic type
