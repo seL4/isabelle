@@ -1,8 +1,13 @@
                               Pure/Syntax/
 
 This directory contains the source files for Isabelle's syntax module, which
-includes a lexer, parser, pretty printer and macro system. Note that only
-structures Pretty, Syntax and BasicSyntax are supposed to be exported.
+includes a lexer, parser, pretty printer and macro system. Note that only the
+following structures are supposed to be exported:
+
+  Pretty        (generic pretty printing module)
+  Syntax        (interface to the syntax module)
+  BasicSyntax   (part of Syntax made pervasive)
+  Scanner       (generic scanner toolbox)
 
 There is no Makefile to compile these files separately; they are compiled as
 part of Pure Isabelle.
