@@ -203,6 +203,7 @@ prove "imp_disj2" "Q | (P-->R) <-> (P-->Q | R)";
 int_prove "de_Morgan_disj" "(~(P | Q)) <-> (~P & ~Q)";
 prove     "de_Morgan_conj" "(~(P & Q)) <-> (~P | ~Q)";
 
+prove     "not_imp" "~(P --> Q) <-> (P & ~Q)";
 prove     "not_iff" "~(P <-> Q) <-> (P <-> ~Q)";
 
 prove     "not_all" "(~ (ALL x. P(x))) <-> (EX x.~P(x))";
