@@ -165,9 +165,8 @@ Lawrence~C. Paulson.
 \bibitem{paulson-CADE}
 Lawrence~C. Paulson.
 \newblock A fixedpoint approach to implementing (co)inductive definitions.
-\newblock In Alan Bundy, editor, {\em Automated Deduction --- {CADE}-12}, LNAI
-  814, pages 148--161. Springer, 1994.
-\newblock 12th international conference.
+\newblock In Alan Bundy, editor, {\em Automated Deduction --- {CADE}-12
+  International Conference}, LNAI 814, pages 148--161. Springer, 1994.
 
 \bibitem{paulson-set-II}
 Lawrence~C. Paulson.
@@ -177,7 +176,7 @@ Lawrence~C. Paulson.
 \bibitem{paulson-coind}
 Lawrence~C. Paulson.
 \newblock Mechanizing coinduction and corecursion in higher-order logic.
-\newblock {\em Journal of Logic and Computation}, 1996.
+\newblock {\em Journal of Logic and Computation}, 7(2), March 1997.
 \newblock In press.
 
 \bibitem{paulson-COLOG}

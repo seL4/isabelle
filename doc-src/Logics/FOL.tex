@@ -193,18 +193,20 @@ derived rules.
 
 
 \section{Generic packages}
-\FOL{} instantiates most of Isabelle's generic packages;
-see {\tt FOL/ROOT.ML} for details.
+\FOL{} instantiates most of Isabelle's generic packages.
 \begin{itemize}
 \item 
 Because it includes a general substitution rule, \FOL{} instantiates the
 tactic \ttindex{hyp_subst_tac}, which substitutes for an equality
 throughout a subgoal and its hypotheses.
+(See {\tt FOL/ROOT.ML} for details.)
 \item 
-It instantiates the simplifier. \ttindexbold{IFOL_ss} is the simplification
-set for intuitionistic first-order logic, while \ttindexbold{FOL_ss} is the
-simplification set for classical logic.  Both equality ($=$) and the
-biconditional ($\bimp$) may be used for rewriting.  See the file
+It instantiates the simplifier.  Both equality ($=$) and the biconditional
+($\bimp$) may be used for rewriting.  Tactics such as {\tt Asm_simp_tac} and
+{\tt Full_simp_tac} use the default simpset ({\tt!simpset}), which works for
+most purposes.  Named simplification sets include \ttindexbold{IFOL_ss},
+for intuitionistic first-order logic, and \ttindexbold{FOL_ss},
+for classical logic.  See the file
 {\tt FOL/simpdata.ML} for a complete listing of the simplification
 rules%
 \iflabelundefined{sec:setting-up-simp}{}%
@@ -329,30 +331,11 @@ Natural deduction in classical logic is not really all that natural.
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule (see Fig.\ts\ref{fol-cla-derived}).
 
-The classical reasoner is set up for \FOL, as the
-structure~{\tt Cla}.  This structure is open, so \ML{} identifiers
-such as {\tt step_tac}, {\tt fast_tac}, {\tt best_tac}, etc., refer to it.
-Single-step proofs can be performed, using \ttindex{swap_res_tac} to deal
-with negated assumptions.\index{assumptions!negated}
-
-{\FOL} defines the following classical rule sets:
-\begin{ttbox} 
-prop_cs    : claset
-FOL_cs     : claset
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{prop_cs}] contains the propositional rules, namely
-those for~$\top$, $\bot$, $\conj$, $\disj$, $\neg$, $\imp$ and~$\bimp$,
-along with the rule~{\tt refl}.
-
-\item[\ttindexbold{FOL_cs}] 
-extends {\tt prop_cs} with the safe rules {\tt allI} and~{\tt exE}
-and the unsafe rules {\tt allE} and~{\tt exI}, as well as rules for
-unique existence.  Search using this is incomplete since quantified
-formulae are used at most once.
-\end{ttdescription}
-\noindent
-See the file {\tt FOL/FOL.ML} for derivations of the
+The classical reasoner is installed.  Tactics such as {\tt Fast_tac} and {\tt
+Best_tac} use the default claset ({\tt!claset}), which works for most
+purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
+propositional rules, and \ttindexbold{FOL_cs}, which also includes quantifier
+rules.  See the file {\tt FOL/cladata.ML} for lists of the
 classical rules, and 
 \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
         {Chap.\ts\ref{chap:classical}} 
@@ -621,7 +604,7 @@ goal FOL.thy "EX y. ALL x. P(y)-->P(x)";
 {\out Level 0}
 {\out EX y. ALL x. P(y) --> P(x)}
 {\out  1. EX y. ALL x. P(y) --> P(x)}
-by (deepen_tac FOL_cs 0 1);
+by (Deepen_tac 0 1);
 {\out Depth = 0}
 {\out Depth = 2}
 {\out Level 1}
@@ -682,9 +665,10 @@ val prems = goalw If.thy [if_def]
 {\out  1. P & Q | ~ P & R}
 \end{ttbox}
 The premises (bound to the {\ML} variable {\tt prems}) are passed as
-introduction rules to \ttindex{fast_tac}:
+introduction rules to \ttindex{fast_tac}.  Remember that {\tt!claset} refers
+to the default classical set.
 \begin{ttbox}
-by (fast_tac (FOL_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 {\out Level 1}
 {\out if(P,Q,R)}
 {\out No subgoals!}
@@ -712,7 +696,7 @@ by (cut_facts_tac [major] 1);
 {\out S}
 {\out  1. P & Q | ~ P & R ==> S}
 \ttbreak
-by (fast_tac (FOL_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 {\out Level 2}
 {\out S}
 {\out No subgoals!}
@@ -723,7 +707,7 @@ As you may recall from
         {\S\ref{definitions}}, there are other
 ways of treating definitions when deriving a rule.  We can start the
 proof using {\tt goal}, which does not expand definitions, instead of
-{\tt goalw}.  We can use \ttindex{rewrite_goals_tac}
+{\tt goalw}.  We can use \ttindex{rew_tac}
 to expand definitions in the subgoals --- perhaps after calling
 \ttindex{cut_facts_tac} to insert the rule's premises.  We can use
 \ttindex{rewrite_rule}, which is a meta-inference rule, to expand
@@ -797,17 +781,21 @@ by (resolve_tac [ifI] 1);
 {\out  6. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
 \end{ttbox}
 Where do we stand?  The first subgoal holds by assumption; the second and
-third, by contradiction.  This is getting tedious.  Let us revert to the
-initial proof state and let \ttindex{fast_tac} solve it.  The classical
-rule set {\tt if_cs} contains the rules of~{\FOL} plus the derived rules
+third, by contradiction.  This is getting tedious.  We could use the classical
+reasoner, but first let us extend the default claset with the derived rules
 for~$if$.
+\begin{ttbox}
+AddSIs [ifI];
+AddSEs [ifE];
+\end{ttbox}
+Now we can revert to the
+initial proof state and let \ttindex{fast_tac} solve it.  
 \begin{ttbox}
 choplev 0;
 {\out Level 0}
 {\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
 {\out  1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-val if_cs = FOL_cs addSIs [ifI] addSEs[ifE];
-by (fast_tac if_cs 1);
+by (Fast_tac 1);
 {\out Level 1}
 {\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
 {\out No subgoals!}
@@ -819,7 +807,7 @@ goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 \ttbreak
-by (fast_tac if_cs 1);
+by (Fast_tac 1);
 {\out Level 1}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out No subgoals!}
@@ -838,13 +826,15 @@ choplev 0;
 \end{ttbox}
 This time, simply unfold using the definition of $if$:
 \begin{ttbox}
-by (rewrite_goals_tac [if_def]);
+by (rewtac if_def);
 {\out Level 1}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}
 {\out     P & (Q & A | ~ Q & B) | ~ P & (R & A | ~ R & B)}
 \end{ttbox}
-We are left with a subgoal in pure first-order logic:
+We are left with a subgoal in pure first-order logic, which is why the 
+classical reasoner can prove it given {\tt FOL_cs} alone.  (We could, of 
+course, have used {\tt Fast_tac}.)
 \begin{ttbox}
 by (fast_tac FOL_cs 1);
 {\out Level 2}
@@ -853,8 +843,9 @@ by (fast_tac FOL_cs 1);
 \end{ttbox}
 Expanding definitions reduces the extended logic to the base logic.  This
 approach has its merits --- especially if the prover for the base logic is
-good --- but can be slow.  In these examples, proofs using {\tt if_cs} (the
-derived rules) run about six times faster than proofs using {\tt FOL_cs}.
+good --- but can be slow.  In these examples, proofs using the default
+claset (which includes the derived rules) run about six times faster 
+than proofs using {\tt FOL_cs}.
 
 Expanding definitions also complicates error diagnosis.  Suppose we are having
 difficulties in proving some goal.  If by expanding definitions we have
@@ -867,13 +858,13 @@ goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
 {\out Level 0}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
 {\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-by (fast_tac FOL_cs 1);
+by (Fast_tac 1);
 {\out by: tactic failed}
 \end{ttbox}
 This failure message is uninformative, but we can get a closer look at the
 situation by applying \ttindex{step_tac}.
 \begin{ttbox}
-by (REPEAT (step_tac if_cs 1));
+by (REPEAT (Step_tac 1));
 {\out Level 1}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
 {\out  1. [| A; ~ P; R; ~ P; R |] ==> B}
@@ -893,7 +884,7 @@ choplev 0;
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
 {\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
 \ttbreak
-by (rewrite_goals_tac [if_def]);
+by (rewtac if_def);
 {\out Level 1}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
 {\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}

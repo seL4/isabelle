@@ -19,11 +19,13 @@ admitting recursive definitions of functions over well-founded relations.
 Thus, we may even regard set theory as a computational logic, loosely
 inspired by Martin-L\"of's Type Theory.
 
-Because {\ZF} is an extension of {\FOL}, it provides the same packages,
-namely {\tt hyp_subst_tac}, the simplifier, and the classical reasoner.
-The main simplification set is called {\tt ZF_ss}.  Several
-classical rule sets are defined, including {\tt lemmas_cs},
-{\tt upair_cs} and~{\tt ZF_cs}.  
+Because {\ZF} is an extension of {\FOL}, it provides the same packages, namely
+{\tt hyp_subst_tac}, the simplifier, and the classical reasoner.  The default
+simpset and claset are usually satisfactory.  Named simpsets include
+\ttindexbold{ZF_ss} (basic set theory rules) and \ttindexbold{rank_ss} (for
+proving termination of well-founded recursion).  Named clasets sets include
+\ttindexbold{ZF_cs} (basic set theory) and \ttindexbold{le_cs} (useful for
+reasoning about the relations $<$ and $\le$).
 
 {\tt ZF} has a flexible package for handling inductive definitions,
 such as inference systems, and datatype definitions, such as lists and
@@ -1503,11 +1505,11 @@ ${\forall x\in A.f(x)=g(x)}$ yields the conditional rewrite rule $x\in A \Imp
 f(x)=g(x)$.  Given $a\in\{x\in A.P(x)\}$ it extracts rewrite rules from
 $a\in A$ and~$P(a)$.  It can also break down $a\in A\int B$ and $a\in A-B$.
 
-The simplification set \ttindexbold{ZF_ss} contains congruence rules for
+The default simplification set contains congruence rules for
 all the binding operators of {\ZF}\@.  It contains all the conversion
 rules, such as {\tt fst} and {\tt snd}, as well as the rewrites
-shown in Fig.\ts\ref{zf-simpdata}.
-
+shown in Fig.\ts\ref{zf-simpdata}.  See the file 
+{\tt ZF/simpdata.ML} for a fuller list.
 
 \begin{figure}
 \begin{eqnarray*}
@@ -1521,7 +1523,7 @@ shown in Fig.\ts\ref{zf-simpdata}.
   (\forall x \in \emptyset. P(x)) & \bimp &  \top\\
   (\forall x \in A. \top)       & \bimp &  \top
 \end{eqnarray*}
-\caption{Rewrite rules for set theory} \label{zf-simpdata}
+\caption{Some rewrite rules for set theory} \label{zf-simpdata}
 \end{figure}
 
 
@@ -1598,7 +1600,7 @@ from {\tt ZF/mono.ML}:
 We enter the goal and make the first step, which breaks the equation into
 two inclusions by extensionality:\index{*equalityI theorem}
 \begin{ttbox}
-goal ZF.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+goal thy "Pow(A Int B) = Pow(A) Int Pow(B)";
 {\out Level 0}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
@@ -1687,7 +1689,7 @@ by (REPEAT (assume_tac 1));
 \end{ttbox}
 \medskip
 We could have performed this proof in one step by applying
-\ttindex{fast_tac} with the classical rule set \ttindex{ZF_cs}.  Let us
+\ttindex{Fast_tac}.  Let us
 go back to the start:
 \begin{ttbox}
 choplev 0;
@@ -1695,11 +1697,11 @@ choplev 0;
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
 \end{ttbox}
-We must add \tdx{equalityI} to {\tt ZF_cs} as an introduction rule.
-Extensionality is not used by default because many equalities can be proved
+We must add \tdx{equalityI} as an introduction rule.
+Extensionality is not used by default: many equalities can be proved
 by rewriting.
 \begin{ttbox}
-by (fast_tac (ZF_cs addIs [equalityI]) 1);
+by (fast_tac (!claset addIs [equalityI]) 1);
 {\out Level 1}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out No subgoals!}
@@ -1713,7 +1715,7 @@ For another example, we prove that general union is monotonic:
 ${C\subseteq D}$ implies $\bigcup(C)\subseteq \bigcup(D)$.  To begin, we
 tackle the inclusion using \tdx{subsetI}:
 \begin{ttbox}
-val [prem] = goal ZF.thy "C<=D ==> Union(C) <= Union(D)";
+val [prem] = goal thy "C<=D ==> Union(C) <= Union(D)";
 {\out Level 0}
 {\out Union(C) <= Union(D)}
 {\out  1. Union(C) <= Union(D)}
@@ -1763,10 +1765,10 @@ by (assume_tac 1);
 {\out Union(C) <= Union(D)}
 {\out No subgoals!}
 \end{ttbox}
-Again, \ttindex{fast_tac} with \ttindex{ZF_cs} can do this proof in one
+Again, \ttindex{fast_tac} can prove the theorem in one
 step, provided we somehow supply it with~{\tt prem}.  We can either add
 this premise to the assumptions using \ttindex{cut_facts_tac}, or add
-\hbox{\tt prem RS subsetD} to \ttindex{ZF_cs} as an introduction rule.
+\hbox{\tt prem RS subsetD} to the claset as an introduction rule.
 
 The file {\tt ZF/equalities.ML} has many similar proofs.  Reasoning about
 general intersection can be difficult because of its anomalous behaviour on
@@ -1790,7 +1792,7 @@ of~\tdx{fun_disjoint_apply1}.  This states that if $f$ and~$g$ are
 functions with disjoint domains~$A$ and~$C$, and if $a\in A$, then
 $(f\un g)`a = f`a$:
 \begin{ttbox}
-val prems = goal ZF.thy
+val prems = goal thy
     "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \ttback
 \ttback    (f Un g)`a = f`a";
 {\out Level 0}
