@@ -71,13 +71,13 @@ a decision that clarification takes for us:%
 \isacommand{apply}{\isacharparenleft}rule\ lfp{\isacharunderscore}lowerbound{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
-\begin{isabelle}
+\begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ {\isadigit{0}}\ {\isasymin}\ A\ {\isasymor}\isanewline
 \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ {\isadigit{0}}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ {\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
+\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
 \end{isabelle}
 Now we eliminate the disjunction. The case \isa{p\ {\isadigit{0}}\ {\isasymin}\ A} is trivial:%
 \end{isamarkuptxt}%
@@ -90,11 +90,11 @@ In the other case we set \isa{t} to \isa{p\ {\isadigit{1}}} and simplify matters
 \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}p\ {\isadigit{1}}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
 \begin{isamarkuptxt}%
-\begin{isabelle}
+\begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ {\isasymforall}pa{\isachardot}\ p\ {\isadigit{1}}\ {\isacharequal}\ pa\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ pa\ i\ {\isasymin}\ A{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
+\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A%
 \end{isabelle}
 It merely remains to set \isa{pa} to \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}}, i.e.\ \isa{p} without its
 first element. The rest is practically automatic:%
@@ -169,10 +169,10 @@ The new subgoal is proved by providing the witness \isa{path\ s\ P} for \isa{p}:
 \begin{isamarkuptxt}%
 \noindent
 After simplification and clarification the subgoal has the following compact form
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}path\ s\ P\ i{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ P\ i{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ P\ {\isacharparenleft}path\ s\ P\ i{\isacharparenright}
+\ \ \ \ \ \ \ \ \ \ P\ {\isacharparenleft}path\ s\ P\ i{\isacharparenright}%
 \end{isabelle}
 and invites a proof by induction on \isa{i}:%
 \end{isamarkuptxt}%
@@ -181,9 +181,9 @@ and invites a proof by induction on \isa{i}:%
 \begin{isamarkuptxt}%
 \noindent
 After simplification the base case boils down to
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymin}\ M
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
+\ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymin}\ M%
 \end{isabelle}
 The conclusion looks exceedingly trivial: after all, \isa{t} is chosen such that \isa{{\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M}
 holds. However, we first have to show that such a \isa{t} actually exists! This reasoning
@@ -249,18 +249,18 @@ The proof is again pointwise and then by contraposition:%
 \isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}pp{\isacharparenright}\isanewline
 \isacommand{apply}\ simp%
 \begin{isamarkuptxt}%
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}s{\isachardot}\ s\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ x{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A%
 \end{isabelle}
 Applying the \isa{infinity{\isacharunderscore}lemma} as a destruction rule leaves two subgoals, the second
 premise of \isa{infinity{\isacharunderscore}lemma} and the original subgoal:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}drule\ infinity{\isacharunderscore}lemma{\isacharparenright}%
 \begin{isamarkuptxt}%
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}s{\isachardot}\ {\isasymforall}s{\isachardot}\ s\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}\isanewline
-\ \isadigit{2}{\isachardot}\ {\isasymAnd}s{\isachardot}\ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\isanewline
-\ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}s{\isachardot}\ s\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isasymexists}p{\isasymin}Paths\ x{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ {\isasymexists}p{\isasymin}Paths\ x{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A%
 \end{isabelle}
 Both are solved automatically:%
 \end{isamarkuptxt}%

@@ -116,17 +116,9 @@ a decision that clarification takes for us:
 *};
 apply(rule lfp_lowerbound);
 apply(clarsimp simp add: af_def Paths_def);
-(*ML"Pretty.setmargin 70";
-pr(latex xsymbols symbols);*)
+
 txt{*
-\begin{isabelle}
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ {\isadigit{0}}\ {\isasymin}\ A\ {\isasymor}\isanewline
-\ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}t{\isachardot}\ {\isacharparenleft}p\ {\isadigit{0}}{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymforall}p{\isachardot}\ t\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
-\end{isabelle}
+@{subgoals[display,indent=0,margin=70,goals_limit=1]}
 Now we eliminate the disjunction. The case @{prop"p 0 \<in> A"} is trivial:
 *};
 
@@ -139,16 +131,9 @@ In the other case we set @{term t} to @{term"p 1"} and simplify matters:
 
 apply(erule_tac x = "p 1" in allE);
 apply(clarsimp);
-(*ML"Pretty.setmargin 70";
-pr(latex xsymbols symbols);*)
 
 txt{*
-\begin{isabelle}
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}pa{\isachardot}\ p\ {\isadigit{1}}\ {\isacharequal}\ pa\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}pa\ i{\isacharcomma}\ pa\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}\ {\isasymlongrightarrow}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}{\isasymexists}i{\isachardot}\ pa\ i\ {\isasymin}\ A{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A
-\end{isabelle}
+@{subgoals[display,indent=0,margin=70,goals_limit=1]}
 It merely remains to set @{term pa} to @{term"\<lambda>i. p(i+1)"}, i.e.\ @{term p} without its
 first element. The rest is practically automatic:
 *};
@@ -229,30 +214,19 @@ The new subgoal is proved by providing the witness @{term "path s P"} for @{term
 
 apply(rule_tac x = "path s P" in exI);
 apply(clarsimp);
-(*ML"Pretty.setmargin 70";
-pr(latex xsymbols symbols);*)
 
 txt{*\noindent
 After simplification and clarification the subgoal has the following compact form
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}i{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}path\ s\ P\ i{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ P\ i{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ P\ {\isacharparenleft}path\ s\ P\ i{\isacharparenright}
-\end{isabelle}
+@{subgoals[display,indent=0,margin=70,goals_limit=1]}
 and invites a proof by induction on @{term i}:
 *};
 
 apply(induct_tac i);
  apply(simp);
-(*ML"Pretty.setmargin 70";
-pr(latex xsymbols symbols);*)
 
 txt{*\noindent
 After simplification the base case boils down to
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymlbrakk}P\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ P\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ SOME\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ P\ t{\isacharparenright}\ {\isasymin}\ M
-\end{isabelle}
+@{subgoals[display,indent=0,margin=70,goals_limit=1]}
 The conclusion looks exceedingly trivial: after all, @{term t} is chosen such that @{prop"(s,t):M"}
 holds. However, we first have to show that such a @{term t} actually exists! This reasoning
 is embodied in the theorem @{thm[source]someI2_ex}:
@@ -338,25 +312,17 @@ The proof is again pointwise and then by contraposition:
 apply(rule subsetI);
 apply(erule contrapos_pp);
 apply simp;
-(*pr(latex xsymbols symbols);*)
 
 txt{*
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}s{\isachardot}\ s\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 Applying the @{thm[source]infinity_lemma} as a destruction rule leaves two subgoals, the second
 premise of @{thm[source]infinity_lemma} and the original subgoal:
 *};
 
 apply(drule infinity_lemma);
-(*pr(latex xsymbols symbols);*)
 
 txt{*
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}s{\isachardot}\ {\isasymforall}s{\isachardot}\ s\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}\isanewline
-\ \isadigit{2}{\isachardot}\ {\isasymAnd}s{\isachardot}\ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\isanewline
-\ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A
-\end{isabelle}
+@{subgoals[display,indent=0,margin=65]}
 Both are solved automatically:
 *};
 

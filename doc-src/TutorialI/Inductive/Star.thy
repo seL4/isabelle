@@ -3,7 +3,6 @@
 section{*The reflexive transitive closure*}
 
 text{*\label{sec:rtc}
-
 {\bf Say something about inductive relations as opposed to sets? Or has that
 been said already? If not, explain induction!}
 
@@ -25,9 +24,9 @@ text{*\noindent
 The function @{term rtc} is annotated with concrete syntax: instead of
 @{text"rtc r"} we can read and write {term"r*"}. The actual definition
 consists of two rules. Reflexivity is obvious and is immediately declared an
-equivalence.  Thus the automatic tools will apply it automatically. The second
-rule, @{thm[source]rtc_step}, says that we can always add one more @{term
-r}-step to the left. Although we could make @{thm[source]rtc_step} an
+equivalence rule.  Thus the automatic tools will apply it automatically. The
+second rule, @{thm[source]rtc_step}, says that we can always add one more
+@{term r}-step to the left. Although we could make @{thm[source]rtc_step} an
 introduction rule, this is dangerous: the recursion slows down and may
 even kill the automatic tactics.
 
@@ -61,12 +60,11 @@ txt{*\noindent
 The proof starts canonically by rule induction:
 *}
 
-apply(erule rtc.induct)(*pr(latex xsymbols symbols);*)(*<*)oops(*>*)
-text{*\noindent
+apply(erule rtc.induct)
+
+txt{*\noindent
 However, even the resulting base case is a problem
-\begin{isabelle}
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 and maybe not what you had expected. We have to abandon this proof attempt.
 To understand what is going on,
 let us look at the induction rule @{thm[source]rtc.induct}:
@@ -80,9 +78,8 @@ that $P$ does not depend on its second parameter at
 all. The reason is that in our original goal, of the pair @{term"(x,y)"} only
 @{term x} appears also in the conclusion, but not @{term y}. Thus our
 induction statement is too weak. Fortunately, it can easily be strengthened:
-transfer the additional premise @{prop"(y,z):r*"} into the conclusion:
-*}
-
+transfer the additional premise @{prop"(y,z):r*"} into the conclusion:*}
+(*<*)oops(*>*)
 lemma rtc_trans[rule_format]:
   "(x,y) \<in> r* \<Longrightarrow> (y,z) \<in> r* \<longrightarrow> (x,z) \<in> r*"
 
@@ -97,17 +94,15 @@ A similar heuristic for other kinds of inductions is formulated in
 \S\ref{sec:ind-var-in-prems}. The @{text rule_format} directive turns
 @{text"\<longrightarrow>"} back into @{text"\<Longrightarrow>"}. Thus in the end we obtain the original
 statement of our lemma.
-
-Now induction produces two subgoals which are both proved automatically:
-\begin{isabelle}
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\isanewline
-\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x\ y\ za{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ za{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}
-\end{isabelle}
 *}
 
-apply(erule rtc.induct)(*pr(latex xsymbols symbols);*)
+apply(erule rtc.induct)
+
+txt{*\noindent
+Now induction produces two subgoals which are both proved automatically:
+@{subgoals[display,indent=0]}
+*}
+
  apply(blast);
 apply(blast intro: rtc_step);
 done

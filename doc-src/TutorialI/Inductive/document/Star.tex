@@ -6,7 +6,6 @@
 %
 \begin{isamarkuptext}%
 \label{sec:rtc}
-
 {\bf Say something about inductive relations as opposed to sets? Or has that
 been said already? If not, explain induction!}
 
@@ -14,7 +13,7 @@ A perfect example of an inductive definition is the reflexive transitive
 closure of a relation. This concept was already introduced in
 \S\ref{sec:rtrancl}, but it was not shown how it is defined. In fact,
 the operator \isa{{\isacharcircum}{\isacharasterisk}} is not defined inductively but via a least
-fixpoint because at that point in the theory hierarchy
+fixed point because at that point in the theory hierarchy
 inductive definitions are not yet available. But now they are:%
 \end{isamarkuptext}%
 \isacommand{consts}\ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharunderscore}{\isacharasterisk}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
@@ -27,8 +26,9 @@ rtc{\isacharunderscore}step{\isacharcolon}\ \ \ \ \ \ \ {\isachardoublequote}{\i
 The function \isa{rtc} is annotated with concrete syntax: instead of
 \isa{rtc\ r} we can read and write {term"r*"}. The actual definition
 consists of two rules. Reflexivity is obvious and is immediately declared an
-equivalence.  Thus the automatic tools will apply it automatically. The second
-rule, \isa{rtc{\isacharunderscore}step}, says that we can always add one more \isa{r}-step to the left. Although we could make \isa{rtc{\isacharunderscore}step} an
+equivalence rule.  Thus the automatic tools will apply it automatically. The
+second rule, \isa{rtc{\isacharunderscore}step}, says that we can always add one more
+\isa{r}-step to the left. Although we could make \isa{rtc{\isacharunderscore}step} an
 introduction rule, this is dangerous: the recursion slows down and may
 even kill the automatic tactics.
 
@@ -59,11 +59,11 @@ Let us now turn to transitivity. It should be a consequence of the definition.%
 The proof starts canonically by rule induction:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptext}%
+\begin{isamarkuptxt}%
 \noindent
 However, even the resulting base case is a problem
-\begin{isabelle}
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
 \end{isabelle}
 and maybe not what you had expected. We have to abandon this proof attempt.
 To understand what is going on,
@@ -79,7 +79,7 @@ all. The reason is that in our original goal, of the pair \isa{{\isacharparenlef
 \isa{x} appears also in the conclusion, but not \isa{y}. Thus our
 induction statement is too weak. Fortunately, it can easily be strengthened:
 transfer the additional premise \isa{{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}} into the conclusion:%
-\end{isamarkuptext}%
+\end{isamarkuptxt}%
 \isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}%
 \begin{isamarkuptxt}%
@@ -93,17 +93,19 @@ using $\longrightarrow$.
 A similar heuristic for other kinds of inductions is formulated in
 \S\ref{sec:ind-var-in-prems}. The \isa{rule{\isacharunderscore}format} directive turns
 \isa{{\isasymlongrightarrow}} back into \isa{{\isasymLongrightarrow}}. Thus in the end we obtain the original
-statement of our lemma.
-
+statement of our lemma.%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
 Now induction produces two subgoals which are both proved automatically:
-\begin{isabelle}
+\begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x\ y\ za{\isachardot}\isanewline
 \ \ \ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ za{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}
+\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}\isanewline
 \isacommand{done}%

@@ -29,8 +29,8 @@ produces the warning
 Induction variable occurs also among premises!
 \end{quote}
 and leads to the base case
-\begin{isabelle}
-\ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd\ {\isacharparenleft}rev\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ last\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
 which, after simplification, becomes
 \begin{isabelle}
@@ -54,7 +54,6 @@ This means we should prove%
 \begin{isamarkuptext}%
 \noindent
 This time, induction leaves us with the following base case
-%{goals[goals_limit=1,display]}
 \begin{isabelle}
 \ 1.\ []\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
 \end{isabelle}
@@ -158,25 +157,30 @@ above, we have to phrase the proposition as follows to allow induction:%
 \isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-To perform induction on \isa{k} using \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}, we use the same
-general induction method as for recursion induction (see
+To perform induction on \isa{k} using \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}, we use
+the same general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 which leaves us with the following proof state:
-\begin{isabelle}
-\ 1.\ {\isasymAnd}\mbox{n}.\ {\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i})\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymforall}\mbox{i}.\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ \ {\isasymforall}i{\isachardot}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
 \end{isabelle}
 After stripping the \isa{{\isasymforall}i}, the proof continues with a case
 distinction on \isa{i}. The case \isa{i\ {\isacharequal}\ {\isadigit{0}}} is trivial and we focus on
-the other case:
-\begin{isabelle}
-\ 1.\ {\isasymAnd}\mbox{n}\ \mbox{i}\ \mbox{nat}.\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i});\ \mbox{i}\ =\ Suc\ \mbox{nat}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
+the other case:%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}rule\ allI{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
+\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ i\ nat{\isachardot}\isanewline
+\ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}m{\isachardot}\ m\ {\isacharless}\ n\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ m\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isacharparenright}{\isacharsemicolon}\ i\ {\isacharequal}\ Suc\ nat{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ {\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%

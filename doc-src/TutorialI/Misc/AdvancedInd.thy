@@ -28,9 +28,7 @@ produces the warning
 Induction variable occurs also among premises!
 \end{quote}
 and leads to the base case
-\begin{isabelle}
-\ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 which, after simplification, becomes
 \begin{isabelle}
 \ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
@@ -57,7 +55,6 @@ by(induct_tac xs, auto);
 
 text{*\noindent
 This time, induction leaves us with the following base case
-%{goals[goals_limit=1,display]}
 \begin{isabelle}
 \ 1.\ []\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
 \end{isabelle}
@@ -170,31 +167,27 @@ above, we have to phrase the proposition as follows to allow induction:
 lemma f_incr_lem: "\<forall>i. k = f i \<longrightarrow> i \<le> f i";
 
 txt{*\noindent
-To perform induction on @{term"k"} using @{thm[source]nat_less_induct}, we use the same
-general induction method as for recursion induction (see
+To perform induction on @{term k} using @{thm[source]nat_less_induct}, we use
+the same general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):
 *};
 
 apply(induct_tac k rule: nat_less_induct);
-(*<*)
-apply(rule allI);
-apply(case_tac i);
- apply(simp);
-(*>*)
+
 txt{*\noindent
 which leaves us with the following proof state:
-\begin{isabelle}
-\ 1.\ {\isasymAnd}\mbox{n}.\ {\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i})\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymforall}\mbox{i}.\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
-\end{isabelle}
+@{subgoals[display,indent=0,margin=65]}
 After stripping the @{text"\<forall>i"}, the proof continues with a case
 distinction on @{term"i"}. The case @{prop"i = 0"} is trivial and we focus on
 the other case:
-\begin{isabelle}
-\ 1.\ {\isasymAnd}\mbox{n}\ \mbox{i}\ \mbox{nat}.\isanewline
-\ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i});\ \mbox{i}\ =\ Suc\ \mbox{nat}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ {\isasymLongrightarrow}\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
-\end{isabelle}
+*}
+
+apply(rule allI);
+apply(case_tac i);
+ apply(simp);
+
+txt{*
+@{subgoals[display,indent=0]}
 *};
 
 by(blast intro!: f_ax Suc_leI intro: le_less_trans);

@@ -97,12 +97,10 @@ contains the other; the containment is shown pointwise:
 apply(rule equalityI);
  apply(rule subsetI);
  apply(simp)
-(*pr(latex xsymbols symbols);*)
+
 txt{*\noindent
 Simplification leaves us with the following first subgoal
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}s{\isachardot}\ s\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 which is proved by @{term lfp}-induction:
 *}
 
@@ -130,12 +128,10 @@ pointwise:
 
 apply(rule subsetI)
 apply(simp, clarify)
-(*pr(latex xsymbols symbols);*)
+
 txt{*\noindent
 After simplification and clarification we are left with
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}s\ t{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M{\isacharcircum}{\isacharasterisk}{\isacharsemicolon}\ t\ {\isasymin}\ A{\isasymrbrakk}\ {\isasymLongrightarrow}\ s\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 This goal is proved by induction on @{term"(s,t)\<in>M^*"}. But since the model
 checker works backwards (from @{term t} to @{term s}), we cannot use the
 induction theorem @{thm[source]rtrancl_induct} because it works in the
@@ -148,21 +144,17 @@ It says that if @{prop"(a,b):r^*"} and we know @{prop"P b"} then we can infer
 *}
 
 apply(erule converse_rtrancl_induct)
-(*pr(latex xsymbols symbols);*)
+
 txt{*\noindent
 The base case
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}t{\isachardot}\ t\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 is solved by unrolling @{term lfp} once
 *}
 
  apply(rule ssubst[OF lfp_unfold[OF mono_ef]])
-(*pr(latex xsymbols symbols);*)
+
 txt{*
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymAnd}t{\isachardot}\ t\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ lfp\ {\isacharparenleft}{\isasymlambda}T{\isachardot}\ A\ {\isasymunion}\ M{\isacharcircum}{\isacharminus}\isadigit{1}\ {\isacharcircum}{\isacharcircum}\ T{\isacharparenright}
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 and disposing of the resulting trivial subgoal automatically:
 *}
 
