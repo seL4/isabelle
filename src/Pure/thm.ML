@@ -50,6 +50,7 @@ signature BASIC_THM =
   type 'a attribute 	(* = 'a * thm -> 'a * thm *)
   val eq_thm		: thm * thm -> bool
   val sign_of_thm       : thm -> Sign.sg
+  val prop_of           : thm -> term
   val transfer_sg	: Sign.sg -> thm -> thm
   val transfer		: theory -> thm -> thm
   val tpairs_of         : thm -> (term * term) list
@@ -324,6 +325,7 @@ fun eq_thm (th1, th2) =
   end;
 
 fun sign_of_thm (Thm {sign_ref, ...}) = Sign.deref sign_ref;
+fun prop_of (Thm {prop, ...}) = prop;
 
 (*merge signatures of two theorems; raise exception if incompatible*)
 fun merge_thm_sgs
