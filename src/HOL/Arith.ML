@@ -35,12 +35,12 @@ qed "pred_le";
 AddIffs [pred_le];
 
 goalw Arith.thy [pred_def] "m<=n --> pred(m) <= pred(n)";
-by(simp_tac (simpset() addsplits [expand_nat_case]) 1);
+by (simp_tac (simpset() addsplits [expand_nat_case]) 1);
 qed_spec_mp "pred_le_mono";
 
 goal Arith.thy "!!n. n ~= 0 ==> pred n < n";
-by(exhaust_tac "n" 1);
-by(ALLGOALS Asm_full_simp_tac);
+by (exhaust_tac "n" 1);
+by (ALLGOALS Asm_full_simp_tac);
 qed "pred_less";
 Addsimps [pred_less];
 
@@ -326,6 +326,12 @@ by (induct_tac "n" 2);
 by (ALLGOALS Asm_simp_tac);
 qed "mult_is_0";
 Addsimps [mult_is_0];
+
+goal Arith.thy "!!m::nat. m <= m*m";
+by (induct_tac "m" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_assoc RS sym])));
+by (etac (le_add2 RSN (2,le_trans)) 1);
+qed "le_square";
 
 
 (*** Difference ***)
