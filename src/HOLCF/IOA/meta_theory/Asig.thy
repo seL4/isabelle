@@ -1,7 +1,7 @@
 (*  Title:      HOL/IOA/meta_theory/Asig.thy
     ID:         $Id$
-    Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    Author:     Olaf Mueller, Tobias Nipkow & Konrad Slind
+    Copyright   1994, 1996 TU Muenchen
 
 Action signatures
 *)

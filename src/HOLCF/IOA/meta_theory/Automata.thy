@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Automata.thy
-    ID:        
+    ID:         $Id$
     Author:     Olaf M"uller, Konrad Slind, Tobias Nipkow
     Copyright   1995, 1996  TU Muenchen
 
@@ -82,8 +82,8 @@ defs
 
 state_trans_def
   "state_trans asig R == 
-    (!triple. triple:R --> fst(snd(triple)):actions(asig)) & 
-    (!a. (a:inputs(asig)) --> (!s1. ? s2. (s1,a,s2):R))"
+    (!triple. triple:R --> fst(snd(triple)):actions(asig))"
+(* & (!a. (a:inputs(asig)) --> (!s1. ? s2. (s1,a,s2):R))" *)
 
 
 asig_of_def   "asig_of == fst"

@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Traces.thy
-    ID:        
+    ID:         $Id$
     Author:     Olaf M"uller
     Copyright   1996  TU Muenchen
 
@@ -7,7 +7,7 @@ Executions and Traces of I/O automata in HOLCF.
 *)   
 
 		       
-Traces = Automata + Sequence +
+Traces = Sequence + Automata +
 
 default term
  

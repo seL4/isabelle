@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Automata.ML
-    ID:         $$
+    ID:         $Id$
     Author:     Olaf Mueller, Tobias Nipkow, Konrad Slind
     Copyright   1994, 1996  TU Muenchen
 

@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Seq.thy
-    ID:        
+    ID:         $Id$
     Author:     Olaf M"uller
     Copyright   1996  TU Muenchen
 

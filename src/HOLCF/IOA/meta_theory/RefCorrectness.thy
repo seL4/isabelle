@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefCorrectness.thy
-    ID:         $$
+    ID:         $Id$
     Author:     Olaf Mueller
     Copyright   1996  TU Muenchen
 

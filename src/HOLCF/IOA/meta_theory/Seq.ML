@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Seq.ML
-    ID:        
+    ID:         $Id$
     Author:     Olaf M"uller
     Copyright   1996  TU Muenchen
 
@@ -15,6 +15,9 @@ by (REPEAT (Simp_tac 1));
 qed"UU_neq_nil";
 
 Addsimps [UU_neq_nil];
+
+
+
 
 (* ------------------------------------------------------------------------------------- *)
 
@@ -224,7 +227,7 @@ by (case_tac "x=UU" 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"sconc_cons";
 
-Addsimps [sconc_nil, sconc_UU,sconc_cons];
+Addsimps [sconc_nil,sconc_UU,sconc_cons];
 
 
 (* ----------------------------------------------------------- *)
@@ -311,7 +314,7 @@ Addsimps [sfilter_UU,sfilter_nil,sfilter_cons,
 
 (* ------------------------------------------------------------------------------------- *)
 
-section "scons";
+section "scons, nil";
 
 goal thy 
  "!!x. [|x~=UU;y~=UU|]==> (x##xs=y##ys) = (x=y & xs=ys)";
@@ -320,6 +323,15 @@ by (etac (hd seq.injects) 1);
 auto();
 qed"scons_inject_eq";
 
+goal thy "!!x. nil<<x ==> nil=x";
+by (res_inst_tac [("x","x")] seq.cases 1);
+by (hyp_subst_tac 1);
+by (etac antisym_less 1);
+by (Asm_full_simp_tac 1);
+by (Asm_full_simp_tac 1);
+by (hyp_subst_tac 1);
+by (Asm_full_simp_tac 1);
+qed"nil_less_is_nil";
 
 (* ------------------------------------------------------------------------------------- *)
 

@@ -1,11 +1,11 @@
 (*  Title:      HOLCF/IOA/meta_theory/ShortExecutions.thy
-    ID:        
+    ID:         $Id$
     Author:     Olaf M"uller
     Copyright   1997  TU Muenchen
 
-Some properties about cut(ex), defined as follows:
+Some properties about (Cut ex), defined as follows:
 
-For every execution ex there is another shorter execution cut(ex) 
+For every execution ex there is another shorter execution (Cut ex) 
 that has the same trace as ex, but its schedule ends with an external action.
 
 *) 
@@ -15,40 +15,48 @@ ShortExecutions = Traces +
 
 consts 
 
-  LastActExtsch     ::"'a Seq  => bool"
-  cutsch            ::"'a Seq => 'a Seq"
+  LastActExtex      ::"('a,'s)ioa => ('a,'s) pairs  => bool"
+  LastActExtsch     ::"('a,'s)ioa => 'a Seq         => bool"
 
+  Cut               ::"('a => bool) => 'a Seq    => 'a Seq"
+ 
+  oraclebuild       ::"('a => bool) => 'a Seq -> 'a Seq -> 'a Seq"
 
 defs
 
 LastActExtsch_def
-  "LastActExtsch sch == (cutsch sch = sch)"
+  "LastActExtsch A sch == (Cut (%x.x: ext A) sch = sch)"
+
+LastActExtex_def
+  "LastActExtex A ex == LastActExtsch A (filter_act`ex)"
+
+Cut_def
+  "Cut P s == oraclebuild P`s`(Filter P`s)"
+
+oraclebuild_def
+  "oraclebuild P == (fix`(LAM h s t. case t of 
+       nil => nil
+    | x##xs => 
+      (case x of 
+        Undef => UU
+      | Def y => (Takewhile (%x.~P x)`s)
+                  @@ (y>>(h`(TL`(Dropwhile (%x.~ P x)`s))`xs))
+      )
+    ))"
+
+
 
 
 rules
 
-exists_LastActExtsch
-  "[|sch : schedules A ; tr = Filter (%a.a:ext A)`sch|]
-   ==> ? sch. sch : schedules A & 
-              tr = Filter (%a.a:ext A)`sch &
-              LastActExtsch sch"
-
-(* FIX: 1. LastActExtsch should have argument A also? 
-        2. use equality: (I) f P x =UU <-> (II) (fa ~P x) & ~finite(x) to prove it for (II) instead *)
-LastActExtimplUU
-  "[|LastActExtsch sch; Filter (%x.x:ext A)`sch = UU |]
-   ==> sch=UU"
-
-(* FIX: see above *)
-LastActExtimplnil
-  "[|LastActExtsch sch; Filter (%x.x:ext A)`sch = nil |]
-   ==> sch=nil"
+execThruCut
+  "is_execution_fragment A (s,ex) ==> is_execution_fragment A (s,Cut P ex)"
 
 LastActExtsmall1
-  "LastActExtsch sch ==> LastActExtsch (TL`(Dropwhile P`sch))"
+  "LastActExtsch A sch ==> LastActExtsch A (TL`(Dropwhile P`sch))"
 
 LastActExtsmall2
-  "[| Finite sch1; LastActExtsch (sch1 @@ sch2) |] ==> LastActExtsch (sch2)"
+  "[| Finite sch1; LastActExtsch A (sch1 @@ sch2) |] ==> LastActExtsch A sch2"
 
 end
 

@@ -1,12 +1,12 @@
 (*  Title:      HOLCF/IOA/meta_theory/Traces.ML
-    ID:        
+    ID:         $Id$
     Author:     Olaf M"uller
     Copyright   1996  TU Muenchen
 
 Theorems about Executions and Traces of I/O automata in HOLCF.
 *)   
 
-
+Delsimps (ex_simps @ all_simps);
 
 val exec_rws = [executions_def,is_execution_fragment_def];
 
@@ -149,4 +149,59 @@ by (safe_tac set_cs);
 by (res_inst_tac[("x","ex")] bexI 1);
 by (REPEAT (Asm_simp_tac 1));
 qed"has_trace_def2";
+
+
+(* -------------------------------------------------------------------------------- *)
+
+section "signatures and executions, schedules";
+
+
+(* All executions of A have only actions of A. This is only true because of the 
+   predicate state_trans (part of the predicate IOA): We have no dependent types.
+   For executions of parallel automata this assumption is not needed, as in par_def
+   this condition is included once more. (see Lemmas 1.1.1c in CompoExecs for example) *)
+
+goal thy 
+  "!! A. IOA A ==> \
+\ ! s. is_execution_fragment A (s,xs) --> Forall (%a.a:act A) (filter_act`xs)";
+
+by (pair_induct_tac "xs" [is_execution_fragment_def,Forall_def,sforall_def] 1);
+(* main case *)
+ren "ss a t" 1;
+by (safe_tac set_cs);
+by (REPEAT (asm_full_simp_tac (!simpset addsimps [ioa_def,state_trans_def]) 1));
+qed"execfrag_in_sig";
+
+goal thy 
+  "!! A.[|  IOA A; x:executions A |] ==> \
+\ Forall (%a.a:act A) (filter_act`(snd x))";
+
+by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
+by (pair_tac "x" 1);
+br (execfrag_in_sig RS spec RS mp) 1;
+auto();
+qed"exec_in_sig";
+
+goalw thy [schedules_def,has_schedule_def]
+  "!! A.[|  IOA A; x:schedules A |] ==> \
+\   Forall (%a.a:act A) x";
+
+by (fast_tac (!claset addSIs [exec_in_sig]) 1);
+qed"scheds_in_sig";
+
+
+(* -------------------------------------------------------------------------------- *)
+
+section "executions are prefix closed";
+
+(* only admissible in y, not if done in x !! *)
+goal thy "!x s. is_execution_fragment A (s,x) & y<<x  --> is_execution_fragment A (s,y)";
+by (pair_induct_tac "y" [is_execution_fragment_def] 1);
+by (strip_tac 1);
+by (Seq_case_simp_tac "xa" 1);
+by (pair_tac "a" 1);
+auto();
+qed"execfrag_prefixclosed";
+
+bind_thm ("exec_prefixclosed",conjI RS (execfrag_prefixclosed RS spec RS spec RS mp));
 

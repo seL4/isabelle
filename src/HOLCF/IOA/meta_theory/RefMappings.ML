@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefMappings.ML
-    ID:         $$
+    ID:         $Id$
     Author:     Olaf Mueller
     Copyright   1996  TU Muenchen
 

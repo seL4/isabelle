@@ -31,8 +31,14 @@ by (asm_full_simp_tac (!simpset addsimps [actions_def,is_asig_def,externals_def]
 by (best_tac (set_cs addEs [equalityCE]) 1);
 qed"not_ext_is_int";
 
+goal thy "!!S. is_asig S ==> (x~:externals S) = (x: internals S | x~:actions S)";
+by (asm_full_simp_tac (!simpset addsimps [actions_def,is_asig_def,externals_def]) 1);
+by (best_tac (set_cs addEs [equalityCE]) 1);
+qed"not_ext_is_int_or_not_act";
+
 goalw thy  [externals_def,actions_def,is_asig_def]
  "!! x. [| is_asig (S); x:internals S |] ==> x~:externals S";
 by (Asm_full_simp_tac 1);
 by (best_tac (set_cs addEs [equalityCE]) 1);
 qed"int_is_not_ext";
+

@@ -1,5 +1,5 @@
 (*  Title:      HOLCF/IOA/meta_theory/Sequence.thy
-    ID:        
+    ID:         $Id$
     Author:     Olaf M"uller
     Copyright   1996  TU Muenchen
 
@@ -81,11 +81,6 @@ rules
 
 (* for test purposes should be deleted FIX !! *)
 adm_all    "adm f"
-
-
-take_reduction
-  "[| Finite x; !! k. k < n ==> seq_take k`y1 = seq_take k`y2 |]
-   ==> seq_take n`(x @@ (t>>y1)) =  seq_take n`(x @@ (t>>y2))"
 
 
 end
