@@ -357,14 +357,13 @@ by (rtac refl 1);
 by (REPEAT (rtac allI 1));
 by (rtac impI 1);
 by (etac conjE 1);
-by (rename_tac "foo bar M1 N1 M2 N2" 1);
 by (Subst_case_tac [("v","Unify(M1, M2)")]);
-by (rename_tac "foo bar M1 N1 M2 N2 theta" 1);
+by (rename_tac "theta" 1);
 
 by (Subst_case_tac [("v","Unify(N1 <| theta, N2 <| theta)")]);
-by (rename_tac "foo bar M1 N1 M2 N2 theta sigma" 1);
+by (rename_tac "sigma" 1);
 by (REPEAT (rtac allI 1));
-by (rename_tac "foo bar M1 N1 M2 N2 theta sigma P Q" 1); 
+by (rename_tac "P Q" 1); 
 by (simp_tac (HOL_ss addsimps [subst_comp]) 1);
 by(rtac(rewrite_rule[trans_def] transR RS spec RS spec RS spec RS mp RS mp) 1);
 by (fast_tac HOL_cs 1);
@@ -477,22 +476,21 @@ by (hyp_subst_tac 1);
 by (asm_full_simp_tac(HOL_ss addsimps [MGUnifier_def,Unifier_def])1);
 by (asm_simp_tac (!simpset addsimps [subst_comp]) 1); (* It's a unifier.*)
 
-by (prune_params_tac);
 by (safe_tac HOL_cs);
-by (rename_tac "M1 N1 M2 N2 theta sigma gamma" 1);
+by (rename_tac "theta sigma gamma" 1);
 
 by (rewrite_tac [MoreGeneral_def]);
 by (rotate_tac ~3 1);
 by (eres_inst_tac [("x","gamma")] allE 1);
 by (Asm_full_simp_tac 1);
 by (etac exE 1);
-by (rename_tac "M1 N1 M2 N2 theta sigma gamma delta" 1);
+by (rename_tac "delta" 1);
 by (eres_inst_tac [("x","delta")] allE 1);
 by (subgoal_tac "N1 <| theta <| delta = N2 <| theta <| delta" 1);
 by (dtac mp 1);
 by (atac 1);
 by (etac exE 1);
-by (rename_tac "M1 N1 M2 N2 theta sigma gamma delta rho" 1);
+by (rename_tac "rho" 1);
 
 by (rtac exI 1);
 by (rtac subst_trans 1);
@@ -527,7 +525,7 @@ by (Subst_case_tac [("v","Unify(M1, M2)")]);
 by (Subst_case_tac [("v","Unify(N1 <| list, N2 <| list)")]);
 by (hyp_subst_tac 1);
 by prune_params_tac;
-by (rename_tac "M1 N1 M2 N2 theta sigma" 1);
+by (rename_tac "theta sigma" 1);
 
 by (dtac Unify_gives_MGU 1);
 by (dtac Unify_gives_MGU 1);
