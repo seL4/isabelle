@@ -40,26 +40,6 @@ by (REPEAT_FIRST
 qed "ns_shared_mono";
 
 
-(*The Spy can see more than anybody else, except for their initial state*)
-goal thy 
- "!!evs. evs : ns_shared lost ==> \
-\     sees lost A evs <= initState lost A Un sees lost Spy evs";
-by (etac ns_shared.induct 1);
-by (ALLGOALS (fast_tac (!claset addDs [sees_Says_subset_insert RS subsetD] 
-                                addss (!simpset))));
-qed "sees_agent_subset_sees_Spy";
-
-
-(*The Spy can see more than anybody else who's lost their key!*)
-goal thy 
- "!!evs. evs : ns_shared lost ==> \
-\        A: lost --> A ~= Server --> sees lost A evs <= sees lost Spy evs";
-by (etac ns_shared.induct 1);
-by (agent.induct_tac "A" 1);
-by (auto_tac (!claset addDs [sees_Says_subset_insert RS subsetD], (!simpset)));
-qed_spec_mp "sees_lost_agent_subset_sees_Spy";
-
-
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : ns_shared lost ==> ALL A X. Says A A X ~: set_of_list evs";
 by (etac ns_shared.induct 1);
@@ -393,10 +373,10 @@ goal thy
  "!!evs. [| A ~: lost;  B ~: lost;  \
 \           evs : ns_shared lost;  evt: ns_shared lost |]  \
 \        ==> Says Server A                                             \
-\              (Crypt {|N, Agent B, Key(newK evt),                     \
-\                       Crypt {|Key(newK evt), Agent A|} (shrK B)|} (shrK A)) \
+\              (Crypt {|N, Agent B, Key K,                     \
+\                       Crypt {|Key K, Agent A|} (shrK B)|} (shrK A)) \
 \             : set_of_list evs --> \
-\        Key(newK evt) ~: analz (sees lost Spy evs)";
+\        Key K ~: analz (sees lost Spy evs)";
 by (etac ns_shared.induct 1);
 by (ALLGOALS 
     (asm_simp_tac 
