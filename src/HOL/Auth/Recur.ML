@@ -130,6 +130,7 @@ bind_thm ("RA4_parts_sees_Spy",
 val parts_Fake_tac = 
     let val tac = forw_inst_tac [("lost","lost")] 
     in  tac RA2_parts_sees_Spy 4              THEN
+        etac subst 4 (*RA2: DELETE needless definition of PA!*)  THEN
 	forward_tac [respond_imp_responses] 5 THEN
 	tac RA4_parts_sees_Spy 6
     end;
@@ -199,7 +200,7 @@ by (parts_induct_tac 1);
 by (best_tac (!claset addSEs partsEs 
 	              addSDs [parts_cut]
                       addDs  [Suc_leD]
-                      addss  (!simpset addsimps [parts_insert2])) 3);
+                      addss  (!simpset)) 3);
 (*Fake*)
 by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
 			     impOfSubs parts_insert_subset_Un,
@@ -312,6 +313,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 
 (*For proofs involving analz.  We again instantiate the variable to "lost".*)
 val analz_Fake_tac = 
+    etac subst 4 (*RA2: DELETE needless definition of PA!*)  THEN
     dres_inst_tac [("lost","lost")] RA2_analz_sees_Spy 4 THEN 
     forward_tac [respond_imp_responses] 5                THEN
     dres_inst_tac [("lost","lost")] RA4_analz_sees_Spy 6;
@@ -345,7 +347,6 @@ goal thy
 \  ALL K I. (Key K : analz (Key``(newK``I) Un (sees lost Spy evs))) = \
 \           (K : newK``I | Key K : analz (sees lost Spy evs))";
 by (etac recur.induct 1);
-be subst 4;	(*RA2: DELETE needless definition of PA!*)
 by analz_Fake_tac;
 by (REPEAT_FIRST (ares_tac [allI, analz_image_newK_lemma]));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [resp_analz_image_newK_lemma])));
@@ -376,38 +377,24 @@ by (Fast_tac 1);
 qed "analz_insert_Key_newK";
 
 
-(** Nonces cannot appear before their time, even hashed!
-    One is tempted to add the rule
-	"Hash X : parts H ==> X : parts H"
-    but we'd then lose theorems like Spy_see_shrK
-***)
-
-goal thy "!!i. evs : recur lost ==>              \
-\                length evs <= i -->             \
-\                (Nonce (newN i) : parts {X} --> \
-\                 Hash X ~: parts (sees lost Spy evs))";
+(*This is more general than proving Hash_new_nonces_not_seen: we don't prove
+  that "future nonces" can't be hashed, but that everything that's hashed is
+  already in past traffic. *)
+goal thy "!!i. [| evs : recur lost;  A ~: lost |] ==>              \
+\              Hash {|Key(shrK A), X|} : parts (sees lost Spy evs) -->  \
+\              X : parts (sees lost Spy evs)";
 be recur.induct 1;
-be subst 4;	(*RA2: DELETE needless definition of PA!*)
 by parts_Fake_tac;
 (*RA3 requires a further induction*)
 be responses.induct 5;
 by (ALLGOALS Asm_simp_tac);
-(*RA2*)
-by (best_tac (!claset addDs  [Suc_leD, parts_cut]
-                      addEs  [leD RS notE,
-			      new_nonces_not_seen RSN(2,rev_notE)]
-		      addss (!simpset)) 4);
 (*Fake*)
-by (best_tac (!claset addSDs  [impOfSubs analz_subset_parts,
-			      impOfSubs parts_insert_subset_Un,
-			      Suc_leD]
-		      addss (!simpset)) 2);
-(*Five others!*)
-by (REPEAT (fast_tac (!claset addEs [leD RS notE]
-		              addDs [Suc_leD] 
-			      addss (!simpset)) 1));
-bind_thm ("Hash_new_nonces_not_seen",
-	  result() RS mp RS mp RSN (2, rev_notE));
+by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
+			     impOfSubs Fake_parts_insert]
+	              addss (!simpset addsimps [parts_insert_sees])) 2);
+(*Two others*)
+by (REPEAT (fast_tac (!claset addss (!simpset)) 1));
+bind_thm ("Hash_imp_body", result() RSN (2, rev_mp));
 
 
 (** The Nonce NA uniquely identifies A's message. 
@@ -421,46 +408,32 @@ goal thy
 \ ==> EX B' P'. ALL B P.    \
 \        Hash {|Key(shrK A), Agent A, Agent B, Nonce NA, P|} \
 \          : parts (sees lost Spy evs)  -->  B=B' & P=P'";
-be recur.induct 1;
-be subst 4;	(*RA2: DELETE needless definition of PA!*)
-(*For better simplification of RA2*)
-by (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 4);
-by parts_Fake_tac;
-(*RA3 requires a further induction*)
-be responses.induct 5;
-by (ALLGOALS Asm_simp_tac);
-by (step_tac (!claset addSEs partsEs) 1);
-(*RA3: inductive case*)
-by (best_tac (!claset addss  (!simpset)) 5);
-(*Fake*)
-by (best_tac (!claset addSIs [exI]
-                      addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
-		      addss (!simpset)) 2);
-(*Base*) (** LEVEL 9 **)
-by (fast_tac (!claset addss (!simpset)) 1);
+by (parts_induct_tac 1);
+be responses.induct 3;
 by (ALLGOALS (simp_tac (!simpset addsimps [all_conj_distrib]))); 
+by (step_tac (!claset addSEs partsEs) 1);
 (*RA1: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NA = ?y" 1);
 by (best_tac (!claset addSIs [exI]
-                      addEs  [Hash_new_nonces_not_seen]
+                      addSDs [Hash_imp_body]
+		      addSEs (new_nonces_not_seen::partsEs)
 		      addss (!simpset)) 1);
 by (best_tac (!claset addss  (!simpset)) 1);
 (*RA2: creation of new Nonce*)
 by (expand_case_tac "NA = ?y" 1);
 by (best_tac (!claset addSIs [exI]
-                      addDs  [parts_cut]
-		      addEs  [Hash_new_nonces_not_seen]
+		      addSDs [Hash_imp_body]
+		      addSEs (new_nonces_not_seen::partsEs)
 		      addss  (!simpset)) 1);
 by (best_tac (!claset addss  (!simpset)) 1);
 val lemma = result();
 
 goalw thy [HPair_def]
  "!!evs.[| HPair (Key(shrK A)) {|Agent A, Agent B, Nonce NA, P|}   \
-\            : parts (sees lost Spy evs);                        \
+\            : parts (sees lost Spy evs);                          \
 \          HPair (Key(shrK A)) {|Agent A, Agent B', Nonce NA, P'|} \
-\            : parts (sees lost Spy evs);                        \
-\          evs : recur lost;  A ~: lost |]                      \
+\            : parts (sees lost Spy evs);                          \
+\          evs : recur lost;  A ~: lost |]                         \
 \        ==> B=B' & P=P'";
 by (REPEAT (eresolve_tac partsEs 1));
 by (prove_unique_tac lemma 1);
@@ -610,7 +583,6 @@ goal thy
 \            Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
 \            Key K ~: analz (sees lost Spy evs)";
 by (etac recur.induct 1);
-be subst 4;	(*RA2: DELETE needless definition of PA!*)
 by analz_Fake_tac;
 by (ALLGOALS
     (asm_simp_tac
@@ -670,13 +642,7 @@ goalw thy [HPair_def]
 be rev_mp 1;
 by (parts_induct_tac 1);
 (*RA3*)
-by (fast_tac (!claset addSDs [Hash_in_parts_respond]) 2);
-(*RA2*)
-by ((REPEAT o CHANGED)     (*Push in XA--for more simplification*)
-    (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 1));
-by (best_tac (!claset addSEs partsEs 
-                      addDs [parts_cut]
-                      addss  (!simpset)) 1);
+by (fast_tac (!claset addSDs [Hash_in_parts_respond]) 1);
 qed_spec_mp "Hash_auth_sender";
 
 
@@ -703,8 +669,6 @@ by (full_simp_tac (!simpset addsimps [parts_insert_sees]) 3
 (*RA1*)
 by (Fast_tac 1);
 (*RA2: it cannot be a new Nonce, contradiction.*)
-by ((REPEAT o CHANGED)     (*Push in XA--for more simplification*)
-    (res_inst_tac [("x1","XA")] (insert_commute RS ssubst) 1));
 by (deepen_tac (!claset delrules [impCE]
                       addSIs [disjI2]
                       addSEs [MPair_parts]

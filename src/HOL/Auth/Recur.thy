@@ -6,7 +6,7 @@
 Inductive relation "recur" for the Recursive Authentication protocol.
 *)
 
-Recur = HPair + Shared +
+Recur = Shared +
 
 syntax
   newK2    :: "nat*nat => key"
@@ -84,7 +84,9 @@ inductive "recur lost"
          (*Bob's response to Alice's message.  C might be the Server.
            XA should be the Hash of the remaining components with KA, but
 		Bob cannot check that.
-           P is the previous recur message from Alice's caller.*)
+           P is the previous recur message from Alice's caller.
+           NOTE: existing proofs don't need PA and are complicated by its
+		presence!  See parts_Fake_tac.*)
     RA2  "[| evs: recur lost;  B ~= C;  B ~= Server;
              Says A' B PA : set_of_list evs;  
              PA = {|XA, Agent A, Agent B, Nonce NA, P|} |]
