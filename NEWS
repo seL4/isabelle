@@ -75,6 +75,12 @@ string -> unit if you really want to output text without newline;
 * simplification automatically does freeness reasoning for datatype
   constructors;
 
+* automatic type-inference, with AddTCs command to insert new type-checking
+  rules;
+
+* datatype introduction rules are now added as Safe Introduction rules to
+  the claset;
+
 * The syntax "if P then x else y" is now available in addition to if(P,x,y).
 
 
