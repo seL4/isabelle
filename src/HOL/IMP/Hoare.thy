@@ -6,7 +6,7 @@
 Inductive definition of Hoare logic
 *)
 
-Hoare = Denotation +
+Hoare = Denotation + Gfp +
 
 types assn = state => bool
 
@@ -29,7 +29,7 @@ intrs
   conseq "[| !s. P' s --> P s; |- {P}c{Q}; !s. Q s --> Q' s |] ==>
           |- {P'}c{Q'}"
 
-constdefs swp :: com => assn => assn
-          "swp c Q == (%s. !t. (s,t) : C(c) --> Q t)"
+constdefs wp :: com => assn => assn
+          "wp c Q == (%s. !t. (s,t) : C(c) --> Q t)"
 
 end

@@ -5,7 +5,7 @@
 
 acom: annotated commands
 vc:   verification-conditions
-wp:   weakest (liberal) precondition
+awp:   weakest (liberal) precondition
 *)
 
 VC  =  Hoare +
@@ -17,24 +17,24 @@ datatype  acom = Askip
                | Awhile bexp assn acom
 
 consts
-  vc,wp :: acom => assn => assn
-  vcwp :: "acom => assn => assn * assn"
+  vc,awp :: acom => assn => assn
+  vcawp :: "acom => assn => assn * assn"
   astrip :: acom => com
 
-primrec wp acom
-  "wp Askip Q = Q"
-  "wp (Aass x a) Q = (%s.Q(s[a s/x]))"
-  "wp (Asemi c d) Q = wp c (wp d Q)"
-  "wp (Aif b c d) Q = (%s. (b s-->wp c Q s) & (~b s-->wp d Q s))" 
-  "wp (Awhile b I c) Q = I"
+primrec awp acom
+  "awp Askip Q = Q"
+  "awp (Aass x a) Q = (%s.Q(s[a s/x]))"
+  "awp (Asemi c d) Q = awp c (awp d Q)"
+  "awp (Aif b c d) Q = (%s. (b s-->awp c Q s) & (~b s-->awp d Q s))" 
+  "awp (Awhile b I c) Q = I"
 
 primrec vc acom
   "vc Askip Q = (%s.True)"
   "vc (Aass x a) Q = (%s.True)"
-  "vc (Asemi c d) Q = (%s. vc c (wp d Q) s & vc d Q s)"
+  "vc (Asemi c d) Q = (%s. vc c (awp d Q) s & vc d Q s)"
   "vc (Aif b c d) Q = (%s. vc c Q s & vc d Q s)" 
   "vc (Awhile b I c) Q = (%s. (I s & ~b s --> Q s) &
-                              (I s & b s --> wp c I s) & vc c I s)"
+                              (I s & b s --> awp c I s) & vc c I s)"
 
 primrec astrip acom
   "astrip Askip = SKIP"
@@ -43,19 +43,19 @@ primrec astrip acom
   "astrip (Aif b c d) = (IF b THEN astrip c ELSE astrip d)"
   "astrip (Awhile b I c) = (WHILE b DO astrip c)"
 
-(* simultaneous computation of vc and wp: *)
-primrec vcwp acom
-  "vcwp Askip Q = (%s.True, Q)"
-  "vcwp (Aass x a) Q = (%s.True, %s.Q(s[a s/x]))"
-  "vcwp (Asemi c d) Q = (let (vcd,wpd) = vcwp d Q;
-                            (vcc,wpc) = vcwp c wpd
-                         in (%s. vcc s & vcd s, wpc))"
-  "vcwp (Aif b c d) Q = (let (vcd,wpd) = vcwp d Q;
-                            (vcc,wpc) = vcwp c Q
-                         in (%s. vcc s & vcd s,
-                             %s.(b s-->wpc s) & (~b s-->wpd s)))"
-  "vcwp (Awhile b I c) Q = (let (vcc,wpc) = vcwp c I
-                            in (%s. (I s & ~b s --> Q s) &
-                                    (I s & b s --> wpc s) & vcc s, I))"
+(* simultaneous computation of vc and awp: *)
+primrec vcawp acom
+  "vcawp Askip Q = (%s.True, Q)"
+  "vcawp (Aass x a) Q = (%s.True, %s.Q(s[a s/x]))"
+  "vcawp (Asemi c d) Q = (let (vcd,wpd) = vcawp d Q;
+                              (vcc,wpc) = vcawp c wpd
+                          in (%s. vcc s & vcd s, wpc))"
+  "vcawp (Aif b c d) Q = (let (vcd,wpd) = vcawp d Q;
+                              (vcc,wpc) = vcawp c Q
+                          in (%s. vcc s & vcd s,
+                              %s.(b s --> wpc s) & (~b s --> wpd s)))"
+  "vcawp (Awhile b I c) Q = (let (vcc,wpc) = vcawp c I
+                             in (%s. (I s & ~b s --> Q s) &
+                                     (I s & b s --> wpc s) & vcc s, I))"
 
 end

@@ -23,53 +23,75 @@ by (rewtac Gamma_def);
 by (Fast_tac 1);
 qed "hoare_sound";
 
-goalw Hoare.thy [swp_def] "swp SKIP Q = Q";
+goalw Hoare.thy [wp_def] "wp SKIP Q = Q";
 by (Simp_tac 1);
-qed "swp_SKIP";
+qed "wp_SKIP";
 
-goalw Hoare.thy [swp_def] "swp (x:=a) Q = (%s.Q(s[a s/x]))";
+goalw Hoare.thy [wp_def] "wp (x:=a) Q = (%s.Q(s[a s/x]))";
 by (Simp_tac 1);
-qed "swp_Ass";
+qed "wp_Ass";
 
-goalw Hoare.thy [swp_def] "swp (c;d) Q = swp c (swp d Q)";
-by (Simp_tac 1);
-by (rtac ext 1);
-by (Fast_tac 1);
-qed "swp_Semi";
-
-goalw Hoare.thy [swp_def]
-  "swp (IF b THEN c ELSE d) Q = (%s. (b s --> swp c Q s) & \
-\                                    (~b s --> swp d Q s))";
+goalw Hoare.thy [wp_def] "wp (c;d) Q = wp c (wp d Q)";
 by (Simp_tac 1);
 by (rtac ext 1);
 by (Fast_tac 1);
-qed "swp_If";
+qed "wp_Semi";
 
-goalw Hoare.thy [swp_def]
-  "!!s. b s ==> swp (WHILE b DO c) Q s = swp (c;WHILE b DO c) Q s";
+goalw Hoare.thy [wp_def]
+  "wp (IF b THEN c ELSE d) Q = (%s. (b s --> wp c Q s) & \
+\                                    (~b s --> wp d Q s))";
+by (Simp_tac 1);
+by (rtac ext 1);
+by (Fast_tac 1);
+qed "wp_If";
+
+goalw Hoare.thy [wp_def]
+  "!!s. b s ==> wp (WHILE b DO c) Q s = wp (c;WHILE b DO c) Q s";
 by (stac C_While_If 1);
 by (Asm_simp_tac 1);
-qed "swp_While_True";
+qed "wp_While_True";
 
-goalw Hoare.thy [swp_def] "!!s. ~b s ==> swp (WHILE b DO c) Q s = Q s";
+goalw Hoare.thy [wp_def] "!!s. ~b s ==> wp (WHILE b DO c) Q s = Q s";
 by (stac C_While_If 1);
 by (Asm_simp_tac 1);
-qed "swp_While_False";
+qed "wp_While_False";
 
-Addsimps [swp_SKIP,swp_Ass,swp_Semi,swp_If,swp_While_True,swp_While_False];
+Addsimps [wp_SKIP,wp_Ass,wp_Semi,wp_If,wp_While_True,wp_While_False];
 
 (*Not suitable for rewriting: LOOPS!*)
-goal Hoare.thy "swp (WHILE b DO c) Q s = \
-\                 (if b s then swp (c;WHILE b DO c) Q s else Q s)";
+goal Hoare.thy "wp (WHILE b DO c) Q s = \
+\                 (if b s then wp (c;WHILE b DO c) Q s else Q s)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-qed "swp_While_if";
+qed "wp_While_if";
 
+goal thy
+  "wp (WHILE b DO c) Q s = \
+\  (s : gfp(%S.{s.if b s then wp c (%s.s:S) s else Q s}))";
+by(simp_tac (!simpset setloop(split_tac[expand_if])) 1);
+br iffI 1;
+ br weak_coinduct 1;
+  by(Best_tac 1);
+ by(safe_tac (!claset));
+  by(rotate_tac ~1 1);
+  by(Asm_full_simp_tac 1);
+ by(rotate_tac ~1 1);
+ by(Asm_full_simp_tac 1);
+by(asm_full_simp_tac (!simpset addsimps [wp_def,Gamma_def]) 1);
+by(strip_tac 1);
+br mp 1;
+ ba 2;
+be induct2 1;
+by(fast_tac (!claset addSIs [monoI]) 1);
+by(stac gfp_Tarski 1);
+ by(fast_tac (!claset addSIs [monoI]) 1);
+by(Fast_tac 1);
+qed "wp_While";
 
 Delsimps [C_while];
 
 AddSIs [hoare.skip, hoare.ass, hoare.semi, hoare.If];
 
-goal Hoare.thy "!Q. |- {swp c Q} c {Q}";
+goal Hoare.thy "!Q. |- {wp c Q} c {Q}";
 by (com.induct_tac "c" 1);
 by (ALLGOALS Simp_tac);
 by (REPEAT_FIRST Fast_tac);
@@ -90,11 +112,11 @@ by (rtac hoare.conseq 1);
  by (Asm_full_simp_tac 1);
 by (rotate_tac ~1 1);
 by (Asm_full_simp_tac 1);
-qed_spec_mp "swp_is_pre";
+qed_spec_mp "wp_is_pre";
 
 goal Hoare.thy "!!c. |= {P}c{Q} ==> |- {P}c{Q}";
-by (rtac (swp_is_pre RSN (2,hoare.conseq)) 1);
+by (rtac (wp_is_pre RSN (2,hoare.conseq)) 1);
  by (Fast_tac 2);
-by (rewrite_goals_tac [hoare_valid_def,swp_def]);
+by (rewrite_goals_tac [hoare_valid_def,wp_def]);
 by (Fast_tac 1);
 qed "hoare_relative_complete";
