@@ -124,12 +124,12 @@ lemma 2: "\<not>(2 < length a) ==> a = [] \<or> (\<exists> l. a = [l]) \<or> (\<
 proof -;
   assume "\<not>(2 < length a)"
   hence "length a < (Suc 2)" by simp
-  hence * : "length a = 0 \<or> length a = 1 \<or> length a = 2" 
+  hence * : "length a = 0 \<or> length a = 1' \<or> length a = 2" 
     by (auto simp add: less_Suc_eq)
 
   { 
     fix x 
-    assume "length x = 1"
+    assume "length x = 1'"
     hence "\<exists> l. x = [l]"  by - (cases x, auto)
   } note 0 = this
 
