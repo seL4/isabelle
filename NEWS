@@ -46,8 +46,8 @@ New in this Isabelle release
 
   - Accepts free variables as head terms in congruence rules.  Useful in Isar.
 
-* Pure: New flag for triggering if the overall goal of a proof state should
-be printed:
+* Pure: The main goal of the proof state is no longer shown by default, only
+the subgoals. This behaviour is controlled by a new flag.
    PG menu: Isabelle/Isar -> Settings -> Show Main Goal
 (ML: Proof.show_main_goal).
 
