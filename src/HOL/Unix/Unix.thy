@@ -1130,7 +1130,7 @@ qed
 text {*
   So this is our final result:
 
-  @{thm [display] result [OF situation.intro, no_vars]}
+  @{thm [display] result [OF invariant.intro, OF situation.intro, no_vars]}
 *}
 
 end
