@@ -206,3 +206,8 @@ fun alt_ast_tr' (name, alt_name) =
 
 val print_ast_translation =
   map alt_ast_tr' [("! ", "*All"), ("? ", "*Ex"), ("?! ", "*Ex1")];
+
+
+(** HOL theory data **)
+
+val thy_data = ThyData.hol_data;
