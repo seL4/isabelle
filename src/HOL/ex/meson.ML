@@ -312,7 +312,7 @@ fun make_goal th =   (*Must check for negative literal first!*)
 fun fewerlits(th1,th2) = nliterals(prop_of th1) < nliterals(prop_of th2);
 
 (*TAUTOLOGY CHECK SHOULD NOT BE NECESSARY!*)
-fun sort_clauses ths = sort fewerlits (filter (not o is_taut) ths);
+fun sort_clauses ths = sort (make_ord fewerlits) (filter (not o is_taut) ths);
 
 (*Convert all suitable free variables to schematic variables*)
 fun generalize th = forall_elim_vars 0 (forall_intr_frees th);

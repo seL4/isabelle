@@ -94,7 +94,6 @@ structure Datatype =
 struct
 local 
 
-val mysort = sort;
 open ThyParse HOLogic;
 exception Impossible;
 exception RecError of string;
@@ -175,7 +174,7 @@ fun dest_rec eq =
 
 fun check_and_sort (n,its) = 
   if length its = n 
-    then map snd (mysort (fn ((i : int,_),(j,_)) => i<j) its)
+    then map snd (Library.sort (make_ord (fn ((i : int,_),(j,_)) => i<j)) its)
   else raise error "Primrec definition error:\n\
    \Please give an equation for every constructor";
 
