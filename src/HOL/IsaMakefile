@@ -389,14 +389,8 @@ $(LOG)/HOL-AxClasses-Lattice.gz: $(OUT)/HOL AxClasses/Lattice/CLattice.ML \
 HOL-AxClasses-Tutorial: HOL $(LOG)/HOL-AxClasses-Tutorial.gz
 
 $(LOG)/HOL-AxClasses-Tutorial.gz: $(OUT)/HOL \
-  AxClasses/Tutorial/BoolGroupInsts.thy AxClasses/Tutorial/Group.ML \
-  AxClasses/Tutorial/Group.thy AxClasses/Tutorial/Monoid.thy \
-  AxClasses/Tutorial/MonoidGroupInsts.thy \
-  AxClasses/Tutorial/ProdGroupInsts.thy AxClasses/Tutorial/Product.thy \
-  AxClasses/Tutorial/ProductInsts.thy AxClasses/Tutorial/ROOT.ML \
-  AxClasses/Tutorial/Semigroup.thy AxClasses/Tutorial/Semigroups.thy \
-  AxClasses/Tutorial/Sigs.thy AxClasses/Tutorial/Xor.ML \
-  AxClasses/Tutorial/Xor.thy
+  AxClasses/Tutorial/Group.thy AxClasses/Tutorial/Product.thy \
+  AxClasses/Tutorial/ROOT.ML AxClasses/Tutorial/Semigroups.thy
 	@$(ISATOOL) usedir -s AxClasses-Tutorial $(OUT)/HOL AxClasses/Tutorial
 
 
