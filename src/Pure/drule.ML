@@ -137,7 +137,7 @@ fun dest_defn tm =
     val rhs_extrasT = gen_rems (op =) (term_tfrees rhs, typ_tfrees ty);
   in
     if not (forall is_Free args) then
-      err "Arguments of lhs have to be variables"
+      err "Arguments (on lhs) must be variables"
     else if not (null lhs_dups) then
       err ("Duplicate variables on lhs: " ^ show_frees lhs_dups)
     else if not (null rhs_extras) then
