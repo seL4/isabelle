@@ -95,10 +95,10 @@ Isabelle executables in some global bin directory (such as
 Isabelle as KDE application
 ---------------------------
 
-Users may install an Isabelle application icon on the KDE desktop as
-follows:
+Users may install an Isabelle application icon on the KDE 2 desktop as
+follows (version 1 may be specified as well):
 
-  [ISABELLE_HOME]/bin/isatool install -k
+  [ISABELLE_HOME]/bin/isatool install -k 2
 
 Clicking on Isabelle will invoke the interface wrapper script (capital
 Isabelle), which is usually configured to run Proof General (cf. the
