@@ -52,7 +52,7 @@ datatype mixfix =
   Delimfix of string |
   Infixl of int |
   Infixr of int |
-  Binder of string * int * int
+  Binder of string * int * int;
 
 
 (* type / const names *)
@@ -118,8 +118,8 @@ fun syn_ext_consts logtypes const_decls =
       | mfix_of (c, ty, Delimfix sy) = [Mfix (sy, ty, c, [], max_pri)]
       | mfix_of (sy, ty, Infixl p) = mk_infix sy ty (infix_name sy) p (p + 1) p
       | mfix_of (sy, ty, Infixr p) = mk_infix sy ty (infix_name sy) (p + 1) p p
-      | mfix_of (c, ty, Binder (sy, p2, p)) =
-          [Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p2], p)];
+      | mfix_of (c, ty, Binder (sy, p, q)) =
+          [Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, sy, [0, p], q)];
 
     fun binder (c, _, Binder (sy, _, _)) = Some (sy, c)
       | binder _ = None;
