@@ -102,7 +102,11 @@ echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> 
 ## spawn test runs
 
 $SSH sunbroy2 "$MAKEALL $DISTPREFIX $HOME/settings/sun-poly $HOME/settings/sun-sml"
+# give test some time to copy settings and start
+sleep 5
 $SSH atbroy51 "$MAKEALL $DISTPREFIX $HOME/settings/at-poly $HOME/settings/at-sml"
+# give test some time to copy settings and start
+sleep 5
 $SSH macbroy33 "$MAKEALL $DISTPREFIX $HOME/settings/mac-poly"
 
 ## end
