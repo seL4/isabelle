@@ -147,7 +147,7 @@ fun dest_defn tm =
     val (c, ty) = dest_Const head
       handle TERM _ => err "Head of lhs not a constant";
 
-    fun occs_const (Const (c', _)) = (c = c')
+    fun occs_const (Const c_ty') = (c_ty' = (c, ty))
       | occs_const (Abs (_, _, t)) = occs_const t
       | occs_const (t $ u) = occs_const t orelse occs_const u
       | occs_const _ = false;
@@ -168,7 +168,7 @@ fun dest_defn tm =
     else if not (null rhs_extrasT) then
       err ("Extra type variables on rhs: " ^ show_tfrees rhs_extrasT)
     else if occs_const rhs then
-      err ("Constant " ^ quote c ^ " occurs on rhs")
+      err ("Constant to be defined occurs on rhs")
     else (c, ty)
   end;
 
