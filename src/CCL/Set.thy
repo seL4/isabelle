@@ -7,6 +7,8 @@ Modified version of HOL/set.thy that extends FOL
 
 Set = FOL +
 
+global
+
 types
   'a set
 
@@ -28,6 +30,7 @@ consts
   empty         :: "'a set"                             ("{}")
   "oo"          :: "['b => 'c, 'a => 'b, 'a] => 'c"     (infixr 50) (*composition*)
 
+syntax
   "@Coll"       :: "[idt, o] => 'a set"                 ("(1{_./ _})") (*collection*)
 
   (* Big Intersection / Union *)
@@ -48,6 +51,7 @@ translations
   "ALL x:A. P"  == "Ball(A, %x. P)"
   "EX x:A. P"   == "Bex(A, %x. P)"
 
+local
 
 rules
   mem_Collect_iff       "(a : {x. P(x)}) <-> P(a)"
