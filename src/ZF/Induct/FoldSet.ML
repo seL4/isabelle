@@ -16,9 +16,6 @@ bind_thm("empty_fold_setE",
 bind_thm("cons_fold_setE", 
              fold_set.mk_cases "<cons(x,C), y> : fold_set(A, B, f,e)");
 
-bind_thm("fold_set_lhs", fold_set.dom_subset RS subsetD RS SigmaD1);
-bind_thm("fold_set_rhs", fold_set.dom_subset RS subsetD RS SigmaD2);
-
 (* add-hoc lemmas *)
 
 Goal "[| x~:C; x~:B |] ==> cons(x,B)=cons(x,C) <-> B = C";
@@ -30,53 +27,79 @@ Goal "[| cons(x, B)=cons(y, C); x~=y; x~:B; y~:C |] \
 by (auto_tac (claset() addEs [equalityE], simpset()));
 qed "cons_lemma2";
 
+(* fold_set monotonicity *)
+Goal "<C, x> : fold_set(A, B, f, e) \
+\     ==> ALL D. A<=D --> <C, x> : fold_set(D, B, f, e)";
+by (etac fold_set.induct 1);
+by (auto_tac (claset() addIs fold_set.intrs, simpset()));
+qed "fold_set_mono_lemma";
 
-Open_locale "LC";
-val f_lcomm = thm "lcomm";
-val f_type  = thm "ftype";
+Goal " C<=A ==> fold_set(C, B, f, e) <= fold_set(A, B, f, e)";
+by (Clarify_tac 1);
+by (forward_tac [impOfSubs fold_set.dom_subset] 1);
+by (Clarify_tac 1);
+by (auto_tac (claset() addDs [fold_set_mono_lemma], simpset()));
+qed "fold_set_mono";
 
-Goal "[| <C-{x},y> : fold_set(A, B, f,e);  x:C; x:A |] \
-\     ==> <C, f(x,y)> : fold_set(A, B, f, e)";
-by (ftac fold_set_rhs 1);
+Goal "<C, x>:fold_set(A, B, f, e) ==> <C, x>:fold_set(C, B, f, e) & C<=A";
+by (etac fold_set.induct 1);
+by (auto_tac (claset() addSIs fold_set.intrs
+                       addIs [fold_set_mono RS subsetD], simpset()));
+qed "fold_set_lemma";
+
+(* Proving that fold_set is deterministic *)
+Goal "[| <C-{x},y> : fold_set(A, B, f,e);  x:C; x:A; f(x, y):B |] \
+\     ==> <C, f(x, y)> : fold_set(A, B, f, e)";
+by (ftac (fold_set.dom_subset RS subsetD) 1);
 by (etac (cons_Diff RS subst) 1 THEN resolve_tac fold_set.intrs 1);
-by (auto_tac (claset() addIs [f_type], simpset()));
+by Auto_tac;
 qed "Diff1_fold_set";
 
-Goal "[| C:Fin(A); e:B |] ==> EX x. <C, x> : fold_set(A, B, f,e)";
+Goal "[| C:Fin(A); e:B; ALL x:A. ALL y:B. f(x, y):B |] ==>\
+\  (EX x. <C, x> : fold_set(A, B, f,e))";
 by (etac Fin_induct 1);
-by (ALLGOALS(Clarify_tac));
-by (ftac fold_set_rhs 2);
-by (cut_inst_tac [("x", "x"), ("y", "xa")] f_type 2);
-by (REPEAT(blast_tac (claset() addIs fold_set.intrs) 1));
+by Auto_tac;
+by (ftac (fold_set.dom_subset RS subsetD) 2);
+by (auto_tac (claset() addDs [fold_set.dom_subset RS subsetD]
+                       addIs fold_set.intrs, simpset()));
 qed_spec_mp "Fin_imp_fold_set";
 
-
-Goal "n:nat \
-\     ==> ALL C x. |C|<n -->  e:B --> <C, x> : fold_set(A, B, f,e)-->\
-\            (ALL y. <C, y> : fold_set(A, B, f,e) --> y=x)";
+Goal 
+"[| n:nat; e:B; \
+\ ALL x:A. ALL y:B. f(x, y):B; \
+\ ALL x:A. ALL y:A. ALL z:B. f(x, f(y, z))=f(y, f(x, z)) |] \
+\ ==> ALL C. |C|<n --> \
+\  (ALL x. <C, x> : fold_set(A, B, f,e)-->\
+\          (ALL y. <C, y> : fold_set(A, B, f,e) --> y=x))";
 by (etac nat_induct 1);
 by (auto_tac (claset(), simpset() addsimps [le_iff]));
+by (Blast_tac 1);
 by (etac fold_set.elim 1);
-by (blast_tac  (claset() addEs [empty_fold_setE]) 1);
+by (force_tac (claset() addSEs [empty_fold_setE], simpset()) 1);
 by (etac fold_set.elim 1);
-by (blast_tac  (claset() addEs [empty_fold_setE]) 1);
+by (force_tac (claset() addSEs [empty_fold_setE], simpset()) 1);
 by (Clarify_tac 1);
 (*force simplification of "|C| < |cons(...)|"*)
-by (rotate_tac 2 1);
+by (rotate_tac 4 1);
 by (etac rev_mp 1);
-by (forw_inst_tac [("a", "Ca")] fold_set_lhs 1);
-by (forw_inst_tac [("a", "Cb")] fold_set_lhs 1);
-by (asm_simp_tac (simpset() addsimps [Fin_into_Finite RS Finite_imp_cardinal_cons])  1);
+by (forw_inst_tac [("a", "Ca")] 
+     (fold_set.dom_subset RS subsetD RS SigmaD1) 1);
+by (forw_inst_tac [("a", "Cb")] 
+     (fold_set.dom_subset RS subsetD RS SigmaD1) 1);
+by (asm_simp_tac (simpset() addsimps 
+    [Fin_into_Finite RS Finite_imp_cardinal_cons])  1);
 by (rtac impI 1);
 (** LEVEL 10 **)
 by (case_tac "x=xb" 1 THEN Auto_tac);
-by (asm_full_simp_tac (simpset() addsimps [cons_lemma1]) 1); 
-by (Blast_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [cons_lemma1]) 1);
+by (REPEAT(thin_tac "ALL x:A. ?u(x)" 1) THEN Blast_tac 1);
 (*case x ~= xb*)
 by (dtac cons_lemma2 1 THEN ALLGOALS Clarify_tac);
 by (subgoal_tac "Ca = cons(xb, Cb) - {x}" 1);
-by (blast_tac (claset() addEs [equalityE]) 2); 
-(** LEVEL 20 **)
+by (REPEAT(thin_tac "ALL C. ?P(C)" 2));
+by (REPEAT(thin_tac "ALL x:?u. ?P(x)" 2));
+by (blast_tac (claset() addEs [equalityE]) 2);
+(** LEVEL 22 **)
 by (subgoal_tac "|Ca| le |Cb|" 1);
 by (rtac succ_le_imp_le 2);
 by (hyp_subst_tac 2);
@@ -84,39 +107,60 @@ by (subgoal_tac "Finite(cons(xb, Cb)) & x:cons(xb, Cb) " 2);
 by (asm_simp_tac (simpset() addsimps [Finite_imp_succ_cardinal_Diff, 
                        Fin_into_Finite RS Finite_imp_cardinal_cons]) 2);
 by (asm_simp_tac (simpset() addsimps [Fin.consI RS Fin_into_Finite]) 2);
-by (res_inst_tac [("C1", "Ca-{xb}"), ("e1","e"), ("A1", "A")] 
+by (res_inst_tac [("C1", "Ca-{xb}"), ("e1","e"), ("A1", "A"), ("f1", "f")] 
     (Fin_imp_fold_set RS exE) 1);
 by (blast_tac (claset() addIs [Diff_subset RS Fin_subset]) 1);
 by (Blast_tac 1);
-(** LEVEL 28 **)
-by (ftac Diff1_fold_set 1 THEN assume_tac 1 THEN assume_tac 1);
+by (blast_tac (claset() addSDs [FinD]) 1);
+(** LEVEL 32 **)
+by (ftac Diff1_fold_set 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
+by (blast_tac (claset() addSDs [fold_set.dom_subset RS subsetD]) 1);
 by (subgoal_tac "ya = f(xb, xa)" 1);
+by (dres_inst_tac [("x", "Ca")] spec 2);
 by (blast_tac (claset() delrules [equalityCE]) 2);
 by (subgoal_tac "<Cb-{x}, xa>: fold_set(A, B, f, e)" 1);
- by (Asm_full_simp_tac 2);
+by (Asm_full_simp_tac 2);
 by (subgoal_tac "yb = f(x, xa)" 1);
- by (blast_tac (claset() delrules [equalityCE]
-                        addDs [Diff1_fold_set]) 2);
-by (asm_simp_tac (simpset() addsimps [f_lcomm]) 1);
-qed_spec_mp "lemma";
+by (dres_inst_tac [("C", "Cb")] Diff1_fold_set 2);
+by (ALLGOALS(Asm_simp_tac));
+by (force_tac (claset() addSDs [fold_set.dom_subset RS subsetD], simpset()) 2);
+by (force_tac (claset() addSDs [fold_set.dom_subset RS subsetD], simpset()) 1);
+by (dres_inst_tac [("x", "Cb")] spec 1);
+by Auto_tac;
+qed_spec_mp "fold_set_determ_lemma";
 
-
-Goal "[| <C, x> : fold_set(A, B, f, e); \
-\        <C, y> : fold_set(A, B, f, e); e:B |] ==> y=x";
-by (forward_tac [fold_set_lhs RS Fin_into_Finite] 1);
+Goal
+"[| <C, x>:fold_set(A, B, f, e); \
+\        <C, y>:fold_set(A, B, f, e); e:B; \
+\ ALL x:A. ALL y:B. f(x, y):B; \
+\ ALL x:A. ALL y:A. ALL z:B.  f(x,f(y, z))=f(y, f(x, z)) |]\
+\ ==> y=x";
+by (forward_tac [fold_set.dom_subset RS subsetD] 1);
+by (Clarify_tac 1);
+by (dtac Fin_into_Finite 1);
 by (rewtac Finite_def);
 by (Clarify_tac 1);
-by (res_inst_tac [("n", "succ(n)")] lemma 1);
-by (auto_tac (claset() addIs 
-      [eqpoll_imp_lepoll RS lepoll_cardinal_le],
-     simpset()));
+by (res_inst_tac [("n", "succ(n)"), ("e", "e"), ("A", "A"),
+                   ("f", "f"), ("B", "B")] fold_set_determ_lemma 1);
+by (auto_tac (claset() addIs [eqpoll_imp_lepoll RS 
+                              lepoll_cardinal_le], simpset()));
 qed "fold_set_determ";
 
+(** The fold function **)
+
 Goalw [fold_def] 
-     "[| <C,y> : fold_set(C, B, f, e); e:B |] ==> fold[B](f,e,C) = y";
+"[| <C, y>:fold_set(A, B, f, e); e:B; \
+\ ALL x:A. ALL y:B. f(x, y):B; \
+\ ALL x:A. ALL y:A. ALL z:B.  f(x, f(y, z))=f(y, f(x, z)) |] \
+\  ==> fold[B](f, e, C) = y";
+by (forward_tac [fold_set.dom_subset RS subsetD] 1);
+by (Clarify_tac 1);
 by (rtac the_equality 1);
-by (rtac fold_set_determ 2);
-by Auto_tac;
+by (res_inst_tac [("f", "f"), ("e", "e"), ("B", "B")] fold_set_determ 2);
+by (auto_tac (claset() addDs [fold_set_lemma], simpset()));
+by (blast_tac (claset() addSDs [FinD]) 1);
 qed "fold_equality";
 
 Goalw [fold_def] "e:B ==> fold[B](f,e,0) = e";
@@ -125,74 +169,77 @@ by (blast_tac (claset() addSEs [empty_fold_setE]
 qed "fold_0";
 Addsimps [fold_0];
 
-Goal "[| x ~: C; x:A; e:B |] \
-\     ==> <cons(x, C), v> : fold_set(A, B, f, e) <->  \
-\         (EX y. <C, y> : fold_set(A, B, f, e) & v = f(x, y))";
+Goal 
+"[| C:Fin(A); c:A; c~:C; e:B; ALL x:A. ALL y:B. f(x, y):B;  \
+\ ALL x:A. ALL y:A. ALL z:B. f(x, f(y, z))=f(y, f(x,z)) |]  \
+\    ==> <cons(c, C), v> : fold_set(cons(c, C), B, f, e) <->  \
+\         (EX y. <C, y> : fold_set(C, B, f, e) & v = f(c, y))";
 by Auto_tac;
-by (res_inst_tac [("A1", "A"), ("C1", "C")] (Fin_imp_fold_set RS exE) 1);
-by (res_inst_tac [("x", "xa")] exI 3);
-by (res_inst_tac [("b", "cons(x, C)")] Fin_subset 1);
-by (auto_tac (claset() addDs [fold_set_lhs] 
-                       addIs [f_type]@fold_set.intrs, simpset()));
-by (blast_tac (claset() addIs [fold_set_determ, f_type]@fold_set.intrs) 1);
-val lemma = result();
-
-Goal "<D, x> : fold_set(C, B, f, e) \
-\     ==> ALL A. C<=A --> <D, x> : fold_set(A, B, f, e)";
-by (etac fold_set.induct 1);
+by (forward_tac [inst "a" "c" Fin.consI RS FinD RS fold_set_mono RS subsetD] 1);
+by (assume_tac 1);
+by (assume_tac 1);
+by (forward_tac [FinD RS fold_set_mono RS subsetD] 2);
+by (assume_tac 2);
+by (ALLGOALS(forward_tac [inst "A" "A" fold_set.dom_subset RS subsetD]));
+by (ALLGOALS(dresolve_tac [FinD]));
+by (res_inst_tac [("A1", "cons(c, C)"), ("f1", "f"),
+                  ("B1", "B"), ("C1", "C")] (Fin_imp_fold_set RS exE) 1);
+by (res_inst_tac [("b", "cons(c, C)")] Fin_subset 1);
+by (resolve_tac [Finite_into_Fin] 2);
+by (resolve_tac [Fin_into_Finite] 2);
+by (Blast_tac 2);
+by (res_inst_tac [("x", "x")] exI 4);
 by (auto_tac (claset() addIs fold_set.intrs, simpset()));
-qed "lemma2";
-
-Goal " C<=A ==> fold_set(C, B, f, e) <= fold_set(A, B, f, e)";
-by (Clarify_tac 1);
-by (forward_tac [impOfSubs fold_set.dom_subset] 1);
-by (Clarify_tac 1);
-by (auto_tac (claset() addDs [lemma2], simpset()));
-qed "fold_set_mono";
-
-Goal "<C,x> : fold_set(A, B, f, e) ==> <C, x> : fold_set(C,B, f,e)";
-by (etac fold_set.induct 1);
-by (auto_tac (claset() addSIs fold_set.intrs, simpset()));
-by (res_inst_tac [("C1", "C"), ("A1", "cons(x, C)")] 
-                      (fold_set_mono RS subsetD) 1);
+by (dresolve_tac [inst "C" "C" fold_set_lemma] 1);
+by (Blast_tac 1);
+by (resolve_tac fold_set.intrs 2);
 by Auto_tac;
-qed "fold_set_mono2";
-
+by (blast_tac (claset() addIs [fold_set_mono RS subsetD]) 2);
+by (resolve_tac [fold_set_determ] 1);
+by (assume_tac 5);
+by Auto_tac;
+by (resolve_tac fold_set.intrs 1);
+by Auto_tac;
+by (blast_tac (claset() addIs [fold_set_mono RS subsetD]) 1);
+by (blast_tac (claset() addDs [fold_set.dom_subset RS subsetD]) 1);
+qed_spec_mp "fold_cons_lemma";
 
 Goalw [fold_def]
-     "[| Finite(C); x ~: C; e:B |] \
-\     ==> fold[B](f, e, cons(x, C)) = f(x, fold[B](f,e, C))";
-by (asm_simp_tac (simpset() addsimps [lemma]) 1);
-by (dtac Finite_into_Fin 1);
+"[| C:Fin(A); c:A; c~:C; e:B; \
+\ (ALL x:A. ALL y:B. f(x, y):B); \
+\ (ALL x:A. ALL y:A. ALL z:B. f(x, f(y, z))=f(y, f(x, z))) |]\
+\   ==> fold[B](f, e, cons(c, C)) = f(c, fold[B](f, e, C))";
+by (asm_simp_tac (simpset() addsimps [fold_cons_lemma]) 1);
 by (rtac the_equality 1);
-by (dtac Fin_imp_fold_set 1);
+by (dres_inst_tac [("e", "e"), ("f", "f")] Fin_imp_fold_set 1);
 by Auto_tac;
-by (res_inst_tac [("x", "xa")] exI 1);
+by (res_inst_tac [("x", "x")] exI 1);
 by Auto_tac;
-by (resolve_tac [fold_set_mono RS subsetD] 1);
-by (Blast_tac 2);
-by (dtac fold_set_mono2 3);
-by (auto_tac (claset() addIs [Fin_imp_fold_set],
-              simpset() addsimps [symmetric fold_def, fold_equality]));
+by (blast_tac (claset() addDs [fold_set_lemma]) 1);
+by (ALLGOALS(dtac fold_equality));
+by (auto_tac (claset(), simpset() addsimps [symmetric fold_def]));
+by (REPEAT(blast_tac (claset() addDs [FinD]) 1));
 qed "fold_cons";
 
-
-Goal "Finite(C) \
-\     ==> ALL e:B. f(x, fold[B](f, e, C)) = fold[B](f, f(x, e), C)";
-by (etac Finite_induct 1);
-by (ALLGOALS(Clarify_tac));
-by (asm_full_simp_tac (simpset() addsimps [f_type]) 1);
-by (asm_simp_tac (simpset() 
-         addsimps [f_lcomm, fold_cons, f_type]) 1);
-qed_spec_mp "fold_commute";
-
-
-Goal "Finite(C) ==> e:B -->fold[B](f, e, C):B";
-by (etac  Finite_induct 1);
-by (ALLGOALS(Clarify_tac));
-by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [fold_cons, f_type]) 1);
+Goal 
+"[| C:Fin(A); e:B;  \
+\ (ALL x:A. ALL y:B. f(x, y):B); \
+\ (ALL x:A. ALL y:A. ALL z:B. f(x, f(y, z))=f(y, f(x, z))) |] ==> \
+\  fold[B](f, e,C):B";
+by (etac Fin_induct 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [fold_cons])));
 qed_spec_mp "fold_type";
+AddTCs [fold_type];
+Addsimps [fold_type];
+
+Goal 
+"[| C:Fin(A); c:A; \
+\ ALL x:A. ALL y:B. f(x, y):B; \
+\ ALL x:A. ALL y:A. ALL z:B. f(x, f(y, z))=f(y, f(x, z)) |] \
+\ ==> (ALL y:B. f(c, fold[B](f, y, C)) = fold[B](f, f(c, y), C))";
+by (etac Fin_induct 1);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [fold_cons])));
+qed_spec_mp "fold_commute";
 
 Goal "x:D ==> cons(x, C) Int D = cons(x, C Int D)";
 by Auto_tac;
@@ -202,30 +249,36 @@ Goal "x~:D ==> cons(x, C) Int D = C Int D";
 by Auto_tac;
 qed "cons_Int_right_lemma2";
 
-Goal "[| Finite(C); Finite(D); e:B|] \
-\     ==> fold[B](f, fold[B](f, e, D), C)  \
+Goal 
+"[| C:Fin(A); D:Fin(A); e:B; \
+\ ALL x:A. ALL y:B. f(x, y):B; \
+\ ALL x:A. ALL y:A. ALL z:B. f(x, f(y, z))=f(y, f(x, z)) |] \
+\ ==> \
+\  fold[B](f, fold[B](f, e, D), C)  \
 \  =  fold[B](f, fold[B](f, e, (C Int D)), C Un D)";
-by (etac  Finite_induct 1);
-by (asm_full_simp_tac (simpset() addsimps [f_type, fold_type]) 1);
-by (subgoal_tac  "Finite(Ba Int D) & \
-                 \cons(x, Ba) Un D = cons(x, Ba Un D) & \
-                 \Finite(Ba Un D)" 1);
-by (auto_tac (claset() 
-       addIs [Finite_Un,Int_lower1 RS subset_Finite], simpset()));
+by (etac Fin_induct 1);
+by Auto_tac;
+by (subgoal_tac  "cons(x, y) Un D = cons(x, y Un D)" 1);
+by Auto_tac;
+by (subgoal_tac "y Int D:Fin(A) & y Un D:Fin(A)" 1);
+by (Clarify_tac 1);
 by (case_tac "x:D" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps 
             [cons_Int_right_lemma1,cons_Int_right_lemma2,
-             fold_type, fold_cons,fold_commute,cons_absorb, f_type])));
+             fold_cons, fold_commute,cons_absorb])));
 qed "fold_nest_Un_Int";
 
-
-Goal "[| Finite(C); Finite(D); C Int D = 0; e:B |] \
+Goal "[| C:Fin(A); D:Fin(A); C Int D = 0; e:B; \
+\ ALL x:A. ALL y:B. f(x, y):B; \
+\ ALL x:A. ALL y:A. ALL z:B. f(x, f(y, z))=f(y, f(x, z)) |] \
 \     ==> fold[B](f,e,C Un D) =  fold[B](f, fold[B](f,e,D), C)";
 by (asm_simp_tac (simpset() addsimps [fold_nest_Un_Int]) 1);
 qed "fold_nest_Un_disjoint";
 
-Close_locale "LC";
-
+Goal "Finite(C) ==> C:Fin(cons(c, C))";
+by (dtac Finite_into_Fin 1);
+by (blast_tac (claset() addIs [Fin_mono RS subsetD]) 1);
+qed "Finite_cons_lemma";
 
 (** setsum **)
 
@@ -237,7 +290,9 @@ Addsimps [setsum_0];
 Goalw [setsum_def]
      "[| Finite(C); c~:C |] \
 \     ==> setsum(g, cons(c, C)) = g(c) $+ setsum(g, C)";
-by (asm_simp_tac (simpset() addsimps [Finite_cons,export fold_cons]) 1);
+by (auto_tac (claset(), simpset() addsimps [Finite_cons]));
+by (res_inst_tac [("A", "cons(c, C)")] fold_cons 1);
+by (auto_tac (claset() addIs [Finite_cons_lemma], simpset()));
 qed "setsum_cons";
 Addsimps [setsum_cons];
 
@@ -340,8 +395,6 @@ by (dtac spec 1);
 by (mp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [Ball_def, major]@prems) 1); 
 qed_spec_mp  "setsum_cong";
-
-(** For the natural numbers, we have subtraction **)
 
 Goal "[| Finite(A); Finite(B) |] \
 \     ==> setsum(f, A Un B) = \

@@ -23,16 +23,9 @@ inductive
 constdefs
   
   fold :: "[i, [i,i]=>i, i, i] => i"  ("fold[_]'(_,_,_')")
-  "fold[B](f,e,C) == THE x. <C,x>:fold_set(C, B, f,e)"
+  "fold[B](f,e, A) == THE x. <A, x>:fold_set(A, B, f,e)"
 
    setsum :: "[i=>i, i] => i"
   "setsum(g, C) == if Finite(C) then
                     fold[int](%x y. g(x) $+ y, #0, C) else #0"
-locale LC =
-  fixes
-    B    :: i
-    f    :: [i,i] => i
-  assumes
-    ftype   "f(x,y):B"
-    lcomm   "f(x, f(y, z)) = f(y,f(x, z))"
 end

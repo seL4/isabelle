@@ -9,7 +9,12 @@ The theory features ordinal multisets and the usual ordering.
 *)
 
 Multiset =  FoldSet + Acc +
-
+consts
+  (* Short cut for multiset space *)
+  Mult :: i=>i 
+translations 
+  "Mult(A)" => "A-||>nat-{0}"
+  
 constdefs
   (* M is a multiset *)
   multiset :: i => o
@@ -18,16 +23,12 @@ constdefs
   mset_of :: "i=>i"
   "mset_of(M) == domain(M)"
 
-  (* M is a multiset over A *)
-  multiset_on :: [i,i]=>o  ("multiset[_]'(_')")
-  "multiset[A](M) == multiset(M) & mset_of(M) <= A"
-
   munion    :: "[i, i] => i" (infixl "+#" 65)
   "M +# N == lam x:mset_of(M) Un mset_of(N).
      if x:mset_of(M) Int mset_of(N) then  (M`x) #+ (N`x)
      else (if x:mset_of(M) then M`x else N`x)"
 
-  (* eliminating zeros from a function *)
+  (* eliminating 0's from a function *)
   normalize :: i => i   
   "normalize(M) == restrict(M, {x:mset_of(M). 0<M`x})"
 
@@ -65,17 +66,17 @@ constdefs
   
   multirel1 :: "[i,i]=>i"
   "multirel1(A, r) ==
-     {<M, N> : (A-||>nat-{0})*(A-||>nat-{0}).
-      EX a:A. EX M0:A-||>nat-{0}. EX K:A-||>nat-{0}.
-	N=M0 +# {#a#} & M=M0 +# K & (ALL b:mset_of(K). <b,a>:r)}"
+     {<M, N> : Mult(A)*Mult(A).
+      EX a:A. EX M0:Mult(A). EX K:Mult(A).
+      N=M0 +# {#a#} & M=M0 +# K & (ALL b:mset_of(K). <b,a>:r)}"
   
   multirel :: "[i, i] => i"
   "multirel(A, r) == multirel1(A, r)^+" 		    
 
-  (* ordinal multisets orderings *)
+  (* ordinal multiset orderings *)
   
   omultiset :: i => o
-  "omultiset(M) == EX i. Ord(i) & multiset[field(Memrel(i))](M)"
+  "omultiset(M) == EX i. Ord(i) & M:Mult(field(Memrel(i)))"
   
   mless :: [i, i] => o (infixl "<#" 50)
   "M <# N ==  EX i. Ord(i) & <M, N>:multirel(field(Memrel(i)), Memrel(i))"
