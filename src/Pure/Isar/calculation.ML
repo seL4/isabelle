@@ -58,19 +58,22 @@ struct
 end;
 
 structure LocalCalculation = ProofDataFun(LocalCalculationArgs);
-val get_local_rules = #1 o LocalCalculation.get o Proof.context_of;
+val get_local_rules = #1 o LocalCalculation.get_st;
 val print_local_rules = LocalCalculation.print;
 
 
 (* access calculation *)
 
 fun get_calculation state =
-  (case #2 (LocalCalculation.get (Proof.context_of state)) of
+  (case #2 (LocalCalculation.get_st state) of
     None => None
   | Some (thm, lev) => if lev = Proof.level state then Some thm else None);
 
 fun put_calculation thm state =
   LocalCalculation.put_st (get_local_rules state, Some (thm, Proof.level state)) state;
+
+fun reset_calculation state =
+  LocalCalculation.put_st (get_local_rules state, None) state;
 
 
 
@@ -111,24 +114,16 @@ val trans_attr =
   (trans_att trans_add_global trans_del_global, trans_att trans_add_local trans_del_local);
 
 
+
 (** proof commands **)
 
-fun dest_arg tm =
-  (case ObjectLogic.dest_main_statement tm of
-    _ $ t => t
-  | _ => raise TERM ("dest_arg", [tm]));
+fun have_thms name thms = Proof.have_thmss name [] [(thms, [])];
 
 val calculationN = "calculation";
 
 fun calculate final print state =
   let
     val fact = Proof.the_fact state;
-    val dddot = dest_arg (#prop (Thm.rep_thm fact)) handle TERM _ =>
-      raise Proof.STATE ("Unable to bind '...' pattern from current fact", state);
-
-    val name = if final then "" else calculationN;
-    fun have_thm thm = Proof.have_thmss name [] [([thm], [])];
-
     val rules = Seq.of_list (get_local_rules state);
     val calculations =
       (case get_calculation state of
@@ -137,11 +132,17 @@ fun calculate final print state =
   in
     calculations |> Seq.map (fn calc =>
       (print calc;
-        state
-        |> Proof.bind_i [(Syntax.dddot_indexname, dddot)]
-        |> put_calculation calc
-        |> have_thm calc
-        |> (if final then Proof.chain else Proof.reset_facts)))
+        (if final then
+          state
+          |> reset_calculation
+          |> have_thms calculationN []
+          |> have_thms "" [calc]
+          |> Proof.chain
+        else
+          state
+          |> put_calculation calc
+          |> have_thms calculationN [calc]
+          |> Proof.reset_facts)))
   end;
 
 fun also print = calculate false print;
