@@ -281,21 +281,10 @@ lemma leadsETo_cancel_Diff1:
      "[| F : A leadsTo[CC] (B Un A'); F : (B-A') leadsTo[CC] B' |]  
     ==> F : A leadsTo[CC] (B' Un A')"
 apply (rule leadsETo_cancel1)
-prefer 2 apply assumption
-apply (simp_all (no_asm_simp))
+ prefer 2 apply assumption
+apply simp_all
 done
 
-
-(** The impossibility law **)
-
-lemma leadsETo_empty_lemma: "F : A leadsTo[CC] B ==> B={} --> A={}"
-apply (erule leadsETo_induct)
-apply (simp_all (no_asm_simp))
-apply (unfold ensures_def constrains_def transient_def, blast)
-done
-
-lemma leadsETo_empty: "F : A leadsTo[CC] {} ==> A={}"
-by (blast intro!: leadsETo_empty_lemma [THEN mp])
 
 
 (** PSP: Progress-Safety-Progress **)
@@ -365,23 +354,6 @@ apply (drule_tac [2] P1 = P in preserves_subset_stable [THEN subsetD])
 apply (drule_tac P1 = P in preserves_subset_stable [THEN subsetD])
 apply (unfold stable_def)
 apply (blast intro: constrains_Int [THEN constrains_weaken])+
-done
-
-(*useful??*)
-lemma Join_leadsETo_stable_imp_leadsETo:
-     "[| F Join G : (A leadsTo[CC] B);  ALL C:CC. G : stable C |]  
-      ==> F: (A leadsTo[CC] B)"
-apply (erule leadsETo_induct)
-prefer 3 apply (blast intro: leadsETo_Union)
-prefer 2 apply (blast intro: leadsETo_Trans)
-apply (rule leadsETo_Basis)
-apply (case_tac "A <= B")
-apply (erule subset_imp_ensures)
-apply (auto intro: constrains_weaken simp add: stable_def ensures_def Join_transient)
-apply (erule_tac V = "?F : ?A co ?B" in thin_rl)+
-apply (erule transientE)
-apply (unfold constrains_def)
-apply (blast dest!: bspec)
 done
 
 (**** Relationship with traditional "leadsTo", strong & weak ****)
@@ -538,18 +510,6 @@ apply (simp add: leadsETo_UN extend_set_Union)
 done
 
 
-
-(*NOT USED, but analogous to preserves_project_transient_empty in Project.ML*)
-lemma (in Extend) 
-     "[| G : preserves (v o f);  project h C G : transient D;   
-         D : givenBy v |] ==> D={}"
-apply (rule stable_transient_empty)
- prefer 2 apply assumption
-(*If addIs then PROOF FAILED at depth 2*)
-apply (blast intro!: preserves_givenBy_imp_stable project_preserves_I)
-done
-
-
 (*This version's stronger in the "ensures" precondition
   BUT there's no ensures_weaken_L*)
 lemma (in Extend) Join_project_ensures_strong:
@@ -563,20 +523,7 @@ apply (rule Join_project_ensures)
 apply (auto simp add: Int_Diff)
 done
 
-(*Generalizes preserves_project_transient_empty*)
-lemma (in Extend) preserves_o_project_transient_empty:
-     "[| G : preserves (v o f);   
-         project h C G : transient (C' Int D);   
-         project h C G : stable C';  D : givenBy v |]     
-      ==> C' Int D = {}"
-apply (rule stable_transient_empty)
-prefer 2 apply assumption
-(*Fragile proof.  Was just a single blast call.
-  If just "intro" then PROOF FAILED at depth 3*)
-apply (rule stable_Int) 
- apply (blast intro!: preserves_givenBy_imp_stable project_preserves_I)+
-done
-
+(*NOT WORKING.  MODIFY AS IN Project.thy
 lemma (in Extend) pld_lemma:
      "[| extend h F Join G : stable C;   
          F Join project h C G : (project_set h C Int A) leadsTo[(%D. project_set h C Int D)`givenBy v] B;   
@@ -596,7 +543,7 @@ apply (rule leadsETo_Basis)
  prefer 2
  apply (simp add: Int_Diff Int_extend_set_lemma extend_set_Diff_distrib [symmetric])
 apply (rule Join_project_ensures_strong)
-apply (auto dest: preserves_o_project_transient_empty intro: project_stable_project_set simp add: Int_left_absorb)
+apply (auto intro: project_stable_project_set simp add: Int_left_absorb)
 apply (simp (no_asm_simp) add: stable_ensures_Int [THEN ensures_weaken_R] Int_lower2 project_stable_project_set extend_stable_project_set)
 done
 
@@ -652,6 +599,7 @@ lemma (in Extend) extending_LeadsETo:
 apply (unfold extending_def)
 apply (blast intro: project_LeadsETo_D)
 done
+*)
 
 
 (*** leadsETo in the precondition ***)

@@ -101,9 +101,6 @@ by blast
 lemma Image_Restrict [simp]: "(Restrict A r) `` B = r `` (A \<inter> B)"
 by blast
 
-lemma insert_Id_image_Acts: "f Id = Id ==> insert Id (f`Acts F) = f ` Acts F"
-by (blast intro: sym [THEN image_eqI])
-
 (*Possibly easier than reasoning about "inv h"*)
 lemma good_mapI: 
      assumes surj_h: "surj h"
@@ -338,9 +335,9 @@ done
 
 
 
-subsection{*extend ****)
+subsection{*extend*}
 
-(*** Basic properties*}
+text{*Basic properties*}
 
 lemma Init_extend [simp]:
      "Init (extend h F) = extend_set h (Init F)"
@@ -453,6 +450,8 @@ by (force simp add: component_eq_subset)
 lemma (in Extend) project_mono: "F \<le> G ==> project h C F \<le> project h C G"
 by (simp add: component_eq_subset, blast)
 
+lemma (in Extend) all_total_extend: "all_total F ==> all_total (extend h F)"
+by (simp add: all_total_def Domain_extend_act)
 
 subsection{*Safety: co, stable*}
 
@@ -611,10 +610,7 @@ by auto
 
 lemma (in Extend) extend_transient_slice:
      "extend h F \<in> transient A ==> F \<in> transient (slice A y)"
-apply (unfold transient_def, auto)
-apply (rule bexI, auto)
-apply (force simp add: extend_act_def)
-done
+by (unfold transient_def, auto)
 
 (*Converse?*)
 lemma (in Extend) extend_constrains_slice:

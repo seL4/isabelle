@@ -39,6 +39,7 @@ constdefs
  "a i == {(s, s'). (c s') i = (c s) i + 1 & (C s') = (C s) + 1}"
  
   Component :: "nat => state program"
-  "Component i == mk_program({s. C s = 0 & (c s) i = 0}, {a i},
-	       UN G: preserves (%s. (c s) i). Acts G)"
+  "Component i == mk_total_program({s. C s = 0 & (c s) i = 0},
+				   {a i},
+ 	                           \\<Union>G \\<in> preserves (%s. (c s) i). Acts G)"
 end  

@@ -21,14 +21,14 @@ constdefs
     "cmdF == {(s,s'). s' = s (|NF:= Suc(NF s), BB:=False|) & BB s}"
 
   F :: "state program"
-    "F == mk_program ({s. NF s = 0 & BB s}, {cmdF}, UNIV)"
+    "F == mk_total_program ({s. NF s = 0 & BB s}, {cmdF}, UNIV)"
 
   (*G's program*)
   cmdG :: "(state*state) set"
     "cmdG == {(s,s'). s' = s (|NG:= Suc(NG s), BB:=True|) & ~ BB s}"
 
   G :: "state program"
-    "G == mk_program ({s. NG s = 0 & BB s}, {cmdG}, UNIV)"
+    "G == mk_total_program ({s. NG s = 0 & BB s}, {cmdG}, UNIV)"
 
   (*the joint invariant*)
   invFG :: "state set"

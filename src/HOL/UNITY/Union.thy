@@ -32,7 +32,7 @@ constdefs
   SKIP :: "'a program"
     "SKIP == mk_program (UNIV, {}, UNIV)"
 
-  (*Characterizes safety properties.  Used with specifying AllowedActs*)
+  (*Characterizes safety properties.  Used with specifying Allowed*)
   safety_prop :: "'a program set => bool"
     "safety_prop X == SKIP: X & (\<forall>G. Acts G \<subseteq> UNION X Acts --> G \<in> X)"
 
@@ -316,10 +316,10 @@ done
 subsection{*the ok and OK relations*}
 
 lemma ok_SKIP1 [iff]: "SKIP ok F"
-by (auto simp add: ok_def)
+by (simp add: ok_def)
 
 lemma ok_SKIP2 [iff]: "F ok SKIP"
-by (auto simp add: ok_def)
+by (simp add: ok_def)
 
 lemma ok_Join_commute:
      "(F ok G & (F Join G) ok H) = (G ok H & F ok (G Join H))"
@@ -332,7 +332,8 @@ lemmas ok_sym = ok_commute [THEN iffD1, standard]
 
 lemma ok_iff_OK:
      "OK {(0::int,F),(1,G),(2,H)} snd = (F ok G & (F Join G) ok H)"
-by (simp add: Ball_def conj_disj_distribR ok_def Join_def OK_def insert_absorb all_conj_distrib eq_commute, blast)
+by (simp add: Ball_def conj_disj_distribR ok_def Join_def OK_def insert_absorb
+              all_conj_distrib eq_commute,   blast)
 
 lemma ok_Join_iff1 [iff]: "F ok (G Join H) = (F ok G & F ok H)"
 by (auto simp add: ok_def)
@@ -374,7 +375,7 @@ by (simp add: ok_def Allowed_def)
 lemma OK_iff_Allowed: "OK I F = (\<forall>i \<in> I. \<forall>j \<in> I-{i}. F i \<in> Allowed(F j))"
 by (auto simp add: OK_iff_ok ok_iff_Allowed)
 
-subsection{*@{text safety_prop}, for reasoning about
+subsection{*@{term safety_prop}, for reasoning about
  given instances of "ok"*}
 
 lemma safety_prop_Acts_iff:
@@ -388,11 +389,6 @@ by (auto simp add: Allowed_def safety_prop_Acts_iff [symmetric])
 lemma Allowed_eq:
      "safety_prop X ==> Allowed (mk_program (init, acts, UNION X Acts)) = X"
 by (simp add: Allowed_def safety_prop_Acts_iff)
-
-lemma def_prg_Allowed:
-     "[| F == mk_program (init, acts, UNION X Acts) ; safety_prop X |]  
-      ==> Allowed F = X"
-by (simp add: Allowed_eq)
 
 (*For safety_prop to hold, the property must be satisfiable!*)
 lemma safety_prop_constrains [iff]: "safety_prop (A co B) = (A \<subseteq> B)"
@@ -413,9 +409,35 @@ lemma safety_prop_INTER [simp]:
      "(!!i. i \<in> I ==> safety_prop (X i)) ==> safety_prop (\<Inter>i \<in> I. X i)"
 by (auto simp add: safety_prop_def, blast)
 
+lemma def_prg_Allowed:
+     "[| F == mk_program (init, acts, UNION X Acts) ; safety_prop X |]  
+      ==> Allowed F = X"
+by (simp add: Allowed_eq)
+
+lemma Allowed_totalize [simp]: "Allowed (totalize F) = Allowed F"
+by (simp add: Allowed_def) 
+
+lemma def_total_prg_Allowed:
+     "[| F == mk_total_program (init, acts, UNION X Acts) ; safety_prop X |]  
+      ==> Allowed F = X"
+by (simp add: mk_total_program_def def_prg_Allowed) 
+
 lemma def_UNION_ok_iff:
      "[| F == mk_program(init,acts,UNION X Acts); safety_prop X |]  
       ==> F ok G = (G \<in> X & acts \<subseteq> AllowedActs G)"
 by (auto simp add: ok_def safety_prop_Acts_iff)
+
+text{*The union of two total programs is total.*}
+lemma totalize_Join: "totalize F Join totalize G = totalize (F Join G)"
+by (simp add: program_equalityI totalize_def Join_def image_Un)
+
+lemma all_total_Join: "[|all_total F; all_total G|] ==> all_total (F Join G)"
+by (simp add: all_total_def, blast)
+
+lemma totalize_JN: "(\<Squnion>i \<in> I. totalize (F i)) = totalize(\<Squnion>i \<in> I. F i)"
+by (simp add: program_equalityI totalize_def JOIN_def image_UN)
+
+lemma all_total_JN: "(!!i. i\<in>I ==> all_total (F i)) ==> all_total(\<Squnion>i\<in>I. F i)"
+by (simp add: all_total_iff_totalize totalize_JN [symmetric])
 
 end

@@ -24,7 +24,7 @@ constdefs
     "asgt u v == {(s,s'). s' = s(v:= s u | s v)}"
 
   Rprg :: "state program"
-    "Rprg == mk_program ({%v. v=init}, \<Union>(u,v)\<in>edges. {asgt u v}, UNIV)"
+    "Rprg == mk_total_program ({%v. v=init}, \<Union>(u,v)\<in>edges. {asgt u v}, UNIV)"
 
   reach_invariant :: "state set"
     "reach_invariant == {s. (\<forall>v. s v --> (init, v) \<in> edges^*) & s init}"
@@ -81,7 +81,8 @@ done
 
 lemma lemma1: 
      "FP Rprg \<subseteq> fixedpoint"
-apply (unfold FP_def fixedpoint_def stable_def constrains_def Rprg_def, auto)
+apply (simp add: FP_def fixedpoint_def Rprg_def mk_total_program_def)
+apply (auto simp add: stable_def constrains_def)
 apply (drule bspec, assumption)
 apply (simp add: Image_singleton image_iff)
 apply (drule fun_cong, auto)
@@ -89,8 +90,8 @@ done
 
 lemma lemma2: 
      "fixedpoint \<subseteq> FP Rprg"
-apply (unfold FP_def fixedpoint_def stable_def constrains_def Rprg_def)
-apply (auto intro!: ext)
+apply (simp add: FP_def fixedpoint_def Rprg_def mk_total_program_def)
+apply (auto intro!: ext simp add: stable_def constrains_def)
 done
 
 lemma FP_fixedpoint: "FP Rprg = fixedpoint"
@@ -104,7 +105,8 @@ by (rule equalityI [OF lemma1 lemma2])
   *)
 
 lemma Compl_fixedpoint: "- fixedpoint = (\<Union>(u,v)\<in>edges. {s. s u & ~ s v})"
-apply (auto simp add: Compl_FP UN_UN_flatten FP_fixedpoint [symmetric] Rprg_def)
+apply (simp add: FP_fixedpoint [symmetric] Rprg_def mk_total_program_def)
+apply (auto simp add: Compl_FP UN_UN_flatten)
  apply (rule fun_upd_idem, force)
 apply (force intro!: rev_bexI simp add: fun_upd_idem_iff)
 done

@@ -62,16 +62,13 @@ done
 subsection{*Destruction rules*}
 
 lemma Follows_Increasing1: "F \<in> f Fols g ==> F \<in> Increasing f"
-apply (unfold Follows_def, blast)
-done
+by (unfold Follows_def, blast)
 
 lemma Follows_Increasing2: "F \<in> f Fols g ==> F \<in> Increasing g"
-apply (unfold Follows_def, blast)
-done
+by (unfold Follows_def, blast)
 
 lemma Follows_Bounded: "F \<in> f Fols g ==> F \<in> Always {s. f s \<subseteq> g s}"
-apply (unfold Follows_def, blast)
-done
+by (unfold Follows_def, blast)
 
 lemma Follows_LeadsTo: 
      "F \<in> f Fols g ==> F \<in> {s. k \<le> g s} LeadsTo {s. k \<le> f s}"
@@ -159,8 +156,7 @@ apply (drule_tac x = "g s" in IncreasingD)
 apply (rule LeadsTo_weaken)
 apply (rule PSP_Stable)
 apply (erule_tac x = "f s" in spec)
-apply (erule Stable_Int, assumption)
-apply blast+
+apply (erule Stable_Int, assumption, blast+)
 done
 
 lemma Follows_Un: 
@@ -218,8 +214,7 @@ apply (drule_tac x = "g s" in IncreasingD)
 apply (rule LeadsTo_weaken)
 apply (rule PSP_Stable)
 apply (erule_tac x = "f s" in spec)
-apply (erule Stable_Int, assumption)
-apply blast
+apply (erule Stable_Int, assumption, blast)
 apply (blast intro: union_le_mono order_trans)
 done
 

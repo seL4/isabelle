@@ -50,12 +50,12 @@ constdefs
   invariant :: "'a set => 'a program set"
     "invariant A == {F. Init F \<subseteq> A} \<inter> stable A"
 
-  (*Polymorphic in both states and the meaning of \<le> *)
   increasing :: "['a => 'b::{order}] => 'a program set"
+    --{*Polymorphic in both states and the meaning of @{text "\<le>"}*}
     "increasing f == \<Inter>z. stable {s. z \<le> f s}"
 
 
-(*Perhaps equalities.ML shouldn't add this in the first place!*)
+text{*Perhaps equalities.ML shouldn't add this in the first place!*}
 declare image_Collect [simp del]
 
 (*** The abstract type of programs ***)
@@ -83,14 +83,14 @@ by (simp add: insert_absorb Id_in_AllowedActs)
 (** Inspectors for type "program" **)
 
 lemma Init_eq [simp]: "Init (mk_program (init,acts,allowed)) = init"
-by (auto simp add: program_typedef)
+by (simp add: program_typedef)
 
 lemma Acts_eq [simp]: "Acts (mk_program (init,acts,allowed)) = insert Id acts"
-by (auto simp add: program_typedef)
+by (simp add: program_typedef)
 
 lemma AllowedActs_eq [simp]:
      "AllowedActs (mk_program (init,acts,allowed)) = insert Id allowed"
-by (auto simp add: program_typedef)
+by (simp add: program_typedef)
 
 (** Equality for UNITY programs **)
 
@@ -121,38 +121,6 @@ lemma program_equality_iff:
 by (blast intro: program_equalityI program_equalityE)
 
 
-(*** These rules allow "lazy" definition expansion 
-     They avoid expanding the full program, which is a large expression
-***)
-
-lemma def_prg_Init: "F == mk_program (init,acts,allowed) ==> Init F = init"
-by auto
-
-lemma def_prg_Acts:
-     "F == mk_program (init,acts,allowed) ==> Acts F = insert Id acts"
-by auto
-
-lemma def_prg_AllowedActs:
-     "F == mk_program (init,acts,allowed)  
-      ==> AllowedActs F = insert Id allowed"
-by auto
-
-(*The program is not expanded, but its Init and Acts are*)
-lemma def_prg_simps:
-    "[| F == mk_program (init,acts,allowed) |]  
-     ==> Init F = init & Acts F = insert Id acts"
-by simp
-
-(*An action is expanded only if a pair of states is being tested against it*)
-lemma def_act_simp:
-     "[| act == {(s,s'). P s s'} |] ==> ((s,s') \<in> act) = P s s'"
-by auto
-
-(*A set is expanded only if an element is being tested against it*)
-lemma def_set_simp: "A == B ==> (x \<in> A) = (x \<in> B)"
-by auto
-
-
 (*** co ***)
 
 lemma constrainsI: 
@@ -176,12 +144,12 @@ by (unfold constrains_def, blast)
 lemma constrains_UNIV2 [iff]: "F \<in> A co UNIV"
 by (unfold constrains_def, blast)
 
-(*monotonic in 2nd argument*)
+text{*monotonic in 2nd argument*}
 lemma constrains_weaken_R: 
     "[| F \<in> A co A'; A'<=B' |] ==> F \<in> A co B'"
 by (unfold constrains_def, blast)
 
-(*anti-monotonic in 1st argument*)
+text{*anti-monotonic in 1st argument*}
 lemma constrains_weaken_L: 
     "[| F \<in> A co A'; B \<subseteq> A |] ==> F \<in> B co A'"
 by (unfold constrains_def, blast)
@@ -227,8 +195,8 @@ by (unfold constrains_def, blast)
 lemma constrains_imp_subset: "F \<in> A co A' ==> A \<subseteq> A'"
 by (unfold constrains_def, auto)
 
-(*The reasoning is by subsets since "co" refers to single actions
-  only.  So this rule isn't that useful.*)
+text{*The reasoning is by subsets since "co" refers to single actions
+  only.  So this rule isn't that useful.*}
 lemma constrains_trans: 
     "[| F \<in> A co B; F \<in> B co C |] ==> F \<in> A co C"
 by (unfold constrains_def, blast)
@@ -304,7 +272,7 @@ lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI, standard]
 lemma invariantI: "[| Init F \<subseteq> A;  F \<in> stable A |] ==> F \<in> invariant A"
 by (simp add: invariant_def)
 
-(*Could also say "invariant A \<inter> invariant B \<subseteq> invariant (A \<inter> B)"*)
+text{*Could also say "invariant A \<inter> invariant B \<subseteq> invariant (A \<inter> B)"*}
 lemma invariant_Int:
      "[| F \<in> invariant A;  F \<in> invariant B |] ==> F \<in> invariant (A \<inter> B)"
 by (auto simp add: invariant_def stable_Int)
@@ -314,7 +282,6 @@ by (auto simp add: invariant_def stable_Int)
 
 lemma increasingD: 
      "F \<in> increasing f ==> F \<in> stable {s. z \<subseteq> f s}"
-
 by (unfold increasing_def, blast)
 
 lemma increasing_constant [iff]: "F \<in> increasing (%s. c)"
@@ -341,8 +308,8 @@ lemma elimination:
      ==> F \<in> {s. s x \<in> M} co (\<Union>m \<in> M. B m)"
 by (unfold constrains_def, blast)
 
-(*As above, but for the trivial case of a one-variable state, in which the
-  state is identified with its one variable.*)
+text{*As above, but for the trivial case of a one-variable state, in which the
+  state is identified with its one variable.*}
 lemma elimination_sing: 
     "(\<forall>m \<in> M. F \<in> {m} co (B m)) ==> F \<in> M co (\<Union>m \<in> M. B m)"
 by (unfold constrains_def, blast)
@@ -375,5 +342,120 @@ by blast
 
 lemma Image_inverse_less_than [simp]: "less_than^-1 `` {k} = lessThan k"
 by blast
+
+
+subsection{*Partial versus Total Transitions*}
+
+constdefs
+  totalize_act :: "('a * 'a)set => ('a * 'a)set"
+    "totalize_act act == act \<union> diag (-(Domain act))"
+
+  totalize :: "'a program => 'a program"
+    "totalize F == mk_program (Init F,
+			       totalize_act ` Acts F,
+			       AllowedActs F)"
+
+  mk_total_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
+		   => 'a program"
+    "mk_total_program args == totalize (mk_program args)"
+
+  all_total :: "'a program => bool"
+    "all_total F == \<forall>act \<in> Acts F. Domain act = UNIV"
+  
+lemma insert_Id_image_Acts: "f Id = Id ==> insert Id (f`Acts F) = f ` Acts F"
+by (blast intro: sym [THEN image_eqI])
+
+
+text{*Basic properties*}
+
+lemma totalize_act_Id [simp]: "totalize_act Id = Id"
+by (simp add: totalize_act_def) 
+
+lemma Domain_totalize_act [simp]: "Domain (totalize_act act) = UNIV"
+by (auto simp add: totalize_act_def)
+
+lemma Init_totalize [simp]: "Init (totalize F) = Init F"
+by (unfold totalize_def, auto)
+
+lemma Acts_totalize [simp]: "Acts (totalize F) = (totalize_act ` Acts F)"
+by (simp add: totalize_def insert_Id_image_Acts) 
+
+lemma AllowedActs_totalize [simp]: "AllowedActs (totalize F) = AllowedActs F"
+by (simp add: totalize_def)
+
+lemma totalize_constrains_iff [simp]: "(totalize F \<in> A co B) = (F \<in> A co B)"
+by (simp add: totalize_def totalize_act_def constrains_def, blast)
+
+lemma totalize_stable_iff [simp]: "(totalize F \<in> stable A) = (F \<in> stable A)"
+by (simp add: stable_def)
+
+lemma totalize_invariant_iff [simp]:
+     "(totalize F \<in> invariant A) = (F \<in> invariant A)"
+by (simp add: invariant_def)
+
+lemma all_total_totalize: "all_total (totalize F)"
+by (simp add: totalize_def all_total_def)
+
+lemma Domain_iff_totalize_act: "(Domain act = UNIV) = (totalize_act act = act)"
+by (force simp add: totalize_act_def)
+
+lemma all_total_imp_totalize: "all_total F ==> (totalize F = F)"
+apply (simp add: all_total_def totalize_def) 
+apply (rule program_equalityI)
+  apply (simp_all add: Domain_iff_totalize_act image_def)
+done
+
+lemma all_total_iff_totalize: "all_total F = (totalize F = F)"
+apply (rule iffI) 
+ apply (erule all_total_imp_totalize) 
+apply (erule subst) 
+apply (rule all_total_totalize) 
+done
+
+lemma mk_total_program_constrains_iff [simp]:
+     "(mk_total_program args \<in> A co B) = (mk_program args \<in> A co B)"
+by (simp add: mk_total_program_def)
+
+
+subsection{*Rules for Lazy Definition Expansion*}
+
+text{*They avoid expanding the full program, which is a large expression*}
+
+lemma def_prg_Init:
+     "F == mk_total_program (init,acts,allowed) ==> Init F = init"
+by (simp add: mk_total_program_def)
+
+lemma def_prg_Acts:
+     "F == mk_total_program (init,acts,allowed) 
+      ==> Acts F = insert Id (totalize_act ` acts)"
+by (simp add: mk_total_program_def)
+
+lemma def_prg_AllowedActs:
+     "F == mk_total_program (init,acts,allowed)  
+      ==> AllowedActs F = insert Id allowed"
+by (simp add: mk_total_program_def)
+
+text{*An action is expanded if a pair of states is being tested against it*}
+lemma def_act_simp:
+     "act == {(s,s'). P s s'} ==> ((s,s') \<in> act) = P s s'"
+by (simp add: mk_total_program_def)
+
+text{*A set is expanded only if an element is being tested against it*}
+lemma def_set_simp: "A == B ==> (x \<in> A) = (x \<in> B)"
+by (simp add: mk_total_program_def)
+
+(** Inspectors for type "program" **)
+
+lemma Init_total_eq [simp]:
+     "Init (mk_total_program (init,acts,allowed)) = init"
+by (simp add: mk_total_program_def)
+
+lemma Acts_total_eq [simp]:
+    "Acts(mk_total_program(init,acts,allowed)) = insert Id (totalize_act`acts)"
+by (simp add: mk_total_program_def)
+
+lemma AllowedActs_total_eq [simp]:
+     "AllowedActs (mk_total_program (init,acts,allowed)) = insert Id allowed"
+by (auto simp add: mk_total_program_def)
 
 end

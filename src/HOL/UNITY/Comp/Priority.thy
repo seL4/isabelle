@@ -35,7 +35,7 @@ constdefs
 
   (* All components start with the same initial state *)
   Component :: "vertex=>state program"
-  "Component i == mk_program({init}, {act i}, UNIV)"
+  "Component i == mk_total_program({init}, {act i}, UNIV)"
 
   (* Abbreviations *)
   Highest :: "vertex=>state set"

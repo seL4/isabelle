@@ -55,7 +55,7 @@ constdefs
 subsection{*traces and reachable*}
 
 lemma reachable_equiv_traces:
-     "reachable F = {s. \<exists>evs. (s,evs): traces (Init F) (Acts F)}"
+     "reachable F = {s. \<exists>evs. (s,evs) \<in> traces (Init F) (Acts F)}"
 apply safe
 apply (erule_tac [2] traces.induct)
 apply (erule reachable.induct)
@@ -391,5 +391,36 @@ by (auto simp add: Always_eq_includes_reachable)
 (*Delete the nearest invariance assumption (which will be the second one
   used by Always_Int_I) *)
 lemmas Always_thin = thin_rl [of "F \<in> Always A", standard]
+
+
+subsection{*Totalize*}
+
+lemma reachable_imp_reachable_tot:
+      "s \<in> reachable F ==> s \<in> reachable (totalize F)"
+apply (erule reachable.induct)
+ apply (rule reachable.Init) 
+ apply simp 
+apply (rule_tac act = "totalize_act act" in reachable.Acts) 
+apply (auto simp add: totalize_act_def) 
+done
+
+lemma reachable_tot_imp_reachable:
+      "s \<in> reachable (totalize F) ==> s \<in> reachable F"
+apply (erule reachable.induct)
+ apply (rule reachable.Init, simp) 
+apply (force simp add: totalize_act_def intro: reachable.Acts) 
+done
+
+lemma reachable_tot_eq [simp]: "reachable (totalize F) = reachable F"
+by (blast intro: reachable_imp_reachable_tot reachable_tot_imp_reachable) 
+
+lemma totalize_Constrains_iff [simp]: "(totalize F \<in> A Co B) = (F \<in> A Co B)"
+by (simp add: Constrains_def) 
+
+lemma totalize_Stable_iff [simp]: "(totalize F \<in> Stable A) = (F \<in> Stable A)"
+by (simp add: Stable_def)
+
+lemma totalize_Always_iff [simp]: "(totalize F \<in> Always A) = (F \<in> Always A)"
+by (simp add: Always_def)
 
 end

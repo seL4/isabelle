@@ -27,28 +27,20 @@ translations
 
 (*** Basic properties ***)
 
-lemma Init_PLam: "Init (PLam I F) = (\<Inter>i \<in> I. lift_set i (Init (F i)))"
-apply (simp (no_asm) add: PLam_def lift_def lift_set_def)
-done
+lemma Init_PLam [simp]: "Init (PLam I F) = (\<Inter>i \<in> I. lift_set i (Init (F i)))"
+by (simp add: PLam_def lift_def lift_set_def)
 
-declare Init_PLam [simp]
+lemma PLam_empty [simp]: "PLam {} F = SKIP"
+by (simp add: PLam_def)
 
-lemma PLam_empty: "PLam {} F = SKIP"
-apply (simp (no_asm) add: PLam_def)
-done
-
-lemma PLam_SKIP: "(plam i : I. SKIP) = SKIP"
-apply (simp (no_asm) add: PLam_def lift_SKIP JN_constant)
-done
-
-declare PLam_SKIP [simp] PLam_empty [simp]
+lemma PLam_SKIP [simp]: "(plam i : I. SKIP) = SKIP"
+by (simp add: PLam_def lift_SKIP JN_constant)
 
 lemma PLam_insert: "PLam (insert i I) F = (lift i (F i)) Join (PLam I F)"
 by (unfold PLam_def, auto)
 
 lemma PLam_component_iff: "((PLam I F) \<le> H) = (\<forall>i \<in> I. lift i (F i) \<le> H)"
-apply (simp (no_asm) add: PLam_def JN_component_iff)
-done
+by (simp add: PLam_def JN_component_iff)
 
 lemma component_PLam: "i \<in> I ==> lift i (F i) \<le> (PLam I F)"
 apply (unfold PLam_def)
@@ -59,87 +51,89 @@ done
 
 (** Safety & Progress: but are they used anywhere? **)
 
-lemma PLam_constrains: 
-     "[| i \<in> I;  \<forall>j. F j \<in> preserves snd |] ==>   
-      (PLam I F \<in> (lift_set i (A <*> UNIV)) co  
-                  (lift_set i (B <*> UNIV)))  =   
-      (F i \<in> (A <*> UNIV) co (B <*> UNIV))"
-apply (simp (no_asm_simp) add: PLam_def JN_constrains)
+lemma PLam_constrains:
+     "[| i \<in> I;  \<forall>j. F j \<in> preserves snd |]
+      ==> (PLam I F \<in> (lift_set i (A <*> UNIV)) co
+                      (lift_set i (B <*> UNIV)))  =
+          (F i \<in> (A <*> UNIV) co (B <*> UNIV))"
+apply (simp add: PLam_def JN_constrains)
 apply (subst insert_Diff [symmetric], assumption)
-apply (simp (no_asm_simp) add: lift_constrains)
+apply (simp add: lift_constrains)
 apply (blast intro: constrains_imp_lift_constrains)
 done
 
-lemma PLam_stable: 
-     "[| i \<in> I;  \<forall>j. F j \<in> preserves snd |]   
-      ==> (PLam I F \<in> stable (lift_set i (A <*> UNIV))) =  
+lemma PLam_stable:
+     "[| i \<in> I;  \<forall>j. F j \<in> preserves snd |]
+      ==> (PLam I F \<in> stable (lift_set i (A <*> UNIV))) =
           (F i \<in> stable (A <*> UNIV))"
-apply (simp (no_asm_simp) add: stable_def PLam_constrains)
-done
+by (simp add: stable_def PLam_constrains)
 
-lemma PLam_transient: 
-     "i \<in> I ==>  
+lemma PLam_transient:
+     "i \<in> I ==>
     PLam I F \<in> transient A = (\<exists>i \<in> I. lift i (F i) \<in> transient A)"
-apply (simp (no_asm_simp) add: JN_transient PLam_def)
+by (simp add: JN_transient PLam_def)
+
+text{*This holds because the @{term "F j"} cannot change @{term "lift_set i"}*}
+lemma PLam_ensures:
+     "[| i \<in> I;  F i \<in> (A <*> UNIV) ensures (B <*> UNIV);
+         \<forall>j. F j \<in> preserves snd |]
+      ==> PLam I F \<in> lift_set i (A <*> UNIV) ensures lift_set i (B <*> UNIV)"
+apply (simp add: ensures_def PLam_constrains PLam_transient
+              lift_set_Un_distrib [symmetric] lift_set_Diff_distrib [symmetric]
+              Times_Un_distrib1 [symmetric] Times_Diff_distrib1 [symmetric])
+apply (rule rev_bexI, assumption)
+apply (simp add: lift_transient)
 done
 
-(*This holds because the F j cannot change (lift_set i)*)
-lemma PLam_ensures: 
-     "[| i \<in> I;  F i \<in> (A <*> UNIV) ensures (B <*> UNIV);   
-         \<forall>j. F j \<in> preserves snd |] ==>   
-      PLam I F \<in> lift_set i (A <*> UNIV) ensures lift_set i (B <*> UNIV)"
-apply (auto simp add: ensures_def PLam_constrains PLam_transient lift_transient_eq_disj lift_set_Un_distrib [symmetric] lift_set_Diff_distrib [symmetric] Times_Un_distrib1 [symmetric] Times_Diff_distrib1 [symmetric])
-done
-
-lemma PLam_leadsTo_Basis: 
-     "[| i \<in> I;   
-         F i \<in> ((A <*> UNIV) - (B <*> UNIV)) co  
-               ((A <*> UNIV) \<union> (B <*> UNIV));   
-         F i \<in> transient ((A <*> UNIV) - (B <*> UNIV));   
-         \<forall>j. F j \<in> preserves snd |] ==>   
-      PLam I F \<in> lift_set i (A <*> UNIV) leadsTo lift_set i (B <*> UNIV)"
+lemma PLam_leadsTo_Basis:
+     "[| i \<in> I;
+         F i \<in> ((A <*> UNIV) - (B <*> UNIV)) co
+               ((A <*> UNIV) \<union> (B <*> UNIV));
+         F i \<in> transient ((A <*> UNIV) - (B <*> UNIV));
+         \<forall>j. F j \<in> preserves snd |]
+      ==> PLam I F \<in> lift_set i (A <*> UNIV) leadsTo lift_set i (B <*> UNIV)"
 by (rule PLam_ensures [THEN leadsTo_Basis], rule_tac [2] ensuresI)
 
 
 
 (** invariant **)
 
-lemma invariant_imp_PLam_invariant: 
-     "[| F i \<in> invariant (A <*> UNIV);  i \<in> I;   
-         \<forall>j. F j \<in> preserves snd |]  
+lemma invariant_imp_PLam_invariant:
+     "[| F i \<in> invariant (A <*> UNIV);  i \<in> I;
+         \<forall>j. F j \<in> preserves snd |]
       ==> PLam I F \<in> invariant (lift_set i (A <*> UNIV))"
 by (auto simp add: PLam_stable invariant_def)
 
 
 lemma PLam_preserves_fst [simp]:
-     "\<forall>j. F j \<in> preserves snd  
-      ==> (PLam I F \<in> preserves (v o sub j o fst)) =  
+     "\<forall>j. F j \<in> preserves snd
+      ==> (PLam I F \<in> preserves (v o sub j o fst)) =
           (if j \<in> I then F j \<in> preserves (v o fst) else True)"
-by (simp (no_asm_simp) add: PLam_def lift_preserves_sub)
+by (simp add: PLam_def lift_preserves_sub)
 
 lemma PLam_preserves_snd [simp,intro]:
      "\<forall>j. F j \<in> preserves snd ==> PLam I F \<in> preserves snd"
-by (simp (no_asm_simp) add: PLam_def lift_preserves_snd_I)
+by (simp add: PLam_def lift_preserves_snd_I)
 
 
 
 (*** guarantees properties ***)
 
-(*This rule looks unsatisfactory because it refers to "lift".  One must use
+text{*This rule looks unsatisfactory because it refers to "lift".  One must use
   lift_guarantees_eq_lift_inv to rewrite the first subgoal and
   something like lift_preserves_sub to rewrite the third.  However there's
-  no obvious way to alternative for the third premise.*)
-lemma guarantees_PLam_I: 
-    "[| lift i (F i): X guarantees Y;  i \<in> I;   
-        OK I (%i. lift i (F i)) |]   
+  no obvious way to alternative for the third premise.*}
+lemma guarantees_PLam_I:
+    "[| lift i (F i): X guarantees Y;  i \<in> I;
+        OK I (%i. lift i (F i)) |]
      ==> (PLam I F) \<in> X guarantees Y"
 apply (unfold PLam_def)
-apply (simp (no_asm_simp) add: guarantees_JN_I)
+apply (simp add: guarantees_JN_I)
 done
 
 lemma Allowed_PLam [simp]:
      "Allowed (PLam I F) = (\<Inter>i \<in> I. lift i ` Allowed(F i))"
-by (simp (no_asm) add: PLam_def)
+by (simp add: PLam_def)
 
 
 lemma PLam_preserves [simp]:
@@ -149,24 +143,24 @@ by (simp add: PLam_def lift_def rename_preserves)
 
 (**UNUSED
     (*The f0 premise ensures that the product is well-defined.*)
-    lemma PLam_invariant_imp_invariant: 
-     "[| PLam I F \<in> invariant (lift_set i A);  i \<in> I;   
+    lemma PLam_invariant_imp_invariant:
+     "[| PLam I F \<in> invariant (lift_set i A);  i \<in> I;
              f0: Init (PLam I F) |] ==> F i \<in> invariant A"
     apply (auto simp add: invariant_def)
     apply (drule_tac c = "f0 (i:=x) " in subsetD)
     apply auto
     done
 
-    lemma PLam_invariant: 
-     "[| i \<in> I;  f0: Init (PLam I F) |]  
+    lemma PLam_invariant:
+     "[| i \<in> I;  f0: Init (PLam I F) |]
           ==> (PLam I F \<in> invariant (lift_set i A)) = (F i \<in> invariant A)"
     apply (blast intro: invariant_imp_PLam_invariant PLam_invariant_imp_invariant)
     done
 
     (*The f0 premise isn't needed if F is a constant program because then
       we get an initial state by replicating that of F*)
-    lemma reachable_PLam: 
-     "i \<in> I  
+    lemma reachable_PLam:
+     "i \<in> I
           ==> ((plam x \<in> I. F) \<in> invariant (lift_set i A)) = (F \<in> invariant A)"
     apply (auto simp add: invariant_def)
     done
@@ -185,15 +179,15 @@ by (simp add: PLam_def lift_def rename_preserves)
     lemma "{f. \<forall>i \<in> I. f i \<in> R i} = (\<Inter>i \<in> I. lift_set i (R i))"
     by auto
 
-    lemma reachable_PLam_subset1: 
+    lemma reachable_PLam_subset1:
      "reachable (PLam I F) \<subseteq> (\<Inter>i \<in> I. lift_set i (reachable (F i)))"
     apply (force dest!: reachable_PLam)
     done
 
     (*simplify using reachable_lift??*)
     lemma reachable_lift_Join_PLam [rule_format]:
-      "[| i \<notin> I;  A \<in> reachable (F i) |]      
-       ==> \<forall>f. f \<in> reachable (PLam I F)       
+      "[| i \<notin> I;  A \<in> reachable (F i) |]
+       ==> \<forall>f. f \<in> reachable (PLam I F)
                   --> f(i:=A) \<in> reachable (lift i (F i) Join PLam I F)"
     apply (erule reachable.induct)
     apply (ALLGOALS Clarify_tac)
@@ -222,16 +216,16 @@ by (simp add: PLam_def lift_def rename_preserves)
 
     (*The index set must be finite: otherwise infinitely many copies of F can
       perform actions, and PLam can never catch up in finite time.*)
-    lemma reachable_PLam_subset2: 
-     "finite I  
+    lemma reachable_PLam_subset2:
+     "finite I
           ==> (\<Inter>i \<in> I. lift_set i (reachable (F i))) \<subseteq> reachable (PLam I F)"
     apply (erule finite_induct)
     apply (simp (no_asm))
     apply (force dest: reachable_lift_Join_PLam simp add: PLam_insert)
     done
 
-    lemma reachable_PLam_eq: 
-     "finite I ==>  
+    lemma reachable_PLam_eq:
+     "finite I ==>
           reachable (PLam I F) = (\<Inter>i \<in> I. lift_set i (reachable (F i)))"
     apply (REPEAT_FIRST (ares_tac [equalityI, reachable_PLam_subset1, reachable_PLam_subset2]))
     done
@@ -239,8 +233,8 @@ by (simp add: PLam_def lift_def rename_preserves)
 
     (** Co **)
 
-    lemma Constrains_imp_PLam_Constrains: 
-     "[| F i \<in> A Co B;  i \<in> I;  finite I |]   
+    lemma Constrains_imp_PLam_Constrains:
+     "[| F i \<in> A Co B;  i \<in> I;  finite I |]
           ==> PLam I F \<in> (lift_set i A) Co (lift_set i B)"
     apply (auto simp add: Constrains_def Collect_conj_eq [symmetric] reachable_PLam_eq)
     apply (auto simp add: constrains_def PLam_def)
@@ -249,37 +243,37 @@ by (simp add: PLam_def lift_def rename_preserves)
 
 
 
-    lemma PLam_Constrains: 
-     "[| i \<in> I;  finite I;  f0: Init (PLam I F) |]   
-          ==> (PLam I F \<in> (lift_set i A) Co (lift_set i B)) =   
+    lemma PLam_Constrains:
+     "[| i \<in> I;  finite I;  f0: Init (PLam I F) |]
+          ==> (PLam I F \<in> (lift_set i A) Co (lift_set i B)) =
               (F i \<in> A Co B)"
     apply (blast intro: Constrains_imp_PLam_Constrains PLam_Constrains_imp_Constrains)
     done
 
-    lemma PLam_Stable: 
-     "[| i \<in> I;  finite I;  f0: Init (PLam I F) |]   
+    lemma PLam_Stable:
+     "[| i \<in> I;  finite I;  f0: Init (PLam I F) |]
           ==> (PLam I F \<in> Stable (lift_set i A)) = (F i \<in> Stable A)"
-    apply (simp (no_asm_simp) del: Init_PLam add: Stable_def PLam_Constrains)
+    apply (simp del: Init_PLam add: Stable_def PLam_Constrains)
     done
 
 
     (** const_PLam (no dependence on i) doesn't require the f0 premise **)
 
-    lemma const_PLam_Constrains: 
-     "[| i \<in> I;  finite I |]   
-          ==> ((plam x \<in> I. F) \<in> (lift_set i A) Co (lift_set i B)) =   
+    lemma const_PLam_Constrains:
+     "[| i \<in> I;  finite I |]
+          ==> ((plam x \<in> I. F) \<in> (lift_set i A) Co (lift_set i B)) =
               (F \<in> A Co B)"
     apply (blast intro: Constrains_imp_PLam_Constrains const_PLam_Constrains_imp_Constrains)
     done
 
-    lemma const_PLam_Stable: 
-     "[| i \<in> I;  finite I |]   
+    lemma const_PLam_Stable:
+     "[| i \<in> I;  finite I |]
           ==> ((plam x \<in> I. F) \<in> Stable (lift_set i A)) = (F \<in> Stable A)"
-    apply (simp (no_asm_simp) add: Stable_def const_PLam_Constrains)
+    apply (simp add: Stable_def const_PLam_Constrains)
     done
 
-    lemma const_PLam_Increasing: 
-	 "[| i \<in> I;  finite I |]   
+    lemma const_PLam_Increasing:
+	 "[| i \<in> I;  finite I |]
           ==> ((plam x \<in> I. F) \<in> Increasing (f o sub i)) = (F \<in> Increasing f)"
     apply (unfold Increasing_def)
     apply (subgoal_tac "\<forall>z. {s. z \<subseteq> (f o sub i) s} = lift_set i {s. z \<subseteq> f s}")

@@ -18,7 +18,7 @@ constdefs
     "decr == UN n uu. {((Suc n, uu), (n,uu))}"
   
   Timer :: "'a state program"
-    "Timer == mk_program (UNIV, {decr}, UNIV)"
+    "Timer == mk_total_program (UNIV, {decr}, UNIV)"
 
 
 declare Timer_def [THEN def_prg_Init, simp]
@@ -61,8 +61,8 @@ apply (auto intro: subset_imp_leadsTo
 apply (rename_tac "n")
 apply (rule PLam_leadsTo_Basis)
 apply (auto simp add: lessThan_Suc [symmetric])
-apply (unfold Timer_def, constrains) 
-apply (rule_tac act = decr in transientI, auto)
+apply (unfold Timer_def mk_total_program_def, constrains) 
+apply (rule_tac act = decr in totalize_transientI, auto)
 done
 
 end

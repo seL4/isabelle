@@ -30,10 +30,10 @@ constdefs
   
   rel_act :: "('a state_d * 'a state_d) set"
     "rel_act == {(s,s').
-		  EX nrel. nrel = size (rel s) &
-		           s' = s (| rel := rel s @ [giv s!nrel] |) &
-		           nrel < size (giv s) &
-		           ask s!nrel <= giv s!nrel}"
+		  \\<exists>nrel. nrel = size (rel s) &
+		         s' = s (| rel := rel s @ [giv s!nrel] |) &
+		         nrel < size (giv s) &
+		         ask s!nrel <= giv s!nrel}"
 
   (** Choose a new token requirement **)
 
@@ -49,10 +49,11 @@ constdefs
 
   Client :: 'a state_d program
     "Client ==
-       mk_program ({s. tok s : atMost NbT &
-		    giv s = [] & ask s = [] & rel s = []},
-		   {rel_act, tok_act, ask_act},
-		   UN G: preserves rel Int preserves ask Int preserves tok.
+       mk_total_program
+            ({s. tok s : atMost NbT &
+		 giv s = [] & ask s = [] & rel s = []},
+	     {rel_act, tok_act, ask_act},
+	     \\<Union>G \\<in> preserves rel Int preserves ask Int preserves tok.
 		   Acts G)"
 
   (*Maybe want a special theory section to declare such maps*)

@@ -109,8 +109,7 @@ by (blast intro: ex1 ex2)
 lemma ex_prop_equiv: 
      "ex_prop X = (\<forall>G. G \<in> X = (\<forall>H. (G component_of H) --> H \<in> X))"
 apply auto
-apply (unfold ex_prop_def component_of_def, safe)
-apply blast 
+apply (unfold ex_prop_def component_of_def, safe, blast) 
 apply blast 
 apply (subst Join_commute) 
 apply (drule ok_sym, blast) 

@@ -86,6 +86,9 @@ lemma trans_Id: "trans Id"
 
 subsection {* Diagonal: identity over a set *}
 
+lemma diag_empty [simp]: "diag {} = {}"
+  by (simp add: diag_def) 
+
 lemma diag_eqI: "a = b ==> a : A ==> (a, b) : diag A"
   by (simp add: diag_def)
 
@@ -316,6 +319,9 @@ lemma Image_Int_subset: "R `` (A Int B) \<subseteq> R `` A Int R `` B"
   by blast
 
 lemma Image_Un: "R `` (A Un B) = R `` A Un R `` B"
+  by blast
+
+lemma Un_Image: "(R \<union> S) `` A = R `` A \<union> S `` A"
   by blast
 
 lemma Image_subset: "r \<subseteq> A \<times> B ==> r``C \<subseteq> B"

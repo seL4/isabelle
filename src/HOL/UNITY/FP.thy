@@ -56,4 +56,7 @@ by (simp add: FP_def stable_def constrains_def, blast)
 lemma Diff_FP: "A - (FP F) = (UN act: Acts F. A - {s. act``{s} <= {s}})"
 by (simp add: Diff_eq Compl_FP)
 
+lemma totalize_FP [simp]: "FP (totalize F) = FP F"
+by (simp add: FP_def)
+
 end

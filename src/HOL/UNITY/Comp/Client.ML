@@ -14,7 +14,7 @@ Goal "(Client ok G) = \
 \     (G : preserves rel & G : preserves ask & G : preserves tok &\
 \      Client : Allowed G)";
 by (auto_tac (claset(), 
-      simpset() addsimps [ok_iff_Allowed, Client_def RS def_prg_Allowed]));  
+    simpset() addsimps [ok_iff_Allowed, Client_def RS def_total_prg_Allowed]));
 qed "Client_ok_iff";
 AddIffs [Client_ok_iff];
 
@@ -79,7 +79,8 @@ by (force_tac (claset() addIs [AlwaysI, Join_Stable_rel_le_giv], simpset()) 1);
 qed "Join_Always_rel_le_giv";
 
 Goal "Client : transient {s. rel s = k & k<h & h <= giv s & h pfixGe ask s}";
-by (res_inst_tac [("act", "rel_act")] transientI 1);
+by (simp_tac (simpset() addsimps [Client_def, mk_total_program_def]) 1);
+by (res_inst_tac [("act", "rel_act")] totalize_transientI 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Domain_def, Client_def]));
 by (blast_tac (claset() addIs [less_le_trans, prefix_length_le,

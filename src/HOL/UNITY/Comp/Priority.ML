@@ -77,7 +77,7 @@ qed "Safety";
 
 (* property 13: universal *)
 Goal "system: {s. s = q} co {s. s=q} Un {s. EX i. derive i q s}";
-by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def, mk_total_program_def, totalize_JN]) 1); 
 by (constrains_tac 1);
 by (Blast_tac 1);
 qed "p13";
@@ -88,16 +88,15 @@ Goal
 "ALL j. system: -Highest i Int {s. j~:above i s} co {s. j~:above i s}";
 by (Clarify_tac 1);
 by (cut_inst_tac [("i", "j")] reach_lemma 1);
-by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def, mk_total_program_def, totalize_JN]) 1); 
 by (constrains_tac 1);
 by (auto_tac (claset(), simpset() addsimps [trancl_converse]));
 qed "above_not_increase";  
 
-Goal 
-"system: -Highest i Int {s. above i s = x} co {s. above i s <= x}";
+Goal "system: -Highest i Int {s. above i s = x} co {s. above i s <= x}";
 by (cut_inst_tac [("i", "i")] above_not_increase 1);
-by (asm_full_simp_tac (simpset() addsimps 
-                 [trancl_converse, constrains_def]) 1); 
+by (asm_full_simp_tac
+    (simpset() addsimps [trancl_converse, constrains_def]) 1); 
 by (Blast_tac 1);
 qed "above_not_increase'";  
 
@@ -106,7 +105,7 @@ qed "above_not_increase'";
 (* p15: universal property: all Components well behave  *)
 Goal "ALL i. system: Highest i co Highest i Un Lowest i";
 by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def, mk_total_program_def, totalize_JN]) 1); 
 by (constrains_tac 1);
 by Auto_tac;
 qed "system_well_behaves";  
@@ -147,9 +146,9 @@ qed "Acyclic_Maximal_stable";
 (* propert 5: existential property *)
 
 Goal "system: Highest i leadsTo Lowest i";
-by (asm_full_simp_tac (simpset() addsimps [system_def]) 1); 
+by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def, mk_total_program_def, totalize_JN]) 1); 
 by (ensures_tac "act i" 1);
-by (auto_tac (claset(), simpset() addsimps [Component_def]));
+by Auto_tac;
 qed "Highest_leadsTo_Lowest";
 
 (* a lowest i can never be in any abover set *) 

@@ -22,8 +22,7 @@ AddDs [impOfSubs Fake_parts_insert];
   Here, it facilitates re-use of the Auth proofs.*)
 
 AddIffs (map simp_of_act [Fake_def, NS1_def, NS2_def, NS3_def]);
-
-Addsimps [Nprg_def RS def_prg_simps];
+Addsimps [Nprg_def RS def_prg_Init];
 
 
 (*A "possibility property": there are traces that reach the end.
@@ -31,12 +30,13 @@ Addsimps [Nprg_def RS def_prg_simps];
 Goal "A ~= B ==> EX NB. EX s: reachable Nprg.                \
 \                  Says A B (Crypt (pubK B) (Nonce NB)) : set s";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (res_inst_tac [("act", "NS3")] reachable_Acts 2);
-by (res_inst_tac [("act", "NS2")] reachable_Acts 3);
-by (res_inst_tac [("act", "NS1")] reachable_Acts 4);
+by (res_inst_tac [("act", "totalize_act NS3")] reachable_Acts 2);
+by (res_inst_tac [("act", "totalize_act NS2")] reachable_Acts 3);
+by (res_inst_tac [("act", "totalize_act NS1")] reachable_Acts 4);
 by (rtac reachable_Init 5);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [Nprg_def])));
-by (REPEAT_FIRST (rtac exI ));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Nprg_def, totalize_act_def])));
+  (*Now ignore the possibility of identity transitions*)
+by (REPEAT_FIRST (resolve_tac [disjI1, exI]));
 by possibility_tac;
 result();
 
@@ -54,12 +54,23 @@ by (rtac analz_impI 2);
 by (auto_tac (claset() addSDs [spies_Says_analz_contraD], simpset()));
 *)
 
+val [prem] = 
+Goal "(!!act s s'. [| act: {Id, Fake, NS1, NS2, NS3};  \
+\                     (s,s') \\<in> act;  s \\<in> A |] ==> s': A')  \
+\     ==> Nprg \\<in> A co A'";
+by (asm_full_simp_tac (simpset() addsimps [Nprg_def, mk_total_program_def]) 1);
+by (rtac constrainsI 1); 
+by (rtac prem 1); 
+by Auto_tac; 
+qed "ns_constrainsI";
+
+
 fun ns_constrains_tac i = 
    SELECT_GOAL
       (EVERY [REPEAT (etac Always_ConstrainsI 1),
 	      REPEAT (resolve_tac [StableI, stableI,
 				   constrains_imp_Constrains] 1),
-	      rtac constrainsI 1,
+	      rtac ns_constrainsI 1,
 	      Full_simp_tac 1,
 	      REPEAT (FIRSTGOAL (etac disjE)),
 	      ALLGOALS (clarify_tac (claset() delrules [impI,impCE])),

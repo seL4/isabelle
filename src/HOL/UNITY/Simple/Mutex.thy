@@ -54,9 +54,10 @@ constdefs
     "V4 == {(s,s'). s' = s (|p:=False, n:=0|) & n s = 4}"
 
   Mutex :: "state program"
-    "Mutex == mk_program ({s. ~ u s & ~ v s & m s = 0 & n s = 0},
-		 	  {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4},
-			  UNIV)"
+    "Mutex == mk_total_program
+                 ({s. ~ u s & ~ v s & m s = 0 & n s = 0},
+		  {U0, U1, U2, U3, U4, V0, V1, V2, V3, V4},
+                  UNIV)"
 
 
   (** The correct invariants **)

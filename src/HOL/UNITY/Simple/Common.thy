@@ -54,20 +54,27 @@ lemma "SKIP \<in> {m} co (maxfg m)"
 by (simp add: constrains_def maxfg_def le_max_iff_disj fasc)
 
 (*This one is  t := ftime t || t := gtime t*)
-lemma "mk_program (UNIV, {range(%t.(t,ftime t)), range(%t.(t,gtime t))}, UNIV)
+lemma "mk_total_program
+         (UNIV, {range(%t.(t,ftime t)), range(%t.(t,gtime t))}, UNIV)
        \<in> {m} co (maxfg m)"
-by (simp add: constrains_def maxfg_def le_max_iff_disj fasc)
+apply (simp add: mk_total_program_def) 
+apply (simp add: constrains_def maxfg_def le_max_iff_disj fasc)
+done
 
 (*This one is  t := max (ftime t) (gtime t)*)
-lemma  "mk_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}, UNIV)  
+lemma "mk_total_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}, UNIV)
        \<in> {m} co (maxfg m)"
-by (simp add: constrains_def maxfg_def max_def gasc)
+apply (simp add: mk_total_program_def) 
+apply (simp add: constrains_def maxfg_def max_def gasc)
+done
 
 (*This one is  t := t+1 if t <max (ftime t) (gtime t) *)
-lemma  "mk_program   
+lemma  "mk_total_program
           (UNIV, { {(t, Suc t) | t. t < max (ftime t) (gtime t)} }, UNIV)   
        \<in> {m} co (maxfg m)"
-by (simp add: constrains_def maxfg_def max_def gasc)
+apply (simp add: mk_total_program_def) 
+apply (simp add: constrains_def maxfg_def max_def gasc)
+done
 
 
 (*It remans to prove that they satisfy CMT3': t does not decrease,

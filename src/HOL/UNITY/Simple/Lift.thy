@@ -120,11 +120,12 @@ constdefs
 
   Lift :: "state program"
     (*for the moment, we OMIT button_press*)
-    "Lift == mk_program ({s. floor s = Min & ~ up s & move s & stop s &
+    "Lift == mk_total_program
+                ({s. floor s = Min & ~ up s & move s & stop s &
 		          ~ open s & req s = {}},
-			 {request_act, open_act, close_act,
-			  req_up, req_down, move_up, move_down},
-			 UNIV)"
+		 {request_act, open_act, close_act,
+ 		  req_up, req_down, move_up, move_down},
+		 UNIV)"
 
 
   (** Invariants **)
@@ -196,7 +197,7 @@ declare bounded_def [simp]
 
 lemma open_stop: "Lift \<in> Always open_stop"
 apply (rule AlwaysI, force) 
-apply (unfold Lift_def, constrains) 
+apply (unfold Lift_def, constrains)
 done
 
 lemma stop_floor: "Lift \<in> Always stop_floor"
@@ -249,19 +250,22 @@ apply (cut_tac stop_floor)
 apply (unfold Lift_def, ensures_tac "open_act")
 done  (*lem_lift_1_5*)
 
+
+
+
 lemma E_thm02: "Lift \<in> (Req n \<inter> stopped - atFloor n) LeadsTo  
-                     (Req n \<inter> opened - atFloor n)"
+                       (Req n \<inter> opened - atFloor n)"
 apply (cut_tac stop_floor)
 apply (unfold Lift_def, ensures_tac "open_act")
 done  (*lem_lift_1_1*)
 
 lemma E_thm03: "Lift \<in> (Req n \<inter> opened - atFloor n) LeadsTo  
-                     (Req n \<inter> closed - (atFloor n - queueing))"
+                       (Req n \<inter> closed - (atFloor n - queueing))"
 apply (unfold Lift_def, ensures_tac "close_act")
 done  (*lem_lift_1_2*)
 
 lemma E_thm04: "Lift \<in> (Req n \<inter> closed \<inter> (atFloor n - queueing))   
-             LeadsTo (opened \<inter> atFloor n)"
+                       LeadsTo (opened \<inter> atFloor n)"
 apply (unfold Lift_def, ensures_tac "open_act")
 done  (*lem_lift_1_7*)
 

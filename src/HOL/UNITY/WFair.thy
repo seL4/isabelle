@@ -3,21 +3,44 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Weak Fairness versions of transient, ensures, leadsTo.
+Conditional Fairness versions of transient, ensures, leadsTo.
 
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-header{*Progress under Weak Fairness*}
+header{*Progress*}
 
 theory WFair = UNITY:
 
+text{*The original version of this theory was based on weak fairness.  (Thus,
+the entire UNITY development embodied this assumption, until February 2003.)
+Weak fairness states that if a command is enabled continuously, then it is
+eventually executed.  Ernie Cohen suggested that I instead adopt unconditional
+fairness: every command is executed infinitely often.  
+
+In fact, Misra's paper on "Progress" seems to be ambiguous about the correct
+interpretation, and says that the two forms of fairness are equivalent.  They
+differ only on their treatment of partial transitions, which under
+unconditional fairness behave magically.  That is because if there are partial
+transitions then there may be no fair executions, making all leads-to
+properties hold vacuously.
+
+Unconditional fairness has some great advantages.  By distinguishing partial
+transitions from total ones that are the identity on part of their domain, it
+is more expressive.  Also, by simplifying the definition of the transient
+property, it simplifies many proofs.  A drawback is that some laws only hold
+under the assumption that all transitions are total.  The best-known of these
+is the impossibility law for leads-to.
+*}
+
 constdefs
 
-  (*This definition specifies weak fairness.  The rest of the theory
-    is generic to all forms of fairness.*)
+  --{*This definition specifies conditional fairness.  The rest of the theory
+      is generic to all forms of fairness.  To get weak fairness, conjoin
+      the inclusion below with @{term "A \<subseteq> Domain act"}, which specifies 
+      that the action is enabled over all of @{term A}.*}
   transient :: "'a set => 'a program set"
-    "transient A == {F. \<exists>act\<in>Acts F. A \<subseteq> Domain act & act``A \<subseteq> -A}"
+    "transient A == {F. \<exists>act\<in>Acts F. act``A \<subseteq> -A}"
 
   ensures :: "['a set, 'a set] => 'a program set"       (infixl "ensures" 60)
     "A ensures B == (A-B co A \<union> B) \<inter> transient (A-B)"
@@ -25,8 +48,8 @@ constdefs
 
 consts
 
-  (*LEADS-TO constant for the inductive definition*)
   leads :: "'a program => ('a set * 'a set) set"
+    --{*LEADS-TO constant for the inductive definition*}
 
 
 inductive "leads F"
@@ -41,12 +64,12 @@ inductive "leads F"
 
 constdefs
 
-  (*visible version of the LEADS-TO relation*)
   leadsTo :: "['a set, 'a set] => 'a program set"    (infixl "leadsTo" 60)
+     --{*visible version of the LEADS-TO relation*}
     "A leadsTo B == {F. (A,B) \<in> leads F}"
   
-  (*wlt F B is the largest set that leads to B*)
   wlt :: "['a program, 'a set] => 'a set"
+     --{*predicate transformer: the largest set that leads to @{term B}*}
     "wlt F B == Union {A. F \<in> A leadsTo B}"
 
 syntax (xsymbols)
@@ -55,9 +78,17 @@ syntax (xsymbols)
 
 subsection{*transient*}
 
+lemma stable_transient: 
+    "[| F \<in> stable A; F \<in> transient A |] ==> \<exists>act\<in>Acts F. A \<subseteq> - (Domain act)"
+apply (simp add: stable_def constrains_def transient_def, clarify)
+apply (rule rev_bexI, auto)  
+done
+
 lemma stable_transient_empty: 
-    "[| F \<in> stable A; F \<in> transient A |] ==> A = {}"
-by (unfold stable_def constrains_def transient_def, blast)
+    "[| F \<in> stable A; F \<in> transient A; all_total F |] ==> A = {}"
+apply (drule stable_transient, assumption)
+apply (simp add: all_total_def)
+done
 
 lemma transient_strengthen: 
     "[| F \<in> transient A; B \<subseteq> A |] ==> F \<in> transient B"
@@ -66,21 +97,33 @@ apply (blast intro!: rev_bexI)
 done
 
 lemma transientI: 
-    "[| act: Acts F;  A \<subseteq> Domain act;  act``A \<subseteq> -A |] ==> F \<in> transient A"
+    "[| act: Acts F;  act``A \<subseteq> -A |] ==> F \<in> transient A"
 by (unfold transient_def, blast)
 
 lemma transientE: 
     "[| F \<in> transient A;   
-        !!act. [| act: Acts F;  A \<subseteq> Domain act;  act``A \<subseteq> -A |] ==> P |]  
+        !!act. [| act: Acts F;  act``A \<subseteq> -A |] ==> P |]  
      ==> P"
-by (unfold transient_def, blast)
-
-lemma transient_UNIV [simp]: "transient UNIV = {}"
 by (unfold transient_def, blast)
 
 lemma transient_empty [simp]: "transient {} = UNIV"
 by (unfold transient_def, auto)
 
+
+text{*This equation recovers the notion of weak fairness.  A totalized
+      program satisfies a transient assertion just if the original program
+      contains a suitable action that is also enabled.*}
+lemma totalize_transient_iff:
+   "(totalize F \<in> transient A) = (\<exists>act\<in>Acts F. A \<subseteq> Domain act & act``A \<subseteq> -A)"
+apply (simp add: totalize_def totalize_act_def transient_def 
+                 Un_Image Un_subset_iff, safe)
+apply (blast intro!: rev_bexI)+
+done
+
+lemma totalize_transientI: 
+    "[| act: Acts F;  A \<subseteq> Domain act;  act``A \<subseteq> -A |] 
+     ==> totalize F \<in> transient A"
+by (simp add: totalize_transient_iff, blast)
 
 subsection{*ensures*}
 
@@ -98,7 +141,7 @@ apply (unfold ensures_def)
 apply (blast intro: constrains_weaken transient_strengthen)
 done
 
-(*The L-version (precondition strengthening) fails, but we have this*)
+text{*The L-version (precondition strengthening) fails, but we have this*}
 lemma stable_ensures_Int: 
     "[| F \<in> stable C;  F \<in> A ensures B |]    
     ==> F \<in> (C \<inter> A) ensures (C \<inter> B)"
@@ -134,7 +177,7 @@ done
 lemma transient_imp_leadsTo: "F \<in> transient A ==> F \<in> A leadsTo (-A)"
 by (simp (no_asm_simp) add: leadsTo_Basis ensuresI Compl_partition)
 
-(*Useful with cancellation, disjunction*)
+text{*Useful with cancellation, disjunction*}
 lemma leadsTo_Un_duplicate: "F \<in> A leadsTo (A' \<union> A') ==> F \<in> A leadsTo A'"
 by (simp add: Un_ac)
 
@@ -142,7 +185,7 @@ lemma leadsTo_Un_duplicate2:
      "F \<in> A leadsTo (A' \<union> C \<union> C) ==> F \<in> A leadsTo (A' \<union> C)"
 by (simp add: Un_ac)
 
-(*The Union introduction rule as we should have liked to state it*)
+text{*The Union introduction rule as we should have liked to state it*}
 lemma leadsTo_Union: 
     "(!!A. A \<in> S ==> F \<in> A leadsTo B) ==> F \<in> (Union S) leadsTo B"
 apply (unfold leadsTo_def)
@@ -162,7 +205,7 @@ apply (subst Union_image_eq [symmetric])
 apply (blast intro: leadsTo_Union)
 done
 
-(*Binary union introduction rule*)
+text{*Binary union introduction rule*}
 lemma leadsTo_Un:
      "[| F \<in> A leadsTo C; F \<in> B leadsTo C |] ==> F \<in> (A \<union> B) leadsTo C"
 apply (subst Un_eq_Union)
@@ -174,7 +217,7 @@ lemma single_leadsTo_I:
 by (subst UN_singleton [symmetric], rule leadsTo_UN, blast)
 
 
-(*The INDUCTION rule as we should have liked to state it*)
+text{*The INDUCTION rule as we should have liked to state it*}
 lemma leadsTo_induct: 
   "[| F \<in> za leadsTo zb;   
       !!A B. F \<in> A ensures B ==> P A B;  
@@ -203,16 +246,16 @@ lemmas leadsTo_UNIV = subset_UNIV [THEN subset_imp_leadsTo, standard, simp]
 
 (** Variant induction rule: on the preconditions for B **)
 
-(*Lemma is the weak version: can't see how to do it in one step*)
+text{*Lemma is the weak version: can't see how to do it in one step*}
 lemma leadsTo_induct_pre_lemma: 
   "[| F \<in> za leadsTo zb;   
       P zb;  
       !!A B. [| F \<in> A ensures B;  P B |] ==> P A;  
       !!S. \<forall>A \<in> S. P A ==> P (Union S)  
    |] ==> P za"
-(*by induction on this formula*)
+txt{*by induction on this formula*}
 apply (subgoal_tac "P zb --> P za")
-(*now solve first subgoal: this formula is sufficient*)
+txt{*now solve first subgoal: this formula is sufficient*}
 apply (blast intro: leadsTo_refl)
 apply (erule leadsTo_induct)
 apply (blast+)
@@ -240,7 +283,7 @@ lemma leadsTo_weaken_L [rule_format]:
      "[| F \<in> A leadsTo A'; B \<subseteq> A |] ==> F \<in> B leadsTo A'"
 by (blast intro: leadsTo_Trans subset_imp_leadsTo)
 
-(*Distributes over binary unions*)
+text{*Distributes over binary unions*}
 lemma leadsTo_Un_distrib:
      "F \<in> (A \<union> B) leadsTo C  =  (F \<in> A leadsTo C & F \<in> B leadsTo C)"
 by (blast intro: leadsTo_Un leadsTo_weaken_L)
@@ -271,7 +314,7 @@ apply (simp only: Union_image_eq [symmetric])
 apply (blast intro: leadsTo_Union leadsTo_weaken_R)
 done
 
-(*Binary union version*)
+text{*Binary union version*}
 lemma leadsTo_Un_Un:
      "[| F \<in> A leadsTo A'; F \<in> B leadsTo B' |]  
       ==> F \<in> (A \<union> B) leadsTo (A' \<union> B')"
@@ -309,18 +352,17 @@ apply (simp_all (no_asm_simp))
 done
 
 
-
-(** The impossibility law **)
-
-lemma leadsTo_empty: "F \<in> A leadsTo {} ==> A={}"
+text{*The impossibility law*}
+lemma leadsTo_empty: "[|F \<in> A leadsTo {}; all_total F|] ==> A={}"
 apply (erule leadsTo_induct_pre)
-apply (simp_all add: ensures_def constrains_def transient_def, blast)
+apply (simp_all add: ensures_def constrains_def transient_def all_total_def, clarify)
+apply (drule bspec, assumption)+
+apply blast
 done
 
+subsection{*PSP: Progress-Safety-Progress*}
 
-(** PSP: Progress-Safety-Progress **)
-
-(*Special case of PSP: Misra's "stable conjunction"*)
+text{*Special case of PSP: Misra's "stable conjunction"*}
 lemma psp_stable: 
    "[| F \<in> A leadsTo A'; F \<in> stable B |]  
     ==> F \<in> (A \<inter> B) leadsTo (A' \<inter> B)"
@@ -452,7 +494,7 @@ done
 
 subsection{*wlt*}
 
-(*Misra's property W3*)
+text{*Misra's property W3*}
 lemma wlt_leadsTo: "F \<in> (wlt F B) leadsTo B"
 apply (unfold wlt_def)
 apply (blast intro!: leadsTo_Union)
@@ -463,17 +505,17 @@ apply (unfold wlt_def)
 apply (blast intro!: leadsTo_Union)
 done
 
-(*Misra's property W2*)
+text{*Misra's property W2*}
 lemma leadsTo_eq_subset_wlt: "F \<in> A leadsTo B = (A \<subseteq> wlt F B)"
 by (blast intro!: leadsTo_subset wlt_leadsTo [THEN leadsTo_weaken_L])
 
-(*Misra's property W4*)
+text{*Misra's property W4*}
 lemma wlt_increasing: "B \<subseteq> wlt F B"
 apply (simp (no_asm_simp) add: leadsTo_eq_subset_wlt [symmetric] subset_imp_leadsTo)
 done
 
 
-(*Used in the Trans case below*)
+text{*Used in the Trans case below*}
 lemma lemma1: 
    "[| B \<subseteq> A2;   
        F \<in> (A1 - B) co (A1 \<union> B);  
@@ -481,18 +523,18 @@ lemma lemma1:
     ==> F \<in> (A1 \<union> A2 - C) co (A1 \<union> A2 \<union> C)"
 by (unfold constrains_def, clarify,  blast)
 
-(*Lemma (1,2,3) of Misra's draft book, Chapter 4, "Progress"*)
+text{*Lemma (1,2,3) of Misra's draft book, Chapter 4, "Progress"*}
 lemma leadsTo_123:
      "F \<in> A leadsTo A'  
       ==> \<exists>B. A \<subseteq> B & F \<in> B leadsTo A' & F \<in> (B-A') co (B \<union> A')"
 apply (erule leadsTo_induct)
-(*Basis*)
-apply (blast dest: ensuresD)
-(*Trans*)
-apply clarify
-apply (rule_tac x = "Ba \<union> Bb" in exI)
-apply (blast intro: lemma1 leadsTo_Un_Un leadsTo_cancel1 leadsTo_Un_duplicate)
-(*Union*)
+  txt{*Basis*}
+  apply (blast dest: ensuresD)
+ txt{*Trans*}
+ apply clarify
+ apply (rule_tac x = "Ba \<union> Bb" in exI)
+ apply (blast intro: lemma1 leadsTo_Un_Un leadsTo_cancel1 leadsTo_Un_duplicate)
+txt{*Union*}
 apply (clarify dest!: ball_conj_distrib [THEN iffD1] bchoice)
 apply (rule_tac x = "\<Union>A \<in> S. f A" in exI)
 apply (auto intro: leadsTo_UN)
@@ -502,7 +544,7 @@ apply (rule_tac I1=S and A1="%i. f i - B" and A'1="%i. f i \<union> B"
 done
 
 
-(*Misra's property W5*)
+text{*Misra's property W5*}
 lemma wlt_constrains_wlt: "F \<in> (wlt F B - B) co (wlt F B)"
 proof -
   from wlt_leadsTo [of F B, THEN leadsTo_123]

@@ -185,7 +185,7 @@ lemma stable_localTo_stable2:
      "[| F \<in> stable {s. P (v s) (w s)};    
          G \<in> preserves v;  G \<in> preserves w |]                
       ==> F Join G \<in> stable {s. P (v s) (w s)}"
-apply (simp)
+apply simp
 apply (subgoal_tac "G \<in> preserves (funPair v w) ")
  prefer 2 apply simp 
 apply (drule_tac P1 = "split ?Q" in preserves_subset_stable [THEN subsetD], auto)

@@ -72,6 +72,8 @@ val prefix_imp_pfixGe = thm "prefix_imp_pfixGe";
 
 
 (*UNITY*)
+val mk_total_program_def = thm "mk_total_program_def";
+val totalize_act_def = thm "totalize_act_def";
 val constrains_def = thm "constrains_def";
 val stable_def = thm "stable_def";
 val invariant_def = thm "invariant_def";
@@ -91,7 +93,6 @@ val program_equality_iff = thm "program_equality_iff";
 val def_prg_Init = thm "def_prg_Init";
 val def_prg_Acts = thm "def_prg_Acts";
 val def_prg_AllowedActs = thm "def_prg_AllowedActs";
-val def_prg_simps = thm "def_prg_simps";
 val def_act_simp = thm "def_act_simp";
 val def_set_simp = thm "def_set_simp";
 val constrainsI = thm "constrainsI";
@@ -140,13 +141,14 @@ val Un_Diff_Diff = thm "Un_Diff_Diff";
 val Int_Union_Union = thm "Int_Union_Union";
 val Image_less_than = thm "Image_less_than";
 val Image_inverse_less_than = thm "Image_inverse_less_than";
+val totalize_constrains_iff = thm "totalize_constrains_iff";
 
 (*WFair*)
 val stable_transient_empty = thm "stable_transient_empty";
 val transient_strengthen = thm "transient_strengthen";
 val transientI = thm "transientI";
+val totalize_transientI = thm "totalize_transientI";
 val transientE = thm "transientE";
-val transient_UNIV = thm "transient_UNIV";
 val transient_empty = thm "transient_empty";
 val ensuresI = thm "ensuresI";
 val ensuresD = thm "ensuresD";
@@ -415,12 +417,14 @@ val safety_prop_Acts_iff = thm "safety_prop_Acts_iff";
 val safety_prop_AllowedActs_iff_Allowed = thm "safety_prop_AllowedActs_iff_Allowed";
 val Allowed_eq = thm "Allowed_eq";
 val def_prg_Allowed = thm "def_prg_Allowed";
+val def_total_prg_Allowed = thm "def_total_prg_Allowed";
 val safety_prop_constrains = thm "safety_prop_constrains";
 val safety_prop_stable = thm "safety_prop_stable";
 val safety_prop_Int = thm "safety_prop_Int";
 val safety_prop_INTER1 = thm "safety_prop_INTER1";
 val safety_prop_INTER = thm "safety_prop_INTER";
 val def_UNION_ok_iff = thm "def_UNION_ok_iff";
+val totalize_JN = thm "totalize_JN";
 
 (*Comp*)
 val preserves_def = thm "preserves_def";
@@ -670,11 +674,6 @@ val vimage_sub_eq_lift_set = thm "vimage_sub_eq_lift_set";
 val mem_lift_act_iff = thm "mem_lift_act_iff";
 val preserves_snd_lift_stable = thm "preserves_snd_lift_stable";
 val constrains_imp_lift_constrains = thm "constrains_imp_lift_constrains";
-val insert_map_upd_same = thm "insert_map_upd_same";
-val insert_map_upd = thm "insert_map_upd";
-val insert_map_eq_diff = thm "insert_map_eq_diff";
-val lift_map_eq_diff = thm "lift_map_eq_diff";
-val lift_transient_eq_disj = thm "lift_transient_eq_disj";
 val lift_map_image_Times = thm "lift_map_image_Times";
 val lift_preserves_eq = thm "lift_preserves_eq";
 val lift_preserves_sub = thm "lift_preserves_sub";
@@ -751,14 +750,19 @@ val Always_Int_tac = dtac Always_Int_I THEN' assume_tac THEN' etac Always_thin
 (*Combines a list of invariance THEOREMS into one.*)
 val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Always_Int_I)
 
-(*proves "co" properties when the program is specified*)
+(*Proves "co" properties when the program is specified.  Any use of invariants
+  (from weak constrains) must have been done already.*)
 fun gen_constrains_tac(cs,ss) i = 
    SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
+              (*reduce the fancy safety properties to "constrains"*)
 	      REPEAT (etac Always_ConstrainsI 1
 		      ORELSE
 		      resolve_tac [StableI, stableI,
 				   constrains_imp_Constrains] 1),
+              (*for safety, the totalize operator can be ignored*)
+	      simp_tac (HOL_ss addsimps
+                         [mk_total_program_def, totalize_constrains_iff]) 1,
 	      rtac constrainsI 1,
 	      full_simp_tac ss 1,
 	      REPEAT (FIRSTGOAL (etac disjE)),
@@ -774,8 +778,9 @@ fun gen_ensures_tac(cs,ss) sact =
 		  REPEAT (ares_tac [LeadsTo_Basis, leadsTo_Basis,
 				    EnsuresI, ensuresI] 1),
 	      (*now there are two subgoals: co & transient*)
-	      simp_tac ss 2,
-	      res_inst_tac [("act", sact)] transientI 2,
+	      simp_tac (ss addsimps [mk_total_program_def]) 2,
+	      res_inst_tac [("act", sact)] totalize_transientI 2 
+ 	      ORELSE res_inst_tac [("act", sact)] transientI 2,
                  (*simplify the command's domain*)
 	      simp_tac (ss addsimps [Domain_def]) 3,
 	      gen_constrains_tac (cs,ss) 1,
