@@ -22,7 +22,7 @@ function usage()
   echo
   echo "Usage: $PRG ARCHIVE"
   echo
-  echo "Make Isabelle rpm packages for Linux/x86 from distribution ARCHIVE."
+  echo "Make Isabelle rpm packages for Linux/x86 from the distribution archives."
   echo
   exit 1
 }
@@ -36,20 +36,24 @@ function fail()
 
 ## process command line
 
-[ $# -ne 1 ] && usage
+[ $# -gt 1 ] && usage
 
-ARCHIVE="$1"
-shift
+ARCHIVE="$1"; shift
+
 
 
 ## main
 
 [ ! -f "$ARCHIVE" ] && fail "Bad archive file $ARCHIVE"
 ARCHIVE_BASE=$(basename "$ARCHIVE")
-ARCHIVE_FULL=$(cd $(dirname "$ARCHIVE"); echo $PWD)/$ARCHIVE_BASE
+ARCHIVE_DIR=$(cd $(dirname "$ARCHIVE"); echo $PWD)
+ARCHIVE_FULL=$ARCHIVE_DIR/$ARCHIVE_BASE
 
 ISABELLE_NAME=$(basename "$ARCHIVE_BASE" .tar.gz)
 ISABELLE_HOME="$ROOT/$ISABELLE_NAME"
+
+PDF_ARCHIVE_FULL="$ARCHIVE_DIR/${ISABELLE_NAME}_pdf.tar.gz"
+[ ! -f "$PDF_ARCHIVE_FULL" ] && PDF_ARCHIVE_FULL=""
 
 
 # prep
@@ -59,12 +63,13 @@ for D in "BUILD$ROOT" RPMS/i386 SOURCES SPECS SRPMS; do mkdir -p "$TMP/$D"; done
 
 cd "$TMP/BUILD$ROOT"
 tar -xpzf "$ARCHIVE_FULL"
+[ -n "$PDF_ARCHIVE_FULL" ] && tar -xpzf "$PDF_ARCHIVE_FULL"
 
 
 # build
 
 cd "$TMP/BUILD$ROOT/$ISABELLE_NAME"
-( PATH=/bin:$PATH; BASH_PATH=/bin/bash PERL_PATH=/usr/bin/perl ./configure )
+( env BASH_PATH=/bin/bash PERL_PATH=/usr/bin/perl ./configure )
 ./build -bi $LOGICS
 COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
 rm -f heaps/${COMPILER}/Pure heaps/${COMPILER}/FOL heaps/${COMPILER}/TLA
@@ -143,14 +148,12 @@ Isabelle's meta logic: Isabelle/Pure.  There are quite a lot of
 syntactic and deductive tools available in generic Isabelle.  Isabelle
 proof tools provide a high degree of automation.
 
-
 %package	HOL
 Summary:	Isabelle Theorem Proving Environment -- Higher-Order Logic
 Group:		Applications/Math
 Requires:       isabelle
 %description HOL
 This package contains a binary image of the HOL object-logic for Isabelle.
-
 
 %package	HOL-Real
 Summary:	Isabelle Theorem Proving Environment -- Higher-Order Logic
@@ -160,13 +163,20 @@ Requires:       isabelle
 This package contains a binary image of the HOL object-logic for Isabelle,
 including support for real numbers.
 
-
 %package	ZF
 Summary:	Isabelle Theorem Proving Environment -- Zermelo-Fraenkel set theory
 Group:		Applications/Math
 Requires:       isabelle
 %description ZF
 This package contains a binary image of the ZF object-logic for Isabelle.
+
+%package	pdfdocs
+Summary:	Isabelle Theorem Proving Environment -- PDF documentation
+Group:		Applications/Math
+Requires:       isabelle
+%description pdfdocs
+This package contains the Isabelle documentation in PDF.  Note that
+the dvi version is already part of the base package.
 
 
 %prep
@@ -181,6 +191,7 @@ This package contains a binary image of the ZF object-logic for Isabelle.
 %post HOL
 %post HOL-Real
 %post ZF
+%post pdfdocs
 
 %postun
 rm -f $BIN/Isabelle $BIN/isabelle $BIN/isatool
@@ -188,6 +199,7 @@ rm -f $BIN/Isabelle $BIN/isabelle $BIN/isatool
 %postun HOL
 %postun HOL-Real
 %postun ZF
+%postun pdfdocs
 
 
 %files HOL
@@ -199,14 +211,27 @@ $ISABELLE_HOME/heaps/${COMPILER}/HOL-Real
 %files ZF
 $ISABELLE_HOME/heaps/${COMPILER}/ZF
 
+%files pdfdocs
+EOF
+
+for F in $(ls -1 doc/*.pdf); do
+  echo "$ISABELLE_HOME/$F" >>$TMP/SPECS/isabelle.spec
+done
+
+
+cat >>$TMP/SPECS/isabelle.spec <<EOF
 %files
 %dir $ISABELLE_HOME
+%dir $ISABELLE_HOME/doc
 %dir $ISABELLE_HOME/heaps
 %dir $ISABELLE_HOME/heaps/${COMPILER}
 EOF
 
-for F in $(ls -1 | grep -v heaps | grep -v browser_info)
-do
+for F in $(ls -1 | grep -v heaps | grep -v browser_info | grep -v doc); do
+  echo "$ISABELLE_HOME/$F" >>$TMP/SPECS/isabelle.spec
+done
+
+for F in $(ls -1 doc/* | grep -v pdf); do
   echo "$ISABELLE_HOME/$F" >>$TMP/SPECS/isabelle.spec
 done
 
@@ -224,6 +249,7 @@ cp "isabelle-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
 cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
 cp "isabelle-HOL-Real-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL-Real.i386.rpm"
 cp "isabelle-ZF-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
+cp "isabelle-pdfdocs-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-pdfdocs.rpm"
 
 # clean up
 cd /
