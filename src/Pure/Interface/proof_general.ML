@@ -163,7 +163,7 @@ fun repeat_undo 0 = ()
 
 
 fun isa_restart () =
- (ml_prompts (">" ^ oct_char "372") ("-" ^ oct_char "373");
+ (ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
   ThyInfo.touch_all_thys ();
   kill_goal ();
   writeln ("Proof General, please clear the response buffer.");
