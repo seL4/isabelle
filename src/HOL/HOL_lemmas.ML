@@ -529,7 +529,7 @@ fun RSmp th =
 fun normalize_thm funs =
   let fun trans [] th = th
 	| trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
-  in zero_var_indexes o trans funs end;
+  in zero_var_indexes o strip_shyps_warning o trans funs end;
 
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())
