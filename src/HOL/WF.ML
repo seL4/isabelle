@@ -342,10 +342,9 @@ qed "wfrec";
 (*---------------------------------------------------------------------------
  * This form avoids giant explosions in proofs.  NOTE USE OF == 
  *---------------------------------------------------------------------------*)
-val rew::prems = goal (the_context ())
-    "[| f==wfrec r H;  wf(r) |] ==> f(a) = H (cut f r a) a";
-by (rewtac rew);
-by (REPEAT (resolve_tac (prems@[wfrec]) 1));
+Goal "[| f==wfrec r H;  wf(r) |] ==> f(a) = H (cut f r a) a";
+by Auto_tac;
+by (blast_tac (claset() addIs [wfrec]) 1);   
 qed "def_wfrec";
 
 

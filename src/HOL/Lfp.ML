@@ -55,9 +55,8 @@ bind_thm ("induct2",
 
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
 
-val [rew,mono] = goal (the_context ()) "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
-by (rewtac rew);
-by (rtac (mono RS lfp_Tarski) 1);
+Goal "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
+by (auto_tac (claset() addSIs [lfp_Tarski], simpset()));  
 qed "def_lfp_Tarski";
 
 val rew::prems = Goal
