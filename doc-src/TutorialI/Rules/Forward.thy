@@ -21,12 +21,12 @@ apply (subst is_gcd_commute)
 apply (simp add: is_gcd)
 done
 
-lemma gcd_1 [simp]: "gcd(m,1) = 1"
+lemma gcd_1 [simp]: "gcd(m,1') = 1'"
 apply simp
 done
 
-lemma gcd_1_left [simp]: "gcd(1,m) = 1"
-apply (simp add: gcd_commute [of 1])
+lemma gcd_1_left [simp]: "gcd(1',m) = 1'"
+apply (simp add: gcd_commute [of "1'"])
 done
 
 text{*\noindent

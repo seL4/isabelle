@@ -12,6 +12,7 @@ values \isa{{\isacharprime}v} we define a trie as follows:%
 \isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}trie\ {\isacharequal}\ Trie\ \ {\isachardoublequote}{\isacharprime}v\ option{\isachardoublequote}\ \ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isacharasterisk}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}trie{\isacharparenright}list{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
+\index{datatypes!and nested recursion}%
 The first component is the optional value, the second component the
 association list of subtries.  This is an example of nested recursion involving products,
 which is fine because products are datatypes as well.
@@ -90,11 +91,11 @@ Our main goal is to prove the correct interaction of \isa{update} and
 \noindent
 Our plan is to induct on \isa{as}; hence the remaining variables are
 quantified. From the definitions it is clear that induction on either
-\isa{as} or \isa{bs} is required. The choice of \isa{as} is merely
+\isa{as} or \isa{bs} is required. The choice of \isa{as} is 
 guided by the intuition that simplification of \isa{lookup} might be easier
 if \isa{update} has already been simplified, which can only happen if
 \isa{as} is instantiated.
-The start of the proof is completely conventional:%
+The start of the proof is conventional:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ as{\isacharcomma}\ auto{\isacharparenright}%
 \begin{isamarkuptxt}%
@@ -113,6 +114,7 @@ suffices:%
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
+\index{subgoal numbering}%
 All methods ending in \isa{tac} take an optional first argument that
 specifies the range of subgoals they are applied to, where \isa{{\isacharbrackleft}{\isacharbang}{\isacharbrackright}} means
 all subgoals, i.e.\ \isa{{\isacharbrackleft}{\isadigit{1}}{\isacharminus}{\isadigit{3}}{\isacharbrackright}} in our case. Individual subgoal numbers,
@@ -123,8 +125,7 @@ comes at a cost: the proof script is unreadable because the intermediate
 proof states are invisible, and we rely on the (possibly brittle) magic of
 \isa{auto} (\isa{simp{\isacharunderscore}all} will not do --- try it) to split the subgoals
 of the induction up in such a way that case distinction on \isa{bs} makes
-sense and solves the proof. Chapter~\ref{ch:Isar} shows you how to write readable
-and stable proofs.
+sense and solves the proof. 
 
 \begin{exercise}
   Modify \isa{update} (and its type) such that it allows both insertion and

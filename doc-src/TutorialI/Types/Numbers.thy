@@ -83,8 +83,10 @@ text{*
 *}
 
 
-lemma "(n-1)*(n+1) = n*n - 1"
-apply (simp split: nat_diff_split)
+lemma "(n-#2)*(n+#2) = n*n - (#4::nat)"
+apply (clarsimp split: nat_diff_split)
+ --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (subgoal_tac "n=0 | n=1", force, arith)
 done
 
 text{*

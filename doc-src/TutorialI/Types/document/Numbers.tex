@@ -113,8 +113,15 @@ P\ {\isacharparenleft}a\ {\isacharminus}\ b{\isacharparenright}\ {\isacharequal}
 \end{isabelle}
 \rulename{nat_diff_split}%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n{\isacharminus}{\isadigit{1}}{\isacharparenright}{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}n\ {\isacharminus}\ {\isadigit{1}}{\isachardoublequote}\isanewline
-\isacommand{apply}\ {\isacharparenleft}simp\ split{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n{\isacharminus}{\isacharhash}{\isadigit{2}}{\isacharparenright}{\isacharasterisk}{\isacharparenleft}n{\isacharplus}{\isacharhash}{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ n{\isacharasterisk}n\ {\isacharminus}\ {\isacharparenleft}{\isacharhash}{\isadigit{4}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}\ {\isacharparenleft}clarsimp\ split{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
+\ %
+\isamarkupcmt{\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}d{\isachardot}\ {\isasymlbrakk}n\ {\isacharless}\ {\isacharhash}{\isadigit{2}}{\isacharsemicolon}\ n\ {\isacharasterisk}\ n\ {\isacharequal}\ {\isacharhash}{\isadigit{4}}\ {\isacharplus}\ d{\isasymrbrakk}\ {\isasymLongrightarrow}\ d\ {\isacharequal}\ {\isadigit{0}}%
+\end{isabelle}%
+}
+\isanewline
+\isacommand{apply}\ {\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}n{\isacharequal}{\isadigit{0}}\ {\isacharbar}\ n{\isacharequal}{\isadigit{1}}{\isachardoublequote}{\isacharcomma}\ force{\isacharcomma}\ arith{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
 \begin{isabelle}%

@@ -9,7 +9,7 @@ Here is a simple example, the \rmindex{Fibonacci function}:
 consts fib :: "nat \<Rightarrow> nat";
 recdef fib "measure(\<lambda>n. n)"
   "fib 0 = 0"
-  "fib 1 = 1"
+  "fib 1' = 1"
   "fib (Suc(Suc x)) = fib x + fib (Suc x)";
 
 text{*\noindent
