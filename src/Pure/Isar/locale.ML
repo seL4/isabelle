@@ -250,10 +250,8 @@ fun frozen_tvars ctxt Ts =
       (Term.invent_type_names (ProofContext.used_types ctxt) (length tvars) ~~ map #2 tvars);
   in map #1 tvars ~~ tfrees end;
 
-
 fun unify_frozen ctxt maxidx Ts Us =
   let
-    val FIXME = (PolyML.print "unify_frozen 1"; PolyML.print (Ts, Us));
     val tsig = Sign.tsig_of (ProofContext.sign_of ctxt);
     fun unify (env, (Some T, Some U)) = Type.unify tsig env (U, T)
       | unify (env, _) = env;
@@ -262,14 +260,10 @@ fun unify_frozen ctxt maxidx Ts Us =
 
     val (maxidx', Ts') = foldl_map paramify (maxidx, Ts);
     val (maxidx'', Us') = foldl_map paramify (maxidx, Us);
-    val FIXME = (PolyML.print "unify_frozen 2"; PolyML.print (Ts', Us'));
     val (unifier, _) = foldl unify ((Vartab.empty, maxidx''), Ts' ~~ Us');
     val Vs = map (apsome (Envir.norm_type unifier)) Us';
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (mapfilter I Vs));
-    val Vs' = map (apsome (Envir.norm_type unifier')) Vs;
-    val FIXME = (PolyML.print "unify_frozen 3"; PolyML.print Vs');
-  in Vs' end;
-
+  in map (apsome (Envir.norm_type unifier')) Vs end;
 
 fun params_of elemss = flat (map (snd o fst) elemss);
 fun param_types ps = mapfilter (fn (_, None) => None | (x, Some T) => Some (x, T)) ps;
