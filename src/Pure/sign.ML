@@ -51,8 +51,8 @@ signature SIGN =
   val add_consts_i: (string * typ * mixfix) list -> sg -> sg
   val add_syntax: (string * string * mixfix) list -> sg -> sg
   val add_syntax_i: (string * typ * mixfix) list -> sg -> sg
-  val add_modesyntax: string * (string * string * mixfix) list -> sg -> sg
-  val add_modesyntax_i: string * (string * typ * mixfix) list -> sg -> sg
+  val add_modesyntax: (string * bool) * (string * string * mixfix) list -> sg -> sg
+  val add_modesyntax_i: (string * bool) * (string * typ * mixfix) list -> sg -> sg
   val add_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
@@ -469,10 +469,10 @@ fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab) raw_consts =
         handle Symtab.DUPS cs => err_dup_consts cs)
   end;
 
-val ext_consts_i = ext_cnsts (K (K I)) false "";
-val ext_consts = ext_cnsts read_const false "";
-val ext_syntax_i = ext_cnsts (K (K I)) true "";
-val ext_syntax = ext_cnsts read_const true "";
+val ext_consts_i = ext_cnsts (K (K I)) false ("", true);
+val ext_consts = ext_cnsts read_const false ("", true);
+val ext_syntax_i = ext_cnsts (K (K I)) true ("", true);
+val ext_syntax = ext_cnsts read_const true ("", true);
 fun ext_modesyntax_i sg (prmode, consts) = ext_cnsts (K (K I)) true prmode sg consts;
 fun ext_modesyntax sg (prmode, consts) = ext_cnsts read_const true prmode sg consts;
 
@@ -611,7 +611,7 @@ val proto_pure =
     ("prop", [], logicS),
     ("itself", [logicS], logicS)]
   |> add_syntax Syntax.pure_syntax
-  |> add_modesyntax ("symbols", Syntax.pure_sym_syntax)
+  |> add_modesyntax (("symbols", true), Syntax.pure_sym_syntax)
   |> add_trfuns Syntax.pure_trfuns
   |> add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),

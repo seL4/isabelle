@@ -36,8 +36,8 @@ signature THEORY =
   val add_consts_i	: (string * typ * mixfix) list -> theory -> theory
   val add_syntax	: (string * string * mixfix) list -> theory -> theory
   val add_syntax_i	: (string * typ * mixfix) list -> theory -> theory
-  val add_modesyntax	: string -> (string * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i	: string -> (string * typ * mixfix) list -> theory -> theory
+  val add_modesyntax	: string * bool -> (string * string * mixfix) list -> theory -> theory
+  val add_modesyntax_i	: string * bool -> (string * typ * mixfix) list -> theory -> theory
   val add_trfuns	:
     (string * (Syntax.ast list -> Syntax.ast)) list *
     (string * (term list -> term)) list *
