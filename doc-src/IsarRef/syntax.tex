@@ -47,6 +47,9 @@ syntax as presented in \cite{isabelle-ref}.  These different levels of syntax
 should not be confused, though.
 
 %FIXME keyword, command
+\indexoutertoken{ident}\indexoutertoken{longident}\indexoutertoken{symident}
+\indexoutertoken{nat}\indexoutertoken{var}\indexoutertoken{typefree}
+\indexoutertoken{typevar}\indexoutertoken{string}\indexoutertoken{verbatim}
 \begin{matharray}{rcl}
   ident & = & letter~quasiletter^* \\
   longident & = & ident\verb,.,ident~\dots~ident \\
@@ -107,12 +110,15 @@ non-identifier names or those ruled out by outer syntax keywords (e.g.\
 \railqtoken{nameref}.
 
 \indexoutertoken{name}\indexoutertoken{parname}\indexoutertoken{nameref}
+\indexoutertoken{int}
 \begin{rail}
   name: ident | symident | string | nat
   ;
   parname: '(' name ')'
   ;
   nameref: name | longident
+  ;
+  int: nat | '-' nat
   ;
 \end{rail}
 
