@@ -215,6 +215,8 @@ sig
   val get_error: 'a error -> string option
   val get_ok: 'a error -> 'a option
   val handle_error: ('a -> 'b) -> 'a -> 'b error
+  exception ERROR_MESSAGE of string
+  val transform_error: ('a -> 'b) -> 'a -> 'b
 
   (*timing*)
   val cond_timeit: bool -> (unit -> 'a) -> 'a
@@ -1059,6 +1061,16 @@ fun handle_error f x =
       None => Error (! buffer)
     | Some y => OK y)
   end;
+
+
+(* transform ERROR into ERROR_MESSAGE, capturing the side-effect *)
+
+exception ERROR_MESSAGE of string;
+
+fun transform_error f x =
+  (case handle_error f x of
+    OK y => y
+  | Error msg => raise ERROR_MESSAGE msg);
 
 
 
