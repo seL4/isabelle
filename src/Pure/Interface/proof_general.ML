@@ -85,28 +85,26 @@ fun setup_xsymbols_output () = Symbol.add_mode "xsymbols" xsymbols_output;
 
 (* messages *)
 
-val plain_output = std_output o suffix "\n";
-fun plain_writeln x = Library.setmp writeln_fn plain_output x;
+val plain_output = Library.std_output o suffix "\n";
 
 fun decorate_lines bg en "" = plain_output o enclose bg en
   | decorate_lines bg en prfx = plain_output o enclose bg en o prefix_lines prfx;
 
+val message = decorate_lines (oct_char "360") (oct_char "361") "";
+
 fun setup_messages () =
- (writeln_fn := (decorate_lines (oct_char "360") (oct_char "361") "");
-  warning_fn := (decorate_lines (oct_char "362") (oct_char "363") "### ");
+ (warning_fn := (decorate_lines (oct_char "362") (oct_char "363") "### ");
   error_fn := (decorate_lines (oct_char "364") (oct_char "365") "*** "));
 
 
 (* notification *)
 
-fun tell_clear_goals () = writeln "Proof General, please clear the goals buffer.";
-fun tell_clear_response () = writeln "Proof General, please clear the response buffer.";
-fun tell_file msg path = writeln ("Proof General, " ^ msg ^ " " ^ quote (File.sysify_path path));
+fun tell_clear_goals () = message "Proof General, please clear the goals buffer.";
+fun tell_clear_response () = message "Proof General, please clear the response buffer.";
+fun tell_file msg path = message ("Proof General, " ^ msg ^ " " ^ quote (File.sysify_path path));
 
 
 (* theory / proof state output *)
-
-fun print_current_goals n max th = plain_writeln (Goals.print_current_goals_default n max) th;
 
 fun setup_state () =
  (current_goals_markers :=
@@ -114,10 +112,7 @@ fun setup_state () =
       val begin_state = oct_char "366";
       val end_state= oct_char "367";
     in (begin_state, end_state, "") end;
-  Toplevel.print_state_fn := (fn x => fn y =>
-    plain_writeln (fn () => Toplevel.print_state_default x y) ());
-  Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default);
-  Goals.print_current_goals_fn := print_current_goals);
+  Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default));
 
 
 (* theory loader actions *)
@@ -173,7 +168,8 @@ fun inform_file_retracted file =
 
 fun thms_containing cs = ThmDatabase.print_thms_containing (the_context ()) cs;
 
-val help = writeln o Session.welcome;
+val welcome = message o Session.welcome;
+val help = welcome;
 val show_context = Context.the_context;
 
 fun kill_goal () = (Goals.reset_goals (); tell_clear_goals ());
@@ -192,7 +188,7 @@ local
 fun restart isar =
  (if isar then tell_clear_goals () else kill_goal ();
   tell_clear_response ();
-  writeln (Session.welcome ()));
+  welcome ());
 
 fun restart_loader () =
   (ThyInfo.touch_all_thys (); ThyLoad.reset_path ());
@@ -265,6 +261,7 @@ fun init isar =
   ThmDeps.enable ();
   if isar then ml_prompts "ML> " "ML# "
   else ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
+  welcome ();
   if isar then Isar.sync_main () else isa_start ());
 
 
