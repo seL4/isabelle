@@ -107,6 +107,8 @@ sig
   val del_rules: thm list -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
   val norm_hhf_eq: thm
+  val is_norm_hhf: term -> bool
+  val norm_hhf: Sign.sg -> term -> term
   val triv_goal: thm
   val rev_triv_goal: thm
   val implies_intr_goals: cterm list -> thm -> thm
@@ -485,7 +487,7 @@ fun tha COMP thb =
 fun eq_thm_sg (th1,th2) = Sign.eq_sg(#sign(rep_thm th1), #sign(rep_thm th2));
 
 (*Useful "distance" function for BEST_FIRST*)
-val size_of_thm = size_of_term o #prop o rep_thm;
+val size_of_thm = size_of_term o prop_of;
 
 (*maintain lists of theorems --- preserving canonical order*)
 fun del_rules rs rules = Library.gen_rems Thm.eq_thm (rules, rs);
@@ -684,6 +686,18 @@ val norm_hhf_eq =
     |> store_standard_thm_open "norm_hhf_eq"
   end;
 
+fun is_norm_hhf tm =
+  let
+    fun is_norm (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
+      | is_norm (t $ u) = is_norm t andalso is_norm u
+      | is_norm (Abs (_, _, t)) = is_norm t
+      | is_norm _ = true;
+  in is_norm (Pattern.beta_eta_contract tm) end;
+
+fun norm_hhf sg t =
+  if is_norm_hhf t then t
+  else Pattern.rewrite_term (Sign.tsig_of sg) [Logic.dest_equals (prop_of norm_hhf_eq)] t;
+
 
 (*** Instantiate theorem th, reading instantiations under signature sg ****)
 
@@ -692,7 +706,7 @@ fun instantiate instpair th = Thm.instantiate instpair th  COMP   asm_rl;
 
 fun read_instantiate_sg sg sinsts th =
     let val ts = types_sorts th;
-        val used = add_term_tvarnames(#prop(rep_thm th),[]);
+        val used = add_term_tvarnames (prop_of th, []);
     in  instantiate (read_insts sg ts ts used sinsts) th  end;
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
@@ -797,8 +811,8 @@ fun inst x t = read_instantiate_sg (sign_of (the_context())) [(x,t)];
 fun tvars_of_terms ts = rev (foldl Term.add_tvars ([], ts));
 fun vars_of_terms ts = rev (foldl Term.add_vars ([], ts));
 
-fun tvars_of thm = tvars_of_terms [#prop (Thm.rep_thm thm)];
-fun vars_of thm = vars_of_terms [#prop (Thm.rep_thm thm)];
+fun tvars_of thm = tvars_of_terms [prop_of thm];
+fun vars_of thm = vars_of_terms [prop_of thm];
 
 
 (* instantiate by left-to-right occurrence of variables *)
