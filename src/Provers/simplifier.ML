@@ -185,8 +185,8 @@ fun (Simpset {mss, simps, procs, congs, subgoal_tac, loop_tac,
 
 fun (Simpset {mss, simps, procs, congs, subgoal_tac, loop_tac, 
 	      finish_tac, unsafe_finish_tac}) setmksimps mk_simps =
-  make_ss (Thm.set_mk_rews (mss, mk_simps), simps, procs, congs,
-    subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+  make_ss (Thm.set_mk_rews (mss, map (Thm.strip_shyps o Drule.zero_var_indexes) o mk_simps),
+    simps, procs, congs, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
 
 fun (Simpset {mss, simps, procs, congs, subgoal_tac, loop_tac, 
 	      finish_tac, unsafe_finish_tac}) settermless termless =
