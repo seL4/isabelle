@@ -29,14 +29,14 @@ $(BIN)/Modal:   $(BIN)/LK  $(FILES)
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/LK $(BIN)/Modal;\
                 if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/Modal;\
-		else echo 'open PolyML; exit_use"ROOT";' \
+		else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/Modal;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/Modal" banner;' | $(BIN)/LK;\
-                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/Modal" banner;' \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Modal" banner;' | $(BIN)/LK;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/Modal" banner;' \
                        | $(BIN)/LK;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \

@@ -37,14 +37,14 @@ $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES)
 	case "$(COMP)" in \
 	poly*)  cp $(BIN)/HOL $(BIN)/HOLCF;\
                 if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/HOLCF;\
-		else echo 'open PolyML; exit_use"ROOT";' \
+		else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/HOLCF;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL;\
-                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/HOLCF" banner;' \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/HOLCF" banner;' \
                        | $(BIN)/HOL;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \

@@ -28,13 +28,14 @@ $(BIN)/LCF:   $(BIN)/FOL  $(FILES)
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/LCF;\
                 if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/LCF;\
-		else echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/LCF;\
+		else echo 'open PolyML; exit_use_dir".";' \
+                       | $(COMP) $(BIN)/LCF;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;\
-                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/LCF" banner;' \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/LCF" banner;' \
                        | $(BIN)/FOL;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \

@@ -36,13 +36,14 @@ $(BIN)/CTT:   $(BIN)/Pure  $(FILES)
 	poly*)	echo 'make_database"$(BIN)/CTT"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
                 if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/CTT;\
-		else echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/CTT;\
+		else echo 'open PolyML; exit_use_dir".";' \
+                       | $(COMP) $(BIN)/CTT;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/CTT" banner;' | $(BIN)/Pure;\
-                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/CTT" banner;' \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/CTT" banner;' | $(BIN)/Pure;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/CTT" banner;' \
                        | $(BIN)/Pure;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \

@@ -37,13 +37,14 @@ $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES)
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/CCL;\
                 if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/CCL;\
-		else echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/CCL;\
+		else echo 'open PolyML; exit_use_dir".";' \
+                       | $(COMP) $(BIN)/CCL;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/CCL" banner;' | $(BIN)/FOL;\
-                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/CCL" banner;' \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/CCL" banner;' | $(BIN)/FOL;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/CCL" banner;' \
                        | $(BIN)/FOL;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \

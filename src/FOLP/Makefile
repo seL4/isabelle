@@ -33,14 +33,14 @@ $(BIN)/FOLP:   $(BIN)/Pure  $(FILES)
 	poly*)	echo 'make_database"$(BIN)/FOLP"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
                 if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/FOLP;\
-		else echo 'open PolyML; exit_use"ROOT";' \
+		else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/FOLP;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/FOLP" banner;' | $(BIN)/Pure;\
-                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/FOLP" banner;' \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/FOLP" banner;' | $(BIN)/Pure;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/FOLP" banner;' \
                        | $(BIN)/Pure;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \

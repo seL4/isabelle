@@ -29,14 +29,14 @@ $(BIN)/Cube:   $(BIN)/Pure  $(FILES)
 	poly*)	echo 'make_database"$(BIN)/Cube"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
                 if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/Cube;\
-		else echo 'open PolyML; exit_use"ROOT";' \
+		else echo 'open PolyML; exit_use_dir".";' \
 		       | $(COMP) $(BIN)/Cube;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/Cube" banner;' | $(BIN)/Pure;\
-                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/Cube" banner;' \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Cube" banner;' | $(BIN)/Pure;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/Cube" banner;' \
                        | $(BIN)/Pure;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \

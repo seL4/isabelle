@@ -40,6 +40,4 @@ init_pps ();
 
 print_depth 100;  
 
-make_chart ();   (*make HTML chart*)
-
 val HOLCF_build_completed = ();	(*indicate successful build*)

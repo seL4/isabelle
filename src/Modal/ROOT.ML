@@ -78,8 +78,6 @@ in structure MP_Rule : MODAL_PROVER_RULE =
 end;
 structure S43_Prover = Modal_ProverFun(MP_Rule);  
 
-make_chart ();   (*make HTML chart*)
-
 val Modal_build_completed = ();	(*indicate successful build*)
 
 (*printing functions are inherited from LK*)

@@ -17,6 +17,4 @@ use"simpdata.ML";
 use"pair.ML";
 use"fix.ML";
 
-make_chart ();   (*make HTML chart*)
-
 val LCF_build_completed = ();	(*indicate successful build*)
