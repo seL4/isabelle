@@ -1,5 +1,4 @@
 (*  Title: 	ZF/ROOT
-    ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -24,6 +23,20 @@ fun rlss MRL bottom_rls =
   let fun rs_aux i [] = bottom_rls
 	| rs_aux i (rls::rlss) = rls RLN (i, rs_aux (i+1) rlss)
   in  rs_aux 1 rlss  end;
+
+fun CHECK_SOLVED (Tactic tf) = 
+  Tactic (fn state => 
+    case Sequence.pull (tf state) of
+	None => error"DO_GOAL: tactic list failed"
+      | Some(x,_) => 
+		if has_fewer_prems 1 x then
+		    Sequence.cons(x, Sequence.null)
+		else (writeln"DO_GOAL: unsolved goals!!";
+		      writeln"Final proof state was ...";
+		      print_goals (!goals_limit) x;
+		      raise ERROR));
+
+fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 
 print_depth 1;
 use_thy "zf";
