@@ -190,20 +190,3 @@ val set_cs = HOL_cs
             subsetD, subsetCE];
 
 fun cfast_tac prems = cut_facts_tac prems THEN' fast_tac set_cs;
-
-
-fun prover s = prove_goal Fun.thy s (fn _=>[fast_tac set_cs 1]);
-
-val mem_simps = map prover
- [ "(a : A Un B)   =  (a:A | a:B)",	(* Un_iff *)
-   "(a : A Int B)  =  (a:A & a:B)",	(* Int_iff *)
-   "(a : Compl(B)) =  (~a:B)",		(* Compl_iff *)
-   "(a : A-B)      =  (a:A & ~a:B)",	(* Diff_iff *)
-   "(a : {b})      =  (a=b)",
-   "(a : {x.P(x)}) =  P(a)" ];
-
-val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
-
-simpset := !simpset addsimps mem_simps
-                    addcongs [ball_cong,bex_cong]
-                    setmksimps (mksimps mksimps_pairs);

@@ -319,16 +319,17 @@ section "Singletons, using insert";
 qed_goal "singletonI" Set.thy "a : {a}"
  (fn _=> [ (rtac insertI1 1) ]);
 
-qed_goal "singletonE" Set.thy "[| a: {b};  a=b ==> P |] ==> P"
- (fn major::prems=>
-  [ (rtac (major RS insertE) 1),
-    (REPEAT (eresolve_tac (prems @ [emptyE]) 1)) ]);
-
 goalw Set.thy [insert_def] "!!a. b : {a} ==> b=a";
 by (fast_tac (!claset addSEs [emptyE,CollectE,UnE]) 1);
 qed "singletonD";
 
-val singletonE = make_elim singletonD;
+bind_thm ("singletonE", make_elim singletonD);
+
+qed_goal "singleton_iff" thy "(b : {a}) = (b=a)" (fn _ => [
+	rtac iffI 1,
+	etac singletonD 1,
+	hyp_subst_tac 1,
+	rtac singletonI 1]);
 
 val [major] = goal Set.thy "{a}={b} ==> a=b";
 by (rtac (major RS equalityD1 RS subsetD RS singletonD) 1);
@@ -467,3 +468,17 @@ qed_goalw "PowD" Set.thy [Pow_def] "!!A B. A : Pow(B)  ==>  A<=B"
 
 val Pow_bottom = empty_subsetI RS PowI;        (* {}: Pow(B) *)
 val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
+
+
+
+(*** Set reasoning tools ***)
+
+
+val mem_simps = [ Un_iff, Int_iff, Compl_iff, Diff_iff, singleton_iff,
+		  mem_Collect_eq];
+
+val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
+
+simpset := !simpset addsimps mem_simps
+                    addcongs [ball_cong,bex_cong]
+                    setmksimps (mksimps mksimps_pairs);
