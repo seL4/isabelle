@@ -11,7 +11,7 @@ HOL_build_completed;    (*Cause examples to fail if HOL did*)
 writeln "Root file for HOL examples";
 set proof_timing;
 
-(**Some examples of recursive function definitions: the TFL package**)
+(*some examples of recursive function definitions: the TFL package*)
 time_use_thy "Recdefs";
 time_use_thy "Primes";
 time_use_thy "Fib";
@@ -35,14 +35,15 @@ time_use_thy "MT";
 time_use_thy "StringEx";
 time_use_thy "BinEx";
 
-(*Monoids and Groups as predicates over record schemes*)
+(*basic use of extensible records*)
 time_use_thy "MonoidGroup";
+time_use_thy "Points";
 
-(*Groups via locales*)
+(*groups via locales*)
 time_use_thy "PiSets";
 time_use_thy "LocaleGroup";
 
-(*Expressions with quote / antiquote*)
+(*expressions with quote / antiquote syntax*)
 time_use_thy "Antiquote";
 
 
