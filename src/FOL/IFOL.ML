@@ -6,9 +6,6 @@
 Tactics and lemmas for IFOL.thy (intuitionistic first-order logic)
 *)
 
-open IFOL;
-
-
 qed_goalw "TrueI" IFOL.thy [True_def] "True"
  (fn _ => [ (REPEAT (ares_tac [impI] 1)) ]);
 
@@ -242,7 +239,8 @@ qed "def_imp_iff";
 val prems = goal IFOL.thy "(A == B) ==> A = B";
 by (rewrite_goals_tac prems);
 by (rtac refl 1);
-qed "def_imp_eq";
+qed "meta_eq_to_obj_eq";
+
 
 (*Substitution: rule and tactic*)
 bind_thm ("ssubst", sym RS subst);
@@ -250,7 +248,7 @@ bind_thm ("ssubst", sym RS subst);
 (*Apply an equality or definition ONCE.
   Fails unless the substitution has an effect*)
 fun stac th = 
-  let val th' = th RS def_imp_eq handle _ => th
+  let val th' = th RS meta_eq_to_obj_eq handle _ => th
   in  CHANGED_GOAL (rtac (th' RS ssubst))
   end;
 
@@ -397,21 +395,25 @@ qed "disj_imp_disj";
 
 (** strip ALL and --> from proved goal while preserving ALL-bound var names **)
 
+fun make_new_spec rl =
+  (* Use a crazy name to avoid forall_intr failing because of
+     duplicate variable name *)
+  let val myspec = read_instantiate [("P","?wlzickd")] rl
+      val _ $ (_ $ (vx as Var(_,vxT))) = concl_of myspec;
+      val cvx = cterm_of (#sign(rep_thm myspec)) vx
+  in (vxT, forall_intr cvx myspec) end;
+
 local
 
-(* Use XXX to avoid forall_intr failing because of duplicate variable name *)
-val myspec = read_instantiate [("P","?XXX")] spec;
-val _ $ (_ $ (vx as Var(_,vxT))) = concl_of myspec;
-val cvx = cterm_of (#sign(rep_thm myspec)) vx;
-val aspec = forall_intr cvx myspec;
+val (specT,  spec')  = make_new_spec spec
 
 in
 
 fun RSspec th =
   (case concl_of th of
      _ $ (Const("All",_) $ Abs(a,_,_)) =>
-         let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),vxT))
-         in th RS forall_elim ca aspec end
+         let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),specT))
+         in th RS forall_elim ca spec' end
   | _ => raise THM("RSspec",0,[th]));
 
 fun RSmp th =
@@ -420,9 +422,9 @@ fun RSmp th =
   | _ => raise THM("RSmp",0,[th]));
 
 fun normalize_thm funs =
-let fun trans [] th = th
-      | trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
-in trans funs end;
+  let fun trans [] th = th
+	| trans (f::fs) th = (trans funs (f th)) handle THM _ => trans fs th
+  in trans funs end;
 
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())
