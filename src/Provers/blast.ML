@@ -874,6 +874,11 @@ fun match (Var _) u   = true
   | match t               u   = false;
 
 
+(*Branches closed: number of branches closed during the search
+  Branches tried:  number of branches created by splitting (counting from 1)*)
+val nclosed = ref 0
+and ntried  = ref 1;
+
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
   branch contains a list of unexpanded formulae, a list of literals, and a 
   bound on unsafe expansions.*)
@@ -923,16 +928,18 @@ fun prove (sign, cs, brs, cont) =
 		     in
 			 traceNew prems;  traceVars sign ntrl;
 			 (if null prems then (*closed the branch: prune!*)
-			    prv(tacs',  brs0::trs, 
-				prune (nbrs, nxtVars, choices'),
-				brs)
-			  else
+			    (nclosed := !nclosed + 1;
+			     prv(tacs',  brs0::trs, 
+				 prune (nbrs, nxtVars, choices'),
+				 brs))
+			  else (*prems non-null*)
 			  if lim'<0 (*faster to kill ALL the alternatives*)
 			  then (traceMsg"Excessive branching: KILLED\n";
 			        clearTo ntrl;  raise NEWBRANCHES)
 			  else
-			    prv(tacs',  brs0::trs, choices',
-				newBr (vars',lim') prems))
+			    (ntried := !ntried + length prems - 1;
+			     prv(tacs',  brs0::trs, choices',
+				 newBr (vars',lim') prems)))
                          handle PRV => 
 			   if ntrl < ntrl' (*Vars have been updated*)
 			   then
@@ -955,7 +962,8 @@ fun prove (sign, cs, brs, cont) =
 				               else ();
 				     prune (nbrs, nxtVars, 
 					    (ntrl, nbrs, PRV) :: choices))
-			    in  prv (tac::tacs, brs0::trs, choices', brs)  
+			    in  nclosed := !nclosed + 1;
+				prv (tac::tacs, brs0::trs, choices', brs)  
 				handle PRV => 
 				    (*reset Vars and try another literal
 				      [this handler is pruned if possible!]*)
@@ -1058,6 +1066,8 @@ fun prove (sign, cs, brs, cont) =
 			    clearTo ntrl;  raise NEWBRANCHES)
 		       else 
 			 traceNew prems;  traceVars sign ntrl;
+			 if null prems then nclosed := !nclosed + 1
+			 else ntried := !ntried + length prems - 1;
 			 prv(tac dup :: tacs, 
 			       (*FIXME: if recur then the tactic should not
 				 call rotate_tac: new formulae should be last*)
@@ -1157,10 +1167,22 @@ fun fromSubgoal t =
   in  skoSubgoal 0 (from 0 (discard_foralls t))  end;
 
 
+fun initialize() = 
+    (fullTrace:=[];  trail := [];  ntrail := 0;
+     nclosed := 0;  ntried := 1);
+
+
+fun printStats b =
+  if b then
+    (writeln ("Branches closed: " ^ Int.toString (!nclosed));
+     writeln ("Branches tried:  " ^ Int.toString (!ntried)))
+  else ();
+
+
 (*Tactic using tableau engine and proof reconstruction.  
  "lim" is depth limit.*)
 fun depth_tac cs lim i st = 
-    (fullTrace:=[];  trail := [];  ntrail := 0;
+    (initialize();
      let val {sign,...} = rep_thm st
 	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
@@ -1171,7 +1193,8 @@ fun depth_tac cs lim i st =
 				    Int.toString lim);
 			   backtrack choices)
 		| cell => Seq.make(fn()=> cell))
-     in prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
+     in #1 (prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont),
+	    printStats (!trace))
      end
      handle PROVE     => Seq.empty);
 
@@ -1186,14 +1209,15 @@ fun Blast_tac i = blast_tac (Data.claset()) i;
 
 (*Translate subgoal i from a proof state*)
 fun trygl cs lim i = 
-    (fullTrace:=[];  trail := [];  ntrail := 0;
+    (initialize();
      let val st = topthm()
          val {sign,...} = rep_thm st
 	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
-     in timeap prove
-	 (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], I)
+     in #1 (timeap prove
+	    (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], I),
+	    printStats true)
      end
      handle Subscript => error("There is no subgoal " ^ Int.toString i));
 
@@ -1204,11 +1228,12 @@ fun readGoal sign s = read_cterm sign (s,propT) |>
                       term_of |> fromTerm |> rand |> mkGoal;
 
 fun tryInThy thy lim s = 
-    (fullTrace:=[];  trail := [];  ntrail := 0;
-     timeap prove (sign_of thy, 
-		   Data.claset(), 
-		   [initBranch ([readGoal (sign_of thy) s], lim)], 
-		   I));
+    (initialize();
+     #1 (timeap prove (sign_of thy, 
+		       Data.claset(), 
+		       [initBranch ([readGoal (sign_of thy) s], lim)], 
+		       I),
+	    printStats true));
 
 
 end;
