@@ -19,4 +19,4 @@ Should be executed in the subdirectory HOL.
 goals_limit := 1;
 
 loadpath := "IOA/meta_theory" :: "IOA/example" :: !loadpath;
-use_thy "Correctness"  handle _ => exit 1;
+use_thy "Correctness";

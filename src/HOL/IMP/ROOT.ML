@@ -19,7 +19,6 @@ CHOL_build_completed;	(*Make examples fail if CHOL did*)
 writeln"Root file for CHOL/IMP";
 proof_timing := true;
 loadpath := [".","IMP"];
-(time_use_thy "Properties";
- time_use_thy "Equiv";
- time_use_thy "Hoare"
-) handle _ => exit 1;
+time_use_thy "Properties";
+time_use_thy "Equiv";
+time_use_thy "Hoare";

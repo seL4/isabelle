@@ -9,4 +9,4 @@ The Integers in CHOL (ported from ZF by Riccardo Mattolini)
 CHOL_build_completed;    (*Cause examples to fail if CHOL did*)
 
 loadpath := ["Integ"];
-time_use_thy "Integ" handle _ => exit 1;
+time_use_thy "Integ";
