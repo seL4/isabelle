@@ -1,8 +1,7 @@
 
-(*Theory Product_Type instead of HOL regards arguments as tuples.
-  But theory Main would allow clashes with many other constants.*)
+header {* Meson test cases *}
 
-theory mesontest2 = Product_Type:
+theory mesontest2 = Main:
 
 hide const inverse divide
 

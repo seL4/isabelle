@@ -8,6 +8,20 @@ Miscellaneous examples for Higher-Order Logic.
 time_use_thy "Recdefs";
 time_use_thy "Primrec";
 
+setmp proofs 2 time_use_thy "Hilbert_Classical";
+
+(*advanced concrete syntax*)
+time_use_thy "Tuple";
+time_use_thy "Antiquote";
+time_use_thy "Multiquote";
+
+(*basic use of extensible records*)
+time_use_thy "MonoidGroup";
+time_use_thy "Records";
+
+time_use_thy "StringEx";
+time_use_thy "BinEx";
+
 time_use_thy "NatSum";
 time_use     "cla.ML";
 time_use     "mesontest.ML";
@@ -24,16 +38,4 @@ time_use_thy "set";
 time_use_thy "MT";
 time_use_thy "Tarski";
 
-time_use_thy "StringEx";
-time_use_thy "BinEx";
-
 if_svc_enabled time_use_thy "svc_test";
-
-(*basic use of extensible records*)
-time_use_thy "MonoidGroup";
-time_use_thy "Records";
-
-(*advanced concrete syntax*)
-time_use_thy "Tuple";
-time_use_thy "Antiquote";
-time_use_thy "Multiquote";

@@ -36,7 +36,8 @@ text {*
 *}
 
 lemma sum_of_odd_squares:
-  "#3 * setsum (\<lambda>i. Suc (i + i) * Suc (i + i)) (lessThan n) = n * (#4 * n * n - #1)"
+  "#3 * setsum (\<lambda>i. Suc (i + i) * Suc (i + i)) (lessThan n) =
+    n * (#4 * n * n - #1)"
   apply (induct n)
   txt {* This removes the @{term "-#1"} from the inductive step *}
    apply (case_tac [2] n)
@@ -61,17 +62,20 @@ text {*
   \medskip The sum of the first @{term n} positive integers equals
   @{text "n (n + 1) / 2"}.*}
 
-lemma sum_of_naturals: "#2 * setsum id (atMost n) = n * Suc n"
+lemma sum_of_naturals:
+    "#2 * setsum id (atMost n) = n * Suc n"
   apply (induct n)
    apply auto
   done
 
-lemma sum_of_squares: "#6 * setsum (\<lambda>i. i * i) (atMost n) = n * Suc n * Suc (#2 * n)"
+lemma sum_of_squares:
+    "#6 * setsum (\<lambda>i. i * i) (atMost n) = n * Suc n * Suc (#2 * n)"
   apply (induct n)
    apply auto
   done
 
-lemma sum_of_cubes: "#4 * setsum (\<lambda>i. i * i * i) (atMost n) = n * n * Suc n * Suc n"
+lemma sum_of_cubes:
+    "#4 * setsum (\<lambda>i. i * i * i) (atMost n) = n * n * Suc n * Suc n"
   apply (induct n)
    apply auto
   done

@@ -15,7 +15,8 @@ lemma "''ABCD'' \<noteq> ''ABCX''"
 lemma "''ABCD'' = ''ABCD''"
   by simp
 
-lemma "''ABCDEFGHIJKLMNOPQRSTUVWXYZ'' \<noteq> ''ABCDEFGHIJKLMNOPQRSTUVWXY''"
+lemma "''ABCDEFGHIJKLMNOPQRSTUVWXYZ'' \<noteq>
+  ''ABCDEFGHIJKLMNOPQRSTUVWXY''"
   by simp
 
 lemma "set ''Foobar'' = {CHR ''F'', CHR ''a'', CHR ''b'', CHR ''o'', CHR ''r''}"

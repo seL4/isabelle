@@ -2,13 +2,16 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-Simple quote / antiquote example.
 *)
 
 header {* Antiquotations *}
 
 theory Antiquote = Main:
+
+text {*
+  A simple example on quote / antiquote in higher-order abstract
+  syntax.
+*}
 
 syntax
   "_Expr" :: "'a => 'a"				("EXPR _" [1000] 999)
@@ -35,4 +38,3 @@ term "Expr (\<lambda>env. f env + g y env)"
 term "Expr (\<lambda>env. f env + g env y + h a env z)"
 
 end
-

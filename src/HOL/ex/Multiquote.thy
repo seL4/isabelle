@@ -2,14 +2,16 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
-
-Multiple nested quotations and anti-quotations -- basically a
-generalized version of de-Bruijn representation.
 *)
 
 header {* Multiple nested quotations and anti-quotations *}
 
 theory Multiquote = Main:
+
+text {*
+  Multiple nested quotations and anti-quotations -- basically a
+  generalized version of de-Bruijn representation.
+*}
 
 syntax
   "_quote" :: "'b => ('a => 'b)"	     (".'(_')." [0] 1000)
