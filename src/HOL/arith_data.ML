@@ -231,12 +231,6 @@ fun arith_inj_const c = ArithTheoryData.map (fn {splits,inj_consts,discrete,pres
   {splits = splits, inj_consts = c :: inj_consts, discrete = discrete, presburger = presburger});
 
 
-(* A FIXME to avoid excessive case splits when ~= is split into < and >:
-   ignore ~= altogether.
-*)
-
-val ignore_neq = ref false;
-
 structure LA_Data_Ref: LIN_ARITH_DATA =
 struct
 
@@ -339,8 +333,7 @@ and (q,j) = poly(rhs,rat_of_int 1,([],rat_of_int 0))
      | _       => None
   end handle Zero => None;
 
-fun negate(Some(x,i,rel,y,j,d)) =
-      if rel = "=" andalso !ignore_neq then None else Some(x,i,"~"^rel,y,j,d)
+fun negate(Some(x,i,rel,y,j,d)) = Some(x,i,"~"^rel,y,j,d)
   | negate None = None;
 
 fun decomp1 (discrete,inj_consts) (T,xxx) =
@@ -435,14 +428,10 @@ solver all the time rather than add the additional check. *)
 local
 
 fun raw_arith_tac ex i st =
-  let fun elim_neq_tac i =
-      COND (K(!ignore_neq)) all_tac (REPEAT_DETERM(etac linorder_neqE i))
-  in
   refute_tac (K true)
    (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
-   (elim_neq_tac THEN' fast_ex_arith_tac ex)
-   i st
-  end;
+   ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_ex_arith_tac ex)
+   i st;
 
 fun presburger_tac i st =
   (case ArithTheoryData.get_sg (sign_of_thm st) of
