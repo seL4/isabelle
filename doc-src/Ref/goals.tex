@@ -527,8 +527,10 @@ returns the current state, which is on top of the stack.
 
 \section{Debugging and inspecting}
 \index{tactics!debugging}
-These specialized operations support the debugging of tactics.  They refer
-to the current proof state of the subgoal module.
+These functions can be useful when you are debugging a tactic.  They refer
+to the current proof state stored in the subgoal module.  A tactic
+should never call them; it should operate on the proof state supplied as its
+argument.
 
 \subsection{Reading and printing terms}
 \index{terms!reading of}\index{terms!printing of}\index{types!printing of}
@@ -575,6 +577,7 @@ data structure in order to locate the problem!
   these theorems, the subgoal's parameters become free variables.  This
   command is supplied for debugging uses of \ttindex{METAHYPS}.
 \end{ttdescription}
+
 
 \subsection{Filtering lists of rules}
 \begin{ttbox} 
