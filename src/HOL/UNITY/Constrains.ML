@@ -233,6 +233,10 @@ Goalw [increasing_def, Increasing_def]
 by (blast_tac (claset() addIs [stable_imp_Stable]) 1);
 qed "increasing_imp_Increasing";
 
+bind_thm ("Increasing_constant", 
+	increasing_constant RS increasing_imp_Increasing);
+AddIffs [Increasing_constant];
+
 
 (*** The Elimination Theorem.  The "free" m has become universally quantified!
      Should the premise be !!m instead of ALL m ?  Would make it harder to use
@@ -304,6 +308,10 @@ by (auto_tac (claset(),
 qed "Always_UNIV_eq";
 Addsimps [Always_UNIV_eq];
 
+Goal "UNIV <= A ==> F : Always A";
+by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
+qed "UNIV_AlwaysI";
+
 Goal "Always A = (UN I: Pow A. invariant I)";
 by (simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [invariantI, impOfSubs Init_subset_reachable, 
@@ -335,6 +343,16 @@ bind_thm ("Always_ConstrainsI", Always_Constrains_pre RS iffD1);
 (* [| F : Always INV;  F : A Co A' |] ==> F : A Co (INV Int A') *)
 bind_thm ("Always_ConstrainsD", Always_Constrains_post RS iffD2);
 
+(*The analogous proof of Always_LeadsTo_weaken doesn't terminate*)
+Goal "[| F : Always C;  F : A Co A';   \
+\        C Int B <= A;   C Int A' <= B' |] \
+\     ==> F : B Co B'";
+by (rtac Always_ConstrainsI 1);
+by (assume_tac 1);
+by (dtac Always_ConstrainsD 1);
+by (assume_tac 1);
+by (blast_tac (claset() addIs [Constrains_weaken]) 1);
+qed "Always_Constrains_weaken";
 
 
 (** Conjoining Always properties **)
@@ -348,8 +366,13 @@ by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
 qed "Always_INT_distrib";
 
 Goal "[| F : Always A;  F : Always B |] ==> F : Always (A Int B)";
-by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
+by (asm_simp_tac (simpset() addsimps [Always_Int_distrib]) 1);
 qed "Always_Int_I";
+
+(*Allows a kind of "implication introduction"*)
+Goal "F : Always A ==> (F : Always (-A Un B)) = (F : Always B)";
+by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
+qed "Always_Compl_Un_eq";
 
 (*Delete the nearest invariance assumption (which will be the second one
   used by Always_Int_I) *)
