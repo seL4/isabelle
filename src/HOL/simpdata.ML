@@ -525,11 +525,15 @@ val HOL_css = (HOL_cs, HOL_ss);
 (* "iff" attribute *)
 
 val iff_add_global = Clasimp.change_global_css (op addIffs);
+val iff_del_global = Clasimp.change_global_css (op delIffs);
 val iff_add_local = Clasimp.change_local_css (op addIffs);
+val iff_del_local = Clasimp.change_local_css (op delIffs);
 
 val iff_attrib_setup =
-  [Attrib.add_attributes [("iff", (Attrib.no_args iff_add_global, Attrib.no_args iff_add_local),
-    "add rules to simpset and claset simultaneously")]];
+ [Attrib.add_attributes
+  [("iff", (Attrib.add_del_args iff_add_global iff_del_global,
+    Attrib.add_del_args iff_add_local iff_del_local),
+    "declare simplifier / classical rules")]];
 
 
 
