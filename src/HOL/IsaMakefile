@@ -43,7 +43,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   Divides.ML Divides.thy Finite.ML Finite.thy Fun.ML Fun.thy \
   Gfp.ML Gfp.thy HOL.ML HOL.thy Inductive.thy \
   Integ/Bin.ML Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy \
-  Integ/IntDef.ML Integ/IntDef.thy Integ/Integ.ML Integ/Integ.thy \
+  Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML Integ/Int.thy \
   Integ/simproc.ML \
   Lfp.ML Lfp.thy List.ML List.thy Main.thy Map.ML Map.thy Nat.ML \
   Nat.thy NatDef.ML NatDef.thy Option.ML Option.thy Ord.ML Ord.thy \
