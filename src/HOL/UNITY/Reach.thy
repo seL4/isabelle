@@ -34,7 +34,7 @@ constdefs
     "fixedpoint == {s. ALL (u,v): edges. s u --> s v}"
 
   metric :: state => nat
-    "metric == (%s. card {v. ~ s v})"
+    "metric s == card {v. ~ s v}"
 
 rules
 

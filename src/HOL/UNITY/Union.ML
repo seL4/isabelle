@@ -6,9 +6,6 @@
 Unions of programs
 
 From Misra's Chapter 5: Asynchronous Compositions of Programs
-
-NOT CLEAR WHETHER ALL THESE FORMS ARE NEEDED: 
-    Maybe Join instead of Un, and JOIN for UNION
 *)
 
 

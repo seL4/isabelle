@@ -11,38 +11,41 @@ From Misra, "Asynchronous Compositions of Programs", Section 5.3.2
 (*split_all_tac causes a big blow-up*)
 claset_ref() := claset() delSWrapper "split_all_tac";
 
+Addsimps [prgF_def RS def_prg_simps];
+Addsimps [prgG_def RS def_prg_simps];
+Addsimps (map simp_of_act [cmdF_def, cmdG_def]);
+
 (*Simplification for records*)
 Addsimps (thms"state.update_defs");
-Addsimps [invFG_def];
+Addsimps [simp_of_set invFG_def];
 
 
-Goalw [prgF_def, Join_def] "id : Acts (Join prgF prgG) ";
+Goalw [Join_def] "id : Acts (Join prgF prgG) ";
 by (Simp_tac 1);
 qed "id_in_Acts";
 AddIffs [id_in_Acts];
 
-
-Goalw [prgF_def, prgG_def] "Invariant (Join prgF prgG) invFG";
+Goal "Invariant (Join prgF prgG) invFG";
 by (rtac InvariantI 1);
 by (Force_tac 1);
 by (rtac (constrains_imp_Constrains RS StableI) 1);
 by (auto_tac (claset(), simpset() addsimps [constrains_Join]));
-by (constrains_tac [prgG_def,cmdG_def] 2);
+by (constrains_tac 2);
 by (auto_tac (claset() addIs [le_anti_sym] addSEs [le_SucE], simpset()));
-by (constrains_tac [prgF_def,cmdF_def] 1);
+by (constrains_tac 1);
 qed "invFG";
 
 Goal "LeadsTo (Join prgF prgG) ({s. NF s = k} - {s. BB s}) \
 \                              ({s. NF s = k} Int {s. BB s})";
 by (rtac (ensures_stable_Join1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
-by (ensures_tac [prgG_def,cmdG_def] "cmdG" 2);
-by (constrains_tac [prgF_def,cmdF_def] 1);
+by (ensures_tac "cmdG" 2);
+by (constrains_tac 1);
 qed "lemma2_1";
 
 Goal "LeadsTo (Join prgF prgG) ({s. NF s = k} Int {s. BB s}) {s. k < NF s}";
 by (rtac (ensures_stable_Join2 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
-by (constrains_tac [prgG_def,cmdG_def] 2);
-by (ensures_tac [prgF_def,cmdF_def] "cmdF" 1);
+by (constrains_tac 2);
+by (ensures_tac "cmdF" 1);
 qed "lemma2_2";
 
 

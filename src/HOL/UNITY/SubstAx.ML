@@ -401,12 +401,8 @@ by (asm_full_simp_tac (simpset() addsimps [Completion]) 1);
 qed "Finite_completion";
 
 
-(** main_def defines the main program as a set;
-    cmd_defs defines the separate commands
-**)
-
 (*proves "ensures/leadsTo" properties when the program is specified*)
-fun ensures_tac (main_def::cmd_defs) sact = 
+fun ensures_tac sact = 
     SELECT_GOAL
       (EVERY [REPEAT (Invariant_Int_tac 1),
 	      etac Invariant_LeadsTo_Basis 1 
@@ -414,11 +410,8 @@ fun ensures_tac (main_def::cmd_defs) sact =
 		  REPEAT (ares_tac [LeadsTo_Basis, ensuresI] 1),
 	      res_inst_tac [("act", sact)] transient_mem 2,
                  (*simplify the command's domain*)
-	      simp_tac (simpset() addsimps (Domain_partial_func::cmd_defs)) 3,
-	         (*INSIST that the command belongs to the program*)
-	      force_tac (claset(), simpset() addsimps [main_def]) 2,
-	      constrains_tac (main_def::cmd_defs) 1,
-	      rewrite_goals_tac cmd_defs,
+	      simp_tac (simpset() addsimps [Domain_def]) 3,
+	      constrains_tac 1,
 	      ALLGOALS Clarify_tac,
 	      ALLGOALS Asm_full_simp_tac]);
 

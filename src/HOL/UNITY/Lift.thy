@@ -4,8 +4,6 @@
     Copyright   1998  University of Cambridge
 
 The Lift-Control Example
-
-
 *)
 
 Lift = SubstAx +

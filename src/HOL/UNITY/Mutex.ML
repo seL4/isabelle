@@ -9,35 +9,27 @@ Based on "A Family of 2-Process Mutual Exclusion Algorithms" by J Misra
 (*split_all_tac causes a big blow-up*)
 claset_ref() := claset() delSWrapper "split_all_tac";
 
-val cmd_defs = [Mprg_def, 
-		cmd0U_def, cmd1U_def, cmd2U_def, cmd3U_def, cmd4U_def, 
-		cmd0V_def, cmd1V_def, cmd2V_def, cmd3V_def, cmd4V_def];
+Addsimps [Mprg_def RS def_prg_simps];
 
-Goalw [Mprg_def] "id : Acts Mprg";
-by (Simp_tac 1);
-qed "id_in_Acts";
-AddIffs [id_in_Acts];
+Addsimps (map simp_of_act
+	  [cmd0U_def, cmd1U_def, cmd2U_def, cmd3U_def, cmd4U_def, 
+	   cmd0V_def, cmd1V_def, cmd2V_def, cmd3V_def, cmd4V_def]);
 
+Addsimps (map simp_of_set
+	  [invariantU_def, invariantV_def, bad_invariantU_def]);
 
 (*Simplification for records*)
-val select_defs = thms"state.select_defs"
-and update_defs = thms"state.update_defs"
-and dest_defs   = thms"state.dest_defs";
+Addsimps (thms"state.update_defs");
 
-Addsimps update_defs;
-
-Addsimps [invariantU_def, invariantV_def];
-
-
-Goalw [Mprg_def] "Invariant Mprg invariantU";
+Goal "Invariant Mprg invariantU";
 by (rtac InvariantI 1);
-by (constrains_tac cmd_defs 2);
+by (constrains_tac 2);
 by Auto_tac;
 qed "invariantU";
 
-Goalw [Mprg_def] "Invariant Mprg invariantV";
+Goal "Invariant Mprg invariantV";
 by (rtac InvariantI 1);
-by (constrains_tac cmd_defs 2);
+by (constrains_tac 2);
 by Auto_tac;
 qed "invariantV";
 
@@ -52,12 +44,10 @@ qed "mutual_exclusion";
 
 
 (*The bad invariant FAILS in cmd1V*)
-Goalw [Mprg_def, bad_invariantU_def] "Invariant Mprg bad_invariantU";
+Goal "Invariant Mprg bad_invariantU";
 by (rtac InvariantI 1);
-by (Force_tac 1);
-by (constrains_tac cmd_defs 1);
-by Auto_tac;
-by (safe_tac (claset() addSEs [le_SucE]));
+by (constrains_tac 2);
+by (auto_tac (claset() addSEs [le_SucE], simpset()));
 by (Asm_full_simp_tac 1);
 (*Resulting state: n=1, p=false, m=4, u=false.  
   Execution of cmd1V (the command of process v guarded by n=1) sets p:=true,
@@ -69,26 +59,22 @@ getgoal 1;
 (*** Progress for U ***)
 
 Goalw [Unless_def] "Unless Mprg {s. MM s=2} {s. MM s=3}";
-by (constrains_tac cmd_defs 1);
+by (constrains_tac 1);
 qed "U_F0";
 
 Goal "LeadsTo Mprg {s. MM s=1} {s. PP s = VV s & MM s = 2}";
-by (ensures_tac cmd_defs "cmd1U" 1);
-by Auto_tac;
+by (ensures_tac "cmd1U" 1);
 qed "U_F1";
 
 Goal "LeadsTo Mprg {s. ~ PP s & MM s = 2} {s. MM s = 3}";
 by (cut_facts_tac [invariantU] 1);
-by (rewtac Mprg_def);
-by (ensures_tac cmd_defs "cmd2U" 1);
-by Auto_tac;
+by (ensures_tac "cmd2U" 1);
 qed "U_F2";
 
 Goal "LeadsTo Mprg {s. MM s = 3} {s. PP s}";
 by (res_inst_tac [("B", "{s. MM s = 4}")] LeadsTo_Trans 1);
-by (ensures_tac cmd_defs "cmd4U" 2);
-by (ensures_tac cmd_defs "cmd3U" 1);
-by Auto_tac;
+by (ensures_tac "cmd4U" 2);
+by (ensures_tac "cmd3U" 1);
 qed "U_F3";
 
 Goal "LeadsTo Mprg {s. MM s = 2} {s. PP s}";
@@ -121,25 +107,22 @@ qed "u_Leadsto_p";
 
 
 Goalw [Unless_def] "Unless Mprg {s. NN s=2} {s. NN s=3}";
-by (constrains_tac cmd_defs 1);
+by (constrains_tac 1);
 qed "V_F0";
 
 Goal "LeadsTo Mprg {s. NN s=1} {s. PP s = (~ UU s) & NN s = 2}";
-by (ensures_tac cmd_defs "cmd1V" 1);
-by Auto_tac;
+by (ensures_tac "cmd1V" 1);
 qed "V_F1";
 
 Goal "LeadsTo Mprg {s. PP s & NN s = 2} {s. NN s = 3}";
 by (cut_facts_tac [invariantV] 1);
-by (ensures_tac cmd_defs "cmd2V" 1);
-by Auto_tac;
+by (ensures_tac "cmd2V" 1);
 qed "V_F2";
 
 Goal "LeadsTo Mprg {s. NN s = 3} {s. ~ PP s}";
 by (res_inst_tac [("B", "{s. NN s = 4}")] LeadsTo_Trans 1);
-by (ensures_tac cmd_defs "cmd4V" 2);
-by (ensures_tac cmd_defs "cmd3V" 1);
-by Auto_tac;
+by (ensures_tac "cmd4V" 2);
+by (ensures_tac "cmd3V" 1);
 qed "V_F3";
 
 Goal "LeadsTo Mprg {s. NN s = 2} {s. ~ PP s}";
