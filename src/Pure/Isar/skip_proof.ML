@@ -13,8 +13,9 @@ sig
   val cheat_tac: theory -> tactic
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val local_skip_proof: (Proof.context -> string * (string * thm list) list -> unit) *
-    (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val global_skip_proof: Proof.state -> theory * ((string * string) * (string * thm list) list)
+    (Proof.context -> thm -> unit) -> bool -> Proof.state -> Proof.state Seq.seq
+  val global_skip_proof:
+    bool -> Proof.state -> theory * ((string * string) * (string * thm list) list)
   val setup: (theory -> theory) list
 end;
 
@@ -36,7 +37,7 @@ exception SkipProof of term;
 
 fun skip_proof (_, SkipProof t) =
   if ! quick_and_dirty then t
-  else error "Proofs may be skipped in quick_and_dirty mode only!";
+  else error "Proof may be skipped in quick_and_dirty mode only!";
 
 val setup = [Theory.add_oracle (skip_proofN, skip_proof)];
 
@@ -57,10 +58,11 @@ fun prove thy xs asms prop tac =
 
 (* "sorry" proof command *)
 
-fun cheating ctxt = Method.METHOD (K (cheat_tac (ProofContext.theory_of ctxt)));
+fun cheating int ctxt = Method.METHOD (K (setmp quick_and_dirty (int orelse ! quick_and_dirty)
+    (cheat_tac (ProofContext.theory_of ctxt))));
 
-val local_skip_proof = Method.local_terminal_proof (Method.Basic cheating, None);
-val global_skip_proof = Method.global_terminal_proof (Method.Basic cheating, None);
+fun local_skip_proof x int = Method.local_terminal_proof (Method.Basic (cheating int), None) x;
+fun global_skip_proof int = Method.global_terminal_proof (Method.Basic (cheating int), None);
 
 end;
 

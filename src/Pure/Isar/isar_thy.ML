@@ -423,8 +423,7 @@ fun check_goal false state = state
           |> cat_lines |> warning;
         val check =
           (fn () => Seq.pull (SkipProof.local_skip_proof (K (K ()),
-            fn _ => fn thm => rule := Some thm) state))
-          |> Library.setmp quick_and_dirty true
+            fn _ => fn thm => rule := Some thm) true state))
           |> Library.setmp proofs 0
           |> Library.transform_error;
         val result = (check (), None) handle Interrupt => raise Interrupt | e => (None, Some e);
@@ -533,17 +532,18 @@ val local_terminal_proof =
 
 val local_default_proof = proof'' (ProofHistory.applys o Method.local_default_proof);
 val local_immediate_proof = proof'' (ProofHistory.applys o Method.local_immediate_proof);
-val local_skip_proof = proof'' (ProofHistory.applys o SkipProof.local_skip_proof);
 val local_done_proof = proof'' (ProofHistory.applys o Method.local_done_proof);
+val local_skip_proof = Toplevel.proof' (fn int =>
+  ProofHistory.applys (SkipProof.local_skip_proof (cond_print_result_rule int) int));
 
 
 (* global endings *)
 
-fun global_result finish = Toplevel.proof_to_theory (fn prf =>
+fun global_result finish = Toplevel.proof_to_theory' (fn int => fn prf =>
   let
     val state = ProofHistory.current prf;
     val _ = if Proof.at_bottom state then () else raise Toplevel.UNDEF;
-    val (thy, ((kind, name), res)) = finish state;
+    val (thy, ((kind, name), res)) = finish int state;
   in
     if kind = "" orelse kind = Drule.internalK then ()
     else (print_result (Proof.context_of state) ((kind, name), res);
@@ -551,12 +551,13 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
     thy
   end);
 
-val global_qed = global_result o Method.global_qed true o apsome Comment.ignore_interest;
-val global_terminal_proof = global_result o Method.global_terminal_proof o ignore_interests;
-val global_default_proof = global_result Method.global_default_proof;
-val global_immediate_proof = global_result Method.global_immediate_proof;
+fun global_qed m = global_result (K (Method.global_qed true (apsome Comment.ignore_interest m)));
+fun global_terminal_proof m =
+  global_result (K (Method.global_terminal_proof (ignore_interests m)));
+val global_default_proof = global_result (K Method.global_default_proof);
+val global_immediate_proof = global_result (K Method.global_immediate_proof);
 val global_skip_proof = global_result SkipProof.global_skip_proof;
-val global_done_proof = global_result Method.global_done_proof;
+val global_done_proof = global_result (K Method.global_done_proof);
 
 
 (* common endings *)
