@@ -110,7 +110,7 @@ by (Clarify_tac 2);
 by (asm_simp_tac (simpset() addsimps 
     [CLAIM "Suc m = ma + d + 1 ==> m - ma = d"]
     delsimps [sumr_Suc]) 2);
-by (asm_simp_tac (simpset() addsimps [(simplify (simpset() delsimps [sumr_Suc]) 
+by (asm_simp_tac (simpset() addsimps [(simplify (simpset() delsimps [sumr_Suc])
           (read_instantiate [("k","1")] sumr_offset4))] 
     delsimps [sumr_Suc,fact_Suc,realpow_Suc]) 2);
 by (rtac lemma_DERIV_subst 2);

@@ -9,10 +9,9 @@ header{*Finite Summation and Infinite Series*}
 
 theory Series = SEQ + Lim:
 
-consts sumr :: "[nat,nat,(nat=>real)] => real"
-primrec
-   sumr_0:   "sumr m 0 f = 0"
-   sumr_Suc: "sumr m (Suc n) f = (if n < m then 0 else sumr m n f + f(n))"
+syntax sumr :: "[nat,nat,(nat=>real)] => real"
+translations
+  "sumr m n f" => "setsum (f::nat=>real) (atLeastLessThan m n)"
 
 constdefs
    sums  :: "[nat=>real,real] => bool"     (infixr "sums" 80)
@@ -25,83 +24,52 @@ constdefs
    "suminf f == (@s. f sums s)"
 
 
-lemma sumr_Suc_zero [simp]: "sumr (Suc n) n f = 0"
-by (induct_tac "n", auto)
+text{*This simprule replaces @{text "sumr 0 n"} by a term involving 
+  @{term lessThan}, making other simprules inapplicable.*}
+declare atLeast0LessThan [simp del]
 
-lemma sumr_eq_bounds [simp]: "sumr m m f = 0"
-by (induct_tac "m", auto)
-
-lemma sumr_Suc_eq [simp]: "sumr m (Suc m) f = f(m)"
-by auto
-
-lemma sumr_add_lbound_zero [simp]: "sumr (m+k) k f = 0"
-by (induct_tac "k", auto)
+lemma sumr_Suc [simp]:
+     "sumr m (Suc n) f = (if n < m then 0 else sumr m n f + f(n))"
+by (simp add: atLeastLessThanSuc)
 
 lemma sumr_add: "sumr m n f + sumr m n g = sumr m n (%n. f n + g n)"
-apply (induct_tac "n")
-apply (simp_all add: add_ac)
-done
+by (simp add: setsum_addf)
 
-lemma sumr_mult: "r * sumr m n f = sumr m n (%n. r * f n)"
-apply (induct_tac "n")
-apply (simp_all add: right_distrib)
-done
+lemma sumr_mult: "r * sumr m n (f::nat=>real) = sumr m n (%n. r * f n)"
+by (simp add: setsum_mult)
 
 lemma sumr_split_add [rule_format]:
-     "n < p --> sumr 0 n f + sumr n p f = sumr 0 p f"
+     "n < p --> sumr 0 n f + sumr n p f = sumr 0 p (f::nat=>real)"
 apply (induct_tac "p", auto)
 apply (rename_tac k) 
 apply (subgoal_tac "n=k", auto) 
 done
 
-lemma sumr_split_add_minus: "n < p ==> sumr 0 p f + - sumr 0 n f = sumr n p f"
+lemma sumr_split_add_minus:
+     "n < p ==> sumr 0 p f + - sumr 0 n f = sumr n p (f::nat=>real)"
 apply (drule_tac f1 = f in sumr_split_add [symmetric])
 apply (simp add: add_ac)
 done
 
-lemma sumr_split_add2 [rule_format]:
-     "0 < n --> n < p --> sumr (Suc 0) n f + sumr n p f = sumr (Suc 0) p f"
-apply (induct_tac "p", auto) 
-apply (rename_tac k) 
-apply (subgoal_tac "n=k", auto)
-done
+lemma sumr_rabs: "abs(sumr m n  (f::nat=>real)) \<le> sumr m n (%i. abs(f i))"
+by (simp add: setsum_abs)
 
-lemma sumr_split_add3:
-     "[| 0<n; n \<le> p |] ==> sumr (Suc 0) n f + sumr n p f = sumr (Suc 0) p f"
-apply (drule le_imp_less_or_eq, auto)
-apply (blast intro: sumr_split_add2)
-done
+lemma sumr_rabs_ge_zero [iff]: "0 \<le> sumr m n (%n. abs (f n))"
+by (simp add: setsum_abs_ge_zero)
 
-lemma sumr_rabs: "abs(sumr m n f) \<le> sumr m n (%i. abs(f i))"
-apply (induct_tac "n")
-apply (auto intro: abs_triangle_ineq [THEN order_trans] add_right_mono)
-done
-
-lemma sumr_fun_eq [rule_format (no_asm)]:
-     "(\<forall>r. m \<le> r & r < n --> f r = g r) --> sumr m n f = sumr m n g"
-by (induct_tac "n", auto)
-
-lemma sumr_const [simp]: "sumr 0 n (%i. r) = real n * r"
-apply (induct_tac "n")
-apply (simp_all add: left_distrib real_of_nat_zero real_of_nat_Suc)
-done
-
-lemma sumr_add_mult_const:
-     "sumr 0 n f + -(real n * r) = sumr 0 n (%i. f i + -r)"
-by (simp only: sumr_add [symmetric] minus_mult_right, simp)
+text{*Just a congruence rule*}
+lemma sumr_fun_eq:
+     "(\<forall>r. m \<le> r & r < n --> f r = g r) ==> sumr m n f = sumr m n g"
+by (auto intro: setsum_cong) 
 
 lemma sumr_diff_mult_const: "sumr 0 n f - (real n*r) = sumr 0 n (%i. f i - r)"
-by (simp add: real_diff_def sumr_add_mult_const)
+by (simp add: diff_minus setsum_addf real_of_nat_def)
 
-lemma sumr_less_bounds_zero [rule_format, simp]: "n < m --> sumr m n f = 0"
-apply (induct_tac "n")
-apply (auto dest: less_imp_le)
-done
+lemma sumr_less_bounds_zero [simp]: "n < m ==> sumr m n f = 0"
+by (simp add: atLeastLessThan_empty)
 
 lemma sumr_minus: "sumr m n (%i. - f i) = - sumr m n f"
-apply (induct_tac "n")
-apply (case_tac [2] "Suc n \<le> m", simp_all)
-done
+by (simp add: Finite_Set.setsum_negf)
 
 lemma sumr_shift_bounds: "sumr (m+k) (n+k) f = sumr m n (%i. f(i + k))"
 by (induct_tac "n", auto)
@@ -109,15 +77,12 @@ by (induct_tac "n", auto)
 lemma sumr_minus_one_realpow_zero [simp]: "sumr 0 (2*n) (%i. (-1) ^ Suc i) = 0"
 by (induct_tac "n", auto)
 
-lemma Suc_diff_n: "m < Suc n ==> Suc n - m = Suc (n - m)"
-by (drule less_imp_Suc_add, auto)
-
 lemma sumr_interval_const [rule_format (no_asm)]:
      "(\<forall>n. m \<le> Suc n --> f n = r) --> m \<le> k --> sumr m k f = (real(k-m) * r)"
 apply (induct_tac "k", auto) 
 apply (drule_tac x = n in spec)
 apply (auto dest!: le_imp_less_or_eq)
-apply (simp (no_asm_simp) add: left_distrib Suc_diff_n real_of_nat_Suc)
+apply (simp add: left_distrib real_of_nat_Suc split: nat_diff_split)
 done
 
 lemma sumr_interval_const2 [rule_format (no_asm)]:
@@ -126,8 +91,9 @@ lemma sumr_interval_const2 [rule_format (no_asm)]:
 apply (induct_tac "k", auto) 
 apply (drule_tac x = n in spec)
 apply (auto dest!: le_imp_less_or_eq)
-apply (simp (no_asm_simp) add: Suc_diff_n left_distrib real_of_nat_Suc)
+apply (simp add: left_distrib real_of_nat_Suc split: nat_diff_split)
 done
+
 
 lemma sumr_le [rule_format (no_asm)]:
      "(\<forall>n. m \<le> n --> 0 \<le> f n) --> m < k --> sumr 0 m f \<le> sumr 0 k f"
@@ -135,7 +101,7 @@ apply (induct_tac "k")
 apply (auto simp add: less_Suc_eq_le)
 apply (drule_tac [!] x = n in spec, safe)
 apply (drule le_imp_less_or_eq, safe)
-apply (drule_tac [2] a = "sumr 0 m f" in add_mono)
+apply (arith) 
 apply (drule_tac a = "sumr 0 m f" in order_refl [THEN add_mono], auto)
 done
 
@@ -155,9 +121,6 @@ lemma sumr_ge_zero2 [rule_format (no_asm)]:
 apply (induct_tac "n", auto)
 apply (drule_tac x = n in spec, arith)
 done
-
-lemma sumr_rabs_ge_zero [iff]: "0 \<le> sumr m n (%n. abs (f n))"
-by (induct_tac "n", auto, arith)
 
 lemma rabs_sumr_rabs_cancel [simp]:
      "abs (sumr m n (%n. abs (f n))) = (sumr m n (%n. abs (f n)))"
@@ -198,7 +161,7 @@ lemma sumr_bound2 [rule_format (no_asm)]:
      "(\<forall>p. 0 \<le> p & p < n --> (f(p) \<le> K))  
       --> (sumr 0 n f \<le> (real n * K))"
 apply (induct_tac "n")
-apply (auto intro: add_mono simp add: left_distrib real_of_nat_Suc)
+apply (auto intro: add_mono simp add: left_distrib real_of_nat_Suc add_commute)
 done
 
 lemma sumr_group [simp]:
@@ -523,35 +486,18 @@ done
 
 ML
 {*
-val sumr_0 = thm"sumr_0";
 val sumr_Suc = thm"sumr_Suc";
 val sums_def = thm"sums_def";
 val summable_def = thm"summable_def";
 val suminf_def = thm"suminf_def";
 
-val sumr_Suc_zero = thm "sumr_Suc_zero";
-val sumr_eq_bounds = thm "sumr_eq_bounds";
-val sumr_Suc_eq = thm "sumr_Suc_eq";
-val sumr_add_lbound_zero = thm "sumr_add_lbound_zero";
 val sumr_add = thm "sumr_add";
 val sumr_mult = thm "sumr_mult";
 val sumr_split_add = thm "sumr_split_add";
-val sumr_split_add_minus = thm "sumr_split_add_minus";
-val sumr_split_add2 = thm "sumr_split_add2";
-val sumr_split_add3 = thm "sumr_split_add3";
 val sumr_rabs = thm "sumr_rabs";
 val sumr_fun_eq = thm "sumr_fun_eq";
-val sumr_const = thm "sumr_const";
-val sumr_add_mult_const = thm "sumr_add_mult_const";
 val sumr_diff_mult_const = thm "sumr_diff_mult_const";
-val sumr_less_bounds_zero = thm "sumr_less_bounds_zero";
-val sumr_minus = thm "sumr_minus";
-val sumr_shift_bounds = thm "sumr_shift_bounds";
 val sumr_minus_one_realpow_zero = thm "sumr_minus_one_realpow_zero";
-val Suc_diff_n = thm "Suc_diff_n";
-val sumr_interval_const = thm "sumr_interval_const";
-val sumr_interval_const2 = thm "sumr_interval_const2";
-val sumr_le = thm "sumr_le";
 val sumr_le2 = thm "sumr_le2";
 val sumr_ge_zero = thm "sumr_ge_zero";
 val sumr_ge_zero2 = thm "sumr_ge_zero2";

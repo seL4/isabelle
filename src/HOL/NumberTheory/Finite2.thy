@@ -76,7 +76,8 @@ by auto
 
 lemma setsum_const: "finite X ==> setsum (%x. (c :: int)) X = c * int(card X)";
   apply (induct set: Finites)
-by (auto simp add: zadd_zmult_distrib2)
+  apply (auto simp add: left_distrib right_distrib int_eq_of_nat)
+  done
 
 lemma setsum_const2: "finite X ==> int (setsum (%x. (c :: nat)) X) = 
     int(c) * int(card X)";

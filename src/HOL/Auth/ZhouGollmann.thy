@@ -198,15 +198,17 @@ done
 
 text{*Holds also for @{term "A = Spy"}!*}
 theorem NRO_authenticity:
-     "[|Says A' B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs;
+     "[|Gets B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs;
         NRO = Crypt (priK A) {|Number f_nro, Agent B, Nonce L, C|};
         A \<notin> broken;  evs \<in> zg |]
      ==> Says A B {|Number f_nro, Agent B, Nonce L, C, NRO|} \<in> set evs"
+apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule NRO_sender, auto)
-txt{*We are left with the case where @{term "A' = Spy"} and  @{term "A' \<noteq> A"},
-  i.e. @{term "A \<notin> bad"}, when we can apply @{text NRO_authenticity_good}.*}
- apply (blast dest: NRO_authenticity_good [OF refl])
+txt{*We are left with the case where the sender is @{term Spy} and not
+  equal to @{term A}, because @{term "A \<notin> bad"}. 
+  Thus theorem @{text NRO_authenticity_good} applies.*}
+apply (blast dest: NRO_authenticity_good [OF refl])
 done
 
 
@@ -276,15 +278,17 @@ done
 
 text{*Holds also for @{term "A = Spy"}!*}
 theorem sub_K_authenticity:
-     "[|Says A' TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs;
+     "[|Gets TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs;
         sub_K = Crypt (priK A) {|Number f_sub, Agent B, Nonce L, Key K|};
         A \<notin> broken;  evs \<in> zg |]
      ==> Says A TTP {|Number f_sub, Agent B, Nonce L, Key K, sub_K|} \<in> set evs"
+apply (drule Gets_imp_Says, assumption) 
 apply clarify 
 apply (frule sub_K_sender, auto)
-txt{*We are left with the case where @{term "A' = Spy"} and  @{term "A' \<noteq> A"},
-  i.e. @{term "A \<notin> bad"}, when we can apply @{text sub_K_authenticity_good}.*}
- apply (blast dest: sub_K_authenticity_good [OF refl])
+txt{*We are left with the case where the sender is @{term Spy} and not
+  equal to @{term A}, because @{term "A \<notin> bad"}. 
+  Thus theorem @{text sub_K_authenticity_good} applies.*}
+apply (blast dest: sub_K_authenticity_good [OF refl])
 done
 
 
@@ -326,7 +330,7 @@ apply (erule rev_mp)
 apply (erule zg.induct)
 apply (frule_tac [5] ZG2_msg_in_parts_spies, simp_all)
 txt{*ZG4*}
-apply (clarify dest!: Gets_imp_Says) 
+apply clarify 
 apply (rule sub_K_authenticity, auto) 
 done
 

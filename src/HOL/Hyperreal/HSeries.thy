@@ -102,17 +102,11 @@ apply (safe, drule sumr_fun_eq)
 apply (simp add: sumhr hypnat_of_nat_eq)
 done
 
-lemma sumhr_const: "sumhr(0,n,%i. r) = hypreal_of_hypnat n*hypreal_of_real r"
-apply (cases n)
-apply (simp add: sumhr hypnat_zero_def hypreal_of_real_def hypreal_of_hypnat hypreal_mult)
-done
-
-lemma sumhr_add_mult_const: 
-     "sumhr(0,n,f) + -(hypreal_of_hypnat n*hypreal_of_real r) =  
-      sumhr(0,n,%i. f i + -r)"
+lemma sumhr_const:
+     "sumhr(0, n, %i. r) = hypreal_of_hypnat n * hypreal_of_real r"
 apply (cases n)
 apply (simp add: sumhr hypnat_zero_def hypreal_of_real_def hypreal_of_hypnat 
-                 hypreal_mult hypreal_add hypreal_minus sumr_add [symmetric])
+                 hypreal_mult real_of_nat_def)
 done
 
 lemma sumhr_less_bounds_zero [simp]: "n < m ==> sumhr(m,n,f) = 0"
@@ -139,11 +133,12 @@ text{*Infinite sums are obtained by summing to some infinite hypernatural
  (such as @{term whn})*}
 lemma sumhr_hypreal_of_hypnat_omega: 
       "sumhr(0,whn,%i. 1) = hypreal_of_hypnat whn"
-by (simp add: hypnat_omega_def hypnat_zero_def sumhr hypreal_of_hypnat)
+by (simp add: hypnat_omega_def hypnat_zero_def sumhr hypreal_of_hypnat
+              real_of_nat_def)
 
 lemma sumhr_hypreal_omega_minus_one: "sumhr(0, whn, %i. 1) = omega - 1"
 by (simp add: hypnat_omega_def hypnat_zero_def omega_def hypreal_one_def
-              sumhr hypreal_diff real_of_nat_Suc)
+              sumhr hypreal_diff real_of_nat_def)
 
 lemma sumhr_minus_one_realpow_zero [simp]: 
      "sumhr(0, whn + whn, %i. (-1) ^ (i+1)) = 0"
@@ -254,8 +249,6 @@ val sumhr_split_add = thm "sumhr_split_add";
 val sumhr_split_diff = thm "sumhr_split_diff";
 val sumhr_hrabs = thm "sumhr_hrabs";
 val sumhr_fun_hypnat_eq = thm "sumhr_fun_hypnat_eq";
-val sumhr_const = thm "sumhr_const";
-val sumhr_add_mult_const = thm "sumhr_add_mult_const";
 val sumhr_less_bounds_zero = thm "sumhr_less_bounds_zero";
 val sumhr_minus = thm "sumhr_minus";
 val sumhr_shift_bounds = thm "sumhr_shift_bounds";

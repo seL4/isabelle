@@ -798,17 +798,14 @@ in
 end
 *}
 
-text{* As Jeremy Avigad notes: ultimately the analogous
-   thing should be done for setprod as well \dots *}
-
+text{* As Jeremy Avigad notes, setprod needs the same treatment \dots *}
 
 lemma setsum_empty [simp]: "setsum f {} = 0"
   by (simp add: setsum_def)
 
 lemma setsum_insert [simp]:
     "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
-  by (simp add: setsum_def
-    LC.fold_insert [OF LC.intro] add_left_commute)
+  by (simp add: setsum_def LC.fold_insert [OF LC.intro] add_left_commute)
 
 lemma setsum_reindex [rule_format]:
      "finite B ==> inj_on f B --> setsum h (f ` B) = setsum (h \<circ> f) B"
@@ -938,9 +935,10 @@ lemma setsum_eq_0_iff [simp]:
     "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))"
   by (induct set: Finites) auto
 
-lemma setsum_constant_nat [simp]:
+lemma setsum_constant_nat:
     "finite A ==> (\<Sum>x: A. y) = (card A) * y"
-  -- {* Later generalized to any @{text comm_semiring_1_cancel}. *}
+  -- {* Generalized to any @{text comm_semiring_1_cancel} in
+        @{text IntDef} as @{text setsum_constant}. *}
   by (erule finite_induct, auto)
 
 lemma setsum_Un: "finite A ==> finite B ==>
@@ -978,6 +976,41 @@ lemma setsum_nonneg: "[| finite A;
   apply (blast intro: add_mono)
   done
 
+lemma setsum_mult: 
+  fixes f :: "'a => ('b::semiring_0_cancel)"
+  assumes fin: "finite A" 
+  shows "r * setsum f A = setsum (%n. r * f n) A"
+using fin 
+proof (induct) 
+  case empty thus ?case by simp
+next
+  case (insert A x)
+  thus ?case by (simp add: right_distrib) 
+qed
+
+lemma setsum_abs: 
+  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  assumes fin: "finite A" 
+  shows "abs (setsum f A) \<le> setsum (%i. abs(f i)) A"
+using fin 
+proof (induct) 
+  case empty thus ?case by simp
+next
+  case (insert A x)
+  thus ?case by (auto intro: abs_triangle_ineq order_trans)
+qed
+
+lemma setsum_abs_ge_zero: 
+  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  assumes fin: "finite A" 
+  shows "0 \<le> setsum (%i. abs(f i)) A"
+using fin 
+proof (induct) 
+  case empty thus ?case by simp
+next
+  case (insert A x) thus ?case by (auto intro: order_trans)
+qed
+
 subsubsection {* Cardinality of unions and Sigma sets *}
 
 lemma card_UN_disjoint:
@@ -986,12 +1019,10 @@ lemma card_UN_disjoint:
       card (UNION I A) = setsum (%i. card (A i)) I"
   apply (subst card_eq_setsum)
   apply (subst finite_UN, assumption+)
-  apply (subgoal_tac "setsum (%i. card (A i)) I =
-      setsum (%i. (setsum (%x. 1) (A i))) I")
-  apply (erule ssubst)
-  apply (erule setsum_UN_disjoint, assumption+)
-  apply (rule setsum_cong)
-  apply simp+
+  apply (subgoal_tac
+           "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
+  apply (simp add: setsum_UN_disjoint) 
+  apply (simp add: setsum_constant_nat cong: setsum_cong) 
   done
 
 lemma card_Union_disjoint:
@@ -1023,9 +1054,10 @@ lemma card_SigmaI [rule_format,simp]: "finite A ==>
   apply (auto intro: finite_SigmaI simp add: card_cartesian_product_singleton)
   done
 
-lemma card_cartesian_product: "[| finite A; finite B |] ==>
-  card (A <*> B) = card(A) * card(B)"
-  by simp
+lemma card_cartesian_product:
+     "[| finite A; finite B |] ==> card (A <*> B) = card(A) * card(B)"
+  by (simp add: setsum_constant_nat)
+
 
 
 subsection {* Generalized product over a set *}

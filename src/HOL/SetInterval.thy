@@ -192,6 +192,8 @@ text {* The above four lemmas could be declared as iffs.
 
 subsection {* Intervals of natural numbers *}
 
+subsubsection {* The Constant @{term lessThan} *}
+
 lemma lessThan_0 [simp]: "lessThan (0::nat) = {}"
 by (simp add: lessThan_def)
 
@@ -203,6 +205,8 @@ by (simp add: lessThan_def atMost_def less_Suc_eq_le)
 
 lemma UN_lessThan_UNIV: "(UN m::nat. lessThan m) = UNIV"
 by blast
+
+subsubsection {* The Constant @{term greaterThan} *}
 
 lemma greaterThan_0 [simp]: "greaterThan 0 = range Suc"
 apply (simp add: greaterThan_def)
@@ -216,6 +220,8 @@ done
 
 lemma INT_greaterThan_UNIV: "(INT m::nat. greaterThan m) = {}"
 by blast
+
+subsubsection {* The Constant @{term atLeast} *}
 
 lemma atLeast_0 [simp]: "atLeast (0::nat) = UNIV"
 by (unfold atLeast_def UNIV_def, simp)
@@ -232,6 +238,8 @@ lemma atLeast_Suc_greaterThan: "atLeast (Suc k) = greaterThan k"
 lemma UN_atLeast_UNIV: "(UN m::nat. atLeast m) = UNIV"
 by blast
 
+subsubsection {* The Constant @{term atMost} *}
+
 lemma atMost_0 [simp]: "atMost (0::nat) = {0}"
 by (simp add: atMost_def)
 
@@ -243,10 +251,37 @@ done
 lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
 by blast
 
-lemma atLeast0LessThan [simp]: "{0::nat..<n} = {..<n}"
+subsubsection {* The Constant @{term atLeastLessThan} *}
+
+text{*But not a simprule because some concepts are better left in terms
+  of @{term atLeastLessThan}*}
+lemma atLeast0LessThan: "{0::nat..<n} = {..<n}"
 by(simp add:lessThan_def atLeastLessThan_def)
 
-text {* Intervals of nats with @{text Suc} *}
+lemma atLeastLessThan0 [simp]: "{m..<0::nat} = {}"
+by (simp add: atLeastLessThan_def)
+
+lemma atLeastLessThan_self [simp]: "{n::'a::order..<n} = {}"
+by (auto simp add: atLeastLessThan_def)
+
+lemma atLeastLessThan_empty: "n \<le> m ==> {m..<n::'a::order} = {}"
+by (auto simp add: atLeastLessThan_def)
+
+subsubsection {* Intervals of nats with @{term Suc} *}
+
+text{*Not a simprule because the RHS is too messy.*}
+lemma atLeastLessThanSuc:
+    "{m..<Suc n} = (if m \<le> n then insert n {m..<n} else {})"
+by (auto simp add: atLeastLessThan_def) 
+
+lemma atLeastLessThan_singleton [simp]: "{m..<Suc m} = {m}" 
+by (auto simp add: atLeastLessThan_def)
+
+lemma atLeast_sum_LessThan [simp]: "{m + k..<k::nat} = {}"
+by (induct k, simp_all add: atLeastLessThanSuc)
+
+lemma atLeastSucLessThan [simp]: "{Suc n..<n} = {}"
+by (auto simp add: atLeastLessThan_def)
 
 lemma atLeastLessThanSuc_atLeastAtMost: "{l..<Suc u} = {l..u}"
   by (simp add: lessThan_Suc_atMost atLeastAtMost_def atLeastLessThan_def)
@@ -312,7 +347,7 @@ lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
   apply arith
   done
 
-lemma card_atLeastAtMost [simp]: "card {l..u} = Suc u - l"
+lemma card_atLeastAtMost [simp]: "card {l..u} = Suc u - l"  
   by (subst atLeastLessThanSuc_atLeastAtMost [THEN sym], simp)
 
 lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l" 
