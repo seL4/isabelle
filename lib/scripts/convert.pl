@@ -60,7 +60,8 @@ sub process_tac {
   s/ ?\( ?\)/\(\)/g;      # remove space before and inside empty tuples
   s/\(\)([^ ])/\(\) $1/g; # possibly add space after empty tuples
 
-  if(s/^\(EVERY\'\[(.*?)\] *(\d+)\)$/\($1 $2\)/) {
+  s/EVERY *\[(.*?)\]/$1/;
+  if(s/EVERY\'\[(.*?)\] *(\d+)/$1 $2/) {
     $goal = $2;
     s/,/ $goal,/g;
   }
