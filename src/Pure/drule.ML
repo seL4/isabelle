@@ -6,7 +6,7 @@
 Derived rules and other operations on theorems.
 *)
 
-infix 0 RS nRS RSN RL RLN MRS MRL OF COMP;
+infix 0 RS RSN RL RLN MRS MRL OF COMP;
 
 signature BASIC_DRULE =
 sig
@@ -45,7 +45,6 @@ sig
   val assume_ax         : theory -> string -> thm
   val RSN               : thm * (int * thm) -> thm
   val RS                : thm * thm -> thm
-  val nRS               : thm * thm -> thm
   val RLN               : thm list * (int * thm list) -> thm list
   val RL                : thm list * thm list -> thm list
   val MRS               : thm list * thm -> thm
@@ -457,10 +456,6 @@ fun tha RSN (i,thb) =
 
 (*resolution: P==>Q, Q==>R gives P==>R. *)
 fun tha RS thb = tha RSN (1,thb);
-
-(* preserves the name of the thm on the LEFT: *)
-fun th nRS rl = Thm.name_thm (Thm.name_of_thm th, th RS rl)
-
 
 (*For joining lists of rules*)
 fun thas RLN (i,thbs) =
