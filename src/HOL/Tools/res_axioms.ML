@@ -21,6 +21,7 @@ structure ResElimRule: RES_ELIM_RULE =
 
 struct
 
+(* a tactic used to prove an elim-rule. *)
 fun elimRule_tac thm =
     ((rtac impI 1) ORELSE (rtac notI 1)) THEN (etac thm 1) THEN
     REPEAT(Fast_tac 1);
@@ -33,6 +34,8 @@ fun elimRule_tac' thm =
 
 
 exception ELIMR2FOL of string;
+
+(* functions used to construct a formula *)
 
 fun make_imp (prem,concl) = Const("op -->", Type("fun",[Type("bool",[]),Type("fun",[Type("bool",[]),Type("bool",[])])])) $ prem $ concl;
 
@@ -99,6 +102,7 @@ fun trans_elim (main,others,concl) =
     end;
 
 
+(* aux function of elim2Fol, take away predicate variable. *)
 fun elimR2Fol_aux prems concl = 
     let val nprems = length prems
 	val main = hd prems
@@ -110,7 +114,7 @@ fun elimR2Fol_aux prems concl =
 
 fun trueprop term = Const ("Trueprop", Type("fun",[Type("bool",[]),Type("prop",[])])) $ term; 
 	    
-
+(* convert an elim rule into an equivalent formula, of type Term.term. *)
 fun elimR2Fol elimR = 
     let val elimR' = Drule.freeze_all elimR
 	val (prems,concl) = (prems_of elimR', concl_of elimR')
@@ -125,6 +129,7 @@ fun elimR2Fol elimR =
 
 (**** use prove_goalw_cterm to prove ****)
 
+(* convert an elim-rule into an equivalent theorem that does not have the predicate variable. *) 
 fun transform_elim thm =
     let val tm = elimR2Fol thm
 	val ctm = cterm_of (sign_of_thm thm) tm	
@@ -199,13 +204,14 @@ open ResElimRule;
 
 (* to be fixed: cnf_intro, cnf_rule, is_introR *)
 
+(* check if a rule is an elim rule *)
 fun is_elimR thm = 
     case (concl_of thm) of (Const ("Trueprop", _) $ Var (idx,_)) => true
 			 | Var(indx,Type("prop",[])) => true
 			 | _ => false;
 
 
-
+(* repeated resolution *)
 fun repeat_RS thm1 thm2 =
     let val thm1' =  thm1 RS thm2 handle THM _ => thm1
     in
@@ -217,6 +223,8 @@ fun repeat_RS thm1 thm2 =
 (* added this function to remove True/False in a theorem that is in NNF form. *)
 fun rm_TF_nnf thm = simplify small_simpset thm;
 
+
+(* convert a theorem into NNF and also skolemize it. *)
 fun skolem_axiom thm = 
     let val thm' = (skolemize o rm_TF_nnf o  make_nnf o ObjectLogic.atomize_thm o Drule.freeze_all) thm
     in 
@@ -301,6 +309,8 @@ fun sk_lookup [] t = None
   | sk_lookup ((tm,sk_tm)::tms) t = if (t = tm) then Some (sk_tm) else (sk_lookup tms t);
 
 
+
+(* get the proper skolem term to replace epsilon term *)
 fun get_skolem epss t = 
     let val sk_fun = sk_lookup epss t
     in
@@ -326,7 +336,7 @@ fun rm_Eps_cls epss thm =
     end;
 
 
-
+(* remove the epsilon terms in a formula, by skolem terms. *)
 fun rm_Eps _ [] = []
   | rm_Eps epss (thm::thms) = 
     let val (thm',epss') = rm_Eps_cls epss thm
@@ -337,6 +347,7 @@ fun rm_Eps _ [] = []
 
 
 (* changed, now it also finds out the name of the theorem. *)
+(* convert a theorem into CNF and then into Clause.clause format. *)
 fun clausify_axiom thm =
     let val isa_clauses = cnf_axiom thm (*"isa_clauses" are already "standard"ed. *)
         val isa_clauses' = rm_Eps [] isa_clauses
@@ -433,6 +444,9 @@ fun clausify_classical_rules [] err_list = ([],err_list)
 	((clausify_axiom thm)::ts,es) handle  _ => (ts,(thm::es))
     end;
 
+
+
+(* convert all classical rules from a given theory's classical reasoner into Clause.clause format. *)
 fun clausify_classical_rules_thy thy =
     let val rules = claset_rules_of_thy thy
     in
@@ -449,6 +463,7 @@ fun clausify_simpset_rules [] err_list = ([],err_list)
     end;
 
 
+(* convert all simplifier rules from a given theory's simplifier into Clause.clause format. *)
 fun clausify_simpset_rules_thy thy =
     let val thms = simpset_rules_of_thy thy
     in

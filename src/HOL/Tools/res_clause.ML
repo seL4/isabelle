@@ -204,13 +204,25 @@ fun type_of (Type (a, [])) = (make_fixed_type_const a,[])
     end
   | type_of (TFree (a, s)) = (make_fixed_type_var a, [((FOLTFree a),s)])
   | type_of (TVar (v, s))  = (make_schematic_type_var (string_of_indexname v), [((FOLTVar v),s)]);
+
+(* added: checkMeta: string -> bool *)
+(* Any meta vars like ?x should be treated as universal vars,although it is represented as "Free(...)" by Isabelle *)
+fun checkMeta s =
+    let val chars = explode s
+    in
+	["M", "E", "T", "A", "H", "Y", "P", "1"] prefix chars
+    end;
+
     
- 
 fun pred_name_type (Const(c,T)) = (lookup_const c,type_of T)
-  | pred_name_type (Free(x,T))  = (make_fixed_var x,type_of T)
+  | pred_name_type (Free(x,T))  = 
+    let val is_meta = checkMeta x
+    in
+	if is_meta then (raise CLAUSE("Predicate Not First Order")) else
+	(make_fixed_var x,type_of T)
+    end
   | pred_name_type (Var(_,_))   = raise CLAUSE("Predicate Not First Order")
   | pred_name_type _          = raise CLAUSE("Predicate input unexpected");
-    
 
 fun fun_name_type (Const(c,T)) = (lookup_const c,type_of T)
   | fun_name_type (Free(x,T)) = (make_fixed_var x,type_of T)
@@ -223,9 +235,12 @@ fun term_of (Var(ind_nm,T)) =
 	(UVar(make_schematic_var(string_of_indexname ind_nm),folType),ts)
     end
   | term_of (Free(x,T)) = 
-    let val (folType,ts) = type_of T
+    let val is_meta = checkMeta x
+	val (folType,ts) = type_of T
     in
-        (Fun(make_fixed_var x,folType,[]),ts)
+	if is_meta then (UVar(make_schematic_var x,folType),ts)
+	else
+            (Fun(make_fixed_var x,folType,[]),ts)
     end
   | term_of (Const(c,T)) = 
     let val (folType,ts) = type_of T
@@ -243,11 +258,11 @@ fun term_of (Var(ind_nm,T)) =
             end
     in
         case f of Const(_,_) => term_of_aux ()
-                | Free(_,_)  => term_of_aux ()
+                | Free(s,_)  => if (checkMeta s) then (raise CLAUSE("Function Not First Order")) else term_of_aux ()
                 | _          => raise CLAUSE("Function Not First Order")
     end
-  | term_of _ = raise CLAUSE("Function Not First Order");        
-    
+  | term_of _ = raise CLAUSE("Function Not First Order"); 
+
 
 
 
