@@ -305,15 +305,15 @@ val xthms1 = Scan.repeat1 xthm;
 
 val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
 
-val locale_element =
-  $$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix >> triple1))
-    >> Locale.Fixes ||
+val locale_element = group "locale element"
+  ($$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
+    >> triple1)) >> Locale.Fixes ||
   $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
     >> Locale.Assumes ||
   $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
     >> Locale.Defines ||
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1)) >> Locale.Notes ||
-  $$$ "uses" |-- (!!! ($$$ "FIXME" >> K ())) >> Locale.Uses;
+  $$$ "uses" |-- (!!! ($$$ "FIXME" >> K ())) >> Locale.Uses);
 
 
 (* proof methods *)
