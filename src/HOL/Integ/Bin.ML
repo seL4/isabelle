@@ -492,10 +492,11 @@ Addsimprocs [fast_int_arith_simproc];
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
    in case there are lots of irrelevant terms involved.
-*)
+
 val arith_tac =
   refute_tac (K true) (REPEAT o split_tac[nat_diff_split])
              ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac);
+*)
 
 (* Some test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";

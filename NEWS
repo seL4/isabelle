@@ -36,17 +36,17 @@ types and logics as well.
 * There are now decision procedures for linear arithmetic over nat and int:
 
 1. arith_tac copes with arbitrary formulae involving `=', `<', `<=', `+',
-`-', `Suc' and numerical constants; other subterms are treated as atomic;
-subformulae not involving type `nat' or `int' are ignored; quantified
-subformulae are ignored unless they are positive universal or negative
-existential. The tactic has to be invoked by hand and can be a little bit
-slow. In particular, the running time is exponential in the number of
-occurrences of `-' on `nat'.
+`-', `Suc', `min', `max' and numerical constants; other subterms are treated
+as atomic; subformulae not involving type `nat' or `int' are ignored;
+quantified subformulae are ignored unless they are positive universal or
+negative existential. The tactic has to be invoked by hand and can be a
+little bit slow. In particular, the running time is exponential in the number
+of occurrences of `min' and `max', and `-' on `nat'.
 
 2. fast_arith_tac is a cut-down version of arith_tac: it only takes (negated)
 (in)equalities among the premises and the conclusion into account (i.e. no
-compound formulae) and does not know about `-' on `nat'. It is fast and is
-used automatically by the simplifier.
+compound formulae) and does not know about `min' and `max', and `-' on
+`nat'. It is fast and is used automatically by the simplifier.
 
 NB: At the moment, these decision procedures do not cope with mixed nat/int
 formulae where the two parts interact, such as `m < n ==> int(m) < int(n)'.

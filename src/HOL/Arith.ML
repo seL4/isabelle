@@ -979,11 +979,14 @@ by(Auto_tac);
 qed "nat_diff_split";
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
-   in case there are lots of irrelevant terms involved
+   in case there are lots of irrelevant terms involved;
+   elimination of min/max can be optimized:
+   (max m n + k <= r) = (m+k <= r & n+k <= r)
+   (l <= min m n + k) = (l <= m+k & l <= n+k)
 *)
 val arith_tac =
-  refute_tac (K true) (REPEAT o split_tac[nat_diff_split])
-             ((REPEAT_DETERM o etac nat_neqE) THEN' fast_arith_tac);
+  refute_tac (K true) (REPEAT o split_tac[nat_diff_split,split_min,split_max])
+             ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac);
 
 (*---------------------------------------------------------------------------*)
 (* End of proof procedures. Now go and USE them!                             *)
