@@ -172,7 +172,7 @@ by (Blast_tac 1);
 qed "chain_rel";
 
 Addsimps [chain_in, chain_rel];
-AddTCs   [chain_in, chain_rel];
+AddTCs   [chain_fun, chain_in, chain_rel];
 
 Goal "[|chain(D,X); cpo(D); n:nat; m:nat|] ==> rel(D,X`n,(X`(m #+ n)))";
 by (induct_tac "m" 1);
@@ -401,17 +401,17 @@ by (auto_tac (claset() addIs [lam_type,matrix_in,matrix_rel_1_0],
 	      simpset()));
 qed "matrix_chain_right";
 
-val prems = Goalw [matrix_def]  (* matrix_chainI *)
+val xprem::yprem::prems = Goalw [matrix_def]  (* matrix_chainI *)
     "[|!!x. x:nat==>chain(D,M`x);  !!y. y:nat==>chain(D,lam x:nat. M`x`y);   \
 \      M:nat->nat->set(D); cpo(D)|] ==> matrix(D,M)";
-by (safe_tac (claset() addSIs [ballI]));
-by (cut_inst_tac[("y1","m"),("n","n")](hd(tl prems) RS chain_rel) 2);
+by Safe_tac;
+by (cut_inst_tac[("y1","m"),("n","n")] (yprem RS chain_rel) 2);
 by (Asm_full_simp_tac 4);
 by (rtac cpo_trans 5);
-by (cut_inst_tac[("y1","m"),("n","n")](hd(tl prems) RS chain_rel) 6);
+by (cut_inst_tac[("y1","m"),("n","n")] (yprem RS chain_rel) 6);
 by (Asm_full_simp_tac 8);
-by (TRYALL(rtac (chain_fun RS apply_type)));
-brr(chain_rel::nat_succI::prems) 1;
+by (typecheck_tac (tcset() addTCs (chain_fun RS apply_type)::
+		                  xprem::yprem::prems));
 qed "matrix_chainI";
 
 val lemma = prove_goal Limit.thy
@@ -562,8 +562,7 @@ Goalw [cont_def] "f:cont(D,E) ==> f:mono(D,E)";
 by (Blast_tac 1);
 qed "cont2mono";
 
-Goalw [cont_def]
-    "f:cont(D,E) ==> f:set(D)->set(E)";
+Goalw [cont_def] "f:cont(D,E) ==> f:set(D)->set(E)";
 by (rtac mono_fun 1);
 by (Blast_tac 1);
 qed "cont_fun";
@@ -571,6 +570,8 @@ qed "cont_fun";
 Goal "[|f:cont(D,E); x:set(D)|] ==> f`x:set(E)";
 by (blast_tac(claset() addSIs [cont_fun RS apply_type]) 1);
 qed "cont_map";
+
+AddTCs [comp_fun, cont_fun, cont_map];
 
 Goalw [cont_def]
     "[|f:cont(D,E); rel(D,x,y); x:set(D); y:set(D)|] ==> rel(E,f`x,f`y)";
@@ -674,9 +675,7 @@ by (rtac lam_type 1);
 by (rtac lam_type 1);
 by (rtac apply_type 1);
 by (rtac (chain_in RS cf_cont RS cont_fun) 1);
-by (REPEAT (assume_tac 1));
-by (rtac chain_in 1);
-by (REPEAT (assume_tac 1));
+by Auto_tac;
 qed "matrix_lemma";
 
 Goal  (* chain_cf_lub_cont *)
@@ -701,8 +700,7 @@ by (REPEAT (assume_tac 1));
 by (Asm_full_simp_tac 1);
 by (asm_simp_tac(simpset() addsimps[chain_in RS beta]) 1);
 by (dtac (matrix_lemma RS lub_matrix_diag_sym) 1);
-by (REPEAT (assume_tac 1));
-by (Asm_full_simp_tac 1);
+by Auto_tac;
 qed "chain_cf_lub_cont";
 
 Goal  (* islub_cf *)
@@ -765,7 +763,7 @@ qed "const_cont";
 Goal "[|cpo(D); pcpo(E); y:cont(D,E)|]==>rel(cf(D,E),(lam x:set(D).bot(E)),y)";
 by (rtac rel_cfI 1);
 by (Asm_simp_tac 1);
-brr[bot_least, bot_in, apply_type, cont_fun, const_cont, cpo_cf, pcpo_cpo] 1;
+by (ALLGOALS (type_solver_tac (tcset() addTCs [cont_fun, const_cont]) []));
 qed "cf_least";
 
 Goal  (* pcpo_cf *)
@@ -784,15 +782,10 @@ qed "bot_cf";
 (* Identity and composition.                                            *)
 (*----------------------------------------------------------------------*)
 
-val id_thm = prove_goalw Perm.thy [id_def] "x:X ==> (id(X)`x) = x"
-  (fn prems => [simp_tac(simpset() addsimps prems) 1]);
-
 Goal  (* id_cont *)
     "cpo(D) ==> id(set(D)):cont(D,D)";
-by (rtac contI 1);
-by (rtac id_type 1);
-by (asm_simp_tac (simpset() addsimps[id_thm]) 1);
-by (asm_simp_tac(simpset() addsimps[id_thm, cpo_lub RS islub_in, chain_in, chain_fun RS eta]) 1);
+by (asm_simp_tac(simpset() addsimps[id_type, contI, cpo_lub RS islub_in, 
+				    chain_fun RS eta]) 1);
 qed "id_cont";
 
 AddTCs [id_cont];
@@ -806,7 +799,7 @@ by (stac comp_cont_apply 2);
 by (stac comp_cont_apply 5);
 by (rtac cont_mono 8);
 by (rtac cont_mono 9); (* 15 subgoals *)
-brr[comp_fun,cont_fun,cont_map] 1; (* proves all but the lub case *)
+by Typecheck_tac; (* proves all but the lub case *)
 by (stac comp_cont_apply 1);
 by (stac cont_lub 4);
 by (stac cont_lub 6);
@@ -1989,7 +1982,7 @@ val rho_emb_apply2 = prove_goalw Limit.thy [rho_emb_def]
 
 val rho_emb_id = prove_goal Limit.thy 
   "!!z. [| x:set(DD`n); n:nat|] ==> rho_emb(DD,ee,n)`x`n = x"
-  (fn prems => [asm_simp_tac(simpset() addsimps[rho_emb_apply2,eps_id,id_thm]) 1]);
+  (fn prems => [asm_simp_tac(simpset() addsimps[rho_emb_apply2,eps_id]) 1]);
 
 (* Shorter proof, 23 against 62. *)
 
@@ -2030,7 +2023,7 @@ by (etac rev_mp 1);  (* For induction proof *)
 by (induct_tac "n" 1);
 by (rtac impI 1);
 by (asm_full_simp_tac (simpset() addsimps [e_less_eq]) 1);
-by (stac id_thm 1);
+by (stac id_conv 1);
 brr[apply_type,Dinf_prod,cpo_refl,emb_chain_cpo,nat_0I] 1;
 by (asm_full_simp_tac (simpset() addsimps [le_succ_iff]) 1);
 by (rtac impI 1);
@@ -2049,13 +2042,13 @@ by (res_inst_tac
   [("P",
     "%z. rel(DD ` succ(xa), \
 \    (ee ` xa O Rp(?DD46(xa) ` xa,?DD46(xa) ` succ(xa),?ee46(xa) ` xa)) ` \
-\            (x ` succ(xa)),z)")](id_thm RS subst) 6);
+\            (x ` succ(xa)),z)")](id_conv RS subst) 6);
 by (rtac rel_cf 7); 
 (* Dinf and cont_fun doesn't go well together, both Pi(_,%x._). *)
 (* brr solves 11 of 12 subgoals *)
 brr[Dinf_prod RS apply_type, cont_fun, Rp_cont, e_less_cont, emb_cont, emb_chain_emb, emb_chain_cpo, apply_type, embRp_rel, disjI1 RS (le_succ_iff RS iffD2), nat_succI] 1;
 by (asm_full_simp_tac (simpset() addsimps [e_less_eq]) 1);
-by (stac id_thm 1);
+by (stac id_conv 1);
 by (auto_tac (claset() addIs [apply_type,Dinf_prod,emb_chain_cpo], simpset()));
 val lemma1 = result();
 
@@ -2068,7 +2061,7 @@ by (etac rev_mp 1);  (* For induction proof *)
 by (induct_tac "m" 1);
 by (rtac impI 1);
 by (asm_full_simp_tac (simpset() addsimps [e_gr_eq]) 1);
-by (stac id_thm 1);
+by (stac id_conv 1);
 brr[apply_type,Dinf_prod,cpo_refl,emb_chain_cpo,nat_0I] 1;
 by (asm_full_simp_tac (simpset() addsimps [le_succ_iff]) 1);
 by (rtac impI 1);
@@ -2079,7 +2072,7 @@ by (stac comp_fun_apply 4);
 by (stac Dinf_eq 7);
 brr[emb_chain_emb, emb_chain_cpo, Rp_cont, e_gr_cont, cont_fun, emb_cont, apply_type,Dinf_prod,nat_succI] 1;
 by (asm_full_simp_tac (simpset() addsimps [e_gr_eq]) 1);
-by (stac id_thm 1);
+by (stac id_conv 1);
 by (auto_tac (claset() addIs [apply_type,Dinf_prod,emb_chain_cpo], simpset()));
 val lemma2 = result();
 
@@ -2116,14 +2109,14 @@ brr[lam_Dinf_cont] 1;
 (*-----------------------------------------------*)
 (* This part is 7 lines, but 30 in HOL (75% reduction!) *)
 by (rtac fun_extension 1);
-by (stac id_thm 3);
+by (stac id_conv 3);
 by (stac comp_fun_apply 4);
 by (stac beta 7);
 by (stac rho_emb_id 8);
 brr[comp_fun, id_type, lam_type, rho_emb_fun, Dinf_prod RS apply_type, apply_type,refl] 1;
 (*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*)
 by (rtac rel_cfI 1); (* ------------------>>>Yields type cond, not in HOL *)
-by (stac id_thm 1);
+by (stac id_conv 1);
 by (stac comp_fun_apply 2);
 by (stac beta 5);
 by (stac rho_emb_apply1 6);
@@ -2268,8 +2261,7 @@ brr[cpo_lub,rho_emb_chain,cpo_cf,cpo_Dinf,isubI,cont_cf,id_cont] 1;
 by (Asm_simp_tac 1);
 brr[embRp_rel,emb_rho_emb,emb_chain_cpo,cpo_Dinf] 1;
 by (rtac rel_cfI 1);
-by (asm_simp_tac
-    (simpset() addsimps[id_thm,lub_cf,rho_emb_chain,cpo_Dinf]) 1);
+by (asm_simp_tac (simpset() addsimps[lub_cf,rho_emb_chain,cpo_Dinf]) 1);
 by (rtac rel_DinfI 1); (* Addtional assumptions *)
 by (stac lub_Dinf 1);
 brr[rho_emb_chain_apply1] 1;  
@@ -2424,7 +2416,7 @@ by (rtac fun_extension 1);
 by (fast_tac (claset() addIs [lam_type]) 1);
 by (asm_simp_tac 
      (simpset() setSolver type_solver_tac (tcset() addTCs [emb_cont, commute_emb])) 2);
-by (Asm_simp_tac 1);
+by (fast_tac (claset() addIs [lam_type]) 1);
 val lemma = result();
 
 Goal "[| commute(DD,ee,E,r); commute(DD,ee,G,f);   \
