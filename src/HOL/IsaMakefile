@@ -30,7 +30,8 @@ Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
 $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
-  $(SRC)/Provers/Arith/nat_transitive.ML $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/Arith/nat_transitive.ML \
+  $(SRC)/Provers/Arith/abel_cancel.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/simplifier.ML \
   $(SRC)/Provers/splitter.ML $(SRC)/Pure/section_utils.ML \
@@ -133,6 +134,7 @@ $(LOG)/HOL-Real.gz: $(OUT)/HOL \
   Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
   Real/PRat.ML Real/PRat.thy Real/PReal.ML Real/PReal.thy \
   Real/RComplete.ML Real/RComplete.thy Real/Real.ML Real/Real.thy \
+  Real/RealDef.ML Real/RealDef.thy Real/simproc.ML \
   Real/RealAbs.ML Real/RealAbs.thy Real/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Real
 
