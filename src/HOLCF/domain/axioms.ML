@@ -38,7 +38,7 @@ let
      fun idxs z x arg = (if is_lazy arg then fn t => %%"up"`t else Id)
 			(if recu andalso is_rec arg then (cproj (Bound z) 
 			(length eqs) (rec_of arg))`Bound(z-x) else Bound(z-x));
-     fun parms [] = %%"one"
+     fun parms [] = %%"ONE"
      |   parms vs = foldr'(fn(x,t)=> %%"spair"`x`t)(mapn (idxs(length vs))1 vs);
      fun inj y 1 _ = y
      |   inj y _ 0 = %%"sinl"`y
