@@ -371,7 +371,7 @@ end end;
 
 (*For Isabelle, the lhs of a definition must be a constant.*)
 fun mk_const_def sign (Name, Ty, rhs) =
-    Sign.infer_types sign (K None) (K None) [] false
+    Sign.infer_types (Sign.pp sign) sign (K None) (K None) [] false
                ([Const("==",dummyT) $ Const(Name,Ty) $ rhs], propT)
     |> #1;
 
