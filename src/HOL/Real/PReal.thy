@@ -388,15 +388,16 @@ proof -
     show "x * y \<notin> mult_set A B"
     proof -
       { fix u::rat and v::rat
-	assume "u \<in> A" and "v \<in> B" and "x*y = u*v"
-	moreover
-	with prems have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
-	moreover
-	with prems have "0\<le>v"
-	  by (blast intro: preal_imp_pos [OF B]  order_less_imp_le prems)
-	moreover
-	hence "u*v < x*y" by (blast intro: mult_strict_mono prems)
-	ultimately have False by force}
+	      assume "u \<in> A" and "v \<in> B" and "x*y = u*v"
+	      moreover
+	      with prems have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
+	      moreover
+	      with prems have "0\<le>v"
+	        by (blast intro: preal_imp_pos [OF B]  order_less_imp_le prems)
+	      moreover
+        from calculation
+	      have "u*v < x*y" by (blast intro: mult_strict_mono prems)
+	      ultimately have False by force }
       thus ?thesis by (auto simp add: mult_set_def)
     qed
   qed
