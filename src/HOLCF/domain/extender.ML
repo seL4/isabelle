@@ -51,15 +51,17 @@ open Domain_Library;
 				 then TFree(distinct_name v,sort)
 				 else error ("Additional constraint on rhs "^
 					     "for type variable "^quote v))
-        |    analyse(Type(s,typl)) = if s <> dname 
-			then Type(s,map analyse typl)
-			else if remove_sorts typevars = remove_sorts typl 
-				then Type(s,map analyse typl) 
+	(** BUG OR FEATURE?: mutual recursion may use different arguments **)
+        |   analyse(Type(s,typl)) = (case assoc_string((*dtnvs*)
+						       [(dname,typevars)],s) of 
+		None          => Type(s,map analyse typl)
+	      | Some typevars => if remove_sorts typevars = remove_sorts typl 
+				then Type(s,map analyse typl)
 				else error ("Recursion of type " ^ s ^ 
-					    " with different arguments")
-        | analyse(TVar _) = Imposs "extender:analyse";
-	fun check_pcpo t = (pcpo_type sg t orelse 
-			   error("Not a pcpo type: "^string_of_typ sg t); t);
+					    " with different arguments"))
+        |   analyse(TVar _) = Imposs "extender:analyse";
+	fun check_pcpo t = (pcpo_type sg t orelse error(
+			   "Type not of sort pcpo: "^string_of_typ sg t); t);
 	val analyse_con = upd_third (map (upd_third (check_pcpo o analyse)));
       in ((dname,distinct_typevars), map analyse_con cons') end; 
   in ListPair.map analyse_equation (dtnvs,cons'')
