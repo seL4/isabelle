@@ -42,6 +42,7 @@ use "context.ML";
 use "proofterm.ML";
 use "thm.ML";
 use "display.ML";
+use "fact_index.ML";
 use "pure_thy.ML";
 use "drule.ML";
 use "meta_simplifier.ML";
