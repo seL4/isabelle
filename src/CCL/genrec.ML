@@ -43,7 +43,7 @@ by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE
 val letrec2T = result();
 
 goal Wfd.thy "SPLIT(<a,<b,c>>,%x xs.SPLIT(xs,%y z.B(x,y,z))) = B(a,b,c)";
-by (SIMP_TAC (ccl_ss addrews [SPLITB]) 1);
+by (simp_tac (ccl_ss addsimps [SPLITB]) 1);
 val lemma = result();
 
 val prems = goalw Wfd.thy [letrec3_def]
@@ -55,7 +55,7 @@ val prems = goalw Wfd.thy [letrec3_def]
 \    letrec g x y z be h(x,y,z,g) in g(a,b,c) : D(a,b,c)";
 br (lemma RS subst) 1;
 by (REPEAT (ares_tac ([letrecT,pairT,splitT]@prems) 1));
-by (SIMP_TAC (ccl_ss addrews [SPLITB]) 1);
+by (simp_tac (ccl_ss addsimps [SPLITB]) 1);
 by (REPEAT (ares_tac ([ballI,SubtypeI]@prems) 1));
 br (lemma RS subst) 1;
 by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE 
