@@ -31,8 +31,7 @@ inductive ns_public
 
          (*Bob responds to Alice's message with a further nonce*)
     NS2  "[| evs: ns_public;  A ~= B;  Nonce NB ~: used evs;
-             Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|})
-               : set evs |]
+             Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs |]
           ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|})
                 # evs  :  ns_public"
 

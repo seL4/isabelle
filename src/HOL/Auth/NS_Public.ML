@@ -134,7 +134,7 @@ qed "unique_NA";
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
 goal thy 
- "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs; \
+ "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;         \
 \           A ~: lost;  B ~: lost;  evs : ns_public |]                        \
 \        ==>  Nonce NA ~: analz (sees lost Spy evs)";
 by (etac rev_mp 1);
@@ -157,11 +157,11 @@ qed "Spy_not_see_NA";
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
 goal thy 
- "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs;\
-\           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\             : set evs;\
-\           A ~: lost;  B ~: lost;  evs : ns_public |]  \
-\        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
+ "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs; \
+\           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|})  \
+\             : set evs;                                               \
+\           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
+\        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|})  \
 \              : set evs";
 by (etac rev_mp 1);
 (*prepare induction over Crypt (pubK A) {|NA,NB,B|} : parts H*)
@@ -237,7 +237,7 @@ qed "unique_NB";
 (*Secrecy: Spy does not see the nonce sent in msg NS2 if A and B are secure*)
 goal thy 
  "!!evs. [| Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\             : set evs;                                      \
+\             : set evs;                                              \
 \           A ~: lost;  B ~: lost;  evs : ns_public |]                \
 \ ==> Nonce NB ~: analz (sees lost Spy evs)";
 by (etac rev_mp 1);
@@ -262,8 +262,8 @@ qed "Spy_not_see_NB";
   in message 2, then A has sent message 3.*)
 goal thy 
  "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\             : set evs;                                       \
-\           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;    \
+\             : set evs;                                               \
+\           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;            \
 \           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
 \        ==> Says A B (Crypt (pubK B) (Nonce NB)) : set evs";
 by (etac rev_mp 1);
@@ -294,8 +294,8 @@ val Says_imp_sees_Spy'' =
   NA, then A initiated the run using NA.  SAME proof as B_trusts_NS3!*)
 goal thy 
  "!!evs. [| Says B A  (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
-\             : set evs;                                       \
-\           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;    \
+\             : set evs;                                               \
+\           Says A' B (Crypt (pubK B) (Nonce NB)): set evs;            \
 \           A ~: lost;  B ~: lost;  evs : ns_public |]                 \
 \    ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs";
 by (etac rev_mp 1);

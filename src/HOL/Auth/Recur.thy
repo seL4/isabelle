@@ -90,15 +90,13 @@ inductive "recur lost"
            those in the message he previously sent the Server.*)
     RA4  "[| evs: recur lost;  A ~= B;  
              Says B  C {|XH, Agent B, Agent C, Nonce NB, 
-                         XA, Agent A, Agent B, Nonce NA, P|} 
-               : set evs;
+                         XA, Agent A, Agent B, Nonce NA, P|} : set evs;
              Says C' B {|Crypt (shrK B) {|Key KBC, Agent C, Nonce NB|}, 
                          Crypt (shrK B) {|Key KAB, Agent A, Nonce NB|}, 
-                         RA|}
-               : set evs |]
+                         RA|} : set evs |]
           ==> Says B A RA # evs : recur lost"
 
-(**No "oops" message can readily be expressed, since each session key is
+(**No "oops" message can easily be expressed.  Each session key is
    associated--in two separate messages--with two nonces.
 ***)
 end

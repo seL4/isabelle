@@ -21,11 +21,10 @@ Pretty.setdepth 30;
 
 (*Simplest case: Alice goes directly to the server*)
 goal thy
- "!!A. A ~= Server   \
+ "!!A. A ~= Server                          \
 \ ==> EX K NA. EX evs: recur lost.          \
 \     Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|}, \
-\                     Agent Server|}      \
-\         : set evs";
+\                     Agent Server|}  : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (recur.Nil RS recur.RA1 RS 
           (respond.One RSN (4,recur.RA3))) 2);
@@ -38,8 +37,7 @@ goal thy
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \ ==> EX K. EX NA. EX evs: recur lost.            \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
-\                  Agent Server|}                               \
-\         : set evs";
+\                  Agent Server|}  : set evs";
 by (cut_facts_tac [Nonce_supply2, Key_supply2] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -58,8 +56,7 @@ goal thy
  "!!A B. [| A ~= B; B ~= C; A ~= Server; B ~= Server; C ~= Server |]   \
 \ ==> EX K. EX NA. EX evs: recur lost.                          \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
-\                  Agent Server|}                               \
-\         : set evs";
+\                  Agent Server|}  : set evs";
 by (cut_facts_tac [Nonce_supply3, Key_supply3] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -82,7 +79,7 @@ goal thy "!!evs. lost' <= lost ==> recur lost' <= recur lost";
 by (rtac subsetI 1);
 by (etac recur.induct 1);
 by (REPEAT_FIRST
-    (blast_tac (!claset addIs (impOfSubs (sees_mono RS analz_mono RS synth_mono)
+    (blast_tac (!claset addIs (impOfSubs(sees_mono RS analz_mono RS synth_mono)
                               :: recur.intrs))));
 qed "recur_mono";
 
@@ -528,9 +525,8 @@ qed "Hash_in_parts_respond";
 goalw thy [HPair_def]
  "!!evs. [| Hash {|Key(shrK A), Agent A, Agent B, NA, P|}         \
 \             : parts (sees lost Spy evs);                        \
-\            A ~: lost;  evs : recur lost |]                        \
-\        ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, NA, P|})  \
-\             : set evs";
+\            A ~: lost;  evs : recur lost |]                      \
+\     ==> Says A B (Hash[Key(shrK A)] {|Agent A, Agent B, NA, P|}) : set evs";
 by (etac rev_mp 1);
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
@@ -547,7 +543,7 @@ qed_spec_mp "Hash_auth_sender";
 goal thy 
  "!!evs. [| Crypt (shrK A) Y : parts (sees lost Spy evs);    \
 \           A ~: lost;  A ~= Spy;  evs : recur lost |]       \
-\        ==> EX C RC. Says Server C RC : set evs &   \
+\        ==> EX C RC. Says Server C RC : set evs  &          \
 \                     Crypt (shrK A) Y : parts {RC}";
 by (etac rev_mp 1);
 by parts_induct_tac;

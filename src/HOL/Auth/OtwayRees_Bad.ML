@@ -140,7 +140,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
   for Oops case.*)
 goal thy 
  "!!evs. [| Says Server B                                                 \
-\            {|NA, X, Crypt (shrK B) {|NB, Key K|}|} : set evs;   \
+\            {|NA, X, Crypt (shrK B) {|NB, Key K|}|} : set evs;           \
 \           evs : otway |]                                                \
 \     ==> K ~: range shrK & (EX i. NA = Nonce i) & (EX j. NB = Nonce j)";
 by (etac rev_mp 1);
@@ -172,9 +172,9 @@ val analz_sees_tac =
 
 (*The equality makes the induction hypothesis easier to apply*)
 goal thy  
- "!!evs. evs : otway ==> \
-\  ALL K KK. KK <= Compl (range shrK) -->                      \
-\            (Key K : analz (Key``KK Un (sees lost Spy evs))) = \
+ "!!evs. evs : otway ==>                                         \
+\  ALL K KK. KK <= Compl (range shrK) -->                        \
+\            (Key K : analz (Key``KK Un (sees lost Spy evs))) =  \
 \            (K : KK | Key K : analz (sees lost Spy evs))";
 by (etac otway.induct 1);
 by analz_sees_tac;
@@ -199,9 +199,9 @@ qed "analz_insert_freshK";
 (*** The Key K uniquely identifies the Server's  message. **)
 
 goal thy 
- "!!evs. evs : otway ==>                                                      \
-\   EX B' NA' NB' X'. ALL B NA NB X.                                          \
-\     Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|} : set evs --> \
+ "!!evs. evs : otway ==>                                                  \
+\   EX B' NA' NB' X'. ALL B NA NB X.                                      \
+\     Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|} : set evs -->     \
 \     B=B' & NA=NA' & NB=NB' & X=X'";
 by (etac otway.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
@@ -217,10 +217,8 @@ by (blast_tac (!claset addSEs sees_Spy_partsEs
 val lemma = result();
 
 goal thy 
- "!!evs. [| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}      \
-\            : set evs;                                    \ 
-\           Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|}    \
-\            : set evs;                                    \
+ "!!evs. [| Says Server B {|NA, X, Crypt (shrK B) {|NB, K|}|}   : set evs; \ 
+\           Says Server B' {|NA',X',Crypt (shrK B') {|NB',K|}|} : set evs; \
 \           evs : otway |] ==> X=X' & B=B' & NA=NA' & NB=NB'";
 by (prove_unique_tac lemma 1);
 qed "unique_session_keys";
@@ -231,8 +229,8 @@ goal thy
  "!!evs. [| A ~: lost;  B ~: lost;  evs : otway |]                    \
 \        ==> Says Server B                                            \
 \              {|NA, Crypt (shrK A) {|NA, Key K|},                    \
-\                Crypt (shrK B) {|NB, Key K|}|} : set evs --> \
-\            Says B Spy {|NA, NB, Key K|} ~: set evs -->      \
+\                Crypt (shrK B) {|NB, Key K|}|} : set evs -->         \
+\            Says B Spy {|NA, NB, Key K|} ~: set evs -->              \
 \            Key K ~: analz (sees lost Spy evs)";
 by (etac otway.induct 1);
 by analz_sees_tac;
@@ -253,10 +251,10 @@ by (spy_analz_tac 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 goal thy 
- "!!evs. [| Says Server B                                                \
-\            {|NA, Crypt (shrK A) {|NA, Key K|},                         \
-\                  Crypt (shrK B) {|NB, Key K|}|} : set evs;     \
-\           Says B Spy {|NA, NB, Key K|} ~: set evs;             \
+ "!!evs. [| Says Server B                                         \
+\            {|NA, Crypt (shrK A) {|NA, Key K|},                  \
+\                  Crypt (shrK B) {|NB, Key K|}|} : set evs;      \
+\           Says B Spy {|NA, NB, Key K|} ~: set evs;              \
 \           A ~: lost;  B ~: lost;  evs : otway |]                \
 \        ==> Key K ~: analz (sees lost Spy evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
@@ -275,8 +273,7 @@ goal thy
 \        ==> Crypt (shrK A) {|NA, Agent A, Agent B|}           \
 \             : parts (sees lost Spy evs) -->                  \
 \            Says A B {|NA, Agent A, Agent B,                  \
-\                       Crypt (shrK A) {|NA, Agent A, Agent B|}|}  \
-\             : set evs";
+\                       Crypt (shrK A) {|NA, Agent A, Agent B|}|}  : set evs";
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 by (Blast_tac 1);
@@ -288,16 +285,15 @@ qed_spec_mp "Crypt_imp_OR1";
 (*Only it is FALSE.  Somebody could make a fake message to Server
           substituting some other nonce NA' for NB.*)
 goal thy 
- "!!evs. [| A ~: lost;  A ~= Spy;  evs : otway |]                        \
+ "!!evs. [| A ~: lost;  A ~= Spy;  evs : otway |]                         \
 \        ==> Crypt (shrK A) {|NA, Key K|} : parts (sees lost Spy evs) --> \
-\            Says A B {|NA, Agent A, Agent B,                  \
+\            Says A B {|NA, Agent A, Agent B,                      \
 \                       Crypt (shrK A) {|NA, Agent A, Agent B|}|}  \
-\             : set evs -->                            \
+\             : set evs -->                                    \
 \            (EX B NB. Says Server B                           \
 \                 {|NA,                                        \
 \                   Crypt (shrK A) {|NA, Key K|},              \
-\                   Crypt (shrK B) {|NB, Key K|}|}             \
-\                   : set evs)";
+\                   Crypt (shrK B) {|NB, Key K|}|}  : set evs)";
 by parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 (*OR1: it cannot be a new Nonce, contradiction.*)

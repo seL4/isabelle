@@ -56,8 +56,7 @@ inductive "otway lost"
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
     OR4  "[| evs: otway lost;  A ~= B;
-             Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
-               : set evs;
+             Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} : set evs;
              Says S' B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
                : set evs |]
           ==> Says B A X # evs : otway lost"
