@@ -143,10 +143,11 @@ public class TreeNode
 		FontMetrics fm=g.getFontMetrics(f);
 		g.setFont(f);
 		int h=fm.getHeight();
-		int down_x[]={x, x + h, x + (int)(h / 2)};
-		int down_y[]={y, y, y + (int)(3 * h / 4)};
-		int right_x[]={2 + x, 2 + x + (int)(3 * h / 4), 2 + x};
-		int right_y[]={y, y + (int)(h / 2), y + h};
+		int e=(int) (h / 10) + 1;
+		int down_x[]={x + e, x + h - e, x + (int)(h / 2)};
+		int down_y[]={y + e, y + e, y + (int)(3 * h / 4) - e};
+		int right_x[]={x + e, x + (int)(3 * h / 4) - e, x + e};
+		int right_y[]={y + e, y + (int)(h / 2), y + h - e};
 		int dx=0;
 
 		if (unfold)
