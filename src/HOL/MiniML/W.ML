@@ -513,9 +513,10 @@ by (eres_inst_tac [("x","m")] allE 1);
 by (rotate_tac ~3 1);
 by (Asm_full_simp_tac 1);
 by (safe_tac HOL_cs);
+by (contr_tac 1);
 by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
         conjunct1,new_scheme_list_le,new_tv_subst_scheme_list]) 1);
-
+(** LEVEL 35 **)
 by (subgoal_tac
   "$ (%x.if x=ma then t' else (if x:(free_tv t - free_tv Sa) then R x \
 \        else Ra x)) ($ Sa t) = \
