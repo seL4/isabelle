@@ -170,8 +170,8 @@ preceding the actual theory definition.
   of existing classes $\vec c$.  Cyclic class structures are ruled out.
 \item [$\isarkeyword{classrel}~c@1<c@2$] states a subclass relation between
   existing classes $c@1$ and $c@2$.  This is done axiomatically!  The
-  $\isarkeyword{instance}$ command (see \S\ref{sec:axclass}) provides a way to
-  introduce proven class relations.
+  $\INSTANCE$ command (see \S\ref{sec:axclass}) provides a way to introduce
+  proven class relations.
 \item [$\isarkeyword{defaultsort}~s$] makes sort $s$ the new default sort for
   any type variables given without sort constraints.  Usually, the default
   sort would be only changed when defining new object-logics.
@@ -213,8 +213,8 @@ preceding the actual theory definition.
   Isabelle's inner syntax of terms or types.
 \item [$\isarkeyword{arities}~t::(\vec s)s$] augments Isabelle's order-sorted
   signature of types by new type constructor arities.  This is done
-  axiomatically!  The $\isarkeyword{instance}$ command (see
-  \S\ref{sec:axclass}) provides a way to introduce proven type arities.
+  axiomatically!  The $\INSTANCE$ command (see \S\ref{sec:axclass}) provides a
+  way to introduce proven type arities.
 \end{descr}
 
 
@@ -1083,13 +1083,13 @@ used in scripts, too.
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in initial
-  position, but unlike $\PROOFNAME$ it retains ``$proof(prove)$'' mode.  Thus
-  consecutive method applications may be given just as in tactic scripts.
+\item [$\APPLY{m}$] applies proof method $m$ in initial position, but unlike
+  $\PROOFNAME$ it retains ``$proof(prove)$'' mode.  Thus consecutive method
+  applications may be given just as in tactic scripts.
   
   Facts are passed to $m$ as indicated by the goal's forward-chain mode, and
-  are \emph{consumed} afterwards.  Thus any further $\isarkeyword{apply}$
-  command would always work in a purely backward manner.
+  are \emph{consumed} afterwards.  Thus any further $\APPLYNAME$ command would
+  always work in a purely backward manner.
   
 \item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
   terminal position.  Basically, this simulates a multi-step tactic script for
@@ -1121,9 +1121,8 @@ used in scripts, too.
 \end{descr}
 
 Any proper Isar proof method may be used with tactic script commands such as
-$\isarkeyword{apply}$.  A few additional emulations of actual tactics are
-provided as well; these would be never used in actual structured proofs, of
-course.
+$\APPLYNAME$.  A few additional emulations of actual tactics are provided as
+well; these would be never used in actual structured proofs, of course.
 
 
 \subsection{Meta-linguistic features}

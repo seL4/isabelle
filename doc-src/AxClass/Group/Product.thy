@@ -41,8 +41,8 @@ text {*
  Constants @{text \<odot>} on some type @{text \<tau>} are rejected by the
  type-checker, unless the arity @{text "\<tau> \<Colon> product"} is part of the
  type signature.  In our example, this arity may be always added when
- required by means of an $\isarkeyword{instance}$ with the trivial
- proof $\BY{intro_classes}$.
+ required by means of an $\INSTANCE$ with the trivial proof
+ $\BY{intro_classes}$.
 
  \medskip Thus, we may observe the following discipline of using
  syntactic classes.  Overloaded polymorphic constants have their type
@@ -65,11 +65,11 @@ text {*
  known to the type checker.
 
  \medskip It is very important to see that above $\DEFS$ are not
- directly connected with $\isarkeyword{instance}$ at all!  We were
- just following our convention to specify @{text \<odot>} on @{typ bool}
- after having instantiated @{text "bool \<Colon> product"}.  Isabelle does
- not require these definitions, which is in contrast to programming
- languages like Haskell \cite{haskell-report}.
+ directly connected with $\INSTANCE$ at all!  We were just following
+ our convention to specify @{text \<odot>} on @{typ bool} after having
+ instantiated @{text "bool \<Colon> product"}.  Isabelle does not require
+ these definitions, which is in contrast to programming languages like
+ Haskell \cite{haskell-report}.
 
  \medskip While Isabelle type classes and those of Haskell are almost
  the same as far as type-checking and type inference are concerned,

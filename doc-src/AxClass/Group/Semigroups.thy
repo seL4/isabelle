@@ -34,9 +34,9 @@ text {*
  \medskip In general, type classes may be used to describe
  \emph{structures} with exactly one carrier @{typ 'a} and a fixed
  \emph{signature}.  Different signatures require different classes.
- Below, class @{text plus_semigroup} represents semigroups of the form
- @{text "(\<tau>, \<oplus>)"}, while the original @{text semigroup} would
- correspond to semigroups @{text "(\<tau>, \<odot>)"}.
+ Below, class @{text plus_semigroup} represents semigroups 
+ @{text "(\<tau>, \<oplus>\<^sup>\<tau>)"}, while the original @{text semigroup} would
+ correspond to semigroups of the form @{text "(\<tau>, \<odot>\<^sup>\<tau>)"}.
 *}
 
 consts

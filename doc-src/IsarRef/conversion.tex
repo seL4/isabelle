@@ -165,9 +165,9 @@ as follows:
 This form may be turned into an Isar tactic-emulation script like this:
 \begin{matharray}{l}
   \LEMMA{name}\texttt"{\phi}\texttt" \\
-  \quad \isarkeyword{apply}~meth@1 \\
+  \quad \APPLY{meth@1} \\
   \qquad \vdots \\
-  \quad \isarkeyword{done} \\
+  \quad \DONE \\
 \end{matharray}
 Note that the main statement may be $\THEOREMNAME$ as well.  See
 \S\ref{sec:conv-tac} for further details on how to convert actual tactic
@@ -183,7 +183,7 @@ script.
 This is replaced by using the $unfold$ proof method explicitly.
 \begin{matharray}{l}
 \LEMMA{name}\texttt"{\phi}\texttt" \\
-\quad \isarkeyword{apply}~(unfold~def@1~\dots) \\
+\quad \APPLY{unfold~def@1~\dots} \\
 \end{matharray}
 
 %FIXME "goal" and higher-order rules;
@@ -192,11 +192,10 @@ This is replaced by using the $unfold$ proof method explicitly.
 \subsection{Tactics}\label{sec:conv-tac}
 
 Isar Proof methods closely resemble traditional tactics, when used in
-unstructured sequences of $\isarkeyword{apply}$ commands (cf.\ 
-\S\ref{sec:conv-goal}).  Isabelle/Isar provides emulations for all major ML
-tactics of classic Isabelle --- mostly for the sake of easy porting of
-existing developments, as actual Isar proof texts would demand much less
-diversity of proof methods.
+unstructured sequences of $\APPLYNAME$ commands (cf.\ \S\ref{sec:conv-goal}).
+Isabelle/Isar provides emulations for all major ML tactics of classic Isabelle
+--- mostly for the sake of easy porting of existing developments, as actual
+Isar proof texts would demand much less diversity of proof methods.
 
 Unlike tactic expressions in ML, Isar proof methods provide proper concrete
 syntax for additional arguments, options, modifiers etc.  Thus a typical
@@ -385,25 +384,25 @@ instantiation with $of$ is more handsome than $where$.
 The special ML command \texttt{qed_spec_mp} of Isabelle/HOL and FOL may be
 replaced by passing the result of a proof through $rule_format$.
 
-\medskip Global ML declarations may be expressed using the
-$\isarkeyword{declare}$ command (see \S\ref{sec:tactic-commands}) together
-with appropriate attributes.  The most common ones are as follows.
+\medskip Global ML declarations may be expressed using the $\DECLARE$ command
+(see \S\ref{sec:tactic-commands}) together with appropriate attributes.  The
+most common ones are as follows.
 \begin{matharray}{lll}
-  \texttt{Addsimps}~[thm] & & \isarkeyword{declare}~thm~[simp] \\
-  \texttt{Delsimps}~[thm] & & \isarkeyword{declare}~thm~[simp~del] \\
-  \texttt{Addsplits}~[thm] & & \isarkeyword{declare}~thm~[split] \\
-  \texttt{Delsplits}~[thm] & & \isarkeyword{declare}~thm~[split~del] \\[0.5ex]
-  \texttt{AddIs}~[thm] & & \isarkeyword{declare}~thm~[intro] \\
-  \texttt{AddEs}~[thm] & & \isarkeyword{declare}~thm~[elim] \\
-  \texttt{AddDs}~[thm] & & \isarkeyword{declare}~thm~[dest] \\
-  \texttt{AddSIs}~[thm] & & \isarkeyword{declare}~thm~[intro!] \\
-  \texttt{AddSEs}~[thm] & & \isarkeyword{declare}~thm~[elim!] \\
-  \texttt{AddSDs}~[thm] & & \isarkeyword{declare}~thm~[dest!] \\[0.5ex]
-  \texttt{AddIffs}~[thm] & & \isarkeyword{declare}~thm~[iff] \\
+  \texttt{Addsimps}~[thm] & & \DECLARE~thm~[simp] \\
+  \texttt{Delsimps}~[thm] & & \DECLARE~thm~[simp~del] \\
+  \texttt{Addsplits}~[thm] & & \DECLARE~thm~[split] \\
+  \texttt{Delsplits}~[thm] & & \DECLARE~thm~[split~del] \\[0.5ex]
+  \texttt{AddIs}~[thm] & & \DECLARE~thm~[intro] \\
+  \texttt{AddEs}~[thm] & & \DECLARE~thm~[elim] \\
+  \texttt{AddDs}~[thm] & & \DECLARE~thm~[dest] \\
+  \texttt{AddSIs}~[thm] & & \DECLARE~thm~[intro!] \\
+  \texttt{AddSEs}~[thm] & & \DECLARE~thm~[elim!] \\
+  \texttt{AddSDs}~[thm] & & \DECLARE~thm~[dest!] \\[0.5ex]
+  \texttt{AddIffs}~[thm] & & \DECLARE~thm~[iff] \\
 \end{matharray}
-Note that explicit $\isarkeyword{declare}$ commands are actually needed only
-very rarely; Isar admits to declare theorems on-the-fly wherever they emerge.
-Consider the following ML idiom:
+Note that explicit $\DECLARE$ commands are actually needed only very rarely;
+Isar admits to declare theorems on-the-fly wherever they emerge.  Consider the
+following ML idiom:
 \begin{ttbox}
 Goal "\(\phi\)";
  \(\vdots\)

@@ -40,8 +40,8 @@ Here class \isa{product} is defined as subclass of \isa{term}
  Constants \isa{{\isasymodot}} on some type \isa{{\isasymtau}} are rejected by the
  type-checker, unless the arity \isa{{\isasymtau}\ {\isasymColon}\ product} is part of the
  type signature.  In our example, this arity may be always added when
- required by means of an $\isarkeyword{instance}$ with the trivial
- proof $\BY{intro_classes}$.
+ required by means of an $\INSTANCE$ with the trivial proof
+ $\BY{intro_classes}$.
 
  \medskip Thus, we may observe the following discipline of using
  syntactic classes.  Overloaded polymorphic constants have their type
@@ -62,11 +62,11 @@ The definition \isa{prod{\isacharunderscore}bool{\isacharunderscore}def} becomes
  known to the type checker.
 
  \medskip It is very important to see that above $\DEFS$ are not
- directly connected with $\isarkeyword{instance}$ at all!  We were
- just following our convention to specify \isa{{\isasymodot}} on \isa{bool}
- after having instantiated \isa{bool\ {\isasymColon}\ product}.  Isabelle does
- not require these definitions, which is in contrast to programming
- languages like Haskell \cite{haskell-report}.
+ directly connected with $\INSTANCE$ at all!  We were just following
+ our convention to specify \isa{{\isasymodot}} on \isa{bool} after having
+ instantiated \isa{bool\ {\isasymColon}\ product}.  Isabelle does not require
+ these definitions, which is in contrast to programming languages like
+ Haskell \cite{haskell-report}.
 
  \medskip While Isabelle type classes and those of Haskell are almost
  the same as far as type-checking and type inference are concerned,

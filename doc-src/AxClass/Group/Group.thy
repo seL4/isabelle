@@ -200,8 +200,8 @@ proof intro_classes
 qed
 
 text {*
- \medskip The $\isakeyword{instance}$ command sets up an appropriate
- goal that represents the class inclusion (or type arity, see
+ \medskip The $\INSTANCE$ command sets up an appropriate goal that
+ represents the class inclusion (or type arity, see
  \secref{sec:inst-arity}) to be proven (see also
  \cite{isabelle-isar-ref}).  The @{text intro_classes} proof method
  does back-chaining of class membership statements wrt.\ the hierarchy
@@ -215,14 +215,15 @@ text {*
 subsection {* Concrete instantiation \label{sec:inst-arity} *}
 
 text {*
- So far we have covered the case of the form
- $\isakeyword{instance}~c@1 < c@2$, namely \emph{abstract
- instantiation} --- $c@1$ is more special than $c@2$ and thus an
- instance of $c@2$.  Even more interesting for practical applications
- are \emph{concrete instantiations} of axiomatic type classes.  That
- is, certain simple schemes $(\alpha@1, \ldots, \alpha@n)t :: c$ of
- class membership may be established at the logical level and then
- transferred to Isabelle's type signature level.
+ So far we have covered the case of the form $\INSTANCE$~@{text
+ "c\<^sub>1 < c\<^sub>2"}, namely \emph{abstract instantiation} ---
+ $c@1$ is more special than @{text "c\<^sub>1"} and thus an instance
+ of @{text "c\<^sub>2"}.  Even more interesting for practical
+ applications are \emph{concrete instantiations} of axiomatic type
+ classes.  That is, certain simple schemes
+ @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Colon> c"} of class membership may be
+ established at the logical level and then transferred to Isabelle's
+ type signature level.
 
  \medskip As a typical example, we show that type @{typ bool} with
  exclusive-or as @{text \<odot>} operation, identity as @{text \<inv>}, and
@@ -260,10 +261,10 @@ proof (intro_classes,
 qed
 
 text {*
- The result of an $\isakeyword{instance}$ statement is both expressed
- as a theorem of Isabelle's meta-logic, and as a type arity of the
- type signature.  The latter enables type-inference system to take
- care of this new instance automatically.
+ The result of an $\INSTANCE$ statement is both expressed as a theorem
+ of Isabelle's meta-logic, and as a type arity of the type signature.
+ The latter enables type-inference system to take care of this new
+ instance automatically.
 
  \medskip We could now also instantiate our group theory classes to
  many other concrete types.  For example, @{text "int \<Colon> agroup"}
@@ -281,9 +282,9 @@ subsection {* Lifting and Functors *}
 text {*
  As already mentioned above, overloading in the simply-typed HOL
  systems may include recursion over the syntactic structure of types.
- That is, definitional equations $c^\tau \equiv t$ may also contain
- constants of name $c$ on the right-hand side --- if these have types
- that are structurally simpler than $\tau$.
+ That is, definitional equations @{text "c\<^sup>\<tau> \<equiv> t"} may also
+ contain constants of name @{text c} on the right-hand side --- if
+ these have types that are structurally simpler than @{text \<tau>}.
 
  This feature enables us to \emph{lift operations}, say to Cartesian
  products, direct sums or function spaces.  Subsequently we lift
