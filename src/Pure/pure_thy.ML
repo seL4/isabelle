@@ -26,6 +26,7 @@ sig
   val thms_closure: theory -> xstring -> tthm list option
   val get_tthm: theory -> xstring -> tthm
   val get_tthms: theory -> xstring -> tthm list
+  val get_tthmss: theory -> xstring list -> tthm list
   val thms_containing: theory -> string list -> (string * thm) list
   val store_tthm: (bstring * tthm) * theory attribute list -> theory -> theory * tthm
   val smart_store_thm: (bstring * thm) -> thm
@@ -130,6 +131,8 @@ fun get_tthm thy name =
   (case get_tthms thy name of
     [thm] => thm
   | _ => raise THEORY ("Single theorem expected " ^ quote name, [thy]));
+
+fun get_tthmss thy names = flat (map (get_tthms thy) names);
 
 fun get_thms thy = map Attribute.thm_of o get_tthms thy;
 fun get_thm thy = Attribute.thm_of o get_tthm thy;
