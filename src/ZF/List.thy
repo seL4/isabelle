@@ -30,7 +30,7 @@ consts
 
   
 datatype
-  "list(A)" = "Nil" | "Cons" ("a:A", "l: list(A)")
+  "list(A)" = Nil | Cons ("a:A", "l: list(A)")
 
 
 translations
