@@ -10,6 +10,7 @@ implicitely considered to be declared outermost.
 
 TODO:
   - absolute paths?
+  - also enter into parents!?
 *)
 
 signature NAME_SPACE =
@@ -82,7 +83,8 @@ fun make entries =
       let val packed = pack entry in
         map (rpair packed o pack) (suffixes1 entry)
       end;
-    val mapping = gen_distinct eq_fst (flat (map accesses entries));
+    val mapping = filter_out (op =)
+      (gen_distinct eq_fst (flat (map accesses entries)));
   in
     NameSpace (entries, Symtab.make mapping)
   end;
@@ -98,8 +100,8 @@ val empty = make [];
 fun extend (entries, space) =
   make (map unpack (rev entries) @ entries_of space);
 
-fun merge (space1, space2) =
-  make (merge_lists (entries_of space1) (entries_of space2));
+fun merge (space1, space2) =    (*2nd overrides 1st*)
+  make (merge_lists (entries_of space2) (entries_of space1));
 
 
 (* lookup / prune names *)
