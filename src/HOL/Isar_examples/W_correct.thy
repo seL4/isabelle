@@ -90,13 +90,6 @@ primrec
 
 subsection {* Correctness theorem *};
 
-text_raw {* \begin{comment} *};
-
-(* FIXME proper split att/mod *)
-ML_setup {* Addsplits [split_bind]; *};
-
-text_raw {* \end{comment} *};
-
 theorem W_correct: "W e a n = Ok (s, t, m) ==> $ s a |- e :: t";
 proof -;
   assume W_ok: "W e a n = Ok (s, t, m)";
@@ -112,7 +105,7 @@ proof -;
       assume "Ok (s, t, m) = W (Abs e) a n";
       thus "$ s a |- Abs e :: t";
 	obtain t' where "t = s n -> t'" "Ok (s, t', m) = W e (TVar n # a) (Suc n)";
-	  by (rule rev_mp) simp;
+	  by (rule rev_mp) (simp split: split_bind);
 	with hyp; show ?thesis; by (force intro: has_type.Abs);
       qed;
     qed;
@@ -128,7 +121,7 @@ proof -;
           and mgu_ok: "mgu ($ s2 t1) (t2 -> TVar n2) = Ok u"
           and W1_ok: "W e1 a n = Ok (s1, t1, n1)"
           and W2_ok: "W e2 ($ s1 a) n1 = Ok (s2, t2, n2)";
-	    by (rule rev_mp) simp;
+	    by (rule rev_mp) (simp split: split_bind);
         show ?thesis;
         proof (rule has_type.App);
           from s; have s': "$ u ($ s2 ($ s1 a)) = $s a";
