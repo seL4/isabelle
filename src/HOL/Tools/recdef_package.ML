@@ -104,7 +104,6 @@ fun gen_add_recdef tfl_fn prep_att app_thms raw_name R eq_srcs opt_ss raw_congs 
   in (thy, result) end;
 
 val add_recdef = gen_add_recdef Tfl.define Attrib.global_attribute IsarThy.apply_theorems;
-val add_recdef_x = gen_add_recdef Tfl.define Attrib.global_attribute IsarThy.apply_theorems;
 val add_recdef_i = gen_add_recdef Tfl.define_i (K I) IsarThy.apply_theorems_i;
 
 
@@ -147,7 +146,7 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 val recdef_decl =
   P.name -- P.term -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment) --
   Scan.optional (P.$$$ "congs" |-- P.!!! P.xthms1) []
-  >> (fn (((f, R), eqs), congs) => #1 o add_recdef_x f R (map P.triple_swap eqs) None congs);
+  >> (fn (((f, R), eqs), congs) => #1 o add_recdef f R (map P.triple_swap eqs) None congs);
 
 val recdefP =
   OuterSyntax.command "recdef" "define general recursive functions (TFL)" K.thy_decl
