@@ -33,10 +33,10 @@ readability:
 \begin{ttbox}
 Usage: expandshort [FILES|DIRS...]
 
-  Recursively find .ML files, expand shorthand goal commands.
-  Also contracts uses of resolve_tac, dresolve_tac, eresolve_tac,
-  rewrite_goals_tac on 1-element lists; furthermore expands tabs,
-  since they are now forbidden in ML string constants.
+  Recursively find .ML files, expand shorthand goal commands.  Also
+  contracts uses of resolve_tac, dresolve_tac, eresolve_tac,
+  forward_tac, rewrite_goals_tac on 1-element lists; furthermore expands
+  tabs, which are forbidden in SML string constants.
 
   Renames old versions of files by appending "~~".
 \end{ttbox}

@@ -12,10 +12,10 @@ function usage()
   echo
   echo "Usage: $PRG [FILES|DIRS...]"
   echo
-  echo "  Recursively find .ML files, expand shorthand goal commands."
-  echo "  Also contracts uses of resolve_tac, dresolve_tac, eresolve_tac,"
-  echo "  rewrite_goals_tac on 1-element lists; furthermore expands tabs,"
-  echo "  since they are now forbidden in ML string constants."
+  echo "  Recursively find .ML files, expand shorthand goal commands.  Also"
+  echo "  contracts uses of resolve_tac, dresolve_tac, eresolve_tac,"
+  echo "  forward_tac, rewrite_goals_tac on 1-element lists; furthermore expands"
+  echo "  tabs, which are forbidden in SML string constants."
   echo
   echo "  Renames old versions of files by appending \"~~\"."
   echo
