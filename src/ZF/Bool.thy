@@ -10,7 +10,7 @@ Booleans in Zermelo-Fraenkel Set Theory
 
 Bool = ZF + "simpdata" +
 consts
-    "1"         :: i               ("1")
+    "1"         :: i             ("1")
     "2"         :: i             ("2")
     bool        :: i
     cond        :: [i,i,i]=>i
