@@ -11,7 +11,8 @@ Examples of Program Composition Illustrating the Use of Universal Properties
    Spriner LNCS 1586 (1999), pages 1215-1227.
 *)
 
-Counterc =  Comp +
+Counterc =  UNITY_Main +
+
 types state
 arities state :: type
 

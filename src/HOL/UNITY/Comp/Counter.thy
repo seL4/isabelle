@@ -11,7 +11,8 @@ Examples of Program Composition Illustrating the Use of Universal Properties
    Spriner LNCS 1586 (1999), pages 1215-1227.
 *)
 
-Counter =  Comp +
+Counter = UNITY_Main +
+
 (* Variables are names *)
 datatype name = C | c nat
 types state = name=>int
