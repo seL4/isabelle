@@ -593,7 +593,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> (Theory.add_consts_i o map Syntax.no_syn)
         (sel_decls @ update_decls @ make_decls)
       |> (PureThy.add_defs_i o map (fn x => (x, [Attribute.tag_internal])))
-        (sel_specs @ update_specs @ make_specs);
+        (sel_specs @ update_specs)
+      |> (PureThy.add_defs_i o map Attribute.none) make_specs;
 
     val sel_defs = get_defs defs_thy sel_specs;
     val update_defs = get_defs defs_thy update_specs;
