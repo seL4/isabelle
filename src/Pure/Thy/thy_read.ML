@@ -197,9 +197,7 @@ fun read_thy tname thy_file =
     close_in instream
   end;
 
-fun file_exists file =
-  let val instream = open_in file in close_in instream; true end
-    handle Io _ => false;
+fun file_exists file = (file_info file <> "");
 
 (*Get thy_info for a loaded theory *)
 fun get_thyinfo tname = Symtab.lookup (!loaded_thys, tname);
@@ -651,6 +649,7 @@ fun use_thy name =
 
     (*Add theory to file listing all loaded theories (for index.html)
       and to the sub-charts of its parents*)
+    local exception MK_HTML in
     fun mk_html () =
       let val new_parents = parents_of_name tname \\ old_parents;
 
@@ -674,7 +673,7 @@ fun use_thy name =
                             open_append fname  handle Io s =>
                               (writeln ("Warning: Unable to write to file ." ^
                                         fname); raise Io s)
-                          else raise Io "File not found";
+                          else raise MK_HTML;
             in output (out,
                  " |\n \\__<A HREF=\"" ^
                  tack_on rel_path ("." ^ tname) ^ ".html\">" ^ tname ^
@@ -693,6 +692,7 @@ fun use_thy name =
          close_out theory_list;
  
          robust_seq add_to_parents new_parents
+      end
       end
   in if thy_uptodate andalso ml_uptodate then ()
      else

@@ -66,10 +66,9 @@ fun radixstring num =
 
 in
 
-(*Get a string containing the time of last modification, attributes, owner
-  and size of file (but not the path) *)
+(*Get time of last modification; if file doesn't exist return an empty string*)
 fun file_info "" = ""
-  | file_info name = radixstring (System.filedate name);
+  | file_info name = radixstring (System.filedate name)  handle _ => "";
 
 (*Delete a file *)
 fun delete_file name =

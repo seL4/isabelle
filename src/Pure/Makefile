@@ -24,7 +24,7 @@ COMP = $(ISABELLECOMP)
 FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
 	sequence.ML envir.ML pattern.ML unify.ML logic.ML thm.ML net.ML\
 	drule.ML tctical.ML tactic.ML goals.ML axclass.ML install_pp.ML\
-        ../Provers/simplifier.ML
+        NJ093.ML NJ1xx.ML ../Provers/simplifier.ML
 
 SYNTAX_FILES =  Syntax/ROOT.ML	Syntax/ast.ML		Syntax/lexicon.ML\
 	Syntax/parser.ML	Syntax/type_ext.ML	Syntax/syn_trans.ML\
@@ -39,14 +39,14 @@ $(BIN)/Pure:   $(FILES)  $(SYNTAX_FILES)  $(THY_FILES)  $(ML_DBASE)
 	case "$(COMP)" in \
 	poly*)	echo database=$${ML_DBASE:?'No Poly/ML database specified'};\
 		cp $(ML_DBASE) $(BIN)/Pure; chmod u+w $(BIN)/Pure;\
-		echo 'PolyML.use"POLY";use"ROOT" handle _=> exit 1;' | $(COMP) $(BIN)/Pure;;\
+		echo 'PolyML.use"POLY";use"ROOT" handle _=> exit 1;' \
+                  | $(COMP) $(BIN)/Pure;;\
 	sml*)	if [ ! '(' -d $${ISABELLEBIN:?} -a -w $${ISABELLEBIN:?} ')' ];\
            	then echo Bad value for ISABELLEBIN: \
                 	$(BIN) is not a writable directory; \
                 	exit 1; \
            	fi;\
-		echo 'use"NJ.ML"; use"ROOT.ML" handle _=> exit 1; xML"$(BIN)/Pure" banner;'\
-			  | $(COMP);;\
+		echo 'use"NJ.ML"; use"ROOT.ML" handle _=> exit 1;                                    xML"$(BIN)/Pure" banner;' | $(COMP);;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
