@@ -575,10 +575,6 @@ fun netMkRules P vars (nps: netpair list) =
 			      nps)
 	in  List.mapPartial (fromRule vars o #2) (orderlist elims)  end;
 
-(**
-end;
-**)
-
 
 (*Pending formulae carry md (may duplicate) flags*)
 type branch = 
@@ -1042,6 +1038,7 @@ fun prove (sign, start, cs, brs, cont) =
 				      [this handler is pruned if possible!]*)
 				 (clearTo ntrl;  closeF Ls)
 			    end
+	      (*Try to unify a queued formula (safe or haz) with head goal*)
 	      fun closeFl [] = raise CLOSEF
 		| closeFl ((br, haz)::pairs) =
 		    closeF (map fst br)
@@ -1122,10 +1119,11 @@ fun prove (sign, start, cs, brs, cont) =
 		     let val updated = ntrl < !ntrail (*branch updated*)
 			 val vars  = vars_in_vars vars
 			 val vars' = foldr add_terms_vars (prems, vars)
-			    (*duplicate H if md and the subgoal has new vars*)
-			 val dup = md andalso vars' <> vars
+			    (*duplicate H if md permits*)
+			 val dup = md (*earlier had "andalso vars' <> vars":
+                                  duplicate only if the subgoal has new vars*)
 			     (*any instances of P in the subgoals?
-			       NB: this boolean affects tracing only!*)
+			       NB: boolean "recur" affects tracing only!*)
 			 and recur = exists (exists (match P)) prems
 			 val lim' = (*Decrement "lim" extra if updates occur*)
 			     if updated then lim - (1+log(length rules))
@@ -1159,6 +1157,8 @@ fun prove (sign, start, cs, brs, cont) =
 			    clearTo ntrl;  raise NEWBRANCHES)
 		       else 
 			 traceNew prems;  
+			 if !trace andalso dup then prs" (duplicating)"
+					         else ();
 			 if !trace andalso recur then prs" (recursive)"
 					         else ();
 			 traceVars sign ntrl;
@@ -1345,12 +1345,14 @@ fun tryInThy thy lim s =
 (** method setup **)
 
 fun blast_args m =
-  Method.bang_sectioned_args' Data.cla_modifiers (Scan.lift (Scan.option Args.nat)) m;
+  Method.bang_sectioned_args' 
+      Data.cla_modifiers (Scan.lift (Scan.option Args.nat)) m;
 
 fun blast_meth None = Data.cla_meth' blast_tac
   | blast_meth (Some lim) = Data.cla_meth' (fn cs => depth_tac cs lim);
 
-val setup = [Method.add_methods [("blast", blast_args blast_meth, "tableau prover")]];
+val setup = [Method.add_methods [("blast", blast_args blast_meth, 
+				  "tableau prover")]];
 
 
 end;
