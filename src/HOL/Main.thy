@@ -4,5 +4,7 @@
 
 theory Main = Map + String:
 
+lemmas [mono] = lists_mono
+
 end
 
