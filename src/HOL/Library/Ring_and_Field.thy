@@ -50,14 +50,14 @@ subsubsection {* Derived rules for addition *}
 lemma right_zero [simp]: "a + 0 = (a::'a::ring)" 
 proof -
   have "a + 0 = 0 + a" by (simp only: add_commute)
-  also have "\<dots> = a" by simp
+  also have "... = a" by simp
   finally show ?thesis .
 qed
 
 lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::ring))"
 proof -
   have "a + (b + c) = (a + b) + c" by (simp only: add_assoc)
-  also have "\<dots> = (b + a) + c" by (simp only: add_commute)
+  also have "... = (b + a) + c" by (simp only: add_commute)
   finally show ?thesis by (simp only: add_assoc) 
 qed
 
@@ -66,7 +66,7 @@ theorems ring_add_ac = add_assoc add_commute add_left_commute
 lemma right_minus [simp]: "a + -(a::'a::ring) = 0" 
 proof -
   have "a + -a = -a + a" by (simp add: ring_add_ac)
-  also have "\<dots> = 0" by simp
+  also have "... = 0" by simp
   finally show ?thesis .
 qed
 
@@ -86,23 +86,23 @@ lemma diff_self [simp]: "a - (a::'a::ring) = 0"
 
 subsubsection {* Derived rules for multiplication *}
 
-lemma right_one [simp]: "a = a * (#1\<Colon>'a::field)"
+lemma right_one [simp]: "a = a * (#1::'a::field)"
 proof -
   have "a = #1 * a" by simp
-  also have "\<dots> = a * #1" by (simp add: mult_commute)
+  also have "... = a * #1" by (simp add: mult_commute)
   finally show ?thesis .
 qed
 
 lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::ring))"
 proof -
   have "a * (b * c) = (a * b) * c" by (simp only: mult_assoc)
-  also have "\<dots> = (b * a) * c" by (simp only: mult_commute)
+  also have "... = (b * a) * c" by (simp only: mult_commute)
   finally show ?thesis by (simp only: mult_assoc)
 qed
 
 theorems ring_mult_ac = mult_assoc mult_commute mult_left_commute
 
-lemma right_inverse [simp]: "a \<noteq> 0 \<Longrightarrow>  a * inverse (a::'a::field) = #1" 
+lemma right_inverse [simp]: "a \<noteq> 0 ==>  a * inverse (a::'a::field) = #1" 
 proof -
   have "a * inverse a = inverse a * a" by (simp add: ring_mult_ac)
   also assume "a \<noteq> 0"
@@ -110,7 +110,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma right_inverse_eq: "b \<noteq> 0 \<Longrightarrow> (a / b = #1) = (a = (b::'a::field))"
+lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = #1) = (a = (b::'a::field))"
 proof 
   assume neq: "b \<noteq> 0"
   {
@@ -123,7 +123,7 @@ proof
   }
 qed
 
-lemma divide_self [simp]: "a \<noteq> 0 \<Longrightarrow> a / (a::'a::field) = #1"
+lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = #1"
   by (simp add: divide_inverse)
 
 
@@ -132,8 +132,8 @@ subsubsection {* Distribution rules *}
 lemma right_distrib: "a * (b + c) = a * b + a * (c::'a::ring)"
 proof -
   have "a * (b + c) = (b + c) * a" by (simp add: ring_mult_ac)
-  also have "\<dots> = b * a + c * a" by (simp only: left_distrib)
-  also have "\<dots> = a * b + a * c" by (simp add: ring_mult_ac)
+  also have "... = b * a + c * a" by (simp only: left_distrib)
+  also have "... = a * b + a * c" by (simp add: ring_mult_ac)
   finally show ?thesis .
 qed
 
