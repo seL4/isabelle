@@ -12,8 +12,6 @@ structure Dcterm :
 sig
     val mk_conj : cterm * cterm -> cterm
     val mk_disj : cterm * cterm -> cterm
-    val mk_select : cterm * cterm -> cterm
-    val mk_forall : cterm * cterm -> cterm
     val mk_exists : cterm * cterm -> cterm
 
     val dest_conj : cterm -> cterm * cterm
@@ -26,7 +24,6 @@ sig
     val dest_let : cterm -> cterm * cterm
     val dest_neg : cterm -> cterm
     val dest_pair : cterm -> cterm * cterm
-    val dest_select : cterm -> cterm * cterm
     val dest_var : cterm -> {Name:string, Ty:typ}
     val is_conj : cterm -> bool
     val is_cons : cterm -> bool
@@ -38,19 +35,15 @@ sig
     val is_let : cterm -> bool
     val is_neg : cterm -> bool
     val is_pair : cterm -> bool
-    val is_select : cterm -> bool
     val list_mk_abs : cterm list -> cterm -> cterm
     val list_mk_exists : cterm list * cterm -> cterm
-    val list_mk_forall : cterm list * cterm -> cterm
     val list_mk_disj : cterm list -> cterm
     val strip_abs : cterm -> cterm list * cterm
     val strip_comb : cterm -> cterm * cterm list
-    val strip_conj : cterm -> cterm list
     val strip_disj : cterm -> cterm list
     val strip_exists : cterm -> cterm list * cterm
     val strip_forall : cterm -> cterm list * cterm
     val strip_imp : cterm -> cterm list * cterm
-    val strip_pair : cterm -> cterm list
     val drop_prop : cterm -> cterm
     val mk_prop : cterm -> cterm
   end =
@@ -79,18 +72,6 @@ val end_itlist = Utils.end_itlist;
 
 fun mk_const sign pr = cterm_of sign (Const pr);
 val mk_hol_const = mk_const (sign_of HOL.thy);
-
-fun mk_select (r as (Bvar,Body)) = 
-  let val ty = #T(rep_cterm Bvar)
-      val c = mk_hol_const("Eps", (ty --> HOLogic.boolT) --> ty)
-  in capply c (uncurry cabs r)
-  end;
-
-fun mk_forall (r as (Bvar,Body)) = 
-  let val ty = #T(rep_cterm Bvar)
-      val c = mk_hol_const("All", (ty --> HOLogic.boolT) --> HOLogic.boolT)
-  in capply c (uncurry cabs r)
-  end;
 
 fun mk_exists (r as (Bvar,Body)) = 
   let val ty = #T(rep_cterm Bvar)
@@ -186,7 +167,6 @@ val is_cons   = can dest_cons
 val list_mk_abs = itlist cabs;
 
 fun list_mk_exists(V,t) = itlist(fn v => fn b => mk_exists(v, b)) V t;
-fun list_mk_forall(V,t) = itlist(fn v => fn b => mk_forall(v, b)) V t;
 val list_mk_disj = end_itlist(fn d1 => fn tm => mk_disj(d1, tm))
 
 (*---------------------------------------------------------------------------
@@ -208,9 +188,7 @@ val strip_abs    = rev2swap o strip dest_abs
 val strip_forall = rev2swap o strip dest_forall
 val strip_exists = rev2swap o strip dest_exists
 
-val strip_conj   = rev o (op::) o strip dest_conj
 val strip_disj   = rev o (op::) o strip dest_disj
-val strip_pair   = rev o (op::) o strip dest_pair;
 
 
 (*---------------------------------------------------------------------------

@@ -13,18 +13,6 @@ struct
 exception ERR of {module:string,func:string, mesg:string};
 fun UTILS_ERR{func,mesg} = ERR{module = "Utils",func=func,mesg=mesg};
 
-local 
-fun info_string s {module,func,mesg} =
-       (s^" at "^module^"."^func^":\n"^mesg^"\n")
-in
-val ERR_string = info_string "Exception raised"
-val MESG_string = info_string "Message"
-end;
-
-fun Raise (e as ERR sss) = (TextIO.output(TextIO.stdOut, ERR_string sss);  
-                            raise e)
-  | Raise e = raise e;
-
 
 (* Simple combinators *)
 
@@ -58,20 +46,11 @@ fun itlist2 f L1 L2 base_value =
  in  it (L1,L2)
  end;
 
-fun mapfilter f alist = itlist (fn i=>fn L=> (f i::L) handle _ => L) alist [];
-
 fun pluck p  =
   let fun remv ([],_) = raise UTILS_ERR{func="pluck",mesg = "item not found"}
         | remv (h::t, A) = if p h then (h, rev A @ t) else remv (t,h::A)
   in fn L => remv(L,[])
   end;
-
-fun front_back [] = raise UTILS_ERR{func="front_back",mesg="empty list"}
-  | front_back [x] = ([],x)
-  | front_back (h::t) = 
-       let val (L,b) = front_back t
-       in (h::L,b)
-       end;
 
 fun take f =
   let fun grab(0,L) = []
@@ -86,26 +65,6 @@ fun zip3 [][][] = []
 
 fun can f x = (f x ; true) handle _ => false;
 fun holds P x = P x handle _ => false;
-
-
-(* Set ops *)
-nonfix mem;  (* Gag Barf Choke *)
-fun mem eq_func i =
-   let val eqi = eq_func i
-       fun mm [] = false
-         | mm (a::rst) = eqi a orelse mm rst
-   in mm
-   end;
-
-fun mk_set eq_func =
-   let val mem = mem eq_func
-       fun mk [] = []
-         | mk (a::rst) = if (mem a rst) then mk rst else a::(mk rst)
-   in mk
-   end;
-
-(* All the elements in the first set that are not also in the second set. *)
-fun set_diff eq_func S1 S2 = filter (fn x => not (mem eq_func x S2)) S1
 
 
 fun sort R = 

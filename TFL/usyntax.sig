@@ -16,19 +16,15 @@ sig
                   | LAMB  of {Bvar : term, Body : term}
 
   val alpha : typ
-  val mk_preterm : cterm -> term
 
   (* Types *)
   val type_vars  : typ -> typ list
   val type_varsl : typ list -> typ list
   val mk_vartype : string -> typ
   val is_vartype : typ -> bool
-  val -->        : typ * typ -> typ
-  val strip_type : typ -> typ list * typ
   val strip_prod_type : typ -> typ list
 
   (* Terms *)
-  val free_vars  : term -> term list
   val free_varsl : term list -> term list
   val free_vars_lr : term -> term list
   val all_vars   : term -> term list
@@ -43,8 +39,6 @@ sig
   val beta_conv : term -> term
 
   (* Construction routines *)
-  val mk_var    :{Name : string, Ty : typ} -> term
-  val mk_const  :{Name : string, Ty : typ} -> term
   val mk_comb   :{Rator : term, Rand : term} -> term
   val mk_abs    :{Bvar  : term, Body : term} -> term
 
@@ -62,7 +56,6 @@ sig
   val dest_abs  : term -> {Bvar : term, Body : term}
   val dest_eq     : term -> {lhs : term, rhs : term}
   val dest_imp    : term -> {ant : term, conseq : term}
-  val dest_select : term -> {Bvar : term, Body : term}
   val dest_forall : term -> {Bvar : term, Body : term}
   val dest_exists : term -> {Bvar : term, Body : term}
   val dest_neg    : term -> term
@@ -104,9 +97,7 @@ sig
   val strip_imp      : term -> (term list * term)
   val strip_forall   : term -> (term list * term)
   val strip_exists   : term -> (term list * term)
-  val strip_conj     : term -> term list
   val strip_disj     : term -> term list
-  val strip_pair     : term -> term list
 
   (* Miscellaneous *)
   val mk_vstruct : typ -> term list -> term

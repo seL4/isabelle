@@ -6,7 +6,7 @@
 Emulation of HOL inference rules for TFL
 *)
 
-structure FastRules : Rules_sig = 
+structure Rules : Rules_sig = 
 struct
 
 open Utils;
@@ -17,7 +17,7 @@ structure U  = Utils;
 structure D = Dcterm;
 
 
-fun RULES_ERR{func,mesg} = Utils.ERR{module = "FastRules",func=func,mesg=mesg};
+fun RULES_ERR{func,mesg} = Utils.ERR{module = "Rules",func=func,mesg=mesg};
 
 
 fun cconcl thm = D.drop_prop(#prop(crep_thm thm));
@@ -502,7 +502,7 @@ fun get ([],_,L) = rev L
                 val (f,args) = S.strip_comb (get_lhs eq)
                 val (vstrl,_) = S.strip_abs f
                 val names  = map (#1 o dest_Free)
-                                 (variants (S.free_vars body) vstrl)
+                                 (variants (term_frees body) vstrl)
             in get (rst, n+1, (names,n)::L)
             end handle _ => get (rst, n+1, L);
 
@@ -750,8 +750,8 @@ fun CONTEXT_REWRITE_RULE(func,R){cut_lemma, congs, th} =
               val dummy = print_thms "cntxt:\n" cntxt
               val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
                    sign,...} = rep_thm thm
-              fun genl tm = let val vlist = U.set_diff (curry(op aconv))
-                                           (add_term_frees(tm,[])) [func,R]
+              fun genl tm = let val vlist = gen_rems (op aconv)
+                                           (add_term_frees(tm,[]), [func,R])
                             in U.itlist Forall vlist tm
                             end
               (*--------------------------------------------------------------

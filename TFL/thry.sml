@@ -55,14 +55,13 @@ fun typecheck thry = cterm_of (sign_of thry);
  *---------------------------------------------------------------------------*)
 local val (imp $ tprop $ (eeq $ _ $ _ )) = #prop(rep_thm(eq_reflection))
       val Const(eeq_name, ty) = eeq
-      val prop = #2 (S.strip_type ty)
+      val prop = body_type ty
 in
 fun make_definition parent s tm = 
    let val {lhs,rhs} = S.dest_eq tm
-       val (Name,Ty) = dest_Const lhs
-       val lhs1 = S.mk_const{Name = Name, Ty = Ty}
-       val eeq1 = S.mk_const{Name = eeq_name, Ty = Ty --> Ty --> prop}
-       val dtm = list_comb(eeq1,[lhs1,rhs])      (* Rename "=" to "==" *)
+       val (_,Ty) = dest_Const lhs
+       val eeq1 = Const(eeq_name, Ty --> Ty --> prop)
+       val dtm = list_comb(eeq1,[lhs,rhs])      (* Rename "=" to "==" *)
        val (_, tm', _) = Sign.infer_types (sign_of parent)
                      (K None) (K None) [] true ([dtm],propT)
        val new_thy = add_defs_i [(s,tm')] parent

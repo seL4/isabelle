@@ -33,20 +33,10 @@ fun dest_vtype (TVar x) = x
 val is_vartype = Utils.can dest_vtype;
 
 val type_vars  = map mk_prim_vartype o typ_tvars
-fun type_varsl L = Utils.mk_set (curry op=)
-                      (Utils.rev_itlist (curry op @ o type_vars) L []);
+fun type_varsl L = distinct (Utils.rev_itlist (curry op @ o type_vars) L []);
 
 val alpha  = mk_vartype "'a"
 val beta   = mk_vartype "'b"
-
-
-
-(* What nonsense *)
-nonfix -->; 
-val --> = -->;
-infixr 3 -->;
-
-fun strip_type ty = (binder_types ty, body_type ty);
 
 fun strip_prod_type (Type("*", [ty1,ty2])) =
 	strip_prod_type ty1 @ strip_prod_type ty2
@@ -61,8 +51,6 @@ fun strip_prod_type (Type("*", [ty1,ty2])) =
  *---------------------------------------------------------------------------*)
 nonfix aconv;
 val aconv = curry (op aconv);
-
-fun free_vars tm = add_term_frees(tm,[]);
 
 
 (* Free variables, in order of occurrence, from left to right in the 
@@ -79,12 +67,11 @@ fun free_vars_lr tm =
 
 
 
-fun free_varsl L = Utils.mk_set aconv
-                      (Utils.rev_itlist (curry op @ o free_vars) L []);
+fun free_varsl L = gen_distinct Term.aconv
+                      (Utils.rev_itlist (curry op @ o term_frees) L []);
 
 val type_vars_in_term = map mk_prim_vartype o term_tvars;
 
-(* Can't really be very exact in Isabelle *)
 fun all_vars tm = 
   let fun memb x = let fun m[] = false | m(y::rst) = (x=y)orelse m rst in m end
       fun add (t, A) = case t of
@@ -94,7 +81,7 @@ fun all_vars tm =
           | _ => A
   in rev(add(tm,[]))
   end;
-fun all_varsl L = Utils.mk_set aconv
+fun all_varsl L = gen_distinct Term.aconv
                       (Utils.rev_itlist (curry op @ o all_vars) L []);
 
 
@@ -107,8 +94,6 @@ fun beta_conv((t1 as Abs _ ) $ t2) = betapply(t1,t2)
 
 
 (* Construction routines *)
-fun mk_var{Name,Ty} = Free(Name,Ty);
-val mk_prim_var = Var;
 
 val string_variant = variant;
 
@@ -126,7 +111,6 @@ fun variant [] v = v
                             mesg = "2nd arg. should be a variable"}
 end;
 
-fun mk_const{Name,Ty} = Const(Name,Ty)
 fun mk_comb{Rator,Rand} = Rator $ Rand;
 
 fun mk_abs{Bvar as Var((s,_),ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
@@ -135,36 +119,36 @@ fun mk_abs{Bvar as Var((s,_),ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
 
 
 fun mk_imp{ant,conseq} = 
-   let val c = mk_const{Name = "op -->", Ty = HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT}
+   let val c = Const("op -->",HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[ant,conseq])
    end;
 
 fun mk_select (r as {Bvar,Body}) = 
   let val ty = type_of Bvar
-      val c = mk_const{Name = "Eps", Ty = (ty --> HOLogic.boolT) --> ty}
+      val c = Const("Eps",(ty --> HOLogic.boolT) --> ty)
   in list_comb(c,[mk_abs r])
   end;
 
 fun mk_forall (r as {Bvar,Body}) = 
   let val ty = type_of Bvar
-      val c = mk_const{Name = "All", Ty = (ty --> HOLogic.boolT) --> HOLogic.boolT}
+      val c = Const("All",(ty --> HOLogic.boolT) --> HOLogic.boolT)
   in list_comb(c,[mk_abs r])
   end;
 
 fun mk_exists (r as {Bvar,Body}) = 
   let val ty = type_of Bvar 
-      val c = mk_const{Name = "Ex", Ty = (ty --> HOLogic.boolT) --> HOLogic.boolT}
+      val c = Const("Ex",(ty --> HOLogic.boolT) --> HOLogic.boolT)
   in list_comb(c,[mk_abs r])
   end;
 
 
 fun mk_conj{conj1,conj2} =
-   let val c = mk_const{Name = "op &", Ty = HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT}
+   let val c = Const("op &",HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[conj1,conj2])
    end;
 
 fun mk_disj{disj1,disj2} =
-   let val c = mk_const{Name = "op |", Ty = HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT}
+   let val c = Const("op |",HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[disj1,disj2])
    end;
 
@@ -172,7 +156,7 @@ fun prod_ty ty1 ty2 = Type("*", [ty1,ty2]);
 
 local
 fun mk_uncurry(xt,yt,zt) =
-    mk_const{Name = "split", Ty = (xt --> yt --> zt) --> prod_ty xt yt --> zt}
+    Const("split",(xt --> yt --> zt) --> prod_ty xt yt --> zt)
 fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
   | dest_pair _ = raise USYN_ERR{func = "dest_pair", mesg = "not a pair"}
 fun is_var(Var(_)) = true | is_var (Free _) = true | is_var _ = false
@@ -202,7 +186,7 @@ fun dest_term(Var((s,i),ty)) = VAR{Name = s, Ty = ty}
   | dest_term(Free(s,ty))    = VAR{Name = s, Ty = ty}
   | dest_term(Const(s,ty))   = CONST{Name = s, Ty = ty}
   | dest_term(M$N)           = COMB{Rator=M,Rand=N}
-  | dest_term(Abs(s,ty,M))   = let  val v = mk_var{Name = s, Ty = ty}
+  | dest_term(Abs(s,ty,M))   = let  val v = Free(s,ty)
                                in LAMB{Bvar = v, Body = betapply (M,v)}
                                end
   | dest_term(Bound _)       = raise USYN_ERR{func = "dest_term",mesg = "Bound"};
@@ -214,7 +198,7 @@ fun dest_comb(t1 $ t2) = {Rator = t1, Rand = t2}
   | dest_comb _ =  raise USYN_ERR{func = "dest_comb", mesg = "not a comb"};
 
 fun dest_abs(a as Abs(s,ty,M)) = 
-     let val v = mk_var{Name = s, Ty = ty}
+     let val v = Free(s,ty)
      in {Bvar = v, Body = betapply (a,v)}
      end
   | dest_abs _ =  raise USYN_ERR{func = "dest_abs", mesg = "not an abstraction"};
@@ -224,9 +208,6 @@ fun dest_eq(Const("op =",_) $ M $ N) = {lhs=M, rhs=N}
 
 fun dest_imp(Const("op -->",_) $ M $ N) = {ant=M, conseq=N}
   | dest_imp _ = raise USYN_ERR{func = "dest_imp", mesg = "not an implication"};
-
-fun dest_select(Const("Eps",_) $ (a as Abs _)) = dest_abs a
-  | dest_select _ = raise USYN_ERR{func = "dest_select", mesg = "not a select"};
 
 fun dest_forall(Const("All",_) $ (a as Abs _)) = dest_abs a
   | dest_forall _ = raise USYN_ERR{func = "dest_forall", mesg = "not a forall"};
@@ -246,7 +227,7 @@ fun dest_disj(Const("op |",_) $ M $ N) = {disj1=M, disj2=N}
 fun mk_pair{fst,snd} = 
    let val ty1 = type_of fst
        val ty2 = type_of snd
-       val c = mk_const{Name = "Pair", Ty = ty1 --> ty2 --> prod_ty ty1 ty2}
+       val c = Const("Pair",ty1 --> ty2 --> prod_ty ty1 ty2)
    in list_comb(c,[fst,snd])
    end;
 
@@ -307,7 +288,7 @@ val list_mk_disj = end_itlist(fn d1 => fn tm => mk_disj{disj1=d1, disj2=tm})
 
 
 (* Need to reverse? *)
-fun gen_all tm = list_mk_forall(free_vars tm, tm);
+fun gen_all tm = list_mk_forall(term_frees tm, tm);
 
 (* Destructing a cterm to a list of Terms *)
 fun strip_comb tm = 
@@ -349,13 +330,6 @@ fun strip_exists fm =
         end
    else ([],fm);
 
-fun strip_conj w = 
-   if (is_conj w)
-   then let val {conj1,conj2} = dest_conj w
-        in (strip_conj conj1@strip_conj conj2)
-        end
-   else [w];
-
 fun strip_disj w =
    if (is_disj w)
    then let val {disj1,disj2} = dest_disj w 
@@ -363,21 +337,6 @@ fun strip_disj w =
         end
    else [w];
 
-fun strip_pair tm = 
-   if (is_pair tm) 
-   then let val {fst,snd} = dest_pair tm
-            fun dtuple t =
-               if (is_pair t)
-               then let val{fst,snd} = dest_pair t
-                    in (fst :: dtuple snd)
-                    end
-               else [t]
-        in fst::dtuple snd
-        end
-   else [tm];
-
-
-fun mk_preterm tm = #t(rep_cterm tm);
 
 (* Miscellaneous *)
 
@@ -432,7 +391,7 @@ fun dest_relation tm =
 
 fun is_WFR tm = (#Name(dest_const(rator tm)) = "wf") handle _ => false;
 
-fun ARB ty = mk_select{Bvar=mk_var{Name="v",Ty=ty},
-                       Body=mk_const{Name="True",Ty=HOLogic.boolT}};
+fun ARB ty = mk_select{Bvar=Free("v",ty),
+                       Body=Const("True",HOLogic.boolT)};
 
 end; (* Syntax *)

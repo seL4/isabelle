@@ -3,20 +3,15 @@
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
-Main TFL functor
+Main module
 *)
 
 signature TFL_sig =
 sig
-   structure Rules: Rules_sig
-   structure Thms : Thms_sig
-   structure Thry : Thry_sig
-   structure USyntax : USyntax_sig
-
    datatype pattern = GIVEN of term * int
                     | OMITTED of term * int
 
-   val mk_functional : theory -> term
+   val mk_functional : theory -> term list
                        -> {functional:term,
                            pats: pattern list}
 
@@ -30,7 +25,7 @@ sig
                                patterns  : pattern list}
 
 
-   val wfrec_eqns : theory -> term
+   val wfrec_eqns : theory -> term list
                      -> {WFR : term, 
                          proto_def : term,
                          extracta :(thm * term list) list,
@@ -38,7 +33,7 @@ sig
 
 
    val lazyR_def : theory
-                   -> term
+                   -> term list
                    -> {theory:theory,
                        rules :thm,
                            R :term,

@@ -27,7 +27,7 @@ signature TFL =
                            -> {induction:thm, rules:thm, TCs:term list list} 
                            -> {induction:thm, rules:thm, nested_tcs:thm list}
 
-   val define_i : theory -> string -> term -> term 
+   val define_i : theory -> string -> term -> term list
                   -> theory * (thm * Prim.pattern list)
 
    val define   : theory -> string -> string -> string list 
@@ -49,7 +49,7 @@ signature TFL =
 structure Tfl: TFL =
 struct
  structure Prim = Prim
- structure S = Prim.USyntax
+ structure S = USyntax
 
 (*---------------------------------------------------------------------------
  * Extract termination goals so that they can be put it into a goalstack, or 
@@ -95,7 +95,7 @@ fun termination_goals rules =
   *--------------------------------------------------------------------------*)
  val std_postprocessor = Prim.postprocess{WFtac = WFtac,
                                     terminator = terminator, 
-                                    simplifier = Prim.Rules.simpl_conv simpls};
+                                    simplifier = Rules.simpl_conv simpls};
 
  val simplifier = rewrite_rule (simpls @ #simps(rep_ss (!simpset)) @ 
                                 [pred_list_def]);
@@ -103,7 +103,7 @@ fun termination_goals rules =
  fun tflcongs thy = Prim.Context.read() @ (#case_congs(Thry.extract_info thy));
 
 
-val concl = #2 o Prim.Rules.dest_thm;
+val concl = #2 o Rules.dest_thm;
 
 (*---------------------------------------------------------------------------
  * Defining a function with an associated termination relation. 
@@ -120,8 +120,7 @@ fun define_i thy fid R eqs =
 fun define thy fid R eqs = 
   let fun read thy = readtm (sign_of thy) (TVar(("DUMMY",0),[])) 
       val (thy',(_,pats)) =
-             define_i thy fid (read thy R) 
-                      (fold_bal (app Ind_Syntax.conj) (map (read thy) eqs))
+             define_i thy fid (read thy R) (map (read thy) eqs)
   in  (thy',pats)  end
   handle Utils.ERR {mesg,...} => error mesg;
 
@@ -130,7 +129,7 @@ fun define thy fid R eqs =
  * processing from the definition stage.
  *---------------------------------------------------------------------------*)
 local 
-structure R = Prim.Rules
+structure R = Rules
 structure U = Utils
 
 (* The rest of these local definitions are for the tricky nested case *)
@@ -138,7 +137,7 @@ val solved = not o U.can S.dest_eq o #2 o S.strip_forall o concl
 
 fun id_thm th = 
    let val {lhs,rhs} = S.dest_eq(#2(S.strip_forall(#2 (R.dest_thm th))))
-   in S.aconv lhs rhs
+   in lhs aconv rhs
    end handle _ => false
 
 fun prover s = prove_goal HOL.thy s (fn _ => [fast_tac HOL_cs 1]);
@@ -196,8 +195,7 @@ fun proof_stage theory reducer {f, R, rules, full_pats_TCs, TCs} =
                  tcs = map (gen_all o S.rhs o #2 o S.strip_forall o concl)
                            (simplified@stubborn)}
           end
-  end handle (e as Utils.ERR _) => Utils.Raise e
-          |   e                 => print_exn e;
+  end;
 
 
 (*lcp: curry the predicate of the induction rule*)
@@ -235,7 +233,10 @@ fun simplify_defn (thy,(id,pats)) =
         rules = rules', 
         tcs = (termination_goals rules') @ tcs}
    end
-  handle Utils.ERR {mesg,...} => error mesg
+  handle Utils.ERR {mesg,func,module} => 
+               error (mesg ^ 
+		      "\n    (In TFL function " ^ module ^ "." ^ func ^ ")")
+       |  e => print_exn e;
 end;
 
 (*---------------------------------------------------------------------------
@@ -246,7 +247,7 @@ end;
  *     inference at theory-construction time.
  *
 
-local structure R = Prim.Rules
+local structure R = Rules
 in
 fun function theory eqs = 
  let val dummy = prs "Making definition..   "
@@ -259,8 +260,7 @@ fun function theory eqs =
  in {theory = theory, 
      eq_ind = standard (induction RS (rules RS conjI))}
  end
- handle (e as Utils.ERR _) => Utils.Raise e
-      |     e              => print_exn e
+ handle    e              => print_exn e
 end;
 
 
@@ -268,8 +268,7 @@ fun lazyR_def theory eqs =
    let val {rules,theory, ...} = Prim.lazyR_def theory eqs
    in {eqns=rules, theory=theory}
    end
-   handle (e as Utils.ERR _) => Utils.Raise e
-        |     e              => print_exn e;
+   handle    e              => print_exn e;
  *
  *
  *---------------------------------------------------------------------------*)
