@@ -284,7 +284,10 @@ val oracleP =
 
 (* statements *)
 
-val locale = Scan.option (P.$$$ "(" |-- P.!!! (P.$$$ "in" |-- P.xname --| P.$$$ ")"));
+val locale = Scan.optional (P.$$$ "(" |-- P.!!!
+    ((P.$$$ "in" |-- P.xname >> Some) -- Scan.repeat P.locale_element ||
+      Scan.repeat1 P.locale_element >> pair None) --| P.$$$ ")") (None, []);
+
 val statement = P.opt_thm_name ":" -- P.propp -- P.marg_comment;
 
 val theoremP =
@@ -700,10 +703,11 @@ val welcomeP =
 
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
-  "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
-  "files", "in", "infix", "infixl", "infixr", "is", "output", "overloaded",
-  "where", "|", "\\<equiv>", "\\<rightharpoonup>", "\\<leftharpoondown>",
-  "\\<rightleftharpoons>", "\\<subseteq>"];
+  "<=", "=", "==", "=>", "?", "[", "]", "and", "assumes", "binder",
+  "concl", "defines", "files", "fixes", "in", "infix", "infixl",
+  "infixr", "is", "notes", "output", "overloaded", "structure",
+  "uses", "where", "|", "\\<equiv>", "\\<leftharpoondown>",
+  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>"];
 
 val parsers = [
   (*theory structure*)
