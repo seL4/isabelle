@@ -6,9 +6,26 @@
 Compatibility file for MLWorks version 1.0r2 or later.
 *)
 
-(*** Poly/ML emulation ***)
+(** ML system related **)
 
-(*Just for versions of MLWorks that don't provide the Option structure*)
+(* restore old-style character / string functions *)
+
+fun ord s = Char.ord (String.sub (s, 0));
+val chr = str o Char.chr;
+val explode = (map str) o String.explode;
+val implode = String.concat;
+
+
+(* MLWorks parameters *)
+
+MLWorks.Internal.Runtime.Event.stack_overflow_handler
+  (fn () => MLWorks.Internal.Runtime.Memory.max_stack_blocks :=
+    ! MLWorks.Internal.Runtime.Memory.max_stack_blocks + 20);
+
+
+(* Poly/ML emulation *)
+
+(*just for versions of MLWorks that don't provide the Option structure*)
 structure Option = General;
 
 (*To exit the system with an exit code -- an alternative to ^D *)
@@ -16,21 +33,13 @@ fun exit 0 = (OS.Process.exit OS.Process.success): unit
   | exit _ = OS.Process.exit OS.Process.failure;
 fun quit () = exit 0;
 
-(*To limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
+(*n.a.*)
 fun print_depth n = ();
 
-(*Interface for toplevel pretty printers, see also Pure/install_pp.ML
-  CURRENTLY UNAVAILABLE*)
+(*interface for toplevel pretty printers, see also Pure/install_pp.ML*)
+(*n.a.*)
 fun make_pp path pprint = ();
 fun install_pp _ = ();
-
-
-(*** Character/string functions which are compatible with 0.93 and Poly/ML ***)
-
-fun ord s = Char.ord (String.sub(s,0));
-val chr = str o Char.chr;
-val explode = (map str) o String.explode;
-val implode = String.concat;
 
 
 (** Compiler-independent timing functions **)
@@ -53,40 +62,45 @@ fun endTiming (CPUtimer, {gc,sys,usr}) =
   end;
 
 
-(*** File handling ***)
-
-(*Get time of last modification; if file doesn't exist return an empty string*)
-fun file_info "" = ""
-  | file_info name = Time.toString (OS.FileSys.modTime name) handle _ =>"";
-
-
-(*** ML command execution ***)
-
-val tmpName = OS.FileSys.tmpName();
+(* ML command execution *)
 
 (*Can one redirect 'use' directly to an instream?*)
-fun use_strings slist =
-  let val tmpFile = TextIO.openOut tmpName
-  in app (fn s => TextIO.output (tmpFile, s)) slist;
-     TextIO.closeOut tmpFile;
-     use tmpName
+fun use_strings strs =
+  let
+    val tmp_name = OS.FileSys.tmpName ();
+    val tmp_file = TextIO.openOut tmp_name;
+  in app (fn s => TextIO.output (tmp_file, s)) strs;
+     TextIO.closeOut tmp_file;
+     use tmp_name;
+     OS.FileSys.remove tmp_name
   end;
 
 
-(*** System command execution ***)
 
-(*Execute an Unix command which doesn't take any input from stdin and
-  sends its output to stdout.
-  This could be done more easily by Unix.execute, but that function
-  doesn't use the PATH.*)
+(** OS related **)
+
+(* system command execution *)
+
+(*execute Unix command which doesn't take any input from stdin and
+  sends its output to stdout; could be done more easily by Unix.execute,
+  but that function doesn't use the PATH*)
 fun execute command =
-  let val is = (OS.Process.system (command ^ " > " ^ tmpName);
-                TextIO.openIn tmpName);
-      val result = TextIO.inputAll is;
-  in TextIO.closeIn is;
-     OS.FileSys.remove tmpName;
-     result
+  let
+    val tmp_name = OS.FileSys.tmpName ();
+    val is = (OS.Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
+    val result = TextIO.inputAll is;
+  in
+    TextIO.closeIn is;
+    OS.FileSys.remove tmp_name;
+    result
   end;
+
+
+(* file handling *)
+
+(*get time of last modification; if file doesn't exist return an empty string*)
+fun file_info "" = ""		(* FIXME !? *)
+  | file_info name = Time.toString (OS.FileSys.modTime name) handle _ => "";
 
 
 (* getenv *)
@@ -97,6 +111,6 @@ fun getenv var =
   | SOME txt => txt);
 
 
-(*Non-printing and 8-bit chars are forbidden in string constants*)
-val needs_filtered_use = true;
+(* non-ASCII input (see also Thy/use.ML) *)
 
+val needs_filtered_use = false;
