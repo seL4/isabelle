@@ -1,0 +1,97 @@
+Proves about loops and tail-recursive functions
+===============================================
+
+Problem A
+
+P = while B1       do S od
+Q = while B1 or B2 do S od
+
+Prove P;Q = Q    (provided B1, B2 have no side effects)
+
+------
+
+Looking at the denotational semantics of while, we get
+
+Problem B
+
+[|B1|]:State->Bool
+[|B2|]:State->Bool
+[|S |]:State->State
+f     :State->State
+
+p = fix LAM f.LAM x. if [| B1 |] x                  then f([| S |] x) else x fi
+q = fix LAM f.LAM x. if [| B1 |] x orelse [|b2 |] x then f([| S |] x) else x fi
+
+Prove q o p = q          rsp.       ALL x.q(p(x))=q(x)
+
+Remark: 1. Bool is the three-valued domain {UU,FF,TT} since tests B1 and B2 may
+           not terminate.
+        2. orelse is the sequential or like in ML
+
+----------
+
+If we abstract over the structure of stores we get
+
+Problem C
+
+b1:'a -> Bool
+b2:'a -> Bool
+g :'a ->'a
+h :'a ->'a
+
+p = fix LAM h.LAM x. if b1(x)              then h(g(x)) else x fi
+q = fix LAM h.LAM x. if b1(x) orelse b2(x) then h(g(x)) else x fi
+
+where g is an abstraction of [| S |]
+
+Prove q o p = q 
+
+Remark: there are no restrictions wrt. definedness or strictness for any of 
+        the involved functions.
+
+----------
+
+In a functional programming language the problem reads as follows:
+
+p(x) = if b1(x) 
+         then p(g(x))
+         else x fi
+
+q(x) = if b1(x) orelse b2(x) 
+         then q(g(x))
+         else x fi
+
+
+Prove:  q o p = q
+
+
+-------------
+
+In you like to test the problem in ML (bad guy) you have to introduce 
+formal parameters for b1,b2 and g.
+
+fun p b1 g x = if b1(x) 
+         then p b1 g (g(x))
+         else x;
+
+
+fun q b1 b2 g x = if b1(x) orelse b2(x) 
+         then q b1 b2 g (g(x))
+         else x;
+
+Prove: for all b1 b2 g . 
+            (q b1 b2 g) o (p b1 g) = (q b1 b2 g)
+
+===========
+
+It took 4 person-days to formulate and prove the problem C in the
+Isabelle logic HOLCF. The formalisation was done by conservative extension and
+all proof principles where derived from pure HOLCF.
+
+
+    
+
+
+
+
+
