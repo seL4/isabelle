@@ -16,14 +16,14 @@ sig
     -> theory -> theory * {intro: thm, axioms: thm list}
   val add_axclass_i: bclass * class list -> ((bstring * term) * theory attribute list) list
     -> theory -> theory * {intro: thm, axioms: thm list}
-  val add_inst_subclass: xclass * xclass -> string list -> thm list
+  val add_inst_subclass_x: xclass * xclass -> string list -> thm list
     -> tactic option -> theory -> theory
-  val add_inst_subclass_i: class * class -> string list -> thm list
-    -> tactic option -> theory -> theory
-  val add_inst_arity: xstring * string list * string -> string list
+  val add_inst_subclass: xclass * xclass -> tactic -> theory -> theory
+  val add_inst_subclass_i: class * class -> tactic -> theory -> theory
+  val add_inst_arity_x: xstring * string list * string -> string list
     -> thm list -> tactic option -> theory -> theory
-  val add_inst_arity_i: string * sort list * sort -> string list
-    -> thm list -> tactic option -> theory -> theory
+  val add_inst_arity: xstring * string list * string -> tactic -> theory -> theory
+  val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
   val default_intro_classes_tac: thm list -> int -> tactic
   val axclass_tac: thm list -> tactic
   val prove_subclass: theory -> class * class -> thm list
@@ -417,11 +417,15 @@ fun ext_inst_arity prep_arity (raw_t, raw_Ss, raw_cs) names thms usr_tac thy =
         prove_arity thy (t, Ss, c) wthms usr_tac);
   in add_arity_thms (map prove cs) thy end;
 
+fun sane_inst_subclass prep sub tac = ext_inst_subclass prep sub [] [] (Some tac);
+fun sane_inst_arity prep arity tac = ext_inst_arity prep arity [] [] (Some tac);
 
-val add_inst_subclass = ext_inst_subclass read_classrel;
-val add_inst_subclass_i = ext_inst_subclass cert_classrel;
-val add_inst_arity = ext_inst_arity read_arity;
-val add_inst_arity_i = ext_inst_arity cert_arity;
+val add_inst_subclass_x = ext_inst_subclass read_classrel;
+val add_inst_subclass = sane_inst_subclass read_classrel;
+val add_inst_subclass_i = sane_inst_subclass cert_classrel;
+val add_inst_arity_x = ext_inst_arity read_arity;
+val add_inst_arity = sane_inst_arity read_arity;
+val add_inst_arity_i = sane_inst_arity cert_arity;
 
 
 (* make old-style interactive goals *)
