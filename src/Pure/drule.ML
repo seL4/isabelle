@@ -101,6 +101,8 @@ sig
   val close_derivation: thm -> thm
   val local_standard: thm -> thm
   val compose_single: thm * int * thm -> thm
+  val add_rule: thm -> thm list -> thm list
+  val del_rule: thm -> thm list -> thm list
   val add_rules: thm list -> thm list -> thm list
   val del_rules: thm list -> thm list -> thm list
   val merge_rules: thm list * thm list -> thm list
@@ -490,6 +492,8 @@ val size_of_thm = size_of_term o #prop o rep_thm;
 (*maintain lists of theorems --- preserving canonical order*)
 fun del_rules rs rules = Library.gen_rems Thm.eq_thm (rules, rs);
 fun add_rules rs rules = rs @ del_rules rs rules;
+val del_rule = del_rules o single;
+val add_rule = add_rules o single;
 fun merge_rules (rules1, rules2) = gen_merge_lists' Thm.eq_thm rules1 rules2;
 
 
