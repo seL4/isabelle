@@ -80,6 +80,26 @@ by (IntPr.fast_tac 1) handle ERROR => writeln"Failed, as expected";
 getgoal 1;  
 
 
+writeln"de Bruijn formulae";
+
+(*de Bruijn formula with three predicates*)
+goal IFOL.thy "((P<->Q) --> P&Q&R) &    \
+\              ((Q<->R) --> P&Q&R) &    \
+\              ((R<->P) --> P&Q&R) --> P&Q&R";
+by (IntPr.fast_tac 1);
+result();
+
+
+(*de Bruijn formula with five predicates*)
+goal IFOL.thy "((P<->Q) --> P&Q&R&S&T) &    \
+\              ((Q<->R) --> P&Q&R&S&T) &    \
+\              ((R<->S) --> P&Q&R&S&T) &    \
+\              ((S<->T) --> P&Q&R&S&T) &    \
+\              ((T<->P) --> P&Q&R&S&T) --> P&Q&R&S&T";
+by (IntPr.fast_tac 1);
+result();
+
+
 writeln"Intuitionistic FOL: propositional problems based on Pelletier.";
 
 writeln"Problem ~~1";
