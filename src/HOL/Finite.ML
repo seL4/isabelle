@@ -1,9 +1,9 @@
-(*  Title:      HOL/Finite.thy
+(*  Title:      HOL/Finite.ML
     ID:         $Id$
     Author:     Lawrence C Paulson & Tobias Nipkow
     Copyright   1995  University of Cambridge & TU Muenchen
 
-Finite sets and their cardinality
+Finite sets and their cardinality.
 *)
 
 section "finite";
