@@ -13,9 +13,12 @@ sig
   val quit: Toplevel.transition -> Toplevel.transition
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
   val clear_undo: Toplevel.transition -> Toplevel.transition
-  val undo: Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
-  val undos: int -> Toplevel.transition -> Toplevel.transition
+  val undos_proof: int -> Toplevel.transition -> Toplevel.transition
+  val kill_proof: Toplevel.transition -> Toplevel.transition
+  val undo_theory: Toplevel.transition -> Toplevel.transition
+  val kill_theory: Toplevel.transition -> Toplevel.transition
+  val undo: Toplevel.transition -> Toplevel.transition
   val use: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
   val use_mltext: string -> Toplevel.transition -> Toplevel.transition
@@ -58,20 +61,22 @@ val quit = Toplevel.imperative quit;
 (* history commands *)
 
 fun cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
-
 val clear_undo = Toplevel.history History.clear o Toplevel.proof ProofHistory.clear;
 val redo = Toplevel.history History.redo o Toplevel.proof ProofHistory.redo;
 
-fun undo_proof prf =
-  if ProofHistory.is_initial prf then raise Toplevel.UNDEF else ProofHistory.undo prf;
+fun undos_proof n = Toplevel.proof (fn prf =>
+  if ProofHistory.is_initial prf then raise Toplevel.UNDEF else funpow n ProofHistory.undo prf);
 
-fun undo_node hist =
-  if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist;
+val kill_proof = Toplevel.history (fn hist =>
+  (case History.current hist of
+    Toplevel.Theory _ => raise Toplevel.UNDEF
+  | Toplevel.Proof _ => History.undo hist));
 
-val undo = Toplevel.kill o Toplevel.history undo_node o Toplevel.proof undo_proof;
+val undo_theory = Toplevel.history (fn hist =>
+  if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
 
-(* FIXME fix *)
-fun undos n = Toplevel.history (funpow n History.undo) o Toplevel.proof (funpow n undo_proof);
+val kill_theory = Toplevel.imperative (fn () => warning "Nothing to kill.") o Toplevel.kill;
+val undo = kill_theory o undo_theory o undos_proof 1;
 
 
 (* use ML text *)
