@@ -75,7 +75,7 @@ val pg = pg' thy;
 
 (* ----- getting the axioms and definitions --------------------------------- *)
 
-local fun ga s dn = get_axiom thy (dn^"."^s) in
+local fun ga s dn = get_thm thy (dn^"."^s) in
 val ax_abs_iso    = ga "abs_iso"  dname;
 val ax_rep_iso    = ga "rep_iso"  dname;
 val ax_when_def   = ga "when_def" dname;
@@ -350,7 +350,7 @@ val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
 
-local fun ga s dn = get_axiom thy (dn^"."^s) in
+local fun ga s dn = get_thm thy (dn^"."^s) in
 val axs_reach      = map (ga "reach"     ) dnames;
 val axs_take_def   = map (ga "take_def"  ) dnames;
 val axs_finite_def = map (ga "finite_def") dnames;

@@ -538,7 +538,7 @@ fun lazyR_def thy fid tflCongs eqns =
        thy
        |> PureThy.add_defs_i 
             [Thm.no_attributes (fid ^ "_def", defn)]
-     val def = freezeT (get_axiom theory (fid ^ "_def"))
+     val def = freezeT (get_thm theory (fid ^ "_def"))
      val dummy = if !trace then writeln ("DEF = " ^ string_of_thm def)
 	                   else ()
      (* val fconst = #lhs(S.dest_eq(concl def))  *)
