@@ -476,8 +476,8 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
 fun mk_cases_i solved elims ss cprop =
   let
     val prem = Thm.assume cprop;
-    val tac = if solved then InductMethod.con_elim_solved_tac else InductMethod.con_elim_tac;
-    fun mk_elim rl = Drule.standard (Tactic.rule_by_tactic (tac ss) (prem RS rl));
+    val tac = ALLGOALS (InductMethod.simp_case_tac solved ss) THEN prune_params_tac;
+    fun mk_elim rl = Drule.standard (Tactic.rule_by_tactic tac (prem RS rl));
   in
     (case get_first (try mk_elim) elims of
       Some r => r
