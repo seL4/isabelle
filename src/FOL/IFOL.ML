@@ -103,6 +103,12 @@ qed_goalw "iffD1" IFOL.thy [iff_def] "[| P <-> Q;  P |] ==> Q"
 qed_goalw "iffD2" IFOL.thy [iff_def] "[| P <-> Q;  Q |] ==> P"
  (fn prems => [ (rtac (conjunct2 RS mp) 1), (REPEAT (ares_tac prems 1)) ]);
 
+qed_goal "rev_iffD1" IFOL.thy "!!P. [| P; P <-> Q |] ==> Q"
+ (fn _ => [etac iffD1 1, assume_tac 1]);
+
+qed_goal "rev_iffD2" IFOL.thy "!!P. [| Q; P <-> Q |] ==> P"
+ (fn _ => [etac iffD2 1, assume_tac 1]);
+
 qed_goal "iff_refl" IFOL.thy "P <-> P"
  (fn _ => [ (REPEAT (ares_tac [iffI] 1)) ]);
 
