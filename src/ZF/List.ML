@@ -213,6 +213,25 @@ by (REPEAT (ares_tac (list.intrs @ [list_rec_type, app_type]) 1));
 qed "flat_type";
 
 
+(** set_of_list **)
+
+val [set_of_list_Nil,set_of_list_Cons] = list_recs set_of_list_def;
+
+goalw List.thy [set_of_list_def] 
+    "!!l. l: list(A) ==> set_of_list(l) : Pow(A)";
+be list_rec_type 1;
+by (ALLGOALS (fast_tac ZF_cs));
+qed "set_of_list_type";
+
+goal List.thy
+    "!!l. xs: list(A) ==> \
+\         set_of_list (xs@ys) = set_of_list(xs) Un set_of_list(ys)";
+by (etac list.induct 1);
+by (ALLGOALS (asm_simp_tac (ZF_ss addsimps [set_of_list_Nil,set_of_list_Cons,
+					    app_Nil,app_Cons,Un_cons])));
+qed "set_of_list_append";
+
+
 (** list_add **)
 
 val [list_add_Nil,list_add_Cons] = list_recs list_add_def;

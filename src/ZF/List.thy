@@ -49,6 +49,8 @@ constdefs
   length :: i=>i
   "length(l)   == list_rec(l,  0,  %x xs r. succ(r))"
 
+  set_of_list :: i=>i
+  "set_of_list(l)   == list_rec(l,  0,  %x xs r. cons(x,r))"
 
 consts  (*Cannot use constdefs because @ is not an identifier*)
   "@"        :: [i,i]=>i                        (infixr 60)
