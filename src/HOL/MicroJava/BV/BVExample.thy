@@ -456,7 +456,7 @@ consts_code
   "Bex"    ("(fn A => fn f => exists f A)")
   "Ball"   ("(fn A => fn f => forall f A)")
   "some_elem" ("hd")
-  "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  ("(_ \\ _)")
+  "op -" :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  ("(_ \\\\ _)")
 
 lemma JVM_sup_unfold [code]:
  "JVMType.sup S m n = lift2 (Opt.sup
