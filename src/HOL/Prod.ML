@@ -6,14 +6,58 @@
 Ordered Pairs, the Cartesian product type, the unit type
 *)
 
-(*This counts as a non-emptiness result for admitting 'a * 'b as a type*)
+(** unit **)
+
+Goalw [Unity_def]
+    "u = ()";
+by (stac (rewrite_rule [unit_def] Rep_unit RS singletonD RS sym) 1);
+by (rtac (Rep_unit_inverse RS sym) 1);
+qed "unit_eq";
+
+(*simplification procedure for unit_eq.
+  Cannot use this rule directly -- it loops!*)
+local
+  val unit_pat = Thm.cterm_of (Theory.sign_of (the_context ())) (Free ("x", HOLogic.unitT));
+  val unit_meta_eq = standard (mk_meta_eq unit_eq);
+  fun proc _ _ t =
+    if HOLogic.is_unit t then None
+    else Some unit_meta_eq;
+in
+  val unit_eq_proc = Simplifier.mk_simproc "unit_eq" [unit_pat] proc;
+end;
+
+Addsimprocs [unit_eq_proc];
+
+Goal "(!!x::unit. PROP P x) == PROP P ()";
+by (Simp_tac 1);
+qed "unit_all_eq1";
+
+Goal "(!!x::unit. PROP P) == PROP P";
+by (rtac triv_forall_equality 1);
+qed "unit_all_eq2";
+
+Goal "P () ==> P x";
+by (Simp_tac 1);
+qed "unit_induct";
+
+(*This rewrite counters the effect of unit_eq_proc on (%u::unit. f u),
+  replacing it by f rather than by %u.f(). *)
+Goal "(%u::unit. f()) = f";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "unit_abs_eta_conv";
+Addsimps [unit_abs_eta_conv];
+
+
+(** prod **)
+
 Goalw [Prod_def] "Pair_Rep a b : Prod";
 by (EVERY1 [rtac CollectI, rtac exI, rtac exI, rtac refl]);
 qed "ProdI";
 
-val [major] = goalw Prod.thy [Pair_Rep_def]
+val [major] = goalw (the_context ()) [Pair_Rep_def]
     "Pair_Rep a b = Pair_Rep a' b' ==> a=a' & b=b'";
-by (EVERY1 [rtac (major RS fun_cong RS fun_cong RS subst), 
+by (EVERY1 [rtac (major RS fun_cong RS fun_cong RS subst),
             rtac conjI, rtac refl, rtac refl]);
 qed "Pair_Rep_inject";
 
@@ -60,7 +104,7 @@ by (REPEAT (eresolve_tac [prem,exE] 1));
 qed "PairE";
 
 fun pair_tac s = EVERY' [res_inst_tac [("p",s)] PairE, hyp_subst_tac,
-			 K prune_params_tac];
+                         K prune_params_tac];
 
 (* Do not add as rewrite rule: invalidates some proofs in IMP *)
 Goal "p = (fst(p),snd(p))";
@@ -79,26 +123,30 @@ Addsimps [surj_pair];
 
 bind_thm ("split_paired_all",
   SplitPairedAll.rule (standard (surjective_pairing RS eq_reflection)));
+bind_thms ("split_tupled_all", [split_paired_all, unit_all_eq2]);
+
 (*
-Addsimps [split_paired_all] does not work with simplifier 
-because it also affects premises in congrence rules, 
+Addsimps [split_paired_all] does not work with simplifier
+because it also affects premises in congrence rules,
 where is can lead to premises of the form !!a b. ... = ?P(a,b)
 which cannot be solved by reflexivity.
 *)
 
 (* replace parameters of product type by individual component parameters *)
 local
-  fun is_pair (_,Type("*",_)) = true
-    | is_pair  _              = false;
-  fun exists_paired_all prem  = exists is_pair (Logic.strip_params prem);
-  val split_tac = full_simp_tac (HOL_basic_ss addsimps [split_paired_all]);
+  fun exists_paired_all prem =   (* FIXME check deeper nesting of params!?! *)
+    Library.exists (can HOLogic.dest_prodT o #2) (Logic.strip_params prem);
+  val ss = HOL_basic_ss
+    addsimps [split_paired_all, unit_all_eq2, unit_abs_eta_conv]
+    addsimprocs [unit_eq_proc];
+  val split_tac = full_simp_tac ss;
 in
-val split_all_tac = SUBGOAL (fn (prem,i) => 
-    if exists_paired_all prem then split_tac i else no_tac);  
+  val split_all_tac = SUBGOAL (fn (prem,i) =>
+    if exists_paired_all prem then split_tac i else no_tac);
 end;
 
-claset_ref() := claset() addSWrapper ("split_all_tac", 
-				      fn tac2 => split_all_tac ORELSE' tac2);
+claset_ref() := claset()
+  addSWrapper ("split_all_tac", fn tac2 => split_all_tac ORELSE' tac2);
 
 Goal "(!x. P x) = (!a b. P(a,b))";
 by (Fast_tac 1);
@@ -137,7 +185,7 @@ by (Asm_simp_tac 1);
 qed "Pair_fst_snd_eq";
 
 (*Prevents simplification of c: much faster*)
-val [prem] = goal Prod.thy
+val [prem] = goal (the_context ())
   "p=q ==> split c p = split c q";
 by (rtac (prem RS arg_cong) 1);
 qed "split_weak_cong";
@@ -152,14 +200,14 @@ val prems = Goal "(!!x y. f x y = g(x,y)) ==> (%(x,y). f x y) = g";
 by (asm_simp_tac (simpset() addsimps prems@[split_eta]) 1);
 qed "cond_split_eta";
 
-(*simplification procedure for cond_split_eta. 
-  using split_eta a rewrite rule is not general enough, and using 
+(*simplification procedure for cond_split_eta.
+  using split_eta a rewrite rule is not general enough, and using
   cond_split_eta directly would render some existing proofs very inefficient.
   similarly for split_beta. *)
 local
   fun  Pair_pat k 0 (Bound m) = (m = k)
   |    Pair_pat k i (Const ("Pair",  _) $ Bound m $ t) = i > 0 andalso
-			m = k+i andalso Pair_pat k (i-1) t
+                        m = k+i andalso Pair_pat k (i-1) t
   |    Pair_pat _ _ _ = false;
   fun no_args k i (Abs (_, _, t)) = no_args (k+1) i t
   |   no_args k i (t $ u) = no_args k i t andalso no_args k i u
@@ -168,33 +216,34 @@ local
   fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then Some (i,t) else None
   |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
   |   split_pat tp i _ = None;
-  fun metaeq sg lhs rhs = mk_meta_eq (prove_goalw_cterm [] 
-	(cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs))))
-	(K [simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1]));
-  fun simproc name patstr = Simplifier.mk_simproc name 
-		[Thm.read_cterm (sign_of Prod.thy) (patstr, HOLogic.termT)];
+  fun metaeq sg lhs rhs = mk_meta_eq (prove_goalw_cterm []
+        (cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs))))
+        (K [simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1]));
+  val sign = sign_of (the_context ());
+  fun simproc name patstr = Simplifier.mk_simproc name
+                [Thm.read_cterm sign (patstr, HOLogic.termT)];
 
   val beta_patstr = "split f z";
   val  eta_patstr = "split f";
   fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
   |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse
-			(beta_term_pat k i t andalso beta_term_pat k i u)
+                        (beta_term_pat k i t andalso beta_term_pat k i u)
   |   beta_term_pat k i t = no_args k i t;
   fun  eta_term_pat k i (f $ arg) = no_args k i f andalso Pair_pat k i arg
   |    eta_term_pat _ _ _ = false;
   fun subst arg k i (Abs (x, T, t)) = Abs (x, T, subst arg (k+1) i t)
   |   subst arg k i (t $ u) = if Pair_pat k i (t $ u) then incr_boundvars k arg
-			      else (subst arg k i t $ subst arg k i u)
+                              else (subst arg k i t $ subst arg k i u)
   |   subst arg k i t = t;
-  fun beta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t) $ arg) = 
-	(case split_pat beta_term_pat 1 t of 
-	Some (i,f) => Some (metaeq sg s (subst arg 0 i f))
-	| None => None)
+  fun beta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t) $ arg) =
+        (case split_pat beta_term_pat 1 t of
+        Some (i,f) => Some (metaeq sg s (subst arg 0 i f))
+        | None => None)
   |   beta_proc _ _ _ = None;
-  fun eta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t)) = 
-	(case split_pat eta_term_pat 1 t of
-	  Some (_,ft) => Some (metaeq sg s (let val (f $ arg) = ft in f end))
- 	| None => None)
+  fun eta_proc sg _ (s as Const ("split", _) $ Abs (_, _, t)) =
+        (case split_pat eta_term_pat 1 t of
+          Some (_,ft) => Some (metaeq sg s (let val (f $ arg) = ft in f end))
+        | None => None)
   |   eta_proc _ _ _ = None;
 in
   val split_beta_proc = simproc "split_beta" beta_patstr beta_proc;
@@ -254,7 +303,7 @@ val prems = Goalw [split_def]
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 qed "splitE'";
 
-val major::prems = goal Prod.thy 
+val major::prems = goal (the_context ())
     "[| Q (split P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R  \
 \    |] ==> R";
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
@@ -282,13 +331,13 @@ qed "mem_splitE";
 AddSIs [splitI, splitI2, splitI2', mem_splitI, mem_splitI2];
 AddSEs [splitE, splitE', mem_splitE];
 
-Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P"; 
+Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P";
 by (rtac ext 1);
 by (Fast_tac 1);
 qed "split_eta_SetCompr";
 Addsimps [split_eta_SetCompr];
 
-Goal "(%u. ? x y. u = (x, y) & P x y) = split P"; 
+Goal "(%u. ? x y. u = (x, y) & P x y) = split P";
 br ext 1;
 by (Fast_tac 1);
 qed "split_eta_SetCompr2";
@@ -306,7 +355,7 @@ by (Blast_tac 1);
 qed "Eps_split_eq";
 Addsimps [Eps_split_eq];
 (*
-the following  would be slightly more general, 
+the following  would be slightly more general,
 but cannot be used as rewrite rule:
 ### Cannot add premise as rewrite rule because it contains (type) unknowns:
 ### ?y = .x
@@ -387,7 +436,7 @@ by (etac SigmaE 1);
 by (REPEAT (eresolve_tac [asm_rl,Pair_inject,ssubst] 1)) ;
 qed "SigmaD2";
 
-val [major,minor]= goal Prod.thy
+val [major,minor]= goal (the_context ())
     "[| (a,b) : Sigma A B;    \
 \       [| a:A;  b:B(a) |] ==> P   \
 \    |] ==> P";
@@ -416,23 +465,23 @@ Addsimps [Sigma_empty1,Sigma_empty2];
 
 Goal "UNIV <*> UNIV = UNIV";
 by Auto_tac;
-qed "UNIV_Times_UNIV"; 
+qed "UNIV_Times_UNIV";
 Addsimps [UNIV_Times_UNIV];
 
 Goal "- (UNIV <*> A) = UNIV <*> (-A)";
 by Auto_tac;
-qed "Compl_Times_UNIV1"; 
+qed "Compl_Times_UNIV1";
 
 Goal "- (A <*> UNIV) = (-A) <*> UNIV";
 by Auto_tac;
-qed "Compl_Times_UNIV2"; 
+qed "Compl_Times_UNIV2";
 
-Addsimps [Compl_Times_UNIV1, Compl_Times_UNIV2]; 
+Addsimps [Compl_Times_UNIV1, Compl_Times_UNIV2];
 
 Goal "((a,b): Sigma A B) = (a:A & b:B(a))";
 by (Blast_tac 1);
 qed "mem_Sigma_iff";
-AddIffs [mem_Sigma_iff]; 
+AddIffs [mem_Sigma_iff];
 
 Goal "x:C ==> (A <*> C <= B <*> C) = (A <= B)";
 by (Blast_tac 1);
@@ -501,55 +550,19 @@ qed "Sigma_Union";
   matching, especially when the rules are re-oriented*)
 Goal "(A Un B) <*> C = (A <*> C) Un (B <*> C)";
 by (Blast_tac 1);
-qed "Times_Un_distrib1"; 
+qed "Times_Un_distrib1";
 
 Goal "(A Int B) <*> C = (A <*> C) Int (B <*> C)";
 by (Blast_tac 1);
-qed "Times_Int_distrib1"; 
+qed "Times_Int_distrib1";
 
 Goal "(A - B) <*> C = (A <*> C) - (B <*> C)";
 by (Blast_tac 1);
-qed "Times_Diff_distrib1"; 
-
-(** Exhaustion rule for unit -- a degenerate form of induction **)
-
-Goalw [Unity_def]
-    "u = ()";
-by (stac (rewrite_rule [unit_def] Rep_unit RS singletonD RS sym) 1);
-by (rtac (Rep_unit_inverse RS sym) 1);
-qed "unit_eq";
- 
-(*simplification procedure for unit_eq.
-  Cannot use this rule directly -- it loops!*)
-local
-  val unit_pat = Thm.cterm_of (Theory.sign_of thy) (Free ("x", HOLogic.unitT));
-  val unit_meta_eq = standard (mk_meta_eq unit_eq);
-  fun proc _ _ t =
-    if HOLogic.is_unit t then None
-    else Some unit_meta_eq;
-in
-  val unit_eq_proc = Simplifier.mk_simproc "unit_eq" [unit_pat] proc;
-end;
-
-Addsimprocs [unit_eq_proc];
-
-
-Goal "P () ==> P x";
-by (Simp_tac 1);
-qed "unit_induct";
-
-
-(*This rewrite counters the effect of unit_eq_proc on (%u::unit. f u),
-  replacing it by f rather than by %u.f(). *)
-Goal "(%u::unit. f()) = f";
-by (rtac ext 1);
-by (Simp_tac 1);
-qed "unit_abs_eta_conv";
-Addsimps [unit_abs_eta_conv];
+qed "Times_Diff_distrib1";
 
 
 (*Attempts to remove occurrences of split, and pair-valued parameters*)
-val remove_split = rewrite_rule [split RS eq_reflection] o  
+val remove_split = rewrite_rule [split RS eq_reflection] o
                    rule_by_tactic (TRYALL split_all_tac);
 
 local
@@ -557,11 +570,11 @@ local
 (*In ap_split S T u, term u expects separate arguments for the factors of S,
   with result type T.  The call creates a new term expecting one argument
   of type S.*)
-fun ap_split (Type ("*", [T1, T2])) T3 u = 
-      HOLogic.split_const (T1, T2, T3) $ 
-      Abs("v", T1, 
+fun ap_split (Type ("*", [T1, T2])) T3 u =
+      HOLogic.split_const (T1, T2, T3) $
+      Abs("v", T1,
           ap_split T2 T3
-             ((ap_split T1 (HOLogic.prodT_factors T2 ---> T3) (incr_boundvars 1 u)) $ 
+             ((ap_split T1 (HOLogic.prodT_factors T2 ---> T3) (incr_boundvars 1 u)) $
               Bound 0))
   | ap_split T T3 u = u;
 
@@ -584,5 +597,3 @@ fun split_rule rl = remove_split (foldr split_rule_var' (term_vars (concl_of rl)
                     |> standard;
 
 end;
-
-
