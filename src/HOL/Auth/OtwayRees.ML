@@ -93,9 +93,9 @@ val parts_Fake_tac =
 (*For proving the easier theorems about X ~: parts (sees lost Spy evs) *)
 fun parts_induct_tac i = SELECT_GOAL
     (DETERM (etac otway.induct 1 THEN parts_Fake_tac THEN
-	     (*Fake message*)
-	     TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-					   impOfSubs Fake_parts_insert]
+             (*Fake message*)
+             TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
+                                           impOfSubs Fake_parts_insert]
                                     addss (!simpset)) 2)) THEN
      (*Base case*)
      fast_tac (!claset addss (!simpset)) 1 THEN
@@ -460,7 +460,7 @@ by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
 by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
 (*Oops*) (** LEVEL 5 **)
 by (fast_tac (!claset delrules [disjE]
-		      addDs [unique_session_keys] addss (!simpset)) 1);
+                      addDs [unique_session_keys] addss (!simpset)) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 goal thy 
@@ -559,7 +559,7 @@ by (fast_tac (!claset addSIs [parts_insertI]
 (*OR3 and OR4*)  (** LEVEL 5 **)
 (*OR4*)
 by (REPEAT (Safe_step_tac 2));
-br (Crypt_imp_OR2 RS exE) 2;
+by (rtac (Crypt_imp_OR2 RS exE) 2);
 by (REPEAT (fast_tac (!claset addEs partsEs) 2));
 (*OR3*)  (** LEVEL 8 **)
 by (step_tac (!claset delrules [disjCI, impCE]) 1);
