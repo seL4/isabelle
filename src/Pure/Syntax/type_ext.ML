@@ -49,7 +49,8 @@ fun raw_term_sorts tm =
 
     val env = distinct (env_of tm);
   in
-    (case gen_duplicates eq_fst env of
+    (case gen_duplicates 
+		(fn ((n,s),(m,t)) => n=m andalso not(eq_set_string(s,t))) env of
       [] => env
     | dups => error ("Inconsistent sort constraints for type variable(s) " ^
         commas (map (quote o show_var o #1) dups)))
