@@ -60,7 +60,7 @@ shift $(($OPTIND - 1))
 
 ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
 [ -z "$ML_SYSTEM" ] && \
-  fail "Missing ML system settings! Probably not run via 'isatool make'?."
+  fail "Missing ML system settings! Probably not run via 'isatool make'."
 
 COMPAT=""
 [ -f "ML-Systems/$ML_SYSTEM_BASE.ML" ] && COMPAT="ML-Systems/$ML_SYSTEM_BASE.ML"
