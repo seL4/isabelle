@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/AxExample.thy
+(*  Title:      HOL/Bali/AxExample.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   2000 Technische Universitaet Muenchen

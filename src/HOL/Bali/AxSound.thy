@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/AxSound.thy
+(*  Title:      HOL/Bali/AxSound.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1999 Technische Universitaet Muenchen

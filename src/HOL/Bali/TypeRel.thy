@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/TypeRel.thy
+(*  Title:      HOL/Bali/TypeRel.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1997 Technische Universitaet Muenchen

@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/Eval.thy
+(*  Title:      HOL/Bali/Eval.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1997 Technische Universitaet Muenchen

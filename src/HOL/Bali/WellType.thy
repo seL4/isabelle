@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/WellType.thy
+(*  Title:      HOL/Bali/WellType.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1997 Technische Universitaet Muenchen

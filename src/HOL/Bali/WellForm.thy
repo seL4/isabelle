@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/WellForm.thy
+(*  Title:      HOL/Bali/WellForm.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1997 Technische Universitaet Muenchen

@@ -1,4 +1,4 @@
-(*  Title:      isabelle/Bali/AxSem.thy
+(*  Title:      HOL/Bali/AxSem.thy
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1998 Technische Universitaet Muenchen
