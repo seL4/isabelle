@@ -9,6 +9,7 @@ Unbalanced binary trees indexed by strings; no way to delete an entry.
 signature SYMTAB =
 sig
   exception DUPLICATE of string
+  exception DUPS of string list
   type 'a table
   val null: 'a table
   val is_null: 'a table -> bool
@@ -19,7 +20,10 @@ sig
   val balance: 'a table -> 'a table
   val st_of_alist: (string * 'a) list * 'a table -> 'a table
   val st_of_declist: (string list * 'a) list * 'a table -> 'a table
+  val make: (string * 'a) list -> 'a table
+  val dest: 'a table -> (string * 'a) list
   val extend: ('a * 'a -> bool) -> 'a table * (string * 'a) list -> 'a table
+  val extend_new: 'a table * (string * 'a) list -> 'a table
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
   val lookup_multi: 'a list table * string -> 'a list
   val make_multi: (string * 'a) list -> 'a list table
@@ -31,6 +35,7 @@ struct
 
 (*symbol table errors, such as from update_new*)
 exception DUPLICATE of string;
+exception DUPS of string list;
 
 datatype 'a table = Tip | Branch of (string * 'a * 'a table * 'a table);
 
@@ -78,6 +83,8 @@ fun alist_of (symtab : 'a table) : (string * 'a) list =
             ali(left, (key, entry) :: ali(right, cont))
   in  ali (symtab, [])  end;
 
+val dest = alist_of;
+
 
 (*Make a balanced tree of the first n members of the sorted alist (sal).
   Utility for the function balance.*)
@@ -112,18 +119,23 @@ fun st_of_declist (dl, symtab) =
   balance (foldr decl_update_new (dl, symtab));
 
 
-(* extend, merge tables *)
+(* make, extend, merge tables *)
 
 fun eq_pair eq ((key1, entry1), (key2, entry2)) =
   key1 = key2 andalso eq (entry1, entry2);
 
-fun mk_tab alst = balance (st_of_alist (alst, Tip));
+fun make alst =
+  (case gen_duplicates eq_fst alst of
+    [] => balance (st_of_alist (alst, Tip))
+  | dups => raise DUPS (map fst dups));
 
 fun extend eq (tab, alst) =
-  generic_extend (eq_pair eq) alist_of mk_tab tab alst;
+  generic_extend (eq_pair eq) dest make tab alst;
+
+val extend_new = extend (K false);
 
 fun merge eq (tab1, tab2) =
-  generic_merge (eq_pair eq) alist_of mk_tab tab1 tab2;
+  generic_merge (eq_pair eq) dest make tab1 tab2;
 
 
 (* tables with multiple entries per key *)
@@ -141,7 +153,7 @@ fun make_multi alst =
   balance (foldr cons_entry (alst, Tip));
 
 fun dest_multi tab =
-  flat (map (fn (key, entries) => map (pair key) entries) (alist_of tab));
+  flat (map (fn (key, entries) => map (pair key) entries) (dest tab));
 
 
 end;
