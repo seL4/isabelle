@@ -325,12 +325,13 @@ val kill_proofP =
     (Scan.succeed (Toplevel.print o Toplevel.proof_to_theory IsarThy.kill_proof));
 
 val qed_withP =
-  OuterSyntax.improper_command "qed_with" "conclude proof, may patch name and attributes" K.qed
+  OuterSyntax.improper_command "qed_with" "conclude proof, may patch name and attributes"
+    K.qed_block
     (Scan.option P.name -- Scan.option P.attribs -- Scan.option (P.method -- P.interest)
       >> (uncurry IsarThy.global_qed_with));
 
 val qedP =
-  OuterSyntax.command "qed" "conclude (sub-)proof" K.qed
+  OuterSyntax.command "qed" "conclude (sub-)proof" K.qed_block
     (Scan.option (P.method -- P.interest) >> IsarThy.qed);
 
 val terminal_proofP =
@@ -363,6 +364,10 @@ val proofP =
 
 
 (* proof history *)
+
+val cannot_undoP =
+  OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
+    (P.name >> (Toplevel.print oo IsarCmd.cannot_undo));
 
 val clear_undoP =
   OuterSyntax.improper_command "clear_undo" "clear undo information" K.control
@@ -525,8 +530,8 @@ val parsers = [
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, fixP, letP,
   thenP, fromP, factsP, beginP, endP, nextP, kill_proofP, qed_withP,
   qedP, terminal_proofP, immediate_proofP, default_proofP, refineP,
-  then_refineP, proofP, clear_undoP, undoP, redoP, undosP, backP,
-  prevP, upP, topP,
+  then_refineP, proofP, cannot_undoP, clear_undoP, undoP, redoP,
+  undosP, backP, prevP, upP, topP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
