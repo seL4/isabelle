@@ -43,6 +43,14 @@ qed_goal "excluded_middle" FOL.thy "~P | P"
 fun excluded_middle_tac sP =
     res_inst_tac [("Q",sP)] (excluded_middle RS disjE);
 
+qed_goal "case_split_thm" FOL.thy "[| P ==> Q; ~P ==> Q |] ==> Q"
+  (fn [p1,p2] => [rtac (excluded_middle RS disjE) 1,
+                  etac p2 1, etac p1 1]);
+
+(*HOL's more natural case analysis tactic*)
+fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
+
+
 (*** Special elimination rules *)
 
 
