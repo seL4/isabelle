@@ -47,64 +47,53 @@ subsubsection{*irreflexivity*}
 
 lemma irreflI:
     "[| !!x. x:A ==> <x,x> ~: r |] ==> irrefl(A,r)"
-by (simp add: irrefl_def); 
+by (simp add: irrefl_def) 
 
 lemma symI: "[| irrefl(A,r);  x:A |] ==>  <x,x> ~: r"
-apply (simp add: irrefl_def)
-done
+by (simp add: irrefl_def)
 
 subsubsection{*symmetry*}
 
 lemma symI:
      "[| !!x y.<x,y>: r ==> <y,x>: r |] ==> sym(r)"
-apply (unfold sym_def); 
-apply (blast intro: elim:); 
+apply (unfold sym_def, blast) 
 done
 
 lemma antisymI: "[| sym(r); <x,y>: r |]  ==>  <y,x>: r"
-apply (unfold sym_def)
-apply blast
-done
+by (unfold sym_def, blast)
 
 subsubsection{*antisymmetry*}
 
 lemma antisymI:
      "[| !!x y.[| <x,y>: r;  <y,x>: r |] ==> x=y |] ==> antisym(r)"
-apply (simp add: antisym_def) 
-apply (blast intro: elim:); 
+apply (simp add: antisym_def, blast) 
 done
 
 lemma antisymE: "[| antisym(r); <x,y>: r;  <y,x>: r |]  ==>  x=y"
-apply (simp add: antisym_def)
-apply blast
-done
+by (simp add: antisym_def, blast)
 
 subsubsection{*transitivity*}
 
 lemma transD: "[| trans(r);  <a,b>:r;  <b,c>:r |] ==> <a,c>:r"
-apply (unfold trans_def)
-apply blast
-done
+by (unfold trans_def, blast)
 
 lemma trans_onD: 
     "[| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r"
-apply (unfold trans_on_def)
-apply blast
+apply (unfold trans_on_def, blast)
 done
 
 subsection{*Transitive closure of a relation*}
 
 lemma rtrancl_bnd_mono:
      "bnd_mono(field(r)*field(r), %s. id(field(r)) Un (r O s))"
-apply (rule bnd_monoI)
-apply (blast intro: elim:)+
+apply (rule bnd_monoI, blast+)
 done
 
 lemma rtrancl_mono: "r<=s ==> r^* <= s^*"
 apply (unfold rtrancl_def)
 apply (rule lfp_mono)
 apply (rule rtrancl_bnd_mono)+
-apply (blast intro: elim:); 
+apply blast 
 done
 
 (* r^* = id(field(r)) Un ( r O r^* )    *)
@@ -125,25 +114,20 @@ done
 (*Closure under composition with r  *)
 lemma rtrancl_into_rtrancl: "[| <a,b> : r^*;  <b,c> : r |] ==> <a,c> : r^*"
 apply (rule rtrancl_unfold [THEN ssubst])
-apply (rule compI [THEN UnI2])
-apply assumption
+apply (rule compI [THEN UnI2], assumption)
 apply assumption
 done
 
 (*rtrancl of r contains all pairs in r  *)
 lemma r_into_rtrancl: "<a,b> : r ==> <a,b> : r^*"
-apply (rule rtrancl_refl [THEN rtrancl_into_rtrancl])
-apply (blast intro: elim:)+
-done
+by (rule rtrancl_refl [THEN rtrancl_into_rtrancl], blast+)
 
 (*The premise ensures that r consists entirely of pairs*)
 lemma r_subset_rtrancl: "r <= Sigma(A,B) ==> r <= r^*"
-apply (blast intro: r_into_rtrancl)
-done
+by (blast intro: r_into_rtrancl)
 
 lemma rtrancl_field: "field(r^*) = field(r)"
-apply (blast intro: r_into_rtrancl dest!: rtrancl_type [THEN subsetD])
-done
+by (blast intro: r_into_rtrancl dest!: rtrancl_type [THEN subsetD])
 
 
 (** standard induction rule **)
@@ -153,8 +137,7 @@ lemma rtrancl_full_induct:
       !!x. x: field(r) ==> P(<x,x>);  
       !!x y z.[| P(<x,y>); <x,y>: r^*; <y,z>: r |]  ==>  P(<x,z>) |]  
    ==>  P(<a,b>)"
-apply (erule def_induct [OF rtrancl_def rtrancl_bnd_mono])
-apply (blast intro: elim:); 
+apply (erule def_induct [OF rtrancl_def rtrancl_bnd_mono], blast) 
 done
 
 (*nice induction rule.
@@ -170,16 +153,14 @@ apply (subgoal_tac "ALL y. <a,b> = <a,y> --> P (y) ")
 (*now solve first subgoal: this formula is sufficient*)
 apply (erule spec [THEN mp], rule refl)
 (*now do the induction*)
-apply (erule rtrancl_full_induct)
-apply (blast)+
+apply (erule rtrancl_full_induct, blast+)
 done
 
 (*transitivity of transitive closure!! -- by induction.*)
 lemma trans_rtrancl: "trans(r^*)"
 apply (unfold trans_def)
 apply (intro allI impI)
-apply (erule_tac b = "z" in rtrancl_induct)
-apply assumption; 
+apply (erule_tac b = "z" in rtrancl_induct, assumption)
 apply (blast intro: rtrancl_into_rtrancl) 
 done
 
@@ -192,9 +173,8 @@ lemma rtranclE:
      ==> P"
 apply (subgoal_tac "a = b | (EX y. <a,y> : r^* & <y,b> : r) ")
 (*see HOL/trancl*)
-apply (blast intro: elim:); 
-apply (erule rtrancl_induct)
-apply (blast intro: elim:)+
+apply blast 
+apply (erule rtrancl_induct, blast+)
 done
 
 
@@ -224,14 +204,11 @@ done
 
 (*The premise ensures that r consists entirely of pairs*)
 lemma r_subset_trancl: "r <= Sigma(A,B) ==> r <= r^+"
-apply (blast intro: r_into_trancl)
-done
+by (blast intro: r_into_trancl)
 
 (*intro rule by definition: from r^* and r  *)
 lemma rtrancl_into_trancl1: "[| <a,b> : r^*;  <b,c> : r |]   ==>  <a,c> : r^+"
-apply (unfold trancl_def)
-apply blast
-done
+by (unfold trancl_def, blast)
 
 (*intro rule from r and r^*  *)
 lemma rtrancl_into_trancl2:
@@ -264,7 +241,7 @@ lemma tranclE:
         !!y.[| <a,y> : r^+; <y,b> : r |] ==> P   
      |] ==> P"
 apply (subgoal_tac "<a,b> : r | (EX y. <a,y> : r^+ & <y,b> : r) ")
-apply (blast intro: elim:); 
+apply blast 
 apply (rule compEpair)
 apply (unfold trancl_def, assumption)
 apply (erule rtranclE)
@@ -283,14 +260,12 @@ by (unfold trancl_def, intro comp_mono rtrancl_mono)
 (** Suggested by Sidi Ould Ehmety **)
 
 lemma rtrancl_idemp [simp]: "(r^*)^* = r^*"
-apply (rule equalityI)
-apply auto
+apply (rule equalityI, auto)
  prefer 2
  apply (frule rtrancl_type [THEN subsetD])
- apply (blast intro: r_into_rtrancl elim:); 
+ apply (blast intro: r_into_rtrancl ) 
 txt{*converse direction*}
-apply (frule rtrancl_type [THEN subsetD])
-apply (clarify ); 
+apply (frule rtrancl_type [THEN subsetD], clarify) 
 apply (erule rtrancl_induct)
 apply (simp add: rtrancl_refl rtrancl_field)
 apply (blast intro: rtrancl_trans)
@@ -298,8 +273,7 @@ done
 
 lemma rtrancl_subset: "[| R <= S; S <= R^* |] ==> S^* = R^*"
 apply (drule rtrancl_mono)
-apply (drule rtrancl_mono)
-apply simp_all
+apply (drule rtrancl_mono, simp_all)
 apply blast
 done
 

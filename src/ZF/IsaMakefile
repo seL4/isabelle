@@ -39,13 +39,13 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.ML	\
   Integ/twos_compl.ML Let.ML Let.thy List.ML List.thy Main.ML Main.thy	\
   Main_ZFC.ML Main_ZFC.thy Nat.thy Order.thy OrderArith.thy	\
   OrderType.thy Ordinal.thy OrdQuant.thy Perm.thy	\
-  QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML Sum.ML	\
+  QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML	\
   Sum.thy Tools/cartprod.ML Tools/datatype_package.ML			\
   Tools/ind_cases.ML Tools/induct_tacs.ML Tools/inductive_package.ML	\
   Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML	\
   Trancl.thy Univ.thy Update.thy \
   WF.thy ZF.ML ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy	\
-  ind_syntax.ML mono.ML mono.thy pair.ML pair.thy simpdata.ML		\
+  ind_syntax.ML mono.ML mono.thy pair.thy simpdata.ML		\
   subset.ML subset.thy thy_syntax.ML upair.ML upair.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/FOL ZF
 
