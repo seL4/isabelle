@@ -50,7 +50,7 @@ sig
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
   val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    Proof.context -> Args.src -> Proof.context * 'a
+    Args.src -> Proof.context -> Proof.context * 'a
   val ctxt_args: (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val no_args: Proof.method -> Args.src -> Proof.context -> Proof.method
   type modifier
@@ -403,7 +403,7 @@ fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T l
   Args.syntax "method" scan;
 
 fun ctxt_args (f: Proof.context -> Proof.method) src ctxt =
-  #2 (syntax (Scan.succeed (f ctxt)) ctxt src);
+  #2 (syntax (Scan.succeed (f ctxt)) src ctxt);
 
 fun no_args m = ctxt_args (K m);
 
@@ -428,7 +428,7 @@ fun sectioned args ss = args -- Scan.repeat (section ss);
 in
 
 fun sectioned_args args ss f src ctxt =
-  let val (ctxt', (x, _)) = syntax (sectioned args ss) ctxt src
+  let val (ctxt', (x, _)) = syntax (sectioned args ss) src ctxt
   in f x ctxt' end;
 
 fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
@@ -447,7 +447,7 @@ val insts =
     Args.enum1 "and" (Scan.lift (Args.name -- Args.!!! (Args.$$$ "=" |-- Args.name))) --
     (Scan.lift (Args.$$$ "in") |-- Attrib.local_thm);
 
-fun inst_args f src ctxt = f ((#2 oo syntax insts) ctxt src);
+fun inst_args f = f oo (#2 oo syntax insts);
 
 
 

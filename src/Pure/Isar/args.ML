@@ -39,7 +39,7 @@ sig
   val dest_src: src -> (string * T list) * Position.T
   val attribs: T list -> src list * T list
   val opt_attribs: T list -> src list * T list
-  val syntax: string -> ('a * T list -> 'b * ('a * T list)) -> 'a -> src -> 'a * 'b
+  val syntax: string -> ('a * T list -> 'b * ('a * T list)) -> src -> 'a -> 'a * 'b
 end;
 
 structure Args: ARGS =
@@ -183,7 +183,7 @@ fun err_in_src kind msg (Src ((s, args), pos)) =
 
 (* argument syntax *)
 
-fun syntax kind scan st (src as Src ((s, args), pos)) =
+fun syntax kind scan (src as Src ((s, args), pos)) st =
   (case handle_error (Scan.error (Scan.finite' stopper (Scan.option scan))) (st, args) of
     OK (Some x, (st', [])) => (st', x)
   | OK (_, (_, args')) => err_in_src kind "bad arguments" (Src ((s, args'), pos))
