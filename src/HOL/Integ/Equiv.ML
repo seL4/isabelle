@@ -182,7 +182,7 @@ val _::_::prems = goalw Equiv.thy [quotient_def]
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
 by (safe_tac (!claset));
-by (rtac (localize UN_equiv_class RS ssubst) 1);
+by (stac (localize UN_equiv_class) 1);
 by (REPEAT (ares_tac prems 1));
 qed "UN_equiv_class_type";
 

@@ -26,9 +26,9 @@ val eqa::eqb::prems = goal Arith.thy
 \       x1 + y3 = x3 + y1";
 by (res_inst_tac [("k2","x2")] (add_left_cancel RS iffD1) 1);
 by (rtac (add_left_commute RS trans) 1);
-by (rtac (eqb RS ssubst) 1);
+by (stac eqb 1);
 by (rtac (add_left_commute RS trans) 1);
-by (rtac (eqa RS ssubst) 1);
+by (stac eqa 1);
 by (rtac (add_left_commute) 1);
 qed "integ_trans_lemma";
 
@@ -63,7 +63,7 @@ by (Fast_tac 1);
 qed "intrel_iff";
 
 goal Integ.thy "(x,x): intrel";
-by (rtac (surjective_pairing RS ssubst) 1 THEN rtac (refl RS intrelI) 1);
+by (stac surjective_pairing 1 THEN rtac (refl RS intrelI) 1);
 qed "intrel_refl";
 
 goalw Integ.thy [equiv_def, refl_def, sym_def, trans_def]
@@ -400,7 +400,7 @@ by (res_inst_tac [("z","z1")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","z2")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","z3")] eq_Abs_Integ 1);
 by (asm_simp_tac (!simpset addsimps ([add_mult_distrib2,zmult] @ 
-				     add_ac @ mult_ac)) 1);
+                                     add_ac @ mult_ac)) 1);
 qed "zmult_assoc";
 
 (*For AC rewriting*)
@@ -418,7 +418,7 @@ by (res_inst_tac [("z","z2")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by (asm_simp_tac 
     (!simpset addsimps ([add_mult_distrib2, zadd, zmult] @ 
-			add_ac @ mult_ac)) 1);
+                        add_ac @ mult_ac)) 1);
 qed "zadd_zmult_distrib";
 
 val zmult_commute'= read_instantiate [("z","w")] zmult_commute;
@@ -625,7 +625,7 @@ qed "zless_not_refl";
 bind_thm ("zless_irrefl", (zless_not_refl RS notE));
 
 goal Integ.thy "!!w. z<w ==> w ~= (z::int)";
-by(fast_tac (!claset addEs [zless_irrefl]) 1);
+by (fast_tac (!claset addEs [zless_irrefl]) 1);
 qed "zless_not_refl2";
 
 

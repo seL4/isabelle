@@ -23,7 +23,8 @@ fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
 fun auto_tac (cs,ss) = 
     ALLGOALS (asm_full_simp_tac ss) THEN
     REPEAT (safe_tac cs THEN ALLGOALS (asm_full_simp_tac ss)) THEN
-    REPEAT (FIRSTGOAL (best_tac (cs addss ss)));
+    REPEAT (FIRSTGOAL (best_tac (cs addss ss))) THEN
+    prune_params_tac;
 
 fun Auto_tac() = auto_tac (!claset, !simpset);
 

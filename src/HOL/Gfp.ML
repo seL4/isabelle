@@ -87,7 +87,7 @@ by (rtac subset_refl 1);
 by (rtac prem 1);
 by (rtac (mono RS gfp_Tarski RS equalityD1 RS subset_trans) 1);
 by (rtac (mono RS monoD) 1);
-by (rtac (mono RS coinduct3_mono_lemma RS lfp_Tarski RS ssubst) 1);
+by (stac (mono RS coinduct3_mono_lemma RS lfp_Tarski) 1);
 by (rtac Un_upper2 1);
 qed "coinduct3_lemma";
 

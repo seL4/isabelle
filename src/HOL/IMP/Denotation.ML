@@ -32,9 +32,9 @@ by (etac evalc.induct 1);
 auto();
 (* while *)
 by (rewtac Gamma_def);
-by (rtac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski RS ssubst)) 1);
+by (stac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski)) 1);
 by (Fast_tac 1);
-by (rtac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski RS ssubst)) 1);
+by (stac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski)) 1);
 by (Fast_tac 1);
 
 qed "com1";
