@@ -47,7 +47,6 @@ sig
   val strip_assums_hyp  : term -> term list
   val strip_assums_concl: term -> term
   val strip_params      : term -> (string * typ) list
-  val is_norm_hhf       : term -> bool
   val has_meta_prems    : term -> int -> bool
   val flatten_params    : int -> term -> term
   val auto_rename       : bool ref
@@ -263,12 +262,6 @@ fun strip_assums_concl (Const("==>", _) $ H $ B) = strip_assums_concl B
 fun strip_params (Const("==>", _) $ H $ B) = strip_params B
   | strip_params (Const("all",_)$Abs(a,T,t)) = (a,T) :: strip_params t
   | strip_params B = [];
-
-(*test for HHF normal form*)
-fun is_norm_hhf (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
-  | is_norm_hhf (t $ u) = is_norm_hhf t andalso is_norm_hhf u
-  | is_norm_hhf (Abs (_, _, t)) = is_norm_hhf t
-  | is_norm_hhf _ = true;
 
 (*test for meta connectives in prems of a 'subgoal'*)
 fun has_meta_prems prop i =
