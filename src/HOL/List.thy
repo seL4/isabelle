@@ -41,8 +41,7 @@ null:: "'a list => bool"
 "distinct":: "'a list => bool"
 replicate :: "nat => 'a => 'a list"
 
-nonterminals
-lupdbindslupdbind
+nonterminals lupdbinds lupdbind
 
 syntax
 -- {* list Enumeration *}
