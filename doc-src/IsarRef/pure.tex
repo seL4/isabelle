@@ -292,7 +292,7 @@ preceding the actual theory definition.
 \end{descr}
 
 
-\subsection{Axioms and theorems}
+\subsection{Axioms and theorems}\label{sec:axms-thms}
 
 \indexisarcmd{axioms}\indexisarcmd{theorems}\indexisarcmd{lemmas}
 \begin{matharray}{rcl}
@@ -430,8 +430,8 @@ following commands provide some way to do so.
 
 {\footnotesize
 \begin{verbatim}
-Method.no_args (Method.METHOD (fn facts => foobar_tac))
-Method.thms_args (fn thms => (Method.METHOD (fn facts => foobar_tac)))
+ Method.no_args (Method.METHOD (fn facts => foobar_tac))
+ Method.thms_args (fn thms => Method.METHOD (fn facts => foobar_tac))
 \end{verbatim}
 }
 
@@ -1026,40 +1026,44 @@ as well.  These typically achieve a stronger forward style of reasoning.
 \end{descr}
 
 
-\subsection{Emulating tactic scripts}\label{sec:tactical-proof}
+\subsection{Emulating tactic scripts}\label{sec:tactic-commands}
 
-The following elements emulate unstructured tactic scripts to some extent.
-While these are anathema for writing proper Isar proof documents, they might
-come in handy for interactive exploration and debugging, or even actual
-tactical proof within new-style theories (to benefit from document
-preparation, for example).
+The Isar provides separate commands to accommodate tactic-style proof scripts
+within the same system.  While being outside the orthodox Isar proof language,
+these might come in handy for interactive exploration and debugging, or even
+actual tactical proof within new-style theories (to benefit from document
+preparation, for example).  See also \S\ref{sec:tactics} for actual tactics,
+that have been encapsulated as proof methods.  Proper proof methods may be
+used in scripts, too.
 
-\indexisarcmd{apply}\indexisarcmd{done}\indexisarcmd{apply-end}
+\indexisarcmd{apply}\indexisarcmd{apply-end}\indexisarcmd{done}
 \indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
+\indexisarcmd{declare}
 \begin{matharray}{rcl}
   \isarcmd{apply}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
-  \isarcmd{done}^* & : & \isartrans{proof(prove)}{proof(state)} \\
   \isarcmd{apply_end}^* & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{done}^* & : & \isartrans{proof(prove)}{proof(state)} \\
   \isarcmd{defer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{prefer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
+  \isarcmd{declare}^* & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
 \railalias{applyend}{apply\_end}
 \railterm{applyend}
 
 \begin{rail}
-  'apply' method comment?
+  ( 'apply' | applyend ) method comment?
   ;
   'done' comment?
-  ;
-  applyend method comment?
   ;
   'defer' nat? comment?
   ;
   'prefer' nat comment?
   ;
   'back' comment?
+  ;
+  'declare' thmrefs comment?
   ;
 \end{rail}
 
@@ -1072,11 +1076,6 @@ preparation, for example).
   are \emph{consumed} afterwards.  Thus any further $\isarkeyword{apply}$
   command would always work in a purely backward manner.
   
-\item [$\isarkeyword{done}$] completes a proof script, provided that the
-  current goal state is already solved completely.  Note that actual
-  structured proof commands (e.g.\ ``$\DOT$'' or $\SORRY$) may be used to
-  conclude proof scripts as well.
-
 \item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
   terminal position.  Basically, this simulates a multi-step tactic script for
   $\QEDNAME$, but may be given anywhere within the proof body.
@@ -1084,95 +1083,32 @@ preparation, for example).
   No facts are passed to $m$.  Furthermore, the static context is that of the
   enclosing goal (as for actual $\QEDNAME$).  Thus the proof method may not
   refer to any assumptions introduced in the current body, for example.
+
+\item [$\isarkeyword{done}$] completes a proof script, provided that the
+  current goal state is already solved completely.  Note that actual
+  structured proof commands (e.g.\ ``$\DOT$'' or $\SORRY$) may be used to
+  conclude proof scripts as well.
+
 \item [$\isarkeyword{defer}~n$ and $\isarkeyword{prefer}~n$] shuffle the list
   of pending goals: $defer$ puts off goal $n$ to the end of the list ($n = 1$
   by default), while $prefer$ brings goal $n$ to the top.
+
 \item [$\isarkeyword{back}$] does back-tracking over the result sequence of
   the latest proof command.\footnote{Unlike the ML function \texttt{back}
     \cite{isabelle-ref}, the Isar command does not search upwards for further
     branch points.} Basically, any proof command may return multiple results.
+  
+\item [$\isarkeyword{declare}~thms$] declares theorems to the current theory
+  context.  No theorem binding is involved here, unlike
+  $\isarkeyword{theorems}$ or $\isarkeyword{lemmas}$ (cf.\ 
+  \S\ref{sec:axms-thms}).  So $\isarkeyword{declare}$ only has the effect of
+  applying attributes as included in the theorem specification.
 \end{descr}
 
 Any proper Isar proof method may be used with tactic script commands such as
 $\isarkeyword{apply}$.  A few additional emulations of actual tactics are
 provided as well; these would be never used in actual structured proofs, of
 course.
-
-\indexisarmeth{tactic}\indexisarmeth{insert}
-\indexisarmeth{res-inst-tac}\indexisarmeth{eres-inst-tac}
-\indexisarmeth{dres-inst-tac}\indexisarmeth{forw-inst-tac}
-\indexisarmeth{subgoal-tac}
-\begin{matharray}{rcl}
-  tactic^* & : & \isarmeth \\
-  insert^* & : & \isarmeth \\
-  res_inst_tac^* & : & \isarmeth \\
-  eres_inst_tac^* & : & \isarmeth \\
-  dres_inst_tac^* & : & \isarmeth \\
-  forw_inst_tac^* & : & \isarmeth \\
-  subgoal_tac^* & : & \isarmeth \\
-\end{matharray}
-
-\railalias{resinsttac}{res\_inst\_tac}
-\railterm{resinsttac}
-
-\railalias{eresinsttac}{eres\_inst\_tac}
-\railterm{eresinsttac}
-
-\railalias{dresinsttac}{dres\_inst\_tac}
-\railterm{dresinsttac}
-
-\railalias{forwinsttac}{forw\_inst\_tac}
-\railterm{forwinsttac}
-
-\railalias{subgoaltac}{subgoal\_tac}
-\railterm{subgoaltac}
-
-\begin{rail}
-  'tactic' text
-  ;
-  'insert' thmrefs
-  ;
-  ( resinsttac | eresinsttac | dresinsttac | forwinsttac ) goalspec? \\
-    ((name '=' term) + 'and') 'in' thmref
-  ;
-  subgoaltac goalspec? prop
-  ;
-\end{rail}
-
-\begin{descr}
-\item [$tactic~text$] produces a proof method from any ML text of type
-  \texttt{tactic}.  Apart from the usual ML environment and the current
-  implicit theory context, the ML code may refer to the following locally
-  bound values:
-
-%%FIXME ttbox produces too much trailing space (why?)
-{\footnotesize\begin{verbatim}
-val ctxt  : Proof.context
-val facts : thm list
-val thm   : string -> thm
-val thms  : string -> thm list
-\end{verbatim}}
-  Here \texttt{ctxt} refers to the current proof context, \texttt{facts}
-  indicates any current facts for forward-chaining, and
-  \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
-  theorems) from the context.
-\item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
-  state; the current facts indicated for forward chaining are ignored!
-\item [$res_inst_tac$ etc.] do resolution of rules with explicit
-  instantiation.  This works the same way as the corresponding ML tactics, see
-  \cite[\S3]{isabelle-ref}.
-  
-  It is very important to note that the instantiations are read and
-  type-checked according to the dynamic goal state, rather than the static
-  proof context!  In particular, locally fixed variables and term
-  abbreviations may not be included in the term specifications.
-\item [$subgoal_tac~\phi$] emulates the ML tactic of the same name, see
-  \cite[\S3]{isabelle-ref}.  Syntactically, the given proposition is handled
-  as the instantiations in $res_inst_tac$ etc.
-  
-  Note that the proper Isar command $\PRESUMENAME$ achieves a similar effect
-  as $subgoal_tac$.
-\end{descr}
 
 
 \subsection{Meta-linguistic features}
@@ -1204,23 +1140,19 @@ the opening of the proof.
 
 \section{Other commands}
 
-\subsection{Diagnostics}\label{sec:diag}
+\subsection{Diagnostics}
 
 \indexisarcmd{pr}\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
-\indexisarcmd{print-facts}\indexisarcmd{print-binds}
 \begin{matharray}{rcl}
   \isarcmd{pr}^* & : & \isarkeep{\cdot} \\
   \isarcmd{thm}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{term}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{prop}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{typ}^* & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{print_facts}^* & : & \isarkeep{proof} \\
-  \isarcmd{print_binds}^* & : & \isarkeep{proof} \\
 \end{matharray}
 
-These commands are not part of the actual Isabelle/Isar syntax, but assist
-interactive development.  Also note that $undo$ does not apply here, since the
-theory or proof configuration is not changed.
+These diagnostic commands assist interactive development.  Note that $undo$
+does not apply here, the theory or proof configuration is not changed.
 
 \begin{rail}
   'pr' modes? nat?
@@ -1255,26 +1187,54 @@ theory or proof configuration is not changed.
   abbreviations.
 \item [$\isarkeyword{typ}~\tau$] reads and prints types of the meta-logic
   according to the current theory or proof context.
+\end{descr}
+
+All of the diagnostic commands above admit a list of $modes$ to be specified,
+which is appended to the current print mode (see also \cite{isabelle-ref}).
+Thus the output behavior may be modified according particular print mode
+features.  For example, $\isarkeyword{pr}~(latex~xsymbols~symbols)$ would
+print the current proof state with mathematical symbols and special characters
+represented in {\LaTeX} source, according to the Isabelle style
+\cite{isabelle-sys}.
+
+Note that antiquotations (cf.\ \S\ref{sec:antiq}) provide a more systematic
+way to include formal items into the printed text document.
+
+
+\subsection{Inspecting the context}
+
+\indexisarcmd{print-facts}\indexisarcmd{print-binds}
+\indexisarcmd{print-commands}\indexisarcmd{print-syntax}
+\indexisarcmd{print-methods}\indexisarcmd{print-attributes}
+\begin{matharray}{rcl}
+  \isarcmd{print_commands}^* & : & \isarkeep{\cdot} \\
+  \isarcmd{print_syntax}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_methods}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_attributes}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_facts}^* & : & \isarkeep{proof} \\
+  \isarcmd{print_binds}^* & : & \isarkeep{proof} \\
+\end{matharray}
+
+These commands print parts of the theory and proof context.  Note that there
+are some further ones available, such as for the set of rules declared for
+simplifications.
+
+\begin{descr}
+\item [$\isarkeyword{print_commands}$] prints Isabelle's outer theory syntax,
+  including keywords and command.
+\item [$\isarkeyword{print_syntax}$] prints the inner syntax of types and
+  terms, depending on the current context.  The output can be very verbose,
+  including grammar tables and syntax translation rules.  See \cite[\S7,
+  \S8]{isabelle-ref} for further information on Isabelle's inner syntax.
+\item [$\isarkeyword{print_methods}$] all proof methods available in the
+  current theory context.
+\item [$\isarkeyword{print_attributes}$] all attributes available in the
+  current theory context.
 \item [$\isarkeyword{print_facts}$] prints any named facts of the current
   context, including assumptions and local results.
 \item [$\isarkeyword{print_binds}$] prints all term abbreviations present in
   the context.
 \end{descr}
-
-The basic diagnostic commands above admit a list of $modes$ to be specified,
-which is appended to the current print mode (see also \cite{isabelle-ref}).
-Thus the output behavior may be modified according particular print mode
-features.
-
-For example, $\isarkeyword{pr}~(latex~xsymbols~symbols)$ would print the
-current proof state with mathematical symbols and special characters
-represented in {\LaTeX} source, according to the Isabelle style
-\cite{isabelle-sys}.  The resulting text can be directly pasted into a
-\verb,\begin{isabelle},\dots\verb,\end{isabelle}, environment.  Note that
-$\isarkeyword{pr}~(latex)$ is sufficient to achieve the same output, if the
-current Isabelle session has the other modes already activated, say due to
-some particular user interface configuration such as Proof~General
-\cite{proofgeneral,Aspinall:TACAS:2000} with X-Symbol mode \cite{x-symbol}.
 
 
 \subsection{History commands}\label{sec:history}
