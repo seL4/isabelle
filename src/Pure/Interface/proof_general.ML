@@ -194,11 +194,14 @@ fun restart isar =
   tell_clear_response ();
   writeln (Session.welcome ()));
 
+fun restart_loader () =
+  (ThyInfo.touch_all_thys (); ThyLoad.reset_path ());
+
 in
 
 fun isa_start () = restart false;
-fun isa_restart () = (ThyInfo.touch_all_thys (); restart false);
-fun isar_restart () = (ThyInfo.touch_all_thys (); restart true; raise Toplevel.RESTART);
+fun isa_restart () = (restart_loader (); restart false);
+fun isar_restart () = (restart_loader (); restart true; raise Toplevel.RESTART);
 
 end;
 
