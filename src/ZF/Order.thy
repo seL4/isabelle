@@ -168,7 +168,11 @@ done
 
 subsection{*Empty and Unit Domains*}
 
-(** Relations over the Empty Set **)
+(*The empty relation is well-founded*)
+lemma wf_on_any_0: "wf[A](0)"
+by (simp add: wf_on_def wf_def, fast)
+
+subsubsection{*Relations over the Empty Set*}
 
 lemma irrefl_0: "irrefl(0,r)"
 by (unfold irrefl_def, blast)
@@ -198,17 +202,16 @@ apply (simp add: tot_ord_0 wf_on_0)
 done
 
 
-(** The unit set is well-ordered by the empty relation (Grabczewski) **)
+subsubsection{*The Empty Relation Well-Orders the Unit Set*}
+
+text{*by Grabczewski*}
 
 lemma tot_ord_unit: "tot_ord({a},0)"
 by (simp add: irrefl_def trans_on_def part_ord_def linear_def tot_ord_def)
 
-lemma wf_on_unit: "wf[{a}](0)"
-by (simp add: wf_on_def wf_def, fast)
-
 lemma well_ord_unit: "well_ord({a},0)"
 apply (unfold well_ord_def)
-apply (simp add: tot_ord_unit wf_on_unit)
+apply (simp add: tot_ord_unit wf_on_any_0)
 done
 
 
@@ -676,7 +679,6 @@ val tot_ord_0 = thm "tot_ord_0";
 val wf_on_0 = thm "wf_on_0";
 val well_ord_0 = thm "well_ord_0";
 val tot_ord_unit = thm "tot_ord_unit";
-val wf_on_unit = thm "wf_on_unit";
 val well_ord_unit = thm "well_ord_unit";
 val mono_map_is_fun = thm "mono_map_is_fun";
 val mono_map_is_inj = thm "mono_map_is_inj";
