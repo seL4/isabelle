@@ -201,7 +201,7 @@ fun prove_goalw_cterm rths chorn tacsf =
 	       Some(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
   in  mkresult (true, cond_timeit (!proof_timing) statef)  end
-  handle e => (print_sign_exn (#sign (rep_cterm chorn)) e;
+  handle e => (print_sign_exn_unit (#sign (rep_cterm chorn)) e;
 	       error ("The exception above was raised for\n" ^ 
 		      string_of_cterm chorn));
 
@@ -439,7 +439,7 @@ fun pprint_typ T = Sign.pprint_typ (top_sg()) T;
 
 (*Prints exceptions nicely at top level; 
   raises the exception in order to have a polymorphic type!*)
-fun print_exn e = (print_sign_exn (top_sg()) e;  raise e);
+fun print_exn e = (print_sign_exn_unit (top_sg()) e;  raise e);
 
 end;
 end;
