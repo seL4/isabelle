@@ -225,6 +225,14 @@ val uncurry = prove_goal (the_context()) "P --> Q --> R ==> P & Q --> R"
 val iff_allI = allI RS
     prove_goal (the_context()) "ALL x. P(x) <-> Q(x) ==> (ALL x. P(x)) <-> (ALL x. Q(x))"
                (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
+val iff_exI = allI RS
+    prove_goal (the_context()) "ALL x. P(x) <-> Q(x) ==> (EX x. P(x)) <-> (EX x. Q(x))"
+               (fn prems => [cut_facts_tac prems 1, Blast_tac 1])
+
+val all_comm = prove_goal (the_context()) "(ALL x y. P(x,y)) <-> (ALL y x. P(x,y))"
+               (fn _ => [Blast_tac 1])
+val ex_comm = prove_goal (the_context()) "(EX x y. P(x,y)) <-> (EX y x. P(x,y))"
+               (fn _ => [Blast_tac 1])
 in
 
 (** make simplification procedures for quantifier elimination **)
@@ -242,6 +250,7 @@ struct
   (*rules*)
   val iff_reflection = iff_reflection
   val iffI = iffI
+  val iff_trans = iff_trans
   val conjI= conjI
   val conjE= conjE
   val impI = impI
@@ -250,6 +259,9 @@ struct
   val exI  = exI
   val exE  = exE
   val iff_allI = iff_allI
+  val iff_exI = iff_exI
+  val all_comm = all_comm
+  val ex_comm = ex_comm
 end);
 
 end;
@@ -257,10 +269,10 @@ end;
 local
 
 val ex_pattern =
-  read_cterm (Theory.sign_of (the_context ())) ("EX x. P(x) & Q(x)", FOLogic.oT)
+  read_cterm (Theory.sign_of (the_context ())) ("EX x. P(x)", FOLogic.oT)
 
 val all_pattern =
-  read_cterm (Theory.sign_of (the_context ())) ("ALL x. P(x) --> Q(x)", FOLogic.oT)
+  read_cterm (Theory.sign_of (the_context ())) ("ALL x. P(x)", FOLogic.oT)
 
 in
 val defEX_regroup =
