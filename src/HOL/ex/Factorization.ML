@@ -133,7 +133,7 @@ qed_spec_mp "nondec_sort_eq";
 
 Goal "oinsert x (oinsert y l) = oinsert y (oinsert x l)";
 by (induct_tac "l" 1);
-by (ALLGOALS Asm_full_simp_tac);
+by Auto_tac;
 qed "oinsert_x_y";
 
 
@@ -146,24 +146,24 @@ qed_spec_mp "perm_primel";
 
 Goal "xs <~~> ys ==> prod xs = prod ys";
 by (etac perm.induct 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [mult_left_commute])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps mult_ac)));
 qed_spec_mp "perm_prod";
 
 Goal "xs <~~> ys ==> oinsert a xs <~~> oinsert a ys"; 
 by (etac perm.induct 1);
-by (auto_tac (claset() addIs perm_rules, simpset()));
+by Auto_tac;
 qed "perm_subst_oinsert";
 
 Goal "x#xs <~~> oinsert x xs";
 by (induct_tac "xs" 1);
-by (auto_tac (claset() addIs perm_rules, simpset()));
+by Auto_tac;
 qed "perm_oinsert";
 
 Goal "xs <~~> sort xs";
 by (induct_tac "xs" 1);
-by (auto_tac (claset() addIs [perm.trans,perm_oinsert] 
+by (auto_tac (claset() addIs [perm_oinsert] 
 	               addEs [perm_subst_oinsert],
-              simpset() addsimps [perm_refl]));
+              simpset()));
 qed "perm_sort";
 
 Goal "xs <~~> ys ==> sort xs = sort ys";
