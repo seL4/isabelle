@@ -73,6 +73,8 @@ sig
   val get_thm_closure: context -> string -> thm
   val get_thms: context -> string -> thm list
   val get_thms_closure: context -> string -> thm list
+  val cond_extern: context -> string -> xstring
+  val qualified: (context -> context) -> context -> context
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
@@ -140,21 +142,21 @@ type exporter = bool -> cterm list -> thm -> thm Seq.seq;
 
 datatype context =
   Context of
-   {thy: theory,                                           (*current theory*)
-    syntax: Syntax.syntax * string list * string list,     (*syntax with structs and mixfixed*)
-    data: Object.T Symtab.table,                           (*user data*)
+   {thy: theory,                                              (*current theory*)
+    syntax: Syntax.syntax * string list * string list,        (*syntax with structs and mixfixed*)
+    data: Object.T Symtab.table,                              (*user data*)
     asms:
-      ((cterm list * exporter) list *                      (*assumes: A ==> _*)
+      ((cterm list * exporter) list *                         (*assumes: A ==> _*)
         (string * thm list) list) *
-      ((string * string) list * string list),              (*fixes: !!x. _*)
-    binds: (term * typ) option Vartab.table,               (*term bindings*)
-    thms: thm list option Symtab.table,                    (*local thms*)
-    cases: (string * RuleCases.T) list,                    (*local contexts*)
+      (string * string) list,                                 (*fixes: !!x. _*)
+    binds: (term * typ) option Vartab.table,                  (*term bindings*)
+    thms: bool * NameSpace.T * thm list option Symtab.table,  (*local thms*)
+    cases: (string * RuleCases.T) list,                       (*local contexts*)
     defs:
-      typ Vartab.table *                                   (*type constraints*)
-      sort Vartab.table *                                  (*default sorts*)
-      string list *                                        (*used type variables*)
-      term list Symtab.table};                             (*type variable occurrences*)
+      typ Vartab.table *                                      (*type constraints*)
+      sort Vartab.table *                                     (*default sorts*)
+      string list *                                           (*used type variables*)
+      term list Symtab.table};                                (*type variable occurrences*)
 
 exception CONTEXT of string * context;
 
@@ -170,10 +172,9 @@ fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
 fun syntax_of (Context {syntax, ...}) = syntax;
 
-fun vars_of (Context {asms = (_, vars), ...}) = vars;
-val fixes_of = #1 o vars_of;
+fun fixes_of (Context {asms = (_, fixes), ...}) = fixes;
 val fixed_names_of = map #2 o fixes_of;
-fun is_fixed (Context {asms = (_, (fixes, _)), ...}) x = exists (equal x o #2) fixes;
+fun is_fixed ctxt x = exists (equal x o #2) (fixes_of ctxt);
 fun type_occs (Context {defs = (_, _, _, tab), ...}) = tab;
 
 fun assumptions_of (Context {asms = ((asms, _), _), ...}) = asms;
@@ -214,7 +215,6 @@ struct
 
   val empty = Symtab.empty;
   val copy = I;
-  val finish = I;
   val prep_ext = I;
   fun merge tabs = Symtab.merge (Object.eq_kind o pairself fst) tabs
     handle Symtab.DUPS kinds => err_inconsistent kinds;
@@ -271,8 +271,8 @@ fun put_data kind f x ctxt =
 
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
-    make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), ([], [])), Vartab.empty,
-      Symtab.empty, [], (Vartab.empty, Vartab.empty, [], Symtab.empty))
+    make_context (thy, (Theory.syn_of thy, [], []), data, (([], []), []), Vartab.empty,
+      (false, NameSpace.empty, Symtab.empty), [], (Vartab.empty, Vartab.empty, [], Symtab.empty))
   end;
 
 
@@ -616,7 +616,7 @@ fun declare_syn (ctxt, t) =
   |> map_defaults (fn (types, sorts, used, occ) => (types, ins_sorts (sorts, t), used, occ))
   |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, ins_used (used, t), occ));
 
-fun declare_occ (ctxt as Context {asms = (_, (fixes, _)), ...}, t) =
+fun declare_occ (ctxt as Context {asms = (_, fixes), ...}, t) =
   declare_syn (ctxt, t)
   |> map_defaults (fn (types, sorts, used, occ) => (types, sorts, used, ins_occs (occ, t)))
   |> map_defaults (fn (types, sorts, used, occ) =>
@@ -764,13 +764,6 @@ fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
 
 (* simult_matches *)
 
-local
-
-val add_vars = Term.foldl_aterms (fn (vs, Var (xi, _)) => xi ins vs | (vs, _) => vs);
-fun vars_of ts = foldl add_vars ([], ts);
-
-in
-
 fun simult_matches ctxt [] = []
   | simult_matches ctxt pairs =
       let
@@ -784,14 +777,13 @@ fun simult_matches ctxt [] = []
           (case Seq.pull envs of
             None => fail ()
           | Some (env, _) => env);    (*ignore further results*)
-        val domain = filter_out Term.is_replaced_dummy_pattern (vars_of (map #1 pairs));
+        val domain =
+          filter_out Term.is_replaced_dummy_pattern (map #1 (Drule.vars_of_terms (map #1 pairs)));
         val _ =    (*may not assign variables from text*)
-          if null (map #1 (Envir.alist_of env) inter vars_of (map #2 pairs)) then ()
-          else fail ();
+          if null (map #1 (Envir.alist_of env) inter (map #1 (Drule.vars_of_terms (map #2 pairs))))
+          then () else fail ();
         fun norm_bind (xi, t) = if xi mem domain then Some (xi, Envir.norm_term env t) else None;
       in mapfilter norm_bind (Envir.alist_of env) end;
-
-end;
 
 
 (* add_binds(_i) *)
@@ -904,16 +896,15 @@ end;
 (* get_thm(s) *)
 
 (*beware of proper order of evaluation!*)
-
-fun retrieve_thms f g (ctxt as Context {thy, thms, ...}) =
+fun retrieve_thms f g (ctxt as Context {thy, thms = (_, space, tab), ...}) =
   let
     val sg_ref = Sign.self_ref (Theory.sign_of thy);
     val get_from_thy = f thy;
   in
-    fn name =>
-      (case Symtab.lookup (thms, name) of
+    fn xname =>
+      (case Symtab.lookup (tab, NameSpace.intern space xname) of
         Some (Some ths) => map (Thm.transfer_sg (Sign.deref sg_ref)) ths
-      | _ => get_from_thy name) |> g name
+      | _ => get_from_thy xname) |> g xname
   end;
 
 val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
@@ -922,12 +913,26 @@ val get_thms = retrieve_thms PureThy.get_thms (K I);
 val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 
+(* qualified names *)
+
+fun cond_extern (Context {thms = (_, space, _), ...}) = NameSpace.cond_extern space;
+
+fun set_qual q = map_context (fn (thy, syntax, data, asms, binds, (_, space, tab), cases, defs) =>
+  (thy, syntax, data, asms, binds, (q, space, tab), cases, defs));
+
+fun qualified f (ctxt as Context {thms, ...}) =
+  ctxt |> set_qual true |> f |> set_qual (#1 thms);
+
+
 (* put_thm(s) *)
 
-fun put_thms ("", _) = I
-  | put_thms (name, ths) = map_context
-      (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-        (thy, syntax, data, asms, binds, Symtab.update ((name, Some ths), thms), cases, defs));
+fun put_thms ("", _) ctxt = ctxt
+  | put_thms (name, ths) ctxt = ctxt |> map_context
+      (fn (thy, syntax, data, asms, binds, (q, space, tab), cases, defs) =>
+        if not q andalso NameSpace.is_qualified name then
+          raise CONTEXT ("Attempt to declare qualified name " ^ quote name, ctxt)
+        else (thy, syntax, data, asms, binds, (q, NameSpace.extend (space, [name]),
+          Symtab.update ((name, Some ths), tab)), cases, defs));
 
 fun put_thm (name, th) = put_thms (name, [th]);
 
@@ -937,8 +942,9 @@ fun put_thmss [] ctxt = ctxt
 
 (* reset_thms *)
 
-fun reset_thms name = map_context (fn (thy, syntax, data, asms, binds, thms, cases, defs) =>
-  (thy, syntax, data, asms, binds, Symtab.update ((name, None), thms), cases, defs));
+fun reset_thms name =
+  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab), cases, defs) =>
+    (thy, syntax, data, asms, binds, (q, space, Symtab.update ((name, None), tab)), cases, defs));
 
 
 (* have_thmss *)
@@ -1068,8 +1074,9 @@ end;
 
 local
 
-fun map_vars f = map_context (fn (thy, syntax, data, (assumes, vars), binds, thms, cases, defs) =>
-  (thy, syntax, data, (assumes, f vars), binds, thms, cases, defs));
+fun map_fixes f =
+  map_context (fn (thy, syntax, data, (assumes, fixes), binds, thms, cases, defs) =>
+    (thy, syntax, data, (assumes, f fixes), binds, thms, cases, defs));
 
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
@@ -1077,19 +1084,18 @@ val declare =
   declare_terms_syntax o mapfilter (fn (_, None) => None | (x, Some T) => Some (Free (x, T)));
 
 fun add_vars xs Ts ctxt =
-  let
-    val xs' = variantlist (xs, #2 (vars_of ctxt));
-    val xs'' = map Syntax.skolem xs';
-  in
-    ctxt |> declare (xs'' ~~ Ts)
-    |> map_vars (fn (fixes, used) => ((xs ~~ xs'') @ fixes, xs' @ used))
+  let val xs' = Term.variantlist (map Syntax.skolem xs, map #2 (fixes_of ctxt)) in
+    ctxt
+    |> declare (xs' ~~ Ts)
+    |> map_fixes (fn fixes => (xs ~~ xs') @ fixes)
   end;
 
 fun add_vars_direct xs Ts ctxt =
-  ctxt |> declare (xs ~~ Ts)
-  |> map_vars (fn (fixes, used) =>
+  ctxt
+  |> declare (xs ~~ Ts)
+  |> map_fixes (fn fixes =>
     (case xs inter_string map #1 fixes of
-      [] => ((xs ~~ xs) @ fixes, xs @ used)
+      [] => (xs ~~ xs) @ fixes
     | dups => err_dups ctxt dups));
 
 
@@ -1200,8 +1206,9 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 
 (* local theorems *)
 
-fun pretty_lthms (ctxt as Context {thms, ...}) =
-  pretty_items (pretty_thm ctxt) "facts:" (mapfilter smash_option (Symtab.dest thms));
+fun pretty_lthms (ctxt as Context {thms = (_, space, tab), ...}) =
+  pretty_items (pretty_thm ctxt) "facts:"
+    (mapfilter smash_option (NameSpace.cond_extern_table space tab));
 
 val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
