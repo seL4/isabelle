@@ -208,8 +208,8 @@ fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
       lexicon = if inout then Scan.extend_lexicon lexicon (SynExt.delims_of xprods) else lexicon,
       logtypes = extend_list logtypes1 logtypes2,
       gram = if inout then Parser.extend_gram gram xprods else gram,
-      consts = consts2 union consts1,
-      prmodes = (mode ins prmodes2) union prmodes1,
+      consts = consts2 @ consts1,
+      prmodes = (mode ins prmodes2) union_string prmodes1,
       parse_ast_trtab =
         extend_trtab parse_ast_trtab parse_ast_translation "parse ast translation",
       parse_ruletab = extend_ruletab parse_ruletab parse_rules,
@@ -242,7 +242,7 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
       lexicon = Scan.merge_lexicons lexicon1 lexicon2,
       logtypes = merge_lists logtypes1 logtypes2,
       gram = Parser.merge_grams gram1 gram2,
-      consts = merge_lists consts1 consts2,
+      consts = unique_strings (sort_strings (consts1 @ consts2)),
       prmodes = merge_lists prmodes1 prmodes2,
       parse_ast_trtab =
         merge_trtabs parse_ast_trtab1 parse_ast_trtab2 "parse ast translation",
