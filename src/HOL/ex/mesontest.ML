@@ -6,9 +6,9 @@
 Test data for the MESON proof procedure
    (Excludes the equality problems 51, 52, 56, 58)
 
-show_hyps:=false;
+show_hyps := false;
 
-full_deriv:=false;
+keep_derivs := MinDeriv;
 by (rtac ccontr 1);
 val [prem] = gethyps 1;
 val nnf = make_nnf prem;
@@ -21,7 +21,7 @@ val goes = gocls clauses;
 
 goal HOL.thy "False";
 by (resolve_tac goes 1);
-full_deriv:=true;
+keep_derivs := FullDeriv;
 
 by (prolog_step_tac horns 1);
 by (iter_deepen_prolog_tac horns);
