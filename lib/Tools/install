@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# DESCRIPTION: install binaries with absolute references to ISABELLE_HOME/bin
+# DESCRIPTION: install binaries with absolute references to distribution
 
 
 PRG=$(basename $0)
@@ -10,10 +10,13 @@ PRG=$(basename $0)
 function usage()
 {
   echo
-  echo "Usage: $PRG DIR"
+  echo "Usage: $PRG BINDIR"
   echo
-  echo "  Install binaries in directory DIR with absolute references to"
-  echo "  $ISABELLE_HOME/bin (non-movable)."
+  echo "  Options are:"
+  echo "    -d DISTDIR   use DISTDIR as Isabelle distribution (default ISABELLE_HOME)"
+  echo
+  echo "  Install binaries in directory BINDIR with absolute references to"
+  echo "  DISTDIR/bin, which basically becomes non-relocatable this way."
   echo
   exit 1
 }
@@ -25,29 +28,51 @@ function fail()
 }
 
 
-## args
+## process command line
 
-DIR=""
-[ $# -ge 1 ] && { DIR="$1"; shift; }
+# options
 
-[ $# -ne 0 -o -z "$DIR" -o "$DIR" = "-?" ] && usage
+DISTDIR="$ISABELLE_HOME"
+
+while getopts "d:" OPT
+do
+  case "$OPT" in
+    h)
+      DISTDIR="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+BINDIR=""
+[ $# -ge 1 ] && { BINDIR="$1"; shift; }
+
+[ $# -ne 0 -o -z "$BINDIR" -o "$BINDIR" = "-?" ] && usage
 
 
 ## main
 
-mkdir -p "$DIR" || fail "Bad directory: $DIR"
+mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
 
 BASH=$(type -path bash)
 [ -z "$BASH" ] && fail "Cannot find bash!"
 
-for BIN in $ISABELLE_HOME/bin/*
+echo "using $DISTDIR"
+
+for NAME in isatool isabelle Isabelle
 do
-  if [ -f "$BIN" -a -x "$BIN" ]; then
-    B=$DIR/$(basename $BIN)
-    echo "install $B"
-    echo "#!$BASH" >$B || fail "Cannot write file: $B"
-    echo >>$B
-    echo "exec $BIN \"\$@\"" >>$B
-    chmod +x $B
-  fi
+  BIN="$BINDIR/$NAME"
+  DIST="$DISTDIR/bin/$NAME"
+  echo "installing $BIN"
+  echo "#!$BASH" >$BIN || fail "Cannot write file: $BIN"
+  echo >>$BIN
+  echo "exec $DIST \"\$@\"" >>$BIN
+  chmod +x $BIN
 done
