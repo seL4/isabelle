@@ -70,10 +70,14 @@ local
 						     mk_list(map quote sort))
       |   mk_typ (Type (name,args))= "Type" ^mk_tnv(name,args)
       |   mk_typ _                 = Imposs "interface:mk_typ";
-      fun mk_conslist cons' = mk_list (map 
-	    (fn (c,syn,ts)=>mk_triple(quote c,syn,mk_list
-       (map (fn (b,s ,tp) =>mk_triple(makestring(b:bool),quote s,
-				      mk_typ tp)) ts))) cons');
+      fun mk_conslist cons' = 
+	  mk_list (map 
+		   (fn (c,syn,ts)=>
+		    mk_triple(quote c, syn, 
+			      mk_list
+			      (map (fn (b,s ,tp) =>
+				    mk_triple(Bool.toString b, quote s,
+					      mk_typ tp)) ts))) cons');
     in "val (thy, "^comp_dname^"_equations) = thy |> Domain_Extender.add_domain \n"
        ^ mk_pair(quote comp_dname,
 		 mk_list(map (fn (t,cs)=> mk_pair (mk_tnv t,mk_conslist cs)) eqs'))
@@ -119,7 +123,7 @@ local
       val cnstrss = map snd eqs;
       val tname = implode (separate "_" typs) in
       ("|> Domain_Extender.add_gen_by "
-       ^ mk_pair(mk_pair(quote tname,makestring (finite:bool)),
+       ^ mk_pair(mk_pair(quote tname, Bool.toString finite),
 		 mk_pair(mk_list(map quote typs), 
 			 mk_list (map (fn cns => mk_list(map quote cns)) cnstrss))),
        "val "^tname^"_induct = " ^gt_ax (tname^"_induct")^";") end;
