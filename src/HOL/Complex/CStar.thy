@@ -206,9 +206,8 @@ lemma starfunCR_n_starfunCR: "\<forall>n. (F n = f) ==> *fcRn* F = *fcR* f"
 by (simp add: starfunCR_n_def starfunCR_def)
 
 lemma starfunC_congruent:
-      "congruent hcomplexrel (%X. hcomplexrel``{%n. f (X n)})"
-apply (auto simp add: hcomplexrel_iff congruent_def, ultra)
-done
+      "(%X. hcomplexrel``{%n. f (X n)}) respects hcomplexrel"
+by (auto simp add: hcomplexrel_iff congruent_def, ultra)
 
 (* f::complex => complex *)
 lemma starfunC:
@@ -508,7 +507,7 @@ declare starfunRC_divide [symmetric, simp]
 subsection{*Internal Functions - Some Redundancy With *Fc* Now*}
 
 lemma starfunC_n_congruent:
-      "congruent hcomplexrel (%X. hcomplexrel``{%n. f n (X n)})"
+      "(%X. hcomplexrel``{%n. f n (X n)}) respects hcomplexrel"
 by (auto simp add: congruent_def hcomplexrel_iff, ultra)
 
 lemma starfunC_n:

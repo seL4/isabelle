@@ -151,12 +151,19 @@ locale congruent =
   fixes r and f
   assumes congruent: "(y,z) \<in> r ==> f y = f z"
 
+syntax
+  RESPECTS ::"['a => 'b, ('a * 'a) set] => bool"  (infixr "respects" 80)
+
+translations
+  "f respects r" == "congruent r f"
+
+
 lemma UN_constant_eq: "a \<in> A ==> \<forall>y \<in> A. f y = c ==> (\<Union>y \<in> A. f(y))=c"
   -- {* lemma required to prove @{text UN_equiv_class} *}
   by auto
 
 lemma UN_equiv_class:
-  "equiv A r ==> congruent r f ==> a \<in> A
+  "equiv A r ==> f respects r ==> a \<in> A
     ==> (\<Union>x \<in> r``{a}. f x) = f a"
   -- {* Conversion rule *}
   apply (rule equiv_class_self [THEN UN_constant_eq], assumption+)
@@ -165,7 +172,7 @@ lemma UN_equiv_class:
   done
 
 lemma UN_equiv_class_type:
-  "equiv A r ==> congruent r f ==> X \<in> A//r ==>
+  "equiv A r ==> f respects r ==> X \<in> A//r ==>
     (!!x. x \<in> A ==> f x \<in> B) ==> (\<Union>x \<in> X. f x) \<in> B"
   apply (unfold quotient_def)
   apply clarify
@@ -180,7 +187,7 @@ text {*
 *}
 
 lemma UN_equiv_class_inject:
-  "equiv A r ==> congruent r f ==>
+  "equiv A r ==> f respects r ==>
     (\<Union>x \<in> X. f x) = (\<Union>y \<in> Y. f y) ==> X \<in> A//r ==> Y \<in> A//r
     ==> (!!x y. x \<in> A ==> y \<in> A ==> f x = f y ==> (x, y) \<in> r)
     ==> X = Y"
@@ -202,6 +209,13 @@ locale congruent2 =
   fixes r1 and r2 and f
   assumes congruent2:
     "(y1,z1) \<in> r1 ==> (y2,z2) \<in> r2 ==> f y1 y2 = f z1 z2"
+
+text{*Abbreviation for the common case where the relations are identical*}
+syntax
+  RESPECTS2 ::"['a => 'b, ('a * 'a) set] => bool"  (infixr "respects2 " 80)
+
+translations
+  "f respects2 r" => "congruent2 r r f"
 
 lemma congruent2_implies_congruent:
     "equiv A r1 ==> congruent2 r1 r2 f ==> a \<in> A ==> congruent r2 (f a)"
@@ -258,7 +272,7 @@ lemma congruent2_commuteI:
   assumes equivA: "equiv A r"
     and commute: "!!y z. y \<in> A ==> z \<in> A ==> f y z = f z y"
     and congt: "!!y z w. w \<in> A ==> (y,z) \<in> r ==> f w y = f w z"
-  shows "congruent2 r r f"
+  shows "f respects2 r"
   apply (rule congruent2I [OF equivA equivA])
    apply (rule commute [THEN trans])
      apply (rule_tac [3] commute [THEN trans, symmetric])
@@ -270,7 +284,7 @@ lemma congruent2_commuteI:
 
 subsection {* Cardinality results *}
 
-text {* (suggested by Florian Kammüller) *}
+text {*Suggested by Florian Kammüller*}
 
 lemma finite_quotient: "finite A ==> r \<subseteq> A \<times> A ==> finite (A//r)"
   -- {* recall @{thm equiv_type} *}

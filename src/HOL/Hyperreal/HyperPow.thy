@@ -114,12 +114,8 @@ done
 
 subsection{*Powers with Hypernatural Exponents*}
 
-lemma hyperpow_congruent:
-     "congruent hyprel
-     (%X Y. hyprel``{%n. ((X::nat=>real) n ^ (Y::nat=>nat) n)})"
-apply (unfold congruent_def)
-apply (auto intro!: ext, fuf+)
-done
+lemma hyperpow_congruent: "(%X Y. hyprel``{%n. (X n ^ Y n)}) respects hyprel"
+by (auto simp add: congruent_def intro!: ext, fuf+)
 
 lemma hyperpow:
   "Abs_hypreal(hyprel``{%n. X n}) pow Abs_hypnat(hypnatrel``{%n. Y n}) =

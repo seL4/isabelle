@@ -166,7 +166,7 @@ declare equiv_msgrel_iff [simp]
 
 
 text{*All equivalence classes belong to set of representatives*}
-lemma msgrel_in_integ [simp]: "msgrel``{U} \<in> Msg"
+lemma [simp]: "msgrel``{U} \<in> Msg"
 by (auto simp add: Msg_def quotient_def intro: msgrel_refl)
 
 lemma inj_on_Abs_Msg: "inj_on Abs_Msg Msg"
@@ -185,7 +185,7 @@ subsubsection{*Characteristic Equations for the Abstract Constructors*}
 lemma MPair: "MPair (Abs_Msg(msgrel``{U})) (Abs_Msg(msgrel``{V})) = 
               Abs_Msg (msgrel``{MPAIR U V})"
 proof -
-  have "congruent2 msgrel msgrel (\<lambda>U V. msgrel `` {MPAIR U V})"
+  have "(\<lambda>U V. msgrel `` {MPAIR U V}) respects2 msgrel"
     by (simp add: congruent2_def msgrel.MPAIR)
   thus ?thesis
     by (simp add: MPair_def UN_equiv_class2 [OF equiv_msgrel equiv_msgrel])
@@ -193,7 +193,7 @@ qed
 
 lemma Crypt: "Crypt K (Abs_Msg(msgrel``{U})) = Abs_Msg (msgrel``{CRYPT K U})"
 proof -
-  have "congruent msgrel (\<lambda>U. msgrel `` {CRYPT K U})"
+  have "(\<lambda>U. msgrel `` {CRYPT K U}) respects msgrel"
     by (simp add: congruent_def msgrel.CRYPT)
   thus ?thesis
     by (simp add: Crypt_def UN_equiv_class [OF equiv_msgrel])
@@ -202,7 +202,7 @@ qed
 lemma Decrypt:
      "Decrypt K (Abs_Msg(msgrel``{U})) = Abs_Msg (msgrel``{DECRYPT K U})"
 proof -
-  have "congruent msgrel (\<lambda>U. msgrel `` {DECRYPT K U})"
+  have "(\<lambda>U. msgrel `` {DECRYPT K U}) respects msgrel"
     by (simp add: congruent_def msgrel.DECRYPT)
   thus ?thesis
     by (simp add: Decrypt_def UN_equiv_class [OF equiv_msgrel])
@@ -230,7 +230,7 @@ constdefs
   nonces :: "msg \<Rightarrow> nat set"
    "nonces X == \<Union>U \<in> Rep_Msg X. freenonces U"
 
-lemma nonces_congruent: "congruent msgrel freenonces"
+lemma nonces_congruent: "freenonces respects msgrel"
 by (simp add: congruent_def msgrel_imp_eq_freenonces) 
 
 
@@ -265,7 +265,7 @@ constdefs
   left :: "msg \<Rightarrow> msg"
    "left X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeleft U})"
 
-lemma left_congruent: "congruent msgrel (\<lambda>U. msgrel `` {freeleft U})"
+lemma left_congruent: "(\<lambda>U. msgrel `` {freeleft U}) respects msgrel"
 by (simp add: congruent_def msgrel_imp_eqv_freeleft) 
 
 text{*Now prove the four equations for @{term left}*}
@@ -299,7 +299,7 @@ constdefs
   right :: "msg \<Rightarrow> msg"
    "right X == Abs_Msg (\<Union>U \<in> Rep_Msg X. msgrel``{freeright U})"
 
-lemma right_congruent: "congruent msgrel (\<lambda>U. msgrel `` {freeright U})"
+lemma right_congruent: "(\<lambda>U. msgrel `` {freeright U}) respects msgrel"
 by (simp add: congruent_def msgrel_imp_eqv_freeright) 
 
 text{*Now prove the four equations for @{term right}*}
@@ -433,7 +433,7 @@ constdefs
   discrim :: "msg \<Rightarrow> int"
    "discrim X == contents (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
 
-lemma discrim_congruent: "congruent msgrel (\<lambda>U. {freediscrim U})"
+lemma discrim_congruent: "(\<lambda>U. {freediscrim U}) respects msgrel"
 by (simp add: congruent_def msgrel_imp_eq_freediscrim) 
 
 text{*Now prove the four equations for @{term discrim}*}

@@ -342,8 +342,7 @@ by (simp add: hypreal_add_zero_left hypreal_add_commute)
 
 subsection{*Additive inverse on @{typ hypreal}*}
 
-lemma hypreal_minus_congruent: 
-  "congruent hyprel (%X. hyprel``{%n. - (X n)})"
+lemma hypreal_minus_congruent: "(%X. hyprel``{%n. - (X n)}) respects hyprel"
 by (force simp add: congruent_def)
 
 lemma hypreal_minus: 
@@ -397,7 +396,7 @@ by (simp add: hypreal_zero_def hypreal_one_def)
 subsection{*Multiplicative Inverse on @{typ hypreal} *}
 
 lemma hypreal_inverse_congruent: 
-  "congruent hyprel (%X. hyprel``{%n. if X n = 0 then 0 else inverse(X n)})"
+  "(%X. hyprel``{%n. if X n = 0 then 0 else inverse(X n)}) respects hyprel"
 by (auto simp add: congruent_def, ultra)
 
 lemma hypreal_inverse: 

@@ -53,9 +53,7 @@ apply (rule_tac x = "%x. LEAST y. Q x y" in exI)
 apply (blast intro: LeastI)
 done
 
-(*------------------------------------------------------------
-    Properties of the *-transform applied to sets of reals
- ------------------------------------------------------------*)
+subsection{*Properties of the Star-transform Applied to Sets of Reals*}
 
 lemma STAR_real_set: "*s*(UNIV::real set) = (UNIV::hypreal set)"
 by (simp add: starset_def)
@@ -148,10 +146,8 @@ done
 lemma STAR_subset_closed: "[| x : *s* A; A <= B |] ==> x : *s* B"
 by (blast dest: STAR_subset)
 
-(*------------------------------------------------------------------
-   Nonstandard extension of a set (defined using a constant
-   sequence) as a special case of an internal set
- -----------------------------------------------------------------*)
+text{*Nonstandard extension of a set (defined using a constant
+   sequence) as a special case of an internal set*}
 
 lemma starset_n_starset: "\<forall>n. (As n = A) ==> *sn* As = *s* A"
 by (simp add: starset_n_def starset_def)
@@ -197,11 +193,9 @@ apply (cases z)
 apply (auto, ultra)
 done
 
-(*-----------------------------------------------------------------------
-    Nonstandard extension of functions- congruence
- -----------------------------------------------------------------------*)
+text{*Nonstandard extension of functions*}
 
-lemma starfun_congruent: "congruent hyprel (%X. hyprel``{%n. f (X n)})"
+lemma starfun_congruent: "(%X. hyprel``{%n. f (X n)}) respects hyprel"
 by (simp add: congruent_def, auto, ultra)
 
 lemma starfun:
@@ -272,9 +266,7 @@ apply (simp add: o_def)
 apply (simp (no_asm) add: starfun_o2)
 done
 
-(*--------------------------------------
-  NS extension of constant function
- --------------------------------------*)
+text{*NS extension of constant function*}
 lemma starfun_const_fun: "( *f* (%x. k)) xa = hypreal_of_real  k"
 apply (cases xa)
 apply (auto simp add: starfun hypreal_of_real_def)
@@ -282,9 +274,7 @@ done
 
 declare starfun_const_fun [simp]
 
-(*----------------------------------------------------
-   the NS extension of the identity function
- ----------------------------------------------------*)
+text{*the NS extension of the identity function*}
 
 lemma starfun_Idfun_approx: "x @= hypreal_of_real a ==> ( *f* (%x. x)) x @= hypreal_of_real  a"
 apply (cases x)
@@ -297,9 +287,7 @@ apply (auto simp add: starfun)
 done
 declare starfun_Id [simp]
 
-(*----------------------------------------------------------------------
-      the *-function is a (nonstandard) extension of the function
- ----------------------------------------------------------------------*)
+text{*The Star-function is a (nonstandard) extension of the function*}
 
 lemma is_starext_starfun: "is_starext ( *f* f) f"
 apply (simp add: is_starext_def, auto)
@@ -308,9 +296,7 @@ apply (rule_tac z = y in eq_Abs_hypreal)
 apply (auto intro!: bexI simp add: starfun)
 done
 
-(*----------------------------------------------------------------------
-     Any nonstandard extension is in fact the *-function
- ----------------------------------------------------------------------*)
+text{*Any nonstandard extension is in fact the Star-function*}
 
 lemma is_starfun_starext: "is_starext F f ==> F = *f* f"
 apply (simp add: is_starext_def)
@@ -324,11 +310,9 @@ done
 lemma is_starext_starfun_iff: "(is_starext F f) = (F = *f* f)"
 by (blast intro: is_starfun_starext is_starext_starfun)
 
-(*--------------------------------------------------------
-   extented function has same solution as its standard
+text{*extented function has same solution as its standard
    version for real arguments. i.e they are the same
-   for all real arguments
- -------------------------------------------------------*)
+   for all real arguments*}
 lemma starfun_eq: "( *f* f) (hypreal_of_real a) = hypreal_of_real (f a)"
 by (auto simp add: starfun hypreal_of_real_def)
 
@@ -360,10 +344,8 @@ lemma starfun_add_approx: "[| ( *f* f) xa @= l; ( *f* g) xa @= m
 apply (auto intro: approx_add)
 done
 
-(*----------------------------------------------------
-    Examples: hrabs is nonstandard extension of rabs
-              inverse is nonstandard extension of inverse
- ---------------------------------------------------*)
+text{*Examples: hrabs is nonstandard extension of rabs
+              inverse is nonstandard extension of inverse*}
 
 (* can be proved easily using theorem "starfun" and *)
 (* properties of ultrafilter as for inverse below we  *)
@@ -393,10 +375,8 @@ apply (cases x)
 apply (auto intro: FreeUltrafilterNat_subset dest!: FreeUltrafilterNat_Compl_mem simp add: starfun hypreal_inverse hypreal_zero_def)
 done
 
-(*-------------------------------------------------------------
-    General lemma/theorem needed for proofs in elementary
-    topology of the reals
- ------------------------------------------------------------*)
+text{*General lemma/theorem needed for proofs in elementary
+    topology of the reals*}
 lemma starfun_mem_starset:
       "( *f* f) x : *s* A ==> x : *s* {x. f x  \<in> A}"
 apply (simp add: starset_def)
@@ -407,22 +387,18 @@ apply (drule_tac x = "%n. f (X n) " in bspec)
 apply (auto, ultra)
 done
 
-(*------------------------------------------------------------
-   Alternative definition for hrabs with rabs function
+text{*Alternative definition for hrabs with rabs function
    applied entrywise to equivalence class representative.
-   This is easily proved using starfun and ns extension thm
- ------------------------------------------------------------*)
+   This is easily proved using starfun and ns extension thm*}
 lemma hypreal_hrabs: "abs (Abs_hypreal (hyprel `` {X})) =
                   Abs_hypreal(hyprel `` {%n. abs (X n)})"
 apply (simp (no_asm) add: starfun_rabs_hrabs [symmetric] starfun)
 done
 
-(*----------------------------------------------------------------
-   nonstandard extension of set through nonstandard extension
+text{*nonstandard extension of set through nonstandard extension
    of rabs function i.e hrabs. A more general result should be
    where we replace rabs by some arbitrary function f and hrabs
-   by its NS extenson ( *f* f). See second NS set extension below.
- ----------------------------------------------------------------*)
+   by its NS extenson. See second NS set extension below.*}
 lemma STAR_rabs_add_minus:
    "*s* {x. abs (x + - y) < r} =
      {x. abs(x + -hypreal_of_real y) < hypreal_of_real r}"
@@ -439,11 +415,9 @@ apply (rule_tac [!] z = x in eq_Abs_hypreal)
 apply (auto intro!: exI dest!: bspec simp add: hypreal_minus hypreal_of_real_def hypreal_add hypreal_hrabs hypreal_less starfun, ultra)
 done
 
-(*-------------------------------------------------------------------
-   Another characterization of Infinitesimal and one of @= relation.
+text{*Another characterization of Infinitesimal and one of @= relation.
    In this theory since hypreal_hrabs proved here. (To Check:) Maybe
-   move both if possible?
- -------------------------------------------------------------------*)
+   move both if possible?*}
 lemma Infinitesimal_FreeUltrafilterNat_iff2:
      "(x \<in> Infinitesimal) =
       (\<exists>X \<in> Rep_hypreal(x).

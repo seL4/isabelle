@@ -185,8 +185,7 @@ by (simp add: starfunNat_n_def starfunNat_def)
 lemma starfunNat2_n_starfunNat2: "\<forall>n. (F n = f) ==> *fNat2n* F = *fNat2* f"
 by (simp add: starfunNat2_n_def starfunNat2_def)
 
-lemma starfunNat_congruent:
-      "congruent hypnatrel (%X. hypnatrel``{%n. f (X n)})"
+lemma starfunNat_congruent: "(%X. hypnatrel``{%n. f (X n)}) respects hypnatrel"
 apply (simp add: congruent_def, safe)
 apply (ultra+)
 done
@@ -396,10 +395,8 @@ done
 text{*Internal functions - some redundancy with *fNat* now*}
 
 lemma starfunNat_n_congruent:
-      "congruent hypnatrel (%X. hypnatrel``{%n. f n (X n)})"
-apply (simp add: congruent_def, safe)
-apply (ultra+)
-done
+      "(%X. hypnatrel``{%n. f n (X n)}) respects hypnatrel"
+by (auto simp add: congruent_def, ultra+)
 
 lemma starfunNat_n:
      "( *fNatn* f) (Abs_hypnat(hypnatrel``{%n. X n})) =

@@ -283,7 +283,7 @@ done
 subsection{*Additive Inverse on Nonstandard Complex Numbers*}
 
 lemma hcomplex_minus_congruent:
-     "congruent hcomplexrel (%X. hcomplexrel `` {%n. - (X n)})"
+     "(%X. hcomplexrel `` {%n. - (X n)}) respects hcomplexrel"
 by (simp add: congruent_def)
 
 lemma hcomplex_minus:

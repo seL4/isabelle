@@ -154,8 +154,8 @@ lemma real_add:
      "Abs_Real (realrel``{(x,y)}) + Abs_Real (realrel``{(u,v)}) =
       Abs_Real (realrel``{(x+u, y+v)})"
 proof -
-  have "congruent2 realrel realrel
-        (\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). {Abs_Real (realrel `` {(x+u, y+v)})}) w) z)"
+  have "(\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). {Abs_Real (realrel `` {(x+u, y+v)})}) w) z)
+        respects2 realrel"
     by (simp add: congruent2_def, blast intro: real_add_congruent2_lemma) 
   thus ?thesis
     by (simp add: real_add_def UN_UN_split_split_eq
@@ -181,7 +181,7 @@ subsection{*Additive Inverse on real*}
 
 lemma real_minus: "- Abs_Real(realrel``{(x,y)}) = Abs_Real(realrel `` {(y,x)})"
 proof -
-  have "congruent realrel (\<lambda>(x,y). {Abs_Real (realrel``{(y,x)})})"
+  have "(\<lambda>(x,y). {Abs_Real (realrel``{(y,x)})}) respects realrel"
     by (simp add: congruent_def preal_add_commute) 
   thus ?thesis
     by (simp add: real_minus_def UN_equiv_class [OF equiv_realrel])
@@ -203,9 +203,10 @@ apply (simp add: preal_add_commute)
 done
 
 lemma real_mult_congruent2:
-    "congruent2 realrel realrel (%p1 p2.
+    "(%p1 p2.
         (%(x1,y1). (%(x2,y2). 
-          { Abs_Real (realrel``{(x1*x2 + y1*y2, x1*y2+y1*x2)}) }) p2) p1)"
+          { Abs_Real (realrel``{(x1*x2 + y1*y2, x1*y2+y1*x2)}) }) p2) p1)
+     respects2 realrel"
 apply (rule congruent2_commuteI [OF equiv_realrel], clarify)
 apply (simp add: preal_mult_commute preal_add_commute)
 apply (auto simp add: real_mult_congruent2_lemma)

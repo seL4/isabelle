@@ -110,7 +110,7 @@ subsubsection{*Integer Unary Negation*}
 
 lemma minus: "- Abs_Integ(intrel``{(x,y)}) = Abs_Integ(intrel `` {(y,x)})"
 proof -
-  have "congruent intrel (\<lambda>(x,y). intrel``{(y,x)})"
+  have "(\<lambda>(x,y). intrel``{(y,x)}) respects intrel"
     by (simp add: congruent_def) 
   thus ?thesis
     by (simp add: minus_int_def UN_equiv_class [OF equiv_intrel])
@@ -129,8 +129,8 @@ lemma add:
      "Abs_Integ (intrel``{(x,y)}) + Abs_Integ (intrel``{(u,v)}) =
       Abs_Integ (intrel``{(x+u, y+v)})"
 proof -
-  have "congruent2 intrel intrel
-        (\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). intrel `` {(x+u, y+v)}) w) z)"
+  have "(\<lambda>z w. (\<lambda>(x,y). (\<lambda>(u,v). intrel `` {(x+u, y+v)}) w) z) 
+        respects2 intrel"
     by (simp add: congruent2_def)
   thus ?thesis
     by (simp add: add_int_def UN_UN_split_split_eq
@@ -183,9 +183,8 @@ subsection{*Integer Multiplication*}
 
 text{*Congruence property for multiplication*}
 lemma mult_congruent2:
-     "congruent2 intrel intrel
-        (%p1 p2. (%(x,y). (%(u,v).
-                    intrel``{(x*u + y*v, x*v + y*u)}) p2) p1)"
+     "(%p1 p2. (%(x,y). (%(u,v). intrel``{(x*u + y*v, x*v + y*u)}) p2) p1)
+      respects2 intrel"
 apply (rule equiv_intrel [THEN congruent2_commuteI])
  apply (force simp add: mult_ac, clarify) 
 apply (simp add: congruent_def mult_ac)  
@@ -393,7 +392,7 @@ constdefs
 
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -
-  have "congruent intrel (\<lambda>(x,y). {x-y})"
+  have "(\<lambda>(x,y). {x-y}) respects intrel"
     by (simp add: congruent_def, arith) 
   thus ?thesis
     by (simp add: nat_def UN_equiv_class [OF equiv_intrel])
@@ -695,7 +694,7 @@ constdefs
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
 proof -
-  have "congruent intrel (\<lambda>(i,j). { of_nat i - (of_nat j :: 'a) })"
+  have "(\<lambda>(i,j). { of_nat i - (of_nat j :: 'a) }) respects intrel"
     by (simp add: congruent_def compare_rls of_nat_add [symmetric]
             del: of_nat_add) 
   thus ?thesis

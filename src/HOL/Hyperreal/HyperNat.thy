@@ -136,7 +136,7 @@ by (rule eq_Abs_hypnat [of z], blast)
 subsection{*Hypernat Addition*}
 
 lemma hypnat_add_congruent2:
-     "congruent2 hypnatrel hypnatrel (%X Y. hypnatrel``{%n. X n + Y n})"
+     "(%X Y. hypnatrel``{%n. X n + Y n}) respects2 hypnatrel"
 by (simp add: congruent2_def, auto, ultra)
 
 lemma hypnat_add:
@@ -170,7 +170,7 @@ subsection{*Subtraction inverse on @{typ hypreal}*}
 
 
 lemma hypnat_minus_congruent2:
-    "congruent2 hypnatrel hypnatrel (%X Y. hypnatrel``{%n. X n - Y n})"
+    "(%X Y. hypnatrel``{%n. X n - Y n}) respects2 hypnatrel"
 by (simp add: congruent2_def, auto, ultra)
 
 lemma hypnat_minus:
@@ -238,7 +238,7 @@ declare hypnat_diff_add_0 [simp]
 subsection{*Hyperreal Multiplication*}
 
 lemma hypnat_mult_congruent2:
-    "congruent2 hypnatrel hypnatrel (%X Y. hypnatrel``{%n. X n * Y n})"
+    "(%X Y. hypnatrel``{%n. X n * Y n}) respects2 hypnatrel"
 by (simp add: congruent2_def, auto, ultra)
 
 lemma hypnat_mult:
