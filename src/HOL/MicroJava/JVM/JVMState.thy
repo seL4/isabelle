@@ -33,12 +33,12 @@ types
 section {* Exceptions *}
 constdefs
   raise_system_xcpt :: "bool \<Rightarrow> xcpt \<Rightarrow> val option"
-  "raise_system_xcpt b x == if b then Some (Addr (XcptRef x)) else None"
+  "raise_system_xcpt b x \<equiv> if b then Some (Addr (XcptRef x)) else None"
 
   -- "redefines State.new\\_Addr:"
-  new_Addr :: "aheap => loc \<times> val option"
-  "new_Addr h == SOME (a,x). (h a = None \<and>  x = None) |
-                             x = raise_system_xcpt True OutOfMemory"
+  new_Addr :: "aheap \<Rightarrow> loc \<times> val option"
+  "new_Addr h \<equiv> let (a, x) = State.new_Addr h 
+                in  (a, raise_system_xcpt (x ~= None) OutOfMemory)"
 
 
 section {* Runtime State *}
@@ -53,22 +53,24 @@ constdefs
 
   start_heap :: "'c prog \<Rightarrow> aheap"
   "start_heap G \<equiv> empty (XcptRef NullPointer \<mapsto> blank G (Xcpt NullPointer))
-                      (XcptRef ClassCast \<mapsto> blank G (Xcpt ClassCast))
-                      (XcptRef OutOfMemory \<mapsto> blank G (Xcpt OutOfMemory))"
+                        (XcptRef ClassCast \<mapsto> blank G (Xcpt ClassCast))
+                        (XcptRef OutOfMemory \<mapsto> blank G (Xcpt OutOfMemory))"
 
 section {* Lemmas *}
 
 lemma new_AddrD:
-  "new_Addr hp = (ref, xcp) \<Longrightarrow> hp ref = None \<and> xcp = None \<or> xcp = Some (Addr (XcptRef OutOfMemory))"
-  apply (drule sym)
-  apply (unfold new_Addr_def)
-  apply (simp add: raise_system_xcpt_def)
-  apply (simp add: Pair_fst_snd_eq Eps_split)
-  apply (rule someI)
-  apply (rule disjI2)
-  apply (rule_tac "r" = "snd (?a,Some (Addr (XcptRef OutOfMemory)))" in trans)
-  apply auto
-  done
+  assumes new: "new_Addr hp = (ref, xcp)" 
+  shows "hp ref = None \<and> xcp = None \<or> xcp = Some (Addr (XcptRef OutOfMemory))"
+proof -
+  from new obtain xcpT where old: "State.new_Addr hp = (ref,xcpT)"
+    by (cases "State.new_Addr hp") (simp add: new_Addr_def)
+  from this [symmetric] 
+  have "hp ref = None \<and> xcpT = None \<or> xcpT = Some OutOfMemory" 
+    by (rule State.new_AddrD)
+  with new old show ?thesis
+    by (auto simp add: new_Addr_def raise_system_xcpt_def)
+qed
+
 
 lemma new_Addr_OutOfMemory:
   "snd (new_Addr hp) = Some xcp \<Longrightarrow> xcp = Addr (XcptRef OutOfMemory)"
