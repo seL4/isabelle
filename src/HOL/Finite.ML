@@ -62,7 +62,7 @@ Addsimps[subset_Fin];
 
 goal Finite.thy "(insert a A : Fin M) = (a:M & A : Fin M)";
 by (stac insert_is_Un 1);
-by (Simp_tac 1);
+by (simp_tac (HOL_ss addsimps [subset_Fin]) 1);
 by (blast_tac (!claset addSIs Fin.intrs addDs [FinD]) 1);
 qed "insert_Fin";
 Addsimps[insert_Fin];
