@@ -305,7 +305,7 @@ by (asm_full_simp_tac (simpset() addsimps [mod_geq, diff_less]) 2);
 (*case na<n*)
 by (Asm_simp_tac 1);
 qed "mod_less_divisor";
-
+Addsimps [mod_less_divisor];
 
 (** Evens and Odds **)
 
@@ -314,14 +314,14 @@ AddSEs [less_SucE];
 
 Goal "b<2 ==> (k mod 2 = b) | (k mod 2 = (if b=1 then 0 else 1))";
 by (subgoal_tac "k mod 2 < 2" 1);
-by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
+by (Asm_simp_tac 2);
 by (Asm_simp_tac 1);
 by Safe_tac;
 qed "mod2_cases";
 
 Goal "Suc(Suc(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2 < 2" 1);
-by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
+by (Asm_simp_tac 2);
 by Safe_tac;
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
@@ -329,8 +329,8 @@ Addsimps [mod2_Suc_Suc];
 
 Goal "(0 < m mod 2) = (m mod 2 = 1)";
 by (subgoal_tac "m mod 2 < 2" 1);
-by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
-by Auto_tac;
+by (Asm_simp_tac 2);
+by (auto_tac (claset(), simpset() delsimps [mod_less_divisor]));
 qed "mod2_gr_0";
 Addsimps [mod2_gr_0];
 

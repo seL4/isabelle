@@ -17,20 +17,14 @@ eta_contract:=false;
 (*** Euclid's Algorithm ***)
 
 
-(** Prove the termination condition and remove it from the recursion equations
-    and induction rule **)
+val [gcd_eq] = gcd.simps;
 
-Tfl.tgoalw thy [] gcd.simps;
-by (simp_tac (simpset() addsimps [mod_less_divisor]) 1);
-val tc = result();
-
-val gcd_eq = tc RS hd gcd.simps;
 
 val prems = goal thy
      "[| !!m. P m 0;     \
 \        !!m n. [| 0<n;  P n (m mod n) |] ==> P m n  \
 \     |] ==> P m n";
-by (res_inst_tac [("u","m"),("v","n")] (tc RS gcd.induct) 1);
+by (res_inst_tac [("u","m"),("v","n")] gcd.induct 1);
 by (case_tac "n=0" 1);
 by (asm_simp_tac (simpset() addsimps prems) 1);
 by Safe_tac;
@@ -39,15 +33,15 @@ qed "gcd_induct";
 
 
 Goal "gcd(m,0) = m";
-by (rtac (gcd_eq RS trans) 1);
 by (Simp_tac 1);
 qed "gcd_0";
 Addsimps [gcd_0];
 
 Goal "0<n ==> gcd(m,n) = gcd (n, m mod n)";
-by (rtac (gcd_eq RS trans) 1);
 by (Asm_simp_tac 1);
 qed "gcd_non_0";
+
+Delsimps gcd.simps;
 
 Goal "gcd(m,1) = 1";
 by (simp_tac (simpset() addsimps [gcd_non_0]) 1);
@@ -57,8 +51,7 @@ Addsimps [gcd_1];
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 Goal "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)";
 by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
-by (ALLGOALS 
-    (asm_full_simp_tac (simpset() addsimps [gcd_non_0, mod_less_divisor])));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [gcd_non_0])));
 by (blast_tac (claset() addDs [dvd_mod_imp_dvd]) 1);
 qed "gcd_dvd_both";
 
@@ -70,9 +63,7 @@ bind_thm ("gcd_dvd2", gcd_dvd_both RS conjunct2);
                 if f divides m and f divides n then f divides gcd(m,n)*)
 Goal "(f dvd m) --> (f dvd n) --> f dvd gcd(m,n)";
 by (res_inst_tac [("m","m"),("n","n")] gcd_induct 1);
-by (ALLGOALS
-    (asm_full_simp_tac (simpset() addsimps[gcd_non_0, dvd_mod,
-					   mod_less_divisor])));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps[gcd_non_0, dvd_mod])));
 qed_spec_mp "gcd_greatest";
 
 (*Function gcd yields the Greatest Common Divisor*)

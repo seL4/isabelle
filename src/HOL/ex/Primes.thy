@@ -5,10 +5,8 @@
 
 The Greatest Common Divisor and Euclid's algorithm
 
-The "simpset" clause in the recdef declaration is omitted on purpose:
-	in order to demonstrate the treatment of definitions that have
-	unproved termination conditions.  Restoring the clause lets
-	Isabelle prove those conditions.
+The "simpset" clause in the recdef declaration used to be necessary when the
+two lemmas where not part of the default simpset.
 *)
 
 Primes = Main +

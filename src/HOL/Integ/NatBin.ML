@@ -159,8 +159,7 @@ by (Asm_simp_tac 1);
 by (res_inst_tac [("r", "int (m mod m')")] quorem_div 1);
  by (Force_tac 2);
 by (asm_simp_tac (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
-				      numeral_0_eq_0, zadd_int, zmult_int, 
-				      mod_less_divisor]) 1);
+				      numeral_0_eq_0, zadd_int, zmult_int]) 1);
 by (rtac (mod_div_equality RS sym RS trans) 1);
 by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 qed "nat_div_distrib";
@@ -192,8 +191,7 @@ by (Asm_simp_tac 1);
 by (res_inst_tac [("q", "int (m div m')")] quorem_mod 1);
  by (Force_tac 2);
 by (asm_simp_tac (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
-				      numeral_0_eq_0, zadd_int, zmult_int, 
-				      mod_less_divisor]) 1);
+				      numeral_0_eq_0, zadd_int, zmult_int]) 1);
 by (rtac (mod_div_equality RS sym RS trans) 1);
 by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 qed "nat_mod_distrib";
