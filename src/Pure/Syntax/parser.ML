@@ -50,8 +50,10 @@ withtype rhss_ref = (token option * (refsymb list * string * int) list) list ref
 
 (* convert productions to reference grammar with lookaheads and eliminate
    chain productions *)
-fun mk_gram prods = 
-  let (*get reference on list of all possible rhss for nonterminal lhs
+fun mk_gram prods =
+  let val _ = writeln "Building new grammar...";
+
+      (*get reference on list of all possible rhss for nonterminal lhs
         (if it doesn't exist a new one is created and added to the nonterminal
          list)*)
       fun get_rhss ref_prods lhs =
@@ -482,16 +484,36 @@ fun syntax_error toks allowed =
 fun produce stateset i indata prev_token =
                      (*the argument prev_token is only used for error messages*)
   (case Array.sub (stateset, i) of
-    [] => let (*compute a list of allowed starting tokens 
-                for a list of nonterminals*)
+    [] => let (*similar to token_assoc but does not automatically 
+                include 'None' key*)
+              fun token_assoc2 (list, key) =
+                let fun assoc [] = []
+                      | assoc ((keyi, xi) :: pairs) =
+                          if is_some keyi andalso
+                             matching_tokens (the keyi, key) then 
+                            (assoc pairs) @ xi
+                          else assoc pairs;
+                          in assoc list end;
+
+              (*test if tk is a lookahead for a given minimum precedence*)
+              fun reduction minPrec tk _ (Term _ :: _, _, prec:int) =
+                    if prec >= minPrec then true
+                    else false
+                | reduction minPrec tk checked 
+                            (Nonterm (rhss_ref, NTprec)::_,_, prec) =
+                    if prec >= minPrec andalso not (rhss_ref mem checked) then
+                      exists (reduction NTprec tk (rhss_ref :: checked)) 
+                             (token_assoc2 (!rhss_ref, tk))
+                    else false;
+
+              (*compute a list of allowed starting tokens 
+                for a list of nonterminals considering precedence*)
               fun get_starts [] = []
                 | get_starts ((rhss_ref, minPrec:int) :: refs) =
                     let fun get [] = []
-                          | get ((Some tok, prods) :: rhss) =
-                              if exists (fn (Term _ :: _, _, prec) => 
-                                              prec >= minPrec
-                                          | (_, _, _) => false) prods
-                              then tok :: (get rhss)
+                          | get ((Some tk, prods) :: rhss) =
+                              if exists (reduction minPrec tk [rhss_ref]) prods
+                              then tk :: (get rhss)
                               else get rhss
                           | get ((None, _) :: rhss) =
                               get rhss;
@@ -505,8 +527,6 @@ fun produce stateset i indata prev_token =
                             (map (fn (_, _, _, Term a :: _, _, _) => a)
                             (filter (fn (_, _, _, Term _ :: _, _, _) => true
                                    | _ => false) (Array.sub (stateset, i-1)))));
-                                             (*terminals have to be searched for
-                                               because of lambda productions*)
           in syntax_error (if prev_token = EndToken then indata
                            else prev_token :: indata) allowed
           end
