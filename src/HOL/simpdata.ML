@@ -103,9 +103,11 @@ val simp_thms = map prover
    "(P & True) = P", "(True & P) = P", 
    "(P & False) = False", "(False & P) = False",
    "(P & P) = P", "(P & (P & Q)) = (P & Q)",
+   "(P & ~P) = False",    "(~P & P) = False",
    "(P | True) = True", "(True | P) = True", 
    "(P | False) = P", "(False | P) = P",
    "(P | P) = P", "(P | (P | Q)) = (P | Q)",
+   "(P | ~P) = True",    "(~P | P) = True",
    "((~P) = (~Q)) = (P=Q)",
    "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x", 
    "(? x. x=t & P(x)) = P(t)",
@@ -311,6 +313,10 @@ qed_goal "expand_if" HOL.thy
 qed_goal "if_bool_eq" HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
                    (fn _ => [rtac expand_if 1]);
+
+
+
+(** Case splitting **)
 
 local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
 in
