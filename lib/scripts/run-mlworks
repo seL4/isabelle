@@ -42,7 +42,7 @@ MLTEXT="$EXIT $COMMIT $MLTEXT"
 MLEXIT="commit();"
 
 if [ -z "$TERMINATE" ]; then
-  FEEDER_OPTS="-s"
+  FEEDER_OPTS=""
 else
   FEEDER_OPTS="-q"
 fi

@@ -21,7 +21,6 @@ function usage()
   echo "    -h TEXT      head text"
   echo "    -p           emit my pid"
   echo "    -q           do not pipe stdin"
-  echo "    -s           filter symbols"
   echo "    -t TEXT      tail text"
   echo
   echo "  Output texts (pid, head, stdin, tail), then wait to be terminated."
@@ -43,10 +42,9 @@ function fail()
 HEAD=""
 EMITPID=""
 QUIT=""
-SYMBOLS=""
 TAIL=""
 
-while getopts "h:pqst:" OPT
+while getopts "h:pqt:" OPT
 do
   case "$OPT" in
     h)
@@ -57,9 +55,6 @@ do
       ;;
     q)
       QUIT=true
-      ;;
-    s)
-      SYMBOLS=true
       ;;
     t)
       TAIL="$OPTARG"
@@ -84,4 +79,4 @@ shift $(($OPTIND - 1))
 #set by configure
 AUTO_PERL=perl
 
-exec "$AUTO_PERL" -w "$DIR"/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$SYMBOLS" "$TAIL"
+exec "$AUTO_PERL" -w "$DIR"/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$TAIL"
