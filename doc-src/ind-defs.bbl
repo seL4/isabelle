@@ -1,105 +1,143 @@
 \begin{thebibliography}{10}
 
 \bibitem{abramsky90}
-Samson Abramsky.
-\newblock The lazy lambda calculus.
-\newblock In David~A. Turner, editor, {\em Resesarch Topics in Functional
-  Programming}, pages 65--116. Addison-Wesley, 1977.
+Abramsky, S.,
+\newblock The lazy lambda calculus,
+\newblock In {\em Resesarch Topics in Functional Programming}, D.~A. Turner,
+  Ed. Addison-Wesley, 1977, pp.~65--116
 
 \bibitem{aczel77}
-Peter Aczel.
-\newblock An introduction to inductive definitions.
-\newblock In J.~Barwise, editor, {\em Handbook of Mathematical Logic}, pages
-  739--782. North-Holland, 1977.
+Aczel, P.,
+\newblock An introduction to inductive definitions,
+\newblock In {\em Handbook of Mathematical Logic}, J.~Barwise, Ed.
+  North-Holland, 1977, pp.~739--782
 
 \bibitem{aczel88}
-Peter Aczel.
-\newblock {\em Non-Well-Founded Sets}.
-\newblock CSLI, 1988.
+Aczel, P.,
+\newblock {\em Non-Well-Founded Sets},
+\newblock CSLI, 1988
 
 \bibitem{bm79}
-Robert~S. Boyer and J~Strother Moore.
-\newblock {\em A Computational Logic}.
-\newblock Academic Press, 1979.
+Boyer, R.~S., Moore, J.~S.,
+\newblock {\em A Computational Logic},
+\newblock Academic Press, 1979
 
 \bibitem{camilleri92}
-J.~Camilleri and T.~F. Melham.
+Camilleri, J., Melham, T.~F.,
 \newblock Reasoning with inductively defined relations in the {HOL} theorem
-  prover.
-\newblock Technical Report 265, University of Cambridge Computer Laboratory,
-  August 1992.
+  prover,
+\newblock Tech. Rep. 265, Comp. Lab., Univ. Cambridge, August 1992
 
 \bibitem{davey&priestley}
-B.~A. Davey and H.~A. Priestley.
-\newblock {\em Introduction to Lattices and Order}.
-\newblock Cambridge University Press, 1990.
+Davey, B.~A., Priestley, H.~A.,
+\newblock {\em Introduction to Lattices and Order},
+\newblock Cambridge Univ. Press, 1990
+
+\bibitem{dybjer91}
+Dybjer, P.,
+\newblock Inductive sets and families in {Martin-L\"of's} type theory and their
+  set-theoretic semantics,
+\newblock In {\em Logical Frameworks}, G.~Huet, G.~Plotkin, Eds. Cambridge
+  Univ. Press, 1991, pp.~280--306
+
+\bibitem{IMPS}
+Farmer, W.~M., Guttman, J.~D., Thayer, F.~J.,
+\newblock {IMPS}: An interactive mathematical proof system,
+\newblock {\em J. Auto. Reas. {\bf 11}}, 2 (1993), 213--248
 
 \bibitem{hennessy90}
-Matthew Hennessy.
+Hennessy, M.,
 \newblock {\em The Semantics of Programming Languages: An Elementary
-  Introduction Using Structural Operational Semantics}.
-\newblock Wiley, 1990.
+  Introduction Using Structural Operational Semantics},
+\newblock Wiley, 1990
+
+\bibitem{huet88}
+Huet, G.,
+\newblock Induction principles formalized in the {Calculus of Constructions},
+\newblock In {\em Programming of Future Generation Computers\/} (1988),
+  Elsevier, pp.~205--216
 
 \bibitem{melham89}
-Thomas~F. Melham.
-\newblock Automating recursive type definitions in higher order logic.
-\newblock In Graham Birtwistle and P.~A. Subrahmanyam, editors, {\em Current
-  Trends in Hardware Verification and Automated Theorem Proving}, pages
-  341--386. Springer, 1989.
+Melham, T.~F.,
+\newblock Automating recursive type definitions in higher order logic,
+\newblock In {\em Current Trends in Hardware Verification and Automated Theorem
+  Proving}, G.~Birtwistle, P.~A. Subrahmanyam, Eds. Springer, 1989,
+  pp.~341--386
+
+\bibitem{milner-ind}
+Milner, R.,
+\newblock How to derive inductions in {LCF},
+\newblock note, Dept. Comp. Sci., Univ. Edinburgh, 1980
 
 \bibitem{milner89}
-Robin Milner.
-\newblock {\em Communication and Concurrency}.
-\newblock Prentice-Hall, 1989.
+Milner, R.,
+\newblock {\em Communication and Concurrency},
+\newblock Prentice-Hall, 1989
+
+\bibitem{monahan84}
+Monahan, B.~Q.,
+\newblock {\em Data Type Proofs using Edinburgh {LCF}},
+\newblock PhD thesis, University of Edinburgh, 1984
 
 \bibitem{paulin92}
-Christine Paulin-Mohring.
-\newblock Inductive definitions in the system {Coq}: Rules and properties.
-\newblock Research Report 92-49, LIP, Ecole Normale Sup\'erieure de Lyon,
-  December 1992.
+Paulin-Mohring, C.,
+\newblock Inductive definitions in the system {Coq}: Rules and properties,
+\newblock Research Report 92-49, LIP, Ecole Normale Sup\'erieure de Lyon, Dec.
+  1992
 
-\bibitem{paulson-set-I}
-Lawrence~C. Paulson.
-\newblock Set theory for verification: {I}. {From} foundations to functions.
-\newblock {\em Journal of Automated Reasoning}.
-\newblock In press; draft available as Report 271, University of Cambridge
-  Computer Laboratory.
+\bibitem{paulson87}
+Paulson, L.~C.,
+\newblock {\em Logic and Computation: Interactive proof with Cambridge LCF},
+\newblock Cambridge Univ. Press, 1987
 
 \bibitem{paulson91}
-Lawrence~C. Paulson.
-\newblock {\em {ML} for the Working Programmer}.
-\newblock Cambridge University Press, 1991.
+Paulson, L.~C.,
+\newblock {\em {ML} for the Working Programmer},
+\newblock Cambridge Univ. Press, 1991
 
 \bibitem{paulson-coind}
-Lawrence~C. Paulson.
-\newblock Co-induction and co-recursion in higher-order logic.
-\newblock Technical Report 304, University of Cambridge Computer Laboratory,
-  July 1993.
+Paulson, L.~C.,
+\newblock Co-induction and co-recursion in higher-order logic,
+\newblock Tech. Rep. 304, Comp. Lab., Univ. Cambridge, July 1993
 
 \bibitem{isabelle-intro}
-Lawrence~C. Paulson.
-\newblock Introduction to {Isabelle}.
-\newblock Technical Report 280, University of Cambridge Computer Laboratory,
-  1993.
+Paulson, L.~C.,
+\newblock Introduction to {Isabelle},
+\newblock Tech. Rep. 280, Comp. Lab., Univ. Cambridge, 1993
+
+\bibitem{paulson-set-I}
+Paulson, L.~C.,
+\newblock Set theory for verification: {I}. {From} foundations to functions,
+\newblock {\em J. Auto. Reas. {\bf 11}}, 3 (1993), 353--389
 
 \bibitem{paulson-set-II}
-Lawrence~C. Paulson.
-\newblock Set theory for verification: {II}. {Induction} and recursion.
-\newblock Technical Report 312, University of Cambridge Computer Laboratory,
-  1993.
+Paulson, L.~C.,
+\newblock Set theory for verification: {II}. {Induction} and recursion,
+\newblock Tech. Rep. 312, Comp. Lab., Univ. Cambridge, 1993
+
+\bibitem{paulson-final}
+Paulson, L.~C.,
+\newblock A concrete final coalgebra theorem for {ZF} set theory,
+\newblock Tech. rep., Comp. Lab., Univ. Cambridge, 1994
 
 \bibitem{pitts94}
-Andrew~M. Pitts.
-\newblock A co-induction principle for recursively defined domains.
-\newblock {\em Theoretical Computer Science (Fundamental Studies)}.
-\newblock In press; available as Report 252, University of Cambridge Computer
-  Laboratory.
+Pitts, A.~M.,
+\newblock A co-induction principle for recursively defined domains,
+\newblock {\em Theoretical Comput. Sci.\/} (1994),
+\newblock In press; available as Report 252, Comp. Lab., Univ. Cambridge
+
+\bibitem{saaltink-fme}
+Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
+\newblock An {EVES} data abstraction example,
+\newblock In {\em FME '93: Industrial-Strength Formal Methods\/} (1993),
+  J.~C.~P. Woodcock, P.~G. Larsen, Eds., Springer, pp.~578--596,
+\newblock LNCS 670
 
 \bibitem{szasz93}
-Nora Szasz.
+Szasz, N.,
 \newblock A machine checked proof that {Ackermann's} function is not primitive
-  recursive.
-\newblock In {G\'erard} Huet and Gordon Plotkin, editors, {\em Logical
-  Environments}, pages 317--338. Cambridge University Press, 1993.
+  recursive,
+\newblock In {\em Logical Environments}, G.~Huet, G.~Plotkin, Eds. Cambridge
+  Univ. Press, 1993, pp.~317--338
 
 \end{thebibliography}

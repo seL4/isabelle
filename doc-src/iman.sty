@@ -1,14 +1,16 @@
-\typeout{Isabelle Manual Page Layout}
-
-% iman.sty 
+% iman.sty : Isabelle Manual Page Layout
 %
-\typeout{Document Style iman. Released 15 September 1992}
+\typeout{Document Style iman. Released 17 February 1994}
 
-\hyphenation{Isa-belle}
+\hyphenation{Isa-belle man-u-script man-u-scripts ap-pen-dix mut-u-al-ly}
+\hyphenation{data-type data-types co-data-type co-data-types }
+
+\let\ts=\thinspace
 
 %%%INDEXING  use sedindex to process the index
 %index, putting page numbers of definitions in boldface
 \newcommand\bold[1]{{\bf#1}}
+\newcommand\fnote[1]{#1n}
 \newcommand\indexbold[1]{\index{#1|bold}}
 
 %for cross-references: 2nd argument (page number) is ignored
@@ -22,12 +24,6 @@
 %set argument in \bf font and index in ROMAN font (for definitions in text!)
 \newcommand\bfindex[1]{{\bf#1}\index{#1|bold}\@}
 
-
-%%Euro-style date: 20 September 1955
-\def\today{\number\day\space\ifcase\month\or
-January\or February\or March\or April\or May\or June\or
-July\or August\or September\or October\or November\or December\fi
-\space\number\year}
 
 %%% underscores as ordinary characters, not for subscripting
 %%  use @ or \sb for subscripting; use \at for @
@@ -57,10 +53,10 @@ July\or August\or September\or October\or November\or December\fi
 %%%% ``WARNING'' environment
 \def\dbend{\vtop to 0pt{\vss\hbox{\Huge\bf!}\vss}}
 \newenvironment{warn}{\medskip\medbreak\begingroup \clubpenalty=10000 
-  	 \baselineskip=0.9\baselineskip
-	 \noindent \hangindent\parindent \hangafter=-2 
-  	 \hbox to0pt{\hskip-\hangindent\dbend\hfill}\ignorespaces}%
-	{\par\endgroup\medbreak}
+         \small %%WAS\baselineskip=0.9\baselineskip
+         \noindent \hangindent\parindent \hangafter=-2 
+         \hbox to0pt{\hskip-\hangindent\dbend\hfill}\ignorespaces}%
+        {\par\endgroup\medbreak}
 
 
 %%%% Standard logical symbols
@@ -69,12 +65,9 @@ July\or August\or September\or October\or November\or December\fi
 \let\disj=\vee
 \let\imp=\rightarrow
 \let\bimp=\leftrightarrow
-\newcommand\all[1]{\forall#1.}	%quantification
+\newcommand\all[1]{\forall#1.}  %quantification
 \newcommand\ex[1]{\exists#1.}
 \newcommand{\pair}[1]{\langle#1\rangle}
-
-\newenvironment{example}{\begin{Example}\rm}{\end{Example}}
-\newtheorem{Example}{Example}[chapter]
 
 \newcommand\lbrakk{\mathopen{[\![}}
 \newcommand\rbrakk{\mathclose{]\!]}}
@@ -85,9 +78,6 @@ July\or August\or September\or October\or November\or December\fi
 \let\un=\cup
 \let\inter=\bigcap
 \let\union=\bigcup
-
-\newcommand{\rew}{\mathop{\longrightarrow}}
-\newcommand{\rewer}{\mathop{\longleftrightarrow}}
 
 \def\ML{{\sc ml}}
 \def\OBJ{{\sc obj}}
@@ -110,40 +100,16 @@ July\or August\or September\or October\or November\or December\fi
 \def\sloppy{\tolerance2000 \hfuzz.5pt \vfuzz.5pt \emergencystretch=15pt}
 \def\fussy{\tolerance200 \hfuzz.1pt \vfuzz.1pt \emergencystretch=0pt}
 
-\chardef\ttilde=`\~  	% A tilde for \tt font
-\chardef\ttback=`\\  	% A backslash for \tt font
-\chardef\ttlbrace=`\{ 	% A left brace for \tt font
-\chardef\ttrbrace=`\} 	% A right brace for \tt font
+\chardef\ttilde=`\~     % A tilde for \tt font
+\chardef\ttback=`\\     % A backslash for \tt font
+\chardef\ttlbrace=`\{   % A left brace for \tt font
+\chardef\ttrbrace=`\}   % A right brace for \tt font
 
 \newfont{\sltt}{cmsltt10}     %% for output from terminal sessions
 \newcommand\out{\ \sltt}
 
-%Indented, boxed alltt environment; uses \small\tt font
-%\leftmargini is LaTeX's first-level indentation for items (2.5em)
-%@endparenv is LaTeX's trick for preventing indentation of next paragraph
-\newenvironment{ttbox}{\par\nobreak\vskip-2pt
-	   \vbox\bgroup \small\begin{alltt} \leftskip\leftmargini}%
-	{\end{alltt}\egroup\vskip-7pt\@endparenv}
-\newcommand\ttbreak{\end{ttbox}\vskip-10pt\begin{ttbox}}
-
-
-%%%Put first chapter on odd page, with arabic numbering; like \cleardoublepage
-\newcommand\clearfirst{\clearpage\ifodd\c@page\else
-    \hbox{}\newpage\if@twocolumn\hbox{}\newpage\fi\fi
-    \pagenumbering{arabic}}
-
-%%%Ruled chapter headings 
-\def\@rulehead#1{\hrule height1pt \vskip 14pt \Huge \bf 
-   #1 \vskip 14pt\hrule height1pt}
-\def\@makechapterhead#1{ { \parindent 0pt 
- \ifnum\c@secnumdepth >\m@ne \raggedleft\large\bf\@chapapp{} \thechapter \par 
- \vskip 20pt \fi \raggedright \@rulehead{#1} \par \nobreak \vskip 40pt } }
-
-\def\@makeschapterhead#1{ { \parindent 0pt \raggedright 
- \@rulehead{#1} \par \nobreak \vskip 40pt } }
-
 % "itmath.sty" use cmr italic for letters in math mode and get the
-%	       usual letter spacing of text mode.
+%              usual letter spacing of text mode.
 %
 % Michael Lawley, April 1993
 % (lawley@cit.gu.edu.au)
@@ -178,4 +144,4 @@ July\or August\or September\or October\or November\or December\fi
 \@setmcodes{`a}{`z}{"7\@tempa 61}
 
 \ifx\define@mathgroup\undefined\else
-	\define@mathgroup\mv@normal{\itfam}{cmr}{m}{it}\fi
+        \define@mathgroup\mv@normal{\itfam}{cmr}{m}{it}\fi
