@@ -18,6 +18,7 @@ print_depth 1;
 
 use "library.ML";
 use "symtab.ML";
+use "name_space.ML";
 use "term.ML";
 
 (*Syntax module*)
