@@ -472,7 +472,7 @@ section "UN and INT";
 
 (*Basic identities*)
 
-bind_thm ("not_empty", prove_goal Set.thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]));
+bind_thm ("not_empty", prove_goal thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]));
 
 Goal "(UN x:{}. B x) = {}";
 by (Blast_tac 1);
