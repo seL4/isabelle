@@ -40,7 +40,7 @@ goal Univ.thy "Vfrom(A,x) <= Vfrom(A,rank(x))";
 by (eps_ind_tac "x" 1);
 by (rtac (Vfrom RS ssubst) 1);
 by (rtac (Vfrom RS ssubst) 1);
-by (fast_tac (ZF_cs addSIs [rank_lt]) 1);
+by (fast_tac (ZF_cs addSIs [rank_lt RS ltD]) 1);
 val Vfrom_rank_subset1 = result();
 
 goal Univ.thy "Vfrom(A,rank(x)) <= Vfrom(A,x)";
@@ -49,10 +49,13 @@ by (rtac (Vfrom RS ssubst) 1);
 by (rtac (Vfrom RS ssubst) 1);
 by (rtac (subset_refl RS Un_mono) 1);
 by (rtac UN_least 1);
-by (etac (rank_implies_mem RS bexE) 1);
+(*expand rank(x1) = (UN y:x1. succ(rank(y))) in assumptions*)
+by (etac (rank RS equalityD1 RS subsetD RS UN_E) 1);
 by (rtac subset_trans 1);
 by (etac UN_upper 2);
-by (etac (subset_refl RS Vfrom_mono RS subset_trans RS Pow_mono) 1);
+by (rtac (subset_refl RS Vfrom_mono RS subset_trans RS Pow_mono) 1);
+by (etac (ltI RS le_imp_subset) 1);
+by (rtac (Ord_rank RS Ord_succ) 1);
 by (etac bspec 1);
 by (assume_tac 1);
 val Vfrom_rank_subset2 = result();
@@ -126,8 +129,8 @@ by (rtac (succI1 RS RepFunI RS Union_upper RSN
 	      (2, equalityI RS subst_context)) 1);
 by (rtac UN_least 1);
 by (rtac (subset_refl RS Vfrom_mono RS Pow_mono) 1);
-by (etac member_succD 1);
-by (assume_tac 1);
+by (etac (ltI RS le_imp_subset) 1);
+by (etac Ord_succ 1);
 val Vfrom_succ_lemma = result();
 
 goal Univ.thy "Vfrom(A,succ(i)) = A Un Pow(Vfrom(A,i))";
@@ -161,36 +164,36 @@ val Vfrom_Union = result();
 (*** Limit ordinals -- general properties ***)
 
 goalw Univ.thy [Limit_def] "!!i. Limit(i) ==> Union(i) = i";
-by (fast_tac (eq_cs addEs [Ord_trans]) 1);
+by (fast_tac (eq_cs addSIs [ltI] addSEs [ltE] addEs [Ord_trans]) 1);
 val Limit_Union_eq = result();
 
 goalw Univ.thy [Limit_def] "!!i. Limit(i) ==> Ord(i)";
 by (etac conjunct1 1);
 val Limit_is_Ord = result();
 
-goalw Univ.thy [Limit_def] "!!i. Limit(i) ==> 0 : i";
-by (fast_tac ZF_cs 1);
+goalw Univ.thy [Limit_def] "!!i. Limit(i) ==> 0 < i";
+by (etac (conjunct2 RS conjunct1) 1);
 val Limit_has_0 = result();
 
-goalw Univ.thy [Limit_def] "!!i. [| Limit(i);  j:i |] ==> succ(j) : i";
+goalw Univ.thy [Limit_def] "!!i. [| Limit(i);  j<i |] ==> succ(j) < i";
 by (fast_tac ZF_cs 1);
 val Limit_has_succ = result();
 
 goalw Univ.thy [Limit_def] "Limit(nat)";
-by (REPEAT (ares_tac [conjI, ballI, nat_0I, nat_succI, Ord_nat] 1));
+by (safe_tac (ZF_cs addSIs (ltI::nat_typechecks)));
+by (etac ltD 1);
 val Limit_nat = result();
 
 goalw Univ.thy [Limit_def]
-    "!!i. [| Ord(i);  0:i;  ALL y. ~ succ(y)=i |] ==> Limit(i)";
+    "!!i. [| 0<i;  ALL y. ~ succ(y)=i |] ==> Limit(i)";
 by (safe_tac subset_cs);
-by (rtac Ord_member 1);
-by (REPEAT_FIRST (eresolve_tac [asm_rl, Ord_in_Ord RS Ord_succ]
-          ORELSE' dtac Ord_succ_subsetI ));
-by (fast_tac (subset_cs addSIs [equalityI]) 1);
+by (rtac (not_le_iff_lt RS iffD1) 2);
+by (fast_tac (lt_cs addEs [lt_anti_sym]) 4);
+by (REPEAT (eresolve_tac [asm_rl, ltE, Ord_succ] 1));
 val non_succ_LimitI = result();
 
 goal Univ.thy "!!i. Ord(i) ==> i=0 | (EX j. i=succ(j)) | Limit(i)";
-by (fast_tac (ZF_cs addSIs [non_succ_LimitI, Ord_0_member_iff RS iffD2]) 1);
+by (fast_tac (ZF_cs addSIs [non_succ_LimitI, Ord_0_lt]) 1);
 val Ord_cases_lemma = result();
 
 val major::prems = goal Univ.thy
@@ -210,20 +213,28 @@ val Ord_cases = result();
                         Vfrom(A,0) = A = A Un (UN y:0. Vfrom(A,y)) *)
 val [limiti] = goal Univ.thy
     "Limit(i) ==> Vfrom(A,i) = (UN y:i. Vfrom(A,y))";
-by (rtac (limiti RS Limit_has_0 RS Vfrom_Union RS subst) 1);
+by (rtac (limiti RS (Limit_has_0 RS ltD) RS Vfrom_Union RS subst) 1);
 by (rtac (limiti RS Limit_Union_eq RS ssubst) 1);
 by (rtac refl 1);
 val Limit_Vfrom_eq = result();
 
-val Limit_VfromE = standard (Limit_Vfrom_eq RS equalityD1 RS subsetD RS UN_E);
+goal Univ.thy "!!a. [| a: Vfrom(A,j);  Limit(i);  j<i |] ==> a : Vfrom(A,i)";
+by (rtac (Limit_Vfrom_eq RS equalityD2 RS subsetD) 1);
+by (REPEAT (ares_tac [ltD RS UN_I] 1));
+val Limit_VfromI = result();
+
+val prems = goal Univ.thy
+    "[| a: Vfrom(A,i);  Limit(i);		\
+\       !!x. [| x<i;  a: Vfrom(A,x) |] ==> R 	\
+\    |] ==> R";
+by (rtac (Limit_Vfrom_eq RS equalityD1 RS subsetD RS UN_E) 1);
+by (REPEAT (ares_tac (prems @ [ltI, Limit_is_Ord]) 1));
+val Limit_VfromE = result();
 
 val [major,limiti] = goal Univ.thy
     "[| a: Vfrom(A,i);  Limit(i) |] ==> {a} : Vfrom(A,i)";
-by (rtac (limiti RS Limit_VfromE) 1);
-by (rtac major 1);
-by (rtac (limiti RS Limit_Vfrom_eq RS ssubst) 1);
-by (rtac UN_I 1);
-by (etac singleton_in_Vfrom 2);
+by (rtac ([major,limiti] MRS Limit_VfromE) 1);
+by (etac ([singleton_in_Vfrom, limiti] MRS Limit_VfromI) 1);
 by (etac (limiti RS Limit_has_succ) 1);
 val singleton_in_Vfrom_limit = result();
 
@@ -234,29 +245,25 @@ and Vfrom_UnI2 = Un_upper2 RS (subset_refl RS Vfrom_mono RS subsetD);
 val [aprem,bprem,limiti] = goal Univ.thy
     "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i) |] ==> \
 \    {a,b} : Vfrom(A,i)";
-by (rtac (aprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (bprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (limiti RS Limit_Vfrom_eq RS ssubst) 1);
-by (rtac UN_I 1);
-by (rtac doubleton_in_Vfrom 2);
-by (etac Vfrom_UnI1 2);
-by (etac Vfrom_UnI2 2);
-by (REPEAT (ares_tac[limiti, Limit_has_succ, Ord_member_UnI, Limit_is_Ord] 1));
+by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([doubleton_in_Vfrom, limiti] MRS Limit_VfromI) 1);
+by (etac Vfrom_UnI1 1);
+by (etac Vfrom_UnI2 1);
+by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt] 1));
 val doubleton_in_Vfrom_limit = result();
 
 val [aprem,bprem,limiti] = goal Univ.thy
     "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i) |] ==> \
 \    <a,b> : Vfrom(A,i)";
 (*Infer that a, b occur at ordinals x,xa < i.*)
-by (rtac (aprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (bprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (limiti RS Limit_Vfrom_eq RS ssubst) 1);
-by (rtac UN_I 1);
-by (rtac Pair_in_Vfrom 2);
+by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([Pair_in_Vfrom, limiti] MRS Limit_VfromI) 1);
 (*Infer that succ(succ(x Un xa)) < i *)
-by (etac Vfrom_UnI1 2);
-by (etac Vfrom_UnI2 2);
-by (REPEAT (ares_tac[limiti, Limit_has_succ, Ord_member_UnI, Limit_is_Ord] 1));
+by (etac Vfrom_UnI1 1);
+by (etac Vfrom_UnI2 1);
+by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt] 1));
 val Pair_in_Vfrom_limit = result();
 
 
@@ -314,16 +321,13 @@ val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a*b : Vfrom(A,i)";
 (*Infer that a, b occur at ordinals x,xa < i.*)
-by (rtac (aprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (bprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (limiti RS Limit_Vfrom_eq RS ssubst) 1);
-by (rtac UN_I 1);
-by (rtac prod_in_Vfrom 2);
+by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([prod_in_Vfrom, limiti] MRS Limit_VfromI) 1);
+by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 1);
+by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 1);
 (*Infer that succ(succ(succ(x Un xa))) < i *)
-by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 2);
-by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 2);
-by (REPEAT (ares_tac [limiti RS Limit_has_succ,
-		      Ord_member_UnI, limiti RS Limit_is_Ord, transset] 1));
+by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt, transset] 1));
 val prod_in_Vfrom_limit = result();
 
 (** Disjoint sums, aka Quine ordered pairs **)
@@ -342,18 +346,15 @@ val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a+b : Vfrom(A,i)";
 (*Infer that a, b occur at ordinals x,xa < i.*)
-by (rtac (aprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (bprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (limiti RS Limit_Vfrom_eq RS ssubst) 1);
-by (rtac UN_I 1);
-by (rtac sum_in_Vfrom 2);
-by (rtac (succI1 RS UnI1) 5);
-(*Infer that succ(succ(succ(x Un xa))) < i *)
-by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 2);
-by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 2);
-by (REPEAT (ares_tac [limiti RS Limit_has_0, 
-		      limiti RS Limit_has_succ,
-		      Ord_member_UnI, limiti RS Limit_is_Ord, transset] 1));
+by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([sum_in_Vfrom, limiti] MRS Limit_VfromI) 1);
+by (rtac (succI1 RS UnI1) 4);
+(*Infer that  succ(succ(succ(succ(1) Un (x Un xa)))) < i *)
+by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 1);
+by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 1);
+by (REPEAT (ares_tac [limiti, Limit_has_0, Limit_has_succ, Un_least_lt, 
+		      transset] 1));
 val sum_in_Vfrom_limit = result();
 
 (** function space! **)
@@ -377,16 +378,13 @@ val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a->b : Vfrom(A,i)";
 (*Infer that a, b occur at ordinals x,xa < i.*)
-by (rtac (aprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (bprem RS (limiti RS Limit_VfromE)) 1);
-by (rtac (limiti RS Limit_Vfrom_eq RS ssubst) 1);
-by (rtac UN_I 1);
-by (rtac fun_in_Vfrom 2);
+by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([fun_in_Vfrom, limiti] MRS Limit_VfromI) 1);
 (*Infer that succ(succ(succ(x Un xa))) < i *)
-by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 2);
-by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 2);
-by (REPEAT (ares_tac [limiti RS Limit_has_succ,
-		      Ord_member_UnI, limiti RS Limit_is_Ord, transset] 1));
+by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 1);
+by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 1);
+by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt, transset] 1));
 val fun_in_Vfrom_limit = result();
 
 
@@ -403,37 +401,38 @@ val Transset_Vset = Transset_0 RS Transset_Vfrom;
 
 (** Characterisation of the elements of Vset(i) **)
 
-val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. b : Vset(i) --> rank(b) : i";
+val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. b : Vset(i) --> rank(b) < i";
 by (rtac (ordi RS trans_induct) 1);
 by (rtac (Vset RS ssubst) 1);
 by (safe_tac ZF_cs);
 by (rtac (rank RS ssubst) 1);
-by (rtac sup_least2 1);
-by (assume_tac 1);
-by (assume_tac 1);
-by (fast_tac ZF_cs 1);
+by (rtac UN_succ_least_lt 1);
+by (fast_tac ZF_cs 2);
+by (REPEAT (ares_tac [ltI] 1));
 val Vset_rank_imp1 = result();
 
-(*  [| Ord(i); x : Vset(i) |] ==> rank(x) : i  *)
-val Vset_D = standard (Vset_rank_imp1 RS spec RS mp);
+(*  [| Ord(i); x : Vset(i) |] ==> rank(x) < i  *)
+val VsetD = standard (Vset_rank_imp1 RS spec RS mp);
 
 val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. rank(b) : i --> b : Vset(i)";
 by (rtac (ordi RS trans_induct) 1);
 by (rtac allI 1);
 by (rtac (Vset RS ssubst) 1);
-by (fast_tac (ZF_cs addSIs [rank_lt]) 1);
+by (fast_tac (ZF_cs addSIs [rank_lt RS ltD]) 1);
 val Vset_rank_imp2 = result();
 
-(*  [| Ord(i); rank(x) : i |] ==> x : Vset(i)  *)
-val VsetI = standard (Vset_rank_imp2 RS spec RS mp);
+goal Univ.thy "!!x i. rank(x)<i ==> x : Vset(i)";
+by (etac ltE 1);
+by (etac (Vset_rank_imp2 RS spec RS mp) 1);
+by (assume_tac 1);
+val VsetI = result();
 
-val [ordi] = goal Univ.thy "Ord(i) ==> b : Vset(i) <-> rank(b) : i";
+goal Univ.thy "!!i. Ord(i) ==> b : Vset(i) <-> rank(b) < i";
 by (rtac iffI 1);
-by (etac (ordi RS Vset_D) 1);
-by (etac (ordi RS VsetI) 1);
+by (REPEAT (eresolve_tac [asm_rl, VsetD, VsetI] 1));
 val Vset_Ord_rank_iff = result();
 
-goal Univ.thy "b : Vset(a) <-> rank(b) : rank(a)";
+goal Univ.thy "b : Vset(a) <-> rank(b) < rank(a)";
 by (rtac (Vfrom_rank_eq RS subst) 1);
 by (rtac (Ord_rank RS Vset_Ord_rank_iff) 1);
 val Vset_rank_iff = result();
@@ -447,32 +446,30 @@ by (EVERY' [rtac UN_I,
 	    etac (Ord_in_Ord RS rank_of_Ord RS ssubst),
 	    assume_tac,
 	    rtac succI1] 3);
-by (REPEAT (eresolve_tac [asm_rl,Vset_D,Ord_trans] 1));
+by (REPEAT (eresolve_tac [asm_rl, VsetD RS ltD, Ord_trans] 1));
 val rank_Vset = result();
 
 (** Lemmas for reasoning about sets in terms of their elements' ranks **)
 
-(*  rank(x) : rank(a) ==> x : Vset(rank(a))  *)
-val Vset_rankI = Ord_rank RS VsetI;
-
 goal Univ.thy "a <= Vset(rank(a))";
 by (rtac subsetI 1);
-by (etac (rank_lt RS Vset_rankI) 1);
+by (etac (rank_lt RS VsetI) 1);
 val arg_subset_Vset_rank = result();
 
 val [iprem] = goal Univ.thy
     "[| !!i. Ord(i) ==> a Int Vset(i) <= b |] ==> a <= b";
-by (rtac ([subset_refl, arg_subset_Vset_rank] MRS Int_greatest RS subset_trans) 1);
+by (rtac ([subset_refl, arg_subset_Vset_rank] MRS 
+	  Int_greatest RS subset_trans) 1);
 by (rtac (Ord_rank RS iprem) 1);
 val Int_Vset_subset = result();
 
 (** Set up an environment for simplification **)
 
 val rank_rls = [rank_Inl, rank_Inr, rank_pair1, rank_pair2];
-val rank_trans_rls = rank_rls @ (rank_rls RLN (2, [rank_trans]));
+val rank_trans_rls = rank_rls @ (rank_rls RLN (2, [lt_trans]));
 
 val rank_ss = ZF_ss 
-    addsimps [case_Inl, case_Inr, Vset_rankI]
+    addsimps [case_Inl, case_Inr, VsetI]
     addsimps rank_trans_rls;
 
 (** Recursion over Vset levels! **)
@@ -480,8 +477,8 @@ val rank_ss = ZF_ss
 (*NOT SUITABLE FOR REWRITING: recursive!*)
 goalw Univ.thy [Vrec_def] "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))";
 by (rtac (transrec RS ssubst) 1);
-by (simp_tac (ZF_ss addsimps [Ord_rank, Ord_succ, Vset_D RS beta, 
-			      VsetI RS beta]) 1);
+by (simp_tac (ZF_ss addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
+			      VsetI RS beta, le_refl]) 1);
 val Vrec = result();
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)
@@ -597,7 +594,7 @@ by (REPEAT (ares_tac [nat_into_univ, nat_0I, nat_succI] 1));
 val one_in_univ = result();
 
 (*unused!*)
-goal Univ.thy "succ(succ(0)) : univ(A)";
+goal Univ.thy "succ(1) : univ(A)";
 by (REPEAT (ares_tac [nat_into_univ, nat_0I, nat_succI] 1));
 val two_in_univ = result();
 
