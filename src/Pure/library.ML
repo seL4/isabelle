@@ -101,6 +101,7 @@ sig
   val find_first: ('a -> bool) -> 'a list -> 'a option
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
   val flat: 'a list list -> 'a list
+  val unflat: 'a list list -> 'b list -> 'b list list
   val seq: ('a -> unit) -> 'a list -> unit
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
@@ -563,6 +564,11 @@ fun get_first _ [] = None
 
 (*flatten a list of lists to a list*)
 fun flat (ls: 'c list list) : 'c list = foldr (op @) (ls, []);
+
+fun unflat (xs :: xss) ys =
+      let val n = length xs in take (n, ys) :: unflat xss (drop (n, ys)) end
+  | unflat [] [] = []
+  | unflat _ _ = raise LIST "unflat";
 
 (*like Lisp's MAPC -- seq proc [x1, ..., xn] evaluates
   (proc x1; ...; proc xn) for side effects*)
