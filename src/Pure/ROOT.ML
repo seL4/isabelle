@@ -10,7 +10,6 @@ val banner = "Pure Isabelle";
 val version = "Isabelle repository";
 
 print_depth 1;
-ml_prompts "> " "# ";
 
 (*fake hiding of private structures*)
 structure Hidden = struct end;
@@ -37,6 +36,7 @@ use "net.ML";
 use "logic.ML";
 use "theory.ML";
 use "theory_data.ML";
+use "object_logic.ML";
 use "thm.ML";
 use "display.ML";
 use "attribute.ML";
@@ -52,6 +52,11 @@ use "axclass.ML";
 
 (*theory parser and loader*)
 cd "Thy";
+use "ROOT.ML";
+cd "..";
+
+(*the Isar subsystem*)
+cd "Isar";
 use "ROOT.ML";
 cd "..";
 
@@ -75,3 +80,4 @@ end;
 open Use;
 
 print_depth 8;
+(*ml_prompts "ML> " "ML# ";*)
