@@ -18,9 +18,10 @@ defaultsort "term"
 
 typedecl o
 
-consts
-
+judgment
   Trueprop      :: "o => prop"                  ("(_)" 5)
+
+consts
   True          :: o
   False         :: o
 
@@ -130,7 +131,7 @@ use "intprover.ML"
 
 subsection {* Atomizing meta-level rules *}
 
-lemma atomize_all: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
+lemma atomize_all [atomize]: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
 proof (rule equal_intr_rule)
   assume "!!x. P(x)"
   show "ALL x. P(x)" by (rule allI)
@@ -139,7 +140,7 @@ next
   thus "!!x. P(x)" by (rule allE)
 qed
 
-lemma atomize_imp: "(A ==> B) == Trueprop (A --> B)"
+lemma atomize_imp [atomize]: "(A ==> B) == Trueprop (A --> B)"
 proof (rule equal_intr_rule)
   assume r: "A ==> B"
   show "A --> B" by (rule impI) (rule r)
@@ -148,7 +149,7 @@ next
   thus B by (rule mp)
 qed
 
-lemma atomize_eq: "(x == y) == Trueprop (x = y)"
+lemma atomize_eq [atomize]: "(x == y) == Trueprop (x = y)"
 proof (rule equal_intr_rule)
   assume "x == y"
   show "x = y" by (unfold prems) (rule refl)
@@ -156,8 +157,5 @@ next
   assume "x = y"
   thus "x == y" by (rule eq_reflection)
 qed
-
-lemmas atomize = atomize_all atomize_imp
-lemmas atomize' = atomize atomize_eq
 
 end
