@@ -464,12 +464,12 @@ val pwdP =
     (Scan.succeed IsarCmd.pwd);
 
 val use_thyP =
-  OuterSyntax.parser true "use_thy" "use_thy theory file"
+  OuterSyntax.parser true "use_thy" "use theory file"
     (name >> IsarCmd.use_thy);
 
-val loadP =
-  OuterSyntax.parser true "load" "load theory file"
-    (name >> IsarCmd.load);
+val update_thyP =
+  OuterSyntax.parser true "update_thy" "update theory file"
+    (name >> IsarCmd.use_thy);
 
 val prP =
   OuterSyntax.parser true "pr" "print current toplevel state"
@@ -532,13 +532,13 @@ val parsers = [
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
   print_thmsP, print_propP, print_termP, print_typeP,
   (*system commands*)
-  cdP, pwdP, use_thyP, loadP, prP, commitP, quitP, exitP, restartP, breakP];
+  cdP, pwdP, use_thyP, update_thyP, prP, commitP, quitP, exitP,
+  restartP, breakP];
 
 
 end;
 
 
-(* install the Pure outer syntax *)
-
+(*install the Pure outer syntax*)
 OuterSyntax.add_keywords IsarSyn.keywords;
 OuterSyntax.add_parsers IsarSyn.parsers;
