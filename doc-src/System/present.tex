@@ -438,8 +438,8 @@ dumped at location \texttt{PATH}, which is relative to the session's main
 directory.  For example, \texttt{-D document} would leave a copy of the
 {\LaTeX} sources in the actual document directory.  Thus the Isabelle
 \texttt{document} or \texttt{latex} tools may be run later, facilitating much
-easier debugging of {\LaTeX} errors, for example.  Note that a copy of the
-Isabelle style files will be placed in \texttt{PATH} as well.
+easier debugging of {\LaTeX} errors, for example.  A copy of the Isabelle
+style files will be placed in \texttt{PATH} as well.
 
 \medskip The \texttt{-p} option determines the level of detail for internal
 proof objects, see also the \emph{Isabelle Reference
@@ -570,14 +570,6 @@ from the distribution.  This is useful in special situations where the
 document sources are to be processed another time by separate tools (cf.\ 
 option \texttt{-D} of the \texttt{usedir} utility, see
 \S\ref{sec:tool-usedir}).
-
-It is important to note that the {\LaTeX} inputs file space has to be properly
-setup to include the Isabelle styles.  Usually, this may be done by modifying
-the \settdx{TEXINPUTS} variable in the Isabelle settings like this:
-\begin{ttbox}
-TEXINPUTS="$ISABELLE_HOME/lib/texinputs:$TEXINPUTS"
-\end{ttbox}
-This is known to work with \textsl{teTeX} (version 1.0 or later).
 
 
 \subsubsection*{Examples}
