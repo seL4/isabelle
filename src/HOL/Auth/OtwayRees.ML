@@ -596,13 +596,13 @@ B_trust_OR3 RS Spy_not_see_encrypted_key;
 
 
 goal thy 
- "!!evs. [| B ~: lost;  evs : otway lost |]                    \
-\        ==> Says Server B                                                 \
-\              {|NA, Crypt {|NA, Key K|} (shrK A),                         \
-\                Crypt {|NB, Key K|} (shrK B)|} : set_of_list evs -->      \
-\            (EX X. Says B Server {|NA, Agent A, Agent B, X,              \
-\                            Crypt {|NA, NB, Agent A, Agent B|}     \
-\                                  (shrK B)|}                       \
+ "!!evs. [| B ~: lost;  evs : otway lost |]                           \
+\        ==> Says Server B                                            \
+\              {|NA, Crypt {|NA, Key K|} (shrK A),                    \
+\                Crypt {|NB, Key K|} (shrK B)|} : set_of_list evs --> \
+\            (EX X. Says B Server {|NA, Agent A, Agent B, X,          \
+\                            Crypt {|NA, NB, Agent A, Agent B|}       \
+\                                  (shrK B)|}                         \
 \            : set_of_list evs)";
 by (etac otway.induct 1);
 by (Auto_tac());
@@ -622,8 +622,8 @@ goal thy
 \            : set_of_list evs;                                    \
 \           A ~: lost;  A ~= Spy;  B ~: lost;  evs : otway lost |] \
 \        ==> EX NB X. Says B Server {|NA, Agent A, Agent B, X,     \
-\                            Crypt {|NA, NB, Agent A, Agent B|}    \
-\                                  (shrK B)|}                      \
+\                                     Crypt {|NA, NB, Agent A, Agent B|}    \
+\                                           (shrK B)|}                      \
 \            : set_of_list evs";
 by (fast_tac (!claset addSDs  [A_trust_OR4]
 	              addSEs [OR3_imp_OR2]) 1);
