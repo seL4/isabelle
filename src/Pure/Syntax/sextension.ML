@@ -42,7 +42,6 @@ sig
     val eta_contract: bool ref
     val mk_binder_tr: string * string -> string * (term list -> term)
     val mk_binder_tr': string * string -> string * (term list -> term)
-    val ndependent_tr: string -> term list -> term    (* FIXME remove *)
     val dependent_tr': string * string -> term list -> term
     val max_pri: int
   end
@@ -213,13 +212,6 @@ fun aprop_tr (*"_aprop"*) [t] =
 fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
       fold_ast_p "==>" (unfold_ast "_asms" asms, concl)
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise_ast "bigimpl_ast_tr" asts;
-
-
-(* 'dependent' type operators *)  (* FIXME remove *)
-
-fun ndependent_tr q [A, B] =
-      Const (q, dummyT) $ A $ Abs ("x", dummyT, incr_boundvars 1 B)
-  | ndependent_tr _ ts = raise_term "ndependent_tr" ts;
 
 
 
