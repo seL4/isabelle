@@ -60,9 +60,6 @@ HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 
 * added overloaded operations "inverse" and "divide" (infix "/");
 
-* >, >= and \<ge> can now be used for input; they are immediately replaced
-  by the converse symbol, eg "x > y" by "y < x".
-
 * HOL/typedef: simplified package, provide more useful rules (see also
 HOL/subset.thy);
 
