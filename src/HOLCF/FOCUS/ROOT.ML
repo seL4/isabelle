@@ -3,6 +3,7 @@
     Author: 	David von Oheimb, TU Muenchen
 
 ROOT file for the FOCUS extension of HOLCF.
+See README.html for further information.
 *)
 
 val banner = "HOLCF/FOCUS";
