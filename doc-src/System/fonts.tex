@@ -65,11 +65,16 @@ of course. It is even \emph{impossible} for proper X terminals that do
 not have their own file system.
 
 A much better solution is to have a \emph{font server} offer the
-Isabelle fonts to any X display on the network.  There is already a
-suitable server running at Munich. So in case you have a sensible
-Internet connection, you may just attach yourself as follows:
+Isabelle fonts to any X display on the network.  There are already
+suitable servers running at Munich and Cambridge. So in case you have
+a sensible Internet connection to either site, you may just attach
+yourself as follows:
 \begin{ttbox}
 ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
+\end{ttbox}
+or
+\begin{ttbox}
+ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv.cl.cam.ac.uk:7100"
 \end{ttbox}
 
 \medskip In the unfortunate case that neither local fonts work, nor
