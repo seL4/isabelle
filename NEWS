@@ -92,6 +92,9 @@ Provers/classical ones;
 * Pure: the local context of (non-atomic) goals is provided via case
 name 'antecedent';
 
+* Pure: removed obsolete 'transfer' attribute (transfer of thms to the
+current context is now done automatically);
+
 * Provers: splitter support (via 'split' attribute and 'simp' method
 modifier); 'simp' method: 'only:' modifier removes loopers as well
 (including splits);
