@@ -27,6 +27,7 @@ ISABELLE REFERENCE MANUAL
 Introduction
 
 page 67: show_brackets is another flag, controlling display of bracketting
+show_sorts:=true forces display of types
 
 Tactics
 
