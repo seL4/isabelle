@@ -9,7 +9,13 @@
 THIS=$(cd "$(dirname "$0")"; pwd)
 NAME="$(basename "$0")"
 
-PRG=isabelle-interface
-[ "$NAME" = isabelle ] && PRG=isabelle-process
+case "$NAME" in
+  I*)
+    PRG=isabelle-interface
+    ;;
+  i*)
+    PRG=isabelle-process
+    ;;
+esac
 
 exec "$THIS/$PRG" "$@"
