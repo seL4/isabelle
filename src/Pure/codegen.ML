@@ -581,7 +581,9 @@ fun test_term thy sz i t =
       "\n\nend;\n";
     val _ = use_text Context.ml_output false s;
     fun iter f k = if k > i then None
-      else (case f () of None => iter f (k+1) | Some x => Some x);
+      else (case (f () handle Match =>
+          (warning "Exception Match raised in generated code"; None)) of
+        None => iter f (k+1) | Some x => Some x);
     fun test k = if k > sz then None
       else (priority ("Test data size: " ^ string_of_int k);
         case iter (fn () => !test_fn k) 1 of
