@@ -74,6 +74,13 @@ IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 IMP:    $(BIN)/HOL  $(IMP_FILES)
 	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
 
+##Hoare logic
+Hoare_NAMES = Hoare Arith2 Examples
+Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) $(Hoare_NAMES:%=Hoare/%.ML)
+
+Hoare:  $(BIN)/HOL  $(Hoare_FILES)
+	echo 'exit_use"Hoare/ROOT.ML";quit();' | $(LOGIC)
+
 ##The integers in HOL
 INTEG_NAMES = Equiv Integ 
 
@@ -138,7 +145,7 @@ ex:     $(BIN)/HOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test. (IOA has been removed temporarily)
-test:   $(BIN)/HOL IMP Integ Subst Lambda MiniML IOA ex
+test:   $(BIN)/HOL IMP Hoare Integ Subst Lambda MiniML IOA ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
