@@ -13,7 +13,8 @@ local
     ProofContext.setup @
     Method.setup @
     Attrib.setup @
-    AxClass.setup;
+    AxClass.setup @
+    BrowserInfo.setup;
 in
   structure Pure =
   struct
