@@ -159,7 +159,7 @@ fun href_opt_name None txt = txt
 fun href_opt_path None txt = txt
   | href_opt_path (Some p) txt = href_path p txt;
 
-fun para txt = "\n<p>\n" ^ txt ^ "\n</p>\n";
+fun para txt = "\n<p>" ^ txt ^ "</p>\n";
 fun preform txt = "<pre>" ^ txt ^ "</pre>";
 val verbatim = preform o output;
 
@@ -248,7 +248,7 @@ local
 in
 
 fun begin_theory up A Bs [] body = theory up A ^ parents Bs ^ ":\n" ^ body
-  | begin_theory up A Bs Ps body = theory up A ^ parents Bs ^ "<br>" ^ keyword "files" ^
+  | begin_theory up A Bs Ps body = theory up A ^ parents Bs ^ "<br>\n" ^ keyword "files" ^
       " " ^ files Ps ^ ":" ^ "\n" ^ body;
 end;
 
