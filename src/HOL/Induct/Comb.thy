@@ -13,7 +13,7 @@ Example taken from
 *)
 
 
-Comb = Trancl +
+Comb = Arith +
 
 (** Datatype definition of combinators S and K, with infixed application **)
 datatype comb = K
