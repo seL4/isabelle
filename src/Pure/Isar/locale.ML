@@ -731,7 +731,7 @@ fun print_locale thy import body =
       if null pred_ts then Pretty.str ""
       else
         Library.foldr1 Logic.mk_conjunction pred_ts
-        |> Thm.cterm_of sg |> ObjectLogic.atomize_cterm |> Thm.term_of
+        |> ObjectLogic.atomize_term sg
         |> curry Term.list_abs_free pred_xs
         |> prt_term;
   in
