@@ -516,13 +516,12 @@ local
 val add_rules =
     simp_thms @ bin_arith_simps @ bin_rel_simps @
     [int_numeral_0_eq_0, int_numeral_1_eq_1,
-     zminus_0, zdiff_def,
-     zadd_zminus_inverse, zadd_zminus_inverse2,
-     zmult_0, zmult_0_right,
-     zmult_1, zmult_1_right,
-     zmult_zminus, zmult_zminus_right,
-     zminus_zadd_distrib, zminus_zminus, zmult_assoc,
-     int_0, int_1, int_Suc, zadd_int RS sym, zmult_int RS sym];
+     minus_zero, diff_minus, left_minus, right_minus,
+     mult_zero_left, mult_zero_right, mult_1, mult_1_right,
+     minus_mult_left RS sym, minus_mult_right RS sym,
+     minus_add_distrib, minus_minus, mult_assoc,
+     int_0, int_1, int_Suc, zadd_int RS sym, zmult_int RS sym,
+     le_number_of_eq_not_less];
 
 val simprocs = [Int_Times_Assoc.conv, Int_Numeral_Simprocs.combine_numerals]@
                Int_Numeral_Simprocs.cancel_numerals @

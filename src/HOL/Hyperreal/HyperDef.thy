@@ -766,37 +766,15 @@ by (simp add: Ring_and_Field.inverse_add mult_assoc)
 subsection{*@{term hypreal_of_real} Preserves Field and Order Properties*}
 
 lemma hypreal_of_real_add [simp]: 
-     "hypreal_of_real (z1 + z2) = hypreal_of_real z1 + hypreal_of_real z2"
+     "hypreal_of_real (w + z) = hypreal_of_real w + hypreal_of_real z"
 apply (unfold hypreal_of_real_def)
 apply (simp add: hypreal_add left_distrib)
 done
 
 lemma hypreal_of_real_mult [simp]: 
-     "hypreal_of_real (z1 * z2) = hypreal_of_real z1 * hypreal_of_real z2"
+     "hypreal_of_real (w * z) = hypreal_of_real w * hypreal_of_real z"
 apply (unfold hypreal_of_real_def)
 apply (simp add: hypreal_mult right_distrib)
-done
-
-lemma hypreal_of_real_less_iff [simp]: 
-     "(hypreal_of_real z1 <  hypreal_of_real z2) = (z1 < z2)"
-apply (unfold hypreal_less_def hypreal_of_real_def, auto)
-apply (rule_tac [2] x = "%n. z1" in exI, safe)
-apply (rule_tac [3] x = "%n. z2" in exI, auto)
-apply (rule FreeUltrafilterNat_P, ultra)
-done
-
-lemma hypreal_of_real_le_iff [simp]: 
-     "(hypreal_of_real z1 \<le> hypreal_of_real z2) = (z1 \<le> z2)"
-by (force simp add: hypreal_less hypreal_le_def linorder_not_less[symmetric])
-
-lemma hypreal_of_real_eq_iff [simp]:
-     "(hypreal_of_real z1 = hypreal_of_real z2) = (z1 = z2)"
-by (force intro: order_antisym hypreal_of_real_le_iff [THEN iffD1])
-
-lemma hypreal_of_real_minus [simp]:
-     "hypreal_of_real (-r) = - hypreal_of_real  r"
-apply (unfold hypreal_of_real_def)
-apply (auto simp add: hypreal_minus)
 done
 
 lemma hypreal_of_real_one [simp]: "hypreal_of_real 1 = (1::hypreal)"
@@ -805,19 +783,58 @@ by (unfold hypreal_of_real_def hypreal_one_def, simp)
 lemma hypreal_of_real_zero [simp]: "hypreal_of_real 0 = 0"
 by (unfold hypreal_of_real_def hypreal_zero_def, simp)
 
-lemma hypreal_of_real_zero_iff: "(hypreal_of_real r = 0) = (r = 0)"
-by (auto intro: FreeUltrafilterNat_P simp add: hypreal_of_real_def hypreal_zero_def FreeUltrafilterNat_Nat_set)
+lemma hypreal_of_real_less_iff [simp]: 
+     "(hypreal_of_real w <  hypreal_of_real z) = (w < z)"
+apply (unfold hypreal_less_def hypreal_of_real_def, auto)
+apply (rule_tac [2] x = "%n. w" in exI, safe)
+apply (rule_tac [3] x = "%n. z" in exI, auto)
+apply (rule FreeUltrafilterNat_P, ultra)
+done
+
+lemma hypreal_of_real_le_iff [simp]: 
+     "(hypreal_of_real w \<le> hypreal_of_real z) = (w \<le> z)"
+by (force simp add: hypreal_less hypreal_le_def linorder_not_less[symmetric])
+
+lemma hypreal_of_real_eq_iff [simp]:
+     "(hypreal_of_real w = hypreal_of_real z) = (w = z)"
+by (force intro: order_antisym hypreal_of_real_le_iff [THEN iffD1])
+
+text{*As above, for 0*}
+
+declare hypreal_of_real_less_iff [of 0, simplified, simp]
+declare hypreal_of_real_le_iff   [of 0, simplified, simp]
+declare hypreal_of_real_eq_iff   [of 0, simplified, simp]
+
+declare hypreal_of_real_less_iff [of _ 0, simplified, simp]
+declare hypreal_of_real_le_iff   [of _ 0, simplified, simp]
+declare hypreal_of_real_eq_iff   [of _ 0, simplified, simp]
+
+text{*As above, for 1*}
+
+declare hypreal_of_real_less_iff [of 1, simplified, simp]
+declare hypreal_of_real_le_iff   [of 1, simplified, simp]
+declare hypreal_of_real_eq_iff   [of 1, simplified, simp]
+
+declare hypreal_of_real_less_iff [of _ 1, simplified, simp]
+declare hypreal_of_real_le_iff   [of _ 1, simplified, simp]
+declare hypreal_of_real_eq_iff   [of _ 1, simplified, simp]
+
+lemma hypreal_of_real_minus [simp]:
+     "hypreal_of_real (-r) = - hypreal_of_real  r"
+apply (unfold hypreal_of_real_def)
+apply (auto simp add: hypreal_minus)
+done
 
 lemma hypreal_of_real_inverse [simp]:
      "hypreal_of_real (inverse r) = inverse (hypreal_of_real r)"
 apply (case_tac "r=0")
 apply (simp add: DIVISION_BY_ZERO INVERSE_ZERO HYPREAL_INVERSE_ZERO)
 apply (rule_tac c1 = "hypreal_of_real r" in hypreal_mult_left_cancel [THEN iffD1])
-apply (auto simp add: hypreal_of_real_zero_iff hypreal_of_real_mult [symmetric])
+apply (auto simp add: hypreal_of_real_mult [symmetric])
 done
 
 lemma hypreal_of_real_divide [simp]:
-     "hypreal_of_real (z1 / z2) = hypreal_of_real z1 / hypreal_of_real z2"
+     "hypreal_of_real (w / z) = hypreal_of_real w / hypreal_of_real z"
 by (simp add: hypreal_divide_def real_divide_def)
 
 
@@ -959,7 +976,6 @@ val hypreal_of_real_eq_iff = thm "hypreal_of_real_eq_iff";
 val hypreal_of_real_minus = thm "hypreal_of_real_minus";
 val hypreal_of_real_one = thm "hypreal_of_real_one";
 val hypreal_of_real_zero = thm "hypreal_of_real_zero";
-val hypreal_of_real_zero_iff = thm "hypreal_of_real_zero_iff";
 val hypreal_of_real_inverse = thm "hypreal_of_real_inverse";
 val hypreal_of_real_divide = thm "hypreal_of_real_divide";
 val hypreal_divide_one = thm "hypreal_divide_one";

@@ -585,12 +585,7 @@ val add_rules =
     [order_less_irrefl, rat_numeral_0_eq_0, rat_numeral_1_eq_1,
      rat_minus_1_eq_m1, 
      add_rat_number_of, minus_rat_number_of, diff_rat_number_of,
-     mult_rat_number_of, eq_rat_number_of, less_rat_number_of,
-     le_number_of_eq_not_less, diff_minus,
-     minus_add_distrib, minus_minus, mult_assoc, minus_zero,
-     left_minus, right_minus,
-     mult_zero_left, mult_zero_right, mult_1, mult_1_right,
-     minus_mult_left RS sym, minus_mult_right RS sym];
+     mult_rat_number_of, eq_rat_number_of, less_rat_number_of];
 
 val simprocs = [Rat_Times_Assoc.conv, Rat_Numeral_Simprocs.combine_numerals,
                 rat_cancel_numeral_factors_divide]@
@@ -617,17 +612,16 @@ val rat_mult_mono_thms =
   (rat_mult_left_mono,
    cvar(rat_mult_left_mono, hd(tl(prems_of rat_mult_left_mono))))]
 
-(* reduce contradictory <= to False *)
 val simps = [True_implies_equals,
-             inst "a" "(number_of ?v)::rat" right_distrib,
-             divide_1,times_divide_eq_right,times_divide_eq_left,
-         rat_of_int_zero, rat_of_int_one, rat_of_int_add_distrib,
-         rat_of_int_minus_distrib, rat_of_int_diff_distrib,
-         rat_of_int_mult_distrib, number_of_rat RS sym];
+             inst "a" "(number_of ?v)" right_distrib,
+             divide_1, times_divide_eq_right, times_divide_eq_left,
+	     rat_of_int_zero, rat_of_int_one, rat_of_int_add_distrib,
+	     rat_of_int_minus_distrib, rat_of_int_diff_distrib,
+	     rat_of_int_mult_distrib, number_of_rat RS sym];
 
 in
 
-val fast_rat_arith_simproc = Simplifier.simproc (Theory.sign_of (the_context ()))
+val fast_rat_arith_simproc = Simplifier.simproc (Theory.sign_of(the_context()))
   "fast_rat_arith" ["(m::rat) < n","(m::rat) <= n", "(m::rat) = n"]
   Fast_Arith.lin_arith_prover;
 
@@ -638,14 +632,12 @@ val rat_arith_setup =
  [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
    {add_mono_thms = add_mono_thms @ add_mono_thms_ordered_field,
     mult_mono_thms = mult_mono_thms @ rat_mult_mono_thms,
-    inj_thms = (***int_inj_thms @*???**)  inj_thms,
+    inj_thms = int_inj_thms @ inj_thms,
     lessD = lessD,  (*Can't change LA_Data_Ref.lessD: the rats are dense!*)
     simpset = simpset addsimps add_rules
                       addsimps simps
                       addsimprocs simprocs}),
-(*???
   arith_inj_const ("Rational.rat", HOLogic.intT --> Rat_Numeral_Simprocs.ratT),
-???*)
   arith_discrete ("Rational.rat",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_rat_arith_simproc]];
 

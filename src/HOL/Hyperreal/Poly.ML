@@ -232,7 +232,7 @@ qed "poly_IVT_pos";
 Goal "[| a < b; 0 < poly p a; poly p b < 0 |] \
 \     ==> EX x. a < x & x < b & (poly p x = 0)";
 by (blast_tac (claset() addIs [full_simplify (simpset() 
-    addsimps [poly_minus, rename_numerals neg_less_0_iff_less])
+    addsimps [poly_minus, neg_less_0_iff_less])
    (read_instantiate [("p","-- p")] poly_IVT_pos)]) 1);
 qed "poly_IVT_neg";
 

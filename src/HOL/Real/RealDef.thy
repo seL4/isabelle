@@ -1017,7 +1017,6 @@ by (simp add: linorder_not_less real_of_nat_ge_zero)
 lemma real_of_nat_ge_zero_cancel_iff [simp]: "(0 \<le> real (n::nat)) = (0 \<le> n)"
 by (simp add: linorder_not_less)
 
-text{*Now obsolete, but used in Hyperreal/IntFloor???*}
 lemma real_of_int_real_of_nat: "real (int n) = real n"
 by (simp add: real_of_nat_def)
 

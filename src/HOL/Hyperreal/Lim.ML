@@ -1734,11 +1734,9 @@ by (dres_inst_tac [("x","1")] spec 1);
 by Auto_tac;  
 by (res_inst_tac [("x","s")] exI 1 THEN Clarify_tac 1);
 by (res_inst_tac [("x","abs(f x) + 1")] exI 1 THEN Clarify_tac 1);
-by (dres_inst_tac [("x","xa - x")] spec 1 THEN Safe_tac);
-by (arith_tac 1);
-by (arith_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [abs_ge_self]) 1); 
-by (arith_tac 1);
+by (dres_inst_tac [("x","xa - x")] spec 1);
+by (auto_tac (claset(), simpset() addsimps [abs_ge_self]));
+by (REPEAT (arith_tac 1));
 qed "isCont_bounded";
 
 (*----------------------------------------------------------------------------*)

@@ -595,15 +595,9 @@ local
 
 (* reduce contradictory <= to False *)
 val add_rules = 
-    [order_less_irrefl, real_numeral_0_eq_0, real_numeral_1_eq_1,
-     real_minus_1_eq_m1, 
+    [real_numeral_0_eq_0, real_numeral_1_eq_1,
      add_real_number_of, minus_real_number_of, diff_real_number_of,
-     mult_real_number_of, eq_real_number_of, less_real_number_of,
-     le_number_of_eq_not_less, diff_minus,
-     minus_add_distrib, minus_minus, mult_assoc, minus_zero,
-     left_minus, right_minus,
-     mult_zero_left, mult_zero_right, mult_1, mult_1_right,
-     minus_mult_left RS sym, minus_mult_right RS sym];
+     mult_real_number_of, eq_real_number_of, less_real_number_of];
 
 val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals,
                 real_cancel_numeral_factors_divide]@
@@ -618,14 +612,10 @@ val real_mult_mono_thms =
   (real_mult_left_mono,
    cvar(real_mult_left_mono, hd(tl(prems_of real_mult_left_mono))))]
 
-(* reduce contradictory <= to False *)
-val simps = [True_implies_equals,
-             inst "a" "(number_of ?v)::real" right_distrib,
-             divide_1,times_divide_eq_right,times_divide_eq_left,
-         real_of_nat_zero, real_of_nat_Suc, real_of_nat_add, real_of_nat_mult,
-         real_of_int_zero, real_of_one, real_of_int_add RS sym,
-         real_of_int_minus RS sym, real_of_int_diff RS sym,
-         real_of_int_mult RS sym, symmetric real_number_of_def];
+val simps = [real_of_nat_zero, real_of_nat_Suc, real_of_nat_add, 
+       real_of_nat_mult, real_of_int_zero, real_of_one, real_of_int_add RS sym,
+       real_of_int_minus RS sym, real_of_int_diff RS sym,
+       real_of_int_mult RS sym, symmetric real_number_of_def];
 
 val int_inj_thms = [real_of_int_le_iff RS iffD2, real_of_int_less_iff RS iffD2,
                     real_of_int_inject RS iffD2];

@@ -2,11 +2,9 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
-
-Binary arithmetic and simplification for the reals
-
-This case is reduced to that for the integers
 *)
+
+header{*Binary arithmetic and Simplification for the Reals*}
 
 theory RealArith = RealDef
 files ("real_arith.ML"):
@@ -147,11 +145,6 @@ next
 qed
 
 declare real_numeral_0_eq_0 [simp] real_numeral_1_eq_1 [simp]
-
-(*Simplification of  x-y < 0, etc.*)
-declare less_iff_diff_less_0 [symmetric, iff]
-declare eq_iff_diff_eq_0 [symmetric, iff]
-declare le_iff_diff_le_0 [symmetric, iff]
 
 
 use "real_arith.ML"

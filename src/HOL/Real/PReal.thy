@@ -694,14 +694,13 @@ done
 
 subsection{*Gleason's Lemma 9-3.4, page 122*}
 
-(*????Why can't I get case_names like nonneg to work?*)
 lemma Gleason9_34_exists:
   assumes A: "A \<in> preal"
-      and closed: "\<forall>x\<in>A. x + u \<in> A"
-      and nonneg: "0 \<le> z"
+      and "\<forall>x\<in>A. x + u \<in> A"
+      and "0 \<le> z"
      shows "\<exists>b\<in>A. b + (rat z) * u \<in> A"
-proof (cases z)
-  case (1 n)
+proof (cases z rule: int_cases)
+  case (nonneg n)
   show ?thesis
   proof (simp add: prems, induct n)
     case 0
@@ -709,12 +708,12 @@ proof (cases z)
       show ?case  by force 
     case (Suc k)
       from this obtain b where "b \<in> A" "b + rat (int k) * u \<in> A" ..
-      hence "b + rat (int k)*u + u \<in> A" by (simp add: closed)
+      hence "b + rat (int k)*u + u \<in> A" by (simp add: prems)
       thus ?case by (force simp add: left_distrib add_ac prems) 
   qed
 next
-  case (2 n)
-  with nonneg show ?thesis by simp
+  case (neg n)
+  with prems show ?thesis by simp
 qed
 
 

@@ -7,10 +7,6 @@
 
 theory HyperOrd = HyperDef:
 
-ML
-{*
-val left_distrib = thm"left_distrib";
-*}
 
 (*** Monotonicity results ***)
 
