@@ -742,4 +742,86 @@ hide const internal_split
 use "Tools/split_rule.ML"
 setup SplitRule.setup
 
+
+subsection {* Code generator setup *}
+
+types_code
+  "*"     ("(_ */ _)")
+
+consts_code
+  "Pair"    ("(_,/ _)")
+  "fst"     ("fst")
+  "snd"     ("snd")
+
+ML {*
+fun term_of_id_42 f T g U (x, y) = HOLogic.pair_const T U $ f x $ g y;
+
+fun gen_id_42 aG bG i = (aG i, bG i);
+
+local
+
+fun strip_abs 0 t = ([], t)
+  | strip_abs i (Abs (s, T, t)) =
+    let
+      val s' = Codegen.new_name t s;
+      val v = Free (s', T)
+    in apfst (cons v) (strip_abs (i-1) (subst_bound (v, t))) end
+  | strip_abs i (u as Const ("split", _) $ t) = (case strip_abs (i+1) t of
+        (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
+      | _ => ([], u))
+  | strip_abs i t = ([], t);
+
+fun let_codegen thy gr dep brack (t as Const ("Let", _) $ _ $ _) =
+    let
+      fun dest_let (l as Const ("Let", _) $ t $ u) =
+          (case strip_abs 1 u of
+             ([p], u') => apfst (cons (p, t)) (dest_let u')
+           | _ => ([], l))
+        | dest_let t = ([], t);
+      fun mk_code (gr, (l, r)) =
+        let
+          val (gr1, pl) = Codegen.invoke_codegen thy dep false (gr, l);
+          val (gr2, pr) = Codegen.invoke_codegen thy dep false (gr1, r);
+        in (gr2, (pl, pr)) end
+    in case dest_let t of
+        ([], _) => None
+      | (ps, u) =>
+          let
+            val (gr1, qs) = foldl_map mk_code (gr, ps);
+            val (gr2, pu) = Codegen.invoke_codegen thy dep false (gr1, u)
+          in
+            Some (gr2, Pretty.blk (0, [Pretty.str "let ", Pretty.blk (0, flat
+                (separate [Pretty.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
+                  [Pretty.block [Pretty.str "val ", pl, Pretty.str " =",
+                     Pretty.brk 1, pr]]) qs))),
+              Pretty.brk 1, Pretty.str "in ", pu,
+              Pretty.brk 1, Pretty.str "end"]))
+          end
+    end
+  | let_codegen thy gr dep brack t = None;
+
+fun split_codegen thy gr dep brack (t as Const ("split", _) $ _) =
+    (case strip_abs 1 t of
+       ([p], u) =>
+         let
+           val (gr1, q) = Codegen.invoke_codegen thy dep false (gr, p);
+           val (gr2, pu) = Codegen.invoke_codegen thy dep false (gr1, u)
+         in
+           Some (gr2, Pretty.block [Pretty.str "(fn ", q, Pretty.str " =>",
+             Pretty.brk 1, pu, Pretty.str ")"])
+         end
+     | _ => None)
+  | split_codegen thy gr dep brack t = None;
+
+in
+
+val prod_codegen_setup =
+  [Codegen.add_codegen "let_codegen" let_codegen,
+   Codegen.add_codegen "split_codegen" split_codegen];
+
+end;
+*}
+
+setup prod_codegen_setup
+
 end
