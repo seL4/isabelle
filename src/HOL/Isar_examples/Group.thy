@@ -35,7 +35,7 @@ theorem group_right_inverse: "x * inv x = (one::'a::group)";
 proof -;
   have "x * inv x = one * (x * inv x)";
     by (simp only: group_left_unit);
-  also; have "... = (one * x) * inv x";
+  also; have "... = one * x * inv x";
     by (simp only: group_assoc);
   also; have "... = inv (inv x) * inv x * x * inv x";
     by (simp only: group_left_inverse);
