@@ -5,6 +5,11 @@
    Copyright 1995 TU Muenchen
 *)
 
+(* should go into Pure *)
+fun ALLNEWSUBGOALS tac tacf i =
+  STATE (fn state0 => tac i THEN
+  STATE (fn state1 => let val d = nprems_of state1 - nprems_of state0
+                      in EVERY(map tacf ((i+d) downto i)) end));
 
 (*used for constructor parameters*)
 datatype dt_type = dtVar of string |
@@ -858,7 +863,9 @@ fun build_record (thy,(ty,cl),itac) =
      val {nchotomy,case_cong} = case_thms sign case_rewrites itac
      val exhaustion = mk_exhaust nchotomy
      val exh_var = exhaust_var exhaustion;
-     fun exhaust_tac a = res_inst_tac [(exh_var,a)] exhaustion;
+     fun exhaust_tac a =
+           ALLNEWSUBGOALS (res_inst_tac [(exh_var,a)] exhaustion)
+                          (rotate_tac ~1);
      fun induct_tac a i =
            STATE(fn st =>
              (if Datatype.occs_in_prems a i st

@@ -464,7 +464,7 @@ by(strip_tac 1);
 by(exhaust_tac "n" 1);
  by(Blast_tac 1);
 by(exhaust_tac "i" 1);
-by(ALLGOALS (hyp_subst_tac THEN' Asm_full_simp_tac));
+by(ALLGOALS Asm_full_simp_tac);
 qed_spec_mp "nth_take";
 Addsimps [nth_take];
 
