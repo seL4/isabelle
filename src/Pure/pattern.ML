@@ -61,17 +61,10 @@ fun string_of_term env binders t = Sign.string_of_term (!sgr)
 fun bname binders i = fst(nth_elem(i,binders));
 fun bnames binders is = space_implode " " (map (bname binders) is);
 
-fun norm_typ tye =
-  let fun chase(v,s) =
-      (case  Vartab.lookup (tye, v) of
-        Some U => norm_typ tye U
-      | None => TVar(v,s))
-  in map_type_tvar chase end
-
 fun typ_clash(tye,T,U) =
   if !trace_unify_fail
-  then let val t = Sign.string_of_typ (!sgr) (norm_typ tye T)
-           and u = Sign.string_of_typ (!sgr) (norm_typ tye U)
+  then let val t = Sign.string_of_typ (!sgr) (Envir.norm_type tye T)
+           and u = Sign.string_of_typ (!sgr) (Envir.norm_type tye U)
        in tracing("The following types do not unify:\n" ^ t ^ "\n" ^ u) end
   else ()
 
