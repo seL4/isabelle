@@ -32,6 +32,7 @@ sig
   val thms_containing: theory -> string list -> (string * thm) list
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
+  val open_smart_store_thms: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory * thm list
@@ -234,11 +235,11 @@ fun name_multi name xs = gen_names (length xs) name ~~ xs;
 fun warn_overwrite name = warning ("Replaced old copy of theorems " ^ quote name);
 fun warn_same name = warning ("Theorem database already contains a copy of " ^ quote name);
 
-fun enter_thmx _ app_name ("", thmx) = map #2 (app_name "" thmx)
-  | enter_thmx sg app_name (bname, thmx) =
+fun enter_thmx _ _ app_name ("", thmx) = map snd (app_name "" thmx)
+  | enter_thmx sg name_thm app_name (bname, thmx) =
       let
         val name = Sign.full_name sg bname;
-        val named_thms = map Thm.name_thm (app_name name thmx);
+        val named_thms = map name_thm (app_name name thmx);
 
         val r as ref {space, thms_tab, const_idx} = get_theorems_sg sg;
 
@@ -262,7 +263,7 @@ fun enter_thmx _ app_name ("", thmx) = map #2 (app_name "" thmx)
 fun add_thmx app_name app_att ((bname, thmx), atts) thy =
   let
     val (thy', thmx') = app_att ((thy, thmx), atts);
-    val thms'' = enter_thmx (Theory.sign_of thy') app_name (bname, thmx');
+    val thms'' = enter_thmx (Theory.sign_of thy') Thm.name_thm app_name (bname, thmx');
   in (thy', thms'') end;
 
 fun add_thms args theory =
@@ -284,7 +285,7 @@ local
       val (thy', thmss') =
         foldl_map app (thy, map (fn (ths, atts) => (ths, atts @ more_atts @ kind_atts)) ths_atts);
       val thms' = flat thmss';
-      val thms'' = enter_thmx (Theory.sign_of thy') name_multi (bname, thms');
+      val thms'' = enter_thmx (Theory.sign_of thy') Thm.name_thm name_multi (bname, thms');
     in (thy', (bname, thms'')) end;
 in
   fun have_thmss kind_atts args thy = foldl_map (have_thss kind_atts) (thy, args);
@@ -300,13 +301,18 @@ fun store_thm th_atts thy =
 
 (* smart_store_thms *)
 
-fun smart_store_thms (name, []) = error ("Cannot store empty list of theorems: " ^ quote name)
-  | smart_store_thms (name, [thm]) = enter_thmx (Thm.sign_of_thm thm) name_single (name, thm)
-  | smart_store_thms (name, thms) =
+fun gen_smart_store_thms _ (name, []) =
+      error ("Cannot store empty list of theorems: " ^ quote name)
+  | gen_smart_store_thms name_thm (name, [thm]) =
+      enter_thmx (Thm.sign_of_thm thm) name_thm name_single (name, thm)
+  | gen_smart_store_thms name_thm (name, thms) =
       let
         val merge_sg = Sign.merge_refs o apsnd (Sign.self_ref o Thm.sign_of_thm);
         val sg_ref = foldl merge_sg (Sign.self_ref (Thm.sign_of_thm (hd thms)), tl thms);
-      in enter_thmx (Sign.deref sg_ref) name_multi (name, thms) end;
+      in enter_thmx (Sign.deref sg_ref) name_thm name_multi (name, thms) end;
+
+val smart_store_thms = gen_smart_store_thms Thm.name_thm;
+val open_smart_store_thms = gen_smart_store_thms snd;
 
 
 (* forall_elim_vars (belongs to drule.ML) *)
@@ -446,7 +452,7 @@ fun add_typedecls decls thy =
 
 val proto_pure =
   Theory.pre_pure
-  |> Library.apply [TheoremsData.init, TheoryManagementData.init]
+  |> Library.apply [TheoremsData.init, TheoryManagementData.init, Proofterm.init]
   |> put_name "ProtoPure"
   |> global_path
   |> Theory.add_types
@@ -486,6 +492,7 @@ val proto_pure =
   |> (#1 oo (add_defs_i false o map Thm.no_attributes))
    [("Goal_def", let val A = Free ("A", propT) in Logic.mk_equals (Logic.mk_goal A, A) end)]
   |> (#1 o add_thmss [(("nothing", []), [])])
+  |> Theory.add_axioms_i Proofterm.equality_axms
   |> end_theory;
 
 structure ProtoPure =
