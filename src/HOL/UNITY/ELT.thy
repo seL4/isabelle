@@ -32,9 +32,6 @@ constdefs
   givenBy :: "['a => 'b] => 'a set set"
     "givenBy f == range (%B. f-`` B)"
 
-  funPair      :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c"
-    "funPair f g == %x. (f x, g x)"
-
   (*visible version of the LEADS-TO relation*)
   leadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
                                         ("(3_/ leadsTo[_]/ _)" [80,0,80] 80)

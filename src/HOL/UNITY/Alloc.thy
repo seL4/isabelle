@@ -32,15 +32,17 @@ consts
   Nclients :: nat       (*Number of clients*)
 
 
+(** State definitions.  OUTPUT variables are locals **)
+
 record clientState =
   giv :: nat list   (*client's INPUT history:  tokens GRANTED*)
   ask :: nat list   (*client's OUTPUT history: tokens REQUESTED*)
   rel :: nat list   (*client's OUTPUT history: tokens RELEASED*)
 
 record allocState =
-  allocGiv :: nat => nat list   (*allocator's local copy of "giv" for i*)
-  allocAsk :: nat => nat list   (*allocator's local copy of "ask" for i*)
-  allocRel :: nat => nat list   (*allocator's local copy of "rel" for i*)
+  allocGiv :: nat => nat list   (*OUTPUT history: source of "giv" for i*)
+  allocAsk :: nat => nat list   (*INPUT: allocator's copy of "ask" for i*)
+  allocRel :: nat => nat list   (*INPUT: allocator's copy of "rel" for i*)
 
 record systemState = allocState +
   client :: nat => clientState  (*states of all clients*)
@@ -68,21 +70,23 @@ constdefs
 
 (** Client specification (required) ***)
 
-  (*spec (3) PROBABLY REQUIRES A LOCALTO PRECONDITION*)
+  (*spec (3)*)
   client_increasing :: clientState program set
     "client_increasing ==
-         UNIV guarantees Increasing ask Int Increasing rel"
+         UNIV guarantees[funPair rel ask]
+         Increasing ask Int Increasing rel"
 
   (*spec (4)*)
   client_bounded :: clientState program set
     "client_bounded ==
-         UNIV guarantees Always {s. ALL elt : set (ask s). elt <= NbT}"
+         UNIV guarantees[ask]
+         Always {s. ALL elt : set (ask s). elt <= NbT}"
 
   (*spec (5)*)
   client_progress :: clientState program set
     "client_progress ==
 	 Increasing giv
-	 guarantees
+	 guarantees[funPair rel ask]
 	 (INT h. {s. h <= giv s & h pfixGe ask s}
 		 LeadsTo[givenBy (funPair rel ask)]
 		 {s. tokens h <= (tokens o rel) s})"
@@ -92,18 +96,18 @@ constdefs
 
 (** Allocator specification (required) ***)
 
-  (*spec (6)  PROBABLY REQUIRES A LOCALTO PRECONDITION*)
+  (*spec (6)*)
   alloc_increasing :: allocState program set
     "alloc_increasing ==
 	 UNIV
-         guarantees
+         guarantees[allocGiv]
 	 (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
   (*spec (7)*)
   alloc_safety :: allocState program set
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
-         guarantees
+         guarantees[allocGiv]
 	 Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients
 	         <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}"
 
@@ -120,7 +124,7 @@ constdefs
          (INT i : lessThan Nclients. 
 	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
 		  LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})
-         guarantees
+         guarantees[allocGiv]
 	     (INT i : lessThan Nclients.
 	      INT h. {s. h <= (sub i o allocAsk) s} LeadsTo
 	             {s. h pfixLe (sub i o allocGiv) s})"
@@ -134,21 +138,21 @@ constdefs
   network_ask :: systemState program set
     "network_ask == INT i : lessThan Nclients.
                     Increasing (ask o sub i o client)
-                    guarantees
+                    guarantees[allocAsk]
                     ((sub i o allocAsk) Fols (ask o sub i o client))"
 
   (*spec (9.2)*)
   network_giv :: systemState program set
     "network_giv == INT i : lessThan Nclients.
                     Increasing (sub i o allocGiv)
-                    guarantees
+                    guarantees[giv o sub i o client]
                     ((giv o sub i o client) Fols (sub i o allocGiv))"
 
   (*spec (9.3)*)
   network_rel :: systemState program set
     "network_rel == INT i : lessThan Nclients.
                     Increasing (rel o sub i o client)
-                    guarantees
+                    guarantees[allocRel]
                     ((sub i o allocRel) Fols (rel o sub i o client))"
 
   network_spec :: systemState program set

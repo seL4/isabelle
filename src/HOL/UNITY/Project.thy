@@ -16,10 +16,10 @@ constdefs
   "projecting C h F X' X ==
      ALL G. extend h F Join G : X' --> F Join project h (C G) G : X"
 
-  extending :: "['c program => 'c set, 'a*'b => 'c, 'a program, 
-		 'c program set, 'c program set, 'a program set] => bool"
-  "extending C h F X' Y' Y ==
-     ALL G. F Join project h (C G) G : Y & extend h F Join G : X'
+  extending :: "['c=>'d, 'c program => 'c set, 'a*'b => 'c, 'a program, 
+		 'c program set, 'a program set] => bool"
+  "extending v C h F Y' Y ==
+     ALL G. G : preserves v --> F Join project h (C G) G : Y
             --> extend h F Join G : Y'"
 
 end

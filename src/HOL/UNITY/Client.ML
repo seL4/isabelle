@@ -73,13 +73,11 @@ qed "stable_size_ask_le_rel";
 program_defs_ref := [];
 
 (*Safety property 2: clients return the right number of tokens*)
-Goal "Cli_prg : (Increasing giv Int (rel localTo[UNIV] Cli_prg))  \
-\               guarantees Always {s. rel s <= giv s}";
+Goal "Cli_prg : Increasing giv  guarantees[rel]  Always {s. rel s <= giv s}";
 by (rtac guaranteesI 1);
 by (rtac AlwaysI 1);
 by (Force_tac 1);
-by (full_simp_tac (simpset() addsimps [Join_localTo, self_localTo]) 1);
-by (blast_tac (claset() addIs [Increasing_localTo_Stable, 
+by (blast_tac (claset() addIs [Increasing_preserves_Stable, 
 			       stable_rel_le_giv]) 1);
 qed "ok_guar_rel_prefix_giv";
 
@@ -101,30 +99,29 @@ val rewrite_o = rewrite_rule [o_def];
 val Increasing_length = mono_length RS mono_Increasing_o;
 
 Goal "Cli_prg : \
-\      (Increasing giv Int (rel localTo[UNIV] Cli_prg) Int (ask localTo[UNIV] Cli_prg)) \
-\      guarantees Always ({s. size (ask s) <= Suc (size (rel s))} Int \
-\                            {s. size (rel s) <= size (giv s)})";
+\      Increasing giv  guarantees[funPair rel ask] \
+\      Always ({s. size (ask s) <= Suc (size (rel s))} Int \
+\              {s. size (rel s) <= size (giv s)})";
 by (rtac guaranteesI 1);
-by (Clarify_tac 1);
 by (dtac (impOfSubs (rewrite_o Increasing_length)) 1);
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac Stable_Int 1);
-by (full_simp_tac (simpset() addsimps [Join_localTo, self_localTo]) 2);
-by (fast_tac (claset() addEs [rewrite_o localTo_imp_o_localTo]
-	               addIs [Increasing_localTo_Stable, 
+by (fast_tac (claset() addEs [rewrite_o (impOfSubs subset_preserves_o)]
+	               addIs [Increasing_preserves_Stable, 
 			      stable_size_rel_le_giv]) 2);
-by (full_simp_tac (simpset() addsimps [Join_localTo]) 1);
-by (fast_tac (claset() addEs [rewrite_o localTo_imp_o_localTo]
-	               addIs [stable_localTo_stable2 RS stable_imp_Stable,
-			      stable_size_ask_le_rel]) 1);
+by (res_inst_tac [("v1", "ask"), ("w1", "rel")]  
+    (stable_localTo_stable2 RS stable_imp_Stable) 1);
+by (ALLGOALS 
+    (fast_tac (claset() addEs [rewrite_o (impOfSubs subset_preserves_o)]
+	                addIs [stable_size_ask_le_rel])));
 val lemma1 = result();
 
 
 Goal "Cli_prg : \
-\      (Increasing giv Int (rel localTo[UNIV] Cli_prg) Int (ask localTo[UNIV] Cli_prg) \
-\                 Int Always giv_meets_ask) \
-\      guarantees ({s. k < size (giv s)} LeadsTo {s. k < size (rel s)})";
+\      Increasing giv Int Always giv_meets_ask \
+\      guarantees[funPair rel ask]  \
+\        ({s. k < size (giv s)} LeadsTo {s. k < size (rel s)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (rtac Stable_transient_Always_LeadsTo 1);
@@ -133,7 +130,7 @@ by (force_tac (claset() addDs [impOfSubs Increasing_length,
 			       impOfSubs Increasing_Stable_less],
 	       simpset()) 1);
 by (rtac (make_elim (lemma1 RS guaranteesD)) 1);
-by (Blast_tac 1);
+by Auto_tac;
 by (force_tac (claset(), 
 	       simpset() addsimps [Always_eq_includes_reachable, 
 				  giv_meets_ask_def]) 1);

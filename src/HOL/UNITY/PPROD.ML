@@ -126,15 +126,6 @@ by (auto_tac (claset(),
 qed "const_PLam_invariant";
 
 
-(** localTo **)
-
-Goal "(PLam I F) : (sub i) localTo[C] lift_prog i (F i)";
-by (simp_tac (simpset() addsimps [LOCALTO_def, Diff_def, extend_def, 
-				  stable_def, constrains_def]) 1);
-by (Force_tac 1);
-qed "PLam_sub_localTo";
-
-
 (** Reachability **)
 
 Goal "[| f : reachable (PLam I F);  i : I |] ==> f i : reachable (F i)";
@@ -286,7 +277,8 @@ qed "const_PLam_Increasing";
 (*** guarantees properties ***)
 
 Goalw [PLam_def]
-    "[| lift_prog i (F i): X guarantees Y;  i : I |]  \
-\    ==> (PLam I F) : X guarantees Y";
+    "[| lift_prog i (F i): X guarantees[v] Y;  i : I;  \
+\        ALL j:I. i~=j --> lift_prog j (F j) : preserves v |]  \
+\    ==> (PLam I F) : X guarantees[v] Y";
 by (asm_simp_tac (simpset() addsimps [guarantees_JN_I]) 1);
 qed "guarantees_PLam_I";

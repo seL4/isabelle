@@ -19,4 +19,11 @@ defs
 
   strict_component_def   "(F < (H::'a program)) == (F <= H & F ~= H)"
 
+constdefs
+  preserves :: "('a=>'b) => 'a program set"
+    "preserves v == INT z. stable {s. v s = z}"
+
+  funPair      :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c"
+    "funPair f g == %x. (f x, g x)"
+
 end

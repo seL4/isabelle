@@ -6,6 +6,8 @@
 Projections of state sets (also of actions and programs)
 
 Inheritance of GUARANTEES properties under extension
+
+POSSIBLY CAN DELETE Restrict_image_Diff
 *)
 
 Open_locale "Extend";
@@ -157,34 +159,31 @@ by Auto_tac;
 qed "projecting_weaken";
 
 Goalw [extending_def]
-     "[| extending C h F X' YA' YA;  extending C h F X' YB' YB |] \
-\     ==> extending C h F X' (YA' Int YB') (YA Int YB)";
+     "[| extending v C h F YA' YA;  extending v C h F YB' YB |] \
+\     ==> extending v C h F (YA' Int YB') (YA Int YB)";
 by (Blast_tac 1);
 qed "extending_Int";
 
 Goalw [extending_def]
-     "[| extending C h F X' YA' YA;  extending C h F X' YB' YB |] \
-\     ==> extending C h F X' (YA' Un YB') (YA Un YB)";
+     "[| extending v C h F YA' YA;  extending v C h F YB' YB |] \
+\     ==> extending v C h F (YA' Un YB') (YA Un YB)";
 by (Blast_tac 1);
 qed "extending_Un";
 
-(*This is the right way to handle the X' argument.  Having (INT i:I. X' i)
-  would strengthen the premise.*)
 val [prem] = Goalw [extending_def]
-     "[| !!i. i:I ==> extending C h F X' (Y' i) (Y i) |] \
-\     ==> extending C h F X' (INT i:I. Y' i) (INT i:I. Y i)";
+     "[| !!i. i:I ==> extending v C h F (Y' i) (Y i) |] \
+\     ==> extending v C h F (INT i:I. Y' i) (INT i:I. Y i)";
 by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
 qed "extending_INT";
 
 val [prem] = Goalw [extending_def]
-     "[| !!i. i:I ==> extending C h F X' (Y' i) (Y i) |] \
-\     ==> extending C h F X' (UN i:I. Y' i) (UN i:I. Y i)";
+     "[| !!i. i:I ==> extending v C h F (Y' i) (Y i) |] \
+\     ==> extending v C h F (UN i:I. Y' i) (UN i:I. Y i)";
 by (blast_tac (claset() addDs [prem RS spec RS mp]) 1);
 qed "extending_UN";
 
 Goalw [extending_def]
-     "[| extending C h F X' Y' Y;  U'<= X';  Y'<=V';  V<=Y |] \
-\     ==> extending C h F U' V' V";
+     "[| extending v C h F Y' Y;  Y'<=V';  V<=Y |] ==> extending v C h F V' V";
 by Auto_tac;
 qed "extending_weaken";
 
@@ -207,132 +206,37 @@ Goalw [projecting_def]
 by (simp_tac (simpset() addsimps [Join_project_increasing]) 1);
 qed "projecting_increasing";
 
-Goal "extending C h F X' UNIV Y";
+Goal "extending v C h F UNIV Y";
 by (simp_tac (simpset() addsimps [extending_def]) 1);
 qed "extending_UNIV";
 
 Goalw [extending_def]
-     "extending (%G. UNIV) h F X' (extend_set h A co extend_set h B) (A co B)";
+     "extending v (%G. UNIV) h F (extend_set h A co extend_set h B) (A co B)";
 by (blast_tac (claset() addIs [project_constrains_D]) 1);
 qed "extending_constrains";
 
 Goalw [stable_def]
-     "extending (%G. UNIV) h F X' (stable (extend_set h A)) (stable A)";
+     "extending v (%G. UNIV) h F (stable (extend_set h A)) (stable A)";
 by (rtac extending_constrains 1);
 qed "extending_stable";
 
 Goalw [extending_def]
-     "extending (%G. UNIV) h F X' (increasing (func o f)) (increasing func)";
+     "extending v (%G. UNIV) h F (increasing (func o f)) (increasing func)";
 by (simp_tac (simpset() addsimps [Join_project_increasing]) 1);
 qed "extending_increasing";
 
-
-(*** Diff, needed for localTo ***)
-
-(*Opposite direction fails because Diff in the extended state may remove
-  fewer actions, i.e. those that affect other state variables.*)
-
+(*UNUSED*)
 Goalw [project_set_def, project_act_def]
      "Restrict (project_set h C) (project_act h (Restrict C act)) = \
 \     project_act h (Restrict C act)";
 by (Blast_tac 1);
 qed "Restrict_project_act";
 
+(*UNUSED*)
 Goalw [project_set_def, project_act_def]
      "project_act h (Restrict C Id) = Restrict (project_set h C) Id";
 by (Blast_tac 1);
 qed "project_act_Restrict_Id";
-
-Goal
-  "Diff(project_set h C)(project h C G)(project_act h `` Restrict C `` acts) \
-\  <= project h C (Diff C G acts)";
-by (simp_tac 
-    (simpset() addsimps [component_eq_subset, Diff_def,
-			 project_act_Restrict_Id, Restrict_image_Diff]) 1);
-by (force_tac (claset() delrules [equalityI], 
-	       simpset() addsimps [Restrict_project_act, image_eq_UN]) 1);
-qed "Diff_project_project_component_project_Diff";
-
-Goal "Diff (project_set h C) (project h C G) acts <= \
-\         project h C (Diff C G (extend_act h `` acts))";
-by (rtac component_trans 1);
-by (rtac Diff_project_project_component_project_Diff 2);
-by (simp_tac 
-    (simpset() addsimps [component_eq_subset, Diff_def,
-			 Restrict_project_act, project_act_Restrict_Id, 
-			 image_eq_UN, Restrict_image_Diff]) 1);
-qed "Diff_project_component_project_Diff";
-
-Goal "Diff C G (extend_act h `` acts) : (extend_set h A) co (extend_set h B) \
-\     ==> Diff (project_set h C) (project h C G) acts : A co B";
-by (rtac (Diff_project_component_project_Diff RS component_constrains) 1);
-by (rtac (project_constrains RS iffD2) 1);
-by (ftac constrains_imp_subset 1);
-by (blast_tac (claset() addIs [constrains_weaken]) 1);
-qed "Diff_project_constrains";
-
-Goalw [stable_def]
-     "Diff C G (extend_act h `` acts) : stable (extend_set h A) \
-\     ==> Diff (project_set h C) (project h C G) acts : stable A";
-by (etac Diff_project_constrains 1);
-qed "Diff_project_stable";
-
-(** Some results for Diff, extend and project_set **)
-
-Goal "Diff C (extend h G) (extend_act h `` acts) \
-\         : (extend_set h A) co (extend_set h B) \
-\     ==> Diff (project_set h C) G acts : A co B";
-by (rtac (Diff_project_set_component RS component_constrains) 1);
-by (ftac constrains_imp_subset 1);
-by (asm_full_simp_tac
-    (simpset() addsimps [project_constrains, extend_set_strict_mono]) 1);
-by (blast_tac (claset() addIs [constrains_weaken]) 1);
-qed "Diff_project_set_constrains_I";
-
-Goalw [stable_def]
-     "Diff C (extend h G) (extend_act h `` acts) : stable (extend_set h A) \
-\     ==> Diff (project_set h C) G acts : stable A";
-by (asm_simp_tac (simpset() addsimps [Diff_project_set_constrains_I]) 1);
-qed "Diff_project_set_stable_I";
-
-Goalw [LOCALTO_def]
-     "extend h F : (v o f) localTo[C] extend h H \
-\     ==> F : v localTo[project_set h C] H";
-by Auto_tac;
-by (rtac Diff_project_set_stable_I 1);
-by (asm_simp_tac (simpset() addsimps [Collect_eq_extend_set RS sym]) 1);
-qed "localTo_project_set_I";
-
-(*Converse fails: even if the conclusion holds, H could modify (v o f) 
-  simultaneously with other variables, and this action would not be 
-  superseded by anything in (extend h G) *)
-Goal "H : (v o f) localTo[C] extend h G \
-\     ==> project h C H : v localTo[project_set h C] G";
-by (asm_full_simp_tac 
-    (simpset() addsimps [LOCALTO_def, 
-			 project_extend_Join RS sym,
-			 Diff_project_stable,
-			 Collect_eq_extend_set RS sym]) 1);
-qed "project_localTo_lemma";
-
-Goal "extend h F Join G : (v o f) localTo[C] extend h H \
-\     ==> F Join project h C G : v localTo[project_set h C] H";
-by (asm_full_simp_tac 
-    (simpset() addsimps [Join_localTo, localTo_project_set_I,
-			 project_localTo_lemma]) 1);
-qed "gen_project_localTo_I";
-
-Goal "extend h F Join G : (v o f) localTo[UNIV] extend h H \
-\     ==> F Join project h UNIV G : v localTo[UNIV] H";
-by (dtac gen_project_localTo_I 1);
-by (Asm_full_simp_tac 1);
-qed "project_localTo_I";
-
-Goalw [projecting_def]
-     "projecting (%G. UNIV) h F \
-\         ((v o f) localTo[UNIV] extend h H)  (v localTo[UNIV] H)";
-by (blast_tac (claset() addIs [project_localTo_I]) 1);
-qed "projecting_localTo";
 
 
 (** Reachability and project **)
@@ -352,7 +256,8 @@ by (etac extend_act_D 1);
 qed "reachable_imp_reachable_project";
 
 (*The extra generality in the first premise allows guarantees with STRONG
-  preconditions (localTo) and WEAK postconditions.*)
+  preconditions (localT) and WEAK postconditions.*)
+(*LOCALTO NO LONGER EXISTS: replace C by reachable...??*)
 Goalw [Constrains_def]
      "[| reachable (extend h F Join G) <= C;    \
 \        F Join project h C G : A Co B |] \
@@ -479,15 +384,6 @@ by (asm_simp_tac (simpset() addsimps [Increasing_def, project_Stable,
 				      Collect_eq_extend_set RS sym]) 1);
 qed "project_Increasing";
 
-Goal "[| H <= F;  extend h F Join G : (v o f) LocalTo extend h H |] \
-\     ==> F Join project h (reachable (extend h F Join G)) G : v LocalTo H";
-by (asm_full_simp_tac 
-    (simpset() delsimps [extend_Join]
-	       addsimps [LocalTo_def, project_set_reachable_extend_eq RS sym,
-			 gen_project_localTo_I, extend_Join RS sym, 
-			 Join_assoc RS sym, Join_absorb1]) 1);
-qed "project_LocalTo_I";
-
 (** A lot of redundant theorems: all are proved to facilitate reasoning
     about guarantees. **)
 
@@ -515,35 +411,28 @@ Goalw [projecting_def]
 by (blast_tac (claset() addIs [project_Increasing_I]) 1);
 qed "projecting_Increasing";
 
-Goalw [projecting_def]
-     "H <= F ==> projecting (%G. reachable (extend h F Join G)) h F \
-\                           ((v o f) LocalTo extend h H) (v LocalTo H)";
-by (blast_tac (claset() addIs [project_LocalTo_I]) 1);
-qed "projecting_LocalTo";
-
 Goalw [extending_def]
-     "extending (%G. reachable (extend h F Join G)) h F X' \
-\               (extend_set h A Co extend_set h B) (A Co B)";
+     "extending v (%G. reachable (extend h F Join G)) h F \
+\                 (extend_set h A Co extend_set h B) (A Co B)";
 by (blast_tac (claset() addIs [project_Constrains_D]) 1);
 qed "extending_Constrains";
 
 Goalw [extending_def]
-     "extending (%G. reachable (extend h F Join G)) h F X' \
-\               (Stable (extend_set h A)) (Stable A)";
+     "extending v (%G. reachable (extend h F Join G)) h F \
+\                 (Stable (extend_set h A)) (Stable A)";
 by (blast_tac (claset() addIs [project_Stable_D]) 1);
 qed "extending_Stable";
 
 Goalw [extending_def]
-     "extending (%G. reachable (extend h F Join G)) h F X' \
-\               (Always (extend_set h A)) (Always A)";
+     "extending v (%G. reachable (extend h F Join G)) h F \
+\                 (Always (extend_set h A)) (Always A)";
 by (blast_tac (claset() addIs [project_Always_D]) 1);
 qed "extending_Always";
 
 val [prem] = 
 Goalw [extending_def]
      "(!!G. reachable (extend h F Join G) <= C G)  \
-\     ==> extending C h F X' \
-\                   (Increasing (func o f)) (Increasing func)";
+\     ==> extending v C h F (Increasing (func o f)) (Increasing func)";
 by (blast_tac (claset() addIs [prem RS project_Increasing_D]) 1);
 qed "extending_Increasing";
 
@@ -585,10 +474,12 @@ by (asm_full_simp_tac
 by (Blast_tac 1);
 qed "ensures_extend_set_imp_project_ensures";
 
-Goal "[| project h C G : transient (A-B) --> F : transient (A-B);  \
+Goal "[| project h C G ~: transient (A-B) | A<=B;  \
 \        extend h F Join G : stable C;  \
 \        F Join project h C G : A ensures B |] \
 \     ==> extend h F Join G : (C Int extend_set h A) ensures (extend_set h B)";
+by (etac disjE 1);
+by (blast_tac (claset() addIs [subset_imp_ensures]) 2);
 by (auto_tac (claset() addDs [extend_transient RS iffD2] 
                        addIs [transient_strengthen, project_set_I,
 			      project_unless RS unlessD, unlessI, 
@@ -601,7 +492,7 @@ qed_spec_mp "Join_project_ensures";
 
 (*The strange induction formula allows induction over the leadsTo
   assumption's non-atomic precondition*)
-Goal "[| ALL D. project h C G : transient D --> F : transient D;  \
+Goal "[| ALL D. project h C G : transient D --> D={};  \
 \        extend h F Join G : stable C;  \
 \        F Join project h C G : (project_set h C Int A) leadsTo B |] \
 \     ==> extend h F Join G : \
@@ -614,7 +505,7 @@ by (blast_tac (claset() addIs [psp_stable2 RS leadsTo_weaken_L,
 by (blast_tac (claset() addIs [leadsTo_Basis, Join_project_ensures]) 1);
 val lemma = result();
 
-Goal "[| ALL D. project h C G : transient D --> F : transient D;  \
+Goal "[| ALL D. project h C G : transient D --> D={};  \
 \        extend h F Join G : stable C;  \
 \        F Join project h C G : (project_set h C Int A) leadsTo B |] \
 \     ==> extend h F Join G : (C Int extend_set h A) leadsTo (extend_set h B)";
@@ -623,7 +514,7 @@ by (auto_tac (claset() addIs [project_set_I], simpset()));
 qed "project_leadsTo_lemma";
 
 Goal "[| C = (reachable (extend h F Join G)); \
-\        ALL D. project h C G : transient D --> F : transient D;  \
+\        ALL D. project h C G : transient D --> D={};  \
 \        F Join project h C G : A LeadsTo B |] \
 \     ==> extend h F Join G : (extend_set h A) LeadsTo (extend_set h B)";
 by (asm_full_simp_tac 
@@ -632,30 +523,52 @@ by (asm_full_simp_tac
 qed "Join_project_LeadsTo";
 
 
+
 (*** GUARANTEES and EXTEND ***)
+
+(** preserves **)
+
+Goal "G : preserves (v o f) ==> project h C G : preserves v";
+by (auto_tac (claset(),
+	      simpset() addsimps [preserves_def, project_stable_I,
+				  Collect_eq_extend_set RS sym]));
+qed "project_preserves_I";
+
+(*to preserve f is to preserve the whole original state*)
+Goal "G : preserves f ==> project h C G : preserves id";
+by (asm_simp_tac (simpset() addsimps [project_preserves_I]) 1);
+qed "project_preserves_id_I";
+
+Goal "(extend h G : preserves (v o f)) = (G : preserves v)";
+by (auto_tac (claset(),
+	      simpset() addsimps [preserves_def, extend_stable RS sym,
+				  Collect_eq_extend_set RS sym]));
+qed "extend_preserves";
 
 (** Strong precondition and postcondition; doesn't seem very useful. **)
 
-Goal "F : X guarantees Y ==> \
-\     extend h F : (extend h `` X) guarantees (extend h `` Y)";
+Goal "F : X guarantees[v] Y ==> \
+\     extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)";
 by (rtac guaranteesI 1);
 by Auto_tac;
-by (blast_tac (claset() addDs [project_set_UNIV RS equalityD2 RS 
-			         extend_Join_eq_extend_D, 
+by (blast_tac (claset() addIs [project_preserves_I]
+			addDs [project_set_UNIV RS equalityD2 RS 
+			       extend_Join_eq_extend_D, 
 			       guaranteesD]) 1);
 qed "guarantees_imp_extend_guarantees";
 
-Goal "extend h F : (extend h `` X) guarantees (extend h `` Y) \
-\    ==> F : X guarantees Y";
-by (auto_tac (claset(), simpset() addsimps [guarantees_eq]));
+Goal "extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y) \
+\     ==> F : X guarantees[v] Y";
+by (auto_tac (claset(), simpset() addsimps [guar_def]));
 by (dres_inst_tac [("x", "extend h G")] spec 1);
 by (asm_full_simp_tac 
     (simpset() delsimps [extend_Join] 
-           addsimps [extend_Join RS sym, inj_extend RS inj_image_mem_iff]) 1);
+           addsimps [extend_Join RS sym, extend_preserves,
+		     inj_extend RS inj_image_mem_iff]) 1);
 qed "extend_guarantees_imp_guarantees";
 
-Goal "(extend h F : (extend h `` X) guarantees (extend h `` Y)) = \
-\    (F : X guarantees Y)";
+Goal "(extend h F : (extend h `` X) guarantees[v o f] (extend h `` Y)) = \
+\    (F : X guarantees[v] Y)";
 by (blast_tac (claset() addIs [guarantees_imp_extend_guarantees,
 			       extend_guarantees_imp_guarantees]) 1);
 qed "extend_guarantees_eq";
@@ -666,151 +579,116 @@ qed "extend_guarantees_eq";
 
 (*The raw version*)
 val [xguary,project,extend] =
-Goal "[| F : X guarantees Y;  \
-\        !!G. extend h F Join G : X' ==> F Join proj G h G : X;  \
-\        !!G. [| F Join proj G h G : Y; extend h F Join G : X' |] \
+Goal "[| F : X guarantees[v] Y;  \
+\        !!G. extend h F Join G : X' ==> F Join project h C G : X;  \
+\        !!G. [| F Join project h C G : Y; extend h F Join G : X' |] \
 \             ==> extend h F Join G : Y' |] \
-\     ==> extend h F : X' guarantees Y'";
+\     ==> extend h F : X' guarantees[v o f] Y'";
 by (rtac (xguary RS guaranteesD RS extend RS guaranteesI) 1);
+by (etac project_preserves_I 1);
 by (etac project 1);
 by (assume_tac 1);
 qed "project_guarantees_raw";
 
-Goal "[| F : X guarantees Y;  \
-\        projecting C h F X' X;  extending C h F X' Y' Y |] \
-\     ==> extend h F : X' guarantees Y'";
+Goal "[| F : X guarantees[v] Y;  \
+\        projecting C h F X' X;  extending w C h F Y' Y; \
+\        preserves w <= preserves (v o f) |] \
+\     ==> extend h F : X' guarantees[w] Y'";
 by (rtac guaranteesI 1);
 by (auto_tac (claset(), 
-        simpset() addsimps [guaranteesD, projecting_def, extending_def]));
+        simpset() addsimps [project_preserves_I, guaranteesD, projecting_def,
+			    extending_def]));
 qed "project_guarantees";
+
 
 (*It seems that neither "guarantees" law can be proved from the other.*)
 
 
 (*** guarantees corollaries ***)
 
-(** Most could be deleted: the required versions are easy to prove **)
+(** Some could be deleted: the required versions are easy to prove **)
 
-Goal "F : UNIV guarantees increasing func \
-\     ==> extend h F : X' guarantees increasing (func o f)";
+Goal "F : UNIV guarantees[v] increasing func \
+\     ==> extend h F : X' guarantees[v o f] increasing (func o f)";
 by (etac project_guarantees 1);
 by (rtac extending_increasing 2);
 by (rtac projecting_UNIV 1);
+by Auto_tac;
 qed "extend_guar_increasing";
 
-Goal "F : UNIV guarantees Increasing func \
-\     ==> extend h F : X' guarantees Increasing (func o f)";
+Goal "F : UNIV guarantees[v] Increasing func \
+\     ==> extend h F : X' guarantees[v o f] Increasing (func o f)";
 by (etac project_guarantees 1);
 by (rtac extending_Increasing 2);
 by (rtac projecting_UNIV 1);
 by Auto_tac;
 qed "extend_guar_Increasing";
 
-Goal "F : (v localTo[UNIV] G) guarantees increasing func  \
-\     ==> extend h F : (v o f) localTo[UNIV] (extend h G)  \
-\                      guarantees increasing (func o f)";
-by (etac project_guarantees 1);
-by (rtac extending_increasing 2);
-by (rtac projecting_localTo 1);
-qed "extend_localTo_guar_increasing";
-
-Goal "[| F : (v LocalTo H) guarantees Increasing func;  H <= F |]  \
-\     ==> extend h F : (v o f) LocalTo (extend h H)  \
-\                      guarantees Increasing (func o f)";
-by (etac project_guarantees 1);
-by (rtac extending_Increasing 2);
-by (rtac projecting_LocalTo 1);
-by Auto_tac;
-qed "extend_LocalTo_guar_Increasing";
-
-Goal "F : Always A guarantees Always B \
-\ ==> extend h F : Always(extend_set h A) guarantees Always(extend_set h B)";
+Goal "F : Always A guarantees[v] Always B \
+\     ==> extend h F : Always(extend_set h A) guarantees[v o f] \
+\                      Always(extend_set h B)";
 by (etac project_guarantees 1);
 by (rtac extending_Always 2);
 by (rtac projecting_Always 1);
+by Auto_tac;
 qed "extend_guar_Always";
+
+Goal "[| G : preserves f;  project h C G : transient D |] ==> D={}";
+by (rtac stable_transient_empty 1);
+by (assume_tac 2);
+by (blast_tac (claset() addIs [project_preserves_id_I,
+			 impOfSubs preserves_id_subset_stable]) 1);
+qed "preserves_project_transient_empty";
 
 
 (** Guarantees with a leadsTo postcondition **)
 
-Goalw [LOCALTO_def, transient_def, Diff_def]
-     "[| G : f localTo[C] extend h F;  project h C G : transient D |]    \
-\     ==> F : transient D";
-by Auto_tac;
-by (case_tac "Restrict C act : Restrict C ``extend_act h `` Acts F" 1);
-by Auto_tac; 
-by (rtac bexI 1);
-by (assume_tac 2);
-by (Blast_tac 1);
-by (case_tac "D={}" 1);
-by (Blast_tac 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [stable_def, constrains_def]));
-by (subgoal_tac "ALL z. Restrict C act ^^ {s. f s = z} <= {s. f s = z}" 1);
-by (blast_tac (claset() addSDs [bspec]) 2);
-by (thin_tac "ALL z. ?P z" 1);
-by (subgoal_tac "project_act h (Restrict C act) ^^ D <= D" 1);
-by (Clarify_tac 2);
-by (asm_full_simp_tac (simpset() addsimps [project_act_def]) 2);
-by (force_tac (claset() addSDs [spec, ImageI RSN (2, subsetD)], simpset()) 2);
-by (blast_tac (claset() addSDs [subsetD]) 1);
-qed "localTo_project_transient_transient";
-
 Goal "[| F Join project h UNIV G : A leadsTo B;    \
-\        G : f localTo[UNIV] extend h F |]  \
+\        G : preserves f |]  \
 \     ==> extend h F Join G : (extend_set h A) leadsTo (extend_set h B)";
 by (res_inst_tac [("C1", "UNIV")] (project_leadsTo_lemma RS leadsTo_weaken) 1);
-by (auto_tac (claset(), 
-         simpset() addsimps [localTo_UNIV_imp_localTo RS
-			     localTo_project_transient_transient]));
+by (auto_tac (claset() addDs [preserves_project_transient_empty], 
+	      simpset()));
 qed "project_leadsTo_D";
 
 Goal "[| F Join project h (reachable (extend h F Join G)) G : A LeadsTo B; \
-\         G : f LocalTo extend h F |]  \
+\         G : preserves f |]  \
 \      ==> extend h F Join G : (extend_set h A) LeadsTo (extend_set h B)";
 by (rtac (refl RS Join_project_LeadsTo) 1);
-by (auto_tac (claset(), 
-	      simpset() addsimps [LocalTo_def,
-				  localTo_project_transient_transient]));
+by (auto_tac (claset() addDs [preserves_project_transient_empty], 
+	      simpset()));
 qed "project_LeadsTo_D";
 
 Goalw [extending_def]
-     "extending (%G. UNIV) h F \
-\                (f localTo[UNIV] extend h F) \
-\                (extend_set h A leadsTo extend_set h B) (A leadsTo B)";
-by (blast_tac (claset() addSDs [Join_localTo RS iffD1]
-			addIs [project_leadsTo_D]) 1);
+     "extending f (%G. UNIV) h F \
+\                 (extend_set h A leadsTo extend_set h B) (A leadsTo B)";
+by (blast_tac (claset() addIs [project_leadsTo_D]) 1);
 qed "extending_leadsTo";
 
 Goalw [extending_def]
-     "extending (%G. reachable (extend h F Join G)) h F \
-\               (f LocalTo extend h F) \
-\               (extend_set h A LeadsTo extend_set h B) (A LeadsTo B)";
-by (force_tac (claset() addIs [project_LeadsTo_D],
-	       simpset()addsimps [LocalTo_def, Join_assoc RS sym, 
-				  Join_localTo]) 1);
+     "extending f (%G. reachable (extend h F Join G)) h F \
+\                 (extend_set h A LeadsTo extend_set h B) (A LeadsTo B)";
+by (blast_tac (claset() addIs [project_LeadsTo_D]) 1);
 qed "extending_LeadsTo";
 
 (*STRONG precondition and postcondition*)
-Goal "F : (A co A') guarantees (B leadsTo B')  \
-\ ==> extend h F : ((extend_set h A) co (extend_set h A'))  \
-\                   Int (f localTo[UNIV] (extend h F)) \
-\                  guarantees ((extend_set h B) leadsTo (extend_set h B'))";
+Goal "F : (A co A') guarantees[v] (B leadsTo B')  \
+\ ==> extend h F : (extend_set h A co extend_set h A') \
+\                  guarantees[f] (extend_set h B leadsTo extend_set h B')";
 by (etac project_guarantees 1);
-by (rtac (extending_leadsTo RS extending_weaken) 2);
-by (rtac (projecting_constrains RS projecting_weaken) 1);
-by Auto_tac;
+by (rtac subset_preserves_o 3);
+by (rtac extending_leadsTo 2);
+by (rtac projecting_constrains 1);
 qed "extend_co_guar_leadsTo";
 
 (*WEAK precondition and postcondition*)
-Goal "F : (A Co A') guarantees (B LeadsTo B')  \
-\ ==> extend h F : ((extend_set h A) Co (extend_set h A'))  \
-\                   Int (f LocalTo (extend h F)) \
-\                  guarantees ((extend_set h B) LeadsTo (extend_set h B'))";
+Goal "F : (A Co A') guarantees[v] (B LeadsTo B')  \
+\ ==> extend h F : (extend_set h A Co extend_set h A') \
+\                  guarantees[f] (extend_set h B LeadsTo extend_set h B')";
 by (etac project_guarantees 1);
-by (rtac (extending_LeadsTo RS extending_weaken) 2);
-by (rtac (projecting_Constrains RS projecting_weaken) 1);
-by Auto_tac;
+by (rtac subset_preserves_o 3);
+by (rtac extending_LeadsTo 2);
+by (rtac projecting_Constrains 1);
 qed "extend_Co_guar_LeadsTo";
 
 Close_locale "Extend";

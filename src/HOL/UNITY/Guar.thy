@@ -35,9 +35,11 @@ constdefs
   welldef :: 'a program set  
    "welldef == {F. Init F ~= {}}"
 
-  guar :: ['a program set, 'a program set] => 'a program set
-   (infixl "guarantees" 55)    (*higher than membership, lower than Co*)
-   "X guarantees Y == {F. ALL H. F <= H --> H:X --> H:Y}"
+  guar :: ['a program set, 'a=>'b, 'a program set] => 'a program set
+   ("(_/ guarantees[_]/ _)" [55,0,55] 55)
+                              (*higher than membership, lower than Co*)
+   "X guarantees[v] Y == {F. ALL G. G : preserves v --> F Join G : X -->
+		       F Join G : Y}"
 
   refines :: ['a program, 'a program, 'a program set] => bool
 			("(3_ refines _ wrt _)" [10,10,10] 10)

@@ -159,13 +159,18 @@ qed "project_set_I";
 (*** More laws ***)
 
 (*Because A and B could differ on the "other" part of the state, 
-   cannot generalize result to 
+   cannot generalize to 
       project_set h (A Int B) = project_set h A Int project_set h B
 *)
 Goalw [project_set_def]
      "project_set h ((extend_set h A) Int B) = A Int (project_set h B)";
 by Auto_tac;
 qed "project_set_extend_set_Int";
+
+Goalw [project_set_def]
+     "project_set h (A Int B) <= (project_set h A) Int (project_set h B)";
+by Auto_tac;
+qed "project_set_Int_subset";
 
 Goal "extend_set h (A Un B) = extend_set h A Un extend_set h B";
 by Auto_tac;
@@ -205,6 +210,11 @@ Goalw [extend_act_def]
      "(z, z') : extend_act h act ==> (f z, f z') : act";
 by Auto_tac;
 qed "extend_act_D";
+
+Goalw [extend_act_def, project_act_def, project_set_def]
+     "project_act h (extend_act h act) = act";
+by (Blast_tac 1);
+qed "project_act_extend_act";
 
 Goalw [extend_act_def, project_act_def, project_set_def]
      "project_act h (Restrict C (extend_act h act)) = \
@@ -404,97 +414,6 @@ by (asm_full_simp_tac
     (simpset() addsimps [stable_def, extend_constrains_project_set]) 1);
 qed "extend_stable_project_set";
 
-
-(*** Diff, needed for localTo ***)
-
-Goal "Restrict (extend_set h C) (extend_act h act) = \
-\     extend_act h (Restrict C act)";
-by (auto_tac (claset(), 
-              simpset() addsimps [split_extended_all]));
-by (auto_tac (claset(), 
-              simpset() addsimps [extend_act_def]));
-qed "Restrict_extend_set";
-
-Goalw [Diff_def]
-     "(Diff (extend_set h C) (extend h G) (extend_act h `` acts)) = \
-\     extend h (Diff C G acts)";
-by (rtac program_equalityI 1);
-by (Simp_tac 1);
-by (simp_tac (simpset() addsimps [inj_extend_act RS image_set_diff]) 1);
-by (simp_tac (simpset() addsimps [image_eq_UN,
-				  Restrict_extend_set]) 1);
-qed "Diff_extend_eq";
-
-(*Opposite inclusion fails; this inclusion's more general than that of
-  Diff_extend_eq*)     
-Goal "Diff (project_set h C) G acts \
-\     <= project h C (Diff C (extend h G) (extend_act h `` acts))";
-by (simp_tac
-    (simpset() addsimps [component_eq_subset, Diff_def,image_UN,
-			 image_image, image_Diff_image_eq,
-			 Restrict_extend_act_eq_Restrict_project_act,
-			 vimage_image_eq]) 1);
-by  (blast_tac (claset() addSEs [equalityE])1);
-qed "Diff_project_set_component";
-
-Goal "(Diff (extend_set h C) (extend h G) (extend_act h `` acts) \
-\         : (extend_set h A) co (extend_set h B)) \
-\     = (Diff C G acts : A co B)";
-by (simp_tac (simpset() addsimps [Diff_extend_eq, extend_constrains]) 1);
-qed "Diff_extend_constrains";
-
-Goal "(Diff (extend_set h C) (extend h G) (extend_act h `` acts) \
-\       : stable (extend_set h A)) \
-\     = (Diff C G acts : stable A)";
-by (simp_tac (simpset() addsimps [Diff_extend_constrains, stable_def]) 1);
-qed "Diff_extend_stable";
-
-(*UNUSED!!*)
-Goal "Diff (extend_set h C) (extend h G) (extend_act h `` acts) : A co B \
-\     ==> Diff C G acts : (project_set h A) co (project_set h B)";
-by (asm_full_simp_tac (simpset() addsimps [Diff_extend_eq, 
-					   extend_constrains_project_set]) 1);
-qed "Diff_extend_constrains_project_set";
-
-Goalw [LOCALTO_def]
-     "(extend h F : (v o f) localTo[extend_set h C] extend h H) = \
-\     (F : v localTo[C] H)";
-by (Simp_tac 1);
-(*A trick to strip both quantifiers*)
-by (res_inst_tac [("f", "All")] (ext RS arg_cong) 1);
-by (stac Collect_eq_extend_set 1);
-by (simp_tac (simpset() addsimps [Diff_extend_stable]) 1);
-qed "extend_localTo_extend_eq";
-
-Goal "[| F : v localTo[C] H;  C' <= extend_set h C |] \
-\     ==> extend h F : (v o f) localTo[C'] extend h H";
-by (blast_tac (claset() addDs [extend_localTo_extend_eq RS iffD2,
-			       impOfSubs localTo_anti_mono]) 1);
-qed "extend_localTo_extend_I";
-
-(*USED?? opposite inclusion fails*)
-Goal "Restrict C (extend_act h act) <= \
-\     extend_act h (Restrict (project_set h C) act)";
-by (auto_tac (claset(), 
-              simpset() addsimps [split_extended_all]));
-by (auto_tac (claset(), 
-              simpset() addsimps [extend_act_def, project_set_def]));
-qed "Restrict_extend_set_subset";
-
-
-Goal "(extend_act h `` Acts F) - {Id} = extend_act h `` (Acts F - {Id})";
-by (stac (extend_act_Id RS sym) 1);
-by (simp_tac (simpset() addsimps [inj_extend_act RS image_set_diff]) 1);
-qed "extend_act_image_Id_eq";
-
-Goal "Disjoint C (extend h F) (extend h G) = Disjoint (project_set h C) F G";
-by (simp_tac
-    (simpset() addsimps [Disjoint_def, disjoint_iff_not_equal,
-			 image_Diff_image_eq,
-			 Restrict_extend_act_eq_Restrict_project_act,
-			 extend_act_Id_iff, vimage_def]) 1);
-qed "Disjoint_extend_eq";
-Addsimps [Disjoint_extend_eq];
 
 (*** Weak safety primitives: Co, Stable ***)
 
