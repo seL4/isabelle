@@ -201,11 +201,6 @@ apply(rule ext)
 apply(simp add: map_add_def split:option.split)
 done
 
-lemma map_add_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
-apply(rule ext)
-apply(fastsimp simp:map_add_def split:option.split)
-done
-
 lemma map_add_Some_iff: 
  "((m ++ n) k = Some x) = (n k = Some x | n k = None & m k = Some x)"
 apply (unfold map_add_def)
@@ -339,6 +334,11 @@ done
 lemma dom_overwrite[simp]:
  "dom(f(g|A)) = (dom f  - {a. a : A - dom g}) Un {a. a : A Int dom g}"
 by(auto simp add: dom_def overwrite_def)
+
+lemma map_add_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
+apply(rule ext)
+apply(fastsimp simp:map_add_def split:option.split)
+done
 
 subsection {* ran *}
 
