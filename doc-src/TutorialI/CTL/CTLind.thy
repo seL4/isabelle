@@ -31,10 +31,10 @@ intros "s \<in> Avoid s A"
 
 text{*
 It is easy to see that for any infinite @{term A}-avoiding path @{term f}
-with @{prop"f 0 \<in> Avoid s A"} there is an infinite @{term A}-avoiding path
+with @{prop"f(0::nat) \<in> Avoid s A"} there is an infinite @{term A}-avoiding path
 starting with @{term s} because (by definition of @{term Avoid}) there is a
-finite @{term A}-avoiding path from @{term s} to @{term"f 0"}.
-The proof is by induction on @{prop"f 0 \<in> Avoid s A"}. However,
+finite @{term A}-avoiding path from @{term s} to @{term"f(0::nat)"}.
+The proof is by induction on @{prop"f(0::nat) \<in> Avoid s A"}. However,
 this requires the following
 reformulation, as explained in \S\ref{sec:ind-var-in-prems} above;
 the @{text rule_format} directive undoes the reformulation after the proof.

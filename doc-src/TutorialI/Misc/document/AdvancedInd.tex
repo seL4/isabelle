@@ -81,12 +81,8 @@ induction variable, you should turn the conclusion $C$ into
 Additionally, you may also have to universally quantify some other variables,
 which can yield a fairly complex conclusion.  However, \isa{rule{\isacharunderscore}format} 
 can remove any number of occurrences of \isa{{\isasymforall}} and
-\isa{{\isasymlongrightarrow}}.%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\isamarkupfalse%
-%
-\begin{isamarkuptext}%
+\isa{{\isasymlongrightarrow}}.
+
 \index{induction!on a term}%
 A second reason why your proposition may not be amenable to induction is that
 you want to induct on a complex term, rather than a variable. In
@@ -126,8 +122,9 @@ $C$ on the free variables of $t$ has been made explicit.
 Unfortunately, this induction schema cannot be expressed as a
 single theorem because it depends on the number of free variables in $t$ ---
 the notation $\overline{y}$ is merely an informal device.%
-\end{isamarkuptext}%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+\isamarkupfalse%
 %
 \isamarkupsubsection{Beyond Structural and Recursion Induction%
 }

@@ -70,18 +70,7 @@ Additionally, you may also have to universally quantify some other variables,
 which can yield a fairly complex conclusion.  However, @{text rule_format} 
 can remove any number of occurrences of @{text"\<forall>"} and
 @{text"\<longrightarrow>"}.
-*}
 
-(*<*)
-by auto;
-(*>*)
-(*
-Here is a simple example (which is proved by @{text"blast"}):
-lemma simple[rule_format]:  "\<forall>y. A y \<longrightarrow> B y \<longrightarrow> B y \<and> A y";
-by blast;
-*)
-
-text{*
 \index{induction!on a term}%
 A second reason why your proposition may not be amenable to induction is that
 you want to induct on a complex term, rather than a variable. In
@@ -122,6 +111,7 @@ Unfortunately, this induction schema cannot be expressed as a
 single theorem because it depends on the number of free variables in $t$ ---
 the notation $\overline{y}$ is merely an informal device.
 *}
+(*<*)by auto(*>*)
 
 subsection{*Beyond Structural and Recursion Induction*};
 
