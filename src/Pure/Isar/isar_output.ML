@@ -262,8 +262,8 @@ val break = ref false;
 val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
   ("show_sorts", Library.setmp Syntax.show_sorts o boolean),
-  ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
   ("long_names", Library.setmp NameSpace.long_names o boolean),
+  ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
   ("display", Library.setmp display o boolean),
   ("break", Library.setmp break o boolean),
   ("quotes", Library.setmp quotes o boolean),
@@ -331,14 +331,14 @@ fun output_goals main_goal src state = args (Scan.succeed ()) (output_with (fn _
       handle Toplevel.UNDEF => error "No proof state")))) src state;
 
 val _ = add_commands
- [("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
-  ("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
-  ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
-  ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true))),
+ [("thm", args Attrib.local_thmss (output_seq_with pretty_thm)),
   ("prop", args Args.local_prop (output_with pretty_term)),
   ("term", args Args.local_term (output_with pretty_term)),
   ("typ", args Args.local_typ_no_norm (output_with ProofContext.pretty_typ)),
+  ("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
   ("goals", output_goals true),
-  ("subgoals", output_goals false)];
+  ("subgoals", output_goals false),
+  ("prf", args Attrib.local_thmss (output_with (pretty_prf false))),
+  ("full_prf", args Attrib.local_thmss (output_with (pretty_prf true)))];
 
 end;

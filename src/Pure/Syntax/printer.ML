@@ -111,7 +111,7 @@ fun mark_freevars ((t as Const (c, _)) $ u) =
       else Lexicon.const "_var" $ t
   | mark_freevars a = a;
 
-fun ast_of_term trf show_const_types no_freeTs show_types show_sorts tm =
+fun ast_of_term trf show_all_types no_freeTs show_types show_sorts tm =
   let
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
@@ -142,9 +142,9 @@ fun ast_of_term trf show_const_types no_freeTs show_types show_sorts tm =
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Lexicon.var xi) T) (map ast_of ts)
       | (c' as Const (c, T), ts) =>
-	if show_const_types
-	then Ast.mk_appl (constrain c' T) (map ast_of ts)
-	else trans c T ts
+          if show_all_types
+          then Ast.mk_appl (constrain c' T) (map ast_of ts)
+          else trans c T ts
       | (t, ts) => Ast.mk_appl (simple_ast_of t) (map ast_of ts))
 
     and trans a T args =
@@ -165,8 +165,8 @@ fun ast_of_term trf show_const_types no_freeTs show_types show_sorts tm =
   end;
 
 fun term_to_ast trf tm =
-  ast_of_term trf (! show_all_types) (! show_no_free_types) (! show_types orelse ! show_sorts orelse ! show_all_types)
-    (! show_sorts) tm;
+  ast_of_term trf (! show_all_types) (! show_no_free_types)
+    (! show_types orelse ! show_sorts orelse ! show_all_types) (! show_sorts) tm;
 
 
 
@@ -331,7 +331,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
       in
         (case token_trans a args of     (*try token translation function*)
           Some s_len => [Pretty.raw_str s_len]
-        | None =>			(*try print translation functions*)
+        | None =>                       (*try print translation functions*)
             astT (trans a (trf a) args, p) handle Match => prnt ([], tabs))
       end
 
