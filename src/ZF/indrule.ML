@@ -59,10 +59,12 @@ fun induct_prem ind_alist intr =
   in list_all_free (quantfrees, list_implies (iprems,concl)) end
   handle Bind => error"Recursion term not found in conclusion";
 
-(*Avoids backtracking by delivering the correct premise to each goal*)
+(*Reduces backtracking by delivering the correct premise to each goal.
+  Intro rules with extra Vars in premises still cause some backtracking *)
 fun ind_tac [] 0 = all_tac
-  | ind_tac(prem::prems) i = REPEAT (ares_tac [Part_eqI, prem, refl] i) THEN
-			     ind_tac prems (i-1);
+  | ind_tac(prem::prems) i = 
+    	DEPTH_SOLVE_1 (ares_tac [Part_eqI, prem, refl] i) THEN
+	ind_tac prems (i-1);
 
 val pred = Free(pred_name, iT-->oT);
 
@@ -136,15 +138,22 @@ val cmonos = [subset_refl RS Collect_mono] RL monos RLN (2,[rev_subsetD]);
 (*Avoids backtracking by delivering the correct premise to each goal*)
 fun mutual_ind_tac [] 0 = all_tac
   | mutual_ind_tac(prem::prems) i = 
-      SELECT_GOAL 
-	((*unpackage and use "prem" in the corresponding place*)
-	 REPEAT (FIRSTGOAL
-		    (eresolve_tac ([conjE,mp]@cmonos) ORELSE'
-		     ares_tac [prem,impI,conjI]))
-	 (*prove remaining goals by contradiction*)
-	 THEN rewrite_goals_tac (con_defs@part_rec_defs)
-	 THEN REPEAT (eresolve_tac (PartE :: sumprod_free_SEs) 1))
-	i  THEN mutual_ind_tac prems (i-1);
+      DETERM
+       (SELECT_GOAL 
+	  ((*unpackage and use "prem" in the corresponding place*)
+	   REPEAT (FIRSTGOAL
+		   (etac conjE ORELSE' eq_mp_tac ORELSE' 
+		    ares_tac [impI, conjI]))
+	   (*prem is not allowed in the REPEAT, lest it loop!*)
+	   THEN TRYALL (rtac prem)
+	   THEN REPEAT
+		  (FIRSTGOAL (ares_tac [impI] ORELSE' 
+			      eresolve_tac (mp::cmonos)))
+	   (*prove remaining goals by contradiction*)
+	   THEN rewrite_goals_tac (con_defs@part_rec_defs)
+	   THEN DEPTH_SOLVE (eresolve_tac (PartE :: sumprod_free_SEs) 1))
+	  i)
+       THEN mutual_ind_tac prems (i-1);
 
 val mutual_induct_fsplit = 
     prove_goalw_cterm []
