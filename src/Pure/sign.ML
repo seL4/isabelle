@@ -21,6 +21,7 @@ sig
     syn: Syntax.syntax,
     path: string list,
     spaces: (string * NameSpace.T) list,
+    data: Data.T,
     stamps: string ref list}
   val subsig: sg * sg -> bool
   val eq_sg: sg * sg -> bool
@@ -102,6 +103,10 @@ sig
   val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
   val make_draft: sg -> sg
+  val print_data: sg -> unit
+  val init_data: string * exn * (exn * exn -> exn) * (string -> exn -> Pretty.T) -> sg -> sg
+  val get_data: sg -> string -> exn
+  val put_data: string * exn -> sg -> sg
   val merge: sg * sg -> sg
   val proto_pure: sg
   val pure: sg
@@ -122,10 +127,10 @@ datatype sg =
     syn: Syntax.syntax,                         (*syntax for parsing and printing*)
     path: string list,                     	(*current name space entry prefix*)
     spaces: (string * NameSpace.T) list,   	(*name spaces for consts, types etc.*)
+    data: Data.T,				(*additional data*)
     stamps: string ref list};                   (*unique theory indentifier*)
-
-    (*the "ref" in stamps ensures that no two signatures are identical
-      -- it is impossible to forge a signature*)
+      (*the "ref" in stamps ensures that no two signatures are identical
+        -- it is impossible to forge a signature*)
 
 fun rep_sg (Sg args) = args;
 val tsig_of = #tsig o rep_sg;
@@ -351,7 +356,7 @@ fun print_sg sg =
     fun pretty_const (c, ty) = Pretty.block
       [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ ty];
 
-    val Sg {tsig, const_tab, syn = _, path, spaces, stamps} = sg;
+    val Sg {tsig, const_tab, syn = _, path, spaces, data = _, stamps} = sg;
     val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
@@ -752,12 +757,13 @@ fun ext_stamps stamps name =
     else ref name :: stmps
   end;
 
-fun make_sign (syn, tsig, ctab, (path, spaces)) stamps name =
+fun make_sign (syn, tsig, ctab, (path, spaces)) data stamps name =
   Sg {tsig = tsig, const_tab = ctab, syn = syn, path = path, spaces = spaces,
-    stamps = ext_stamps stamps name};
+    data = data, stamps = ext_stamps stamps name};
 
-fun extend_sign extfun name decls (Sg {tsig, const_tab, syn, path, spaces, stamps}) =
-  make_sign (extfun (syn, tsig, const_tab, (path, spaces)) decls) stamps name;
+fun extend_sign extfun name decls
+    (Sg {tsig, const_tab, syn, path, spaces, data, stamps}) =
+  make_sign (extfun (syn, tsig, const_tab, (path, spaces)) decls) data stamps name;
 
 
 (* the external interfaces *)
@@ -791,6 +797,18 @@ fun add_name name sg = extend_sign K name () sg;
 val make_draft = add_name "#";
 
 
+(* additional signature data *)
+
+fun print_data (Sg {data, ...}) = Data.print data;
+fun get_data (Sg {data, ...}) = Data.get data;
+
+fun map_data f (Sg {tsig, const_tab, syn, path, spaces, data, stamps}) =
+  make_sign (syn, tsig, const_tab, (path, spaces)) (f data) stamps "#";
+
+fun init_data (kind, e, mrg, prt) = map_data (fn d => Data.init d kind e mrg prt);
+fun put_data (kind, e) = map_data (fn d => Data.put d kind e);
+
+
 
 (** merge signatures **)    (*exception TERM*)
 
@@ -805,9 +823,9 @@ fun merge_aux (sg1, sg2) =
     (*neither is union already; must form union*)
     let
       val Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1,
-        path = _, spaces = spaces1, stamps = stamps1} = sg1;
+        path = _, spaces = spaces1, data = data1, stamps = stamps1} = sg1;
       val Sg {tsig = tsig2, const_tab = const_tab2, syn = syn2,
-        path = _, spaces = spaces2, stamps = stamps2} = sg2;
+        path = _, spaces = spaces2, data = data2, stamps = stamps2} = sg2;
 
 
       val stamps = merge_rev_lists stamps1 stamps2;
@@ -830,9 +848,11 @@ fun merge_aux (sg1, sg2) =
         kinds ~~
           ListPair.map NameSpace.merge
             (map (space_of spaces1) kinds, map (space_of spaces2) kinds);
+
+      val data = Data.merge (data1, data2);
     in
       Sg {tsig = tsig, const_tab = const_tab, syn = syn,
-        path = [], spaces = spaces, stamps = stamps}
+        path = [], spaces = spaces, data = data, stamps = stamps}
     end;
 
 fun merge sgs =
@@ -845,7 +865,7 @@ fun merge sgs =
 (** the Pure signature **)
 
 val proto_pure =
-  make_sign (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], [])) [] "#"
+  make_sign (Syntax.pure_syn, Type.tsig0, Symtab.null, ([], [])) Data.empty [] "#"
   |> add_types
    (("fun", 2, NoSyn) ::
     ("prop", 0, NoSyn) ::
