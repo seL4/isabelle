@@ -19,16 +19,8 @@ val hyp = #1 o R.dest_thm;
 
 val list_mk_type = U.end_itlist (curry(op -->));
 
-fun gtake f =
-  let fun grab(0,rst) = ([],rst)
-        | grab(n, x::rst) = 
-             let val (taken,left) = grab(n-1,rst)
-             in (f x::taken, left) end
-  in grab
-  end;
-
-fun enumerate L = 
- rev(#1(U.rev_itlist (fn x => fn (alist,i) => ((x,i)::alist, i+1)) L ([],0)));
+fun enumerate l = 
+     rev(#1(foldl (fn ((alist,i), x) => ((x,i)::alist, i+1)) (([],0), l)));
 
 fun stringize [] = ""
   | stringize [i] = Int.toString i
