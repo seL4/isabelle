@@ -109,10 +109,8 @@ val use_commit = use_mltext "commit();";
 
 (* current working directory *)
 
-fun print_cd _ = writeln (Path.pack (File.pwd ()));
-
-fun cd dir = Toplevel.imperative (fn () => (File.cd (Path.unpack dir); print_cd ()));
-val pwd = Toplevel.imperative print_cd;
+fun cd dir = Toplevel.imperative (fn () => (File.cd (Path.unpack dir)));
+val pwd = Toplevel.imperative (fn () => writeln (Path.pack (File.pwd ())));
 
 
 (* load theory files *)
