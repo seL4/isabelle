@@ -8,10 +8,7 @@ The unit type.
 *)
 
 theory Product_Type = Fun
-files 
-  ("Tools/split_rule.ML")
-  ("Product_Type_lemmas.ML")
-:
+files ("Product_Type_lemmas.ML") ("Tools/split_rule.ML"):
 
 
 (** products **)
@@ -20,13 +17,13 @@ files
 
 constdefs
   Pair_Rep :: "['a, 'b] => ['a, 'b] => bool"
- "Pair_Rep == (%a b. %x y. x=a & y=b)"
+  "Pair_Rep == (%a b. %x y. x=a & y=b)"
 
 global
 
 typedef (Prod)
   ('a, 'b) "*"          (infixr 20)
-    = "{f. ? a b. f = Pair_Rep (a::'a) (b::'b)}"
+    = "{f. EX a b. f = Pair_Rep (a::'a) (b::'b)}"
 proof
   fix a b show "Pair_Rep a b : ?Prod"
     by blast
@@ -80,7 +77,7 @@ syntax (symbols)
   "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
   "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
 
-print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))]; *}
+print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))] *}
 
 
 (* definitions *)
@@ -89,8 +86,8 @@ local
 
 defs
   Pair_def:     "Pair a b == Abs_Prod(Pair_Rep a b)"
-  fst_def:      "fst p == @a. ? b. p = (a, b)"
-  snd_def:      "snd p == @b. ? a. p = (a, b)"
+  fst_def:      "fst p == SOME a. EX b. p = (a, b)"
+  snd_def:      "snd p == SOME b. EX a. p = (a, b)"
   split_def:    "split == (%c p. c (fst p) (snd p))"
   prod_fun_def: "prod_fun f g == split(%x y.(f(x), g(y)))"
   Sigma_def:    "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
@@ -101,7 +98,7 @@ defs
 
 global
 
-typedef  unit = "{True}" 
+typedef unit = "{True}"
 proof
   show "True : ?unit"
     by blast
@@ -115,9 +112,22 @@ local
 defs
   Unity_def:    "() == Abs_unit True"
 
+
+
+(** lemmas and tool setup **)
+
 use "Product_Type_lemmas.ML"
 
+constdefs
+  internal_split :: "('a \<Rightarrow> 'b => 'c) => 'a * 'b => 'c"
+  "internal_split == split"
+
+lemma internal_split_conv: "internal_split c (a, b) = c a b"
+  by (simp only: internal_split_def split_conv)
+
+hide const internal_split
+
 use "Tools/split_rule.ML"
-setup split_attributes
+setup SplitRule.setup
 
 end
