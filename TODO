@@ -6,9 +6,7 @@ For Isabelle2005:
 
 - modular generation of ML code with structures (Stefan)
 
-> Unfortunately when ?s are switched off during building Isabelle this 
-> broke something inside the datatype package (for Isar I think)
-  (Stefan)
+- Library/ExecutableSet.thy (Stefan)
 
 - a global "disprove" menu item both as an action and (if it can be done)
   as a setting (Stefan & Tjark)
