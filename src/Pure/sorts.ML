@@ -21,7 +21,7 @@ sig
   val inter_class: classrel -> class * sort -> sort
   val inter_sort: classrel -> sort * sort -> sort
   val norm_sort: classrel -> sort -> sort
-  val least_sort: classrel -> arities -> typ -> sort
+  val of_sort: classrel -> arities -> typ * sort -> bool
   val mg_domain: classrel -> arities -> string -> sort -> sort list
   val nonempty_sort: classrel -> arities -> sort list -> sort -> bool
 end;
@@ -134,22 +134,6 @@ fun inter_sort classrel = foldr (inter_class classrel);
 
 (** sorts of types **)
 
-(* least_sort *)
-
-fun least_sort classrel arities T =
-  let
-    fun match_dom Ss (c, Ss') =
-      if sorts_le classrel (Ss, Ss') then Some c
-      else None;
-
-    fun leastS (Type (a, Ts)) =
-          norm_sort classrel
-            (mapfilter (match_dom (map leastS Ts)) (assocs arities a))
-      | leastS (TFree (_, S)) = S
-      | leastS (TVar (_, S)) = S
-  in leastS T end;
-
-
 (* mg_domain *)                 (*exception TYPE*)
 
 fun mg_dom arities a c =
@@ -162,6 +146,20 @@ fun mg_domain _ _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
       let val doms = map (mg_dom arities a) S in
         foldl (ListPair.map (inter_sort classrel)) (hd doms, tl doms)
       end;
+
+
+(* of_sort *)
+
+fun of_sort classrel arities =
+  let
+    fun ofS (_, []) = true
+      | ofS (TFree (_, S), S') = sort_le classrel (S, S')
+      | ofS (TVar (_, S), S') = sort_le classrel (S, S')
+      | ofS (Type (a, Ts), S) =
+          let val Ss = mg_domain classrel arities a S in
+            ListPair.all ofS (Ts, Ss)
+          end handle TYPE _ => false;
+  in ofS end;
 
 
 
