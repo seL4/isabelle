@@ -245,8 +245,10 @@ Goal "drop_prog i F = project UNIV (lift_map i) F";
 by (rtac program_equalityI 1);
 by (simp_tac (simpset() addsimps [drop_set_correct]) 1);
 by (simp_tac (simpset() 
-	      addsimps [lift_export Acts_project,
-			drop_act_correct]) 1);
+	      addsimps [Acts_project, drop_act_correct]) 1);
+by (rtac (insert_absorb RS sym) 1);
+by (rtac (Id_in_Acts RSN (2,image_eqI)) 1);
+by (rtac (project_set_UNIV RS lift_export project_act_Id RS sym) 1);
 qed "drop_prog_correct";
 
 
