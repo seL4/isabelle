@@ -5,7 +5,7 @@
     Description : Construction of hyperreals using ultrafilters
 *) 
 
-HyperDef = Filter + RealBin +
+HyperDef = Filter + Real +
 
 consts 
  
@@ -37,8 +37,8 @@ consts
 
 defs
 
-  hypreal_zero_def     "0hr == Abs_hypreal(hyprel^^{%n::nat. 0r})"
-  hypreal_one_def      "1hr == Abs_hypreal(hyprel^^{%n::nat. 1r})"
+  hypreal_zero_def     "0hr == Abs_hypreal(hyprel^^{%n::nat. (#0::real)})"
+  hypreal_one_def      "1hr == Abs_hypreal(hyprel^^{%n::nat. (#1::real)})"
 
   (* an infinite number = [<1,2,3,...>] *)
   omega_def   "whr == Abs_hypreal(hyprel^^{%n::nat. real_of_posnat n})"
@@ -54,19 +54,19 @@ defs
 
 constdefs
 
-  hypreal_of_real  :: real => hypreal                 ("&# _" [80] 80)
+  hypreal_of_real  :: real => hypreal                 
   "hypreal_of_real r         == Abs_hypreal(hyprel^^{%n::nat. r})"
   
   hrinv       :: hypreal => hypreal
   "hrinv(P)   == Abs_hypreal(UN X: Rep_hypreal(P). 
-                    hyprel^^{%n. if X n = 0r then 0r else rinv(X n)})"
+                    hyprel^^{%n. if X n = #0 then #0 else rinv(X n)})"
 
   (* n::nat --> (n+1)::hypreal *)
-  hypreal_of_posnat :: nat => hypreal                ("&&# _" [80] 80)
+  hypreal_of_posnat :: nat => hypreal                
   "hypreal_of_posnat n  == (hypreal_of_real(real_of_preal
                             (preal_of_prat(prat_of_pnat(pnat_of_nat n)))))"
 
-  hypreal_of_nat :: nat => hypreal                   ("&&## _" [80] 80)
+  hypreal_of_nat :: nat => hypreal                   
   "hypreal_of_nat n      == hypreal_of_posnat n + -1hr"
 
 defs 

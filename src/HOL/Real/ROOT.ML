@@ -12,7 +12,3 @@ time_use_thy "RealDef";
 use          "simproc.ML";
 time_use_thy "Real";
 time_use_thy "Hyperreal/HyperDef";
-
-(*FIXME: move to RealBin and eliminate all references to 0r, 1r in 
-  descendant theories*)
-Addsimps [zero_eq_numeral_0, one_eq_numeral_1];

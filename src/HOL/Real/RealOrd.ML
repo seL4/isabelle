@@ -1,7 +1,6 @@
 (*  Title:       HOL/Real/Real.ML
     ID:          $Id$
-    Author:      Lawrence C. Paulson
-                 Jacques D. Fleuriot
+    Author:      Jacques D. Fleuriot and Lawrence C. Paulson
     Copyright:   1998  University of Cambridge
     Description: Type "real" is a linear order
 *)
@@ -434,6 +433,26 @@ qed "real_mult_less_iff2";
 
 Addsimps [real_mult_less_iff1,real_mult_less_iff2];
 
+(* 05/00 *)
+Goalw [real_le_def] "[| 0r<z; x*z<=y*z |] ==> x<=y";
+by (Auto_tac);
+qed "real_mult_le_cancel1";
+
+Goalw [real_le_def] "!!(x::real). [| 0r<z; z*x<=z*y |] ==> x<=y";
+by (Auto_tac);
+qed "real_mult_le_cancel2";
+
+Goalw [real_le_def] "0r < z ==> (x*z <= y*z) = (x <= y)";
+by (Auto_tac);
+qed "real_mult_le_cancel_iff1";
+
+Goalw [real_le_def] "0r < z ==> (z*x <= z*y) = (x <= y)";
+by (Auto_tac);
+qed "real_mult_le_cancel_iff2";
+
+Addsimps [real_mult_le_cancel_iff1,real_mult_le_cancel_iff2];
+
+
 Goal "[| 0r<=z; x<y |] ==> x*z<=y*z";
 by (EVERY1 [rtac real_less_or_eq_imp_le, dtac real_le_imp_less_or_eq]);
 by (auto_tac (claset() addIs [real_mult_less_mono1],simpset()));
@@ -720,6 +739,34 @@ by (rtac (real_mult_left_commute RS subst) 1);
 by (asm_full_simp_tac (simpset() addsimps [real_add_commute]) 1);
 qed "real_rinv_add";
 
+(* 05/00 *)
+Goal "(0r <= -R) = (R <= 0r)";
+by (auto_tac (claset() addDs [sym],
+    simpset() addsimps [real_le_less]));
+qed "real_minus_zero_le_iff";
+
+Goal "(-R <= 0r) = (0r <= R)";
+by (auto_tac (claset(),simpset() addsimps 
+    [real_minus_zero_less_iff2,real_le_less]));
+qed "real_minus_zero_le_iff2";
+
+Goal "-(x*x) <= 0r";
+by (simp_tac (simpset() addsimps [real_minus_zero_le_iff2]) 1);
+qed "real_minus_squre_le_zero";
+Addsimps [real_minus_squre_le_zero];
+
+Goal "x * x + y * y = 0r ==> x = 0r";
+by (dtac real_add_minus_eq_minus 1);
+by (cut_inst_tac [("x","x")] real_le_square 1);
+by (Auto_tac THEN dtac real_le_anti_sym 1);
+by (auto_tac (claset() addDs [real_mult_zero_disj],simpset()));
+qed "real_sum_squares_cancel";
+
+Goal "x * x + y * y = 0r ==> y = 0r";
+by (res_inst_tac [("y","x")] real_sum_squares_cancel 1);
+by (asm_full_simp_tac (simpset() addsimps [real_add_commute]) 1);
+qed "real_sum_squares_cancel2";
+
 (*----------------------------------------------------------------------------
      Another embedding of the naturals in the reals (see real_of_posnat)
  ----------------------------------------------------------------------------*)
@@ -780,3 +827,27 @@ by (auto_tac (claset(),
 	      simpset() addsimps [Suc_diff_le, le_Suc_eq, real_of_nat_Suc, 
 				  real_of_nat_zero] @ real_add_ac));
 qed_spec_mp "real_of_nat_minus";
+
+(* 05/00 *)
+Goal "n2 < n1 ==> real_of_nat (n1 - n2) = \
+\     real_of_nat n1 + -real_of_nat n2";
+by (auto_tac (claset() addIs [real_of_nat_minus],simpset()));
+qed "real_of_nat_minus2";
+
+Goalw [real_diff_def] "n2 < n1 ==> real_of_nat (n1 - n2) = \
+\     real_of_nat n1 - real_of_nat n2";
+by (etac real_of_nat_minus2 1);
+qed "real_of_nat_diff";
+
+Goalw [real_diff_def] "n2 <= n1 ==> real_of_nat (n1 - n2) = \
+\     real_of_nat n1 - real_of_nat n2";
+by (etac real_of_nat_minus 1);
+qed "real_of_nat_diff2";
+
+Goal "(real_of_nat n ~= 0r) = (n ~= 0)";
+by (auto_tac (claset() addIs [inj_real_of_nat RS injD],
+    simpset() addsimps [real_of_nat_zero RS sym] 
+    delsimps [neq0_conv]));
+qed "real_of_nat_not_zero_iff";
+Addsimps [real_of_nat_not_zero_iff];
+

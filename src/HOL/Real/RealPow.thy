@@ -11,7 +11,7 @@ RealPow = RealAbs +
 instance real :: {power}
 
 primrec (realpow)
-     realpow_0   "r ^ 0       = 1r"
+     realpow_0   "r ^ 0       = #1"
      realpow_Suc "r ^ (Suc n) = (r::real) * (r ^ n)"
 
 end

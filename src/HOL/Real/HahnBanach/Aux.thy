@@ -53,58 +53,83 @@ lemma le_max2: "y <= max x (y::'a::linorder)";
 text_raw {* \medskip *};
 text{* Some lemmas for the reals. *};
 
-lemma real_add_minus_eq: "x - y = 0r ==> x = y";
-proof -;
-  assume "x - y = 0r";
-  have "x + - y = 0r"; by (simp!);
-  hence "x = - (- y)"; by (rule real_add_minus_eq_minus);
-  also; have "... = y"; by simp;
-  finally; show "?thesis"; .;
-qed;
+lemma real_add_minus_eq: "x - y = (#0::real) ==> x = y";
+  by simp;
 
-lemma abs_minus_one: "abs (- 1r) = 1r"; 
-proof -; 
-  have "-1r < 0r"; 
-    by (rule real_minus_zero_less_iff[RS iffD1], simp, 
-        rule real_zero_less_one);
-  hence "abs (- 1r) = - (- 1r)"; 
-    by (rule abs_minus_eqI2);
-  also; have "... = 1r"; by simp; 
-  finally; show ?thesis; .;
-qed;
+lemma abs_minus_one: "abs (- (#1::real)) = #1"; 
+  by simp;
 
-lemma real_mult_le_le_mono2: 
-  "[| 0r <= z; x <= y |] ==> x * z <= y * z";
+
+lemma real_mult_le_le_mono1a: 
+  "[| (#0::real) <= z; x <= y |] ==> z * x  <= z * y";
 proof -;
-  assume "0r <= z" "x <= y";
+  assume "(#0::real) <= z" "x <= y";
   hence "x < y | x = y"; by (force simp add: order_le_less);
   thus ?thesis;
   proof (elim disjE); 
-    assume "x < y"; show ?thesis; by (rule real_mult_le_less_mono1);
+   assume "x < y"; show ?thesis; by (rule real_mult_le_less_mono2) simp;
   next; 
-    assume "x = y"; thus ?thesis;; by simp;
+   assume "x = y"; thus ?thesis;; by simp;
+  qed;
+qed;
+
+lemma real_mult_le_le_mono2: 
+  "[| (#0::real) <= z; x <= y |] ==> x * z <= y * z";
+proof -;
+  assume "(#0::real) <= z" "x <= y";
+  hence "x < y | x = y"; by (force simp add: order_le_less);
+  thus ?thesis;
+  proof (elim disjE); 
+   assume "x < y"; show ?thesis; by (rule real_mult_le_less_mono1) simp;
+  next; 
+   assume "x = y"; thus ?thesis;; by simp;
   qed;
 qed;
 
 lemma real_mult_less_le_anti: 
-  "[| z < 0r; x <= y |] ==> z * y <= z * x";
+  "[| z < (#0::real); x <= y |] ==> z * y <= z * x";
 proof -;
-  assume "z < 0r" "x <= y";
-  hence "0r < - z"; by simp;
-  hence "0r <= - z"; by (rule real_less_imp_le);
-  hence "(- z) * x <= (- z) * y"; 
-    by (rule real_mult_le_le_mono1);
-  hence  "- (z * x) <= - (z * y)"; 
-    by (simp only: real_minus_mult_eq1);
-  thus ?thesis; by simp;
+  assume "z < (#0::real)" "x <= y";
+  hence "(#0::real) < - z"; by simp;
+  hence "(#0::real) <= - z"; by (rule real_less_imp_le);
+  hence "x * (- z) <= y * (- z)"; 
+    by (rule real_mult_le_le_mono2);
+  hence  "- (x * z) <= - (y * z)"; 
+    by (simp only: real_minus_mult_eq2);
+  thus ?thesis; by (simp only: real_mult_commute);
 qed;
 
 lemma real_mult_less_le_mono: 
-  "[| 0r < z; x <= y |] ==> z * x <= z * y";
+  "[| (#0::real) < z; x <= y |] ==> z * x <= z * y";
 proof -; 
-  assume "0r < z" "x <= y";
-  have "0r <= z"; by (rule real_less_imp_le);
-  thus ?thesis; by (rule real_mult_le_le_mono1); 
+  assume "(#0::real) < z" "x <= y";
+  have "(#0::real) <= z"; by (rule real_less_imp_le);
+  hence "x * z <= y * z"; 
+    by (rule real_mult_le_le_mono2);
+  thus ?thesis; by (simp only: real_mult_commute);
+qed;
+
+lemma real_rinv_gt_zero1: "#0 < x ==> #0 < rinv x";
+proof -; 
+  assume "#0 < x";
+  have "0r < x"; by simp;
+  hence "0r < rinv x"; by (rule real_rinv_gt_zero);
+  thus ?thesis; by simp;
+qed;
+
+lemma real_mult_inv_right1: "x ~= #0 ==> x*rinv(x) = #1";
+   by simp;
+
+lemma real_mult_inv_left1: "x ~= #0 ==> rinv(x)*x = #1";
+   by simp;
+
+lemma real_le_mult_order1a: 
+      "[| (#0::real) <= x; #0 <= y |] ==> #0 <= x * y";
+proof -;
+  assume "#0 <= x" "#0 <= y";
+    have "[|0r <= x; 0r <= y|] ==> 0r <= x * y";  
+      by (rule real_le_mult_order);
+    thus ?thesis; by (simp!);
 qed;
 
 lemma real_mult_diff_distrib: 

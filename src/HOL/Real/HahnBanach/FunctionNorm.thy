@@ -66,7 +66,7 @@ Thus we define the set $B$ the supremum is taken from as
 constdefs
   B :: "[ 'a set, 'a => real, 'a => real ] => real set"
   "B V norm f == 
-  {0r} \Un {abs (f x) * rinv (norm x) | x. x ~= 00 & x:V}";
+  {(#0::real)} \Un {abs (f x) * rinv (norm x) | x. x ~= 00 & x:V}";
 
 text{* $n$ is the function norm of $f$, iff 
 $n$ is the supremum of $B$. 
@@ -84,7 +84,7 @@ constdefs
   function_norm :: " ['a set, 'a => real, 'a => real] => real"
   "function_norm V norm f == Sup UNIV (B V norm f)";
 
-lemma B_not_empty: "0r : B V norm f";
+lemma B_not_empty: "(#0::real) : B V norm f";
   by (unfold B_def, force);
 
 text {* The following lemma states that every continuous linear form
@@ -110,7 +110,7 @@ proof (unfold function_norm_def is_function_norm_def
 
     show "EX X. X : B V norm f"; 
     proof (intro exI);
-      show "0r : (B V norm f)"; by (unfold B_def, force);
+      show "(#0::real) : (B V norm f)"; by (unfold B_def, force);
     qed;
 
     txt {* Then we have to show that $B$ is bounded: *};
@@ -121,7 +121,7 @@ proof (unfold function_norm_def is_function_norm_def
       txt {* We know that $f$ is bounded by some value $c$. *};  
   
       fix c; assume a: "ALL x:V. abs (f x) <= c * norm x";
-      def b == "max c 0r";
+      def b == "max c (#0::real)";
 
       show "?thesis";
       proof (intro exI isUbI setleI ballI, unfold B_def, 
@@ -132,7 +132,7 @@ proof (unfold function_norm_def is_function_norm_def
         Due to the definition of $B$ there are two cases for
         $y\in B$. If $y = 0$ then $y \leq idt{max}\ap c\ap 0$: *};
 
-	fix y; assume "y = 0r";
+	fix y; assume "y = (#0::real)";
         show "y <= b"; by (simp! add: le_max2);
 
         txt{* The second case is 
@@ -143,22 +143,22 @@ proof (unfold function_norm_def is_function_norm_def
 	fix x y;
         assume "x:V" "x ~= 00"; (***
 
-         have ge: "0r <= rinv (norm x)";
+         have ge: "(#0::real) <= rinv (norm x)";
           by (rule real_less_imp_le, rule real_rinv_gt_zero, 
                 rule normed_vs_norm_gt_zero); (***
           proof (rule real_less_imp_le);
-            show "0r < rinv (norm x)";
+            show "(#0::real) < rinv (norm x)";
             proof (rule real_rinv_gt_zero);
-              show "0r < norm x"; ..;
+              show "(#0::real) < norm x"; ..;
             qed;
           qed; ***)
-        have nz: "norm x ~= 0r"; 
+        have nz: "norm x ~= (#0::real)"; 
           by (rule not_sym, rule lt_imp_not_eq, 
               rule normed_vs_norm_gt_zero); (***
           proof (rule not_sym);
-            show "0r ~= norm x"; 
+            show "(#0::real) ~= norm x"; 
             proof (rule lt_imp_not_eq);
-              show "0r < norm x"; ..;
+              show "(#0::real) < norm x"; ..;
             qed;
           qed; ***)***)
 
@@ -168,16 +168,16 @@ proof (unfold function_norm_def is_function_norm_def
         assume "y = abs (f x) * rinv (norm x)";
         also; have "... <= c * norm x * rinv (norm x)";
         proof (rule real_mult_le_le_mono2);
-          show "0r <= rinv (norm x)";
-            by (rule real_less_imp_le, rule real_rinv_gt_zero, 
+          show "(#0::real) <= rinv (norm x)";
+            by (rule real_less_imp_le, rule real_rinv_gt_zero1, 
                 rule normed_vs_norm_gt_zero);
           from a; show "abs (f x) <= c * norm x"; ..;
         qed;
         also; have "... = c * (norm x * rinv (norm x))"; 
           by (rule real_mult_assoc);
-        also; have "(norm x * rinv (norm x)) = 1r"; 
-        proof (rule real_mult_inv_right);
-          show nz: "norm x ~= 0r"; 
+        also; have "(norm x * rinv (norm x)) = (#1::real)"; 
+        proof (rule real_mult_inv_right1);
+          show nz: "norm x ~= (#0::real)"; 
             by (rule not_sym, rule lt_imp_not_eq, 
               rule normed_vs_norm_gt_zero);
         qed;
@@ -192,7 +192,7 @@ text {* The norm of a continuous function is always $\geq 0$. *};
 
 lemma fnorm_ge_zero [intro??]: 
   "[| is_continuous V norm f; is_normed_vectorspace V norm|]
-   ==> 0r <= function_norm V norm f";
+   ==> (#0::real) <= function_norm V norm f";
 proof -;
   assume c: "is_continuous V norm f" 
      and n: "is_normed_vectorspace V norm";
@@ -203,24 +203,24 @@ proof -;
 
   show ?thesis; 
   proof (unfold function_norm_def, rule sup_ub1);
-    show "ALL x:(B V norm f). 0r <= x"; 
+    show "ALL x:(B V norm f). (#0::real) <= x"; 
     proof (intro ballI, unfold B_def,
            elim UnE singletonE CollectE exE conjE); 
       fix x r;
       assume "x : V" "x ~= 00" 
         and r: "r = abs (f x) * rinv (norm x)";
 
-      have ge: "0r <= abs (f x)"; by (simp! only: abs_ge_zero);
-      have "0r <= rinv (norm x)"; 
-        by (rule real_less_imp_le, rule real_rinv_gt_zero, rule);(***
+      have ge: "(#0::real) <= abs (f x)"; by (simp! only: abs_ge_zero);
+      have "(#0::real) <= rinv (norm x)"; 
+        by (rule real_less_imp_le, rule real_rinv_gt_zero1, rule);(***
         proof (rule real_less_imp_le);
-          show "0r < rinv (norm x)"; 
+          show "(#0::real) < rinv (norm x)"; 
           proof (rule real_rinv_gt_zero);
-            show "0r < norm x"; ..;
+            show "(#0::real) < norm x"; ..;
           qed;
         qed; ***)
-      with ge; show "0r <= r";
-       by (simp only: r, rule real_le_mult_order);
+      with ge; show "(#0::real) <= r";
+       by (simp only: r, rule real_le_mult_order1a);
     qed (simp!);
 
     txt {* Since $f$ is continuous the function norm exists: *};
@@ -231,7 +231,7 @@ proof -;
 
     txt {* $B$ is non-empty by construction: *};
 
-    show "0r : B V norm f"; by (rule B_not_empty);
+    show "(#0::real) : B V norm f"; by (rule B_not_empty);
   qed;
 qed;
   
@@ -261,22 +261,22 @@ proof -;
 
     assume "x = 00";
     have "abs (f x) = abs (f 00)"; by (simp!);
-    also; from v continuous_linearform; have "f 00 = 0r"; ..;
+    also; from v continuous_linearform; have "f 00 = (#0::real)"; ..;
     also; note abs_zero;
-    also; have "0r <= function_norm V norm f * norm x";
-    proof (rule real_le_mult_order);
-      show "0r <= function_norm V norm f"; ..;
-      show "0r <= norm x"; ..;
+    also; have "(#0::real) <= function_norm V norm f * norm x";
+    proof (rule real_le_mult_order1a);
+      show "(#0::real) <= function_norm V norm f"; ..;
+      show "(#0::real) <= norm x"; ..;
     qed;
     finally; 
     show "abs (f x) <= function_norm V norm f * norm x"; .;
 
   next;
     assume "x ~= 00";
-    have n: "0r <= norm x"; ..;
-    have nz: "norm x ~= 0r";
+    have n: "(#0::real) <= norm x"; ..;
+    have nz: "norm x ~= (#0::real)";
     proof (rule lt_imp_not_eq [RS not_sym]);
-      show "0r < norm x"; ..;
+      show "(#0::real) < norm x"; ..;
     qed;
 
     txt {* For the case $x\neq \zero$ we derive the following
@@ -294,9 +294,9 @@ proof -;
 
     txt {* The thesis now follows by a short calculation: *};
 
-    have "abs (f x) = abs (f x) * 1r"; by (simp!);
-    also; from nz; have "1r = rinv (norm x) * norm x"; 
-      by (rule real_mult_inv_left [RS sym]);
+    have "abs (f x) = abs (f x) * (#1::real)"; by (simp!);
+    also; from nz; have "(#1::real) = rinv (norm x) * norm x"; 
+      by (rule real_mult_inv_left1 [RS sym]);
     also; 
     have "abs (f x) * ... = abs (f x) * rinv (norm x) * norm x";
       by (simp! add: real_mult_assoc [of "abs (f x)"]);
@@ -316,13 +316,13 @@ which the following inequation holds:
 
 lemma fnorm_le_ub: 
   "[| is_normed_vectorspace V norm; is_continuous V norm f;
-     ALL x:V. abs (f x) <= c * norm x; 0r <= c |]
+     ALL x:V. abs (f x) <= c * norm x; (#0::real) <= c |]
   ==> function_norm V norm f <= c";
 proof (unfold function_norm_def);
   assume "is_normed_vectorspace V norm"; 
   assume c: "is_continuous V norm f";
   assume fb: "ALL x:V. abs (f x) <= c * norm x"
-         and "0r <= c";
+         and "(#0::real) <= c";
 
   txt {* Suppose the inequation holds for some $c\geq 0$.
   If $c$ is an upper bound of $B$, then $c$ is greater 
@@ -347,7 +347,7 @@ proof (unfold function_norm_def);
 
        txt {* The first case for $y\in B$ is $y=0$. *};
 
-        assume "y = 0r";
+        assume "y = (#0::real)";
         show "y <= c"; by (force!);
 
         txt{* The second case is 
@@ -358,18 +358,18 @@ proof (unfold function_norm_def);
 	fix x; 
         assume "x : V" "x ~= 00"; 
 
-        have lz: "0r < norm x"; 
+        have lz: "(#0::real) < norm x"; 
           by (simp! add: normed_vs_norm_gt_zero);
           
-        have nz: "norm x ~= 0r"; 
+        have nz: "norm x ~= (#0::real)"; 
         proof (rule not_sym);
-          from lz; show "0r ~= norm x";
+          from lz; show "(#0::real) ~= norm x";
             by (simp! add: order_less_imp_not_eq);
         qed;
             
-	from lz; have "0r < rinv (norm x)";
-	  by (simp! add: real_rinv_gt_zero);
-	hence rinv_gez: "0r <= rinv (norm x)";
+	from lz; have "(#0::real) < rinv (norm x)";
+	  by (simp! add: real_rinv_gt_zero1);
+	hence rinv_gez: "(#0::real) <= rinv (norm x)";
           by (rule real_less_imp_le);
 
 	assume "y = abs (f x) * rinv (norm x)"; 

@@ -29,7 +29,7 @@ abbreviations: *};
 (***
 constdefs 
   negate :: "'a => 'a"                           ("- _" [100] 100)
-  "- x == (- 1r) ( * ) x"
+  "- x == (- (#1::real)) ( * ) x"
   diff :: "'a => 'a => 'a"                       (infixl "-" 68)
   "x - y == x + - y";
 ***)
@@ -59,8 +59,8 @@ constdefs
       & a (*) (x + y) = a (*) x + a (*) y       
       & (a + b) (*) x = a (*) x + b (*) x         
       & (a * b) (*) x = a (*) b (*) x               
-      & 1r (*) x = x
-      & - x = (- 1r) (*) x
+      & (#1::real) (*) x = x
+      & - x = (- (#1::real)) (*) x
       & x - y = x + - y)";                             
 
 text_raw {* \medskip *};
@@ -77,8 +77,8 @@ lemma vsI [intro]:
   ALL x:V. ALL y:V. ALL a. a (*) (x + y) = a (*) x + a (*) y;
   ALL x:V. ALL a b. (a + b) (*) x = a (*) x + b (*) x;
   ALL x:V. ALL a b. (a * b) (*) x = a (*) b (*) x; 
-  ALL x:V. 1r (*) x = x; 
-  ALL x:V. - x = (- 1r) (*) x; 
+  ALL x:V. (#1::real) (*) x = x; 
+  ALL x:V. - x = (- (#1::real)) (*) x; 
   ALL x:V. ALL y:V. x - y = x + - y |] ==> is_vectorspace V";
 proof (unfold is_vectorspace_def, intro conjI ballI allI);
   fix x y z; 
@@ -91,7 +91,7 @@ text_raw {* \medskip *};
 text {* The corresponding destruction rules are: *};
 
 lemma negate_eq1: 
-  "[| is_vectorspace V; x:V |] ==> - x = (- 1r) (*) x";
+  "[| is_vectorspace V; x:V |] ==> - x = (- (#1::real)) (*) x";
   by (unfold is_vectorspace_def) simp;
 
 lemma diff_eq1: 
@@ -99,7 +99,11 @@ lemma diff_eq1:
   by (unfold is_vectorspace_def) simp; 
 
 lemma negate_eq2: 
-  "[| is_vectorspace V; x:V |] ==> (- 1r) (*) x = - x";
+  "[| is_vectorspace V; x:V |] ==> (- (#1::real)) (*) x = - x";
+  by (unfold is_vectorspace_def) simp;
+
+lemma negate_eq2a: 
+  "[| is_vectorspace V; x:V |] ==> ((#-1::real)) (*) x = - x";
   by (unfold is_vectorspace_def) simp;
 
 lemma diff_eq2: 
@@ -201,7 +205,7 @@ lemma vs_mult_assoc2 [simp]:
   by (simp only: vs_mult_assoc);
 
 lemma vs_mult_1 [simp]: 
-  "[| is_vectorspace V; x:V |] ==> 1r (*) x = x"; 
+  "[| is_vectorspace V; x:V |] ==> (#1::real) (*) x = x"; 
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_diff_mult_distrib1: 
@@ -230,15 +234,15 @@ text_raw {* \medskip *};
 text{* Further derived laws: *};
 
 lemma vs_mult_zero_left [simp]: 
-  "[| is_vectorspace V; x:V |] ==> 0r (*) x = 00";
+  "[| is_vectorspace V; x:V |] ==> (#0::real) (*) x = 00";
 proof -;
   assume "is_vectorspace V" "x:V";
-  have  "0r (*) x = (1r - 1r) (*) x"; by (simp only: real_diff_self);
-  also; have "... = (1r + - 1r) (*) x"; by simp;
-  also; have "... =  1r (*) x + (- 1r) (*) x"; 
+  have  "(#0::real) (*) x = ((#1::real) - (#1::real)) (*) x"; by simp;
+  also; have "... = ((#1::real) + - (#1::real)) (*) x"; by simp;
+  also; have "... =  (#1::real) (*) x + (- (#1::real)) (*) x"; 
     by (rule vs_add_mult_distrib2);
-  also; have "... = x + (- 1r) (*) x"; by (simp!);
-  also; have "... = x + - x"; by (simp! add: negate_eq2);;
+  also; have "... = x + (- (#1::real)) (*) x"; by (simp!);
+  also; have "... = x + - x"; by (simp! add: negate_eq2a);;
   also; have "... = x - x"; by (simp! add: diff_eq2);
   also; have "... = 00"; by (simp!);
   finally; show ?thesis; .;
@@ -354,25 +358,25 @@ lemma vs_mult_left_commute:
   by (simp add: real_mult_commute);
 
 lemma vs_mult_zero_uniq :
-  "[| is_vectorspace V; x:V; a (*) x = 00; x ~= 00 |] ==> a = 0r";
+  "[| is_vectorspace V; x:V; a (*) x = 00; x ~= 00 |] ==> a = (#0::real)";
 proof (rule classical);
   assume "is_vectorspace V" "x:V" "a (*) x = 00" "x ~= 00";
-  assume "a ~= 0r";
+  assume "a ~= (#0::real)";
   have "x = (rinv a * a) (*) x"; by (simp!);
   also; have "... = rinv a (*) (a (*) x)"; by (rule vs_mult_assoc);
   also; have "... = rinv a (*) 00"; by (simp!);
   also; have "... = 00"; by (simp!);
   finally; have "x = 00"; .;
-  thus "a = 0r"; by contradiction; 
+  thus "a = (#0::real)"; by contradiction; 
 qed;
 
 lemma vs_mult_left_cancel: 
-  "[| is_vectorspace V; x:V; y:V; a ~= 0r |] ==> 
+  "[| is_vectorspace V; x:V; y:V; a ~= (#0::real) |] ==> 
   (a (*) x = a (*) y) = (x = y)"
   (concl is "?L = ?R");
 proof;
-  assume "is_vectorspace V" "x:V" "y:V" "a ~= 0r";
-  have "x = 1r (*) x"; by (simp!);
+  assume "is_vectorspace V" "x:V" "y:V" "a ~= (#0::real)";
+  have "x = (#1::real) (*) x"; by (simp!);
   also; have "... = (rinv a * a) (*) x"; by (simp!);
   also; have "... = rinv a (*) (a (*) x)"; 
     by (simp! only: vs_mult_assoc);
@@ -390,7 +394,7 @@ proof;
     by (simp! add: vs_diff_mult_distrib2);
   also; assume ?L; hence "a (*) x - b (*) x = 00"; by (simp!);
   finally; have "(a - b) (*) x = 00"; .; 
-  hence "a - b = 0r"; by (simp! add: vs_mult_zero_uniq);
+  hence "a - b = (#0::real)"; by (simp! add: vs_mult_zero_uniq);
   thus "a = b"; by (rule real_add_minus_eq);
 qed simp; (*** 
 
@@ -404,7 +408,7 @@ proof;
   assume l: ?L; 
   show "a = b"; 
   proof (rule real_add_minus_eq);
-    show "a - b = 0r"; 
+    show "a - b = (#0::real)"; 
     proof (rule vs_mult_zero_uniq);
       have "(a - b) ( * ) x = a ( * ) x - b ( * ) x";
         by (simp! add: vs_diff_mult_distrib2);

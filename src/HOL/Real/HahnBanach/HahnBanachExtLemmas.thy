@@ -275,14 +275,14 @@ proof;
     also; have "... <= p (y + a (*) x0)";
     proof (rule linorder_linear_split); 
 
-      assume z: "a = 0r"; 
+      assume z: "a = (#0::real)"; 
       with vs y a; show ?thesis; by simp;
 
     txt {* In the case $a < 0$, we use $a_1$ with $\idt{ya}$ 
     taken as $y/a$: *};
 
     next;
-      assume lz: "a < 0r"; hence nz: "a ~= 0r"; by simp;
+      assume lz: "a < #0"; hence nz: "a ~= #0"; by simp;
       from a1; 
       have "- p (rinv a (*) y + x0) - h (rinv a (*) y) <= xi";
         by (rule bspec) (simp!);
@@ -312,7 +312,7 @@ proof;
       taken as $y/a$: *};
 
     next; 
-      assume gz: "0r < a"; hence nz: "a ~= 0r"; by simp;
+      assume gz: "#0 < a"; hence nz: "a ~= #0"; by simp;
       from a2;
       have "xi <= p (rinv a (*) y + x0) - h (rinv a (*) y)";
         by (rule bspec) (simp!);

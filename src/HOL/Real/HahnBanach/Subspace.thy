@@ -87,7 +87,7 @@ proof -;
     show "00 : U"; ..;
     show "ALL x:U. ALL a. a (*) x : U"; by (simp!);
     show "ALL x:U. ALL y:U. x + y : U"; by (simp!);
-    show "ALL x:U. - x = -1r (*) x"; by (simp! add: negate_eq1);
+    show "ALL x:U. - x = -#1 (*) x"; by (simp! add: negate_eq1);
     show "ALL x:U. ALL y:U. x - y =  x + - y"; 
       by (simp! add: diff_eq1);
   qed (simp! add: vs_add_mult_distrib1 vs_add_mult_distrib2)+;
@@ -152,7 +152,7 @@ text {* Every vector is contained in its linear closure. *};
 lemma x_lin_x: "[| is_vectorspace V; x:V |] ==> x : lin x";
 proof (unfold lin_def, intro CollectI exI conjI);
   assume "is_vectorspace V" "x:V";
-  show "x = 1r (*) x"; by (simp!);
+  show "x = #1 (*) x"; by (simp!);
 qed simp;
 
 text {* Any linear closure is a subspace. *};
@@ -163,7 +163,7 @@ proof;
   assume "is_vectorspace V" "x:V";
   show "00 : lin x"; 
   proof (unfold lin_def, intro CollectI exI conjI);
-    show "00 = 0r (*) x"; by (simp!);
+    show "00 = (#0::real) (*) x"; by (simp!);
   qed simp;
 
   show "lin x <= V";
@@ -379,9 +379,9 @@ proof;
           fix a; assume "x = a (*) x0";
           show ?thesis;
           proof cases;
-            assume "a = 0r"; show ?thesis; by (simp!);
+            assume "a = (#0::real)"; show ?thesis; by (simp!);
           next;
-            assume "a ~= 0r"; 
+            assume "a ~= (#0::real)"; 
             from h; have "rinv a (*) a (*) x0 : H"; 
               by (rule subspace_mult_closed) (simp!);
             also; have "rinv a (*) a (*) x0 = x0"; by (simp!);
@@ -419,15 +419,15 @@ $a = 0$.*};
 lemma decomp_H0_H: 
   "[| is_vectorspace E; is_subspace H E; t:H; x0 ~: H; x0:E;
   x0 ~= 00 |] 
-  ==> (SOME (y, a). t = y + a (*) x0 & y : H) = (t, 0r)";
+  ==> (SOME (y, a). t = y + a (*) x0 & y : H) = (t, (#0::real))";
 proof (rule, unfold split_paired_all);
   assume "is_vectorspace E" "is_subspace H E" "t:H" "x0 ~: H" "x0:E"
     "x0 ~= 00";
   have h: "is_vectorspace H"; ..;
   fix y a; presume t1: "t = y + a (*) x0" and "y:H";
-  have "y = t & a = 0r"; 
+  have "y = t & a = (#0::real)"; 
     by (rule decomp_H0) (assumption | (simp!))+;
-  thus "(y, a) = (t, 0r)"; by (simp!);
+  thus "(y, a) = (t, (#0::real))"; by (simp!);
 qed (simp!)+;
 
 text {* The components $y\in H$ and $a$ in $y \plus a \mult x_0$ 

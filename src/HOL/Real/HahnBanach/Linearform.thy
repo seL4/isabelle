@@ -35,8 +35,8 @@ lemma linearform_neg [intro??]:
   ==> f (- x) = - f x";
 proof -; 
   assume "is_linearform V f" "is_vectorspace V" "x:V"; 
-  have "f (- x) = f ((- 1r) (*) x)"; by (simp! add: negate_eq1);
-  also; have "... = (- 1r) * (f x)"; by (rule linearform_mult);
+  have "f (- x) = f ((- (#1::real)) (*) x)"; by (simp! add: negate_eq1);
+  also; have "... = (- #1) * (f x)"; by (rule linearform_mult);
   also; have "... = - (f x)"; by (simp!);
   finally; show ?thesis; .;
 qed;
@@ -56,14 +56,14 @@ qed;
 text{* Every linear form yields $0$ for the $\zero$ vector.*};
 
 lemma linearform_zero [intro??, simp]: 
-  "[| is_vectorspace V; is_linearform V f |] ==> f 00 = 0r"; 
+  "[| is_vectorspace V; is_linearform V f |] ==> f 00 = (#0::real)"; 
 proof -; 
   assume "is_vectorspace V" "is_linearform V f";
   have "f 00 = f (00 - 00)"; by (simp!);
   also; have "... = f 00 - f 00"; 
     by (rule linearform_diff) (simp!)+;
-  also; have "... = 0r"; by simp;
-  finally; show "f 00 = 0r"; .;
+  also; have "... = (#0::real)"; by simp;
+  finally; show "f 00 = (#0::real)"; .;
 qed; 
 
 end;

@@ -109,23 +109,6 @@ qed "le_real_number_of_eq_not_less";
 
 Addsimps [le_real_number_of_eq_not_less];
 
-
-(** abs (absolute value) **)
-
-Goalw [abs_real_def]
-     "abs (number_of v :: real) = \
-\       (if neg (number_of v) then number_of (bin_minus v) \
-\        else number_of v)";
-by (simp_tac
-    (simpset_of Int.thy addsimps
-      bin_arith_simps@
-      [minus_real_number_of, zero_eq_numeral_0, le_real_number_of_eq_not_less,
-       less_real_number_of, real_of_int_le_iff]) 1);
-qed "abs_nat_number_of";
-
-Addsimps [abs_nat_number_of];
-
-
 (*** New versions of existing theorems involving 0r, 1r ***)
 
 Goal "- #1 = (#-1::real)";
@@ -209,11 +192,12 @@ val fast_real_arith_simproc = mk_simproc
 in
 Addsimprocs [fast_real_arith_simproc]
 end;
+ 
 
-Goalw [abs_real_def]
-  "P(abs (x::real)) = ((#0 <= x --> P x) & (x < #0 --> P(-x)))";
-by(auto_tac (claset(), simpset() addsimps [zero_eq_numeral_0]));
-qed "abs_split";
+Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
 
-arith_tac_split_thms := !arith_tac_split_thms @ [abs_split];
+(* added by jdf *)
+fun full_rename_numerals thy th = 
+    asm_full_simplify real_numeral_ss (change_theory thy th);
+
 

@@ -206,7 +206,7 @@ txt {* Show that $h_0$ is an extension of $h$  *};
                   proof (rule graph_extI);
 		    fix t; assume "t:H"; 
 		    have "(SOME (y, a). t = y + a (*) x0 & y : H)
-                         = (t,0r)";
+                         = (t,#0)";
 		      by (rule decomp_H0_H [OF _ _ _ _ _ x0]);
 		    thus "h t = h0 t"; by (simp! add: Let_def);
 		  next;
@@ -261,11 +261,11 @@ txt {* and $h_0$ is norm-preserving.  *};
 		  proof (rule graph_extI);
 		    fix x; assume "x:F";
 		    have "f x = h x"; ..;
-		    also; have " ... = h x + 0r * xi"; by simp;
-		    also; have "... = (let (y,a) = (x, 0r) in h y + a * xi)";
+		    also; have " ... = h x + #0 * xi"; by simp;
+		    also; have "... = (let (y,a) = (x, #0) in h y + a * xi)";
 		      by (simp add: Let_def);
 		    also; have 
-		      "(x, 0r) = (SOME (y, a). x = y + a (*) x0 & y : H)";
+		      "(x, #0) = (SOME (y, a). x = y + a (*) x0 & y : H)";
 		      by (rule decomp_H0_H [RS sym, OF _ _ _ _ _ x0]) (simp!)+;
 		    also; have 
 		      "(let (y,a) = (SOME (y,a). x = y + a (*) x0 & y : H)
@@ -480,7 +480,7 @@ txt {* Assume that the domain of the supremum is not $E$, *};
       have  "graph H h <= graph H0 h0"; 
       proof (rule graph_extI);
         fix t; assume "t:H"; 
-        have "(SOME (y, a). t = y + a ( * ) x0 & y : H) = (t,0r)";
+        have "(SOME (y, a). t = y + a ( * ) x0 & y : H) = (t,#0)";
           by (rule decomp_H0_H, rule x0); 
         thus "h t = h0 t"; by (simp! add: Let_def);
       next;
@@ -541,11 +541,11 @@ txt {* Assume that the domain of the supremum is not $E$, *};
         proof (rule graph_extI);
           fix x; assume "x:F";
           have "f x = h x"; ..;
-          also; have " ... = h x + 0r * xi"; by simp;
-          also; have "... = (let (y,a) = (x, 0r) in h y + a * xi)";
+          also; have " ... = h x + #0 * xi"; by simp;
+          also; have "... = (let (y,a) = (x, #0) in h y + a * xi)";
             by (simp add: Let_def);
           also; have 
-            "(x, 0r) = (SOME (y, a). x = y + a ( * ) x0 & y : H)";
+            "(x, #0) = (SOME (y, a). x = y + a ( * ) x0 & y : H)";
             by (rule decomp_H0_H [RS sym], rule x0) (simp!)+;
           also; have 
             "(let (y,a) = (SOME (y,a). x = y + a ( * ) x0 & y : H)
@@ -664,10 +664,10 @@ proof -;
 
     txt{* $p$ is positive definite: *};
 
-    show "0r <= p x";
-    proof (unfold p_def, rule real_le_mult_order);
-      from _ f_norm; show "0r <= function_norm F norm f"; ..;
-      show "0r <= norm x"; ..;
+    show "#0 <= p x";
+    proof (unfold p_def, rule real_le_mult_order1a);
+      from _ f_norm; show "#0 <= function_norm F norm f"; ..;
+      show "#0 <= norm x"; ..;
     qed;
 
     txt{* $p$ is absolutely homogenous: *};
@@ -693,8 +693,8 @@ proof -;
         by (simp!);
       also; 
       have "... <= function_norm F norm f * (norm x + norm y)";
-      proof (rule real_mult_le_le_mono1);
-        from _ f_norm; show "0r <= function_norm F norm f"; ..;
+      proof (rule real_mult_le_le_mono1a);
+        from _ f_norm; show "#0 <= function_norm F norm f"; ..;
         show "norm (x + y) <= norm x + norm y"; ..;
       qed;
       also; have "... = function_norm F norm f * norm x 
@@ -774,7 +774,7 @@ proof -;
 
         with _ g_cont; show "?L <= ?R";
         proof (rule fnorm_le_ub);
-          from f_cont f_norm; show "0r <= function_norm F norm f"; ..;
+          from f_cont f_norm; show "#0 <= function_norm F norm f"; ..;
         qed;
 
         txt{* The other direction is achieved by a similar 
@@ -794,7 +794,7 @@ proof -;
         qed; 
         thus "?R <= ?L"; 
         proof (rule fnorm_le_ub [OF f_norm f_cont]);
-          from g_cont; show "0r <= function_norm E norm g"; ..;
+          from g_cont; show "#0 <= function_norm E norm g"; ..;
         qed;
       qed;
     qed;
