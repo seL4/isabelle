@@ -43,6 +43,7 @@ signature LEXICON0 =
   sig
   val is_identifier: string -> bool
   val string_of_vname: indexname -> string
+  val string_of_vname': indexname -> string
   val scan_varname: string list -> indexname * string list
   val scan_var: string -> term
   val const: string -> term
@@ -113,6 +114,9 @@ fun string_of_vname (x, i) =
      else "?" ^ x ^ si)
     handle LIST _ => "?NULL_VARIABLE." ^ si
   end;
+
+fun string_of_vname' (xi as (x, i)) =
+  if i < 0 then x else string_of_vname xi;
 
 
 
