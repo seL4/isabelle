@@ -158,8 +158,11 @@ fun fix_tp (tn, args) = (tn, map (K oneT) args); (* instantiate type to
 						    avoid type varaibles *)
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
 fun cproj x      = prj (fn S => K(%%:"cfst"`S)) (fn S => K(%%:"csnd"`S)) x;
-fun cproj' T eqs = prj 
-	(fn S => fn t => Const("cfst",mk_prodT(dummyT,t)->>dummyT)`S) 
+fun prj' _  _  x (   _::[]) _ = x
+|   prj' f1 _  x (_::   ys) 0 = f1 x (foldr' mk_prodT ys)
+|   prj' f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
+fun cproj' T eqs = prj'
+	(fn S => fn t => Const("cfst",mk_prodT(dummyT,t)->>dummyT)`S)
 	(fn S => fn t => Const("csnd",mk_prodT(t,dummyT)->>dummyT)`S) 
 		       T (map ((fn tp => tp ->> tp) o Type o fix_tp o fst) eqs);
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
