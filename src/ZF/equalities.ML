@@ -190,6 +190,10 @@ goal ZF.thy "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
+goal ZF.thy "!!A B. [| z:A; z:B |] ==> Inter(A) Un Inter(B) <= Inter(A Int B)";
+by (fast_tac ZF_cs 1);
+qed "Inter_Un_subset";
+
 (* A good challenge: Inter is ill-behaved on the empty set *)
 goal ZF.thy "!!A B. [| a:A;  b:B |] ==> Inter(A Un B) = Inter(A) Int Inter(B)";
 by (fast_tac eq_cs 1);
