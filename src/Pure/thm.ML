@@ -1276,7 +1276,8 @@ fun rotate_rule k i state =
 					       List.take(asms, m),
 					       concl))
 		   else raise THM("rotate_rule", k, [state])
-  in  Thm{sign_ref = sign_ref, 
+  in  (*no fix_shyps*)
+      Thm{sign_ref = sign_ref, 
 	  der = infer_derivs (Rotate_rule (k,i), [der]),
 	  maxidx = maxidx,
 	  shyps = shyps,
@@ -1303,7 +1304,8 @@ fun permute_prems j k rl =
 					   List.take(moved_prems, m),
 					   concl)
 		   else raise THM("permute_prems:k", k, [rl])
-  in  Thm{sign_ref = sign_ref, 
+  in  (*no fix_shyps*)
+      Thm{sign_ref = sign_ref, 
 	  der = infer_derivs (Permute_prems (j,k), [der]),
 	  maxidx = maxidx,
 	  shyps = shyps,
