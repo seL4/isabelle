@@ -1,12 +1,17 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Nested{\isadigit{2}}}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 The termination condition is easily proved by induction:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 By making this theorem a simplification rule, \isacommand{recdef}
@@ -16,8 +21,11 @@ lemma directly.  We no longer need the verbose
 induction schema for type \isa{term} and can use the simpler one arising from
 \isa{trev}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}trev{\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}trev{\isachardot}induct{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ rule{\isacharcolon}trev{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ trev\ {\isacharparenleft}trev\ {\isacharparenleft}Var\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ Var\ x\isanewline
@@ -27,7 +35,9 @@ induction schema for type \isa{term} and can use the simpler one arising from
 \end{isabelle}
 Both the base case and the induction step fall to simplification:%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}map{\isacharunderscore}cong{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{by}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}rev{\isacharunderscore}map\ sym{\isacharbrackleft}OF\ map{\isacharunderscore}compose{\isacharbrackright}\ cong{\isacharcolon}map{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 If the proof of the induction step mystifies you, we recommend that you go through
@@ -70,13 +80,18 @@ into a situation where you need to supply \isacommand{recdef} with new
 congruence rules, you can append a hint after the end of
 the recursion equations:%
 \end{isamarkuptext}%
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
+\isamarkuptrue%
+\isamarkupfalse%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Or you can declare them globally
 by giving them the \attrdx{recdef_cong} attribute:%
 \end{isamarkuptext}%
-\isacommand{declare}\ map{\isacharunderscore}cong{\isacharbrackleft}recdef{\isacharunderscore}cong{\isacharbrackright}%
+\isamarkuptrue%
+\isacommand{declare}\ map{\isacharunderscore}cong{\isacharbrackleft}recdef{\isacharunderscore}cong{\isacharbrackright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 The \isa{cong} and \isa{recdef{\isacharunderscore}cong} attributes are
 intentionally kept apart because they control different activities, namely
@@ -87,6 +102,8 @@ simplification and making recursive definitions.
 %For example the weak congruence rules for if and case would prevent
 %recdef from generating sensible termination conditions.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

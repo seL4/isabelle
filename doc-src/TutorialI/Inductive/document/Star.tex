@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Star}%
+\isamarkupfalse%
 %
 \isamarkupsection{The Reflexive Transitive Closure%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:rtc}
@@ -17,11 +19,14 @@ introduced in \S\ref{sec:Relations}, where the operator \isa{\isactrlsup {\isach
 defined as a least fixed point because inductive definitions were not yet
 available. But now they are:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ rtc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharunderscore}{\isacharasterisk}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{inductive}\ {\isachardoublequote}r{\isacharasterisk}{\isachardoublequote}\isanewline
 \isakeyword{intros}\isanewline
 rtc{\isacharunderscore}refl{\isacharbrackleft}iff{\isacharbrackright}{\isacharcolon}\ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-rtc{\isacharunderscore}step{\isacharcolon}\ \ \ \ \ \ \ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}%
+rtc{\isacharunderscore}step{\isacharcolon}\ \ \ \ \ \ \ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The function \isa{rtc} is annotated with concrete syntax: instead of
@@ -39,8 +44,11 @@ for a start, it does not even mention transitivity.
 The rest of this section is devoted to proving that it is equivalent to
 the standard definition. We start with a simple lemma:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Although the lemma itself is an unremarkable consequence of the basic rules,
@@ -65,8 +73,11 @@ expects a premise of the form $(x@1,\dots,x@n) \in R$.
 
 Now we turn to the inductive proof of transitivity:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 Unfortunately, even the base case is a problem:
@@ -91,8 +102,11 @@ conclusion, but not \isa{y}. Thus our induction statement is too
 weak. Fortunately, it can easily be strengthened:
 transfer the additional premise \isa{{\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}} into the conclusion:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ rtc{\isacharunderscore}trans{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}%
+\ \ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 This is not an obscure trick but a generally applicable heuristic:
@@ -106,7 +120,9 @@ A similar heuristic for other kinds of inductions is formulated in
 \isa{{\isasymlongrightarrow}} back into \isa{{\isasymLongrightarrow}}: in the end we obtain the original
 statement of our lemma.%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 Now induction produces two subgoals which are both proved automatically:
@@ -117,37 +133,56 @@ Now induction produces two subgoals which are both proved automatically:
 \isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}step{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 Let us now prove that \isa{r{\isacharasterisk}} is really the reflexive transitive closure
 of \isa{r}, i.e.\ the least reflexive and transitive
 relation containing \isa{r}. The latter is easily formalized%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ rtc{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{inductive}\ {\isachardoublequote}rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
 \isakeyword{intros}\isanewline
 {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
 {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}x{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
-{\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}%
+{\isachardoublequote}{\isasymlbrakk}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}z{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 and the equivalence of the two definitions is easily shown by the obvious rule
 inductions:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}erule\ rtc{\isadigit{2}}{\isachardot}induct{\isacharparenright}\isanewline
-\ \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isacharunderscore}trans{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{done}\isanewline
 \isanewline
+\isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ rtc{\isadigit{2}}\ r{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}erule\ rtc{\isachardot}induct{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
+\ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtc{\isadigit{2}}{\isachardot}intros{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 So why did we start with the first definition? Because it is simpler. It
 contains only two rules, and the single step rule is simpler than
@@ -169,6 +204,13 @@ Repeat the development of this section, but starting with a definition of
 in exercise~\ref{ex:converse-rtc-step}.
 \end{exercise}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

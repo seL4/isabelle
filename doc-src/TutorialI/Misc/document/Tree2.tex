@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Tree{\isadigit{2}}}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent In Exercise~\ref{ex:Tree} we defined a function
@@ -9,11 +10,21 @@
 quadratic. A linear time version of \isa{flatten} again reqires an extra
 argument, the accumulator:%
 \end{isamarkuptext}%
-\isacommand{consts}\ flatten{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ list{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{consts}\ flatten{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ tree\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ list\ {\isacharequal}{\isachargreater}\ {\isacharprime}a\ list{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent Define \isa{flatten{\isadigit{2}}} and prove%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}flatten{\isadigit{2}}\ t\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ flatten\ t{\isachardoublequote}\end{isabellebody}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}flatten{\isadigit{2}}\ t\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ flatten\ t{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

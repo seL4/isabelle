@@ -1,24 +1,40 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Tree}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
 Define the datatype of \rmindex{binary trees}:%
 \end{isamarkuptext}%
-\isacommand{datatype}\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{datatype}\ {\isacharprime}a\ tree\ {\isacharequal}\ Tip\ {\isacharbar}\ Node\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}a\ tree{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Define a function \isa{mirror} that mirrors a binary tree
 by swapping subtrees recursively. Prove%
 \end{isamarkuptext}%
-\isacommand{lemma}\ mirror{\isacharunderscore}mirror{\isacharcolon}\ {\isachardoublequote}mirror{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ mirror{\isacharunderscore}mirror{\isacharcolon}\ {\isachardoublequote}mirror{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ t{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Define a function \isa{flatten} that flattens a tree into a list
 by traversing it in infix order. Prove%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}flatten{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ rev{\isacharparenleft}flatten\ t{\isacharparenright}{\isachardoublequote}\end{isabellebody}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}flatten{\isacharparenleft}mirror\ t{\isacharparenright}\ {\isacharequal}\ rev{\isacharparenleft}flatten\ t{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

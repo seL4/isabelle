@@ -1,7 +1,9 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Fundata}%
-\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Br\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}%
+\isamarkupfalse%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Br\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Parameter \isa{{\isacharprime}a} is the type of values stored in
@@ -20,10 +22,13 @@ has merely \isa{Tip}s as further subtrees.
 
 Function \isa{map{\isacharunderscore}bt} applies a function to all labels in a \isa{bigtree}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ map{\isacharunderscore}bt\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}map{\isacharunderscore}bt\ f\ Tip\ \ \ \ \ \ {\isacharequal}\ Tip{\isachardoublequote}\isanewline
-{\isachardoublequote}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Br\ a\ F{\isacharparenright}\ {\isacharequal}\ Br\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Br\ a\ F{\isacharparenright}\ {\isacharequal}\ Br\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent This is a valid \isacommand{primrec} definition because the
 recursive calls of \isa{map{\isacharunderscore}bt} involve only subtrees obtained from
@@ -35,9 +40,15 @@ makes the termination proof less obvious.
 
 The following lemma has a simple proof by induction:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}map{\isacharunderscore}bt\ {\isacharparenleft}g\ o\ f{\isacharparenright}\ T\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ T{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ T{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 Because of the function type, the 
@@ -49,6 +60,9 @@ Notice the quantified induction hypothesis:
 \isaindent{\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ F{\isachardot}\ }map{\isacharunderscore}bt\ {\isacharparenleft}g\ {\isasymcirc}\ f{\isacharparenright}\ {\isacharparenleft}Br\ a\ F{\isacharparenright}\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Br\ a\ F{\isacharparenright}{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

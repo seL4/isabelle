@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{simplification}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Once we have proved all the termination conditions, the \isacommand{recdef} 
@@ -11,9 +12,12 @@ terminate because of automatic splitting of \isa{if}.
 \index{*if expressions!splitting of}
 Let us look at an example:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{recdef}\ gcd\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}n{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ n{\isacharequal}{\isadigit{0}}\ then\ m\ else\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ n{\isacharequal}{\isadigit{0}}\ then\ m\ else\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 According to the measure function, the second argument should decrease with
@@ -56,10 +60,13 @@ If possible, the definition should be given by pattern matching on the left
 rather than \isa{if} on the right. In the case of \isa{gcd} the
 following alternative definition suggests itself:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ gcd{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{recdef}\ gcd{\isadigit{1}}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}n{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}gcd{\isadigit{1}}\ {\isacharparenleft}m{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}gcd{\isadigit{1}}\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd{\isadigit{1}}{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}gcd{\isadigit{1}}\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd{\isadigit{1}}{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The order of equations is important: it hides the side condition
@@ -69,9 +76,12 @@ may not be expressible by pattern matching.
 A simple alternative is to replace \isa{if} by \isa{case}, 
 which is also available for \isa{bool} and is not split automatically:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ gcd{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{recdef}\ gcd{\isadigit{2}}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}n{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}gcd{\isadigit{2}}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}case\ n{\isacharequal}{\isadigit{0}}\ of\ True\ {\isasymRightarrow}\ m\ {\isacharbar}\ False\ {\isasymRightarrow}\ gcd{\isadigit{2}}{\isacharparenleft}n{\isacharcomma}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}gcd{\isadigit{2}}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}case\ n{\isacharequal}{\isadigit{0}}\ of\ True\ {\isasymRightarrow}\ m\ {\isacharbar}\ False\ {\isasymRightarrow}\ gcd{\isadigit{2}}{\isacharparenleft}n{\isacharcomma}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 This is probably the neatest solution next to pattern matching, and it is
@@ -81,19 +91,29 @@ A final alternative is to replace the offending simplification rules by
 derived conditional ones. For \isa{gcd} it means we have to prove
 these lemmas:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{done}\isanewline
 \isanewline
+\isamarkupfalse%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ gcd{\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Simplification terminates for these proofs because the condition of the \isa{if} simplifies to \isa{True} or \isa{False}.
 Now we can disable the original simplification rule:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{declare}\ gcd{\isachardot}simps\ {\isacharbrackleft}simp\ del{\isacharbrackright}\isanewline
+\isamarkupfalse%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{simp}%
+\isamarkupfalse%
 %
 \isamarkupsection{Simplification%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:simplification-II}\index{simplification|(}
@@ -11,12 +13,15 @@ This section describes features not covered until now.  It also
 outlines the simplification process itself, which can be helpful
 when the simplifier does not do what you expect of it.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Advanced Features%
 }
+\isamarkuptrue%
 %
 \isamarkupsubsubsection{Congruence Rules%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:simp-cong}
@@ -78,9 +83,11 @@ The congruence rule \isa{conj{\isacharunderscore}cong}
 is occasionally useful but is not a default rule; you have to declare it explicitly.
 \end{warn}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsubsection{Permutative Rewrite Rules%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \index{rewrite rules!permutative|bold}%
@@ -121,9 +128,11 @@ Note that ordered rewriting for \isa{{\isacharplus}} and \isa{{\isacharasterisk}
 necessary because the built-in arithmetic prover often succeeds without
 such tricks.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{How the Simplifier Works%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:SimpHow}
@@ -132,9 +141,11 @@ first.  A conditional equation is only applied if its condition can be
 proved, again by simplification.  Below we explain some special features of
 the rewriting process.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsubsection{Higher-Order Patterns%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \index{simplification rule|(}
@@ -172,9 +183,11 @@ introduced conditions may be hard to solve.
 There is no restriction on the form of the right-hand
 sides.  They may not contain extraneous term or type variables, though.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsubsection{The Preprocessor%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:simp-preprocessor}
@@ -203,6 +216,8 @@ is converted into the three rules
 \index{simplification rule|)}
 \index{simplification|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

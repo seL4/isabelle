@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{AdvancedInd}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -11,9 +12,11 @@ proposition to be proved is not directly amenable to induction
 and even derive (\S\ref{sec:derive-ind}) new induction schemas. We conclude
 with an extended example of induction (\S\ref{sec:CTL-revisited}).%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Massaging the Proposition%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:ind-var-in-prems}
@@ -23,8 +26,11 @@ Here is an example.
 Since \isa{hd} and \isa{last} return the first and last element of a
 non-empty list, this lemma looks easy to prove:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 But induction produces the warning
@@ -56,7 +62,11 @@ implication~(\isa{{\isasymlongrightarrow}}), letting
 \attrdx{rule_format} (\S\ref{sec:forward}) convert the
 result to the usual \isa{{\isasymLongrightarrow}} form:%
 \end{isamarkuptxt}%
-\isacommand{lemma}\ hd{\isacharunderscore}rev\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isacommand{lemma}\ hd{\isacharunderscore}rev\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ last\ xs{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 This time, induction leaves us with a trivial base case:
@@ -73,6 +83,8 @@ which can yield a fairly complex conclusion.  However, \isa{rule{\isacharundersc
 can remove any number of occurrences of \isa{{\isasymforall}} and
 \isa{{\isasymlongrightarrow}}.%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \index{induction!on a term}%
@@ -115,9 +127,11 @@ Unfortunately, this induction schema cannot be expressed as a
 single theorem because it depends on the number of free variables in $t$ ---
 the notation $\overline{y}$ is merely an informal device.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Beyond Structural and Recursion Induction%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:complete-ind}
@@ -139,8 +153,11 @@ holds for all $m<n$. In Isabelle, this is the theorem \tdx{nat_less_induct}:
 As an application, we prove a property of the following
 function:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{axioms}\ f{\isacharunderscore}ax{\isacharcolon}\ {\isachardoublequote}f{\isacharparenleft}f{\isacharparenleft}n{\isacharparenright}{\isacharparenright}\ {\isacharless}\ f{\isacharparenleft}Suc{\isacharparenleft}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\isamarkupfalse%
+\isacommand{axioms}\ f{\isacharunderscore}ax{\isacharcolon}\ {\isachardoublequote}f{\isacharparenleft}f{\isacharparenleft}n{\isacharparenright}{\isacharparenright}\ {\isacharless}\ f{\isacharparenleft}Suc{\isacharparenleft}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \begin{warn}
 We discourage the use of axioms because of the danger of
@@ -155,14 +172,18 @@ The axiom for \isa{f} implies \isa{n\ {\isasymle}\ f\ n}, which can
 be proved by induction on \mbox{\isa{f\ n}}. Following the recipe outlined
 above, we have to phrase the proposition as follows to allow induction:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 To perform induction on \isa{k} using \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}, we use
 the same general induction method as for recursion induction (see
 \S\ref{sec:recdef-induction}):%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ k\ rule{\isacharcolon}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 We get the following proof state:
@@ -174,9 +195,13 @@ After stripping the \isa{{\isasymforall}i}, the proof continues with a case
 distinction on \isa{i}. The case \isa{i\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}} is trivial and we focus on
 the other case:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}rule\ allI{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}n\ i\ nat{\isachardot}\isanewline
@@ -184,7 +209,9 @@ the other case:%
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ n\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i%
 \end{isabelle}%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{by}{\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ f{\isacharunderscore}ax\ Suc{\isacharunderscore}leI\ intro{\isacharcolon}\ le{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 If you find the last step puzzling, here are the two lemmas it employs:
@@ -214,13 +241,18 @@ proofs are easy to write but hard to read and understand.
 
 The desired result, \isa{i\ {\isasymle}\ f\ i}, follows from \isa{f{\isacharunderscore}incr{\isacharunderscore}lem}:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}%
+\isamarkuptrue%
+\isacommand{lemmas}\ f{\isacharunderscore}incr\ {\isacharequal}\ f{\isacharunderscore}incr{\isacharunderscore}lem{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The final \isa{refl} gets rid of the premise \isa{{\isacharquery}k\ {\isacharequal}\ f\ {\isacharquery}i}. 
 We could have included this derivation in the original statement of the lemma:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ f{\isacharunderscore}incr{\isacharbrackleft}rule{\isacharunderscore}format{\isacharcomma}\ OF\ refl{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}i{\isachardot}\ k\ {\isacharequal}\ f\ i\ {\isasymlongrightarrow}\ i\ {\isasymle}\ f\ i{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \begin{exercise}
 From the axiom and lemma for \isa{f}, show that \isa{f} is the
@@ -251,9 +283,11 @@ which is a special case of \isa{measure{\isacharunderscore}induct}
 \end{isabelle}
 where \isa{f} may be any function into type \isa{nat}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Derivation of New Induction Schemas%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:derive-ind}
@@ -264,16 +298,22 @@ of \isa{nat{\isacharunderscore}less{\isacharunderscore}induct}. Assume we only h
 available for \isa{nat} and want to derive complete induction.  We
 must generalize the statement as shown:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ induct{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 The base case is vacuously true. For the induction step (\isa{m\ {\isacharless}\ Suc\ n}) we distinguish two cases: case \isa{m\ {\isacharless}\ n} is true by induction
 hypothesis and case \isa{m\ {\isacharequal}\ n} follows from the assumption, again using
 the induction hypothesis:%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isacommand{by}{\isacharparenleft}blast\ elim{\isacharcolon}less{\isacharunderscore}SucE{\isacharparenright}%
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}blast\ elim{\isacharcolon}less{\isacharunderscore}SucE{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The elimination rule \isa{less{\isacharunderscore}SucE} expresses the case distinction:
@@ -288,8 +328,11 @@ and remove the trivial condition \isa{n\ {\isacharless}\ Suc\ n}. Fortunately, t
 happens automatically when we add the lemma as a new premise to the
 desired goal:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{theorem}\ nat{\isacharunderscore}less{\isacharunderscore}induct{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isasymAnd}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isasymforall}m{\isacharless}n{\isachardot}\ P\ m\ {\isasymLongrightarrow}\ P\ n{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}insert\ induct{\isacharunderscore}lem{\isacharcomma}\ blast{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 HOL already provides the mother of
 all inductions, well-founded induction (see \S\ref{sec:Well-founded}).  For
@@ -297,6 +340,8 @@ example theorem \isa{nat{\isacharunderscore}less{\isacharunderscore}induct} is
 a special case of \isa{wf{\isacharunderscore}induct} where \isa{r} is \isa{{\isacharless}} on
 \isa{nat}. The details can be found in theory \isa{Wellfounded_Recursion}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{natsum}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -10,17 +11,25 @@ In particular, there are \isa{case}-expressions, for example
 \end{isabelle}
 primitive recursion, for example%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ sum\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{primrec}\ {\isachardoublequote}sum\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ {\isachardoublequote}sum\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ Suc\ n\ {\isacharplus}\ sum\ n{\isachardoublequote}%
+\ \ \ \ \ \ \ \ {\isachardoublequote}sum\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ Suc\ n\ {\isacharplus}\ sum\ n{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 and induction, for example%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}sum\ n\ {\isacharplus}\ sum\ n\ {\isacharequal}\ n{\isacharasterisk}{\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ n{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \newcommand{\mystar}{*%
 }
@@ -67,14 +76,20 @@ Both \isa{auto} and \isa{simp}
 (a method introduced below, \S\ref{sec:Simplification}) prove 
 simple arithmetic goals automatically:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 For efficiency's sake, this built-in prover ignores quantified formulae,
 logical connectives, and all arithmetic operations apart from addition.
 In consequence, \isa{auto} cannot prove this slightly more complex goal:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The method \methdx{arith} is more general.  It attempts to prove
@@ -86,13 +101,20 @@ and the operations
 \isa{{\isacharplus}}, \isa{{\isacharminus}}, \isa{min} and \isa{max}. 
 For example,%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}min\ i\ {\isacharparenleft}max\ j\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ max\ {\isacharparenleft}min\ {\isacharparenleft}k{\isacharasterisk}k{\isacharparenright}\ i{\isacharparenright}\ {\isacharparenleft}min\ i\ {\isacharparenleft}j{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}arith{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 succeeds because \isa{k\ {\isacharasterisk}\ k} can be treated as atomic. In contrast,%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}n{\isacharasterisk}n\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ n{\isacharequal}{\isadigit{0}}\ {\isasymor}\ n{\isacharequal}{\isadigit{1}}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}n{\isacharasterisk}n\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ n{\isacharequal}{\isadigit{0}}\ {\isasymor}\ n{\isacharequal}{\isadigit{1}}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 is not proved even by \isa{arith} because the proof relies 
@@ -108,6 +130,8 @@ on properties of multiplication.
   \isa{m\ {\isacharplus}\ m\ {\isasymnoteq}\ n\ {\isacharplus}\ n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}}. Fortunately, such examples are rare.
 \end{warn}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

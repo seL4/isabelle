@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{WFrec}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -10,11 +11,14 @@ impossible. Fortunately, \isacommand{recdef} supports much more
 general definitions. For example, termination of Ackermann's function
 can be shown by means of the \rmindex{lexicographic product} \isa{{\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ ack\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{recdef}\ ack\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}m{\isachardot}\ m{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}ack{\isacharparenleft}{\isadigit{0}}{\isacharcomma}n{\isacharparenright}\ \ \ \ \ \ \ \ \ {\isacharequal}\ Suc\ n{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}Suc\ n{\isacharparenright}\ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}ack{\isacharparenleft}Suc\ m{\isacharcomma}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}ack{\isacharparenleft}Suc\ m{\isacharcomma}Suc\ n{\isacharparenright}\ {\isacharequal}\ ack{\isacharparenleft}m{\isacharcomma}ack{\isacharparenleft}Suc\ m{\isacharcomma}n{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The lexicographic product decreases if either its first component
@@ -42,13 +46,16 @@ product of two well-founded relations is again well-founded, which we relied
 on when defining Ackermann's function above.
 Of course the lexicographic product can also be iterated:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ contrived\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymtimes}\ nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{recdef}\ contrived\isanewline
 \ \ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}i{\isachardot}\ i{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isasymlambda}j{\isachardot}\ j{\isacharparenright}\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}\ measure{\isacharparenleft}{\isasymlambda}k{\isachardot}\ k{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}contrived{\isacharparenleft}i{\isacharcomma}j{\isacharcomma}Suc\ k{\isacharparenright}\ {\isacharequal}\ contrived{\isacharparenleft}i{\isacharcomma}j{\isacharcomma}k{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}contrived{\isacharparenleft}i{\isacharcomma}Suc\ j{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ contrived{\isacharparenleft}i{\isacharcomma}j{\isacharcomma}j{\isacharparenright}{\isachardoublequote}\isanewline
 {\isachardoublequote}contrived{\isacharparenleft}Suc\ i{\isacharcomma}{\isadigit{0}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ contrived{\isacharparenleft}i{\isacharcomma}i{\isacharcomma}i{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}contrived{\isacharparenleft}{\isadigit{0}}{\isacharcomma}{\isadigit{0}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ {\isadigit{0}}{\isachardoublequote}%
+{\isachardoublequote}contrived{\isacharparenleft}{\isadigit{0}}{\isacharcomma}{\isadigit{0}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ \ \ \ \ {\isacharequal}\ {\isadigit{0}}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 Lexicographic products of measure functions already go a long
 way. Furthermore, you may embed a type in an
@@ -64,22 +71,29 @@ It is also possible to use your own well-founded relations with
 well-founded by cutting it off at a certain point.  Here is an example
 of a recursive function that calls itself with increasing values up to ten:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{recdef}\ f\ {\isachardoublequote}{\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}f\ i\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{1}}{\isadigit{0}}\ {\isasymle}\ i\ then\ {\isadigit{0}}\ else\ i\ {\isacharasterisk}\ f{\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}f\ i\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{1}}{\isadigit{0}}\ {\isasymle}\ i\ then\ {\isadigit{0}}\ else\ i\ {\isacharasterisk}\ f{\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Since \isacommand{recdef} is not prepared for the relation supplied above,
 Isabelle rejects the definition.  We should first have proved that
 our relation was well-founded:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ wf{\isacharunderscore}greater{\isacharcolon}\ {\isachardoublequote}wf\ {\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}N{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ wf{\isacharunderscore}greater{\isacharcolon}\ {\isachardoublequote}wf\ {\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}N{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 The proof is by showing that our relation is a subset of another well-founded
 relation: one given by a measure function.\index{*wf_subset (theorem)}%
 \end{isamarkuptxt}%
-\isacommand{apply}\ {\isacharparenleft}rule\ wf{\isacharunderscore}subset\ {\isacharbrackleft}of\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ N{\isacharminus}k{\isacharparenright}{\isachardoublequote}{\isacharbrackright}{\isacharcomma}\ blast{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}\ {\isacharparenleft}rule\ wf{\isacharunderscore}subset\ {\isacharbrackleft}of\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ N{\isacharminus}k{\isacharparenright}{\isachardoublequote}{\isacharbrackright}{\isacharcomma}\ blast{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}\ j{\isacharparenright}{\isachardot}\ j\ {\isacharless}\ i\ {\isasymand}\ i\ {\isasymle}\ N{\isacharbraceright}\ {\isasymsubseteq}\ measure\ {\isacharparenleft}op\ {\isacharminus}\ N{\isacharparenright}%
@@ -89,7 +103,9 @@ relation: one given by a measure function.\index{*wf_subset (theorem)}%
 The inclusion remains to be proved. After unfolding some definitions, 
 we are left with simple arithmetic:%
 \end{isamarkuptxt}%
-\isacommand{apply}\ {\isacharparenleft}clarify{\isacharcomma}\ simp\ add{\isacharcolon}\ measure{\isacharunderscore}def\ inv{\isacharunderscore}image{\isacharunderscore}def{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}\ {\isacharparenleft}clarify{\isacharcomma}\ simp\ add{\isacharcolon}\ measure{\isacharunderscore}def\ inv{\isacharunderscore}image{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b{\isachardot}\ {\isasymlbrakk}b\ {\isacharless}\ a{\isacharsemicolon}\ a\ {\isasymle}\ N{\isasymrbrakk}\ {\isasymLongrightarrow}\ N\ {\isacharminus}\ a\ {\isacharless}\ N\ {\isacharminus}\ b%
@@ -98,14 +114,19 @@ we are left with simple arithmetic:%
 \noindent
 And that is dispatched automatically:%
 \end{isamarkuptxt}%
-\isacommand{by}\ arith%
+\isamarkuptrue%
+\isacommand{by}\ arith\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 
 Armed with this lemma, we use the \attrdx{recdef_wf} attribute to attach a
 crucial hint to our definition:%
 \end{isamarkuptext}%
-{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf{\isacharcolon}\ wf{\isacharunderscore}greater{\isacharparenright}%
+\isamarkuptrue%
+\isamarkupfalse%
+{\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf{\isacharcolon}\ wf{\isacharunderscore}greater{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Alternatively, we could have given \isa{measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isadigit{1}}{\isadigit{0}}{\isacharminus}k{\isacharparenright}} for the
@@ -115,6 +136,8 @@ termination proof, where we have less control.  A tailor-made termination
 relation makes even more sense when it can be used in several function
 declarations.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{CTL}%
+\isamarkupfalse%
 %
 \isamarkupsubsection{Computation Tree Logic --- CTL%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:CTL}
@@ -13,7 +15,9 @@ Let us be adventurous and introduce a more expressive temporal operator.
 We extend the datatype
 \isa{formula} by a new constructor%
 \end{isamarkuptext}%
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ formula%
+\isamarkuptrue%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ AF\ formula\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 which stands for ``\emph{A}lways in the \emph{F}uture'':
@@ -21,8 +25,10 @@ on all infinite paths, at some point the formula holds.
 Formalizing the notion of an infinite path is easy
 in HOL: it is simply a function from \isa{nat} to \isa{state}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{constdefs}\ Paths\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}set{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequote}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequote}%
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}Paths\ s\ {\isasymequiv}\ {\isacharbraceleft}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isadigit{0}}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 This definition allows a succinct statement of the semantics of \isa{AF}:
@@ -30,37 +36,70 @@ This definition allows a succinct statement of the semantics of \isa{AF}:
 extended by new constructors or equations. This is just a trick of the
 presentation. In reality one has to define a new datatype and a new function.}%
 \end{isamarkuptext}%
-{\isachardoublequote}s\ {\isasymTurnstile}\ AF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isamarkupfalse%
+{\isachardoublequote}s\ {\isasymTurnstile}\ AF\ f\ \ \ \ {\isacharequal}\ {\isacharparenleft}{\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymTurnstile}\ f{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Model checking \isa{AF} involves a function which
 is just complicated enough to warrant a separate definition:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{constdefs}\ af\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequote}af\ A\ T\ {\isasymequiv}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymin}\ T{\isacharbraceright}{\isachardoublequote}%
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}af\ A\ T\ {\isasymequiv}\ A\ {\isasymunion}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymlongrightarrow}\ t\ {\isasymin}\ T{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Now we define \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}} as the least set \isa{T} that includes
 \isa{mc\ f} and all states all of whose direct successors are in \isa{T}:%
 \end{isamarkuptext}%
-{\isachardoublequote}mc{\isacharparenleft}AF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}af{\isacharparenleft}mc\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isamarkupfalse%
+{\isachardoublequote}mc{\isacharparenleft}AF\ f{\isacharparenright}\ \ \ \ {\isacharequal}\ lfp{\isacharparenleft}af{\isacharparenleft}mc\ f{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Because \isa{af} is monotone in its second argument (and also its first, but
 that is irrelevant), \isa{af\ A} has a least fixed point:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ mono{\isacharunderscore}af{\isacharcolon}\ {\isachardoublequote}mono{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ mono{\isacharunderscore}def\ af{\isacharunderscore}def{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}\ blast\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 All we need to prove now is  \isa{mc\ {\isacharparenleft}AF\ f{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ AF\ f{\isacharbraceright}}, which states
 that \isa{mc} and \isa{{\isasymTurnstile}} agree for \isa{AF}\@.
 This time we prove the two inclusions separately, starting
 with the easy one:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{theorem}\ AF{\isacharunderscore}lemma{\isadigit{1}}{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymsubseteq}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}%
+\ \ {\isachardoublequote}lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymsubseteq}\ {\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 In contrast to the analogous proof for \isa{EF}, and just
@@ -72,8 +111,11 @@ named after David Park, is weaker but sufficient for this proof:
 The instance of the premise \isa{f\ S\ {\isasymsubseteq}\ S} is proved pointwise,
 a decision that clarification takes for us:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}rule\ lfp{\isacharunderscore}lowerbound{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}clarsimp\ simp\ add{\isacharcolon}\ af{\isacharunderscore}def\ Paths{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}p\ {\isadigit{0}}\ {\isasymin}\ A\ {\isasymor}\isanewline
@@ -85,14 +127,20 @@ a decision that clarification takes for us:%
 \end{isabelle}
 Now we eliminate the disjunction. The case \isa{p\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymin}\ A} is trivial:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule\ disjE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}%
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 In the other case we set \isa{t} to \isa{p\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}b{\isacharparenright}} and simplify matters:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}p\ {\isadigit{1}}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}p{\isachardot}\ {\isasymlbrakk}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p\ {\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M{\isacharsemicolon}\isanewline
@@ -103,9 +151,13 @@ In the other case we set \isa{t} to \isa{p\ {\isacharparenleft}{\isadigit{1}}{\i
 It merely remains to set \isa{pa} to \isa{{\isasymlambda}i{\isachardot}\ p\ {\isacharparenleft}i\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}{\isacharparenright}}, that is, 
 \isa{p} without its first element.  The rest is automatic:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}i{\isachardot}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\ \isakeyword{in}\ allE{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}\ force\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 The opposite inclusion is proved by contradiction: if some state
 \isa{s} is not in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}, then we can construct an
@@ -118,12 +170,18 @@ direct successor of \isa{s} that is again not in \mbox{\isa{lfp\ {\isacharparenl
 The one-step argument in the sketch above
 is proved by a variant of contraposition:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharcolon}\isanewline
 \ {\isachardoublequote}s\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ s\ {\isasymnotin}\ A\ {\isasymand}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}np{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}af{\isacharunderscore}def{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 We assume the negation of the conclusion and prove \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}.
@@ -133,10 +191,13 @@ simplifying with the definition of \isa{af} finishes the proof.
 Now we iterate this process. The following construction of the desired
 path is parameterized by a predicate \isa{Q} that should hold along the path:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ path\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ {\isacharparenleft}state\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ state{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}path\ s\ Q\ {\isadigit{0}}\ {\isacharequal}\ s{\isachardoublequote}\isanewline
-{\isachardoublequote}path\ s\ Q\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ n{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}path\ s\ Q\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}SOME\ t{\isachardot}\ {\isacharparenleft}path\ s\ Q\ n{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Element \isa{n\ {\isacharplus}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}} on this path is some arbitrary successor
@@ -149,26 +210,35 @@ suitable \isa{t} does exist.
 Let us show that if each state \isa{s} that satisfies \isa{Q}
 has a successor that again satisfies \isa{Q}, then there exists an infinite \isa{Q}-path:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ infinity{\isacharunderscore}lemma{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}{\isasymlbrakk}\ Q\ s{\isacharsemicolon}\ {\isasymforall}s{\isachardot}\ Q\ s\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}\ t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ t{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\isanewline
-\ \ \ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequote}%
+\ \ \ {\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 First we rephrase the conclusion slightly because we need to prove simultaneously
 both the path property and the fact that \isa{Q} holds:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}{\isasymexists}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}{\isasymexists}p{\isachardot}\ s\ {\isacharequal}\ p\ {\isacharparenleft}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ {\isacharparenleft}p\ i{\isacharcomma}\ p{\isacharparenleft}i{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q{\isacharparenleft}p\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 From this proposition the original goal follows easily:%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharcomma}\ blast{\isacharparenright}%
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharcomma}\ blast{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 The new subgoal is proved by providing the witness \isa{path\ s\ Q} for \isa{p}:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}path\ s\ Q{\isachardoublequote}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 After simplification and clarification, the subgoal has the following form:
@@ -179,8 +249,11 @@ After simplification and clarification, the subgoal has the following form:
 \end{isabelle}
 It invites a proof by induction on \isa{i}:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ i{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 After simplification, the base case boils down to
@@ -200,7 +273,9 @@ two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharc
 \isa{{\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ Q\ x\ {\isasymLongrightarrow}\ {\isacharparenleft}s{\isacharcomma}\ x{\isacharparenright}\ {\isasymin}\ M}, which is trivial. Thus it is not surprising that
 \isa{fast} can prove the base case quickly:%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}%
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}fast\ intro{\isacharcolon}someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 What is worth noting here is that we have used \methdx{fast} rather than
@@ -218,13 +293,21 @@ occurrences of \isa{SOME}. As a result, \isa{fast} is no longer able to
 solve the subgoal and we apply \isa{someI{\isadigit{2}}{\isacharunderscore}ex} by hand.  We merely
 show the proof commands but do not describe the details:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}rule\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}rule\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\ \isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}rule\ someI{\isadigit{2}}{\isacharunderscore}ex{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 Function \isa{path} has fulfilled its purpose now and can be forgotten.
 It was merely defined to provide the witness in the proof of the
@@ -237,18 +320,41 @@ the term
 is extensionally equal to \isa{path\ s\ Q},
 where \isa{nat{\isacharunderscore}rec} is the predefined primitive recursor on \isa{nat}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 At last we can prove the opposite direction of \isa{AF{\isacharunderscore}lemma{\isadigit{1}}}:%
 \end{isamarkuptext}%
-\isacommand{theorem}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharcolon}\ {\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{theorem}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharcolon}\ {\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}\ p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 The proof is again pointwise and then by contraposition:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}rule\ subsetI{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}pp{\isacharparenright}\isanewline
-\isacommand{apply}\ simp%
+\isamarkupfalse%
+\isacommand{apply}\ simp\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}p{\isasymin}Paths\ x{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A%
@@ -256,7 +362,9 @@ The proof is again pointwise and then by contraposition:%
 Applying the \isa{infinity{\isacharunderscore}lemma} as a destruction rule leaves two subgoals, the second
 premise of \isa{infinity{\isacharunderscore}lemma} and the original subgoal:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}drule\ infinity{\isacharunderscore}lemma{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}drule\ infinity{\isacharunderscore}lemma{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isasymforall}s{\isachardot}\ s\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymnotin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isacharparenright}\isanewline
@@ -265,8 +373,11 @@ premise of \isa{infinity{\isacharunderscore}lemma} and the original subgoal:%
 \end{isabelle}
 Both are solved automatically:%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}auto\ dest{\isacharcolon}not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
-\isacommand{done}%
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}auto\ dest{\isacharcolon}not{\isacharunderscore}in{\isacharunderscore}lfp{\isacharunderscore}afD{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 If you find these proofs too complicated, we recommend that you read
 \S\ref{sec:CTL-revisited}, where we show how inductive definitions lead to
@@ -276,20 +387,29 @@ The main theorem is proved as for PDL, except that we also derive the
 necessary equality \isa{lfp{\isacharparenleft}af\ A{\isacharparenright}\ {\isacharequal}\ {\isachardot}{\isachardot}{\isachardot}} by combining
 \isa{AF{\isacharunderscore}lemma{\isadigit{1}}} and \isa{AF{\isacharunderscore}lemma{\isadigit{2}}} on the spot:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{theorem}\ {\isachardoublequote}mc\ f\ {\isacharequal}\ {\isacharbraceleft}s{\isachardot}\ s\ {\isasymTurnstile}\ f{\isacharbraceright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ f{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}\ EF{\isacharunderscore}lemma\ equalityI{\isacharbrackleft}OF\ AF{\isacharunderscore}lemma{\isadigit{1}}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharbrackright}{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 The language defined above is not quite CTL\@. The latter also includes an
 until-operator \isa{EU\ f\ g} with semantics ``there \emph{E}xists a path
 where \isa{f} is true \emph{U}ntil \isa{g} becomes true''.  We need
 an auxiliary function:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ until{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ {\isasymRightarrow}\ state\ list\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}until\ A\ B\ s\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ B{\isacharparenright}{\isachardoublequote}\isanewline
-{\isachardoublequote}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Expressing the semantics of \isa{EU} is now straightforward:
@@ -315,6 +435,34 @@ and prove the equivalence between semantics and model checking, i.e.\ that
 \end{exercise}
 For more CTL exercises see, for example, Huth and Ryan \cite{Huth-Ryan-book}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Let us close this section with a few words about the executability of our model checkers.
@@ -329,6 +477,8 @@ a fixed point is reached. It is actually possible to generate executable functio
 from HOL definitions, but that is beyond the scope of the tutorial.%
 \index{CTL|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{CTLind}%
+\isamarkupfalse%
 %
 \isamarkupsubsection{CTL Revisited%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:CTL-revisited}
@@ -26,10 +28,13 @@ then \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. We
 % Second proof of opposite direction, directly by well-founded induction
 % on the initial segment of M that avoids A.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ Avoid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{inductive}\ {\isachardoublequote}Avoid\ s\ A{\isachardoublequote}\isanewline
 \isakeyword{intros}\ {\isachardoublequote}s\ {\isasymin}\ Avoid\ s\ A{\isachardoublequote}\isanewline
-\ \ \ \ \ \ \ {\isachardoublequote}{\isasymlbrakk}\ t\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\ t\ {\isasymnotin}\ A{\isacharsemicolon}\ {\isacharparenleft}t{\isacharcomma}u{\isacharparenright}\ {\isasymin}\ M\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ u\ {\isasymin}\ Avoid\ s\ A{\isachardoublequote}%
+\ \ \ \ \ \ \ {\isachardoublequote}{\isasymlbrakk}\ t\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\ t\ {\isasymnotin}\ A{\isacharsemicolon}\ {\isacharparenleft}t{\isacharcomma}u{\isacharparenright}\ {\isasymin}\ M\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ u\ {\isasymin}\ Avoid\ s\ A{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 It is easy to see that for any infinite \isa{A}-avoiding path \isa{f}
 with \isa{f\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymin}\ Avoid\ s\ A} there is an infinite \isa{A}-avoiding path
@@ -40,15 +45,23 @@ this requires the following
 reformulation, as explained in \S\ref{sec:ind-var-in-prems} above;
 the \isa{rule{\isacharunderscore}format} directive undoes the reformulation after the proof.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ ex{\isacharunderscore}infinite{\isacharunderscore}path{\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequote}t\ {\isasymin}\ Avoid\ s\ A\ \ {\isasymLongrightarrow}\isanewline
 \ \ \ {\isasymforall}f{\isasymin}Paths\ t{\isachardot}\ {\isacharparenleft}{\isasymforall}i{\isachardot}\ f\ i\ {\isasymnotin}\ A{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}p{\isasymin}Paths\ s{\isachardot}\ {\isasymforall}i{\isachardot}\ p\ i\ {\isasymnotin}\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}erule\ Avoid{\isachardot}induct{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}i{\isachardot}\ case\ i\ of\ {\isadigit{0}}\ {\isasymRightarrow}\ t\ {\isacharbar}\ Suc\ i\ {\isasymRightarrow}\ f\ i{\isachardoublequote}\ \isakeyword{in}\ bspec{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}Paths{\isacharunderscore}def\ split{\isacharcolon}nat{\isachardot}split{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The base case (\isa{t\ {\isacharequal}\ s}) is trivial and proved by \isa{blast}.
@@ -65,8 +78,10 @@ inductive proof this must be generalized to the statement that every point \isa{
 ``between'' \isa{s} and \isa{A}, in other words all of \isa{Avoid\ s\ A},
 is contained in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ Avoid{\isacharunderscore}in{\isacharunderscore}lfp{\isacharbrackleft}rule{\isacharunderscore}format{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ Avoid\ s\ A\ {\isasymlongrightarrow}\ t\ {\isasymin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A\ {\isasymLongrightarrow}\ t\ {\isasymin}\ Avoid\ s\ A\ {\isasymlongrightarrow}\ t\ {\isasymin}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 The proof is by induction on the ``distance'' between \isa{t} and \isa{A}. Remember that \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}\ {\isacharequal}\ A\ {\isasymunion}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}.
@@ -84,9 +99,14 @@ As we shall see presently, the absence of infinite \isa{A}-avoiding paths
 starting from \isa{s} implies well-foundedness of this relation. For the
 moment we assume this and proceed with the induction:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}subgoal{\isacharunderscore}tac\ {\isachardoublequote}wf{\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}{\isachardoublequote}{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ a\ {\isacharequal}\ t\ \isakeyword{in}\ wf{\isacharunderscore}induct{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}%
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}erule{\isacharunderscore}tac\ a\ {\isacharequal}\ t\ \isakeyword{in}\ wf{\isacharunderscore}induct{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}clarsimp{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
@@ -108,9 +128,13 @@ the second
 Hence, by the induction hypothesis, all successors of \isa{t} are indeed in
 \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. Mechanically:%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}\ add{\isacharcolon}\ af{\isacharunderscore}def{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}%
+\ \isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}subst\ lfp{\isacharunderscore}unfold{\isacharbrackleft}OF\ mono{\isacharunderscore}af{\isacharbrackright}{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}\ add{\isacharcolon}\ af{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 Having proved the main goal, we return to the proof obligation that the 
 relation used above is indeed well-founded. This is proved by contradiction: if
@@ -122,12 +146,19 @@ the relation is not well-founded then there exists an infinite \isa{A}-avoiding 
 From lemma \isa{ex{\isacharunderscore}infinite{\isacharunderscore}path} the existence of an infinite
 \isa{A}-avoiding path starting in \isa{s} follows, contradiction.%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}{\isacharparenleft}erule\ contrapos{\isacharunderscore}pp{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}wf{\isacharunderscore}iff{\isacharunderscore}no{\isacharunderscore}infinite{\isacharunderscore}down{\isacharunderscore}chain{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}rule\ ex{\isacharunderscore}infinite{\isacharunderscore}path{\isacharparenright}\isanewline
+\isamarkupfalse%
 \isacommand{apply}{\isacharparenleft}auto\ simp\ add{\isacharcolon}Paths{\isacharunderscore}def{\isacharparenright}\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 The \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}} modifier of the \isa{rule{\isacharunderscore}format} directive in the
 statement of the lemma means
@@ -143,9 +174,13 @@ when the assumption \isa{t\ {\isasymin}\ Avoid\ s\ A} is trivially true
 by the first \isa{Avoid}-rule. Isabelle confirms this:%
 \index{CTL|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{theorem}\ AF{\isacharunderscore}lemma{\isadigit{2}}{\isacharcolon}\ \ {\isachardoublequote}{\isacharbraceleft}s{\isachardot}\ {\isasymforall}p\ {\isasymin}\ Paths\ s{\isachardot}\ {\isasymexists}\ i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharbraceright}\ {\isasymsubseteq}\ lfp{\isacharparenleft}af\ A{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{by}{\isacharparenleft}auto\ elim{\isacharcolon}Avoid{\isacharunderscore}in{\isacharunderscore}lfp\ intro{\isacharcolon}Avoid{\isachardot}intros{\isacharparenright}\isanewline
 \isanewline
+\isamarkupfalse%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

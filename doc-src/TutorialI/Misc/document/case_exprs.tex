@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{case{\isacharunderscore}exprs}%
+\isamarkupfalse%
 %
 \isamarkupsubsection{Case Expressions%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:case-expressions}\index{*case expressions}%
@@ -48,9 +50,11 @@ write
 Note that \isa{case}-expressions may need to be enclosed in parentheses to
 indicate their scope%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Structural Induction and Case Distinction%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:struct-ind-case}
@@ -60,8 +64,11 @@ it works for any datatype.  In some cases, induction is overkill and a case
 distinction over all constructors of the datatype suffices.  This is performed
 by \methdx{case_tac}.  Here is a trivial example:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 results in the proof state
@@ -72,7 +79,10 @@ results in the proof state
 \end{isabelle}
 which is solved automatically:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}auto{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 Note that we do not need to give a lemma a name if we do not intend to refer
 to it explicitly in the future.
@@ -92,6 +102,8 @@ simplification, so no special methods are provided for them.
   \isa{xs} in the goal.
 \end{warn}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,13 +1,17 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{fakenat}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
 The type \tydx{nat} of natural
 numbers is predefined to have the constructors \cdx{0} and~\cdx{Suc}.  It  behaves as if it were declared like this:%
 \end{isamarkuptext}%
-\isacommand{datatype}\ nat\ {\isacharequal}\ {\isadigit{0}}\ {\isacharbar}\ Suc\ nat\end{isabellebody}%
+\isamarkuptrue%
+\isacommand{datatype}\ nat\ {\isacharequal}\ {\isadigit{0}}\ {\isacharbar}\ Suc\ nat\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

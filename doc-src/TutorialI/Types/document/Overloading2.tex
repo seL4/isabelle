@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Overloading{\isadigit{2}}}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Of course this is not the only possible definition of the two relations.
@@ -8,12 +9,16 @@ Componentwise comparison of lists of equal length also makes sense. This time
 the elements of the list must also be of class \isa{ordrel} to permit their
 comparison:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{instance}\ list\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ordrel{\isacharparenright}ordrel\isanewline
+\isamarkupfalse%
 \isacommand{by}\ intro{\isacharunderscore}classes\isanewline
 \isanewline
+\isamarkupfalse%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
 le{\isacharunderscore}list{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}xs\ {\isacharless}{\isacharless}{\isacharequal}\ {\isacharparenleft}ys{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isacharcolon}{\isacharcolon}ordrel\ list{\isacharparenright}\ {\isasymequiv}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ xs\ {\isacharequal}\ size\ ys\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharless}size\ xs{\isachardot}\ xs{\isacharbang}i\ {\isacharless}{\isacharless}{\isacharequal}\ ys{\isacharbang}i{\isacharparenright}{\isachardoublequote}%
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ size\ xs\ {\isacharequal}\ size\ ys\ {\isasymand}\ {\isacharparenleft}{\isasymforall}i{\isacharless}size\ xs{\isachardot}\ xs{\isacharbang}i\ {\isacharless}{\isacharless}{\isacharequal}\ ys{\isacharbang}i{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The infix function \isa{{\isacharbang}} yields the nth element of a list.
@@ -24,9 +29,11 @@ a given type class.  For example, our two instantiations of \isa{list} must
 reside in separate theories with disjoint scopes.\REMARK{Tobias, please check}
 \end{warn}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsubsection{Predefined Overloading%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 HOL comes with a number of overloaded constants and corresponding classes.
@@ -45,6 +52,8 @@ And analogously for \isa{{\isacharless}} instead of \isa{{\isasymle}}.
 The form on the left is translated into the one on the right upon input.
 For technical reasons, it is not translated back upon output.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

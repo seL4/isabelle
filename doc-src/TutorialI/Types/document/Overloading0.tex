@@ -1,29 +1,36 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Overloading{\isadigit{0}}}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 We start with a concept that is required for type classes but already
 useful on its own: \emph{overloading}. Isabelle allows overloading: a
 constant may have multiple definitions at non-overlapping types.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsubsection{An Initial Example%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 If we want to introduce the notion of an \emph{inverse} for arbitrary types we
 give it a polymorphic type%
 \end{isamarkuptext}%
-\isacommand{consts}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{consts}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 and provide different definitions at different instances:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
 inverse{\isacharunderscore}bool{\isacharcolon}\ {\isachardoublequote}inverse{\isacharparenleft}b{\isacharcolon}{\isacharcolon}bool{\isacharparenright}\ {\isasymequiv}\ {\isasymnot}\ b{\isachardoublequote}\isanewline
 inverse{\isacharunderscore}set{\isacharcolon}\ \ {\isachardoublequote}inverse{\isacharparenleft}A{\isacharcolon}{\isacharcolon}{\isacharprime}a\ set{\isacharparenright}\ {\isasymequiv}\ {\isacharminus}A{\isachardoublequote}\isanewline
-inverse{\isacharunderscore}pair{\isacharcolon}\ {\isachardoublequote}inverse{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}inverse{\isacharparenleft}fst\ p{\isacharparenright}{\isacharcomma}\ inverse{\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+inverse{\isacharunderscore}pair{\isacharcolon}\ {\isachardoublequote}inverse{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}inverse{\isacharparenleft}fst\ p{\isacharparenright}{\isacharcomma}\ inverse{\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Isabelle will not complain because the three definitions do not overlap: no
@@ -41,6 +48,8 @@ However, there is nothing to prevent the user from forming terms such as
 undefined constants does not endanger soundness, but it is pointless.
 To prevent such terms from even being formed requires the use of type classes.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Nested{\isadigit{1}}}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent
@@ -13,9 +14,11 @@ Defining \isa{trev} by \isacommand{recdef} rather than \isacommand{primrec}
 simplifies matters because we are now free to use the recursion equation
 suggested at the end of \S\ref{sec:nested-datatype}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{recdef}\ trev\ {\isachardoublequote}measure\ size{\isachardoublequote}\isanewline
 \ {\isachardoublequote}trev\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ \ {\isacharequal}\ Var\ x{\isachardoublequote}\isanewline
-\ {\isachardoublequote}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}rev{\isacharparenleft}map\ trev\ ts{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\ {\isachardoublequote}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}\ {\isacharequal}\ App\ f\ {\isacharparenleft}rev{\isacharparenleft}map\ trev\ ts{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Remember that function \isa{size} is defined for each \isacommand{datatype}.
@@ -37,6 +40,8 @@ which equals \isa{Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharu
 continue with our definition.  Below we return to the question of how
 \isacommand{recdef} knows about \isa{map}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

@@ -1,12 +1,15 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Nested{\isadigit{0}}}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \index{datatypes!nested}%
 In \S\ref{sec:nested-datatype} we defined the datatype of terms%
 \end{isamarkuptext}%
-\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}a\ {\isacharbar}\ App\ {\isacharprime}b\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}a\ {\isacharbar}\ App\ {\isacharprime}b\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 and closed with the observation that the associated schema for the definition
@@ -18,7 +21,10 @@ We will now show you how \isacommand{recdef} can simplify
 definitions and proofs about nested recursive datatypes. As an example we
 choose exercise~\ref{ex:trev-trev}:%
 \end{isamarkuptext}%
-\isacommand{consts}\ trev\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isachardoublequote}\end{isabellebody}%
+\isamarkuptrue%
+\isacommand{consts}\ trev\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

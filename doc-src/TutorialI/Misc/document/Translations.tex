@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Translations}%
+\isamarkupfalse%
 %
 \isamarkupsubsection{Syntax Translations%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:def-translations}
@@ -15,7 +17,9 @@ They resemble macros: upon parsing, the defined concept is immediately
 replaced by its definition.  This effect is reversed upon printing.  For example,
 the symbol \isa{{\isasymnoteq}} is defined via a syntax translation:%
 \end{isamarkuptext}%
-\isacommand{translations}\ {\isachardoublequote}x\ {\isasymnoteq}\ y{\isachardoublequote}\ {\isasymrightleftharpoons}\ {\isachardoublequote}{\isasymnot}{\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{translations}\ {\isachardoublequote}x\ {\isasymnoteq}\ y{\isachardoublequote}\ {\isasymrightleftharpoons}\ {\isachardoublequote}{\isasymnot}{\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \index{$IsaEqTrans@\isasymrightleftharpoons}
 \noindent
@@ -35,6 +39,8 @@ about \isa{{\isacharequal}} still apply.%
 \index{syntax translations|)}%
 \index{translations@\isacommand {translations} (command)|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

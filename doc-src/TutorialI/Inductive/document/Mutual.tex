@@ -1,23 +1,28 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Mutual}%
+\isamarkupfalse%
 %
 \isamarkupsubsection{Mutually Inductive Definitions%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Just as there are datatypes defined by mutual recursion, there are sets defined
 by mutual induction. As a trivial example we consider the even and odd
 natural numbers:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ even\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ set{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ odd\ \ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ set{\isachardoublequote}\isanewline
 \isanewline
+\isamarkupfalse%
 \isacommand{inductive}\ even\ odd\isanewline
 \isakeyword{intros}\isanewline
 zero{\isacharcolon}\ \ {\isachardoublequote}{\isadigit{0}}\ {\isasymin}\ even{\isachardoublequote}\isanewline
 evenI{\isacharcolon}\ {\isachardoublequote}n\ {\isasymin}\ odd\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
-oddI{\isacharcolon}\ \ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ odd{\isachardoublequote}%
+oddI{\isacharcolon}\ \ {\isachardoublequote}n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ Suc\ n\ {\isasymin}\ odd{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The mutually inductive definition of multiple sets is no different from
@@ -32,14 +37,18 @@ the above case, the induction rule is called \isa{even{\isacharunderscore}odd{\i
 If we want to prove that all even numbers are divisible by two, we have to
 generalize the statement as follows:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}m\ {\isasymin}\ even\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ m{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymin}\ odd\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}m\ {\isasymin}\ even\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ m{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}n\ {\isasymin}\ odd\ {\isasymlongrightarrow}\ {\isadigit{2}}\ dvd\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 The proof is by rule induction. Because of the form of the induction theorem,
 it is applied by \isa{rule} rather than \isa{erule} as for ordinary
 inductive definitions:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}rule\ even{\isacharunderscore}odd{\isachardot}induct{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}rule\ even{\isacharunderscore}odd{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isadigit{2}}\ dvd\ {\isadigit{0}}\isanewline
@@ -51,6 +60,15 @@ proved in the same manner as in \S\ref{sec:rule-induction}
 where the same subgoal was encountered before.
 We do not show the proof script.%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

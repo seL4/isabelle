@@ -1,13 +1,18 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Option{\isadigit{2}}}%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \indexbold{*option (type)}\indexbold{*None (constant)}%
 \indexbold{*Some (constant)}
 Our final datatype is very simple but still eminently useful:%
 \end{isamarkuptext}%
-\isacommand{datatype}\ {\isacharprime}a\ option\ {\isacharequal}\ None\ {\isacharbar}\ Some\ {\isacharprime}a%
+\isamarkuptrue%
+\isacommand{datatype}\ {\isacharprime}a\ option\ {\isacharequal}\ None\ {\isacharbar}\ Some\ {\isacharprime}a\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Frequently one needs to add a distinguished element to some existing type.
@@ -20,6 +25,8 @@ customized constructors like \isa{Error} and \isa{Infinity},
 but it is often simpler to use \isa{option}. For an application see
 \S\ref{sec:Trie}.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

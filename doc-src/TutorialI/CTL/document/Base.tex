@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Base}%
+\isamarkupfalse%
 %
 \isamarkupsection{Case Study: Verified Model Checking%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:VMC}
@@ -59,7 +61,9 @@ starting from $s_0$, $q$ always holds,'' which is false.
 Abstracting from this concrete example, we assume there is a type of
 states:%
 \end{isamarkuptext}%
-\isacommand{typedecl}\ state%
+\isamarkuptrue%
+\isacommand{typedecl}\ state\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Command \commdx{typedecl} merely declares a new type but without
@@ -71,22 +75,30 @@ parameter of everything but declaring \isa{state} globally as above
 reduces clutter.  Similarly we declare an arbitrary but fixed
 transition system, i.e.\ a relation between states:%
 \end{isamarkuptext}%
-\isacommand{consts}\ M\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}state\ {\isasymtimes}\ state{\isacharparenright}set{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{consts}\ M\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}state\ {\isasymtimes}\ state{\isacharparenright}set{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Again, we could have made \isa{M} a parameter of everything.
 Finally we introduce a type of atomic propositions%
 \end{isamarkuptext}%
-\isacommand{typedecl}\ atom%
+\isamarkuptrue%
+\isacommand{typedecl}\ atom\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 and a \emph{labelling function}%
 \end{isamarkuptext}%
-\isacommand{consts}\ L\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ atom\ set{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{consts}\ L\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ atom\ set{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 telling us which atomic propositions are true in each state.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

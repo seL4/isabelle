@@ -29,7 +29,7 @@
 \newdimen\isa@parindent\newdimen\isa@parskip
 
 \newenvironment{isabellebody}{%
-\par%
+\isamarkuptrue\par%
 \isa@parindent\parindent\parindent0pt%
 \isa@parskip\parskip\parskip0pt%
 \isastyle}{\par}
@@ -95,7 +95,8 @@
 \newcommand{\isamarkupsubsect}[1]{\subsection{#1}}
 \newcommand{\isamarkupsubsubsect}[1]{\subsubsection{#1}}
 
-\newcommand{\isabeginpar}{\par\medskip}
+\newif\ifisamarkup
+\newcommand{\isabeginpar}{\par\ifisamarkup\relax\else\medskip\fi}
 \newcommand{\isaendpar}{\par\medskip}
 \newenvironment{isapar}{\parindent\isa@parindent\parskip\isa@parskip\isabeginpar}{\isaendpar}
 \newenvironment{isamarkuptext}{\isastyletext\begin{isapar}}{\end{isapar}}

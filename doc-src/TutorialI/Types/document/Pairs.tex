@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Pairs}%
+\isamarkupfalse%
 %
 \isamarkupsection{Pairs and Tuples%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:products}
@@ -14,9 +16,11 @@ quickly leads to unreadable nests of projections. This
 section introduces syntactic sugar to overcome this
 problem: pattern matching with tuples.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Pattern Matching with Tuples%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Tuples may be used as patterns in $\lambda$-abstractions,
@@ -51,15 +55,20 @@ Pattern matching in
 other variable binding constructs is translated similarly. Thus we need to
 understand how to reason about such constructs.%
 \end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Theorem Proving%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 The most obvious approach is the brute force expansion of \isa{split}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}x{\isacharparenright}\ p\ {\isacharequal}\ fst\ p{\isachardoublequote}\isanewline
-\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}def{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 This works well if rewriting with \isa{split{\isacharunderscore}def} finishes the
 proof, as it does above.  But if it does not, you end up with exactly what
@@ -78,8 +87,11 @@ In case of a subterm of the form \isa{split\ f\ p} this is easy: the split
 rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
 \index{*split (method)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}y{\isacharparenright}\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}split{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}split\ split{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymforall}x\ y{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymlongrightarrow}\ y\ {\isacharequal}\ snd\ p%
@@ -87,12 +99,19 @@ rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
 This subgoal is easily proved by simplification. Thus we could have combined
 simplification and splitting in one command that proves the goal outright:%
 \end{isamarkuptxt}%
-\isacommand{by}{\isacharparenleft}simp\ split{\isacharcolon}\ split{\isacharunderscore}split{\isacharparenright}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ split{\isacharcolon}\ split{\isacharunderscore}split{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 Let us look at a second example:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}let\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ p\ in\ fst\ p\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ fst\ p\ {\isacharequal}\ x{\isacharparenright}\ p%
@@ -100,8 +119,12 @@ Let us look at a second example:%
 A paired \isa{let} reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
-\isacommand{apply}\ simp%
+\isamarkupfalse%
+\isacommand{apply}\ simp\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ split\ op\ {\isacharequal}\ p\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p%
@@ -111,7 +134,10 @@ as above. If you are worried about the strange form of the premise:
 \isa{split\ op\ {\isacharequal}} is short for \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y}.
 The same proof procedure works for%
 \end{isamarkuptxt}%
-\isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymLongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymLongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 except that we now have to use \isa{split{\isacharunderscore}split{\isacharunderscore}asm}, because
@@ -120,15 +146,21 @@ except that we now have to use \isa{split{\isacharunderscore}split{\isacharunder
 However, splitting \isa{split} is not always a solution, as no \isa{split}
 may be present in the goal. Consider the following function:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{consts}\ swap\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymtimes}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{primrec}\isanewline
-\ \ {\isachardoublequote}swap\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardoublequote}%
+\ \ {\isachardoublequote}swap\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Note that the above \isacommand{primrec} definition is admissible
 because \isa{{\isasymtimes}} is a datatype. When we now try to prove%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ p{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ p{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 simplification will do nothing, because the defining equation for \isa{swap}
@@ -136,7 +168,9 @@ expects a pair. Again, we need to turn \isa{p} into a pair first, but this
 time there is no \isa{split} in sight. In this case the only thing we can do
 is to split the term by hand:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ p{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ p{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
@@ -153,8 +187,12 @@ In case the term to be split is a quantified variable, there are more options.
 You can split \emph{all} \isa{{\isasymAnd}}-quantified variables in a goal
 with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharunderscore}all}:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
+\isamarkupfalse%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymAnd}p\ q{\isachardot}\ swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ q\ {\isasymlongrightarrow}\ p\ {\isacharequal}\ q{\isachardoublequote}\isanewline
-\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 \begin{isabelle}%
@@ -162,8 +200,11 @@ with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharunderscore}al
 \isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }swap\ {\isacharparenleft}swap\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}\ simp\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Note that we have intentionally included only \isa{split{\isacharunderscore}paired{\isacharunderscore}all}
@@ -175,14 +216,21 @@ of the simplifier.
 The following command could fail (here it does not)
 where two separate \isa{simp} applications succeed.%
 \end{isamarkuptext}%
-\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 Finally, the simplifier automatically splits all \isa{{\isasymforall}} and
 \isa{{\isasymexists}}-quantified variables:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymforall}p{\isachardot}\ {\isasymexists}q{\isachardot}\ swap\ p\ {\isacharequal}\ swap\ q{\isachardoublequote}\isanewline
-\isacommand{by}\ simp%
+\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 To turn off this automatic splitting, just disable the
@@ -196,6 +244,8 @@ responsible simplification rules:
 (\isa{split{\isacharunderscore}paired{\isacharunderscore}Ex})
 \end{center}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

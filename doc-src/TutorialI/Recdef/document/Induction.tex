@@ -1,6 +1,7 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Induction}%
+\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 Assuming we have defined our function such that Isabelle could prove
@@ -18,14 +19,18 @@ you are trying to establish holds for the left-hand side provided it holds
 for all recursive calls on the right-hand side. Here is a simple example
 involving the predefined \isa{map} functional on lists:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}map\ f\ {\isacharparenleft}sep{\isacharparenleft}x{\isacharcomma}xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep{\isacharparenleft}f\ x{\isacharcomma}\ map\ f\ xs{\isacharparenright}{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}map\ f\ {\isacharparenleft}sep{\isacharparenleft}x{\isacharcomma}xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep{\isacharparenleft}f\ x{\isacharcomma}\ map\ f\ xs{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 Note that \isa{map\ f\ xs}
 is the result of applying \isa{f} to all elements of \isa{xs}. We prove
 this lemma by recursion induction over \isa{sep}:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ x\ xs\ rule{\isacharcolon}\ sep{\isachardot}induct{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ x\ xs\ rule{\isacharcolon}\ sep{\isachardot}induct{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 The resulting proof state has three subgoals corresponding to the three
@@ -39,8 +44,11 @@ clauses for \isa{sep}:
 \end{isabelle}
 The rest is pure simplification:%
 \end{isamarkuptxt}%
+\isamarkuptrue%
 \isacommand{apply}\ simp{\isacharunderscore}all\isanewline
-\isacommand{done}%
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 Try proving the above lemma by structural induction, and you find that you
 need an additional case distinction. What is worse, the names of variables
@@ -67,6 +75,8 @@ empty list, the singleton list, and the list with at least two elements.
 The final case has an induction hypothesis:  you may assume that \isa{P}
 holds for the tail of that list.%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

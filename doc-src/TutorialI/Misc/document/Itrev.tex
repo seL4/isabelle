@@ -1,9 +1,11 @@
 %
 \begin{isabellebody}%
 \def\isabellecontext{Itrev}%
+\isamarkupfalse%
 %
 \isamarkupsection{Induction Heuristics%
 }
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:InductionHeuristics}
@@ -43,10 +45,13 @@ because it calls function \isa{{\isacharat}} for each element of the list and
 \isa{rev} reqires an extra argument where the result is accumulated
 gradually, using only~\isa{{\isacharhash}}:%
 \end{isamarkuptext}%
+\isamarkuptrue%
 \isacommand{consts}\ itrev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
+\isamarkupfalse%
 \isacommand{primrec}\isanewline
 {\isachardoublequote}itrev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ ys\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
-{\isachardoublequote}itrev\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x{\isacharhash}ys{\isacharparenright}{\isachardoublequote}%
+{\isachardoublequote}itrev\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x{\isacharhash}ys{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 The behaviour of \cdx{itrev} is simple: it reverses
@@ -58,12 +63,16 @@ compiled into a loop.
 Naturally, we would like to show that \isa{itrev} does indeed reverse
 its first argument provided the second one is empty:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 There is no choice as to the induction variable, and we immediately simplify:%
 \end{isamarkuptxt}%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 Unfortunately, this attempt does not prove
@@ -81,7 +90,11 @@ This example suggests a heuristic:
 Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs} is
 just not true.  The correct generalization is%
 \end{isamarkuptxt}%
-\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptxt}%
 \noindent
 If \isa{ys} is replaced by \isa{{\isacharbrackleft}{\isacharbrackright}}, the right-hand side simplifies to
@@ -104,7 +117,11 @@ the subgoal, but the induction hypothesis needs to be applied with
 \isa{a\ {\isacharhash}\ ys} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one:%
 \end{isamarkuptxt}%
-\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
 \begin{isamarkuptext}%
 \noindent
 This time induction on \isa{xs} followed by simplification succeeds. This
@@ -139,6 +156,8 @@ Additionally, you can read \S\ref{sec:advanced-ind}
 to learn about some advanced techniques for inductive proofs.%
 \index{induction heuristics|)}%
 \end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
