@@ -19,9 +19,9 @@ consts
 
 inductive IT
   intros
-    Var: "rs : lists IT ==> Var n $$ rs : IT"
-    Lambda: "r : IT ==> Abs r : IT"
-    Beta: "[| (r[s/0]) $$ ss : IT; s : IT |] ==> (Abs r $ s) $$ ss : IT"
+    Var [intro]: "rs : lists IT ==> Var n $$ rs : IT"
+    Lambda [intro]: "r : IT ==> Abs r : IT"
+    Beta [intro]: "(r[s/0]) $$ ss : IT ==> s : IT ==> (Abs r $ s) $$ ss : IT"
 
 
 subsection {* Every term in IT terminates *}
@@ -65,7 +65,7 @@ subsection {* Every terminating term is in IT *}
 
 declare Var_apps_neq_Abs_apps [THEN not_sym, simp]
 
-lemma [simp, THEN not_sym, simp]: "Var n $$ ss ~= Abs r $ s $$ ts"
+lemma [simp, THEN not_sym, simp]: "Var n $$ ss \<noteq> Abs r $ s $$ ts"
   apply (simp add: foldl_Cons [symmetric] del: foldl_Cons)
   done
 
@@ -101,7 +101,7 @@ theorem termi_implies_IT: "r : termi beta ==> r : IT"
    apply (rename_tac u ts)
    apply (case_tac ts)
     apply simp
-    apply (blast intro: IT.intros)
+    apply blast
    apply (rename_tac s ss)
    apply simp
    apply clarify

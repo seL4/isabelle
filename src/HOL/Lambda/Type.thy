@@ -15,6 +15,30 @@ text_raw {*
 *}
 
 
+subsection {* Environments *}
+
+constdefs
+  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
+  "e\<langle>i:a\<rangle> \<equiv> \<lambda>j. if j < i then e j else if j = i then a else e (j - 1)"
+
+lemma shift_eq [simp]: "i = j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = T"
+  by (simp add: shift_def)
+
+lemma shift_gt [simp]: "j < i \<Longrightarrow> (e\<langle>i:T\<rangle>) j = e j"
+  by (simp add: shift_def)
+
+lemma shift_lt [simp]: "i < j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = e (j - 1)"
+  by (simp add: shift_def)
+
+lemma shift_commute [simp]: "e\<langle>i:U\<rangle>\<langle>0:T\<rangle> = e\<langle>0:T\<rangle>\<langle>Suc i:U\<rangle>"
+  apply (rule ext)
+  apply (case_tac x)
+   apply simp
+  apply (case_tac nat)
+   apply (simp_all add: shift_def)
+  done
+
+
 subsection {* Types and typing rules *}
 
 datatype type =
@@ -30,14 +54,12 @@ syntax
   "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ |- _ : _" [50, 50, 50] 50)
   "_typings" :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
     ("_ ||- _ : _" [50, 50, 50] 50)
-
 syntax (symbols)
   "_typing" :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile> _ : _" [50, 50, 50] 50)
 syntax (latex)
   "_funs" :: "type list \<Rightarrow> type \<Rightarrow> type"    (infixr "\<Rrightarrow>" 200)
   "_typings" :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
     ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
-
 translations
   "Ts \<Rrightarrow> T" \<rightleftharpoons> "foldr Fun Ts T"
   "env \<turnstile> t : T" \<rightleftharpoons> "(env, t, T) \<in> typing"
@@ -46,7 +68,7 @@ translations
 inductive typing
   intros
     Var [intro!]: "env x = T \<Longrightarrow> env \<turnstile> Var x : T"
-    Abs [intro!]: "nat_case T env \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs t : (T \<Rightarrow> U)"
+    Abs [intro!]: "env\<langle>0:T\<rangle> \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs t : (T \<Rightarrow> U)"
     App [intro!]: "env \<turnstile> s : T \<Rightarrow> U \<Longrightarrow> env \<turnstile> t : T \<Longrightarrow> env \<turnstile> (s \<^sub>\<degree> t) : U"
 
 inductive_cases typing_elims [elim!]:
@@ -60,15 +82,6 @@ primrec
     (case Ts of
       [] \<Rightarrow> False
     | T # Ts \<Rightarrow> e \<turnstile> t : T \<and> e \<tturnstile> ts : Ts)"
-
-inductive_cases lists_elim [elim!]:
-  "x # xs \<in> lists S"
-
-declare IT.intros [intro!]
-
-constdefs
-  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"    ("_\<langle>_:_\<rangle>" [90, 0, 0] 91)
-  "e\<langle>i:a\<rangle> \<equiv> \<lambda>j. if j < i then e j else if j = i then a else e (j - 1)"
 
 
 subsection {* Some examples *}
@@ -173,35 +186,12 @@ lemma lifts_IT:
     "ts \<in> lists IT \<Longrightarrow> map (\<lambda>t. lift t 0) ts \<in> lists IT"
   by (induct ts) auto
 
-lemma shift_env [simp]:
-  "nat_case T
-    (\<lambda>j. if j < i then e j else if j = i then Ua else e (j - 1)) =
-    (\<lambda>j. if j < Suc i then nat_case T e j else if j = Suc i then Ua
-          else nat_case T e (j - 1))"
-  apply (rule ext)
-  apply (case_tac j)
-   apply simp
-  apply (case_tac nat)
-   apply simp_all
-  done
-
-lemma lift_type':
-  "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
+lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
 proof -
   assume "e \<turnstile> t : T"
   thus "\<And>i U. e\<langle>i:U\<rangle> \<turnstile> lift t i : T"
-    by induct (auto simp add: shift_def)
+    by induct auto
 qed
-
-lemma lift_type [intro!]:
-    "e \<turnstile> t : T \<Longrightarrow> nat_case U e \<turnstile> lift t 0 : T"
-  apply (subgoal_tac "nat_case U e = e\<langle>0:U\<rangle>")
-   apply (erule ssubst)
-   apply (erule lift_type')
-  apply (rule ext)
-  apply (case_tac x)
-   apply (simp_all add: shift_def)
-  done
 
 lemma lift_typings [rule_format]:
   "\<forall>Ts. e \<tturnstile> ts : Ts \<longrightarrow> (e\<langle>i:U\<rangle>) \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
@@ -209,9 +199,7 @@ lemma lift_typings [rule_format]:
    apply simp
   apply (intro strip)
   apply (case_tac Ts)
-   apply simp_all
-  apply (rule lift_type')
-  apply (erule conjunct1)
+   apply auto
   done
 
 
@@ -219,22 +207,11 @@ subsection {* Substitution lemmas *}
 
 lemma subst_lemma [rule_format]:
   "e \<turnstile> t : T \<Longrightarrow> \<forall>e' i U u. e' \<turnstile> u : U \<longrightarrow> e = e'\<langle>i:U\<rangle> \<longrightarrow> e' \<turnstile> t[u/i] : T"
-  apply (unfold shift_def)
   apply (erule typing.induct)
     apply (intro strip)
-    apply (case_tac "x = i")
-     apply simp
-    apply (frule linorder_neq_iff [THEN iffD1])
-    apply (erule disjE)
-     apply simp
-     apply (rule typing.Var)
-     apply assumption
-    apply (frule order_less_not_sym)
-    apply (simp only: subst_gt split: split_if add: if_False)
-    apply (rule typing.Var)
-    apply assumption
-   apply fastsimp
-  apply auto
+    apply (rule_tac x = x and y = i in linorder_cases)
+      apply auto
+  apply blast
   done
 
 lemma substs_lemma [rule_format]:
@@ -272,7 +249,7 @@ lemma subject_reduction [rule_format]:
      apply assumption
     apply (rule ext)
     apply (case_tac x)
-     apply (auto simp add: shift_def)
+     apply auto
   done
 
 
@@ -392,7 +369,7 @@ proof (induct U)
               and argT: "e\<langle>i:T\<rangle> \<turnstile> a : T''"
             by cases simp_all
           from varT True have T: "T = T'' \<Rightarrow> Ts \<Rrightarrow> T'"
-            by cases (auto simp add: shift_def)
+            by cases auto
           with uT have uT': "e \<turnstile> u : T'' \<Rightarrow> Ts \<Rrightarrow> T'" by simp
           from Var have SI: "?R a" by cases (simp_all add: Cons)
           from T have "(Var 0 \<^sub>\<degree>\<^sub>\<degree> map (\<lambda>t. lift t 0)
@@ -405,14 +382,14 @@ proof (induct U)
               show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 \<^sub>\<degree> Var 0 : Ts \<Rrightarrow> T'"
               proof (rule typing.App)
                 show "e\<langle>0:T''\<rangle> \<turnstile> lift u 0 : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
-                  by (rule lift_type') (rule uT')
+                  by (rule lift_type) (rule uT')
                 show "e\<langle>0:T''\<rangle> \<turnstile> Var 0 : T''"
-                  by (rule typing.Var) (simp add: shift_def)
+                  by (rule typing.Var) simp
               qed
               from argT uIT uT show "a[u/i] \<in> IT"
                 by (rule SI[rule_format])
               from argT uT show "e \<turnstile> a[u/i] : T''"
-                by (rule subst_lemma) (simp add: shift_def)
+                by (rule subst_lemma) simp
             qed
             thus "u \<^sub>\<degree> a[u/i] \<in> IT" by simp
             from Var have "as \<in> lists {t. ?R t}"
@@ -438,7 +415,7 @@ proof (induct U)
             qed
             thus "Var 0 \<^sub>\<degree>\<^sub>\<degree> ?ls as \<in> IT" by (rule IT.Var)
             have "e\<langle>0:Ts \<Rrightarrow> T'\<rangle> \<turnstile> Var 0 : Ts \<Rrightarrow> T'"
-              by (rule typing.Var) (simp add: shift_def)
+              by (rule typing.Var) simp
             moreover from uT argsT have "e \<tturnstile> map (\<lambda>t. t[u/i]) as : Ts"
               by (rule substs_lemma)
             hence "(e\<langle>0:Ts \<Rrightarrow> T'\<rangle>) \<tturnstile> ?ls as : Ts"
@@ -481,7 +458,7 @@ proof (induct U)
       assume "e\<langle>i:T\<rangle> \<turnstile> Abs r : T'"
         and "\<And>e T' u i. PROP ?Q r e T' u i T"
       with uIT uT show "Abs r[u/i] \<in> IT"
-        by (fastsimp simp add: shift_def)
+        by fastsimp
     next
       case (Beta r a as)
       assume T: "e\<langle>i:T\<rangle> \<turnstile> Abs r \<^sub>\<degree> a \<^sub>\<degree>\<^sub>\<degree> as : T'"
@@ -526,12 +503,12 @@ proof -
       have "lift t 0 \<in> IT" by (rule lift_IT)
       hence "[lift t 0] \<in> lists IT" by (rule lists.Cons) (rule lists.Nil)
       hence "Var 0 \<^sub>\<degree>\<^sub>\<degree> [lift t 0] \<in> IT" by (rule IT.Var)
-      also have "(Var 0 \<^sub>\<degree>\<^sub>\<degree> [lift t 0]) = (Var 0 \<^sub>\<degree> lift t 0)" by simp
+      also have "Var 0 \<^sub>\<degree>\<^sub>\<degree> [lift t 0] = Var 0 \<^sub>\<degree> lift t 0" by simp
       finally show "\<dots> \<in> IT" .
       have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 : T \<Rightarrow> U"
-        by (rule typing.Var) (simp add: shift_def)
+        by (rule typing.Var) simp
       moreover have "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> lift t 0 : T"
-        by (rule lift_type')
+        by (rule lift_type)
       ultimately show "e\<langle>0:T \<Rightarrow> U\<rangle> \<turnstile> Var 0 \<^sub>\<degree> lift t 0 : U"
         by (rule typing.App)
     qed
