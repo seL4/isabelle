@@ -29,6 +29,9 @@ local
 
   (* chars *)
 
+  fun syntax_xstr x = Syntax.const "_xstr" $ Syntax.free x;
+
+
   val zero = ord "0";
   val ten = ord "A" - 10;
 
@@ -58,7 +61,7 @@ local
     | char_tr (*"_Char"*) ts = raise TERM ("char_tr", ts);
 
   fun char_tr' (*"Char"*) [t1, t2] =
-        Syntax.const "_Char" $ Syntax.free (Syntax.implode_xstr [dest_nibs t1 t2])
+        Syntax.const "_Char" $ syntax_xstr (Syntax.implode_xstr [dest_nibs t1 t2])
     | char_tr' (*"Char"*) _ = raise Match;
 
 
@@ -78,7 +81,7 @@ local
 
   fun cons_tr' (*"op #"*) [c, cs] =
         Syntax.const "_String" $
-          Syntax.free (Syntax.implode_xstr (dest_char c :: dest_string cs))
+          syntax_xstr (Syntax.implode_xstr (dest_char c :: dest_string cs))
     | cons_tr' (*"op #"*) ts = raise Match;
 
 in
