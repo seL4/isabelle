@@ -331,7 +331,7 @@ fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
   Vars then it returns ct==>ct.*)
 fun eq_trivial ct =
   let val xfree = cterm_of Sign.proto_pure (Free (gensym"X", propT))
-      val ct_eq_x = mk_prop_equals (adjust_maxidx ct, xfree)
+      val ct_eq_x = mk_prop_equals (ct, xfree)
       and refl_ct = reflexive ct
       fun restore th = 
 	  implies_elim 
@@ -347,15 +347,16 @@ fun eq_trivial ct =
 (*Does the work of SELECT_GOAL. *)
 fun select tac st0 i =
   let val cprem::_ = drop(i-1, cprems_of st0)
-      val (eq_cprem, restore) = eq_trivial cprem
+      val (eq_cprem, restore) = (*we hope maxidx goes to ~1*)
+	                        eq_trivial (adjust_maxidx cprem)
       fun next st = bicompose false (false, restore st, nprems_of st) i st0
   in  Sequence.flats (Sequence.maps next (tac eq_cprem))
   end;
 
-(* (!!x. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
+(* (!!selct. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
 val dummy_quant_rl = 
-  standard (forall_elim_var 0 (assume 
-                  (read_cterm Sign.proto_pure ("!!x::prop. PROP V",propT))));
+  read_cterm Sign.proto_pure ("!!selct::prop. PROP V",propT) |>
+  assume |> forall_elim_var 0 |> standard;
 
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)
