@@ -2,7 +2,7 @@
   Title:      GraphBrowser/GraphBrowserFrame.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class is the frame for the stand-alone application. It contains
   methods for handling menubar events.
@@ -51,7 +51,7 @@ public class GraphBrowserFrame extends Frame implements ActionListener {
 			GraphBrowser gb2 = new GraphBrowser(fname);
 			try {
 				InputStream is = new FileInputStream(fname);
-				gb2.initBrowser(is);
+				gb2.initBrowser(is, false);
 				is.close();
 			} catch (IOException exn) {
 				String button[] = {"OK"};
