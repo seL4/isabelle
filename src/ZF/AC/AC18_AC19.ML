@@ -108,7 +108,7 @@ val lemma3 = result();
 goalw thy AC_defs "!!Z. AC19 ==> AC1";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (excluded_middle_tac "A=0" 1);
-by (fast_tac (!claset addSIs [empty_fun]) 2);
+by (fast_tac (!claset addSIs [exI, empty_fun]) 2);
 by (eres_inst_tac [("x","{u_(a). a:A}")] allE 1);
 by (etac impE 1);
 by (etac RepRep_conj 1 THEN (assume_tac 1));

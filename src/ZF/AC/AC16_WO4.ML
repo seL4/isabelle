@@ -527,14 +527,14 @@ goalw thy [MM_def, LL_def]
 \       v:LL(t_n, k, y)  \
 \       |] ==> EX! w. w:MM(t_n, k, y) & v<=w";
 by (step_tac (!claset addSEs [RepFunE]) 1);
+by (Fast_tac 1);
 by (resolve_tac [lepoll_imp_eqpoll_subset RS exE] 1 THEN (assume_tac 1));
 by (eres_inst_tac [("x","xa")] ballE 1);
 by (fast_tac (!claset addSEs [eqpoll_sym]) 2);
-by (res_inst_tac [("a","v")] ex1I 1);
-by (Fast_tac 1);
-by (etac ex1E 1);
-by (res_inst_tac [("x","v")] allE 1 THEN (assume_tac 1));
-by (eres_inst_tac [("x","xb")] allE 1);
+by (etac alt_ex1E 1);
+bd spec 1;
+bd spec 1;
+be mp 1;
 by (Fast_tac 1);
 val unique_superset_in_MM = result();
 

@@ -452,7 +452,7 @@ by (resolve_tac [right_inverse_bij RS ssubst] 1
         THEN REPEAT (ares_tac [Card_is_Ord] 1));
 val ex_next_Ord = result();
 
-goal thy "!!Z. [| EX! Y. Y:Z & P(Y); ~P(W) |] ==> EX! Y. Y:Z Un {W} & P(Y)";
+goal thy "!!Z. [| EX! Y. Y:Z & P(Y); ~P(W) |] ==> EX! Y. Y: (Z Un {W}) & P(Y)";
 by (Fast_tac 1);
 val ex1_in_Un_sing = result();
 
@@ -464,8 +464,8 @@ goal thy "!!j. [| ALL x<a. x<j | (EX xa:F(j). P(x, xa))  \
 \       --> (EX! Y. Y:F(j) & P(x, Y)); F(j) <= X;  \
 \       L : X; P(j, L) & (ALL x<a. P(x, L) --> (ALL xa:F(j). ~P(x, xa))) |]  \
 \       ==> F(j) Un {L} <= X &  \
-\       (ALL x<a. x le j | (EX xa:F(j) Un {L}. P(x, xa)) -->  \
-\               (EX! Y. Y:F(j) Un {L} & P(x, Y)))";
+\       (ALL x<a. x le j | (EX xa: (F(j) Un {L}). P(x, xa)) -->  \
+\               (EX! Y. Y: (F(j) Un {L}) & P(x, Y)))";
 by (rtac conjI 1);
 by (fast_tac (!claset addSIs [singleton_subsetI]) 1);
 by (rtac oallI 1);
@@ -477,11 +477,11 @@ by (eresolve_tac [disjI1 RSN (2, impE)] 1 THEN (assume_tac 1));
 by (rtac ex1E 1 THEN (assume_tac 1));
 by (etac ex1_in_Un_sing 1);
 by (Fast_tac 1);
-by (Fast_tac 1);
+by (Deepen_tac 2 1);
 by (etac bexE 1);
 by (etac UnE 1);
-by (fast_tac (!claset addSEs [ex1_in_Un_sing]) 1);
-by (Fast_tac 1);
+by (fast_tac (!claset delrules [ex_ex1I] addSIs [ex1_in_Un_sing]) 1);
+by (Deepen_tac 2 1);
 val lemma8 = result();
 
 (* ********************************************************************** *)
