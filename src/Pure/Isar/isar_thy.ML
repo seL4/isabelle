@@ -439,7 +439,7 @@ val print_result = Pretty.writeln oo pretty_results;
 fun print_result' ctxt (k, res) = print_result ctxt ((k, ""), res);
 
 fun cond_print_result_rule int =
-  if int then (print_result', tracing oo (Pretty.string_of oo pretty_rule "Attempt"))
+  if int then (print_result', priority oo (Pretty.string_of oo pretty_rule "Attempt"))
   else (K (K ()), K (K ()));
 
 fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
