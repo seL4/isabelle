@@ -51,8 +51,8 @@ structure Type = Unify.Sign.Type;
 
 (** equality **)
 
-(*Make an equality.  DOES NOT CHECK TYPE OF u! *)
-fun mk_equals(t,u) = equals(type_of t) $ t $ u;
+(*Make an equality.*)
+fun mk_equals(t,u) = equals(fastype_of t) $ t $ u;
 
 fun dest_equals (Const("==",_) $ t $ u)  =  (t,u)
   | dest_equals t = raise TERM("dest_equals", [t]);
@@ -92,8 +92,8 @@ fun count_prems (Const("==>", _) $ A $ B, n) = count_prems (B,n+1)
 
 (** flex-flex constraints **)
 
-(*Make a constraint.  DOES NOT CHECK TYPE OF u! *)
-fun mk_flexpair(t,u) = flexpair(type_of t) $ t $ u;
+(*Make a constraint.*)
+fun mk_flexpair(t,u) = flexpair(fastype_of t) $ t $ u;
 
 fun dest_flexpair (Const("=?=",_) $ t $ u)  =  (t,u)
   | dest_flexpair t = raise TERM("dest_flexpair", [t]);
