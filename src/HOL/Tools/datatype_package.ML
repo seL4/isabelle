@@ -590,7 +590,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
-      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
+      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
+      DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
     (thy12,
      {distinct = distinct,
@@ -646,7 +647,8 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
-      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
+      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
+      DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
     (thy12,
      {distinct = distinct,
@@ -752,7 +754,8 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos induction' |>
       Theory.parent_path |>
-      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
+      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
+      DatatypeRealizer.add_dt_realizers sorts (map snd dt_infos);
   in
     (thy11,
      {distinct = distinct,
