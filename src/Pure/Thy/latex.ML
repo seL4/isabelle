@@ -121,7 +121,9 @@ fun latex_output str =
   let val syms = Symbol.explode str
   in (output_symbols syms, real (Symbol.length syms)) end;
 
-val token_translation = map (fn s => (latexN, s, latex_output)) Syntax.standard_token_classes;
+val token_translation =
+  map (fn s => (latexN, s, apfst (enclose "\\mbox{" "}") o latex_output))
+    Syntax.standard_token_classes;
 
 val _ = Symbol.add_mode latexN latex_output;
 val setup = [Theory.add_tokentrfuns token_translation];
