@@ -32,11 +32,13 @@ sig
   val get_preds: string -> string list
   val loaded_files: string -> (Path.T * File.info) list
   val touch_all_thys: unit -> unit
-  val load_file: bool -> Path.T -> unit
+  val may_load_file: bool -> bool -> Path.T -> unit
   val use_path: Path.T -> unit
   val use: string -> unit
   val pretend_use: string -> unit
+  val quiet_update_thy: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory
+  val begin_update_theory: string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
   val finish: unit -> unit
   val register_theory: theory -> unit
@@ -188,7 +190,15 @@ fun touch_all_thys () = seq outdate_thy (get_names ());
 end;
 
 
-(* load_file *)
+(* check 'finished' state *)
+
+fun check_unfinished fail name =
+  if is_some (lookup_thy name) andalso is_finished name then
+    fail (loader_msg "cannot change finished theory" [name])
+  else ();
+
+
+(* may_load_file *)
 
 local
 
@@ -209,25 +219,24 @@ fun may_run_file really path =
         else (load path; ()))
   end;
 
-val run_file = may_run_file true;
-
 in
 
-fun load_file false path = run_file path
-  | load_file true path =
-      let val name = Path.pack path in
-        timeit (fn () =>
-         (writeln ("\n**** Starting file " ^ quote name ^ " ****");
-          run_file path;
-          writeln ("**** Finished file " ^ quote name ^ " ****\n")))
-      end;
-
-val use_path = load_file false;
-val use = use_path o Path.unpack;
-val time_use = load_file true o Path.unpack;
-val pretend_use = may_run_file false o Path.unpack;
+fun may_load_file really time path =
+  if really andalso time then
+    let val name = Path.pack path in
+      timeit (fn () =>
+       (writeln ("\n**** Starting file " ^ quote name ^ " ****");
+        may_run_file really path;
+        writeln ("**** Finished file " ^ quote name ^ " ****\n")))
+    end
+  else may_run_file really path;
 
 end;
+
+val use_path    = may_load_file true false;
+val use         = use_path o Path.unpack;
+val time_use    = may_load_file true true o Path.unpack;
+val pretend_use = may_load_file false false o Path.unpack;
 
 
 (* load_thy *)
@@ -313,14 +322,18 @@ fun gen_use_thy req s =
   let val (_, (_, name)) = req [] Path.current ([], s)
   in Context.context (get_theory name) end;
 
+fun warn_finished f name = (check_unfinished warning name; f name);
+
 in
 
-val weak_use_thy    = gen_use_thy (require_thy true false false false);
-val use_thy         = gen_use_thy (require_thy true false true false);
-val time_use_thy    = gen_use_thy (require_thy true true true false);
-val use_thy_only    = gen_use_thy (require_thy false false true false);
-val update_thy      = gen_use_thy (require_thy true false true true);
-val update_thy_only = gen_use_thy (require_thy false false true true);
+val weak_use_thy     = gen_use_thy (require_thy true false false false);
+val quiet_update_thy = gen_use_thy (require_thy true false true true);
+
+val use_thy          = warn_finished (gen_use_thy (require_thy true false true false));
+val time_use_thy     = warn_finished (gen_use_thy (require_thy true true true false));
+val use_thy_only     = warn_finished (gen_use_thy (require_thy false false true false));
+val update_thy       = warn_finished (gen_use_thy (require_thy true false true true));
+val update_thy_only  = warn_finished (gen_use_thy (require_thy false false true true));
 
 end;
 
@@ -339,17 +352,17 @@ fun remove_thy name =
 
 (* begin / end theory *)
 
-fun begin_theory name parents paths =
+fun gen_begin_theory check_thy name parents paths =
   let
-    val _ =
-      if is_some (lookup_thy name) andalso is_finished name then
-        error (loader_msg "cannot change finished theory" [name])
-      else ();
-    val _ = (map Path.basic parents; seq weak_use_thy parents);
+    val _ = check_unfinished error name;
+    val _ = (map Path.basic parents; seq check_thy parents);
     val theory = PureThy.begin_theory name (map get_theory parents);
     val _ = change_thys (update_node name parents (init_deps None [], Some theory));
     val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
   in Context.setmp (Some theory) (seq use_path) use_paths; theory end;
+
+val begin_theory = gen_begin_theory weak_use_thy;
+val begin_update_theory = gen_begin_theory quiet_update_thy;
 
 fun end_theory theory =
   let
