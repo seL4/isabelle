@@ -74,15 +74,15 @@ translations
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
-  "{x. P}"      == "Collect (%x. P)"
+  "{x. P}"      => "Collect (%x. P)"
   "UN x y. B"   == "UN x. UN y. B"
   "UN x. B"     == "UNION UNIV (%x. B)"
   "INT x y. B"  == "INT x. INT y. B"
   "INT x. B"    == "INTER UNIV (%x. B)"
-  "UN x:A. B"   == "UNION A (%x. B)"
-  "INT x:A. B"  == "INTER A (%x. B)"
-  "ALL x:A. P"  == "Ball A (%x. P)"
-  "EX x:A. P"   == "Bex A (%x. P)"
+  "UN x:A. B"   => "UNION A (%x. B)"
+  "INT x:A. B"  => "INTER A (%x. B)"
+  "ALL x:A. P"  => "Ball A (%x. P)"
+  "EX x:A. P"   => "Bex A (%x. P)"
 
 syntax (output)
   "_setle"      :: "'a set => 'a set => bool"             ("op <=")
@@ -150,22 +150,36 @@ parse_translation {*
   in [("@SetCompr", setcompr_tr)] end;
 *}
 
+(* To avoid eta-contraction of body: *)
 print_translation {*
-  let
-    val ex_tr' = snd (mk_binder_tr' ("Ex", "DUMMY"));
+let
+  fun btr' syn [A,Abs abs] =
+    let val (x,t) = atomic_abs_tr' abs
+    in Syntax.const syn $ x $ A $ t end
+in
+[("Ball", btr' "_Ball"),("Bex", btr' "_Bex"),
+ ("UNION", btr' "@UNION"),("INTER", btr' "@INTER")]
+end
+*}
 
-    fun setcompr_tr' [Abs (_, _, P)] =
-      let
-        fun check (Const ("Ex", _) $ Abs (_, _, P), n) = check (P, n + 1)
-          | check (Const ("op &", _) $ (Const ("op =", _) $ Bound m $ e) $ P, n) =
-              if n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
-                ((0 upto (n - 1)) subset add_loose_bnos (e, 0, [])) then ()
-              else raise Match;
+print_translation {*
+let
+  val ex_tr' = snd (mk_binder_tr' ("Ex", "DUMMY"));
+
+  fun setcompr_tr' [Abs (abs as (_, _, P))] =
+    let
+      fun check (Const ("Ex", _) $ Abs (_, _, P), n) = check (P, n + 1)
+        | check (Const ("op &", _) $ (Const ("op =", _) $ Bound m $ e) $ P, n) =
+            n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
+            ((0 upto (n - 1)) subset add_loose_bnos (e, 0, []))
 
         fun tr' (_ $ abs) =
           let val _ $ idts $ (_ $ (_ $ _ $ e) $ Q) = ex_tr' [abs]
           in Syntax.const "@SetCompr" $ e $ idts $ Q end;
-      in check (P, 0); tr' P end;
+    in if check (P, 0) then tr' P
+       else let val (x,t) = atomic_abs_tr' abs
+            in Syntax.const "@Coll" $ x $ t end
+    end;
   in [("Collect", setcompr_tr')] end;
 *}
 

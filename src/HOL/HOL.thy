@@ -71,9 +71,16 @@ syntax
 
 translations
   "x ~= y"                == "~ (x = y)"
-  "THE x. P"              == "The (%x. P)"
+  "THE x. P"              => "The (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
+
+print_translation {*
+(* To avoid eta-contraction of body: *)
+[("The", fn [Abs abs] =>
+     let val (x,t) = atomic_abs_tr' abs
+     in Syntax.const "_The" $ x $ t end)]
+*}
 
 syntax (output)
   "="           :: "['a, 'a] => bool"                    (infix 50)

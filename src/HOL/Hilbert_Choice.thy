@@ -22,7 +22,14 @@ syntax (HOL)
 syntax
   "_Eps"        :: "[pttrn, bool] => 'a"    ("(3SOME _./ _)" [0, 10] 10)
 translations
-  "SOME x. P" == "Eps (%x. P)"
+  "SOME x. P" => "Eps (%x. P)"
+
+print_translation {*
+(* to avoid eta-contraction of body *)
+[("Eps", fn [Abs abs] =>
+     let val (x,t) = atomic_abs_tr' abs
+     in Syntax.const "_Eps" $ x $ t end)]
+*}
 
 axioms
   someI: "P (x::'a) ==> P (SOME x. P x)"
