@@ -4,12 +4,12 @@
     Copyright   1998  University of Cambridge
 
 Composition
-
 From Chandy and Sanders, "Reasoning About Program Composition"
+
+Revised by Sidi Ehmety on January 2001
+
 *)
-
-(*** component ***)
-
+(*** component <= ***)
 Goalw [component_def]
      "H <= F | H <= G ==> H <= (F Join G)";
 by Auto_tac;
@@ -214,3 +214,50 @@ by (etac order_trans 1);
 by (Blast_tac 1);
 qed "Increasing_preserves_Stable";
 
+(** component_of **)
+
+(*  component_of is stronger than <= *)
+Goalw [component_def, component_of_def]
+"F component_of H ==> F <= H";
+by (Blast_tac 1);
+qed "component_of_imp_component";
+
+
+(* component_of satisfies many of the <='s properties *)
+Goalw [component_of_def]
+"F component_of F";
+by (res_inst_tac [("x", "SKIP")] exI 1);
+by Auto_tac;
+qed "component_of_refl";
+
+Goalw [component_of_def]
+"SKIP component_of F";
+by Auto_tac;
+qed "component_of_SKIP";
+
+Addsimps [component_of_refl, component_of_SKIP];
+
+Goalw [component_of_def]
+"[| F component_of G; G component_of H |] ==> F component_of H";
+by (blast_tac (claset() addIs [Join_assoc RS sym]) 1);
+qed "component_of_trans";
+
+bind_thm ("strict_component_of_eq", strict_component_of_def RS meta_eq_to_obj_eq);
+
+(** localize **)
+Goalw [localize_def]
+ "Init (localize v F) = Init F";
+by (Simp_tac 1);
+qed "localize_Init_eq";
+
+Goalw [localize_def]
+ "Acts (localize v F) = Acts F";
+by (Simp_tac 1);
+qed "localize_Acts_eq";
+
+Goalw [localize_def]
+ "AllowedActs (localize v F) = AllowedActs F Int (UN G:(preserves v). Acts G)";
+by Auto_tac;
+qed "localize_AllowedActs_eq";
+
+Addsimps [localize_Init_eq, localize_Acts_eq, localize_AllowedActs_eq];
