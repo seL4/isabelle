@@ -3,7 +3,7 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
-Executes the proofs of the AC-equivalences, by Krzysztof Gr`abczewski
+Executes the proofs of the AC-equivalences, due to Krzysztof Gr`abczewski
 *)
 
 ZF_build_completed;	(*Make examples fail if ZF did*)
@@ -13,21 +13,28 @@ proof_timing := true;
 
 loadpath := [".", "AC"];
 
-time_use_thy "WO6_WO1";
+time_use_thy "AC/AC_Equiv";
 
-(*New ones pending on ~kg10006/isabelle
-time_use     "AC10_AC11.ML";
-time_use     "AC11_AC12.ML";
-time_use     "AC1_AC13.ML";
-time_use     "AC13_AC1.ML";
-time_use     "AC13_AC13.ML";
-time_use     "AC13_AC14.ML";
-time_use     "AC14_AC15.ML";
-time_use_thy "lemmas_AC13_AC15";
-time_use_thy "AC10_AC13";
-time_use_thy "AC11_AC14";
-time_use_thy "AC12_AC15";
-time_use     "AC14_AC15.ML";
-*)
+time_use     "AC/WO1_WO6.ML";
+time_use_thy "AC/WO6_WO1";
+time_use     "AC/WO1_WO7.ML";
+time_use     "AC/WO1_WO8.ML";
+
+time_use     "AC/AC0_AC1.ML";
+time_use     "AC/AC2_AC6.ML";
+time_use     "AC/AC7_AC9.ML";
+
+time_use_thy "AC/WO1_AC1";
+time_use_thy "AC/AC1_WO2";
+
+time_use     "AC/AC10_AC15.ML";
+time_use_thy "AC/AC15_WO6";
+
+(* AC16 to add *)
+
+time_use     "AC/AC1_AC17.ML";
+time_use_thy "AC/AC17_AC1";
+
+time_use_thy "AC/AC18_AC19";
 
 writeln"END: Root file for ZF/AC";

@@ -8,11 +8,11 @@ by H. Rubin and J.E. Rubin, 1985.
 Axiom AC0 comes from "Axiomatic Set Theory" by P. Suppes, 1972.
 
 Some Isabelle proofs of equivalences of these axioms are formalizations of
-proofs presented by Rubin.  The others are based on Rubin's proofs, but
-slightly changed.
+proofs presented by the Rubins.  The others are based on the Rubins' proofs,
+but slightly changed.
 *)
 
-AC_Equiv = CardinalArith + Univ + Transrec2 + 
+AC_Equiv = CardinalArith + Univ + OrdQuant +
 
 consts
   
@@ -26,18 +26,10 @@ consts
   AC10, AC13              :: "i => o"
   AC16                    :: "[i, i] => o"
   AC18                    :: "prop"       ("AC18")
-  
-(* Auxiliary definitions used in theorems *)
-  first                   :: "[i, i, i] => o"
-  exists_first            :: "[i, i] => o"
+
+(* Auxiliary definitions used in definitions *)
   pairwise_disjoint       :: "i => o"
   sets_of_size_between    :: "[i, i, i] => o"
-
-  GG                      :: "[i, i, i] => i"
-  GG2                     :: "[i, i, i] => i"
-  HH                      :: "[i, i, i] => i"
-
-  recfunAC16              :: "[i, i, i, i] => i"
 
 defs
 
@@ -60,7 +52,7 @@ defs
   WO7_def "WO7 == ALL A. Finite(A) <-> (ALL R. well_ord(A,R) -->   \
 \	            well_ord(A,converse(R)))"
 
-  WO8_def "WO8 == ALL A. (0~:A --> (EX f. f : (PROD X:A. X))) -->  \
+  WO8_def "WO8 == ALL A. (EX f. f : (PROD X:A. X)) -->  \
 \	            (EX R. well_ord(A,R))"
 
 (* Axioms of Choice *)  
@@ -120,15 +112,9 @@ defs
 \                 (UN f: PROD a:A. B(a). INT a:A. X(a, f`a))))"
 
   AC19_def "AC19 == ALL A. A~=0 & 0~:A --> ((INT a:A. UN b:a. b) =   \
-\	            (UN f:{f: A->Union(A). ALL B:A. f`B:B}. INT a:A. f`a))"
+\	            (UN f:(PROD B:A. B). INT a:A. f`a))"
 
-(* Auxiliary definitions used in theorems *)
-
-  first_def                "first(u, X, R)   \
-\			    == u:X & (ALL v:X. v~=u --> <u,v> : R)"
-
-  exists_first_def         "exists_first(X,R)   \
-\			    == EX u:X. first(u, X, R)"
+(* Auxiliary definitions used in the above definitions *)
 
   pairwise_disjoint_def    "pairwise_disjoint(A)   \
 \			    == ALL A1:A. ALL A2:A. A1 Int A2 ~= 0 --> A1=A2"
@@ -136,22 +122,4 @@ defs
   sets_of_size_between_def "sets_of_size_between(A,m,n)   \
 \			    == ALL B:A. m lepoll B & B lepoll n"
   
-(* Auxiliary definitions used in proofs *)
-
-  GG_def  "GG(f,x,a)  == transrec(a, %b r. (lam z:Pow(x).   \
-\	                 if(z=0, x, f`z))`(x - {r`c. c:b}))"
-
-  GG2_def "GG2(f,x,a) == transrec(a, %b r. (lam z:Pow(x).   \
-\	                 if(z=0, {x}, f`z))`(x - Union({r`c. c:b})))"
-
-  HH_def  "HH(f,x,a)  == transrec(a, %b r. (lam z:Pow(x).   \
-\	                 if(z=0|f`z~:z, x, f`z))`(x - {r`c. c:b}))"
-
-  recfunAC16_def
-    "recfunAC16(f,fa,i,a) ==   \
-\	 transrec2(i, 0,   \
-\	      %g r. if(EX y:r. fa`g <= y, r,   \
-\		       r Un {f`(LEAST i. fa`g <= f`i &   \
-\		       (ALL b<a. (fa`b <= f`i --> (ALL t:r. ~ fa`b <= t))))}))"
-
 end

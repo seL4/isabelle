@@ -15,7 +15,10 @@ val AC_defs = [AC0_def, AC1_def, AC2_def, AC3_def, AC4_def, AC5_def,
                AC17_def, AC18_def, AC19_def];
  
 val AC_aux_defs = [pairwise_disjoint_def, sets_of_size_between_def];
-
+ 
+val AC_cs = OrdQuant_cs;
+val AC_ss = OrdQuant_ss;
+ 
 (* ******************************************** *)
 
 (* Theorems analogous to ones presented in "ZF/Ordinal.ML" *)
@@ -47,15 +50,13 @@ val prems = goal ZF.thy "(A == B) ==> A <-> B";
 by (asm_simp_tac (ZF_ss addsimps prems) 1);
 val def_imp_iff = result();
 
-val prems = goal ZF.thy "(A == B) ==> P(A) <-> P(B)";
-by (asm_simp_tac (ZF_ss addsimps prems) 1);
-val def_imp_iff_P = result();
+val prems = goal ZF.thy "(A == B) ==> A = B";
+by (simp_tac (ZF_ss addsimps prems) 1);
+val def_imp_eq = result();
 
-(* used only in lemmas4-7.ML *)
-(*Note modified statement and proof*)
-goal ZF.thy "!!X. X~=0 ==> (A->X)~=0";
-by (fast_tac (ZF_cs addSIs [equals0I,lam_type] addSEs [equals0D]) 1);
-val fun_space_not0I = result();
+goal thy "!!X. (A->X)=0 ==> X=0";
+by (fast_tac (ZF_cs addSIs [equals0I] addEs [lam_type RSN (2, equals0D)]) 1);
+val fun_space_emptyD = result();
 
 (* used only in WO1_DC.ML *)
 (*Note simpler proof*)
@@ -109,3 +110,31 @@ goalw CardinalArith.thy [InfCard_def]
 	"!!i. [| ~Finite(i); Card(i) |] ==> InfCard(i)";
 by (asm_simp_tac (ZF_ss addsimps [Card_is_Ord RS nat_le_infinite_Ord]) 1);
 val Inf_Card_is_InfCard = result();
+
+goal thy "(THE z. {x}={z}) = x";
+by (fast_tac (AC_cs addSIs [the_equality]
+		addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
+val the_element = result();
+
+goal thy "(lam x:A. {x}) : bij(A, {{x}. x:A})";
+by (res_inst_tac [("d","%z. THE x. z={x}")] lam_bijective 1);
+by (TRYALL (eresolve_tac [RepFunI, RepFunE]));
+by (REPEAT (asm_full_simp_tac (AC_ss addsimps [the_element]) 1));
+val lam_sing_bij = result();
+
+val [major,minor] = goal thy 
+	"[| f : Pi(A,B); (!!x. x:A ==> B(x)<=C(x)) |] ==> f : Pi(A,C)";
+by (fast_tac (AC_cs addSIs [major RS Pi_type, minor RS subsetD,
+		major RS apply_type]) 1);
+val Pi_weaken_type = result();
+
+val [major, minor] = goalw thy [inj_def]
+	"[| f:inj(A, B); (!!a. a:A ==> f`a : C) |] ==> f:inj(A,C)";
+by (fast_tac (AC_cs addSEs [minor]
+	addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
+val inj_strengthen_type = result();
+
+goal thy "A*B=0 <-> A=0 | B=0";
+by (fast_tac (ZF_cs addSIs [equals0I] addEs [equals0D]) 1);
+val Sigma_empty_iff = result();
+

@@ -1,0 +1,90 @@
+(*  Title: 	ZF/AC/WO1_WO7.ML
+    ID:         $Id$
+    Author: 	Krzysztof Gr`abczewski
+
+WO7 <-> LEMMA <-> WO1 (Rubin & Rubin p. 5)
+LEMMA is the sentence denoted by (**)
+*)
+
+(* ********************************************************************** *)
+(* It is easy to see, that WO7 is equivallent to (**)			  *)
+(* ********************************************************************** *)
+
+goalw thy [WO7_def] "WO7 <-> (ALL X. ~Finite(X) -->  \
+\			(EX R. well_ord(X,R) & ~well_ord(X,converse(R))))";
+by (fast_tac (ZF_cs addSEs [Finite_well_ord_converse]) 1);
+val WO7_iff_LEMMA = result();
+
+(* ********************************************************************** *)
+(* It is also easy to show that LEMMA implies WO1.			  *)
+(* ********************************************************************** *)
+
+goalw thy [WO1_def] "!!Z. ALL X. ~Finite(X) -->  \
+\		(EX R. well_ord(X,R) & ~well_ord(X,converse(R))) ==> WO1";
+by (resolve_tac [allI] 1);
+by (eresolve_tac [allE] 1);
+by (excluded_middle_tac "Finite(A)" 1);
+by (fast_tac AC_cs 1);
+by (rewrite_goals_tac [Finite_def, eqpoll_def]);
+by (fast_tac (AC_cs addSIs [nat_into_Ord RS well_ord_Memrel RSN (2, 
+				bij_is_inj RS well_ord_rvimage)]) 1);
+val LEMMA_imp_WO1 = result();
+
+(* ********************************************************************** *)
+(* The Rubins' proof of the other implication is contained within the	  *)
+(* following sentence :							  *)
+(* "... each infinite ordinal is well ordered by < but not by >."	  *)
+(* This statement can be proved by the following two theorems.		  *)
+(* But moreover we need to show similar property for any well ordered	  *)
+(* infinite set. It is not very difficult thanks to Isabelle order types  *)
+(* We show that if a set is well ordered by some relation and by it's 	  *)
+(* converse, then apropriate order type is well ordered by the converse   *)
+(* of it's membership relation, which in connection with the previous	  *)
+(* gives the conclusion.						  *)
+(* ********************************************************************** *)
+
+goalw thy [wf_on_def, wf_def] 
+    "!!a. [| Ord(a); ~Finite(a) |] ==> ~wf[a](converse(Memrel(a)))";
+by (dresolve_tac [nat_le_infinite_Ord RS le_imp_subset] 1 
+    THEN (atac 1));
+by (resolve_tac [notI] 1);
+by (eres_inst_tac [("x","nat")] allE 1);
+by (eresolve_tac [disjE] 1);
+by (fast_tac (ZF_cs addSDs [nat_0I RSN (2,equals0D)]) 1);
+by (eresolve_tac [bexE] 1);
+by (eres_inst_tac [("x","succ(x)")] allE 1);
+by (fast_tac (ZF_cs addSIs [nat_succI, converseI, MemrelI, 
+                            nat_succI RSN (2, subsetD)]) 1);
+val converse_Memrel_not_wf_on = result();
+
+goalw thy [well_ord_def] 
+    "!!a. [| Ord(a); ~Finite(a) |] ==> ~well_ord(a,converse(Memrel(a)))";
+by (fast_tac (ZF_cs addSDs [converse_Memrel_not_wf_on]) 1);
+val converse_Memrel_not_well_ord = result();
+
+goal thy "!!A. [| well_ord(A,r); well_ord(A,converse(r)) |]  \
+\	==> well_ord(ordertype(A,r), converse(Memrel(ordertype(A, r))))";
+by (rtac ([ordertype_ord_iso RS ord_iso_sym RS ord_iso_rvimage_eq, 
+		Memrel_type RS (subset_Int_iff RS iffD1)] 
+		MRS trans RS subst) 1
+	THEN (atac 1));
+by (rtac (rvimage_converse RS subst) 1);
+by (etac (ordertype_ord_iso RS ord_iso_sym RS ord_iso_is_bij RS
+		bij_is_inj RS well_ord_rvimage) 1
+	THEN (atac 1));
+val well_ord_converse_Memrel = result();
+
+goalw thy [WO1_def] "!!Z. WO1 ==> ALL X. ~Finite(X) -->  \
+\			(EX R. well_ord(X,R) & ~well_ord(X,converse(R)))";
+by (REPEAT (resolve_tac [allI,impI] 1));
+by (REPEAT (eresolve_tac [allE,exE] 1));
+by (REPEAT (ares_tac [exI,conjI,notI] 1));
+by (forward_tac [well_ord_converse_Memrel] 1 THEN (atac 1));
+by (forward_tac [Ord_ordertype RS converse_Memrel_not_well_ord] 1);
+by (contr_tac 2);
+by (fast_tac (empty_cs addSEs [ordertype_ord_iso RS ord_iso_is_bij RS 
+		bij_is_inj RS (exI RS (lepoll_def RS def_imp_iff RS iffD2))
+		RS lepoll_Finite]
+		addSIs [notI] addEs [notE]) 1);
+val WO1_imp_LEMMA = result();
+
