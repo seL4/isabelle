@@ -1053,10 +1053,10 @@ fun make_chart () = if not (!make_html) then () else
                   "<H3>" ^ space_implode "/" subdir ^ "</H3>\n")
                 else "") ^
                "<A HREF = \"" ^ tpath ^ "_sub.html\"><IMG SRC = \"" ^
-               tack_on gif_path "red_arrow.gif\" ALT = \\/></A>" ^
+               tack_on gif_path "red_arrow.gif\" BORDER=0 ALT = \\/></A>" ^
                "<A HREF = \"" ^ tpath ^ "_sup.html\"><IMG SRC = \"" ^
                tack_on gif_path "blue_arrow.gif\
-               \\" ALT = /\\></A> <A HREF = \"" ^ tpath ^
+               \\" BORDER=0 ALT = /\\></A> <A HREF = \"" ^ tpath ^
                ".html\">" ^ tname ^ "</A><BR>\n" ^
                main_entries ts subdir
             end;
