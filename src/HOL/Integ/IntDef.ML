@@ -81,11 +81,11 @@ by (rtac Rep_Integ_inverse 1);
 qed "inj_Rep_Integ";
 
 
-(** nat: the injection from nat to Integ **)
+(** int: the injection from "nat" to "int" **)
 
-Goal "inj(nat)";
+Goal "inj int";
 by (rtac injI 1);
-by (rewtac nat_def);
+by (rewtac int_def);
 by (dtac (inj_on_Abs_Integ RS inj_onD) 1);
 by (REPEAT (rtac intrel_in_integ 1));
 by (dtac eq_equiv_class 1);
@@ -137,7 +137,7 @@ by (dres_inst_tac [("f","uminus")] arg_cong 1);
 by (Asm_full_simp_tac 1);
 qed "inj_zminus";
 
-Goalw [nat_def] "- ($# 0) = $# 0";
+Goalw [int_def] "- ($# 0) = $# 0";
 by (simp_tac (simpset() addsimps [zminus]) 1);
 qed "zminus_nat0";
 
@@ -147,12 +147,12 @@ Addsimps [zminus_nat0];
 (**** neg: the test for negative integers ****)
 
 
-Goalw [neg_def, nat_def] "~ neg($# n)";
+Goalw [neg_def, int_def] "~ neg($# n)";
 by (Simp_tac 1);
 by Safe_tac;
 qed "not_neg_nat";
 
-Goalw [neg_def, nat_def] "neg(- $# Suc(n))";
+Goalw [neg_def, int_def] "neg(- $# Suc(n))";
 by (simp_tac (simpset() addsimps [zminus]) 1);
 qed "neg_zminus_nat";
 
@@ -214,15 +214,15 @@ qed "zadd_left_commute";
 (*Integer addition is an AC operator*)
 val zadd_ac = [zadd_assoc,zadd_commute,zadd_left_commute];
 
-Goalw [nat_def] "($#m) + ($#n) = $# (m + n)";
+Goalw [int_def] "($#m) + ($#n) = $# (m + n)";
 by (simp_tac (simpset() addsimps [zadd]) 1);
 qed "add_nat";
 
 Goal "$# (Suc m) = $# 1 + ($# m)";
 by (simp_tac (simpset() addsimps [add_nat]) 1);
-qed "nat_Suc";
+qed "int_Suc";
 
-Goalw [nat_def] "$# 0 + z = z";
+Goalw [int_def] "$# 0 + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zadd]) 1);
 qed "zadd_nat0";
@@ -232,7 +232,7 @@ by (rtac (zadd_commute RS trans) 1);
 by (rtac zadd_nat0 1);
 qed "zadd_nat0_right";
 
-Goalw [nat_def] "z + (- z) = $# 0";
+Goalw [int_def] "z + (- z) = $# 0";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zminus, zadd, add_commute]) 1);
 qed "zadd_zminus_inverse_nat";
@@ -362,12 +362,12 @@ Goal "(w::int) * (z1 + z2) = (w * z1) + (w * z2)";
 by (simp_tac (simpset() addsimps [zmult_commute',zadd_zmult_distrib]) 1);
 qed "zadd_zmult_distrib2";
 
-Goalw [nat_def] "$# 0 * z = $# 0";
+Goalw [int_def] "$# 0 * z = $# 0";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
 qed "zmult_nat0";
 
-Goalw [nat_def] "$# 1 * z = z";
+Goalw [int_def] "$# 1 * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
 qed "zmult_nat1";
@@ -393,7 +393,7 @@ qed "zminus_exchange";
 (* Theorems about less and less_equal *)
 
 (*This lemma allows direct proofs of other <-properties*)
-Goalw [zless_def, neg_def, zdiff_def, nat_def] 
+Goalw [zless_def, neg_def, zdiff_def, int_def] 
     "(w < z) = (EX n. z = w + $#(Suc n))";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
@@ -420,7 +420,7 @@ Goal "!!w::int. z<w ==> ~w<z";
 by (safe_tac (claset() addSDs [zless_iff_Suc_zadd RS iffD1]));
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [nat_def, zadd]) 1);
+by (asm_full_simp_tac (simpset() addsimps [int_def, zadd]) 1);
 qed "zless_not_sym";
 
 (* [| n<m;  ~P ==> m<n |] ==> P *)
@@ -465,8 +465,8 @@ bind_thm("int_neqE", int_neq_iff RS iffD1 RS disjE);
 
 Goal "($# m = $# n) = (m = n)"; 
 by (fast_tac (claset() addSEs [inj_nat RS injD]) 1); 
-qed "nat_nat_eq"; 
-AddIffs [nat_nat_eq]; 
+qed "int_int_eq"; 
+AddIffs [int_int_eq]; 
 
 Goal "($#m < $#n) = (m<n)";
 by (simp_tac (simpset() addsimps [less_iff_Suc_add, zless_iff_Suc_zadd, 
@@ -637,7 +637,7 @@ Goal "(w < z + $# 1) = (w<z | w=z)";
 by (auto_tac (claset(),
 	      simpset() addsimps [zless_iff_Suc_zadd, zadd_assoc, 
 				  add_nat]));
-by (cut_inst_tac [("m","n")] nat_Suc 1);
+by (cut_inst_tac [("m","n")] int_Suc 1);
 by (exhaust_tac "n" 1);
 by Auto_tac;
 by (full_simp_tac (simpset() addsimps zadd_ac) 1);

@@ -23,7 +23,7 @@ defs
 
 constdefs
 
-  nat        :: nat => int                                  ("$# _" [80] 80)
+  int :: nat => int                                  ("$# _" [80] 80)
   "$# m == Abs_Integ(intrel ^^ {(m,0)})"
 
   neg   :: int => bool

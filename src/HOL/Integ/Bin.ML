@@ -393,35 +393,59 @@ val no_neg_ss =
 		neg_eq_less_0, iszero_def] @ zcompare_rls;
 
 
-(*** nat_of ***)
+(*** nat ***)
 
-Goal "#0 <= z ==> $# (nat_of z) = z"; 
+Goal "#0 <= z ==> $# (nat z) = z"; 
 by (asm_full_simp_tac
-    (simpset() addsimps [neg_eq_less_0, zle_def, not_neg_nat_of]) 1); 
-qed "nat_of_0_le"; 
+    (simpset() addsimps [neg_eq_less_0, zle_def, not_neg_nat]) 1); 
+qed "nat_0_le"; 
 
-Goal "z < #0 ==> nat_of z = 0"; 
+Goal "z < #0 ==> nat z = 0"; 
 by (asm_full_simp_tac
-    (simpset() addsimps [neg_eq_less_0, zle_def, neg_nat_of]) 1); 
-qed "nat_of_less_0"; 
+    (simpset() addsimps [neg_eq_less_0, zle_def, neg_nat]) 1); 
+qed "nat_less_0"; 
 
-Addsimps [nat_of_0_le, nat_of_less_0];
+Addsimps [nat_0_le, nat_less_0];
 
-Goal "#0 <= w ==> (nat_of w = m) = (w = $# m)";
+Goal "#0 <= w ==> (nat w = m) = (w = $# m)";
 by Auto_tac;
-qed "nat_of_eq_iff";
+qed "nat_eq_iff";
 
-Goal "#0 <= w ==> (nat_of w < m) = (w < $# m)";
+Goal "#0 <= w ==> (nat w < m) = (w < $# m)";
 by (rtac iffI 1);
 by (asm_full_simp_tac 
     (simpset() delsimps [zless_eq_less] addsimps [zless_eq_less RS sym]) 2);
-by (etac (nat_of_0_le RS subst) 1);
+by (etac (nat_0_le RS subst) 1);
 by (Simp_tac 1);
-qed "nat_of_less_iff";
+qed "nat_less_iff";
 
-Goal "#0 <= w ==> (nat_of w < nat_of z) = (w<z)";
+Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
 by (case_tac "neg z" 1);
-by (auto_tac (claset(), simpset() addsimps [nat_of_less_iff]));
+by (auto_tac (claset(), simpset() addsimps [nat_less_iff]));
 by (auto_tac (claset() addIs [zless_trans], 
 	      simpset() addsimps [neg_eq_less_0, integ_of_Pls, zle_def]));
-qed "nat_of_less_eq_zless";
+qed "nat_less_eq_zless";
+
+Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
+by (stac nat_less_iff 1);
+ba 1;
+by (case_tac "neg z" 1);
+by (auto_tac (claset(), simpset() addsimps [not_neg_nat, neg_nat]));
+by (auto_tac (claset(), 
+	      simpset() addsimps [neg_eq_less_0, integ_of_Pls, zle_def]));
+by (blast_tac (claset() addIs [zless_trans]) 1);
+qed "nat_less_eq_zless";
+
+
+(**Can these be generalized without evaluating large numbers?**)
+Goal "($# k = #0) = (k=0)";
+by (simp_tac (simpset() addsimps [integ_of_Pls]) 1);
+qed "nat_eq_0_conv";
+
+Goal "(#0 = $# k) = (k=0)";
+by (auto_tac (claset(), simpset() addsimps [integ_of_Pls]));
+qed "nat_eq_0_conv'";
+
+Addsimps [nat_eq_0_conv, nat_eq_0_conv'];
+
+

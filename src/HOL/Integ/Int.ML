@@ -1,4 +1,4 @@
-(*  Title:      Integ.thy
+(*  Title:      HOL/Integ/Int.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -124,20 +124,20 @@ by (Simp_tac 3);
 by (dtac (zle_zminus RS iffD1) 2); 
 by (ALLGOALS (dtac (negative_zle_0 RSN(2,zle_trans)))); 
 by (ALLGOALS Asm_full_simp_tac); 
-qed "nat_zle_neg"; 
+qed "int_zle_neg"; 
 
 Goal "~($# n < - $# m)";
 by (simp_tac (simpset() addsimps [symmetric zle_def]) 1); 
-qed "not_nat_zless_negative"; 
+qed "not_int_zless_negative"; 
 
 Goal "(- $# n = $# m) = (n = 0 & m = 0)"; 
 by (rtac iffI 1);
-by (rtac (nat_zle_neg RS iffD1) 1); 
+by (rtac (int_zle_neg RS iffD1) 1); 
 by (dtac sym 1); 
 by (ALLGOALS Asm_simp_tac); 
 qed "negative_eq_positive"; 
 
-Addsimps [negative_eq_positive, not_nat_zless_negative]; 
+Addsimps [negative_eq_positive, not_int_zless_negative]; 
 
 
 Goal "(w <= z) = (EX n. z = w + $# n)";
@@ -158,24 +158,24 @@ by (simp_tac (simpset() addsimps [neg_eq_less_nat0]) 1);
 qed "not_neg_eq_ge_nat0"; 
 
 
-(**** nat_of: magnitide of an integer, as a natural number ****)
+(**** nat: magnitide of an integer, as a natural number ****)
 
-Goalw [nat_of_def] "nat_of($# n) = n";
+Goalw [nat_def] "nat($# n) = n";
 by Auto_tac;
-qed "nat_of_nat";
+qed "nat_nat";
 
-Goalw [nat_of_def] "nat_of(- $# n) = 0";
+Goalw [nat_def] "nat(- $# n) = 0";
 by (auto_tac (claset(),
 	      simpset() addsimps [neg_eq_less_nat0, zminus_zless])); 
-qed "nat_of_zminus_nat";
+qed "nat_zminus_nat";
 
-Addsimps [nat_of_nat, nat_of_zminus_nat];
+Addsimps [nat_nat, nat_zminus_nat];
 
-Goal "~ neg z ==> $# (nat_of z) = z"; 
+Goal "~ neg z ==> $# (nat z) = z"; 
 by (dtac (not_neg_eq_ge_nat0 RS iffD1) 1); 
 by (dtac zle_imp_zless_or_eq 1); 
 by (auto_tac (claset(), simpset() addsimps [zless_iff_Suc_zadd])); 
-qed "not_neg_nat_of"; 
+qed "not_neg_nat"; 
 
 Goal "neg x ==> ? n. x = - $# Suc n"; 
 by (auto_tac (claset(), 
@@ -183,16 +183,16 @@ by (auto_tac (claset(),
 				  zdiff_eq_eq RS sym, zdiff_def])); 
 qed "negD"; 
 
-Goalw [nat_of_def] "neg z ==> nat_of z = 0"; 
+Goalw [nat_def] "neg z ==> nat z = 0"; 
 by Auto_tac; 
-qed "neg_nat_of"; 
+qed "neg_nat"; 
 
 (* a case theorem distinguishing positive and negative int *)  
 
 val prems = Goal "[|!! n. P ($# n); !! n. P (- $# Suc n) |] ==> P z"; 
 by (case_tac "neg z" 1); 
 by (blast_tac (claset() addSDs [negD] addSIs prems) 1); 
-by (etac (not_neg_nat_of RS subst) 1);
+by (etac (not_neg_nat RS subst) 1);
 by (resolve_tac prems 1);
 qed "int_cases"; 
 

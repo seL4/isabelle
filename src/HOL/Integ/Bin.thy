@@ -22,7 +22,7 @@ by proof.  Then uniqueness of the quotient and remainder yields theorems
 quoting the previously computed values.  (Or code an oracle...)
 *)
 
-Bin = Integ + Datatype +
+Bin = Int + Datatype +
 
 syntax
   "_Int"           :: xnum => int        ("_")
