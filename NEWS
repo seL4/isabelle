@@ -112,9 +112,9 @@ the well-founded relation;
 
 *** Internal changes ***
 
-* improved the theory data mechanism to support real encapsulation;
-main change of the internal interfaces: data kind name (string)
-replaced by private Object.kind, acting as authorization key;
+* improved the theory data mechanism to support encapsulation (data
+kind name replaced by private Object.kind, acting as authorization
+key); new type-safe user interface via functor TheoryDataFun;
 
 
 
