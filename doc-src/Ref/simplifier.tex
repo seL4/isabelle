@@ -25,7 +25,7 @@ Rewrite rules are theorems expressing some form of equality:
 \begin{eqnarray*}
   Suc(\Var{m}) + \Var{n} &=&      \Var{m} + Suc(\Var{n}) \\
   \Var{P}\conj\Var{P}    &\bimp&  \Var{P} \\
-  \Var{A} \union \Var{B} &\equiv& \{x.x\in \Var{A} \disj x\in \Var{B}\}
+  \Var{A} \un \Var{B} &\equiv& \{x.x\in \Var{A} \disj x\in \Var{B}\}
 \end{eqnarray*}
 {\bf Conditional} rewrites such as $\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} =
 0$ are permitted; the conditions can be arbitrary terms.  The infix
@@ -43,16 +43,28 @@ local assumptions.
 
 
 \begin{warn}
-  The left-hand side of a rewrite rule must look like a first-order term:
-  none of its unknowns should have arguments.  Hence
-  ${\Var{i}+(\Var{j}+\Var{k})} = {(\Var{i}+\Var{j})+\Var{k}}$ is
-  acceptable.  Even $\neg(\forall x.\Var{P}(x)) \bimp (\exists
-  x.\neg\Var{P}(x))$ is acceptable because its left-hand side is
-  $\neg(All(\Var{P}))$ after $\eta$-contraction.  But ${\Var{f}(\Var{x})\in
-    {\tt range}(\Var{f})} = True$ is not acceptable.  However, you can
-  replace the offending subterms by adding new variables and conditions:
-  $\Var{y} = \Var{f}(\Var{x}) \Imp \Var{y}\in {\tt range}(\Var{f}) = True$
-  is acceptable as a conditional rewrite rule.
+The simplifier will happily accept all ``normal'' rewrite rules, i.e.\ those
+where all unknowns are of base type. Hence ${\Var{i}+(\Var{j}+\Var{k})} =
+{(\Var{i}+\Var{j})+\Var{k}}$ is ok.
+
+It will also deal gracefully with all rules whose left-hand sides are
+so-called {\em higher-order patterns}~\cite{Nipkow-LICS-93}. These are terms
+in $\beta$-normal form (this will always be the case unless you have done
+something strange) where each occurrence of an unknown is of the form
+$\Var{F}(x@1,\dots,x@n)$, where the $x@i$ are distinct bound variables.
+Hence $(\forall x.\Var{P}(x) \land \Var{Q}(x)) \bimp (\forall x.\Var{P}(x))
+\land (\forall x.\Var{Q}(x))$ is also ok, in both directions.
+
+In some rare cases the rewriter will even deal with quite general rules: for
+example ${\Var{f}(\Var{x})\in range(\Var{f})} = True$ rewrites $g(a) \in
+range(g)$ to $True$, but will fail to match $g(h(b)) \in range(\lambda
+x.g(h(x)))$. However, you can replace the offending subterms (in our case
+$\Var{f}(\Var{x})$, which is not a pattern) by adding new variables and
+conditions: $\Var{y} = \Var{f}(\Var{x}) \Imp \Var{y}\in range(\Var{f})
+= True$ is acceptable as a conditional rewrite rule since conditions can
+be arbitrary terms.
+
+There is no restriction on the form of the right-hand sides.
 \end{warn}
 
 \index{rewrite rules|)}
