@@ -621,13 +621,13 @@ Goalw [LListD_Fun_def]
 by (stac llist_unfold 1);
 by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
 by (Fast_tac 1);
-qed "LListD_Fun_subset_Sigma_llist";
+qed "LListD_Fun_subset_Times_llist";
 
 Goal "prod_fun Rep_LList Rep_LList `` r <= \
 \    (llist(range Leaf)) Times (llist(range Leaf))";
 by (fast_tac (claset() delrules [image_subsetI]
 		       addIs [Rep_LList RS LListD]) 1);
-qed "subset_Sigma_llist";
+qed "subset_Times_llist";
 
 Goal "r <= (llist(range Leaf)) Times (llist(range Leaf)) ==> \
 \    prod_fun (Rep_LList o Abs_LList) (Rep_LList o Abs_LList) `` r <= r";
@@ -668,9 +668,9 @@ by (rtac (image_compose RS subst) 1);
 by (rtac (prod_fun_compose RS subst) 1);
 by (stac image_Un 1);
 by (stac prod_fun_range_eq_diag 1);
-by (rtac (LListD_Fun_subset_Sigma_llist RS prod_fun_lemma) 1);
-by (rtac (subset_Sigma_llist RS Un_least) 1);
-by (rtac diag_subset_Sigma 1);
+by (rtac (LListD_Fun_subset_Times_llist RS prod_fun_lemma) 1);
+by (rtac (subset_Times_llist RS Un_least) 1);
+by (rtac diag_subset_Times 1);
 qed "llist_equalityI";
 
 (** Rules to prove the 2nd premise of llist_equalityI **)
