@@ -1,4 +1,13 @@
+
 Pretty.setmargin 70;
+
+
+context Arith.thy;
+goal Arith.thy "0 + (x + 0) = x + 0 + 0";
+by (Simp_tac 1);
+
+
+
 
 > goal Nat.thy "m+0 = m";
 Level 0
