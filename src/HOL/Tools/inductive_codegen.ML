@@ -542,7 +542,7 @@ fun inductive_codegen thy gr dep brack (Const ("op :", _) $ t $ u) =
 val setup =
   [add_codegen "inductive" inductive_codegen,
    CodegenData.init,
-   add_attribute "ind" add];
+   add_attribute "ind" (Scan.succeed add)];
 
 end;
 
