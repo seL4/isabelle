@@ -20,14 +20,16 @@ use "outer_parse.ML";
 (*interactive subsystem*)
 use "proof_history.ML";
 use "toplevel.ML";
-use "outer_syntax.ML";
 
-(*theory operations and syntax*)
+(*theory operations*)
 use "isar_thy.ML";
 use "isar_cmd.ML";
+
+(*theory syntax*)
+use "outer_syntax.ML";
 use "isar_syn.ML";
 
-(*main interface*)
+(*main ML interface*)
 use "isar.ML";
 
 structure PureIsar =
