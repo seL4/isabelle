@@ -744,16 +744,16 @@ proof -
     thus ?case by simp
   next
     case (insert F x)
-    have "fold (f \<circ> g) e (insert x F \<union> B) = fold (f \<circ> g) e (insert x (F \<union> B))"
+    have "fold (f o g) e (insert x F \<union> B) = fold (f o g) e (insert x (F \<union> B))"
       by simp
-    also have "... = (f \<circ> g) x (fold (f \<circ> g) e (F \<union> B))"
+    also have "... = (f o g) x (fold (f o g) e (F \<union> B))"
       by (rule LC.fold_insert [OF LC.intro])
         (insert b insert, auto simp add: left_commute)
-    also from insert have "fold (f \<circ> g) e (F \<union> B) =
-      fold (f \<circ> g) e F \<cdot> fold (f \<circ> g) e B" by blast
-    also have "(f \<circ> g) x ... = (f \<circ> g) x (fold (f \<circ> g) e F) \<cdot> fold (f \<circ> g) e B"
+    also from insert have "fold (f o g) e (F \<union> B) =
+      fold (f o g) e F \<cdot> fold (f o g) e B" by blast
+    also have "(f o g) x ... = (f o g) x (fold (f o g) e F) \<cdot> fold (f o g) e B"
       by (simp add: AC)
-    also have "(f \<circ> g) x (fold (f \<circ> g) e F) = fold (f \<circ> g) e (insert x F)"
+    also have "(f o g) x (fold (f o g) e F) = fold (f o g) e (insert x F)"
       by (rule LC.fold_insert [OF LC.intro, symmetric]) (insert b insert,
 	auto simp add: left_commute)
     finally show ?case .
