@@ -68,6 +68,7 @@ sig
      (class -> class) ->
      (string -> string) -> (string -> string) -> term -> term
   val foldl_atyps: ('a * typ -> 'a) -> 'a * typ -> 'a
+  val foldl_term_types: (term -> 'a * typ -> 'a) -> 'a * term -> 'a
   val foldl_types: ('a * typ -> 'a) -> 'a * term -> 'a
   val foldl_aterms: ('a * term -> 'a) -> 'a * term -> 'a
   val foldl_map_aterms: ('a * term -> 'a * term) -> 'a * term -> 'a * term
@@ -912,12 +913,14 @@ fun foldl_map_aterms f (x, t $ u) =
   | foldl_map_aterms f x_atom = f x_atom;
 
 (*foldl types of term*)
-fun foldl_types f (x, Const (_, T)) = f (x, T)
-  | foldl_types f (x, Free (_, T)) = f (x, T)
-  | foldl_types f (x, Var (_, T)) = f (x, T)
-  | foldl_types f (x, Bound _) = x
-  | foldl_types f (x, Abs (_, T, t)) = foldl_types f (f (x, T), t)
-  | foldl_types f (x, t $ u) = foldl_types f (foldl_types f (x, t), u);
+fun foldl_term_types f (x, t as Const (_, T)) = f t (x, T)
+  | foldl_term_types f (x, t as Free (_, T)) = f t (x, T)
+  | foldl_term_types f (x, t as Var (_, T)) = f t (x, T)
+  | foldl_term_types f (x, Bound _) = x
+  | foldl_term_types f (x, t as Abs (_, T, b)) = foldl_term_types f (f t (x, T), b)
+  | foldl_term_types f (x, t $ u) = foldl_term_types f (foldl_term_types f (x, t), u);
+
+fun foldl_types f = foldl_term_types (fn _ => f);
 
 
 
