@@ -2030,7 +2030,7 @@ fun rewritec (prover,sign_reft,maxt)
             lhs, elhs, fo, perm} =
       let
         val _ = if Sign.subsig (Sign.deref sign_ref, signt) then ()
-                else (prthm true "Rewrite rule from different theory:" thm;
+                else (prthm true "Ignoring rewrite rule from different theory:" thm;
                       raise Pattern.MATCH);
         val rprop = if maxt = ~1 then prop
                     else Logic.incr_indexes([],maxt+1) prop;
