@@ -100,15 +100,28 @@ qed "bex_triv";
 
 Addsimps [ball_triv, bex_triv];
 
-Goalw [Bex_def] "(ALL x:A. x=a --> P x) = (a:A --> P a)";
+Goal "(EX x:A. x=a) = (a:A)";
 by(Blast_tac 1);
-qed "ball_one_point";
+qed "bex_triv_one_point1";
+
+Goal "(EX x:A. a=x) = (a:A)";
+by(Blast_tac 1);
+qed "bex_triv_one_point2";
 
 Goal "(EX x:A. x=a & P x) = (a:A & P a)";
 by(Blast_tac 1);
-qed "bex_one_point";
+qed "bex_one_point1";
 
-Addsimps [ball_one_point,bex_one_point];
+Goal "(ALL x:A. x=a --> P x) = (a:A --> P a)";
+by(Blast_tac 1);
+qed "ball_one_point1";
+
+Goal "(ALL x:A. a=x --> P x) = (a:A --> P a)";
+by(Blast_tac 1);
+qed "ball_one_point2";
+
+Addsimps [bex_triv_one_point1,bex_triv_one_point2,bex_one_point1,
+          ball_one_point1,ball_one_point2];
 
 let
 val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
