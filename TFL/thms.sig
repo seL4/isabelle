@@ -9,7 +9,6 @@ sig
    val WF_INDUCTION_THM:thm
    val WFREC_COROLLARY :thm
    val CUT_DEF         :thm
-   val CUT_LEMMA       :thm
    val SELECT_AX       :thm
    
    val LET_CONG  :thm

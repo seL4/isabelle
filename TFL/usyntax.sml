@@ -214,7 +214,6 @@ fun dest_pabs tm =
 end;
 
 
-(* Garbage - ought to be dropped *)
 val lhs   = #lhs o dest_eq
 val rhs   = #rhs o dest_eq
 val rand  = #Rand o dest_comb

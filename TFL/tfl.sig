@@ -8,6 +8,13 @@ Main module
 
 signature TFL_sig =
 sig
+
+   val trace : bool ref
+
+   val default_simps : thm list      (*simprules used for deriving rules...*)
+
+   val congs : thm list -> thm list  (*fn to make congruent rules*)
+
    datatype pattern = GIVEN of term * int
                     | OMITTED of term * int
 
@@ -17,30 +24,37 @@ sig
 
    val wfrec_definition0 : theory -> string -> term -> term -> theory
 
-   val post_definition : simpset * thm list -> theory * (thm * pattern list)
-				 -> {theory : theory,
+   val post_definition : thm list -> theory * (thm * pattern list)
+				  -> {theory : theory,
 				     rules  : thm, 
 				       TCs  : term list list,
 			     full_pats_TCs  : (term * term list) list, 
 				  patterns  : pattern list}
 
-(*CURRENTLY UNUSED
-   val wfrec_eqns : simpset * thm list -> theory -> term list
-                     -> {WFR : term, 
+   val wfrec_eqns : theory -> xstring
+	             -> thm list (* congruence rules *)
+                     -> term list
+                     -> {WFR : term,  SV : term list,
                          proto_def : term,
                          extracta :(thm * term list) list,
                          pats  : pattern list}
 
-   val lazyR_def : theory
+   val lazyR_def : theory -> xstring
+	           -> thm list (* congruence rules *)
                    -> term list
-                   -> {theory:theory,
-                       rules :thm,
-                           R :term,
-                       full_pats_TCs :(term * term list) list, 
-                       patterns: pattern list}
----------------------*)
+                   -> {theory : theory,
+                       rules : thm,
+                       R : term, 
+                       SV : term list,
+                       full_pats_TCs : (term * term list) list, 
+                       patterns : pattern list}
 
-   val mk_induction : theory -> term -> term -> (term * term list) list -> thm
+   val mk_induction : theory 
+                       -> {fconst:term,
+                           R : term,
+                           SV : term list,
+                           pat_TCs_list : (term * term list) list}
+                       -> thm
 
    val postprocess: {WFtac:tactic, terminator:tactic, simplifier:cterm -> thm}
                      -> theory 

@@ -9,6 +9,8 @@ Main module
 structure Prim : TFL_sig =
 struct
 
+val trace = ref false;
+
 (* Abbreviations *)
 structure R = Rules;
 structure S = USyntax;
@@ -28,6 +30,23 @@ fun stringize [] = ""
 
 
 fun TFL_ERR{func,mesg} = U.ERR{module = "Tfl", func = func, mesg = mesg};
+
+
+(*---------------------------------------------------------------------------
+          handling of user-supplied congruence rules: lcp*)
+
+(*Convert conclusion from = to ==*)
+val eq_reflect_list = map (fn th => (th RS eq_reflection) handle _ => th);
+
+(*default congruence rules include those for LET and IF*)
+val default_congs = eq_reflect_list [Thms.LET_CONG, if_cong];
+
+fun congs ths = default_congs @ eq_reflect_list ths;
+
+val default_simps = 
+    [less_Suc_eq RS iffD2, lex_prod_def, measure_def, inv_image_def];
+
+
 
 
 (*---------------------------------------------------------------------------
@@ -314,6 +333,12 @@ end end;
  *---------------------------------------------------------------------------*)
 
 
+(*For Isabelle, the lhs of a definition must be a constant.*)
+fun mk_const_def sign (Name, Ty, rhs) =
+    Sign.infer_types sign (K None) (K None) [] false
+	       ([Const("==",dummyT) $ Const(Name,Ty) $ rhs], propT)
+    |> #1;
+
 (*Make all TVars available for instantiation by adding a ? to the front*)
 fun poly_tvars (Type(a,Ts)) = Type(a, map (poly_tvars) Ts)
   | poly_tvars (TFree (a,sort)) = TVar (("?" ^ a, 0), sort)
@@ -335,10 +360,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(Name, Ty, _)) =
      val wfrec_R_M =  map_term_types poly_tvars 
 	                  (wfrec $ map_term_types poly_tvars R) 
 	              $ functional
-     val (def_term, _) = 
-	 Sign.infer_types (Theory.sign_of thy) (K None) (K None) [] false
-	       ([Const("==",dummyT) $ Const(Name,Ty) $ wfrec_R_M], 
-		propT)
+     val def_term = mk_const_def (Theory.sign_of thy) (Name, Ty, wfrec_R_M)
   in  PureThy.add_defs_i [Thm.no_attributes (def_name, def_term)] thy  end
 end;
 
@@ -379,7 +401,8 @@ fun givens [] = []
   | givens (GIVEN(tm,_)::pats) = tm :: givens pats
   | givens (OMITTED _::pats)   = givens pats;
 
-fun post_definition (ss, tflCongs) (theory, (def, pats)) =
+(*called only by Tfl.simplify_defn*)
+fun post_definition meta_tflCongs (theory, (def, pats)) =
  let val tych = Thry.typecheck theory 
      val f = #lhs(S.dest_eq(concl def))
      val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
@@ -392,9 +415,7 @@ fun post_definition (ss, tflCongs) (theory, (def, pats)) =
      val (case_rewrites,context_congs) = extraction_thms theory
      val corollaries' = map(rewrite_rule case_rewrites) corollaries
      val extract = R.CONTEXT_REWRITE_RULE 
-	             (ss, f, R,
-		      R.ISPECL (map tych [f,R]) Thms.CUT_LEMMA,
-		      tflCongs@context_congs)
+	             (f, [R], cut_apply, meta_tflCongs@context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
      val rules0 = map (rewrite_rule [Thms.CUT_DEF]) rules
      val mk_cond_rule = R.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
@@ -402,23 +423,29 @@ fun post_definition (ss, tflCongs) (theory, (def, pats)) =
  in
  {theory = theory,   (* holds def, if it's needed *)
   rules = rules1,
-  full_pats_TCs = merge (map pat_of pats) 
-                        (ListPair.zip (given_pats, TCs)), 
+  full_pats_TCs = merge (map pat_of pats) (ListPair.zip (given_pats, TCs)), 
   TCs = TCs, 
   patterns = pats}
  end;
 
+
 (*---------------------------------------------------------------------------
  * Perform the extraction without making the definition. Definition and
- * extraction commute for the non-nested case. For hol90 users, this 
- * function can be invoked without being in draft mode.
- * CURRENTLY UNUSED
-fun wfrec_eqns (ss, tflCongs) thy eqns =
- let val {functional,pats} = mk_functional thy eqns
+ * extraction commute for the non-nested case.  (Deferred recdefs)
+ *---------------------------------------------------------------------------*)
+fun wfrec_eqns thy fid tflCongs eqns =
+ let val {functional as Abs(Name, Ty, _),  pats} = mk_functional thy eqns
      val given_pats = givens pats
-     val {Bvar = f, Body} = S.dest_abs functional
-     val {Bvar = x, ...} = S.dest_abs Body
-     val (Name, Type("fun", [f_dty, f_rty])) = dest_Free f
+     val f = #1 (S.strip_comb(#lhs(S.dest_eq (hd eqns))))
+     (* val f = Free(Name,Ty) *)
+     val Type("fun", [f_dty, f_rty]) = Ty
+     val dummy = if Name<>fid then 
+			raise TFL_ERR{func = "lazyR_def",
+				      mesg = "Expected a definition of " ^ 
+				      quote fid ^ " but found one of " ^
+				      quote Name}
+		 else ()
+     val SV = S.free_vars_lr functional  (* schema variables *)
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
      val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
@@ -427,20 +454,25 @@ fun wfrec_eqns (ss, tflCongs) thy eqns =
 		   Rtype)
      val WFREC_THM = R.ISPECL [tych R, tych f] WFREC_THM0
      val ([proto_def, WFR],_) = S.strip_imp(concl WFREC_THM)
+     val dummy = 
+	   if !trace then
+	       writeln ("ORIGINAL PROTO_DEF: " ^ 
+			  Sign.string_of_term (Theory.sign_of thy) proto_def)
+           else ()
      val R1 = S.rand WFR
      val corollary' = R.UNDISCH(R.UNDISCH WFREC_THM)
      val corollaries = map (fn pat => R.SPEC (tych pat) corollary') given_pats
      val corollaries' = map (rewrite_rule case_rewrites) corollaries
-     val extract = R.CONTEXT_REWRITE_RULE 
-	               (ss, f, R1, 
-		        R.ISPECL (map tych [f,R1]) Thms.CUT_LEMMA, 
-			tflCongs@context_congs)
- in {proto_def=proto_def, 
+     fun extract X = R.CONTEXT_REWRITE_RULE 
+	               (f, R1::SV, cut_apply, tflCongs@context_congs) X
+ in {proto_def =   (*Use == rather than = for definitions*)
+	 mk_const_def (Theory.sign_of thy) 
+	              (Name, Ty, S.rhs proto_def), 
+     SV=SV,
      WFR=WFR, 
      pats=pats,
      extracta = map extract corollaries'}
  end;
- *---------------------------------------------------------------------------*)
 
 
 (*---------------------------------------------------------------------------
@@ -448,37 +480,56 @@ fun wfrec_eqns (ss, tflCongs) thy eqns =
  * wellfounded relation used in the definition is computed by using the
  * choice operator on the extracted conditions (plus the condition that
  * such a relation must be wellfounded).
- * CURRENTLY UNUSED
-fun lazyR_def ss thy eqns =
- let val {proto_def,WFR,pats,extracta} = wfrec_eqns ss thy eqns
+ *---------------------------------------------------------------------------*)
+fun lazyR_def thy fid tflCongs eqns =
+ let val {proto_def,WFR,pats,extracta,SV} = 
+	   wfrec_eqns thy fid (congs tflCongs) eqns
      val R1 = S.rand WFR
-     val f = S.lhs proto_def
-     val (Name,_) = dest_Free f
+     val f = #1 (Logic.dest_equals proto_def)
      val (extractants,TCl) = ListPair.unzip extracta
+     val dummy = if !trace 
+		 then (writeln "Extractants = ";
+		       prths extractants;
+		       ())
+		 else ()
      val TCs = foldr (gen_union (op aconv)) (TCl, [])
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
+     val proto_def' = subst_free[(R1,R')] proto_def
+     val dummy = if !trace then writeln ("proto_def' = " ^
+					 Sign.string_of_term
+					 (Theory.sign_of thy) proto_def')
+	                   else ()
      val theory =
        thy
-       |> PureThy.add_defs_i [Thm.no_attributes (Name ^ "_def", subst_free[(R1,R')] proto_def)];
-     val def = freezeT((get_axiom theory (Name ^ "_def")) RS meta_eq_to_obj_eq)
+       |> PureThy.add_defs_i 
+            [Thm.no_attributes (fid ^ "_def", proto_def')];
+     val def = get_axiom theory (fid ^ "_def") RS meta_eq_to_obj_eq
+     val dummy = if !trace then writeln ("DEF = " ^ string_of_thm def)
+	                   else ()
      val fconst = #lhs(S.dest_eq(concl def)) 
      val tych = Thry.typecheck theory
-     val baz = R.DISCH (tych proto_def)
-                 (U.itlist (R.DISCH o tych) full_rqt (R.LIST_CONJ extractants))
+     val full_rqt_prop = map (Dcterm.mk_prop o tych) full_rqt
+	 (*lcp: a lot of object-logic inference to remove*)
+     val baz = R.DISCH_ALL
+                 (U.itlist R.DISCH full_rqt_prop 
+		  (R.LIST_CONJ extractants))
+     val dum = if !trace then writeln ("baz = " ^ string_of_thm baz)
+	                   else ()
+     val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
      val def' = R.MP (R.SPEC (tych fconst) 
-                             (R.SPEC (tych R') (R.GENL[tych R1, tych f] baz)))
+                             (R.SPEC (tych R')
+			      (R.GENL[tych R1, tych f_free] baz)))
                      def
-     val body_th = R.LIST_CONJ (map (R.ASSUME o tych) full_rqt)
+     val body_th = R.LIST_CONJ (map R.ASSUME full_rqt_prop)
      val bar = R.MP (R.ISPECL[tych R'abs, tych R1] Thms.SELECT_AX)
                     body_th
- in {theory = theory, R=R1,
+ in {theory = theory, R=R1, SV=SV,
      rules = U.rev_itlist (U.C R.MP) (R.CONJUNCTS bar) def',
      full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
      patterns = pats}
  end;
- *---------------------------------------------------------------------------*)
 
 
 
@@ -617,7 +668,7 @@ fun complete_cases thy =
  *
  * Note. When the context is empty, there can be no local variables.
  *---------------------------------------------------------------------------*)
-
+(*
 local infix 5 ==>
       fun (tm1 ==> tm2) = S.mk_imp{ant = tm1, conseq = tm2}
 in
@@ -644,12 +695,38 @@ fun build_ih f P (pat,TCs) =
              end
  end
 end;
+*)
 
-
+local infix 5 ==>
+      fun (tm1 ==> tm2) = S.mk_imp{ant = tm1, conseq = tm2}
+in
+fun build_ih f (P,SV) (pat,TCs) = 
+ let val pat_vars = S.free_vars_lr pat
+     val globals = pat_vars@SV
+     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
+     fun dest_TC tm = 
+         let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
+             val (R,y,_) = S.dest_relation R_y_pat
+             val P_y = if (nested tm) then R_y_pat ==> P$y else P$y
+         in case cntxt 
+              of [] => (P_y, (tm,[]))
+               | _  => let 
+                    val imp = S.list_mk_conj cntxt ==> P_y
+                    val lvs = gen_rems (op aconv) (S.free_vars_lr imp, globals)
+                    val locals = #2(U.pluck (curry (op aconv) P) lvs) handle _ => lvs
+                    in (S.list_mk_forall(locals,imp), (tm,locals)) end
+         end
+ in case TCs
+    of [] => (S.list_mk_forall(pat_vars, P$pat), [])
+     |  _ => let val (ihs, TCs_locals) = ListPair.unzip(map dest_TC TCs)
+                 val ind_clause = S.list_mk_conj ihs ==> P$pat
+             in (S.list_mk_forall(pat_vars,ind_clause), TCs_locals)
+             end
+ end
+end;
 
 (*---------------------------------------------------------------------------
- * This function makes good on the promise made in "build_ih: we prove
- * <something>.
+ * This function makes good on the promise made in "build_ih". 
  *
  * Input  is tm = "(!y. R y pat ==> P y) ==> P pat",  
  *           TCs = TC_1[pat] ... TC_n[pat]
@@ -711,7 +788,7 @@ fun LEFT_ABS_VSTRUCT tych thm =
  * recursion induction (Rinduct) by proving the antecedent of Sinduct from 
  * the antecedent of Rinduct.
  *---------------------------------------------------------------------------*)
-fun mk_induction thy f R pat_TCs_list =
+fun mk_induction thy {fconst, R, SV, pat_TCs_list} =
 let val tych = Thry.typecheck thy
     val Sinduction = R.UNDISCH (R.ISPEC (tych R) Thms.WF_INDUCTION_THM)
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
@@ -722,12 +799,12 @@ let val tych = Thry.typecheck thy
     val P = Free(Pname, domain --> HOLogic.boolT)
     val Sinduct = R.SPEC (tych P) Sinduction
     val Sinduct_assumf = S.rand ((#ant o S.dest_imp o concl) Sinduct)
-    val Rassums_TCl' = map (build_ih f P) pat_TCs_list
+    val Rassums_TCl' = map (build_ih fconst (P,SV)) pat_TCs_list
     val (Rassums,TCl') = ListPair.unzip Rassums_TCl'
     val Rinduct_assum = R.ASSUME (tych (S.list_mk_conj Rassums))
     val cases = map (fn pat => betapply (Sinduct_assumf, pat)) pats
     val tasks = U.zip3 cases TCl' (R.CONJUNCTS Rinduct_assum)
-    val proved_cases = map (prove_case f thy) tasks
+    val proved_cases = map (prove_case fconst thy) tasks
     val v = Free (variant (foldr add_term_names (map concl proved_cases, []))
 		    "v",
 		  domain)
@@ -803,8 +880,20 @@ let val tych = Thry.typecheck theory
     *   2. apply the terminator to tc'. If |- tc' = T then eliminate; else
     *   3. replace tc by tc' in both the rules and the induction theorem.
     *---------------------------------------------------------------------*)
+
+fun print_thms s L = 
+  if !trace then writeln (cat_lines (s :: map string_of_thm L))
+  else ();
+
+fun print_cterms s L = 
+  if !trace then writeln (cat_lines (s :: map string_of_cterm L))
+  else ();;
+
    fun simplify_tc tc (r,ind) =
-       let val tc_eq = simplifier (tych tc)
+       let val tc1 = tych tc
+           val _ = print_cterms "TC before simplification: " [tc1]
+           val tc_eq = simplifier tc1
+           val _ = print_thms "result: " [tc_eq]
        in 
        elim_tc (R.MATCH_MP Thms.eqT tc_eq) (r,ind)
        handle _ => 

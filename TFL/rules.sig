@@ -52,8 +52,8 @@ sig
   val term_ref : term list ref
   val thm_ref : thm list ref
   val mss_ref : meta_simpset list ref
-  val tracing :bool ref
-  val CONTEXT_REWRITE_RULE : simpset * term * term * thm * thm list 
+  val tracing : bool ref
+  val CONTEXT_REWRITE_RULE : term * term list * thm * thm list 
                              -> thm -> thm * term list
   val RIGHT_ASSOC : thm -> thm 
 

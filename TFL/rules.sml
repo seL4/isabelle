@@ -6,6 +6,7 @@
 Emulation of HOL inference rules for TFL
 *)
 
+
 structure Rules : Rules_sig = 
 struct
 
@@ -73,6 +74,7 @@ fun ASSUME ctm = Thm.assume (D.mk_prop ctm);
  *---------------------------------------------------------------------------*)
 fun MP th1 th2 = th2 RS (th1 RS mp);
 
+(*forces the first argument to be a proposition if necessary*)
 fun DISCH tm thm = Thm.implies_intr (D.mk_prop tm) thm COMP impI;
 
 fun DISCH_ALL thm = Utils.itlist DISCH (#hyps (crep_thm thm)) thm;
@@ -238,7 +240,8 @@ in
 fun SPEC tm thm = 
    let val {sign,T,...} = rep_cterm tm
        val gspec' = instantiate([(indx,ctyp_of sign T)],[]) gspec
-   in thm RS (forall_elim tm gspec')
+   in 
+      thm RS (forall_elim tm gspec')
    end
 end;
 
@@ -627,13 +630,14 @@ fun restricted t = is_some (S.find_term
 			    (fn (Const("cut",_)) =>true | _ => false) 
 			    t)
 
-fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
- let val pbeta_reduce = simpl_conv ss [split RS eq_reflection];
+fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
+ let val globals = func::G
+     val pbeta_reduce = simpl_conv empty_ss [split RS eq_reflection];
      val tc_list = ref[]: term list ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []
      val dummy = mss_ref  := []
-     val cut_lemma' = (cut_lemma RS mp) RS eq_reflection
+     val cut_lemma' = cut_lemma RS eq_reflection
      fun prover mss thm =
      let fun cong_prover mss thm =
          let val dummy = say "cong_prover:"
@@ -727,7 +731,7 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
               val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
                    sign,...} = rep_thm thm
               fun genl tm = let val vlist = gen_rems (op aconv)
-                                           (add_term_frees(tm,[]), [func,R])
+                                           (add_term_frees(tm,[]), globals)
                             in U.itlist Forall vlist tm
                             end
               (*--------------------------------------------------------------

@@ -26,7 +26,7 @@ use "utils.sml";
 use "usyntax.sml";
 use "thms.sml";
 use "dcterm.sml"; 
-use "rules.new.sml";
+use "rules.sml";
 use "thry.sml";
 
 
