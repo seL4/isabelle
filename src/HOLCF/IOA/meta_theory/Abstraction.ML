@@ -249,7 +249,7 @@ by (assume_tac 1);
 qed"AbsRuleA1";
 
 
-Goal "[| inp(C)=inp(A); out(C)=out(A); \
+Goal "!!LC. [| inp(C)=inp(A); out(C)=out(A); \
 \                  inp(Q)=inp(P); out(Q)=out(P); \
 \                  is_live_abstraction h1 (C,LC) (A,LA); \
 \                  live_implements (A,LA) (Q,LQ) ; \

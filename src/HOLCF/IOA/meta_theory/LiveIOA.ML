@@ -9,7 +9,7 @@ Live I/O Automata.
 Delsimps [split_paired_Ex];
 
 Goalw [live_implements_def] 
-"[| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |] \
+"!!LC. [| live_implements (A,LA) (B,LB); live_implements (B,LB) (C,LC) |] \
 \     ==> live_implements (A,LA) (C,LC)"; 
 by Auto_tac;
 qed"live_implements_trans";
