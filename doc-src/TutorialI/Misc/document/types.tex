@@ -1,7 +1,7 @@
 \begin{isabelle}%
-\isacommand{types}\ number\ \ \ \ \ \ \ =\ nat\isanewline
-\ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ =\ {"}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{"}\isanewline
-\ \ \ \ \ \ ('a,'b)alist\ =\ {"}('a\ *\ 'b)list{"}%
+\isacommand{types}\ number\ \ \ \ \ \ \ {\isacharequal}\ nat\isanewline
+\ \ \ \ \ \ gate\ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\ \ \ \ \ \ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}alist\ {\isacharequal}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isacharasterisk}\ {\isacharprime}b{\isacharparenright}list{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent\indexbold{*types}%
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
@@ -9,8 +9,8 @@ output never contains synonyms.  Their main purpose is to improve the
 readability of theories.  Synonyms can be used just like any other
 type:%
 \end{isamarkuptext}%
-\isacommand{consts}\ nand\ ::\ gate\isanewline
-\ \ \ \ \ \ \ exor\ ::\ gate%
+\isacommand{consts}\ nand\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
+\ \ \ \ \ \ \ exor\ {\isacharcolon}{\isacharcolon}\ gate%
 \begin{isamarkuptext}%
 \subsection{Constant definitions}
 \label{sec:ConstDefinitions}
@@ -19,8 +19,8 @@ type:%
 The above constants \isa{nand} and \isa{exor} are non-recursive and can
 therefore be defined directly by%
 \end{isamarkuptext}%
-\isacommand{defs}\ nand\_def:\ {"}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}(A\ {\isasymand}\ B){"}\isanewline
-\ \ \ \ \ exor\_def:\ {"}exor\ A\ B\ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{"}%
+\isacommand{defs}\ nand{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \ exor{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}exor\ A\ B\ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent%
 where \isacommand{defs}\indexbold{*defs} is a keyword and \isa{nand_def} and
@@ -29,10 +29,10 @@ The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
 Declarations and definitions can also be merged%
 \end{isamarkuptext}%
-\isacommand{constdefs}\ nor\ ::\ gate\isanewline
-\ \ \ \ \ \ \ \ \ {"}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}(A\ {\isasymor}\ B){"}\isanewline
-\ \ \ \ \ \ \ \ \ \ exor2\ ::\ gate\isanewline
-\ \ \ \ \ \ \ \ \ {"}exor2\ A\ B\ {\isasymequiv}\ (A\ {\isasymor}\ B)\ {\isasymand}\ ({\isasymnot}A\ {\isasymor}\ {\isasymnot}B){"}%
+\isacommand{constdefs}\ nor\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ \ exor\isadigit{2}\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}exor\isadigit{2}\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymnot}A\ {\isasymor}\ {\isasymnot}B{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent\indexbold{*constdefs}%
 in which case the default name of each definition is \isa{$f$_def}, where

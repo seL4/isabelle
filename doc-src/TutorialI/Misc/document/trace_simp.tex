@@ -5,9 +5,9 @@ Using the simplifier effectively may take a bit of experimentation.  Set the
 \ttindexbold{trace_simp} \rmindex{flag} to get a better idea of what is going
 on:%
 \end{isamarkuptext}%
-\isacommand{ML}\ {"}set\ trace\_simp{"}\isanewline
-\isacommand{lemma}\ {"}rev\ [a]\ =\ []{"}\isanewline
-\isacommand{apply}(simp)%
+\isacommand{ML}\ {\isachardoublequote}set\ trace{\isacharunderscore}simp{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}rev\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 produces the trace
@@ -35,7 +35,7 @@ In more complicated cases, the trace can be quite lenghty, especially since
 invocations of the simplifier are often nested (e.g.\ when solving conditions
 of rewrite rules). Thus it is advisable to reset it:%
 \end{isamarkuptxt}%
-\isacommand{ML}\ {"}reset\ trace\_simp{"}\isanewline
+\isacommand{ML}\ {\isachardoublequote}reset\ trace{\isacharunderscore}simp{\isachardoublequote}\isanewline
 \end{isabelle}%
 %%% Local Variables:
 %%% mode: latex

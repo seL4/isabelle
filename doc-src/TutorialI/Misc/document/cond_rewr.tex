@@ -4,16 +4,16 @@
 So far all examples of rewrite rules were equations. The simplifier also
 accepts \emph{conditional} equations, for example%
 \end{isamarkuptext}%
-\isacommand{lemma}\ hd\_Cons\_tl[simp]:\ {"}xs\ {\isasymnoteq}\ []\ \ {\isasymLongrightarrow}\ \ hd\ xs\ \#\ tl\ xs\ =\ xs{"}\isanewline
-\isacommand{by}(case\_tac\ xs,\ simp,\ simp)%
+\isacommand{lemma}\ hd{\isacharunderscore}Cons{\isacharunderscore}tl{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ \ {\isasymLongrightarrow}\ \ hd\ xs\ {\isacharhash}\ tl\ xs\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
 sequence of methods. Assuming that the simplification rule
-\isa{(rev\ \mbox{xs}\ =\ [])\ =\ (\mbox{xs}\ =\ [])}
+\isa{{\isacharparenleft}rev\ \mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}\mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}}
 is present as well,%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {"}xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd(rev\ xs)\ \#\ tl(rev\ xs)\ =\ rev\ xs{"}%
+\isacommand{lemma}\ {\isachardoublequote}xs\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ hd{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharhash}\ tl{\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 is proved by plain simplification:

@@ -1,7 +1,7 @@
 \begin{isabelle}%
 \isanewline
-\isacommand{lemma}\ {"}(case\ xs\ of\ []\ {\isasymRightarrow}\ []\ |\ y\#ys\ {\isasymRightarrow}\ xs)\ =\ xs{"}\isanewline
-\isacommand{apply}(case\_tac\ xs)%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y{\isacharhash}ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ xs{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 results in the proof state
@@ -11,7 +11,7 @@ results in the proof state
 \end{isabellepar}%
 which is solved automatically:%
 \end{isamarkuptxt}%
-\isacommand{by}(auto)\isanewline
+\isacommand{by}{\isacharparenleft}auto{\isacharparenright}\isanewline
 \end{isabelle}%
 %%% Local Variables:
 %%% mode: latex

@@ -9,19 +9,19 @@ concepts. Of course we need to expand the definitions initially to derive
 enough lemmas that characterize the concept sufficiently for us to forget the
 original definition. For example, given%
 \end{isamarkuptext}%
-\isacommand{constdefs}\ exor\ ::\ {"}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{"}\isanewline
-\ \ \ \ \ \ \ \ \ {"}exor\ A\ B\ {\isasymequiv}\ (A\ {\isasymand}\ {\isasymnot}B)\ {\isasymor}\ ({\isasymnot}A\ {\isasymand}\ B){"}%
+\isacommand{constdefs}\ exor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ {\isachardoublequote}exor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 we may want to prove%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {"}exor\ A\ ({\isasymnot}A){"}%
+\isacommand{lemma}\ {\isachardoublequote}exor\ A\ {\isacharparenleft}{\isasymnot}A{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 There is a special method for \emph{unfolding} definitions, which we need to
 get started:\indexbold{*unfold}\indexbold{definition!unfolding}%
 \end{isamarkuptxt}%
-\isacommand{apply}(unfold\ exor\_def)%
+\isacommand{apply}{\isacharparenleft}unfold\ exor{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 It unfolds the given list of definitions (here merely one) in all subgoals:
@@ -33,7 +33,7 @@ The resulting goal can be proved by simplification.
 In case we want to expand a definition in the middle of a proof, we can
 simply include it locally:%
 \end{isamarkuptxt}%
-\isacommand{apply}(simp\ add:\ exor\_def)%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ exor{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 In fact, this one command proves the above lemma directly.

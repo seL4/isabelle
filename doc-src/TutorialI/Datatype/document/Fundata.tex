@@ -1,5 +1,5 @@
 \begin{isabelle}%
-\isacommand{datatype}\ ('a,'i)bigtree\ =\ Tip\ |\ Branch\ 'a\ {"}'i\ {\isasymRightarrow}\ ('a,'i)bigtree{"}%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Branch\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Parameter \isa{'a} is the type of values stored in
 the \isa{Branch}es of the tree, whereas \isa{'i} is the index
@@ -11,33 +11,33 @@ write down such a tree? Using functional notation! For example, the term
 \begin{quote}
 
 \begin{isabelle}%
-Branch\ 0\ ({\isasymlambda}\mbox{i}.\ Branch\ \mbox{i}\ ({\isasymlambda}\mbox{n}.\ Tip))
+Branch\ \isadigit{0}\ {\isacharparenleft}{\isasymlambda}\mbox{i}{\isachardot}\ Branch\ \mbox{i}\ {\isacharparenleft}{\isasymlambda}\mbox{n}{\isachardot}\ Tip{\isacharparenright}{\isacharparenright}
 \end{isabelle}%
 
 \end{quote}
-of type \isa{(nat,\ nat)\ bigtree} is the tree whose
+of type \isa{{\isacharparenleft}nat{\isacharcomma}\ nat{\isacharparenright}\ bigtree} is the tree whose
 root is labeled with 0 and whose $i$th subtree is labeled with $i$ and
 has merely \isa{Tip}s as further subtrees.
 
 Function \isa{map_bt} applies a function to all labels in a \isa{bigtree}:%
 \end{isamarkuptext}%
-\isacommand{consts}\ map\_bt\ ::\ {"}('a\ {\isasymRightarrow}\ 'b)\ {\isasymRightarrow}\ ('a,'i)bigtree\ {\isasymRightarrow}\ ('b,'i)bigtree{"}\isanewline
+\isacommand{consts}\ map{\isacharunderscore}bt\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
-{"}map\_bt\ f\ Tip\ \ \ \ \ \ \ \ \ \ =\ Tip{"}\isanewline
-{"}map\_bt\ f\ (Branch\ a\ F)\ =\ Branch\ (f\ a)\ ({\isasymlambda}i.\ map\_bt\ f\ (F\ i)){"}%
+{\isachardoublequote}map{\isacharunderscore}bt\ f\ Tip\ \ \ \ \ \ \ \ \ \ {\isacharequal}\ Tip{\isachardoublequote}\isanewline
+{\isachardoublequote}map{\isacharunderscore}bt\ f\ {\isacharparenleft}Branch\ a\ F{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}f\ a{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}i{\isachardot}\ map{\isacharunderscore}bt\ f\ {\isacharparenleft}F\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent This is a valid \isacommand{primrec} definition because the
 recursive calls of \isa{map_bt} involve only subtrees obtained from
 \isa{F}, i.e.\ the left-hand side. Thus termination is assured.  The
-seasoned functional programmer might have written \isa{map\_bt\ \mbox{f}\ {\isasymcirc}\ \mbox{F}}
-instead of \isa{{\isasymlambda}\mbox{i}.\ map\_bt\ \mbox{f}\ (\mbox{F}\ \mbox{i})}, but the former is not accepted by
+seasoned functional programmer might have written \isa{map{\isacharunderscore}bt\ \mbox{f}\ {\isasymcirc}\ \mbox{F}}
+instead of \isa{{\isasymlambda}\mbox{i}{\isachardot}\ map{\isacharunderscore}bt\ \mbox{f}\ {\isacharparenleft}\mbox{F}\ \mbox{i}{\isacharparenright}}, but the former is not accepted by
 Isabelle because the termination proof is not as obvious since
 \isa{map_bt} is only partially applied.
 
 The following lemma has a canonical proof%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {"}map\_bt\ (g\ o\ f)\ T\ =\ map\_bt\ g\ (map\_bt\ f\ T){"}\isanewline
-\isacommand{by}(induct\_tac\ {"}T{"},\ auto)%
+\isacommand{lemma}\ {\isachardoublequote}map{\isacharunderscore}bt\ {\isacharparenleft}g\ o\ f{\isacharparenright}\ T\ {\isacharequal}\ map{\isacharunderscore}bt\ g\ {\isacharparenleft}map{\isacharunderscore}bt\ f\ T{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ {\isachardoublequote}T{\isachardoublequote}{\isacharcomma}\ auto{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 but it is worth taking a look at the proof state after the induction step

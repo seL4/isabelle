@@ -13,14 +13,14 @@ language of arithmetic and boolean expressions where
 \end{itemize}
 In Isabelle this becomes%
 \end{isamarkuptext}%
-\isacommand{datatype}\ 'a\ aexp\ =\ IF\ \ \ {"}'a\ bexp{"}\ {"}'a\ aexp{"}\ {"}'a\ aexp{"}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ Sum\ \ {"}'a\ aexp{"}\ {"}'a\ aexp{"}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ Diff\ {"}'a\ aexp{"}\ {"}'a\ aexp{"}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ Var\ 'a\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ Num\ nat\isanewline
-\isakeyword{and}\ \ \ \ \ \ 'a\ bexp\ =\ Less\ {"}'a\ aexp{"}\ {"}'a\ aexp{"}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ And\ \ {"}'a\ bexp{"}\ {"}'a\ bexp{"}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ Neg\ \ {"}'a\ bexp{"}%
+\isacommand{datatype}\ {\isacharprime}a\ aexp\ {\isacharequal}\ IF\ \ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Sum\ \ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Diff\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Var\ {\isacharprime}a\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Num\ nat\isanewline
+\isakeyword{and}\ \ \ \ \ \ {\isacharprime}a\ bexp\ {\isacharequal}\ Less\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ aexp{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ And\ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ \ {\isachardoublequote}{\isacharprime}a\ bexp{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Type \isa{aexp} is similar to \isa{expr} in \S\ref{sec:ExprCompiler},
@@ -29,8 +29,8 @@ have fixed the two binary operations \isa{Sum} and \isa{Diff}. Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is fixed via two evaluation functions%
 \end{isamarkuptext}%
-\isacommand{consts}\ \ evala\ ::\ {"}'a\ aexp\ {\isasymRightarrow}\ ('a\ {\isasymRightarrow}\ nat)\ {\isasymRightarrow}\ nat{"}\isanewline
-\ \ \ \ \ \ \ \ evalb\ ::\ {"}'a\ bexp\ {\isasymRightarrow}\ ('a\ {\isasymRightarrow}\ nat)\ {\isasymRightarrow}\ bool{"}%
+\isacommand{consts}\ \ evala\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 that take an expression and an environment (a mapping from variables \isa{'a} to values
@@ -40,22 +40,22 @@ operate on them. Hence they need to be defined in a single \isacommand{primrec}
 section:%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
-\ \ {"}evala\ (IF\ b\ a1\ a2)\ env\ =\isanewline
-\ \ \ \ \ (if\ evalb\ b\ env\ then\ evala\ a1\ env\ else\ evala\ a2\ env){"}\isanewline
-\ \ {"}evala\ (Sum\ a1\ a2)\ env\ =\ evala\ a1\ env\ +\ evala\ a2\ env{"}\isanewline
-\ \ {"}evala\ (Diff\ a1\ a2)\ env\ =\ evala\ a1\ env\ -\ evala\ a2\ env{"}\isanewline
-\ \ {"}evala\ (Var\ v)\ env\ =\ env\ v{"}\isanewline
-\ \ {"}evala\ (Num\ n)\ env\ =\ n{"}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}IF\ b\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\isanewline
+\ \ \ \ \ {\isacharparenleft}if\ evalb\ b\ env\ then\ evala\ a\isadigit{1}\ env\ else\ evala\ a\isadigit{2}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}Sum\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\isadigit{1}\ env\ {\isacharplus}\ evala\ a\isadigit{2}\ env{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}Diff\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\isadigit{1}\ env\ {\isacharminus}\ evala\ a\isadigit{2}\ env{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}Var\ v{\isacharparenright}\ env\ {\isacharequal}\ env\ v{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evala\ {\isacharparenleft}Num\ n{\isacharparenright}\ env\ {\isacharequal}\ n{\isachardoublequote}\isanewline
 \isanewline
-\ \ {"}evalb\ (Less\ a1\ a2)\ env\ =\ (evala\ a1\ env\ <\ evala\ a2\ env){"}\isanewline
-\ \ {"}evalb\ (And\ b1\ b2)\ env\ =\ (evalb\ b1\ env\ {\isasymand}\ evalb\ b2\ env){"}\isanewline
-\ \ {"}evalb\ (Neg\ b)\ env\ =\ ({\isasymnot}\ evalb\ b\ env){"}%
+\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Less\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evala\ a\isadigit{1}\ env\ {\isacharless}\ evala\ a\isadigit{2}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evalb\ {\isacharparenleft}And\ b\isadigit{1}\ b\isadigit{2}{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}evalb\ b\isadigit{1}\ env\ {\isasymand}\ evalb\ b\isadigit{2}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}evalb\ {\isacharparenleft}Neg\ b{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ evalb\ b\ env{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 In the same fashion we also define two functions that perform substitution:%
 \end{isamarkuptext}%
-\isacommand{consts}\ substa\ ::\ {"}('a\ {\isasymRightarrow}\ 'b\ aexp)\ {\isasymRightarrow}\ 'a\ aexp\ {\isasymRightarrow}\ 'b\ aexp{"}\isanewline
-\ \ \ \ \ \ \ substb\ ::\ {"}('a\ {\isasymRightarrow}\ 'b\ aexp)\ {\isasymRightarrow}\ 'a\ bexp\ {\isasymRightarrow}\ 'b\ bexp{"}%
+\isacommand{consts}\ substa\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ substb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ aexp{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharprime}b\ bexp{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 The first argument is a function mapping variables to expressions, the
@@ -64,16 +64,16 @@ result, the type of variables in the expression may change from \isa{'a}
 to \isa{'b}. Note that there are only arithmetic and no boolean variables.%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
-\ \ {"}substa\ s\ (IF\ b\ a1\ a2)\ =\isanewline
-\ \ \ \ \ IF\ (substb\ s\ b)\ (substa\ s\ a1)\ (substa\ s\ a2){"}\isanewline
-\ \ {"}substa\ s\ (Sum\ a1\ a2)\ =\ Sum\ (substa\ s\ a1)\ (substa\ s\ a2){"}\isanewline
-\ \ {"}substa\ s\ (Diff\ a1\ a2)\ =\ Diff\ (substa\ s\ a1)\ (substa\ s\ a2){"}\isanewline
-\ \ {"}substa\ s\ (Var\ v)\ =\ s\ v{"}\isanewline
-\ \ {"}substa\ s\ (Num\ n)\ =\ Num\ n{"}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}IF\ b\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ IF\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Sum\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\ Sum\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Diff\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\ Diff\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Var\ v{\isacharparenright}\ {\isacharequal}\ s\ v{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substa\ s\ {\isacharparenleft}Num\ n{\isacharparenright}\ {\isacharequal}\ Num\ n{\isachardoublequote}\isanewline
 \isanewline
-\ \ {"}substb\ s\ (Less\ a1\ a2)\ =\ Less\ (substa\ s\ a1)\ (substa\ s\ a2){"}\isanewline
-\ \ {"}substb\ s\ (And\ b1\ b2)\ =\ And\ (substb\ s\ b1)\ (substb\ s\ b2){"}\isanewline
-\ \ {"}substb\ s\ (Neg\ b)\ =\ Neg\ (substb\ s\ b){"}%
+\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Less\ a\isadigit{1}\ a\isadigit{2}{\isacharparenright}\ {\isacharequal}\ Less\ {\isacharparenleft}substa\ s\ a\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substa\ s\ a\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}And\ b\isadigit{1}\ b\isadigit{2}{\isacharparenright}\ {\isacharequal}\ And\ {\isacharparenleft}substb\ s\ b\isadigit{1}{\isacharparenright}\ {\isacharparenleft}substb\ s\ b\isadigit{2}{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ {\isachardoublequote}substb\ s\ {\isacharparenleft}Neg\ b{\isacharparenright}\ {\isacharequal}\ Neg\ {\isacharparenleft}substb\ s\ b{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 Now we can prove a fundamental theorem about the interaction between
 evaluation and substitution: applying a substitution $s$ to an expression $a$
@@ -84,9 +84,9 @@ boolean expressions (by induction), you find that you always need the other
 theorem in the induction step. Therefore you need to state and prove both
 theorems simultaneously:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {"}evala\ (substa\ s\ a)\ env\ =\ evala\ a\ ({\isasymlambda}x.\ evala\ (s\ x)\ env)\ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ evalb\ (substb\ s\ b)\ env\ =\ evalb\ b\ ({\isasymlambda}x.\ evala\ (s\ x)\ env){"}\isanewline
-\isacommand{apply}(induct\_tac\ a\ \isakeyword{and}\ b)%
+\isacommand{lemma}\ {\isachardoublequote}evala\ {\isacharparenleft}substa\ s\ a{\isacharparenright}\ env\ {\isacharequal}\ evala\ a\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}\ {\isasymand}\isanewline
+\ \ \ \ \ \ \ \ evalb\ {\isacharparenleft}substb\ s\ b{\isacharparenright}\ env\ {\isacharequal}\ evalb\ b\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ evala\ {\isacharparenleft}s\ x{\isacharparenright}\ env{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
@@ -102,7 +102,7 @@ apply(induct_tac \(x@1\) \texttt{and} \(\dots\) \texttt{and} \(x@n\));
 \end{ttbox}
 
 \begin{exercise}
-  Define a function \isa{norma} of type \isa{\mbox{'a}\ aexp\ {\isasymRightarrow}\ \mbox{'a}\ aexp} that
+  Define a function \isa{norma} of type \isa{\mbox{{\isacharprime}a}\ aexp\ {\isasymRightarrow}\ \mbox{{\isacharprime}a}\ aexp} that
   replaces \isa{IF}s with complex boolean conditions by nested
   \isa{IF}s where each condition is a \isa{Less} --- \isa{And} and
   \isa{Neg} should be eliminated completely. Prove that \isa{norma}

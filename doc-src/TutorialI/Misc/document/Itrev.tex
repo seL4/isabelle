@@ -7,10 +7,10 @@ because it calls function \isa{\at} for each element of the list and
 \isa{rev} reqires an extra argument where the result is accumulated
 gradually, using only \isa{\#}:%
 \end{isamarkuptext}%
-\isacommand{consts}\ itrev\ ::\ {"}'a\ list\ {\isasymRightarrow}\ 'a\ list\ {\isasymRightarrow}\ 'a\ list{"}\isanewline
+\isacommand{consts}\ itrev\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
-{"}itrev\ []\ \ \ \ \ ys\ =\ ys{"}\isanewline
-{"}itrev\ (x\#xs)\ ys\ =\ itrev\ xs\ (x\#ys){"}%
+{\isachardoublequote}itrev\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ ys\ {\isacharequal}\ ys{\isachardoublequote}\isanewline
+{\isachardoublequote}itrev\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ ys\ {\isacharequal}\ itrev\ xs\ {\isacharparenleft}x{\isacharhash}ys{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent The behaviour of \isa{itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
@@ -21,12 +21,12 @@ compiled into a loop.
 Naturally, we would like to show that \isa{itrev} does indeed reverse
 its first argument provided the second one is empty:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {"}itrev\ xs\ []\ =\ rev\ xs{"}%
+\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ xs{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 There is no choice as to the induction variable, and we immediately simplify:%
 \end{isamarkuptxt}%
-\isacommand{apply}(induct\_tac\ xs,\ auto)%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ auto{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 Unfortunately, this is not a complete success:
@@ -43,7 +43,7 @@ hypothesis, is too weak to solve the induction step because of the fixed
 Of course one cannot do this na\"{\i}vely: \isa{itrev xs ys = rev xs} is
 just not true---the correct generalization is%
 \end{isamarkuptxt}%
-\isacommand{lemma}\ {"}itrev\ xs\ ys\ =\ rev\ xs\ @\ ys{"}%
+\isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 If \isa{ys} is replaced by \isa{[]}, the right-hand side simplifies to
@@ -64,10 +64,10 @@ not there:
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \isa{ys} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
-\isa{\mbox{a}\ \#\ \mbox{ys}} instead of \isa{ys}. Hence we prove the theorem
+\isa{\mbox{a}\ {\isacharhash}\ \mbox{ys}} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one:%
 \end{isamarkuptxt}%
-\isacommand{lemma}\ {"}{\isasymforall}ys.\ itrev\ xs\ ys\ =\ rev\ xs\ @\ ys{"}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}ys{\isachardot}\ itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
 This time induction on \isa{xs} followed by simplification succeeds. This
