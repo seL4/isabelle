@@ -145,14 +145,14 @@ proof tools provide a high degree of automation.
 %package	HOL
 Summary:	Isabelle Theorem Proving Environment -- Higher-Order Logic
 Group:		Applications/Math
-Requires:       %{name} = %{version}
+Requires:       isabelle
 %description HOL
 This package contains a binary image of the HOL object-logic for Isabelle.
 
 %package	ZF
 Summary:	Isabelle Theorem Proving Environment -- Zermelo-Fraenkel set theory
 Group:		Applications/Math
-Requires:       %{name} = %{version}
+Requires:       isabelle
 %description ZF
 This package contains a binary image of the ZF object-logic for Isabelle.
 
