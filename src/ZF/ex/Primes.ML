@@ -8,8 +8,6 @@ The "divides" relation, the greatest common divisor and Euclid's algorithm
 
 eta_contract:=false;
 
-open Primes;
-
 (************************************************)
 (** Divides Relation                           **)
 (************************************************)
@@ -125,10 +123,9 @@ qed "egcd_prop1";
 (* if f divides a and b then f divides egcd(a,b) *)
 
 Goalw [dvd_def] "[| f dvd a; f dvd b; 0<b |] ==> f dvd (a mod b)";
-by (safe_tac (claset() addSIs [mult_type, mod_type]));
+by (safe_tac (claset() addSIs [mod_type]));
 ren "m n" 1;
-by (rtac (zero_lt_mult_iff RS iffD1 RS conjE) 1);
-by (REPEAT_SOME assume_tac);
+by (Asm_full_simp_tac 1);
 by (res_inst_tac 
     [("x", "(((m div n)#*n #+ m mod n) #- ((f#*m) div (f#*n)) #* n)")] 
     bexI 1);

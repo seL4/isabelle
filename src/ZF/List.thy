@@ -10,7 +10,7 @@ object-level functions.  This simplifies the final form of term_rec_conv,
 although complicating its derivation.
 *)
 
-List = Datatype + 
+List = Datatype + Arith +
 
 consts
   list       :: i=>i

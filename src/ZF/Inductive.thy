@@ -1,5 +1,5 @@
 (*Dummy theory to document dependencies *)
 
-Inductive = Fixedpt + Sum + QPair + 
+Inductive = Fixedpt + mono + 
 
 end

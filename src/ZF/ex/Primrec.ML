@@ -137,7 +137,7 @@ Goal "[| i1:nat; i2:nat; j:nat |] ==> \
 by (rtac (ack2_le_ack1 RSN (2,lt_trans2)) 1);
 by (Asm_simp_tac 1);
 by (rtac (add_le_self RS ack_le_mono1 RS lt_trans1) 1);
-by (rtac (add_le_self2 RS ack_lt_mono1 RS ack_lt_mono2) 5);
+by (rtac (add_le_self2 RS ack_lt_mono1 RS ack_lt_mono2) 4);
 by Auto_tac;
 qed "ack_nest_bound";
 
@@ -265,7 +265,7 @@ by (asm_simp_tac (simpset() addsimps [add_le_self2]) 1);
 (*final part of the simplification*)
 by (Asm_simp_tac 1);
 by (rtac (add_le_self2 RS ack_le_mono1 RS lt_trans1) 1);
-by (etac ack_lt_mono2 5);
+by (etac ack_lt_mono2 4);
 by Auto_tac;
 qed "PREC_case_lemma";
 

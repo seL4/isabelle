@@ -1345,69 +1345,38 @@ qed "e_less_eq";
 (* ARITH_CONV proves the following in HOL. Would like something similar 
    in Isabelle/ZF. *)
 
-Goal "[|n:nat; m:nat|] ==> succ(m#+n)#-m = succ(n)";
-(*Uses add_succ_right the wrong way round!*)
+Goal "succ(m#+n)#-m = succ(natify(n))";
 by (asm_simp_tac
-    (simpset_of Nat.thy addsimps [add_succ_right RS sym, diff_add_inverse]) 1);
+    (simpset() delsimps [add_succ_right]
+	       addsimps [add_succ_right RS sym, diff_add_inverse]) 1);
 val lemma_succ_sub = result();
 
-Goalw [e_less_def] (* e_less_add *)
-    "[|m:nat; k:nat|] ==>    \
-\         e_less(DD,ee,m,succ(m#+k)) = (ee`(m#+k))O(e_less(DD,ee,m,m#+k))";
+Goalw [e_less_def]
+     "e_less(DD,ee,m,succ(m#+k)) = (ee`(m#+k))O(e_less(DD,ee,m,m#+k))";
 by (asm_simp_tac (simpset() addsimps [lemma_succ_sub,diff_add_inverse]) 1);
 qed "e_less_add";
-
-(* Again, would like more theorems about arithmetic. *)
 
 Goal "n:nat ==> succ(n) = n #+ 1";
 by (Asm_simp_tac 1);
 qed "add1";
 
-Goal "x:nat ==> 0 < x --> succ(x #- 1)=x";
-by (induct_tac "x" 1);
-by Auto_tac;
-qed "succ_sub1";
-
-Goal (* succ_le_pos *)
-    "[|m:nat; k:nat|] ==> succ(m) le m #+ k --> 0 < k";
-by (induct_tac "m" 1);
-by Auto_tac;
-qed "succ_le_pos";
-
-Goal "[|n:nat; m:nat|] ==> m le n --> (EX k:nat. n = m #+ k)";
-by (induct_tac "m" 1);
-by Safe_tac;
-by (rtac bexI 1);
-by (rtac (add_0 RS sym) 1);
-by (assume_tac 1);
-by (Asm_full_simp_tac 1);
-(* Great, by luck I found le_cs. Such cs's and ss's should be documented. *)
-by (fast_tac le_cs 1); 
-by (asm_simp_tac
-    (simpset_of Nat.thy addsimps[add_succ, add_succ_right RS sym]) 1);
-by (rtac bexI 1);
-by (stac (succ_sub1 RS mp) 1);
-(* Instantiation. *)
-by (rtac refl 3);
-by (assume_tac 1);
-by (rtac (succ_le_pos RS mp) 1);
-by (assume_tac 3); (* Instantiation *)
-by (ALLGOALS Asm_simp_tac);
+Goal "[| m le n; n: nat |] ==> EX k: nat. n = m #+ k";
+by (dtac less_imp_Suc_add 1);
+by Auto_tac;  
 val lemma_le_exists = result();
 
-val prems = goal thy  (* le_exists *)
-    "[|m le n;  !!x. [|n=m#+x; x:nat|] ==> Q; m:nat; n:nat|] ==> Q";
-by (rtac (lemma_le_exists RS mp RS bexE) 1);
+val prems = Goal
+    "[| m le n;  !!x. [|n=m#+x; x:nat|] ==> Q;  n:nat |] ==> Q";
+by (rtac (lemma_le_exists RS bexE) 1);
 by (DEPTH_SOLVE (ares_tac prems 1));
 qed "le_exists";
 
-Goal  (* e_less_le *)
-    "[|m le n; m:nat; n:nat|] ==>   \
-\    e_less(DD,ee,m,succ(n)) = ee`n O e_less(DD,ee,m,n)";
+Goal "[| m le n;  n:nat |] ==>   \
+\     e_less(DD,ee,m,succ(n)) = ee`n O e_less(DD,ee,m,n)";
 by (rtac le_exists 1);
 by (assume_tac 1);
 by (asm_simp_tac(simpset() addsimps[e_less_add]) 1);
-by (REPEAT (assume_tac 1));
+by (assume_tac 1);
 qed "e_less_le";
 
 (* All theorems assume variables m and n are natural numbers. *)
@@ -1416,7 +1385,7 @@ Goal "m:nat ==> e_less(DD,ee,m,succ(m)) = ee`m O id(set(DD`m))";
 by (asm_simp_tac(simpset() addsimps[e_less_le, e_less_eq]) 1);
 qed "e_less_succ";
 
-val prems = Goal  (* e_less_succ_emb *)
+val prems = Goal
     "[|!!n. n:nat ==> emb(DD`n,DD`succ(n),ee`n); m:nat|] ==>   \
 \    e_less(DD,ee,m,succ(m)) = ee`m";
 by (asm_simp_tac(simpset() addsimps e_less_succ::prems) 1);
@@ -1427,23 +1396,26 @@ qed "e_less_succ_emb";
 (* Compare this proof with the HOL one, here we do type checking. *)
 (* In any case the one below was very easy to write. *)
 
-Goal "[|emb_chain(DD,ee); m:nat; k:nat|] ==>   \
-\    emb(DD`m,DD`(m#+k),e_less(DD,ee,m,m#+k))";
-by (induct_tac "k" 1);
-by (asm_simp_tac(simpset() addsimps[e_less_eq]) 1);
+Goal "[| emb_chain(DD,ee); m:nat |] ==>   \
+\     emb(DD`m, DD`(m#+k), e_less(DD,ee,m,m#+k))";
+by (subgoal_tac "emb(DD`m, DD`(m#+natify(k)), e_less(DD,ee,m,m#+natify(k)))" 1);
+by (res_inst_tac [("n","natify(k)")] nat_induct 2);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps[e_less_eq])));
 brr[emb_id,emb_chain_cpo] 1;
 by (asm_simp_tac(simpset() addsimps[e_less_add]) 1);
 by (auto_tac (claset() addIs [emb_comp,emb_chain_emb,emb_chain_cpo,add_type],
 	      simpset()));
 qed "emb_e_less_add";
 
-Goal "[|m le n; emb_chain(DD,ee); m:nat; n:nat|] ==>   \
-\    emb(DD`m,DD`n,e_less(DD,ee,m,n))";
+Goal "[| m le n;  emb_chain(DD,ee);  n:nat |] ==>   \
+\    emb(DD`m, DD`n, e_less(DD,ee,m,n))";
+by (ftac lt_nat_in_nat 1);
+by (etac nat_succI 1);
 (* same proof as e_less_le *)
 by (rtac le_exists 1);
 by (assume_tac 1);
 by (asm_simp_tac(simpset() addsimps[emb_e_less_add]) 1);
-by (REPEAT (assume_tac 1));
+by (assume_tac 1);
 qed "emb_e_less";
 
 Goal "[|f=f'; g=g'|] ==> f O g = f' O g'";
@@ -1752,20 +1724,17 @@ qed "eps_split_add_right_rev";
 
 (* Arithmetic, little support in Isabelle/ZF. *)
 
-val prems = Goal  (* le_exists_lemma *)
-    "[|n le k; k le m;  \
-\      !!p q. [|p le q; k=n#+p; m=n#+q; p:nat; q:nat|] ==> R; \
-\      m:nat; n:nat; k:nat|]==>R";
-by (rtac (hd prems RS le_exists) 1);
-by (rtac (le_exists) 1);
-by (rtac le_trans 1);
-(* Careful *)
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
+val [prem1,prem2,prem3,prem4] = Goal
+    "[| n le k; k le m;  \
+\       !!p q. [|p le q; k=n#+p; m=n#+q; p:nat; q:nat|] ==> R; \
+\       m:nat |]==>R";
+by (rtac (prem1 RS le_exists) 1);
+by (simp_tac (simpset() addsimps [prem2 RS lt_nat_in_nat, prem4]) 2);
+by (rtac ([prem1,prem2] MRS le_trans RS le_exists) 1);
+by (rtac prem3 1);
 by (assume_tac 2);
 by (assume_tac 2);
-by (cut_facts_tac[hd prems,hd(tl prems)]1);
+by (cut_facts_tac [prem1,prem2] 1);
 by (Asm_full_simp_tac 1);
 by (etac add_le_elim1 1);
 by (REPEAT (ares_tac prems 1));

@@ -6,7 +6,18 @@
 Finite powerset operator
 *)
 
-Finite = Arith + Inductive +
+Finite = Inductive + Nat +
+
+setup setup_datatypes
+
+(*The natural numbers as a datatype*)
+rep_datatype 
+  elim		natE
+  induct	nat_induct
+  case_eqns	nat_case_0, nat_case_succ
+  recursor_eqns recursor_0, recursor_succ
+
+
 consts
   Fin       :: i=>i
   FiniteFun :: [i,i]=>i         ("(_ -||>/ _)" [61, 60] 60)

@@ -256,8 +256,8 @@ qed "recfunAC16_lepoll_index";
 
 
 Goal "[| recfunAC16(f,g,y,a) <= {X: Pow(A). X eqpoll n};  \
-\               A eqpoll a; y<a; ~Finite(a); Card(a); n:nat |]  \
-\               ==> Union(recfunAC16(f,g,y,a)) lesspoll a";
+\        A eqpoll a;  y<a;  ~Finite(a);  Card(a);  n:nat |]  \
+\     ==> Union(recfunAC16(f,g,y,a)) lesspoll a";
 by (eresolve_tac [eqpoll_def RS def_imp_iff RS iffD1 RS exE] 1);
 by (rtac Union_lesspoll 1 THEN (TRYALL assume_tac));
 by (eresolve_tac [lt_Ord RS recfunAC16_lepoll_index] 3);
@@ -270,12 +270,12 @@ qed "Union_recfunAC16_lesspoll";
 
 Goal "[| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 \       Card(a); ~ Finite(a); A eqpoll a;  \
-\       k : nat; m : nat; y<a;  \
+\       k: nat;  y<a;  \
 \       fa : bij(a, {Y: Pow(A). Y eqpoll succ(k)}) |]  \
 \       ==> A - Union(recfunAC16(f, fa, y, a)) - fa`y eqpoll a";
 by (rtac dbl_Diff_eqpoll_Card 1 THEN (TRYALL assume_tac));
 by (rtac Union_recfunAC16_lesspoll 1 THEN (REPEAT (assume_tac 1)));
-by (eresolve_tac [add_type RS nat_succI] 1 THEN (assume_tac 1));
+by (Simp_tac 1);
 by (resolve_tac [nat_succI RSN 
 		 (2, bexI RS (Finite_def RS def_imp_iff RS iffD2)) RS 
 		 (Card_is_Ord RSN (3, Finite_lesspoll_infinite_Ord))] 1

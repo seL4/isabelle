@@ -16,20 +16,6 @@ AddSEs [quotientE];
 
 (*** Proving that intrel is an equivalence relation ***)
 
-(*By luck, requires no typing premises for y1, y2,y3*)
-val eqa::eqb::prems = goal Arith.thy 
-    "[| x1 #+ y2 = x2 #+ y1; x2 #+ y3 = x3 #+ y2;  \
-\       x1: nat; x2: nat; x3: nat |]    ==>    x1 #+ y3 = x3 #+ y1";
-by (cut_facts_tac prems 1);
-by (res_inst_tac [("k","x2")] add_left_cancel 1);
-by (rtac (add_left_commute RS trans) 1);
-by Auto_tac;
-by (stac eqb 1);
-by (rtac (add_left_commute RS trans) 1);
-by (stac eqa 3);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_left_commute])));
-qed "int_trans_lemma";
-
 (** Natural deduction for intrel **)
 
 Goalw [intrel_def]
@@ -63,6 +49,16 @@ qed "intrelE";
 
 AddSIs [intrelI];
 AddSEs [intrelE];
+
+val eqa::eqb::prems = goal Arith.thy 
+    "[| x1 #+ y2 = x2 #+ y1; x2 #+ y3 = x3 #+ y2 |] ==> x1 #+ y3 = x3 #+ y1";
+by (res_inst_tac [("k","x2")] add_left_cancel 1);
+by (rtac (add_left_commute RS trans) 1);
+by Auto_tac;
+by (stac eqb 1);
+by (rtac (add_left_commute RS trans) 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [eqa, add_left_commute])));
+qed "int_trans_lemma";
 
 Goalw [equiv_def, refl_def, sym_def, trans_def]
     "equiv(nat*nat, intrel)";
@@ -239,8 +235,7 @@ by (asm_simp_tac (simpset() addsimps [add_assoc, Let_def]) 1);
 (*The rest should be trivial, but rearranging terms is hard;
   add_ac does not help rewriting with the assumptions.*)
 by (res_inst_tac [("m1","x1a")] (add_left_commute RS ssubst) 1);
-by (res_inst_tac [("m1","x2a")] (add_left_commute RS ssubst) 3);
-by Auto_tac;
+by (res_inst_tac [("m1","x2a")] (add_left_commute RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [add_assoc RS sym]) 1);
 qed "zadd_congruent2";
 

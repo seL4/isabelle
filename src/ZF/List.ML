@@ -216,7 +216,8 @@ by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "length_map";
 
-Goal "xs: list(A) ==> length(xs@ys) = length(xs) #+ length(ys)";
+Goal "[| xs: list(A); ys: list(A) |] \
+\     ==> length(xs@ys) = length(xs) #+ length(ys)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "length_app";

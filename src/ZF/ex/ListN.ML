@@ -35,7 +35,8 @@ qed "listn_mono";
 
 Goal "[| <n,l> : listn(A); <n',l'> : listn(A) |] ==> <n#+n', l@l'> : listn(A)";
 by (etac listn.induct 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps listn.intrs)));
+by (ftac (impOfSubs listn.dom_subset) 1);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps listn.intrs)));
 qed "listn_append";
 
 val Nil_listn_case  = listn.mk_cases "<i,Nil> : listn(A)"

@@ -146,7 +146,7 @@ qed "eq_imp_Int_eq";
 Goal "[| k:nat; m:nat |] ==>  \
 \       ALL A B. A eqpoll k #+ m & k lepoll B & B<=A --> A-B lepoll m";
 by (induct_tac "k" 1);
-by (simp_tac (simpset() addsimps [add_0]) 1);
+by (asm_simp_tac (simpset() addsimps [add_0]) 1);
 by (fast_tac (claset() addIs [eqpoll_imp_lepoll RS
         (Diff_subset RS subset_imp_lepoll RS lepoll_trans)]) 1);
 by (REPEAT (resolve_tac [allI,impI] 1));
