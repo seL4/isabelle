@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Stefan Berghofer, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+#
+# DESCRIPTION: display Isabelle version
+
+
+echo 'Isabelle repository version'    # filled in automatically!
