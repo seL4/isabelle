@@ -145,19 +145,23 @@ fun strip_abss vars_of body_of tm =
       subst_bounds (map (mark_bound o #1) rev_new_vars, body))
   end;
 
+
 (*do (partial) eta-contraction before printing*)
 
 val eta_contract = ref true;
 
 fun eta_contr tm =
   let
+    fun is_aprop (Const ("_aprop", _)) = true
+      | is_aprop _ = false;
+
     fun eta_abs (Abs (a, T, t)) =
           (case eta_abs t of
             t' as f $ u =>
               (case eta_abs u of
                 Bound 0 =>
-                  if not (0 mem loose_bnos f) then incr_boundvars ~1 f
-                  else Abs (a, T, t')
+                  if 0 mem loose_bnos f orelse is_aprop f then Abs (a, T, t')
+                  else  incr_boundvars ~1 f
               | _ => Abs (a, T, t'))
           | t' => Abs (a, T, t'))
       | eta_abs t = t;
