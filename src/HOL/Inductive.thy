@@ -6,7 +6,7 @@
 Setup packages for inductive sets and types etc.
 *)
 
-theory Inductive = Gfp + Sum_Type + NatDef
+theory Inductive = Gfp + Sum_Type + Relation
 files
   ("Tools/induct_method.ML")
   ("Tools/inductive_package.ML")
@@ -81,12 +81,5 @@ theorems basic_monos [mono] =
   not_all not_ex
   Ball_def Bex_def
   inductive_rulify2
-
-
-(*belongs to theory Transitive_Closure*)
-declare rtrancl_induct [induct set: rtrancl]
-declare rtranclE [cases set: rtrancl]
-declare trancl_induct [induct set: trancl]
-declare tranclE [cases set: trancl]
 
 end

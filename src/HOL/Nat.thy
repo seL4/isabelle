@@ -6,7 +6,7 @@ Type "nat" is a linear order, and a datatype; arithmetic operators + -
 and * (for div, mod and dvd, see theory Divides).
 *)
 
-Nat = NatDef + Inductive +
+Nat = NatDef +
 
 (* type "nat" is a wellfounded linear order, and a datatype *)
 
