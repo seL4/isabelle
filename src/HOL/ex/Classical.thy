@@ -743,6 +743,11 @@ text{*Problem 50.  What has this to do with equality?*}
 lemma "(\<forall>x. P a x | (\<forall>y. P x y)) --> (\<exists>x. \<forall>y. P x y)"
 by meson
 
+text{*Problem 54: NOT PROVED*}
+lemma "(\<forall>y::'a. \<exists>z. \<forall>x. F x z = (x=y)) -->
+      ~ (\<exists>w. \<forall>x. F x w = (\<forall>u. F x u --> (\<exists>y. F y u & ~ (\<exists>z. F z u & F z y))))"oops 
+
+
 text{*Problem 55*}
 
 text{*Non-equational version, from Manthey and Bry, CADE-9 (Springer, 1988).
@@ -781,7 +786,6 @@ lemma "(\<forall>x. p a & (p x --> p(f x)) --> p(f(f x)))  =
             (~ p a | ~ p(f x) | p(f(f x))))"
 by meson
 
-
 text{*A manual resolution proof of problem 19.*}
 lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"
 proof (rule ccontr, skolemize, make_clauses)
@@ -790,10 +794,9 @@ proof (rule ccontr, skolemize, make_clauses)
      and Q: "\<And>U. Q U \<Longrightarrow> False"
      and PQ: "\<And>U.  \<lbrakk>P (f U); \<not> Q (g U)\<rbrakk> \<Longrightarrow> False"
   have cl4: "\<And>U. \<not> Q (g U) \<Longrightarrow> False"
-    by (blast intro: P PQ)
-       --{*Temporary: to be replaced by resolution attributes*}
-  show False
-    by (blast intro: Q cl4)
+    by (rule P [BINARY 0 PQ 0])
+  show "False"
+    by (rule Q [BINARY 0 cl4 0])
 qed
 
 end

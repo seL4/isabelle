@@ -408,7 +408,7 @@ val make_clauses_tac =
      in EVERY1 
 	 [METAHYPS
 	    (fn hyps => 
-              (cut_rules_tac
+              (Method.insert_tac
                 (map forall_intr_vars 
                   (make_meta_clauses (make_clauses hyps))) 1)),
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
