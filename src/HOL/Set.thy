@@ -1107,10 +1107,6 @@ lemma disjoint_insert[simp]:
  "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
 by auto
 
-lemma disjoint_int_union[simp]:
-  "({} = A \<inter> (B \<union> C)) = ({} = A \<inter> B \<and> {} = A \<inter> C)"
-by blast
-
 text {* \medskip @{text image}. *}
 
 lemma image_empty [simp]: "f`{} = {}"
@@ -1288,7 +1284,6 @@ lemma subset_Un_eq: "(A \<subseteq> B) = (A \<union> B = B)"
 
 lemma Un_empty [iff]: "(A \<union> B = {}) = (A = {} & B = {})"
   by blast
-
 lemma Un_subset_iff: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B \<subseteq> C)"
   by blast
 
