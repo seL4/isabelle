@@ -131,7 +131,7 @@ by (etac Pair_inject 1);
 by (etac (Push_inject1 RS sym) 1);
 by (rtac (inj_Rep_Node RS injD) 1);
 by (etac trans 1);
-by (safe_tac (HOL_cs addSEs [Pair_inject,Push_inject,sym]));
+by (safe_tac (!claset addSEs [Pair_inject,Push_inject,sym]));
 qed "Push_Node_inject";
 
 
@@ -230,7 +230,7 @@ goalw Univ.thy [ndepth_def,Push_Node_def]
     "ndepth (Push_Node i n) = Suc(ndepth(n))";
 by (stac (Rep_Node RS Node_Push_I RS Abs_Node_inverse) 1);
 by (cut_facts_tac [rewrite_rule [Node_def] Rep_Node] 1);
-by (safe_tac set_cs);
+by (safe_tac (!claset));
 by (etac ssubst 1);  (*instantiates type variables!*)
 by (Simp_tac 1);
 by (rtac Least_equality 1);
@@ -244,11 +244,11 @@ qed "ndepth_Push_Node";
 (*** ntrunc applied to the various node sets ***)
 
 goalw Univ.thy [ntrunc_def] "ntrunc 0 M = {}";
-by (safe_tac (set_cs addSIs [equalityI] addSEs [less_zeroE]));
+by (safe_tac (!claset addSIs [equalityI] addSEs [less_zeroE]));
 qed "ntrunc_0";
 
 goalw Univ.thy [Atom_def,ntrunc_def] "ntrunc (Suc k) (Atom a) = Atom(a)";
-by (safe_tac (set_cs addSIs [equalityI]));
+by (safe_tac (!claset addSIs [equalityI]));
 by (stac ndepth_K0 1);
 by (rtac zero_less_Suc 1);
 qed "ntrunc_Atom";
@@ -263,7 +263,7 @@ qed "ntrunc_Numb";
 
 goalw Univ.thy [Scons_def,ntrunc_def]
     "ntrunc (Suc k) (M$N) = ntrunc k M $ ntrunc k N";
-by (safe_tac (set_cs addSIs [equalityI,imageI]));
+by (safe_tac ((claset_of "Fun") addSIs [equalityI,imageI]));
 by (REPEAT (stac ndepth_Push_Node 3 THEN etac Suc_mono 3));
 by (REPEAT (rtac Suc_less_SucD 1 THEN 
             rtac (ndepth_Push_Node RS subst) 1 THEN 
@@ -275,7 +275,7 @@ qed "ntrunc_Scons";
 goalw Univ.thy [In0_def] "ntrunc (Suc 0) (In0 M) = {}";
 by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
-by (safe_tac (set_cs addSIs [equalityI]));
+by (safe_tac (!claset addSIs [equalityI]));
 qed "ntrunc_one_In0";
 
 goalw Univ.thy [In0_def]
@@ -286,7 +286,7 @@ qed "ntrunc_In0";
 goalw Univ.thy [In1_def] "ntrunc (Suc 0) (In1 M) = {}";
 by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
-by (safe_tac (set_cs addSIs [equalityI]));
+by (safe_tac (!claset addSIs [equalityI]));
 qed "ntrunc_one_In1";
 
 goalw Univ.thy [In1_def]
@@ -541,7 +541,7 @@ val dprod_subset_Sigma = [dprod_mono, dprod_Sigma] MRS subset_trans |>standard;
 (*Dependent version*)
 goal Univ.thy
     "(Sigma A B <**> Sigma C D) <= Sigma (A<*>C) (Split(%x y. B(x)<*>D(y)))";
-by (safe_tac univ_cs);
+by (safe_tac (!claset));
 by (stac Split 1);
 by (Fast_tac 1);
 qed "dprod_subset_Sigma2";

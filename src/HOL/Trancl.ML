@@ -75,7 +75,7 @@ bind_thm
 
 (*transitivity of transitive closure!! -- by induction.*)
 goalw Trancl.thy [trans_def] "trans(r^*)";
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 by (eres_inst_tac [("b","z")] rtrancl_induct 1);
 by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "trans_rtrancl";
@@ -150,7 +150,7 @@ by (fast_tac (!claset addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseI";
 
 goal Trancl.thy "(converse r)^* = converse(r^*)";
-by (safe_tac (rel_eq_cs addSIs [rtrancl_converseI]));
+by (safe_tac (!claset addSIs [rtrancl_converseI]));
 by (res_inst_tac [("p","x")] PairE 1);
 by (hyp_subst_tac 1);
 by (etac rtrancl_converseD 1);

@@ -384,7 +384,7 @@ qed "mod2_cases";
 goal thy "Suc(Suc(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (safe_tac less_cs);
+by (safe_tac (!claset));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [mod_Suc])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
@@ -406,7 +406,7 @@ by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (REPEAT_FIRST (ares_tac [conjI, impI]));
 by (res_inst_tac [("x","0")] exI 2);
 by (Simp_tac 2);
-by (safe_tac HOL_cs);
+by (safe_tac (claset_of "HOL"));
 by (res_inst_tac [("x","Suc(k)")] exI 1);
 by (Simp_tac 1);
 qed_spec_mp "less_eq_Suc_add";
@@ -462,7 +462,7 @@ by (fast_tac (!claset addDs [Suc_leD]) 1);
 qed_spec_mp "add_leD1";
 
 goal Arith.thy "!!k l::nat. [| k<l; m+l = k+n |] ==> m<n";
-by (safe_tac (HOL_cs addSDs [less_eq_Suc_add]));
+by (safe_tac (!claset addSDs [less_eq_Suc_add]));
 by (asm_full_simp_tac
     (!simpset delsimps [add_Suc_right]
                 addsimps ([add_Suc_right RS sym, add_left_cancel] @add_ac)) 1);
@@ -523,7 +523,7 @@ qed "mult_le_mono1";
 goal Arith.thy "!!i::nat. [| i<=j; k<=l |] ==> i*k<=j*l";
 by (rtac le_trans 1);
 by (ALLGOALS 
-    (deepen_tac (HOL_cs addIs [mult_commute RS ssubst, mult_le_mono1]) 0));
+    (deepen_tac (!claset addIs [mult_commute RS ssubst, mult_le_mono1]) 0));
 qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)

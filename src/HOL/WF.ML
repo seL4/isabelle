@@ -19,7 +19,7 @@ val [prem1,prem2] = goalw WF.thy [wf_def]
 by (strip_tac 1);
 by (rtac allE 1);
 by (assume_tac 1);
-by (best_tac (HOL_cs addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
+by (best_tac (!claset addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
 qed "wfI";
 
 val major::prems = goalw WF.thy [wf_def]

@@ -310,7 +310,7 @@ by (Fast_tac 1);
 qed "Inter_Un_subset";
 
 goal Set.thy "Inter(A Un B) = Inter(A) Int Inter(B)";
-by (best_tac eq_cs 1);
+by (best_tac (!claset) 1);
 qed "Inter_Un_distrib";
 
 section "UN and INT";
@@ -412,7 +412,7 @@ by (Fast_tac 1);
 qed "Un_Inter";
 
 goal Set.thy "(INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)";
-by (best_tac eq_cs 1);
+by (best_tac (!claset) 1);
 qed "Int_Inter_image";
 
 (*Equivalent version*)
