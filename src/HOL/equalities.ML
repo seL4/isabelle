@@ -58,6 +58,10 @@ by (Fast_tac 1);
 qed "insert_absorb2";
 Addsimps [insert_absorb2];
 
+goal Set.thy "insert x (insert y A) = insert y (insert x A)";
+by (Fast_tac 1);
+qed "insert_commute";
+
 goal Set.thy "(insert x A <= B) = (x:B & A <= B)";
 by (Fast_tac 1);
 qed "insert_subset";
