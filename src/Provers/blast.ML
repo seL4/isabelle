@@ -1186,9 +1186,7 @@ fun prove (sign, start, cs, brs, cont) =
 		       lim   = lim}  :: brs)
 	  end
        | prv (tacs, trs, choices, _ :: brs) = backtrack choices
- in init_gensym();
-    prv ([], [], [(!ntrail, length brs, PROVE)], brs) 
- end;
+ in prv ([], [], [(!ntrail, length brs, PROVE)], brs) end;
 
 
 (*Construct an initial branch.*)
