@@ -50,6 +50,8 @@ Ballarin;
 * HOL/record: fixed select-update simplification procedure to handle
 extended records as well; admit "r" as field name;
 
+* HOL/ex: new theory Factorization proving the Fundamental Theorem of
+Arithmetic, by Thomas M Rasmussen;
 
 *** General ***
 
