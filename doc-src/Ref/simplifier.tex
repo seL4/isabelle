@@ -1131,8 +1131,7 @@ local
   fun proc _ _ (Abs _) = Some rew
     | proc _ _ _ = None;
 in
-  val pair_eta_expand_proc =
-    Simplifier.mk_simproc "pair_eta_expand" lhss proc;
+  val pair_eta_expand_proc = mk_simproc "pair_eta_expand" lhss proc;
 end;
 \end{ttbox}
 This is an example of using \texttt{pair_eta_expand_proc}:
