@@ -26,6 +26,7 @@ function usage()
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
+  echo "    -w           reset write permissions on OUTPUT"
   echo
   echo "  INPUT (default \"$ISABELLE_LOGIC\") and OUTPUT specify in/out heaps."
   echo "  These are either names to be searched in the Isabelle path, or actual"
@@ -50,8 +51,9 @@ MLTEXT=""
 MODES=""
 TERMINATE=""
 READONLY=""
+NOWRITE=""
 
-while getopts "e:m:qr" OPT
+while getopts "e:m:qrw" OPT
 do
   case "$OPT" in
     e)
@@ -69,6 +71,9 @@ do
       ;;
     r)
       READONLY=true
+      ;;
+    w)
+      NOWRITE=true
       ;;
     \?)
       usage
@@ -156,6 +161,6 @@ ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
 
-export INFILE OUTFILE MLTEXT TERMINATE
+export INFILE OUTFILE MLTEXT TERMINATE NOWRITE
 [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ] && exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
 exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM_BASE
