@@ -28,7 +28,7 @@ ENAME=xemacs
 
 #users init file ($HOME is added). This file is loaded after
 #the init file $PREFIX.emacs 
-INIT=.emacs_xemacs_isa
+INIT=.emacs_isa_xemacs
 
 ###############################################
 # do not edit below

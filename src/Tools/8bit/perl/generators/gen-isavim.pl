@@ -127,7 +127,7 @@ while (<INFILE> ){
 if (!$found){
 	die "\ncan't find END_KEY_MAP in configuration file\n";}
 
-if ($end_low_table < $start_low_table){
+if ($end_key_map == 0) {
 	die "\nNo entries in KEY_MAP\n";}
     else {print 
 	"computed index for END_KEY_MAP is $end_key_map\n" if $do_debug;}
