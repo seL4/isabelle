@@ -1,0 +1,198 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Pairs}%
+%
+\isamarkupsection{Pairs%
+}
+%
+\begin{isamarkuptext}%
+\label{sec:products}
+Pairs were already introduced in \S\ref{sec:pairs}, but only with a minimal
+repertoire of operations: pairing and the two projections \isa{fst} and
+\isa{snd}. In any nontrivial application of pairs you will find that this
+quickly leads to unreadable formulae involvings nests of projections. This
+section is concerned with introducing some syntactic sugar to overcome this
+problem: pattern matching with tuples.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsection{Notation%
+}
+%
+\begin{isamarkuptext}%
+It is possible to use (nested) tuples as patterns in $\lambda$-abstractions,
+for example \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharcomma}z{\isacharparenright}{\isachardot}x{\isacharplus}y{\isacharplus}z} and \isa{{\isasymlambda}{\isacharparenleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isacharcomma}z{\isacharparenright}{\isachardot}x{\isacharplus}y{\isacharplus}z}. In fact,
+tuple patterns can be used in most variable binding constructs. Here are
+some typical examples:
+\begin{quote}
+\isa{let\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharequal}\ f\ z\ in\ {\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}}\\
+\isa{case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{0}}\ {\isacharbar}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharhash}\ zs\ {\isasymRightarrow}\ x\ {\isacharplus}\ y}\\
+\isa{{\isasymforall}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isasymin}A{\isachardot}\ x{\isacharequal}y}\\
+\isa{{\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}}\\
+\isa{{\isasymUnion}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isasymin}A{\isachardot}\ {\isacharbraceleft}x\ {\isacharplus}\ y{\isacharbraceright}}
+\end{quote}%
+\end{isamarkuptext}%
+%
+\begin{isamarkuptext}%
+The intuitive meaning of this notations should be pretty obvious.
+Unfortunately, we need to know in more detail what the notation really stands
+for once we have to reason about it. The fact of the matter is that abstraction
+over pairs and tuples is merely a convenient shorthand for a more complex
+internal representation.  Thus the internal and external form of a term may
+differ, which can affect proofs. If you want to avoid this complication,
+stick to \isa{fst} and \isa{snd} and write \isa{{\isasymlambda}p{\isachardot}\ fst\ p\ {\isacharplus}\ snd\ p}
+instead of \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharplus}y} (which denote the same function but are quite
+different terms).
+
+Internally, \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ t} becomes \isa{split\ {\isacharparenleft}{\isasymlambda}x\ y{\isachardot}\ t{\isacharparenright}}, where
+\isa{split} is the uncurrying function of type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c} defined as
+\begin{center}
+\isa{split\ {\isasymequiv}\ {\isasymlambda}c\ p{\isachardot}\ c\ {\isacharparenleft}fst\ p{\isacharparenright}\ {\isacharparenleft}snd\ p{\isacharparenright}}
+\hfill(\isa{split{\isacharunderscore}def})
+\end{center}
+Pattern matching in
+other variable binding constructs is translated similarly. Thus we need to
+understand how to reason about such constructs.%
+\end{isamarkuptext}%
+%
+\isamarkupsubsection{Theorem proving%
+}
+%
+\begin{isamarkuptext}%
+The most obvious approach is the brute force expansion of \isa{split}:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}x{\isacharparenright}\ p\ {\isacharequal}\ fst\ p{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptext}%
+This works well if rewriting with \isa{split{\isacharunderscore}def} finishes the
+proof, as in the above lemma. But if it doesn't, you end up with exactly what
+we are trying to avoid: nests of \isa{fst} and \isa{snd}. Thus this
+approach is neither elegant nor very practical in large examples, although it
+can be effective in small ones.
+
+If we step back and ponder why the above lemma presented a problem in the
+first place, we quickly realize that what we would like is to replace \isa{p} with some concrete pair \isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}}, in which case both sides of the
+equation would simplify to \isa{a} because of the simplification rules
+\isa{split\ c\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ c\ a\ b} and \isa{fst\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ a}.  This is the
+key problem one faces when reasoning about pattern matching with pairs: how to
+convert some atomic term into a pair.
+
+In case of a subterm of the form \isa{split\ f\ p} this is easy: the split
+rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}y{\isacharparenright}\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}split{\isacharunderscore}split{\isacharparenright}%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymforall}x\ y{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymlongrightarrow}\ y\ {\isacharequal}\ snd\ p%
+\end{isabelle}
+This subgoal is easily proved by simplification. The \isa{only{\isacharcolon}} above
+merely serves to show the effect of splitting and to avoid solving the goal
+outright.
+
+Let us look at a second example:%
+\end{isamarkuptxt}%
+\isacommand{lemma}\ {\isachardoublequote}let\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ p\ in\ fst\ p\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}Let{\isacharunderscore}def{\isacharparenright}%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ fst\ p\ {\isacharequal}\ x{\isacharparenright}\ p%
+\end{isabelle}
+A paired \isa{let} reduces to a paired $\lambda$-abstraction, which
+can be split as above. The same is true for paired set comprehension:%
+\end{isamarkuptxt}%
+\isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}\isanewline
+\isacommand{apply}\ simp%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ split\ op\ {\isacharequal}\ p\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p%
+\end{isabelle}
+Again, simplification produces a term suitable for \isa{split{\isacharunderscore}split}
+as above. If you are worried about the funny form of the premise:
+\isa{split\ op\ {\isacharequal}} is the same as \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y}.
+The same procedure works for%
+\end{isamarkuptxt}%
+\isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymLongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+except that we now have to use \isa{split{\isacharunderscore}split{\isacharunderscore}asm}, because
+\isa{split} occurs in the assumptions.
+
+However, splitting \isa{split} is not always a solution, as no \isa{split}
+may be present in the goal. Consider the following function:%
+\end{isamarkuptxt}%
+\isacommand{consts}\ swap\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymtimes}\ {\isacharprime}a{\isachardoublequote}\isanewline
+\isacommand{primrec}\isanewline
+\ \ {\isachardoublequote}swap\ {\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}x{\isacharparenright}{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
+Note that the above \isacommand{primrec} definition is admissible
+because \isa{{\isasymtimes}} is a datatype. When we now try to prove%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ p{\isachardoublequote}%
+\begin{isamarkuptxt}%
+\noindent
+simplification will do nothing, because the defining equation for \isa{swap}
+expects a pair. Again, we need to turn \isa{p} into a pair first, but this
+time there is no \isa{split} in sight. In this case the only thing we can do
+is to split the term by hand:%
+\end{isamarkuptxt}%
+\isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ p{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b{\isachardot}\ p\ {\isacharequal}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymLongrightarrow}\ swap\ {\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ p%
+\end{isabelle}
+Again, \isa{case{\isacharunderscore}tac} is applicable because \isa{{\isasymtimes}} is a datatype.
+The subgoal is easily proved by \isa{simp}.
+
+In case the term to be split is a quantified variable, there are more options.
+You can split \emph{all} \isa{{\isasymAnd}}-quantified variables in a goal
+with the rewrite rule \isa{split{\isacharunderscore}paired{\isacharunderscore}all}:%
+\end{isamarkuptxt}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymAnd}p\ q{\isachardot}\ swap{\isacharparenleft}swap\ p{\isacharparenright}\ {\isacharequal}\ q\ {\isasymlongrightarrow}\ p\ {\isacharequal}\ q{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ b\ aa\ ba{\isachardot}\ swap\ {\isacharparenleft}swap\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}\ {\isasymlongrightarrow}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}aa{\isacharcomma}\ ba{\isacharparenright}%
+\end{isabelle}%
+\end{isamarkuptxt}%
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+\noindent
+Note that we have intentionally included only \isa{split{\isacharunderscore}paired{\isacharunderscore}all}
+in the first simplification step. This time the reason was not merely
+pedagogical:
+\isa{split{\isacharunderscore}paired{\isacharunderscore}all} may interfere with certain congruence
+rules of the simplifier, i.e.%
+\end{isamarkuptext}%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}split{\isacharunderscore}paired{\isacharunderscore}all{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent
+may fail (here it does not) where the above two stages succeed.
+
+Finally, all \isa{{\isasymforall}} and \isa{{\isasymexists}}-quantified variables are split
+automatically by the simplifier:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}p{\isachardot}\ {\isasymexists}q{\isachardot}\ swap\ p\ {\isacharequal}\ swap\ q{\isachardoublequote}\isanewline
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}%
+\begin{isamarkuptext}%
+\noindent
+In case you would like to turn off this automatic splitting, just disable the
+responsible simplification rules:
+\begin{center}
+\isa{{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}a\ b{\isachardot}\ {\isacharquery}P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
+\hfill
+(\isa{split{\isacharunderscore}paired{\isacharunderscore}All})\\
+\isa{{\isacharparenleft}{\isasymexists}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}a\ b{\isachardot}\ {\isacharquery}P\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}{\isacharparenright}}
+\hfill
+(\isa{split{\isacharunderscore}paired{\isacharunderscore}Ex})
+\end{center}%
+\end{isamarkuptext}%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
