@@ -55,4 +55,7 @@ by (ALLGOALS (asm_simp_tac (list_ss addsimps ListN.intrs)));
 val listn_append = result();
 
 val Nil_listn_case = ListN.mk_cases List.con_defs "<i,Nil> : listn(A)"
-and Cons_listn_case = ListN.mk_cases List.con_defs "<i,Cons(x,xs)> : listn(A)";
+and Cons_listn_case = ListN.mk_cases List.con_defs "<i,Cons(x,l)> : listn(A)";
+
+val zero_listn_case = ListN.mk_cases List.con_defs "<0,l> : listn(A)"
+and succ_listn_case = ListN.mk_cases List.con_defs "<succ(i),l> : listn(A)";

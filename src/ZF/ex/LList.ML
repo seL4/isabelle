@@ -4,9 +4,6 @@
     Copyright   1993  University of Cambridge
 
 Co-Datatype definition of Lazy Lists
-
-Needs a "take-lemma" to prove llist_subset_quniv and to justify co-induction
-for proving equality
 *)
 
 structure LList = Co_Datatype_Fun
@@ -22,7 +19,7 @@ structure LList = Co_Datatype_Fun
        "[| a: A;  l: llist(A) |] ==> LCons(a,l) : llist(A)"];
   val monos = [];
   val type_intrs = co_datatype_intrs
-  val type_elims = []);
+  val type_elims = co_datatype_elims);
   
 val [LNilI, LConsI] = LList.intrs;
 
