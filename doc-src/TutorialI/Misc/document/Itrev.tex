@@ -38,9 +38,8 @@ Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
 \isa{[]}. The corresponding heuristic:
 \begin{quote}
-{\em 3. Generalize goals for induction by replacing constants by variables.}
+\emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
-
 Of course one cannot do this na\"{\i}vely: \isa{itrev xs ys = rev xs} is
 just not true---the correct generalization is%
 \end{isamarkuptxt}%
@@ -74,7 +73,7 @@ for all \isa{ys} instead of a fixed one:%
 This time induction on \isa{xs} followed by simplification succeeds. This
 leads to another heuristic for generalization:
 \begin{quote}
-{\em 4. Generalize goals for induction by universally quantifying all free
+\emph{Generalize goals for induction by universally quantifying all free
 variables {\em(except the induction variable itself!)}.}
 \end{quote}
 This prevents trivial failures like the above and does not change the

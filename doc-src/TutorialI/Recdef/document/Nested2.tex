@@ -5,7 +5,7 @@
 \noindent
 The termintion condition is easily proved by induction:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
@@ -36,8 +36,8 @@ both of which are solved by simplification:%
 \begin{isamarkuptext}%
 \noindent
 If the proof of the induction step mystifies you, we recommend to go through
-the chain of simplification steps in detail, probably with the help of
-\isa{trace\_simp}.
+the chain of simplification steps in detail; you will probably need the help of
+\isa{trace{\isacharunderscore}simp}.
 %\begin{quote}
 %{term[display]"trev(trev(App f ts))"}\\
 %{term[display]"App f (rev(map trev (rev(map trev ts))))"}\\
@@ -48,9 +48,9 @@ the chain of simplification steps in detail, probably with the help of
 %{term[display]"App f ts"}
 %\end{quote}
 
-The above definition of \isa{trev} is superior to the one in \S\ref{sec:nested-datatype}
-because it brings \isa{rev} into play, about which already know a lot, in particular
-\isa{rev\ {\isacharparenleft}rev\ \mbox{xs}{\isacharparenright}\ {\isacharequal}\ \mbox{xs}}.
+The above definition of \isa{trev} is superior to the one in
+\S\ref{sec:nested-datatype} because it brings \isa{rev} into play, about
+which already know a lot, in particular \isa{rev\ {\isacharparenleft}rev\ \mbox{xs}{\isacharparenright}\ {\isacharequal}\ \mbox{xs}}.
 Thus this proof is a good example of an important principle:
 \begin{quote}
 \emph{Chose your definitions carefully\\
@@ -61,9 +61,9 @@ Let us now return to the question of how \isacommand{recdef} can come up with
 sensible termination conditions in the presence of higher-order functions
 like \isa{map}. For a start, if nothing were known about \isa{map},
 \isa{map\ trev\ \mbox{ts}} might apply \isa{trev} to arbitrary terms, and thus
-\isacommand{recdef} would try to prove the unprovable \isa{size\ \mbox{t}\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}size\ \mbox{ts}{\isacharparenright}}, without any assumption about \isa{t}.  Therefore
+\isacommand{recdef} would try to prove the unprovable \isa{size\ \mbox{t}\ {\isacharless}\ Suc\ {\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ \mbox{ts}{\isacharparenright}}, without any assumption about \isa{\mbox{t}}.  Therefore
 \isacommand{recdef} has been supplied with the congruence theorem
-\isa{map\_cong}:
+\isa{map{\isacharunderscore}cong}:
 \begin{quote}
 
 \begin{isabelle}%

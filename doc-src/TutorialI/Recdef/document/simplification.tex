@@ -26,7 +26,7 @@ each recursive call. The resulting termination condition
 is provded automatically because it is already present as a lemma in the
 arithmetic library. Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
-the recursive call inside the \isa{else} branch, which is why programming
+the recursive call inside the \isa{if} branch, which is why programming
 languages and our simplifier don't do that. Unfortunately the simplifier does
 something else which leads to the same problem: it splits \isa{if}s if the
 condition simplifies to neither \isa{True} nor \isa{False}. For
@@ -59,11 +59,10 @@ an \isa{if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
-The most radical solution is to disable the offending
-\isa{split_if} as shown in the section on case splits in
-\S\ref{sec:SimpFeatures}.
-However, we do not recommend this because it means you will often have to
-invoke the rule explicitly when \isa{if} is involved.
+The most radical solution is to disable the offending \\isa{split{\isacharunderscore}if} as
+shown in the section on case splits in \S\ref{sec:Simplification}.  However,
+we do not recommend this because it means you will often have to invoke the
+rule explicitly when \isa{if} is involved.
 
 If possible, the definition should be given by pattern matching on the left
 rather than \isa{if} on the right. In the case of \isa{gcd} the
@@ -76,7 +75,7 @@ following alternative definition suggests itself:%
 \begin{isamarkuptext}%
 \noindent
 Note that the order of equations is important and hides the side condition
-\isa{n \isasymnoteq\ 0}. Unfortunately, in general the case distinction
+\isa{\mbox{n}\ {\isasymnoteq}\ \isadigit{0}}. Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
 A very simple alternative is to replace \isa{if} by \isa{case}, which

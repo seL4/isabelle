@@ -405,16 +405,12 @@ method that \isa{auto} always applies first, namely simplification.
 
 Simplification is one of the central theorem proving tools in Isabelle and
 many other systems. The tool itself is called the \bfindex{simplifier}. The
-purpose of this section is twofold: to introduce the many features of the
-simplifier (\S\ref{sec:SimpFeatures}) and to explain a little bit how the
-simplifier works (\S\ref{sec:SimpHow}).  Anybody intending to use HOL should
-read \S\ref{sec:SimpFeatures}, and the serious student should read
-\S\ref{sec:SimpHow} as well in order to understand what happened in case
-things do not simplify as expected.
-
-
-\subsection{Using the simplifier}
-\label{sec:SimpFeatures}
+purpose of this section is introduce the many features of the simplifier.
+Anybody intending to use HOL should read this section. Later on
+(\S\ref{sec:simplification-II}) we explain some more advanced features and a
+little bit of how the simplifier works. The serious student should read that
+section as well, in particular in order to understand what happened if things
+do not simplify as expected.
 
 \subsubsection{What is simplification}
 
@@ -572,11 +568,11 @@ The purpose of this section is to illustrate some simple heuristics for
 inductive proofs. The first one we have already mentioned in our initial
 example:
 \begin{quote}
-{\em 1. Theorems about recursive functions are proved by induction.}
+\emph{Theorems about recursive functions are proved by induction.}
 \end{quote}
 In case the function has more than one argument
 \begin{quote}
-{\em 2. Do induction on argument number $i$ if the function is defined by
+\emph{Do induction on argument number $i$ if the function is defined by
 recursion in argument number $i$.}
 \end{quote}
 When we look at the proof of {\makeatother\isa{(xs @ ys) @ zs = xs @ (ys @
@@ -598,8 +594,8 @@ proved: the more complex notion (\isa{itrev}) is on the left-hand
 side, the simpler \isa{rev} on the right-hand side. This constitutes
 another, albeit weak heuristic that is not restricted to induction:
 \begin{quote}
-  {\em 5. The right-hand side of an equation should (in some sense) be
-    simpler than the left-hand side.}
+  \emph{The right-hand side of an equation should (in some sense) be simpler
+    than the left-hand side.}
 \end{quote}
 The heuristic is tricky to apply because it is not obvious that
 \isa{rev xs \at\ ys} is simpler than \isa{itrev xs ys}. But see what

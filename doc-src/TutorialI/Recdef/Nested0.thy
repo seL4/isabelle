@@ -15,9 +15,7 @@ if you have worked exercise~\ref{ex:trev-trev} you will have noticed that
 you needed to reprove many lemmas reminiscent of similar lemmas about
 @{term"rev"}. We will now show you how \isacommand{recdef} can simplify
 definitions and proofs about nested recursive datatypes. As an example we
-chose exercise~\ref{ex:trev-trev}:
-
-FIXME: declare trev now!
+choose exercise~\ref{ex:trev-trev}:
 *}
 (* consts trev  :: "('a,'b)term => ('a,'b)term" *)
 (*<*)

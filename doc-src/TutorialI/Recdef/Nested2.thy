@@ -7,7 +7,7 @@ text{*\noindent
 The termintion condition is easily proved by induction:
 *};
 
-lemma [simp]: "t \\<in> set ts \\<longrightarrow> size t < Suc(term_size ts)";
+lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(term_list_size ts)";
 by(induct_tac ts, auto);
 (*<*)
 recdef trev "measure size"
@@ -19,7 +19,7 @@ By making this theorem a simplification rule, \isacommand{recdef}
 applies it automatically and the above definition of @{term"trev"}
 succeeds now. As a reward for our effort, we can now prove the desired
 lemma directly. The key is the fact that we no longer need the verbose
-induction schema for type \isa{term} but the simpler one arising from
+induction schema for type @{name"term"} but the simpler one arising from
 @{term"trev"}:
 *};
 
@@ -38,8 +38,8 @@ by(simp_all add:rev_map sym[OF map_compose]);
 
 text{*\noindent
 If the proof of the induction step mystifies you, we recommend to go through
-the chain of simplification steps in detail, probably with the help of
-\isa{trace\_simp}.
+the chain of simplification steps in detail; you will probably need the help of
+@{name"trace_simp"}.
 %\begin{quote}
 %{term[display]"trev(trev(App f ts))"}\\
 %{term[display]"App f (rev(map trev (rev(map trev ts))))"}\\
@@ -50,9 +50,9 @@ the chain of simplification steps in detail, probably with the help of
 %{term[display]"App f ts"}
 %\end{quote}
 
-The above definition of @{term"trev"} is superior to the one in \S\ref{sec:nested-datatype}
-because it brings @{term"rev"} into play, about which already know a lot, in particular
-@{prop"rev(rev xs) = xs"}.
+The above definition of @{term"trev"} is superior to the one in
+\S\ref{sec:nested-datatype} because it brings @{term"rev"} into play, about
+which already know a lot, in particular @{prop"rev(rev xs) = xs"}.
 Thus this proof is a good example of an important principle:
 \begin{quote}
 \emph{Chose your definitions carefully\\
@@ -64,9 +64,9 @@ sensible termination conditions in the presence of higher-order functions
 like @{term"map"}. For a start, if nothing were known about @{term"map"},
 @{term"map trev ts"} might apply @{term"trev"} to arbitrary terms, and thus
 \isacommand{recdef} would try to prove the unprovable @{term"size t < Suc
-(term_size ts)"}, without any assumption about \isa{t}.  Therefore
+(term_list_size ts)"}, without any assumption about @{term"t"}.  Therefore
 \isacommand{recdef} has been supplied with the congruence theorem
-\isa{map\_cong}:
+@{name"map_cong"}:
 \begin{quote}
 @{thm[display,margin=50]"map_cong"[no_vars]}
 \end{quote}
