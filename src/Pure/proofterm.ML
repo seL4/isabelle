@@ -626,7 +626,7 @@ fun lift_proof Bi inc prop prf =
       | lift' _ _ _ = raise SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle SAME => prf);
 
-    val ps = map lift_all (Logic.strip_imp_prems (snd (Logic.strip_flexpairs prop)));
+    val ps = map lift_all (Logic.strip_imp_prems prop);
     val k = length ps;
 
     fun mk_app (b, (i, j, prf)) = 
