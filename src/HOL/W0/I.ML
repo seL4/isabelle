@@ -8,8 +8,7 @@ Equivalence of W and I.
 
 open I;
 
-Goal
-  "! a m s s' t n.  \
+Goal "! a m s s' t n.  \
 \    (new_tv m a & new_tv m s) --> I e a m s = Ok(s',t,n) -->   \
 \    ( ? r. W e ($ s a) m = Ok(r, $ s' t, n) & s' = ($ r o s) )";
 by (induct_tac "e" 1);
@@ -123,8 +122,7 @@ qed_spec_mp "I_correct_wrt_W";
 (***
 We actually want the corollary
 
-Goal
-  "I e [] m id_subst = Ok(s,t,n) --> W e [] m = Ok(s, $s t, n)";
+Goal "I e [] m id_subst = Ok(s,t,n) --> W e [] m = Ok(s, $s t, n)";
 by (cut_facts_tac [(read_instantiate[("x","id_subst")]
  (read_instantiate[("x","[]")](thm RS spec)
   RS spec RS spec))] 1);
