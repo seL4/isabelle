@@ -306,14 +306,14 @@ fun class_axms sign =
   end;
 
 
-(* expand classes *)
+(* intro_classes *)
 
-fun expand_classes_tac st =
+fun intro_classes_tac st =
   TRY (REPEAT_FIRST (resolve_tac (class_axms (Thm.sign_of_thm st)))) st;
 
-val expand_classes_method =
-  ("expand_classes", Method.no_args (Method.METHOD0 expand_classes_tac),
-    "expand axiomatic type classes");
+val intro_classes_method =
+  ("intro_classes", Method.no_args (Method.METHOD0 intro_classes_tac),
+    "back-chain introduction rules of axiomatic type classes");
 
 
 (* axclass_tac *)
@@ -328,7 +328,7 @@ fun axclass_tac thms =
     val defs = filter is_def thms;
     val non_defs = filter_out is_def thms;
   in
-    expand_classes_tac THEN
+    intro_classes_tac THEN
     TRY (rewrite_goals_tac defs) THEN
     TRY (REPEAT_FIRST (fn i => assume_tac i ORELSE resolve_tac non_defs i))
   end;
@@ -423,7 +423,7 @@ val instance_arity_proof_i = inst_proof (K mk_arity) add_arity_thms;
 
 val setup =
  [AxclassesData.init,
-  Method.add_methods [expand_classes_method]];
+  Method.add_methods [intro_classes_method]];
 
 
 (* outer syntax *)
