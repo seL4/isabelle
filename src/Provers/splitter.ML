@@ -422,7 +422,7 @@ val split_del_local = Simplifier.change_local_ss (op delsplits);
 (* method modifiers *)
 
 val split_modifiers =
- [Args.$$$ splitN -- Args.$$$ ":" >> K (I, split_add_local),
+ [Args.$$$ splitN -- Args.$$$ ":" >> K ((I, split_add_local): Method.modifier),
   Args.$$$ splitN -- Args.$$$ addN -- Args.$$$ ":" >> K (I, split_add_local),
   Args.$$$ splitN -- Args.$$$ delN -- Args.$$$ ":" >> K (I, split_del_local)];
 
