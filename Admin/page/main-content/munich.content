@@ -14,7 +14,6 @@ href="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</a>) and TU
 Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a>).
 This is the local page of the Munich group.
 
-
 <h2>People</h2>
 
 The following people are involved in Isabelle applications or
@@ -44,14 +43,14 @@ The main Isabelle related projects at TU Munich are currently:
 <li> <b><a href="Bali/">Isabelle/Bali</a></b> Java and JVM
 formalization --- type system, semantics, compilers
 
-<li> <b>Isabelle/HOOL</b> Object-oriented verification of Java
-programs
-
 <li> <b><a href="Isar/">Isabelle/Isar</a></b> Intelligible
 semi-automated reasoning --- readable formal proof documents
 
 <li><b><a href="IOA/">Isabelle/IOA</a></b> Verification of
 distributed, reactive systems using I/O Automata
+
+<li> <b>Isabelle/HOOL</b> Object-oriented verification of
+object-oriented programs
 
 </ul>
 
@@ -74,3 +73,4 @@ href="library-Isabelle98-1/">Isabelle98-1</a>
 
 
 </ul>
+
