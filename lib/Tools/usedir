@@ -78,6 +78,6 @@ else
   exec $ISABELLE \
     -e "make_html := $ISABELLE_HTML;" \
     -e "set_session\"$SESSION\";" \
-    -e "exit_use_dir\"$NAME\";" \
+    -e "exit_use_dir\"$NAME\"; quit();" \
     -r -q $LOGIC
 fi
