@@ -59,23 +59,18 @@ syntax
   "_leEx"    :: [idt, 'a, bool] => bool   ("(3EX _<=_./ _)" [0, 0, 10] 10)
 
 syntax (symbols)
-  "op >="    :: ['a, 'a] => bool          ("(_/ \\<ge> _)"  [50, 51] 50)
   "_lessAll" :: [idt, 'a, bool] => bool   ("(3\\<forall>_<_./ _)"  [0, 0, 10] 10)
   "_lessEx"  :: [idt, 'a, bool] => bool   ("(3\\<exists>_<_./ _)"  [0, 0, 10] 10)
   "_leAll"   :: [idt, 'a, bool] => bool   ("(3\\<forall>_\\<le>_./ _)" [0, 0, 10] 10)
   "_leEx"    :: [idt, 'a, bool] => bool   ("(3\\<exists>_\\<le>_./ _)" [0, 0, 10] 10)
 
 syntax (HOL)
-  "op >"     :: ['a, 'a] => bool          ("(_/ > _)"   [50, 51] 50)
-  "op >="    :: ['a, 'a] => bool          ("(_/ >= _)"  [50, 51] 50)
   "_lessAll" :: [idt, 'a, bool] => bool   ("(3! _<_./ _)"  [0, 0, 10] 10)
   "_lessEx"  :: [idt, 'a, bool] => bool   ("(3? _<_./ _)"  [0, 0, 10] 10)
   "_leAll"   :: [idt, 'a, bool] => bool   ("(3! _<=_./ _)" [0, 0, 10] 10)
   "_leEx"    :: [idt, 'a, bool] => bool   ("(3? _<=_./ _)" [0, 0, 10] 10)
 
 translations
- "x > y"        =>  "y < x"
- "x >= y"       =>  "y <= x"
  "ALL x<y. P"   =>  "ALL x. x < y --> P"
  "EX x<y. P"    =>  "EX x. x < y  & P"
  "ALL x<=y. P"  =>  "ALL x. x <= y --> P"
