@@ -29,7 +29,7 @@ benign because the type of @{term[source]inverse} becomes smaller: on the
 left it is @{typ"'a \<times> 'b \<Rightarrow> 'a \<times> 'b"} but on the right @{typ"'a \<Rightarrow> 'a"} and
 @{typ"'b \<Rightarrow> 'b"}. The annotation @{text"("}\isacommand{overloaded}@{text")"} tells Isabelle that
 the definitions do intentionally define @{term[source]inverse} only at
-instances of its declared type @{typ"'a \<Rightarrow> 'a"} --- this merely supresses
+instances of its declared type @{typ"'a \<Rightarrow> 'a"} --- this merely suppresses
 warnings to that effect.
 
 However, there is nothing to prevent the user from forming terms such as

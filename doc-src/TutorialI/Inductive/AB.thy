@@ -285,7 +285,7 @@ by(force simp add:min_less_iff_disj split add: nat_diff_split)
 
 text{*
 We conclude this section with a comparison of our proof with 
-Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the texbook
+Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the textbook
 grammar, for no good reason, excludes the empty word, thus complicating
 matters just a little bit: they have 8 instead of our 7 productions.
 

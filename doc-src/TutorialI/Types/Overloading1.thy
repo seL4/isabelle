@@ -66,5 +66,5 @@ lemma "False <<= P"
 by(simp add: le_bool_def)
 
 text{*\noindent
-whereas @{text"[] <<= []"} is not even welltyped. In order to make it welltyped
+whereas @{text"[] <<= []"} is not even well-typed. In order to make it well-typed
 we need to make lists a type of class @{text ordrel}:*}(*<*)end(*>*)

@@ -27,7 +27,7 @@ consts
   knows  :: "agent => event list => msg set"
 
 
-(*"spies" is retained for compability's sake*)
+(*"spies" is retained for compatibility's sake*)
 syntax
   spies  :: "event list => msg set"
 

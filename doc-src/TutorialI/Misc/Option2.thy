@@ -11,7 +11,7 @@ Our final datatype is very simple but still eminently useful:
 datatype 'a option = None | Some 'a;
 
 text{*\noindent
-Frequently one needs to add a distiguished element to some existing type.
+Frequently one needs to add a distinguished element to some existing type.
 For example, type @{text"t option"} can model the result of a computation that
 may either terminate with an error (represented by @{term None}) or return
 some value @{term v} (represented by @{term"Some v"}).

@@ -22,7 +22,7 @@ In addition to @{text"\<rightleftharpoons>"} there are
 and @{text"\<leftharpoondown>"}\indexbold{$IsaEqTrans2@\isasymleftharpoondown}
 for uni-directional translations, which only affect
 parsing or printing.  We do not want to cover the details of
-translations at this point.  We haved mentioned the concept merely because it
+translations at this point.  We have mentioned the concept merely because it
 crops up occasionally: a number of HOL's built-in constructs are defined
 via translations.  Translations are preferable to definitions when the new 
 concept is a trivial variation on an existing one.  For example, we

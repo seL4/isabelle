@@ -5,8 +5,8 @@
 \begin{isamarkuptext}%
 \noindent Throughout the tutorial we have emphasized the fact
 that all functions in HOL are total. Hence we cannot hope to define
-truly partial functions but must totalize them. A straightforward
-totalization is to lift the result type of the function from $\tau$ to
+truly partial functions, but must make them total.  A straightforward
+method is to lift the result type of the function from $\tau$ to
 $\tau$~\isa{option} (see \ref{sec:option}), where \isa{None} is
 returned if the function is applied to an argument not in its
 domain. Function \isa{assoc} in \S\ref{sec:Trie} is a simple example.
@@ -172,7 +172,7 @@ consider the following definition of function \isa{find} above:%
 \noindent
 The loop operates on two ``local variables'' \isa{x} and \isa{x{\isacharprime}}
 containing the ``current'' and the ``next'' value of function \isa{f}.
-They are initalized with the global \isa{x} and \isa{f\ x}. At the
+They are initialized with the global \isa{x} and \isa{f\ x}. At the
 end \isa{fst} selects the local \isa{x}.
 
 Although the definition of tail recursive functions via \isa{while} avoids
@@ -215,7 +215,7 @@ The theorem itself is a simple consequence of this lemma:%
 Let us conclude this section on partial functions by a
 discussion of the merits of the \isa{while} combinator. We have
 already seen that the advantage (if it is one) of not having to
-provide a termintion argument when defining a function via \isa{while} merely puts off the evil hour. On top of that, tail recursive
+provide a termination argument when defining a function via \isa{while} merely puts off the evil hour. On top of that, tail recursive
 functions tend to be more complicated to reason about. So why use
 \isa{while} at all? The only reason is executability: the recursion
 equation for \isa{while} is a directly executable functional

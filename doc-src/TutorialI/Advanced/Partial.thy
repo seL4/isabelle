@@ -2,8 +2,8 @@
 
 text{*\noindent Throughout the tutorial we have emphasized the fact
 that all functions in HOL are total. Hence we cannot hope to define
-truly partial functions but must totalize them. A straightforward
-totalization is to lift the result type of the function from $\tau$ to
+truly partial functions, but must make them total.  A straightforward
+method is to lift the result type of the function from $\tau$ to
 $\tau$~@{text option} (see \ref{sec:option}), where @{term None} is
 returned if the function is applied to an argument not in its
 domain. Function @{term assoc} in \S\ref{sec:Trie} is a simple example.
@@ -165,7 +165,7 @@ constdefs find2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 text{*\noindent
 The loop operates on two ``local variables'' @{term x} and @{term x'}
 containing the ``current'' and the ``next'' value of function @{term f}.
-They are initalized with the global @{term x} and @{term"f x"}. At the
+They are initialized with the global @{term x} and @{term"f x"}. At the
 end @{term fst} selects the local @{term x}.
 
 Although the definition of tail recursive functions via @{term while} avoids
@@ -206,7 +206,7 @@ done
 text{* Let us conclude this section on partial functions by a
 discussion of the merits of the @{term while} combinator. We have
 already seen that the advantage (if it is one) of not having to
-provide a termintion argument when defining a function via @{term
+provide a termination argument when defining a function via @{term
 while} merely puts off the evil hour. On top of that, tail recursive
 functions tend to be more complicated to reason about. So why use
 @{term while} at all? The only reason is executability: the recursion
