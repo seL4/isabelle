@@ -111,7 +111,7 @@ AddIffs [image_is_empty];
 
 goalw thy [image_def]
 "(%x. if P x then f x else g x) `` S                    \
-\ = (f `` ({x. x:S & P x})) Un (g `` ({x. x:S & ~(P x)}))";
+\ = (f `` (S Int {x. P x})) Un (g `` (S Int {x. ~(P x)}))";
 by (split_tac [expand_if] 1);
 by (Blast_tac 1);
 qed "if_image_distrib";
@@ -369,7 +369,7 @@ section "UN and INT";
 
 (*Basic identities*)
 
-val not_empty = prove_goal Set.thy "A ~= {} = (? x. x:A)" (K [Blast_tac 1]);
+val not_empty = prove_goal Set.thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]);
 (*Addsimps[not_empty];*)
 
 goal thy "(UN x:{}. B x) = {}";
