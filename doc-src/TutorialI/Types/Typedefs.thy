@@ -100,20 +100,9 @@ where constant @{term three} is explicitly defined as the representing set:
 @{thm three_def}\hfill(@{thm[source]three_def})
 \end{center}
 The situation is best summarized with the help of the following diagram,
-where squares are types and circles are sets:
+where squares denote types and the irregular region denotes a set:
 \begin{center}
-\unitlength1mm
-\thicklines
-\begin{picture}(100,40)
-\put(3,13){\framebox(15,15){@{typ three}}}
-\put(55,5){\framebox(30,30){@{term three}}}
-\put(70,32){\makebox(0,0){@{typ nat}}}
-\put(70,20){\circle{40}}
-\put(10,15){\vector(1,0){60}}
-\put(25,14){\makebox(0,0)[tl]{@{term Rep_three}}}
-\put(70,25){\vector(-1,0){60}}
-\put(25,26){\makebox(0,0)[bl]{@{term Abs_three}}}
-\end{picture}
+\includegraphics[scale=.8]{Types/typedef}
 \end{center}
 Finally, \isacommand{typedef} asserts that @{term Rep_three} is
 surjective on the subset @{term three} and @{term Abs_three} and @{term
