@@ -15,7 +15,9 @@
 # you are doing.
 
 # Poly/ML 3.x
-POLYML_HOME=$ISABELLE_HOME/../polyml
+POLYML_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/polyml" \
+  "$ISABELLE_HOME/../polyml")
 ML_PLATFORM=$($POLYML_HOME/bin/polyml-platform 2>/dev/null)
 ML_HOME=$POLYML_HOME/$ML_PLATFORM
 ML_SYSTEM=polyml-3.x
@@ -142,18 +144,18 @@ ISABELLE_XTERM_OPTIONS=""
 ISAMODE_HOME=$ISABELLE_HOME/contrib/Isamode
 ISAMODE_OPTIONS=""
 
-# Proof General -- make default if found in canonical place
-if [ -d "$ISABELLE_HOME/contrib/ProofGeneral" ]; then
-  ISABELLE_INTERFACE="$ISABELLE_HOME/contrib/ProofGeneral/isar/interface"
-elif [ -d "$ISABELLE_HOME/../ProofGeneral" ]; then
-  ISABELLE_INTERFACE="$ISABELLE_HOME/../ProofGeneral/isar/interface"
-fi
+# Proof General
+ISABELLE_INTERFACE=$(choosefrom \
+  "$ISABELLE_HOME/contrib/ProofGeneral/isar/interface" \
+  "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
+  "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
 
-# X-Symbol mode -- look in canonical place
-if [ -d "$ISABELLE_HOME/contrib/x-symbol" ]; then
-  XSYMBOL_HOME="$ISABELLE_HOME/contrib/x-symbol"
-fi
+# X-Symbol mode
+XSYMBOL_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/x-symbol" \
+  "$ISABELLE_HOME/../x-symbol" \
+  "")
 
 
 ###
