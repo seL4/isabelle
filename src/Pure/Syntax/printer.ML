@@ -264,7 +264,7 @@ fun pretty tabs trf type_mode curried ast0 p0 =
     and prefixT (_, a, [], _) = [Pretty.str a]
       | prefixT (c, _, args, p) =
           if c = Constant "_appl" orelse c = Constant "_applC" then
-            error "Syntax insufficient for printing prefix applications"
+            error "Syntax insufficient for printing prefix applications!"
           else astT (appT (c, args), p)
 
     and splitT 0 ([x], ys) = (x, ys)
