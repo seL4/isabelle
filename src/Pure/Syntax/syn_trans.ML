@@ -332,7 +332,7 @@ fun ast_to_term trf ast =
               raise exn));
 
     fun term_of (Constant a) = trans a []
-      | term_of (Variable x) = scan_var x
+      | term_of (Variable x) = read_var x
       | term_of (Appl (Constant a :: (asts as _ :: _))) =
           trans a (map term_of asts)
       | term_of (Appl (ast :: (asts as _ :: _))) =
