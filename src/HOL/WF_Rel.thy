@@ -12,7 +12,7 @@ separately.
 
 WF_Rel = Finite +
 
-(* actually belongs to Finite.thy *)
+(* actually belongs to theory Finite *)
 instance unit :: finite                  (finite_unit)
 instance "*" :: (finite,finite) finite   (finite_Prod)
 
