@@ -28,7 +28,7 @@ val end_excursionP =
     (Scan.succeed (Toplevel.print o Toplevel.exit));
 
 val kill_excursionP =
-  OuterSyntax.command "kill" "kill current excursion" K.control
+  OuterSyntax.improper_command "kill" "kill current excursion" K.control
     (Scan.succeed (Toplevel.print o IsarCmd.kill_theory));
 
 val contextP =
