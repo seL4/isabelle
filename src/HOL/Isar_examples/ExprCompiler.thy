@@ -120,26 +120,21 @@ proof (induct ?P xs type: list);
   fix x xs; assume "?P xs";
   show "?P (x # xs)" (is "?Q x");
   proof (induct ?Q x type: instr);
-    fix val; show "?Q (Const val)"; by (simp!);
-  next;
-    fix adr; show "?Q (Load adr)"; by (simp!);
-  next;
-    fix fun; show "?Q (Apply fun)"; by (simp!);
+    show "!!val. ?Q (Const val)"; by (simp!);
+    show "!!adr. ?Q (Load adr)"; by (simp!);
+    show "!!fun. ?Q (Apply fun)"; by (simp!);
   qed;
 qed;
-
 
 theorem correctness: "execute (compile e) env = eval e env";
 proof -;
   have "ALL stack. exec (compile e) stack env =
     eval e env # stack" (is "?P e");
   proof (induct ?P e type: expr);
-    fix adr; show "?P (Variable adr)"; by (simp!);
-  next;
-    fix val; show "?P (Constant val)"; by (simp!);
-  next;
-    fix fun e1 e2; assume "?P e1" "?P e2"; show "?P (Binop fun e1 e2)";
-      by (simp! add: exec_append);
+    show "!!adr. ?P (Variable adr)"; by simp;
+    show "!!val. ?P (Constant val)"; by simp;
+    show "!!fun e1 e2. (?P e1 ==> ?P e2 ==> ?P (Binop fun e1 e2))";
+      by (simp add: exec_append);
   qed;
   thus ?thesis; by (simp add: execute_def);
 qed;
@@ -154,7 +149,7 @@ text {*
 *};
 
 lemma exec_append:
-  "ALL stack. exec (xs @ ys) stack env 
+  "ALL stack. exec (xs @ ys) stack env
     = exec ys (exec xs stack env) env" (is "?P xs");
 proof (induct ?P xs);
   show "?P []" (is "ALL s. ?Q s");
@@ -166,30 +161,34 @@ proof (induct ?P xs);
   fix x xs; assume hyp: "?P xs";
   show "?P (x # xs)";
   proof (induct x);
-    fix val; 
+    fix val;
     show "?P (Const val # xs)" (is "ALL s. ?Q s");
     proof;
       fix s;
-      have "exec ((Const val # xs) @ ys) s env = exec (Const val # xs @ ys) s env";
-         by simp;
+      have "exec ((Const val # xs) @ ys) s env =
+          exec (Const val # xs @ ys) s env";
+        by simp;
       also; have "... = exec (xs @ ys) (val # s) env"; by simp;
       also; from hyp; have "... = exec ys (exec xs (val # s) env) env"; ..;
-      also; have "... = exec ys (exec (Const val # xs) s env) env"; by simp;
+      also; have "... = exec ys (exec (Const val # xs) s env) env";
+        by simp;
       finally; show "?Q s"; .;
     qed;
   next;
     fix adr; from hyp; show "?P (Load adr # xs)"; by simp -- {* same as above *};
   next;
-    fix fun; 
+    fix fun;
     show "?P (Apply fun # xs)" (is "ALL s. ?Q s");
     proof;
       fix s;
-      have "exec ((Apply fun # xs) @ ys) s env = exec (Apply fun # xs @ ys) s env";
-         by simp;
-      also; have "... = exec (xs @ ys) (fun (hd s) (hd (tl s)) # (tl (tl s))) env"; 
+      have "exec ((Apply fun # xs) @ ys) s env =
+          exec (Apply fun # xs @ ys) s env";
         by simp;
-      also; from hyp; have "... 
-        = exec ys (exec xs (fun (hd s) (hd (tl s)) # tl (tl s)) env) env"; ..; 
+      also; have "... =
+          exec (xs @ ys) (fun (hd s) (hd (tl s)) # (tl (tl s))) env";
+        by simp;
+      also; from hyp; have "... =
+        exec ys (exec xs (fun (hd s) (hd (tl s)) # tl (tl s)) env) env"; ..;
       also; have "... = exec ys (exec (Apply fun # xs) s env) env"; by simp;
       finally; show "?Q s"; .;
     qed;
@@ -198,13 +197,14 @@ qed;
 
 theorem correctness: "execute (compile e) env = eval e env";
 proof -;
-  have exec_compile: 
+  have exec_compile:
   "ALL stack. exec (compile e) stack env = eval e env # stack" (is "?P e");
   proof (induct e);
     fix adr; show "?P (Variable adr)" (is "ALL s. ?Q s");
     proof;
       fix s;
-      have "exec (compile (Variable adr)) s env = exec [Load adr] s env"; by simp;
+      have "exec (compile (Variable adr)) s env = exec [Load adr] s env";
+        by simp;
       also; have "... = env adr # s"; by simp;
       also; have "env adr = eval (Variable adr) env"; by simp;
       finally; show "?Q s"; .;
@@ -215,23 +215,23 @@ proof -;
     fix fun e1 e2; assume hyp1: "?P e1" and hyp2: "?P e2";
     show "?P (Binop fun e1 e2)" (is "ALL s. ?Q s");
     proof;
-      fix s; have "exec (compile (Binop fun e1 e2)) s env 
+      fix s; have "exec (compile (Binop fun e1 e2)) s env
         = exec (compile e2 @ compile e1 @ [Apply fun]) s env"; by simp;
-      also; have "... 
-        = exec [Apply fun] (exec (compile e1) (exec (compile e2) s env) env) env";
-	by (simp only: exec_append);
+      also; have "... =
+          exec [Apply fun] (exec (compile e1) (exec (compile e2) s env) env) env";
+        by (simp only: exec_append);
       also; from hyp2; have "exec (compile e2) s env = eval e2 env # s"; ..;
       also; from hyp1; have "exec (compile e1) ... env = eval e1 env # ..."; ..;
-      also; have "exec [Apply fun] ... env 
-        = fun (hd ...) (hd (tl ...)) # (tl (tl ...))"; by simp;
+      also; have "exec [Apply fun] ... env =
+        fun (hd ...) (hd (tl ...)) # (tl (tl ...))"; by simp;
       also; have "... = fun (eval e1 env) (eval e2 env) # s"; by simp;
-      also; have "fun (eval e1 env) (eval e2 env) = eval (Binop fun e1 e2) env";  
+      also; have "fun (eval e1 env) (eval e2 env) = eval (Binop fun e1 e2) env";
         by simp;
       finally; show "?Q s"; .;
     qed;
   qed;
 
-  have "execute (compile e) env = hd (exec (compile e) [] env)"; 
+  have "execute (compile e) env = hd (exec (compile e) [] env)";
     by (simp add: execute_def);
   also; from exec_compile; have "exec (compile e) [] env = [eval e env]"; ..;
   also; have "hd ... = eval e env"; by simp;

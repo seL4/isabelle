@@ -19,7 +19,7 @@ theory Fibonacci = Primes:;
 
 text_raw {*
  \footnote{Isar version by Gertrud Bauer.  Original tactic script by
- Lawrence C Paulson.  A few proofs of laws taken from
+ Larry Paulson.  A few proofs of laws taken from
  \cite{Concrete-Math}.}
 *};
 
@@ -53,8 +53,7 @@ text {* A few laws taken from \cite{Concrete-Math}. *};
 lemma fib_add: 
   "fib (n + k + 1) = fib (k + 1) * fib (n + 1) + fib k * fib n"
   (is "?P n");
-proof (rule fib_induct [of ?P n]);
-  txt_raw {* \cite[page 280]{Concrete-Math} *};
+proof (rule fib_induct [of ?P n]) -- {* see \cite[page 280]{Concrete-Math} *};
   show "?P 0"; by simp;
   show "?P 1"; by simp;
   fix n;
