@@ -38,35 +38,35 @@ sig
     ParsePrintRule of 'a * 'a
   type syntax
   val is_keyword: syntax -> string -> bool
-  val extend_log_types: string list -> syntax -> syntax
   val extend_type_gram: (string * int * mixfix) list -> syntax -> syntax
-  val extend_const_gram: string * bool -> (string * typ * mixfix) list -> syntax -> syntax
+  val extend_const_gram: (string -> bool) ->
+    string * bool -> (string * typ * mixfix) list -> syntax -> syntax
   val extend_consts: string list -> syntax -> syntax
   val extend_trfuns:
     (string * (ast list -> ast)) list *
     (string * (term list -> term)) list *
     (string * (bool -> typ -> term list -> term)) list *
     (string * (ast list -> ast)) list -> syntax -> syntax
-  val extend_tokentrfuns: (string * string * (string -> string * real)) list -> syntax -> syntax
-  val extend_trrules: syntax -> (string * string) trrule list -> syntax -> syntax
+  val extend_tokentrfuns:
+    (string * string * (string -> string * real)) list -> syntax -> syntax
   val extend_trrules_i: ast trrule list -> syntax -> syntax
+  val extend_trrules: (string -> bool) -> syntax ->
+    (string * string) trrule list -> syntax -> syntax
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
+  val default_mode: string * bool
   val merge_syntaxes: syntax -> syntax -> syntax
   val type_syn: syntax
   val pure_syn: syntax
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
-  val test_read: syntax -> string -> string -> unit
-  val read: syntax -> typ -> string -> term list
+  val read: (string -> bool) -> syntax -> typ -> string -> term list
   val read_typ: syntax -> ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) ->
     string -> typ
   val read_sort: syntax -> string -> sort
   val pretty_term: syntax -> bool -> term -> Pretty.T
   val pretty_typ: syntax -> typ -> Pretty.T
   val pretty_sort: syntax -> sort -> Pretty.T
-  val simple_str_of_sort: sort -> string
-  val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
   val ambiguity_level: int ref
   val ambiguity_is_error: bool ref
@@ -166,7 +166,6 @@ fun merge_ruletabs tab1 tab2 = Symtab.merge_multi' (op =) (tab1, tab2);
 datatype syntax =
   Syntax of {
     lexicon: Scan.lexicon,
-    logtypes: string list,
     gram: Parser.gram,
     consts: string list,
     prmodes: string list,
@@ -187,7 +186,6 @@ fun is_keyword (Syntax {lexicon, ...}) = Scan.is_literal lexicon o Symbol.explod
 val empty_syntax =
   Syntax {
     lexicon = Scan.empty_lexicon,
-    logtypes = [],
     gram = Parser.empty_gram,
     consts = [],
     prmodes = [],
@@ -203,18 +201,17 @@ val empty_syntax =
 
 (* extend_syntax *)
 
-fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
+fun extend_syntax (mode, inout) syn_ext (Syntax tabs) =
   let
-    val {lexicon, logtypes = logtypes1, gram, consts = consts1, prmodes = prmodes1,
+    val {lexicon, gram, consts = consts1, prmodes = prmodes1,
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
       print_ast_trtab, tokentrtab, prtabs} = tabs;
-    val SynExt.SynExt {logtypes = logtypes2, xprods, consts = consts2, prmodes = prmodes2,
+    val SynExt.SynExt {xprods, consts = consts2, prmodes = prmodes2,
       parse_ast_translation, parse_rules, parse_translation, print_translation, print_rules,
       print_ast_translation, token_translation} = syn_ext;
   in
     Syntax {
       lexicon = if inout then Scan.extend_lexicon lexicon (SynExt.delims_of xprods) else lexicon,
-      logtypes = merge_lists logtypes1 logtypes2,
       gram = if inout then Parser.extend_gram gram xprods else gram,
       consts = consts2 @ consts1,
       prmodes = (mode ins_string prmodes2) union_string prmodes1,
@@ -229,26 +226,27 @@ fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
       prtabs = Printer.extend_prtabs prtabs mode xprods}
   end;
 
+val default_mode = ("", true);
+
 
 (* merge_syntaxes *)
 
 fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
   let
-    val {lexicon = lexicon1, logtypes = logtypes1, gram = gram1, consts = consts1,
-      prmodes = prmodes1, parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
+    val {lexicon = lexicon1, gram = gram1, consts = consts1, prmodes = prmodes1,
+      parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
       parse_trtab = parse_trtab1, print_trtab = print_trtab1,
       print_ruletab = print_ruletab1, print_ast_trtab = print_ast_trtab1,
       tokentrtab = tokentrtab1, prtabs = prtabs1} = tabs1;
 
-    val {lexicon = lexicon2, logtypes = logtypes2, gram = gram2, consts = consts2,
-      prmodes = prmodes2, parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
+    val {lexicon = lexicon2, gram = gram2, consts = consts2, prmodes = prmodes2,
+      parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
       parse_trtab = parse_trtab2, print_trtab = print_trtab2,
       print_ruletab = print_ruletab2, print_ast_trtab = print_ast_trtab2,
       tokentrtab = tokentrtab2, prtabs = prtabs2} = tabs2;
   in
     Syntax {
       lexicon = Scan.merge_lexicons lexicon1 lexicon2,
-      logtypes = merge_lists logtypes1 logtypes2,
       gram = Parser.merge_grams gram1 gram2,
       consts = unique_strings (sort_strings (consts1 @ consts2)),
       prmodes = merge_lists prmodes1 prmodes2,
@@ -266,8 +264,8 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
 
 (* type_syn *)
 
-val type_syn = extend_syntax ("", true) empty_syntax TypeExt.type_ext;
-val pure_syn = extend_syntax ("", true) type_syn SynExt.pure_ext;
+val type_syn = empty_syntax |> extend_syntax default_mode TypeExt.type_ext;
+val pure_syn = type_syn |> extend_syntax default_mode SynExt.pure_ext;
 
 
 
@@ -281,11 +279,10 @@ fun pretty_strs_qs name strs =
 
 fun print_gram (Syntax tabs) =
   let
-    val {lexicon, logtypes, prmodes, gram, prtabs, ...} = tabs;
+    val {lexicon, prmodes, gram, prtabs, ...} = tabs;
     val prmodes' = sort_strings (filter_out (equal "") prmodes);
   in
     [pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon),
-      Pretty.strs ("logtypes:" :: logtypes),
       Pretty.big_list "prods:" (Parser.pretty_gram gram),
       pretty_strs_qs "print modes:" prmodes']
     |> Pretty.chunks |> Pretty.writeln
@@ -327,34 +324,14 @@ fun print_syntax syn = (print_gram syn; print_trans syn);
 
 (** read **)
 
-(* test_read *)
-
-fun test_read (Syntax tabs) root str =
-  let
-    val {lexicon, gram, parse_ast_trtab, parse_ruletab, ...} = tabs;
-
-    val chars = Symbol.explode str;
-    val toks = Lexicon.tokenize lexicon false chars;
-    val _ = writeln ("tokens: " ^ space_implode " " (map Lexicon.display_token toks));
-
-    fun show_pt pt =
-      let
-        val [raw_ast] = SynTrans.pts_to_asts (K None) [pt];
-        val _ = writeln ("raw: " ^ Ast.str_of_ast raw_ast);
-        val [pre_ast] = SynTrans.pts_to_asts (lookup_tr parse_ast_trtab) [pt];
-        val _ = Ast.normalize true true (lookup_ruletab parse_ruletab) pre_ast;
-      in () end;
-  in seq show_pt (Parser.parse gram root toks) end;
-
-
 (* read_ast *)
 
 val ambiguity_level = ref 1;
 
-fun read_asts (Syntax tabs) xids root str =
+fun read_asts is_logtype (Syntax tabs) xids root str =
   let
-    val {lexicon, gram, parse_ast_trtab, logtypes, ...} = tabs;
-    val root' = if root mem logtypes then SynExt.logic else root;
+    val {lexicon, gram, parse_ast_trtab, ...} = tabs;
+    val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
     val chars = Symbol.explode str;
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
 
@@ -375,10 +352,10 @@ fun read_asts (Syntax tabs) xids root str =
 
 (* read *)
 
-fun read (syn as Syntax tabs) ty str =
+fun read is_logtype (syn as Syntax tabs) ty str =
   let
     val {parse_ruletab, parse_trtab, ...} = tabs;
-    val asts = read_asts syn false (SynExt.typ_to_nonterm ty) str;
+    val asts = read_asts is_logtype syn false (SynExt.typ_to_nonterm ty) str;
   in
     SynTrans.asts_to_terms (lookup_tr parse_trtab)
       (map (Ast.normalize_ast (lookup_ruletab parse_ruletab)) asts)
@@ -388,7 +365,7 @@ fun read (syn as Syntax tabs) ty str =
 (* read types *)
 
 fun read_typ syn get_sort map_sort str =
-  (case read syn SynExt.typeT str of
+  (case read (K false) syn SynExt.typeT str of
     [t] => TypeExt.typ_of_term (get_sort (TypeExt.raw_term_sorts t)) map_sort t
   | _ => error "read_typ: ambiguous syntax");
 
@@ -396,7 +373,7 @@ fun read_typ syn get_sort map_sort str =
 (* read sorts *)
 
 fun read_sort syn str =
-  (case read syn TypeExt.sortT str of
+  (case read (K false) syn TypeExt.sortT str of
     [t] => TypeExt.sort_of_term t
   | _ => error "read_sort: ambiguous syntax");
 
@@ -430,7 +407,7 @@ fun check_rule (rule as (lhs, rhs)) =
   | None => rule);
 
 
-fun read_pattern syn (root, str) =
+fun read_pattern is_logtype syn (root, str) =
   let
     val Syntax {consts, ...} = syn;
 
@@ -440,7 +417,7 @@ fun read_pattern syn (root, str) =
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
   in
-    (case read_asts syn true root str of
+    (case read_asts is_logtype syn true root str of
       [ast] => constify ast
     | _ => error ("Syntactically ambiguous input: " ^ quote str))
   end handle ERROR =>
@@ -472,35 +449,25 @@ val pretty_term = pretty_t Printer.term_to_ast Printer.pretty_term_ast;
 fun pretty_typ syn = pretty_t Printer.typ_to_ast Printer.pretty_typ_ast syn false;
 fun pretty_sort syn = pretty_t Printer.sort_to_ast Printer.pretty_typ_ast syn false;
 
-val simple_str_of_sort = Pretty.str_of o pretty_sort type_syn;
-val simple_string_of_typ = Pretty.string_of o (pretty_typ type_syn);
 val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
 
 
-(** extend syntax (external interfaces) **)
+(** extend syntax **)
 
-fun ext_syntax mk_syn_ext prmode decls (syn as Syntax {logtypes, ...}) =
-  extend_syntax prmode syn (mk_syn_ext logtypes decls);
+fun ext_syntax' f is_logtype prmode decls = extend_syntax prmode (f is_logtype decls);
+fun ext_syntax f = ext_syntax' (K f) (K false) default_mode;
 
+val extend_type_gram   = ext_syntax Mixfix.syn_ext_types;
+val extend_const_gram  = ext_syntax' Mixfix.syn_ext_consts;
+val extend_consts      = ext_syntax SynExt.syn_ext_const_names;
+val extend_trfuns      = ext_syntax SynExt.syn_ext_trfuns;
+val extend_tokentrfuns = ext_syntax SynExt.syn_ext_tokentrfuns;
+val extend_trrules_i   = ext_syntax SynExt.syn_ext_rules o prep_rules I;
 
-fun extend_log_types logtypes syn =
-  extend_syntax ("", true) syn (SynExt.syn_ext_logtypes logtypes);
-
-val extend_type_gram = ext_syntax Mixfix.syn_ext_types ("", true);
-
-fun extend_const_gram prmode = ext_syntax Mixfix.syn_ext_consts prmode;
-
-val extend_consts = ext_syntax SynExt.syn_ext_const_names ("", true);
-
-val extend_trfuns = ext_syntax SynExt.syn_ext_trfuns ("", true);
-
-val extend_tokentrfuns = ext_syntax SynExt.syn_ext_tokentrfuns ("", true);
-
-fun extend_trrules syn rules =
-  ext_syntax SynExt.syn_ext_rules ("", true) (prep_rules (read_pattern syn) rules);
-
-fun extend_trrules_i rules = ext_syntax SynExt.syn_ext_rules ("", true) (prep_rules I rules);
+fun extend_trrules is_logtype syn rules =
+  ext_syntax' (K SynExt.syn_ext_rules) (K false) default_mode
+    (prep_rules (read_pattern is_logtype syn) rules);
 
 
 
