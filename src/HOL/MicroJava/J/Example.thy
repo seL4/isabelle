@@ -15,7 +15,7 @@ class Base {
   Base foo(Base x) {return x;}
 }
 
-class Ext extends Base{
+class Ext extends Base {
   int vee;
   Ext foo(Base x) {((Ext)x).vee=1; return null;}
 }
