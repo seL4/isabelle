@@ -517,7 +517,7 @@ qed "lepoll_succ_disj";
 
 Goalw [lesspoll_def] "[| A lesspoll i; Ord(i) |] ==> |A| < i";
 by (Clarify_tac 1);
-by (forward_tac [lepoll_cardinal_le] 1);
+by (ftac lepoll_cardinal_le 1);
 by (assume_tac 1);
 by (blast_tac (claset() addIs [well_ord_Memrel,
 			       well_ord_cardinal_eqpoll RS eqpoll_sym]

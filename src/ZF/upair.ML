@@ -209,7 +209,7 @@ qed "the_equality2";
 
 Goal "EX! x. P(x) ==> P(THE x. P(x))";
 by (etac ex1E 1);
-by (rtac (the_equality RS ssubst) 1);
+by (stac the_equality 1);
 by (REPEAT (Blast_tac 1));
 qed "theI";
 

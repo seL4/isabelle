@@ -183,8 +183,8 @@ by (res_inst_tac [("A1", "domain(f)")]
     (subset_refl RSN(2, FiniteFun_mono) RS subsetD) 1);
 by (fast_tac (claset() addDs
 		[FiniteFun_domain_Fin, Fin.dom_subset RS subsetD]) 1);
-by (resolve_tac [fun_FiniteFunI] 1);
-be FiniteFun_domain_Fin 1;
+by (rtac fun_FiniteFunI 1);
+by (etac FiniteFun_domain_Fin 1);
 by (res_inst_tac [("B" , "range(f)")] fun_weaken_type 1);
 by (ALLGOALS
     (blast_tac (claset() addDs
