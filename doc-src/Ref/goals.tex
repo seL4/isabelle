@@ -24,21 +24,24 @@ Isabelle session, this state consists of a dummy formula.
 
 
 \section{Basic commands}
-Most proofs begin with \texttt{goal} or \texttt{goalw} and require no other
+Most proofs begin with \texttt{Goal} or \texttt{Goalw} and require no other
 commands than \texttt{by}, \texttt{chop} and \texttt{undo}.  They typically end
 with a call to \texttt{qed}.
 \subsection{Starting a backward proof}
 \index{proofs!starting}
-\begin{ttbox} 
-goal        : theory -> string -> thm list 
+\begin{ttbox}
+Goal        :                       string -> thm list
+Goalw       :           thm list -> string -> thm list
+goal        : theory ->             string -> thm list 
 goalw       : theory -> thm list -> string -> thm list 
 goalw_cterm : thm list -> cterm -> thm list 
 premises    : unit -> thm list
 \end{ttbox}
-The \texttt{goal} commands start a new proof by setting the goal.  They
-replace the current state list by a new one consisting of the initial proof
-state.  They also empty the \ttindex{undo} list; this command cannot be
-undone!
+
+The goal commands start a new proof by setting the goal.  They replace
+the current state list by a new one consisting of the initial proof
+state.  They also empty the \ttindex{undo} list; this command cannot
+be undone!
 
 They all return a list of meta-hypotheses taken from the main goal.  If
 this list is non-empty, bind its value to an \ML{} identifier by typing
@@ -46,11 +49,19 @@ something like
 \begin{ttbox} 
 val prems = goal{\it theory\/ formula};
 \end{ttbox}\index{assumptions!of main goal}
-These assumptions serve as the premises when you are deriving a rule.
-They are also stored internally and can be retrieved later by the
-function \texttt{premises}.  When the proof is finished, \texttt{qed}
-compares the stored assumptions with the actual assumptions in the
-proof state.
+These assumptions typically serve as the premises when you are
+deriving a rule.  They are also stored internally and can be retrieved
+later by the function \texttt{premises}.  When the proof is finished,
+\texttt{qed} compares the stored assumptions with the actual
+assumptions in the proof state.
+
+The capital versions of \texttt{Goal} are the basic user level
+commands and should be preferred over the more primitive lowercase
+\texttt{goal} commands.  Apart from taking the current theory context
+as implicit argument, the former ones try to be smart in handling
+meta-hypotheses when deriving rules.  Thus \texttt{prems} have to be
+seldom bound explicitly, the effect is as if \texttt{cut_facts_tac}
+had been called automatically.
 
 \index{definitions!unfolding}
 Some of the commands unfold definitions using meta-rewrite rules.  This
@@ -59,6 +70,14 @@ otherwise require use of \texttt{rewrite_goals_tac} and
 \texttt{rewrite_rule}.
 
 \begin{ttdescription}
+\item[\ttindexbold{Goal} {\it formula};] begins a new proof, where
+  {\it formula\/} is written as an \ML\ string.
+  
+\item[\ttindexbold{Goalw} {\it defs} {\it formula};] is like
+  \texttt{Goal} but also applies the list of {\it defs\/} as
+  meta-rewrite rules to the first subgoal and the premises.
+  \index{meta-rewriting}
+
 \item[\ttindexbold{goal} {\it theory} {\it formula};] 
 begins a new proof, where {\it theory} is usually an \ML\ identifier
 and the {\it formula\/} is written as an \ML\ string.
@@ -158,6 +177,67 @@ store_thm : string * thm -> thm
 \item[\ttindexbold{store_thm} ($name$, $thm$)]\index{theorems!storing}
   stores $thm$ in the theorem database associated with its theory and
   returns that theorem.
+\end{ttdescription}
+
+
+\subsection{Extracting axioms and stored theorems}
+\index{theories!axioms of}\index{axioms!extracting}
+\index{theories!theorems of}\index{theorems!extracting}
+\begin{ttbox}
+thm       : xstring -> thm
+thms      : xstring -> thm list
+get_axiom : theory -> xstring -> thm
+get_thm   : theory -> xstring -> thm
+get_thms  : theory -> xstring -> thm list
+axioms_of : theory -> (string * thm) list
+thms_of   : theory -> (string * thm) list
+assume_ax : theory -> string -> thm
+\end{ttbox}
+\begin{ttdescription}
+  
+\item[\ttindexbold{thm} $name$] is the basic user function for
+  extracting stored theorems from the current theory context.
+  
+\item[\ttindexbold{thms} $name$] is like \texttt{thm}, but returns a
+  whole list associated with $name$ rather than a single theorem.
+  Typically this will be collections stored by packages, e.g.\ 
+  \verb|list.simps|.
+
+\item[\ttindexbold{get_axiom} $thy$ $name$] returns an axiom with the
+  given $name$ from $thy$ or any of its ancestors, raising exception
+  \xdx{THEORY} if none exists.  Merging theories can cause several
+  axioms to have the same name; {\tt get_axiom} returns an arbitrary
+  one.  Usually, axioms are also stored as theorems and may be
+  retrieved via \texttt{get_thm} as well.
+  
+\item[\ttindexbold{get_thm} $thy$ $name$] is analogous to {\tt
+    get_axiom}, but looks for a theorem stored in the theory's
+  database.  Like {\tt get_axiom} it searches all parents of a theory
+  if the theorem is not found directly in $thy$.
+  
+\item[\ttindexbold{get_thms} $thy$ $name$] is like \texttt{get_thm}
+  for retrieving theorem lists stored within the theory.  It returns a
+  singleton list if $name$ actually refers to a theorem rather than a
+  theorem list.
+  
+\item[\ttindexbold{axioms_of} $thy$] returns the axioms of this theory
+  node, not including the ones of its ancestors.
+  
+\item[\ttindexbold{thms_of} $thy$] returns all theorems stored within
+  the database of this theory node, not including the ones of its
+  ancestors.
+  
+\item[\ttindexbold{assume_ax} $thy$ $formula$] reads the {\it formula}
+  using the syntax of $thy$, following the same conventions as axioms
+  in a theory definition.  You can thus pretend that {\it formula} is
+  an axiom and use the resulting theorem like an axiom.  Actually {\tt
+    assume_ax} returns an assumption; \ttindex{qed} and
+  \ttindex{result} complain about additional assumptions, but
+  \ttindex{uresult} does not.
+
+For example, if {\it formula} is
+\hbox{\tt a=b ==> b=a} then the resulting theorem has the form
+\hbox{\verb'?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]'}
 \end{ttdescription}
 
 
