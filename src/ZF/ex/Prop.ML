@@ -24,7 +24,7 @@ structure Prop = Datatype_Fun
 	   "n: nat ==> #n : prop",
 	   "[| p: prop;  q: prop |] ==> p=>q : prop"];
   val monos = [];
-  val type_intrs = data_typechecks;
+  val type_intrs = datatype_intrs;
   val type_elims = []);
 
 val [FlsI,VarI,ImpI] = Prop.intrs;

@@ -17,7 +17,7 @@ structure BT = Datatype_Fun
 	  ["Lf : bt(A)",
 	   "[| a: A;  t1: bt(A);  t2: bt(A) |] ==> Br(a,t1,t2) : bt(A)"];
   val monos = [];
-  val type_intrs = data_typechecks
+  val type_intrs = datatype_intrs
   val type_elims = []);
 
 val [LfI, BrI] = BT.intrs;

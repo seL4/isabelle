@@ -24,7 +24,7 @@ structure Enum = Datatype_Fun
   val ext = None
   val sintrs = map (fn const => const ^ " : enum") consts;
   val monos = [];
-  val type_intrs = data_typechecks
+  val type_intrs = datatype_intrs
   val type_elims = []);
 
 goal Enum.thy "con59 ~= con60";

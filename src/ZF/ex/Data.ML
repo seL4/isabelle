@@ -23,8 +23,8 @@ structure Data = Datatype_Fun
 	   "[| a: A; b: B |] ==> Two(a,b) : data(A,B)",
 	   "[| a: A; b: B;  d: data(A,B) |] ==> Three(a,b,d) : data(A,B)"];
   val monos = [];
-  val type_intrs = data_typechecks
-  val type_elims = data_elims);
+  val type_intrs = datatype_intrs
+  val type_elims = datatype_elims);
 
 
 (**  Lemmas to justify using "data" in other recursive type definitions **)

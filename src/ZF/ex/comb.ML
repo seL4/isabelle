@@ -25,7 +25,7 @@ structure Comb = Datatype_Fun
 	   "S : comb",
 	   "[| p: comb;  q: comb |] ==> p#q : comb"];
   val monos = [];
-  val type_intrs = data_typechecks;
+  val type_intrs = datatype_intrs;
   val type_elims = []);
 
 val [K_comb,S_comb,Ap_comb] = Comb.intrs;

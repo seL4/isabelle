@@ -9,6 +9,9 @@ Proof adopted from
 Nora Szasz, 
 A Machine Checked Proof that Ackermann's Function is not Primitive Recursive,
 In: Huet & Plotkin, eds., Logical Environments (CUP, 1993), 317-338.
+
+See also E. Mendelson, Introduction to Mathematical Logic.
+(Van Nostrand, 1964), page 250, exercise 11.
 *)
 
 open Primrec0;

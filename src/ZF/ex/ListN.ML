@@ -23,8 +23,8 @@ structure ListN = Inductive_Fun
 val listn_induct = standard 
     (ListN.mutual_induct RS spec RS spec RSN (2,rev_mp));
 
-val [major] = goal ListN.thy "l:list(A) ==> <length(l),l> : listn(A)";
-by (rtac (major RS List.induct) 1);
+goal ListN.thy "!!l. l:list(A) ==> <length(l),l> : listn(A)";
+by (etac List.induct 1);
 by (ALLGOALS (asm_simp_tac list_ss));
 by (REPEAT (ares_tac ListN.intrs 1));
 val list_into_listn = result();
@@ -47,6 +47,12 @@ by (REPEAT (rtac ListN.bnd_mono 1));
 by (REPEAT (ares_tac ([univ_mono,Sigma_mono,list_mono] @ basic_monos) 1));
 val listn_mono = result();
 
+goal ListN.thy
+    "!!n l. [| <n,l> : listn(A);  <n',l'> : listn(A) |] ==> \
+\           <n#+n', l@l'> : listn(A)";
+by (etac listn_induct 1);
+by (ALLGOALS (asm_simp_tac (list_ss addsimps ListN.intrs)));
+val listn_append = result();
+
 val Nil_listn_case = ListN.mk_cases List.con_defs "<i,Nil> : listn(A)"
 and Cons_listn_case = ListN.mk_cases List.con_defs "<i,Cons(x,xs)> : listn(A)";
-

@@ -21,8 +21,8 @@ structure TF = Datatype_Fun
 	   "Fnil : forest(A)",
 	   "[| t: tree(A);  tf: forest(A) |] ==> Fcons(t,tf) : forest(A)"];
   val monos = [];
-  val type_intrs = data_typechecks
-  val type_elims = data_elims);
+  val type_intrs = datatype_intrs
+  val type_elims = datatype_elims);
 
 val [TconsI, FnilI, FconsI] = TF.intrs;
 
@@ -44,9 +44,9 @@ val TF_equals_Un = result();
 
 (*The (refl RS conjI RS exI RS exI) avoids considerable search!*)
 val unfold_cs = sum_cs addSIs [PartI, refl RS conjI RS exI RS exI]
-                    addIs data_typechecks
+                    addIs datatype_intrs
                     addDs [TF.dom_subset RS subsetD]
-	            addSEs ([PartE] @ data_elims @ TF.free_SEs);
+	            addSEs ([PartE] @ datatype_elims @ TF.free_SEs);
 
 goalw TF.thy (tl TF.defs) "tree(A) = {Inl(x). x: A*forest(A)}";
 by (res_inst_tac [("P", "%x.?t(x) = ?u::i")] (TF.unfold RS ssubst) 1);

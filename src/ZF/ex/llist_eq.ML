@@ -10,7 +10,7 @@ Former part of llist.ML, contains definition and use of LList_Eq
 
 structure LList_Eq = Co_Inductive_Fun
  (val thy = LList.thy addconsts [(["lleq"],"i=>i")];
-  val rec_doms = [("lleq","llist(A) <*> llist(A)")];
+  val rec_doms = [("lleq", "llist(A) <*> llist(A)")];
   val sintrs = 
       ["<LNil; LNil> : lleq(A)",
        "[| a:A;  <l; l'>: lleq(A) |] ==> <LCons(a,l); LCons(a,l')> : lleq(A)"];
@@ -21,7 +21,7 @@ structure LList_Eq = Co_Inductive_Fun
 
 (** Alternatives for above:
   val con_defs = LList.con_defs
-  val type_intrs = co_data_typechecks
+  val type_intrs = co_datatype_intrs
   val type_elims = [quniv_QPair_E]
 **)
 

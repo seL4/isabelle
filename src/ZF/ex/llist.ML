@@ -21,7 +21,7 @@ structure LList = Co_Datatype_Fun
       ["LNil : llist(A)",
        "[| a: A;  l: llist(A) |] ==> LCons(a,l) : llist(A)"];
   val monos = [];
-  val type_intrs = co_data_typechecks
+  val type_intrs = co_datatype_intrs
   val type_elims = []);
   
 val [LNilI, LConsI] = LList.intrs;
@@ -49,7 +49,7 @@ val in_quniv_rls =
   QPair_Int_Vfrom_succ_in_quniv, QPair_Int_Vfrom_in_quniv];
 
 val quniv_cs = ZF_cs addSIs in_quniv_rls 
-                     addIs (Int_quniv_in_quniv::co_data_typechecks);
+                     addIs (Int_quniv_in_quniv::co_datatype_intrs);
 
 (*Keep unfolding the lazy list until the induction hypothesis applies*)
 goal LList.thy
