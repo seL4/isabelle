@@ -265,6 +265,7 @@
   \item \isa {iff} (attribute), 88, 100, 128
   \item \isa {iffD1} (theorem), \bold{92}
   \item \isa {iffD2} (theorem), \bold{92}
+  \item ignored material, \bold{61}
   \item image
     \subitem under a function, \bold{109}
     \subitem under a relation, \bold{110}
