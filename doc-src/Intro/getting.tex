@@ -1,12 +1,13 @@
 %% $Id$
-\part{Getting Started with Isabelle}\label{chap:getting}
-Let us consider how to perform simple proofs using Isabelle.  At
-present, Isabelle's user interface is \ML.  Proofs are conducted by
+\part{Using Isabelle from the ML Top-Level}\label{chap:getting}
+
+Most Isabelle users write proof scripts using the Isar language, as described in the \emph{Tutorial}, and debug them through the Proof General user interface~\cite{proofgeneral}. Isabelle's original user interface --- based on the \ML{} top-level --- is still available, however.  
+Proofs are conducted by
 applying certain \ML{} functions, which update a stored proof state.
-Basically, all syntax must be expressed using plain {\sc ascii}
-characters.  There are also mechanisms built into Isabelle that support
+All syntax can be expressed using plain {\sc ascii}
+characters, but Isabelle can support
 alternative syntaxes, for example using mathematical symbols from a
-special screen font.  The meta-logic and major object-logics already
+special screen font.  The meta-logic and main object-logics already
 provide such fancy output as an option.
 
 Object-logics are built upon Pure Isabelle, which implements the
@@ -167,7 +168,7 @@ follows:
 \]
 To illustrate the notation, consider two axioms for first-order logic:
 $$ \List{P; Q} \Imp P\conj Q                 \eqno(\conj I) $$
-$$ \List{\exists x.P(x); \Forall x. P(x)\imp Q} \Imp Q \eqno(\exists E) $$
+$$ \List{\exists x. P(x); \Forall x. P(x)\imp Q} \Imp Q \eqno(\exists E) $$
 $({\conj}I)$ translates into {\sc ascii} characters as
 \begin{ttbox}
 [| ?P; ?Q |] ==> ?P & ?Q
@@ -188,7 +189,7 @@ forth.
 
 For a final example, the rule $(\exists E)$ is rendered in {\sc ascii} as
 \begin{ttbox}
-[| EX x.P(x);  !!x. P(x) ==> Q |] ==> Q
+[| EX x. P(x);  !!x. P(x) ==> Q |] ==> Q
 \end{ttbox}
 
 
@@ -251,8 +252,8 @@ appears in{\out slanted typewriter characters}.  \ML's response {\out val
 session illustrates two formats for the display of theorems.  Isabelle's
 top-level displays theorems as \ML{} values, enclosed in quotes.  Printing
 commands like \texttt{prth} omit the quotes and the surrounding \texttt{val
-  \ldots :\ thm}.  Ignoring their side-effects, the commands are identity
-functions.
+  \ldots :\ thm}.  Ignoring their side-effects, the printing commands are 
+identity functions.
 
 To contrast \texttt{RS} with \texttt{RSN}, we resolve
 \tdx{conjunct1}, which stands for~$(\conj E1)$, with~\tdx{mp}.
@@ -309,7 +310,17 @@ refl;
 exI;
 {\out val it = "?P(?x) ==> EX x. ?P(x)" : thm}
 refl RS exI;
-{\out val it = "?a3(?x) =?= ?a2(?x) ==> EX x. ?a3(x) = ?a2(x)" : thm}
+{\out val it = "EX x. ?a3(x) = ?a2(x)"  [.] : thm}
+\end{ttbox}
+%
+The mysterious symbol \texttt{[.]} indicates that the result is subject to 
+a meta-level hypothesis. We can make all such hypotheses visible by setting the 
+\ttindexbold{show_hyps} flag:
+\begin{ttbox} 
+set show_hyps;
+{\out val it = true : bool}
+refl RS exI;
+{\out val it = "EX x. ?a3(x) = ?a2(x)"  ["?a3(?x) =?= ?a2(?x)"] : thm}
 \end{ttbox}
 
 \noindent
@@ -348,7 +359,9 @@ A flex-flex constraint is no longer possible; resolution does not find a
 unique unifier:
 \begin{ttbox} 
 reflk RS exI;
-{\out uncaught exception THM}
+{\out uncaught exception}
+{\out    THM ("RSN: multiple unifiers", 1,}
+{\out         ["k = k", "?P(?x) ==> EX x. ?P(x)"])}
 \end{ttbox}
 Using \ttindex{RL} this time, we discover that there are four unifiers, and
 four resolvents:
@@ -411,8 +424,7 @@ backtracking through the proof space, going away to prove lemmas, etc.; of
 its many commands, most important are the following:
 \begin{ttdescription}
 \item[\ttindex{Goal} {\it formula}; ] 
-begins a new proof, where $theory$ is usually an \ML\ identifier
-and the {\it formula\/} is written as an \ML\ string.
+begins a new proof, where the {\it formula\/} is written as an \ML\ string.
 
 \item[\ttindex{by} {\it tactic}; ] 
 applies the {\it tactic\/} to the current proof
@@ -825,7 +837,7 @@ We state the left-to-right half to Isabelle in the normal way.
 Since $\imp$ is nested to the right, $({\imp}I)$ can be applied twice; we
 use \texttt{REPEAT}:
 \begin{ttbox}
-Goal "(ALL x.P(x) --> Q) --> (EX x.P(x)) --> Q";
+Goal "(ALL x. P(x) --> Q) --> (EX x. P(x)) --> Q";
 {\out Level 0}
 {\out (ALL x. P(x) --> Q) --> (EX x. P(x)) --> Q}
 {\out  1. (ALL x. P(x) --> Q) --> (EX x. P(x)) --> Q}
@@ -878,11 +890,13 @@ by (assume_tac 1);
 
 \subsection{The classical reasoner}
 \index{classical reasoner}
-Although Isabelle cannot compete with fully automatic theorem provers, it
-provides enough automation to tackle substantial examples.  The classical
+Isabelle provides enough automation to tackle substantial examples.  
+The classical
 reasoner can be set up for any classical natural deduction logic;
 see \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
         {Chap.\ts\ref{chap:classical}}. 
+It cannot compete with fully automatic theorem provers, but it is 
+competitive with tools found in other interactive provers.
 
 Rules are packaged into {\bf classical sets}.  The classical reasoner
 provides several tactics, which apply rules using naive algorithms.

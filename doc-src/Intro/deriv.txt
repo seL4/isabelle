@@ -4,7 +4,7 @@ Pretty.setmargin 72;  (*existing macros just allow this margin*)
 print_depth 0;
 
 
-val [major,minor] = goal Int_Rule.thy
+val [major,minor] = goal IFOL.thy
     "[| P&Q;  [| P; Q |] ==> R |] ==> R";
 prth minor;
 by (resolve_tac [minor] 1);

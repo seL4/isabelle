@@ -48,14 +48,20 @@ possibilities:
 \item If one or more premises involves the meta-connectives $\Forall$ or
   $\Imp$, then the command sets the goal to be $\phi$ and returns a list
   consisting of the theorems ${\theta@i\;[\theta@i]}$, for $i=1$, \ldots,~$k$.
-  These meta-assumptions are also recorded internally, allowing
+  These meta-level assumptions are also recorded internally, allowing
   \texttt{result} (which is called by \texttt{qed}) to discharge them in the
   original order.
 \end{itemize}
 Rules that discharge assumptions or introduce eigenvariables have complex
-premises, and the second case applies.
+premises, and the second case applies.  In this section, many of the
+theorems are subject to meta-level assumptions, so we make them visible by by setting the 
+\ttindex{show_hyps} flag:
+\begin{ttbox} 
+set show_hyps;
+{\out val it = true : bool}
+\end{ttbox}
 
-Let us derive $\conj$ elimination.  Until now, calling \texttt{Goal} has
+Now, we are ready to derive $\conj$ elimination.  Until now, calling \texttt{Goal} has
 returned an empty list, which we have ignored.  In this example, the list
 contains the two premises of the rule, since one of them involves the $\Imp$
 connective.  We bind them to the \ML\ identifiers \texttt{major} and {\tt
@@ -357,7 +363,9 @@ rules   \(id@1\) "\(rule@1\)"
 \end{ttbox}
 where $id@1$, \ldots, $id@n$ are \ML{} identifiers and $rule@1$, \ldots,
 $rule@n$ are expressions of type~$prop$.  Each rule {\em must\/} be
-enclosed in quotation marks.
+enclosed in quotation marks.  Rules are simply axioms; they are 
+called \emph{rules} because they are mainly used to specify the inference
+rules when defining a new logic.
 
 \indexbold{definitions} The {\bf definition part} is similar, but with
 the keyword \texttt{defs} instead of \texttt{rules}.  {\bf Definitions} are
@@ -368,10 +376,10 @@ this, where the arguments of~$f$ appear applied on the left-hand side
 of the equation instead of abstracted on the right-hand side.
 
 Isabelle checks for common errors in definitions, such as extra
-variables on the right-hand side, but currently does not a complete
-test of well-formedness.  Thus determined users can write
-non-conservative `definitions' by using mutual recursion, for example;
-the consequences of such actions are their responsibility.
+variables on the right-hand side and cyclic dependencies, that could
+least to inconsistency.  It is still essential to take care:
+theorems proved on the basis of incorrect definitions are useless,
+your system can be consistent and yet still wrong.
 
 \index{examples!of theories} This example theory extends first-order
 logic by declaring and defining two constants, {\em nand} and {\em
@@ -682,7 +690,8 @@ end
 \end{ttbox}
 Because $nat$ and $bool$ have class $arith$, we can use $0$, $1$ and $+$ at
 either type.  The type constraints in the axioms are vital.  Without
-constraints, the $x$ in $1+x = x$ would have type $\alpha{::}arith$
+constraints, the $x$ in $1+x = 1$ (axiom \texttt{or1l})
+would have type $\alpha{::}arith$
 and the axiom would hold for any type of class $arith$.  This would
 collapse $nat$ to a trivial type:
 \[ Suc(1) = Suc(0+1) = Suc(0)+1 = 1+1 = 1! \]
@@ -998,7 +1007,7 @@ by (Simp_tac 1);
 {\out          Suc(x) + m + n = Suc(x) + (m + n)}
 \end{ttbox}
 The inductive step requires rewriting by the equations for addition
-together the induction hypothesis, which is also an equation.  The
+and with the induction hypothesis, which is also an equation.  The
 tactic~\ttindex{Asm_simp_tac} rewrites using the implicit
 simplification set and any useful assumptions:
 \begin{ttbox}
@@ -1219,7 +1228,7 @@ choplev 0;
 {\out rev(?x, a : b : c : Nil)}
 {\out  1. rev(?x, a : b : c : Nil)}
 \ttbreak
-by (DEPTH_FIRST (has_fewer_prems 1) (resolve_tac rules 1));
+by prolog_tac;
 {\out Level 1}
 {\out rev(c : b : a : Nil, a : b : c : Nil)}
 {\out No subgoals!}
