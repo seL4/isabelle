@@ -8,13 +8,16 @@ LaTeX presentation primitives (based on outer lexical syntax).
 
 signature LATEX =
 sig
+  val output_known_symbols: (string -> bool) * (string -> bool) ->
+    Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
   datatype token = Basic of OuterLex.token | Markup of string | MarkupEnv of string | Verbatim
   val output_tokens: (token * string) list -> string
   val flag_markup: bool -> string
   val tex_trailer: string
   val isabelle_file: string -> string -> string
-  val old_symbol_source: string -> Symbol.symbol list -> string
+  val symbol_source: (string -> bool) * (string -> bool) ->
+    string -> Symbol.symbol list -> string
   val theory_entry: string -> string
   val modes: string list
 end;
@@ -64,16 +67,19 @@ val output_chr = fn
   "~" => "{\\isachartilde}" |
   c => if Symbol.is_digit c then enclose "{\\isadigit{" "}}" c else c;
 
-fun output_sym sym =
+val output_chrs = translate_string output_chr;
+
+fun output_known_sym (known_sym, known_ctrl) sym =
   (case Symbol.decode sym of
     Symbol.Char s => output_chr s
-  | Symbol.Sym s => enclose "{\\isasym" "}" s
-  | Symbol.Ctrl s => enclose "\\isactrl" " " s
+  | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
+  | Symbol.Ctrl s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
   | Symbol.Raw s => s);
 
 in
 
-val output_symbols = implode o map output_sym;
+val output_known_symbols = implode oo (map o output_known_sym);
+val output_symbols = output_known_symbols (K true, K true);
 val output_syms = output_symbols o Symbol.explode;
 
 end;
@@ -130,8 +136,9 @@ fun isabelle_file name txt =
   \\\def\\isabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
   "\\end{isabellebody}%\n" ^ tex_trailer;
 
-fun old_symbol_source name syms =
-  isabelle_file name ("\\isamarkupheader{" ^ output_syms name ^ "}%\n" ^ output_symbols syms);
+fun symbol_source known name syms = isabelle_file name
+  ("\\isamarkupheader{" ^ output_known_symbols known (Symbol.explode name) ^ "}%\n" ^
+    output_known_symbols known syms);
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n\n";
 
