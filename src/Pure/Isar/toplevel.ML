@@ -10,6 +10,7 @@ sig
   datatype node = Theory of theory | Proof of ProofHistory.T
   type state
   val toplevel: state
+  val is_toplevel: state -> bool
   val prompt_state_default: state -> string
   val prompt_state_fn: (state -> string) ref
   val print_state_context: state -> unit
@@ -95,6 +96,9 @@ fun print_node (Theory thy) = print_ctxt thy
 datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) list;
 
 val toplevel = State [];
+
+fun is_toplevel (State []) = true
+  | is_toplevel _ = false;
 
 fun str_of_state (State []) = "at top level"
   | str_of_state (State ((node, _) :: _)) = str_of_node (History.current node);
