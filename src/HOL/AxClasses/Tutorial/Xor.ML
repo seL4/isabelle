@@ -8,7 +8,7 @@ Proof the instantiation theorem bool :: agroup by hand.
 open AxClass;
 
 goal_arity Xor.thy ("bool", [], "agroup");
-by (axclass_tac Xor.thy []);
+by (axclass_tac []);
 by (rewrite_goals_tac
       [Xor.prod_bool_def,Xor.inverse_bool_def, Xor.unit_bool_def]);
 by (ALLGOALS (Fast_tac));
