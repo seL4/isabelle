@@ -36,6 +36,7 @@ sig
   val get_inductive: theory -> string -> ({names: string list, coind: bool} *
     {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
      intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}) option
+  val the_mk_cases: theory -> string -> string -> thm
   val print_inductives: theory -> unit
   val mono_add_global: theory attribute
   val mono_del_global: theory attribute
@@ -119,6 +120,8 @@ fun the_inductive thy name =
   (case get_inductive thy name of
     None => error ("Unknown (co)inductive set " ^ quote name)
   | Some info => info);
+
+val the_mk_cases = (#mk_cases o #2) oo the_inductive;
 
 fun put_inductives names info thy =
   let
