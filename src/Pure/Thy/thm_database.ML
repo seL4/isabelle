@@ -133,9 +133,8 @@ fun select_match(obj, signobj, named_thms, extract) =
 		(0, map (fn (_,t) => size_of_term t) subst)
             end
 
-      fun thm_less ((p0:int,s0:int,_),(p1,s1,_)) =
-            (((p0=0 andalso p1=0) orelse (p0<>0 andalso p1<>0)) andalso s0<s1)
-            orelse (p0=0 andalso p1<>0)
+      fun thm_ord ((p0,s0,_),(p1,s1,_)) =
+            prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0,s0),(p1,s1));
 
       fun select((p as (_,thm))::named_thms, sels) =
             let val {prop, sign, ...} = rep_thm thm
@@ -148,7 +147,7 @@ fun select_match(obj, signobj, named_thms, extract) =
             end
         | select([],sels) = sels
 
-  in map (fn (_,_,t) => t) (sort (make_ord thm_less) (select(named_thms, []))) end; 
+  in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end; 
 
 fun find_matching(prop,sign,index,extract) =
   (case top_const prop of
