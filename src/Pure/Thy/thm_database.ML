@@ -120,6 +120,9 @@ fun prems_of_goal i =
       val As = Logic.strip_assums_hyp gi
   in map (fn A => subst_bounds(frees,A)) As end;
 
+(*returns all those named_thms whose subterm extracted by extract can be
+  instantiated to obj; the list is sorted according to the number of premises
+  and the size of the required substitution.*)
 fun select_match(obj, signobj, named_thms, extract) =
   let fun matches(prop, tsig) =
             case extract prop of

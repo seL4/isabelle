@@ -12,6 +12,8 @@ WFair = Traces + Vimage +
 
 constdefs
 
+  (*This definition specifies weak fairness.  The rest of the theory
+    is generic to all forms of fairness.*)
   transient :: "[('a * 'a)set set, 'a set] => bool"
     "transient Acts A == EX act:Acts. A <= Domain act & act^^A <= Compl A"
 
@@ -32,11 +34,16 @@ inductive "leadsto Acts"
     Trans  "[| leadsTo Acts A B;  leadsTo Acts B C |]
 	   ==> leadsTo Acts A C"
 
+    (*Encoding using powerset of the desired axiom
+       (!!A. A : S ==> leadsTo Acts A B) ==> leadsTo Acts (Union S) B
+    *)
     Union  "(UN A:S. {(A,B)}) : Pow (leadsto Acts)
 	   ==> leadsTo Acts (Union S) B"
 
   monos "[Pow_mono]"
 
+
+(*wlt Acts B is the largest set that leads to B*)
 constdefs wlt :: "[('a * 'a)set set, 'a set] => 'a set"
   "wlt Acts B == Union {A. leadsTo Acts A B}"
 
