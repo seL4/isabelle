@@ -1522,13 +1522,18 @@ Constructors satisfy {\em freeness} properties.  Constructions are distinct,
 for example $\texttt{Nil}\not=\texttt{Cons}(a,l)$, and they are injective, for
 example $\texttt{Cons}(a,l)=\texttt{Cons}(a',l') \bimp a=a' \conj l=l'$.
 Because the number of freeness is quadratic in the number of constructors, the
-datatype package does not prove them, but instead provides several means of
-proving them dynamically.  For the \texttt{list} datatype, freeness reasoning
-can be done in two ways: by simplifying with the theorems
-\texttt{list.free_iffs} or by invoking the classical reasoner with
-\texttt{list.free_SEs} as safe elimination rules.  Occasionally this exposes
-the underlying representation of some constructor, which can be rectified
-using the command \hbox{\tt fold_tac list.con_defs}.
+datatype package does not prove them.  Instead, it ensures that simplification
+will prove them dynamically: when the simplifier encounters a formula
+asserting the equality of two datatype constructors, it performs freeness
+reasoning.  
+
+Freeness reasoning can also be done using the classical reasoner, but it is
+more complicated.  You have to add some safe elimination rules rules to the
+claset.  For the \texttt{list} datatype, they are called
+\texttt{list.free_SEs}.  Occasionally this exposes the underlying
+representation of some constructor, which can be rectified using the command
+\hbox{\tt fold_tac list.con_defs}.
+
 
 \subsubsection{Structural induction}
 
@@ -1631,8 +1636,7 @@ values of the set.
 
 Most of the theorems about datatypes become part of the default simpset.  You
 never need to see them again because the simplifier applies them
-automatically.  Add freeness properties (\texttt{free_iffs}) to the simpset
-when you want them.  Induction or exhaustion are usually invoked by hand,
+automatically.  Induction or exhaustion are usually invoked by hand,
 usually via these special-purpose tactics:
 \begin{ttdescription}
 \item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$] applies structural
@@ -1718,13 +1722,10 @@ by (induct_tac "l" 1);
 {\out           ALL x r. Br(x, t2, r) ~= t2 |]}
 {\out        ==> ALL x r. Br(x, Br(a, t1, t2), r) ~= Br(a, t1, t2)}
 \end{ttbox}
-Both subgoals are proved using the simplifier.  Tactic
-\texttt{asm_full_simp_tac} is used, rewriting the assumptions.
-This is because simplification using the freeness properties can unfold the
-definition of constructor~\texttt{Br}, so we arrange that all occurrences are
-unfolded. 
+Both subgoals are proved using \texttt{Auto_tac}, which performs the necessary
+freeness reasoning. 
 \begin{ttbox}
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps bt.free_iffs)));
+by Auto_tac;
 {\out Level 2}
 {\out l : bt(A) ==> ALL x r. Br(x, l, r) ~= l}
 {\out No subgoals!}
@@ -1792,10 +1793,10 @@ rather than assumed, full processing of this definition takes under 15 seconds
 essentially binary notation, so freeness properties can be proved fast.
 \begin{ttbox}
 Goal "C00 ~= C01";
-by (simp_tac (simpset() addsimps enum.free_iffs) 1);
+by (Simp_tac 1);
 \end{ttbox}
 You need not derive such inequalities explicitly.  The simplifier will dispose
-of them automatically, given the theorem list \texttt{free_iffs}.
+of them automatically.
 
 \index{*datatype|)}
 
