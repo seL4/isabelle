@@ -97,16 +97,6 @@ by (res_inst_tac [("P","%a. ordertype(A,a)=ordertype(A,r)")]
 by (eresolve_tac [id_bij RS bij_ordertype_vimage] 1);
 val ordertype_Int = result();
 
-(* used only in WO6WO1.ML *)
-(* corrected according to LCP'a advise *)
-goal Cardinal.thy 
-      "!!i j k. [| k < i++j; Ord(i); Ord(j) |] ==>  \
-\                  k<i | (EX! l. l<j & k = i++l)";
-by (dresolve_tac [lt_oadd_disj] 1 THEN (REPEAT (atac 1)));
-by (fast_tac (ZF_cs addIs [ex1I, ltI] addSEs [oadd_inject RS sym, lt_Ord]
-		addEs [Ord_in_Ord]) 1);
-val lt_oadd_disj1 = result();
-
 (* used only in AC16_lemmas.ML *)
 goalw CardinalArith.thy [InfCard_def]
 	"!!i. [| ~Finite(i); Card(i) |] ==> InfCard(i)";
