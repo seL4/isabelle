@@ -93,10 +93,10 @@ syntax
 
   (* Case expressions *)
 
-  "@case"       :: "['a, cases_syn] => 'b"               ("(case _ of/ _)" 10)
-  "@case1"      :: "['a, 'b] => case_syn"                ("(2_ =>/ _)" 10)
+  "_case_syntax":: "['a, cases_syn] => 'b"               ("(case _ of/ _)" 10)
+  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ =>/ _)" 10)
   ""            :: "case_syn => cases_syn"               ("_")
-  "@case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ | _")
+  "_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ | _")
 
 translations
   "x ~= y"                == "~ (x = y)"
@@ -119,8 +119,8 @@ syntax (symbols)
   "ALL "        :: "[idts, bool] => bool"                ("(3\\<forall>_./ _)" [0, 10] 10)
   "EX "         :: "[idts, bool] => bool"                ("(3\\<exists>_./ _)" [0, 10] 10)
   "EX! "        :: "[idts, bool] => bool"                ("(3\\<exists>!_./ _)" [0, 10] 10)
-  "@case1"      :: "['a, 'b] => case_syn"                ("(2_ \\<Rightarrow>/ _)" 10)
-(*"@case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \\<orelse> _")*)
+  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \\<Rightarrow>/ _)" 10)
+(*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \\<orelse> _")*)
 
 syntax (symbols output)
   "op ~="       :: "['a, 'a] => bool"                    ("(_ \\<noteq>/ _)" [51, 51] 50)

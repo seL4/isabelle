@@ -70,7 +70,7 @@ local open Syntax in
 	fun argvar n m _ = Variable ("a"^(string_of_int n)^"_"^
 					 (string_of_int m));
 	fun app s (l,r)   = mk_appl (Constant s) [l,r];
-	fun case1 n (con,mx,args) = mk_appl (Constant "@case1")
+	fun case1 n (con,mx,args) = mk_appl (Constant "_case1")
 		 [foldl (app "Rep_CFun") (c_ast con mx, (mapn (argvar n) 1 args)),
 		  expvar n];
 	fun arg1 n (con,_,args) = if args = [] then expvar n 
@@ -78,8 +78,8 @@ local open Syntax in
 		 [foldr' (app "_idts") (mapn (argvar n) 1 args) , expvar n];
   in
     ParsePrintRule
-      (mk_appl (Constant "@case") [Variable "x", foldr'
-				(fn (c,cs) => mk_appl (Constant"@case2") [c,cs])
+      (mk_appl (Constant "_case_syntax") [Variable "x", foldr'
+				(fn (c,cs) => mk_appl (Constant"_case2") [c,cs])
 				 (mapn case1 1 cons')],
        mk_appl (Constant "Rep_CFun") [foldl 
 				(fn (w,a ) => mk_appl (Constant"Rep_CFun" ) [w,a ])
