@@ -609,16 +609,17 @@ fun complete_split_rule_var ((t as Var (v, T), ts), (rl, vs)) =
         val Us = take (length ts, Us');
         val U = drop (length ts, Us') ---> U';
         val T' = flat (map HOLogic.prodT_factors Us) ---> U;
-        fun mk_tuple (xs, v as Var ((a, _), T)) =
-          let
-            val Ts = HOLogic.prodT_factors T;
-            val ys = variantlist (replicate (length Ts) a, xs);
-          in (xs @ ys, (cterm v, cterm (HOLogic.mk_tuple T
-            (map (Var o apfst (rpair 0)) (ys ~~ Ts)))))
-          end;
+        fun mk_tuple ((xs, insts), v as Var ((a, _), T)) =
+              let
+                val Ts = HOLogic.prodT_factors T;
+                val ys = variantlist (replicate (length Ts) a, xs);
+              in (xs @ ys, (cterm v, cterm (HOLogic.mk_tuple T
+                (map (Var o apfst (rpair 0)) (ys ~~ Ts))))::insts)
+              end
+          | mk_tuple (x, _) = x;
         val newt = ap_split' Us U (Var (v, T'));
         val cterm = Thm.cterm_of (#sign (rep_thm rl));
-        val (vs', insts) = foldl_map mk_tuple (vs, ts);
+        val (vs', insts) = foldl mk_tuple ((vs, []), ts);
       in
         (instantiate ([], [(cterm t, cterm newt)] @ insts) rl, vs')
       end
@@ -626,8 +627,7 @@ fun complete_split_rule_var ((t as Var (v, T), ts), (rl, vs)) =
 
 fun collect_vars (vs, Abs (_, _, t)) = collect_vars (vs, t)
   | collect_vars (vs, t) = (case strip_comb t of
-        (v as Var _, ts) =>
-          (case filter is_Var ts of [] => vs | ts' => (v, ts')::vs)
+        (v as Var _, ts) => (v, ts)::vs
       | (t, ts) => foldl collect_vars (vs, ts));
 
 in
