@@ -194,7 +194,6 @@ public class GraphBrowser extends Applet {
 				is.close();
 			}
 			if (args.length > 1) {
-			    gb.gv.getGraph().layout(null);
                             try {
 			      if (args[1].endsWith(".ps")) {
                                 gb.gv.PS(args[1], true);
@@ -206,6 +205,7 @@ public class GraphBrowser extends Applet {
                             } catch (IOException exn) {
                               System.err.println("Unable to write file " + args[1]);
                             }
+			    System.exit(0);
                         } else {
 			    f=new GraphBrowserFrame(gb);
 			    f.setSize(700,500);
@@ -214,7 +214,6 @@ public class GraphBrowser extends Applet {
 		} catch (IOException exn) {
 			System.err.println("Can't open graph file "+args[0]);
 		}
-		System.exit(0);
 	}
 }
 
