@@ -149,9 +149,9 @@ by (subgoal_tac "t : tiling domino" 1);
 (*Requires a small simpset that won't move the Suc applications*)
 by (asm_simp_tac (HOL_ss addsimps [dominoes_tile_matrix]) 2);
 by (subgoal_tac "(m+m)+(n+n) = (m+n)+(m+n)" 1);
-by (asm_simp_tac (simpset() addsimps add_ac) 2);
+by (asm_simp_tac (simpset() delsimprocs nat_cancel addsimps add_ac) 2);
 by (asm_full_simp_tac 
-    (simpset() addsimps [mod_less, tiling_domino_0_1 RS sym]) 1);
+    (simpset() delsimprocs nat_cancel addsimps [mod_less, tiling_domino_0_1 RS sym]) 1);
 by (rtac less_trans 1);
 by (REPEAT
     (rtac card_Diff 1 

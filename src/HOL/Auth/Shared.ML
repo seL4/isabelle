@@ -149,10 +149,6 @@ by (res_inst_tac [("x","Suc (Suc (N+Na+Nb))")] exI 1);
 by (asm_simp_tac (simpset() addsimps [less_not_refl2 RS not_sym, 
 				     le_add2, le_add1, 
 				     le_eq_less_Suc RS sym]) 1);
-by (rtac (less_trans RS less_not_refl2 RS not_sym) 1);
-by (stac (le_eq_less_Suc RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [le_eq_less_Suc RS sym]) 2);
-by (REPEAT (rtac le_add1 1));
 qed "Nonce_supply3";
 
 goal thy "Nonce (@ N. Nonce N ~: used evs) ~: used evs";

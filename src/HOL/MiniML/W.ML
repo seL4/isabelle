@@ -388,13 +388,6 @@ by (assume_tac 2);
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le]) 1);
 qed_spec_mp "W_correct_lemma";
 
-goal Arith.thy "!!n::nat. ~ k+n < n";
-by (nat_ind_tac "k" 1);
-by (ALLGOALS Asm_simp_tac);
-by (trans_tac 1);
-val not_add_less1 = result();
-Addsimps [not_add_less1];
-
 (* Completeness of W w.r.t. has_type *)
 goal thy
  "!S' A t' n. $S' A |- e :: t' --> new_tv n A -->     \

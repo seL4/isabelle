@@ -212,10 +212,6 @@ by (rtac impI 1);
 by (etac subst 1);
 by (res_inst_tac [("m1","x")] (add_commute RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [diff_add_inverse,diff_add_0]) 1);
-by (rtac impI 1);
-by (asm_simp_tac (simpset() addsimps
-                  [diff_add_inverse, diff_add_0, diff_Suc_add_0,
-                   diff_Suc_add_inverse]) 1);
 qed "zmagnitude_congruent";
 
 (*Resolve th against the corresponding facts for zmagnitude*)
@@ -251,7 +247,6 @@ by (asm_simp_tac (simpset() addsimps [add_assoc]) 1);
 (*The rest should be trivial, but rearranging terms is hard*)
 by (res_inst_tac [("x1","x1a")] (add_left_commute RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [add_assoc RS sym]) 1);
-by (asm_simp_tac (simpset() addsimps add_ac) 1);
 qed "zadd_congruent2";
 
 (*Resolve th against the corresponding facts for zadd*)
@@ -614,11 +609,6 @@ by (safe_tac (claset() addSDs [zless_eq_zadd_Suc]));
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps ([znat_def, zadd])) 1);
-by (asm_full_simp_tac
- (simpset() delsimps [add_Suc_right] addsimps [add_left_cancel, add_assoc, add_Suc_right RS sym]) 1);
-by (resolve_tac [less_not_refl2 RS notE] 1);
-by (etac sym 2);
-by (REPEAT (resolve_tac [lessI, trans_less_add2, less_SucI] 1));
 qed "zless_not_sym";
 
 (* [| n<m; m<n |] ==> R *)
