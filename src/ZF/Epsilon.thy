@@ -11,7 +11,7 @@ consts
     eclose,rank ::      "i=>i"
     transrec    ::      "[i, [i,i]=>i] =>i"
 
-rules
+defs
   eclose_def	"eclose(A) == UN n:nat. nat_rec(n, A, %m r. Union(r))"
   transrec_def	"transrec(a,H) == wfrec(Memrel(eclose({a})), a, H)"
   rank_def    	"rank(a) == transrec(a, %x f. UN y:x. succ(f`y))"

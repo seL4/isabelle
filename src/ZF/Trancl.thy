@@ -11,7 +11,7 @@ consts
     rtrancl :: "i=>i"  ("(_^*)" [100] 100)  (*refl/transitive closure*)
     trancl  :: "i=>i"  ("(_^+)" [100] 100)  (*transitive closure*)
 
-rules
+defs
     rtrancl_def	"r^* == lfp(field(r)*field(r), %s. id(field(r)) Un (r O s))"
     trancl_def  "r^+ == r O r^*"
 end

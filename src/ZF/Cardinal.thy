@@ -15,7 +15,7 @@ consts
 
   swap       :: "[i,i,i]=>i"     (*not used; useful??*)
 
-rules
+defs
 
   (*least ordinal operator*)
   Least_def  "Least(P) == THE i. Ord(i) & P(i) & (ALL j. j<i --> ~P(j))"

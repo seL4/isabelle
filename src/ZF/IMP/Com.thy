@@ -96,7 +96,7 @@ consts  evalc    :: "i"
 translations
        "<ce,sig> -c-> s" == "<ce,sig,s> : evalc"
 
-rules 
+defs 
 	assign_def	"sigma[m/x] == lam y:loc. if(y=x,m,sigma`y)"
 
 inductive

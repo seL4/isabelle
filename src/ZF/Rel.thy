@@ -12,7 +12,7 @@ consts
     sym,asym,antisym,trans :: "i=>o"
     trans_on               :: "[i,i]=>o"	("trans[_]'(_')")
 
-rules
+defs
   refl_def     "refl(A,r) == (ALL x: A. <x,x> : r)"
 
   irrefl_def   "irrefl(A,r) == ALL x: A. <x,x> ~: r"

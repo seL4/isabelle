@@ -10,7 +10,7 @@ QUniv = Univ + QPair + "mono" + "equalities" +
 consts
     quniv        :: "i=>i"
 
-rules
+defs
     quniv_def    "quniv(A) == Pow(univ(eclose(A)))"
 
 end

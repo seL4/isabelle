@@ -22,7 +22,7 @@ datatype
 and
   "forest(A)" = Fnil  |  Fcons ("t: tree(A)",  "f: forest(A)")
 
-rules
+defs
   TF_rec_def
     "TF_rec(z,b,c,d) == Vrec(z,  			\
 \      %z r. tree_forest_case(%x f. b(x, f, r`f), 	\

@@ -15,7 +15,7 @@ consts
     "#+" :: "[i,i]=>i"      		(infixl 65)
     "#-" :: "[i,i]=>i"      		(infixl 65)
 
-rules
+defs
     rec_def  "rec(k,a,b) ==  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"
 
     add_def  "m#+n == rec(m, n, %u v.succ(v))"

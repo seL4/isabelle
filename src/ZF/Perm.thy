@@ -15,7 +15,7 @@ consts
     id  	::      "i=>i"
     inj,surj,bij::      "[i,i]=>i"
 
-rules
+defs
 
     (*composition of relations and functions; NOT Suppes's relative product*)
     comp_def	"r O s == {xz : domain(s)*range(r) . \

@@ -16,7 +16,7 @@ consts
   jump_cardinal :: "i=>i"
   csucc       :: "i=>i"
 
-rules
+defs
 
   InfCard_def  "InfCard(i) == Card(i) & nat le i"
 

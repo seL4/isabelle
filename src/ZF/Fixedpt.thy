@@ -11,7 +11,7 @@ consts
   bnd_mono    :: "[i,i=>i]=>o"
   lfp, gfp    :: "[i,i=>i]=>i"
 
-rules
+defs
   (*monotone operator from Pow(D) to itself*)
   bnd_mono_def 
       "bnd_mono(D,h) == h(D)<=D & (ALL W X. W<=X --> X<=D --> h(W) <= h(X))"

@@ -21,7 +21,7 @@ consts
 translations
     "Vset(x)"   == 	"Vfrom(0,x)"
 
-rules
+defs
     Vfrom_def   "Vfrom(A,i) == transrec(i, %x f. A Un (UN y:x. Pow(f`y)))"
 
     Vrec_def

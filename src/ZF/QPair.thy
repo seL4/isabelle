@@ -29,7 +29,7 @@ translations
   "QSUM x:A. B"  => "QSigma(A, %x. B)"
   "A <*> B"      => "QSigma(A, _K(B))"
 
-rules
+defs
   QPair_def       "<a;b> == a+b"
   qsplit_def      "qsplit(c,p)  == THE y. EX a b. p=<a;b> & y=c(a,b)"
   qfsplit_def     "qfsplit(R,z) == EX x y. z=<x;y> & R(x,y)"

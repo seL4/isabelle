@@ -12,7 +12,7 @@ consts
     congruent	::	"[i,i=>i]=>o"
     congruent2  ::      "[i,[i,i]=>i]=>o"
 
-rules
+defs
     quotient_def  "A/r == {r``{x} . x:A}"
     congruent_def "congruent(r,b) == ALL y z. <y,z>:r --> b(y)=b(z)"
 

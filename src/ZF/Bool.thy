@@ -19,7 +19,7 @@ consts
 translations
    "1"  == "succ(0)"
 
-rules
+defs
     bool_def	"bool == {0,1}"
     cond_def	"cond(b,c,d) == if(b=1,c,d)"
     not_def	"not(b) == cond(b,0,1)"

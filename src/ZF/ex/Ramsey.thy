@@ -24,7 +24,7 @@ consts
   Atleast     		:: "[i,i]=>o"
   Clique,Indept,Ramsey	:: "[i,i,i]=>o"
 
-rules
+defs
 
   Symmetric_def
     "Symmetric(E) == (ALL x y. <x,y>:E --> <y,x>:E)"

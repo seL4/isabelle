@@ -28,7 +28,7 @@ consts
 translations
   "ack(x,y)"  == "ACK(x) ` [y]"
 
-rules
+defs
 
   SC_def    "SC == lam l:list(nat).list_case(0, %x xs.succ(x), l)"
 

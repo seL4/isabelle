@@ -17,12 +17,11 @@ consts
 translations
   "x le y"      == "x < succ(y)"
 
-rules
+defs
   Memrel_def  	"Memrel(A)   == {z: A*A . EX x y. z=<x,y> & x:y }"
   Transset_def	"Transset(i) == ALL x:i. x<=i"
   Ord_def     	"Ord(i)      == Transset(i) & (ALL x:i. Transset(x))"
   lt_def        "i<j         == i:j & Ord(j)"
   Limit_def     "Limit(i)    == Ord(i) & 0<i & (ALL y. y<i --> succ(y)<i)"
-
 
 end

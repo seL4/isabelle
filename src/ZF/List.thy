@@ -39,7 +39,7 @@ translations
   "[]"          == "Nil"
 
 
-rules
+defs
 
   hd_def	"hd(l)	     == list_case(0, %x xs.x, l)"
   tl_def	"tl(l)       == list_case(Nil, %x xs.xs, l)"

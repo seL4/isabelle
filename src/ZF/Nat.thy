@@ -12,7 +12,7 @@ consts
     nat_case    ::      "[i, i=>i, i]=>i"
     nat_rec     ::      "[i, i, [i,i]=>i]=>i"
 
-rules
+defs
 
     nat_def     "nat == lfp(Inf, %X. {0} Un {succ(i). i:X})"
 

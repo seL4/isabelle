@@ -14,7 +14,7 @@ consts
     case        :: "[i=>i, i=>i, i]=>i"
     Part        :: "[i,i=>i] => i"
 
-rules
+defs
     sum_def     "A+B == {0}*A Un {1}*B"
     Inl_def     "Inl(a) == <0,a>"
     Inr_def     "Inr(b) == <1,b>"

@@ -13,7 +13,7 @@ consts
   ordermap  :: "[i,i]=>i"
   ordertype :: "[i,i]=>i"
 
-rules
+defs
   ordermap_def
       "ordermap(A,r) == lam x:A. wfrec[A](r, x, %x f. f `` pred(A,x,r))"
 

@@ -43,9 +43,10 @@ consts
   lconst   :: "i => i"
   flip     :: "i => i"
 
-rules
+defs
   lconst_def  "lconst(a) == lfp(univ(a), %l. LCons(a,l))"
 
+rules
   flip_LNil   "flip(LNil) = LNil"
 
   flip_LCons  "[| x:bool; l: llist(bool) |] ==> \

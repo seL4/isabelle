@@ -20,7 +20,7 @@ consts
     "$-"        ::      "[i,i]=>i"      (infixl 65)
     "$<"	:: 	"[i,i]=>o"  	(infixl 50)
 
-rules
+defs
 
     intrel_def
      "intrel == {p:(nat*nat)*(nat*nat). 		\

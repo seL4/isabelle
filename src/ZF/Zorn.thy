@@ -19,7 +19,7 @@ consts
   chain, maxchain :: "i=>i"
   super           :: "[i,i]=>i"
 
-rules
+defs
   Subset_rel_def "Subset_rel(A) == {z: A*A . EX x y. z=<x,y> & x<=y & x~=y}"
   increasing_def "increasing(A) == {f: Pow(A)->Pow(A). ALL x. x<=A --> x<=f`x}"
 

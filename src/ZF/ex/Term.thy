@@ -26,7 +26,7 @@ datatype
     type_intrs  "[list_univ RS subsetD]"
 *)
 
-rules
+defs
   term_rec_def
    "term_rec(t,d) == \
 \   Vrec(t, %t g. term_case(%x zs. d(x, zs, map(%z.g`z, zs)), t))"

@@ -71,7 +71,7 @@ consts
   diamond   :: "i => o"
   I         :: "i"
 
-rules
+defs
 
   diamond_def "diamond(r) == ALL x y. <x,y>:r --> \
 \                            (ALL y'. <x,y'>:r --> \

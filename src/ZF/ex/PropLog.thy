@@ -44,7 +44,7 @@ consts
   "|="     :: "[i,i] => o"    			(infixl 50)
   hyps     :: "[i,i] => i"
 
-rules
+defs
 
   prop_rec_def
    "prop_rec(p,b,c,h) == \

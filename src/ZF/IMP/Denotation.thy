@@ -14,7 +14,7 @@ consts
   C     :: "i => i"
   Gamma :: "[i,i,i] => i"
 
-rules
+rules	(*NOT definitional*)
   A_nat_def	"A(N(n)) == (%sigma. n)"
   A_loc_def	"A(X(x)) == (%sigma. sigma`x)" 
   A_op1_def	"A(Op1(f,a)) == (%sigma. f`A(a,sigma))"

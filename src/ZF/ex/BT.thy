@@ -18,7 +18,7 @@ consts
 datatype
   "bt(A)" = Lf  |  Br ("a: A",  "t1: bt(A)",  "t2: bt(A)")
   
-rules
+defs
   bt_rec_def
     "bt_rec(t,c,h) == Vrec(t, %t g.bt_case(c, %x y z. h(x,y,z,g`y,g`z), t))"
 

@@ -23,7 +23,7 @@ datatype
         | "$$" ("w: bin", "b: bool")    (infixl 60)
   type_intrs "[bool_into_univ]"
   
-rules
+defs
 
   bin_rec_def
       "bin_rec(z,a,b,h) == \

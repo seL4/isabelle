@@ -11,7 +11,7 @@ consts
   radd, rmult      :: "[i,i,i,i]=>i"
   rvimage          :: "[i,i,i]=>i"
 
-rules
+defs
   (*disjoint sum of two relations; underlies ordinal addition*)
   radd_def "radd(A,r,B,s) == \
 \                {z: (A+B) * (A+B).  \
