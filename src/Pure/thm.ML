@@ -88,6 +88,7 @@ signature THM =
                                   prop: cterm}
   val eq_thm		: thm * thm -> bool
   val sign_of_thm       : thm -> Sign.sg
+  val transfer_sg	: Sign.sg -> thm -> thm
   val transfer		: theory -> thm -> thm
   val tpairs_of         : thm -> (term * term) list
   val prems_of          : thm -> term list
@@ -429,17 +430,19 @@ fun merge_thm_sgs
   Sign.merge_refs (sgr1, sgr2) handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
 
 (*transfer thm to super theory (non-destructive)*)
-fun transfer thy thm =
+fun transfer_sg sign' thm =
   let
     val Thm {sign_ref, der, maxidx, shyps, hyps, prop} = thm;
     val sign = Sign.deref sign_ref;
-    val sign' = #sign (rep_theory thy);
   in
-    if Sign.subsig (sign, sign') then
+    if Sign.eq_sg (sign, sign') then thm
+    else if Sign.subsig (sign, sign') then
       Thm {sign_ref = Sign.self_ref sign', der = der, maxidx = maxidx,
         shyps = shyps, hyps = hyps, prop = prop}
     else raise THM ("transfer: not a super theory", 0, [thm])
   end;
+
+val transfer = transfer_sg o sign_of;
 
 (*maps object-rule to tpairs*)
 fun tpairs_of (Thm {prop, ...}) = #1 (Logic.strip_flexpairs prop);
