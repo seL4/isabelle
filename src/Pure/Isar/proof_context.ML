@@ -361,13 +361,14 @@ in
 fun add_syntax decls =
   map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs) =>
     let
+      val is_logtype = Sign.is_logtype (Theory.sign_of thy);
       val structs' = structs @ mapfilter prep_struct decls;
       val mxs = mapfilter prep_mixfix decls;
       val (fixed, mxs_output) = Library.split_list (mapfilter prep_mixfix' decls);
       val trs = map fixed_tr fixed;
       val syn' = syn
-        |> Syntax.extend_const_gram ("", false) mxs_output
-        |> Syntax.extend_const_gram ("", true) mxs
+        |> Syntax.extend_const_gram is_logtype ("", false) mxs_output
+        |> Syntax.extend_const_gram is_logtype ("", true) mxs
         |> Syntax.extend_trfuns ([], trs, [], []);
     in (thy, (syn', structs', fixed @ mixfixed), data, asms, binds, thms, cases, defs) end)
 
@@ -502,7 +503,7 @@ fun extern_skolem ctxt =
 (* read / certify wrt. signature *)     (*exception ERROR*) (*exception TERM*)
 
 fun read_def_termTs freeze pp syn sg (types, sorts, used) sTs =
-  Sign.read_def_terms' pp syn (sg, types, sorts) used freeze sTs;
+  Sign.read_def_terms' pp (Sign.is_logtype sg) syn (sg, types, sorts) used freeze sTs;
 
 fun read_def_termT freeze pp syn sg defs sT =
   apfst hd (read_def_termTs freeze pp syn sg defs [sT]);
