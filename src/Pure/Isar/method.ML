@@ -187,10 +187,10 @@ end;
 (* concrete syntax *)
 
 val rule_atts =
- [("dest", (Attrib.no_args dest_global, Attrib.no_args dest_local), "destruction rule"),
-  ("elim", (Attrib.no_args elim_global, Attrib.no_args elim_local), "elimination rule"),
-  ("intro", (Attrib.no_args intro_global, Attrib.no_args intro_local), "introduction rule"),
-  ("delrule", (Attrib.no_args delrule_global, Attrib.no_args delrule_local), "delete rule")];
+ [("dest", (Attrib.no_args dest_global, Attrib.no_args dest_local), "declare destruction rule"),
+  ("elim", (Attrib.no_args elim_global, Attrib.no_args elim_local), "declare elimination rule"),
+  ("intro", (Attrib.no_args intro_global, Attrib.no_args intro_local), "declare introduction rule"),
+  ("delrule", (Attrib.no_args delrule_global, Attrib.no_args delrule_local), "undeclare rule")];
 
 
 

@@ -1040,7 +1040,7 @@ val setup_attrs = Attrib.add_attributes
  [(destN, cla_attr (op addXDs) (op addDs) (op addSDs), "declare destruction rule"),
   (elimN, cla_attr (op addXEs) (op addEs) (op addSEs), "declare elimination rule"),
   (introN, cla_attr (op addXIs) (op addIs) (op addSIs), "declare introduction rule"),
-  (delruleN, del_attr, "delete rule")];
+  (delruleN, del_attr, "undeclare rule")];
 
 
 
