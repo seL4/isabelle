@@ -114,7 +114,7 @@ $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/Acc.ML ex/Acc.thy ex/BT.ML ex/BT.thy \
   ex/Enum.thy ex/LList.ML ex/LList.thy \
   ex/Limit.ML ex/Limit.thy ex/ListN.ML ex/ListN.thy ex/Mutil.ML \
   ex/Mutil.thy ex/Ntree.ML ex/Ntree.thy ex/Primes.ML ex/Primes.thy \
-  ex/Primrec_defs.ML ex/Primrec_defs.thy \
+  ex/NatSum.ML ex/NatSum.thy  ex/Primrec_defs.ML ex/Primrec_defs.thy \
   ex/Primrec.ML ex/Primrec.thy ex/PropLog.ML ex/PropLog.thy ex/ROOT.ML \
   ex/Ramsey.ML ex/Ramsey.thy ex/Rmap.ML ex/Rmap.thy ex/TF.ML ex/TF.thy \
   ex/Term.ML ex/Term.thy ex/misc.ML

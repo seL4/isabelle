@@ -303,6 +303,7 @@ function intify;
 * the integer library now contains many of the usual laws for the orderings, 
 including $<=, and monotonicity laws for $+ and $*; 
 
+* new example ZF/ex/NatSum to demonstrate integer arithmetic simplification;
 
 *** FOL & ZF ***
 

@@ -8,6 +8,7 @@ Executes miscellaneous examples for Zermelo-Fraenkel Set Theory
 
 time_use     "misc.ML";
 time_use_thy "Primes";          (*GCD theory*)
+time_use_thy "NatSum";          (*Summing integers, squares, cubes, etc.*)
 time_use_thy "Ramsey";          (*Simple form of Ramsey's theorem*)
 time_use_thy "Limit";           (*Inverse limit construction of domains*)
 time_use     "BinEx";		(*Binary integer arithmetic*)
