@@ -15,7 +15,7 @@ A chopper is parametrized by a language ('a list => bool),
 i.e. a set of strings.
 *)
 
-Chopper = Prefix +
+Chopper = List_Prefix +
 
 types   'a chopper = "'a list => 'a list list * 'a list"
 

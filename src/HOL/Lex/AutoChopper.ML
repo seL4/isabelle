@@ -18,7 +18,7 @@ Addsimps [acc_prefix_Nil];
 
 Goalw [acc_prefix_def]
  "acc_prefix A (x#xs) s = (fin A (next A x s) | acc_prefix A xs (next A x s))";
-by (simp_tac (simpset() addsimps [prefix_Cons]) 1);
+by (simp_tac (simpset() addsimps [thm "prefix_Cons"]) 1);
 by Safe_tac;
   by (Asm_full_simp_tac 1);
   by (case_tac "zs=[]" 1);
@@ -48,7 +48,7 @@ by (Simp_tac 1);
 by (strip_tac 1);
 by (rtac conjI 1);
 by (Fast_tac 1);
-by (simp_tac (simpset() addsimps [prefix_Cons] addcongs [conj_cong]) 1);
+by (simp_tac (simpset() addsimps [thm "prefix_Cons"] addcongs [conj_cong]) 1);
 by (strip_tac 1);
 by (REPEAT(eresolve_tac [conjE,exE] 1));
 by (hyp_subst_tac 1);

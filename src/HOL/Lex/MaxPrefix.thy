@@ -4,7 +4,7 @@
     Copyright   1998 TUM
 *)
 
-MaxPrefix = Prefix +
+MaxPrefix = List_Prefix +
 
 constdefs
  is_maxpref :: ('a list => bool) => 'a list => 'a list => bool

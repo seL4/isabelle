@@ -19,7 +19,7 @@ But both versions are far too specific. Better development in Scanner.thy and
 its antecedents.
 *)
 
-AutoChopper = Prefix + DA + Chopper +
+AutoChopper = DA + Chopper +
 
 constdefs
  is_auto_chopper :: (('a,'s)da => 'a chopper) => bool
