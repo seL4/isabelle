@@ -30,7 +30,7 @@ qed "set_via_mset";
 val prems = goalw Sorting.thy [transf_def]
   "transf(le) ==> sorted1 le xs = sorted le xs";
 by (list.induct_tac "xs" 1);
-by (ALLGOALS(asm_simp_tac (!simpset addsplits [expand_list_case])));
+by (ALLGOALS(asm_simp_tac (!simpset addsplits [split_list_case])));
 by (cut_facts_tac prems 1);
 by (Fast_tac 1);
 qed "sorted1_is_sorted";

@@ -48,8 +48,6 @@ Addsimps [lists_Int_eq];
 
 (** list_case **)
 
-val expand_list_case = split_list_case;
-
 val prems = goal thy "[| P([]); !!x xs. P(x#xs) |] ==> P(xs)";
 by (induct_tac "xs" 1);
 by (REPEAT(resolve_tac prems 1));
@@ -197,17 +195,17 @@ qed "hd_append";
 
 goal thy "!!xs. xs ~= [] ==> hd(xs @ ys) = hd xs";
 by (asm_simp_tac (!simpset addsimps [hd_append]
-                           addsplits [expand_list_case]) 1);
+                           addsplits [split_list_case]) 1);
 qed "hd_append2";
 Addsimps [hd_append2];
 
 goal thy "tl(xs@ys) = (case xs of [] => tl(ys) | z#zs => zs@ys)";
-by (simp_tac (!simpset addsplits [expand_list_case]) 1);
+by (simp_tac (!simpset addsplits [split_list_case]) 1);
 qed "tl_append";
 
 goal thy "!!xs. xs ~= [] ==> tl(xs @ ys) = (tl xs) @ ys";
 by (asm_simp_tac (!simpset addsimps [tl_append]
-                           addsplits [expand_list_case]) 1);
+                           addsplits [split_list_case]) 1);
 qed "tl_append2";
 Addsimps [tl_append2];
 
