@@ -24,5 +24,3 @@ use_thy "MonoidGroupInsts";
 
 use_thy "GroupDefs";
 use_thy "GroupInsts";
-
-make_chart ();   (*make HTML chart*)

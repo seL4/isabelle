@@ -25,5 +25,3 @@ use_thy "LatPreInsts";
 use_thy "LatInsts";
 
 use_thy "LatMorph";
-
-make_chart ();   (*make HTML chart*)
