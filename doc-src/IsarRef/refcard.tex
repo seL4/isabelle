@@ -1,6 +1,120 @@
 
 \chapter{Isabelle/Isar Quick Reference}
 
+\section{Proof commands}
+
+\subsection{Primitives and basic syntax}
+
+\begin{tabular}{ll}
+  $\FIX{x}$ & augment context by $\All x \Box$ \\
+  $\ASSUME{a}{\phi}$ & augment context by $\phi \Imp \Box$ \\
+  $\THEN$ & indicate forward chaining \\
+  $\HAVE{a}{\phi}$ & prove local result \\
+  $\SHOW{a}{\phi}$ & prove local result, establishing some goal \\
+  $\PROOF{m@1}~\dots~\QED{m@2}$ & apply proof methods \\
+  $\BG~\dots~\EN$ & declare explicit blocks \\
+  $\isarcmd{next}$ & switch implicit blocks \\
+  $\NOTE{a}{a@1~\dots~a@n}$ & reconsider facts \\
+  $\LET{p = t}$ & \text{abbreviate terms by matching} \\
+\end{tabular}
+
+\begin{matharray}{rcl}
+  theory{\dsh}stmt & = & \THEOREM{name}{form} ~proof \\
+  & \Or & \LEMMA{name}{form}~proof \\
+  & \Or & \TYPES~\dots \Or \CONSTS~\dots \Or \DEFS~\dots \Or \dots \\[1ex]
+  proof & = & \PROOF{method}~stmt^*~\QED{method} \\[1ex]
+  stmt & = & \BG~stmt^*~\EN \\
+  & \Or & \isarcmd{next} \\
+  & \Or & \NOTE{name}{name^+} \\
+  & \Or & \LET{term = term} \\[0.5ex]
+  & \Or & \FIX{var^+} \\
+  & \Or & \ASSUME{name}{form^+}\\
+  & \Or & \THEN~goal{\dsh}stmt \\
+  & \Or & goal{\dsh}stmt \\
+  goal{\dsh}stmt & = & \HAVE{name}{form}~proof \\
+  & \Or & \SHOW{name}{form}~proof \\
+\end{matharray}
+
+
+\subsection{Abbreviations and synonyms}
+
+\begin{matharray}{rcl}
+  \BYY{m@1}{m@2} & \equiv & \PROOF{m@1}~\QED{m@2} \\
+  \DDOT & \equiv & \BY{rule} \\
+  \DOT & \equiv & \BY{assumption} \\
+  \HENCENAME & \equiv & \THEN~\HAVENAME \\
+  \THUSNAME & \equiv & \THEN~\SHOWNAME \\
+  \FROM{a@1~\dots~a@n} & \equiv & \NOTE{this}{a@1~\dots~a@n}~\THEN \\
+  \WITH{a@1~\dots~a@n} & \equiv & \FROM{a@1~\dots~a@n~this} \\[1ex]
+  \FROM{this} & \equiv & \THEN \\
+  \FROM{this}~\HAVENAME & \equiv & \HENCENAME \\
+  \FROM{this}~\SHOWNAME & \equiv & \THUSNAME \\
+\end{matharray}
+
+
+\subsection{Derived elements}
+
+\begin{matharray}{rcl}
+  \ALSO@0 & \approx & \NOTE{calculation}{this} \\
+  \ALSO@{n+1} & \approx & \NOTE{calculation}{trans~[OF~calculation~this]} \\
+  \FINALLY & \approx & \ALSO~\FROM{calculation} \\
+  \PRESUME{a}{\phi} & \approx & \ASSUME{a}{\phi} \\
+  \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t} \\
+  \isarcmd{sorry} & \approx & \BY{cheating} \\
+\end{matharray}
+
+
+\subsection{Diagnostic commands}
+
+\begin{matharray}{ll}
+  \isarcmd{thm}~a@1~\dots~a@n & \text{print theorems} \\
+  \isarcmd{term}~t & \text{print term} \\
+  \isarcmd{prop}~\phi & \text{print meta-level proposition} \\
+  \isarcmd{typ}~\tau & \text{print meta-level type} \\
+\end{matharray}
+
+
+\section{Proof methods}
+
+\begin{tabular}{ll}
+  \multicolumn{2}{l}{\textbf{Single rules (forward-chaining facts)}} \\[0.5ex]
+  $assumption$ & apply assumption \\
+  $rule~a@1~\dots~a@n$ & apply some rule  \\
+  $rule$ & apply standard rule (default for $\PROOFNAME$) \\
+  $induct~x$ & apply induction rule \\
+  $contradiction$ & apply $\neg{}$ elimination rule \\[2ex]
+
+  \multicolumn{2}{l}{\textbf{Multiple rules (inserting facts)}} \\[0.5ex]
+  $-$ & \text{no rules} \\
+  $intro~a@1~\dots~a@n$ & \text{introduction rules} \\
+  $elim~a@1~\dots~a@n$ & \text{elimination rules} \\[2ex]
+
+  \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
+  $simp$ & Simplifier \\
+  $blast$, $fast$ & Classical reasoner \\
+  $force$, $auto$ & Simplifier + Classical reasoner \\
+  $arith$ & Arithmetic procedure \\
+\end{tabular}
+
+
+\section{Attributes}
+
+\begin{tabular}{ll}
+  \multicolumn{2}{l}{\textbf{Modify rules}} \\[0.5ex]
+  $RS~b$ & resolve fact with rule \\
+  $OF~a@1~\dots~a@n$ & apply rule to facts (skip ``$_$'') \\
+  $of~t@1~\dots~t@n$ & apply rule to terms (skip ``$_$'') \\
+  $standard$ & put into standard result form \\
+  $rulify$ & put into standard object-rule form \\
+  $elimify$ & put destruction rule into elimination form \\[1ex]
+
+  \multicolumn{2}{l}{\textbf{Modify context}} \\[0.5ex]
+  $simp$ & declare Simplifier rules \\
+  $intro$, $elim$, $dest$ & declare Classical reasoner rules (also ``$!$'' or ``$!!$'') \\
+  $iff$ & declare Simplifier + Classical reasoner rules \\
+  $trans$ & calculational rules (general transitivity) \\
+\end{tabular}
+
 
 %%% Local Variables: 
 %%% mode: latex

@@ -823,8 +823,8 @@ this feature are calculational proofs (see \S\ref{sec:calculation}).
 \indexisarcmd{next}\indexisarcmd{\{\{}\indexisarcmd{\}\}}
 \begin{matharray}{rcl}
   \isarcmd{next} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{\{\{} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{\}\}} & : & \isartrans{proof(state)}{proof(state)} \\
+  \BG & : & \isartrans{proof(state)}{proof(state)} \\
+  \EN & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
 While Isar is inherently block-structured, opening and closing blocks is
@@ -857,12 +857,12 @@ as well.  These typically achieve a stronger forward style of reasoning.
 
 \subsection{Diagnostics}
 
-\indexisarcmd{typ}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{thm}
+\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
 \begin{matharray}{rcl}
-  \isarcmd{typ} & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{thm} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{term} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{prop} & : & \isarkeep{theory~|~proof} \\
-  \isarcmd{thm} & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{typ} & : & \isarkeep{theory~|~proof} \\
 \end{matharray}
 
 These commands are not part of the actual Isabelle/Isar syntax, but assist
@@ -870,29 +870,29 @@ interactive development.  Also note that $undo$ does not apply here, since the
 theory or proof configuration is not changed.
 
 \begin{rail}
-  'typ' type
+  'thm' thmrefs
   ;
   'term' term
   ;
   'prop' prop
   ;
-  'thm' thmrefs
+  'typ' type
   ;
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{typ}~\tau$] reads and prints types of the meta-logic
-  according to the current theory or proof context.
-\item [$\isarkeyword{term}~t$, $\isarkeyword{prop}~\phi$] read, type-checks
-  and print terms or propositions according to the current theory or proof
-  context; the inferred type of $t$ is output as well.  Note that these
-  commands are also useful in inspecting the current environment of term
-  abbreviations.
 \item [$\isarkeyword{thm}~thms$] retrieves lists of theorems from the current
   theory or proof context.  Note that any attributes included in the theorem
   specifications are applied to a temporary context derived from the current
   theory or proof; the result is discarded, i.e.\ attributes involved in
   $thms$ do not have any permanent effect.
+\item [$\isarkeyword{term}~t$, $\isarkeyword{prop}~\phi$] read, type-checks
+  and print terms or propositions according to the current theory or proof
+  context; the inferred type of $t$ is output as well.  Note that these
+  commands are also useful in inspecting the current environment of term
+  abbreviations.
+\item [$\isarkeyword{typ}~\tau$] reads and prints types of the meta-logic
+  according to the current theory or proof context.
 \end{descr}
 
 
