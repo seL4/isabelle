@@ -144,7 +144,7 @@ tactic svc_tac.  Propositional tautologies and theorems of linear arithmetic
 are proved automatically.  SVC must be installed separately, and its results
 must be TAKEN ON TRUST (Isabelle does not check the proofs, but tags any
 invocation of the underlying oracle).  For SVC see
-  http://agamemnon.stanford.edu/~levitt/vc/index.html
+  http://verify.stanford.edu/SVC
 
 * IsaMakefile: the HOL-Real target now builds an actual image;
 
