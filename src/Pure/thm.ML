@@ -502,7 +502,7 @@ fun strip_shyps thm =
              not (!force_strip_shyps) then shyps'
           else    (* FIXME tmp *)
               (warning ("Removed sort hypotheses: " ^
-                        commas (map Type.str_of_sort (shyps' \\ sorts)));
+                        commas (map Sorts.str_of_sort (shyps' \\ sorts)));
                warning "Let's hope these sorts are non-empty!";
            sorts)),
       hyps = hyps, 
