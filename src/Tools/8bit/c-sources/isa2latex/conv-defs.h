@@ -56,6 +56,6 @@
 #define END_LOW_TABLE   126
 #define START_HI_TABLE  160
 #define END_HI_TABLE    255
-#define SEQ_TABLE       27
+#define SEQ_TABLE       28
 /* END gen-isa2latex */
 
