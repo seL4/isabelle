@@ -110,7 +110,7 @@ fun intro_tacsf disjIn prems =
    REPEAT (FIRSTGOAL (        dresolve_tac rec_typechecks
 		      ORELSE' eresolve_tac (asm_rl::PartE::SigmaE2::type_elims)
 		      ORELSE' hyp_subst_tac)),
-   DEPTH_SOLVE (swap_res_tac (SigmaI::type_intrs) 1)];
+   DEPTH_SOLVE (swap_res_tac (SigmaI::subsetI::type_intrs) 1)];
 
 (*combines disjI1 and disjI2 to access the corresponding nested disjunct...*)
 val mk_disj_rls = 
