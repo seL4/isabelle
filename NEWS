@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -6,10 +7,10 @@ New in this Isabelle version
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
-* HOL: the constant for f``x is now "image" rather than "op ``".
+* HOL: the constant for f``x is now "image" rather than "op ``";
 
-* HOL: the cartesian product is now "<*>" instead of "Times".
-       the lexicographic product is now "<*lex*>" instead of "**".
+* HOL: the cartesian product is now "<*>" instead of "Times"; the
+lexicographic product is now "<*lex*>" instead of "**";
 
 * HOL: exhaust_tac on datatypes superceded by new generic case_tac;
 
@@ -19,6 +20,8 @@ New in this Isabelle version
 f.simps instead of f.rules;
 
 * ML: PureThy.add_thms/add_axioms/add_defs return theorems as well;
+
+* LaTeX: several improvements of isabelle.sty;
 
 
 *** Document preparation ***
@@ -88,6 +91,9 @@ method scripts' have to be in depth-first order;
 
 * tuned 'let' syntax: replace 'as' keyword by 'and';
 
+* theory command 'hide' removes declarations from class/type/const
+name spaces;
+
 
 *** HOL ***
 
@@ -122,6 +128,9 @@ resulting in a separate list of theorems for each equation;
 
 
 *** General ***
+
+* improved name spaces: ambiguous output is qualified; support for
+hiding of names;
 
 * compression of ML heaps images may now be controlled via -c option
 of isabelle and isatool usedir (currently only observed by Poly/ML);
@@ -163,10 +172,10 @@ uses the default simpset instead of a supplied list of theorems.
 * HOL/List: the constructors of type list are now Nil and Cons;
 
 * Simplifier: the type of the infix ML functions
-	setSSolver addSSolver setSolver addSolver
+        setSSolver addSSolver setSolver addSolver
 is now  simpset * solver -> simpset  where `solver' is a new abstract type
 for packaging solvers. A solver is created via
-	mk_solver: string -> (thm list -> int -> tactic) -> solver
+        mk_solver: string -> (thm list -> int -> tactic) -> solver
 where the string argument is only a comment.
 
 
@@ -386,7 +395,7 @@ formulas;
 
 * the simplifier is now installed
 
-* the axiom system has been generalized (thanks to Soren Heilmann) 
+* the axiom system has been generalized (thanks to Soren Heilmann)
 
 * the classical reasoner now has a default rule database
 
