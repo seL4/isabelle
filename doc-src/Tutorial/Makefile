@@ -5,7 +5,6 @@
 ## targets
 
 default: dvi
-dist: dvi
 
 
 ## dependencies
@@ -26,3 +25,15 @@ $(NAME).dvi: $(FILES) isabelle_hol.eps
 	$(LATEX) $(NAME)
 	$(SEDINDEX) $(NAME)
 	$(LATEX) $(NAME)
+
+pdf: $(NAME).pdf
+
+$(NAME).pdf: $(FILES) isabelle_hol.pdf
+	touch $(NAME).ind
+	$(PDFLATEX) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(PDFLATEX) $(NAME)
+	$(PDFLATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(FIXBOOKMARKS) $(NAME).out
+	$(PDFLATEX) $(NAME)
