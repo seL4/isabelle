@@ -4,6 +4,9 @@
 # IsaMakefile for HOL
 #
 
+# for overriding proof objects in HOL image
+HOL_PROOF_OBJECTS="-p 2"
+
 ## targets
 
 default: HOL
@@ -109,7 +112,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Wellfounded_Recursion.ML Wellfounded_Recursion.thy Wellfounded_Relations.ML \
   Wellfounded_Relations.thy arith_data.ML blastdata.ML cladata.ML \
   document/root.tex hologic.ML meson_lemmas.ML simpdata.ML thy_syntax.ML
-	@$(ISATOOL) usedir -b -g true -p 2 $(OUT)/Pure HOL
+	@$(ISATOOL) usedir -b -g true $(HOL_PROOF_OBJECTS) $(OUT)/Pure HOL
 
 
 ## HOL-Complex-HahnBanach
