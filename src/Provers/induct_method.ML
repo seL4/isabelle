@@ -10,6 +10,7 @@ signature INDUCT_METHOD_DATA =
 sig
   val dest_concls: term -> term list
   val cases_default: thm
+  val local_impI: thm
   val conjI: thm
   val atomize: thm list
   val rulify1: thm list
@@ -149,6 +150,18 @@ val rulify_tac =
   Tactic.norm_hhf_tac;
 
 
+(* imp_intr --- limited to atomic prems *)
+
+fun imp_intr i raw_th =
+  let
+    val th = Thm.permute_prems (i - 1) 1 raw_th;
+    val cprems = Drule.cprems_of th;
+    val As = take (length cprems - 1, cprems);
+    val C = Thm.cterm_of (Thm.sign_of_thm th) (Var (("C", #maxidx (Thm.rep_thm th) + 1), propT));
+    val dummy_st = Drule.mk_triv_goal (Drule.list_implies (As, C));
+  in th COMP Thm.lift_rule (dummy_st, 1) Data.local_impI end;
+
+
 (* join multi-rules *)
 
 val eq_prems = curry (Term.aconvs o pairself Thm.prems_of);
@@ -203,11 +216,13 @@ fun divinate_inst rule i st =
 
 (* compose tactics with cases *)
 
+fun internalize k th = if k > 0 then internalize (k - 1) (imp_intr k th) else th;
+
 fun resolveq_cases_tac' make ruleq i st =
-  ruleq |> Seq.map (fn (rule, (cases, facts)) => st
-    |> (Method.insert_tac facts THEN' atomize_tac) i
-    |> Seq.map (fn st' => divinate_inst rule i st' |> Seq.map (fn rule' =>
-        st' |> Tactic.rtac rule' i |> Seq.map (rpair (make (rulify rule') cases))) |> Seq.flat)
+  ruleq |> Seq.map (fn (rule, (cases, k, more_facts)) => st
+    |> (Method.insert_tac more_facts THEN' atomize_tac) i
+    |> Seq.map (fn st' => divinate_inst (internalize k rule) i st' |> Seq.map (fn rule' =>
+          st' |> Tactic.rtac rule' i |> Seq.map (rpair (make (rulify rule') cases))) |> Seq.flat)
     |> Seq.flat)
   |> Seq.flat;
 
@@ -254,7 +269,8 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
       | Some r => Seq.single (inst_rule r));
 
     fun prep_rule (th, (cases, n)) =
-      Seq.map (rpair (cases, drop (n, facts))) (Method.multi_resolves (take (n, facts)) [th]);
+      Seq.map (rpair (cases, n - length facts, drop (n, facts)))
+        (Method.multi_resolves (take (n, facts)) [th]);
     val tac = resolveq_cases_tac' (RuleCases.make open_parms) (Seq.flat (Seq.map prep_rule ruleq));
   in tac THEN_ALL_NEW_CASES rulify_tac end;
 
