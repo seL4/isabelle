@@ -46,6 +46,7 @@ sig
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
+  val chars_only: string -> bool
   val escape: string -> string
   val strip_blanks: string -> string
   val bump_init: string -> string
@@ -56,6 +57,7 @@ sig
   val default_raw: string -> string
   val symbolsN: string
   val xsymbolsN: string
+  val symbol_output: string -> string * real
 end;
 
 structure Symbol: SYMBOL =
@@ -418,6 +420,8 @@ fun sym_explode str =
     else the (Scan.read stopper (Scan.repeat scan) chs)
   end;
 
+val chars_only = not o exists_string (equal "\\");
+
 
 (* escape *)
 
@@ -483,6 +487,14 @@ fun sym_len s =
   else 1;
 
 fun sym_length ss = foldl (fn (n, s) => sym_len s + n) (0, ss);
+
+fun symbol_output str =
+  if chars_only str then default_output str
+  else
+    let
+      fun out s = if is_raw s then decode_raw s else s;
+      val syms = sym_explode str;
+    in (implode (map out syms), real (sym_length syms)) end;
 
 
 (*final declarations of this structure!*)
