@@ -20,6 +20,7 @@ sig
   datatype basetype = Thy  of string
                     | File of string
 
+  val loaded_thys    : thy_info list ref
   val loadpath       : string list ref
   val delete_tmpfiles: bool ref
 
@@ -29,8 +30,6 @@ sig
   val unlink_thy     : string -> unit
   val base_on        : basetype list -> string -> Thm.theory
   val store_theory   : string -> Thm.theory -> unit
-  val list_loaded    : unit -> thy_info list
-  val set_loaded     : thy_info list -> unit
 end;
 
 
@@ -445,17 +444,6 @@ fun store_theory thy_name thy =
                       thy_info = Some "", ml_info = Some "",
                       theory = Some thy}]
   in loaded_thys := make_change (!loaded_thys) end;
-
-(*Create a list of all theories loaded by this structure *)
-fun list_loaded () = (!loaded_thys);
-
-(*Change the list of loaded theories *)
-fun set_loaded [] =
-      loaded_thys := [ThyInfo {name = "Pure", path = "", children = [],
-                      thy_info = Some "", ml_info = Some "",
-                      theory = Some Thm.pure_thy}]
-  | set_loaded ts =
-      loaded_thys := ts;
 
 end
 
