@@ -3,7 +3,7 @@
     Author:     Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
 
-Strict product with typedef
+Strict product with typedef.
 *)
 
 Sprod0 = Cfun3 +
@@ -12,7 +12,7 @@ constdefs
   Spair_Rep     :: ['a,'b] => ['a,'b] => bool
  "Spair_Rep == (%a b. %x y.(~a=UU & ~b=UU --> x=a  & y=b ))"
 
-typedef (Sprod)  ('a, 'b) "**" (infixr 20) = "{f. ? a b. f = Spair_Rep a b}"
+typedef (Sprod)  ('a, 'b) "**" (infixr 20) = "{f. ? a b. f = Spair_Rep (a::'a) (b::'b)}"
 
 syntax (symbols)
   "**"		:: [type, type] => type	 ("(_ \\<otimes>/ _)" [21,20] 20)
@@ -35,4 +35,3 @@ defs
 
 
 end
-

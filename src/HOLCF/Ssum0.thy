@@ -15,7 +15,7 @@ constdefs
  "Sinr_Rep == (%b.%x y p.(b~=UU --> y=b & ~p))"
 
 typedef (Ssum)  ('a, 'b) "++" (infixr 10) = 
-	"{f.(? a. f=Sinl_Rep(a))|(? b. f=Sinr_Rep(b))}"
+	"{f.(? a. f=Sinl_Rep(a::'a))|(? b. f=Sinr_Rep(b::'b))}"
 
 syntax (symbols)
   "++"		:: [type, type] => type	("(_ \\<oplus>/ _)" [21, 20] 20)
@@ -35,4 +35,3 @@ defs   (*defining the abstract constants*)
                         &(!b. b~=UU & s=Isinr(b) --> z=g`b)"  
 
 end
-

@@ -33,7 +33,7 @@ inductive "list(A)"
 
 
 typedef (List)
-  'a list = "list(range Leaf)" (list.NIL_I)
+  'a list = "list(range Leaf) :: 'a item set" (list.NIL_I)
 
   
 (*Declaring the abstract list constructors*)

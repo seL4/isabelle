@@ -1,9 +1,9 @@
-(*  Title:      HOLCF/cfun1.thy
+(*  Title:      HOLCF/Cfun1.thy
     ID:         $Id$
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Definition of the type ->  of continuous functions
+Definition of the type ->  of continuous functions.
 
 *)
 
@@ -11,7 +11,7 @@ Cfun1 = Cont +
 
 default cpo
 
-typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f. cont f}" (CfunI)
+typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f::'a => 'b. cont f}" (CfunI)
 
 (* to make << defineable *)
 instance "->"  :: (cpo,cpo)sq_ord

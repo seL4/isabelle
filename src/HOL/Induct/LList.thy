@@ -44,7 +44,7 @@ coinductive "LListD(r)"
 
 
 typedef (LList)
-  'a llist = "llist(range Leaf)" (llist.NIL_I)
+  'a llist = "llist(range Leaf) :: 'a item set" (llist.NIL_I)
 
 constdefs
   (*Now used exclusively for abbreviating the coinduction rule*)
