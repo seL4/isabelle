@@ -100,9 +100,12 @@
   result).
 \item [$OF~thms$, $RS~n~thm$, and $COMP~n~thm$] compose rules.  $OF$ applies
   $thms$ in parallel (cf.\ \texttt{MRS} in \cite[\S5]{isabelle-ref}, but note
-  the reversed order).  $RS$ resolves with the $n$-th premise of $thm$; $COMP$
-  is a version of $RS$ that does not include the automatic lifting process
-  that is normally intended (see also \texttt{RS} and \texttt{COMP} in
+  the reversed order).  Note that premises may be skipped by including $\_$
+  (underscore) as argument.
+  
+  $RS$ resolves with the $n$-th premise of $thm$; $COMP$ is a version of $RS$
+  that does not include the automatic lifting process that is normally
+  intended (see also \texttt{RS} and \texttt{COMP} in
   \cite[\S5]{isabelle-ref}).
   
 \item [$of~ts$ and $where~\vec x = \vec t$] perform positional and named
