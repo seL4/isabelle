@@ -13,6 +13,7 @@ sig
   val judgment_name: Sign.sg -> string
   val is_judgment: Sign.sg -> term -> bool
   val drop_judgment: Sign.sg -> term -> term
+  val assert_judgment: Sign.sg -> term -> term
   val fixed_judgment: Sign.sg -> string -> term
   val declare_atomize: theory attribute
   val declare_rulify: theory attribute
@@ -94,6 +95,11 @@ fun drop_judgment sg (Abs (x, T, t)) = Abs (x, T, drop_judgment sg t)
   | drop_judgment sg (tm as (Const (c, _) $ t)) =
       if (c = judgment_name sg handle TERM _ => false) then t else tm
   | drop_judgment _ tm = tm;
+
+fun assert_judgment sg (Abs (x, T, t)) = Abs (x, T, assert_judgment sg t)
+  | assert_judgment sg t =
+      if (is_judgment sg t handle TERM _ => true) then t
+      else Const (judgment_name sg, fastype_of t --> propT) $ t;
 
 fun fixed_judgment sg x =
   let  (*be robust wrt. low-level errors*)
