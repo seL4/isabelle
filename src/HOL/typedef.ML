@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Internal interface for typedef definitions.
+Internal interface for typedefs.
 *)
 
 signature TYPEDEF =
@@ -45,7 +45,7 @@ fun prove_nonempty cset thms usr_tac =
 
 fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
   let
-    val dummy = require_thy thy "Set" "typedef definitions";
+    val dummy = require_thy thy "Set" "typedefs";
     val sign = sign_of thy;
 
     (*rhs*)
@@ -122,7 +122,7 @@ fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
       (Abs_name ^ "_inverse", abs_type_inv)]
   end
   handle ERROR =>
-    error ("The error(s) above occurred in typedef definition " ^ quote name);
+    error ("The error(s) above occurred in typedef " ^ quote name);
 
 
 (* external interfaces *)
@@ -138,4 +138,3 @@ val add_typedef_i = ext_typedef cert_term;
 
 
 end;
-
