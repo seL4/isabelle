@@ -32,6 +32,7 @@ sig
   val read_typ_no_norm: context -> string -> typ
   val cert_typ: context -> typ -> typ
   val cert_typ_no_norm: context -> typ -> typ
+  val get_skolem: context -> string -> string
   val intern_skolem: context -> term -> term
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
@@ -428,7 +429,8 @@ end;
 (* internalize Skolem constants *)
 
 fun fixes_of (Context {asms = (_, (fixes, _)), ...}) = fixes;
-fun get_skolem ctxt x = assoc (fixes_of ctxt, x);
+fun lookup_skolem ctxt x = assoc (fixes_of ctxt, x);
+fun get_skolem ctxt x = if_none (lookup_skolem ctxt x) x;
 
 fun no_skolem no_internal ctxt x =
   if can Syntax.dest_skolem x then
@@ -440,7 +442,7 @@ fun no_skolem no_internal ctxt x =
 fun intern_skolem ctxt =
   let
     fun intern (t as Free (x, T)) =
-          (case get_skolem ctxt (no_skolem true ctxt x) of
+          (case lookup_skolem ctxt (no_skolem true ctxt x) of
             Some x' => Free (x', T)
           | None => t)
       | intern (t $ u) = intern t $ intern u
@@ -457,7 +459,7 @@ fun extern_skolem ctxt =
 
     fun extern (t as Free (x, T)) =
           (case assoc (rev_fixes, x) of
-            Some x' => Free (if get_skolem ctxt x' = Some x then x' else NameSpace.hidden x', T)
+            Some x' => Free (if lookup_skolem ctxt x' = Some x then x' else NameSpace.hidden x', T)
           | None => t)
       | extern (t $ u) = extern t $ extern u
       | extern (Abs (x, T, t)) = Abs (x, T, extern t)
@@ -1072,7 +1074,7 @@ fun bind_skolem ctxt xs =
     val ctxt' = ctxt |> fix_i [(xs, None)];
     fun bind (t as Free (x, T)) =
           if x mem_string xs then
-            (case get_skolem ctxt' x of Some x' => Free (x', T) | None => t)
+            (case lookup_skolem ctxt' x of Some x' => Free (x', T) | None => t)
           else t
       | bind (t $ u) = bind t $ bind u
       | bind (Abs (x, T, t)) = Abs (x, T, bind t)
