@@ -5,9 +5,7 @@
   Copyright: Clemens Ballarin
 *)
 
-header {* The algebraic hierarchy of rings as axiomatic classes *}
-
-theory CRing = Group
+theory CRing = Summation
 files ("ringsimp.ML"):
 
 section {* The Algebraic Hierarchy of Rings *}
@@ -37,7 +35,13 @@ locale cring = abelian_monoid R +
   divide_def:   "a / b = a * inverse b"
   power_def:    "a ^ n = nat_rec 1 (%u b. b * a) n"
 *)
-subsection {* Basic Facts *}
+
+locale "domain" = cring +
+  assumes one_not_zero [simp]: "\<one> ~= \<zero>"
+    and integral: "[| a \<otimes> b = \<zero>; a \<in> carrier R; b \<in> carrier R |] ==>
+                  a = \<zero> | b = \<zero>"
+
+subsection {* Basic Facts of Rings *}
 
 lemma (in cring) a_magma [simp, intro]:
   "magma (| carrier = carrier R,
@@ -73,39 +77,42 @@ lemma (in cring) a_abelian_semigroup:
      mult = add R, one = zero R, m_inv = a_inv R |)"
   by (simp add: abelian_semigroup_def)
 
-lemma (in cring) a_abelian_group:
-  "abelian_group (| carrier = carrier R,
-     mult = add R, one = zero R, m_inv = a_inv R |)"
-  by (simp add: abelian_group_def)
+lemmas group_record_simps = semigroup.simps monoid.simps group.simps
 
 lemmas (in cring) a_closed [intro, simp] =
-  magma.m_closed [OF a_magma, simplified]
+  magma.m_closed [OF a_magma, simplified group_record_simps]
 
 lemmas (in cring) zero_closed [intro, simp] = 
-  l_one.one_closed [OF a_l_one, simplified]
+  l_one.one_closed [OF a_l_one, simplified group_record_simps]
 
 lemmas (in cring) a_inv_closed [intro, simp] =
-  group.inv_closed [OF a_group, simplified]
+  group.inv_closed [OF a_group, simplified group_record_simps]
 
 lemma (in cring) minus_closed [intro, simp]:
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y \<in> carrier R"
   by (simp add: minus_def)
 
-lemmas (in cring) a_l_cancel [simp] = group.l_cancel [OF a_group, simplified]
+lemmas (in cring) a_l_cancel [simp] =
+  group.l_cancel [OF a_group, simplified group_record_simps]
 
-lemmas (in cring) a_r_cancel [simp] = group.r_cancel [OF a_group, simplified]
+lemmas (in cring) a_r_cancel [simp] =
+  group.r_cancel [OF a_group, simplified group_record_simps]
 
-lemmas (in cring) a_assoc = semigroup.m_assoc [OF a_semigroup, simplified]
+lemmas (in cring) a_assoc =
+  semigroup.m_assoc [OF a_semigroup, simplified group_record_simps]
 
-lemmas (in cring) l_zero [simp] = l_one.l_one [OF a_l_one, simplified]
+lemmas (in cring) l_zero [simp] =
+  l_one.l_one [OF a_l_one, simplified group_record_simps]
 
-lemmas (in cring) l_neg = group.l_inv [OF a_group, simplified]
+lemmas (in cring) l_neg =
+  group.l_inv [OF a_group, simplified group_record_simps]
 
-lemmas (in cring) a_comm = abelian_semigroup.m_comm [OF a_abelian_semigroup,
-  simplified]
+lemmas (in cring) a_comm =
+  abelian_semigroup.m_comm [OF a_abelian_semigroup,
+  simplified group_record_simps]
 
 lemmas (in cring) a_lcomm =
-  abelian_semigroup.m_lcomm [OF a_abelian_semigroup, simplified]
+  abelian_semigroup.m_lcomm [OF a_abelian_semigroup, simplified group_record_simps]
 
 lemma (in cring) r_zero [simp]:
   "x \<in> carrier R ==> x \<oplus> \<zero> = x"
@@ -117,11 +124,12 @@ lemma (in cring) r_neg:
   using group.r_inv [OF a_group]
   by simp
 
-lemmas (in cring) minus_zero [simp] = group.inv_one [OF a_group, simplified]
+lemmas (in cring) minus_zero [simp] =
+  group.inv_one [OF a_group, simplified group_record_simps]
 
 lemma (in cring) minus_minus [simp]:
   "x \<in> carrier R ==> \<ominus> (\<ominus> x) = x"
-  using group.inv_inv [OF a_group, simplified]
+  using group.inv_inv [OF a_group, simplified group_record_simps]
   by simp
 
 lemma (in cring) minus_add:
@@ -217,6 +225,8 @@ method_setup algebra =
   {* Method.ctxt_args cring_normalise *}
   {* computes distributive normal form in commutative rings (locales version) *}
 
+text {* Two examples for use of method algebra *}
+
 lemma
   includes cring R + cring S
   shows "[| a \<in> carrier R; b \<in> carrier R; c \<in> carrier S; d \<in> carrier S |] ==> 
@@ -227,5 +237,226 @@ lemma
   includes cring
   shows "[| a \<in> carrier R; b \<in> carrier R |] ==> a \<ominus> (a \<ominus> b) = b"
   by algebra
+
+subsection {* Sums over Finite Sets *}
+
+text {*
+  This definition makes it easy to lift lemmas from @{term finprod}.
+*}
+
+constdefs
+  finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b"
+  "finsum R f A == finprod (| carrier = carrier R,
+     mult = add R, one = zero R, m_inv = a_inv R |) f A"
+
+lemma (in cring) a_abelian_monoid:
+  "abelian_monoid (| carrier = carrier R,
+     mult = add R, one = zero R, m_inv = a_inv R |)"
+  by (simp add: abelian_monoid_def)
+
+(*
+  lemmas (in cring) finsum_empty [simp] =
+    abelian_monoid.finprod_empty [OF a_abelian_monoid, simplified]
+  is dangeous, because attributes (like simplified) are applied upon opening
+  the locale, simplified refers to the simpset at that time!!!
+*)
+
+lemmas (in cring) finsum_empty [simp] =
+  abelian_monoid.finprod_empty [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_insert [simp] =
+  abelian_monoid.finprod_insert [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_zero =
+  abelian_monoid.finprod_one [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_closed [simp] =
+  abelian_monoid.finprod_closed [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_Un_Int =
+  abelian_monoid.finprod_Un_Int [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_Un_disjoint =
+  abelian_monoid.finprod_Un_disjoint [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_addf =
+  abelian_monoid.finprod_multf [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_cong =
+  abelian_monoid.finprod_cong [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_0 [simp] =
+  abelian_monoid.finprod_0 [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_Suc [simp] =
+  abelian_monoid.finprod_Suc [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_Suc2 =
+  abelian_monoid.finprod_Suc2 [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_add [simp] =
+  abelian_monoid.finprod_mult [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+lemmas (in cring) finsum_cong' [cong] =
+  abelian_monoid.finprod_cong' [OF a_abelian_monoid, folded finsum_def,
+    simplified group_record_simps]
+
+(*
+lemma (in cring) finsum_empty [simp]:
+  "finsum R f {} = \<zero>"
+  by (simp add: finsum_def
+    abelian_monoid.finprod_empty [OF a_abelian_monoid])
+
+lemma (in cring) finsum_insert [simp]:
+  "[| finite F; a \<notin> F; f : F -> carrier R; f a \<in> carrier R |] ==>
+   finsum R f (insert a F) = f a \<oplus> finsum R f F"
+  by (simp add: finsum_def
+    abelian_monoid.finprod_insert [OF a_abelian_monoid])
+
+lemma (in cring) finsum_zero:
+  "finite A ==> finsum R (%i. \<zero>) A = \<zero>"
+  by (simp add: finsum_def
+    abelian_monoid.finprod_one [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_closed [simp]:
+  "[| finite A; f : A -> carrier R |] ==> finsum R f A \<in> carrier R"
+  by (simp only: finsum_def
+    abelian_monoid.finprod_closed [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_Un_Int:
+  "[| finite A; finite B; g \<in> A -> carrier R; g \<in> B -> carrier R |] ==>
+     finsum R g (A Un B) \<oplus> finsum R g (A Int B) =
+     finsum R g A \<oplus> finsum R g B"
+  by (simp only: finsum_def
+    abelian_monoid.finprod_Un_Int [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_Un_disjoint:
+  "[| finite A; finite B; A Int B = {};
+      g \<in> A -> carrier R; g \<in> B -> carrier R |]
+   ==> finsum R g (A Un B) = finsum R g A \<oplus> finsum R g B"
+  by (simp only: finsum_def
+    abelian_monoid.finprod_Un_disjoint [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_addf:
+  "[| finite A; f \<in> A -> carrier R; g \<in> A -> carrier R |] ==>
+   finsum R (%x. f x \<oplus> g x) A = (finsum R f A \<oplus> finsum R g A)"
+  by (simp only: finsum_def
+    abelian_monoid.finprod_multf [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_cong:
+  "[| A = B; g : B -> carrier R;
+      !!i. i : B ==> f i = g i |] ==> finsum R f A = finsum R g B"
+  apply (simp only: finsum_def)
+  apply (rule abelian_monoid.finprod_cong [OF a_abelian_monoid, simplified])
+  apply simp_all
+  done
+
+lemma (in cring) finsum_0 [simp]:
+  "f \<in> {0::nat} -> carrier R ==> finsum R f {..0} = f 0"
+  by (simp add: finsum_def
+    abelian_monoid.finprod_0 [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_Suc [simp]:
+  "f \<in> {..Suc n} -> carrier R ==>
+   finsum R f {..Suc n} = (f (Suc n) \<oplus> finsum R f {..n})"
+  by (simp add: finsum_def
+    abelian_monoid.finprod_Suc [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_Suc2:
+  "f \<in> {..Suc n} -> carrier R ==>
+   finsum R f {..Suc n} = (finsum R (%i. f (Suc i)) {..n} \<oplus> f 0)"
+  by (simp only: finsum_def
+    abelian_monoid.finprod_Suc2 [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_add [simp]:
+  "[| f : {..n} -> carrier R; g : {..n} -> carrier R |] ==>
+     finsum R (%i. f i \<oplus> g i) {..n::nat} =
+     finsum R f {..n} \<oplus> finsum R g {..n}"
+  by (simp only: finsum_def
+    abelian_monoid.finprod_mult [OF a_abelian_monoid, simplified])
+
+lemma (in cring) finsum_cong' [cong]:
+  "[| A = B; !!i. i : B ==> f i = g i;
+      g \<in> B -> carrier R = True |] ==> finsum R f A = finsum R g B"
+  apply (simp only: finsum_def)
+  apply (rule abelian_monoid.finprod_cong' [OF a_abelian_monoid, simplified])
+  apply simp_all
+  done
+*)
+
+text {*Usually, if this rule causes a failed congruence proof error,
+   the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
+   Adding @{thm [source] Pi_def} to the simpset is often useful. *}
+
+lemma (in cring) finsum_ldistr:
+  "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
+   finsum R f A \<otimes> a = finsum R (%i. f i \<otimes> a) A"
+proof (induct set: Finites)
+  case empty then show ?case by simp
+next
+  case (insert F x) then show ?case by (simp add: Pi_def l_distr)
+qed
+
+lemma (in cring) finsum_rdistr:
+  "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
+   a \<otimes> finsum R f A = finsum R (%i. a \<otimes> f i) A"
+proof (induct set: Finites)
+  case empty then show ?case by simp
+next
+  case (insert F x) then show ?case by (simp add: Pi_def r_distr)
+qed
+
+subsection {* Facts of Integral Domains *}
+
+lemma (in "domain") zero_not_one [simp]:
+  "\<zero> ~= \<one>"
+  by (rule not_sym) simp
+
+lemma (in "domain") integral_iff: (* not by default a simp rule! *)
+  "[| a \<in> carrier R; b \<in> carrier R |] ==> (a \<otimes> b = \<zero>) = (a = \<zero> | b = \<zero>)"
+proof
+  assume "a \<in> carrier R" "b \<in> carrier R" "a \<otimes> b = \<zero>"
+  then show "a = \<zero> | b = \<zero>" by (simp add: integral)
+next
+  assume "a \<in> carrier R" "b \<in> carrier R" "a = \<zero> | b = \<zero>"
+  then show "a \<otimes> b = \<zero>" by auto
+qed
+
+lemma (in "domain") m_lcancel:
+  assumes prem: "a ~= \<zero>"
+    and R: "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier R"
+  shows "(a \<otimes> b = a \<otimes> c) = (b = c)"
+proof
+  assume eq: "a \<otimes> b = a \<otimes> c"
+  with R have "a \<otimes> (b \<ominus> c) = \<zero>" by algebra
+  with R have "a = \<zero> | (b \<ominus> c) = \<zero>" by (simp add: integral_iff)
+  with prem and R have "b \<ominus> c = \<zero>" by auto 
+  with R have "b = b \<ominus> (b \<ominus> c)" by algebra 
+  also from R have "b \<ominus> (b \<ominus> c) = c" by algebra
+  finally show "b = c" .
+next
+  assume "b = c" then show "a \<otimes> b = a \<otimes> c" by simp
+qed
+
+lemma (in "domain") m_rcancel:
+  assumes prem: "a ~= \<zero>"
+    and R: "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier R"
+  shows conc: "(b \<otimes> a = c \<otimes> a) = (b = c)"
+proof -
+  from prem and R have "(a \<otimes> b = a \<otimes> c) = (b = c)" by (rule m_lcancel)
+  with R show ?thesis by algebra
+qed
 
 end

@@ -64,9 +64,9 @@ fun termless_ring (a, b) = (term_lpo ring_ord (a, b) = LESS);
 val cring_ss = HOL_ss settermless termless_ring;
 
 fun cring_normalise ctxt = let
-    fun filter t = case HOLogic.dest_Trueprop t of
+    fun filter t = (case HOLogic.dest_Trueprop t of
         Const ("CRing.cring_axioms", _) $ Free (s, _) => [s]
-      | _ => [] 
+      | _ => [])
       handle TERM _ => [];
     val insts = flat (map (filter o #prop o rep_thm)
       (ProofContext.prems_of ctxt));
