@@ -44,6 +44,7 @@ fun wf_rec f x = f (wf_rec f) x;
 
 val term_of_list = HOLogic.mk_list;
 val term_of_int = HOLogic.mk_int;
+fun term_of_id_42 f T g U (x, y) = HOLogic.pair_const T U $ f x $ g y;
 *}
 
 lemma [code]: "((n::nat) < 0) = False" by simp
