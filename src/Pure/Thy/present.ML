@@ -17,7 +17,8 @@ sig
   include BASIC_PRESENT
   val write_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> Path.T -> unit
-  val init: bool -> string -> string list -> string -> Path.T option -> Url.T option * bool -> unit
+  val init: bool -> string -> string list -> string -> Path.T option
+    -> Url.T option * bool -> bool -> unit
   val finish: unit -> unit
   val init_theory: string -> unit
   val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
@@ -204,12 +205,14 @@ fun add_html name txt = change_theory_info name (fn (tex_source, html_source, ht
 
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
-    doc_format: string, doc_prefixes: (Path.T * Path.T option) option, remote_path: Url.T option};
+    doc_format: string, doc_prefixes: (Path.T * Path.T option) option,
+    remote_path: Url.T option, verbose: bool};
 
 fun make_session_info
-    (name, parent, session, path, html_prefix, doc_format, doc_prefixes, remote_path) =
+    (name, parent, session, path, html_prefix, doc_format, doc_prefixes, remote_path, verbose) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
-    doc_format = doc_format, doc_prefixes = doc_prefixes, remote_path = remote_path}: session_info;
+    doc_format = doc_format, doc_prefixes = doc_prefixes, remote_path = remote_path,
+    verbose = verbose}: session_info;
 
 
 (* state *)
@@ -261,8 +264,8 @@ fun copy_files path1 path2 =
      ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));
 
 
-fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := None)
-  | init true doc path name dump_path (remote_path, first_time) =
+fun init false _ _ _ _ _ _ = (browser_info := empty_browser_info; session_info := None)
+  | init true doc path name dump_path (remote_path, first_time) verbose =
       let
         val parent_name = name_of_session (Library.take (length path - 1, path));
         val session_name = name_of_session path;
@@ -306,7 +309,7 @@ fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := 
         seq (fn (name, txt) => File.write (Path.append html_prefix (Path.basic name)) txt)
           (HTML.applet_pages session_name graph_up_lnk);
         session_info := Some (make_session_info (name, parent_name, session_name, path,
-          html_prefix, doc, doc_prefixes, remote_path));
+          html_prefix, doc, doc_prefixes, remote_path, verbose));
         browser_info := init_browser_info remote_path path;
         add_html_index index_text
       end;
@@ -314,10 +317,10 @@ fun init false _ _ _ _ _ = (browser_info := empty_browser_info; session_info := 
 
 (* finish session *)
 
-fun isatool_document doc_format doc_prefix =
+fun isatool_document verbose doc_format doc_prefix =
   let
-    val cmd =
-      "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^ File.quote_sysify_path doc_prefix;
+    val cmd = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' "
+      ^ (if verbose then "-v " else "") ^ File.quote_sysify_path doc_prefix;
   in
     writeln cmd;
     if system cmd <> 0 orelse not (File.exists (Path.ext doc_format doc_prefix)) then
@@ -332,7 +335,7 @@ fun write_texes src name (path, None) = write_tex src name path
 
 
 fun finish () = with_session ()
-    (fn {name, html_prefix, doc_format, doc_prefixes, path, ...} =>
+    (fn {name, html_prefix, doc_format, doc_prefixes, path, verbose, ...} =>
   let
     val {theories, tex_index, html_index, graph} = ! browser_info;
     val parent_html_prefix = Path.append html_prefix Path.parent;
@@ -344,7 +347,7 @@ fun finish () = with_session ()
     seq finish_node (Symtab.dest theories);
     Buffer.write (Path.append html_prefix pre_index_path) html_index;
     doc_prefixes |> apsome (write_texes (Buffer.add Latex.tex_trailer tex_index) doc_indexN);
-    doc_prefixes |> apsome (isatool_document doc_format o #1);
+    doc_prefixes |> apsome (isatool_document verbose doc_format o #1);
     write_graph graph (Path.append html_prefix (graph_path "session"));
     create_index html_prefix;
     if length path > 1 then update_index parent_html_prefix name else ();
