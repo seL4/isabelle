@@ -27,6 +27,8 @@ sig
   val norm_type_same: env -> typ -> typ
   val norm_types_same: env -> typ list -> typ list
   val beta_norm: term -> term
+  val head_norm: env -> term -> term
+  val fastype: env -> typ list -> term -> typ
 end;
 
 structure Envir : ENVIR =
@@ -160,5 +162,43 @@ fun norm_type_same (Envir {iTs, ...}) =
 fun norm_types_same (Envir {iTs, ...}) =
   if Vartab.is_empty iTs then raise SAME else normTs iTs;
 
+
+(*Put a term into head normal form for unification.*)
+
+fun head_norm env t =
+  let
+    fun hnorm (Var (v, T)) = (case lookup (env, v) of
+          Some u => head_norm env u
+        | None => raise SAME)
+      | hnorm (Abs (a, T, body)) =  Abs (a, T, hnorm body)
+      | hnorm (Abs (_, _, body) $ t) =
+          head_norm env (subst_bound (t, body))
+      | hnorm (f $ t) = (case hnorm f of
+          Abs (_, _, body) => head_norm env (subst_bound (t, body))
+        | nf => nf $ t)
+	  | hnorm _ =  raise SAME
+  in hnorm t handle SAME => t end;
+
+
+(*finds type of term without checking that combinations are consistent
+  Ts holds types of bound variables*)
+fun fastype (Envir {iTs, ...}) =
+let val funerr = "fastype: expected function type";
+    fun fast Ts (f $ u) =
+	(case fast Ts f of
+	   Type ("fun", [_, T]) => T
+	 | TVar(ixn, _) =>
+		(case Vartab.lookup (iTs, ixn) of
+		   Some (Type ("fun", [_, T])) => T
+		 | _ => raise TERM (funerr, [f $ u]))
+	 | _ => raise TERM (funerr, [f $ u]))
+      | fast Ts (Const (_, T)) = T
+      | fast Ts (Free (_, T)) = T
+      | fast Ts (Bound i) =
+	(nth_elem (i, Ts)
+  	 handle LIST _=> raise TERM ("fastype: Bound", [Bound i]))
+      | fast Ts (Var (_, T)) = T 
+      | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u
+in fast end;
 
 end;

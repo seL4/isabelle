@@ -63,59 +63,7 @@ in bTs end;
 
 fun strip_type env T = (binder_types env T, body_type env T);
 
-
-(*Put a term into head normal form for unification.
-  Operands need not be in normal form.  Does eta-expansions on the head,
-  which involves renumbering (thus copying) the args.  To avoid this 
-  inefficiency, avoid partial application:  if an atom is applied to
-  any arguments at all, apply it to its full number of arguments.
-  For
-    rbinder = [(x1,T),...,(xm,Tm)]		(user's var names preserved!)
-    args  =   [arg1,...,argn]
-  the value of 
-      (xm,...,x1)(head(arg1,...,argn))  remains invariant.
-*)
-
-local exception SAME
-in
-  fun head_norm (env,t) : term =
-    let fun hnorm (Var (v,T)) = 
-	      (case Envir.lookup (env,v) of
-		  Some u => head_norm (env, u)
-		| None   => raise SAME)
-	  | hnorm (Abs(a,T,body)) =  Abs(a, T, hnorm body)
-	  | hnorm (Abs(_,_,body) $ t) =
-	      head_norm (env, subst_bound (t, body))
-	  | hnorm (f $ t) =
-	      (case hnorm f of
-		 Abs(_,_,body) =>
-		   head_norm (env, subst_bound (t, body))
-	       | nf => nf $ t)
-	  | hnorm _ =  raise SAME
-    in  hnorm t  handle SAME=> t  end
-end;
-
-
-(*finds type of term without checking that combinations are consistent
-  rbinder holds types of bound variables*)
-fun fastype (Envir.Envir{iTs,...}) =
-let val funerr = "fastype: expected function type";
-    fun fast(rbinder, f$u) =
-	(case (fast (rbinder, f)) of
-	   Type("fun",[_,T]) => T
-	 | TVar(ixn,_) =>
-		(case Vartab.lookup (iTs,ixn) of
-		   Some(Type("fun",[_,T])) => T
-		 | _ => raise TERM(funerr, [f$u]))
-	 | _ => raise TERM(funerr, [f$u]))
-      | fast (rbinder, Const (_,T)) = T
-      | fast (rbinder, Free (_,T)) = T
-      | fast (rbinder, Bound i) =
-	(#2 (nth_elem (i,rbinder))
-  	 handle LIST _=> raise TERM("fastype: Bound", [Bound i]))
-      | fast (rbinder, Var (_,T)) = T 
-      | fast (rbinder, Abs (_,T,u)) =  T --> fast (("",T) :: rbinder, u)
-in fast end;
+fun fastype env (Ts, t) = Envir.fastype env (map snd Ts) t;
 
 
 (*Eta normal form*)
@@ -289,8 +237,8 @@ fun new_dpair (rbinder, Abs(a,T,body1), Abs(b,U,body2), env) =
 
 fun head_norm_dpair (env, (rbinder,t,u)) : dpair * Envir.env =
      new_dpair (rbinder,
-		eta_norm env (rbinder, head_norm(env,t)),
-	  	eta_norm env (rbinder, head_norm(env,u)), env);
+		eta_norm env (rbinder, Envir.head_norm env t),
+	  	eta_norm env (rbinder, Envir.head_norm env u), env);
 
 
 
@@ -390,7 +338,7 @@ fun matchcopy vname = let fun mc(rbinder, targs, u, ed as (env,dpairs))
 let (*Produce copies of uarg and cons them in front of uargs*)
     fun copycons uarg (uargs, (env, dpairs)) =
 	Seq.map(fn (uarg', ed') => (uarg'::uargs, ed'))
-	    (mc (rbinder, targs,eta_norm env (rbinder,head_norm(env,uarg)),
+	    (mc (rbinder, targs,eta_norm env (rbinder, Envir.head_norm env uarg),
 		 (env, dpairs)));
 	(*Produce sequence of all possible ways of copying the arg list*)
     fun copyargs [] = Seq.cons( ([],ed), Seq.empty)
