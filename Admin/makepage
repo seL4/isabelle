@@ -58,13 +58,10 @@ fi
 
 make main
 
-mkdir -p $TARGET
-chgrp isabelle $TARGET
-chmod 775 $TARGET
-
 for FILE in $FILES; do
-    cp $PREFIX/$FILE $TARGET
+    cp -f $PREFIX/$FILE $TARGET
 done
 
-cd $TARGET
-echo You should find the Isabelle pages in `pwd`
+chmod g=u $TARGET/*
+
+( cd $TARGET; echo -e "\nYou should find the Isabelle pages in $PWD"; )
