@@ -71,8 +71,7 @@ record   qtname = (* qualified tname cf. 6.5.3, 6.5.4*)
 axclass has_pname < "type"
 consts pname::"'a::has_pname \<Rightarrow> pname"
 
-instance pname::has_pname
-by (intro_classes)
+instance pname::has_pname ..
 
 defs (overloaded)
 pname_pname_def: "pname (p::pname) \<equiv> p"
@@ -80,8 +79,7 @@ pname_pname_def: "pname (p::pname) \<equiv> p"
 axclass has_tname < "type"
 consts tname::"'a::has_tname \<Rightarrow> tname"
 
-instance tname::has_tname
-by (intro_classes)
+instance tname::has_tname ..
 
 defs (overloaded)
 tname_tname_def: "tname (t::tname) \<equiv> t"
@@ -90,8 +88,7 @@ axclass has_qtname < "type"
 consts qtname:: "'a::has_qtname \<Rightarrow> qtname"
 
 (* Declare qtname as instance of has_qtname *)
-instance pid_field_type::(has_pname,"type") has_qtname
-by intro_classes 
+instance pid_field_type::(has_pname,"type") has_qtname ..
 
 defs (overloaded)
 qtname_qtname_def: "qtname (q::qtname) \<equiv> q"

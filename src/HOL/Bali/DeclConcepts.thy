@@ -79,8 +79,7 @@ out of various HOL types *}
 axclass has_accmodi < "type"
 consts accmodi:: "'a::has_accmodi \<Rightarrow> acc_modi"
 
-instance acc_modi::has_accmodi
-by (intro_classes)
+instance acc_modi::has_accmodi ..
 
 defs (overloaded)
 acc_modi_accmodi_def: "accmodi (a::acc_modi) \<equiv> a"
@@ -88,8 +87,7 @@ acc_modi_accmodi_def: "accmodi (a::acc_modi) \<equiv> a"
 lemma acc_modi_accmodi_simp[simp]: "accmodi (a::acc_modi) = a"
 by (simp add: acc_modi_accmodi_def)
 
-instance access_field_type:: ("type","type") has_accmodi
-by (intro_classes)
+instance access_field_type:: ("type","type") has_accmodi ..
 
 defs (overloaded)
 decl_acc_modi_def: "accmodi (d::('a:: type) decl_scheme) \<equiv> access d"
@@ -98,8 +96,7 @@ decl_acc_modi_def: "accmodi (d::('a:: type) decl_scheme) \<equiv> access d"
 lemma decl_acc_modi_simp[simp]: "accmodi (d::('a::type) decl_scheme) = access d"
 by (simp add: decl_acc_modi_def)
 
-instance * :: ("type",has_accmodi) has_accmodi
-by (intro_classes)
+instance * :: ("type",has_accmodi) has_accmodi ..
 
 defs (overloaded)
 pair_acc_modi_def: "accmodi p \<equiv> (accmodi (snd p))"
@@ -107,8 +104,7 @@ pair_acc_modi_def: "accmodi p \<equiv> (accmodi (snd p))"
 lemma pair_acc_modi_simp[simp]: "accmodi (x,a) = (accmodi a)"
 by (simp add: pair_acc_modi_def)
 
-instance memberdecl :: has_accmodi
-by (intro_classes)
+instance memberdecl :: has_accmodi ..
 
 defs (overloaded)
 memberdecl_acc_modi_def: "accmodi m \<equiv> (case m of
@@ -129,8 +125,7 @@ out of various HOL types *}
 axclass has_declclass < "type"
 consts declclass:: "'a::has_declclass \<Rightarrow> qtname"
 
-instance pid_field_type::("type","type") has_declclass
-by (intro_classes)
+instance pid_field_type::("type","type") has_declclass ..
 
 defs (overloaded)
 qtname_declclass_def: "declclass (q::qtname) \<equiv> q"
@@ -138,8 +133,7 @@ qtname_declclass_def: "declclass (q::qtname) \<equiv> q"
 lemma qtname_declclass_simp[simp]: "declclass (q::qtname) = q"
 by (simp add: qtname_declclass_def)
 
-instance * :: ("has_declclass","type") has_declclass
-by (intro_classes)
+instance * :: ("has_declclass","type") has_declclass ..
 
 defs (overloaded)
 pair_declclass_def: "declclass p \<equiv> declclass (fst p)"
@@ -158,15 +152,13 @@ consts is_static :: "'a::has_static \<Rightarrow> bool"
 consts is_static :: "'a \<Rightarrow> bool"
 *)
 
-instance access_field_type :: ("type","has_static") has_static
-by (intro_classes) 
+instance access_field_type :: ("type","has_static") has_static ..
 
 defs (overloaded)
 decl_is_static_def: 
  "is_static (m::('a::has_static) decl_scheme) \<equiv> is_static (Decl.decl.more m)" 
 
-instance static_field_type :: ("type","type") has_static
-by (intro_classes)
+instance static_field_type :: ("type","type") has_static ..
 
 defs (overloaded)
 static_field_type_is_static_def: 
@@ -178,8 +170,7 @@ apply (simp add: static_field_type_is_static_def
                  decl_is_static_def Decl.member.dest_convs)
 done
 
-instance * :: ("type","has_static") has_static
-by (intro_classes)
+instance * :: ("type","has_static") has_static ..
 
 defs (overloaded)
 pair_is_static_def: "is_static p \<equiv> is_static (snd p)"
@@ -190,8 +181,7 @@ by (simp add: pair_is_static_def)
 lemma pair_is_static_simp1: "is_static p = is_static (snd p)"
 by (simp add: pair_is_static_def)
 
-instance memberdecl:: has_static
-by (intro_classes)
+instance memberdecl:: has_static ..
 
 defs (overloaded)
 memberdecl_is_static_def: 
@@ -432,31 +422,27 @@ out of various HOL types *}
 axclass has_resTy < "type"
 consts resTy:: "'a::has_resTy \<Rightarrow> ty"
 
-instance access_field_type :: ("type","has_resTy") has_resTy
-by (intro_classes)
+instance access_field_type :: ("type","has_resTy") has_resTy ..
 
 defs (overloaded)
 decl_resTy_def: 
  "resTy (m::('a::has_resTy) decl_scheme) \<equiv> resTy (Decl.decl.more m)" 
 
-instance static_field_type :: ("type","has_resTy") has_resTy
-by (intro_classes)
+instance static_field_type :: ("type","has_resTy") has_resTy ..
 
 defs (overloaded)
 static_field_type_resTy_def: 
  "resTy (m::(bool,'b::has_resTy) static_field_type) 
   \<equiv> resTy (static_more m)" 
 
-instance pars_field_type :: ("type","has_resTy") has_resTy
-by (intro_classes)
+instance pars_field_type :: ("type","has_resTy") has_resTy ..
 
 defs (overloaded)
 pars_field_type_resTy_def: 
  "resTy (m::(vname list,'b::has_resTy) pars_field_type) 
   \<equiv> resTy (pars_more m)" 
 
-instance resT_field_type :: ("type","type") has_resTy
-by (intro_classes)
+instance resT_field_type :: ("type","type") has_resTy ..
 
 defs (overloaded)
 resT_field_type_resTy_def: 
@@ -473,8 +459,7 @@ done
 lemma resTy_mhead [simp]:"resTy (mhead m) = resTy m"
 by (simp add: mhead_def mhead_resTy_simp)
 
-instance * :: ("type","has_resTy") has_resTy
-by (intro_classes)
+instance * :: ("type","has_resTy") has_resTy ..
 
 defs (overloaded)
 pair_resTy_def: "resTy p \<equiv> resTy (snd p)"

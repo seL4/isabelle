@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/AxCompl.thy
     ID:         $Id$
     Author:     David von Oheimb
-    Copyright   1999 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*

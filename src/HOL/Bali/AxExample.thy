@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/AxExample.thy
     ID:         $Id$
     Author:     David von Oheimb
-    Copyright   2000 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Example of a proof based on the Bali axiomatic semantics *}
 

@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/AxSem.thy
     ID:         $Id$
     Author:     David von Oheimb
-    Copyright   1998 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Axiomatic semantics of Java expressions and statements 

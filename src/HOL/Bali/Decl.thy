@@ -51,8 +51,7 @@ most restrictive access and public the most liberal access policy:
   Private < Package < Protected < Public
 *}
  
-instance acc_modi:: ord
-by intro_classes
+instance acc_modi:: ord ..
 
 defs (overloaded)
 less_acc_def: 
@@ -66,7 +65,7 @@ le_acc_def:
  "a \<le> (b::acc_modi) \<equiv> (a = b) \<or> (a < b)"
 
 instance acc_modi:: order
-proof (intro_classes)
+proof
   fix x y z::acc_modi
   {
   show "x \<le> x"               \<spacespace>\<spacespace>    -- reflexivity
@@ -91,7 +90,7 @@ proof (intro_classes)
 qed
   
 instance acc_modi:: linorder
-proof intro_classes
+proof
   fix x y:: acc_modi
   show  "x \<le> y \<or> y \<le> x"   
   by (auto simp add: less_acc_def le_acc_def split add: acc_modi.split)
@@ -238,8 +237,7 @@ axclass has_memberid < "type"
 consts
  memberid :: "'a::has_memberid \<Rightarrow> memberid"
 
-instance memberdecl::has_memberid
-by (intro_classes)
+instance memberdecl::has_memberid ..
 
 defs (overloaded)
 memberdecl_memberid_def:
@@ -259,8 +257,7 @@ by (simp add: memberdecl_memberid_def)
 lemma memberid_mdecl_simp1: "memberid (mdecl m) = mid (fst m)"
 by (cases m) (simp add: memberdecl_memberid_def)
 
-instance * :: ("type","has_memberid") has_memberid
-by (intro_classes)
+instance * :: (type, has_memberid) has_memberid ..
 
 defs (overloaded)
 pair_memberid_def:

@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Evaln.thy
     ID:         $Id$
     Author:     David von Oheimb
-    Copyright   1999 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Operational evaluation (big-step) semantics of Java expressions and 
           statements

@@ -11,11 +11,6 @@ theory Basis = Main:
 ML_setup {*
 Unify.search_bound := 40;
 Unify.trace_bound  := 40;
-
-quick_and_dirty:=true;
-
-Pretty.setmargin 77;
-goals_limit:=2;
 *}
 (*print_depth 100;*)
 (*Syntax.ambiguity_level := 1;*)
