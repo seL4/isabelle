@@ -3,6 +3,9 @@
    Author:      Max Breitling, Carsten Clasohm, Tobias Nipkow, Norbert Voelker,
                 Konrad Slind
    Copyright 1995 TU Muenchen
+
+TODO:
+  - handle internal / external names
 *)
 
 (** Information about datatypes **)
