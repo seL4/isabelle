@@ -280,65 +280,74 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM state'\\<surd>";
 by(forward_tac [wt_jvm_progD] 1);
 by(etac exE 1);
-by (asm_full_simp_tac (simpset()addsimps[raise_xcpt_def]@defs1 
+by(asm_full_simp_tac (simpset() addsimps defs1) 1);
+by(Clarify_tac 1);
+by(exhaust_tac "X\\<noteq>NT" 1); 
+ by (asm_full_simp_tac (simpset()addsimps[raise_xcpt_def]@defs1 
 	addsplits [option.split]) 1);
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps defs1) 1);
-bd approx_stk_append_lemma 1;   
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
-bd conf_RefTD 1;
-by (Clarify_tac 1);
-by(rename_tac "oloc oT ofs T'" 1);
-by (asm_full_simp_tac (simpset() addsimps defs1) 1);
-bd subtype_widen_methd 1;
+ by (Clarify_tac 1);
+ by (asm_full_simp_tac (simpset() addsimps defs1) 1);
+ bd approx_stk_append_lemma 1;   
+ by (Clarify_tac 1);
+ by (asm_full_simp_tac (simpset() addsimps [approx_val_def]) 1);
+ bd conf_RefTD 1;
+ by (Clarify_tac 1);
+ by(rename_tac "oloc oT ofs T'" 1);
+ by (asm_full_simp_tac (simpset() addsimps defs1) 1);
+ bd subtype_widen_methd 1;
+   ba 1;
   ba 1;
- ba 1;
-be exE 1;
-by(rename_tac "oT'" 1);
-by (Clarify_tac 1);
-by(subgoal_tac "G \\<turnstile> oT \\<preceq>C oT'" 1);
- by(forw_inst_tac [("C","oT")](standard(rotate_prems 1 method_wf_mdecl)) 2);
-  ba 2;
- by(Blast_tac 2);
-by (asm_full_simp_tac (simpset() addsimps defs1) 1);
-by(forward_tac [method_in_md] 1);
- ba 1;
- back();
- back();
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps defs1) 1);
-by (forward_tac [wt_jvm_prog_impl_wt_start] 1);
- ba 1;
- back();
-by (asm_full_simp_tac (simpset() addsimps [wt_start_def,sup_state_def]) 1);
-by (Clarify_tac 1);
+ be exE 1;
+ by(rename_tac "oT'" 1);
+ by (Clarify_tac 1);
+ by(subgoal_tac "G \\<turnstile> oT \\<preceq>C oT'" 1);
+  by(forw_inst_tac [("C","oT")](standard(rotate_prems 1 method_wf_mdecl)) 2);
+   ba 2;
+  by(Blast_tac 2);
+ by (asm_full_simp_tac (simpset() addsimps defs1) 1);
+ by(forward_tac [method_in_md] 1);
+  ba 1;
+  back();
+  back();
+ by (Clarify_tac 1);
+ by (asm_full_simp_tac (simpset() addsimps defs1) 1);
+ by (forward_tac [wt_jvm_prog_impl_wt_start] 1);
+  ba 1;
+  back();
+ by (asm_full_simp_tac (simpset() addsimps [wt_start_def,sup_state_def]) 1);
+ by (Clarify_tac 1);
 
 (** approx_loc **)
-br conjI 1;
- br approx_loc_imp_approx_loc_sup 1;
-   ba 1;
-  by (Fast_tac 2);
- by (asm_full_simp_tac (simpset() addsimps [split_def,approx_val_def,approx_loc_append]) 1);
  br conjI 1;
-  br conf_widen 1;
+  br approx_loc_imp_approx_loc_sup 1;
     ba 1;
    by (Fast_tac 2);
-  by (asm_full_simp_tac (simpset() addsimps [conf_def]) 1);
+  by (asm_full_simp_tac (simpset() addsimps [split_def,approx_val_def,approx_loc_append]) 1);
+  br conjI 1;
+   br conf_widen 1;
+     ba 1;
+    by (Fast_tac 2);
+   by (asm_full_simp_tac (simpset() addsimps [conf_def]) 1);
+  br conjI 1;
+   by (fast_tac (claset() addIs [approx_stk_rev RS iffD2 RSN(4,assConv_approx_stk_imp_approx_loc)] 
+ 	addss (simpset() addsimps [split_def,approx_val_def])) 1);
+  by (asm_simp_tac (simpset() addsimps [list_all2_def,split_def,approx_loc_def,approx_val_None,set_replicate_conv_if]) 1);
+ 
  br conjI 1;
-  by (fast_tac (claset() addIs [approx_stk_rev RS iffD2 RSN(4,assConv_approx_stk_imp_approx_loc)] 
-	addss (simpset() addsimps [split_def,approx_val_def])) 1);
- by (asm_simp_tac (simpset() addsimps [list_all2_def,split_def,approx_loc_def,approx_val_None,set_replicate_conv_if]) 1);
-
-br conjI 1;
- by (asm_simp_tac (simpset() addsimps [min_def]) 1);
-br exI 1;
-br exI 1;
-br conjI 1;
- by(Blast_tac 1);
-by (fast_tac (claset()
-       addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup]
-       addss (simpset()addsimps [map_eq_Cons])) 1);
+  by (asm_simp_tac (simpset() addsimps [min_def]) 1);
+ br exI 1;
+ br exI 1;
+ br conjI 1;
+  by(Blast_tac 1);
+ by (fast_tac (claset()
+        addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup]
+        addss (simpset()addsimps [map_eq_Cons])) 1);
+by (Asm_full_simp_tac 1);
+bd approx_stk_append_lemma 1;
+by (Clarify_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [approx_val_def, raise_xcpt_def]) 1);
+bd conf_NullTD 1;
+by (Asm_simp_tac 1);
 qed "Invoke_correct";
 
 Goal
