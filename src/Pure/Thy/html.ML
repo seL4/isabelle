@@ -34,7 +34,7 @@ sig
     (Url.T option * Url.T * bool option) list -> text -> text
   val end_theory: text
   val ml_file: Url.T -> string -> text
-  val result: string -> string -> thm -> text
+  val multi_result: string * (string * thm list) list -> text
   val results: string -> string -> thm list -> text
   val theorem: string -> thm -> text
   val theorems: string -> thm list -> text
@@ -277,10 +277,13 @@ fun thm_name "" = ""
 
 in
 
-fun result k a th = para (keyword k ^ thm_name a ^ "\n" ^ thm th);
 fun results k a ths = para (cat_lines ((keyword k ^ thm_name a) :: map thm ths));
 
-val theorem = result "theorem";
+fun multi_result (_, []) = ""
+  | multi_result (k, ((a, ths) :: res)) =
+      cat_lines (results k a ths :: map (uncurry (results "and")) res);
+
+fun theorem a th = multi_result ("theorem", [(a, [th])]);
 val theorems = results "theorems";
 
 end;

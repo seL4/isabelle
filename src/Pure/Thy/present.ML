@@ -25,7 +25,7 @@ sig
   val old_symbol_source: string -> (unit -> Symbol.symbol list) -> unit
   val theory_output: string -> string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
-  val result: string -> string -> thm -> unit
+  val multi_result: string * (string * thm list) list -> unit
   val results: string -> string -> thm list -> unit
   val theorem: string -> thm -> unit
   val theorems: string -> thm list -> unit
@@ -466,7 +466,7 @@ fun begin_theory name raw_parents orig_files thy =
   end);
 
 
-fun result k a thm = with_session () (fn _ => with_context add_html (HTML.result k a thm));
+fun multi_result res = with_session () (fn _ => with_context add_html (HTML.multi_result res));
 fun results k a thms = with_session () (fn _ => with_context add_html (HTML.results k a thms));
 fun theorem a thm = with_session () (fn _ => with_context add_html (HTML.theorem a thm));
 fun theorems a thms = with_session () (fn _ => with_context add_html (HTML.theorems a thms));
