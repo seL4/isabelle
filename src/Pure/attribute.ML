@@ -17,6 +17,8 @@ sig
   include BASIC_ATTRIBUTE
   val thm_of: tthm -> thm
   val tthm_of: thm -> tthm
+  val lift_modifier: ('a * thm list -> 'b) -> 'a * tthm list -> 'b
+  val rule: ('b -> 'a) -> ('a -> thm -> thm) -> 'b attribute
   val none: 'a -> 'a * 'b attribute list
   val no_attrs: 'a * 'b -> ('a * ('b * tag list)) * 'c attribute list
   val no_attrss: 'a * 'b list -> ('a * ('b * tag list) list) * 'c attribute list
@@ -46,6 +48,10 @@ type 'a attribute = 'a * tthm -> 'a * tthm;
 
 fun thm_of (thm, _) = thm;
 fun tthm_of thm = (thm, []);
+
+fun lift_modifier f (x, tthms) = f (x, map thm_of tthms);
+
+fun rule get_data f (x, (thm, tags)) = (x, (f (get_data x) thm, tags));
 
 fun none x = (x, []);
 fun no_attrs (x, y) = ((x, (y, [])), []);
