@@ -183,7 +183,7 @@ fun prep_var (Var (ixn, _), Some x) = Some (implode (tl (explode (Syntax.string_
   | prep_var _ = None;
 
 fun prep_inst (concl, xs) =	(*exception LIST*)
-  let val vs = InductMethod.vars_of concl
+  let val vs = InductAttrib.vars_of concl
   in mapfilter prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
 
 in
@@ -199,7 +199,7 @@ fun gen_induct_tac (varss, opt_rule) i state =
           let val tn = find_tname (hd (mapfilter I (flat varss))) Bi
           in (#induction (datatype_info_sg_err sign tn), "Induction rule for type " ^ tn) end);
 
-    val concls = InductMethod.concls_of rule;
+    val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = flat (map prep_inst (concls ~~ varss)) handle LIST _ =>
       error (rule_name ^ " has different numbers of variables");
   in occs_in_prems (Tactic.res_inst_tac insts rule) (map #2 insts) i state end;
