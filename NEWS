@@ -116,6 +116,9 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 result is not stored, but proper checks and presentation of the result
 still apply;
 
+* New function thm_deps for visualizing dependencies between theorems
+  (using graph browser).
+
 
 *** HOL ***
 
@@ -177,6 +180,14 @@ analysis for assembly languages with subtypes;
 -- avoids syntactic ambiguities and treats state, transition, and
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
 changed syntax and (many) tactics;
+
+* HOL/inductive: Now also handles more complicated introduction rules
+  such as
+
+  "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
+
+  New monotonicity theorems can be added to a theory using the "mono"
+  attribute.
 
 * HOL/datatype: Now also handles arbitrarily branching datatypes
   (using function types) such as
