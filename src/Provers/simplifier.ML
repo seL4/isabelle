@@ -22,14 +22,14 @@ sig
   val rep_ss: simpset ->
    {mss: meta_simpset,
     subgoal_tac:        simpset -> int -> tactic,
-    loop_tac:                      int -> tactic,
+    loop_tacs:          (string * (int -> tactic))list,
            finish_tac: thm list -> int -> tactic,
     unsafe_finish_tac: thm list -> int -> tactic};
   val print_ss: simpset -> unit
   val print_simpset: theory -> unit
   val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
   val setloop:      simpset *             (int -> tactic) -> simpset
-  val addloop:      simpset *             (int -> tactic) -> simpset
+  val addloop:      simpset *  (string * (int -> tactic)) -> simpset
   val setSSolver:   simpset * (thm list -> int -> tactic) -> simpset
   val addSSolver:   simpset * (thm list -> int -> tactic) -> simpset
   val setSolver:    simpset * (thm list -> int -> tactic) -> simpset
@@ -102,16 +102,16 @@ datatype simpset =
   Simpset of {
     mss: meta_simpset,
     subgoal_tac:        simpset -> int -> tactic,
-    loop_tac:                      int -> tactic,
+    loop_tacs:          (string * (int -> tactic))list,
            finish_tac: thm list -> int -> tactic,
     unsafe_finish_tac: thm list -> int -> tactic};
 
-fun make_ss (mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac) =
-  Simpset {mss = mss, subgoal_tac = subgoal_tac, loop_tac = loop_tac,
+fun make_ss (mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac) =
+  Simpset {mss = mss, subgoal_tac = subgoal_tac, loop_tacs = loop_tacs,
     finish_tac = finish_tac, unsafe_finish_tac = unsafe_finish_tac};
 
 val empty_ss =
-  make_ss (Thm.empty_mss, K (K no_tac), K no_tac, K (K no_tac), K (K no_tac));
+  make_ss (Thm.empty_mss, K (K no_tac), [], K (K no_tac), K (K no_tac));
 
 fun rep_ss (Simpset args) = args;
 fun prems_of_ss (Simpset {mss, ...}) = Thm.prems_of_mss mss;
@@ -136,90 +136,89 @@ fun print_ss ss =
 
 (* extend simpsets *)
 
-fun (Simpset {mss, subgoal_tac = _, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac = _, loop_tacs, finish_tac, unsafe_finish_tac})
     setsubgoaler subgoal_tac =
-  make_ss (mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+  make_ss (mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac = _, finish_tac, unsafe_finish_tac})
-    setloop loop_tac =
-  make_ss (mss, subgoal_tac, DETERM o loop_tac, finish_tac, unsafe_finish_tac);
+fun (Simpset {mss, subgoal_tac, loop_tacs = _, finish_tac, unsafe_finish_tac})
+    setloop tac =
+  make_ss (mss, subgoal_tac, [("",tac)], finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
-    addloop tac =
-  make_ss (mss, subgoal_tac, loop_tac ORELSE' (DETERM o tac), finish_tac, unsafe_finish_tac);
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
+    addloop atac =
+  make_ss (mss, subgoal_tac, overwrite(loop_tacs,atac),
+           finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac = _, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac = _, unsafe_finish_tac})
     setSSolver finish_tac =
-  make_ss (mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+  make_ss (mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addSSolver tac =
-  make_ss (mss, subgoal_tac, loop_tac, fn hyps => finish_tac hyps ORELSE' tac hyps,
+  make_ss (mss, subgoal_tac, loop_tacs, fn hyps => finish_tac hyps ORELSE' tac hyps,
     unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac = _})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac = _})
     setSolver unsafe_finish_tac =
-  make_ss (mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+  make_ss (mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addSolver tac =
-  make_ss (mss, subgoal_tac, loop_tac, finish_tac,
+  make_ss (mss, subgoal_tac, loop_tacs, finish_tac,
     fn hyps => unsafe_finish_tac hyps ORELSE' tac hyps);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     setmksimps mk_simps =
   make_ss (Thm.set_mk_rews (mss, map (Thm.strip_shyps o Drule.zero_var_indexes) o mk_simps),
-    subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+    subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac,  finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs,  finish_tac, unsafe_finish_tac})
     settermless termless =
-  make_ss (Thm.set_termless (mss, termless), subgoal_tac, loop_tac,
+  make_ss (Thm.set_termless (mss, termless), subgoal_tac, loop_tacs,
     finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addsimps rews =
-  let val rews' = flat (map (Thm.mk_rews_of_mss mss) rews) in
-    make_ss (Thm.add_simps (mss, rews'), subgoal_tac, loop_tac,
-      finish_tac, unsafe_finish_tac)
-  end;
+  make_ss (Thm.add_simps (mss, rews), subgoal_tac, loop_tacs,
+           finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     delsimps rews =
-  let val rews' = flat (map (Thm.mk_rews_of_mss mss) rews) in
-    make_ss (Thm.del_simps (mss, rews'), subgoal_tac, loop_tac,
-      finish_tac, unsafe_finish_tac)
-  end;
+  make_ss (Thm.del_simps (mss, rews), subgoal_tac, loop_tacs,
+           finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addeqcongs newcongs =
-  make_ss (Thm.add_congs (mss, newcongs), subgoal_tac, loop_tac,
+  make_ss (Thm.add_congs (mss, newcongs), subgoal_tac, loop_tacs,
     finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     deleqcongs oldcongs =
-  make_ss (Thm.del_congs (mss, oldcongs), subgoal_tac, loop_tac,
+  make_ss (Thm.del_congs (mss, oldcongs), subgoal_tac, loop_tacs,
     finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     addsimprocs simprocs =
   make_ss
     (Thm.add_simprocs (mss, map rep_simproc simprocs),
-      subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+      subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
-fun (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac})
+fun (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac})
     delsimprocs simprocs =
   make_ss
     (Thm.del_simprocs (mss, map rep_simproc simprocs),
-      subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+      subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
 
 
 (* merge simpsets *)	(*NOTE: ignores tactics of 2nd simpset*)
 
 fun merge_ss
-   (Simpset {mss = mss1, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac},
-    Simpset {mss = mss2, ...}) =
-  make_ss (Thm.merge_mss (mss1, mss2),
-    subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+   (Simpset {mss = mss1, loop_tacs = loop_tacs1,
+             subgoal_tac, finish_tac, unsafe_finish_tac},
+    Simpset {mss = mss2, loop_tacs = loop_tacs2, ...}) =
+  make_ss (Thm.merge_mss (mss1, mss2), subgoal_tac,
+           foldl overwrite (loop_tacs1,loop_tacs2),
+           finish_tac, unsafe_finish_tac);
 
 
 
@@ -278,24 +277,25 @@ val Delsimprocs = change_simpset (op delsimprocs);
 
 (** simplification tactics **)
 
-fun solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac) mss =
+fun solve_all_tac (subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac) mss =
   let
     val ss =
-      make_ss (mss, subgoal_tac, loop_tac, unsafe_finish_tac, unsafe_finish_tac);
+      make_ss (mss, subgoal_tac, loop_tacs, unsafe_finish_tac, unsafe_finish_tac);
     val solve1_tac = (subgoal_tac ss THEN_ALL_NEW (K no_tac)) 1
   in DEPTH_SOLVE solve1_tac end;
 
+fun loop_tac loop_tacs = FIRST'(map snd loop_tacs);
 
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
 fun basic_gen_simp_tac mode =
-  fn (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac}) =>
+  fn (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac}) =>
     let
       fun simp_loop_tac i =
         asm_rewrite_goal_tac mode
-          (solve_all_tac (subgoal_tac,loop_tac,finish_tac,unsafe_finish_tac))
+          (solve_all_tac (subgoal_tac,loop_tacs,finish_tac,unsafe_finish_tac))
           mss i
         THEN (finish_tac (prems_of_mss mss) i ORELSE
-              TRY ((loop_tac THEN_ALL_NEW simp_loop_tac) i))
+              TRY ((loop_tac loop_tacs THEN_ALL_NEW simp_loop_tac) i))
     in simp_loop_tac end;
 
 fun gen_simp_tac mode (ss as Simpset {unsafe_finish_tac, ...}) =
@@ -321,9 +321,9 @@ fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 
 (** simplification meta rules **)
 
-fun simp mode (Simpset {mss, subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac}) thm =
+fun simp mode (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac}) thm =
   let
-    val tacf = solve_all_tac (subgoal_tac, loop_tac, finish_tac, unsafe_finish_tac);
+    val tacf = solve_all_tac (subgoal_tac, loop_tacs, finish_tac, unsafe_finish_tac);
     fun prover m th = apsome fst (Seq.pull (tacf m th));
   in
     Drule.rewrite_thm mode prover mss thm

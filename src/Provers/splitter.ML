@@ -18,6 +18,8 @@ where splits = [P(elim(...)) == rhs, ...]
 
 local
 
+fun split_format_err() = error("Wrong format for split rule");
+
 fun mk_case_split_tac_2 iffD order =
 let
 
@@ -242,7 +244,6 @@ fun inst_split Ts t tt thm TB state i =
     term_lift_inst_rule (state, i, ixnTs, [((P2, T), abss (cntxt, Ts))], thm)
   end;
 
-
 (*****************************************************************************
    The split-tactic
    
@@ -256,8 +257,8 @@ fun split_tac [] i = no_tac
             (case concl_of thm of _$(t as _$lhs)$_ =>
                (case strip_comb lhs of (Const(a,_),args) =>
                   (a,(thm,fastype_of t,length args))
-                | _ => error("Wrong format for split rule"))
-             | _ => error("Wrong format for split rule"))
+                | _ => split_format_err())
+             | _ => split_format_err())
       val cmap = map const splits;
       fun lift_tac Ts t p st = (rtac (inst_lift Ts t p st trlift i) i) st
       fun lift_split_tac st = st |>
@@ -278,6 +279,16 @@ fun split_tac [] i = no_tac
 
 in split_tac end;
 
+(* FIXME: this junk is only HOL specific and should therefore not go here! *)
+(* const_of_split_thm is used in HOL/simpdata.ML *)
+
+fun const_of_split_thm thm =
+  (case concl_of thm of
+     Const("Trueprop",_) $ (Const("op =", _)$(Var _$t)$_) =>
+        (case strip_comb t of
+           (Const(a,_),_) => a
+         | _              => split_format_err())
+   | _ => split_format_err());
 
 fun mk_case_split_asm_tac split_tac 
 			  (disjE,conjE,exE,contrapos,contrapos2,notnotD) = 
@@ -292,13 +303,7 @@ let
 
 fun split_asm_tac []     = K no_tac
   | split_asm_tac splits = 
-  let fun const thm =
-            (case concl_of thm of Const ("Trueprop",_)$
-				 (Const ("op =", _)$(Var _$t)$_) =>
-               (case strip_comb t of (Const(a,_),_) => a
-                | _ => error("Wrong format for split rule"))
-             | _ =>    error("Wrong format for split rule"))
-      val cname_list = map const splits;
+  let val cname_list = map const_of_split_thm splits;
       fun is_case (a,_) = a mem cname_list;
       fun tac (t,i) = 
 	  let val n = find_index (exists_Const is_case) 
@@ -329,6 +334,8 @@ in split_asm_tac end;
 
 
 in
+
+val const_of_split_thm = const_of_split_thm;
 
 fun mk_case_split_tac iffD = mk_case_split_tac_2 iffD int_ord;
 
