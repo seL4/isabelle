@@ -106,7 +106,8 @@ fun reresolve_tac rules =
 fun repeat_goal_tac (Pack(safes,unsafes)) = 
   let val restac  =    RESOLVE_THEN safes
       and lastrestac = RESOLVE_THEN unsafes;
-      fun gtac i = restac gtac i  ORELSE  (print_tac THEN lastrestac gtac i)
+      fun gtac i = restac gtac i  
+	           ORELSE  (print_tac "" THEN lastrestac gtac i)
   in  gtac  end; 
 
 
