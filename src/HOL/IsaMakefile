@@ -12,7 +12,7 @@ test: HOL-Subst HOL-Induct HOL-IMP HOL-Hoare HOL-Lex \
   HOL-Auth HOL-UNITY HOL-Modelcheck HOL-Lambda HOL-W0 HOL-MiniML \
   HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Quot HOL-ex HOL-Isar_examples HOL-Real-ex \
-  TLA-Inc TLA-Buffer TLA-Memory
+  HOL-Real-HahnBanach TLA-Inc TLA-Buffer TLA-Memory
 
 all: images test
 
@@ -92,6 +92,21 @@ HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
 
 $(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML Real/ex/BinEx.ML
 	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
+
+
+## HOL-Real-HahnBanach
+
+HOL-Real-HahnBanach: HOL-Real $(LOG)/HOL-Real-HahnBanach.gz
+
+$(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy	\
+  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy		\
+  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy	\
+  Real/HahnBanach/HahnBanach_h0_lemmas.thy				\
+  Real/HahnBanach/HahnBanach_lemmas.thy					\
+  Real/HahnBanach/LinearSpace.thy Real/HahnBanach/Linearform.thy	\
+  Real/HahnBanach/NormedSpace.thy Real/HahnBanach/ROOT.ML		\
+  Real/HahnBanach/Subspace.thy Real/HahnBanach/Zorn_Lemma.thy
+	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real HahnBanach
 
 
 ## HOL-Subst
@@ -406,4 +421,5 @@ clean:
 	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
 	  $(LOG)/HOL-ex.gz $(LOG)/HOL-Isar_examples.gz $(OUT)/TLA \
 	  $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz \
-	  $(LOG)/TLA-Memory.gz $(LOG)/HOL-Real-ex.gz
+	  $(LOG)/TLA-Memory.gz $(LOG)/HOL-Real-ex.gz \
+	  $(LOG)/HOL-Real-HahnBanach.gz
