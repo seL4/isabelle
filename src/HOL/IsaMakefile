@@ -484,13 +484,13 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy \
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
-  ex/BT.ML ex/BT.thy ex/BinEx.ML ex/BinEx.thy ex/Group.ML ex/Group.thy \
+  ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy \
   ex/InSort.ML ex/InSort.thy ex/IntRing.ML ex/IntRing.thy \
   ex/Lagrange.ML ex/Lagrange.thy ex/LocaleGroup.ML ex/LocaleGroup.thy \
-  ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.ML \
-  ex/NatSum.thy ex/PER.thy ex/PiSets.ML ex/PiSets.thy ex/Primrec.ML \
+  ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
+  ex/NatSum.thy ex/PER.thy ex/PiSets.ML ex/PiSets.thy \
   ex/Primrec.thy ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
-  ex/ROOT.ML ex/Recdefs.ML ex/Recdefs.thy ex/Records.thy ex/Ring.ML \
+  ex/ROOT.ML ex/Recdefs.thy ex/Records.thy ex/Ring.ML \
   ex/Ring.thy ex/StringEx.thy ex/Tarski.ML \
   ex/Tarski.thy ex/Tuple.thy ex/cla.ML ex/mesontest.ML ex/mesontest2.ML \
   ex/mesontest2.thy ex/set.ML ex/set.thy ex/svc_test.ML ex/svc_test.thy
