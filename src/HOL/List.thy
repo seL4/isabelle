@@ -33,18 +33,25 @@ consts
 
 syntax
   (* list Enumeration *)
-  "@list"     :: args => 'a list                        ("[(_)]")
+  "@list"     :: args => 'a list                          ("[(_)]")
 
   (* Special syntax for list_all and filter *)
-  "@Alls"     :: [idt, 'a list, bool] => bool         ("(2Alls _:_./ _)" 10)
-  "@filter"   :: [idt, 'a list, bool] => 'a list      ("(1[_:_ ./ _])")
+  "@Alls"     :: [idt, 'a list, bool] => bool             ("(2Alls _:_./ _)" 10)
+  "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_:_ ./ _])")
 
 translations
   "[x, xs]"     == "x#[xs]"
   "[x]"         == "x#[]"
-
   "[x:xs . P]"  == "filter (%x.P) xs"
   "Alls x:xs.P" == "list_all (%x.P) xs"
+
+syntax (symbols)
+  "op #"      :: ['a, 'a list] => 'a list                 (infixr "\\<bullet>" 65)
+  "op @"      :: ['a list, 'a list] => 'a list            (infixr "\\<circ>" 65)
+  "op mem"    :: ['a, 'a list] => bool                    (infixl "\\<in>" 55)
+  "@Alls"     :: [idt, 'a list, bool] => bool             ("(2\\<forall> _\\<in>_./ _)" 10)
+  "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")
+
 
 primrec hd list
   "hd([]) = (@x.False)"
@@ -95,4 +102,3 @@ primrec take list
 defs
   nth_def  "nth(n) == nat_rec hd (%m r xs. r(tl(xs))) n"
 end
-
