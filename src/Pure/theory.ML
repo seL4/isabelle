@@ -36,7 +36,7 @@ sig
   val apply: (theory -> theory) list -> theory -> theory
   val axiomK: string
   val oracleK: string
-  (*theory extendsion primitives*)
+  (*theory extension primitives*)
   val add_classes: (bclass * xclass list) list -> theory -> theory
   val add_classes_i: (bclass * class list) list -> theory -> theory
   val add_classrel: (xclass * xclass) list -> theory -> theory
