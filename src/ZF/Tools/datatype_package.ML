@@ -392,7 +392,9 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
   (thy1 |> Theory.add_path big_rec_base_name
         |> PureThy.add_thmss [(("simps", simps), 
 			       [Simplifier.simp_add_global])]
-        |> PureThy.add_thmss [(("intrs", intrs), 
+        |> PureThy.add_thmss [(("", intrs),   
+                                (*not "intrs" to avoid the warning that they
+				  are already stored by the inductive package*)
 			       [Classical.safe_intro_global])]
         |> DatatypesData.put 
 	    (Symtab.update
