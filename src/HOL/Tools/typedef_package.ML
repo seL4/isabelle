@@ -34,9 +34,11 @@ fun add_typedecls decls thy =
     fun arity_of (raw_name, args, mx) =
       (full (Syntax.type_name raw_name mx), replicate (length args) HOLogic.termS, HOLogic.termS);
   in
-    thy
-    |> PureThy.add_typedecls decls
-    |> Theory.add_arities_i (map arity_of decls)
+    if can (Theory.assert_super HOL.thy) thy then
+      thy
+      |> PureThy.add_typedecls decls
+      |> Theory.add_arities_i (map arity_of decls)
+    else thy |> PureThy.add_typedecls decls
   end;
 
 
