@@ -32,11 +32,11 @@ HOL can be either. Theories must reside in files with the suffix
 \texttt{.thy}. The general format of a theory file \texttt{T.thy} is
 \begin{ttbox}
 T = B\(@1\) + \(\cdots\) + B\(@n\) +
-\({<}declarations{>}\)
+\({\langle}declarations{\rangle}\)
 end
 \end{ttbox}
 where \texttt{B}$@1$, \dots, \texttt{B}$@n$ are the names of existing
-theories that \texttt{T} is based on and ${<}declarations{>}$ stands for the
+theories that \texttt{T} is based on and ${\langle}declarations{\rangle}$ stands for the
 newly introduced concepts (types, functions etc). The \texttt{B}$@i$ are the
 direct \textbf{parent theories}\indexbold{parent theory} of \texttt{T}.
 Everything defined in the parent theories (and their parents \dots) is
@@ -56,7 +56,7 @@ and is recommended browsing.
 \end{warn}
 
 This tutorial is concerned with introducing you to the different linguistic
-constructs that can fill ${<}declarations{>}$ in the above theory template.
+constructs that can fill ${\langle}declarations{\rangle}$ in the above theory template.
 A complete grammar of the basic constructs is found in Appendix~A
 of~\cite{Isa-Ref-Man}, for reference in times of doubt.
 
@@ -254,12 +254,13 @@ suitably when the theorem is used in some other proof.
 \section{Getting started}
 
 Assuming you have installed Isabelle, you start it by typing \texttt{isabelle
-  HOL} in a shell window.\footnote{Since you will always want to use HOL when
-  studying this tutorial, you can set the shell variable
-  \texttt{ISABELLE_LOGIC} to \texttt{HOL} once and for all and simply execute
-  \texttt{isabelle}.} This presents you with Isabelle's most basic ASCII
-interface. In addition you need to open an editor window to create theories
-(\texttt{.thy} files) and proof scripts (\texttt{.ML} files). While you are
-developing a proof, we recommend to type each proof command into the ML-file
-first and then enter it into Isabelle by copy-and-paste, thus ensuring that
-you have a complete record of your proof.
+  HOL} in a shell window.\footnote{Simply executing \texttt{isabelle} without
+  an argument starts the default logic, which usually is already \texttt{HOL}.
+  This is controlled by the \texttt{ISABELLE_LOGIC} setting, see \emph{The
+    Isabelle System Manual} for more details.} This presents you with
+Isabelle's most basic ASCII interface.  In addition you need to open an editor
+window to create theories (\texttt{.thy} files) and proof scripts
+(\texttt{.ML} files). While you are developing a proof, we recommend to type
+each proof command into the ML-file first and then enter it into Isabelle by
+copy-and-paste, thus ensuring that you have a complete record of your proof.
+
