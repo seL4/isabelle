@@ -44,10 +44,13 @@ fun pgml () = pgmlN mem_string ! print_mode;
 
 local
 
+fun xsym_output "\\" = "\\\\"
+  | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
+
 fun xsymbols_output s =
   if xsymbolsN mem_string ! print_mode andalso exists_string (equal "\\") s then
     let val syms = Symbol.explode s
-    in (implode (map (fn "\\" => "\\\\" | c => c) syms), real (Symbol.length syms)) end
+    in (implode (map xsym_output syms), real (Symbol.length syms)) end
   else (s, real (size s));
 
 fun pgml_output (s, len) =
@@ -56,8 +59,8 @@ fun pgml_output (s, len) =
 
 in
 
-fun setup_xsymbols_output () =
-  Symbol.add_mode proof_generalN (pgml_output o xsymbols_output, Symbol.default_indent);
+fun setup_xsymbols_output () = Output.add_mode proof_generalN
+  (pgml_output o xsymbols_output, Symbol.default_indent, Symbol.default_raw);
 
 end;
 
@@ -239,7 +242,7 @@ fun proper_inform_file_processed file state =
     ThyInfo.if_known_thy ThyInfo.touch_child_thys name;
     if not (Toplevel.is_toplevel state) then
       warning ("Not at toplevel -- cannot register theory " ^ quote name)
-    else Library.transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
+    else transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
       (warning msg; warning ("Failed to register theory " ^ quote name))
   end;
 
@@ -302,7 +305,7 @@ val options = ref
    ("show-main-goal", ("Whether to show main goal.",
       bool_option Proof.show_main_goal)),
    ("global-timing", ("Whether to enable timing in Isabelle.",
-      bool_option Library.timing)),
+      bool_option Output.timing)),
    ("theorem-dependencies", ("Whether to track theorem dependencies within Proof General.",
       thm_deps_option)),
    ("goals-limit", ("Setting for maximum number of goals printed in Isabelle.",
