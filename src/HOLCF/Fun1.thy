@@ -12,14 +12,11 @@ REMARK: The ordering on 'a => 'b is only defined if 'b is in class po !!
 
 Fun1 = Pcpo +
 
-(* default class is still term *)
+(* to make << defineable: *)
+instance fun  :: (term,sq_ord)sq_ord
 
 defs
-   (* definition of the ordering less_fun            *)
-   (* in fun1.ML it is proved that less_fun is a po *)
-   
-  less_fun_def "less == (%f1 f2.!x. f1 x << f2 x)"  
-
+  less_fun_def "(op <<) == (%f1 f2.!x. f1 x << f2 x)"  
 end
 
 

@@ -12,7 +12,7 @@ open Cprod2;
 qed_goal "inst_cprod_po" thy "(op <<)=(%x y.fst x<<fst y & snd x<<snd y)"
  (fn prems => 
         [
-        (fold_goals_tac [po_def,less_cprod_def]),
+        (fold_goals_tac [less_cprod_def]),
         (rtac refl 1)
         ]);
 
@@ -71,7 +71,7 @@ qed_goalw "monofun_pair2" thy [monofun] "monofun(Pair x)"
         (asm_simp_tac (!simpset addsimps [inst_cprod_po]) 1)
         ]);
 
-qed_goal "monofun_pair" thy "[|x1<<x2; y1<<y2|] ==> (x1,y1) << (x2,y2)"
+qed_goal "monofun_pair" thy "[|x1<<x2; y1<<y2|] ==> (x1::'a::cpo,y1::'b::cpo)<<(x2,y2)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

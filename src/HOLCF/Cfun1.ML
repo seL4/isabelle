@@ -35,14 +35,14 @@ qed_goalw "Abs_Cfun_inverse" thy [fapp_def,fabs_def] "f:CFun==>fapp(fabs f)=f"
 (* less_cfun is a partial order on type 'a -> 'b                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "refl_less_cfun" thy [less_cfun_def] "less(f::'a->'b) f"
+qed_goalw "refl_less_cfun" thy [less_cfun_def] "(f::'a->'b) << f"
 (fn prems =>
         [
         (rtac refl_less 1)
         ]);
 
 qed_goalw "antisym_less_cfun" thy [less_cfun_def] 
-        "[|less (f1::'a->'b) f2; less f2 f1|] ==> f1 = f2"
+        "[|(f1::'a->'b) << f2; f2 << f1|] ==> f1 = f2"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -55,7 +55,7 @@ qed_goalw "antisym_less_cfun" thy [less_cfun_def]
         ]);
 
 qed_goalw "trans_less_cfun" thy [less_cfun_def] 
-        "[|less (f1::'a->'b) f2; less f2 f3|] ==> less f1 f3"
+        "[|(f1::'a->'b) << f2; f2 << f3|] ==> f1 << f3"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

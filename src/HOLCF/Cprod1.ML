@@ -24,11 +24,11 @@ qed_goal "Sel_injective_cprod" Prod.thy
         (Asm_simp_tac 1)
         ]);
 
-qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "less (p::'a*'b) p"
+qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "(p::'a*'b) << p"
  (fn prems => [Simp_tac 1]);
 
 qed_goalw "antisym_less_cprod" thy [less_cprod_def]
-        "[|less (p1::'a * 'b) p2;less p2 p1|] ==> p1=p2"
+        "[|(p1::'a * 'b) << p2;p2 << p1|] ==> p1=p2"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -38,7 +38,7 @@ qed_goalw "antisym_less_cprod" thy [less_cprod_def]
         ]);
 
 qed_goalw "trans_less_cprod" thy [less_cprod_def]
-        "[|less (p1::'a*'b) p2;less p2 p3|] ==> less p1 p3"
+        "[|(p1::'a*'b) << p2;p2 << p3|] ==> p1 << p3"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -10,7 +10,9 @@ Discrete0 = Cont +
 
 datatype 'a discr = Discr 'a
 
+instance discr :: (term)sq_ord
+
 defs
-less_discr_def "(less::('a::term)discr=>'a discr=>bool)  ==  op ="
+less_discr_def "((op <<)::('a::term)discr=>'a discr=>bool)  ==  op ="
 
 end

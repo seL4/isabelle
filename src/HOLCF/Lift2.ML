@@ -12,7 +12,7 @@ open Lift2;
 qed_goal "inst_lift_po" thy "(op <<)=(%x y.x=y|x=Undef)"
  (fn prems => 
         [
-        (fold_goals_tac [po_def,less_lift_def]),
+        (fold_goals_tac [less_lift_def]),
         (rtac refl 1)
         ]);
 

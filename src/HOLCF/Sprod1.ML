@@ -12,11 +12,11 @@ open Sprod1;
 (* less_sprod is a partial order on Sprod                                   *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "refl_less_sprod" thy [less_sprod_def]"less (p::'a ** 'b) p"
+qed_goalw "refl_less_sprod" thy [less_sprod_def]"(p::'a ** 'b) << p"
 (fn prems => [(fast_tac (HOL_cs addIs [refl_less]) 1)]);
 
 qed_goalw "antisym_less_sprod" thy [less_sprod_def]
-        "[|less (p1::'a ** 'b) p2;less p2 p1|] ==> p1=p2"
+        "[|(p1::'a ** 'b) << p2;p2 << p1|] ==> p1=p2"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -26,7 +26,7 @@ qed_goalw "antisym_less_sprod" thy [less_sprod_def]
         ]);
 
 qed_goalw "trans_less_sprod" thy [less_sprod_def]
-        "[|less (p1::'a**'b) p2;less p2 p3|] ==> less p1 p3"
+        "[|(p1::'a**'b) << p2;p2 << p3|] ==> p1 << p3"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

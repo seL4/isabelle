@@ -6,7 +6,7 @@
 Proves that 'a discr is a cpo
 *)
 
-goalw thy [po_def,less_discr_def] "((x::('a::term)discr) << y) = (x=y)";
+goalw thy [less_discr_def] "((x::('a::term)discr) << y) = (x=y)";
 by (rtac refl 1);
 qed "discr_less_eq";
 AddIffs [discr_less_eq];
@@ -14,7 +14,7 @@ AddIffs [discr_less_eq];
 goalw thy [is_chain]
  "!!S::nat=>('a::term)discr. is_chain S ==> S i = S 0";
 by (nat_ind_tac "i" 1);
- by (rtac refl 1);
+by (rtac refl 1);
 by (etac subst 1);
 by (rtac sym 1);
 by (Fast_tac 1);

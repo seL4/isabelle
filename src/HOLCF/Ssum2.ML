@@ -16,7 +16,7 @@ qed_goal "inst_ssum_po" thy "(op <<)=(%s1 s2.@z.\
 \        &(! v x.s1=Isinr v & s2=Isinl x --> z = (v = UU)))"
  (fn prems => 
         [
-        (fold_goals_tac [po_def,less_ssum_def]),
+        (fold_goals_tac [less_ssum_def]),
         (rtac refl 1)
         ]);
 
@@ -27,25 +27,25 @@ qed_goal "inst_ssum_po" thy "(op <<)=(%s1 s2.@z.\
 qed_goal "less_ssum3a" thy "Isinl x << Isinl y = x << y"
  (fn prems =>
         [
-        (simp_tac (!simpset addsimps [po_def,less_ssum2a]) 1)
+        (simp_tac (!simpset addsimps [less_ssum2a]) 1)
         ]);
 
 qed_goal "less_ssum3b" thy "Isinr x << Isinr y = x << y"
  (fn prems =>
         [
-        (simp_tac (!simpset addsimps [po_def,less_ssum2b]) 1)
+        (simp_tac (!simpset addsimps [less_ssum2b]) 1)
         ]);
 
 qed_goal "less_ssum3c" thy "Isinl x << Isinr y = (x = UU)"
  (fn prems =>
         [
-        (simp_tac (!simpset addsimps [po_def,less_ssum2c]) 1)
+        (simp_tac (!simpset addsimps [less_ssum2c]) 1)
         ]);
 
 qed_goal "less_ssum3d" thy "Isinr x << Isinl y = (x = UU)"
  (fn prems =>
         [
-        (simp_tac (!simpset addsimps [po_def,less_ssum2d]) 1)
+        (simp_tac (!simpset addsimps [less_ssum2d]) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)

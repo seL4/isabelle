@@ -9,25 +9,22 @@ Definition of class porder (partial order)
 
 Porder0 = Arith +
 
-(* first the global constant for HOLCF type classes *)
-consts
-  less        :: "['a,'a] => bool"
+	(* introduce a (syntactic) class for the constant << *)
+axclass sq_ord<term
 
-axclass po < term
-        (* class axioms: *)
-ax_refl_less       "less x x"        
-ax_antisym_less    "[|less x y; less y x |] ==> x = y"    
-ax_trans_less      "[|less x y; less y z |] ==> less x z"
- 
-	(* characteristic constant << on po *)
+	(* characteristic constant << for po *)
 consts
-  "<<"          :: "['a,'a::po] => bool"        (infixl 55)
+  "<<"          :: "['a,'a::sq_ord] => bool"        (infixl 55)
 
 syntax (symbols)
-  "op <<"       :: "['a,'a::po] => bool"        (infixl "\\<sqsubseteq>" 55)
+  "op <<"       :: "['a,'a::sq_ord] => bool"        (infixl "\\<sqsubseteq>" 55)
 
-defs
-po_def             "(op <<) == less"
+axclass po < sq_ord
+        (* class axioms: *)
+refl_less       "x << x"        
+antisym_less    "[|x << y; y << x |] ==> x = y"    
+trans_less      "[|x << y; y << z |] ==> x << z"
+ 
 end 
 
 

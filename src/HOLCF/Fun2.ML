@@ -12,7 +12,7 @@ open Fun2;
 qed_goal "inst_fun_po" thy "(op <<)=(%f g.!x.f x << g x)"
  (fn prems => 
         [
-	(fold_goals_tac [po_def,less_fun_def]),
+	(fold_goals_tac [less_fun_def]),
 	(rtac refl 1)
         ]);
 

@@ -12,8 +12,9 @@ default term
 
 datatype 'a lift = Undef | Def 'a
 
+instance lift :: (term)sq_ord
 defs 
  
- less_lift_def  "less x y == (x=y | x=Undef)"
+ less_lift_def  "x << y == (x=y | x=Undef)"
 
 end

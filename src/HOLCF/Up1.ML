@@ -93,7 +93,7 @@ qed_goalw "Ifup2"  thy [Ifup_def,Iup_def]
 val Up0_ss = (simpset_of "Cfun3") addsimps [Ifup1,Ifup2];
 
 qed_goalw "less_up1a"  thy [less_up_def]
-        "less(Abs_Up(Inl ()))(z)"
+        "Abs_Up(Inl ())<< z"
  (fn prems =>
         [
         (stac Abs_Up_inverse2 1),
@@ -102,7 +102,7 @@ qed_goalw "less_up1a"  thy [less_up_def]
         ]);
 
 qed_goalw "less_up1b" thy [Iup_def,less_up_def]
-        "~less (Iup x) (Abs_Up(Inl ()))"
+        "~(Iup x) << (Abs_Up(Inl ()))"
  (fn prems =>
         [
         (rtac notI 1),
@@ -116,7 +116,7 @@ qed_goalw "less_up1b" thy [Iup_def,less_up_def]
         ]);
 
 qed_goalw "less_up1c"  thy [Iup_def,less_up_def]
-        "less (Iup x) (Iup y)=(x<<y)"
+        " (Iup x) << (Iup y)=(x<<y)"
  (fn prems =>
         [
         (stac Abs_Up_inverse2 1),
@@ -127,7 +127,7 @@ qed_goalw "less_up1c"  thy [Iup_def,less_up_def]
         ]);
 
 
-qed_goal "refl_less_up"  thy "less (p::'a u) p"
+qed_goal "refl_less_up"  thy "(p::'a u) << p"
  (fn prems =>
         [
         (res_inst_tac [("p","p")] upE 1),
@@ -139,7 +139,7 @@ qed_goal "refl_less_up"  thy "less (p::'a u) p"
         ]);
 
 qed_goal "antisym_less_up"  thy 
-        "!!p1.[|less(p1::'a u) p2;less p2 p1|] ==> p1=p2"
+        "!!p1.[|(p1::'a u) << p2;p2 << p1|] ==> p1=p2"
  (fn _ =>
         [
         (res_inst_tac [("p","p1")] upE 1),
@@ -147,13 +147,13 @@ qed_goal "antisym_less_up"  thy
         (res_inst_tac [("p","p2")] upE 1),
         (etac sym 1),
         (hyp_subst_tac 1),
-        (res_inst_tac [("P","less (Iup x) (Abs_Up(Inl ()))")] notE 1),
+        (res_inst_tac [("P","(Iup x) << (Abs_Up(Inl ()))")] notE 1),
         (rtac less_up1b 1),
         (atac 1),
         (hyp_subst_tac 1),
         (res_inst_tac [("p","p2")] upE 1),
         (hyp_subst_tac 1),
-        (res_inst_tac [("P","less (Iup x) (Abs_Up(Inl ()))")] notE 1),
+        (res_inst_tac [("P","(Iup x) << (Abs_Up(Inl ()))")] notE 1),
         (rtac less_up1b 1),
         (atac 1),
         (hyp_subst_tac 1),
@@ -164,7 +164,7 @@ qed_goal "antisym_less_up"  thy
         ]);
 
 qed_goal "trans_less_up"  thy 
-        "[|less (p1::'a u) p2;less p2 p3|] ==> less p1 p3"
+        "[|(p1::'a u) << p2;p2 << p3|] ==> p1 << p3"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

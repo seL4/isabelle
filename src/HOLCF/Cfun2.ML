@@ -12,7 +12,7 @@ open Cfun2;
 qed_goal "inst_cfun_po" thy "(op <<)=(%f1 f2.fapp f1 << fapp f2)"
  (fn prems => 
         [
-	(fold_goals_tac [po_def,less_cfun_def]),
+	(fold_goals_tac [less_cfun_def]),
 	(rtac refl 1)
         ]);
 

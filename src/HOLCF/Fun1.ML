@@ -12,14 +12,14 @@ open Fun1;
 (* less_fun is a partial order on 'a => 'b                                  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "refl_less_fun" thy [less_fun_def] "less(f::'a::term =>'b::po) f"
+qed_goalw "refl_less_fun" thy [less_fun_def] "(f::'a::term =>'b::po) << f"
 (fn prems =>
         [
         (fast_tac (HOL_cs addSIs [refl_less]) 1)
         ]);
 
 qed_goalw "antisym_less_fun" Fun1.thy [less_fun_def] 
-        "[|less (f1::'a::term =>'b::po) f2; less f2 f1|] ==> f1 = f2"
+        "[|(f1::'a::term =>'b::po) << f2; f2 << f1|] ==> f1 = f2"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -28,7 +28,7 @@ qed_goalw "antisym_less_fun" Fun1.thy [less_fun_def]
         ]);
 
 qed_goalw "trans_less_fun" Fun1.thy [less_fun_def] 
-        "[|less (f1::'a::term =>'b::po) f2; less f2 f3 |] ==> less f1 f3"
+        "[|(f1::'a::term =>'b::po) << f2; f2 << f3 |] ==> f1 << f3"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

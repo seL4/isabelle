@@ -15,7 +15,7 @@ qed_goal "inst_up_po" thy "(op <<)=(%x1 x2.case Rep_Up(x1) of \
 \                                            | Inr(z2) => y2<<z2))"
  (fn prems => 
         [
-        (fold_goals_tac [po_def,less_up_def]),
+        (fold_goals_tac [less_up_def]),
         (rtac refl 1)
         ]);
 
@@ -26,7 +26,7 @@ qed_goal "inst_up_po" thy "(op <<)=(%x1 x2.case Rep_Up(x1) of \
 qed_goal "minimal_up" thy "Abs_Up(Inl ()) << z"
  (fn prems =>
         [
-        (simp_tac (!simpset addsimps [po_def,less_up1a]) 1)
+        (simp_tac (!simpset addsimps [less_up1a]) 1)
         ]);
 
 bind_thm ("UU_up_def",minimal_up RS minimal2UU RS sym);
@@ -45,13 +45,13 @@ qed_goal "least_up" thy "? x::'a u.!y.x<<y"
 qed_goal "less_up2b" thy "~ Iup(x) << Abs_Up(Inl ())"
  (fn prems =>
         [
-        (simp_tac (!simpset addsimps [po_def,less_up1b]) 1)
+        (simp_tac (!simpset addsimps [less_up1b]) 1)
         ]);
 
 qed_goal "less_up2c" thy "(Iup(x)<<Iup(y)) = (x<<y)"
  (fn prems =>
         [
-        (simp_tac (!simpset addsimps [po_def,less_up1c]) 1)
+        (simp_tac (!simpset addsimps [less_up1c]) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)

@@ -13,6 +13,9 @@ default cpo
 
 typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f. cont f}" (CfunI)
 
+(* to make << defineable *)
+instance "->"  :: (cpo,cpo)sq_ord
+
 consts  
         fapp      :: "('a -> 'b)=>('a => 'b)"   (* usually Rep_Cfun *)
                                                 (* application      *)
@@ -33,6 +36,6 @@ defs
   fabs_def	"fabs==Abs_CFun"
   fapp_def	"fapp==Rep_CFun"
 
-  less_cfun_def "less == (% fo1 fo2. fapp fo1 << fapp fo2 )"
+  less_cfun_def "(op <<) == (% fo1 fo2. fapp fo1 << fapp fo2 )"
 
 end

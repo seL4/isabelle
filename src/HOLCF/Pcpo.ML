@@ -195,7 +195,7 @@ qed_goal "UU_I" thy "x << UU ==> x = UU"
         (resolve_tac prems 1)
         ]);
 
-qed_goal "not_less2not_eq" thy "~x<<y ==> ~x=y"
+qed_goal "not_less2not_eq" thy "~(x::'a::po)<<y ==> ~x=y"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -12,7 +12,7 @@ open Sprod2;
 qed_goal "inst_sprod_po" thy "(op <<)=(%x y.Isfst x<<Isfst y&Issnd x<<Issnd y)"
  (fn prems => 
         [
-	(fold_goals_tac [po_def,less_sprod_def]),
+	(fold_goals_tac [less_sprod_def]),
 	(rtac refl 1)
         ]);
 

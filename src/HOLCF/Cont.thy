@@ -11,7 +11,7 @@ Cont = Fun3 +
 (* 
 
    Now we change the default class! Form now on all untyped typevariables are
-   of default class pcpo
+   of default class po
 
 *)
 
