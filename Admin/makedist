@@ -121,8 +121,6 @@ cd $DISTBASE/$DISTNAME
 
 find . -name CVS -exec rm -rf {} \;
 
-( cd Tools/8bit; ./mk; )
-
 find Doc \( -name \*.dvi -o -name \*.eps -o -name \*.ps \) -exec mv {} Distribution/doc \;
 rm Distribution/doc/Isa-logics.eps
 rm -rf Admin Doc
@@ -133,11 +131,8 @@ mv $LOGICS src
 mv Distribution/* .
 rmdir Distribution
 
-# build theory browser
+( cd lib/browser; make; )
 
-cd lib/browser
-make
-cd ../..
 
 if [ -n "$UNOFFICIAL" ]; then
   {
