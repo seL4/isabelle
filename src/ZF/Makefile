@@ -23,7 +23,7 @@ BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 NAMES = ZF upair subset pair domrange \
 	func AC simpdata equalities Bool \
-	Sum QPair mono Fixedpt ind_syntax add_ind_def \
+	Sum QPair mono Fixedpt ind_syntax cartprod add_ind_def \
 	constructor intr_elim indrule Inductive Perm Rel EquivClass Trancl \
 	WF Order Ordinal Epsilon Arith Univ \
 	QUniv Datatype OrderArith OrderType \
