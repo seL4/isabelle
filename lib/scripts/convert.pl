@@ -281,7 +281,7 @@ while (<>) { # main loop
   s/^AddDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest")/seg;
   s/^AddSDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest!")/seg;
   s/^AddXDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest?")/seg;
-  s/^AddIffs\s*\[?\s*([\w\'\. ,]*)\s*\]?</decl($1,"iff")/seg;
+  s/^AddIffs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"iff")/seg;
   print "$_$tail";
   if(eof()) { last; } # prevents reading finally from stdin (thru <>)!
 }
