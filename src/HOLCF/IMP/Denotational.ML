@@ -16,10 +16,11 @@ by(Simp_tac 1);
 qed "cont_dlift";
 AddIffs [cont_dlift];
 
-goalw thy [dlift_def] "dlift f`l = Def y --> (? x. l = Def x)";
+goalw thy [dlift_def]
+ "(dlift f`l = Def y) = (? x. l = Def x & f`(Discr x) = Def y)";
 by(simp_tac (!simpset setloop (split_tac[expand_lift_case])) 1);
-qed_spec_mp "dlift_DefD";
-
+qed "dlift_is_Def";
+Addsimps [dlift_is_Def];
 
 goal thy "!!c. <c,s> -c-> t ==> D c`(Discr s) = (Def t)";
 be evalc.induct 1;
@@ -31,13 +32,7 @@ goal thy "!s t. D c`(Discr s) = (Def t) --> <c,s> -c-> t";
 by (com.induct_tac "c" 1);
     by (fast_tac ((HOL_cs addSIs evalc.intrs) addss !simpset) 1);
    by (fast_tac ((HOL_cs addSIs evalc.intrs) addss !simpset) 1);
-  by (Simp_tac 1);
-  by (strip_tac 1);
-  by (forward_tac [dlift_DefD] 1);
-  be exE 1;
-  by (rotate_tac ~1 1);
-  by (Asm_full_simp_tac 1);
-  by (fast_tac (HOL_cs addSIs evalc.intrs) 1);
+  by (fast_tac ((HOL_cs addSIs evalc.intrs) unsafe_addss !simpset) 1);
  by (simp_tac (!simpset setloop (split_tac[expand_if])) 1);
  by (fast_tac ((HOL_cs addIs evalc.intrs) unsafe_addss !simpset) 1);
 by (Simp_tac 1);
@@ -46,13 +41,7 @@ br fix_ind 1;
  by (Simp_tac 1);
 by (simp_tac (!simpset setloop (split_tac[expand_if])) 1);
 by (safe_tac HOL_cs);
-  (* case bexp s *)
-  by (forward_tac [dlift_DefD] 1);
-  be exE 1;
-  by (rotate_tac ~1 1);
-  by (Asm_full_simp_tac 1);
   by (fast_tac (HOL_cs addIs evalc.intrs) 1);
- (* case ~bexp s *)
  by (fast_tac ((HOL_cs addSIs evalc.intrs) unsafe_addss !simpset) 1);
 qed_spec_mp "D_implies_eval";
 
