@@ -227,10 +227,15 @@ val proof = ProofHistory.applys o Method.proof;
 
 (* local endings *)
 
-val local_qed = Toplevel.proof o ProofHistory.applys_close o Method.local_qed;
-val local_terminal_proof = Toplevel.proof o ProofHistory.applys_close o Method.local_terminal_proof;
-val local_immediate_proof = Toplevel.proof (ProofHistory.applys_close Method.local_immediate_proof);
-val local_default_proof = Toplevel.proof (ProofHistory.applys_close Method.local_default_proof);
+(* FIXME
+val print_proof = Toplevel.print oo Toplevel.proof;
+*)
+val print_proof = Toplevel.proof;
+
+val local_qed = print_proof o ProofHistory.applys_close o Method.local_qed;
+val local_terminal_proof = print_proof o ProofHistory.applys_close o Method.local_terminal_proof;
+val local_immediate_proof = print_proof (ProofHistory.applys_close Method.local_immediate_proof);
+val local_default_proof = print_proof (ProofHistory.applys_close Method.local_default_proof);
 
 
 (* global endings *)
@@ -241,7 +246,7 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
   let
     val state = ProofHistory.current prf;
     val _ = if Proof.at_bottom state then () else raise Toplevel.UNDEF;
-    val (thy, (kind, name, thm)) = finish state;
+    val (thy, {kind, name, thm}) = finish state;
 
     val prt_result = Pretty.block
       [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
