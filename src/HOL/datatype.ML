@@ -3,40 +3,35 @@
    Author:      Max Breitling, Carsten Clasohm, Tobias Nipkow, Norbert Voelker,
                 Konrad Slind
    Copyright 1995 TU Muenchen
-
 *)
 
-(** Information about datatypes **)
 
-(* Retrieve information for a specific datatype *)
-fun datatype_info thy tname =
-  case get_thydata (Sign.name_of (sign_of thy)) "datatypes" of
-      None => None
-    | Some (DT_DATA ds) => assoc (ds, tname);
+(** theory information about datatypes **)
 
-fun match_info thy tname =
-  case datatype_info thy tname of
-      Some {case_const, constructors, ...} =>
-        {case_const=case_const, constructors=constructors}
-    | None => error ("No datatype \"" ^ tname ^ "\" defined in this theory.");
+fun datatype_info_sg sg name =
+  (case Symtab.lookup (ThyData.get_datatypes_sg sg, name) of
+    Some info => info
+  | None => error ("Unknown datatype " ^ quote name));
 
-fun induct_info thy tname =
-  case datatype_info thy tname of
-      Some {constructors, nchotomy, ...} =>
-        {constructors=constructors, nchotomy=nchotomy}
-    | None => error ("No datatype \"" ^ tname ^ "\" defined in this theory.");
+val datatype_info = datatype_info_sg o sign_of;
 
+fun match_info thy name =
+  let val {case_const, constructors, ...} = datatype_info thy name in
+    {case_const = case_const, constructors = constructors}
+  end;
 
-(* Retrieve information for all datatypes defined in a theory and its
-   ancestors *)
+fun induct_info thy name =
+  let val {constructors, nchotomy, ...} = datatype_info thy name in
+    {constructors = constructors, nchotomy = nchotomy}
+  end;
+
+(*retrieve information for all datatypes defined in a theory*)
 fun extract_info thy =
-  let val (congs, rewrites) =
-        case get_thydata (Sign.name_of (sign_of thy)) "datatypes" of
-            None => ([], [])
-          | Some (DT_DATA ds) =>
-              let val info = map snd ds
-              in (map #case_cong info, flat (map #case_rewrites info)) end;
+  let
+    val infos = map snd (Symtab.dest (ThyData.get_datatypes thy));
+    val (congs, rewrites) = (map #case_cong infos, flat (map #case_rewrites infos));
   in {case_congs = congs, case_rewrites = rewrites} end;
+
 
 local
 
@@ -48,14 +43,6 @@ fun find_tname var Bi =
      | Some(Type(tn,_)) => tn
      | _ => error("Cannot induct on type of " ^ quote var)
   end;
-
-fun get_dt_info sign tn =
-      case get_thydata (Sign.name_of sign) "datatypes" of
-        None => error ("No such datatype: " ^ quote tn)
-      | Some (DT_DATA ds) =>
-          case assoc (ds, tn) of
-            Some info => info
-          | None => error ("Not a datatype: " ^ quote tn)
 
 fun infer_tname state sign i aterm =
 let val (_, _, Bi, _) = dest_state (state, i)
@@ -78,14 +65,14 @@ fun induct_tac var i state = state |>
         let val (_, _, Bi, _) = dest_state (state, i)
             val sign = #sign(rep_thm state)
             val tn = find_tname var Bi
-            val ind_tac = #induct_tac(get_dt_info sign tn)
+            val ind_tac = #induct_tac(datatype_info_sg sign tn)
         in ind_tac var i end;
 
 (* generic exhaustion tactic for datatypes *)
 fun exhaust_tac aterm i state = state |>
         let val sign = #sign(rep_thm state)
             val tn = infer_tname state sign i aterm
-            val exh_tac = #exhaust_tac(get_dt_info sign tn)
+            val exh_tac = #exhaust_tac(datatype_info_sg sign tn)
         in exh_tac aterm i end;
 
 end;
@@ -640,10 +627,10 @@ sig
   val case_thms : Sign.sg -> thm list -> (string -> int -> tactic)
                    -> {nchotomy:thm, case_cong:thm}
 
-  val build_record : (theory * (string * string list)
-                      * (string -> int -> tactic))
-                     -> (string * dtype_info) 
-
+  val build_record: theory * (string * string list) * (string -> int -> tactic)
+    -> string * datatype_info
+  val add_record: string * string list * (string -> int -> tactic) -> theory -> theory
+  val add_datatype_info: string * datatype_info -> theory -> theory
 end;
 
 
@@ -1002,6 +989,15 @@ fun build_record (thy,(ty,cl),itac) =
         case_cong = case_cong})
  end
 end;
+
+
+fun add_datatype_info info thy = thy |>
+  ThyData.put_datatypes (Symtab.update (info, ThyData.get_datatypes thy));
+
+fun add_record (ty, cl, itac) thy = thy |>
+  add_datatype_info (build_record (thy, (ty, cl), itac));
+
+
 
 
 (*---------------------------------------------------------------------------

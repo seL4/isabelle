@@ -53,15 +53,17 @@ val prod_record =
      end;
 
 (*---------------------------------------------------------------------------
- * Hacks to make interactive mode work. Referring to "datatypes" directly
- * is temporary, I hope!
+ * Hacks to make interactive mode work.
  *---------------------------------------------------------------------------*)
+
+fun get_info thy ty = Symtab.lookup (ThyData.get_datatypes thy, ty);
+
 val match_info = fn thy =>
     fn "*" => Some({case_const = #case_const (#2 prod_record),
                      constructors = #constructors (#2 prod_record)})
      | "nat" => Some({case_const = #case_const (#2 nat_record),
                        constructors = #constructors (#2 nat_record)})
-     | ty => case assoc(!datatypes,ty)
+     | ty => case get_info thy ty
                of None => None
                 | Some{case_const,constructors, ...} =>
                    Some{case_const=case_const, constructors=constructors}
@@ -71,14 +73,15 @@ val induct_info = fn thy =>
                      constructors = #constructors (#2 prod_record)})
      | "nat" => Some({nchotomy = #nchotomy (#2 nat_record),
                        constructors = #constructors (#2 nat_record)})
-     | ty => case assoc(!datatypes,ty)
+     | ty => case get_info thy ty
                of None => None
                 | Some{nchotomy,constructors, ...} =>
                   Some{nchotomy=nchotomy, constructors=constructors}
 
 val extract_info = fn thy => 
- let val case_congs = map (#case_cong o #2) (!datatypes)
-         val case_rewrites = flat(map (#case_rewrites o #2) (!datatypes))
+ let val infos = map snd (Symtab.dest (ThyData.get_datatypes thy));
+     val case_congs = map #case_cong infos;
+     val case_rewrites = flat (map #case_rewrites infos);
  in {case_congs = #case_cong (#2 prod_record)::
                   #case_cong (#2 nat_record)::case_congs,
      case_rewrites = #case_rewrites(#2 prod_record)@
