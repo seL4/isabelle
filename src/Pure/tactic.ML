@@ -26,6 +26,7 @@ signature TACTIC =
   val compose_tac: (bool * thm * int) -> int -> tactic 
   val cut_facts_tac: thm list -> int -> tactic
   val cut_inst_tac: (string*string)list -> thm -> int -> tactic   
+  val defer_tac : int -> tactic
   val dmatch_tac: thm list -> int -> tactic
   val dresolve_tac: thm list -> int -> tactic
   val dres_inst_tac: (string*string)list -> thm -> int -> tactic   
@@ -42,7 +43,7 @@ signature TACTIC =
   val fold_tac: thm list -> tactic
   val forward_tac: thm list -> int -> tactic   
   val forw_inst_tac: (string*string)list -> thm -> int -> tactic
-  val freeze: thm -> thm   
+  val freeze_thaw: thm -> thm * (thm -> thm)
   val insert_tagged_brl:  ('a*(bool*thm)) * 
                     (('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net) ->
                     ('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net
@@ -95,22 +96,45 @@ fun trace_goalno_tac tac i st =
       | seqcell => (prs("Subgoal " ^ string_of_int i ^ " selected\n"); 
     			 Sequence.seqof(fn()=> seqcell));
 
-fun string_of (a,0) = a
-  | string_of (a,i) = a ^ "_" ^ string_of_int i;
 
-(*convert all Vars in a theorem to Frees*)
-fun freeze th =
-  let val fth = freezeT th
-      val {prop,sign,...} = rep_thm fth
-      fun mk_inst (Var(v,T)) = 
-	  (cterm_of sign (Var(v,T)),
-	   cterm_of sign (Free(string_of v, T)))
-      val insts = map mk_inst (term_vars prop)
-  in  instantiate ([],insts) fth  end;
+(*Convert all Vars in a theorem to Frees.  Also return a function for 
+  reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.*)
+local
+    fun string_of (a,0) = a
+      | string_of (a,i) = a ^ "_" ^ string_of_int i;
+in
+  fun freeze_thaw th =
+    let val fth = freezeT th
+	val {prop,sign,...} = rep_thm fth
+	fun mk_inst (Var(v,T)) = 
+	    (cterm_of sign (Var(v,T)),
+	     cterm_of sign (Free(string_of v, T)))
+	val insts = map mk_inst (term_vars prop)
+	fun thaw th' = 
+	    th' |> forall_intr_list (map #2 insts)
+		|> forall_elim_list (map #1 insts)
+    in  (instantiate ([],insts) fth, thaw)  end;
+end;
+
+
+(*Rotates the given subgoal to be the last.  Useful when re-playing
+  an old proof script, when the proof of an early subgoal fails.
+  DOES NOT WORK FOR TYPE VARIABLES.*)
+fun defer_tac i state = 
+    let val (state',thaw) = freeze_thaw state
+	val hyps = Drule.strip_imp_prems (adjust_maxidx (cprop_of state'))
+	val hyp::hyps' = drop(i-1,hyps)
+    in  implies_intr hyp (implies_elim_list state' (map assume hyps)) 
+        |> implies_intr_list (take(i-1,hyps) @ hyps')
+        |> thaw
+        |> Sequence.single
+    end
+    handle _ => Sequence.null;
+
 
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic tac rl =
-    case Sequence.pull(tac (freeze (standard rl))) of
+    case rl |> standard |> freeze_thaw |> #1 |> tac |> Sequence.pull of
 	None        => raise THM("rule_by_tactic", 0, [rl])
       | Some(rl',_) => standard rl';
  
@@ -234,7 +258,7 @@ fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i =
   terms that are substituted contain (term or type) unknowns from the
   goal, because it is unable to instantiate goal unknowns at the same time.
 
-  The type checker is instructed not to freezes flexible type vars that
+  The type checker is instructed not to freeze flexible type vars that
   were introduced during type inference and still remain in the term at the
   end.  This increases flexibility but can introduce schematic type vars in
   goals.
