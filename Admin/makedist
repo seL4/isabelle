@@ -16,12 +16,12 @@ case $(hostname) in
   *broy*)
     export CVSROOT=/usr/proj/isabelle-repository/archive
     ;;
-  *.cl.cam.ac.uk)
-    export CVSROOT=sunbroy2.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/archive
+  *)
+    export CVSROOT=sunbroy2.informatik.tu-muenchen.de:/usr/proj/isabelle-repository/archive       
     ;;
 esac
 
-DISTPREFIX=~/tmp/isadist
+DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
 
 umask 022
 
@@ -116,7 +116,7 @@ echo "###"
 
 cd "$DISTBASE"
 
-$EXPORT
+$EXPORT || fail "Export failed!"
 $FIND . -name CVS -print | xargs rm -rf
 $FIND . -name .cvsignore -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
@@ -136,8 +136,8 @@ PDFLATEX=$(type -path pdflatex)
 for DOC in $(cat Contents)
 do
   cd "$DOC"
-  make dvi
-  [ -n "$PDFLATEX" ] && make clean pdf
+  make dvi || fail "DVI document for $DOC failed!"
+  ([ -n "$PDFLATEX" ] && make clean pdf) || fail "PDF document for $DOC failed!"
   cd ..
 done
 
@@ -148,7 +148,7 @@ echo "###"
 echo "### Preparing distribution ..."
 echo "###"
 
-cd "$DISTBASE/$DISTNAME"
+cd "$DISTBASE/$DISTNAME" || fail "Something is wrong: dist directory doesn't exist!"
 
 cp -R Admin/page ..
 cp Distribution/doc/Contents ../page
@@ -167,7 +167,7 @@ mv $LOGICS src
 mv Distribution/* .
 rmdir Distribution
 
-( cd lib/browser; make; )
+( cd lib/browser; make; ) || fail "Graph browser build failed!"
 
 cp doc/isabelle*.eps lib/logo
 
