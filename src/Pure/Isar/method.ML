@@ -322,8 +322,8 @@ fun assumption ctxt = METHOD (FINDGOAL o assumption_tac ctxt);
 (* res_inst_tac emulations *)
 
 (*Note: insts refer to the implicit (!) goal context; use at your own risk*)
-fun gen_res_inst tac ((i, insts), thm) =
-  METHOD (fn facts => (insert_tac facts THEN' tac insts thm) i);
+fun gen_res_inst tac (quant, (insts, thm)) =
+  METHOD (fn facts => (quant (insert_tac facts THEN' tac insts thm)));
 
 val res_inst = gen_res_inst Tactic.res_inst_tac;
 val eres_inst = gen_res_inst Tactic.eres_inst_tac;
@@ -487,11 +487,18 @@ end;
 (* insts *)
 
 val insts =
-  Scan.lift (Scan.optional (Args.$$$ "(" |-- Args.!!! (Args.nat --| Args.$$$ ")")) 1) --
-    Args.enum1 "and" (Scan.lift (Args.name -- Args.!!! (Args.$$$ "=" |-- Args.name))) --
+  Args.enum1 "and" (Scan.lift (Args.name -- Args.!!! (Args.$$$ "=" |-- Args.name))) --
     (Scan.lift (Args.$$$ "in") |-- Attrib.local_thm);
 
-fun inst_args f = f oo (#2 oo syntax insts);
+fun inst_args f = f oo (#2 oo syntax (Args.goal_spec HEADGOAL -- insts));
+
+
+(* subgoal *)
+
+fun subgoal x = (Args.goal_spec HEADGOAL -- Scan.lift Args.name >>
+  (fn (quant, s) => METHOD (fn facts => quant (insert_tac facts THEN' Tactic.subgoal_tac s)))) x;
+
+val subgoal_meth = #2 oo syntax subgoal;
 
 
 
@@ -588,10 +595,11 @@ val pure_methods =
   ("frule", thms_ctxt_args some_frule, "apply some rule in forward manner (improper!)"),
   ("this", no_args this, "apply current facts as rules"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
-  ("res_inst_tac", inst_args res_inst, "res_inst_tac emulation (beware!)"),
-  ("eres_inst_tac", inst_args eres_inst, "eres_inst_tac emulation (beware!)"),
-  ("dres_inst_tac", inst_args dres_inst, "dres_inst_tac emulation (beware!)"),
-  ("forw_inst_tac", inst_args forw_inst, "forw_inst_tac emulation (beware!)"),
+  ("res_inst_tac", inst_args res_inst, "res_inst_tac emulation (dynamic instantiation!)"),
+  ("eres_inst_tac", inst_args eres_inst, "eres_inst_tac emulation (dynamic instantiation!)"),
+  ("dres_inst_tac", inst_args dres_inst, "dres_inst_tac emulation (dynamic instantiation!)"),
+  ("forw_inst_tac", inst_args forw_inst, "forw_inst_tac emulation (dynamic instantiation!)"),
+  ("subgoal_tac", subgoal_meth, "subgoal_tac emulation (dynamic instantiation!)"),
   ("prolog", thms_args prolog, "simple prolog interpreter"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
 
