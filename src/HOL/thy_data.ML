@@ -7,8 +7,10 @@ HOL theory data: simpset, claset, records, datatypes.
 
 (*for records*)
 type record_info =
- {parent: string option,
-  fields: (string * typ) list};
+ {args:     string list,
+  parent:   (typ list * string) option,
+  fields:   (string * typ) list,
+  sign_ref: Sign.sg_ref};
 
 (*for datatypes*)
 type datatype_info =
@@ -94,16 +96,22 @@ local
 
   fun print sg (Records tab) =
     let
-      fun pretty_parent None = []
-        | pretty_parent (Some name) =
-            [Pretty.str (Sign.cond_extern sg Sign.typeK name ^ " +")];
+      fun pretty_args args = Pretty.lst ("(", ")") (map Pretty.str args);
 
-      fun pretty_field (c, T) = Pretty.block
-        [Pretty.str (Sign.cond_extern sg Sign.constK c ^ " :: "),
-          Pretty.brk 1, Pretty.quote (Sign.pretty_typ sg T)];
+      fun pretty_parent sign None = []
+        | pretty_parent sign (Some (ts, name)) = 
+            (Pretty.lst ("(", ")") (map (Sign.pretty_typ sign) ts)) :: [Pretty.str (name ^ " +")];
 
-      fun pretty_record (name, {parent, fields}) =
-        Pretty.big_list (name ^ " =") (pretty_parent parent @ map pretty_field fields);
+      fun pretty_field sign (c, T) = Pretty.block
+        [Pretty.str (c ^ " :: "), Pretty.brk 1, Pretty.quote (Sign.pretty_typ sign T)];
+
+      fun pretty_record (name, {args, parent, fields, sign_ref}) =
+        let val sign = Sign.deref sign_ref in
+          Pretty.block 
+            (Pretty.fbreaks
+              ((Pretty.block ((pretty_args args) :: [Pretty.str (" " ^ name ^ " =")])) ::
+              pretty_parent sign parent @ map (pretty_field sign) fields))
+        end
     in
       seq (Pretty.writeln o pretty_record) (Symtab.dest tab)
     end;
