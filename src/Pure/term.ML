@@ -564,6 +564,12 @@ fun add_term_consts (Const (c, _), cs) = c ins cs
   | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
   | add_term_consts (_, cs) = cs;
 
+fun exists_Const P t = let
+	fun ex (Const c      ) = P c
+	|   ex (t $ u        ) = ex t orelse ex u
+	|   ex (Abs (_, _, t)) = ex t
+	|   ex _               = false
+    in ex t end;
 
 (*map classes, tycons*)
 fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
