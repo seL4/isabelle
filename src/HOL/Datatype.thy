@@ -8,13 +8,6 @@ header {* Datatypes *}
 
 theory Datatype = Datatype_Universe:
 
-subsection {* Finishing the datatype package setup *}
-
-text {* Belongs to theory @{text Datatype_Universe}; hides popular names. *}
-hide const Node Atom Leaf Numb Lim Funs Split Case
-hide type node item
-
-
 subsection {* Representing primitive types *}
 
 rep_datatype bool
@@ -69,6 +62,26 @@ proof -
     apply simp
     done
 qed
+
+constdefs
+  Suml :: "('a => 'c) => 'a + 'b => 'c"
+  "Suml == (%f. sum_case f arbitrary)"
+
+  Sumr :: "('b => 'c) => 'a + 'b => 'c"
+  "Sumr == sum_case arbitrary"
+
+lemma Suml_inject: "Suml f = Suml g ==> f = g"
+  by (unfold Suml_def) (erule sum_case_inject)
+
+lemma Sumr_inject: "Sumr f = Sumr g ==> f = g"
+  by (unfold Sumr_def) (erule sum_case_inject)
+
+
+subsection {* Finishing the datatype package setup *}
+
+text {* Belongs to theory @{text Datatype_Universe}; hides popular names. *}
+hide const Node Atom Leaf Numb Lim Split Case Suml Sumr
+hide type node item
 
 
 subsection {* Further cases/induct rules for tuples *}
