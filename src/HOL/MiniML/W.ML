@@ -8,7 +8,7 @@ Correctness and completeness of type inference algorithm W
 
 open W;
 
-Addsimps [diff_add_inverse,diff_add_inverse2,Suc_le_lessD];
+Addsimps [Suc_le_lessD];  Delsimps [less_imp_le];  (*the combination loops*)
 
 val has_type_casesE = map(has_type.mk_cases expr.simps)
         [" A |- Var n :: t"," A |- Abs e :: t","A |- App e1 e2 ::t","A |- LET e1 e2 ::t" ];

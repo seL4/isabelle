@@ -6,7 +6,8 @@
 Correctness and completeness of type inference algorithm W
 *)
 
-Addsimps [Suc_le_lessD];
+Addsimps [Suc_le_lessD];  Delsimps [less_imp_le];  (*the combination loops*)
+
 Delsimps (ex_simps @ all_simps);
 
 (* correctness of W with respect to has_type *)
@@ -82,8 +83,7 @@ qed "rotate_Ok";
 
 
 (* resulting type variable is new *)
-Goal
-     "!n a s t m. new_tv n a --> W e a n = Ok (s,t,m) -->    \
+Goal "!n a s t m. new_tv n a --> W e a n = Ok (s,t,m) -->    \
 \                 new_tv m s & new_tv m t";
 by (induct_tac "e" 1);
 (* case Var n *)
@@ -213,8 +213,7 @@ by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
 qed_spec_mp "free_tv_W"; 
 
 (* Completeness of W w.r.t. has_type *)
-Goal
- "!s' a t' n. $s' a |- e :: t' --> new_tv n a -->     \
+Goal "!s' a t' n. $s' a |- e :: t' --> new_tv n a -->     \
 \             (? s t. (? m. W e a n = Ok (s,t,m)) &  \
 \                     (? r. $s' a = $r ($s a) & t' = $r t))";
 by (induct_tac "e" 1);
