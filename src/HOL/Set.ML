@@ -460,6 +460,11 @@ by (Blast_tac 1);
 qed "singleton_conv";
 Addsimps [singleton_conv];
 
+Goal "{x. a=x} = {a}";
+by(Blast_tac 1);
+qed "singleton_conv2";
+Addsimps [singleton_conv2];
+
 
 section "Unions of families -- UNION x:A. B(x) is Union(B``A)";
 
