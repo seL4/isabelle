@@ -122,11 +122,11 @@ sig
   val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
   val data_kinds: data -> string list
-  val init_data: string * (object * (object -> object) *
-    (object * object -> object) * (sg -> object -> unit)) -> sg -> sg
-  val get_data: sg -> string -> object
-  val put_data: string * object -> sg -> sg
-  val print_data: sg -> string -> unit
+  val init_data: Object.kind * (Object.T * (Object.T -> Object.T) *
+    (Object.T * Object.T -> Object.T) * (sg -> Object.T -> unit)) -> sg -> sg
+  val get_data: Object.kind -> (Object.T -> 'a) -> sg -> 'a
+  val put_data: Object.kind -> ('a -> Object.T) -> 'a -> sg -> sg
+  val print_data: Object.kind -> sg -> unit
   val merge_refs: sg_ref * sg_ref -> sg_ref
   val merge: sg * sg -> sg
   val prep_ext: sg -> sg
@@ -157,13 +157,14 @@ datatype sg =
     data: data}                                 (*anytype data*)
 and data =
   Data of
-    (object *                             	(*value*)
-     ((object -> object) *                	(*prepare extend method*)
-      (object * object -> object) *       	(*merge and prepare extend method*)
-      (sg -> object -> unit)))                 	(*print method*)
+    (Object.kind *				(*kind (for authorization)*)
+      (Object.T *				(*value*)
+        ((Object.T -> Object.T) *               (*prepare extend method*)
+          (Object.T * Object.T -> Object.T) *   (*merge and prepare extend method*)
+          (sg -> Object.T -> unit))))           (*print method*)
     Symtab.table
 and sg_ref =
-  SgRef of sg ref option
+  SgRef of sg ref option;
 
 (*make signature*)
 fun make_sign (id, self, tsig, const_tab, syn, path, spaces, data, stamps) =
@@ -266,6 +267,9 @@ fun of_sort (Sg (_, {tsig, ...})) =
 
 fun of_theory sg = "\nof theory " ^ str_of_sg sg;
 
+fun err_inconsistent kinds =
+  error ("Attempt to merge different versions of " ^ commas_quote kinds ^ " data");
+
 fun err_method name kind =
   error ("Error while invoking " ^ quote kind ^ " " ^ name ^ " method");
 
@@ -275,6 +279,9 @@ fun err_dup_init sg kind =
 fun err_uninit sg kind =
   error ("Tried to access uninitialized " ^ quote kind ^ " data" ^ of_theory sg);
 
+fun err_access sg kind =
+  error ("Unauthorized access to " ^ quote kind ^ " data" ^ of_theory sg);
+
 
 (* prepare data *)
 
@@ -282,30 +289,36 @@ val empty_data = Data Symtab.empty;
 
 fun merge_data (Data tab1, Data tab2) =
   let
-    val data1 = Symtab.dest tab1;
-    val data2 = Symtab.dest tab2;
+    val data1 = map snd (Symtab.dest tab1);
+    val data2 = map snd (Symtab.dest tab2);
     val all_data = data1 @ data2;
-    val kinds = distinct (map fst all_data);
+    val kinds = gen_distinct Object.eq_kind (map fst all_data);
 
    fun entry data kind =
-     (case assoc (data, kind) of
+     (case gen_assoc Object.eq_kind (data, kind) of
        None => []
      | Some x => [(kind, x)]);
 
     fun merge_entries [(kind, (e, mths as (ext, _, _)))] =
-          (kind, (ext e handle _ => err_method "prep_ext" kind, mths))
+          (kind, (ext e handle _ => err_method "prep_ext" (Object.name_of_kind kind), mths))
       | merge_entries [(kind, (e1, mths as (_, mrg, _))), (_, (e2, _))] =
-          (kind, (mrg (e1, e2) handle _ => err_method "merge" kind, mths))
+          (kind, (mrg (e1, e2) handle _ => err_method "merge" (Object.name_of_kind kind), mths))
       | merge_entries _ = sys_error "merge_entries";
 
     val data = map (fn k => merge_entries (entry data1 k @ entry data2 k)) kinds;
-  in Data (Symtab.make data) end;
+    val data_idx = map (fn (k, x) => (Object.name_of_kind k, (k, x))) data;
+  in
+    Data (Symtab.make data_idx)
+      handle Symtab.DUPS dups => err_inconsistent dups
+  end;
 
 fun prep_ext_data data = merge_data (data, empty_data);
 
 fun init_data_sg sg (Data tab) kind e ext mrg prt =
-  Data (Symtab.update_new ((kind, (e, (ext, mrg, prt))), tab))
-    handle Symtab.DUP _ => err_dup_init sg kind;
+  let val name = Object.name_of_kind kind in
+    Data (Symtab.update_new ((name, (kind, (e, (ext, mrg, prt)))), tab))
+      handle Symtab.DUP _ => err_dup_init sg name
+  end;
 
 
 (* access data *)
@@ -313,19 +326,25 @@ fun init_data_sg sg (Data tab) kind e ext mrg prt =
 fun data_kinds (Data tab) = map fst (Symtab.dest tab);
 
 fun lookup_data sg tab kind =
-  (case Symtab.lookup (tab, kind) of
-    Some x => x
-  | None => err_uninit sg kind);
+  let val name = Object.name_of_kind kind in
+    (case Symtab.lookup (tab, name) of
+      Some (k, x) =>
+        if Object.eq_kind (kind, k) then x
+        else err_access sg name
+    | None => err_uninit sg name)
+  end;
 
-fun get_data (sg as Sg (_, {data = Data tab, ...})) kind =
-  fst (lookup_data sg tab kind);
+fun get_data kind f (sg as Sg (_, {data = Data tab, ...})) =
+  let val x = fst (lookup_data sg tab kind)
+  in f x handle Match => Object.kind_error kind end;
 
-fun print_data (sg as Sg (_, {data = Data tab, ...})) kind =
+fun print_data kind (sg as Sg (_, {data = Data tab, ...})) =
   let val (e, (_, _, prt)) = lookup_data sg tab kind
-  in prt sg e handle _ => err_method ("print" ^ of_theory sg) kind end;
+  in prt sg e handle _ => err_method ("print" ^ of_theory sg) (Object.name_of_kind kind) end;
 
-fun put_data_sg sg (Data tab) kind e =
-  Data (Symtab.update ((kind, (e, snd (lookup_data sg tab kind))), tab));
+fun put_data_sg sg (Data tab) kind f x =
+  Data (Symtab.update ((Object.name_of_kind kind,
+    (kind, (f x, snd (lookup_data sg tab kind)))), tab));
 
 
 
@@ -889,41 +908,41 @@ fun ext_space (syn, tsig, ctab, (path, spaces), data) (kind, names) =
 fun ext_init_data sg (syn, tsig, ctab, names, data) (kind, (e, ext, mrg, prt)) =
   (syn, tsig, ctab, names, init_data_sg sg data kind e ext mrg prt);
 
-fun ext_put_data sg (syn, tsig, ctab, names, data) (kind, e) =
-  (syn, tsig, ctab, names, put_data_sg sg data kind e);
+fun ext_put_data sg (syn, tsig, ctab, names, data) (kind, f, x) =
+  (syn, tsig, ctab, names, put_data_sg sg data kind f x);
 
 
 (* the external interfaces *)
 
-val add_classes      = extend_sign true (ext_classes true) "#";
-val add_classes_i    = extend_sign true (ext_classes false) "#";
-val add_classrel     = extend_sign true (ext_classrel true) "#";
-val add_classrel_i   = extend_sign true (ext_classrel false) "#";
-val add_defsort      = extend_sign true (ext_defsort true) "#";
-val add_defsort_i    = extend_sign true (ext_defsort false) "#";
-val add_types        = extend_sign true ext_types "#";
-val add_nonterminals = extend_sign true ext_nonterminals "#";
-val add_tyabbrs      = extend_sign true ext_tyabbrs "#";
-val add_tyabbrs_i    = extend_sign true ext_tyabbrs_i "#";
-val add_arities      = extend_sign true (ext_arities true) "#";
-val add_arities_i    = extend_sign true (ext_arities false) "#";
-val add_consts       = extend_sign true ext_consts "#";
-val add_consts_i     = extend_sign true ext_consts_i "#";
-val add_syntax       = extend_sign true ext_syntax "#";
-val add_syntax_i     = extend_sign true ext_syntax_i "#";
-val add_modesyntax   = extend_sign true ext_modesyntax "#";
-val add_modesyntax_i = extend_sign true ext_modesyntax_i "#";
-val add_trfuns       = extend_sign true (ext_syn Syntax.extend_trfuns) "#";
-val add_trfunsT      = extend_sign true (ext_syn Syntax.extend_trfunsT) "#";
-val add_tokentrfuns  = extend_sign true (ext_syn Syntax.extend_tokentrfuns) "#";
-val add_trrules      = extend_sign true ext_trrules "#";
-val add_trrules_i    = extend_sign true (ext_syn Syntax.extend_trrules_i) "#";
-val add_path         = extend_sign true ext_path "#";
-val add_space        = extend_sign true ext_space "#";
-fun init_data arg sg = extend_sign true (ext_init_data sg) "#" arg sg;
-fun put_data arg sg  = extend_sign true (ext_put_data sg) "#" arg sg;
-fun add_name name sg = extend_sign true K name () sg;
-fun prep_ext sg      = extend_sign false K "#" () sg;
+val add_classes       = extend_sign true (ext_classes true) "#";
+val add_classes_i     = extend_sign true (ext_classes false) "#";
+val add_classrel      = extend_sign true (ext_classrel true) "#";
+val add_classrel_i    = extend_sign true (ext_classrel false) "#";
+val add_defsort       = extend_sign true (ext_defsort true) "#";
+val add_defsort_i     = extend_sign true (ext_defsort false) "#";
+val add_types         = extend_sign true ext_types "#";
+val add_nonterminals  = extend_sign true ext_nonterminals "#";
+val add_tyabbrs       = extend_sign true ext_tyabbrs "#";
+val add_tyabbrs_i     = extend_sign true ext_tyabbrs_i "#";
+val add_arities       = extend_sign true (ext_arities true) "#";
+val add_arities_i     = extend_sign true (ext_arities false) "#";
+val add_consts        = extend_sign true ext_consts "#";
+val add_consts_i      = extend_sign true ext_consts_i "#";
+val add_syntax        = extend_sign true ext_syntax "#";
+val add_syntax_i      = extend_sign true ext_syntax_i "#";
+val add_modesyntax    = extend_sign true ext_modesyntax "#";
+val add_modesyntax_i  = extend_sign true ext_modesyntax_i "#";
+val add_trfuns        = extend_sign true (ext_syn Syntax.extend_trfuns) "#";
+val add_trfunsT       = extend_sign true (ext_syn Syntax.extend_trfunsT) "#";
+val add_tokentrfuns   = extend_sign true (ext_syn Syntax.extend_tokentrfuns) "#";
+val add_trrules       = extend_sign true ext_trrules "#";
+val add_trrules_i     = extend_sign true (ext_syn Syntax.extend_trrules_i) "#";
+val add_path          = extend_sign true ext_path "#";
+val add_space         = extend_sign true ext_space "#";
+fun init_data arg sg  = extend_sign true (ext_init_data sg) "#" arg sg;
+fun put_data k f x sg = extend_sign true (ext_put_data sg) "#" (k, f, x) sg;
+fun add_name name sg  = extend_sign true K name () sg;
+fun prep_ext sg       = extend_sign false K "#" () sg;
 
 
 
