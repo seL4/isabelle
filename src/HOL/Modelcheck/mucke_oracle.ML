@@ -500,7 +500,7 @@ fun callmc s =
       else mucke_home ^ "/mucke";
     val mucke_input_file = File.tmp_path (Path.basic "tmp.mu");
     val _ = File.write mucke_input_file s;
-    val result = execute (mucke ^ " -nb " ^ (File.sysify_path mucke_input_file));
+    val result = execute (mucke ^ " -nb -res " ^ (File.sysify_path mucke_input_file));
   in
     if not (!trace_mc) then (File.rm mucke_input_file) else (); 
     result
@@ -561,9 +561,9 @@ fun extract_result goal answer =
     val search_text_true = "istrue===";
     val short_answer = delete_blanks_string answer;
     val answer_with_info_lines = short_answer string_contains search_text_true;
-    val general_answer = short_answer string_at_post "true" 
+    (* val general_answer = short_answer string_at_post "true" *) 
   in
-    (answer_with_info_lines) orelse (general_answer)
+    (answer_with_info_lines) (* orelse (general_answer) *)
   end;
 
 end; 
