@@ -272,7 +272,7 @@ method_setup analz_freshK = {*
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts =>
-            gen_possibility_tac (Simplifier.get_local_simpset ctxt))) *}
+            gen_possibility_tac (local_simpset_of ctxt))) *}
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs <= knows A (e # evs)"

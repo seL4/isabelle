@@ -213,13 +213,15 @@ fun prepare_hints thy opt_src =
         None => ctxt0
       | Some src => Method.only_sectioned_args recdef_modifiers I src ctxt0);
     val {simps, congs, wfs} = get_local_hints ctxt;
-    val cs = Classical.get_local_claset ctxt;
-    val ss = Simplifier.get_local_simpset ctxt addsimps simps;
+    val cs = local_claset_of ctxt;
+    val ss = local_simpset_of ctxt addsimps simps;
   in (cs, ss, map #2 congs, wfs) end;
 
 fun prepare_hints_i thy () =
-  let val {simps, congs, wfs} = get_global_hints thy
-  in (Classical.claset_of thy, Simplifier.simpset_of thy addsimps simps, map #2 congs, wfs) end;
+  let
+    val ctxt0 = ProofContext.init thy;
+    val {simps, congs, wfs} = get_global_hints thy;
+  in (local_claset_of ctxt0, local_simpset_of ctxt0 addsimps simps, map #2 congs, wfs) end;
 
 
 

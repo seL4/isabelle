@@ -419,7 +419,7 @@ local
 
 fun meson_meth ctxt =
   Method.SIMPLE_METHOD' HEADGOAL
-    (CHANGED_PROP o meson_claset_tac (Classical.get_local_claset ctxt));
+    (CHANGED_PROP o meson_claset_tac (local_claset_of ctxt));
 
 val skolemize_meth =
   Method.SIMPLE_METHOD' HEADGOAL

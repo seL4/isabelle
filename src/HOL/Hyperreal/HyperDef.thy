@@ -208,15 +208,13 @@ use "fuf.ML"
 method_setup fuf = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts =>
-            fuf_tac (Classical.get_local_claset ctxt,
-                     Simplifier.get_local_simpset ctxt) 1)) *}
+            fuf_tac (local_clasimpset_of ctxt) 1)) *}
     "free ultrafilter tactic"
 
 method_setup ultra = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts =>
-            ultra_tac (Classical.get_local_claset ctxt,
-                       Simplifier.get_local_simpset ctxt) 1)) *}
+            ultra_tac (local_clasimpset_of ctxt) 1)) *}
     "ultrafilter tactic"
 
 

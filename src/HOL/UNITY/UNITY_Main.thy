@@ -12,15 +12,13 @@ files "UNITY_tactics.ML":
 method_setup constrains = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts => 
-            gen_constrains_tac (Classical.get_local_claset ctxt,
-                               Simplifier.get_local_simpset ctxt) 1)) *}
+            gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}
     "for proving safety properties"
 
 method_setup ensures_tac = {*
     fn args => fn ctxt =>
         Method.goal_args' (Scan.lift Args.name) 
-           (gen_ensures_tac (Classical.get_local_claset ctxt,
-                               Simplifier.get_local_simpset ctxt))
+           (gen_ensures_tac (local_clasimpset_of ctxt))
            args ctxt *}
     "for proving progress properties"
 

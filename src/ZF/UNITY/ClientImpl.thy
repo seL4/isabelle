@@ -13,8 +13,7 @@ theory ClientImpl = AllocBase + Guar:
 method_setup constrains = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts =>
-            gen_constrains_tac (Classical.get_local_claset ctxt,
-                               Simplifier.get_local_simpset ctxt) 1)) *}
+            gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}
     "for proving safety properties"
 
 consts

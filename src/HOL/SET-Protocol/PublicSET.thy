@@ -374,7 +374,7 @@ fun basic_possibility_tac st = st |>
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
         Method.METHOD (fn facts =>
-            gen_possibility_tac (Simplifier.get_local_simpset ctxt))) *}
+            gen_possibility_tac (local_simpset_of ctxt))) *}
     "for proving possibility theorems"
 
 

@@ -600,7 +600,7 @@ val inductive_cases_i = gen_inductive_cases (K I) ProofContext.cert_prop;
 fun mk_cases_meth (ctxt, raw_props) =
   let
     val thy = ProofContext.theory_of ctxt;
-    val ss = Simplifier.get_local_simpset ctxt;
+    val ss = local_simpset_of ctxt;
     val cprops = map (Thm.cterm_of (Theory.sign_of thy) o ProofContext.read_prop ctxt) raw_props;
   in Method.erule 0 (map (smart_mk_cases thy ss) cprops) end;
 

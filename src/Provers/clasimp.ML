@@ -61,6 +61,7 @@ sig
   val change_global_css: (clasimpset * thm list -> clasimpset) -> theory attribute
   val change_local_css: (clasimpset * thm list -> clasimpset) -> Proof.context attribute
   val get_local_clasimpset: Proof.context -> clasimpset
+  val local_clasimpset_of: Proof.context -> clasimpset
   val iff_add_global: theory attribute
   val iff_add_global': theory attribute
   val iff_del_global: theory attribute
@@ -276,6 +277,9 @@ fun change_local_css f (ctxt, th) =
 fun get_local_clasimpset ctxt =
   (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
 
+fun local_clasimpset_of ctxt =
+  (Classical.local_claset_of ctxt, Simplifier.local_simpset_of ctxt);
+
 
 (* attributes *)
 
@@ -315,10 +319,10 @@ val clasimp_modifiers =
 (* methods *)
 
 fun clasimp_meth tac prems ctxt = Method.METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_clasimpset ctxt));
+  ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (local_clasimpset_of ctxt));
 
 fun clasimp_meth' tac prems ctxt = Method.METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_clasimpset ctxt)));
+  HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (local_clasimpset_of ctxt)));
 
 val clasimp_method = Method.bang_sectioned_args clasimp_modifiers o clasimp_meth;
 val clasimp_method' = Method.bang_sectioned_args clasimp_modifiers o clasimp_meth';

@@ -245,7 +245,7 @@ method_setup vcg = {*
 method_setup vcg_simp = {*
   Method.ctxt_args (fn ctxt =>
     Method.METHOD (fn facts => 
-      hoare_tac (asm_full_simp_tac (Simplifier.get_local_simpset ctxt))1)) *}
+      hoare_tac (asm_full_simp_tac (local_simpset_of ctxt))1)) *}
   "verification condition generator plus simplification"
 
 (* Special syntax for guarded statements and guarded array updates: *)
