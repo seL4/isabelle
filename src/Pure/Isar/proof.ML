@@ -465,6 +465,10 @@ fun check_sign sg state =
   if Sign.subsig (sg, sign_of state) then state
   else raise STATE ("Bad signature of result: " ^ Sign.str_of_sg sg, state);
 
+fun mk_goals_cases st =
+  RuleCases.make true NONE (sign_of_thm st, prop_of st)
+    (map (fn i => "goal" ^ string_of_int i) (1 upto nprems_of st));
+
 fun gen_refine current_context meth_fun state =
   let
     val (goal_ctxt, (_, ((result, (facts, thm)), x))) = find_goal state;
@@ -473,7 +477,8 @@ fun gen_refine current_context meth_fun state =
     fun refn (thm', cases) =
       state
       |> check_sign (Thm.sign_of_thm thm')
-      |> map_goal (ProofContext.add_cases cases) (K ((result, (facts, thm')), x));
+      |> map_goal (ProofContext.add_cases (cases @ mk_goals_cases thm'))
+           (K ((result, (facts, thm')), x));
   in Seq.map refn (meth facts thm) end;
 
 in
