@@ -87,15 +87,21 @@ fi
 
 # IsaMakefile
 
+DOCUMENT_ROOT=""
+
 if [ -n "$BUILD" ]; then
   IMAGES="$NAME"
   TEST=""
   TARGET="\$(OUT)/$NAME"
+  ROOT_ML="ROOT.ML"
+  [ -n "$DOCUMENT" ] && DOCUMENT_ROOT="document/root.tex"
   USEDIR="\$(USEDIR) -b -P http://isabelle.in.tum.de/library"
 else
   IMAGES=""
   TEST="$NAME"
   TARGET="\$(LOG)/$LOGIC-$NAME.gz"
+  ROOT_ML="$NAME/ROOT.ML"
+  [ -n "$DOCUMENT" ] && DOCUMENT_ROOT="$NAME/document/root.tex"
   USEDIR="\$(USEDIR)"
 fi
 
@@ -128,12 +134,12 @@ else
       echo "$LOGIC:"
       echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
       echo
-      echo "$TARGET: \$(OUT)/$LOGIC     ## add $NAME sources here"
+      echo "$TARGET: \$(OUT)/$LOGIC $ROOT_ML $DOCUMENT_ROOT  ## add $NAME sources here"
       echo -e "\t@$USEDIR \$(OUT)/$LOGIC $NAME"
     else
       echo "$NAME: $TARGET"
       echo
-      echo "$TARGET:                    ## add $NAME sources here"
+      echo "$TARGET: $ROOT_ML $DOCUMENT_ROOT  ## add $NAME sources here"
       echo -e "\t@$USEDIR $LOGIC $NAME"
     fi
     echo
