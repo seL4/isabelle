@@ -116,8 +116,8 @@ end;
 
 (* fold / unfold definitions *)
 
-val fold = METHOD0 o fold_goals_tac;
-val unfold = METHOD0 o rewrite_goals_tac;
+fun fold thms = METHOD (fn _ => fold_goals_tac thms);
+fun unfold thms = METHOD (fn _ => rewrite_goals_tac thms);
 
 
 (* multi_resolve *)
