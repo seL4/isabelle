@@ -326,12 +326,10 @@ by (fast_arith_tac 1);
 Goal "!!a::real. [| a <= b; b+b <= c |] ==> a+a <= c";
 by (fast_arith_tac 1);
 
-Goal "!!a::real. [| a+b <= i+j; a<=b; i<=j |] \
-\     ==> a+a <= j+j";
+Goal "!!a::real. [| a+b <= i+j; a<=b; i<=j |] ==> a+a <= j+j";
 by (fast_arith_tac 1);
 
-Goal "!!a::real. [| a+b < i+j; a<b; i<j |] \
-\     ==> a+a < j+j";
+Goal "!!a::real. [| a+b < i+j; a<b; i<j |] ==> a+a < j+j";
 by (fast_arith_tac 1);
 
 Goal "!!a::real. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
@@ -345,7 +343,6 @@ Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a <= l+l+l+l";
 by (fast_arith_tac 1);
 
-(* Too slow. Needs "combine_coefficients" simproc
 Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a <= l+l+l+l+i";
 by (fast_arith_tac 1);
@@ -353,5 +350,4 @@ by (fast_arith_tac 1);
 Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
 by (fast_arith_tac 1);
-*)
 
