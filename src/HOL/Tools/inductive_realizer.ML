@@ -234,22 +234,18 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
     end
   end;
 
-val nonempty_msg = explode "Nonemptiness check failed for datatype ";
-
 fun add_dummy name dname (x as (_, (vs, s, mfx, cs))) =
   if name = s then (true, (vs, s, mfx, (dname, [HOLogic.unitT], NoSyn) :: cs))
   else x;
 
 fun add_dummies f dts used thy =
-  apsnd (pair (map fst dts)) (transform_error (f (map snd dts)) thy)
-  handle ERROR_MESSAGE msg => if nonempty_msg prefix explode msg then
+  apsnd (pair (map fst dts)) (f (map snd dts) thy)
+  handle DatatypeAux.Datatype_Empty name' =>
       let
-        val name = Sign.base_name
-          (implode (drop (length nonempty_msg, explode msg)));
+        val name = Sign.base_name name';
         val dname = variant used "Dummy"
       in add_dummies f (map (add_dummy name dname) dts) (dname :: used) thy
-      end
-    else error msg;
+      end;
 
 fun mk_realizer thy vs params ((rule, rrule), rt) =
   let
@@ -312,7 +308,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     val (thy2, (dummies, dt_info)) = thy1 |>
       (if null dts then rpair ([], None) else
-        apsnd (apsnd Some) o add_dummies (DatatypePackage.add_datatype_i false
+        apsnd (apsnd Some) o add_dummies (DatatypePackage.add_datatype_i false false
           (map #2 dts)) (map (pair false) dts) []) |>>
       Extraction.add_typeof_eqns_i ty_eqs |>>
       Extraction.add_realizes_eqns_i rlz_eqs;
