@@ -489,7 +489,7 @@ val size_of_thm = size_of_term o #prop o rep_thm;
 (*maintain lists of theorems --- preserving canonical order*)
 fun del_rules rs rules = Library.gen_rems Thm.eq_thm (rules, rs);
 fun add_rules rs rules = rs @ del_rules rs rules;
-fun merge_rules (rules1, rules2) = Library.generic_merge Thm.eq_thm I I rules1 rules2;
+fun merge_rules (rules1, rules2) = gen_merge_lists' Thm.eq_thm rules1 rules2;
 
 
 (** Mark Staples's weaker version of eq_thm: ignores variable renaming and
