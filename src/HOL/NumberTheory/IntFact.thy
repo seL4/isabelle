@@ -39,10 +39,7 @@ lemma setprod_empty [simp]: "setprod {} = 1"
 
 lemma setprod_insert [simp]:
     "finite A ==> a \<notin> A ==> setprod (insert a A) = a * setprod A"
-  apply (unfold setprod_def)
-  apply (simp add: zmult_left_commute LC.fold_insert [OF LC_axioms.intro])
-  done
-
+  by (simp add: setprod_def zmult_left_commute LC.fold_insert [OF LC.intro, OF LC_axioms.intro])
 
 text {*
   \medskip @{term d22set} --- recursively defined set including all
