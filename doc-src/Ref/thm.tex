@@ -769,112 +769,253 @@ removes all flex-flex pairs from $thm$ using the trivial unifier.
 \index{meta-rules|)}
 
 
-\section{Proof objects}\label{sec:proofObjects}
-\index{proof objects|(} Isabelle can record the full meta-level proof of each
-theorem.  The proof object contains all logical inferences in detail, while
-omitting bookkeeping steps that have no logical meaning to an outside
-observer.  Rewriting steps are recorded in similar detail as the output of
-simplifier tracing.  The proof object can be inspected by a separate
-proof-checker, for example.
+\section{Proof terms}\label{sec:proofObjects}
+\index{proof terms|(} Isabelle can record the full meta-level proof of each
+theorem.  The proof term contains all logical inferences in detail.
+%while
+%omitting bookkeeping steps that have no logical meaning to an outside
+%observer.  Rewriting steps are recorded in similar detail as the output of
+%simplifier tracing. 
+Resolution and rewriting steps are broken down to primitive rules of the
+meta-logic. The proof term can be inspected by a separate proof-checker,
+for example.
 
-Full proof objects are large.  They multiply storage requirements by about
-seven; attempts to build large logics (such as {\sc zf} and {\sc hol}) may
-fail.  Isabelle normally builds minimal proof objects, which include only uses
-of oracles.  You can also request an intermediate level of detail, containing
-uses of oracles, axioms and theorems.  These smaller proof objects indicate a
-theorem's dependencies.  Theorems involving oracles will be printed with a
-suffixed \verb|[!]| to point out the different quality of confidence achieved.
+According to the well-known {\em Curry-Howard isomorphism}, a proof can
+be viewed as a $\lambda$-term. Following this idea, proofs
+in Isabelle are internally represented by a datatype similar to the one for
+terms described in \S\ref{sec:terms}.
+\begin{ttbox}
+infix 8 % %%;
 
-Isabelle provides proof objects for the sake of transparency.  Their aim is to
-increase your confidence in Isabelle.  They let you inspect proofs constructed
-by the classical reasoner or simplifier, and inform you of all uses of
-oracles.  Seldom will proof objects be given whole to an automatic
-proof-checker: none has been written.  It is up to you to examine and
-interpret them sensibly.  For example, when scrutinizing a theorem's
-derivation for dependence upon some oracle or axiom, remember to scrutinize
-all of its lemmas.  Their proofs are included in the main derivation, through
-the {\tt Theorem} constructor.
-
-Proof objects are expressed using a polymorphic type of variable-branching
-trees.  Proof objects (formally known as {\em derivations\/}) are trees
-labelled by rules, where {\tt rule} is a complicated datatype declared in the
-file {\tt Pure/thm.ML}.
-\begin{ttbox} 
-datatype 'a mtree = Join of 'a * 'a mtree list;
-datatype rule     = \(\ldots\);
-type deriv        = rule mtree;
-\end{ttbox}
-%
-Each theorem's derivation is stored as the {\tt der} field of its internal
-record: 
-\begin{ttbox} 
-#der (rep_thm conjI);
-{\out Join (Theorem ("HOL.conjI", []), [Join (MinProof,[])]) : deriv}
-\end{ttbox}
-This proof object identifies a labelled theorem, {\tt conjI} of theory
-\texttt{HOL}, whose underlying proof has not been recorded; all we
-have is {\tt MinProof}.
-
-Nontrivial proof objects are unreadably large and complex.  Isabelle provides
-several functions to help you inspect them informally.  These functions omit
-the more obscure inferences and attempt to restructure the others into natural
-formats, linear or tree-structured.
-
-\begin{ttbox} 
-keep_derivs  : deriv_kind ref
-Deriv.size   : deriv -> int
-Deriv.drop   : 'a mtree * int -> 'a mtree
-Deriv.linear : deriv -> deriv list
-Deriv.tree   : deriv -> Deriv.orule mtree
+datatype proof =
+   PBound of int
+ | Abst of string * typ option * proof
+ | AbsP of string * term option * proof
+ | op % of proof * term option
+ | op %% of proof * proof
+ | Hyp of term
+ | PThm of (string * (string * string list) list) *
+           proof * term * typ list option
+ | PAxm of string * term * typ list option
+ | Oracle of string * term * typ list option
+ | MinProof of proof list;
 \end{ttbox}
 
 \begin{ttdescription}
-\item[\ttindexbold{keep_derivs} := MinDeriv $|$ ThmDeriv $|$ FullDeriv;] 
-specifies one of the options for keeping derivations.  They can be
-minimal (oracles only), include theorems and axioms, or be full.
-
-\item[\ttindexbold{Deriv.size} $der$] yields the size of a derivation,
-  excluding lemmas.
-
-\item[\ttindexbold{Deriv.drop} ($tree$,$n$)] returns the subtree $n$ levels
-  down, always following the first child.  It is good for stripping off
-  outer level inferences that are used to put a theorem into standard form.
-
-\item[\ttindexbold{Deriv.linear} $der$] converts a derivation into a linear
-  format, replacing the deep nesting by a list of rules.  Intuitively, this
-  reveals the single-step Isabelle proof that is constructed internally by
-  tactics.  
-
-\item[\ttindexbold{Deriv.tree} $der$] converts a derivation into an
-  object-level proof tree.  A resolution by an object-rule is converted to a
-  tree node labelled by that rule.  Complications arise if the object-rule is
-  itself derived in some way.  Nested resolutions are unravelled, but other
-  operations on rules (such as rewriting) are left as-is.  
+\item[\ttindexbold{Abst} ($a$, $\tau$, $prf$)] is the abstraction over
+a {\it term variable} of type $\tau$ in the body $prf$. Logically, this
+corresponds to $\bigwedge$ introduction. The name $a$ is used only for
+parsing and printing.
+\item[\ttindexbold{AbsP} ($a$, $\varphi$, $prf$)] is the abstraction
+over a {\it proof variable} standing for a proof of proposition $\varphi$
+in the body $prf$. This corresponds to $\Longrightarrow$ introduction.
+\item[$prf$ \% $t$] \index{\%@{\tt\%}|bold}
+is the application of proof $prf$ to term $t$
+which corresponds to $\bigwedge$ elimination.
+\item[$prf@1$ \%\% $prf@2$] \index{\%\%@{\tt\%\%}|bold}
+is the application of proof $prf@1$ to
+proof $prf@2$ which corresponds to $\Longrightarrow$ elimination.
+\item[\ttindexbold{PBound} $i$] is a {\em proof variable} with de Bruijn
+\cite{debruijn72} index $i$.
+\item[\ttindexbold{Hyp} $\varphi$] corresponds to the use of a meta level
+hypothesis $\varphi$.
+\item[\ttindexbold{PThm} (($name$, $tags$), $prf$, $\varphi$, $\overline{\tau}$)]
+stands for a pre-proved theorem, where $name$ is the name of the theorem,
+$prf$ is its actual proof, $\varphi$ is the proven proposition,
+and $\overline{\tau}$ is
+a type assignment for the type variables occurring in the proposition.
+\item[\ttindexbold{PAxm} ($name$, $\varphi$, $\overline{\tau}$)]
+corresponds to the use of an axiom with name $name$ and proposition
+$\varphi$, where $\overline{\tau}$ is a type assignment for the type
+variables occurring in the proposition.
+\item[\ttindexbold{Oracle} ($name$, $\varphi$, $\overline{\tau}$)]
+denotes the invocation of an oracle with name $name$ which produced
+a proposition $\varphi$, where $\overline{\tau}$ is a type assignment
+for the type variables occurring in the proposition.
+\item[\ttindexbold{MinProof} $prfs$]
+represents a {\em minimal proof} where $prfs$ is a list of theorems,
+axioms or oracles.
 \end{ttdescription}
+Note that there are no separate constructors
+for abstraction and application on the level of {\em types}, since
+instantiation of type variables is accomplished via the type assignments
+attached to {\tt Thm}, {\tt Axm} and {\tt Oracle}.
 
-Functions {\tt Deriv.linear} and {\tt Deriv.tree} omit the proof of any named
-theorems (constructor {\tt Theorem}) they encounter in a derivation.  Applying
-them directly to the derivation of a named theorem is therefore pointless.
-Use {\tt Deriv.drop} with argument~1 to skip over the initial {\tt Theorem}
-constructor.
+Each theorem's derivation is stored as the {\tt der} field of its internal
+record: 
+\begin{ttbox} 
+#2 (#der (rep_thm conjI));
+{\out PThm (("HOL.conjI", []),}
+{\out   AbsP ("H", None, AbsP ("H", None, \dots)), \dots, None) %}
+{\out     None % None : Proofterm.proof}
+\end{ttbox}
+This proof term identifies a labelled theorem, {\tt conjI} of theory
+\texttt{HOL}, whose underlying proof is
+{\tt AbsP ("H", None, AbsP ("H", None, $\dots$))}. 
+The theorem is applied to two (implicit) term arguments, which correspond
+to the two variables occurring in its proposition.
 
-\index{proof objects|)}
-\index{theorems|)}
+Isabelle's inference kernel can produce proof objects with different
+levels of detail. This is controlled via the global reference variable
+\ttindexbold{proofs}:
+\begin{ttdescription}
+\item[proofs := 0;] only record uses of oracles
+\item[proofs := 1;] record uses of oracles as well as dependencies
+  on other theorems and axioms
+\item[proofs := 2;] record inferences in full detail
+\end{ttdescription}
+Reconstruction and checking of proofs as described in \S\ref{sec:reconstruct_proofs}
+will not work for proofs constructed with {\tt proofs} set to
+{\tt 0} or {\tt 1}.
+Theorems involving oracles will be printed with a
+suffixed \verb|[!]| to point out the different quality of confidence achieved.
 
 \medskip
 
-The dependencies of theorems can be viewed using the function \ttindexbold{thm_deps}:
+The dependencies of theorems can be viewed using the function
+\ttindexbold{thm_deps}\index{theorems!dependencies}:
 \begin{ttbox}
 thm_deps [\(thm@1\), \(\ldots\), \(thm@n\)];
 \end{ttbox}
 generates the dependency graph of the theorems $thm@1$, $\ldots$, $thm@n$ and
-displays it using Isabelle's graph browser. This function expects derivations
-to be enabled. The structure \texttt{ThmDeps} contains the two functions
+displays it using Isabelle's graph browser. For this to work properly,
+the theorems in question have to be proved with {\tt proofs} set to a value
+greater than {\tt 0}. You can use
 \begin{ttbox}
-enable : unit -> unit
-disable : unit -> unit
+ThmDeps.enable : unit -> unit
+ThmDeps.disable : unit -> unit
 \end{ttbox}
-which set \texttt{keep_derivs} appropriately.
+to set \texttt{proofs} appropriately.
+
+\subsection{Reconstructing and checking proof terms}\label{sec:reconstruct_proofs}
+\index{proof terms!reconstructing}
+\index{proof terms!checking}
+
+When looking at the above datatype of proofs more closely, one notices that
+some arguments of constructors are {\it optional}. The reason for this is that
+keeping a full proof term for each theorem would result in enormous memory
+requirements. Fortunately, typical proof terms usually contain quite a lot of
+redundant information that can be reconstructed from the context. Therefore,
+Isabelle's inference kernel creates only {\em partial} (or {\em implicit})
+\index{proof terms!partial} proof terms, in which
+all typing information in terms, all term and type labels of abstractions
+{\tt AbsP} and {\tt Abst}, and (if possible) some argument terms of
+\verb!%! are omitted. The following functions are available for
+reconstructing and checking proof terms:
+\begin{ttbox}
+Reconstruct.reconstruct_proof :
+  Sign.sg -> term -> Proofterm.proof -> Proofterm.proof
+Reconstruct.expand_proof :
+  Sign.sg -> string list -> Proofterm.proof -> Proofterm.proof
+ProofChecker.thm_of_proof : theory -> Proofterm.proof -> thm
+\end{ttbox}
+
+\begin{ttdescription}
+\item[Reconstruct.reconstruct_proof $sg$ $t$ $prf$]
+turns the partial proof $prf$ into a full proof of the
+proposition denoted by $t$, with respect to signature $sg$.
+Reconstruction will fail with an error message if $prf$
+is not a proof of $t$, is ill-formed, or does not contain
+sufficient information for reconstruction by
+{\em higher order pattern unification}
+\cite{nipkow-patterns, Berghofer-Nipkow:2000:TPHOL}.
+The latter may only happen for proofs
+built up ``by hand'' but not for those produced automatically
+by Isabelle's inference kernel.
+\item[Reconstruct.expand_proof $sg$
+  \ttlbrack$name@1$, $\ldots$, $name@n${\ttrbrack} $prf$]
+expands and reconstructs the proofs of all theorems with names
+$name@1$, $\ldots$, $name@n$ in the (full) proof $prf$.
+\item[ProofChecker.thm_of_proof $thy$ $prf$] turns the (full) proof
+$prf$ into a theorem with respect to theory $thy$ by replaying
+it using only primitive rules from Isabelle's inference kernel.
+\end{ttdescription}
+
+\subsection{Parsing and printing proof terms}
+\index{proof terms!parsing}
+\index{proof terms!printing}
+
+Isabelle offers several functions for parsing and printing
+proof terms. The concrete syntax for proof terms is described
+in Fig.\ts\ref{fig:proof_gram}.
+Implicit term arguments in partial proofs are indicated
+by ``{\tt _}''.
+Type arguments for theorems and axioms may be specified using
+\verb!%! or ``$\cdot$'' with an argument of the form {\tt TYPE($type$)}
+(see \S\ref{sec:basic_syntax}).
+They must appear before any other term argument of a theorem
+or axiom. In contrast to term arguments, type arguments may
+be completely omitted.
+\begin{ttbox}
+  val read_proof : theory -> bool -> string -> Proofterm.proof
+  val pretty_proof : Sign.sg -> Proofterm.proof -> Pretty.T
+  val pretty_proof_of : bool -> thm -> Pretty.T
+  val print_proof_of : bool -> thm -> unit
+\end{ttbox}
+\begin{figure}
+\begin{center}
+\begin{tabular}{rcl}
+$proof$  & $=$ & {\tt Lam} $params${\tt .} $proof$ ~~$|$~~
+                 $\Lambda params${\tt .} $proof$ \\
+         & $|$ & $proof$ \verb!%! $any$ ~~$|$~~
+                 $proof$ $\cdot$ $any$ \\
+         & $|$ & $proof$ \verb!%%! $proof$ ~~$|$~~
+                 $proof$ {\boldmath$\cdot$} $proof$ \\
+         & $|$ & $id$ ~~$|$~~ $longid$ \\\\
+$param$  & $=$ & $idt$ ~~$|$~~ $idt$ {\tt :} $prop$ ~~$|$~~
+                 {\tt (} $param$ {\tt )} \\\\
+$params$ & $=$ & $param$ ~~$|$~~ $param$ $params$
+\end{tabular}
+\end{center}
+\caption{Proof term syntax}\label{fig:proof_gram}
+\end{figure}
+The function {\tt read_proof} reads in a proof term with
+respect to a given theory. The boolean flag indicates whether
+the proof term to be parsed contains explicit typing information
+to be taken into account.
+Usually, typing information is left implicit and
+is inferred during proof reconstruction. The pretty printing
+functions operating on theorems take a boolean flag as an
+argument which indicates whether the proof term should
+be reconstructed before printing.
+
+The following example (based on Isabelle/HOL) illustrates how
+to parse and check proof terms. We start by parsing a partial
+proof term
+\begin{ttbox}
+val prf = ProofSyntax.read_proof Main.thy false
+  "impI % _ % _ %% (Lam H : _. conjE % _ % _ % _ %% H %%
+     (Lam (H1 : _) H2 : _. conjI % _ % _ %% H2 %% H1))";
+{\out val prf = PThm (("HOL.impI", []), \dots, \dots, None) % None % None %%}
+{\out   AbsP ("H", None, PThm (("HOL.conjE", []), \dots, \dots, None) %}
+{\out     None % None % None %% PBound 0 %%}
+{\out     AbsP ("H1", None, AbsP ("H2", None, \dots))) : Proofterm.proof}
+\end{ttbox}
+The statement to be established by this proof is
+\begin{ttbox}
+val t = term_of
+  (read_cterm (sign_of Main.thy) ("A & B --> B & A", propT));
+{\out val t = Const ("Trueprop", "bool => prop") $}
+{\out   (Const ("op -->", "[bool, bool] => bool") $}
+{\out     \dots $ \dots : Term.term}
+\end{ttbox}
+Using {\tt t} we can reconstruct the full proof
+\begin{ttbox}
+val prf' = Reconstruct.reconstruct_proof (sign_of Main.thy) t prf;
+{\out val prf' = PThm (("HOL.impI", []), \dots, \dots, Some []) %}
+{\out   Some (Const ("op &", \dots) $ Free ("A", \dots) $ Free ("B", \dots)) %}
+{\out   Some (Const ("op &", \dots) $ Free ("B", \dots) $ Free ("A", \dots)) %%}
+{\out   AbsP ("H", Some (Const ("Trueprop", \dots) $ \dots), \dots)}
+{\out     : Proofterm.proof}
+\end{ttbox}
+This proof can finally be turned into a theorem
+\begin{ttbox}
+val thm = ProofChecker.thm_of_proof Main.thy prf';
+{\out val thm = "A & B --> B & A" : Thm.thm}
+\end{ttbox}
+
+\index{proof terms|)}
+\index{theorems|)}
 
 
 %%% Local Variables: 
