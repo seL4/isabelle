@@ -175,7 +175,6 @@ Addsimps[mem_filter];
 goal thy "set_of_list (xs@ys) = (set_of_list xs Un set_of_list ys)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-by (Blast_tac 1);
 qed "set_of_list_append";
 Addsimps[set_of_list_append];
 
@@ -199,7 +198,6 @@ Addsimps [set_of_list_empty];
 goal thy "set_of_list(rev xs) = set_of_list(xs)";
 by(induct_tac "xs" 1);
 by(ALLGOALS Asm_simp_tac);
-by(Blast_tac 1);
 qed "set_of_list_rev";
 Addsimps [set_of_list_rev];
 
@@ -233,11 +231,16 @@ qed "list_all_mem_conv";
 
 (** filter **)
 
-goal thy "[x:xs@ys . P] = [x:xs . P] @ [y:ys . P]";
+goal thy "filter P (xs@ys) = filter P xs @ filter P ys";
 by(induct_tac "xs" 1);
  by(ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "filter_append";
 Addsimps [filter_append];
+
+goal thy "size (filter P xs) <= size xs";
+by(induct_tac "xs" 1);
+ by(ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
+qed "filter_size";
 
 
 (** concat **)
