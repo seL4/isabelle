@@ -375,12 +375,10 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       if length path > 1 then update_index parent_html_prefix name else ();
       (case readme of None => () | Some path => File.copy path (Path.append html_prefix path));
       write_graph graph (Path.append html_prefix graph_path);
-      copy_files (Path.unpack "~~/lib/browser/awtUtilities/*.class")
-        (Path.append html_prefix (Path.basic "awtUtilities"));
-      copy_files (Path.unpack "~~/lib/browser/GraphBrowser/*.class")
-        (Path.append html_prefix (Path.basic "GraphBrowser"));
+      copy_files (Path.unpack "~~/lib/browser/GraphBrowser.jar") html_prefix;
       seq (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
         (HTML.applet_pages name (Url.file index_path, name));
+      copy_files (Path.unpack "~~/lib/html/isabelle.css") html_prefix;
       seq finish_html thys;
       seq (uncurry File.write) files;
       conditional verbose (fn () =>
