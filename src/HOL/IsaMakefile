@@ -90,9 +90,8 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Integ/IntDiv.thy Integ/NatBin.thy Integ/NatSimprocs.thy Integ/Parity.thy \
   Integ/int_arith1.ML Integ/int_factor_simprocs.ML Integ/nat_simprocs.ML \
   Integ/Presburger.thy Integ/presburger.ML Integ/qelim.ML \
-  Lfp.thy List.ML List.thy Main.ML Main.thy Map.thy Nat.ML \
-  Nat.thy NatArith.ML NatArith.thy \
-  Power.thy PreList.thy Product_Type.ML Product_Type.thy \
+  Lfp.thy List.ML List.thy Main.ML Main.thy Map.thy\
+  Nat.ML Nat.thy NatArith.thy Power.thy PreList.thy Product_Type.thy \
   Refute.thy ROOT.ML \
   Recdef.thy Reconstruction.thy\
   Record.thy Relation.ML Relation.thy Relation_Power.ML \
