@@ -18,17 +18,8 @@ record state =
   token :: nat
   proc  :: nat => pstate
 
-consts
-  N :: nat	(*number of nodes in the ring*)
 
 constdefs
-  nodeOrder :: "nat => (nat*nat)set"
-    "nodeOrder j == (inv_image less_than (%i. ((j+N)-i) mod N))  Int
-                    (lessThan N Times lessThan N)"
-
-  next      :: nat => nat
-    "next i == (Suc i) mod N"
-
   HasTok :: nat => state set
     "HasTok i == {s. token s = i}"
 
@@ -41,21 +32,37 @@ constdefs
   T :: nat => state set
     "T i == {s. proc s i = Thinking}"
 
-rules
-  N_positive "0<N"
 
-  skip "id: acts"
+locale Token =
+  fixes
+    N         :: nat	 (*number of nodes in the ring*)
+    acts      :: "(state*state)set set"
+    nodeOrder :: "nat => (nat*nat)set"
+    next      :: nat => nat
 
-  TR2  "constrains acts (T i) (T i Un H i)"
+  assumes
+    N_positive "0<N"
 
-  TR3  "constrains acts (H i) (H i Un E i)"
+    skip "id: acts"
 
-  TR4  "constrains acts (H i - HasTok i) (H i)"
+    TR2  "!!i. constrains acts (T i) (T i Un H i)"
 
-  TR5  "constrains acts (HasTok i) (HasTok i Un Compl(E i))"
+    TR3  "!!i. constrains acts (H i) (H i Un E i)"
 
-  TR6  "leadsTo acts (H i Int HasTok i) (E i)"
+    TR4  "!!i. constrains acts (H i - HasTok i) (H i)"
 
-  TR7  "leadsTo acts (HasTok i) (HasTok (next i))"
+    TR5  "!!i. constrains acts (HasTok i) (HasTok i Un Compl(E i))"
+
+    TR6  "!!i. leadsTo acts (H i Int HasTok i) (E i)"
+
+    TR7  "!!i. leadsTo acts (HasTok i) (HasTok (next i))"
+
+  defines
+    nodeOrder_def
+      "nodeOrder j == (inv_image less_than (%i. ((j+N)-i) mod N))  Int
+		      (lessThan N Times lessThan N)"
+
+    next_def
+      "next i == (Suc i) mod N"
 
 end

@@ -10,8 +10,6 @@ From Misra, "A Logic for Concurrent Programming" (1994), sections 5.2 and 13.2.
 
 val Token_defs = [HasTok_def, H_def, E_def, T_def];
 
-AddIffs [N_positive, skip];
-
 Goalw [HasTok_def] "[| s: HasTok i; s: HasTok j |] ==> i=j";
 by Auto_tac;
 qed "HasToK_partition";
@@ -22,7 +20,20 @@ by (exhaust_tac "proc s i" 1);
 by Auto_tac;
 qed "not_E_eq";
 
-(*This proof is in the "massaging" style and is much faster! *)
+Open_locale "Token";
+
+(*Strip meta-quantifiers: perhaps the locale should do this?*)
+val TR2   = forall_elim_vars 0 (thm "TR2");
+val TR3   = forall_elim_vars 0 (thm "TR3");
+val TR4   = forall_elim_vars 0 (thm "TR4");
+val TR5   = forall_elim_vars 0 (thm "TR5");
+val TR6   = forall_elim_vars 0 (thm "TR6");
+val TR7   = forall_elim_vars 0 (thm "TR7");
+val nodeOrder_def   = (thm "nodeOrder_def");
+val next_def   = (thm "next_def");
+
+AddIffs [thm "N_positive", thm"skip"];
+
 Goalw [stable_def] "stable acts (Compl(E i) Un (HasTok i))";
 by (rtac constrains_weaken 1);
 by (rtac ([[TR2, TR4] MRS constrains_Un, TR5] MRS constrains_Un) 1);
@@ -38,37 +49,19 @@ by (rtac (wf_less_than RS wf_inv_image RS wf_subset) 1);
 by (Blast_tac 1);
 qed"wf_nodeOrder";
 
-Goal "[| m<n; Suc m ~= n |] ==> Suc(m) < n";
-    by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
-    by (blast_tac (claset() addEs [less_asym, less_SucE]) 1);
-    qed "Suc_lessI";
-
 Goalw [nodeOrder_def, next_def, inv_image_def]
     "[| i<N; j<N |] ==> ((next i, i) : nodeOrder j) = (i ~= j)";
 by (auto_tac (claset(),
 	      simpset() addsimps [Suc_lessI, mod_Suc, mod_less, mod_geq]));
-by (dtac sym 1);
-(*The next two lines...**)
-by (REPEAT (eres_inst_tac [("P", "?a<N")] rev_mp 1));
-by (etac ssubst 1);
-(*were with the previous version of asm_full_simp_tac...
-  by (rotate_tac ~1 1);
-*)
-by (asm_full_simp_tac (simpset() addsimps [eq_sym_conv, mod_Suc, mod_less]) 1);
 by (subgoal_tac "(j + N - i) = Suc (j + N - Suc i)" 1);
-by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, less_imp_le, Suc_leI, 
+by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, Suc_leI, 
                                       diff_add_assoc]) 2);
 by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
 by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc]) 1);
-(*including less_asym here would slow things down*)
-by (auto_tac (claset() delrules [notI], 
-              simpset() addsimps [diff_add_assoc2, Suc_leI,
-                                  less_imp_diff_less, 
-                                  mod_less, mod_geq, nat_neq_iff]));
-by (REPEAT (blast_tac (claset() addEs [less_asym]) 3));
-by (asm_simp_tac (simpset() addsimps [less_imp_diff_less,
-				      Suc_diff_n RS sym]) 1);
-by (asm_simp_tac (simpset() addsimps [add_diff_less, mod_less]) 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [diff_add_assoc2, nat_neq_iff, 
+                                  Suc_le_eq, Suc_diff_Suc, less_imp_diff_less, 
+                                  add_diff_less, mod_less, mod_geq]));
 by (etac subst 1);
 by (asm_simp_tac (simpset() addsimps [add_diff_less]) 1);
 qed "nodeOrder_eq";
