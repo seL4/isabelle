@@ -162,6 +162,10 @@ goal FOL.thy "EX z. P(z) --> (ALL x. P(x))";
 by (best_tac FOL_dup_cs 1);
 result();
 
+goal FOL.thy "EX x. (EX y. P(y)) --> P(x)";
+by (best_tac FOL_dup_cs 1);
+result();
+
 (*from Vladimir Lifschitz, What Is the Inverse Method?, JAR 5 (1989), 1--23*)
 goal FOL.thy "EX x x'. ALL y. EX z z'. \
 \               (~P(y,y) | P(x,x) | ~S(z,x)) & \
