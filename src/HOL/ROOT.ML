@@ -23,8 +23,13 @@ use "../Provers/classical.ML";
 use "../Provers/blast.ML";
 use "../Provers/nat_transitive.ML";
 
+use "thy_data.ML";
 
 use_thy "HOL";
+use "hologic.ML";
+use "cladata.ML";
+use "simpdata.ML";
+
 use_thy "Ord";
 use_thy "subset";
 use     "typedef.ML";
@@ -34,8 +39,8 @@ use_thy "Gfp";
 use "datatype.ML";
 use "ind_syntax.ML";
 use "add_ind_def.ML";
-use "intr_elim.ML";
-use "indrule.ML";
+use_thy "intr_elim";
+use_thy "indrule";
 use_thy "Inductive";
 
 use_thy "RelPow";
