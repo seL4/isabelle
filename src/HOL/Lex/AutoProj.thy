@@ -9,14 +9,23 @@ Otherwise we could have `acceps A == fin A o delta A (start A)'
 and use foldl instead of foldl2.
 *)
 
-AutoProj = Main +
+theory AutoProj = Main:
 
 constdefs
  start :: "'a * 'b * 'c => 'a"
 "start A == fst A"
- next :: "'a * 'b * 'c => 'b"
+ "next" :: "'a * 'b * 'c => 'b"
 "next A == fst(snd(A))"
  fin :: "'a * 'b * 'c => 'c"
 "fin A == snd(snd(A))"
+
+lemma [simp]: "start(q,d,f) = q"
+by(simp add:start_def)
+
+lemma [simp]: "next(q,d,f) = d"
+by(simp add:next_def)
+
+lemma [simp]: "fin(q,d,f) = f"
+by(simp add:fin_def)
 
 end

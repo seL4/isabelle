@@ -15,13 +15,13 @@ A chopper is parametrized by a language ('a list => bool),
 i.e. a set of strings.
 *)
 
-Chopper = List_Prefix +
+theory Chopper = List_Prefix:
 
-types   'a chopper = "'a list => 'a list list * 'a list"
+types 'a chopper = "'a list => 'a list list * 'a list"
 
 constdefs
-  is_longest_prefix_chopper :: ['a list => bool, 'a chopper] => bool
-  "is_longest_prefix_chopper L chopper == !xs.
+  is_longest_prefix_chopper :: "('a list => bool) => 'a chopper => bool"
+ "is_longest_prefix_chopper L chopper == !xs.
        (!zs. chopper(xs) = ([],zs) -->
              zs=xs & (!ys. ys ~= [] & ys <= xs --> ~L(ys))) &
        (!ys yss zs. chopper(xs) = (ys#yss,zs) -->

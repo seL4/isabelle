@@ -16,7 +16,7 @@ Goalw [atom_def] "start (atom a) = [True]";
 by (Simp_tac 1);
 qed "start_atom";
 
-Goalw [atom_def,step_def]
+Goalw [atom_def,thm"step_def"]
  "(p,q) : step (atom a) b = (p=[True] & q=[False] & b=a)";
 by (Simp_tac 1);
 qed "in_step_atom_Some";
@@ -40,7 +40,7 @@ qed "start_fin_in_steps_atom";
 Goal
  "accepts (atom a) w = (w = [a])";
 by (simp_tac(simpset() addsimps
-       [accepts_conv_steps,start_fin_in_steps_atom,fin_atom]) 1);
+       [thm"accepts_conv_steps",start_fin_in_steps_atom,fin_atom]) 1);
 qed "accepts_atom";
 
 
@@ -64,13 +64,13 @@ AddIffs [fin_or_True,fin_or_False];
 
 (***** True/False ueber step anheben *****)
 
-Goalw [or_def,step_def]
+Goalw [or_def,thm"step_def"]
 "!L R. (True#p,q) : step (or L R) a = (? r. q = True#r & (p,r) : step L a)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "True_in_step_or";
 
-Goalw [or_def,step_def]
+Goalw [or_def,thm"step_def"]
 "!L R. (False#p,q) : step (or L R) a = (? r. q = False#r & (p,r) : step R a)";
 by (Simp_tac 1);
 by (Blast_tac 1);
@@ -98,7 +98,7 @@ AddIffs [lift_True_over_steps_or,lift_False_over_steps_or];
 
 (** From the start  **)
 
-Goalw [or_def,step_def]
+Goalw [or_def,thm"step_def"]
  "!L R. (start(or L R),q) : step(or L R) a = \
 \       (? p. (q = True#p & (start L,p) : step L a) | \
 \             (q = False#p & (start R,p) : step R a))";
@@ -128,7 +128,7 @@ AddIffs [fin_start_or];
 
 Goal
  "accepts (or L R) w = (accepts L w | accepts R w)";
-by (simp_tac (simpset() addsimps [accepts_conv_steps,steps_or]) 1);
+by (simp_tac (simpset() addsimps [thm"accepts_conv_steps",steps_or]) 1);
 (* get rid of case_tac: *)
 by (case_tac "w = []" 1);
 by (Auto_tac);
@@ -155,7 +155,7 @@ AddIffs [fin_conc_True,fin_conc_False];
 
 (** True/False in step **)
 
-Goalw [conc_def,step_def]
+Goalw [conc_def,thm"step_def"]
  "!L R. (True#p,q) : step (conc L R) a = \
 \       ((? r. q=True#r & (p,r): step L a) | \
 \        (fin L p & (? r. q=False#r & (start R,r) : step R a)))";
@@ -163,7 +163,7 @@ by (Simp_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "True_step_conc";
 
-Goalw [conc_def,step_def]
+Goalw [conc_def,thm"step_def"]
  "!L R. (False#p,q) : step (conc L R) a = \
 \       (? r. q = False#r & (p,r) : step R a)";
 by (Simp_tac 1);
@@ -256,7 +256,7 @@ qed_spec_mp "final_conc";
 Goal
  "accepts (conc L R) w = (? u v. w = u@v & accepts L u & accepts R v)";
 by (simp_tac (simpset() addsimps
-     [accepts_conv_steps,True_steps_conc,final_conc,start_conc]) 1);
+     [thm"accepts_conv_steps",True_steps_conc,final_conc,start_conc]) 1);
 by (rtac iffI 1);
  by (Clarify_tac 1);
  by (etac disjE 1);
@@ -284,7 +284,7 @@ qed "accepts_conc";
 (*                     epsilon                        *)
 (******************************************************)
 
-Goalw [epsilon_def,step_def] "step epsilon a = {}";
+Goalw [epsilon_def,thm"step_def"] "step epsilon a = {}";
 by (Simp_tac 1);
 qed "step_epsilon";
 Addsimps [step_epsilon];
@@ -295,7 +295,7 @@ by (Auto_tac);
 qed "steps_epsilon";
 
 Goal "accepts epsilon w = (w = [])";
-by (simp_tac (simpset() addsimps [steps_epsilon,accepts_conv_steps]) 1);
+by (simp_tac (simpset() addsimps [steps_epsilon,thm"accepts_conv_steps"]) 1);
 by (simp_tac (simpset() addsimps [epsilon_def]) 1);
 qed "accepts_epsilon";
 AddIffs [accepts_epsilon];
@@ -314,7 +314,7 @@ by (Simp_tac 1);
 qed_spec_mp "fin_plus";
 AddIffs [fin_plus];
 
-Goalw [plus_def,step_def]
+Goalw [plus_def,thm"step_def"]
   "!A. (p,q) : step A a --> (p,q) : step (plus A) a";
 by (Simp_tac 1);
 qed_spec_mp "step_plusI";
@@ -326,7 +326,7 @@ by (Simp_tac 1);
 by (blast_tac (claset() addIs [step_plusI]) 1);
 qed_spec_mp "steps_plusI";
 
-Goalw [plus_def,step_def]
+Goalw [plus_def,thm"step_def"]
  "!A. (p,r): step (plus A) a = \
 \     ( (p,r): step A a | fin A p & (start A,r) : step A a )";
 by (Simp_tac 1);
@@ -361,13 +361,13 @@ by (etac disjE 1);
  by (Asm_simp_tac 1);
  by (Blast_tac 1);
 by (res_inst_tac [("x","us@[v]")] exI 1);
-by (asm_full_simp_tac (simpset() addsimps [accepts_conv_steps]) 1);
+by (asm_full_simp_tac (simpset() addsimps [thm"accepts_conv_steps"]) 1);
 by (Blast_tac 1);
 qed_spec_mp "start_steps_plusD";
 
 Goal
  "us ~= [] --> (!u : set us. accepts A u) --> accepts (plus A) (concat us)";
-by (simp_tac (simpset() addsimps [accepts_conv_steps]) 1);
+by (simp_tac (simpset() addsimps [thm"accepts_conv_steps"]) 1);
 by (res_inst_tac [("xs","us")] rev_induct 1);
  by (Simp_tac 1);
 by (rename_tac "u us" 1);
@@ -388,12 +388,12 @@ Goal
  "accepts (plus A) w = \
 \ (? us. us ~= [] & w = concat us & (!u : set us. accepts A u))";
 by (rtac iffI 1);
- by (asm_full_simp_tac (simpset() addsimps [accepts_conv_steps]) 1);
+ by (asm_full_simp_tac (simpset() addsimps [thm"accepts_conv_steps"]) 1);
  by (Clarify_tac 1);
  by (dtac start_steps_plusD 1);
  by (Clarify_tac 1);
  by (res_inst_tac [("x","us@[v]")] exI 1);
- by (asm_full_simp_tac (simpset() addsimps [accepts_conv_steps]) 1);
+ by (asm_full_simp_tac (simpset() addsimps [thm"accepts_conv_steps"]) 1);
  by (Blast_tac 1);
 by (blast_tac (claset() addIs [steps_star_cycle]) 1);
 qed "accepts_plus";
@@ -421,7 +421,7 @@ qed "accepts_star";
 Goal
  "!w. accepts (rexp2na r) w = (w : lang r)";
 by (induct_tac "r" 1);
-    by (simp_tac (simpset() addsimps [accepts_conv_steps]) 1);
+    by (simp_tac (simpset() addsimps [thm"accepts_conv_steps"]) 1);
    by (simp_tac(simpset() addsimps [accepts_atom]) 1);
   by (Asm_simp_tac 1);
  by (asm_simp_tac (simpset() addsimps [accepts_conc,RegSet.conc_def]) 1);

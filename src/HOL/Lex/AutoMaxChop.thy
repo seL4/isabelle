@@ -4,7 +4,7 @@
     Copyright   1998 TUM
 *)
 
-AutoMaxChop = DA + MaxChop +
+theory AutoMaxChop = DA + MaxChop:
 
 consts
  auto_split :: "('a,'s)da => 's  => 'a list * 'a list => 'a list => 'a splitter"
