@@ -113,7 +113,7 @@ lemmas thelub_cprod = lub_cprod [THEN thelubI, standard]
 lemma cpo_cprod: "chain(S::nat=>'a::cpo*'b::cpo)==>EX x. range S<<| x"
 by (rule exI, erule lub_cprod)
 
-instance "*" :: (cpo,cpo)cpo
+instance "*" :: (cpo, cpo) cpo
 by intro_classes (rule cpo_cprod)
 
 subsection {* Type @{typ "'a * 'b"} is pointed *}
@@ -128,7 +128,7 @@ apply (rule_tac x = " (UU,UU) " in exI)
 apply (rule minimal_cprod [THEN allI])
 done
 
-instance "*" :: (pcpo,pcpo)pcpo
+instance "*" :: (pcpo, pcpo) pcpo
 by intro_classes (rule least_cprod)
 
 text {* for compatibility with old HOLCF-Version *}
@@ -211,39 +211,9 @@ cfst_def:        "cfst   == (LAM p. fst(p))"
 csnd_def:        "csnd   == (LAM p. snd(p))"      
 csplit_def:      "csplit == (LAM f p. f$(cfst$p)$(csnd$p))"
 
+subsection {* Syntax *}
 
-
-(* introduce syntax for
-
-   Let <x,y> = e1; z = E2 in E3
-
-   and
-
-   LAM <x,y,z>.e
-*)
-
-constdefs
-  CLet           :: "'a -> ('a -> 'b) -> 'b"
-  "CLet == LAM s f. f$s"
-
-
-(* syntax for Let *)
-
-nonterminals
-  Cletbinds  Cletbind
-
-syntax
-  "_Cbind"  :: "[pttrn, 'a] => Cletbind"             ("(2_ =/ _)" 10)
-  ""        :: "Cletbind => Cletbinds"               ("_")
-  "_Cbinds" :: "[Cletbind, Cletbinds] => Cletbinds"  ("_;/ _")
-  "_CLet"   :: "[Cletbinds, 'a] => 'a"               ("(Let (_)/ in (_))" 10)
-
-translations
-  "_CLet (_Cbinds b bs) e"  == "_CLet b (_CLet bs e)"
-  "Let x = a in e"          == "CLet$a$(LAM x. e)"
-
-
-(* syntax for LAM <x,y,z>.e *)
+text {* syntax for @{text "LAM <x,y,z>.e"} *}
 
 syntax
   "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3LAM <_>./ _)" [0, 10] 10)
@@ -255,6 +225,28 @@ translations
 
 syntax (xsymbols)
   "_LAM"    :: "[patterns, 'a => 'b] => ('a -> 'b)"  ("(3\<Lambda>()<_>./ _)" [0, 10] 10)
+
+text {* syntax for Let *}
+
+constdefs
+  CLet           :: "'a::cpo -> ('a -> 'b::cpo) -> 'b"
+  "CLet == LAM s f. f$s"
+
+nonterminals
+  Cletbinds  Cletbind
+
+syntax
+  "_Cbind"  :: "[pttrn, 'a] => Cletbind"             ("(2_ =/ _)" 10)
+  "_Cbindp" :: "[patterns, 'a] => Cletbind"          ("(2<_> =/ _)" 10)
+  ""        :: "Cletbind => Cletbinds"               ("_")
+  "_Cbinds" :: "[Cletbind, Cletbinds] => Cletbinds"  ("_;/ _")
+  "_CLet"   :: "[Cletbinds, 'a] => 'a"               ("(Let (_)/ in (_))" 10)
+
+translations
+  "_CLet (_Cbinds b bs) e"  == "_CLet b (_CLet bs e)"
+  "Let x = a in LAM ys. e"  == "CLet$a$(LAM x ys. e)"
+  "Let x = a in e"          == "CLet$a$(LAM x. e)"
+  "Let <xs> = a in e"       == "CLet$a$(LAM <xs>. e)"
 
 subsection {* Convert all lemmas to the continuous versions *}
 
