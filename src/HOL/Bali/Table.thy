@@ -31,16 +31,16 @@ design issues:
 \end{itemize}
 *}
 
-types ('a, 'b) table    (* table with key type 'a and contents type 'b *)
+types ('a, 'b) table    --{* table with key type 'a and contents type 'b *}
       = "'a \<leadsto> 'b"
-      ('a, 'b) tables   (* non-unique table with key 'a and contents 'b *)
+      ('a, 'b) tables   --{* non-unique table with key 'a and contents 'b *}
       = "'a \<Rightarrow> 'b set"
 
 
 section "map of / table of"
 
 syntax
-  table_of      :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"    (* concrete table *)
+  table_of      :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) table"   --{* concrete table *}
   
 translations
   "table_of" == "map_of"
@@ -58,8 +58,8 @@ constdefs
 cond_override:: 
   "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b)table \<Rightarrow> ('a, 'b) table"
 
-(* when merging tables old and new, only override an entry of table old when  
-   the condition cond holds *)
+--{* when merging tables old and new, only override an entry of table old when  
+   the condition cond holds *}
 "cond_override cond old new \<equiv>
  \<lambda> k.
   (case new k of
@@ -295,10 +295,10 @@ consts
                      ('a, 'b) tables"             (infixl "\<oplus>\<oplus>" 100)
   hidings_entails:: "('a, 'b) tables \<Rightarrow> ('a, 'c) tables \<Rightarrow> 
                      ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"   ("_ hidings _ entails _" 20)
-  (* variant for unique table: *)
+  --{* variant for unique table: *}
   hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  \<Rightarrow> 
                      ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"   ("_ hiding _ entails _"  20)
-  (* variant for a unique table and conditional overriding: *)
+  --{* variant for a unique table and conditional overriding: *}
   cond_hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  
                           \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"  
                           ("_ hiding _ under _ entails _"  20)

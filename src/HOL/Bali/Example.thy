@@ -160,7 +160,8 @@ constdefs
               \<lparr>access=Public,static=False,pars=[z],resT=Class Ext,
 	       mbody=\<lparr>lcls=[]
                      ,stmt=Expr({Ext,Ext,False}Cast (Class Ext) (!!z)..vee := 
-       	                                                     Lit (Intg 1))\<rparr>
+       	                                                     Lit (Intg 1)) ;;
+                                Return (Lit Null)\<rparr>
 	      \<rparr>)"
 
 constdefs
@@ -883,16 +884,43 @@ done
 
 declare member_is_static_simp [simp]
 declare wt.Skip [rule del] wt.Init [rule del]
-lemmas Base_foo_defs = Base_foo_def foo_sig_def foo_mhead_def
-lemmas Ext_foo_defs  = Ext_foo_def  foo_sig_def
 ML {* bind_thms ("wt_intros",map (rewrite_rule [id_def]) (thms "wt.intros")) *}
 lemmas wtIs = wt_Call wt_Super wt_FVar wt_StatRef wt_intros
+lemmas daIs = assigned.select_convs da_Skip da_NewC da_Lit da_Super da.intros
+
+lemmas Base_foo_defs = Base_foo_def foo_sig_def foo_mhead_def
+lemmas Ext_foo_defs  = Ext_foo_def  foo_sig_def
+
+
+
 
 lemma wf_Base_foo: "wf_mdecl tprg Base Base_foo"
 apply (unfold Base_foo_defs )
-apply (auto intro!: wf_mdeclI wf_mheadI intro!: wtIs
+apply (auto intro!: wf_mdeclI wf_mheadI intro!: wtIs 
             simp add: mhead_resTy_simp)
+(* for definite assignment *)
+apply (rule exI)
+apply (simp add: parameters_def)
+apply (rule conjI)
+apply  (rule da.Comp)
+apply     (rule da.Expr)
+apply     (rule da.AssLVar)
+apply       (rule da.AccLVar)
+apply         (simp)
+apply        (rule assigned.select_convs)
+apply       (simp)
+apply      (rule assigned.select_convs)
+apply     (simp)
+apply    (simp)
+apply    (rule da.Jmp)
+apply      (simp)
+apply     (rule assigned.select_convs)
+apply    (simp)
+apply   (rule assigned.select_convs)
+apply  (simp)
+apply (simp)
 done
+
 
 lemma wf_Ext_foo: "wf_mdecl tprg Ext Ext_foo"
 apply (unfold Ext_foo_defs )
@@ -903,6 +931,37 @@ prefer 2
 apply    simp
 apply   (rule_tac [2] narrow.subcls [THEN cast.narrow])
 apply   (auto intro!: wtIs)
+(* for definite assignment *)
+apply (rule exI)
+apply (simp add: parameters_def)
+apply (rule conjI)
+apply  (rule da.Comp)
+apply     (rule da.Expr)
+apply     (rule da.Ass)   
+apply       simp
+apply      (rule da.FVar)
+apply      (rule da.Cast)
+apply      (rule da.AccLVar)
+apply        simp
+apply       (rule assigned.select_convs)
+apply      simp
+apply     (rule da_Lit)
+apply     (simp)
+apply    (rule da.Comp)
+apply       (rule da.Expr)
+apply       (rule da.AssLVar)
+apply         (rule da.Lit)                  
+apply        (rule assigned.select_convs)
+apply       simp
+apply      (rule da.Jmp)
+apply        simp
+apply       (rule assigned.select_convs)
+apply      simp
+apply     (rule assigned.select_convs)
+apply    (simp)
+apply   (rule assigned.select_convs)
+apply  simp
+apply simp
 done
 
 declare mhead_resTy_simp [simp add]
@@ -911,23 +970,35 @@ declare member_is_static_simp [simp add]
 lemma wf_BaseC: "wf_cdecl tprg (Base,BaseCl)"
 apply (unfold wf_cdecl_def BaseCl_def arr_viewed_from_def)
 apply (auto intro!: wf_Base_foo)
-apply       (auto intro!: ws_cdecl_Base simp add: Base_foo_def foo_mhead_def)
-apply (auto intro!: wtIs)
+apply        (auto intro!: ws_cdecl_Base simp add: Base_foo_def foo_mhead_def)
+apply   (auto intro!: wtIs)
+(* for definite assignment *)
+apply   (rule exI)
+apply   (rule da.Expr)
+apply  (rule da.Ass)
+apply    (simp)
+apply   (rule da.FVar)
+apply   (rule da.Cast)
+apply   (rule da_Lit)
+apply   simp
+apply  (rule da.NewA)
+apply  (rule da.Lit)
 apply (auto simp add: Base_foo_defs entails_def Let_def)
 apply   (insert Base_foo_no_stat_override, simp add: Base_foo_def,blast)+
-apply   (insert Base_foo_no_hide         , simp add: Base_foo_def,blast)
+apply (insert Base_foo_no_hide         , simp add: Base_foo_def,blast)
 done
 
 
 lemma wf_ExtC: "wf_cdecl tprg (Ext,ExtCl)"
 apply (unfold wf_cdecl_def ExtCl_def)
 apply (auto intro!: wf_Ext_foo ws_cdecl_Ext)
-apply (auto simp add: entails_def snd_special_simp)
-apply (insert Ext_foo_stat_override)
-apply  (force simp add: qmdecl_def Ext_foo_def Base_foo_def)
-apply  (force simp add: qmdecl_def Ext_foo_def Base_foo_def)
-apply  (force simp add: qmdecl_def Ext_foo_def Base_foo_def)
-apply (insert Ext_foo_no_hide)
+apply  (auto simp add: entails_def snd_special_simp)
+apply      (insert Ext_foo_stat_override)
+apply      (rule exI,rule da.Skip)      
+apply     (force simp add: qmdecl_def Ext_foo_def Base_foo_def)
+apply    (force simp add: qmdecl_def Ext_foo_def Base_foo_def)
+apply   (force simp add: qmdecl_def Ext_foo_def Base_foo_def)
+apply  (insert Ext_foo_no_hide)
 apply  (simp_all add: qmdecl_def)
 apply  blast+
 done
@@ -935,6 +1006,7 @@ done
 lemma wf_MainC: "wf_cdecl tprg (Main,MainCl)"
 apply (unfold wf_cdecl_def MainCl_def)
 apply (auto intro: ws_cdecl_Main)
+apply (rule exI,rule da.Skip)
 done
 
 lemma wf_idecl_all: "p=tprg \<Longrightarrow> Ball (set Ifaces) (wf_idecl p)"
@@ -948,7 +1020,8 @@ lemma wf_cdecl_all_standard_classes:
 apply (unfold standard_classes_def Let_def 
        ObjectC_def SXcptC_def Object_mdecls_def SXcpt_mdecls_def)
 apply (simp (no_asm) add: wf_cdecl_def ws_cdecls)
-apply (auto simp add:is_acc_class_def accessible_in_RefT_simp SXcpt_def)
+apply (auto simp add:is_acc_class_def accessible_in_RefT_simp SXcpt_def 
+            intro: da.Skip)
 apply (auto simp add: Object_def Classes_def standard_classes_def 
                       SXcptC_def SXcpt_def)
 done
@@ -970,13 +1043,12 @@ apply  ((simp (no_asm) add: Classes_def standard_classes_def))
 apply (rule conjI)
 apply (simp add: Object_mdecls_def)
 apply safe
-apply  (cut_tac xn_cases_old)   (* FIXME (insert xn_cases) *)
+apply  (cut_tac xn_cases)   
 apply  (simp (no_asm_simp) add: Classes_def standard_classes_def)
 apply  (insert wf_idecl_all)
 apply  (insert wf_cdecl_all)
 apply  auto
 done
-
 
 section "max spec"
 
@@ -997,7 +1069,6 @@ apply (unfold max_spec_def)
 apply (simp (no_asm) add: appl_methds_Base_foo)
 apply auto
 done
-
 
 section "well-typedness"
 
@@ -1049,6 +1120,49 @@ apply   (simp)
 apply  (rule wtIs (* LVar *))
 apply  (simp)
 apply (rule wtIs (* Skip *))
+done
+
+section "definite assignment"
+
+lemma da_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>
+                  \<turnstile>{} \<guillemotright>\<langle>test ?pTs\<rangle>\<guillemotright> \<lparr>nrm={VName e},brk=\<lambda> l. UNIV\<rparr>"
+apply (unfold test_def arr_viewed_from_def)
+apply (rule da.Comp)
+apply    (rule da.Expr)
+apply    (rule da.AssLVar)
+apply      (rule da.NewC)
+apply     (rule assigned.select_convs)
+apply    (simp)
+apply   (rule da.Try)
+apply      (rule da.Expr)
+apply      (rule da.Call)
+apply       (rule da.AccLVar)
+apply         (simp)   
+apply        (rule assigned.select_convs)
+apply       (simp)
+apply      (rule da.Cons)
+apply       (rule da.Lit)
+apply      (rule da.Nil)
+apply     (rule da.Loop)
+apply        (rule da.Acc)
+apply         (simp)
+apply        (rule da.AVar)
+apply         (rule da.Acc)
+apply          simp
+apply         (rule da.FVar)
+apply         (rule da.Cast)
+apply         (rule da.Lit)
+apply        (rule da.Lit)
+apply       (rule da_Skip)
+apply       (simp)
+apply      (simp,rule assigned.select_convs)
+apply     (simp)
+apply    (simp,rule assigned.select_convs)
+apply   (simp)
+apply  simp
+apply  blast
+apply simp
+apply (simp add: intersect_ts_def)
 done
 
 
@@ -1212,7 +1326,7 @@ apply    (rule eval_Is (* Lit *))
 apply   (simp)
 apply   (rule halloc.New)
 apply    (simp (no_asm_simp))
-apply   (drule atleast_free_weaken,rotate_tac -1,drule atleast_free_weaken)
+apply   (drule atleast_free_weaken,drule atleast_free_weaken)
 apply   (simp (no_asm_simp))
 apply  (simp add: upd_gobj_def)
       (* end init Ext *)
@@ -1251,19 +1365,25 @@ apply   (rule eval_Is (* Body *))
 apply     (rule init_done, simp)
 apply       (simp add: invocation_declclass_def dynlookup_def dynmethd_Ext_foo)
 apply    (simp add: invocation_declclass_def dynlookup_def dynmethd_Ext_foo)
-apply    (rule eval_Is (* Expr *))
-apply    (rule eval_Is (* Ass *))
-apply     (rule eval_Is (* FVar *))
-apply       (rule init_done, simp)
-apply      (rule eval_Is (* Cast *))
-apply       (rule eval_Is (* Acc *))
-apply       (rule eval_Is (* LVar *))
-apply      (simp)
-apply      (simp split del: split_if)
+apply    (rule eval_Is (* Comp *))
+apply     (rule eval_Is (* Expr *))
+apply     (rule eval_Is (* Ass *))
+apply      (rule eval_Is (* FVar *))
+apply         (rule init_done, simp)
+apply        (rule eval_Is (* Cast *))
+apply         (rule eval_Is (* Acc *))
+apply         (rule eval_Is (* LVar *))
+apply        (simp)
+apply       (simp split del: split_if)
 apply      (simp add: check_field_access_def Let_def)
-apply    (rule eval_Is (* XcptE *))
+apply     (rule eval_Is (* XcptE *))
+apply    (simp)
+apply    (rule conjI)
+apply     (simp)
+apply    (rule eval_Is (* Comp *))
 apply   (simp)
       (* end method call *)
+apply  simp
 apply  (rule sxalloc.intros)
 apply  (rule halloc.New)
 apply   (erule alloc_one [THEN conjunct1])

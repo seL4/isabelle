@@ -34,11 +34,11 @@ consts
 (*subcls1, in Decl.thy*)                     (* direct subclass           *)
 (*subcls , by translation*)                  (*        subclass           *)
 (*subclseq, by translation*)                 (* subclass + identity       *)
-  implmt1   :: "prog \<Rightarrow> (qtname \<times> qtname) set" (* direct implementation *)
-  implmt    :: "prog \<Rightarrow> (qtname \<times> qtname) set" (*        implementation *)
-  widen     :: "prog \<Rightarrow> (ty    \<times> ty   ) set" (*        widening       *)
-  narrow    :: "prog \<Rightarrow> (ty    \<times> ty   ) set" (*        narrowing      *)
-  cast     :: "prog \<Rightarrow> (ty    \<times> ty   ) set"  (*        casting        *)
+  implmt1   :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct implementation *}
+  implmt    :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{*        implementation *}
+  widen     :: "prog \<Rightarrow> (ty    \<times> ty   ) set" --{*        widening       *}
+  narrow    :: "prog \<Rightarrow> (ty    \<times> ty   ) set" --{*        narrowing      *}
+  cast     :: "prog \<Rightarrow> (ty    \<times> ty   ) set"  --{*        casting        *}
 
 syntax
 
@@ -73,7 +73,7 @@ syntax (symbols)
 translations
 
 	"G\<turnstile>I \<prec>I1 J" == "(I,J) \<in> subint1 G"
-	"G\<turnstile>I \<preceq>I  J" == "(I,J) \<in>(subint1 G)^*" (* cf. 9.1.3 *)
+	"G\<turnstile>I \<preceq>I  J" == "(I,J) \<in>(subint1 G)^*" --{* cf. 9.1.3 *}
   	(* Defined in Decl.thy:
         "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 D" == "(C,D) \<in> subcls1 G"
 	"G\<turnstile>C \<preceq>\<^sub>C  D" == "(C,D) \<in>(subcls1 G)^*" 
@@ -359,7 +359,7 @@ qed
 section "implementation relation"
 
 defs
-  (* direct implementation, cf. 8.1.3 *)
+  --{* direct implementation, cf. 8.1.3 *}
 implmt1_def:"implmt1 G\<equiv>{(C,I). C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))}"
 
 lemma implmt1D: "G\<turnstile>C\<leadsto>1I \<Longrightarrow> C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))"
@@ -368,7 +368,7 @@ apply auto
 done
 
 
-inductive "implmt G" intros                    (* cf. 8.1.4 *)
+inductive "implmt G" intros                    --{* cf. 8.1.4 *}
 
   direct:         "G\<turnstile>C\<leadsto>1J     \<spacespace>\<spacespace>     \<Longrightarrow> G\<turnstile>C\<leadsto>J"
   subint:        "\<lbrakk>G\<turnstile>C\<leadsto>1I; G\<turnstile>I\<preceq>I J\<rbrakk>  \<Longrightarrow> G\<turnstile>C\<leadsto>J"
@@ -400,10 +400,11 @@ done
 
 section "widening relation"
 
-inductive "widen G" intros(*widening, viz. method invocation conversion, cf. 5.3
-			    i.e. kind of syntactic subtyping *)
-  refl:    "G\<turnstile>T\<preceq>T"(*identity conversion, cf. 5.1.1 *)
-  subint:  "G\<turnstile>I\<preceq>I J  \<Longrightarrow> G\<turnstile>Iface I\<preceq> Iface J"(*wid.ref.conv.,cf. 5.1.4 *)
+inductive "widen G" intros
+ --{*widening, viz. method invocation conversion, cf. 5.3
+			    i.e. kind of syntactic subtyping *}
+  refl:    "G\<turnstile>T\<preceq>T" --{*identity conversion, cf. 5.1.1 *}
+  subint:  "G\<turnstile>I\<preceq>I J  \<Longrightarrow> G\<turnstile>Iface I\<preceq> Iface J" --{*wid.ref.conv.,cf. 5.1.4 *}
   int_obj: "G\<turnstile>Iface I\<preceq> Class Object"
   subcls:  "G\<turnstile>C\<preceq>\<^sub>C D  \<Longrightarrow> G\<turnstile>Class C\<preceq> Class D"
   implmt:  "G\<turnstile>C\<leadsto>I   \<Longrightarrow> G\<turnstile>Class C\<preceq> Iface I"
@@ -427,6 +428,26 @@ lemma widen_PrimT2: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> S = PrimT 
 lemma widen_PrimT2: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> \<exists>y. S = PrimT y"
 apply (ind_cases "G\<turnstile>S\<preceq>T")
 by auto
+
+text {* 
+   These widening lemmata hold in Bali but are to strong for ordinary
+   Java. They  would not work for real Java Integral Types, like short, 
+   long, int. These lemmata are just for documentation and are not used.
+ *}
+
+lemma widen_PrimT_strong: "G\<turnstile>PrimT x\<preceq>T \<Longrightarrow> T = PrimT x"
+by (ind_cases "G\<turnstile>S\<preceq>T") simp_all
+
+lemma widen_PrimT2_strong: "G\<turnstile>S\<preceq>PrimT x \<Longrightarrow> S = PrimT x"
+by (ind_cases "G\<turnstile>S\<preceq>T") simp_all
+
+text {* Specialized versions for booleans also would work for real Java *}
+
+lemma widen_Boolean: "G\<turnstile>PrimT Boolean\<preceq>T \<Longrightarrow> T = PrimT Boolean"
+by (ind_cases "G\<turnstile>S\<preceq>T") simp_all
+
+lemma widen_Boolean2: "G\<turnstile>S\<preceq>PrimT Boolean \<Longrightarrow> S = PrimT Boolean"
+by (ind_cases "G\<turnstile>S\<preceq>T") simp_all
 
 lemma widen_RefT: "G\<turnstile>RefT R\<preceq>T \<Longrightarrow> \<exists>t. T=RefT t"
 apply (ind_cases "G\<turnstile>S\<preceq>T")
@@ -516,10 +537,7 @@ done
 lemma widen_Array_Class: "G\<turnstile>S.[] \<preceq> Class C \<Longrightarrow> C=Object"
 by (auto dest: widen_Array)
 
-(*
-qed_typerel "widen_NT2" "G\<turnstile>S\<preceq>NT \<Longrightarrow> S = NT"
- [prove_widen_lemma "G\<turnstile>S\<preceq>T \<Longrightarrow> T = NT \<longrightarrow> S = NT"]
-*)
+
 lemma widen_NT2: "G\<turnstile>S\<preceq>NT \<Longrightarrow> S = NT"
 apply (ind_cases "G\<turnstile>S\<preceq>T")
 by auto
@@ -634,17 +652,31 @@ lemma narrow_PrimT2: "G\<turnstile>S\<succ>PrimT pt \<Longrightarrow>
 apply (ind_cases "G\<turnstile>S\<succ>T")
 by auto
 
+text {* 
+   These narrowing lemmata hold in Bali but are to strong for ordinary
+   Java. They  would not work for real Java Integral Types, like short, 
+   long, int. These lemmata are just for documentation and are not used.
+ *}
+lemma narrow_PrimT_strong: "G\<turnstile>PrimT pt\<succ>T \<Longrightarrow> T=PrimT pt"
+by (ind_cases "G\<turnstile>S\<succ>T") simp_all
+
+lemma narrow_PrimT2_strong: "G\<turnstile>S\<succ>PrimT pt \<Longrightarrow> S=PrimT pt"
+by (ind_cases "G\<turnstile>S\<succ>T") simp_all
+
+text {* Specialized versions for booleans also would work for real Java *}
+
+lemma narrow_Boolean: "G\<turnstile>PrimT Boolean\<succ>T \<Longrightarrow> T=PrimT Boolean"
+by (ind_cases "G\<turnstile>S\<succ>T") simp_all
+
+lemma narrow_Boolean2: "G\<turnstile>S\<succ>PrimT Boolean \<Longrightarrow> S=PrimT Boolean"
+by (ind_cases "G\<turnstile>S\<succ>T") simp_all
 
 section "casting relation"
 
-inductive "cast G" intros (* casting conversion, cf. 5.5 *)
+inductive "cast G" intros --{* casting conversion, cf. 5.5 *}
 
   widen:   "G\<turnstile>S\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>? T"
   narrow:  "G\<turnstile>S\<succ>T \<Longrightarrow> G\<turnstile>S\<preceq>? T"
-
-(*
-lemma ??unknown??: "\<lbrakk>G\<turnstile>S\<preceq>T; G\<turnstile>S\<succ>T\<rbrakk> \<Longrightarrow> R"
- deferred *)
 
 (*unused*)
 lemma cast_RefT: "G\<turnstile>RefT R\<preceq>? T \<Longrightarrow> \<exists>t. T=RefT t"
@@ -663,5 +695,37 @@ by (auto dest: widen_PrimT narrow_PrimT)
 lemma cast_PrimT2: "G\<turnstile>S\<preceq>? PrimT pt \<Longrightarrow> \<exists>t. S=PrimT t \<and> G\<turnstile>PrimT t\<preceq>PrimT pt"
 apply (ind_cases "G\<turnstile>S\<preceq>? T")
 by (auto dest: widen_PrimT2 narrow_PrimT2)
+
+lemma cast_Boolean: 
+  assumes bool_cast: "G\<turnstile>PrimT Boolean\<preceq>? T" 
+  shows "T=PrimT Boolean"
+using bool_cast 
+proof (cases)
+  case widen 
+  hence "G\<turnstile>PrimT Boolean\<preceq> T"
+    by simp
+  thus ?thesis by  (rule widen_Boolean)
+next
+  case narrow
+  hence "G\<turnstile>PrimT Boolean\<succ>T"
+    by simp
+  thus ?thesis by (rule narrow_Boolean)
+qed
+
+lemma cast_Boolean2: 
+  assumes bool_cast: "G\<turnstile>S\<preceq>? PrimT Boolean" 
+  shows "S = PrimT Boolean"
+using bool_cast 
+proof (cases)
+  case widen 
+  hence "G\<turnstile>S\<preceq> PrimT Boolean"
+    by simp
+  thus ?thesis by  (rule widen_Boolean2)
+next
+  case narrow
+  hence "G\<turnstile>S\<succ>PrimT Boolean"
+    by simp
+  thus ?thesis by (rule narrow_Boolean2)
+qed
 
 end

@@ -8,11 +8,11 @@ header {* Java names *}
 theory Name = Basis:
 
 (* cf. 6.5 *) 
-typedecl tnam		(* ordinary type name, i.e. class or interface name *)
-typedecl pname          (* package name *)
-typedecl mname		(* method name *)
-typedecl vname          (* variable or field name *)
-typedecl label          (* label as destination of break or continue *)
+typedecl tnam	--{* ordinary type name, i.e. class or interface name *}
+typedecl pname  --{* package name *}
+typedecl mname  --{* method name *}
+typedecl vname  --{* variable or field name *}
+typedecl label  --{* label as destination of break or continue *}
 
 arities
   tnam  :: "type"
@@ -22,11 +22,11 @@ arities
   label :: "type"
 
 
-datatype ename        (* expression name *) 
+datatype ename        --{* expression name *} 
         = VNam vname 
-        | Res         (* special name to model the return value of methods *)
+        | Res         --{* special name to model the return value of methods *}
 
-datatype lname        (* names for local variables and the This pointer *)
+datatype lname        --{* names for local variables and the This pointer *}
         = EName ename 
         | This
 syntax   
@@ -37,7 +37,7 @@ translations
   "VName n" == "EName (VNam n)"
   "Result"  == "EName Res"
 
-datatype xname		(* names of standard exceptions *)
+datatype xname		--{* names of standard exceptions *}
 	= Throwable
 	| NullPointer | OutOfMemory | ClassCast   
 	| NegArrSize  | IndOutBound | ArrStore
@@ -50,22 +50,14 @@ apply (induct xn)
 apply auto
 done
 
-lemma xn_cases_old:   (* FIXME cf. Example.thy *)
-  "ALL xn. xn = Throwable   \<or> xn = NullPointer \<or>  
-         xn = OutOfMemory \<or> xn = ClassCast \<or> 
-         xn = NegArrSize  \<or> xn = IndOutBound \<or> xn = ArrStore"
-apply (rule allI)
-apply (induct_tac xn)
-apply auto
-done
 
-datatype tname	(* type names for standard classes and other type names *)
+datatype tname	--{* type names for standard classes and other type names *}
 	= Object_
 	| SXcpt_   xname
 	| TName   tnam
 
-record   qtname = (* qualified tname cf. 6.5.3, 6.5.4*)
-          pid :: pname 
+record   qtname = --{* qualified tname cf. 6.5.3, 6.5.4*}
+          pid :: pname  
           tid :: tname
 
 axclass has_pname < "type"
@@ -102,7 +94,7 @@ translations
   (type) "'a qtname_scheme" <= (type) "\<lparr>pid::pname,tid::tname,\<dots>::'a\<rparr>"
 
 
-consts java_lang::pname (* package java.lang *)
+consts java_lang::pname --{* package java.lang *}
 
 consts 
   Object :: qtname

@@ -29,12 +29,12 @@ design issues:
 *}
 
 types	lenv
-	= "(lname, ty) table"   (* local variables, including This and Result *)
+	= "(lname, ty) table"  --{* local variables, including This and Result*}
 
 record env = 
-         prg:: "prog"    (* program *)
-         cls:: "qtname"  (* current package and class name *)
-         lcl:: "lenv"    (* local environment *)     
+         prg:: "prog"    --{* program *}
+         cls:: "qtname"  --{* current package and class name *}
+         lcl:: "lenv"    --{* local environment *}     
   
 translations
   "lenv" <= (type) "(lname, ty) table"
@@ -45,8 +45,8 @@ translations
 
 
 syntax
-  pkg :: "env \<Rightarrow> pname" (* select the current package from an environment *)
-translations
+  pkg :: "env \<Rightarrow> pname" --{* select the current package from an environment *}
+translations 
   "pkg e" == "pid (cls e)"
 
 section "Static overloading: maximally specific methods "
@@ -54,7 +54,7 @@ section "Static overloading: maximally specific methods "
 types
   emhead = "ref_ty \<times> mhead"
 
-(* Some mnemotic selectors for emhead *)
+--{* Some mnemotic selectors for emhead *}
 constdefs 
   "declrefT" :: "emhead \<Rightarrow> ref_ty"
   "declrefT \<equiv> fst"
@@ -106,32 +106,24 @@ primrec
 "mheads G S (ClassT C) = cmheads G S C"
 "mheads G S (ArrayT T) = accObjectmheads G S (ArrayT T)"
 
-
-(* more detailed than necessary for type-safety, see below. *)
 constdefs
-  (* applicable methods, cf. 15.11.2.1 *)
+  --{* applicable methods, cf. 15.11.2.1 *}
   appl_methds   :: "prog \<Rightarrow> qtname \<Rightarrow>  ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set"
  "appl_methds G S rt \<equiv> \<lambda> sig. 
       {(mh,pTs') |mh pTs'. mh \<in> mheads G S rt \<lparr>name=name sig,parTs=pTs'\<rparr> \<and> 
                            G\<turnstile>(parTs sig)[\<preceq>]pTs'}"
 
-  (* more specific methods, cf. 15.11.2.2 *)
+  --{* more specific methods, cf. 15.11.2.2 *}
   more_spec     :: "prog \<Rightarrow> emhead \<times> ty list \<Rightarrow> emhead \<times> ty list \<Rightarrow> bool"
  "more_spec G \<equiv> \<lambda>(mh,pTs). \<lambda>(mh',pTs'). G\<turnstile>pTs[\<preceq>]pTs'"
 (*more_spec G \<equiv>\<lambda>((d,h),pTs). \<lambda>((d',h'),pTs'). G\<turnstile>RefT d\<preceq>RefT d'\<and>G\<turnstile>pTs[\<preceq>]pTs'*)
 
-  (* maximally specific methods, cf. 15.11.2.2 *)
+  --{* maximally specific methods, cf. 15.11.2.2 *}
    max_spec     :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set"
 
  "max_spec G S rt sig \<equiv>{m. m \<in>appl_methds G S rt sig \<and>
 		      (\<forall>m'\<in>appl_methds G S rt sig. more_spec G m' m \<longrightarrow> m'=m)}"
-(*
-rules (* all properties of more_spec, appl_methods and max_spec we actually need
-         these can easily be proven from the above definitions *)
 
-max_spec2mheads "max_spec G S rt (mn, pTs) = insert (mh, pTs') A \<Longrightarrow>
-      mh\<in>mheads G S rt (mn, pTs') \<and> G\<turnstile>pTs[\<preceq>]pTs'"
-*)
 
 lemma max_spec2appl_meths: 
   "x \<in> max_spec G S T sig \<Longrightarrow> x \<in> appl_methds G S T sig" 
@@ -180,6 +172,8 @@ lemma Null_staticD:
 apply (clarsimp simp add: invmode_IntVir_eq)
 done
 
+section "Typing for unary operations"
+
 consts unop_type :: "unop \<Rightarrow> prim_ty"
 primrec 
 "unop_type UPlus   = Integer"
@@ -193,6 +187,8 @@ primrec
 "wt_unop UMinus  t = (t = PrimT Integer)"
 "wt_unop UBitNot t = (t = PrimT Integer)"
 "wt_unop UNot    t = (t = PrimT Boolean)"
+
+section "Typing for binary operations"
 
 consts binop_type :: "binop \<Rightarrow> prim_ty"
 primrec
@@ -244,6 +240,7 @@ primrec
 "wt_binop G CondAnd t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
 "wt_binop G CondOr  t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
 
+section "Typing for terms"
 
 types tys  =        "ty + ty list"
 translations
@@ -295,23 +292,22 @@ syntax (xsymbols)
 
 translations
 	"E\<turnstile>t\<Colon> T" == "E,empty_dt\<Turnstile>t\<Colon> T"
-	"E\<turnstile>s\<Colon>\<surd>" == "E,empty_dt\<Turnstile>s\<Colon>\<surd>"
-	"E\<turnstile>e\<Colon>-T" == "E,empty_dt\<Turnstile>e\<Colon>-T"
-	"E\<turnstile>e\<Colon>=T" == "E,empty_dt\<Turnstile>e\<Colon>=T"
-	"E\<turnstile>e\<Colon>\<doteq>T" == "E,empty_dt\<Turnstile>e\<Colon>\<doteq>T"
-
+        "E\<turnstile>s\<Colon>\<surd>"  == "E\<turnstile>In1r s\<Colon>Inl (PrimT Void)"
+	"E\<turnstile>e\<Colon>-T" == "E\<turnstile>In1l e\<Colon>Inl T"
+	"E\<turnstile>e\<Colon>=T" == "E\<turnstile>In2  e\<Colon>Inl T"
+	"E\<turnstile>e\<Colon>\<doteq>T" == "E\<turnstile>In3  e\<Colon>Inr T"
 
 
 inductive wt intros 
 
 
-(* well-typed statements *)
+--{* well-typed statements *}
 
   Skip:					"E,dt\<Turnstile>Skip\<Colon>\<surd>"
 
   Expr:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-T\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Expr e\<Colon>\<surd>"
-  (* cf. 14.6 *)
+  --{* cf. 14.6 *}
   Lab:  "E,dt\<Turnstile>c\<Colon>\<surd> \<Longrightarrow>                   
                                          E,dt\<Turnstile>l\<bullet> c\<Colon>\<surd>" 
 
@@ -319,61 +315,62 @@ inductive wt intros
 	  E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>c1;; c2\<Colon>\<surd>"
 
-  (* cf. 14.8 *)
+  --{* cf. 14.8 *}
   If:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-PrimT Boolean;
 	  E,dt\<Turnstile>c1\<Colon>\<surd>;
 	  E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>If(e) c1 Else c2\<Colon>\<surd>"
 
-  (* cf. 14.10 *)
+  --{* cf. 14.10 *}
   Loop:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-PrimT Boolean;
 	  E,dt\<Turnstile>c\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>l\<bullet> While(e) c\<Colon>\<surd>"
-  (* cf. 14.13, 14.15, 14.16 *)
-  Do:                                   "E,dt\<Turnstile>Do jump\<Colon>\<surd>"
+  --{* cf. 14.13, 14.15, 14.16 *}
+  Jmp:                                   "E,dt\<Turnstile>Jmp jump\<Colon>\<surd>"
 
-  (* cf. 14.16 *)
+  --{* cf. 14.16 *}
   Throw: "\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class tn;
 	  prg E\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Throw e\<Colon>\<surd>"
-  (* cf. 14.18 *)
+  --{* cf. 14.18 *}
   Try:	"\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; prg E\<turnstile>tn\<preceq>\<^sub>C SXcpt Throwable;
 	  lcl E (VName vn)=None; E \<lparr>lcl := lcl E(VName vn\<mapsto>Class tn)\<rparr>,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk>
           \<Longrightarrow>
 					 E,dt\<Turnstile>Try c1 Catch(tn vn) c2\<Colon>\<surd>"
 
-  (* cf. 14.18 *)
+  --{* cf. 14.18 *}
   Fin:	"\<lbrakk>E,dt\<Turnstile>c1\<Colon>\<surd>; E,dt\<Turnstile>c2\<Colon>\<surd>\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>c1 Finally c2\<Colon>\<surd>"
 
   Init:	"\<lbrakk>is_class (prg E) C\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Init C\<Colon>\<surd>"
-  (* Init is created on the fly during evaluation (see Eval.thy). The class
-   * isn't necessarily accessible from the points Init is called. Therefor
-   * we only demand is_class and not is_acc_class here 
-   *)
+  --{* @{term Init} is created on the fly during evaluation (see Eval.thy). 
+     The class isn't necessarily accessible from the points @{term Init} 
+     is called. Therefor we only demand @{term is_class} and not 
+     @{term is_acc_class} here. 
+   *}
 
-(* well-typed expressions *)
+--{* well-typed expressions *}
 
-  (* cf. 15.8 *)
+  --{* cf. 15.8 *}
   NewC:	"\<lbrakk>is_acc_class (prg E) (pkg E) C\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>NewC C\<Colon>-Class C"
-  (* cf. 15.9 *)
+  --{* cf. 15.9 *}
   NewA:	"\<lbrakk>is_acc_type (prg E) (pkg E) T;
 	  E,dt\<Turnstile>i\<Colon>-PrimT Integer\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>New T[i]\<Colon>-T.[]"
 
-  (* cf. 15.15 *)
+  --{* cf. 15.15 *}
   Cast:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-T; is_acc_type (prg E) (pkg E) T';
 	  prg E\<turnstile>T\<preceq>? T'\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Cast T' e\<Colon>-T'"
 
-  (* cf. 15.19.2 *)
+  --{* cf. 15.19.2 *}
   Inst:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT T; is_acc_type (prg E) (pkg E) (RefT T');
 	  prg E\<turnstile>RefT T\<preceq>? RefT T'\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>e InstOf T'\<Colon>-PrimT Boolean"
 
-  (* cf. 15.7.1 *)
+  --{* cf. 15.7.1 *}
   Lit:	"\<lbrakk>typeof dt x = Some T\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Lit x\<Colon>-T"
 
@@ -386,28 +383,28 @@ inductive wt intros
            \<Longrightarrow>
 	   E,dt\<Turnstile>BinOp binop e1 e2\<Colon>-T"
   
-  (* cf. 15.10.2, 15.11.1 *)
+  --{* cf. 15.10.2, 15.11.1 *}
   Super: "\<lbrakk>lcl E This = Some (Class C); C \<noteq> Object;
 	  class (prg E) C = Some c\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Super\<Colon>-Class (super c)"
 
-  (* cf. 15.13.1, 15.10.1, 15.12 *)
+  --{* cf. 15.13.1, 15.10.1, 15.12 *}
   Acc:	"\<lbrakk>E,dt\<Turnstile>va\<Colon>=T\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Acc va\<Colon>-T"
 
-  (* cf. 15.25, 15.25.1 *)
+  --{* cf. 15.25, 15.25.1 *}
   Ass:	"\<lbrakk>E,dt\<Turnstile>va\<Colon>=T; va \<noteq> LVar This;
 	  E,dt\<Turnstile>v \<Colon>-T';
 	  prg E\<turnstile>T'\<preceq>T\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>va:=v\<Colon>-T'"
 
-  (* cf. 15.24 *)
+  --{* cf. 15.24 *}
   Cond:	"\<lbrakk>E,dt\<Turnstile>e0\<Colon>-PrimT Boolean;
 	  E,dt\<Turnstile>e1\<Colon>-T1; E,dt\<Turnstile>e2\<Colon>-T2;
 	  prg E\<turnstile>T1\<preceq>T2 \<and> T = T2  \<or>  prg E\<turnstile>T2\<preceq>T1 \<and> T = T1\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>e0 ? e1 : e2\<Colon>-T"
 
-  (* cf. 15.11.1, 15.11.2, 15.11.3 *)
+  --{* cf. 15.11.1, 15.11.2, 15.11.3 *}
   Call:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT statT;
 	  E,dt\<Turnstile>ps\<Colon>\<doteq>pTs;
 	  max_spec (prg E) (cls E) statT \<lparr>name=mn,parTs=pTs\<rparr> 
@@ -419,48 +416,51 @@ inductive wt intros
 	  methd (prg E) C sig = Some m;
 	  E,dt\<Turnstile>Body (declclass m) (stmt (mbody (mthd m)))\<Colon>-T\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>Methd C sig\<Colon>-T"
- (* The class C is the dynamic class of the method call (cf. Eval.thy). 
-  * It hasn't got to be directly accessible from the current package (pkg E). 
-  * Only the static class must be accessible (enshured indirectly by Call). 
-  * Note that l is just a dummy value. It is only used in the smallstep 
-  * semantics. To proof typesafety directly for the smallstep semantics 
-  * we would have to assume conformance of l here!
-  *)
+ --{* The class @{term C} is the dynamic class of the method call 
+    (cf. Eval.thy). 
+    It hasn't got to be directly accessible from the current package 
+    @{term "(pkg E)"}. 
+    Only the static class must be accessible (enshured indirectly by 
+    @{term Call}). 
+    Note that l is just a dummy value. It is only used in the smallstep 
+    semantics. To proof typesafety directly for the smallstep semantics 
+    we would have to assume conformance of l here!
+  *}
 
   Body:	"\<lbrakk>is_class (prg E) D;
 	  E,dt\<Turnstile>blk\<Colon>\<surd>;
 	  (lcl E) Result = Some T;
           is_type (prg E) T\<rbrakk> \<Longrightarrow>
    					 E,dt\<Turnstile>Body D blk\<Colon>-T"
-  (* the class D implementing the method must not directly be accessible 
-   * from the current package (pkg E), but can also be indirectly accessible 
-   * due to inheritance (enshured in Call)
-   * The result type hasn't got to be accessible in Java! (If it is not 
-   * accessible you can only assign it to Object).
-   * For dummy value l see rule Methd. 
-   *)
+--{* The class @{term D} implementing the method must not directly be 
+     accessible  from the current package @{term "(pkg E)"}, but can also 
+     be indirectly accessible due to inheritance (enshured in @{term Call})
+    The result type hasn't got to be accessible in Java! (If it is not 
+    accessible you can only assign it to Object).
+    For dummy value l see rule @{term Methd}. 
+   *}
 
-(* well-typed variables *)
+--{* well-typed variables *}
 
-  (* cf. 15.13.1 *)
+  --{* cf. 15.13.1 *}
   LVar:	"\<lbrakk>lcl E vn = Some T; is_acc_type (prg E) (pkg E) T\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>LVar vn\<Colon>=T"
-  (* cf. 15.10.1 *)
+  --{* cf. 15.10.1 *}
   FVar:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class C; 
 	  accfield (prg E) (cls E) C fn = Some (statDeclC,f)\<rbrakk> \<Longrightarrow>
 			 E,dt\<Turnstile>{cls E,statDeclC,is_static f}e..fn\<Colon>=(type f)"
-  (* cf. 15.12 *)
+  --{* cf. 15.12 *}
   AVar:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-T.[]; 
 	  E,dt\<Turnstile>i\<Colon>-PrimT Integer\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>e.[i]\<Colon>=T"
 
 
-(* well-typed expression lists *)
+--{* well-typed expression lists *}
 
-  (* cf. 15.11.??? *)
+  --{* cf. 15.11.??? *}
   Nil:					"E,dt\<Turnstile>[]\<Colon>\<doteq>[]"
 
-  (* cf. 15.11.??? *)
+  --{* cf. 15.11.??? *}
   Cons:	"\<lbrakk>E,dt\<Turnstile>e \<Colon>-T;
 	  E,dt\<Turnstile>es\<Colon>\<doteq>Ts\<rbrakk> \<Longrightarrow>
 					 E,dt\<Turnstile>e#es\<Colon>\<doteq>T#Ts"
@@ -472,8 +472,8 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
 simpset_ref() := simpset() delloop "split_all_tac"
 *}
-inductive_cases wt_stmt_cases: "E,dt\<Turnstile>c\<Colon>\<surd>"
-inductive_cases wt_elim_cases:
+
+inductive_cases wt_elim_cases [cases set]:
 	"E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
 	"E,dt\<Turnstile>In2  ({accC,statDeclC,s}e..fn)\<Colon>T"
 	"E,dt\<Turnstile>In2  (e.[i])                 \<Colon>T"
@@ -499,7 +499,7 @@ inductive_cases wt_elim_cases:
         "E,dt\<Turnstile>In1r (l\<bullet> c)                  \<Colon>x" 
 	"E,dt\<Turnstile>In1r (If(e) c1 Else c2)      \<Colon>x"
 	"E,dt\<Turnstile>In1r (l\<bullet> While(e) c)         \<Colon>x"
-        "E,dt\<Turnstile>In1r (Do jump)               \<Colon>x"
+        "E,dt\<Turnstile>In1r (Jmp jump)              \<Colon>x"
 	"E,dt\<Turnstile>In1r (Throw e)               \<Colon>x"
 	"E,dt\<Turnstile>In1r (Try c1 Catch(tn vn) c2)\<Colon>x"
 	"E,dt\<Turnstile>In1r (c1 Finally c2)         \<Colon>x"
@@ -536,9 +536,10 @@ apply clarsimp
 apply (erule is_methdI, assumption)
 done
 
-(* Special versions of some typing rules, better suited to pattern match the
- * conclusion (no selectors in the conclusion\<dots>)
- *)
+
+text {* Special versions of some typing rules, better suited to pattern 
+        match the conclusion (no selectors in the conclusion)
+*}
 
 lemma wt_Call: 
 "\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT statT; E,dt\<Turnstile>ps\<Colon>\<doteq>pTs;  
@@ -602,6 +603,14 @@ apply (erule wt.induct)
 apply auto
 done
 
+--{* In the special syntax to distinguish the typing judgements for expressions, 
+     statements, variables and expression lists the kind of term corresponds
+     to the kind of type in the end e.g. An statement (injection @{term In3} 
+    into terms, always has type void (injection @{term Inl} into the generalised
+    types. The following simplification procedures establish these kinds of
+    correlation. 
+ *}
+
 ML {*
 fun wt_fun name inj rhs =
 let
@@ -626,6 +635,19 @@ val wt_stmt_proc  = wt_fun "wt_stmt_eq"  "In1r" "U=Inl(PrimT Void)\<and>E,dt\<Tu
 ML {*
 Addsimprocs [wt_expr_proc,wt_var_proc,wt_exprs_proc,wt_stmt_proc]
 *}
+
+lemma wt_elim_BinOp:
+  "\<lbrakk>E,dt\<Turnstile>In1l (BinOp binop e1 e2)\<Colon>T;
+    \<And>T1 T2 T3.
+       \<lbrakk>E,dt\<Turnstile>e1\<Colon>-T1; E,dt\<Turnstile>e2\<Colon>-T2; wt_binop (prg E) binop T1 T2;
+          E,dt\<Turnstile>(if b then In1l e2 else In1r Skip)\<Colon>T3;
+          T = Inl (PrimT (binop_type binop))\<rbrakk>
+       \<Longrightarrow> P\<rbrakk>
+\<Longrightarrow> P"
+apply (erule wt_elim_cases)
+apply (cases b)
+apply auto
+done
 
 lemma Inj_eq_lemma [simp]: 
   "(\<forall>T. (\<exists>T'. T = Inj T' \<and> P T') \<longrightarrow> Q T) = (\<forall>T'. P T' \<longrightarrow> Q (Inj T'))"

@@ -153,10 +153,6 @@ out of various HOL types *}
 axclass has_static < "type"
 consts is_static :: "'a::has_static \<Rightarrow> bool"
 
-(*
-consts is_static :: "'a \<Rightarrow> bool"
-*)
-
 instance access_field_type :: ("type","has_static") has_static ..
 
 defs (overloaded)
@@ -205,48 +201,31 @@ by (simp add: memberdecl_is_static_def)
 lemma mhead_static_simp [simp]: "is_static (mhead m) = is_static m"
 by (cases m) (simp add: mhead_def member_is_static_simp)
 
-constdefs  (* some mnemotic selectors for (qtname \<times> ('a::more) decl_scheme) 
-            * the first component is a class or interface name
-            * the second component is a method, field or method head *)
-(* "declclass":: "(qtname \<times> ('a::more) decl_scheme) \<Rightarrow> qtname"*)
-(* "declclass \<equiv> fst" *)          (* get the class component *)
-
+constdefs  --{* some mnemotic selectors for various pairs *} 
+           
  "decliface":: "(qtname \<times> ('a::type) decl_scheme) \<Rightarrow> qtname"
- "decliface \<equiv> fst"          (* get the interface component *)
+ "decliface \<equiv> fst"          --{* get the interface component *}
 
-(*
- "member"::   "(qtname \<times> ('a::type) decl_scheme) \<Rightarrow> ('a::type) decl_scheme"
-*)
  "mbr"::   "(qtname \<times> memberdecl) \<Rightarrow> memberdecl"
- "mbr \<equiv> snd"            (* get the memberdecl component *)
+ "mbr \<equiv> snd"            --{* get the memberdecl component *}
 
  "mthd"::   "('b \<times> 'a) \<Rightarrow> 'a"
-                           (* also used for mdecl,mhead *)
- "mthd \<equiv> snd"              (* get the method component *)
+                           --{* also used for mdecl, mhead *}
+ "mthd \<equiv> snd"              --{* get the method component *}
 
  "fld"::   "('b \<times> ('a::type) decl_scheme) \<Rightarrow> ('a::type) decl_scheme"
-              (* also used for ((vname \<times> qtname)\<times> field) *)
- "fld \<equiv> snd"               (* get the field component *)
+              --{* also used for @{text "((vname \<times> qtname)\<times> field)"} *}
+ "fld \<equiv> snd"               --{* get the field component *}
 
-(* "accmodi" :: "('b \<times> ('a::type) decl_scheme) \<Rightarrow> acc_modi"*)
-                           (* also used for mdecl *)
-(* "accmodi \<equiv> access \<circ> snd"*)  (* get the access modifier *) 
-(*
- "is_static" ::"('b \<times> ('a::type) member_scheme) \<Rightarrow> bool" *)
-                            (* also defined for emhead cf. WellType *)
- (*"is_static \<equiv> static \<circ> snd"*) (* get the static modifier *)
 
-constdefs (* some mnemotic selectors for (vname \<times> qtname) *)
- fname:: "(vname \<times> 'a) \<Rightarrow> vname" (* also used for fdecl *)
+constdefs --{* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
+ fname:: "(vname \<times> 'a) \<Rightarrow> vname" --{* also used for fdecl *}
  "fname \<equiv> fst"
   
   declclassf:: "(vname \<times> qtname) \<Rightarrow> qtname"
  "declclassf \<equiv> snd"
 
-(*
-lemma declclass_simp[simp]: "declclass (C,m) = C"
-by (simp add: declclass_def)
-*)
+
 
 lemma decliface_simp[simp]: "decliface (I,m) = I"
 by (simp add: decliface_def) 
@@ -272,11 +251,6 @@ by (cases m) (simp add: mthd_def)
 lemma access_fld_simp [simp]: "(access (fld f)) = accmodi f"
 by (cases f) (simp add:  fld_def) 
 
-(*
-lemma is_static_simp[simp]: "is_static (C,m) = static m"
-by (simp add: is_static_def)
-*)
-
 lemma static_mthd_simp[simp]: "static (mthd m) = is_static m"
 by (cases m) (simp add:  mthd_def member_is_static_simp)
 
@@ -301,7 +275,7 @@ by (simp add: fname_def)
 lemma declclassf_simp[simp]:"declclassf (n,c) = c"
 by (simp add: declclassf_def)
 
-constdefs  (* some mnemotic selectors for (vname \<times> qtname) *)
+constdefs  --{* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
   "fldname"  :: "(vname \<times> qtname) \<Rightarrow> vname" 
   "fldname \<equiv> fst"
 
@@ -1265,6 +1239,7 @@ proof -
   qed
 qed
 *)
+
 lemma accessible_fieldD: 
  "\<lbrakk>G\<turnstile>membr of C accessible_from accC; is_field membr\<rbrakk>
  \<Longrightarrow> G\<turnstile>membr member_of C \<and>
@@ -1272,34 +1247,7 @@ lemma accessible_fieldD:
      G\<turnstile>membr in C permits_acc_to accC"
 by (induct rule: accessible_fromR.induct) (auto dest: is_fieldD)
       
-(* lemmata:
- Wegen  G\<turnstile>Super accessible_in (pid C) folgt:
-  G\<turnstile>m declared_in C; G\<turnstile>m member_of D; accmodi m = Package (G\<turnstile>D \<preceq>\<^sub>C C)
-  \<Longrightarrow> pid C = pid D 
 
-  C package
-  m public in C
-  für alle anderen D: G\<turnstile>m undeclared_in C
-  m wird in alle subklassen vererbt, auch aus dem Package heraus!
-
-  G\<turnstile>m member_of C \<Longrightarrow> \<exists> D. G\<turnstile>C \<preceq>\<^sub>C D \<and> G\<turnstile>m declared_in D
-*)
-
-(* Begriff (C,m) overrides (D,m)
-    3 Fälle: Direkt,
-             Indirekt über eine Zwischenklasse (ohne weiteres override)
-             Indirekt über override
-*)
-   
-(*
-"G\<turnstile>m member_of C \<equiv> 
-constdefs declares_method:: "prog \<Rightarrow> sig \<Rightarrow> qtname \<Rightarrow> methd \<Rightarrow> bool"
-                                 ("_,_\<turnstile> _ declares'_method _" [61,61,61,61] 60)
-"G,sig\<turnstile>C declares_method m \<equiv> cdeclaredmethd G C sig = Some m" 
-
-constdefs is_declared:: "prog \<Rightarrow> sig \<Rightarrow> (qtname \<times> methd) \<Rightarrow> bool"
-"is_declared G sig em \<equiv> G,sig\<turnstile>declclass em declares_method mthd em"
-*)
 
 lemma member_of_Private:
 "\<lbrakk>G\<turnstile>m member_of C; accmodi m = Private\<rbrakk> \<Longrightarrow> declclass m = C"
@@ -1541,23 +1489,7 @@ dynmethd:: "prog  \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> (sig,q
                       ) sig
               )
         else None)"
-(*
-"dynmethd G statC dynC  
-  \<equiv> \<lambda> sig. 
-     (if G\<turnstile>dynC \<preceq>\<^sub>C statC
-        then (case methd G statC sig of
-                None \<Rightarrow> None
-              | Some statM 
-                    \<Rightarrow> (class_rec (G,statC) empty
-                         (\<lambda>C c subcls_mthds. 
-                            subcls_mthds
-                            ++
-                            (filter_tab 
-                              (\<lambda> _ dynM. G,sig\<turnstile>dynM overrides statM)  
-                              (table_of (map (\<lambda>(s,m). (s,C,m)) (methods c)))))
-                        ) sig
-              )
-        else None)"*)
+
 text {* @{term "dynmethd G statC dynC"}: dynamic method lookup of a reference 
         with dynamic class @{term dynC} and static class @{term statC} *}
 text {* Note some kind of duality between @{term methd} and @{term dynmethd} 
@@ -2014,8 +1946,6 @@ done
 lemma dynmethdSomeD: 
  "\<lbrakk>dynmethd G statC dynC sig = Some dynM; is_class G dynC; ws_prog G\<rbrakk> 
   \<Longrightarrow> G\<turnstile>dynC \<preceq>\<^sub>C statC \<and> (\<exists> statM. methd G statC sig = Some statM)"
-apply clarify
-apply rotate_tac
 by (auto simp add: dynmethd_rec)
  
 lemma dynmethd_Some_cases [consumes 3, case_names Static Overrides]:
@@ -2242,31 +2172,6 @@ proof -
       by (auto dest: ws_overrides_commonD)
   qed
 qed
-
-(*
-lemma dom_dynmethd: 
-  "dom (dynmethd G statC dynC) \<subseteq> dom (methd G statC) \<union> dom (methd G dynC)"
-by (auto simp add: dynmethd_def dom_def)
-
-lemma finite_dom_dynmethd:
- "\<lbrakk>ws_prog G; is_class G statC; is_class G dynC\<rbrakk> 
-  \<Longrightarrow> finite (dom (dynmethd G statC dynC))"
-apply (rule_tac B="dom (methd G statC) \<union> dom (methd G dynC)" in finite_subset)
-apply (rule dom_dynmethd)
-apply (rule finite_UnI)
-apply (drule (2) finite_dom_methd)+
-done
-*)
-(*
-lemma dynmethd_SomeD: 
-"\<lbrakk>ws_prog G; is_class G statC; is_class G dynC;
- methd G statC sig = Some sm; dynmethd G statC dynC sig = Some dm; sm \<noteq> dm
- \<rbrakk> \<Longrightarrow> G\<turnstile>dynC \<prec>\<^sub>C statC \<and> 
-       (declclass dm \<noteq> dynC \<longrightarrow> G \<turnstile> dm accessible_through_inheritance_in dynC)"
-by (auto simp add: dynmethd_def 
-         dest: methd_inheritedD methd_diff_cls
-         intro: rtrancl_into_trancl3)
-*)
 
 subsection "dynlookup"
 

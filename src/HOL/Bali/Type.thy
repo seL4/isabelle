@@ -16,21 +16,21 @@ simplifications:
 \end{itemize}
 *}
 
-datatype prim_ty       	(* primitive type, cf. 4.2 *)
-	= Void    	(* 'result type' of void methods *)
+datatype prim_ty       	--{* primitive type, cf. 4.2 *}
+	= Void    	--{* result type of void methods *}
 	| Boolean
 	| Integer
 
 
-datatype ref_ty		(* reference type, cf. 4.3 *)
-	= NullT		(* null type, cf. 4.1 *)
-	| IfaceT qtname	(* interface type *)
-	| ClassT qtname	(* class type *)
-	| ArrayT ty	(* array type *)
+datatype ref_ty		--{* reference type, cf. 4.3 *}
+	= NullT		--{* null type, cf. 4.1 *}
+	| IfaceT qtname	--{* interface type *}
+	| ClassT qtname	--{* class type *}
+	| ArrayT ty	--{* array type *}
 
-and ty	    		(* any type, cf. 4.1 *)
-	= PrimT prim_ty	(* primitive type *)
-	| RefT  ref_ty	(* reference type *)
+and ty	    		--{* any type, cf. 4.1 *}
+	= PrimT prim_ty	--{* primitive type *}
+	| RefT  ref_ty	--{* reference type *}
 
 translations
   "prim_ty" <= (type) "Type.prim_ty"

@@ -19,17 +19,17 @@ design issues:
 
 section "objects"
 
-datatype  obj_tag =     (* tag for generic object   *)
-	  CInst qtname   (* class instance           *)
-	| Arr  ty int   (* array with component type and length *)
-     (* | CStat qtname     the tag is irrelevant for a class object,
+datatype  obj_tag =     --{* tag for generic object   *}
+	  CInst qtname  --{* class instance           *}
+	| Arr  ty int   --{* array with component type and length *}
+    --{* | CStat qtname   the tag is irrelevant for a class object,
 			   i.e. the static fields of a class,
                            since its type is given already by the reference to 
-                           it (see below) *)
+                           it (see below) *}
 
-types	vn   = "fspec + int"                    (* variable name      *)
+types	vn   = "fspec + int"                    --{* variable name      *}
 record	obj  = 
-          tag :: "obj_tag"                      (* generalized object *)
+          tag :: "obj_tag"                      --{* generalized object *}
           values :: "(vn, val) table"      
 
 translations 
@@ -79,11 +79,7 @@ by (simp add: obj_ty_def)
 lemma obj_ty_cong [simp]: 
   "obj_ty (obj \<lparr>values:=vs\<rparr>) = obj_ty obj" 
 by auto
-(*
-lemma obj_ty_cong [simp]: 
-  "obj_ty (obj \<lparr>values:=vs(n\<mapsto>v)\<rparr>) = obj_ty (obj \<lparr>values:=vs\<rparr>)" 
-by auto
-*)
+
 lemma obj_ty_CInst [simp]: 
  "obj_ty \<lparr>tag=CInst C,values=vs\<rparr> = Class C" 
 by (simp add: obj_ty_def)
@@ -137,7 +133,7 @@ done
 
 section "object references"
 
-types oref = "loc + qtname"          (* generalized object reference *)
+types oref = "loc + qtname"         --{* generalized object reference *}
 syntax
   Heap  :: "loc   \<Rightarrow> oref"
   Stat  :: "qtname \<Rightarrow> oref"
@@ -219,7 +215,7 @@ done
 
 section "stores"
 
-types	globs                  (* global variables: heap and static variables *)
+types	globs               --{* global variables: heap and static variables *}
 	= "(oref , obj) table"
 	heap
 	= "(loc  , obj) table"
@@ -433,14 +429,6 @@ apply (rule ext)
 apply (simp (no_asm))
 done
 
-(*
-lemma heap_upd_gobj_Heap: "!!a. heap (upd_gobj (Heap a) n v s) = ?X"
-apply (rule ext)
-apply (simp (no_asm))
-apply (case_tac "globs s (Heap a)")
-apply  auto
-*)
-
 lemma heap_upd_gobj_Stat [simp]: "heap (upd_gobj (Stat C) n v s) = heap s"
 apply (rule ext)
 apply (simp (no_asm))
@@ -599,11 +587,17 @@ by (auto simp add: absorb_def)
 lemma absorb_other [simp]: "a \<noteq> Some (Jump j) \<Longrightarrow> absorb j a = a"
 by (auto simp add: absorb_def)
 
+lemma absorb_Some_NoneD: "absorb j (Some abr) = None \<Longrightarrow> abr = Jump j"
+  by (simp add: absorb_def)
+
+lemma absorb_Some_JumpD: "absorb j s = Some (Jump j') \<Longrightarrow> j'\<noteq>j"
+  by (simp add: absorb_def)
+
 
 section "full program state"
 
 types
-  state = "abopt \<times> st"          (* state including exception information *)
+  state = "abopt \<times> st"          --{* state including abruption information *}
 
 syntax 
   Norm   :: "st \<Rightarrow> state"
@@ -689,6 +683,12 @@ lemma supd_init_obj [simp]:
 apply (unfold init_obj_def)
 apply (simp (no_asm))
 done
+
+lemma abupd_store_invariant [simp]: "store (abupd f s) = store s"
+  by (cases s) simp
+
+lemma supd_abrupt_invariant [simp]: "abrupt (supd f s) = abrupt s"
+  by (cases s) simp
 
 syntax
 
@@ -841,6 +841,7 @@ lemma error_free_set_locals [simp,intro]:
 "error_free (x, s)
        \<Longrightarrow> error_free (x, set_locals l s')"
 by (simp add: error_free_def)
+
 
 end
 

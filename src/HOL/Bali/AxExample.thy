@@ -52,10 +52,13 @@ val ax_tac = REPEAT o rtac allI THEN'
 
 theorem ax_test: "tprg,({}::'a triple set)\<turnstile> 
   {Normal (\<lambda>Y s Z::'a. heap_free four s \<and> \<not>initd Base s \<and> \<not> initd Ext s)} 
-  .test [Class Base]. {\<lambda>Y s Z. abrupt s = Some (Xcpt (Std IndOutBound))}"
+  .test [Class Base]. 
+  {\<lambda>Y s Z. abrupt s = Some (Xcpt (Std IndOutBound))}"
 apply (unfold test_def arr_viewed_from_def)
 apply (tactic "ax_tac 1" (*;;*))
-defer
+defer (* We begin with the last assertion, to synthesise the intermediate
+         assertions, like in the fashion of the weakest
+         precondition. *)
 apply  (tactic "ax_tac 1" (* Try *))
 defer
 apply    (tactic {* inst1_tac "Q1" 
@@ -108,11 +111,18 @@ apply     (tactic "ax_tac 1" (* Body *))
 (* apply       (rule_tac [2] ax_derivs.Abrupt) *)
 defer
 apply      (simp (no_asm))
-apply      (tactic "ax_tac 1")
+apply      (tactic "ax_tac 1") (* Comp *)
+            (* The first statement in the  composition 
+                 ((Ext)z).vee = 1; Return Null 
+                will throw an exception (since z is null). So we can handle
+                Return Null with the Abrupt rule *)
+apply       (rule_tac [2] ax_derivs.Abrupt)
+             
+apply      (rule ax_derivs.Expr) (* Expr *)
 apply      (tactic "ax_tac 1") (* Ass *)
 prefer 2
 apply       (rule ax_subst_Var_allI)
-apply       (tactic {* inst1_tac "P'27" "\<lambda>a vs l vf. ?PP a vs l vf\<leftarrow>?x \<and>. ?p" *})
+apply       (tactic {* inst1_tac "P'29" "\<lambda>a vs l vf. ?PP a vs l vf\<leftarrow>?x \<and>. ?p" *})
 apply       (rule allI)
 apply       (tactic {* simp_tac (simpset() delloop "split_all_tac" delsimps [thm "peek_and_def2"]) 1 *})
 apply       (rule ax_derivs.Abrupt)
@@ -120,11 +130,10 @@ apply      (simp (no_asm))
 apply      (tactic "ax_tac 1" (* FVar *))
 apply       (tactic "ax_tac 2", tactic "ax_tac 2", tactic "ax_tac 2")
 apply      (tactic "ax_tac 1")
-apply     clarsimp
 apply     (tactic {* inst1_tac "R14" "\<lambda>a'. Normal ((\<lambda>Vals:vs (x, s) Z. arr_inv s \<and> inited Ext (globs s) \<and> a' \<noteq> Null \<and> hd vs = Null) \<and>. heap_free two)" *})
-prefer 5
-apply     (rule ax_derivs.Done [THEN conseq1], force)
-apply    force
+apply     fastsimp
+prefer 4
+apply    (rule ax_derivs.Done [THEN conseq1],force)
 apply   (rule ax_subst_Val_allI)
 apply   (tactic {* inst1_tac "P'33" "\<lambda>u a. Normal (?PP a\<leftarrow>?x) u" *})
 apply   (simp (no_asm) del: peek_and_def2)

@@ -5,8 +5,7 @@
 *)
 
 header {* Well-formedness of Java programs *}
-
-theory WellForm = WellType:
+theory WellForm = DefiniteAssignment:
 
 text {*
 For static checks on expressions and statements, see WellType.thy
@@ -81,6 +80,20 @@ A method declaration is wellformed if:
 \end{itemize}
 *}
 
+constdefs callee_lcl:: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarrow> lenv"
+"callee_lcl C sig m 
+ \<equiv> \<lambda> k. (case k of
+            EName e 
+            \<Rightarrow> (case e of 
+                  VNam v 
+                  \<Rightarrow>(table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
+                | Res \<Rightarrow> Some (resTy m))
+	  | This \<Rightarrow> if is_static m then None else Some (Class C))"
+
+constdefs parameters :: "methd \<Rightarrow> lname set"
+"parameters m \<equiv>  set (map (EName \<circ> VNam) (pars m)) 
+                  \<union> (if (static m) then {} else {This})"
+
 constdefs
   wf_mdecl :: "prog \<Rightarrow> qtname \<Rightarrow> mdecl \<Rightarrow> bool"
  "wf_mdecl G C \<equiv> 
@@ -89,17 +102,33 @@ constdefs
           unique (lcls (mbody m)) \<and> 
           (\<forall>(vn,T)\<in>set (lcls (mbody m)). is_acc_type G (pid C) T) \<and> 
 	  (\<forall>pn\<in>set (pars m). table_of (lcls (mbody m)) pn = None) \<and>
+          jumpNestingOkS {Ret} (stmt (mbody m)) \<and> 
           is_class G C \<and>
-          \<lparr>prg=G,cls=C,
-           lcl=\<lambda> k. 
-               (case k of
-                  EName e 
-                  \<Rightarrow> (case e of 
-                        VNam v 
-                        \<Rightarrow>(table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
-                      | Res \<Rightarrow> Some (resTy m))
-	        | This \<Rightarrow> if is_static m then None else Some (Class C))
-          \<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd>"
+          \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd> \<and>
+          (\<exists> A. \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr> 
+                \<turnstile> parameters m \<guillemotright>\<langle>stmt (mbody m)\<rangle>\<guillemotright> A 
+               \<and> Result \<in> nrm A)"
+
+lemma callee_lcl_VNam_simp [simp]:
+"callee_lcl C sig m (EName (VNam v)) 
+  = (table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v"
+by (simp add: callee_lcl_def)
+ 
+lemma callee_lcl_Res_simp [simp]:
+"callee_lcl C sig m (EName Res) = Some (resTy m)" 
+by (simp add: callee_lcl_def)
+
+lemma callee_lcl_This_simp [simp]:
+"callee_lcl C sig m (This) = (if is_static m then None else Some (Class C))" 
+by (simp add: callee_lcl_def)
+
+lemma callee_lcl_This_static_simp:
+"is_static m \<Longrightarrow> callee_lcl C sig m (This) = None"
+by simp
+
+lemma callee_lcl_This_not_static_simp:
+"\<not> is_static m \<Longrightarrow> callee_lcl C sig m (This) = Some (Class C)"
+by simp
 
 lemma wf_mheadI: 
 "\<lbrakk>length (parTs sig) = length (pars m); \<forall>T\<in>set (parTs sig). is_acc_type G P T;
@@ -113,22 +142,30 @@ lemma wf_mdeclI: "\<lbrakk>
   wf_mhead G (pid C) sig (mhead m); unique (lcls (mbody m));  
   (\<forall>pn\<in>set (pars m). table_of (lcls (mbody m)) pn = None); 
   \<forall>(vn,T)\<in>set (lcls (mbody m)). is_acc_type G (pid C) T;
+  jumpNestingOkS {Ret} (stmt (mbody m));
   is_class G C;
-  \<lparr>prg=G,cls=C,
-   lcl=\<lambda> k. 
-       (case k of
-          EName e 
-          \<Rightarrow> (case e of 
-                VNam v 
-                \<Rightarrow> (table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
-              | Res \<Rightarrow> Some (resTy m))
-        | This \<Rightarrow> if is_static m then None else Some (Class C))
-  \<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd>
+  \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd>;
+  (\<exists> A. \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr> \<turnstile> parameters m \<guillemotright>\<langle>stmt (mbody m)\<rangle>\<guillemotright> A
+        \<and> Result \<in> nrm A)
   \<rbrakk> \<Longrightarrow>  
   wf_mdecl G C (sig,m)"
 apply (unfold wf_mdecl_def)
 apply simp
 done
+
+lemma wf_mdeclE [consumes 1]:  
+  "\<lbrakk>wf_mdecl G C (sig,m); 
+    \<lbrakk>wf_mhead G (pid C) sig (mhead m); unique (lcls (mbody m));  
+     \<forall>pn\<in>set (pars m). table_of (lcls (mbody m)) pn = None; 
+     \<forall>(vn,T)\<in>set (lcls (mbody m)). is_acc_type G (pid C) T;
+     jumpNestingOkS {Ret} (stmt (mbody m));
+     is_class G C;
+     \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd>;
+   (\<exists> A. \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr>\<turnstile> parameters m \<guillemotright>\<langle>stmt (mbody m)\<rangle>\<guillemotright> A
+        \<and> Result \<in> nrm A)
+    \<rbrakk> \<Longrightarrow> P
+  \<rbrakk> \<Longrightarrow> P"
+by (unfold wf_mdecl_def) simp
 
 
 lemma wf_mdeclD1: 
@@ -137,20 +174,13 @@ lemma wf_mdeclD1:
   (\<forall>pn\<in>set (pars m). table_of (lcls (mbody m)) pn = None) \<and> 
   (\<forall>(vn,T)\<in>set (lcls (mbody m)). is_acc_type G (pid C) T)"
 apply (unfold wf_mdecl_def)
-apply auto
+apply simp
 done
 
 lemma wf_mdecl_bodyD: 
 "wf_mdecl G C (sig,m) \<Longrightarrow>  
- (\<exists>T. \<lparr>prg=G,cls=C,
-       lcl = \<lambda> k. 
-         (case k of
-            EName e 
-            \<Rightarrow> (case e of 
-                VNam v \<Rightarrow> (table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
-                | Res  \<Rightarrow> Some (resTy m))
-          | This \<Rightarrow> if is_static m then None else Some (Class C))
-       \<rparr>\<turnstile>Body C (stmt (mbody m))\<Colon>-T \<and> G\<turnstile>T\<preceq>(resTy m))"
+ (\<exists>T. \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr>\<turnstile>Body C (stmt (mbody m))\<Colon>-T \<and> 
+      G\<turnstile>T\<preceq>(resTy m))"
 apply (unfold wf_mdecl_def)
 apply clarify
 apply (rule_tac x="(resTy m)" in exI)
@@ -315,7 +345,9 @@ constdefs
       	                             \<not> is_static cm \<and>
                                      accmodi im \<le> accmodi cm))) \<and>
       (\<forall>f\<in>set (cfields c). wf_fdecl G (pid C) f) \<and> unique (cfields c) \<and> 
-      (\<forall>m\<in>set (methods c). wf_mdecl G C m) \<and> unique (methods c) \<and> 
+      (\<forall>m\<in>set (methods c). wf_mdecl G C m) \<and> unique (methods c) \<and>
+      jumpNestingOkS {} (init c) \<and>
+      (\<exists> A. \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<guillemotright> A) \<and>
       \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>(init c)\<Colon>\<surd> \<and> ws_cdecl G C (super c) \<and>
       (C \<noteq> Object \<longrightarrow> 
             (is_acc_class G (pid C) (super c) \<and>
@@ -361,6 +393,35 @@ constdefs
             (table_of (cfields c) hiding accfield G C (super c)
               entails (\<lambda> newF oldF. accmodi oldF \<le> access newF))))"
 *)
+
+lemma wf_cdeclE [consumes 1]: 
+ "\<lbrakk>wf_cdecl G (C,c);
+   \<lbrakk>\<not>is_iface G C;
+    (\<forall>I\<in>set (superIfs c). is_acc_iface G (pid C) I \<and>
+        (\<forall>s. \<forall> im \<in> imethds G I s.
+      	    (\<exists> cm \<in> methd  G C s: G\<turnstile>resTy cm\<preceq>resTy im \<and>
+      	                             \<not> is_static cm \<and>
+                                     accmodi im \<le> accmodi cm))); 
+      \<forall>f\<in>set (cfields c). wf_fdecl G (pid C) f; unique (cfields c); 
+      \<forall>m\<in>set (methods c). wf_mdecl G C m; unique (methods c);
+      jumpNestingOkS {} (init c);
+      \<exists> A. \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile> {} \<guillemotright>\<langle>init c\<rangle>\<guillemotright> A;
+      \<lparr>prg=G,cls=C,lcl=empty\<rparr>\<turnstile>(init c)\<Colon>\<surd>; 
+      ws_cdecl G C (super c); 
+      (C \<noteq> Object \<longrightarrow> 
+            (is_acc_class G (pid C) (super c) \<and>
+            (table_of (map (\<lambda> (s,m). (s,C,m)) (methods c)) 
+             entails (\<lambda> new. \<forall> old sig. 
+                       (G,sig\<turnstile>new overrides\<^sub>S old 
+                        \<longrightarrow> (G\<turnstile>resTy new\<preceq>resTy old \<and>
+                             accmodi old \<le> accmodi new \<and>
+      	                     \<not>is_static old)) \<and>
+                       (G,sig\<turnstile>new hides old 
+                         \<longrightarrow> (accmodi old \<le> accmodi new \<and>
+      	                      is_static old)))) 
+            ))\<rbrakk> \<Longrightarrow> P
+  \<rbrakk> \<Longrightarrow> P"
+by (unfold wf_cdecl_def) simp
 
 lemma wf_cdecl_unique: 
 "wf_cdecl G (C,c) \<Longrightarrow> unique (cfields c) \<and> unique (methods c)"
@@ -535,7 +596,7 @@ lemma wf_ObjectC [simp]:
 	"wf_cdecl G ObjectC = (\<not>is_iface G Object \<and> Ball (set Object_mdecls)
   (wf_mdecl G Object) \<and> unique Object_mdecls)"
 apply (unfold wf_cdecl_def ws_cdecl_def ObjectC_def)
-apply (simp (no_asm))
+apply (auto intro: da.Skip)
 done
 
 lemma Object_is_class [simp,elim!]: "wf_prog G \<Longrightarrow> is_class G Object"
@@ -1691,19 +1752,7 @@ proof -
                intro: order_trans)
   qed
 qed
- 	  
-(* ### Probleme: Die tollen methd_subcls_cases Lemma wird warscheinlich
-  kaum gebraucht: 
-Redundanz: stat_overrides.Direct old declared in declclass old folgt aus
-           member of 
-   Problem: Predikate wie overrides, sind global üper die Hierarchie hinweg
-            definiert, aber oft barucht man eben zusätlich Induktion
-            : von super c auf C; Dann ist aber auss dem Kontext
-            die Unterscheidung in die 5 fälle overkill,
-            da man dann warscheinlich meistens eh in einem speziellen
-            Fall kommt (durch die Hypothesen)
-*)
-    
+ 	      
 (* local lemma *)
 ML {* bind_thm("bexI'",permute_prems 0 1 bexI) *}
 ML {* bind_thm("ballE'",permute_prems 1 1 ballE) *}
@@ -2419,7 +2468,7 @@ apply (erule wt.induct)
 apply (auto split del: split_if_asm simp del: snd_conv 
             simp add: is_acc_class_def is_acc_type_def)
 apply    (erule typeof_empty_is_type)
-apply   (frule (1) wf_prog_cdecl [THEN wf_cdecl_supD], rotate_tac -1, 
+apply   (frule (1) wf_prog_cdecl [THEN wf_cdecl_supD], 
         force simp del: snd_conv, clarsimp simp add: is_acc_class_def)
 apply  (drule (1) max_spec2mheads [THEN conjunct1, THEN mheadsD])
 apply  (drule_tac [2] accfield_fields) 
@@ -2476,16 +2525,7 @@ lemma wt_MethdI:
 "\<lbrakk>methd G C sig = Some m; wf_prog G;  
   class G C = Some c\<rbrakk> \<Longrightarrow>  
  \<exists>T. \<lparr>prg=G,cls=(declclass m),
-      lcl=\<lambda> k. 
-          (case k of
-             EName e 
-             \<Rightarrow> (case e of 
-                   VNam v 
-                   \<Rightarrow> (table_of (lcls (mbody (mthd m)))
-                                ((pars (mthd m))[\<mapsto>](parTs sig))) v
-                 | Res \<Rightarrow> Some (resTy (mthd m)))
-           | This \<Rightarrow> if is_static m then None else Some (Class (declclass m)))
-     \<rparr>\<turnstile> Methd C sig\<Colon>-T \<and> G\<turnstile>T\<preceq>resTy m"
+      lcl=callee_lcl (declclass m) sig (mthd m)\<rparr>\<turnstile> Methd C sig\<Colon>-T \<and> G\<turnstile>T\<preceq>resTy m"
 apply (frule (2) methd_wf_mdecl, clarify)
 apply (force dest!: wf_mdecl_bodyD intro!: wt.Methd)
 done

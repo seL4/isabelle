@@ -39,7 +39,7 @@ restrictions:
 \end{itemize}
 *}
 
-types  res = vals (* result entry *)
+types  res = vals --{* result entry *}
 syntax
   Val  :: "val      \<Rightarrow> res"
   Var  :: "var      \<Rightarrow> res"
@@ -59,7 +59,7 @@ translations
   "\<lambda>Var:v . b"  == "(\<lambda>v. b) \<circ> the_In2"
   "\<lambda>Vals:v. b"  == "(\<lambda>v. b) \<circ> the_In3"
 
-  (* relation on result values, state and auxiliary variables *)
+  --{* relation on result values, state and auxiliary variables *}
 types 'a assn   =        "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 translations
       "res"    <= (type) "AxSem.res"
@@ -377,7 +377,10 @@ section "validity"
 
 constdefs
   type_ok  :: "prog \<Rightarrow> term \<Rightarrow> state \<Rightarrow> bool"
- "type_ok G t s \<equiv> \<exists>L T C. (normal s \<longrightarrow> \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T) \<and> s\<Colon>\<preceq>(G,L)"
+ "type_ok G t s \<equiv> 
+    \<exists>L T C A. (normal s \<longrightarrow> \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T \<and> 
+                            \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A )
+              \<and> s\<Colon>\<preceq>(G,L)"
 
 datatype    'a triple = triple "('a assn)" "term" "('a assn)" (** should be
 something like triple = \<forall>'a. triple ('a assn) term ('a assn)   **)
@@ -468,8 +471,10 @@ translations         "G,A \<Turnstile>t"  == "G,A|\<Turnstile>{t}"
 
 lemma triple_valid_def2: "G\<Turnstile>n:{P} t\<succ> {Q} =  
  (\<forall>Y s Z. P Y s Z 
-  \<longrightarrow> (\<exists>L. (normal s \<longrightarrow> (\<exists>T C. \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T)) \<and> s\<Colon>\<preceq>(G,L)) \<longrightarrow> 
-  (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s')\<longrightarrow> Q Y' s' Z))"
+  \<longrightarrow> (\<exists>L. (normal s \<longrightarrow> (\<exists> C T A. \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T \<and> 
+                   \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A)) \<and> 
+           s\<Colon>\<preceq>(G,L))
+  \<longrightarrow> (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s')\<longrightarrow> Q Y' s' Z))"
 apply (unfold triple_valid_def type_ok_def)
 apply (simp (no_asm))
 done
@@ -506,7 +511,7 @@ inductive "ax_derivs G" intros
 
   Abrupt:  "G,A\<turnstile>{P\<leftarrow>(arbitrary3 t) \<and>. Not \<circ> normal} t\<succ> {P}"
 
-  (* variables *)
+  --{* variables *}
   LVar:  " G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Var (lvar vn s))} LVar vn=\<succ> {P}"
 
   FVar: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Q};
@@ -516,7 +521,7 @@ inductive "ax_derivs G" intros
   AVar:  "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
           \<forall>a. G,A\<turnstile>{Q\<leftarrow>Val a} e2-\<succ> {\<lambda>Val:i:. avar G i a ..; R}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e1.[e2]=\<succ> {R}"
-  (* expressions *)
+  --{* expressions *}
 
   NewC: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Alloc G (CInst C) Q}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} NewC C-\<succ> {Q}"
@@ -579,7 +584,7 @@ inductive "ax_derivs G" intros
     \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} Body D c-\<succ> {R}"
   
-  (* expression lists *)
+  --{* expression lists *}
 
   Nil:                          "G,A\<turnstile>{Normal (P\<leftarrow>Vals [])} []\<doteq>\<succ> {P}"
 
@@ -587,7 +592,7 @@ inductive "ax_derivs G" intros
           \<forall>v. G,A\<turnstile>{Q\<leftarrow>Val v} es\<doteq>\<succ> {\<lambda>Vals:vs:. R\<leftarrow>Vals (v#vs)}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} e#es\<doteq>\<succ> {R}"
 
-  (* statements *)
+  --{* statements *}
 
   Skip:                         "G,A\<turnstile>{Normal (P\<leftarrow>\<diamondsuit>)} .Skip. {P}"
 
@@ -612,9 +617,8 @@ inductive "ax_derivs G" intros
   Loop: "\<lbrakk>G,A\<turnstile>{P} e-\<succ> {P'}; 
           G,A\<turnstile>{Normal (P'\<leftarrow>=True)} .c. {abupd (absorb (Cont l)) .; P}\<rbrakk> \<Longrightarrow>
                             G,A\<turnstile>{P} .l\<bullet> While(e) c. {(P'\<leftarrow>=False)\<down>=\<diamondsuit>}"
-(** Beware of polymorphic_Loop below: should be identical terms **)
   
-  Do: "G,A\<turnstile>{Normal (abupd (\<lambda>a. (Some (Jump j))) .; P\<leftarrow>\<diamondsuit>)} .Do j. {P}"
+  Jmp: "G,A\<turnstile>{Normal (abupd (\<lambda>a. (Some (Jump j))) .; P\<leftarrow>\<diamondsuit>)} .Jmp j. {P}"
 
   Throw:"\<lbrakk>G,A\<turnstile>{Normal P} e-\<succ> {\<lambda>Val:a:. abupd (throw a) .; Q\<leftarrow>\<diamondsuit>}\<rbrakk> \<Longrightarrow>
                                  G,A\<turnstile>{Normal P} .Throw e. {Q}"
@@ -642,21 +646,13 @@ inductive "ax_derivs G" intros
 @{text InsInitE}, @{text InsInitV}, @{text FinA} only used by the smallstep 
 semantics.
 *}
-  InstInitV: " G,A\<turnstile>{Normal P} InsInitV c v=\<succ> {Q}"
-  InstInitE: " G,A\<turnstile>{Normal P} InsInitE c e-\<succ> {Q}"
+  InsInitV: " G,A\<turnstile>{Normal P} InsInitV c v=\<succ> {Q}"
+  InsInitE: " G,A\<turnstile>{Normal P} InsInitE c e-\<succ> {Q}"
   Callee:    " G,A\<turnstile>{Normal P} Callee l e-\<succ> {Q}"
   FinA:      " G,A\<turnstile>{Normal P} .FinA a c. {Q}"
-axioms (** these terms are the same as above, but with generalized typing **)
-  polymorphic_conseq:
-        "\<forall>Y s Z . P  Y s Z  \<longrightarrow> (\<exists>P' Q'. G,A\<turnstile>{P'} t\<succ> {Q'} \<and> (\<forall>Y' s'. 
-        (\<forall>Y   Z'. P' Y s Z' \<longrightarrow> Q' Y' s' Z') \<longrightarrow>
-                                Q  Y' s' Z ))
-                                         \<Longrightarrow> G,A\<turnstile>{P } t\<succ> {Q }"
-
-  polymorphic_Loop:
-        "\<lbrakk>G,A\<turnstile>{P} e-\<succ> {P'}; 
-          G,A\<turnstile>{Normal (P'\<leftarrow>=True)} .c. {abupd (absorb (Cont l)) .; P}\<rbrakk> \<Longrightarrow>
-                            G,A\<turnstile>{P} .l\<bullet> While(e) c. {(P'\<leftarrow>=False)\<down>=\<diamondsuit>}"
+(*
+axioms 
+*)
 
 constdefs
  adapt_pre :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"
@@ -743,50 +739,67 @@ oops (* dead end, Methd is to blame *)
 
 section "rules derived from conseq"
 
-lemma conseq12: "\<lbrakk>G,A\<turnstile>{P'} t\<succ> {Q'};  
+text {* In the following rules we often have to give some type annotations like:
+ @{term "G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q}"}.
+Given only the term above without annotations, Isabelle would infer a more 
+general type were we could have 
+different types of auxiliary variables in the assumption set (@{term A}) and 
+in the triple itself (@{term P} and @{term Q}). But 
+@{text "ax_derivs.Methd"} enforces the same type in the inductive definition of
+the derivation. So we have to restrict the types to be able to apply the
+rules. 
+*}
+lemma conseq12: "\<lbrakk>G,(A::'a triple set)\<turnstile>{P'::'a assn} t\<succ> {Q'};  
  \<forall>Y s Z. P Y s Z \<longrightarrow> (\<forall>Y' s'. (\<forall>Y Z'. P' Y s Z' \<longrightarrow> Q' Y' s' Z') \<longrightarrow>  
   Q Y' s' Z)\<rbrakk>  
   \<Longrightarrow>  G,A\<turnstile>{P ::'a assn} t\<succ> {Q }"
-apply (rule polymorphic_conseq)
+apply (rule ax_derivs.conseq)
 apply clarsimp
 apply blast
 done
 
-(*unused, but nice variant*)
-lemma conseq12': "\<lbrakk>G,A\<turnstile>{P'} t\<succ> {Q'}; \<forall>s Y' s'.  
+-- {* Nice variant, since it is so symmetric we might be able to memorise it. *}
+lemma conseq12': "\<lbrakk>G,(A::'a triple set)\<turnstile>{P'::'a assn} t\<succ> {Q'}; \<forall>s Y' s'.  
        (\<forall>Y Z. P' Y s Z \<longrightarrow> Q' Y' s' Z) \<longrightarrow>  
        (\<forall>Y Z. P  Y s Z \<longrightarrow> Q  Y' s' Z)\<rbrakk>  
-  \<Longrightarrow>  G,A\<turnstile>{P } t\<succ> {Q }"
+  \<Longrightarrow>  G,A\<turnstile>{P::'a assn } t\<succ> {Q }"
 apply (erule conseq12)
 apply fast
 done
 
-lemma conseq12_from_conseq12': "\<lbrakk>G,A\<turnstile>{P'} t\<succ> {Q'};  
+lemma conseq12_from_conseq12': "\<lbrakk>G,(A::'a triple set)\<turnstile>{P'::'a assn} t\<succ> {Q'};  
  \<forall>Y s Z. P Y s Z \<longrightarrow> (\<forall>Y' s'. (\<forall>Y Z'. P' Y s Z' \<longrightarrow> Q' Y' s' Z') \<longrightarrow>  
   Q Y' s' Z)\<rbrakk>  
-  \<Longrightarrow>  G,A\<turnstile>{P } t\<succ> {Q }"
+  \<Longrightarrow>  G,A\<turnstile>{P::'a assn} t\<succ> {Q }"
 apply (erule conseq12')
 apply blast
 done
 
-lemma conseq1: "\<lbrakk>G,A\<turnstile>{P'} t\<succ> {Q}; P \<Rightarrow> P'\<rbrakk> \<Longrightarrow> G,A\<turnstile>{P } t\<succ> {Q}"
+lemma conseq1: "\<lbrakk>G,(A::'a triple set)\<turnstile>{P'::'a assn} t\<succ> {Q}; P \<Rightarrow> P'\<rbrakk> 
+ \<Longrightarrow> G,A\<turnstile>{P::'a assn} t\<succ> {Q}"
 apply (erule conseq12)
 apply blast
 done
 
-lemma conseq2: "\<lbrakk>G,A\<turnstile>{P} t\<succ> {Q'}; Q' \<Rightarrow> Q\<rbrakk> \<Longrightarrow> G,A\<turnstile>{P} t\<succ> {Q}"
+lemma conseq2: "\<lbrakk>G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q'}; Q' \<Rightarrow> Q\<rbrakk> 
+\<Longrightarrow> G,A\<turnstile>{P::'a assn} t\<succ> {Q}"
 apply (erule conseq12)
 apply blast
 done
 
-lemma ax_escape: "\<lbrakk>\<forall>Y s Z. P Y s Z \<longrightarrow> G,A\<turnstile>{\<lambda>Y' s' Z'. (Y',s') = (Y,s)} t\<succ> {\<lambda>Y s Z'. Q Y s Z}\<rbrakk> \<Longrightarrow>  
-  G,A\<turnstile>{P} t\<succ> {Q}"
-apply (rule polymorphic_conseq)
+lemma ax_escape: 
+ "\<lbrakk>\<forall>Y s Z. P Y s Z 
+   \<longrightarrow> G,(A::'a triple set)\<turnstile>{\<lambda>Y' s' (Z'::'a). (Y',s') = (Y,s)} 
+                             t\<succ> 
+                            {\<lambda>Y s Z'. Q Y s Z}
+\<rbrakk> \<Longrightarrow>  G,A\<turnstile>{P::'a assn} t\<succ> {Q::'a assn}"
+apply (rule ax_derivs.conseq)
 apply force
 done
 
 (* unused *)
-lemma ax_constant: "\<lbrakk> C \<Longrightarrow> G,A\<turnstile>{P} t\<succ> {Q}\<rbrakk> \<Longrightarrow> G,A\<turnstile>{\<lambda>Y s Z. C \<and> P Y s Z} t\<succ> {Q}"
+lemma ax_constant: "\<lbrakk> C \<Longrightarrow> G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q}\<rbrakk> 
+\<Longrightarrow> G,A\<turnstile>{\<lambda>Y s Z. C \<and> P Y s Z} t\<succ> {Q}"
 apply (rule ax_escape (* unused *))
 apply clarify
 apply (rule conseq12)
@@ -799,7 +812,8 @@ apply (fast)
 *)
 
 
-lemma ax_impossible [intro]: "G,A\<turnstile>{\<lambda>Y s Z. False} t\<succ> {Q}"
+lemma ax_impossible [intro]: 
+  "G,(A::'a triple set)\<turnstile>{\<lambda>Y s Z. False} t\<succ> {Q::'a assn}"
 apply (rule ax_escape)
 apply clarify
 done
@@ -808,34 +822,40 @@ done
 lemma ax_nochange_lemma: "\<lbrakk>P Y s; All (op = w)\<rbrakk> \<Longrightarrow> P w s"
 apply auto
 done
-lemma ax_nochange:"G,A\<turnstile>{\<lambda>Y s Z. (Y,s)=Z} t\<succ> {\<lambda>Y s Z. (Y,s)=Z} \<Longrightarrow> G,A\<turnstile>{P} t\<succ> {P}"
+
+lemma ax_nochange:
+ "G,(A::(res \<times> state) triple set)\<turnstile>{\<lambda>Y s Z. (Y,s)=Z} t\<succ> {\<lambda>Y s Z. (Y,s)=Z} 
+  \<Longrightarrow> G,A\<turnstile>{P::(res \<times> state) assn} t\<succ> {P}"
 apply (erule conseq12)
 apply auto
 apply (erule (1) ax_nochange_lemma)
 done
 
 (* unused *)
-lemma ax_trivial: "G,A\<turnstile>{P}  t\<succ> {\<lambda>Y s Z. True}"
-apply (rule polymorphic_conseq(* unused *))
+lemma ax_trivial: "G,(A::'a triple set)\<turnstile>{P::'a assn}  t\<succ> {\<lambda>Y s Z. True}"
+apply (rule ax_derivs.conseq(* unused *))
 apply auto
 done
 
 (* unused *)
-lemma ax_disj: "\<lbrakk>G,A\<turnstile>{P1} t\<succ> {Q1}; G,A\<turnstile>{P2} t\<succ> {Q2}\<rbrakk> \<Longrightarrow>  
-  G,A\<turnstile>{\<lambda>Y s Z. P1 Y s Z \<or> P2 Y s Z} t\<succ> {\<lambda>Y s Z. Q1 Y s Z \<or> Q2 Y s Z}"
+lemma ax_disj: 
+ "\<lbrakk>G,(A::'a triple set)\<turnstile>{P1::'a assn} t\<succ> {Q1}; G,A\<turnstile>{P2::'a assn} t\<succ> {Q2}\<rbrakk> 
+  \<Longrightarrow>  G,A\<turnstile>{\<lambda>Y s Z. P1 Y s Z \<or> P2 Y s Z} t\<succ> {\<lambda>Y s Z. Q1 Y s Z \<or> Q2 Y s Z}"
 apply (rule ax_escape (* unused *))
 apply safe
 apply  (erule conseq12, fast)+
 done
 
 (* unused *)
-lemma ax_supd_shuffle: "(\<exists>Q. G,A\<turnstile>{P} .c1. {Q} \<and> G,A\<turnstile>{Q ;. f} .c2. {R}) =  
+lemma ax_supd_shuffle: 
+ "(\<exists>Q. G,(A::'a triple set)\<turnstile>{P::'a assn} .c1. {Q} \<and> G,A\<turnstile>{Q ;. f} .c2. {R}) =  
        (\<exists>Q'. G,A\<turnstile>{P} .c1. {f .; Q'} \<and> G,A\<turnstile>{Q'} .c2. {R})"
 apply (best elim!: conseq1 conseq2)
 done
 
-lemma ax_cases: "\<lbrakk>G,A\<turnstile>{P \<and>.       C} t\<succ> {Q};  
-                       G,A\<turnstile>{P \<and>. Not \<circ> C} t\<succ> {Q}\<rbrakk> \<Longrightarrow> G,A\<turnstile>{P} t\<succ> {Q}"
+lemma ax_cases: "
+ \<lbrakk>G,(A::'a triple set)\<turnstile>{P \<and>.       C} t\<succ> {Q::'a assn};  
+                   G,A\<turnstile>{P \<and>. Not \<circ> C} t\<succ> {Q}\<rbrakk> \<Longrightarrow> G,A\<turnstile>{P} t\<succ> {Q}"
 apply (unfold peek_and_def)
 apply (rule ax_escape)
 apply clarify
@@ -849,13 +869,15 @@ apply (case_tac "C s")
 apply  force+
 *)
 
-lemma ax_adapt: "G,A\<turnstile>{P} t\<succ> {Q} \<Longrightarrow> G,A\<turnstile>{adapt_pre P Q Q'} t\<succ> {Q'}"
+lemma ax_adapt: "G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q} 
+  \<Longrightarrow> G,A\<turnstile>{adapt_pre P Q Q'} t\<succ> {Q'}"
 apply (unfold adapt_pre_def)
 apply (erule conseq12)
 apply fast
 done
 
-lemma adapt_pre_adapts: "G,A\<Turnstile>{P} t\<succ> {Q} \<longrightarrow> G,A\<Turnstile>{adapt_pre P Q Q'} t\<succ> {Q'}"
+lemma adapt_pre_adapts: "G,(A::'a triple set)\<Turnstile>{P::'a assn} t\<succ> {Q} 
+\<longrightarrow> G,A\<Turnstile>{adapt_pre P Q Q'} t\<succ> {Q'}"
 apply (unfold adapt_pre_def)
 apply (simp add: ax_valids_def triple_valid_def2)
 apply fast
@@ -872,72 +894,44 @@ apply (drule_tac x = "In1r Skip" in spec)
 apply (simp add: ax_valids_def triple_valid_def2)
 oops
 
-(*
-Goal "\<forall>(A::'a triple set) t. G,A\<Turnstile>{P} t\<succ> {Q} \<longrightarrow> G,A\<Turnstile>{P'} t\<succ> {Q'} \<Longrightarrow>  
-  wf_prog G \<Longrightarrow> G,(A::'a triple set)\<turnstile>{P} t\<succ> {Q::'a assn} \<Longrightarrow> G,A\<turnstile>{P'} t\<succ> {Q'::'a assn}"
-b y fatac ax_sound 1 1;
-b y asm_full_simp_tac (simpset() addsimps [ax_valids_def,triple_valid_def2]) 1;
-b y rtac ax_no_hazard 1; 
-b y etac conseq12 1;
-b y Clarify_tac 1;
-b y case_tac "\<forall>Z. \<not>P Y s Z" 1;
-b y smp_tac 2 1;
-b y etac thin_rl 1;
-b y etac thin_rl 1;
-b y clarsimp_tac (claset(), simpset() addsimps [type_ok_def]) 1;
-b y subgoal_tac "G|\<Turnstile>n:A" 1;
-b y smp_tac 1 1;
-b y smp_tac 3 1;
-b y etac impE 1;
- back();
- b y Fast_tac 1;
-b y 
-b y rotate_tac 2 1;
-b y etac thin_rl 1;
-b y  etac thin_rl 2;
-b y  etac thin_rl 2;
-b y  Clarify_tac 2;
-b y  dtac spec 2;
-b y  EVERY'[dtac spec, mp_tac] 2;
-b y  thin_tac "\<forall>n Y s Z. ?PP n Y s Z" 2;
-b y  thin_tac "P' Y s Z" 2;
-b y  Blast_tac 2;
-b y smp_tac 3 1;
-b y case_tac "\<forall>Z. \<not>P Y s Z" 1;
-b y dres_inst_tac [("x","In1r Skip")] spec 1;
-b y Full_simp_tac 1;
-*)
-
 lemma peek_and_forget1_Normal: 
- "G,A\<turnstile>{Normal P} t\<succ> {Q} \<Longrightarrow> G,A\<turnstile>{Normal (P \<and>. p)} t\<succ> {Q}"
+ "G,(A::'a triple set)\<turnstile>{Normal P} t\<succ> {Q::'a assn} 
+ \<Longrightarrow> G,A\<turnstile>{Normal (P \<and>. p)} t\<succ> {Q}"
 apply (erule conseq1)
 apply (simp (no_asm))
 done
 
-lemma peek_and_forget1: "G,A\<turnstile>{P} t\<succ> {Q} \<Longrightarrow> G,A\<turnstile>{P \<and>. p} t\<succ> {Q}"
+lemma peek_and_forget1: 
+"G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q} 
+ \<Longrightarrow> G,A\<turnstile>{P \<and>. p} t\<succ> {Q}"
 apply (erule conseq1)
 apply (simp (no_asm))
 done
 
 lemmas ax_NormalD = peek_and_forget1 [of _ _ _ _ _ normal] 
 
-lemma peek_and_forget2: "G,A\<turnstile>{P} t\<succ> {Q \<and>. p} \<Longrightarrow> G,A\<turnstile>{P} t\<succ> {Q}"
+lemma peek_and_forget2: 
+"G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> {Q \<and>. p} 
+\<Longrightarrow> G,A\<turnstile>{P} t\<succ> {Q}"
 apply (erule conseq2)
 apply (simp (no_asm))
 done
 
-lemma ax_subst_Val_allI: "\<forall>v. G,A\<turnstile>{(P'               v )\<leftarrow>Val v} t\<succ> {Q v} \<Longrightarrow>  
-      \<forall>v. G,A\<turnstile>{(\<lambda>w:. P' (the_In1 w))\<leftarrow>Val v} t\<succ> {Q v}"
+lemma ax_subst_Val_allI: 
+"\<forall>v. G,(A::'a triple set)\<turnstile>{(P'               v )\<leftarrow>Val v} t\<succ> {(Q v)::'a assn}
+ \<Longrightarrow>  \<forall>v. G,A\<turnstile>{(\<lambda>w:. P' (the_In1 w))\<leftarrow>Val v} t\<succ> {Q v}"
 apply (force elim!: conseq1)
 done
 
-lemma ax_subst_Var_allI: "\<forall>v. G,A\<turnstile>{(P'               v )\<leftarrow>Var v} t\<succ> {Q v} \<Longrightarrow>  
-      \<forall>v. G,A\<turnstile>{(\<lambda>w:. P' (the_In2 w))\<leftarrow>Var v} t\<succ> {Q v}"
+lemma ax_subst_Var_allI: 
+"\<forall>v. G,(A::'a triple set)\<turnstile>{(P'               v )\<leftarrow>Var v} t\<succ> {(Q v)::'a assn}
+ \<Longrightarrow>  \<forall>v. G,A\<turnstile>{(\<lambda>w:. P' (the_In2 w))\<leftarrow>Var v} t\<succ> {Q v}"
 apply (force elim!: conseq1)
 done
 
-lemma ax_subst_Vals_allI: "(\<forall>v. G,A\<turnstile>{(     P'          v )\<leftarrow>Vals v} t\<succ> {Q v}) \<Longrightarrow>  
-       \<forall>v. G,A\<turnstile>{(\<lambda>w:. P' (the_In3 w))\<leftarrow>Vals v} t\<succ> {Q v}"
+lemma ax_subst_Vals_allI: 
+"(\<forall>v. G,(A::'a triple set)\<turnstile>{(     P'          v )\<leftarrow>Vals v} t\<succ> {(Q v)::'a assn})
+ \<Longrightarrow>  \<forall>v. G,A\<turnstile>{(\<lambda>w:. P' (the_In3 w))\<leftarrow>Vals v} t\<succ> {Q v}"
 apply (force elim!: conseq1)
 done
 
@@ -1171,36 +1165,43 @@ done
 
 section "introduction rules for Alloc and SXAlloc"
 
-lemma ax_SXAlloc_Normal: "G,A\<turnstile>{P} .c. {Normal Q} \<Longrightarrow> G,A\<turnstile>{P} .c. {SXAlloc G Q}"
+lemma ax_SXAlloc_Normal: 
+ "G,(A::'a triple set)\<turnstile>{P::'a assn} .c. {Normal Q} 
+ \<Longrightarrow> G,A\<turnstile>{P} .c. {SXAlloc G Q}"
 apply (erule conseq2)
 apply (clarsimp elim!: sxalloc_elim_cases simp add: split_tupled_all)
 done
 
 lemma ax_Alloc: 
-  "G,A\<turnstile>{P} t\<succ> {Normal (\<lambda>Y (x,s) Z. (\<forall>a. new_Addr (heap s) = Some a \<longrightarrow>  
- Q (Val (Addr a)) (Norm(init_obj G (CInst C) (Heap a) s)) Z)) \<and>. 
-    heap_free (Suc (Suc 0))}
+  "G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> 
+     {Normal (\<lambda>Y (x,s) Z. (\<forall>a. new_Addr (heap s) = Some a \<longrightarrow>  
+      Q (Val (Addr a)) (Norm(init_obj G (CInst C) (Heap a) s)) Z)) \<and>. 
+      heap_free (Suc (Suc 0))}
    \<Longrightarrow> G,A\<turnstile>{P} t\<succ> {Alloc G (CInst C) Q}"
 apply (erule conseq2)
 apply (auto elim!: halloc_elim_cases)
 done
 
 lemma ax_Alloc_Arr: 
- "G,A\<turnstile>{P} t\<succ> {\<lambda>Val:i:. Normal (\<lambda>Y (x,s) Z. \<not>the_Intg i<0 \<and>  
-  (\<forall>a. new_Addr (heap s) = Some a \<longrightarrow>  
-  Q (Val (Addr a)) (Norm (init_obj G (Arr T (the_Intg i)) (Heap a) s)) Z)) \<and>. 
-   heap_free (Suc (Suc 0))} \<Longrightarrow>  
+ "G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> 
+   {\<lambda>Val:i:. Normal (\<lambda>Y (x,s) Z. \<not>the_Intg i<0 \<and>  
+    (\<forall>a. new_Addr (heap s) = Some a \<longrightarrow>  
+    Q (Val (Addr a)) (Norm (init_obj G (Arr T (the_Intg i)) (Heap a) s)) Z)) \<and>.
+    heap_free (Suc (Suc 0))} 
+ \<Longrightarrow>  
  G,A\<turnstile>{P} t\<succ> {\<lambda>Val:i:. abupd (check_neg i) .; Alloc G (Arr T(the_Intg i)) Q}"
 apply (erule conseq2)
 apply (auto elim!: halloc_elim_cases)
 done
 
 lemma ax_SXAlloc_catch_SXcpt: 
- "\<lbrakk>G,A\<turnstile>{P} t\<succ> {(\<lambda>Y (x,s) Z. x=Some (Xcpt (Std xn)) \<and>  
-  (\<forall>a. new_Addr (heap s) = Some a \<longrightarrow>  
-  Q Y (Some (Xcpt (Loc a)),init_obj G (CInst (SXcpt xn)) (Heap a) s) Z))  
-  \<and>. heap_free (Suc (Suc 0))}\<rbrakk> \<Longrightarrow>  
-  G,A\<turnstile>{P} t\<succ> {SXAlloc G (\<lambda>Y s Z. Q Y s Z \<and> G,s\<turnstile>catch SXcpt xn)}"
+ "\<lbrakk>G,(A::'a triple set)\<turnstile>{P::'a assn} t\<succ> 
+     {(\<lambda>Y (x,s) Z. x=Some (Xcpt (Std xn)) \<and>  
+      (\<forall>a. new_Addr (heap s) = Some a \<longrightarrow>  
+      Q Y (Some (Xcpt (Loc a)),init_obj G (CInst (SXcpt xn)) (Heap a) s) Z))  
+      \<and>. heap_free (Suc (Suc 0))}\<rbrakk> 
+ \<Longrightarrow>  
+ G,A\<turnstile>{P} t\<succ> {SXAlloc G (\<lambda>Y s Z. Q Y s Z \<and> G,s\<turnstile>catch SXcpt xn)}"
 apply (erule conseq2)
 apply (auto elim!: sxalloc_elim_cases halloc_elim_cases)
 done

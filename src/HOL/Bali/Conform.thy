@@ -115,6 +115,13 @@ lemma conf_PrimT [simp]: "\<forall>dt. typeof dt v = Some (PrimT t) \<Longrighta
 apply (simp add: conf_def)
 done
 
+lemma conf_Boolean: "G,s\<turnstile>v\<Colon>\<preceq>PrimT Boolean \<Longrightarrow> \<exists> b. v=Bool b"
+by (cases v)
+   (auto simp: conf_def obj_ty_def 
+         dest: widen_Boolean2 
+        split: obj_tag.splits)
+
+
 lemma conf_litval [rule_format (no_asm)]: 
   "typeof (\<lambda>a. None) v = Some T \<longrightarrow> G,s\<turnstile>v\<Colon>\<preceq>T"
 apply (unfold conf_def)
@@ -249,6 +256,97 @@ apply (unfold lconf_def)
 apply force
 done
 
+section "weak value list conformance"
+
+text {* Only if the value is defined it has to conform to its type. 
+        This is the contribution of the definite assignment analysis to 
+        the notion of conformance. The definite assignment analysis ensures
+        that the program only attempts to access local variables that 
+        actually have a defined value in the state. 
+        So conformance must only ensure that the
+        defined values are of the right type, and not also that the value
+        is defined. 
+*}
+
+  
+constdefs
+
+  wlconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool"
+                                          ("_,_\<turnstile>_[\<sim>\<Colon>\<preceq>]_" [71,71,71,71] 70)
+           "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts \<equiv> \<forall>n. \<forall>T\<in>Ts n: \<forall> v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T"
+
+lemma wlconfD: "\<lbrakk>G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts; Ts n = Some T; vs n = Some v\<rbrakk> \<Longrightarrow> G,s\<turnstile>v\<Colon>\<preceq>T"
+by (auto simp: wlconf_def)
+
+
+lemma wlconf_cong [simp]: "\<And>s. G,set_locals x s\<turnstile>l[\<sim>\<Colon>\<preceq>]L = G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L"
+by (auto simp: wlconf_def)
+
+lemma wlconf_lupd [simp]: "G,lupd(vn\<mapsto>v)s\<turnstile>l[\<sim>\<Colon>\<preceq>]L = G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L"
+by (auto simp: wlconf_def)
+
+
+lemma wlconf_upd: "\<lbrakk>G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L; G,s\<turnstile>v\<Colon>\<preceq>T; L vn = Some T\<rbrakk> \<Longrightarrow>  
+  G,s\<turnstile>l(vn\<mapsto>v)[\<sim>\<Colon>\<preceq>]L"
+by (auto simp: wlconf_def)
+
+lemma wlconf_ext: "\<lbrakk>G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L; G,s\<turnstile>v\<Colon>\<preceq>T\<rbrakk> \<Longrightarrow> G,s\<turnstile>l(vn\<mapsto>v)[\<sim>\<Colon>\<preceq>]L(vn\<mapsto>T)"
+by (auto simp: wlconf_def)
+
+lemma wlconf_map_sum [simp]: 
+ "G,s\<turnstile>l1 (+) l2[\<sim>\<Colon>\<preceq>]L1 (+) L2 = (G,s\<turnstile>l1[\<sim>\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>l2[\<sim>\<Colon>\<preceq>]L2)"
+apply (unfold wlconf_def)
+apply safe
+apply (case_tac [3] "n")
+apply (force split add: sum.split)+
+done
+
+lemma wlconf_ext_list [rule_format (no_asm)]: "
+ \<And>X. \<lbrakk>G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L\<rbrakk> \<Longrightarrow> 
+      \<forall>vs Ts. distinct vns \<longrightarrow> length Ts = length vns 
+      \<longrightarrow> list_all2 (conf G s) vs Ts \<longrightarrow> G,s\<turnstile>l(vns[\<mapsto>]vs)[\<sim>\<Colon>\<preceq>]L(vns[\<mapsto>]Ts)"
+apply (unfold wlconf_def)
+apply (induct_tac "vns")
+apply  clarsimp
+apply clarsimp
+apply (frule list_all2_lengthD)
+apply clarsimp
+done
+
+
+lemma wlconf_deallocL: "\<lbrakk>G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L(vn\<mapsto>T); L vn = None\<rbrakk> \<Longrightarrow> G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L"
+apply (simp only: wlconf_def)
+apply safe
+apply (drule spec)
+apply (drule ospec)
+defer
+apply (drule ospec )
+apply auto
+done 
+
+
+lemma wlconf_gext [elim]: "\<lbrakk>G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L; s\<le>|s'\<rbrakk> \<Longrightarrow> G,s'\<turnstile>l[\<sim>\<Colon>\<preceq>]L"
+apply (simp only: wlconf_def)
+apply fast
+done
+
+lemma wlconf_empty [simp, intro!]: "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]empty"
+apply (unfold wlconf_def)
+apply force
+done
+
+lemma wlconf_empty_vals: "G,s\<turnstile>empty[\<sim>\<Colon>\<preceq>]ts"
+  by (simp add: wlconf_def)
+
+lemma wlconf_init_vals [intro!]: 
+	" \<forall>n. \<forall>T\<in>fs n:is_type G T \<Longrightarrow> G,s\<turnstile>init_vals fs[\<sim>\<Colon>\<preceq>]fs"
+apply (unfold wlconf_def)
+apply force
+done
+
+lemma lconf_wlconf:
+ "G,s\<turnstile>l[\<Colon>\<preceq>]L \<Longrightarrow> G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L"
+by (force simp add: lconf_def wlconf_def)
 
 section "object conformance"
 
@@ -259,18 +357,8 @@ constdefs
                            (case r of 
 		              Heap a \<Rightarrow> is_type G (obj_ty obj) 
                             | Stat C \<Rightarrow> True)"
-(*
-lemma oconf_def2:  "G,s\<turnstile>\<lparr>tag=oi,values=fs\<rparr>\<Colon>\<preceq>\<surd>r =  
-  (G,s\<turnstile>fs[\<Colon>\<preceq>]var_tys G oi r \<and> 
-  (case r of Heap a \<Rightarrow> is_type G (obj_ty \<lparr>tag=oi,values=fs\<rparr>) | Stat C \<Rightarrow> True))"
-by (simp add: oconf_def Let_def)
-*)
-(*
-lemma oconf_def2:  "G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r =  
-  (G,s\<turnstile>values obj[\<Colon>\<preceq>]var_tys G (tag obj) r \<and> 
-  (case r of Heap a \<Rightarrow> is_type G (obj_ty obj) | Stat C \<Rightarrow> True))"
-by (simp add: oconf_def Let_def)
-*)
+
+
 lemma oconf_is_type: "G,s\<turnstile>obj\<Colon>\<preceq>\<surd>Heap a \<Longrightarrow> is_type G (obj_ty obj)"
 by (auto simp: oconf_def Let_def)
 
@@ -297,33 +385,16 @@ apply(auto dest!: fields_table_SomeD obj_ty_CInst1 obj_ty_Arr1
            split add: sum.split_asm obj_tag.split_asm)
 done
 
-(*
-lemma oconf_init_obj_lemma: 
-"\<lbrakk>\<And>C c. class G C = Some c \<Longrightarrow> unique (fields G C);  
-  \<And>C c f fld. \<lbrakk>class G C = Some c; table_of (fields G C) f = Some fld \<rbrakk> 
-            \<Longrightarrow> is_type G (type fld);  
-  (case r of 
-     Heap a \<Rightarrow> is_type G (obj_ty \<lparr>tag=oi,values=fs\<rparr>) 
-  | Stat C \<Rightarrow> is_class G C)
-\<rbrakk> \<Longrightarrow>  G,s\<turnstile>\<lparr>tag=oi, values=init_vals (var_tys G oi r)\<rparr>\<Colon>\<preceq>\<surd>r"
-apply (auto simp add: oconf_def)
-apply (drule_tac var_tys_Some_eq [THEN iffD1]) 
-defer
-apply (subst obj_ty_eq)
-apply(auto dest!: fields_table_SomeD split add: sum.split_asm obj_tag.split_asm)
-done
-*)
-
-
 section "state conformance"
 
 constdefs
 
   conforms :: "state \<Rightarrow> env_ \<Rightarrow> bool"          (     "_\<Colon>\<preceq>_"   [71,71]      70)
    "xs\<Colon>\<preceq>E \<equiv> let (G, L) = E; s = snd xs; l = locals s in
-      (\<forall>r. \<forall>obj\<in>globs s r:           G,s\<turnstile>obj   \<Colon>\<preceq>\<surd>r) \<and>
-                  \<spacespace>                   G,s\<turnstile>l    [\<Colon>\<preceq>]L\<spacespace> \<and>
-      (\<forall>a. fst xs=Some(Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable))"
+    (\<forall>r. \<forall>obj\<in>globs s r:           G,s\<turnstile>obj   \<Colon>\<preceq>\<surd>r) \<and>
+                \<spacespace>                   G,s\<turnstile>l    [\<sim>\<Colon>\<preceq>]L\<spacespace> \<and>
+    (\<forall>a. fst xs=Some(Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)) \<and>
+         (fst xs=Some(Jump Ret) \<longrightarrow> l Result \<noteq> None)"
 
 section "conforms"
 
@@ -331,11 +402,15 @@ lemma conforms_globsD:
 "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); globs s r = Some obj\<rbrakk> \<Longrightarrow> G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r"
 by (auto simp: conforms_def Let_def)
 
-lemma conforms_localD: "(x, s)\<Colon>\<preceq>(G, L) \<Longrightarrow> G,s\<turnstile>locals s[\<Colon>\<preceq>]L"
+lemma conforms_localD: "(x, s)\<Colon>\<preceq>(G, L) \<Longrightarrow> G,s\<turnstile>locals s[\<sim>\<Colon>\<preceq>]L"
 by (auto simp: conforms_def Let_def)
 
 lemma conforms_XcptLocD: "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); x = Some (Xcpt (Loc a))\<rbrakk> \<Longrightarrow>  
 	  G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)"
+by (auto simp: conforms_def Let_def)
+
+lemma conforms_RetD: "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); x = Some (Jump Ret)\<rbrakk> \<Longrightarrow>  
+	  (locals s) Result \<noteq> None"
 by (auto simp: conforms_def Let_def)
 
 lemma conforms_RefTD: 
@@ -349,8 +424,9 @@ apply auto
 done
 
 lemma conforms_Jump [iff]:
-  "((Some (Jump j), s)\<Colon>\<preceq>(G, L)) = (Norm s\<Colon>\<preceq>(G, L))"
-by (auto simp: conforms_def)
+  "j=Ret \<longrightarrow> locals s Result \<noteq> None 
+   \<Longrightarrow> ((Some (Jump j), s)\<Colon>\<preceq>(G, L)) = (Norm s\<Colon>\<preceq>(G, L))"
+by (auto simp: conforms_def Let_def)
 
 lemma conforms_StdXcpt [iff]: 
   "((Some (Xcpt (Std xn)), s)\<Colon>\<preceq>(G, L)) = (Norm s\<Colon>\<preceq>(G, L))"
@@ -382,45 +458,61 @@ apply (erule conforms_NormI)
 done
 
 lemma conformsI: "\<lbrakk>\<forall>r. \<forall>obj\<in>globs s r: G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r;  
-     G,s\<turnstile>locals s[\<Colon>\<preceq>]L;  
-     \<forall>a. x = Some (Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)\<rbrakk> \<Longrightarrow> 
+     G,s\<turnstile>locals s[\<sim>\<Colon>\<preceq>]L;  
+     \<forall>a. x = Some (Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable);
+     x = Some (Jump Ret)\<longrightarrow> locals s Result \<noteq> None\<rbrakk> \<Longrightarrow> 
   (x, s)\<Colon>\<preceq>(G, L)"
 by (auto simp: conforms_def Let_def)
 
 lemma conforms_xconf: "\<lbrakk>(x, s)\<Colon>\<preceq>(G,L);   
- \<forall>a. x' = Some (Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)\<rbrakk> \<Longrightarrow> 
+ \<forall>a. x' = Some (Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable);
+     x' = Some (Jump Ret) \<longrightarrow> locals s Result \<noteq> None\<rbrakk> \<Longrightarrow> 
  (x',s)\<Colon>\<preceq>(G,L)"
 by (fast intro: conformsI elim: conforms_globsD conforms_localD)
 
 lemma conforms_lupd: 
  "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); L vn = Some T; G,s\<turnstile>v\<Colon>\<preceq>T\<rbrakk> \<Longrightarrow> (x, lupd(vn\<mapsto>v)s)\<Colon>\<preceq>(G, L)"
-by (force intro: conformsI lconf_upd dest: conforms_globsD conforms_localD 
-                                           conforms_XcptLocD simp: oconf_def)
+by (force intro: conformsI wlconf_upd dest: conforms_globsD conforms_localD 
+                                           conforms_XcptLocD conforms_RetD 
+          simp: oconf_def)
 
 
-lemmas conforms_allocL_aux = conforms_localD [THEN lconf_ext]
+lemmas conforms_allocL_aux = conforms_localD [THEN wlconf_ext]
 
 lemma conforms_allocL: 
   "\<lbrakk>(x, s)\<Colon>\<preceq>(G, L); G,s\<turnstile>v\<Colon>\<preceq>T\<rbrakk> \<Longrightarrow> (x, lupd(vn\<mapsto>v)s)\<Colon>\<preceq>(G, L(vn\<mapsto>T))"
-by (force intro: conformsI dest: conforms_globsD 
-          elim: conforms_XcptLocD conforms_allocL_aux simp: oconf_def)
+by (force intro: conformsI dest: conforms_globsD conforms_RetD 
+          elim: conforms_XcptLocD  conforms_allocL_aux 
+          simp: oconf_def)
 
-lemmas conforms_deallocL_aux = conforms_localD [THEN lconf_deallocL]
+lemmas conforms_deallocL_aux = conforms_localD [THEN wlconf_deallocL]
 
 lemma conforms_deallocL: "\<And>s.\<lbrakk>s\<Colon>\<preceq>(G, L(vn\<mapsto>T)); L vn = None\<rbrakk> \<Longrightarrow> s\<Colon>\<preceq>(G,L)"
-by (fast intro: conformsI dest: conforms_globsD 
+by (fast intro: conformsI dest: conforms_globsD conforms_RetD
          elim: conforms_XcptLocD conforms_deallocL_aux)
 
 lemma conforms_gext: "\<lbrakk>(x, s)\<Colon>\<preceq>(G,L); s\<le>|s';  
   \<forall>r. \<forall>obj\<in>globs s' r: G,s'\<turnstile>obj\<Colon>\<preceq>\<surd>r;  
    locals s'=locals s\<rbrakk> \<Longrightarrow> (x,s')\<Colon>\<preceq>(G,L)"
-by (force intro!: conformsI dest: conforms_localD conforms_XcptLocD)
+apply (rule conformsI)
+apply     assumption
+apply    (drule conforms_localD) apply force
+apply   (intro strip)
+apply  (drule (1) conforms_XcptLocD) apply force 
+apply (intro strip)
+apply (drule (1) conforms_RetD) apply force
+done
+
 
 
 lemma conforms_xgext: 
-  "\<lbrakk>(x ,s)\<Colon>\<preceq>(G,L); (x', s')\<Colon>\<preceq>(G, L); s'\<le>|s\<rbrakk> \<Longrightarrow> (x',s)\<Colon>\<preceq>(G,L)"
+  "\<lbrakk>(x ,s)\<Colon>\<preceq>(G,L); (x', s')\<Colon>\<preceq>(G, L); s'\<le>|s;dom (locals s') \<subseteq> dom (locals s)\<rbrakk> 
+   \<Longrightarrow> (x',s)\<Colon>\<preceq>(G,L)"
 apply (erule_tac conforms_xconf)
-apply (fast dest: conforms_XcptLocD)
+apply  (fast dest: conforms_XcptLocD)
+apply (intro strip)
+apply (drule (1) conforms_RetD) 
+apply (auto dest: domI)
 done
 
 lemma conforms_gupd: "\<And>obj. \<lbrakk>(x, s)\<Colon>\<preceq>(G, L); G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r; s\<le>|gupd(r\<mapsto>obj)s\<rbrakk> 
@@ -445,17 +537,29 @@ apply (force dest: conforms_globsD intro!: lconf_upd
 done
 
 lemma conforms_set_locals: 
-  "\<lbrakk>(x,s)\<Colon>\<preceq>(G, L'); G,s\<turnstile>l[\<Colon>\<preceq>]L\<rbrakk> \<Longrightarrow> (x,set_locals l s)\<Colon>\<preceq>(G,L)"
-apply (auto intro!: conformsI dest: conforms_globsD 
-            elim!: conforms_XcptLocD simp add: oconf_def)
+  "\<lbrakk>(x,s)\<Colon>\<preceq>(G, L'); G,s\<turnstile>l[\<sim>\<Colon>\<preceq>]L; x=Some (Jump Ret) \<longrightarrow> l Result \<noteq> None\<rbrakk> 
+   \<Longrightarrow> (x,set_locals l s)\<Colon>\<preceq>(G,L)"
+apply (rule conformsI)
+apply     (intro strip)
+apply     simp
+apply     (drule (2) conforms_globsD)
+apply    simp
+apply   (intro strip)
+apply   (drule (1) conforms_XcptLocD)
+apply   simp
+apply (intro strip)
+apply (drule (1) conforms_RetD)
+apply simp
 done
 
-lemma conforms_locals [rule_format]: 
-  "(a,b)\<Colon>\<preceq>(G, L) \<longrightarrow> L x = Some T \<longrightarrow> G,b\<turnstile>the (locals b x)\<Colon>\<preceq>T"
-apply (force simp: conforms_def Let_def lconf_def)
+lemma conforms_locals: 
+  "\<lbrakk>(a,b)\<Colon>\<preceq>(G, L); L x = Some T;locals b x \<noteq>None\<rbrakk>
+   \<Longrightarrow> G,b\<turnstile>the (locals b x)\<Colon>\<preceq>T"
+apply (force simp: conforms_def Let_def wlconf_def)
 done
 
-lemma conforms_return: "\<And>s'. \<lbrakk>(x,s)\<Colon>\<preceq>(G, L); (x',s')\<Colon>\<preceq>(G, L'); s\<le>|s'\<rbrakk> \<Longrightarrow>  
+lemma conforms_return: 
+"\<And>s'. \<lbrakk>(x,s)\<Colon>\<preceq>(G, L); (x',s')\<Colon>\<preceq>(G, L'); s\<le>|s';x'\<noteq>Some (Jump Ret)\<rbrakk> \<Longrightarrow>  
   (x',set_locals (locals s) s')\<Colon>\<preceq>(G, L)"
 apply (rule conforms_xconf)
 prefer 2 apply (force dest: conforms_XcptLocD)

@@ -291,13 +291,13 @@ by (simp add: is_method_def)
 subsection {* Interface *}
 
 
-record  ibody = decl +  (* interface body *)
-          imethods :: "(sig \<times> mhead) list" (* method heads *)
+record  ibody = decl +  --{* interface body *}
+          imethods :: "(sig \<times> mhead) list" --{* method heads *}
 
-record  iface = ibody + (* interface *)
-         isuperIfs:: "qtname list" (* superinterface list *)
+record  iface = ibody + --{* interface *}
+         isuperIfs:: "qtname list" --{* superinterface list *}
 types	
-	idecl           (* interface declaration, cf. 9.1 *)
+	idecl           --{* interface declaration, cf. 9.1 *}
 	= "qtname \<times> iface"
 
 translations
@@ -320,16 +320,16 @@ lemma imethods_ibody [simp]: "(imethods (ibody i)) = imethods i"
 by (simp add: ibody_def)
 
 subsection  {* Class *}
-record cbody = decl +          (* class body *)
+record cbody = decl +          --{* class body *}
          cfields:: "fdecl list" 
          methods:: "mdecl list"
-         init   :: "stmt"       (* initializer *)
+         init   :: "stmt"       --{* initializer *}
 
-record class = cbody +           (* class *)
-        super   :: "qtname"      (* superclass *)
-        superIfs:: "qtname list" (* implemented interfaces *)
+record class = cbody +           --{* class *}
+        super   :: "qtname"      --{* superclass *}
+        superIfs:: "qtname list" --{* implemented interfaces *}
 types	
-	cdecl           (* class declaration, cf. 8.1 *)
+	cdecl           --{* class declaration, cf. 8.1 *}
 	= "qtname \<times> class"
 
 translations
@@ -366,10 +366,10 @@ section "standard classes"
 
 consts
 
-  Object_mdecls  ::  "mdecl list" (* methods of Object *)
-  SXcpt_mdecls   ::  "mdecl list" (* methods of SXcpts *)
-  ObjectC ::         "cdecl"      (* declaration  of root      class   *)
-  SXcptC  ::"xname \<Rightarrow> cdecl"      (* declarations of throwable classes *)
+  Object_mdecls  ::  "mdecl list" --{* methods of Object *}
+  SXcpt_mdecls   ::  "mdecl list" --{* methods of SXcpts *}
+  ObjectC ::         "cdecl"      --{* declaration  of root      class   *}
+  SXcptC  ::"xname \<Rightarrow> cdecl"      --{* declarations of throwable classes *}
 
 defs 
 
@@ -442,8 +442,8 @@ by auto
 section "subinterface and subclass relation, in anticipation of TypeRel.thy"
 
 consts 
-  subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set"
-  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set"
+  subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subinterface *}
+  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subclass     *}
 
 defs
   subint1_def: "subint1 G \<equiv> {(I,J). \<exists>i\<in>iface G I: J\<in>set (isuperIfs i)}"
@@ -795,65 +795,10 @@ lemma class_rec: "\<lbrakk>class G C = Some c; ws_prog G\<rbrakk> \<Longrightarr
 apply (rule class_rec.simps [THEN trans [THEN fun_cong [THEN fun_cong]]])
 apply simp
 done
-(*
-lemma bar:
- "[| P;  !!x.  P ==> Q x  |] ==> Q x"
-by simp
-
-lemma metaMP: "[| A ==> B; A |] ==> B"
-by blast
-
-lemma True
-proof- 
-  presume t: "C  ==> E"
-  thm metaMP [OF t]
-
-  presume r1: "\<And> B. P \<Longrightarrow> B"
-  presume r2: "\<And> C. C \<Longrightarrow> P"
-  thm r1 [OF r2]
-
-  thm metaMP [OF t]
-
-lemma ws_subcls1_induct4: "\<lbrakk>is_class G C; ws_prog G;  
-  \<And>C c. \<lbrakk>C \<noteq> Object\<longrightarrow> P (super c)\<rbrakk> \<Longrightarrow> P C
- \<rbrakk> \<Longrightarrow> P C"
-proof -
-  assume cls_C: "is_class G C"
-  and       ws: "ws_prog G"
-  and      hyp: "\<And>C c. \<lbrakk>C \<noteq> Object\<longrightarrow> P (super c)\<rbrakk> \<Longrightarrow> P C"
-  thm ws_subcls1_induct [OF cls_C ws hyp]
-
-show
-(\<And>C c. class G C = Some c \<and>
-       (C \<noteq> Object \<longrightarrow> G\<turnstile>C\<prec>\<^sub>C\<^sub>1super c \<and> ?P (super c) \<and> is_class G (super c)) \<Longrightarrow>
-       ?P C) \<Longrightarrow>
-?P C
-  show ?thesis
-    thm "thm ws_subcls1_induct [OF cls_C ws hyp]"
-    apply (rule ws_subcls1_induct)
-  proof (rule ws_subcls1_induct)
-    fix C c
-    assume "class G C = Some c \<and>
-            (C \<noteq> Object \<longrightarrow>
-              G\<turnstile>C\<prec>\<^sub>C\<^sub>1super c \<and> P (super c) \<and> is_class G (super c))"
-    show "C \<noteq> Object \<longrightarrow> P (super  (?c C c))" 
-apply (erule ws_subcls1_induct)
-apply assumption
-apply (erule conjE)
-apply (case_tac "C=Object")
-apply blast
-apply (erule impE)
-apply assumption
-apply (erule conjE)+
-apply (rotate_tac 2)
-sorry
-
-*)
-
 
 constdefs
 imethds:: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables"
-  (* methods of an interface, with overriding and inheritance, cf. 9.2 *)
+  --{* methods of an interface, with overriding and inheritance, cf. 9.2 *}
 "imethds G I 
   \<equiv> iface_rec (G,I)  
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Bali/Trans.thy
     ID:         $Id$
-    Author:     David von Oheimb
+    Author:     David von Oheimb and Norbert Schirmer
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Operational transition (small-step) semantics of the 
@@ -323,7 +323,7 @@ If:  "G\<turnstile>(\<langle>If(Lit v) s1 Else s2\<rangle>,Norm s)
 Loop: "G\<turnstile>(\<langle>l\<bullet> While(e) c\<rangle>,Norm s) 
         \<mapsto>1 (\<langle>If(e) (Cont l\<bullet>c;; l\<bullet> While(e) c) Else Skip\<rangle>,Norm s)"
 
-Do: "G\<turnstile>(\<langle>Do j\<rangle>,Norm s) \<mapsto>1 (\<langle>Skip\<rangle>,(Some (Jump j), s))"
+Jmp: "G\<turnstile>(\<langle>Jmp j\<rangle>,Norm s) \<mapsto>1 (\<langle>Skip\<rangle>,(Some (Jump j), s))"
 
 ThrowE: "\<lbrakk>G\<turnstile>(\<langle>e\<rangle>,Norm s) \<mapsto>1 (\<langle>e'\<rangle>,s')\<rbrakk> 
          \<Longrightarrow>

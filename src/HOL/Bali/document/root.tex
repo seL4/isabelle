@@ -4,6 +4,7 @@
 \usepackage{latexsym}
 \usepackage{graphicx}
 \usepackage{pdfsetup}
+\usepackage[english,french]{babel}
 
 \urlstyle{rm}
 \isabellestyle{it}
@@ -69,14 +70,16 @@ features such as:
       \end{itemize}
 \item Packages
 \item Access Modifiers (\texttt{private}, \texttt{protected}, \texttt{public})
+\item A ``definite assignment'' check
 \end{itemize}
 
 The following features are missing in Bali wrt.{} JavaCard:
 \begin{itemize}
 \item Some primitive types (\texttt{byte, short})
-\item Most numeric operations, syntactic variants of statements
+\item Syntactic variants of statements
   (\texttt{do}-loop, \texttt{for}-loop)
-\item A ``definite assignment'' check
+\item Interface fields
+\item Inner Classes
 \end{itemize}
 
 In addition, features are missing that are not part of the JavaCard
@@ -123,6 +126,9 @@ modifiers, method lookup.
 \item[WellType]
 Typesystem on the JavaCard term level.
 
+\item[DefiniteAssignment]
+The definite assignment analysis on the JavaCard term level.
+
 \item[WellForm]
 Typesystem on the JavaCard class, interface and program level.
 
@@ -141,6 +147,10 @@ operational semantics.
 \item[Conform]
 Conformance predicate for states. When does an execution state conform to the
 static types of the program given by the typesystem.
+
+\item[DefiniteAssignmentCorrect]
+Correctness of the definite assignment analysis. If the analysis regards a variable as definitely assigned at a
+certain program point, the variable will actually be assigned there during execution.
 
 \item[TypeSafe]
 Typesafety proof of the execution of JavaCard. ''Welltyped programs don't go
@@ -174,31 +184,43 @@ some properties of the JavaCard example given in theory Example.
 
 \chapter{Basis}
 \input{Basis}
+
 \chapter{Table}
 \input{Table}    
 
 \chapter{Name}
 \input{Name}
+
 \chapter{Value}     
 \input{Value}
+
 \chapter{Type}
 \input{Type}      
+
 \chapter{Term}
 \input{Term}     
+
 \chapter{Decl}
 \input{Decl}          
+
 \chapter{TypeRel}
 \input{TypeRel}   
+
 \chapter{DeclConcepts}
 \input{DeclConcepts}  
 
 \chapter{WellType}
 \input{WellType}
+
+\chapter{DefiniteAssignment}
+\input{DefiniteAssignment}
+
 \chapter{WellForm}
 \input{WellForm}
 
 \chapter{State}
 \input{State}    
+
 \chapter{Eval}
 \input{Eval}          
 
@@ -207,19 +229,28 @@ some properties of the JavaCard example given in theory Example.
 
 \chapter{Conform}
 \input{Conform}       
+
+\chapter{DefiniteAssignmentCorrect}
+\input{DefiniteAssignmentCorrect}
+
 \chapter{TypeSafe}
 \input{TypeSafe}
 
 \chapter{Evaln}
 \input{Evaln}         
+
 \chapter{Trans}
 \input{Trans}         
+
 \chapter{AxSem}
 \input{AxSem}      
+
 \chapter{AxSound}
 \input{AxSound}    
+
 \chapter{AxCompl}
 \input{AxCompl}    
+
 \chapter{AxExample}
 \input{AxExample}  
 

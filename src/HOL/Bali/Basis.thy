@@ -247,6 +247,12 @@ translations
 	"In1l e" == "In1 (Inl e)"
 	"In1r c" == "In1 (Inr c)"
 
+syntax the_In1l :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'al"
+       the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
+translations
+   "the_In1l" == "the_Inl \<circ> the_In1"
+   "the_In1r" == "the_Inr \<circ> the_In1"
+
 ML {*
 fun sum3_instantiate thm = map (fn s => simplify(simpset()delsimps[not_None_eq])
  (read_instantiate [("t","In"^s^" ?x")] thm)) ["1l","2","3","1r"]
