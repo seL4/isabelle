@@ -55,13 +55,6 @@ goalw Fin_Univ_thy [univ_def] "!!i. n: nat ==> n -> univ(A) <= univ(A)";
 by (etac (Limit_nat RSN (2,nat_fun_VLimit)) 1);
 val nat_fun_univ = result();
 
-val nat_fun_subset_univ = [Pi_mono, nat_fun_univ] MRS subset_trans |> standard;
-
-goal Fin_Univ_thy
-    "!!f. [| f: n -> B;  B <= univ(A);  n : nat |] ==> f : univ(A)";
-by (REPEAT (ares_tac [nat_fun_subset_univ RS subsetD] 1));
-val nat_fun_into_univ = result();
-
 
 (*** Infinite branching ***)
 
@@ -104,7 +97,6 @@ by (eresolve_tac [PiE] 1);
 by (res_inst_tac [("a1", "succ(succ(j Un ja))")] (UN_I RS UnI2) 1);
 by (eresolve_tac [subset_trans RS PowI] 2);
 by (fast_tac (ZF_cs addIs [Pair_in_Vfrom, Vfrom_UnI1, Vfrom_UnI2]) 2);
-
 by (REPEAT (ares_tac [ltD, InfCard_csucc, InfCard_is_Limit, 
 		      Limit_has_succ, Un_least_lt] 1));
 val fun_Vcsucc = result();
@@ -116,21 +108,11 @@ goal InfDatatype.thy
 by (REPEAT (ares_tac [fun_Vcsucc RS subsetD] 1));
 val fun_in_Vcsucc = result();
 
-goal InfDatatype.thy
-    "!!K. [| W <= Vfrom(A,csucc(K));  B <= Vfrom(A,csucc(K));	\
-\            |W| le K;  InfCard(K)				\
-\         |] ==> W -> B <= Vfrom(A, csucc(K))";
-by (REPEAT (ares_tac [[Pi_mono, fun_Vcsucc] MRS subset_trans] 1));
-val fun_subset_Vcsucc = result();
+(*Remove <= from the rule above*)
+val fun_in_Vcsucc' = subsetI RSN (4, fun_in_Vcsucc);
 
-goal InfDatatype.thy
-    "!!f. [| f: W -> B;  W <= Vfrom(A,csucc(K));  B <= Vfrom(A,csucc(K)); \
-\            |W| le K;  InfCard(K) 					  \
-\         |] ==> f: Vfrom(A,csucc(K))";
-by (DEPTH_SOLVE (ares_tac [fun_subset_Vcsucc RS subsetD] 1));
-val fun_into_Vcsucc = result();
+(** Version where K itself is the index set **)
 
-(*Version where K itself is the index set*)
 goal InfDatatype.thy
     "!!K. InfCard(K) ==> K -> Vfrom(A,csucc(K)) <= Vfrom(A,csucc(K))";
 by (forward_tac [InfCard_is_Card RS Card_is_Ord] 1);
@@ -145,24 +127,26 @@ goal InfDatatype.thy
 by (REPEAT (ares_tac [Card_fun_Vcsucc RS subsetD] 1));
 val Card_fun_in_Vcsucc = result();
 
-val Card_fun_subset_Vcsucc = 
-	[Pi_mono, Card_fun_Vcsucc] MRS subset_trans |> standard;
-
-goal InfDatatype.thy
-    "!!f. [| f: K -> B;  B <= Vfrom(A,csucc(K));  InfCard(K) \
-\         |] ==> f: Vfrom(A,csucc(K))";
-by (REPEAT (ares_tac [Card_fun_subset_Vcsucc RS subsetD] 1));
-val Card_fun_into_Vcsucc = result();
-
 val Pair_in_Vcsucc = Limit_csucc RSN (3, Pair_in_VLimit) |> standard;
 val Inl_in_Vcsucc  = Limit_csucc RSN (2, Inl_in_VLimit) |> standard;
 val Inr_in_Vcsucc  = Limit_csucc RSN (2, Inr_in_VLimit) |> standard;
 val zero_in_Vcsucc = Limit_csucc RS zero_in_VLimit |> standard;
 val nat_into_Vcsucc = Limit_csucc RSN (2, nat_into_VLimit) |> standard;
 
+(*For handling Cardinals of the form  (nat Un |X|) *)
+
+val InfCard_nat_Un_cardinal = [InfCard_nat, Card_cardinal] MRS InfCard_Un
+                              |> standard;
+
+val le_nat_Un_cardinal = 
+    [Ord_nat, Card_cardinal RS Card_is_Ord] MRS Un_upper2_le  |> standard;
+
+val UN_upper_cardinal = UN_upper RS subset_imp_lepoll RS lepoll_imp_le 
+                        |> standard;
+
 (*For most K-branching datatypes with domain Vfrom(A, csucc(K)) *)
 val inf_datatype_intrs =  
-    [Card_fun_in_Vcsucc, fun_in_Vcsucc, InfCard_nat, Pair_in_Vcsucc, 
-     Inl_in_Vcsucc, Inr_in_Vcsucc, 
-     zero_in_Vcsucc, A_into_Vfrom, nat_into_Vcsucc] @ datatype_intrs;
-
+    [InfCard_nat, InfCard_nat_Un_cardinal,
+     Pair_in_Vcsucc, Inl_in_Vcsucc, Inr_in_Vcsucc, 
+     zero_in_Vcsucc, A_into_Vfrom, nat_into_Vcsucc,
+     Card_fun_in_Vcsucc, fun_in_Vcsucc', UN_I] @ datatype_intrs;
