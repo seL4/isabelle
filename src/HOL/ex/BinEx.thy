@@ -9,7 +9,7 @@ ormalized operands yields normalized results.
 Normal means no leading 0s on positive numbers and no leading 1s on negatives.
 *)
 
-BinEx = Bin +
+BinEx = Main +
 
 consts normal :: bin set
   

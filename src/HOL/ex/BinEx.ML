@@ -11,7 +11,7 @@ yields normalized results.
 
 set proof_timing;
 
-(** Addition **)
+(*** Addition ***)
 
 Goal "(#13::int)  +  #19 = #32";
 by (Simp_tac 1);
@@ -29,7 +29,7 @@ Goal "(#93746::int) +  #-46375 = #47371";
 by (Simp_tac 1);
 result();
 
-(** Negation **)
+(*** Negation ***)
 
 Goal "- (#65745::int) = #-65745";
 by (Simp_tac 1);
@@ -40,7 +40,7 @@ by (Simp_tac 1);
 result();
 
 
-(** Multiplication **)
+(*** Multiplication ***)
 
 Goal "(#13::int)  *  #19 = #247";
 by (Simp_tac 1);
@@ -83,7 +83,65 @@ by (Simp_tac 1);
 result();
 
 
-(** Testing the cancellation of complementary terms **)
+(*** Division and Remainder ***)
+
+Goal "(#10::int) div #3 = #3";
+by (Simp_tac 1);
+result();
+
+Goal "(#10::int) mod #3 = #1";
+by (Simp_tac 1);
+result();
+
+(** A negative divisor **)
+
+Goal "(#10::int) div #-3 = #-4";
+by (Simp_tac 1);
+result();
+
+Goal "(#10::int) mod #-3 = #-2";
+by (Simp_tac 1);
+result();
+
+(** A negative dividend
+    [ The definition agrees with mathematical convention but not with
+      the hardware of most computers ]
+**)
+
+Goal "(#-10::int) div #3 = #-4";
+by (Simp_tac 1);
+result();
+
+Goal "(#-10::int) mod #3 = #2";
+by (Simp_tac 1);
+result();
+
+(** A negative dividend AND divisor **)
+
+Goal "(#-10::int) div #-3 = #3";
+by (Simp_tac 1);
+result();
+
+Goal "(#-10::int) mod #-3 = #-1";
+by (Simp_tac 1);
+result();
+
+(** A few bigger examples **)
+
+Goal "(#8452::int) mod #3 = #1";
+by (Simp_tac 1);
+result();
+
+Goal "(#59485::int) div #434 = #137";
+by (Simp_tac 1);
+result();
+
+Goal "(#1000006::int) mod #10 = #6";
+by (Simp_tac 1);
+result();
+
+
+(*** Testing the cancellation of complementary terms ***)
 
 Goal "y + (x + -x) = (#0::int) + y";
 by (Simp_tac 1);
@@ -191,8 +249,10 @@ by (resolve_tac normal.intrs 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [normal_Pls_eq_0]) 1);
 by (asm_full_simp_tac 
-    (simpset_of Int.thy addsimps [number_of_minus, iszero_def, 
-				  zminus_exchange]) 1);
+    (simpset_of Int.thy 
+     addsimps [number_of_minus, iszero_def, 
+	       read_instantiate [("y","int 0")] zminus_equation]) 1);
+by (etac not_sym 1);
 qed "bin_minus_normal";
 
 Goal "w : normal ==> z: normal --> bin_mult w z : normal";
