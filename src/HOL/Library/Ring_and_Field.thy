@@ -9,7 +9,7 @@ header {*
   \author{Gertrud Bauer and Markus Wenzel}
 *}
 
-theory Ring_and_Field = Main: 
+theory Ring_and_Field = Main:
 
 subsection {* Abstract algebraic structures *}
 
@@ -47,7 +47,7 @@ subsection {* Derived rules *}
 
 subsubsection {* Derived rules for addition *}
 
-lemma right_zero [simp]: "a + 0 = (a::'a::ring)" 
+lemma right_zero [simp]: "a + 0 = (a::'a::ring)"
 proof -
   have "a + 0 = 0 + a" by (simp only: add_commute)
   also have "... = a" by simp
@@ -55,11 +55,11 @@ proof -
 qed
 
 lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::ring))"
-by(rule mk_left_commute[OF add_assoc add_commute])
+  by (rule mk_left_commute [of "op +", OF add_assoc add_commute])
 
 theorems ring_add_ac = add_assoc add_commute add_left_commute
 
-lemma right_minus [simp]: "a + -(a::'a::ring) = 0" 
+lemma right_minus [simp]: "a + -(a::'a::ring) = 0"
 proof -
   have "a + -a = -a + a" by (simp add: ring_add_ac)
   also have "... = 0" by simp
@@ -67,7 +67,7 @@ proof -
 qed
 
 lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::ring))"
-proof 
+proof
   have "a = a - b + b" by (simp add: diff_minus ring_add_ac)
   also assume "a - b = 0"
   finally show "a = b" by simp
@@ -94,7 +94,7 @@ by(rule mk_left_commute[OF mult_assoc mult_commute])
 
 theorems ring_mult_ac = mult_assoc mult_commute mult_left_commute
 
-lemma right_inverse [simp]: "a \<noteq> 0 ==>  a * inverse (a::'a::field) = 1" 
+lemma right_inverse [simp]: "a \<noteq> 0 ==>  a * inverse (a::'a::field) = 1"
 proof -
   have "a * inverse a = inverse a * a" by (simp add: ring_mult_ac)
   also assume "a \<noteq> 0"
@@ -103,7 +103,7 @@ proof -
 qed
 
 lemma right_inverse_eq: "b \<noteq> 0 ==> (a / b = 1) = (a = (b::'a::field))"
-proof 
+proof
   assume neq: "b \<noteq> 0"
   {
     hence "a = (a / b) * b" by (simp add: divide_inverse ring_mult_ac)
