@@ -8,6 +8,8 @@ Intuitionistic First-Order Logic with Proofs
 
 IFOLP = Pure +
 
+global
+
 classes term < logic
 
 default term
@@ -58,6 +60,8 @@ consts
  ideq           :: "'a=>p"
  idpeel         :: "[p,'a=>p]=>p"
  nrm, NRM       :: "p"
+
+local
 
 rules
 
