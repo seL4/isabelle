@@ -482,7 +482,7 @@ LA_Data_Ref.simp :=          Int_LA_Data.simp;
 
 
 val int_arith_simproc_pats =
-  map (fn s => Thm.read_cterm (sign_of Int.thy) (s, HOLogic.boolT))
+  map (fn s => Thm.read_cterm (Theory.sign_of Int.thy) (s, HOLogic.boolT))
       ["(m::int) < n","(m::int) <= n", "(m::int) = n"];
 
 val fast_int_arith_simproc = mk_simproc "fast_int_arith" int_arith_simproc_pats

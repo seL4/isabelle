@@ -656,9 +656,9 @@ bind_thm ("split_if_eq2", read_instantiate [("P", "%x. ?a = x")] split_if);
 (*Split ifs on either side of the membership relation.
 	Not for Addsimps -- can cause goals to blow up!*)
 bind_thm ("split_if_mem1", 
-    read_instantiate_sg (sign_of Set.thy) [("P", "%x. x : ?b")] split_if);
+    read_instantiate_sg (Theory.sign_of Set.thy) [("P", "%x. x : ?b")] split_if);
 bind_thm ("split_if_mem2", 
-    read_instantiate_sg (sign_of Set.thy) [("P", "%x. ?a : x")] split_if);
+    read_instantiate_sg (Theory.sign_of Set.thy) [("P", "%x. ?a : x")] split_if);
 
 val split_ifs = [if_bool_eq_conj, split_if_eq1, split_if_eq2,
 		  split_if_mem1, split_if_mem2];

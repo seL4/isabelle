@@ -251,7 +251,7 @@ Currently only tries to rearranges @ to see if
 local
 
 val list_eq_pattern =
-  read_cterm (sign_of List.thy) ("(xs::'a list) = ys",HOLogic.boolT);
+  Thm.read_cterm (Theory.sign_of List.thy) ("(xs::'a list) = ys",HOLogic.boolT);
 
 fun last (cons as Const("List.list.op #",_) $ _ $ xs) =
       (case xs of Const("List.list.[]",_) => cons | _ => last xs)

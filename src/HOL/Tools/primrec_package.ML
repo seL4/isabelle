@@ -193,9 +193,7 @@ fun make_def sign fs (fname, ls, rec_name, tname) =
 				fs @ map Bound (0 ::(length ls downto 1))));
     val defpair = (Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def",
 		   Logic.mk_equals (Const (fname, dummyT), rhs))
-  in
-    inferT_axm sign defpair
-  end;
+  in Theory.inferT_axm sign defpair end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)
@@ -212,7 +210,7 @@ fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
 fun add_primrec_i alt_name eqns_atts thy =
   let
     val (eqns, atts) = split_list eqns_atts;
-    val sg = sign_of thy;
+    val sg = Theory.sign_of thy;
     val dt_info = DatatypePackage.get_datatypes thy;
     val rec_eqns = foldr (process_eqn sg) (map snd eqns, []);
     val tnames = distinct (map (#1 o snd) rec_eqns);
@@ -242,7 +240,7 @@ fun add_primrec_i alt_name eqns_atts thy =
     val rewrites = (map mk_meta_eq rec_rewrites) @ (map (get_axiom thy' o fst) defs');
     val _ = writeln ("Proving equations for primrec function(s)\n" ^
       commas_quote names1 ^ " ...");
-    val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (sign_of thy') t)
+    val char_thms = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
     val simps = char_thms;
     val thy'' =
@@ -254,7 +252,7 @@ fun add_primrec_i alt_name eqns_atts thy =
 
 
 fun read_eqn thy ((name, s), srcs) =
-  ((name, readtm (sign_of thy) propT s), map (Attrib.global_attribute thy) srcs);
+  ((name, readtm (Theory.sign_of thy) propT s), map (Attrib.global_attribute thy) srcs);
 
 fun add_primrec alt_name eqns thy = add_primrec_i alt_name (map (read_eqn thy) eqns) thy;
 

@@ -111,7 +111,7 @@ fun datatype_info_sg sg name =
     Some info => info
   | None => error ("Unknown datatype " ^ quote name));
 
-val datatype_info = datatype_info_sg o sign_of;
+val datatype_info = datatype_info_sg o Theory.sign_of;
 
 fun constrs_of thy tname =
   let
@@ -119,14 +119,14 @@ fun constrs_of thy tname =
     val (_, _, constrs) = the (assoc (descr, index))
   in
     Some (map (fn (cname, _) =>
-      Const (cname, the (Sign.const_type (sign_of thy) cname))) constrs)
+      Const (cname, the (Sign.const_type (Theory.sign_of thy) cname))) constrs)
   end handle _ => None;
 
 fun case_const_of thy tname =
   let
     val {case_name, ...} = datatype_info thy tname;
   in
-    Some (Const (case_name, the (Sign.const_type (sign_of thy) case_name)))
+    Some (Const (case_name, the (Sign.const_type (Theory.sign_of thy) case_name)))
   end handle _ => None;
 
 fun find_tname var Bi =
@@ -340,8 +340,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
           (case_names ~~ newTs ~~ case_fn_Ts)) |>
       Theory.add_trrules_i (DatatypeProp.make_case_trrules new_type_names descr);
 
-    val reccomb_names' = map (Sign.intern_const (sign_of thy2')) reccomb_names;
-    val case_names' = map (Sign.intern_const (sign_of thy2')) case_names;
+    val reccomb_names' = map (Sign.intern_const (Theory.sign_of thy2')) reccomb_names;
+    val case_names' = map (Sign.intern_const (Theory.sign_of thy2')) case_names;
 
     val thy2 = thy2' |>
 
@@ -501,7 +501,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       |> app_thmss raw_distinct
       |> apfst (app_thmss raw_inject)
       |> apfst (apfst (app_thm raw_induction));
-    val sign = sign_of thy1;
+    val sign = Theory.sign_of thy1;
 
     val induction' = freezeT induction;
 
@@ -549,7 +549,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val (thy7, case_congs) = DatatypeAbsProofs.prove_case_congs new_type_names
       [descr] sorts nchotomys case_thms thy6;
     val (thy8, size_thms) =
-      if exists (equal "Arith") (Sign.stamp_names_of (sign_of thy7)) then
+      if exists (equal "Arith") (Sign.stamp_names_of (Theory.sign_of thy7)) then
         DatatypeAbsProofs.prove_size_thms false new_type_names
           [descr] sorts reccomb_names rec_thms thy7
       else (thy7, []);
@@ -600,7 +600,7 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
       Theory.add_types (map (fn (tvs, tname, mx, _) =>
         (tname, length tvs, mx)) dts);
 
-    val sign = sign_of tmp_thy;
+    val sign = Theory.sign_of tmp_thy;
 
     val (tyvars, _, _, _)::_ = dts;
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>

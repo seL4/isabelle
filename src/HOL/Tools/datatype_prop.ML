@@ -162,7 +162,7 @@ fun make_casedists descr sorts =
 
 fun make_primrecs new_type_names descr sorts thy =
   let
-    val sign = sign_of thy;
+    val sign = Theory.sign_of thy;
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -229,7 +229,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
         in Ts ---> T' end) constrs) (hd descr);
 
     val case_names = map (fn s =>
-      Sign.intern_const (sign_of thy) (s ^ "_case")) new_type_names
+      Sign.intern_const (Theory.sign_of thy) (s ^ "_case")) new_type_names
   in
     map (fn ((name, Ts), T) => list_comb
       (Const (name, Ts @ [T] ---> T'),
@@ -296,7 +296,7 @@ fun make_distincts new_type_names descr sorts thy =
 
     fun make_distincts_2 T tname i constrs =
       let
-        val ord_name = Sign.intern_const (sign_of thy) (tname ^ "_ord");
+        val ord_name = Sign.intern_const (Theory.sign_of thy) (tname ^ "_ord");
         val ord_t = Const (ord_name, T --> HOLogic.natT)
 
       in (case constrs of
@@ -403,9 +403,9 @@ fun make_size new_type_names descr sorts thy =
     val recTs = get_rec_types descr' sorts;
 
     val big_size_name = space_implode "_" new_type_names ^ "_size";
-    val size_name = Sign.intern_const (sign_of (the (get_thy "Arith" thy))) "size";
+    val size_name = Sign.intern_const (Theory.sign_of (the (get_thy "Arith" thy))) "size";
     val size_names = replicate (length (hd descr)) size_name @
-      map (Sign.intern_const (sign_of thy))
+      map (Sign.intern_const (Theory.sign_of thy))
         (if length (flat (tl descr)) = 1 then [big_size_name] else
           map (fn i => big_size_name ^ "_" ^ string_of_int i)
             (1 upto length (flat (tl descr))));

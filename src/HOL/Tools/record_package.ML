@@ -456,7 +456,7 @@ val record_split_method =
 
 fun field_type_def ((thy, simps), (name, tname, vs, T, U)) =
   let
-    val full = Sign.full_name (sign_of thy);
+    val full = Sign.full_name (Theory.sign_of thy);
     val (thy', {simps = simps', ...}) =
       thy
       |> setmp DatatypePackage.quiet_mode true

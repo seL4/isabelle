@@ -63,8 +63,8 @@ val refl_thin = prove_goal HOL.thy "!!P. [| a=a;  P |] ==> P"
 (*For simplifying the elimination rule*)
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE, Pair_inject];
 
-val vimage_name = Sign.intern_const (sign_of Vimage.thy) "op -``";
-val mono_name = Sign.intern_const (sign_of Ord.thy) "mono";
+val vimage_name = Sign.intern_const (Theory.sign_of Vimage.thy) "op -``";
+val mono_name = Sign.intern_const (Theory.sign_of Ord.thy) "mono";
 
 (* make injections needed in mutually recursive definitions *)
 
@@ -225,7 +225,7 @@ fun prove_mono setT fp_fun monos thy =
   let
     val _ = message "  Proving monotonicity...";
 
-    val mono = prove_goalw_cterm [] (cterm_of (sign_of thy) (HOLogic.mk_Trueprop
+    val mono = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy) (HOLogic.mk_Trueprop
       (Const (mono_name, (setT --> setT) --> HOLogic.boolT) $ fp_fun)))
         (fn _ => [rtac monoI 1, REPEAT (ares_tac (basic_monos @ monos) 1)])
 
@@ -245,7 +245,7 @@ fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
       | select_disj n i = (rtac disjI2)::(select_disj (n - 1) (i - 1));
 
     val intrs = map (fn (i, intr) => prove_goalw_cterm rec_sets_defs
-      (cterm_of (sign_of thy) intr) (fn prems =>
+      (cterm_of (Theory.sign_of thy) intr) (fn prems =>
        [(*insert prems and underlying sets*)
        cut_facts_tac prems 1,
        stac unfold 1,
@@ -272,7 +272,7 @@ fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
       map make_elim [Inl_inject, Inr_inject];
 
     val elims = map (fn t => prove_goalw_cterm rec_sets_defs
-      (cterm_of (sign_of thy) t) (fn prems =>
+      (cterm_of (Theory.sign_of thy) t) (fn prems =>
         [cut_facts_tac [hd prems] 1,
          dtac (unfold RS subst) 1,
          REPEAT (FIRSTGOAL (eresolve_tac rules1)),
@@ -300,7 +300,7 @@ fun con_elim_tac ss =
 
 (*String s should have the form t:Si where Si is an inductive set*)
 fun mk_cases elims s =
-  let val prem = assume (read_cterm (sign_of_thm (hd elims)) (s, propT))
+  let val prem = assume (read_cterm (Thm.sign_of_thm (hd elims)) (s, propT))
       fun mk_elim rl = rule_by_tactic (con_elim_tac (simpset())) (prem RS rl) 
 	               |> standard
   in case find_first is_some (map (try mk_elim) elims) of
@@ -315,7 +315,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
   let
     val _ = message "  Proving the induction rule...";
 
-    val sign = sign_of thy;
+    val sign = Theory.sign_of thy;
 
     val (preds, ind_prems, mutual_ind_concl) = mk_indrule cs cTs params intr_ts;
 
@@ -387,8 +387,8 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     val sumT = fold_bal (fn (T, U) => Type ("+", [T, U])) cTs;
     val setT = HOLogic.mk_setT sumT;
 
-    val fp_name = if coind then Sign.intern_const (sign_of Gfp.thy) "gfp"
-      else Sign.intern_const (sign_of Lfp.thy) "lfp";
+    val fp_name = if coind then Sign.intern_const (Theory.sign_of Gfp.thy) "gfp"
+      else Sign.intern_const (Theory.sign_of Lfp.thy) "lfp";
 
     val used = foldr add_term_names (intr_ts, []);
     val [sname, xname] = variantlist (["S", "x"], used);
@@ -421,7 +421,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     (* add definiton of recursive sets to theory *)
 
     val rec_name = if alt_name = "" then space_implode "_" cnames else alt_name;
-    val full_rec_name = Sign.full_name (sign_of thy) rec_name;
+    val full_rec_name = Sign.full_name (Theory.sign_of thy) rec_name;
 
     val rec_const = list_comb
       (Const (full_rec_name, paramTs ---> setT), params);
@@ -538,7 +538,7 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
     val _ = Theory.requires thy "Inductive"
       ((if coind then "co" else "") ^ "inductive definitions");
 
-    val sign = sign_of thy;
+    val sign = Theory.sign_of thy;
 
     (*parameters should agree for all mutually recursive components*)
     val (_, params) = strip_comb (hd cs);
@@ -566,9 +566,9 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
 
 fun add_inductive verbose coind c_strings intr_strings monos con_defs thy =
   let
-    val sign = sign_of thy;
-    val cs = map (readtm (sign_of thy) HOLogic.termTVar) c_strings;
-    val intr_ts = map (readtm (sign_of thy) propT) intr_strings;
+    val sign = Theory.sign_of thy;
+    val cs = map (readtm (Theory.sign_of thy) HOLogic.termTVar) c_strings;
+    val intr_ts = map (readtm (Theory.sign_of thy) propT) intr_strings;
 
     (* the following code ensures that each recursive set *)
     (* always has the same type in all introduction rules *)

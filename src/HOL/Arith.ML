@@ -763,7 +763,7 @@ struct
   val norm_tac = simp_all (add_rules @ mult_rules) THEN simp_all add_ac;
 end;
 
-fun mk_cnat n = cterm_of (sign_of Nat.thy) (HOLogic.mk_nat n);
+fun mk_cnat n = cterm_of (Theory.sign_of Nat.thy) (HOLogic.mk_nat n);
 
 fun gen_multiply_tac rule k =
   if k > 0 then
@@ -807,7 +807,7 @@ end);
 
 (** prepare nat_cancel simprocs **)
 
-fun prep_pat s = Thm.read_cterm (sign_of Arith.thy) (s, HOLogic.termTVar);
+fun prep_pat s = Thm.read_cterm (Theory.sign_of Arith.thy) (s, HOLogic.termTVar);
 val prep_pats = map prep_pat;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
@@ -954,7 +954,7 @@ structure Fast_Arith =
 val fast_arith_tac = Fast_Arith.lin_arith_tac;
 
 val nat_arith_simproc_pats =
-  map (fn s => Thm.read_cterm (sign_of Arith.thy) (s, HOLogic.boolT))
+  map (fn s => Thm.read_cterm (Theory.sign_of Arith.thy) (s, HOLogic.boolT))
       ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"];
 
 val fast_nat_arith_simproc = mk_simproc "fast_nat_arith" nat_arith_simproc_pats

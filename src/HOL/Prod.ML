@@ -136,7 +136,7 @@ qed_goal "cond_split_eta" Prod.thy
   using split_eta a rewrite rule is not general enough, and using 
   cond_split_eta directly would render some existing proofs very inefficient*)
 local
-  val split_eta_pat = Thm.read_cterm (sign_of thy) 
+  val split_eta_pat = Thm.read_cterm (Theory.sign_of thy) 
 		("split (%x. split (%y. f x y))", HOLogic.termTVar);
   val split_eta_meta_eq = standard (mk_meta_eq cond_split_eta);
   fun  Pair_pat 0      (Bound 0) = true
@@ -431,7 +431,7 @@ qed "unit_eq";
 (*simplification procedure for unit_eq.
   Cannot use this rule directly -- it loops!*)
 local
-  val unit_pat = Thm.cterm_of (sign_of thy) (Free ("x", HOLogic.unitT));
+  val unit_pat = Thm.cterm_of (Theory.sign_of thy) (Free ("x", HOLogic.unitT));
   val unit_meta_eq = standard (mk_meta_eq unit_eq);
   fun proc _ _ t =
     if HOLogic.is_unit t then None

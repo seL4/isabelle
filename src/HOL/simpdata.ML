@@ -315,10 +315,10 @@ end);
 
 local
 val ex_pattern =
-  read_cterm (sign_of HOL.thy) ("EX x. P(x) & Q(x)",HOLogic.boolT)
+  Thm.read_cterm (Theory.sign_of HOL.thy) ("EX x. P(x) & Q(x)",HOLogic.boolT)
 
 val all_pattern =
-  read_cterm (sign_of HOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
+  Thm.read_cterm (Theory.sign_of HOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
 
 in
 val defEX_regroup =

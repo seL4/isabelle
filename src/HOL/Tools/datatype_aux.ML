@@ -68,7 +68,7 @@ fun message s = if !quiet_mode then () else writeln s;
 fun foldl1 f (x::xs) = foldl f (x, xs);
 
 fun get_thy name thy = find_first
-  (equal name o Sign.name_of o sign_of) (ancestors_of thy);
+  (equal name o Sign.name_of o Theory.sign_of) (Theory.ancestors_of thy);
 
 fun add_path flat_names s = if flat_names then I else Theory.add_path s;
 fun parent_path flat_names = if flat_names then I else Theory.parent_path;
@@ -113,7 +113,7 @@ fun indtac indrule i st =
         None => let val [Free (s, T)] = add_term_frees (t2, [])
           in absfree (s, T, t2) end
       | Some (_ $ t' $ _) => Abs ("x", fastype_of t', abstract_over (t', t2)))
-    val cert = cterm_of (sign_of_thm st);
+    val cert = cterm_of (Thm.sign_of_thm st);
     val Ps = map (cert o head_of o snd o getP) ts;
     val indrule' = cterm_instantiate (Ps ~~
       (map (cert o abstr o getP) ts')) indrule
@@ -125,7 +125,7 @@ fun indtac indrule i st =
 
 fun exh_tac exh_thm_of i state =
   let
-    val sg = sign_of_thm state;
+    val sg = Thm.sign_of_thm state;
     val prem = nth_elem (i - 1, prems_of state);
     val params = Logic.strip_params prem;
     val (_, Type (tname, _)) = hd (rev params);
