@@ -27,12 +27,12 @@ translations
 (* Class ring and ring axioms *)
 
 axclass
-  ring < ringS
+  ring < ringS, plus_ac0
 
-  a_assoc	"(a + b) + c = a + (b + c)"
-  l_zero	"0 + a = a"
+(*a_assoc	"(a + b) + c = a + (b + c)"*)
+(*l_zero	"0 + a = a"*)
   l_neg		"(-a) + a = 0"
-  a_comm	"a + b = b + a"
+(*a_comm	"a + b = b + a"*)
 
   m_assoc	"(a * b) * c = a * (b * c)"
   l_one		"<1> * a = a"
