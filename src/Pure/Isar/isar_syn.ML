@@ -295,15 +295,15 @@ val localeP =
 (* statements *)
 
 val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
-val long_statement =
+val general_statement =
   statement >> pair [] || Scan.repeat P.locale_element -- (P.$$$ "shows" |-- statement);
 
 fun gen_theorem k =
   OuterSyntax.command k ("state " ^ k) K.thy_goal
-    (Scan.optional (P.thm_name ":" --|
-      Scan.ahead (P.$$$ "(" || P.locale_keyword || P.$$$ "shows")) ("", [])
-      -- P.locale_target -- long_statement >> (fn ((x, y), (z, w)) =>
-      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x (y, z) w))));
+    (P.locale_target -- Scan.optional (P.thm_name ":" --|
+      Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
+      general_statement >> (fn ((x, y), (z, w)) =>
+      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x y z w))));
 
 val theoremP = gen_theorem Drule.theoremK;
 val lemmaP = gen_theorem Drule.lemmaK;
@@ -717,11 +717,10 @@ val welcomeP =
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "assumes", "binder",
-  "concl", "defines", "files", "fixes", "in", "infix", "infixl",
-  "infixr", "is", "notes", "output", "overloaded", "shows",
-  "structure", "uses", "where", "|", "\\<equiv>",
-  "\\<leftharpoondown>", "\\<rightharpoonup>",
-  "\\<rightleftharpoons>", "\\<subseteq>"];
+  "concl", "defines", "files", "fixes", "in", "includes", "infix",
+  "infixl", "infixr", "is", "notes", "output", "overloaded", "shows",
+  "structure", "where", "|", "\\<equiv>", "\\<leftharpoondown>",
+  "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>"];
 
 val parsers = [
   (*theory structure*)
