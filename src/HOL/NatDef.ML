@@ -541,27 +541,25 @@ goal thy "n <= (n::nat)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
 
-val prems = goal thy "!!i. [| i <= j; j < k |] ==> i < (k::nat)";
-by (dtac le_imp_less_or_eq 1);
-by (blast_tac (claset() addIs [less_trans]) 1);
+goal thy "!!i. [| i <= j; j < k |] ==> i < (k::nat)";
+by (blast_tac (claset() addSDs [le_imp_less_or_eq]
+	                addIs [less_trans]) 1);
 qed "le_less_trans";
 
 goal thy "!!i. [| i < j; j <= k |] ==> i < (k::nat)";
-by (dtac le_imp_less_or_eq 1);
-by (blast_tac (claset() addIs [less_trans]) 1);
+by (blast_tac (claset() addSDs [le_imp_less_or_eq]
+	                addIs [less_trans]) 1);
 qed "less_le_trans";
 
 goal thy "!!i. [| i <= j; j <= k |] ==> i <= (k::nat)";
-by (EVERY1[dtac le_imp_less_or_eq, 
-           dtac le_imp_less_or_eq,
-           rtac less_or_eq_imp_le, 
-           blast_tac (claset() addIs [less_trans])]);
+by (blast_tac (claset() addSDs [le_imp_less_or_eq]
+	                addIs [less_or_eq_imp_le, less_trans]) 1);
 qed "le_trans";
 
 goal thy "!!m. [| m <= n; n <= m |] ==> m = (n::nat)";
-by (EVERY1[dtac le_imp_less_or_eq, 
-           dtac le_imp_less_or_eq,
-           blast_tac (claset() addEs [less_irrefl,less_asym])]);
+(*order_less_irrefl could make this proof fail*)
+by (blast_tac (claset() addSDs [le_imp_less_or_eq]
+	                addSEs [less_irrefl] addEs [less_asym]) 1);
 qed "le_anti_sym";
 
 goal thy "(Suc(n) <= Suc(m)) = (n <= m)";
