@@ -132,7 +132,7 @@ P\ {\isacharparenleft}a\ {\isacharminus}\ b{\isacharparenright}\ {\isacharequal}
 \isamarkuptrue%
 \isacommand{lemma}\ {\isachardoublequote}{\isacharparenleft}n\ {\isacharminus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharasterisk}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ n\ {\isacharasterisk}\ n\ {\isacharminus}\ {\isacharparenleft}{\isadigit{1}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
-\isacommand{apply}\ {\isacharparenleft}clarsimp\ split{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}\isanewline
+\isacommand{apply}\ {\isacharparenleft}clarsimp\ split{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split\ iff\ del{\isacharcolon}\ less{\isacharunderscore}Suc{\isadigit{0}}{\isacharparenright}\isanewline
 \ %
 \isamarkupcmt{\begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}d{\isachardot}\ {\isasymlbrakk}n\ {\isacharless}\ Suc\ {\isadigit{0}}{\isacharsemicolon}\ n\ {\isacharasterisk}\ n\ {\isacharequal}\ Suc\ d{\isasymrbrakk}\ {\isasymLongrightarrow}\ d\ {\isacharequal}\ {\isadigit{0}}%
