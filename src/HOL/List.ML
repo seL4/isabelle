@@ -1200,12 +1200,9 @@ Addsimps [length_upt];
 
 Goal "i+k < j --> [i..j(] ! k = i+k";
 by (induct_tac "j" 1);
- by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [nth_append,less_diff_conv]@add_ac) 1);
-by (Clarify_tac 1);
-by (subgoal_tac "n=i+k" 1);
- by (Asm_simp_tac 2);
-by (Asm_simp_tac 1);
+ by (asm_simp_tac (simpset() addsimps [less_Suc_eq, nth_append] 
+                             addsplits [nat_diff_split]) 2);
+by (Simp_tac 1);
 qed_spec_mp "nth_upt";
 Addsimps [nth_upt];
 
