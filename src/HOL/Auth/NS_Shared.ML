@@ -13,6 +13,20 @@ From page 247 of
 open NS_Shared;
 
 proof_timing:=true;
+HOL_quantifiers := false;
+
+(** Weak liveness: there are traces that reach the end **)
+
+goal thy 
+ "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
+\        ==> EX N K. EX evs: ns_shared.          \
+\               Says A B (Crypt {|Nonce N, Nonce N|} K) : set_of_list evs";
+by (REPEAT (resolve_tac [exI,bexI] 1));
+br (ns_shared.Nil RS ns_shared.NS1 RS ns_shared.NS2 RS ns_shared.NS3 RS ns_shared.NS4 RS ns_shared.NS5) 2;
+by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
+by (REPEAT_FIRST (resolve_tac [refl, conjI]));
+by (ALLGOALS (fast_tac (!claset addss (!simpset setsolver safe_solver))));
+qed "weak_liveness";
 
 (**** Inductive proofs about ns_shared ****)
 
@@ -152,15 +166,14 @@ by (ALLGOALS Asm_simp_tac);
 map (by o fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [3,2];
 (*Fake and NS3*)
 map (by o best_tac
-     (!claset addSDs [newK_invKey]
-	      addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
+     (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
 		     impOfSubs (parts_insert_subset_Un RS keysFor_mono),
 		     Suc_leD]
 	      addEs [new_keys_not_seen RS not_parts_not_analz RSN (2,rev_notE)]
 	      addss (!simpset)))
     [2,1];
 (*NS4 and NS5: nonce exchange*)
-by (ALLGOALS (deepen_tac (!claset addSDs [newK_invKey, Says_imp_old_keys]
+by (ALLGOALS (deepen_tac (!claset addSDs [Says_imp_old_keys]
 	                          addIs  [less_SucI, impOfSubs keysFor_mono]
 		                  addss (!simpset addsimps [le_def])) 0));
 val lemma = result();
@@ -311,17 +324,6 @@ goal thy
 by (fast_tac (!claset addSEs [impOfSubs analz_mono]) 1);
 val lemma = result();
 
-(*Copied from OtwayRees.ML*)
-val enemy_analz_tac =
-  SELECT_GOAL 
-   (EVERY [REPEAT (resolve_tac [impI,notI] 1),
-	   dtac (impOfSubs Fake_analz_insert) 1,
-	   eresolve_tac [asm_rl, synth.Inj] 1,
-	   Fast_tac 1,
-	   Asm_full_simp_tac 1,
-	   IF_UNSOLVED (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 1)
-	   ]);
-
 goal thy  
  "!!evs. evs : ns_shared ==> \
 \  ALL K E. (Key K : analz (Key``(newK``E) Un (sees Enemy evs))) = \
@@ -341,8 +343,6 @@ by (enemy_analz_tac 5);
 (*Cases NS2 and NS3!!  Simple, thanks to auto case splits*)
 by (REPEAT (Fast_tac 3));
 (*Fake case*) (** LEVEL 7 **)
-by (res_inst_tac [("y1","X"), ("A1", "?G Un (?H::msg set)")] 
-    (insert_commute RS ssubst) 2);
 by (enemy_analz_tac 2);
 (*Base case*)
 by (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1);
@@ -469,7 +469,7 @@ by (asm_full_simp_tac
     (!simpset addsimps (mem_if::analz_insert_Key_newK::pushes)) 1);
 by (Step_tac 1);
 (**LEVEL 15 **)
-by (excluded_middle_tac "Friend i : bad" 1);
+by (excluded_middle_tac "Aa : bad" 1);
 (*But this contradicts Key (newK evta) ~: analz (sees Enemy evsa) *)
 bd (Says_imp_sees_Enemy RS analz.Inj) 2;
 bd analz.Decrypt 2;
@@ -480,4 +480,3 @@ bd unique_session_keys 1;
 by (REPEAT_FIRST assume_tac);
 by (Auto_tac ());
 qed "Enemy_not_see_encrypted_key";
-

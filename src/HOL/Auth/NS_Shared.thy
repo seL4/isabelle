@@ -41,12 +41,10 @@ inductive ns_shared
                    (shrK A)) # evs : ns_shared"
 
           (*We can't assume S=Server.  Agent A "remembers" her nonce.
-            May assume WLOG that she is NOT the Enemy: the Fake rule
-            covers this case.  Can inductively show A ~= Server*)
+            Can inductively show A ~= Server*)
     NS3  "[| evs: ns_shared;  A ~= B;
              Says S A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A)) 
                : set_of_list evs;
-             A = Friend i;
              Says A Server {|Agent A, Agent B, Nonce NA|} : set_of_list evs |]
           ==> Says A B X # evs : ns_shared"
 
