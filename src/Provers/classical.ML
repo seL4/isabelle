@@ -27,6 +27,7 @@ type wrapper = (int -> tactic) -> (int -> tactic);
 
 signature CLASSICAL_DATA =
 sig
+  val make_elim : thm -> thm    (* Tactic.make_elim or a classical version*)
   val mp	: thm    	(* [| P-->Q;  P |] ==> Q *)
   val not_elim	: thm		(* [| ~P;  P |] ==> R *)
   val classical	: thm		(* (~P ==> P) ==> P *)
