@@ -288,17 +288,17 @@ val noteP =
 (* proof context *)
 
 val assumeP =
-  OuterSyntax.command "assume" "assume propositions" K.prf_decl
+  OuterSyntax.command "assume" "assume propositions" K.prf_asm
     ((P.opt_thm_name ":" -- Scan.repeat1 propp >> P.triple1) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.assume)));
 
 val presumeP =
-  OuterSyntax.command "presume" "assume propositions, to be established later" K.prf_decl
+  OuterSyntax.command "presume" "assume propositions, to be established later" K.prf_asm
     ((P.opt_thm_name ":" -- Scan.repeat1 propp >> P.triple1) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
 
 val fixP =
-  OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_decl
+  OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_asm
     (Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ)) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.fix)));
 
