@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# $Id$
+#
+# DESCRIPTION: Isabelle theory graph browser
+
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [GRAPHFILE]"
+  echo
+  exit 1
+}
+
+
+## main
+
+[ "$1" = "-?" -o $# -gt 1 ] && usage
+
+export CLASSPATH=$ISABELLE_HOME/lib/browser
+
+[ $# -ne 1 ] && cd $ISABELLE_BROWSER_INFO/graph/data
+
+java GraphBrowser.GraphBrowser $1
+
