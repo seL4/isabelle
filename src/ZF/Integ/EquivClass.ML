@@ -6,10 +6,6 @@
 Equivalence relations in Zermelo-Fraenkel Set Theory 
 *)
 
-val RSLIST = curry (op MRS);
-
-open EquivClass;
-
 (*** Suppes, Theorem 70: r is an equiv relation iff converse(r) O r = r ***)
 
 (** first half: equiv(A,r) ==> converse(r) O r = r **)
@@ -91,13 +87,13 @@ qed "eq_equiv_class_iff";
 
 (** Introduction/elimination rules -- needed? **)
 
-Goalw [quotient_def] "x:A ==> r``{x}: A/r";
+Goalw [quotient_def] "x:A ==> r``{x}: A//r";
 by (etac RepFunI 1);
 qed "quotientI";
 AddTCs [quotientI];
 
 val major::prems = Goalw [quotient_def]
-    "[| X: A/r;  !!x. [| X = r``{x};  x:A |] ==> P |]   \
+    "[| X: A//r;  !!x. [| X = r``{x};  x:A |] ==> P |]   \
 \    ==> P";
 by (rtac (major RS RepFunE) 1);
 by (eresolve_tac prems 1);
@@ -105,12 +101,12 @@ by (assume_tac 1);
 qed "quotientE";
 
 Goalw [equiv_def,refl_def,quotient_def]
-    "equiv(A,r) ==> Union(A/r) = A";
+    "equiv(A,r) ==> Union(A//r) = A";
 by (Blast_tac 1);
 qed "Union_quotient";
 
 Goalw [quotient_def]
-    "[| equiv(A,r);  X: A/r;  Y: A/r |] ==> X=Y | (X Int Y <= 0)";
+    "[| equiv(A,r);  X: A//r;  Y: A//r |] ==> X=Y | (X Int Y <= 0)";
 by (safe_tac (claset() addSIs [equiv_class_eq]));
 by (assume_tac 1);
 by (rewrite_goals_tac [equiv_def,trans_def,sym_def]);
@@ -136,7 +132,7 @@ qed "UN_equiv_class";
 
 (*type checking of  UN x:r``{a}. b(x) *)
 val prems = Goalw [quotient_def]
-    "[| equiv(A,r);  congruent(r,b);  X: A/r;   \
+    "[| equiv(A,r);  congruent(r,b);  X: A//r;   \
 \       !!x.  x : A ==> b(x) : B |]     \
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
@@ -149,7 +145,7 @@ qed "UN_equiv_class_type";
 *)
 val prems = Goalw [quotient_def]
     "[| equiv(A,r);   congruent(r,b);  \
-\       (UN x:X. b(x))=(UN y:Y. b(y));  X: A/r;  Y: A/r;  \
+\       (UN x:X. b(x))=(UN y:Y. b(y));  X: A//r;  Y: A//r;  \
 \       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> <x,y>:r |]         \
 \    ==> X=Y";
 by (cut_facts_tac prems 1);
@@ -194,7 +190,7 @@ qed "UN_equiv_class2";
 (*type checking*)
 val prems = Goalw [quotient_def]
     "[| equiv(A,r);  congruent2(r,b);                   \
-\       X1: A/r;  X2: A/r;                              \
+\       X1: A//r;  X2: A//r;                            \
 \       !!x1 x2.  [| x1: A; x2: A |] ==> b(x1,x2) : B   \
 \    |] ==> (UN x1:X1. UN x2:X2. b(x1,x2)) : B";
 by (cut_facts_tac prems 1);
@@ -234,7 +230,7 @@ qed "congruent2_commuteI";
 
 (*Obsolete?*)
 val [equivA,ZinA,congt,commute] = Goalw [quotient_def]
-    "[| equiv(A,r);  Z: A/r;  \
+    "[| equiv(A,r);  Z: A//r;  \
 \       !!w. [| w: A |] ==> congruent(r, %z. b(w,z));    \
 \       !!x y. [| x: A;  y: A |] ==> b(y,x) = b(x,y)    \
 \    |] ==> congruent(r, %w. UN z: Z. b(w,z))";

@@ -26,7 +26,7 @@ defs
      "intrel == {p:(nat*nat)*(nat*nat).                 
         EX x1 y1 x2 y2. p=<<x1,y1>,<x2,y2>> & x1#+y2 = x2#+y1}"
 
-    int_def   "int == (nat*nat)/intrel"
+    int_def   "int == (nat*nat)//intrel"
     
     int_of_def  "$# m == intrel `` {<m,0>}"
     

@@ -105,6 +105,8 @@ by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
 qed "zminus_congruent";
 
+val RSLIST = curry (op MRS);
+
 (*Resolve th against the corresponding facts for zminus*)
 val zminus_ize = RSLIST [equiv_intrel, zminus_congruent];
 
