@@ -465,7 +465,7 @@ technique:
 R"\isanewline
 \isacommand{apply}\ (erule_tac\ Q = "R{\isasymlongrightarrow}Q"\ \isakeyword{in}\
 contrapos_np)\isanewline
-\isacommand{apply}\ intro\isanewline
+\isacommand{apply}\ (intro\ impI)\isanewline
 \isacommand{by}\ (erule\ notE)
 \end{isabelle}
 %
@@ -482,7 +482,7 @@ while the negated formula \isa{R\ \isasymlongrightarrow\ Q} becomes the new
 conclusion.
 
 We can now apply introduction rules.  We use the \methdx{intro} method, which
-repeatedly  applies built-in introduction rules.  Here its effect is equivalent
+repeatedly applies the given introduction rules.  Here its effect is equivalent
 to \isa{rule impI}.
 \begin{isabelle}
 \ 1.\ \isasymlbrakk{\isasymnot}\ (P\ \isasymlongrightarrow\ Q);\ \isasymnot\ R;\
@@ -514,16 +514,16 @@ and tableau calculi.
 \begin{isabelle}
 \isacommand{lemma}\ "(P\ \isasymor\ Q)\ \isasymand\ R\
 \isasymLongrightarrow\ P\ \isasymor\ (Q\ \isasymand\ R)"\isanewline
-\isacommand{apply}\ intro\isanewline
+\isacommand{apply}\ (intro\ disjCI\ conjI)\isanewline
 \isacommand{apply}\ (elim\ conjE\ disjE)\isanewline
 \ \isacommand{apply}\ assumption
 \isanewline
 \isacommand{by}\ (erule\ contrapos_np,\ rule\ conjI)
 \end{isabelle}
 %
-The first proof step applies the \isa{intro} method, which repeatedly  uses
-built-in introduction rules.  Among these are \isa{disjCI}, which creates
-the negative assumption 
+The first proof step uses \isa{intro} to apply
+the introduction rules \isa{disjCI} and \isa{conjI}.  The resulting
+subgoal has the negative assumption 
 \hbox{\isa{\isasymnot(Q\ \isasymand\ R)}}.  
 
 \begin{isabelle}
@@ -1052,7 +1052,7 @@ avoid a clash.  The result may not be ideal:
 \begin{isabelle}
 \isacommand{lemma}\ "x\ <\ y\ \isasymLongrightarrow \ \isasymforall x\ y.\ P\ x\
 (f\ y)"\isanewline
-\isacommand{apply}\ intro\isanewline
+\isacommand{apply}\ (intro allI)\isanewline
 \ 1.\ \isasymAnd xa\ ya.\ x\ <\ y\ \isasymLongrightarrow \ P\ xa\ (f\ ya)
 \end{isabelle}
 %
@@ -2054,7 +2054,7 @@ For example, let us prove a fact about divisibility in the natural numbers:
 \begin{isabelle}
 \isacommand{lemma}\ "2\ \isasymle \ u\ \isasymLongrightarrow \ u*m\ \isasymnoteq
 \ Suc(u*n)"\isanewline
-\isacommand{apply}\ intro\isanewline
+\isacommand{apply}\ (intro\ notI)\isanewline
 \ 1.\ \isasymlbrakk 2\ \isasymle \ u;\ u\ *\ m\ =\ Suc\ (u\ *\ n)\isasymrbrakk \ \isasymLongrightarrow \ False%
 \end{isabelle}
 %
@@ -2336,10 +2336,6 @@ subgoal.  Then you should try the commands \isacommand{defer} or \isacommand{pre
 
 In the following example, the first subgoal looks hard, while the others
 look as if \isa{blast} alone could prove them:
-%\begin{isabelle}
-%\isacommand{lemma}\ "hard\ \isasymand \ (P\ \isasymor \ \isachartilde P)\ \isasymand \ (Q\isasymlongrightarrow Q)"\isanewline
-%\isacommand{apply}\ intro
-%\end{isabelle}
 \begin{isabelle}
 \ 1.\ hard\isanewline
 \ 2.\ \isasymnot \ \isasymnot \ P\ \isasymLongrightarrow \ P\isanewline

@@ -160,7 +160,7 @@ text {*
 *};
 
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
-apply (intro conjI disjCI)
+apply (intro disjCI conjI)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 
 apply (elim conjE disjE)
@@ -362,9 +362,9 @@ text{*end of Epsilon section*}
 
 lemma "(\<exists>x. P x) \<or> (\<exists>x. Q x) \<Longrightarrow> \<exists>x. P x \<or> Q x"
 apply (elim exE disjE)
- apply (intro exI disjCI)
+ apply (intro exI disjI1)
  apply assumption
-apply (intro exI disjI2) (*or else we get disjCI*)
+apply (intro exI disjI2)
 apply assumption
 done
 
