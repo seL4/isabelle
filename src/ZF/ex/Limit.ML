@@ -72,8 +72,10 @@ qed "cpo_po";
 Goal "[|cpo(D); x:set(D)|] ==> rel(D,x,x)";
 by (blast_tac (claset() addIs [po_refl, cpo_po]) 1);
 qed "cpo_refl";
+
 Addsimps [cpo_refl];
 AddSIs   [cpo_refl];
+AddTCs   [cpo_refl];
 
 Goal "[|cpo(D); rel(D,x,y); rel(D,y,z); x:set(D);  \
 \       y:set(D); z:set(D)|] ==> rel(D,x,z)";
@@ -170,19 +172,14 @@ by (Blast_tac 1);
 qed "chain_rel";
 
 Addsimps [chain_in, chain_rel];
+AddTCs   [chain_in, chain_rel];
 
 Goal "[|chain(D,X); cpo(D); n:nat; m:nat|] ==> rel(D,X`n,(X`(m #+ n)))";
 by (induct_tac "m" 1);
 by (ALLGOALS Simp_tac);
-by (rtac cpo_trans 2); (* loops if repeated *)
-by (REPEAT (ares_tac [cpo_refl,chain_in,chain_rel,nat_succI,add_type] 1));
+by (rtac cpo_trans 1);
+by Auto_tac;
 qed "chain_rel_gen_add";
-
-Goal "[| n le succ(x); ~ n le x; x : nat; n:nat |] ==> n = succ(x)";
-by (etac le_anti_sym 1);
-by (asm_simp_tac (simpset() addsimps [not_le_iff_lt RS iff_sym, 
-				      nat_into_Ord]) 1);
-qed "le_succ_eq";
 
 Goal  (* chain_rel_gen *)
     "[|n le m; chain(D,X); cpo(D); n:nat; m:nat|] ==> rel(D,X`n,X`m)";
@@ -193,9 +190,8 @@ by (induct_tac "m" 1);
 by Safe_tac;
 by (Asm_full_simp_tac 1);
 by (rtac cpo_trans 2);
-by (rtac (le_succ_eq RS subst) 1);
-by (auto_tac (claset() addIs [chain_in,chain_rel],
-	      simpset()));
+by (auto_tac (claset(),
+	      simpset() addsimps [le_iff]));
 qed "chain_rel_gen";
 
 (*----------------------------------------------------------------------*)
@@ -225,6 +221,8 @@ Goalw [bot_def] (* bot_in *)
     "pcpo(D) ==> bot(D):set(D)";
 by (best_tac (claset() addIs [pcpo_bot_ex1 RS theI2]) 1);
 qed "bot_in";
+
+AddTCs [pcpo_cpo, bot_least, bot_in];
 
 val prems = goal Limit.thy  (* bot_unique *)
     "[| pcpo(D); x:set(D); !!y. y:set(D) ==> rel(D,x,y)|] ==> x = bot(D)";
@@ -749,6 +747,8 @@ by (blast_tac (claset() addIs [cpo_antisym,rel_cf,
 
 qed "cpo_cf";
 
+AddTCs [cpo_cf];
+
 Goal "[| chain(cf(D,E),X); cpo(D); cpo(E)|] ==>   \
 \     lub(cf(D,E), X) = (lam x:set(D). lub(E,lam n:nat. X`n`x))";
 by (blast_tac (claset() addIs [islub_unique,cpo_lub,islub_cf,cpo_cf]) 1);
@@ -1191,6 +1191,8 @@ brr(cpo_antisym::rel_iprodE::(iprodE RS apply_type)::iprodE::prems) 1;
 brr(islub_iprod::prems) 1;
 qed "cpo_iprod";
 
+AddTCs [cpo_iprod];
+
 val prems = Goalw [islub_def,isub_def]  (* lub_iprod *)
     "[|chain(iprod(DD),X);  !!n. n:nat ==> cpo(DD`n)|] ==>   \
 \    lub(iprod(DD),X) = (lam n:nat. lub(DD`n,lam m:nat. X`m`n))";
@@ -1423,7 +1425,8 @@ qed "subcpo_Dinf";
 
 Goal "emb_chain(DD,ee) ==> cpo(Dinf(DD,ee))";
 by (rtac subcpo_cpo 1);
-by (auto_tac (claset() addIs [subcpo_Dinf,cpo_iprod,emb_chain_cpo], simpset()));
+be subcpo_Dinf 1;
+by (auto_tac (claset() addIs [cpo_iprod, emb_chain_cpo], simpset()));
 qed "cpo_Dinf";
 
 (* Again and again the proofs are much easier to WRITE in Isabelle, but 
