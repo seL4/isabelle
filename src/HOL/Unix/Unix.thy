@@ -1121,7 +1121,7 @@ text {*
   overall procedure (see \secref{sec:unix-inv-procedure}).
 *}
 
-theorem main:
+corollary
   "init users =bogus\<Rightarrow> root \<Longrightarrow>
   \<not> (\<exists>xs. (\<forall>x \<in> set xs. uid_of x = user1) \<and>
       can_exec root (xs @ [Rmdir user1 [user1, name1]]))"
