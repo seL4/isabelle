@@ -51,9 +51,9 @@ some of the other automatic tactics are more sensitive, and even \isa{blast} can
 To prove transitivity, we need rule induction, i.e.\ theorem
 \isa{rtc{\isachardot}induct}:
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}{\isacharquery}xb{\isacharcomma}\ {\isacharquery}xa{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ x{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ {\isacharparenleft}{\isasymAnd}x\ y\ z{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ {\isacharquery}r\ {\isasymLongrightarrow}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ y\ z\ {\isasymLongrightarrow}\ {\isacharquery}P\ x\ z{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}xb\ {\isacharquery}xa%
+\ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}{\isacharquery}xb{\isacharcomma}\ {\isacharquery}xa{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ x{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ {\isasymAnd}x\ y\ z{\isachardot}\ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}{\isacharsemicolon}\ {\isacharquery}P\ y\ z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ x\ z{\isasymrbrakk}\isanewline
+\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isacharquery}xb\ {\isacharquery}xa%
 \end{isabelle}
 It says that \isa{{\isacharquery}P} holds for an arbitrary pair \isa{{\isacharparenleft}{\isacharquery}xb{\isacharcomma}{\isacharquery}xa{\isacharparenright}\ {\isasymin}\ {\isacharquery}r{\isacharasterisk}} if \isa{{\isacharquery}P} is preserved by all rules of the inductive definition,
 i.e.\ if \isa{{\isacharquery}P} holds for the conclusion provided it holds for the
@@ -110,9 +110,8 @@ Now induction produces two subgoals which are both proved automatically:
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}x\ y\ za{\isachardot}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}y{\isacharcomma}\ za{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
+\ \ \ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ za{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isasymrbrakk}\isanewline
+\ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}za{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymlongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \ \isacommand{apply}{\isacharparenleft}blast{\isacharparenright}\isanewline
@@ -157,7 +156,7 @@ Hence \isa{rtc} is the definition of choice.
 \begin{exercise}\label{ex:converse-rtc-step}
 Show that the converse of \isa{rtc{\isacharunderscore}step} also holds:
 \begin{isabelle}%
-\ \ \ \ \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}\ {\isasymLongrightarrow}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
+\ \ \ \ \ {\isasymlbrakk}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}{\isacharsemicolon}\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}\ {\isasymin}\ r{\isacharasterisk}%
 \end{isabelle}
 \end{exercise}
 \begin{exercise}
