@@ -469,8 +469,6 @@ fun rot_subgoals_tac [] i st      = Sequence.single st
 
 fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 
-local open General in  (*make available the Basis type "option"*)
-
 (*Tableau rule from elimination rule.  Flag "dup" requests duplication of the
   affected formula.*)
 fun fromRule vars rl = 
@@ -480,13 +478,12 @@ fun fromRule vars rl =
 	  TRACE rl (etac (if dup then rev_dup_elim rl else rl)) i
 	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
 	  
-  in SOME (trl, tac) end
+  in Option.SOME (trl, tac) end
   handle Bind => (*reject: conclusion is not just a variable*)
    (if !trace then (writeln"Warning: ignoring ill-formed elimination rule";
 		    print_thm rl)
     else ();
-    NONE);
-end;
+    Option.NONE);
 
 
 (*** Conversion of Introduction Rules ***)

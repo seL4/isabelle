@@ -18,7 +18,8 @@ structure Bool =
     | toString false = "false"
   end;
 
-structure General =
+
+structure Option =
   struct
   exception Option
 
@@ -33,8 +34,6 @@ structure General =
   fun valOf (SOME v) = v
     | valOf NONE     = raise Option
   end;
-
-open General;
 
 
 structure Int =
@@ -75,11 +74,11 @@ structure List =
 
   fun mapPartial f []      = []
     | mapPartial f (x::xs) = 
-         (case f x of General.NONE   => mapPartial f xs
-                    | General.SOME y => y :: mapPartial f xs);
+         (case f x of Option.NONE   => mapPartial f xs
+                    | Option.SOME y => y :: mapPartial f xs);
 
-  fun find _ []        = General.NONE
-    | find p (x :: xs) = if p x then General.SOME x else find p xs;
+  fun find _ []        = Option.NONE
+    | find p (x :: xs) = if p x then Option.SOME x else find p xs;
 
 
   (*copy the list preserving elements that satisfy the predicate*)
