@@ -5,16 +5,6 @@
 %% definitions of standard Isabelle symbols
 %%
 
-% Required packages for unusual symbols -- see below for details.
-%\usepackage{latexsym}
-%\usepackage{amssymb}
-%\usepackage[english]{babel}
-%\usepackage[latin1]{inputenc}
-%\usepackage[only,bigsqcap]{stmaryrd}
-%\usepackage{wasysym}
-%\usepackage{eufrak}
-
-
 % symbol definitions
 
 \newcommand{\isasymA}{\isamath{\mathcal{A}}}
@@ -276,7 +266,7 @@
 \newcommand{\isasymdagger}{\isamath{\dagger}}
 \newcommand{\isasymddagger}{\isamath{\ddagger}}
 \newcommand{\isasymcirc}{\isamath{\circ}}
-\newcommand{\isasymbullet}{\isamath{\bullet}}
+\newcommand{\isasymbullet}{\boldmath\isamath{\mathchoice{\displaystyle{\cdot}}{\textstyle{\cdot}}{\scriptstyle{\bullet}}{\scriptscriptstyle{\bullet}}}}
 \newcommand{\isasymlhd}{\isamath{\lhd}}
 \newcommand{\isasymrhd}{\isamath{\rhd}}
 \newcommand{\isasymunlhd}{\isamath{\unlhd}}
