@@ -1,0 +1,139 @@
+#!/usr/bin/perl -w
+#
+# $Id$
+#
+# fixencoding - fix references to isabelle font encoding
+
+
+## global settings
+
+$prgname = "fixencoding";
+
+$enc_file = "Distribution/lib/encodings/isabelle-0";
+
+
+## diagnostics
+
+sub warn {
+    print STDERR $_[0], "\n";
+}
+
+sub fail {
+    &warn("$prgname: " . $_[0]);
+    exit 2;
+}
+
+
+## utils
+
+sub read_encoding {
+    local($file) = $_[0];
+    local($current, $line) = (-1, 0);
+
+
+    # scan file
+
+    open (FILE, $file) || die $!;
+
+    while (<FILE>) {
+	$line++;
+	s/#.*$//;
+	s/\s//g;
+	next if !$_;
+
+	if (m/^(\d+):(.*)$/) {
+	    $current = $1;
+	    $_ = $2;
+	}
+
+	next if !$_;
+
+	if ($current < 0) {
+	    &fail("Malformed encoding file \"$file\", line $line");
+	}
+
+	if ($enc_first < 0 || $enc_first > $current) {
+	    $enc_first = $current;
+	}
+	if ($enc_last < 0 || $enc_last < $current) {
+	    $enc_last = $current;
+	}
+	$enc_tab[$current] = $_;
+	$current++;
+    }
+
+    close FILE;
+
+
+    # fill gaps
+
+    if ($enc_first < 0 || $enc_last < 0) {
+	&fail("Empty encoding file \"$file\"");
+    }
+
+    for ($current = $enc_first; $current <= $enc_last; $current++) {
+	if (!$enc_tab[$current]) {
+	    &warn("position $current undefined");
+	    $enc_tab[$current] = "undef$current";
+	}
+    }
+}
+
+
+sub patch_file {
+    local($file, $text) = @_;
+
+    open(INFILE, $file) || die $!;
+    open(OUTFILE, ">$file~") || die $!;
+
+    while (<INFILE>) {
+	print OUTFILE;
+	last if m/GENERATED TEXT FOLLOWS/;
+    }
+    print OUTFILE $text;
+    while (<INFILE>) {
+	next if !m/END OF GENERATED TEXT/;
+	print OUTFILE;
+	last;
+    }
+    while (<INFILE>) {
+	print OUTFILE;
+    }
+
+    close(INFILE);
+    close(OUTFILE);
+
+    unlink($file) || die $!;
+    rename("$file~", $file) || die $!;
+}
+
+
+
+## main
+
+# read encoding file
+
+$enc_first = -1;
+$enc_last = -1;
+@enc_tab = ();
+
+&read_encoding($enc_file);
+
+
+# make tables
+
+for ($current = $enc_first; $current <= $enc_last; $current++) {
+    push(@ml_tab, '"' . $enc_tab[$current] . '"');
+    push(@perl_tab, sprintf('"\\x%2x", "\\\\<%s>"', $current, $enc_tab[$current]));
+    push(@perl_revtab, sprintf('"\\\\<%s>", "\\x%2x"', $enc_tab[$current], $current));
+}
+
+$ml_tab = "  " . join(",\n  ", @ml_tab) . "\n";
+$perl_tab = "  " . join(",\n  ", @perl_tab) . "\n";
+$perl_revtab = "  " . join(",\n  ", @perl_revtab) . "\n";
+
+
+# patch files
+
+&patch_file("src/Pure/Syntax/symbol_font.ML", $ml_tab);
+&patch_file("Distribution/lib/scripts/symbolinput.pl", $perl_tab);
