@@ -209,7 +209,7 @@ in
 	let val arity = length vns;
 	  val body  = "z" ^ string_of_int(c_nr);
 	  val args1 = if arity=0 then ""
-		      else parens (Args ("y", ") (", y_nr, y_nr+arity-1));
+		      else " " ^ Args ("y", " ", y_nr, y_nr+arity-1);
 	  val args2 = if arity=0 then ""
 		      else "(% " ^ Args ("y", " ", y_nr, y_nr+arity-1) 
 			^ ". ";
@@ -224,8 +224,8 @@ in
       
       val xrules =
 	let val (first_part, scnd_part) = calc_xrules 1 1 cons_list
-	in  [("logic", "case x of " ^ first_part) <->
-	     ("logic", tname ^ "_case " ^ scnd_part ^ " x" )]
+	in [("logic", "case x of " ^ first_part) <->
+	     ("logic", tname ^ "_case " ^ scnd_part ^ " x")]
 	end;
 
      (*type declarations for constructors*)
@@ -269,10 +269,10 @@ in
       val t_case = tname ^ "_case";
 
       fun case_rule n (id, name, _, vns, _) =
-	let val args =  opt_parens(space_implode ") (" vns)
+	let val args = if vns = [] then "" else " " ^ space_implode " " vns
 	in (t_case ^ "_" ^ id,
-	    t_case ^ " (" ^ Args("f", ") (", 1, num_of_cons)
-	    ^ ") (" ^ name ^ args ^ ") = f"^string_of_int(n) ^ args)
+	    t_case ^ " " ^ Args("f", " ", 1, num_of_cons)
+	    ^ " (" ^ name ^ args ^ ") = f"^string_of_int(n) ^ args)
 	end
 
       fun case_rules n (c :: cs) = case_rule n c :: case_rules(n+1) cs
