@@ -1,13 +1,20 @@
 (*  Title:      Pure/meta_simplifier.ML
     ID:         $Id$
-    Author:     Tobias Nipkow
+    Author:     Tobias Nipkow and Stefan Berghofer
     Copyright   1994  University of Cambridge
 
-Meta Simplification
+Meta-level Simplification.
 *)
+
+signature BASIC_META_SIMPLIFIER =
+sig
+  val trace_simp: bool ref
+  val debug_simp: bool ref
+end;
 
 signature META_SIMPLIFIER =
 sig
+  include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
   type meta_simpset
   val dest_mss		: meta_simpset ->
@@ -32,11 +39,9 @@ sig
   val set_mk_sym        : meta_simpset * (thm -> thm option) -> meta_simpset
   val set_mk_eq_True    : meta_simpset * (thm -> thm option) -> meta_simpset
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
-  val trace_simp        : bool ref
-  val debug_simp        : bool ref
-  val rewrite_cterm     : bool * bool * bool
-                          -> (meta_simpset -> thm -> thm option)
-                          -> meta_simpset -> cterm -> thm
+  val rewrite_cterm: bool * bool * bool ->
+    (meta_simpset -> thm -> thm option) -> meta_simpset -> cterm -> thm
+  val full_rewrite_cterm_aux: (meta_simpset -> thm -> thm option) -> thm list -> cterm -> cterm
   val rewrite_rule_aux  : (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_thm       : bool * bool * bool
                           -> (meta_simpset -> thm -> thm option)
@@ -931,6 +936,12 @@ fun goals_conv pred cv =
 (*Use a conversion to transform a theorem*)
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
+(*Rewrite a cterm (yielding again a cterm instead of a theorem)*)
+fun full_rewrite_cterm_aux _ [] = (fn ct => ct)
+  | full_rewrite_cterm_aux prover thms =
+      #2 o Thm.dest_comb o #prop o Thm.crep_thm o
+        rewrite_cterm (true, false, false) prover (mss_of thms);
+
 (*Rewrite a theorem*)
 fun rewrite_rule_aux _ [] = (fn th => th)
   | rewrite_rule_aux prover thms =
@@ -952,4 +963,5 @@ fun rewrite_goal_rule mode prover mss i thm =
 
 end;
 
-open MetaSimplifier;
+structure BasicMetaSimplifier: BASIC_META_SIMPLIFIER = MetaSimplifier;
+open BasicMetaSimplifier;
