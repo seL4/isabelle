@@ -25,22 +25,22 @@ Addsimps [inst_lift_pcpo];
 local
 
 val case1' = prove_goal thy "lift_case f1 f2 UU = f1"
-	     (fn _ => [simp_tac (!simpset addsimps lift.simps) 1]);
+             (fn _ => [simp_tac (!simpset addsimps lift.simps) 1]);
 val case2' = prove_goal thy "lift_case f1 f2 (Def a) = f2 a"
-	     (fn _ => [Simp_tac 1]);
+             (fn _ => [Simp_tac 1]);
 val distinct1' = prove_goal thy "UU ~= Def a" 
-		 (fn _ => [Simp_tac 1]);
+                 (fn _ => [Simp_tac 1]);
 val distinct2' = prove_goal thy "Def a ~= UU"
-		 (fn _ => [Simp_tac 1]);
+                 (fn _ => [Simp_tac 1]);
 val inject' = prove_goal thy "Def a = Def aa = (a = aa)"
-	       (fn _ => [Simp_tac 1]);
+               (fn _ => [Simp_tac 1]);
 val rec1' = prove_goal thy "lift_rec f1 f2 UU = f1"
-	    (fn _ => [Simp_tac 1]);
+            (fn _ => [Simp_tac 1]);
 val rec2' = prove_goal thy "lift_rec f1 f2 (Def a) = f2 a"
-	    (fn _ => [Simp_tac 1]);
+            (fn _ => [Simp_tac 1]);
 val induct' = prove_goal thy "[| P UU; !a. P (Def a) |] ==> P lift"
-	    (fn prems => [cut_facts_tac prems 1, Asm_full_simp_tac 1,
-		      etac Lift1.lift.induct 1,fast_tac HOL_cs 1]);
+            (fn prems => [cut_facts_tac prems 1, Asm_full_simp_tac 1,
+                      etac Lift1.lift.induct 1,fast_tac HOL_cs 1]);
 
 in 
 
@@ -228,14 +228,14 @@ val cont_lemmas_ext = [cont_flift1_arg,cont_flift2_arg,
                        cont_fapp_app,cont_fapp_app_app,cont_if];
 
 val cont_lemmas2 =  cont_lemmas1 @ cont_lemmas_ext;
-		 
-Addsimps cont_lemmas_ext;	  
+                 
+Addsimps cont_lemmas_ext;         
 
 fun cont_tac  i = resolve_tac cont_lemmas2 i;
 fun cont_tacR i = REPEAT (cont_tac i);
 
 fun cont_tacRs i = simp_tac (!simpset addsimps [flift1_def,flift2_def]) i THEN
-		  REPEAT (cont_tac i);
+                  REPEAT (cont_tac i);
 
 
 simpset := !simpset addSolver (K (DEPTH_SOLVE_1 o cont_tac));
