@@ -79,6 +79,7 @@ sig
   val cond_extern: context -> string -> xstring
   val qualified: bool -> context -> context
   val restore_qualified: context -> context -> context
+  val hide_thms: bool -> string list -> context -> context
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
@@ -109,7 +110,8 @@ sig
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
-  val apply_case: RuleCases.T -> context -> context * ((indexname * term option) list * term list)
+  val apply_case: RuleCases.T -> context
+    -> context * ((indexname * term option) list * (string * term list) list)
   val pretty_term: context -> term -> Pretty.T
   val pretty_typ: context -> typ -> Pretty.T
   val pretty_sort: context -> sort -> Pretty.T
@@ -946,7 +948,7 @@ val get_thms = retrieve_thms PureThy.get_thms (K I);
 val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 
-(* qualified names *)
+(* name space operations *)
 
 fun cond_extern (Context {thms = (_, space, _, _), ...}) = NameSpace.cond_extern space;
 
@@ -955,6 +957,11 @@ fun qualified q = map_context (fn (thy, syntax, data, asms, binds,
   (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs));
 
 fun restore_qualified (Context {thms, ...}) = qualified (#1 thms);
+
+fun hide_thms fully names =
+  map_context (fn (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs) =>
+    (thy, syntax, data, asms, binds, (q, NameSpace.hide fully (space, names), tab, index),
+      cases, defs));
 
 
 (* put_thm(s) *)
@@ -1201,7 +1208,7 @@ fun prep_case ctxt name xs {fixes, assumes, binds} =
       | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
   in
     if null (foldr Term.add_typ_tvars (map snd fixes, [])) andalso
-      null (foldr Term.add_term_vars (assumes, [])) then
+      null (foldr Term.add_term_vars (flat (map #2 assumes), [])) then
         {fixes = replace xs fixes, assumes = assumes, binds = map drop_schematic binds}
     else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
   end;
@@ -1272,7 +1279,7 @@ fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
     fun bind (c, (x, T)) = (c |> fix_i [([x], Some T)], bind_skolem c [x] (Free (x, T)));
     val (ctxt', xs) = foldl_map bind (ctxt, fixes);
     fun app t = foldl Term.betapply (t, xs);
-  in (ctxt', (map (apsnd (apsome app)) binds, map app assumes)) end;
+  in (ctxt', (map (apsnd (apsome app)) binds, map (apsnd (map app)) assumes)) end;
 
 fun pretty_cases (ctxt as Context {cases, ...}) =
   let
@@ -1281,6 +1288,9 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
     fun prt_let (xi, t) = Pretty.block
       [Pretty.quote (prt_term (Var (xi, Term.fastype_of t))), Pretty.str " =", Pretty.brk 1,
         Pretty.quote (prt_term t)];
+
+    fun prt_asm (a, ts) = Pretty.block (Pretty.breaks
+      ((if a = "" then [] else [Pretty.str (a ^ ":")]) @ map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
       | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
@@ -1291,7 +1301,8 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
         prt_sect "fix" [] (Pretty.str o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
           (mapfilter (fn (xi, Some t) => Some (xi, t) | _ => None) lets) @
-        prt_sect "assume" [] (Pretty.quote o prt_term) asms));
+        (if forall (null o #2) asms then []
+          else prt_sect "assume" [Pretty.str "and"] prt_asm asms)));
 
     val cases' = rev (Library.gen_distinct Library.eq_fst cases);
   in

@@ -621,10 +621,17 @@ fun invoke_case (name, xs, atts) state =
   let
     val (state', (lets, asms)) =
       map_context_result (ProofContext.apply_case (get_case state name xs)) state;
+    val assumptions = asms |> map (fn (a, ts) =>
+      ((if a = "" then "" else NameSpace.append name a, atts), map (rpair ([], [])) ts));
+    val qnames = filter_out (equal "") (map (#1 o #1) assumptions);
   in
     state'
     |> add_binds_i lets
-    |> assume_i [((name, atts), map (rpair ([], [])) asms)]
+    |> map_context (ProofContext.qualified true)
+    |> assume_i assumptions
+    |> map_context (ProofContext.hide_thms false qnames)
+    |> (fn st => simple_have_thms name (the_facts st) st)
+    |> map_context (ProofContext.restore_qualified (context_of state))
   end;
 
 
@@ -678,7 +685,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
       (after_qed o map_context gen_binds, pr)))
     |> map_context (ProofContext.add_cases
      (if length props = 1 then
-      RuleCases.make true (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
+      RuleCases.make true None (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
       else [(rule_contextN, RuleCases.empty)]))
     |> auto_bind_goal props
     |> (if is_chain state then use_facts else reset_facts)

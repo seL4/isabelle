@@ -1227,6 +1227,12 @@ indicate ``variable'' parameters $\vec x$ and ``recursive'' assumptions
 $\vec\phi$.  Also note that local definitions may be expressed as $\All{\vec
   x} n \equiv t[\vec x] \Imp \phi[n]$, with induction over $n$.
 
+In induction proofs, local assumptions introduced by cases are split into two
+different kinds: $hyps$ stemming from the rule and $prems$ from the goal
+statement.  This is reflected in the extracted cases accordingly, so invoking
+``$\isarcmd{case}~c$'' will provide separate facts $c\mathord.hyps$ and
+$c\mathord.prems$, as well as fact $c$ to hold the all-inclusive list.
+
 \medskip
 
 Facts presented to either method are consumed according to the number of

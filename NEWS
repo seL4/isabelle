@@ -15,6 +15,10 @@ latter view is presented only on export into the global theory
 context; potential INCOMPATIBILITY, use "(open)" option to fall back
 on the old view without predicates;
 
+* improved induct method: assumptions introduced by case "foo" are
+split into "foo.hyps" (from the rule) and "foo.prems" (from the goal
+statement); "foo" still refers to all facts collectively;
+
 * improved thms_containing: proper indexing of facts instead of raw
 theorems; check validity of results wrt. current name space; include
 local facts of proof configuration (also covers active locales); an

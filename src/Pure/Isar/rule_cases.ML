@@ -17,7 +17,7 @@ sig
   val add: thm -> thm * (string list * int)
   type T
   val empty: T
-  val make: bool -> Sign.sg * term -> string list -> (string * T) list
+  val make: bool -> term option -> Sign.sg * term -> string list -> (string * T) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
 end;
@@ -86,23 +86,35 @@ fun add thm = (thm, get thm);
 
 (* prepare cases *)
 
-type T = {fixes: (string * typ) list, assumes: term list, binds: (indexname * term option) list};
+type T =
+ {fixes: (string * typ) list,
+  assumes: (string * term list) list,
+  binds: (indexname * term option) list};
+
+val hypsN = "hyps";
+val premsN = "prems";
 
 val empty = {fixes = [], assumes = [], binds = []};
 
-fun prep_case open_parms sg prop name i =
+fun prep_case is_open split sg prop name i =
   let
     val Bi = Drule.norm_hhf sg (hd (#1 (Logic.strip_prems (i, [], Logic.skip_flexpairs prop))));
-    val xs = map (if open_parms then I else apfst Syntax.internal) (Logic.strip_params Bi);
+    val xs = map (if is_open then I else apfst Syntax.internal) (Logic.strip_params Bi);
     val asms = map (curry Term.list_abs xs) (Logic.strip_assums_hyp Bi);
+    val named_asms =
+      (case split of None => [("", asms)]
+      | Some t =>
+          let val h = length (Logic.strip_assums_hyp
+            (hd (#1 (Logic.strip_prems (i, [], Logic.skip_flexpairs t)))))
+          in [(hypsN, Library.take (h, asms)), (premsN, Library.drop (h, asms))] end);
     val concl = Term.list_abs (xs, Logic.strip_assums_concl Bi);
     val bind = ((case_conclN, 0), Some (ObjectLogic.drop_judgment sg concl));
-  in (name, {fixes = xs, assumes = asms, binds = [bind]}) end;
+  in (name, {fixes = xs, assumes = named_asms, binds = [bind]}) end;
 
-fun make open_parms (sg, prop) names =
+fun make is_open split (sg, prop) names =
   let val nprems = Logic.count_prems (Logic.skip_flexpairs prop, 0) in
-    #1 (foldr (fn (name, (cases, i)) => (prep_case open_parms sg prop name i :: cases, i - 1))
-      (Library.drop (length names - nprems, names), ([], length names)))
+    foldr (fn (name, (cases, i)) => (prep_case is_open split sg prop name i :: cases, i - 1))
+      (Library.drop (length names - nprems, names), ([], length names)) |> #1
   end;
 
 

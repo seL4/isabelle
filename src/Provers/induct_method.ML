@@ -111,7 +111,7 @@ fun cases_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
 
     fun prep_rule (th, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o rpair cases)
       (Method.multi_resolves (take (n, facts)) [th]);
-  in resolveq_cases_tac (RuleCases.make open_parms) (Seq.flat (Seq.map prep_rule ruleq)) end;
+  in resolveq_cases_tac (RuleCases.make open_parms None) (Seq.flat (Seq.map prep_rule ruleq)) end;
 
 in
 
@@ -186,7 +186,7 @@ fun join_rules [] = []
             (map (fn x => Drule.implies_elim_list x asms) (th :: ths))
           |> Drule.implies_intr_list cprems
           |> Drule.standard'
-          |> RuleCases.save th]
+          |> RuleCases.save r]
         end;
 
 
@@ -230,7 +230,7 @@ fun resolveq_cases_tac' make ruleq i st =
     |> (Method.insert_tac more_facts THEN' atomize_tac) i
     |> Seq.map (fn st' => divinate_inst (internalize k rule) i st' |> Seq.map (fn rule' =>
           st' |> Tactic.rtac rule' i
-          |> Seq.map (rpair (make (rulified_term rule') cases)))
+          |> Seq.map (rpair (make (Some (Thm.prop_of rule')) (rulified_term rule') cases)))
       |> Seq.flat)
     |> Seq.flat)
   |> Seq.flat;
@@ -329,7 +329,7 @@ val term = Scan.unless (Scan.lift kind_inst) Args.local_term;
 val term_dummy = Scan.unless (Scan.lift kind_inst)
   (Scan.lift (Args.$$$ "_") >> K None || Args.local_term >> Some);
 
-val instss = Args.and_list (Scan.repeat1 term_dummy);
+val instss = Args.and_list (Scan.repeat term_dummy);
 
 in
 
