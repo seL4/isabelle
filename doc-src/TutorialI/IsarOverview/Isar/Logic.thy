@@ -714,7 +714,9 @@ recdef rot "measure length"
 "rot [x] = [x]"
 "rot (x#y#zs) = y # rot(x#zs)"
 
-text{* The proof is trivial: all three cases go through by simplification.*}
+text{* In the first proof we set up each case explicitly, merely using
+pattern matching to abbreviate the statement: *}
+
 lemma "length(rot xs) = length xs" (is "?P xs")
 proof (induct xs rule: rot.induct)
   show "?P []" by simp
@@ -724,12 +726,25 @@ next
   fix x y zs assume "?P (x#zs)"
   thus "?P (x#y#zs)" by simp
 qed
-
-text{*\noindent This schema works for arbitrary induction rules instead of
+text{* This proof skeletons works for arbitrary induction rules, not just
 @{thm[source]rot.induct}.
 
-Of course the above proof is simple enough that it could be condensed to*}
-(*<*)lemma "length(rot xs) = length xs"(*>*)
+In the following proof we rely on a default naming scheme for cases: they are
+called 1, 2, etc, unless they have been named explicitly. The latter happens
+only with datatypes and inductively defined sets, but not with recursive
+functions. *}
+
+lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"
+proof (induct xs rule: rot.induct)
+  case 1 thus ?case by simp
+next
+  case 2 show ?case by simp
+next
+  case 3 thus ?case by simp
+qed
+
+text{*Of course both proofs are so simple that they can be condensed to*}
+(*<*)lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"(*>*)
 by (induct xs rule: rot.induct, simp_all)
 
 (*<*)end(*>*)
