@@ -22,6 +22,8 @@ sig
 	val parse_std_result_file : Path.T -> string * string * string -> result
 	val make_external_solver  : string -> (PropLogic.prop_formula -> unit) -> (unit -> result) -> solver
 
+	val read_dimacs_cnf_file : Path.T -> PropLogic.prop_formula
+
 	(* generic interface *)
 	val solvers       : (string * solver) list ref
 	val add_solver    : string * solver -> unit
@@ -243,6 +245,77 @@ struct
 		(writefn fm; system cmd; readfn ());
 
 (* ------------------------------------------------------------------------- *)
+(* read_dimacs_cnf_file: returns a propositional formula that corresponds to *)
+(*      a SAT problem given in DIMACS CNF format                             *)
+(* ------------------------------------------------------------------------- *)
+
+	(* Path.T -> PropLogic.prop_formula *)
+
+	fun read_dimacs_cnf_file path =
+	let
+		(* string list -> string list *)
+		fun filter_preamble [] =
+			error "problem line not found in DIMACS CNF file"
+		  | filter_preamble (line::lines) =
+			if String.isPrefix "c " line then
+				(* ignore comments *)
+				filter_preamble lines
+			else if String.isPrefix "p " line then
+				(* ignore the problem line (which must be the last line of the preamble) *)
+				(* Ignoring the problem line implies that if the file contains more clauses *)
+				(* or variables than specified in its preamble, we will accept it anyway.   *)
+				lines
+			else
+				error "preamble in DIMACS CNF file contains a line that does not begin with \"c \" or \"p \""
+		(* string -> int *)
+		fun int_from_string s =
+			case Int.fromString s of
+			  SOME i => i
+			| NONE   => error ("token " ^ quote s ^ "in DIMACS CNF file is not a number")
+		(* int list -> int list list *)
+		fun clauses xs =
+			let
+				val (xs1, xs2) = take_prefix (fn i => i <> 0) xs
+			in
+				xs1 :: clauses (tl xs2)
+			end
+		(* int -> PropLogic.prop_formula *)
+		fun literal_from_int i =
+			(assert (i<>0) "variable index in DIMACS CNF file is 0";
+			if i>0 then
+				PropLogic.BoolVar i
+			else
+				PropLogic.Not (PropLogic.BoolVar (~i)))
+		(* PropLogic.prop_formula list -> PropLogic.prop_formula *)
+		fun disjunction [] =
+			error "empty clause in DIMACS CNF file"
+		  | disjunction (x::xs) =
+			(case xs of
+			  [] => x
+			| _  => PropLogic.Or (x, disjunction xs))
+		(* PropLogic.prop_formula list -> PropLogic.prop_formula *)
+		fun conjunction [] =
+			error "no clause in DIMACS CNF file"
+		  | conjunction (x::xs) =
+			(case xs of
+			  [] => x
+			| _  => PropLogic.And (x, conjunction xs))
+	in
+		(conjunction
+		o (map disjunction)
+		o (map (map literal_from_int))
+		o clauses
+		o (map int_from_string)
+		o flat
+		o (map (String.fields (fn c => c mem [#" ", #"\t", #"\n"])))
+		o filter_preamble
+		o (filter (fn l => l <> ""))
+		o split_lines
+		o File.read)
+			path
+	end;
+
+(* ------------------------------------------------------------------------- *)
 (* solvers: a (reference to a) table of all registered SAT solvers           *)
 (* ------------------------------------------------------------------------- *)
 
@@ -442,7 +515,7 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* ZChaff, Version 2003.12.04 (http://www.princeton.edu/~chaff/zchaff.html)  *)
+(* ZChaff, Version 2004.05.13 (http://www.princeton.edu/~chaff/zchaff.html)  *)
 (* ------------------------------------------------------------------------- *)
 
 let
@@ -453,7 +526,7 @@ let
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
 		fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
-		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Verify Solution successful. Instance satisfiable", "", "Instance unsatisfiable")
+		fun readfn ()  = SatSolver.parse_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
 		val _          = assert (not (File.exists inpath)) ("file " ^ quote (Path.pack inpath) ^ " exists, please delete (will not overwrite)")
 		val _          = assert (not (File.exists outpath)) ("file " ^ quote (Path.pack outpath) ^ " exists, please delete (will not overwrite)")
 		val result     = SatSolver.make_external_solver cmd writefn readfn fm
