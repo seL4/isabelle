@@ -571,7 +571,8 @@ next
   and Afoldx: "(A, x) \<in> foldSet f g z" and Afoldy: "(A,x') \<in> foldSet f g z" .
   show ?case
   proof cases
-    assume "EX k<n. h n = h k"
+    assume "EX k<n. h n = h k" 
+      --{*@{term h} is not injective, so the cardinality has not increased*}
     hence card': "A = h ` {i. i < n}"
       using card by (auto simp:image_def less_Suc_eq)
     show ?thesis by(rule IH[OF card' Afoldx Afoldy])
@@ -579,7 +580,7 @@ next
     assume new: "\<not>(EX k<n. h n = h k)"
     show ?thesis
     proof (rule foldSet.cases[OF Afoldx])
-      assume "(A, x) = ({}, z)"
+      assume "(A, x) = ({}, z)"  --{*fold of a singleton set*}
       thus "x' = x" using Afoldy by (auto)
     next
       fix B b y
@@ -770,9 +771,9 @@ by(erule finite_induct)(simp_all add: fold_insert2 del: fold_insert)
 subsubsection{*Lemmas about @{text fold}*}
 
 lemma (in ACf) fold_commute:
-  "finite A ==> (!!z. f (g x) (fold f g z A) = fold f g (f (g x) z) A)"
+  "finite A ==> (!!z. f x (fold f g z A) = fold f g (f x z) A)"
   apply (induct set: Finites, simp)
-  apply (simp add: left_commute)
+  apply (simp add: left_commute [of x])
   done
 
 lemma (in ACf) fold_nest_Un_Int:
@@ -788,8 +789,8 @@ lemma (in ACf) fold_nest_Un_disjoint:
   by (simp add: fold_nest_Un_Int)
 
 lemma (in ACf) fold_reindex:
-assumes fin: "finite B"
-shows "inj_on h B \<Longrightarrow> fold f g z (h ` B) = fold f (g \<circ> h) z B"
+assumes fin: "finite A"
+shows "inj_on h A \<Longrightarrow> fold f g z (h ` A) = fold f (g \<circ> h) z A"
 using fin apply (induct)
  apply simp
 apply simp
