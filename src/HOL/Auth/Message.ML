@@ -884,7 +884,7 @@ fun spy_analz_tac i =
          (REPEAT (Fake_insert_tac 1) THEN Asm_full_simp_tac 1
           THEN
           IF_UNSOLVED (Blast.depth_tac
-		       (!claset addIs [impOfSubs analz_mono,
+		       (!claset addIs [analz_insertI,
 				       impOfSubs analz_subset_parts]) 2 1))
        ]) i);
 
