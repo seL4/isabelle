@@ -84,6 +84,16 @@ signature CLASSICAL =
   val inst_step_tac 	: claset -> int -> tactic
   val inst0_step_tac 	: claset -> int -> tactic
   val instp_step_tac 	: claset -> int -> tactic
+
+  val claset : claset ref
+  val AddDs 		: thm list -> unit
+  val AddEs 		: thm list -> unit
+  val AddIs 		: thm list -> unit
+  val AddSDs		: thm list -> unit
+  val AddSEs		: thm list -> unit
+  val AddSIs		: thm list -> unit
+  val Fast_tac 		: int -> tactic
+
   end;
 
 
@@ -444,6 +454,22 @@ fun safe_depth_tac cs m =
       end);
 
 fun deepen_tac cs = DEEPEN (safe_depth_tac cs);
+
+val claset = ref empty_cs;
+
+fun AddDs ts = (claset := !claset addDs ts);
+
+fun AddEs ts = (claset := !claset addEs ts);
+
+fun AddIs ts = (claset := !claset addIs ts);
+
+fun AddSDs ts = (claset := !claset addSDs ts);
+
+fun AddSEs ts = (claset := !claset addSEs ts);
+
+fun AddSIs ts = (claset := !claset addSIs ts);
+
+fun Fast_tac i = fast_tac (!claset) i; 
 
 end; 
 end;
