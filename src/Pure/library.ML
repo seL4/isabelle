@@ -383,9 +383,9 @@ fun is_quasi_letter "_" = true
   | is_quasi_letter "'" = true
   | is_quasi_letter ch = is_letter ch;
 
-(*white space: blanks, tabs, newlines*)
+(*white space: blanks, tabs, newlines, formfeeds*)
 val is_blank : string -> bool =
-  fn " " => true | "\t" => true | "\n" => true | _ => false;
+  fn " " => true | "\t" => true | "\n" => true | "\^L" => true | _ => false;
 
 val is_letdig = is_quasi_letter orf is_digit;
 
@@ -400,11 +400,11 @@ val to_lower =
   in implode o (map lower) o explode end;
 
 
-(*parentesize*)
-fun parents lpar rpar str = lpar ^ str ^ rpar;
+(*enclose in brackets*)
+fun enclose lpar rpar str = lpar ^ str ^ rpar;
 
 (*simple quoting (does not escape special chars)*)
-val quote = parents "\"" "\"";
+val quote = enclose "\"" "\"";
 
 (*space_implode "..." (explode "hello"); gives "h...e...l...l...o"*)
 fun space_implode a bs = implode (separate a bs);

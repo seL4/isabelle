@@ -37,7 +37,7 @@ sig
   val fbreaks: T list -> T list
   val block: T list -> T
   val strs: string list -> T
-  val parents: string -> string -> T list -> T
+  val enclose: string -> string -> T list -> T
   val list: string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
@@ -170,11 +170,11 @@ fun block prts = blk (2, prts);
 
 val strs = block o breaks o (map str);
 
-fun parents lpar rpar prts =
+fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
 fun list lpar rpar prts =
-  parents lpar rpar (commas prts);
+  enclose lpar rpar (commas prts);
 
 fun str_list lpar rpar strs =
   list lpar rpar (map str strs);
