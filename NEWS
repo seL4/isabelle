@@ -14,6 +14,9 @@ issue the following ML commands:
   Delsimprocs Nat_Numeral_Simprocs.cancel_numerals;
   Delsimprocs [Nat_Numeral_Simprocs.combine_numerals];
 
+* HOL: 0 is now overloaded, so the type constraint ::nat may sometimes be
+needed;
+
 * HOL: the constant for f``x is now "image" rather than "op ``";
 
 * HOL: the cartesian product is now "<*>" instead of "Times"; the
@@ -135,6 +138,12 @@ basically a generalized version of de-Bruijn representation; very
 useful in avoiding lifting all operations;
 
 * HOL/Real: "rabs" replaced by overloaded "abs" function;
+
+* HOL: 0 is now overloaded over the new sort "zero", allowing its use with
+other numeric types and also as the identity of groups, rings, etc.;
+
+* HOL: new axclass plus_ac0 for addition with the AC-laws and 0 as identity.
+Types nat and int belong to this axclass;
 
 * greatly improved simplification involving numerals of type nat & int, e.g.
    (i + #8 + j) = Suc k simplifies to  #7 + (i + j) = k
