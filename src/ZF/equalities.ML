@@ -239,6 +239,14 @@ val Diff_INT = result();
 
 (** Unions and Intersections with General Sum **)
 
+goal ZF.thy "(SUM x:(UN y:A. C(y)). B(x)) = (UN y:A. SUM x:C(y). B(x))";
+by (fast_tac eq_cs 1);
+val SUM_UN_distrib1 = result();
+
+goal ZF.thy "(SUM x:A. UN y:B. C(x,y)) = (UN y:B. SUM x:A. C(x,y))";
+by (fast_tac eq_cs 1);
+val SUM_UN_distrib2 = result();
+
 goal ZF.thy "(SUM x:A Un B. C(x)) = (SUM x:A. C(x)) Un (SUM x:B. C(x))";
 by (fast_tac eq_cs 1);
 val SUM_Un_distrib1 = result();
