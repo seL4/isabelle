@@ -20,19 +20,19 @@ sig
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
   val check_file: Path.T -> (Path.T * File.info) option
-  val may_load_file: bool -> Path.T -> (Path.T * File.info)
+  val load_file: Path.T -> (Path.T * File.info)
   eqtype master
   val get_thy: master -> Path.T * File.info
-  val check_thy: Path.T -> string -> master
-  val deps_thy: Path.T -> string -> master * (string list * Path.T list)
+  val check_thy: Path.T -> string -> bool -> master
+  val deps_thy: Path.T -> string -> bool -> master * (string list * Path.T list)
   val load_thy: Path.T -> string -> bool -> bool -> master
 end;
 
-(*backdoor sealed later*)
+(*this backdoor sealed later*)
 signature PRIVATE_THY_LOAD =
 sig
   include THY_LOAD
-  val deps_thy_fn: (string -> Path.T -> string list * Path.T list) ref
+  val deps_thy_fn: (string -> bool -> Path.T -> string list * Path.T list) ref
   val load_thy_fn: (string -> bool -> bool -> Path.T -> unit) ref
 end;
 
@@ -77,12 +77,12 @@ fun check_file src_path =
   in get_first find_dir (if Path.is_basic path then ! load_path else [Path.current]) end;
 
 
-(* may_load_file *)
+(* load_file *)
 
-fun may_load_file really raw_path =
+fun load_file raw_path =
   (case check_file raw_path of
     None => error ("Could not find ML file " ^ quote (Path.pack raw_path))
-  | Some (path, info) => (if really then File.symbol_use path else (); (path, info)));
+  | Some (path, info) => (File.symbol_use path; (path, info)));
 
 
 (* datatype master *)
@@ -92,30 +92,36 @@ datatype master = Master of (Path.T * File.info) * (Path.T * File.info) option;
 fun get_thy (Master (thy, _)) = thy;
 
 
-(* check_thy *)
+(* check / process theory files *)
 
-fun check_thy_aux name =
+local
+
+fun check_thy_aux (name, ml) =
   (case check_file (thy_path name) of
     None => error ("Could not find theory file for " ^ quote name ^ " in dir(s) " ^
       commas_quote (show_path ()))
-  | Some thy_info => (thy_info, check_file (ml_path name)));
+  | Some thy_info => (thy_info, if ml then check_file (ml_path name) else None));
 
-fun check_thy dir name = Master (cond_with_path dir check_thy_aux name);
+in
+
+fun check_thy dir name ml = Master (cond_with_path dir check_thy_aux (name, ml));
+
+fun process_thy dir f name ml =
+  let val master as Master ((path, _), _) = check_thy dir name ml
+  in (master, cond_with_path dir f path) end;
+
+end;
 
 
-(* process theory files *)
+(* deps_thy and load_thy *)
 
 (*hooks for theory syntax dependent operations*)
 fun undefined _ = raise Match;
-val deps_thy_fn = ref (undefined: string -> Path.T -> string list * Path.T list);
+val deps_thy_fn = ref (undefined: string -> bool -> Path.T -> string list * Path.T list);
 val load_thy_fn = ref (undefined: string -> bool -> bool -> Path.T -> unit);
 
-fun process_thy dir f name =
-  let val master as Master ((path, _), _) = check_thy dir name
-  in (master, cond_with_path dir f path) end;
-
-fun deps_thy dir name = process_thy dir (! deps_thy_fn name) name;
-fun load_thy dir name ml time = #1 (process_thy dir (! load_thy_fn name ml time) name);
+fun deps_thy dir name ml = process_thy dir (! deps_thy_fn name ml) name ml;
+fun load_thy dir name ml time = #1 (process_thy dir (! load_thy_fn name ml time) name ml);
 
 
 end;

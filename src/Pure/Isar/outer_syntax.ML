@@ -55,7 +55,7 @@ sig
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
-  val deps_thy: string -> Path.T -> string list * Path.T list
+  val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> bool -> Toplevel.isar
 end;
@@ -314,21 +314,22 @@ val old_header =
     (P.name -- (P.$$$ "=" |-- P.name -- Scan.repeat (P.$$$ "+" |-- P.name))))
   >> (fn (A, (B, Bs)) => (A, B :: Bs, []: (string * bool) list));
 
-fun deps_thy name path =
+fun deps_thy name ml path =
   let
     val src = Source.of_string (File.read path);
     val pos = Path.position path;
     val (name', parents, files) =
-      (*Note: old style headers dynamically depend on the current lexicon :-( *)
+      (*unfortunately, old-style headers dynamically depend on the current lexicon*)
       if is_old_theory (src, pos) then
         scan_header ThySyn.get_lexicon (Scan.error old_header) (src, pos)
       else scan_header (K header_lexicon) (Scan.error new_header) (src, pos);
 
     val ml_path = ThyLoad.ml_path name;
-    val ml_file = if is_none (ThyLoad.check_file ml_path) then [] else [ml_path];
+    val ml_file = if ml andalso is_some (ThyLoad.check_file ml_path) then [ml_path] else [];
   in
     if name <> name' then
-      error ("Filename " ^ quote (Path.pack path) ^ " does not match theory name " ^ quote name)
+      error ("Filename " ^ quote (Path.pack path) ^
+        " does not agree with theory name " ^ quote name)
     else (parents, map (Path.unpack o #1) files @ ml_file)
   end;
 
@@ -377,10 +378,10 @@ end;
 
 local
 
-fun try_ml_file name ml time =
+fun try_ml_file name time =
   let
     val path = ThyLoad.ml_path name;
-    val tr = Toplevel.imperative (fn () => ThyInfo.may_load_file ml time path);
+    val tr = Toplevel.imperative (fn () => ThyInfo.load_file time path);
     val tr_name = if time then "time_use" else "use";
   in
     if is_none (ThyLoad.check_file path) then ()
@@ -417,7 +418,7 @@ fun load_thy name ml time path =
       writeln ("**** Finished theory " ^ quote name ^ " ****\n")))
   else run_thy name path;
   Context.context (ThyInfo.get_theory name);
-  try_ml_file name ml time);
+  if ml then try_ml_file name time else ());
 
 end;
 
@@ -444,7 +445,6 @@ fun gen_loop term no_pos =
 
 fun gen_main term no_pos =
  (Toplevel.set_state Toplevel.toplevel;
-  ml_prompts "ML> " "ML# ";
   writeln (Session.welcome ());
   gen_loop term no_pos);
 
