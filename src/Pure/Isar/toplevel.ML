@@ -38,11 +38,13 @@ sig
   val exit: transition -> transition
   val kill: transition -> transition
   val keep: (state -> unit) -> transition -> transition
+  val keep': (bool -> state -> unit) -> transition -> transition
   val history: (node History.T -> node History.T) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
   val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit)
     -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
+  val theory': (bool -> theory -> theory) -> transition -> transition
   val theory_to_proof: (bool -> theory -> ProofHistory.T) -> transition -> transition
   val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
@@ -219,7 +221,7 @@ datatype trans =
     (*push node; provide exit/kill operation*)
   Exit |                                        (*pop node*)
   Kill |                                        (*abort node*)
-  Keep of state -> unit |                       (*peek at state*)
+  Keep of bool -> state -> unit |               (*peek at state*)
   History of node History.T -> node History.T | (*history operation (undo etc.)*)
   MapCurrent of bool -> node -> node |          (*change node, bypassing history*)
   AppCurrent of bool -> node -> node;           (*change node, recording history*)
@@ -237,7 +239,7 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr _ Kill (State []) = raise UNDEF
   | apply_tr _ Kill (State ((node, (_, kill)) :: nodes)) =
       (kill (History.current node); State nodes)
-  | apply_tr _ (Keep f) state = (exhibit_interrupt f state; state)
+  | apply_tr int (Keep f) state = (exhibit_interrupt (f int) state; state)
   | apply_tr _ (History _) (State []) = raise UNDEF
   | apply_tr _ (History f) (State ((node, term) :: nodes)) = State ((f node, term) :: nodes)
   | apply_tr int (MapCurrent f) state = node_trans int false f state
@@ -312,11 +314,12 @@ val reset = add_trans Reset;
 fun init f exit kill = add_trans (Init (f, (exit, kill)));
 val exit = add_trans Exit;
 val kill = add_trans Kill;
-val keep = add_trans o Keep;
+val keep' = add_trans o Keep;
 val history = add_trans o History;
 val map_current = add_trans o MapCurrent;
 val app_current = add_trans o AppCurrent;
 
+fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
 
 fun init_theory f exit kill =
@@ -325,6 +328,7 @@ fun init_theory f exit kill =
     (fn Theory thy => kill thy | _ => raise UNDEF);
 
 fun theory f = app_current (fn _ => (fn Theory thy => Theory (f thy) | _ => raise UNDEF));
+fun theory' f = app_current (fn int => (fn Theory thy => Theory (f int thy) | _ => raise UNDEF));
 fun theory_to_proof f =
   app_current (fn int => (fn Theory thy => Proof (f int thy) | _ => raise UNDEF));
 fun proof' f = map_current (fn int => (fn Proof prf => Proof (f int prf) | _ => raise UNDEF));
