@@ -241,8 +241,7 @@ by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
 qed "analz_insert_freshK";
 
 
-(** The session key K uniquely identifies the message, if encrypted
-    with a secure key **)
+(** The session key K uniquely identifies the message **)
 
 goal thy 
  "!!evs. evs : ns_shared lost ==>                                        \
