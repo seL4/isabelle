@@ -29,4 +29,10 @@ translations
   "JN x y. B"   == "JN x. JN y. B"
   "JN x. B"     == "JOIN UNIV (%x. B)"
 
+syntax (symbols)
+  SKIP      :: 'a program                              ("\\<bottom>")
+  "op Join" :: ['a program, 'a program] => 'a program  (infixl "\\<squnion>" 65)
+  "@JOIN1"  :: [pttrns, 'b set] => 'b set              ("(3\\<Squnion> _./ _)" 10)
+  "@JOIN"   :: [pttrn, 'a set, 'b set] => 'b set       ("(3\\<Squnion> _:_./ _)" 10)
+
 end

@@ -52,4 +52,7 @@ constdefs
   wlt :: "['a program, 'a set] => 'a set"
     "wlt F B == Union {A. F: A leadsTo B}"
 
+syntax (xsymbols)
+  "op leadsTo" :: "['a set, 'a set] => 'a program set" (infixl "\\<longmapsto>" 60)
+
 end
