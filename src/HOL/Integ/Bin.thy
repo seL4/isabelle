@@ -6,11 +6,11 @@
 
 Arithmetic on binary integers.
 
-   The sign PlusSign stands for an infinite string of leading F's.
-   The sign MinusSign stands for an infinite string of leading T's.
+   The sign Pls stands for an infinite string of leading F's.
+   The sign Min stands for an infinite string of leading T's.
 
 A number can have multiple representations, namely leading F's with sign
-PlusSign and leading T's with sign MinusSign.  See twos-compl.ML/int_of_binary
+Pls and leading T's with sign Min.  See ZF/ex/twos-compl.ML/int_of_binary
 for the numerical interpretation.
 
 The representation expects that (m mod 2) is 0 or 1, even if m is negative;
@@ -28,62 +28,70 @@ syntax
   "_Int"           :: xnum => int        ("_")
 
 datatype
-    bin = PlusSign
-        | MinusSign
-        | Bcons bin bool
+    bin = Pls
+        | Min
+        | BIT bin bool	(infixl 90)
 
 consts
-  integ_of     :: bin=>int
-  norm_Bcons       :: [bin,bool]=>bin
+  integ_of         :: bin=>int
+  NCons            :: [bin,bool]=>bin
   bin_succ         :: bin=>bin
   bin_pred         :: bin=>bin
   bin_minus        :: bin=>bin
   bin_add,bin_mult :: [bin,bin]=>bin
-  h_bin :: [bin,bool,bin]=>bin
+  h_bin            :: [bin,bool,bin]=>bin
 
-(*norm_Bcons adds a bit, suppressing leading 0s and 1s*)
-
+(*NCons inserts a bit, suppressing leading 0s and 1s*)
 primrec
-  norm_Plus  "norm_Bcons PlusSign  b = (if b then (Bcons PlusSign b) else PlusSign)"
-  norm_Minus "norm_Bcons MinusSign b = (if b then MinusSign else (Bcons MinusSign b))"
-  norm_Bcons "norm_Bcons (Bcons w' x') b = Bcons (Bcons w' x') b"
+  norm_Pls "NCons Pls b = (if b then (Pls BIT b) else Pls)"
+  norm_Min "NCons Min b = (if b then Min else (Min BIT b))"
+  NCons    "NCons (w' BIT x') b = (w' BIT x') BIT b"
  
 primrec
-  integ_of_Plus  "integ_of PlusSign = $# 0"
-  integ_of_Minus "integ_of MinusSign = - ($# 1)"
-  integ_of_Bcons "integ_of(Bcons w x) = (if x then $# 1 else $# 0) +
-	                               (integ_of w) + (integ_of w)" 
+  integ_of_Pls  "integ_of Pls = $# 0"
+  integ_of_Min  "integ_of Min = - ($# 1)"
+  integ_of_BIT  "integ_of(w BIT x) = (if x then $# 1 else $# 0) +
+	                             (integ_of w) + (integ_of w)" 
 
 primrec
-  succ_Plus  "bin_succ PlusSign = Bcons PlusSign True" 
-  succ_Minus "bin_succ MinusSign = PlusSign"
-  succ_Bcons "bin_succ(Bcons w x) = (if x then (Bcons (bin_succ w) False) else (norm_Bcons w True))"
+  succ_Pls  "bin_succ Pls = Pls BIT True" 
+  succ_Min  "bin_succ Min = Pls"
+  succ_BIT  "bin_succ(w BIT x) =
+  	        (if x then bin_succ w BIT False
+	              else NCons w True)"
 
 primrec
-  pred_Plus  "bin_pred(PlusSign) = MinusSign"
-  pred_Minus "bin_pred(MinusSign) = Bcons MinusSign False"
-  pred_Bcons "bin_pred(Bcons w x) = (if x then (norm_Bcons w False) else (Bcons (bin_pred w) True))"
+  pred_Pls  "bin_pred Pls = Min"
+  pred_Min  "bin_pred Min = Min BIT False"
+  pred_BIT  "bin_pred(w BIT x) =
+	        (if x then NCons w False
+		      else (bin_pred w) BIT True)"
  
 primrec
-  min_Plus  "bin_minus PlusSign = PlusSign"
-  min_Minus "bin_minus MinusSign = Bcons PlusSign True"
-  min_Bcons "bin_minus(Bcons w x) = (if x then (bin_pred (Bcons (bin_minus w) False)) else (Bcons (bin_minus w) False))"
+  minus_Pls  "bin_minus Pls = Pls"
+  minus_Min  "bin_minus Min = Pls BIT True"
+  minus_BIT  "bin_minus(w BIT x) =
+	         (if x then bin_pred (NCons (bin_minus w) False)
+		       else bin_minus w BIT False)"
 
 primrec
-  add_Plus  "bin_add PlusSign w = w"
-  add_Minus "bin_add MinusSign w = bin_pred w"
-  add_Bcons "bin_add (Bcons v x) w = h_bin v x w"
+  add_Pls  "bin_add Pls w = w"
+  add_Min  "bin_add Min w = bin_pred w"
+  add_BIT  "bin_add (v BIT x) w = h_bin v x w"
 
 primrec
-  mult_Plus "bin_mult PlusSign w = PlusSign"
-  mult_Minus "bin_mult MinusSign w = bin_minus w"
-  mult_Bcons "bin_mult (Bcons v x) w = (if x then (bin_add (norm_Bcons (bin_mult v w) False) w) else (norm_Bcons (bin_mult v w) False))"
+  "h_bin v x Pls = v BIT x"
+  "h_bin v x Min = bin_pred (v BIT x)"
+  "h_bin v x (w BIT y) =
+	     NCons (bin_add v (if (x & y) then bin_succ w else w))
+	           (x~=y)" 
 
 primrec
-  h_Plus  "h_bin v x PlusSign =  Bcons v x"
-  h_Minus "h_bin v x MinusSign = bin_pred (Bcons v x)"
-  h_BCons "h_bin v x (Bcons w y) = norm_Bcons
-	            (bin_add v (if (x & y) then bin_succ w else w)) (x~=y)" 
+  mult_Pls  "bin_mult Pls w = Pls"
+  mult_Min  "bin_mult Min w = bin_minus w"
+  mult_BIT "bin_mult (v BIT x) w =
+	        (if x then (bin_add (NCons (bin_mult v w) False) w)
+	              else (NCons (bin_mult v w) False))"
 
 
 end
@@ -116,28 +124,26 @@ local
     let
       val (sign, digs) =
         (case Symbol.explode str of
-          "#" :: "~" :: cs => (~1, cs)
+          "#" :: "-" :: cs => (~1, cs)
         | "#" :: cs => (1, cs)
         | _ => raise ERROR);
 
-      val zs = prefix_len (equal "0") digs;
+      fun bin_of 0  = []
+        | bin_of ~1 = [~1]
+        | bin_of n  = (n mod 2) :: bin_of (n div 2);
 
-      fun bin_of 0 = replicate zs 0
-        | bin_of ~1 = replicate zs 1 @ [~1]
-        | bin_of n = (n mod 2) :: bin_of (n div 2);
-
-      fun term_of [] = const "PlusSign"
-        | term_of [~1] = const "MinusSign"
-        | term_of (b :: bs) = const "Bcons" $ term_of bs $ mk_bit b;
+      fun term_of []   = const "Bin.bin.Pls"
+        | term_of [~1] = const "Bin.bin.Min"
+        | term_of (b :: bs) = const "Bin.bin.op BIT" $ term_of bs $ mk_bit b;
     in
       term_of (bin_of (sign * (#1 (read_int digs))))
     end;
 
   fun dest_bin tm =
     let
-      fun bin_of (Const ("PlusSign", _)) = []
-        | bin_of (Const ("MinusSign", _)) = [~1]
-        | bin_of (Const ("Bcons", _) $ bs $ b) = dest_bit b :: bin_of bs
+      fun bin_of (Const ("Pls", _)) = []
+        | bin_of (Const ("Min", _)) = [~1]
+        | bin_of (Const ("op BIT", _) $ bs $ b) = dest_bit b :: bin_of bs
         | bin_of _ = raise Match;
 
       fun int_of [] = 0
@@ -146,7 +152,7 @@ local
       val rev_digs = bin_of tm;
       val (sign, zs) =
         (case rev rev_digs of
-          ~1 :: bs => ("~", prefix_len (equal 1) bs)
+          ~1 :: bs => ("-", prefix_len (equal 1) bs)
         | bs => ("", prefix_len (equal 0) bs));
       val num = string_of_int (abs (int_of rev_digs));
     in

@@ -9,88 +9,88 @@ Arithmetic on binary integers.
 
 (** extra rules for bin_succ, bin_pred, bin_add, bin_mult **)
 
-qed_goal "norm_Bcons_Plus_0" Bin.thy
-    "norm_Bcons PlusSign False = PlusSign"
+qed_goal "NCons_Pls_0" Bin.thy
+    "NCons Pls False = Pls"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "norm_Bcons_Plus_1" Bin.thy
-    "norm_Bcons PlusSign True = Bcons PlusSign True"
+qed_goal "NCons_Pls_1" Bin.thy
+    "NCons Pls True = Pls BIT True"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "norm_Bcons_Minus_0" Bin.thy
-    "norm_Bcons MinusSign False = Bcons MinusSign False"
+qed_goal "NCons_Min_0" Bin.thy
+    "NCons Min False = Min BIT False"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "norm_Bcons_Minus_1" Bin.thy
-    "norm_Bcons MinusSign True = MinusSign"
+qed_goal "NCons_Min_1" Bin.thy
+    "NCons Min True = Min"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "norm_Bcons_Bcons" Bin.thy
-    "norm_Bcons (Bcons w x) b = Bcons (Bcons w x) b"
+qed_goal "NCons_BIT" Bin.thy
+    "NCons (w BIT x) b = (w BIT x) BIT b"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_succ_Bcons1" Bin.thy
-    "bin_succ(Bcons w True) = Bcons (bin_succ w) False"
+qed_goal "bin_succ_1" Bin.thy
+    "bin_succ(w BIT True) = (bin_succ w) BIT False"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_succ_Bcons0" Bin.thy
-    "bin_succ(Bcons w False) =  norm_Bcons w True"
+qed_goal "bin_succ_0" Bin.thy
+    "bin_succ(w BIT False) =  NCons w True"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_pred_Bcons1" Bin.thy
-    "bin_pred(Bcons w True) = norm_Bcons w False"
+qed_goal "bin_pred_1" Bin.thy
+    "bin_pred(w BIT True) = NCons w False"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_pred_Bcons0" Bin.thy
-    "bin_pred(Bcons w False) = Bcons (bin_pred w) True"
+qed_goal "bin_pred_0" Bin.thy
+    "bin_pred(w BIT False) = (bin_pred w) BIT True"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_minus_Bcons1" Bin.thy
-    "bin_minus(Bcons w True) = bin_pred (Bcons(bin_minus w) False)"
+qed_goal "bin_minus_1" Bin.thy
+    "bin_minus(w BIT True) = bin_pred (NCons (bin_minus w) False)"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_minus_Bcons0" Bin.thy
-    "bin_minus(Bcons w False) = Bcons (bin_minus w) False"
+qed_goal "bin_minus_0" Bin.thy
+    "bin_minus(w BIT False) = (bin_minus w) BIT False"
  (fn _ => [(Simp_tac 1)]);
 
 
 (*** bin_add: binary addition ***)
 
-qed_goal "bin_add_Bcons_Bcons11" Bin.thy
-    "bin_add (Bcons v True) (Bcons w True) = \
-\    norm_Bcons (bin_add v (bin_succ w)) False"
+qed_goal "bin_add_BIT_11" Bin.thy
+    "bin_add (v BIT True) (w BIT True) = \
+\    NCons (bin_add v (bin_succ w)) False"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_add_Bcons_Bcons10" Bin.thy
-    "bin_add (Bcons v True) (Bcons w False) = norm_Bcons (bin_add v w) True"
+qed_goal "bin_add_BIT_10" Bin.thy
+    "bin_add (v BIT True) (w BIT False) = NCons (bin_add v w) True"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_add_Bcons_Bcons0" Bin.thy
-    "bin_add (Bcons v False) (Bcons w y) = norm_Bcons (bin_add v w) y"
+qed_goal "bin_add_BIT_0" Bin.thy
+    "bin_add (v BIT False) (w BIT y) = NCons (bin_add v w) y"
  (fn _ => [Auto_tac]);
 
-qed_goal "bin_add_Bcons_Plus" Bin.thy
-    "bin_add (Bcons v x) PlusSign = Bcons v x"
+qed_goal "bin_add_BIT_Pls" Bin.thy
+    "bin_add (v BIT x) Pls = v BIT x"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_add_Bcons_Minus" Bin.thy
-    "bin_add (Bcons v x) MinusSign = bin_pred (Bcons v x)"
+qed_goal "bin_add_BIT_Min" Bin.thy
+    "bin_add (v BIT x) Min = bin_pred (v BIT x)"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_add_Bcons_Bcons" Bin.thy
-    "bin_add (Bcons v x) (Bcons w y) = \
-\    norm_Bcons(bin_add v (if x & y then (bin_succ w) else w)) (x~= y)"
+qed_goal "bin_add_BIT_BIT" Bin.thy
+    "bin_add (v BIT x) (w BIT y) = \
+\    NCons(bin_add v (if x & y then (bin_succ w) else w)) (x~= y)"
  (fn _ => [(Simp_tac 1)]);
 
 
 (*** bin_add: binary multiplication ***)
 
-qed_goal "bin_mult_Bcons1" Bin.thy
-    "bin_mult (Bcons v True) w = bin_add (norm_Bcons (bin_mult v w) False) w"
+qed_goal "bin_mult_1" Bin.thy
+    "bin_mult (v BIT True) w = bin_add (NCons (bin_mult v w) False) w"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "bin_mult_Bcons0" Bin.thy
-    "bin_mult (Bcons v False) w = norm_Bcons (bin_mult v w) False"
+qed_goal "bin_mult_0" Bin.thy
+    "bin_mult (v BIT False) w = NCons (bin_mult v w) False"
  (fn _ => [(Simp_tac 1)]);
 
 
@@ -99,12 +99,12 @@ qed_goal "bin_mult_Bcons0" Bin.thy
 
 (**** integ_of ****)
 
-qed_goal "integ_of_norm_Bcons" Bin.thy
-    "integ_of(norm_Bcons w b) = integ_of(Bcons w b)"
+qed_goal "integ_of_NCons" Bin.thy
+    "integ_of(NCons w b) = integ_of(w BIT b)"
  (fn _ =>[(induct_tac "w" 1),
           (ALLGOALS Asm_simp_tac) ]);
 
-Addsimps [integ_of_norm_Bcons];
+Addsimps [integ_of_NCons];
 
 qed_goal "integ_of_succ" Bin.thy
     "integ_of(bin_succ w) = $#1 + integ_of w"
@@ -121,13 +121,13 @@ by (rtac bin.induct 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset()
-		  delsimps [pred_Plus,pred_Minus,pred_Bcons]
+		  delsimps [pred_Pls,pred_Min,pred_BIT]
 		  addsimps [integ_of_succ,integ_of_pred,
 			    zadd_assoc]) 1);
 qed "integ_of_minus";
 
  
-val bin_add_simps = [bin_add_Bcons_Bcons,
+val bin_add_simps = [bin_add_BIT_BIT,
                      integ_of_succ, integ_of_pred];
 
 Goal "! w. integ_of(bin_add v w) = integ_of v + integ_of w";
@@ -139,8 +139,7 @@ by (induct_tac "w" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac))));
 qed_spec_mp "integ_of_add";
 
-val bin_mult_simps = [zmult_zminus, integ_of_minus, integ_of_add,
-                      integ_of_norm_Bcons];
+val bin_mult_simps = [zmult_zminus, integ_of_minus, integ_of_add];
 
 
 Goal "integ_of(bin_mult v w) = integ_of v * integ_of w";
@@ -240,23 +239,23 @@ by (simp_tac (simpset() addsimps
               (zcompare_rls @ [integ_of_add, integ_of_minus])) 1); 
 qed "eq_integ_of_eq"; 
 
-Goalw [iszero_def] "iszero (integ_of PlusSign)"; 
+Goalw [iszero_def] "iszero (integ_of Pls)"; 
 by (Simp_tac 1); 
-qed "iszero_integ_of_Plus"; 
+qed "iszero_integ_of_Pls"; 
 
-Goalw [iszero_def] "~ iszero(integ_of MinusSign)"; 
+Goalw [iszero_def] "~ iszero(integ_of Min)"; 
 by (Simp_tac 1);
-qed "nonzero_integ_of_Minus"; 
+qed "nonzero_integ_of_Min"; 
 
 Goalw [iszero_def]
-     "iszero (integ_of (Bcons w x)) = (~x & iszero (integ_of w))"; 
+     "iszero (integ_of (w BIT x)) = (~x & iszero (integ_of w))"; 
 by (Simp_tac 1);
 by (int_case_tac "integ_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
 	      (simpset() addsimps (zcompare_rls @ 
 				   [zminus_zadd_distrib RS sym, 
 				    add_znat])))); 
-qed "iszero_integ_of_Bcons"; 
+qed "iszero_integ_of_BIT"; 
 
 
 (** Less-than (<) **)
@@ -267,22 +266,22 @@ Goalw [zless_def,zdiff_def]
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 qed "less_integ_of_eq_zneg"; 
 
-Goal "~ znegative (integ_of PlusSign)"; 
+Goal "~ znegative (integ_of Pls)"; 
 by (Simp_tac 1); 
-qed "not_neg_integ_of_Plus"; 
+qed "not_neg_integ_of_Pls"; 
 
-Goal "znegative (integ_of MinusSign)"; 
+Goal "znegative (integ_of Min)"; 
 by (Simp_tac 1);
-qed "neg_integ_of_Minus"; 
+qed "neg_integ_of_Min"; 
 
-Goal "znegative (integ_of (Bcons w x)) = znegative (integ_of w)"; 
+Goal "znegative (integ_of (w BIT x)) = znegative (integ_of w)"; 
 by (Asm_simp_tac 1); 
 by (int_case_tac "integ_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
 	      (simpset() addsimps ([add_znat, znegative_eq_less_nat0, 
 				    symmetric zdiff_def] @ 
 				   zcompare_rls)))); 
-qed "neg_integ_of_Bcons"; 
+qed "neg_integ_of_BIT"; 
 
 
 (** Less-than-or-equals (<=) **)
@@ -293,29 +292,29 @@ qed "le_integ_of_eq_not_less";
 
 
 (*Hide the binary representation of integer constants*)
-Delsimps [succ_Bcons, pred_Bcons, min_Bcons, add_Bcons, mult_Bcons, 
-          integ_of_Plus, integ_of_Minus, integ_of_Bcons, 
-          norm_Plus, norm_Minus, norm_Bcons];
+Delsimps [succ_BIT, pred_BIT, minus_BIT, add_BIT, mult_BIT, 
+          integ_of_Pls, integ_of_Min, integ_of_BIT, 
+          norm_Pls, norm_Min, NCons];
 
 (*Add simplification of arithmetic operations on integer constants*)
 Addsimps [integ_of_add RS sym,
           integ_of_minus RS sym,
           integ_of_mult RS sym,
-          bin_succ_Bcons1, bin_succ_Bcons0, 
-          bin_pred_Bcons1, bin_pred_Bcons0, 
-          bin_minus_Bcons1, bin_minus_Bcons0,  
-          bin_add_Bcons_Plus, bin_add_Bcons_Minus,
-          bin_add_Bcons_Bcons0, bin_add_Bcons_Bcons10, bin_add_Bcons_Bcons11,
-          bin_mult_Bcons1, bin_mult_Bcons0, 
-          norm_Bcons_Plus_0, norm_Bcons_Plus_1, 
-          norm_Bcons_Minus_0, norm_Bcons_Minus_1, 
-          norm_Bcons_Bcons];
+          bin_succ_1, bin_succ_0, 
+          bin_pred_1, bin_pred_0, 
+          bin_minus_1, bin_minus_0,  
+          bin_add_BIT_Pls, bin_add_BIT_Min,
+          bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
+          bin_mult_1, bin_mult_0, 
+          NCons_Pls_0, NCons_Pls_1, 
+          NCons_Min_0, NCons_Min_1, 
+          NCons_BIT];
 
 (*... and simplification of relational operations*)
-Addsimps [eq_integ_of_eq, iszero_integ_of_Plus, nonzero_integ_of_Minus,
-	  iszero_integ_of_Bcons,
+Addsimps [eq_integ_of_eq, iszero_integ_of_Pls, nonzero_integ_of_Min,
+	  iszero_integ_of_BIT,
 	  less_integ_of_eq_zneg,
-	  not_neg_integ_of_Plus, neg_integ_of_Minus, neg_integ_of_Bcons,
+	  not_neg_integ_of_Pls, neg_integ_of_Min, neg_integ_of_BIT,
 	  le_integ_of_eq_not_less];
 
 Goalw [zdiff_def]
