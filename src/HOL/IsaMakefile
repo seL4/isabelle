@@ -161,10 +161,10 @@ $(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
 
 HOL-Library: HOL $(LOG)/HOL-Library.gz
 
-$(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.ML \
-  Library/Accessible_Part.thy Library/Library.thy Library/Multiset.thy \
-  Library/Quotient.thy Library/README.html Library/ROOT.ML \
-  Library/While_Combinator.thy Library/While_Combinator_Example.thy
+$(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
+  Library/Library.thy Library/Multiset.thy Library/Quotient.thy \
+  Library/README.html Library/ROOT.ML Library/While_Combinator.thy \
+  Library/While_Combinator_Example.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Library
 
 
