@@ -1,0 +1,97 @@
+#
+# $Id$
+#
+# IsaMakefile for ZF
+#
+
+#### Base system
+
+OUT = $(ISABELLE_OUTPUT_DIR)
+
+NAMES = ZF upair subset pair domrange \
+	func AC equalities Bool \
+	Sum QPair mono Fixedpt ind_syntax cartprod add_ind_def \
+	constructor intr_elim indrule Inductive Perm Rel EquivClass Trancl \
+	WF Order Ordinal Epsilon Arith Univ \
+	QUniv Datatype OrderArith OrderType \
+	Cardinal CardinalArith Cardinal_AC InfDatatype \
+	Zorn Nat Finite List
+
+FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML simpdata.ML typechk.ML \
+	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
+
+$(OUT)/ZF: $(OUT)/FOL $(FILES)
+	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu -c $(OUT)/FOL ZF
+	@chmod -w $@
+
+$(OUT)/FOL:
+	@cd ../FOL; $(ISATOOL) make
+
+
+
+#### Tests and examples
+
+## IMP-semantics example
+
+IMP_NAMES = Com Denotation Equiv
+IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
+
+IMP: $(OUT)/ZF $(IMP_FILES)
+	@$(ISATOOL) testdir $(OUT)/ZF IMP
+
+
+## Coinduction example
+
+COIND_NAMES = ECR MT Map Static Types Values
+
+COIND_FILES = Coind/ROOT.ML Coind/Language.thy Coind/BCR.thy Coind/Dynamic.thy \
+	      $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
+
+Coind: $(OUT)/ZF $(COIND_FILES)
+	@$(ISATOOL) testdir $(OUT)/ZF Coind
+
+
+## AC examples
+
+AC_NAMES = AC_Equiv Cardinal_aux \
+	   AC15_WO6 AC16_WO4 AC16_lemmas AC17_AC1 AC18_AC19 AC1_WO2 \
+	   DC DC_lemmas HH Hartog WO1_AC \
+	   WO2_AC16 WO6_WO1 WO_AC recfunAC16 rel_is_fun
+
+AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
+	   AC/AC2_AC6.ML AC/AC7_AC9.ML \
+	   AC/WO1_WO6.ML AC/WO1_WO7.ML AC/WO1_WO8.ML \
+	   $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
+
+AC: $(OUT)/ZF $(AC_FILES)
+	@$(ISATOOL) testdir $(OUT)/ZF AC
+
+
+## Residuals example
+
+RESID_NAMES = Confluence Redex SubUnion Conversion Reduction Substitution \
+	      Cube Residuals Terms
+
+RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) $(RESID_NAMES:%=Resid/%.ML)
+
+Resid: $(OUT)/ZF $(RESID_FILES)
+	@$(ISATOOL) testdir $(OUT)/ZF Resid
+
+
+## Miscellaneous examples
+
+EX_NAMES = Primes Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
+	   Data Enum Rmap Mutil PropLog ListN Acc Comb Primrec LList CoUnit
+
+EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
+
+ex: $(OUT)/ZF $(EX_FILES)
+	@$(ISATOOL) testdir $(OUT)/ZF ex
+
+
+## Full test
+
+test: $(OUT)/ZF IMP Coind AC Resid ex
+	echo 'Test examples ran successfully' > test
+
+.PRECIOUS: $(OUT)/FOL $(OUT)/ZF
