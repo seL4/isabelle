@@ -72,9 +72,7 @@ local
 				       then Thm.def_name (Sign.base_name cname)
 				       else thname
 			val co = Const(cname_full,ctype)
-			val def = Logic.mk_implies(HOLogic.mk_Trueprop HOLogic.false_const,
-						   Logic.mk_equals (co,choice_const ctype $ P))
-			val (thy',_) = PureThy.add_defs_i covld [((cdefname,def),[])] thy
+			val thy' = Theory.add_finals_i covld [co] thy
 			val tm' = case P of
 				      Abs(_, _, bodt) => subst_bound (co, bodt)
 				    | _ => P $ co

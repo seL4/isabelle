@@ -547,6 +547,11 @@ val proto_pure =
     ("Goal", "prop => prop", NoSyn),
     ("TYPE", "'a itself", NoSyn),
     (Term.dummy_patternN, "'a", Delimfix "'_")]
+  |> Theory.add_finals_i false
+    [Const("==",[TFree("'a",[]),TFree("'a",[])]--->propT),
+     Const("==>",[propT,propT]--->propT),
+     Const("all",(TFree("'a",logicS)-->propT)-->propT),
+     Const("TYPE",a_itselfT)]
   |> Theory.add_modesyntax ("", false)
     (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
   |> Theory.add_trfuns Syntax.pure_trfuns

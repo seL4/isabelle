@@ -146,10 +146,11 @@ defs
   Let_def:      "Let s f == f(s)"
   if_def:       "If P x y == THE z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
-  arbitrary_def:  "False ==> arbitrary == (THE x. False)"
-    -- {* @{term arbitrary} is completely unspecified, but is made to appear as a
-    definition syntactically *}
-
+finalconsts
+  "op ="
+  "op -->"
+  The
+  arbitrary
 
 subsubsection {* Generic algebraic operations *}
 

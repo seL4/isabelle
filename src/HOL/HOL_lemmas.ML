@@ -29,7 +29,6 @@ val iff = thm "iff";
 val True_or_False = thm "True_or_False";
 val Let_def = thm "Let_def";
 val if_def = thm "if_def";
-val arbitrary_def = thm "arbitrary_def";
 
 
 section "Equality";

@@ -79,7 +79,6 @@ struct
   val True_or_False = True_or_False;
   val Let_def = Let_def;
   val if_def = if_def;
-  val arbitrary_def = arbitrary_def;
 end;
 
 open HOL;

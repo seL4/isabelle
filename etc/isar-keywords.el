@@ -24,6 +24,7 @@
     "arities"
     "assume"
     "automaton"
+    "ax_specification"
     "axclass"
     "axioms"
     "back"
@@ -57,6 +58,7 @@
     "exit"
     "extract"
     "extract_type"
+    "finalconsts"
     "finally"
     "fix"
     "from"
@@ -331,6 +333,7 @@
     "domain"
     "extract"
     "extract_type"
+    "finalconsts"
     "generate_code"
     "global"
     "hide"
@@ -370,7 +373,8 @@
     "inductive_cases"))
 
 (defconst isar-keywords-theory-goal
-  '("corollary"
+  '("ax_specification"
+    "corollary"
     "instance"
     "lemma"
     "recdef_tc"

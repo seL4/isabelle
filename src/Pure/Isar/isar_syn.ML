@@ -131,6 +131,12 @@ val constsP =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
     (Scan.repeat1 P.const >> (Toplevel.theory o Theory.add_consts));
 
+val opt_overloaded =
+  Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "overloaded" >> K true) --| P.$$$ ")")) false;
+
+val finalconstsP =
+  OuterSyntax.command "finalconsts" "declare constants as final" K.thy_decl
+    (opt_overloaded -- Scan.repeat1 P.term >> (uncurry (Toplevel.theory oo Theory.add_finals)));
 
 val mode_spec =
   (P.$$$ "output" >> K ("", false)) || P.name -- Scan.optional (P.$$$ "output" >> K false) true;
@@ -166,9 +172,6 @@ val translationsP =
 val axiomsP =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
     (Scan.repeat1 P.spec_name >> (Toplevel.theory o IsarThy.add_axioms));
-
-val opt_overloaded =
-  Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "overloaded" >> K true) --| P.$$$ ")")) false;
 
 val defsP =
   OuterSyntax.command "defs" "define constants" K.thy_decl
@@ -740,12 +743,12 @@ val parsers = [
   text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
-  aritiesP, judgmentP, constsP, syntaxP, translationsP, axiomsP,
-  defsP, constdefsP, theoremsP, lemmasP, declareP, globalP, localP,
-  hideP, useP, mlP, ml_commandP, ml_setupP, setupP, method_setupP,
-  parse_ast_translationP, parse_translationP, print_translationP,
-  typed_print_translationP, print_ast_translationP,
-  token_translationP, oracleP, localeP,
+  aritiesP, judgmentP, constsP, finalconstsP, syntaxP, translationsP,
+  axiomsP, defsP, constdefsP, theoremsP, lemmasP, declareP, globalP,
+  localP, hideP, useP, mlP, ml_commandP, ml_setupP, setupP,
+  method_setupP, parse_ast_translationP, parse_translationP,
+  print_translationP, typed_print_translationP,
+  print_ast_translationP, token_translationP, oracleP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, showP, haveP, thusP, henceP, fixP,
   assumeP, presumeP, defP, obtainP, letP, caseP, thenP, fromP, withP,

@@ -213,6 +213,11 @@ fun pretty_full_theory thy =
 
     fun pretty_arities (t, ars) = map (prt_arity t) ars;
 
+    fun pretty_final (c:string, tys:typ list) = Pretty.block
+      ([Pretty.str c, Pretty.str " ::", Pretty.brk 1] @
+         (if null tys then [Pretty.str "<all instances>"]
+	  else Pretty.commas (map prt_typ_no_tvars tys)));
+
     fun pretty_const (c, ty) = Pretty.block
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
 
@@ -224,6 +229,7 @@ fun pretty_full_theory thy =
     val spaces' = Library.sort_wrt fst spaces;
     val {classes, classrel, default, tycons = type_tab, log_types, univ_witness, abbrs, arities} =
       Type.rep_tsig tsig;
+    val finals = Symtab.dest (#final_consts (rep_theory thy));
     val tycons = Sign.cond_extern_table sg Sign.typeK type_tab;
     val consts = Sign.cond_extern_table sg Sign.constK const_tab;
     val axms = Sign.cond_extern_table sg Theory.axiomK axioms;
@@ -242,6 +248,7 @@ fun pretty_full_theory thy =
       Pretty.big_list "type abbreviations:" (map pretty_abbr (Symtab.dest abbrs)),
       Pretty.big_list "type arities:" (flat (map pretty_arities (Symtab.dest arities))),
       Pretty.big_list "consts:" (map pretty_const consts),
+      Pretty.big_list "finals:" (map pretty_final finals),
       Pretty.big_list "axioms:" (map prt_axm axms),
       Pretty.strs ("oracles:" :: (map #1 oras))]
   end;
