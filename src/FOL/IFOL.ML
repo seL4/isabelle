@@ -61,6 +61,11 @@ qed_goal "not_to_imp" IFOL.thy
 qed_goal "rev_mp" IFOL.thy "[| P;  P --> Q |] ==> Q"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[mp]) 1)) ]);
 
+qed_goal "contrapos" IFOL.thy "[| ~Q;  P==>Q |] ==> ~P"
+ (fn [major,minor]=> 
+  [ (rtac (major RS notE RS notI) 1), 
+    (etac minor 1) ]);
+
 
 (*Contrapositive of an inference rule*)
 qed_goal "contrapos" IFOL.thy "[| ~Q;  P==>Q |] ==> ~P"
