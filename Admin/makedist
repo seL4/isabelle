@@ -156,7 +156,11 @@ chown -R $LOGNAME:isabelle $DISTNAME
 chmod -R u+w $DISTNAME
 chmod -R g+w $DISTNAME
 
-tar cf - $DISTNAME | gzip >$DISTNAME.tar.gz
+if [ -n $(type -path gtar) ]; then
+  gtar czf $DISTNAME.tar.gz $DISTNAME
+else
+  tar cf - $DISTNAME | gzip >$DISTNAME.tar.gz
+fi
 
 
 # final note
