@@ -18,10 +18,9 @@ print_depth 1;
 use_thy "IFOLP";
 use_thy "FOLP";
 
-use "../Provers/hypsubst.ML";
+use "hypsubst.ML";
 use "classical.ML";      (* Patched 'cos matching won't instantiate proof *)
 use "simp.ML";	         (* Patched 'cos matching won't instantiate proof *)
-use "../Provers/ind.ML";
 
 
 (*** Applying HypsubstFun to generate hyp_subst_tac ***)
