@@ -421,6 +421,8 @@ fun add_parents thy (None, parents) = parents
 
 (** record field splitting **)
 
+(* tactic *)
+
 fun record_split_tac i st =
   let
     val (_, (sps, ss)) = RecordsData.get_sg (Thm.sign_of_thm st);
@@ -433,8 +435,18 @@ fun record_split_tac i st =
     else Seq.empty
   end handle Library.LIST _ => Seq.empty;
 
+
+(* wrapper *)
+
 val record_split_name = "record_split_tac";
 val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE' tac);
+
+
+(* method *)
+
+val record_split_method =
+  ("record_split", Method.no_args (Method.METHOD0 (FIRSTGOAL record_split_tac)),
+    "split record fields");
 
 
 
@@ -858,13 +870,30 @@ val add_record_i = gen_add_record cert_typ (K I);
 
 
 
-(** setup theory **)
+(** package setup **)
+
+(* setup theory *)
 
 val setup =
  [RecordsData.init,
   Theory.add_trfuns ([], parse_translation, [], []),
+  Method.add_methods [record_split_method],
   add_wrapper record_split_wrapper];
 
+
+(* outer syntax *)
+
+open OuterParse;
+
+val record_decl =
+  type_args -- name -- ($$$ "=" |-- Scan.option (typ --| $$$ "+")
+    -- Scan.repeat1 (name -- ($$$ "::" |-- typ)));
+
+val recordP =
+  OuterSyntax.parser false "record" "define extensible record"
+    (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record x y z)));
+
+val _ = OuterSyntax.add_parsers [recordP];
 
 end;
 
