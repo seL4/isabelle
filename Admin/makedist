@@ -92,6 +92,7 @@ fi
 
 mkdir -p $DISTBASE || fail "Unable to create distribution base dir $DISTBASE!"
 [ -e $DISTBASE/$DISTNAME ] && fail "$DISTBASE/$DISTNAME already exists!"
+[ -e $DISTBASE/pdf/$DISTNAME ] && fail "$DISTBASE/pdf/$DISTNAME already exists!"
 
 
 # export from repository
@@ -167,18 +168,22 @@ cd $DISTBASE
 chown -R $LOGNAME:isabelle $DISTNAME
 chmod -R u+w $DISTNAME
 
-if type -path gtar
-then
-  gtar cf $DISTNAME.tar $DISTNAME
-else
-  tar cf $DISTNAME.tar $DISTNAME
-fi
+TAR=tar
+type -path gtar >/dev/null && TAR=gtar
 
-UNPACKED_SIZE=$[ $(wc -c <$DISTNAME.tar) / 1024 ]
+mkdir -p pdf/$DISTNAME/doc
+mv $DISTNAME/doc/*.pdf pdf/$DISTNAME/doc
+
+$TAR cf $DISTNAME.tar $DISTNAME
+( cd pdf; $TAR cf ../${DISTNAME}_pdf.tar $DISTNAME; )
+
+UNPACKED_SIZE=$[ $(cat $DISTNAME.tar ${DISTNAME}_pdf.tar | wc -c) / 1024 ]
 
 gzip $DISTNAME.tar
+gzip ${DISTNAME}_pdf.tar
 
 PACKED_SIZE=$[ $(wc -c <$DISTNAME.tar.gz) / 1024 ]
+PACKED_SIZE_PDF=$[ $(wc -c <${DISTNAME}_pdf.tar.gz) / 1024 ]
 
 
 # prepare dist index.html
@@ -186,6 +191,7 @@ PACKED_SIZE=$[ $(wc -c <$DISTNAME.tar.gz) / 1024 ]
 perl -pi -e \
  "s/{ISABELLE}/$DISTNAME/g; \
   s/{PACKED_SIZE}/$PACKED_SIZE/g; \
+  s/{PACKED_SIZE_PDF}/$PACKED_SIZE_PDF/g; \
   s/{UNPACKED_SIZE}/$UNPACKED_SIZE/g; \
   s/{AUTHOR}/$LOGNAME/g; \
   s/{DATE}/$DATE/g;" \
