@@ -109,12 +109,6 @@ by blast
 lemma UN_o: "UNION A (g o f) = UNION (f`A) g"
 by (unfold comp_def, blast)
 
-text{*Lemma for proving injectivity of representation functions for
-datatypes involving function types*}
-lemma inj_fun_lemma:
-  "[| ! x y. g (f x) = g y --> f x = y; g o f = g o fa |] ==> f = fa"
-by (simp add: comp_def expand_fun_eq)
-
 
 subsection{*The Injectivity Predicate, @{term inj}*}
 
@@ -126,15 +120,15 @@ lemma datatype_injI:
     "(!! x. ALL y. f(x) = f(y) --> x=y) ==> inj(f)"
 by (simp add: inj_on_def)
 
+theorem range_ex1_eq: "inj f \<Longrightarrow> b : range f = (EX! x. b = f x)"
+  by (unfold inj_on_def, blast)
+
 lemma injD: "[| inj(f); f(x) = f(y) |] ==> x=y"
 by (simp add: inj_on_def)
 
 (*Useful with the simplifier*)
 lemma inj_eq: "inj(f) ==> (f(x) = f(y)) = (x=y)"
 by (force simp add: inj_on_def)
-
-lemma inj_o: "[| inj f; f o g = f o h |] ==> g = h"
-by (simp add: comp_def inj_on_def expand_fun_eq)
 
 
 subsection{*The Predicate @{term inj_on}: Injectivity On A Restricted Domain*}
@@ -392,11 +386,9 @@ val o_id = thm "o_id";
 val image_compose = thm "image_compose";
 val image_eq_UN = thm "image_eq_UN";
 val UN_o = thm "UN_o";
-val inj_fun_lemma = thm "inj_fun_lemma";
 val datatype_injI = thm "datatype_injI";
 val injD = thm "injD";
 val inj_eq = thm "inj_eq";
-val inj_o = thm "inj_o";
 val inj_onI = thm "inj_onI";
 val inj_on_inverseI = thm "inj_on_inverseI";
 val inj_onD = thm "inj_onD";
@@ -447,6 +439,7 @@ val fun_upd_same = thm "fun_upd_same";
 val fun_upd_other = thm "fun_upd_other";
 val fun_upd_upd = thm "fun_upd_upd";
 val fun_upd_twist = thm "fun_upd_twist";
+val range_ex1_eq = thm "range_ex1_eq";
 *}
 
 end
