@@ -28,9 +28,9 @@ qed "cardinal_eqE";
 
 goal Cardinal_AC.thy "!!A B. A lepoll B ==> |A| le |B|";
 by (resolve_tac [AC_well_ord RS exE] 1);
-by (eresolve_tac [well_ord_lepoll_imp_le] 1);
+by (eresolve_tac [well_ord_lepoll_imp_Card_le] 1);
 by (assume_tac 1);
-qed "lepoll_imp_le";
+qed "lepoll_imp_Card_le";
 
 goal Cardinal_AC.thy "(i |+| j) |+| k = i |+| (j |+| k)";
 by (resolve_tac [AC_well_ord RS exE] 1);
@@ -62,12 +62,12 @@ by (resolve_tac [cardinal_eqpoll RS eqpoll_sym RS eqpoll_imp_lepoll RS
 		 lepoll_trans] 1);
 by (eresolve_tac [le_imp_subset RS subset_imp_lepoll RS lepoll_trans] 1);
 by (resolve_tac [cardinal_eqpoll RS eqpoll_imp_lepoll] 1);
-qed "le_imp_lepoll";
+qed "Card_le_imp_lepoll";
 
 goal Cardinal_AC.thy "!!A K. Card(K) ==> |A| le K <-> A lepoll K";
 by (eresolve_tac [Card_cardinal_eq RS subst] 1 THEN
     rtac iffI 1 THEN
-    DEPTH_SOLVE (eresolve_tac [le_imp_lepoll,lepoll_imp_le] 1));
+    DEPTH_SOLVE (eresolve_tac [Card_le_imp_lepoll,lepoll_imp_Card_le] 1));
 qed "le_Card_iff";
 
 goalw Cardinal_AC.thy [surj_def] "!!f. f: surj(X,Y) ==> EX g. g: inj(Y,X)";
@@ -83,7 +83,7 @@ qed "surj_implies_inj";
 
 (*Kunen's Lemma 10.20*)
 goal Cardinal_AC.thy "!!f. f: surj(X,Y) ==> |Y| le |X|";
-by (resolve_tac [lepoll_imp_le] 1);
+by (resolve_tac [lepoll_imp_Card_le] 1);
 by (eresolve_tac [surj_implies_inj RS exE] 1);
 by (rewtac lepoll_def);
 by (eresolve_tac [exI] 1);
