@@ -65,7 +65,7 @@ fun typ_of_term def_sort t =
       | sort tm = raise_term "typ_of_term: bad encoding of sort" [tm];
 
     fun typ (Free (x, _), scs) =
-          (if is_tfree x then TFree (x, []) else Type (x, []), scs)
+          (if is_tid x then TFree (x, []) else Type (x, []), scs)
       | typ (Var (xi, _), scs) = (TVar (xi, []), scs)
       | typ (Const ("_ofsort", _) $ Free (x, _) $ st, scs) =
           (TFree (x, []), put_sort scs (x, ~1) (sort st))
@@ -170,19 +170,19 @@ val classesT = Type ("classes", []);
 val typesT = Type ("types", []);
 
 val type_ext = syn_ext
-  [logic, "type"]
-  [Mfix ("_",           tfreeT --> typeT,              "", [], max_pri),
+  [logic, "type"] [logic, "type"]
+  [Mfix ("_",           tidT --> typeT,              "", [], max_pri),
    Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
    Mfix ("_",           idT --> typeT,                 "", [], max_pri),
-   Mfix ("_::_",        [tfreeT, sortT] ---> typeT,    "_ofsort", [max_pri, 0], max_pri),
+   Mfix ("_::_",        [tidT, sortT] ---> typeT,      "_ofsort", [max_pri, 0], max_pri),
    Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
    Mfix ("_",           idT --> sortT,                 "", [], max_pri),
    Mfix ("{}",          sortT,                         "_emptysort", [], max_pri),
    Mfix ("{_}",         classesT --> sortT,            "_sort", [], max_pri),
    Mfix ("_",           idT --> classesT,              "", [], max_pri),
    Mfix ("_,_",         [idT, classesT] ---> classesT, "_classes", [], max_pri),
-   Mfix ("_ _",         [typeT, idT] ---> typeT,       "_tapp", [max_pri, 0], max_pri),  (* FIXME ambiguous *)
-   Mfix ("((1'(_'))_)", [typesT, idT] ---> typeT,      "_tappl", [], max_pri),           (* FIXME ambiguous *)
+   Mfix ("_ _",         [typeT, idT] ---> typeT,       "_tapp", [max_pri, 0], max_pri),
+   Mfix ("((1'(_,/ _'))_)", [typeT, typesT, idT] ---> typeT, "_tappl", [], max_pri),
    Mfix ("_",           typeT --> typesT,              "", [], max_pri),
    Mfix ("_,/ _",       [typeT, typesT] ---> typesT,   "_types", [], max_pri),
    Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "fun", [1, 0], 0),

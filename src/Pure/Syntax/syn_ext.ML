@@ -20,7 +20,7 @@ sig
     val args: string
     val idT: typ
     val varT: typ
-    val tfreeT: typ
+    val tidT: typ
     val tvarT: typ
     val applC: string
     val typ_to_nonterm: typ -> string
@@ -45,12 +45,12 @@ sig
         print_translation: (string * (term list -> term)) list,
         print_rules: (ast * ast) list,
         print_ast_translation: (string * (ast list -> ast)) list}
-    val syn_ext: string list -> mfix list -> string list ->
+    val syn_ext: string list -> string list -> mfix list -> string list ->
       (string * (ast list -> ast)) list * (string * (term list -> term)) list *
       (string * (term list -> term)) list * (string * (ast list -> ast)) list
       -> (ast * ast) list * (ast * ast) list -> syn_ext
-    val syn_ext_rules: (ast * ast) list * (ast * ast) list -> syn_ext
-    val syn_ext_roots: string list -> syn_ext
+    val syn_ext_rules: string list -> (ast * ast) list * (ast * ast) list -> syn_ext
+    val syn_ext_roots: string list -> string list -> syn_ext
   end
 end;
 
@@ -74,16 +74,16 @@ val logic1T = Type (logic1, []);
 val args = "args";
 val argsT = Type (args, []);
 
-val funT = Type ("fun", []);
-
 val typeT = Type ("type", []);
+
+val funT = Type ("fun", []);
 
 
 (* terminals *)
 
 val idT = Type (id, []);
 val varT = Type (var, []);
-val tfreeT = Type (tfree, []);
+val tidT = Type (tid, []);
 val tvarT = Type (tvar, []);
 
 
@@ -240,7 +240,6 @@ fun mfix_to_xprod (Mfix (sy, typ, const, pris, pri)) =
   end;
 
 
-
 (** datatype syn_ext **)
 
 datatype syn_ext =
@@ -258,39 +257,85 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun syn_ext roots mfixes consts trfuns rules =
+fun syn_ext all_roots new_roots mfixes consts trfuns rules =
   let
-    fun descend (from, to) = Mfix ("_", to --> from, "", [0], 0);
-
-    fun parents T = Mfix ("'(_')", T --> T, "", [0], max_pri);
-
-    fun mkappl T =
-      Mfix ("(1_/(1'(_')))", [funT, argsT] ---> T, applC, [max_pri, 0], max_pri);
-
-    fun mkid T = Mfix ("_", idT --> T, "", [], max_pri);
-
-    fun mkvar T = Mfix ("_", varT --> T, "", [], max_pri);
-
-    fun constrain T =
-      Mfix ("_::_", [T, typeT] ---> T, constrainC, [max_pri, 0], max_pri - 1);
-
-
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
     val (parse_rules, print_rules) = rules;
 
-    val Troots = map (apr (Type, [])) roots;
-    val Troots' = Troots \\ [typeT, propT, logicT];
-    val mfixes' = mfixes @ map parents (Troots \ logicT) @ map mkappl Troots' @
+    val Troots = map (apr (Type, [])) new_roots;
+    val Troots' = Troots \\ [typeT, propT];
+
+    fun change_name T ext =
+      let val Type (name, ts) = T
+      in Type (space_implode "" [name, ext], ts) end;
+
+    (* Append "_H" to lhs if production is not a copy or chain production *)
+    fun hide_xprod roots (XProd (lhs, symbs, const, pri)) =
+      let fun is_delim (Delim _) = true
+            | is_delim _ = false
+      in if const <> "" andalso lhs mem roots andalso exists is_delim symbs then
+           XProd (space_implode "" [lhs, "_H"], symbs, const, pri)
+         else XProd (lhs, symbs, const, pri)
+      end;
+
+    (* Make descend production and append "_H" to rhs nonterminal *)
+    fun descend_right (from, to) =
+      Mfix ("_", change_name to "_H" --> from, "", [0], 0);
+
+    (* Make descend production and append "_H" to lhs *)
+    fun descend_left (from, to) =
+      Mfix ("_", to --> change_name from "_H", "", [0], 0);
+
+    (* Make descend production and append "_A" to lhs *)
+    fun descend1 (from, to) =
+      Mfix ("_", to --> change_name from "_A", "", [0], 0);
+
+    (* Make parentheses production for 'hidden' and 'automatic' nonterminal *)
+    fun parents T = 
+      if T = typeT then
+        [Mfix ("'(_')", T --> T, "", [0], max_pri)]
+      else
+        [Mfix ("'(_')", change_name T "_H" --> change_name T "_H", "", [0], max_pri),
+         Mfix ("'(_')", change_name T "_A" --> change_name T "_A", "", [0], max_pri)];
+
+    fun mkappl T =
+      Mfix ("(1_/(1'(_')))", [funT, argsT] ---> change_name T "_A", applC, 
+            [max_pri, 0], max_pri);
+
+    fun mkid T =
+      Mfix ("_", idT --> change_name T "_A", "", [], max_pri);
+
+    fun mkvar T =
+      Mfix ("_", varT --> change_name T "_A", "", [], max_pri);
+
+    fun constrain T =
+      Mfix ("_::_", [T, typeT] ---> change_name T "_A", constrainC, 
+            [max_pri, 0], max_pri - 1)
+
+    fun unhide T =
+      if T <> logicT then
+        [Mfix ("_", change_name T "_H" --> T, "", [0], 0),
+         Mfix ("_", change_name T "_A" --> T, "", [0], 0)]
+      else
+        [Mfix ("_", change_name T "_A" --> T, "", [0], 0)];
+
+    val mfixes' = flat (map parents Troots) @ map mkappl Troots' @
       map mkid Troots' @ map mkvar Troots' @ map constrain Troots' @
-      map (apl (logicT, descend)) (Troots \\ [typeT, logicT]) @
-      map (apr (descend, logic1T)) Troots';
+      map (apl (logicT, descend_right)) (Troots \\ [logicT, typeT]) @
+      map (apr (descend1, logic1T)) (Troots') @
+      flat (map unhide (Troots \\ [typeT]));
     val mfix_consts =
-      distinct (filter is_xid (map (fn (Mfix (_, _, c, _, _)) => c) mfixes'));
+      distinct (filter is_xid (map (fn (Mfix (_, _, c, _, _)) => c) 
+               (mfixes @ mfixes')));
+    val xprods = map mfix_to_xprod mfixes;
+    val xprods' = map mfix_to_xprod mfixes';
   in
     SynExt {
-      roots = roots,
-      xprods = map mfix_to_xprod mfixes',
+      roots = new_roots,
+      xprods = (map (hide_xprod (all_roots \\ ["logic", "type"])) xprods) 
+               @ xprods',    (* hide only productions that weren't created
+                                automatically *)
       consts = consts union mfix_consts,
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules,
@@ -303,11 +348,11 @@ fun syn_ext roots mfixes consts trfuns rules =
 
 (* syn_ext_rules, syn_ext_roots *)
 
-fun syn_ext_rules rules =
-  syn_ext [] [] [] ([], [], [], []) rules;
+fun syn_ext_rules roots rules =
+  syn_ext roots [] [] [] ([], [], [], []) rules;
 
-fun syn_ext_roots roots =
-  syn_ext roots [] [] ([], [], [], []) ([], []);
+fun syn_ext_roots all_roots new_roots =
+  syn_ext all_roots new_roots [] [] ([], [], [], []) ([], []);
 
 
 end;

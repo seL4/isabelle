@@ -40,7 +40,7 @@ sig
   include SCANNER
   include LEXICON0
   val is_xid: string -> bool
-  val is_tfree: string -> bool
+  val is_tid: string -> bool
   type lexicon
   datatype token =
     Token of string |
@@ -51,13 +51,14 @@ sig
     EndToken
   val id: string
   val var: string
-  val tfree: string
+  val tid: string
   val tvar: string
   val terminals: string list
   val is_terminal: string -> bool
   val str_of_token: token -> string
   val display_token: token -> string
   val matching_tokens: token * token -> bool
+  val token_assoc: (token option * 'a list) list * token -> 'a list
   val valued_token: token -> bool
   val predef_term: string -> token option
   val dest_lexicon: lexicon -> string list
@@ -83,7 +84,7 @@ fun is_xid s =
     "_" :: cs => is_ident cs
   | cs => is_ident cs);
 
-fun is_tfree s =
+fun is_tid s =
   (case explode s of
     "'" :: cs => is_ident cs
   | _ => false);
@@ -118,10 +119,10 @@ datatype token =
 
 val id = "id";
 val var = "var";
-val tfree = "tfree";
+val tid = "tid";
 val tvar = "tvar";
 
-val terminals = [id, var, tfree, tvar];
+val terminals = [id, var, tid, tvar];
 
 fun is_terminal s = s mem terminals;
 
@@ -141,7 +142,7 @@ fun str_of_token (Token s) = s
 fun display_token (Token s) = quote s
   | display_token (IdentSy s) = "id(" ^ s ^ ")"
   | display_token (VarSy s) = "var(" ^ s ^ ")"
-  | display_token (TFreeSy s) = "tfree(" ^ s ^ ")"
+  | display_token (TFreeSy s) = "tid(" ^ s ^ ")"
   | display_token (TVarSy s) = "tvar(" ^ s ^ ")"
   | display_token EndToken = "";
 
@@ -155,6 +156,17 @@ fun matching_tokens (Token x, Token y) = (x = y)
   | matching_tokens (TVarSy _, TVarSy _) = true
   | matching_tokens (EndToken, EndToken) = true
   | matching_tokens _ = false;
+
+
+(* this function is needed in parser.ML but is placed here 
+   for better performance *)
+fun token_assoc (list, key) =
+  let fun assoc [] = []
+        | assoc ((keyi, xi) :: pairs) =
+            if is_none keyi orelse matching_tokens (the keyi, key) then 
+              (assoc pairs) @ xi
+            else assoc pairs;
+  in assoc list end;
 
 
 (* valued_token *)
@@ -172,7 +184,7 @@ fun valued_token (Token _) = false
 fun predef_term name =
   if name = id then Some (IdentSy name)
   else if name = var then Some (VarSy name)
-  else if name = tfree then Some (TFreeSy name)
+  else if name = tid then Some (TFreeSy name)
   else if name = tvar then Some (TVarSy name)
   else None;
 

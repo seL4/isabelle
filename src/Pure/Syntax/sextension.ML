@@ -66,7 +66,7 @@ sig
     val xrules_of: sext -> xrule list
     val abs_tr': term -> term
     val appl_ast_tr': ast * ast list -> ast
-    val syn_ext_of_sext: string list -> string list -> (string -> typ) -> sext -> syn_ext
+    val syn_ext_of_sext: string list -> string list -> string list -> (string -> typ) -> sext -> syn_ext
     val pt_to_ast: (string -> (ast list -> ast) option) -> parsetree -> ast
     val ast_to_term: (string -> (term list -> term) option) -> ast -> term
     val apropC: string
@@ -383,7 +383,7 @@ fun strip_esc str =
 fun infix_name sy = "op " ^ strip_esc sy;
 
 
-fun syn_ext_of_sext roots xconsts read_typ sext =
+fun syn_ext_of_sext all_roots new_roots xconsts read_typ sext =
   let
     val {mixfix, parse_ast_translation, parse_translation, print_translation,
       print_ast_translation, ...} = sext_components sext;
@@ -421,7 +421,7 @@ fun syn_ext_of_sext roots xconsts read_typ sext =
     val bparses = map mk_binder_tr binders;
     val bprints = map (mk_binder_tr' o swap) binders;
   in
-    syn_ext roots mfix (distinct (filter is_xid xconsts))
+    syn_ext all_roots new_roots mfix (distinct (filter is_xid xconsts))
       (parse_ast_translation,
         bparses @ parse_translation,
         bprints @ print_translation,

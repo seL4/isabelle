@@ -262,15 +262,15 @@ fun test_read (Syntax tabs) root str =
     val {lexicon, gram, parse_ast_trtab, parse_ruletab, ...} = tabs;
 
     val toks = tokenize lexicon false str;
-    val _ = writeln ("tokens: " ^ space_implode " " (map display_token toks));
+    val _ = writeln ("tokens: " ^ space_implode " " (map display_token toks))
 
-    val pt = parse gram root toks;
-    val raw_ast = pt_to_ast (K None) pt;
-    val _ = writeln ("raw: " ^ str_of_ast raw_ast);
-
-    val pre_ast = pt_to_ast (lookup_trtab parse_ast_trtab) pt;
-    val _ = normalize true true (lookup_ruletab parse_ruletab) pre_ast;
-  in () end;
+    fun show pt =
+       let val raw_ast = pt_to_ast (K None) pt;
+           val _ = writeln ("raw: " ^ str_of_ast raw_ast);
+           val pre_ast = pt_to_ast (lookup_trtab parse_ast_trtab) pt;
+           val _ = normalize true true (lookup_ruletab parse_ruletab) pre_ast;
+       in () end
+  in seq show (parse gram root toks) end;
 
 
 (* read_ast *)
@@ -278,9 +278,20 @@ fun test_read (Syntax tabs) root str =
 fun read_ast (Syntax tabs) xids root str =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
+    val pts = parse gram root (tokenize lexicon xids str);
+
+    fun show_pts pts =
+      let fun show pt = writeln (str_of_ast (pt_to_ast (K None) pt))
+      in seq show pts end
   in
-    pt_to_ast (lookup_trtab parse_ast_trtab)
-      (parse gram root (tokenize lexicon xids str))
+    if tl pts = [] then
+      pt_to_ast (lookup_trtab parse_ast_trtab) (hd pts)
+    else
+      (writeln ("Ambiguous input " ^ quote str);
+       writeln "produces the following parse trees:";
+       show_pts pts;
+       writeln "Please disambiguate the grammar or your input.";
+       raise ERROR)
   end;
 
 
@@ -376,10 +387,10 @@ fun extend syn0 read_ty (all_roots, xconsts, sext) =
     val Syntax {roots, ...} = syn0;
 
     val syn1 = extend_syntax syn0
-      (syn_ext_of_sext (all_roots \\ roots) xconsts read_ty sext);
+      (syn_ext_of_sext all_roots (all_roots \\ roots) xconsts read_ty sext);
 
     val syn2 = extend_syntax syn1
-      (syn_ext_rules (read_xrules syn1 (xrules_of sext)));
+      (syn_ext_rules all_roots (read_xrules syn1 (xrules_of sext)));
   in syn2 end;
 
 
@@ -392,7 +403,7 @@ fun merge all_roots syn1 syn2 =
     (case all_roots \\ roots of
       [] => syn
     | new_roots => (writeln ("DEBUG new roots:" ^ commas new_roots); (* FIXME debug *)
-        extend_syntax syn (syn_ext_roots new_roots)))
+        extend_syntax syn (syn_ext_roots all_roots new_roots)))
   end;
 
 

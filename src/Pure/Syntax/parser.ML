@@ -5,8 +5,6 @@
 Isabelle's main parser (used for terms and typs).
 
 TODO:
-  fix ambiguous grammar problem
-  ~1 --> chain_pri
   improve syntax error
   extend_gram: remove 'roots' arg
 *)
@@ -24,12 +22,12 @@ sig
     datatype parsetree =
       Node of string * parsetree list |
       Tip of token
-    val parse: gram -> string -> token list -> parsetree
+    val parse: gram -> string -> token list -> parsetree list
   end
 end;
 
 functor ParserFun(structure Symtab: SYMTAB and Lexicon: LEXICON
-  and SynExt: SYN_EXT)(*: PARSER *) =  (* FIXME *)
+  and SynExt: SYN_EXT) =
 struct
 
 structure Pretty = SynExt.Ast.Pretty;
@@ -44,11 +42,222 @@ datatype symb =
   Terminal of token |
   Nonterminal of string * int;
 
-datatype gram =
-  Gram of (string * (symb list * string * int)) list
-    * (symb list * string * int) list Symtab.table;
+datatype refsymb = Term of token | Nonterm of rhss_ref * int
+                                (*reference to production list instead of name*)
+and gram = Gram of (string * (symb list * string * int)) list *
+                   (string * rhss_ref) list
+withtype rhss_ref = (token option * (refsymb list * string * int) list) list ref
+                                      (*lookahead table: token and productions*)
 
-fun mk_gram prods = Gram (prods, Symtab.make_multi prods);
+(* convert productions to reference grammar with lookaheads and eliminate
+   chain productions *)
+fun mk_gram prods = 
+  let (*get reference on list of all possible rhss for nonterminal lhs
+        (if it doesn't exist a new one is created and added to the nonterminal
+         list)*)
+      fun get_rhss ref_prods lhs =
+        case assoc (ref_prods, lhs) of
+            None =>
+              let val l = ref [(None, [])]
+              in (l, (lhs, l) :: ref_prods) end
+          | Some l => (l, ref_prods);
+
+      (*convert symb list to refsymb list*)
+      fun mk_refsymbs ref_prods [] rs = (rs, ref_prods)
+        | mk_refsymbs ref_prods (Terminal tk :: symbs) rs =
+            mk_refsymbs ref_prods symbs (rs @ [Term tk])
+        | mk_refsymbs ref_prods (Nonterminal (name, prec) :: symbs) rs =
+            let val (rhss, ref_prods') = get_rhss ref_prods name
+            in mk_refsymbs ref_prods' symbs (rs @ [Nonterm (rhss, prec)])
+            end;
+
+      (*convert prod list to (string * rhss_ref) list
+        without computing lookaheads*)
+      fun mk_ref_gram [] ref_prods = ref_prods
+        | mk_ref_gram ((lhs, (rhs, name, prec)) :: ps) ref_prods =
+            let val (rhs', ref_prods') = get_rhss ref_prods lhs;
+                val (dummy, rhss) = hd (!rhs');
+                val (ref_symbs, ref_prods'') = mk_refsymbs ref_prods' rhs [];
+            in rhs' := [(dummy, (ref_symbs, name, prec) :: rhss)];
+               mk_ref_gram ps ref_prods''
+            end;
+
+      (*eliminate chain productions*)
+      fun elim_chain ref_gram =
+        let (*make a list of pairs representing chain productions and delete
+              these productions*)
+            fun list_chain [] = []
+              | list_chain ((_, rhss_ref) :: ps) =
+                  let fun lists [] new_rhss chains = (new_rhss, chains)
+                        | lists (([Nonterm (id2, ~1)], _, ~1) :: rs) 
+                                new_rhss chains =
+                            lists rs new_rhss ((rhss_ref, id2) :: chains)
+                        | lists (rhs :: rs) new_rhss chains = 
+                            lists rs (rhs :: new_rhss) chains;
+
+                      val (dummy, rhss) = hd (!rhss_ref);
+
+                      val (new_rhss, chains) = lists rhss [] [];
+                  in rhss_ref := [(dummy, new_rhss)];
+                     chains @ (list_chain ps)
+                  end;
+
+            (*convert a list of pairs to an association list*)
+            fun compress chains =
+              let fun doit [] result = result
+                    | doit ((id1, id2) :: ps) result =
+                        doit ps 
+                        (overwrite (result, (id1, id2 :: (assocs result id1))));
+              in doit chains [] end;
+
+            (*replace reference by list of rhss in chain pairs*)
+            fun unref (id1, ids) =
+              let fun unref1 [] = []
+                    | unref1 (id :: ids) =
+                        let val (_, rhss) = hd (!id);
+                        in rhss @ (unref1 ids) end;
+              in (id1, unref1 ids) end;
+
+            val chain_pairs = 
+               map unref (transitive_closure (compress (list_chain ref_gram)));
+
+            (*add new rhss to productions*)
+            fun mk_chain (rhss_ref, rhss) =
+              let val (dummy, old_rhss) = hd (!rhss_ref);
+              in rhss_ref := [(dummy, old_rhss @ rhss)] end;
+        in map mk_chain chain_pairs;
+           ref_gram
+        end;
+
+      val ref_gram = elim_chain (mk_ref_gram prods []);
+
+      (*make a list of all lambda NTs 
+        (i.e. nonterminals that can produce lambda*)
+      val lambdas =
+        let fun lambda [] result = result
+              | lambda ((_, rhss_ref) :: nts) result =
+                  if rhss_ref mem result then
+                    lambda nts result
+                  else
+                    let (*test if a list of rhss contains a production
+                          consisting only of lambda NTs*)
+                        fun only_lambdas _ [] = []
+                          | only_lambdas result ((_, rhss_ref) :: ps) =
+                              let fun only (symbs, _, _) =
+                                   forall (fn (Nonterm (id, _)) => id mem result
+                                            | (Term _)          => false) symbs;
+                          
+                                  val (_, rhss) = hd (!rhss_ref);
+                              in if not (rhss_ref mem result) andalso
+                                    exists only rhss then
+                                   rhss_ref :: (only_lambdas result ps)
+                                 else
+                                   only_lambdas result ps
+                              end;
+
+                        (*search for NTs that can be produced by a list of
+                          lambda NTs*)
+                        fun produced_by [] result = result
+                          | produced_by (rhss_ref :: rhss_refs) result =
+                              let val new_lambdas = 
+                                    only_lambdas result ref_gram;
+                              in produced_by (rhss_refs union new_lambdas)
+                                             (result @ new_lambdas)
+                              end;
+
+                        val (_, rhss) = hd (!rhss_ref);
+                    in if exists (fn (symbs, _, _) => null symbs) rhss
+                       then lambda nts
+                              (produced_by [rhss_ref] (rhss_ref :: result))
+                       else lambda nts result
+                    end;
+         in lambda ref_gram [] end;
+
+      (*list all nonterminals on which the lookahead depends (due to lambda 
+        NTs this can be more than one)
+        and report if there is a terminal at the 'start'*)
+      fun rhss_start [] skipped = (None, skipped)
+        | rhss_start (Term tk :: _) skipped = (Some tk, skipped)
+        | rhss_start (Nonterm (rhss_ref, _) :: rest) skipped =
+            if rhss_ref mem lambdas then 
+              rhss_start rest (rhss_ref ins skipped)
+            else
+              (None, rhss_ref ins skipped);
+
+      (*list all terminals that can start the given rhss*)
+      fun look_rhss starts rhss_ref =
+        let fun look [] _ = []
+              | look ((symbs, _, _) :: todos) done =
+                  let val (start_token, skipped) = rhss_start symbs [];
+
+                      (*process all nonterminals on which the lookahead
+                        depends and build the new todo and done lists for
+                        the look function*)
+                      fun look2 [] todos = look todos (done union skipped)
+                        | look2 (rhss_ref :: ls) todos =
+                            if rhss_ref mem done then look2 ls todos
+                            else case assoc (starts, rhss_ref) of
+                                Some tks => tks union (look2 ls todos)
+                              | None => let val (_, rhss) = hd (!rhss_ref);
+                                        in look2 ls (rhss union todos) end;
+                  in case start_token of
+                         Some tk => start_token ins (look2 skipped todos)
+                       | None => look2 skipped todos
+                  end;
+ 
+            val (_, rhss) = hd (!rhss_ref);
+        in look rhss [rhss_ref] end;                       
+
+      (*make a table that contains all possible starting terminals
+        for each nonterminal*)
+      fun mk_starts [] starts = starts
+        | mk_starts ((_, rhss_ref) :: ps) starts =
+            mk_starts ps ((rhss_ref, look_rhss starts rhss_ref) :: starts);
+
+      val starts = mk_starts ref_gram [];
+
+      (*add list of allowed starting tokens to productions*)
+      fun mk_lookahead (_, rhss_ref) =
+        let (*add item to lookahead list (a list containing pairs of token and 
+              rhss that can be started with this token*)
+            fun add_start _ [] table = table
+              | add_start new_rhs (token :: tks) table =
+                  let fun add [] =
+                            [(token, [new_rhs])]
+                        | add ((tk, rhss) :: ss) =
+                            if token = tk then 
+                              (tk, new_rhs :: rhss) :: ss
+                            else
+                              (tk, rhss) :: (add ss);
+                  in add_start new_rhs tks (add table) end;
+
+            (*combine all lookaheads of a list of nonterminals*)
+            fun combine_starts [] = []
+              | combine_starts (rhss_ref :: ps) =
+                  let val Some tks = assoc (starts, rhss_ref)
+                  in tks union combine_starts ps end;
+
+            (*get lookahead for a rhs and update lhs' lookahead list*)
+            fun look_rhss [] table = table
+              | look_rhss ((rhs as (symbs, id, prec)) :: rs) table =
+                  let val (start_token, skipped) = rhss_start symbs [];
+                      val starts = case start_token of
+                                     Some tk => Some tk 
+                                                ins (combine_starts skipped)
+                                   | None => if skipped = [] 
+                            orelse forall (fn id => id mem lambdas) skipped then
+                                                          (*lambda production?*)
+                                               [None]
+                                             else
+                                               combine_starts skipped;
+                  in look_rhss rs (add_start rhs starts table) end;
+
+             val (_, rhss) = hd (!rhss_ref);
+        in rhss_ref := look_rhss rhss [] end;
+
+  in map mk_lookahead ref_gram;
+     Gram (prods, ref_gram)
+  end;
 
 
 (* empty, extend, merge grams *)
@@ -111,41 +320,39 @@ datatype parsetree =
   Tip of token;
 
 type state =
-  string * int
-    * parsetree list    (*before point*)
-    * symb list         (*after point*)
-    * string * int;
+  rhss_ref * int      (*lhs: identification and production precedence*)
+  * parsetree list    (*already parsed nonterminals on rhs*)
+  * refsymb list      (*rest of rhs*)
+  * string            (*name of production*)
+  * int;              (*index for previous state list*)
 
 type earleystate = state list Array.array;
 
 
+(*Get all rhss with precedence >= minPrec*)
+fun getRHS minPrec = filter (fn (_, _, prec:int) => prec >= minPrec);
 
-fun get_prods tab lhs pred =
-  filter pred (Symtab.lookup_multi (tab, lhs));
+(*Get all rhss with precedence >= minPrec and < maxPrec*)
+fun getRHS' minPrec maxPrec =
+  filter (fn (_, _, prec:int) => prec >= minPrec andalso prec < maxPrec);
 
-fun getProductions tab A i =
-  get_prods tab A (fn (_, _, j) => j >= i orelse j = ~1);
-
-fun getProductions' tab A i k =
-  get_prods tab A (fn (_, _, j) => (j >= i andalso j < k) orelse j = ~1);
-
-
-
-fun mkState i jj A ([Nonterminal (B, ~1)], id, ~1) =
-      (A, max_pri, [], [Nonterminal (B, jj)], id, i)
-  | mkState i jj A (ss, id, j) = (A, j, [], ss, id, i);
-
-
-
-fun conc (t, k:int) [] = (None, [(t, k)])
-  | conc (t, k) ((t', k') :: ts) =
+(*Make states using a list of rhss*)
+fun mkStates i minPrec lhsID rhss =
+  let fun mkState (rhs, id, prodPrec) = (lhsID, prodPrec, [], rhs, id, i);
+  in map mkState rhss end;
+	
+(*Add parse tree to list and eliminate duplicates 
+  saving the maximum precedence*)
+fun conc (t, prec:int) [] = (None, [(t, prec)])
+  | conc (t, prec) ((t', prec') :: ts) =
       if t = t' then
-        (Some k', if k' >= k then (t', k') :: ts else (t, k) :: ts)
+        (Some prec', if prec' >= prec then (t', prec') :: ts 
+                     else (t, prec) :: ts)
       else
-        let val (n, ts') = conc (t, k) ts
-        in (n, (t', k') :: ts') end;
+        let val (n, ts') = conc (t, prec) ts
+        in (n, (t', prec') :: ts') end;
 
-
+(*Update entry in used*)
 fun update_tree ((B, (i, ts)) :: used) (A, t) =
   if A = B then
     let val (n, ts') = conc t ts
@@ -154,114 +361,117 @@ fun update_tree ((B, (i, ts)) :: used) (A, t) =
     let val (used', n) = update_tree used (A, t)
     in ((B, (i, ts)) :: used', n) end;
 
+(*Replace entry in used*)
+fun update_index (A, prec) used =
+  let fun update((hd as (B, (_, ts))) :: used, used') =
+        if A = B
+        then used' @ ((A, (prec, ts)) :: used)
+        else update (used, hd :: used')
+  in update (used, []) end;
 
-fun update_index ((B, (i, ts)) :: used) (A, j) =
-  if A = B then (A, (j, ts)) :: used
-  else (B, (i, ts)) :: (update_index used (A, j));
-
-
-
-fun getS A i Si =
+fun getS A maxPrec Si =
   filter
-    (fn (_, _, _, Nonterminal (B, j) :: _, _, _) => A = B andalso j <= i
+    (fn (_, _, _, Nonterm (B, prec) :: _, _, _)
+          => A = B andalso prec <= maxPrec
       | _ => false) Si;
 
-fun getS' A k n Si =
+fun getS' A maxPrec minPrec Si =
   filter
-    (fn (_, _, _, Nonterminal (B, j) :: _, _, _) => A = B andalso j <= k andalso j > n
+    (fn (_, _, _, Nonterm (B, prec) :: _, _, _)
+          => A = B andalso prec > minPrec andalso prec <= maxPrec
       | _ => false) Si;
 
-fun getStates Estate i ii A k =
+fun getStates Estate i ii A maxPrec =
   filter
-    (fn (_, _, _, Nonterminal (B, j) :: _, _, _) => A = B andalso j <= k
+    (fn (_, _, _, Nonterm (B, prec) :: _, _, _)
+          => A = B andalso prec <= maxPrec
       | _ => false)
     (Array.sub (Estate, ii));
 
 
-(* MMW *)(* FIXME *)
-fun movedot_term (A, j, ts, Terminal a :: sa, id, i) c =
+fun movedot_term (A, j, ts, Term a :: sa, id, i) c =
   if valued_token c then
     (A, j, (ts @ [Tip c]), sa, id, i)
   else (A, j, ts, sa, id, i);
 
-fun movedot_nonterm ts (A, j, tss, Nonterminal (B, k) :: sa, id, i) =
+fun movedot_nonterm ts (A, j, tss, Nonterm _ :: sa, id, i) =
   (A, j, tss @ ts, sa, id, i);
 
 fun movedot_lambda _ [] = []
-  | movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ((t, ki) :: ts) =
+  | movedot_lambda (B, j, tss, Nonterm (A, k) :: sa, id, i) ((t, ki) :: ts) =
       if k <= ki then
         (B, j, tss @ t, sa, id, i) ::
-          movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts
-      else movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts;
+          movedot_lambda (B, j, tss, Nonterm (A, k) :: sa, id, i) ts
+      else movedot_lambda (B, j, tss, Nonterm (A, k) :: sa, id, i) ts;
 
 
 
-fun PROCESSS Estate grammar i c states =
+fun PROCESSS Estate i c states =
 let
+fun get_lookahead rhss_ref = token_assoc (!rhss_ref, c);
+
 fun processS used [] (Si, Sii) = (Si, Sii)
   | processS used (S :: States) (Si, Sii) =
       (case S of
-        (_, _, _, Nonterminal (A, j) :: _, _, _) =>
-          let
-            val (used_neu, States_neu) =
-              (case assoc (used, A) of
-                Some (k, l) =>      (*A gehoert zu used*)
-                  if k <= j         (*Prioritaet wurde behandelt*)
-                  then (used, movedot_lambda S l)
-                  else              (*Prioritaet wurde noch nicht behandelt*)
-                    let
-                      val L = getProductions' grammar A j k;
-                      val States' = map (mkState i j A) L;
-                    in
-                      (update_index used (A, j), States' @ movedot_lambda S l)
+        (_, _, _, Nonterm (rhss_ref, minPrec) :: _, _, _) =>
+          let                                       (*predictor operation*)
+            val (used_new, States_new) =
+              (case assoc (used, rhss_ref) of
+                Some (usedPrec, l) =>       (*nonterminal has been processed*)
+                  if usedPrec <= minPrec then
+                                      (*wanted precedence has been processed*)
+                    (used, movedot_lambda S l)
+                  else            (*wanted precedence hasn't been parsed yet*)
+                    let val rhss = get_lookahead rhss_ref;
+                      val States' = mkStates i minPrec rhss_ref
+                                      (getRHS' minPrec usedPrec rhss);
+                    in (update_index (rhss_ref, minPrec) used, 
+                        movedot_lambda S l @ States')
                     end
 
-              | None =>             (*A gehoert nicht zu used*)
-                  let
-                    val L = getProductions grammar A j;
-                    val States' = map (mkState i j A) L;
-                  in
-                    ((A, (j, [])) :: used, States')
-                  end)
+              | None =>           (*nonterminal is parsed for the first time*)
+                  let val rhss = get_lookahead rhss_ref;
+                      val States' = mkStates i minPrec rhss_ref
+                                      (getRHS minPrec rhss);
+                  in ((rhss_ref, (minPrec, [])) :: used, States') end)
           in
-            processS used_neu (States @ States_neu) (S :: Si, Sii)
+            processS used_new (States_new @ States) (S :: Si, Sii)
           end
-      | (_, _, _, Terminal a :: _, _, _) =>
+      | (_, _, _, Term a :: _, _, _) =>               (*scanner operation*)
           processS used States
             (S :: Si,
               if matching_tokens (a, c) then movedot_term S c :: Sii else Sii)
-                                          (* MMW *)(* FIXME *)
 
-      | (A, k, ts, [], id, j) =>
+      | (A, prec, ts, [], id, j) =>                   (*completer operation*)
           let
             val tt = if id = "" then ts else [Node (id, ts)]
           in
-            if j = i then
+            if j = i then                             (*lambda production?*)
               let
-                val (used', O) = update_tree used (A, (tt, k));
+                val (used', O) = update_tree used (A, (tt, prec));
               in
                 (case O of
                   None =>
                     let
-                      val Slist = getS A k Si;
+                      val Slist = getS A prec Si;
                       val States' = map (movedot_nonterm tt) Slist;
                     in
-                      processS used' (States @ States') (S :: Si, Sii)
+                      processS used' (States' @ States) (S :: Si, Sii)
                     end
                 | Some n =>
-                    if n >= k then
+                    if n >= prec then
                       processS used' States (S :: Si, Sii)
                     else
                       let
-                        val Slist = getS' A k n Si;
+                        val Slist = getS' A prec n Si;
                         val States' = map (movedot_nonterm tt) Slist;
                       in
-                        processS used' (States @ States') (S :: Si, Sii)
+                        processS used' (States' @ States) (S :: Si, Sii)
                       end)
-              end
+              end 
             else
               processS used
-                (States @ map (movedot_nonterm tt) (getStates Estate i j A k))
+                (map (movedot_nonterm tt) (getStates Estate i j A prec) @ States)
                 (S :: Si, Sii)
           end)
 in
@@ -273,7 +483,7 @@ end;
 fun syntax_error toks =
   error ("Syntax error at: " ^ quote (space_implode " " (map str_of_token toks)));
 
-fun produce grammar stateset i indata =
+fun produce stateset i indata =
   (case Array.sub (stateset, i) of
     [] => syntax_error indata (* MMW *)(* FIXME *)
   | s =>
@@ -281,46 +491,39 @@ fun produce grammar stateset i indata =
       [] => Array.sub (stateset, i)
     | c :: cs =>
       let
-        val (si, sii) = PROCESSS stateset grammar i c s;
+        val (si, sii) = PROCESSS stateset i c s;
       in
         Array.update (stateset, i, si);
         Array.update (stateset, i + 1, sii);
-        produce grammar stateset (i + 1) cs
+        produce stateset (i + 1) cs
       end));
 
 
-(*(* FIXME new *)
 val get_trees = mapfilter (fn (_, _, [pt], _, _, _) => Some pt | _ => None);
-*)
 
-fun get_trees [] = []
-  | get_trees ((_, _, pt_lst, _, _, _) :: stateset) =
-      let val l = get_trees stateset
-      in case pt_lst of
-           [ptree] => ptree :: l
-         |   _     => l
-      end;
 
 fun earley grammar startsymbol indata =
   let
-    val S0 = [("S'", 0, [], [Nonterminal (startsymbol, 0), Terminal EndToken], "", 0)];
-    val s = length indata + 1;     (* MMW *)(* FIXME was .. + 2 *)
+    val rhss_ref = case assoc (grammar, startsymbol) of
+                       Some r => r
+                     | None => error ("parse: Unknown startsymbol " ^ 
+                                      quote startsymbol);
+    val S0 = [(ref [], 0, [], [Nonterm (rhss_ref, 0), Term EndToken], "", 0)];
+    val s = length indata + 1;
     val Estate = Array.array (s, []);
   in
     Array.update (Estate, 0, S0);
     let
-      val l = produce grammar Estate 0 indata;    (* MMW *)(* FIXME was .. @ [EndToken] *)
+      val l = produce Estate 0 indata;
       val p_trees = get_trees l;
     in p_trees end
   end;
 
 
-(* FIXME demo *)
 fun parse (Gram (_, prod_tab)) start toks =
   (case earley prod_tab start toks of
     [] => sys_error "parse: no parse trees"
-  | pt :: _ => pt);
-
+  | pts => pts);
 
 end;
 

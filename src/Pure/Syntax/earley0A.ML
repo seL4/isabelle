@@ -18,7 +18,7 @@ sig
     datatype parsetree =
       Node of string * parsetree list |
       Tip of token
-    val parse: gram -> string -> token list -> parsetree
+    val parse: gram -> string -> token list -> parsetree list
   end
 end;
 
@@ -414,7 +414,7 @@ fun unknown c = error ("Unparsable category: " ^ c);
 fun syn_err toks =
   error ("Syntax error at: " ^ quote (space_implode " " (map str_of_token toks)));
 
-fun parse ((_, _, (tab, opLA, rchA)):gram) (root:string) (tl: token list): parsetree =
+fun parse ((_, _, (tab, opLA, rchA)):gram) (root:string) (tl: token list): parsetree list =
   let
     val tl' = tl;
     val state_sets = mt_states(len tl' + 1);
@@ -455,7 +455,7 @@ fun parse ((_, _, (tab, opLA, rchA)):gram) (root:string) (tl: token list): parse
     lr (tl', 0, s0, EndToken(*dummy*));
     (*print_stat state_sets;*)
     let val St(_, _, _, _, [pt]) = fst_state(sub(state_sets, len tl'))
-    in pt end
+    in [pt] end
   end;
 
 end;
