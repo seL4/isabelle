@@ -68,6 +68,7 @@ abbreviates $HOME), or $ISABELLE_HOME;
 use isatool fixseq to adapt your ML programs (this works for fully
 qualified references to the Sequence structure only!);
 
+* use_thy no longer requires writable current directory;
 
 
 *** Classical Reasoner ***
