@@ -786,16 +786,14 @@ text{*A manual resolution proof of problem 19.*}
 lemma "\<exists>x. \<forall>y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))"
 proof (rule ccontr, skolemize, make_clauses)
   fix f g
-  assume P: "\<And>U. P U" 
-     and Q: "\<And>U. \<not> Q U"
-     and PQ: "\<And>U. \<not> P (f U) \<or> Q (g U)"
-  from PQ [of a]
+  assume P: "\<And>U. \<not> P U \<Longrightarrow> False" 
+     and Q: "\<And>U. Q U \<Longrightarrow> False"
+     and PQ: "\<And>U.  \<lbrakk>P (f U); \<not> Q (g U)\<rbrakk> \<Longrightarrow> False"
+  have cl4: "\<And>U. \<not> Q (g U) \<Longrightarrow> False"
+    by (blast intro: P PQ)
+       --{*Temporary: to be replaced by resolution attributes*}
   show False
-  proof
-    assume "\<not> P (f a)" thus False by (rule notE [OF _ P])
-  next
-    assume "Q (g a)" thus False by (rule notE [OF Q])
-  qed
+    by (blast intro: Q cl4)
 qed
 
 end
