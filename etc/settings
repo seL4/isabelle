@@ -104,11 +104,6 @@ ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
 #ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv.cl.cam.ac.uk:7100"
 
 
-## SVC (Stanford Validity Checker); set SVC_HOME only if it is installed
-#SVC_HOME=
-#SVC_MACHINE=i386-redhat-linux
-#SVC_MACHINE=sparc-sun-solaris
-
 ###
 ### Interfaces
 ###
@@ -128,3 +123,15 @@ ISAMODE_OPTIONS=""
 # Emacs running Proof General.
 #ISABELLE_INTERFACE=$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
 PROOFGENERAL_OPTIONS=""
+
+
+###
+### External reasoning tools
+###
+
+## set FOO_HOME only for tools you have installed
+
+# SVC (Stanford Validity Checker)
+#SVC_HOME=
+#SVC_MACHINE=i386-redhat-linux
+#SVC_MACHINE=sparc-sun-solaris
