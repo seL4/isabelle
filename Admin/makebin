@@ -137,6 +137,7 @@ do
   if [ -n "$DO_LIBRARY" ]; then
     "$TAR" cf "${ISABELLE_NAME}_library.tar" $ISABELLE_NAME/browser_info && \
       gzip -f "${ISABELLE_NAME}_library.tar"
+      cp -f "${ISABELLE_NAME}_library.tar.gz" "$ARCHIVE_DIR"
   fi
 done
 
