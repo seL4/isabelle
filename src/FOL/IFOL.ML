@@ -225,8 +225,9 @@ qed_goal "trans" IFOL.thy "[| a=b;  b=c |] ==> a=c"
 (** ~ b=a ==> ~ a=b **)
 val [not_sym] = compose(sym,2,contrapos);
 
-(*calling "standard" reduces maxidx to 0*)
-bind_thm ("ssubst", (sym RS subst));
+(*Substitution: rule and tactic*)
+bind_thm ("ssubst", sym RS subst);
+fun stac th = CHANGED o rtac (th RS ssubst);
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 qed_goal "ex1_equalsE" IFOL.thy
