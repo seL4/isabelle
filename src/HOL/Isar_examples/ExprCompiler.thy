@@ -37,7 +37,8 @@ text {*
 *};
 
 consts
-  exec :: "(('adr, 'val) instr) list => 'val list => ('adr => 'val) => 'val list";
+  exec :: "(('adr, 'val) instr) list
+    => 'val list => ('adr => 'val) => 'val list";
 
 primrec
   "exec [] stack env = stack"
@@ -45,7 +46,8 @@ primrec
     (case instr of
       Const c => exec instrs (c # stack) env
     | Load x => exec instrs (env x # stack) env
-    | Apply f => exec instrs (f (hd stack) (hd (tl stack)) # (tl (tl stack))) env)";
+    | Apply f => exec instrs (f (hd stack) (hd (tl stack))
+                   # (tl (tl stack))) env)";
 
 constdefs
   execute :: "(('adr, 'val) instr) list => ('adr => 'val) => 'val"
@@ -55,8 +57,8 @@ constdefs
 subsection {* Expressions *};
 
 text {*
- We introduce a simple language of expressions: variables ---
- constants --- binary operations.
+ We introduce a simple language of expressions: variables, constants,
+ binary operations.
 *};
 
 datatype ('adr, 'val) expr =

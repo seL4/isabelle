@@ -9,6 +9,7 @@ header {* Basic reasoning *};
 
 theory BasicLogic = Main:;
 
+
 subsection {* Some trivialities *};
 
 text {* Just a few toy examples to get an idea of how Isabelle/Isar
@@ -62,7 +63,8 @@ proof;
   qed;
 qed;
 
-text {* Variations of backward vs.\ forward reasoning \dots *};
+
+subsection {* Variations of backward vs.\ forward reasoning \dots *};
 
 lemma "A & B --> B & A";
 proof;

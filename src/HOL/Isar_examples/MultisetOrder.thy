@@ -8,9 +8,12 @@ Original tactic script by Tobias Nipkow (see also
 HOL/Induct/Multiset).  Pen-and-paper proof by Wilfried Buchholz.
 *)
 
+header {* Wellfoundedness of multiset ordering *};
 
 theory MultisetOrder = Multiset:;
 
+
+subsection {* A technical lemma *};
 
 lemma less_add: "(N, M0 + {#a#}) : mult1 r ==>
     (EX M. (M, M0) : mult1 r & N = M + {#a#}) |
@@ -47,11 +50,12 @@ proof (unfold mult1_def);
 qed;
 
 
+subsection {* The key property *};
+
 lemma all_accessible: "wf r ==> ALL M. M : acc (mult1 r)";
 proof;
   let ?R = "mult1 r";
   let ?W = "acc ?R";
-
 
   {{;
     fix M M0 a;
@@ -97,7 +101,6 @@ proof;
     qed;
   }}; note tedious_reasoning = this;
 
-
   assume wf: "wf r";
   fix M;
   show "M : ?W";
@@ -123,11 +126,12 @@ proof;
 qed;
 
 
+subsection {* Main result *};
+
 theorem wf_mult1: "wf r ==> wf (mult1 r)";
   by (rule acc_wfI, rule all_accessible);
 
 theorem wf_mult: "wf r ==> wf (mult r)";
   by (unfold mult_def, rule wf_trancl, rule wf_mult1);
-
 
 end;

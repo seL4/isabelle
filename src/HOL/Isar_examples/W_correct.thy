@@ -6,22 +6,25 @@ Correctness of Milner's type inference algorithm W (let-free version).
 Based upon HOL/W0 by Dieter Nazareth and Tobias Nipkow.
 *)
 
+header {* Correctness of Milner's type inference algorithm~W (let-free version) *};
+
 theory W_correct = Main + Type:;
 
 
-section "Mini ML with type inference rules";
+subsection "Mini ML with type inference rules";
 
 datatype
   expr = Var nat | Abs expr | App expr expr;
 
 
-text {* type inference rules *};
+text {* Type inference rules. *};
 
 consts
   has_type :: "(typ list * expr * typ) set";
 
 syntax
-  "@has_type" :: "[typ list, expr, typ] => bool"  ("((_) |-/ (_) :: (_))" [60, 0, 60] 60);
+  "@has_type" :: "[typ list, expr, typ] => bool"
+    ("((_) |-/ (_) :: (_))" [60, 0, 60] 60);
 translations
   "a |- e :: t" == "(a,e,t) : has_type";
 
@@ -32,6 +35,8 @@ inductive has_type
     AppI: "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |]
               ==> a |- App e1 e2 :: t1";
 
+text {* Type assigment is close wrt.\ substitution. *};
+
 lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t";
 proof -;
   assume "a |- e :: t";
@@ -40,15 +45,18 @@ proof -;
     fix a n;
     assume "n < length a";
     hence "n < length (map ($ s) a)"; by simp;
-    hence "map ($ s) a |- Var n :: map ($ s) a ! n"; by (rule has_type.VarI);
+    hence "map ($ s) a |- Var n :: map ($ s) a ! n";
+      by (rule has_type.VarI);
     also; have "map ($ s) a ! n = $ s (a ! n)"; by (rule nth_map);
     also; have "map ($ s) a = $ s a"; by (simp only: app_subst_list);   (* FIXME unfold fails!? *)
     finally; show "?P a (Var n) (a ! n)"; .;
   next;
     fix a e t1 t2;
     assume "?P (t1 # a) e t2";
-    hence "$ s t1 # map ($ s) a |- e :: $ s t2"; by (simp add: app_subst_list);
-    hence "map ($ s) a |- Abs e :: $ s t1 -> $ s t2"; by (rule has_type.AbsI);
+    hence "$ s t1 # map ($ s) a |- e :: $ s t2";
+      by (simp add: app_subst_list);
+    hence "map ($ s) a |- Abs e :: $ s t1 -> $ s t2";
+      by (rule has_type.AbsI);
     thus "?P a (Abs e) (t1 -> t2)"; by (simp add: app_subst_list);
   next;
     fix a e1 e2 t1 t2;
@@ -58,7 +66,7 @@ proof -;
 qed;
 
 
-section {* Type inference algorithm W *};
+subsection {* Type inference algorithm W *};
 
 consts
   W :: "[expr, typ list, nat] => (subst * typ * nat) maybe";
@@ -76,13 +84,16 @@ primrec
        Ok ($u o $s2 o s1, $u (TVar m2), Suc m2))";
 
 
+subsection {* Correctness theorem *};
+
 (* FIXME proper split att/mod *)
 ML_setup {* Addsplits [split_bind]; *};
 
 theorem W_correct: "W e a n = Ok (s, t, m) ==> $ s a |- e :: t";
 proof -;
   assume W_ok: "W e a n = Ok (s, t, m)";
-  have "ALL a s t m n . Ok (s, t, m) = W e a n --> $ s a |- e :: t" (is "?P e");
+  have "ALL a s t m n . Ok (s, t, m) = W e a n --> $ s a |- e :: t"
+    (is "?P e");
   proof (induct e);
     fix n; show "?P (Var n)"; by simp;
   next;
@@ -91,7 +102,8 @@ proof -;
     proof (intro allI impI);
       fix a s t m n;
       assume "Ok (s, t, m) = W (Abs e) a n";
-      hence "EX t'. t = s n -> t' & Ok (s, t', m) = W e (TVar n # a) (Suc n)";
+      hence "EX t'. t = s n -> t' &
+          Ok (s, t', m) = W e (TVar n # a) (Suc n)";
         by (rule rev_mp) simp;
       with hyp; show "$ s a |- Abs e :: t";
         by (force intro: has_type.AbsI);
@@ -116,7 +128,8 @@ proof -;
           and W2_ok: "W e2 ($ s1 a) n1 = Ok (s2, t2, n2)";
         show ?thesis;
         proof (rule has_type.AppI);
-          from s; have s': "$ u ($ s2 ($ s1 a)) = $s a"; by (simp add: subst_comp_tel o_def);
+          from s; have s': "$ u ($ s2 ($ s1 a)) = $s a";
+            by (simp add: subst_comp_tel o_def);
           show "$s a |- e1 :: $ u t2 -> t";
           proof -;
             from hyp1 W1_ok [RS sym]; have "$ s1 a |- e1 :: t1"; by blast;
@@ -126,7 +139,8 @@ proof -;
           qed;
           show "$ s a |- e2 :: $ u t2";
           proof -;
-            from hyp2 W2_ok [RS sym]; have "$ s2 ($ s1 a) |- e2 :: t2"; by blast;
+            from hyp2 W2_ok [RS sym]; have "$ s2 ($ s1 a) |- e2 :: t2";
+              by blast;
             hence "$ u ($ s2 ($ s1 a)) |- e2 :: $ u t2";
               by (rule has_type_subst_closed);
             with s'; show ?thesis; by simp;
@@ -137,6 +151,5 @@ proof -;
   qed;
   with W_ok [RS sym]; show ?thesis; by blast;
 qed;
-
 
 end;

@@ -5,16 +5,20 @@
 Typical textbook proof example.
 *)
 
+header {* Textbook-style reasoning: the Knaster-Tarski Theorem *};
 
 theory KnasterTarski = Main:;
+
+
+subsection {* Prose version *};
 
 text {*
  According to the book ``Introduction to Lattices and Order'' (by
  B. A. Davey and H. A. Priestley, CUP 1990), the Knaster-Tarski
- fixpoint theorem is as follows (pages 93--94).  Note that we have
- dualized their argument, and tuned the notation a little bit.
+ fixpoint theorem is as follows (pages 93--94).\footnote{We have
+ dualized their argument, and tuned the notation a little bit.}
 
- \paragraph{The Knaster-Tarski Fixpoint Theorem.}  Let $L$ be a
+ \medskip \textbf{The Knaster-Tarski Fixpoint Theorem.}  Let $L$ be a
  complete lattice and $f \colon L \to L$ an order-preserving map.
  Then $\bigwedge \{ x \in L \mid f(x) \le x \}$ is a fixpoint of $f$.
 
@@ -27,9 +31,12 @@ text {*
  \le f(a)$.
 *};
 
+
+subsection {* Formal version *};
+
 text {*
- Our proof below closely follows this presentation.  Virtually all of
- the prose narration has been rephrased in terms of formal Isar
+ Our proof below closely follows the original presentation.  Virtually
+ all of the prose narration has been rephrased in terms of formal Isar
  language elements.  Just as many textbook-style proofs, there is a
  strong bias towards forward reasoning, and little hierarchical
  structure.
@@ -61,6 +68,5 @@ proof;
     thus "?a <= f ?a"; by (rule Inter_lower);
   qed;
 qed;
-
 
 end;

@@ -71,11 +71,11 @@ proof -;
 qed;
 
 text {*
- There are only two Isar language elements for calculational proofs:
- \isakeyword{also} for initial or intermediate calculational steps,
- and \isakeyword{finally} for building the result of a calculation.
- These constructs are not hardwired into Isabelle/Isar, but defined on
- top of the basic Isar/VM interpreter.  Expanding the
+ \bigskip There are only two Isar language elements for calculational
+ proofs: \isakeyword{also} for initial or intermediate calculational
+ steps, and \isakeyword{finally} for building the result of a
+ calculation.  These constructs are not hardwired into Isabelle/Isar,
+ but defined on top of the basic Isar/VM interpreter.  Expanding the
  \isakeyword{also} and \isakeyword{finally} derived language elements,
  calculations may be simulated as demonstrated below.
 
@@ -117,7 +117,7 @@ proof -;
 qed;
 
 
-subsection {* Groups and monoids *};
+subsection {* Groups as monoids *};
 
 text {*
   Monoids are usually defined like this.
