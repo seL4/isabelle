@@ -482,8 +482,6 @@ val proto_pure =
   |> Theory.add_nonterminals Syntax.pure_nonterms
   |> Theory.add_syntax Syntax.pure_syntax
   |> Theory.add_modesyntax (Symbol.xsymbolsN, true) Syntax.pure_xsym_syntax
-  |> Theory.add_trfuns Syntax.pure_trfuns
-  |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Theory.add_syntax
    [("==>", "[prop, prop] => prop", Delimfix "op ==>"),
     (Term.dummy_patternN, "aprop", Delimfix "'_")]
@@ -497,6 +495,8 @@ val proto_pure =
     (Term.dummy_patternN, "'a", Delimfix "'_")]
   |> Theory.add_modesyntax ("", false)
     (Syntax.pure_syntax_output @ Syntax.pure_appl_syntax)
+  |> Theory.add_trfuns Syntax.pure_trfuns
+  |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> local_path
   |> (#1 oo (add_defs false o map Thm.no_attributes))
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})")]
