@@ -4,33 +4,9 @@
     Copyright   1998  University of Cambridge
 
 Specification of Chandy and Charpentier's Allocator
-
-CONSIDER CHANGING "sum" to work on type "int", not "nat"
-  --then can use subtraction in spec (1),
-  --but need invariants that values are non-negative
 *)
 
-Alloc = Follows + PPROD +
-
-(*Duplicated from HOL/ex/NatSum.thy.
-  Maybe type should be  [nat=>int, nat] => int**)
-consts sum     :: [nat=>nat, nat] => nat
-primrec 
-  "sum f 0 = 0"
-  "sum f (Suc n) = f(n) + sum f n"
-
-
-(*This function merely sums the elements of a list*)
-consts tokens     :: nat list => nat
-primrec 
-  "tokens [] = 0"
-  "tokens (x#xs) = x + tokens xs"
-
-
-consts
-  NbT      :: nat       (*Number of tokens in system*)
-  Nclients :: nat       (*Number of clients*)
-
+Alloc = AllocBase + PPROD +
 
 (** State definitions.  OUTPUT variables are locals **)
 
@@ -76,12 +52,12 @@ constdefs
   (*spec (1)*)
   system_safety :: 'a systemState program set
     "system_safety ==
-     Always {s. sum (%i. (tokens o giv o sub i o client) s) Nclients
-	        <= NbT + sum (%i. (tokens o rel o sub i o client) s) Nclients}"
+     Always {s. sum_below (%i. (tokens o giv o sub i o client) s) Nclients
+        <= NbT + sum_below (%i. (tokens o rel o sub i o client) s) Nclients}"
 
   (*spec (2)*)
   system_progress :: 'a systemState program set
-    "system_progress == INT i : lessThan Nclients.
+    "system_progress == INT i : {x. x<Nclients}.
 			INT h. 
 			  {s. h <= (ask o sub i o client)s} LeadsTo
 			  {s. h pfixLe (giv o sub i o client) s}"
@@ -126,31 +102,31 @@ constdefs
     "alloc_increasing ==
 	 UNIV
          guarantees[allocGiv]
-	 (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
+	 (INT i : {x. x<Nclients}. Increasing (sub i o allocGiv))"
 
   (*spec (7)*)
   alloc_safety :: 'a allocState_u program set
     "alloc_safety ==
-	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
+	 (INT i : {x. x<Nclients}. Increasing (sub i o allocRel))
          guarantees[allocGiv]
-	 Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients
-	         <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}"
+	 Always {s. sum_below (%i. (tokens o sub i o allocGiv) s) Nclients
+	      <= NbT + sum_below (%i. (tokens o sub i o allocRel) s) Nclients}"
 
   (*spec (8)*)
   alloc_progress :: 'a allocState_u program set
     "alloc_progress ==
-	 (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
+	 (INT i : {x. x<Nclients}. Increasing (sub i o allocAsk) Int
 	                             Increasing (sub i o allocRel))
          Int
-         Always {s. ALL i : lessThan Nclients.
-		     ALL elt : set ((sub i o allocAsk) s). elt <= NbT}
+         Always {s. ALL i. i<Nclients -->
+		     (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}
          Int
-         (INT i : lessThan Nclients. 
+         (INT i : {x. x<Nclients}. 
 	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
 		 LeadsTo
 	         {s. tokens h <= (tokens o sub i o allocRel)s})
          guarantees[allocGiv]
-	     (INT i : lessThan Nclients.
+	     (INT i : {x. x<Nclients}.
 	      INT h. {s. h <= (sub i o allocAsk) s}
 	             LeadsTo
 	             {s. h pfixLe (sub i o allocGiv) s})"
@@ -168,21 +144,21 @@ constdefs
 
   (*spec (9.1)*)
   network_ask :: 'a systemState program set
-    "network_ask == INT i : lessThan Nclients.
+    "network_ask == INT i : {x. x<Nclients}.
 			Increasing (ask o sub i o client)
 			guarantees[allocAsk]
 			((sub i o allocAsk) Fols (ask o sub i o client))"
 
   (*spec (9.2)*)
   network_giv :: 'a systemState program set
-    "network_giv == INT i : lessThan Nclients.
+    "network_giv == INT i : {x. x<Nclients}.
 			Increasing (sub i o allocGiv)
 			guarantees[giv o sub i o client]
 			((giv o sub i o client) Fols (sub i o allocGiv))"
 
   (*spec (9.3)*)
   network_rel :: 'a systemState program set
-    "network_rel == INT i : lessThan Nclients.
+    "network_rel == INT i : {x. x<Nclients}.
 			Increasing (rel o sub i o client)
 			guarantees[allocRel]
 			((sub i o allocRel) Fols (rel o sub i o client))"
@@ -190,7 +166,7 @@ constdefs
   (*spec: preserves part*)
     network_preserves :: 'a systemState program set
     "network_preserves == preserves allocGiv  Int
-                          (INT i : lessThan Nclients.
+                          (INT i : {x. x<Nclients}.
                            preserves (funPair rel ask o sub i o client))"
   
   network_spec :: 'a systemState program set
@@ -230,7 +206,7 @@ defs
     System_def
       "System == rename sysOfAlloc Alloc Join Network Join
                  (rename sysOfClient
-		  (plam x: lessThan Nclients. rename client_map Client))"
+		  (plam x: {x. x<Nclients}. rename client_map Client))"
 
 
 (**
@@ -253,7 +229,7 @@ locale System =
                  Network
                  Join
                  (rename sysOfClient
-		  (plam x: lessThan Nclients. rename client_map Client))"
+		  (plam x: {x. x<Nclients}. rename client_map Client))"
 **)
 
 

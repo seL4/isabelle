@@ -40,23 +40,6 @@ fun normalize th =
      handle THM _ => th;
 
 
-Goal "(ALL i: lessThan n. f i <= g i) --> sum f n <= sum g n";
-by (induct_tac "n" 1);
-by Auto_tac;
-by (dres_inst_tac [("x","n")] bspec 1);
-by Auto_tac;
-by (arith_tac 1);
-qed_spec_mp "sum_mono";
-
-Goal "ALL xs. xs <= ys --> tokens xs <= tokens ys";
-by (induct_tac "ys" 1);
-by (auto_tac (claset(), simpset() addsimps [prefix_Cons]));
-qed_spec_mp "tokens_mono_prefix";
-
-Goalw [mono_def] "mono tokens";
-by (blast_tac (claset() addIs [tokens_mono_prefix]) 1);
-qed "mono_tokens";
-
 
 (*** bijectivity of sysOfAlloc [MUST BE AUTOMATED] ***)
 
@@ -274,20 +257,20 @@ AddIffs (Alloc_preserves |> simplify (simpset()) |> list_of_Int);
 
 Goal "Network Join \
 \     ((rename sysOfClient \
-\       (plam x: lessThan Nclients. rename client_map Client)) Join \
+\       (plam x: {x. x<Nclients}. rename client_map Client)) Join \
 \      rename sysOfAlloc Alloc) \
 \     = System";
 by (simp_tac (simpset() addsimps System_def::Join_ac) 1);
 qed "Network_component_System";
 
 Goal "(rename sysOfClient \
-\      (plam x: lessThan Nclients. rename client_map Client)) Join \
+\      (plam x: {x. x<Nclients}. rename client_map Client)) Join \
 \     (Network Join rename sysOfAlloc Alloc)  =  System";
 by (simp_tac (simpset() addsimps System_def::Join_ac) 1);
 qed "Client_component_System";
 
 Goal "rename sysOfAlloc Alloc Join \
-\      ((rename sysOfClient (plam x: lessThan Nclients. rename client_map Client)) Join \
+\      ((rename sysOfClient (plam x: {x. x<Nclients}. rename client_map Client)) Join \
 \       Network)  =  System";
 by (simp_tac (simpset() addsimps System_def::Join_ac) 1);
 qed "Alloc_component_System";
@@ -399,19 +382,19 @@ by (auto_tac
      simpset()));
 qed "System_Follows_allocGiv";
 
-Goal "System : Always (INT i: lessThan Nclients. \
+Goal "System : Always (INT i: {x. x<Nclients}. \
 \                      {s. (giv o sub i o client) s <= (sub i o allocGiv) s})";
 by Auto_tac;
 by (etac (System_Follows_allocGiv RS Follows_Bounded) 1);
 qed "Always_giv_le_allocGiv";
 
-Goal "System : Always (INT i: lessThan Nclients. \
+Goal "System : Always (INT i: {x. x<Nclients}. \
 \                      {s. (sub i o allocAsk) s <= (ask o sub i o client) s})";
 by Auto_tac;
 by (etac (System_Follows_ask RS Follows_Bounded) 1);
 qed "Always_allocAsk_le_ask";
 
-Goal "System : Always (INT i: lessThan Nclients. \
+Goal "System : Always (INT i: {x. x<Nclients}. \
 \                      {s. (sub i o allocRel) s <= (rel o sub i o client) s})";
 by (auto_tac (claset() addSIs [Follows_Bounded, System_Follows_rel], 
 	      simpset()));
@@ -433,8 +416,9 @@ val rename_Alloc_Safety =
      |> simplify (simpset() addsimps [o_def]);
 
 (*safety (1), step 3*)
-Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
-\                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
+Goal
+  "System : Always {s. sum_below (%i. (tokens o sub i o allocGiv) s) Nclients \
+\           <= NbT + sum_below (%i. (tokens o sub i o allocRel) s) Nclients}";
 by (simp_tac (simpset() addsimps [o_apply]) 1);
 by (rtac (rename_Alloc_Safety RS component_guaranteesD) 1);
 by (auto_tac (claset(), 
@@ -444,7 +428,7 @@ qed "System_sum_bounded";
 
 (** Follows reasoning **)
 
-Goal "System : Always (INT i: lessThan Nclients. \
+Goal "System : Always (INT i: {x. x<Nclients}. \
 \                         {s. (tokens o giv o sub i o client) s \
 \                          <= (tokens o sub i o allocGiv) s})";
 by (rtac (Always_giv_le_allocGiv RS Always_weaken) 1);
@@ -452,7 +436,7 @@ by (auto_tac (claset() addIs [tokens_mono_prefix],
 	      simpset() addsimps [o_apply]));
 qed "Always_tokens_giv_le_allocGiv";
 
-Goal "System : Always (INT i: lessThan Nclients. \
+Goal "System : Always (INT i: {x. x<Nclients}. \
 \                         {s. (tokens o sub i o allocRel) s \
 \                          <= (tokens o rel o sub i o client) s})";
 by (rtac (Always_allocRel_le_rel RS Always_weaken) 1);
@@ -504,11 +488,15 @@ by (rtac ([rename_Client_Bounded,
 by Auto_tac;
 qed "System_Bounded_ask";
 
+Goal "{x. ALL y. P y --> Q x y} = (INT y: {y. P y}. {x. Q x y})";
+by (Blast_tac 1);
+qed "Collect_all_imp_eq";
+
 (*progress (2), step 4*)
-Goal "System : Always {s. ALL i : lessThan Nclients. \
-\                          ALL elt : set ((sub i o allocAsk) s). elt <= NbT}";
+Goal "System : Always {s. ALL i. i<Nclients --> \
+\                         (ALL elt : set ((sub i o allocAsk) s). elt <= NbT)}";
 by (auto_tac (claset(), 
-	      simpset() addsimps [Collect_ball_eq]));
+	      simpset() addsimps [Collect_all_imp_eq]));
 by (rtac (Always_Int_rule [Always_allocAsk_le_ask, System_Bounded_ask] 
     RS Always_weaken) 1);
 by (auto_tac (claset() addDs [set_mono], simpset()));
@@ -537,7 +525,7 @@ qed "rename_Client_Progress";
 
 (*progress (2), step 7*)
 Goal
- "System : (INT i : lessThan Nclients. \
+ "System : (INT i : {x. x<Nclients}. \
 \           INT h. {s. h <= (giv o sub i o client) s & \
 \                      h pfixGe (ask o sub i o client) s}  \
 \               LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})";
@@ -600,7 +588,7 @@ val rename_Alloc_Progress =
 
 (*progress (2), step 9*)
 Goal
- "System : (INT i : lessThan Nclients. \
+ "System : (INT i : {x. x<Nclients}. \
 \           INT h. {s. h <= (sub i o allocAsk) s}  \
 \                  LeadsTo {s. h pfixLe (sub i o allocGiv) s})";
 (*Can't use simpset(): the "INT h" must be kept*)
