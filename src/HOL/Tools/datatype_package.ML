@@ -231,16 +231,12 @@ val opt_rule = Scan.option (rule_spec |-- Attrib.local_thm);
 
 val varss = Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift Args.name_dummy)));
 
-fun tactic_syntax args tac =
-  #2 oo Method.syntax (Args.goal_spec HEADGOAL -- (args -- opt_rule) >>
-    (fn (quant, x) => Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac x))));
-
 in
 
 val tactic_emulations =
- [("induct_tac", tactic_syntax varss gen_induct_tac,
+ [("induct_tac", Method.goal_args' (varss -- opt_rule) gen_induct_tac,
     "induct_tac emulation (dynamic instantiation!)"),
-  ("case_tac", tactic_syntax (Scan.lift Args.name) gen_case_tac,
+  ("case_tac", Method.goal_args' (Scan.lift Args.name -- opt_rule) gen_case_tac,
     "case_tac emulation (dynamic instantiation!)")];
 
 end;
