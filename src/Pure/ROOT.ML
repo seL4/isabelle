@@ -7,7 +7,7 @@ Root file for Pure Isabelle.
 *)
 
 val banner = "Pure Isabelle";
-val version = "Isabelle repository version";    (*filled in automatically!*)
+val version = "Isabelle repository";
 
 print_depth 1;
 
@@ -38,10 +38,10 @@ use "logic.ML";
 use "theory.ML";
 use "theory_data.ML";
 use "context.ML";
+use "proofterm.ML";
 use "thm.ML";
 use "display.ML";
 use "pure_thy.ML";
-use "deriv.ML";
 use "drule.ML";
 use "meta_simplifier.ML";
 use "locale.ML";
@@ -50,6 +50,14 @@ use "search.ML";
 use "tactic.ML";
 use "goals.ML";
 
+(*proof term operations*)
+cd "Proof";
+use "reconstruct.ML";
+use "proof_syntax.ML";
+use "proof_rewrite_rules.ML";
+use "proofchecker.ML";
+cd "..";
+
 (*theory system operations*)
 cd "Thy"; use "ROOT.ML"; cd "..";
 
@@ -57,6 +65,9 @@ cd "Thy"; use "ROOT.ML"; cd "..";
 cd "Isar"; use "ROOT.ML"; cd "..";
 
 use "axclass.ML";
+
+(*code generator*)
+use "codegen.ML";
 
 (*external interfaces*)
 cd "Interface"; use "ROOT.ML"; cd "..";
@@ -82,3 +93,4 @@ val cd = File.cd o Path.unpack;
 
 print_depth 8;
 ml_prompts "ML> " "ML# ";
+
