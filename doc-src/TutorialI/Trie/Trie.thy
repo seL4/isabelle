@@ -7,7 +7,7 @@ letters to subtries. We have chosen a (sometimes) more space efficient
 representation where the subtries are held in an association list, i.e.\ a
 list of (letter,trie) pairs.  Abstracting over the alphabet \isa{'a} and the
 values \isa{'v} we define a trie as follows:
-*}
+*};
 
 datatype ('a,'v)trie = Trie  "'v option"  "('a * ('a,'v)trie)list";
 
@@ -16,7 +16,7 @@ The first component is the optional value, the second component the
 association list of subtries.  This is an example of nested recursion involving products,
 which is fine because products are datatypes as well.
 We define two selector functions:
-*}
+*};
 
 consts value :: "('a,'v)trie \\<Rightarrow> 'v option"
        alist :: "('a,'v)trie \\<Rightarrow> ('a * ('a,'v)trie)list";
@@ -25,7 +25,7 @@ primrec "alist(Trie ov al) = al";
 
 text{*\noindent
 Association lists come with a generic lookup function:
-*}
+*};
 
 consts   assoc :: "('key * 'val)list \\<Rightarrow> 'key \\<Rightarrow> 'val option";
 primrec "assoc [] x = None"
@@ -37,7 +37,7 @@ Now we can define the lookup function for tries. It descends into the trie
 examining the letters of the search string one by one. As
 recursion on lists is simpler than on tries, let us express this as primitive
 recursion on the search string argument:
-*}
+*};
 
 consts   lookup :: "('a,'v)trie \\<Rightarrow> 'a list \\<Rightarrow> 'v option";
 primrec "lookup t [] = value t"
@@ -49,16 +49,16 @@ text{*
 As a first simple property we prove that looking up a string in the empty
 trie \isa{Trie~None~[]} always returns \isa{None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:
-*}
+*};
 
 lemma [simp]: "lookup (Trie None []) as = None";
-apply(case_tac as, auto).;
+by(case_tac as, auto);
 
 text{*
 Things begin to get interesting with the definition of an update function
 that adds a new (string,value) pair to a trie, overwriting the old value
 associated with that string:
-*}
+*};
 
 consts update :: "('a,'v)trie \\<Rightarrow> 'a list \\<Rightarrow> 'v \\<Rightarrow> ('a,'v)trie";
 primrec
@@ -79,7 +79,7 @@ optimizations!
 Before we start on any proofs about \isa{update} we tell the simplifier to
 expand all \isa{let}s and to split all \isa{case}-constructs over
 options:
-*}
+*};
 
 theorems [simp] = Let_def;
 theorems [split] = option.split;
@@ -91,7 +91,7 @@ attempt) at the body of \isa{update}: it contains both
 
 Our main goal is to prove the correct interaction of \isa{update} and
 \isa{lookup}:
-*}
+*};
 
 theorem "\\<forall>t v bs. lookup (update t as v) bs =
                     (if as=bs then Some v else lookup t bs)";
@@ -104,7 +104,7 @@ guided by the intuition that simplification of \isa{lookup} might be easier
 if \isa{update} has already been simplified, which can only happen if
 \isa{as} is instantiated.
 The start of the proof is completely conventional:
-*}
+*};
 
 apply(induct_tac as, auto);
 
@@ -118,10 +118,10 @@ Unfortunately, this time we are left with three intimidating looking subgoals:
 Clearly, if we want to make headway we have to instantiate \isa{bs} as
 well now. It turns out that instead of induction, case distinction
 suffices:
-*}
+*};
 
 apply(case_tac[!] bs);
-apply(auto).;
+by(auto);
 
 text{*\noindent
 Both \isaindex{case_tac} and \isaindex{induct_tac}
@@ -136,8 +136,8 @@ brittle) magic of \isa{auto} (after the induction) to split the remaining
 goals up in such a way that case distinction on \isa{bs} makes sense and
 solves the proof. Part~\ref{Isar} shows you how to write readable and stable
 proofs.
-*}
+*};
 
 (*<*)
-end
+end;
 (*>*)

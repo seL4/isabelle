@@ -79,9 +79,9 @@ A final alternative is to replace the offending simplification rules by
 derived conditional ones. For \isa{gcd} it means we have to prove%
 \end{isamarkuptext}%
 \isacommand{lemma}~[simp]:~{"}gcd~(m,~0)~=~m{"}\isanewline
-\isacommand{apply}(simp)\isacommand{.}\isanewline
+\isacommand{by}(simp)\isanewline
 \isacommand{lemma}~[simp]:~{"}n~{\isasymnoteq}~0~{\isasymLongrightarrow}~gcd(m,~n)~=~gcd(n,~m~mod~n){"}\isanewline
-\isacommand{apply}(simp)\isacommand{.}%
+\isacommand{by}(simp)%
 \begin{isamarkuptext}%
 \noindent
 after which we can disable the original simplification rule:%

@@ -94,14 +94,14 @@ base cases. In the induction step, simplification leaves us with a formula
 that contains two \isa{case}-expressions over instructions. Thus we add
 automatic case splitting as well, which finishes the proof:%
 \end{isamarkuptxt}%
-\isacommand{apply}(induct\_tac~xs,~simp,~simp~split:~instr.split)\isacommand{.}%
+\isacommand{by}(induct\_tac~xs,~simp,~simp~split:~instr.split)%
 \begin{isamarkuptext}%
 \noindent
 Note that because \isaindex{auto} performs simplification, it can
 also be modified in the same way \isa{simp} can. Thus the proof can be
 rewritten as%
 \end{isamarkuptext}%
-\isacommand{apply}(induct\_tac~xs,~auto~split:~instr.split)\isacommand{.}%
+\isacommand{by}(induct\_tac~xs,~auto~split:~instr.split)%
 \begin{isamarkuptext}%
 \noindent
 Although this is more compact, it is less clear for the reader of the proof.

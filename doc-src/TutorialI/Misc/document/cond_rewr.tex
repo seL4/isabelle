@@ -5,7 +5,7 @@ So far all examples of rewrite rules were equations. The simplifier also
 accepts \emph{conditional} equations, for example%
 \end{isamarkuptext}%
 \isacommand{lemma}~hd\_Cons\_tl[simp]:~{"}xs~{\isasymnoteq}~[]~~{\isasymLongrightarrow}~~hd~xs~\#~tl~xs~=~xs{"}\isanewline
-\isacommand{apply}(case\_tac~xs,~simp,~simp)\isacommand{.}%
+\isacommand{by}(case\_tac~xs,~simp,~simp)%
 \begin{isamarkuptext}%
 \noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a

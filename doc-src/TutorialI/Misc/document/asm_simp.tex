@@ -5,7 +5,7 @@ By default, assumptions are part of the simplification process: they are used
 as simplification rules and are simplified themselves. For example:%
 \end{isamarkuptext}%
 \isacommand{lemma}~{"}{\isasymlbrakk}~xs~@~zs~=~ys~@~xs;~[]~@~xs~=~[]~@~[]~{\isasymrbrakk}~{\isasymLongrightarrow}~ys~=~zs{"}\isanewline
-\isacommand{apply}~simp\isacommand{.}%
+\isacommand{by}~simp%
 \begin{isamarkuptext}%
 \noindent
 The second assumption simplifies to \isa{xs = []}, which in turn
@@ -24,7 +24,7 @@ does not terminate. Isabelle notices certain simple forms of
 nontermination but not this one. The problem can be circumvented by
 explicitly telling the simplifier to ignore the assumptions:%
 \end{isamarkuptxt}%
-\isacommand{apply}(simp~(no\_asm))\isacommand{.}%
+\isacommand{by}(simp~(no\_asm))%
 \begin{isamarkuptext}%
 \noindent
 There are three options that influence the treatment of assumptions:

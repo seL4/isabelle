@@ -101,7 +101,7 @@ txt{*\noindent
 The resulting 8 goals (one for each constructor) are proved in one fell swoop:
 *}
 
-apply auto.;
+by auto;
 
 text{*
 In general, given $n$ mutually recursive datatypes $\tau@1$, \dots, $\tau@n$,

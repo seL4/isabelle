@@ -84,7 +84,7 @@ The proof is canonical:
 *}
 
 apply(induct_tac b);
-apply(auto).;
+by(auto);
 
 text{*\noindent
 In fact, all proofs in this case study look exactly like this. Hence we do
@@ -127,11 +127,11 @@ lemma [simp]:
   "\\<forall>t e. valif (normif b t e) env = valif (IF b t e) env";
 (*<*)
 apply(induct_tac b);
-apply(auto).;
+by(auto);
 
 theorem "valif (norm b) env = valif b env";
 apply(induct_tac b);
-apply(auto).;
+by(auto);
 (*>*)
 text{*\noindent
 Note that the lemma does not have a name, but is implicitly used in the proof
@@ -153,14 +153,14 @@ and prove \isa{normal(norm b)}. Of course, this requires a lemma about
 normality of \isa{normif}:
 *}
 
-lemma [simp]: "\\<forall>t e. normal(normif b t e) = (normal t \\<and> normal e)";
+lemma[simp]: "\\<forall>t e. normal(normif b t e) = (normal t \\<and> normal e)";
 (*<*)
 apply(induct_tac b);
-apply(auto).;
+by(auto);
 
 theorem "normal(norm b)";
 apply(induct_tac b);
-apply(auto).;
+by(auto);
 
 end
 (*>*)

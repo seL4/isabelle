@@ -21,7 +21,7 @@ by swapping subtrees (recursively). Prove
 lemma mirror_mirror: "mirror(mirror t) = t";
 (*<*)
 apply(induct_tac t);
-apply(auto).;
+by(auto);
 
 end
 (*>*)

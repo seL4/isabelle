@@ -7,7 +7,7 @@ as simplification rules and are simplified themselves. For example:
 *}
 
 lemma "\\<lbrakk> xs @ zs = ys @ xs; [] @ xs = [] @ [] \\<rbrakk> \\<Longrightarrow> ys = zs";
-apply simp.;
+by simp;
 
 text{*\noindent
 The second assumption simplifies to \isa{xs = []}, which in turn
@@ -28,7 +28,7 @@ nontermination but not this one. The problem can be circumvented by
 explicitly telling the simplifier to ignore the assumptions:
 *}
 
-apply(simp (no_asm)).;
+by(simp (no_asm));
 
 text{*\noindent
 There are three options that influence the treatment of assumptions:

@@ -74,7 +74,7 @@ value of its argument:%
 The proof is canonical:%
 \end{isamarkuptxt}%
 \isacommand{apply}(induct\_tac~b)\isanewline
-\isacommand{apply}(auto)\isacommand{.}%
+\isacommand{by}(auto)%
 \begin{isamarkuptext}%
 \noindent
 In fact, all proofs in this case study look exactly like this. Hence we do
@@ -131,7 +131,7 @@ the above sense? We define a function that tests If-expressions for normality%
 and prove \isa{normal(norm b)}. Of course, this requires a lemma about
 normality of \isa{normif}:%
 \end{isamarkuptext}%
-\isacommand{lemma}~[simp]:~{"}{\isasymforall}t~e.~normal(normif~b~t~e)~=~(normal~t~{\isasymand}~normal~e){"}\end{isabelle}%
+\isacommand{lemma}[simp]:~{"}{\isasymforall}t~e.~normal(normif~b~t~e)~=~(normal~t~{\isasymand}~normal~e){"}\end{isabelle}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

@@ -5,7 +5,7 @@ theory Itrev = Main:;
 text{*
 We define a tail-recursive version of list-reversal,
 i.e.\ one that can be compiled into a loop:
-*}
+*};
 
 consts itrev :: "'a list \\<Rightarrow> 'a list \\<Rightarrow> 'a list";
 primrec
@@ -18,13 +18,13 @@ stacking its elements onto the second argument, and returning that second
 argument when the first one becomes empty.
 We need to show that \isa{itrev} does indeed reverse its first argument
 provided the second one is empty:
-*}
+*};
 
 lemma "itrev xs [] = rev xs";
 
 txt{*\noindent
 There is no choice as to the induction variable, and we immediately simplify:
-*}
+*};
 
 apply(induct_tac xs, auto);
 
@@ -42,7 +42,7 @@ hypothesis, is too weak to solve the induction step because of the fixed
 
 Of course one cannot do this na\"{\i}vely: \isa{itrev xs ys = rev xs} is
 just not true---the correct generalization is
-*}
+*};
 (*<*)oops;(*>*)
 lemma "itrev xs ys = rev xs @ ys";
 
@@ -67,7 +67,7 @@ intuition to generalize: the problem is that \isa{ys} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
 \isa{a \# ys} instead of \isa{ys}. Hence we prove the theorem
 for all \isa{ys} instead of a fixed one:
-*}
+*};
 (*<*)oops;(*>*)
 lemma "\\<forall>ys. itrev xs ys = rev xs @ ys";
 
@@ -82,9 +82,9 @@ This prevents trivial failures like the above and does not change the
 provability of the goal. Because it is not always required, and may even
 complicate matters in some cases, this heuristic is often not
 applied blindly.
-*}
+*};
 
 (*<*)
-oops;
+by(induct_tac xs, simp, simp);
 end
 (*>*)

@@ -55,7 +55,7 @@ strengthened and proved as follows:%
 \end{isamarkuptext}%
 \isacommand{lemma}~{"}subst~~Var~t~~=~(t~::('a,'b)term)~~{\isasymand}\isanewline
 ~~~~~~~~substs~Var~ts~=~(ts::('a,'b)term~list){"}\isanewline
-\isacommand{apply}(induct\_tac~t~\isakeyword{and}~ts,~auto)\isacommand{.}%
+\isacommand{by}(induct\_tac~t~\isakeyword{and}~ts,~auto)%
 \begin{isamarkuptext}%
 \noindent
 Note that \isa{Var} is the identity substitution because by definition it

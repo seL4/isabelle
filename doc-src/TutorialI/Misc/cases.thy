@@ -14,7 +14,7 @@ results in the proof state
 which is solved automatically:
 *}
 
-apply(auto).;
+by(auto);
 (**)
 (*<*)
 end

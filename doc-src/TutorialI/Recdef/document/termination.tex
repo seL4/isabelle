@@ -31,7 +31,7 @@ of your function once more. In our case the required lemma is the obvious one:%
 It was not proved automatically because of the special nature of \isa{-}
 on \isa{nat}. This requires more arithmetic than is tried by default:%
 \end{isamarkuptxt}%
-\isacommand{apply}(arith)\isacommand{.}%
+\isacommand{by}(arith)%
 \begin{isamarkuptext}%
 \noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
@@ -48,7 +48,7 @@ stated recursion equation for \isa{g} and they are simplification
 rules. Thus we can automatically prove%
 \end{isamarkuptext}%
 \isacommand{theorem}~wow:~{"}g(1,0)~=~g(1,1){"}\isanewline
-\isacommand{apply}(simp)\isacommand{.}%
+\isacommand{by}(simp)%
 \begin{isamarkuptext}%
 \noindent
 More exciting theorems require induction, which is discussed below.

@@ -43,7 +43,7 @@ In contrast to \isa{if}-expressions, the simplifier does not split
 in case of recursive datatypes. Again, if the \isa{only:} modifier is
 dropped, the above goal is solved,%
 \end{isamarkuptext}%
-\isacommand{apply}(simp~split:~list.split)\isacommand{.}%
+\isacommand{by}(simp~split:~list.split)%
 \begin{isamarkuptext}%
 \noindent%
 which \isacommand{apply}\isa{(simp)} alone will not do.

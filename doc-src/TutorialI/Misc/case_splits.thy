@@ -53,7 +53,7 @@ dropped, the above goal is solved,
 (*<*)
 lemma "(case xs of [] \\<Rightarrow> zs | y#ys \\<Rightarrow> y#(ys@zs)) = xs@zs";
 (*>*)
-apply(simp split: list.split).;
+by(simp split: list.split);
 
 text{*\noindent%
 which \isacommand{apply}\isa{(simp)} alone will not do.

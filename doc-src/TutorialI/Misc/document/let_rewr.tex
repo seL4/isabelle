@@ -1,6 +1,6 @@
 \begin{isabelle}%
 \isacommand{lemma}~{"}(let~xs~=~[]~in~xs@ys@xs)~=~ys{"}\isanewline
-\isacommand{apply}(simp~add:~Let\_def)\isacommand{.}%
+\isacommand{by}(simp~add:~Let\_def)%
 \begin{isamarkuptext}%
 If, in a particular context, there is no danger of a combinatorial explosion
 of nested \isa{let}s one could even add \isa{Let_def} permanently:%

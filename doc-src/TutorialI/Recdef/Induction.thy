@@ -41,7 +41,7 @@ clauses for \isa{sep}:
 The rest is pure simplification:
 *}
 
-apply auto.;
+by auto;
 
 text{*
 Try proving the above lemma by structural induction, and you find that you

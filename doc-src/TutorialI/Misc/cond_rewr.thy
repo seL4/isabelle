@@ -8,7 +8,7 @@ accepts \emph{conditional} equations, for example
 *}
 
 lemma hd_Cons_tl[simp]: "xs \\<noteq> []  \\<Longrightarrow>  hd xs # tl xs = xs";
-apply(case_tac xs, simp, simp).;
+by(case_tac xs, simp, simp);
 
 text{*\noindent
 Note the use of ``\ttindexboldpos{,}{$Isar}'' to string together a
@@ -20,7 +20,7 @@ is present as well,
 
 lemma "xs \\<noteq> [] \\<Longrightarrow> hd(rev xs) # tl(rev xs) = rev xs";
 (*<*)
-apply(simp).
+by(simp);
 (*>*)
 text{*\noindent
 is proved by plain simplification:

@@ -90,9 +90,9 @@ derived conditional ones. For \isa{gcd} it means we have to prove
 *}
 
 lemma [simp]: "gcd (m, 0) = m";
-apply(simp).;
+by(simp);
 lemma [simp]: "n \\<noteq> 0 \\<Longrightarrow> gcd(m, n) = gcd(n, m mod n)";
-apply(simp).;
+by(simp);
 
 text{*\noindent
 after which we can disable the original simplification rule:

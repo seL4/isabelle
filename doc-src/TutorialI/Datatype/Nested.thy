@@ -60,7 +60,7 @@ strengthened and proved as follows:
 
 lemma "subst  Var t  = (t ::('a,'b)term)  \\<and>
         substs Var ts = (ts::('a,'b)term list)";
-apply(induct_tac t and ts, auto).;
+by(induct_tac t and ts, auto);
 
 text{*\noindent
 Note that \isa{Var} is the identity substitution because by definition it
@@ -88,7 +88,7 @@ expressions as its argument: \isa{Sum "'a aexp list"}.
 (*<*)
 
 lemma "subst s (App f ts) = App f (map (subst s) ts)";
-apply(induct_tac ts, auto).;
+by(induct_tac ts, auto);
 
 end
 (*>*)

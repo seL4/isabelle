@@ -36,7 +36,7 @@ It was not proved automatically because of the special nature of \isa{-}
 on \isa{nat}. This requires more arithmetic than is tried by default:
 *}
 
-apply(arith).;
+by(arith);
 
 text{*\noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
@@ -55,7 +55,7 @@ rules. Thus we can automatically prove
 *}
 
 theorem wow: "g(1,0) = g(1,1)";
-apply(simp).;
+by(simp);
 
 text{*\noindent
 More exciting theorems require induction, which is discussed below.

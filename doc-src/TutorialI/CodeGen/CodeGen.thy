@@ -105,7 +105,7 @@ base cases. In the induction step, simplification leaves us with a formula
 that contains two \isa{case}-expressions over instructions. Thus we add
 automatic case splitting as well, which finishes the proof:
 *}
-apply(induct_tac xs, simp, simp split: instr.split).;
+by(induct_tac xs, simp, simp split: instr.split);
 
 text{*\noindent
 Note that because \isaindex{auto} performs simplification, it can
@@ -116,7 +116,7 @@ rewritten as
 lemmas [simp del] = exec_app;
 lemma [simp]: "\\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 (*>*)
-apply(induct_tac xs, auto split: instr.split).;
+by(induct_tac xs, auto split: instr.split);
 
 text{*\noindent
 Although this is more compact, it is less clear for the reader of the proof.
@@ -128,6 +128,6 @@ its instance.
 *}
 (*<*)
 theorem "\\<forall>vs. exec (comp e) s vs = (value e s) # vs";
-apply(induct_tac e, auto).;
+by(induct_tac e, auto);
 end
 (*>*)

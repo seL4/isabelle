@@ -286,7 +286,9 @@ As a result of that final dot, Isabelle associates the lemma
 just proved with its name. Notice that in the lemma \isa{app_Nil2} (as
 printed out after the final dot) the free variable \isa{xs} has been
 replaced by the unknown \isa{?xs}, just as explained in
-\S\ref{sec:variables}.
+\S\ref{sec:variables}. Note that instead of instead of \isacommand{apply}
+followed by a dot, you can simply write \isacommand{by}\indexbold{by},
+which we do most of the time.
 
 Going back to the proof of the first lemma
 *}
@@ -324,7 +326,7 @@ text_raw{*\end{comment}*}
 
 lemma app_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)";
 apply(induct_tac xs);
-apply(auto).;
+by(auto);
 
 text{*
 \noindent
@@ -335,7 +337,7 @@ Now we can go back and prove the first lemma
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
 apply(induct_tac xs);
-apply(auto).;
+by(auto);
 
 text{*\noindent
 and then solve our main theorem:
@@ -343,7 +345,7 @@ and then solve our main theorem:
 
 theorem rev_rev [simp]: "rev(rev xs) = xs";
 apply(induct_tac xs);
-apply(auto).;
+by(auto);
 
 text{*\noindent
 The final \isa{end} tells Isabelle to close the current theory because

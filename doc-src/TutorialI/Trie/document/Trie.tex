@@ -44,7 +44,7 @@ trie \isa{Trie~None~[]} always returns \isa{None}. The proof merely
 distinguishes the two cases whether the search string is empty or not:%
 \end{isamarkuptext}%
 \isacommand{lemma}~[simp]:~{"}lookup~(Trie~None~[])~as~=~None{"}\isanewline
-\isacommand{apply}(case\_tac~as,~auto)\isacommand{.}%
+\isacommand{by}(case\_tac~as,~auto)%
 \begin{isamarkuptext}%
 Things begin to get interesting with the definition of an update function
 that adds a new (string,value) pair to a trie, overwriting the old value
@@ -107,7 +107,7 @@ well now. It turns out that instead of induction, case distinction
 suffices:%
 \end{isamarkuptxt}%
 \isacommand{apply}(case\_tac[!]~bs)\isanewline
-\isacommand{apply}(auto)\isacommand{.}%
+\isacommand{by}(auto)%
 \begin{isamarkuptext}%
 \noindent
 Both \isaindex{case_tac} and \isaindex{induct_tac}
