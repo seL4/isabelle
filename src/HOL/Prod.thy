@@ -42,12 +42,20 @@ syntax
   ""        ::  pttrn         => pttrns             ("_")
   "@pttrns" :: [pttrn,pttrns] => pttrns             ("_,/_")
 
+  "@Sigma"  :: "[idt,'a set,'b set] => ('a * 'b)set"
+               ("(3SIGMA _:_./ _)" 10)
+  "@Times"  :: "['a set, 'a => 'b set] => ('a * 'b) set"
+               ("_ Times _" [81,80] 80)
+
 translations
   "(x, y, z)"   == "(x, (y, z))"
   "(x, y)"      == "Pair x y"
 
   "%(x,y,zs).b"   == "split(%x (y,zs).b)"
   "%(x,y).b"      == "split(%x y.b)"
+
+  "SIGMA x:A. B"  =>  "Sigma A (%x.B)"
+  "A Times B"     =>  "Sigma A (_K B)"
 
 defs
   Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
@@ -72,3 +80,8 @@ defs
 (* end 8bit 1 *)
 
 end
+
+ML
+
+val print_translation = [("Sigma", dependent_tr' ("@Sigma", "@Times"))];
+
