@@ -6,6 +6,9 @@
 
 Set = Ord +
 
+
+(** Core syntax **)
+
 types
   'a set
 
@@ -25,28 +28,35 @@ consts
   UNION, INTER  :: ['a set, 'a => 'b set] => 'b set     (*general*)
   UNION1        :: ['a => 'b set] => 'b set         (binder "UN " 10)
   INTER1        :: ['a => 'b set] => 'b set         (binder "INT " 10)
-  Union, Inter  :: (('a set)set) => 'a set              (*of a set*)
+  Union, Inter  :: (('a set) set) => 'a set             (*of a set*)
   Pow           :: 'a set => 'a set set                 (*powerset*)
   range         :: ('a => 'b) => 'b set                 (*of function*)
   Ball, Bex     :: ['a set, 'a => bool] => bool         (*bounded quantifiers*)
   inj, surj     :: ('a => 'b) => bool                   (*inj/surjective*)
   inj_onto      :: ['a => 'b, 'a set] => bool
   "``"          :: ['a => 'b, 'a set] => ('b set)   (infixr 90)
-     (*membership*)
-  "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50,51] 50)
+  (*membership*)
+  "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50, 51] 50)
 
+
+
+(** Additional concrete syntax **)
 
 syntax
 
-  UNIV         :: 'a set
+  "op :"        :: ['a, 'a set] => bool               ("op :")
 
-     (*infix synatx for non-membership*)
-  "op ~:"        :: ['a, 'a set] => bool             ("(_/ ~: _)" [50,51] 50)
+  UNIV          :: 'a set
 
-  "@Finset"     :: args => 'a set                   ("{(_)}")
+  (* Infix syntax for non-membership *)
 
-  "@Coll"       :: [pttrn, bool] => 'a set          ("(1{_./ _})")
-  "@SetCompr"   :: ['a, idts, bool] => 'a set       ("(1{_ |/_./ _})")
+  "op ~:"       :: ['a, 'a set] => bool               ("(_/ ~: _)" [50, 51] 50)
+  "op ~:"       :: ['a, 'a set] => bool               ("op ~:")
+
+  "@Finset"     :: args => 'a set                     ("{(_)}")
+
+  "@Coll"       :: [pttrn, bool] => 'a set            ("(1{_./ _})")
+  "@SetCompr"   :: ['a, idts, bool] => 'a set         ("(1{_ |/_./ _})")
 
   (* Big Intersection / Union *)
 
@@ -62,7 +72,7 @@ syntax
 
 translations
   "UNIV"        == "Compl {}"
-  "range(f)"    == "f``UNIV"
+  "range f"     == "f``UNIV"
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
@@ -75,6 +85,28 @@ translations
   "EX x:A. P"   => "Bex A (%x. P)"
 
 
+syntax (symbols)
+  "op Int"      :: ['a set, 'a set] => 'a set         (infixl "\\<inter>" 70)
+  "op Un"       :: ['a set, 'a set] => 'a set         (infixl "\\<union>" 65)
+  "op :"        :: ['a, 'a set] => bool               ("(_/ \\<in> _)" [50, 51] 50)
+  "op :"        :: ['a, 'a set] => bool               ("op \\<in>")
+  "op ~:"       :: ['a, 'a set] => bool               ("(_/ \\<notin> _)" [50, 51] 50)
+  "op ~:"       :: ['a, 'a set] => bool               ("op \\<notin>")
+  "UN "         :: [idts, bool] => bool               ("(3\\<Union> _./ _)" 10)
+  "INT "        :: [idts, bool] => bool               ("(3\\<Inter> _./ _)" 10)
+  "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Union> _\\<in>_./ _)" 10)
+  "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Inter> _\\<in>_./ _)" 10)
+  Union         :: (('a set) set) => 'a set           ("\\<Union> _" [90] 90)
+  Inter         :: (('a set) set) => 'a set           ("\\<Inter> _" [90] 90)
+  "@Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" 10)
+  "@Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" 10)
+  "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" 10)
+  "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" 10)
+
+
+
+(** Rules and definitions **)
+
 rules
 
   (* Isomorphisms between Predicates and Sets *)
@@ -84,6 +116,7 @@ rules
 
 
 defs
+
   Ball_def      "Ball A P       == ! x. x:A --> P(x)"
   Bex_def       "Bex A P        == ? x. x:A & P(x)"
   subset_def    "A <= B         == ! x:A. x:B"
@@ -109,6 +142,7 @@ defs
 (* end 8bit 1 *)
 
 end
+
 
 ML
 
@@ -150,4 +184,3 @@ val print_ast_translation =
   map HOL.alt_ast_tr' [("@Ball", "*Ball"), ("@Bex", "*Bex")];
 
 end;
-
