@@ -201,11 +201,11 @@ fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = None
           (if Lexicon.is_terminal s then SynExt.max_pri else p);
 
         fun xsyms_to_syms (SynExt.Delim s :: xsyms) =
-              apfst (cons_str (Symbol.output s)) (xsyms_to_syms xsyms)
+              apfst (cons_str s) (xsyms_to_syms xsyms)
           | xsyms_to_syms (SynExt.Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (SynExt.Space s :: xsyms) =
-              apfst (cons_str (Symbol.output s)) (xsyms_to_syms xsyms)
+              apfst (cons_str s) (xsyms_to_syms xsyms)
           | xsyms_to_syms (SynExt.Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
@@ -292,7 +292,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
           end
       | synT (String s :: symbs, args) =
           let val (Ts, args') = synT (symbs, args);
-          in (Pretty.str s :: Ts, args') end
+          in (Pretty.sym s :: Ts, args') end
       | synT (Block (i, bsymbs) :: symbs, args) =
           let
             val (bTs, args') = synT (bsymbs, args);
@@ -309,7 +309,7 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
             then [Block (1, String "(" :: pr @ [String ")"])]
             else pr, args))
 
-    and prefixT (_, a, [], _) = [Pretty.str a]
+    and prefixT (_, a, [], _) = [Pretty.sym a]
       | prefixT (c, _, args, p) =
           if c = Ast.Constant "_appl" orelse c = Ast.Constant "_applC" then
             error "Syntax insufficient for printing prefix applications!"
@@ -333,13 +333,13 @@ fun pretty tabs trf tokentrf type_mode curried ast0 p0 =
               else prnt prnps;
       in
         (case token_trans a args of     (*try token translation function*)
-          Some (s, len) => [Pretty.strlen s len]
+          Some (s, len) => [Pretty.strlen s len]	(* FIXME Pretty.sym (!?) *)
         | None =>			(*try print translation functions*)
             astT (trans a (trf a) args, p) handle Match => prnt (get_fmts tabs a))
       end
 
     and astT (c as Ast.Constant a, p) = combT (c, a, [], p)
-      | astT (Ast.Variable x, _) = [Pretty.str x]
+      | astT (Ast.Variable x, _) = [Pretty.sym x]
       | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) =
           combT (c, a, args, p)
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
