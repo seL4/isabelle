@@ -494,7 +494,7 @@ val imp_cong =
     val AC = read_prop "PROP A ==> PROP C"
     val A = read_prop "PROP A"
   in
-    store_standard_thm "imp_cong2" (implies_intr ABC (equal_intr
+    store_standard_thm "imp_cong" (implies_intr ABC (equal_intr
       (implies_intr AB (implies_intr A
         (equal_elim (implies_elim (assume ABC) (assume A))
           (implies_elim (assume AB) (assume A)))))
