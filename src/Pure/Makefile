@@ -22,14 +22,15 @@ BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
 	sequence.ML envir.ML pattern.ML unify.ML logic.ML thm.ML net.ML\
-	drule.ML tctical.ML tactic.ML goals.ML install_pp.ML
+	drule.ML tctical.ML tactic.ML goals.ML axclass.ML install_pp.ML
 
 SYNTAX_FILES =  Syntax/ROOT.ML	Syntax/ast.ML		Syntax/lexicon.ML\
 	Syntax/parser.ML	Syntax/type_ext.ML	Syntax/sextension.ML\
 	Syntax/pretty.ML	Syntax/printer.ML	Syntax/syntax.ML\
-	Syntax/earley0A.ML	Syntax/syn_ext.ML
+	Syntax/syn_ext.ML	Syntax/mixfix.ML
 
-THY_FILES = Thy/ROOT.ML Thy/scan.ML Thy/parse.ML Thy/thy_scan.ML Thy/thy_parse.ML Thy/thy_read.ML
+THY_FILES = Thy/ROOT.ML		Thy/thy_scan.ML		Thy/thy_parse.ML\
+	Thy/thy_syn.ML		Thy/thy_read.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/Pure:   $(FILES)  $(SYNTAX_FILES)  $(THY_FILES)  $(ML_DBASE)
