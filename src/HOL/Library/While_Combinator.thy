@@ -68,6 +68,17 @@ theorem while_unfold [code]:
 
 hide const while_aux
 
+lemma def_while_unfold: assumes fdef: "f == while test do"
+      shows "f x = (if test x then f(do x) else x)"
+proof -
+  have "f x = while test do x" using fdef by simp
+  also have "\<dots> = (if test x then while test do (do x) else x)"
+    by(rule while_unfold)
+  also have "\<dots> = (if test x then f(do x) else x)" by(simp add:fdef[symmetric])
+  finally show ?thesis .
+qed
+
+
 text {*
  The proof rule for @{term while}, where @{term P} is the invariant.
 *}

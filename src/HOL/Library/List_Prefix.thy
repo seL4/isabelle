@@ -106,6 +106,9 @@ proof -
   thus ?thesis ..
 qed
 
+lemma append_prefixD: "xs @ ys \<le> zs \<Longrightarrow> xs \<le> zs"
+by(simp add:prefix_def) blast
+
 theorem prefix_Cons: "(xs \<le> y # ys) = (xs = [] \<or> (\<exists>zs. xs = y # zs \<and> zs \<le> ys))"
   by (cases xs) (auto simp add: prefix_def)
 
@@ -128,6 +131,29 @@ lemma append_one_prefix:
 
 theorem prefix_length_le: "xs \<le> ys ==> length xs \<le> length ys"
   by (auto simp add: prefix_def)
+
+
+lemma prefix_same_cases:
+ "\<lbrakk> (xs\<^isub>1::'a list) \<le> ys; xs\<^isub>2 \<le> ys \<rbrakk> \<Longrightarrow> xs\<^isub>1 \<le> xs\<^isub>2 \<or> xs\<^isub>2 \<le> xs\<^isub>1"
+apply(simp add:prefix_def)
+apply(erule exE)+
+apply(simp add: append_eq_append_conv_if split:if_splits)
+ apply(rule disjI2)
+ apply(rule_tac x = "drop (size xs\<^isub>2) xs\<^isub>1" in exI)
+ apply clarify
+ apply(drule sym)
+ apply(insert append_take_drop_id[of "length xs\<^isub>2" xs\<^isub>1])
+ apply simp
+apply(rule disjI1)
+apply(rule_tac x = "drop (size xs\<^isub>1) xs\<^isub>2" in exI)
+apply clarify
+apply(insert append_take_drop_id[of "length xs\<^isub>1" xs\<^isub>2])
+apply simp
+done
+
+lemma set_mono_prefix:
+ "xs \<le> ys \<Longrightarrow> set xs \<subseteq> set ys"
+by(fastsimp simp add:prefix_def)
 
 
 subsection {* Parallel lists *}

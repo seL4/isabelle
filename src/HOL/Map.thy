@@ -369,6 +369,23 @@ apply(case_tac ys)
  apply(auto simp: map_upd_upds_conv_if)
 done
 
+lemma fun_upds_append_drop[simp]:
+  "!!m ys. size xs = size ys \<Longrightarrow> m(xs@zs[\<mapsto>]ys) = m(xs[\<mapsto>]ys)"
+apply(induct xs)
+ apply (simp)
+apply(case_tac ys)
+apply simp_all
+done
+
+lemma fun_upds_append2_drop[simp]:
+  "!!m ys. size xs = size ys \<Longrightarrow> m(xs[\<mapsto>]ys@zs) = m(xs[\<mapsto>]ys)"
+apply(induct xs)
+ apply (simp)
+apply(case_tac ys)
+apply simp_all
+done
+
+
 lemma restrict_map_upds[simp]: "!!m ys.
  \<lbrakk> length xs = length ys; set xs \<subseteq> D \<rbrakk>
  \<Longrightarrow> m(xs [\<mapsto>] ys)\<lfloor>D = (m\<lfloor>(D - set xs))(xs [\<mapsto>] ys)"

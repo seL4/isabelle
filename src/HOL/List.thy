@@ -362,6 +362,11 @@ lemma tl_append2 [simp]: "xs \<noteq> [] ==> tl (xs @ ys) = tl xs @ ys"
 by (simp add: tl_append split: list.split)
 
 
+lemma Cons_eq_append_conv: "x#xs = ys@zs =
+ (ys = [] & x#xs = zs | (EX ys'. x#ys' = ys & xs = ys'@zs))"
+by(cases ys) auto
+
+
 text {* Trivial rules for solving @{text "@"}-equations automatically. *}
 
 lemma eq_Nil_appendI: "xs = ys ==> xs = [] @ ys"
@@ -900,6 +905,17 @@ lemma take_add [rule_format]:
     "\<forall>i. i+j \<le> length(xs) --> take (i+j) xs = take i xs @ take j (drop i xs)"
 apply (induct xs, auto) 
 apply (case_tac i, simp_all) 
+done
+
+lemma append_eq_append_conv_if:
+ "!! ys\<^isub>1. (xs\<^isub>1 @ xs\<^isub>2 = ys\<^isub>1 @ ys\<^isub>2) =
+  (if size xs\<^isub>1 \<le> size ys\<^isub>1
+   then xs\<^isub>1 = take (size xs\<^isub>1) ys\<^isub>1 \<and> xs\<^isub>2 = drop (size xs\<^isub>1) ys\<^isub>1 @ ys\<^isub>2
+   else take (size ys\<^isub>1) xs\<^isub>1 = ys\<^isub>1 \<and> drop (size ys\<^isub>1) xs\<^isub>1 @ xs\<^isub>2 = ys\<^isub>2)"
+apply(induct xs\<^isub>1)
+ apply simp
+apply(case_tac ys\<^isub>1)
+apply simp_all
 done
 
 
