@@ -21,8 +21,6 @@ sig
   include BASIC_OUTER_SYNTAX
   type token
   type parser
-  val parser: bool -> string -> string ->
-    (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val command: string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string ->
@@ -52,9 +50,6 @@ datatype parser =
   Parser of string * string * bool * parser_fn;
 
 fun parser int_only name comment parse = Parser (name, comment, int_only, parse);
-
-val command_parser = parser false;
-val improper_command_parser = parser true;
 
 
 (* parse command *)
@@ -297,8 +292,9 @@ fun help () =
 
 
 (*final declarations of this structure!*)
-val command = command_parser;
-val improper_command = improper_command_parser;
+val command = parser false;
+val improper_command = parser true;
+
 
 end;
 
