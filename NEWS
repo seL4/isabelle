@@ -63,6 +63,9 @@ http://isabelle.in.tum.de/Isar/ for more information;
 Isabelle/Isar (the latter is slightly better supported and more
 robust);
 
+* ML function thm_deps visualizes dependencies of theorems and lemmas,
+using the graph browser tool;
+
 * Isabelle manuals now also available as PDF;
 
 * improved browser info generation: better HTML markup (including
@@ -115,9 +118,6 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 * qed (and friends) now accept "" as result name; in that case the
 result is not stored, but proper checks and presentation of the result
 still apply;
-
-* New function thm_deps for visualizing dependencies between theorems
-  (using graph browser).
 
 
 *** HOL ***
@@ -181,13 +181,10 @@ analysis for assembly languages with subtypes;
 temporal levels more uniformly; introduces INCOMPATIBILITIES due to
 changed syntax and (many) tactics;
 
-* HOL/inductive: Now also handles more complicated introduction rules
-  such as
-
-  "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
-
-  New monotonicity theorems can be added to a theory using the "mono"
-  attribute.
+* HOL/inductive: Now also handles more general introduction rules such
+  as "ALL y. (y, x) : r --> y : acc r ==> x : acc r"; monotonicity
+  theorems are now maintained within the theory (maintained via the
+  "mono" attribute);
 
 * HOL/datatype: Now also handles arbitrarily branching datatypes
   (using function types) such as
