@@ -1095,7 +1095,7 @@ fun store_thm (name, thm) =
       in case !cur_htmlfile of
              Some out =>
                (mk_theorems_title out;
-                output (out, "<EM>" ^ name ^ "</EM>\n<PRE>" ^
+                output (out, "<DD><EM>" ^ name ^ "</EM>\n<PRE>" ^
                              escape 
 			      (explode 
 			       (string_of_thm (#1 (freeze_thaw thm)))) ^
