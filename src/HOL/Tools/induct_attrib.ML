@@ -124,24 +124,28 @@ val lookup_inductS = lookup_rule o #2 o get_induct;
 
 local
 
-fun mk_att f g name (x, thm) = (f (g (name, thm)) x, thm);
+fun mk_att f g h name arg =
+  let val (x, thm) = h arg in (f (g (name, thm)) x, thm) end;
 
 fun add_casesT rule x = apfst (apfst (NetRules.insert rule)) x;
 fun add_casesS rule x = apfst (apsnd (NetRules.insert rule)) x;
 fun add_inductT rule x = apsnd (apfst (NetRules.insert rule)) x;
 fun add_inductS rule x = apsnd (apsnd (NetRules.insert rule)) x;
 
+fun consumes0 x = RuleCases.consumes_default 0 x;
+fun consumes1 x = RuleCases.consumes_default 1 x;
+
 in
 
-val cases_type_global = mk_att GlobalInduct.map add_casesT;
-val cases_set_global = mk_att GlobalInduct.map add_casesS;
-val induct_type_global = mk_att GlobalInduct.map add_inductT;
-val induct_set_global = mk_att GlobalInduct.map add_inductS;
+val cases_type_global = mk_att GlobalInduct.map add_casesT consumes0;
+val cases_set_global = mk_att GlobalInduct.map add_casesS consumes1;
+val induct_type_global = mk_att GlobalInduct.map add_inductT consumes0;
+val induct_set_global = mk_att GlobalInduct.map add_inductS consumes1;
 
-val cases_type_local = mk_att LocalInduct.map add_casesT;
-val cases_set_local = mk_att LocalInduct.map add_casesS;
-val induct_type_local = mk_att LocalInduct.map add_inductT;
-val induct_set_local = mk_att LocalInduct.map add_inductS;
+val cases_type_local = mk_att LocalInduct.map add_casesT consumes0;
+val cases_set_local = mk_att LocalInduct.map add_casesS consumes1;
+val induct_type_local = mk_att LocalInduct.map add_inductT consumes0;
+val induct_set_local = mk_att LocalInduct.map add_inductS consumes1;
 
 end;
 
