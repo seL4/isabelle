@@ -222,6 +222,7 @@ val print_help =
   Toplevel.keep (fn state =>
     let val opt_thy = try Toplevel.theory_of state in
       help_outer_syntax () @
+      IsarOutput.help_antiquotations () @
       Method.help_methods opt_thy @
       Attrib.help_attributes opt_thy
       |> Pretty.chunks |> Pretty.writeln

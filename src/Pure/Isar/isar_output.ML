@@ -10,6 +10,7 @@ signature ISAR_OUTPUT =
 sig
   val add_commands: (string * (Args.src -> Proof.context -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
+  val help_antiquotations: unit -> Pretty.T list
   val boolean: string -> bool
   val integer: string -> int
   val args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
@@ -67,6 +68,11 @@ fun option (name, s) f () =
 
 fun options [] f = f
   | options (opt :: opts) f = option opt (options opts f);
+
+
+fun help_antiquotations () =
+ [Pretty.strs ("antiquotation commands:" :: Symtab.keys (! global_commands)),
+  Pretty.strs ("antiquotation options:" :: Symtab.keys (! global_options))];
 
 end;
 
