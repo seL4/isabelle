@@ -11,3 +11,4 @@ use "name_space.ML";
 use "position.ML";
 use "path.ML";
 use "file.ML";
+use "history.ML";
