@@ -269,6 +269,7 @@ Addsimps [not_less0];
 
 (* n<0 ==> R *)
 bind_thm ("less_zeroE", (not_less0 RS notE));
+AddSEs [less_zeroE];
 
 val [major,less,eq] = goal Nat.thy
     "[| m < Suc(n);  m<n ==> P;  m=n ==> P |] ==> P";
@@ -281,7 +282,7 @@ qed "less_SucE";
 
 goal Nat.thy "(m < Suc(n)) = (m < n | m = n)";
 by (fast_tac (!claset addSIs [lessI]
-                     addEs  [less_trans, less_SucE]) 1);
+                      addEs  [less_trans, less_SucE]) 1);
 qed "less_Suc_eq";
 
 val prems = goal Nat.thy "m<n ==> n ~= 0";
