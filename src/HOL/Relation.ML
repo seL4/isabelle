@@ -219,17 +219,15 @@ qed_goal "Image_Int_subset" thy
     "R ^^ (A Int B) <= R ^^ A Int R ^^ B"
  (fn _ => [ Blast_tac 1 ]);
 
-qed_goal "Image_Un" thy
-    "R ^^ (A Un B) = R ^^ A Un R ^^ B"
+qed_goal "Image_Un" thy "R ^^ (A Un B) = R ^^ A Un R ^^ B"
  (fn _ => [ Blast_tac 1 ]);
 
-
-qed_goal "Image_subset" thy
-    "!!A B r. r <= A Times B ==> r^^C <= B"
+qed_goal "Image_subset" thy "!!A B r. r <= A Times B ==> r^^C <= B"
  (fn _ =>
   [ (rtac subsetI 1),
     (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ]);
 
-goal thy "f-``(r^-1 ^^ {x}) = (UN y: r^-1 ^^ {x}. f-``{y})";
+(*NOT suitable for rewriting*)
+goal thy "r^^B = (UN y: B. r^^{y})";
 by (Blast_tac 1);
-qed "vimage_inverse_Image";
+qed "Image_eq_UN";
