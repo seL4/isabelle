@@ -8,7 +8,7 @@ Theorems for Stream.thy
 
 open Stream;
 
-fun stream_case_tac s i = res_inst_tac [("x",s)] stream.cases i
+fun stream_case_tac s i = res_inst_tac [("x",s)] stream.casedist i
 			  THEN hyp_subst_tac i THEN hyp_subst_tac (i+1);
 
 
@@ -244,7 +244,7 @@ qed_goal "stream_finite_ind2" thy
 	rtac allI 1,
 	stream_case_tac "s" 1,
 	 asm_simp_tac (HOL_ss addsimps (hd prems)::stream.take_rews) 1,
-	res_inst_tac [("x","sa")] stream.cases 1,
+	res_inst_tac [("x","sa")] stream.casedist 1,
 	 asm_simp_tac (HOL_ss addsimps stream.take_rews addsimps prems) 1,
 	asm_simp_tac (HOL_ss addsimps stream.take_rews addsimps prems) 1]);
 

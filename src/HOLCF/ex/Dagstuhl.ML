@@ -32,7 +32,7 @@ by (rtac lemma3 1);
 val lemma5=result();
 
 val prems = goal Dagstuhl.thy "YS = YYS";
-by (rtac stream.take_lemma 1);
+by (resolve_tac stream.take_lemmas 1);
 by (nat_ind_tac "n" 1);
 by (simp_tac (!simpset addsimps stream.rews) 1);
 by (stac YS_def2 1);
