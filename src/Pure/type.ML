@@ -21,6 +21,8 @@ sig
      abbrs: (string * (indexname list * typ)) list,
      coreg: (string * (class * sort list) list) list}
   val defaultS: type_sig -> sort
+  val subsort: type_sig -> sort * sort -> bool
+  val norm_sort: type_sig -> sort -> sort
   val logical_types: type_sig -> string list
   val tsig0: type_sig
   val extend_tsig: type_sig ->
@@ -135,7 +137,7 @@ fun leq a (C, D)  =  C = D orelse less a (C, D);
    a class which is a subclass of "logic" *)
 
 fun logical_type(tsig as TySg{subclass, coreg, ...}) t =
-  let fun is_log C = leq subclass (C, "logic")
+  let fun is_log C = leq subclass (C, logicC)
   in case assoc (coreg, t) of
       Some(ars) => exists (is_log o #1) ars
     | None => err_undcl_type(t)
@@ -329,6 +331,15 @@ val tsig0 =
     args = [],
     abbrs = [],
     coreg = []};
+
+
+(* sorts *)
+
+fun norm_sort (TySg {subclass, ...}) S =
+  sort_strings (min_sort subclass S);
+
+fun subsort (TySg {subclass, ...}) (S1, S2) =
+  sortorder subclass (S1, S2);
 
 
 fun not_ident(s) = error("Must be an identifier: " ^ s);
