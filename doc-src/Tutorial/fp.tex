@@ -338,8 +338,8 @@ which loads all parent theories of \texttt{T} automatically, if they are not
 loaded already. If you modify \texttt{T.thy} or \texttt{T.ML}, you can
 reload it by typing \texttt{use_thy~"T";} again. This time, however, only
 \texttt{T} is reloaded. If some of \texttt{T}'s parents have changed as well,
-type \ttindexbold{update}\texttt{();} to reload all theories that have
-changed.
+type \ttindexbold{update_thy}~\texttt{"T";} to reload \texttt{T} and all of
+its parents that have changed (or have changed parents).
 \end{description}
 Further commands are found in the Reference Manual.
 
@@ -578,7 +578,9 @@ is explained in \S\ref{sec:InductionHeuristics}
 
 \section{Some basic types}
 
+
 \subsection{Natural numbers}
+\index{arithmetic|(}
 
 The type \ttindexbold{nat} of natural numbers is predefined and behaves like
 \begin{ttbox}
@@ -599,17 +601,19 @@ and induction, for example
 \end{ttbox}
 
 The usual arithmetic operations \ttindexbold{+}, \ttindexbold{-},
-\ttindexbold{*}, \ttindexbold{div} and \ttindexbold{mod} are predefined, as
-are the relations \ttindexbold{<=} and \ttindexbold{<}. There is even a least
-number operation \ttindexbold{LEAST}. For example, \texttt{(LEAST n.$\,$1 <
-  n) = 2} (HOL does not prove this completely automatically).
+\ttindexbold{*}, \ttindexbold{div}, \ttindexbold{mod}, \ttindexbold{min} and
+\ttindexbold{max} are predefined, as are the relations \ttindexbold{<=} and
+\ttindexbold{<}. There is even a least number operation \ttindexbold{LEAST}.
+For example, \texttt{(LEAST n.$\,$1 < n) = 2} (HOL does not prove this
+completely automatically).
 
 \begin{warn}
-  The operations \ttindexbold{+}, \ttindexbold{-}, \ttindexbold{*} are
-  overloaded, i.e.\ they are available not just for natural numbers but at
-  other types as well (see \S\ref{sec:TypeClasses}). For example, given
+  The operations \ttindexbold{+}, \ttindexbold{-}, \ttindexbold{*},
+  \ttindexbold{min}, \ttindexbold{max}, \ttindexbold{<=} and \ttindexbold{<}
+  are overloaded, i.e.\ they are available not just for natural numbers but
+  at other types as well (see \S\ref{sec:TypeClasses}). For example, given
   the goal \texttt{x+y = y+x}, there is nothing to indicate that you are
-  talking about natural numbers. Hence Isabelle can only infer that
+  talking about natural numbers.  Hence Isabelle can only infer that
   \texttt{x} and \texttt{y} are of some arbitrary type where \texttt{+} is
   declared. As a consequence, you will be unable to prove the goal (although
   it may take you some time to realize what has happened if
@@ -618,6 +622,39 @@ number operation \ttindexbold{LEAST}. For example, \texttt{(LEAST n.$\,$1 <
   If there is enough contextual information this may not be necessary:
   \texttt{x+0 = x} automatically implies \texttt{x::nat}.
 \end{warn}
+
+Simple arithmetic goals are proved automatically by both \texttt{Auto_tac}
+and the simplification tactics introduced in \S\ref{sec:Simplification}.  For
+example, the goal
+\begin{ttbox}
+\input{Misc/arith1.ML}\end{ttbox}
+is proved automatically. The main restriction is that only addition is taken
+into account; other arithmetic operations and quantified formulae are ignored.
+
+For more complex goals, there is the special tactic \ttindexbold{arith_tac}. It
+proves arithmetic goals involving the usual logical connectives (\verb$~$,
+\verb$&$, \verb$|$, \verb$-->$), the relations \texttt{<=} and \texttt{<},
+and the operations \ttindexbold{+}, \ttindexbold{-}, \ttindexbold{min} and
+\ttindexbold{max}. For example, it can prove
+\begin{ttbox}
+\input{Misc/arith2.ML}\end{ttbox}
+because \texttt{k*k} can be treated as atomic.
+In contrast, $n*n = n \Longrightarrow n=0 \lor n=1$ is not
+even proved by \texttt{arith_tac} because the proof relies essentially on
+properties of multiplication.
+
+\begin{warn}
+  The running time of \texttt{arith_tac} is exponential in the number of
+  occurrences of \ttindexbold{-}, \ttindexbold{min} and \ttindexbold{max}
+  because they are first eliminated by case distinctions.
+
+  \texttt{arith_tac} is incomplete even for the restricted class of formulae
+  described above (known as ``linear arithmetic''). If divisibility plays a
+  role, it may fail to prove a valid formula, for example $m+m \neq n+n+1$.
+  Fortunately, such examples are rare in practice.
+\end{warn}
+
+\index{arithmetic|)}
 
 
 \subsection{Products}
@@ -1009,6 +1046,20 @@ via \ttindexbold{delsplits} as, for example, in
 by(simp_tac (simpset() addsimps [\(\dots\)] delsplits [split_if]) 1);
 \end{ttbox}
 
+
+\subsubsection{Arithmetic}
+\index{arithmetic}
+
+The simplifier routinely solves a small class of linear arithmetic formulae
+(over types \texttt{nat} and \texttt{int}): it only takes into account
+assumptions and conclusions that are (possibly negated) (in)equalities
+(\texttt{=}, \texttt{<=}, \texttt{<}) and it only knows about addition. Thus
+\begin{ttbox}
+\input{Misc/arith1.ML}\end{ttbox}
+is proved by simplification, whereas the only slightly more complex
+\begin{ttbox}
+\input{Misc/arith3.ML}\end{ttbox}
+is not proved by simplification and requires \texttt{arith_tac}.
 
 \subsubsection{Permutative rewrite rules}
 

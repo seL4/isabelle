@@ -11,13 +11,13 @@
   \item {\ttuniquex}, \bold{3}
   \item {\tt *}, \bold{17}
   \item {\tt +}, \bold{17}
-  \item {\tt -}, \bold{17}
+  \item {\tt -}, \bold{17, 18}
   \item {\tt <}, \bold{17}
   \item {\tt <=}, \bold{17}
   \item \ttlbr, \bold{9}
   \item \ttrbr, \bold{9}
   \item {\tt==>}, \bold{9}
-  \item {\tt==}, \bold{18}
+  \item {\tt==}, \bold{19}
   \item {\tt\%}, \bold{3}
   \item {\tt =>}, \bold{2}
 
@@ -27,6 +27,8 @@
   \item {\tt Addsplits}, \bold{24}
   \item {\tt addsplits}, \bold{24}
   \item {\tt and}, \bold{29}
+  \item {\tt arith_tac}, \bold{17}
+  \item arithmetic, 17--18, 24
   \item {\tt Asm_full_simp_tac}, \bold{21}
   \item {\tt asm_full_simp_tac}, \bold{22}
   \item {\tt Asm_simp_tac}, \bold{21}
@@ -39,7 +41,7 @@
   \indexspace
 
   \item {\tt case}, \bold{3}, 4, \bold{13}, 24
-  \item {\tt constdefs}, \bold{18}
+  \item {\tt constdefs}, \bold{19}
   \item {\tt consts}, \bold{7}
   \item {\tt context}, \bold{11}
   \item current theory, \bold{11}
@@ -47,7 +49,7 @@
   \indexspace
 
   \item {\tt datatype}, \bold{7}, 29--33
-  \item {\tt defs}, \bold{18}
+  \item {\tt defs}, \bold{19}
   \item {\tt delsimps}, \bold{22}
   \item {\tt Delsplits}, \bold{24}
   \item {\tt delsplits}, \bold{24}
@@ -84,7 +86,9 @@
   \indexspace
 
   \item {\tt Main}, \bold{2}
-  \item measure function, \bold{35}
+  \item {\tt max}, \bold{17, 18}
+  \item measure function, \bold{36}
+  \item {\tt min}, \bold{17, 18}
   \item {\tt mod}, \bold{17}
   \item {\tt mutual_induct_tac}, \bold{30}
 
@@ -138,7 +142,7 @@
   \indexspace
 
   \item unknown, \bold{4}
-  \item {\tt update}, \bold{12}
+  \item {\tt update_thy}, \bold{12}
   \item {\tt use_thy}, \bold{2}, 12
 
 \end{theindex}

@@ -1,3 +1,11 @@
+context Main.thy;
+use "arith1.ML";
+by(Auto_tac);
+use "arith2.ML";
+by(arith_tac 1);
+use "arith3.ML";
+by(arith_tac 1);
+
 use_thy "Tree";
 
 context Main.thy;
