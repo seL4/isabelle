@@ -8,6 +8,10 @@ Isar theory output.
 
 signature ISAR_OUTPUT =
 sig
+  val display: bool ref
+  val quotes: bool ref
+  val indent: int ref
+  val source: bool ref
   val add_commands: (string * (Args.src -> Toplevel.state -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
   val print_antiquotations: unit -> unit
@@ -22,10 +26,6 @@ sig
   val parse_thy: (markup -> OuterLex.token list -> OuterLex.token * OuterLex.token list) ->
     Scan.lexicon -> Toplevel.transition list -> (OuterLex.token, 'a) Source.source ->
       (Toplevel.transition * (Toplevel.state -> Buffer.T -> Buffer.T)) list * Buffer.T
-  val display: bool ref
-  val quotes: bool ref
-  val indent: int ref
-  val source: bool ref
   val output_with: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
     Proof.context -> 'a -> string
 end;
@@ -35,6 +35,18 @@ struct
 
 structure T = OuterLex;
 structure P = OuterParse;
+
+
+
+(** global references -- defaults for options **)
+
+val locale = ref "";
+val display = ref false;
+val quotes = ref false;
+val indent = ref 0;
+val source = ref false;
+val break = ref false;
+
 
 
 (** maintain global commands **)
@@ -97,7 +109,8 @@ fun boolean "" = true
 fun integer s =
   let
     fun int ss =
-      (case Library.read_int ss of (i, []) => i | _ => error ("Bad integer value: " ^ quote s));
+      (case Library.read_int ss of (i, []) => i
+      | _ => error ("Bad integer value: " ^ quote s));
   in (case Symbol.explode s of "-" :: ss => ~ (int ss) | ss => int ss) end;
 
 
@@ -107,7 +120,12 @@ fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T l
   Args.syntax "antiquotation" scan;
 
 fun args scan f src state : string =
-  let val (ctxt, x) = syntax scan src (Toplevel.context_of state)
+  let
+    val ctxt0 =
+      if ! locale = "" then Toplevel.context_of state
+      else #3 (Locale.read_context_statement (Some (! locale)) [] []
+        (ProofContext.init (Toplevel.theory_of state)));
+    val (ctxt, x) = syntax scan src ctxt0;
   in f src ctxt x end;
 
 
@@ -253,18 +271,13 @@ end;
 
 (* options *)
 
-val display = ref false;
-val quotes = ref false;
-val indent = ref 0;
-val source = ref false;
-val break = ref false;
-
 val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
   ("show_sorts", Library.setmp Syntax.show_sorts o boolean),
   ("show_structs", Library.setmp show_structs o boolean),
   ("long_names", Library.setmp NameSpace.long_names o boolean),
   ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
+  ("locale", Library.setmp locale),
   ("display", Library.setmp display o boolean),
   ("break", Library.setmp break o boolean),
   ("quotes", Library.setmp quotes o boolean),
