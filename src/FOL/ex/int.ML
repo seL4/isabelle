@@ -35,6 +35,10 @@ Goal "~~(P&Q) <-> ~~P & ~~Q";
 by (IntPr.fast_tac 1);
 result();
 
+Goal "~~ ((~P --> Q) --> (~P --> ~Q) --> P)";
+by (IntPr.fast_tac 1);
+result();
+
 (* ~~ does NOT distribute over | *)
 
 Goal "~~(P-->Q)  <-> (~~P --> ~~Q)";
@@ -50,6 +54,16 @@ by (IntPr.fast_tac 1);
 result();
 
 Goal "(P<->Q) <-> (Q<->P)";
+by (IntPr.fast_tac 1);
+result();
+
+Goal "((P --> (Q | (Q-->R))) --> R) --> R";
+by (IntPr.fast_tac 1);
+result();
+
+Goal "(((G-->A) --> J) --> D --> E) --> (((H-->B)-->I)-->C-->J) \
+\     --> (A-->H) --> F --> G --> (((C-->B)-->I)-->D)-->(A-->C) \
+\     --> (((F-->A)-->B) --> I) --> E";
 by (IntPr.fast_tac 1);
 result();
 
@@ -110,7 +124,7 @@ result();
 Goal "(ALL x. EX y. ALL z. p(x) & q(y) & r(z)) <->  \
 \     (ALL z. EX y. ALL x. p(x) & q(y) & r(z))";
 (*
-by (IntPr.best_dup_tac 1);   (*2 minutes!  Is it worth it?*)
+by (IntPr.best_dup_tac 1);   (*65 seconds on a Pentium III!  Is it worth it?*)
 *)
 
 (*Problem 3.1*)
