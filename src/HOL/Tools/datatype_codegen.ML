@@ -114,11 +114,12 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
             fun mk_delay p = Pretty.block
               [Pretty.str "fn () =>", Pretty.brk 1, p];
 
-            fun mk_constr s (cname, dts) =
+            fun mk_constr s b (cname, dts) =
               let
-                val Ts = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
-                val gs = map (fn T => mk_app false (mk_gen sg false rtnames s T)
-                  [Pretty.str "j"]) Ts;
+                val gs = map (fn dt => mk_app false (mk_gen sg false rtnames s
+                    (DatatypeAux.typ_of_dtyp descr sorts dt))
+                  [Pretty.str (if b andalso DatatypeAux.is_rec_type dt then "0"
+                     else "j")]) dts;
                 val id = mk_const_id sg cname
               in case gs of
                   _ :: _ :: _ => Pretty.block
@@ -126,11 +127,11 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                 | _ => mk_app false (Pretty.str id) (map parens gs)
               end;
 
-            fun mk_choice [c] = mk_constr "(i-1)" c
+            fun mk_choice [c] = mk_constr "(i-1)" false c
               | mk_choice cs = Pretty.block [Pretty.str "one_of",
                   Pretty.brk 1, Pretty.blk (1, Pretty.str "[" ::
                   flat (separate [Pretty.str ",", Pretty.fbrk]
-                    (map (single o mk_delay o mk_constr "(i-1)") cs)) @
+                    (map (single o mk_delay o mk_constr "(i-1)" false) cs)) @
                   [Pretty.str "]"]), Pretty.brk 1, Pretty.str "()"];
 
             val gs = map (Pretty.str o suffix "G" o strip_tname) tvs;
@@ -154,7 +155,7 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                  [Pretty.block [Pretty.str "(case", Pretty.brk 1,
                    Pretty.str "i", Pretty.brk 1, Pretty.str "of",
                    Pretty.brk 1, Pretty.str "0 =>", Pretty.brk 1,
-                   mk_constr "0" (cname, the (assoc (cs, cname))),
+                   mk_constr "0" true (cname, the (assoc (cs, cname))),
                    Pretty.brk 1, Pretty.str "| _ =>", Pretty.brk 1,
                    mk_choice cs1, Pretty.str ")"]]
                else [mk_choice cs2])) ::
