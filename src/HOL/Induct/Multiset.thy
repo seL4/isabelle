@@ -33,9 +33,10 @@ defs
   empty_def  "{#}   == Abs_multiset(%a. 0)"
   single_def "{#a#} == Abs_multiset(%b. if b=a then 1 else 0)"
   union_def  "M+N   == Abs_multiset(%a. Rep_multiset M a + Rep_multiset N a)"
-  diff_def  "M-N    == Abs_multiset(%a. Rep_multiset M a - Rep_multiset N a)"
+  diff_def   "M-N    == Abs_multiset(%a. Rep_multiset M a - Rep_multiset N a)"
   set_of_def "set_of M == {x. M :# x}"
-  size_def "size (M) == setsum (count M) (set_of M)"
+  size_def   "size (M) == setsum (count M) (set_of M)"
+  Zero_def   "0 == {#}"
 
 constdefs
   mult1 :: "('a * 'a)set => ('a multiset * 'a multiset)set"
