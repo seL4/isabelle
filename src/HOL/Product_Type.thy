@@ -128,6 +128,33 @@ translations
   "SIGMA x:A. B" => "Sigma A (%x. B)"
   "A <*> B"      => "Sigma A (_K B)"
 
+(* reconstructs pattern from (nested) splits, avoiding eta-contraction of body*)
+(* works best with enclosing "let", if "let" does not avoid eta-contraction   *)
+print_translation {*
+let fun split_tr' [Abs (x,T,t as (Abs abs))] =
+      (* split (%x y. t) => %(x,y) t *)
+      let val (y,t') = atomic_abs_tr' abs;
+          val (x',t'') = atomic_abs_tr' (x,T,t');
+    
+      in Syntax.const "_abs" $ (Syntax.const "_pattern" $x'$y) $ t'' end
+    | split_tr' [Abs (x,T,(s as Const ("split",_)$t))] =
+       (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
+       let val (Const ("_abs",_)$(Const ("_pattern",_)$y$z)$t') = split_tr' [t];
+           val (x',t'') = atomic_abs_tr' (x,T,t');
+       in Syntax.const "_abs"$ 
+           (Syntax.const "_pattern"$x'$(Syntax.const "_patterns"$y$z))$t'' end
+    | split_tr' [Const ("split",_)$t] =
+       (* split (split (%x y z. t)) => %((x,y),z). t *)   
+       split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
+    | split_tr' [Const ("_abs",_)$x_y$(Abs abs)] =
+       (* split (%pttrn z. t) => %(pttrn,z). t *)
+       let val (z,t) = atomic_abs_tr' abs;
+       in Syntax.const "_abs" $ (Syntax.const "_pattern" $x_y$z) $ t end
+    | split_tr' _ =  raise Match;
+in [("split", split_tr')]
+end
+*}
+
 syntax (xsymbols)
   "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
   "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
