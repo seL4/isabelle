@@ -103,7 +103,7 @@ val scan_whspc = Scan.any Symbol.is_blank;
 
 val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 
-val parse_chars = Scan.repeat1 (Scan.unless (scan_whspc -- $$ "<")
+val parse_chars = Scan.repeat1 (Scan.unless ((* scan_whspc -- *)$$ "<")
   (scan_special || Scan.one Symbol.not_eof)) >> implode;
 
 val parse_cdata = Scan.this_string "<![CDATA[" |--
@@ -127,14 +127,14 @@ val parse_pi = Scan.this_string "<?" |--
   Scan.this_string "?>";
 
 fun parse_content xs =
-  ((Scan.optional (scan_whspc |-- parse_chars >> (single o Text)) [] --
-    (Scan.repeat (scan_whspc |--
+  ((Scan.optional ((* scan_whspc |-- *) parse_chars >> (single o Text)) [] --
+    (Scan.repeat ((* scan_whspc |-- *)
        (   parse_elem >> single
         || parse_cdata >> (single o Text)
         || parse_pi >> K []
         || parse_comment >> K []) --
-       Scan.optional (scan_whspc |-- parse_chars >> (single o Text)) []
-         >> op @) >> flat) >> op @) --| scan_whspc) xs
+       Scan.optional ((* scan_whspc |-- *) parse_chars >> (single o Text)) []
+         >> op @) >> flat) >> op @)(* --| scan_whspc*)) xs
 
 and parse_elem xs =
   ($$ "<" |-- Symbol.scan_id --
