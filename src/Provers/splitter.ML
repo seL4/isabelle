@@ -32,12 +32,19 @@ sig
   val delsplits       : simpset * thm list -> simpset
   val Addsplits       : thm list -> unit
   val Delsplits       : thm list -> unit
+  val split_add_global: theory attribute
+  val split_del_global: theory attribute
+  val split_add_local: Proof.context attribute
+  val split_del_local: Proof.context attribute
+  val split_modifiers : (Args.T list -> (Method.modifier * Args.T list)) list
+  val setup: (theory -> theory) list
 end;
 
 functor SplitterFun(Data: SPLITTER_DATA): SPLITTER =
 struct 
 
-type simpset = Data.Simplifier.simpset;
+structure Simplifier = Data.Simplifier;
+type simpset = Simplifier.simpset;
 
 val Const ("==>", _) $ (Const ("Trueprop", _) $
          (Const (const_not, _) $ _    )) $ _ = #prop (rep_thm(Data.notnotD));
@@ -361,24 +368,68 @@ fun split_asm_tac []     = K no_tac
   in SUBGOAL tac
   end;
 
+
+
+(** declare split rules **)
+
+(* addsplits / delsplits *)
+
 fun split_name name asm = "split " ^ name ^ (if asm then " asm" else "");
 
 fun ss addsplits splits =
   let fun addsplit (ss,split) =
         let val (name,asm) = split_thm_info split
-        in Data.Simplifier.addloop(ss,(split_name name asm,
+        in Simplifier.addloop(ss,(split_name name asm,
 		       (if asm then split_asm_tac else split_tac) [split])) end
   in foldl addsplit (ss,splits) end;
 
 fun ss delsplits splits =
   let fun delsplit(ss,split) =
         let val (name,asm) = split_thm_info split
-        in Data.Simplifier.delloop(ss,split_name name asm)
+        in Simplifier.delloop(ss,split_name name asm)
   end in foldl delsplit (ss,splits) end;
 
-fun Addsplits splits = (Data.Simplifier.simpset_ref() := 
-			Data.Simplifier.simpset() addsplits splits);
-fun Delsplits splits = (Data.Simplifier.simpset_ref() := 
-			Data.Simplifier.simpset() delsplits splits);
+fun Addsplits splits = (Simplifier.simpset_ref() := 
+			Simplifier.simpset() addsplits splits);
+fun Delsplits splits = (Simplifier.simpset_ref() := 
+			Simplifier.simpset() delsplits splits);
+
+
+(* attributes *)
+
+val splitN = "split";
+val addN = "add";
+val delN = "del";
+
+fun split_att change =
+  (Args.$$$ addN >> K (op addsplits) ||
+    Args.$$$ delN >> K (op delsplits) ||
+    Scan.succeed (op addsplits))
+  >> change
+  |> Scan.lift
+  |> Attrib.syntax;
+
+val setup_attrs = Attrib.add_attributes
+ [(splitN, (split_att Simplifier.change_global_ss, split_att Simplifier.change_local_ss),
+    "declare splitter rule")];
+
+val split_add_global = Simplifier.change_global_ss (op addsplits);
+val split_del_global = Simplifier.change_global_ss (op delsplits);
+val split_add_local = Simplifier.change_local_ss (op addsplits);
+val split_del_local = Simplifier.change_local_ss (op delsplits);
+
+
+(* method modifiers *)
+
+val split_modifiers =
+ [Args.$$$ splitN -- Args.$$$ ":" >> K (I, split_add_local),
+  Args.$$$ splitN -- Args.$$$ addN -- Args.$$$ ":" >> K (I, split_add_local),
+  Args.$$$ splitN -- Args.$$$ delN -- Args.$$$ ":" >> K (I, split_del_local)];
+
+
+
+(** theory setup **)
+
+val setup = [setup_attrs];
 
 end;
