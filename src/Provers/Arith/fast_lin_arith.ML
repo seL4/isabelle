@@ -70,9 +70,11 @@ ss must reduce contradictory <= to False.
 signature FAST_LIN_ARITH =
 sig
   val setup: (theory -> theory) list
-  val map_data: ({add_mono_thms: thm list, lessD: thm list, simpset: Simplifier.simpset}
-    -> {add_mono_thms: thm list, lessD: thm list, simpset: Simplifier.simpset})
-    -> theory -> theory
+  val map_data: ({add_mono_thms: thm list, inj_thms: thm list,
+                 lessD: thm list, simpset: Simplifier.simpset}
+                 -> {add_mono_thms: thm list, inj_thms: thm list,
+                     lessD: thm list, simpset: Simplifier.simpset})
+                -> theory -> theory
   val trace           : bool ref
   val lin_arith_prover: Sign.sg -> thm list -> term -> thm option
   val     lin_arith_tac:             int -> tactic
@@ -91,17 +93,22 @@ struct
 structure DataArgs =
 struct
   val name = "Provers/fast_lin_arith";
-  type T = {add_mono_thms: thm list, lessD: thm list, simpset: Simplifier.simpset};
+  type T = {add_mono_thms: thm list, inj_thms: thm list,
+            lessD: thm list, simpset: Simplifier.simpset};
 
-  val empty = {add_mono_thms = [], lessD = [], simpset = Simplifier.empty_ss};
+  val empty = {add_mono_thms = [], inj_thms = [],
+               lessD = [], simpset = Simplifier.empty_ss};
   val copy = I;
   val prep_ext = I;
 
-  fun merge ({add_mono_thms = add_mono_thms1, lessD = lessD1, simpset = simpset1},
-      {add_mono_thms = add_mono_thms2, lessD = lessD2, simpset = simpset2}) =
+  fun merge ({add_mono_thms = add_mono_thms1, inj_thms = inj_thms1,
+              lessD = lessD1, simpset = simpset1},
+             {add_mono_thms = add_mono_thms2, inj_thms = inj_thms2,
+              lessD = lessD2, simpset = simpset2}) =
     {add_mono_thms = Drule.merge_rules (add_mono_thms1, add_mono_thms2),
-      lessD = Drule.merge_rules (lessD1, lessD2),
-      simpset = Simplifier.merge_ss (simpset1, simpset2)};
+     inj_thms = Drule.merge_rules (inj_thms1, inj_thms2),
+     lessD = Drule.merge_rules (lessD1, lessD2),
+     simpset = Simplifier.merge_ss (simpset1, simpset2)};
 
   fun print _ _ = ();
 end;
@@ -292,15 +299,26 @@ local
  exception FalseE of thm
 in
 fun mkthm sg asms just =
-  let val {add_mono_thms, lessD, simpset} = Data.get_sg sg;
+  let val {add_mono_thms, inj_thms, lessD, simpset} = Data.get_sg sg;
       val atoms = foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
                         ([], mapfilter (LA_Data.decomp sg o concl_of) asms)
 
-      fun addthms thm1 thm2 =
+      fun add2 thm1 thm2 =
         let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
-        in the(get_first (fn th => Some(conj RS th) handle _ => None) add_mono_thms)
+        in get_first (fn th => Some(conj RS th) handle _ => None) add_mono_thms
         end;
+
+      fun try_add [] _ = None
+        | try_add (thm1::thm1s) thm2 = case add2 thm1 thm2 of
+             None => try_add thm1s thm2 | some => some;
+
+      fun addthms thm1 thm2 =
+        case add2 thm1 thm2 of
+          None => (case try_add ([thm1] RL inj_thms) thm2 of
+                     None => the(try_add ([thm2] RL inj_thms) thm1)
+                   | Some thm => thm)
+        | Some thm => thm;
 
       fun multn(n,thm) =
         let fun mul(i,th) = if i=1 then th else mul(i-1, addthms thm th)
