@@ -32,10 +32,5 @@ SPECS="$@"; shift $#
 
 ## main
 
-PERL=$(type -path perl)
-if [ -z $PERL ]; then
-  echo "$PRG fatal error: no perl!?"
-else
-  find $SPECS \( -name \*.thy -o -name \*.ML \) -print | \
-    xargs $PERL $ISABELLE_HOME/lib/scripts/fixdots.pl
-fi
+find $SPECS \( -name \*.thy -o -name \*.ML \) -print | \
+  xargs perl -w $ISABELLE_HOME/lib/scripts/fixdots.pl

@@ -3,15 +3,5 @@
 # $Id$
 #
 # DESCRIPTION: translate symbols into \<...> sequences
-#
-# NOTE: If perl is unavailable we simply fall back on ucat!
 
-
-PERL=$(type -path perl)
-
-if [ -z "$PERL" ]
-then
-  exec $ISABELLE_HOME/lib/scripts/ucat "$@"
-else
-  exec $PERL $ISABELLE_HOME/lib/scripts/symbolinput.pl "$@"
-fi
+exec perl -w $ISABELLE_HOME/lib/scripts/symbolinput.pl "$@"

@@ -23,7 +23,7 @@ function findbin()
     echo "$DEFAULT"
     return
   else
-    echo "WARNING: $BASE not found!" >&2
+    echo "ERROR: $BASE not found!" >&2
     echo "$DEFAULT"
     return
   fi

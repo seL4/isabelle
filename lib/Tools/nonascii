@@ -29,11 +29,6 @@ SPECS="$@"; shift $#
 
 ## main
 
-PERL=$(type -path perl)
-if [ -z $PERL ]; then
-  echo "$PRG fatal error: no perl!?"
-else
-  find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
-    xargs $PERL -e \
-      'while(<ARGV>) { if (m/[\x80-\xff]/) { print "$ARGV: $_"; }}'
-fi
+find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
+  xargs perl -w -e \
+    'while(<ARGV>) { if (m/[\x80-\xff]/) { print "$ARGV: $_"; }}'
