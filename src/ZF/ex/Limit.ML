@@ -55,14 +55,12 @@ val prems = Goalw [po_def]
 \                rel(D,x,z);  \
 \       !!x y. [| rel(D,x,y); rel(D,y,x); x:set(D); y:set(D)|] ==> x=y |] ==> \
 \    po(D)";
-by Safe_tac;
-by (REPEAT (ares_tac prems 1));
+by (blast_tac (claset() addIs prems) 1);
 qed "poI";
 
 val prems = Goalw [cpo_def]
     "[| po(D); !!X. chain(D,X) ==> islub(D,X,x(D,X))|] ==> cpo(D)";
-by (safe_tac (claset() addSIs [exI]));
-by (REPEAT (ares_tac prems 1));
+by (blast_tac (claset() addIs prems) 1);
 qed "cpoI";
 
 Goalw [cpo_def] "cpo(D) ==> po(D)";
@@ -114,19 +112,17 @@ qed "islub_least";
 
 val prems = Goalw [islub_def]  (* islubI *)
     "[|isub(D,X,x); !!y. isub(D,X,y) ==> rel(D,x,y)|] ==> islub(D,X,x)";
-by Safe_tac;
-by (REPEAT(ares_tac prems 1));
+by (blast_tac (claset() addIs prems) 1);
 qed "islubI";
 
 val prems = Goalw [isub_def]  (* isubI *)
     "[|x:set(D);  !!n. n:nat ==> rel(D,X`n,x)|] ==> isub(D,X,x)";
-by Safe_tac;
-by (REPEAT(ares_tac prems 1));
+by (blast_tac (claset() addIs prems) 1);
 qed "isubI";
 
 val prems = Goalw [isub_def]  (* isubE *)
     "[|isub(D,X,x); [|x:set(D);  !!n. n:nat==>rel(D,X`n,x)|] ==> P \
-\         |] ==> P";
+\    |] ==> P";
 by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "isubE";
 
@@ -140,7 +136,7 @@ qed "isubD2";
 
 Goal "[|islub(D,X,x); islub(D,X,y); cpo(D)|] ==> x = y";
 by (blast_tac (claset() addIs [cpo_antisym,islub_least,
-			       islub_isub,islub_in]) 1);
+                               islub_isub,islub_in]) 1);
 qed "islub_unique";
 
 (*----------------------------------------------------------------------*)
@@ -155,9 +151,10 @@ qed "cpo_lub";
 (* Theorems about chains.                                               *)
 (*----------------------------------------------------------------------*)
 
-val chainI = prove_goalw Limit.thy [chain_def]
- "!!z.[|X:nat->set(D);  !!n. n:nat ==> rel(D,X`n,X`succ(n))|] ==> chain(D,X)"
- (fn prems => [Asm_simp_tac 1]);
+val prems = Goalw [chain_def]
+ "[|X:nat->set(D);  !!n. n:nat ==> rel(D,X`n,X`succ(n))|] ==> chain(D,X)";
+by (blast_tac (claset() addIs prems) 1);
+qed "chainI";
 
 Goalw [chain_def] "chain(D,X) ==> X : nat -> set(D)";
 by (Asm_simp_tac 1);
@@ -176,21 +173,14 @@ AddTCs   [chain_fun, chain_in, chain_rel];
 
 Goal "[|chain(D,X); cpo(D); n:nat; m:nat|] ==> rel(D,X`n,(X`(m #+ n)))";
 by (induct_tac "m" 1);
-by (ALLGOALS Simp_tac);
-by (rtac cpo_trans 1);
-by Auto_tac;
+by (auto_tac (claset() addIs [cpo_trans], simpset()));  
 qed "chain_rel_gen_add";
 
 Goal  (* chain_rel_gen *)
     "[|n le m; chain(D,X); cpo(D); n:nat; m:nat|] ==> rel(D,X`n,X`m)";
-by (rtac impE 1);  (* The first three steps prepare for the induction proof *)
-by (assume_tac 3);
-by (assume_tac 2);
+by (etac rev_mp 1);  (*prepare the induction*)
 by (induct_tac "m" 1);
-by Safe_tac;
-by (Asm_full_simp_tac 1);
-by (rtac cpo_trans 2);
-by (auto_tac (claset(),
+by (auto_tac (claset() addIs [cpo_trans],
 	      simpset() addsimps [le_iff]));
 qed "chain_rel_gen";
 
@@ -226,8 +216,8 @@ AddTCs [pcpo_cpo, bot_least, bot_in];
 
 val prems = goal Limit.thy  (* bot_unique *)
     "[| pcpo(D); x:set(D); !!y. y:set(D) ==> rel(D,x,y)|] ==> x = bot(D)";
-by (rtac cpo_antisym 1);
-brr(pcpo_cpo::bot_in::bot_least::prems) 1;
+by (blast_tac (claset() addIs ([cpo_antisym,pcpo_cpo,bot_in,bot_least]@
+                               prems)) 1);
 qed "bot_unique";
 
 (*----------------------------------------------------------------------*)
@@ -255,12 +245,7 @@ qed "lub_const";
 
 Goalw [isub_def,suffix_def]  (* isub_suffix *)
     "[|chain(D,X); cpo(D); n:nat|] ==> isub(D,suffix(X,n),x) <-> isub(D,X,x)";
-by (Asm_simp_tac 1);
-by Safe_tac;
-by (blast_tac (claset() addIs [chain_in, add_type]) 2);
-by (rtac cpo_trans 1);
-by (rtac chain_rel_gen_add 2);
-by Auto_tac;
+by (auto_tac (claset() addIs [cpo_trans, chain_rel_gen_add], simpset()));
 qed "isub_suffix";
 
 Goalw [islub_def]  (* islub_suffix *)
@@ -277,53 +262,28 @@ qed "lub_suffix";
 (* Dominate and subchain.                                               *) 
 (*----------------------------------------------------------------------*)
 
-val dominateI = prove_goalw Limit.thy [dominate_def]
+val prems = Goalw [dominate_def]
   "[| !!m. m:nat ==> n(m):nat; !!m. m:nat ==> rel(D,X`m,Y`n(m))|] ==>   \
-\  dominate(D,X,Y)"
-  (fn prems => [rtac ballI 1,rtac bexI 1,REPEAT(ares_tac prems 1)]);
+\  dominate(D,X,Y)";
+by (blast_tac (claset() addIs prems) 1);
+qed "dominateI"; 
 
-val [dom,isub,cpo,X,Y] = goal Limit.thy
+Goalw [isub_def, dominate_def]
   "[|dominate(D,X,Y); isub(D,Y,x); cpo(D);  \
 \    X:nat->set(D); Y:nat->set(D)|] ==> isub(D,X,x)";
-by (rewtac isub_def);
-by (rtac conjI 1);
-by (rtac (rewrite_rule[isub_def]isub RS conjunct1) 1);
-by (rtac ballI 1);
-by (rtac (rewrite_rule[dominate_def]dom RS bspec RS bexE) 1);
-by (assume_tac 1);
-by (rtac cpo_trans 1);
-by (rtac cpo 1);
-by (assume_tac 1);
-by (rtac (rewrite_rule[isub_def]isub RS conjunct2 RS bspec) 1);
-by (assume_tac 1);
-by (etac (X RS apply_type) 1);
-by (etac (Y RS apply_type) 1);
-by (rtac (rewrite_rule[isub_def]isub RS conjunct1) 1);
+by Auto_tac;  
+by (blast_tac (claset() addIs [cpo_trans] addDs [apply_type]) 1);
 qed "dominate_isub";
 
-val [dom,Xlub,Ylub,cpo,X,Y] = goal Limit.thy
+Goalw [islub_def]
   "[|dominate(D,X,Y); islub(D,X,x); islub(D,Y,y); cpo(D);  \
 \    X:nat->set(D); Y:nat->set(D)|] ==> rel(D,x,y)";
-val Xub = rewrite_rule[islub_def]Xlub RS conjunct1;
-val Yub = rewrite_rule[islub_def]Ylub RS conjunct1;
-val Xub_y = Yub RS (dom RS dominate_isub);
-val lem = Xub_y RS (rewrite_rule[islub_def]Xlub RS conjunct2 RS spec RS mp);
-by (rtac (Y RS (X RS (cpo RS lem))) 1);
+by (blast_tac (claset() addIs [dominate_isub]) 1);
 qed "dominate_islub";
 
-val prems = Goalw [subchain_def]  (* subchainE *)
-    "[|subchain(X,Y); n:nat;  !!m. [|m:nat; X`n = Y`(n #+ m)|] ==> Q|] ==> Q";
-by (rtac (hd prems RS bspec RS bexE) 1);
-by (resolve_tac prems 2);
-by (assume_tac 3);
-by (REPEAT(ares_tac prems 1));
-qed "subchainE";
-
-Goal "[|subchain(Y,X); isub(D,X,x)|] ==> isub(D,Y,x)";
-by (rtac isubI 1);
-by (safe_tac (claset() addSEs [isubE, subchainE]));
-by (assume_tac 1);
-by (Asm_simp_tac 1);
+Goalw [isub_def, subchain_def]
+     "[|subchain(Y,X); isub(D,X,x)|] ==> isub(D,Y,x)";
+by Auto_tac;  
 qed "subchain_isub";
 
 Goal "[|dominate(D,X,Y); subchain(Y,X); islub(D,X,x); islub(D,Y,y); cpo(D);  \
@@ -346,8 +306,7 @@ by (blast_tac (claset() addIs [apply_funtype, matrix_fun]) 1);
 qed "matrix_in_fun";
 
 Goal "[|matrix(D,M); n:nat; m:nat|] ==> M`n`m : set(D)";
-by (rtac apply_type 1);
-by (REPEAT(ares_tac[matrix_in_fun] 1));
+by (blast_tac (claset() addIs [apply_funtype, matrix_in_fun]) 1);
 qed "matrix_in";
 
 Goalw [matrix_def]  (* matrix_rel_1_0 *)
@@ -376,23 +335,14 @@ qed "matrix_sym_axis";
 
 Goalw [chain_def]  (* matrix_chain_diag *)
     "matrix(D,M) ==> chain(D,lam n:nat. M`n`n)";
-by Safe_tac;
-by (rtac lam_type 1);
-by (rtac matrix_in 1);
-by (REPEAT(ares_tac prems 1));
-by (Asm_simp_tac 1);
-by (rtac matrix_rel_1_1 1);
-by (REPEAT(ares_tac prems 1));
+by (auto_tac (claset() addIs [lam_type, matrix_in, matrix_rel_1_1], 
+              simpset()));
 qed "matrix_chain_diag";
 
 Goalw [chain_def]  (* matrix_chain_left *)
     "[|matrix(D,M); n:nat|] ==> chain(D,M`n)";
-by Safe_tac;
-by (rtac apply_type 1);
-by (rtac matrix_fun 1);
-by (REPEAT(ares_tac prems 1));
-by (rtac matrix_rel_0_1 1);
-by (REPEAT(ares_tac prems 1));
+by (auto_tac (claset() addIs [matrix_fun RS apply_type, matrix_in, 
+                              matrix_rel_0_1],   simpset()));
 qed "matrix_chain_left";
 
 Goalw [chain_def]  (* matrix_chain_right *)
@@ -487,35 +437,33 @@ by (assume_tac 2);
 by (rewtac dominate_def);
 by (rtac ballI 1);
 by (rtac bexI 1);
-by (assume_tac 2);
-by (Asm_simp_tac 1);
+by Auto_tac;  
 by (asm_simp_tac (simpset() addsimps 
 		  [matrix_chain_left RS chain_fun RS eta]) 1);
 by (rtac islub_ub 1);
 by (rtac cpo_lub 1);
-by (REPEAT(ares_tac 
-[matrix_chain_left,matrix_chain_diag,chain_fun,matrix_chain_lub] 1));
-by (rtac isub_lemma 1);
-by (REPEAT(assume_tac 1));
+by (REPEAT(ares_tac [matrix_chain_left,matrix_chain_diag,chain_fun,
+                     matrix_chain_lub, isub_lemma] 1));
 qed "isub_eq";
 
-val lemma1 = prove_goalw Limit.thy [lub_def]  
+Goalw [lub_def]  
     "lub(D,(lam n:nat. lub(D,lam m:nat. M`n`m))) =   \
-\    (THE x. islub(D, (lam n:nat. lub(D,lam m:nat. M`n`m)), x))"
- (fn _ => [Fast_tac 1]);
+\    (THE x. islub(D, (lam n:nat. lub(D,lam m:nat. M`n`m)), x))";
+by (Blast_tac 1);
+qed "lemma1";
 
-val lemma2 = prove_goalw Limit.thy [lub_def]  
+Goalw [lub_def]  
     "lub(D,(lam n:nat. M`n`n)) =   \
-\    (THE x. islub(D, (lam n:nat. M`n`n), x))"
- (fn _ => [Fast_tac 1]);
+\    (THE x. islub(D, (lam n:nat. M`n`n), x))";
+by (Blast_tac 1);
+qed "lemma2";
 
 Goal  (* lub_matrix_diag *)
     "[|matrix(D,M); cpo(D)|] ==>  \
 \    lub(D,(lam n:nat. lub(D,lam m:nat. M`n`m))) =  \
 \    lub(D,(lam n:nat. M`n`n))";
 by (simp_tac (simpset() addsimps [lemma1,lemma2]) 1);
-by (rewtac islub_def);
-by (asm_simp_tac (simpset() addsimps [isub_eq]) 1);
+by (asm_simp_tac (simpset() addsimps [islub_def, isub_eq]) 1);
 qed "lub_matrix_diag";
 
 Goal  (* lub_matrix_diag_sym *)
@@ -618,10 +566,7 @@ qed "cont_cf";
 val prems = goal Limit.thy
     "[|!!x. x:set(D) ==> rel(E,f`x,g`x); f:cont(D,E); g:cont(D,E)|] ==> \
 \    rel(cf(D,E),f,g)";
-by (rtac rel_I 1);
-by (simp_tac (simpset() addsimps [cf_def]) 1);
-by Safe_tac;
-by (REPEAT (ares_tac prems 1));
+by (asm_simp_tac (simpset() addsimps [rel_I, cf_def]@prems) 1);
 qed "rel_cfI";
 
 Goalw [rel_def,cf_def] "[|rel(cf(D,E),f,g); x:set(D)|] ==> rel(E,f`x,g`x)";
@@ -635,47 +580,31 @@ qed "rel_cf";
 Goal  (* chain_cf *)
     "[| chain(cf(D,E),X); x:set(D)|] ==> chain(E,lam n:nat. X`n`x)";
 by (rtac chainI 1);
-by (rtac lam_type 1);
-by (rtac apply_type 1);
-by (assume_tac 2);
-by (REPEAT(ares_tac[cont_fun,cf_cont,chain_in] 1));
+by (blast_tac (claset() addIs [lam_type, apply_funtype, cont_fun,
+                               cf_cont,chain_in]) 1);
 by (Asm_simp_tac 1);
-by (REPEAT(ares_tac[rel_cf,chain_rel] 1));
+by (blast_tac (claset() addIs [rel_cf,chain_rel]) 1);
 qed "chain_cf";
 
 Goal  (* matrix_lemma *)
     "[|chain(cf(D,E),X); chain(D,Xa); cpo(D); cpo(E) |] ==>   \
 \    matrix(E,lam x:nat. lam xa:nat. X`x`(Xa`xa))";
 by (rtac matrix_chainI 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 2);
+by Auto_tac;  
 by (rtac chainI 1);
-by (rtac lam_type 1);
-by (rtac apply_type 1);
-by (rtac (chain_in RS cf_cont RS cont_fun) 1);
-by (REPEAT(assume_tac 1));
-by (rtac chain_in 1);
-by (REPEAT(assume_tac 1));
+by (blast_tac (claset() addIs [lam_type, apply_funtype, cont_fun,
+                               cf_cont,chain_in]) 1);
 by (Asm_simp_tac 1);
-by (rtac cont_mono 1);
-by (rtac (chain_in RS cf_cont) 1);
-by (REPEAT (assume_tac 1));
-brr [chain_rel,chain_in,nat_succI] 1;
+by (blast_tac (claset() addIs [cont_mono, nat_succI, chain_rel,
+                               cf_cont,chain_in]) 1);
 by (rtac chainI 1);
-by (rtac lam_type 1);
-by (rtac apply_type 1);
-by (rtac (chain_in RS cf_cont RS cont_fun) 1);
-by (REPEAT(assume_tac 1));
-by (rtac chain_in 1);
-by (REPEAT(assume_tac 1));
+by (blast_tac (claset() addIs [lam_type, apply_funtype, cont_fun,
+                               cf_cont,chain_in]) 1);
 by (Asm_simp_tac 1);
 by (rtac rel_cf 1);
 brr [chain_in,chain_rel] 1;
-by (rtac lam_type 1);
-by (rtac lam_type 1);
-by (rtac apply_type 1);
-by (rtac (chain_in RS cf_cont RS cont_fun) 1);
-by Auto_tac;
+by (blast_tac (claset() addIs [lam_type, apply_funtype, cont_fun,
+                               cf_cont,chain_in]) 1);
 qed "matrix_lemma";
 
 Goal  (* chain_cf_lub_cont *)
@@ -697,8 +626,7 @@ by (REPEAT(ares_tac [cpo_lub RS islub_in] 1));
 by (asm_simp_tac(simpset() addsimps[chain_in RS cf_cont RS cont_lub]) 1);
 by (forward_tac[matrix_lemma RS lub_matrix_diag]1);
 by (REPEAT (assume_tac 1));
-by (Asm_full_simp_tac 1);
-by (asm_simp_tac(simpset() addsimps[chain_in RS beta]) 1);
+by (asm_full_simp_tac(simpset() addsimps[chain_in RS beta]) 1);
 by (dtac (matrix_lemma RS lub_matrix_diag_sym) 1);
 by Auto_tac;
 qed "chain_cf_lub_cont";
@@ -774,8 +702,8 @@ qed "pcpo_cf";
 
 Goal  (* bot_cf *)
     "[|cpo(D); pcpo(E)|] ==> bot(cf(D,E)) = (lam x:set(D).bot(E))";
-by (rtac (bot_unique RS sym) 1);
-brr[pcpo_cf, cf_least, bot_in RS const_cont RS cont_cf, cf_cont, pcpo_cpo] 1;
+by (blast_tac (claset() addIs [bot_unique RS sym, pcpo_cf, cf_least, 
+                   bot_in RS const_cont RS cont_cf, cf_cont, pcpo_cpo])1);
 qed "bot_cf";
 
 (*----------------------------------------------------------------------*)
@@ -873,34 +801,20 @@ Goalw [projpair_def]  (* projpairI *)
 by (Fast_tac 1);
 qed "projpairI";
 
-val prems = Goalw [projpair_def]  (* projpairE *)
-    "[| projpair(D,E,e,p);   \
-\       [| e:cont(D,E); p:cont(E,D); p O e = id(set(D));   \
-\          rel(cf(E,E))(e O p)(id(set(E)))|] ==> Q |] ==> Q";
-by (rtac (hd(tl prems)) 1);
-by (REPEAT(asm_simp_tac(simpset() addsimps[hd prems]) 1));
-qed "projpairE";
-
-Goal "projpair(D,E,e,p) ==> e:cont(D,E)";
-by (etac projpairE 1);
-by (assume_tac 1);
+Goalw [projpair_def] "projpair(D,E,e,p) ==> e:cont(D,E)";
+by Auto_tac;  
 qed "projpair_e_cont";
 
-Goal  (* projpair_p_cont *)
-    "projpair(D,E,e,p) ==> p:cont(E,D)";
-by (etac projpairE 1);
-by (assume_tac 1);
+Goalw [projpair_def] "projpair(D,E,e,p) ==> p:cont(E,D)";
+by Auto_tac;  
 qed "projpair_p_cont";
 
-Goal "projpair(D,E,e,p) ==> p O e = id(set(D))";
-by (etac projpairE 1);
-by (assume_tac 1);
+Goalw [projpair_def] "projpair(D,E,e,p) ==> p O e = id(set(D))";
+by Auto_tac;  
 qed "projpair_eq";
 
-Goal  (* projpair_rel *)
-    "projpair(D,E,e,p) ==> rel(cf(E,E))(e O p)(id(set(E)))";
-by (etac projpairE 1);
-by (assume_tac 1);
+Goalw [projpair_def] "projpair(D,E,e,p) ==> rel(cf(E,E))(e O p)(id(set(E)))";
+by Auto_tac;  
 qed "projpair_rel";
 
 val projpairDs = [projpair_e_cont,projpair_p_cont,projpair_eq,projpair_rel];
@@ -998,17 +912,17 @@ by (assume_tac 2);
 by (blast_tac (claset() addIs [projpair_unique RS iffD1]) 1);
 qed "embRp";
 
-val embI = prove_goalw Limit.thy [emb_def]
-    "!!x. projpair(D,E,e,p) ==> emb(D,E,e)"
-  (fn prems => [Fast_tac 1]);
+Goalw [emb_def] "projpair(D,E,e,p) ==> emb(D,E,e)";
+by Auto_tac;  
+qed "embI";
 
 Goal "[|projpair(D,E,e,p); cpo(D); cpo(E)|] ==> Rp(D,E,e) = p";
 by (blast_tac (claset() addIs [embRp, embI, projpair_unique RS iffD1]) 1);
 qed "Rp_unique";
 
-val emb_cont = prove_goalw Limit.thy [emb_def]
-    "emb(D,E,e) ==> e:cont(D,E)"
-  (fn prems => [rtac(hd prems RS exE) 1,rtac projpair_e_cont 1,atac 1]);
+Goalw [emb_def] "emb(D,E,e) ==> e:cont(D,E)";
+by (blast_tac (claset() addIs [projpair_e_cont]) 1);
+qed "emb_cont";
 
 (* The following three theorems have cpo asms due to THE (uniqueness). *)
 
@@ -1018,16 +932,12 @@ bind_thm ("embRp_rel", embRp RS projpair_rel);
 
 AddTCs [emb_cont, Rp_cont];
 
-val id_apply = prove_goalw Perm.thy [id_def]
-    "!!z. x:A ==> id(A)`x = x"
-  (fn prems => [Asm_simp_tac 1]);
-
 Goal  (* embRp_eq_thm *)
     "[|emb(D,E,e); x:set(D); cpo(D); cpo(E)|] ==> Rp(D,E,e)`(e`x) = x";
 by (rtac (comp_fun_apply RS subst) 1);
 brr[Rp_cont,emb_cont,cont_fun] 1;
 by (stac embRp_eq 1);
-by (auto_tac (claset() addIs [id_apply], simpset()));
+by (auto_tac (claset() addIs [id_conv], simpset()));
 qed "embRp_eq_thm";
 
 
@@ -1206,9 +1116,9 @@ by (asm_simp_tac(simpset() addsimps prems) 2);
 brr(prems@[subsetD]) 1;
 qed "subcpoI";
 
-val subcpo_subset = prove_goalw Limit.thy [subcpo_def]  
-    "!!x. subcpo(D,E) ==> set(D)<=set(E)"
-  (fn prems => [Fast_tac 1]);
+Goalw [subcpo_def] "subcpo(D,E) ==> set(D)<=set(E)";
+by Auto_tac;  
+qed "subcpo_subset";
 
 Goalw [subcpo_def]  
     "[|subcpo(D,E); x:set(D); y:set(D)|] ==> rel(D,x,y)<->rel(E,x,y)";
@@ -1307,28 +1217,17 @@ Goalw [rel_def,mkcpo_def]  (* rel_mkcpoE *)
 by (Asm_full_simp_tac 1);
 qed "rel_mkcpoE";
 
-val rel_mkcpo = prove_goalw Limit.thy [mkcpo_def,rel_def,set_def]
-    "!!z. [|x:set(D); y:set(D)|] ==> rel(mkcpo(D,P),x,y) <-> rel(D,x,y)"
- (fn prems => [Asm_simp_tac 1]);
-
-(* The HOL proof is simpler, problems due to cpos as purely in upair. *)
-(* And chains as set functions. *)
+Goalw [mkcpo_def,rel_def,set_def]
+    "[|x:set(D); y:set(D)|] ==> rel(mkcpo(D,P),x,y) <-> rel(D,x,y)";
+by Auto_tac;  
+qed "rel_mkcpo";
 
 Goal  (* chain_mkcpo *)
     "chain(mkcpo(D,P),X) ==> chain(D,X)";
 by (rtac chainI 1);
-(*---begin additional---*)
-by (rtac Pi_type 1);
-brr[chain_fun] 1;
-brr[chain_in RS mkcpoD1] 1;
-(*---end additional---*)
-by (rtac (rel_mkcpo RS iffD1) 1);
-(*---begin additional---*)
-by (rtac mkcpoD1 1); 
-by (rtac mkcpoD1 2); 
-brr[chain_in,nat_succI] 1; 
-(*---end additional---*)
-by (auto_tac (claset() addIs [chain_rel], simpset()));
+by (blast_tac (claset() addIs [Pi_type, chain_fun, chain_in RS mkcpoD1]) 1);
+by (blast_tac (claset() addIs [rel_mkcpo RS iffD1, chain_rel, mkcpoD1, 
+                               chain_in,nat_succI]) 1);
 qed "chain_mkcpo";
 
 val prems = goal Limit.thy  (* subcpo_mkcpo *)
@@ -1969,7 +1868,7 @@ by (stac embRp_eq_thm 1);
 brr[emb_chain_emb, e_less_cont RS cont_fun RS apply_type, emb_chain_cpo, nat_succI] 1;
 by (asm_simp_tac(simpset() addsimps[eps_e_less]) 1);
 by (dtac asm_rl 1);
-by (asm_full_simp_tac(simpset() addsimps[eps_succ_Rp, e_less_eq, id_apply, nat_succI]) 1);
+by (asm_full_simp_tac(simpset() addsimps[eps_succ_Rp, e_less_eq, id_conv, nat_succI]) 1);
 qed "rho_emb_fun";
 
 val rho_emb_apply1 = prove_goalw Limit.thy [rho_emb_def]
