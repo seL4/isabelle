@@ -9,8 +9,8 @@ Datatype package for Isabelle/HOL.
 signature BASIC_DATATYPE_PACKAGE =
 sig
   val induct_tac : string -> int -> tactic
-  val exhaust_tac : string -> int -> tactic
-  val cases_tac : string -> int -> tactic
+  val exhaust_tac : string -> int -> tactic		(* FIXME remove !? *)
+  val case_tac : string -> int -> tactic
   val distinct_simproc : simproc
 end;
 
@@ -71,7 +71,6 @@ sig
   val constrs_of : theory -> string -> term list option
   val constrs_of_sg : Sign.sg -> string -> term list option
   val case_const_of : theory -> string -> term option
-  val cases_of: Sign.sg -> string -> thm
   val setup: (theory -> theory) list
 end;
 
@@ -129,9 +128,6 @@ fun constrs_of_sg sg tname = (case datatype_info_sg sg tname of
  | _ => None);
 
 val constrs_of = constrs_of_sg o Theory.sign_of;
-
-val exhaustion_of = #exhaustion oo datatype_info_sg_err
-fun cases_of sg name = if name = HOLogic.boolN then case_split_thm else exhaustion_of sg name;
 
 fun case_const_of thy tname = (case datatype_info thy tname of
    Some {case_name, ...} => Some (Const (case_name, the (Sign.const_type
@@ -191,21 +187,58 @@ fun induct_tac s i state =
   end;
 
 
-(* generic exhaustion tactic for datatypes *)
+(* generic case tactic for datatypes *)
 
-fun gen_exhaust_tac get_rule aterm i state =
+fun case_tac aterm i state =
+  let val name = infer_tname state i aterm in
+    if name = HOLogic.boolN then res_inst_tac [("P", aterm)] case_split_thm i state
+    else
+      let
+        val {exhaustion, ...} = datatype_info_sg_err (Thm.sign_of_thm state) name;
+        val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
+          (hd (Logic.strip_assums_hyp (hd (prems_of exhaustion))));
+        val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)))
+      in res_inst_tac [(exh_vname, aterm)] exhaustion i state end
+  end;
+
+val exhaust_tac = case_tac;
+
+
+
+(** induct method setup **)
+
+(* case names *)
+
+local
+
+fun dt_recs (DtTFree _) = []
+  | dt_recs (DtType (_, dts)) = flat (map dt_recs dts)
+  | dt_recs (DtRec i) = [i];
+
+fun dt_cases (descr: descr) (_, args, constrs) =
   let
-    val rule = get_rule (Thm.sign_of_thm state) (infer_tname state i aterm);
-    val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
-      (hd (Logic.strip_assums_hyp (hd (Thm.prems_of rule))));
-    val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)))
-  in res_inst_tac [(exh_vname, aterm)] rule i state end;
-
-val exhaust_tac = gen_exhaust_tac exhaustion_of;
-val cases_tac = gen_exhaust_tac cases_of;
+    fun the_bname i = Sign.base_name (#1 (the (assoc (descr, i))));
+    val bnames = map the_bname (distinct (flat (map dt_recs args)));
+  in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
 
 
-(* add_cases_induct -- interface to induct method *)
+fun induct_cases descr =
+  DatatypeProp.indexify_names (flat (map (dt_cases descr) (map #2 descr)));
+
+fun exhaust_cases descr i = dt_cases descr (the (assoc (descr, i)));
+
+in
+
+fun mk_case_names_induct descr = RuleCases.case_names (induct_cases descr);
+
+fun mk_case_names_exhausts descr new =
+  map (RuleCases.case_names o exhaust_cases descr o #1)
+    (filter (fn ((_, (name, _, _))) => name mem_string new) descr);
+
+end;
+
+
+(* add_cases_induct *)
 
 fun add_cases_induct infos =
   let
@@ -215,27 +248,10 @@ fun add_cases_induct infos =
             (Library.funpow i (fn th => th RS conjunct2) thm)
           |> Drule.standard;
 
-    fun dt_recs (DtTFree _) = []
-      | dt_recs (DtType (_, dts)) = flat (map dt_recs dts)
-      | dt_recs (DtRec i) = [i];
-
-    fun dt_cases (descr: descr) (_, args, constrs) =
-      let
-        fun the_bname i = Sign.base_name (#1 (the (assoc (descr, i))));
-        val bnames = map the_bname (distinct (flat (map dt_recs args)));
-      in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
-
-    fun induct_cases descr =
-      Term.variantlist (flat (map (dt_cases descr) (map #2 descr)), []);
-
-    fun exhaust_cases descr i = dt_cases descr (the (assoc (descr, i)));
-
     fun add (ths, (name, {index, descr, induction, exhaustion, ...}: datatype_info)) =
-      (("", proj index (length descr) induction),
-        [RuleCases.case_names (induct_cases descr), InductMethod.induct_type_global name]) ::
-      (("", exhaustion), [RuleCases.case_names (exhaust_cases descr index),
-        InductMethod.cases_type_global name]) :: ths;
-  in PureThy.add_thms (foldl add ([], infos)) end;
+      (("", proj index (length descr) induction), [InductMethod.induct_type_global name]) ::
+      (("", exhaustion), [InductMethod.cases_type_global name]) :: ths;
+  in #1 o PureThy.add_thms (foldl add ([], infos)) end;
 
 
 
@@ -341,27 +357,29 @@ fun store_clasimp thy (cla, simp) =
 
 (********************* axiomatic introduction of datatypes ********************)
 
-fun add_and_get_axioms label tnames ts thy =
-  foldr (fn ((tname, t), (thy', axs)) =>
+fun add_and_get_axioms_atts label tnames attss ts thy =
+  foldr (fn (((tname, atts), t), (thy', axs)) =>
     let
-      val thy'' = thy' |>
+      val (thy'', [ax]) = thy' |>
         Theory.add_path tname |>
-        PureThy.add_axioms_i [((label, t), [])];
-      val ax = PureThy.get_thm thy'' label
+        PureThy.add_axioms_i [((label, t), atts)];
     in (Theory.parent_path thy'', ax::axs)
-    end) (tnames ~~ ts, (thy, []));
+    end) (tnames ~~ attss ~~ ts, (thy, []));
+
+fun add_and_get_axioms label tnames =
+  add_and_get_axioms_atts label tnames (replicate (length tnames) []);
 
 fun add_and_get_axiomss label tnames tss thy =
   foldr (fn ((tname, ts), (thy', axss)) =>
     let
-      val thy'' = thy' |>
+      val (thy'', [axs]) = thy' |>
         Theory.add_path tname |>
         PureThy.add_axiomss_i [((label, ts), [])];
-      val axs = PureThy.get_thms thy'' label
     in (Theory.parent_path thy'', axs::axss)
     end) (tnames ~~ tss, (thy, []));
 
-fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info thy =
+fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
+    case_names_induct case_names_exhausts thy =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -465,21 +483,22 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val rec_axs = DatatypeProp.make_primrecs new_type_names descr sorts thy2;
     val size_axs = if no_size then [] else DatatypeProp.make_size new_type_names descr sorts thy2;
 
-    val (thy3, inject) = thy2 |>
+    val (thy3, (([induct], [rec_thms]), inject)) =
+      thy2 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts), [])] |>
-      PureThy.add_axiomss_i [(("recs", rec_axs), [])] |>
-      (if no_size then I else PureThy.add_axiomss_i [(("size", size_axs), [])]) |>
-      Theory.parent_path |>
+      PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts), [case_names_induct])] |>>>
+      PureThy.add_axiomss_i [(("recs", rec_axs), [])] |>>
+      (if no_size then I else #1 o PureThy.add_axiomss_i [(("size", size_axs), [])]) |>>
+      Theory.parent_path |>>>
       add_and_get_axiomss "inject" new_type_names
         (DatatypeProp.make_injs descr sorts);
-    val induct = get_thm thy3 "induct";
-    val rec_thms = get_thms thy3 "recs";
     val size_thms = if no_size then [] else get_thms thy3 "size";
     val (thy4, distinct) = add_and_get_axiomss "distinct" new_type_names
       (DatatypeProp.make_distincts new_type_names descr sorts thy3) thy3;
-    val (thy5, exhaustion) = add_and_get_axioms "exhaust" new_type_names
-      (DatatypeProp.make_casedists descr sorts) thy4;
+
+    val exhaust_ts = DatatypeProp.make_casedists descr sorts;
+    val (thy5, exhaustion) = add_and_get_axioms_atts "exhaust" new_type_names
+      (map Library.single case_names_exhausts) exhaust_ts thy4;
     val (thy6, case_thms) = add_and_get_axiomss "cases" new_type_names
       (DatatypeProp.make_cases new_type_names descr sorts thy5) thy5;
     val (split_ts, split_asm_ts) = ListPair.unzip
@@ -501,7 +520,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy11 = thy10 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_thmss [(("simps", simps), [])] |>
+      (#1 o PureThy.add_thmss [(("simps", simps), [])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path;
@@ -526,19 +545,20 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
 (******************* definitional introduction of datatypes *******************)
 
-fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_syntax dt_info thy =
+fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
+    case_names_induct case_names_exhausts thy =
   let
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
     val (thy2, inject, distinct, dist_rewrites, simproc_dists, induct) = thy |>
       DatatypeRepProofs.representation_proofs flat_names dt_info new_type_names descr sorts
-        types_syntax constr_syntax;
+        types_syntax constr_syntax case_names_induct;
 
-    val (thy3, casedist_thms) =
-      DatatypeAbsProofs.prove_casedist_thms new_type_names descr sorts induct thy2;
+    val (thy3, casedist_thms) = DatatypeAbsProofs.prove_casedist_thms new_type_names descr
+      sorts induct case_names_exhausts thy2;
     val (thy4, reccomb_names, rec_thms) = DatatypeAbsProofs.prove_primrec_thms
       flat_names new_type_names descr sorts dt_info inject dist_rewrites dist_ss induct thy3;
-    val (thy6, case_names, case_thms) = DatatypeAbsProofs.prove_case_thms
+    val (thy6, (case_thms, case_names)) = DatatypeAbsProofs.prove_case_thms
       flat_names new_type_names descr sorts reccomb_names rec_thms thy4;
     val (thy7, split_thms) = DatatypeAbsProofs.prove_split_thms new_type_names
       descr sorts inject dist_rewrites casedist_thms case_thms thy6;
@@ -557,7 +577,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy11 = thy10 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_thmss [(("simps", simps), [])] |>
+      (#1 o PureThy.add_thmss [(("simps", simps), [])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path;
@@ -602,7 +622,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
           ((tname, map dest_TFree Ts) handle TERM _ => err t)
       | get_typ t = err t;
 
-    val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induction')));
+    val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induction')));
     val new_type_names = if_none alt_names (map fst dtnames);
 
     fun get_constr t = (case Logic.strip_assums_concl t of
@@ -624,13 +644,18 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val sorts = add_term_tfrees (concl_of induction', []);
     val dt_info = get_datatypes thy1;
 
+    val case_names_induct = mk_case_names_induct descr;
+    val case_names_exhausts = mk_case_names_exhausts descr (map #1 dtnames);
+    
+
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
     val (thy2, casedist_thms) = thy1 |>
-      DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction;
+      DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction
+        case_names_exhausts;
     val (thy3, reccomb_names, rec_thms) = DatatypeAbsProofs.prove_primrec_thms
       false new_type_names [descr] sorts dt_info inject distinct dist_ss induction thy2;
-    val (thy4, case_names, case_thms) = DatatypeAbsProofs.prove_case_thms false
+    val (thy4, (case_thms, case_names)) = DatatypeAbsProofs.prove_case_thms false
       new_type_names [descr] sorts reccomb_names rec_thms thy3;
     val (thy5, split_thms) = DatatypeAbsProofs.prove_split_thms
       new_type_names [descr] sorts inject distinct casedist_thms case_thms thy4;
@@ -650,20 +675,20 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
-    val thy9 = thy8 |>
-      store_thmss "inject" new_type_names inject |>
-      store_thmss "distinct" new_type_names distinct |>
+    val (thy9, [induction']) = thy8 |>
+      (#1 o store_thmss "inject" new_type_names inject) |>
+      (#1 o store_thmss "distinct" new_type_names distinct) |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      PureThy.add_thms [(("induct", induction), [])] |>
-      PureThy.add_thmss [(("simps", simps), [])] |>
-      put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
-      add_cases_induct dt_infos |>
+      PureThy.add_thms [(("induct", induction), [case_names_induct])] |>>
+      (#1 o PureThy.add_thmss [(("simps", simps), [])]) |>>
+      put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>>
+      add_cases_induct dt_infos |>>
       Theory.parent_path;
 
+    (* FIXME use attributes *)
     val _ = store_clasimp thy9 ((claset_of thy9, simpset_of thy9)
       addsimps2 flat case_thms addsimps2 size_thms addsimps2 rec_thms
       addIffs flat (inject @ distinct));
-
   in
     (thy9,
      {distinct = distinct,
@@ -672,7 +697,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       rec_thms = rec_thms,
       case_thms = case_thms,
       split_thms = split_thms,
-      induction = induction,
+      induction = induction',
       size = size_thms,
       simps = simps})
   end;
@@ -744,9 +769,13 @@ fun gen_add_datatype prep_typ flat_names new_type_names dts thy =
     val (descr, _) = unfold_datatypes sign dts' sorts dt_info dts' i;
     val _ = check_nonempty descr;
 
+    val descr' = flat descr;
+    val case_names_induct = mk_case_names_induct descr';
+    val case_names_exhausts = mk_case_names_exhausts descr' (map #1 new_dts);
   in
     (if (!quick_and_dirty) then add_datatype_axm else add_datatype_def)
-      flat_names new_type_names descr sorts types_syntax constr_syntax dt_info thy
+      flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
+      case_names_induct case_names_exhausts thy
   end;
 
 val add_datatype_i = gen_add_datatype cert_typ;
