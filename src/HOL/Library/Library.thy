@@ -10,6 +10,7 @@ theory Library =
   Continuity +
   Multiset +
   Permutation +
+  Primes +
   While_Combinator:
 end
 (*>*)

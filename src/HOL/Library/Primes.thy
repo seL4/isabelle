@@ -1,23 +1,24 @@
-(*  Title:      HOL/NumberTheory/Primes.thy
+(*  Title:      HOL/Library/Primes.thy
     ID:         $Id$
     Author:     Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
 
-header {* The Greatest Common Divisor and Euclid's algorithm *}
+header {*
+  \title{The Greatest Common Divisor and Euclid's algorithm}
+  \author{Christophe Tabacznyj and Lawrence C Paulson} *}
 
 theory Primes = Main:
 
 text {*
-  (See H. Davenport, "The Higher Arithmetic".  6th edition.  (CUP, 1992))
-
+  See \cite{davenport92}.
   \bigskip
 *}
 
 consts
-  gcd  :: "nat * nat => nat"  -- {* Euclid's algorithm *}
+  gcd  :: "nat \<times> nat => nat"  -- {* Euclid's algorithm *}
 
-recdef gcd  "measure ((\<lambda>(m, n). n) :: nat * nat => nat)"
+recdef gcd  "measure ((\<lambda>(m, n). n) :: nat \<times> nat => nat)"
   "gcd (m, n) = (if n = 0 then m else gcd (n, m mod n))"
 
 constdefs
@@ -69,6 +70,17 @@ lemma gcd_dvd_both: "gcd (m, n) dvd m \<and> gcd (m, n) dvd n"
 
 lemmas gcd_dvd1 [iff] = gcd_dvd_both [THEN conjunct1, standard]
 lemmas gcd_dvd2 [iff] = gcd_dvd_both [THEN conjunct2, standard]
+
+lemma gcd_zero: "(gcd (m, n) = 0) = (m = 0 \<and> n = 0)"
+proof
+  have "gcd (m, n) dvd m \<and> gcd (m, n) dvd n" by simp
+  also assume "gcd (m, n) = 0"
+  finally have "0 dvd m \<and> 0 dvd n" .
+  thus "m = 0 \<and> n = 0" by (simp add: dvd_0_left)
+next
+  assume "m = 0 \<and> n = 0"
+  thus "gcd (m, n) = 0" by simp
+qed
 
 
 text {*
@@ -145,7 +157,7 @@ text {*
 *}
 
 lemma gcd_mult_distrib2: "k * gcd (m, n) = gcd (k * m, k * n)"
-    -- {* Davenport, page 27 *}
+    -- {* \cite[page 27]{davenport92} *}
   apply (induct m n rule: gcd_induct)
    apply simp
   apply (case_tac "k = 0")
@@ -187,6 +199,10 @@ text {*
 
 lemma prime_dvd_mult: "p \<in> prime ==> p dvd m * n ==> p dvd m \<or> p dvd n"
   apply (blast intro: relprime_dvd_mult prime_imp_relprime)
+  done
+
+lemma prime_dvd_square: "p \<in> prime ==> p dvd m^2 ==> p dvd m"
+  apply (auto dest: prime_dvd_mult)
   done
 
 
