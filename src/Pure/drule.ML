@@ -119,7 +119,7 @@ fun dest_defn tm =
   let
     fun err msg = raise_term msg [tm];
 
-    val (lhs, rhs) = Logic.dest_equals tm
+    val (lhs, rhs) = Logic.dest_equals (Logic.strip_imp_concl tm)
       handle TERM _ => err "Not a meta-equality (==)";
     val (head, args) = strip_comb lhs;
     val (c, ty) = dest_Const head
