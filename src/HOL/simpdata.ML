@@ -356,24 +356,6 @@ val Delsplits        = Splitter.Delsplits;
 
 (** 'if' congruence rules: neither included by default! *)
 
-(*Simplifies x assuming c and y assuming ~c*)
-qed_goal "if_cong" HOL.thy
-  "[| b=c; c ==> x=u; ~c ==> y=v |] ==>\
-\  (if b then x else y) = (if c then u else v)"
-  (fn rew::prems =>
-   [stac rew 1, stac split_if 1, stac split_if 1,
-    blast_tac (HOL_cs addDs prems) 1]);
-
-(*Prevents simplification of x and y: much faster*)
-qed_goal "if_weak_cong" HOL.thy
-  "b=c ==> (if b then x else y) = (if c then x else y)"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
-(*Prevents simplification of t: much faster*)
-qed_goal "let_weak_cong" HOL.thy
-  "a = b ==> (let x=a in t(x)) = (let x=b in t(x))"
-  (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
 (*In general it seems wrong to add distributive laws by default: they
   might cause exponential blow-up.  But imp_disjL has been in for a while
   and cannot be removed without affecting existing proofs.  Moreover, 
@@ -430,6 +412,23 @@ val HOL_ss =
      addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong]
      addsplits [split_if];
+
+(*Simplifies x assuming c and y assuming ~c*)
+val prems = Goalw [if_def]
+  "[| b=c; c ==> x=u; ~c ==> y=v |] ==> \
+\  (if b then x else y) = (if c then u else v)";
+by (asm_simp_tac (HOL_ss addsimps prems) 1);
+qed "if_cong";
+
+(*Prevents simplification of x and y: much faster*)
+qed_goal "if_weak_cong" HOL.thy
+  "b=c ==> (if b then x else y) = (if c then x else y)"
+  (fn [prem] => [rtac (prem RS arg_cong) 1]);
+
+(*Prevents simplification of t: much faster*)
+qed_goal "let_weak_cong" HOL.thy
+  "a = b ==> (let x=a in t(x)) = (let x=b in t(x))"
+  (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
