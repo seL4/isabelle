@@ -12,13 +12,6 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 
 Addsimps [parts_cut_eq];
 
-proof_timing:=true;
-
-(*IN SET.ML*)
-goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
-by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-qed "mem_if";
-
 (*FUN.ML??  WE NEED A NOTION OF INVERSE IMAGE, OR GRAPH!!*)
 goal Set.thy "!!f. B <= range f = (B = f`` {x. f x: B})";
 by (fast_tac (!claset addEs [equalityE]) 1);
@@ -34,37 +27,37 @@ Addsimps [Un_insert_left, Un_insert_right];
   will not!*)
 Addsimps [o_def];
 
-(*** Basic properties of serverKey and newK ***)
+(*** Basic properties of shrK and newK ***)
 
-(* invKey (serverKey A) = serverKey A *)
-bind_thm ("invKey_serverKey", rewrite_rule [isSymKey_def] isSym_serverKey);
+(* invKey (shrK A) = shrK A *)
+bind_thm ("invKey_shrK", rewrite_rule [isSymKey_def] isSym_shrK);
 
 (* invKey (newK evs) = newK evs *)
 bind_thm ("invKey_newK", rewrite_rule [isSymKey_def] isSym_newK);
-Addsimps [invKey_serverKey, invKey_newK];
+Addsimps [invKey_shrK, invKey_newK];
 
 
 (*New keys and nonces are fresh*)
-val serverKey_inject = inj_serverKey RS injD;
+val shrK_inject = inj_shrK RS injD;
 val newN_inject = inj_newN RS injD
 and newK_inject = inj_newK RS injD;
-AddSEs [serverKey_inject, newN_inject, newK_inject,
+AddSEs [shrK_inject, newN_inject, newK_inject,
 	fresh_newK RS notE, fresh_newN RS notE];
-Addsimps [inj_serverKey RS inj_eq, inj_newN RS inj_eq, inj_newK RS inj_eq];
+Addsimps [inj_shrK RS inj_eq, inj_newN RS inj_eq, inj_newK RS inj_eq];
 Addsimps [fresh_newN, fresh_newK];
 
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
 
-goal thy "newK evs ~= serverKey B";
-by (subgoal_tac "newK evs = serverKey B --> \
+goal thy "newK evs ~= shrK B";
+by (subgoal_tac "newK evs = shrK B --> \
 \                Key (newK evs) : parts (initState B)" 1);
 by (Fast_tac 1);
 by (agent.induct_tac "B" 1);
 by (auto_tac (!claset addIs [range_eqI], !simpset));
-qed "newK_neq_serverKey";
+qed "newK_neq_shrK";
 
-Addsimps [newK_neq_serverKey, newK_neq_serverKey RS not_sym];
+Addsimps [newK_neq_shrK, newK_neq_shrK RS not_sym];
 
 (*Good for talking about Server's initial state*)
 goal thy "!!H. H <= Key``E ==> parts H = H";
@@ -96,25 +89,25 @@ by (Auto_tac ());
 qed "keysFor_image_Key";
 Addsimps [keysFor_image_Key];
 
-goal thy "serverKey A ~: newK``E";
+goal thy "shrK A ~: newK``E";
 by (agent.induct_tac "A" 1);
 by (Auto_tac ());
-qed "serverKey_notin_image_newK";
-Addsimps [serverKey_notin_image_newK];
+qed "shrK_notin_image_newK";
+Addsimps [shrK_notin_image_newK];
 
 
-(*Agents see their own serverKeys!*)
-goal thy "Key (serverKey A) : analz (sees A evs)";
+(*Agents see their own shrKs!*)
+goal thy "Key (shrK A) : analz (sees A evs)";
 by (list.induct_tac "evs" 1);
 by (asm_simp_tac (!simpset addsimps [impOfSubs(Un_upper2 RS analz_mono)]) 2);
 by (agent.induct_tac "A" 1);
 by (auto_tac (!claset addIs [range_eqI], !simpset));
-qed "analz_own_serverKey";
+qed "analz_own_shrK";
 
-bind_thm ("parts_own_serverKey",
-	  [analz_subset_parts, analz_own_serverKey] MRS subsetD);
+bind_thm ("parts_own_shrK",
+	  [analz_subset_parts, analz_own_shrK] MRS subsetD);
 
-Addsimps [analz_own_serverKey, parts_own_serverKey];
+Addsimps [analz_own_shrK, parts_own_shrK];
 
 
 
@@ -143,6 +136,11 @@ by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
 qed "sees_Says_subset_insert";
 
+goal thy "sees A (Notes A' X # evs) <= insert X (sees A evs)";
+by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
+by (Fast_tac 1);
+qed "sees_Notes_subset_insert";
+
 goal thy "sees A evs <= sees A (Says A' B X # evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
@@ -166,7 +164,7 @@ qed_spec_mp "Says_imp_sees_Enemy";
 Addsimps [Says_imp_sees_Enemy];
 AddIs    [Says_imp_sees_Enemy];
 
-goal thy "initState C <= Key `` range serverKey";
+goal thy "initState C <= Key `` range shrK";
 by (agent.induct_tac "C" 1);
 by (Auto_tac ());
 qed "initState_subset";
@@ -174,7 +172,7 @@ qed "initState_subset";
 goal thy "X : sees C evs --> \
 \          (EX A B. Says A B X : set_of_list evs) | \
 \          (EX A. Notes A X : set_of_list evs) | \
-\          (EX A. X = Key (serverKey A))";
+\          (EX A. X = Key (shrK A))";
 by (list.induct_tac "evs" 1);
 by (ALLGOALS Asm_simp_tac);
 by (fast_tac (!claset addDs [impOfSubs initState_subset]) 1);
@@ -211,6 +209,6 @@ val pushCrypts = map (insComm "Crypt ?X ?K")
 (*Cannot be added with Addsimps -- we don't always want to re-order messages*)
 val pushes = pushKeys@pushCrypts;
 
-val pushKey_newK = insComm "Key (newK ?evs)"  "Key (serverKey ?C)";
+val pushKey_newK = insComm "Key (newK ?evs)"  "Key (shrK ?C)";
 
 

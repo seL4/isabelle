@@ -6,24 +6,26 @@
 Theory of Shared Keys (common to all symmetric-key protocols)
 
 Server keys; initial states of agents; new nonces and keys; function "sees" 
+
+IS THE Notes constructor needed??
 *)
 
 Shared = Message + List + 
 
 consts
-  serverKey    :: agent => key  (*symmetric keys*)
+  shrK    :: agent => key  (*symmetric keys*)
 
 rules
-  isSym_serverKey "isSymKey (serverKey A)"
+  isSym_shrK "isSymKey (shrK A)"
 
 consts  (*Initial states of agents -- parameter of the construction*)
   initState :: agent => msg set
 
 primrec initState agent
         (*Server knows all keys; other agents know only their own*)
-  initState_Server  "initState Server     = Key `` range serverKey"
-  initState_Friend  "initState (Friend i) = {Key (serverKey (Friend i))}"
-  initState_Enemy   "initState Enemy  = {Key (serverKey Enemy)}"
+  initState_Server  "initState Server     = Key `` range shrK"
+  initState_Friend  "initState (Friend i) = {Key (shrK (Friend i))}"
+  initState_Enemy   "initState Enemy  = {Key (shrK Enemy)}"
 
 datatype  (*Messages, and components of agent stores*)
   event = Says agent agent msg
@@ -55,7 +57,7 @@ consts
   newK :: "event list => key"
 
 rules
-  inj_serverKey "inj serverKey"
+  inj_shrK "inj shrK"
 
   inj_newN   "inj newN"
   fresh_newN "Nonce (newN evs) ~: parts (initState B)" 
