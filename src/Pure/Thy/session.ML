@@ -32,10 +32,10 @@ fun add_path reset s =
 
 (* diagnostics *)
 
-fun str_of [id] = id
-  | str_of ids = space_implode "/" (tl ids);
+fun str_of [] = "Pure"
+  | str_of elems = space_implode "/" elems;
 
-fun welcome () = "Welcome to Isabelle/" ^ str_of (! session) ^ " (" ^ version ^ ")";
+fun welcome () = "Welcome to Isabelle/" ^ str_of (path ()) ^ " (" ^ version ^ ")";
 
 
 (* init *)
@@ -59,12 +59,10 @@ fun finish () =
 val root_file = ThyLoad.ml_path "ROOT";
 
 fun use_dir reset info parent name =
-  let val parent_session = ! session in
-    init reset parent name;
-    Present.init info parent_session (! session) (path ()) name;
+  (init reset parent name;
+    Present.init info (path ()) name;
     Symbol.use root_file;
-    finish ()
-  end handle _ => exit 1;
+    finish ()) handle _ => exit 1;
 
 
 end;
