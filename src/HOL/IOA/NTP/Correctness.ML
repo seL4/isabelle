@@ -117,4 +117,4 @@ by(Asm_full_simp_tac 1);
 by(fast_tac (HOL_cs addSDs [add_leD1 RS leD]) 1);
 
 by(Asm_full_simp_tac 1);
-result();
+qed"ntp_correct";
