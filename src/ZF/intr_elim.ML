@@ -92,8 +92,9 @@ fun intro_tacsf disjIn prems =
    REPEAT (resolve_tac [Part_eqI,CollectI] 1),
    (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
    rtac disjIn 2,
-   (*Not ares_tac, since refl must be tried before any equality assumptions*)
-   REPEAT (resolve_tac [refl,exI,conjI] 2 ORELSE assume_tac 2),
+   (*Not ares_tac, since refl must be tried before any equality assumptions;
+     backtracking may occur if the premises have extra variables!*)
+   DEPTH_SOLVE_1 (resolve_tac [refl,exI,conjI] 2 ORELSE assume_tac 2),
    (*Now solve the equations like Tcons(a,f) = Inl(?b4)*)
    rewrite_goals_tac con_defs,
    REPEAT (rtac refl 2),
