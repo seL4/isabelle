@@ -168,7 +168,7 @@ qed "nat_cadd_eq_add";
 (*Easier to prove the two directions separately*)
 goalw CardinalArith.thy [eqpoll_def] "A*B eqpoll B*A";
 by (rtac exI 1);
-by (res_inst_tac [("c", "split(%x y.<y,x>)"), ("d", "split(%x y.<y,x>)")] 
+by (res_inst_tac [("c", "%<x,y>.<y,x>"), ("d", "%<x,y>.<y,x>")] 
     lam_bijective 1);
 by (safe_tac ZF_cs);
 by (ALLGOALS (asm_simp_tac ZF_ss));
@@ -278,8 +278,8 @@ qed "cmult_le_self";
 goalw CardinalArith.thy [lepoll_def]
      "!!A B C D. [| A lepoll C;  B lepoll D |] ==> A * B  lepoll  C * D";
 by (REPEAT (etac exE 1));
-by (res_inst_tac [("x", "lam z:A*B. split(%w y.<f`w, fa`y>, z)")] exI 1);
-by (res_inst_tac [("d", "split(%w y.<converse(f)`w, converse(fa)`y>)")] 
+by (res_inst_tac [("x", "lam <w,y>:A*B. <f`w, fa`y>")] exI 1);
+by (res_inst_tac [("d", "%<w,y>.<converse(f)`w, converse(fa)`y>")] 
 		  lam_injective 1);
 by (typechk_tac (inj_is_fun::ZF_typechecks));
 by (etac SigmaE 1);
@@ -298,7 +298,7 @@ qed "cmult_le_mono";
 
 goalw CardinalArith.thy [eqpoll_def] "succ(A)*B eqpoll B + A*B";
 by (rtac exI 1);
-by (res_inst_tac [("c", "split(%x y. if(x=A, Inl(y), Inr(<x,y>)))"), 
+by (res_inst_tac [("c", "%<x,y>. if(x=A, Inl(y), Inr(<x,y>))"), 
 		  ("d", "case(%y. <A,y>, %z.z)")] 
     lam_bijective 1);
 by (safe_tac (ZF_cs addSEs [sumE]));
@@ -410,8 +410,7 @@ qed "ordermap_eqpoll_pred";
 (** Establishing the well-ordering **)
 
 goalw CardinalArith.thy [inj_def]
- "!!K. Ord(K) ==>	\
-\ (lam z:K*K. split(%x y. <x Un y, <x, y>>, z)) : inj(K*K, K*K*K)";
+ "!!K. Ord(K) ==> (lam <x,y>:K*K. <x Un y, x, y>) : inj(K*K, K*K*K)";
 by (fast_tac (ZF_cs addss ZF_ss
 		    addIs [lam_type, Un_least_lt RS ltD, ltI]) 1);
 qed "csquare_lam_inj";
