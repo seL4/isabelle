@@ -1,13 +1,11 @@
 #!/bin/bash
 #
-# Poly/ML startup script.
-#
 # $Id$
+#
+# Poly/ML startup script.
 #
 # Global vars: INFILE OUTFILE COPYDB MLTEXT OPTIONS TERMINATE,
 # and from settings
-#
-# MMW 22-Nov-1996, MMW 25-Nov-1996
 
 
 ## diagnostics
@@ -28,14 +26,9 @@ POLY=$ML_HOME/poly
 DISCGARB=$ML_HOME/discgarb
 
 case "$ML_SYSTEM" in
-  polyml-2.07)
-    ;;
   polyml-3.1)
-    DISCGARB="$ML_HOME/discgarb -c"
+    DISCGARB="$DISCGARB -c"
     export LM_LICENSE_FILE=$ML_HOME/license.dat
-    ;;
-  *)
-    fail "Unknown ML system: \"$ML_SYSTEM\""
     ;;
 esac
 
@@ -87,11 +80,11 @@ elif [ -z "$MLTEXT" ]; then
 else
   TMP_FILE=/tmp/mltext-$$
   echo "$MLTEXT" >$TMP_FILE
-  cat $TMP_FILE - | $START_POLY
+  $ISABELLE_HOME/lib/scripts/ucat $TMP_FILE - | $START_POLY
   RC=$?
   rm $TMP_FILE
 fi
 
-[ $RC -a -n "$OUTFILE" ] && $DISCGARB "$OUTFILE"
+[ $RC -eq 0 -a -n "$OUTFILE" ] && $DISCGARB "$OUTFILE"
 
 exit $RC
