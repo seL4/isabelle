@@ -2,4 +2,5 @@
 (*$Id$
   theory Main includes everything*)
 
-Main = Update + InfDatatype + List + EquivClass
+Main = Update + InfDatatype + List + EquivClass + Bin
+
