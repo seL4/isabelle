@@ -7,6 +7,11 @@ New in this Isabelle version
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
+* HOL: The THEN and ELSE parts of conditional expressions (if P then x else y)
+are no longer simplified.  (This allows the simplifier to unfold recursive
+functional programs.)  To restore the old behaviour, declare
+	Delcongs [if_weak_cong];
+
 * HOL: Removed the obsolete syntax "Compl A"; use -A for set
 complement;
 
@@ -101,6 +106,11 @@ simplifier.
 NB: At the moment, these decision procedures do not cope with mixed
 nat/int formulae where the two parts interact, such as `m < n ==>
 int(m) < int(n)'.
+
+* Integer division and remainder can now be performed on constant arguments.  
+
+* Many properties of integer multiplication, division and remainder are now
+available.
 
 * New bounded quantifier syntax (input only):
   ! x < y. P, ! x <= y. P, ? x < y. P, ? x <= y. P
