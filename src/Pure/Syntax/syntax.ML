@@ -93,7 +93,7 @@ fun lookup_tr' tab c = map fst (Symtab.lookup_multi (tab, c));
 fun extend_tr'tab tab trfuns =
   generic_extend eq_trfuns Symtab.dest_multi Symtab.make_multi tab (map mk_trfun trfuns);
 
-val merge_tr'tabs = generic_merge eq_trfuns Symtab.dest_multi Symtab.make_multi;
+fun merge_tr'tabs tabs = generic_merge eq_trfuns Symtab.dest_multi Symtab.make_multi tabs;
 
 
 
