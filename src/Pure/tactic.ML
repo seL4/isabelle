@@ -106,10 +106,11 @@ local
 in
   fun freeze_thaw th =
     let val fth = freezeT th
+	val vary = variant (add_term_names (#prop(rep_thm fth), []))
 	val {prop,sign,...} = rep_thm fth
 	fun mk_inst (Var(v,T)) = 
 	    (cterm_of sign (Var(v,T)),
-	     cterm_of sign (Free(string_of v, T)))
+	     cterm_of sign (Free(vary (string_of v), T)))
 	val insts = map mk_inst (term_vars prop)
 	fun thaw th' = 
 	    th' |> forall_intr_list (map #2 insts)
@@ -135,9 +136,11 @@ fun defer_tac i state =
 
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic tac rl =
-    case rl |> standard |> freeze_thaw |> #1 |> tac |> Sequence.pull of
+  let val (st, thaw) = freeze_thaw (zero_var_indexes rl)
+  in case Sequence.pull (tac st)  of
 	None        => raise THM("rule_by_tactic", 0, [rl])
-      | Some(rl',_) => standard rl';
+      | Some(st',_) => Thm.varifyT (thaw st')
+  end;
  
 (*** Basic tactics ***)
 

@@ -144,7 +144,8 @@ in
   (*String s should have the form t:Si where Si is an inductive set*)
   fun mk_cases defs s = 
       rule_by_tactic (con_elim_tac defs)
-        (assume_read Inductive.thy s  RS  elim);
+          (assume_read Inductive.thy s  RS  elim) 
+      |> standard;
 
   val raw_induct = standard ([big_rec_def, mono] MRS Fp.induct)
   and rec_names = rec_names

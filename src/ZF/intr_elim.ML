@@ -155,7 +155,8 @@ in
       rule_by_tactic (rewrite_goals_tac defs THEN 
                       basic_elim_tac THEN
                       fold_tac defs)
-        (assume_read Inductive.thy s  RS  elim);
+         (assume_read Inductive.thy s  RS  elim)
+      |> standard;
 
   val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct)
   and rec_names = rec_names
