@@ -33,6 +33,32 @@ attributes for 'intros';
 
 *** HOL ***
 
+* HOL: moved over to sane numeral syntax; the new policy is as
+follows:
+
+  - 0 and 1 are polymorphic constants, which are defined on any
+  numeric type (nat, int, real etc.);
+
+  - 2, 3, 4, ... and -1, -2, -3, ... are polymorphic numerals, based
+  binary representation internally;
+
+  - type nat has special constructor Suc, and generally prefers Suc 0
+  over 1::nat and Suc (Suc 0) over 2::nat;
+
+This change may cause significant INCOMPATIBILITIES; here are some
+hints on converting existing sources:
+
+  - due to the new "num" token, "-0" and "-1" etc. are now atomic
+  entities, so expressions involving "-" (unary or binary minus) need
+  to be spaced properly;
+
+  - existing occurrences of "1" may need to be constraint "1::nat" or
+  even replaced by Suc 0; similar for old "2";
+
+  - replace "#nnn" by "nnn", and "#-nnn" by "-nnn";
+
+  - remove all special provisions on numerals in proofs;
+
 * HOL: linorder_less_split superseded by linorder_cases;
 
 * HOL: added "The" definite description operator; move Hilbert's "Eps"
