@@ -133,7 +133,7 @@ goal thy
 \           ALL evs. (@ N. Nonce N ~: used evs) ~: range PRF;  \
 \           A ~= B |] ==> EX NA PA NB PB. EX evs: tls.    \
 \  Says A B (Crypt (clientK(NA,NB,M))                           \
-\            (Hash{|Nonce M, Number SID,             \
+\            (Hash{|Number SID, Nonce M,             \
 \                   Nonce NA, Number PA, Agent A,      \
 \                   Nonce NB, Number PB, Agent B|})) : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -224,7 +224,7 @@ fun analz_induct_tac i =
                         setloop split_tac [expand_if]));
 
 
-(*** Notes are made under controlled circumstances ***)
+(*** Properties of items found in Notes ***)
 
 goal thy "!!evs. [| Notes A {|Agent B, X|} : set evs;  evs : tls |]  \
 \                ==> Crypt (pubK B) X : parts (spies evs)";
@@ -233,20 +233,10 @@ by (analz_induct_tac 1);
 by (blast_tac (!claset addIs [parts_insertI]) 1);
 qed "Notes_Crypt_parts_spies";
 
-(*C might be either A or B*)
+(*C may be either A or B*)
 goal thy
-    "!!evs. [| Notes C {|Number SID, Agent A, Agent B, Nonce M|} : set evs;  \
-\              evs : tls     \
-\           |] ==> M : range PRF";
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
-by (Auto_tac());
-qed "Notes_master_range_PRF";
-
-(*C might be either A or B*)
-goal thy
- "!!evs. [| Notes C {|Number SID, Agent A, Agent B, Nonce(PRF(PMS,NA,NB))|} \
-\             : set evs;     evs : tls     \
+ "!!evs. [| Notes C {|s, Agent A, Agent B, Nonce(PRF(PMS,NA,NB))|} : set evs; \
+\           evs : tls     \
 \        |] ==> Crypt (pubK B) (Nonce PMS) : parts (spies evs)";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
@@ -260,35 +250,14 @@ qed "Notes_master_imp_Crypt_PMS";
 
 (*Compared with the theorem above, both premise and conclusion are stronger*)
 goal thy
- "!!evs. [| Notes A {|Number SID, Agent A, Agent B, Nonce(PRF(PMS,NA,NB))|} \
-\             : set evs;     evs : tls     \
+ "!!evs. [| Notes A {|s, Agent A, Agent B, Nonce(PRF(PMS,NA,NB))|} : set evs;\
+\           evs : tls     \
 \        |] ==> Notes A {|Agent B, Nonce PMS|} : set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 (*ServerAccepts*)
 by (Fast_tac 1);	(*Blast_tac's very slow here*)
 qed "Notes_master_imp_Notes_PMS";
-
-
-(*Every Nonce that's hashed is already in past traffic; this event
-  occurs in CertVerify.  The condition NB ~: range PRF excludes the 
-  MASTER SECRET from consideration; it is created using PRF.*)
-goal thy "!!evs. [| Hash {|Nonce NB, X|} : parts (spies evs);  \
-\                   NB ~: range PRF;  evs : tls |]  \
-\                ==> Nonce NB : parts (spies evs)";
-by (etac rev_mp 1);
-by (etac rev_mp 1);
-by (parts_induct_tac 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [parts_insert_spies])));
-(*Server/Client Resume: wrong sort of nonce!*)
-by (REPEAT (blast_tac (!claset addSDs [Notes_master_range_PRF]) 5));
-(*FINISHED messages are trivial because M : range PRF*)
-by (REPEAT (Blast_tac 3));
-(*CertVerify is the only interesting case*)
-by (blast_tac (!claset addSEs spies_partsEs) 2);
-by (Fake_parts_insert_tac 1);
-qed "Hash_Nonce_CV";
-
 
 
 (*** Protocol goal: if B receives CertVerify, then A sent it ***)
@@ -498,15 +467,6 @@ qed "sessionK_not_spied";
 Addsimps [sessionK_not_spied];
 
 
-(*NEEDED??*)
-goal thy
- "!!evs. [| Says A B {|certA, Crypt KB (Nonce M)|} : set evs;   \
-\           A ~= Spy;  evs : tls |] ==> KB = pubK B";
-be rev_mp 1;
-by (analz_induct_tac 1);
-qed "A_Crypt_pubB";
-
-
 (*** Unicity results for PMS, the pre-master-secret ***)
 
 (*PMS determines B.  Proof borrowed from NS_Public/unique_NA and from Yahalom*)
@@ -708,7 +668,7 @@ qed_spec_mp "serverK_Oops_ALL";
 goal thy
  "!!evs. [| ALL A. Says A Spy (Key (serverK(Na,Nb,M))) ~: set evs; \
 \           X = Crypt (serverK(Na,Nb,M))                  \
-\                 (Hash{|Nonce M, Number SID,             \
+\                 (Hash{|Number SID, Nonce M,             \
 \                        Nonce Na, Number PA, Agent A,    \
 \                        Nonce Nb, Number PB, Agent B|}); \
 \           M = PRF(PMS,NA,NB);                           \
@@ -734,7 +694,7 @@ val lemma = normalize_thm [RSspec, RSmp] (result());
 (*Final version*)
 goal thy
  "!!evs. [| X = Crypt (serverK(Na,Nb,M))                  \
-\                 (Hash{|Nonce M, Number SID,             \
+\                 (Hash{|Number SID, Nonce M,             \
 \                        Nonce Na, Number PA, Agent A,    \
 \                        Nonce Nb, Number PB, Agent B|}); \
 \           M = PRF(PMS,NA,NB);                           \
@@ -859,3 +819,4 @@ qed "AuthClientFinished";
 (*22/9/97: loads in 622s, which is 10 minutes 22 seconds*)
 (*24/9/97: loads in 672s, which is 11 minutes 12 seconds [stronger theorems]*)
 (*29/9/97: loads in 481s, after removing Certificate from ClientKeyExch*)
+(*30/9/97: loads in 476s, after removing unused theorems*)
