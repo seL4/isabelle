@@ -13,7 +13,7 @@ text {*
   mathematical version.
 *}
 
-section {* Preliminaries *}
+subsection {* Preliminaries *}
 
 lemma prime_nonzero:  "p \<in> prime \<Longrightarrow> p\<noteq>0"
 by (force simp add: prime_def)
@@ -46,14 +46,14 @@ apply (blast dest: rearrange reduction)
 done
 
 
-section {* The set of rational numbers [Borrowed from Markus Wenzel] *}
+subsection {* The set of rational numbers *}
 
 constdefs
   rationals :: "real set"    ("\<rat>")
   "\<rat> \<equiv> {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
 
 
-section {* Main theorem *}
+subsection {* Main theorem *}
 
 text {*
   The square root of any prime number (including @{text 2}) is
