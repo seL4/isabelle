@@ -21,6 +21,7 @@ signature BASIC_THM =
   exception CTERM of string
   val rep_cterm         : cterm -> {sign: Sign.sg, t: term, T: typ, maxidx: int}
   val crep_cterm        : cterm -> {sign: Sign.sg, t: term, T: ctyp, maxidx: int}
+  val sign_of_cterm	: cterm -> Sign.sg
   val term_of           : cterm -> term
   val cterm_of          : Sign.sg -> term -> cterm
   val ctyp_of_term      : cterm -> ctyp
@@ -226,6 +227,8 @@ fun rep_cterm (Cterm {sign_ref, t, T, maxidx}) =
 fun crep_cterm (Cterm {sign_ref, t, T, maxidx}) =
   {sign = Sign.deref sign_ref, t = t, T = Ctyp {sign_ref = sign_ref, T = T},
     maxidx = maxidx};
+
+fun sign_of_cterm (Cterm {sign_ref, ...}) = Sign.deref sign_ref;
 
 fun term_of (Cterm {t, ...}) = t;
 
