@@ -80,7 +80,7 @@ better use "obtain" in situations as above; alternative refer to
 multi-step methods like 'auto', 'simp_all', 'blast+' etc.;
 
 * Pure: proper integration with ``locales''; unlike the original
-version by Florian Kammueller, Isar locales package high-level proof
+version by Florian Kamm¸ller, Isar locales package high-level proof
 contexts rather than raw logical ones (e.g. we admit to include
 attributes everywhere);
 
@@ -191,7 +191,7 @@ necessary to attach explicit type constraints;
 expressions;
 
 * HOL/GroupTheory: group theory examples including Sylow's theorem, by
-Florian KammÅ¸ller;
+Florian Kamm¸ller;
 
 * HOL: got rid of some global declarations (potential INCOMPATIBILITY
 for ML tools): const "()" renamed "Product_Type.Unity", type "unit"
@@ -209,8 +209,9 @@ HOLCF/ex/Dnat.thy;
 
 *** ZF ***
 
-* ZF: new-style theory commands 'inductive', 'inductive_cases', and
-methods 'ind_cases', 'induct_tac', 'case_tac';
+* ZF: new-style theory commands '(co)inductive', '(co)datatype',
+'rep_datatype', 'inductive_cases'; also methods 'ind_cases',
+'induct_tac', 'case_tac', and 'typecheck' (with attribute 'TC');
 
 * ZF: the integer library now covers quotients and remainders, with
 many laws relating division to addition, multiplication, etc.;
