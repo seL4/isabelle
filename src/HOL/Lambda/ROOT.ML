@@ -6,4 +6,4 @@
 
 time_use_thy "Eta";
 with_path "../Induct" time_use_thy "Acc";
-time_use_thy "InductTermi";
+time_use_thy "Type";
