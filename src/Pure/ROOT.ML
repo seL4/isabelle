@@ -46,12 +46,13 @@ use "search.ML";
 use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
-use "pure.ML";
 
 (*theory parser and loader*)
 cd "Thy";
 use "ROOT.ML";
 cd "..";
+
+use "pure.ML";
 
 use "install_pp.ML";
 

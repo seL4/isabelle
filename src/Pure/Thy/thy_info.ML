@@ -36,6 +36,7 @@ end
 signature THY_INFO =
 sig
   include BASIC_THY_INFO
+  val mk_info: string * string list * string list * theory -> string * thy_info
   val loaded_thys: thy_info Symtab.table ref
   val get_thyinfo: string -> thy_info option
   val store_theory: theory -> unit
@@ -58,11 +59,7 @@ fun mk_info (name, children, parents, theory) =
     thy_time = Some "", ml_time = Some "", theory = Some theory}: thy_info);
 
 (*preloaded theories*)
-val loaded_thys =
-  ref (Symtab.make (map mk_info
-    [("ProtoPure", ["Pure", "CPure"], [], ProtoPure.thy),
-     ("Pure", [], ["ProtoPure"], Pure.thy),
-     ("CPure", [], ["ProtoPure"], CPure.thy)]));
+val loaded_thys = ref (Symtab.empty: thy_info Symtab.table);
 
 
 (* retrieve info *)
