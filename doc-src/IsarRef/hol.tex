@@ -278,14 +278,12 @@ via the $\CASENAME$ proof command within the subsequent proof text (cf.\
 about large specifications.
 
 \begin{rail}
-  'cases' simplified? open? args rule?
+  'cases' ('(' 'simplified' ')')? spec
   ;
-  'induct' stripped? open? args rule?
+  'induct' ('(' 'stripped' ')')? spec
   ;
 
-  simplified: '(' 'simplified' ')'
-  ;
-  stripped: '(' 'stripped' ')'
+  spec: open? args rule? params?
   ;
   open: '(' 'open' ')'
   ;
@@ -293,10 +291,12 @@ about large specifications.
   ;
   rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
   ;
+  params: 'of' ':' insts
+  ;
 \end{rail}
 
 \begin{descr}
-\item [$cases~insts~R$] applies method $rule$ with an appropriate case
+\item [$cases~insts~R~ps$] applies method $rule$ with an appropriate case
   distinction theorem, instantiated to the subjects $insts$.  Symbolic case
   names are bound according to the rule's local contexts.
   
@@ -315,6 +315,13 @@ about large specifications.
   variables is instantiated.  In most situations, only a single term needs to
   be specified; this refers to the first variable of the last premise (it is
   usually the same for all cases).
+  
+  Additional parameters may be specified as $ps$; these are applied after the
+  primary instantiation in the same manner as by the $of$ attribute (cf.\ 
+  \S\ref{sec:pure-meth-att}).  This feature is rarely needed in practice; a
+  typical application would be to specify additional arguments for rules
+  stemming from parameterized inductive definitions (see also
+  \S\ref{sec:inductive}).
 
   The $simplified$ option causes ``obvious cases'' of the rule to be solved
   beforehand, while the others are left unscathed.
@@ -325,8 +332,8 @@ about large specifications.
   manner, which can be quite confusing to the reader.  Furthermore, this
   option may cause unwanted hiding of existing local variables, resulting in
   less robust proof texts.
-
-\item [$induct~insts~R$] is analogous to the $cases$ method, but refers to
+  
+\item [$induct~insts~R~ps$] is analogous to the $cases$ method, but refers to
   induction rules, which are determined as follows:
   \begin{matharray}{llll}
     \Text{facts}    &        & \Text{arguments} & \Text{rule} \\\hline
@@ -341,6 +348,8 @@ about large specifications.
   refers to the \emph{suffix} of variables present in the induction rule.
   This enables the writer to specify only induction variables, or both
   predicates and variables, for example.
+  
+  Additional parameters may be given in the same way as for $cases$.
   
   The $stripped$ option causes implications and (bounded) universal
   quantifiers to be removed from each new subgoal emerging from the
@@ -359,7 +368,9 @@ cases usually require the rule to be instantiated fully, as far as the
 emerging local contexts and subgoals are concerned.  In particular, for
 induction both the predicates and variables have to be specified.  Otherwise
 the $\CASENAME$ command would refuse to invoke cases containing schematic
-variables.
+variables.  Furthermore the resulting local goal statement is bound to the
+term variable $\Var{case}$\indexisarvar{case} --- for each case where it is
+fully specified.
 
 The $\isarkeyword{print_cases}$ command (\S\ref{sec:cases}) prints all named
 cases present in the current proof state.
@@ -421,7 +432,7 @@ for reasoning about inductive sets and types.  The standard rules are already
 declared by HOL definitional packages.  For special applications, these may be
 replaced manually by variant versions.
 
-Refer to the $case_names$ and $params$ attributes (see \S\ref{sec:cases}) to
+Refer to the $case_names$ and $ps$ attributes (see \S\ref{sec:cases}) to
 adjust names of cases and parameters of a rule.
 
 The $consumes$ declaration (cf.\ \S\ref{sec:cases}) is taken care of
