@@ -103,6 +103,7 @@ signature CLASSICAL =
   val AddSEs		: thm list -> unit
   val AddSIs		: thm list -> unit
   val Delrules		: thm list -> unit
+  val Safe_tac         	: tactic
   val Safe_step_tac	: int -> tactic
   val Clarify_tac 	: int -> tactic
   val Clarify_step_tac 	: int -> tactic
@@ -676,25 +677,27 @@ fun AddSIs ts = (claset := !claset addSIs ts);
 
 fun Delrules ts = (claset := !claset delrules ts);
 
-(*Cannot have Safe_tac, as it takes no arguments; must delay dereferencing!*)
+(** The abstraction over the proof state delays the dereferencing **)
 
-fun Safe_step_tac i = safe_step_tac (!claset) i; 
+fun Safe_tac st		= safe_tac (!claset) st;
 
-fun Clarify_step_tac i = clarify_step_tac (!claset) i;
+fun Safe_step_tac i st	= safe_step_tac (!claset) i st; 
 
-fun Clarify_tac i = clarify_tac (!claset) i;
+fun Clarify_step_tac i st	= clarify_step_tac (!claset) i st;
 
-fun Step_tac i = step_tac (!claset) i; 
+fun Clarify_tac i st	= clarify_tac (!claset) i st;
 
-fun Fast_tac i = fast_tac (!claset) i; 
+fun Step_tac i st	= step_tac (!claset) i st; 
 
-fun Best_tac i = best_tac (!claset) i; 
+fun Fast_tac i st	= fast_tac (!claset) i st; 
 
-fun Slow_tac i = slow_tac (!claset) i; 
+fun Best_tac i st	= best_tac (!claset) i st; 
 
-fun Slow_best_tac i = slow_best_tac (!claset) i; 
+fun Slow_tac i st	= slow_tac (!claset) i st; 
 
-fun Deepen_tac m = deepen_tac (!claset) m; 
+fun Slow_best_tac i st	= slow_best_tac (!claset) i st; 
+
+fun Deepen_tac m	= deepen_tac (!claset) m; 
 
 end; 
 end;
