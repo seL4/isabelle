@@ -26,7 +26,7 @@ time_use_thy "Puzzle";
 
 time_use_thy "IntRing";
 
-time_use     "set.ML";
+time_use_thy "set";
 time_use_thy "MT";
 time_use_thy "Tarski";
 

@@ -6,72 +6,68 @@
 Cantor's Theorem; the Schroeder-Berstein Theorem.  
 *)
 
-
-writeln"File HOL/ex/set.";
-
-context Lfp.thy;
-
-(*These two are cited in Benzmueller and Kohlhash's system description of LEO,
+(*These two are cited in Benzmueller and Kohlhase's system description of LEO,
   CADE-15, 1998 (page 139-143) as theorems LEO could not prove.*)
 
 Goal "(X = Y Un Z) = (Y<=X & Z<=X & (ALL V. Y<=V & Z<=V --> X<=V))";
 by (Blast_tac 1);
-result();
+qed "";
 
 Goal "(X = Y Int Z) = (X<=Y & X<=Z & (ALL V. V<=Y & V<=Z --> V<=X))";
 by (Blast_tac 1);
-result();
+qed "";
 
 (*trivial example of term synthesis: apparently hard for some provers!*)
 Goal "a ~= b ==> a:?X & b ~: ?X";
 by (Blast_tac 1);
-result();
+qed "";
 
 (** Examples for the Blast_tac paper **)
 
 (*Union-image, called Un_Union_image on equalities.ML*)
 Goal "(UN x:C. f(x) Un g(x)) = Union(f``C)  Un  Union(g``C)";
 by (Blast_tac 1);
-result();
+qed "";
 
 (*Inter-image, called Int_Inter_image on equalities.ML*)
 Goal "(INT x:C. f(x) Int g(x)) = Inter(f``C) Int Inter(g``C)";
 by (Blast_tac 1);
-result();
+qed "";
 
 (*Singleton I.  Nice demonstration of blast_tac--and its limitations*)
 Goal "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 (*for some unfathomable reason, UNIV_I increases the search space greatly*)
 by (blast_tac (claset() delrules [UNIV_I]) 1);
-result();
+qed "";
 
 (*Singleton II.  variant of the benchmark above*)
 Goal "ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
 by (blast_tac (claset() delrules [UNIV_I]) 1);
 (*just Blast_tac takes 5 seconds instead of 1*)
-result();
+qed "";
 
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
 
 Goal "?!x. f(g(x))=x ==> ?!y. g(f(y))=y";
 by (EVERY1[etac ex1E, rtac ex1I, etac arg_cong,
           rtac subst, atac, etac allE, rtac arg_cong, etac mp, etac arg_cong]);
-result();
+qed "";
+
 
 (*** Cantor's Theorem: There is no surjection from a set to its powerset. ***)
 
-goal Set.thy "~ (? f:: 'a=>'a set. ! S. ? x. f(x) = S)";
+Goal "~ (? f:: 'a=>'a set. ! S. ? x. f(x) = S)";
 (*requires best-first search because it is undirectional*)
 by (best_tac (claset() addSEs [equalityCE]) 1);
 qed "cantor1";
 
 (*This form displays the diagonal term*)
-goal Set.thy "! f:: 'a=>'a set. ! x. f(x) ~= ?S(f)";
+Goal "! f:: 'a=>'a set. ! x. f(x) ~= ?S(f)";
 by (best_tac (claset() addSEs [equalityCE]) 1);
 uresult();
 
 (*This form exploits the set constructs*)
-goal Set.thy "?S ~: range(f :: 'a=>'a set)";
+Goal "?S ~: range(f :: 'a=>'a set)";
 by (rtac notI 1);
 by (etac rangeE 1);
 by (etac equalityCE 1);
@@ -82,6 +78,7 @@ by (assume_tac 1);
 
 choplev 0;
 by (best_tac (claset() addSEs [equalityCE]) 1);
+qed "";
 
 
 (*** The Schroder-Berstein Theorem ***)
@@ -110,7 +107,7 @@ by (rtac lfp_Tarski 1);
 by (REPEAT (ares_tac [monoI, image_mono, Compl_anti_mono] 1));
 qed "decomposition";
 
-val [injf,injg] = goal Lfp.thy 
+val [injf,injg] = goal (the_context ())
    "[| inj (f:: 'a=>'b);  inj (g:: 'b=>'a) |] ==> \
 \   ? h:: 'a=>'b. inj(h) & surj(h)";
 by (rtac (decomposition RS exE) 1);
@@ -125,5 +122,3 @@ by (EVERY1 [etac ssubst, stac double_complement, rtac subsetI,
 by (EVERY1 [etac ssubst, stac double_complement, 
             rtac (injg RS inv_image_comp RS sym)]);
 qed "schroeder_bernstein";
-
-writeln"Reached end of file.";
