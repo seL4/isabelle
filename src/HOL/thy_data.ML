@@ -48,3 +48,18 @@ fun extract_info thy =
               let val info = map snd ds
               in (map #case_cong info, flat (map #case_rewrites info)) end;
   in {case_congs = congs, case_rewrites = rewrites} end;
+
+
+(*Must be redefined in order to refer to the new instance of bind_thm
+  created by init_thy_reader.*)
+
+fun qed_spec_mp name =
+  let val thm = normalize_thm [RSspec,RSmp] (result())
+  in bind_thm(name, thm) end;
+
+fun qed_goal_spec_mp name thy s p = 
+	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goal thy s p));
+
+fun qed_goalw_spec_mp name thy defs s p = 
+	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goalw thy defs s p));
+
