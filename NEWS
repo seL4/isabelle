@@ -48,7 +48,7 @@ ctyps, cterms) are automatically promoted to real ones;
 * print_goals: optional output of const types (set show_consts and
 show_types);
 
-* improved output of warnings (###) / errors (***);
+* improved output of warnings (###) and errors (***);
 
 * subgoal_tac displays a warning if the new subgoal has type variables;
 
@@ -61,8 +61,8 @@ show_types);
 * deleted the obsolete tactical STATE, which was declared by
     fun STATE tacfun st = tacfun st st;
 
-* cd, use, use etc. now support path variables, e.g. ~ (which
-abbreviates $HOME), or $ISABELLE_HOME;
+* cd and use now support path variables, e.g. $ISABELLE_HOME, or ~
+(which abbreviates $HOME);
 
 * changed Pure/Sequence interface (see Pure/seq.ML); COMPATIBILITY:
 use isatool fixseq to adapt your ML programs (this works for fully
