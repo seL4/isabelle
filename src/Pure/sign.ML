@@ -58,13 +58,14 @@ sig
   val intern_typ: sg -> xtyp -> typ
   val intern_term: sg -> xterm -> term
   val intern_tycons: sg -> xtyp -> typ
-  val print_sg: sg -> unit
   val pretty_sg: sg -> Pretty.T
   val str_of_sg: sg -> string
   val pprint_sg: sg -> pprint_args -> unit
   val pretty_term: sg -> term -> Pretty.T
   val pretty_typ: sg -> typ -> Pretty.T
   val pretty_sort: sg -> sort -> Pretty.T
+  val pretty_classrel: sg -> class * class -> Pretty.T
+  val pretty_arity: sg -> string * sort list * sort -> Pretty.T
   val string_of_term: sg -> term -> string
   val string_of_typ: sg -> typ -> string
   val string_of_sort: sg -> sort -> string
@@ -79,7 +80,10 @@ sig
   val read_typ: sg * (indexname -> sort option) -> string -> typ
   val infer_types: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
-    -> xterm list * typ -> int * term * (indexname * typ) list
+    -> xterm list * typ -> term * (indexname * typ) list
+  val infer_types_simult: sg -> (indexname -> typ option) ->
+    (indexname -> sort option) -> string list -> bool
+    -> (xterm list * typ) list -> term list * (indexname * typ) list
   val add_classes: (bclass * xclass list) list -> sg -> sg
   val add_classes_i: (bclass * class list) list -> sg -> sg
   val add_classrel: (xclass * xclass) list -> sg -> sg
@@ -124,7 +128,7 @@ sig
   val class_of_const: string -> class
 end;
 
-structure Sign : SIGN =
+structure Sign: SIGN =
 struct
 
 
@@ -370,11 +374,11 @@ end;
 
 
 
-(** pretty printing of terms and types **)
+(** pretty printing of terms, types etc. **)
 
-fun pretty_term (sg as Sg (_, {syn, spaces, ...})) t =
+fun pretty_term (sg as Sg ({stamps, ...}, {syn, spaces, ...})) t =
   Syntax.pretty_term syn
-    ("CPure" mem_string (stamp_names_of sg))
+    (exists (equal "CPure" o !) stamps)
     (if ! long_names then t else extrn_term spaces t);
 
 fun pretty_typ (Sg (_, {syn, spaces, ...})) T =
@@ -409,66 +413,6 @@ fun str_of_arity sg ar = Pretty.str_of (pretty_arity sg ar);
 
 fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
 fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
-
-
-
-(** print signature **)
-
-fun print_sg sg =
-  let
-    fun prt_cls c = pretty_sort sg [c];
-    fun prt_sort S = pretty_sort sg S;
-    fun prt_arity t (c, Ss) = pretty_arity sg (t, Ss, [c]);
-    fun prt_typ ty = Pretty.quote (pretty_typ sg ty);
-
-    val ext_class = cond_extern sg classK;
-    val ext_tycon = cond_extern sg typeK;
-    val ext_const = cond_extern sg constK;
-
-
-    fun pretty_space (kind, space) = Pretty.block (Pretty.breaks
-      (map Pretty.str (kind ^ ":" :: map quote (NameSpace.dest space))));
-
-    fun pretty_classes cs = Pretty.block
-      (Pretty.breaks (Pretty.str "classes:" :: map prt_cls cs));
-
-    fun pretty_classrel (c, cs) = Pretty.block
-      (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 ::
-        Pretty.commas (map prt_cls cs));
-
-    fun pretty_default S = Pretty.block
-      [Pretty.str "default:", Pretty.brk 1, pretty_sort sg S];
-
-    fun pretty_ty (t, n) = Pretty.block
-      [Pretty.str (ext_tycon t), Pretty.str (" " ^ string_of_int n)];
-
-    fun pretty_abbr (t, (vs, rhs)) = Pretty.block
-      [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
-        Pretty.str " =", Pretty.brk 1, prt_typ rhs];
-
-    fun pretty_arities (t, ars) = map (prt_arity t) ars;
-
-    fun pretty_const (c, ty) = Pretty.block
-      [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ ty];
-
-    val Sg (_, {self = _, tsig, const_tab, syn = _, path, spaces, data}) = sg;
-    val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
-    val {classes, classrel, default, tycons, abbrs, arities} =
-      Type.rep_tsig tsig;
-    val consts = sort_wrt fst (map (apfst ext_const) (Symtab.dest const_tab));
-  in
-    Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names_of sg));
-    Pretty.writeln (Pretty.strs ("data:" :: Data.kinds data));
-    Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
-    Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces'));
-    Pretty.writeln (pretty_classes classes);
-    Pretty.writeln (Pretty.big_list "class relation:" (map pretty_classrel classrel));
-    Pretty.writeln (pretty_default default);
-    Pretty.writeln (Pretty.big_list "type constructors:" (map pretty_ty tycons));
-    Pretty.writeln (Pretty.big_list "type abbreviations:" (map pretty_abbr abbrs));
-    Pretty.writeln (Pretty.big_list "type arities:" (flat (map pretty_arities arities)));
-    Pretty.writeln (Pretty.big_list "consts:" (map pretty_const consts))
-  end;
 
 
 
@@ -574,61 +518,58 @@ fun certify_term sg tm =
 (** infer_types **)         (*exception ERROR*)
 
 (*
-  ts: list of alternative parses (hopefully only one is type-correct)
-  T: expected type
-
   def_type: partial map from indexnames to types (constrains Frees, Vars)
   def_sort: partial map from indexnames to sorts (constrains TFrees, TVars)
   used: list of already used type variables
   freeze: if true then generated parameters are turned into TFrees, else TVars
+
+  termss: lists of alternative parses (only one combination should be type-correct)
+  typs: expected types
 *)
 
-fun infer_types sg def_type def_sort used freeze (ts, T) =
+fun infer_types_simult sg def_type def_sort used freeze args =
   let
     val tsig = tsig_of sg;
     val prt =
       setmp Syntax.show_brackets true
         (setmp long_names true (pretty_term sg));
     val prT = setmp long_names true (pretty_typ sg);
-    val infer = Type.infer_types prt prT tsig (const_type sg) def_type def_sort
-      (intern_const sg) (intern_tycons sg) (intern_sort sg) used freeze;
 
-    val T' = certify_typ sg T handle TYPE (msg, _, _) => error msg;
+    val termss = foldr multiply (map fst args, [[]]);
+    val typs =
+      map (fn (_, T) => certify_typ sg T handle TYPE (msg, _, _) => error msg) args;
 
-    fun warn () =
-      if length ts > 1 andalso length ts <= ! Syntax.ambiguity_level
-      then (*no warning shown yet*)
-        warning "Got more than one parse tree.\n\
+    fun infer ts = OK
+      (Type.infer_types prt prT tsig (const_type sg) def_type def_sort
+        (intern_const sg) (intern_tycons sg) (intern_sort sg) used freeze typs ts)
+      handle TYPE (msg, _, _) => Error msg;
+
+    val err_results = map infer termss;
+    val errs = mapfilter get_error err_results;
+    val results = mapfilter get_ok err_results;
+
+    val ambiguity = length termss;	(* FIXME !? *)
+    (* FIXME to syntax.ML!? *)
+    fun ambig_msg () =
+      if ambiguity > 1 andalso ambiguity <= ! Syntax.ambiguity_level
+      then
+        error_msg "Got more than one parse tree.\n\
           \Retry with smaller Syntax.ambiguity_level for more information."
       else ();
-
-    datatype result =
-      One of int * term * (indexname * typ) list |
-      Errs of string list |
-      Ambigs of term list;
-
-    fun process_term (res, (t, i)) =
-      let val ([u], tye) = infer [T'] [t] in
-        (case res of
-          One (_, t0, _) => Ambigs ([u, t0])
-        | Errs _ => One (i, u, tye)
-        | Ambigs us => Ambigs (u :: us))
-      end handle TYPE (msg, _, _) =>
-        (case res of
-          Errs errs => Errs (msg :: errs)
-        | _ => res);
   in
-    (case foldl process_term (Errs [], ts ~~ (0 upto (length ts - 1))) of
-      One res =>
-       (if length ts > ! Syntax.ambiguity_level then
-          warning "Fortunately, only one parse tree is type correct.\n\
-            \You may still want to disambiguate your grammar or your input."
-        else (); res)
-    | Errs errs => (warn (); error (cat_lines errs))
-    | Ambigs us =>
-        (warn (); error ("More than one term is type correct:\n" ^
-          (cat_lines (map (Pretty.string_of o prt) us)))))
+    if null results then (ambig_msg (); error (cat_lines errs))
+    else if length results = 1 then
+      (if ambiguity > ! Syntax.ambiguity_level then
+        warning "Fortunately, only one parse tree is type correct.\n\
+          \You may still want to disambiguate your grammar or your input."
+      else (); hd results)
+    else (ambig_msg (); error ("More than one term is type correct:\n" ^
+      (cat_lines (map (Pretty.string_of o prt) (flat (map fst results))))))
   end;
+
+
+fun infer_types sg def_type def_sort used freeze tsT =
+  apfst hd (infer_types_simult sg def_type def_sort used freeze [tsT]);
 
 
 
