@@ -39,7 +39,6 @@ qed_spec_mp "W_correct";
 val has_type_casesE = map(has_type.mk_cases expr.simps)
         [" s |- Var n :: t"," s |- Abs e :: t","s |- App e1 e2 ::t"];
 
-
 (* the resulting type variable is always greater or equal than the given one *)
 Goal "!a n s t m. W e a n  = Ok (s,t,m) --> n<=m";
 by (induct_tac "e" 1);
@@ -64,9 +63,7 @@ by (etac conjE 1);
 by (eres_inst_tac [("x","sa")] allE 1);
 by (eres_inst_tac [("x","ta")] allE 1);
 by (eres_inst_tac [("x","nb")] allE 1);
-by (res_inst_tac [("j","na")] le_trans 1); 
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
+by (Asm_full_simp_tac 1);
 qed_spec_mp "W_var_ge";
 
 Addsimps [W_var_ge];
@@ -168,8 +165,7 @@ by (eres_inst_tac [("x","s")] allE 1);
 by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
-by (force_tac (claset() addSEs [allE] addIs [cod_app_subst],
-                     simpset() addsimps [less_Suc_eq]) 1);
+by (force_tac (claset() addSEs [allE] addIs [cod_app_subst], simpset()) 1);
 (** LEVEL 13 **)
 (* case App e1 e2 *)
 by (simp_tac (simpset() addsplits [split_bind]) 1);
@@ -197,7 +193,7 @@ by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
 (** LEVEL 33 **)
 by (fast_tac (HOL_cs addDs [free_tv_comp_subst RS subsetD,sym RS mgu_free, 
     codD,free_tv_app_subst_te RS subsetD,free_tv_app_subst_tel RS subsetD,
-    less_le_trans,less_not_refl2,subsetD]
+    subsetD]
   addEs [UnE] 
   addss simpset()) 1);
 by (Asm_full_simp_tac 1); 
