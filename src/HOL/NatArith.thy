@@ -62,7 +62,7 @@ by arith
 
 (*Replaces the previous diff_less and le_diff_less, which had the stronger
   second premise n\<le>m*)
-lemma diff_less: "!!m::nat. [| 0<n; 0<m |] ==> m - n < m"
+lemma diff_less[simp]: "!!m::nat. [| 0<n; 0<m |] ==> m - n < m"
 by arith
 
 

@@ -28,6 +28,7 @@ consts
   set :: "'a list => 'a set"
   list_all:: "('a => bool) => ('a list => bool)"
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
+  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
   map :: "('a=>'b) => ('a list => 'b list)"
   mem :: "'a => 'a list => bool"    (infixl 55)
   nth :: "'a list => nat => 'a"    (infixl "!" 100)
@@ -128,6 +129,10 @@ primrec
 primrec
   list_all_Nil:"list_all P [] = True"
   list_all_Cons: "list_all P (x#xs) = (P(x) \<and> list_all P xs)"
+
+primrec
+"list_ex P [] = False"
+"list_ex P (x#xs) = (P x \<or> list_ex P xs)"
 
 primrec
   "map f [] = []"
@@ -572,6 +577,9 @@ apply (induct xs, force)
 apply (case_tac ys, simp, force)
 done
 
+lemma inj_on_rev[iff]: "inj_on rev A"
+by(simp add:inj_on_def)
+
 lemma rev_induct [case_names Nil snoc]:
   "[| P []; !!x xs. P xs ==> P (xs @ [x]) |] ==> P xs"
 apply(subst rev_rev_ident[symmetric])
@@ -650,17 +658,19 @@ lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
 
 
-subsubsection {* @{text mem} *}
+subsubsection {* @{text mem}, @{text list_all} and @{text list_ex} *}
 
 text{* Only use @{text mem} for generating executable code.  Otherwise
-use @{prop"x : set xs"} instead --- it is much easier to reason
-about. *}
+use @{prop"x : set xs"} instead --- it is much easier to reason about.
+The same is true for @{text list_all} and @{text list_ex}: write
+@{text"\<forall>x\<in>set xs"} and @{text"\<exists>x\<in>set xs"} instead because the HOL
+quantifiers are aleady known to the automatic provers. For the purpose
+of generating executable code use the theorems @{text set_mem_eq},
+@{text list_all_conv} and @{text list_ex_iff} to get rid off or
+introduce the combinators. *}
 
 lemma set_mem_eq: "(x mem xs) = (x : set xs)"
 by (induct xs) auto
-
-
-subsubsection {* @{text list_all} *}
 
 lemma list_all_conv: "list_all P xs = (\<forall>x \<in> set xs. P x)"
 by (induct xs) auto
@@ -672,6 +682,8 @@ by (induct xs) auto
 lemma list_all_rev [simp]: "list_all P (rev xs) = list_all P xs"
 by (simp add: list_all_conv)
 
+lemma list_ex_iff: "list_ex P xs = (\<exists>x \<in> set xs. P x)"
+by (induct xs) simp_all
 
 
 subsubsection {* @{text filter} *}
@@ -1724,6 +1736,16 @@ by(simp add:rotate1_def split:list.split)
 
 lemma rotate_is_Nil_conv[simp]: "(rotate n xs = []) = (xs = [])"
 by (induct n) (simp_all add:rotate_def)
+
+lemma rotate_rev:
+  "rotate n (rev xs) = rev(rotate (length xs - (n mod length xs)) xs)"
+apply(simp add:rotate_drop_take rev_drop rev_take)
+apply(cases "length xs = 0")
+ apply simp
+apply(cases "n mod length xs = 0")
+ apply simp
+apply(simp add:rotate_drop_take rev_drop rev_take)
+done
 
 
 subsubsection {* @{text sublist} --- a generalization of @{text nth} to sets *}

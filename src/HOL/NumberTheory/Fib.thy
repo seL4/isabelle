@@ -108,7 +108,7 @@ lemma gcd_fib_diff: "m \<le> n ==> gcd (fib m, fib (n - m)) = gcd (fib m, fib n)
 lemma gcd_fib_mod: "0 < m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
   apply (induct n rule: nat_less_induct)
   apply (subst mod_if)
-  apply (simp add: gcd_fib_diff mod_geq not_less_iff_le diff_less)
+  apply (simp add: gcd_fib_diff mod_geq not_less_iff_le)
   done
 
 lemma fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)"  -- {* Law 6.111 *}

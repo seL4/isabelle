@@ -388,11 +388,6 @@ apply (case_tac "m")
 apply (simp_all add: numerals)
 done
 
-lemma diff_less': "[| 0<n; 0<m |] ==> m - n < (m::nat)"
-by (simp add: diff_less numerals)
-
-declare diff_less' [of "number_of v", standard, simp]
-
 
 subsection{*Comparisons involving (0::nat) *}
 
@@ -764,7 +759,6 @@ val Suc_eq_add_numeral_1_left = thm"Suc_eq_add_numeral_1_left";
 val add_eq_if = thm"add_eq_if";
 val mult_eq_if = thm"mult_eq_if";
 val power_eq_if = thm"power_eq_if";
-val diff_less' = thm"diff_less'";
 val eq_number_of_0 = thm"eq_number_of_0";
 val eq_0_number_of = thm"eq_0_number_of";
 val less_0_number_of = thm"less_0_number_of";

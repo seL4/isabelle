@@ -77,7 +77,7 @@ by (rule mod_eq [THEN wf_less_trans], simp)
 lemma mod_geq: "~ m < (n::nat) ==> m mod n = (m-n) mod n"
 apply (case_tac "n=0", simp) 
 apply (rule mod_eq [THEN wf_less_trans])
-apply (simp add: diff_less cut_apply less_eq)
+apply (simp add: cut_apply less_eq)
 done
 
 (*Avoids the ugly ~m<n above*)
@@ -119,7 +119,7 @@ apply (case_tac "n=0", simp)
 apply (case_tac "k=0", simp)
 apply (induct "m" rule: nat_less_induct)
 apply (subst mod_if, simp)
-apply (simp add: mod_geq diff_less diff_mult_distrib)
+apply (simp add: mod_geq diff_mult_distrib)
 done
 
 lemma mod_mult_distrib2: "(k::nat) * (m mod n) = (k*m) mod (k*n)"
@@ -144,7 +144,7 @@ by (rule div_eq [THEN wf_less_trans], simp)
 
 lemma div_geq: "[| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)"
 apply (rule div_eq [THEN wf_less_trans])
-apply (simp add: diff_less cut_apply less_eq)
+apply (simp add: cut_apply less_eq)
 done
 
 (*Avoids the ugly ~m<n above*)
@@ -160,7 +160,7 @@ lemma mod_div_equality: "(m div n)*n + m mod n = (m::nat)"
 apply (case_tac "n=0", simp)
 apply (induct "m" rule: nat_less_induct)
 apply (subst mod_if)
-apply (simp_all (no_asm_simp) add: add_assoc div_geq add_diff_inverse diff_less)
+apply (simp_all (no_asm_simp) add: add_assoc div_geq add_diff_inverse)
 done
 
 lemma mod_div_equality2: "n * (m div n) + m mod n = (m::nat)"
@@ -222,7 +222,12 @@ lemma mod_less_divisor [simp]: "0<n ==> m mod n < (n::nat)"
 apply (induct "m" rule: nat_less_induct)
 apply (case_tac "na<n", simp) 
 txt{*case @{term "n \<le> na"}*}
-apply (simp add: mod_geq diff_less)
+apply (simp add: mod_geq)
+done
+
+lemma mod_le_divisor[simp]: "0 < n \<Longrightarrow> m mod n \<le> (n::nat)"
+apply(drule mod_less_divisor[where m = m])
+apply simp
 done
 
 lemma div_mult_self_is_m [simp]: "0<n ==> (m*n) div n = (m::nat)"
@@ -427,7 +432,7 @@ apply (case_tac "m<k")
 (* 2.1  case m<k *)
 apply simp
 (* 2.2  case m>=k *)
-apply (simp add: div_geq diff_less diff_le_mono)
+apply (simp add: div_geq diff_le_mono)
 done
 
 (* Antimonotonicity of div in second argument *)
@@ -444,7 +449,7 @@ apply (subgoal_tac "(k-n) div n \<le> (k-m) div n")
  prefer 2
  apply (blast intro: div_le_mono diff_le_mono2)
 apply (rule le_trans, simp)
-apply (simp add: diff_less)
+apply (simp)
 done
 
 lemma div_le_dividend [simp]: "m div n \<le> (m::nat)"
@@ -467,7 +472,7 @@ apply (case_tac "n<m")
  apply (subgoal_tac "(m-n) div n < (m-n) ")
   apply (rule impI less_trans_Suc)+
 apply assumption
-  apply (simp_all add: diff_less)
+  apply (simp_all)
 done
 
 text{*A fact for the mutilated chess board*}
@@ -479,7 +484,7 @@ apply (case_tac "Suc (na) <n")
 apply (frule lessI [THEN less_trans], simp add: less_not_refl3)
 (* case n \<le> Suc(na) *)
 apply (simp add: not_less_iff_le le_Suc_eq mod_geq)
-apply (auto simp add: Suc_diff_le diff_less le_mod_geq)
+apply (auto simp add: Suc_diff_le le_mod_geq)
 done
 
 lemma nat_mod_div_trivial [simp]: "m mod n div n = (0 :: nat)"

@@ -142,7 +142,7 @@ proof -
 	assume "n < m" thus ?thesis by simp
       next
 	assume not_lt: "~ n < m" hence le: "m <= n" by simp
-	have "n - m < n" by (simp! add: diff_less)
+	have "n - m < n" by (simp!)
 	with hyp have "gcd (fib m, fib ((n - m) mod m))
 	  = gcd (fib m, fib (n - m))" by simp
 	also from le have "... = gcd (fib m, fib n)"

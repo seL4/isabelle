@@ -163,6 +163,12 @@ apply(simp add:inj_on_def image_def)
 apply blast
 done
 
+lemma inj_on_image_iff: "\<lbrakk> ALL x:A. ALL y:A. (g(f x) = g(f y)) = (g x = g y);
+  inj_on f A \<rbrakk> \<Longrightarrow> inj_on g (f ` A) = inj_on g A"
+apply(unfold inj_on_def)
+apply blast
+done
+
 lemma inj_on_contraD: "[| inj_on f A;  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)"
 by (unfold inj_on_def, blast)
 
