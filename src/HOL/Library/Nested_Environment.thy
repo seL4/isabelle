@@ -15,13 +15,11 @@ text {*
   Consider a partial function @{term [source] "e :: 'a => 'b option"};
   this may be understood as an \emph{environment} mapping indexes
   @{typ 'a} to optional entry values @{typ 'b} (cf.\ the basic theory
-  @{text
-  Map}\footnote{\url{http://isabelle.in.tum.de/library/HOL/Map.html}}
-  of Isabelle/HOL).  This basic idea is easily generalized to that of
-  a \emph{nested environment}, where entries may be either basic
-  values or again proper environments.  Then each entry is accessed by
-  a \emph{path}, i.e.\ a list of indexes leading to its position
-  within the structure.
+  @{text Map} of Isabelle/HOL).  This basic idea is easily generalized
+  to that of a \emph{nested environment}, where entries may be either
+  basic values or again proper environments.  Then each entry is
+  accessed by a \emph{path}, i.e.\ a list of indexes leading to its
+  position within the structure.
 *}
 
 datatype ('a, 'b, 'c) env =
@@ -219,15 +217,14 @@ theorem lookup_some_upper: "!!env e.
       lookup env' ys = Some e"
   (is "PROP ?P xs" is "!!env e. ?A env e xs ==> ?C env e xs")
 proof (induct ?P xs)
-  fix env e
-  let ?A = "?A env e" and ?C = "?C env e"
+  fix env e let ?A = "?A env e" and ?C = "?C env e"
   {
     assume "?A []"
     hence "lookup env (y # ys) = Some e" by simp
     then obtain b' es' env' where
-          env: "env = Env b' es'"
-        and es': "es' y = Some env'"
-        and look': "lookup env' ys = Some e"
+        env: "env = Env b' es'" and
+        es': "es' y = Some env'" and
+        look': "lookup env' ys = Some e"
       by (auto simp add: lookup_eq split: option.splits env.splits)
     from env have "lookup env [] = Some (Env b' es')" by simp
     with es' look' show "?C []" by blast
@@ -236,14 +233,14 @@ proof (induct ?P xs)
     assume hyp: "PROP ?P xs"
     assume "?A (x # xs)"
     then obtain b' es' env' where
-          env: "env = Env b' es'"
-        and es': "es' x = Some env'"
-        and look': "lookup env' (xs @ y # ys) = Some e"
+        env: "env = Env b' es'" and
+        es': "es' x = Some env'" and
+        look': "lookup env' (xs @ y # ys) = Some e"
       by (auto simp add: lookup_eq split: option.splits env.splits)
     from hyp [OF look'] obtain b'' es'' env'' where
-          upper': "lookup env' xs = Some (Env b'' es'')"
-        and es'': "es'' y = Some env''"
-        and look'': "lookup env'' ys = Some e"
+        upper': "lookup env' xs = Some (Env b'' es'')" and
+        es'': "es'' y = Some env''" and
+        look'': "lookup env'' ys = Some e"
       by blast
     from env es' upper' have "lookup env (x # xs) = Some (Env b'' es'')"
       by simp

@@ -1,3 +1,4 @@
+
 header {* \title{} *}
 
 theory While_Combinator_Example = While_Combinator:
