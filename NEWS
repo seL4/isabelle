@@ -225,6 +225,13 @@ should instead use individual commands for printing items
 
 *** HOL ***
 
+* HOL/MicroJava: formalization of a fragment of Java, together with a
+corresponding virtual machine and a specification of its bytecode
+verifier and a lightweight bytecode verifier, including proofs of
+type-safety; by Gerwin Klein, Tobias Nipkow, David von Oheimb, and
+Cornelia Pusch (see also the homepage of project Bali at
+http://isabelle.in.tum.de/Bali/);
+
 * HOL/Algebra: new theory of rings and univariate polynomials, by
 Clemens Ballarin;
 
