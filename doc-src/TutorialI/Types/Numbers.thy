@@ -162,8 +162,11 @@ Division, remainder of negatives
 \rulename{abs_mult}
 *}  
 
-lemma "\<lbrakk>abs x < a; abs y < b\<rbrakk> \<Longrightarrow> abs x + abs y < (a + b :: int)"
+lemma "abs (x+y) \<le> abs x + abs (y :: int)"
 by arith
+
+lemma "abs (#2*x) = #2 * abs (x :: int)"
+by (simp add: zabs_def) 
 
 text {*REALS
 
@@ -199,5 +202,34 @@ This last NOT a simprule
 @{thm[display] real_add_divide_distrib[no_vars]}
 \rulename{real_add_divide_distrib}
 *}
+
+lemma "#3/#4 < (#7/#8 :: real)"
+by simp 
+
+lemma "P ((#3/#4) * (#8/#15 :: real))"
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
+apply simp 
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
+oops
+
+lemma "(#3/#4) * (#8/#15) < (x :: real)"
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
+apply simp 
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
+oops
+
+lemma "(#3/#4) * (#10^#15) < (x :: real)"
+apply simp 
+oops
+
+
 
 end
