@@ -1163,7 +1163,7 @@ qed_goal "adm_disj"  Fix.thy
         ]);
 
 
-qed_goal "adm_impl"  Fix.thy  
+qed_goal "adm_imp"  Fix.thy  
         "[| adm(%x.~(P x)); adm Q |] ==> adm(%x.P x --> Q x)"
  (fn prems =>
         [
@@ -1206,7 +1206,7 @@ qed_goalw "admI" Fix.thy [adm_def]
 	fast_tac (HOL_cs addDs [le_imp_less_or_eq] 
 			 addEs [chain_mono RS mp]) 1]);
 
-val adm_thms = [adm_impl,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
+val adm_thms = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
         adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less
         ];
 
