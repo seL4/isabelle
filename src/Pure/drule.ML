@@ -522,17 +522,17 @@ fun open_store_standard_thm name thm = open_store_thm name (standard' thm);
 
 val reflexive_thm =
   let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),logicS)))
-  in store_standard_thm "reflexive" (Thm.reflexive cx) end;
+  in open_store_standard_thm "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
   let val xy = read_prop "x::'a::logic == y"
-  in store_standard_thm "symmetric" (Thm.implies_intr_hyps (Thm.symmetric (Thm.assume xy))) end;
+  in open_store_standard_thm "symmetric" (Thm.implies_intr_hyps (Thm.symmetric (Thm.assume xy))) end;
 
 val transitive_thm =
   let val xy = read_prop "x::'a::logic == y"
       val yz = read_prop "y::'a::logic == z"
       val xythm = Thm.assume xy and yzthm = Thm.assume yz
-  in store_standard_thm "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
+  in open_store_standard_thm "transitive" (Thm.implies_intr yz (Thm.transitive xythm yzthm)) end;
 
 fun symmetric_fun thm = thm RS symmetric_thm;
 
