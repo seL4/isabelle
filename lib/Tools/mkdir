@@ -188,6 +188,7 @@ if [ -n "$DOCUMENT" ]; then
     echo "keeping $PWD/document" >&2
   else
     mkdir document || fail "Bad directory: $PWD/document"
+    TITLE=$(echo "$NAME" | tr _ -)
     cat >document/root.tex <<EOF
 
 \documentclass[11pt,a4paper]{article}
@@ -199,7 +200,7 @@ if [ -n "$DOCUMENT" ]; then
 
 \begin{document}
 
-\title{$NAME}\maketitle
+\title{$TITLE}\maketitle
 \tableofcontents
 
 \parindent 0pt\parskip 0.5ex
