@@ -1,3 +1,7 @@
+(*  Title:      HOL/Real/HahnBanach/Bounds.thy
+    ID:         $Id$
+    Author:     Gertrud Bauer, TU Munich
+*)
 
 theory Bounds = Main + Real:;
 
@@ -60,8 +64,6 @@ constdefs
   is_Sup :: "('a::order) set => 'a set => 'a => bool"
   "is_Sup A B x == isLub A B x"
    
-  (* was:  x:A & is_Least (UpperBounds A B) x" *)
-
   Sup :: "('a::order) set => 'a set => 'a"
   "Sup A B == Eps (is_Sup A B)"
 
@@ -83,9 +85,6 @@ translations
   "INF x:A. P" == "Inf A (Collect (%x. P))"
   "INF x. P" == "INF x:UNIV. P";
 
-
-lemma [intro]: "[| x:A; !!y. y:B ==> y <= x |] ==> x: UpperBounds A B";
-  by (unfold UpperBounds_def is_UpperBound_def) force;
 
 lemma ub_ge_sup: "isUb A B y ==> is_Sup A B s ==> s <= y";
   by (unfold is_Sup_def, rule isLub_le_isUb);

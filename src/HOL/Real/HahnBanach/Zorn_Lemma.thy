@@ -1,5 +1,9 @@
+(*  Title:      HOL/Real/HahnBanach/Zorn_Lemma.thy
+    ID:         $Id$
+    Author:     Gertrud Bauer, TU Munich
+*)
 
-theory Zorn_Lemma = Zorn:;
+theory Zorn_Lemma = Aux + Zorn:;
 
 
 lemma Zorn's_Lemma: "a:S ==> (!!c. c: chain S ==> EX x. x:c ==> Union c : S) ==>
@@ -15,12 +19,12 @@ proof (rule Zorn_Lemma2);
     show "EX y:S. ALL z:c. z <= y";
     proof (rule case [of "c={}"]);
       assume "c={}"; 
-      show ?thesis; by fast;
+      show ?thesis; by (fast!);
     next;
       assume "c~={}";
       show ?thesis; 
       proof;
-        have "EX x. x:c"; by fast;
+        have "EX x. x:c"; by (fast!);
         thus "Union c : S"; by (rule s);
         show "ALL z:c. z <= Union c"; by fast;
       qed;

@@ -1,3 +1,7 @@
+(*  Title:      HOL/Real/HahnBanach/FunctionOrder.thy
+    ID:         $Id$
+    Author:     Gertrud Bauer, TU Munich
+*)
 
 theory FunctionOrder = Subspace + Linearform:;
 
@@ -18,14 +22,30 @@ constdefs
   funct :: "'a graph => ('a => real)"
   "funct g == %x. (@ y. (x, y):g)";
 
-lemma graph_I: "x:F ==> (x, f x) : graph F f";
+lemma graphI [intro!!]: "x:F ==> (x, f x) : graph F f";
   by (unfold graph_def, intro CollectI exI) force;
 
-lemma graphD1: "(x, y): graph F f ==> x:F";
-  by (unfold graph_def, elim CollectD [elimify] exE) force;
+lemma graphI2 [intro!!]: "x:F ==> EX t: (graph F f). t = (x, f x)";
+  by (unfold graph_def, force);
 
-lemma graph_domain_funct: "(!!x y z. (x, y):g ==> (x, z):g ==> z = y) ==> graph (domain g) (funct g) = g";
-proof ( unfold domain_def, unfold funct_def, unfold graph_def, auto);
+lemma graphD1 [intro!!]: "(x, y): graph F f ==> x:F";
+  by (unfold graph_def, elim CollectE exE) force;
+
+lemma graphD2 [intro!!]: "(x, y): graph H h ==> y = h x";
+  by (unfold graph_def, elim CollectE exE) force; 
+
+lemma graph_extD1 [intro!!]: "[| graph H h <= graph H' h'; x:H |] ==> h x = h' x";
+  by (unfold graph_def, force);
+
+lemma graph_extD2 [intro!!]: "[| graph H h <= graph H' h' |] ==> H <= H'";
+  by (unfold graph_def, force);
+
+lemma graph_extI: "[| !! x. x: H ==> h x = h' x; H <= H'|] ==> graph H h <= graph H' h'";
+  by (unfold graph_def, force);
+
+lemma graph_domain_funct: 
+  "(!!x y z. (x, y):g ==> (x, z):g ==> z = y) ==> graph (domain g) (funct g) = g";
+proof (unfold domain_def, unfold funct_def, unfold graph_def, auto);
   fix a b; assume "(a, b) : g";
   show "(a, SOME y. (a, y) : g) : g"; by (rule selectI2);
   show "EX y. (a, y) : g"; ..;
@@ -35,22 +55,6 @@ proof ( unfold domain_def, unfold funct_def, unfold graph_def, auto);
     fix y; assume "(a, y):g"; show "y = b"; by (rule uniq);
   qed;
 qed;
-
-lemma graph_lemma1: "x:F ==> EX t: (graph F f). t = (x, f x)";
-  by (unfold graph_def, force);
-
-lemma graph_lemma2: "(x, y): graph H h ==> y = h x";
-  by (unfold graph_def, elim CollectD [elimify] exE) force; 
-
-lemma graph_lemma3: "[| graph H h <= graph H' h'; x:H |] ==> h x = h' x";
-  by (unfold graph_def, force);
-
-lemma graph_lemma4: "[| graph H h <= graph H' h' |] ==> H <= H'";
-  by (unfold graph_def, force);
-
-lemma graph_lemma5: "[| !! x. x: H ==> h x = h' x; H <= H'|] ==> graph H h <= graph H' h'";
-  by (unfold graph_def, force);
-
 
 constdefs
   norm_prev_extensions :: 
@@ -71,7 +75,7 @@ lemma norm_prev_extension_D:
                                               & (ALL x:H. h x <= p x))";
  by (unfold norm_prev_extensions_def) force;
 
-lemma norm_prev_extension_I2 [intro]:  
+lemma norm_prev_extensionI2 [intro]:  
    "[| is_linearform H h;    
        is_subspace H E;
        is_subspace F H;
@@ -80,7 +84,7 @@ lemma norm_prev_extension_I2 [intro]:
    ==> (graph H h : norm_prev_extensions E p F f)";
  by (unfold norm_prev_extensions_def) force;
 
-lemma norm_prev_extension_I [intro]:  
+lemma norm_prev_extensionI [intro]:  
    "(EX H h. graph H h = g 
              & is_linearform H h    
              & is_subspace H E

@@ -1,15 +1,30 @@
+(*  Title:      HOL/Real/HahnBanach/Aux.thy
+    ID:         $Id$
+    Author:     Gertrud Bauer, TU Munich
+*)
 
-theory Aux = Main + Real:;
+theory Aux = Real:;
 
+theorems case = case_split_thm;  (* FIXME tmp *);
+
+lemmas CollectE = CollectD [elimify];
 
 theorem [trans]: "[| (x::'a::order) <= y; x ~= y |] ==> x < y";	    (*  <=  ~=  < *)
-  by (asm_simp add: order_less_le);
+  by (simp! add: order_less_le);
+
+lemma le_max1: "x <= max x (y::'a::linorder)";
+  by (simp add: le_max_iff_disj[of x x y]);
+
+lemma le_max2: "y <= max x (y::'a::linorder)"; 
+  by (simp add: le_max_iff_disj[of y x y]);
 
 lemma lt_imp_not_eq: "x < (y::'a::order) ==> x ~= y"; 
   by (rule order_less_le[RS iffD1, RS conjunct2]);
 
-lemma Int_singeltonD: "[| A Int B = {v}; x:A; x:B |] ==> x = v";
+lemma Int_singletonD: "[| A Int B = {v}; x:A; x:B |] ==> x = v";
   by (fast elim: equalityE);
+
+lemmas singletonE = singletonD[elimify];
 
 lemma real_add_minus_eq: "x - y = 0r ==> x = y";
 proof -;
@@ -18,7 +33,7 @@ proof -;
   also; have "... = 0r"; .;
   finally; have "x + - y = 0r"; .;
   hence "x = - (- y)"; by (rule real_add_minus_eq_minus);
-  also; have "... = y"; by asm_simp;
+  also; have "... = y"; by (simp!);
   finally; show "x = y"; .;
 qed;
 
@@ -29,8 +44,8 @@ proof -;
     show "-1r < 0r";
       by (rule real_minus_zero_less_iff[RS iffD1], simp, rule real_zero_less_one);
   qed;
-  also; have "... = 1r"; by asm_simp; 
-  finally; show ?thesis; by asm_simp;
+  also; have "... = 1r"; by (simp!); 
+  finally; show ?thesis; by (simp!);
 qed;
 
 axioms real_mult_le_le_mono2: "[| 0r <= z; x <= y |] ==> x * z <= y * z";
@@ -39,21 +54,21 @@ axioms real_mult_less_le_anti: "[| z < 0r; x <= y |] ==> z * y <= z * x";
 
 axioms real_mult_less_le_mono: "[| 0r < z; x <= y |] ==> z * x <= z * y";
 
-axioms real_mult_diff_distrib: "a * (- x - y) = - a * x - a * y";
+axioms real_mult_diff_distrib: "a * (- x - (y::real)) = - a * x - a * y";
 
-axioms real_mult_diff_distrib2: "a * (x - y) = a * x - a * y";
+axioms real_mult_diff_distrib2: "a * (x - (y::real)) = a * x - a * y";
 
 lemma less_imp_le: "(x::real) < y ==> x <= y";
-  by (asm_simp only: real_less_imp_le);
+  by (simp! only: real_less_imp_le);
 
 lemma le_noteq_imp_less: "[|x <= (r::'a::order); x ~= r |] ==> x < r";
 proof -;
   assume "x <= (r::'a::order)";
   assume "x ~= r";
   then; have "x < r | x = r";
-    by (asm_simp add: order_le_less);
+    by (simp! add: order_le_less);
   then; show ?thesis;
-    by asm_simp;
+    by (simp!);
 qed;
 
 lemma minus_le: "- (x::real) <= y ==> - y <= x";
@@ -65,11 +80,11 @@ proof -;
      assume "- x < y"; show ?thesis; 
      proof -; 
        have "- y < - (- x)"; by (rule real_less_swap_iff [RS iffD1]); 
-       hence "- y < x"; by asm_simp;
+       hence "- y < x"; by (simp!);
        thus ?thesis; by (rule real_less_imp_le);
     qed;
   next; 
-     assume "- x = y"; show ?thesis; by force;
+     assume "- x = y"; show ?thesis; by (force!);
   qed;
 qed;
 
@@ -82,14 +97,14 @@ proof (rule case [of "rabs x = r"]);
     show "- r <= x & x <= r";
     proof;
       have "- x <= rabs x"; by (rule rabs_ge_minus_self);
-      hence "- x <= r"; by asm_simp;
-      thus "- r <= x"; by (asm_simp add : minus_le [of "x" "r"]);
+      hence "- x <= r"; by (simp!);
+      thus "- r <= x"; by (simp! add : minus_le [of "x" "r"]);
       have "x <= rabs x"; by (rule rabs_ge_self); 
-      thus "x <= r"; by asm_simp; 
+      thus "x <= r"; by (simp!); 
     qed;
   next; 
     assume "- r <= x & x <= r";
-    show "rabs x <= r";  by fast;  
+    show "rabs x <= r"; by (fast!);
   qed;
 next;   
   assume "rabs x ~= r";
@@ -113,10 +128,10 @@ next;
       show ?thesis; 
       proof (rule rabs_disj [RS disjE, of x]);
         assume  "rabs x = x";
-        show ?thesis; by asm_simp; 
+        show ?thesis; by (simp!); 
       next; 
         assume "rabs x = - x";
-        from minus_le [of r x]; show ?thesis; by asm_simp;
+        from minus_le [of r x]; show ?thesis; by (simp!);
       qed;
     qed;
   qed;
