@@ -45,7 +45,7 @@ local
 	in implode o esc o Symbol.explode end;
   fun con (name,s,args) = (name,foldr (op ->>) (map third args,dtype),s);
   fun dis (con ,s,_   ) = (dis_name_ con, dtype->>trT,
-			   Mixfix(escape ("is_" ^ con), [], max_pri));
+			   Mixfix(escape ("is_" ^ con), [], Syntax.max_pri));
 			(* stricly speaking, these constants have one argument,
 			   but the mixfix (without arguments) is introduced only
 			   to generate parse rules for non-alphanumeric names*)
