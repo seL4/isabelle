@@ -108,6 +108,7 @@ sig
   val joinrules 	: thm list * thm list -> (bool * thm) list
   val mp_tac		: int -> tactic
   val safe_tac 		: claset -> tactic
+  val safe_steps_tac 	: claset -> int -> tactic
   val safe_step_tac 	: claset -> int -> tactic
   val clarify_tac 	: claset -> int -> tactic
   val clarify_step_tac 	: claset -> int -> tactic
@@ -572,7 +573,6 @@ fun cs addbefore   (name,    tac1) =
 fun cs addaltern   (name,    tac2) =
     cs addWrapper  (name, fn tac1 => tac1 APPEND' tac2);
 
-(*#####*)
 fun cs addD2     (name, thm) = 
     cs addaltern (name, dtac thm THEN' atac);
 fun cs addE2     (name, thm) = 
@@ -614,9 +614,12 @@ fun safe_step_tac (cs as CS{safe0_netpair,safep_netpair,...}) =
 	FIRST' hyp_subst_tacs,
 	bimatch_from_nets_tac safep_netpair]);
 
-(*Repeatedly attack subgoals using safe inferences -- it's deterministic!*)
-fun safe_tac cs = REPEAT_DETERM_FIRST 
+(*Repeatedly attack a subgoal using safe inferences -- it's deterministic!*)
+fun safe_steps_tac cs = REPEAT_DETERM1 o 
 	(fn i => COND (has_fewer_prems i) no_tac (safe_step_tac cs i));
+
+(*Repeatedly attack subgoals using safe inferences -- it's deterministic!*)
+fun safe_tac cs = REPEAT_DETERM1 (FIRSTGOAL (safe_steps_tac cs));
 
 
 (*** Clarify_tac: do safe steps without causing branching ***)
@@ -716,14 +719,16 @@ fun dup_step_tac (cs as (CS{dup_netpair,...})) =
   biresolve_from_nets_tac dup_netpair;
 
 (*Searching to depth m. A variant called nodup_depth_tac appears in clasimp.ML*)
-fun depth_tac cs m i state = SELECT_GOAL 
-   (REPEAT_DETERM1 (COND (has_fewer_prems 1) no_tac (safe_step_tac cs 1)) 
-    THEN_ELSE (DEPTH_SOLVE (depth_tac cs m 1),
-               appWrappers cs (fn i => inst0_step_tac cs i APPEND
-	       COND (K (m=0)) no_tac
-		        ((instp_step_tac cs i APPEND dup_step_tac cs i)
-			 THEN DEPTH_SOLVE (depth_tac cs (m-1) i))) 1))
-  i state;
+local
+fun slow_step_tac' cs = appWrappers cs 
+	(instp_step_tac cs APPEND' dup_step_tac cs);
+in fun depth_tac cs m i state = SELECT_GOAL 
+   (safe_steps_tac cs 1 THEN_ELSE 
+	(DEPTH_SOLVE (depth_tac cs m 1),
+	 inst0_step_tac cs 1 APPEND COND (K (m=0)) no_tac
+		(slow_step_tac' cs 1 THEN DEPTH_SOLVE (depth_tac cs (m-1) 1))
+        )) i state;
+end;
 
 (*Search, with depth bound m.  
   This is the "entry point", which does safe inferences first.*)
