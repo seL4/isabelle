@@ -429,7 +429,7 @@ fun gen_rulify x = Attrib.no_args (Drule.rule_attribute (K (normalize_thm [RSspe
 
 in
 
-val attrib_setup =
+val hol_setup =
  [Attrib.add_attributes
   [("rulify", (gen_rulify, gen_rulify), "put theorem into standard rule form")]];
 
