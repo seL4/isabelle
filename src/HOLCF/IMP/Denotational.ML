@@ -32,9 +32,9 @@ goal thy "!s t. D c`(Discr s) = (Def t) --> <c,s> -c-> t";
 by (com.induct_tac "c" 1);
     by (fast_tac ((HOL_cs addSIs evalc.intrs) addss !simpset) 1);
    by (fast_tac ((HOL_cs addSIs evalc.intrs) addss !simpset) 1);
-  by (fast_tac ((HOL_cs addSIs evalc.intrs) unsafe_addss !simpset) 1);
+  by (fast_tac ((HOL_cs addSIs evalc.intrs) addss !simpset) 1);
  by (simp_tac (!simpset setloop (split_tac[expand_if])) 1);
- by (fast_tac ((HOL_cs addIs evalc.intrs) unsafe_addss !simpset) 1);
+ by (fast_tac ((HOL_cs addIs evalc.intrs) addss !simpset) 1);
 by (Simp_tac 1);
 br fix_ind 1;
   by(fast_tac (HOL_cs addSIs (adm_lemmas@[adm_flatdom,flat_lift])) 1);
@@ -42,7 +42,7 @@ br fix_ind 1;
 by (simp_tac (!simpset setloop (split_tac[expand_if])) 1);
 by (safe_tac HOL_cs);
   by (fast_tac (HOL_cs addIs evalc.intrs) 1);
- by (fast_tac ((HOL_cs addSIs evalc.intrs) unsafe_addss !simpset) 1);
+ by (fast_tac ((HOL_cs addSIs evalc.intrs) addss !simpset) 1);
 qed_spec_mp "D_implies_eval";
 
 
