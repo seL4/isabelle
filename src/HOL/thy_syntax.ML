@@ -220,15 +220,12 @@ val primrec_decl = optional ("(" $$-- name --$$ ")") "\"\"" --
 
 (*fname: name of function being defined; rel: well-founded relation*)
 fun mk_recdef_decl ((((fname, rel), congs), ss), eqns) =
-  let
-    val fid = unenclose fname;
-    val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
-  in
+  let val fid = unenclose fname in
     ";\n\n\
     \local\n\
     \fun simpset() = Simplifier.simpset_of thy;\n\
-    \val (thy, result) = thy |> RecdefPackage.add_recdef " ^ quote fid ^ " " ^ rel ^ "\n" ^
-    mk_eqns eqns ^ "\n(Some (" ^ ss ^ "))\n" ^ congs_text ^ ";\n\
+    \val (thy, result) = thy |> RecdefPackage.add_recdef_old " ^ quote fid ^ " " ^ rel ^ "\n" ^
+    mk_eqns eqns ^ "\n(" ^ ss ^ ",\n " ^ mk_list congs ^ ");\n\
     \in\n\
     \structure " ^ fid ^ " =\n\
     \struct\n\
@@ -241,7 +238,7 @@ fun mk_recdef_decl ((((fname, rel), congs), ss), eqns) =
 
 val recdef_decl =
   name -- string --
-    optional ("congs" $$-- list1 name) [] --
+    optional ("congs" $$-- list1 ident) [] --
     optional ("simpset" $$-- string >> unenclose) "simpset()" --
     repeat1 (ident -- string || (string >> pair "")) >> mk_recdef_decl;
 
