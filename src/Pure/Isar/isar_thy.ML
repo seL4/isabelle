@@ -147,7 +147,6 @@ sig
   val theory: string * string list * (string * bool) list
     -> Toplevel.transition -> Toplevel.transition
   val context: string -> Toplevel.transition -> Toplevel.transition
-  val update_context: string -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarThy: ISAR_THY =
@@ -463,7 +462,11 @@ fun end_theory thy =
 
 fun kill_theory thy = ThyInfo.remove_thy (PureThy.get_name thy);
 
-fun bg_theory (name, parents, files) () = begin_theory name parents files;
+
+fun bg_theory (name, parents, files) int =
+  (if int then seq ThyInfo.update_thy parents else ();   (*FIXME robust!? *)
+    begin_theory name parents files);
+
 fun en_theory thy = (end_theory thy; ());
 
 fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory kill_theory;
@@ -471,11 +474,9 @@ fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory kill_theory;
 
 (* context switch *)
 
-fun switch_theory load s =
-  Toplevel.init_theory (fn () => (the (#2 (Context.pass None load s)))) (K ()) (K ());
-
-val context = switch_theory ThyInfo.use_thy;
-val update_context = switch_theory ThyInfo.update_thy;
+fun context name =
+  Toplevel.init_theory (fn _ => (the (#2 (Context.pass None ThyInfo.update_thy name))))
+  (K ()) (K ());
 
 
 end;
