@@ -9,7 +9,7 @@ Also binomial coefficents
 
 Power = Divides + 
 consts
-  binomial :: "[nat,nat] => nat"      ("'(_ choose _')" [50,50])
+  binomial :: "[nat,nat] => nat"      (infixl "choose" 65)
 
 primrec
   "p ^ 0 = 1"
