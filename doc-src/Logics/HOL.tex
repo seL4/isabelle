@@ -952,6 +952,7 @@ type construction, the {\tt datatype}, is treated separately in
 \S\ref{sec:HOL:datatype}.
 
 \subsection{Product and sum types}\index{*"* type}\index{*"+ type}
+\label{subsec:prod-sum}
 
 \begin{figure}[htbp]
 \begin{constants}
@@ -1576,10 +1577,12 @@ The type also comes with an \ML-like \sdx{case}-construct:
                            \mid & C_m~x_{m1}~\dots~x_{mk_m} & \To & e_m
 \end{array}
 \]
+where the $x_{ij}$ are either identifiers or nested tuple patterns as in
+\S\ref{subsec:prod-sum}.
 \begin{warn}
 In contrast to \ML, {\em all} constructors must be present, their order is
-fixed, and nested patterns are not supported. Violating this restriction
-results in strange error messages.
+fixed, and nested patterns are not supported (with the exception of tuples).
+Violating this restriction results in strange error messages.
 \end{warn}
 
 \underscoreoff
