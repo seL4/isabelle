@@ -45,7 +45,7 @@ $(OUT)/Pure: General/ROOT.ML General/buffer.ML General/file.ML		\
   Thy/thm_database.ML Thy/thy_info.ML Thy/thy_load.ML Thy/thy_parse.ML	\
   Thy/thy_scan.ML Thy/thy_syn.ML axclass.ML basis.ML context.ML		\
   deriv.ML display.ML drule.ML envir.ML goals.ML install_pp.ML		\
-  library.ML locale.ML logic.ML net.ML pattern.ML pure.ML pure_thy.ML	\
+  library.ML locale.ML logic.ML meta_simplifier.ML net.ML pattern.ML pure.ML pure_thy.ML	\
   search.ML sign.ML sorts.ML tactic.ML tctical.ML term.ML theory.ML	\
   theory_data.ML thm.ML type.ML type_infer.ML unify.ML
 	@./mk

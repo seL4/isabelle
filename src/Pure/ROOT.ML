@@ -7,7 +7,7 @@ Root file for Pure Isabelle.
 *)
 
 val banner = "Pure Isabelle";
-val version = "Isabelle repository version";
+val version = "Isabelle repository";
 
 print_depth 1;
 
@@ -43,6 +43,7 @@ use "display.ML";
 use "pure_thy.ML";
 use "deriv.ML";
 use "drule.ML";
+use "meta_simplifier.ML";
 use "locale.ML";
 use "tctical.ML";
 use "search.ML";
