@@ -352,7 +352,7 @@ val IFOL_ss = FOL_basic_ss
 
 bind_thms ("cla_simps",
   [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,
-   not_all, not_ex, cases_simp] @
+   not_imp, not_all, not_ex, cases_simp] @
   map prove_fun
    ["~(P&Q) <-> ~P | ~Q",
     "P | ~P",             "~P | P",

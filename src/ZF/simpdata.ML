@@ -72,7 +72,9 @@ local
 in
 
 val ball_simps = map prover
-    ["(ALL x:A. P(x) | Q)   <-> ((ALL x:A. P(x)) | Q)",
+    ["(ALL x:A. P(x) & Q)   <-> (ALL x:A. P(x)) & (A=0 | Q)",
+     "(ALL x:A. P & Q(x))   <-> (A=0 | P) & (ALL x:A. Q(x))",
+     "(ALL x:A. P(x) | Q)   <-> ((ALL x:A. P(x)) | Q)",
      "(ALL x:A. P | Q(x))   <-> (P | (ALL x:A. Q(x)))",
      "(ALL x:A. P --> Q(x)) <-> (P --> (ALL x:A. Q(x)))",
      "(ALL x:A. P(x) --> Q) <-> ((EX x:A. P(x)) --> Q)",
@@ -90,6 +92,10 @@ val ball_conj_distrib =
 val bex_simps = map prover
     ["(EX x:A. P(x) & Q) <-> ((EX x:A. P(x)) & Q)",
      "(EX x:A. P & Q(x)) <-> (P & (EX x:A. Q(x)))",
+     "(EX x:A. P(x) | Q) <-> (EX x:A. P(x)) | (A~=0 & Q)",
+     "(EX x:A. P | Q(x)) <-> (A~=0 & P) | (EX x:A. Q(x))",
+     "(EX x:A. P --> Q(x)) <-> ((A=0 | P) --> (EX x:A. Q(x)))",
+     "(EX x:A. P(x) --> Q) <-> ((ALL x:A. P(x)) --> (A~=0 & Q))",
      "(EX x:0.P(x)) <-> False",
      "(EX x:succ(i).P(x)) <-> P(i) | (EX x:i. P(x))",
      "(EX x:cons(a,B).P(x)) <-> P(a) | (EX x:B. P(x))",

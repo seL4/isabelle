@@ -300,18 +300,18 @@ Goal "[| wf(r);     \
 \        field(r)<=I; A<=f-``I; F:program |] \
 \     ==> F : A LeadsTo B";
 by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
-by Safe_tac;
+by Auto_tac; 
 by (eres_inst_tac [("I", "I"), ("f", "f")] leadsTo_wf_induct 1);
 by (ALLGOALS(Clarify_tac));
 by (dres_inst_tac [("x", "m")] bspec 2);
 by Safe_tac;
-by (res_inst_tac 
-[("A'", "reachable(F) Int (A Int f -``(converse(r)``{m}) Un B)")]leadsTo_weaken_R 2);
+by (res_inst_tac [("A'", 
+                   "reachable(F) Int (A Int f -``(converse(r)``{m}) Un B)")]
+    leadsTo_weaken_R 2);
 by (asm_simp_tac (simpset() addsimps [Int_assoc]) 2);
 by (asm_simp_tac (simpset() addsimps [Int_assoc]) 3);
 by (REPEAT(Blast_tac 1));
 qed "LeadsTo_wf_induct";
-
 
 
 Goal "[| ALL m:nat. F:(A Int f-``{m}) LeadsTo ((A Int f-``lessThan(m,nat)) Un B); \

@@ -705,15 +705,13 @@ by (etac natE 2);
 by (ALLGOALS(Asm_full_simp_tac));
 qed_spec_mp "nth_append";
 
-Goal "xs:list(A) ==> \
-\ set_of_list(xs) = {x:A. EX i:nat. i<length(xs) & x=nth(i, xs)}";
+Goal "xs:list(A) \
+\     ==> set_of_list(xs) = {x:A. EX i:nat. i<length(xs) & x=nth(i, xs)}";
 by (induct_tac "xs" 1);
 by (ALLGOALS(Asm_simp_tac));
 by (rtac equalityI 1);
 by Auto_tac;
 by (res_inst_tac [("x", "0")] bexI 1);
-by Auto_tac;
-by (res_inst_tac [("x", "succ(i)")] bexI 1);
 by Auto_tac;
 by (etac natE 1);
 by Auto_tac;

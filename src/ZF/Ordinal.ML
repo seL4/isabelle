@@ -548,8 +548,7 @@ qed "succ_leE";
 Goal "succ(i) le j <-> i<j";
 by (REPEAT (ares_tac [iffI,succ_leI,succ_leE] 1));
 qed "succ_le_iff";
-
-Addsimps [succ_le_iff];
+AddIffs [succ_le_iff];
 
 Goal "succ(i) le succ(j) ==> i le j";
 by (blast_tac (claset() addSDs [succ_leE]) 1);

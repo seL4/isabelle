@@ -36,6 +36,28 @@ syntax (xsymbols)
   "@OUNION"   :: "[idt, i, i] => i"        ("(3\<Union>_<_./ _)" 10)
 
 
+(** simplification of the new quantifiers **)
+
+
+(*MOST IMPORTANT that this is added to the simpset BEFORE OrdQuant.ML
+  is loaded: it's Ord_atomize would convert this rule to 
+    x < 0 ==> P(x) == True, which causes dire effects!*)
+lemma [simp]: "(ALL x<0. P(x))"
+by (simp add: oall_def) 
+
+lemma [simp]: "~(EX x<0. P(x))"
+by (simp add: oex_def) 
+
+lemma [simp]: "(ALL x<succ(i). P(x)) <-> (Ord(i) --> P(i) & (ALL x<i. P(x)))"
+apply (simp add: oall_def le_iff) 
+apply (blast intro: lt_Ord2) 
+done
+
+lemma [simp]: "(EX x<succ(i). P(x)) <-> (Ord(i) & (P(i) | (EX x<i. P(x))))"
+apply (simp add: oex_def le_iff) 
+apply (blast intro: lt_Ord2) 
+done
+
 declare Ord_Un [intro,simp,TC]
 declare Ord_UN [intro,simp,TC]
 declare Ord_Union [intro,simp,TC]
@@ -62,11 +84,11 @@ done
 lemma increasing_LimitI: "\<lbrakk>0<l; \<forall>x\<in>l. \<exists>y\<in>l. x<y\<rbrakk> \<Longrightarrow> Limit(l)"
 apply (simp add: Limit_def lt_Ord2, clarify)
 apply (drule_tac i=y in ltD) 
-apply (blast intro: lt_trans1 succ_leI ltI lt_Ord2)
+apply (blast intro: lt_trans1 [OF _ ltI] lt_Ord2)
 done
 
 lemma UN_upper_lt:
-     "\<lbrakk>a\<in> A;  i < b(a);  Ord(\<Union>x\<in>A. b(x))\<rbrakk> \<Longrightarrow> i < (\<Union>x\<in>A. b(x))"
+     "\<lbrakk>a\<in>A;  i < b(a);  Ord(\<Union>x\<in>A. b(x))\<rbrakk> \<Longrightarrow> i < (\<Union>x\<in>A. b(x))"
 by (unfold lt_def, blast) 
 
 lemma lt_imp_0_lt: "j<i \<Longrightarrow> 0<i"
