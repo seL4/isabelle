@@ -77,7 +77,7 @@ syntax
   funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr 60)
   "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3%_:_./ _)" [0, 0, 3] 3)
 syntax (xsymbols)
-  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3\\<lambda>_\<in>_./ _)" [0, 0, 3] 3)
+  "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3\\<lambda>_\\<in>_./ _)" [0, 0, 3] 3)
 
   (*Giving funcset an arrow syntax (-> or =>) clashes with many existing theories*)
 
