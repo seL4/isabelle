@@ -12,10 +12,10 @@
 ## specifies the location of the actual compiler binaries.
 
 # Standard ML of New Jersey 110 or later
-#ML_SYSTEM=smlnj-110
-#ML_HOME=/usr/share/smlnj/bin
-#ML_OPTIONS="@SMLdebug=/dev/null"
-#ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys); echo $HEAP_SUFFIX)
+ML_SYSTEM=smlnj-110
+ML_HOME=/usr/share/smlnj/bin
+ML_OPTIONS="@SMLdebug=/dev/null"
+ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys); echo $HEAP_SUFFIX)
 
 # MLWorks 2.0 or later
 #ML_SYSTEM=mlworks
@@ -30,11 +30,11 @@
 #ML_PLATFORM=""
 
 # Poly/ML 3.1
-ML_SYSTEM=polyml-3.1
-ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
-ML_OPTIONS="-h 30000"
-ML_PLATFORM=""
-LM_LICENSE_FILE=$ML_HOME/license.dat
+#ML_SYSTEM=polyml-3.1
+#ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
+#ML_OPTIONS="-h 30000"
+#ML_PLATFORM=""
+#LM_LICENSE_FILE=$ML_HOME/license.dat
 
 # Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
