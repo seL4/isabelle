@@ -160,6 +160,5 @@ locale floor =
   assumes
     Min_le_n    "Min <= n"
     n_le_Max    "n <= Max"
-  defines
 
 end

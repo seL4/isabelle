@@ -49,8 +49,6 @@ locale MSOrd =
     r :: "('a * 'a)set"
     W :: "'a multiset set"
 
-  assumes
-
   defines
     W_def       "W == acc(mult1 r)"
 end

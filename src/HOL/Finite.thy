@@ -63,8 +63,6 @@ locale LC =
     f    :: ['b,'a] => 'a
   assumes
     lcomm    "f x (f y z) = f y (f x z)"
-  defines
-    (*nothing*)
 
 locale ACe =
   fixes 
@@ -74,6 +72,5 @@ locale ACe =
     ident    "f x e = x"
     commute  "f x y = f y x"
     assoc    "f (f x y) z = f x (f y z)"
-  defines
 
 end

@@ -52,8 +52,6 @@ locale imp_DC0 =
     f	:: i
     allRR :: o
 
-  assumes
-
   defines
     XX_def    "XX == (UN n:nat.
 		      {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R})"

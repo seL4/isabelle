@@ -425,9 +425,16 @@ val instance_decl =
 val locale_decl =
   (name --$$ "=") --
     ("fixes" $$--
-      (repeat (name --$$ "::" -- !! (typ -- opt_mixfix)) >> (mk_big_list o map mk_triple2))) --
-    ("assumes" $$-- (repeat ((ident >> quote) -- !! string) >> (mk_list o map mk_pair))) --
-    ("defines" $$-- (repeat ((ident >> quote) -- !! string) >> (mk_list o map mk_pair)))
+      (repeat (name --$$ "::" -- !! (typ -- opt_mixfix)) 
+       >> (mk_big_list o map mk_triple2))) --
+    (optional 
+     ("assumes" $$-- (repeat ((ident >> quote) -- !! string) 
+		     >> (mk_list o map mk_pair)))
+     "[]") --
+    (optional 
+     ("defines" $$-- (repeat ((ident >> quote) -- !! string) 
+		      >> (mk_list o map mk_pair)))
+     "[]")
   >> (fn (((nm, cs), asms), defs) => cat_lines [nm, cs, asms, defs]);
 
 
