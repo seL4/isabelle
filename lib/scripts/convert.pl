@@ -8,7 +8,6 @@
 #   produces from each input file (on the command line) a new file with
 #   ".thy" appended and renames the original input file by appending "~0~"
 
-
 sub thmlist {
   my $s = shift;
   $s =~ s/^\[(.*)\]$/$1/sg;
@@ -236,7 +235,6 @@ while (<>) { # main loop
     open(ARGVOUT, '>'.$tmpfile);
     select(ARGVOUT);
   }
-
  nl:
   if(!s/;(\s*?(\n?$|\(\*))/$1/s && !eof()) {# no end_of_ML_command marker
     $_ = $_ . <>;
@@ -247,9 +245,11 @@ while (<>) { # main loop
   m/^(\s*)(.*?)(\s*)$/s;
   $head=$1; $line=$2; $tail=$3;
   $tail =~ s/\s+\n/\n/sg;  # remove trailing whitespace at end of lines
+  $line =~ s/\\\\<(\^?)(\w+)>/\\<$1$2>/g; # convert \\<...> to \<...> and \\<^...> to \<^...>
   print $head; $_=$line.$tail;
   if ($line =~ m/^\(\*/) { # start comment
     while (($i = index $_,"*)") == -1 && !eof()) { # no end comment
+      s/\\\\<(\^?)(\w+)>/\\<$1$2>/g; # convert \\<...> to \<...> and \\<^...> to \<^...>
       print;
       $_ = <>;
     }
