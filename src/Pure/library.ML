@@ -142,6 +142,15 @@ fun set flag = (flag := true; true);
 fun reset flag = (flag := false; false);
 fun toggle flag = (flag := not (! flag); ! flag);
 
+fun set_ap flag value f x =
+  let
+    val orig_value = ! flag;
+    fun return y = (flag := orig_value; y);
+  in
+    flag := value;
+    return (f x handle exn => (return (); raise exn))
+  end;
+
 
 
 (** lists **)
@@ -322,8 +331,8 @@ fun take_suffix _ [] = ([], [])
 
 (** integers **)
 
-fun inc i = i := ! i + 1;
-fun dec i = i := ! i - 1;
+fun inc i = (i := ! i + 1; ! i);
+fun dec i = (i := ! i - 1; ! i);
 
 
 (* lists of integers *)
