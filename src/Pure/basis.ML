@@ -3,11 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Basis Library emulation.
-
-Needed for Poly/ML and Standard ML of New Jersey version 0.93 to 1.08.
-
-Full compatibility cannot be obtained using a file: what about char constants?
+Basis Library emulation.  Needed for Poly/ML and Standard ML of New
+Jersey version 0.93 to 1.08.  Full compatibility cannot be obtained
+using a file: what about char constants?
 *)
 
 exception Subscript;
@@ -144,3 +142,37 @@ structure TextIO =
 
 
 fun print s = (output (std_out, s); flush_out std_out);
+
+
+structure General =
+struct
+
+local
+  fun raised name = "exception " ^ name ^ " raised";
+  fun raised_msg name msg = raised name ^ ": " ^ msg;
+in
+  fun exnMessage Match = raised_msg "Match" "nonexhaustive match failure"
+    | exnMessage Bind = raised_msg "Bind" "nonexhaustive binding failure"
+    | exnMessage Interrupt = "Interrupt"
+    | exnMessage (Io msg) = "I/O error: " ^ msg
+    | exnMessage Neg = raised "Neg"
+    | exnMessage Sum = raised "Sum"
+    | exnMessage Diff = raised "Diff"
+    | exnMessage Prod = raised "Prod"
+    | exnMessage Quot = raised "Quot"
+    | exnMessage Abs = raised "Abs"
+    | exnMessage Div = raised "Div"
+    | exnMessage Mod = raised "Mod"
+    | exnMessage Floor = raised "Floor"
+    | exnMessage Sqrt = raised "Sqrt"
+    | exnMessage Exp = raised "Exp"
+    | exnMessage Ln = raised "Ln"
+    | exnMessage Ord = raised "Ord"
+    | exnMessage Subscript = raised_msg "Subscript " "subscript out of bounds"
+    | exnMessage Option.Option = raised "Option.Option"
+    | exnMessage List.Empty = raised "List.Empty"
+    | exnMessage (TextIO.Io {name, ...}) = raised_msg "TextIO.Io" name
+    | exnMessage exn = raised "???";
+end;
+
+end;
