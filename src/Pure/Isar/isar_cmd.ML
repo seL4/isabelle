@@ -44,6 +44,7 @@ sig
   val print_thms_containing: xstring list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
+  val print_cases: Toplevel.transition -> Toplevel.transition
   val print_thms: (string * Args.src list) list -> Toplevel.transition -> Toplevel.transition
   val print_prop: string -> Toplevel.transition -> Toplevel.transition
   val print_term: string -> Toplevel.transition -> Toplevel.transition
@@ -151,6 +152,7 @@ fun print_thms_containing cs = Toplevel.keep (fn state =>
 
 val print_binds = Toplevel.keep (ProofContext.print_binds o Proof.context_of o Toplevel.proof_of);
 val print_lthms = Toplevel.keep (ProofContext.print_thms o Proof.context_of o Toplevel.proof_of);
+val print_cases = Toplevel.keep (ProofContext.print_cases o Proof.context_of o Toplevel.proof_of);
 
 
 (* print theorems / types / terms / props *)
