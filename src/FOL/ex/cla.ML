@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/cla
+(*  Title:      FOL/ex/cla.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
@@ -6,7 +6,7 @@
 Classical First-Order Logic
 *)
 
-writeln"File FOL/ex/cla.";
+writeln"File FOL/ex/cla.ML";
 
 open Cla;    (*in case structure Int is open!*)
 
