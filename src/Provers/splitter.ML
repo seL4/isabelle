@@ -171,31 +171,20 @@ fun split_posns cmap Ts t =
 fun nth_subgoal i thm = nth_elem(i-1,prems_of thm);
 
 fun shorter((_,ps,pos,_,_),(_,qs,qos,_,_)) =
-  let val ms = length ps and ns = length qs
-  in ms < ns orelse (ms = ns andalso order(length pos,length qos)) end;
+  prod_ord (int_ord o pairself length) (order o pairself length)
+    ((ps, pos), (qs, qos));
+
 
 
 (************************************************************
    call split_posns with appropriate parameters
 *************************************************************)
 
-(* FIXME *)
-(*insertion sort; stable (does not reorder equal elements)
-  'less' is less-than test on type 'a*)
-fun sort (less: 'a*'a -> bool) =
-  let fun insert (x, []) = [x]
-        | insert (x, y::ys) =
-              if less(y, x) then y :: insert (x, ys) else x::y::ys;
-      fun sort1 [] = []
-        | sort1 (x::xs) = insert (x, sort1 xs)
-  in  sort1  end;
-
-
 fun select cmap state i =
   let val goali = nth_subgoal i state
       val Ts = rev(map #2 (Logic.strip_params goali))
       val _ $ t $ _ = Logic.strip_assums_concl goali;
-  in (Ts,t,sort shorter (split_posns cmap Ts t)) end;
+  in (Ts,t, sort shorter (split_posns cmap Ts t)) end;
 
 
 (*************************************************************
@@ -341,9 +330,9 @@ in split_asm_tac end;
 
 in
 
-fun mk_case_split_tac iffD = mk_case_split_tac_2 iffD (op <=) ;
+fun mk_case_split_tac iffD = mk_case_split_tac_2 iffD int_ord;
 
-fun mk_case_split_inside_tac iffD = mk_case_split_tac_2 iffD (op >=) ;
+fun mk_case_split_inside_tac iffD = mk_case_split_tac_2 iffD (rev_order o int_ord);
 
 val mk_case_split_asm_tac = mk_case_split_asm_tac;
 
