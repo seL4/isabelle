@@ -71,6 +71,7 @@ sig
   val theory_of_thm  : thm -> theory
   val children_of    : string -> string list
   val parents_of_name: string -> string list
+  val thyname_of_sign: Sign.sg -> string
 
   val store_thm      : string * thm -> thm
   val bind_thm       : string * thm -> unit
@@ -1003,25 +1004,30 @@ fun store_theory (thy, tname) =
 
 
 (*** Store and retrieve theorems ***)
-
-(*Guess to which theory a signature belongs and return it's thy_info*)
-fun thyinfo_of_sign sg =
-  let
-    val ref xname = hd (#stamps (Sign.rep_sg sg));
-    val opt_info = get_thyinfo xname;
+(*Guess the name of a theory object
+  (First the quick way by looking at the stamps; if that doesn't work,
+   we search loaded_thys for the first theory which fits.)
+*)
+fun thyname_of_sign sg =
+  let val ref xname = hd (#stamps (Sign.rep_sg sg));
+      val opt_info = get_thyinfo xname;
 
     fun eq_sg (ThyInfo {theory = None, ...}) = false
       | eq_sg (ThyInfo {theory = Some thy, ...}) = Sign.eq_sg (sg,sign_of thy);
 
     val show_sg = Pretty.str_of o Sign.pretty_sg;
   in
-    if is_some opt_info andalso eq_sg (the opt_info) then
-      (xname, the opt_info)
+    if is_some opt_info andalso eq_sg (the opt_info) then xname
     else
       (case Symtab.find_first (eq_sg o snd) (!loaded_thys) of
-        Some name_info => name_info
+        Some (name, _) => name
       | None => error ("Theory " ^ show_sg sg ^ " not stored by loader"))
   end;
+
+(*Guess to which theory a signature belongs and return it's thy_info*)
+fun thyinfo_of_sign sg =
+  let val name = thyname_of_sign sg;
+  in (name, the (get_thyinfo name)) end;
 
 
 (*Try to get the theory object corresponding to a given signature*)
