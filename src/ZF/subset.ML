@@ -196,11 +196,11 @@ val prems = Goal "[| !!x. x:A ==> f(x): B |] ==> {f(x). x:A} <= B";
 by (blast_tac (claset() addIs prems) 1);
 qed "RepFun_subset";
 
-val subset_SIs =
+bind_thms ("subset_SIs",
     [subset_refl, cons_subsetI, subset_consI, 
      Union_least, UN_least, Un_least, 
      Inter_greatest, Int_greatest, RepFun_subset,
-     Un_upper1, Un_upper2, Int_lower1, Int_lower2];
+     Un_upper1, Un_upper2, Int_lower1, Int_lower2]);
 
 
 (*A claset for subset reasoning*)

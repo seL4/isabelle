@@ -12,7 +12,7 @@ But a definition by transfinite recursion would be much simpler!
 
 (**** Proofs needing the combination of Ordinal.thy and Order.thy ****)
 
-val [prem] = goal OrderType.thy "j le i ==> well_ord(j, Memrel(i))";
+val [prem] = goal (the_context ()) "j le i ==> well_ord(j, Memrel(i))";
 by (rtac well_ordI 1);
 by (rtac (wf_Memrel RS wf_imp_wf_on) 1);
 by (resolve_tac [prem RS ltE] 1);
@@ -87,7 +87,7 @@ by (asm_simp_tac (simpset() addsimps [ordermap_eq_image, pred_subset,
 qed "ordermap_pred_unfold";
 
 (*pred-unfolded version.  NOT suitable for rewriting -- loops!*)
-val ordermap_unfold = rewrite_rule [pred_def] ordermap_pred_unfold;
+bind_thm ("ordermap_unfold", rewrite_rule [pred_def] ordermap_pred_unfold);
 
 (*** Showing that ordermap, ordertype yield ordinals ***)
 
@@ -614,7 +614,7 @@ by (REPEAT (ares_tac [Ord_ordertype, Ord_oadd, Ord_odiff] 2));
 by (asm_simp_tac (simpset() addsimps [oadd_odiff_inverse, oadd_le_self]) 1);
 qed "odiff_oadd_inverse";
 
-val [i_lt_j, k_le_i] = goal OrderType.thy
+val [i_lt_j, k_le_i] = goal (the_context ())
     "[| i<j;  k le i |] ==> i--k < j--k";
 by (rtac (k_le_i RS lt_Ord RSN (2,oadd_lt_cancel2)) 1);
 by (simp_tac

@@ -19,7 +19,7 @@ by (REPEAT (ares_tac (Pow_mono::basic_monos) 1));
 qed "Fin_mono";
 
 (* A : Fin(B) ==> A <= B *)
-val FinD = Fin.dom_subset RS subsetD RS PowD;
+bind_thm ("FinD", Fin.dom_subset RS subsetD RS PowD);
 
 (** Induction on finite sets **)
 

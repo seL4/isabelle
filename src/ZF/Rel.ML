@@ -6,8 +6,6 @@
 Relations in Zermelo-Fraenkel Set Theory 
 *)
 
-open Rel;
-
 (*** Some properties of relations -- useful? ***)
 
 (* irreflexivity *)

@@ -63,6 +63,13 @@ val misc_simps = map prover
 
 end;
 
+bind_thms ("ball_simps", ball_simps);
+bind_thm ("ball_conj_distrib", ball_conj_distrib);
+bind_thms ("bex_simps", bex_simps);
+bind_thm ("bex_disj_distrib", bex_disj_distrib);
+bind_thms ("Rep_simps", Rep_simps);
+bind_thms ("misc_simps", misc_simps);
+
 Addsimps (ball_simps @ bex_simps @ Rep_simps @ misc_simps);
 
 

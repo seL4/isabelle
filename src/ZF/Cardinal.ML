@@ -17,7 +17,7 @@ by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [Diff_subset, subset_refl, Diff_mono, image_mono] 1));
 qed "decomp_bnd_mono";
 
-val [gfun] = goal Cardinal.thy
+val [gfun] = goal (the_context ())
     "g: Y->X ==>                                        \
 \    g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) =       \
 \    X - lfp(X, %W. X - g``(Y - f``W)) ";
@@ -38,7 +38,7 @@ by (rtac Banach_last_equation 3);
 by (REPEAT (ares_tac [fun_is_rel, image_subset, lfp_subset] 1));
 qed "decomposition";
 
-val prems = goal Cardinal.thy
+val prems = goal (the_context ())
     "[| f: inj(X,Y);  g: inj(Y,X) |] ==> EX h. h: bij(X,Y)";
 by (cut_facts_tac prems 1);
 by (cut_facts_tac [(prems RL [inj_is_fun]) MRS decomposition] 1);
@@ -219,7 +219,7 @@ by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "less_LeastE";
 
 (*Easier to apply than LeastI: conclusion has only one occurrence of P*)
-val prems = goal Cardinal.thy
+val prems = goal (the_context ())
     "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(LEAST j. P(j))";
 by (resolve_tac prems 1);
 by (rtac LeastI 1);
@@ -333,7 +333,7 @@ by (rtac (Ord_0 RS CardI) 1);
 by (blast_tac (claset() addSEs [ltE]) 1);
 qed "Card_0";
 
-val [premK,premL] = goal Cardinal.thy
+val [premK,premL] = goal (the_context ())
     "[| Card(K);  Card(L) |] ==> Card(K Un L)";
 by (rtac ([premK RS Card_is_Ord, premL RS Card_is_Ord] MRS Ord_linear_le) 1);
 by (asm_simp_tac 
@@ -780,7 +780,7 @@ by (Blast.depth_tac (claset()) 4 1);
 qed "nat_wf_on_converse_Memrel";
 
 Goal "n:nat ==> well_ord(n,converse(Memrel(n)))";
-by (forward_tac [transfer thy Ord_nat RS Ord_in_Ord RS well_ord_Memrel] 1);
+by (forward_tac [transfer (the_context ()) Ord_nat RS Ord_in_Ord RS well_ord_Memrel] 1);
 by (rewtac well_ord_def);
 by (blast_tac (claset() addSIs [tot_ord_converse, 
 			       nat_wf_on_converse_Memrel]) 1);

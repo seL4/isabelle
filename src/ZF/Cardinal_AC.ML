@@ -15,7 +15,7 @@ by (resolve_tac [AC_well_ord RS exE] 1);
 by (etac well_ord_cardinal_eqpoll 1);
 qed "cardinal_eqpoll";
 
-val cardinal_idem = cardinal_eqpoll RS cardinal_cong;
+bind_thm ("cardinal_idem", cardinal_eqpoll RS cardinal_cong);
 
 Goal "|X| = |Y| ==> X eqpoll Y";
 by (resolve_tac [AC_well_ord RS exE] 1);
@@ -160,7 +160,7 @@ by (rtac UN_least 1);
 by (res_inst_tac [("x1", "f`x")] (UN_upper RSN (2,subset_trans)) 1);
 by (eresolve_tac [inj_is_fun RS apply_type] 2 THEN assume_tac 2);
 by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_rangeI]) 1);
-val inj_UN_subset = result();
+qed "inj_UN_subset";
 
 (*Simpler to require |W|=K; we'd have a bijection; but the theorem would
   be weaker.*)

@@ -62,7 +62,7 @@ qed "inj_equality";
 
 Goalw [inj_def] "[| f:inj(A,B);  a:A;  b:A;  f`a=f`b |] ==> a=b";
 by (Blast_tac 1);
-val inj_apply_equality = result();
+qed "inj_apply_equality";
 
 (** A function with a left inverse is an injection **)
 
@@ -143,7 +143,7 @@ by (etac subsetD 1 THEN assume_tac 1);
 by (Simp_tac 1);
 qed "id_subset_inj";
 
-val id_inj = subset_refl RS id_subset_inj;
+bind_thm ("id_inj", subset_refl RS id_subset_inj);
 
 Goalw [id_def,surj_def] "id(A): surj(A,A)";
 by (blast_tac (claset() addIs [lam_type, beta]) 1);
@@ -180,7 +180,7 @@ by (blast_tac (claset() addIs [left_inverse_lemma, inj_converse_fun,
 			       inj_is_fun]) 1);
 qed "left_inverse";
 
-val left_inverse_bij = bij_is_inj RS left_inverse;
+bind_thm ("left_inverse_bij", bij_is_inj RS left_inverse);
 
 Goal "[| f: A->B;  converse(f): C->A;  b: C |] ==> f`(converse(f)`b) = b";
 by (rtac (apply_Pair RS (converseD RS apply_equality)) 1);
@@ -421,7 +421,7 @@ qed "left_comp_inverse";
 (*right inverse of composition; one inclusion is
                 f: A->B ==> f O converse(f) <= id(B) 
 *)
-val [prem] = goalw Perm.thy [surj_def]
+val [prem] = goalw (the_context ()) [surj_def]
     "f: surj(A,B) ==> f O converse(f) = id(B)";
 val appfD = (prem RS CollectD1) RSN (3,apply_equality2);
 by (cut_facts_tac [prem] 1);
@@ -489,7 +489,7 @@ qed "bij_disjoint_Un";
 
 (** Restrictions as surjections and bijections *)
 
-val prems = goalw Perm.thy [surj_def]
+val prems = goalw (the_context ()) [surj_def]
     "f: Pi(A,B) ==> f: surj(A, f``A)";
 val rls = apply_equality :: (prems RL [apply_Pair,Pi_type]);
 by (fast_tac (claset() addIs rls) 1);

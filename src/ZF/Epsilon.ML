@@ -13,7 +13,7 @@ by (rtac (nat_rec_0 RS equalityD2 RS subset_trans) 1);
 by (rtac (nat_0I RS UN_upper) 1);
 qed "arg_subset_eclose";
 
-val arg_into_eclose = arg_subset_eclose RS subsetD;
+bind_thm ("arg_into_eclose", arg_subset_eclose RS subsetD);
 
 Goalw [eclose_def,Transset_def] "Transset(eclose(A))";
 by (rtac (subsetI RS ballI) 1);
@@ -32,8 +32,8 @@ bind_thm ("eclose_subset",
 (* [| A : eclose(B); c : A |] ==> c : eclose(B) *)
 bind_thm ("ecloseD", eclose_subset RS subsetD);
 
-val arg_in_eclose_sing = arg_subset_eclose RS singleton_subsetD;
-val arg_into_eclose_sing = arg_in_eclose_sing RS ecloseD;
+bind_thm ("arg_in_eclose_sing", arg_subset_eclose RS singleton_subsetD);
+bind_thm ("arg_into_eclose_sing", arg_in_eclose_sing RS ecloseD);
 
 (* This is epsilon-induction for eclose(A); see also eclose_induct_down...
    [| a: eclose(A);  !!x. [| x: eclose(A); ALL y:x. P(y) |] ==> P(x) 
@@ -112,11 +112,11 @@ by (Blast_tac 1);
 qed "under_Memrel";
 
 (* j : eclose(A) ==> Memrel(eclose(A)) -`` j = j *)
-val under_Memrel_eclose = Transset_eclose RS under_Memrel;
+bind_thm ("under_Memrel_eclose", Transset_eclose RS under_Memrel);
 
-val wfrec_ssubst = standard (wf_Memrel RS wfrec RS ssubst);
+bind_thm ("wfrec_ssubst", standard (wf_Memrel RS wfrec RS ssubst));
 
-val [kmemj,jmemi] = goal Epsilon.thy
+val [kmemj,jmemi] = goal (the_context ())
     "[| k:eclose({j});  j:eclose({i}) |] ==> \
 \    wfrec(Memrel(eclose({i})), k, H) = wfrec(Memrel(eclose({j})), k, H)";
 by (rtac (kmemj RS eclose_induct) 1);

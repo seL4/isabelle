@@ -19,7 +19,7 @@ by (REPEAT (ares_tac [rtrancl_bnd_mono, subset_refl, id_mono,
 qed "rtrancl_mono";
 
 (* r^* = id(field(r)) Un ( r O r^* )    *)
-val rtrancl_unfold = rtrancl_bnd_mono RS (rtrancl_def RS def_lfp_Tarski);
+bind_thm ("rtrancl_unfold", rtrancl_bnd_mono RS (rtrancl_def RS def_lfp_Tarski));
 
 (** The relation rtrancl **)
 
@@ -138,7 +138,7 @@ by (Blast_tac 1);
 qed "rtrancl_into_trancl1";
 
 (*intro rule from r and r^*  *)
-val prems = goal Trancl.thy
+val prems = goal (the_context ())
     "[| <a,b> : r;  <b,c> : r^* |]   ==>  <a,c> : r^+";
 by (resolve_tac (prems RL [rtrancl_induct]) 1);
 by (resolve_tac (prems RL [r_into_trancl]) 1);

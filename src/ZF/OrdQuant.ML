@@ -1,4 +1,4 @@
-(*  Title:      ZF/AC/OrdQuant.thy
+(*  Title:      ZF/OrdQuant.ML
     ID:         $Id$
     Authors:    Krzysztof Grabczewski and L C Paulson
 
@@ -97,8 +97,7 @@ AddIs  [oexI, OUN_I];
 AddSEs [oexE, OUN_E];
 AddEs  [rev_oallE];
 
-val Ord_atomize = atomize (("OrdQuant.oall", [ospec])::ZF_conn_pairs, 
-                           ZF_mem_pairs);
+val Ord_atomize = atomize (("OrdQuant.oall", [ospec])::ZF_conn_pairs, ZF_mem_pairs);
 
 simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all)
                         addsimps [oall_simp, ltD RS beta]
@@ -111,4 +110,3 @@ by (rtac (major RS conjE) 1);
 by (etac Ord_induct 1 THEN assume_tac 1);
 by (fast_tac (claset() addIs prems) 1);
 qed "lt_induct";
-

@@ -33,9 +33,11 @@ qed "increasingD2";
 
 (*Introduction rules*)
 val [TFin_nextI, Pow_TFin_UnionI] = TFin.intrs;
-val TFin_UnionI = PowI RS Pow_TFin_UnionI;
+bind_thm ("TFin_nextI", TFin_nextI);
+bind_thm ("Pow_TFin_UnionI", Pow_TFin_UnionI);
+bind_thm ("TFin_UnionI", PowI RS Pow_TFin_UnionI);
 
-val TFin_is_subset = TFin.dom_subset RS subsetD RS PowD;
+bind_thm ("TFin_is_subset", TFin.dom_subset RS subsetD RS PowD);
 
 
 (** Structural induction on TFin(S,next) **)
@@ -66,7 +68,7 @@ qed "TFin_linear_lemma1";
 
 (*Lemma 2 of section 3.2.  Interesting in its own right!
   Requires next: increasing(S) in the second induction step. *)
-val [major,ninc] = goal Zorn.thy
+val [major,ninc] = goal (the_context ())
     "[| m: TFin(S,next);  next: increasing(S) \
 \    |] ==> ALL n: TFin(S,next) . n<=m --> n=m | next`n<=m";
 by (rtac (major RS TFin_induct) 1);

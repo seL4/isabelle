@@ -18,7 +18,7 @@ Goalw [Part_def]
 by (Blast_tac 1);
 qed "Part_eqI";
 
-val PartI = refl RSN (2,Part_eqI);
+bind_thm ("PartI", refl RSN (2,Part_eqI));
 
 val major::prems = Goalw [Part_def]
     "[| a : Part(A,h);  !!z. [| a : A;  a=h(z) |] ==> P  \
@@ -38,7 +38,7 @@ qed "Part_subset";
 
 (*** Rules for Disjoint Sums ***)
 
-val sum_defs = [sum_def,Inl_def,Inr_def,case_def];
+bind_thms ("sum_defs", [sum_def,Inl_def,Inr_def,case_def]);
 
 Goalw (bool_def::sum_defs) "Sigma(bool,C) = C(0) + C(1)";
 by (Blast_tac 1);

@@ -295,9 +295,9 @@ by (asm_simp_tac
 qed "cmult_2";
 
 
-val sum_lepoll_prod = [sum_eq_2_times RS equalityD1 RS subset_imp_lepoll,
+bind_thm ("sum_lepoll_prod", [sum_eq_2_times RS equalityD1 RS subset_imp_lepoll,
         asm_rl, lepoll_refl] MRS (prod_lepoll_mono RSN (2, lepoll_trans))
-        |> standard;
+        |> standard);
 
 Goal "[| A lepoll B; 2 lepoll A |] ==> A+B lepoll A*B";
 by (REPEAT (ares_tac [[sum_lepoll_mono, sum_lepoll_prod]
@@ -791,8 +791,8 @@ qed "Finite_imp_cardinal_Diff";
 
 (** Theorems by Krzysztof Grabczewski, proofs by lcp **)
 
-val nat_implies_well_ord =
-  (transfer CardinalArith.thy nat_into_Ord) RS well_ord_Memrel;
+bind_thm ("nat_implies_well_ord",
+  (transfer (the_context ()) nat_into_Ord) RS well_ord_Memrel);
 
 Goal "[| m:nat; n:nat |] ==> m + n eqpoll m #+ n";
 by (rtac eqpoll_trans 1);

@@ -1,4 +1,4 @@
-(*  Title:      ZF/wf.ML
+(*  Title:      ZF/WF.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Lawrence C Paulson
     Copyright   1998  University of Cambridge
@@ -175,7 +175,7 @@ qed "wf_on_chain3";
 val bchain_tac = EVERY' [rtac (bspec RS mp), assume_tac, assume_tac ];
 
 (*transitive closure of a WF relation is WF provided A is downwards closed*)
-val [wfr,subs] = goal WF.thy
+val [wfr,subs] = goal (the_context ())
     "[| wf[A](r);  r-``A <= A |] ==> wf[A](r^+)";
 by (rtac wf_onI2 1);
 by (bchain_tac 1);
@@ -206,7 +206,7 @@ by (rtac (lamI RS rangeI RS lam_type) 1);
 by (assume_tac 1);
 qed "is_recfun_type";
 
-val [isrec,rel] = goalw WF.thy [is_recfun_def]
+val [isrec,rel] = goalw (the_context ()) [is_recfun_def]
     "[| is_recfun(r,a,H,f); <x,a>:r |] ==> f`x = H(x, restrict(f,r-``{x}))";
 by (res_inst_tac [("P", "%x.?t(x) = (?u::i)")] (isrec RS ssubst) 1);
 by (rtac (rel RS underI RS beta) 1);
@@ -232,7 +232,7 @@ by (rewtac restrict_def);
 by (asm_simp_tac (wf_super_ss addsimps [vimage_singleton_iff]) 1);
 qed_spec_mp "is_recfun_equal";
 
-val prems as [wfr,transr,recf,recg,_] = goal WF.thy
+val prems as [wfr,transr,recf,recg,_] = goal (the_context ())
     "[| wf(r);  trans(r);       \
 \       is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  <b,a>:r |] ==> \
 \    restrict(f, r-``{b}) = g";
@@ -296,7 +296,7 @@ qed "wftrec";
 (** Removal of the premise trans(r) **)
 
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
-val [wfr] = goalw WF.thy [wfrec_def]
+val [wfr] = goalw (the_context ()) [wfrec_def]
     "wf(r) ==> wfrec(r,a,H) = H(a, lam x:r-``{a}. wfrec(r,x,H))";
 by (stac (wfr RS wf_trancl RS wftrec) 1);
 by (rtac trans_trancl 1);

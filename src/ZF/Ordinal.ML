@@ -1,4 +1,4 @@
-(*  Title:      ZF/Ordinal.thy
+(*  Title:      ZF/Ordinal.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -25,19 +25,19 @@ Goalw [Transset_def]
 by (Blast_tac 1);
 qed "Transset_doubleton_D";
 
-val [prem1,prem2] = goalw Ordinal.thy [Pair_def]
+val [prem1,prem2] = goalw (the_context ()) [Pair_def]
     "[| Transset(C); <a,b>: C |] ==> a:C & b: C";
 by (cut_facts_tac [prem2] 1);   
 by (blast_tac (claset() addSDs [prem1 RS Transset_doubleton_D]) 1);
 qed "Transset_Pair_D";
 
-val prem1::prems = goal Ordinal.thy
+val prem1::prems = goal (the_context ())
     "[| Transset(C); A*B <= C; b: B |] ==> A <= C";
 by (cut_facts_tac prems 1);
 by (blast_tac (claset() addSDs [prem1 RS Transset_Pair_D]) 1);
 qed "Transset_includes_domain";
 
-val prem1::prems = goal Ordinal.thy
+val prem1::prems = goal (the_context ())
     "[| Transset(C); A*B <= C; a: A |] ==> B <= C";
 by (cut_facts_tac prems 1);
 by (blast_tac (claset() addSDs [prem1 RS Transset_Pair_D]) 1);
@@ -105,7 +105,7 @@ by (Blast_tac 1);
 qed "Ord_in_Ord";
 
 (* Ord(succ(j)) ==> Ord(j) *)
-val Ord_succD = succI1 RSN (2, Ord_in_Ord);
+bind_thm ("Ord_succD", succI1 RSN (2, Ord_in_Ord));
 
 AddSDs [Ord_succD];
 
@@ -235,7 +235,7 @@ qed "lt_not_sym";
 (* [| i<j;  ~P ==> j<i |] ==> P *)
 bind_thm ("lt_asym", lt_not_sym RS swap);
 
-val [major]= goal Ordinal.thy "i<i ==> P";
+val [major]= goal (the_context ()) "i<i ==> P";
 by (rtac (major RS (major RS lt_asym)) 1) ;
 qed "lt_irrefl";
 
@@ -261,7 +261,7 @@ Goal "[| i=j;  Ord(j) |] ==> i le j";
 by (asm_simp_tac (simpset() addsimps [le_iff]) 1);
 qed "le_eqI";
 
-val le_refl = refl RS le_eqI;
+bind_thm ("le_refl", refl RS le_eqI);
 
 Goal "i le i <-> Ord(i)";
 by (asm_simp_tac (simpset() addsimps [lt_not_refl, le_iff]) 1);
@@ -381,7 +381,7 @@ by (Blast_tac 1);
 qed "Transset_induct";
 
 (*Induction over an ordinal*)
-val Ord_induct = Ord_is_Transset RSN (2, Transset_induct);
+bind_thm ("Ord_induct", Ord_is_Transset RSN (2, Transset_induct));
 
 (*Induction over the class of ordinals -- a useful corollary of Ord_induct*)
 val [major,indhyp] = Goal
@@ -584,7 +584,7 @@ by (rtac (Un_upper1_le RS lt_trans1) 1);
 by (REPEAT_SOME assume_tac);
 qed "Un_least_lt_iff";
 
-val [ordi,ordj,ordk] = goal Ordinal.thy
+val [ordi,ordj,ordk] = goal (the_context ())
     "[| Ord(i); Ord(j); Ord(k) |] ==> i Un j : k  <->  i:k & j:k";
 by (cut_inst_tac [("k","k")] ([ordi,ordj] MRS Un_least_lt_iff) 1);
 by (asm_full_simp_tac (simpset() addsimps [lt_def,ordi,ordj,ordk]) 1);

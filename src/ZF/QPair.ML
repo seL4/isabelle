@@ -62,10 +62,10 @@ qed "QSigmaE";
 
 (** Elimination rules for <a;b>:A*B -- introducing no eigenvariables **)
 
-val QSigmaE2 = 
+bind_thm ("QSigmaE2",
   rule_by_tactic (REPEAT_FIRST (etac QPair_inject ORELSE' bound_hyp_subst_tac)
                   THEN prune_params_tac)
-      (inst "c" "<a;b>" QSigmaE);  
+      (inst "c" "<a;b>" QSigmaE));
 
 AddSEs [QSigmaE2, QSigmaE];
 
@@ -205,7 +205,7 @@ qed "qconverse_empty";
 
 (**** The Quine-inspired notion of disjoint sum ****)
 
-val qsum_defs = [qsum_def,QInl_def,QInr_def,qcase_def];
+bind_thms ("qsum_defs", [qsum_def,QInl_def,QInr_def,qcase_def]);
 
 (** Introduction rules for the injections **)
 

@@ -14,7 +14,7 @@ by (Blast_tac 1);
 qed "nat_bnd_mono";
 
 (* nat = {0} Un {succ(x). x:nat} *)
-val nat_unfold = nat_bnd_mono RS (nat_def RS def_lfp_Tarski);
+bind_thm ("nat_unfold", nat_bnd_mono RS (nat_def RS def_lfp_Tarski));
 
 (** Type checking of 0 and successor **)
 
@@ -44,7 +44,7 @@ Goal "bool <= nat";
 by (blast_tac (claset() addSEs [boolE]) 1);
 qed "bool_subset_nat";
 
-val bool_into_nat = bool_subset_nat RS subsetD;
+bind_thm ("bool_into_nat", bool_subset_nat RS subsetD);
 
 
 (** Injectivity properties and induction **)
@@ -97,7 +97,7 @@ by (etac ltD 1);
 qed "Limit_nat";
 
 (* succ(i): nat ==> i: nat *)
-val succ_natD = [succI1, asm_rl, Ord_nat] MRS Ord_trans;
+bind_thm ("succ_natD", [succI1, asm_rl, Ord_nat] MRS Ord_trans);
 AddSDs   [succ_natD];
 
 Goal "succ(n): nat <-> n: nat";
@@ -115,7 +115,7 @@ by (REPEAT (ares_tac [Limit_has_0 RS ltD, Ord_nat, Limit_is_Ord] 1));
 qed "nat_le_Limit";
 
 (* [| succ(i): k;  k: nat |] ==> i: k *)
-val succ_in_naturalD = [succI1, asm_rl, nat_into_Ord] MRS Ord_trans;
+bind_thm ("succ_in_naturalD", [succI1, asm_rl, nat_into_Ord] MRS Ord_trans);
 
 Goal "[| m<n;  n: nat |] ==> m: nat";
 by (etac ltE 1);
@@ -131,7 +131,7 @@ qed "le_in_nat";
 (** Variations on mathematical induction **)
 
 (*complete induction*)
-val complete_induct = Ord_nat RSN (2, Ord_induct);
+bind_thm ("complete_induct", Ord_nat RSN (2, Ord_induct));
 
 val prems = Goal
     "[| m: nat;  n: nat;  \

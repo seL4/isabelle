@@ -8,8 +8,6 @@ Least and greatest fixed points; the Knaster-Tarski Theorem
 Proved in the lattice of subsets of D, namely Pow(D), with Inter as glb
 *)
 
-open Fixedpt;
-
 (*** Monotone operators ***)
 
 val prems = Goalw [bnd_mono_def]
@@ -28,7 +26,7 @@ Goalw [bnd_mono_def] "[| bnd_mono(D,h);  W<=X;  X<=D |] ==> h(W) <= h(X)";
 by (Blast_tac 1);
 qed "bnd_monoD2";
 
-val [major,minor] = goal Fixedpt.thy
+val [major,minor] = goal (the_context ())
     "[| bnd_mono(D,h);  X<=D |] ==> h(X) <= D";
 by (rtac (major RS bnd_monoD2 RS subset_trans) 1);
 by (rtac (major RS bnd_monoD1) 3);
@@ -64,7 +62,7 @@ by (Blast_tac 1);
 qed "lfp_subset";
 
 (*Used in datatype package*)
-val [rew] = goal Fixedpt.thy "A==lfp(D,h) ==> A <= D";
+val [rew] = goal (the_context ()) "A==lfp(D,h) ==> A <= D";
 by (rewtac rew);
 by (rtac lfp_subset 1);
 qed "def_lfp_subset";
@@ -76,7 +74,7 @@ by (rtac (Pow_top RS CollectI RS Inter_greatest) 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [CollectE,PowD] 1));
 qed "lfp_greatest";
 
-val hmono::prems = goal Fixedpt.thy
+val hmono::prems = goal (the_context ())
     "[| bnd_mono(D,h);  h(A)<=A;  A<=D |] ==> h(lfp(D,h)) <= A";
 by (rtac (hmono RS bnd_monoD2 RS subset_trans) 1);
 by (rtac lfp_lowerbound 1);
@@ -89,7 +87,7 @@ by (rtac lfp_lemma1 2);
 by (REPEAT (assume_tac 1));
 qed "lfp_lemma2";
 
-val [hmono] = goal Fixedpt.thy
+val [hmono] = goal (the_context ())
     "bnd_mono(D,h) ==> lfp(D,h) <= h(lfp(D,h))";
 by (rtac lfp_lowerbound 1);
 by (rtac (hmono RS bnd_monoD2) 1);
@@ -103,7 +101,7 @@ by (REPEAT (ares_tac [equalityI,lfp_lemma2,lfp_lemma3] 1));
 qed "lfp_Tarski";
 
 (*Definition form, to control unfolding*)
-val [rew,mono] = goal Fixedpt.thy
+val [rew,mono] = goal (the_context ())
     "[| A==lfp(D,h);  bnd_mono(D,h) |] ==> A = h(A)";
 by (rewtac rew);
 by (rtac (mono RS lfp_Tarski) 1);
@@ -144,7 +142,7 @@ qed "def_induct";
 
 (*This version is useful when "A" is not a subset of D;
   second premise could simply be h(D Int A) <= D or !!X. X<=D ==> h(X)<=D *)
-val [hsub,hmono] = goal Fixedpt.thy
+val [hsub,hmono] = goal (the_context ())
     "[| h(D Int A) <= A;  bnd_mono(D,h) |] ==> lfp(D,h) <= A";
 by (rtac (lfp_lowerbound RS subset_trans) 1);
 by (rtac (hmono RS bnd_mono_subset RS Int_greatest) 1);
@@ -189,7 +187,7 @@ by (Blast_tac 1);
 qed "gfp_subset";
 
 (*Used in datatype package*)
-val [rew] = goal Fixedpt.thy "A==gfp(D,h) ==> A <= D";
+val [rew] = goal (the_context ()) "A==gfp(D,h) ==> A <= D";
 by (rewtac rew);
 by (rtac gfp_subset 1);
 qed "def_gfp_subset";
@@ -200,7 +198,7 @@ val hmono::prems = Goalw [gfp_def]
 by (fast_tac (subset_cs addIs ((hmono RS bnd_monoD1)::prems)) 1);
 qed "gfp_least";
 
-val hmono::prems = goal Fixedpt.thy
+val hmono::prems = goal (the_context ())
     "[| bnd_mono(D,h);  A<=h(A);  A<=D |] ==> A <= h(gfp(D,h))";
 by (rtac (hmono RS bnd_monoD2 RSN (2,subset_trans)) 1);
 by (rtac gfp_subset 3);
@@ -214,7 +212,7 @@ by (rtac gfp_lemma1 2);
 by (REPEAT (assume_tac 1));
 qed "gfp_lemma2";
 
-val [hmono] = goal Fixedpt.thy
+val [hmono] = goal (the_context ())
     "bnd_mono(D,h) ==> h(gfp(D,h)) <= gfp(D,h)";
 by (rtac gfp_upperbound 1);
 by (rtac (hmono RS bnd_monoD2) 1);
@@ -227,7 +225,7 @@ by (REPEAT (ares_tac [equalityI,gfp_lemma2,gfp_lemma3] 1));
 qed "gfp_Tarski";
 
 (*Definition form, to control unfolding*)
-val [rew,mono] = goal Fixedpt.thy
+val [rew,mono] = goal (the_context ())
     "[| A==gfp(D,h);  bnd_mono(D,h) |] ==> A = h(A)";
 by (rewtac rew);
 by (rtac (mono RS gfp_Tarski) 1);
@@ -241,7 +239,7 @@ Goal "[| a: X;  X <= h(X);  X <= D |] ==> a : gfp(D,h)";
 by (REPEAT (ares_tac [gfp_upperbound RS subsetD] 1));
 qed "weak_coinduct";
 
-val [subs_h,subs_D,mono] = goal Fixedpt.thy
+val [subs_h,subs_D,mono] = goal (the_context ())
     "[| X <= h(X Un gfp(D,h));  X <= D;  bnd_mono(D,h) |] ==>  \
 \    X Un gfp(D,h) <= h(X Un gfp(D,h))";
 by (rtac (subs_h RS Un_least) 1);
@@ -259,7 +257,7 @@ by (REPEAT (ares_tac [gfp_subset, UnI1, Un_least] 1));
 qed "coinduct";
 
 (*Definition form, to control unfolding*)
-val rew::prems = goal Fixedpt.thy
+val rew::prems = goal (the_context ())
     "[| A == gfp(D,h);  bnd_mono(D,h);  a: X;  X <= h(X Un A);  X <= D |] ==> \
 \    a : A";
 by (rewtac rew);

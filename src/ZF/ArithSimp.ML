@@ -75,10 +75,10 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_le_self])));
 qed "div_termination";
 
-val div_rls =   (*for mod and div*)
+bind_thms ("div_rls",   (*for mod and div*)
     nat_typechecks @
     [Ord_transrec_type, apply_funtype, div_termination RS ltD,
-     nat_into_Ord, not_lt_iff_le RS iffD1];
+     nat_into_Ord, not_lt_iff_le RS iffD1]);
 
 val div_ss = simpset() addsimps [div_termination RS ltD,
 				 not_lt_iff_le RS iffD2];

@@ -6,10 +6,10 @@
 Infinite-branching datatype definitions
 *)
 
-val fun_Limit_VfromE =
+bind_thm ("fun_Limit_VfromE",
    [apply_funtype, InfCard_csucc RS InfCard_is_Limit] MRS
-     transfer InfDatatype.thy Limit_VfromE 
-   |> standard;
+     transfer (the_context ()) Limit_VfromE 
+   |> standard);
 
 Goal "[| f: D -> Vfrom(A,csucc(K));  |D| le K;  InfCard(K) |]  \
 \     ==> EX j. f: D -> Vfrom(A,j) & j < csucc(K)";
@@ -54,7 +54,7 @@ by (REPEAT (ares_tac [fun_Vcsucc RS subsetD] 1));
 qed "fun_in_Vcsucc";
 
 (*Remove <= from the rule above*)
-val fun_in_Vcsucc' = subsetI RSN (4, fun_in_Vcsucc);
+bind_thm ("fun_in_Vcsucc'", subsetI RSN (4, fun_in_Vcsucc));
 
 (** Version where K itself is the index set **)
 
@@ -93,8 +93,8 @@ bind_thm ("UN_upper_cardinal",
           UN_upper RS subset_imp_lepoll RS lepoll_imp_Card_le);
 
 (*For most K-branching datatypes with domain Vfrom(A, csucc(K)) *)
-val inf_datatype_intrs =  
+bind_thms ("inf_datatype_intrs",
     [InfCard_nat, InfCard_nat_Un_cardinal,
      Pair_in_Vcsucc, Inl_in_Vcsucc, Inr_in_Vcsucc, 
      zero_in_Vcsucc, A_into_Vfrom, nat_into_Vcsucc,
-     Card_fun_in_Vcsucc, fun_in_Vcsucc', UN_I] @ Data_Arg.intrs;
+     Card_fun_in_Vcsucc, fun_in_Vcsucc', UN_I] @ Data_Arg.intrs);

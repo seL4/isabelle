@@ -14,8 +14,8 @@ Observe the order of dependence:
 
 (*** Lemmas about power sets  ***)
 
-val Pow_bottom = empty_subsetI RS PowI;         (* 0 : Pow(B) *)
-val Pow_top = subset_refl RS PowI;              (* A : Pow(A) *)
+bind_thm ("Pow_bottom", empty_subsetI RS PowI);         (* 0 : Pow(B) *)
+bind_thm ("Pow_top", subset_refl RS PowI);              (* A : Pow(A) *)
 
 
 (*** Unordered pairs - Upair ***)
@@ -303,8 +303,7 @@ bind_thm ("split_if_eq2", inst "P" "%x. ?a = x" split_if);
 bind_thm ("split_if_mem1", inst "P" "%x. x : ?b" split_if);
 bind_thm ("split_if_mem2", inst "P" "%x. ?a : x" split_if);
 
-val split_ifs = [split_if_eq1, split_if_eq2,
-		 split_if_mem1, split_if_mem2];
+bind_thms ("split_ifs", [split_if_eq1, split_if_eq2, split_if_mem1, split_if_mem2]);
 
 (*Logically equivalent to split_if_mem2*)
 Goal "a: (if P then x else y) <-> P & a:x | ~P & a:y";
@@ -387,7 +386,7 @@ AddSEs [succ_neq_0, sym RS succ_neq_0];
 
 
 (* succ(c) <= B ==> c : B *)
-val succ_subsetD = succI1 RSN (2,subsetD);
+bind_thm ("succ_subsetD", succI1 RSN (2,subsetD));
 
 (* succ(b) ~= b *)
 bind_thm ("succ_neq_self", succI1 RS mem_imp_not_eq RS not_sym);
@@ -403,4 +402,3 @@ AddSDs [succ_inject];
 
 (*Not needed now that cons is available.  Deletion reduces the search space.*)
 Delrules [UpairI1,UpairI2,UpairE];
-

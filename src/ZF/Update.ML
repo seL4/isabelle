@@ -1,12 +1,10 @@
-(*  Title:      ZF/Update.thy
+(*  Title:      ZF/Update.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
 Function updates: like theory Map, but for ordinary functions
 *)
-
-open Update;
 
 Goal "f(x:=y) ` z = (if z=x then y else f`z)";
 by (simp_tac (simpset() addsimps [update_def]) 1);

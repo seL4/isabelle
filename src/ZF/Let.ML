@@ -6,9 +6,7 @@
 Let expressions -- borrowed from HOL
 *)
 
-open Let;
-
-val [prem] = goalw thy
+val [prem] = goalw (the_context ())
     [Let_def] "(!!x. x=t ==> P(u(x))) ==> P(let x=t in u(x))";
 by (rtac (refl RS prem) 1);
 qed "LetI";

@@ -364,9 +364,9 @@ qed "fun_Union";
 
 (** The Union of 2 disjoint functions is a function **)
 
-val Un_rls = [Un_subset_iff, SUM_Un_distrib1, prod_Un_distrib2, 
+bind_thms ("Un_rls", [Un_subset_iff, SUM_Un_distrib1, prod_Un_distrib2, 
               Un_upper1 RSN (2, subset_trans), 
-              Un_upper2 RSN (2, subset_trans)];
+              Un_upper2 RSN (2, subset_trans)]);
 
 Goal "[| f: A->B;  g: C->D;  A Int C = 0  |]  \
 \                 ==> (f Un g) : (A Un C) -> (B Un D)";

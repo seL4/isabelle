@@ -6,7 +6,7 @@
 Booleans in Zermelo-Fraenkel Set Theory 
 *)
 
-val bool_defs = [bool_def,cond_def];
+bind_thms ("bool_defs", [bool_def,cond_def]);
 
 Goalw [succ_def] "{0} = 1";
 by (rtac refl 1);
@@ -30,7 +30,7 @@ by (rtac succ_not_0 1);
 qed "one_not_0";
 
 (** 1=0 ==> R **)
-val one_neq_0 = one_not_0 RS notE;
+bind_thm ("one_neq_0", one_not_0 RS notE);
 
 val major::prems = Goalw bool_defs
     "[| c: bool;  c=1 ==> P;  c=0 ==> P |] ==> P";
@@ -77,10 +77,19 @@ qed "def_cond_0";
 
 fun conds def = [standard (def RS def_cond_1), standard (def RS def_cond_0)];
 
-val [not_1,not_0] = conds not_def;
-val [and_1,and_0] = conds and_def;
-val [or_1,or_0]   = conds or_def;
-val [xor_1,xor_0] = conds xor_def;
+val [not_1, not_0] = conds not_def;
+val [and_1, and_0] = conds and_def;
+val [or_1, or_0]   = conds or_def;
+val [xor_1, xor_0] = conds xor_def;
+
+bind_thm ("not_1", not_1);
+bind_thm ("not_0", not_0);
+bind_thm ("and_1", and_1);
+bind_thm ("and_0", and_0);
+bind_thm ("or_1", or_1);
+bind_thm ("or_0", or_0);
+bind_thm ("xor_1", xor_1);
+bind_thm ("xor_0", xor_0);
 
 Addsimps [not_1,not_0,and_1,and_0,or_1,or_0,xor_1,xor_0];
 
@@ -104,8 +113,8 @@ qed "xor_type";
 
 AddTCs [xor_type];
 
-val bool_typechecks = [bool_1I, bool_0I, cond_type, not_type, and_type, 
-                       or_type, xor_type];
+bind_thms ("bool_typechecks",
+  [bool_1I, bool_0I, cond_type, not_type, and_type, or_type, xor_type]);
 
 (*** Laws for 'not' ***)
 

@@ -182,7 +182,7 @@ bind_thm ("field_rmult", (rmult_type RS field_rel_subset));
 
 (** Linearity **)
 
-val [lina,linb] = goal OrderArith.thy
+val [lina,linb] = goal (the_context ())
     "[| linear(A,r);  linear(B,s) |] ==> linear(A*B,rmult(A,r,B,s))";
 by (rewtac linear_def);    (*Note! the premises are NOT rewritten*)
 by (REPEAT_FIRST (ares_tac [ballI] ORELSE' etac SigmaE));
@@ -354,7 +354,7 @@ qed "part_ord_rvimage";
 
 (** Linearity **)
 
-val [finj,lin] = goalw OrderArith.thy [inj_def]
+val [finj,lin] = goalw (the_context ()) [inj_def]
     "[| f: inj(A,B);  linear(B,r) |] ==> linear(A,rvimage(A,f,r))";
 by (rewtac linear_def);    (*Note! the premises are NOT rewritten*)
 by (REPEAT_FIRST (ares_tac [ballI]));

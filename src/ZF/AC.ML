@@ -7,7 +7,7 @@ The Axiom of Choice
 *)
 
 (*The same as AC, but no premise a:A*)
-val [nonempty] = goal AC.thy
+val [nonempty] = goal (the_context ())
      "[| !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)";
 by (excluded_middle_tac "A=0" 1);
 by (asm_simp_tac (simpset() addsimps [Pi_empty1]) 2 THEN Blast_tac 2);
@@ -28,7 +28,7 @@ by (etac exI 2);
 by (Blast_tac 1);
 qed "AC_Pi_Pow";
 
-val [nonempty] = goal AC.thy
+val [nonempty] = goal (the_context ())
      "[| !!x. x:A ==> (EX y. y:x)       \
 \     |] ==> EX f: A->Union(A). ALL x:A. f`x : x";
 by (res_inst_tac [("B1", "%x. x")] (AC_Pi RS exE) 1);

@@ -29,7 +29,7 @@ qed "cons_Diff";
 Goal "[| a: C;  ALL y:C. y=b |] ==> C = {b}";
 by (Blast_tac 1);
 qed "equal_singleton_lemma";
-val equal_singleton = ballI RSN (2,equal_singleton_lemma);
+bind_thm ("equal_singleton", ballI RSN (2,equal_singleton_lemma));
 
 
 (** Binary Intersection **)

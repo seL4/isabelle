@@ -10,7 +10,7 @@ Basic introduction and elimination rules for Zermelo-Fraenkel Set Theory
 Goal "[| b:A;  a=b |] ==> a:A";
 by (etac ssubst 1);
 by (assume_tac 1);
-val subst_elem = result();
+qed "subst_elem";
 
 
 (*** Bounded universal quantifier ***)
@@ -505,50 +505,28 @@ Goal "EX S: Pow(A). ALL x:A. b(x) ~= S";
 by (best_tac cantor_cs 1);
 qed "cantor";
 
-(*Lemma for the inductive definition in Zorn.thy*)
+(*Lemma for the inductive definition in theory Zorn*)
 Goal "Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)";
 by (Blast_tac 1);
 qed "Union_in_Pow";
 
 
-local
-val (bspecT, bspec') = make_new_spec bspec
-in
+(* update rulify setup -- include bounded All *)
 
-fun RSbspec th =
-  (case concl_of th of
-     _ $ (Const("Ball",_) $ _ $ Abs(a,_,_)) =>
-         let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),bspecT))
-         in th RS forall_elim ca bspec' end
-  | _ => raise THM("RSbspec",0,[th]));
-
-val normalize_thm_ZF = normalize_thm [RSspec,RSbspec,RSmp];
-
-fun qed_spec_mp name =
-  let val thm = normalize_thm_ZF (result())
-  in bind_thm(name, thm) end;
-
-fun qed_goal_spec_mp name thy s p = 
-      bind_thm (name, normalize_thm_ZF (prove_goal thy s p));
-
-fun qed_goalw_spec_mp name thy defs s p = 
-      bind_thm (name, normalize_thm_ZF (prove_goalw thy defs s p));
-
-end;
-
-
-(* attributes *)
+Goal "(!!x. x:A ==> P(x)) == Trueprop (ALL x:A. P(x))";
+by (simp_tac (simpset () addsimps (Ball_def :: thms "atomize")) 1);
+qed "ball_eq";
 
 local
-
-fun gen_rulify x = 
-    Attrib.no_args (Drule.rule_attribute (K (normalize_thm_ZF))) x;
-
+  val ss = FOL_basic_ss addsimps
+    (Drule.norm_hhf_eq :: map Thm.symmetric (ball_eq :: thms "atomize"));
 in
 
-val attrib_setup =
- [Attrib.add_attributes
-  [("rulify", (gen_rulify, gen_rulify), 
-    "put theorem into standard rule form")]];
+structure Rulify = RulifyFun
+ (val make_meta = Simplifier.simplify ss
+  val full_make_meta = Simplifier.full_simplify ss);
+
+structure BasicRulify: BASIC_RULIFY = Rulify;
+open BasicRulify;
 
 end;

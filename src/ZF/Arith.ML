@@ -15,7 +15,7 @@ Proofs about elementary arithmetic: addition, multiplication, etc.
 *)
 
 Addsimps [rec_type, nat_0_le];
-val nat_typechecks = [rec_type, nat_0I, nat_1I, nat_succI, Ord_nat];
+bind_thms ("nat_typechecks", [rec_type, nat_0I, nat_1I, nat_succI, Ord_nat]);
 
 Goal "[| 0<k; k: nat |] ==> EX j: nat. k = succ(j)";
 by (etac rev_mp 1);
@@ -261,7 +261,7 @@ by (rtac (add_commute RS subst_context) 1);
 qed "add_left_commute";
 
 (*Addition is an AC-operator*)
-val add_ac = [add_assoc, add_commute, add_left_commute];
+bind_thms ("add_ac", [add_assoc, add_commute, add_left_commute]);
 
 (*Cancellation law on the left*)
 Goal "[| raw_add(k, m) = raw_add(k, n);  k:nat |] ==> m=n";
@@ -496,6 +496,4 @@ by (rtac (mult_assoc RS trans) 1);
 by (rtac (mult_commute RS subst_context) 1);
 qed "mult_left_commute";
 
-val mult_ac = [mult_assoc,mult_commute,mult_left_commute];
-
-
+bind_thms ("mult_ac", [mult_assoc,mult_commute,mult_left_commute]);

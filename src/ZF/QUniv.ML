@@ -63,7 +63,7 @@ bind_thm ("two_in_quniv", two_in_univ RS univ_into_quniv);
 bind_thm ("A_subset_quniv",
           [A_subset_univ, univ_subset_quniv] MRS subset_trans);
 
-val A_into_quniv = A_subset_quniv RS subsetD;
+bind_thm ("A_into_quniv", A_subset_quniv RS subsetD);
 
 (*** univ(A) closure for Quine-inspired pairs and injections ***)
 
@@ -79,12 +79,12 @@ Goalw [QInl_def] "a <= univ(A) ==> QInl(a) <= univ(A)";
 by (etac (empty_subsetI RS QPair_subset_univ) 1);
 qed "QInl_subset_univ";
 
-val naturals_subset_nat =
+bind_thm ("naturals_subset_nat",
     rewrite_rule [Transset_def] (Ord_nat RS Ord_is_Transset)
-    RS bspec;
+    RS bspec);
 
-val naturals_subset_univ = 
-    [naturals_subset_nat, nat_subset_univ] MRS subset_trans;
+bind_thm ("naturals_subset_univ",
+    [naturals_subset_nat, nat_subset_univ] MRS subset_trans);
 
 Goalw [QInr_def] "a <= univ(A) ==> QInr(a) <= univ(A)";
 by (etac (nat_1I RS naturals_subset_univ RS QPair_subset_univ) 1);

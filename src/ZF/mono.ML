@@ -58,7 +58,7 @@ qed "Diff_mono";
 Goal "[| A<=C;  ALL x:A. B(x) <= D(x) |] ==> Sigma(A,B) <= Sigma(C,D)";
 by (Blast_tac 1);
 qed "Sigma_mono_lemma";
-val Sigma_mono = ballI RSN (2,Sigma_mono_lemma);
+bind_thm ("Sigma_mono", ballI RSN (2,Sigma_mono_lemma));
 
 Goalw sum_defs "[| A<=C;  B<=D |] ==> A+B <= C+D";
 by (REPEAT (ares_tac [subset_refl,Un_mono,Sigma_mono] 1));
@@ -83,7 +83,7 @@ Goal "[| A<=C;  ALL x:A. B(x) <= D(x) |] ==>  \
 \                          QSigma(A,B) <= QSigma(C,D)";
 by (Blast_tac 1);
 qed "QSigma_mono_lemma";
-val QSigma_mono = ballI RSN (2,QSigma_mono_lemma);
+bind_thm ("QSigma_mono", ballI RSN (2,QSigma_mono_lemma));
 
 Goalw [QInl_def] "a<=b ==> QInl(a) <= QInl(b)";
 by (REPEAT (ares_tac [subset_refl RS QPair_mono] 1));
@@ -187,6 +187,5 @@ by (etac (spec RS (PQimp RS mp)) 1);
 qed "all_mono";
 
 (*Used in intr_elim.ML and in individual datatype definitions*)
-val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
-                   ex_mono, Collect_mono, Part_mono, in_mono];
-
+bind_thms ("basic_monos",
+  [subset_refl, imp_refl, disj_mono, conj_mono, ex_mono, Collect_mono, Part_mono, in_mono]);
