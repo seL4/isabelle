@@ -273,7 +273,7 @@ fun new_block state =
 
 fun close_block (state as State (_, node :: nodes)) =
       State (node, nodes)
-      |> map_context (ProofContext.transfer_used_names (context_of state))
+(* FIXME      |> map_context (ProofContext.transfer_used_names (context_of state)) *)
   | close_block state = raise STATE ("Unbalanced block parentheses", state);
 
 
@@ -508,7 +508,7 @@ val match_bind_i = gen_bind ProofContext.match_binds_i;
 fun have_thmss ths name atts ths_atts state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.have_thmss ths (PureThy.default_name name) atts ths_atts)
+  |> map_context_result (ProofContext.have_thmss ths name atts ths_atts)
   |> these_facts;
 
 fun simple_have_thms name thms = have_thmss [] name [] [(thms, [])];
@@ -530,12 +530,10 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 local
 
-fun def_name (name, x, y) = (PureThy.default_name name, x, y);
-
 fun gen_assume f tac args state =
   state
   |> assert_forward
-  |> map_context_result (f tac (map def_name args))
+  |> map_context_result (f tac args)
   |> (fn (st, (factss, prems)) =>
     foldl these_facts (st, factss)
     |> put_thms ("prems", prems)
@@ -597,7 +595,7 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   in
     state'
     |> opt_block
-    |> put_goal (Some (((kind atts, (PureThy.default_name name), prop), ([], goal)), after_qed))
+    |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
