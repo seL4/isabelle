@@ -7,7 +7,7 @@ Type signatures, unification of types, interface to type inference.
 
 signature TYPE =
 sig
-  (*TFrees vs TVars*)
+  (*TFrees and TVars*)
   val no_tvars: typ -> typ
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
@@ -21,17 +21,19 @@ sig
      classrel: Sorts.classrel,
      default: sort,
      tycons: int Symtab.table,
+     log_types: string list,
+     univ_witness: (typ * sort) option,
      abbrs: (string list * typ) Symtab.table,
      arities: Sorts.arities}
+  val classes: type_sig -> class list
   val defaultS: type_sig -> sort
   val logical_types: type_sig -> string list
-
+  val univ_witness: type_sig -> (typ * sort) option
   val subsort: type_sig -> sort * sort -> bool
   val eq_sort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
-  val nonempty_sort: type_sig -> sort list -> sort -> bool
+  val witness_sorts: type_sig -> sort list -> sort list -> (typ * sort) list
   val rem_sorts: typ -> typ
-
   val tsig0: type_sig
   val ext_tsig_classes: type_sig -> (class * class list) list -> type_sig
   val ext_tsig_classrel: type_sig -> (class * class) list -> type_sig
@@ -40,12 +42,10 @@ sig
   val ext_tsig_abbrs: type_sig -> (string * string list * typ) list -> type_sig
   val ext_tsig_arities: type_sig -> (string * sort list * sort)list -> type_sig
   val merge_tsigs: type_sig * type_sig -> type_sig
-
   val typ_errors: type_sig -> typ * string list -> string list
   val cert_typ: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
   val norm_term: type_sig -> term -> term
-
   val inst_term_tvars: type_sig * (indexname * typ) list -> term -> term
 
   (*type matching*)
@@ -77,12 +77,12 @@ structure Type: TYPE =
 struct
 
 
-(*** TFrees vs TVars ***)
+(*** TFrees and TVars ***)
 
-(*disallow TVars*)
 fun no_tvars T =
   if null (typ_tvars T) then T
   else raise TYPE ("Illegal schematic type variable(s)", [T], []);
+
 
 (* varify, unvarify *)
 
@@ -101,45 +101,49 @@ fun varify (t, fixed) =
       (case assoc (fmap, a) of
         None => TFree f
       | Some b => TVar ((b, 0), S));
-  in
-    map_term_types (map_type_tfree thaw) t
-  end;
+  in map_term_types (map_type_tfree thaw) t end;
 
 
-(** Freeze TVars in a term; return the "thaw" inverse **)
+(* freeze_thaw: freeze TVars in a term; return the "thaw" inverse *)
 
-fun newName (ix, (pairs,used)) = 
+local
+
+fun new_name (ix, (pairs,used)) =
       let val v = variant used (string_of_indexname ix)
       in  ((ix,v)::pairs, v::used)  end;
 
-fun freezeOne alist (ix,sort) =
+fun freeze_one alist (ix,sort) =
   TFree (the (assoc (alist, ix)), sort)
     handle OPTION =>
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
-fun thawOne alist (a,sort) = TVar (the (assoc (alist,a)), sort)
+fun thaw_one alist (a,sort) = TVar (the (assoc (alist,a)), sort)
       handle OPTION => TFree(a,sort);
 
-(*This sort of code could replace unvarifyT (?)
-    fun freeze_thaw_type T =
-	let val used = add_typ_tfree_names (T, [])
-	  and tvars = map #1 (add_typ_tvars (T, []))
-	  val (alist, _) = foldr newName (tvars, ([], used))
-	in  (map_type_tvar (freezeOne alist) T, 
-	   map_type_tfree (thawOne (map swap alist)))  
-	end;
-*)
+(*this sort of code could replace unvarifyT (?) -- currently unused*)
+fun freeze_thaw_type T =
+  let
+    val used = add_typ_tfree_names (T, [])
+    and tvars = map #1 (add_typ_tvars (T, []));
+    val (alist, _) = foldr new_name (tvars, ([], used));
+  in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
+
+in
 
 fun freeze_thaw t =
-    let val used = it_term_types add_typ_tfree_names (t, [])
-	and tvars = map #1 (it_term_types add_typ_tvars (t, []))
-	val (alist, _) = foldr newName (tvars, ([], used))
-    in  
-	case alist of
-	    [] => (t, fn x=>x)      (*nothing to do!*)
-	  | _ =>  (map_term_types (map_type_tvar (freezeOne alist)) t,
-		   map_term_types (map_type_tfree (thawOne (map swap alist)))) 
-    end;
+  let
+    val used = it_term_types add_typ_tfree_names (t, [])
+    and tvars = map #1 (it_term_types add_typ_tvars (t, []));
+    val (alist, _) = foldr new_name (tvars, ([], used));
+  in
+    (case alist of
+      [] => (t, fn x => x) (*nothing to do!*)
+    | _ => (map_term_types (map_type_tvar (freeze_one alist)) t,
+      map_term_types (map_type_tfree (thaw_one (map swap alist)))))
+  end;
+
+end;
+
 
 
 (*** type signatures ***)
@@ -147,24 +151,14 @@ fun freeze_thaw t =
 (* type type_sig *)
 
 (*
-  classes:
-    list of all declared classes;
-
-  classrel:
-    (see Pure/sorts.ML)
-
-  default:
-    default sort attached to all unconstrained type vars;
-
-  tycons:
-    association list of all declared types with the number of their
-    arguments;
-
-  abbrs:
-    association list of type abbreviations;
-
-  arities:
-    (see Pure/sorts.ML)
+  classes: list of all declared classes;
+  classrel: (see Pure/sorts.ML)
+  default: default sort attached to all unconstrained type vars;
+  tycons: table of all declared types with the number of their arguments;
+  log_types: list of logical type constructors sorted by number of arguments;
+  univ_witness: type witnessing non-emptiness of least sort
+  abbrs: table of type abbreviations;
+  arities: (see Pure/sorts.ML)
 *)
 
 datatype type_sig =
@@ -173,30 +167,27 @@ datatype type_sig =
     classrel: Sorts.classrel,
     default: sort,
     tycons: int Symtab.table,
+    log_types: string list,
+    univ_witness: (typ * sort) option,
     abbrs: (string list * typ) Symtab.table,
     arities: Sorts.arities};
 
 fun rep_tsig (TySg comps) = comps;
 
+fun classes (TySg {classes = cs, ...}) = cs;
 fun defaultS (TySg {default, ...}) = default;
-
-fun logical_types (TySg {classrel, arities, tycons, ...}) =
-  let
-    fun log_class c = Sorts.class_le classrel (c, logicC);
-    fun log_type t = exists (log_class o #1) (Symtab.lookup_multi (arities, t));
-  in filter log_type (Symtab.keys tycons) end;
+fun logical_types (TySg {log_types, ...}) = log_types;
+fun univ_witness (TySg {univ_witness, ...}) = univ_witness;
 
 
 (* sorts *)
-
-(* FIXME declared!? *)
 
 fun subsort (TySg {classrel, ...}) = Sorts.sort_le classrel;
 fun eq_sort (TySg {classrel, ...}) = Sorts.sort_eq classrel;
 fun norm_sort (TySg {classrel, ...}) = Sorts.norm_sort classrel;
 
-fun nonempty_sort (tsig as TySg {classrel, arities, ...}) hyps S =
-  Sorts.nonempty_sort classrel arities hyps S;
+fun witness_sorts (tsig as TySg {classrel, arities, log_types, ...}) =
+  Sorts.witness_sorts (classrel, arities, log_types);
 
 fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
   | rem_sorts (TFree (x, _)) = TFree (x, [])
@@ -227,7 +218,7 @@ fun ty_confl c = "Conflicting type constructor and abbreviation " ^ quote c;
 
 (* FIXME err_undcl_class! *)
 (* 'leq' checks the partial order on classes according to the
-   statements in the association list 'a' (i.e. 'classrel')
+   statements in classrel 'a'
 *)
 
 fun less a (C, D) = case Symtab.lookup (a, C) of
@@ -249,7 +240,7 @@ fun inst_typ tye =
 
 
 
-fun of_sort (TySg {classrel, arities, ...}) = Sorts.of_sort classrel arities;
+fun of_sort (TySg {classrel, arities, ...}) = Sorts.of_sort (classrel, arities);
 
 fun check_has_sort (tsig, T, S) =
   if of_sort tsig (T, S) then ()
@@ -293,13 +284,25 @@ fun norm_term tsig t =
 
 (** build type signatures **)
 
-fun make_tsig (classes, classrel, default, tycons, abbrs, arities) =
-  TySg {classes = classes, classrel = classrel, default = default,
-    tycons = tycons, abbrs = abbrs, arities = arities};
+fun make_tsig (classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities) =
+  TySg {classes = classes, classrel = classrel, default = default, tycons = tycons,
+    log_types = log_types, univ_witness = univ_witness, abbrs = abbrs, arities = arities};
 
-val tsig0 = make_tsig ([], Symtab.empty, [], Symtab.empty, Symtab.empty, Symtab.empty);
+fun rebuild_tsig (TySg {classes, classrel, default, tycons, log_types = _, univ_witness = _, abbrs, arities}) =
+  let
+    fun log_class c = Sorts.class_le classrel (c, logicC);
+    fun log_type (t, _) = exists (log_class o #1) (Symtab.lookup_multi (arities, t));
+    val ts = filter log_type (Symtab.dest tycons);
 
+    val log_types = map #1 (Library.sort (Library.int_ord o pairself #2) ts);
+    val univ_witness =
+      (case Sorts.witness_sorts (classrel, arities, log_types) [] [classes] of
+        [w] => Some w | _ => None);
+  in make_tsig (classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities) end;
 
+val tsig0 =
+  make_tsig ([], Symtab.empty, [], Symtab.empty, [], None, Symtab.empty, Symtab.empty)
+  |> rebuild_tsig;
 
 
 (* typ_errors *)
@@ -350,18 +353,13 @@ fun cert_typ tsig T =
 
 (** merge type signatures **)
 
-(*'assoc_union' merges two association lists if the contents associated
-  the keys are lists*)
+(* merge classrel *)
 
 fun assoc_union (as1, []) = as1
   | assoc_union (as1, (key, l2) :: as2) =
       (case assoc_string (as1, key) of
-        Some l1 => assoc_union
-                      (overwrite (as1, (key, l1 union_string l2)), as2)
+        Some l1 => assoc_union (overwrite (as1, (key, l1 union_string l2)), as2)
       | None => assoc_union ((key, l2) :: as1, as2));
-
-
-(* merge classrel *)
 
 fun merge_classrel (classrel1, classrel2) =
   let
@@ -374,6 +372,8 @@ fun merge_classrel (classrel1, classrel2) =
 
 
 (* coregularity *)
+
+local
 
 (* 'is_unique_decl' checks if there exists just one declaration t:(Ss)C *)
 
@@ -402,16 +402,19 @@ fun coreg classrel (t, Cw1) =
     fun check(Cw2) = (check1(Cw1,Cw2); check1(Cw2,Cw1))
   in seq check end;
 
+in
+
 fun add_arity classrel ars (tCw as (_,Cw)) =
       (is_unique_decl ars tCw; coreg classrel tCw ars; Cw ins ars);
 
-fun varying_decls t =
-  error ("Type constructor " ^ quote t ^ " has varying number of arguments");
+end;
 
 
 (* 'merge_arities' builds the union of two 'arities' lists;
    it only checks the two restriction conditions and inserts afterwards
    all elements of the second list into the first one *)
+
+local
 
 fun merge_arities_aux classrel =
   let fun test_ar t (ars1, sw) = add_arity classrel ars1 (t,sw);
@@ -423,32 +426,49 @@ fun merge_arities_aux classrel =
         | None => c::arities1
   in foldl merge_c end;
 
+in
+
 fun merge_arities classrel (a1, a2) =
   Symtab.make (merge_arities_aux classrel (Symtab.dest a1, Symtab.dest a2));
+
+end;
+
+
+(* tycons *)
+
+fun varying_decls t =
+  error ("Type constructor " ^ quote t ^ " has varying number of arguments");
 
 fun add_tycons (tycons, tn as (t,n)) =
   (case Symtab.lookup (tycons, t) of
     Some m => if m = n then tycons else varying_decls t
   | None => Symtab.update (tn, tycons));
 
+
+(* merge_abbrs *)
+
 fun merge_abbrs abbrs =
   Symtab.merge (op =) abbrs handle Symtab.DUPS dups => raise TERM (dup_tyabbrs dups, []);
 
 
-(* 'merge_tsigs' takes the above declared functions to merge two type
-  signatures *)
+(* merge_tsigs *)
 
-fun merge_tsigs(TySg{classes=classes1, default=default1, classrel=classrel1,
-                     tycons=tycons1, arities=arities1, abbrs=abbrs1},
-                TySg{classes=classes2, default=default2, classrel=classrel2,
-                     tycons=tycons2, arities=arities2, abbrs=abbrs2}) =
-  let val classes' = classes1 union_string classes2;
-      val classrel' = merge_classrel (classrel1, classrel2);
-      val tycons' = foldl add_tycons (tycons1, Symtab.dest tycons2)
-      val arities' = merge_arities classrel' (arities1, arities2);
-      val default' = Sorts.norm_sort classrel' (default1 @ default2);
-      val abbrs' = merge_abbrs(abbrs1, abbrs2);
-  in make_tsig(classes', classrel', default', tycons', abbrs', arities') end;
+fun merge_tsigs
+ (TySg {classes = classes1, default = default1, classrel = classrel1, tycons = tycons1,
+    log_types = _, univ_witness = _, arities = arities1, abbrs = abbrs1},
+  TySg {classes = classes2, default = default2, classrel = classrel2, tycons = tycons2,
+    log_types = _, univ_witness = _, arities = arities2, abbrs = abbrs2}) =
+  let
+    val classes' = classes1 union_string classes2;
+    val classrel' = merge_classrel (classrel1, classrel2);
+    val arities' = merge_arities classrel' (arities1, arities2);
+    val tycons' = foldl add_tycons (tycons1, Symtab.dest tycons2);
+    val default' = Sorts.norm_sort classrel' (default1 @ default2);
+    val abbrs' = merge_abbrs (abbrs1, abbrs2);
+  in
+    make_tsig (classes', classrel', default', tycons', [], None, abbrs', arities')
+    |> rebuild_tsig
+  end;
 
 
 
@@ -498,48 +518,47 @@ fun extend_classes (classes, classrel, new_classes) =
 
 fun ext_tsig_classes tsig new_classes =
   let
-    val TySg {classes, classrel, default, tycons, abbrs, arities} = tsig;
+    val TySg {classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities} = tsig;
     val (classes',classrel') = extend_classes (classes,classrel,new_classes);
-  in
-    make_tsig (classes', classrel', default, tycons, abbrs, arities)
-  end;
+  in make_tsig (classes', classrel', default, tycons, log_types, univ_witness, abbrs, arities) end;
 
 
 (* ext_tsig_classrel *)
 
 fun ext_tsig_classrel tsig pairs =
   let
-    val TySg {classes, classrel, default, tycons, abbrs, arities} = tsig;
+    val TySg {classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities} = tsig;
 
     (* FIXME clean! *)
     val classrel' =
       merge_classrel (classrel, Symtab.make (map (fn (c1, c2) => (c1, [c2])) pairs));
   in
-    make_tsig (classes, classrel', default, tycons, abbrs, arities)
+    make_tsig (classes, classrel', default, tycons, log_types, univ_witness, abbrs, arities)
+    |> rebuild_tsig
   end;
 
 
 (* ext_tsig_defsort *)
 
-fun ext_tsig_defsort(TySg{classes,classrel,tycons,abbrs,arities,...}) default =
-  make_tsig (classes, classrel, default, tycons, abbrs, arities);
+fun ext_tsig_defsort
+    (TySg {classes, classrel, default = _, tycons, log_types, univ_witness, abbrs, arities, ...}) default =
+  make_tsig (classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities);
 
 
 
 (** add types **)
 
-fun ext_tsig_types (TySg {classes, classrel, default, tycons, abbrs, arities}) ts =
+fun ext_tsig_types (TySg {classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities}) ts =
   let
     fun check_type (c, n) =
       if n < 0 then err_neg_args c
       else if is_some (Symtab.lookup (tycons, c)) then err_dup_tycon c
       else if is_some (Symtab.lookup (abbrs, c)) then error (ty_confl c)
       else ();
-  in
-    seq check_type ts;
-    make_tsig (classes, classrel, default, Symtab.extend (tycons, ts), abbrs,
-      Symtab.extend (arities, map (rpair [] o #1) ts))
-  end;
+    val _ = seq check_type ts;
+    val tycons' = Symtab.extend (tycons, ts);
+    val arities' = Symtab.extend (arities, map (rpair [] o #1) ts);
+  in make_tsig (classes, classrel, default, tycons', log_types, univ_witness, abbrs, arities') end;
 
 
 
@@ -586,8 +605,10 @@ fun prep_abbr tsig (a, vs, raw_rhs) =
     | msgs => err msgs)
   end;
 
-fun add_abbr (tsig as TySg{classes,classrel,default,tycons,arities,abbrs}, abbr) =
-  make_tsig (classes,classrel,default,tycons, Symtab.update (prep_abbr tsig abbr, abbrs), arities);
+fun add_abbr
+    (tsig as TySg {classes, classrel, default, tycons, log_types, univ_witness, arities, abbrs}, abbr) =
+  make_tsig (classes, classrel, default, tycons, log_types, univ_witness,
+    Symtab.update (prep_abbr tsig abbr, abbrs), arities);
 
 fun ext_tsig_abbrs tsig raw_abbrs = foldl add_abbr (tsig, raw_abbrs);
 
@@ -648,15 +669,15 @@ fun norm_domain classrel =
 
 fun ext_tsig_arities tsig sarities =
   let
-    val TySg {classes, classrel, default, tycons, arities, abbrs} = tsig;
+    val TySg {classes, classrel, default, tycons, log_types, univ_witness, arities, abbrs} = tsig;
     val arities1 =
-      List.concat
-          (map (fn (t, ss, cs) => map (fn c => (t, (ss, c))) cs) sarities);
-    val arities2 = foldl (coregular (classes, classrel, tycons))
-                         (arities, norm_domain classrel arities1)
+      flat (map (fn (t, ss, cs) => map (fn c => (t, (ss, c))) cs) sarities);
+    val arities2 =
+      foldl (coregular (classes, classrel, tycons)) (arities, norm_domain classrel arities1)
       |> Symtab.dest |> close classrel |> Symtab.make;
   in
-    make_tsig (classes, classrel, default, tycons, abbrs, arities2)
+    make_tsig (classes, classrel, default, tycons, log_types, univ_witness, abbrs, arities2)
+    |> rebuild_tsig
   end;
 
 
@@ -733,7 +754,7 @@ fun unify (tsig as TySg {classrel, arities, ...}) maxidx tyenv TU =
     fun gen_tyvar S = TVar (("'a", inc tyvar_count), S);
 
     fun mg_domain a S =
-      Sorts.mg_domain classrel arities a S handle TYPE _ => raise TUNIFY;
+      Sorts.mg_domain (classrel, arities) a S handle Sorts.DOMAIN _ => raise TUNIFY;
 
     fun meet ((_, []), tye) = tye
       | meet ((TVar (xi, S'), S), tye) =
@@ -885,9 +906,7 @@ fun infer_types prt prT tsig const_type def_type def_sort
     val (ts, Ts, unifier) =
       TypeInfer.infer_types prt prT const_type classrel arities used freeze
         is_param raw_ts' pat_Ts';
-  in
-    (ts, unifier)
-  end;
+  in (ts, unifier) end;
 
 
 end;
