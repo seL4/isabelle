@@ -12,7 +12,7 @@ implicitely considered to be declared outermost.
 
 signature NAME_SPACE =
 sig
-  val separator: string                 (*single char!*)
+  val separator: string                 (*single char*)
   val hidden: string -> string
   val append: string -> string -> string
   val unpack: string -> string list
@@ -25,7 +25,7 @@ sig
   val empty: T
   val extend: T * string list -> T
   val merge: T * T -> T
-  val hide: T * string list -> T
+  val hide: bool -> T * string list -> T
   val intern: T -> string -> string
   val extern: T -> string -> string
   val long_names: bool ref
@@ -112,15 +112,16 @@ fun merge (NameSpace tab1, NameSpace tab2) =
 
 (* hide *)
 
-fun hide_aux (name, tab) =
+fun hide_aux fully (name, tab) =
   if not (is_qualified name) then
     error ("Attempt to hide global name " ^ quote name)
   else if is_hidden name then
     error ("Attempt to hide hidden name " ^ quote name)
   else (change' add name (name,
-    foldl (fn (tb, xname) => change del xname (name, tb)) (tab, accesses name)));
+    foldl (fn (tb, xname) => change del xname (name, tb))
+      (tab, if fully then accesses name else [base name])));
 
-fun hide (NameSpace tab, names) = NameSpace (foldr hide_aux (names, tab));
+fun hide fully (NameSpace tab, names) = NameSpace (foldr (hide_aux fully) (names, tab));
 
 
 (* intern / extern names *)

@@ -79,11 +79,11 @@ sig
   val parent_path: theory -> theory
   val root_path: theory -> theory
   val absolute_path: theory -> theory
-  val hide_space: string * xstring list -> theory -> theory
-  val hide_space_i: string * string list -> theory -> theory
-  val hide_classes: string list -> theory -> theory
-  val hide_types: string list -> theory -> theory
-  val hide_consts: string list -> theory -> theory
+  val hide_space: bool -> string * xstring list -> theory -> theory
+  val hide_space_i: bool -> string * string list -> theory -> theory
+  val hide_classes: bool -> string list -> theory -> theory
+  val hide_types: bool -> string list -> theory -> theory
+  val hide_consts: bool -> string list -> theory -> theory
   val add_name: string -> theory -> theory
   val copy: theory -> theory
   val prep_ext: theory -> theory
@@ -220,11 +220,11 @@ val parent_path      = add_path "..";
 val root_path        = add_path "/";
 val absolute_path    = add_path "//";
 val add_space        = ext_sign Sign.add_space;
-val hide_space       = ext_sign Sign.hide_space;
-val hide_space_i     = ext_sign Sign.hide_space_i;
-val hide_classes     = curry hide_space_i Sign.classK;
-val hide_types       = curry hide_space_i Sign.typeK;
-val hide_consts      = curry hide_space_i Sign.constK;
+val hide_space       = ext_sign o Sign.hide_space;
+val hide_space_i     = ext_sign o Sign.hide_space_i;
+fun hide_classes b   = curry (hide_space_i b) Sign.classK;
+fun hide_types b     = curry (hide_space_i b) Sign.typeK;
+fun hide_consts b    = curry (hide_space_i b) Sign.constK;
 val add_name         = ext_sign Sign.add_name;
 val copy             = ext_sign (K Sign.copy) ();
 val prep_ext         = ext_sign (K Sign.prep_ext) ();
