@@ -24,19 +24,22 @@ use "calculation.ML";
 use "skip_proof.ML";
 
 (*outer syntax*)
-use "comment.ML";
 (*use "outer_lex.ML";*)	  (*see ../Thy/ROOT.ML*)
+use "antiquote.ML";
+use "comment.ML";
 use "outer_parse.ML";
 
 (*toplevel environment*)
 use "toplevel.ML";
 use "session.ML";
+use "isar_output.ML";
 
 (*theory and proof operations*)
 use "isar_thy.ML";
 use "isar_cmd.ML";
 
 (*theory syntax*)
+use "thy_header.ML";
 use "outer_syntax.ML";
 use "isar_syn.ML";
 
@@ -56,13 +59,16 @@ struct
   structure LocalDefs = LocalDefs;
   structure Calculation = Calculation;
   structure SkipProof = SkipProof;
-  structure Comment = Comment;
   structure OuterLex = OuterLex;
+  structure Antiquote = Antiquote;
+  structure Comment = Comment;
   structure OuterParse = OuterParse;
   structure Toplevel = Toplevel;
   structure Session = Session;
   structure IsarThy = IsarThy;
+  structure IsarOutput = IsarOutput;
   structure IsarCmd = IsarCmd;
+  structure ThyHeader = ThyHeader;
   structure OuterSyntax = OuterSyntax;
   structure IsarSyn = IsarSyn;
   structure Isar = Isar;
