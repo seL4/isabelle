@@ -15,16 +15,16 @@ qed "recfunAC16_0";
 
 Goalw [recfunAC16_def]
      "recfunAC16(f,fa,succ(i),a) =  \
-\     (if (EX y:recfunAC16(f,fa,i,a). fa ` i <= y) then recfunAC16(f,fa,i,a) \
+\     (if (\\<exists>y \\<in> recfunAC16(f,fa,i,a). fa ` i \\<subseteq> y) then recfunAC16(f,fa,i,a) \
 \      else recfunAC16(f,fa,i,a) Un \
-\           {f ` (LEAST j. fa ` i <= f ` j &  \
-\            (ALL b<a. (fa`b <= f`j  \
-\             --> (ALL t:recfunAC16(f,fa,i,a). ~ fa`b <= t))))})";
+\           {f ` (LEAST j. fa ` i \\<subseteq> f ` j &  \
+\            (\\<forall>b<a. (fa`b \\<subseteq> f`j  \
+\             --> (\\<forall>t \\<in> recfunAC16(f,fa,i,a). ~ fa`b \\<subseteq> t))))})";
 by (rtac transrec2_succ 1);
 qed "recfunAC16_succ";
 
 Goalw [recfunAC16_def] "Limit(i)  \
-\       ==> recfunAC16(f,fa,i,a) = (UN j<i. recfunAC16(f,fa,j,a))";
+\       ==> recfunAC16(f,fa,i,a) = (\\<Union>j<i. recfunAC16(f,fa,j,a))";
 by (etac transrec2_Limit 1);
 qed "recfunAC16_Limit";
 
@@ -33,8 +33,8 @@ qed "recfunAC16_Limit";
 (* ********************************************************************** *)
 
 val [prem1, prem2] = goal thy 
-    "[| !!g r. r <= B(g,r);  Ord(i) |]  \
-\       ==> j<i --> transrec2(j, 0, B) <= transrec2(i, 0, B)";
+    "[| !!g r. r \\<subseteq> B(g,r);  Ord(i) |]  \
+\       ==> j<i --> transrec2(j, 0, B) \\<subseteq> transrec2(i, 0, B)";
 by (resolve_tac [prem2 RS trans_induct] 1);
 by (rtac Ord_cases 1 THEN (REPEAT (assume_tac 1)));
 by (Fast_tac 1);
@@ -46,8 +46,8 @@ by (fast_tac (claset() addIs [OUN_I, ltI]
                 transrec2_Limit RS ssubst]) 1);
 qed "transrec2_mono_lemma";
 
-val [prem1, prem2] = goal thy "[| !!g r. r <= B(g,r); j le i |]  \
-\       ==> transrec2(j, 0, B) <= transrec2(i, 0, B)";
+val [prem1, prem2] = goal thy "[| !!g r. r \\<subseteq> B(g,r); j le i |]  \
+\       ==> transrec2(j, 0, B) \\<subseteq> transrec2(i, 0, B)";
 by (resolve_tac [prem2 RS leE] 1);
 by (resolve_tac [transrec2_mono_lemma RS impE] 1);
 by (TRYALL (fast_tac (claset() addSIs [prem1, prem2, lt_Ord2])));
@@ -58,7 +58,7 @@ qed "transrec2_mono";
 (* ********************************************************************** *)
 
 Goalw [recfunAC16_def]
-        "!!i. i le j ==> recfunAC16(f, g, i, a) <= recfunAC16(f, g, j, a)";
+        "!!i. i le j ==> recfunAC16(f, g, i, a) \\<subseteq> recfunAC16(f, g, j, a)";
 by (rtac transrec2_mono 1);
 by (REPEAT (fast_tac (claset() addIs [split_if RS iffD2]) 1));
 qed "recfunAC16_mono";

@@ -14,18 +14,18 @@ The proofs concerning the Axiom of Dependent Choice
 (*                                                                        *)
 (* Define XX and RR as follows:                                           *)
 (*                                                                        *)
-(*       XX = (UN n:nat. {f:n->X. ALL k:n. <f``k, f`k> : R})              *)
+(*       XX = (\\<Union>n \\<in> nat. {f \\<in> n->X. \\<forall>k \\<in> n. <f``k, f`k> \\<in> R})              *)
 (*       f RR g iff domain(g)=succ(domain(f)) &                           *)
 (*              restrict(g, domain(f)) = f                                *)
 (*                                                                        *)
 (* Then RR satisfies the hypotheses of DC.                                *)
 (* So applying DC:                                                        *)
 (*                                                                        *)
-(*       EX f:nat->XX. ALL n:nat. f`n RR f`succ(n)                        *)
+(*       \\<exists>f \\<in> nat->XX. \\<forall>n \\<in> nat. f`n RR f`succ(n)                        *)
 (*                                                                        *)
 (* Thence                                                                 *)
 (*                                                                        *)
-(*       ff = {<n, f`succ(n)`n>. n:nat}                                   *)
+(*       ff = {<n, f`succ(n)`n>. n \\<in> nat}                                   *)
 (*                                                                        *)
 (* is the desired function.                                               *)
 (*                                                                        *)
@@ -37,11 +37,11 @@ val all_ex = thm "all_ex";
 val XX_def = thm "XX_def";
 val RR_def = thm "RR_def";
 
-Goalw [RR_def] "RR <= XX*XX";
+Goalw [RR_def] "RR \\<subseteq> XX*XX";
 by (Fast_tac 1);
 qed "lemma1_1";
 
-Goalw [RR_def, XX_def] "RR ~= 0";
+Goalw [RR_def, XX_def] "RR \\<noteq> 0";
 by (rtac (all_ex RS ballE) 1);
 by (eresolve_tac [empty_subsetI RS PowI RSN (2, notE)] 2);
 by (eresolve_tac [nat_0I RS n_lesspoll_nat RSN (2, impE)] 1);
@@ -57,7 +57,7 @@ by (force_tac (claset() addSIs [singleton_fun RS Pi_type],
 	       simpset() addsimps [singleton_0 RS sym]) 1);
 qed "lemma1_2";
 
-Goalw [RR_def, XX_def] "range(RR) <= domain(RR)";
+Goalw [RR_def, XX_def] "range(RR) \\<subseteq> domain(RR)";
 by (rtac range_subset_domain 1);
 by (Blast_tac 2);
 by (Clarify_tac 1);
@@ -76,9 +76,9 @@ by (asm_full_simp_tac (simpset()
 qed "lemma1_3";
 
 
-Goal "[| ALL n:nat. <f`n, f`succ(n)> : RR;  f: nat -> XX;  n:nat |]  \
-\     ==> EX k:nat. f`succ(n) : k -> X & n:k  \
-\                 & <f`succ(n)``n, f`succ(n)`n> : R";
+Goal "[| \\<forall>n \\<in> nat. <f`n, f`succ(n)> \\<in> RR;  f \\<in> nat -> XX;  n \\<in> nat |]  \
+\     ==> \\<exists>k \\<in> nat. f`succ(n) \\<in> k -> X & n \\<in> k  \
+\                 & <f`succ(n)``n, f`succ(n)`n> \\<in> R";
 by (induct_tac "n" 1);
 by (dresolve_tac [nat_1I RSN (2, apply_type)] 1);
 by (dresolve_tac [nat_0I RSN (2, bspec)] 1);
@@ -91,7 +91,7 @@ by (best_tac (claset() addIs [ltD]
 	       addss (simpset() addsimps [RR_def])) 1);
 (** LEVEL 7, other subgoal **)
 by (dresolve_tac [nat_succI RSN (2, bspec)] 1 THEN (assume_tac 1));
-by (subgoal_tac "f ` succ(succ(x)) : succ(k)->X" 1);
+by (subgoal_tac "f ` succ(succ(x)) \\<in> succ(k)->X" 1);
 by (dresolve_tac [nat_succI RS nat_succI RSN (2, apply_type)] 1
         THEN (assume_tac 1));
 by (full_simp_tac (simpset() addsimps [XX_def,RR_def]) 1);
@@ -107,9 +107,9 @@ by (full_simp_tac (simpset() addsimps [XX_def,RR_def]) 1);
 by (deepen_tac (claset() addDs [domain_of_fun RS sym RS trans]) 0 1);
 qed "lemma2";
 
-Goal "[| ALL n:nat. <f`n, f`succ(n)> : RR;  f: nat -> XX;  m:nat |]  \
-\     ==>  {f`succ(x)`x. x:m} = {f`succ(m)`x. x:m}";
-by (subgoal_tac "ALL x:m. f`succ(m)`x = f`succ(x)`x" 1);
+Goal "[| \\<forall>n \\<in> nat. <f`n, f`succ(n)> \\<in> RR;  f \\<in> nat -> XX;  m \\<in> nat |]  \
+\     ==>  {f`succ(x)`x. x \\<in> m} = {f`succ(m)`x. x \\<in> m}";
+by (subgoal_tac "\\<forall>x \\<in> m. f`succ(m)`x = f`succ(x)`x" 1);
 by (Asm_full_simp_tac 1);
 by (induct_tac "m" 1);
 by (Fast_tac 1);
@@ -130,8 +130,8 @@ by (blast_tac (claset() addSDs [domain_of_fun]
                         addIs [nat_into_Ord RSN (2, OrdmemD) RS subsetD]) 1);
 qed "lemma3_1";
 
-Goal "[| ALL n:nat. <f`n, f`succ(n)> : RR;  f: nat -> XX;  m:nat |] \
-\     ==> (lam x:nat. f`succ(x)`x) `` m = f`succ(m)``m";
+Goal "[| \\<forall>n \\<in> nat. <f`n, f`succ(n)> \\<in> RR;  f \\<in> nat -> XX;  m \\<in> nat |] \
+\     ==> (\\<lambda>x \\<in> nat. f`succ(x)`x) `` m = f`succ(m)``m";
 by (etac natE 1);
 by (Asm_simp_tac 1);
 by (stac image_lam 1);
@@ -152,7 +152,7 @@ by (etac impE 1);
    (*these three results comprise Lemma 1*)
 by (blast_tac (claset() addSIs (map export [lemma1_1, lemma1_2, lemma1_3])) 1);
 by (etac bexE 1);
-by (res_inst_tac [("x","lam n:nat. f`succ(n)`n")] bexI 1);
+by (res_inst_tac [("x","\\<lambda>n \\<in> nat. f`succ(n)`n")] bexI 1);
 by (fast_tac (claset() addSIs [lam_type] addSDs [export lemma2]
                        addSEs [fun_weaken_type, apply_type]) 2);
 by (rtac oallI 1);
@@ -177,23 +177,23 @@ qed "DC0_imp_DC_nat";
                                                                           
    Define XX and RR as follows:                                           
                                                                           
-    XX = (UN n:nat. {f:succ(n)->domain(R). ALL k:n. <f`k, f`succ(k)> : R})
+    XX = (\\<Union>n \\<in> nat. {f \\<in> succ(n)->domain(R). \\<forall>k \\<in> n. <f`k, f`succ(k)> \\<in> R})
 
     RR = {<z1,z2>:Fin(XX)*XX. 
-           (domain(z2)=succ(UN f:z1. domain(f)) &
-	    (ALL f:z1. restrict(z2, domain(f)) = f)) |      
-	   (~ (EX g:XX. domain(g)=succ(UN f:z1. domain(f)) &
-	                (ALL f:z1. restrict(g, domain(f)) = f)) &           
+           (domain(z2)=succ(\\<Union>f \\<in> z1. domain(f)) &
+	    (\\<forall>f \\<in> z1. restrict(z2, domain(f)) = f)) |      
+	   (~ (\\<exists>g \\<in> XX. domain(g)=succ(\\<Union>f \\<in> z1. domain(f)) &
+	                (\\<forall>f \\<in> z1. restrict(g, domain(f)) = f)) &           
 	    z2={<0,x>})}                                          
                                                                           
    Then XX and RR satisfy the hypotheses of DC(omega).                    
    So applying DC:                                                        
                                                                           
-         EX f:nat->XX. ALL n:nat. f``n RR f`n                             
+         \\<exists>f \\<in> nat->XX. \\<forall>n \\<in> nat. f``n RR f`n                             
                                                                           
    Thence                                                                 
                                                                           
-         ff = {<n, f`n`n>. n:nat}                                         
+         ff = {<n, f`n`n>. n \\<in> nat}                                         
                                                                           
    is the desired function.                                               
                                                                           
@@ -204,7 +204,7 @@ Goalw [lesspoll_def, Finite_def]
 by (fast_tac (claset() addSDs [ltD, lepoll_imp_ex_le_eqpoll]) 1);
 qed "lesspoll_nat_is_Finite";
 
-Goal "n:nat ==> ALL A. (A eqpoll n & A <= X) --> A : Fin(X)";
+Goal "n \\<in> nat ==> \\<forall>A. (A eqpoll n & A \\<subseteq> X) --> A \\<in> Fin(X)";
 by (induct_tac "n" 1);
 by (rtac allI 1);
 by (fast_tac (claset() addSIs [Fin.emptyI]
@@ -223,7 +223,7 @@ by (dresolve_tac [Fin.consI] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac (simpset() addsimps [cons_Diff]) 1);
 qed "Finite_Fin_lemma";
 
-Goalw [Finite_def] "[| Finite(A); A <= X |] ==> A : Fin(X)";
+Goalw [Finite_def] "[| Finite(A); A \\<subseteq> X |] ==> A \\<in> Fin(X)";
 by (etac bexE 1);
 by (dtac Finite_Fin_lemma 1);
 by (etac allE 1);
@@ -233,7 +233,7 @@ by (Fast_tac 1);
 qed "Finite_Fin";
 
 Goal
- "x:X ==> {<0,x>}: (UN n:nat. {f:succ(n)->X. ALL k:n. <f`k, f`succ(k)> : R})";
+ "x \\<in> X ==> {<0,x>}: (\\<Union>n \\<in> nat. {f \\<in> succ(n)->X. \\<forall>k \\<in> n. <f`k, f`succ(k)> \\<in> R})";
 by (rtac (nat_0I RS UN_I) 1);
 by (fast_tac (claset() addSIs [singleton_fun RS Pi_type]
         addss (simpset() addsimps [singleton_0 RS sym])) 1);
@@ -246,17 +246,17 @@ val XX_def = thm "XX_def";
 val RR_def = thm "RR_def";
 val allRR_def = thm "allRR_def";
 
-Goal "[| range(R) <= domain(R);  x:domain(R) |]  \
-\     ==> RR <= Pow(XX)*XX &  \
-\            (ALL Y:Pow(XX). Y lesspoll nat --> (EX x:XX. <Y,x>:RR))";
+Goal "[| range(R) \\<subseteq> domain(R);  x \\<in> domain(R) |]  \
+\     ==> RR \\<subseteq> Pow(XX)*XX &  \
+\            (\\<forall>Y \\<in> Pow(XX). Y lesspoll nat --> (\\<exists>x \\<in> XX. <Y,x>:RR))";
 by (rtac conjI 1);
 by (force_tac (claset() addSDs [FinD RS PowI], 
 	       simpset() addsimps [RR_def]) 1); 
 by (rtac (impI RS ballI) 1);
 by (dresolve_tac [[lesspoll_nat_is_Finite, PowD] MRS Finite_Fin] 1
         THEN (assume_tac 1));
-by (excluded_middle_tac "EX g:XX. domain(g)=succ(UN f:Y. domain(f))  \
-\       & (ALL f:Y. restrict(g, domain(f)) = f)" 1);
+by (excluded_middle_tac "\\<exists>g \\<in> XX. domain(g)=succ(\\<Union>f \\<in> Y. domain(f))  \
+\       & (\\<forall>f \\<in> Y. restrict(g, domain(f)) = f)" 1);
 by (fast_tac (claset() addss (simpset() addsimps [RR_def])) 2); 
 by (safe_tac (claset() delrules [domainE]));
 by (rewrite_goals_tac [XX_def,RR_def]);
@@ -265,39 +265,39 @@ by (asm_full_simp_tac (simpset() addsimps [nat_0I  RSN (2, bexI),
 					   cons_fun_type2]) 1);
 qed "lemma4";
 
-Goal "[| f:nat->X; n:nat |] ==>  \
-\       (UN x:f``succ(n). P(x)) =  P(f`n) Un (UN x:f``n. P(x))";
+Goal "[| f \\<in> nat->X; n \\<in> nat |] ==>  \
+\       (\\<Union>x \\<in> f``succ(n). P(x)) =  P(f`n) Un (\\<Union>x \\<in> f``n. P(x))";
 by (asm_full_simp_tac (simpset()
         addsimps [Ord_nat RSN (2, OrdmemD) RSN (2, image_fun),
         [nat_succI, Ord_nat] MRS OrdmemD RSN (2, image_fun)]) 1);
 qed "UN_image_succ_eq";
 
-Goal "[| (UN x:f``n. P(x)) = y; P(f`n) = succ(y);  \
-\        f:nat -> X; n:nat |] ==> (UN x:f``succ(n). P(x)) = succ(y)";
+Goal "[| (\\<Union>x \\<in> f``n. P(x)) = y; P(f`n) = succ(y);  \
+\        f \\<in> nat -> X; n \\<in> nat |] ==> (\\<Union>x \\<in> f``succ(n). P(x)) = succ(y)";
 by (asm_full_simp_tac (simpset() addsimps [UN_image_succ_eq]) 1);
 by (Fast_tac 1);
 qed "UN_image_succ_eq_succ";
 
-Goal "[| f:succ(n) -> D;  n:nat;  \
-\        domain(f)=succ(x); x=y |] ==> f`y : D";
+Goal "[| f \\<in> succ(n) -> D;  n \\<in> nat;  \
+\        domain(f)=succ(x); x=y |] ==> f`y \\<in> D";
 by (fast_tac (claset() addEs [apply_type]
 	      addSDs [[sym, domain_of_fun] MRS trans]) 1);
 qed "apply_domain_type";
 
-Goal "[| f : nat -> X; n:nat |] ==> f``succ(n) = cons(f`n, f``n)";
+Goal "[| f \\<in> nat -> X; n \\<in> nat |] ==> f``succ(n) = cons(f`n, f``n)";
 by (asm_full_simp_tac (simpset()
         addsimps [nat_succI, Ord_nat RSN (2, OrdmemD), image_fun]) 1);
 qed "image_fun_succ";
 
-Goalw [XX_def] "[| domain(f`n) = succ(u); f : nat -> XX;  u=k;  n:nat |]   \
-\               ==> f`n : succ(k) -> domain(R)";
+Goalw [XX_def] "[| domain(f`n) = succ(u); f \\<in> nat -> XX;  u=k;  n \\<in> nat |]   \
+\               ==> f`n \\<in> succ(k) -> domain(R)";
 by (dtac apply_type 1 THEN (assume_tac 1));
 by (fast_tac (claset() addEs [domain_eq_imp_fun_type]) 1);
 qed "f_n_type";
 
 Goalw [XX_def]
-     "[| f : nat -> XX;  domain(f`n) = succ(k);  n:nat |]  \
-\     ==> ALL i:k. <f`n`i, f`n`succ(i)> : R";
+     "[| f \\<in> nat -> XX;  domain(f`n) = succ(k);  n \\<in> nat |]  \
+\     ==> \\<forall>i \\<in> k. <f`n`i, f`n`succ(i)> \\<in> R";
 by (dtac apply_type 1 THEN (assume_tac 1));
 by (etac UN_E 1);
 by (etac CollectE 1);
@@ -306,7 +306,7 @@ by (Asm_full_simp_tac 1);
 qed "f_n_pairs_in_R";
 
 Goalw [restrict_def]
-     "[| restrict(f, domain(x))=x;  f:n->X;  domain(x) <= n |]  \
+     "[| restrict(f, domain(x))=x;  f \\<in> n->X;  domain(x) \\<subseteq> n |]  \
 \     ==> restrict(cons(<n, y>, f), domain(x)) = x";
 by (eresolve_tac [sym RS trans RS sym] 1);
 by (rtac fun_extension 1);
@@ -315,11 +315,11 @@ by (fast_tac (claset() addSIs [lam_type]) 1);
 by (asm_full_simp_tac (simpset() addsimps [subsetD RS cons_val_k]) 1);
 qed "restrict_cons_eq_restrict";
 
-Goal "[| ALL x:f``n. restrict(f`n, domain(x))=x;  \
-\        f : nat -> XX;  \
-\        n:nat;  domain(f`n) = succ(n);  \
-\        (UN x:f``n. domain(x)) <= n |] \
-\     ==> ALL x:f``succ(n). restrict(cons(<succ(n),y>, f`n), domain(x)) = x";
+Goal "[| \\<forall>x \\<in> f``n. restrict(f`n, domain(x))=x;  \
+\        f \\<in> nat -> XX;  \
+\        n \\<in> nat;  domain(f`n) = succ(n);  \
+\        (\\<Union>x \\<in> f``n. domain(x)) \\<subseteq> n |] \
+\     ==> \\<forall>x \\<in> f``succ(n). restrict(cons(<succ(n),y>, f`n), domain(x)) = x";
 by (rtac ballI 1);
 by (asm_full_simp_tac (simpset() addsimps [image_fun_succ]) 1);
 by (dtac f_n_type 1 THEN REPEAT (ares_tac [refl] 1));
@@ -330,8 +330,8 @@ by (fast_tac (claset() addSEs [restrict_cons_eq_restrict]) 1);
 qed "all_in_image_restrict_eq";
 
 Goalw [RR_def, allRR_def]
-     "[| ALL b<nat. <f``b, f`b> : RR;  \
-\        f: nat -> XX; range(R) <= domain(R); x:domain(R)|]   \
+     "[| \\<forall>b<nat. <f``b, f`b> \\<in> RR;  \
+\        f \\<in> nat -> XX; range(R) \\<subseteq> domain(R); x \\<in> domain(R)|]   \
 \     ==> allRR";
 by (rtac oallI 1);
 by (dtac ltD 1);
@@ -341,7 +341,7 @@ by (fast_tac (FOL_cs addss
               (simpset() addsimps [singleton_fun RS domain_of_fun,
                                   singleton_0, singleton_in_funs])) 1);
 (*induction step*) (** LEVEL 5 **)
-by (full_simp_tac (*prevent simplification of ~EX to ALL~*)
+by (full_simp_tac (*prevent simplification of ~\\<exists>to \\<forall>~*)
 		  (FOL_ss addsimps [separation, split]) 1);
 by (dresolve_tac [[nat_succI, Ord_nat] MRS ltI RSN (2, ospec)] 1
         THEN (assume_tac 1));
@@ -380,8 +380,8 @@ qed "simplify_recursion";
 
 
 Goalw [allRR_def]
-     "[| allRR; f: nat -> XX; range(R) <= domain(R); x:domain(R); n:nat |]   \
-\     ==> f`n : succ(n) -> domain(R) & (ALL i:n. <f`n`i, f`n`succ(i)>:R)";
+     "[| allRR; f \\<in> nat -> XX; range(R) \\<subseteq> domain(R); x \\<in> domain(R); n \\<in> nat |]   \
+\     ==> f`n \\<in> succ(n) -> domain(R) & (\\<forall>i \\<in> n. <f`n`i, f`n`succ(i)>:R)";
 by (dtac ospec 1);
 by (eresolve_tac [Ord_nat RSN (2, ltI)] 1);
 by (etac CollectE 1);
@@ -393,7 +393,7 @@ by (fast_tac (claset()
         addSEs [trans RS domain_eq_imp_fun_type, subst_context]) 1);
 qed "lemma2";
 
-Goal "[| allRR;  f : nat -> XX;  n:nat;  range(R) <= domain(R);  x:domain(R)  \
+Goal "[| allRR;  f \\<in> nat -> XX;  n \\<in> nat;  range(R) \\<subseteq> domain(R);  x \\<in> domain(R)  \
 \       |] ==> f`n`n = f`succ(n)`n";
 by (forward_tac [lemma2 RS conjunct1 RS domain_of_fun] 1
         THEN REPEAT (assume_tac 1));
@@ -420,7 +420,7 @@ by (eresolve_tac [export lemma4 RSN (2, impE)] 1
 by (etac bexE 1);
 by (dresolve_tac [export simplify_recursion] 1
         THEN REPEAT (assume_tac 1));
-by (res_inst_tac [("x","lam n:nat. f`n`n")] bexI 1);
+by (res_inst_tac [("x","\\<lambda>n \\<in> nat. f`n`n")] bexI 1);
 by (rtac lam_type 2);
 by (eresolve_tac [[export lemma2 RS conjunct1, succI1] MRS apply_type] 2
         THEN REPEAT (assume_tac 2));
@@ -432,18 +432,18 @@ by (asm_full_simp_tac (simpset() addsimps [nat_succI]) 1);
 qed "DC_nat_imp_DC0";
 
 (* ********************************************************************** *)
-(* ALL K. Card(K) --> DC(K) ==> WO3                                       *)
+(* \\<forall>K. Card(K) --> DC(K) ==> WO3                                       *)
 (* ********************************************************************** *)
 
 Goalw [lesspoll_def]
-        "[| ~ A lesspoll B; C lesspoll B |] ==> A - C ~= 0";
+        "[| ~ A lesspoll B; C lesspoll B |] ==> A - C \\<noteq> 0";
 by (fast_tac (claset() addSDs [Diff_eq_0_iff RS iffD1 RS subset_imp_lepoll]
         addSIs [eqpollI] addEs [notE] addSEs [eqpollE, lepoll_trans]) 1);
 qed "lesspoll_lemma";
 
 val [f_type, Ord_a, not_eq] = goalw thy [inj_def]
-        "[| f:a->X; Ord(a); (!!b c. [| b<c; c:a |] ==> f`b~=f`c) |]   \
-\        ==> f:inj(a, X)";
+        "[| f \\<in> a->X; Ord(a); (!!b c. [| b<c; c \\<in> a |] ==> f`b\\<noteq>f`c) |]   \
+\        ==> f \\<in> inj(a, X)";
 by (resolve_tac [f_type RS CollectI] 1);
 by (REPEAT (resolve_tac [ballI,impI] 1));
 by (resolve_tac [Ord_a RS Ord_in_Ord RS Ord_linear_lt] 1
@@ -452,11 +452,11 @@ by (eres_inst_tac [("j","x")] (Ord_a RS Ord_in_Ord) 1);
 by (REPEAT (fast_tac (claset() addDs [not_eq, not_eq RS not_sym]) 1));
 qed "fun_Ord_inj";
 
-Goal "[| f:X->Y; A<=X; a:A |] ==> f`a : f``A";
+Goal "[| f \\<in> X->Y; A \\<subseteq> X; a \\<in> A |] ==> f`a \\<in> f``A";
 by (fast_tac (claset() addSEs [image_fun RS ssubst]) 1);
 qed "value_in_image";
 
-Goalw [DC_def, WO3_def] "ALL K. Card(K) --> DC(K) ==> WO3";
+Goalw [DC_def, WO3_def] "\\<forall>K. Card(K) --> DC(K) ==> WO3";
 by (rtac allI 1);
 by (excluded_middle_tac "A lesspoll Hartog(A)" 1);
 by (fast_tac (claset() addSDs [lesspoll_imp_ex_lt_eqpoll]
@@ -465,7 +465,7 @@ by (REPEAT (eresolve_tac [allE, impE] 1));
 by (rtac Card_Hartog 1);
 by (eres_inst_tac [("x","A")] allE 1);
 by (eres_inst_tac [("x","{<z1,z2>:Pow(A)*A . z1  \
-\               lesspoll Hartog(A) & z2 ~: z1}")] allE 1);
+\               lesspoll Hartog(A) & z2 \\<notin> z1}")] allE 1);
 by (Asm_full_simp_tac 1);
 by (etac impE 1);
 by (fast_tac (claset() addEs [lesspoll_lemma RS not_emptyE]) 1);
@@ -481,10 +481,10 @@ by (force_tac (claset() addSDs [Ord_Hartog RSN (2, ltI) RSN (2, ospec)],
 qed "DC_WO3";
 
 (* ********************************************************************** *)
-(* WO1 ==> ALL K. Card(K) --> DC(K)                                       *)
+(* WO1 ==> \\<forall>K. Card(K) --> DC(K)                                       *)
 (* ********************************************************************** *)
 
-Goal "[| Ord(a); b:a |] ==> (lam x:a. P(x))``b = (lam x:b. P(x))``b";
+Goal "[| Ord(a); b \\<in> a |] ==> (\\<lambda>x \\<in> a. P(x))``b = (\\<lambda>x \\<in> b. P(x))``b";
 by (rtac images_eq 1);
 by (REPEAT (fast_tac (claset() addSEs [RepFunI, OrdmemD]
         addSIs [lam_type]) 2));
@@ -494,25 +494,25 @@ by (dresolve_tac [OrdmemD RS subsetD] 1
 by (Asm_full_simp_tac 1);
 qed "lam_images_eq";
 
-Goalw [lesspoll_def] "[| Card(K); b:K |] ==> b lesspoll K";
+Goalw [lesspoll_def] "[| Card(K); b \\<in> K |] ==> b lesspoll K";
 by (asm_full_simp_tac (simpset() addsimps [Card_iff_initial]) 1);
 by (fast_tac (claset() addSIs [le_imp_lepoll, ltI, leI]) 1);
 qed "in_Card_imp_lesspoll";
 
-Goal "(lam b:a. P(b)) : a -> {P(b). b:a}";
+Goal "(\\<lambda>b \\<in> a. P(b)) \\<in> a -> {P(b). b \\<in> a}";
 by (fast_tac (claset() addSIs [lam_type, RepFunI]) 1);
 qed "lam_type_RepFun";
 
-Goal "[| ALL Y:Pow(X). Y lesspoll K --> (EX x:X. <Y, x> : R);  \
-\        b:K; Z:Pow(X); Z lesspoll K |]  \
-\     ==> {x:X. <Z,x> : R} ~= 0";
+Goal "[| \\<forall>Y \\<in> Pow(X). Y lesspoll K --> (\\<exists>x \\<in> X. <Y, x> \\<in> R);  \
+\        b \\<in> K; Z \\<in> Pow(X); Z lesspoll K |]  \
+\     ==> {x \\<in> X. <Z,x> \\<in> R} \\<noteq> 0";
 by (Blast_tac 1);
 qed "lemmaX";
 
 Goal "[| Card(K); well_ord(X,Q);  \
-\       ALL Y:Pow(X). Y lesspoll K --> (EX x:X. <Y, x> : R); b:K |]  \
-\       ==> ff(b, X, Q, R) : {x:X. <(lam c:b. ff(c, X, Q, R))``b, x> : R}";
-by (res_inst_tac [("P","b:K")] impE 1 THEN TRYALL assume_tac);
+\       \\<forall>Y \\<in> Pow(X). Y lesspoll K --> (\\<exists>x \\<in> X. <Y, x> \\<in> R); b \\<in> K |]  \
+\       ==> ff(b, X, Q, R) \\<in> {x \\<in> X. <(\\<lambda>c \\<in> b. ff(c, X, Q, R))``b, x> \\<in> R}";
+by (res_inst_tac [("P","b \\<in> K")] impE 1 THEN TRYALL assume_tac);
 by (res_inst_tac [("i","b")] (Card_is_Ord RS Ord_in_Ord RS trans_induct) 1
         THEN REPEAT (assume_tac 1));
 by (rtac impI 1);
@@ -527,10 +527,10 @@ by (fast_tac (claset() addSEs [[in_Card_imp_lesspoll, RepFun_lepoll]
 			       MRS lepoll_lesspoll_lesspoll]) 1);
 qed "lemma";
 
-Goalw [DC_def, WO1_def] "WO1 ==> ALL K. Card(K) --> DC(K)";
+Goalw [DC_def, WO1_def] "WO1 ==> \\<forall>K. Card(K) --> DC(K)";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE,exE,conjE] 1));
-by (res_inst_tac [("x","lam b:K. ff(b, X, Ra, R)")] bexI 1);
+by (res_inst_tac [("x","\\<lambda>b \\<in> K. ff(b, X, Ra, R)")] bexI 1);
 by (rtac lam_type 2);
 by (resolve_tac [lemma RS CollectD1] 2 THEN REPEAT (assume_tac 2));
 by (asm_full_simp_tac (simpset()

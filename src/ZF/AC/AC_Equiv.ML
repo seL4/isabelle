@@ -20,14 +20,14 @@ val AC_aux_defs = [pairwise_disjoint_def, sets_of_size_between_def];
 
 (* used only in WO1_DC.ML *)
 (*Note simpler proof*)
-Goal "[| ALL x:A. f`x=g`x; f:Df->Cf; g:Dg->Cg; A<=Df; A<=Dg |] ==> f``A=g``A";
+Goal "[| \\<forall>x \\<in> A. f`x=g`x; f \\<in> Df->Cf; g \\<in> Dg->Cg; A \\<subseteq> Df; A \\<subseteq> Dg |] ==> f``A=g``A";
 by (asm_simp_tac (simpset() addsimps [image_fun]) 1);
 qed "images_eq";
 
-(* used in : AC10-AC15.ML AC16WO4.ML WO6WO1.ML *)
+(* used in \\<in> AC10-AC15.ML AC16WO4.ML WO6WO1.ML *)
 (*I don't know where to put this one.*)
 goal Cardinal.thy
-     "!!m A B. [| A lepoll succ(m); B<=A; B~=0 |] ==> A-B lepoll m";
+     "!!m A B. [| A lepoll succ(m); B \\<subseteq> A; B\\<noteq>0 |] ==> A-B lepoll m";
 by (rtac not_emptyE 1 THEN (assume_tac 1));
 by (ftac singleton_subsetI 1);
 by (ftac subsetD 1 THEN (assume_tac 1));
@@ -74,14 +74,14 @@ Goal "(THE z. {x}={z}) = x";
 by (fast_tac (claset() addSEs [singleton_eq_iff RS iffD1 RS sym]) 1);
 qed "the_element";
 
-Goal "(lam x:A. {x}) : bij(A, {{x}. x:A})";
+Goal "(\\<lambda>x \\<in> A. {x}) \\<in> bij(A, {{x}. x \\<in> A})";
 by (res_inst_tac [("d","%z. THE x. z={x}")] lam_bijective 1);
 by (TRYALL (eresolve_tac [RepFunI, RepFunE]));
 by (REPEAT (asm_full_simp_tac (simpset() addsimps [the_element]) 1));
 qed "lam_sing_bij";
 
 val [major, minor] = Goalw [inj_def]
-        "[| f:inj(A, B);  !!a. a:A ==> f`a : C |] ==> f:inj(A,C)";
+        "[| f \\<in> inj(A, B);  !!a. a \\<in> A ==> f`a \\<in> C |] ==> f \\<in> inj(A,C)";
 by (fast_tac (claset() addSEs [minor]
         addSIs [major RS CollectD1 RS Pi_type, major RS CollectD2]) 1);
 qed "inj_strengthen_type";
@@ -94,10 +94,10 @@ qed "nat_not_Finite";
 val le_imp_lepoll = le_imp_subset RS subset_imp_lepoll;
 
 (* ********************************************************************** *)
-(* Another elimination rule for EX!                                       *)
+(* Another elimination rule for \\<exists>!                                       *)
 (* ********************************************************************** *)
 
-Goal "[| EX! x. P(x); P(x); P(y) |] ==> x=y";
+Goal "[| \\<exists>! x. P(x); P(x); P(y) |] ==> x=y";
 by (etac ex1E 1);
 by (res_inst_tac [("b","xa")] (sym RSN (2, trans)) 1);
 by (Fast_tac 1);
@@ -108,7 +108,7 @@ qed "ex1_two_eq";
 (* image of a surjection                                                  *)
 (* ********************************************************************** *)
 
-Goalw [surj_def] "f : surj(A, B) ==> f``A = B";
+Goalw [surj_def] "f \\<in> surj(A, B) ==> f``A = B";
 by (etac CollectE 1);
 by (resolve_tac [subset_refl RSN (2, image_fun) RS ssubst] 1 
     THEN (assume_tac 1));
@@ -116,11 +116,11 @@ by (fast_tac (claset() addSEs [apply_type] addIs [equalityI]) 1);
 qed "surj_image_eq";
 
 
-Goal "succ(x) lepoll y ==> y ~= 0";
+Goal "succ(x) lepoll y ==> y \\<noteq> 0";
 by (fast_tac (claset() addSDs [lepoll_0_is_0]) 1);
 qed "succ_lepoll_imp_not_empty";
 
-Goal "x eqpoll succ(n) ==> x ~= 0";
+Goal "x eqpoll succ(n) ==> x \\<noteq> 0";
 by (fast_tac (claset() addSEs [eqpoll_sym RS eqpoll_0_is_0 RS succ_neq_0]) 1);
 qed "eqpoll_succ_imp_not_empty";
 

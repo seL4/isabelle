@@ -6,11 +6,11 @@ AC0 is equivalent to AC1
 AC0 comes from Suppes, AC1 from Rubin & Rubin
 *)
 
-Goal "0~:A ==> A <= Pow(Union(A))-{0}";
+Goal "0\\<notin>A ==> A \\<subseteq> Pow(Union(A))-{0}";
 by (Fast_tac 1);
 qed "subset_Pow_Union";
 
-Goal "[| f:(PROD X:A. X); D<=A |] ==> EX g. g:(PROD X:D. X)";
+Goal "[| f:(\\<Pi>X \\<in> A. X); D \\<subseteq> A |] ==> \\<exists>g. g:(\\<Pi>X \\<in> D. X)";
 by (fast_tac (claset() addSIs [restrict_type, apply_type]) 1);
 val lemma1 = result();
 

@@ -5,15 +5,13 @@
   Some proofs on the Hartogs function.
 *)
 
-open Hartog;
-
-Goal "ALL a. Ord(a) --> a:X ==> P";
-by (res_inst_tac [("X1","{y:X. Ord(y)}")] (ON_class RS revcut_rl) 1);
+Goal "\\<forall>a. Ord(a) --> a \\<in> X ==> P";
+by (res_inst_tac [("X1","{y \\<in> X. Ord(y)}")] (ON_class RS revcut_rl) 1);
 by (Fast_tac 1);
 qed "Ords_in_set";
 
 Goalw [lepoll_def] "[| Ord(a); a lepoll X |] ==>  \
-\               EX Y. Y<=X & (EX R. well_ord(Y,R) & ordertype(Y,R)=a)";
+\               \\<exists>Y. Y \\<subseteq> X & (\\<exists>R. well_ord(Y,R) & ordertype(Y,R)=a)";
 by (etac exE 1);
 by (REPEAT (resolve_tac [exI, conjI] 1));
 by (eresolve_tac [inj_is_fun RS fun_is_rel RS image_subset] 1);
@@ -29,7 +27,7 @@ by (resolve_tac [subset_refl RSN (2, restrict_bij RS bij_converse_bij) RS
 qed "Ord_lepoll_imp_ex_well_ord";
 
 Goal "[| Ord(a); a lepoll X |] ==>  \
-\               EX Y. Y<=X & (EX R. R<=X*X & ordertype(Y,R)=a)";
+\               \\<exists>Y. Y \\<subseteq> X & (\\<exists>R. R \\<subseteq> X*X & ordertype(Y,R)=a)";
 by (dtac Ord_lepoll_imp_ex_well_ord 1 THEN (assume_tac 1));
 by Safe_tac;
 by (REPEAT (ares_tac [exI, conjI] 1));
@@ -37,9 +35,9 @@ by (etac ordertype_Int 2);
 by (Fast_tac 1);
 qed "Ord_lepoll_imp_eq_ordertype";
 
-Goal "ALL a. Ord(a) --> a lepoll X ==>  \
-\       ALL a. Ord(a) -->  \
-\       a:{a. Z:Pow(X)*Pow(X*X), EX Y R. Z=<Y,R> & ordertype(Y,R)=a}";
+Goal "\\<forall>a. Ord(a) --> a lepoll X ==>  \
+\       \\<forall>a. Ord(a) -->  \
+\       a:{a. Z \\<in> Pow(X)*Pow(X*X), \\<exists>Y R. Z=<Y,R> & ordertype(Y,R)=a}";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (assume_tac 1);
@@ -47,11 +45,11 @@ by (dtac Ord_lepoll_imp_eq_ordertype 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSIs [ReplaceI] addEs [sym]) 1);
 qed "Ords_lepoll_set_lemma";
 
-Goal "ALL a. Ord(a) --> a lepoll X ==> P";
+Goal "\\<forall>a. Ord(a) --> a lepoll X ==> P";
 by (eresolve_tac [Ords_lepoll_set_lemma RS Ords_in_set] 1);
 qed "Ords_lepoll_set";
 
-Goal "EX a. Ord(a) & ~a lepoll X";
+Goal "\\<exists>a. Ord(a) & ~a lepoll X";
 by (rtac swap 1);
 by (Fast_tac 1);
 by (rtac Ords_lepoll_set 1);

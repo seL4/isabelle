@@ -16,8 +16,8 @@ consts
 
 defs
 
-  HH_def  "HH(f,x,a) == transrec(a, %b r. let z = x - (UN c:b. r`c)
-                        in  if(f`z:Pow(z)-{0}, f`z, {x}))"
+  HH_def  "HH(f,x,a) == transrec(a, %b r. let z = x - (\\<Union>c \\<in> b. r`c)
+                        in  if(f`z \\<in> Pow(z)-{0}, f`z, {x}))"
 
 end
 

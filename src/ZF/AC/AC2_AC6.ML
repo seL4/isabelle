@@ -14,12 +14,12 @@ AC1 <-> AC6
 (* AC1 ==> AC2                                                            *)
 (* ********************************************************************** *)
 
-Goal "[| f:(PROD X:A. X);  B:A;  0~:A |] ==> {f`B} <= B Int {f`C. C:A}";
+Goal "[| f:(\\<Pi>X \\<in> A. X);  B \\<in> A;  0\\<notin>A |] ==> {f`B} \\<subseteq> B Int {f`C. C \\<in> A}";
 by (fast_tac (claset() addSEs [apply_type]) 1);
 val lemma1 = result();
 
 Goalw [pairwise_disjoint_def]
-        "[| pairwise_disjoint(A); B:A; C:A; D:B; D:C |] ==> f`B = f`C";
+        "[| pairwise_disjoint(A); B \\<in> A; C \\<in> A; D \\<in> B; D \\<in> C |] ==> f`B = f`C";
 by (Fast_tac 1);
 val lemma2 = result();
 
@@ -37,11 +37,11 @@ qed "AC1_AC2";
 (* AC2 ==> AC1                                                            *)
 (* ********************************************************************** *)
 
-Goal "0~:A ==> 0 ~: {B*{B}. B:A}";
+Goal "0\\<notin>A ==> 0 \\<notin> {B*{B}. B \\<in> A}";
 by (fast_tac (claset() addSDs [sym RS (Sigma_empty_iff RS iffD1)]) 1);
 val lemma1 = result();
 
-Goal "[| X*{X} Int C = {y}; X:A |]  \
+Goal "[| X*{X} Int C = {y}; X \\<in> A |]  \
 \               ==> (THE y. X*{X} Int C = {y}): X*A";
 by (rtac subst_elem 1);
 by (fast_tac (claset() addSIs [the_equality]
@@ -49,9 +49,8 @@ by (fast_tac (claset() addSIs [the_equality]
 by (blast_tac (claset() addSEs [equalityE]) 1);
 val lemma2 = result();
 
-Goal "ALL D:{E*{E}. E:A}. EX y. D Int C = {y}  \
-\       ==> (lam x:A. fst(THE z. (x*{x} Int C = {z}))) :  \
-\               (PROD X:A. X) ";
+Goal "\\<forall>D \\<in> {E*{E}. E \\<in> A}. \\<exists>y. D Int C = {y}  \
+\     ==> (\\<lambda>x \\<in> A. fst(THE z. (x*{x} Int C = {z}))) \\<in> (\\<Pi>X \\<in> A. X)";
 by (fast_tac (claset() addSEs [lemma2] 
                        addSIs [lam_type, RepFunI, fst_type]) 1);
 val lemma3 = result();
@@ -68,7 +67,7 @@ qed "AC2_AC1";
 (* AC1 ==> AC4                                                            *)
 (* ********************************************************************** *)
 
-Goal "0 ~: {R``{x}. x:domain(R)}";
+Goal "0 \\<notin> {R``{x}. x \\<in> domain(R)}";
 by (Blast_tac 1);
 val lemma = result();
 
@@ -83,15 +82,15 @@ qed "AC1_AC4";
 (* AC4 ==> AC3                                                            *)
 (* ********************************************************************** *)
 
-Goal "f:A->B ==> (UN z:A. {z}*f`z) <= A*Union(B)";
+Goal "f \\<in> A->B ==> (\\<Union>z \\<in> A. {z}*f`z) \\<subseteq> A*Union(B)";
 by (fast_tac (claset() addSDs [apply_type]) 1);
 val lemma1 = result();
 
-Goal "domain(UN z:A. {z}*f(z)) = {a:A. f(a)~=0}";
+Goal "domain(\\<Union>z \\<in> A. {z}*f(z)) = {a \\<in> A. f(a)\\<noteq>0}";
 by (Blast_tac 1);
 val lemma2 = result();
 
-Goal "x:A ==> (UN z:A. {z}*f(z))``{x} = f(x)";
+Goal "x \\<in> A ==> (\\<Union>z \\<in> A. {z}*f(z))``{x} = f(x)";
 by (Fast_tac 1);
 val lemma3 = result();
 
@@ -107,7 +106,7 @@ qed "AC4_AC3";
 (* AC3 ==> AC1                                                            *)
 (* ********************************************************************** *)
 
-Goal "b~:A ==> (PROD x:{a:A. id(A)`a~=b}. id(A)`x) = (PROD x:A. x)";
+Goal "b\\<notin>A ==> (\\<Pi>x \\<in> {a \\<in> A. id(A)`a\\<noteq>b}. id(A)`x) = (\\<Pi>x \\<in> A. x)";
 by (asm_full_simp_tac (simpset() addsimps [id_def] addcongs [Pi_cong]) 1);
 by (res_inst_tac [("b","A")] subst_context 1);
 by (Fast_tac 1);
@@ -142,23 +141,23 @@ qed "AC4_AC5";
 (* AC5 ==> AC4, Rubin & Rubin, p. 11                                      *)
 (* ********************************************************************** *)
 
-Goal "R <= A*B ==> (lam x:R. fst(x)) : R -> A";
+Goal "R \\<subseteq> A*B ==> (\\<lambda>x \\<in> R. fst(x)) \\<in> R -> A";
 by (fast_tac (claset() addSIs [lam_type, fst_type]) 1);
 val lemma1 = result();
 
-Goalw [range_def] "R <= A*B ==> range(lam x:R. fst(x)) = domain(R)";
+Goalw [range_def] "R \\<subseteq> A*B ==> range(\\<lambda>x \\<in> R. fst(x)) = domain(R)";
 by (force_tac (claset() addIs [lamI RS subst_elem] addSEs [lamE], 
 	       simpset()) 1);
 val lemma2 = result();
 
-Goal "[| EX f: A->C. P(f,domain(f)); A=B |] ==>  EX f: B->C. P(f,B)";
+Goal "[| \\<exists>f \\<in> A->C. P(f,domain(f)); A=B |] ==>  \\<exists>f \\<in> B->C. P(f,B)";
 by (etac bexE 1);
 by (ftac domain_of_fun 1);
 by (Fast_tac 1);
 val lemma3 = result();
 
-Goal "[| R <= A*B; g: C->R; ALL x:C. (lam z:R. fst(z))` (g`x) = x |] \
-\               ==> (lam x:C. snd(g`x)): (PROD x:C. R``{x})";
+Goal "[| R \\<subseteq> A*B; g \\<in> C->R; \\<forall>x \\<in> C. (\\<lambda>z \\<in> R. fst(z))` (g`x) = x |] \
+\               ==> (\\<lambda>x \\<in> C. snd(g`x)): (\\<Pi>x \\<in> C. R``{x})";
 by (rtac lam_type 1);
 by (force_tac (claset() addDs [apply_type], simpset()) 1);
 val lemma4 = result();

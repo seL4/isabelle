@@ -31,7 +31,7 @@ qed "LEMMA_imp_WO1";
 
 (* ********************************************************************** *)
 (* The Rubins' proof of the other implication is contained within the     *)
-(* following sentence :                                                   *)
+(* following sentence \\<in>                                                   *)
 (* "... each infinite ordinal is well ordered by < but not by >."         *)
 (* This statement can be proved by the following two theorems.            *)
 (* But moreover we need to show similar property for any well ordered     *)

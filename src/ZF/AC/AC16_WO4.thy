@@ -21,21 +21,21 @@ locale AC16 =
     GG  :: i
     s   :: i=>i
   assumes
-    all_ex    "ALL z:{z: Pow(x Un y) . z eqpoll succ(k)}.
-	         EX! w. w:t_n & z <= w "
+    all_ex    "\\<forall>z \\<in> {z \\<in> Pow(x Un y) . z eqpoll succ(k)}.
+	         \\<exists>! w. w \\<in> t_n & z \\<subseteq> w "
     disjoint  "x Int y = 0"
-    includes  "t_n <= {v:Pow(x Un y). v eqpoll succ(k #+ m)}"
+    includes  "t_n \\<subseteq> {v \\<in> Pow(x Un y). v eqpoll succ(k #+ m)}"
     WO_R      "well_ord(y,R)"
-    lnat      "l:nat"
-    mnat      "m:nat"
+    lnat      "l \\<in> nat"
+    mnat      "m \\<in> nat"
     mpos      "0<m"
     Infinite  "~ Finite(y)"
-    noLepoll  "~ y lepoll {v:Pow(x). v eqpoll m}"
+    noLepoll  "~ y lepoll {v \\<in> Pow(x). v eqpoll m}"
   defines
     k_def     "k   == succ(l)"
-    MM_def    "MM  == {v:t_n. succ(k) lepoll v Int y}"
-    LL_def    "LL  == {v Int y. v:MM}"
-    GG_def    "GG  == lam v:LL. (THE w. w:MM & v <= w) - v"
-    s_def     "s(u) == {v:t_n. u:v & k lepoll v Int y}"
+    MM_def    "MM  == {v \\<in> t_n. succ(k) lepoll v Int y}"
+    LL_def    "LL  == {v Int y. v \\<in> MM}"
+    GG_def    "GG  == \\<lambda>v \\<in> LL. (THE w. w \\<in> MM & v \\<subseteq> w) - v"
+    s_def     "s(u) == {v \\<in> t_n. u \\<in> v & k lepoll v Int y}"
 
 end

@@ -30,25 +30,25 @@ val lt_oadd_odiff_cases = rule_by_tactic Safe_tac
 (* some properties of relation uu(beta, gamma, delta) - p. 2              *)
 (* ********************************************************************** *)
 
-Goalw [uu_def] "domain(uu(f,b,g,d)) <= f`b";
+Goalw [uu_def] "domain(uu(f,b,g,d)) \\<subseteq> f`b";
 by (Blast_tac 1);
 qed "domain_uu_subset";
 
-Goal "ALL b<a. f`b lepoll m ==> \
-\               ALL b<a. ALL g<a. ALL d<a. domain(uu(f,b,g,d)) lepoll m";
+Goal "\\<forall>b<a. f`b lepoll m ==> \
+\               \\<forall>b<a. \\<forall>g<a. \\<forall>d<a. domain(uu(f,b,g,d)) lepoll m";
 by (fast_tac (claset() addSEs
         [domain_uu_subset RS subset_imp_lepoll RS lepoll_trans]) 1);
 qed "quant_domain_uu_lepoll_m";
 
-Goalw [uu_def] "uu(f,b,g,d) <= f`b * f`g";
+Goalw [uu_def] "uu(f,b,g,d) \\<subseteq> f`b * f`g";
 by (Blast_tac 1);
 qed "uu_subset1";
 
-Goalw [uu_def] "uu(f,b,g,d) <= f`d";
+Goalw [uu_def] "uu(f,b,g,d) \\<subseteq> f`d";
 by (Blast_tac 1);
 qed "uu_subset2";
 
-Goal "[| ALL b<a. f`b lepoll m;  d<a |] ==> uu(f,b,g,d) lepoll m";
+Goal "[| \\<forall>b<a. f`b lepoll m;  d<a |] ==> uu(f,b,g,d) lepoll m";
 by (fast_tac (claset()
         addSEs [uu_subset2 RS subset_imp_lepoll RS lepoll_trans]) 1);
 qed "uu_lepoll_m";
@@ -57,10 +57,10 @@ qed "uu_lepoll_m";
 (* Two cases for lemma ii                                                 *)
 (* ********************************************************************** *)
 Goalw [lesspoll_def] 
-     "ALL b<a. ALL g<a. ALL d<a. u(f,b,g,d) lepoll m  \
-\     ==> (ALL b<a. f`b ~= 0 --> \
-\                 (EX g<a. EX d<a. u(f,b,g,d) ~= 0 & u(f,b,g,d) lesspoll m)) \
-\       | (EX b<a. f`b ~= 0 & (ALL g<a. ALL d<a. u(f,b,g,d) ~= 0 -->  \
+     "\\<forall>b<a. \\<forall>g<a. \\<forall>d<a. u(f,b,g,d) lepoll m  \
+\     ==> (\\<forall>b<a. f`b \\<noteq> 0 --> \
+\                 (\\<exists>g<a. \\<exists>d<a. u(f,b,g,d) \\<noteq> 0 & u(f,b,g,d) lesspoll m)) \
+\       | (\\<exists>b<a. f`b \\<noteq> 0 & (\\<forall>g<a. \\<forall>d<a. u(f,b,g,d) \\<noteq> 0 -->  \
 \                                       u(f,b,g,d) eqpoll m))";
 by (Asm_simp_tac 1);
 by (blast_tac (claset() delrules [equalityI]) 1);
@@ -69,7 +69,7 @@ qed "cases";
 (* ********************************************************************** *)
 (* Lemmas used in both cases                                              *)
 (* ********************************************************************** *)
-Goal "Ord(a) ==> (UN b<a++a. C(b)) = (UN b<a. C(b) Un C(a++b))";
+Goal "Ord(a) ==> (\\<Union>b<a++a. C(b)) = (\\<Union>b<a. C(b) Un C(a++b))";
 by (fast_tac (claset() addSIs [equalityI] addIs [ltI] 
                     addSDs [lt_oadd_disj]
                     addSEs [lt_oadd1, oadd_lt_mono2]) 1);
@@ -77,20 +77,20 @@ qed "UN_oadd";
 
 
 (* ********************************************************************** *)
-(* Case 1 : lemmas                                                        *)
+(* Case 1 \\<in> lemmas                                                        *)
 (* ********************************************************************** *)
 
-Goalw [vv1_def] "vv1(f,m,b) <= f`b";
+Goalw [vv1_def] "vv1(f,m,b) \\<subseteq> f`b";
 by (rtac (LetI RS LetI) 1);
 by (simp_tac (simpset() addsimps [domain_uu_subset]) 1);
 qed "vv1_subset";
 
 (* ********************************************************************** *)
-(* Case 1 : Union of images is the whole "y"                              *)
+(* Case 1 \\<in> Union of images is the whole "y"                              *)
 (* ********************************************************************** *)
 Goalw [gg1_def]
-  "!! a f y. [| Ord(a);  m:nat |] ==>   \
-\            (UN b<a++a. gg1(f,a,m)`b) = (UN b<a. f`b)";
+  "!! a f y. [| Ord(a);  m \\<in> nat |] ==>   \
+\            (\\<Union>b<a++a. gg1(f,a,m)`b) = (\\<Union>b<a. f`b)";
 by (asm_simp_tac
     (simpset() addsimps [UN_oadd, lt_oadd1,
                            oadd_le_self RS le_imp_not_lt, lt_Ord,
@@ -106,7 +106,7 @@ qed "domain_gg1";
 (* every value of defined function is less than or equipollent to m       *)
 (* ********************************************************************** *)
 Goal "[| P(a, b);  Ord(a);  Ord(b);  \
-\               Least_a = (LEAST a. EX x. Ord(x) & P(a, x)) |]  \
+\               Least_a = (LEAST a. \\<exists>x. Ord(x) & P(a, x)) |]  \
 \               ==> P(Least_a, LEAST b. P(Least_a, b))";
 by (etac ssubst 1);
 by (res_inst_tac [("Q","%z. P(z, LEAST b. P(z, b))")] LeastI2 1);
@@ -115,24 +115,24 @@ qed "nested_LeastI";
 
 bind_thm ("nested_Least_instance",
 	  inst "P" 
-               "%g d. domain(uu(f,b,g,d)) ~= 0 & domain(uu(f,b,g,d)) lepoll m" 
+               "%g d. domain(uu(f,b,g,d)) \\<noteq> 0 & domain(uu(f,b,g,d)) lepoll m" 
 	  nested_LeastI);
 
 Goalw [gg1_def]
-    "!!a. [| Ord(a);  m:nat;  \
-\            ALL b<a. f`b ~=0 -->                                       \
-\            (EX g<a. EX d<a. domain(uu(f,b,g,d)) ~= 0  &               \
+    "!!a. [| Ord(a);  m \\<in> nat;  \
+\            \\<forall>b<a. f`b \\<noteq>0 -->                                       \
+\            (\\<exists>g<a. \\<exists>d<a. domain(uu(f,b,g,d)) \\<noteq> 0  &               \
 \                             domain(uu(f,b,g,d)) lepoll m);            \
-\            ALL b<a. f`b lepoll succ(m);  b<a++a                       \
+\            \\<forall>b<a. f`b lepoll succ(m);  b<a++a                       \
 \         |] ==> gg1(f,a,m)`b lepoll m";
 by (Asm_simp_tac 1);
 by (safe_tac (claset() addSEs [lt_oadd_odiff_cases]));
-(*Case b<a   : show vv1(f,m,b) lepoll m *)
+(*Case b<a   \\<in> show vv1(f,m,b) lepoll m *)
 by (asm_simp_tac (simpset() addsimps [vv1_def, Let_def]) 1);
 by (fast_tac (claset() addIs [nested_Least_instance RS conjunct2]
                 addSEs [lt_Ord]
                 addSIs [empty_lepollI]) 1);
-(*Case a le b: show ww1(f,m,b--a) lepoll m *)
+(*Case a le b \\<in> show ww1(f,m,b--a) lepoll m *)
 by (asm_simp_tac (simpset() addsimps [ww1_def]) 1);
 by (excluded_middle_tac "f`(b--a) = 0" 1);
 by (asm_simp_tac (simpset() addsimps [empty_lepollI]) 2);
@@ -147,47 +147,47 @@ by (asm_simp_tac (simpset()
 qed "gg1_lepoll_m";
 
 (* ********************************************************************** *)
-(* Case 2 : lemmas                                                        *)
+(* Case 2 \\<in> lemmas                                                        *)
 (* ********************************************************************** *)
 
 (* ********************************************************************** *)
-(* Case 2 : vv2_subset                                                    *)
+(* Case 2 \\<in> vv2_subset                                                    *)
 (* ********************************************************************** *)
 
-Goalw [uu_def] "[| b<a;  g<a;  f`b~=0;  f`g~=0;        \
-\                  y*y <= y;  (UN b<a. f`b)=y          \
-\               |] ==> EX d<a. uu(f,b,g,d) ~= 0";
+Goalw [uu_def] "[| b<a;  g<a;  f`b\\<noteq>0;  f`g\\<noteq>0;        \
+\                  y*y \\<subseteq> y;  (\\<Union>b<a. f`b)=y          \
+\               |] ==> \\<exists>d<a. uu(f,b,g,d) \\<noteq> 0";
 by (fast_tac (claset() addSIs [not_emptyI] 
                     addSDs [SigmaI RSN (2, subsetD)]
                     addSEs [not_emptyE]) 1);
 qed "ex_d_uu_not_empty";
 
-Goal "[| b<a; g<a; f`b~=0; f`g~=0;  \
-\        y*y<=y; (UN b<a. f`b)=y |]  \
-\     ==> uu(f,b,g,LEAST d. (uu(f,b,g,d) ~= 0)) ~= 0";
+Goal "[| b<a; g<a; f`b\\<noteq>0; f`g\\<noteq>0;  \
+\        y*y \\<subseteq> y; (\\<Union>b<a. f`b)=y |]  \
+\     ==> uu(f,b,g,LEAST d. (uu(f,b,g,d) \\<noteq> 0)) \\<noteq> 0";
 by (dtac ex_d_uu_not_empty 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [LeastI, lt_Ord]) 1);
 qed "uu_not_empty";
 
-Goal "[| r<=A*B; r~=0 |] ==> domain(r)~=0";
+Goal "[| r \\<subseteq> A*B; r\\<noteq>0 |] ==> domain(r)\\<noteq>0";
 by (Blast_tac 1);
 qed "not_empty_rel_imp_domain";
 
-Goal "[| b<a; g<a; f`b~=0; f`g~=0;  \
-\        y*y <= y; (UN b<a. f`b)=y |]  \
-\     ==> (LEAST d. uu(f,b,g,d) ~= 0) < a";
+Goal "[| b<a; g<a; f`b\\<noteq>0; f`g\\<noteq>0;  \
+\        y*y \\<subseteq> y; (\\<Union>b<a. f`b)=y |]  \
+\     ==> (LEAST d. uu(f,b,g,d) \\<noteq> 0) < a";
 by (eresolve_tac [ex_d_uu_not_empty RS oexE] 1
         THEN REPEAT (assume_tac 1));
 by (resolve_tac [Least_le RS lt_trans1] 1
         THEN (REPEAT (ares_tac [lt_Ord] 1)));
 qed "Least_uu_not_empty_lt_a";
 
-Goal "[| B<=A; a~:B |] ==> B <= A-{a}";
+Goal "[| B \\<subseteq> A; a\\<notin>B |] ==> B \\<subseteq> A-{a}";
 by (Blast_tac 1);
 qed "subset_Diff_sing";
 
 (*Could this be proved more directly?*)
-Goal "[| A lepoll m; m lepoll B; B <= A; m:nat |] ==> A=B";
+Goal "[| A lepoll m; m lepoll B; B \\<subseteq> A; m \\<in> nat |] ==> A=B";
 by (etac natE 1);
 by (fast_tac (claset() addSDs [lepoll_0_is_0] addSIs [equalityI]) 1);
 by (safe_tac (claset() addSIs [equalityI])); 
@@ -198,12 +198,12 @@ by (etac (subset_Diff_sing RS subset_imp_lepoll
         THEN REPEAT (assume_tac 1));
 qed "supset_lepoll_imp_eq";
 
-Goal "[| ALL g<a. ALL d<a. domain(uu(f, b, g, d))~=0 -->               \
+Goal "[| \\<forall>g<a. \\<forall>d<a. domain(uu(f, b, g, d))\\<noteq>0 -->               \
 \         domain(uu(f, b, g, d)) eqpoll succ(m);                        \
-\         ALL b<a. f`b lepoll succ(m);  y*y <= y;                       \
-\         (UN b<a. f`b)=y;  b<a;  g<a;  d<a;                            \
-\         f`b~=0;  f`g~=0;  m:nat;  s:f`b                               \
-\      |] ==> uu(f, b, g, LEAST d. uu(f,b,g,d)~=0) : f`b -> f`g";
+\         \\<forall>b<a. f`b lepoll succ(m);  y*y \\<subseteq> y;                       \
+\         (\\<Union>b<a. f`b)=y;  b<a;  g<a;  d<a;                            \
+\         f`b\\<noteq>0;  f`g\\<noteq>0;  m \\<in> nat;  s \\<in> f`b                               \
+\      |] ==> uu(f, b, g, LEAST d. uu(f,b,g,d)\\<noteq>0) \\<in> f`b -> f`g";
 by (dres_inst_tac [("x2","g")] (ospec RS ospec RS mp) 1);
 by (rtac ([uu_subset1, uu_not_empty] MRS not_empty_rel_imp_domain) 3);
 by (rtac Least_uu_not_empty_lt_a 2 THEN TRYALL assume_tac);
@@ -216,11 +216,11 @@ by (REPEAT (fast_tac (claset() addSIs [domain_uu_subset]) 1));
 qed "uu_Least_is_fun";
 
 Goalw [vv2_def]
-    "!!a. [| ALL g<a. ALL d<a. domain(uu(f, b, g, d))~=0 -->            \
+    "!!a. [| \\<forall>g<a. \\<forall>d<a. domain(uu(f, b, g, d))\\<noteq>0 -->            \
 \            domain(uu(f, b, g, d)) eqpoll succ(m);                     \
-\            ALL b<a. f`b lepoll succ(m); y*y <= y;                     \
-\            (UN b<a. f`b)=y;  b<a;  g<a;  m:nat;  s:f`b                \
-\          |] ==> vv2(f,b,g,s) <= f`g";
+\            \\<forall>b<a. f`b lepoll succ(m); y*y \\<subseteq> y;                     \
+\            (\\<Union>b<a. f`b)=y;  b<a;  g<a;  m \\<in> nat;  s \\<in> f`b                \
+\          |] ==> vv2(f,b,g,s) \\<subseteq> f`g";
 by (split_tac [split_if] 1);
 by Safe_tac;
 by (etac (uu_Least_is_fun RS apply_type) 1);
@@ -228,14 +228,14 @@ by (REPEAT_SOME (fast_tac (claset() addSIs [not_emptyI, singleton_subsetI])));
 qed "vv2_subset";
 
 (* ********************************************************************** *)
-(* Case 2 : Union of images is the whole "y"                              *)
+(* Case 2 \\<in> Union of images is the whole "y"                              *)
 (* ********************************************************************** *)
 Goalw [gg2_def]
-    "!!a. [| ALL g<a. ALL d<a. domain(uu(f,b,g,d)) ~= 0 -->             \
+    "!!a. [| \\<forall>g<a. \\<forall>d<a. domain(uu(f,b,g,d)) \\<noteq> 0 -->             \
 \            domain(uu(f,b,g,d)) eqpoll succ(m);                        \
-\            ALL b<a. f`b lepoll succ(m); y*y<=y;                       \
-\            (UN b<a. f`b)=y;  Ord(a);  m:nat;  s:f`b;  b<a              \
-\         |] ==> (UN g<a++a. gg2(f,a,b,s) ` g) = y";
+\            \\<forall>b<a. f`b lepoll succ(m); y*y \\<subseteq> y;                       \
+\            (\\<Union>b<a. f`b)=y;  Ord(a);  m \\<in> nat;  s \\<in> f`b;  b<a              \
+\         |] ==> (\\<Union>g<a++a. gg2(f,a,b,s) ` g) = y";
 by (dtac sym 1);
 by (asm_simp_tac
     (simpset() addsimps [UN_oadd, lt_oadd1,
@@ -252,7 +252,7 @@ qed "domain_gg2";
 (* every value of defined function is less than or equipollent to m       *)
 (* ********************************************************************** *)
 
-Goalw [vv2_def] "[| m:nat; m~=0 |] ==> vv2(f,b,g,s) lepoll m";
+Goalw [vv2_def] "[| m \\<in> nat; m\\<noteq>0 |] ==> vv2(f,b,g,s) lepoll m";
 by (asm_simp_tac (simpset() addsimps [empty_lepollI]) 1);
 by (fast_tac (claset()
         addSDs [le_imp_subset RS subset_imp_lepoll RS lepoll_0_is_0]
@@ -262,7 +262,7 @@ by (fast_tac (claset()
 qed "vv2_lepoll";
 
 Goalw [ww2_def]
-    "[| ALL b<a. f`b lepoll succ(m);  g<a;  m:nat;  vv2(f,b,g,d) <= f`g |] \
+    "[| \\<forall>b<a. f`b lepoll succ(m);  g<a;  m \\<in> nat;  vv2(f,b,g,d) \\<subseteq> f`g |] \
 \    ==> ww2(f,b,g,d) lepoll m";
 by (excluded_middle_tac "f`g = 0" 1);
 by (asm_simp_tac (simpset() addsimps [empty_lepollI]) 2);
@@ -272,10 +272,10 @@ by (asm_simp_tac (simpset() addsimps [vv2_def, not_emptyI]) 1);
 qed "ww2_lepoll";
 
 Goalw [gg2_def]
-    "!!a. [| ALL g<a. ALL d<a. domain(uu(f,b,g,d)) ~= 0 -->             \
+    "!!a. [| \\<forall>g<a. \\<forall>d<a. domain(uu(f,b,g,d)) \\<noteq> 0 -->             \
 \            domain(uu(f,b,g,d)) eqpoll succ(m);                        \
-\            ALL b<a. f`b lepoll succ(m);  y*y <= y;                    \
-\            (UN b<a. f`b)=y;  b<a;  s:f`b;  m:nat;  m~= 0;  g<a++a     \
+\            \\<forall>b<a. f`b lepoll succ(m);  y*y \\<subseteq> y;                    \
+\            (\\<Union>b<a. f`b)=y;  b<a;  s \\<in> f`b;  m \\<in> nat;  m\\<noteq> 0;  g<a++a     \
 \         |] ==> gg2(f,a,b,s) ` g lepoll m";
 by (Asm_simp_tac 1);
 by (safe_tac (claset() addSEs [lt_oadd_odiff_cases, lt_Ord2]));
@@ -286,7 +286,7 @@ qed "gg2_lepoll_m";
 (* ********************************************************************** *)
 (* lemma ii                                                               *)
 (* ********************************************************************** *)
-Goalw [NN_def] "[| succ(m) : NN(y); y*y <= y; m:nat; m~=0 |] ==> m : NN(y)";
+Goalw [NN_def] "[| succ(m) \\<in> NN(y); y*y \\<subseteq> y; m \\<in> nat; m\\<noteq>0 |] ==> m \\<in> NN(y)";
 by (REPEAT (eresolve_tac [CollectE, exE, conjE] 1));
 by (resolve_tac [quant_domain_uu_lepoll_m RS cases RS disjE] 1
     THEN (assume_tac 1));
@@ -310,35 +310,35 @@ qed "lemma_ii";
 
 
 (* ********************************************************************** *)
-(* lemma iv - p. 4 :                                                      *)
-(* For every set x there is a set y such that   x Un (y * y) <= y         *)
+(* lemma iv - p. 4 \\<in>                                                      *)
+(* For every set x there is a set y such that   x Un (y * y) \\<subseteq> y         *)
 (* ********************************************************************** *)
 
-(* the quantifier ALL looks inelegant but makes the proofs shorter  *)
+(* the quantifier \\<forall>looks inelegant but makes the proofs shorter  *)
 (* (used only in the following two lemmas)                          *)
 
-Goal "ALL n:nat. rec(n, x, %k r. r Un r*r) <=  \
+Goal "\\<forall>n \\<in> nat. rec(n, x, %k r. r Un r*r) \\<subseteq>  \
 \                    rec(succ(n), x, %k r. r Un r*r)";
 by (fast_tac (claset() addIs [rec_succ RS ssubst]) 1);
 qed "z_n_subset_z_succ_n";
 
-Goal "[| ALL n:nat. f(n)<=f(succ(n)); n le m; n : nat; m: nat |]  \
+Goal "[| \\<forall>n \\<in> nat. f(n)<=f(succ(n)); n le m; n \\<in> nat; m \\<in> nat |]  \
 \     ==> f(n)<=f(m)";
 by (eres_inst_tac [("P","n le m")] rev_mp 1);
-by (res_inst_tac [("P","%z. n le z --> f(n) <= f(z)")] nat_induct 1);
+by (res_inst_tac [("P","%z. n le z --> f(n) \\<subseteq> f(z)")] nat_induct 1);
 by (REPEAT (fast_tac le_cs 1));
 qed "le_subsets";
 
-Goal "[| n le m; m:nat |] ==>  \
-\       rec(n, x, %k r. r Un r*r) <= rec(m, x, %k r. r Un r*r)";
+Goal "[| n le m; m \\<in> nat |] ==>  \
+\       rec(n, x, %k r. r Un r*r) \\<subseteq> rec(m, x, %k r. r Un r*r)";
 by (resolve_tac [z_n_subset_z_succ_n RS le_subsets] 1 
     THEN (TRYALL assume_tac));
 by (eresolve_tac [Ord_nat RSN (2, ltI) RSN (2, lt_trans1) RS ltD] 1
     THEN (assume_tac 1));
 qed "le_imp_rec_subset";
 
-Goal "EX y. x Un y*y <= y";
-by (res_inst_tac [("x","UN n:nat. rec(n, x, %k r. r Un r*r)")] exI 1);
+Goal "\\<exists>y. x Un y*y \\<subseteq> y";
+by (res_inst_tac [("x","\\<Union>n \\<in> nat. rec(n, x, %k r. r Un r*r)")] exI 1);
 by Safe_tac;
 by (rtac (nat_0I RS UN_I) 1);
 by (Asm_simp_tac 1);
@@ -350,64 +350,64 @@ by (fast_tac (ZF_cs addIs [le_imp_rec_subset RS subsetD]
 qed "lemma_iv";
 
 (* ********************************************************************** *)
-(* Rubin & Rubin wrote :                                                  *)
-(* "It follows from (ii) and mathematical induction that if y*y <= y then *)
+(* Rubin & Rubin wrote \\<in>                                                  *)
+(* "It follows from (ii) and mathematical induction that if y*y \\<subseteq> y then *)
 (* y can be well-ordered"                                                 *)
 
-(* In fact we have to prove :                                             *)
-(*      * WO6 ==> NN(y) ~= 0                                              *)
-(*      * reverse induction which lets us infer that 1 : NN(y)            *)
-(*      * 1 : NN(y) ==> y can be well-ordered                             *)
+(* In fact we have to prove \\<in>                                             *)
+(*      * WO6 ==> NN(y) \\<noteq> 0                                              *)
+(*      * reverse induction which lets us infer that 1 \\<in> NN(y)            *)
+(*      * 1 \\<in> NN(y) ==> y can be well-ordered                             *)
 (* ********************************************************************** *)
 
 (* ********************************************************************** *)
-(*      WO6 ==> NN(y) ~= 0                                                *)
+(*      WO6 ==> NN(y) \\<noteq> 0                                                *)
 (* ********************************************************************** *)
 
-Goalw [WO6_def, NN_def] "WO6 ==> NN(y) ~= 0";
+Goalw [WO6_def, NN_def] "WO6 ==> NN(y) \\<noteq> 0";
 by (fast_tac ZF_cs 1);  (*SLOW if current claset is used*)
 qed "WO6_imp_NN_not_empty";
 
 (* ********************************************************************** *)
-(*      1 : NN(y) ==> y can be well-ordered                               *)
+(*      1 \\<in> NN(y) ==> y can be well-ordered                               *)
 (* ********************************************************************** *)
 
-Goal "[| (UN b<a. f`b)=y; x:y; ALL b<a. f`b lepoll 1; Ord(a) |]  \
-\     ==> EX c<a. f`c = {x}";
+Goal "[| (\\<Union>b<a. f`b)=y; x \\<in> y; \\<forall>b<a. f`b lepoll 1; Ord(a) |]  \
+\     ==> \\<exists>c<a. f`c = {x}";
 by (fast_tac (claset() addSEs [lepoll_1_is_sing]) 1);
 val lemma1 = result();
 
-Goal "[| (UN b<a. f`b)=y; x:y; ALL b<a. f`b lepoll 1; Ord(a) |]  \
+Goal "[| (\\<Union>b<a. f`b)=y; x \\<in> y; \\<forall>b<a. f`b lepoll 1; Ord(a) |]  \
 \     ==> f` (LEAST i. f`i = {x}) = {x}";
 by (dtac lemma1 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [lt_Ord] addIs [LeastI]) 1);
 val lemma2 = result();
 
-Goalw [NN_def] "1 : NN(y) ==> EX a f. Ord(a) & f:inj(y, a)";
+Goalw [NN_def] "1 \\<in> NN(y) ==> \\<exists>a f. Ord(a) & f \\<in> inj(y, a)";
 by (etac CollectE 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (res_inst_tac [("x","a")] exI 1);
-by (res_inst_tac [("x","lam x:y. LEAST i. f`i = {x}")] exI 1);
+by (res_inst_tac [("x","\\<lambda>x \\<in> y. LEAST i. f`i = {x}")] exI 1);
 by (rtac conjI 1 THEN (assume_tac 1));
-by (res_inst_tac [("d","%i. THE x. x:f`i")] lam_injective 1);
+by (res_inst_tac [("d","%i. THE x. x \\<in> f`i")] lam_injective 1);
 by (dtac lemma1 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [Least_le RS lt_trans1 RS ltD, lt_Ord]) 1);
 by (resolve_tac [lemma2 RS ssubst] 1 THEN REPEAT (assume_tac 1));
 by (Blast_tac 1);
 qed "NN_imp_ex_inj";
 
-Goal "[| y*y <= y; 1 : NN(y) |] ==> EX r. well_ord(y, r)";
+Goal "[| y*y \\<subseteq> y; 1 \\<in> NN(y) |] ==> \\<exists>r. well_ord(y, r)";
 by (dtac NN_imp_ex_inj 1);
 by (fast_tac (claset() addSEs [well_ord_Memrel RSN (2,  well_ord_rvimage)]) 1);
 qed "y_well_ord";
 
 (* ********************************************************************** *)
-(*      reverse induction which lets us infer that 1 : NN(y)              *)
+(*      reverse induction which lets us infer that 1 \\<in> NN(y)              *)
 (* ********************************************************************** *)
 
 val [prem1, prem2] = goal thy
-        "[| n:nat; !!m. [| m:nat; m~=0; P(succ(m)) |] ==> P(m) |]  \
-\       ==> n~=0 --> P(n) --> P(1)";
+        "[| n \\<in> nat; !!m. [| m \\<in> nat; m\\<noteq>0; P(succ(m)) |] ==> P(m) |]  \
+\       ==> n\\<noteq>0 --> P(n) --> P(1)";
 by (rtac (prem1 RS nat_induct) 1);
 by (Blast_tac 1);
 by (excluded_middle_tac "x=0" 1);
@@ -416,19 +416,19 @@ by (fast_tac (claset() addSIs [prem2]) 1);
 qed "rev_induct_lemma";
 
 val prems = 
-Goal    "[| P(n); n:nat; n~=0;  \
-\           !!m. [| m:nat; m~=0; P(succ(m)) |] ==> P(m) |]  \
+Goal    "[| P(n); n \\<in> nat; n\\<noteq>0;  \
+\           !!m. [| m \\<in> nat; m\\<noteq>0; P(succ(m)) |] ==> P(m) |]  \
 \        ==> P(1)";
 by (resolve_tac [rev_induct_lemma RS impE] 1);
 by (etac impE 4 THEN (assume_tac 5));
 by (REPEAT (ares_tac prems 1));
 qed "rev_induct";
 
-Goalw [NN_def] "n:NN(y) ==> n:nat";
+Goalw [NN_def] "n \\<in> NN(y) ==> n \\<in> nat";
 by (etac CollectD1 1);
 qed "NN_into_nat";
 
-Goal "[| n:NN(y); y*y <= y; n~=0 |] ==> 1:NN(y)";
+Goal "[| n \\<in> NN(y); y*y \\<subseteq> y; n\\<noteq>0 |] ==> 1 \\<in> NN(y)";
 by (rtac rev_induct 1 THEN REPEAT (ares_tac [NN_into_nat] 1));
 by (rtac lemma_ii 1 THEN REPEAT (assume_tac 1));
 val lemma3 = result();
@@ -438,7 +438,7 @@ val lemma3 = result();
 (* ********************************************************************** *)
 
 (* another helpful lemma *)
-Goalw [NN_def] "0:NN(y) ==> y=0";
+Goalw [NN_def] "0 \\<in> NN(y) ==> y=0";
 by (fast_tac (claset() addSIs [equalityI] 
                        addSDs [lepoll_0_is_0] addEs [subst]) 1);
 qed "NN_y_0";

@@ -12,8 +12,8 @@ constdefs
 
     "recfunAC16(f,fa,i,a) == 
          transrec2(i, 0, 
-              %g r. if(EX y:r. fa`g <= y, r, 
-                       r Un {f`(LEAST i. fa`g <= f`i & 
-                       (ALL b<a. (fa`b <= f`i --> (ALL t:r. ~ fa`b <= t))))}))"
+              %g r. if(\\<exists>y \\<in> r. fa`g \\<subseteq> y, r, 
+                       r Un {f`(LEAST i. fa`g \\<subseteq> f`i & 
+                       (\\<forall>b<a. (fa`b \\<subseteq> f`i --> (\\<forall>t \\<in> r. ~ fa`b \\<subseteq> t))))}))"
 
 end

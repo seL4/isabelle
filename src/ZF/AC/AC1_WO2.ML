@@ -6,8 +6,8 @@ The proof of AC1 ==> WO2
 *)
 
 (*Establishing the existence of a bijection -- hence the need for uresult*)
-val [prem] = goal thy "f : (PROD X:Pow(x) - {0}. X) ==>  \
-\       ?g(f) : bij(x, LEAST i. HH(lam X:Pow(x)-{0}. {f`X}, x, i) = {x})";
+val [prem] = goal thy "f \\<in> (\\<Pi>X \\<in> Pow(x) - {0}. X) ==>  \
+\       ?g(f) \\<in> bij(x, LEAST i. HH(\\<lambda>X \\<in> Pow(x)-{0}. {f`X}, x, i) = {x})";
 by (resolve_tac [bij_Least_HH_x RS bij_converse_bij] 1);
 by (rtac f_subsets_imp_UN_HH_eq_x 1);
 by (resolve_tac [lam_type RS apply_type] 1 THEN (assume_tac 2));

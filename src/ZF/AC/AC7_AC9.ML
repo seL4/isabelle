@@ -12,15 +12,15 @@ instances of AC.
 (*  - Sigma_fun_space_eqpoll                                              *)
 (* ********************************************************************** *)
 
-Goal "[| 0~:A; B:A |] ==> (nat->Union(A)) * B ~= 0";
+Goal "[| 0\\<notin>A; B \\<in> A |] ==> (nat->Union(A)) * B \\<noteq> 0";
 by (blast_tac (claset() addSDs [Sigma_empty_iff RS iffD1, 
 				Union_empty_iff RS iffD1]) 1);
 qed "Sigma_fun_space_not0";
 
 Goalw [inj_def]
-        "C:A ==> (lam g:(nat->Union(A))*C.  \
-\               (lam n:nat. if(n=0, snd(g), fst(g)`(n #- 1))))  \
-\               : inj((nat->Union(A))*C, (nat->Union(A)) ) ";
+        "C \\<in> A ==> (\\<lambda>g \\<in> (nat->Union(A))*C.  \
+\               (\\<lambda>n \\<in> nat. if(n=0, snd(g), fst(g)`(n #- 1))))  \
+\               \\<in> inj((nat->Union(A))*C, (nat->Union(A)) ) ";
 by (rtac CollectI 1);
 by (fast_tac (claset() addSIs [lam_type,RepFunI,if_type,snd_type,apply_type,
                                 fst_type,diff_type,nat_succI,nat_0I]) 1);
@@ -37,7 +37,7 @@ by (dresolve_tac [nat_succI RSN (2, lam_eqE)] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac (simpset() addsimps [succ_not_0 RS if_not_P]) 1);
 val lemma = result();
 
-Goal "[| C:A; 0~:A |] ==> (nat->Union(A)) * C eqpoll (nat->Union(A))";
+Goal "[| C \\<in> A; 0\\<notin>A |] ==> (nat->Union(A)) * C eqpoll (nat->Union(A))";
 by (rtac eqpollI 1);
 by (fast_tac (claset() addSEs [prod_lepoll_self, not_sym RS not_emptyE,
                 subst_elem] addEs [swap]) 2);
@@ -60,19 +60,19 @@ qed "AC6_AC7";
 (* the proof.                                                             *)
 (* ********************************************************************** *)
 
-Goal "y: (PROD B:A. Y*B) ==> (lam B:A. snd(y`B)): (PROD B:A. B)";
+Goal "y \\<in> (\\<Pi>B \\<in> A. Y*B) ==> (\\<lambda>B \\<in> A. snd(y`B)): (\\<Pi>B \\<in> A. B)";
 by (fast_tac (claset() addSIs [lam_type, snd_type, apply_type]) 1);
 val lemma1_1 = result();
 
-Goal "y: (PROD B:{Y*C. C:A}. B) ==> (lam B:A. y`(Y*B)): (PROD B:A. Y*B)";
+Goal "y \\<in> (\\<Pi>B \\<in> {Y*C. C \\<in> A}. B) ==> (\\<lambda>B \\<in> A. y`(Y*B)): (\\<Pi>B \\<in> A. Y*B)";
 by (fast_tac (claset() addSIs [lam_type, apply_type]) 1);
 val lemma1_2 = result();
 
-Goal "(PROD B:{(nat->Union(A))*C. C:A}. B) ~= 0 ==> (PROD B:A. B) ~= 0";
+Goal "(\\<Pi>B \\<in> {(nat->Union(A))*C. C \\<in> A}. B) \\<noteq> 0 ==> (\\<Pi>B \\<in> A. B) \\<noteq> 0";
 by (fast_tac (claset() addSIs [equals0I,lemma1_1, lemma1_2]) 1);
 val lemma1 = result();
 
-Goal "0 ~: A ==> 0 ~: {(nat -> Union(A)) * C. C:A}";
+Goal "0 \\<notin> A ==> 0 \\<notin> {(nat -> Union(A)) * C. C \\<in> A}";
 by (fast_tac (claset() addEs [Sigma_fun_space_not0 RS not_sym RS notE]) 1);
 val lemma2 = result();
 
@@ -94,12 +94,12 @@ qed "AC7_AC6";
 (* ********************************************************************** *)
 
 Goalw [eqpoll_def]
-        "ALL B:A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2  \
-\       ==> 0 ~: { bij(fst(B),snd(B)). B:A }";
+        "\\<forall>B \\<in> A. \\<exists>B1 B2. B=<B1,B2> & B1 eqpoll B2  \
+\       ==> 0 \\<notin> { bij(fst(B),snd(B)). B \\<in> A }";
 by Auto_tac;
 val lemma1 = result();
 
-Goal "[| f: (PROD X:RepFun(A,p). X); D:A |] ==> (lam x:A. f`p(x))`D : p(D)";
+Goal "[| f \\<in> (\\<Pi>X \\<in> RepFun(A,p). X); D \\<in> A |] ==> (\\<lambda>x \\<in> A. f`p(x))`D \\<in> p(D)";
 by (resolve_tac [beta RS ssubst] 1 THEN (assume_tac 1));
 by (fast_tac (claset() addSEs [apply_type]) 1);
 val lemma2 = result();
@@ -117,12 +117,12 @@ qed "AC1_AC8";
 (*    AC8 ==> AC1 and AC1 ==> AC9                                         *)
 (* ********************************************************************** *)
 
-Goal "ALL B1:A. ALL B2:A. B1 eqpoll B2 ==>  \
-\               ALL B:A*A. EX B1 B2. B=<B1,B2> & B1 eqpoll B2";
+Goal "\\<forall>B1 \\<in> A. \\<forall>B2 \\<in> A. B1 eqpoll B2  \
+\     ==> \\<forall>B \\<in> A*A. \\<exists>B1 B2. B=<B1,B2> & B1 eqpoll B2";
 by (Fast_tac 1);
 val lemma1 = result();
 
-Goal "f:bij(fst(<a,b>),snd(<a,b>)) ==> f:bij(a,b)";
+Goal "f \\<in> bij(fst(<a,b>),snd(<a,b>)) ==> f \\<in> bij(a,b)";
 by (Asm_full_simp_tac 1);
 val lemma2 = result();
 
@@ -155,9 +155,9 @@ by (blast_tac (claset() addDs [Sigma_fun_space_not0]
 qed "nat_lepoll_lemma";
 
 
-Goal "[| 0~:A;  A~=0;  \
-\        C = {((nat->Union(A))*B)*nat. B:A}  Un \
-\            {cons(0,((nat->Union(A))*B)*nat). B:A}; \
+Goal "[| 0\\<notin>A;  A\\<noteq>0;  \
+\        C = {((nat->Union(A))*B)*nat. B \\<in> A}  Un \
+\            {cons(0,((nat->Union(A))*B)*nat). B \\<in> A}; \
 \        B1: C;  B2: C |]  \
 \     ==> B1 eqpoll B2";
 by (blast_tac
@@ -166,11 +166,10 @@ by (blast_tac
               addIs [eqpoll_trans, eqpoll_sym, Sigma_fun_space_eqpoll]) 1);
 val lemma1 = result();
 
-Goal "ALL B1:{(F*B)*N. B:A} Un {cons(0,(F*B)*N). B:A}.  \
-\       ALL B2:{(F*B)*N. B:A}  \
-\       Un {cons(0,(F*B)*N). B:A}. f`<B1,B2> : bij(B1, B2)  \
-\       ==> (lam B:A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) :  \
-\               (PROD X:A. X)";
+Goal "\\<forall>B1 \\<in> {(F*B)*N. B \\<in> A} Un {cons(0,(F*B)*N). B \\<in> A}.  \
+\     \\<forall>B2 \\<in> {(F*B)*N. B \\<in> A} Un {cons(0,(F*B)*N). B \\<in> A}.  \
+\       f`<B1,B2> \\<in> bij(B1, B2)  \
+\   ==> (\\<lambda>B \\<in> A. snd(fst((f`<cons(0,(F*B)*N),(F*B)*N>)`0))) \\<in> (\\<Pi>X \\<in> A. X)";
 by (rtac lam_type 1);
 by (rtac snd_type 1);
 by (rtac fst_type 1);

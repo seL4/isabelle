@@ -11,21 +11,19 @@ by Lawrence C. Paulson which is the following:
 
 Assume WO1.  Let s be a set of infinite sets.
  
-Suppose x:s.  Then x is equipollent to |x| (by WO1), an infinite cardinal; 
+Suppose x \\<in> s.  Then x is equipollent to |x| (by WO1), an infinite cardinal; 
 call it K.  Since K = K |+| K = |K+K| (by InfCard_cdouble_eq) there is an 
-isomorphism h: bij(K+K, x).  (Here + means disjoint sum.)
+isomorphism h \\<in> bij(K+K, x).  (Here + means disjoint sum.)
  
 So there is a partition of x into 2-element sets, namely
  
-        {{h(Inl(i)), h(Inr(i))} . i:K}
+        {{h(Inl(i)), h(Inr(i))} . i \\<in> K}
  
-So for all x:s the desired partition exists.  By AC1 (which follows from WO1) 
-there exists a function f that chooses a partition for each x:s.  Therefore we 
+So for all x \\<in> s the desired partition exists.  By AC1 (which follows from WO1) 
+there exists a function f that chooses a partition for each x \\<in> s.  Therefore we 
 have AC10(2).
 
 *)
-
-open WO1_AC;
 
 (* ********************************************************************** *)
 (* WO1 ==> AC1                                                            *)
@@ -39,14 +37,14 @@ qed "WO1_AC1";
 (* WO1 ==> AC10(n) (n >= 1)                                               *)
 (* ********************************************************************** *)
 
-Goalw [WO1_def] "[| WO1; ALL B:A. EX C:D(B). P(C,B) |]  \
-\               ==> EX f. ALL B:A. P(f`B,B)";
-by (eres_inst_tac [("x","Union({{C:D(B). P(C,B)}. B:A})")] allE 1);
+Goalw [WO1_def] "[| WO1; \\<forall>B \\<in> A. \\<exists>C \\<in> D(B). P(C,B) |]  \
+\               ==> \\<exists>f. \\<forall>B \\<in> A. P(f`B,B)";
+by (eres_inst_tac [("x","Union({{C \\<in> D(B). P(C,B)}. B \\<in> A})")] allE 1);
 by (etac exE 1);
 by (dtac ex_choice_fun 1);
 by (Fast_tac 1);
 by (etac exE 1);
-by (res_inst_tac [("x","lam x:A. f`{C:D(x). P(C,x)}")] exI 1);
+by (res_inst_tac [("x","\\<lambda>x \\<in> A. f`{C \\<in> D(x). P(C,x)}")] exI 1);
 by (Asm_full_simp_tac 1);
 by (blast_tac (claset() addSDs [RepFunI RSN (2, apply_type)]) 1);
 val lemma1 = result();
@@ -67,23 +65,23 @@ by (resolve_tac [eqpoll_sym RS eqpoll_imp_lepoll RS lepoll_Finite] 1
 by (fast_tac (claset() addSEs [well_ord_cardinal_eqpoll]) 1);
 val lemma2_1 = result();
 
-Goal "f : bij(D+D, B) ==> {{f`Inl(i), f`Inr(i)}. i:D} : Pow(Pow(B))";
+Goal "f \\<in> bij(D+D, B) ==> {{f`Inl(i), f`Inr(i)}. i \\<in> D} \\<in> Pow(Pow(B))";
 by (fast_tac (claset() addSEs [bij_is_fun RS apply_type]) 1);
 val lemma2_2 = result();
 
-Goal "[| f:inj(A,B); f`a = f`b; a:A; b:A |] ==> a=b";
+Goal "[| f \\<in> inj(A,B); f`a = f`b; a \\<in> A; b \\<in> A |] ==> a=b";
 by (rtac inj_equality 1);
 by (TRYALL (fast_tac (claset() addSEs [inj_is_fun RS apply_Pair] addEs [subst])));
 val lemma = result();
 
 Goalw AC_aux_defs
-        "f : bij(D+D, B) ==> pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i:D})";
+        "f \\<in> bij(D+D, B) ==> pairwise_disjoint({{f`Inl(i), f`Inr(i)}. i \\<in> D})";
 by (blast_tac (claset() addDs [bij_is_inj RS lemma]) 1);
 val lemma2_3 = result();
 
 val [major, minor] = goalw thy AC_aux_defs 
-        "[| f : bij(D+D, B); 1 le n |] ==>  \
-\       sets_of_size_between({{f`Inl(i), f`Inr(i)}. i:D}, 2, succ(n))";
+        "[| f \\<in> bij(D+D, B); 1 le n |] ==>  \
+\       sets_of_size_between({{f`Inl(i), f`Inr(i)}. i \\<in> D}, 2, succ(n))";
 by (rewtac succ_def);
 by (fast_tac (claset() 
         addSIs [cons_lepoll_cong, minor, lepoll_refl] 
@@ -94,12 +92,12 @@ by (fast_tac (claset()
 val lemma2_4 = result();
 
 Goalw [bij_def, surj_def]
-        "f : bij(D+D, B) ==> Union({{f`Inl(i), f`Inr(i)}. i:D})=B";
+        "f \\<in> bij(D+D, B) ==> Union({{f`Inl(i), f`Inr(i)}. i \\<in> D})=B";
 by (fast_tac (claset() addSEs [inj_is_fun RS apply_type]) 1);
 val lemma2_5 = result();
 
 Goal "[| WO1; ~Finite(B); 1 le n  |]  \
-\       ==> EX C:Pow(Pow(B)). pairwise_disjoint(C) &  \
+\       ==> \\<exists>C \\<in> Pow(Pow(B)). pairwise_disjoint(C) &  \
 \               sets_of_size_between(C, 2, succ(n)) &  \
 \               Union(C)=B";
 by (eresolve_tac [lemma2_1 RS (eqpoll_def RS def_imp_iff RS iffD1 RS exE)] 1

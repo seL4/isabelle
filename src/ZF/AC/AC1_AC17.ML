@@ -5,7 +5,7 @@
 The proof of AC1 ==> AC17
 *)
 
-Goal "f : (PROD X:Pow(A) - {0}. X) ==> f : (Pow(A) - {0} -> A)";
+Goal "f \\<in> (\\<Pi>X \\<in> Pow(A) - {0}. X) ==> f \\<in> (Pow(A) - {0} -> A)";
 by (rtac Pi_type 1 THEN (assume_tac 1));
 by (dtac apply_type 1 THEN (assume_tac 1));
 by (Fast_tac 1);

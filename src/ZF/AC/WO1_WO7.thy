@@ -12,6 +12,6 @@ WO1_WO7 = AC_Equiv +
 constdefs
   LEMMA :: o
     "LEMMA ==
-     ALL X. ~Finite(X) --> (EX R. well_ord(X,R) & ~well_ord(X,converse(R)))"
+     \\<forall>X. ~Finite(X) --> (\\<exists>R. well_ord(X,R) & ~well_ord(X,converse(R)))"
 
 end

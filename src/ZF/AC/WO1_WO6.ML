@@ -32,15 +32,15 @@ qed "WO1_WO2";
 
 (* ********************************************************************** *)
 
-Goal "f: A->B ==> (lam x:A. {f`x}): A -> {{b}. b:B}";
+Goal "f \\<in> A->B ==> (\\<lambda>x \\<in> A. {f`x}): A -> {{b}. b \\<in> B}";
 by (fast_tac (claset() addSIs [lam_type, apply_type]) 1);
 qed "lam_sets";
 
-Goalw [surj_def] "f:surj(A,B) ==> (UN a:A. {f`a}) = B";
+Goalw [surj_def] "f \\<in> surj(A,B) ==> (\\<Union>a \\<in> A. {f`a}) = B";
 by (fast_tac (claset() addSEs [apply_type]) 1);
 qed "surj_imp_eq_";
 
-Goal "[| f:surj(A,B); Ord(A) |] ==> (UN a<A. {f`a}) = B";
+Goal "[| f \\<in> surj(A,B); Ord(A) |] ==> (\\<Union>a<A. {f`a}) = B";
 by (fast_tac (claset() addSDs [surj_imp_eq_]
                 addSIs [ltI] addSEs [ltE]) 1);
 qed "surj_imp_eq";
@@ -68,7 +68,7 @@ qed "WO4_mono";
 
 (* ********************************************************************** *)
 
-Goalw WO_defs "[| m:nat; 1 le m; WO4(m) |] ==> WO5";
+Goalw WO_defs "[| m \\<in> nat; 1 le m; WO4(m) |] ==> WO5";
 by (Blast_tac 1);
 qed "WO4_WO5";
 

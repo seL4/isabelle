@@ -13,6 +13,6 @@ consts
   
 defs
 
-  u_def "u_(a) == {c Un {0}. c:a}"
+  u_def "u_(a) == {c Un {0}. c \\<in> a}"
 
 end
