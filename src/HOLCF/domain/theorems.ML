@@ -94,7 +94,7 @@ val abs_defin' = pg [] ((dc_abs`%x_name === UU) ==> (%:x_name === UU)) [
 val rep_defin' = pg [] ((dc_rep`%x_name === UU) ==> (%:x_name === UU)) [
                            res_inst_tac [("t",x_name)] (ax_rep_iso RS subst) 1,
                                 etac ssubst 1, rtac abs_strict 1];
-val iso_rews = [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
+val iso_rews = map standard [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
 
 local 
 val iso_swap = pg [] (dc_rep`%"x" === %:"y" ==> %:"x" === dc_abs`%"y") [
@@ -263,7 +263,7 @@ val dist_eqs = let
     |   distincts ((c,leqs)::cs) = List.concat
 	            (ListPair.map (distinct c) ((map #1 cs),leqs)) @
 		    distincts cs;
-    in distincts (cons~~distincts_le) end;
+    in map standard (distincts (cons~~distincts_le)) end;
 
 local 
   fun pgterm rel con args = let
@@ -327,7 +327,8 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("inverts" , inverts ),
 		("injects" , injects ),
 		("copy_rews", copy_rews)])))
-       |> Theory.parent_path
+       |> Theory.parent_path |> rpair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
+                 dist_les @ dist_eqs @ copy_rews)
 end; (* let *)
 
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
@@ -336,7 +337,7 @@ val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
 val comp_dname = Sign.full_name (sign_of thy) comp_dnam;
 
-val d = writeln("Proving induction   properties of domain "^comp_dname^" ...");
+val d = writeln("Proving induction properties of domain "^comp_dname^" ...");
 val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
@@ -395,7 +396,7 @@ local
                                 asm_full_simp_tac (HOLCF_ss addsimps copy_rews)1
                                                            ) cons) eqs)));
 in
-val take_rews = atomize take_stricts @ take_0s @ atomize take_apps;
+val take_rews = map standard (atomize take_stricts @ take_0s @ atomize take_apps);
 end; (* local *)
 
 local
@@ -596,7 +597,7 @@ in thy |> Theory.add_path comp_dnam
 		("finite_ind", [finite_ind]),
 		("ind"       , [ind       ]),
 		("coind"     , [coind     ])])))
-       |> Theory.parent_path
+       |> Theory.parent_path |> rpair take_rews
 end; (* let *)
 end; (* local *)
 end; (* struct *)

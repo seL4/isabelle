@@ -1,16 +1,20 @@
 (*  Title:      HOLCF/domain/extender.ML
     ID:         $Id$
-    Author:     David von Oheimb
+    Author:     David von Oheimb and Markus Wenzel
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Theory extender for domain section.
+Theory extender for domain section, including new-style theory syntax.
 *)
 
+signature DOMAIN_EXTENDER =
+sig
+  val add_domain: string *
+      ((bstring * string list) * (string * mixfix * (bool * string * string) list) list) list
+    -> theory -> theory
+end;
 
-structure Domain_Extender =
+structure Domain_Extender: DOMAIN_EXTENDER =
 struct
-
-local
 
 open Domain_Library;
 
@@ -69,8 +73,6 @@ open Domain_Library;
 
 (* ----- calls for building new thy and thms -------------------------------- *)
 
-in
-
   fun add_domain (comp_dnam,eqs''') thy''' = let
     val sg''' = sign_of thy''';
     val dtnvs = map ((fn (dname,vs) => 
@@ -101,8 +103,44 @@ in
 	 )) cons') : cons list;
     val eqs = map (fn (dtnvs,cons') => (dtnvs,cons cons')) eqs' : eq list;
     val thy        = thy' |> Domain_Axioms.add_axioms (comp_dnam,eqs);
-  in (foldl (fn (thy0,eq) => Domain_Theorems.theorems (eq,eqs) thy0) (thy,eqs)) 
-                          |> Domain_Theorems.comp_theorems (comp_dnam, eqs) end;
+    val (theorems_thy, (rewss, take_rews)) = (foldl_map (fn (thy0,eq) =>
+      Domain_Theorems.theorems (eq,eqs) thy0) (thy,eqs))
+      |>>> Domain_Theorems.comp_theorems (comp_dnam, eqs);
+in
+  theorems_thy
+  |> Theory.add_path (Sign.base_name comp_dnam)
+  |> (#1 o (PureThy.add_thmss [(("rews", flat rewss @ take_rews), [])]))
+  |> Theory.parent_path
+end;
 
-end (* local *)
-end (* struct *)
+
+
+(** outer syntax **)
+
+local structure P = OuterParse and K = OuterSyntax.Keyword in
+
+val dest_decl =
+  P.$$$ "(" |-- Scan.optional (P.$$$ "lazy" >> K true) false --
+    P.name -- (P.$$$ "::" |-- P.typ)  --| P.$$$ ")" >> P.triple1;
+
+val cons_decl =
+  P.name -- Scan.repeat dest_decl -- P.opt_mixfix --| P.marg_comment
+  >> (fn ((c, ds), mx) => (c, mx, ds));
+
+val domain_decl = (P.type_args -- P.name >> Library.swap) -- (P.$$$ "=" |-- P.enum1 "|" cons_decl);
+val domains_decl =
+  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.and_list1 domain_decl
+  >> (fn (opt_name, doms) =>
+      (case opt_name of None => space_implode "_" (map (#1 o #1) doms) | Some s => s, doms));
+
+val domainP =
+  OuterSyntax.command "domain" "define recursive domains (HOLCF)" K.thy_decl
+    (domains_decl >> (Toplevel.theory o add_domain));
+
+
+val _ = OuterSyntax.add_keywords ["lazy"];
+val _ = OuterSyntax.add_parsers [domainP];
+
+end;
+
+end;
