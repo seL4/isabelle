@@ -85,7 +85,7 @@ by Auto_tac;
 qed "extend_set_sing";
 
 Goalw [extend_set_def, project_set_def]
-     "project_set h (extend_set h F) = F";
+     "project_set h (extend_set h C) = C";
 by Auto_tac;
 qed "extend_set_inverse";
 Addsimps [extend_set_inverse];

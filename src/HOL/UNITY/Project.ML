@@ -10,70 +10,40 @@ Inheritance of GUARANTEES properties under extension
 
 Open_locale "Extend";
 
-Goalw [restr_def] "Init (restr C h F) = Init F";
-by Auto_tac;
-qed "Init_restr";
+(** projection: monotonicity for safety **)
 
-Goalw [restr_act_def, extend_act_def, project_act_def]
-     "((x,x') : restr_act C h act) = ((x,x') : act & (EX y. h(x,y) : C))";
-by (Blast_tac 1);
-qed "restr_act_iff";
-Addsimps [restr_act_iff];
+Goal "D <= C ==> project_act D h act <= project_act C h act";
+by (auto_tac (claset(), simpset() addsimps [project_act_def]));
+qed "project_act_mono";
 
-Goal "Acts (restr C h F) = insert Id (restr_act C h `` Acts F)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [restr_def, symmetric restr_act_def, 
-				  image_image_eq_UN]));
-qed "Acts_restr";
-
-Addsimps [Init_restr, Acts_restr];
-
-(*The definitions are RE-ORIENTED*)
-Addsimps [symmetric restr_act_def, symmetric restr_def];
-
-Goal "project C h ((extend h F) Join G) = (restr C h F) Join (project C h G)";
-by (rtac program_equalityI 1);
-by (asm_simp_tac (simpset() addsimps [symmetric restr_act_def,
-				      image_Un, image_image]) 2);
-by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
-qed "project_extend_Join_restr";
-
-Goalw [project_set_def]
- "Domain act <= project_set h C ==> restr_act C h act = act";
-by (Force_tac 1);
-qed "restr_act_ident";
-Addsimps [restr_act_ident];
-
-Goal "F : A co B ==> restr C h F : A co B";
+Goal "[| D <= C; project C h F : A co B |] ==> project D h F : A co B";
 by (auto_tac (claset(), simpset() addsimps [constrains_def]));
+bd project_act_mono 1;
 by (Blast_tac 1);
-qed "restr_constrains";
+qed "project_constrains_mono";
 
-Goal "F : stable A ==> restr C h F : stable A";
-by (asm_full_simp_tac (simpset() addsimps [stable_def, restr_constrains]) 1);
-qed "restr_stable";
+Goal "[| D <= C;  project C h F : stable A |] ==> project D h F : stable A";
+by (asm_full_simp_tac
+    (simpset() addsimps [stable_def, project_constrains_mono]) 1);
+qed "project_stable_mono";
 
-Goal "UNIV <= project_set h C ==> restr C h F = F";
-by (rtac program_equalityI 1);
-by (force_tac (claset(),
-	       simpset() addsimps [image_def,
-                   subset_UNIV RS subset_trans RS restr_act_ident]) 2);
-by (Simp_tac 1);
-qed "restr_ident";
+Goal "F : A co B ==> project C h (extend h F) : A co B";
+by (auto_tac (claset(), 
+      simpset() addsimps [extend_act_def, project_act_def, constrains_def]));
+qed "project_extend_constrains_I";
 
-(*Ideally, uses of this should be eliminated.  But often we see it re-oriented
-  as project_extend_Join RS sym*)
 Goal "UNIV <= project_set h C \
 \     ==> project C h ((extend h F) Join G) = F Join (project C h G)";
-by (asm_simp_tac (simpset() addsimps [project_extend_Join_restr, 
-				      restr_ident]) 1);
+by (rtac program_equalityI 1);
+by (asm_simp_tac (simpset() addsimps [image_Un, image_image,
+			subset_UNIV RS subset_trans RS extend_act_inverse]) 2);
+by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
 qed "project_extend_Join";
 
 Goal "UNIV <= project_set h C \
 \     ==> (extend h F) Join G = extend h H ==> H = F Join (project C h G)";
 by (dres_inst_tac [("f", "project C h")] arg_cong 1);
-by (asm_full_simp_tac (simpset() addsimps [project_extend_Join_restr, 
-					   restr_ident]) 1);
+by (asm_full_simp_tac (simpset() addsimps [project_extend_Join]) 1);
 qed "extend_Join_eq_extend_D";
 
 
@@ -93,6 +63,20 @@ Goalw [stable_def]
      "(project UNIV h F : stable A) = (F : stable (extend_set h A))";
 by (simp_tac (simpset() addsimps [project_constrains]) 1);
 qed "project_stable";
+
+Goal "F : stable (extend_set h A) ==> project C h F : stable A";
+bd (project_stable RS iffD2) 1;
+by (blast_tac (claset() addIs [project_stable_mono]) 1);
+qed "project_stable_I";
+
+(*used below to prove Join_project_ensures*)
+Goal "[| G : stable C;  project C h G : A unless B |] \
+\     ==> G : (C Int extend_set h A) unless (extend_set h B)";
+by (asm_full_simp_tac
+    (simpset() addsimps [unless_def, project_constrains]) 1);
+by (blast_tac (claset() addDs [stable_constrains_Int]
+			addIs [constrains_weaken]) 1);
+qed_spec_mp "project_unless";
 
 (*This form's useful with guarantees reasoning*)
 Goal "(F Join project C h G : A co B)  =  \
@@ -232,6 +216,15 @@ by (force_tac (claset() addIs [reachable.Init],
 	       simpset() addsimps [project_set_def]) 1);
 qed "reachable_project_imp_reachable";
 
+
+Goal "project_set h (reachable (extend h F Join G)) = \
+\     reachable (F Join project (reachable (extend h F Join G)) h G)";
+by (auto_tac (claset() addDs [subset_refl RS reachable_imp_reachable_project,
+			      subset_refl RS reachable_project_imp_reachable], 
+	      simpset() addsimps [project_set_def]));
+qed "project_set_reachable_extend_eq";
+
+
 Goalw [Constrains_def]
      "[| C <= reachable (extend h F Join G);  \
 \        extend h F Join G : (extend_set h A) Co (extend_set h B) |] \
@@ -350,29 +343,75 @@ qed "ensures_extend_set_imp_project_ensures";
 
 (*A super-strong condition: G is not allowed to affect the
   shared variables at all.*)
-Goal "[| ALL x. project UNIV h G ~: transient {x};  \
-\        F Join project UNIV h G : A ensures B |] \
-\     ==> extend h F Join G : (extend_set h A) ensures (extend_set h B)";
+Goal "[| ALL x. project C h G ~: transient {x};  \
+\        extend h F Join G : stable C;  \
+\        F Join project C h G : A ensures B |] \
+\     ==> extend h F Join G : (C Int extend_set h A) ensures (extend_set h B)";
 by (case_tac "A <= B" 1);
-by (etac (extend_set_mono RS subset_imp_ensures) 1);
-by (asm_full_simp_tac
-    (simpset() addsimps [ensures_def, extend_constrains, extend_transient, 
-			 extend_set_Un_distrib RS sym, 
-			 extend_set_Diff_distrib RS sym,
-			 Join_transient, Join_constrains,
-			 project_constrains, Int_absorb1]) 1);
-by (blast_tac (claset() addIs [transient_strengthen]) 1);
+by (blast_tac (claset() addIs [subset_imp_ensures] addDs [extend_set_mono]) 1);
+by (full_simp_tac (simpset() addsimps [ensures_def, Join_constrains,
+				       Join_stable, Join_transient]) 1);
+by (REPEAT_FIRST (rtac conjI));
+by (blast_tac (claset() addDs [extend_transient RS iffD2] 
+                        addIs [transient_strengthen]) 3);
+by (REPEAT (force_tac (claset() addIs [project_unless RS unlessD, unlessI, 
+				       project_extend_constrains_I], 
+		       simpset()) 1));
 qed_spec_mp "Join_project_ensures";
 
-Goal "[| ALL x. project UNIV h G ~: transient {x};  \
-\        F Join project UNIV h G : A leadsTo B |] \
-\     ==> extend h F Join G : (extend_set h A) leadsTo (extend_set h B)";
+Goal "[| ALL x. project C h G ~: transient {x};  \
+\        extend h F Join G : stable C;  \
+\        F Join project C h G : A leadsTo B |] \
+\     ==> extend h F Join G : (C Int extend_set h A) leadsTo (extend_set h B)";
 by (etac leadsTo_induct 1);
-by (asm_simp_tac (simpset() addsimps [leadsTo_UN, extend_set_Union]) 3);
-by (blast_tac (claset() addIs [leadsTo_Trans]) 2);
+by (asm_simp_tac (simpset() delsimps UN_simps
+		  addsimps [Int_UN_distrib, leadsTo_UN, extend_set_Union]) 3);
+by (blast_tac (claset() addIs [psp_stable RS leadsTo_weaken, 
+			       leadsTo_Trans]) 2);
 by (blast_tac (claset() addIs [leadsTo_Basis, Join_project_ensures]) 1);
 qed "Join_project_leadsTo_I";
 
+(*Instance of the previous theorem for STRONG progress*)
+Goal "[| ALL x. project UNIV h G ~: transient {x};  \
+\        F Join project UNIV h G : A leadsTo B |] \
+\     ==> extend h F Join G : (extend_set h A) leadsTo (extend_set h B)";
+by (dtac Join_project_leadsTo_I 1);
+by Auto_tac;
+qed "Join_project_UNIV_leadsTo_I";
+
+(** Towards the analogous theorem for WEAK progress*)
+
+Goal "[| ALL x. project C h G ~: transient {x};  \
+\        extend h F Join G : stable C;  \
+\        F Join project C h G : (project_set h C Int A) leadsTo B |] \
+\     ==> extend h F Join G : C Int extend_set h (project_set h C Int A) leadsTo (extend_set h B)";
+by (etac leadsTo_induct 1);
+by (asm_simp_tac (simpset() delsimps UN_simps
+		  addsimps [Int_UN_distrib, leadsTo_UN, extend_set_Union]) 3);
+by (blast_tac (claset() addIs [psp_stable RS leadsTo_weaken, 
+			       leadsTo_Trans]) 2);
+by (blast_tac (claset() addIs [leadsTo_Basis, Join_project_ensures]) 1);
+val lemma = result();
+
+Goal "[| ALL x. project C h G ~: transient {x};  \
+\        extend h F Join G : stable C;  \
+\        F Join project C h G : (project_set h C Int A) leadsTo B |] \
+\     ==> extend h F Join G : (C Int extend_set h A) leadsTo (extend_set h B)";
+br (lemma RS leadsTo_weaken) 1;
+by (auto_tac (claset() addIs [project_set_I], simpset()));
+val lemma2 = result();
+
+Goal "[| C = (reachable (extend h F Join G)); \
+\        ALL x. project C h G ~: transient {x};  \
+\        F Join project C h G : A LeadsTo B |] \
+\     ==> extend h F Join G : (extend_set h A) LeadsTo (extend_set h B)";
+by (asm_full_simp_tac 
+    (simpset() addsimps [LeadsTo_def, lemma2, stable_reachable, 
+			 project_set_reachable_extend_eq]) 1);
+qed "Join_project_LeadsTo";
+
+
+(*** GUARANTEES and EXTEND ***)
 
 (** Strong precondition and postcondition; doesn't seem very useful. **)
 
@@ -465,10 +504,10 @@ qed "extend_localTo_guar_Increasing";
 (** Guarantees with a leadsTo postcondition **)
 
 Goal "[| G : f localTo extend h F; \
-\        Disjoint (extend h F) G |] ==> project UNIV h G : stable {x}";
+\        Disjoint (extend h F) G |] ==> project C h G : stable {x}";
 by (asm_full_simp_tac
     (simpset() addsimps [localTo_imp_stable,
-			 extend_set_sing, project_stable]) 1);
+			 extend_set_sing, project_stable_I]) 1);
 qed "localTo_imp_project_stable";
 
 
@@ -478,6 +517,7 @@ by (auto_tac (claset(),
 				  stable_def, constrains_def]));
 qed "stable_sing_imp_not_transient";
 
+(*STRONG precondition and postcondition*)
 Goal "F : (A co A') guarantees (B leadsTo B')  \
 \ ==> extend h F : ((extend_set h A) co (extend_set h A'))  \
 \                   Int (f localTo (extend h F)) \
@@ -490,12 +530,30 @@ by (asm_full_simp_tac
 			 extend_constrains]) 1);
 by (fast_tac (claset() addDs [constrains_imp_subset]) 1);
 (*the liveness postcondition*)
-by (rtac Join_project_leadsTo_I 1);
+by (rtac Join_project_UNIV_leadsTo_I 1);
 by Auto_tac;
 by (asm_full_simp_tac
     (simpset() addsimps [Join_localTo, self_localTo,
 			 localTo_imp_project_stable, 
 			 stable_sing_imp_not_transient]) 1);
 qed "extend_co_guar_leadsTo";
+
+(*WEAK precondition and postcondition*)
+Goal "F : (A Co A') guarantees (B LeadsTo B')  \
+\ ==> extend h F : ((extend_set h A) Co (extend_set h A'))  \
+\                   Int (f localTo (extend h F)) \
+\                  guarantees ((extend_set h B) LeadsTo (extend_set h B'))";
+by (etac project_guarantees 1);
+(*the safety precondition*)
+by (fast_tac (claset() addIs [project_Constrains_I]) 1);
+(*the liveness postcondition*)
+by (rtac Join_project_LeadsTo 1);
+by Auto_tac;
+by (asm_full_simp_tac
+    (simpset() addsimps [Join_localTo, self_localTo,
+			 localTo_imp_project_stable, 
+			 stable_sing_imp_not_transient]) 1);
+qed "extend_Co_guar_LeadsTo";
+
 
 Close_locale "Extend";
