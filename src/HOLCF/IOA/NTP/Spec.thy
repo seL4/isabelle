@@ -37,6 +37,6 @@ trans_def "spec_trans ==
       C_r_s => False |                            
       C_r_r(m) => False}"
 
-ioa_def "spec_ioa == (spec_sig, {[]}, spec_trans)"
+ioa_def "spec_ioa == (spec_sig, {[]}, spec_trans,{},{})"
 
 end

@@ -84,6 +84,6 @@ receiver_trans_def "receiver_trans ==
 
 
 receiver_ioa_def "receiver_ioa == 
- (receiver_asig, {([],{|},{|},False,False)}, receiver_trans)"
+ (receiver_asig, {([],{|},{|},False,False)}, receiver_trans,{},{})"
 
 end

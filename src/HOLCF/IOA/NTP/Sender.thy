@@ -80,6 +80,6 @@ sender_trans_def "sender_trans ==
       C_r_r(m) => False}"
 
 sender_ioa_def "sender_ioa == 
- (sender_asig, {([],{|},{|},False,True)}, sender_trans)"
+ (sender_asig, {([],{|},{|},False,True)}, sender_trans,{},{})"
 
 end
