@@ -31,15 +31,15 @@ by (REPEAT (ares_tac (prems@[ProdI]) 1));
 qed "Pair_inject";
 
 goal Prod.thy "((a,b) = (a',b')) = (a=a' & b=b')";
-by (fast_tac (set_cs addIs [Pair_inject]) 1);
+by (fast_tac (!claset addIs [Pair_inject]) 1);
 qed "Pair_eq";
 
 goalw Prod.thy [fst_def] "fst((a,b)) = a";
-by (fast_tac (set_cs addIs [select_equality] addSEs [Pair_inject]) 1);
+by (fast_tac (!claset addIs [select_equality] addSEs [Pair_inject]) 1);
 qed "fst_conv";
 
 goalw Prod.thy [snd_def] "snd((a,b)) = b";
-by (fast_tac (set_cs addIs [select_equality] addSEs [Pair_inject]) 1);
+by (fast_tac (!claset addIs [select_equality] addSEs [Pair_inject]) 1);
 qed "snd_conv";
 
 goalw Prod.thy [Pair_def] "? x y. p = (x,y)";
@@ -78,7 +78,7 @@ val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
 end;
 
 goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
-by (fast_tac (HOL_cs addbefore split_all_tac 1) 1);
+by (fast_tac (!claset addbefore split_all_tac 1) 1);
 qed "split_paired_All";
 
 goalw Prod.thy [split_def] "split c (a,b) = c a b";
@@ -117,7 +117,7 @@ qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
 goal Prod.thy "R(split c p) = (! x y. p = (x,y) --> R(c x y))";
 by (stac surjective_pairing 1);
 by (stac split 1);
-by (fast_tac (HOL_cs addSEs [Pair_inject]) 1);
+by (fast_tac (!claset addSEs [Pair_inject]) 1);
 qed "expand_split";
 
 (** split used as a logical connective or set former **)
@@ -188,8 +188,8 @@ val major::prems = goal Prod.thy
 by (rtac (major RS imageE) 1);
 by (res_inst_tac [("p","x")] PairE 1);
 by (resolve_tac prems 1);
-by (fast_tac HOL_cs 2);
-by (fast_tac (HOL_cs addIs [prod_fun]) 1);
+by (Fast_tac 2);
+by (fast_tac (!claset addIs [prod_fun]) 1);
 qed "prod_fun_imageE";
 
 (*** Disjoint union of a family of sets - Sigma ***)
@@ -230,21 +230,21 @@ qed_goal "SigmaE2" Prod.thy
 val prems = goal Prod.thy
     "[| A<=C;  !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D";
 by (cut_facts_tac prems 1);
-by (fast_tac (set_cs addIs (prems RL [subsetD]) 
+by (fast_tac (!claset addIs (prems RL [subsetD]) 
                      addSIs [SigmaI] 
                      addSEs [SigmaE]) 1);
 qed "Sigma_mono";
 
 qed_goal "Sigma_empty1" Prod.thy "Sigma {} B = {}"
- (fn _ => [ (fast_tac (eq_cs addSEs [SigmaE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSEs [SigmaE]) 1) ]);
 
 qed_goal "Sigma_empty2" Prod.thy "A Times {} = {}"
- (fn _ => [ (fast_tac (eq_cs addSEs [SigmaE]) 1) ]);
+ (fn _ => [ (fast_tac (!claset addSEs [SigmaE]) 1) ]);
 
 Addsimps [Sigma_empty1,Sigma_empty2]; 
 
 goal Prod.thy "((a,b): Sigma A B) = (a:A & b:B(a))";
-by (fast_tac (eq_cs addSIs [SigmaI] addSEs [SigmaE, Pair_inject]) 1);
+by (fast_tac (!claset addSIs [SigmaI] addSEs [SigmaE, Pair_inject]) 1);
 qed "mem_Sigma_iff";
 Addsimps [mem_Sigma_iff]; 
 
@@ -292,6 +292,12 @@ goalw Prod.thy [Unity_def]
 by (stac (rewrite_rule [Unit_def] Rep_Unit RS CollectD RS sym) 1);
 by (rtac (Rep_Unit_inverse RS sym) 1);
 qed "unit_eq";
+ 
+AddSIs [SigmaI, splitI, splitI2, mem_splitI, mem_splitI2];
+AddIs  [fst_imageI, snd_imageI, prod_fun_imageI];
+AddSEs [SigmaE2, SigmaE, splitE, mem_splitE, 
+        fst_imageE, snd_imageE, prod_fun_imageE,
+        Pair_inject];
 
 val prod_cs = set_cs addSIs [SigmaI, splitI, splitI2, mem_splitI, mem_splitI2] 
                      addIs  [fst_imageI, snd_imageI, prod_fun_imageI]

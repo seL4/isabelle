@@ -27,7 +27,7 @@ by (eresolve_tac prems 1);
 qed "idE";
 
 goalw Relation.thy [id_def] "(a,b):id = (a=b)";
-by (fast_tac prod_cs 1);
+by (Fast_tac 1);
 qed "pair_in_id_conv";
 Addsimps [pair_in_id_conv];
 
@@ -36,7 +36,7 @@ Addsimps [pair_in_id_conv];
 
 val prems = goalw Relation.thy [comp_def]
     "[| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
-by (fast_tac (prod_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 qed "compI";
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
@@ -56,16 +56,19 @@ by (rtac compE 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Pair_inject,ssubst] 1));
 qed "compEpair";
 
+AddIs [compI, idI];
+AddSEs [compE, idE];
+
 val comp_cs = prod_cs addIs [compI, idI] addSEs [compE, idE];
 
 goal Relation.thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
-by (fast_tac comp_cs 1);
+by (Fast_tac 1);
 qed "comp_mono";
 
 goal Relation.thy
     "!!r s. [| s <= A Times B;  r <= B Times C |] ==> \
 \           (r O s) <= A Times C";
-by (fast_tac comp_cs 1);
+by (Fast_tac 1);
 qed "comp_subset_Sigma";
 
 (** Natural deduction for trans(r) **)
@@ -78,7 +81,7 @@ qed "transI";
 val major::prems = goalw Relation.thy [trans_def]
     "[| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
 by (cut_facts_tac [major] 1);
-by (fast_tac (HOL_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 qed "transD";
 
 (** Natural deduction for converse(r) **)
@@ -88,7 +91,7 @@ by (Simp_tac 1);
 qed "converseI";
 
 goalw Relation.thy [converse_def] "!!a b r. (a,b) : converse(r) ==> (b,a) : r";
-by (fast_tac comp_cs 1);
+by (Fast_tac 1);
 qed "converseD";
 
 qed_goalw "converseE" Relation.thy [converse_def]
@@ -100,18 +103,21 @@ qed_goalw "converseE" Relation.thy [converse_def]
     (REPEAT (eresolve_tac [splitE, bexE,exE, conjE, minor] 1)),
     (assume_tac 1) ]);
 
-val converse_cs = comp_cs addSIs [converseI] 
+AddSIs [converseI];
+AddSEs [converseD,converseE];
+
+val converse_cs = comp_cs addSIs [converseI]
                           addSEs [converseD,converseE];
 
 goalw Relation.thy [converse_def] "converse(converse R) = R";
-by(fast_tac (prod_cs addSIs [equalityI]) 1);
+by(fast_tac (!claset addSIs [equalityI]) 1);
 qed "converse_converse";
 
 (** Domain **)
 
 qed_goalw "Domain_iff" Relation.thy [Domain_def]
     "a: Domain(r) = (EX y. (a,y): r)"
- (fn _=> [ (fast_tac comp_cs 1) ]);
+ (fn _=> [ (Fast_tac 1) ]);
 
 qed_goal "DomainI" Relation.thy "!!a b r. (a,b): r ==> a: Domain(r)"
  (fn _ => [ (etac (exI RS (Domain_iff RS iffD2)) 1) ]);
@@ -138,19 +144,19 @@ qed_goalw "RangeE" Relation.thy [Range_def]
 
 qed_goalw "Image_iff" Relation.thy [Image_def]
     "b : r^^A = (? x:A. (x,b):r)"
- (fn _ => [ fast_tac (comp_cs addIs [RangeI]) 1 ]);
+ (fn _ => [ fast_tac (!claset addIs [RangeI]) 1 ]);
 
 qed_goal "Image_singleton_iff" Relation.thy
     "(b : r^^{a}) = ((a,b):r)"
  (fn _ => [ rtac (Image_iff RS trans) 1,
-            fast_tac comp_cs 1 ]);
+            Fast_tac 1 ]);
 
 qed_goalw "ImageI" Relation.thy [Image_def]
     "!!a b r. [| (a,b): r;  a:A |] ==> b : r^^A"
  (fn _ => [ (REPEAT (ares_tac [CollectI,RangeI,bexI] 1)),
             (resolve_tac [conjI ] 1),
             (rtac RangeI 1),
-            (REPEAT (fast_tac set_cs 1))]);
+            (REPEAT (Fast_tac 1))]);
 
 qed_goalw "ImageE" Relation.thy [Image_def]
     "[| b: r^^A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P"
@@ -167,18 +173,24 @@ qed_goal "Image_subset" Relation.thy
   [ (rtac subsetI 1),
     (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ]);
 
+AddSIs [converseI]; 
+AddIs  [ImageI, DomainI, RangeI];
+AddSEs [ImageE, DomainE, RangeE];
+
 val rel_cs = converse_cs addSIs [converseI] 
                          addIs  [ImageI, DomainI, RangeI]
                          addSEs [ImageE, DomainE, RangeE];
 
+AddSIs [equalityI];
+
 val rel_eq_cs = rel_cs addSIs [equalityI];
 
 goal Relation.thy "R O id = R";
-by(fast_tac (rel_cs addIs [set_ext] addbefore (split_all_tac 1)) 1);
+by(fast_tac (!claset addIs [set_ext] addbefore (split_all_tac 1)) 1);
 qed "R_O_id";
 
 goal Relation.thy "id O R = R";
-by(fast_tac (rel_cs addIs [set_ext] addbefore (split_all_tac 1)) 1);
+by(fast_tac (!claset addIs [set_ext] addbefore (split_all_tac 1)) 1);
 qed "id_O_R";
 
 Addsimps [R_O_id,id_O_R];

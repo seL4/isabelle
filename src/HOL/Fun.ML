@@ -51,19 +51,19 @@ qed "imageE";
 
 goalw Fun.thy [o_def] "(f o g)``r = f``(g``r)";
 by (rtac set_ext 1);
-by (fast_tac (HOL_cs addIs [imageI] addSEs [imageE]) 1);
+by (fast_tac (!claset addIs [imageI] addSEs [imageE]) 1);
 qed "image_compose";
 
 goal Fun.thy "f``(A Un B) = f``A Un f``B";
 by (rtac set_ext 1);
-by (fast_tac (HOL_cs addIs [imageI,UnCI] addSEs [imageE,UnE]) 1);
+by (fast_tac (!claset addIs [imageI,UnCI] addSEs [imageE,UnE]) 1);
 qed "image_Un";
 
 (*** inj(f): f is a one-to-one function ***)
 
 val prems = goalw Fun.thy [inj_def]
     "[| !! x y. f(x) = f(y) ==> x=y |] ==> inj(f)";
-by (fast_tac (HOL_cs addIs prems) 1);
+by (fast_tac (!claset addIs prems) 1);
 qed "injI";
 
 val [major] = goal Fun.thy "(!!x. g(f(x)) = x) ==> inj(f)";
@@ -109,7 +109,7 @@ qed "inj_transfer";
 
 val prems = goalw Fun.thy [inj_onto_def]
     "(!! x y. [| f(x) = f(y);  x:A;  y:A |] ==> x=y) ==> inj_onto f A";
-by (fast_tac (HOL_cs addIs prems addSIs [ballI]) 1);
+by (fast_tac (!claset addIs prems addSIs [ballI]) 1);
 qed "inj_ontoI";
 
 val [major] = goal Fun.thy 
@@ -126,7 +126,7 @@ by (REPEAT (resolve_tac prems 1));
 qed "inj_ontoD";
 
 goal Fun.thy "!!x y.[| inj_onto f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)";
-by (fast_tac (HOL_cs addSEs [inj_ontoD]) 1);
+by (fast_tac (!claset addSEs [inj_ontoD]) 1);
 qed "inj_onto_iff";
 
 val major::prems = goal Fun.thy
@@ -142,12 +142,12 @@ qed "inj_onto_contraD";
 val prems = goalw Fun.thy [o_def]
     "[| inj(f);  inj_onto g (range f) |] ==> inj(g o f)";
 by (cut_facts_tac prems 1);
-by (fast_tac (HOL_cs addIs [injI,rangeI]
+by (fast_tac (!claset addIs [injI,rangeI]
                      addEs [injD,inj_ontoD]) 1);
 qed "comp_inj";
 
 val [prem] = goal Fun.thy "inj(f) ==> inj_onto f A";
-by (fast_tac (HOL_cs addIs [prem RS injD, inj_ontoI]) 1);
+by (fast_tac (!claset addIs [prem RS injD, inj_ontoI]) 1);
 qed "inj_imp";
 
 val [prem] = goalw Fun.thy [Inv_def] "y : range(f) ==> f(Inv f y) = y";
@@ -163,19 +163,28 @@ qed "Inv_injective";
 val prems = goal Fun.thy
     "[| inj(f);  A<=range(f) |] ==> inj_onto (Inv f) A";
 by (cut_facts_tac prems 1);
-by (fast_tac (HOL_cs addIs [inj_ontoI] 
+by (fast_tac (!claset addIs [inj_ontoI] 
                      addEs [Inv_injective,injD,subsetD]) 1);
 qed "inj_onto_Inv";
 
 
 (*** Set reasoning tools ***)
 
+AddSIs [ballI, PowI, subsetI, InterI, INT_I, INT1_I, CollectI, 
+            ComplI, IntI, DiffI, UnCI, insertCI]; 
+AddIs  [bexI, UnionI, UN_I, UN1_I, imageI, rangeI]; 
+AddSEs [bexE, make_elim PowD, UnionE, UN_E, UN1_E, DiffE,
+	    make_elim singleton_inject,
+            CollectE, ComplE, IntE, UnE, insertE, imageE, rangeE, emptyE]; 
+AddEs  [ballE, InterD, InterE, INT_D, INT_E, make_elim INT1_D,
+            subsetD, subsetCE];
+
 val set_cs = HOL_cs 
     addSIs [ballI, PowI, subsetI, InterI, INT_I, INT1_I, CollectI, 
             ComplI, IntI, DiffI, UnCI, insertCI] 
     addIs  [bexI, UnionI, UN_I, UN1_I, imageI, rangeI] 
     addSEs [bexE, make_elim PowD, UnionE, UN_E, UN1_E, DiffE,
-	    make_elim singleton_inject,
+            make_elim singleton_inject,
             CollectE, ComplE, IntE, UnE, insertE, imageE, rangeE, emptyE] 
     addEs  [ballE, InterD, InterE, INT_D, INT_E, make_elim INT1_D,
             subsetD, subsetCE];
