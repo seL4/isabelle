@@ -406,6 +406,41 @@ For example, if {\it formula} is
 \hbox{\verb'?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]'}
 \end{ttdescription}
 
+
+\subsection{*Theory inclusion}
+\begin{ttbox}
+subthy      : theory * theory -> bool
+eq_thy      : theory * theory -> bool
+transfer    : theory -> thm -> thm
+transfer_sg : Sign.sg -> thm -> thm
+\end{ttbox}
+
+Inclusion and equality of theories is determined by unique
+identification stamps that are created when declaring new components.
+Theorems contain a reference to the theory (actually to its signature)
+they have been derived in.  Transferring theorems to super theories
+has no logical significance, but may affect some operations in subtle
+ways (e.g.\ implicit merges of signatures when applying rules, or
+pretty printing of theorems).
+
+\begin{ttdescription}
+
+\item[\ttindexbold{subthy} ($thy@1$, $thy@2$)] determines if $thy@1$
+  is included in $thy@2$ wrt.\ identification stamps.
+
+\item[\ttindexbold{eq_thy} ($thy@1$, $thy@2$)] determines if $thy@1$
+  is exactly the same as $thy@2$.
+
+\item[\ttindexbold{transfer} $thy$ $thm$] transfers theorem $thm$ to
+  theory $thy$, provided the latter includes the theory of $thm$.
+  
+\item[\ttindexbold{transfer_sg} $sign$ $thm$] is similar to
+  \texttt{transfer}, but identifies the super theory via its
+  signature.
+
+\end{ttdescription}
+
+
 \subsection{*Building a theory}
 \label{BuildingATheory}
 \index{theories!constructing|bold}
