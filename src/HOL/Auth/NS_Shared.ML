@@ -230,7 +230,7 @@ goal thy
 \       -->         A=A' & NA=NA' & B=B' & X=X'";
 by (etac ns_shared.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (Step_tac 1);
+by Safe_tac;
 (*NS3*)
 by (ex_strip_tac 2);
 by (Blast_tac 2);
@@ -278,7 +278,7 @@ by (blast_tac (!claset addSEs spies_partsEs
 (*Fake*) 
 by (spy_analz_tac 1);
 (*NS3, Server sub-case*) (**LEVEL 6 **)
-by (step_tac (!claset delrules [impCE]) 1);
+by (clarify_tac (!claset delrules [impCE]) 1);
 by (forward_tac [Says_imp_spies RS parts.Inj RS A_trusts_NS2] 1);
 by (assume_tac 2);
 by (blast_tac (!claset addDs [Says_imp_spies RS analz.Inj RS

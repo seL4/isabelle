@@ -190,7 +190,7 @@ goal thy
 \          : set evs --> A=A' & B=B' & na=na' & nb=nb' & X=X'";
 by (etac yahalom.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (Step_tac 1);
+by (Clarify_tac 1);
 (*Remaining case: YM3*)
 by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));

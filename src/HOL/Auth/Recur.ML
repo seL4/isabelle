@@ -303,7 +303,7 @@ by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (etac responses.induct 3);
 by (ALLGOALS (simp_tac (!simpset addsimps [all_conj_distrib]))); 
-by (step_tac (!claset addSEs partsEs) 1);
+by (clarify_tac (!claset addSEs partsEs) 1);
 (*RA1,2: creation of new Nonce.  Move assertion into global context*)
 by (ALLGOALS (expand_case_tac "NA = ?y"));
 by (REPEAT_FIRST (ares_tac [exI]));
@@ -388,7 +388,7 @@ by (etac respond.induct 1);
 by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [all_conj_distrib]))); 
 (*Base case*)
 by (Blast_tac 1);
-by (Step_tac 1);
+by Safe_tac;
 by (expand_case_tac "K = KBC" 1);
 by (dtac respond_Key_in_parts 1);
 by (blast_tac (!claset addSIs [exI]
@@ -429,7 +429,7 @@ by (ALLGOALS (*12 seconds*)
 by (ALLGOALS (simp_tac (!simpset addsimps [ex_disj_distrib])));
 (** LEVEL 5 **)
 by (blast_tac (!claset addIs [impOfSubs analz_subset_parts]) 1);
-by (step_tac (!claset addSEs [MPair_parts]) 1);
+by (safe_tac (!claset addSEs [MPair_parts]));
 by (REPEAT (blast_tac (!claset addSDs [respond_certificate]
 		               addDs [resp_analz_insert]
 			       addIs  [impOfSubs analz_subset_parts]) 4));
@@ -446,14 +446,15 @@ qed_spec_mp "respond_Spy_not_see_session_key";
 
 goal thy
  "!!evs. [| Crypt (shrK A) {|Key K, Agent A', N|} : parts (spies evs); \
-\           A ~: bad;  A' ~: bad;  evs : recur |]   \
+\           A ~: bad;  A' ~: bad;  evs : recur |]                      \
 \        ==> Key K ~: analz (spies evs)";
 by (etac rev_mp 1);
 by (etac recur.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac
-     (!simpset addsimps [parts_insert_spies, analz_insert_freshK] 
+     (!simpset addsimps [analz_insert_eq, parts_insert_spies, 
+			 analz_insert_freshK] 
                setloop split_tac [expand_if])));
 (*RA4*)
 by (spy_analz_tac 5);
@@ -464,11 +465,11 @@ by (spy_analz_tac 2);
 (*Base*)
 by (Blast_tac 1);
 (*RA3 remains*)
-by (step_tac (!claset delrules [impCE]) 1);
+by (safe_tac (!claset delrules [impCE]));
 (*RA3, case 2: K is an old key*)
 by (blast_tac (!claset addSDs [resp_analz_insert]
                        addSEs partsEs
-                       addDs [Key_in_parts_respond]) 2);
+                       addDs  [Key_in_parts_respond]) 2);
 (*RA3, case 1: use lemma previously proved by induction*)
 by (blast_tac (!claset addSEs [respond_Spy_not_see_session_key RSN
 			       (2,rev_notE)]) 1);

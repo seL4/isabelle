@@ -199,7 +199,7 @@ goal thy
 \     B=B' & NA=NA' & NB=NB' & X=X'";
 by (etac otway.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (Step_tac 1);
+by (ALLGOALS Clarify_tac);
 (*Remaining cases: OR3 and OR4*)
 by (ex_strip_tac 2);
 by (Blast_tac 2);
@@ -290,26 +290,25 @@ by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 (*OR1: it cannot be a new Nonce, contradiction.*)
 by (blast_tac (!claset addSIs [parts_insertI]
-                      addSEs spies_partsEs) 1);
+                       addSEs spies_partsEs) 1);
+(*OR3 and OR4*)
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
+by (ALLGOALS Clarify_tac);
 (*OR4*)
-by (REPEAT (Safe_step_tac 2));
-by (REPEAT (blast_tac (!claset addSDs [parts_cut]) 3));
 by (blast_tac (!claset addSIs [Crypt_imp_OR1]
                        addEs  spies_partsEs) 2);
 (*OR3*)  (** LEVEL 5 **)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
-by (step_tac (!claset delrules [disjCI, impCE]) 1);
-(*The hypotheses at this point suggest an attack in which nonce NA is used
+(*The hypotheses at this point suggest an attack in which nonce NB is used
   in two different roles:
           Says B' Server
-           {|Nonce NAa, Agent Aa, Agent A,
-             Crypt (shrK Aa) {|Nonce NAa, Agent Aa, Agent A|}, Nonce NA,
-             Crypt (shrK A) {|Nonce NAa, Agent Aa, Agent A|}|}
-          : set evsa;
+           {|Nonce NA, Agent Aa, Agent A,
+             Crypt (shrK Aa) {|Nonce NA, Agent Aa, Agent A|}, Nonce NB,
+             Crypt (shrK A) {|Nonce NA, Agent Aa, Agent A|}|}
+          : set evs3;
           Says A B
-           {|Nonce NA, Agent A, Agent B,
-             Crypt (shrK A) {|Nonce NA, Agent A, Agent B|}|}
-          : set evsa 
+           {|Nonce NB, Agent A, Agent B,
+             Crypt (shrK A) {|Nonce NB, Agent A, Agent B|}|}
+          : set evs3;
 *)
 writeln "GIVE UP! on NA_Crypt_imp_Server_msg";
 

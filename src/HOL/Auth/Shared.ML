@@ -112,7 +112,7 @@ by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [used_Cons]
 			setloop split_tac [expand_event_case, expand_if])));
-by (Step_tac 1);
+by Safe_tac;
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
 val lemma = result();

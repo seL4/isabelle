@@ -190,7 +190,7 @@ goal thy
 \       --> A=A' & B=B' & NA=NA' & NB=NB'";
 by (etac otway.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (Step_tac 1);
+by (ALLGOALS Clarify_tac);
 (*Remaining cases: OR3 and OR4*)
 by (ex_strip_tac 2);
 by (Blast_tac 2);

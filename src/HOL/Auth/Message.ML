@@ -28,7 +28,7 @@ Addsimps [Friend_image_eq];
 (** Inverse of keys **)
 
 goal thy "!!K K'. (invKey K = invKey K') = (K=K')";
-by (Step_tac 1);
+by Safe_tac;
 by (rtac box_equals 1);
 by (REPEAT (rtac invKey 2));
 by (Asm_simp_tac 1);
@@ -135,7 +135,7 @@ qed "parts_mono";
 val parts_insertI = impOfSubs (subset_insertI RS parts_mono);
 
 goal thy "parts{} = {}";
-by (Step_tac 1);
+by Safe_tac;
 by (etac parts.induct 1);
 by (ALLGOALS Blast_tac);
 qed "parts_empty";
@@ -373,7 +373,7 @@ val analz_insertI = impOfSubs (subset_insertI RS analz_mono);
 (** General equational properties **)
 
 goal thy "analz{} = {}";
-by (Step_tac 1);
+by Safe_tac;
 by (etac analz.induct 1);
 by (ALLGOALS Blast_tac);
 qed "analz_empty";
@@ -554,7 +554,7 @@ qed "analz_insert_cong";
 (*If there are no pairs or encryptions then analz does nothing*)
 goal thy "!!H. [| ALL X Y. {|X,Y|} ~: H;  ALL X K. Crypt K X ~: H |] ==> \
 \         analz H = H";
-by (Step_tac 1);
+by Safe_tac;
 by (etac analz.induct 1);
 by (ALLGOALS Blast_tac);
 qed "analz_trivial";

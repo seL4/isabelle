@@ -16,7 +16,7 @@ open Public;
 AddIffs [inj_pubK RS inj_eq];
 
 goal thy "!!A B. (priK A = priK B) = (A=B)";
-by (Step_tac 1);
+by Safe_tac;
 by (dres_inst_tac [("f","invKey")] arg_cong 1);
 by (Full_simp_tac 1);
 qed "priK_inj_eq";
@@ -89,7 +89,7 @@ fun not_bad_tac s =
        THEN_BEST_FIRST 
          (dres_inst_tac [("A", s)] Crypt_Spy_analz_bad 1 THEN assume_tac 1)
          (has_fewer_prems 1, size_of_thm)
-         (Step_tac 1));
+         Safe_tac);
 
 
 (*** Fresh nonces ***)
@@ -115,7 +115,7 @@ by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
 	      (!simpset addsimps [used_Cons]
 			setloop split_tac [expand_event_case, expand_if])));
-by (Step_tac 1);
+by Safe_tac;
 by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (!claset addSEs [add_leE])));
 val lemma = result();

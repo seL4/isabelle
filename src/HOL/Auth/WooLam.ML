@@ -175,6 +175,6 @@ goal thy
 \        --> Says A B (Crypt (shrK A) (Nonce NB)) : set evs";
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
-by (Step_tac 1);
+by Safe_tac;
 by (blast_tac (!claset addSEs partsEs) 1);
 **)

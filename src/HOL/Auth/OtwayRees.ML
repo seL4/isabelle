@@ -196,7 +196,7 @@ goal thy
 \     B=B' & NA=NA' & NB=NB' & X=X'";
 by (etac otway.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (Step_tac 1);
+by (ALLGOALS Clarify_tac);
 (*Remaining cases: OR3 and OR4*)
 by (ex_strip_tac 2);
 by (Best_tac 2);
@@ -286,22 +286,21 @@ by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 (*OR1: it cannot be a new Nonce, contradiction.*)
 by (blast_tac (!claset addSIs [parts_insertI] addSEs spies_partsEs) 1);
-(*OR3 and OR4*) 
-(*OR4*)
-by (REPEAT (Safe_step_tac 2));
-by (REPEAT (blast_tac (!claset addSDs [parts_cut]) 3));
-by (blast_tac (!claset addSIs [Crypt_imp_OR1]
-                       addEs  spies_partsEs) 2);
-(*OR3*)  (** LEVEL 5 **)
+(*OR3 and OR4*)
 by (asm_simp_tac (!simpset addsimps [ex_disj_distrib]) 1);
-by (step_tac (!claset delrules [disjCI, impCE]) 1);
+by (rtac conjI 1);
+by (ALLGOALS Clarify_tac);
+(*OR4*)
+by (blast_tac (!claset addSIs [Crypt_imp_OR1]
+                       addEs  spies_partsEs) 3);
+(*OR3, two cases*)  (** LEVEL 5 **)
 by (blast_tac (!claset addSEs [MPair_parts]
-                      addSDs [Says_imp_spies RS parts.Inj]
-                      addEs  [no_nonce_OR1_OR2 RSN (2, rev_notE)]
-                      delrules [conjI] (*stop split-up into 4 subgoals*)) 2);
+                       addSDs [Says_imp_spies RS parts.Inj]
+                       addEs  [no_nonce_OR1_OR2 RSN (2, rev_notE)]
+                       delrules [conjI] (*stop split-up into 4 subgoals*)) 2);
 by (blast_tac (!claset addSDs [Says_imp_spies RS parts.Inj]
-                      addSEs [MPair_parts]
-                      addIs  [unique_NA]) 1);
+                       addSEs [MPair_parts]
+                       addIs  [unique_NA]) 1);
 qed_spec_mp "NA_Crypt_imp_Server_msg";
 
 
@@ -426,7 +425,7 @@ by (blast_tac (!claset addSIs [parts_insertI] addSEs spies_partsEs) 1);
 (*OR4*)
 by (blast_tac (!claset addSEs [MPair_parts, Crypt_imp_OR2]) 2);
 (*OR3*)
-by (step_tac (!claset delrules [disjCI, impCE]) 1);
+by (safe_tac (!claset delrules [disjCI, impCE]));
 by (blast_tac (!claset delrules [conjI] (*stop split-up*)) 3); 
 by (blast_tac (!claset addSDs [Says_imp_spies RS parts.Inj]
                        addSEs [MPair_parts]
