@@ -99,6 +99,7 @@ goalw Order.thy [trans_on_def, pred_def]
 by (fast_tac eq_cs 1);
 qed "trans_pred_pred_eq";
 
+
 (** The ordering's properties hold over all subsets of its domain 
     [including initial segments of the form pred(A,x,r) **)
 
@@ -122,6 +123,39 @@ goalw Order.thy [well_ord_def]
     "!!A B r. [| well_ord(A,r);  B<=A |] ==> well_ord(B,r)";
 by (fast_tac (ZF_cs addSEs [tot_ord_subset, wf_on_subset_A]) 1);
 qed "well_ord_subset";
+
+
+(** Relations restricted to a smaller domain, by Krzysztof Grabczewski **)
+
+goalw Order.thy [irrefl_def] "irrefl(A,r Int A*A) <-> irrefl(A,r)";
+by (fast_tac ZF_cs 1);
+qed "irrefl_Int_iff";
+
+goalw Order.thy [trans_on_def] "trans[A](r Int A*A) <-> trans[A](r)";
+by (fast_tac ZF_cs 1);
+qed "trans_on_Int_iff";
+
+goalw Order.thy [part_ord_def] "part_ord(A,r Int A*A) <-> part_ord(A,r)";
+by (simp_tac (ZF_ss addsimps [irrefl_Int_iff, trans_on_Int_iff]) 1);
+qed "part_ord_Int_iff";
+
+goalw Order.thy [linear_def] "linear(A,r Int A*A) <-> linear(A,r)";
+by (fast_tac ZF_cs 1);
+qed "linear_Int_iff";
+
+goalw Order.thy [tot_ord_def] "tot_ord(A,r Int A*A) <-> tot_ord(A,r)";
+by (simp_tac (ZF_ss addsimps [part_ord_Int_iff, linear_Int_iff]) 1);
+qed "tot_ord_Int_iff";
+
+goalw Order.thy [wf_on_def, wf_def] "wf[A](r Int A*A) <-> wf[A](r)";
+by (fast_tac ZF_cs 1);
+qed "wf_on_Int_iff";
+
+goalw Order.thy [well_ord_def] "well_ord(A,r Int A*A) <-> well_ord(A,r)";
+by (simp_tac (ZF_ss addsimps [tot_ord_Int_iff, wf_on_Int_iff]) 1);
+qed "well_ord_Int_iff";
+
+
 
 
 (** Order-preserving (monotone) maps **)
@@ -527,3 +561,30 @@ by (rewrite_goals_tac [ord_iso_map_def]);
 by (fast_tac ZF_cs 1);
 qed "well_ord_trichotomy";
 
+
+(*** Properties of converse(r), by Krzysztof Grabczewski ***)
+
+goalw Order.thy [irrefl_def] 
+            "!!A. irrefl(A,r) ==> irrefl(A,converse(r))";
+by (fast_tac (ZF_cs addSIs [converseI]) 1);
+qed "irrefl_converse";
+
+goalw Order.thy [trans_on_def] 
+    "!!A. trans[A](r) ==> trans[A](converse(r))";
+by (fast_tac (ZF_cs addSIs [converseI]) 1);
+qed "trans_on_converse";
+
+goalw Order.thy [part_ord_def] 
+    "!!A. part_ord(A,r) ==> part_ord(A,converse(r))";
+by (fast_tac (ZF_cs addSIs [irrefl_converse, trans_on_converse]) 1);
+qed "part_ord_converse";
+
+goalw Order.thy [linear_def] 
+    "!!A. linear(A,r) ==> linear(A,converse(r))";
+by (fast_tac (ZF_cs addSIs [converseI]) 1);
+qed "linear_converse";
+
+goalw Order.thy [tot_ord_def] 
+    "!!A. tot_ord(A,r) ==> tot_ord(A,converse(r))";
+by (fast_tac (ZF_cs addSIs [part_ord_converse, linear_converse]) 1);
+qed "tot_ord_converse";
