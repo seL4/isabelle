@@ -6,15 +6,16 @@ Cantor's theorem -- Isar'ized version of the final section of the HOL
 chapter of "Isabelle's Object-Logics" (Larry Paulson).
 *)
 
-header {* More classical proofs: Cantor's Theorem *};
+header {* Cantor's Theorem *};
 
 theory Cantor = Main:;
 
 text {*
   Cantor's Theorem states that every set has more subsets than it has
-  elements.  It has become a favourite basic example in higher-order logic
-  since it is so easily expressed: \[\all{f::\alpha \To \alpha \To \idt{bool}}
-  \ex{S::\alpha \To \idt{bool}} \all{x::\alpha}. f \ap x \not= S\]
+  elements.  It has become a favorite basic example in pure
+  higher-order logic since it is so easily expressed: \[\all{f::\alpha
+  \To \alpha \To \idt{bool}} \ex{S::\alpha \To \idt{bool}}
+  \all{x::\alpha}. f \ap x \not= S\]
   
   Viewing types as sets, $\alpha \To \idt{bool}$ represents the powerset of
   $\alpha$.  This version of the theorem states that for every function from

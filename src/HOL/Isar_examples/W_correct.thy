@@ -6,7 +6,7 @@ Correctness of Milner's type inference algorithm W (let-free version).
 Based upon HOL/W0 by Dieter Nazareth and Tobias Nipkow.
 *)
 
-header {* Correctness of Milner's type inference algorithm~W (let-free version) *};
+header {* Milner's type inference algorithm~W (let-free version) *};
 
 theory W_correct = Main + Type:;
 
@@ -47,8 +47,10 @@ proof -;
     hence "n < length (map ($ s) a)"; by simp;
     hence "map ($ s) a |- Var n :: map ($ s) a ! n";
       by (rule has_type.VarI);
-    also; have "map ($ s) a ! n = $ s (a ! n)"; by (rule nth_map);
-    also; have "map ($ s) a = $ s a"; by (simp only: app_subst_list);   (* FIXME unfold fails!? *)
+    also; have "map ($ s) a ! n = $ s (a ! n)";
+      by (rule nth_map);
+    also; have "map ($ s) a = $ s a";
+      by (simp only: app_subst_list);   (* FIXME unfold fails!? *)
     finally; show "?P a (Var n) (a ! n)"; .;
   next;
     fix a e t1 t2;
@@ -114,10 +116,11 @@ proof -;
     proof (intro allI impI);
       fix a s t m n; assume "Ok (s, t, m) = W (App e1 e2) a n";
       hence "EX s1 t1 n1 s2 t2 n2 u.
-        s = $ u o $ s2 o s1 & t = u n2 &
-        mgu ($ s2 t1) (t2 -> TVar n2) = Ok u &
-           W e2 ($ s1 a) n1 = Ok (s2, t2, n2) &
-           W e1 a n = Ok (s1, t1, n1)"; by (rule rev_mp) (simp, force); (* FIXME force fails !??*)
+          s = $ u o $ s2 o s1 & t = u n2 &
+          mgu ($ s2 t1) (t2 -> TVar n2) = Ok u &
+             W e2 ($ s1 a) n1 = Ok (s2, t2, n2) &
+             W e1 a n = Ok (s1, t1, n1)";
+        by (rule rev_mp) (simp, force); (* FIXME force fails !??*)
       thus "$ s a |- App e1 e2 :: t";
       proof (elim exE conjE);
         fix s1 t1 n1 s2 t2 n2 u;
@@ -132,7 +135,8 @@ proof -;
             by (simp add: subst_comp_tel o_def);
           show "$s a |- e1 :: $ u t2 -> t";
           proof -;
-            from hyp1 W1_ok [RS sym]; have "$ s1 a |- e1 :: t1"; by blast;
+            from hyp1 W1_ok [RS sym]; have "$ s1 a |- e1 :: t1";
+              by blast;
             hence "$ u ($ s2 ($ s1 a)) |- e1 :: $ u ($ s2 t1)";
               by (intro has_type_subst_closed);
             with s' t mgu_ok; show ?thesis; by simp;

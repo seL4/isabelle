@@ -11,7 +11,8 @@ subsection {* Groups *};
 
 text {*
  We define an axiomatic type class of general groups over signature
- $({\times}, \idt{one}, \idt{inv})$.
+ $({\times} :: \alpha \To \alpha \To \alpha, \idt{one} :: \alpha,
+ \idt{inv} :: \alpha \To \alpha)$.
 *};
 
 consts

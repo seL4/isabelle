@@ -26,25 +26,16 @@ val output_chr = fn
   "%" => "\\%" |
   "#" => "\\#" |
   "_" => "\\_" |
-  "{" => "{\\textbraceleft}" |
-  "}" => "{\\textbraceright}" |
-  "~" => "{\\textasciitilde}" |
-  "^" => "{\\textasciicircum}" |
+  "{" => "{\\isabraceleft}" |
+  "}" => "{\\isabraceright}" |
+  "~" => "{\\isatilde}" |
+  "^" => "{\\isacircum}" |
   "\"" => "{\"}" |
-  "\\" => "\\verb,\\," |
+  "\\" => "{\\isabackslash}" |
   c => c;
-
-val output_chr' = fn
-  "\\" => "{\\textbackslash}" |
-  "|" => "{\\textbar}" |
-  "<" => "{\\textless}" |
-  ">" => "{\\textgreater}" |
-  c => output_chr c;
-
 
 (* FIXME replace \<forall> etc. *)
 val output_sym = implode o map output_chr o explode;
-val output_sym' = implode o map output_chr' o explode;
 
 
 (* token output *)
@@ -63,14 +54,18 @@ fun strip_blanks s =
 fun output_tok (Basic tok) =
       let val s = T.val_of tok in
         if invisible_token tok then ""
-        else if T.is_kind T.Command tok then "\\isacommand{" ^ output_sym' s ^ "}"
-        else if T.is_kind T.Keyword tok then "\\isakeyword{" ^ output_sym' s ^ "}"
+        else if T.is_kind T.Command tok then
+          if s = "{{" then "{\\isabeginblock}"
+          else if s = "}}" then "{\\isaendblock}"
+          else "\\isacommand{" ^ output_sym s ^ "}"
+        else if T.is_kind T.Keyword tok andalso Syntax.is_identifier s then
+          "\\isakeyword{" ^ output_sym s ^ "}"
         else if T.is_kind T.String tok then output_sym (quote s)
         else if T.is_kind T.Verbatim tok then output_sym (enclose "{*" "*}" s)
         else output_sym s
       end
-  | output_tok (Markup (cmd, arg)) = "\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks arg ^ "}\n"
-  | output_tok (Verbatim txt) = "\n" ^ txt ^ "\n";
+  | output_tok (Markup (cmd, txt)) = "\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks txt ^ "}\n"
+  | output_tok (Verbatim txt) = "\n" ^ strip_blanks txt ^ "\n";
 
 
 val output_tokens = implode o map output_tok;

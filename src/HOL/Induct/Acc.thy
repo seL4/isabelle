@@ -18,10 +18,12 @@ consts
 
 inductive "acc r"
   intrs
-    accI [rulify_prems]: "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
+    accI [rulify_prems]:
+      "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
 
-
-syntax        termi :: "('a * 'a)set => 'a set"
-translations "termi r" == "acc(r^-1)"
+syntax
+  termi :: "('a * 'a)set => 'a set"
+translations
+  "termi r" == "acc(r^-1)"
 
 end

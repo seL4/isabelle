@@ -6,8 +6,8 @@ Miscellaneous Isabelle/Isar examples for Higher-Order Logic.
 *)
 
 time_use_thy "BasicLogic";
-time_use_thy "Peirce";
 time_use_thy "Cantor";
+time_use_thy "Peirce";
 time_use_thy "ExprCompiler";
 time_use_thy "Group";
 time_use_thy "Summation";

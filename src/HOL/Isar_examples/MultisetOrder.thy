@@ -25,12 +25,14 @@ proof (unfold mult1_def);
   let ?case1 = "?case1 {(N, M). ?R N M}";
 
   assume "(N, M0 + {#a#}) : {(N, M). ?R N M}";
-  hence "EX a' M0' K. M0 + {#a#} = M0' + {#a'#} & N = M0' + K & ?r K a'"; by simp;
+  hence "EX a' M0' K.
+      M0 + {#a#} = M0' + {#a'#} & N = M0' + K & ?r K a'"; by simp;
   thus "?case1 | ?case2";
   proof (elim exE conjE);
     fix a' M0' K; assume N: "N = M0' + K" and r: "?r K a'";
     assume "M0 + {#a#} = M0' + {#a'#}";
-    hence "M0 = M0' & a = a' | (EX K'. M0 = K' + {#a'#} & M0' = K' + {#a#})";
+    hence "M0 = M0' & a = a' |
+        (EX K'. M0 = K' + {#a'#} & M0' = K' + {#a#})";
       by (simp only: add_eq_conv_ex);
     thus ?thesis;
     proof (elim disjE conjE exE);
@@ -59,14 +61,14 @@ proof;
 
   {{;
     fix M M0 a;
-    assume wf_hyp: "ALL b. (b, a) : r --> (ALL M:?W. M + {#b#} : ?W)"
-      and M0: "M0 : ?W"
+    assume M0: "M0 : ?W"
+      and wf_hyp: "ALL b. (b, a) : r --> (ALL M:?W. M + {#b#} : ?W)"
       and acc_hyp: "ALL M. (M, M0) : ?R --> M + {#a#} : ?W";
     have "M0 + {#a#} : ?W";
     proof (rule accI [of "M0 + {#a#}"]);
       fix N; assume "(N, M0 + {#a#}) : ?R";
       hence "((EX M. (M, M0) : ?R & N = M + {#a#}) |
-             (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K))";
+          (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K))";
 	by (rule less_add);
       thus "N : ?W";
       proof (elim exE disjE conjE);
@@ -88,7 +90,7 @@ proof;
 	  proof;
 	    assume a: "ALL b. elem (K + {#x#}) b --> (b, a) : r";
 	    hence "(x, a) : r"; by simp;
-	    with wf_hyp [RS spec]; have b: "ALL M:?W. M + {#x#} : ?W"; ..;
+	    with wf_hyp; have b: "ALL M:?W. M + {#x#} : ?W"; by blast;
 
 	    from a hyp; have "M0 + K : ?W"; by simp;
 	    with b; have "(M0 + K) + {#x#} : ?W"; ..;
@@ -114,11 +116,13 @@ proof;
     fix M a; assume "M : ?W";
     from wf; have "ALL M:?W. M + {#a#} : ?W";
     proof (rule wf_induct [of r]);
-      fix a; assume "ALL b. (b, a) : r --> (ALL M:?W. M + {#b#} : ?W)";
+      fix a;
+      assume "ALL b. (b, a) : r --> (ALL M:?W. M + {#b#} : ?W)";
       show "ALL M:?W. M + {#a#} : ?W";
       proof;
 	fix M; assume "M : ?W";
-	thus "M + {#a#} : ?W"; by (rule acc_induct) (rule tedious_reasoning);
+	thus "M + {#a#} : ?W";
+          by (rule acc_induct) (rule tedious_reasoning);
       qed;
     qed;
     thus "M + {#a#} : ?W"; ..;

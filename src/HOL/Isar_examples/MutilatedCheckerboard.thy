@@ -23,13 +23,15 @@ consts
 inductive "tiling A"
   intrs
     empty: "{} : tiling A"
-    Un:    "[| a : A;  t : tiling A;  a <= - t |] ==> a Un t : tiling A";
+    Un:    "[| a : A;  t : tiling A;  a <= - t |]
+              ==> a Un t : tiling A";
 
 
-text "The union of two disjoint tilings is a tiling";
+text "The union of two disjoint tilings is a tiling.";
 
 lemma tiling_Un:
-  "t : tiling A --> u : tiling A --> t Int u = {} --> t Un u : tiling A";
+  "t : tiling A --> u : tiling A --> t Int u = {}
+    --> t Un u : tiling A";
 proof;
   assume "t : tiling A" (is "_ : ?T");
   thus "u : ?T --> t Int u = {} --> t Un u : ?T" (is "?P t");
@@ -119,7 +121,8 @@ inductive domino
     horiz:  "{(i, j), (i, j + 1)} : domino"
     vertl:  "{(i, j), (i + 1, j)} : domino";
 
-lemma dominoes_tile_row: "{i} Times below (2 * n) : tiling domino"
+lemma dominoes_tile_row:
+  "{i} Times below (2 * n) : tiling domino"
   (is "?P n" is "?B n : ?T");
 proof (induct n);
   show "?P 0"; by (simp add: below_0 tiling.empty);
@@ -268,9 +271,11 @@ proof (unfold mutilated_board_def);
     note [simp] = evnodd_iff evnodd_empty evnodd_insert evnodd_Diff;
     have "card (?e ?t'' 0) < card (?e ?t' 0)";
     proof -;
-      have "card (?e ?t' 0 - {(2 * m + 1, 2 * n + 1)}) < card (?e ?t' 0)";
+      have "card (?e ?t' 0 - {(2 * m + 1, 2 * n + 1)})
+        < card (?e ?t' 0)";
       proof (rule card_Diff1_less);
-	show "finite (?e ?t' 0)"; by (rule finite_subset, rule fin) force;
+	show "finite (?e ?t' 0)";
+          by (rule finite_subset, rule fin) force;
 	show "(2 * m + 1, 2 * n + 1) : ?e ?t' 0"; by simp;
       qed;
       thus ?thesis; by simp;
@@ -282,7 +287,8 @@ proof (unfold mutilated_board_def);
         by (rule card_Diff1_less);
       thus ?thesis; by simp;
     qed;
-    also; from t; have "... = card (?e ?t 1)"; by (rule tiling_domino_01);
+    also; from t; have "... = card (?e ?t 1)";
+      by (rule tiling_domino_01);
     also; have "?e ?t 1 = ?e ?t'' 1"; by simp;
     also; from t''; have "card ... = card (?e ?t'' 0)";
       by (rule tiling_domino_01 [RS sym]);
