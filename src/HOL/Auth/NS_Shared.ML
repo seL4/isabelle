@@ -60,10 +60,11 @@ qed "Oops_parts_spies";
 
 (*For proving the easier theorems about X ~: parts (spies evs).*)
 fun parts_induct_tac i = 
-    etac ns_shared.induct i  THEN 
-    forward_tac [Oops_parts_spies] (i+7)  THEN
-    forward_tac [NS3_msg_in_parts_spies] (i+4)     THEN
-    prove_simple_subgoals_tac i;
+  EVERY [etac ns_shared.induct i,
+	 REPEAT (FIRSTGOAL analz_mono_contra_tac),
+	 forward_tac [Oops_parts_spies] (i+7),
+	 forward_tac [NS3_msg_in_parts_spies] (i+4),
+	 prove_simple_subgoals_tac i];
 
 
 (** Theorems of the form X ~: parts (spies evs) imply that NOBODY
@@ -141,6 +142,14 @@ by (Fake_parts_insert_tac 1);
 qed "A_trusts_NS2";
 
 
+goal thy
+ "!!evs. [| Crypt (shrK A) {|NA, Agent B, Key K, X|} : parts (spies evs); \
+\           A ~: bad;  evs : ns_shared |]                                 \
+\         ==> K ~: range shrK &  X = (Crypt (shrK B) {|Key K, Agent A|})";
+by (blast_tac (claset() addSDs [A_trusts_NS2, Says_Server_message_form]) 1);
+qed "cert_A_form";
+
+
 (*EITHER describes the form of X when the following message is sent, 
   OR     reduces it to the Fake case.
   Use Says_Server_message_form if applicable.*)
@@ -153,8 +162,7 @@ goal thy
 by (case_tac "A : bad" 1);
 by (fast_tac (claset() addSDs [Says_imp_spies RS analz.Inj]
                        addss (simpset())) 1);
-by (forward_tac [Says_imp_spies RS parts.Inj] 1);
-by (blast_tac (claset() addSDs [A_trusts_NS2, Says_Server_message_form]) 1);
+by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj, cert_A_form]) 1);
 qed "Says_S_message_form";
 
 
@@ -172,7 +180,6 @@ val analz_spies_tac =
   Key K : analz (spies evs)
 
  A more general formula must be proved inductively.
-
 ****)
 
 
@@ -291,8 +298,8 @@ val lemma = result() RS mp RS mp RSN(2,rev_notE);
 (*Final version: Server's message in the most abstract form*)
 goal thy 
  "!!evs. [| Says Server A                                        \
-\            (Crypt K' {|NA, Agent B, Key K, X|}) : set evs;     \
-\           (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs);   \
+\              (Crypt K' {|NA, Agent B, Key K, X|}) : set evs;   \
+\           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs;     \
 \           A ~: bad;  B ~: bad;  evs : ns_shared                \
 \        |] ==> Key K ~: analz (spies evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
@@ -322,42 +329,112 @@ qed "B_trusts_NS3";
 
 
 goal thy
- "!!evs. [| B ~: bad;  evs : ns_shared |]                              \
-\        ==> Key K ~: analz (spies evs) -->                            \
-\            Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
-\            : set evs -->                                             \
-\            Crypt K (Nonce NB) : parts (spies evs) -->                \
-\            Says B A (Crypt K (Nonce NB)) : set evs";
-by (etac ns_shared.induct 1);
-by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
-by (dtac NS3_msg_in_parts_spies 5);
-by (forward_tac [Oops_parts_spies] 8);
-by (REPEAT (FIRSTGOAL analz_mono_contra_tac));
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
-(**LEVEL 6**)
+ "!!evs. [| Crypt K (Nonce NB) : parts (spies evs);                   \
+\           Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
+\              : set evs;                                             \
+\           Key K ~: analz (spies evs);                               \
+\           evs : ns_shared |]                  \
+\        ==> Says B A (Crypt K (Nonce NB)) : set evs";
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
 (*NS3*)
 by (Blast_tac 3);
 by (Fake_parts_insert_tac 1);
-by (ALLGOALS Clarify_tac);
 (*NS2: contradiction from the assumptions  
-  Key K ~: used evsa  and Crypt K (Nonce NB) : parts (spies evsa) *)
-by (dtac Crypt_imp_invKey_keysFor 1);
-by (Asm_full_simp_tac 1);
-(*NS4*)  (**LEVEL 11**)
-by (case_tac "Ba : bad" 1);
+  Key K ~: used evs2  and Crypt K (Nonce NB) : parts (spies evs2) *)
+by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
+			addSDs [Crypt_imp_keysFor]) 1);
+(**LEVEL 7**)
+(*NS4*)
+by (Clarify_tac 1);
+by (not_bad_tac "Ba" 1);
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj RS B_trusts_NS3, 
-			       unique_session_keys]) 2);
-by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj RS
-			       Crypt_Spy_analz_bad]) 1);
-val lemma = result();
+			       unique_session_keys]) 1);
+qed "A_trusts_NS4_lemma";
 
+
+(*This version no longer assumes that K is secure*)
 goal thy
  "!!evs. [| Crypt K (Nonce NB) : parts (spies evs);                   \
-\           Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
-\           : set evs;                                                \
+\           Crypt (shrK A) {|NA, Agent B, Key K, X|} : parts (spies evs); \
 \           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs;          \
 \           A ~: bad;  B ~: bad;  evs : ns_shared |]                  \
 \        ==> Says B A (Crypt K (Nonce NB)) : set evs";
-by (blast_tac (claset() addSIs [lemma RS mp RS mp RS mp]
+by (blast_tac (claset() addSIs [A_trusts_NS2, A_trusts_NS4_lemma]
 	         addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
 qed "A_trusts_NS4";
+
+
+(*If the session key has been used in NS4 then somebody has forwarded
+  component X in some instance of NS4.  Perhaps an interesting property, 
+  but not needed (after all) for the proofs below.*)
+goal thy
+ "!!evs. [| Crypt K (Nonce NB) : parts (spies evs);     \
+\           Says Server A (Crypt (shrK A) {|NA, Agent B, Key K, X|})  \
+\             : set evs;                                              \
+\           Key K ~: analz (spies evs);                               \
+\           evs : ns_shared |]                              \
+\        ==> EX A'. Says A' B X : set evs";
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (etac rev_mp 1);
+by (parts_induct_tac 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
+by (ALLGOALS Clarify_tac);
+by (Fake_parts_insert_tac 1);
+(**LEVEL 7**)
+(*NS2*)
+by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
+			addSDs [Crypt_imp_keysFor]) 1);
+(*NS4*)
+by (not_bad_tac "Ba" 1);
+by (Asm_full_simp_tac 1);
+by (forward_tac [Says_imp_spies RS parts.Inj RS B_trusts_NS3] 1);
+by (ALLGOALS Clarify_tac);
+by (blast_tac (claset() addDs [unique_session_keys]) 1);
+qed "NS4_implies_NS3";
+
+
+goal thy
+ "!!evs. [| B ~: bad;  evs : ns_shared |]                              \
+\        ==> Key K ~: analz (spies evs) -->                            \
+\            Says Server A                                     \
+\              (Crypt (shrK A) {|NA, Agent B, Key K,                   \
+\                                Crypt (shrK B) {|Key K, Agent A|}|})  \
+\             : set evs -->         \
+\            Says B A (Crypt K (Nonce NB))  : set evs -->  \
+\            Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs) --> \
+\            Says A B (Crypt K {|Nonce NB, Nonce NB|}) : set evs";
+by (parts_induct_tac 1);
+(*NS4*)
+by (blast_tac (claset() addSEs spies_partsEs) 4);
+(*NS3*)
+by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj, cert_A_form]) 3);
+(*NS2*)
+by (blast_tac (claset() addSEs [new_keys_not_used RSN (2,rev_notE)]
+			addSDs [Crypt_imp_keysFor]) 2);
+by (Fake_parts_insert_tac 1);
+(**LEVEL 5**)
+(*NS5*)
+by (Clarify_tac 1);
+by (not_bad_tac "Aa" 1);
+by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj RS A_trusts_NS2, 
+			       unique_session_keys]) 1);
+val lemma = result();
+
+
+(*Very strong Oops condition reveals protocol's weakness*)
+goal thy
+ "!!evs. [| Crypt K {|Nonce NB, Nonce NB|} : parts (spies evs);      \
+\           Says B A (Crypt K (Nonce NB))  : set evs;                \
+\           Crypt (shrK B) {|Key K, Agent A|} : parts (spies evs);   \
+\           ALL NA NB. Says A Spy {|NA, NB, Key K|} ~: set evs;      \
+\           A ~: bad;  B ~: bad;  evs : ns_shared |]                 \
+\        ==> Says A B (Crypt K {|Nonce NB, Nonce NB|}) : set evs";
+by (dtac B_trusts_NS3 1);
+by (ALLGOALS Clarify_tac);
+by (blast_tac (claset() addSIs [normalize_thm [RSspec, RSmp] lemma]
+	         addSEs [Spy_not_see_encrypted_key RSN (2,rev_notE)]) 1);
+qed "B_trusts_NS5";
