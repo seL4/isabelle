@@ -285,21 +285,27 @@ val proof =
   ProofHistory.applys o Method.proof o apsome Comment.ignore_interest o Comment.ignore_interest';
 
 
+(* print result *)
+
+fun pretty_result {kind, name, thm} =
+  Pretty.block [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
+
+val print_result = Pretty.writeln o pretty_result;
+fun cond_print_result int res = if int then print_result res else ();
+
+fun proof'' f = Toplevel.proof' (f o cond_print_result);
+
+
 (* local endings *)
 
 val local_qed =
-  Toplevel.proof' o (ProofHistory.applys_close oo Method.local_qed)
-    o apsome Comment.ignore_interest;
+  proof'' o (ProofHistory.applys_close oo Method.local_qed) o apsome Comment.ignore_interest;
 
 val local_terminal_proof =
-  Toplevel.proof' o (ProofHistory.applys_close oo Method.local_terminal_proof)
-    o Comment.ignore_interest;
+  proof'' o (ProofHistory.applys_close oo Method.local_terminal_proof) o Comment.ignore_interest;
 
-val local_immediate_proof =
-  Toplevel.proof' (ProofHistory.applys_close o Method.local_immediate_proof);
-
-val local_default_proof =
-  Toplevel.proof' (ProofHistory.applys_close o Method.local_default_proof);
+val local_immediate_proof = proof'' (ProofHistory.applys_close o Method.local_immediate_proof);
+val local_default_proof = proof'' (ProofHistory.applys_close o Method.local_default_proof);
 
 
 (* global endings *)
@@ -310,11 +316,8 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
   let
     val state = ProofHistory.current prf;
     val _ = if Proof.at_bottom state then () else raise Toplevel.UNDEF;
-    val (thy, {kind, name, thm}) = finish state;
-
-    val prt_result = Pretty.block
-      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Display.pretty_thm thm];
-  in Pretty.writeln prt_result; thy end);
+    val (thy, res) = finish state;
+  in print_result res; thy end);
 
 fun gen_global_qed_with prep_att (alt_name, raw_atts) meth state =
   let
