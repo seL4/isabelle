@@ -197,16 +197,16 @@ qed "Key_supply";
 
 (*** Tactics for possibility theorems ***)
 
-val possibility_tac =
-    REPEAT (*omit used_Says so that Nonces, Keys start from different traces!*)
+fun possibility_tac st = st |>
+   (REPEAT (*omit used_Says so that Nonces, Keys start from different traces!*)
     (ALLGOALS (simp_tac (!simpset delsimps [used_Says] setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
-                   resolve_tac [refl, conjI, Nonce_supply, Key_supply]));
+                   resolve_tac [refl, conjI, Nonce_supply, Key_supply])));
 
 (*For harder protocols (such as Recur) where we have to set up some
   nonces and keys initially*)
-val basic_possibility_tac =
+fun basic_possibility_tac st = st |>
     REPEAT 
     (ALLGOALS (asm_simp_tac (!simpset setSolver safe_solver))
      THEN
