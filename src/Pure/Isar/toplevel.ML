@@ -15,9 +15,9 @@ sig
   val prompt_state_default: state -> string
   val prompt_state_fn: (state -> string) ref
   val print_state_context: state -> unit
-  val print_state_default: state -> unit
-  val print_state_fn: (state -> unit) ref
-  val print_state: state -> unit
+  val print_state_default: bool -> state -> unit
+  val print_state_fn: (bool -> state -> unit) ref
+  val print_state: bool -> state -> unit
   exception UNDEF
   val node_history_of: state -> node History.T
   val node_of: state -> node
@@ -84,12 +84,13 @@ fun print_ctxt thy = Pretty.writeln (Pretty.block
   [Pretty.str "theory", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
     Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy]);
 
+fun print_prf prf = Proof.print_state (ProofHistory.position prf) (ProofHistory.current prf);
+
 fun print_node_ctxt (Theory thy) = print_ctxt thy
   | print_node_ctxt (Proof prf) = print_ctxt (Proof.theory_of (ProofHistory.current prf));
 
-fun print_node (Theory thy) = print_ctxt thy
-  | print_node (Proof prf) = Proof.print_state (ProofHistory.position prf)
-      (ProofHistory.current prf);
+fun print_node prf_only (Theory thy) = if prf_only then () else print_ctxt thy
+  | print_node _ (Proof prf) = print_prf prf;
 
 
 (* datatype state *)
@@ -120,10 +121,10 @@ fun print_current_node _ (State None) = ()
 
 val print_state_context = print_current_node print_node_ctxt;
 
-fun print_state_default state =
+fun print_state_default prf_only state =
   let val ref (begin_state, end_state, _) = Goals.current_goals_markers in
     if begin_state = "" then () else writeln begin_state;
-    print_current_node print_node state;
+    print_current_node (print_node prf_only) state;
     if end_state = "" then () else writeln end_state
   end;
 
@@ -389,7 +390,7 @@ fun app int (tr as Transition {trans, int_only, print, ...}) state =
       else warning (command_msg "Interactive-only " tr);
     val (result, opt_exn) =
       (if ! trace then (writeln (command_msg "" tr); timeap) else I) (apply_trans int trans) state;
-    val _ = if int andalso print andalso not (! quiet) then print_state result else ();
+    val _ = if int andalso print andalso not (! quiet) then print_state false result else ();
   in (result, apsome (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 
 in

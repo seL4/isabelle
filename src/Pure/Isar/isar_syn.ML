@@ -589,7 +589,7 @@ val kill_thyP =
     K.diag (P.name >> IsarCmd.kill_thy);
 
 val prP =
-  OuterSyntax.improper_command "pr" "print current toplevel state" K.diag
+  OuterSyntax.improper_command "pr" "print current proof state (if present)" K.diag
     (opt_modes -- Scan.option P.nat >> IsarCmd.pr);
 
 val disable_prP =

@@ -90,7 +90,7 @@ fun with_modes modes e =
 
 fun pr (ms, limit) = Toplevel.keep (fn state =>
   ((case limit of Some n => goals_limit := n | None => ()); Toplevel.quiet := false;
-    with_modes ms (fn () => Toplevel.print_state state)));
+    with_modes ms (fn () => Toplevel.print_state true state)));
 
 val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
 val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
