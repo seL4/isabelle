@@ -186,6 +186,8 @@ val pure_syntax =
   ("",             "id => aprop",                   Delimfix "_"),
   ("",             "longid => aprop",               Delimfix "_"),
   ("",             "var => aprop",                  Delimfix "_"),
+  ("_BIND",        "id => aprop",                   Delimfix "??_"),
+  ("_DDDOT",       "aprop",                         Delimfix "..."),
   ("_aprop",       "aprop => prop",                 Delimfix "PROP _"),
   ("",             "prop => asms",                  Delimfix "_"),
   ("_asms",        "[prop, asms] => asms",          Delimfix "_;/ _"),
