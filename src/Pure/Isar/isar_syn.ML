@@ -29,7 +29,7 @@ val end_excursionP =
 
 val kill_excursionP =
   OuterSyntax.improper_command "kill" "kill current excursion" K.control
-    (Scan.succeed (Toplevel.print o IsarCmd.kill_theory));
+    (Scan.succeed (Toplevel.print o Toplevel.kill));
 
 val contextP =
   OuterSyntax.improper_command "context" "switch theory context" K.thy_switch
@@ -317,7 +317,7 @@ val defP =
 
 val fixP =
   OuterSyntax.command "fix" "fix variables (Skolem constants)" K.prf_asm
-    (Scan.repeat1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ)) -- P.marg_comment
+    (P.and_list1 (Scan.repeat1 P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- P.marg_comment)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.fix)));
 
 val letP =
@@ -567,8 +567,8 @@ val init_toplevelP =
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
 val keywords =
- ["!", "!!", "%", "%%", "(", ")", "*", "+", ",", "--", ":", "::", ";",
-  "<", "<=", "=", "==", "=>", "?", "[", "]", "and", "as", "binder",
+ ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
+  "<=", "=", "==", "=>", "?", "[", "]", "and", "as", "binder",
   "concl", "files", "infixl", "infixr", "is", "output", "{", "|",
   "}"];
 
