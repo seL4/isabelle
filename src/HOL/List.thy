@@ -669,6 +669,10 @@ lemma list_all_append [simp]:
 "list_all P (xs @ ys) = (list_all P xs \<and> list_all P ys)"
 by (induct xs) auto
 
+lemma list_all_rev [simp]: "list_all P (rev xs) = list_all P xs"
+by (simp add: list_all_conv)
+
+
 
 subsubsection {* @{text filter} *}
 
