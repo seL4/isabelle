@@ -22,8 +22,8 @@ consts
 
 inductive "r^*"
   intros
-    rtrancl_refl [intro!, simp]: "(a, a) : r^*"
-    rtrancl_into_rtrancl: "(a, b) : r^* ==> (b, c) : r ==> (a, c) : r^*"
+    rtrancl_refl [intro!, CPure.intro!, simp]: "(a, a) : r^*"
+    rtrancl_into_rtrancl [CPure.intro]: "(a, b) : r^* ==> (b, c) : r ==> (a, c) : r^*"
 
 constdefs
   trancl :: "('a \<times> 'a) set => ('a \<times> 'a) set"    ("(_^+)" [1000] 999)
@@ -57,14 +57,13 @@ lemma rtrancl_mono: "r \<subseteq> s ==> r^* \<subseteq> s^*"
     apply blast+
   done
 
-theorem rtrancl_induct [consumes 1]:
+theorem rtrancl_induct [consumes 1, induct set: rtrancl]:
   (assumes a: "(a, b) : r^*"
     and cases: "P a" "!!y z. [| (a, y) : r^*; (y, z) : r; P y |] ==> P z")
   "P b"
 proof -
   from a have "a = a --> P b"
-    by (induct "%x y. x = a --> P y" a b rule: rtrancl.induct)
-      (rules intro: cases)+
+    by (induct "%x y. x = a --> P y" a b) (rules intro: cases)+
   thus ?thesis by rules
 qed
 
@@ -75,11 +74,12 @@ ML_setup {*
 
 lemma trans_rtrancl: "trans(r^*)"
   -- {* transitivity of transitive closure!! -- by induction *}
-  apply (unfold trans_def)
-  apply safe
-  apply (erule_tac b = z in rtrancl_induct)
-   apply (blast intro: rtrancl_into_rtrancl)+
-  done
+proof (rule transI)
+  fix x y z
+  assume "(x, y) \<in> r\<^sup>*"
+  assume "(y, z) \<in> r\<^sup>*"
+  thus "(x, z) \<in> r\<^sup>*" by induct (rules!)+
+qed
 
 lemmas rtrancl_trans = trans_rtrancl [THEN transD, standard]
 
@@ -100,7 +100,9 @@ proof -
     done
 qed
 
-lemmas converse_rtrancl_into_rtrancl = r_into_rtrancl [THEN rtrancl_trans, standard]
+lemma converse_rtrancl_into_rtrancl:
+  "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> r\<^sup>* \<Longrightarrow> (a, c) \<in> r\<^sup>*"
+  by (rule rtrancl_trans) rules+
 
 text {*
   \medskip More @{term "r^*"} equations and inclusions.
@@ -148,33 +150,31 @@ lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (blast intro!: r_into_rtrancl)
   done
 
-lemma rtrancl_converseD: "(x, y) \<in> (r^-1)^* ==> (y, x) \<in> r^*"
-  apply (erule rtrancl_induct)
-   apply (rule rtrancl_refl)
-  apply (blast intro: rtrancl_trans)
-  done
+theorem rtrancl_converseD:
+  (assumes r: "(x, y) \<in> (r^-1)^*") "(y, x) \<in> r^*"
+proof -
+  from r show ?thesis
+    by induct (rules intro: rtrancl_trans dest!: converseD)+
+qed
 
-lemma rtrancl_converseI: "(y, x) \<in> r^* ==> (x, y) \<in> (r^-1)^*"
-  apply (erule rtrancl_induct)
-   apply (rule rtrancl_refl)
-  apply (blast intro: rtrancl_trans)
-  done
+theorem rtrancl_converseI:
+  (assumes r: "(y, x) \<in> r^*") "(x, y) \<in> (r^-1)^*"
+proof -
+  from r show ?thesis
+    by induct (rules intro: rtrancl_trans converseI)+
+qed
 
 lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
   by (fast dest!: rtrancl_converseD intro!: rtrancl_converseI)
 
-lemma converse_rtrancl_induct:
-  "[| (a,b) : r^*; P(b);
-      !!y z.[| (y,z) : r;  (z,b) : r^*;  P(z) |] ==> P(y) |]
-    ==> P(a)"
+theorem converse_rtrancl_induct:
+  (assumes major: "(a, b) : r^*"
+   and cases: "P b" "!!y z. [| (y, z) : r; (z, b) : r^*; P z |] ==> P y")
+    "P a"
 proof -
-  assume major: "(a,b) : r^*"
-  case rule_context
+  from rtrancl_converseI [OF major]
   show ?thesis
-    apply (rule major [THEN rtrancl_converseI, THEN rtrancl_induct])
-     apply assumption
-    apply (blast! dest!: rtrancl_converseD)
-  done
+    by induct (rules intro: cases dest!: converseD rtrancl_converseD)+
 qed
 
 ML_setup {*
@@ -472,7 +472,6 @@ lemmas transitive_closure_trans [trans] =
 
 declare trancl_into_rtrancl [elim]
 
-declare rtrancl_induct [induct set: rtrancl]
 declare rtranclE [cases set: rtrancl]
 declare trancl_induct [induct set: trancl]
 declare tranclE [cases set: trancl]
