@@ -532,7 +532,7 @@ by (rtac lemma 2);
 by Auto_tac;  
 qed "nat_le_int0";
 
-Goal "$# n = #0 \\<Longrightarrow> natify(n) = 0";
+Goal "$# n = #0 ==> natify(n) = 0";
 by (rtac not_znegative_imp_zero 1);
 by Auto_tac;  
 qed "int_of_eq_0_imp_natify_eq_0";
@@ -545,7 +545,7 @@ by Auto_tac;
 by (blast_tac (claset() addIs [int_of_eq_0_imp_natify_eq_0, sym]) 1); 
 qed "nat_of_zminus_int_of";
 
-Goal "#0 $<= z \\<Longrightarrow> $# nat_of(z) = intify(z)";
+Goal "#0 $<= z ==> $# nat_of(z) = intify(z)";
 by (rtac not_zneg_nat_of_intify 1);
 by (asm_simp_tac (simpset() addsimps [znegative_iff_zless_0, 
                                       not_zless_iff_zle]) 1); 

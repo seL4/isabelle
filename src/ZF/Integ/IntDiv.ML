@@ -383,8 +383,8 @@ qed "adjust_eq";
 Addsimps [adjust_eq];
 
 
-Goal "\\<lbrakk>#0 $< b; \\<not> a $< b\\<rbrakk>   \
-\     \\<Longrightarrow> nat_of(a $- #2 $\\<times> b $+ #1) < nat_of(a $- b $+ #1)";
+Goal "[| #0 $< b; \\<not> a $< b |]   \
+\     ==> nat_of(a $- #2 $\\<times> b $+ #1) < nat_of(a $- b $+ #1)";
 by (simp_tac (simpset() addsimps [zless_nat_conj]) 1);
 by (asm_full_simp_tac (simpset() addsimps [not_zless_iff_zle,
                        zless_add1_iff_zle]@zcompare_rls) 1); 
@@ -404,7 +404,7 @@ val [prem] =
 Goal "[| !!a b. [| a: int; b: int; \
 \                  ~ (a $< b | b $<= #0) --> P(<a, #2 $* b>) |] \
 \               ==> P(<a,b>) |] \
-\     ==> <u,v>: int*int \\<longrightarrow> P(<u,v>)"; 
+\     ==> <u,v>: int*int --> P(<u,v>)"; 
 by (res_inst_tac [("a","<u,v>")] wf_induct 1);
 by (res_inst_tac [("A","int*int"), ("f","%<a,b>.nat_of (a $- b $+ #1)")] 
                  wf_measure 1);
