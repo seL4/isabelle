@@ -15,6 +15,8 @@ sig
   val reset_context: unit -> unit
   val thm: xstring -> thm
   val thms: xstring -> thm list
+  val Goal: string -> thm list
+  val Goalw: thm list -> string -> thm list
 end;
 
 signature CONTEXT =
@@ -60,6 +62,12 @@ fun >> f = current_theory := Some (f (get_context ()));
 
 fun thm name = PureThy.get_thm (get_context ()) name;
 fun thms name = PureThy.get_thms (get_context ()) name;
+
+
+(* shortcut goal commands *)
+
+fun Goal s = Goals.goal (get_context ()) s;
+fun Goalw thms s = Goals.goalw (get_context ()) thms s;
 
 
 end;
