@@ -1464,6 +1464,41 @@ apply (intro FOL_reflections ordinal_reflection
              empty_reflection successor_reflection)
 done
 
+subsubsection{*Finite Ordinals: The Predicate ``Is A Natural Number''*}
+
+(*     "finite_ordinal(M,a) == 
+	ordinal(M,a) & ~ limit_ordinal(M,a) & 
+        (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x))" *)
+constdefs finite_ordinal_fm :: "i=>i"
+    "finite_ordinal_fm(x) ==
+       And(ordinal_fm(x),
+          And(Neg(limit_ordinal_fm(x)),
+           Forall(Implies(Member(0,succ(x)),
+                          Neg(limit_ordinal_fm(0))))))"
+
+lemma finite_ordinal_type [TC]:
+     "x \<in> nat ==> finite_ordinal_fm(x) \<in> formula"
+by (simp add: finite_ordinal_fm_def)
+
+lemma sats_finite_ordinal_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, finite_ordinal_fm(x), env) <-> finite_ordinal(**A, nth(x,env))"
+by (simp add: finite_ordinal_fm_def sats_ordinal_fm' finite_ordinal_def)
+
+lemma finite_ordinal_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y;
+          i \<in> nat; env \<in> list(A)|]
+       ==> finite_ordinal(**A, x) <-> sats(A, finite_ordinal_fm(i), env)"
+by simp
+
+theorem finite_ordinal_reflection:
+     "REFLECTS[\<lambda>x. finite_ordinal(L,f(x)),
+               \<lambda>i x. finite_ordinal(**Lset(i),f(x))]"
+apply (simp only: finite_ordinal_def setclass_simps)
+apply (intro FOL_reflections ordinal_reflection limit_ordinal_reflection)
+done
+
+
 subsubsection{*Omega: The Set of Natural Numbers*}
 
 (* omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x)) *)

@@ -16,6 +16,7 @@ text{*This theory proves all instances needed for locales @{text
 lemma eq_succ_imp_lt: "[|i = succ(j); Ord(i)|] ==> j<i"
 by simp
 
+
 subsection{*The Locale @{text "M_trancl"}*}
 
 subsubsection{*Separation for Reflexive/Transitive Closure*}
@@ -1264,14 +1265,31 @@ subsubsection{*The Formula @{term is_nth}, Internalized*}
        2       1       0
        successor(M,n,sn) & membership(M,sn,msn) &
        is_wfrec(M, iterates_MH(M, is_tl(M), l), msn, n, X) &
-       is_hd(M,X,Z)"
+       is_hd(M,X,Z)" *)
 constdefs nth_fm :: "[i,i,i]=>i"
     "nth_fm(n,l,Z) == 
        Exists(Exists(Exists(
-         And(successor_fm(n#+3,1),
-          And(membership_fm(1,0),
-           And(
- *)
+         And(succ_fm(n#+3,1),
+          And(Memrel_fm(1,0),
+           And(is_wfrec_fm(iterates_MH_fm(tl_fm(1,0),l#+8,2,1,0), 0, n#+3, 2), hd_fm(2,Z#+3)))))))"
+
+lemma nth_fm_type [TC]:
+ "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> nth_fm(x,y,z) \<in> formula"
+by (simp add: nth_fm_def)
+
+lemma sats_nth_fm [simp]:
+   "[| x < length(env); y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, nth_fm(x,y,z), env) <->
+        is_nth(**A, nth(x,env), nth(y,env), nth(z,env))"
+apply (frule lt_length_in_nat, assumption)  
+apply (simp add: nth_fm_def is_nth_def sats_is_wfrec_fm sats_iterates_MH_fm) 
+done
+
+lemma nth_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
+          i < length(env); j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> is_nth(**A, x, y, z) <-> sats(A, nth_fm(i,j,k), env)"
+by (simp add: sats_nth_fm)
 
 theorem nth_reflection:
      "REFLECTS[\<lambda>x. is_nth(L, f(x), g(x), h(x)),  
