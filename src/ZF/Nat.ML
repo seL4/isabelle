@@ -125,6 +125,10 @@ by (etac (Ord_nat RSN (3,Ord_trans)) 1);
 by (assume_tac 1);
 qed "lt_nat_in_nat";
 
+Goal "[| m le n; n:nat |] ==> m:nat";
+by (blast_tac (claset() addSDs [lt_nat_in_nat]) 1);
+qed "le_in_nat";
+
 
 (** Variations on mathematical induction **)
 

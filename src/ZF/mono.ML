@@ -28,7 +28,7 @@ Goal "A<=B ==> Union(A) <= Union(B)";
 by (Blast_tac 1);
 qed "Union_mono";
 
-val prems = goal thy
+val prems = Goal
     "[| A<=C;  !!x. x:A ==> B(x)<=D(x) \
 \    |] ==> (UN x:A. B(x)) <= (UN x:C. D(x))";
 by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
@@ -57,8 +57,7 @@ qed "Diff_mono";
 
 (** Standard products, sums and function spaces **)
 
-Goal "[| A<=C;  ALL x:A. B(x) <= D(x) |] ==> \
-\                       Sigma(A,B) <= Sigma(C,D)";
+Goal "[| A<=C;  ALL x:A. B(x) <= D(x) |] ==> Sigma(A,B) <= Sigma(C,D)";
 by (Blast_tac 1);
 qed "Sigma_mono_lemma";
 val Sigma_mono = ballI RSN (2,Sigma_mono_lemma);
@@ -131,12 +130,12 @@ qed "field_rel_subset";
 
 (** Images **)
 
-val [prem1,prem2] = goal thy
+val [prem1,prem2] = Goal
     "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r``A <= s``B";
 by (blast_tac (claset() addIs [prem1, prem2 RS subsetD]) 1);
 qed "image_pair_mono";
 
-val [prem1,prem2] = goal thy
+val [prem1,prem2] = Goal
     "[| !! x y. <x,y>:r ==> <x,y>:s;  A<=B |] ==> r-``A <= s-``B";
 by (blast_tac (claset() addIs [prem1, prem2 RS subsetD]) 1);
 qed "vimage_pair_mono";
@@ -149,7 +148,7 @@ Goal "[| r<=s;  A<=B |] ==> r-``A <= s-``B";
 by (Blast_tac 1);
 qed "vimage_mono";
 
-val [sub,PQimp] = goal thy
+val [sub,PQimp] = Goal
     "[| A<=B;  !!x. x:A ==> P(x) --> Q(x) |] ==> Collect(A,P) <= Collect(B,Q)";
 by (blast_tac (claset() addIs [sub RS subsetD, PQimp RS mp]) 1);
 qed "Collect_mono";

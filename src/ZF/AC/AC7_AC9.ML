@@ -13,13 +13,10 @@ instances of AC.
 (*  - Sigma_fun_space_eqpoll                                              *)
 (* ********************************************************************** *)
 
-goal ZF.thy "!!A. [| C~:A; B:A |] ==> B~=C";
-by (Fast_tac 1);
-qed "mem_not_eq_not_mem";
-
 Goal "[| 0~:A; B:A |] ==> (nat->Union(A))*B ~= 0";
-by (blast_tac (claset() addSDs [Sigma_empty_iff RS iffD1]
-                addDs [fun_space_emptyD, mem_not_eq_not_mem]) 1);
+by (blast_tac (claset() addSDs [Sigma_empty_iff RS iffD1, 
+				Union_empty_iff RS iffD1]
+                        addDs [fun_space_emptyD]) 1);
 qed "Sigma_fun_space_not0";
 
 Goal "(ALL B:A. B eqpoll C) ==> (ALL B1:A. ALL B2:A. B1 eqpoll B2)";

@@ -34,7 +34,7 @@ qed "rec_succ";
 
 Addsimps [rec_0, rec_succ];
 
-val major::prems = goal Arith.thy
+val major::prems = Goal
     "[| n: nat;  \
 \       a: C(0);  \
 \       !!m z. [| m: nat;  z: C(m) |] ==> b(m,z): C(succ(m))  \
@@ -467,7 +467,7 @@ by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
 qed "add_lt_mono";
 
 (*A [clumsy] way of lifting < monotonicity to le monotonicity *)
-val lt_mono::ford::prems = goal Ordinal.thy
+val lt_mono::ford::prems = Goal
      "[| !!i j. [| i<j; j:k |] ==> f(i) < f(j); \
 \        !!i. i:k ==> Ord(f(i));                \
 \        i le j;  j:k                           \

@@ -44,8 +44,7 @@ qed "fun_space_emptyD";
 
 (* used only in WO1_DC.ML *)
 (*Note simpler proof*)
-goal ZF.thy "!!A f g. [| ALL x:A. f`x=g`x; f:Df->Cf; g:Dg->Cg;  \
-\         A<=Df; A<=Dg |] ==> f``A=g``A";
+Goal "[| ALL x:A. f`x=g`x; f:Df->Cf; g:Dg->Cg; A<=Df; A<=Dg |] ==> f``A=g``A";
 by (asm_simp_tac (simpset() addsimps [image_fun]) 1);
 qed "images_eq";
 

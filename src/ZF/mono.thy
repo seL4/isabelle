@@ -1,4 +1,2 @@
-(*Dummy theory to document dependencies *)
-
-mono = QPair + Sum + domrange
+mono = QPair + Sum + func
 

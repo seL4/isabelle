@@ -10,12 +10,12 @@ Composition of homomorphisms, Pastre's examples, ...
 writeln"ZF/ex/misc";
 
 (*Nice Blast_tac benchmark.  Proved in 0.3s; old tactics can't manage it!*)
-goal ZF.thy "!!S. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
+Goal "ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
 by (Blast_tac 1);
 result();
 
 (*variant of the benchmark above*)
-goal ZF.thy "!!S. ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
+Goal "ALL x:S. Union(S) <= x ==> EX z. S <= {z}";
 by (Blast_tac 1);
 result();
 

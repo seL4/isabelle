@@ -10,7 +10,7 @@ Rewriting for ZF set theory: specialized extraction of rewrites from theorems
 
 local
   (*For proving rewrite rules*)
-  fun prover s = (prove_goal ZF.thy s (fn _ => [Blast_tac 1]));
+  fun prover s = (prove_goal thy s (fn _ => [Blast_tac 1]));
 
 in
 

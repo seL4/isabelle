@@ -7,7 +7,7 @@ Disjoint sums in Zermelo-Fraenkel Set Theory
 "Part" primitive for simultaneous recursive type definitions
 *)
 
-Sum = Bool + pair + 
+Sum = Bool + equalities + 
 
 global
 

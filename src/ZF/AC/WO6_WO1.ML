@@ -172,9 +172,8 @@ by (dtac ex_d_uu_not_empty 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [LeastI, lt_Ord]) 1);
 qed "uu_not_empty";
 
-goal ZF.thy "!!r. [| r<=A*B; r~=0 |] ==> domain(r)~=0";
-by (REPEAT (eresolve_tac [asm_rl, not_emptyE, subsetD RS SigmaE, 
-                sym RSN (2, subst_elem) RS domainI RS not_emptyI] 1));
+Goal "[| r<=A*B; r~=0 |] ==> domain(r)~=0";
+by (Blast_tac 1);
 qed "not_empty_rel_imp_domain";
 
 Goal "[| b<a; g<a; f`b~=0; f`g~=0;  \
@@ -186,7 +185,7 @@ by (resolve_tac [Least_le RS lt_trans1] 1
         THEN (REPEAT (ares_tac [lt_Ord] 1)));
 qed "Least_uu_not_empty_lt_a";
 
-goal ZF.thy "!!B. [| B<=A; a~:B |] ==> B <= A-{a}";
+Goal "[| B<=A; a~:B |] ==> B <= A-{a}";
 by (Blast_tac 1);
 qed "subset_Diff_sing";
 
@@ -194,14 +193,11 @@ qed "subset_Diff_sing";
 Goal "[| A lepoll m; m lepoll B; B <= A; m:nat |] ==> A=B";
 by (etac natE 1);
 by (fast_tac (claset() addSDs [lepoll_0_is_0] addSIs [equalityI]) 1);
-by (hyp_subst_tac 1);
-by (rtac equalityI 1);
-by (assume_tac 2);
-by (rtac subsetI 1);
-by (excluded_middle_tac "?P" 1 THEN (assume_tac 2));
-by (eresolve_tac [subset_Diff_sing RS subset_imp_lepoll RSN (2, 
-                Diff_sing_lepoll RSN (3, lepoll_trans RS lepoll_trans)) RS 
-                succ_lepoll_natE] 1
+by (safe_tac (claset() addSIs [equalityI])); 
+by (rtac ccontr 1);
+by (etac (subset_Diff_sing RS subset_imp_lepoll 
+	  RSN (2, Diff_sing_lepoll RSN (3, lepoll_trans RS lepoll_trans)) RS 
+	  succ_lepoll_natE) 1
         THEN REPEAT (assume_tac 1));
 qed "supset_lepoll_imp_eq";
 

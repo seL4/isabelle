@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow & Lawrence C Paulson
     Copyright   1992  University of Cambridge
 
-For ex/prop-log.thy.  Inductive definition of propositional logic.
+Inductive definition of propositional logic.
 Soundness and completeness w.r.t. truth-tables.
 
 Prove: If H|=p then G|=p where G:Fin(H)
@@ -169,23 +169,20 @@ by (REPEAT (ares_tac prop.intrs 1));
 qed "Imp_Fls";
 
 (*Typical example of strengthening the induction formula*)
-val [major] = goal PropLog.thy 
-    "p: prop ==> hyps(p,t) |- if(is_true(p,t), p, p=>Fls)";
+Goal "p: prop ==> hyps(p,t) |- if(is_true(p,t), p, p=>Fls)";
 by (rtac (split_if RS iffD2) 1);
-by (rtac (major RS prop.induct) 1);
+by (etac prop.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (safe_tac (claset() addSEs [Fls_Imp RS weaken_left_Un1, 
-                            Fls_Imp RS weaken_left_Un2]));
+			       Fls_Imp RS weaken_left_Un2]));
 by (ALLGOALS (fast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 
                                      weaken_right, Imp_Fls])));
 qed "hyps_thms_if";
 
 (*Key lemma for completeness; yields a set of assumptions satisfying p*)
-val [premp,sat] = goalw PropLog.thy [logcon_def]
-    "[| p: prop;  0 |= p |] ==> hyps(p,t) |- p";
-by (rtac (sat RS spec RS mp RS if_P RS subst) 1 THEN
-    rtac (premp RS hyps_thms_if) 2);
-by (Fast_tac 1);
+Goalw [logcon_def] "[| p: prop;  0 |= p |] ==> hyps(p,t) |- p";
+by (dtac hyps_thms_if 1);
+by (Asm_full_simp_tac 1);
 qed "logcon_thms_p";
 
 (*For proving certain theorems in our new propositional logic*)
@@ -194,27 +191,24 @@ val thms_cs =
           addIs [thms_in_pl, thms.H, thms.H RS thms_MP];
 
 (*The excluded middle in the form of an elimination rule*)
-val prems = goal PropLog.thy
-    "[| p: prop;  q: prop |] ==> H |- (p=>q) => ((p=>Fls)=>q) => q";
+Goal "[| p: prop;  q: prop |] ==> H |- (p=>q) => ((p=>Fls)=>q) => q";
 by (rtac (deduction RS deduction) 1);
 by (rtac (thms.DN RS thms_MP) 1);
-by (ALLGOALS (best_tac (thms_cs addSIs prems)));
+by (ALLGOALS (blast_tac thms_cs));
 qed "thms_excluded_middle";
 
 (*Hard to prove directly because it requires cuts*)
-val prems = goal PropLog.thy
-    "[| cons(p,H) |- q;  cons(p=>Fls,H) |- q;  p: prop |] ==> H |- q";
+Goal "[| cons(p,H) |- q;  cons(p=>Fls,H) |- q;  p: prop |] ==> H |- q";
 by (rtac (thms_excluded_middle RS thms_MP RS thms_MP) 1);
-by (REPEAT (resolve_tac (prems@prop.intrs@[deduction,thms_in_pl]) 1));
+by (REPEAT (ares_tac (prop.intrs@[deduction,thms_in_pl]) 1));
 qed "thms_excluded_middle_rule";
 
 (*** Completeness -- lemmas for reducing the set of assumptions ***)
 
 (*For the case hyps(p,t)-cons(#v,Y) |- p;
   we also have hyps(p,t)-{#v} <= hyps(p, t-{v}) *)
-val [major] = goal PropLog.thy
-    "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
-by (rtac (major RS prop.induct) 1);
+Goal "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
+by (etac prop.induct 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() setloop (split_tac [split_if])) 1);
 by (fast_tac (claset() addSEs prop.free_SEs) 1);
@@ -224,9 +218,8 @@ qed "hyps_Diff";
 
 (*For the case hyps(p,t)-cons(#v => Fls,Y) |- p;
   we also have hyps(p,t)-{#v=>Fls} <= hyps(p, cons(v,t)) *)
-val [major] = goal PropLog.thy
-    "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
-by (rtac (major RS prop.induct) 1);
+Goal "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
+by (etac prop.induct 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() setloop (split_tac [split_if])) 1);
 by (fast_tac (claset() addSEs prop.free_SEs) 1);
@@ -236,19 +229,18 @@ qed "hyps_cons";
 
 (** Two lemmas for use with weaken_left **)
 
-goal ZF.thy "B-C <= cons(a, B-cons(a,C))";
+Goal "B-C <= cons(a, B-cons(a,C))";
 by (Fast_tac 1);
 qed "cons_Diff_same";
 
-goal ZF.thy "cons(a, B-{c}) - D <= cons(a, B-cons(c,D))";
+Goal "cons(a, B-{c}) - D <= cons(a, B-cons(c,D))";
 by (Fast_tac 1);
 qed "cons_Diff_subset2";
 
 (*The set hyps(p,t) is finite, and elements have the form #v or #v=>Fls;
  could probably prove the stronger hyps(p,t) : Fin(hyps(p,0) Un hyps(p,nat))*)
-val [major] = goal PropLog.thy
-    "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
-by (rtac (major RS prop.induct) 1);
+Goal "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
+by (etac prop.induct 1);
 by (asm_simp_tac (simpset() addsimps [UN_I]
                   setloop (split_tac [split_if])) 2);
 by (ALLGOALS Asm_simp_tac);

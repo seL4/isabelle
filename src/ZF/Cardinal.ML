@@ -29,16 +29,15 @@ by (simp_tac (simpset() addsimps [subset_refl, double_complement,
                              gfun RS fun_is_rel RS image_subset]) 1);
 qed "Banach_last_equation";
 
-val prems = goal Cardinal.thy
-    "[| f: X->Y;  g: Y->X |] ==>   \
-\    EX XA XB YA YB. (XA Int XB = 0) & (XA Un XB = X) &    \
-\                    (YA Int YB = 0) & (YA Un YB = Y) &    \
-\                    f``XA=YA & g``YB=XB";
+Goal "[| f: X->Y;  g: Y->X |] ==>   \
+\     EX XA XB YA YB. (XA Int XB = 0) & (XA Un XB = X) &    \
+\                     (YA Int YB = 0) & (YA Un YB = Y) &    \
+\                     f``XA=YA & g``YB=XB";
 by (REPEAT 
     (FIRSTGOAL
      (resolve_tac [refl, exI, conjI, Diff_disjoint, Diff_partition])));
 by (rtac Banach_last_equation 3);
-by (REPEAT (resolve_tac (prems@[fun_is_rel, image_subset, lfp_subset]) 1));
+by (REPEAT (ares_tac [fun_is_rel, image_subset, lfp_subset] 1));
 qed "decomposition";
 
 val prems = goal Cardinal.thy
@@ -740,7 +739,7 @@ qed "Finite_imp_well_ord";
 (*Krzysztof Grabczewski's proof that the converse of a finite, well-ordered
   set is well-ordered.  Proofs simplified by lcp. *)
 
-goal Nat.thy "!!n. n:nat ==> wf[n](converse(Memrel(n)))";
+Goal "n:nat ==> wf[n](converse(Memrel(n)))";
 by (etac nat_induct 1);
 by (blast_tac (claset() addIs [wf_onI]) 1);
 by (rtac wf_onI 1);

@@ -182,7 +182,11 @@ Goal "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
-goalw ZF.thy [Inter_def] "Inter(0) = 0";
+Goal "Union(A) = 0 <-> (ALL B:A. B=0)";
+by (Blast_tac 1);
+qed "Union_empty_iff";
+
+Goalw [Inter_def] "Inter(0) = 0";
 by (Blast_tac 1);
 qed "Inter_0";
 
@@ -209,7 +213,7 @@ Goal "Union(A) = (UN x:A. x)";
 by (Blast_tac 1);
 qed "Union_eq_UN";
 
-goalw ZF.thy [Inter_def] "Inter(A) = (INT x:A. x)";
+Goalw [Inter_def] "Inter(A) = (INT x:A. x)";
 by (Blast_tac 1);
 qed "Inter_eq_INT";
 
@@ -344,10 +348,10 @@ Goal "b:B ==> domain(A*B) = A";
 by (Blast_tac 1);
 qed "domain_of_prod";
 
-qed_goal "domain_0" ZF.thy "domain(0) = 0"
+qed_goal "domain_0" thy "domain(0) = 0"
  (fn _ => [ Blast_tac 1 ]);
 
-qed_goal "domain_cons" ZF.thy
+qed_goal "domain_cons" thy
     "domain(cons(<a,b>,r)) = cons(a, domain(r))"
  (fn _ => [ Blast_tac 1 ]);
 
@@ -376,10 +380,10 @@ Goal "a:A ==> range(A*B) = B";
 by (Blast_tac 1);
 qed "range_of_prod";
 
-qed_goal "range_0" ZF.thy "range(0) = 0"
+qed_goal "range_0" thy "range(0) = 0"
  (fn _ => [ Blast_tac 1 ]); 
 
-qed_goal "range_cons" ZF.thy
+qed_goal "range_cons" thy
     "range(cons(<a,b>,r)) = cons(b, range(r))"
  (fn _ => [ Blast_tac 1 ]);
 
@@ -404,13 +408,13 @@ Addsimps [range_0, range_cons, range_Un_eq, range_converse];
 
 (** Field **)
 
-qed_goal "field_of_prod" ZF.thy "field(A*A) = A"
+qed_goal "field_of_prod" thy "field(A*A) = A"
  (fn _ => [ Blast_tac 1 ]); 
 
-qed_goal "field_0" ZF.thy "field(0) = 0"
+qed_goal "field_0" thy "field(0) = 0"
  (fn _ => [ Blast_tac 1 ]); 
 
-qed_goal "field_cons" ZF.thy
+qed_goal "field_cons" thy
     "field(cons(<a,b>,r)) = cons(a, cons(b, field(r)))"
  (fn _ => [ rtac equalityI 1, ALLGOALS (Blast_tac) ]);
 
@@ -543,7 +547,7 @@ by (Blast_tac 1);
 qed "converse_UN";
 
 (*Unfolding Inter avoids using excluded middle on A=0*)
-goalw ZF.thy [Inter_def] "converse(INT x:A. B(x)) = (INT x:A. converse(B(x)))";
+Goalw [Inter_def] "converse(INT x:A. B(x)) = (INT x:A. converse(B(x)))";
 by (Blast_tac 1);
 qed "converse_INT";
 

@@ -380,8 +380,8 @@ qed "InfCard_is_Limit";
 (*** An infinite cardinal equals its square (Kunen, Thm 10.12, page 29) ***)
 
 (*A general fact about ordermap*)
-goalw Cardinal.thy [eqpoll_def]
-    "!!A. [| well_ord(A,r);  x:A |] ==> ordermap(A,r)`x eqpoll pred(A,x,r)";
+Goalw [eqpoll_def]
+    "[| well_ord(A,r);  x:A |] ==> ordermap(A,r)`x eqpoll pred(A,x,r)";
 by (rtac exI 1);
 by (asm_simp_tac (simpset() addsimps [ordermap_eq_image, well_ord_is_wf]) 1);
 by (etac (ordermap_bij RS bij_is_inj RS restrict_bij RS bij_converse_bij) 1);
@@ -807,8 +807,4 @@ by (REPEAT (etac nat_implies_well_ord 1));
 by (asm_simp_tac (simpset() 
 		  addsimps [nat_cadd_eq_add RS sym, cadd_def, eqpoll_refl]) 1);
 qed "nat_sum_eqpoll_sum";
-
-goal Nat.thy "!!m. [| m le n; n:nat |] ==> m:nat";
-by (blast_tac (claset() addSDs [lt_nat_in_nat]) 1);
-qed "le_in_nat";
 
