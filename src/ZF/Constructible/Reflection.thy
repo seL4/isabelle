@@ -182,6 +182,8 @@ apply (rule Reflection.ZF_Closed_Unbounded_ClEx,
        simp_all add: Mset_mono_le Mset_cont Pair_in_Mset) 
 done
 
+subsection{*Packaging the Quantifier Reflection Rules*}
+
 lemma (in reflection) Ex_reflection_0:
      "Reflects(Cl,P0,Q0) 
       ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(P0,a), 
@@ -219,6 +221,23 @@ theorem (in reflection) All_reflection [intro]:
                    \<lambda>a x. \<forall>z\<in>Mset(a). Q(a,x,z))" 
 by (rule All_reflection_0 [of _ "\<lambda>x. P(fst(x),snd(x))" 
                                 "\<lambda>a x. Q(a,fst(x),snd(x))", simplified])
+
+text{*And again, this time using class-bounded quantifiers*}
+
+theorem (in reflection) Rex_reflection [intro]:
+     "Reflects(Cl, \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))) 
+      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(\<lambda>x. P(fst(x),snd(x)), a), 
+                   \<lambda>x. \<exists>z[M]. P(x,z), 
+                   \<lambda>a x. \<exists>z\<in>Mset(a). Q(a,x,z))"
+by (unfold rex_def, blast) 
+
+theorem (in reflection) Rall_reflection [intro]:
+     "Reflects(Cl,  \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x)))
+      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(\<lambda>x. ~P(fst(x),snd(x)), a), 
+                   \<lambda>x. \<forall>z[M]. P(x,z), 
+                   \<lambda>a x. \<forall>z\<in>Mset(a). Q(a,x,z))" 
+by (unfold rall_def, blast) 
+
 
 text{*No point considering bounded quantifiers, where reflection is trivial.*}
 
