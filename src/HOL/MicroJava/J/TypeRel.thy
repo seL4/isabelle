@@ -66,30 +66,30 @@ apply(erule trancl_trans_induct)
 apply (auto dest!: subcls1D)
 done
 
-lemma subcls_is_class2 [rule_format (no_asm)]: "G\<turnstile>C\<preceq>C D \<Longrightarrow> is_class G D \<longrightarrow> is_class G C"
+lemma subcls_is_class2 [rule_format (no_asm)]: 
+  "G\<turnstile>C\<preceq>C D \<Longrightarrow> is_class G D \<longrightarrow> is_class G C"
 apply (unfold is_class_def)
 apply (erule rtrancl_induct)
 apply  (drule_tac [2] subcls1D)
 apply  auto
 done
 
+declare same_fstI [intro!] (*### TO HOL/Wellfounded_Relations *)
+
 consts class_rec ::"'c prog \<times> cname \<Rightarrow> 
         'a \<Rightarrow> (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
+
 recdef class_rec "same_fst (\<lambda>G. wf ((subcls1 G)^-1)) (\<lambda>G. (subcls1 G)^-1)"
       "class_rec (G,C) = (\<lambda>t f. case class G C of None \<Rightarrow> arbitrary 
                          | Some (D,fs,ms) \<Rightarrow> if wf ((subcls1 G)^-1) then 
       f C fs ms (if C = Object then t else class_rec (G,D) t f) else arbitrary)"
-recdef_tc class_rec_tc: class_rec
-  apply (unfold same_fst_def)
-  apply (auto intro: subcls1I)
-  done
+(hints intro: subcls1I)
+declare class_rec.simps [simp del]
 
 lemma class_rec_lemma: "\<lbrakk> wf ((subcls1 G)^-1); class G C = Some (D,fs,ms)\<rbrakk> \<Longrightarrow>
  class_rec (G,C) t f = f C fs ms (if C=Object then t else class_rec (G,D) t f)";
-  apply (rule class_rec_tc [THEN class_rec.simps 
-              [THEN trans [THEN fun_cong [THEN fun_cong]]]])
-  apply (rule ext, rule ext)
-  apply auto
+  apply (rule class_rec.simps [THEN trans [THEN fun_cong [THEN fun_cong]]])
+  apply simp
   done
 
 consts
