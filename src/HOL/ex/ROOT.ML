@@ -4,6 +4,8 @@
 Miscellaneous examples for Higher-Order Logic.
 *)
 
+time_use_thy "Higher_Order_Logic";
+
 time_use_thy "Recdefs";
 time_use_thy "Primrec";
 time_use_thy "Locales";

@@ -528,7 +528,7 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy \
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
-  ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy \
+  ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy ex/Higher_Order_Logic.thy \
   ex/Hilbert_Classical.thy ex/InSort.ML ex/InSort.thy ex/IntRing.ML \
   ex/IntRing.thy ex/Lagrange.ML ex/Lagrange.thy ex/Locales.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
