@@ -19,9 +19,6 @@ instance
 
 constdefs
 
-  zNat        :: nat set
-  "zNat == {x::nat. True}"
-
   znat        :: nat => int                                  ("$# _" [80] 80)
   "$# m == Abs_Integ(intrel ^^ {(m,0)})"
 
