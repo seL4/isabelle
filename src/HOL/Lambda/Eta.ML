@@ -29,10 +29,9 @@ Addsimps [subst_not_free RS eqTrueI];
 Goal "!i k. free (lift t k) i = (i < k & free t i | k < i & free t (i-1))";
 by (induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
-by (Blast_tac 2);
+by(Auto_tac);
 by (simp_tac (simpset() addsimps [diff_Suc] addsplits [nat.split]) 1);
-by (safe_tac HOL_cs);
-by (ALLGOALS trans_tac);
+by(Auto_tac);
 qed "free_lift";
 Addsimps [free_lift];
 
@@ -45,7 +44,7 @@ by (asm_full_simp_tac (addsplit (simpset())) 2);
 by (simp_tac (simpset() addsimps [diff_Suc,subst_Var]
                       addsplits [nat.split]) 1);
 by (safe_tac (HOL_cs addSEs [linorder_neqE]));
-by (ALLGOALS trans_tac);
+by (ALLGOALS Simp_tac);
 qed "free_subst";
 Addsimps [free_subst];
 
@@ -118,9 +117,7 @@ AddIs [beta_subst];
 
 Goal "!i. t[Var i/i] = t[Var(i)/Suc i]";
 by (induct_tac "t" 1);
-by (ALLGOALS (asm_simp_tac (addsplit (simpset()))));
-by (safe_tac (HOL_cs addSEs [linorder_neqE]));
-by (ALLGOALS trans_tac);
+by(auto_tac (claset() addSEs [linorder_neqE], addsplit (simpset())));
 qed_spec_mp "subst_Var_Suc";
 Addsimps [subst_Var_Suc];
 

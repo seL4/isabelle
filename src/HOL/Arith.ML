@@ -154,6 +154,7 @@ qed_spec_mp "less_eq_Suc_add";
 Goal "n <= ((m + n)::nat)";
 by (induct_tac "m" 1);
 by (ALLGOALS Simp_tac);
+by (etac le_SucI 1);
 qed "le_add2";
 
 Goal "n <= ((n + m)::nat)";
@@ -184,6 +185,7 @@ bind_thm ("trans_less_add2", le_add2 RSN (2,less_le_trans));
 Goal "i+j < (k::nat) --> i<k";
 by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
+by(blast_tac (claset() addDs [Suc_lessD]) 1);
 qed_spec_mp "add_lessD1";
 
 Goal "~ (i+j < (i::nat))";
@@ -605,6 +607,311 @@ by (best_tac (claset() addDs [mult_less_mono2] addss simpset()) 1);
 qed "mult_eq_self_implies_10";
 
 
+
+
+(*---------------------------------------------------------------------------*)
+(* Various arithmetic proof procedures                                       *)
+(*---------------------------------------------------------------------------*)
+
+(*---------------------------------------------------------------------------*)
+(* 1. Cancellation of common terms                                           *)
+(*---------------------------------------------------------------------------*)
+
+(*  Title:      HOL/arith_data.ML
+    ID:         $Id$
+    Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
+
+Setup various arithmetic proof procedures.
+*)
+
+signature ARITH_DATA =
+sig
+  val nat_cancel_sums: simproc list
+  val nat_cancel_factor: simproc list
+  val nat_cancel: simproc list
+end;
+
+structure ArithData: ARITH_DATA =
+struct
+
+
+(** abstract syntax of structure nat: 0, Suc, + **)
+
+(* mk_sum, mk_norm_sum *)
+
+val one = HOLogic.mk_nat 1;
+val mk_plus = HOLogic.mk_binop "op +";
+
+fun mk_sum [] = HOLogic.zero
+  | mk_sum [t] = t
+  | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
+
+(*normal form of sums: Suc (... (Suc (a + (b + ...))))*)
+fun mk_norm_sum ts =
+  let val (ones, sums) = partition (equal one) ts in
+    funpow (length ones) HOLogic.mk_Suc (mk_sum sums)
+  end;
+
+
+(* dest_sum *)
+
+val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
+
+fun dest_sum tm =
+  if HOLogic.is_zero tm then []
+  else
+    (case try HOLogic.dest_Suc tm of
+      Some t => one :: dest_sum t
+    | None =>
+        (case try dest_plus tm of
+          Some (t, u) => dest_sum t @ dest_sum u
+        | None => [tm]));
+
+
+(** generic proof tools **)
+
+(* prove conversions *)
+
+val mk_eqv = HOLogic.mk_Trueprop o HOLogic.mk_eq;
+
+fun prove_conv expand_tac norm_tac sg (t, u) =
+  mk_meta_eq (prove_goalw_cterm_nocheck [] (cterm_of sg (mk_eqv (t, u)))
+    (K [expand_tac, norm_tac]))
+  handle ERROR => error ("The error(s) above occurred while trying to prove " ^
+    (string_of_cterm (cterm_of sg (mk_eqv (t, u)))));
+
+val subst_equals = prove_goal HOL.thy "[| t = s; u = t |] ==> u = s"
+  (fn prems => [cut_facts_tac prems 1, SIMPSET' asm_simp_tac 1]);
+
+
+(* rewriting *)
+
+fun simp_all rules = ALLGOALS (simp_tac (HOL_ss addsimps rules));
+
+val add_rules = [add_Suc, add_Suc_right, add_0, add_0_right];
+val mult_rules = [mult_Suc, mult_Suc_right, mult_0, mult_0_right];
+
+
+
+(** cancel common summands **)
+
+structure Sum =
+struct
+  val mk_sum = mk_norm_sum;
+  val dest_sum = dest_sum;
+  val prove_conv = prove_conv;
+  val norm_tac = simp_all add_rules THEN simp_all add_ac;
+end;
+
+fun gen_uncancel_tac rule ct =
+  rtac (instantiate' [] [None, Some ct] (rule RS subst_equals)) 1;
+
+
+(* nat eq *)
+
+structure EqCancelSums = CancelSumsFun
+(struct
+  open Sum;
+  val mk_bal = HOLogic.mk_eq;
+  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT;
+  val uncancel_tac = gen_uncancel_tac add_left_cancel;
+end);
+
+
+(* nat less *)
+
+structure LessCancelSums = CancelSumsFun
+(struct
+  open Sum;
+  val mk_bal = HOLogic.mk_binrel "op <";
+  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT;
+  val uncancel_tac = gen_uncancel_tac add_left_cancel_less;
+end);
+
+
+(* nat le *)
+
+structure LeCancelSums = CancelSumsFun
+(struct
+  open Sum;
+  val mk_bal = HOLogic.mk_binrel "op <=";
+  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT;
+  val uncancel_tac = gen_uncancel_tac add_left_cancel_le;
+end);
+
+
+(* nat diff *)
+
+structure DiffCancelSums = CancelSumsFun
+(struct
+  open Sum;
+  val mk_bal = HOLogic.mk_binop "op -";
+  val dest_bal = HOLogic.dest_bin "op -" HOLogic.natT;
+  val uncancel_tac = gen_uncancel_tac diff_cancel;
+end);
+
+
+
+(** cancel common factor **)
+
+structure Factor =
+struct
+  val mk_sum = mk_norm_sum;
+  val dest_sum = dest_sum;
+  val prove_conv = prove_conv;
+  val norm_tac = simp_all (add_rules @ mult_rules) THEN simp_all add_ac;
+end;
+
+fun mk_cnat n = cterm_of (sign_of Nat.thy) (HOLogic.mk_nat n);
+
+fun gen_multiply_tac rule k =
+  if k > 0 then
+    rtac (instantiate' [] [None, Some (mk_cnat (k - 1))] (rule RS subst_equals)) 1
+  else no_tac;
+
+
+(* nat eq *)
+
+structure EqCancelFactor = CancelFactorFun
+(struct
+  open Factor;
+  val mk_bal = HOLogic.mk_eq;
+  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT;
+  val multiply_tac = gen_multiply_tac Suc_mult_cancel1;
+end);
+
+
+(* nat less *)
+
+structure LessCancelFactor = CancelFactorFun
+(struct
+  open Factor;
+  val mk_bal = HOLogic.mk_binrel "op <";
+  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT;
+  val multiply_tac = gen_multiply_tac Suc_mult_less_cancel1;
+end);
+
+
+(* nat le *)
+
+structure LeCancelFactor = CancelFactorFun
+(struct
+  open Factor;
+  val mk_bal = HOLogic.mk_binrel "op <=";
+  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT;
+  val multiply_tac = gen_multiply_tac Suc_mult_le_cancel1;
+end);
+
+
+
+(** prepare nat_cancel simprocs **)
+
+fun prep_pat s = Thm.read_cterm (sign_of Arith.thy) (s, HOLogic.termTVar);
+val prep_pats = map prep_pat;
+
+fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
+
+val eq_pats = prep_pats ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"];
+val less_pats = prep_pats ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"];
+val le_pats = prep_pats ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"];
+val diff_pats = prep_pats ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"];
+
+val nat_cancel_sums = map prep_simproc
+  [("nateq_cancel_sums", eq_pats, EqCancelSums.proc),
+   ("natless_cancel_sums", less_pats, LessCancelSums.proc),
+   ("natle_cancel_sums", le_pats, LeCancelSums.proc),
+   ("natdiff_cancel_sums", diff_pats, DiffCancelSums.proc)];
+
+val nat_cancel_factor = map prep_simproc
+  [("nateq_cancel_factor", eq_pats, EqCancelFactor.proc),
+   ("natless_cancel_factor", less_pats, LessCancelFactor.proc),
+   ("natle_cancel_factor", le_pats, LeCancelFactor.proc)];
+
+val nat_cancel = nat_cancel_factor @ nat_cancel_sums;
+
+
+end;
+
+open ArithData;
+
+Addsimprocs nat_cancel;
+
+(*---------------------------------------------------------------------------*)
+(* 2. Linear arithmetic                                                      *)
+(*---------------------------------------------------------------------------*)
+
+(* Parameter data for general linear arithmetic functor *)
+structure Nat_LA_Data: LIN_ARITH_DATA =
+struct
+val ccontr = ccontr;
+val conjI = conjI;
+val lessD = Suc_leI;
+val nat_neqE = nat_neqE;
+val notI = notI;
+val not_leD = not_leE RS Suc_leI;
+val not_lessD = leI;
+val sym = sym;
+
+val nat = Type("nat",[]);
+
+fun nnb T = T = Type("fun",[nat,Type("fun",[nat,Type("bool",[])])])
+
+(* Turn term into list of summand * multiplicity plus a constant *)
+fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
+  | poly(Const("op +",Type("fun",[Type("nat",[]),_])) $ s $ t, pi) =
+      poly(s,poly(t,pi))
+  | poly(t,(p,i)) =
+      if t = Const("0",nat) then (p,i)
+      else (case assoc(p,t) of None => ((t,1)::p,i)
+            | Some m => (overwrite(p,(t,m+1)), i))
+
+fun decomp2(rel,T,lhs,rhs) =
+  if not(nnb T) then None else
+  let val (p,i) = poly(lhs,([],0)) and (q,j) = poly(rhs,([],0))
+  in case rel of
+       "op <"  => Some(p,i,"<",q,j)
+     | "op <=" => Some(p,i,"<=",q,j)
+     | "op ="  => Some(p,i,"=",q,j)
+     | _       => None
+  end;
+
+fun negate(Some(x,i,rel,y,j)) = Some(x,i,"~"^rel,y,j)
+  | negate None = None;
+
+fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp2(rel,T,lhs,rhs)
+  | decomp(_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
+      negate(decomp2(rel,T,lhs,rhs))
+  | decomp _ = None
+(* reduce contradictory <= to False.
+   Most of the work is done by the cancel tactics.
+*)
+val add_rules = [Zero_not_Suc,Suc_not_Zero,le_0_eq];
+
+val cancel_sums_ss = HOL_basic_ss addsimps add_rules
+                                  addsimprocs nat_cancel_sums;
+
+val simp = simplify cancel_sums_ss;
+
+val add_mono_thms = map (fn s => prove_goal Arith.thy s
+ (fn prems => [cut_facts_tac prems 1,
+               blast_tac (claset() addIs [add_le_mono]) 1]))
+["(i <= j) & (k <= l) ==> i + k <= j + (l::nat)",
+ "(i = j) & (k <= l) ==> i + k <= j + (l::nat)",
+ "(i <= j) & (k = l) ==> i + k <= j + (l::nat)",
+ "(i = j) & (k = l) ==> i + k <= j + (l::nat)"
+];
+
+end;
+
+structure Fast_Nat_Arith = Fast_Lin_Arith(Nat_LA_Data);
+
+simpset_ref () := (simpset() addSolver Fast_Nat_Arith.cut_lin_arith_tac);
+
+(*---------------------------------------------------------------------------*)
+(* End of proof procedures. Now go and USE them!                             *)
+(*---------------------------------------------------------------------------*)
+
+
 (*** Subtraction laws -- mostly from Clemens Ballarin ***)
 
 Goal "[| a < (b::nat); c <= a |] ==> a-c < b-c";
@@ -628,7 +935,7 @@ by (rtac iffI 1);
   by (dres_inst_tac [("k","k")] add_less_mono1 1);
   by (Asm_full_simp_tac 1);
  by (rotate_tac 1 1);
- by (asm_full_simp_tac (simpset() addSolver cut_trans_tac) 1);
+ by (Asm_full_simp_tac 1);
 by (etac add_less_imp_less_diff 1);
 qed "less_diff_conv";
 
@@ -736,3 +1043,35 @@ by (fast_tac (claset() addEs [le_trans]) 1);
 by (dtac not_leE 1);
 by (asm_simp_tac (simpset() addsimps [if_Suc_diff_le]) 1);
 qed_spec_mp "diff_le_mono2";
+
+
+(*This proof requires natdiff_cancel_sums*)
+Goal "m < (n::nat) --> m<l --> (l-n) < (l-m)";
+by (induct_tac "l" 1);
+by (Simp_tac 1);
+by (Clarify_tac 1);
+by (etac less_SucE 1);
+by (Clarify_tac 2);
+by (asm_simp_tac (simpset() addsimps [Suc_le_eq]) 2);
+by (asm_simp_tac (simpset() addsimps [diff_Suc_le_Suc_diff RS le_less_trans,
+				      Suc_diff_le, less_imp_le]) 1);
+qed_spec_mp "diff_less_mono2";
+
+(** Elimination of `-' on nat due to John Harrison **)
+(*This proof requires natle_cancel_sums*)
+
+Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";
+by(case_tac "a <= b" 1);
+by(Auto_tac);
+by(eres_inst_tac [("x","b-a")] allE 1);
+by(Auto_tac);
+qed "nat_diff_split";
+
+(*
+This is an example of the power of nat_diff_split. Many of the `-' thms in
+Arith.ML could take advantage of this, but would need to be moved.
+*)
+Goal "m-n = 0  -->  n-m = 0  -->  m=n";
+by(simp_tac (simpset() addsplits [nat_diff_split]) 1);
+qed_spec_mp "diffs0_imp_equal";
+

@@ -50,7 +50,6 @@ Addsimps ack.rules;
 Goal "j < ack(i,j)";
 by (res_inst_tac [("u","i"),("v","j")] ack.induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS trans_tac);
 qed "less_ack2";
 
 AddIffs [less_ack2];

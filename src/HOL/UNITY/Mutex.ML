@@ -69,10 +69,6 @@ by (auto_tac (claset(),
 	      simpset_of Int.thy addsimps
 	        [zle_iff_zadd, zadd_int, integ_of_Pls, integ_of_Min, 
 		 integ_of_BIT]));
-by (exhaust_tac "na" 1);
-by (exhaust_tac "nat" 2);
-by (exhaust_tac "n" 3);
-by Auto_tac;
 qed "eq_123";
 
 

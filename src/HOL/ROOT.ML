@@ -23,7 +23,7 @@ use "$ISABELLE_HOME/src/Provers/hypsubst.ML";
 use "$ISABELLE_HOME/src/Provers/classical.ML";
 use "$ISABELLE_HOME/src/Provers/blast.ML";
 use "$ISABELLE_HOME/src/Provers/clasimp.ML";
-use "$ISABELLE_HOME/src/Provers/Arith/nat_transitive.ML";
+use "$ISABELLE_HOME/src/Provers/Arith/fast_lin_arith.ML";
 use "$ISABELLE_HOME/src/Provers/Arith/cancel_sums.ML";
 use "$ISABELLE_HOME/src/Provers/Arith/cancel_factor.ML";
 use "$ISABELLE_HOME/src/Provers/Arith/abel_cancel.ML";
@@ -57,7 +57,6 @@ use "Tools/record_package.ML";
 use_thy "Record";
 
 use_thy "Arith";
-use "arith_data.ML";
 
 use_thy "Recdef";
 (*TFL: recursive function definitions*)

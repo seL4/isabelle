@@ -878,12 +878,11 @@ AddIffs [sum_eq_0_conv];
 Goal "[i..j(] = (if i<j then i#[Suc i..j(] else [])";
 by(induct_tac "j" 1);
 by Auto_tac;
-by(REPEAT(trans_tac 1));
 qed "upt_rec";
 
 Goal "j<=i ==> [i..j(] = []";
 by(stac upt_rec 1);
-by(asm_simp_tac (simpset() addSolver cut_trans_tac) 1);
+by(Asm_simp_tac 1);
 qed "upt_conv_Nil";
 Addsimps [upt_conv_Nil];
 
@@ -901,29 +900,28 @@ qed "upt_conv_Cons";
 Goal "length [i..j(] = j-i";
 by(induct_tac "j" 1);
  by (Simp_tac 1);
-by(asm_simp_tac (simpset() addsimps [Suc_diff_le] addSolver cut_trans_tac) 1);
+by(asm_simp_tac (simpset() addsimps [Suc_diff_le]) 1);
 qed "length_upt";
 Addsimps [length_upt];
 
 Goal "i+k < j --> [i..j(] ! k = i+k";
 by(induct_tac "j" 1);
  by(Simp_tac 1);
-by(asm_simp_tac (simpset() addsimps [nth_append,less_diff_conv]@add_ac
-                           addSolver cut_trans_tac) 1);
+by(asm_simp_tac (simpset() addsimps [nth_append,less_diff_conv]@add_ac) 1);
 br conjI 1;
  by(Clarify_tac 1);
  bd add_lessD1 1;
- by(trans_tac 1);
+ by(Simp_tac 1);
 by(Clarify_tac 1);
 br conjI 1;
  by(Clarify_tac 1);
  by(subgoal_tac "n=i+k" 1);
   by(Asm_full_simp_tac 1);
- by(trans_tac 1);
+ by(Simp_tac 1);
 by(Clarify_tac 1);
 by(subgoal_tac "n=i+k" 1);
  by(Asm_full_simp_tac 1);
-by(trans_tac 1);
+by(Simp_tac 1);
 qed_spec_mp "nth_upt";
 Addsimps [nth_upt];
 

@@ -90,7 +90,6 @@ Goal "new_tv n sch --> \
 \      bound_scheme_inst ((subst_to_scheme (%k. if n <= k then BVar (k - n) else FVar k)) o S) sch";
 by (induct_tac "sch" 1);
 by Auto_tac;
-by (ALLGOALS trans_tac);
 val aux2 = result () RS mp;
 
 

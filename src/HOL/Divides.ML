@@ -176,9 +176,7 @@ by (res_inst_tac [("n","n")] less_induct 1);
 by (Clarify_tac 1);
 by (case_tac "n<k" 1);
 (* 1  case n<k *)
-by (subgoal_tac "m<k" 1);
 by (asm_simp_tac (simpset() addsimps [div_less]) 1);
-by (trans_tac 1);
 (* 2  case n >= k *)
 by (case_tac "m<k" 1);
 (* 2.1  case m<k *)
@@ -191,14 +189,14 @@ qed_spec_mp "div_le_mono";
 (* Antimonotonicity of div in second argument *)
 Goal "[| 0<m; m<=n |] ==> (k div n) <= (k div m)";
 by (subgoal_tac "0<n" 1);
- by (trans_tac 2);
+ by (Simp_tac 2);
 by (res_inst_tac [("n","k")] less_induct 1);
 by (Simp_tac 1);
 by (rename_tac "k" 1);
 by (case_tac "k<n" 1);
  by (asm_simp_tac (simpset() addsimps [div_less]) 1);
 by (subgoal_tac "~(k<m)" 1);
- by (trans_tac 2);
+ by (Simp_tac 2);
 by (asm_simp_tac (simpset() addsimps [div_geq]) 1);
 by (subgoal_tac "(k-n) div n <= (k-m) div n" 1);
 by (REPEAT (eresolve_tac [div_le_mono,diff_le_mono2] 2));
@@ -211,7 +209,7 @@ Goal "0<n ==> m div n <= m";
 by (subgoal_tac "m div n <= m div 1" 1);
 by (Asm_full_simp_tac 1);
 by (rtac div_le_mono2 1);
-by (ALLGOALS trans_tac);
+by (ALLGOALS Simp_tac);
 qed "div_le_dividend";
 Addsimps [div_le_dividend];
 
@@ -223,7 +221,7 @@ by (rename_tac "m" 1);
 by (case_tac "m<n" 1);
  by (asm_full_simp_tac (simpset() addsimps [div_less]) 1);
 by (subgoal_tac "0<n" 1);
- by (trans_tac 2);
+ by (Simp_tac 2);
 by (asm_full_simp_tac (simpset() addsimps [div_geq]) 1);
 by (case_tac "n<m" 1);
  by (subgoal_tac "(m-n) div n < (m-n)" 1);
@@ -232,7 +230,7 @@ by (case_tac "n<m" 1);
  by (asm_full_simp_tac (simpset() addsimps [diff_less]) 1);
 (* case n=m *)
 by (subgoal_tac "m=n" 1);
- by (trans_tac 2);
+ by (Simp_tac 2);
 by (asm_simp_tac (simpset() addsimps [div_less]) 1);
 qed_spec_mp "div_less_dividend";
 Addsimps [div_less_dividend];

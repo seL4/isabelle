@@ -65,28 +65,21 @@ Addsimps [subst_eq,subst_gt,subst_lt];
 Goal
   "!i k. i < Suc k --> lift (lift t i) (Suc k) = lift (lift t k) i";
 by (induct_tac "t" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addSolver cut_trans_tac)));
-by (safe_tac HOL_cs);
-by (ALLGOALS trans_tac);
+by (Auto_tac);
 qed_spec_mp "lift_lift";
 
 Goal "!i j s. j < Suc i --> lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
 by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_Suc,subst_Var,lift_lift]
-                                addsplits [nat.split]
-                                addSolver cut_trans_tac)));
-by (safe_tac HOL_cs);
-by (ALLGOALS trans_tac);
+                                addsplits [nat.split])));
+by (Auto_tac);
 qed "lift_subst";
 Addsimps [lift_subst];
 
 Goal
   "!i j s. i < Suc j --> lift (t[s/j]) i = (lift t i) [lift s i / Suc j]";
 by (induct_tac "t" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsimps [subst_Var,lift_lift]
-                                addSolver cut_trans_tac)));
-by (safe_tac (HOL_cs addSEs [nat_neqE]));
-by (ALLGOALS trans_tac);
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [subst_Var,lift_lift])));
 qed "lift_subst_lt";
 
 Goal "!k s. (lift t k)[s/k] = t";
@@ -100,12 +93,9 @@ Goal "!i j u v. i < Suc j --> t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
 by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac
       (simpset() addsimps [diff_Suc,subst_Var,lift_lift RS sym,lift_subst_lt]
-                 delsplits [split_if]
-                 addsplits [nat.split]
-                 addloop ("if",split_inside_tac[split_if])
-                addSolver cut_trans_tac)));
+                 addsplits [nat.split])));
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
-by (ALLGOALS trans_tac);
+by (ALLGOALS Simp_tac);
 qed_spec_mp "subst_subst";
 
 

@@ -314,7 +314,7 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [exI, parts_insert2])));
 by (blast_tac (claset() addSEs [add_leE]) 2);
 (*Nonce case*)
 by (res_inst_tac [("x","N + Suc nat")] exI 1);
-by (fast_tac (claset() addSEs [add_leE] addaltern ("trans_tac",trans_tac)) 1);
+by (auto_tac (claset() addSEs [add_leE], simpset()));
 qed "msg_Nonce_supply";
 
 

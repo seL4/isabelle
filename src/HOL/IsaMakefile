@@ -30,7 +30,7 @@ Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
 $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
-  $(SRC)/Provers/Arith/nat_transitive.ML	\
+  $(SRC)/Provers/Arith/fast_lin_arith.ML	\
   $(SRC)/Provers/Arith/abel_cancel.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/simplifier.ML \

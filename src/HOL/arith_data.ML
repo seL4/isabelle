@@ -250,3 +250,8 @@ Arith.ML could take advantage of this, but would need to be moved.
 Goal "m-n = 0  -->  n-m = 0  -->  m=n";
 by(simp_tac (simpset() addsplits [nat_diff_split]) 1);
 qed_spec_mp "diffs0_imp_equal";
+
+use"fast_nat_decider";
+
+simpset_ref () := (simpset() addSolver
+  (fn thms => cut_facts_tac thms THEN' Fast_Nat_Decider.nat_arith_tac));

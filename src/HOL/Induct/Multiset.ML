@@ -327,8 +327,7 @@ by(subgoal_tac "{x. x ~= a --> 0 < f x} = {x. 0 < f x}" 1);
 by(subgoal_tac "{x. x ~= a & 0 < f x} = {x. 0 < f x} - {a}" 1);
  by(Blast_tac 2);
 by(asm_simp_tac (simpset() addsimps [le_imp_diff_is_add,setsum_diff1]
-                           addcongs [conj_cong]
-                           addSolver cut_trans_tac) 1);
+                           addcongs [conj_cong]) 1);
 val lemma = result();
 
 val major::prems = Goal

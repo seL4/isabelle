@@ -33,7 +33,6 @@ by (rtac (kerberos_ban.Nil RS kerberos_ban.Kb1 RS kerberos_ban.Kb2 RS
           kerberos_ban.Kb3 RS kerberos_ban.Kb4) 2);
 by possibility_tac;
 by (ALLGOALS Asm_simp_tac);
-by (ALLGOALS trans_tac);
 result();
 
 

@@ -7,8 +7,8 @@ lessThan, greaterThan, atLeast, atMost
 *)
 
 
-(*Make Auto_tac and Force_tac try trans_tac!*)
-claset_ref() := claset() addaltern ("trans_tac",trans_tac);
+(*Make Auto_tac and Force_tac try lin_arith_tac!*)
+claset_ref() := claset() addaltern ("lin_arith_tac",Fast_Nat_Arith.lin_arith_tac);
 
 
 (*** lessThan ***)

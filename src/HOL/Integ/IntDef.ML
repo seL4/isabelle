@@ -168,10 +168,7 @@ Goalw [congruent2_def]
 \         split (%x1 y1. split (%x2 y2. intrel^^{(x1+x2, y1+y2)}) p2) p1)";
 (*Proof via congruent2_commuteI seems longer*)
 by Safe_tac;
-by (asm_simp_tac (simpset() addsimps [add_assoc]) 1);
-(*The rest should be trivial, but rearranging terms is hard*)
-by (res_inst_tac [("x1","x1a")] (add_left_commute RS ssubst) 1);
-by (asm_simp_tac (simpset() addsimps [add_assoc RS sym]) 1);
+by (Asm_simp_tac 1);
 qed "zadd_congruent2";
 
 (*Resolve th against the corresponding facts for zadd*)

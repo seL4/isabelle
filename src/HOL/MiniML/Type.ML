@@ -438,7 +438,7 @@ Goalw [new_tv_def]
 by Safe_tac;
 by (dtac spec 1);
 by (mp_tac 1);
-by (trans_tac 1);
+by (Simp_tac 1);
 qed "new_tv_le";
 Addsimps [lessI RS less_imp_le RS new_tv_le];
 
@@ -531,9 +531,7 @@ qed "new_tv_not_free_tv";
 Addsimps [new_tv_not_free_tv];
 
 Goalw [max_def] "!!n::nat. m < n ==> m < max n n'";
-by (Simp_tac 1);
-by Safe_tac;
-by (trans_tac 1);
+by (Auto_tac);
 qed "less_maxL";
 
 Goalw [max_def] "!!n::nat. m < n' ==> m < max n n'";
