@@ -64,6 +64,8 @@ use "sys.sml";
 cd "$ISABELLE_HOME/src/HOL";
 
 cd "Integ";
+use_thy "IntDef";
+use     "simproc";
 use_thy "Bin";
 cd "..";
 
@@ -71,5 +73,7 @@ cd "..";
 use_thy "Main";
 
 print_depth 8;
+
+Goal "True";  (*leave subgoal package empty*)
 
 val HOL_build_completed = ();   (*indicate successful build*)
