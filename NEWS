@@ -179,6 +179,20 @@ than prove_goalw_cterm in many situations (e.g. in simprocs);
 up simprocs;
 
 
+*** Document preparation ***
+
+* uses \par instead of \\ for line breaks in theory text. This may
+shift some page breaks in large documents. To get the old behaviour
+use \renewcommand{\isanewline}{\mbox{}\\\mbox{}} in root.tex.
+
+* minimized dependencies of isabelle.sty and isabellesym.sty on 
+other packages
+
+* \<euro> now needs package babel/greek instead of marvosym (which
+broke \Rightarrow)
+
+* normal size for \<0>...\<9> (uses \mathbf instead of textcomp package)
+
 
 New in Isabelle2002 (March 2002)
 --------------------------------
