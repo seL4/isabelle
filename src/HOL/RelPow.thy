@@ -11,7 +11,7 @@ RelPow = Nat +
 instance
   set :: (term) {power}   (* only ('a * 'a) set should be in power! *)
 
-primrec
+primrec (relpow)
   "R^0 = Id"
   "R^(Suc n) = R O (R^n)"
 

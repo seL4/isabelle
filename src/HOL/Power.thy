@@ -11,7 +11,7 @@ Power = Divides +
 consts
   binomial :: "[nat,nat] => nat"      (infixl "choose" 65)
 
-primrec
+primrec (power)
   "p ^ 0 = 1"
   "p ^ (Suc n) = (p::nat) * (p ^ n)"
   
