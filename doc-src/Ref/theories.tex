@@ -82,6 +82,10 @@ definitions; here is an explanation of the constituent parts:
   arities to type constructors.  The $name$ must be an existing type
   constructor, which is given the additional arity $arity$.
   
+\item[$nonterminals$]\index{*nonterminal symbols} declares purely
+  syntactic types to be used as nonterminal symbols of the context
+  free grammar.
+
 \item[$consts$] is a series of constant declarations.  Each new
   constant $name$ is given the specified type.  The optional $mixfix$
   annotations may attach concrete syntax to the constant.
@@ -147,7 +151,7 @@ definitions; here is an explanation of the constituent parts:
   allowed to create theorems, but each theorem carries a proof object
   describing the oracle invocation.  See \S\ref{sec:oracles} for details.
   
-\item[$local, global$] changes the current name declaration mode.
+\item[$local$, $global$] change the current name declaration mode.
   Initially, theories start in $local$ mode, causing all names of
   types, constants, axioms etc.\ to be automatically qualified by the
   theory name.  Changing this to $global$ causes all names to be
@@ -158,6 +162,11 @@ definitions; here is an explanation of the constituent parts:
   note that the final state at the end of the theory will persist.  In
   particular, this determines how the names of theorems stored later
   on are handled.
+  
+\item[$setup$]\index{*setup!theory} applies a list of ML functions to
+  the theory.  The argument should denote a value of type
+  \texttt{(theory -> theory) list}.  Typically, ML packages are
+  initialized in this way.
 
 \item[$ml$] \index{*ML section}
   consists of \ML\ code, typically for parse and print translation functions.
@@ -529,7 +538,6 @@ are not involved in a proof.
 \begin{ttbox}
 print_syntax        : theory -> unit
 print_theory        : theory -> unit
-print_data          : theory -> string -> unit
 parents_of          : theory -> theory list
 ancestors_of        : theory -> theory list
 sign_of             : theory -> Sign.sg
@@ -543,11 +551,6 @@ These provide means of viewing a theory's components.
   
 \item[\ttindexbold{print_theory} $thy$] prints the logical parts of
   $thy$, excluding the syntax.
-  
-\item[\ttindexbold{print_data} $thy$ $kind$] prints generic data of
-  $thy$.  This invokes the print method associated with $kind$.  Refer
-  to the output of \texttt{print_theory} for a list of available data
-  kinds in $thy$.
   
 \item[\ttindexbold{parents_of} $thy$] returns the direct ancestors
   of~$thy$.
@@ -930,3 +933,9 @@ iff_oracle 5;
 
 \index{oracles|)}
 \index{theories|)}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "ref"
+%%% End: 

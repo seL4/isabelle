@@ -32,8 +32,8 @@ these constructs.  The syntax obeys the following conventions:
 theoryDef : id '=' (name + '+') ('+' extension | ())
           ;
 
-name: id | string
-    ;
+name : id | string
+     ;
 
 extension : (section +) 'end' ( () | ml )
           ;
@@ -42,6 +42,7 @@ section : classes
         | default
         | types
         | arities
+        | nonterminals
         | consts
         | syntax
         | trans
@@ -53,13 +54,14 @@ section : classes
         | oracle
         | local
         | global
+        | setup
         ;
 
 classes : 'classes' ( classDecl + )
         ;
 
 classDecl : (id (() | '<' (id + ',')))
-        ;
+          ;
 
 default : 'default' sort 
         ;
@@ -91,6 +93,9 @@ arities : 'arities' ((name + ',') '::' arity +)
 
 arity : ( () | '(' (sort + ',') ')' ) sort
       ;
+
+nonterminals : 'nonterminals' (name+)
+             ;
 
 consts : 'consts' ( mixfixConstDecl + )
        ;
@@ -129,19 +134,28 @@ axclass : 'axclass' classDecl (() | ( id string ) +)
 instance : 'instance' ( name '<' name | name '::' arity) witness
          ;
 
-witness : (() | '(' ((string | longident) + ',') ')') (() | verbatim)
+witness : (() | '(' ((string | id | longident) + ',') ')') (() | verbatim)
         ;
 
 oracle : 'oracle' name '=' name
        ;
 
 local : 'local'
-       ;
+      ;
 
 global : 'global'
        ;
+
+setup : 'setup' (id | longident)
+      ;
 
 ml : 'ML' text
    ;
 
 \end{rail}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "ref"
+%%% End: 
