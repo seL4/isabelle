@@ -101,6 +101,11 @@ Addsimps [new_nonces_not_seen];
 
 val nonce_not_seen_now = le_refl RSN (2, new_nonces_not_seen) RSN (2,rev_notE);
 
+fun analz_induct_tac i = 
+    etac ns_public.induct i	THEN
+    ALLGOALS (asm_simp_tac 
+	      (!simpset addsimps ([not_parts_not_analz] @ pushes)
+               setloop split_tac [expand_if]));
 
 (**** Authenticity properties obtained from NS2 ****)
 
@@ -111,11 +116,7 @@ goal thy
 \ ==> Nonce NA ~: analz (sees lost Spy evs) -->           \
 \     Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
 \     Crypt (pubK C) {|X, Nonce NA, Agent D|} ~: parts (sees lost Spy evs)";
-by (etac ns_public.induct 1);
-by (ALLGOALS
-    (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz] @ pushes)
-               setloop split_tac [expand_if])));
+by (analz_induct_tac 1);
 (*NS3*)
 by (fast_tac (!claset addSEs partsEs
                       addEs  [nonce_not_seen_now]) 4);
@@ -139,11 +140,7 @@ goal thy
 \     (EX A' B'. ALL A B.                                                   \
 \      Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
 \      A=A' & B=B')";
-by (etac ns_public.induct 1);
-by (ALLGOALS 
-    (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz] @ pushes)
-               setloop split_tac [expand_if])));
+by (analz_induct_tac 1);
 (*NS1*)
 by (expand_case_tac "NA = ?y" 3 THEN
     REPEAT (fast_tac (!claset addSEs (nonce_not_seen_now::partsEs)) 3));
@@ -179,11 +176,7 @@ goal thy
  "!!evs. [| A ~: lost;  B ~: lost;  evs : ns_public |]   \
 \ ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs \
 \     --> Nonce NA ~: analz (sees lost Spy evs)";
-by (etac ns_public.induct 1);
-by (ALLGOALS 
-    (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz] @ pushes)
-               setloop split_tac [expand_if])));
+by (analz_induct_tac 1);
 (*NS3*)
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
@@ -247,12 +240,7 @@ goal thy
  "!!evs. evs : ns_public                   \
 \    ==> Nonce NA ~: analz (sees lost Spy evs) --> \
 \        Crypt (pubK B) {|Nonce NA, Agent A|} : parts (sees lost Spy evs) --> \
-\        Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs";
-by (etac ns_public.induct 1);
-by (ALLGOALS
-    (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz] @ pushes)
-               setloop split_tac [expand_if])));
+\        Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set_of_list evs"; by (analz_induct_tac 1);
 (*Fake*)
 by (best_tac (!claset addSIs [disjI2]
 		      addSDs [impOfSubs Fake_parts_insert]
@@ -276,11 +264,7 @@ goal thy
 \     (EX A' NA' B'. ALL A NA B.                                            \
 \      Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}   \
 \        : parts (sees lost Spy evs)  -->  A=A' & NA=NA' & B=B')";
-by (etac ns_public.induct 1);
-by (ALLGOALS 
-    (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz] @ pushes)
-               setloop split_tac [expand_if])));
+by (analz_induct_tac 1);
 (*NS2*)
 by (expand_case_tac "NB = ?y" 3 THEN
     REPEAT (fast_tac (!claset addSEs (nonce_not_seen_now::partsEs)) 3));
@@ -304,12 +288,7 @@ goal thy
 \           Nonce NB ~: analz (sees lost Spy evs);           \
 \           evs : ns_public |]                               \
 \        ==> A=A' & NA=NA' & B=B'";
-by (dtac lemma 1);
-by (mp_tac 1);
-by (REPEAT (etac exE 1));
-(*Duplicate the assumption*)
-by (forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl 1);
-by (fast_tac (!claset addSDs [spec]) 1);
+by (prove_unique_tac lemma 1);
 qed "unique_NB";
 
 
@@ -319,11 +298,7 @@ goal thy
 \ ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB, Agent B|}) \
 \       : set_of_list evs \
 \     --> Nonce NB ~: analz (sees lost Spy evs)";
-by (etac ns_public.induct 1);
-by (ALLGOALS 
-    (asm_simp_tac 
-     (!simpset addsimps ([not_parts_not_analz] @ pushes)
-               setloop split_tac [expand_if])));
+by (analz_induct_tac 1);
 (*NS3*)
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
                       addDs  [unique_NB]) 4);
