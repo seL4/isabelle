@@ -1,5 +1,5 @@
 (*  Title: 	HOL/IMP/Hoare.ML
-    ID:
+    ID:         $Id$
     Author: 	Tobias Nipkow
     Copyright   1995 TUM
 
