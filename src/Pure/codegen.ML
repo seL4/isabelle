@@ -286,7 +286,6 @@ fun mk_id s = if s = "" then "" else
     fun check_str [] = []
       | check_str xs = (case take_prefix is_ascii_letdig xs of
           ([], " " :: zs) => check_str zs
-        | ([], "_" :: zs) => check_str zs
         | ([], z :: zs) =>
           if size z = 1 then string_of_int (ord z) :: check_str zs
           else (case dest_sym z of
@@ -568,7 +567,7 @@ fun mk_gen sg p xs a (TVar ((s, i), _)) = Pretty.str
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => None);
 
-fun test_term thy sz i t =
+fun test_term thy sz i = setmp print_mode [] (fn t =>
   let
     val _ = assert (null (term_tvars t) andalso null (term_tfrees t))
       "Term to be tested contains type variables";
@@ -611,7 +610,7 @@ fun test_term thy sz i t =
       else (priority ("Test data size: " ^ string_of_int k);
         case iter (fn () => !test_fn k) 1 of
           None => test (k+1) | Some x => Some x);
-  in test 0 end;
+  in test 0 end);
 
 fun test_goal ({size, iterations, default_type}, tvinsts) i st =
   let
