@@ -106,45 +106,6 @@ by (simp add: contin_def)
 
 
 
-subsection {*lists without univ*}
-
-lemmas datatype_univs = Inl_in_univ Inr_in_univ 
-                        Pair_in_univ nat_into_univ A_into_univ 
-
-lemma list_fun_bnd_mono: "bnd_mono(univ(A), \<lambda>X. {0} + A*X)"
-apply (rule bnd_monoI)
- apply (intro subset_refl zero_subset_univ A_subset_univ 
-	      sum_subset_univ Sigma_subset_univ) 
-apply (rule subset_refl sum_mono Sigma_mono | assumption)+
-done
-
-lemma list_fun_contin: "contin(\<lambda>X. {0} + A*X)"
-by (intro sum_contin prod_contin id_contin const_contin) 
-
-text{*Re-expresses lists using sum and product*}
-lemma list_eq_lfp2: "list(A) = lfp(univ(A), \<lambda>X. {0} + A*X)"
-apply (simp add: list_def) 
-apply (rule equalityI) 
- apply (rule lfp_lowerbound) 
-  prefer 2 apply (rule lfp_subset)
- apply (clarify, subst lfp_unfold [OF list_fun_bnd_mono])
- apply (simp add: Nil_def Cons_def)
- apply blast 
-txt{*Opposite inclusion*}
-apply (rule lfp_lowerbound) 
- prefer 2 apply (rule lfp_subset) 
-apply (clarify, subst lfp_unfold [OF list.bnd_mono]) 
-apply (simp add: Nil_def Cons_def)
-apply (blast intro: datatype_univs
-             dest: lfp_subset [THEN subsetD])
-done
-
-text{*Re-expresses lists using "iterates", no univ.*}
-lemma list_eq_Union:
-     "list(A) = (\<Union>n\<in>nat. (\<lambda>X. {0} + A*X) ^ n (0))"
-by (simp add: list_eq_lfp2 lfp_eq_Union list_fun_bnd_mono list_fun_contin)
-
-
 subsection {*Absoluteness for "Iterates"*}
 
 constdefs
@@ -198,6 +159,45 @@ apply (simp add: wf_Memrel trans_Memrel relation_Memrel nat_into_M
 done
 
 
+subsection {*lists without univ*}
+
+lemmas datatype_univs = Inl_in_univ Inr_in_univ 
+                        Pair_in_univ nat_into_univ A_into_univ 
+
+lemma list_fun_bnd_mono: "bnd_mono(univ(A), \<lambda>X. {0} + A*X)"
+apply (rule bnd_monoI)
+ apply (intro subset_refl zero_subset_univ A_subset_univ 
+	      sum_subset_univ Sigma_subset_univ) 
+apply (rule subset_refl sum_mono Sigma_mono | assumption)+
+done
+
+lemma list_fun_contin: "contin(\<lambda>X. {0} + A*X)"
+by (intro sum_contin prod_contin id_contin const_contin) 
+
+text{*Re-expresses lists using sum and product*}
+lemma list_eq_lfp2: "list(A) = lfp(univ(A), \<lambda>X. {0} + A*X)"
+apply (simp add: list_def) 
+apply (rule equalityI) 
+ apply (rule lfp_lowerbound) 
+  prefer 2 apply (rule lfp_subset)
+ apply (clarify, subst lfp_unfold [OF list_fun_bnd_mono])
+ apply (simp add: Nil_def Cons_def)
+ apply blast 
+txt{*Opposite inclusion*}
+apply (rule lfp_lowerbound) 
+ prefer 2 apply (rule lfp_subset) 
+apply (clarify, subst lfp_unfold [OF list.bnd_mono]) 
+apply (simp add: Nil_def Cons_def)
+apply (blast intro: datatype_univs
+             dest: lfp_subset [THEN subsetD])
+done
+
+text{*Re-expresses lists using "iterates", no univ.*}
+lemma list_eq_Union:
+     "list(A) = (\<Union>n\<in>nat. (\<lambda>X. {0} + A*X) ^ n (0))"
+by (simp add: list_eq_lfp2 lfp_eq_Union list_fun_bnd_mono list_fun_contin)
+
+
 constdefs
   is_list_functor :: "[i=>o,i,i,i] => o"
     "is_list_functor(M,A,X,Z) == 
@@ -209,6 +209,65 @@ lemma (in M_axioms) list_functor_abs [simp]:
 by (simp add: is_list_functor_def singleton_0 nat_into_M)
 
 
+subsection {*formulas without univ*}
+
+lemma formula_fun_bnd_mono:
+     "bnd_mono(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))"
+apply (rule bnd_monoI)
+ apply (intro subset_refl zero_subset_univ A_subset_univ 
+	      sum_subset_univ Sigma_subset_univ nat_subset_univ) 
+apply (rule subset_refl sum_mono Sigma_mono | assumption)+
+done
+
+lemma formula_fun_contin:
+     "contin(\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))"
+by (intro sum_contin prod_contin id_contin const_contin) 
+
+
+text{*Re-expresses formulas using sum and product*}
+lemma formula_eq_lfp2:
+    "formula = lfp(univ(0), \<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))"
+apply (simp add: formula_def) 
+apply (rule equalityI) 
+ apply (rule lfp_lowerbound) 
+  prefer 2 apply (rule lfp_subset)
+ apply (clarify, subst lfp_unfold [OF formula_fun_bnd_mono])
+ apply (simp add: Member_def Equal_def Neg_def And_def Forall_def)
+ apply blast 
+txt{*Opposite inclusion*}
+apply (rule lfp_lowerbound) 
+ prefer 2 apply (rule lfp_subset, clarify) 
+apply (subst lfp_unfold [OF formula.bnd_mono, simplified]) 
+apply (simp add: Member_def Equal_def Neg_def And_def Forall_def)  
+apply (elim sumE SigmaE, simp_all) 
+apply (blast intro: datatype_univs dest: lfp_subset [THEN subsetD])+  
+done
+
+text{*Re-expresses formulas using "iterates", no univ.*}
+lemma formula_eq_Union:
+     "formula = 
+      (\<Union>n\<in>nat. (\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X))) ^ n (0))"
+by (simp add: formula_eq_lfp2 lfp_eq_Union formula_fun_bnd_mono 
+              formula_fun_contin)
+
+
+constdefs
+  is_formula_functor :: "[i=>o,i,i] => o"
+    "is_formula_functor(M,X,Z) == 
+        \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M]. \<exists>X4[M]. 
+          omega(M,nat') & cartprod(M,nat',nat',natnat) & 
+          is_sum(M,natnat,natnat,natnatsum) &
+          cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & is_sum(M,X,X3,X4) &
+          is_sum(M,natnatsum,X4,Z)"
+
+lemma (in M_axioms) formula_functor_abs [simp]: 
+     "[| M(X); M(Z) |] 
+      ==> is_formula_functor(M,X,Z) <-> 
+          Z = ((nat*nat) + (nat*nat)) + (X + (X*X + X))"
+by (simp add: is_formula_functor_def) 
+
+
+subsection{*@{term M} Contains the List and Formula Datatypes*}
 locale (open) M_datatypes = M_wfrank +
  assumes list_replacement1: 
    "M(A) ==> iterates_replacement(M, is_list_functor(M,A), 0)"
@@ -217,6 +276,14 @@ locale (open) M_datatypes = M_wfrank +
          \<lambda>n y. n\<in>nat & 
                (\<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
                is_wfrec(M, iterates_MH(M,is_list_functor(M,A), 0), 
+                        msn, n, y)))"
+  and formula_replacement1: 
+   "iterates_replacement(M, is_formula_functor(M), 0)"
+  and formula_replacement2: 
+   "strong_replacement(M, 
+         \<lambda>n y. n\<in>nat & 
+               (\<exists>sn[M]. \<exists>msn[M]. successor(M,n,sn) & membership(M,sn,msn) &
+               is_wfrec(M, iterates_MH(M,is_formula_functor(M), 0), 
                         msn, n, y)))"
 
 lemma (in M_datatypes) list_replacement2': 
@@ -234,5 +301,21 @@ by  (simp add: RepFun_closed2 list_eq_Union
                list_replacement2' relativize1_def
                iterates_closed [of "is_list_functor(M,A)"])
 
+
+lemma (in M_datatypes) formula_replacement2': 
+  "strong_replacement(M, \<lambda>n y. n\<in>nat & y = (\<lambda>X. ((nat*nat) + (nat*nat)) + (X + (X*X + X)))^n (0))"
+apply (insert formula_replacement2) 
+apply (rule strong_replacement_cong [THEN iffD1])  
+apply (rule conj_cong [OF iff_refl iterates_abs [of "is_formula_functor(M)"]]) 
+apply (simp_all add: formula_replacement1 relativize1_def) 
+done
+
+lemma (in M_datatypes) formula_closed [intro,simp]:
+     "M(formula)"
+apply (insert formula_replacement1)
+apply  (simp add: RepFun_closed2 formula_eq_Union 
+                  formula_replacement2' relativize1_def
+                  iterates_closed [of "is_formula_functor(M)"])
+done
 
 end

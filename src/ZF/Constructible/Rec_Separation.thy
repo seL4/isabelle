@@ -562,46 +562,6 @@ apply (intro FOL_reflections function_reflections cartprod_reflection)
 done
 
 
-subsubsection{*The List Functor, Internalized*}
-
-constdefs list_functor_fm :: "[i,i,i]=>i"
-(* "is_list_functor(M,A,X,Z) == 
-        \<exists>n1[M]. \<exists>AX[M]. 
-         number1(M,n1) & cartprod(M,A,X,AX) & is_sum(M,n1,AX,Z)" *)
-    "list_functor_fm(A,X,Z) == 
-       Exists(Exists(
-	And(number1_fm(1),
-            And(cartprod_fm(A#+2,X#+2,0), sum_fm(1,0,Z#+2)))))"
-
-lemma list_functor_type [TC]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> list_functor_fm(x,y,z) \<in> formula"
-by (simp add: list_functor_fm_def) 
-
-lemma arity_list_functor_fm [simp]:
-     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
-      ==> arity(list_functor_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-by (simp add: list_functor_fm_def succ_Un_distrib [symmetric] Un_ac) 
-
-lemma sats_list_functor_fm [simp]:
-   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-    ==> sats(A, list_functor_fm(x,y,z), env) <-> 
-        is_list_functor(**A, nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: list_functor_fm_def is_list_functor_def)
-
-lemma list_functor_iff_sats:
-  "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
-      i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
-   ==> is_list_functor(**A, x, y, z) <-> sats(A, list_functor_fm(i,j,k), env)"
-by simp
-
-theorem list_functor_reflection:
-     "REFLECTS[\<lambda>x. is_list_functor(L,f(x),g(x),h(x)), 
-               \<lambda>i x. is_list_functor(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: is_list_functor_def setclass_simps)
-apply (intro FOL_reflections number1_reflection
-             cartprod_reflection sum_reflection)  
-done
-
 subsubsection{*The Operator @{term quasinat}*}
 
 (* "is_quasinat(M,z) == empty(M,z) | (\<exists>m[M]. successor(M,m,z))" *)
@@ -785,6 +745,49 @@ done
 
 subsection{*@{term L} is Closed Under the Operator @{term list}*} 
 
+subsubsection{*The List Functor, Internalized*}
+
+constdefs list_functor_fm :: "[i,i,i]=>i"
+(* "is_list_functor(M,A,X,Z) == 
+        \<exists>n1[M]. \<exists>AX[M]. 
+         number1(M,n1) & cartprod(M,A,X,AX) & is_sum(M,n1,AX,Z)" *)
+    "list_functor_fm(A,X,Z) == 
+       Exists(Exists(
+	And(number1_fm(1),
+            And(cartprod_fm(A#+2,X#+2,0), sum_fm(1,0,Z#+2)))))"
+
+lemma list_functor_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> list_functor_fm(x,y,z) \<in> formula"
+by (simp add: list_functor_fm_def) 
+
+lemma arity_list_functor_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(list_functor_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: list_functor_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_list_functor_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, list_functor_fm(x,y,z), env) <-> 
+        is_list_functor(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: list_functor_fm_def is_list_functor_def)
+
+lemma list_functor_iff_sats:
+  "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+      i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+   ==> is_list_functor(**A, x, y, z) <-> sats(A, list_functor_fm(i,j,k), env)"
+by simp
+
+theorem list_functor_reflection:
+     "REFLECTS[\<lambda>x. is_list_functor(L,f(x),g(x),h(x)), 
+               \<lambda>i x. is_list_functor(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: is_list_functor_def setclass_simps)
+apply (intro FOL_reflections number1_reflection
+             cartprod_reflection sum_reflection)  
+done
+
+
+subsubsection{*Instances of Replacement for Lists*}
+
 lemma list_replacement1_Reflects:
  "REFLECTS
    [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
@@ -809,7 +812,8 @@ apply (rule_tac A="{B,A,n,z,0,Memrel(succ(n))}" in subset_LsetE, blast )
 apply (rule ReflectsE [OF list_replacement1_Reflects], assumption)
 apply (drule subset_Lset_ltD, assumption) 
 apply (erule reflection_imp_L_separation)
-  apply (simp_all add: lt_Ord2)
+  apply (simp_all add: lt_Ord2 Memrel_closed)
+apply (elim conjE) 
 apply (rule DPow_LsetI)
 apply (rename_tac v) 
 apply (rule bex_iff_sats conj_iff_sats)+
@@ -818,7 +822,6 @@ apply (rule sep_rules | simp)+
 txt{*Can't get sat rules to work for higher-order operators, so just expand them!*}
 apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
 apply (rule sep_rules list_functor_iff_sats quasinat_iff_sats | simp)+
-apply (simp_all add: succ_Un_distrib [symmetric] Memrel_closed)
 done
 
 
@@ -863,5 +866,134 @@ apply (rule sep_rules | simp)+
 apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
 apply (rule sep_rules list_functor_iff_sats quasinat_iff_sats | simp)+
 done
+
+
+subsection{*@{term L} is Closed Under the Operator @{term formula}*} 
+
+subsubsection{*The Formula Functor, Internalized*}
+
+constdefs formula_functor_fm :: "[i,i]=>i"
+(*     "is_formula_functor(M,X,Z) == 
+        \<exists>nat'[M]. \<exists>natnat[M]. \<exists>natnatsum[M]. \<exists>XX[M]. \<exists>X3[M]. \<exists>X4[M]. 
+          5          4              3          2       1       0
+          omega(M,nat') & cartprod(M,nat',nat',natnat) & 
+          is_sum(M,natnat,natnat,natnatsum) &
+          cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & is_sum(M,X,X3,X4) &
+          is_sum(M,natnatsum,X4,Z)" *) 
+    "formula_functor_fm(X,Z) == 
+       Exists(Exists(Exists(Exists(Exists(Exists(
+	And(omega_fm(5),
+         And(cartprod_fm(5,5,4),
+          And(sum_fm(4,4,3),
+           And(cartprod_fm(X#+6,X#+6,2),
+            And(sum_fm(2,X#+6,1),
+             And(sum_fm(X#+6,1,0), sum_fm(3,0,Z#+6)))))))))))))"
+
+lemma formula_functor_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> formula_functor_fm(x,y) \<in> formula"
+by (simp add: formula_functor_fm_def) 
+
+lemma sats_formula_functor_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, formula_functor_fm(x,y), env) <-> 
+        is_formula_functor(**A, nth(x,env), nth(y,env))"
+by (simp add: formula_functor_fm_def is_formula_functor_def)
+
+lemma formula_functor_iff_sats:
+  "[| nth(i,env) = x; nth(j,env) = y; 
+      i \<in> nat; j \<in> nat; env \<in> list(A)|]
+   ==> is_formula_functor(**A, x, y) <-> sats(A, formula_functor_fm(i,j), env)"
+by simp
+
+theorem formula_functor_reflection:
+     "REFLECTS[\<lambda>x. is_formula_functor(L,f(x),g(x)), 
+               \<lambda>i x. is_formula_functor(**Lset(i),f(x),g(x))]"
+apply (simp only: is_formula_functor_def setclass_simps)
+apply (intro FOL_reflections omega_reflection
+             cartprod_reflection sum_reflection)  
+done
+
+subsubsection{*Instances of Replacement for Formulas*}
+
+lemma formula_replacement1_Reflects:
+ "REFLECTS
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
+         is_wfrec(L, iterates_MH(L, is_formula_functor(L), 0), memsn, u, y)),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
+         is_wfrec(**Lset(i), 
+                  iterates_MH(**Lset(i), 
+                          is_formula_functor(**Lset(i)), 0), memsn, u, y))]"
+by (intro FOL_reflections function_reflections is_wfrec_reflection 
+          iterates_MH_reflection formula_functor_reflection) 
+
+lemma formula_replacement1: 
+   "iterates_replacement(L, is_formula_functor(L), 0)"
+apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)   
+apply (rule separation_CollectI) 
+apply (insert nonempty) 
+apply (subgoal_tac "L(Memrel(succ(n)))") 
+apply (rule_tac A="{B,n,z,0,Memrel(succ(n))}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF formula_replacement1_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2 Memrel_closed)
+apply (rule DPow_LsetI)
+apply (rename_tac v) 
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
+apply (rule sep_rules | simp)+
+txt{*Can't get sat rules to work for higher-order operators, so just expand them!*}
+apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
+apply (rule sep_rules formula_functor_iff_sats quasinat_iff_sats | simp)+
+txt{*SLOW: like 40 seconds!*}
+done
+
+lemma formula_replacement2_Reflects:
+ "REFLECTS
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> u \<in> nat \<and>
+         (\<exists>sn[L]. \<exists>msn[L]. successor(L, u, sn) \<and> membership(L, sn, msn) \<and>
+           is_wfrec (L, iterates_MH (L, is_formula_functor(L), 0),
+                              msn, u, x)),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> u \<in> nat \<and>
+         (\<exists>sn \<in> Lset(i). \<exists>msn \<in> Lset(i). 
+          successor(**Lset(i), u, sn) \<and> membership(**Lset(i), sn, msn) \<and>
+           is_wfrec (**Lset(i), 
+                 iterates_MH (**Lset(i), is_formula_functor(**Lset(i)), 0),
+                     msn, u, x))]"
+by (intro FOL_reflections function_reflections is_wfrec_reflection 
+          iterates_MH_reflection formula_functor_reflection) 
+
+
+lemma formula_replacement2: 
+   "strong_replacement(L, 
+         \<lambda>n y. n\<in>nat & 
+               (\<exists>sn[L]. \<exists>msn[L]. successor(L,n,sn) & membership(L,sn,msn) &
+               is_wfrec(L, iterates_MH(L,is_formula_functor(L), 0), 
+                        msn, n, y)))"
+apply (rule strong_replacementI) 
+apply (rule rallI)
+apply (rename_tac B)   
+apply (rule separation_CollectI) 
+apply (insert nonempty) 
+apply (rule_tac A="{B,z,0,nat}" in subset_LsetE) 
+apply (blast intro: L_nat) 
+apply (rule ReflectsE [OF formula_replacement2_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2)
+apply (rule DPow_LsetI)
+apply (rename_tac v) 
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,B,0,nat]" in mem_iff_sats)
+apply (rule sep_rules | simp)+
+apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
+apply (rule sep_rules formula_functor_iff_sats quasinat_iff_sats | simp)+
+done
+
+text{*NB The proofs for type @{term formula} are virtually identical to those
+for @{term "list(A)"}.  It was a cut-and-paste job! *}
 
 end
