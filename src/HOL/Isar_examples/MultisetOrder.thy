@@ -2,8 +2,10 @@
     ID:         $Id$
     Author:     Markus Wenzel
 
-Wellfoundedness proof for the multiset order.  Based on
-HOL/induct/Multiset by Tobias Nipkow.
+Wellfoundedness proof for the multiset order.
+
+Original tactic script by Tobias Nipkow (see also
+HOL/Induct/Multiset).  Pen-and-paper proof by Wilfried Buchholz.
 *)
 
 
@@ -22,7 +24,7 @@ proof;
       and M0: "M0 : ??W"
       and acc_hyp: "ALL M. (M, M0) : ??R --> M + {#a#} : ??W";
     have "M0 + {#a#} : ??W";
-    proof (rule accI); thm accI; thm accI [where ?a = "M0 + {#a#}" and ?r = "??R"];
+    proof (rule accI [of "M0 + {#a#}"]);
       fix N; assume "(N, M0 + {#a#}) : ??R";
       hence "((EX M. (M, M0) : ??R & N = M + {#a#}) |
              (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K))";
@@ -34,46 +36,54 @@ proof;
 	hence "M + {#a#} : ??W"; ..;
 	thus "N : ??W"; by (simp only: N);
       next;
-	fix K; assume K: "ALL b. elem K b --> (b, a) : r" (is ??K) and N: "N = M0 + K";
+	fix K; assume "ALL b. elem K b --> (b, a) : r" (is "??A a K")
+	  and N: "N = M0 + K";
 
-	have "??K --> M0 + K : ??W" (is "??P K");
-	proof (rule multiset_induct [of _ K]); thm multiset_induct [of _ K];
-	  show "??P {#}"; by asm_simp;   (* FIXME *)
+	have "??A a K --> M0 + K : ??W" (is "??P K");
+	proof (rule multiset_induct [of _ K]);
+	  from M0; have "M0 + {#} : ??W"; by simp;
+	  thus "??P {#}"; ..;
+
 	  fix K x; assume hyp: "??P K";
 	  show "??P (K + {#x#})";
-	  proof -;
-	    apply (simp_tac add: union_assoc [RS sym]);
-	    apply blast;        (* FIXME *)
+	  proof;
+	    assume a: "??A a (K + {#x#})";
+	    hence "(x, a) : r"; by simp;
+	    with wf_hyp [RS spec]; have b: "ALL M:??W. M + {#x#} : ??W"; ..;
+
+	    from a hyp; have "M0 + K : ??W"; by simp;
+	    with b; have "(M0 + K) + {#x#} : ??W"; ..;
+	    thus "M0 + (K + {#x#}) : ??W"; by (simp only: union_assoc);
 	  qed;
 	qed;
 	hence "M0 + K : ??W"; ..;
 	thus "N : ??W"; by (simp only: N);
       qed;
     qed;
-  }}; note subproof = this;
+  }}; note tedious_reasoning = this;
 
 
   assume wf: "wf r";
   fix M;
   show "M : ??W";
-  proof (rule multiset_induct [of _ M]); thm multiset_induct [of _ M];
+  proof (rule multiset_induct [of _ M]);
     show "{#} : ??W";
     proof (rule accI);
       fix b; assume "(b, {#}) : ??R";
       with not_less_empty; show "b : ??W"; by contradiction;
     qed;
 
-    fix a;
+    fix M a; assume "M : ??W";
     from wf; have "ALL M:??W. M + {#a#} : ??W";
-    proof (rule wf_induct [of r]);  thm wf_induct [of r];
-      fix a; assume wf_hyp: "ALL b. (b, a) : r --> (ALL M:??W. M + {#b#} : ??W)";
+    proof (rule wf_induct [of r]);
+      fix a; assume "ALL b. (b, a) : r --> (ALL M:??W. M + {#b#} : ??W)";
       show "ALL M:??W. M + {#a#} : ??W";
       proof;
 	fix M; assume "M : ??W";
-	thus "M + {#a#} : ??W"; by (rule acc_induct) (rule subproof, finish);   (* FIXME elim finish *)
+	thus "M + {#a#} : ??W"; by (rule acc_induct) (rule tedious_reasoning);
       qed;
     qed;
-    thus "!!M. M:??W ==> M + {#a#} : ??W"; by (rule bspec);    (* FIXME !? *)
+    thus "M + {#a#} : ??W"; ..;
   qed;
 qed;
 
