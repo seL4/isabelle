@@ -36,7 +36,8 @@ val ignore = ["Trueprop", "all", "==>", "=="];
 
 (* top_const: main constant, ignoring Trueprop *)
 fun top_const (_ $ t) = (case head_of t of Const(c,_) => Some c
-                                         | _          => None);
+                                         | _          => None)
+  | top_const _ = None;
 
 (*Symtab which associates a constant with a list of theorems that contain the
   constant (theorems are tagged with numbers)*)
