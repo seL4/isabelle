@@ -9,11 +9,10 @@
 %
 \begin{isamarkuptext}%
 Concerning Isabelle's ``inner'' language of simply-typed \isa{{\isasymlambda}}-calculus, the core concept of Isabelle's elaborate infrastructure
-  for concrete syntax is that of general \emph{mixfix
-  annotations}\index{mixfix annotations|bold}.  Associated with any
-  kind of name and type declaration, mixfixes give rise both to
-  grammar productions for the parser and output templates for the
-  pretty printer.
+  for concrete syntax is that of general \bfindex{mixfix annotations}.
+  Associated with any kind of name and type declaration, mixfixes give
+  rise both to grammar productions for the parser and output templates
+  for the pretty printer.
 
   In full generality, the whole affair of parser and pretty printer
   configuration is rather subtle.  Any syntax specifications given by
@@ -28,7 +27,7 @@ Concerning Isabelle's ``inner'' language of simply-typed \isa{{\isasymlambda}}-c
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Infixes%
+\isamarkupsubsection{Infix annotations%
 }
 \isamarkuptrue%
 %
@@ -40,11 +39,11 @@ Syntax annotations may be included wherever constants are declared
   well, although this is less frequently encountered in practice
   (\isa{{\isacharasterisk}} and \isa{{\isacharplus}} types may come to mind).
 
-  Infix declarations\index{infix annotations|bold} provide a useful
-  special case of mixfixes, where users need not care about the full
-  details of priorities, nesting, spacing, etc.  The subsequent
-  example of the exclusive-or operation on boolean values illustrates
-  typical infix declarations.%
+  Infix declarations\index{infix annotations} provide a useful special
+  case of mixfixes, where users need not care about the full details
+  of priorities, nesting, spacing, etc.  The subsequent example of the
+  exclusive-or operation on boolean values illustrates typical infix
+  declarations.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{constdefs}\isanewline
@@ -120,11 +119,10 @@ Concrete syntax based on plain ASCII characters has its inherent
   proposed over decades, but none has become universally available so
   far, not even Unicode\index{Unicode}.
 
-  Isabelle supports a generic notion of
-  \emph{symbols}\index{symbols|bold} as the smallest entities of
-  source text, without referring to internal encodings.  Such
-  ``generalized characters'' may be of one of the following three
-  kinds:
+  Isabelle supports a generic notion of \bfindex{symbols} as the
+  smallest entities of source text, without referring to internal
+  encodings.  Such ``generalized characters'' may be of one of the
+  following three kinds:
 
   \begin{enumerate}
 
@@ -172,10 +170,10 @@ The X-Symbol package within Proof~General provides several input
   immediately after continuing further input.
 
   \medskip A slightly more refined scheme is to provide alternative
-  syntax via the \emph{print mode}\index{print mode} concept of
-  Isabelle (see also \cite{isabelle-ref}).  By convention, the mode
-  ``$xsymbols$'' is enabled whenever X-Symbol is active.  Consider the
-  following hybrid declaration of \isa{xor}.%
+  syntax via the \bfindex{print mode} concept of Isabelle (see also
+  \cite{isabelle-ref}).  By convention, the mode ``$xsymbols$'' is
+  enabled whenever X-Symbol is active.  Consider the following hybrid
+  declaration of \isa{xor}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
@@ -220,15 +218,15 @@ Here the \commdx{syntax} command acts like \isakeyword{consts}, but
 \isacommand{syntax}\ {\isacharparenleft}xsymbols\ \isakeyword{output}{\isacharparenright}\isanewline
 \ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymoplus}{\isasymignore}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isamarkupfalse%
 %
-\isamarkupsubsection{Prefixes%
+\isamarkupsubsection{Prefix annotations%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Prefix syntax annotations\index{prefix annotation|bold} are just a
-  very degenerate of the general mixfix form \cite{isabelle-ref},
-  without any template arguments or priorities --- just some piece of
-  literal syntax.
+Prefix syntax annotations\index{prefix annotation} are just a very
+  degenerate of the general mixfix form \cite{isabelle-ref}, without
+  any template arguments or priorities --- just some piece of literal
+  syntax.
 
   The following example illustrates this idea idea by associating
   common symbols with the constructors of a currency datatype.%
@@ -244,30 +242,24 @@ Prefix syntax annotations\index{prefix annotation|bold} are just a
 Here the degenerate mixfix annotations on the rightmost column
   happen to consist of a single Isabelle symbol each:
   \verb,\,\verb,<euro>,, \verb,\,\verb,<pounds>,,
-  \verb,\,\verb,<yen>,, and \verb,$,.
+  \verb,\,\verb,<yen>,, \verb,$,.
 
   Recall that a constructor like \isa{Euro} actually is a function
   \isa{nat\ {\isasymRightarrow}\ currency}.  An expression like \isa{Euro\ {\isadigit{1}}{\isadigit{0}}} will
-  be printed as \isa{{\isasymeuro}\ {\isadigit{1}}{\isadigit{0}}}.  Merely the head of the application is
-  subject to our trivial concrete syntax; this form is sufficient to
-  achieve fair conformance to EU~Commission standards of currency
-  notation.
+  be printed as \isa{{\isasymeuro}\ {\isadigit{1}}{\isadigit{0}}}.  Only the head of the application is
+  subject to our concrete syntax; this simple form already achieves
+  conformance with notational standards of the European Commission.
 
   \medskip Certainly, the same idea of prefix syntax also works for
   \isakeyword{consts}, \isakeyword{constdefs} etc.  For example, we
   might introduce a (slightly unrealistic) function to calculate an
   abstract currency value, by cases on the datatype constructors and
-  fixed exchange rates.%
+  fixed exchange rates.  The funny symbol used here is that of
+  \verb,\<currency>,.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{consts}\isanewline
 \ \ currency\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}currency\ {\isasymRightarrow}\ nat{\isachardoublequote}\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymcurrency}{\isachardoublequote}{\isacharparenright}\isamarkupfalse%
-%
-\begin{isamarkuptext}%
-\noindent The funny symbol encountered here is that of
-  \verb,\<currency>,.%
-\end{isamarkuptext}%
-\isamarkuptrue%
 %
 \isamarkupsubsection{Syntax translations \label{sec:def-translations}%
 }
@@ -312,24 +304,250 @@ about \isa{{\isacharequal}} still apply.%
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{Batch-mode sessions%
-}
+\begin{isamarkuptext}%
+Isabelle/Isar is centered around a certain notion of \bfindex{formal
+  proof documents}\index{documents|bold}: ultimately the result of the
+  user's theory development efforts is a human-readable record --- as
+  a browsable PDF file or printed on paper.  The overall document
+  structure follows traditional mathematical articles, with
+  sectioning, explanations, definitions, theorem statements, and
+  proofs.
+
+  The Isar proof language \cite{Wenzel-PhD}, which is not covered in
+  this book, admits to write formal proof texts that are acceptable
+  both to the machine and human readers at the same time.  Thus
+  marginal comments and explanations may be kept at a minimum.
+  Nevertheless, Isabelle document output is still useful without
+  actual Isar proof texts; formal specifications usually deserve their
+  own coverage in the text, while unstructured proof scripts may be
+  just ignore by readers (or intentionally suppressed from the text).
+
+  \medskip The Isabelle document preparation system essentially acts
+  like a formal front-end for {\LaTeX}.  After checking definitions
+  and proofs the theory sources are turned into typesetting
+  instructions, so the final document is known to observe quite strong
+  ``soundness'' properties.  This enables users to write authentic
+  reports on formal theory developments with little additional effort,
+  the most tedious consistency checks are handled by the system.%
+\end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{{\LaTeX} macros%
-}
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Structure markup%
-}
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Symbols and characters%
+\isamarkupsubsection{Isabelle sessions%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+In contrast to the highly interactive mode of the formal parts of
+  Isabelle/Isar theory development, the document preparation stage
+  essentially works in batch-mode.  This revolves around the concept
+  of a \bfindex{session}, which essentially consists of a collection
+  of theory source files that contribute to a single output document.
+  Each session is derived from a parent one (usually an object-logic
+  image such as \texttt{HOL}); this results in an overall tree
+  structure of Isabelle sessions.
+
+  The canonical arrangement of source files of a session called
+  \texttt{MySession} is as follows:
+
+  \begin{itemize}
+
+  \item Directory \texttt{MySession} contains the required theory
+  files, say $A@1$\texttt{.thy}, \dots, $A@n$\texttt{.thy}.
+
+  \item File \texttt{MySession/ROOT.ML} holds appropriate ML commands
+  for loading all wanted theories, usually just
+  \texttt{use_thy~"$A@i$"} for any $A@i$ in leaf position of the
+  theory dependency graph.
+
+  \item Directory \texttt{MySession/document} contains everything
+  required for the {\LaTeX} stage, but only \texttt{root.tex} needs to
+  be provided initially.  The latter file holds appropriate {\LaTeX}
+  code to commence a document (\verb,\documentclass, etc.), and to
+  include the generated files $A@i$\texttt{.tex} for each theory.  The
+  generated file \texttt{session.tex} holds {\LaTeX} commands to
+  include \emph{all} theory output files in topologically sorted
+  order.
+
+  \item In addition an \texttt{IsaMakefile} outside of directory
+  \texttt{MySession} holds appropriate dependencies and invocations of
+  Isabelle tools to control the batch job.  The details are covered in
+  \cite{isabelle-sys}; \texttt{isatool usedir} is the most important
+  entry point.
+
+  \end{itemize}
+
+  With everything put in its proper place, \texttt{isatool make}
+  should be sufficient to process the Isabelle session completely,
+  with the generated document appearing in its proper place (within
+  \verb,~/isabelle/browser_info,).
+
+  In practive, users may want to have \texttt{isatool mkdir} generate
+  an initial working setup without further ado.  For example, an empty
+  session \texttt{MySession} derived from \texttt{HOL} may be produced
+  as follows:
+
+\begin{verbatim}
+  isatool mkdir HOL MySession
+  isatool make
+\end{verbatim}
+
+  This runs the session with sensible default options, including
+  verbose mode to tell the user where the result will appear.  The
+  above dry run should produce should produce a single page of output
+  (with a dummy title, empty table of contents etc.).  Any failure at
+  that stage is likely to indicate some technical problems with your
+  {\LaTeX} installation.\footnote{Especially make sure that
+  \texttt{pdflatex} is present.}
+
+  \medskip Users may now start to populate the directory
+  \texttt{MySession}, and the file \texttt{MySession/ROOT.ML}
+  accordingly.  \texttt{MySession/document/root.tex} should be also
+  adapted at some point; the generated version is mostly
+  self-explanatory.
+
+  Realistic applications may demand additional files in
+  \texttt{MySession/document} for the {\LaTeX} stage, such as
+  \texttt{root.bib} for the bibliographic database.\footnote{Using
+  that particular name of \texttt{root.bib}, the Isabelle document
+  processor (actually \texttt{isatool document} \cite{isabelle-sys})
+  will be smart enough to invoke \texttt{bibtex} accordingly.}
+
+  \medskip Failure of the document preparation phase in an Isabelle
+  batch session leaves the generated sources in there target location
+  (as pointed out by the accompanied error message).  In case of
+  {\LaTeX} errors, users may trace error messages at the file position
+  of the generated text.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Structure markup%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Sections%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The large-scale structure of Isabelle documents closely follows
+  {\LaTeX} convention, with chapters, sections, subsubsections etc.
+  The formal Isar language includes separate structure \bfindex{markup
+  commands}, which do not effect the formal content of a theory (or
+  proof), but results in corresponding {\LaTeX} elements issued to the
+  output.
+
+  There are different markup commands for different formal contexts:
+  in header position (just before a \isakeyword{theory} command),
+  within the theory body, or within a proof.  Note that the header
+  needs to be treated specially, since ordinary theory and proof
+  commands may only occur \emph{after} the initial \isakeyword{theory}
+  specification.
+
+  \smallskip
+
+  \begin{tabular}{llll}
+  header & theory & proof & default meaning \\\hline
+    & \commdx{chapter} & & \verb,\chapter, \\
+  \commdx{header} & \commdx{section} & \commdx{sect} & \verb,\section, \\
+    & \commdx{subsection} & \commdx{subsect} & \verb,\subsection, \\
+    & \commdx{subsubsection} & \commdx{subsubsect} & \verb,\subsubsection, \\
+  \end{tabular}
+
+  \medskip
+
+  From the Isabelle perspective, each markup command takes a single
+  text argument (delimited by \verb,",\dots\verb,", or
+  \verb,{,\verb,*,~\dots~\verb,*,\verb,},).  After stripping
+  surrounding white space, the argument is passed to a {\LaTeX} macro
+  \verb,\isamarkupXXX, for any command \isakeyword{XXX}.  The latter
+  are defined in \verb,isabelle.sty, according to the rightmost column
+  above.
+
+  \medskip The following source fragment illustrates structure markup
+  of a theory.
+
+  \begin{ttbox}
+  header {\ttlbrace}* Some properties of Foo Bar elements *{\ttrbrace}
+
+  theory Foo_Bar = Main:
+
+  subsection {\ttlbrace}* Basic definitions *{\ttrbrace}
+
+  consts
+    foo :: \dots
+    bar :: \dots
+  defs \dots
+    
+  subsection {\ttlbrace}* Derived rules *{\ttrbrace}
+
+  lemma fooI: \dots
+  lemma fooE: \dots
+
+  subsection {\ttlbrace}* Main theorem *{\ttrbrace}
+
+  theorem main: \dots
+
+  end
+  \end{ttbox}
+
+  \medskip In realistic applications, users may well want to change
+  the meaning of some markup commands, typically via appropriate use
+  of \verb,\renewcommand, in \texttt{root.tex}.  The
+  \verb,\isamarkupheader, is a good candidate for some adaption, e.g.\
+  moving it up in the hierarchy to become \verb,\chapter,.
+
+\begin{verbatim}
+  \renewcommand{\isamarkupheader}[1]{\chapter{#1}}
+\end{verbatim}
+
+  Certainly, this requires to change the default
+  \verb,\documentclass{article}, in \texttt{root.tex} to something
+  that supports the notion of chapters in the first place, e.g.\
+  \texttt{report} or \texttt{book}.
+
+  \medskip For each generated theory output the {\LaTeX} macro
+  \verb,\isabellecontext, holds the name of the formal context.  This
+  is particularly useful for document headings or footings, e.g.\ like
+  this:
+
+\begin{verbatim}
+  \renewcommand{\isamarkupheader}[1]%
+  {\chapter{#1}\markright{THEORY~\isabellecontext}}
+\end{verbatim}
+
+  \noindent Make sure to include something like
+  \verb,\pagestyle{headings}, in \texttt{root.tex} as well.  Moreover,
+  the document should have more than 2 pages.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Formal comments and antiquotations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Comments of the form \verb,(*,~\dots~\verb,*),%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Symbols and characters%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME \verb,\isabellestyle,%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Suppressing output%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME \verb,no_document,
+
+  FIXME \verb,(,\verb,*,\verb,<,\verb,*,\verb,),
+  \verb,(,\verb,*,\verb,>,\verb,*,\verb,),%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isamarkupfalse%
