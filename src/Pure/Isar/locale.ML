@@ -1,6 +1,6 @@
 (*  Title:      Pure/Isar/locale.ML
     ID:         $Id$
-    Author:     Markus Wenzel, LMU München
+    Author:     Markus Wenzel, LMU/TU München
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Locales -- Isar proof contexts as meta-level predicates, with local
@@ -48,22 +48,22 @@ sig
   val print_locale: theory -> expr -> context attribute element list -> unit
   val add_locale: bstring -> expr -> context attribute element list -> theory -> theory
   val add_locale_i: bstring -> expr -> context attribute element_i list -> theory -> theory
+  val smart_have_thmss: string -> (string * 'a) Library.option ->
+    ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
+    theory -> theory * (bstring * thm list) list
   val have_thmss: string -> xstring ->
     ((bstring * context attribute list) * (xstring * context attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
   val have_thmss_i: string -> string ->
     ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
     theory -> theory * (bstring * thm list) list
-  val add_thmss_hybrid: string ->
-    ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
-    (string * context attribute list list) option -> thm list list -> theory ->
-    theory * (string * thm list) list
+  val add_thmss: string -> ((string * thm list) * context attribute list) list ->
+    context * theory -> (context * theory) * thm list list
   val setup: (theory -> theory) list
 end;
 
 structure Locale: LOCALE =
 struct
-
 
 (** locale elements and expressions **)
 
@@ -439,6 +439,10 @@ in
 fun activate_facts prep_facts ctxt_elemss =
   let val (ctxt', (elemss', factss)) = apsnd split_list (activate_elemss prep_facts ctxt_elemss)
   in (ctxt', (elemss', flat factss)) end;
+
+fun apply_facts name (ctxt, facts) =
+  let val (ctxt', (_, facts')) = activate_facts (K I) (ctxt, [((name, []), [Notes facts])])
+  in (ctxt', map (#2 o #2) facts') end;
 
 end;
 
@@ -830,23 +834,11 @@ end;
 
 local
 
-fun put_facts loc args thy =
-  let
-    val {import, elems, text, params} = the_locale thy loc;
-    val note = Notes (map (fn ((a, more_atts), th_atts) =>
-      ((a, more_atts), map (apfst (map (curry Thm.name_thm a))) th_atts)) args);
-  in thy |> put_locale loc (make_locale import (elems @ [(note, stamp ())]) text params) end;
-
-fun add_thmss loc args thy =
-  let val args' = map (fn ((a, ths), atts) => ((a, atts), [(ths, [])])) args in
-    thy |> ProofContext.init |>
-      cert_context_statement (Some loc) [Elem (Notes args')] [];    (*test attributes now!*)
-    thy |> put_facts loc args'
-  end;
-
 fun hide_bound_names names thy =
   thy |> PureThy.hide_thms false
     (map (Sign.full_name (Theory.sign_of thy)) (filter_out (equal "") names));
+
+in
 
 fun have_thmss_qualified kind loc args thy =
   thy
@@ -854,6 +846,20 @@ fun have_thmss_qualified kind loc args thy =
   |> PureThy.have_thmss_i (Drule.kind kind) args
   |>> hide_bound_names (map (#1 o #1) args)
   |>> Theory.parent_path;
+
+fun smart_have_thmss kind None = PureThy.have_thmss_i (Drule.kind kind)
+  | smart_have_thmss kind (Some (loc, _)) = have_thmss_qualified kind loc;
+
+end;
+
+local
+
+fun put_facts loc args thy =
+  let
+    val {import, elems, text, params} = the_locale thy loc;
+    val note = Notes (map (fn ((a, more_atts), th_atts) =>
+      ((a, more_atts), map (apfst (map (curry Thm.name_thm a))) th_atts)) args);
+  in thy |> put_locale loc (make_locale import (elems @ [(note, stamp ())]) text params) end;
 
 fun gen_have_thmss prep_locale get_thms kind raw_loc raw_args thy =
   let
@@ -875,13 +881,11 @@ in
 val have_thmss = gen_have_thmss intern ProofContext.get_thms;
 val have_thmss_i = gen_have_thmss (K I) (K I);
 
-fun add_thmss_hybrid kind args None _ thy = PureThy.have_thmss_i (Drule.kind kind) args thy
-  | add_thmss_hybrid kind args (Some (loc, loc_atts)) loc_ths thy =
-     if length args = length loc_atts then
-      thy
-      |> add_thmss loc ((map (#1 o #1) args ~~ loc_ths) ~~ loc_atts)
-      |> have_thmss_qualified kind loc args
-     else raise THEORY ("Bad number of locale attributes", [thy]);
+fun add_thmss loc args (ctxt, thy) =
+  let
+    val args' = map (fn ((a, ths), atts) => ((a, atts), [(ths, [])])) args;
+    val (ctxt', facts') = apply_facts loc (ctxt, args');
+  in ((ctxt', thy |> put_facts loc args'), facts') end;
 
 end;
 
