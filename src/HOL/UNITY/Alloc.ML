@@ -300,31 +300,10 @@ AddIffs [Client_component_System, Network_component_System,
 AddIs    [impOfSubs subset_preserves_o];
 Addsimps [impOfSubs subset_preserves_o];
 
-(*Lifting Client_Increasing to systemState*)
-Goal "i : I \
-\     ==> rename sysOfClient (plam x: I. rename client_map Client) : \
-\           UNIV \
-\           guarantees[(funPair rel ask) o sub i o client]  \
-\             Increasing (ask o sub i o client) Int \
-\             Increasing (rel o sub i o client)";
-by (simp_tac (simpset() addsimps [rename_guarantees_eq_rename_inv]) 1);
-by (rtac guarantees_PLam_I 1);
-by (assume_tac 2);
-(*preserves: routine reasoning*)
-by (asm_simp_tac (simpset() addsimps [lift_preserves_sub]) 2);
-(*the guarantee for  "lift i (rename client_map Client)" *)
-by (asm_simp_tac
-    (simpset() addsimps [lift_guarantees_eq_lift_inv,
-			 rename_guarantees_eq_rename_inv,
-			 bij_imp_bij_inv, surj_rename RS surj_range,
-			 inv_inv_eq]) 1);
-by (asm_simp_tac
-    (simpset() addsimps [o_def, non_extra_def, guarantees_Int_right]) 1);
-qed "rename_Client_Increasing";
 
-(*The proofs of rename_Client_Bounded and rename_Client_Progress are 
-  similar to the one above.  All require copying out the original Client
-  property.  A forward proof can be constructed as follows:
+(*The proofs of rename_Client_Increasing, rename_Client_Bounded and
+  rename_Client_Progress are similar.  All require copying out the original
+  Client property.  A forward proof can be constructed as follows:
 
   Client_Increasing_ask RS
       (bij_client_map RS rename_rename_guarantees_eq RS iffD2)
@@ -336,7 +315,36 @@ qed "rename_Client_Increasing";
 
 However, the "preserves" property remains to be discharged, and the unfolding
 of "o" and "sub" complicates subsequent reasoning.
+
+The following tactic works for all three proofs, though it certainly looks
+ad-hoc!
 *)
+val rename_client_map_tac =
+  EVERY [
+    simp_tac (simpset() addsimps [rename_guarantees_eq_rename_inv]) 1,
+    rtac guarantees_PLam_I 1,
+    assume_tac 2,
+	 (*preserves: routine reasoning*)
+    asm_simp_tac (simpset() addsimps [lift_preserves_sub]) 2,
+	 (*the guarantee for  "lift i (rename client_map Client)" *)
+    asm_simp_tac
+	(simpset() addsimps [lift_guarantees_eq_lift_inv,
+			     rename_guarantees_eq_rename_inv,
+			     bij_imp_bij_inv, surj_rename RS surj_range,
+			     inv_inv_eq]) 1,
+    asm_simp_tac
+        (simpset() addsimps [o_def, non_extra_def, guarantees_Int_right]) 1];
+
+
+(*Lifting Client_Increasing to systemState*)
+Goal "i : I \
+\     ==> rename sysOfClient (plam x: I. rename client_map Client) : \
+\           UNIV \
+\           guarantees[(funPair rel ask) o sub i o client]  \
+\             Increasing (ask o sub i o client) Int \
+\             Increasing (rel o sub i o client)";
+by rename_client_map_tac;
+qed "rename_Client_Increasing";
 
 Goal "i < Nclients \
 \     ==> System : Increasing (ask o sub i o client) Int \
@@ -485,18 +493,7 @@ Goal "i : I \
 \         UNIV \
 \         guarantees[ask o sub i o client]  \
 \           Always {s. ALL elt : set ((ask o sub i o client) s). elt <= NbT}";
-by (simp_tac (simpset() addsimps [rename_guarantees_eq_rename_inv]) 1);
-by (rtac guarantees_PLam_I 1);
-by (assume_tac 2);
-(*preserves: routine reasoning*)
-by (asm_simp_tac (simpset() addsimps [lift_preserves_sub]) 2);
-(*the guarantee for  "lift i (rename client_map Client)" *)
-by (asm_simp_tac
-    (simpset() addsimps [lift_guarantees_eq_lift_inv,
-			 rename_guarantees_eq_rename_inv,
-			 bij_imp_bij_inv, surj_rename RS surj_range,
-			 inv_inv_eq]) 1);
-by (asm_simp_tac (simpset() addsimps [o_def, non_extra_def]) 1);
+by rename_client_map_tac;
 qed "rename_Client_Bounded";
 
 Goal "i < Nclients \
@@ -532,18 +529,9 @@ Goal "i: I \
 \         (INT h. {s. h <= (giv o sub i o client) s & \
 \                           h pfixGe (ask o sub i o client) s}  \
 \                 LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})";
-by (simp_tac (simpset() addsimps [rename_guarantees_eq_rename_inv]) 1);
-by (rtac guarantees_PLam_I 1);
-by (assume_tac 2);
-(*preserves: routine reasoning*)
-by (asm_simp_tac (simpset() addsimps [lift_preserves_sub]) 2);
-(*the guarantee for  "lift i (rename client_map Client)" *)
+by rename_client_map_tac;
 by (asm_simp_tac
-    (simpset() addsimps [lift_guarantees_eq_lift_inv,
-			 rename_guarantees_eq_rename_inv,
-			 bij_imp_bij_inv, inv_inv_eq]) 1);
-by (asm_simp_tac (simpset() addsimps [o_def, non_extra_def,
-				  rewrite_rule [o_def] Client_Progress]) 1);
+    (simpset() addsimps [rewrite_rule [o_def] Client_Progress]) 1);
 qed "rename_Client_Progress";
 
 
