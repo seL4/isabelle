@@ -7,7 +7,7 @@
 
 ## global settings
 
-LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF LK Modal Provers Pure Sequents TFL Tools ZF"
+LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL Tools ZF"
 DOCS="Intro Ref Logics"
 
 CVSROOT=/isabelle/archive
@@ -118,10 +118,11 @@ cd $DISTBASE/$DISTNAME
 find . -name CVS -exec rm -rf {} \;
 
 find Doc -name \*.dvi -exec mv {} Distribution/doc \;
-rm -rf Admin Doc examples index.html
+rm -rf Admin Doc examples Modal LK HOLCF/explicit_domains
 
 mkdir src
 mv $LOGICS src
+mv index.html src
 
 mv Distribution/* .
 rmdir Distribution
