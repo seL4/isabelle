@@ -50,10 +50,7 @@ by (simp_tac (!simpset addsimps [mod_less_divisor,zero_less_eq]) 1);
 val tc = result();
 
 val gcd_eq = tc RS hd gcd.rules;
-val gcd_induct = tc RS gcd.induct 
-                  |> read_instantiate [("P","split Q")]
-                  |> rewrite_rule [split RS eq_reflection]
-                  |> standard;
+val gcd_induct = tc RS gcd.induct;
 
 goal thy "gcd(m,0) = m";
 by (rtac (gcd_eq RS trans) 1);
