@@ -212,9 +212,9 @@ fun mk_inj cs sumT c x =
           val Type (_, [T1, T2]) = T
       in
         if i <= n2 then
-          Const ("Inl", T1 --> T) $ (mk_inj' T1 n2 i)
+          Const ("Sum_Type.Inl", T1 --> T) $ (mk_inj' T1 n2 i)
         else
-          Const ("Inr", T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
+          Const ("Sum_Type.Inr", T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
       end
   in mk_inj' sumT (length cs) (1 + find_index_eq c cs)
   end;

@@ -14,11 +14,9 @@ For Isabelle2005:
   who is interested)
 
 - eliminate the last remaining old-style theories (Larry):  
-  Datatype_Universe.ML
   HOL_lemmas.ML
   NatArith.ML
   Relation_Power.ML
-  Sum_Type.ML
   
 - update or remove ex/MT (Larry? Tobias?)  
 

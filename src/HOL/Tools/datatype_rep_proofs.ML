@@ -103,9 +103,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               val Type (_, [T1, T2]) = T
           in
             if i <= n2 then
-              Const ("Inl", T1 --> T) $ (mk_inj' T1 n2 i)
+              Const ("Sum_Type.Inl", T1 --> T) $ (mk_inj' T1 n2 i)
             else
-              Const ("Inr", T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
+              Const ("Sum_Type.Inr", T2 --> T) $ (mk_inj' T2 (n - n2) (i - n2))
           end
       in mk_inj' sumT (length leafTs) (1 + find_index_eq T' leafTs)
       end;
