@@ -152,7 +152,7 @@ by (asm_full_simp_tac (simpset()
 (*Cardinality is smaller because of the two elements fewer*)
 by (rtac less_trans 1);
 by (REPEAT
-    (rtac card_Diff 1 
+    (rtac card_Diff1_less 1 
      THEN asm_simp_tac (simpset() addsimps [tiling_domino_finite]) 1 
      THEN asm_simp_tac (simpset() addsimps [mod_less, evnodd_iff]) 1));
 qed "mutil_not_tiling";
