@@ -2,7 +2,7 @@
   Title:      GraphBrowser/Vertex.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class contains attributes and methods common to all kinds of
   vertices (e.g. coordinates, successors, predecessors).
@@ -15,8 +15,6 @@ import java.awt.*;
 import java.io.*;
 
 abstract class Vertex {
-	protected static final Font font=new Font("Helvetica",Font.PLAIN,12);
-
 	Vector children=new Vector(10,10);
 	Vector parents=new Vector(10,10);
 	int degree=0;
@@ -70,7 +68,7 @@ abstract class Vertex {
 
 	public Dimension getLabelSize(Graphics g) {
 		FontMetrics fm = g == null ? 
-		    new DefaultFontMetrics(font) : g.getFontMetrics(font);
+		    new DefaultFontMetrics(12) : g.getFontMetrics(g.getFont());
 		
 		return new Dimension(
 		        Math.max(fm.stringWidth("[. . . .]"),fm.stringWidth(getLabel())),

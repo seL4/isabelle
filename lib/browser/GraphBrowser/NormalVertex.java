@@ -2,7 +2,7 @@
   Title:      GraphBrowser/NormalVertex.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  Copyright   1997  TU Muenchen
+  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class represents an ordinary vertex. It contains methods for
   drawing and PostScript output.
@@ -65,8 +65,7 @@ class NormalVertex extends Vertex {
 	public int rightX() { return getX()+gra.box_width2; }
 
 	public void drawBox(Graphics g,Color boxColor) {
-		FontMetrics fm=g.getFontMetrics(font);
-		g.setFont(font);
+		FontMetrics fm = g.getFontMetrics(g.getFont());
 		int h=fm.getAscent()+fm.getDescent();
 
 		g.setColor(boxColor);

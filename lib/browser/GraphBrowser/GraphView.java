@@ -28,6 +28,7 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 	Vertex highlighted = null;
 	Dimension size;
 	boolean parent_needs_layout;
+	Font font;
 
 	public void setTreeBrowser(TreeBrowser br) {
 		tb=br;
@@ -39,12 +40,13 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 
 	public Graph getOriginalGraph() { return gra2; }
 
-	public GraphView(Graph gr,GraphBrowser br) {
+	public GraphView(Graph gr, GraphBrowser br, Font f) {
 		gra2=gr;
 		browser=br;
 		gra=(Graph)(gra2.clone());
 		parent_needs_layout = true;
 		size = new Dimension(0, 0);
+		font = f;
 		addMouseListener(this);
 		addMouseMotionListener(this);
 	}
@@ -56,6 +58,7 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 	}
 
 	public void paint(Graphics g) {
+		g.setFont(font);
 		gra.draw(g);
 		if (highlighted!=null) highlighted.drawBox(g,Color.white);
 		size = new Dimension(gra.max_x-gra.min_x, gra.max_y-gra.min_y);
@@ -75,6 +78,7 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 
 		Vertex v2=gra.vertexAt(x,y);
 		Graphics g=getGraphics();
+		g.setFont(font);
 		g.translate(-gra.min_x,-gra.min_y);
 		if (highlighted!=null) {
 			highlighted.drawBox(g,Color.lightGray);
@@ -140,12 +144,14 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 	}
 
 	public void relayout() {
+		Graphics g = getGraphics();
+		g.setFont(font);
 		browser.showWaitMessage();
 		highlighted=null;
-		gra.layout(getGraphics());
+		gra.layout(g);
 		v=null;
 		parent_needs_layout = true;
-		update(getGraphics());
+		update(g);
 		browser.showReadyMessage();
 	}
 
@@ -163,6 +169,7 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 				Math.max(0,y-vpsize.height/2));
 
 			Graphics g=getGraphics();
+			g.setFont(font);
 			g.translate(-gra.min_x,-gra.min_y);
 			if (highlighted!=null) highlighted.drawBox(g,Color.lightGray);
 			vx.drawBox(g,Color.white);
@@ -253,6 +260,7 @@ public class GraphView extends Canvas implements MouseListener, MouseMotionListe
 
 	public void mouseExited(MouseEvent evt) {
 		Graphics g=getGraphics();
+		g.setFont(font);
 		g.translate(-gra.min_x,-gra.min_y);
 		if (highlighted!=null) {
 			highlighted.drawBox(g,Color.lightGray);
