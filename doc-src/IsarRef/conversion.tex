@@ -154,6 +154,8 @@ out interactively.
 
 \subsection{Goal statements}\label{sec:conv-goal}
 
+\subsubsection{Simple goals}
+
 In ML the canonical a goal statement together with a complete proof script is
 as follows:
 \begin{ttbox}
@@ -164,7 +166,7 @@ as follows:
 \end{ttbox}
 This form may be turned into an Isar tactic-emulation script like this:
 \begin{matharray}{l}
-  \LEMMA{name}\texttt"{\phi}\texttt" \\
+  \LEMMA{name}{\texttt"{\phi}\texttt"} \\
   \quad \APPLY{meth@1} \\
   \qquad \vdots \\
   \quad \DONE \\
@@ -174,20 +176,99 @@ Note that the main statement may be $\THEOREMNAME$ as well.  See
 expressions into proof methods.
 
 \medskip Classic Isabelle provides many variant forms of goal commands, see
-\cite{isabelle-ref} for further details.  The second most common one is
+also \cite{isabelle-ref} for further details.  The second most common one is
 \texttt{Goalw}, which expands definitions before commencing the actual proof
 script.
 \begin{ttbox}
  Goalw [\(def@1\), \(\dots\)] "\(\phi\)";
 \end{ttbox}
-This is replaced by using the $unfold$ proof method explicitly.
+This may be replaced by using the $unfold$ proof method explicitly.
 \begin{matharray}{l}
-\LEMMA{name}\texttt"{\phi}\texttt" \\
+\LEMMA{name}{\texttt"{\phi}\texttt"} \\
 \quad \APPLY{unfold~def@1~\dots} \\
 \end{matharray}
 
-%FIXME "goal" and higher-order rules;
 
+\subsubsection{Deriving rules}
+
+Deriving non-atomic meta-level propositions requires special precautions in
+classic Isabelle: the primitive \texttt{goal} command decomposes a statement
+into the atomic conclusion and a list of assumptions, which are exhibited as
+ML values of type \texttt{thm}.  After the proof is finished, these premises
+are discharged again, resulting in the original rule statement.
+
+In contrast, Isabelle/Isar does \emph{not} require any special treatment of
+non-atomic statements --- assumptions and goals may be arbitrarily complex.
+While this would basically require to proceed by structured proof, decomposing
+the main problem into sub-problems according to the basic Isar scheme of
+backward reasoning, the old tactic-style procedure may be mimicked as follows.
+The general ML goal statement for derived rules looks like this:
+\begin{ttbox}
+ val [\(prem@1\), \dots] = goal "\(\phi@1 \Imp \dots \Imp \psi\)";
+ by \(tac@1\);
+   \(\vdots\)
+\end{ttbox}
+This form may be turned into a tactic-emulation script that is wrapped in an
+Isar text to get access to the premises as local facts.
+\begin{matharray}{l}
+  \LEMMA{}{\texttt"{\phi@1 \Imp \dots \Imp \psi}\texttt"} \\
+  \PROOF{}~- \\
+  \quad \ASSUME{prem@1}{\phi@1}~\AND~\dots \\
+  \quad \SHOW{}{\Var{thesis}} \\
+  \qquad \APPLY{meth@1} \\
+  \qquad\quad \vdots \\
+  \qquad \DONE \\
+  \QED{} \\
+\end{matharray}
+Note that the above scheme repeats the text of premises $\phi@1$, \dots, while
+the conclusion $\psi$ is referenced via the automatic text abbreviation
+$\Var{thesis}$.  The assumption context may be invoked in a less verbose
+manner as well, using ``$\CASE{antecedent}$'' instead of
+``$\ASSUME{prem@1}{\phi@1}~\AND~\dots$'' above.  Then the list of \emph{all}
+premises is bound to the name $antecedent$; Isar does not provide a way to
+destruct lists into single items, though.
+
+\medskip In practice, actual rules are often rather direct consequences of
+corresponding atomic statements, typically stemming from the definition of a
+new concept.  In that case, the general scheme for deriving rules may be
+greatly simplified, using one of the standard automated proof tools, such ad
+$simp$, $blast$, or $auto$.  This would work as follows:
+\begin{matharray}{l}
+  \LEMMA{}{\texttt"{\phi@1 \Imp \dots \Imp \psi}\texttt"} \\
+  \quad \APPLY{unfold~defs} \quad \CMT{or ``$\APPLY{insert~facts}$''} \\
+  \quad \APPLY{blast} \\
+  \quad \DONE \\
+\end{matharray}
+Note that classic Isabelle would support this form only in the special case
+where $\phi@1$, \dots are atomic statements (when using the standard
+\texttt{Goal} command).  Otherwise the special treatment of rules would be
+applied, disturbing this simple setup.
+
+\medskip Occasionally, derived rules would be established by first proving an
+appropriate atomic statement (using $\forall$ and $\longrightarrow$ of the
+object-logic), and putting the final result into ``rule format''.  In classic
+Isabelle this would usually proceed as follows:
+\begin{ttbox}
+ Goal "\(\phi\)";
+ by \(tac@1\);
+   \(\vdots\)
+ qed_spec_mp "\(name\)";
+\end{ttbox}
+The operation performed by \texttt{qed_spec_mp} is also performed by the Isar
+attribute ``$rule_format$'', see also \S\ref{sec:rule-format}.  Thus the
+corresponding Isar text may look like this:
+\begin{matharray}{l}
+  \LEMMA{name~[rule_format]}{\texttt"{\phi}\texttt"} \\
+  \quad \APPLY{meth@1} \\
+  \qquad \vdots \\
+  \quad \DONE \\
+\end{matharray}
+Note plain ``$rule_format$'' actually performs a slightly different operation:
+it fully replaces object-level implication and universal quantification
+throughout the whole result statement.  This is the right thing in most cases.
+For historical reasons, \texttt{qed_spec_mp} would only operate on the
+conclusion; one may get this exact behavior by using
+``$rule_format~(no_asm)$'' instead.
 
 \subsection{Tactics}\label{sec:conv-tac}
 
