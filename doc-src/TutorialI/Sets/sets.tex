@@ -31,15 +31,15 @@ are seldom used directly, so only a few are presented here.
 HOL's set theory should not be confused with traditional,  untyped set
 theory, in which everything is a set.  Our sets are typed. In a given set,
 all elements have the same type, say~$\tau$,  and the set itself has type
-\isa{$\tau$~set}. 
+$\tau$~\tydx{set}. 
 
-We begin with \bfindex{intersection}, \bfindex{union} and
-\bfindex{complement}. In addition to the
-\bfindex{membership relation}, there  is a symbol for its negation. These
+We begin with \textbf{intersection}, \textbf{union} and
+\textbf{complement}. In addition to the
+\textbf{membership relation}, there  is a symbol for its negation. These
 points can be seen below.  
 
-Here are the natural deduction rules for intersection.  Note the 
-resemblance to those for conjunction.  
+Here are the natural deduction rules for \rmindex{intersection}.  Note
+the  resemblance to those for conjunction.  
 \begin{isabelle}
 \isasymlbrakk c\ \isasymin\ A;\ c\ \isasymin\ B\isasymrbrakk\ 
 \isasymLongrightarrow\ c\ \isasymin\ A\ \isasyminter\ B%
@@ -50,7 +50,8 @@ c\ \isasymin\ A\ \isasyminter\ B\ \isasymLongrightarrow\ c\ \isasymin\ B
 \rulename{IntD2}
 \end{isabelle}
 
-Here are two of the many installed theorems concerning set complement.
+Here are two of the many installed theorems concerning set
+complement.\index{complement!of a set}%
 Note that it is denoted by a minus sign.
 \begin{isabelle}
 (c\ \isasymin\ -\ A)\ =\ (c\ \isasymnotin\ A)
@@ -126,8 +127,8 @@ for sets.
 {\isasymLongrightarrow}\ A\ =\ B
 \rulename{set_ext}
 \end{isabelle}
-Extensionality is often expressed as 
-$A=B\iff A\subseteq B\conj B\subseteq A$.  
+Extensionality can be expressed as 
+$A=B\iff (A\subseteq B)\conj (B\subseteq A)$.  
 The following rules express both
 directions of this equivalence.  Proving a set equation using
 \isa{equalityI} allows the two inclusions to be proved independently.
@@ -145,8 +146,8 @@ A\isasymrbrakk\ \isasymLongrightarrow\ A\ =\ B
 
 \subsection{Finite Set Notation} 
 
-\indexbold{sets!notation for finite}\index{*insert (constant)}
-Finite sets are expressed using the constant \isa{insert}, which is
+\indexbold{sets!notation for finite}
+Finite sets are expressed using the constant \cdx{insert}, which is
 a form of union:
 \begin{isabelle}
 insert\ a\ A\ =\ \isacharbraceleft a\isacharbraceright\ \isasymunion\ A
@@ -232,8 +233,8 @@ p{\isasymin}prime\ \isasymand\ q{\isasymin}prime\isacharbraceright\ =\
 \isasymand\ p{\isasymin}prime\ \isasymand\
 q{\isasymin}prime\isacharbraceright"
 \end{isabelle}
-The proof is trivial because the left and right hand side 
-of the expression are synonymous. The syntax appearing on the 
+The left and right hand sides
+of this equation are identical. The syntax used in the 
 left-hand side abbreviates the right-hand side: in this case, all numbers
 that are the product of two primes.  The syntax provides a neat
 way of expressing any set given by an expression built up from variables
@@ -370,7 +371,7 @@ definitions.  Instead, membership tests are simplified.  For example,  $x\in
 A\cup B$ is replaced by $x\in A\vee x\in B$.
 
 The internal form of a comprehension involves the constant  
-\isa{Collect},\index{*Collect (constant)}
+\cdx{Collect},
 which occasionally appears when a goal or theorem
 is displayed.  For example, \isa{Collect\ P}  is the same term as
 \isa{\isacharbraceleft x.\ P\ x\isacharbraceright}.  The same thing can
@@ -383,25 +384,22 @@ also \isa{Ball\ A\ P}\index{*Ball (constant)} is
 \isa{Bex\ A\ P}\index{*Bex (constant)} is 
 \isa{\isasymexists z\isasymin A.\ P\ x}.  For indexed unions and
 intersections, you may see the constants 
-\isa{UNION}\index{*UNION (constant)} and 
-\isa{INTER}\index{*INTER (constant)}\@.
-The internal constant for $\varepsilon x.P(x)$ is 
-\isa{Eps}\index{*Eps (constant)}.
-
+\cdx{UNION} and  \cdx{INTER}\@.
+The internal constant for $\varepsilon x.P(x)$ is~\cdx{Eps}.
 
 We have only scratched the surface of Isabelle/HOL's set theory. 
-One primitive not mentioned here is the powerset operator
-{\isa{Pow}}.  Hundreds of theorems are proved in theory \isa{Set} and its
+Hundreds of theorems are proved in theory \isa{Set} and its
 descendants.
 
 
 \subsection{Finiteness and Cardinality}
 
 \index{sets!finite}%
-The predicate \isa{finite} holds of all finite sets.  Isabelle/HOL includes
-many familiar theorems about finiteness and cardinality 
-(\isa{card}). For example, we have theorems concerning the cardinalities
-of unions, intersections and the powerset:\index{cardinality}
+The predicate \sdx{finite} holds of all finite sets.  Isabelle/HOL
+includes many familiar theorems about finiteness and cardinality 
+(\cdx{card}). For example, we have theorems concerning the
+cardinalities of unions, intersections and the
+powerset:\index{cardinality}
 %
 \begin{isabelle}
 {\isasymlbrakk}finite\ A;\ finite\ B\isasymrbrakk\isanewline
@@ -426,9 +424,9 @@ $\binom{n}{k}$.
 
 \begin{warn}
 The term \isa{finite\ A} is defined via a syntax translation as an
-abbreviation for \isa{A \isasymin Finites}, where the constant \isa{Finites}
-denotes the set of all finite sets of a given type.  There is no constant
-\isa{finite}.
+abbreviation for \isa{A \isasymin Finites}, where the constant
+\cdx{Finites} denotes the set of all finite sets of a given type.  There
+is no constant \isa{finite}.
 \end{warn}
 \index{sets|)}
 
@@ -454,7 +452,7 @@ functions:
 \rulename{ext}
 \end{isabelle}
 
-\indexbold{function updates}%
+\indexbold{updating a function}%
 Function \textbf{update} is useful for modelling machine states. It has 
 the obvious definition and many useful facts are proved about 
 it.  In particular, the following equation is installed as a simplification
@@ -560,9 +558,11 @@ equality over all arguments:
 \rulename{expand_fun_eq}
 \end{isabelle}
 %
-This is just a restatement of extensionality.  Our lemma states 
-that an injection can be cancelled from the left 
-side of function composition: 
+This is just a restatement of
+extensionality.\indexbold{extensionality!for functions}
+Our lemma
+states  that an injection can be cancelled from the left  side of
+function composition: 
 \begin{isabelle}
 \isacommand{lemma}\ "inj\ f\ \isasymLongrightarrow\ (f\ o\ g\ =\ f\ o\ h)\ =\ (g\ =\ h)"\isanewline
 \isacommand{apply}\ (simp\ add:\ expand_fun_eq\ inj_on_def)\isanewline
@@ -618,10 +618,11 @@ y\isacharbraceright"
 \end{isabelle}
 
 \medskip
- A function's \textbf{range} is the set of values that the function can 
+\index{range!of a function}%
+A function's \textbf{range} is the set of values that the function can 
 take on. It is, in fact, the image of the universal set under 
-that function. There is no constant {\isa{range}}.  Instead, {\isa{range}} 
-abbreviates an application of image to {\isa{UNIV}}: 
+that function. There is no constant \isa{range}.  Instead,
+\sdx{range}  abbreviates an application of image to \isa{UNIV}: 
 \begin{isabelle}
 \ \ \ \ \ range\ f\
 {\isasymrightleftharpoons}\ f`UNIV
@@ -665,7 +666,8 @@ Id\ \isasymequiv\ \isacharbraceleft p.\ \isasymexists x.\ p\ =\ (x,x){\isacharbr
 \end{isabelle}
 
 \indexbold{composition!of relations}%
-\textbf{Composition} of relations (the infix \isa{O}) is also available: 
+\textbf{Composition} of relations (the infix \sdx{O}) is also
+available: 
 \begin{isabelle}
 r\ O\ s\ \isasymequiv\ \isacharbraceleft(x,z).\ \isasymexists y.\ (x,y)\ \isasymin\ s\ \isasymand\ (y,z)\ \isasymin\ r\isacharbraceright
 \rulename{comp_def}
@@ -715,20 +717,9 @@ A.\ (x,b)\ \isasymin\ r)
 \end{isabelle}
 It satisfies many similar laws.
 
-%Image under relations, like image under functions, distributes over unions: 
-%\begin{isabelle}
-%r\ ``\ 
-%({\isasymUnion}x\isasyminA.\
-%B\
-%x)\ =\ 
-%({\isasymUnion}x\isasyminA.\
-%r\ ``\ B\
-%x)
-%\rulename{Image_UN}
-%\end{isabelle}
-
-
-The \bfindex{domain} and \bfindex{range} of a relation are defined in the 
+\index{domain!of a relation}%
+\index{range!of a relation}%
+The \textbf{domain} and \textbf{range} of a relation are defined in the 
 standard way: 
 \begin{isabelle}
 (a\ \isasymin\ Domain\ r)\ =\ (\isasymexists y.\ (a,y)\ \isasymin\
@@ -743,11 +734,10 @@ r)
 \end{isabelle}
 
 Iterated composition of a relation is available.  The notation overloads 
-that of exponentiation: 
+that of exponentiation.  Two simplification rules are installed: 
 \begin{isabelle}
 R\ \isacharcircum\ \isadigit{0}\ =\ Id\isanewline
 R\ \isacharcircum\ Suc\ n\ =\ R\ O\ R\isacharcircum n
-\rulename{relpow.simps}
 \end{isabelle}
 
 \subsection{The Reflexive and Transitive Closure}
@@ -810,9 +800,9 @@ operator:
 
 \subsection{A Sample Proof}
 
-The reflexive transitive closure also commutes with the converse. 
-Let us examine the proof. Each direction of the equivalence is 
-proved separately. The two proofs are almost identical. Here 
+The reflexive transitive closure also commutes with the converse
+operator.  Let us examine the proof. Each direction of the equivalence
+is  proved separately. The two proofs are almost identical. Here 
 is the first one: 
 \begin{isabelle}
 \isacommand{lemma}\ rtrancl_converseD:\ "(x,y)\ \isasymin \
@@ -856,9 +846,10 @@ rtrancl_converseD)
 \end{isabelle}
 
 \begin{warn}
-Note that \isa{blast} cannot prove this theorem.  Here is a subgoal that
-arises internally after  the rules \isa{equalityI} and \isa{subsetI} have
-been applied:
+This trivial proof requires \isa{auto} rather than \isa{blast} because
+of a subtle issue involving ordered pairs.  Here is a subgoal that
+arises internally after  the rules
+\isa{equalityI} and \isa{subsetI} have been applied:
 \begin{isabelle}
 \ 1.\ \isasymAnd x.\ x\ \isasymin \ (r\isasyminverse )\isactrlsup *\ \isasymLongrightarrow \ x\ \isasymin \ (r\isactrlsup
 *)\isasyminverse
@@ -867,7 +858,7 @@ been applied:
 %\isasymLongrightarrow \ x\ \isasymin \ (r\isasyminverse )\isactrlsup *
 \end{isabelle}
 \par\noindent
-We cannot use \isa{rtrancl_converseD}\@.  It refers to
+We cannot apply \isa{rtrancl_converseD}\@.  It refers to
 ordered pairs, while \isa{x} is a variable of product type.
 The \isa{simp} and \isa{blast} methods can do nothing, so let us try
 \isa{clarify}:
@@ -888,7 +879,7 @@ techniques for ordered pairs in more detail.
 
 \index{relations!well-founded|(}%
 A well-founded relation captures the notion of a terminating process. 
-Each \isacommand{recdef}\index{recdef@\isacommand{recdef}}
+Each \commdx{recdef}
 declaration must specify a well-founded relation that
 justifies the termination of the desired recursive function.  Most of the
 forms of induction found in mathematics are merely special cases of
@@ -914,7 +905,7 @@ returned by
 well-founded induction only in \S\ref{sec:CTL-revisited}.
 \end{warn}
 
-Isabelle/HOL declares \isa{less_than} as a relation object, 
+Isabelle/HOL declares \cdx{less_than} as a relation object, 
 that is, a set of pairs of natural numbers. Two theorems tell us that this
 relation  behaves as expected and that it is well-founded: 
 \begin{isabelle}
@@ -950,11 +941,12 @@ wf\ (measure\ f)
 \rulename{wf_measure}
 \end{isabelle}
 
-Of the other constructions, the most important is the \textbf{lexicographic 
-product} of two relations. It expresses the standard dictionary 
-ordering over pairs.  We write \isa{ra\ <*lex*>\ rb}, where \isa{ra}
-and \isa{rb} are the two operands.  The lexicographic product satisfies the
-usual  definition and it preserves well-foundedness: 
+Of the other constructions, the most important is the
+\bfindex{lexicographic product} of two relations. It expresses the
+standard dictionary  ordering over pairs.  We write \isa{ra\ <*lex*>\
+rb}, where \isa{ra} and \isa{rb} are the two operands.  The
+lexicographic product satisfies the usual  definition and it preserves
+well-foundedness: 
 \begin{isabelle}
 ra\ <*lex*>\ rb\ \isasymequiv \isanewline
 \ \ \isacharbraceleft ((a,b),(a',b')).\ (a,a')\ \isasymin \ ra\
@@ -976,10 +968,11 @@ available in the Library.  Baader and Nipkow \cite[\S2.5]{Baader-Nipkow}
 discuss it. 
 
 \medskip
-Induction comes in many forms, including traditional mathematical 
-induction, structural induction on lists and induction on size.  All are
-instances of the following rule, for a suitable well-founded
-relation~$\prec$: 
+Induction\index{induction!well-founded|(}
+comes in many forms,
+including traditional mathematical  induction, structural induction on
+lists and induction on size.  All are instances of the following rule,
+for a suitable well-founded relation~$\prec$: 
 \[ \infer{P(a)}{\infer*{P(x)}{[\forall y.\, y\prec x \imp P(y)]}} \]
 To show $P(a)$ for a particular term~$a$, it suffices to show $P(x)$ for
 arbitrary~$x$ under the assumption that $P(y)$ holds for $y\prec x$. 
@@ -1001,7 +994,8 @@ Many familiar induction principles are instances of this rule.
 For example, the predecessor relation on the natural numbers 
 is well-founded; induction over it is mathematical induction. 
 The ``tail of'' relation on lists is well-founded; induction over 
-it is structural induction. 
+it is structural induction.%
+\index{induction!well-founded|)}%
 \index{relations!well-founded|)}
 
 
