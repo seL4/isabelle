@@ -8,8 +8,6 @@ Executes all examples for First-Order Logic.
 
 writeln"Root file for FOL examples";
 
-FOL_build_completed;    (*Cause examples to fail if FOL did*)
-
 set proof_timing;
 
 time_use     "intro.ML";

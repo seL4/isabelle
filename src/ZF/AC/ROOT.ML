@@ -6,8 +6,6 @@
 Executes the proofs of the AC-equivalences, due to Krzysztof Grabczewski
 *)
 
-ZF_build_completed;     (*Make examples fail if ZF did*)
-
 writeln"Root file for ZF/AC";
 set proof_timing;
 

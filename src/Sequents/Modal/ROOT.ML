@@ -4,8 +4,6 @@
     Copyright   1991  University of Cambridge
 *)
 
-Sequents_build_completed;    (*Cause examples to fail if Sequents did*)
-
 set proof_timing;
 
 writeln "\nTheorems of T\n";

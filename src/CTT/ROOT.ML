@@ -19,5 +19,3 @@ use_thy "Arith";
 use_thy "Bool";
 
 print_depth 8;
-
-val CTT_build_completed = ();   (*indicate successful build*)

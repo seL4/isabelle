@@ -6,8 +6,6 @@
 Executes all examples for Classical Logic. 
 *)
 
-Sequents_build_completed;    (*Cause examples to fail if Sequents did*)
-
 writeln"Root file for LK examples";
 
 set proof_timing;

@@ -6,9 +6,8 @@
 Examples of Inductive and Coinductive Definitions
 *)
 
-HOL_build_completed;    (*Make examples fail if HOL did*)
-
 writeln"Root file for HOL/Induct";
+
 set proof_timing;
 time_use_thy "Perm";
 time_use_thy "Comb";

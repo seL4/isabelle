@@ -6,8 +6,6 @@
 Construction of the Reals using Dedekind Cuts, by Jacques Fleuriot
 *)
 
-HOL_build_completed;    (*Make examples fail if HOL did*)
-
 writeln"Root file for HOL/Real";
 
 set proof_timing;

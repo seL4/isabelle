@@ -39,5 +39,3 @@ use     "eval.ML";
 use_thy "Fix";
 
 print_depth 8;
-
-val CCL_build_completed = ();   (*indicate successful build*)

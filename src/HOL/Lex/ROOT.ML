@@ -4,8 +4,6 @@
     Copyright   1998 TUM
 *)
 
-HOL_build_completed;    (*Make examples fail if HOL did*)
-
 use_thy"AutoChopper";
 use_thy"AutoChopper1";
 use_thy"AutoMaxChop";

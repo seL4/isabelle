@@ -12,11 +12,9 @@ Gérard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
 J. Functional Programming 4(3) 1994, 371-394.
 *)
 
-ZF_build_completed;     (*Make examples fail if ZF did*)
-
 writeln"Root file for ZF/Resid";
-set proof_timing;
 
+set proof_timing;
 time_use_thy "Conversion";
 
 writeln"END: Root file for ZF/Resid";

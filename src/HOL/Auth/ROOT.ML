@@ -6,9 +6,8 @@
 Root file for protocol proofs.
 *)
 
-HOL_build_completed;    (*Make examples fail if HOL did*)
-
 writeln"Root file for HOL/Auth";
+
 set proof_timing;
 goals_limit := 1;
 HOL_quantifiers := false;
@@ -28,4 +27,3 @@ time_use_thy "Yahalom2";
 time_use_thy "NS_Public_Bad";
 time_use_thy "NS_Public";
 time_use_thy "TLS";
-

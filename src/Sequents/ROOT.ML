@@ -23,5 +23,3 @@ use_thy"S4";
 use_thy"S43";
 
 print_depth 8;
-
-val Sequents_build_completed = ();    (*indicate successful build*)

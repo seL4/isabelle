@@ -12,9 +12,7 @@ MIT Press, 1993.
 
 *)
 
-ZF_build_completed;     (*Make examples fail if ZF did*)
-
 writeln"Root file for ZF/IMP";
-set proof_timing;
 
+set proof_timing;
 time_use_thy "Equiv";

@@ -6,9 +6,8 @@
 Executes miscellaneous examples for Higher-Order Logic. 
 *)
 
-HOL_build_completed;    (*Cause examples to fail if HOL did*)
-
 writeln "Root file for HOL examples";
+
 set proof_timing;
 
 (*some examples of recursive function definitions: the TFL package*)

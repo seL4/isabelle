@@ -8,8 +8,6 @@ Executes all examples for Constructive Type Theory.
 
 writeln"Root file for CTT examples";
 
-CTT_build_completed;    (*Cause examples to fail if CTT did*)
-
 print_depth 2;  
 set proof_timing;
 

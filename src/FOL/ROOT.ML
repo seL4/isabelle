@@ -59,5 +59,3 @@ qed_goal "ex1_functional" FOL.thy
 
 
 print_depth 8;
-
-val FOL_build_completed = ();   (*indicate successful build*)

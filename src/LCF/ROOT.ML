@@ -16,5 +16,3 @@ use_thy "LCF";
 use"simpdata.ML";
 use_thy"pair";
 use_thy"fix";
-
-val LCF_build_completed = ();   (*indicate successful build*)

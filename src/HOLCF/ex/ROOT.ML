@@ -6,11 +6,9 @@
 Executes all examples for HOLCF. 
 *)
 
-HOLCF_build_completed;    (*Cause examples to fail if HOLCF did*)
-
 writeln"Root file for HOLCF examples";
-set proof_timing;
 
+set proof_timing;
 time_use_thy "Dnat";
 time_use_thy "Stream";
 time_use_thy "Dagstuhl";

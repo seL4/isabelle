@@ -26,9 +26,8 @@ To load, type use"ROOT.ML"; into an Isabelle-HOL that has TFL
 also loaded. 
 *)
 
-HOL_build_completed;    (*Cause examples to fail if HOL did*)
-
 writeln"Root file for Substitutions and Unification";
+
 use_thy "Unify";
 
 writeln"END: Root file for Substitutions and Unification";

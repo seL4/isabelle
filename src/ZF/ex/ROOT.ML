@@ -6,8 +6,6 @@
 Executes miscellaneous examples for Zermelo-Fraenkel Set Theory
 *)
 
-ZF_build_completed;     (*Make examples fail if ZF did*)
-
 writeln"Root file for ZF Set Theory examples";
 set proof_timing;
 

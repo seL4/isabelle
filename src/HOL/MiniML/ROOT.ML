@@ -6,8 +6,6 @@
 Type inference for MiniML
 *)
 
-HOL_build_completed;    (*Make examples fail if HOL did*)
-
 writeln"Root file for HOL/MiniML";
 
 time_use_thy "W";

@@ -1,5 +1,4 @@
 
-Sequents_build_completed;    (*Cause examples to fail if Sequents did*)
 writeln"Root file for ILL examples";
 
 set proof_timing;

@@ -76,5 +76,3 @@ use_thy "Main";
 print_depth 8;
 
 Goal "True";  (*leave subgoal package empty*)
-
-val HOL_build_completed = ();   (*indicate successful build*)

@@ -6,9 +6,8 @@
 Root file for UNITY proofs.
 *)
 
-HOL_build_completed;    (*Make examples fail if HOL did*)
-
 writeln"Root file for HOL/UNITY";
+
 set proof_timing;
 
 add_path "../Lex";	(*to find Prefix.thy*)

@@ -14,5 +14,3 @@ print_depth 1;
 use_thy "Cube";
 
 print_depth 8;
-
-val Cube_build_completed = ();  (*indicate successful build*)
