@@ -1,3 +1,4 @@
 (*Dummy theory to document dependencies *)
 
-simpdata = "func"
+simpdata = "equalities" + "func"
+
