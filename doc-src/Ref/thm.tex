@@ -213,8 +213,8 @@ tpairs_of     : thm -> (term*term)list
 stamps_of_thy : thm -> string ref list
 theory_of_thm : thm -> theory
 dest_state    : thm*int -> (term*term)list*term list*term*term
-rep_thm       : thm -> \{prop: term, hyps: term list, 
-                        maxidx: int, der: deriv, sign: Sign.sg\}
+rep_thm       : thm -> \{prop: term, hyps: term list, der: deriv, 
+                        maxidx: int, sign: Sign.sg, shyps: sort list\}
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{concl_of} $thm$] 
@@ -241,10 +241,42 @@ decomposes $thm$ as a tuple containing a list of flex-flex constraints, a
 list of the subgoals~1 to~$i-1$, subgoal~$i$, and the rest of the theorem
 (this will be an implication if there are more than $i$ subgoals).
 
-\item[\ttindexbold{rep_thm} $thm$] 
-decomposes $thm$ as a record containing the statement of~$thm$, its list of
-meta-assumptions, the maximum subscript of its unknowns, and its signature.
+\item[\ttindexbold{rep_thm} $thm$] decomposes $thm$ as a record containing the
+  statement of~$thm$ ({\tt prop}), its list of meta-assumptions ({\tt hyps}),
+  its derivation ({\tt der}), a bound on the maximum subscript of its
+  unknowns ({\tt maxidx}), and its signature ({\tt sign}).  The {\tt shyps}
+  field is discussed below.
 \end{ttdescription}
+
+
+\subsection{*Sort hypotheses} 
+\index{sort hypotheses}
+\begin{ttbox} 
+force_strip_shyps : bool ref \hfill{\bf initially true}
+\end{ttbox}
+
+\begin{ttdescription}
+\item[\ttindexbold{force_strip_shyps}]
+causes sort hypotheses to be deleted, printing a warning.
+\end{ttdescription}
+
+A sort is {\em empty\/} if there are no types having that sort.  If a theorem
+contain a type variable whose sort is empty, then that theorem has no
+instances.  In effect, it asserts nothing.  But what if it is used to prove
+another theorem that no longer involves that sort?  The latter theorem holds
+only if the sort is non-empty.
+
+Theorems are therefore subject to sort hypotheses, which express that certain
+sorts are non-empty.  The {\tt shyps} field is a list of sorts occurring in
+type variables.  The list includes all sorts from the current theorem (the
+{\tt prop} and {\tt hyps} fields).  It also includes sorts used in the
+theorem's proof --- so-called {\em dangling\/} sort constraints.  These are
+the critical ones that must be non-empty in order for the proof to be valid.
+
+Isabelle removes sorts from the {\tt shyps} field whenever
+non-emptiness holds.  Because its current implementation is highly incomplete,
+the flag shown above is available.  Setting it to true (the default) allows
+existing proofs to run.
 
 
 \subsection{Tracing flags for unification}
@@ -733,6 +765,13 @@ minimal (oracles only), include theorems and axioms, or be full.
   itself derived in some way.  Nested resolutions are unravelled, but other
   operations on rules (such as rewriting) are left as-is.  
 \end{ttdescription}
+
+Functions {\tt Deriv.linear} and {\tt Deriv.tree} omit the proof of any named
+theorems (constructor {\tt Theorem}) they encounter in a derivation.  Applying
+them directly to the derivation of a named theorem is therefore pointless.
+Use {\tt Deriv.drop} with argument~1 to skip over the initial {\tt Theorem}
+constructor.
+
 
 \index{proof objects|)}
 \index{theorems|)}
