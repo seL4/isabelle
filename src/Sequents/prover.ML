@@ -29,7 +29,7 @@ fun (Pack(safes,unsafes)) add_unsafes ths =
 
 
 (*Returns the list of all formulas in the sequent*)
-fun forms_of_seq (Const("SeqO'",_) $ P $ u) = P :: forms_of_seq u
+fun forms_of_seq (Const("Sequents.SeqO'",_) $ P $ u) = P :: forms_of_seq u
   | forms_of_seq (H $ u) = forms_of_seq u
   | forms_of_seq _ = [];
 
@@ -160,7 +160,7 @@ local open Modal_Rule
 in 
 
 (*Returns the list of all formulas in the sequent*)
-fun forms_of_seq (Const("SeqO",_) $ P $ u) = P :: forms_of_seq u
+fun forms_of_seq (Const("Sequents.SeqO",_) $ P $ u) = P :: forms_of_seq u
   | forms_of_seq (H $ u) = forms_of_seq u
   | forms_of_seq _ = [];
 
