@@ -28,7 +28,7 @@ sig
   val simp_tac: simpset -> int -> tactic
 end;
 
-structure Simplifier:SIMPLIFIER =
+functor SimplifierFUN():SIMPLIFIER =
 struct
 
 datatype simpset =
@@ -157,3 +157,5 @@ val asm_simp_tac = gen_simp_tac (false,true);
 val simp_tac = gen_simp_tac (false,false);
 
 end;
+
+structure Simplifier = SimplifierFUN();
