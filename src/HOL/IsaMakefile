@@ -9,7 +9,8 @@
 default: HOL
 images: HOL HOL-Real TLA
 test: HOL-Isar_examples HOL-Induct HOL-ex HOL-Subst HOL-IMP HOL-IMPP \
-  HOL-Hoare HOL-Lex HOL-Algebra HOL-Auth HOL-UNITY HOL-Modelcheck \
+  HOL-NumberTheory HOL-Hoare HOL-Lex HOL-Algebra \
+  HOL-Auth HOL-UNITY HOL-Modelcheck \
   HOL-Lambda HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV HOL-MicroJava \
   HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
   HOL-AxClasses-Tutorial HOL-Real-ex \
@@ -48,9 +49,11 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/TFL/usyntax.sml $(SRC)/TFL/utils.sig $(SRC)/TFL/utils.sml	\
   Arith.ML Arith.thy Calculation.thy Datatype.thy Divides.ML		\
   Divides.thy Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy	\
-  HOL.ML HOL.thy HOL_lemmas.ML Inductive.thy Integ/Bin.ML		\
-  Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy Integ/IntArith.ML	\
-  Integ/IntArith.thy Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML	\
+  HOL.ML HOL.thy HOL_lemmas.ML Inductive.thy \
+  Integ/Bin.ML Integ/Bin.thy Integ/Equiv.ML Integ/Equiv.thy \
+  Integ/IntArith.ML Integ/IntArith.thy \
+  Integ/IntPower.ML Integ/IntPower.thy \
+  Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML	\
   Integ/Int.thy Integ/IntDiv.ML Integ/IntDiv.thy Integ/NatBin.ML	\
   Integ/NatBin.thy Integ/NatSimprocs.thy Integ/NatSimprocs.ML		\
   Integ/int_arith1.ML Integ/int_arith2.ML Integ/nat_simprocs.ML         \
@@ -165,6 +168,22 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy IMPP/Com.ML \
   IMPP/Natural.thy IMPP/Natural.ML IMPP/Hoare.thy IMPP/Hoare.ML \
   IMPP/Misc.thy IMPP/Misc.ML IMPP/EvenOdd.thy IMPP/EvenOdd.ML
 	@$(ISATOOL) usedir $(OUT)/HOL IMPP
+
+
+## HOL-NumberTheory
+
+HOL-NumberTheory: HOL $(LOG)/HOL-NumberTheory.gz
+
+$(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
+  NumberTheory/BijectionRel.ML NumberTheory/BijectionRel.thy \
+  NumberTheory/Chinese.ML NumberTheory/Chinese.thy \
+  NumberTheory/EulerFermat.ML NumberTheory/EulerFermat.thy \
+  NumberTheory/IntFact.ML NumberTheory/IntFact.thy \
+  NumberTheory/IntPrimes.ML NumberTheory/IntPrimes.thy \
+  NumberTheory/WilsonBij.ML NumberTheory/WilsonBij.thy \
+  NumberTheory/WilsonRuss.ML NumberTheory/WilsonRuss.thy \
+  NumberTheory/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL NumberTheory
 
 
 ## HOL-Hoare
