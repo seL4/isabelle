@@ -1,4 +1,4 @@
-(*  Title: 	HOLCF/lift1.thy
+(*  Title: 	HOLCF/Lift1.thy
     ID:         $Id$
     Author: 	Franz Regensburger
     Copyright   1993  Technische Universitaet Muenchen
@@ -8,7 +8,7 @@ Lifting
 
 *)
 
-Lift1 = Cfun3 +
+Lift1 = Cfun3 + Sum + 
 
 (* new type for lifting *)
 
