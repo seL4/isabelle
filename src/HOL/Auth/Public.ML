@@ -38,7 +38,7 @@ AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
     -- not in normal form! **)
 
 goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
-by (agent.induct_tac "C" 1);
+by (induct_tac "C" 1);
 by (auto_tac (!claset addIs [range_eqI], !simpset));
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
@@ -48,22 +48,22 @@ Addsimps [keysFor_parts_initState];
 
 (*Agents see their own private keys!*)
 goal thy "A ~= Spy --> Key (priK A) : sees A evs";
-by (list.induct_tac "evs" 1);
-by (agent.induct_tac "A" 1);
+by (induct_tac "evs" 1);
+by (induct_tac "A" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 qed_spec_mp "sees_own_priK";
 
 (*All public keys are visible to all*)
 goal thy "Key (pubK A) : sees B evs";
-by (list.induct_tac "evs" 1);
-by (agent.induct_tac "B" 1);
+by (induct_tac "evs" 1);
+by (induct_tac "B" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Auto_tac ());
 qed_spec_mp "sees_pubK";
 
 (*Spy sees private keys of agents!*)
 goal thy "!!A. A: lost ==> Key (priK A) : sees Spy evs";
-by (list.induct_tac "evs" 1);
+by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Blast_tac 1);
 qed "Spy_sees_lost";
@@ -94,7 +94,7 @@ fun not_lost_tac s =
 (*** Fresh nonces ***)
 
 goal thy "Nonce N ~: parts (initState B)";
-by (agent.induct_tac "B" 1);
+by (induct_tac "B" 1);
 by (Auto_tac ());
 qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
@@ -108,12 +108,12 @@ Addsimps [Nonce_notin_used_empty];
 (*** Supply fresh nonces for possibility theorems. ***)
 
 goalw thy [used_def] "EX N. ALL n. N<=n --> Nonce n ~: used evs";
-by (list.induct_tac "evs" 1);
+by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (Step_tac 1);
 by (Full_simp_tac 1);
 (*Inductive step*)
-by (event.induct_tac "a" 1);
+by (induct_tac "a" 1);
 by (ALLGOALS (full_simp_tac 
 	      (!simpset delsimps [sees_Notes]
 		        addsimps [UN_parts_sees_Says,

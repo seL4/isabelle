@@ -76,7 +76,7 @@ by (ALLGOALS
 qed "UN_parts_sees_Notes";
 
 goal thy "Says A B X : set evs --> X : sees Spy evs";
-by (list.induct_tac "evs" 1);
+by (induct_tac "evs" 1);
 by (Auto_tac ());
 qed_spec_mp "Says_imp_sees_Spy";
 
@@ -111,16 +111,16 @@ Addsimps [used_Notes];
 
 (*These two facts about "used" are unused.*)
 goal thy "used [] <= used l";
-by (list.induct_tac "l" 1);
-by (event.induct_tac "a" 2);
+by (induct_tac "l" 1);
+by (induct_tac "a" 2);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS Blast_tac);
 qed "used_nil_subset";
 
 goal thy "used l <= used (l@l')";
-by (list.induct_tac "l" 1);
+by (induct_tac "l" 1);
 by (simp_tac (!simpset addsimps [used_nil_subset]) 1);
-by (event.induct_tac "a" 1);
+by (induct_tac "a" 1);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS Blast_tac);
 qed "used_subset_append";

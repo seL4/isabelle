@@ -23,7 +23,7 @@ Addsimps [rewrite_rule [isSymKey_def] isSym_keys];
     -- not in normal form! **)
 
 goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
-by (agent.induct_tac "C" 1);
+by (induct_tac "C" 1);
 by (Auto_tac ());
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
@@ -33,15 +33,15 @@ Addsimps [keysFor_parts_initState];
 
 (*Agents see their own shared keys!*)
 goal thy "A ~= Spy --> Key (shrK A) : sees A evs";
-by (list.induct_tac "evs" 1);
-by (agent.induct_tac "A" 1);
+by (induct_tac "evs" 1);
+by (induct_tac "A" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Blast_tac 1);
 qed_spec_mp "sees_own_shrK";
 
 (*Spy sees shared keys of agents!*)
 goal thy "!!A. A: lost ==> Key (shrK A) : sees Spy evs";
-by (list.induct_tac "evs" 1);
+by (induct_tac "evs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [sees_Cons])));
 by (Blast_tac 1);
 qed "Spy_sees_lost";
@@ -91,7 +91,7 @@ Addsimps [Key_not_used, shrK_neq, shrK_neq RS not_sym];
 (*** Fresh nonces ***)
 
 goal thy "Nonce N ~: parts (initState B)";
-by (agent.induct_tac "B" 1);
+by (induct_tac "B" 1);
 by (Auto_tac ());
 qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
@@ -106,12 +106,12 @@ Addsimps [Nonce_notin_used_empty];
 
 (*In any trace, there is an upper bound N on the greatest nonce in use.*)
 goalw thy [used_def] "EX N. ALL n. N<=n --> Nonce n ~: used evs";
-by (list.induct_tac "evs" 1);
+by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (Step_tac 1);
 by (Full_simp_tac 1);
 (*Inductive step*)
-by (event.induct_tac "a" 1);
+by (induct_tac "a" 1);
 by (ALLGOALS (full_simp_tac 
 	      (!simpset delsimps [sees_Notes]
 		        addsimps [UN_parts_sees_Says,
