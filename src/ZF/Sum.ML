@@ -119,13 +119,11 @@ qed "sum_equal_iff";
 (*** Eliminator -- case ***)
 
 goalw Sum.thy sum_defs "case(c, d, Inl(a)) = c(a)";
-by (rtac (split RS trans) 1);
-by (rtac cond_0 1);
+by (simp_tac (ZF_ss addsimps [cond_0]) 1);
 qed "case_Inl";
 
 goalw Sum.thy sum_defs "case(c, d, Inr(b)) = d(b)";
-by (rtac (split RS trans) 1);
-by (rtac cond_1 1);
+by (simp_tac (ZF_ss addsimps [cond_1]) 1);
 qed "case_Inr";
 
 val major::prems = goal Sum.thy
