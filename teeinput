@@ -1,4 +1,0 @@
-#! /bin/sh
-#  teeinput -- start a program and log all inputs to a file
-#     environment variable $LISTEN specifies the file name
-tee -a -i $LISTEN | $*
