@@ -46,7 +46,11 @@ internally;
 
 * Isar: changed syntax of local blocks from {{ }} to { };
 
-* Provers: strengthened force_tac by using new first_best_tac
+* Isar/Provers: intro/elim/dest attributes: changed
+intro/intro!/intro!!  flags to intro!/intro/intro? (in most cases, one
+should have to change intro!! to intro? only);
+
+* Provers: strengthened force_tac by using new first_best_tac;
 
 * Provers: Blast_tac now warns of and ignores "weak elimination rules" e.g.
   [| inj ?f;          ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
@@ -90,7 +94,8 @@ style files, achieving self-contained LaTeX sources;
 * old-style theories now produce (crude) LaTeX output as well;
 
 * browser info session directories are now self-contained (may be put
-on WWW server seperately);
+on WWW server seperately); improved graphs of nested sessions; removed
+graph for 'all sessions';
 
 
 *** Isar ***
@@ -154,7 +159,9 @@ foo.split foo.split_asm for each datatype;
 
 * names of theorems etc. may be natural numbers as well;
 
-* Provers: intro/elim/dest attributes: changed ! / !! flags to ? / ??;
+* Provers: intro/elim/dest attributes: changed intro/intro!/intro!!
+flags to intro!/intro/intro? (in most cases, one should have to change
+intro!! to intro? only);
 
 * 'pr' command: optional goals_limit argument; no longer prints theory
 contexts, but only proof states;
