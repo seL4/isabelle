@@ -190,7 +190,7 @@ fun unify_consts sign cs intr_ts =
     val intr_consts = foldl add_term_consts_2 ([], intr_ts');
     fun unify (env, (cname, cT)) =
       let val consts = map snd (filter (fn c => fst c = cname) intr_consts)
-      in foldl (fn ((env', j'), Tp) => (Type.unify tsig j' env' Tp))
+      in foldl (fn ((env', j'), Tp) => (Type.unify tsig (env', j') Tp))
           (env, (replicate (length consts) cT) ~~ consts)
       end;
     val (env, _) = foldl unify ((Vartab.empty, i'), rec_consts);

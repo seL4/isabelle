@@ -97,7 +97,7 @@ fun make_Tconstraints_cprf maxidx cprf =
 fun unifyT sg env T U =
   let
     val Envir.Envir {asol, iTs, maxidx} = env;
-    val (iTs', maxidx') = Type.unify (Sign.tsig_of sg) maxidx iTs (T, U)
+    val (iTs', maxidx') = Type.unify (Sign.tsig_of sg) (iTs, maxidx) (T, U)
   in Envir.Envir {asol=asol, iTs=iTs', maxidx=maxidx'} end
   handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
     Sign.string_of_typ sg T ^ "\n\n" ^ Sign.string_of_typ sg U);

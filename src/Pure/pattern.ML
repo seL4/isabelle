@@ -183,7 +183,7 @@ val tsgr = ref(Type.tsig0);
 
 fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
-  else let val (iTs',maxidx') = Type.unify (!tsgr) maxidx iTs (U,T)
+  else let val (iTs',maxidx') = Type.unify (!tsgr) (iTs, maxidx) (U, T)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
        handle Type.TUNIFY => raise Unif;
 

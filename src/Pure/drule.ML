@@ -706,7 +706,7 @@ local
         and {sign=signu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
         val maxi = Int.max(maxidx, Int.max(maxt, maxu));
         val sign' = Sign.merge(sign, Sign.merge(signt, signu))
-        val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) maxi tye (T,U)
+        val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) (tye, maxi) (T, U)
           handle Type.TUNIFY => raise TYPE("Ill-typed instantiation", [T,U], [t,u])
     in  (sign', tye', maxi')  end;
 in
