@@ -196,6 +196,11 @@ by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 qed "less_one";
 AddIffs [less_one];
 
+Goal "(n < Suc 0) = (n = 0)";
+by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
+qed "less_Suc0";
+AddIffs [less_Suc0];
+
 Goal "m<n ==> Suc(m) < Suc(n)";
 by (etac rev_mp 1);
 by (nat_ind_tac "n" 1);
