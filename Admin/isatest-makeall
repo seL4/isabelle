@@ -69,10 +69,12 @@ case $HOSTNAME in
   
     sunbroy2)
         MFLAGS="-j 6"
+	NICE="nice"
         ;;
 
     sunbroy1)
         MFLAGS="-j 2"
+	NICE="nice"
         ;;
 
     macbroy*)
