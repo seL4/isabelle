@@ -1227,8 +1227,8 @@ fun mk_recordT extT parent_exts =
     foldr (fn ((parent,Ts),T) => Type (parent, subst_last T Ts)) (parent_exts,extT);
 
 (* record_definition *)
-
-fun record_definition (args, bname) parent parents raw_fields thy = 
+fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy = 
+  (* smlnj needs type annotation of parents *)
   let
     val sign = Theory.sign_of thy;
 
