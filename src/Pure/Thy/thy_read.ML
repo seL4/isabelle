@@ -109,19 +109,19 @@ fun already_loaded thy =
 (*Check if a theory file has changed since its last use.
   Return a pair of boolean values for .thy and for .ML *)
 fun thy_unchanged thy thy_file ml_file =
-  let val t = get_thyinfo thy
-  in if is_some t then
-       let val ThyInfo {thy_time, ml_time, ...} = the t
-           val tn = is_none thy_time;
+  case get_thyinfo thy of
+      Some (ThyInfo {thy_time, ml_time, ...}) =>
+       let val tn = is_none thy_time;
            val mn = is_none ml_time
        in if not tn andalso not mn then
-              ((file_info thy_file = the thy_time),
-               (file_info ml_file = the ml_time))
-          else if not tn andalso mn then (true, false)
-          else (false, false)
+            ((file_info thy_file = the thy_time),
+             (file_info ml_file = the ml_time))
+          else if not tn andalso mn then
+            (file_info thy_file = the thy_time, false)
+          else
+            (false, false)
        end
-     else (false, false)
-  end;
+    | None => (false, false)
 
 exception FILE_NOT_FOUND;   (*raised by find_file *)
 
@@ -272,7 +272,10 @@ fun use_thy name =
          if thy_uptodate orelse thy_file = "" then ()
          else (writeln ("Reading \"" ^ name ^ ".thy\"");
                read_thy tname thy_file;
-               use (out_name tname)
+               use (out_name tname);
+
+               if not (!delete_tmpfiles) then ()
+               else delete_file (out_name tname)
               );
          set_info (Some (file_info thy_file)) None tname;
                                        (*mark thy_file as successfully loaded*)
@@ -289,12 +292,7 @@ fun use_thy name =
          set_path ();
 
          (*Mark theories that have to be reloaded*)
-         mark_children tname;
-
-         (*Remove temporary files*)
-         if not (!delete_tmpfiles) orelse (thy_file = "") orelse thy_uptodate
-           then ()
-         else delete_file (out_name tname)
+         mark_children tname
         )
     end;
 
