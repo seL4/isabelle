@@ -42,8 +42,8 @@ qed_goal "iterate_Suc2" thy "iterate (Suc n) F x = iterate n F (F`x)"
 (* This property is essential since monotonicity of iterate makes no sense  *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "is_chain_iterate2" thy [is_chain] 
-        " x << F`x ==> is_chain (%i. iterate i F x)"
+qed_goalw "chain_iterate2" thy [chain] 
+        " x << F`x ==> chain (%i. iterate i F x)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -56,11 +56,11 @@ qed_goalw "is_chain_iterate2" thy [is_chain]
         ]);
 
 
-qed_goal "is_chain_iterate" thy  
-        "is_chain (%i. iterate i F UU)"
+qed_goal "chain_iterate" thy  
+        "chain (%i. iterate i F UU)"
  (fn prems =>
         [
-        (rtac is_chain_iterate2 1),
+        (rtac chain_iterate2 1),
         (rtac minimal 1)
         ]);
 
@@ -75,23 +75,23 @@ qed_goalw "Ifix_eq" thy  [Ifix_def] "Ifix F =F`(Ifix F)"
  (fn prems =>
         [
         (stac contlub_cfun_arg 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac antisym_less 1),
         (rtac lub_mono 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac ch2ch_fappR 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac allI 1),
         (rtac (iterate_Suc RS subst) 1),
-        (rtac (is_chain_iterate RS is_chainE RS spec) 1),
+        (rtac (chain_iterate RS chainE RS spec) 1),
         (rtac is_lub_thelub 1),
         (rtac ch2ch_fappR 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac ub_rangeI 1),
         (rtac allI 1),
         (rtac (iterate_Suc RS subst) 1),
         (rtac is_ub_thelub 1),
-        (rtac is_chain_iterate 1)
+        (rtac chain_iterate 1)
         ]);
 
 
@@ -100,7 +100,7 @@ qed_goalw "Ifix_least" thy [Ifix_def] "F`x=x ==> Ifix(F) << x"
         [
         (cut_facts_tac prems 1),
         (rtac is_lub_thelub 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac ub_rangeI 1),
         (strip_tac 1),
         (nat_ind_tac "i" 1),
@@ -147,11 +147,11 @@ qed_goalw "contlub_iterate" thy  [contlub] "contlub(iterate(i))"
         (Asm_simp_tac 1),
         (rtac ext 1),
         (stac thelub_fun 1),
-        (rtac is_chainI 1),
+        (rtac chainI 1),
         (rtac allI 1),
         (rtac (less_fun RS iffD2) 1),
         (rtac allI 1),
-        (rtac (is_chainE RS spec) 1),
+        (rtac (chainE RS spec) 1),
         (rtac (monofun_fapp1 RS ch2ch_MF2LR) 1),
         (rtac allI 1),
         (rtac monofun_fapp2 1),
@@ -223,8 +223,8 @@ qed_goalw "monofun_Ifix" thy  [monofun,Ifix_def] "monofun(Ifix)"
         [
         (strip_tac 1),
         (rtac lub_mono 1),
-        (rtac is_chain_iterate 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac allI 1),
         (rtac (less_fun RS iffD1 RS spec) 1),
         (etac (monofun_iterate RS monofunE RS spec RS spec RS mp) 1)
@@ -235,18 +235,18 @@ qed_goalw "monofun_Ifix" thy  [monofun,Ifix_def] "monofun(Ifix)"
 (* be derived for lubs in this argument                                     *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "is_chain_iterate_lub" thy   
-"is_chain(Y) ==> is_chain(%i. lub(range(%ia. iterate ia (Y i) UU)))"
+qed_goal "chain_iterate_lub" thy   
+"chain(Y) ==> chain(%i. lub(range(%ia. iterate ia (Y i) UU)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac is_chainI 1),
+        (rtac chainI 1),
         (strip_tac 1),
         (rtac lub_mono 1),
-        (rtac is_chain_iterate 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
+        (rtac chain_iterate 1),
         (strip_tac 1),
-        (etac (monofun_iterate RS ch2ch_monofun RS ch2ch_fun RS is_chainE 
+        (etac (monofun_iterate RS ch2ch_monofun RS ch2ch_fun RS chainE 
          RS spec) 1)
         ]);
 
@@ -257,7 +257,7 @@ qed_goal "is_chain_iterate_lub" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_Ifix_lemma1" thy 
-"is_chain(Y) ==>iterate n (lub(range Y)) y = lub(range(%i. iterate n (Y i) y))"
+"chain(Y) ==>iterate n (lub(range Y)) y = lub(range(%i. iterate n (Y i) y))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -271,7 +271,7 @@ qed_goal "contlub_Ifix_lemma1" thy
         ]);
 
 
-qed_goal "ex_lub_iterate" thy  "is_chain(Y) ==>\
+qed_goal "ex_lub_iterate" thy  "chain(Y) ==>\
 \         lub(range(%i. lub(range(%ia. iterate i (Y ia) UU)))) =\
 \         lub(range(%i. lub(range(%ia. iterate ia (Y i) UU))))"
  (fn prems =>
@@ -281,24 +281,24 @@ qed_goal "ex_lub_iterate" thy  "is_chain(Y) ==>\
         (rtac is_lub_thelub 1),
         (rtac (contlub_Ifix_lemma1 RS ext RS subst) 1),
         (atac 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac ub_rangeI 1),
         (strip_tac 1),
         (rtac lub_mono 1),
         (etac (monofun_iterate RS ch2ch_monofun RS ch2ch_fun) 1),
-        (etac is_chain_iterate_lub 1),
+        (etac chain_iterate_lub 1),
         (strip_tac 1),
         (rtac is_ub_thelub 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac is_lub_thelub 1),
-        (etac is_chain_iterate_lub 1),
+        (etac chain_iterate_lub 1),
         (rtac ub_rangeI 1),
         (strip_tac 1),
         (rtac lub_mono 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac (contlub_Ifix_lemma1 RS ext RS subst) 1),
         (atac 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (strip_tac 1),
         (rtac is_ub_thelub 1),
         (etac (monofun_iterate RS ch2ch_monofun RS ch2ch_fun) 1)
@@ -452,11 +452,11 @@ qed_goalw "fix_def2" thy [fix_def]
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "admI" thy [adm_def]
-        "(!!Y. [| is_chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))) ==> adm(P)"
+        "(!!Y. [| chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))) ==> adm(P)"
  (fn prems => [fast_tac (HOL_cs addIs prems) 1]);
 
 qed_goalw "admD" thy [adm_def]
-        "!!P. [| adm(P); is_chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))"
+        "!!P. [| adm(P); chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))"
  (fn prems => [fast_tac HOL_cs 1]);
 
 qed_goalw "admw_def2" thy [admw_def]
@@ -476,7 +476,7 @@ qed_goalw "adm_impl_admw"  thy [admw_def] "!!P. adm(P)==>admw(P)"
         [
         (strip_tac 1),
         (etac admD 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (atac 1)
         ]);
 
@@ -491,7 +491,7 @@ qed_goal "fix_ind"  thy
         (cut_facts_tac prems 1),
         (stac fix_def2 1),
         (etac admD 1),
-        (rtac is_chain_iterate 1),
+        (rtac chain_iterate 1),
         (rtac allI 1),
         (nat_ind_tac "i" 1),
         (stac iterate_0 1),
@@ -537,7 +537,7 @@ qed_goal "def_wfix_ind" thy "[| f == fix`F; admw(P); \
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "adm_max_in_chain"  thy  [adm_def]
-"!Y. is_chain(Y::nat=>'a) --> (? n. max_in_chain n Y) ==> adm(P::'a=>bool)"
+"!Y. chain(Y::nat=>'a) --> (? n. max_in_chain n Y) ==> adm(P::'a=>bool)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -552,10 +552,10 @@ qed_goalw "adm_max_in_chain"  thy  [adm_def]
         (etac spec 1)
         ]);
 
-bind_thm ("adm_chain_finite" ,chfin RS adm_max_in_chain);
+bind_thm ("adm_chfin" ,chfin RS adm_max_in_chain);
 
 (* ------------------------------------------------------------------------ *)
-(* some lemmata for functions with flat/chain_finite domain/range types	    *)
+(* some lemmata for functions with flat/chfin domain/range types	    *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "adm_chfindom" thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u`s))"
@@ -572,7 +572,7 @@ qed_goalw "adm_chfindom" thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u`s))"
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "admI2" thy [adm_def]
- "(!!Y. [| is_chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |]\
+ "(!!Y. [| chain Y; !i. P (Y i); !i. ? j. i < j & Y i ~= Y j & Y i << Y j |]\
 \ ==> P(lub (range Y))) ==> adm P" 
  (fn prems => [
         strip_tac 1,
@@ -689,12 +689,12 @@ local
         ]);
 
   val adm_disj_lemma2 = prove_goal thy  
-  "!!Q. [| adm(Q); ? X. is_chain(X) & (!n. Q(X(n))) &\
+  "!!Q. [| adm(Q); ? X. chain(X) & (!n. Q(X(n))) &\
   \   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
  (fn _ => [fast_tac (claset() addEs [admD] addss simpset()) 1]);
 
-  val adm_disj_lemma3 = prove_goalw thy [is_chain]
-  "!!Q. is_chain(Y) ==> is_chain(%m. if m < Suc i then Y(Suc i) else Y m)"
+  val adm_disj_lemma3 = prove_goalw thy [chain]
+  "!!Q. chain(Y) ==> chain(%m. if m < Suc i then Y(Suc i) else Y m)"
  (fn _ =>
         [
         asm_simp_tac (simpset() setloop (split_tac[expand_if])) 1,
@@ -716,7 +716,7 @@ local
         ]);
 
   val adm_disj_lemma5 = prove_goal thy
-  "!!Y::nat=>'a::cpo. [| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
+  "!!Y::nat=>'a::cpo. [| chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
   \       lub(range(Y)) = lub(range(%m. if m< Suc(i) then Y(Suc(i)) else Y m))"
  (fn prems =>
         [
@@ -729,8 +729,8 @@ local
         ]);
 
   val adm_disj_lemma6 = prove_goal thy
-  "[| is_chain(Y::nat=>'a::cpo); ? i. ! j. i < j --> Q(Y(j)) |] ==>\
-  \         ? X. is_chain(X) & (! n. Q(X(n))) & lub(range(Y)) = lub(range(X))"
+  "[| chain(Y::nat=>'a::cpo); ? i. ! j. i < j --> Q(Y(j)) |] ==>\
+  \         ? X. chain(X) & (! n. Q(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -748,12 +748,12 @@ local
         ]);
 
   val adm_disj_lemma7 = prove_goal thy 
-  "[| is_chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j))  |] ==>\
-  \         is_chain(%m. Y(Least(%j. m<j & P(Y(j)))))"
+  "[| chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j))  |] ==>\
+  \         chain(%m. Y(Least(%j. m<j & P(Y(j)))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac is_chainI 1),
+        (rtac chainI 1),
         (rtac allI 1),
         (rtac chain_mono3 1),
         (atac 1),
@@ -782,7 +782,7 @@ local
         ]);
 
   val adm_disj_lemma9 = prove_goal thy
-  "[| is_chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==>\
+  "[| chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==>\
   \         lub(range(Y)) = lub(range(%m. Y(Least(%j. m<j & P(Y(j))))))"
  (fn prems =>
         [
@@ -813,8 +813,8 @@ local
         ]);
 
   val adm_disj_lemma10 = prove_goal thy
-  "[| is_chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==>\
-  \         ? X. is_chain(X) & (! n. P(X(n))) & lub(range(Y)) = lub(range(X))"
+  "[| chain(Y::nat=>'a::cpo); ! i. ? j. i < j & P(Y(j)) |] ==>\
+  \         ? X. chain(X) & (! n. P(X(n))) & lub(range(Y)) = lub(range(X))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -832,7 +832,7 @@ local
         ]);
 
   val adm_disj_lemma12 = prove_goal thy
-  "[| adm(P); is_chain(Y);? i. ! j. i < j --> P(Y(j))|]==>P(lub(range(Y)))"
+  "[| adm(P); chain(Y);? i. ! j. i < j --> P(Y(j))|]==>P(lub(range(Y)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -844,7 +844,7 @@ local
 in
 
 val adm_lemma11 = prove_goal thy
-"[| adm(P); is_chain(Y); ! i. ? j. i < j & P(Y(j)) |]==>P(lub(range(Y)))"
+"[| adm(P); chain(Y); ! i. ? j. i < j & P(Y(j)) |]==>P(lub(range(Y)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -876,15 +876,12 @@ bind_thm("adm_lemma11",adm_lemma11);
 bind_thm("adm_disj",adm_disj);
 
 qed_goal "adm_imp"  thy  
-        "!!P. [| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)"
- (fn prems =>
-        [
+        "!!P. [| adm(%x.~(P x)); adm Q |] ==> adm(%x. P x --> Q x)" (K [
         (subgoal_tac "(%x. P x --> Q x) = (%x. ~P x | Q x)" 1),
-         (Asm_simp_tac 1),
+         (etac ssubst 1),
          (etac adm_disj 1),
          (atac 1),
-        (rtac ext 1),
-        (fast_tac HOL_cs 1)
+        (Simp_tac 1)
         ]);
 
 goal Fix.thy "!! P. [| adm (%x. P x --> Q x); adm (%x. Q x --> P x) |] \
