@@ -29,6 +29,7 @@ sig
   val mk_exists: string * typ * term -> term
   val mk_Collect: string * typ * term -> term
   val mk_mem: term * term -> term
+  val dest_mem: term -> term * term
   val mk_binop: string -> term * term -> term
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
@@ -109,6 +110,9 @@ fun mk_mem (x, A) =
   let val setT = fastype_of A in
     Const ("op :", [dest_setT setT, setT] ---> boolT) $ x $ A
   end;
+
+fun dest_mem (Const ("op :", _) $ x $ A) = (x, A)
+  | dest_mem t = raise TERM ("dest_mem", [t]);
 
 
 (* binary oprations and relations *)
