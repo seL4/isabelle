@@ -131,75 +131,6 @@ lemmas knows_Spy_partsEs =
      parts.Body [THEN revcut_rl, standard]
 
 
-subsection{*Lemmas About Agents' Knowledge*}
-
-lemma knows_Says: "knows A (Says A B X # evs) = insert X (knows A evs)"
-by auto
-
-lemma knows_Notes: "knows A (Notes A X # evs) = insert X (knows A evs)"
-by auto
-
-lemma knows_Gets:
-     "A \<noteq> Spy --> knows A (Gets A X # evs) = insert X (knows A evs)"
-by auto
-
-lemma knows_subset_knows_Says: "knows A evs <= knows A (Says A B X # evs)"
-by auto
-
-lemma knows_subset_knows_Notes: "knows A evs <= knows A (Notes A X # evs)"
-by auto
-
-lemma knows_subset_knows_Gets: "knows A evs <= knows A (Gets A X # evs)"
-by auto
-
-(*Agents know what they say*)
-lemma Says_imp_knows [rule_format]:
-     "Says A B X \<in> set evs --> X \<in> knows A evs"
-apply (induct_tac "evs")
-apply (auto split: event.split) 
-done
-
-(*Agents know what they note*)
-lemma Notes_imp_knows [rule_format]:
-     "Notes A X \<in> set evs --> X \<in> knows A evs"
-apply (induct_tac "evs")
-apply (auto split: event.split) 
-done
-
-(*Agents know what they receive*)
-lemma Gets_imp_knows_agents [rule_format]:
-     "A \<noteq> Spy --> Gets A X \<in> set evs --> X \<in> knows A evs"
-apply (induct_tac "evs")
-apply (auto split: event.split) 
-done
-
-
-(*What agents DIFFERENT FROM Spy know
-  was either said, or noted, or got, or known initially*)
-lemma knows_imp_Says_Gets_Notes_initState [rule_format]:
-     "[| X \<in> knows A evs; A \<noteq> Spy |] ==>
-  \<exists>B. Says A B X \<in> set evs |
-               Gets A X \<in> set evs |
-               Notes A X \<in> set evs |
-               X \<in> initState A"
-apply (erule rev_mp) 
-apply (induct_tac "evs")
-apply (auto split: event.split) 
-done
-
-(*What the Spy knows -- for the time being --
-  was either said or noted, or known initially*)
-lemma knows_Spy_imp_Says_Notes_initState [rule_format]:
-     "[| X \<in> knows Spy evs |] ==>
-   \<exists>A B. Says A B X \<in> set evs |
-                  Notes A X \<in> set evs |
-                  X \<in> initState Spy"
-apply (erule rev_mp) 
-apply (induct_tac "evs")
-apply (auto split: event.split) 
-done
-
-
 subsection{*The Function @{term used}*}
 
 lemma parts_knows_Spy_subset_used: "parts (knows Spy evs) <= used evs"
@@ -224,11 +155,6 @@ by auto
 
 lemma used_Gets [simp]: "used (Gets A X # evs) = used evs"
 by auto
-
-lemma used_nil_subset: "used [] <= used evs"
-apply auto
-apply (rule initState_into_used, auto)
-done
 
 
 lemma Notes_imp_parts_subset_used [rule_format]:
@@ -255,11 +181,9 @@ ML
 {*
 val analz_mono_contra_tac = 
   let val analz_impI = inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
-  in
-    rtac analz_impI THEN' 
-    REPEAT1 o 
-      (dresolve_tac (thms"analz_mono_contra"))
-    THEN' mp_tac
+  in rtac analz_impI THEN' 
+     REPEAT1 o (dresolve_tac (thms"analz_mono_contra")) THEN'
+     mp_tac
   end
 *}
 

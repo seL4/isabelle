@@ -189,14 +189,10 @@ lemma new_keys_not_used [rule_format,simp]:
       ==> Key K \<notin> used evs --> K \<in> symKeys -->
           K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule set_mr.induct, simp_all)
-txt{*Fake*}
-apply (force dest!: usedI keysFor_parts_insert)
-txt{*Message 2*}
-apply force
-txt{*Message 3*}
-apply (blast dest: Gets_certificate_valid)
-txt{*Message 4*}
-apply force
+apply (force dest!: usedI keysFor_parts_insert)  --{*Fake*}
+apply force  --{*Message 2*}
+apply (blast dest: Gets_certificate_valid)  --{*Message 3*}
+apply force  --{*Message 4*}
 done
 
 
@@ -294,10 +290,8 @@ apply (simp_all del: image_insert image_Un imp_disjL
               analz_knows_absorb2 analz_Key_image_insert_eq notin_image_iff
               Spy_analz_private_Key analz_image_priEK)
   --{*23 seconds on a 1.8GHz machine*}
-txt{*Fake*}
-apply spy_analz
-txt{*Message 3*}
-apply auto
+apply spy_analz  --{*Fake*}
+apply auto  --{*Message 3*}
 done
 
 lemma symKey_secrecy [rule_format]:
@@ -315,12 +309,9 @@ apply (simp_all del: image_insert image_Un imp_disjL
               analz_knows_absorb2 analz_Key_image_insert_eq
               symKey_compromise notin_image_iff Spy_analz_private_Key
               analz_image_priEK)
-txt{*Fake*}
-apply spy_analz
-txt{*Message 1*}
-apply force
-txt{*Message 3*}
-apply (auto intro: analz_into_parts [THEN usedI] in_parts_Says_imp_used)
+apply spy_analz  --{*Fake*}
+apply force  --{*Message 1*}
+apply (auto intro: analz_into_parts [THEN usedI] in_parts_Says_imp_used)  --{*Message 3*}
 done
 
 subsection{*Unicity *}

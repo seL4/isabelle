@@ -40,6 +40,7 @@ text{*By freeness of agents, no two agents have the same key. Since
 specification (publicKey)
   injective_publicKey:
     "publicKey b A = publicKey c A' ==> b=c & A=A'"
+(*<*)
    apply (rule exI [of _ "%b A. 2 * nat_of_agent A + (if b then 1 else 0)"]) 
    apply (auto simp add: inj_on_def inj_nat_of_agent [THEN inj_eq] split: agent.split) 
    apply (drule_tac f="%x. x mod 2" in arg_cong, simp add: mod_Suc)+
@@ -47,7 +48,7 @@ specification (publicKey)
    apply presburger+
 *)
    done                       
-
+(*>*)
 
 axioms
   (*No private key equals any public key (essential to ensure that private
@@ -68,7 +69,7 @@ knowledge only.  However, the initial knowledge is as follows:
    RCA (has already certified and therefore) knows all CAs public keys; 
    Spy knows all keys of all bad agents.*}
 primrec    
-
+(*<*)
   initState_CA:
     "initState (CA i)  =
        (if i=0 then Key ` ({priEK RCA, priSK RCA} Un
@@ -94,7 +95,7 @@ primrec
        {Key (priEK (PG i)), Key (priSK (PG i)),
 	Key (pubEK (PG i)), Key (pubSK (PG i)),
 	Key (pubEK RCA), Key (pubSK RCA)}"
-
+(*>*)
   initState_Spy:
     "initState Spy = Key ` (invKey ` pubEK ` bad Un
 			    invKey ` pubSK ` bad Un
@@ -108,9 +109,11 @@ consts  pan :: "agent => nat"
 specification (pan)
   inj_pan: "inj pan"
   --{*No two agents have the same PAN*}
+(*<*)
    apply (rule exI [of _ "nat_of_agent"]) 
    apply (simp add: inj_on_def inj_nat_of_agent [THEN inj_eq]) 
    done
+(*>*)
 
 declare inj_pan [THEN inj_eq, iff]
 
@@ -274,11 +277,10 @@ text{*for proving @{text new_keys_not_used}*}
 lemma keysFor_parts_insert:
      "[| K \<in> keysFor (parts (insert X H));  X \<in> synth (analz H) |]  
       ==> K \<in> keysFor (parts H) | Key (invKey K) \<in> parts H"
-apply (force dest!: 
+by (force dest!: 
          parts_insert_subset_Un [THEN keysFor_mono, THEN [2] rev_subsetD]
          analz_subset_parts [THEN keysFor_mono, THEN [2] rev_subsetD] 
             intro: analz_into_parts)
-done
 
 lemma Crypt_imp_keysFor [intro]:
      "[|K \<in> symKeys; Crypt K X \<in> H|] ==> K \<in> keysFor H"

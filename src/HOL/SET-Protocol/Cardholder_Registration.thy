@@ -348,11 +348,8 @@ apply (erule rev_mp)
 apply (erule set_cr.induct)
 apply (frule_tac [8] Gets_certificate_valid)
 apply (frule_tac [6] Gets_certificate_valid, simp_all)
-txt{*Fake*}
-apply (force dest!: usedI keysFor_parts_insert)
-txt{*Others*}
-apply blast
-apply auto
+apply (force dest!: usedI keysFor_parts_insert) --{*Fake*}
+apply (blast,auto)  --{*Others*}
 done
 
 
@@ -389,6 +386,7 @@ lemma Crypt_analz_imp_used:
 by (blast intro: Crypt_parts_imp_used)
 
 
+(*<*) 
 subsection{*Messages signed by CA*}
 
 text{*Message @{text SET_CR2}: C can check CA's signature if he has received
@@ -459,7 +457,7 @@ lemma CA_Says_6:
       ==> \<exists>Y K. Says (CA i) C (Crypt K {|sign (priSK (CA i))
                     {|Agent C, Nonce NC3, Agent (CA i), Nonce NonceCCA|}, Y|}) \<in> set evs"
 by (blast dest!: certificate_valid_pubSK intro!: CA_Says_6_lemma)
-
+(*>*)
 
 
 subsection{*Useful lemmas *}
@@ -574,10 +572,8 @@ apply (simp_all
               analz_image_priEK disj_simps)
   --{*46 seconds on a 1.8GHz machine*}
 apply spy_analz
-txt{*3*}
-apply blast
-txt{*5*}
-apply blast
+apply blast  --{*3*}
+apply blast  --{*5*}
 done
 
 text{*The remaining quantifiers seem to be essential.
@@ -601,8 +597,7 @@ apply (simp_all del: image_insert image_Un imp_disjL
               DK_fresh_not_KeyCryptKey
               analz_image_priEK)
   --{*13 seconds on a 1.8GHz machine*}
-txt{*Fake*}
-apply spy_analz
+apply spy_analz  --{*Fake*}
 apply (auto intro: analz_into_parts [THEN usedI] in_parts_Says_imp_used)
 done
 
@@ -691,8 +686,7 @@ lemma not_KeyCryptNonce_cardSK [rule_format (no_asm)]:
      "[|cardSK \<notin> symKeys;  \<forall>C. cardSK \<noteq> priEK C;  evs \<in> set_cr|] ==>
       Key cardSK \<notin> analz (knows Spy evs) --> ~ KeyCryptNonce cardSK N evs"
 apply (erule set_cr.induct, analz_mono_contra, simp_all)
-txt{*6*}
-apply (blast dest: not_KeyCryptKey_cardSK)
+apply (blast dest: not_KeyCryptKey_cardSK)  --{*6*}
 done
 
 subsubsection{*Lemmas for message 5 and 6:
@@ -746,20 +740,18 @@ apply (simp_all del: image_insert image_Un
               DK_fresh_not_KeyCryptNonce K_fresh_not_KeyCryptKey
               ball_conj_distrib analz_image_priEK)
   --{*71 seconds on a 1.8GHz machine*}
-txt{*Fake*}
-apply spy_analz
-txt{*3*}
-apply blast
-txt{*5*}
-apply blast
-txt{*6*}
-txt{*cardSK compromised?*}
+apply spy_analz  --{*Fake*}
+apply blast  --{*3*}
+apply blast  --{*5*}
+txt{*Message 6*}
 apply (force del: allE ballE impCE simp add: symKey_compromise)
+  --{*cardSK compromised*}
 txt{*Simplify again--necessary because the previous simplification introduces
   some logical connectives*}
-by (force del: allE ballE impCE
+apply (force del: allE ballE impCE
           simp del: image_insert image_Un imp_disjL
           simp add: analz_image_keys_simps symKey_compromise)
+done
 
 
 subsection{*Secrecy of CardSecret: the Cardholder's secret*}
@@ -824,22 +816,14 @@ apply (simp_all
               ball_conj_distrib Nonce_compromise symKey_compromise
               analz_image_priEK)
   --{*12 seconds on a 1.8GHz machine*}
-txt{*Fake*}
-apply spy_analz
+apply spy_analz  --{*Fake*}
 apply (simp_all (no_asm_simp))
-txt{*1*}
-apply blast
-txt{*2*}
-apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])
-txt{*3*}
-apply blast
-txt{*4*}
-apply (blast dest: NC2_not_CardSecret Gets_imp_knows_Spy [THEN analz.Inj] analz_symKeys_Decrypt)
-txt{*5*}
-apply blast
-txt{*6*}
-apply (blast dest: KC2_secrecy)
-apply (blast dest: KC2_secrecy)
+apply blast  --{*1*}
+apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])  --{*2*}
+apply blast  --{*3*}
+apply (blast dest: NC2_not_CardSecret Gets_imp_knows_Spy [THEN analz.Inj] analz_symKeys_Decrypt)  --{*4*}
+apply blast  --{*5*}
+apply (blast dest: KC2_secrecy)+  --{*Message 6: two cases*}
 done
 
 
@@ -898,21 +882,13 @@ apply (simp_all
               ball_conj_distrib Nonce_compromise symKey_compromise
               analz_image_priEK)
   --{*15 seconds on a 1.8GHz machine*}
-txt{*Fake*}
-apply spy_analz
-txt{*1*}
-apply blast
-txt{*2*}
-apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])
-txt{*3*}
-apply blast
-txt{*4*}
-apply (blast dest: NC2_not_NonceCCA)
-txt{*5*}
-apply blast
-txt{*6*}
-apply (blast dest: KC2_secrecy)
-apply (blast dest: KC2_secrecy)
+apply spy_analz  --{*Fake*}
+apply blast  --{*1*}
+apply (blast dest!: Gets_imp_knows_Spy [THEN analz.Inj])  --{*2*}
+apply blast  --{*3*}
+apply (blast dest: NC2_not_NonceCCA)  --{*4*}
+apply blast  --{*5*}
+apply (blast dest: KC2_secrecy)+  --{*Message 6: two cases*}
 done
 
 
@@ -974,8 +950,7 @@ apply (simp_all
               notin_image_iff analz_image_priEK)
   --{*33 seconds on a 1.8GHz machine*}
 apply spy_analz
-txt{*6*}
-apply (simp add: insert_absorb)
+apply (simp add: insert_absorb)  --{*6*}
 done
 
 lemma analz_insert_pan:
@@ -1005,14 +980,10 @@ apply (simp_all
          add: analz_image_keys_simps analz_insert_pan analz_image_pan
               notin_image_iff analz_image_priEK)
   --{*18 seconds on a 1.8GHz machine*}
-txt{*fake*}
-apply spy_analz
-txt{*3*}
-apply blast
-txt{*5*}
-apply blast
-txt{*6*}
-apply (simp (no_asm_simp) add: insert_absorb)
+apply spy_analz  --{*fake*}
+apply blast  --{*3*}
+apply blast  --{*5*}
+apply (simp (no_asm_simp) add: insert_absorb)  --{*6*}
 done
 
 
@@ -1052,6 +1023,7 @@ apply (blast dest!: CR6_Says_imp_Notes)
 done
 
 
+(*<*)
 text{*UNUSED unicity result*}
 lemma unique_KC1:
      "[|Says C B {|Crypt KC1 X, Crypt EK {|Key KC1, Y|}|}
@@ -1073,6 +1045,8 @@ apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule set_cr.induct, auto)
 done
+(*>*)
+
 
 text{*Cannot show cardSK to be secret because it isn't assumed to be fresh
   it could be a previously compromised cardSK [e.g. involving a bad CA]*}

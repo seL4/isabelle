@@ -829,86 +829,16 @@ lemmas pushes = pushKeys pushCrypts
 
 
 subsection{*Tactics useful for many protocol proofs*}
+(*<*)
 ML
 {*
-val invKey = thm "invKey"
-val keysFor_def = thm "keysFor_def"
-val symKeys_def = thm "symKeys_def"
-val parts_mono = thm "parts_mono";
-val analz_mono = thm "analz_mono";
-val Key_image_eq = thm "Key_image_eq";
-val Nonce_Key_image_eq = thm "Nonce_Key_image_eq";
-val keysFor_Un = thm "keysFor_Un";
-val keysFor_mono = thm "keysFor_mono";
-val keysFor_image_Key = thm "keysFor_image_Key";
-val Crypt_imp_invKey_keysFor = thm "Crypt_imp_invKey_keysFor";
-val MPair_parts = thm "MPair_parts";
-val parts_increasing = thm "parts_increasing";
-val parts_insertI = thm "parts_insertI";
-val parts_empty = thm "parts_empty";
-val parts_emptyE = thm "parts_emptyE";
-val parts_singleton = thm "parts_singleton";
-val parts_Un_subset1 = thm "parts_Un_subset1";
-val parts_Un_subset2 = thm "parts_Un_subset2";
-val parts_insert = thm "parts_insert";
-val parts_insert2 = thm "parts_insert2";
-val parts_UN_subset1 = thm "parts_UN_subset1";
-val parts_UN_subset2 = thm "parts_UN_subset2";
-val parts_UN = thm "parts_UN";
-val parts_insert_subset = thm "parts_insert_subset";
-val parts_partsD = thm "parts_partsD";
-val parts_trans = thm "parts_trans";
-val parts_cut = thm "parts_cut";
-val parts_cut_eq = thm "parts_cut_eq";
-val parts_insert_eq_I = thm "parts_insert_eq_I";
-val parts_image_Key = thm "parts_image_Key";
-val MPair_analz = thm "MPair_analz";
 val analz_increasing = thm "analz_increasing";
 val analz_subset_parts = thm "analz_subset_parts";
-val not_parts_not_analz = thm "not_parts_not_analz";
 val parts_analz = thm "parts_analz";
 val analz_parts = thm "analz_parts";
 val analz_insertI = thm "analz_insertI";
-val analz_empty = thm "analz_empty";
-val analz_Un = thm "analz_Un";
-val analz_insert_Crypt_subset = thm "analz_insert_Crypt_subset";
-val analz_image_Key = thm "analz_image_Key";
-val analz_analzD = thm "analz_analzD";
-val analz_trans = thm "analz_trans";
-val analz_cut = thm "analz_cut";
-val analz_insert_eq = thm "analz_insert_eq";
-val analz_subset_cong = thm "analz_subset_cong";
-val analz_cong = thm "analz_cong";
-val analz_insert_cong = thm "analz_insert_cong";
-val analz_trivial = thm "analz_trivial";
-val analz_UN_analz = thm "analz_UN_analz";
-val synth_mono = thm "synth_mono";
-val synth_increasing = thm "synth_increasing";
-val synth_Un = thm "synth_Un";
-val synth_insert = thm "synth_insert";
-val synth_synthD = thm "synth_synthD";
-val synth_trans = thm "synth_trans";
-val synth_cut = thm "synth_cut";
-val Agent_synth = thm "Agent_synth";
-val Number_synth = thm "Number_synth";
-val Nonce_synth_eq = thm "Nonce_synth_eq";
-val Key_synth_eq = thm "Key_synth_eq";
-val Crypt_synth_eq = thm "Crypt_synth_eq";
-val keysFor_synth = thm "keysFor_synth";
-val parts_synth = thm "parts_synth";
-val analz_analz_Un = thm "analz_analz_Un";
-val analz_synth_Un = thm "analz_synth_Un";
-val analz_synth = thm "analz_synth";
-val parts_insert_subset_Un = thm "parts_insert_subset_Un";
 val Fake_parts_insert = thm "Fake_parts_insert";
 val Fake_analz_insert = thm "Fake_analz_insert";
-val analz_conj_parts = thm "analz_conj_parts";
-val analz_disj_parts = thm "analz_disj_parts";
-val MPair_synth_analz = thm "MPair_synth_analz";
-val Crypt_synth_analz = thm "Crypt_synth_analz";
-val Hash_synth_analz = thm "Hash_synth_analz";
-val pushes = thms "pushes";
-
 
 (*Prove base case (subgoal i) and simplify others.  A typical base case
   concerns  Crypt K X \<notin> Key`shrK`bad  and cannot be proved by rewriting
@@ -955,6 +885,8 @@ fun gen_spy_analz_tac (cs,ss) i =
 
 fun spy_analz_tac i = gen_spy_analz_tac (claset(), simpset()) i
 *}
+(*>*)
+
 
 (*By default only o_apply is built-in.  But in the presence of eta-expansion
   this means that some terms displayed as (f o g) will be rewritten, and others
