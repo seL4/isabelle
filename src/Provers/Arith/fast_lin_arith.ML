@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow
     Copyright   1998  TU Munich
 
-A generic linear arithmetic package. At the moment only used for nat.
+A generic linear arithmetic package.
 The two tactics provided:
     lin_arith_tac:         int -> tactic
 cut_lin_arith_tac: thms -> int -> tactic
@@ -20,7 +20,7 @@ sig
   val conjI:		thm
   val ccontr:           thm (* (~ P ==> False) ==> P *)
   val lessD:            thm (* m < n ==> Suc m <= n *)
-  val nat_neqE:         thm (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
+  val neqE:             thm (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
   val notI:             thm (* (P ==> False) ==> ~ P *)
   val not_leD:          thm (* ~(m <= n) ==> Suc n <= m *)
   val not_lessD:        thm (* ~(m < n) ==> n < m *)
@@ -46,7 +46,13 @@ is_nat(parameter-types,t) =  t:nat
 mk_nat_thm(t) = "0 <= t"
 *)
 
-functor Fast_Lin_Arith(LA_Data:LIN_ARITH_DATA) =
+signature FAST_LIN_ARITH =
+sig
+  val     lin_arith_tac:             int -> tactic
+  val cut_lin_arith_tac: thm list -> int -> tactic
+end;
+
+functor Fast_Lin_Arith(LA_Data:LIN_ARITH_DATA):FAST_LIN_ARITH =
 struct
 
 (*** A fast decision procedure ***)
@@ -303,7 +309,7 @@ fun refute2_tac pTs items (rhs,i,_,lhs,j) nHs =
       | Some(Lineq(_,_,_,j2)) =>
           fn i => fn state => 
           let val sg = #sign(rep_thm state)
-          in rtac LA_Data.ccontr i THEN etac LA_Data.nat_neqE i THEN
+          in rtac LA_Data.ccontr i THEN etac LA_Data.neqE i THEN
              METAHYPS (fn asms => rtac (mkproof sg asms j1) 1) i THEN
              METAHYPS (fn asms => rtac (mkproof sg asms j2) 1) i
           end state));
