@@ -295,8 +295,8 @@ fun gen_resolveq_tac tac rules i st =
 
 val resolveq_tac = gen_resolveq_tac Tactic.rtac;
 
-fun resolveq_cases_tac opaq = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
-  Seq.map (rpair (RuleCases.make opaq rule cases)) (Tactic.rtac rule i st));
+fun resolveq_cases_tac open_parms = gen_resolveq_tac (fn (rule, cases) => fn i => fn st =>
+  Seq.map (rpair (RuleCases.make open_parms rule cases)) (Tactic.rtac rule i st));
 
 
 (* simple rule *)
@@ -376,13 +376,14 @@ val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic
 fun set_tactic f = tactic_ref := f;
 
 fun tactic txt ctxt = METHOD (fn facts =>
- (Context.use_mltext
-   ("let fun tactic (ctxt: PureIsar.Proof.context) (facts: thm list) : tactic = \
-    \let val thm = PureIsar.ProofContext.get_thm_closure ctxt\n\
-    \  and thms = PureIsar.ProofContext.get_thms_closure ctxt in\n"
-    ^ txt ^
-    "\nend in PureIsar.Method.set_tactic tactic end")
-  false (Some (ProofContext.theory_of ctxt)); ! tactic_ref ctxt facts));
+  (Context.use_mltext
+    ("let fun tactic (ctxt: PureIsar.Proof.context) (facts: thm list) : tactic = \
+     \let val thm = PureIsar.ProofContext.get_thm_closure ctxt\n\
+     \  and thms = PureIsar.ProofContext.get_thms_closure ctxt in\n"
+     ^ txt ^
+     "\nend in PureIsar.Method.set_tactic tactic end")
+    false None;
+    Context.setmp (Some (ProofContext.theory_of ctxt)) (! tactic_ref ctxt) facts));
 
 
 
@@ -615,6 +616,7 @@ val global_done_proof = global_term_proof false (done_text, None);
 val subgoal_meth = goal_args (Scan.repeat1 Args.name) Tactic.subgoals_tac;
 val thin_meth = goal_args Args.name Tactic.thin_tac;
 val rename_meth = goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac;
+val rotate_meth = goal_args (Scan.optional Args.int 1) Tactic.rotate_tac;
 
 
 (* pure_methods *)
@@ -640,7 +642,8 @@ val pure_methods =
   ("cut_tac", inst_args cut_inst, "cut rule (dynamic instantiation!)"),
   ("subgoal_tac", subgoal_meth, "insert subgoal (dynamic instantiation!)"),
   ("thin_tac", thin_meth, "remove premise (dynamic instantiation!)"),
-  ("rename_tac", rename_meth, "rename parameters (dynamic instantiation!)"),
+  ("rename_tac", rename_meth, "rename parameters of goal (dynamic instantiation!)"),
+  ("rotate_tac", rotate_meth, "rotate assumptions of goal"),
   ("prolog", thms_args prolog, "simple prolog interpreter"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
 
