@@ -90,7 +90,8 @@ local open Data in
 
 (** Useful tactics for classical reasoning **)
 
-val imp_elim = make_elim mp;
+val imp_elim = (*cannot use bind_thm within a structure!*)
+  store_thm ("imp_elim", make_elim mp);
 
 (*Solve goal that assumes both P and ~P. *)
 val contr_tac = eresolve_tac [not_elim]  THEN'  assume_tac;
@@ -102,7 +103,8 @@ fun mp_tac i = eresolve_tac [not_elim, imp_elim] i  THEN  assume_tac i;
 (*Like mp_tac but instantiates no variables*)
 fun eq_mp_tac i = ematch_tac [not_elim, imp_elim] i  THEN  eq_assume_tac i;
 
-val swap = rule_by_tactic (etac thin_rl 1) (not_elim RS classical);
+val swap =
+  store_thm ("swap", rule_by_tactic (etac thin_rl 1) (not_elim RS classical));
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [swap]);
