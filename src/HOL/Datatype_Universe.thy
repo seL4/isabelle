@@ -9,7 +9,7 @@ Defines "Cartesian Product" and "Disjoint Sum" as set operations.
 Could <*> be generalized to a general summation (Sigma)?
 *)
 
-Datatype_Universe = Arithmetic + Sum_Type +
+Datatype_Universe = NatArith + Sum_Type +
 
 
 (** lists, trees will be sets of nodes **)

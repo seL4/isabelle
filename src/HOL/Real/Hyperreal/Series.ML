@@ -94,7 +94,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_minus_add_distrib]));
 qed "sumr_minus";
 
-context Arithmetic.thy;
+context NatArith.thy;
 
 Goal "!!n. ~ Suc n <= m + k ==> ~ Suc n <= m";
 by (auto_tac (claset() addSDs [not_leE],simpset()));

@@ -6,7 +6,7 @@
 The division operators div, mod and the divides relation "dvd"
 *)
 
-Divides = Arithmetic +
+Divides = NatArith +
 
 (*We use the same class for div and mod;
   moreover, dvd is defined whenever multiplication is*)

@@ -398,7 +398,7 @@ fun make_size descr sorts thy =
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
-    val size_name = Sign.intern_const (Theory.sign_of (theory "Arithmetic")) "size";
+    val size_name = Sign.intern_const (Theory.sign_of (theory "NatArith")) "size";
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.intern_const (Theory.sign_of thy)) (indexify_names
         (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs))));

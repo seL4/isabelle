@@ -1,4 +1,4 @@
-(*  Title:      HOL/Arithmetic.ML
+(*  Title:      HOL/NatArith.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -8,7 +8,7 @@ procedures.
 *)
 
 (*legacy ...*)
-structure Arithmetic = struct val thy = the_context () end;
+structure NatArith = struct val thy = the_context () end;
 
 
 Goal "m <= m*(m::nat)";

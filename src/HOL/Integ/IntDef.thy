@@ -6,7 +6,7 @@
 The integers as equivalence classes over nat*nat.
 *)
 
-IntDef = Equiv + Arithmetic +
+IntDef = Equiv + NatArith +
 constdefs
   intrel      :: "((nat * nat) * (nat * nat)) set"
   "intrel == {p. EX x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
