@@ -423,6 +423,11 @@ Addsimps [(*less_Suc_eq, makes simpset non-confluent*) le0, le_0_eq,
           n_not_Suc_n, Suc_n_not_n,
           nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
 
+goal thy "!!m. (m <= Suc(n)) = (m<=n | m = Suc n)";
+by (simp_tac (!simpset addsimps [le_eq_less_Suc]) 1);
+by (blast_tac (!claset addSEs [less_SucE] addIs [less_SucI]) 1);
+qed "le_Suc_eq";
+
 (*
 goal thy "(Suc m < n | Suc m = n) = (m < n)";
 by (stac (less_Suc_eq RS sym) 1);
