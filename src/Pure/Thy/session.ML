@@ -59,11 +59,12 @@ fun finish () =
 val root_file = ThyLoad.ml_path "ROOT";
 
 fun use_dir reset info parent name =
-  (init reset parent name;
-    Present.init info (str_of (! session)) (path ()) parent name;
+  let val parent_session = ! session in
+    init reset parent name;
+    Present.init info parent_session (! session) (path ()) name;
     Symbol.use root_file;
-    finish ())
-  handle _ => exit 1;
+    finish ()
+  end handle _ => exit 1;
 
 
 end;
