@@ -1,6 +1,6 @@
 (*  Title:      Pure/proof_general.ML
     ID:         $Id$
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     David Aspinall and Markus Wenzel
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Isabelle configuration for Proof General (see http://proofgeneral.inf.ed.ac.uk).
@@ -34,7 +34,6 @@ struct
 val proof_generalN = "ProofGeneral";
 val xsymbolsN = "xsymbols";
 val thm_depsN = "thm_deps";
-
 
 val pgml_version_supported = "1.0";
 val pgmlN = "PGML";
@@ -105,7 +104,6 @@ val proof_general_trans =
    ("var", var_or_skolem)];
 
 in val setup = [Theory.add_tokentrfuns proof_general_trans] end;
-
 
 
 (* messages and notification *)
@@ -313,15 +311,15 @@ val options = ref
       print_depth_option))];
 
 
-(* Sending PGIP commands to the interface *)
+(* sending PGIP commands to the interface *)
 
 fun issue_pgip pgips = notify (XML.element "pgip" [] pgips);
 
 fun usespgml () = 
   issue_pgip [XML.element "usespgml" [("version", pgml_version_supported)] []];
 
-(* NB: the default returned here is actually the current value, so
-   repeated uses of <askprefs> will not work correctly. *)
+(*NB: the default returned here is actually the current value, so
+  repeated uses of <askprefs> will not work correctly*)
 fun show_options () = issue_pgip (map 
   (fn (name, (descr, (ty, get, _))) => (XML.element "oldhaspref"
     [("type", ty), ("descr", descr), ("default", get ())] [name])) (!options));
@@ -336,9 +334,9 @@ fun get_option name = (case assoc (!options, name) of
 	issue_pgip [XML.element "prefval" [("name", name)] [get ()]]);
 
 
-(* Processing PGIP commands from the interface *)
+(* processing PGIP commands from the interface *)
 
-(* FIXME: matching on attributes is a bit too strict here *)
+(*FIXME: matching on attributes is a bit too strict here*)
 
 fun process_pgip_element pgip = (case pgip of
       XML.Elem ("askpgml", _, []) => usespgml ()
@@ -397,10 +395,6 @@ fun full_proofs true = proofs := 2
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
-val old_undoP = (*same name for compatibility with PG/Isabelle99*)
-  OuterSyntax.improper_command "undo" "undo last command (no output)" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
-
 val undoP =
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
@@ -433,7 +427,7 @@ val inform_file_retractedP =
       (fn name => Toplevel.imperative (fn () => inform_file_retracted name))));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
- [old_undoP, undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
+ [undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
   inform_file_processedP, inform_file_retractedP];
 
 end;
@@ -484,7 +478,7 @@ fun make_elisp_syntax (keywords, commands) =
   \;; $" ^ "Id$\n\
   \;;\n" ^
   defconst "major" (map #1 commands) ^
-  defconst "minor" (filter Syntax.is_identifier keywords) ^
+  defconst "minor" (filter Syntax.is_ascii_identifier keywords) ^
   implode (map (make_elisp_commands commands) OuterSyntax.Keyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
 
