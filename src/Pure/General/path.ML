@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/path.ML
+(*  Title:      Pure/General/path.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 

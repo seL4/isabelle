@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/position.ML
+(*  Title:      Pure/General/position.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 

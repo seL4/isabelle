@@ -1,4 +1,4 @@
-(*  Title:      Pure/Syntax/pretty.ML
+(*  Title:      Pure/General/pretty.ML
     ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1991  University of Cambridge

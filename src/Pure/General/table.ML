@@ -1,4 +1,4 @@
-(*  Title:      Pure/table.ML
+(*  Title:      Pure/General/table.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 

@@ -1,4 +1,4 @@
-(*  Title:      Pure/seq.ML
+(*  Title:      Pure/General/seq.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 

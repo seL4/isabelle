@@ -1,4 +1,4 @@
-(*  Title:      Pure/Syntax/symbol.ML
+(*  Title:      Pure/General/symbol.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 

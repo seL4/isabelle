@@ -1,4 +1,4 @@
-(*  Title:      Pure/name_space.ML
+(*  Title:      Pure/General/name_space.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 

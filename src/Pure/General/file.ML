@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/file.ML
+(*  Title:      Pure/General/file.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 

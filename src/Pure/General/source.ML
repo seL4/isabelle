@@ -1,4 +1,4 @@
-(*  Title:      Pure/Syntax/source.ML
+(*  Title:      Pure/General/source.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
