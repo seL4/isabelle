@@ -117,12 +117,12 @@ val prems = goalw Set.thy [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
-Blast.overload ("op <=", domain_type); (*The <= relation is overloaded*)
+Blast.overloaded ("op <=", domain_type); (*The <= relation is overloaded*)
 
 (*While (:) is not, its type must be kept
   for overloading of = to work.*)
-Blast.overload ("op :", domain_type);
-seq (fn a => Blast.overload (a, HOLogic.dest_setT o domain_type))
+Blast.overloaded ("op :", domain_type);
+seq (fn a => Blast.overloaded (a, HOLogic.dest_setT o domain_type))
     ["Ball", "Bex"];
 (*need UNION, INTER also?*)
 

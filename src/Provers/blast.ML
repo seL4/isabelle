@@ -88,7 +88,7 @@ signature BLAST =
   val depth_tac 	: claset -> int -> int -> tactic
   val blast_tac 	: claset -> int -> tactic
   val Blast_tac 	: int -> tactic
-  val overload 	: string * (Term.typ -> Term.typ) -> unit
+  val overloaded 	: string * (Term.typ -> Term.typ) -> unit
   (*debugging tools*)
   val trace	        : bool ref
   val fullTrace	        : branch list list ref
@@ -186,7 +186,7 @@ local
 val overloads = ref ([]: (string * (Term.typ -> Term.typ)) list)
 in
 
-fun overload arg = (overloads := arg :: (!overloads));
+fun overloaded arg = (overloads := arg :: (!overloads));
 
 (*Convert a possibly overloaded Term.Const to a Blast.Const or Blast.TConst,
   converting its type to a Blast.term in the latter case.*)
