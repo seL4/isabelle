@@ -1,52 +1,72 @@
 
-\chapter{Isar Syntax Primitives}
+\chapter{Syntax primitives}
 
-We give a complete reference of all basic syntactic entities underlying the
-Isabelle/Isar document syntax.  Actual theory and proof commands will be
-introduced later on.
+The rather generic framework of Isabelle/Isar syntax emerges from three main
+syntactic categories: \emph{commands} of the top-level Isar engine (covering
+theory and proof elements), \emph{methods} for general goal refinements
+(analogous to traditional ``tactics''), and \emph{attributes} for operations
+on facts (within a certain context).  Here we give a reference of basic
+syntactic entities underlying Isabelle/Isar syntax in a bottom-up manner.
+Concrete theory and proof language elements will be introduced later on.
 
 \medskip
 
 In order to get started with writing well-formed Isabelle/Isar documents, the
 most important aspect to be noted is the difference of \emph{inner} versus
 \emph{outer} syntax.  Inner syntax is that of Isabelle types and terms of the
-logic, while outer syntax is that of Isabelle/Isar theories (including
+logic, while outer syntax is that of Isabelle/Isar theory sources (including
 proofs).  As a general rule, inner syntax entities may occur only as
 \emph{atomic entities} within outer syntax.  For example, the string
 \texttt{"x + y"} and identifier \texttt{z} are legal term specifications
 within a theory, while \texttt{x + y} is not.
 
 \begin{warn}
-  Note that classic Isabelle theories used to fake parts of the inner syntax
-  of types, with rather complicated rules when quotes may be omitted.  Despite
-  the minor drawback of requiring quotes more often, the syntax of
-  Isabelle/Isar is much simpler and more robust in that respect.
+  Old-style Isabelle theories used to fake parts of the inner syntax of types,
+  with rather complicated rules when quotes may be omitted.  Despite the minor
+  drawback of requiring quotes more often, the syntax of Isabelle/Isar is
+  somewhat simpler and more robust in that respect.
 \end{warn}
+
+Printed theory documents usually omit quotes to gain readability (this is a
+matter of {\LaTeX} macro setup, say via \verb,\isabellestyle,, see also
+\cite{isabelle-sys}).  Experienced users of Isabelle/Isar may easily
+reconstruct the lost technical information, while mere readers need not care
+about quotes at all.
 
 \medskip
 
 Isabelle/Isar input may contain any number of input termination characters
-``\texttt{;}'' (semicolon) to separate commands explicitly.  This may be
+``\texttt{;}'' (semicolon) to separate commands explicitly.  This is
 particularly useful in interactive shell sessions to make clear where the
-current command is intended to end.  Otherwise, the interactive loop will
-continue until end-of-command is clearly indicated from the input syntax,
-e.g.\ encounter of the next command keyword.
+current command is intended to end.  Otherwise, the interpreter loop will
+continue to issue a secondary prompt ``\verb,#,'' until an end-of-command is
+clearly indicated from the input syntax, e.g.\ encounter of the next command
+keyword.
 
 Advanced interfaces such as Proof~General \cite{proofgeneral} do not require
 explicit semicolons, the amount of input text is determined automatically by
-inspecting the Emacs text buffer.  Also note that in the presentation of
-Isabelle/Isar documents, semicolons are omitted in any case to gain
+inspecting the present content of the Emacs text buffer.  In the printed
+presentation of Isabelle/Isar documents semicolons are omitted altogether for
 readability.
 
+\begin{warn}
+  Proof~General requires certain syntax classification tables in order to
+  achieve properly synchronized interaction with the Isabelle/Isar process.
+  These tables need to be consistent with the Isabelle version and particular
+  logic image to be used in a running session (common object-logics may well
+  change the outer syntax).  The standard setup should work correctly with any
+  of the ``official'' logic images derived from Isabelle/HOL (including HOLCF
+  etc.).  Users of alternative logics may need to tell Proof~General
+  explicitly, e.g.\ by giving an option \verb,-k ZF, (in conjunction with
+  \verb,-l ZF, to specify the default logic image).
+\end{warn}
 
 \section{Lexical matters}\label{sec:lex-syntax}
 
 The Isabelle/Isar outer syntax provides token classes as presented below.
 Note that some of these coincide (by full intention) with the inner lexical
-syntax as presented in \cite{isabelle-ref}.  These different levels of syntax
-should not be confused, though.
+syntax as presented in \cite{isabelle-ref}.
 
-%FIXME keyword, command
 \indexoutertoken{ident}\indexoutertoken{longident}\indexoutertoken{symident}
 \indexoutertoken{nat}\indexoutertoken{var}\indexoutertoken{typefree}
 \indexoutertoken{typevar}\indexoutertoken{string}\indexoutertoken{verbatim}
@@ -69,24 +89,38 @@ should not be confused, though.
    \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \verb,:, ~|~ \\
   & & \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \texttt{\at} ~|~
   \verb,^, ~|~ \verb,_, ~|~ \verb,`, ~|~ \verb,|, ~|~ \verb,~, \\
-  symbol & = & {\forall} ~|~ {\exists} ~|~ \dots
+  symbol & = & {\forall} ~|~ {\exists} ~|~ {\land} ~|~ {\lor} ~|~ \dots
 \end{matharray}
 
-The syntax of \texttt{string} admits any characters, including newlines;
-``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) have to be escaped by
-a backslash; newlines need not be escaped.  Note that ML-style control
-characters are \emph{not} supported.  The body of \texttt{verbatim} may
-consist of any text not containing ``\verb|*}|''.
+The syntax of \railtoken{string} admits any characters, including newlines;
+``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) need to be escaped by
+a backslash.  Note that ML-style control characters are \emph{not} supported.
+The body of \railtoken{verbatim} may consist of any text not containing
+``\verb|*}|''; this allows handsome inclusion of quotes without further
+escapes.
 
-Comments take the form \texttt{(*~\dots~*)} and may be
-nested\footnote{Proof~General may occasionally get confused by nested
-  comments.}, just as in ML. Note that these are \emph{source} comments only,
-which are stripped after lexical analysis of the input.  The Isar document
-syntax also provides \emph{formal comments} that are actually part of the text
-(see \S\ref{sec:comments}).
+Comments take the form \texttt{(*~\dots~*)} and may in principle be nested,
+just as in ML.  Note that these are \emph{source} comments only, which are
+stripped after lexical analysis of the input.  The Isar document syntax also
+provides \emph{formal comments} that are actually part of the text (see
+\S\ref{sec:comments}).
+
+\begin{warn}
+  Proof~General does not handle nested comments properly; it is also unable to
+  keep \verb,(*,\,/\,\verb,{*, and \verb,*),\,/\,\verb,*}, apart, despite
+  their rather different meaning.  These are inherent problems of Emacs
+  legacy.
+\end{warn}
+
+\medskip
 
 Mathematical symbols such as ``$\forall$'' are represented in plain ASCII as
-``\verb,\<forall>,''.
+``\verb,\<forall>,''.  Concerning Isabelle itself, any sequence of the form
+\verb,\<,$ident$\verb,>, (or \verb,\\<,$ident$\verb,>,) is a legal symbol.
+Display of appropriate glyphs is a matter of front-end tools, say the
+user-interface of Proof~General plus the X-Symbol package, or the {\LaTeX}
+macro setup of document output.  A list of predefined Isabelle symbols is
+given in \cite[Appendix~A]{isabelle-sys}.
 
 
 \section{Common syntax entities}
@@ -98,7 +132,7 @@ Isar language elements to be described later.
 Note that some of the basic syntactic entities introduced below (e.g.\ 
 \railqtoken{name}) act much like tokens rather than plain nonterminals (e.g.\ 
 \railnonterm{sort}), especially for the sake of error messages.  E.g.\ syntax
-elements such as $\CONSTS$ referring to \railqtoken{name} or \railqtoken{type}
+elements like $\CONSTS$ referring to \railqtoken{name} or \railqtoken{type}
 would really report a missing name or type rather than any of the constituent
 primitive tokens such as \railtoken{ident} or \railtoken{string}.
 
@@ -131,15 +165,18 @@ non-identifier names or those ruled out by outer syntax keywords (e.g.\
 Large chunks of plain \railqtoken{text} are usually given
 \railtoken{verbatim}, i.e.\ enclosed in \verb|{*|~\dots~\verb|*}|.  For
 convenience, any of the smaller text units conforming to \railqtoken{nameref}
-are admitted as well.  Almost any of the Isar commands may be annotated by
+are admitted as well.  Almost any of the Isar commands may be annotated by a
 marginal \railnonterm{comment} of the form \texttt{--} \railqtoken{text}.
 Note that the latter kind of comment is actually part of the language, while
 source level comments \verb|(*|~\dots~\verb|*)| are stripped at the lexical
-level.  A few commands such as $\PROOFNAME$ admit additional markup with a
-``level of interest'': \texttt{\%} followed by an optional number $n$ (default
-$n = 1$) indicates that the respective part of the document becomes $n$ levels
-more obscure; \texttt{\%\%} means that interest drops by $\infty$ --- abandon
-every hope, who enter here.
+level.
+
+A few commands such as $\PROOFNAME$ admit additional markup with a ``level of
+interest'': \texttt{\%} followed by an optional number $n$ (default $n = 1$)
+indicates that the respective part of the document becomes $n$ levels more
+obscure; \texttt{\%\%} means that interest drops by $\infty$ --- abandon every
+hope, who enter here.  So far the Isabelle tool-chain (for document output
+etc.) does not yet treat interest levels specifically.
 
 \indexoutertoken{text}\indexouternonterm{comment}\indexouternonterm{interest}
 \begin{rail}
@@ -184,9 +221,10 @@ level.  Basically, any such entity has to be quoted to turn it into a single
 token (the parsing and type-checking is performed internally later).  For
 convenience, a slightly more liberal convention is adopted: quotes may be
 omitted for any type or term that is already \emph{atomic} at the outer level.
-For example, one may write just \texttt{x} instead of \texttt{"x"}.  Note that
+For example, one may just write \texttt{x} instead of \texttt{"x"}.  Note that
 symbolic identifiers (e.g.\ \texttt{++} or $\forall$) are available as well,
-provided these are not superseded by commands or keywords (e.g.\ \texttt{+}).
+provided these have not been superseded by commands or other keywords already
+(e.g.\ \texttt{=} or \texttt{+}).
 
 \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
 \begin{rail}
@@ -221,30 +259,13 @@ but no infixes.
 \end{rail}
 
 
-\subsection{Term patterns}\label{sec:term-pats}
-
-Assumptions and goal statements usually admit casual binding of schematic term
-variables by giving (optional) patterns of the form $\ISS{p@1\;\dots}{p@n}$.
-There are separate versions available for \railqtoken{term}s and
-\railqtoken{prop}s.  The latter provides a $\CONCLNAME$ part with patterns
-referring the (atomic) conclusion of a rule.
-
-\indexouternonterm{termpat}\indexouternonterm{proppat}
-\begin{rail}
-  termpat: '(' ('is' term +) ')'
-  ;
-  proppat: '(' (('is' prop +) | 'concl' ('is' prop +) | ('is' prop +) 'concl' ('is' prop +)) ')'
-  ;
-\end{rail}
-
-
 \subsection{Mixfix annotations}
 
 Mixfix annotations specify concrete \emph{inner} syntax of Isabelle types and
-terms (see also \cite{isabelle-ref}).  Some commands such as $\TYPES$ (see
-\S\ref{sec:types-pure}) admit infixes only, while $\CONSTS$ (see
-\S\ref{sec:consts}) and $\isarkeyword{syntax}$ (see \S\ref{sec:syn-trans})
-support the full range of general mixfixes and binders.
+terms.  Some commands such as $\TYPES$ (see \S\ref{sec:types-pure}) admit
+infixes only, while $\CONSTS$ (see \S\ref{sec:consts}) and
+$\isarkeyword{syntax}$ (see \S\ref{sec:syn-trans}) support the full range of
+general mixfixes and binders.
 
 \indexouternonterm{infix}\indexouternonterm{mixfix}
 \begin{rail}
@@ -254,6 +275,46 @@ support the full range of general mixfixes and binders.
   ;
 
   prios: '[' (nat + ',') ']'
+  ;
+\end{rail}
+
+Here the \railtoken{string} specifications refer to the actual mixfix template
+(see also \cite{isabelle-ref}), which may include literal text, spacing,
+blocks, and arguments (denoted by ``$_$''); the special symbol \verb,\<index>,
+(printed as ``\i'') represents an index argument that specifies an implicit
+structure reference (see also \S\ref{sec:locale}).  Infix and binder
+declarations provide common abbreviations for particular mixfix declarations.
+So in practice, mixfix templates mostly degenerate to literal text for
+concrete syntax, such as ``\verb,++,'' for an infix symbol, or ``\verb,++,\i''
+for an infix of an implicit structure.
+
+
+
+\subsection{Proof methods}\label{sec:syn-meth}
+
+Proof methods are either basic ones, or expressions composed of methods via
+``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternative choices),
+``\texttt{?}'' (try), ``\texttt{+}'' (repeat at least once).  In practice,
+proof methods are usually just a comma separated list of
+\railqtoken{nameref}~\railnonterm{args} specifications.  Note that parentheses
+may be dropped for single method specifications (with no arguments).
+
+\indexouternonterm{method}
+\begin{rail}
+  method: (nameref | '(' methods ')') (() | '?' | '+')
+  ;
+  methods: (nameref args | method) + (',' | '|')
+  ;
+\end{rail}
+
+Proper use of Isar proof methods does \emph{not} involve goal addressing.
+Nevertheless, specifying goal ranges may occasionally come in handy in
+emulating tactic scripts.  Note that $[n-]$ refers to all goals, starting from
+$n$.  All goals may be specified by $[!]$, which is the same as $[1-]$.
+
+\indexouternonterm{goalspec}
+\begin{rail}
+  goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
   ;
 \end{rail}
 
@@ -309,33 +370,44 @@ theory or proof context; any given attributes are still applied, though.
 \end{rail}
 
 
-\subsection{Proof methods}\label{sec:syn-meth}
+\subsection{Term patterns and declarations}\label{sec:term-decls}
 
-Proof methods are either basic ones, or expressions composed of methods via
-``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternative choices),
-``\texttt{?}'' (try), ``\texttt{+}'' (repeat at least once).  In practice,
-proof methods are usually just a comma separated list of
-\railqtoken{nameref}~\railnonterm{args} specifications.  Note that parentheses
-may be dropped for single method specifications (with no arguments).
+Wherever explicit propositions (or term fragments) occur in a proof text,
+casual binding of schematic term variables may be given specified via patterns
+of the form $\ISS{p@1\;\dots}{p@n}$.  There are separate versions available
+for \railqtoken{term}s and \railqtoken{prop}s.  The latter provides a
+$\CONCLNAME$ part with patterns referring the (atomic) conclusion of a rule.
 
-\indexouternonterm{method}
+\indexouternonterm{termpat}\indexouternonterm{proppat}
 \begin{rail}
-  method: (nameref | '(' methods ')') (() | '?' | '+')
+  termpat: '(' ('is' term +) ')'
   ;
-  methods: (nameref args | method) + (',' | '|')
+  proppat: '(' (('is' prop +) | 'concl' ('is' prop +) | ('is' prop +) 'concl' ('is' prop +)) ')'
   ;
 \end{rail}
 
-Proper use of Isar proof methods does \emph{not} involve goal addressing.
-Nevertheless, specifying goal ranges may occasionally come in handy in
-emulating tactic scripts.  Note that $[n-]$ refers to all goals, starting from
-$n$.  All goals may be specified by $[!]$, which is the same as $[1-]$.
+Declarations of local variables $x :: \tau$ and logical propositions $a :
+\phi$ represent different views on the same principle of introducing a local
+scope.  In practice, one may usually omit the typing of $vars$ (due to
+type-inference), and the naming of propositions (due to implicit chaining of
+emerging facts).  In any case, Isar proof elements usually admit to introduce
+multiple such items simultaneously.
 
-\indexouternonterm{goalspec}
+\indexouternonterm{vars}\indexouternonterm{props}
 \begin{rail}
-  goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
+  vars: (name+) ('::' type)?
+  ;
+  props: thmdecl? (prop proppat? +)
   ;
 \end{rail}
+
+The treatment of multiple declarations corresponds to the complementary focus
+of $vars$ versus $props$: in ``$x@1~\dots~x@n :: \tau$'' the typing refers to
+all variables, while in $a\colon \phi@1~\dots~\phi@n$ the naming refers to all
+propositions collectively.  Isar language elements that refer to $vars$ or
+$props$ typically admit separate typings or namings via another level of
+iteration, with explicit $\AND$ separators; e.g.\ see $\FIXNAME$ and
+$\ASSUMENAME$ in \S\ref{sec:proof-context}.
 
 
 \subsection{Antiquotations}\label{sec:antiq}
@@ -363,7 +435,7 @@ to appear in the final {\LaTeX} document.  Also note that theorem
 antiquotations may involve attributes as well.  For example,
 \texttt{{\at}{\ttlbrace}thm~sym~[no_vars]{\ttrbrace}} would print the
 statement where all schematic variables have been replaced by fixed ones,
-which are better readable.
+which are easier to read.
 
 \indexisarant{thm}\indexisarant{prop}\indexisarant{term}
 \indexisarant{typ}\indexisarant{text}\indexisarant{goals}\indexisarant{subgoals}
@@ -392,7 +464,7 @@ Note that the syntax of antiquotations may \emph{not} include source comments
 \begin{descr}
 \item [$\at\{thm~\vec a\}$] prints theorems $\vec a$. Note that attribute
   specifications may be included as well (see also \S\ref{sec:syn-att}); the
-  $no_vars$ operation (see \S\ref{sec:misc-methods}) would be particularly
+  $no_vars$ operation (see \S\ref{sec:misc-meth-att}) would be particularly
   useful to suppress printing of schematic variables.
 \item [$\at\{prop~\phi\}$] prints a well-typed proposition $\phi$.
 \item [$\at\{term~t\}$] prints a well-typed term $t$.

@@ -1,6 +1,55 @@
 
 \chapter{Introduction}
 
+\section{Overview}
+
+The \emph{Isabelle} system essentially provides a generic infrastructure for
+building deductive systems (programmed in Standard ML), with a special focus
+on interactive theorem proving in higher-order logics.  In the olden days even
+end-users would refer to certain ML functions (goal commands, tactics,
+tacticals etc.) to pursue their everyday theorem proving needs
+\cite{isabelle-intro,isabelle-ref}.
+  
+In contrast \emph{Isar} provides an interpreted language environment of its
+own, which has been specifically tailored for the needs of theory and proof
+development.  Compared to raw ML, the Isabelle/Isar top-level provides a more
+robust and comfortable development platform, with proper support for theory
+development graphs, single-step evaluation with unlimited undo, etc.  The
+Isabelle/Isar version of the \emph{Proof~General} user interface
+\cite{proofgeneral,Aspinall:TACAS:2000} provides an adequate front-end for
+interactive theory and proof development.
+
+\medskip Apart from these technical advances over bare-bones ML programming,
+the main intention of Isar is to provide a conceptually different view on
+machine-checked proofs \cite{Wenzel:1999:TPHOL, Wenzel-PhD} --- ``Isar''
+stands for ``Intelligible semi-automated reasoning''.  Drawing from both the
+traditions of informal mathematical proof texts and high-level programming
+languages, Isar provides a versatile environment for structured formal proof
+documents.  Thus properly written Isar proof texts become accessible to a
+broader audience than unstructured tactic scripts (which typically only
+provide operational information for the machine).  Writing human-readable
+proof texts certainly requires some additional efforts by the writer in order
+to achieve a good presentation --- both of formal and informal parts of the
+text.  On the other hand, human-readable formal texts gain some value in their
+own right, independently of the mechanic proof-checking process.
+
+Despite its grand design of structured proof texts, Isar is able to assimilate
+the old-style tactical as an ``improper'' sub-language.  This provides an easy
+upgrade path for existing tactic scripts, as well as additional means for
+experimentation and debugging of interactive proofs.  Isabelle/Isar freely
+supports a broad range of proof styles, including unreadable ones.
+
+\medskip The Isabelle/Isar framework generic and should work for reasonably
+well for any object-logic that directly conforms to the view of natural
+deduction according to the Isabelle/Pure framework.  Major Isabelle logics
+(HOL \cite{isabelle-HOL}, HOLCF, FOL \cite{isabelle-logics}, ZF
+\cite{isabelle-ZF}) have already been setup for immediate use by end-users.
+
+Note that much of the existing body of theories still consist of old-style
+theory files with accompanied ML code for proof scripts.  This legacy will be
+converted as time goes by.
+
+
 \section{Quick start}
 
 \subsection{Terminal sessions}

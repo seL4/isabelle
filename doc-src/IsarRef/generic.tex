@@ -1,7 +1,9 @@
 
 \chapter{Generic Tools and Packages}\label{ch:gen-tools}
 
-\section{Axiomatic Type Classes}\label{sec:axclass}
+\section{Theory commands}
+
+\subsection{Axiomatic type classes}\label{sec:axclass}
 
 %FIXME
 % - qualified names
@@ -51,7 +53,14 @@ Isabelle documentation.
 \end{descr}
 
 
-\section{Calculational proof}\label{sec:calculation}
+\subsection{Locales and local contexts}\label{sec:locale}
+
+FIXME
+
+
+\section{Proof commands}
+
+\subsection{Calculational Reasoning}\label{sec:calculation}
 
 \indexisarcmd{also}\indexisarcmd{finally}
 \indexisarcmd{moreover}\indexisarcmd{ultimately}
@@ -141,110 +150,24 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{descr}
 
 
-\section{Named local contexts (cases)}\label{sec:cases}
-
-\indexisarcmd{case}\indexisarcmd{print-cases}
-\indexisaratt{case-names}\indexisaratt{params}\indexisaratt{consumes}
-\begin{matharray}{rcl}
-  \isarcmd{case} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{print_cases}^* & : & \isarkeep{proof} \\
-  case_names & : & \isaratt \\
-  params & : & \isaratt \\
-  consumes & : & \isaratt \\
-\end{matharray}
-
-Basically, Isar proof contexts are built up explicitly using commands like
-$\FIXNAME$, $\ASSUMENAME$ etc.\ (see \S\ref{sec:proof-context}).  In typical
-verification tasks this can become hard to manage, though.  In particular, a
-large number of local contexts may emerge from case analysis or induction over
-inductive sets and types.
-
-\medskip
-
-The $\CASENAME$ command provides a shorthand to refer to certain parts of
-logical context symbolically.  Proof methods may provide an environment of
-named ``cases'' of the form $c\colon \vec x, \vec \phi$.  Then the effect of
-$\CASE{c}$ is exactly the same as $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
-
-It is important to note that $\CASENAME$ does \emph{not} provide any means to
-peek at the current goal state, which is treated as strictly non-observable in
-Isar!  Instead, the cases considered here usually emerge in a canonical way
-from certain pieces of specification that appear in the theory somewhere else
-(e.g.\ in an inductive definition, or recursive function).  See also
-\S\ref{sec:induct-method} for more details of how this works in HOL.
-
-\medskip
-
-Named cases may be exhibited in the current proof context only if both the
-proof method and the rules involved support this.  Case names and parameters
-of basic rules may be declared by hand as well, by using appropriate
-attributes.  Thus variant versions of rules that have been derived manually
-may be used in advanced case analysis later.
-
-\railalias{casenames}{case\_names}
-\railterm{casenames}
-
-\begin{rail}
-  'case' nameref attributes?
-  ;
-  casenames (name + )
-  ;
-  'params' ((name * ) + 'and')
-  ;
-  'consumes' nat?
-  ;
-\end{rail}
-%FIXME bug in rail
-
-\begin{descr}
-\item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \phi$,
-  as provided by an appropriate proof method (such as $cases$ and $induct$ in
-  Isabelle/HOL, see \S\ref{sec:induct-method}).  The command $\CASE{c}$
-  abbreviates $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
-\item [$\isarkeyword{print_cases}$] prints all local contexts of the current
-  state, using Isar proof language notation.  This is a diagnostic command;
-  $undo$ does not apply.
-\item [$case_names~\vec c$] declares names for the local contexts of premises
-  of some theorem; $\vec c$ refers to the \emph{suffix} of the list of
-  premises.
-\item [$params~\vec p@1 \dots \vec p@n$] renames the innermost parameters of
-  premises $1, \dots, n$ of some theorem.  An empty list of names may be given
-  to skip positions, leaving the present parameters unchanged.
-
-  Note that the default usage of case rules does \emph{not} directly expose
-  parameters to the proof context (see also \S\ref{sec:induct-method-proper}).
-\item [$consumes~n$] declares the number of ``major premises'' of a rule,
-  i.e.\ the number of facts to be consumed when it is applied by an
-  appropriate proof method (cf.\ \S\ref{sec:induct-method}).  The default
-  value of $consumes$ is $n = 1$, which is appropriate for the usual kind of
-  cases and induction rules for inductive sets (cf.\ \S\ref{sec:inductive}).
-  Rules without any $consumes$ declaration given are treated as if
-  $consumes~0$ had been specified.
-  
-  Note that explicit $consumes$ declarations are only rarely needed; this is
-  already taken care of automatically by the higher-level $cases$ and $induct$
-  declarations, see also \S\ref{sec:induct-att}.
-\end{descr}
-
-
-\section{Generalized existence}\label{sec:obtain}
+\subsection{Generalized elimination}\label{sec:obtain}
 
 \indexisarcmd{obtain}
 \begin{matharray}{rcl}
   \isarcmd{obtain} & : & \isartrans{proof(state)}{proof(prove)} \\
 \end{matharray}
 
-Generalized existence means that additional elements with certain properties
-may introduced in the current context.  Technically, the $\OBTAINNAME$
-language element is like a declaration of $\FIXNAME$ and $\ASSUMENAME$ (see
-also see \S\ref{sec:proof-context}), together with a soundness proof of its
-additional claim.  According to the nature of existential reasoning,
-assumptions get eliminated from any result exported from the context later,
-provided that the corresponding parameters do \emph{not} occur in the
-conclusion.
+Generalized elimination means that additional elements with certain properties
+may introduced in the current context, by virtue of a locally proven
+``soundness statement''.  Technically speaking, the $\OBTAINNAME$ language
+element is like a declaration of $\FIXNAME$ and $\ASSUMENAME$ (see also see
+\S\ref{sec:proof-context}), together with a soundness proof of its additional
+claim.  According to the nature of existential reasoning, assumptions get
+eliminated from any result exported from the context later, provided that the
+corresponding parameters do \emph{not} occur in the conclusion.
 
 \begin{rail}
-  'obtain' (vars + 'and') comment? \\ 'where' (assm comment? + 'and')
+  'obtain' (vars + 'and') comment? \\ 'where' (props comment? + 'and')
   ;
 \end{rail}
 
@@ -277,7 +200,7 @@ Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
 where the result is treated as an assumption.
 
 
-\section{Miscellaneous methods and attributes}\label{sec:misc-methods}
+\subsection{Miscellaneous methods and attributes}\label{sec:misc-meth-att}
 
 \indexisarmeth{unfold}\indexisarmeth{fold}\indexisarmeth{insert}
 \indexisarmeth{erule}\indexisarmeth{drule}\indexisarmeth{frule}
@@ -385,7 +308,7 @@ where the result is treated as an assumption.
 \end{descr}
 
 
-\section{Tactic emulations}\label{sec:tactics}
+\subsection{Tactic emulations}\label{sec:tactics}
 
 The following improper proof methods emulate traditional tactics.  These admit
 direct access to the goal state, which is normally considered harmful!  In
@@ -513,6 +436,8 @@ val thms  : string -> thm list
 
 \subsection{Simplification methods}\label{sec:simp}
 
+\subsubsection{FIXME}
+
 \indexisarmeth{simp}\indexisarmeth{simp-all}
 \begin{matharray}{rcl}
   simp & : & \isarmeth \\
@@ -631,7 +556,7 @@ method available for single-step case splitting, see \S\ref{sec:basic-eq}.
   additional rules).  By default the result is fully simplified, including
   assumptions and conclusion.  The options $no_asm$ etc.\ restrict the
   Simplifier in the same way as the for the $simp$ method (see
-  \S\ref{sec:simp}).
+  \S\ref{sec:simp}).  FIXME args
   
   The $simplified$ operation should be used only very rarely, usually for
   experimentation only.
@@ -672,6 +597,7 @@ while the Simplifier is the canonical tool for automated normalization (see
   Note that the $simp$ method already involves repeated application of split
   rules as declared in the current context (see \S\ref{sec:simp}).
 \item [$symmetric$] applies the symmetry rule of meta or object equality.
+  FIXME sym decl
 \end{descr}
 
 
@@ -850,13 +776,102 @@ This is slightly less hazardous than for the Simplifier (see
   The ``?'' version of $iff$ declares ``extra'' Classical Reasoner rules only,
   and omits the Simplifier declaration.  Thus the declaration does not have
   any effect on automated proof tools, but only on simple methods such as
-  $rule$ (see \S\ref{sec:misc-methods}).
+  $rule$ (see \S\ref{sec:misc-meth-att}).
 \end{descr}
 
 
-\section{Proof by cases and induction}\label{sec:induct-method}
+\section{Proof by cases and induction}\label{sec:cases-induct}
 
-\subsection{Proof methods}\label{sec:induct-method-proper}
+\subsection{Rule contexts}\label{sec:rule-cases}
+
+\indexisarcmd{case}\indexisarcmd{print-cases}
+\indexisaratt{case-names}\indexisaratt{params}\indexisaratt{consumes}
+\begin{matharray}{rcl}
+  \isarcmd{case} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{print_cases}^* & : & \isarkeep{proof} \\
+  case_names & : & \isaratt \\
+  params & : & \isaratt \\
+  consumes & : & \isaratt \\
+\end{matharray}
+
+Basically, Isar proof contexts are built up explicitly using commands like
+$\FIXNAME$, $\ASSUMENAME$ etc.\ (see \S\ref{sec:proof-context}).  In typical
+verification tasks this can become hard to manage, though.  In particular, a
+large number of local contexts may emerge from case analysis or induction over
+inductive sets and types.
+
+\medskip
+
+The $\CASENAME$ command provides a shorthand to refer to certain parts of
+logical context symbolically.  Proof methods may provide an environment of
+named ``cases'' of the form $c\colon \vec x, \vec \phi$.  Then the effect of
+$\CASE{c}$ is exactly the same as $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
+
+FIXME
+
+It is important to note that $\CASENAME$ does \emph{not} provide any means to
+peek at the current goal state, which is treated as strictly non-observable in
+Isar!  Instead, the cases considered here usually emerge in a canonical way
+from certain pieces of specification that appear in the theory somewhere else
+(e.g.\ in an inductive definition, or recursive function).
+
+FIXME
+
+\medskip
+
+Named cases may be exhibited in the current proof context only if both the
+proof method and the rules involved support this.  Case names and parameters
+of basic rules may be declared by hand as well, by using appropriate
+attributes.  Thus variant versions of rules that have been derived manually
+may be used in advanced case analysis later.
+
+\railalias{casenames}{case\_names}
+\railterm{casenames}
+
+\begin{rail}
+  'case' nameref attributes?
+  ;
+  casenames (name + )
+  ;
+  'params' ((name * ) + 'and')
+  ;
+  'consumes' nat?
+  ;
+\end{rail}
+%FIXME bug in rail
+
+\begin{descr}
+\item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \phi$,
+  as provided by an appropriate proof method (such as $cases$ and $induct$,
+  see \S\ref{sec:cases-induct-meth}).  The command $\CASE{c}$ abbreviates
+  $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
+\item [$\isarkeyword{print_cases}$] prints all local contexts of the current
+  state, using Isar proof language notation.  This is a diagnostic command;
+  $undo$ does not apply.
+\item [$case_names~\vec c$] declares names for the local contexts of premises
+  of some theorem; $\vec c$ refers to the \emph{suffix} of the list of
+  premises.
+\item [$params~\vec p@1 \dots \vec p@n$] renames the innermost parameters of
+  premises $1, \dots, n$ of some theorem.  An empty list of names may be given
+  to skip positions, leaving the present parameters unchanged.
+  
+  Note that the default usage of case rules does \emph{not} directly expose
+  parameters to the proof context (see also \S\ref{sec:cases-induct-meth}).
+\item [$consumes~n$] declares the number of ``major premises'' of a rule,
+  i.e.\ the number of facts to be consumed when it is applied by an
+  appropriate proof method (cf.\ \S\ref{sec:cases-induct-meth}).  The default
+  value of $consumes$ is $n = 1$, which is appropriate for the usual kind of
+  cases and induction rules for inductive sets (cf.\ 
+  \S\ref{sec:hol-inductive}).  Rules without any $consumes$ declaration given
+  are treated as if $consumes~0$ had been specified.
+  
+  Note that explicit $consumes$ declarations are only rarely needed; this is
+  already taken care of automatically by the higher-level $cases$ and $induct$
+  declarations, see also \S\ref{sec:cases-induct-att}.
+\end{descr}
+
+
+\subsection{Proof methods}\label{sec:cases-induct-meth}
 
 \indexisarmeth{cases}\indexisarmeth{induct}
 \begin{matharray}{rcl}
@@ -869,12 +884,13 @@ and induction over datatypes, inductive sets, and recursive functions.  The
 corresponding rules may be specified and instantiated in a casual manner.
 Furthermore, these methods provide named local contexts that may be invoked
 via the $\CASENAME$ proof command within the subsequent proof text (cf.\ 
-\S\ref{sec:cases}).  This accommodates compact proof texts even when reasoning
-about large specifications.
+\S\ref{sec:rule-cases}).  This accommodates compact proof texts even when
+reasoning about large specifications.
 
 Note that the full spectrum of this generic functionality is currently only
 supported by Isabelle/HOL, when used in conjunction with advanced definitional
-packages (see especially \S\ref{sec:datatype} and \S\ref{sec:inductive}).
+packages (see especially \S\ref{sec:hol-datatype} and
+\S\ref{sec:hol-inductive}).
 
 \begin{rail}
   'cases' spec
@@ -920,7 +936,7 @@ packages (see especially \S\ref{sec:datatype} and \S\ref{sec:inductive}).
   \S\ref{sec:pure-meth-att}).  This feature is rarely needed in practice; a
   typical application would be to specify additional arguments for rules
   stemming from parameterized inductive definitions (see also
-  \S\ref{sec:inductive}).
+  \S\ref{sec:hol-inductive}).
   
   The $open$ option causes the parameters of the new local contexts to be
   exposed to the current proof context.  Thus local variables stemming from
@@ -949,7 +965,7 @@ packages (see especially \S\ref{sec:datatype} and \S\ref{sec:inductive}).
   way as for $cases$, see above.
 \end{descr}
 
-Above methods produce named local contexts (cf.\ \S\ref{sec:cases}), as
+Above methods produce named local contexts (cf.\ \S\ref{sec:rule-cases}), as
 determined by the instantiated rule \emph{before} it has been applied to the
 internal proof state.\footnote{As a general principle, Isar proof text may
   never refer to parts of proof states directly.} Thus proper use of symbolic
@@ -961,8 +977,8 @@ variables.  Furthermore the resulting local goal statement is bound to the
 term variable $\Var{case}$\indexisarvar{case} --- for each case where it is
 fully specified.
 
-The $\isarkeyword{print_cases}$ command (\S\ref{sec:cases}) prints all named
-cases present in the current proof state.
+The $\isarkeyword{print_cases}$ command (\S\ref{sec:rule-cases}) prints all
+named cases present in the current proof state.
 
 \medskip
 
@@ -984,12 +1000,11 @@ $\vec\phi$.  Also note that local definitions may be expressed as $\All{\vec
 \medskip
 
 Facts presented to either method are consumed according to the number of
-``major premises'' of the rule involved (see also \S\ref{sec:induct-att} and
-\S\ref{sec:cases}), which is usually $0$ for plain cases and induction rules
-of datatypes etc.\ and $1$ for rules of inductive sets and the like.  The
-remaining facts are inserted into the goal verbatim before the actual $cases$
-or $induct$ rule is applied (thus facts may be even passed through an
-induction).
+``major premises'' of the rule involved (see also \S\ref{sec:cases-induct}),
+which is usually $0$ for plain cases and induction rules of datatypes etc.\ 
+and $1$ for rules of inductive sets and the like.  The remaining facts are
+inserted into the goal verbatim before the actual $cases$ or $induct$ rule is
+applied (thus facts may be even passed through an induction).
 
 Note that whenever facts are present, the default rule selection scheme would
 provide a ``set'' rule only, with the first fact consumed and the rest
@@ -998,7 +1013,7 @@ instead, one would have to specify this explicitly, e.g.\ by appending
 ``$type: name$'' to the method argument.
 
 
-\subsection{Declaring rules}\label{sec:induct-att}
+\subsection{Declaring rules}\label{sec:cases-induct-att}
 
 \indexisarcmd{print-induct-rules}\indexisaratt{cases}\indexisaratt{induct}
 \begin{matharray}{rcl}
@@ -1022,12 +1037,88 @@ for reasoning about inductive sets and types.  The standard rules are already
 declared by advanced definitional packages.  For special applications, these
 may be replaced manually by variant versions.
 
-Refer to the $case_names$ and $ps$ attributes (see \S\ref{sec:cases}) to
+Refer to the $case_names$ and $ps$ attributes (see \S\ref{sec:rule-cases}) to
 adjust names of cases and parameters of a rule.
 
-The $consumes$ declaration (cf.\ \S\ref{sec:cases}) is taken care of
+The $consumes$ declaration (cf.\ \S\ref{sec:rule-cases}) is taken care of
 automatically (if none had been given already): $consumes~0$ is specified for
 ``type'' rules and $consumes~1$ for ``set'' rules.
+
+
+\section{Object-logic setup}\label{sec:object-logic}
+
+The very starting point for any Isabelle object-logic is a ``truth judgment''
+that links object-level statements to the meta-logic (with its minimal
+language of $prop$ that covers universal quantification $\Forall$ and
+implication $\Imp$).  Common object-logics are sufficiently expressive to
+\emph{internalize} rule statements over $\Forall$ and $\Imp$ within their own
+language.  This is useful in certain situations where a rule needs to be
+viewed as an atomic statement from the meta-level perspective (e.g.\ $\All x x
+\in A \Imp P(x)$ versus $\forall x \in A. P(x)$).
+
+From the following language elements, only the $atomize$ method and
+$rule_format$ attribute are occasionally required by end-users, the rest is
+mainly for those who need to setup their own object-logic.  In the latter case
+existing formulations of Isabelle/FOL or Isabelle/HOL may be taken as
+realistic examples.
+
+Further generic tools may refer to the information provided by object-logic
+declarations internally (such as locales \S\ref{sec:locale}, or the Classical
+Reasoner \S\ref{sec:classical}).
+
+\indexisarcmd{judgment}
+\indexisarmeth{atomize}\indexisaratt{atomize}
+\indexisaratt{rule-format}\indexisaratt{rulify}
+
+\begin{matharray}{rcl}
+  \isarcmd{judgment} & : & \isartrans{theory}{theory} \\
+  atomize & : & \isarmeth \\
+  atomize & : & \isaratt \\
+  rule_format & : & \isaratt \\
+  rulify & : & \isaratt \\
+\end{matharray}
+
+\railalias{ruleformat}{rule\_format}
+\railterm{ruleformat}
+
+\begin{rail}
+  'judgment' constdecl
+  ;
+  ruleformat ('(' noasm ')')?
+  ;
+\end{rail}
+
+\begin{descr}
+  
+\item [$\isarkeyword{judgment}~c::\sigma~~syn$] declares constant $c$ as the
+  truth judgment of the current object-logic.  Its type $\sigma$ should
+  specify a coercion of the category of object-level propositions to $prop$ of
+  the Pure meta-logic; the mixfix annotation $syn$ would typically just link
+  the object language (internally of syntactic category $logic$) with that of
+  $prop$.  Only one $\isarkeyword{judgment}$ declaration may be given in any
+  theory development.
+  
+\item [$atomize$] (as a method) rewrites any non-atomic premises of a
+  sub-goal, using the meta-level equations that have been declared via
+  $atomize$ (as an attribute) beforehand.  As a result, heavily nested goals
+  become amenable to fundamental operations such as resolution (cf.\ the
+  $rule$ method) and proof-by-assumption (cf.\ $assumption$).
+  
+  A typical collection of $atomize$ rules for a particular object-logic would
+  provide an internalization for each of the connectives of $\Forall$, $\Imp$,
+  $\equiv$; meta-level conjunction expressed as $\All{\PROP\,C} (A \Imp B \Imp
+  \PROP\,C) \Imp PROP\,C$ should be covered as well.
+  
+\item [$rule_format$] rewrites a theorem by the equalities declared as
+  $rulify$ rules in the current object-logic.  By default, the result is fully
+  normalized, including assumptions and conclusions at any depth.  The
+  $no_asm$ option restricts the transformation to the conclusion of a rule.
+  
+  In common object logics (HOL, FOL, ZF), the effect of $rule_format$ is to
+  replace (bounded) universal quantification ($\forall$) and implication
+  ($\imp$) by the corresponding rule statements over $\Forall$ and $\Imp$.
+
+\end{descr}
 
 
 %%% Local Variables:

@@ -1,5 +1,5 @@
 
-\chapter{Basic Isar Language Elements}\label{ch:pure-syntax}
+\chapter{Basic Language Elements}\label{ch:pure-syntax}
 
 Subsequently, we introduce the main part of Pure Isar theory and proof
 commands, together with fundamental proof methods and attributes.
@@ -13,14 +13,14 @@ refers to actual object-logic specific elements of Isabelle/HOL.
 Isar commands may be either \emph{proper} document constructors, or
 \emph{improper commands}.  Some proof methods and attributes introduced later
 are classified as improper as well.  Improper Isar language elements, which
-are subsequently marked by $^*$, are often helpful when developing proof
+are subsequently marked by ``$^*$'', are often helpful when developing proof
 documents, while their use is discouraged for the final outcome.  Typical
 examples are diagnostic commands that print terms or theorems according to the
 current context; other commands even emulate old-style tactical theorem
 proving.
 
 
-\section{Theory commands}
+\section{Theory specification commands}
 
 \subsection{Defining theories}\label{sec:begin-thy}
 
@@ -119,16 +119,10 @@ tools).
   $\isarkeyword{subsection}$, and $\isarkeyword{subsubsection}$] mark chapter
   and section headings.
 \item [$\TEXT$] specifies paragraphs of plain text, including references to
-  formal entities.\footnote{The latter feature is not yet supported.
-    Nevertheless, any source text of the form
-    ``\texttt{\at\ttlbrace$\dots$\ttrbrace}'' should be considered as reserved
-    for future use.}
+  formal entities (see also \S\ref{sec:antiq} on ``antiquotations'').
 \item [$\isarkeyword{text_raw}$] inserts {\LaTeX} source into the output,
   without additional markup.  Thus the full range of document manipulations
-  becomes available.  A typical application would be to emit
-  \verb,\begin{comment}, and \verb,\end{comment}, commands to exclude certain
-  parts from the final document.\footnote{This requires the \texttt{comment}
-    package to be included in {\LaTeX}, of course.}
+  becomes available.
 \end{descr}
 
 Any of these markup elements corresponds to a {\LaTeX} command with the name
@@ -305,17 +299,17 @@ preceding the actual theory definition.
 
 \subsection{Axioms and theorems}\label{sec:axms-thms}
 
-\indexisarcmd{axioms}\indexisarcmd{theorems}\indexisarcmd{lemmas}
+\indexisarcmd{axioms}\indexisarcmd{lemmas}\indexisarcmd{theorems}
 \begin{matharray}{rcl}
   \isarcmd{axioms} & : & \isartrans{theory}{theory} \\
-  \isarcmd{theorems} & : & \isartrans{theory}{theory} \\
   \isarcmd{lemmas} & : & \isartrans{theory}{theory} \\
+  \isarcmd{theorems} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
 \begin{rail}
   'axioms' (axmdecl prop comment? +)
   ;
-  ('theorems' | 'lemmas') (thmdef? thmrefs comment? + 'and')
+  ('lemmas' | 'theorems') (thmdef? thmrefs comment? + 'and')
   ;
 \end{rail}
 
@@ -327,11 +321,11 @@ preceding the actual theory definition.
   Axioms are usually only introduced when declaring new logical systems.
   Everyday work is typically done the hard way, with proper definitions and
   actual proven theorems.
-\item [$\isarkeyword{theorems}~a = \vec b$] stores lists of existing theorems.
-  Typical applications would also involve attributes, to declare Simplifier
-  rules, for example.
-\item [$\isarkeyword{lemmas}$] is similar to $\isarkeyword{theorems}$, but
-  tags the results as ``lemma''.
+\item [$\isarkeyword{lemmas}~a = \vec b$] stores existing facts.  Typical
+  applications would also involve attributes, to declare Simplifier rules, for
+  example.
+\item [$\isarkeyword{theorems}$] is essentially the same as
+  $\isarkeyword{lemmas}$, but marks the result as a different kind of facts.
 \end{descr}
 
 
@@ -444,7 +438,8 @@ following commands provide some way to do so.
  Method.no_args (Method.METHOD (fn facts => foobar_tac))
  Method.thms_args (fn thms => Method.METHOD (fn facts => foobar_tac))
  Method.ctxt_args (fn ctxt => Method.METHOD (fn facts => foobar_tac))
- Method.thms_ctxt_args (fn thms => fn ctxt => Method.METHOD (fn facts => foobar_tac))
+ Method.thms_ctxt_args (fn thms => fn ctxt =>
+    Method.METHOD (fn facts => foobar_tac))
 \end{verbatim}
 }
 
@@ -555,6 +550,7 @@ of operation:
   goal claimed next.
 \end{descr}
 
+%FIXME diagram?
 
 \subsection{Proof markup commands}\label{sec:markup-prf}
 
@@ -619,18 +615,11 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 \railterm{equiv}
 
 \begin{rail}
-  'fix' (vars + 'and') comment?
+  'fix' (vars comment? + 'and')
   ;
-  ('assume' | 'presume') (assm comment? + 'and')
+  ('assume' | 'presume') (props comment? + 'and')
   ;
   'def' thmdecl? \\ name ('==' | equiv) term termpat? comment?
-  ;
-
-  var: name ('::' type)?
-  ;
-  vars: (name+) ('::' type)?
-  ;
-  assm: thmdecl? (prop proppat? +)
   ;
 \end{rail}
 
@@ -715,43 +704,78 @@ since $nothing$\indexisarthm{nothing} is bound to the empty list of facts.
 
 \subsection{Goal statements}
 
-\indexisarcmd{theorem}\indexisarcmd{lemma}
+\indexisarcmd{lemma}\indexisarcmd{theorem}\indexisarcmd{corollary}
 \indexisarcmd{have}\indexisarcmd{show}\indexisarcmd{hence}\indexisarcmd{thus}
 \begin{matharray}{rcl}
-  \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
   \isarcmd{lemma} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{corollary} & : & \isartrans{theory}{proof(prove)} \\
   \isarcmd{have} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
   \isarcmd{show} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
   \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
   \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
 \end{matharray}
 
-Proof mode is entered from theory mode by initial goal commands $\THEOREMNAME$
-and $\LEMMANAME$.  New local goals may be claimed within proof mode as well.
-Four variants are available, indicating whether the result is meant to solve
-some pending goal or whether forward chaining is indicated.
+From a theory context, proof mode is entered from theory mode by initial goal
+commands $\LEMMANAME$, $\THEOREMNAME$, and $\COROLLARYNAME$.  Within a proof,
+new claims may be introduced locally as well; four variants are available,
+indicating whether the result is meant to solve some pending goal or whether
+forward chaining is indicated.
+
+Goals may consist of multiple statements, resulting in a list of facts
+eventually.  A pending multi-goal is internally represented as a meta-level
+conjunction (printed as \verb,&&,), which is automatically split into the
+corresponding number of sub-goals prior to any initial method application, via
+$\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
+(\S\ref{sec:tactic-commands}).\footnote{Deviating from the latter principle,
+  the $induct$ method covered in \S\ref{sec:cases-induct-meth} acts on
+  multiple claims simultaneously.}
+
+%FIXME define locale, context
 
 \begin{rail}
-  ('theorem' | 'lemma') goal
+  ('lemma' | 'theorem' | 'corollary') locale context goal
   ;
   ('have' | 'show' | 'hence' | 'thus') goal
   ;
 
-  goal: thmdecl? prop proppat? comment?
+  goal: (props comment? + 'and')
   ;
 \end{rail}
 
 \begin{descr}
-\item [$\THEOREM{a}{\phi}$] enters proof mode with $\phi$ as main goal,
-  eventually resulting in some theorem $\turn \phi$ to be put back into the
-  theory.
-\item [$\LEMMA{a}{\phi}$] is similar to $\THEOREMNAME$, but tags the result as
-  ``lemma''.
-\item [$\HAVE{a}{\phi}$] claims a local goal, eventually resulting in a
-  theorem with the current assumption context as hypotheses.
-\item [$\SHOW{a}{\phi}$] is similar to $\HAVE{a}{\phi}$, but solves some
-  pending goal with the result \emph{exported} into the corresponding context
-  (cf.\ \S\ref{sec:proof-context}).
+\item [$\LEMMA{a}{\vec\phi}$] enters proof mode with $\vec\phi$ as main goal,
+  eventually resulting in some fact $\turn \vec\phi$ to be put back into the
+  theory context, and optionally into the specified locale, cf.\ 
+  \S\ref{sec:locale}.  An additional \railnonterm{context} specification may
+  build an initial proof context for the subsequent claim; this may include
+  local definitions and syntax as well, see \S\ref{sec:locale} for more
+  information.
+  
+\item [$\THEOREM{a}{\vec\phi}$ and $\COROLLARY{a}{\vec\phi}$] are essentially
+  the same as $\LEMMA{a}{\vec\phi}$, but the facts are internally marked as
+  being of a different kind.  This discrimination acts like a formal comment.
+  
+\item [$\HAVE{a}{\vec\phi}$] claims a local goal, eventually resulting in a
+  fact within the current logical context.  This operation is completely
+  independent of any pending sub-goals of an enclosing goal statements, so
+  $\HAVENAME$ may be freely used for experimental exploration of potential
+  results within a proof body.
+  
+\item [$\SHOW{a}{\vec\phi}$] is like $\HAVE{a}{\vec\phi}$ plus a second stage
+  to refine some pending sub-goal for each one of the finished result, after
+  having been exported into the corresponding context (at the head of the
+  sub-proof that the $\SHOWNAME$ command belongs to).
+  
+  To accommodate interactive debugging, resulting rules are printed before
+  being applied internally.  Even more, interactive execution of $\SHOWNAME$
+  predicts potential failure after finishing its proof, and displays the
+  resulting error message as a warning beforehand, adding this header:
+
+  \begin{ttbox}
+  Problem! Local statement will fail to solve any pending goal
+  \end{ttbox}
+
 \item [$\HENCENAME$] abbreviates $\THEN~\HAVENAME$, i.e.\ claims a local goal
   to be proven by forward chaining the current facts.  Note that $\HENCENAME$
   is also equivalent to $\FROM{this}~\HAVENAME$.
@@ -762,7 +786,8 @@ some pending goal or whether forward chaining is indicated.
 Any goal statement causes some term abbreviations (such as $\Var{thesis}$,
 $\dots$) to be bound automatically, see also \S\ref{sec:term-abbrev}.
 Furthermore, the local context of a (non-atomic) goal is provided via the
-$rule_context$\indexisarcase{rule-context} case, see also \S\ref{sec:cases}.
+$rule_context$\indexisarcase{rule-context} case, see also
+\S\ref{sec:rule-cases}.
 
 \medskip
 
@@ -775,12 +800,11 @@ $rule_context$\indexisarcase{rule-context} case, see also \S\ref{sec:cases}.
   that most semi-automated methods heavily depend on several kinds of implicit
   rule declarations within the current theory context.  As this would also
   result in non-compositional checking of sub-proofs, \emph{local goals} are
-  not allowed to be schematic at all.
-  
-  Nevertheless, schematic goals do have their use in Prolog-style interactive
-  synthesis of proven results, usually by stepwise refinement via emulation of
-  traditional Isabelle tactic scripts (see also \S\ref{sec:tactic-commands}).
-  In any case, users should know what they are doing!
+  not allowed to be schematic at all.  Nevertheless, schematic goals do have
+  their use in Prolog-style interactive synthesis of proven results, usually
+  by stepwise refinement via emulation of traditional Isabelle tactic scripts
+  (see also \S\ref{sec:tactic-commands}).  In any case, users should know what
+  they are doing.
 \end{warn}
 
 
@@ -862,12 +886,15 @@ Any remaining goals are always solved by assumption in the very last step.
   abbreviates $\BY{rule}$.
 \item [``$\DOT$''] is a \emph{trivial proof}\index{proof!trivial}; it
   abbreviates $\BY{this}$.
-\item [$\SORRY$] is a \emph{fake proof}\index{proof!fake}; provided that the
-  \texttt{quick_and_dirty} flag is enabled, $\SORRY$ pretends to solve the
-  goal without further ado.  Of course, the result would be a fake theorem
-  only, involving some oracle in its internal derivation object (this is
-  indicated as ``$[!]$'' in the printed result).  The main application of
-  $\SORRY$ is to support experimentation and top-down proof development.
+\item [$\SORRY$] is a \emph{fake proof}\index{proof!fake} pretending to solve
+  the pending claim without further ado.  This only works in interactive
+  development, or if the \texttt{quick_and_dirty} flag is enabled.  Certainly,
+  any facts emerging from fake proofs are not the real thing.  Internally,
+  each theorem container is tainted by an oracle invocation, which is
+  indicated as ``$[!]$'' in the printed result.
+  
+  The most important application of $\SORRY$ is to support experimentation and
+  top-down proof development in a simple manner.
 \end{descr}
 
 
@@ -985,7 +1012,7 @@ does not support polymorphism.
 \end{rail}
 
 The syntax of $\ISNAME$ patterns follows \railnonterm{termpat} or
-\railnonterm{proppat} (see \S\ref{sec:term-pats}).
+\railnonterm{proppat} (see \S\ref{sec:term-decls}).
 
 \begin{descr}
 \item [$\LET{\vec p = \vec t}$] binds any text variables in patters $\vec p$
@@ -1005,25 +1032,6 @@ statement that is an application $f(t)$, then $t$ is bound to the special text
 variable ``$\dots$''\indexisarvar{\dots} (three dots).  The canonical
 application of the latter are calculational proofs (see
 \S\ref{sec:calculation}).
-
-%FIXME !?
-
-% A few \emph{automatic} term abbreviations\index{term abbreviations} for goals
-% and facts are available as well.  For any open goal,
-% $\Var{thesis_prop}$\indexisarvar{thesis-prop} refers to the full proposition
-% (which may be a rule), $\Var{thesis_concl}$\indexisarvar{thesis-concl} to its
-% (atomic) conclusion, and $\Var{thesis}$\indexisarvar{thesis} to its
-% object-level statement.  The latter two abstract over any meta-level
-% parameters.
-
-% Fact statements resulting from assumptions or finished goals are bound as
-% $\Var{this_prop}$\indexisarvar{this-prop},
-% $\Var{this_concl}$\indexisarvar{this-concl}, and
-% $\Var{this}$\indexisarvar{this}, similar to $\Var{thesis}$ above.  In case
-% $\Var{this}$ refers to an object-logic statement that is an application
-% $f(t)$, then $t$ is bound to the special text variable
-% ``$\dots$''\indexisarvar{\dots} (three dots).  The canonical application of
-% the latter are calculational proofs (see \S\ref{sec:calculation}).
 
 
 \subsection{Block structure}
@@ -1181,7 +1189,7 @@ can be discussed in a logically sound manner.  Note that the Isabelle {\LaTeX}
 macros can be easily adapted to print something like ``$\dots$'' instead of an
 ``$\OOPS$'' keyword.
 
-\medskip The $\OOPS$ command is undoable, unlike $\isarkeyword{kill}$ (see
+\medskip The $\OOPS$ command is undo-able, unlike $\isarkeyword{kill}$ (see
 \S\ref{sec:history}).  The effect is to get back to the theory \emph{before}
 the opening of the proof.
 
@@ -1306,9 +1314,8 @@ for simplifications.
   theory context containing all of the constants occurring in the terms $\vec
   t$.  Note that giving the empty list yields \emph{all} theorems of the
   current theory.
-\item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of theorems
-  and lemmas, using Isabelle's graph browser tool (see also
-  \cite{isabelle-sys}).
+\item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of facts,
+  using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
 \item [$\isarkeyword{print_facts}$] prints any named facts of the current
   context, including assumptions and local results.
 \item [$\isarkeyword{print_binds}$] prints all term abbreviations present in
@@ -1332,7 +1339,7 @@ revoked via $\isarkeyword{redo}$, unless the corresponding
 $\isarkeyword{undo}$ step has crossed the beginning of a proof or theory.  The
 $\isarkeyword{kill}$ command aborts the current history node altogether,
 discontinuing a proof or even the whole theory.  This operation is \emph{not}
-undoable.
+undo-able.
 
 \begin{warn}
   History commands should never be used with user interfaces such as

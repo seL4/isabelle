@@ -67,42 +67,6 @@
 
 \maketitle 
 
-\begin{abstract}
-  \emph{Intelligible semi-automated reasoning} (\emph{Isar}) is a generic
-  approach to readable formal proof documents.  It sets out to bridge the
-  semantic gap between any internal notions of proof based on primitive
-  inferences and tactics, and an appropriate level of abstraction for
-  user-level work.  The Isar formal proof language has been designed to
-  satisfy quite contradictory requirements, being both ``declarative'' and
-  immediately ``executable'', by virtue of the \emph{Isar/VM} interpreter.
-  
-  The Isabelle/Isar system provides an interpreter for the Isar formal proof
-  language.  The input may consist either of proper document constructors, or
-  improper auxiliary commands (for diagnostics, exploration etc.).  Proof
-  texts consisting of proper elements only admit a purely static reading, thus
-  being intelligible later without requiring dynamic replay that is so typical
-  for traditional proof scripts.  Any of the Isabelle/Isar commands may be
-  executed in single-steps, so basically the interpreter has a proof text
-  debugger already built-in.
-  
-  Employing the Isar instantiation of \emph{Proof~General}, a generic Emacs
-  interface for interactive proof assistants, we arrive at a reasonable
-  environment for \emph{live document editing}.  Thus proof texts may be
-  developed incrementally by issuing proof commands, including forward and
-  backward tracing of partial documents; intermediate states may be inspected
-  by diagnostic commands.
-  
-  The Isar subsystem is tightly integrated into the Isabelle/Pure meta-logic
-  implementation.  Theories, theorems, proof procedures etc.\ may be used
-  interchangeably between classic Isabelle proof scripts and Isabelle/Isar
-  documents.  Even more, Isar provides a set of emulation commands and methods
-  for simulating traditional tactic scripts within new-style theory documents.
-  
-  The Isar framework is as generic as Isabelle, able to support a wide range
-  of object-logics.  Currently, the end-user working environment is most
-  complete for Isabelle/HOL.
-\end{abstract}
-
 \pagenumbering{roman} \tableofcontents \clearfirst
 
 %FIXME
@@ -126,6 +90,7 @@
 \include{pure}
 \include{generic}
 \include{hol}
+\include{zf}
 
 \appendix
 \include{refcard}

@@ -255,7 +255,7 @@ Isabelle this would usually proceed as follows:
  qed_spec_mp "\(name\)";
 \end{ttbox}
 The operation performed by \texttt{qed_spec_mp} is also performed by the Isar
-attribute ``$rule_format$'', see also \S\ref{sec:rule-format}.  Thus the
+attribute ``$rule_format$'', see also \S\ref{sec:object-logic}.  Thus the
 corresponding Isar text may look like this:
 \begin{matharray}{l}
   \LEMMA{name~[rule_format]}{\texttt"{\phi}\texttt"} \\
@@ -310,7 +310,7 @@ cover the four modes, either with or without instantiation, and either with
 single or multiple arguments.  Although it is more convenient in most cases to
 use the plain $rule$ method (see \S\ref{sec:pure-meth-att}), or any of its
 ``improper'' variants $erule$, $drule$, $frule$ (see
-\S\ref{sec:misc-methods}).  Note that explicit goal addressing is only
+\S\ref{sec:misc-meth-att}).  Note that explicit goal addressing is only
 supported by the actual $rule_tac$ version.
 
 With this in mind, plain resolution tactics may be ported as follows.

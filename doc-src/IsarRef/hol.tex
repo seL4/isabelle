@@ -1,35 +1,23 @@
 
-\chapter{Isabelle/HOL Tools and Packages}\label{ch:hol-tools}
+\chapter{Isabelle/HOL specific elements}\label{ch:hol-tools}
 
-\section{Miscellaneous attributes}\label{sec:rule-format}
+\section{Miscellaneous attributes}
 
-\indexisaratt{rule-format}\indexisaratt{split-format}
+\indexisarattof{HOL}{split-format}
 \begin{matharray}{rcl}
-  rule_format & : & \isaratt \\
   split_format^* & : & \isaratt \\
 \end{matharray}
-
-\railalias{ruleformat}{rule\_format}
-\railterm{ruleformat}
 
 \railalias{splitformat}{split\_format}
 \railterm{splitformat}
 \railterm{complete}
 
 \begin{rail}
-  ruleformat ('(' noasm ')')?
-  ;
   splitformat (((name * ) + 'and') | ('(' complete ')'))
   ;
 \end{rail}
 
 \begin{descr}
-  
-\item [$rule_format$] causes a theorem to be put into standard object-rule
-  form, replacing implication and (bounded) universal quantification of HOL by
-  the corresponding meta-logical connectives.  By default, the result is fully
-  normalized, including assumptions and conclusions at any depth.  The
-  $no_asm$ option restricts the transformation to the conclusion of a rule.
   
 \item [$split_format~\vec p@1 \dots \vec p@n$] puts tuple objects into
   canonical form as specified by the arguments given; $\vec p@i$ refers to
@@ -45,7 +33,7 @@
 
 \section{Primitive types}\label{sec:typedef}
 
-\indexisarcmd{typedecl}\indexisarcmd{typedef}
+\indexisarcmdof{HOL}{typedecl}\indexisarcmdof{HOL}{typedef}
 \begin{matharray}{rcl}
   \isarcmd{typedecl} & : & \isartrans{theory}{theory} \\
   \isarcmd{typedef} & : & \isartrans{theory}{proof(prove)} \\
@@ -68,14 +56,16 @@
   augmented by a Gordon/HOL-style type definition.  See \cite{isabelle-HOL}
   for more information.  Note that user-level theories usually do not directly
   refer to the HOL $\isarkeyword{typedef}$ primitive, but use more advanced
-  packages such as $\isarkeyword{record}$ (see \S\ref{sec:record}) and
-  $\isarkeyword{datatype}$ (see \S\ref{sec:datatype}).
+  packages such as $\isarkeyword{record}$ (see \S\ref{sec:hol-record}) and
+  $\isarkeyword{datatype}$ (see \S\ref{sec:hol-datatype}).
 \end{descr}
 
 
-\section{Records}\label{sec:record}
+\section{Records}\label{sec:hol-record}
 
-\indexisarcmd{record}
+FIXME proof tools (simp, cases/induct; no split!?);
+
+\indexisarcmdof{HOL}{record}
 \begin{matharray}{rcl}
   \isarcmd{record} & : & \isartrans{theory}{theory} \\
 \end{matharray}
@@ -97,9 +87,9 @@
 \end{descr}
 
 
-\section{Datatypes}\label{sec:datatype}
+\section{Datatypes}\label{sec:hol-datatype}
 
-\indexisarcmd{datatype}\indexisarcmd{rep-datatype}
+\indexisarcmdof{HOL}{datatype}\indexisarcmdof{HOL}{rep-datatype}
 \begin{matharray}{rcl}
   \isarcmd{datatype} & : & \isartrans{theory}{theory} \\
   \isarcmd{rep_datatype} & : & \isartrans{theory}{theory} \\
@@ -130,7 +120,7 @@
 
 The induction and exhaustion theorems generated provide case names according
 to the constructors involved, while parameters are named after the types (see
-also \S\ref{sec:induct-method}).
+also \S\ref{sec:cases-induct}).
 
 See \cite{isabelle-HOL} for more details on datatypes.  Note that the theory
 syntax above has been slightly simplified over the old version, usually
@@ -142,7 +132,7 @@ for case-analysis and induction, there are also emulations of ML tactics
 
 \section{Recursive functions}\label{sec:recursion}
 
-\indexisarcmd{primrec}\indexisarcmd{recdef}\indexisarcmd{recdef-tc}
+\indexisarcmdof{HOL}{primrec}\indexisarcmdof{HOL}{recdef}\indexisarcmdof{HOL}{recdef-tc}
 \begin{matharray}{rcl}
   \isarcmd{primrec} & : & \isartrans{theory}{theory} \\
   \isarcmd{recdef} & : & \isartrans{theory}{theory} \\
@@ -204,9 +194,9 @@ for case-analysis and induction, there are also emulations of ML tactics
 \end{descr}
 
 Both kinds of recursive definitions accommodate reasoning by induction (cf.\ 
-\S\ref{sec:induct-method}): rule $c\mathord{.}induct$ (where $c$ is the name
-of the function definition) refers to a specific induction rule, with
-parameters named according to the user-specified equations.  Case names of
+\S\ref{sec:cases-induct}): rule $c\mathord{.}induct$ (where $c$ is the name of
+the function definition) refers to a specific induction rule, with parameters
+named according to the user-specified equations.  Case names of
 $\isarkeyword{primrec}$ are that of the datatypes involved, while those of
 $\isarkeyword{recdef}$ are numbered (starting from $1$).
 
@@ -219,7 +209,7 @@ several theorems.
 \medskip Hints for $\isarkeyword{recdef}$ may be also declared globally, using
 the following attributes.
 
-\indexisaratt{recdef-simp}\indexisaratt{recdef-cong}\indexisaratt{recdef-wf}
+\indexisarattof{HOL}{recdef-simp}\indexisarattof{HOL}{recdef-cong}\indexisarattof{HOL}{recdef-wf}
 \begin{matharray}{rcl}
   recdef_simp & : & \isaratt \\
   recdef_cong & : & \isaratt \\
@@ -241,9 +231,9 @@ the following attributes.
 \end{rail}
 
 
-\section{(Co)Inductive sets}\label{sec:inductive}
+\section{(Co)Inductive sets}\label{sec:hol-inductive}
 
-\indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisaratt{mono}
+\indexisarcmdof{HOL}{inductive}\indexisarcmdof{HOL}{coinductive}\indexisarattof{HOL}{mono}
 \begin{matharray}{rcl}
   \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
   \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
@@ -280,7 +270,7 @@ HOL.
 
 \section{Arithmetic}
 
-\indexisarmeth{arith}\indexisaratt{arith-split}
+\indexisarmethof{HOL}{arith}\indexisarattof{HOL}{arith-split}
 \begin{matharray}{rcl}
   arith & : & \isarmeth \\
   arith_split & : & \isaratt \\
@@ -306,8 +296,8 @@ performed by the Simplifier.
 The following important tactical tools of Isabelle/HOL have been ported to
 Isar.  These should be never used in proper proof texts!
 
-\indexisarmeth{case-tac}\indexisarmeth{induct-tac}
-\indexisarmeth{ind-cases}\indexisarcmd{inductive-cases}
+\indexisarmethof{HOL}{case-tac}\indexisarmethof{HOL}{induct-tac}
+\indexisarmethof{HOL}{ind-cases}\indexisarcmdof{HOL}{inductive-cases}
 \begin{matharray}{rcl}
   case_tac^* & : & \isarmeth \\
   induct_tac^* & : & \isarmeth \\
@@ -346,10 +336,9 @@ Isar.  These should be never used in proper proof texts!
   only (unless an alternative rule is given explicitly).  Furthermore,
   $case_tac$ does a classical case split on booleans; $induct_tac$ allows only
   variables to be given as instantiation.  These tactic emulations feature
-  both goal addressing and dynamic instantiation.  Note that named local
-  contexts (see \S\ref{sec:cases}) are \emph{not} provided as would be by the
-  proper $induct$ and $cases$ proof methods (see
-  \S\ref{sec:induct-method-proper}).
+  both goal addressing and dynamic instantiation.  Note that named rule cases
+  are \emph{not} provided as would be by the proper $induct$ and $cases$ proof
+  methods (see \S\ref{sec:cases-induct}).
   
 \item [$ind_cases$ and $\isarkeyword{inductive_cases}$] provide an interface
   to the \texttt{mk_cases} operation.  Rules are simplified in an unrestricted
