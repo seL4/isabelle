@@ -58,6 +58,10 @@ Goalw [o_def] "(f o g)``r = f``(g``r)";
 by (Blast_tac 1);
 qed "image_compose";
 
+Goalw [o_def] "UNION A (g o f) = UNION (f``A) g";
+by (Blast_tac 1);
+qed "UNION_o";
+
 
 section "inj";
 
@@ -219,3 +223,156 @@ Goal "a ~= c ==> m(a:=b)(c:=d) = m(c:=d)(a:=b)";
 by (rtac ext 1);
 by (Auto_tac);
 qed "fun_upd_twist";
+
+
+(*** -> and Pi, by Florian Kammueller and LCP ***)
+
+val prems = Goalw [Pi_def]
+"[| !!x. x: A ==> f x: B x; !!x. x ~: A  ==> f(x) = (@ y. True)|] \
+\    ==> f: Pi A B";
+by (auto_tac (claset(), simpset() addsimps prems));
+qed "Pi_I";
+
+val prems = Goal 
+"[| !!x. x: A ==> f x: B; !!x. x ~: A  ==> f(x) = (@ y. True)|] ==> f: A funcset B";
+by (blast_tac (claset() addIs Pi_I::prems) 1);
+qed "funcsetI";
+
+Goalw [Pi_def] "[|f: Pi A B; x: A|] ==> f x: B x";
+by Auto_tac;
+qed "Pi_mem";
+
+Goalw [Pi_def] "[|f: A funcset B; x: A|] ==> f x: B";
+by Auto_tac;
+qed "funcset_mem";
+
+Goalw [Pi_def] "[|f: Pi A B; x~: A|] ==> f x = (@ y. True)";
+by Auto_tac;
+qed "apply_arb";
+
+Goalw [Pi_def] "[| f: Pi A B; g: Pi A B; ! x: A. f x = g x |] ==> f = g";
+by (rtac ext 1);
+by Auto_tac;
+val Pi_extensionality = ballI RSN (3, result());
+
+(*** compose ***)
+
+Goalw [Pi_def, compose_def, restrict_def]
+     "[| f: A funcset B; g: B funcset C |]==> compose A g f: A funcset C";
+by Auto_tac;
+qed "funcset_compose";
+
+Goal "[| f: A funcset B; g: B funcset C; h: C funcset D |]\
+\     ==> compose A h (compose A g f) = compose A (compose B h g) f";
+by (res_inst_tac [("A","A")] Pi_extensionality 1);
+by (blast_tac (claset() addIs [funcset_compose]) 1);
+by (blast_tac (claset() addIs [funcset_compose]) 1);
+by (rewrite_goals_tac [Pi_def, compose_def, restrict_def]);  
+by Auto_tac;
+qed "compose_assoc";
+
+Goal "[| f: A funcset B; g: B funcset C; x: A |]==> compose A g f x = g(f(x))";
+by (asm_full_simp_tac (simpset() addsimps [compose_def, restrict_def]) 1);
+qed "compose_eq";
+
+Goal "[| f : A funcset B; f `` A = B; g: B funcset C; g `` B = C |]\
+\     ==> compose A g f `` A = C";
+by (auto_tac (claset(),
+	      simpset() addsimps [image_def, compose_eq]));
+qed "surj_compose";
+
+
+Goal "[| f : A funcset B; g: B funcset C; f `` A = B; inj_on f A; inj_on g B |]\
+\     ==> inj_on (compose A g f) A";
+by (auto_tac (claset(),
+	      simpset() addsimps [inj_on_def, compose_eq]));
+qed "inj_on_compose";
+
+
+(*** restrict / lam ***)
+Goal "[| f `` A <= B |] ==> (lam x: A. f x) : A funcset B";
+by (auto_tac (claset(),
+	      simpset() addsimps [restrict_def, Pi_def]));
+qed "restrict_in_funcset";
+
+val prems = Goalw [restrict_def, Pi_def]
+     "(!!x. x: A ==> f x: B x) ==> (lam x: A. f x) : Pi A B";
+by (asm_simp_tac (simpset() addsimps prems) 1);
+qed "restrictI";
+
+
+Goal "x: A ==> (lam y: A. f y) x = f x";
+by (asm_simp_tac (simpset() addsimps [restrict_def]) 1);
+qed "restrict_apply1";
+
+Goal "[| x: A; f : A funcset B |] ==> (lam y: A. f y) x : B";
+by (asm_full_simp_tac (simpset() addsimps [restrict_apply1,Pi_def]) 1);
+qed "restrict_apply1_mem";
+
+Goal "x ~: A ==> (lam y: A. f y) x =  (@ y. True)";
+by (asm_simp_tac (simpset() addsimps [restrict_def]) 1);
+qed "restrict_apply2";
+
+
+val prems = Goal
+    "(!!x. x: A ==> f x = g x) ==> (lam x: A. f x) = (lam x: A. g x)";
+by (rtac ext 1);
+by (auto_tac (claset(),
+	      simpset() addsimps prems@[restrict_def, Pi_def]));
+qed "restrict_ext";
+
+
+(*** Inverse ***)
+
+Goal "[|f `` A = B;  x: B |] ==> ? y: A. f y = x";
+by (Blast_tac 1);
+qed "surj_image";
+
+Goalw [Inv_def] "[| f `` A = B; f : A funcset B |] \
+\                ==> (lam x: B. (Inv A f) x) : B funcset A";
+by (fast_tac (claset() addIs [restrict_in_funcset, selectI2]) 1);
+qed "Inv_funcset";
+
+
+Goal "[| f: A funcset B;  inj_on f A;  f `` A = B;  x: A |] \
+\     ==> (lam y: B. (Inv A f) y) (f x) = x";
+by (asm_simp_tac (simpset() addsimps [restrict_apply1, funcset_mem]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Inv_def, inj_on_def]) 1);
+by (rtac selectI2 1);
+by Auto_tac;
+qed "Inv_f_f";
+
+Goal "[| f: A funcset B;  f `` A = B;  x: B |] \
+\     ==> f ((lam y: B. (Inv A f y)) x) = x";
+by (asm_simp_tac (simpset() addsimps [Inv_def, restrict_apply1]) 1);
+by (fast_tac (claset() addIs [selectI2]) 1);
+qed "f_Inv_f";
+
+Goal "[| f: A funcset B;  inj_on f A;  f `` A = B |]\
+\     ==> compose A (lam y:B. (Inv A f) y) f = (lam x: A. x)";
+by (rtac Pi_extensionality 1);
+by (blast_tac (claset() addIs [funcset_compose, Inv_funcset]) 1);
+by (blast_tac (claset() addIs [restrict_in_funcset]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [restrict_apply1, compose_def, Inv_f_f]) 1);
+qed "compose_Inv_id";
+
+
+(*** Pi and Applyall ***)
+
+Goalw [Pi_def] "[| B(x) = {};  x: A |] ==> (PI x: A. B x) = {}";
+by Auto_tac;
+qed "Pi_eq_empty";
+
+Goal "[| (PI x: A. B x) ~= {};  x: A |] ==> B(x) ~= {}";
+by (blast_tac (HOL_cs addIs [Pi_eq_empty]) 1);
+qed "Pi_total1";
+
+Goal "[| a : A; Pi A B ~= {} |] ==> Applyall (Pi A B) a = B a";
+by (auto_tac (claset(), simpset() addsimps [Applyall_def, Pi_def]));
+by (rename_tac "g z" 1);
+by (res_inst_tac [("x","%y. if  (y = a) then z else g y")] exI 1);
+by (auto_tac (claset(), simpset() addsimps [split_if_mem1, split_if_eq1]));
+qed "Applyall_beta";
+
+
