@@ -128,12 +128,6 @@ by (ALLGOALS Asm_simp_tac);
 qed "finite_Diff_singleton";
 AddIffs [finite_Diff_singleton];
 
-(*** FIXME -> equalities.ML ***)
-goal Set.thy "(f``A = {}) = (A = {})";
-by (blast_tac (!claset addSEs [equalityE]) 1);
-qed "image_is_empty";
-Addsimps [image_is_empty];
-
 goal Finite.thy "!!A. finite B ==> !A. f``A = B --> inj_onto f A --> finite A";
 by (etac finite_induct 1);
  by (ALLGOALS Asm_simp_tac);

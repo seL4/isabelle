@@ -111,6 +111,11 @@ by (Blast_tac 1);
 qed "insert_image";
 Addsimps [insert_image];
 
+goal Set.thy "(f``A = {}) = (A = {})";
+by (blast_tac (!claset addSEs [equalityE]) 1);
+qed "image_is_empty";
+AddIffs [image_is_empty];
+
 goalw Set.thy [image_def]
 "(%x. if P x then f x else g x) `` S                    \
 \ = (f `` ({x.x:S & P x})) Un (g `` ({x.x:S & ~(P x)}))";
