@@ -1,7 +1,14 @@
+(*  Title:      HOL/Hoare/Separation.thy
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    Copyright   2003 TUM
+
+A first attempt at a nice syntactic embedding of separation logic.
+*)
+
 theory Separation = HoareAbort:
 
 types heap = "(nat \<Rightarrow> nat option)"
-
 
 text{* The semantic definition of a few connectives: *}
 
@@ -21,6 +28,8 @@ constdefs
  wand:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)"
 "wand P Q == \<lambda>h. \<forall>h'. h' \<bottom> h \<and> P h' \<longrightarrow> Q(h++h')"
 
+text{*This is what assertions look like without any syntactic sugar: *}
+
 lemma "VARS x y z w h
  {star (%h. singl h x y) (%h. singl h z w) h}
  SKIP
@@ -29,19 +38,17 @@ apply vcg
 apply(auto simp:star_def ortho_def singl_def)
 done
 
-text{* To suppress the heap parameter of the connectives, we assume it
-is always called H and add/remove it upon parsing/printing. Thus
-every pointer program needs to have a program variable H, and
-assertions should not contain any locally bound Hs - otherwise they
-may bind the implicit H. *}
-
-text{* Nice input syntax: *}
+text{* Now we add nice input syntax.  To suppress the heap parameter
+of the connectives, we assume it is always called H and add/remove it
+upon parsing/printing. Thus every pointer program needs to have a
+program variable H, and assertions should not contain any locally
+bound Hs - otherwise they may bind the implicit H. *}
 
 syntax
  "@emp" :: "bool" ("emp")
  "@singl" :: "nat \<Rightarrow> nat \<Rightarrow> bool" ("[_ \<mapsto> _]")
  "@star" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "**" 60)
- "@wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-o" 60)
+ "@wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-*" 60)
 
 ML{*
 (* free_tr takes care of free vars in the scope of sep. logic connectives:
@@ -66,6 +73,8 @@ parse_translation
  {* [("@emp", emp_tr), ("@singl", singl_tr),
      ("@star", star_tr), ("@wand", wand_tr)] *}
 
+text{* Now it looks much better: *}
+
 lemma "VARS H x y z w
  {[x\<mapsto>y] ** [z\<mapsto>w]}
  SKIP
@@ -82,12 +91,23 @@ apply vcg
 apply(auto simp:star_def ortho_def is_empty_def)
 done
 
-text{* Nice output syntax: *}
+text{* But the output is still unreadable. Thus we also strip the heap
+parameters upon output: *}
+
+(* debugging code:
+fun sot(Free(s,_)) = s
+  | sot(Var((s,i),_)) = "?" ^ s ^ string_of_int i
+  | sot(Const(s,_)) = s
+  | sot(Bound i) = "B." ^ string_of_int i
+  | sot(s $ t) = "(" ^ sot s ^ " " ^ sot t ^ ")"
+  | sot(Abs(_,_,t)) = "(% " ^ sot t ^ ")";
+*)
 
 ML{*
 local
-fun strip (Abs(_,_,(t as Free _) $ Bound 0)) = t
-  | strip (Abs(_,_,(t as Var _) $ Bound 0)) = t
+fun strip (Abs(_,_,(t as Const("_free",_) $ Free _) $ Bound 0)) = t
+  | strip (Abs(_,_,(t as Free _) $ Bound 0)) = t
+  | strip (Abs(_,_,(t as Const("_var",_) $ Var _) $ Bound 0)) = t
   | strip (Abs(_,_,P)) = P
   | strip (Const("is_empty",_)) = Syntax.const "@emp"
   | strip t = t;
@@ -100,7 +120,10 @@ end
 *}
 
 print_translation
- {* [("is_empty", is_empty_tr'),("singl", singl_tr'),("star", star_tr')] *}
+ {* [("is_empty", is_empty_tr'),("singl", singl_tr'),
+     ("star", star_tr'),("wand", wand_tr')] *}
+
+text{* Now the intermediate proof states are also readable: *}
 
 lemma "VARS H x y z w
  {[x\<mapsto>y] ** [z\<mapsto>w]}
@@ -118,6 +141,10 @@ apply vcg
 apply(auto simp:star_def ortho_def is_empty_def)
 done
 
+text{* So far we have unfolded the separation logic connectives in
+proofs. Here comes a simple example of a program proof that uses a law
+of separation logic instead. *}
+
 (* move to Map.thy *)
 lemma override_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
 apply(rule ext)
@@ -125,8 +152,6 @@ apply(fastsimp simp:override_def split:option.split)
 done
 
 (* a law of separation logic *)
-(* something is wrong with the pretty printer, but I cannot figure out what. *)
-
 lemma star_comm: "P ** Q = Q ** P"
 apply(simp add:star_def ortho_def)
 apply(blast intro:override_comm)
@@ -141,20 +166,3 @@ apply(simp add: star_comm)
 done
 
 end
-(*
-consts llist :: "(heap * nat)set"
-inductive llist
-intros
-empty: "(%n. None, 0) : llist"
-cons: "\<lbrakk> R h h1 h2; pto h1 p q; (h2,q):llist \<rbrakk> \<Longrightarrow> (h,p):llist"
-
-lemma "VARS p q h
- {(h,p) : llist}
- h := h(q \<mapsto> p)
- {(h,q) : llist}"
-apply vcg
-apply(rule_tac "h1.0" = "%n. if n=q then Some p else None" in llist.cons)
-prefer 3 apply assumption
-prefer 2 apply(simp add:singl_def dom_def)
-apply(simp add:R_def dom_def)
-*)
