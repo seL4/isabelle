@@ -9,11 +9,6 @@ theory Typedef = Set
 files "subset.ML" "equalities.ML" "mono.ML"
   "Tools/induct_attrib.ML" ("Tools/typedef_package.ML"):
 
-(** belongs to theory Ord **)
-  
-theorems linorder_cases [case_names less equal greater] =
-  linorder_less_split
-
 (* Courtesy of Stephan Merz *)
 lemma Least_mono: 
   "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
