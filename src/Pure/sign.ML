@@ -544,25 +544,11 @@ val proto_pure =
   |> add_name "ProtoPure";
 
 val pure = proto_pure
-  |> add_syntax
-   [("_appl",     "[('b => 'a), args] => logic",    Mixfix ("(1_/(1'(_')))",
-                                                    [max_pri, 0], max_pri)),
-    ("_appl",     "[('b => 'a), args] => aprop",    Mixfix ("(1_/(1'(_')))",
-                                                    [max_pri, 0], max_pri))]
+  |> add_syntax Syntax.pure_appl_syntax
   |> add_name "Pure";
 
 val cpure = proto_pure
-  |> add_syntax
-   [("",           "'a => cargs",                   Delimfix "_"),
-    ("_cargs",     "['a, cargs] => cargs",          Mixfix ("_/ _",
-                                                     [max_pri, max_pri],
-                                                     max_pri)),
-    ("_applC",     "[('b => 'a), cargs] => logic",  Mixfix ("(1_/ _)",
-                                                     [max_pri, max_pri],
-                                                     max_pri-1)),
-    ("_applC",     "[('b => 'a), cargs] => aprop",  Mixfix ("(1_/ _)",
-                                                     [max_pri, max_pri],
-                                                     max_pri-1))]
+  |> add_syntax Syntax.pure_applC_syntax
   |> add_name "CPure";
 
 end;
