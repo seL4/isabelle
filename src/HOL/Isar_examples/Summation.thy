@@ -44,12 +44,10 @@ syntax
   "_SUM" :: "[idt, nat, nat] => nat"
     ("SUM _ < _. _" [0, 0, 10] 10);
 translations
-  "SUM i < k. b" == "sum (\<lambda>i. b) k";
+  "SUM i < k. b" == "sum (\\<lambda>i. b) k";
 
 
-subsection {* Summation laws *};
-
-text_raw {* \begin{comment} *};
+subsection {* Summation laws *}; (*<*)
 
 (* FIXME binary arithmetic does not yet work here *)
 
@@ -65,7 +63,7 @@ translations
 
 theorems [simp] = add_mult_distrib add_mult_distrib2 mult_ac;
 
-text_raw {* \end{comment} *};
+(*>*)
 
 text {*
  The sum of natural numbers $0 + \cdots + n$ equals $n \times (n +
