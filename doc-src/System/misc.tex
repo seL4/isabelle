@@ -113,37 +113,37 @@ each path component. This is a special feature of
 \texttt{ISABELLE_PATH} (and also of \texttt{ISABELLE_OUTPUT}).
 
 
-\section{Installing standalone Isabelle binaries -- \texttt{isatool install}}
+\section{Installing standalone Isabelle executables -- \texttt{isatool install}}
 
-Usually, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool}
-etc.) are just run from their location within the distribution
-directory, probably indirectly by the shell through its \texttt{PATH}.
-In some cases, though, another more traditional installation scheme
-might be preferably where executables are put into some global system
-directory (like \texttt{/usr/local/bin}).
-
-Doing a plain copy of the Isabelle executables just would not work,
-though.  One should use the \tooldx{install} utility instead:
+Usually, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool} etc.) are
+just run from their location within the distribution directory, probably
+indirectly by the shell through its \texttt{PATH}.  Other schemes of
+installation are supported by the \tooldx{install} utility:
 \begin{ttbox}
-Usage: install BINDIR
+Usage: install [OPTIONS]
 
   Options are:
-    -d DISTDIR   use DISTDIR as Isabelle distribution
-                 (default ISABELLE_HOME)
+    -d DISTDIR   use DISTDIR as Isabelle distribution (default ISABELLE_HOME)
+    -k           install KDE application icon on Desktop
+    -p DIR       install standalone binaries in DIR
 
-  Install standalone Isabelle binaries in directory BINDIR with absolute
-  references to DISTDIR/bin, which becomes non-relocatable this way.
+  Install Isabelle executables with absolute references to the current
+  distribution directory.
 \end{ttbox}
 
-This installs standalone executables in \texttt{BINDIR} containing
-absolute references to \texttt{DISTDIR} (the default is
-\texttt{ISABELLE_HOME} as figured out by the current \texttt{isatool}
-invocation).  While the generated scripts themselves may be relocated
-afterwards, they cease working if the referenced Isabelle distribution
-is moved somewhere else.  Here is an example use of \texttt{install}:
-\begin{ttbox}
-  isatool install /usr/local/bin
-\end{ttbox}
+The \texttt{-d} option overrides the current Isabelle distribution directory
+as determined by \texttt{ISABELLE_HOME}.
+
+The \texttt{-p} option installs executable wrapper scripts for
+\texttt{isabelle}, \texttt{isatool}, \texttt{Isabelle}, containing proper
+absolute references to the Isabelle distribution directory.  A typical
+\texttt{DIR} specification would be some directory expected to be in the
+shell's \texttt{PATH}, such as \texttt{/usr/local/bin}.  It is important to
+note that a plain manual copy of the original Isabelle executables just would
+not work!
+
+The \texttt{-k} option creates an Isabelle application object for the K
+desktop environment.  The icon will appear directly on Desktop.
 
 
 \section{Creating instances of the Isabelle logo -- \texttt{isatool
