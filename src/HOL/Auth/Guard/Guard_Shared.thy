@@ -99,7 +99,7 @@ subsubsection{*guardedness results on nonces*}
 lemma guard_ciph [simp]: "shrK A:Ks ==> Ciph A X:guard n Ks"
 by (rule Guard_Nonce, simp)
 
-lemma guard_ciph [simp]: "shrK A:Ks ==> Ciph A X:guardK n Ks"
+lemma guardK_ciph [simp]: "shrK A:Ks ==> Ciph A X:guardK n Ks"
 by (rule Guard_Key, simp)
 
 lemma Guard_init [iff]: "Guard n Ks (initState B)"
