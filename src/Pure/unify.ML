@@ -496,7 +496,7 @@ fun rigid_bound (lev, banned) t =
   let val (head,args) = strip_comb t 
   in  
       case head of
-	  Bound i => (i-lev) mem banned  orelse
+	  Bound i => (i-lev) mem_int banned  orelse
 	      	     exists (rigid_bound (lev, banned)) args
 	| Var _ => false	(*no rigid occurrences here!*)
 	| Abs (_,_,u) => 
@@ -509,7 +509,7 @@ fun rigid_bound (lev, banned) t =
 fun change_bnos banned =
   let fun change lev (Bound i) = 
 	    if i<lev then Bound i
-	    else  if (i-lev) mem banned  
+	    else  if (i-lev) mem_int banned  
 		  then raise CHANGE_FAIL (**flexible occurrence: give up**)
 	    else  Bound (i - length (filter (fn j => j < i-lev) banned))
 	| change lev (Abs (a,T,t)) = Abs (a, T, change(lev+1) t)
@@ -570,7 +570,7 @@ fun add_tpair (rbinder, (t0,u0), tpairs) : (term*term) list =
 fun clean_ffpair ((rbinder, t, u), (env,tpairs)) = 
   let val loot = loose_bnos t  and  loou = loose_bnos u
       fun add_index (((a,T), j), (bnos, newbinder)) = 
-            if  j mem loot  andalso  j mem loou 
+            if  j mem_int loot  andalso  j mem_int loou 
             then  (bnos, (a,T)::newbinder)	(*needed by both: keep*)
             else  (j::bnos, newbinder);		(*remove*)
       val indices = 0 upto (length rbinder - 1);
