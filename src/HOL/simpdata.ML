@@ -17,19 +17,16 @@ Goal "(%s. f s) = f";
 br refl 1;
 qed "eta_contract_eq";
 
-local
 
-  fun prover s = prove_goal (the_context ()) s (fn _ => [(Blast_tac 1)]);
-
-in
+fun prover s = prove_goal (the_context ()) s (fn _ => [(Blast_tac 1)]);
 
 (*Make meta-equalities.  The operator below is Trueprop*)
 
 fun mk_meta_eq r = r RS eq_reflection;
 fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 
-val Eq_TrueI  = mk_meta_eq(prover  "P --> (P = True)"  RS mp);
-val Eq_FalseI = mk_meta_eq(prover "~P --> (P = False)" RS mp);
+bind_thm ("Eq_TrueI", mk_meta_eq (prover  "P --> (P = True)"  RS mp));
+bind_thm ("Eq_FalseI", mk_meta_eq(prover "~P --> (P = False)" RS mp));
 
 fun mk_eq th = case concl_of th of
         Const("==",_)$_$_       => th
@@ -47,62 +44,55 @@ fun mk_meta_cong rl =
   handle THM _ =>
   error("Premises and conclusion of congruence rules must be =-equalities");
 
-val not_not = prover "(~ ~ P) = P";
+bind_thm ("not_not", prover "(~ ~ P) = P");
 
-val simp_thms = [not_not] @ map prover
- [ "(x=x) = True",
-   "(~True) = False", "(~False) = True",
-   "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
-   "(True=P) = P", "(P=True) = P", "(False=P) = (~P)", "(P=False) = (~P)",
-   "(True --> P) = P", "(False --> P) = True",
-   "(P --> True) = True", "(P --> P) = True",
-   "(P --> False) = (~P)", "(P --> ~P) = (~P)",
-   "(P & True) = P", "(True & P) = P",
-   "(P & False) = False", "(False & P) = False",
-   "(P & P) = P", "(P & (P & Q)) = (P & Q)",
-   "(P & ~P) = False",    "(~P & P) = False",
-   "(P | True) = True", "(True | P) = True",
-   "(P | False) = P", "(False | P) = P",
-   "(P | P) = P", "(P | (P | Q)) = (P | Q)",
-   "(P | ~P) = True",    "(~P | P) = True",
-   "((~P) = (~Q)) = (P=Q)",
-   "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x",
+bind_thms ("simp_thms", [not_not] @ map prover
+ ["(x=x) = True",
+  "(~True) = False", "(~False) = True",
+  "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
+  "(True=P) = P", "(P=True) = P", "(False=P) = (~P)", "(P=False) = (~P)",
+  "(True --> P) = P", "(False --> P) = True",
+  "(P --> True) = True", "(P --> P) = True",
+  "(P --> False) = (~P)", "(P --> ~P) = (~P)",
+  "(P & True) = P", "(True & P) = P",
+  "(P & False) = False", "(False & P) = False",
+  "(P & P) = P", "(P & (P & Q)) = (P & Q)",
+  "(P & ~P) = False",    "(~P & P) = False",
+  "(P | True) = True", "(True | P) = True",
+  "(P | False) = P", "(False | P) = P",
+  "(P | P) = P", "(P | (P | Q)) = (P | Q)",
+  "(P | ~P) = True",    "(~P | P) = True",
+  "((~P) = (~Q)) = (P=Q)",
+  "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x",
 (* needed for the one-point-rule quantifier simplification procs*)
 (*essential for termination!!*)
-   "(? x. x=t & P(x)) = P(t)",
-   "(? x. t=x & P(x)) = P(t)",
-   "(! x. x=t --> P(x)) = P(t)",
-   "(! x. t=x --> P(x)) = P(t)" ];
+  "(? x. x=t & P(x)) = P(t)",
+  "(? x. t=x & P(x)) = P(t)",
+  "(! x. x=t --> P(x)) = P(t)",
+  "(! x. t=x --> P(x)) = P(t)"]);
 
-val imp_cong = standard(impI RSN
+bind_thm ("imp_cong", standard (impI RSN
     (2, prove_goal (the_context ()) "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
-        (fn _=> [(Blast_tac 1)]) RS mp RS mp));
+        (fn _=> [(Blast_tac 1)]) RS mp RS mp)));
 
 (*Miniscoping: pushing in existential quantifiers*)
-val ex_simps = map prover
-                ["(EX x. P x & Q)   = ((EX x. P x) & Q)",
-                 "(EX x. P & Q x)   = (P & (EX x. Q x))",
-                 "(EX x. P x | Q)   = ((EX x. P x) | Q)",
-                 "(EX x. P | Q x)   = (P | (EX x. Q x))",
-                 "(EX x. P x --> Q) = ((ALL x. P x) --> Q)",
-                 "(EX x. P --> Q x) = (P --> (EX x. Q x))"];
+bind_thms ("ex_simps", map prover
+ ["(EX x. P x & Q)   = ((EX x. P x) & Q)",
+  "(EX x. P & Q x)   = (P & (EX x. Q x))",
+  "(EX x. P x | Q)   = ((EX x. P x) | Q)",
+  "(EX x. P | Q x)   = (P | (EX x. Q x))",
+  "(EX x. P x --> Q) = ((ALL x. P x) --> Q)",
+  "(EX x. P --> Q x) = (P --> (EX x. Q x))"]);
 
 (*Miniscoping: pushing in universal quantifiers*)
-val all_simps = map prover
-                ["(ALL x. P x & Q)   = ((ALL x. P x) & Q)",
-                 "(ALL x. P & Q x)   = (P & (ALL x. Q x))",
-                 "(ALL x. P x | Q)   = ((ALL x. P x) | Q)",
-                 "(ALL x. P | Q x)   = (P | (ALL x. Q x))",
-                 "(ALL x. P x --> Q) = ((EX x. P x) --> Q)",
-                 "(ALL x. P --> Q x) = (P --> (ALL x. Q x))"];
+bind_thms ("all_simps", map prover
+ ["(ALL x. P x & Q)   = ((ALL x. P x) & Q)",
+  "(ALL x. P & Q x)   = (P & (ALL x. Q x))",
+  "(ALL x. P x | Q)   = ((ALL x. P x) | Q)",
+  "(ALL x. P | Q x)   = (P | (ALL x. Q x))",
+  "(ALL x. P x --> Q) = ((EX x. P x) --> Q)",
+  "(ALL x. P --> Q x) = (P --> (ALL x. Q x))"]);
 
-
-end;
-
-bind_thms ("ex_simps", ex_simps);
-bind_thms ("all_simps", all_simps);
-bind_thm ("not_not", not_not);
-bind_thm ("imp_cong", imp_cong);
 
 (* Elimination of True from asumptions: *)
 
@@ -117,18 +107,18 @@ fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [(Blast_tac 1)]);
 prove "eq_commute" "(a=b) = (b=a)";
 prove "eq_left_commute" "(P=(Q=R)) = (Q=(P=R))";
 prove "eq_assoc" "((P=Q)=R) = (P=(Q=R))";
-val eq_ac = [eq_commute, eq_left_commute, eq_assoc];
+bind_thms ("eq_ac", [eq_commute, eq_left_commute, eq_assoc]);
 
 prove "neq_commute" "(a~=b) = (b~=a)";
 
 prove "conj_commute" "(P&Q) = (Q&P)";
 prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
-val conj_comms = [conj_commute, conj_left_commute];
+bind_thms ("conj_comms", [conj_commute, conj_left_commute]);
 prove "conj_assoc" "((P&Q)&R) = (P&(Q&R))";
 
 prove "disj_commute" "(P|Q) = (Q|P)";
 prove "disj_left_commute" "(P|(Q|R)) = (Q|(P|R))";
-val disj_comms = [disj_commute, disj_left_commute];
+bind_thms ("disj_comms", [disj_commute, disj_left_commute]);
 prove "disj_assoc" "((P|Q)|R) = (P|(Q|R))";
 
 prove "conj_disj_distribL" "(P&(Q|R)) = (P&Q | P&R)";

@@ -9,11 +9,11 @@ Simplification data for FOL.
 
 (* Elimination of True from asumptions: *)
 
-val True_implies_equals = prove_goal IFOL.thy
+bind_thm ("True_implies_equals", prove_goal IFOL.thy
  "(True ==> PROP P) == PROP P"
 (K [rtac equal_intr_rule 1, atac 2,
           METAHYPS (fn prems => resolve_tac prems 1) 1,
-          rtac TrueI 1]);
+          rtac TrueI 1]));
 
 
 (*** Rewrite rules ***)
@@ -24,57 +24,57 @@ fun int_prove_fun s =
    (fn prems => [ (cut_facts_tac prems 1),
                   (IntPr.fast_tac 1) ]));
 
-val conj_simps = map int_prove_fun
+bind_thms ("conj_simps", map int_prove_fun
  ["P & True <-> P",      "True & P <-> P",
   "P & False <-> False", "False & P <-> False",
   "P & P <-> P", "P & P & Q <-> P & Q",
   "P & ~P <-> False",    "~P & P <-> False",
-  "(P & Q) & R <-> P & (Q & R)"];
+  "(P & Q) & R <-> P & (Q & R)"]);
 
-val disj_simps = map int_prove_fun
+bind_thms ("disj_simps", map int_prove_fun
  ["P | True <-> True",  "True | P <-> True",
   "P | False <-> P",    "False | P <-> P",
   "P | P <-> P", "P | P | Q <-> P | Q",
-  "(P | Q) | R <-> P | (Q | R)"];
+  "(P | Q) | R <-> P | (Q | R)"]);
 
-val not_simps = map int_prove_fun
+bind_thms ("not_simps", map int_prove_fun
  ["~(P|Q)  <-> ~P & ~Q",
-  "~ False <-> True",   "~ True <-> False"];
+  "~ False <-> True",   "~ True <-> False"]);
 
-val imp_simps = map int_prove_fun
+bind_thms ("imp_simps", map int_prove_fun
  ["(P --> False) <-> ~P",       "(P --> True) <-> True",
   "(False --> P) <-> True",     "(True --> P) <-> P",
-  "(P --> P) <-> True",         "(P --> ~P) <-> ~P"];
+  "(P --> P) <-> True",         "(P --> ~P) <-> ~P"]);
 
-val iff_simps = map int_prove_fun
+bind_thms ("iff_simps", map int_prove_fun
  ["(True <-> P) <-> P",         "(P <-> True) <-> P",
   "(P <-> P) <-> True",
-  "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
+  "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"]);
 
 (*The x=t versions are needed for the simplification procedures*)
-val quant_simps = map int_prove_fun
+bind_thms ("quant_simps", map int_prove_fun
  ["(ALL x. P) <-> P",
   "(ALL x. x=t --> P(x)) <-> P(t)",
   "(ALL x. t=x --> P(x)) <-> P(t)",
   "(EX x. P) <-> P",
   "(EX x. x=t & P(x)) <-> P(t)",
-  "(EX x. t=x & P(x)) <-> P(t)"];
+  "(EX x. t=x & P(x)) <-> P(t)"]);
 
 (*These are NOT supplied by default!*)
-val distrib_simps  = map int_prove_fun
+bind_thms ("distrib_simps", map int_prove_fun
  ["P & (Q | R) <-> P&Q | P&R",
   "(Q | R) & P <-> Q&P | R&P",
-  "(P | Q --> R) <-> (P --> R) & (Q --> R)"];
+  "(P | Q --> R) <-> (P --> R) & (Q --> R)"]);
 
 (** Conversion into rewrite rules **)
 
 fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
 
-val P_iff_F = int_prove_fun "~P ==> (P <-> False)";
-val iff_reflection_F = P_iff_F RS iff_reflection;
+bind_thm ("P_iff_F", int_prove_fun "~P ==> (P <-> False)");
+bind_thm ("iff_reflection_F", P_iff_F RS iff_reflection);
 
-val P_iff_T = int_prove_fun "P ==> (P <-> True)";
-val iff_reflection_T = P_iff_T RS iff_reflection;
+bind_thm ("P_iff_T", int_prove_fun "P ==> (P <-> True)");
+bind_thm ("iff_reflection_T", P_iff_T RS iff_reflection);
 
 (*Make meta-equalities.  The operator below is Trueprop*)
 
@@ -135,7 +135,7 @@ fun prove_fun s =
 
 (*Avoids duplication of subgoals after expand_if, when the true and false
   cases boil down to the same thing.*)
-val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
+bind_thm ("cases_simp", prove_fun "(P --> Q) & (~P --> Q) <-> Q");
 
 
 (*** Miniscoping: pushing quantifiers in
@@ -145,32 +145,32 @@ val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
 ***)
 
 (*existential miniscoping*)
-val int_ex_simps = map int_prove_fun
-                     ["(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
-                      "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
-                      "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
-                      "(EX x. P | Q(x)) <-> P | (EX x. Q(x))"];
+bind_thms ("int_ex_simps", map int_prove_fun
+ ["(EX x. P(x) & Q) <-> (EX x. P(x)) & Q",
+  "(EX x. P & Q(x)) <-> P & (EX x. Q(x))",
+  "(EX x. P(x) | Q) <-> (EX x. P(x)) | Q",
+  "(EX x. P | Q(x)) <-> P | (EX x. Q(x))"]);
 
 (*classical rules*)
-val cla_ex_simps = map prove_fun
-                     ["(EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
-                      "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"];
+bind_thms ("cla_ex_simps", map prove_fun
+ ["(EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q",
+  "(EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"]);
 
-val ex_simps = int_ex_simps @ cla_ex_simps;
+bind_thms ("ex_simps", int_ex_simps @ cla_ex_simps);
 
 (*universal miniscoping*)
-val int_all_simps = map int_prove_fun
-                      ["(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
-                       "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
-                       "(ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
-                       "(ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"];
+bind_thms ("int_all_simps", map int_prove_fun
+ ["(ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q",
+  "(ALL x. P & Q(x)) <-> P & (ALL x. Q(x))",
+  "(ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q",
+  "(ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"]);
 
 (*classical rules*)
-val cla_all_simps = map prove_fun
-                      ["(ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
-                       "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"];
+bind_thms ("cla_all_simps", map prove_fun
+ ["(ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q",
+  "(ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"]);
 
-val all_simps = int_all_simps @ cla_all_simps;
+bind_thms ("all_simps", int_all_simps @ cla_all_simps);
 
 
 (*** Named rewrite rules proved for IFOL ***)
@@ -183,11 +183,11 @@ fun prove nm thm  = qed_goal nm (the_context ()) thm (fn _ => [Blast_tac 1]);
 
 int_prove "conj_commute" "P&Q <-> Q&P";
 int_prove "conj_left_commute" "P&(Q&R) <-> Q&(P&R)";
-val conj_comms = [conj_commute, conj_left_commute];
+bind_thms ("conj_comms", [conj_commute, conj_left_commute]);
 
 int_prove "disj_commute" "P|Q <-> Q|P";
 int_prove "disj_left_commute" "P|(Q|R) <-> Q|(P|R)";
-val disj_comms = [disj_commute, disj_left_commute];
+bind_thms ("disj_comms", [disj_commute, disj_left_commute]);
 
 int_prove "conj_disj_distribL" "P&(Q|R) <-> (P&Q | P&R)";
 int_prove "conj_disj_distribR" "(P|Q)&R <-> (P&R | Q&R)";
@@ -272,8 +272,8 @@ end;
 
 (*** Case splitting ***)
 
-val meta_eq_to_iff = prove_goal IFOL.thy "x==y ==> x<->y"
-  (fn [prem] => [rewtac prem, rtac iffI 1, atac 1, atac 1]);
+bind_thm ("meta_eq_to_iff", prove_goal IFOL.thy "x==y ==> x<->y"
+  (fn [prem] => [rewtac prem, rtac iffI 1, atac 1, atac 1]));
 
 structure SplitterData =
   struct
@@ -307,16 +307,16 @@ structure Induction = InductionFun(struct val spec=IFOL.spec end);
 open Induction;
 
 
-val meta_simps =
-   [triv_forall_equality,  (* prunes params *)
-    True_implies_equals];  (* prune asms `True' *)
+bind_thms ("meta_simps",
+ [triv_forall_equality,   (* prunes params *)
+  True_implies_equals]);  (* prune asms `True' *)
 
-val IFOL_simps =
-    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @
-    imp_simps @ iff_simps @ quant_simps;
+bind_thms ("IFOL_simps",
+ [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @
+  imp_simps @ iff_simps @ quant_simps);
 
-val notFalseI = int_prove_fun "~False";
-val triv_rls = [TrueI,refl,reflexive_thm,iff_refl,notFalseI];
+bind_thm ("notFalseI", int_prove_fun "~False");
+bind_thms ("triv_rls", [TrueI,refl,reflexive_thm,iff_refl,notFalseI]);
 
 fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
                                  atac, etac FalseE];
@@ -339,14 +339,14 @@ val IFOL_ss = FOL_basic_ss
   addsimprocs [defALL_regroup, defEX_regroup]    
   addcongs [imp_cong];
 
-val cla_simps =
-    [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,
-     not_all, not_ex, cases_simp] @
-    map prove_fun
-     ["~(P&Q)  <-> ~P | ~Q",
-      "P | ~P",             "~P | P",
-      "~ ~ P <-> P",        "(~P --> P) <-> P",
-      "(~P <-> ~Q) <-> (P<->Q)"];
+bind_thms ("cla_simps",
+  [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,
+   not_all, not_ex, cases_simp] @
+  map prove_fun
+   ["~(P&Q) <-> ~P | ~Q",
+    "P | ~P",             "~P | P",
+    "~ ~ P <-> P",        "(~P --> P) <-> P",
+    "(~P <-> ~Q) <-> (P<->Q)"]);
 
 (*classical simprules too*)
 val FOL_ss = IFOL_ss addsimps (cla_simps @ cla_ex_simps @ cla_all_simps);
