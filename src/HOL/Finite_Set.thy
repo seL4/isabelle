@@ -3,7 +3,9 @@
     Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
                 Additions by Jeremy Avigad in Feb 2004
 
-FIXME: define card via fold and derive as many lemmas as possible from fold.
+Get rid of a couple of superfluous finiteness assumptions in lemmas
+about setsum and card - see FIXME.
+NB: the analogous lemmas for setprod should also be simplified!
 *)
 
 header {* Finite sets *}
@@ -290,6 +292,10 @@ lemma finite_SigmaI [simp]:
     "finite A ==> (!!a. a:A ==> finite (B a)) ==> finite (SIGMA a:A. B a)"
   by (unfold Sigma_def) (blast intro!: finite_UN_I)
 
+lemma finite_cartesian_product: "[| finite A; finite B |] ==>
+    finite (A <*> B)"
+  by (rule finite_SigmaI)
+
 lemma finite_Prod_UNIV:
     "finite (UNIV::'a set) ==> finite (UNIV::'b set) ==> finite (UNIV::('a * 'b) set)"
   apply (subgoal_tac "(UNIV:: ('a * 'b) set) = Sigma UNIV (%x. UNIV)")
@@ -371,10 +377,6 @@ lemma finite_trancl: "finite (r^+) = finite r"
    apply (auto simp add: finite_Field)
   done
 
-lemma finite_cartesian_product: "[| finite A; finite B |] ==>
-    finite (A <*> B)"
-  by (rule finite_SigmaI)
-
 
 subsection {* A fold functional for finite sets *}
 
@@ -437,6 +439,22 @@ proof -
   thus ?thesis by (subst commute)
 qed
 
+text{* Instantiation of locales: *}
+
+lemma ACf_add: "ACf (op + :: 'a::comm_monoid_add \<Rightarrow> 'a \<Rightarrow> 'a)"
+by(fastsimp intro: ACf.intro add_assoc add_commute)
+
+lemma ACe_add: "ACe (op +) (0::'a::comm_monoid_add)"
+by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_add)
+
+
+lemma ACf_mult: "ACf (op * :: 'a::comm_monoid_mult \<Rightarrow> 'a \<Rightarrow> 'a)"
+by(fast intro: ACf.intro mult_assoc ab_semigroup_mult.mult_commute)
+
+lemma ACe_mult: "ACe (op *) (1::'a::comm_monoid_mult)"
+by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_mult)
+
+
 subsubsection{*From @{term foldSet} to @{term fold}*}
 
 lemma (in ACf) foldSet_determ_aux:
@@ -476,8 +494,6 @@ next
 	  and z: "(C,z) \<in> foldSet f g e" and notinC: "c \<notin> C"
 	hence A2: "A = insert c C" and x': "x' = g c \<cdot> z" by auto
 	let ?h = "%i. if h i = b then h n else h i"
-	have finA: "finite A" by(rule foldSet_imp_finite[OF Afoldx])
-(* move down? *)
 	have less: "B = ?h`{i. i<n}" (is "_ = ?r")
 	proof
 	  show "B \<subseteq> ?r"
@@ -534,7 +550,8 @@ next
 	  let ?D = "B - {c}"
 	  have B: "B = insert c ?D" and C: "C = insert b ?D"
 	    using A1 A2 notinB notinC diff by(blast elim!:equalityE)+
-	  have "finite ?D" using finA A1 by simp
+	  have "finite A" by(rule foldSet_imp_finite[OF Afoldx])
+	  with A1 have "finite ?D" by simp
 	  then obtain d where Dfoldd: "(?D,d) \<in> foldSet f g e"
 	    using finite_imp_foldSet by rules
 	  moreover have cinB: "c \<in> B" using B by(auto)
@@ -708,12 +725,6 @@ lemma (in ACf) fold_insert[simp]:
     cong add: conj_cong simp add: fold_def [symmetric] fold_equality)
   done
 
-text{* Its definitional form: *}
-
-corollary (in ACf) fold_insert_def:
-    "\<lbrakk> F \<equiv> fold f g e; finite A; x \<notin> A \<rbrakk> \<Longrightarrow> F (insert x A) = f (g x) (F A)"
-by(simp)
-
 declare
   empty_foldSetE [rule del]  foldSet.intros [rule del]
   -- {* Delete rules to do with @{text foldSet} relation. *}
@@ -812,97 +823,547 @@ apply (simp add:AC)
 done
 
 
-subsection {* Finite cardinality *}
+subsection {* Generalized summation over a set *}
 
-text {*
-  This definition, although traditional, is ugly to work with: @{text
-  "card A == LEAST n. EX f. A = {f i | i. i < n}"}.  Therefore we have
-  switched to an inductive one:
+constdefs
+  setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
+  "setsum f A == if finite A then fold (op +) f 0 A else 0"
+
+text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
+written @{text"\<Sum>x\<in>A. e"}. *}
+
+syntax
+  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_. _)" [0, 51, 10] 10)
+syntax (xsymbols)
+  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
+syntax (HTML output)
+  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
+
+translations -- {* Beware of argument permutation! *}
+  "SUM i:A. b" == "setsum (%i. b) A"
+  "\<Sum>i\<in>A. b" == "setsum (%i. b) A"
+
+text{* Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
+ @{text"\<Sum>x|P. e"}. *}
+
+syntax
+  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
+syntax (xsymbols)
+  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
+syntax (HTML output)
+  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
+
+translations
+  "SUM x|P. t" => "setsum (%x. t) {x. P}"
+  "\<Sum>x|P. t" => "setsum (%x. t) {x. P}"
+
+text{* Finally we abbreviate @{term"\<Sum>x\<in>A. x"} by @{text"\<Sum>A"}. *}
+
+syntax
+  "_Setsum" :: "'a set => 'a::comm_monoid_mult"  ("\<Sum>_" [1000] 999)
+
+parse_translation {*
+  let
+    fun Setsum_tr [A] = Syntax.const "setsum" $ Abs ("", dummyT, Bound 0) $ A
+  in [("_Setsum", Setsum_tr)] end;
 *}
 
-consts cardR :: "('a set \<times> nat) set"
+print_translation {*
+let
+  fun setsum_tr' [Abs(_,_,Bound 0), A] = Syntax.const "_Setsum" $ A
+    | setsum_tr' [Abs(x,Tx,t), Const ("Collect",_) $ Abs(y,Ty,P)] = 
+       if x<>y then raise Match
+       else let val x' = Syntax.mark_bound x
+                val t' = subst_bound(x',t)
+                val P' = subst_bound(x',P)
+            in Syntax.const "_qsetsum" $ Syntax.mark_bound x $ P' $ t' end
+in
+[("setsum", setsum_tr')]
+end
+*}
 
-inductive cardR
-  intros
-    EmptyI: "({}, 0) : cardR"
-    InsertI: "(A, n) : cardR ==> a \<notin> A ==> (insert a A, Suc n) : cardR"
+lemma setsum_empty [simp]: "setsum f {} = 0"
+  by (simp add: setsum_def)
+
+lemma setsum_insert [simp]:
+    "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
+  by (simp add: setsum_def ACf.fold_insert [OF ACf_add])
+
+lemma setsum_reindex:
+     "inj_on f B ==> setsum h (f ` B) = setsum (h \<circ> f) B"
+by(auto simp add: setsum_def ACf.fold_reindex[OF ACf_add] dest!:finite_imageD)
+
+lemma setsum_reindex_id:
+     "inj_on f B ==> setsum f B = setsum id (f ` B)"
+by (auto simp add: setsum_reindex)
+
+lemma setsum_cong:
+  "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
+by(fastsimp simp: setsum_def intro: ACf.fold_cong[OF ACf_add])
+
+lemma setsum_reindex_cong:
+     "[|inj_on f A; B = f ` A; !!a. g a = h (f a)|] 
+      ==> setsum h B = setsum g A"
+  by (simp add: setsum_reindex cong: setsum_cong)
+
+lemma setsum_0: "setsum (%i. 0) A = 0"
+apply (clarsimp simp: setsum_def)
+apply (erule finite_induct, auto simp:ACf.fold_insert [OF ACf_add])
+done
+
+lemma setsum_0': "ALL a:F. f a = 0 ==> setsum f F = 0"
+  apply (subgoal_tac "setsum f F = setsum (%x. 0) F")
+  apply (erule ssubst, rule setsum_0)
+  apply (rule setsum_cong, auto)
+  done
+
+lemma setsum_Un_Int: "finite A ==> finite B ==>
+  setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
+  -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
+by(simp add: setsum_def ACe.fold_Un_Int[OF ACe_add,symmetric])
+
+lemma setsum_Un_disjoint: "finite A ==> finite B
+  ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
+by (subst setsum_Un_Int [symmetric], auto)
+
+(* FIXME get rid of finite I. If infinite, rhs is directly 0, and UNION I A
+is also infinite and hence also 0 *)
+lemma setsum_UN_disjoint:
+    "finite I ==> (ALL i:I. finite (A i)) ==>
+        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
+      setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
+by(simp add: setsum_def ACe.fold_UN_disjoint[OF ACe_add] cong: setsum_cong)
+
+
+(* FIXME get rid of finite C. If infinite, rhs is directly 0, and Union C
+is also infinite and hence also 0 *)
+lemma setsum_Union_disjoint:
+  "finite C ==> (ALL A:C. finite A) ==>
+        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
+      setsum f (Union C) = setsum (setsum f) C"
+  apply (frule setsum_UN_disjoint [of C id f])
+  apply (unfold Union_def id_def, assumption+)
+  done
+
+(* FIXME get rid of finite A. If infinite, lhs is directly 0, and SIGMA A B
+is either infinite or empty, and in both cases the rhs is also 0 *)
+lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
+    (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) =
+    (\<Sum>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
+by(simp add:setsum_def ACe.fold_Sigma[OF ACe_add] split_def cong:setsum_cong)
+
+lemma setsum_cartesian_product: "finite A ==> finite B ==>
+    (\<Sum>x\<in>A. (\<Sum>y\<in>B. f x y)) =
+    (\<Sum>z\<in>A <*> B. f (fst z) (snd z))"
+  by (erule setsum_Sigma, auto)
+
+lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
+by(simp add:setsum_def ACe.fold_distrib[OF ACe_add])
+
+
+subsubsection {* Properties in more restricted classes of structures *}
+
+lemma setsum_SucD: "setsum f A = Suc n ==> EX a:A. 0 < f a"
+  apply (case_tac "finite A")
+   prefer 2 apply (simp add: setsum_def)
+  apply (erule rev_mp)
+  apply (erule finite_induct, auto)
+  done
+
+lemma setsum_eq_0_iff [simp]:
+    "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))"
+  by (induct set: Finites) auto
+
+lemma setsum_Un_nat: "finite A ==> finite B ==>
+    (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
+  -- {* For the natural numbers, we have subtraction. *}
+  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
+
+lemma setsum_Un: "finite A ==> finite B ==>
+    (setsum f (A Un B) :: 'a :: ab_group_add) =
+      setsum f A + setsum f B - setsum f (A Int B)"
+  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
+
+lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
+    (if a:A then setsum f A - f a else setsum f A)"
+  apply (case_tac "finite A")
+   prefer 2 apply (simp add: setsum_def)
+  apply (erule finite_induct)
+   apply (auto simp add: insert_Diff_if)
+  apply (drule_tac a = a in mk_disjoint_insert, auto)
+  done
+
+lemma setsum_diff1: "finite A \<Longrightarrow>
+  (setsum f (A - {a}) :: ('a::ab_group_add)) =
+  (if a:A then setsum f A - f a else setsum f A)"
+  by (erule finite_induct) (auto simp add: insert_Diff_if)
+
+(* By Jeremy Siek: *)
+
+lemma setsum_diff_nat: 
+  assumes finB: "finite B"
+  shows "B \<subseteq> A \<Longrightarrow> (setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
+using finB
+proof (induct)
+  show "setsum f (A - {}) = (setsum f A) - (setsum f {})" by simp
+next
+  fix F x assume finF: "finite F" and xnotinF: "x \<notin> F"
+    and xFinA: "insert x F \<subseteq> A"
+    and IH: "F \<subseteq> A \<Longrightarrow> setsum f (A - F) = setsum f A - setsum f F"
+  from xnotinF xFinA have xinAF: "x \<in> (A - F)" by simp
+  from xinAF have A: "setsum f ((A - F) - {x}) = setsum f (A - F) - f x"
+    by (simp add: setsum_diff1_nat)
+  from xFinA have "F \<subseteq> A" by simp
+  with IH have "setsum f (A - F) = setsum f A - setsum f F" by simp
+  with A have B: "setsum f ((A - F) - {x}) = setsum f A - setsum f F - f x"
+    by simp
+  from xnotinF have "A - insert x F = (A - F) - {x}" by auto
+  with B have C: "setsum f (A - insert x F) = setsum f A - setsum f F - f x"
+    by simp
+  from finF xnotinF have "setsum f (insert x F) = setsum f F + f x" by simp
+  with C have "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)"
+    by simp
+  thus "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)" by simp
+qed
+
+lemma setsum_diff:
+  assumes le: "finite A" "B \<subseteq> A"
+  shows "setsum f (A - B) = setsum f A - ((setsum f B)::('a::ab_group_add))"
+proof -
+  from le have finiteB: "finite B" using finite_subset by auto
+  show ?thesis using finiteB le
+    proof (induct)
+      case empty
+      thus ?case by auto
+    next
+      case (insert x F)
+      thus ?case using le finiteB 
+	by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
+    qed
+  qed
+
+lemma setsum_mono:
+  assumes le: "\<And>i. i\<in>K \<Longrightarrow> f (i::'a) \<le> ((g i)::('b::{comm_monoid_add, pordered_ab_semigroup_add}))"
+  shows "(\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
+proof (cases "finite K")
+  case True
+  thus ?thesis using le
+  proof (induct)
+    case empty
+    thus ?case by simp
+  next
+    case insert
+    thus ?case using add_mono 
+      by force
+  qed
+next
+  case False
+  thus ?thesis
+    by (simp add: setsum_def)
+qed
+
+lemma setsum_mono2_nat:
+  assumes fin: "finite B" and sub: "A \<subseteq> B"
+shows "setsum f A \<le> (setsum f B :: nat)"
+proof -
+  have "setsum f A \<le> setsum f A + setsum f (B-A)" by arith
+  also have "\<dots> = setsum f (A \<union> (B-A))" using fin finite_subset[OF sub fin]
+    by (simp add:setsum_Un_disjoint del:Un_Diff_cancel)
+  also have "A \<union> (B-A) = B" using sub by blast
+  finally show ?thesis .
+qed
+
+lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::ab_group_add) A =
+  - setsum f A"
+  by (induct set: Finites, auto)
+
+lemma setsum_subtractf: "finite A ==> setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
+  setsum f A - setsum g A"
+  by (simp add: diff_minus setsum_addf setsum_negf)
+
+lemma setsum_nonneg: "[| finite A;
+    \<forall>x \<in> A. (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) \<le> f x |] ==>
+    0 \<le> setsum f A";
+  apply (induct set: Finites, auto)
+  apply (subgoal_tac "0 + 0 \<le> f x + setsum f F", simp)
+  apply (blast intro: add_mono)
+  done
+
+lemma setsum_nonpos: "[| finite A;
+    \<forall>x \<in> A. f x \<le> (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) |] ==>
+    setsum f A \<le> 0";
+  apply (induct set: Finites, auto)
+  apply (subgoal_tac "f x + setsum f F \<le> 0 + 0", simp)
+  apply (blast intro: add_mono)
+  done
+
+lemma setsum_mult: 
+  fixes f :: "'a => ('b::semiring_0_cancel)"
+  shows "r * setsum f A = setsum (%n. r * f n) A"
+proof (cases "finite A")
+  case True
+  thus ?thesis
+  proof (induct)
+    case empty thus ?case by simp
+  next
+    case (insert x A) thus ?case by (simp add: right_distrib)
+  qed
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
+
+lemma setsum_abs: 
+  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  assumes fin: "finite A" 
+  shows "abs (setsum f A) \<le> setsum (%i. abs(f i)) A"
+using fin 
+proof (induct) 
+  case empty thus ?case by simp
+next
+  case (insert x A)
+  thus ?case by (auto intro: abs_triangle_ineq order_trans)
+qed
+
+lemma setsum_abs_ge_zero: 
+  fixes f :: "'a => ('b::lordered_ab_group_abs)"
+  assumes fin: "finite A" 
+  shows "0 \<le> setsum (%i. abs(f i)) A"
+using fin 
+proof (induct) 
+  case empty thus ?case by simp
+next
+  case (insert x A) thus ?case by (auto intro: order_trans)
+qed
+
+
+subsection {* Generalized product over a set *}
+
+constdefs
+  setprod :: "('a => 'b) => 'a set => 'b::comm_monoid_mult"
+  "setprod f A == if finite A then fold (op *) f 1 A else 1"
+
+syntax
+  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_:_. _)" [0, 51, 10] 10)
+
+syntax (xsymbols)
+  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
+syntax (HTML output)
+  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
+translations
+  "\<Prod>i:A. b" == "setprod (%i. b) A"  -- {* Beware of argument permutation! *}
+
+syntax
+  "_Setprod" :: "'a set => 'a::comm_monoid_mult"  ("\<Prod>_" [1000] 999)
+
+parse_translation {*
+  let
+    fun Setprod_tr [A] = Syntax.const "setprod" $ Abs ("", dummyT, Bound 0) $ A
+  in [("_Setprod", Setprod_tr)] end;
+*}
+print_translation {*
+let fun setprod_tr' [Abs(x,Tx,t), A] =
+    if t = Bound 0 then Syntax.const "_Setprod" $ A else raise Match
+in
+[("setprod", setprod_tr')]
+end
+*}
+
+
+lemma setprod_empty [simp]: "setprod f {} = 1"
+  by (auto simp add: setprod_def)
+
+lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
+    setprod f (insert a A) = f a * setprod f A"
+by (simp add: setprod_def ACf.fold_insert [OF ACf_mult])
+
+lemma setprod_reindex:
+     "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
+by(auto simp: setprod_def ACf.fold_reindex[OF ACf_mult] dest!:finite_imageD)
+
+lemma setprod_reindex_id: "inj_on f B ==> setprod f B = setprod id (f ` B)"
+by (auto simp add: setprod_reindex)
+
+lemma setprod_cong:
+  "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
+by(fastsimp simp: setprod_def intro: ACf.fold_cong[OF ACf_mult])
+
+lemma setprod_reindex_cong: "inj_on f A ==>
+    B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
+  by (frule setprod_reindex, simp)
+
+
+lemma setprod_1: "setprod (%i. 1) A = 1"
+  apply (case_tac "finite A")
+  apply (erule finite_induct, auto simp add: mult_ac)
+  apply (simp add: setprod_def)
+  done
+
+lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
+  apply (subgoal_tac "setprod f F = setprod (%x. 1) F")
+  apply (erule ssubst, rule setprod_1)
+  apply (rule setprod_cong, auto)
+  done
+
+lemma setprod_Un_Int: "finite A ==> finite B
+    ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
+by(simp add: setprod_def ACe.fold_Un_Int[OF ACe_mult,symmetric])
+
+lemma setprod_Un_disjoint: "finite A ==> finite B
+  ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
+by (subst setprod_Un_Int [symmetric], auto)
+
+lemma setprod_UN_disjoint:
+    "finite I ==> (ALL i:I. finite (A i)) ==>
+        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
+      setprod f (UNION I A) = setprod (%i. setprod f (A i)) I"
+by(simp add: setprod_def ACe.fold_UN_disjoint[OF ACe_mult] cong: setprod_cong)
+
+lemma setprod_Union_disjoint:
+  "finite C ==> (ALL A:C. finite A) ==>
+        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
+      setprod f (Union C) = setprod (setprod f) C"
+  apply (frule setprod_UN_disjoint [of C id f])
+  apply (unfold Union_def id_def, assumption+)
+  done
+
+lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
+    (\<Prod>x:A. (\<Prod>y: B x. f x y)) =
+    (\<Prod>z:(SIGMA x:A. B x). f (fst z) (snd z))"
+by(simp add:setprod_def ACe.fold_Sigma[OF ACe_mult] split_def cong:setprod_cong)
+
+lemma setprod_cartesian_product: "finite A ==> finite B ==>
+    (\<Prod>x:A. (\<Prod>y: B. f x y)) =
+    (\<Prod>z:(A <*> B). f (fst z) (snd z))"
+  by (erule setprod_Sigma, auto)
+
+lemma setprod_timesf:
+  "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
+by(simp add:setprod_def ACe.fold_distrib[OF ACe_mult])
+
+
+subsubsection {* Properties in more restricted classes of structures *}
+
+lemma setprod_eq_1_iff [simp]:
+    "finite F ==> (setprod f F = 1) = (ALL a:F. f a = (1::nat))"
+  by (induct set: Finites) auto
+
+lemma setprod_zero:
+     "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1_cancel) ==> setprod f A = 0"
+  apply (induct set: Finites, force, clarsimp)
+  apply (erule disjE, auto)
+  done
+
+lemma setprod_nonneg [rule_format]:
+     "(ALL x: A. (0::'a::ordered_idom) \<le> f x) --> 0 \<le> setprod f A"
+  apply (case_tac "finite A")
+  apply (induct set: Finites, force, clarsimp)
+  apply (subgoal_tac "0 * 0 \<le> f x * setprod f F", force)
+  apply (rule mult_mono, assumption+)
+  apply (auto simp add: setprod_def)
+  done
+
+lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_idom) < f x)
+     --> 0 < setprod f A"
+  apply (case_tac "finite A")
+  apply (induct set: Finites, force, clarsimp)
+  apply (subgoal_tac "0 * 0 < f x * setprod f F", force)
+  apply (rule mult_strict_mono, assumption+)
+  apply (auto simp add: setprod_def)
+  done
+
+lemma setprod_nonzero [rule_format]:
+    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
+      finite A ==> (ALL x: A. f x \<noteq> (0::'a)) --> setprod f A \<noteq> 0"
+  apply (erule finite_induct, auto)
+  done
+
+lemma setprod_zero_eq:
+    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
+     finite A ==> (setprod f A = (0::'a)) = (EX x: A. f x = 0)"
+  apply (insert setprod_zero [of A f] setprod_nonzero [of A f], blast)
+  done
+
+lemma setprod_nonzero_field:
+    "finite A ==> (ALL x: A. f x \<noteq> (0::'a::field)) ==> setprod f A \<noteq> 0"
+  apply (rule setprod_nonzero, auto)
+  done
+
+lemma setprod_zero_eq_field:
+    "finite A ==> (setprod f A = (0::'a::field)) = (EX x: A. f x = 0)"
+  apply (rule setprod_zero_eq, auto)
+  done
+
+lemma setprod_Un: "finite A ==> finite B ==> (ALL x: A Int B. f x \<noteq> 0) ==>
+    (setprod f (A Un B) :: 'a ::{field})
+      = setprod f A * setprod f B / setprod f (A Int B)"
+  apply (subst setprod_Un_Int [symmetric], auto)
+  apply (subgoal_tac "finite (A Int B)")
+  apply (frule setprod_nonzero_field [of "A Int B" f], assumption)
+  apply (subst times_divide_eq_right [THEN sym], auto simp add: divide_self)
+  done
+
+lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
+    (setprod f (A - {a}) :: 'a :: {field}) =
+      (if a:A then setprod f A / f a else setprod f A)"
+  apply (erule finite_induct)
+   apply (auto simp add: insert_Diff_if)
+  apply (subgoal_tac "f a * setprod f F / f a = setprod f F * f a / f a")
+  apply (erule ssubst)
+  apply (subst times_divide_eq_right [THEN sym])
+  apply (auto simp add: mult_ac times_divide_eq_right divide_self)
+  done
+
+lemma setprod_inversef: "finite A ==>
+    ALL x: A. f x \<noteq> (0::'a::{field,division_by_zero}) ==>
+      setprod (inverse \<circ> f) A = inverse (setprod f A)"
+  apply (erule finite_induct)
+  apply (simp, simp)
+  done
+
+lemma setprod_dividef:
+     "[|finite A;
+        \<forall>x \<in> A. g x \<noteq> (0::'a::{field,division_by_zero})|]
+      ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
+  apply (subgoal_tac
+         "setprod (%x. f x / g x) A = setprod (%x. f x * (inverse \<circ> g) x) A")
+  apply (erule ssubst)
+  apply (subst divide_inverse)
+  apply (subst setprod_timesf)
+  apply (subst setprod_inversef, assumption+, rule refl)
+  apply (rule setprod_cong, rule refl)
+  apply (subst divide_inverse, auto)
+  done
+
+subsection {* Finite cardinality *}
+
+text {* This definition, although traditional, is ugly to work with:
+@{text "card A == LEAST n. EX f. A = {f i | i. i < n}"}.
+But now that we have @{text setsum} things are easy:
+*}
 
 constdefs
   card :: "'a set => nat"
-  "card A == THE n. (A, n) : cardR"
-
-inductive_cases cardR_emptyE: "({}, n) : cardR"
-inductive_cases cardR_insertE: "(insert a A,n) : cardR"
-
-lemma cardR_SucD: "(A, n) : cardR ==> a : A --> (EX m. n = Suc m)"
-  by (induct set: cardR) simp_all
-
-lemma cardR_determ_aux1:
-    "(A, m): cardR ==> (!!n a. m = Suc n ==> a:A ==> (A - {a}, n) : cardR)"
-  apply (induct set: cardR, auto)
-  apply (simp add: insert_Diff_if, auto)
-  apply (drule cardR_SucD)
-  apply (blast intro!: cardR.intros)
-  done
-
-lemma cardR_determ_aux2: "(insert a A, Suc m) : cardR ==> a \<notin> A ==> (A, m) : cardR"
-  by (drule cardR_determ_aux1) auto
-
-lemma cardR_determ: "(A, m): cardR ==> (!!n. (A, n) : cardR ==> n = m)"
-  apply (induct set: cardR)
-   apply (safe elim!: cardR_emptyE cardR_insertE)
-  apply (rename_tac B b m)
-  apply (case_tac "a = b")
-   apply (subgoal_tac "A = B")
-    prefer 2 apply (blast elim: equalityE, blast)
-  apply (subgoal_tac "EX C. A = insert b C & B = insert a C")
-   prefer 2
-   apply (rule_tac x = "A Int B" in exI)
-   apply (blast elim: equalityE)
-  apply (frule_tac A = B in cardR_SucD)
-  apply (blast intro!: cardR.intros dest!: cardR_determ_aux2)
-  done
-
-lemma cardR_imp_finite: "(A, n) : cardR ==> finite A"
-  by (induct set: cardR) simp_all
-
-lemma finite_imp_cardR: "finite A ==> EX n. (A, n) : cardR"
-  by (induct set: Finites) (auto intro!: cardR.intros)
-
-lemma card_equality: "(A,n) : cardR ==> card A = n"
-  by (unfold card_def) (blast intro: cardR_determ)
+  "card A == setsum (%x. 1::nat) A"
 
 lemma card_empty [simp]: "card {} = 0"
-  by (unfold card_def) (blast intro!: cardR.intros elim!: cardR_emptyE)
+  by (simp add: card_def)
+
+lemma card_eq_setsum: "card A = setsum (%x. 1) A"
+by (simp add: card_def)
 
 lemma card_insert_disjoint [simp]:
   "finite A ==> x \<notin> A ==> card (insert x A) = Suc(card A)"
-proof -
-  assume x: "x \<notin> A"
-  hence aux: "!!n. ((insert x A, n) : cardR) = (EX m. (A, m) : cardR & n = Suc m)"
-    apply (auto intro!: cardR.intros)
-    apply (rule_tac A1 = A in finite_imp_cardR [THEN exE])
-     apply (force dest: cardR_imp_finite)
-    apply (blast intro!: cardR.intros intro: cardR_determ)
-    done
-  assume "finite A"
-  thus ?thesis
-    apply (simp add: card_def aux)
-    apply (rule the_equality)
-     apply (auto intro: finite_imp_cardR
-       cong: conj_cong simp: card_def [symmetric] card_equality)
-    done
-qed
-
-lemma card_0_eq [simp]: "finite A ==> (card A = 0) = (A = {})"
-  apply auto
-  apply (drule_tac a = x in mk_disjoint_insert, clarify)
-  apply (rotate_tac -1, auto)
-  done
+by(simp add: card_def ACf.fold_insert[OF ACf_add])
 
 lemma card_insert_if:
     "finite A ==> card (insert x A) = (if x:A then card A else Suc(card(A)))"
   by (simp add: insert_absorb)
+
+lemma card_0_eq [simp]: "finite A ==> (card A = 0) = (A = {})"
+  apply auto
+  apply (drule_tac a = x in mk_disjoint_insert, clarify)
+  apply (auto)
+  done
 
 lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
 apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
@@ -923,6 +1384,9 @@ lemma card_insert: "finite A ==> card (insert x A) = Suc (card (A - {x}))"
 lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
   by (simp add: card_insert_if)
 
+lemma card_mono: "\<lbrakk> finite B; A \<subseteq> B \<rbrakk> \<Longrightarrow> card A \<le> card B"
+by (simp add: card_def setsum_mono2_nat)
+
 lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
   apply (induct set: Finites, simp, clarify)
   apply (subgoal_tac "finite A & A - {x} <= F")
@@ -937,33 +1401,17 @@ lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
   apply (blast dest: card_seteq)
   done
 
-lemma card_mono: "finite B ==> A <= B ==> card A <= card B"
-  apply (case_tac "A = B", simp)
-  apply (simp add: linorder_not_less [symmetric])
-  apply (blast dest: card_seteq intro: order_less_imp_le)
-  done
-
 lemma card_Un_Int: "finite A ==> finite B
     ==> card A + card B = card (A Un B) + card (A Int B)"
-  apply (induct set: Finites, simp)
-  apply (simp add: insert_absorb Int_insert_left)
-  done
+by(simp add:card_def setsum_Un_Int)
 
 lemma card_Un_disjoint: "finite A ==> finite B
     ==> A Int B = {} ==> card (A Un B) = card A + card B"
   by (simp add: card_Un_Int)
 
 lemma card_Diff_subset:
-    "finite A ==> B <= A ==> card A - card B = card (A - B)"
-  apply (subgoal_tac "(A - B) Un B = A")
-   prefer 2 apply blast
-  apply (rule nat_add_right_cancel [THEN iffD1])
-  apply (rule card_Un_disjoint [THEN subst])
-     apply (erule_tac [4] ssubst)
-     prefer 3 apply blast
-    apply (simp_all add: add_commute not_less_iff_le
-      add_diff_inverse card_mono finite_subset)
-  done
+  "finite B ==> B <= A ==> card (A - B) = card A - card B"
+by(simp add:card_def setsum_diff_nat)
 
 lemma card_Diff1_less: "finite A ==> x: A ==> card (A - {x}) < card A"
   apply (rule Suc_less_SucD)
@@ -987,8 +1435,8 @@ lemma card_psubset: "finite B ==> A \<subseteq> B ==> card A < card B ==> A < B"
 by (erule psubsetI, blast)
 
 lemma insert_partition:
-     "[| x \<notin> F; \<forall>c1\<in>insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 --> c1 \<inter> c2 = {}|] 
-      ==> x \<inter> \<Union> F = {}"
+  "\<lbrakk> x \<notin> F; \<forall>c1 \<in> insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {} \<rbrakk>
+  \<Longrightarrow> x \<inter> \<Union> F = {}"
 by auto
 
 (* main cardinality theorem *)
@@ -1004,6 +1452,39 @@ apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition
 done
 
 
+lemma setsum_constant_nat:
+    "finite A ==> (\<Sum>x\<in>A. y) = (card A) * y"
+  -- {* Generalized to any @{text comm_semiring_1_cancel} in
+        @{text IntDef} as @{text setsum_constant}. *}
+by (erule finite_induct, auto)
+
+lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card A)"
+  apply (erule finite_induct)
+  apply (auto simp add: power_Suc)
+  done
+
+
+subsubsection {* Cardinality of unions *}
+
+lemma card_UN_disjoint:
+    "finite I ==> (ALL i:I. finite (A i)) ==>
+        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
+      card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
+  apply (simp add: card_def)
+  apply (subgoal_tac
+           "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
+  apply (simp add: setsum_UN_disjoint)
+  apply (simp add: setsum_constant_nat cong: setsum_cong)
+  done
+
+lemma card_Union_disjoint:
+  "finite C ==> (ALL A:C. finite A) ==>
+        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
+      card (Union C) = setsum card C"
+  apply (frule card_UN_disjoint [of C id])
+  apply (unfold Union_def id_def, assumption+)
+  done
+
 subsubsection {* Cardinality of image *}
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
@@ -1011,8 +1492,8 @@ lemma card_image_le: "finite A ==> card (f ` A) <= card A"
   apply (simp add: le_SucI finite_imageI card_insert_if)
   done
 
-lemma card_image: "finite A ==> inj_on f A ==> card (f ` A) = card A"
-by (induct set: Finites, simp_all)
+lemma card_image: "inj_on f A ==> card (f ` A) = card A"
+by(simp add:card_def setsum_reindex o_def)
 
 lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
   by (simp add: card_seteq card_image)
@@ -1028,6 +1509,46 @@ done
 lemma inj_on_iff_eq_card:
   "finite A ==> inj_on f A = (card(f ` A) = card A)"
 by(blast intro: card_image eq_card_imp_inj_on)
+
+
+lemma card_inj_on_le:
+    "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
+apply (subgoal_tac "finite A") 
+ apply (force intro: card_mono simp add: card_image [symmetric])
+apply (blast intro: finite_imageD dest: finite_subset) 
+done
+
+lemma card_bij_eq:
+    "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
+       finite A; finite B |] ==> card A = card B"
+  by (auto intro: le_anti_sym card_inj_on_le)
+
+
+subsubsection {* Cardinality of products *}
+
+(*
+lemma SigmaI_insert: "y \<notin> A ==>
+  (SIGMA x:(insert y A). B x) = (({y} <*> (B y)) \<union> (SIGMA x: A. B x))"
+  by auto
+*)
+
+lemma card_SigmaI [simp]:
+  "\<lbrakk> finite A; ALL a:A. finite (B a) \<rbrakk>
+  \<Longrightarrow> card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
+by(simp add:card_def setsum_Sigma)
+
+(* FIXME get rid of prems *)
+lemma card_cartesian_product:
+     "[| finite A; finite B |] ==> card (A <*> B) = card(A) * card(B)"
+  by (simp add: setsum_constant_nat)
+
+(* FIXME should really be a consequence of card_cartesian_product *)
+lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
+  apply (subgoal_tac "inj_on (%y .(x,y)) A")
+  apply (frule card_image)
+  apply (subgoal_tac "(Pair x ` A) = {x} <*> A")
+  apply (auto simp add: inj_on_def)
+  done
 
 
 subsubsection {* Cardinality of the Powerset *}
@@ -1083,18 +1604,6 @@ lemma choose_deconstruct: "finite M ==> x \<notin> M
   apply (erule rev_mp, subst card_Diff_singleton)
   apply (auto intro: finite_subset)
   done
-
-lemma card_inj_on_le:
-    "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
-apply (subgoal_tac "finite A") 
- apply (force intro: card_mono simp add: card_image [symmetric])
-apply (blast intro: finite_imageD dest: finite_subset) 
-done
-
-lemma card_bij_eq:
-    "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
-       finite A; finite B |] ==> card A = card B"
-  by (auto intro: le_anti_sym card_inj_on_le)
 
 text{*There are as many subsets of @{term A} having cardinality @{term k}
  as there are sets obtained from the former by inserting a fixed element
@@ -1371,7 +1880,7 @@ constdefs
   Max :: "('a::linorder)set => 'a"
   "Max  ==  fold1 max"
 
-text{* Now we instantiate the recursiuon equations and declare them
+text{* Now we instantiate the recursion equations and declare them
 simplification rules: *}
 
 declare
@@ -1446,578 +1955,5 @@ next
   qed
 qed
 
-
-subsection {* Generalized summation over a set *}
-
-constdefs
-  setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
-  "setsum f A == if finite A then fold (op +) f 0 A else 0"
-
-text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
-written @{text"\<Sum>x\<in>A. e"}. *}
-
-syntax
-  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_. _)" [0, 51, 10] 10)
-syntax (xsymbols)
-  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
-syntax (HTML output)
-  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
-
-translations -- {* Beware of argument permutation! *}
-  "SUM i:A. b" == "setsum (%i. b) A"
-  "\<Sum>i\<in>A. b" == "setsum (%i. b) A"
-
-text{* Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
- @{text"\<Sum>x|P. e"}. *}
-
-syntax
-  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
-syntax (xsymbols)
-  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
-syntax (HTML output)
-  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
-
-translations
-  "SUM x|P. t" => "setsum (%x. t) {x. P}"
-  "\<Sum>x|P. t" => "setsum (%x. t) {x. P}"
-
-text{* Finally we abbreviate @{term"\<Sum>x\<in>A. x"} by @{text"\<Sum>A"}. *}
-
-syntax
-  "_Setsum" :: "'a set => 'a::comm_monoid_mult"  ("\<Sum>_" [1000] 999)
-
-parse_translation {*
-  let
-    fun Setsum_tr [A] = Syntax.const "setsum" $ Abs ("", dummyT, Bound 0) $ A
-  in [("_Setsum", Setsum_tr)] end;
-*}
-
-print_translation {*
-let
-  fun setsum_tr' [Abs(_,_,Bound 0), A] = Syntax.const "_Setsum" $ A
-    | setsum_tr' [Abs(x,Tx,t), Const ("Collect",_) $ Abs(y,Ty,P)] = 
-       if x<>y then raise Match
-       else let val x' = Syntax.mark_bound x
-                val t' = subst_bound(x',t)
-                val P' = subst_bound(x',P)
-            in Syntax.const "_qsetsum" $ Syntax.mark_bound x $ P' $ t' end
-in
-[("setsum", setsum_tr')]
-end
-*}
-
-text{* Instantiation of locales: *}
-
-lemma ACf_add: "ACf (op + :: 'a::comm_monoid_add \<Rightarrow> 'a \<Rightarrow> 'a)"
-by(fastsimp intro: ACf.intro add_assoc add_commute)
-
-lemma ACe_add: "ACe (op +) (0::'a::comm_monoid_add)"
-by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_add)
-
-lemma setsum_empty [simp]: "setsum f {} = 0"
-  by (simp add: setsum_def)
-
-lemma setsum_insert [simp]:
-    "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
-  by (simp add: setsum_def ACf.fold_insert [OF ACf_add])
-
-lemma setsum_reindex:
-     "inj_on f B ==> setsum h (f ` B) = setsum (h \<circ> f) B"
-by(auto simp add: setsum_def ACf.fold_reindex[OF ACf_add] dest!:finite_imageD)
-
-lemma setsum_reindex_id:
-     "inj_on f B ==> setsum f B = setsum id (f ` B)"
-by (auto simp add: setsum_reindex)
-
-lemma setsum_cong:
-  "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
-by(fastsimp simp: setsum_def intro: ACf.fold_cong[OF ACf_add])
-
-lemma setsum_reindex_cong:
-     "[|inj_on f A; B = f ` A; !!a. g a = h (f a)|] 
-      ==> setsum h B = setsum g A"
-  by (simp add: setsum_reindex cong: setsum_cong)
-
-lemma setsum_0: "setsum (%i. 0) A = 0"
-apply (clarsimp simp: setsum_def)
-apply (erule finite_induct, auto simp:ACf.fold_insert [OF ACf_add])
-done
-
-lemma setsum_0': "ALL a:F. f a = 0 ==> setsum f F = 0"
-  apply (subgoal_tac "setsum f F = setsum (%x. 0) F")
-  apply (erule ssubst, rule setsum_0)
-  apply (rule setsum_cong, auto)
-  done
-
-lemma card_eq_setsum: "finite A ==> card A = setsum (%x. 1) A"
-  -- {* Could allow many @{text "card"} proofs to be simplified. *}
-  by (induct set: Finites) auto
-
-lemma setsum_Un_Int: "finite A ==> finite B ==>
-  setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
-  -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-by(simp add: setsum_def ACe.fold_Un_Int[OF ACe_add,symmetric])
-
-lemma setsum_Un_disjoint: "finite A ==> finite B
-  ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
-by (subst setsum_Un_Int [symmetric], auto)
-
-lemma setsum_UN_disjoint:
-    "finite I ==> (ALL i:I. finite (A i)) ==>
-        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
-      setsum f (UNION I A) = setsum (%i. setsum f (A i)) I"
-by(simp add: setsum_def ACe.fold_UN_disjoint[OF ACe_add] cong: setsum_cong)
-
-
-lemma setsum_Union_disjoint:
-  "finite C ==> (ALL A:C. finite A) ==>
-        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
-      setsum f (Union C) = setsum (setsum f) C"
-  apply (frule setsum_UN_disjoint [of C id f])
-  apply (unfold Union_def id_def, assumption+)
-  done
-
-lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-    (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) =
-    (\<Sum>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
-by(simp add:setsum_def ACe.fold_Sigma[OF ACe_add] split_def cong:setsum_cong)
-
-lemma setsum_cartesian_product: "finite A ==> finite B ==>
-    (\<Sum>x\<in>A. (\<Sum>y\<in>B. f x y)) =
-    (\<Sum>z\<in>A <*> B. f (fst z) (snd z))"
-  by (erule setsum_Sigma, auto)
-
-lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
-by(simp add:setsum_def ACe.fold_distrib[OF ACe_add])
-
-
-subsubsection {* Properties in more restricted classes of structures *}
-
-lemma setsum_SucD: "setsum f A = Suc n ==> EX a:A. 0 < f a"
-  apply (case_tac "finite A")
-   prefer 2 apply (simp add: setsum_def)
-  apply (erule rev_mp)
-  apply (erule finite_induct, auto)
-  done
-
-lemma setsum_eq_0_iff [simp]:
-    "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))"
-  by (induct set: Finites) auto
-
-lemma setsum_constant_nat:
-    "finite A ==> (\<Sum>x\<in>A. y) = (card A) * y"
-  -- {* Generalized to any @{text comm_semiring_1_cancel} in
-        @{text IntDef} as @{text setsum_constant}. *}
-  by (erule finite_induct, auto)
-
-lemma setsum_Un: "finite A ==> finite B ==>
-    (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
-  -- {* For the natural numbers, we have subtraction. *}
-  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
-
-lemma setsum_Un_ring: "finite A ==> finite B ==>
-    (setsum f (A Un B) :: 'a :: ab_group_add) =
-      setsum f A + setsum f B - setsum f (A Int B)"
-  by (subst setsum_Un_Int [symmetric], auto simp add: ring_eq_simps)
-
-lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
-    (if a:A then setsum f A - f a else setsum f A)"
-  apply (case_tac "finite A")
-   prefer 2 apply (simp add: setsum_def)
-  apply (erule finite_induct)
-   apply (auto simp add: insert_Diff_if)
-  apply (drule_tac a = a in mk_disjoint_insert, auto)
-  done
-
-lemma setsum_diff1: "finite A \<Longrightarrow>
-  (setsum f (A - {a}) :: ('a::{pordered_ab_group_add})) =
-  (if a:A then setsum f A - f a else setsum f A)"
-  by (erule finite_induct) (auto simp add: insert_Diff_if)
-
-(* By Jeremy Siek: *)
-
-lemma setsum_diff_nat: 
-  assumes finB: "finite B"
-  shows "B \<subseteq> A \<Longrightarrow> (setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
-using finB
-proof (induct)
-  show "setsum f (A - {}) = (setsum f A) - (setsum f {})" by simp
-next
-  fix F x assume finF: "finite F" and xnotinF: "x \<notin> F"
-    and xFinA: "insert x F \<subseteq> A"
-    and IH: "F \<subseteq> A \<Longrightarrow> setsum f (A - F) = setsum f A - setsum f F"
-  from xnotinF xFinA have xinAF: "x \<in> (A - F)" by simp
-  from xinAF have A: "setsum f ((A - F) - {x}) = setsum f (A - F) - f x"
-    by (simp add: setsum_diff1_nat)
-  from xFinA have "F \<subseteq> A" by simp
-  with IH have "setsum f (A - F) = setsum f A - setsum f F" by simp
-  with A have B: "setsum f ((A - F) - {x}) = setsum f A - setsum f F - f x"
-    by simp
-  from xnotinF have "A - insert x F = (A - F) - {x}" by auto
-  with B have C: "setsum f (A - insert x F) = setsum f A - setsum f F - f x"
-    by simp
-  from finF xnotinF have "setsum f (insert x F) = setsum f F + f x" by simp
-  with C have "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)"
-    by simp
-  thus "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)" by simp
-qed
-
-lemma setsum_diff:
-  assumes le: "finite A" "B \<subseteq> A"
-  shows "setsum f (A - B) = setsum f A - ((setsum f B)::('a::pordered_ab_group_add))"
-proof -
-  from le have finiteB: "finite B" using finite_subset by auto
-  show ?thesis using finiteB le
-    proof (induct)
-      case empty
-      thus ?case by auto
-    next
-      case (insert x F)
-      thus ?case using le finiteB 
-	by (simp add: Diff_insert[where a=x and B=F] setsum_diff1 insert_absorb)
-    qed
-  qed
-
-lemma setsum_mono:
-  assumes le: "\<And>i. i\<in>K \<Longrightarrow> f (i::'a) \<le> ((g i)::('b::{comm_monoid_add, pordered_ab_semigroup_add}))"
-  shows "(\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
-proof (cases "finite K")
-  case True
-  thus ?thesis using le
-  proof (induct)
-    case empty
-    thus ?case by simp
-  next
-    case insert
-    thus ?case using add_mono 
-      by force
-  qed
-next
-  case False
-  thus ?thesis
-    by (simp add: setsum_def)
-qed
-
-lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::ab_group_add) A =
-  - setsum f A"
-  by (induct set: Finites, auto)
-
-lemma setsum_subtractf: "finite A ==> setsum (%x. ((f x)::'a::ab_group_add) - g x) A =
-  setsum f A - setsum g A"
-  by (simp add: diff_minus setsum_addf setsum_negf)
-
-lemma setsum_nonneg: "[| finite A;
-    \<forall>x \<in> A. (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) \<le> f x |] ==>
-    0 \<le> setsum f A";
-  apply (induct set: Finites, auto)
-  apply (subgoal_tac "0 + 0 \<le> f x + setsum f F", simp)
-  apply (blast intro: add_mono)
-  done
-
-lemma setsum_nonpos: "[| finite A;
-    \<forall>x \<in> A. f x \<le> (0::'a::{pordered_ab_semigroup_add, comm_monoid_add}) |] ==>
-    setsum f A \<le> 0";
-  apply (induct set: Finites, auto)
-  apply (subgoal_tac "f x + setsum f F \<le> 0 + 0", simp)
-  apply (blast intro: add_mono)
-  done
-
-lemma setsum_mult: 
-  fixes f :: "'a => ('b::semiring_0_cancel)"
-  shows "r * setsum f A = setsum (%n. r * f n) A"
-proof (cases "finite A")
-  case True
-  thus ?thesis
-  proof (induct)
-    case empty thus ?case by simp
-  next
-    case (insert x A) thus ?case by (simp add: right_distrib)
-  qed
-next
-  case False thus ?thesis by (simp add: setsum_def)
-qed
-
-lemma setsum_abs: 
-  fixes f :: "'a => ('b::lordered_ab_group_abs)"
-  assumes fin: "finite A" 
-  shows "abs (setsum f A) \<le> setsum (%i. abs(f i)) A"
-using fin 
-proof (induct) 
-  case empty thus ?case by simp
-next
-  case (insert x A)
-  thus ?case by (auto intro: abs_triangle_ineq order_trans)
-qed
-
-lemma setsum_abs_ge_zero: 
-  fixes f :: "'a => ('b::lordered_ab_group_abs)"
-  assumes fin: "finite A" 
-  shows "0 \<le> setsum (%i. abs(f i)) A"
-using fin 
-proof (induct) 
-  case empty thus ?case by simp
-next
-  case (insert x A) thus ?case by (auto intro: order_trans)
-qed
-
-subsubsection {* Cardinality of unions and Sigma sets *}
-
-lemma card_UN_disjoint:
-    "finite I ==> (ALL i:I. finite (A i)) ==>
-        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
-      card (UNION I A) = setsum (%i. card (A i)) I"
-  apply (subst card_eq_setsum)
-  apply (subst finite_UN, assumption+)
-  apply (subgoal_tac
-           "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
-  apply (simp add: setsum_UN_disjoint) 
-  apply (simp add: setsum_constant_nat cong: setsum_cong) 
-  done
-
-lemma card_Union_disjoint:
-  "finite C ==> (ALL A:C. finite A) ==>
-        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
-      card (Union C) = setsum card C"
-  apply (frule card_UN_disjoint [of C id])
-  apply (unfold Union_def id_def, assumption+)
-  done
-
-lemma SigmaI_insert: "y \<notin> A ==>
-  (SIGMA x:(insert y A). B x) = (({y} <*> (B y)) \<union> (SIGMA x: A. B x))"
-  by auto
-
-lemma card_cartesian_product_singleton: "finite A ==>
-    card({x} <*> A) = card(A)"
-  apply (subgoal_tac "inj_on (%y .(x,y)) A")
-  apply (frule card_image, assumption)
-  apply (subgoal_tac "(Pair x ` A) = {x} <*> A")
-  apply (auto simp add: inj_on_def)
-  done
-
-lemma card_SigmaI [rule_format,simp]: "finite A ==>
-  (ALL a:A. finite (B a)) -->
-  card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
-  apply (erule finite_induct, auto)
-  apply (subst SigmaI_insert, assumption)
-  apply (subst card_Un_disjoint)
-  apply (auto intro: finite_SigmaI simp add: card_cartesian_product_singleton)
-  done
-
-lemma card_cartesian_product:
-     "[| finite A; finite B |] ==> card (A <*> B) = card(A) * card(B)"
-  by (simp add: setsum_constant_nat)
-
-
-
-subsection {* Generalized product over a set *}
-
-constdefs
-  setprod :: "('a => 'b) => 'a set => 'b::comm_monoid_mult"
-  "setprod f A == if finite A then fold (op *) f 1 A else 1"
-
-syntax
-  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_:_. _)" [0, 51, 10] 10)
-
-syntax (xsymbols)
-  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
-syntax (HTML output)
-  "_setprod" :: "idt => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
-translations
-  "\<Prod>i:A. b" == "setprod (%i. b) A"  -- {* Beware of argument permutation! *}
-
-syntax
-  "_Setprod" :: "'a set => 'a::comm_monoid_mult"  ("\<Prod>_" [1000] 999)
-
-parse_translation {*
-  let
-    fun Setprod_tr [A] = Syntax.const "setprod" $ Abs ("", dummyT, Bound 0) $ A
-  in [("_Setprod", Setprod_tr)] end;
-*}
-print_translation {*
-let fun setprod_tr' [Abs(x,Tx,t), A] =
-    if t = Bound 0 then Syntax.const "_Setprod" $ A else raise Match
-in
-[("setprod", setprod_tr')]
-end
-*}
-
-
-text{* Instantiation of locales: *}
-
-lemma ACf_mult: "ACf (op * :: 'a::comm_monoid_mult \<Rightarrow> 'a \<Rightarrow> 'a)"
-by(fast intro: ACf.intro mult_assoc ab_semigroup_mult.mult_commute)
-
-lemma ACe_mult: "ACe (op *) (1::'a::comm_monoid_mult)"
-by(fastsimp intro: ACe.intro ACe_axioms.intro ACf_mult)
-
-lemma setprod_empty [simp]: "setprod f {} = 1"
-  by (auto simp add: setprod_def)
-
-lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
-    setprod f (insert a A) = f a * setprod f A"
-by (simp add: setprod_def ACf.fold_insert [OF ACf_mult])
-
-lemma setprod_reindex:
-     "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
-by(auto simp: setprod_def ACf.fold_reindex[OF ACf_mult] dest!:finite_imageD)
-
-lemma setprod_reindex_id: "inj_on f B ==> setprod f B = setprod id (f ` B)"
-by (auto simp add: setprod_reindex)
-
-lemma setprod_cong:
-  "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: setprod_def intro: ACf.fold_cong[OF ACf_mult])
-
-lemma setprod_reindex_cong: "inj_on f A ==>
-    B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
-  by (frule setprod_reindex, simp)
-
-
-lemma setprod_1: "setprod (%i. 1) A = 1"
-  apply (case_tac "finite A")
-  apply (erule finite_induct, auto simp add: mult_ac)
-  apply (simp add: setprod_def)
-  done
-
-lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
-  apply (subgoal_tac "setprod f F = setprod (%x. 1) F")
-  apply (erule ssubst, rule setprod_1)
-  apply (rule setprod_cong, auto)
-  done
-
-lemma setprod_Un_Int: "finite A ==> finite B
-    ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
-by(simp add: setprod_def ACe.fold_Un_Int[OF ACe_mult,symmetric])
-
-lemma setprod_Un_disjoint: "finite A ==> finite B
-  ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
-by (subst setprod_Un_Int [symmetric], auto)
-
-lemma setprod_UN_disjoint:
-    "finite I ==> (ALL i:I. finite (A i)) ==>
-        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
-      setprod f (UNION I A) = setprod (%i. setprod f (A i)) I"
-by(simp add: setprod_def ACe.fold_UN_disjoint[OF ACe_mult] cong: setprod_cong)
-
-lemma setprod_Union_disjoint:
-  "finite C ==> (ALL A:C. finite A) ==>
-        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
-      setprod f (Union C) = setprod (setprod f) C"
-  apply (frule setprod_UN_disjoint [of C id f])
-  apply (unfold Union_def id_def, assumption+)
-  done
-
-lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-    (\<Prod>x:A. (\<Prod>y: B x. f x y)) =
-    (\<Prod>z:(SIGMA x:A. B x). f (fst z) (snd z))"
-by(simp add:setprod_def ACe.fold_Sigma[OF ACe_mult] split_def cong:setprod_cong)
-
-lemma setprod_cartesian_product: "finite A ==> finite B ==>
-    (\<Prod>x:A. (\<Prod>y: B. f x y)) =
-    (\<Prod>z:(A <*> B). f (fst z) (snd z))"
-  by (erule setprod_Sigma, auto)
-
-lemma setprod_timesf:
-  "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
-by(simp add:setprod_def ACe.fold_distrib[OF ACe_mult])
-
-
-subsubsection {* Properties in more restricted classes of structures *}
-
-lemma setprod_eq_1_iff [simp]:
-    "finite F ==> (setprod f F = 1) = (ALL a:F. f a = (1::nat))"
-  by (induct set: Finites) auto
-
-lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card A)"
-  apply (erule finite_induct)
-  apply (auto simp add: power_Suc)
-  done
-
-lemma setprod_zero:
-     "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1_cancel) ==> setprod f A = 0"
-  apply (induct set: Finites, force, clarsimp)
-  apply (erule disjE, auto)
-  done
-
-lemma setprod_nonneg [rule_format]:
-     "(ALL x: A. (0::'a::ordered_idom) \<le> f x) --> 0 \<le> setprod f A"
-  apply (case_tac "finite A")
-  apply (induct set: Finites, force, clarsimp)
-  apply (subgoal_tac "0 * 0 \<le> f x * setprod f F", force)
-  apply (rule mult_mono, assumption+)
-  apply (auto simp add: setprod_def)
-  done
-
-lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_idom) < f x)
-     --> 0 < setprod f A"
-  apply (case_tac "finite A")
-  apply (induct set: Finites, force, clarsimp)
-  apply (subgoal_tac "0 * 0 < f x * setprod f F", force)
-  apply (rule mult_strict_mono, assumption+)
-  apply (auto simp add: setprod_def)
-  done
-
-lemma setprod_nonzero [rule_format]:
-    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
-      finite A ==> (ALL x: A. f x \<noteq> (0::'a)) --> setprod f A \<noteq> 0"
-  apply (erule finite_induct, auto)
-  done
-
-lemma setprod_zero_eq:
-    "(ALL x y. (x::'a::comm_semiring_1_cancel) * y = 0 --> x = 0 | y = 0) ==>
-     finite A ==> (setprod f A = (0::'a)) = (EX x: A. f x = 0)"
-  apply (insert setprod_zero [of A f] setprod_nonzero [of A f], blast)
-  done
-
-lemma setprod_nonzero_field:
-    "finite A ==> (ALL x: A. f x \<noteq> (0::'a::field)) ==> setprod f A \<noteq> 0"
-  apply (rule setprod_nonzero, auto)
-  done
-
-lemma setprod_zero_eq_field:
-    "finite A ==> (setprod f A = (0::'a::field)) = (EX x: A. f x = 0)"
-  apply (rule setprod_zero_eq, auto)
-  done
-
-lemma setprod_Un: "finite A ==> finite B ==> (ALL x: A Int B. f x \<noteq> 0) ==>
-    (setprod f (A Un B) :: 'a ::{field})
-      = setprod f A * setprod f B / setprod f (A Int B)"
-  apply (subst setprod_Un_Int [symmetric], auto)
-  apply (subgoal_tac "finite (A Int B)")
-  apply (frule setprod_nonzero_field [of "A Int B" f], assumption)
-  apply (subst times_divide_eq_right [THEN sym], auto simp add: divide_self)
-  done
-
-lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
-    (setprod f (A - {a}) :: 'a :: {field}) =
-      (if a:A then setprod f A / f a else setprod f A)"
-  apply (erule finite_induct)
-   apply (auto simp add: insert_Diff_if)
-  apply (subgoal_tac "f a * setprod f F / f a = setprod f F * f a / f a")
-  apply (erule ssubst)
-  apply (subst times_divide_eq_right [THEN sym])
-  apply (auto simp add: mult_ac times_divide_eq_right divide_self)
-  done
-
-lemma setprod_inversef: "finite A ==>
-    ALL x: A. f x \<noteq> (0::'a::{field,division_by_zero}) ==>
-      setprod (inverse \<circ> f) A = inverse (setprod f A)"
-  apply (erule finite_induct)
-  apply (simp, simp)
-  done
-
-lemma setprod_dividef:
-     "[|finite A;
-        \<forall>x \<in> A. g x \<noteq> (0::'a::{field,division_by_zero})|]
-      ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
-  apply (subgoal_tac
-         "setprod (%x. f x / g x) A = setprod (%x. f x * (inverse \<circ> g) x) A")
-  apply (erule ssubst)
-  apply (subst divide_inverse)
-  apply (subst setprod_timesf)
-  apply (subst setprod_inversef, assumption+, rule refl)
-  apply (rule setprod_cong, rule refl)
-  apply (subst divide_inverse, auto)
-  done
 
 end

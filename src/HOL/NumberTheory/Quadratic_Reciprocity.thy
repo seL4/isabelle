@@ -249,7 +249,7 @@ lemma (in QRTEMP) Q_set_finite: "finite (Q_set)"
   by (insert q_fact, auto simp add: Q_set_def bdd_int_set_l_le_finite)
 
 lemma (in QRTEMP) S_finite: "finite S"
-  by (auto simp add: S_def  P_set_finite Q_set_finite cartesian_product_finite)
+  by (auto simp add: S_def  P_set_finite Q_set_finite finite_cartesian_product)
 
 lemma (in QRTEMP) S1_finite: "finite S1"
 proof -
@@ -516,7 +516,7 @@ proof -
   moreover note P_set_finite
   ultimately have "int(card (UNION P_set f1)) = 
       setsum (%x. int(card (f1 x))) P_set"
-    by (rule_tac A = P_set in int_card_indexed_union_disjoint_sets, auto)
+    by(simp add:card_UN_disjoint int_setsum o_def)
   moreover have "S1 = UNION P_set f1"
     by (auto simp add: f1_def S_def S1_def S2_def P_set_def Q_set_def aux1a)
   ultimately have "int(card (S1)) = setsum (%j. int(card (f1 j))) P_set" 
@@ -540,7 +540,7 @@ proof -
   moreover note Q_set_finite
   ultimately have "int(card (UNION Q_set f2)) = 
       setsum (%x. int(card (f2 x))) Q_set"
-    by (rule_tac A = Q_set in int_card_indexed_union_disjoint_sets, auto)
+    by(simp add:card_UN_disjoint int_setsum o_def)
   moreover have "S2 = UNION Q_set f2"
     by (auto simp add: f2_def S_def S1_def S2_def P_set_def Q_set_def aux1b)
   ultimately have "int(card (S2)) = setsum (%j. int(card (f2 j))) Q_set" 

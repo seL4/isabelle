@@ -244,10 +244,10 @@ lemma RRset2norRR_eq_norR:
   apply (rule card_seteq)
     prefer 3
     apply (subst card_image)
-      apply (rule_tac [2] RRset2norRR_inj, auto)
-     apply (rule_tac [4] RRset2norRR_correct2, auto)
+      apply (rule_tac RRset2norRR_inj, auto)
+     apply (rule_tac [3] RRset2norRR_correct2, auto)
     apply (unfold is_RRset_def phi_def norRRset_def)
-    apply (auto simp add: RsetR_fin Bnor_fin)
+    apply (auto simp add: Bnor_fin)
   done
 
 

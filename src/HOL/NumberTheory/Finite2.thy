@@ -124,11 +124,9 @@ lemma card_bdd_int_set_l: "0 \<le> (n::int) ==> card {y. 0 \<le> y & y < n} = na
 proof -
   fix n::int
   assume "0 \<le> n"
-  have "finite {y. y < nat n}"
-    by (rule bdd_nat_set_l_finite)
-  moreover have "inj_on (%y. int y) {y. y < nat n}"
+  have "inj_on (%y. int y) {y. y < nat n}"
     by (auto simp add: inj_on_def)
-  ultimately have "card (int ` {y. y < nat n}) = card {y. y < nat n}"
+  hence "card (int ` {y. y < nat n}) = card {y. y < nat n}"
     by (rule card_image)
   also from prems have "int ` {y. y < nat n} = {y. 0 \<le> y & y < n}"
     apply (auto simp add: zless_nat_eq_int_zless image_def)
@@ -150,11 +148,9 @@ lemma card_bdd_int_set_l_le: "0 \<le> (n::int) ==>
 proof -
   fix n::int
   assume "0 \<le> n"
-  have "finite {x. 0 \<le> x & x < n}"
-    by (rule bdd_int_set_l_finite)
-  moreover have "inj_on (%x. x+1) {x. 0 \<le> x & x < n}"
+  have "inj_on (%x. x+1) {x. 0 \<le> x & x < n}"
     by (auto simp add: inj_on_def)
-  ultimately have "card ((%x. x+1) ` {x. 0 \<le> x & x < n}) = 
+  hence "card ((%x. x+1) ` {x. 0 \<le> x & x < n}) = 
      card {x. 0 \<le> x & x < n}"
     by (rule card_image)
   also from prems have "... = nat n"
@@ -192,26 +188,10 @@ lemma int_card_bdd_int_set_l_le: "0 \<le> n ==>
 
 subsection {* Cardinality of finite cartesian products *}
 
-lemma insert_Sigma [simp]: "~(A = {}) ==>
-  (insert x A) <*> B = ({ x } <*> B) \<union> (A <*> B)"
+(* FIXME could be useful in general but not needed here
+lemma insert_Sigma [simp]: "(insert x A) <*> B = ({ x } <*> B) \<union> (A <*> B)"
   by blast
-
-lemma cartesian_product_finite: "[| finite A; finite B |] ==> 
-    finite (A <*> B)"
-  apply (rule_tac F = A in finite_induct)
-  by auto
-
-lemma cartesian_product_card_a [simp]: "finite A ==> 
-    card({x} <*> A) = card(A)" 
-  apply (subgoal_tac "inj_on (%y .(x,y)) A")
-  apply (frule card_image, assumption)
-  apply (subgoal_tac "(Pair x ` A) = {x} <*> A")
-  by (auto simp add: inj_on_def)
-
-lemma cartesian_product_card [simp]: "[| finite A; finite B |] ==> 
-  card (A <*> B) = card(A) * card(B)"
-  apply (rule_tac F = A in finite_induct, auto)
-  done
+ *)
 
 (******************************************************************)
 (*                                                                *)
@@ -220,55 +200,6 @@ lemma cartesian_product_card [simp]: "[| finite A; finite B |] ==>
 (******************************************************************)
 
 subsection {* Lemmas for counting arguments *}
-
-lemma finite_union_finite_subsets: "[| finite A; \<forall>X \<in> A. finite X |] ==> 
-    finite (Union A)"
-apply (induct set: Finites)
-by auto
-
-lemma finite_index_UNION_finite_sets: "finite A ==> 
-    (\<forall>x \<in> A. finite (f x)) --> finite (UNION A f)"
-by (induct_tac rule: finite_induct, auto)
-
-lemma card_union_disjoint_sets: "finite A ==> 
-    ((\<forall>X \<in> A. finite X) & (\<forall>X \<in> A. \<forall>Y \<in> A. X \<noteq> Y --> X \<inter> Y = {})) ==> 
-    card (Union A) = setsum card A"
-  apply auto
-  apply (induct set: Finites, auto)
-  apply (frule_tac B = "Union F" and A = x in card_Un_Int)
-by (auto simp add: finite_union_finite_subsets)
-
-lemma int_card_eq_setsum [rule_format]: "finite A ==> 
-    int (card A) = setsum (%x. 1) A"
-  by (erule finite_induct, auto)
-
-lemma card_indexed_union_disjoint_sets [rule_format]: "finite A ==> 
-    ((\<forall>x \<in> A. finite (g x)) & 
-    (\<forall>x \<in> A. \<forall>y \<in> A. x \<noteq> y --> (g x) \<inter> (g y) = {})) --> 
-      card (UNION A g) = setsum (%x. card (g x)) A"
-apply clarify
-apply (frule_tac f = "%x.(1::nat)" and A = g in 
-    setsum_UN_disjoint)
-apply assumption+
-apply (subgoal_tac "finite (UNION A g)")
-apply (subgoal_tac "(\<Sum>x \<in> UNION A g. 1) = (\<Sum>x \<in> A. \<Sum>x \<in> g x. 1)")
-apply (auto simp only: card_eq_setsum)
-apply (rule setsum_cong)
-by auto
-
-lemma int_card_indexed_union_disjoint_sets [rule_format]: "finite A ==> 
-    ((\<forall>x \<in> A. finite (g x)) & 
-    (\<forall>x \<in> A. \<forall>y \<in> A. x \<noteq> y --> (g x) \<inter> (g y) = {})) --> 
-       int(card (UNION A g)) = setsum (%x. int( card (g x))) A"
-apply clarify
-apply (frule_tac f = "%x.(1::int)" and A = g in 
-    setsum_UN_disjoint)
-apply assumption+
-apply (subgoal_tac "finite (UNION A g)")
-apply (subgoal_tac "(\<Sum>x \<in> UNION A g. 1) = (\<Sum>x \<in> A. \<Sum>x \<in> g x. 1)")
-apply (auto simp only: int_card_eq_setsum)
-apply (rule setsum_cong)
-by (auto simp add: int_card_eq_setsum)
 
 lemma setsum_bij_eq: "[| finite A; finite B; f ` A \<subseteq> B; inj_on f A; 
     g ` B \<subseteq> A; inj_on g B |] ==> setsum g B = setsum (g \<circ> f) A"

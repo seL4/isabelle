@@ -346,7 +346,6 @@ lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
   apply (subgoal_tac "(%x. x + l) ` {..<u-l} = {l..<u}")
   apply (erule subst)
   apply (rule card_image)
-  apply (rule finite_lessThan)
   apply (simp add: inj_on_def)
   apply (auto simp add: image_def atLeastLessThan_def lessThan_def)
   apply arith
@@ -433,7 +432,6 @@ lemma card_atLeastLessThan_int [simp]: "card {l..<u} = nat (u - l)"
   apply (subgoal_tac "(%x. x + l) ` {0..<u-l} = {l..<u}")
   apply (erule subst)
   apply (rule card_image)
-  apply (rule finite_atLeastZeroLessThan_int)
   apply (simp add: inj_on_def)
   apply (rule image_atLeastLessThan_int_shift)
   done

@@ -11,16 +11,6 @@ struct
   val [emptyI, insertI] = thms "Finites.intros";
 end;
 
-structure cardR =
-struct
-  val intrs = thms "cardR.intros";
-  val elims = thms "cardR.cases";
-  val elim = thm "cardR.cases";
-  val induct = thm "cardR.induct";
-  val mk_cases = InductivePackage.the_mk_cases (the_context ()) "Finite_Set.cardR";
-  val [EmptyI, InsertI] = thms "cardR.intros";
-end;
-
 structure foldSet =
 struct
   val intrs = thms "foldSet.intros";
@@ -31,11 +21,6 @@ struct
   val [emptyI, insertI] = thms "foldSet.intros";
 end;
 
-val cardR_SucD = thm "cardR_SucD";
-val cardR_determ = thm "cardR_determ";
-val cardR_emptyE = thm "cardR_emptyE";
-val cardR_imp_finite = thm "cardR_imp_finite";
-val cardR_insertE = thm "cardR_insertE";
 val card_0_eq = thm "card_0_eq";
 val card_Diff1_le = thm "card_Diff1_le";
 val card_Diff1_less = thm "card_Diff1_less";
@@ -50,7 +35,6 @@ val card_Un_disjoint = thm "card_Un_disjoint";
 val card_bij_eq = thm "card_bij_eq";
 val card_def = thm "card_def";
 val card_empty = thm "card_empty";
-val card_equality = thm "card_equality";
 val card_eq_setsum = thm "card_eq_setsum";
 val card_image = thm "card_image";
 val card_image_le = thm "card_image_le";
@@ -87,7 +71,6 @@ val finite_converse = thm "finite_converse";
 val finite_empty_induct = thm "finite_empty_induct";
 val finite_imageD = thm "finite_imageD";
 val finite_imageI = thm "finite_imageI";
-val finite_imp_cardR = thm "finite_imp_cardR";
 val finite_induct = thm "finite_induct";
 val finite_insert = thm "finite_insert";
 val finite_range_imageI = thm "finite_range_imageI";

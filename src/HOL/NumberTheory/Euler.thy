@@ -118,7 +118,7 @@ lemma SetS_elems_card: "[| p \<in> zprime; 2 < p; ~([a = 0] (mod p));
 done
 
 lemma Union_SetS_finite: "2 < p ==> finite (Union (SetS a p))";
-  by (auto simp add: SetS_finite SetS_elems_finite finite_union_finite_subsets)
+  by (auto simp add: SetS_finite SetS_elems_finite finite_Union)
 
 lemma card_setsum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set); 
     \<forall>X \<in> S. card X = n |] ==> setsum card S = setsum (%x. n) S";
@@ -134,7 +134,7 @@ proof -;
       by (auto simp add: prems MultInvPair_prop2 SRStar_card)
     also have "... = int (setsum card (SetS a p))";
       by (auto simp add: prems SetS_finite SetS_elems_finite
-                         MultInvPair_prop1c [of p a] card_union_disjoint_sets)
+                         MultInvPair_prop1c [of p a] card_Union_disjoint)
     also have "... = int(setsum (%x.2) (SetS a p))";
       apply (insert prems)
       apply (auto simp add: SetS_elems_card SetS_finite SetS_elems_finite 

@@ -176,7 +176,7 @@ theorem size_union [simp]: "size (M + N::'a multiset) = size M + size N"
   apply (subgoal_tac "count (M + N) = (\<lambda>a. count M a + count N a)")
    prefer 2
    apply (rule ext, simp)
-  apply (simp (no_asm_simp) add: setsum_Un setsum_addf setsum_count_Int)
+  apply (simp (no_asm_simp) add: setsum_Un_nat setsum_addf setsum_count_Int)
   apply (subst Int_commute)
   apply (simp (no_asm_simp) add: setsum_count_Int)
   done
