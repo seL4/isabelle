@@ -8,6 +8,7 @@ list below later rules have priority.
 
 theory Calculation = Int:;
 
+
 theorems [trans] = HOL.ssubst;                          (*  =  x  x  *)
 theorems [trans] = HOL.subst[COMP swap_prems_rl];       (*  x  =  x  *)
 
@@ -30,6 +31,8 @@ theorem [trans]: "[| x < y; y = z |] ==> x < z";	(*  <  =  <  *)
 
 theorem [trans]: "[| x = y; y < z |] ==> x < z";	(*  =  <  <  *)
   by (rule HOL.ssubst);
+
+theorems [trans] = HOL.trans                            (*  =  =  =  *)
 
 
 end;
