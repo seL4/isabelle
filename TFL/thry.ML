@@ -26,7 +26,7 @@ fun THRY_ERR func mesg = Utils.ERR {module = "Thry", func = func, mesg = mesg};
  *    Matching
  *---------------------------------------------------------------------------*)
 
-local fun tybind (x,y) = (TVar (x, HOLogic.termS) , y)
+local fun tybind (x,y) = (TVar (x, HOLogic.typeS) , y)
       fun tmbind (x,y) = (Var  (x, Term.type_of y), y)
 in
  fun match_term thry pat ob =

@@ -106,7 +106,7 @@ fun USYN_ERR func mesg = Utils.ERR {module = "USyntax", func = func, mesg = mesg
  *
  *---------------------------------------------------------------------------*)
 val mk_prim_vartype = TVar;
-fun mk_vartype s = mk_prim_vartype ((s, 0), HOLogic.termS);
+fun mk_vartype s = mk_prim_vartype ((s, 0), HOLogic.typeS);
 
 (* But internally, it's useful *)
 fun dest_vtype (TVar x) = x
