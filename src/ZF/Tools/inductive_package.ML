@@ -323,7 +323,8 @@ let
        Intro rules with extra Vars in premises still cause some backtracking *)
      fun ind_tac [] 0 = all_tac
        | ind_tac(prem::prems) i =
-             DEPTH_SOLVE_1 (ares_tac [prem, refl] i) THEN
+             DEPTH_SOLVE_1 (ares_tac [prem, refl] i APPEND hyp_subst_tac i) 
+             THEN
              ind_tac prems (i-1);
 
      val pred = Free(pred_name, Ind_Syntax.iT --> FOLogic.oT);
@@ -362,8 +363,7 @@ let
              REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE])),
              (*Now break down the individual cases.  No disjE here in case
                some premise involves disjunction.*)
-             REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE]
-                                ORELSE' hyp_subst_tac)),
+             REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE])),
              ind_tac (rev prems) (length prems) ]);
 
      val dummy = if !Ind_Syntax.trace then
