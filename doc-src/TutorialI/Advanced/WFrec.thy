@@ -23,9 +23,8 @@ component decreases (as in the inner call in the third equation).
 In general, \isacommand{recdef} supports termination proofs based on
 arbitrary well-founded relations as introduced in \S\ref{sec:Well-founded}.
 This is called \textbf{well-founded
-recursion}\indexbold{recursion!well-founded}\index{well-founded
-recursion|see{recursion, well-founded}}. Clearly, a function definition is
-total iff the set of all pairs $(r,l)$, where $l$ is the argument on the
+recursion}\indexbold{recursion!well-founded}. Clearly, a function definition
+is total iff the set of all pairs $(r,l)$, where $l$ is the argument on the
 left-hand side of an equation and $r$ the argument of some recursive call on
 the corresponding right-hand side, induces a well-founded relation.  For a
 systematic account of termination proofs via well-founded relations see, for
