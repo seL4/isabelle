@@ -11,10 +11,10 @@ structure Data = Datatype_Fun
  (val thy        = Univ.thy
   val thy_name = "Data"
   val rec_specs  = [("data", "univ(A Un B)",
-                       [(["Con0"],   "i",NoSyn),
-                        (["Con1"],   "i=>i",NoSyn),
-                        (["Con2"],   "[i,i]=>i",NoSyn),
-                        (["Con3"],   "[i,i,i]=>i",NoSyn)])]
+                       [(["Con0"],   "i",	    NoSyn),
+                        (["Con1"],   "i=>i",	    NoSyn),
+                        (["Con2"],   "[i,i]=>i",    NoSyn),
+                        (["Con3"],   "[i,i,i]=>i",  NoSyn)])]
   val rec_styp   = "[i,i]=>i"
   val sintrs     = 
           ["Con0 : data(A,B)",

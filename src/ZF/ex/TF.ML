@@ -10,10 +10,10 @@ structure TF = Datatype_Fun
  (val thy        = Univ.thy
   val thy_name   = "TF"
   val rec_specs  = [("tree", "univ(A)",
-                       [(["Tcons"],  "[i,i]=>i",NoSyn)]),
+                       [(["Tcons"],  "[i,i]=>i",  NoSyn)]),
                     ("forest", "univ(A)",
-                       [(["Fnil"],   "i",NoSyn),
-                        (["Fcons"],  "[i,i]=>i",NoSyn)])]
+                       [(["Fnil"],   "i",         NoSyn),
+                        (["Fcons"],  "[i,i]=>i",  NoSyn)])]
   val rec_styp   = "i=>i"
   val sintrs     = 
           ["[| a:A;  f: forest(A) |] ==> Tcons(a,f) : tree(A)",

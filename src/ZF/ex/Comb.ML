@@ -17,8 +17,8 @@ structure Comb = Datatype_Fun
   val thy_name = "Comb";
   val rec_specs = 
       [("comb", "univ(0)",
-	  [(["K","S"],	"i", NoSyn),
-	   (["#"],	"[i,i]=>i", Infixl 90)])];
+	  [(["K","S"],	"i", 		NoSyn),
+	   (["#"],	"[i,i]=>i", 	Infixl 90)])];
   val rec_styp = "i";
   val sintrs = 
 	  ["K : comb",

@@ -1,4 +1,4 @@
-(*  Title: 	ZF/ex/contract.ML
+(*  Title: 	ZF/ex/Contract0.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson
     Copyright   1993  University of Cambridge

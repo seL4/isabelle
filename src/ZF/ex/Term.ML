@@ -1,27 +1,26 @@
-(*  Title: 	ZF/ex/term.ML
+(*  Title: 	ZF/ex/Term.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 Datatype definition of terms over an alphabet.
 Illustrates the list functor (essentially the same type as in Trees & Forests)
 *)
 
 structure Term = Datatype_Fun
- (val thy = List.thy;
-  val thy_name = "Term";
+ (val thy	= List.thy;
+  val thy_name	= "Term";
   val rec_specs = 
       [("term", "univ(A)",
 	  [(["Apply"], "[i,i]=>i", NoSyn)])];
-  val rec_styp = "i=>i";
-  val sintrs = ["[| a: A;  l: list(term(A)) |] ==> Apply(a,l) : term(A)"];
-  val monos = [list_mono];
-  val type_intrs = datatype_intrs;
-  val type_elims = [make_elim (list_univ RS subsetD)]);
+  val rec_styp	= "i=>i";
+  val sintrs	= ["[| a: A;  l: list(term(A)) |] ==> Apply(a,l) : term(A)"];
+  val monos	= [list_mono];
+  val type_intrs = (list_univ RS subsetD) :: datatype_intrs;
+  val type_elims = []);
 
 val [ApplyI] = Term.intrs;
 
-(*Note that Apply is the identity function*)
 goal Term.thy "term(A) = A * list(term(A))";
 by (rtac (Term.unfold RS trans) 1);
 bws Term.con_defs;
