@@ -57,7 +57,7 @@ use_thy "Map";
 use_thy "Update";
 
 cd "Integ";
-use "ROOT.ML";
+use_thy "Bin";
 cd "..";
 
 (*TFL: recursive function definitions*)
