@@ -10,7 +10,7 @@ val banner = "Pure Isabelle";
 val version = "Isabelle repository version";    (*filled in automatically!*)
 
 
-print_depth 8;
+print_depth 10;
 
 (*global flags*)
 val print_mode = ref ([]: string list);
