@@ -348,14 +348,17 @@ fun assumption ctxt = METHOD (HEADGOAL o assumption_tac ctxt);
 (* res_inst_tac etc. *)
 
 (*Note: insts refer to the implicit (!!) goal context; use at your own risk*)
-fun gen_res_inst tac (quant, (insts, thm)) =
-  METHOD (fn facts => (quant (insert_tac facts THEN' tac insts thm)));
+fun gen_res_inst _ tac (quant, ([], thms)) =
+      METHOD (fn facts => (quant (insert_tac facts THEN' tac thms)))
+  | gen_res_inst tac _ (quant, (insts, [thm])) =
+      METHOD (fn facts => (quant (insert_tac facts THEN' tac insts thm)))
+  | gen_res_inst _ _ _ = error "Cannot have instantiations with multiple rules";
 
-val res_inst = gen_res_inst Tactic.res_inst_tac;
-val eres_inst = gen_res_inst Tactic.eres_inst_tac;
-val dres_inst = gen_res_inst Tactic.dres_inst_tac;
-val forw_inst = gen_res_inst Tactic.forw_inst_tac;
-val cut_inst = gen_res_inst Tactic.cut_inst_tac;
+val res_inst = gen_res_inst Tactic.res_inst_tac Tactic.resolve_tac;
+val eres_inst = gen_res_inst Tactic.eres_inst_tac Tactic.eresolve_tac;
+val dres_inst = gen_res_inst Tactic.dres_inst_tac Tactic.dresolve_tac;
+val forw_inst = gen_res_inst Tactic.forw_inst_tac Tactic.forward_tac;
+val cut_inst = gen_res_inst Tactic.cut_inst_tac Tactic.cut_facts_tac;
 
 
 (* simple Prolog interpreter *)
@@ -374,7 +377,8 @@ fun set_tactic f = tactic_ref := f;
 fun tactic txt ctxt = METHOD (fn facts =>
  (Context.use_mltext
    ("let fun tactic (ctxt: PureIsar.Proof.context) (facts: thm list) : tactic = \
-    \let val thm = PureIsar.ProofContext.get_thm ctxt and thms = PureIsar.ProofContext.get_thms ctxt in\n"
+    \let val thm = PureIsar.ProofContext.get_thm_closure ctxt\n\
+    \  and thms = PureIsar.ProofContext.get_thms_closure ctxt in\n"
     ^ txt ^
     "\nend in PureIsar.Method.set_tactic tactic end")
   false (Some (ProofContext.theory_of ctxt)); ! tactic_ref ctxt facts));
@@ -510,8 +514,8 @@ end;
 
 val insts =
   Scan.optional
-    (Args.enum1 "and" (Scan.lift (Args.name -- Args.!!! (Args.$$$ "=" |-- Args.name))) --|
-      Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thm;
+    (Args.enum1 "and" (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
+      Scan.lift (Args.$$$ "in")) [] -- Attrib.local_thmss;
 
 fun inst_args f = f oo (#2 oo syntax (Args.goal_spec HEADGOAL -- insts));
 
@@ -633,9 +637,9 @@ val pure_methods =
   ("drule_tac", inst_args dres_inst, "apply rule in destruct manner (dynamic instantiation!)"),
   ("frule_tac", inst_args forw_inst, "apply rule in forward manner (dynamic instantiation!)"),
   ("cut_tac", inst_args cut_inst, "cut rule (dynamic instantiation!)"),
-  ("subgoal_tac", subgoal_meth, "subgoal_tac emulation (dynamic instantiation!)"),
-  ("thin_tac", thin_meth, "thin_tac emulation (dynamic instantiation!)"),
-  ("rename_tac", rename_meth, "rename_tac emulation (dynamic instantiation!)"),
+  ("subgoal_tac", subgoal_meth, "insert subgoal (dynamic instantiation!)"),
+  ("thin_tac", thin_meth, "remove premise (dynamic instantiation!)"),
+  ("rename_tac", rename_meth, "rename parameters (dynamic instantiation!)"),
   ("prolog", thms_args prolog, "simple prolog interpreter"),
   ("tactic", simple_args Args.name tactic, "ML tactic as proof method")];
 
