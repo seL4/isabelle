@@ -987,7 +987,8 @@ fun sort (less: 'a*'a -> bool) =
   in  sort1  end;
 
 (*sort strings*)
-val sort_strings = sort (op <= : string * string -> bool);
+fun sort_wrt sel xs = sort (op <= o pairself (sel: 'a -> string)) xs;
+val sort_strings = sort_wrt I;
 
 
 (* transitive closure (not Warshall's algorithm) *)
