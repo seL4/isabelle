@@ -30,7 +30,10 @@ constdefs
 
   znegative   ::      i=>o
     "znegative(z) == EX x y. x<y & y:nat & <x,y>:z"
-  
+
+  iszero      ::      i=>o
+    "iszero(z) == z = $# 0"
+    
   zmagnitude  ::      i=>i
     "zmagnitude(z) ==
      THE m. m : nat & ((~ znegative(z) & z = $# m) |
@@ -62,7 +65,7 @@ constdefs
      "z1 $< z2 == znegative(z1 $- z2)"
   
   zle          ::      [i,i]=>o      (infixl "$<=" 50)
-     "z1 $<= z2 == z1 $< z2 | z1=z2"
+     "z1 $<= z2 == z1 $< z2 | intify(z1)=intify(z2)"
   
 (*div and mod await definitions!*)
 consts

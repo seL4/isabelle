@@ -51,3 +51,30 @@ result();
 Goal "#1359  $*  #-2468 = #-3354012";
 by (Simp_tac 1);    (*1.04 secs*)
 result();
+
+
+(** Comparisons **)
+
+Goal "(#89) $* #10 ~= #889";  
+by (Simp_tac 1); 
+result();
+
+Goal "(#13) $< #18 $- #4";  
+by (Simp_tac 1); 
+result();
+
+Goal "(#-345) $< #-242 $+ #-100";  
+by (Simp_tac 1); 
+result();
+
+Goal "(#13557456) $< #18678654";  
+by (Simp_tac 1); 
+result();
+
+Goal "(#999999) $<= (#1000001 $+ #1) $- #2";  
+by (Simp_tac 1); 
+result();
+
+Goal "(#1234567) $<= #1234567";  
+by (Simp_tac 1); 
+result();

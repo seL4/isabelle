@@ -8,7 +8,7 @@ Booleans in Zermelo-Fraenkel Set Theory
 2 is equal to bool, but serves a different purpose
 *)
 
-Bool = upair + 
+Bool = pair + 
 consts
     bool        :: i
     cond        :: [i,i,i]=>i

@@ -19,9 +19,8 @@ print_depth 1;
 use     "thy_syntax";
 
 use "~~/src/Provers/Arith/cancel_numerals.ML";
+use "~~/src/Provers/Arith/combine_numerals.ML";
 
-use_thy "ZF";
-use     "Tools/typechk";
 use_thy "mono";
 use     "ind_syntax";
 use     "Tools/cartprod";
@@ -32,6 +31,7 @@ use     "Tools/primrec_package";
 use_thy "QUniv";
 use     "Tools/datatype_package";
 
+use     "Tools/numeral_syntax";
 (*the all-in-one theory*)
 with_path "Integ" use_thy "Main";
 

@@ -1,4 +1,5 @@
-(*Dummy theory to document dependencies *)
+theory pair = upair
+files "simpdata":
+end
 
-pair = upair
 

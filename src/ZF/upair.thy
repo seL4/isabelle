@@ -6,7 +6,8 @@
 Dummy theory, but holds the standard ZF simpset.
 *)
 
-upair = ZF +
+theory upair = ZF
+files "Tools/typechk":
 
 setup
   TypeCheck.setup

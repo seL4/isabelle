@@ -33,11 +33,14 @@ $(OUT)/ZF: $(OUT)/FOL AC.ML AC.thy Arith.ML Arith.thy Bool.ML           \
   Epsilon.thy Finite.ML Finite.thy Fixedpt.ML Fixedpt.thy Inductive.ML	\
   Inductive.thy InfDatatype.ML InfDatatype.thy Integ/Bin.ML		\
   Integ/Bin.thy Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML	\
-  Integ/Int.thy Integ/twos_compl.ML Let.ML Let.thy List.ML List.thy	\
+  Integ/Int.thy Integ/twos_compl.ML \
+  Integ/int_arith.ML Integ/IntArith.thy \
+  Let.ML Let.thy List.ML List.thy	\
   Main.thy Nat.ML Nat.thy Order.ML Order.thy OrderArith.ML		\
   OrderArith.thy OrderType.ML OrderType.thy Ordinal.ML Ordinal.thy	\
   Perm.ML Perm.thy QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML	\
-  Rel.ML Rel.thy Sum.ML Sum.thy Tools/cartprod.ML			\
+  Rel.ML Rel.thy Sum.ML Sum.thy \
+  Tools/numeral_syntax.ML Tools/cartprod.ML			\
   Tools/datatype_package.ML Tools/induct_tacs.ML			\
   Tools/inductive_package.ML Tools/primrec_package.ML Tools/typechk.ML	\
   Trancl.ML Trancl.thy Univ.ML Univ.thy Update.ML Update.thy WF.ML	\

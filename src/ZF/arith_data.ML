@@ -8,8 +8,15 @@ Arithmetic simplification: cancellation of common terms
 
 signature ARITH_DATA =
 sig
+  (*the main outcome*)
   val nat_cancel: simproc list
+  (*tools for use in similar applications*)
+  val gen_trans_tac: thm -> thm option -> tactic
+  val prove_conv: string -> tactic list -> Sign.sg -> 
+                  thm list -> term * term -> thm option
+  val simplify_meta_eq: thm list -> thm -> thm
 end;
+
 
 structure ArithData: ARITH_DATA =
 struct
@@ -21,11 +28,7 @@ val succ = Const("succ", iT --> iT);
 fun mk_succ t = succ $ t;
 val one = mk_succ zero;
 
-(*Not FOLogic.mk_binop, since it calls fastype_of, which can fail*)
-fun mk_binop_i  c (t,u) = Const (c, [iT,iT] ---> iT) $ t $ u;
-fun mk_binrel_i c (t,u) = Const (c, [iT,iT] ---> oT) $ t $ u;
-
-val mk_plus = mk_binop_i "Arith.add";
+val mk_plus = FOLogic.mk_binop "Arith.add";
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -81,7 +84,7 @@ val prep_pats = map prep_pat;
 (*** Use CancelNumerals simproc without binary numerals, 
      just for cancellation ***)
 
-val mk_times = mk_binop_i "Arith.mult";
+val mk_times = FOLogic.mk_binop "Arith.mult";
 
 fun mk_prod [] = one
   | mk_prod [t] = t
@@ -120,14 +123,14 @@ val add_succs = [add_succ, add_succ_right];
 val mult_1s = [mult_1_natify, mult_1_right_natify];
 val tc_rules = [natify_in_nat, add_type, diff_type, mult_type];
 val natifys = [natify_0, natify_ident, add_natify1, add_natify2,
-               add_natify1, add_natify2, diff_natify1, diff_natify2];
+               diff_natify1, diff_natify2];
 
 (*Final simplification: cancel + and **)
 fun simplify_meta_eq rules =
     mk_meta_eq o
     simplify (FOL_ss addeqcongs[eq_cong2,iff_cong2] 
                      delsimps iff_simps (*these could erase the whole rule!*)
-		     addsimps rules)
+		     addsimps rules);
 
 val final_rules = add_0s @ mult_1s @ [mult_0, mult_0_right];
 
@@ -161,7 +164,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
-  val mk_bal   = mk_binrel_i "Ordinal.op <"
+  val mk_bal   = FOLogic.mk_binrel "Ordinal.op <"
   val dest_bal = FOLogic.dest_bin "Ordinal.op <" iT
   val bal_add1 = less_add_iff RS iff_trans
   val bal_add2 = less_add_iff RS iff_trans
@@ -171,7 +174,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = prove_conv "natdiff_cancel_numerals"
-  val mk_bal   = mk_binop_i "Arith.diff"
+  val mk_bal   = FOLogic.mk_binop "Arith.diff"
   val dest_bal = FOLogic.dest_bin "Arith.diff" iT
   val bal_add1 = diff_add_eq RS trans
   val bal_add2 = diff_add_eq RS trans

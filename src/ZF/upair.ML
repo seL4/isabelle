@@ -269,6 +269,12 @@ val prems = Goalw [if_def]
 by (simp_tac (simpset() addsimps prems addcongs [conj_cong]) 1);
 qed "if_cong";
 
+(*Prevents simplification of x and y: faster and allows the execution
+  of functional programs. NOW THE DEFAULT.*)
+Goal "P<->Q ==> (if P then x else y) = (if Q then x else y)";
+by (Asm_simp_tac 1);
+qed "if_weak_cong";
+
 (*Not needed for rewriting, since P would rewrite to True anyway*)
 Goalw [if_def] "P ==> (if P then a else b) = a";
 by (Blast_tac 1);
@@ -398,4 +404,3 @@ AddSDs [succ_inject];
 (*Not needed now that cons is available.  Deletion reduces the search space.*)
 Delrules [UpairI1,UpairI2,UpairE];
 
-use"simpdata.ML";

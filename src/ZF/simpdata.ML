@@ -10,7 +10,7 @@ Rewriting for ZF set theory: specialized extraction of rewrites from theorems
 
 local
   (*For proving rewrite rules*)
-  fun prover s = (prove_goal thy s (fn _ => [Blast_tac 1]));
+  fun prover s = (prove_goal (the_context ()) s (fn _ => [Blast_tac 1]));
 
 in
 
@@ -106,7 +106,8 @@ val ZF_mem_pairs =
 val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 
 simpset_ref() := simpset() setmksimps (map mk_eq o ZF_atomize o gen_all)
-                           addsplits [split_if]
+                           addcongs [if_weak_cong]
+		           addsplits [split_if]
                            setSolver (mk_solver "types" Type_solver_tac);
 
 val ZF_ss = simpset();

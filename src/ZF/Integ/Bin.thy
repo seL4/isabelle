@@ -18,13 +18,13 @@ For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
 Division is not defined yet!
 *)
 
-Bin = Int + Datatype + 
+Bin = Int + Datatype +
 
 consts  bin :: i
 datatype
   "bin" = Pls
         | Min
-        | BIT ("w: bin", "b: bool")	(infixl 90)
+        | Bit ("w: bin", "b: bool")	(infixl "BIT" 90)
 
 syntax
   "_Int"           :: xnum => i        ("_")
@@ -104,85 +104,9 @@ primrec
     "bin_mult (v BIT b,w) = cond(b, bin_add(NCons(bin_mult(v,w),0),w),
 				 NCons(bin_mult(v,w),0))"
 
+setup NumeralSyntax.setup
+
 end
 
 
 ML
-
-(** Concrete syntax for integers **)
-
-local
-  open Syntax;
-
-  (* Bits *)
-
-  fun mk_bit 0 = const "0"
-    | mk_bit 1 = const "succ" $ const "0"
-    | mk_bit _ = sys_error "mk_bit";
-
-  fun dest_bit (Const ("0", _)) = 0
-    | dest_bit (Const ("succ", _) $ Const ("0", _)) = 1
-    | dest_bit _ = raise Match;
-
-
-  (* Bit strings *)   (*we try to handle superfluous leading digits nicely*)
-
-  fun prefix_len _ [] = 0
-    | prefix_len pred (x :: xs) =
-        if pred x then 1 + prefix_len pred xs else 0;
-
-  fun mk_bin str =
-    let
-      val (sign, digs) =
-        (case Symbol.explode str of
-          "#" :: "-" :: cs => (~1, cs)
-        | "#" :: cs => (1, cs)
-        | _ => raise ERROR);
-
-      val zs = prefix_len (equal "0") digs;
-
-      fun bin_of 0  = []
-        | bin_of ~1 = [~1]
-        | bin_of n  = (n mod 2) :: bin_of (n div 2);
-
-      fun term_of [] = const "Pls"
-        | term_of [~1] = const "Min"
-        | term_of (b :: bs) = const "op BIT" $ term_of bs $ mk_bit b;
-    in
-      term_of (bin_of (sign * (#1 (read_int digs))))
-    end;
-
-  fun dest_bin tm =
-    let
-      fun bin_of (Const ("Pls", _)) = []
-        | bin_of (Const ("Min", _)) = [~1]
-        | bin_of (Const ("op BIT", _) $ bs $ b) = dest_bit b :: bin_of bs
-        | bin_of _ = raise Match;
-
-      fun integ_of [] = 0
-        | integ_of (b :: bs) = b + 2 * integ_of bs;
-
-      val rev_digs = bin_of tm;
-      val (sign, zs) =
-        (case rev rev_digs of
-          ~1 :: bs => ("-", prefix_len (equal 1) bs)
-        | bs => ("", prefix_len (equal 0) bs));
-      val num = string_of_int (abs (integ_of rev_digs));
-    in
-      "#" ^ sign ^ implode (replicate zs "0") ^ num
-    end;
-
-
-  (* translation of integer constant tokens to and from binary *)
-
-  fun int_tr (*"_Int"*) [t as Free (str, _)] =
-        (const "integ_of" $
-          (mk_bin str handle ERROR => raise TERM ("int_tr", [t])))
-    | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
-
-  fun int_tr' (*"integ_of"*) [t] = const "_Int" $ free (dest_bin t)
-    | int_tr' (*"integ_of"*) _ = raise Match;
-in
-  val parse_translation = [("_Int", int_tr)];
-  val print_translation = [("integ_of", int_tr')];
-end;

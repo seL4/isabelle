@@ -9,7 +9,7 @@ The theory underlying permutation groups
   -- Lemmas for the Schroeder-Bernstein Theorem
 *)
 
-Perm = upair + mono + func +
+Perm = mono + func +
 consts
   O     :: [i,i]=>i      (infixr 60)
 

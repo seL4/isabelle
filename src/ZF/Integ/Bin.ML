@@ -87,8 +87,7 @@ AddTCs [bin_mult_type];
 (**** The carry/borrow functions, bin_succ and bin_pred ****)
 
 (*NCons preserves the integer value of its argument*)
-Goal "[| w: bin; b: bool |] ==>     \
-\         integ_of(NCons(w,b)) = integ_of(w BIT b)";
+Goal "[| w: bin; b: bool |] ==> integ_of(NCons(w,b)) = integ_of(w BIT b)";
 by (etac bin.elim 1);
 by (Asm_simp_tac 3);
 by (ALLGOALS (etac boolE));
@@ -134,9 +133,19 @@ Goalw [bin_add_def] "w: bin ==> bin_add(Pls,w) = w";
 by (Asm_simp_tac 1);
 qed "bin_add_Pls";
 
+Goalw [bin_add_def] "w: bin ==> bin_add(w,Pls) = w";
+by (etac bin.induct 1);
+by Auto_tac;
+qed "bin_add_Pls_right";
+
 Goalw [bin_add_def] "w: bin ==> bin_add(Min,w) = bin_pred(w)";
 by (Asm_simp_tac 1);
 qed "bin_add_Min";
+
+Goalw [bin_add_def] "w: bin ==> bin_add(w,Min) = bin_pred(w)";
+by (etac bin.induct 1);
+by Auto_tac;
+qed "bin_add_Min_right";
 
 Goalw [bin_add_def] "bin_add(v BIT x,Pls) = v BIT x";
 by (Simp_tac 1);
@@ -166,6 +175,13 @@ by (induct_tac "wa" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac setloop (etac boolE))));
 qed_spec_mp "integ_of_add";
 
+(*Subtraction*)
+Goalw [zdiff_def]
+     "[| v: bin;  w: bin |]   \
+\     ==> integ_of(v) $- integ_of(w) = integ_of(bin_add (v, bin_minus(w)))";
+by (asm_simp_tac (simpset() addsimps [integ_of_add, integ_of_minus]) 1);
+qed "diff_integ_of_eq";
+
 
 (*** bin_mult: binary multiplication ***)
 
@@ -186,59 +202,63 @@ qed "integ_of_mult";
 
 Goal "bin_succ(w BIT 1) = bin_succ(w) BIT 0";
 by (Simp_tac 1);
-qed "bin_succ_BIT1";
+qed "bin_succ_1";
 
 Goal "bin_succ(w BIT 0) = NCons(w,1)";
 by (Simp_tac 1);
-qed "bin_succ_BIT0";
+qed "bin_succ_0";
 
 Goal "bin_pred(w BIT 1) = NCons(w,0)";
 by (Simp_tac 1);
-qed "bin_pred_BIT1";
+qed "bin_pred_1";
 
 Goal "bin_pred(w BIT 0) = bin_pred(w) BIT 1";
 by (Simp_tac 1);
-qed "bin_pred_BIT0";
+qed "bin_pred_0";
 
 (** extra rules for bin_minus **)
 
 Goal "bin_minus(w BIT 1) = bin_pred(NCons(bin_minus(w), 0))";
 by (Simp_tac 1);
-qed "bin_minus_BIT1";
+qed "bin_minus_1";
 
 Goal "bin_minus(w BIT 0) = bin_minus(w) BIT 0";
 by (Simp_tac 1);
-qed "bin_minus_BIT0";
+qed "bin_minus_0";
 
 (** extra rules for bin_add **)
 
 Goal "w: bin ==> bin_add(v BIT 1, w BIT 1) = \
 \                    NCons(bin_add(v, bin_succ(w)), 0)";
 by (Asm_simp_tac 1);
-qed "bin_add_BIT_BIT11";
+qed "bin_add_BIT_11";
 
 Goal "w: bin ==> bin_add(v BIT 1, w BIT 0) =  \
 \                    NCons(bin_add(v,w), 1)";
 by (Asm_simp_tac 1);
-qed "bin_add_BIT_BIT10";
+qed "bin_add_BIT_10";
 
-Goal "[| w: bin;  y: bool |] ==> \
-\           bin_add(v BIT 0, w BIT y) = NCons(bin_add(v,w), y)";
+Goal "[| w: bin;  y: bool |] \
+\     ==> bin_add(v BIT 0, w BIT y) = NCons(bin_add(v,w), y)";
 by (Asm_simp_tac 1);
-qed "bin_add_BIT_BIT0";
+qed "bin_add_BIT_0";
 
 (** extra rules for bin_mult **)
 
 Goal "bin_mult(v BIT 1, w) = bin_add(NCons(bin_mult(v,w),0), w)";
 by (Simp_tac 1);
-qed "bin_mult_BIT1";
+qed "bin_mult_1";
 
 Goal "bin_mult(v BIT 0, w) = NCons(bin_mult(v,w),0)";
 by (Simp_tac 1);
-qed "bin_mult_BIT0";
+qed "bin_mult_0";
 
 
 (** Simplification rules with integer constants **)
+
+Goal "$#0 = #0";
+by (Simp_tac 1);
+qed "int_of_0";
 
 Goal "#0 $+ z = intify(z)";
 by (Simp_tac 1);
@@ -272,6 +292,109 @@ qed "zmult_0_right";
 
 Addsimps [zmult_0, zmult_0_right];
 
+Goal "#-1 $* z = $-z";
+by (simp_tac (simpset() addsimps zcompare_rls) 1);
+qed "zmult_minus1";
+
+Goal "z $* #-1 = $-z";
+by (stac zmult_commute 1);
+by (rtac zmult_minus1 1);
+qed "zmult_minus1_right";
+
+Addsimps [zmult_minus1, zmult_minus1_right];
+
+
+(*** Simplification rules for comparison of binary numbers (N Voelker) ***)
+
+(** Equals (=) **)
+
+Goalw [iszero_def]
+     "[| v: bin;  w: bin |]   \
+\     ==> ((integ_of(v)) = integ_of(w)) <-> \
+\         iszero (integ_of (bin_add (v, bin_minus(w))))"; 
+by (asm_simp_tac (simpset() addsimps
+              (zcompare_rls @ [integ_of_add, integ_of_minus])) 1); 
+qed "eq_integ_of_eq"; 
+
+Goalw [iszero_def] "iszero (integ_of(Pls))"; 
+by (Simp_tac 1); 
+qed "iszero_integ_of_Pls";
+
+
+Goalw [iszero_def] "~ iszero (integ_of(Min))"; 
+by (simp_tac (simpset() addsimps [zminus_equation]) 1);
+qed "nonzero_integ_of_Min"; 
+
+Goalw [iszero_def]
+     "[| w: bin; x: bool |] \
+\     ==> iszero (integ_of (w BIT x)) <-> (x=0 & iszero (integ_of(w)))"; 
+by (Simp_tac 1);
+by (subgoal_tac "integ_of(w) : int" 1);
+by (Asm_simp_tac 2);
+by (dtac int_cases 1);
+by (auto_tac (claset() addSEs [boolE], 
+              simpset() addsimps [int_of_add RS sym]));  
+by (ALLGOALS (asm_full_simp_tac 
+	      (simpset() addsimps zcompare_rls @ 
+			  [zminus_zadd_distrib RS sym, int_of_add RS sym])));
+by (subgoal_tac "znegative ($- $# succ(x)) <-> znegative ($# succ(x))" 1);
+by (Asm_simp_tac 2);
+by (Full_simp_tac 1);
+qed "iszero_integ_of_BIT"; 
+
+Goal "w: bin ==> iszero (integ_of (w BIT 0)) <-> iszero (integ_of(w))"; 
+by (asm_simp_tac (ZF_ss addsimps [iszero_integ_of_BIT]) 1); 
+qed "iszero_integ_of_0"; 
+
+Goal "w: bin ==> ~ iszero (integ_of (w BIT 1))"; 
+by (asm_simp_tac (ZF_ss addsimps [iszero_integ_of_BIT]) 1); 
+qed "iszero_integ_of_1"; 
+
+
+
+(** Less-than (<) **)
+
+Goalw [zless_def,zdiff_def] 
+     "[| v: bin;  w: bin |]   \
+\     ==> integ_of(v) $< integ_of(w) \
+\         <-> znegative (integ_of (bin_add (v, bin_minus(w))))";
+by (asm_simp_tac (simpset() addsimps [integ_of_minus, integ_of_add]) 1);
+qed "less_integ_of_eq_neg"; 
+
+Goal "~ znegative (integ_of(Pls))"; 
+by (Simp_tac 1); 
+qed "not_neg_integ_of_Pls"; 
+
+Goal "znegative (integ_of(Min))"; 
+by (Simp_tac 1);
+qed "neg_integ_of_Min"; 
+
+Goal "[| w: bin; x: bool |] \
+\     ==> znegative (integ_of (w BIT x)) <-> znegative (integ_of(w))"; 
+by (Asm_simp_tac 1); 
+by (subgoal_tac "integ_of(w) : int" 1);
+by (Asm_simp_tac 2);
+by (dtac int_cases 1);
+by (auto_tac (claset() addSEs [boolE], 
+              simpset() addsimps [int_of_add RS sym] @ zcompare_rls));  
+by (ALLGOALS (asm_full_simp_tac 
+	      (simpset() addsimps [zminus_zadd_distrib RS sym, zdiff_def,
+				   int_of_add RS sym])));
+by (subgoal_tac "$#1 $- $# succ(succ(x #+ x)) = $- $# succ(x #+ x)" 1);
+by (asm_full_simp_tac (simpset() addsimps [zdiff_def])1);
+by (asm_simp_tac (simpset() addsimps [equation_zminus, int_of_diff RS sym])1);
+qed "neg_integ_of_BIT"; 
+
+Goal "w: bin ==> iszero (integ_of (w BIT 0)) <-> iszero (integ_of(w))"; 
+by (asm_simp_tac (ZF_ss addsimps [iszero_integ_of_BIT]) 1); 
+qed "iszero_integ_of_0"; 
+
+(** Less-than-or-equals (<=) **)
+
+Goal "(integ_of(x) $<= (integ_of(w))) <-> ~ (integ_of(w) $< (integ_of(x)))";
+by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym]) 1);
+qed "le_integ_of_eq_not_less"; 
+
 
 (*Delete the original rewrites, with their clumsy conditional expressions*)
 Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT, 
@@ -281,17 +404,69 @@ Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT,
 Delsimps [integ_of_Pls, integ_of_Min, integ_of_BIT];
 
 
-Addsimps [integ_of_add RS sym,   (*invoke bin_add*)
-	  integ_of_minus RS sym, (*invoke bin_minus*)
-	  integ_of_mult RS sym,  (*invoke bin_mult*)
-	  bin_succ_Pls, bin_succ_Min,
-	  bin_succ_BIT1, bin_succ_BIT0,
-	  bin_pred_Pls, bin_pred_Min,
-	  bin_pred_BIT1, bin_pred_BIT0,
-	  bin_minus_Pls, bin_minus_Min,
-	  bin_minus_BIT1, bin_minus_BIT0,
-	  bin_add_Pls, bin_add_Min, bin_add_BIT_Pls, 
-	  bin_add_BIT_Min, bin_add_BIT_BIT0, 
-	  bin_add_BIT_BIT10, bin_add_BIT_BIT11,
-	  bin_mult_Pls, bin_mult_Min,
-	  bin_mult_BIT1, bin_mult_BIT0];
+bind_thms ("NCons_simps", 
+	   [NCons_Pls_0, NCons_Pls_1, NCons_Min_0, NCons_Min_1, NCons_BIT]);
+
+
+bind_thms ("bin_arith_extra_simps",
+    [integ_of_add RS sym,   (*invoke bin_add*)
+     integ_of_minus RS sym, (*invoke bin_minus*)
+     integ_of_mult RS sym,  (*invoke bin_mult*)
+     bin_succ_1, bin_succ_0, 
+     bin_pred_1, bin_pred_0, 
+     bin_minus_1, bin_minus_0,  
+     bin_add_Pls_right, bin_add_Min_right,
+     bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
+     diff_integ_of_eq,
+     bin_mult_1, bin_mult_0] @ NCons_simps);
+
+
+(*For making a minimal simpset, one must include these default simprules
+  of thy.  Also include simp_thms, or at least (~False)=True*)
+bind_thms ("bin_arith_simps",
+    [bin_pred_Pls, bin_pred_Min,
+     bin_succ_Pls, bin_succ_Min,
+     bin_add_Pls, bin_add_Min,
+     bin_minus_Pls, bin_minus_Min,
+     bin_mult_Pls, bin_mult_Min] @ bin_arith_extra_simps);
+
+(*Simplification of relational operations*)
+bind_thms ("bin_rel_simps",
+    [eq_integ_of_eq, iszero_integ_of_Pls, nonzero_integ_of_Min,
+     iszero_integ_of_0, iszero_integ_of_1,
+     less_integ_of_eq_neg,
+     not_neg_integ_of_Pls, neg_integ_of_Min, neg_integ_of_BIT,
+     le_integ_of_eq_not_less]);
+
+Addsimps bin_arith_simps;
+Addsimps bin_rel_simps;
+
+
+(** Simplification of arithmetic when nested to the right **)
+
+Goal "[| v: bin;  w: bin |]   \
+\     ==> integ_of(v) $+ (integ_of(w) $+ z) = (integ_of(bin_add(v,w)) $+ z)";
+by (asm_simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
+qed "add_integ_of_left";
+
+Goal "[| v: bin;  w: bin |]   \
+\     ==> integ_of(v) $* (integ_of(w) $* z) = (integ_of(bin_mult(v,w)) $* z)";
+by (asm_simp_tac (simpset() addsimps [zmult_assoc RS sym]) 1);
+qed "mult_integ_of_left";
+
+Goalw [zdiff_def]
+    "[| v: bin;  w: bin |]   \
+\     ==> integ_of(v) $+ (integ_of(w) $- c) = integ_of(bin_add(v,w)) $- (c)";
+by (rtac add_integ_of_left 1);
+by Auto_tac;  
+qed "add_integ_of_diff1";
+
+Goal "[| v: bin;  w: bin |]   \
+\     ==> integ_of(v) $+ (c $- integ_of(w)) = \
+\         integ_of (bin_add (v, bin_minus(w))) $+ (c)";
+by (stac (diff_integ_of_eq RS sym) 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps zdiff_def::zadd_ac)));
+qed "add_integ_of_diff2";
+
+Addsimps [add_integ_of_left, mult_integ_of_left,
+	  add_integ_of_diff1, add_integ_of_diff2]; 
