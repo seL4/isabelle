@@ -65,10 +65,10 @@ consts
     RespLife   :: nat 
 
 rules
-     AuthLife_LB    "2 <= AuthLife"
-     ServLife_LB    "2 <= ServLife"
-     AutcLife_LB    "1 <= AutcLife" 
-     RespLife_LB    "1 <= RespLife"
+     AuthLife_LB    "#2 <= AuthLife"
+     ServLife_LB    "#2 <= ServLife"
+     AutcLife_LB    "1' <= AutcLife" 
+     RespLife_LB    "1' <= RespLife"
 
 translations
    "CT" == "length"
