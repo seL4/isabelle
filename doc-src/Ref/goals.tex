@@ -121,12 +121,18 @@ tactics})}.
 \label{ExtractingAndStoringTheProvedTheorem}
 \index{theorems!extracting proved}
 \begin{ttbox} 
+qed       : string -> unit
 result    : unit -> thm
 uresult   : unit -> thm
 bind_thm  : string * thm -> unit
-qed       : string -> unit
+store_thm : string * thm -> thm
 \end{ttbox}
 \begin{ttdescription}
+\item[\ttindexbold{qed} $name$] is the usual way of ending a proof.
+  It combines {\tt result} and {\tt bind_thm}: it gets the theorem using {\tt
+  result()} and stores it in Isabelle's theorem database.  See below for
+  details. 
+
 \item[\ttindexbold{result}()]\index{assumptions!of main goal}
   returns the final theorem, after converting the free variables to
   schematics.  It discharges the assumptions supplied to the matching 
@@ -149,15 +155,14 @@ qed       : string -> unit
   \ttindex{rewrite_tac}),\index{definitions!unfolding} or when
   \ttindex{assume_ax} has been used.
 
-\item[\ttindexbold{bind_thm}($name$, $thm$)]\index{theorems!storing of}
+\item[\ttindexbold{bind_thm}($name$, $thm$)]\index{theorems!storing}
   stores {\tt standard($thm$)} (see \S\ref{MiscellaneousForwardRules})
-  in Isabelle's theorem database and in the ML variable $name$. The
-  theorem can be retrieved from Isabelle's database by {\tt get_thm}
+  in Isabelle's theorem database and in the {\ML} variable $name$.  The
+  theorem can be retrieved from the database using {\tt get_thm}
   (see \S\ref{BasicOperationsOnTheories}).
 
-\item[\ttindexbold{qed} $name$]
-  combines {\tt result} and {\tt bind_thm} in that it first uses {\tt
-  result()} to get the theorem and then stores it like {\tt bind_thm}.
+\item[\ttindexbold{store_thm}($name$, $thm$)]\index{theorems!storing} stores
+  $thm$ in Isabelle's theorem database and returns that theorem.
 \end{ttdescription}
 
 
@@ -418,7 +423,7 @@ the given tactic function.
 
 \item[\ttindexbold{qed_goal} $name$ $theory$ $formula$ $tacsf$;]
 acts like {\tt prove_goal} but also stores the resulting theorem in
-Isabelle's theorem database and in the ML variable $name$ (see
+Isabelle's theorem database and in the {\ML} variable $name$ (see
 \S\ref{ExtractingAndStoringTheProvedTheorem}).
 
 \item[\ttindexbold{prove_goalw} {\it theory} {\it defs} {\it formula} 
