@@ -71,7 +71,7 @@ by (etac tiling.induct 1);
 by (simp_tac (!simpset addsimps tiling.intrs) 1);
 by (asm_full_simp_tac (!simpset addsimps [Un_assoc,
 					  subset_empty_iff RS iff_sym]) 1);
-by (fast_tac (!claset addIs tiling.intrs) 1);
+by (blast_tac (!claset addIs tiling.intrs) 1);
 bind_thm ("tiling_UnI", result() RS mp RS mp);
 
 goal thy "!!t. t:tiling(domino) ==> Finite(t)";
@@ -87,7 +87,7 @@ by (res_inst_tac [("b1","0")] (domino_singleton RS exE) 1);
 by (Simp_tac 2 THEN assume_tac 1);
 by (res_inst_tac [("b1","1")] (domino_singleton RS exE) 1);
 by (Simp_tac 2 THEN assume_tac 1);
-by (step_tac (!claset) 1);
+by (Step_tac 1);
 by (subgoal_tac "ALL p b. p:evnodd(a,b) --> p~:evnodd(ta,b)" 1);
 by (asm_simp_tac (!simpset addsimps [evnodd_Un, Un_cons, tiling_domino_Finite,
                                   evnodd_subset RS subset_Finite,
