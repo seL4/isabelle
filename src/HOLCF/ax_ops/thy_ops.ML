@@ -340,7 +340,7 @@ fun add_ops {curried,strict,total} raw_decls thy =
       val s_axms = (if strict then strictness_axms curried decls else []);
       val t_axms = (if total  then totality_axms   curried decls else []);
   in 
-  Theory.add_trrules_i xrules (Theory.add_axioms_i (s_axms @ t_axms) 
+  Theory.add_trrules_i xrules (PureThy.add_store_axioms_i (s_axms @ t_axms) 
                      (Theory.add_syntax_i syndecls (Theory.add_consts_i oldstyledecls thy)))
   end;
 
@@ -352,7 +352,7 @@ fun add_ops_i {curried,strict,total} decls thy =
       val s_axms = (if strict then strictness_axms curried decls else []);
       val t_axms = (if total  then totality_axms   curried decls else []);
   in 
-  Theory.add_trrules_i xrules (Theory.add_axioms_i (s_axms @ t_axms) 
+  Theory.add_trrules_i xrules (PureThy.add_store_axioms_i (s_axms @ t_axms) 
                      (Theory.add_syntax_i syndecls (Theory.add_consts_i oldstyledecls thy)))
   end;
 
