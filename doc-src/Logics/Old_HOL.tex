@@ -1,7 +1,7 @@
 %% $Id$
 \chapter{Higher-order logic}
 The directory~\ttindexbold{HOL} contains a theory for higher-order logic
-based on Gordon's~{\sc hol} system~\cite{gordon88a}, which itself is based on
+based on Gordon's~{\sc hol} system~\cite{mgordon88a}, which itself is based on
 Church~\cite{church40}.  Andrews~\cite{andrews86} is a full description of
 higher-order logic.  Gordon's work has demonstrated that higher-order logic
 is useful for hardware verification; beyond this, it is widely applicable
@@ -31,13 +31,13 @@ to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
 \begin{figure} 
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 	& \it description \\ 
-  \idx{Trueprop}& $bool\To prop$		& coercion to $prop$\\
-  \idx{not}	& $bool\To bool$		& negation ($\neg$) \\
-  \idx{True}	& $bool$			& tautology ($\top$) \\
-  \idx{False}	& $bool$			& absurdity ($\bot$) \\
-  \idx{if}	& $[bool,\alpha,\alpha]\To\alpha::term$	& conditional \\
-  \idx{Inv}	& $(\alpha\To\beta)\To(\beta\To\alpha)$ & function inversion
+  \it name      &\it meta-type  & \it description \\ 
+  \idx{Trueprop}& $bool\To prop$                & coercion to $prop$\\
+  \idx{not}     & $bool\To bool$                & negation ($\neg$) \\
+  \idx{True}    & $bool$                        & tautology ($\top$) \\
+  \idx{False}   & $bool$                        & absurdity ($\bot$) \\
+  \idx{if}      & $[bool,\alpha,\alpha]\To\alpha::term$ & conditional \\
+  \idx{Inv}     & $(\alpha\To\beta)\To(\beta\To\alpha)$ & function inversion
 \end{tabular}
 \end{center}
 \subcaption{Constants}
@@ -45,28 +45,28 @@ to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
 \index{"@@{\tt\at}}
 \begin{center}
 \begin{tabular}{llrrr} 
-  \it symbol &\it name	   &\it meta-type & \it prec & \it description \\
+  \it symbol &\it name     &\it meta-type & \it prec & \it description \\
   \tt\at   & \idx{Eps}  & $(\alpha\To bool)\To\alpha::term$ & 10 & 
-	Hilbert description ($\epsilon$) \\
+        Hilbert description ($\epsilon$) \\
   \idx{!}  & \idx{All}  & $(\alpha::term\To bool)\To bool$ & 10 & 
-	universal quantifier ($\forall$) \\
+        universal quantifier ($\forall$) \\
   \idx{?}  & \idx{Ex}   & $(\alpha::term\To bool)\To bool$ & 10 & 
-	existential quantifier ($\exists$) \\
+        existential quantifier ($\exists$) \\
   \idx{?!} & \idx{Ex1}  & $(\alpha::term\To bool)\To bool$ & 10 & 
-	unique existence ($\exists!$)
+        unique existence ($\exists!$)
 \end{tabular}
 \end{center}
 \subcaption{Binders} 
 
 \begin{center}
 \begin{tabular}{llrrr} 
-  \it symbol &\it name	   &\it meta-type & \it prec & \it description \\
+  \it symbol &\it name     &\it meta-type & \it prec & \it description \\
   \idx{ALL}  & \idx{All}  & $(\alpha::term\To bool)\To bool$ & 10 & 
-	universal quantifier ($\forall$) \\
+        universal quantifier ($\forall$) \\
   \idx{EX}   & \idx{Ex}   & $(\alpha::term\To bool)\To bool$ & 10 & 
-	existential quantifier ($\exists$) \\
+        existential quantifier ($\exists$) \\
   \idx{EX!}  & \idx{Ex1}  & $(\alpha::term\To bool)\To bool$ & 10 & 
-	unique existence ($\exists!$)
+        unique existence ($\exists!$)
 \end{tabular}
 \end{center}
 \subcaption{Alternative quantifiers} 
@@ -77,16 +77,16 @@ to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
 \indexbold{*"|}
 \indexbold{*"-"-">}
 \begin{tabular}{rrrr} 
-  \it symbol  	& \it meta-type & \it precedence & \it description \\ 
-  \idx{o}	& $[\beta\To\gamma,\alpha\To\beta]\To (\alpha\To\gamma)$ & 
-	Right 50 & composition ($\circ$) \\
-  \tt =		& $[\alpha::term,\alpha]\To bool$ & Left 50 & equality ($=$) \\
-  \tt \& 	& $[bool,bool]\To bool$	& Right 35 & conjunction ($\conj$) \\
-  \tt |		& $[bool,bool]\To bool$	& Right 30 & disjunction ($\disj$) \\
-  \tt --> 	& $[bool,bool]\To bool$	& Right 25 & implication ($\imp$) \\
-  \tt <		& $[\alpha::ord,\alpha]\To bool$ & Left 50 & less than ($<$) \\
-  \tt <=	& $[\alpha::ord,\alpha]\To bool$ & Left 50 & 
-		less than or equals ($\leq$)
+  \it symbol    & \it meta-type & \it precedence & \it description \\ 
+  \idx{o}       & $[\beta\To\gamma,\alpha\To\beta]\To (\alpha\To\gamma)$ & 
+        Right 50 & composition ($\circ$) \\
+  \tt =         & $[\alpha::term,\alpha]\To bool$ & Left 50 & equality ($=$) \\
+  \tt \&        & $[bool,bool]\To bool$ & Right 35 & conjunction ($\conj$) \\
+  \tt |         & $[bool,bool]\To bool$ & Right 30 & disjunction ($\disj$) \\
+  \tt -->       & $[bool,bool]\To bool$ & Right 25 & implication ($\imp$) \\
+  \tt <         & $[\alpha::ord,\alpha]\To bool$ & Left 50 & less than ($<$) \\
+  \tt <=        & $[\alpha::ord,\alpha]\To bool$ & Left 50 & 
+                less than or equals ($\leq$)
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
@@ -98,22 +98,22 @@ to use higher-order logic.  This chapter assumes familiarity with~{\FOL{}}.
 \dquotes
 \[\begin{array}{rcl}
     term & = & \hbox{expression of class~$term$} \\
-	 & | & "\at~~" id~id^* " . " formula \\[2ex]
+         & | & "\at~~" id~id^* " . " formula \\[2ex]
  formula & = & \hbox{expression of type~$bool$} \\
-	 & | & term " = " term \\
-	 & | & term " \ttilde= " term \\
-	 & | & term " < " term \\
-	 & | & term " <= " term \\
-	 & | & "\ttilde\ " formula \\
-	 & | & formula " \& " formula \\
-	 & | & formula " | " formula \\
-	 & | & formula " --> " formula \\
-	 & | & "!~~~" id~id^* " . " formula \\
-	 & | & "?~~~" id~id^* " . " formula \\
-	 & | & "?!~~" id~id^* " . " formula \\
-	 & | & "ALL~" id~id^* " . " formula \\
-	 & | & "EX~~" id~id^* " . " formula \\
-	 & | & "EX!~" id~id^* " . " formula
+         & | & term " = " term \\
+         & | & term " \ttilde= " term \\
+         & | & term " < " term \\
+         & | & term " <= " term \\
+         & | & "\ttilde\ " formula \\
+         & | & formula " \& " formula \\
+         & | & formula " | " formula \\
+         & | & formula " --> " formula \\
+         & | & "!~~~" id~id^* " . " formula \\
+         & | & "?~~~" id~id^* " . " formula \\
+         & | & "?!~~" id~id^* " . " formula \\
+         & | & "ALL~" id~id^* " . " formula \\
+         & | & "EX~~" id~id^* " . " formula \\
+         & | & "EX!~" id~id^* " . " formula
   \end{array}
 \]
 \subcaption{Grammar}
@@ -401,44 +401,44 @@ for details.
 \begin{figure} 
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 	& \it description \\ 
+  \it name      &\it meta-type  & \it description \\ 
 \index{"{"}@{\tt\{\}}}
-  {\tt\{\}}	& $\alpha\,set$ 	& the empty set \\
-  \idx{insert}	& $[\alpha,\alpha\,set]\To \alpha\,set$
-	& insertion of element \\
-  \idx{Collect}	& $(\alpha\To bool)\To\alpha\,set$
-	& comprehension \\
-  \idx{Compl}	& $(\alpha\,set)\To\alpha\,set$
-	& complement \\
+  {\tt\{\}}     & $\alpha\,set$         & the empty set \\
+  \idx{insert}  & $[\alpha,\alpha\,set]\To \alpha\,set$
+        & insertion of element \\
+  \idx{Collect} & $(\alpha\To bool)\To\alpha\,set$
+        & comprehension \\
+  \idx{Compl}   & $(\alpha\,set)\To\alpha\,set$
+        & complement \\
   \idx{INTER} & $[\alpha\,set,\alpha\To\beta\,set]\To\beta\,set$
-	& intersection over a set\\
+        & intersection over a set\\
   \idx{UNION} & $[\alpha\,set,\alpha\To\beta\,set]\To\beta\,set$
-	& union over a set\\
+        & union over a set\\
   \idx{Inter} & $((\alpha\,set)set)\To\alpha\,set$
-	&set of sets intersection \\
+        &set of sets intersection \\
   \idx{Union} & $((\alpha\,set)set)\To\alpha\,set$
-	&set of sets union \\
-  \idx{range}	& $(\alpha\To\beta )\To\beta\,set$
-	& range of a function \\[1ex]
-  \idx{Ball}~~\idx{Bex}	& $[\alpha\,set,\alpha\To bool]\To bool$
-	& bounded quantifiers \\
-  \idx{mono} 	& $(\alpha\,set\To\beta\,set)\To bool$
-	& monotonicity \\
+        &set of sets union \\
+  \idx{range}   & $(\alpha\To\beta )\To\beta\,set$
+        & range of a function \\[1ex]
+  \idx{Ball}~~\idx{Bex} & $[\alpha\,set,\alpha\To bool]\To bool$
+        & bounded quantifiers \\
+  \idx{mono}    & $(\alpha\,set\To\beta\,set)\To bool$
+        & monotonicity \\
   \idx{inj}~~\idx{surj}& $(\alpha\To\beta )\To bool$
-	& injective/surjective \\
-  \idx{inj_onto}	& $[\alpha\To\beta ,\alpha\,set]\To bool$
-	& injective over subset
+        & injective/surjective \\
+  \idx{inj_onto}        & $[\alpha\To\beta ,\alpha\,set]\To bool$
+        & injective over subset
 \end{tabular}
 \end{center}
 \subcaption{Constants}
 
 \begin{center}
 \begin{tabular}{llrrr} 
-  \it symbol &\it name	   &\it meta-type & \it prec & \it description \\
+  \it symbol &\it name     &\it meta-type & \it prec & \it description \\
   \idx{INT}  & \idx{INTER1}  & $(\alpha\To\beta\,set)\To\beta\,set$ & 10 & 
-	intersection over a type\\
+        intersection over a type\\
   \idx{UN}  & \idx{UNION1}  & $(\alpha\To\beta\,set)\To\beta\,set$ & 10 & 
-	union over a type
+        union over a type
 \end{tabular}
 \end{center}
 \subcaption{Binders} 
@@ -448,17 +448,17 @@ for details.
 \indexbold{*":}
 \indexbold{*"<"=}
 \begin{tabular}{rrrr} 
-  \it symbol	& \it meta-type & \it precedence & \it description \\ 
-  \tt ``	& $[\alpha\To\beta ,\alpha\,set]\To  (\beta\,set)$
-	& Left 90 & image \\
-  \idx{Int}	& $[\alpha\,set,\alpha\,set]\To\alpha\,set$
-	& Left 70 & intersection ($\inter$) \\
-  \idx{Un}	& $[\alpha\,set,\alpha\,set]\To\alpha\,set$
-	& Left 65 & union ($\union$) \\
-  \tt:		& $[\alpha ,\alpha\,set]\To bool$	
-	& Left 50 & membership ($\in$) \\
-  \tt <=	& $[\alpha\,set,\alpha\,set]\To bool$
-	& Left 50 & subset ($\subseteq$) 
+  \it symbol    & \it meta-type & \it precedence & \it description \\ 
+  \tt ``        & $[\alpha\To\beta ,\alpha\,set]\To  (\beta\,set)$
+        & Left 90 & image \\
+  \idx{Int}     & $[\alpha\,set,\alpha\,set]\To\alpha\,set$
+        & Left 70 & intersection ($\inter$) \\
+  \idx{Un}      & $[\alpha\,set,\alpha\,set]\To\alpha\,set$
+        & Left 65 & union ($\union$) \\
+  \tt:          & $[\alpha ,\alpha\,set]\To bool$       
+        & Left 50 & membership ($\in$) \\
+  \tt <=        & $[\alpha\,set,\alpha\,set]\To bool$
+        & Left 50 & subset ($\subseteq$) 
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
@@ -469,24 +469,24 @@ for details.
 \begin{figure} 
 \begin{center} \tt\frenchspacing
 \begin{tabular}{rrr} 
-  \it external		& \it internal	& \it description \\ 
+  \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
   \{$a@1$, $\ldots$, $a@n$\}  &  insert($a@1$,$\cdots$,insert($a@n$,0)) &
         \rm finite set \\
-  \{$x$.$P[x]$\}	&  Collect($\lambda x.P[x]$) &
+  \{$x$.$P[x]$\}        &  Collect($\lambda x.P[x]$) &
         \rm comprehension \\
-  \idx{INT} $x$:$A$.$B[x]$	& INTER($A$,$\lambda x.B[x]$) &
-	\rm intersection over a set \\
-  \idx{UN}  $x$:$A$.$B[x]$	& UNION($A$,$\lambda x.B[x]$) &
-	\rm union over a set \\
-  \idx{!} $x$:$A$.$P[x]$	& Ball($A$,$\lambda x.P[x]$) & 
-	\rm bounded $\forall$ \\
-  \idx{?} $x$:$A$.$P[x]$	& Bex($A$,$\lambda x.P[x]$) & 
-	\rm bounded $\exists$ \\[1ex]
-  \idx{ALL} $x$:$A$.$P[x]$	& Ball($A$,$\lambda x.P[x]$) & 
-	\rm bounded $\forall$ \\
-  \idx{EX} $x$:$A$.$P[x]$	& Bex($A$,$\lambda x.P[x]$) & 
-	\rm bounded $\exists$
+  \idx{INT} $x$:$A$.$B[x]$      & INTER($A$,$\lambda x.B[x]$) &
+        \rm intersection over a set \\
+  \idx{UN}  $x$:$A$.$B[x]$      & UNION($A$,$\lambda x.B[x]$) &
+        \rm union over a set \\
+  \idx{!} $x$:$A$.$P[x]$        & Ball($A$,$\lambda x.P[x]$) & 
+        \rm bounded $\forall$ \\
+  \idx{?} $x$:$A$.$P[x]$        & Bex($A$,$\lambda x.P[x]$) & 
+        \rm bounded $\exists$ \\[1ex]
+  \idx{ALL} $x$:$A$.$P[x]$      & Ball($A$,$\lambda x.P[x]$) & 
+        \rm bounded $\forall$ \\
+  \idx{EX} $x$:$A$.$P[x]$       & Bex($A$,$\lambda x.P[x]$) & 
+        \rm bounded $\exists$
 \end{tabular}
 \end{center}
 \subcaption{Translations}
@@ -494,24 +494,24 @@ for details.
 \dquotes
 \[\begin{array}{rcl}
     term & = & \hbox{other terms\ldots} \\
-	 & | & "\{\}" \\
-	 & | & "\{ " term\; ("," term)^* " \}" \\
-	 & | & "\{ " id " . " formula " \}" \\
-	 & | & term " `` " term \\
-	 & | & term " Int " term \\
-	 & | & term " Un " term \\
-	 & | & "INT~~"  id ":" term " . " term \\
-	 & | & "UN~~~"  id ":" term " . " term \\
-	 & | & "INT~~"  id~id^* " . " term \\
-	 & | & "UN~~~"  id~id^* " . " term \\[2ex]
+         & | & "\{\}" \\
+         & | & "\{ " term\; ("," term)^* " \}" \\
+         & | & "\{ " id " . " formula " \}" \\
+         & | & term " `` " term \\
+         & | & term " Int " term \\
+         & | & term " Un " term \\
+         & | & "INT~~"  id ":" term " . " term \\
+         & | & "UN~~~"  id ":" term " . " term \\
+         & | & "INT~~"  id~id^* " . " term \\
+         & | & "UN~~~"  id~id^* " . " term \\[2ex]
  formula & = & \hbox{other formulae\ldots} \\
-	 & | & term " : " term \\
-	 & | & term " \ttilde: " term \\
-	 & | & term " <= " term \\
-	 & | & "!~~~" id ":" term " . " formula \\
-	 & | & "?~~~" id ":" term " . " formula \\
-	 & | & "ALL " id ":" term " . " formula \\
-	 & | & "EX~~" id ":" term " . " formula
+         & | & term " : " term \\
+         & | & term " \ttilde: " term \\
+         & | & term " <= " term \\
+         & | & "!~~~" id ":" term " . " formula \\
+         & | & "?~~~" id ":" term " . " formula \\
+         & | & "ALL " id ":" term " . " formula \\
+         & | & "EX~~" id ":" term " . " formula
   \end{array}
 \]
 \subcaption{Full Grammar}
@@ -828,13 +828,13 @@ Figure~\ref{hol-equalities} presents set equalities.  See
 \begin{figure} \makeatother
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 	& \it description \\ 
-  \idx{Pair}	& $[\alpha,\beta]\To \alpha\times\beta$
-	& ordered pairs $\langle a,b\rangle$ \\
-  \idx{fst}	& $\alpha\times\beta \To \alpha$		& first projection\\
-  \idx{snd}	& $\alpha\times\beta \To \beta$		& second projection\\
-  \idx{split}	& $[\alpha\times\beta, [\alpha,\beta]\To\gamma] \To \gamma$ 
-	& generalized projection
+  \it name      &\it meta-type  & \it description \\ 
+  \idx{Pair}    & $[\alpha,\beta]\To \alpha\times\beta$
+        & ordered pairs $\langle a,b\rangle$ \\
+  \idx{fst}     & $\alpha\times\beta \To \alpha$                & first projection\\
+  \idx{snd}     & $\alpha\times\beta \To \beta$         & second projection\\
+  \idx{split}   & $[\alpha\times\beta, [\alpha,\beta]\To\gamma] \To \gamma$ 
+        & generalized projection
 \end{tabular}
 \end{center}
 \subcaption{Constants}
@@ -862,11 +862,11 @@ Figure~\ref{hol-equalities} presents set equalities.  See
 \begin{figure} \makeatother
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 	& \it description \\ 
-  \idx{Inl}	& $\alpha \To \alpha+\beta$			& first injection\\
-  \idx{Inr}	& $\beta \To \alpha+\beta$			& second injection\\
-  \idx{case}	& $[\alpha+\beta, \alpha\To\gamma, \beta\To\gamma] \To\gamma$
-	& conditional
+  \it name      &\it meta-type  & \it description \\ 
+  \idx{Inl}     & $\alpha \To \alpha+\beta$                     & first injection\\
+  \idx{Inr}     & $\beta \To \alpha+\beta$                      & second injection\\
+  \idx{case}    & $[\alpha+\beta, \alpha\To\gamma, \beta\To\gamma] \To\gamma$
+        & conditional
 \end{tabular}
 \end{center}
 \subcaption{Constants}
@@ -916,13 +916,13 @@ proved using \ttindex{select_equality}.  See \ttindexbold{HOL/prod.thy} and
 \indexbold{*"<}
 \begin{center}
 \begin{tabular}{rrr} 
-  \it symbol  	& \it meta-type & \it description \\ 
-  \idx{0}	& $nat$		& zero \\
-  \idx{Suc}	& $nat \To nat$	& successor function\\
+  \it symbol    & \it meta-type & \it description \\ 
+  \idx{0}       & $nat$         & zero \\
+  \idx{Suc}     & $nat \To nat$ & successor function\\
   \idx{nat_case} & $[nat, \alpha, nat\To\alpha] \To\alpha$
-	& conditional\\
+        & conditional\\
   \idx{nat_rec} & $[nat, \alpha, [nat, \alpha]\To\alpha] \To \alpha$
-	& primitive recursor\\
+        & primitive recursor\\
   \idx{pred_nat} & $(nat\times nat) set$ & predecessor relation
 \end{tabular}
 \end{center}
@@ -935,12 +935,12 @@ proved using \ttindex{select_equality}.  See \ttindexbold{HOL/prod.thy} and
 \index{+@{\tt+}|bold}
 \index{-@{\tt-}|bold}
 \begin{tabular}{rrrr} 
-  \it symbol  	& \it meta-type & \it precedence & \it description \\ 
-  \tt *		& $[nat,nat]\To nat$	&  Left 70	& multiplication \\
-  \tt /		& $[nat,nat]\To nat$	&  Left 70	& division\\
-  \tt //	& $[nat,nat]\To nat$	&  Left 70	& modulus\\
-  \tt +		& $[nat,nat]\To nat$	&  Left 65	& addition\\
-  \tt -		& $[nat,nat]\To nat$ 	&  Left 65	& subtraction
+  \it symbol    & \it meta-type & \it precedence & \it description \\ 
+  \tt *         & $[nat,nat]\To nat$    &  Left 70      & multiplication \\
+  \tt /         & $[nat,nat]\To nat$    &  Left 70      & division\\
+  \tt //        & $[nat,nat]\To nat$    &  Left 70      & modulus\\
+  \tt +         & $[nat,nat]\To nat$    &  Left 65      & addition\\
+  \tt -         & $[nat,nat]\To nat$    &  Left 65      & subtraction
 \end{tabular}
 \end{center}
 \subcaption{Constants and infixes}
@@ -1040,15 +1040,15 @@ while its transitive closure is~$<$.
 \begin{figure} \makeatother
 \begin{center}
 \begin{tabular}{rrr} 
-  \it symbol  	& \it meta-type & \it description \\ 
-  \idx{Nil}	& $\alpha list$	& the empty list\\
-  \idx{Cons}	& $[\alpha, \alpha list] \To \alpha list$
-	& list constructor\\
-  \idx{list_rec}	& $[\alpha list, \beta, [\alpha ,\alpha list,
+  \it symbol    & \it meta-type & \it description \\ 
+  \idx{Nil}     & $\alpha list$ & the empty list\\
+  \idx{Cons}    & $[\alpha, \alpha list] \To \alpha list$
+        & list constructor\\
+  \idx{list_rec}        & $[\alpha list, \beta, [\alpha ,\alpha list,
 \beta]\To\beta] \To \beta$
-	& list recursor\\
-  \idx{map}	& $(\alpha\To\beta) \To (\alpha list \To \beta list)$
-	& mapping functional
+        & list recursor\\
+  \idx{map}     & $(\alpha\To\beta) \To (\alpha list \To \beta list)$
+        & mapping functional
 \end{tabular}
 \end{center}
 \subcaption{Constants}
@@ -1141,35 +1141,44 @@ See the {\em Reference Manual} for more discussion of classical proof
 methods.
 
 
-\section{The examples directory}
-This directory contains examples and experimental proofs in {\HOL}.  Here
-is an overview of the more interesting files.
+\section{The examples directories}
+Directory {\tt Subst} contains Martin Coen's mechanization of a theory of
+substitutions and unifiers.  It is based on Paulson's previous
+mechanization in {\LCF}~\cite{paulson85} of theory Manna and Waldinger's
+theory~\cite{mw81}. 
+
+Directory {\tt ex} contains other examples and experimental proofs in
+{\HOL}.  Here is an overview of the more interesting files.
 \begin{description}
 \item[\ttindexbold{HOL/ex/meson.ML}]
 contains an experimental implementation of the MESON proof procedure,
 inspired by Plaisted~\cite{plaisted90}.  It is much more powerful than
 Isabelle's classical module.  
 
-\item[\ttindexbold{HOL/ex/meson-test.ML}]
+\item[\ttindexbold{HOL/ex/mesontest.ML}]
 contains test data for the MESON proof procedure.
 
 \item[\ttindexbold{HOL/ex/set.ML}]
 proves Cantor's Theorem (see below) and the Schr\"oder-Bernstein Theorem.
 
-\item[\ttindexbold{HOL/ex/prop-log.ML}]
+\item[\ttindexbold{HOL/ex/pl.ML}]
 proves the soundness and completeness of classical propositional logic,
 given a truth table semantics.  The only connective is $\imp$.  A
 Hilbert-style axiom system is specified, and its set of theorems defined
 inductively.
 
-\item[\ttindexbold{HOL/ex/term.ML}]
-is an experimental recursive type definition, where the recursion goes
-through the type constructor~$list$.
+\item[\ttindexbold{HOL/ex/term.ML}] 
+  contains proofs about an experimental recursive type definition;
+  the recursion goes through the type constructor~$list$.
 
 \item[\ttindexbold{HOL/ex/simult.ML}]
 defines primitives for solving mutually recursive equations over sets.
 It constructs sets of trees and forests as an example, including induction
 and recursion rules that handle the mutual recursion.
+
+\item[\ttindexbold{HOL/ex/mt.ML}]
+contains Jacob Frost's formalization~\cite{frost93} of a co-induction
+example by Milner and Tofte~\cite{milner-coind}.
 \end{description}
 
 
@@ -1193,6 +1202,7 @@ val prems = goal HOL.thy "[| P; Q |] ==> P&Q";
 {\out Level 0}
 {\out P & Q}
 {\out  1. P & Q}
+{\out val prems = ["P [P]",  "Q [Q]"] : thm list}
 \end{ttbox}
 The next step is to unfold the definition of conjunction.  But
 \ttindex{and_def} uses {\HOL}'s internal equality, so
@@ -1244,6 +1254,7 @@ val prems = goal HOL.thy "[| P & Q |] ==> P";
 {\out Level 0}
 {\out P}
 {\out  1. P}
+{\out val prems = ["P & Q  [P & Q]"] : thm list}
 \end{ttbox}
 Working with premises that involve defined constants can be tricky.  We
 must expand the definition of conjunction in the meta-assumption $P\conj
@@ -1255,7 +1266,11 @@ prems RL [and_def RS subst];
 {\out           "P & Q  [P & Q]"] : thm list}
 \end{ttbox}
 By applying $(\forall E)$ and $({\imp}E)$ to the resolvents, we dispose of
-the vacuous one and put the other into a convenient form:
+the vacuous one and put the other into a convenient form:\footnote
+{In higher-order logic, {\tt spec RS mp} fails because the resolution yields
+two results, namely $\List{\forall x.x; P}\Imp Q$ and $\List{\forall
+  x.P(x)\imp Q(x); P(x)}\Imp Q(x)$.  In first-order logic, the resolution
+yields only the latter result.}
 \index{*RL}
 \begin{ttbox}
 prems RL [and_def RS subst] RL [spec] RL [mp];

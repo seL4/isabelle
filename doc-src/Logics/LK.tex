@@ -40,7 +40,7 @@ containing such garbage terms may accumulate during a proof.
 This technique lets Isabelle formalize sequent calculus rules,
 where the comma is the associative operator:
 \[ \infer[\conj\hbox{-left}]
-	 {\Gamma,P\conj Q,\Delta \turn \Theta}
+         {\Gamma,P\conj Q,\Delta \turn \Theta}
          {\Gamma,P,Q,\Delta \turn \Theta}  \] 
 Multiple unifiers occur whenever this is resolved against a goal containing
 more than one conjunction on the left.  Explicit formalization of sequents
@@ -56,25 +56,25 @@ has applied this technique using the language $\lambda$Prolog~\cite{felty91a}.
 \begin{figure} 
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 		& \it description	\\ 
-  \idx{Trueprop}& $o\To prop$		& coercion to $prop$	\\
-  \idx{Seqof}   & $[o,sobj]\To sobj$  	& singleton sequence	\\
-  \idx{Not}	& $o\To o$		& negation ($\neg$) 	\\
-  \idx{True}	& $o$			& tautology ($\top$) 	\\
-  \idx{False}	& $o$			& absurdity ($\bot$)
+  \it name      &\it meta-type          & \it description       \\ 
+  \idx{Trueprop}& $o\To prop$           & coercion to $prop$    \\
+  \idx{Seqof}   & $[o,sobj]\To sobj$    & singleton sequence    \\
+  \idx{Not}     & $o\To o$              & negation ($\neg$)     \\
+  \idx{True}    & $o$                   & tautology ($\top$)    \\
+  \idx{False}   & $o$                   & absurdity ($\bot$)
 \end{tabular}
 \end{center}
 \subcaption{Constants}
 
 \begin{center}
 \begin{tabular}{llrrr} 
-  \it symbol &\it name	   &\it meta-type & \it precedence & \it description \\
+  \it symbol &\it name     &\it meta-type & \it precedence & \it description \\
   \idx{ALL}  & \idx{All}  & $(\alpha\To o)\To o$ & 10 & 
-	universal quantifier ($\forall$) \\
+        universal quantifier ($\forall$) \\
   \idx{EX}   & \idx{Ex}   & $(\alpha\To o)\To o$ & 10 & 
-	existential quantifier ($\exists$) \\
+        existential quantifier ($\exists$) \\
   \idx{THE} & \idx{The}  & $(\alpha\To o)\To \alpha$ & 10 & 
-	definite description ($\iota$)
+        definite description ($\iota$)
 \end{tabular}
 \end{center}
 \subcaption{Binders} 
@@ -98,7 +98,7 @@ has applied this technique using the language $\lambda$Prolog~\cite{felty91a}.
 
 \begin{center}
 \begin{tabular}{rrr} 
-  \it external		& \it internal	& \it description \\ 
+  \it external          & \it internal  & \it description \\ 
   \tt $\Gamma$ |- $\Delta$  &  \tt Trueprop($\Gamma$, $\Delta$) &
         sequent $\Gamma\turn \Delta$ 
 \end{tabular}
@@ -121,15 +121,15 @@ sequence & = & elem \quad (", " elem)^* \\
          & | & formula 
 \\[2ex]
  formula & = & \hbox{expression of type~$o$} \\
-	 & | & term " = " term \\
-	 & | & "\ttilde\ " formula \\
-	 & | & formula " \& " formula \\
-	 & | & formula " | " formula \\
-	 & | & formula " --> " formula \\
-	 & | & formula " <-> " formula \\
-	 & | & "ALL~" id~id^* " . " formula \\
-	 & | & "EX~~" id~id^* " . " formula \\
-	 & | & "THE~" id~     " . " formula
+         & | & term " = " term \\
+         & | & "\ttilde\ " formula \\
+         & | & formula " \& " formula \\
+         & | & formula " | " formula \\
+         & | & formula " --> " formula \\
+         & | & formula " <-> " formula \\
+         & | & "ALL~" id~id^* " . " formula \\
+         & | & "EX~~" id~id^* " . " formula \\
+         & | & "THE~" id~     " . " formula
   \end{array}
 \]
 \caption{Grammar of {\tt LK}} \label{lk-grammar}
@@ -166,8 +166,13 @@ sequence & = & elem \quad (", " elem)^* \\
 \idx{notL}    $H, $G |- $E, P ==> $H, ~P, $G |- $E
 
 \idx{FalseL}  $H, False, $G |- $E
+\end{ttbox}
 \subcaption{Propositional rules}
+\caption{Rules of {\tt LK}}  \label{lk-rules}
+\end{figure}
 
+\begin{figure} 
+\begin{ttbox}
 \idx{allR}    (!!x.$H|- $E, P(x), $F) ==> $H|- $E, ALL x.P(x), $F
 \idx{allL}    $H, P(x), $G, ALL x.P(x) |- $E ==> $H, ALL x.P(x), $G|- $E
             
@@ -176,10 +181,10 @@ sequence & = & elem \quad (", " elem)^* \\
 
 \idx{The}     [| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==>
         $H |- $E, P(THE x.P(x)), $F
-\subcaption{Quantifier rules}
 \end{ttbox}
+\subcaption{Quantifier rules}
 
-\caption{Rules of {\tt LK}}  \label{lk-rules}
+\caption{Rules of {\tt LK} (continued)}  \label{lk-rules2}
 \end{figure}
 
 
@@ -223,13 +228,13 @@ over sequences.  In a sequent, anything not prefixed by \verb|$| is taken
 as a formula.
 
 The theory has the \ML\ identifier \ttindexbold{LK.thy}.
-Figure~\ref{lk-rules} presents the rules.  The connective $\bimp$ is
-defined using $\conj$ and $\imp$.  The axiom for basic sequents is
-expressed in a form that provides automatic thinning: redundant formulae
-are simply ignored.  The other rules are expressed in the form most
-suitable for backward proof --- they do not require exchange or contraction
-rules.  The contraction rules are actually derivable (via cut) in this
-formulation.
+Figures~\ref{lk-rules} and~\ref{lk-rules2} present the rules.  The
+connective $\bimp$ is defined using $\conj$ and $\imp$.  The axiom for
+basic sequents is expressed in a form that provides automatic thinning:
+redundant formulae are simply ignored.  The other rules are expressed in
+the form most suitable for backward proof --- they do not require exchange
+or contraction rules.  The contraction rules are actually derivable (via
+cut) in this formulation.
 
 Figure~\ref{lk-derived} presents derived rules, including rules for
 $\bimp$.  The weakened quantifier rules discard each quantification after a

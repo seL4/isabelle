@@ -47,30 +47,30 @@ conj_impE}, etc., support the intuitionistic proof procedure
 (see~\S\ref{fol-int-prover}).
 
 See the files \ttindexbold{FOL/ifol.thy}, \ttindexbold{FOL/ifol.ML} and
-\ttindexbold{FOL/int-prover.ML} for complete listings of the rules and
+\ttindexbold{FOL/intprover.ML} for complete listings of the rules and
 derived rules.
 
 \begin{figure} 
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 	& \it description \\ 
-  \idx{Trueprop}& $o\To prop$		& coercion to $prop$\\
-  \idx{Not}	& $o\To o$		& negation ($\neg$) \\
-  \idx{True}	& $o$			& tautology ($\top$) \\
-  \idx{False}	& $o$			& absurdity ($\bot$)
+  \it name      &\it meta-type  & \it description \\ 
+  \idx{Trueprop}& $o\To prop$           & coercion to $prop$\\
+  \idx{Not}     & $o\To o$              & negation ($\neg$) \\
+  \idx{True}    & $o$                   & tautology ($\top$) \\
+  \idx{False}   & $o$                   & absurdity ($\bot$)
 \end{tabular}
 \end{center}
 \subcaption{Constants}
 
 \begin{center}
 \begin{tabular}{llrrr} 
-  \it symbol &\it name	   &\it meta-type & \it precedence & \it description \\
+  \it symbol &\it name     &\it meta-type & \it precedence & \it description \\
   \idx{ALL}  & \idx{All}  & $(\alpha\To o)\To o$ & 10 & 
-	universal quantifier ($\forall$) \\
+        universal quantifier ($\forall$) \\
   \idx{EX}   & \idx{Ex}   & $(\alpha\To o)\To o$ & 10 & 
-	existential quantifier ($\exists$) \\
+        existential quantifier ($\exists$) \\
   \idx{EX!}  & \idx{Ex1}  & $(\alpha\To o)\To o$ & 10 & 
-	unique existence ($\exists!$)
+        unique existence ($\exists!$)
 \end{tabular}
 \end{center}
 \subcaption{Binders} 
@@ -82,12 +82,12 @@ derived rules.
 \indexbold{*"-"-">}
 \indexbold{*"<"-">}
 \begin{tabular}{rrrr} 
-  \it symbol  	& \it meta-type & \it precedence & \it description \\ 
-  \tt =		& $[\alpha,\alpha]\To o$ & Left 50 & equality ($=$) \\
-  \tt \& 	& $[o,o]\To o$ 		& Right 35 & conjunction ($\conj$) \\
-  \tt |		& $[o,o]\To o$ 		& Right 30 & disjunction ($\disj$) \\
-  \tt --> 	& $[o,o]\To o$ 		& Right 25 & implication ($\imp$) \\
-  \tt <-> 	& $[o,o]\To o$ 		& Right 25 & biconditional ($\bimp$) 
+  \it symbol    & \it meta-type & \it precedence & \it description \\ 
+  \tt =         & $[\alpha,\alpha]\To o$ & Left 50 & equality ($=$) \\
+  \tt \&        & $[o,o]\To o$          & Right 35 & conjunction ($\conj$) \\
+  \tt |         & $[o,o]\To o$          & Right 30 & disjunction ($\disj$) \\
+  \tt -->       & $[o,o]\To o$          & Right 25 & implication ($\imp$) \\
+  \tt <->       & $[o,o]\To o$          & Right 25 & biconditional ($\bimp$) 
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
@@ -95,16 +95,16 @@ derived rules.
 \dquotes
 \[\begin{array}{rcl}
  formula & = & \hbox{expression of type~$o$} \\
-	 & | & term " = " term \\
-	 & | & term " \ttilde= " term \\
-	 & | & "\ttilde\ " formula \\
-	 & | & formula " \& " formula \\
-	 & | & formula " | " formula \\
-	 & | & formula " --> " formula \\
-	 & | & formula " <-> " formula \\
-	 & | & "ALL~" id~id^* " . " formula \\
-	 & | & "EX~~" id~id^* " . " formula \\
-	 & | & "EX!~" id~id^* " . " formula
+         & | & term " = " term \\
+         & | & term " \ttilde= " term \\
+         & | & "\ttilde\ " formula \\
+         & | & formula " \& " formula \\
+         & | & formula " | " formula \\
+         & | & formula " --> " formula \\
+         & | & formula " <-> " formula \\
+         & | & "ALL~" id~id^* " . " formula \\
+         & | & "EX~~" id~id^* " . " formula \\
+         & | & "EX!~" id~id^* " . " formula
   \end{array}
 \]
 \subcaption{Grammar}
@@ -735,8 +735,8 @@ The rules just derived have been saved with the {\ML} names \ttindex{ifI}
 and~\ttindex{ifE}.  They permit natural proofs of theorems such as the
 following:
 \begin{eqnarray*}
-    if(P, if(Q,A,B), if(Q,C,D))	& \bimp & if(Q,if(P,A,C),if(P,B,D)) \\
-    if(if(P,Q,R), A, B)		& \bimp & if(P,if(Q,A,B),if(R,A,B))
+    if(P, if(Q,A,B), if(Q,C,D)) & \bimp & if(Q,if(P,A,C),if(P,B,D)) \\
+    if(if(P,Q,R), A, B)         & \bimp & if(P,if(Q,A,B),if(R,A,B))
 \end{eqnarray*}
 Proofs also require the classical reasoning rules and the $\bimp$
 introduction rule (called~\ttindex{iffI}: do not confuse with~\ttindex{ifI}). 

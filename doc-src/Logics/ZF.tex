@@ -16,7 +16,7 @@ Recursion Theorem.  General methods have been developed for solving
 recursion equations over monotonic functors; these have been applied to
 yield constructions of lists and trees.  Thus, we may even regard set
 theory as a computational logic.  It admits recursive definitions of
-functions and types.  It has similarities with Martin-L\"of type theory,
+functions and types.  It has much in common with Martin-L\"of type theory,
 although of course it is classical.
 
 Because {\ZF} is an extension of {\FOL}, it provides the same packages,
@@ -25,6 +25,17 @@ module.  The main simplification set is called \ttindexbold{ZF_ss}.
 Several classical rule sets are defined, including \ttindexbold{lemmas_cs},
 \ttindexbold{upair_cs} and~\ttindexbold{ZF_cs}.  See the files on directory
 {\tt ZF} for details.
+
+Isabelle/ZF now has a flexible package for handling inductive definitions,
+such as inference systems, and datatype definitions, such as lists and
+trees.  Moreover it also handles co-inductive definitions, such as
+bisimulation relations, and co-datatype definitions, such as streams.  A
+recent paper describes the package~\cite{paulson-fixedpt}.  
+
+Recent reports describe Isabelle/ZF less formally than this
+chapter~\cite{paulson-set-I,paulson-set-II}.  Isabelle/ZF employs a novel
+treatment of non-well-founded data structures within the standard ZF axioms
+including the Axiom of Foundation, but no report describes this treatment.
 
 
 \section{Which version of axiomatic set theory?}
@@ -53,31 +64,31 @@ $x$ is a set.  {\ZF} does not have this problem.
 \begin{figure} 
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 	& \it description \\ 
-  \idx{0}	& $i$		& empty set\\
-  \idx{cons}	& $[i,i]\To i$	& finite set constructor\\
-  \idx{Upair}	& $[i,i]\To i$	& unordered pairing\\
-  \idx{Pair}	& $[i,i]\To i$	& ordered pairing\\
-  \idx{Inf}	& $i$	& infinite set\\
-  \idx{Pow}	& $i\To i$	& powerset\\
-  \idx{Union} \idx{Inter} & $i\To i$	& set union/intersection \\
-  \idx{split}	& $[i, [i,i]\To i] \To i$ & generalized projection\\
-  \idx{fst} \idx{snd}	& $i\To i$	& projections\\
-  \idx{converse}& $i\To i$	& converse of a relation\\
-  \idx{succ}	& $i\To i$	& successor\\
-  \idx{Collect}	& $[i,i\To o]\To i$	& separation\\
-  \idx{Replace}	& $[i, [i,i]\To o] \To i$	& replacement\\
-  \idx{PrimReplace} & $[i, [i,i]\To o] \To i$	& primitive replacement\\
-  \idx{RepFun}	& $[i, i\To i] \To i$	& functional replacement\\
-  \idx{Pi} \idx{Sigma}	& $[i,i\To i]\To i$	& general product/sum\\
-  \idx{domain}	& $i\To i$	& domain of a relation\\
-  \idx{range}	& $i\To i$	& range of a relation\\
-  \idx{field}	& $i\To i$	& field of a relation\\
-  \idx{Lambda}	& $[i, i\To i]\To i$	& $\lambda$-abstraction\\
-  \idx{restrict}& $[i, i] \To i$	& restriction of a function\\
-  \idx{The}	& $[i\To o]\To i$	& definite description\\
-  \idx{if}	& $[o,i,i]\To i$	& conditional\\
-  \idx{Ball} \idx{Bex}	& $[i, i\To o]\To o$	& bounded quantifiers
+  \it name      &\it meta-type  & \it description \\ 
+  \idx{0}       & $i$           & empty set\\
+  \idx{cons}    & $[i,i]\To i$  & finite set constructor\\
+  \idx{Upair}   & $[i,i]\To i$  & unordered pairing\\
+  \idx{Pair}    & $[i,i]\To i$  & ordered pairing\\
+  \idx{Inf}     & $i$   & infinite set\\
+  \idx{Pow}     & $i\To i$      & powerset\\
+  \idx{Union} \idx{Inter} & $i\To i$    & set union/intersection \\
+  \idx{split}   & $[[i,i]\To i, i] \To i$ & generalized projection\\
+  \idx{fst} \idx{snd}   & $i\To i$      & projections\\
+  \idx{converse}& $i\To i$      & converse of a relation\\
+  \idx{succ}    & $i\To i$      & successor\\
+  \idx{Collect} & $[i,i\To o]\To i$     & separation\\
+  \idx{Replace} & $[i, [i,i]\To o] \To i$       & replacement\\
+  \idx{PrimReplace} & $[i, [i,i]\To o] \To i$   & primitive replacement\\
+  \idx{RepFun}  & $[i, i\To i] \To i$   & functional replacement\\
+  \idx{Pi} \idx{Sigma}  & $[i,i\To i]\To i$     & general product/sum\\
+  \idx{domain}  & $i\To i$      & domain of a relation\\
+  \idx{range}   & $i\To i$      & range of a relation\\
+  \idx{field}   & $i\To i$      & field of a relation\\
+  \idx{Lambda}  & $[i, i\To i]\To i$    & $\lambda$-abstraction\\
+  \idx{restrict}& $[i, i] \To i$        & restriction of a function\\
+  \idx{The}     & $[i\To o]\To i$       & definite description\\
+  \idx{if}      & $[o,i,i]\To i$        & conditional\\
+  \idx{Ball} \idx{Bex}  & $[i, i\To o]\To o$    & bounded quantifiers
 \end{tabular}
 \end{center}
 \subcaption{Constants}
@@ -91,14 +102,14 @@ $x$ is a set.  {\ZF} does not have this problem.
 \indexbold{*"<"=}
 \begin{tabular}{rrrr} 
   \it symbol  & \it meta-type & \it precedence & \it description \\ 
-  \tt ``	& $[i,i]\To i$	&  Left 90	& image \\
-  \tt -``	& $[i,i]\To i$	&  Left 90	& inverse image \\
-  \tt `		& $[i,i]\To i$	&  Left 90	& application \\
-  \idx{Int}	& $[i,i]\To i$	&  Left 70	& intersection ($\inter$) \\
-  \idx{Un}	& $[i,i]\To i$	&  Left 65	& union ($\union$) \\
-  \tt -		& $[i,i]\To i$	&  Left 65	& set difference ($-$) \\[1ex]
-  \tt:		& $[i,i]\To o$	&  Left 50	& membership ($\in$) \\
-  \tt <=	& $[i,i]\To o$	&  Left 50	& subset ($\subseteq$) 
+  \tt ``        & $[i,i]\To i$  &  Left 90      & image \\
+  \tt -``       & $[i,i]\To i$  &  Left 90      & inverse image \\
+  \tt `         & $[i,i]\To i$  &  Left 90      & application \\
+  \idx{Int}     & $[i,i]\To i$  &  Left 70      & intersection ($\inter$) \\
+  \idx{Un}      & $[i,i]\To i$  &  Left 65      & union ($\union$) \\
+  \tt -         & $[i,i]\To i$  &  Left 65      & set difference ($-$) \\[1ex]
+  \tt:          & $[i,i]\To o$  &  Left 50      & membership ($\in$) \\
+  \tt <=        & $[i,i]\To o$  &  Left 50      & subset ($\subseteq$) 
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
@@ -139,8 +150,8 @@ the singleton~$\{A\}$.  As usual in {\ZF}, general union is used to define
 binary union.  The Isabelle version goes on to define the constant
 \ttindexbold{cons}:
 \begin{eqnarray*}
-   A\cup B  		& \equiv &	 \bigcup({\tt Upair}(A,B)) \\
-   {\tt cons}(a,B) 	& \equiv &	  {\tt Upair}(a,a) \union B
+   A\cup B              & \equiv &       \bigcup({\tt Upair}(A,B)) \\
+   {\tt cons}(a,B)      & \equiv &        {\tt Upair}(a,a) \union B
 \end{eqnarray*}
 The {\tt\{\ldots\}} notation abbreviates finite sets constructed in the
 obvious manner using~{\tt cons} and~$\emptyset$ (the empty set):
@@ -150,7 +161,9 @@ obvious manner using~{\tt cons} and~$\emptyset$ (the empty set):
 
 The constant \ttindexbold{Pair} constructs ordered pairs, as in {\tt
 Pair($a$,$b$)}.  Ordered pairs may also be written within angle brackets,
-as {\tt<$a$,$b$>}.
+as {\tt<$a$,$b$>}.  The $n$-tuple {\tt<$a@1$,\ldots,$a@{n-1}$,$a@n$>}
+abbreviates the nest of pairs {\tt
+  Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots)}. 
 
 In {\ZF}, a function is a set of pairs.  A {\ZF} function~$f$ is simply an
 individual as far as Isabelle is concerned: its Isabelle type is~$i$, not
@@ -164,38 +177,39 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 \indexbold{*"*}
 \begin{center} \tt\frenchspacing
 \begin{tabular}{rrr} 
-  \it external		& \it internal	& \it description \\ 
+  \it external          & \it internal  & \it description \\ 
   $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
   \{$a@1$, $\ldots$, $a@n$\}  &  cons($a@1$,$\cdots$,cons($a@n$,0)) &
         \rm finite set \\
-  <$a$, $b$>  		&  Pair($a$,$b$) 	& \rm ordered pair \\
-  <$a$, $b$, $c$>	&  <$a$, <$b$, $c$>>  & \rm nested pairs (any depth) \\
-  \{$x$:$A . P[x]$\}	&  Collect($A$,$\lambda x.P[x]$) &
+  <$a@1$, $\ldots$, $a@{n-1}$, $a@n$> & 
+        Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots) &
+        \rm ordered $n$-tuple \\
+  \{$x$:$A . P[x]$\}    &  Collect($A$,$\lambda x.P[x]$) &
         \rm separation \\
   \{$y . x$:$A$, $Q[x,y]$\}  &  Replace($A$,$\lambda x\,y.Q[x,y]$) &
         \rm replacement \\
   \{$b[x] . x$:$A$\}  &  RepFun($A$,$\lambda x.b[x]$) &
         \rm functional replacement \\
-  \idx{INT} $x$:$A . B[x]$	& Inter(\{$B[x] . x$:$A$\}) &
-	\rm general intersection \\
-  \idx{UN}  $x$:$A . B[x]$	& Union(\{$B[x] . x$:$A$\}) &
-	\rm general union \\
-  \idx{PROD} $x$:$A . B[x]$	& Pi($A$,$\lambda x.B[x]$) & 
-	\rm general product \\
-  \idx{SUM}  $x$:$A . B[x]$	& Sigma($A$,$\lambda x.B[x]$) & 
-	\rm general sum \\
-  $A$ -> $B$		& Pi($A$,$\lambda x.B$) & 
-	\rm function space \\
-  $A$ * $B$		& Sigma($A$,$\lambda x.B$) & 
-	\rm binary product \\
-  \idx{THE}  $x . P[x]$	& The($\lambda x.P[x]$) & 
-	\rm definite description \\
-  \idx{lam}  $x$:$A . b[x]$	& Lambda($A$,$\lambda x.b[x]$) & 
-	\rm $\lambda$-abstraction\\[1ex]
-  \idx{ALL} $x$:$A . P[x]$	& Ball($A$,$\lambda x.P[x]$) & 
-	\rm bounded $\forall$ \\
-  \idx{EX}  $x$:$A . P[x]$	& Bex($A$,$\lambda x.P[x]$) & 
-	\rm bounded $\exists$
+  \idx{INT} $x$:$A . B[x]$      & Inter(\{$B[x] . x$:$A$\}) &
+        \rm general intersection \\
+  \idx{UN}  $x$:$A . B[x]$      & Union(\{$B[x] . x$:$A$\}) &
+        \rm general union \\
+  \idx{PROD} $x$:$A . B[x]$     & Pi($A$,$\lambda x.B[x]$) & 
+        \rm general product \\
+  \idx{SUM}  $x$:$A . B[x]$     & Sigma($A$,$\lambda x.B[x]$) & 
+        \rm general sum \\
+  $A$ -> $B$            & Pi($A$,$\lambda x.B$) & 
+        \rm function space \\
+  $A$ * $B$             & Sigma($A$,$\lambda x.B$) & 
+        \rm binary product \\
+  \idx{THE}  $x . P[x]$ & The($\lambda x.P[x]$) & 
+        \rm definite description \\
+  \idx{lam}  $x$:$A . b[x]$     & Lambda($A$,$\lambda x.b[x]$) & 
+        \rm $\lambda$-abstraction\\[1ex]
+  \idx{ALL} $x$:$A . P[x]$      & Ball($A$,$\lambda x.P[x]$) & 
+        \rm bounded $\forall$ \\
+  \idx{EX}  $x$:$A . P[x]$      & Bex($A$,$\lambda x.P[x]$) & 
+        \rm bounded $\exists$
 \end{tabular}
 \end{center}
 \caption{Translations for {\ZF}} \label{ZF-trans}
@@ -206,39 +220,39 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 \dquotes
 \[\begin{array}{rcl}
     term & = & \hbox{expression of type~$i$} \\
-	 & | & "\{ " term\; ("," term)^* " \}" \\
-	 & | & "< " term ", " term " >" \\
-	 & | & "\{ " id ":" term " . " formula " \}" \\
-	 & | & "\{ " id " . " id ":" term "," formula " \}" \\
-	 & | & "\{ " term " . " id ":" term " \}" \\
-	 & | & term " `` " term \\
-	 & | & term " -`` " term \\
-	 & | & term " ` " term \\
-	 & | & term " * " term \\
-	 & | & term " Int " term \\
-	 & | & term " Un " term \\
-	 & | & term " - " term \\
-	 & | & term " -> " term \\
-	 & | & "THE~~"  id  " . " formula\\
-	 & | & "lam~~"  id ":" term " . " term \\
-	 & | & "INT~~"  id ":" term " . " term \\
-	 & | & "UN~~~"  id ":" term " . " term \\
-	 & | & "PROD~"  id ":" term " . " term \\
-	 & | & "SUM~~"  id ":" term " . " term \\[2ex]
+         & | & "\{ " term\; ("," term)^* " \}" \\
+         & | & "< " term ", " term " >" \\
+         & | & "\{ " id ":" term " . " formula " \}" \\
+         & | & "\{ " id " . " id ":" term "," formula " \}" \\
+         & | & "\{ " term " . " id ":" term " \}" \\
+         & | & term " `` " term \\
+         & | & term " -`` " term \\
+         & | & term " ` " term \\
+         & | & term " * " term \\
+         & | & term " Int " term \\
+         & | & term " Un " term \\
+         & | & term " - " term \\
+         & | & term " -> " term \\
+         & | & "THE~~"  id  " . " formula\\
+         & | & "lam~~"  id ":" term " . " term \\
+         & | & "INT~~"  id ":" term " . " term \\
+         & | & "UN~~~"  id ":" term " . " term \\
+         & | & "PROD~"  id ":" term " . " term \\
+         & | & "SUM~~"  id ":" term " . " term \\[2ex]
  formula & = & \hbox{expression of type~$o$} \\
-	 & | & term " : " term \\
-	 & | & term " <= " term \\
-	 & | & term " = " term \\
-	 & | & "\ttilde\ " formula \\
-	 & | & formula " \& " formula \\
-	 & | & formula " | " formula \\
-	 & | & formula " --> " formula \\
-	 & | & formula " <-> " formula \\
-	 & | & "ALL " id ":" term " . " formula \\
-	 & | & "EX~~" id ":" term " . " formula \\
-	 & | & "ALL~" id~id^* " . " formula \\
-	 & | & "EX~~" id~id^* " . " formula \\
-	 & | & "EX!~" id~id^* " . " formula
+         & | & term " : " term \\
+         & | & term " <= " term \\
+         & | & term " = " term \\
+         & | & "\ttilde\ " formula \\
+         & | & formula " \& " formula \\
+         & | & formula " | " formula \\
+         & | & formula " --> " formula \\
+         & | & formula " <-> " formula \\
+         & | & "ALL " id ":" term " . " formula \\
+         & | & "EX~~" id ":" term " . " formula \\
+         & | & "ALL~" id~id^* " . " formula \\
+         & | & "EX~~" id~id^* " . " formula \\
+         & | & "EX!~" id~id^* " . " formula
   \end{array}
 \]
 \caption{Full grammar for {\ZF}} \label{ZF-syntax}
@@ -355,11 +369,6 @@ write
 \idx{Int_def}      A Int B  == Inter(Upair(A,B))
 \idx{Diff_def}     A - B    == \{ x:A . ~(x:B) \}
 \subcaption{Union, intersection, difference}
-
-\idx{cons_def}     cons(a,A) == Upair(a,a) Un A
-\idx{succ_def}     succ(i) == cons(i,i)
-\idx{infinity}     0:Inf & (ALL y:Inf. succ(y): Inf)
-\subcaption{Finite and infinite sets}
 \end{ttbox}
 \caption{Rules and axioms of {\ZF}} \label{ZF-rules}
 \end{figure}
@@ -367,10 +376,15 @@ write
 
 \begin{figure}
 \begin{ttbox}
+\idx{cons_def}     cons(a,A) == Upair(a,a) Un A
+\idx{succ_def}     succ(i) == cons(i,i)
+\idx{infinity}     0:Inf & (ALL y:Inf. succ(y): Inf)
+\subcaption{Finite and infinite sets}
+
 \idx{Pair_def}       <a,b>      == \{\{a,a\}, \{a,b\}\}
-\idx{split_def}      split(p,c) == THE y. EX a b. p=<a,b> & y=c(a,b)
-\idx{fst_def}        fst(A)     == split(p, %x y.x)
-\idx{snd_def}        snd(A)     == split(p, %x y.y)
+\idx{split_def}      split(c,p) == THE y. EX a b. p=<a,b> & y=c(a,b)
+\idx{fst_def}        fst(A)     == split(%x y.x, p)
+\idx{snd_def}        snd(A)     == split(%x y.y, p)
 \idx{Sigma_def}      Sigma(A,B) == UN x:A. UN y:B(x). \{<x,y>\}
 \subcaption{Ordered pairs and Cartesian products}
 
@@ -512,7 +526,7 @@ The axiom of infinity gives us a set that contains~0 and is closed under
 successor (\ttindexbold{succ}).  Although this set is not uniquely defined,
 the theory names it (\ttindexbold{Inf}) in order to simplify the
 construction of the natural numbers.
-					     
+                                             
 Further definitions appear in Figure~\ref{ZF-defs}.  Ordered pairs are
 defined in the standard way, $\pair{a,b}\equiv\{\{a\},\{a,b\}\}$.  Recall
 that \ttindexbold{Sigma}$(A,B)$ generalizes the Cartesian product of two
@@ -525,7 +539,7 @@ operation is like the similar operation in Martin-L\"of Type Theory, and is
 often easier to use than \ttindex{fst} and~\ttindex{snd}.  It is defined
 using a description for convenience, but could equivalently be defined by
 \begin{ttbox}
-split(p,c) == c(fst(p),snd(p))
+split(c,p) == c(fst(p),snd(p))
 \end{ttbox}  
 Operations on relations include converse, domain, range, and image.  The
 set ${\tt Pi}(A,B)$ generalizes the space of functions between two sets.
@@ -717,7 +731,7 @@ See the file \ttindexbold{ZF/subset.ML}.
 
 \idx{fst}       fst(<a,b>) = a
 \idx{snd}       snd(<a,b>) = b
-\idx{split}     split(<a,b>, %x y.c(x,y)) = c(a,b)
+\idx{split}     split(%x y.c(x,y), <a,b>) = c(a,b)
 
 \idx{SigmaI}    [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)
 
@@ -893,30 +907,30 @@ disjoint.
 \begin{figure} 
 \begin{center}
 \begin{tabular}{rrr} 
-  \it name    	&\it meta-type 	& \it description \\ 
-  \idx{id}	& $i$		& identity function \\
-  \idx{inj}	& $[i,i]\To i$	& injective function space\\
-  \idx{surj}	& $[i,i]\To i$	& surjective function space\\
-  \idx{bij}	& $[i,i]\To i$	& bijective function space
-	\\[1ex]
-  \idx{1}	& $i$     	& $\{\emptyset\}$	\\
-  \idx{bool}	& $i$		& the set $\{\emptyset,1\}$	\\
-  \idx{cond}	& $[i,i,i]\To i$	& conditional for {\tt bool}
-	\\[1ex]
-  \idx{Inl}~~\idx{Inr}	& $i\To i$	& injections\\
-  \idx{case}	& $[i,i\To i,i\To i]\To i$	& conditional for $+$
-	\\[1ex]
-  \idx{nat}	& $i$		& set of natural numbers \\
-  \idx{nat_case}& $[i,i,i\To i]\To i$	& conditional for $nat$\\
-  \idx{rec}	& $[i,i,[i,i]\To i]\To i$ & recursor for $nat$
-	\\[1ex]
-  \idx{list}	& $i\To i$ 	& lists over some set\\
-  \idx{list_case} & $[i, i, [i,i]\To i] \To i$	& conditional for $list(A)$ \\
-  \idx{list_rec} & $[i, i, [i,i,i]\To i] \To i$	& recursor for $list(A)$ \\
-  \idx{map}	& $[i\To i, i] \To i$ 	& mapping functional\\
-  \idx{length}	& $i\To i$ 		& length of a list\\
-  \idx{rev}	& $i\To i$ 		& reverse of a list\\
-  \idx{flat}	& $i\To i$ 		& flatting a list of lists\\
+  \it name      &\it meta-type  & \it description \\ 
+  \idx{id}      & $i$           & identity function \\
+  \idx{inj}     & $[i,i]\To i$  & injective function space\\
+  \idx{surj}    & $[i,i]\To i$  & surjective function space\\
+  \idx{bij}     & $[i,i]\To i$  & bijective function space
+        \\[1ex]
+  \idx{1}       & $i$           & $\{\emptyset\}$       \\
+  \idx{bool}    & $i$           & the set $\{\emptyset,1\}$     \\
+  \idx{cond}    & $[i,i,i]\To i$        & conditional for {\tt bool}
+        \\[1ex]
+  \idx{Inl}~~\idx{Inr}  & $i\To i$      & injections\\
+  \idx{case}    & $[i\To i,i\To i, i]\To i$      & conditional for $+$
+        \\[1ex]
+  \idx{nat}     & $i$           & set of natural numbers \\
+  \idx{nat_case}& $[i,i\To i,i]\To i$   & conditional for $nat$\\
+  \idx{rec}     & $[i,i,[i,i]\To i]\To i$ & recursor for $nat$
+        \\[1ex]
+  \idx{list}    & $i\To i$      & lists over some set\\
+  \idx{list_case} & $[i, [i,i]\To i, i] \To i$  & conditional for $list(A)$ \\
+  \idx{list_rec} & $[i, i, [i,i,i]\To i] \To i$ & recursor for $list(A)$ \\
+  \idx{map}     & $[i\To i, i] \To i$   & mapping functional\\
+  \idx{length}  & $i\To i$              & length of a list\\
+  \idx{rev}     & $i\To i$              & reverse of a list\\
+  \idx{flat}    & $i\To i$              & flatting a list of lists\\
 \end{tabular}
 \end{center}
 \subcaption{Constants}
@@ -929,14 +943,14 @@ disjoint.
 \index{#+@{\tt\#+}|bold}
 \index{#-@{\tt\#-}|bold}
 \begin{tabular}{rrrr} 
-  \idx{O}	& $[i,i]\To i$	&  Right 60	& composition ($\circ$) \\
-  \tt +		& $[i,i]\To i$	&  Right 65	& disjoint union \\
-  \tt \#*	& $[i,i]\To i$	&  Left 70	& multiplication \\
-  \tt div	& $[i,i]\To i$	&  Left 70	& division\\
-  \tt mod	& $[i,i]\To i$	&  Left 70	& modulus\\
-  \tt \#+	& $[i,i]\To i$	&  Left 65	& addition\\
-  \tt \#-	& $[i,i]\To i$ 	&  Left 65	& subtraction\\
-  \tt \@	& $[i,i]\To i$	&  Right 60	& append for lists
+  \idx{O}       & $[i,i]\To i$  &  Right 60     & composition ($\circ$) \\
+  \tt +         & $[i,i]\To i$  &  Right 65     & disjoint union \\
+  \tt \#*       & $[i,i]\To i$  &  Left 70      & multiplication \\
+  \tt div       & $[i,i]\To i$  &  Left 70      & division\\
+  \tt mod       & $[i,i]\To i$  &  Left 70      & modulus\\
+  \tt \#+       & $[i,i]\To i$  &  Left 65      & addition\\
+  \tt \#-       & $[i,i]\To i$  &  Left 65      & subtraction\\
+  \tt \@        & $[i,i]\To i$  &  Right 60     & append for lists
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
@@ -986,6 +1000,55 @@ disjoint.
 \end{ttbox}
 \caption{Equalities} \label{zf-equalities}
 \end{figure}
+
+
+\begin{figure}
+\begin{ttbox}
+\idx{bnd_mono_def}   bnd_mono(D,h) == 
+                 h(D)<=D & (ALL W X. W<=X --> X<=D --> h(W) <= h(X))
+
+\idx{lfp_def}        lfp(D,h) == Inter({X: Pow(D). h(X) <= X})
+\idx{gfp_def}        gfp(D,h) == Union({X: Pow(D). X <= h(X)})
+\subcaption{Definitions}
+
+\idx{lfp_lowerbound} [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A
+
+\idx{lfp_subset}     lfp(D,h) <= D
+
+\idx{lfp_greatest}   [| bnd_mono(D,h);  
+                  !!X. [| h(X) <= X;  X<=D |] ==> A<=X 
+               |] ==> A <= lfp(D,h)
+
+\idx{lfp_Tarski}     bnd_mono(D,h) ==> lfp(D,h) = h(lfp(D,h))
+
+\idx{induct}         [| a : lfp(D,h);  bnd_mono(D,h);
+                  !!x. x : h(Collect(lfp(D,h),P)) ==> P(x)
+               |] ==> P(a)
+
+\idx{lfp_mono}       [| bnd_mono(D,h);  bnd_mono(E,i);
+                  !!X. X<=D ==> h(X) <= i(X)  
+               |] ==> lfp(D,h) <= lfp(E,i)
+
+\idx{gfp_upperbound} [| A <= h(A);  A<=D |] ==> A <= gfp(D,h)
+
+\idx{gfp_subset}     gfp(D,h) <= D
+
+\idx{gfp_least}      [| bnd_mono(D,h);  
+                  !!X. [| X <= h(X);  X<=D |] ==> X<=A
+               |] ==> gfp(D,h) <= A
+
+\idx{gfp_Tarski}     bnd_mono(D,h) ==> gfp(D,h) = h(gfp(D,h))
+
+\idx{coinduct}       [| bnd_mono(D,h); a: X; X <= h(X Un gfp(D,h)); X <= D 
+               |] ==> a : gfp(D,h)
+
+\idx{gfp_mono}       [| bnd_mono(D,h);  D <= E;
+                  !!X. X<=D ==> h(X) <= i(X)  
+               |] ==> gfp(D,h) <= gfp(E,i)
+\end{ttbox}
+\caption{Least and greatest fixedpoints} \label{zf-fixedpt}
+\end{figure}
+
 
 \begin{figure}
 \begin{ttbox}
@@ -1038,7 +1101,7 @@ disjoint.
 \idx{sum_def}        A+B == \{0\}*A Un \{1\}*B
 \idx{Inl_def}        Inl(a) == <0,a>
 \idx{Inr_def}        Inr(b) == <1,b>
-\idx{case_def}       case(u,c,d) == split(u, %y z. cond(y, d(z), c(z)))
+\idx{case_def}       case(c,d,u) == split(%y z. cond(y, d(z), c(z)), u)
 \subcaption{Definitions}
 
 \idx{bool_1I}        1 : bool
@@ -1057,27 +1120,44 @@ disjoint.
 
 \idx{sumE2}   u: A+B ==> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))
 
-\idx{case_Inl}       case(Inl(a),c,d) = c(a)
-\idx{case_Inr}       case(Inr(b),c,d) = d(b)
+\idx{case_Inl}       case(c,d,Inl(a)) = c(a)
+\idx{case_Inr}       case(c,d,Inr(b)) = d(b)
 \end{ttbox}
 \caption{Booleans and disjoint unions} \label{zf-sum}
 \end{figure}
 
 \begin{figure}
 \begin{ttbox}
+\idx{QPair_def}       <a;b> == a+b
+\idx{qsplit_def}      qsplit(c,p)  == THE y. EX a b. p=<a;b> & y=c(a,b)
+\idx{qfsplit_def}     qfsplit(R,z) == EX x y. z=<x;y> & R(x,y)
+\idx{qconverse_def}   qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}
+\idx{QSigma_def}      QSigma(A,B)  ==  UN x:A. UN y:B(x). {<x;y>}
+
+\idx{qsum_def}        A <+> B      == (\{0\} <*> A) Un (\{1\} <*> B)
+\idx{QInl_def}        QInl(a)      == <0;a>
+\idx{QInr_def}        QInr(b)      == <1;b>
+\idx{qcase_def}       qcase(c,d)   == qsplit(%y z. cond(y, d(z), c(z)))
+\end{ttbox}
+\caption{Non-standard pairs, products and sums} \label{zf-qpair}
+\end{figure}
+
+
+\begin{figure}
+\begin{ttbox}
 \idx{nat_def}       nat == lfp(lam r: Pow(Inf). \{0\} Un \{succ(x). x:r\}
 
-\idx{nat_case_def}  nat_case(n,a,b) == 
-              THE y. n=0 & y=a | (EX x. n=succ(x) & y=b(x))
+\idx{nat_case_def}  nat_case(a,b,k) == 
+              THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))
 
 \idx{rec_def}       rec(k,a,b) ==  
-              transrec(k, %n f. nat_case(n, a, %m. b(m, f`m)))
+              transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))
 
 \idx{add_def}       m#+n == rec(m, n, %u v.succ(v))
 \idx{diff_def}      m#-n == rec(n, m, %u v. rec(v, 0, %x y.x))
 \idx{mult_def}      m#*n == rec(m, 0, %u v. n #+ v)
 \idx{mod_def}       m mod n == transrec(m, %j f. if(j:n, j, f`(j#-n)))
-\idx{quo_def}       m div n == transrec(m, %j f. if(j:n, 0, succ(f`(j#-n))))
+\idx{div_def}       m div n == transrec(m, %j f. if(j:n, 0, succ(f`(j#-n))))
 \subcaption{Definitions}
 
 \idx{nat_0I}        0 : nat
@@ -1087,8 +1167,8 @@ disjoint.
     [| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) 
     |] ==> P(n)
 
-\idx{nat_case_0}    nat_case(0,a,b) = a
-\idx{nat_case_succ} nat_case(succ(m),a,b) = b(m)
+\idx{nat_case_0}    nat_case(a,b,0) = a
+\idx{nat_case_succ} nat_case(a,b,succ(m)) = b(m)
 
 \idx{rec_0}         rec(0,a,b) = a
 \idx{rec_succ}      rec(succ(m),a,b) = b(m, rec(m,a,b))
@@ -1108,15 +1188,30 @@ disjoint.
 \caption{The natural numbers} \label{zf-nat}
 \end{figure}
 
+\begin{figure}
+\begin{ttbox}
+\idx{Fin_0I}          0 : Fin(A)
+\idx{Fin_consI}       [| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)
+
+\idx{Fin_mono}        A<=B ==> Fin(A) <= Fin(B)
+
+\idx{Fin_induct}
+    [| b: Fin(A);
+       P(0);
+       !!x y. [| x: A;  y: Fin(A);  x~:y;  P(y) |] ==> P(cons(x,y))
+    |] ==> P(b)
+
+\idx{Fin_UnI}         [| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)
+\idx{Fin_UnionI}      C : Fin(Fin(A)) ==> Union(C) : Fin(A)
+\idx{Fin_subset}      [| c<=b;  b: Fin(A) |] ==> c: Fin(A)
+\end{ttbox}
+\caption{The finite set operator} \label{zf-fin}
+\end{figure}
+
 \begin{figure}\underscoreon %%because @ is used here
 \begin{ttbox}
-\idx{list_def}        list(A) == lfp(univ(A), %X. {0} Un A*X)
-
-\idx{list_case_def}   list_case(l,c,h) ==
-                THE z. l=0 & z=c | (EX x y. l = <x,y> & z=h(x,y))
-
 \idx{list_rec_def}    list_rec(l,c,h) == 
-                Vrec(l, %l g.list_case(l, c, %x xs. h(x, xs, g`xs)))
+                Vrec(l, %l g.list_case(c, %x xs. h(x, xs, g`xs), l))
 
 \idx{map_def}         map(f,l)  == list_rec(l,  0,  %x xs r. <f(x), r>)
 \idx{length_def}      length(l) == list_rec(l,  0,  %x xs r. succ(r))
@@ -1125,20 +1220,22 @@ disjoint.
 \idx{flat_def}        flat(ls)  == list_rec(ls, 0,  %l ls r. l @ r)
 \subcaption{Definitions}
 
-\idx{list_0I}         0 : list(A)
-\idx{list_PairI}      [| a: A;  l: list(A) |] ==> <a,l> : list(A)
+\idx{NilI}            Nil : list(A)
+\idx{ConsI}           [| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)
 
-\idx{list_induct}
+\idx{List.induct}
     [| l: list(A);
-       P(0);
-       !!x y. [| x: A;  y: list(A);  P(y) |] ==> P(<x,y>)
+       P(Nil);
+       !!x y. [| x: A;  y: list(A);  P(y) |] ==> P(Cons(x,y))
     |] ==> P(l)
 
-\idx{list_case_0}     list_case(0,c,h) = c
-\idx{list_case_Pair}  list_case(<a,l>, c, h) = h(a,l)
+\idx{Cons_iff}        Cons(a,l)=Cons(a',l') <-> a=a' & l=l'
+\idx{Nil_Cons_iff}    ~ Nil=Cons(a,l)
 
-\idx{list_rec_0}      list_rec(0,c,h) = c
-\idx{list_rec_Pair}   list_rec(<a,l>, c, h) = h(a, l, list_rec(l,c,h))
+\idx{list_mono}       A<=B ==> list(A) <= list(B)
+
+\idx{list_rec_Nil}    list_rec(Nil,c,h) = c
+\idx{list_rec_Cons}   list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))
 
 \idx{map_ident}       l: list(A) ==> map(%u.u, l) = l
 \idx{map_compose}     l: list(A) ==> map(h, map(j,l)) = map(%u.h(j(u)), l)
@@ -1162,6 +1259,14 @@ conditional operator.  It also defines the disjoint union of two sets, with
 injections and a case analysis operator.  See files
 \ttindexbold{ZF/bool.ML} and \ttindexbold{ZF/sum.ML}.
 
+Figure~\ref{zf-qpair} defines a notion of ordered pair that admits
+non-well-founded tupling.  Such pairs are written {\tt<$a$;$b$>}.  It also
+defines the eliminator \ttindexbold{qsplit}, the converse operator
+\ttindexbold{qconverse}, and the summation operator \ttindexbold{QSigma}.
+These are completely analogous to the corresponding versions for standard
+ordered pairs.  The theory goes on to define a non-standard notion of
+disjoint sum using non-standard pairs.  See file \ttindexbold{qpair.thy}.
+
 Monotonicity properties of most of the set-forming operations are proved.
 These are useful for applying the Knaster-Tarski Fixedpoint Theorem.
 See file \ttindexbold{ZF/mono.ML}.
@@ -1169,6 +1274,13 @@ See file \ttindexbold{ZF/mono.ML}.
 Figure~\ref{zf-equalities} presents commutative, associative, distributive,
 and idempotency laws of union and intersection, along with other equations.
 See file \ttindexbold{ZF/equalities.ML}.
+
+Figure~\ref{zf-fixedpt} presents the Knaster-Tarski Fixedpoint Theorem, proved
+for the lattice of subsets of a set.  The theory defines least and greatest
+fixedpoint operators with corresponding induction and co-induction rules.
+Later definitions use these, such as the natural numbers and
+the transitive closure operator.  The (co-)inductive definition
+package also uses them.    See file \ttindexbold{ZF/fixedpt.ML}.
 
 Figure~\ref{zf-perm} defines composition and injective, surjective and
 bijective function spaces, with proofs of many of their properties.
@@ -1182,23 +1294,34 @@ proving the theorem $a \bmod b + (a/b)\times b = a$.  Division and
 remainder are defined by repeated subtraction, which requires well-founded
 rather than primitive recursion.
 
-Figure~\ref{zf-list} presents defines the set of lists over~$A$, ${\tt
-list}(A)$ as the least solution of the equation ${\tt list}(A)\equiv \{0\}
-\union (A\times{\tt list}(A))$.  Structural induction and recursion are
-derived, with some of the usual list functions.  See file
-\ttindexbold{ZF/list.ML}.
+The file \ttindexbold{ZF/univ.ML} defines a ``universe'' ${\tt univ}(A)$,
+for constructing datatypes such as trees.  This set contains $A$ and the
+natural numbers.  Vitally, it is closed under finite products: ${\tt
+  univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This file also
+defines set theory's cumulative hierarchy, traditionally written $V@\alpha$
+where $\alpha$ is any ordinal.
+
+The file \ttindexbold{ZF/quniv.ML} defines a ``universe'' ${\tt quniv}(A)$,
+for constructing co-datatypes such as streams.  It is similar to ${\tt
+  univ}(A)$ but is closed under the non-standard product and sum.
+
+Figure~\ref{zf-fin} presents the finite set operator; ${\tt Fin}(A)$ is the
+set of all finite sets over~$A$.  The definition employs Isabelle's
+inductive definition package, which proves the introduction rules
+automatically.  The induction rule shown is stronger than the one proved by
+the package.  See file \ttindexbold{ZF/fin.ML}.
+
+Figure~\ref{zf-list} presents the set of lists over~$A$, ${\tt list}(A)$.
+The definition employs Isabelle's datatype package, which defines the
+introduction and induction rules automatically, as well as the constructors
+and case operator (\verb|list_case|).  See file \ttindexbold{ZF/list.ML}.
+The file \ttindexbold{ZF/listfn.thy} proceeds to define structural
+recursion and the usual list functions.
 
 The constructions of the natural numbers and lists make use of a suite of
-operators for handling recursive definitions.  The developments are
+operators for handling recursive function definitions.  The developments are
 summarized below:
 \begin{description}
-\item[\ttindexbold{ZF/lfp.ML}]
-proves the Knaster-Tarski Fixedpoint Theorem in the lattice of subsets of a
-set.  The file defines a least fixedpoint operator with corresponding
-induction rules.  These are used repeatedly in the sequel to define sets
-inductively.  As a simple application, the file contains a short proof of
-the Schr\"oder-Bernstein Theorem.
-
 \item[\ttindexbold{ZF/trancl.ML}]
 defines the transitive closure of a relation (as a least fixedpoint).
 
@@ -1207,9 +1330,11 @@ proves the Well-Founded Recursion Theorem, using an elegant
 approach of Tobias Nipkow.  This theorem permits general recursive
 definitions within set theory.
 
-\item[\ttindexbold{ZF/ordinal.ML}]
-defines the notions of transitive set and ordinal number.  It derives
-transfinite induction.
+\item[\ttindexbold{ZF/ord.ML}] defines the notions of transitive set and
+  ordinal number.  It derives transfinite induction.  A key definition is
+  {\bf less than}: $i<j$ if and only if $i$ and $j$ are both ordinals and
+  $i\in j$.  As a special case, it includes less than on the natural
+  numbers.
 
 \item[\ttindexbold{ZF/epsilon.ML}]
 derives $\epsilon$-induction and $\epsilon$-recursion, which are
@@ -1217,30 +1342,21 @@ generalizations of transfinite induction.  It also defines
 \ttindexbold{rank}$(x)$, which is the least ordinal $\alpha$ such that $x$
 is constructed at stage $\alpha$ of the cumulative hierarchy (thus $x\in
 V@{\alpha+1}$).
-
-\item[\ttindexbold{ZF/univ.ML}]
-defines a ``universe'' ${\tt univ}(A)$, for constructing sets inductively.
-This set contains $A$ and the natural numbers.  Vitally, it is
-closed under finite products: 
-${\tt univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This file also
-defines set theory's cumulative hierarchy, traditionally written $V@\alpha$
-where $\alpha$ is any ordinal.
 \end{description}
 
 
 \begin{figure}
 \begin{eqnarray*}
-  a\in a 		& \bimp &  \bot\\
-  a\in \emptyset 	& \bimp &  \bot\\
-  a \in A \union B 	& \bimp &  a\in A \disj a\in B\\
-  a \in A \inter B 	& \bimp &  a\in A \conj a\in B\\
-  a \in A-B 		& \bimp &  a\in A \conj \neg (a\in B)\\
+  a\in \emptyset        & \bimp &  \bot\\
+  a \in A \union B      & \bimp &  a\in A \disj a\in B\\
+  a \in A \inter B      & \bimp &  a\in A \conj a\in B\\
+  a \in A-B             & \bimp &  a\in A \conj \neg (a\in B)\\
   a \in {\tt cons}(b,B) & \bimp &  a=b \disj a\in B\\
-  i \in {\tt succ}(j) 	& \bimp &  i=j \disj i\in j\\
+  i \in {\tt succ}(j)   & \bimp &  i=j \disj i\in j\\
   \pair{a,b}\in {\tt Sigma}(A,B)
-		  	& \bimp &  a\in A \conj b\in B(a)\\
-  a \in {\tt Collect}(A,P) 	& \bimp &  a\in A \conj P(a)\\
-  (\forall x \in A. \top) 	& \bimp &  \top
+                        & \bimp &  a\in A \conj b\in B(a)\\
+  a \in {\tt Collect}(A,P)      & \bimp &  a\in A \conj P(a)\\
+  (\forall x \in A. \top)       & \bimp &  \top
 \end{eqnarray*}
 \caption{Rewrite rules for set theory} \label{ZF-simpdata}
 \end{figure}
@@ -1271,9 +1387,9 @@ previous version, so that it may still be used.
 This directory contains further developments in {\ZF} set theory.  Here is
 an overview; see the files themselves for more details.
 \begin{description}
-\item[\ttindexbold{ZF/ex/misc.ML}]
-contains miscellaneous examples such as Cantor's Theorem and the
-``Composition of homomorphisms'' challenge.
+\item[\ttindexbold{ZF/ex/misc.ML}] contains miscellaneous examples such as
+  Cantor's Theorem, the Schr\"oder-Bernstein Theorem.  and the
+  ``Composition of homomorphisms'' challenge~\cite{boyer86}.
 
 \item[\ttindexbold{ZF/ex/ramsey.ML}]
 proves the finite exponent 2 version of Ramsey's Theorem.
@@ -1288,7 +1404,7 @@ are unlabelled binary trees whose leaves contain elements of $(A)$.
 \item[\ttindexbold{ZF/ex/term.ML}]
 defines a recursive data structure for terms and term lists.
 
-\item[\ttindexbold{ZF/ex/simult.ML}]
+\item[\ttindexbold{ZF/ex/tf.ML}]
 defines primitives for solving mutually recursive equations over sets.
 It constructs sets of trees and forests as an example, including induction
 and recursion rules that handle the mutual recursion.
@@ -1296,7 +1412,7 @@ and recursion rules that handle the mutual recursion.
 \item[\ttindexbold{ZF/ex/finite.ML}]
 inductively defines a finite powerset operator.
 
-\item[\ttindexbold{ZF/ex/prop-log.ML}]
+\item[\ttindexbold{ZF/ex/proplog.ML}]
 proves soundness and completeness of propositional logic.  This illustrates
 the main forms of induction.
 \end{description}

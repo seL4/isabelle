@@ -24,9 +24,9 @@ natural deduction.  The judgement above is expressed using $\Forall$ and
 $\Imp$:
 \[ \begin{array}{r@{}l}
      \Forall x@1\ldots x@n. &
-	  \List{x@1\in A@1; 
-		x@2\in A@2(x@1); \cdots \; 
-		x@n\in A@n(x@1,\ldots,x@{n-1})} \Imp \\
+          \List{x@1\in A@1; 
+                x@2\in A@2(x@1); \cdots \; 
+                x@n\in A@n(x@1,\ldots,x@{n-1})} \Imp \\
      &  \qquad\qquad a(x@1,\ldots,x@n)\in A(x@1,\ldots,x@n) 
     \end{array}
 \]
@@ -64,31 +64,31 @@ computation rules might require a second simplifier.
 \begin{figure} \tabcolsep=1em  %wider spacing in tables
 \begin{center}
 \begin{tabular}{rrr} 
-  \it symbol  	& \it meta-type 	& \it description \\ 
-  \idx{Type}    & $t \to prop$		& judgement form \\
-  \idx{Eqtype}  & $[t,t]\to prop$	& judgement form\\
-  \idx{Elem}    & $[i, t]\to prop$	& judgement form\\
-  \idx{Eqelem}  & $[i, i, t]\to prop$	& judgement form\\
-  \idx{Reduce}  & $[i, i]\to prop$	& extra judgement form\\[2ex]
+  \it symbol    & \it meta-type         & \it description \\ 
+  \idx{Type}    & $t \to prop$          & judgement form \\
+  \idx{Eqtype}  & $[t,t]\to prop$       & judgement form\\
+  \idx{Elem}    & $[i, t]\to prop$      & judgement form\\
+  \idx{Eqelem}  & $[i, i, t]\to prop$   & judgement form\\
+  \idx{Reduce}  & $[i, i]\to prop$      & extra judgement form\\[2ex]
 
-  \idx{N}       &     $t$		& natural numbers type\\
-  \idx{0}       &     $i$		& constructor\\
-  \idx{succ}    & $i\to i$		& constructor\\
+  \idx{N}       &     $t$               & natural numbers type\\
+  \idx{0}       &     $i$               & constructor\\
+  \idx{succ}    & $i\to i$              & constructor\\
   \idx{rec}     & $[i,i,[i,i]\to i]\to i$       & eliminator\\[2ex]
-  \idx{Prod}    & $[t,i\to t]\to t$	& general product type\\
-  \idx{lambda}  & $(i\to i)\to i$	& constructor\\[2ex]
-  \idx{Sum}     & $[t, i\to t]\to t$	& general sum type\\
-  \idx{pair}    & $[i,i]\to i$		& constructor\\
-  \idx{split}   & $[i,[i,i]\to i]\to i$	& eliminator\\
-  \idx{fst} snd & $i\to i$		& projections\\[2ex]
-  \idx{inl} inr & $i\to i$		& constructors for $+$\\
+  \idx{Prod}    & $[t,i\to t]\to t$     & general product type\\
+  \idx{lambda}  & $(i\to i)\to i$       & constructor\\[2ex]
+  \idx{Sum}     & $[t, i\to t]\to t$    & general sum type\\
+  \idx{pair}    & $[i,i]\to i$          & constructor\\
+  \idx{split}   & $[i,[i,i]\to i]\to i$ & eliminator\\
+  \idx{fst} snd & $i\to i$              & projections\\[2ex]
+  \idx{inl} inr & $i\to i$              & constructors for $+$\\
   \idx{when}    & $[i,i\to i, i\to i]\to i$    & eliminator for $+$\\[2ex]
-  \idx{Eq}      & $[t,i,i]\to t$	& equality type\\
-  \idx{eq}      & $i$			& constructor\\[2ex]
-  \idx{F}       & $t$			& empty type\\
-  \idx{contr}   & $i\to i$		& eliminator\\[2ex]
-  \idx{T}       & $t$			& singleton type\\
-  \idx{tt}      & $i$			& constructor
+  \idx{Eq}      & $[t,i,i]\to t$        & equality type\\
+  \idx{eq}      & $i$                   & constructor\\[2ex]
+  \idx{F}       & $t$                   & empty type\\
+  \idx{contr}   & $i\to i$              & eliminator\\[2ex]
+  \idx{T}       & $t$                   & singleton type\\
+  \idx{tt}      & $i$                   & constructor
 \end{tabular}
 \end{center}
 \caption{The constants of {\CTT}} \label{ctt-constants}
@@ -98,7 +98,7 @@ computation rules might require a second simplifier.
 \begin{figure} \tabcolsep=1em  %wider spacing in tables
 \begin{center}
 \begin{tabular}{llrrr} 
-  \it symbol &\it name	   &\it meta-type & \it precedence & \it description \\
+  \it symbol &\it name     &\it meta-type & \it precedence & \it description \\
   \idx{lam} & \idx{lambda}  & $(i\To o)\To i$ & 10 & $\lambda$-abstraction
 \end{tabular}
 \end{center}
@@ -109,8 +109,8 @@ computation rules might require a second simplifier.
 \indexbold{*"+}
 \begin{tabular}{rrrr} 
   \it symbol & \it meta-type & \it precedence & \it description \\ 
-  \tt `		& $[i,i]\to i$	& Left 55 	& function application\\
-  \tt +		& $[t,t]\to t$	& Right 30 	& sum of two types
+  \tt `         & $[i,i]\to i$  & Left 55       & function application\\
+  \tt +         & $[t,t]\to t$  & Right 30      & sum of two types
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
@@ -119,15 +119,15 @@ computation rules might require a second simplifier.
 \indexbold{*"-"-">}
 \begin{center} \tt\frenchspacing
 \begin{tabular}{rrr} 
-  \it external                	& \it internal  & \it standard notation \\ 
-  \idx{PROD} $x$:$A$ . $B[x]$	&  Prod($A$, $\lambda x.B[x]$) &
-      	\rm product $\prod@{x\in A}B[x]$ \\
-  \idx{SUM} $x$:$A$ . $B[x]$	& Sum($A$, $\lambda x.B[x]$) &
-      	\rm sum $\sum@{x\in A}B[x]$ \\
+  \it external                  & \it internal  & \it standard notation \\ 
+  \idx{PROD} $x$:$A$ . $B[x]$   &  Prod($A$, $\lambda x.B[x]$) &
+        \rm product $\prod@{x\in A}B[x]$ \\
+  \idx{SUM} $x$:$A$ . $B[x]$    & Sum($A$, $\lambda x.B[x]$) &
+        \rm sum $\sum@{x\in A}B[x]$ \\
   $A$ --> $B$     &  Prod($A$, $\lambda x.B$) &
-	\rm function space $A\to B$ \\
+        \rm function space $A\to B$ \\
   $A$ * $B$       &  Sum($A$, $\lambda x.B$)  &
-	\rm binary product $A\times B$
+        \rm binary product $A\times B$
 \end{tabular}
 \end{center}
 \subcaption{Translations} 
@@ -136,18 +136,18 @@ computation rules might require a second simplifier.
 \begin{center}
 \dquotes
 \[ \begin{array}{rcl}
-prop  	& = &  type " type"       \\
-	& | & type " = " type     \\
-	& | & term " : " type        \\
-	& | & term " = " term " : " type 
+prop    & = &  type " type"       \\
+        & | & type " = " type     \\
+        & | & term " : " type        \\
+        & | & term " = " term " : " type 
 \\[2ex]
-type  	& = & \hbox{expression of type~$t$} \\
-	& | & "PROD~" id " : " type " . " type  \\
-	& | & "SUM~~" id " : " type " . " type 
+type    & = & \hbox{expression of type~$t$} \\
+        & | & "PROD~" id " : " type " . " type  \\
+        & | & "SUM~~" id " : " type " . " type 
 \\[2ex]
-term  	& = & \hbox{expression of type~$i$} \\
-	& | & "lam " id~id^* " . " term   \\
-	& | & "< " term " , " term " >"
+term    & = & \hbox{expression of type~$i$} \\
+        & | & "lam " id~id^* " . " term   \\
+        & | & "< " term " , " term " >"
 \end{array} 
 \]
 \end{center}
@@ -594,11 +594,11 @@ tries to solve subgoal~$i$ by backtracking, using {\tt step_tac}.
 \idx{absdiff_def}       a|-|b == (a-b) #+ (b-a)  
 \idx{mult_def}          a#*b  == rec(a, 0, %u v. b #+ v)  
 
-\idx{mod_def}   a//b == rec(a, 0,
+\idx{mod_def}   a mod b == rec(a, 0,
                       %u v. rec(succ(v) |-| b, 0, %x y.succ(v)))  
 
-\idx{quo_def}   a/b == rec(a, 0,
-                      %u v. rec(succ(u) // b, succ(v), %x y.v))
+\idx{div_def}   a div b == rec(a, 0,
+                      %u v. rec(succ(u) mod b, succ(v), %x y.v))
 \end{ttbox}
 \subcaption{Definitions of the operators}
 
@@ -645,20 +645,20 @@ theorems, including commutative, distributive, and associative laws.  The
 theory has the {\ML} identifier \ttindexbold{arith.thy}.  All proofs are on
 the file \ttindexbold{CTT/arith.ML}.
 
-The operators~\verb'#+', \verb'-', \verb'|-|', \verb'#*', \verb'//'
-and~\verb'/' stand for sum, difference, absolute difference, product,
+The operators~\verb'#+', \verb'-', \verb'|-|', \verb'#*', \verb'mod'
+and~\verb'div' stand for sum, difference, absolute difference, product,
 remainder and quotient, respectively.  Since Type Theory has only primitive
 recursion, some of their definitions may be obscure.  
 
 The difference~$a-b$ is computed by taking $b$ predecessors of~$a$, where
 the predecessor function is $\lambda v. {\tt rec}(v, 0, \lambda x\,y.x)$.
 
-The remainder $a//b$ counts up to~$a$ in a cyclic fashion, using 0 as the
-successor of~$b-1$.  Absolute difference is used to test the equality
-$succ(v)=b$.
+The remainder $a\bmod b$ counts up to~$a$ in a cyclic fashion, using 0
+as the successor of~$b-1$.  Absolute difference is used to test the
+equality $succ(v)=b$.
 
-The quotient $a//b$ is computed by adding one for every number $x$ such
-that $0\leq x \leq a$ and $x//b = 0$.
+The quotient $a/b$ is computed by adding one for every number $x$
+such that $0\leq x \leq a$ and $x\bmod b = 0$.
 
 
 
@@ -775,6 +775,11 @@ val prems = goal CTT.thy
 {\out Level 0}
 {\out ?a : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 {\out  1. ?a : (SUM x:A. B(x)) + (SUM x:A. C(x))}
+{\out val prems = ["A type  [A type]",}
+{\out              "?x : A ==> B(?x) type  [!!x. x : A ==> B(x) type]",}
+{\out              "?x : A ==> C(?x) type  [!!x. x : A ==> C(x) type]",}
+{\out              "p : SUM x:A. B(x) + C(x)  [p : SUM x:A. B(x) + C(x)]"]}
+{\out             : thm list}
 \end{ttbox}
 One of the premises involves summation ($\Sigma$).  Since it is a premise
 rather than the assumption of a goal, it cannot be found by
@@ -901,6 +906,10 @@ val prems = goal CTT.thy
 {\out ?a : (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))}
 {\out  1. ?a : (PROD z:SUM x:A. B(x). C(z)) -->}
 {\out          (PROD x:A. PROD y:B(x). C(<x,y>))}
+{\out val prems = ["A type  [A type]",}
+{\out              "?x : A ==> B(?x) type  [!!x. x : A ==> B(x) type]",}
+{\out              "?z : SUM x:A. B(x) ==> C(?z) type}
+{\out               [!!z. z : SUM x:A. B(x) ==> C(z) type]"] : thm list}
 \end{ttbox}
 This is an opportunity to demonstrate \ttindex{intr_tac}.  Here, the tactic
 repeatedly applies $\Pi$-introduction, automatically proving the rather
@@ -970,6 +979,12 @@ val prems = goal CTT.thy
 {\out      (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
 {\out  1. ?a : (PROD x:A. SUM y:B(x). C(x,y)) -->}
 {\out          (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
+\ttbreak
+{\out val prems = ["A type  [A type]",}
+{\out              "?x : A ==> B(?x) type  [!!x. x : A ==> B(x) type]",}
+{\out              "[| ?x : A; ?y : B(?x) |] ==> C(?x, ?y) type}
+{\out               [!!x y. [| x : A; y : B(x) |] ==> C(x, y) type]"]}
+{\out             : thm list}
 \end{ttbox}
 First, \ttindex{intr_tac} applies introduction rules and performs routine
 type checking.  This instantiates~$\Var{a}$ to a construction involving
