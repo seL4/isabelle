@@ -94,9 +94,9 @@ qed;
 
 text {* equality of records *};
 
-lemma "(| x = n, y = p |) = (| x = n', y = p' |) --> n = n'" (is "??EQ --> _");
+lemma "(| x = n, y = p |) = (| x = n', y = p' |) --> n = n'" (is "?EQ --> _");
 proof;
-  assume ??EQ;
+  assume ?EQ;
   thus "n = n'"; by simp;
 qed;
 

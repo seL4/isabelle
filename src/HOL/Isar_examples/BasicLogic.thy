@@ -80,7 +80,7 @@ proof;
   then; show "B & A";
   proof;
     assume A B;
-    show ??thesis; ..;
+    show ?thesis; ..;
   qed;
 qed;
 
@@ -123,8 +123,8 @@ proof;
   then; show "EX x. P(x)";
   proof (rule exE);
     fix a;
-    assume "P(f(a))" (is "P(??witness)");
-    show ??thesis; by (rule exI [of P ??witness]);
+    assume "P(f(a))" (is "P(?witness)");
+    show ?thesis; by (rule exI [of P ?witness]);
   qed;
 qed;
 
@@ -135,7 +135,7 @@ proof;
   proof;
     fix a;
     assume "P(f(a))";
-    show ??thesis; ..;
+    show ?thesis; ..;
   qed;
 qed;
 

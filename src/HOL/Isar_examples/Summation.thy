@@ -46,51 +46,51 @@ theorems [simp] = add_mult_distrib add_mult_distrib2 mult_ac;
 
 
 theorem sum_of_naturals: "2 * (SUM i < n + 1. i) = n * (n + 1)"
-  (is "??P n" is "??S n = _");
+  (is "?P n" is "?S n = _");
 proof (induct n);
-  show "??P 0"; by simp;
+  show "?P 0"; by simp;
 
   fix n;
-  have "??S (n + 1) = ??S n + 2 * (n + 1)"; by simp;
-  also; assume "??S n = n * (n + 1)";
+  have "?S (n + 1) = ?S n + 2 * (n + 1)"; by simp;
+  also; assume "?S n = n * (n + 1)";
   also; have "... + 2 * (n + 1) = (n + 1) * (n + 2)"; by simp;
-  finally; show "??P (Suc n)"; by simp;
+  finally; show "?P (Suc n)"; by simp;
 qed;
 
 theorem sum_of_odds: "(SUM i < n. 2 * i + 1) = n^2"
-  (is "??P n" is "??S n = _");
+  (is "?P n" is "?S n = _");
 proof (induct n);
-  show "??P 0"; by simp;
+  show "?P 0"; by simp;
 
   fix n;
-  have "??S (n + 1) = ??S n + 2 * n + 1"; by simp;
-  also; assume "??S n = n^2";
+  have "?S (n + 1) = ?S n + 2 * n + 1"; by simp;
+  also; assume "?S n = n^2";
   also; have "... + 2 * n + 1 = (n + 1)^2"; by simp;
-  finally; show "??P (Suc n)"; by simp;
+  finally; show "?P (Suc n)"; by simp;
 qed;
 
 theorem sum_of_squares: "6 * (SUM i < n + 1. i^2) = n * (n + 1) * (2 * n + 1)"
-  (is "??P n" is "??S n = _");
+  (is "?P n" is "?S n = _");
 proof (induct n);
-  show "??P 0"; by simp;
+  show "?P 0"; by simp;
 
   fix n;
-  have "??S (n + 1) = ??S n + 6 * (n + 1)^2"; by simp;
-  also; assume "??S n = n * (n + 1) * (2 * n + 1)";
+  have "?S (n + 1) = ?S n + 6 * (n + 1)^2"; by simp;
+  also; assume "?S n = n * (n + 1) * (2 * n + 1)";
   also; have "... + 6 * (n + 1)^2 = (n + 1) * (n + 2) * (2 * (n + 1) + 1)"; by simp;
-  finally; show "??P (Suc n)"; by simp;
+  finally; show "?P (Suc n)"; by simp;
 qed;
 
 theorem sum_of_cubes: "4 * (SUM i < n + 1. i^3) = (n * (n + 1))^2"
-  (is "??P n" is "??S n = _");
+  (is "?P n" is "?S n = _");
 proof (induct n);
-  show "??P 0"; by simp;
+  show "?P 0"; by simp;
 
   fix n;
-  have "??S (n + 1) = ??S n + 4 * (n + 1)^3"; by simp;
-  also; assume "??S n = (n * (n + 1))^2";
+  have "?S (n + 1) = ?S n + 4 * (n + 1)^3"; by simp;
+  also; assume "?S n = (n * (n + 1))^2";
   also; have "... + 4 * (n + 1)^3 = ((n + 1) * ((n + 1) + 1))^2"; by simp;
-  finally; show "??P (Suc n)"; by simp;
+  finally; show "?P (Suc n)"; by simp;
 qed;
 
 

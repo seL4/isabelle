@@ -49,7 +49,7 @@ proof -;
     by (simp only: group_left_unit);
   also; have "... = one";
     by (simp only: group_left_inverse);
-  finally; show ??thesis; .;
+  finally; show ?thesis; .;
 qed;
 
 text {*
@@ -67,7 +67,7 @@ proof -;
     by (simp only: group_right_inverse);
   also; have "... = x";
     by (simp only: group_left_unit);
-  finally; show ??thesis; .;
+  finally; show ?thesis; .;
 qed;
 
 text {*
@@ -80,7 +80,7 @@ text {*
 
  Note that "..." is just a special term binding that happens to be
  bound automatically to the argument of the last fact established by
- assume or any local goal.  In contrast to ??thesis, "..." is bound
+ assume or any local goal.  In contrast to ?thesis, "..." is bound
  after the proof is finished.
 *};
 
@@ -112,7 +112,7 @@ proof -;
   from calculation
     -- {* ... and pick up final result *};
 
-  show ??thesis; .;
+  show ?thesis; .;
 qed;
 
 
