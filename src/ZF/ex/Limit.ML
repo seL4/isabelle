@@ -1465,7 +1465,7 @@ val add1 = prove_goal Limit.thy
       [asm_simp_tac (simpset() addsimps[add_succ_right,add_0_right]) 1]);
 
 Goal  (* succ_sub1 *)
-    "x:nat ==> 0 < x --> succ(x#-1)=x";
+    "x:nat ==> 0 < x --> succ(x #- 1)=x";
 by (res_inst_tac[("n","x")]nat_induct 1);
 by (assume_tac 1);
 by (Fast_tac 1);

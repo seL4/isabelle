@@ -33,7 +33,7 @@ defs
   subst_rec_def "subst_rec(u,t,kg) ==   
                      redex_rec(t,   
                        %i.(lam r:redexes. lam k:nat.   
-                              if(k<i,Var(i#-1),   
+                              if(k<i,Var(i #- 1),   
                                 if(k=i,r,Var(i)))),   
                        %x m.(lam r:redexes. lam k:nat.   
                              Fun(m`(lift(r))`(succ(k)))),   

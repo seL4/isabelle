@@ -23,14 +23,14 @@ val succ_pred = prove_goal Arith.thy
               (Asm_simp_tac 1)]);
 
 goal Arith.thy 
-    "!!i.[|succ(x)<n; n:nat; x:nat|]==> x < n#-1 ";
+    "!!i.[|succ(x)<n; n:nat; x:nat|]==> x < n #- 1 ";
 by (rtac succ_leE 1);
 by (forward_tac [nat_into_Ord RS le_refl RS lt_trans] 1 THEN assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [succ_pred]) 1);
 qed "lt_pred";
 
 goal Arith.thy 
-    "!!i.[|n < succ(x); p<n; p:nat; n:nat; x:nat|]==> n#-1 < x ";
+    "!!i.[|n < succ(x); p<n; p:nat; n:nat; x:nat|]==> n #- 1 < x ";
 by (rtac succ_leE 1);
 by (asm_simp_tac (simpset() addsimps [succ_pred]) 1);
 qed "gt_pred";
@@ -75,7 +75,7 @@ qed "lift_rec_App";
 
 Goalw [subst_rec_def] 
     "[|i:nat; k:nat; u:redexes|]==>  \
-\        subst_rec(u,Var(i),k) = if(k<i,Var(i#-1),if(k=i,u,Var(i)))";
+\        subst_rec(u,Var(i),k) = if(k<i,Var(i #- 1),if(k=i,u,Var(i)))";
 by (asm_full_simp_tac (simpset() addsimps [gt_not_eq,leI]) 1);
 qed "subst_Var";
 
@@ -86,7 +86,7 @@ qed "subst_eq";
 
 Goalw [subst_rec_def] 
     "[|n:nat; u:redexes; p:nat; p<n|]==>  \
-\        subst_rec(u,Var(n),p) = Var(n#-1)";
+\        subst_rec(u,Var(n),p) = Var(n #- 1)";
 by (asm_full_simp_tac (simpset()) 1);
 qed "subst_gt";
 
