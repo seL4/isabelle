@@ -39,6 +39,7 @@ sig
   val set_mk_sym        : meta_simpset * (thm -> thm option) -> meta_simpset
   val set_mk_eq_True    : meta_simpset * (thm -> thm option) -> meta_simpset
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
+  val beta_eta_conversion: cterm -> thm
   val rewrite_cterm: bool * bool * bool ->
     (meta_simpset -> thm -> thm option) -> meta_simpset -> cterm -> thm
   val goals_conv        : (int -> bool) -> (cterm -> thm) -> cterm -> thm
