@@ -6,9 +6,7 @@ Theory loader database: theory and file dependencies, theory values
 and user data.
 
 TODO:
-  - check_thy: include ML stamp (!?!?);
   - check all these versions of 'use' (!!);
-  - errors during require etc.: include initiators (!?);
   - data: ThyInfoFun;
   - remove operation (GC!?);
   - update_all operation (!?);
@@ -240,7 +238,7 @@ fun current_deps ml strict name =
         | Some {present, outdated, master, files} =>
             if present andalso not strict then (true, same_deps)
             else
-              let val master' = Some (ThyLoad.check_thy name) in
+              let val master' = Some (ThyLoad.check_thy name ml) in
                 if master <> master' then (false, load_deps name ml)
                 else (not outdated andalso forall file_current files, same_deps)
               end)
@@ -248,6 +246,10 @@ fun current_deps ml strict name =
 
 fun outdated name =
   (case lookup_deps name of Some (Some {outdated, ...}) => outdated | _ => false);
+
+fun untouch None = None
+  | untouch (Some {present, outdated = _, master, files}) =
+      make_depends present false master files;
 
 fun require_thy ml time strict keep_strict initiators name =
   let
@@ -262,7 +264,7 @@ fun require_thy ml time strict keep_strict initiators name =
     if current andalso pre_outdated = outdated name then ()	(* FIXME ?? *)
     else
       ((case new_deps of
-        Some deps => change_thys (update_node name parents (deps, None))
+        Some deps => change_thys (update_node name parents (untouch deps, None))
       | None => ()); load_thy ml time initiators name parents)
   end;
 

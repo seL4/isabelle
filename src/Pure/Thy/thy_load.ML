@@ -20,7 +20,7 @@ sig
   val find_file: Path.T -> (Path.T * File.info) option
   val check_file: Path.T -> File.info option
   val load_file: Path.T -> File.info
-  val check_thy: string -> File.info
+  val check_thy: string -> bool -> File.info
   val deps_thy: string -> bool -> File.info * (string list * Path.T list)
   val load_thy: string -> bool -> bool -> File.info
 end;
@@ -86,7 +86,13 @@ fun undefined _ = raise Match;
 val deps_thy_fn = ref (undefined: string -> bool -> Path.T -> string list * Path.T list);
 val load_thy_fn = ref (undefined: string -> bool -> bool -> Path.T -> unit);
 
-val check_thy = #1 o process_thy (K ());
+fun check_thy name ml =
+  let val (thy_info, _) = process_thy (K ()) name in
+    (case if ml then check_file (ml_path name) else None of
+      None => thy_info
+    | Some info => File.join_info thy_info info)
+  end;
+
 fun deps_thy name ml = process_thy (fn path => ! deps_thy_fn name ml path) name;
 fun load_thy name ml time = #1 (process_thy (fn path => ! load_thy_fn name ml time path) name);
 
