@@ -154,14 +154,15 @@ by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (Fast_tac 1);
 qed "sees_subset_sees_Says";
 
-(*Pushing Unions into parts; one of the A's equals B, and thus sees lost Y*)
+(*Pushing Unions into parts.  One of the agents A is B, and thus sees Y.
+  Used to prove new_keys_not_seen.*)
 goal thy "(UN A. parts (sees lost A (Says B C Y # evs))) = \
 \         parts {Y} Un (UN A. parts (sees lost A evs))";
 by (Step_tac 1);
-by (etac rev_mp 1);     (*for some reason, split_tac does not work on assumptions*)
-val ss = (!simpset addsimps [parts_Un, sees_Cons] 
-                   setloop split_tac [expand_if]);
-by (ALLGOALS (fast_tac (!claset addss ss)));
+by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
+by (ALLGOALS
+    (fast_tac (!claset addss (!simpset addsimps [parts_Un, sees_Cons] 
+                       setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 
 goal thy "Says A B X : set_of_list evs --> X : sees lost Spy evs";
