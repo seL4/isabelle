@@ -190,9 +190,9 @@ open Simplifier Induction;
 (*Add congruence rules for = or <-> (instead of ==) *)
 infix 4 addcongs delcongs;
 fun ss addcongs congs =
-        ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
+        ss addeqcongs (map standard (congs RL [eq_reflection,iff_reflection]));
 fun ss delcongs congs =
-        ss deleqcongs (congs RL [eq_reflection,iff_reflection]);
+        ss deleqcongs (map standard (congs RL [eq_reflection,iff_reflection]));
 
 fun Addcongs congs = (simpset := !simpset addcongs congs);
 fun Delcongs congs = (simpset := !simpset delcongs congs);
