@@ -833,15 +833,24 @@ fun combination th1 th2 =
 	      prop=prop1,...} = th1
       and Thm{der=der2, maxidx=max2, shyps=shyps2, hyps=hyps2, 
 	      prop=prop2,...} = th2
+      fun chktypes (f,t) =
+	    (case fastype_of f of
+		Type("fun",[T1,T2]) => 
+		    if T1 <> fastype_of t then
+			 raise THM("combination: types", 0, [th1,th2])
+		    else ()
+		| _ => raise THM("combination: not function type", 0, 
+				 [th1,th2]))
   in case (prop1,prop2)  of
        (Const("==",_) $ f $ g, Const("==",_) $ t $ u) =>
-          let val thm = (*no fix_shyps*)
-             Thm{sign = merge_thm_sgs(th1,th2), 
-		 der = infer_derivs (Combination, [der1, der2]),
-                 maxidx = max[max1,max2], 
-		 shyps = shyps1 union shyps2,
-                 hyps = hyps1 union hyps2,
-		 prop = Logic.mk_equals(f$t, g$u)}
+          let val _   = chktypes (f,t)
+	      val thm = (*no fix_shyps*)
+			Thm{sign = merge_thm_sgs(th1,th2), 
+			    der = infer_derivs (Combination, [der1, der2]),
+			    maxidx = max[max1,max2], 
+			    shyps = shyps1 union shyps2,
+			    hyps = hyps1 union hyps2,
+			    prop = Logic.mk_equals(f$t, g$u)}
           in nodup_Vars thm "combination"; thm end
      | _ =>  raise THM("combination: premises", 0, [th1,th2])
   end;
