@@ -1,11 +1,10 @@
-(*  Title:      HOLCF/domain/syntaxd.ML
+(*  Title:      HOLCF/domain/syntax.ML
     ID:         $Id$
     Author : David von Oheimb
     Copyright 1995, 1996 TU Muenchen
 
 syntax generator for domain section
 *)
-
 
 structure Domain_Syntax = struct 
 

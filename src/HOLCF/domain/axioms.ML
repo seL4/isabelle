@@ -1,13 +1,10 @@
-(* axioms.ML
-   Author : David von Oheimb
-   Created: 31-May-95
-   Updated: 12-Jun-95 axioms for discriminators, selectors and induction
-   Updated: 19-Jun-95 axiom for bisimulation
-   Updated: 28-Jul-95 gen_by-section
-   Updated: 29-Aug-95 simultaneous domain equations
-   Copyright 1995 TU Muenchen
-*)
+(*  Title:      HOLCF/domain/axioms.ML
+    ID:         $Id$
+    Author : David von Oheimb
+    Copyright 1995, 1996 TU Muenchen
 
+syntax generator for domain section
+*)
 
 structure Domain_Axioms = struct
 

@@ -3,7 +3,7 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
-Lemmas for tr2.thy
+Lemmas for Tr2.thy
 *)
 
 open Tr2;
