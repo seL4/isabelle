@@ -115,8 +115,6 @@ val prems = Goalw [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
-Blast.overloaded ("op <=", domain_type); (*The <= relation is overloaded*)
-
 (*While (:) is not, its type must be kept
   for overloading of = to work.*)
 Blast.overloaded ("op :", domain_type);
@@ -257,10 +255,10 @@ qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
   [ (blast_tac (claset() addIs [prem RS FalseE]) 1) ]);
 
 (*Use for reasoning about disjointness: A Int B = {} *)
-qed_goal "equals0E" Set.thy "!!a. [| A={};  a:A |] ==> P"
+qed_goal "equals0D" Set.thy "!!a. A={} ==> a ~: A"
  (fn _ => [ (Blast_tac 1) ]);
 
-AddEs [equals0E, sym RS equals0E];
+AddDs [equals0D, sym RS equals0D];
 
 Goalw [Ball_def] "Ball {} P = True";
 by (Simp_tac 1);
