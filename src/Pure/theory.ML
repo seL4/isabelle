@@ -24,6 +24,8 @@ sig
   val subthy: theory * theory -> bool
   val eq_thy: theory * theory -> bool
   val cert_axm: Sign.sg -> string * term -> string * term
+  val read_def_axm: Sign.sg * (indexname -> typ option) * (indexname -> sort option) -> string list ->
+    string * string -> string * term
   val read_axm: Sign.sg -> string * string -> string * term
   val inferT_axm: Sign.sg -> string * term -> string * term
   val merge_theories: string -> theory * theory -> theory
@@ -228,13 +230,15 @@ fun cert_axm sg (name, raw_tm) =
   end
   handle ERROR => err_in_axm name;
 
-(*Some duplication of code with read_def_cterm*)
-fun read_axm sg (name, str) = 
+(*some duplication of code with read_def_cterm*)
+fun read_def_axm (sg, types, sorts) used (name, str) = 
   let
     val ts = Syntax.read (#syn (Sign.rep_sg sg)) propT str;
-    val (t, _) = Sign.infer_types sg (K None) (K None) [] true (ts, propT);
+    val (t, _) = Sign.infer_types sg types sorts used true (ts, propT);
   in cert_axm sg (name,t) end
   handle ERROR => err_in_axm name;
+
+fun read_axm sg name_str = read_def_axm (sg, K None, K None) [] name_str;
 
 fun inferT_axm sg (name, pre_tm) =
   let
