@@ -417,10 +417,10 @@ qed "well_ord_lepoll_imp_Card_le";
 
 
 goal Cardinal.thy "!!A. [| A lepoll i; Ord(i) |] ==> |A| le i";
-br le_trans 1;
-be (well_ord_Memrel RS well_ord_lepoll_imp_Card_le) 1;
-ba 1;
-be Ord_cardinal_le 1;
+by (rtac le_trans 1);
+by (etac (well_ord_Memrel RS well_ord_lepoll_imp_Card_le) 1);
+by (assume_tac 1);
+by (etac Ord_cardinal_le 1);
 qed "lepoll_cardinal_le";
 
 
@@ -675,7 +675,7 @@ by (res_inst_tac [("d","%z. snd(z)")] lam_injective 1);
 by (split_tac [expand_if] 1);
 by (fast_tac (ZF_cs addSIs [InlI, InrI]) 1);
 by (asm_full_simp_tac (ZF_ss addsimps [Inl_def, Inr_def]
-		       setloop split_tac [expand_if]) 1);
+                       setloop split_tac [expand_if]) 1);
 qed "Un_lepoll_sum";
 
 
@@ -700,7 +700,9 @@ by (fast_tac (ZF_cs addSEs [eqpollE]
                      rewrite_rule [Finite_def] lepoll_nat_imp_Finite]) 1);
 qed "lepoll_Finite";
 
-bind_thm ("Finite_Diff", Diff_subset RS subset_imp_lepoll RS lepoll_Finite);
+bind_thm ("subset_Finite", subset_imp_lepoll RS lepoll_Finite);
+
+bind_thm ("Finite_Diff", Diff_subset RS subset_Finite);
 
 goalw Cardinal.thy [Finite_def] "!!x. Finite(x) ==> Finite(cons(y,x))";
 by (excluded_middle_tac "y:x" 1);
@@ -726,7 +728,7 @@ qed "nat_le_infinite_Ord";
 goalw Cardinal.thy [Finite_def, eqpoll_def]
     "!!A. Finite(A) ==> EX r. well_ord(A,r)";
 by (fast_tac (ZF_cs addIs [well_ord_rvimage, bij_is_inj, well_ord_Memrel, 
-			   nat_into_Ord]) 1);
+                           nat_into_Ord]) 1);
 qed "Finite_imp_well_ord";
 
 

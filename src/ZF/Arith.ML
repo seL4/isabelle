@@ -347,16 +347,16 @@ goal Arith.thy
 \           succ(m) mod n = if(succ(m mod n) = n, 0, succ(m mod n))";
 by (etac complete_induct 1);
 by (excluded_middle_tac "succ(x)<n" 1);
-(*case x<n*)
+(* case succ(x) < n *)
 by (asm_simp_tac (arith_ss addsimps [mod_less, nat_le_refl RS lt_trans,
-				     succ_neq_self]) 2);
+                                     succ_neq_self]) 2);
 by (asm_simp_tac (arith_ss addsimps [ltD RS mem_imp_not_eq]) 2);
-(*case n le x*)
+(* case n le succ(x) *)
 by (asm_full_simp_tac
      (arith_ss addsimps [not_lt_iff_le, nat_into_Ord, mod_geq]) 1);
-be leE 1;
+by (etac leE 1);
 by (asm_simp_tac (arith_ss addsimps [div_termination RS ltD, diff_succ, 
-				     mod_geq]) 1);
+                                     mod_geq]) 1);
 by (asm_simp_tac (arith_ss addsimps [mod_less, diff_self_eq_0]) 1);
 qed "mod_succ";
 
@@ -376,7 +376,7 @@ goal Arith.thy
     "!!k b. [| k: nat; b<2 |] ==> k mod 2 = b | k mod 2 = if(b=1,0,1)";
 by (subgoal_tac "k mod 2: 2" 1);
 by (asm_simp_tac (arith_ss addsimps [mod_less_divisor RS ltD]) 2);
-by (dresolve_tac [ltD] 1);
+by (dtac ltD 1);
 by (asm_simp_tac (ZF_ss setloop split_tac [expand_if]) 1);
 by (fast_tac ZF_cs 1);
 qed "mod2_cases";
@@ -388,7 +388,7 @@ by (asm_simp_tac (arith_ss addsimps [mod_succ] setloop step_tac ZF_cs) 1);
 qed "mod2_succ_succ";
 
 goal Arith.thy "!!m. m:nat ==> (m#+m) mod 2 = 0";
-by (eresolve_tac [nat_induct] 1);
+by (etac nat_induct 1);
 by (simp_tac (arith_ss addsimps [mod_less]) 1);
 by (asm_simp_tac (arith_ss addsimps [mod2_succ_succ, add_succ_right]) 1);
 qed "mod2_add_self";
@@ -456,5 +456,5 @@ qed "add_le_mono";
 
 val arith_ss0 = arith_ss
 and arith_ss = arith_ss addsimps [add_0_right, add_succ_right,
-				  mult_0_right, mult_succ_right,
-				  mod_less, mod_geq, div_less, div_geq];
+                                  mult_0_right, mult_succ_right,
+                                  mod_less, mod_geq, div_less, div_geq];
