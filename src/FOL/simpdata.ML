@@ -50,9 +50,6 @@ val distrib_rews  = map int_prove_fun
   "(Q | R) & P <-> Q&P | R&P",
   "(P | Q --> R) <-> (P --> R) & (Q --> R)"];
 
-bind_thm("conj_commute", int_prove_fun "P&Q <-> Q&P");
-bind_thm("disj_commute", int_prove_fun "P|Q <-> Q|P");
-
 (** Conversion into rewrite rules **)
 
 fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
@@ -130,6 +127,46 @@ val cla_rews = map prove_fun
   "~ ~ P <-> P",        "(~P --> P) <-> P"];
 
 val FOL_ss = IFOL_ss addsimps cla_rews;
+
+fun int_prove nm thm  = qed_goal nm IFOL.thy thm
+    (fn prems => [ (cut_facts_tac prems 1), 
+                   (Int.fast_tac 1) ]);
+
+fun prove nm thm  = qed_goal nm FOL.thy thm (fn _ => [fast_tac FOL_cs 1]);
+
+int_prove "conj_commute" "P&Q <-> Q&P";
+int_prove "conj_left_commute" "P&(Q&R) <-> Q&(P&R)";
+val conj_comms = [conj_commute, conj_left_commute];
+
+int_prove "disj_commute" "P|Q <-> Q|P";
+int_prove "disj_left_commute" "P|(Q|R) <-> Q|(P|R)";
+val disj_comms = [disj_commute, disj_left_commute];
+
+int_prove "conj_disj_distribL" "P&(Q|R) <-> (P&Q | P&R)";
+int_prove "conj_disj_distribR" "(P|Q)&R <-> (P&R | Q&R)";
+
+int_prove "disj_conj_distribL" "P|(Q&R) <-> (P|Q) & (P|R)";
+int_prove "disj_conj_distribR" "(P&Q)|R <-> (P|R) & (Q|R)";
+
+int_prove "imp_conj_distrib" "(P --> (Q&R)) <-> (P-->Q) & (P-->R)";
+int_prove "imp_conj"         "((P&Q)-->R)   <-> (P --> (Q --> R))";
+int_prove "imp_disj"         "(P|Q --> R)   <-> (P-->R) & (Q-->R)";
+
+int_prove "de_Morgan_disj" "(~(P | Q)) <-> (~P & ~Q)";
+prove     "de_Morgan_conj" "(~(P & Q)) <-> (~P | ~Q)";
+
+prove     "not_iff" "~(P <-> Q) <-> (P <-> ~Q)";
+
+prove     "not_all" "(~ (ALL x.P(x))) <-> (EX x.~P(x))";
+prove     "imp_all" "((ALL x.P(x)) --> Q) <-> (EX x.P(x) --> Q)";
+int_prove "not_ex"  "(~ (EX x.P(x))) <-> (ALL x.~P(x))";
+int_prove "imp_ex" "((EX x. P(x)) --> Q) <-> (ALL x. P(x) --> Q)";
+
+int_prove "ex_disj_distrib"
+    "(EX x. P(x) | Q(x)) <-> ((EX x. P(x)) | (EX x. Q(x)))";
+int_prove "all_conj_distrib"
+    "(ALL x. P(x) & Q(x)) <-> ((ALL x. P(x)) & (ALL x. Q(x)))";
+
 
 (*Used in ZF, perhaps elsewhere?*)
 val meta_eq_to_obj_eq = prove_goal IFOL.thy "x==y ==> x=y"
