@@ -1,12 +1,10 @@
 (*  Title:      HOL/Tools/refute.ML
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2003-2004
+    Copyright   2003-2005
 
 Finite model generation for HOL formulas, using a SAT solver.
 *)
-
-(* TODO: case, recursion, size for IDTs are not supported yet *)
 
 (* ------------------------------------------------------------------------- *)
 (* Declares the 'REFUTE' signature as well as a structure 'Refute'.          *)
@@ -115,7 +113,6 @@ struct
 				  Node ys => Node (map tree_pair (xs ~~ ys))
 				| Leaf _  => raise REFUTE ("tree_pair", "trees are of different height (first tree is higher)"));
 
-
 (* ------------------------------------------------------------------------- *)
 (* params: parameters that control the translation into a propositional      *)
 (*         formula/model generation                                          *)
@@ -168,9 +165,9 @@ struct
 
 	type arguments =
 		{
-			(* just passed unchanged from 'params' *)
-			maxvars   : int,
-			(* these may change during the translation *)
+			maxvars   : int,   (* just passed unchanged from 'params' *)
+			def_eq    : bool,  (* whether to use 'make_equality' or 'make_def_equality' *)
+			(* the following may change during the translation *)
 			next_idx  : int,
 			bounds    : interpretation list,
 			wellformed: prop_formula
@@ -213,19 +210,19 @@ struct
 
 	fun interpret thy model args t =
 		(case get_first (fn (_, f) => f thy model args t) (#interpreters (RefuteData.get thy)) of
-		  NONE   => raise REFUTE ("interpret", "unable to interpret term " ^ quote (Sign.string_of_term (sign_of thy) t))
+		  NONE   => raise REFUTE ("interpret", "no interpreter for term " ^ quote (Sign.string_of_term (sign_of thy) t))
 		| SOME x => x);
 
 (* ------------------------------------------------------------------------- *)
-(* print: tries to convert the constant denoted by the term 't' into a term  *)
-(*        using a suitable printer                                           *)
+(* print: converts the constant denoted by the term 't' into a term using a  *)
+(*        suitable printer                                                   *)
 (* ------------------------------------------------------------------------- *)
 
 	(* theory -> model -> Term.term -> interpretation -> (int -> bool) -> Term.term *)
 
 	fun print thy model t intr assignment =
 		(case get_first (fn (_, f) => f thy model t intr assignment) (#printers (RefuteData.get thy)) of
-		  NONE   => Const ("<<no printer available>>", fastype_of t)
+		  NONE   => raise REFUTE ("print", "no printer for term " ^ quote (Sign.string_of_term (sign_of thy) t))
 		| SOME x => x);
 
 (* ------------------------------------------------------------------------- *)
@@ -386,21 +383,21 @@ struct
 	fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
 		(* replace a 'DtTFree' variable by the associated type *)
 		(the o assoc) (typ_assoc, DatatypeAux.DtTFree a)
+	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
+		Type (s, map (typ_of_dtyp descr typ_assoc) ds)
 	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
 		let
 			val (s, ds, _) = (the o assoc) (descr, i)
 		in
 			Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-		end
-	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
-		Type (s, map (typ_of_dtyp descr typ_assoc) ds);
+		end;
 
 (* ------------------------------------------------------------------------- *)
 (* collect_axioms: collects (monomorphic, universally quantified versions    *)
 (*                 of) all HOL axioms that are relevant w.r.t 't'            *)
 (* ------------------------------------------------------------------------- *)
 
-	(* TODO: to make the collection of axioms more easily extensible, this    *)
+	(* Note: to make the collection of axioms more easily extensible, this    *)
 	(*       function could be based on user-supplied "axiom collectors",     *)
 	(*       similar to 'interpret'/interpreters or 'print'/printers          *)
 
@@ -423,18 +420,23 @@ struct
 		val _ = immediate_output "Adding axioms..."
 		(* (string * Term.term) list *)
 		val axioms = flat (map (Symtab.dest o #axioms o Theory.rep_theory) (thy :: Theory.ancestors_of thy))
+		(* string list *)
+		val rec_names = Symtab.foldl (fn (acc, (_, info)) =>
+			#rec_names info @ acc) ([], DatatypePackage.get_datatypes thy)
+		(* string list *)
+		val const_of_class_names = map Sign.const_of_class (Sign.classes (sign_of thy))
 		(* given a constant 's' of type 'T', which is a subterm of 't', where  *)
 		(* 't' has a (possibly) more general type, the schematic type          *)
-		(* variables in 't' are instantiated to match the type 'T'             *)
+		(* variables in 't' are instantiated to match the type 'T' (may raise  *)
+		(* Type.TYPE_MATCH)                                                    *)
 		(* (string * Term.typ) * Term.term -> Term.term *)
 		fun specialize_type ((s, T), t) =
 		let
 			fun find_typeSubs (Const (s', T')) =
 				(if s=s' then
-					SOME (Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T)))
+					SOME (Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T))) handle Type.TYPE_MATCH => NONE
 				else
-					NONE
-				handle Type.TYPE_MATCH => NONE)
+					NONE)
 			  | find_typeSubs (Free _)           = NONE
 			  | find_typeSubs (Var _)            = NONE
 			  | find_typeSubs (Bound _)          = NONE
@@ -442,7 +444,7 @@ struct
 			  | find_typeSubs (t1 $ t2)          = (case find_typeSubs t1 of SOME x => SOME x | NONE => find_typeSubs t2)
 			val typeSubs = (case find_typeSubs t of
 				  SOME x => x
-				| NONE   => raise REFUTE ("collect_axioms", "no type instantiation found for " ^ quote s ^ " in " ^ Sign.string_of_term (sign_of thy) t))
+				| NONE   => raise Type.TYPE_MATCH (* no match found - perhaps due to sort constraints *))
 		in
 			map_term_types
 				(map_type_tvar
@@ -460,7 +462,7 @@ struct
 		(* Term.typ Term.Vartab.table -> Term.term -> Term.term *)
 		fun monomorphic_term typeSubs t =
 			map_term_types (map_type_tvar
-				(fn (v,_) =>
+				(fn (v, _) =>
 					case Vartab.lookup (typeSubs, v) of
 					  NONE =>
 						(* schematic type variable not instantiated *)
@@ -468,12 +470,55 @@ struct
 					| SOME typ =>
 						typ)) t
 		(* Term.term list * Term.typ -> Term.term list *)
-		fun collect_type_axioms (axs, T) =
+		fun collect_sort_axioms (axs, T) =
+			let
+				(* collect the axioms for a single 'class' (but not for its superclasses) *)
+				(* Term.term list * string -> Term.term list *)
+				fun collect_class_axioms (axs, class) =
+					let
+						(* obtain the axioms generated by the "axclass" command *)
+						(* (string * Term.term) list *)
+						val class_axioms             = filter (fn (s, _) => String.isPrefix (class ^ ".axioms_") s) axioms
+						(* replace the one schematic type variable in each axiom by the actual type 'T' *)
+						(* (string * Term.term) list *)
+						val monomorphic_class_axioms = map (fn (axname, ax) =>
+							let
+								val (idx, _) = (case term_tvars ax of
+									  [is] => is
+									| _    => raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^ Sign.string_of_term (sign_of thy) ax ^ ") does not contain exactly one type variable"))
+							in
+								(axname, monomorphic_term (Vartab.make [(idx, T)]) ax)
+							end) class_axioms
+						(* Term.term list * (string * Term.term) list -> Term.term list *)
+						fun collect_axiom (axs, (axname, ax)) =
+							if mem_term (ax, axs) then
+								axs
+							else (
+								immediate_output (" " ^ axname);
+								collect_term_axioms (ax :: axs, ax)
+							)
+					in
+						foldl collect_axiom (axs, monomorphic_class_axioms)
+					end
+				(* string list *)
+				val sort = (case T of
+					  TFree (_, sort) => sort
+					| TVar (_, sort)  => sort
+					| _               => raise REFUTE ("collect_axioms", "type " ^ Sign.string_of_typ (sign_of thy) T ^ " is not a variable"))
+				(* obtain all superclasses of classes in 'sort' *)
+				(* string list *)
+				val superclasses = Graph.all_succs ((#classes o Type.rep_tsig o Sign.tsig_of o sign_of) thy) sort
+			in
+				foldl collect_class_axioms (axs, superclasses)
+			end
+		(* Term.term list * Term.typ -> Term.term list *)
+		and collect_type_axioms (axs, T) =
 			case T of
 			(* simple types *)
 			  Type ("prop", [])      => axs
 			| Type ("fun", [T1, T2]) => collect_type_axioms (collect_type_axioms (axs, T1), T2)
 			| Type ("set", [T1])     => collect_type_axioms (axs, T1)
+			| Type ("itself", [T1])  => collect_type_axioms (axs, T1)  (* axiomatic type classes *)
 			| Type (s, Ts)           =>
 				let
 					(* look up the definition of a type, as created by "typedef" *)
@@ -517,18 +562,18 @@ struct
 						(case get_typedefn axioms of
 						  SOME (axname, ax) => 
 							if mem_term (ax, axs) then
-								(* collect relevant type axioms for the argument types *)
+								(* only collect relevant type axioms for the argument types *)
 								foldl collect_type_axioms (axs, Ts)
 							else
 								(immediate_output (" " ^ axname);
 								collect_term_axioms (ax :: axs, ax))
 						| NONE =>
+							(* unspecified type, perhaps introduced with 'typedecl' *)
 							(* at least collect relevant type axioms for the argument types *)
 							foldl collect_type_axioms (axs, Ts))
 				end
-			(* TODO: include sort axioms *)
-			| TFree (_, sorts)       => ((*if not (null sorts) then immediate_output " *ignoring sorts*" else ();*) axs)
-			| TVar  (_, sorts)       => ((*if not (null sorts) then immediate_output " *ignoring sorts*" else ();*) axs)
+			| TFree _                => collect_sort_axioms (axs, T)  (* axiomatic type classes *)
+			| TVar _                 => collect_sort_axioms (axs, T)  (* axiomatic type classes *)
 		(* Term.term list * Term.term -> Term.term list *)
 		and collect_term_axioms (axs, t) =
 			case t of
@@ -536,6 +581,7 @@ struct
 			  Const ("all", _)                => axs
 			| Const ("==", _)                 => axs
 			| Const ("==>", _)                => axs
+			| Const ("TYPE", T)               => collect_type_axioms (axs, T)  (* axiomatic type classes *)
 			(* HOL *)
 			| Const ("Trueprop", _)           => axs
 			| Const ("Not", _)                => axs
@@ -573,6 +619,10 @@ struct
 			| Const ("op :", T)               => collect_type_axioms (axs, T)
 			(* other optimizations *)
 			| Const ("Finite_Set.card", T)    => collect_type_axioms (axs, T)
+			| Const ("op <", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => collect_type_axioms (axs, T)
+			| Const ("op +", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
+			| Const ("op -", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
+			| Const ("op *", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
 			(* simply-typed lambda calculus *)
 			| Const (s, T)                    =>
 				let
@@ -580,7 +630,7 @@ struct
 					(* string -> Term.typ -> (string * Term.term) list -> (string * Term.term) option *)
 					fun get_defn [] =
 						NONE
-					  | get_defn ((axname,ax)::axms) =
+					  | get_defn ((axname, ax)::axms) =
 						(let
 							val (lhs, _) = Logic.dest_equals ax  (* equations only *)
 							val c        = head_of lhs
@@ -598,49 +648,68 @@ struct
 						handle ERROR           => get_defn axms
 						     | TERM _          => get_defn axms
 						     | Type.TYPE_MATCH => get_defn axms)
-						(* unit -> bool *)
-						fun is_IDT_constructor () =
-							(case body_type T of
-							  Type (s', _) =>
-								(case DatatypePackage.constrs_of thy s' of
-								  SOME constrs =>
-									Library.exists (fn c =>
-										(case c of
-										  Const (cname, ctype) =>
-											cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T, ctype)
-										| _ =>
-											raise REFUTE ("collect_axioms", "IDT constructor is not a constant")))
-										constrs
-								| NONE =>
-									false)
-							| _  =>
+					(* axiomatic type classes *)
+					(* unit -> bool *)
+					fun is_const_of_class () =
+						(* I'm not quite sure if checking the name 's' is sufficient, *)
+						(* or if we should also check the type 'T'                    *)
+						s mem const_of_class_names
+					(* inductive data types *)
+					(* unit -> bool *)
+					fun is_IDT_constructor () =
+						(case body_type T of
+						  Type (s', _) =>
+							(case DatatypePackage.constrs_of thy s' of
+							  SOME constrs =>
+								Library.exists (fn c =>
+									(case c of
+									  Const (cname, ctype) =>
+										cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T, ctype)
+									| _ =>
+										raise REFUTE ("collect_axioms", "IDT constructor is not a constant")))
+									constrs
+							| NONE =>
 								false)
-						(* unit -> bool *)
-						fun is_IDT_recursor () =
-							(* the type of a recursion operator: [T1,...,Tn,IDT]--->TResult (where *)
-							(* the T1,...,Tn depend on the types of the datatype's constructors)   *)
-							((case last_elem (binder_types T) of
-							  Type (s', _) =>
-								(case DatatypePackage.datatype_info thy s' of
-								  SOME info => s mem (#rec_names info)
-								| NONE      => false)  (* not an inductive datatype *)
-							| _ =>  (* a (free or schematic) type variable *)
-								false)
-							handle LIST "last_elem" => false)  (* not even a function type *)
+						| _  =>
+							false)
+					(* unit -> bool *)
+					fun is_IDT_recursor () =
+						(* I'm not quite sure if checking the name 's' is sufficient, *)
+						(* or if we should also check the type 'T'                    *)
+						s mem rec_names
 				in
-					if is_IDT_constructor () then
+					if is_const_of_class () then
+						(* axiomatic type classes: add "OFCLASS(?'a::c, c_class)" and *)
+						(* the introduction rule "class.intro" as axioms              *)
+						let
+							val class   = Sign.class_of_const s
+							val inclass = Logic.mk_inclass (TVar (("'a", 0), [class]), class)
+							(* Term.term option *)
+							val ofclass_ax = (SOME (specialize_type ((s, T), inclass)) handle Type.TYPE_MATCH => NONE)
+							val intro_ax   = (apsome (fn t => specialize_type ((s, T), t)) (assoc (axioms, class ^ ".intro")) handle Type.TYPE_MATCH => NONE)
+							val axs'       = (case ofclass_ax of NONE => axs | SOME ax => if mem_term (ax, axs) then
+									(* collect relevant type axioms *)
+									collect_type_axioms (axs, T)
+								else
+									(immediate_output (" " ^ Sign.string_of_term (sign_of thy) ax);
+									collect_term_axioms (ax :: axs, ax)))
+							val axs''      = (case intro_ax of NONE => axs' | SOME ax => if mem_term (ax, axs') then
+									(* collect relevant type axioms *)
+									collect_type_axioms (axs', T)
+								else
+									(immediate_output (" " ^ class ^ ".intro");
+									collect_term_axioms (ax :: axs', ax)))
+						in
+							axs''
+						end
+					else if is_IDT_constructor () then
 						(* only collect relevant type axioms *)
 						collect_type_axioms (axs, T)
-					else if is_IDT_recursor () then (
-						(* TODO: we must add the definition of the recursion operator to the axioms, or *)
-						(*       (better yet, since simply unfolding the definition won't work for      *)
-						(*       initial fragments of recursive IDTs) write an interpreter that         *)
-						(*       respects it                                                            *)
-						warning "Term contains recursion over a datatype; countermodel(s) may be spurious!";
+					else if is_IDT_recursor () then
 						(* only collect relevant type axioms *)
 						collect_type_axioms (axs, T)
-					) else
-						(case get_defn axioms of
+					else (
+						case get_defn axioms of
 						  SOME (axname, ax) => 
 							if mem_term (ax, axs) then
 								(* collect relevant type axioms *)
@@ -650,7 +719,8 @@ struct
 								collect_term_axioms (ax :: axs, ax))
 						| NONE =>
 							(* collect relevant type axioms *)
-							collect_type_axioms (axs, T))
+							collect_type_axioms (axs, T)
+					)
 				end
 			| Free (_, T)                     => collect_type_axioms (axs, T)
 			| Var (_, T)                      => collect_type_axioms (axs, T)
@@ -665,7 +735,7 @@ struct
 			val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
 		in
 			foldl
-				(fn (t', ((x,i),T)) => (Term.all T) $ Abs (x, T, abstract_over (Var((x,i),T), t')))
+				(fn (t', ((x, i), T)) => (Term.all T) $ Abs (x, T, abstract_over (Var((x, i), T), t')))
 				(t, vars)
 		end
 		(* Term.term list *)
@@ -773,60 +843,46 @@ struct
 
 	fun next_universe xs sizes minsize maxsize =
 	let
-		(* int -> int list -> int list option *)
-		fun add1 _ [] =
-			NONE  (* overflow *)
-		  | add1 max (x::xs) =
-		 	if x<max orelse max<0 then
-				SOME ((x+1)::xs)  (* add 1 to the head *)
-			else
-				apsome (fn xs' => 0 :: xs') (add1 max xs)  (* carry-over *)
-		(* int -> int list * int list -> int list option *)
-		fun shift _ (_, []) =
-			NONE
-		  | shift max (zeros, x::xs) =
-			if x=0 then
-				shift max (0::zeros, xs)
-			else
-				apsome (fn xs' => (x-1) :: (zeros @ xs')) (add1 max xs)
 		(* creates the "first" list of length 'len', where the sum of all list *)
 		(* elements is 'sum', and the length of the list is 'len'              *)
 		(* int -> int -> int -> int list option *)
-		fun make_first 0 sum _ =
+		fun make_first _ 0 sum =
 			if sum=0 then
 				SOME []
 			else
 				NONE
-		  | make_first len sum max =
+		  | make_first max len sum =
 			if sum<=max orelse max<0 then
-				apsome (fn xs' => sum :: xs') (make_first (len-1) 0 max)
+				apsome (fn xs' => sum :: xs') (make_first max (len-1) 0)
 			else
-				apsome (fn xs' => max :: xs') (make_first (len-1) (sum-max) max)
+				apsome (fn xs' => max :: xs') (make_first max (len-1) (sum-max))
 		(* enumerates all int lists with a fixed length, where 0<=x<='max' for *)
 		(* all list elements x (unless 'max'<0)                                *)
-		(* int -> int list -> int list option *)
-		fun next max xs =
-			(case shift max ([], xs) of
-			  SOME xs' =>
-				SOME xs'
-			| NONE =>
-				let
-					val (len, sum) = foldl (fn ((l, s), x) => (l+1, s+x)) ((0, 0), xs)
-				in
-					make_first len (sum+1) max  (* increment 'sum' by 1 *)
-				end)
+		(* int -> int -> int -> int list -> int list option *)
+		fun next max len sum [] =
+			NONE
+		  | next max len sum [x] =
+			(* we've reached the last list element, so there's no shift possible *)
+			make_first max (len+1) (sum+x+1)  (* increment 'sum' by 1 *)
+		  | next max len sum (x1::x2::xs) =
+			if x1>0 andalso (x2<max orelse max<0) then
+				(* we can shift *)
+				SOME (the (make_first max (len+1) (sum+x1-1)) @ (x2+1) :: xs)
+			else
+				(* continue search *)
+				next max (len+1) (sum+x1) (x2::xs)
 		(* only consider those types for which the size is not fixed *)
 		val mutables = filter (fn (T, _) => assoc (sizes, string_of_typ T) = NONE) xs
 		(* subtract 'minsize' from every size (will be added again at the end) *)
 		val diffs = map (fn (_, n) => n-minsize) mutables
 	in
-		case next (maxsize-minsize) diffs of
+		case next (maxsize-minsize) 0 0 diffs of
 		  SOME diffs' =>
 			(* merge with those types for which the size is fixed *)
 			SOME (snd (foldl_map (fn (ds, (T, _)) =>
 				case assoc (sizes, string_of_typ T) of
-				  SOME n => (ds, (T, n))                      (* return the fixed size *)
-				| NONE   => (tl ds, (T, minsize + (hd ds))))  (* consume the head of 'ds', add 'minsize' *)
+				  SOME n => (ds, (T, n))                    (* return the fixed size *)
+				| NONE   => (tl ds, (T, minsize + hd ds)))  (* consume the head of 'ds', add 'minsize' *)
 				(diffs', xs)))
 		| NONE =>
 			NONE
@@ -879,18 +935,39 @@ struct
 			val _      = writeln ("Ground types: "
 				^ (if null types then "none."
 				   else commas (map (Sign.string_of_typ (sign_of thy)) types)))
+			(* we can only consider fragments of recursive IDTs, so we issue a  *)
+			(* warning if the formula contains a recursive IDT                  *)
+			(* TODO: no warning needed for /positive/ occurrences of IDTs       *)
+			val _ = if Library.exists (fn
+				  Type (s, _) =>
+					(case DatatypePackage.datatype_info thy s of
+					  SOME info =>  (* inductive datatype *)
+						let
+							val index           = #index info
+							val descr           = #descr info
+							val (_, _, constrs) = (the o assoc) (descr, index)
+						in
+							(* recursive datatype? *)
+							Library.exists (fn (_, ds) => Library.exists DatatypeAux.is_rec_type ds) constrs
+						end
+					| NONE => false)
+				| _ => false) types then
+					warning "Term contains a recursive datatype; countermodel(s) may be spurious!"
+				else
+					()
 			(* (Term.typ * int) list -> unit *)
 			fun find_model_loop universe =
 			let
 				val init_model             = (universe, [])
-				val init_args              = {maxvars = maxvars, next_idx = 1, bounds = [], wellformed = True}
+				val init_args              = {maxvars = maxvars, def_eq = false, next_idx = 1, bounds = [], wellformed = True}
 				val _                      = immediate_output ("Translating term (sizes: " ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
 				(* translate 't' and all axioms *)
 				val ((model, args), intrs) = foldl_map (fn ((m, a), t') =>
 					let
 						val (i, m', a') = interpret thy m a t'
 					in
-						((m', a'), i)
+						(* set 'def_eq' to 'true' *)
+						((m', {maxvars = #maxvars a', def_eq = true, next_idx = #next_idx a', bounds = #bounds a', wellformed = #wellformed a'}), i)
 					end) ((init_model, init_args), t :: axioms)
 				(* make 't' either true or false, and make all axioms true, and *)
 				(* add the well-formedness side condition                       *)
@@ -901,13 +978,19 @@ struct
 				immediate_output " invoking SAT solver...";
 				(case SatSolver.invoke_solver satsolver fm of
 				  SatSolver.SATISFIABLE assignment =>
-					writeln ("\n*** Model found: ***\n" ^ print_model thy model (fn i => case assignment i of SOME b => b | NONE => true))
-				| _ =>  (* SatSolver.UNSATISFIABLE, SatSolver.UNKNOWN *)
+					(writeln " model found!";
+					writeln ("*** Model found: ***\n" ^ print_model thy model (fn i => case assignment i of SOME b => b | NONE => true)))
+				| SatSolver.UNSATISFIABLE =>
+					(immediate_output " no model exists.\n";
+					case next_universe universe sizes minsize maxsize of
+					  SOME universe' => find_model_loop universe'
+					| NONE           => writeln "Search terminated, no larger universe within the given limits.")
+				| SatSolver.UNKNOWN =>
 					(immediate_output " no model found.\n";
 					case next_universe universe sizes minsize maxsize of
 					  SOME universe' => find_model_loop universe'
-					| NONE           => writeln "Search terminated, no larger universe within the given limits."))
-				handle SatSolver.NOT_CONFIGURED =>
+					| NONE           => writeln "Search terminated, no larger universe within the given limits.")
+				) handle SatSolver.NOT_CONFIGURED =>
 					error ("SAT solver " ^ quote satsolver ^ " is not configured.")
 			end handle MAXVARS_EXCEEDED =>
 				writeln ("\nSearch terminated, number of Boolean variables (" ^ string_of_int maxvars ^ " allowed) exceeded.")
@@ -921,17 +1004,17 @@ struct
 			assert (maxsize>=minsize) ("\"maxsize\" (=" ^ string_of_int maxsize ^ ") is less than \"minsize\" (=" ^ string_of_int minsize ^ ").");
 			assert (maxvars>=0) ("\"maxvars\" is " ^ string_of_int maxvars ^ ", must be at least 0");
 			assert (maxtime>=0) ("\"maxtime\" is " ^ string_of_int maxtime ^ ", must be at least 0");
-			(* enter loop with/without time limit *)
+			(* enter loop with or without time limit *)
 			writeln ("Trying to find a model that " ^ (if negate then "refutes" else "satisfies") ^ ": "
 				^ Sign.string_of_term (sign_of thy) t);
-			if maxtime>0 then
-				(TimeLimit.timeLimit (Time.fromSeconds (Int.toLarge maxtime))
+			if maxtime>0 then (
+				TimeLimit.timeLimit (Time.fromSeconds (Int.toLarge maxtime))
 					wrapper ()
 				handle TimeLimit.TimeOut =>
 					writeln ("\nSearch terminated, time limit ("
 						^ string_of_int maxtime ^ (if maxtime=1 then " second" else " seconds")
-						^ ") exceeded."))
-			else
+						^ ") exceeded.")
+			) else
 				wrapper ()
 		end;
 
@@ -1054,7 +1137,7 @@ struct
 		(* int * int -> int *)
 		fun power (a,0) = 1
 		  | power (a,1) = a
-		  | power (a,b) = let val ab = power(a,b div 2) in ab * ab * power(a,b mod 2) end
+		  | power (a,b) = let val ab = power(a, b div 2) in ab * ab * power(a, b mod 2) end
 	in
 		case intr of
 		  Leaf xs => length xs
@@ -1074,6 +1157,12 @@ struct
 (* ------------------------------------------------------------------------- *)
 (* make_equality: returns an interpretation that denotes (extensional)       *)
 (*                equality of two interpretations                            *)
+(* - two interpretations are 'equal' iff they are both defined and denote    *)
+(*   the same value                                                          *)
+(* - two interpretations are 'not_equal' iff they are both defined at least  *)
+(*   partially, and a defined part denotes different values                  *)
+(* - a completely undefined interpretation is neither 'equal' nor            *)
+(*   'not_equal' to another interpretation                                   *)
 (* ------------------------------------------------------------------------- *)
 
 	(* We could in principle represent '=' on a type T by a particular        *)
@@ -1092,7 +1181,7 @@ struct
 			(case i1 of
 			  Leaf xs =>
 				(case i2 of
-				  Leaf ys => PropLogic.dot_product (xs, ys)
+				  Leaf ys => PropLogic.dot_product (xs, ys)  (* defined and equal *)
 				| Node _  => raise REFUTE ("make_equality", "second interpretation is higher"))
 			| Node xs =>
 				(case i2 of
@@ -1112,14 +1201,89 @@ struct
 				| Node ys => PropLogic.exists (map not_equal (xs ~~ ys))))
 	in
 		(* a value may be undefined; therefore 'not_equal' is not just the     *)
-		(* negation of 'equal':                                                *)
-		(* - two interpretations are 'equal' iff they are both defined and     *)
-		(*   denote the same value                                             *)
-		(* - two interpretations are 'not_equal' iff they are both defined at  *)
-		(*   least partially, and a defined part denotes different values      *)
-		(* - an undefined interpretation is neither 'equal' nor 'not_equal' to *)
-		(*   another value                                                     *)
+		(* negation of 'equal'                                                 *)
 		Leaf [equal (i1, i2), not_equal (i1, i2)]
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* make_def_equality: returns an interpretation that denotes (extensional)   *)
+(*                    equality of two interpretations                        *)
+(* This function treats undefined/partially defined interpretations          *)
+(* different from 'make_equality': two undefined interpretations are         *)
+(* considered equal, while a defined interpretation is considered not equal  *)
+(* to an undefined interpretation.                                           *)
+(* ------------------------------------------------------------------------- *)
+
+	(* interpretation * interpretation -> interpretation *)
+
+	fun make_def_equality (i1, i2) =
+	let
+		(* interpretation * interpretation -> prop_formula *)
+		fun equal (i1, i2) =
+			(case i1 of
+			  Leaf xs =>
+				(case i2 of
+				  Leaf ys => SOr (PropLogic.dot_product (xs, ys),  (* defined and equal, or both undefined *)
+					SAnd (PropLogic.all (map SNot xs), PropLogic.all (map SNot ys)))
+				| Node _  => raise REFUTE ("make_def_equality", "second interpretation is higher"))
+			| Node xs =>
+				(case i2 of
+				  Leaf _  => raise REFUTE ("make_def_equality", "first interpretation is higher")
+				| Node ys => PropLogic.all (map equal (xs ~~ ys))))
+		(* interpretation *)
+		val eq = equal (i1, i2)
+	in
+		Leaf [eq, SNot eq]
+	end;
+
+(* ------------------------------------------------------------------------- *)
+(* interpretation_apply: returns an interpretation that denotes the result   *)
+(*                       of applying the function denoted by 'i2' to the     *)
+(*                       argument denoted by 'i2'                            *)
+(* ------------------------------------------------------------------------- *)
+
+	(* interpretation * interpretation -> interpretation *)
+
+	fun interpretation_apply (i1, i2) =
+	let
+		(* interpretation * interpretation -> interpretation *)
+		fun interpretation_disjunction (tr1,tr2) =
+			tree_map (fn (xs,ys) => map (fn (x,y) => SOr(x,y)) (xs ~~ ys)) (tree_pair (tr1,tr2))
+		(* prop_formula * interpretation -> interpretation *)
+		fun prop_formula_times_interpretation (fm,tr) =
+			tree_map (map (fn x => SAnd (fm,x))) tr
+		(* prop_formula list * interpretation list -> interpretation *)
+		fun prop_formula_list_dot_product_interpretation_list ([fm],[tr]) =
+			prop_formula_times_interpretation (fm,tr)
+		  | prop_formula_list_dot_product_interpretation_list (fm::fms,tr::trees) =
+			interpretation_disjunction (prop_formula_times_interpretation (fm,tr), prop_formula_list_dot_product_interpretation_list (fms,trees))
+		  | prop_formula_list_dot_product_interpretation_list (_,_) =
+			raise REFUTE ("interpretation_apply", "empty list (in dot product)")
+		(* concatenates 'x' with every list in 'xss', returning a new list of lists *)
+		(* 'a -> 'a list list -> 'a list list *)
+		fun cons_list x xss =
+			map (fn xs => x::xs) xss
+		(* returns a list of lists, each one consisting of one element from each element of 'xss' *)
+		(* 'a list list -> 'a list list *)
+		fun pick_all [xs] =
+			map (fn x => [x]) xs
+		  | pick_all (xs::xss) =
+			let val rec_pick = pick_all xss in
+				foldl (fn (acc,x) => (cons_list x rec_pick) @ acc) ([],xs)
+			end
+		  | pick_all _ =
+			raise REFUTE ("interpretation_apply", "empty list (in pick_all)")
+		(* interpretation -> prop_formula list *)
+		fun interpretation_to_prop_formula_list (Leaf xs) =
+			xs
+		  | interpretation_to_prop_formula_list (Node trees) =
+			map PropLogic.all (pick_all (map interpretation_to_prop_formula_list trees))
+	in
+		case i1 of
+		  Leaf _ =>
+			raise REFUTE ("interpretation_apply", "first interpretation is a leaf")
+		| Node xs =>
+			prop_formula_list_dot_product_interpretation_list (interpretation_to_prop_formula_list i2, xs)
 	end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1153,9 +1317,9 @@ struct
 	fun product xs = foldl op* (1, xs);
 
 (* ------------------------------------------------------------------------- *)
-(* size_of_dtyp: the size of (an initial fragment of) a data type is the sum *)
-(*               (over its constructors) of the product (over their          *)
-(*               arguments) of the size of the argument types                *)
+(* size_of_dtyp: the size of (an initial fragment of) an inductive data type *)
+(*               is the sum (over its constructors) of the product (over     *)
+(*               their arguments) of the size of the argument types          *)
 (* ------------------------------------------------------------------------- *)
 
 	(* theory -> (Term.typ * int) list -> DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> (string * DatatypeAux.dtyp list) list -> int *)
@@ -1165,7 +1329,7 @@ struct
 			product (map (fn dtyp =>
 				let
 					val T         = typ_of_dtyp descr typ_assoc dtyp
-					val (i, _, _) = interpret thy (typ_sizes, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+					val (i, _, _) = interpret thy (typ_sizes, []) {maxvars=0, def_eq = false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 				in
 					size_of_type i
 				end) dtyps)) constructors);
@@ -1182,32 +1346,29 @@ struct
 
 	fun stlc_interpreter thy model args t =
 	let
-		val (typs, terms)                           = model
-		val {maxvars, next_idx, bounds, wellformed} = args
+		val (typs, terms)                                   = model
+		val {maxvars, def_eq, next_idx, bounds, wellformed} = args
 		(* Term.typ -> (interpretation * model * arguments) option *)
 		fun interpret_groundterm T =
 		let
 			(* unit -> (interpretation * model * arguments) option *)
 			fun interpret_groundtype () =
 			let
-				val size = (if T = Term.propT then 2 else (the o assoc) (typs, T))                      (* the model MUST specify a size for ground types *)
-				val next = (if size=1 then next_idx else if size=2 then next_idx+1 else next_idx+size)  (* optimization for types with size 1 or 2 *)
-				val _    = (if next-1>maxvars andalso maxvars>0 then raise MAXVARS_EXCEEDED else ())    (* check if 'maxvars' is large enough *)
+				val size = (if T = Term.propT then 2 else (the o assoc) (typs, T))                    (* the model MUST specify a size for ground types *)
+				val next = next_idx+size
+				val _    = (if next-1>maxvars andalso maxvars>0 then raise MAXVARS_EXCEEDED else ())  (* check if 'maxvars' is large enough *)
 				(* prop_formula list *)
-				val fms  = (if size=1 then [True] else if size=2 then [BoolVar next_idx, Not (BoolVar next_idx)]
-					else (map BoolVar (next_idx upto (next_idx+size-1))))
+				val fms  = map BoolVar (next_idx upto (next_idx+size-1))
 				(* interpretation *)
 				val intr = Leaf fms
 				(* prop_formula list -> prop_formula *)
 				fun one_of_two_false []      = True
 				  | one_of_two_false (x::xs) = SAnd (PropLogic.all (map (fn x' => SOr (SNot x, SNot x')) xs), one_of_two_false xs)
-				(* prop_formula list -> prop_formula *)
-				fun exactly_one_true xs = SAnd (PropLogic.exists xs, one_of_two_false xs)
 				(* prop_formula *)
-				val wf   = (if size=1 then True else if size=2 then True else exactly_one_true fms)
+				val wf   = one_of_two_false fms
 			in
 				(* extend the model, increase 'next_idx', add well-formedness condition *)
-				SOME (intr, (typs, (t, intr)::terms), {maxvars = maxvars, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
+				SOME (intr, (typs, (t, intr)::terms), {maxvars = maxvars, def_eq = def_eq, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
 			end
 		in
 			case T of
@@ -1216,7 +1377,7 @@ struct
 					(* we create 'size_of_type (interpret (... T1))' different copies *)
 					(* of the interpretation for 'T2', which are then combined into a *)
 					(* single new interpretation                                      *)
-					val (i1, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T1))
+					val (i1, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T1))
 					(* make fresh copies, with different variable indices *)
 					(* 'idx': next variable index                         *)
 					(* 'n'  : number of copies                            *)
@@ -1225,7 +1386,7 @@ struct
 						(idx, [], True)
 					  | make_copies idx n =
 						let
-							val (copy, _, new_args) = interpret thy (typs, []) {maxvars = maxvars, next_idx = idx, bounds = [], wellformed = True} (Free ("dummy", T2))
+							val (copy, _, new_args) = interpret thy (typs, []) {maxvars = maxvars, def_eq = false, next_idx = idx, bounds = [], wellformed = True} (Free ("dummy", T2))
 							val (idx', copies, wf') = make_copies (#next_idx new_args) (n-1)
 						in
 							(idx', copy :: copies, SAnd (#wellformed new_args, wf'))
@@ -1235,7 +1396,7 @@ struct
 					val intr = Node copies
 				in
 					(* extend the model, increase 'next_idx', add well-formedness condition *)
-					SOME (intr, (typs, (t, intr)::terms), {maxvars = maxvars, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
+					SOME (intr, (typs, (t, intr)::terms), {maxvars = maxvars, def_eq = def_eq, next_idx = next, bounds = bounds, wellformed = SAnd (wellformed, wf)})
 				end
 			| Type _  => interpret_groundtype ()
 			| TFree _ => interpret_groundtype ()
@@ -1259,17 +1420,17 @@ struct
 			| Abs (x, T, body) =>
 				let
 					(* create all constants of type 'T' *)
-					val (i, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+					val (i, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 					val constants = make_constants i
 					(* interpret the 'body' separately for each constant *)
 					val ((model', args'), bodies) = foldl_map
-						(fn ((m,a), c) =>
+						(fn ((m, a), c) =>
 							let
 								(* add 'c' to 'bounds' *)
-								val (i', m', a') = interpret thy m {maxvars = #maxvars a, next_idx = #next_idx a, bounds = (c :: #bounds a), wellformed = #wellformed a} body
+								val (i', m', a') = interpret thy m {maxvars = #maxvars a, def_eq = #def_eq a, next_idx = #next_idx a, bounds = (c :: #bounds a), wellformed = #wellformed a} body
 							in
 								(* keep the new model m' and 'next_idx' and 'wellformed', but use old 'bounds' *)
-								((m', {maxvars = maxvars, next_idx = #next_idx a', bounds = bounds, wellformed = #wellformed a'}), i')
+								((m', {maxvars = maxvars, def_eq = def_eq, next_idx = #next_idx a', bounds = bounds, wellformed = #wellformed a'}), i')
 							end)
 						((model, args), constants)
 				in
@@ -1277,51 +1438,11 @@ struct
 				end
 			| t1 $ t2          =>
 				let
-					(* auxiliary functions *)
-					(* interpretation * interpretation -> interpretation *)
-					fun interpretation_disjunction (tr1,tr2) =
-						tree_map (fn (xs,ys) => map (fn (x,y) => SOr(x,y)) (xs ~~ ys)) (tree_pair (tr1,tr2))
-					(* prop_formula * interpretation -> interpretation *)
-					fun prop_formula_times_interpretation (fm,tr) =
-						tree_map (map (fn x => SAnd (fm,x))) tr
-					(* prop_formula list * interpretation list -> interpretation *)
-					fun prop_formula_list_dot_product_interpretation_list ([fm],[tr]) =
-						prop_formula_times_interpretation (fm,tr)
-					  | prop_formula_list_dot_product_interpretation_list (fm::fms,tr::trees) =
-						interpretation_disjunction (prop_formula_times_interpretation (fm,tr), prop_formula_list_dot_product_interpretation_list (fms,trees))
-					  | prop_formula_list_dot_product_interpretation_list (_,_) =
-						raise REFUTE ("stlc_interpreter", "empty list (in dot product)")
-					(* concatenates 'x' with every list in 'xss', returning a new list of lists *)
-					(* 'a -> 'a list list -> 'a list list *)
-					fun cons_list x xss =
-						map (fn xs => x::xs) xss
-					(* returns a list of lists, each one consisting of one element from each element of 'xss' *)
-					(* 'a list list -> 'a list list *)
-					fun pick_all [xs] =
-						map (fn x => [x]) xs
-					  | pick_all (xs::xss) =
-						let val rec_pick = pick_all xss in
-							foldl (fn (acc,x) => (cons_list x rec_pick) @ acc) ([],xs)
-						end
-					  | pick_all _ =
-						raise REFUTE ("stlc_interpreter", "empty list (in pick_all)")
-					(* interpretation -> prop_formula list *)
-					fun interpretation_to_prop_formula_list (Leaf xs) =
-						xs
-					  | interpretation_to_prop_formula_list (Node trees) =
-						map PropLogic.all (pick_all (map interpretation_to_prop_formula_list trees))
-					(* interpretation * interpretation -> interpretation *)
-					fun interpretation_apply (tr1,tr2) =
-						(case tr1 of
-						  Leaf _ =>
-							raise REFUTE ("stlc_interpreter", "first interpretation is a leaf")
-						| Node xs =>
-							prop_formula_list_dot_product_interpretation_list (interpretation_to_prop_formula_list tr2, xs))
 					(* interpret 't1' and 't2' separately *)
 					val (intr1, model1, args1) = interpret thy model args t1
 					val (intr2, model2, args2) = interpret thy model1 args1 t2
 				in
-					SOME (interpretation_apply (intr1,intr2), model2, args2)
+					SOME (interpretation_apply (intr1, intr2), model2, args2)
 				end)
 	end;
 
@@ -1349,7 +1470,8 @@ struct
 				val (i1, m1, a1) = interpret thy model args t1
 				val (i2, m2, a2) = interpret thy m1 a1 t2
 			in
-				SOME (make_equality (i1, i2), m2, a2)
+				(* we use either 'make_def_equality' or 'make_equality' *)
+				SOME ((if #def_eq args then make_def_equality else make_equality) (i1, i2), m2, a2)
 			end
 		| Const ("==>", _) =>  (* simpler than translating 'Const ("==>", _) $ t1 $ t2' *)
 			SOME (Node [Node [TT, FF], Node [TT, TT]], model, args)
@@ -1375,7 +1497,7 @@ struct
 			SOME (FF, model, args)
 		| Const ("All", _) $ t1 =>
 		(* if "All" occurs without an argument (i.e. as argument to a higher-order *)
-		(* function or  predicate), it is handled by the 'stlc_interpreter' (i.e.  *)
+		(* function or predicate), it is handled by the 'stlc_interpreter' (i.e.   *)
 		(* by unfolding its definition)                                            *)
 			let
 				val (i, m, a) = interpret thy model args t1
@@ -1393,7 +1515,7 @@ struct
 			end
 		| Const ("Ex", _) $ t1 =>
 		(* if "Ex" occurs without an argument (i.e. as argument to a higher-order  *)
-		(* function or  predicate), it is handled by the 'stlc_interpreter' (i.e.  *)
+		(* function or predicate), it is handled by the 'stlc_interpreter' (i.e.   *)
 		(* by unfolding its definition)                                            *)
 			let
 				val (i, m, a) = interpret thy model args t1
@@ -1420,12 +1542,49 @@ struct
 			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("op =", _) =>
 			SOME (interpret thy model args (eta_expand t 2))
+		| Const ("op &", _) $ t1 $ t2 =>
+			(* 3-valued logic *)
+			let
+				val (i1, m1, a1) = interpret thy model args t1
+				val (i2, m2, a2) = interpret thy m1 a1 t2
+				val fmTrue       = PropLogic.SAnd (toTrue i1, toTrue i2)
+				val fmFalse      = PropLogic.SOr (toFalse i1, toFalse i2)
+			in
+				SOME (Leaf [fmTrue, fmFalse], m2, a2)
+			end
+		| Const ("op &", _) $ t1 =>
+			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("op &", _) =>
-			SOME (Node [Node [TT, FF], Node [FF, FF]], model, args)
+			SOME (interpret thy model args (eta_expand t 2))
+			(* SOME (Node [Node [TT, FF], Node [FF, FF]], model, args) *)
+		| Const ("op |", _) $ t1 $ t2 =>
+			(* 3-valued logic *)
+			let
+				val (i1, m1, a1) = interpret thy model args t1
+				val (i2, m2, a2) = interpret thy m1 a1 t2
+				val fmTrue       = PropLogic.SOr (toTrue i1, toTrue i2)
+				val fmFalse      = PropLogic.SAnd (toFalse i1, toFalse i2)
+			in
+				SOME (Leaf [fmTrue, fmFalse], m2, a2)
+			end
+		| Const ("op |", _) $ t1 =>
+			SOME (interpret thy model args (eta_expand t 1))
 		| Const ("op |", _) =>
-			SOME (Node [Node [TT, TT], Node [TT, FF]], model, args)
+			SOME (interpret thy model args (eta_expand t 2))
+			(* SOME (Node [Node [TT, TT], Node [TT, FF]], model, args) *)
+		| Const ("op -->", _) $ t1 $ t2 =>
+			(* 3-valued logic *)
+			let
+				val (i1, m1, a1) = interpret thy model args t1
+				val (i2, m2, a2) = interpret thy m1 a1 t2
+				val fmTrue       = PropLogic.SOr (toFalse i1, toTrue i2)
+				val fmFalse      = PropLogic.SAnd (toTrue i1, toFalse i2)
+			in
+				SOME (Leaf [fmTrue, fmFalse], m2, a2)
+			end
 		| Const ("op -->", _) =>
-			SOME (Node [Node [TT, FF], Node [TT, TT]], model, args)
+			(* SOME (Node [Node [TT, FF], Node [TT, TT]], model, args) *)
+			SOME (interpret thy model args (eta_expand t 2))
 		| _ => NONE;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
@@ -1476,17 +1635,19 @@ struct
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
+	(* interprets variables and constants whose type is an IDT; constructors of  *)
+	(* IDTs are properly interpreted by 'IDT_constructor_interpreter' however    *)
+
 	fun IDT_interpreter thy model args t =
 	let
 		val (typs, terms) = model
 		(* Term.typ -> (interpretation * model * arguments) option *)
-		fun interpret_variable (Type (s, Ts)) =
+		fun interpret_term (Type (s, Ts)) =
 			(case DatatypePackage.datatype_info thy s of
 			  SOME info =>  (* inductive datatype *)
 				let
-					val (typs, terms) = model
 					(* int option -- only recursive IDTs have an associated depth *)
-					val depth         = assoc (typs, Type (s, Ts))
+					val depth = assoc (typs, Type (s, Ts))
 				in
 					if depth = (SOME 0) then  (* termination condition to avoid infinite recursion *)
 						(* return a leaf of size 0 *)
@@ -1509,28 +1670,25 @@ struct
 							(* recursively compute the size of the datatype *)
 							val size     = size_of_dtyp thy typs' descr typ_assoc constrs
 							val next_idx = #next_idx args
-							val next     = (if size=1 then next_idx else if size=2 then next_idx+1 else next_idx+size)  (* optimization for types with size 1 or size 2 *)
+							val next     = next_idx+size
 							val _        = (if next-1>(#maxvars args) andalso (#maxvars args)>0 then raise MAXVARS_EXCEEDED else ())  (* check if 'maxvars' is large enough *)
 							(* prop_formula list *)
-							val fms      = (if size=1 then [True] else if size=2 then [BoolVar next_idx, Not (BoolVar next_idx)]
-								else (map BoolVar (next_idx upto (next_idx+size-1))))
+							val fms      = map BoolVar (next_idx upto (next_idx+size-1))
 							(* interpretation *)
 							val intr     = Leaf fms
 							(* prop_formula list -> prop_formula *)
 							fun one_of_two_false []      = True
 							  | one_of_two_false (x::xs) = SAnd (PropLogic.all (map (fn x' => SOr (SNot x, SNot x')) xs), one_of_two_false xs)
-							(* prop_formula list -> prop_formula *)
-							fun exactly_one_true xs = SAnd (PropLogic.exists xs, one_of_two_false xs)
 							(* prop_formula *)
-							val wf       = (if size=1 then True else if size=2 then True else exactly_one_true fms)
+							val wf       = one_of_two_false fms
 						in
 							(* extend the model, increase 'next_idx', add well-formedness condition *)
-							SOME (intr, (typs, (t, intr)::terms), {maxvars = #maxvars args, next_idx = next, bounds = #bounds args, wellformed = SAnd (#wellformed args, wf)})
+							SOME (intr, (typs, (t, intr)::terms), {maxvars = #maxvars args, def_eq = #def_eq args, next_idx = next, bounds = #bounds args, wellformed = SAnd (#wellformed args, wf)})
 						end
 				end
 			| NONE =>  (* not an inductive datatype *)
 				NONE)
-		  | interpret_variable _ =  (* a (free or schematic) type variable *)
+		  | interpret_term _ =  (* a (free or schematic) type variable *)
 			NONE
 	in
 		case assoc (terms, t) of
@@ -1539,120 +1697,352 @@ struct
 			SOME (intr, model, args)
 		| NONE =>
 			(case t of
-			  Free (_, T)  => interpret_variable T
-			| Var (_, T)   => interpret_variable T
-			| Const (s, T) =>
-				(* TODO: case, recursion, size *)
-				let
-					(* unit -> (interpretation * model * arguments) option *)
-					fun interpret_constructor () =
-						(case body_type T of
-						  Type (s', Ts') =>
-							(case DatatypePackage.datatype_info thy s' of
-							  SOME info =>  (* body type is an inductive datatype *)
+			  Free (_, T)  => interpret_term T
+			| Var (_, T)   => interpret_term T
+			| Const (_, T) => interpret_term T
+			| _            => NONE)
+	end;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	fun IDT_constructor_interpreter thy model args t =
+	let
+		val (typs, terms) = model
+	in
+		case assoc (terms, t) of
+		  SOME intr =>
+			(* return an existing interpretation *)
+			SOME (intr, model, args)
+		| NONE =>
+			(case t of
+			  Const (s, T) =>
+				(case body_type T of
+				  Type (s', Ts') =>
+					(case DatatypePackage.datatype_info thy s' of
+					  SOME info =>  (* body type is an inductive datatype *)
+						let
+							val index               = #index info
+							val descr               = #descr info
+							val (_, dtyps, constrs) = (the o assoc) (descr, index)
+							val typ_assoc           = dtyps ~~ Ts'
+							(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
+							val _ = (if Library.exists (fn d =>
+									case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
+								then
+									raise REFUTE ("IDT_constructor_interpreter", "datatype argument (for type " ^ Sign.string_of_typ (sign_of thy) (Type (s', Ts')) ^ ") is not a variable")
+								else
+									())
+							(* split the constructors into those occuring before/after 'Const (s, T)' *)
+							val (constrs1, constrs2) = take_prefix (fn (cname, ctypes) =>
+								not (cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T,
+									map (typ_of_dtyp descr typ_assoc) ctypes ---> Type (s', Ts')))) constrs
+						in
+							case constrs2 of
+							  [] =>
+								(* 'Const (s, T)' is not a constructor of this datatype *)
+								NONE
+							| (_, ctypes)::cs =>
 								let
-									val index               = #index info
-									val descr               = #descr info
-									val (_, dtyps, constrs) = (the o assoc) (descr, index)
-									val typ_assoc           = dtyps ~~ Ts'
-									(* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
-									val _ = (if Library.exists (fn d =>
-											case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
-										then
-											raise REFUTE ("IDT_interpreter", "datatype argument (for type " ^ Sign.string_of_typ (sign_of thy) (Type (s', Ts')) ^ ") is not a variable")
-										else
-											())
-									(* split the constructors into those occuring before/after 'Const (s, T)' *)
-									val (constrs1, constrs2) = take_prefix (fn (cname, ctypes) =>
-										not (cname = s andalso Type.typ_instance (Sign.tsig_of (sign_of thy)) (T,
-											map (typ_of_dtyp descr typ_assoc) ctypes ---> Type (s', Ts')))) constrs
-								in
-									case constrs2 of
-									  [] =>
-										(* 'Const (s, T)' is not a constructor of this datatype *)
-										NONE
-									| c::cs =>
+									(* compute the total size of the datatype (with the current depth) *)
+									val (i, _, _) = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type (s', Ts')))
+									val total     = size_of_type i
+									(* int option -- only recursive IDTs have an associated depth *)
+									val depth = assoc (typs, Type (s', Ts'))
+									val typs' = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s', Ts'), n-1)))
+									(* DatatypeAux.dtyp list -> interpretation *)
+									fun make_undef [] =
+										Leaf (replicate total False)
+									  | make_undef (d::ds) =
 										let
-											(* int option -- only recursive IDTs have an associated depth *)
-											val depth = assoc (typs, Type (s', Ts'))
-											val typs' = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s', Ts'), n-1)))
-											(* constructors before 'Const (s, T)' generate elements of the datatype *)
-											val offset  = size_of_dtyp thy typs' descr typ_assoc constrs1
-											(* 'Const (s, T)' and constructors after it generate elements of the datatype *)
-											val total   = offset + (size_of_dtyp thy typs' descr typ_assoc constrs2)
-											(* create an interpretation that corresponds to the constructor 'Const (s, T)' *)
-											(* by recursion over its argument types                                        *)
-											(* DatatypeAux.dtyp list -> interpretation *)
-											fun make_partial [] =
-												(* all entries of the leaf are 'False' *)
-												Leaf (replicate total False)
-											  | make_partial (d::ds) =
-												let
-													(* compute the "new" size of the type 'd' *)
-													val T         = typ_of_dtyp descr typ_assoc d
-													val (i, _, _) = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-												in
-													(* all entries of the whole subtree are 'False' *)
-													Node (replicate (size_of_type i) (make_partial ds))
-												end
-											(* int * DatatypeAux.dtyp list -> int * interpretation *)
-											fun make_constr (offset, []) =
-												if offset<total then
-													(offset+1, Leaf ((replicate offset False) @ True :: (replicate (total-offset-1) False)))
-												else
-													raise REFUTE ("IDT_interpreter", "internal error: offset >= total")
-											  | make_constr (offset, d::ds) =
-												let
-													(* compute the "new" and "old" size of the type 'd' *)
-													val T          = typ_of_dtyp descr typ_assoc d
-													val (i, _, _)  = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-													val (i', _, _) = interpret thy (typs', []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-													val size       = size_of_type i
-													val size'      = size_of_type i'
-													val _ = if size<size' then
-															raise REFUTE ("IDT_interpreter", "internal error: new size < old size")
-														else
-															()
-													val (new_offset, intrs) = foldl_map make_constr (offset, replicate size' ds)
-												in
-													(* the first size' elements of the type actually yield a result *)
-													(* element, while the remaining size-size' elements don't       *)
-													(new_offset, Node (intrs @ (replicate (size-size') (make_partial ds))))
-												end
+											(* compute the current size of the type 'd' *)
+											val T           = typ_of_dtyp descr typ_assoc d
+											val (i, _, _)   = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+											val size        = size_of_type i
 										in
-											SOME ((snd o make_constr) (offset, snd c), model, args)
+											Node (replicate size (make_undef ds))
+										end
+									(* returns the interpretation for a constructor at depth 1 *)
+									(* int * DatatypeAux.dtyp list -> int * interpretation *)
+									fun make_constr (offset, []) =
+										if offset<total then
+											(offset+1, Leaf ((replicate offset False) @ True :: (replicate (total-offset-1) False)))
+										else
+											raise REFUTE ("IDT_constructor_interpreter", "offset >= total")
+									  | make_constr (offset, d::ds) =
+										let
+											(* compute the current and the old size of the type 'd' *)
+											val T           = typ_of_dtyp descr typ_assoc d
+											val (i, _, _)   = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+											val size        = size_of_type i
+											val (i', _, _)  = interpret thy (typs', []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+											val size'       = size_of_type i'
+											(* sanity check *)
+											val _           = if size < size' then
+													raise REFUTE ("IDT_constructor_interpreter", "current size is less than old size")
+												else
+													()
+											(* elements that exist at the previous depth are mapped to a defined *)
+											(* value, while new elements are mapped to "undefined" by the        *)
+											(* recursive constructor                                             *)
+											(* int * interpretation list *)
+											val (new_offset, intrs) = foldl_map make_constr (offset, replicate size' ds)
+											(* interpretation list *)
+											val undefs              = replicate (size - size') (make_undef ds)
+										in
+											(new_offset, Node (intrs @ undefs))
+										end
+									(* extends the interpretation for a constructor (both recursive *)
+									(* and non-recursive) obtained at depth n (n>=1) to depth n+1   *)
+									(* int * DatatypeAux.dtyp list * interpretation -> int * interpretation *)
+									fun extend_constr (offset, [], Leaf xs) =
+										let
+											(* returns the k-th unit vector of length n *)
+											(* int * int -> interpretation *)
+											fun unit_vector (k,n) =
+												Leaf ((replicate (k-1) False) @ (True :: (replicate (n-k) False)))
+											(* int *)
+											val k = find_index_eq True xs
+										in
+											if k=(~1) then
+												(* if the element was mapped to "undefined" before, map it to   *)
+												(* the value given by 'offset' now (and extend the length of    *)
+												(* the leaf)                                                    *)
+												(offset+1, unit_vector (offset+1, total))
+											else
+												(* if the element was already mapped to a defined value, map it *)
+												(* to the same value again, just extend the length of the leaf, *)
+												(* do not increment offset                                      *)
+												(offset, unit_vector (k+1, total))
+										end
+									  | extend_constr (_, [], Node _) =
+										raise REFUTE ("IDT_constructor_interpreter", "interpretation for constructor (with no arguments left) is a node")
+									  | extend_constr (offset, d::ds, Node xs) =
+										let
+											(* compute the size of the type 'd' *)
+											val T          = typ_of_dtyp descr typ_assoc d
+											val (i, _, _)  = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+											val size       = size_of_type i
+											(* sanity check *)
+											val _          = if size < length xs then
+													raise REFUTE ("IDT_constructor_interpreter", "new size of type is less than old size")
+												else
+													()
+											(* extend the existing interpretations *)
+											(* int * interpretation list *)
+											val (new_offset, intrs) = foldl_map (fn (off, i) => extend_constr (off, ds, i)) (offset, xs)
+											(* new elements of the type 'd' are mapped to "undefined" *)
+											val undefs = replicate (size - length xs) (make_undef ds)
+										in
+											(new_offset, Node (intrs @ undefs))
+										end
+									  | extend_constr (_, d::ds, Leaf _) =
+										raise REFUTE ("IDT_constructor_interpreter", "interpretation for constructor (with arguments left) is a leaf")
+									(* returns 'true' iff the constructor has a recursive argument *)
+									(* DatatypeAux.dtyp list -> bool *)
+									fun is_rec_constr ds =
+										Library.exists DatatypeAux.is_rec_type ds
+									(* constructors before 'Const (s, T)' generate elements of the datatype, *)
+									(* and if the constructor is recursive, then non-recursive constructors  *)
+									(* after it generate further elements                                    *)
+									val offset = size_of_dtyp thy typs' descr typ_assoc constrs1 +
+										(if is_rec_constr ctypes then
+											size_of_dtyp thy typs' descr typ_assoc (filter (not o is_rec_constr o snd) cs)
+										else
+											0)
+								in
+									case depth of
+									  NONE =>  (* equivalent to a depth of 1 *)
+										SOME (snd (make_constr (offset, ctypes)), model, args)
+									| SOME 0 =>
+										raise REFUTE ("IDT_constructor_interpreter", "depth is 0")
+									| SOME 1 =>
+										SOME (snd (make_constr (offset, ctypes)), model, args)
+									| SOME n =>  (* n > 1 *)
+										let
+											(* interpret the constructor at depth-1 *)
+											val (iC, _, _) = interpret thy (typs', []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Const (s, T))
+											(* elements generated by the constructor at depth-1 must be added to 'offset' *)
+											(* interpretation -> int *)
+											fun number_of_defined_elements (Leaf xs) =
+												if find_index_eq True xs = (~1) then 0 else 1
+											  | number_of_defined_elements (Node xs) =
+												sum (map number_of_defined_elements xs)
+											(* int *)
+											val offset' = offset + number_of_defined_elements iC
+										in
+											SOME (snd (extend_constr (offset', ctypes, iC)), model, args)
 										end
 								end
-							| NONE =>  (* body type is not an inductive datatype *)
-								NONE)
-						| _ =>  (* body type is a (free or schematic) type variable *)
-							NONE)
-				in
-					case interpret_constructor () of
-					  SOME x => SOME x
-					| NONE   => interpret_variable T
-				end
-			| _ => NONE)
+						end
+					| NONE =>  (* body type is not an inductive datatype *)
+						NONE)
+				| _ =>  (* body type is a (free or schematic) type variable *)
+					NONE)
+			| _ =>  (* term is not a constant *)
+				NONE)
 	end;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* Difficult code ahead.  Make sure you understand the 'IDT_constructor_interpreter' *)
+	(* and the order in which it enumerates elements of an IDT before you try to         *)
+	(* understand this function.                                                         *)
+
+	fun IDT_recursion_interpreter thy model args t =
+		case strip_comb t of  (* careful: here we descend arbitrarily deep into 't', *)
+		                      (* possibly before any other interpreter for atomic    *)
+		                      (* terms has had a chance to look at 't'               *)
+		  (Const (s, T), params) =>
+			(* iterate over all datatypes in 'thy' *)
+			Symtab.foldl (fn (result, (_, info)) =>
+				case result of
+				  SOME _ =>
+					result  (* just keep 'result' *)
+				| NONE =>
+					if s mem (#rec_names info) then
+						(* okay, we do have a recursion operator of the datatype given by 'info' *)
+						let
+							val index               = #index info
+							val descr               = #descr info
+							val (_, dtyps, constrs) = (the o assoc) (descr, index)
+							(* the total number of constructors, including those of different    *)
+							(* (mutually recursive) datatypes within the same descriptor 'descr' *)
+							val constrs_count = sum (map (fn (_, (_, _, cs)) => length cs) descr)
+							val params_count  = length params
+						in
+							if constrs_count < params_count then
+								(* too many actual parameters; for now we'll use the *)
+								(* 'stlc_interpreter' to strip off one application   *)
+								NONE
+							else if constrs_count > params_count then
+								(* too few actual parameters; we use eta expansion            *)
+								(* Note that the resulting expansion of lambda abstractions   *)
+								(* by the 'stlc_interpreter' may be rather slow (depending on *)
+								(* the argument types and the size of the IDT, of course).    *)
+								SOME (interpret thy model args (eta_expand t (constrs_count - params_count)))
+							else  (* constrs_count = params_count *)
+								let
+									(* interpret each parameter separately *)
+									val ((model', args'), p_intrs) = foldl_map (fn ((m, a), p) =>
+										let
+											val (i, m', a') = interpret thy m a p
+										in
+											((m', a'), i)
+										end) ((model, args), params)
+									val (typs, terms) = model'
+									(* the type of a recursion operator: [T1, ..., Tn, IDT] ---> Tresult *)
+									val IDT       = nth_elem (constrs_count, binder_types T)
+									val typ_assoc = dtyps ~~ (snd o dest_Type) IDT
+									(* interpret each constructor of the datatype *)
+									(* TODO: we probably need to interpret every constructor in the descriptor, *)
+									(*       possibly for typs' instead of typs                                 *)
+									val c_intrs = map (#1 o interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True})
+										(map (fn (cname, cargs) => Const (cname, map (typ_of_dtyp descr typ_assoc) cargs ---> IDT)) constrs)
+									(* the recursion operator is a function that maps every element of *)
+									(* the inductive datatype to an element of the result type         *)
+									val (i, _, _) = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", IDT))
+									val size      = size_of_type i
+									val INTRS     = Array.array (size, Leaf [])  (* the initial value 'Leaf []' does not matter; it will be overwritten *)
+									(* takes an interpretation, and if some leaf of this interpretation *)
+									(* is the 'elem'-th element of the datatype, the indices of the     *)
+									(* arguments leading to this leaf are returned                      *)
+									(* interpretation -> int -> int list option *)
+									fun get_args (Leaf xs) elem =
+										if find_index_eq True xs = elem then
+											SOME []
+										else
+											NONE
+									  | get_args (Node xs) elem =
+										let
+											(* interpretation * int -> int list option *)
+											fun search ([], _) =
+												NONE
+											  | search (x::xs, n) =
+												(case get_args x elem of
+												  SOME result => SOME (n::result)
+												| NONE        => search (xs, n+1))
+										in
+											search (xs, 0)
+										end
+									(* returns the index of the constructor and indices for its      *)
+									(* arguments that generate the 'elem'-th element of the datatype *)
+									(* int -> int * int list *)
+									fun get_cargs elem =
+										let
+											(* int * interpretation list -> int * int list *)
+											fun get_cargs_rec (_, []) =
+												raise REFUTE ("IDT_recursion_interpreter", "no matching constructor found for element " ^ string_of_int elem)
+											  | get_cargs_rec (n, x::xs) =
+												(case get_args x elem of
+												  SOME args => (n, args)
+												| NONE      => get_cargs_rec (n+1, xs))
+										in
+											get_cargs_rec (0, c_intrs)
+										end
+									(* int -> unit *)
+									fun compute_loop elem =
+										if elem=size then
+											()
+										else  (* elem < size *)
+											let
+												(* int * int list *)
+												val (c, args) = get_cargs elem
+												(* interpretation * int list -> interpretation *)
+												fun select_subtree (tr, []) =
+													tr  (* return the whole tree *)
+												  | select_subtree (Leaf _, _) =
+													raise REFUTE ("IDT_recursion_interpreter", "interpretation for parameter is a leaf; cannot select a subtree")
+												  | select_subtree (Node tr, x::xs) =
+													select_subtree (nth_elem (x, tr), xs)
+												(* select the correct subtree of the parameter corresponding to constructor 'c' *)
+												val p_intr = select_subtree (nth_elem (c, p_intrs), args)
+												(* find the indices of recursive arguments *)
+												val rec_args = map snd (filter (DatatypeAux.is_rec_type o fst) ((snd (nth_elem (c, constrs))) ~~ args))
+												(* apply 'p_intr' to recursively computed results *)
+												val rec_p_intr = foldl (fn (i, n) => interpretation_apply (i, Array.sub (INTRS, n))) (p_intr, rec_args)
+												(* update 'INTRS' *)
+												val _ = Array.update (INTRS, elem, rec_p_intr)
+											in
+												compute_loop (elem+1)
+											end
+									val _ = compute_loop 0
+									(* 'a Array.array -> 'a list *)
+									fun toList arr =
+										Array.foldr op:: [] arr
+								in
+									(* TODO writeln ("REC-OP: " ^ makestring (Node (toList INTRS))); *)
+									SOME (Node (toList INTRS), model', args')
+								end
+						end
+					else
+						NONE  (* not a recursion operator of this datatype *)
+				) (NONE, DatatypePackage.get_datatypes thy)
+		| _ =>  (* head of term is not a constant *)
+			NONE;
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
 	(* only an optimization: 'card' could in principle be interpreted with    *)
 	(* interpreters available already (using its definition), but the code    *)
-	(* below is much more efficient                                           *)
+	(* below is more efficient                                                *)
 
 	fun Finite_Set_card_interpreter thy model args t =
 		case t of
 		  Const ("Finite_Set.card", Type ("fun", [Type ("set", [T]), Type ("nat", [])])) =>
 			let
-				val (i_nat, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
+				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
 				val size_nat      = size_of_type i_nat
-				val (i_set, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("set", [T])))
+				val (i_set, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("set", [T])))
 				val constants     = make_constants i_set
 				(* interpretation -> int *)
 				fun number_of_elements (Node xs) =
 					foldl (fn (n, x) =>
-						if x=TT then n+1 else if x=FF then n else raise REFUTE ("Finite_Set_card_interpreter", "interpretation for set type does not yield a Boolean")) (0, xs)
+						if x=TT then
+							n+1
+						else if x=FF then
+							n
+						else
+							raise REFUTE ("Finite_Set_card_interpreter", "interpretation for set type does not yield a Boolean")) (0, xs)
 				  | number_of_elements (Leaf _) =
 					raise REFUTE ("Finite_Set_card_interpreter", "interpretation for set type is a leaf")
 				(* takes an interpretation for a set and returns an interpretation for a 'nat' *)
@@ -1668,6 +2058,106 @@ struct
 					end
 			in
 				SOME (Node (map card constants), model, args)
+			end
+		| _ =>
+			NONE;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'op <' could in principle be interpreted with    *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Nat_less_interpreter thy model args t =
+		case t of
+		  Const ("op <", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
+			let
+				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
+				val size_nat      = size_of_type i_nat
+				(* int -> interpretation *)
+				(* the 'n'-th nat is not less than the first 'n' nats, while it *)
+				(* is less than the remaining 'size_nat - n' nats               *)
+				fun less n = Node ((replicate n FF) @ (replicate (size_nat - n) TT))
+			in
+				SOME (Node (map less (1 upto size_nat)), model, args)
+			end
+		| _ =>
+			NONE;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'op +' could in principle be interpreted with    *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Nat_plus_interpreter thy model args t =
+		case t of
+		  Const ("op +", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+			let
+				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
+				val size_nat      = size_of_type i_nat
+				(* int -> int -> interpretation *)
+				fun plus m n = let
+						val element = (m+n)+1
+					in
+						if element > size_nat then
+							Leaf (replicate size_nat False)
+						else
+							Leaf ((replicate (element-1) False) @ True :: (replicate (size_nat - element) False))
+					end
+			in
+				SOME (Node (map (fn m => Node (map (plus m) (0 upto size_nat-1))) (0 upto size_nat-1)), model, args)
+			end
+		| _ =>
+			NONE;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'op -' could in principle be interpreted with    *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Nat_minus_interpreter thy model args t =
+		case t of
+		  Const ("op -", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+			let
+				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
+				val size_nat      = size_of_type i_nat
+				(* int -> int -> interpretation *)
+				fun minus m n = let
+						val element = Int.max (m-n, 0) + 1
+					in
+						Leaf ((replicate (element-1) False) @ True :: (replicate (size_nat - element) False))
+					end
+			in
+				SOME (Node (map (fn m => Node (map (minus m) (0 upto size_nat-1))) (0 upto size_nat-1)), model, args)
+			end
+		| _ =>
+			NONE;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
+	(* only an optimization: 'op *' could in principle be interpreted with    *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Nat_mult_interpreter thy model args t =
+		case t of
+		  Const ("op *", Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+			let
+				val (i_nat, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("nat", [])))
+				val size_nat      = size_of_type i_nat
+				(* nat -> nat -> interpretation *)
+				fun mult m n = let
+						val element = (m*n)+1
+					in
+						if element > size_nat then
+							Leaf (replicate size_nat False)
+						else
+							Leaf ((replicate (element-1) False) @ True :: (replicate (size_nat - element) False))
+					end
+			in
+				SOME (Node (map (fn m => Node (map (mult m) (0 upto size_nat-1))) (0 upto size_nat-1)), model, args)
 			end
 		| _ =>
 			NONE;
@@ -1695,14 +2185,7 @@ struct
 		  | string_of_typ (TVar ((x,i), _)) = strip_leading_quote x ^ string_of_int i
 		(* interpretation -> int *)
 		fun index_from_interpretation (Leaf xs) =
-			let
-				val idx = find_index (PropLogic.eval assignment) xs
-			in
-				if idx<0 then
-					raise REFUTE ("stlc_printer", "illegal interpretation: no value assigned (SAT solver unsound?)")
-				else
-					idx
-			end
+			find_index (PropLogic.eval assignment) xs
 		  | index_from_interpretation _ =
 			raise REFUTE ("stlc_printer", "interpretation for ground type is not a leaf")
 	in
@@ -1712,7 +2195,7 @@ struct
 			  Type ("fun", [T1, T2]) =>
 				let
 					(* create all constants of type 'T1' *)
-					val (i, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T1))
+					val (i, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T1))
 					val constants = make_constants i
 					(* interpretation list *)
 					val results = (case intr of
@@ -1735,12 +2218,22 @@ struct
 				end
 			| Type ("prop", [])      =>
 				(case index_from_interpretation intr of
-				  0 => SOME (HOLogic.mk_Trueprop HOLogic.true_const)
-				| 1 => SOME (HOLogic.mk_Trueprop HOLogic.false_const)
-				| _ => raise REFUTE ("stlc_interpreter", "illegal interpretation for a propositional value"))
-			| Type _  => SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
-			| TFree _ => SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
-			| TVar _  => SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T)))
+				  (~1) => SOME (HOLogic.mk_Trueprop (Const ("arbitrary", HOLogic.boolT)))
+				| 0    => SOME (HOLogic.mk_Trueprop HOLogic.true_const)
+				| 1    => SOME (HOLogic.mk_Trueprop HOLogic.false_const)
+				| _    => raise REFUTE ("stlc_interpreter", "illegal interpretation for a propositional value"))
+			| Type _  => if index_from_interpretation intr = (~1) then
+					SOME (Const ("arbitrary", T))
+				else
+					SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
+			| TFree _ => if index_from_interpretation intr = (~1) then
+					SOME (Const ("arbitrary", T))
+				else
+					SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T))
+			| TVar _  => if index_from_interpretation intr = (~1) then
+					SOME (Const ("arbitrary", T))
+				else
+					SOME (Const (string_of_typ T ^ string_of_int (index_from_interpretation intr), T)))
 		| NONE =>
 			NONE
 	end;
@@ -1759,7 +2252,7 @@ struct
 		  SOME (Type ("set", [T])) =>
 			let
 				(* create all constants of type 'T' *)
-				val (i, _, _) = interpret thy model {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+				val (i, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
 				val constants = make_constants i
 				(* interpretation list *)
 				val results = (case intr of
@@ -1771,10 +2264,8 @@ struct
 					  Leaf [fmTrue, fmFalse] =>
 						if PropLogic.eval assignment fmTrue then
 							SOME (print thy model (Free ("dummy", T)) arg assignment)
-						else if PropLogic.eval assignment fmFalse then
+						else (*if PropLogic.eval assignment fmFalse then*)
 							NONE
-						else
-							raise REFUTE ("set_printer", "illegal interpretation: no value assigned (SAT solver unsound?)")
 					| _ =>
 						raise REFUTE ("set_printer", "illegal interpretation for a Boolean value"))
 					(constants ~~ results)
@@ -1821,46 +2312,58 @@ struct
 					val element = (case intr of
 						  Leaf xs => find_index (PropLogic.eval assignment) xs
 						| Node _  => raise REFUTE ("IDT_printer", "interpretation is not a leaf"))
-					val _ = (if element<0 then raise REFUTE ("IDT_printer", "invalid interpretation (no value assigned)") else ())
-					(* int option -- only recursive IDTs have an associated depth *)
-					val depth = assoc (typs, Type (s, Ts))
-					val typs' = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s, Ts), n-1)))
-					(* int -> DatatypeAux.dtyp list -> Term.term list *)
-					fun make_args n [] =
-						if n<>0 then
-							raise REFUTE ("IDT_printer", "error computing the element: remainder is not 0")
-						else
-							[]
-					  | make_args n (d::ds) =
-						let
-							val dT        = typ_of_dtyp descr typ_assoc d
-							val (i, _, _) = interpret thy (typs', []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", dT))
-							val size      = size_of_type i
-							val consts    = make_constants i  (* we only need the (n mod size)-th element of *)
-								(* this list, so there might be a more efficient implementation that does not *)
-								(* generate all constants                                                     *)
-						in
-							(print thy (typs', []) (Free ("dummy", dT)) (nth_elem (n mod size, consts)) assignment)::(make_args (n div size) ds)
-						end
-					(* int -> (string * DatatypeAux.dtyp list) list -> Term.term *)
-					fun make_term _ [] =
-						raise REFUTE ("IDT_printer", "invalid interpretation (value too large - not enough constructors)")
-					  | make_term n (c::cs) =
-						let
-							val c_size = size_of_dtyp thy typs' descr typ_assoc [c]
-						in
-							if n<c_size then
-								let
-									val (cname, cargs) = c
-									val c_term = Const (cname, (map (typ_of_dtyp descr typ_assoc) cargs) ---> Type (s, Ts))
-								in
-									foldl op$ (c_term, rev (make_args n (rev cargs)))
-								end
-							else
-								make_term (n-c_size) cs
-						end
 				in
-					SOME (make_term element constrs)
+					if element < 0 then
+						SOME (Const ("arbitrary", Type (s, Ts)))
+					else let
+						(* takes a datatype constructor, and if for some arguments this constructor *)
+						(* generates the datatype's element that is given by 'element', returns the *)
+						(* constructor (as a term) as well as the indices of the arguments          *)
+						(* string * DatatypeAux.dtyp list -> (Term.term * int list) option *)
+						fun get_constr_args (cname, cargs) =
+							let
+								val cTerm      = Const (cname, (map (typ_of_dtyp descr typ_assoc) cargs) ---> Type (s, Ts))
+								(*TODO val _          = writeln ("cTerm: " ^ makestring cTerm) *)
+								val (iC, _, _) = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} cTerm
+								(*TODO val _          = writeln ("iC: " ^ makestring iC) *)
+								(* interpretation -> int list option *)
+								fun get_args (Leaf xs) =
+									if find_index_eq True xs = element then
+										SOME []
+									else
+										NONE
+								  | get_args (Node xs) =
+									let
+										(* interpretation * int -> int list option *)
+										fun search ([], _) =
+											NONE
+										  | search (x::xs, n) =
+											(case get_args x of
+											  SOME result => SOME (n::result)
+											| NONE        => search (xs, n+1))
+									in
+										search (xs, 0)
+									end
+							in
+								apsome (fn args => (cTerm, cargs, args)) (get_args iC)
+							end
+						(* Term.term * DatatypeAux.dtyp list * int list *)
+						val (cTerm, cargs, args) = (case get_first get_constr_args constrs of
+							  SOME x => x
+							| NONE   => raise REFUTE ("IDT_printer", "no matching constructor found for element " ^ string_of_int element))
+						val argsTerms = map (fn (d, n) =>
+							let
+								val dT        = typ_of_dtyp descr typ_assoc d
+								val (i, _, _) = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", dT))
+								val consts    = make_constants i  (* we only need the n-th element of this *)
+									(* list, so there might be a more efficient implementation that does    *)
+									(* not generate all constants                                           *)
+							in
+								print thy (typs, []) (Free ("dummy", dT)) (nth_elem (n, consts)) assignment
+							end) (cargs ~~ args)
+					in
+						SOME (foldl op$ (cTerm, argsTerms))
+					end
 				end
 			| NONE =>  (* not an inductive datatype *)
 				NONE)
@@ -1890,7 +2393,13 @@ struct
 		 add_interpreter "HOLogic"         HOLogic_interpreter,
 		 add_interpreter "set"             set_interpreter,
 		 add_interpreter "IDT"             IDT_interpreter,
+		 add_interpreter "IDT_constructor" IDT_constructor_interpreter,
+		 add_interpreter "IDT_recursion"   IDT_recursion_interpreter,
 		 add_interpreter "Finite_Set.card" Finite_Set_card_interpreter,
+		 add_interpreter "Nat.op <"        Nat_less_interpreter,
+		 add_interpreter "Nat.op +"        Nat_plus_interpreter,
+		 add_interpreter "Nat.op -"        Nat_minus_interpreter,
+		 add_interpreter "Nat.op *"        Nat_mult_interpreter,
 		 add_printer "stlc" stlc_printer,
 		 add_printer "set"  set_printer,
 		 add_printer "IDT"  IDT_printer];

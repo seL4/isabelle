@@ -1,7 +1,7 @@
 (*  Title:      HOL/ex/Refute_Examples.thy
     ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2003-2004
+    Copyright   2003-2005
 *)
 
 (* See 'HOL/Refute.thy' for help. *)
@@ -11,10 +11,6 @@ header {* Examples for the 'refute' command *}
 theory Refute_Examples imports Main
 
 begin
-
-lemma "P x"
-  refute
-oops
 
 lemma "P \<and> Q"
   apply (rule conjI)
@@ -158,13 +154,13 @@ lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall
   apply fast
 done
 
-text {* "A type has at most 4 elements." *}
+text {* "A type has at most 5 elements." *}
 
-lemma "a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
+lemma "a=b | a=c | a=d | a=e | a=f | b=c | b=d | b=e | b=f | c=d | c=e | c=f | d=e | d=f | e=f"
   refute
 oops
 
-lemma "\<forall>a b c d e. a=b | a=c | a=d | a=e | b=c | b=d | b=e | c=d | c=e | d=e"
+lemma "\<forall>a b c d e f. a=b | a=c | a=d | a=e | a=f | b=c | b=d | b=e | b=f | c=d | c=e | c=f | d=e | d=f | e=f"
   refute
 oops
 
@@ -298,7 +294,7 @@ lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x
 done
 
 lemma "(\<forall>x. EX!y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
-  refute [maxsize=2, satsolver="dpll"]
+  refute [maxsize=2]
   apply auto
     apply (simp add: ex1_implies_ex choice)
   apply (fast intro: ext)
@@ -463,7 +459,7 @@ typedef 'a myTdef = "insert (arbitrary::'a) (arbitrary::'a set)"
   by auto
 
 lemma "(x::'a myTdef) = y"
-  refute [satsolver=dpll]
+  refute
 oops
 
 typedecl myTdecl
@@ -477,6 +473,14 @@ oops
 
 subsection {* Inductive datatypes *}
 
+text {* This is necessary because with quick\_and\_dirty set, the datatype
+package does not generate certain axioms for recursion operators.  Without
+these axioms, refute may find spurious countermodels. *}
+
+ML {* reset quick_and_dirty; *}
+
+(*TODO*) ML {* set show_consts; set show_types; *}
+
 subsubsection {* unit *}
 
 lemma "P (x::unit)"
@@ -488,6 +492,14 @@ lemma "\<forall>x::unit. P x"
 oops
 
 lemma "P ()"
+  refute
+oops
+
+lemma "P (unit_rec u x)"
+  refute
+oops
+
+lemma "P (case x of () \<Rightarrow> u)"
   refute
 oops
 
@@ -506,6 +518,14 @@ lemma "P None"
 oops
 
 lemma "P (Some x)"
+  refute
+oops
+
+lemma "P (option_rec n s x)"
+  refute
+oops
+
+lemma "P (case x of None \<Rightarrow> n | Some u \<Rightarrow> s u)"
   refute
 oops
 
@@ -535,6 +555,14 @@ lemma "P Pair"
   refute
 oops
 
+lemma "P (prod_rec p x)"
+  refute
+oops
+
+lemma "P (case x of Pair a b \<Rightarrow> p a b)"
+  refute
+oops
+
 subsubsection {* + *}
 
 lemma "P (x::'a+'b)"
@@ -557,6 +585,14 @@ lemma "P Inl"
   refute
 oops
 
+lemma "P (sum_rec l r x)"
+  refute
+oops
+
+lemma "P (case x of Inl a \<Rightarrow> l a | Inr b \<Rightarrow> r b)"
+  refute
+oops
+
 subsubsection {* Non-recursive datatypes *}
 
 datatype T1 = A | B
@@ -570,6 +606,14 @@ lemma "\<forall>x::T1. P x"
 oops
 
 lemma "P A"
+  refute
+oops
+
+lemma "P (T1_rec a b x)"
+  refute
+oops
+
+lemma "P (case x of A \<Rightarrow> a | B \<Rightarrow> b)"
   refute
 oops
 
@@ -587,6 +631,14 @@ lemma "P D"
   refute
 oops
 
+lemma "P (T2_rec c d x)"
+  refute
+oops
+
+lemma "P (case x of C u \<Rightarrow> c u | D v \<Rightarrow> d v)"
+  refute
+oops
+
 datatype ('a,'b) T3 = E "'a \<Rightarrow> 'b"
 
 lemma "P (x::('a,'b) T3)"
@@ -601,7 +653,17 @@ lemma "P E"
   refute
 oops
 
+lemma "P (T3_rec e x)"
+  refute
+oops
+
+lemma "P (case x of E f \<Rightarrow> e f)"
+  refute
+oops
+
 subsubsection {* Recursive datatypes *}
+
+text {* nat *}
 
 lemma "P (x::nat)"
   refute
@@ -621,6 +683,44 @@ lemma "P Suc"
                 model will be found *}
 oops
 
+lemma "P (nat_rec zero suc x)"
+  refute
+oops
+
+lemma "P (case x of 0 \<Rightarrow> zero | Suc n \<Rightarrow> suc n)"
+  refute
+oops
+
+text {* 'a list *}
+
+lemma "P (xs::'a list)"
+  refute
+oops
+
+lemma "\<forall>xs::'a list. P xs"
+  refute
+oops
+
+lemma "P [x, y]"
+  refute
+oops
+
+lemma "P (list_rec nil cons xs)"
+  refute
+oops
+
+lemma "P (case x of Nil \<Rightarrow> nil | Cons a b \<Rightarrow> cons a b)"
+  refute
+oops
+
+lemma "(xs::'a list) = ys"
+  refute
+oops
+
+lemma "a # xs = b # xs"
+  refute
+oops
+
 datatype 'a BinTree = Leaf 'a | Node "'a BinTree" "'a BinTree"
 
 lemma "P (x::'a BinTree)"
@@ -632,6 +732,14 @@ lemma "\<forall>x::'a BinTree. P x"
 oops
 
 lemma "P (Node (Leaf x) (Leaf y))"
+  refute
+oops
+
+lemma "P (BinTree_rec l n x)"
+  refute
+oops
+
+lemma "P (case x of Leaf a \<Rightarrow> l a | Node a b \<Rightarrow> n a b)"
   refute
 oops
 
@@ -648,6 +756,10 @@ lemma "\<forall>x::'a aexp. P x"
   refute
 oops
 
+lemma "P (ITE (Equal (Number x) (Number y)) (Number x) (Number y))"
+  refute
+oops
+
 lemma "P (x::'a bexp)"
   refute
 oops
@@ -656,11 +768,41 @@ lemma "\<forall>x::'a bexp. P x"
   refute
 oops
 
-lemma "P (ITE (Equal (Number x) (Number y)) (Number x) (Number y))"
+lemma "P (aexp_bexp_rec_1 number ite equal x)"
   refute
 oops
 
+lemma "P (case x of Number a \<Rightarrow> number a | ITE b a1 a2 \<Rightarrow> ite b a1 a2)"
+  refute
+oops
+
+lemma "P (aexp_bexp_rec_2 number ite equal x)"
+  (*TODO refute*)
+oops
+
+lemma "P (case x of Equal a1 a2 \<Rightarrow> equal a1 a2)"
+  (*TODO: refute*)
+oops
+
 subsubsection {* Other datatype examples *}
+
+datatype Trie = TR "Trie list"
+
+lemma "P (x::Trie)"
+  refute
+oops
+
+lemma "\<forall>x::Trie. P x"
+  refute
+oops
+
+lemma "P (TR [TR []])"
+  refute
+oops
+
+lemma "P (Trie_rec tr x)"
+  refute
+oops
 
 datatype InfTree = Leaf | Node "nat \<Rightarrow> InfTree"
 
@@ -668,21 +810,176 @@ lemma "P (x::InfTree)"
   refute
 oops
 
+lemma "\<forall>x::InfTree. P x"
+  refute
+oops
+
+lemma "P (Node (\<lambda>n. Leaf))"
+  refute
+oops
+
+lemma "P (InfTree_rec leaf node x)"
+  refute
+oops
+
 datatype 'a lambda = Var 'a | App "'a lambda" "'a lambda" | Lam "'a \<Rightarrow> 'a lambda"
 
-lemma "P (x::'a lambda) | P (App x y)"
+lemma "P (x::'a lambda)"
   refute
 oops
 
-lemma "(xs::'a list) = ys"
+lemma "\<forall>x::'a lambda. P x"
   refute
 oops
 
-lemma "a # xs = b # xs"
+lemma "P (Lam (\<lambda>a. Var a))"
   refute
 oops
 
-lemma "P [x, y]"
+lemma "P (lambda_rec v a l x)"
+  refute
+oops
+
+subsubsection {* Examples involving certain functions *}
+
+lemma "card x = 0"
+  refute
+oops
+
+lemma "P nat_rec"
+  refute
+oops
+
+lemma "(x::nat) + y = 0"
+  refute
+oops
+
+lemma "(x::nat) = x + x"
+  refute
+oops
+
+lemma "(x::nat) - y + y = x"
+  refute
+oops
+
+lemma "(x::nat) = x * x"
+  refute
+oops
+
+lemma "(x::nat) < x + y"
+  refute
+oops
+
+lemma "a @ [] = b @ []"
+  refute
+oops
+
+lemma "P (xs::'a list)"
+  refute ["List.list"=4, "'a"=2]
+oops
+
+lemma "a @ b = b @ a"
+  (*TODO refute*)  -- {* unfortunately, this little example already takes too long *}
+oops
+
+subsection {* Axiomatic type classes and overloading *}
+
+ML {* set show_consts; set show_types; set show_sorts; *}
+
+text {* A type class without axioms: *}
+
+axclass classA
+
+lemma "P (x::'a::classA)"
+  refute
+oops
+
+text {* The axiom of this type class does not contain any type variables, but is internally converted into one that does: *}
+
+axclass classB
+  classB_ax: "P | ~ P"
+
+lemma "P (x::'a::classB)"
+  refute
+oops
+
+text {* An axiom with a type variable (denoting types which have at least two elements): *}
+
+axclass classC < type
+  classC_ax: "\<exists>x y. x \<noteq> y"
+
+lemma "P (x::'a::classC)"
+  refute
+oops
+
+lemma "\<exists>x y. (x::'a::classC) \<noteq> y"
+  refute  -- {* no countermodel exists *}
+oops
+
+text {* A type class for which a constant is defined: *}
+
+consts
+  classD_const :: "'a \<Rightarrow> 'a"
+
+axclass classD < type
+  classD_ax: "classD_const (classD_const x) = classD_const x"
+
+lemma "P (x::'a::classD)"
+  refute
+oops
+
+text {* A type class with multiple superclasses: *}
+
+axclass classE < classC, classD
+
+lemma "P (x::'a::classE)"
+  refute
+oops
+
+lemma "P (x::'a::{classB, classE})"
+  refute
+oops
+
+text {* OFCLASS: *}
+
+lemma "OFCLASS('a::type, type_class)"
+  refute  -- {* no countermodel exists *}
+  apply intro_classes
+done
+
+lemma "OFCLASS('a::classC, type_class)"
+  refute  -- {* no countermodel exists *}
+  apply intro_classes
+done
+
+lemma "OFCLASS('a, classB_class)"
+  refute  -- {* no countermodel exists *}
+  apply intro_classes
+  apply simp
+done
+
+lemma "OFCLASS('a::type, classC_class)"
+  refute
+oops
+
+text {* Overloading: *}
+
+consts inverse :: "'a \<Rightarrow> 'a"
+
+defs (overloaded)
+  inverse_bool: "inverse (b::bool)   == ~ b"
+  inverse_set : "inverse (S::'a set) == -S"
+  inverse_pair: "inverse p           == (inverse (fst p), inverse (snd p))"
+
+lemma "inverse b"
+  refute
+oops
+
+lemma "P (inverse (S::'a set))"
+  refute
+oops
+
+lemma "P (inverse (p::'a\<times>'b))"
   refute
 oops
 
