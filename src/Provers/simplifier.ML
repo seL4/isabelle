@@ -11,8 +11,11 @@ TODO:
   - improve merge
 *)
 
-infix 4 addsimps addeqcongs addsimprocs delsimprocs addsolver delsimps
-  setsolver setloop setmksimps settermless setsubgoaler;
+infix 4 setloop addloop setsolver addsolver 
+        setsubgoaler setmksimps
+	addsimps addeqcongs delsimps 
+	settermless addsimprocs delsimprocs;
+
 
 signature SIMPLIFIER =
 sig
@@ -26,6 +29,7 @@ sig
   val rep_ss: simpset -> {simps: thm list, procs: string list, congs: thm list}
   val prems_of_ss: simpset -> thm list
   val setloop: simpset * (int -> tactic) -> simpset
+  val addloop: simpset * (int -> tactic) -> simpset
   val setsolver: simpset * (thm list -> int -> tactic) -> simpset
   val addsolver: simpset * (thm list -> int -> tactic) -> simpset
   val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
@@ -135,11 +139,16 @@ fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac = _})
     setloop loop_tac =
   make_ss (mss, simps, procs, congs, subgoal_tac, finish_tac, DETERM o loop_tac);
 
+fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac})
+    addloop tac =
+  make_ss (mss, simps, procs, congs, subgoal_tac, finish_tac, 
+    loop_tac ORELSE' (DETERM o tac));
+
 fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac = _, loop_tac})
     setsolver finish_tac =
   make_ss (mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac);
 
-fun (Simpset {mss, simps, procs, congs, subgoal_tac, loop_tac, finish_tac})
+fun (Simpset {mss, simps, procs, congs, subgoal_tac, finish_tac, loop_tac})
     addsolver tac =
   make_ss (mss, simps, procs, congs, subgoal_tac,
     fn hyps => finish_tac hyps ORELSE' tac hyps, loop_tac);
