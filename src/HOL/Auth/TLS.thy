@@ -72,7 +72,7 @@ rules
   inj_sessionK  "inj sessionK"	
 
   (*sessionK makes symmetric keys*)
-  isSym_sessionK "isSymKey (sessionK nonces)"
+  isSym_sessionK "sessionK nonces \\<in> symKeys"
 
 
 consts    tls :: event list set

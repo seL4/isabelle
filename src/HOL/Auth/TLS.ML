@@ -27,21 +27,17 @@ Addsimps [certificate_def];
 AddIffs [inj_PRF RS inj_eq, inj_sessionK RS inj_eq];
 
 (* invKey(sessionK x) = sessionK x*)
-Addsimps [isSym_sessionK, rewrite_rule [isSymKey_def] isSym_sessionK];
+Addsimps [isSym_sessionK, rewrite_rule [symKeys_def] isSym_sessionK];
 
 
 (*** clientK and serverK make symmetric keys; no clashes with pubK or priK ***)
 
 Goal "pubK A \\<noteq> sessionK arg";
-by (rtac notI 1);
-by (dres_inst_tac [("f","isSymKey")] arg_cong 1);
-by (Full_simp_tac 1);
+by (simp_tac (simpset() addsimps [symKeys_neq_imp_neq]) 1);
 qed "pubK_neq_sessionK";
 
 Goal "priK A \\<noteq> sessionK arg";
-by (rtac notI 1);
-by (dres_inst_tac [("f","isSymKey")] arg_cong 1);
-by (Full_simp_tac 1);
+by (simp_tac (simpset() addsimps [symKeys_neq_imp_neq]) 1);
 qed "priK_neq_sessionK";
 
 val keys_distinct = [pubK_neq_sessionK, priK_neq_sessionK];

@@ -17,8 +17,11 @@ val Key_supply_ax = thm "Key_supply_ax";
 (*Injectiveness: Agents' long-term keys are distinct.*)
 AddIffs [inj_shrK RS inj_eq];
 
-(* invKey(shrK A) = shrK A *)
-Addsimps [rewrite_rule [isSymKey_def] isSym_keys];
+Goal "invKey K = K";
+by (cut_facts_tac [rewrite_rule [symKeys_def] isSym_keys] 1);
+by Auto_tac;
+qed "invKey_K";
+Addsimps [invKey_K];
 
 
 Goal "[| Crypt K X \\<in> analz H;  Key K  \\<in> analz H |] ==> X \\<in> analz H";
@@ -87,11 +90,11 @@ AddIffs [shrK_in_used];
 
 (*Used in parts_induct_tac and analz_Fake_tac to distinguish session keys
   from long-term shared keys*)
-Goal "Key K ~: used evs ==> K ~: range shrK";
+Goal "Key K \\<notin> used evs ==> K \\<notin> range shrK";
 by (Blast_tac 1);
 qed "Key_not_used";
 
-Goal "Key K ~: used evs ==> shrK B ~= K";
+Goal "Key K \\<notin> used evs ==> shrK B \\<noteq> K";
 by (Blast_tac 1);
 qed "shrK_neq";
 
@@ -100,13 +103,13 @@ Addsimps [Key_not_used, shrK_neq, shrK_neq RS not_sym];
 
 (*** Fresh nonces ***)
 
-Goal "Nonce N ~: parts (initState B)";
+Goal "Nonce N \\<notin> parts (initState B)";
 by (induct_tac "B" 1);
 by Auto_tac;
 qed "Nonce_notin_initState";
 AddIffs [Nonce_notin_initState];
 
-Goal "Nonce N ~: used []";
+Goal "Nonce N \\<notin> used []";
 by (simp_tac (simpset() addsimps [used_Nil]) 1);
 qed "Nonce_notin_used_empty";
 Addsimps [Nonce_notin_used_empty];
@@ -115,7 +118,7 @@ Addsimps [Nonce_notin_used_empty];
 (*** Supply fresh nonces for possibility theorems. ***)
 
 (*In any trace, there is an upper bound N on the greatest nonce in use.*)
-Goal "EX N. ALL n. N<=n --> Nonce n ~: used evs";
+Goal "EX N. ALL n. N<=n --> Nonce n \\<notin> used evs";
 by (induct_tac "evs" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (ALLGOALS (asm_simp_tac
@@ -126,12 +129,12 @@ by (ALLGOALS (rtac (msg_Nonce_supply RS exE)));
 by (ALLGOALS (blast_tac (claset() addSEs [add_leE])));
 val lemma = result();
 
-Goal "EX N. Nonce N ~: used evs";
+Goal "EX N. Nonce N \\<notin> used evs";
 by (rtac (lemma RS exE) 1);
 by (Blast_tac 1);
 qed "Nonce_supply1";
 
-Goal "EX N N'. Nonce N ~: used evs & Nonce N' ~: used evs' & N ~= N'";
+Goal "EX N N'. Nonce N \\<notin> used evs & Nonce N' \\<notin> used evs' & N \\<noteq> N'";
 by (cut_inst_tac [("evs","evs")] lemma 1);
 by (cut_inst_tac [("evs","evs'")] lemma 1);
 by (Clarify_tac 1);
@@ -141,8 +144,8 @@ by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add1, le_add2,
 				      less_Suc_eq_le]) 1);
 qed "Nonce_supply2";
 
-Goal "EX N N' N''. Nonce N ~: used evs & Nonce N' ~: used evs' & \
-\                   Nonce N'' ~: used evs'' & N ~= N' & N' ~= N'' & N ~= N''";
+Goal "EX N N' N''. Nonce N \\<notin> used evs & Nonce N' \\<notin> used evs' & \
+\                   Nonce N'' \\<notin> used evs'' & N \\<noteq> N' & N' \\<noteq> N'' & N \\<noteq> N''";
 by (cut_inst_tac [("evs","evs")] lemma 1);
 by (cut_inst_tac [("evs","evs'")] lemma 1);
 by (cut_inst_tac [("evs","evs''")] lemma 1);
@@ -154,7 +157,7 @@ by (asm_simp_tac (simpset() addsimps [less_not_refl3, le_add1, le_add2,
 				      less_Suc_eq_le]) 1);
 qed "Nonce_supply3";
 
-Goal "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
+Goal "Nonce (@ N. Nonce N \\<notin> used evs) \\<notin> used evs";
 by (rtac (lemma RS exE) 1);
 by (rtac someI 1);
 by (Blast_tac 1);
@@ -162,12 +165,12 @@ qed "Nonce_supply";
 
 (*** Supply fresh keys for possibility theorems. ***)
 
-Goal "EX K. Key K ~: used evs";
+Goal "EX K. Key K \\<notin> used evs";
 by (rtac (Finites.emptyI RS Key_supply_ax RS exE) 1);
 by (Blast_tac 1);
 qed "Key_supply1";
 
-Goal "EX K K'. Key K ~: used evs & Key K' ~: used evs' & K ~= K'";
+Goal "EX K K'. Key K \\<notin> used evs & Key K' \\<notin> used evs' & K \\<noteq> K'";
 by (cut_inst_tac [("evs","evs")] (Finites.emptyI RS Key_supply_ax) 1);
 by (etac exE 1);
 by (cut_inst_tac [("evs","evs'")] 
@@ -175,8 +178,8 @@ by (cut_inst_tac [("evs","evs'")]
 by (Asm_full_simp_tac 1 THEN depth_tac (claset()) 2 1); (* replaces Auto_tac *)
 qed "Key_supply2";
 
-Goal "EX K K' K''. Key K ~: used evs & Key K' ~: used evs' & \
-\                      Key K'' ~: used evs'' & K ~= K' & K' ~= K'' & K ~= K''";
+Goal "EX K K' K''. Key K \\<notin> used evs & Key K' \\<notin> used evs' & \
+\                      Key K'' \\<notin> used evs'' & K \\<noteq> K' & K' \\<noteq> K'' & K \\<noteq> K''";
 by (cut_inst_tac [("evs","evs")] (Finites.emptyI RS Key_supply_ax) 1);
 by (etac exE 1);
 (*Blast_tac requires instantiation of the keys for some reason*)
@@ -188,7 +191,7 @@ by (cut_inst_tac [("evs","evs''"), ("a1","Ka"), ("a2","K")]
 by (Blast_tac 1);
 qed "Key_supply3";
 
-Goal "Key (@ K. Key K ~: used evs) ~: used evs";
+Goal "Key (@ K. Key K \\<notin> used evs) \\<notin> used evs";
 by (rtac (Finites.emptyI RS Key_supply_ax RS exE) 1);
 by (rtac someI 1);
 by (Blast_tac 1);
@@ -197,7 +200,7 @@ qed "Key_supply";
 (*** Tactics for possibility theorems ***)
 
 (*Omitting used_Says makes the tactic much faster: it leaves expressions
-    such as  Nonce ?N ~: used evs that match Nonce_supply*)
+    such as  Nonce ?N \\<notin> used evs that match Nonce_supply*)
 fun possibility_tac st = st |>
    (REPEAT 
     (ALLGOALS (simp_tac (simpset() delsimps [used_Says, used_Notes, used_Gets] 
@@ -217,7 +220,7 @@ fun basic_possibility_tac st = st |>
 
 (*** Specialized rewriting for analz_insert_freshK ***)
 
-Goal "A <= - (range shrK) ==> shrK x ~: A";
+Goal "A <= - (range shrK) ==> shrK x \\<notin> A";
 by (Blast_tac 1);
 qed "subset_Compl_range";
 

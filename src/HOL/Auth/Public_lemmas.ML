@@ -24,20 +24,24 @@ qed "priK_inj_eq";
 AddIffs [priK_inj_eq];
 AddIffs [priK_neq_pubK, priK_neq_pubK RS not_sym];
 
-Goalw [isSymKey_def] "~ isSymKey (pubK A)";
+Goalw [symKeys_def] "pubK A \\<notin> symKeys";
 by (Simp_tac 1);
-qed "not_isSymKey_pubK";
+qed "not_symKeys_pubK";
 
-Goalw [isSymKey_def] "~ isSymKey (priK A)";
+Goalw [symKeys_def] "priK A \\<notin> symKeys";
 by (Simp_tac 1);
-qed "not_isSymKey_priK";
+qed "not_symKeys_priK";
 
-AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
+AddIffs [not_symKeys_pubK, not_symKeys_priK];
 
-Goal "[| Crypt K X \\<in> analz H;  isSymKey K;  Key K  \\<in> analz H |] \
+Goal "(K \\<in> symKeys) \\<noteq> (K' \\<in> symKeys) ==> K \\<noteq> K'";
+by (Blast_tac 1); 
+qed "symKeys_neq_imp_neq";
+
+Goal "[| Crypt K X \\<in> analz H;  K \\<in> symKeys;  Key K \\<in> analz H |] \
 \     ==> X \\<in> analz H";
-by (auto_tac(claset(), simpset() addsimps [isSymKey_def]));
-qed "analz_isSymKey_Decrypt";
+by (auto_tac(claset(), simpset() addsimps [symKeys_def]));
+qed "analz_symKeys_Decrypt";
 
 
 (** "Image" equations that hold for injective functions **)

@@ -18,7 +18,7 @@ AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 (*A "possibility property": there are traces that reach the end*)
 Goal "B \\<noteq> Server   \
-\     ==> \\<exists>K. \\<exists>NA. \\<exists>evs \\<in> otway.                                      \
+\     ==> \\<exists>K. \\<exists>evs \\<in> otway.                                      \
 \          Says B A (Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}) \
 \            \\<in> set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));

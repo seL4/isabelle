@@ -15,7 +15,7 @@ consts
   shrK    :: "agent => key"  (*symmetric keys*)
 
 axioms
-  isSym_keys: "isSymKey K"	(*All keys are symmetric*)
+  isSym_keys: "K \\<in> symKeys"	(*All keys are symmetric*)
   inj_shrK:   "inj shrK"	(*No two agents have the same long-term key*)
 
 primrec

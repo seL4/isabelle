@@ -40,8 +40,6 @@ inductive ns_public
               \<in> set evs3\<rbrakk>
           \<Longrightarrow> Says A B (Crypt (pubK B) (Nonce NB)) # evs3 \<in> ns_public"
 
-  (*No Oops message.  Should there be one?*)
-
 declare knows_Spy_partsEs [elim]
 declare analz_subset_parts [THEN subsetD, dest]
 declare Fake_parts_insert [THEN subsetD, dest]

@@ -14,7 +14,7 @@ val parts_mono = thm "parts_mono";
 val analz_mono = thm "analz_mono";
 val synth_mono = thm "synth_mono";
 val HPair_def = thm "HPair_def";
-val isSymKey_def = thm "isSymKey_def";
+val symKeys_def = thm "symKeys_def";
 
 structure parts =
   struct

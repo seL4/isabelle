@@ -58,8 +58,8 @@ inductive "otway"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.
-           Need B ~= Server because we allow messages to self.*)
-    OR4  "[| evs4 \\<in> otway;  B ~= Server; 
+           Need B \\<noteq> Server because we allow messages to self.*)
+    OR4  "[| evs4 \\<in> otway;  B \\<noteq> Server; 
              Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} \\<in>set evs4;
              Gets B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
                \\<in>set evs4 |]

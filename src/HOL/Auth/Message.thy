@@ -10,10 +10,6 @@ Inductive relations "parts", "analz" and "synth"
 theory Message = Main
 files ("Message_lemmas.ML"):
 
-(*Eliminates a commonly-occurring expression*)
-lemma [simp] : "~ (\<forall> x. x\<noteq>y)"
-by blast
-
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
 lemma [simp] : "A Un (B Un A) = B Un A"
 by blast
@@ -31,8 +27,8 @@ axioms
     that of a public key is the private key and vice versa*)
 
 constdefs
-  isSymKey :: "key=>bool"
-  "isSymKey K == (invKey K = K)"
+  symKeys :: "key set"
+  "symKeys == {K. invKey K = K}"
 
 datatype  (*We allow any number of friendly agents*)
   agent = Server | Friend nat | Spy
