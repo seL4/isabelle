@@ -1,6 +1,7 @@
 %% $ lcp Exp $
 \documentstyle[12pt,rail,proof,iman,epsf,mathsing]{book}
-%%%\includeonly{Ref/tctical,Ref/thm}
+%%\includeonly{Logics/HOL}
+%%  index{\(\w+\)\!meta-level     index{meta-\1
 %%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
 %% run    sedindex springer    to prepare index file
 
@@ -12,6 +13,23 @@
 \date{} 
 \makeindex
 \let\idx=\ttindexbold
+%for indexing constants, symbols, theorems, ...
+\newcommand\cdx[1]{{\tt#1}\index{#1@{\tt#1} constant}}
+\newcommand\sdx[1]{{\tt#1}\index{#1@{\tt#1} symbol}}
+
+\newcommand\tdx[1]{{\tt#1}\index{#1@{\tt#1} theorem}}
+\newcommand\tdxbold[1]{{\tt#1}\index{#1@{\tt#1} theorem|bold}}
+
+\newcommand\mltydx[1]{{\tt#1}\index{#1@{\tt#1} ML type}}
+\newcommand\xdx[1]{{\tt#1}\index{#1@{\tt#1} exception}}
+
+\newcommand\ndx[1]{{\tt#1}\index{#1@{\tt#1} nonterminal}}
+\newcommand\ndxbold[1]{{\tt#1}\index{#1@{\tt#1} nonterminal|bold}}
+
+\newcommand\cldx[1]{{\tt#1}\index{#1@{\tt#1} class}}
+\newcommand\tydx[1]{{\tt#1}\index{#1@{\tt#1} type}}
+\newcommand\thydx[1]{{\tt#1}\index{#1@{\tt#1} theory}}
+
 \def\S{Sect.\thinspace}%This is how Springer like it
 
 \underscoreoff
@@ -27,6 +45,8 @@
 \include{preface}
 
 \tableofcontents
+\newpage
+\listoffigures
 \newpage
 
 \pagenumbering{arabic}
@@ -45,12 +65,10 @@ G.K. Chesterton, {\em The Man who was Orthodox}
 \end{quote}
 
 
-\index{type classes|see{classes}}
-\index{definitions|see{rewriting, meta-level}}
-\index{rewriting!object-level|see{simplification}}
-\index{rules!meta-level|see{meta-rules}}
+\index{hypotheses|see{assumptions}}
+\index{rewriting|see{simplification}}
 \index{variables!schematic|see{unknowns}} 
-\index{AST|see{trees, abstract syntax}}
+\index{abstract syntax trees|see{ASTs}}
 
 \part{Introduction to Isabelle}   
 
@@ -71,6 +89,8 @@ G.K. Chesterton, {\em The Man who was Orthodox}
 \include{Ref/tctical}
 \include{Ref/thm}
 \include{Ref/theories}
+\include{Ref/defining}
+\include{Ref/syntax}
 \include{Ref/substitution}
 \include{Ref/simplifier}
 \include{Ref/classical}
@@ -78,18 +98,25 @@ G.K. Chesterton, {\em The Man who was Orthodox}
 \part{Isabelle's Object-Logics} 
 \newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
   \hrule\bigskip}
+\newenvironment{constants}{\begin{center}\small\begin{tabular}{rrrr}}{\end{tabular}\end{center}}
+
 \include{Logics/intro}
 \include{Logics/FOL}
 \include{Logics/ZF}
 \include{Logics/HOL}
 \include{Logics/LK}
 \include{Logics/CTT}
-\include{Logics/defining}
 
 \include{Ref/theory-syntax}
 
 %%seealso's must be last so that they appear last in the index entries
-\index{rewriting!meta-level|seealso{tactics, theorems}}
+\index{backtracking|seealso{{\tt back} command, search}}
+\index{classes|seealso{sorts}}
+\index{sorts|seealso{arities}}
+\index{axioms|seealso{rules, theorems}}
+\index{theorems|seealso{rules}}
+\index{definitions|seealso{meta-rewriting}}
+\index{equality|seealso{simplification}}
 
 \bibliographystyle{springer} \small\raggedright\frenchspacing
 \bibliography{string-abbrv,atp,funprog,general,isabelle,logicprog,theory}
