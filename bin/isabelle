@@ -8,7 +8,7 @@
 ## settings
 
 ISABELLE_HOME=$(dirname $(dirname $0))
-. $ISABELLE_HOME/lib/scripts/getsettings
+. $ISABELLE_HOME/lib/scripts/getsettings || exit 2
 . $ISABELLE_HOME/lib/scripts/getplatform
 
 
@@ -22,7 +22,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [INPUT] [OUTPUT]"
   echo
   echo "  Options are:"
-  echo "    -c           force copying of heap file"
+  echo "    -c           force copying of heap file (for Poly/ML)"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
