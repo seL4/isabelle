@@ -214,10 +214,8 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
       (case (get def_prmpt src, opt_recover) of
         (([], s), _) => (([], (state, [])), s)
       | ((xs, s), None) => drain_with (error scanner) ((state, xs), s)
-      | ((xs, s), Some scan) => drain_loop scan ((state, xs), s));
-  in
-    (ys, (state', unget (xs', src')))
-  end;
+      | ((xs, s), Some r) => drain_loop (unless (lift (one (#2 stopper))) r) ((state, xs), s));
+  in (ys, (state', unget (xs', src'))) end;
 
 fun source def_prmpt get unget stopper scan opt_recover src =
   let val (ys, ((), src')) =
