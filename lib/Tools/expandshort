@@ -14,8 +14,8 @@ function usage()
   echo
   echo "  Recursively find .ML files, expand shorthand goal commands.  Also"
   echo "  contracts uses of resolve_tac, dresolve_tac, eresolve_tac,"
-  echo "  forward_tac, rewrite_goals_tac on 1-element lists; furthermore expands"
-  echo "  tabs, which are forbidden in SML string constants."
+  echo "  forward_tac, rewrite_goals_tac on 1-element lists; furthermore"
+  echo "  expands tabs, which are forbidden in SML string constants."
   echo
   echo "  Renames old versions of files by appending \"~~\"."
   echo

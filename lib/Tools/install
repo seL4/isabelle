@@ -13,7 +13,8 @@ function usage()
   echo "Usage: $PRG [OPTIONS]"
   echo
   echo "  Options are:"
-  echo "    -d DISTDIR   refer to DISTDIR as Isabelle distribution (default ISABELLE_HOME)"
+  echo "    -d DISTDIR   refer to DISTDIR as Isabelle distribution"
+  echo "                 (default ISABELLE_HOME)"
   echo "    -k           install KDE application icon on Desktop"
   echo "    -p DIR       install standalone binaries in DIR"
   echo
