@@ -77,6 +77,8 @@ sig
   val rev_triv_goal	: thm
   val mk_triv_goal      : cterm -> thm
   val instantiate'	: ctyp option list -> cterm option list -> thm -> thm
+  val unvarifyT		: thm -> thm
+  val unvarify		: thm -> thm
 end;
 
 structure Drule : DRULE =
@@ -591,7 +593,7 @@ end;
 
 
 
-(** instantiate' rule **)
+(** variations on instantiate **)
 
 (* collect vars *)
 
@@ -631,8 +633,29 @@ fun instantiate' cTs cts thm =
     end;
 
 
-(*Make an initial proof state, "PROP A ==> (PROP A)" *)
+(* unvarify(T) *)
+
+(*assume thm in standard form, i.e. no frees, 0 var indexes*)
+
+fun unvarifyT thm =
+  let
+    val cT = Thm.ctyp_of (Thm.sign_of_thm thm);
+    val tfrees = map (fn ((x, _), S) => Some (cT (TFree (x, S)))) (tvars_of thm);
+  in instantiate' tfrees [] thm end;
+
+fun unvarify raw_thm =
+  let
+    val thm = unvarifyT raw_thm;
+    val ct = Thm.cterm_of (Thm.sign_of_thm thm);
+    val frees = map (fn ((x, _), T) => Some (ct (Free (x, T)))) (vars_of thm);
+  in instantiate' [] frees thm end;
+
+
+(* mk_triv_goal *)
+
+(*make an initial proof state, "PROP A ==> (PROP A)" *)
 fun mk_triv_goal ct = instantiate' [] [Some ct] triv_goal;
+
 
 end;
 
