@@ -206,6 +206,10 @@ Goal "Domain(A) - Domain(B) <= Domain(A - B)";
 by (Blast_tac 1);
 qed "Domain_Diff_subset";
 
+Goal "Domain (Union S) = (UN A:S. Domain A)";
+by (Blast_tac 1);
+qed "Domain_Union";
+
 
 (** Range **)
 
@@ -247,6 +251,10 @@ qed "Range_Int_subset";
 Goal "Range(A) - Range(B) <= Range(A - B)";
 by (Blast_tac 1);
 qed "Range_Diff_subset";
+
+Goal "Range (Union S) = (UN A:S. Range A)";
+by (Blast_tac 1);
+qed "Range_Union";
 
 
 (*** Image of a set under a relation ***)
