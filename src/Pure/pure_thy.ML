@@ -1,6 +1,7 @@
 (*  Title:      Pure/pure_thy.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theorem database, derived theory operations, and the ProtoPure theory.
 *)
@@ -38,10 +39,14 @@ sig
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory * thm list
   val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory -> theory * thm list list
   val add_axiomss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory * thm list list
-  val add_defs: ((bstring * string) * theory attribute list) list -> theory -> theory * thm list
-  val add_defs_i: ((bstring * term) * theory attribute list) list -> theory -> theory * thm list
-  val add_defss: ((bstring * string list) * theory attribute list) list -> theory -> theory * thm list list
-  val add_defss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory * thm list list
+  val add_defs: bool -> ((bstring * string) * theory attribute list) list
+    -> theory -> theory * thm list
+  val add_defs_i: bool -> ((bstring * term) * theory attribute list) list
+    -> theory -> theory * thm list
+  val add_defss: bool -> ((bstring * string list) * theory attribute list) list
+    -> theory -> theory * thm list list
+  val add_defss_i: bool -> ((bstring * term list) * theory attribute list) list
+    -> theory -> theory * thm list list
   val get_name: theory -> string
   val put_name: string -> theory -> theory
   val global_path: theory -> theory
@@ -323,10 +328,10 @@ in
   val add_axioms_i  = add_singles Theory.add_axioms_i;
   val add_axiomss   = add_multis Theory.add_axioms;
   val add_axiomss_i = add_multis Theory.add_axioms_i;
-  val add_defs      = add_singles Theory.add_defs;
-  val add_defs_i    = add_singles Theory.add_defs_i;
-  val add_defss     = add_multis Theory.add_defs;
-  val add_defss_i   = add_multis Theory.add_defs_i;
+  val add_defs      = add_singles o Theory.add_defs;
+  val add_defs_i    = add_singles o Theory.add_defs_i;
+  val add_defss     = add_multis o Theory.add_defs;
+  val add_defss_i   = add_multis o Theory.add_defs_i;
 end;
 
 
@@ -451,7 +456,7 @@ val proto_pure =
   |> Theory.add_modesyntax ("", false)
     [("Goal", "prop => prop", Mixfix ("_", [0], 0))]
   |> local_path
-  |> (#1 oo (add_defs o map Thm.no_attributes))
+  |> (#1 oo (add_defs false o map Thm.no_attributes))
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
     ("Goal_def", "GOAL (PROP A) == PROP A")]
   |> (#1 o add_thmss [(("nothing", []), [])])

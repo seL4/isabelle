@@ -51,8 +51,9 @@ sig
   val add_axioms: (((bstring * string) * Args.src list) * Comment.text) list -> theory -> theory
   val add_axioms_i: (((bstring * term) * theory attribute list) * Comment.text) list
     -> theory -> theory
-  val add_defs: (((bstring * string) * Args.src list) * Comment.text) list -> theory -> theory
-  val add_defs_i: (((bstring * term) * theory attribute list) * Comment.text) list
+  val add_defs: bool * (((bstring * string) * Args.src list) * Comment.text) list
+    -> theory -> theory
+  val add_defs_i: bool * (((bstring * term) * theory attribute list) * Comment.text) list
     -> theory -> theory
   val add_constdefs: (((bstring * string * mixfix) * Comment.text) * (string * Comment.text)) list
     -> theory -> theory
@@ -263,8 +264,8 @@ fun add_axms f args thy =
 
 val add_axioms = add_axms (#1 oo PureThy.add_axioms) o map Comment.ignore;
 val add_axioms_i = (#1 oo PureThy.add_axioms_i) o map Comment.ignore;
-val add_defs = add_axms (#1 oo PureThy.add_defs) o map Comment.ignore;
-val add_defs_i = (#1 oo PureThy.add_defs_i) o map Comment.ignore;
+fun add_defs (x, args) = add_axms (#1 oo PureThy.add_defs x) (map Comment.ignore args);
+fun add_defs_i (x, args) = (#1 oo PureThy.add_defs_i x) (map Comment.ignore args);
 
 
 (* constdefs *)
@@ -272,7 +273,7 @@ val add_defs_i = (#1 oo PureThy.add_defs_i) o map Comment.ignore;
 fun gen_add_constdefs consts defs args thy =
   thy
   |> consts (map (Comment.ignore o fst) args)
-  |> defs (map (fn (((c, _, mx), _), (s, _)) =>
+  |> defs (false, map (fn (((c, _, mx), _), (s, _)) =>
     (((Thm.def_name (Syntax.const_name c mx), s), []), Comment.none)) args);
 
 fun add_constdefs args = gen_add_constdefs Theory.add_consts add_defs args;
