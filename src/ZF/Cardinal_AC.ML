@@ -48,6 +48,14 @@ by (resolve_tac [well_ord_cmult_assoc] 1);
 by (REPEAT_SOME assume_tac);
 qed "cmult_assoc";
 
+goal Cardinal_AC.thy "(i |+| j) |*| k = (i |*| k) |+| (j |*| k)";
+by (resolve_tac [AC_well_ord RS exE] 1);
+by (resolve_tac [AC_well_ord RS exE] 1);
+by (resolve_tac [AC_well_ord RS exE] 1);
+by (resolve_tac [well_ord_cadd_cmult_distrib] 1);
+by (REPEAT_SOME assume_tac);
+qed "cadd_cmult_distrib";
+
 goal Cardinal_AC.thy "!!A. InfCard(|A|) ==> A*A eqpoll A";
 by (resolve_tac [AC_well_ord RS exE] 1);
 by (eresolve_tac [well_ord_InfCard_square_eq] 1);
