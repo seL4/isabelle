@@ -42,6 +42,7 @@ workshops and courses.
 <li>New syntax to allow &gt; and &gt;=</li>
 <li>New automatic transitivity reasoner</li>
 <li>New command for ad-hoc theory viewing and printing</li>
+<li>Much extended and improved theory of finite sets</li>
 </ul>
 
 <h2>Contributing</h2> 
