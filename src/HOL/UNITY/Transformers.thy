@@ -44,6 +44,10 @@ text{*The identity relation is the skip action*}
 lemma wp_Id [simp]: "wp Id B = B"
 by (simp add: wp_def) 
 
+lemma wp_totalize_act:
+     "wp (totalize_act act) B = (wp act B \<inter> Domain act) \<union> (B - Domain act)"
+by (simp add: wp_def totalize_act_def, blast)
+
 lemma awp_Int_eq: "awp F (A\<inter>B) = awp F A \<inter> awp F B"
 by (simp add: awp_def wp_def, blast) 
 
@@ -164,8 +168,7 @@ done
 
 lemma leadsTo_imp_wens_set: "F \<in> A leadsTo B ==> \<exists>C \<in> wens_set F B. A \<subseteq> C"
 apply (erule leadsTo_induct_pre)
-  apply (blast dest!: ensures_imp_wens intro: wens_set.Basis wens_set.Wens)
- apply clarify 
+  apply (blast dest!: ensures_imp_wens intro: wens_set.Basis wens_set.Wens, clarify) 
  apply (drule ensures_weaken_R, assumption)  
  apply (blast dest!: ensures_imp_wens intro: wens_set.Wens)
 apply (case_tac "S={}") 
@@ -236,8 +239,7 @@ apply (subgoal_tac "T-X \<subseteq> awp F T")
 apply (rule_tac B = "wens (F\<squnion>G) act (T\<inter>X)" in subset_trans) 
  prefer 2 apply (blast intro!: wens_mono)
 apply (subst wens_Int_eq, assumption+) 
-apply (rule subset_wens_Join [of _ T])
-  apply simp 
+apply (rule subset_wens_Join [of _ T], simp) 
  apply blast
 apply (subgoal_tac "T \<inter> wens F act (T\<inter>X) \<union> T\<inter>X = T \<inter> wens F act X")
  prefer 2
@@ -274,8 +276,7 @@ theorem leadsTo_Union:
 apply (rule leadsTo [THEN leadsTo_imp_wens_set, THEN bexE]) 
 apply (rule wens_Union [THEN bexE]) 
    apply (rule awpF) 
-  apply (erule awpG) 
- apply assumption
+  apply (erule awpG, assumption)
 apply (blast intro: wens_set_imp_leadsTo [THEN leadsTo_weaken_L])  
 done
 
@@ -334,10 +335,13 @@ done
 lemma atMost_nat_nonempty: "atMost (k::nat) \<noteq> {}"
 by force
 
+lemma wens_single_finite_0 [simp]: "wens_single_finite act B 0 = B"
+by (simp add: wens_single_finite_def)
+
 lemma wens_single_finite_Suc:
       "single_valued act
        ==> wens_single_finite act B (Suc k) =
-           wens_single_finite act B k \<union> wp act (wens_single_finite act B k) "
+           wens_single_finite act B k \<union> wp act (wens_single_finite act B k)"
 apply (simp add: wens_single_finite_def image_def 
                  wp_UN_eq [OF _ atMost_nat_nonempty]) 
 apply (force elim!: le_SucE)
@@ -349,6 +353,12 @@ lemma wens_single_finite_Suc_eq_wens:
            wens (mk_program (init, {act}, allowed)) act 
                 (wens_single_finite act B k)"
 by (simp add: wens_single_finite_Suc wens_single_eq) 
+
+lemma def_wens_single_finite_Suc_eq_wens:
+     "[|F = mk_program (init, {act}, allowed); single_valued act|]
+       ==> wens_single_finite act B (Suc k) =
+           wens F act (wens_single_finite act B k)"
+by (simp add: wens_single_finite_Suc_eq_wens) 
 
 lemma wens_single_finite_Un_eq:
       "single_valued act
@@ -377,8 +387,9 @@ by (simp add: wens_single_eq_Union, blast)
 lemma subset_wens_single_finite:
       "[|W \<subseteq> wens_single_finite act B ` (atMost k); single_valued act; W\<noteq>{}|]
        ==> \<exists>m. \<Union>W = wens_single_finite act B m"
-apply (induct k) 
- apply (simp, blast) 
+apply (induct k)
+ apply (rule_tac x=0 in exI, simp) 
+ apply blast 
 apply (auto simp add: atMost_Suc) 
 apply (case_tac "wens_single_finite act B (Suc n) \<in> W") 
  prefer 2 apply blast 
@@ -398,11 +409,10 @@ lemma Union_eq_wens_single:
 apply (case_tac "wens_single act B \<in> W")
  apply (blast dest: wens_single_finite_subset_wens_single [THEN subsetD]) 
 apply (simp add: wens_single_eq_Union) 
-apply (rule equalityI)
- apply blast 
+apply (rule equalityI, blast) 
 apply (simp add: UN_subset_iff, clarify)
 apply (subgoal_tac "\<exists>y\<in>W. \<exists>n. y = wens_single_finite act B n & i\<le>n")  
- apply (blast intro: wens_single_finite_mono [THEN subsetD] ) 
+ apply (blast intro: wens_single_finite_mono [THEN subsetD]) 
 apply (drule_tac x=i in spec)
 apply (force simp add: atMost_def)
 done
@@ -447,12 +457,12 @@ done
 
 text{*Theorem (4.29)*}
 theorem wens_set_single_eq:
-      "single_valued act
-       ==> wens_set (mk_program (init, {act}, allowed)) B =
-           insert (wens_single act B) (range (wens_single_finite act B))"
+     "[|F = mk_program (init, {act}, allowed); single_valued act|]
+      ==> wens_set F B =
+          insert (wens_single act B) (range (wens_single_finite act B))"
 apply (rule equalityI)
-apply (erule wens_set_subset_single) 
-apply (erule single_subset_wens_set) 
+ apply (simp add: wens_set_subset_single) 
+apply (erule ssubst, erule single_subset_wens_set) 
 done
 
 end

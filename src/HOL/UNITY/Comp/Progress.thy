@@ -10,15 +10,6 @@ header{*Progress Set Examples*}
 
 theory Progress = UNITY_Main:
 
-
-
-(*????????????????Int*)
-lemma int_nat_eq [simp]: "int (nat z) = (if 0 \<le> z then z else 0)"
-by simp
-
-
-
-
 subsection {*The Composition of Two Single-Assignment Programs*}
 text{*Thesis Section 4.4.2*}
 
