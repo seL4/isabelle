@@ -141,7 +141,7 @@ fun prover contr thm = prove_goal Stream.thy thm
 	]);
 
 val stream_constrdef = [
-	prover "is_scons[UU] ~= UU" "x~=UU ==> scons[x][xs]~=UU"
+	prover "is_scons[UU::'a stream] ~= UU" "x~=UU ==> scons[x::'a][xs]~=UU"
 	]; 
 
 fun prover defs thm = prove_goalw Stream.thy defs thm
