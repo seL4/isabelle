@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -6,26 +7,26 @@ New in this Isabelle version
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
-* several changes of proof tools;
+* several changes of automated proof tools;
 
-* HOL: new version of inductive and datatype;
+* HOL: major changes to the inductive and datatype packages, including
+some minor incompatibilities of theory syntax;
 
-* HOL: major changes to the inductive and datatype packages;
-
-* HOL: renamed r^-1 to 'converse' from 'inverse'; `inj_onto' is now
+* HOL: renamed r^-1 to 'converse' from 'inverse'; 'inj_onto' is now
 called `inj_on';
 
 * HOL: removed duplicate thms in Arith:
   less_imp_add_less  should be replaced by  trans_less_add1
   le_imp_add_le      should be replaced by  trans_le_add1
 
-* HOL: unary - is now overloaded (new type constraints may be required);
+* HOL: unary minus is now overloaded (new type constraints may be
+required);
 
-* HOL and ZF: unary minus for integers is now #- instead of #~.  In ZF, 
-  expressions such as n#-1 must be changed to n#- 1, since #-1 is now taken
-  as an integer constant.
+* HOL and ZF: unary minus for integers is now #- instead of #~.  In
+ZF, expressions such as n#-1 must be changed to n#- 1, since #-1 is
+now taken as an integer constant.
 
-* Pure: ML function 'theory_of' replaced by 'theory';
+* Pure: ML function 'theory_of' renamed to 'theory';
 
 
 *** Proof tools ***
@@ -53,44 +54,43 @@ one (emitting a warning).
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
 * Classical reasoner: addbefore/addSbefore now have APPEND/ORELSE
-  semantics; addbefore now affects only the unsafe part of step_tac
-  etc.; this affects addss/auto_tac/force_tac, so EXISTING PROOFS MAY
-  FAIL, but proofs should be fixable easily, e.g. by replacing
-  Auto_tac by Force_tac;
+semantics; addbefore now affects only the unsafe part of step_tac
+etc.; this affects addss/auto_tac/force_tac, so EXISTING PROOFS MAY
+FAIL, but proofs should be fixable easily, e.g. by replacing Auto_tac
+by Force_tac;
 
-* Classical reasoner: setwrapper to setWrapper and compwrapper to compWrapper; 
-  added safe wrapper (and access functions for it);
+* Classical reasoner: setwrapper to setWrapper and compwrapper to
+compWrapper; added safe wrapper (and access functions for it);
 
 * HOL/split_all_tac is now much faster and fails if there is nothing
-to split.  Existing (fragile) proofs may require adaption because the
-order and the names of the automatically generated variables have
-changed.  split_all_tac has moved within claset() from unsafe wrappers
-to safe wrappers, which means that !!-bound variables are split much
-more aggressively, and safe_tac and clarify_tac now split such
-variables.  If this splitting is not appropriate, use delSWrapper
-"split_all_tac".
+to split.  Some EXISTING PROOFS MAY REQUIRE ADAPTION because the order
+and the names of the automatically generated variables have changed.
+split_all_tac has moved within claset() from unsafe wrappers to safe
+wrappers, which means that !!-bound variables are split much more
+aggressively, and safe_tac and clarify_tac now split such variables.
+If this splitting is not appropriate, use delSWrapper "split_all_tac".
+Note: the same holds for record_split_tac, which does the job of
+split_all_tac for record fields.
 
-* HOL/Simplifier:
+* HOL/Simplifier: Rewrite rules for case distinctions can now be added
+permanently to the default simpset using Addsplits just like
+Addsimps. They can be removed via Delsplits just like
+Delsimps. Lower-case versions are also available.
 
- - Rewrite rules for case distinctions can now be added permanently to
-   the default simpset using Addsplits just like Addsimps. They can be
-   removed via Delsplits just like Delsimps. Lower-case versions are
-   also available.
+* HOL/Simplifier: The rule split_if is now part of the default
+simpset. This means that the simplifier will eliminate all occurrences
+of if-then-else in the conclusion of a goal. To prevent this, you can
+either remove split_if completely from the default simpset by
+`Delsplits [split_if]' or remove it in a specific call of the
+simplifier using `... delsplits [split_if]'.  You can also add/delete
+other case splitting rules to/from the default simpset: every datatype
+generates suitable rules `split_t_case' and `split_t_case_asm' (where
+t is the name of the datatype).
 
- - The rule split_if is now part of the default simpset. This means
-   that the simplifier will eliminate all occurrences of if-then-else
-   in the conclusion of a goal. To prevent this, you can either remove
-   split_if completely from the default simpset by `Delsplits
-   [split_if]' or remove it in a specific call of the simplifier using
-   `... delsplits [split_if]'.  You can also add/delete other case
-   splitting rules to/from the default simpset: every datatype
-   generates suitable rules `split_t_case' and `split_t_case_asm'
-   (where t is the name of the datatype).
-
-* Classical reasoner - Simplifier combination: new force_tac (and
+* Classical reasoner / Simplifier combination: new force_tac (and
 derivatives Force_tac, force) combines rewriting and classical
 reasoning (and whatever other tools) similarly to auto_tac, but is
-aimed to solve the given subgoal completely;
+aimed to solve the given subgoal completely.
 
 
 *** General ***
@@ -122,6 +122,8 @@ ISABELLE_HOME/bin;
 * isatool logo -- create instances of the Isabelle logo (as EPS);
 
 * print mode 'emacs' reserved for Isamode;
+
+* support multiple print (ast) translations per constant name;
 
 
 *** HOL ***
@@ -193,9 +195,33 @@ Consider using isatool fixdatatype to adapt your theories and proof
 scripts to the new package (backup your sources first!).
 
 
-* HOL/record package: now includes concrete syntax for record types,
-terms, updates; still lacks important theorems, like surjective
-pairing and split;
+* HOL/record package: considerably improved implementation; now
+includes concrete syntax for record types, terms, updates; theorems
+for surjective pairing and splitting !!-bound record variables; proof
+support is as follows:
+
+  1) standard conversions (selectors or updates applied to record
+constructor terms) are part of the standard simpset;
+
+  2) inject equations of the form ((x, y) = (x', y')) == x=x' & y=y' are
+made part of standard simpset and claset via addIffs;
+
+  3) a tactic for record field splitting (record_split_tac) is part of
+the standard claset (addSWrapper);
+
+To get a better idea about these rules you may retrieve them via
+something like 'thms "foo.simps"' or 'thms "foo.iffs"', where "foo" is
+the name of your record type.
+
+The split tactic 3) conceptually simplifies by the following rule:
+
+  "(!!x. PROP ?P x) == (!!a b. PROP ?P (a, b))"
+
+Thus any record variable that is bound by meta-all will automatically
+blow up into some record constructor term, consequently the
+simplifications of 1), 2) apply.  Thus force_tac, auto_tac etc. shall
+solve record problems automatically.
+
 
 * reorganized the main HOL image: HOL/Integ and String loaded by
 default; theory Main includes everything;
@@ -450,7 +476,7 @@ logics (again);
 
 *** HOL ***
 
-* HOL: there is a new splitter `split_asm_tac' that can be used e.g. 
+* HOL: there is a new splitter `split_asm_tac' that can be used e.g.
   with `addloop' of the simplifier to faciliate case splitting in premises.
 
 * HOL/TLA: Stephan Merz's formalization of Lamport's Temporal Logic of Actions;
@@ -544,7 +570,7 @@ adm (%x. P (t x)), where P is chainfinite and t continuous;
 
 *** FOL and ZF ***
 
-* FOL: there is a new splitter `split_asm_tac' that can be used e.g. 
+* FOL: there is a new splitter `split_asm_tac' that can be used e.g.
   with `addloop' of the simplifier to faciliate case splitting in premises.
 
 * qed_spec_mp, qed_goal_spec_mp, qed_goalw_spec_mp are available, as
@@ -602,7 +628,7 @@ Blast_tac: a new tactic!  It is often more powerful than fast_tac, but has
 some limitations.  Blast_tac...
   + ignores addss, addbefore, addafter; this restriction is intrinsic
   + ignores elimination rules that don't have the correct format
-	(the conclusion MUST be a formula variable)
+        (the conclusion MUST be a formula variable)
   + ignores types, which can make HOL proofs fail
   + rules must not require higher-order unification, e.g. apply_type in ZF
     [message "Function Var's argument not a bound variable" relates to this]
@@ -615,12 +641,12 @@ assumptions;
 setwrapper to setWrapper and compwrapper to compWrapper; added safe wrapper
 (and access functions for it);
 
-* improved combination of classical reasoner and simplifier: 
+* improved combination of classical reasoner and simplifier:
   + functions for handling clasimpsets
   + improvement of addss: now the simplifier is called _after_ the
     safe steps.
   + safe variant of addss called addSss: uses safe simplifications
-    _during_ the safe steps. It is more complete as it allows multiple 
+    _during_ the safe steps. It is more complete as it allows multiple
     instantiations of unknowns (e.g. with slow_tac).
 
 *** Simplifier ***
@@ -676,8 +702,8 @@ problems in commutative rings, using axiomatic type classes for + and *;
 
 * HOLCF/IOA replaces old HOL/IOA;
 
-* HOLCF changes: derived all rules and arities 
-  + axiomatic type classes instead of classes 
+* HOLCF changes: derived all rules and arities
+  + axiomatic type classes instead of classes
   + typedef instead of faking type definitions
   + eliminated the internal constants less_fun, less_cfun, UU_fun, UU_cfun etc.
   + new axclasses cpo, chfin, flat with flat < chfin < pcpo < cpo < po
@@ -765,7 +791,7 @@ New in Isabelle94-4
 
 * theory files (.thy) no longer require \...\ escapes at line breaks;
 
-* searchable theorem database (see the section "Retrieving theorems" on 
+* searchable theorem database (see the section "Retrieving theorems" on
 page 8 of the Reference Manual);
 
 * new examples, including Grabczewski's monumental case study of the
@@ -773,7 +799,7 @@ Axiom of Choice;
 
 * The previous version of HOL renamed to Old_HOL;
 
-* The new version of HOL (previously called CHOL) uses a curried syntax 
+* The new version of HOL (previously called CHOL) uses a curried syntax
 for functions.  Application looks like f a b instead of f(a,b);
 
 * Mutually recursive inductive definitions finally work in HOL;
@@ -786,12 +812,12 @@ translates to the operator "split";
 New in Isabelle94-3
 -------------------
 
-* new infix operator, addss, allowing the classical reasoner to 
+* new infix operator, addss, allowing the classical reasoner to
 perform simplification at each step of its search.  Example:
-	fast_tac (cs addss ss)
+        fast_tac (cs addss ss)
 
-* a new logic, CHOL, the same as HOL, but with a curried syntax 
-for functions.  Application looks like f a b instead of f(a,b).  Also pairs 
+* a new logic, CHOL, the same as HOL, but with a curried syntax
+for functions.  Application looks like f a b instead of f(a,b).  Also pairs
 look like (a,b) instead of <a,b>;
 
 * PLEASE NOTE: CHOL will eventually replace HOL!
@@ -802,7 +828,7 @@ It translates to the operator "split".  A new theory of integers is available;
 * In ZF, integer numerals now denote two's-complement binary integers.
 Arithmetic operations can be performed by rewriting.  See ZF/ex/Bin.ML;
 
-* Many new examples: I/O automata, Church-Rosser theorem, equivalents 
+* Many new examples: I/O automata, Church-Rosser theorem, equivalents
 of the Axiom of Choice;
 
 
@@ -810,7 +836,7 @@ of the Axiom of Choice;
 New in Isabelle94-2
 -------------------
 
-* Significantly faster resolution;  
+* Significantly faster resolution;
 
 * the different sections in a .thy file can now be mixed and repeated
 freely;
