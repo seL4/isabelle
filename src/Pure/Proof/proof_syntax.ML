@@ -56,7 +56,10 @@ fun add_proof_syntax sg =
       [("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
        ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4)),
        ("Abst", (aT --> proofT) --> proofT, NoSyn),
-       ("AbsP", [propT, proofT --> proofT] ---> proofT, NoSyn)]
+       ("AbsP", [propT, proofT --> proofT] ---> proofT, NoSyn),
+       ("Hyp", propT --> proofT, NoSyn),
+       ("Oracle", propT --> proofT, NoSyn),
+       ("MinProof", proofT, Delimfix "?")]
   |> Sign.add_nonterminals ["param", "params"]
   |> Sign.add_syntax_i
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
@@ -150,6 +153,7 @@ fun proof_of_term thy tab ty =
                        | None => error ("Unknown theorem " ^ quote name)))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
+      | prf_of Ts (Const ("Hyp", _) $ prop) = Hyp prop
       | prf_of Ts (v as Var ((_, Type ("proof", _)))) = Hyp v
       | prf_of [] (Const ("Abst", _) $ Abs (s, T, prf)) =
           Abst (s, if ty then Some T else None,
@@ -174,9 +178,9 @@ fun proof_of_term thy tab ty =
 
 val AbsPt = Const ("AbsP", [propT, proofT --> proofT] ---> proofT);
 val AppPt = Const ("AppP", [proofT, proofT] ---> proofT);
-val Hypt = Free ("Hyp", propT --> proofT);
-val Oraclet = Free ("Oracle", propT --> proofT);
-val MinProoft = Free ("?", proofT);
+val Hypt = Const ("Hyp", propT --> proofT);
+val Oraclet = Const ("Oracle", propT --> proofT);
+val MinProoft = Const ("MinProof", proofT);
 
 val mk_tyapp = foldl (fn (prf, T) => Const ("Appt",
   [proofT, itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
