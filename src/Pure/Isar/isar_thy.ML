@@ -79,6 +79,7 @@ sig
   val fix_i: ((string list * typ option) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind: ((string list * string) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
   val match_bind_i: ((term list * term) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val invoke_case: string * Comment.text -> ProofHistory.T -> ProofHistory.T
   val theorem: (bstring * Args.src list * (string * (string list * string list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
   val theorem_i: (bstring * theory attribute list * (term * (term list * term list)))
@@ -287,6 +288,7 @@ val fix = ProofHistory.apply o Proof.fix o map Comment.ignore;
 val fix_i = ProofHistory.apply o Proof.fix_i o map Comment.ignore;
 val match_bind = ProofHistory.apply o Proof.match_bind o map Comment.ignore;
 val match_bind_i = ProofHistory.apply o Proof.match_bind_i o map Comment.ignore;
+val invoke_case = ProofHistory.apply o Proof.invoke_case o Comment.ignore;
 
 
 (* statements *)
