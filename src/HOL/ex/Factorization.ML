@@ -6,6 +6,9 @@
 Fundamental Theorem of Arithmetic (unique factorization into primes)
 *)
 
+val prime_def = thm "prime_def";
+val prime_dvd_mult = thm "prime_dvd_mult";
+
 
 (* --- Arithmetic --- *)
 

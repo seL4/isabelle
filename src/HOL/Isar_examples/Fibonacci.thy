@@ -78,7 +78,7 @@ proof (induct ?P n rule: fib_induct);
   have "fib (n + 2 + 1) = fib (n + 1) + fib (n + 2)";
     by simp;
   also; have "gcd (fib (n + 2), ...) = gcd (fib (n + 2), fib (n + 1))";
-    by (simp only: gcd_add2);
+    by (simp only: gcd_add2');
   also; have "... = gcd (fib (n + 1), fib (n + 1 + 1))";
     by (simp add: gcd_commute);
   also; assume "... = 1";

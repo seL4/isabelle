@@ -64,9 +64,16 @@ qed "fib_Cassini";
 
 (** Towards Law 6.111 of Concrete Mathematics **)
 
+val gcd_induct = thm "gcd_induct";
+val gcd_commute = thm "gcd_commute";
+val gcd_add2 = thm "gcd_add2";
+val gcd_non_0 = thm "gcd_non_0";
+val gcd_mult_cancel = thm "gcd_mult_cancel";
+
+
 Goal "gcd(fib n, fib (Suc n)) = 1";
 by (induct_thm_tac fib.induct "n" 1);
-by (asm_simp_tac (simpset() addsimps [fib_Suc3, gcd_commute, gcd_add2]) 3);
+by (asm_simp_tac (simpset() addsimps [gcd_commute, fib_Suc3]) 3);
 by (ALLGOALS (simp_tac (simpset() addsimps [fib_Suc_Suc])));
 qed "gcd_fib_Suc_eq_1"; 
 
