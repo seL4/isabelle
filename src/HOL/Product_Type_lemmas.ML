@@ -140,7 +140,9 @@ where is can lead to premises of the form !!a b. ... = ?P(a,b)
 which cannot be solved by reflexivity.
 *)
 
+
 (* replace parameters of product type by individual component parameters *)
+val safe_full_simp_tac = generic_simp_tac true (true, false, false);
 local
   fun exists_paired_all (Const ("all", _) $ Abs (_, T, t)) =
         can HOLogic.dest_prodT T orelse exists_paired_all t
@@ -152,13 +154,14 @@ local
     addsimprocs [unit_eq_proc];
 in
   val split_all_tac = SUBGOAL (fn (t, i) =>
+    if exists_paired_all t then safe_full_simp_tac ss i else no_tac);
+  val unsafe_split_all_tac = SUBGOAL (fn (t, i) =>
     if exists_paired_all t then full_simp_tac ss i else no_tac);
   fun split_all th =
-    if exists_paired_all (#prop (Thm.rep_thm th)) then full_simplify ss th else th;
+ if exists_paired_all (#prop (Thm.rep_thm th)) then full_simplify ss th else th;
 end;
 
-claset_ref() := claset()
-  addSWrapper ("split_all_tac", fn tac2 => split_all_tac ORELSE' tac2);
+claset_ref() := claset() addSbefore ("split_all_tac", split_all_tac);
 
 Goal "(!x. P x) = (!a b. P(a,b))";
 by (Fast_tac 1);
@@ -179,6 +182,9 @@ by (Simp_tac 1);
 qed "split_conv";
 Addsimps [split_conv];
 bind_thm ("split", split_conv);                  (*for compatibility*)
+
+bind_thm ("splitI", split_conv RS iffD2);
+bind_thm ("splitD", split_conv RS iffD1);
 
 (*Subsumes the old split_Pair when f is the identity function*)
 Goal "split (%x y. f(x,y)) = f";
@@ -310,10 +316,6 @@ by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "splitI2'";
 
-Goal "c a b ==> split c (a,b)";
-by (Asm_simp_tac 1);
-qed "splitI";
-
 val prems = Goalw [split_def]
     "[| split c p;  !!x y. [| p = (x,y);  c x y |] ==> Q |] ==> Q";
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
@@ -331,9 +333,9 @@ by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 by (rtac (split_beta RS subst) 1 THEN rtac major 1);
 qed "splitE2";
 
-Goal "split R (a,b) ==> R a b";
-by (etac (split_conv RS iffD1) 1);
-qed "splitD";
+Goal "split R (a,b) c ==> R a b c";
+by (Asm_full_simp_tac 1);
+qed "splitD'";
 
 Goal "z: c a b ==> z: split c (a,b)";
 by (Asm_simp_tac 1);
@@ -351,6 +353,12 @@ qed "mem_splitE";
 
 AddSIs [splitI, splitI2, splitI2', mem_splitI, mem_splitI2];
 AddSEs [splitE, splitE', mem_splitE];
+
+(* Optimization: prevents applications of splitE for already splitted arguments
+leading to quite time-consuming computations (in particular for nested tuples)*)
+val split_conv_tac = let val ss = HOL_basic_ss addsimps [split_conv] in 
+  CHANGED o safe_full_simp_tac ss end;
+claset_ref() := claset() addSbefore ("split_conv_tac", split_conv_tac);
 
 Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P";
 by (rtac ext 1);

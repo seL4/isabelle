@@ -448,9 +448,10 @@ qed "act_in_UNION_preserves_fst";
 Goal "[| ALL i:I. F i : preserves snd;  \
 \        ALL i:I. UNION (preserves fst) Acts <= AllowedActs (F i) |] \
 \     ==> OK I (%i. lift i (F i))";
-by (auto_tac (claset(), 
-      simpset() addsimps [OK_def, lift_def, rename_def, export Acts_extend,
-                export AllowedActs_extend, project_act_extend_act]));
+by (auto_tac (claset(),
+    simpset() addsimps [OK_def, lift_def, rename_def, export Acts_extend]));
+by (simp_tac (
+    simpset() addsimps [export AllowedActs_extend,project_act_extend_act]) 1);
 by (rename_tac "act" 1);
 by (subgoal_tac
     "{(x, x'). EX s f u s' f' u'.   \

@@ -202,8 +202,9 @@ by (etac reachable.induct 1);
 by (force_tac (claset() addSIs [reachable.Init],
 	       simpset() addsimps [split_extended_all]) 1);
 by Auto_tac;
-by (force_tac (claset() addIs [project_act_I RSN (3,reachable.Acts)],
-	       simpset()) 2);
+by (force_tac (claset() delSWrapper "split_all_tac" addSbefore 
+   ("unsafe_split_all_tac", unsafe_split_all_tac) 
+   addIs [project_act_I RSN (3,reachable.Acts)], simpset()) 2);
 by (res_inst_tac [("act","x")] reachable.Acts 1);
 by Auto_tac;
 by (etac extend_act_D 1);
@@ -247,12 +248,10 @@ Goal "[| C <= reachable(extend h F Join G);   \
 \        x : reachable (F Join project h C G) |] \
 \     ==> EX y. h(x,y) : reachable (extend h F Join G)";
 by (etac reachable.induct 1);
-by (ALLGOALS Asm_full_simp_tac);
-by (force_tac (claset() delrules [Id_in_Acts]
-		        addIs [reachable.Acts, extend_act_D],
-	       simpset() addsimps [project_act_def]) 2);
-by (force_tac (claset() addIs [reachable.Init],
-	       simpset()) 1);
+by  (force_tac (claset() addIs [reachable.Init], simpset()) 1);
+by (auto_tac (claset(), simpset()addsimps [project_act_def]));
+by (ALLGOALS (force_tac (claset() delrules [Id_in_Acts]
+		        addIs [reachable.Acts, extend_act_D], simpset())));
 qed "reachable_project_imp_reachable";
 
 Goal "project_set h (reachable (extend h F Join G)) = \
@@ -595,18 +594,20 @@ qed "project_Ensures_D";
 (*** Guarantees ***)
 
 Goal "project_act h (Restrict C act) <= project_act h act";
-by (auto_tac (claset(), simpset() addsimps [project_act_def]));  
+by (auto_tac (claset(), simpset() addsimps [project_act_def]));
 qed "project_act_Restrict_subset_project_act";
 					   
 							   
 Goal "[| extend h F ok G; subset_closed (AllowedActs F) |] \
 \     ==> F ok project h C G";
 by (auto_tac (claset(), simpset() addsimps [ok_def]));
-by (dtac subsetD 1);   
-by (Blast_tac 1); 
-by (force_tac (claset() addSIs [rev_image_eqI], simpset()) 1);
+by (dtac subsetD 1);
+by (Blast_tac 1);
+by (force_tac (claset() delSWrapper "split_all_tac" addSbefore 
+                    ("unsafe_split_all_tac", unsafe_split_all_tac) 
+                     addSIs [rev_image_eqI], simpset()) 1);
 by (cut_facts_tac [project_act_Restrict_subset_project_act] 1);
-by (auto_tac (claset(), simpset() addsimps [subset_closed_def]));  
+by (auto_tac (claset(), simpset() addsimps [subset_closed_def]));
 qed "subset_closed_ok_extend_imp_ok_project";
 
 

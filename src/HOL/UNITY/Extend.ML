@@ -753,6 +753,9 @@ Goal "(extend h F ok extend h G) = (F ok G)";
 by (auto_tac (claset(), simpset() addsimps [ok_def]));  
 qed "ok_extend_iff";
 
+Unify.search_bound := 40;
+Unify.trace_bound  := 40;
+
 Goal "OK I (%i. extend h (F i)) = (OK I F)";
 by (auto_tac (claset(), simpset() addsimps [OK_def]));  
 by (dres_inst_tac [("x","i")] bspec 1); 
