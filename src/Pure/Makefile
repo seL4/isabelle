@@ -21,7 +21,8 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
+FILES =	POLY.ML NJ.ML NJ093.ML NJ1xx.ML ROOT.ML basis.ML library.ML\
+	term.ML symtab.ML type.ML sign.ML\
 	sequence.ML envir.ML pattern.ML unify.ML logic.ML theory.ML thm.ML\
 	net.ML display.ML deriv.ML drule.ML tctical.ML search.ML tactic.ML\
 	goals.ML axclass.ML install_pp.ML\
@@ -37,7 +38,7 @@ THY_FILES = Thy/ROOT.ML		Thy/thy_scan.ML		Thy/thy_parse.ML\
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/Pure:   $(FILES)	 $(SYNTAX_FILES)  $(THY_FILES)	$(ML_DBASE)
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo database=$${ML_DBASE:?'No Poly/ML database specified'};\
 		cp $(ML_DBASE) $(BIN)/Pure; chmod u+w $(BIN)/Pure;\
 		echo 'PolyML.use"POLY";use"ROOT" handle _=> exit 1;' \
@@ -49,8 +50,8 @@ $(BIN)/Pure:   $(FILES)	 $(SYNTAX_FILES)  $(THY_FILES)	$(ML_DBASE)
 			exit 1; \
 		fi;\
 		echo 'use"NJ.ML"; use"ROOT.ML" handle _=> exit 1;				     xML"$(BIN)/Pure" banner;' | $(COMP);;\
-	*)	echo Bad value for ISABELLECOMP: \
-			\"$(COMP)\" is not poly or sml;;\
+	*)	echo Bad value for ISABELLECOMP: $(COMP); \
+		echo "   " \"`basename "$(COMP)"`\" is not poly or sml;;\
 	esac
 
 

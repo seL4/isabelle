@@ -29,7 +29,7 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML\
 	   ex/prop.ML ex/quant.ML
 
 $(BIN)/FOLP:   $(BIN)/Pure  $(FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo 'make_database"$(BIN)/FOLP"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -57,7 +57,7 @@ $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
 test:	ex/ROOT.ML  $(BIN)/FOLP	 $(EX_FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
 		       | $(COMP) $(BIN)/FOLP;\

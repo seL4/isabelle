@@ -35,7 +35,7 @@ FILES = ROOT.ML thy_syntax.ML ../Pure/section_utils.ML \
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL	 $(FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	cp $(BIN)/FOL $(BIN)/ZF;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
 		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
@@ -64,12 +64,13 @@ $(BIN)/FOL:
 #### Testing of ZF
 
 #A macro referring to the object-logic (depends on ML compiler)
-LOGIC:sh=case `expr "//$ISABELLECOMP" : '[^ ]*/\(.*\)'` in \
-	poly*)	echo "$ISABELLECOMP $ISABELLEBIN/ZF" ;;\
-	sml*)	echo "$ISABELLEBIN/ZF" ;;\
+#	[Thanks to Thomas Santen and Stephan Herrmann from GMD First]
+LOGIC=`case \`basename "$(ISABELLECOMP)"\` in \
+	poly*)	echo "$(ISABELLECOMP) $(ISABELLEBIN)/ZF" ;;\
+	sml*)	echo "$(ISABELLEBIN)/ZF" ;;\
 	*)	echo "echo; echo Bad value for ISABELLECOMP: \
-			$ISABELLECOMP is not poly or sml; exit 1" ;;\
-	esac
+			$(ISABELLECOMP) is not poly or sml; exit 1" ;;\
+	esac`
 
 ##IMP-semantics example
 IMP_NAMES = Com Denotation Equiv

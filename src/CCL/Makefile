@@ -34,7 +34,7 @@ EX_FILES = ex/ROOT.ML ex/Flag.ML ex/Flag.thy ex/List.ML ex/List.thy\
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)	$(CCL_FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	cp $(BIN)/FOL $(BIN)/CCL;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
 		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
@@ -61,7 +61,7 @@ $(BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
 test:	ex/ROOT.ML  $(BIN)/CCL	$(EX_FILES)
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
 		       | $(COMP) $(BIN)/CCL;\

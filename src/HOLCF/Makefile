@@ -34,7 +34,7 @@ FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/HOLCF:	$(BIN)/HOL  $(FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	cp $(BIN)/HOL $(BIN)/HOLCF; chmod u+w $(BIN)/HOLCF;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
 		then echo 'open PolyML; make_html := true; exit_use_dir".";' \
@@ -66,7 +66,7 @@ EX_THYS =  ex/Fix2.thy ex/Hoare.thy \
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 test:	ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
 		       | $(COMP) $(BIN)/HOLCF;\
@@ -90,7 +90,7 @@ EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS)\
 			 $(EXPLICIT_DOMAINS_THYS:.thy=.ML)
 
 test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF	$(EXPLICIT_DOMAINS_FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"explicit_domains";				  quit();' | $(COMP) $(BIN)/HOLCF;\
 		else echo 'exit_use_dir"explicit_domains"; quit();' \

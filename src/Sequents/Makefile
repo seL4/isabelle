@@ -32,7 +32,7 @@ EX_FILES = ex/ROOT.ML \
     $(ILL_NAMES:%=ex/ILL/%.thy) $(ILL_NAMES:%=ex/ILL/%.ML)
 
 $(BIN)/Sequents:   $(BIN)/Pure	$(FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo 'make_database"$(BIN)/Sequents"; quit();'	\
 			| $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -59,7 +59,7 @@ $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
 test:	$(BIN)/Sequents	 $(EX_FILES)
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo 'exit_use"ex/ROOT.ML";quit();' | $(COMP) $(BIN)/Sequents;;\
 	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/Sequents;;\
 	*)	echo Bad value for ISABELLECOMP: \

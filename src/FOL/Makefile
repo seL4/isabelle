@@ -35,7 +35,7 @@ $(BIN)/FOL:   $(BIN)/Pure  $(FILES)
 			$(BIN) is the Isabelle source directory; \
 			exit 1; \
 	fi
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo 'make_database"$(BIN)/FOL"; quit();' \
 		  | $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -63,7 +63,7 @@ $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
 test:	ex/ROOT.ML  $(BIN)/FOL	$(EX_FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
 		then echo 'make_html := true; exit_use_dir"ex"; quit();' \
 		       | $(COMP) $(BIN)/FOL;\

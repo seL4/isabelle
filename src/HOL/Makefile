@@ -38,7 +38,7 @@ $(BIN)/HOL:   $(BIN)/Pure  $(FILES)
 			$(BIN) is the Isabelle source directory; \
 			exit 1; \
 	fi
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo 'make_database"$(BIN)/HOL"; quit();'  \
 		  | $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -68,12 +68,13 @@ $(BIN)/Pure:
 #### Testing of HOL
 
 #A macro referring to the object-logic (depends on ML compiler)
-LOGIC:sh=case `expr "//$ISABELLECOMP" : '[^ ]*/\(.*\)'` in \
-	poly*)	echo "$ISABELLECOMP $ISABELLEBIN/HOL" ;;\
-	sml*)	echo "$ISABELLEBIN/HOL" ;;\
+#	[Thanks to Thomas Santen and Stephan Herrmann from GMD First]
+LOGIC=`case \`basename "$(ISABELLECOMP)"\` in \
+	poly*)	echo "$(ISABELLECOMP) $(ISABELLEBIN)/HOL" ;;\
+	sml*)	echo "$(ISABELLEBIN)/HOL" ;;\
 	*)	echo "echo; echo Bad value for ISABELLECOMP: \
-			$ISABELLECOMP is not poly or sml; exit 1" ;;\
-	esac
+			$(ISABELLECOMP) is not poly or sml; exit 1" ;;\
+	esac`
 
 ##IMP-semantics example
 IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
@@ -197,8 +198,8 @@ Lex:	$(BIN)/HOL  $(LEX_FILES)
 	fi
 
 ##Miscellaneous examples
-EX_NAMES = String BT Perm Comb InSort Qsort LexProd Puzzle Mutil \
-	    Primes NatSum SList LList Acc PropLog Term Simult MT	    
+EX_NAMES = String BT Perm Comb InSort Qsort LexProd Group Ring Lagrange \
+	   Puzzle Mutil Primes NatSum SList LList Acc PropLog Term Simult MT
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)

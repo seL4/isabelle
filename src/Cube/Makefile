@@ -25,7 +25,7 @@ COMP = $(ISABELLECOMP)
 FILES =		ROOT.ML	 Cube.thy  Cube.ML
 
 $(BIN)/Cube:   $(BIN)/Pure  $(FILES) 
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo 'make_database"$(BIN)/Cube"; quit();'  \
 			| $(COMP) $(BIN)/Pure;\
 		if [ "$${MAKE_HTML}" = "true" ]; \
@@ -53,7 +53,7 @@ $(BIN)/Pure:
 	cd ../Pure;  $(MAKE)
 
 test:	ex.ML $(BIN)/Cube
-	@case `expr "//$(COMP)" : '[^ ]*/\(.*\)'` in \
+	@case `basename "$(COMP)"` in \
 	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/Cube ;;\
 	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/Cube;;\
 	*)	echo Bad value for ISABELLECOMP: \
