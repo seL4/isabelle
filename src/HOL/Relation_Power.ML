@@ -44,7 +44,7 @@ by (cut_facts_tac [p1] 1);
 by (case_tac "n" 1);
 by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
 by (Asm_full_simp_tac 1);
-by (etac compEpair 1);
+by (etac rel_compEpair 1);
 by (REPEAT(ares_tac [p3] 1));
 qed "rel_pow_E";
 
@@ -71,7 +71,7 @@ by (cut_facts_tac [p1] 1);
 by (case_tac "n" 1);
 by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
 by (Asm_full_simp_tac 1);
-by (etac compEpair 1);
+by (etac rel_compEpair 1);
 by (dtac (conjI RS rel_pow_Suc_D2') 1);
 by (assume_tac 1);
 by (etac exE 1);

@@ -26,7 +26,7 @@ Goal
  "([False],[False]) : steps (atom a) w = (w = [])";
 by (induct_tac "w" 1);
  by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [comp_def]) 1);
+by (asm_simp_tac (simpset() addsimps [rel_comp_def]) 1);
 qed "False_False_in_steps_atom";
 
 Goal
@@ -34,7 +34,7 @@ Goal
 by (induct_tac "w" 1);
  by (asm_simp_tac (simpset() addsimps [start_atom]) 1);
 by (asm_full_simp_tac (simpset()
-     addsimps [False_False_in_steps_atom,comp_def,start_atom]) 1);
+     addsimps [False_False_in_steps_atom,rel_comp_def,start_atom]) 1);
 qed "start_fin_in_steps_atom";
 
 Goal

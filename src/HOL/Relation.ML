@@ -71,31 +71,31 @@ qed "diag_subset_Times";
 
 (** Composition of two relations **)
 
-Goalw [comp_def]
+Goalw [rel_comp_def]
     "[| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
 by (Blast_tac 1);
-qed "compI";
+qed "rel_compI";
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
-val prems = Goalw [comp_def]
+val prems = Goalw [rel_comp_def]
     "[| xz : r O s;  \
 \       !!x y z. [| xz = (x,z);  (x,y):s;  (y,z):r |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac prems 1);
 by (REPEAT (eresolve_tac [CollectE, splitE, exE, conjE] 1 
      ORELSE ares_tac prems 1));
-qed "compE";
+qed "rel_compE";
 
 val prems = Goal
     "[| (a,c) : r O s;  \
 \       !!y. [| (a,y):s;  (y,c):r |] ==> P \
 \    |] ==> P";
-by (rtac compE 1);
+by (rtac rel_compE 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Pair_inject,ssubst] 1));
-qed "compEpair";
+qed "rel_compEpair";
 
-AddIs [compI, IdI];
-AddSEs [compE, IdE];
+AddIs [rel_compI, IdI];
+AddSEs [rel_compE, IdE];
 
 Goal "R O Id = R";
 by (Fast_tac 1);
@@ -117,11 +117,11 @@ qed "trans_O_subset";
 
 Goal "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
-qed "comp_mono";
+qed "rel_comp_mono";
 
 Goal "[| s <= A <*> B;  r <= B <*> C |] ==> (r O s) <= A <*> C";
 by (Blast_tac 1);
-qed "comp_subset_Sigma";
+qed "rel_comp_subset_Sigma";
 
 (** Natural deduction for refl(r) **)
 
@@ -191,7 +191,7 @@ Addsimps [converse_converse];
 
 Goal "(r O s)^-1 = s^-1 O r^-1";
 by (Blast_tac 1);
-qed "converse_comp";
+qed "converse_rel_comp";
 
 Goal "Id^-1 = Id";
 by (Blast_tac 1);

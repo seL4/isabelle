@@ -184,7 +184,7 @@ qed "trancl_mono";
 Goalw [trancl_def]
     "!!p. p : r^+ ==> p : r^*";
 by (split_all_tac 1);
-by (etac compEpair 1);
+by (etac rel_compEpair 1);
 by (REPEAT (ares_tac [rtrancl_into_rtrancl] 1));
 qed "trancl_into_rtrancl";
 
@@ -192,7 +192,7 @@ qed "trancl_into_rtrancl";
 Goalw [trancl_def]
    "!!p. p : r ==> p : r^+";
 by (split_all_tac 1);
-by (REPEAT (ares_tac [prem,compI,rtrancl_refl] 1));
+by (REPEAT (ares_tac [prem,rel_compI,rtrancl_refl] 1));
 qed "r_into_trancl";
 AddIs [r_into_trancl];
 
@@ -215,7 +215,7 @@ val major::prems = Goal
 \     !!y.  [| (a,y) : r |] ==> P(y);                   \
 \     !!y z.[| (a,y) : r^+;  (y,z) : r;  P(y) |] ==> P(z)       \
 \  |] ==> P(b)";
-by (rtac (rewrite_rule [trancl_def] major  RS  compEpair) 1);
+by (rtac (rewrite_rule [trancl_def] major  RS  rel_compEpair) 1);
 (*by induction on this formula*)
 by (subgoal_tac "ALL z. (y,z) : r --> P(z)" 1);
 (*now solve first subgoal: this formula is sufficient*)
@@ -241,7 +241,7 @@ val major::prems = Goal
 \    |] ==> P";
 by (subgoal_tac "(a::'a,b) : r | (? y. (a,y) : r^+  &  (y,b) : r)" 1);
 by (REPEAT (eresolve_tac ([asm_rl,disjE,exE,conjE]@prems) 1));
-by (rtac (rewrite_rule [trancl_def] major RS compEpair) 1);
+by (rtac (rewrite_rule [trancl_def] major RS rel_compEpair) 1);
 by (etac rtranclE 1);
 by (Blast_tac 1);
 by (blast_tac (claset() addSIs [rtrancl_into_trancl1]) 1);
@@ -251,8 +251,8 @@ qed "tranclE";
   Proved by unfolding since it uses transitivity of rtrancl. *)
 Goalw [trancl_def] "trans(r^+)";
 by (rtac transI 1);
-by (REPEAT (etac compEpair 1));
-by (rtac (rtrancl_into_rtrancl RS (rtrancl_trans RS compI)) 1);
+by (REPEAT (etac rel_compEpair 1));
+by (rtac (rtrancl_into_rtrancl RS (rtrancl_trans RS rel_compI)) 1);
 by (REPEAT (assume_tac 1));
 qed "trans_trancl";
 
@@ -281,7 +281,7 @@ by (blast_tac (claset() addIs
 qed "trancl_insert";
 
 Goalw [trancl_def] "(r^-1)^+ = (r^+)^-1";
-by (simp_tac (simpset() addsimps [rtrancl_converse,converse_comp]) 1);
+by (simp_tac (simpset() addsimps [rtrancl_converse,converse_rel_comp]) 1);
 by (simp_tac (simpset() addsimps [rtrancl_converse RS sym,
 				  r_comp_rtrancl_eq]) 1);
 qed "trancl_converse";
