@@ -117,9 +117,7 @@ fun with_context f = f (PureThy.get_name (Context.the_context ()));
 
 
 
-
 (** HTML output **)
-
 
 (* maintain index *)
 
@@ -140,7 +138,7 @@ fun create_index dir =
 
 fun update_index dir name =
   (case try get_entries dir of
-    None => warning ("Browser info: cannot access session index in " ^ quote (Path.pack dir))
+    None => warning ("Browser info: cannot access session index of " ^ quote (Path.pack dir))
   | Some es => (put_entries ((es \ name) @ [name]) dir; create_index dir));
 
 
