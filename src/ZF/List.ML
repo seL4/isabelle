@@ -99,7 +99,7 @@ qed "list_rec_type";
 
 (** map **)
 
-val prems = Goalw [get_def (the_context ()) "map_list"] 
+val prems = Goalw [thm "map_list_def"]
     "[| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) : list(B)";
 by (REPEAT (ares_tac (prems @ list.intrs @ [list_rec_type]) 1));
 qed "map_type";
@@ -111,21 +111,21 @@ qed "map_type2";
 
 (** length **)
 
-Goalw [get_def (the_context ()) "length_list"] 
+Goalw [thm "length_list_def"]
     "l: list(A) ==> length(l) : nat";
 by (REPEAT (ares_tac [list_rec_type, nat_0I, nat_succI] 1));
 qed "length_type";
 
 (** app **)
 
-Goalw [get_def (the_context ()) "op @_list"] 
+Goalw [thm "op @_list_def"]
     "[| xs: list(A);  ys: list(A) |] ==> xs@ys : list(A)";
 by (REPEAT (ares_tac [list_rec_type, list.Cons_I] 1));
 qed "app_type";
 
 (** rev **)
 
-Goalw [get_def (the_context ()) "rev_list"] 
+Goalw [thm "rev_list_def"]
     "xs: list(A) ==> rev(xs) : list(A)";
 by (REPEAT (ares_tac (list.intrs @ [list_rec_type, app_type]) 1));
 qed "rev_type";
@@ -133,7 +133,7 @@ qed "rev_type";
 
 (** flat **)
 
-Goalw [get_def (the_context ()) "flat_list"] 
+Goalw [thm "flat_list_def"]
     "ls: list(list(A)) ==> flat(ls) : list(A)";
 by (REPEAT (ares_tac (list.intrs @ [list_rec_type, app_type]) 1));
 qed "flat_type";
@@ -141,7 +141,7 @@ qed "flat_type";
 
 (** set_of_list **)
 
-Goalw [get_def (the_context ()) "set_of_list_list"] 
+Goalw [thm "set_of_list_list_def"]
     "l: list(A) ==> set_of_list(l) : Pow(A)";
 by (etac list_rec_type 1);
 by (ALLGOALS (Blast_tac));
@@ -156,7 +156,7 @@ qed "set_of_list_append";
 
 (** list_add **)
 
-Goalw [get_def (the_context ()) "list_add_list"] 
+Goalw [thm "list_add_list_def"] 
     "xs: list(nat) ==> list_add(xs) : nat";
 by (REPEAT (ares_tac [list_rec_type, nat_0I, add_type] 1));
 qed "list_add_type";
