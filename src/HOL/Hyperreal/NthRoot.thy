@@ -8,10 +8,13 @@ header{*Existence of Nth Root*}
 
 theory NthRoot = SEQ + HSeries:
 
-text{*Various lemmas needed for this result. We follow the proof
-   given by John Lindsay Orr (jorr@math.unl.edu) in his Analysis
-   Webnotes available on the www at http://www.math.unl.edu/~webnotes
-   Lemmas about sequences of reals are used to reach the result.*}
+text {*
+  Various lemmas needed for this result. We follow the proof given by
+  John Lindsay Orr (\texttt{jorr@math.unl.edu}) in his Analysis
+  Webnotes available at \url{http://www.math.unl.edu/~webnotes}.
+
+  Lemmas about sequences of reals are used to reach the result.
+*}
 
 lemma lemma_nth_realpow_non_empty:
      "[| (0::real) < a; 0 < n |] ==> \<exists>s. s : {x. x ^ n <= a & 0 < x}"
