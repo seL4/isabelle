@@ -24,6 +24,12 @@ section "Orders";
 
 AddIffs [order_refl];
 
+(*This form is useful with the classical reasoner*)
+goal Ord.thy "!!x::'a::order. x = y ==> x <= y";
+by (etac ssubst 1);
+by (rtac order_refl 1);
+qed "order_eq_refl";
+
 goal Ord.thy "~ x < (x::'a::order)";
 by (simp_tac (simpset() addsimps [order_less_le]) 1);
 qed "order_less_irrefl";
