@@ -379,7 +379,7 @@ fun delete_tagged_brl (brl as (eres,th), (inet,enet)) =
     if eres then 
 	case prems_of th of
 	    prem::_ => (inet, Net.delete_term ((prem, (0,brl)), enet, eq_kbrl))
-	  | [] => error"delete_brl: elimination rule with no premises"
+	  | []      => (inet,enet)     (*no major premise: ignore*)
     else (Net.delete_term ((concl_of th, (0,brl)), inet, eq_kbrl), enet);
 end;
 
