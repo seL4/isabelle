@@ -141,8 +141,7 @@ by (Step_tac 1);
 by (subgoal_tac "ALL p b. p : evnodd a b --> p ~: evnodd ta b" 1);
 by (asm_simp_tac (!simpset addsimps [evnodd_Un, Un_insert_left, 
                                      tiling_domino_finite,
-                                     evnodd_subset RS finite_subset,
-                                     card_insert_disjoint]) 1);
+                                     evnodd_subset RS finite_subset]) 1);
 by (blast_tac (!claset addSDs [evnodd_subset RS subsetD] addEs [equalityE]) 1);
 qed "tiling_domino_0_1";
 
