@@ -156,6 +156,35 @@ by (simp_tac (ZF_ss addsimps [tot_ord_Int_iff, wf_on_Int_iff]) 1);
 qed "well_ord_Int_iff";
 
 
+(** Relations over the Empty Set **)
+
+goalw Order.thy [irrefl_def] "irrefl(0,r)";
+by (fast_tac ZF_cs 1);
+qed "irrefl_0";
+
+goalw Order.thy [trans_on_def] "trans[0](r)";
+by (fast_tac ZF_cs 1);
+qed "trans_on_0";
+
+goalw Order.thy [part_ord_def] "part_ord(0,r)";
+by (simp_tac (ZF_ss addsimps [irrefl_0, trans_on_0]) 1);
+qed "part_ord_0";
+
+goalw Order.thy [linear_def] "linear(0,r)";
+by (fast_tac ZF_cs 1);
+qed "linear_0";
+
+goalw Order.thy [tot_ord_def] "tot_ord(0,r)";
+by (simp_tac (ZF_ss addsimps [part_ord_0, linear_0]) 1);
+qed "tot_ord_0";
+
+goalw Order.thy [wf_on_def, wf_def] "wf[0](r)";
+by (fast_tac eq_cs 1);
+qed "wf_on_0";
+
+goalw Order.thy [well_ord_def] "well_ord(0,r)";
+by (simp_tac (ZF_ss addsimps [tot_ord_0, wf_on_0]) 1);
+qed "well_ord_0";
 
 
 (** Order-preserving (monotone) maps **)
@@ -178,6 +207,13 @@ qed "mono_map_is_inj";
 
 
 (** Order-isomorphisms -- or similarities, as Suppes calls them **)
+
+val prems = goalw Order.thy [ord_iso_def]
+    "[| f: bij(A, B);	\
+\       !!x y. [| x:A; y:A |] ==> <x, y> : r <-> <f`x, f`y> : s	\
+\    |] ==> f: ord_iso(A,r,B,s)";
+by (fast_tac (ZF_cs addSIs prems) 1);
+qed "ord_isoI";
 
 goalw Order.thy [ord_iso_def, mono_map_def]
     "!!f. f: ord_iso(A,r,B,s) ==> f: mono_map(A,r,B,s)";
@@ -216,14 +252,20 @@ val bij_inverse_ss =
 
 (** Symmetry and Transitivity Rules **)
 
-(*Symmetry of similarity: the order-isomorphism relation*)
+(*Reflexivity of similarity*)
+goal Order.thy "id(A): ord_iso(A,r,A,r)";
+by (resolve_tac [id_bij RS ord_isoI] 1);
+by (asm_simp_tac (ZF_ss addsimps [id_conv]) 1);
+qed "ord_iso_refl";
+
+(*Symmetry of similarity*)
 goalw Order.thy [ord_iso_def] 
     "!!f. f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)";
 by (safe_tac ZF_cs);
 by (ALLGOALS (asm_full_simp_tac bij_inverse_ss));
 qed "ord_iso_sym";
 
-(*Transitivity of similarity: the order-isomorphism relation*)
+(*Transitivity of similarity*)
 goalw Order.thy [mono_map_def] 
     "!!f. [| g: mono_map(A,r,B,s);  f: mono_map(B,s,C,t) |] ==> \
 \         (f O g): mono_map(A,r,C,t)";
@@ -365,8 +407,8 @@ goal Order.thy
 \      restrict(f, pred(A,a,r)) : ord_iso(pred(A,a,r), r, pred(B, f`a, s), s)";
 by (asm_simp_tac (ZF_ss addsimps [ord_iso_image_pred RS sym]) 1);
 by (rewrite_goals_tac [ord_iso_def]);
-by (step_tac ZF_cs 1);
-by (asm_full_simp_tac (ZF_ss addsimps [pred_def]) 2);
+by (etac CollectE 1);
+by (rtac CollectI 1);
 by (asm_full_simp_tac (ZF_ss addsimps [pred_def]) 2);
 by (eresolve_tac [[bij_is_inj, pred_subset] MRS restrict_bij] 1);
 qed "ord_iso_restrict_pred";
