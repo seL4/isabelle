@@ -74,8 +74,10 @@ struct
 			File.sysify_path svc_output_file ^
 			" " ^ File.sysify_path svc_input_file ^ 
 			"> /dev/null 2>&1"))
-      val svc_output = File.read svc_output_file
-	               handle _ => error "SVC returned no output"
+      val svc_output =
+        (case Library.try File.read svc_output_file of
+          Some out => out
+        | None => error "SVC returned no output");
   in
       if ! trace then writeln ("SVC Returns:\n" ^ svc_output)
       else (File.rm svc_input_file; File.rm svc_output_file);
@@ -150,7 +152,8 @@ struct
                become part of the Var's name*)
       | var (t,_) = raise OracleExn t;
     (*translation of a literal*)
-    fun lit (Const("Numeral.number_of", _) $ w) = NumeralSyntax.dest_bin w
+    fun lit (Const("Numeral.number_of", _) $ w) =
+          (HOLogic.dest_binum w handle TERM _ => raise Match)
       | lit (Const("0", _)) = 0
       | lit (Const("RealDef.0r", _)) = 0
       | lit (Const("RealDef.1r", _)) = 1
