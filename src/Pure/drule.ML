@@ -39,6 +39,7 @@ sig
     (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
   val zero_var_indexes  : thm -> thm
   val standard          : thm -> thm
+  val standard'         : thm -> thm
   val rotate_prems      : int -> thm -> thm
   val rearrange_prems   : int list -> thm -> thm
   val assume_ax         : theory -> string -> thm
@@ -62,6 +63,7 @@ sig
   val transitive_thm    : thm
   val refl_implies      : thm
   val symmetric_fun     : thm -> thm
+  val extensional       : thm -> thm
   val imp_cong          : thm
   val swap_prems_eq     : thm
   val equal_abs_elim    : cterm  -> thm -> thm
@@ -88,7 +90,6 @@ sig
   val tag               : tag -> 'a attribute
   val untag             : string -> 'a attribute
   val tag_lemma         : 'a attribute
-  val tag_assumption    : 'a attribute
   val tag_internal      : 'a attribute
   val has_internal	: tag list -> bool
   val close_derivation  : thm -> thm
@@ -249,7 +250,6 @@ fun untag s x = rule_attribute (K (untag_rule s)) x;
 fun simple_tag name x = tag (name, []) x;
 
 fun tag_lemma x = simple_tag "lemma" x;
-fun tag_assumption x = simple_tag "assumption" x;
 
 val internal_tag = ("internal", []);
 fun tag_internal x = tag internal_tag x;
@@ -329,14 +329,16 @@ fun close_derivation thm =
   if Thm.get_name_tags thm = ("", []) then Thm.name_thm ("", thm)
   else thm;
 
-fun standard th =
+fun standard' th =
   let val {maxidx,...} = rep_thm th in
     th
     |> implies_intr_hyps
     |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
     |> strip_shyps_warning
-    |> zero_var_indexes |> Thm.varifyT |> Thm.compress |> close_derivation
+    |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
+
+val standard = close_derivation o standard';
 
 
 (*Convert all Vars in a theorem to Frees.  Also return a function for
@@ -480,6 +482,8 @@ fun read_prop s = read_cterm proto_sign (s, propT);
 
 fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
 fun store_standard_thm name thm = store_thm name (standard thm);
+fun open_store_thm name thm = hd (PureThy.open_smart_store_thms (name, [thm]));
+fun open_store_standard_thm name thm = open_store_thm name (standard' thm);
 
 val reflexive_thm =
   let val cx = cterm_of proto_sign (Var(("x",0),TVar(("'a",0),logicS)))
@@ -497,6 +501,11 @@ val transitive_thm =
 
 fun symmetric_fun thm = thm RS symmetric_thm;
 
+fun extensional eq =
+  let val eq' =
+    abstract_rule "x" (snd (Thm.dest_comb (fst (dest_equals (cprop_of eq))))) eq
+  in equal_elim (eta_conversion (cprop_of eq')) eq' end;
+
 val imp_cong =
   let
     val ABC = read_prop "PROP A ==> PROP B == PROP C"
@@ -504,7 +513,7 @@ val imp_cong =
     val AC = read_prop "PROP A ==> PROP C"
     val A = read_prop "PROP A"
   in
-    store_standard_thm "imp_cong" (implies_intr ABC (equal_intr
+    open_store_standard_thm "imp_cong" (implies_intr ABC (equal_intr
       (implies_intr AB (implies_intr A
         (equal_elim (implies_elim (assume ABC) (assume A))
           (implies_elim (assume AB) (assume A)))))
@@ -520,7 +529,7 @@ val swap_prems_eq =
     val A = read_prop "PROP A"
     val B = read_prop "PROP B"
   in
-    store_standard_thm "swap_prems_eq" (equal_intr
+    open_store_standard_thm "swap_prems_eq" (equal_intr
       (implies_intr ABC (implies_intr B (implies_intr A
         (implies_elim (implies_elim (assume ABC) (assume A)) (assume B)))))
       (implies_intr BAC (implies_intr A (implies_intr B
@@ -533,12 +542,12 @@ val refl_implies = reflexive implies;
 (*** Some useful meta-theorems ***)
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
-val asm_rl = store_standard_thm "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
+val asm_rl = open_store_standard_thm "asm_rl" (Thm.trivial (read_prop "PROP ?psi"));
 val _ = store_thm "_" asm_rl;
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
 val cut_rl =
-  store_standard_thm "cut_rl"
+  open_store_standard_thm "cut_rl"
     (Thm.trivial (read_prop "PROP ?psi ==> PROP ?theta"));
 
 (*Generalized elim rule for one conclusion; cut_rl with reversed premises:
@@ -547,7 +556,7 @@ val revcut_rl =
   let val V = read_prop "PROP V"
       and VW = read_prop "PROP V ==> PROP W";
   in
-    store_standard_thm "revcut_rl"
+    open_store_standard_thm "revcut_rl"
       (implies_intr V (implies_intr VW (implies_elim (assume VW) (assume V))))
   end;
 
@@ -555,7 +564,7 @@ val revcut_rl =
 val thin_rl =
   let val V = read_prop "PROP V"
       and W = read_prop "PROP W";
-  in  store_standard_thm "thin_rl" (implies_intr V (implies_intr W (assume W)))
+  in  open_store_standard_thm "thin_rl" (implies_intr V (implies_intr W (assume W)))
   end;
 
 (* (!!x. PROP ?V) == PROP ?V       Allows removal of redundant parameters*)
@@ -564,9 +573,9 @@ val triv_forall_equality =
       and QV = read_prop "!!x::'a. PROP V"
       and x  = read_cterm proto_sign ("x", TypeInfer.logicT);
   in
-    store_standard_thm "triv_forall_equality"
-      (standard (equal_intr (implies_intr QV (forall_elim x (assume QV)))
-        (implies_intr V  (forall_intr x (assume V)))))
+    open_store_standard_thm "triv_forall_equality"
+      (equal_intr (implies_intr QV (forall_elim x (assume QV)))
+        (implies_intr V  (forall_intr x (assume V))))
   end;
 
 (* (PROP ?PhiA ==> PROP ?PhiB ==> PROP ?Psi) ==>
@@ -580,7 +589,7 @@ val swap_prems_rl =
       val minor1 = assume cminor1;
       val cminor2 = read_prop "PROP PhiB";
       val minor2 = assume cminor2;
-  in store_standard_thm "swap_prems_rl"
+  in open_store_standard_thm "swap_prems_rl"
        (implies_intr cmajor (implies_intr cminor2 (implies_intr cminor1
          (implies_elim (implies_elim major minor1) minor2))))
   end;
@@ -593,7 +602,7 @@ val equal_intr_rule =
   let val PQ = read_prop "PROP phi ==> PROP psi"
       and QP = read_prop "PROP psi ==> PROP phi"
   in
-    store_standard_thm "equal_intr_rule"
+    open_store_standard_thm "equal_intr_rule"
       (implies_intr PQ (implies_intr QP (equal_intr (assume PQ) (assume QP))))
   end;
 
