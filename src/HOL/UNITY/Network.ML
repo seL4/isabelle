@@ -49,8 +49,8 @@ by (blast_tac (claset() delrules [le0]) 1);
 by (Clarify_tac 1);
 by (subgoals_tac ["s' (Aproc, Rcvd) = s (Aproc, Rcvd)",
 		  "s' (Bproc, Rcvd) = s (Bproc, Rcvd)"] 1);
-by (REPEAT (blast_tac (claset() addIs [le_anti_sym, le_trans, eq_imp_le]) 2));
-
+by (REPEAT 
+    (blast_tac (claset() addIs [order_antisym, le_trans, eq_imp_le]) 2));
 by (Asm_simp_tac 1);
 result();
 

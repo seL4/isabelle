@@ -55,7 +55,7 @@ by (fast_tac (claset() addIs [mono_lemma,less_imp_le,lemma2]@prems) 1);
 qed "f_mono";
 
 Goal "f(n) = n";
-by (rtac le_anti_sym 1);
+by (rtac order_antisym 1);
 by (rtac lemma1 2);
 by (fast_tac (claset() addIs [Puzzle.f_ax,leI] addDs [leD,f_mono,Suc_leI]) 1);
 result();

@@ -116,7 +116,7 @@ by Auto_tac;
 by (ensures_tac "asgt a b" 1);
 by (Blast_tac 2);
 by (full_simp_tac (simpset() addsimps [not_less_iff_le]) 1);
-by (dtac (metric_le RS le_anti_sym) 1);
+by (dtac (metric_le RS order_antisym) 1);
 by (auto_tac (claset() addEs [less_not_refl3 RSN (2, rev_notE)],
 	      simpset()));
 qed "LeadsTo_Diff_fixedpoint";

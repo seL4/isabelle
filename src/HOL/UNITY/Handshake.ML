@@ -27,7 +27,7 @@ by (Force_tac 1);
 by (rtac (constrains_imp_Constrains RS StableI) 1);
 by (auto_tac (claset(), simpset() addsimps [constrains_Join]));
 by (constrains_tac 2);
-by (auto_tac (claset() addIs [le_anti_sym] addSEs [le_SucE], simpset()));
+by (auto_tac (claset() addIs [order_antisym] addSEs [le_SucE], simpset()));
 by (constrains_tac 1);
 qed "invFG";
 

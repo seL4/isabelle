@@ -155,11 +155,13 @@ val n_le_Max = thm "n_le_Max";
 
 AddIffs [Min_le_n, n_le_Max];
 
-val le_MinD = Min_le_n RS zle_anti_sym;
-val Max_leD = n_le_Max RSN (2,zle_anti_sym);
+val le_MinD = Min_le_n RS order_antisym;
+val Max_leD = n_le_Max RSN (2,order_antisym);
 
-AddSDs [le_MinD, zleI RS le_MinD,
-	Max_leD, zleI RS Max_leD];
+val linorder_leI = linorder_not_less RS iffD1;
+
+AddSDs [le_MinD, linorder_leI RS le_MinD,
+	Max_leD, linorder_leI RS Max_leD];
 
 (*lem_lift_2_0 
   NOT an ensures property, but a mere inclusion;
@@ -194,7 +196,7 @@ by (cut_facts_tac [moving_up] 1);
 by (ensures_tac "move_up" 1);
 by Safe_tac;
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
-by (etac (zleI RS zle_anti_sym RS sym) 1);
+by (etac (linorder_leI RS order_antisym RS sym) 1);
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (REPEAT_FIRST distinct_tac);
 (** LEVEL 6 **)
@@ -213,7 +215,7 @@ by (cut_facts_tac [moving_down] 1);
 by (ensures_tac "move_down" 1);
 by Safe_tac;
 (*this step consolidates two formulae to the goal  metric n s' <= metric n s*)
-by (etac (zleI RS zle_anti_sym RS sym) 1);
+by (etac (linorder_leI RS order_antisym RS sym) 1);
 by (REPEAT_FIRST (eresolve_tac mov_metrics));
 by (REPEAT_FIRST distinct_tac);
 (** LEVEL 6 **)
@@ -354,7 +356,7 @@ by (rtac (Always_nonneg RS integ_0_le_induct) 1);
 by (case_tac "#0 < z" 1);
 (*If z <= #0 then actually z = #0*)
 by (fold_tac [zle_def]);
-by (force_tac (claset() addIs [R_thm11, zle_anti_sym], simpset()) 2);
+by (force_tac (claset() addIs [R_thm11, order_antisym], simpset()) 2);
 by (rtac ([asm_rl, Un_upper1] MRS LeadsTo_weaken_R) 1);
 by (rtac ([subset_imp_LeadsTo, LeadsTo_Un] MRS LeadsTo_Trans) 1);
 by (rtac lift_3_Req 3);
