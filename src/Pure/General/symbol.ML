@@ -26,6 +26,7 @@ sig
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
   val is_blank: symbol -> bool
+  val is_identifier: symbol -> bool
   val is_symbolic: symbol -> bool
   val is_printable: symbol -> bool
   val length: symbol list -> int
@@ -111,6 +112,10 @@ fun is_printable s =
   size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
   is_symbolic s;
 
+fun is_identifier s =
+  case (explode s) of
+      [] => false
+    | c::cs => is_letter c andalso forall is_letdig cs;
 
 fun sym_length ss = foldl (fn (n, s) =>
   (if not (is_printable s) then 0 else
