@@ -54,15 +54,16 @@ sig
                             (* [| i rel1 j; m rel2 n |] ==> i + m rel3 j + n *)
   val lessD:            thm list ref (* m < n ==> m+1 <= n *)
   val decomp:
-    (term -> ((term * int)list * int * string * (term * int)list * int)option)
-    ref
+    term ->
+      ((term * int)list * int * string * (term * int)list * int * bool)option
   val simp: (thm -> thm) ref
 end;
 (*
-decomp(`x Rel y') should yield (p,i,Rel,q,j)
+decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
    where Rel is one of "<", "~<", "<=", "~<=" and "=" and
          p/q is the decomposition of the sum terms x/y into a list
-         of summand * multiplicity pairs and a constant summand.
+         of summand * multiplicity pairs and a constant summand and
+         d indicates if the domain is discrete.
 
 simp must reduce contradictory <= to False.
    It should also cancel common summands to keep <= reduced;
@@ -94,6 +95,7 @@ datatype injust = Asm of int
                 | LessD of injust
                 | NotLessD of injust
                 | NotLeD of injust
+                | NotLeDD of injust
                 | Multiplied of int * injust
                 | Added of injust * injust;
 
@@ -191,13 +193,13 @@ fun extract_first p =
         | extract xs []      = (None,xs)
   in extract [] end;
 
-(*
+
 fun print_ineqs ineqs =
  writeln(cat_lines(""::map (fn Lineq(c,t,l,_) =>
    string_of_int c ^
    (case t of Eq => " =  " | Lt=> " <  " | Le => " <= ") ^
    commas(map string_of_int l)) ineqs));
-*)
+
 
 fun elim ineqs =
   let (*val dummy = print_ineqs ineqs;*)
@@ -251,9 +253,9 @@ local
  exception FalseE of thm
 in
 fun mkthm sg asms just =
-  let val atoms = foldl (fn (ats,(lhs,_,_,rhs,_)) =>
+  let val atoms = foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
-                        ([], mapfilter (!LA_Data.decomp o concl_of) asms)
+                        ([], mapfilter (LA_Data.decomp o concl_of) asms)
 
       fun addthms thm1 thm2 =
         let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
@@ -269,22 +271,23 @@ fun mkthm sg asms just =
         let val thm' = !LA_Data.simp thm
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
-      fun mk(Asm i) = nth_elem(i,asms)
-        | mk(Nat(i)) = LA_Logic.mk_nat_thm sg (nth_elem(i,atoms))
-        | mk(LessD(j)) = hd([mk j] RL !LA_Data.lessD)
-        | mk(NotLeD(j)) = hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)
-        | mk(NotLessD(j)) = mk j RS LA_Logic.not_lessD
-        | mk(Added(j1,j2)) = simp(addthms (mk j1) (mk j2))
-        | mk(Multiplied(n,j)) = multn(n,mk j)
+      fun mk(Asm i) = ((*writeln"Asm";prth*)(nth_elem(i,asms)))
+        | mk(Nat(i)) = ((*writeln"N";LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
+        | mk(LessD(j)) = ((*writeln"L";prth*)(hd([mk j] RL !LA_Data.lessD)))
+        | mk(NotLeD(j)) = ((*writeln"NLe";prth*)(mk j RS LA_Logic.not_leD))
+        | mk(NotLeDD(j)) = ((*writeln"NLeD";prth*)(hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)))
+        | mk(NotLessD(j)) = ((*writeln"NL";prth*)(mk j RS LA_Logic.not_lessD))
+        | mk(Added(j1,j2)) = ((*writeln"+";prth*)(simp(prth(addthms (mk j1) (mk j2)))))
+        | mk(Multiplied(n,j)) = ((*writeln"*";multn(n,mk j))
 
-  in !LA_Data.simp(mk just) handle FalseE thm => thm end
+  in (*writeln"mkthm";*)!LA_Data.simp(mk just) handle FalseE thm => thm end
 end;
 
 fun coeff poly atom = case assoc(poly,atom) of None => 0 | Some i => i;
 
 fun mklineq atoms =
   let val n = length atoms in
-    fn ((lhs,i,rel,rhs,j),k) =>
+    fn ((lhs,i,rel,rhs,j,discrete),k) =>
     let val lhsa = map (coeff lhs) atoms
         and rhsa = map (coeff rhs) atoms
         val diff = map2 (op -) (rhsa,lhsa)
@@ -292,8 +295,12 @@ fun mklineq atoms =
         val just = Asm k
     in case rel of
         "<="   => Some(Lineq(c,Le,diff,just))
-       | "~<=" => Some(Lineq(1-c,Le,map (op ~) diff,NotLeD(just)))
-       | "<"   => Some(Lineq(c+1,Le,diff,LessD(just)))
+       | "~<=" => if discrete
+                  then Some(Lineq(1-c,Le,map (op ~) diff,NotLeDD(just)))
+                  else Some(Lineq(~c,Lt,map (op ~) diff,NotLeD(just)))
+       | "<"   => if discrete
+                  then Some(Lineq(c+1,Le,diff,LessD(just)))
+                  else Some(Lineq(c,Lt,diff,just))
        | "~<"  => Some(Lineq(~c,Le,map (op~) diff,NotLessD(just)))
        | "="   => Some(Lineq(c,Eq,diff,just))
        | "~="  => None
@@ -308,7 +315,7 @@ fun mknat pTs ixs (atom,i) =
   else None
 
 fun abstract pTs items =
-  let val atoms = foldl (fn (ats,((lhs,_,_,rhs,_),_)) =>
+  let val atoms = foldl (fn (ats,((lhs,_,_,rhs,_,_),_)) =>
                             (map fst lhs) union ((map fst rhs) union ats))
                         ([],items)
       val ixs = 0 upto (length(atoms)-1)
@@ -330,11 +337,11 @@ fun refute1_tac(i,just) =
     state;
 
 (* Double refutation caused by equality in conclusion *)
-fun refute2(pTs,items, (rhs,i,_,lhs,j), nHs) =
-  (case elim (abstract pTs (items@[((rhs,i,"<",lhs,j),nHs)])) of
+fun refute2(pTs,items, (rhs,i,_,lhs,j,d), nHs) =
+  (case elim (abstract pTs (items@[((rhs,i,"<",lhs,j,d),nHs)])) of
     None => []
   | Some(Lineq(_,_,_,j1)) =>
-      (case elim (abstract pTs (items@[((lhs,j,"<",rhs,i),nHs)])) of
+      (case elim (abstract pTs (items@[((lhs,j,"<",rhs,i,d),nHs)])) of
         None => []
       | Some(Lineq(_,_,_,j2)) => [j1,j2]));
 
@@ -350,16 +357,16 @@ fun refute2_tac(i,just1,just2) =
 fun prove(pTs,Hs,concl) =
 let val nHs = length Hs
     val ixHs = Hs ~~ (0 upto (nHs-1))
-    val Hitems = mapfilter (fn (h,i) => case !LA_Data.decomp h of
+    val Hitems = mapfilter (fn (h,i) => case LA_Data.decomp h of
                                  None => None | Some(it) => Some(it,i)) ixHs
-in case !LA_Data.decomp concl of
+in case LA_Data.decomp concl of
      None => if null Hitems then [] else refute1(pTs,Hitems)
-   | Some(citem as (r,i,rel,l,j)) =>
+   | Some(citem as (r,i,rel,l,j,d)) =>
        if rel = "="
        then refute2(pTs,Hitems,citem,nHs)
        else let val neg::rel0 = explode rel
                 val nrel = if neg = "~" then implode rel0 else "~"^rel
-            in refute1(pTs, Hitems@[((r,i,nrel,l,j),nHs)]) end
+            in refute1(pTs, Hitems@[((r,i,nrel,l,j,d),nHs)]) end
 end;
 
 (*
