@@ -1,13 +1,13 @@
 #! /bin/sh
-#
-#expandshort - shell script to expand shorthand goal commands
+# $Id$
+#Shell script to expand shorthand goal commands
 #  ALSO contracts uses of resolve_tac, dresolve_tac, eresolve_tac,
 #     rewrite_goals_tac on 1-element lists
 #
 # Usage:
 #    expandshort FILE1 ... FILEn
 #
-#  leaves previous versions as XXX~~
+#Renames old versions of the files as FILE1~~ ... FILEn~~
 #
 for f in $*
 do
