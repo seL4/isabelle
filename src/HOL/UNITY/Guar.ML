@@ -80,7 +80,7 @@ qed "guaranteesD";
 (*This version of guaranteesD matches more easily in the conclusion
   The major premise can no longer be  F<=H since we need to reason about G*)
 Goalw [guar_def]
-     "[| F : X guarantees[v] Y;  H : X;  F Join G = H;  G : preserves v |] \
+     "[| F : X guarantees[v] Y;  F Join G = H;  H : X;  G : preserves v |] \
 \     ==> H : Y";
 by (Blast_tac 1);
 qed "component_guaranteesD";

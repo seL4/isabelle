@@ -79,11 +79,14 @@ by (blast_tac (claset() addIs [transient_strengthen]) 2);
 by (blast_tac (claset() addIs [stable_constrains_Int, constrains_weaken]) 1);
 qed "stable_ensures_Int";
 
-(*NEVER USED*)
 Goal "[| F : stable A;  F : transient C;  A <= B Un C |] ==> F : A ensures B";
 by (asm_full_simp_tac (simpset() addsimps [ensures_def, stable_def]) 1);
 by (blast_tac (claset() addIs [constrains_weaken, transient_strengthen]) 1);
 qed "stable_transient_ensures";
+
+Goal "(A ensures B) = (A unless B) Int transient (A-B)";
+by (simp_tac (simpset() addsimps [ensures_def, unless_def]) 1);
+qed "ensures_eq";
 
 
 (*** leadsTo ***)

@@ -88,8 +88,7 @@ constdefs
 	 Increasing giv
 	 guarantees[funPair rel ask]
 	 (INT h. {s. h <= giv s & h pfixGe ask s}
-		 LeadsTo[givenBy (funPair rel ask)]
-		 {s. tokens h <= (tokens o rel) s})"
+		 Ensures {s. tokens h <= (tokens o rel) s})"
 
   (*spec: preserves part*)
     client_preserves :: clientState program set
@@ -101,15 +100,18 @@ constdefs
 
 (** Allocator specification (required) ***)
 
+  (*Specified over the systemState, not the allocState, since then the
+    leads-to properties could not be transferred to  extend sysOfAlloc Alloc*)
+  
   (*spec (6)*)
-  alloc_increasing :: allocState program set
+  alloc_increasing :: systemState program set
     "alloc_increasing ==
 	 UNIV
          guarantees[allocGiv]
 	 (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
   (*spec (7)*)
-  alloc_safety :: allocState program set
+  alloc_safety :: systemState program set
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
          guarantees[allocGiv]
@@ -117,7 +119,7 @@ constdefs
 	         <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}"
 
   (*spec (8)*)
-  alloc_progress :: allocState program set
+  alloc_progress :: systemState program set
     "alloc_progress ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
 	                             Increasing (sub i o allocRel))
@@ -132,14 +134,14 @@ constdefs
          guarantees[allocGiv]
 	     (INT i : lessThan Nclients.
 	      INT h. {s. h <= (sub i o allocAsk) s}
-	             LeadsTo[givenBy allocGiv]
+	             LeadsTo
 	             {s. h pfixLe (sub i o allocGiv) s})"
 
   (*spec: preserves part*)
-    alloc_preserves :: allocState program set
-    "alloc_preserves == preserves (funPair allocRel allocAsk)"
+    alloc_preserves :: systemState program set
+    "alloc_preserves == preserves (funPair client (funPair allocRel allocAsk))"
   
-  alloc_spec :: allocState program set
+  alloc_spec :: systemState program set
     "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_preserves"
 
@@ -190,7 +192,7 @@ constdefs
 
 locale System =
   fixes 
-    Alloc   :: allocState program
+    Alloc   :: systemState program
     Client  :: clientState program
     Network :: systemState program
     System  :: systemState program
@@ -202,9 +204,6 @@ locale System =
 
   defines
     System_def
-      "System == (extend sysOfAlloc Alloc)
-                 Join
-                 (extend sysOfClient (plam x: lessThan Nclients. Client))
-                 Join
-                 Network"
+      "System == Alloc Join Network Join
+                 (extend sysOfClient (plam x: lessThan Nclients. Client))"
 end

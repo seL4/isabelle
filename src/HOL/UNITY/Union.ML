@@ -181,6 +181,10 @@ by (auto_tac
      simpset() addsimps [constrains_def, Join_def]));
 qed "Join_constrains";
 
+Goal "(F Join G : A unless B) = (F : A unless B & G : A unless B)";
+by (simp_tac (simpset() addsimps [Join_constrains, unless_def]) 1);
+qed "Join_unless";
+
 (*Analogous weak versions FAIL; see Misra [1994] 5.4.1, Substitution Axiom.
   reachable (F Join G) could be much bigger than reachable F, reachable G
 *)

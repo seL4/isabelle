@@ -9,7 +9,7 @@ The safety conditions ensures that "givenBy f" is implementable in the
   progress part: g cannot do anything silly.
 *)
 
-Follows = ELT +
+Follows = Project +
 
 constdefs
 

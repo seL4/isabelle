@@ -4,6 +4,22 @@
     Copyright   1999  University of Cambridge
 
 leadsTo strengthened with a specification of the allowable sets transient parts
+
+TRY INSTEAD (to get rid of the {} and to gain strong induction)
+
+  elt :: "['a set set, 'a program, 'a set] => ('a set) set"
+
+inductive "elt CC F B"
+  intrs 
+
+    Weaken  "A <= B ==> A : elt CC F B"
+
+    ETrans  "[| F : A ensures A';  A-A' : CC;  A' : elt CC F B |]
+	     ==> A : elt CC F B"
+
+    Union  "{A. A: S} : Pow (elt CC F B) ==> (Union S) : elt CC F B"
+
+  monos Pow_mono
 *)
 
 ELT = Project +
@@ -27,10 +43,6 @@ inductive "elt CC F"
 
 
 constdefs
-
-  (*the set of all sets determined by f alone*)
-  givenBy :: "['a => 'b] => 'a set set"
-    "givenBy f == range (%B. f-`` B)"
 
   (*visible version of the LEADS-TO relation*)
   leadsETo :: "['a set, 'a set set, 'a set] => 'a program set"

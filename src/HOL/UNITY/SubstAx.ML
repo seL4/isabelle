@@ -157,14 +157,18 @@ qed "LeadsTo_Union_distrib";
 
 (** More rules using the premise "Always INV" **)
 
-Goal "[| F : (A-A') Co (A Un A');  F : transient (A-A') |]   \
-\     ==> F : A LeadsTo A'";
+Goal "F : A Ensures B ==> F : A LeadsTo B";
 by (asm_full_simp_tac
-    (simpset() addsimps [LeadsTo_def, Constrains_eq_constrains]) 1);
-by (rtac (ensuresI RS leadsTo_Basis) 1);
-by (blast_tac (claset() addIs [transient_strengthen]) 2);
-by (blast_tac (claset() addIs [constrains_weaken]) 1);
+    (simpset() addsimps [Ensures_def, LeadsTo_def, leadsTo_Basis]) 1);
 qed "LeadsTo_Basis";
+
+Goal "[| F : (A-B) Co (A Un B);  F : transient (A-B) |]   \
+\     ==> F : A Ensures B";
+by (asm_full_simp_tac
+    (simpset() addsimps [Ensures_def, Constrains_eq_constrains]) 1);
+by (blast_tac (claset() addIs [ensuresI, constrains_weaken, 
+			       transient_strengthen]) 1);
+qed "EnsuresI";
 
 Goal "[| F : Always INV;      \
 \        F : (INV Int (A-A')) Co (A Un A'); \
@@ -172,9 +176,9 @@ Goal "[| F : Always INV;      \
 \ ==> F : A LeadsTo A'";
 by (rtac Always_LeadsToI 1);
 by (assume_tac 1);
-by (rtac LeadsTo_Basis 1);
-by (blast_tac (claset() addIs [transient_strengthen]) 2);
-by (blast_tac (claset() addIs [Always_ConstrainsD RS Constrains_weaken]) 1);
+by (blast_tac (claset() addIs [EnsuresI, LeadsTo_Basis,
+			       Always_ConstrainsD RS Constrains_weaken, 
+			       transient_strengthen]) 1);
 qed "Always_LeadsTo_Basis";
 
 (*Set difference: maybe combine with leadsTo_weaken_L??
@@ -420,7 +424,7 @@ fun ensures_tac sact =
 	      etac Always_LeadsTo_Basis 1 
 	          ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
 		  REPEAT (ares_tac [LeadsTo_Basis, leadsTo_Basis,
-				    ensuresI] 1),
+				    EnsuresI, ensuresI] 1),
 	      (*now there are two subgoals: co & transient*)
 	      simp_tac (simpset() addsimps !program_defs_ref) 2,
 	      res_inst_tac [("act", sact)] transientI 2,

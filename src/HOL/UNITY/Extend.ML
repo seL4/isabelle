@@ -327,6 +327,7 @@ Goalw [SKIP_def] "extend h SKIP = SKIP";
 by (rtac program_equalityI 1);
 by Auto_tac;
 qed "extend_SKIP";
+Addsimps [export extend_SKIP];
 
 Goal "project_set h UNIV = UNIV";
 by Auto_tac;
@@ -456,6 +457,24 @@ by (asm_simp_tac (simpset() addsimps [Always_def, extend_Stable]) 1);
 qed "extend_Always";
 
 
+(** Further lemmas **)
+
+Goal "A Int extend_set h ((project_set h A) Int B) = A Int extend_set h B";
+by (auto_tac (claset(), simpset() addsimps [split_extended_all]));
+qed "Int_extend_set_lemma";
+
+Goal "G : C co B ==> project h C G : project_set h C co project_set h B";
+by (full_simp_tac (simpset() addsimps [constrains_def, project_def, 
+				       project_act_def]) 1);
+by (Blast_tac 1);
+qed "project_constrains_project_set";
+
+Goal "G : stable C ==> project h C G : stable (project_set h C)";
+by (asm_full_simp_tac (simpset() addsimps [stable_def, 
+					   project_constrains_project_set]) 1);
+qed "project_stable_project_set";
+
+
 (*** Progress: transient, ensures ***)
 
 Goal "(extend h F : transient (extend_set h A)) = (F : transient A)";
@@ -548,6 +567,24 @@ by (simp_tac
     (simpset() addsimps [LeadsTo_def, reachable_extend_eq, 
 			 extend_leadsto, extend_set_Int_distrib RS sym]) 1);
 qed "extend_LeadsTo";
+
+
+(*** givenBy: USEFUL??? ***)
+
+Goal "givenBy (v o f) = extend_set h `` (givenBy v)";
+by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by (Deepen_tac 0 1);
+qed "givenBy_o_eq_extend_set";
+
+Goal "givenBy f = range (extend_set h)";
+by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by (Deepen_tac 0 1);
+qed "givenBy_eq_extend_set";
+
+Goal "D : givenBy v ==> extend_set h D : givenBy (v o f)";
+by (full_simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
+by (Blast_tac 1);
+qed "extend_set_givenBy_I";
 
 
 Close_locale "Extend";

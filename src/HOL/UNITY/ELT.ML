@@ -6,69 +6,6 @@
 leadsTo strengthened with a specification of the allowable sets transient parts
 *)
 
-Goalw [givenBy_def] "givenBy id = UNIV";
-by Auto_tac;
-qed "givenBy_id";
-Addsimps [givenBy_id];
-
-Goalw [givenBy_def] "(givenBy v) = {A. ALL x:A. ALL y. v x = v y --> y: A}";
-by Safe_tac;
-by (res_inst_tac [("x", "v `` ?u")] image_eqI 2);
-by Auto_tac;
-qed "givenBy_eq_all";
-
-Goal "givenBy v = {A. EX P. A = {s. P(v s)}}";
-by (simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
-by Safe_tac;
-by (res_inst_tac [("x", "%n. EX s. v s = n & s : ?A")] exI 1);
-by (Blast_tac 1);
-by Auto_tac;
-qed "givenBy_eq_Collect";
-
-val prems =
-Goal "(!!x y. [| x:A;  v x = v y |] ==> y: A) ==> A: givenBy v";
-by (stac givenBy_eq_all 1);
-by (blast_tac (claset() addIs prems) 1);
-qed "givenByI";
-
-Goalw [givenBy_def] "[| A: givenBy v;  x:A;  v x = v y |] ==> y: A";
-by Auto_tac;
-qed "givenByD";
-
-Goal "{} : givenBy v";
-by (blast_tac (claset() addSIs [givenByI]) 1);
-qed "empty_mem_givenBy";
-
-AddIffs [empty_mem_givenBy];
-
-Goal "A: givenBy v ==> EX P. A = {s. P(v s)}";
-by (res_inst_tac [("x", "%n. EX s. v s = n & s : A")] exI 1);
-by (full_simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
-by (Blast_tac 1);
-qed "givenBy_imp_eq_Collect";
-
-Goalw [givenBy_def] "EX P. A = {s. P(v s)} ==> A: givenBy v";
-by (Best_tac 1);
-qed "eq_Collect_imp_givenBy";
-
-Goal "givenBy v = {A. EX P. A = {s. P(v s)}}";
-by (blast_tac (claset() addIs [eq_Collect_imp_givenBy,
-			       givenBy_imp_eq_Collect]) 1);
-qed "givenBy_eq_eq_Collect";
-
-(*preserving v preserves properties given by v*)
-Goal "[| F : preserves v;  D : givenBy v |] ==> F : stable D";
-by (force_tac (claset(), 
-	       simpset() addsimps [impOfSubs preserves_subset_stable, 
-				   givenBy_eq_Collect]) 1);
-qed "preserves_givenBy_imp_stable";
-
-Goal "givenBy (w o v) <= givenBy v";
-by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by (Deepen_tac 0 1);
-qed "givenBy_o_subset";
-
-
 (** Standard leadsTo rules **)
 
 Goalw [leadsETo_def]
@@ -80,6 +17,7 @@ Goalw [leadsETo_def]
      "[| F : A leadsTo[CC] B;  F : B leadsTo[CC] C |] ==> F : A leadsTo[CC] C";
 by (blast_tac (claset() addIs [elt.Trans]) 1);
 qed "leadsETo_Trans";
+
 
 (*Useful with cancellation, disjunction*)
 Goal "F : A leadsTo[CC] (A' Un A') ==> F : A leadsTo[CC] A'";
@@ -126,6 +64,11 @@ by (blast_tac (claset() addIs [leadsETo_Trans]) 2);
 by (blast_tac (claset() addIs [leadsETo_Basis]) 1);
 qed "leadsETo_mono";
 
+Goal "[| F : A leadsTo[CC] B;  F : B leadsTo[DD] C |] \
+\     ==> F : A leadsTo[CC Un DD] C";
+by (blast_tac (claset() addIs [impOfSubs leadsETo_mono, leadsETo_Trans]) 1);
+qed "leadsETo_Trans_Un";
+
 val prems = Goalw [leadsETo_def]
  "(!!A. A : S ==> F : (A Int C) leadsTo[CC] B) ==> F : (Union S Int C) leadsTo[CC] B";
 by (simp_tac (HOL_ss addsimps [Int_Union_Union]) 1);
@@ -152,6 +95,7 @@ qed "subset_imp_leadsETo";
 
 bind_thm ("empty_leadsETo", empty_subsetI RS subset_imp_leadsETo);
 Addsimps [empty_leadsETo];
+
 
 
 (** Weakening laws **)
@@ -478,22 +422,6 @@ qed "LeadsETo_UNIV_eq_LeadsTo";
 
 Open_locale "Extend";
 
-Goal "givenBy (v o f) = extend_set h `` (givenBy v)";
-by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by (Deepen_tac 0 1);
-qed "givenBy_o_eq_extend_set";
-
-Goal "givenBy f = range (extend_set h)";
-by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by (Deepen_tac 0 1);
-qed "givenBy_eq_extend_set";
-
-Goal "D : givenBy v ==> extend_set h D : givenBy (v o f)";
-by (full_simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
-by (Blast_tac 1);
-qed "extend_set_givenBy_I";
-
-
 Goal "F : A leadsTo[CC] B \
 \     ==> extend h F : (extend_set h A) leadsTo[extend_set h `` CC] \
 \                      (extend_set h B)";
@@ -504,24 +432,6 @@ by (force_tac (claset() addIs [leadsETo_Basis, subset_imp_ensures],
 	       simpset() addsimps [extend_ensures,
 				   extend_set_Diff_distrib RS sym]) 1);
 qed "leadsETo_imp_extend_leadsETo";
-
-(*MOVE to Extend.ML?*)
-Goal "A Int extend_set h ((project_set h A) Int B) = A Int extend_set h B";
-by (auto_tac (claset(), simpset() addsimps [split_extended_all]));
-qed "Int_extend_set_lemma";
-
-(*MOVE to extend.ML??*)
-Goal "G : C co B ==> project h C G : project_set h C co project_set h B";
-by (full_simp_tac (simpset() addsimps [constrains_def, project_def, 
-				       project_act_def]) 1);
-by (Blast_tac 1);
-qed "project_constrains_project_set";
-
-(*MOVE to extend.ML??*)
-Goal "G : stable C ==> project h C G : stable (project_set h C)";
-by (asm_full_simp_tac (simpset() addsimps [stable_def, 
-					   project_constrains_project_set]) 1);
-qed "project_stable_project_set";
 
 
 
@@ -534,18 +444,6 @@ by (assume_tac 2);
 by (blast_tac (claset() addSIs [preserves_givenBy_imp_stable,
 				project_preserves_I]) 1);
 result();
-
-(*GENERALIZES the version proved in Project.ML*)
-Goal "[| G : preserves (v o f);  \
-\        project h C G : transient (C' Int D);  \
-\        project h C G : stable C';  D : givenBy v |]    \
-\     ==> C' Int D = {}";
-by (rtac stable_transient_empty 1);
-by (assume_tac 2);
-(*If addIs then PROOF FAILED at depth 3*)
-by (blast_tac (claset() addSIs [stable_Int, preserves_givenBy_imp_stable,
-				project_preserves_I]) 1);
-qed "preserves_o_project_transient_empty";
 
 
 (*This version's stronger in the "ensures" precondition
