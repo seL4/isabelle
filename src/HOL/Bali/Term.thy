@@ -1,7 +1,7 @@
 (*  Title:      HOL/Bali/Term.thy
     ID:         $Id$
     Author:     David von Oheimb
-    Copyright   1997 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Java expressions and statements *}
