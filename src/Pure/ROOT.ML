@@ -11,7 +11,6 @@ val version = "Isabelle repository version";    (*filled in automatically!*)
 
 
 print_depth 10;
-error_depth 30;
 
 (*fake hiding of private structures*)
 structure Hidden = struct end;
