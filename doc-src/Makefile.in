@@ -11,7 +11,7 @@ BIBTEX = bibtex
 RAIL = rail
 SEDINDEX = ../sedindex
 
-GARBAGE = *.aux *.log *.toc *.idx *.rai *.bbl *.ind *.blg
+GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.blg
 OUTPUT = *.dvi *.pdf *.ps
 
 
