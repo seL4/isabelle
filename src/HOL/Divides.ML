@@ -9,21 +9,13 @@ The division operators div, mod and the divides relation "dvd"
 
 (** Less-then properties **)
 
-(*In ordinary notation: if 0<n and n<=m then m-n < m *)
-Goal "[| 0<n; ~ m<n |] ==> m - n < m";
-by (subgoal_tac "0<n --> ~ m<n --> m - n < m" 1);
-by (Blast_tac 1);
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS(asm_simp_tac(simpset() addsimps [diff_less_Suc])));
-qed "diff_less";
-
 val wf_less_trans = [eq_reflection, wf_pred_nat RS wf_trancl] MRS 
                     def_wfrec RS trans;
 
 (*** Remainder ***)
 
 Goal "(%m. m mod n) = wfrec (trancl pred_nat) \
-             \                      (%f j. if j<n then j else f (j-n))";
+\                           (%f j. if j<n then j else f (j-n))";
 by (simp_tac (simpset() addsimps [mod_def]) 1);
 qed "mod_eq";
 
@@ -36,6 +28,11 @@ Goal "[| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n";
 by (rtac (mod_eq RS wf_less_trans) 1);
 by (asm_simp_tac (simpset() addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "mod_geq";
+
+(*Avoids the ugly ~m<n above*)
+Goal "[| 0<n;  n<=m |] ==> m mod n = (m-n) mod n";
+by (asm_simp_tac (simpset() addsimps [mod_geq, not_less_iff_le]) 1);
+qed "le_mod_geq";
 
 (*NOT suitable for rewriting: loops*)
 Goal "0<n ==> m mod n = (if m<n then m else (m-n) mod n)";
@@ -113,6 +110,11 @@ Goal "[| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)";
 by (rtac (div_eq RS wf_less_trans) 1);
 by (asm_simp_tac (simpset() addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "div_geq";
+
+(*Avoids the ugly ~m<n above*)
+Goal "[| 0<n;  n<=m |] ==> m div n = Suc((m-n) div n)";
+by (asm_simp_tac (simpset() addsimps [div_geq, not_less_iff_le]) 1);
+qed "le_div_geq";
 
 (*NOT suitable for rewriting: loops*)
 Goal "0<n ==> m div n = (if m<n then 0 else Suc((m-n) div n))";
@@ -245,12 +247,12 @@ by (excluded_middle_tac "Suc(na)<n" 1);
 by (forward_tac [lessI RS less_trans] 2);
 by (asm_simp_tac (simpset() addsimps [mod_less, less_not_refl3]) 2);
 (* case n <= Suc(na) *)
-by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, mod_geq]) 1);
-by (etac (le_imp_less_or_eq RS disjE) 1);
-by (asm_simp_tac (simpset() addsimps [Suc_diff_n]) 1);
-by (asm_full_simp_tac (simpset() addsimps [not_less_eq RS sym, 
-                                          diff_less, mod_geq]) 1);
-by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
+by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, le_Suc_eq, 
+					   mod_geq]) 1);
+by (etac disjE 1);
+ by (asm_simp_tac (simpset() addsimps [mod_less]) 2);
+by (asm_simp_tac (simpset() addsimps [Suc_diff_le, le_diff_less, 
+				      le_mod_geq]) 1);
 qed "mod_Suc";
 
 Goal "0<n ==> m mod n < n";
@@ -325,7 +327,7 @@ by (asm_simp_tac (simpset() addsimps [div_less, zero_less_mult_iff,
 by (subgoal_tac "~ k*na < k*n" 1);
 by (asm_simp_tac
      (simpset() addsimps [zero_less_mult_iff, div_geq,
-                         diff_mult_distrib2 RS sym, diff_less]) 1);
+			  diff_mult_distrib2 RS sym, diff_less]) 1);
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, 
                                           le_refl RS mult_le_mono]) 1);
 qed "div_cancel";
