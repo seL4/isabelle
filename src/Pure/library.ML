@@ -1038,7 +1038,7 @@ fun warning s = !warning_fn s;
 
 (*print error message and abort to top level*)
 exception ERROR;
-fun error_msg s = !error_fn s;	  (*promise to raise ERROR later!*)
+fun error_msg s = !error_fn s;
 fun error s = (error_msg s; raise ERROR);
 fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
 
@@ -1064,19 +1064,24 @@ fun get_error (Error msg) = Some msg
 fun get_ok (OK x) = Some x
   | get_ok _ = None;
 
+datatype 'a result =
+  Result of 'a |
+  Exn of exn;
+
 fun handle_error f x =
   let
     val buffer = ref ([]: string list);
     fun capture s = buffer := ! buffer @ [s];
-    val result = Some (setmp error_fn capture f x) handle ERROR => None;
+    fun err_msg () = if not (null (! buffer)) then error_msg (cat_lines (! buffer)) else ();
   in
-    (case result of
-      None => Error (cat_lines (! buffer))
-    | Some y => OK y)
+    (case Result (setmp error_fn capture f x) handle exn => Exn exn of
+      Result y => (err_msg (); OK y)
+    | Exn ERROR => Error (cat_lines (! buffer))
+    | Exn exn => (err_msg (); raise exn))
   end;
 
 
-(* transform ERROR into ERROR_MESSAGE, capturing the side-effect *)
+(* transform ERROR into ERROR_MESSAGE *)
 
 exception ERROR_MESSAGE of string;
 
