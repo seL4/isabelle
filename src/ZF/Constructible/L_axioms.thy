@@ -20,23 +20,31 @@ apply (simp add: L_def)
 apply (blast intro: zero_in_Lset)
 done
 
-lemma upair_ax: "upair_ax(L)"
+theorem upair_ax: "upair_ax(L)"
 apply (simp add: upair_ax_def upair_def, clarify)
 apply (rule_tac x="{x,y}" in rexI)
 apply (simp_all add: doubleton_in_L)
 done
 
-lemma Union_ax: "Union_ax(L)"
+theorem Union_ax: "Union_ax(L)"
 apply (simp add: Union_ax_def big_union_def, clarify)
 apply (rule_tac x="Union(x)" in rexI)
 apply (simp_all add: Union_in_L, auto)
 apply (blast intro: transL)
 done
 
-lemma power_ax: "power_ax(L)"
+theorem power_ax: "power_ax(L)"
 apply (simp add: power_ax_def powerset_def Relative.subset_def, clarify)
 apply (rule_tac x="{y \<in> Pow(x). L(y)}" in rexI)
 apply (simp_all add: LPow_in_L, auto)
+apply (blast intro: transL)
+done
+
+text{*We don't actually need @{term L} to satisfy the foundation axiom.*}
+theorem foundation_ax: "foundation_ax(L)"
+apply (simp add: foundation_ax_def)
+apply (rule rallI) 
+apply (cut_tac A=x in foundation)
 apply (blast intro: transL)
 done
 
@@ -65,7 +73,7 @@ apply (drule LReplace_in_Lset, assumption+)
 apply (blast intro: L_I Lset_in_Lset_succ)
 done
 
-lemma replacement: "replacement(L,P)"
+theorem replacement: "replacement(L,P)"
 apply (simp add: replacement_def, clarify)
 apply (frule LReplace_in_L, assumption+, clarify)
 apply (rule_tac x=Y in rexI)

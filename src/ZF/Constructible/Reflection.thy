@@ -37,16 +37,16 @@ locale reflection =
       and Mset_cont    : "cont_Ord(Mset)"
       and Pair_in_Mset : "[| x \<in> Mset(a); y \<in> Mset(a); Limit(a) |] 
                           ==> <x,y> \<in> Mset(a)"
-  defines "M(x) == \<exists>a. Ord(a) \<and> x \<in> Mset(a)"
-      and "Reflects(Cl,P,Q) == Closed_Unbounded(Cl) \<and>
+  defines "M(x) == \<exists>a. Ord(a) & x \<in> Mset(a)"
+      and "Reflects(Cl,P,Q) == Closed_Unbounded(Cl) &
                               (\<forall>a. Cl(a) --> (\<forall>x\<in>Mset(a). P(x) <-> Q(a,x)))"
   fixes F0 --{*ordinal for a specific value @{term y}*}
   fixes FF --{*sup over the whole level, @{term "y\<in>Mset(a)"}*}
   fixes ClEx --{*Reflecting ordinals for the formula @{term "\<exists>z. P"}*}
-  defines "F0(P,y) == \<mu>b. (\<exists>z. M(z) \<and> P(<y,z>)) --> 
+  defines "F0(P,y) == \<mu>b. (\<exists>z. M(z) & P(<y,z>)) --> 
                                (\<exists>z\<in>Mset(b). P(<y,z>))"
       and "FF(P)   == \<lambda>a. \<Union>y\<in>Mset(a). F0(P,y)"
-      and "ClEx(P,a) == Limit(a) \<and> normalize(FF(P),a) = a"
+      and "ClEx(P,a) == Limit(a) & normalize(FF(P),a) = a"
 
 lemma (in reflection) Mset_mono: "i\<le>j ==> Mset(i) <= Mset(j)"
 apply (insert Mset_mono_le) 
@@ -56,7 +56,7 @@ done
 text{*Awkward: we need a version of @{text ClEx_def} as an equality
       at the level of classes, which do not really exist*}
 lemma (in reflection) ClEx_eq:
-     "ClEx(P) == \<lambda>a. Limit(a) \<and> normalize(FF(P),a) = a"
+     "ClEx(P) == \<lambda>a. Limit(a) & normalize(FF(P),a) = a"
 by (simp add: ClEx_def [symmetric]) 
 
 
@@ -72,26 +72,26 @@ by (simp add: Reflects_def)
 
 theorem (in reflection) And_reflection [intro]:
      "[| Reflects(Cl,P,Q); Reflects(C',P',Q') |] 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> C'(a), \<lambda>x. P(x) \<and> P'(x), 
-                                      \<lambda>a x. Q(a,x) \<and> Q'(a,x))"
+      ==> Reflects(\<lambda>a. Cl(a) & C'(a), \<lambda>x. P(x) & P'(x), 
+                                      \<lambda>a x. Q(a,x) & Q'(a,x))"
 by (simp add: Reflects_def Closed_Unbounded_Int, blast)
 
 theorem (in reflection) Or_reflection [intro]:
      "[| Reflects(Cl,P,Q); Reflects(C',P',Q') |] 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> C'(a), \<lambda>x. P(x) \<or> P'(x), 
-                                      \<lambda>a x. Q(a,x) \<or> Q'(a,x))"
+      ==> Reflects(\<lambda>a. Cl(a) & C'(a), \<lambda>x. P(x) | P'(x), 
+                                      \<lambda>a x. Q(a,x) | Q'(a,x))"
 by (simp add: Reflects_def Closed_Unbounded_Int, blast)
 
 theorem (in reflection) Imp_reflection [intro]:
      "[| Reflects(Cl,P,Q); Reflects(C',P',Q') |] 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> C'(a), 
+      ==> Reflects(\<lambda>a. Cl(a) & C'(a), 
                    \<lambda>x. P(x) --> P'(x), 
                    \<lambda>a x. Q(a,x) --> Q'(a,x))"
 by (simp add: Reflects_def Closed_Unbounded_Int, blast)
 
 theorem (in reflection) Iff_reflection [intro]:
      "[| Reflects(Cl,P,Q); Reflects(C',P',Q') |] 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> C'(a), 
+      ==> Reflects(\<lambda>a. Cl(a) & C'(a), 
                    \<lambda>x. P(x) <-> P'(x), 
                    \<lambda>a x. Q(a,x) <-> Q'(a,x))"
 by (simp add: Reflects_def Closed_Unbounded_Int, blast) 
@@ -155,7 +155,7 @@ done
 
 lemma (in ex_reflection) ClEx_upward:
      "[| z\<in>Mset(a); y\<in>Mset(a); Q(a,<y,z>); Cl(a); ClEx(P,a) |] 
-      ==> \<exists>z. M(z) \<and> P(<y,z>)"
+      ==> \<exists>z. M(z) & P(<y,z>)"
 apply (simp add: ClEx_def M_def)
 apply (blast dest: Cl_reflects
 	     intro: Limit_is_Ord Pair_in_Mset)
@@ -164,7 +164,7 @@ done
 text{*Class @{text ClEx} indeed consists of reflecting ordinals...*}
 lemma (in ex_reflection) ZF_ClEx_iff:
      "[| y\<in>Mset(a); Cl(a); ClEx(P,a) |] 
-      ==> (\<exists>z. M(z) \<and> P(<y,z>)) <-> (\<exists>z\<in>Mset(a). Q(a,<y,z>))"
+      ==> (\<exists>z. M(z) & P(<y,z>)) <-> (\<exists>z\<in>Mset(a). Q(a,<y,z>))"
 by (blast intro: dest: ClEx_downward ClEx_upward) 
 
 text{*...and it is closed and unbounded*}
@@ -181,7 +181,7 @@ text{*Class @{text ClEx} indeed consists of reflecting ordinals...*}
 lemma (in reflection) ClEx_iff:
      "[| y\<in>Mset(a); Cl(a); ClEx(P,a);
         !!a. [| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) <-> Q(a,x) |] 
-      ==> (\<exists>z. M(z) \<and> P(<y,z>)) <-> (\<exists>z\<in>Mset(a). Q(a,<y,z>))"
+      ==> (\<exists>z. M(z) & P(<y,z>)) <-> (\<exists>z\<in>Mset(a). Q(a,<y,z>))"
 apply (unfold ClEx_def FF_def F0_def M_def)
 apply (rule ex_reflection.ZF_ClEx_iff
   [OF ex_reflection.intro, OF reflection.intro ex_reflection_axioms.intro,
@@ -209,8 +209,8 @@ subsection{*Packaging the Quantifier Reflection Rules*}
 
 lemma (in reflection) Ex_reflection_0:
      "Reflects(Cl,P0,Q0) 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(P0,a), 
-                   \<lambda>x. \<exists>z. M(z) \<and> P0(<x,z>), 
+      ==> Reflects(\<lambda>a. Cl(a) & ClEx(P0,a), 
+                   \<lambda>x. \<exists>z. M(z) & P0(<x,z>), 
                    \<lambda>a x. \<exists>z\<in>Mset(a). Q0(a,<x,z>))" 
 apply (simp add: Reflects_def) 
 apply (intro conjI Closed_Unbounded_Int)
@@ -221,7 +221,7 @@ done
 
 lemma (in reflection) All_reflection_0:
      "Reflects(Cl,P0,Q0) 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(\<lambda>x.~P0(x), a), 
+      ==> Reflects(\<lambda>a. Cl(a) & ClEx(\<lambda>x.~P0(x), a), 
                    \<lambda>x. \<forall>z. M(z) --> P0(<x,z>), 
                    \<lambda>a x. \<forall>z\<in>Mset(a). Q0(a,<x,z>))" 
 apply (simp only: all_iff_not_ex_not ball_iff_not_bex_not) 
@@ -231,15 +231,15 @@ done
 
 theorem (in reflection) Ex_reflection [intro]:
      "Reflects(Cl, \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))) 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(\<lambda>x. P(fst(x),snd(x)), a), 
-                   \<lambda>x. \<exists>z. M(z) \<and> P(x,z), 
+      ==> Reflects(\<lambda>a. Cl(a) & ClEx(\<lambda>x. P(fst(x),snd(x)), a), 
+                   \<lambda>x. \<exists>z. M(z) & P(x,z), 
                    \<lambda>a x. \<exists>z\<in>Mset(a). Q(a,x,z))"
 by (rule Ex_reflection_0 [of _ " \<lambda>x. P(fst(x),snd(x))" 
                                "\<lambda>a x. Q(a,fst(x),snd(x))", simplified])
 
 theorem (in reflection) All_reflection [intro]:
      "Reflects(Cl,  \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x)))
-      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(\<lambda>x. ~P(fst(x),snd(x)), a), 
+      ==> Reflects(\<lambda>a. Cl(a) & ClEx(\<lambda>x. ~P(fst(x),snd(x)), a), 
                    \<lambda>x. \<forall>z. M(z) --> P(x,z), 
                    \<lambda>a x. \<forall>z\<in>Mset(a). Q(a,x,z))" 
 by (rule All_reflection_0 [of _ "\<lambda>x. P(fst(x),snd(x))" 
@@ -249,14 +249,14 @@ text{*And again, this time using class-bounded quantifiers*}
 
 theorem (in reflection) Rex_reflection [intro]:
      "Reflects(Cl, \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))) 
-      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(\<lambda>x. P(fst(x),snd(x)), a), 
+      ==> Reflects(\<lambda>a. Cl(a) & ClEx(\<lambda>x. P(fst(x),snd(x)), a), 
                    \<lambda>x. \<exists>z[M]. P(x,z), 
                    \<lambda>a x. \<exists>z\<in>Mset(a). Q(a,x,z))"
 by (unfold rex_def, blast) 
 
 theorem (in reflection) Rall_reflection [intro]:
      "Reflects(Cl,  \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x)))
-      ==> Reflects(\<lambda>a. Cl(a) \<and> ClEx(\<lambda>x. ~P(fst(x),snd(x)), a), 
+      ==> Reflects(\<lambda>a. Cl(a) & ClEx(\<lambda>x. ~P(fst(x),snd(x)), a), 
                    \<lambda>x. \<forall>z[M]. P(x,z), 
                    \<lambda>a x. \<forall>z\<in>Mset(a). Q(a,x,z))" 
 by (unfold rall_def, blast) 
@@ -272,7 +272,7 @@ given as the variable @{text ?Cl} and later retrieved from the final
 proof state.*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>x. \<exists>y. M(y) \<and> x \<in> y, 
+               \<lambda>x. \<exists>y. M(y) & x \<in> y, 
                \<lambda>a x. \<exists>y\<in>Mset(a). x \<in> y)"
 by fast
 
@@ -280,8 +280,8 @@ text{*Problem here: there needs to be a conjunction (class intersection)
 in the class of reflecting ordinals.  The @{term "Ord(a)"} is redundant,
 though harmless.*}
 lemma (in reflection) 
-     "Reflects(\<lambda>a. Ord(a) \<and> ClEx(\<lambda>x. fst(x) \<in> snd(x), a),   
-               \<lambda>x. \<exists>y. M(y) \<and> x \<in> y, 
+     "Reflects(\<lambda>a. Ord(a) & ClEx(\<lambda>x. fst(x) \<in> snd(x), a),   
+               \<lambda>x. \<exists>y. M(y) & x \<in> y, 
                \<lambda>a x. \<exists>y\<in>Mset(a). x \<in> y)" 
 by fast
 
@@ -289,31 +289,31 @@ by fast
 text{*Example 2*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>x. \<exists>y. M(y) \<and> (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
+               \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
                \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<subseteq> x --> z \<in> y)" 
 by fast
 
 text{*Example 2'.  We give the reflecting class explicitly. *}
 lemma (in reflection) 
   "Reflects
-    (\<lambda>a. (Ord(a) \<and>
-          ClEx(\<lambda>x. ~ (snd(x) \<subseteq> fst(fst(x)) --> snd(x) \<in> snd(fst(x))), a)) \<and>
+    (\<lambda>a. (Ord(a) &
+          ClEx(\<lambda>x. ~ (snd(x) \<subseteq> fst(fst(x)) --> snd(x) \<in> snd(fst(x))), a)) &
           ClEx(\<lambda>x. \<forall>z. M(z) --> z \<subseteq> fst(x) --> z \<in> snd(x), a),
-	    \<lambda>x. \<exists>y. M(y) \<and> (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
+	    \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
 	    \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<subseteq> x --> z \<in> y)" 
 by fast
 
 text{*Example 2''.  We expand the subset relation.*}
 lemma (in reflection) 
   "Reflects(?Cl,
-        \<lambda>x. \<exists>y. M(y) \<and> (\<forall>z. M(z) --> (\<forall>w. M(w) --> w\<in>z --> w\<in>x) --> z\<in>y),
+        \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) --> (\<forall>w. M(w) --> w\<in>z --> w\<in>x) --> z\<in>y),
         \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). (\<forall>w\<in>Mset(a). w\<in>z --> w\<in>x) --> z\<in>y)"
 by fast
 
 text{*Example 2'''.  Single-step version, to reveal the reflecting class.*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>x. \<exists>y. M(y) \<and> (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
+               \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) --> z \<subseteq> x --> z \<in> y), 
                \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<subseteq> x --> z \<in> y)" 
 apply (rule Ex_reflection) 
 txt{*
@@ -333,21 +333,21 @@ text{*Example 3.  Warning: the following examples make sense only
 if @{term P} is quantifier-free, since it is not being relativized.*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>x. \<exists>y. M(y) \<and> (\<forall>z. M(z) --> z \<in> y <-> z \<in> x \<and> P(z)), 
-               \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<in> y <-> z \<in> x \<and> P(z))"
+               \<lambda>x. \<exists>y. M(y) & (\<forall>z. M(z) --> z \<in> y <-> z \<in> x & P(z)), 
+               \<lambda>a x. \<exists>y\<in>Mset(a). \<forall>z\<in>Mset(a). z \<in> y <-> z \<in> x & P(z))"
 by fast
 
 text{*Example 3'*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>x. \<exists>y. M(y) \<and> y = Collect(x,P),
+               \<lambda>x. \<exists>y. M(y) & y = Collect(x,P),
                \<lambda>a x. \<exists>y\<in>Mset(a). y = Collect(x,P))";
 by fast
 
 text{*Example 3''*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>x. \<exists>y. M(y) \<and> y = Replace(x,P),
+               \<lambda>x. \<exists>y. M(y) & y = Replace(x,P),
                \<lambda>a x. \<exists>y\<in>Mset(a). y = Replace(x,P))";
 by fast
 
@@ -355,7 +355,7 @@ text{*Example 4: Axiom of Choice.  Possibly wrong, since @{text \<Pi>} needs
 to be relativized.*}
 lemma (in reflection) 
      "Reflects(?Cl,
-               \<lambda>A. 0\<notin>A --> (\<exists>f. M(f) \<and> f \<in> (\<Pi>X \<in> A. X)),
+               \<lambda>A. 0\<notin>A --> (\<exists>f. M(f) & f \<in> (\<Pi>X \<in> A. X)),
                \<lambda>a A. 0\<notin>A --> (\<exists>f\<in>Mset(a). f \<in> (\<Pi>X \<in> A. X)))"
 by fast
 

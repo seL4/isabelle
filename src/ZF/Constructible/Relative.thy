@@ -244,13 +244,15 @@ constdefs
 	\<forall>x[M]. \<forall>y[M]. (\<forall>z[M]. z \<in> x <-> z \<in> y) --> x=y"
 
   separation :: "[i=>o, i=>o] => o"
-    --{*Big problem: the formula @{text P} should only involve parameters
-        belonging to @{text M}.  Don't see how to enforce that.*}
+    --{*The formula @{text P} should only involve parameters
+        belonging to @{text M}.  But we can't prove separation as a scheme
+        anyway.  Every instance that we need must individually be assumed
+        and later proved.*}
     "separation(M,P) == 
 	\<forall>z[M]. \<exists>y[M]. \<forall>x[M]. x \<in> y <-> x \<in> z & P(x)"
 
   upair_ax :: "(i=>o) => o"
-    "upair_ax(M) == \<forall>x y. M(x) --> M(y) --> (\<exists>z[M]. upair(M,x,y,z))"
+    "upair_ax(M) == \<forall>x[M]. \<forall>y[M]. \<exists>z[M]. upair(M,x,y,z)"
 
   Union_ax :: "(i=>o) => o"
     "Union_ax(M) == \<forall>x[M]. \<exists>z[M]. big_union(M,x,z)"
@@ -260,7 +262,7 @@ constdefs
 
   univalent :: "[i=>o, i, [i,i]=>o] => o"
     "univalent(M,A,P) == 
-	(\<forall>x[M]. x\<in>A --> (\<forall>y z. M(y) --> M(z) --> P(x,y) & P(x,z) --> y=z))"
+	(\<forall>x[M]. x\<in>A --> (\<forall>y[M]. \<forall>z[M]. P(x,y) & P(x,z) --> y=z))"
 
   replacement :: "[i=>o, [i,i]=>o] => o"
     "replacement(M,P) == 
@@ -274,7 +276,7 @@ constdefs
 
   foundation_ax :: "(i=>o) => o"
     "foundation_ax(M) == 
-	\<forall>x[M]. (\<exists>y\<in>x. M(y)) --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
+	\<forall>x[M]. (\<exists>y[M]. y\<in>x) --> (\<exists>y[M]. y\<in>x & ~(\<exists>z[M]. z\<in>x & z \<in> y))"
 
 
 subsection{*A trivial consistency proof for $V_\omega$ *}
