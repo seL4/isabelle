@@ -279,30 +279,42 @@ val oracleP =
     ((P.name --| P.$$$ "=") -- P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.add_oracle));
 
 
+(* locales *)
+
+val locale_decl =
+  (P.name --| P.$$$ "=") --
+    (Scan.repeat1 (P.xname --| P.$$$ "+") -- Scan.repeat (P.locale_element -- P.marg_comment) ||
+      Scan.repeat1 (P.locale_element -- P.marg_comment) >> pair []) >> P.triple2;
+
+val localeP =
+  OuterSyntax.command "locale" "define named proof context" K.thy_decl
+    (locale_decl >> (Toplevel.theory o IsarThy.add_locale));
+
+
 
 (** proof commands **)
 
 (* statements *)
 
-val locale = Scan.optional (P.$$$ "(" |-- P.!!!
-    ((P.$$$ "in" |-- P.xname >> Some) -- Scan.repeat P.locale_element ||
+val in_locale = Scan.optional (P.$$$ "(" |-- P.!!!
+    ((P.$$$ "in" |-- P.xname -- P.opt_attribs >> Some) -- Scan.repeat P.locale_element ||
       Scan.repeat1 P.locale_element >> pair None) --| P.$$$ ")") (None, []);
 
 val statement = P.opt_thm_name ":" -- P.propp -- P.marg_comment;
 
 val theoremP =
   OuterSyntax.command "theorem" "state theorem" K.thy_goal
-    (locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+    (in_locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
       uncurry (IsarThy.theorem Drule.theoremK)));
 
 val lemmaP =
   OuterSyntax.command "lemma" "state lemma" K.thy_goal
-    (locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+    (in_locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
       uncurry (IsarThy.theorem Drule.lemmaK)));
 
 val corollaryP =
   OuterSyntax.command "corollary" "state corollary" K.thy_goal
-    (locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+    (in_locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
       uncurry (IsarThy.theorem Drule.corollaryK)));
 
 val showP =
@@ -544,11 +556,19 @@ val print_syntaxP =
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_syntax));
 
 val print_theoremsP =
-  OuterSyntax.improper_command "print_theorems" "print theorems known in this theory" K.diag
+  OuterSyntax.improper_command "print_theorems" "print theorems of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_theorems));
 
+val print_localesP =
+  OuterSyntax.improper_command "print_locales" "print locales of this theory" K.diag
+    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_locales));
+
+val print_localeP =
+  OuterSyntax.improper_command "print_locale" "print named locale of this theory" K.diag
+    (P.xname >> (Toplevel.no_timing oo IsarCmd.print_locale));
+
 val print_attributesP =
-  OuterSyntax.improper_command "print_attributes" "print attributes known in this theory" K.diag
+  OuterSyntax.improper_command "print_attributes" "print attributes of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_attributes));
 
 val print_induct_rulesP =
@@ -560,7 +580,7 @@ val print_trans_rulesP =
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_trans_rules));
 
 val print_methodsP =
-  OuterSyntax.improper_command "print_methods" "print methods known in this theory" K.diag
+  OuterSyntax.improper_command "print_methods" "print methods of this theory" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_methods));
 
 val print_antiquotationsP =
@@ -722,7 +742,7 @@ val parsers = [
   hideP, useP, mlP, ml_commandP, ml_setupP, setupP, method_setupP,
   parse_ast_translationP, parse_translationP, print_translationP,
   typed_print_translationP, print_ast_translationP,
-  token_translationP, oracleP,
+  token_translationP, oracleP, localeP,
   (*proof commands*)
   theoremP, lemmaP, corollaryP, showP, haveP, thusP, henceP, fixP,
   assumeP, presumeP, defP, obtainP, letP, caseP, thenP, fromP, withP,
@@ -733,10 +753,10 @@ val parsers = [
   undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
-  print_syntaxP, print_theoremsP, print_attributesP,
-  print_induct_rulesP, print_trans_rulesP, print_methodsP,
-  print_antiquotationsP, thms_containingP, thm_depsP, print_bindsP,
-  print_lthmsP, print_casesP, print_thmsP, print_prfsP,
+  print_syntaxP, print_theoremsP, print_localesP, print_localeP,
+  print_attributesP, print_induct_rulesP, print_trans_rulesP,
+  print_methodsP, print_antiquotationsP, thms_containingP, thm_depsP,
+  print_bindsP, print_lthmsP, print_casesP, print_thmsP, print_prfsP,
   print_full_prfsP, print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
