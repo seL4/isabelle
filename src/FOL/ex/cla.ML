@@ -512,7 +512,7 @@ goal FOL.thy
 \                 ((C(y) & Q(w,y,y)) & OO(w,b) --> P(v,y) & OO(v,b))))) \
 \  -->                  \
 \  ~ (EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z))))";
-by (Blast_tac 1);
+by (Blast.depth_tac (!claset) 12 1);
 result();
 
 
@@ -539,7 +539,7 @@ goal FOL.thy
 \                        (C(y) & ~P(y,y) --> P(u,y) & OO(u,b))))) \
 \  -->                                                            \
 \  ~ (EX x. A(x) & (ALL y. C(y) --> (ALL z. D(x,y,z))))";
-by (Blast_tac 1);
+by (Blast.depth_tac(!claset) 7 1);
 result();
 
 (* Challenge found on info-hol *)
@@ -559,4 +559,5 @@ writeln"Reached end of file.";
 (*Tue Mar  4 1997: loaded in 89s (on pochard) *)
 (*Thu Apr  3 1997: loaded in 44s (on pochard)--using mostly Blast_tac*)
 (*Thu Apr  3 1997: loaded in 96s (on pochard)--addition of two Halting Probs*)
+(*Thu Apr  3 1997: loaded in 98s (on pochard)--using lim-1 for all haz rules*)
 
