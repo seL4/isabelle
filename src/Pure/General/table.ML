@@ -33,6 +33,7 @@ sig
   val extend: 'a table * (key * 'a) list -> 'a table                (*exception DUPS*)
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table   (*exception DUPS*)
   val lookup_multi: 'a list table * key -> 'a list
+  val update_multi: (key * 'a) * 'a list table -> 'a list table
   val make_multi: (key * 'a) list -> 'a list table
   val dest_multi: 'a list table -> (key * 'a) list
 end;
@@ -180,10 +181,10 @@ fun merge eq (tab1, tab2) = enter eq (tab1, dest tab2);
 
 fun lookup_multi tab_key = if_none (lookup tab_key) [];
 
-fun cons_entry ((key, x), tab) =
+fun update_multi ((key, x), tab) =
   update ((key, x :: lookup_multi (tab, key)), tab);
 
-fun make_multi pairs = foldr cons_entry (pairs, empty);
+fun make_multi pairs = foldr update_multi (pairs, empty);
 
 fun dest_multi tab =
   flat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
