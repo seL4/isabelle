@@ -46,11 +46,7 @@ sig
   type parser
   val command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val markup_command: string -> string -> string ->
-    (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val markup_env_command: string -> string -> string ->
-    (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val verbatim_command: string -> string -> string ->
+  val markup_command: IsarOutput.markup -> string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
@@ -60,7 +56,6 @@ sig
   val print_help: Toplevel.transition -> Toplevel.transition
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
-  val theory_header: token list -> (string * string list * (string * bool) list) * token list
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> bool -> Toplevel.isar
@@ -111,10 +106,8 @@ end;
 type token = T.token;
 type parser_fn = token list -> (Toplevel.transition -> Toplevel.transition) * token list;
 
-datatype markup_kind = Markup | MarkupEnv | Verbatim;
-
 datatype parser =
-  Parser of string * (string * string * markup_kind option) * bool * parser_fn;
+  Parser of string * (string * string * IsarOutput.markup option) * bool * parser_fn;
 
 fun parser int_only markup name comment kind parse =
   Parser (name, (comment, kind, markup), int_only, parse);
@@ -130,12 +123,12 @@ fun command_body cmd (name, _) =
   | None => sys_error ("no parser for outer syntax command " ^ quote name));
 
 fun terminator false = Scan.succeed ()
-  | terminator true = P.group "end of input" (Scan.option P.sync -- P.$$$ ";" >> K ());
+  | terminator true = P.group "end of input" (Scan.option P.sync -- P.semicolon >> K ());
 
 in
 
 fun command term cmd =
-  P.$$$ ";" >> K None ||
+  P.semicolon >> K None ||
   P.sync >> K None ||
   (P.position P.command :-- command_body cmd) --| terminator term
     >> (fn ((name, pos), (int_only, f)) =>
@@ -146,14 +139,15 @@ end;
 
 
 
-(** global syntax state **)
+(** global outer syntax **)
 
 local
 
 val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
 val global_parsers =
-  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * markup_kind option) Symtab.table);
-val global_markups = ref ([]: (string * markup_kind) list);
+  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * IsarOutput.markup option)
+    Symtab.table);
+val global_markups = ref ([]: (string * IsarOutput.markup) list);
 
 fun change_lexicons f =
   let val lexs = f (! global_lexicons) in
@@ -166,12 +160,12 @@ fun get_markup (ms, (name, (_, Some m))) = (name, m) :: ms
   | get_markup (ms, _) = ms;
 
 fun make_markups () = global_markups := Symtab.foldl get_markup ([], ! global_parsers);
-fun change_parsers f = (global_parsers := f (! global_parsers); make_markups ());
+fun change_parsers f = (Library.change global_parsers f; make_markups ());
 
 in
 
 
-(* get current syntax *)
+(* access current syntax *)
 
 (*Note: the syntax for files is statically determined at the very
   beginning; for interactive processing it may change dynamically.*)
@@ -180,8 +174,9 @@ fun get_lexicons () = ! global_lexicons;
 fun get_parsers () = ! global_parsers;
 fun get_parser () = apsome (#2 o #1) o curry Symtab.lookup (! global_parsers);
 
-fun lookup_markup name = assoc (! global_markups, name);
-fun is_markup kind name = (case lookup_markup name of Some k => k = kind | None => false);
+fun is_markup kind name =
+  (case assoc (! global_markups, name) of Some k => k = kind | None => false);
+fun markup kind = Scan.one (T.is_kind T.Command andf is_markup kind o T.val_of);
 
 
 (* augment syntax *)
@@ -234,109 +229,50 @@ val print_help =
 
 
 
-(** read theory **)
+(** toplevel parsing **)
 
-(* special keywords *)
-
-val headerN = "header";
-val theoryN = "theory";
-
-val theory_keyword = P.$$$ theoryN;
-val header_keyword = P.$$$ headerN;
-val semicolon = P.$$$ ";";
-
-
-(* sources *)
-
-local
-
-val no_terminator =
-  Scan.unless semicolon (Scan.one (T.not_sync andf T.not_eof));
-
-val recover = Scan.prompt "recover# " (Scan.repeat no_terminator);
-
-in
-
-fun source term do_recover cmd src =
-  src
-  |> Source.source T.stopper
-    (Scan.bulk (fn xs => P.!!! (command term (cmd ())) xs))
-    (if do_recover then Some recover else None)
-  |> Source.mapfilter I;
-
-end;
+(* basic sources *)
 
 fun token_source (src, pos) =
   src
   |> Symbol.source false
   |> T.source false (K (get_lexicons ())) pos;
 
-fun filter_proper src =
-  src
-  |> Source.filter T.is_proper;
+fun toplevel_source term do_recover cmd src =
+  let
+    val no_terminator =
+      Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
+    val recover = Scan.prompt "recover# " (Scan.repeat no_terminator);
+  in
+    src
+    |> Source.source T.stopper
+      (Scan.bulk (fn xs => P.!!! (command term (cmd ())) xs))
+      (if do_recover then Some recover else None)
+    |> Source.mapfilter I
+  end;
 
 
-(* scan header *)
+(* interactive source of toplevel transformers *)
 
-fun scan_header get_lex scan (src, pos) =
-  src
-  |> Symbol.source false
-  |> T.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
-  |> filter_proper
-  |> Source.source T.stopper (Scan.single scan) None
-  |> (fst o the o Source.get_single);
-
-
-(* detect new/old header *)
-
-local
-
-val check_header_lexicon = Scan.make_lexicon [Symbol.explode headerN, Symbol.explode theoryN];
-val check_header = Scan.option (header_keyword || theory_keyword);
-
-in
-
-fun is_old_theory src = is_none (scan_header (K check_header_lexicon) check_header src);
-
-end;
+fun isar term no_pos =
+  Source.tty
+  |> Symbol.source true
+  |> T.source true get_lexicons
+    (if no_pos then Position.none else Position.line_name 1 "stdin")
+  |> T.source_proper
+  |> toplevel_source term true get_parser;
 
 
-(* deps_thy --- inspect theory header *)
 
-local
+(** read theory **)
 
-val header_lexicon =
-  Scan.make_lexicon (map Symbol.explode ["(", ")", "+", ":", ";", "=", "files", headerN, theoryN]);
-
-val file_name =
-  (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
-
-in
-
-val theory_header =
-  (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name) --
-    Scan.optional (P.$$$ "files" |-- P.!!! (Scan.repeat1 file_name)) [] --|  P.$$$ ":")
-  >> (fn ((A, Bs), files) => (A, Bs, files));
-
-val new_header =
-  header_keyword |-- (P.!!! (P.text -- Scan.option semicolon -- theory_keyword |-- theory_header))
-    || theory_keyword |-- P.!!! theory_header;
-
-val old_header =
-  P.!!! (P.group "theory header"
-    (P.name -- (P.$$$ "=" |-- P.name -- Scan.repeat (P.$$$ "+" |-- P.name))))
-  >> (fn (A, (B, Bs)) => (A, B :: Bs, []: (string * bool) list));
+(* deps_thy *)
 
 fun deps_thy name ml path =
   let
     val src = Source.of_string (File.read path);
     val pos = Path.position path;
-    val (name', parents, files) =
-      (*unfortunately, old-style headers dynamically depend on the current lexicon*)
-      if is_old_theory (src, pos) then
-        scan_header ThySyn.get_lexicon (Scan.error old_header) (src, pos)
-      else scan_header (K header_lexicon) (Scan.error new_header) (src, pos);
-
+    val (name', parents, files) = ThyHeader.scan (src, pos);
     val ml_path = ThyLoad.ml_path name;
     val ml_file = if ml andalso is_some (ThyLoad.check_file ml_path) then [ml_path] else [];
   in
@@ -346,67 +282,8 @@ fun deps_thy name ml path =
     else (parents, map (Path.unpack o #1) files @ ml_file)
   end;
 
-end;
 
-
-(* present theory source *)
-
-local
-
-val is_improper = not o (T.is_proper orf T.is_begin_ignore orf T.is_end_ignore);
-val improper = Scan.any is_improper;
-
-val improper_keep_indent = Scan.repeat
-  (Scan.unless (Scan.one T.is_indent -- Scan.one T.is_proper) (Scan.one is_improper));
-
-val improper_end =
-  (improper -- semicolon) |-- improper_keep_indent ||
-  improper_keep_indent;
-
-
-val ignore =
-  Scan.depend (fn d => Scan.one T.is_begin_ignore >> pair (d + 1)) ||
-  Scan.depend (fn 0 => Scan.fail | d => Scan.one T.is_end_ignore >> pair (d - 1)) ||
-  Scan.lift (Scan.one (OuterLex.not_eof andf (not o OuterLex.is_end_ignore)));
-
-val opt_newline = Scan.option (Scan.one T.is_newline);
-
-val ignore_stuff =
-  opt_newline -- Scan.one T.is_begin_ignore --
-    P.!!!! (Scan.pass 0 (Scan.repeat ignore) -- Scan.one T.is_end_ignore -- opt_newline);
-
-fun markup_kind k = Scan.one (T.is_kind T.Command andf is_markup k o T.val_of);
-
-val markup = markup_kind Markup >> T.val_of;
-val markup_env = markup_kind MarkupEnv >> T.val_of;
-val verbatim = markup_kind Verbatim;
-
-val present_token =
-  ignore_stuff >> K None ||
-  (improper |-- markup -- P.!!!! (improper |-- P.text --| improper_end) >> Present.markup_token ||
-    improper |-- markup_env -- P.!!!! (improper |-- P.text --| improper_end) >> Present.markup_env_token ||
-    (P.$$$ "--" >> K "cmt") -- P.!!!! (improper |-- P.text) >> Present.markup_token ||
-    (improper -- verbatim) |-- P.!!!! (improper |-- P.text --| improper_end)
-      >> Present.verbatim_token ||
-    Scan.one T.not_eof >> Present.basic_token) >> Some;
-
-in
-
-(*note: lazy evaluation ahead*)
-
-fun present_toks text pos () =
-  token_source (Source.of_list (Library.untabify text), pos)
-  |> Source.source T.stopper (Scan.bulk (Scan.error present_token)) None
-  |> Source.mapfilter I
-  |> Source.exhaust;
-
-fun present_text text () =
-  Source.exhaust (Symbol.source false (Source.of_list (Library.untabify text)));
-
-end;
-
-
-(* load_thy --- read text (including header) *)
+(* load_thy *)
 
 local
 
@@ -417,28 +294,33 @@ fun try_ml_file name time =
     val tr_name = if time then "time_use" else "use";
   in
     if is_none (ThyLoad.check_file path) then ()
-    else Toplevel.excursion_error [Toplevel.empty |> Toplevel.name tr_name |> tr]
+    else Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr]
   end;
 
-fun parse_thy src_pos =
-  src_pos
-  |> token_source
-  |> filter_proper
-  |> source false false (K (get_parser ()))
+fun parse_thy src =
+  src
+  |> T.source_proper
+  |> toplevel_source false false (K (get_parser ()))
   |> Source.exhaust;
 
 fun run_thy name path =
   let
-    val text = explode (File.read path);
-    val src = Source.of_list text;
     val pos = Path.position path;
+    val text = Library.untabify (explode (File.read path));
+    val text_src = Source.of_list text;
+    fun present_text () = Source.exhaust (Symbol.source false text_src);
   in
     Present.init_theory name;
-    Present.verbatim_source name (present_text text);
-    if is_old_theory (src, pos) then (ThySyn.load_thy name text;
-      Present.old_symbol_source name (present_text text))   (*note: text presented twice!*)
-    else (Toplevel.excursion_error (parse_thy (src, pos));
-      Present.token_source name (present_toks text pos))
+    Present.verbatim_source name present_text;
+    if ThyHeader.is_old (text_src, pos) then (ThySyn.load_thy name text;
+      Present.old_symbol_source name present_text)   (*note: text presented twice*)
+    else
+      let
+        val tok_src = Source.exhausted (token_source (text_src, pos));
+        val out = Toplevel.excursion_result
+          (IsarOutput.parse_thy markup (#1 (get_lexicons ()))
+            (parse_thy tok_src) tok_src);
+      in Present.theory_output name (Buffer.content out) end
   end;
 
 in
@@ -454,17 +336,6 @@ fun load_thy name ml time path =
   if ml then try_ml_file name time else ());
 
 end;
-
-
-(* interactive source of state transformers *)
-
-fun isar term no_pos =
-  Source.tty
-  |> Symbol.source true
-  |> T.source true get_lexicons
-    (if no_pos then Position.none else Position.line_name 1 "stdin")
-  |> filter_proper
-  |> source term true get_parser;
 
 
 
@@ -496,9 +367,7 @@ fun help () =
 
 (*final declarations of this structure!*)
 val command = parser false None;
-val markup_command = parser false (Some Markup);
-val markup_env_command = parser false (Some MarkupEnv);
-val verbatim_command = parser false (Some Verbatim);
+val markup_command = parser false o Some;
 val improper_command = parser true None;
 
 
