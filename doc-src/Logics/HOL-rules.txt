@@ -1,0 +1,403 @@
+ruleshell.ML lemmas.ML set.ML fun.ML subset.ML equalities.ML prod.ML sum.ML wf.ML mono.ML fixedpt.ML nat.ML list.ML
+----------------------------------------------------------------
+ruleshell.ML
+
+\idx{refl}      t = t::'a
+\idx{subst}     [| s = t; P(s) |] ==> P(t::'a)
+\idx{abs},!!x::'a. f(x)::'b = g(x)) ==> (%x.f(x)) = (%x.g(x)))
+\idx{disch}     (P ==> Q) ==> P-->Q
+\idx{mp}        [| P-->Q;  P |] ==> Q
+
+\idx{True_def}  True = ((%x.x)=(%x.x))
+\idx{All_def}   All  = (%P. P = (%x.True))
+\idx{Ex_def}    Ex   = (%P. P(Eps(P)))
+\idx{False_def} False = (!P.P)
+\idx{not_def}   not  = (%P. P-->False)
+\idx{and_def}   op & = (%P Q. !R. (P-->Q-->R) --> R)
+\idx{or_def}    op | = (%P Q. !R. (P-->R) --> (Q-->R) --> R)
+\idx{Ex1_def}   Ex1 == (%P. ? x. P(x) & (! y. P(y) --> y=x))
+
+\idx{iff}       (P-->Q) --> (Q-->P) --> (P=Q)
+\idx{True_or_False}     (P=True) | (P=False)
+\idx{select}    P(x::'a) --> P(Eps(P))
+
+\idx{Inv_def}   Inv = (%(f::'a=>'b) y. @x. f(x)=y)
+\idx{o_def}     op o = (%(f::'b=>'c) g (x::'a). f(g(x)))
+\idx{Cond_def}  Cond = (%P x y.@z::'a. (P=True --> z=x) & (P=False --> z=y))
+
+----------------------------------------------------------------
+lemmas.ML
+
+\idx{sym}    s=t ==> t=s
+\idx{trans}    [| r=s; s=t |] ==> r=t
+\idx{box_equals}    
+    [| a=b;  a=c;  b=d |] ==> c=d  
+\idx{ap_term}    s=t ==> f(s)=f(t)
+\idx{ap_thm}    s::'a=>'b = t ==> s(x)=t(x)
+\idx{cong}    
+   [| f = g; x::'a = y |] ==> f(x) = g(y)
+\idx{iffI}    
+   [| P ==> Q;  Q ==> P |] ==> P=Q
+\idx{iffD1}    [| P=Q; Q |] ==> P
+\idx{iffE}    
+    [| P=Q; [| P --> Q; Q --> P |] ==> R |] ==> R
+\idx{eqTrueI}    P ==> P=True 
+\idx{eqTrueE}    P=True ==> P 
+\idx{allI}    (!!x::'a. P(x)) ==> !x. P(x)
+\idx{spec}    !x::'a.P(x) ==> P(x)
+\idx{allE}    [| !x.P(x);  P(x) ==> R |] ==> R
+\idx{all_dupE}    
+    [| ! x.P(x);  [| P(x); ! x.P(x) |] ==> R 
+    |] ==> R
+\idx{FalseE}    False ==> P
+\idx{False_neq_True}    False=True ==> P
+\idx{notI}    (P ==> False) ==> ~P
+\idx{notE}    [| ~P;  P |] ==> R
+\idx{impE}    [| P-->Q;  P;  Q ==> R |] ==> R
+\idx{rev_mp}    [| P;  P --> Q |] ==> Q
+\idx{contrapos}    [| ~Q;  P==>Q |] ==> ~P
+\idx{exI}    P(x) ==> ? x::'a.P(x)
+\idx{exE}    [| ? x::'a.P(x); !!x. P(x) ==> Q |] ==> Q
+
+\idx{conjI}    [| P; Q |] ==> P&Q
+\idx{conjunct1}    [| P & Q |] ==> P
+\idx{conjunct2}    [| P & Q |] ==> Q 
+\idx{conjE}    [| P&Q;  [| P; Q |] ==> R |] ==> R
+\idx{disjI1}    P ==> P|Q
+\idx{disjI2}    Q ==> P|Q
+\idx{disjE}    [| P | Q; P ==> R; Q ==> R |] ==> R
+\idx{ccontr}    (~P ==> False) ==> P
+\idx{classical}    (~P ==> P) ==> P
+\idx{notnotD}    ~~P ==> P
+\idx{ex1I}    
+    [| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)
+\idx{ex1E}    
+    [| ?! x.P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R
+\idx{select_equality}    
+    [| P(a);  !!x. P(x) ==> x=a |] ==> (@x.P(x)) = a
+\idx{disjCI}    (~Q ==> P) ==> P|Q
+\idx{excluded_middle}    ~P | P
+\idx{impCE}    [| P-->Q; ~P ==> R; Q ==> R |] ==> R 
+\idx{iffCE}    
+    [| P=Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R
+\idx{exCI}    (! x. ~P(x) ==> P(a)) ==> ? x.P(x)
+\idx{swap}    ~P ==> (~Q ==> P) ==> Q
+
+----------------------------------------------------------------
+simpdata.ML
+
+\idx{if_True}    Cond(True,x,y) = x
+\idx{if_False}    Cond(False,x,y) = y
+\idx{if_P}    P ==> Cond(P,x,y) = x
+\idx{if_not_P}    ~P ==> Cond(P,x,y) = y
+\idx{expand_if}    
+    P(Cond(Q,x,y)) = ((Q --> P(x)) & (~Q --> P(y)))
+
+----------------------------------------------------------------
+\idx{set.ML}
+
+\idx{CollectI}          [| P(a) |] ==> a : \{x.P(x)\}
+\idx{CollectD}          [| a : \{x.P(x)\} |] ==> P(a)
+\idx{set_ext}           [| !!x. (x:A) = (x:B) |] ==> A = B
+
+\idx{Ball_def}          Ball(A,P)  == ! x. x:A --> P(x)
+\idx{Bex_def}           Bex(A,P)   == ? x. x:A & P(x)
+\idx{subset_def}        A <= B     == ! x:A. x:B
+\idx{Un_def}            A Un B     == \{x.x:A | x:B\}
+\idx{Int_def}           A Int B    == \{x.x:A & x:B\}
+\idx{Compl_def}         Compl(A)   == \{x. ~x:A\}
+\idx{Inter_def}         Inter(S)   == \{x. ! A:S. x:A\}
+\idx{Union_def}         Union(S)   == \{x. ? A:S. x:A\}
+\idx{INTER_def}         INTER(A,B) == \{y. ! x:A. y: B(x)\}
+\idx{UNION_def}         UNION(A,B) == \{y. ? x:A. y: B(x)\}
+\idx{mono_def}          mono(f)    == (!A B. A <= B --> f(A) <= f(B))
+\idx{image_def}         f``A       == \{y. ? x:A. y=f(x)\}
+\idx{singleton_def}     \{a\}      == \{x.x=a\}
+\idx{range_def}         range(f)   == \{y. ? x. y=f(x)\}
+\idx{One_One_def}       One_One(f) == ! x y. f(x)=f(y) --> x=y
+\idx{One_One_on_def}    One_One_on(f,A) == !x y. x:A --> y:A --> f(x)=f(y) --> x=y
+\idx{Onto_def}          Onto(f) == ! y. ? x. y=f(x)
+
+
+\idx{Collect_cong}    [| !!x. P(x)=Q(x) |] ==> \{x. P(x)\} = \{x. Q(x)\}
+
+\idx{ballI}    [| !!x. x:A ==> P(x) |] ==> ! x:A. P(x)
+\idx{bspec}    [| ! x:A. P(x);  x:A |] ==> P(x)
+\idx{ballE}    [| ! x:A. P(x);  P(x) ==> Q;  ~ x:A ==> Q |] ==> Q
+
+\idx{bexI}     [| P(x);  x:A |] ==> ? x:A. P(x)
+\idx{bexCI}    [| ! x:A. ~P(x) ==> P(a);  a:A |] ==> ? x:A.P(x)
+\idx{bexE}     [| ? x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q  |] ==> Q
+
+\idx{ball_cong}
+    [| A=A';  !!x. x:A' ==> P(x) = P'(x) |] ==> 
+    (! x:A. P(x)) = (! x:A'. P'(x))
+
+\idx{bex_cong}
+    [| A=A';  !!x. x:A' ==> P(x) = P'(x) |] ==> 
+    (? x:A. P(x)) = (? x:A'. P'(x))
+
+\idx{subsetI}         (!!x.x:A ==> x:B) ==> A <= B
+\idx{subsetD}         [| A <= B;  c:A |] ==> c:B
+\idx{subsetCE}        [| A <= B;  ~(c:A) ==> P;  c:B ==> P |] ==> P
+
+\idx{subset_refl}     A <= A
+\idx{subset_antisym}  [| A <= B;  B <= A |] ==> A = B
+\idx{subset_trans}    [| A<=B;  B<=C |] ==> A<=C
+
+\idx{equalityD1}      A = B ==> A<=B
+\idx{equalityD2}      A = B ==> B<=A
+\idx{equalityE}       [| A = B;  [| A<=B; B<=A |] ==> P |]  ==>  P
+
+\idx{singletonI}      a : \{a\}
+\idx{singletonD}      b : \{a\} ==> b=a
+
+\idx{imageI}    [| x:A |] ==> f(x) : f``A
+\idx{imageE}    [| b : f``A;  !!x.[| b=f(x);  x:A |] ==> P |] ==> P
+
+\idx{rangeI}    f(x) : range(f)
+\idx{rangeE}    [| b : range(f);  !!x.[| b=f(x) |] ==> P |] ==> P
+
+\idx{UnionI}    [| X:C;  A:X |] ==> A : Union(C)
+\idx{UnionE}    [| A : Union(C);  !!X.[| A:X;  X:C |] ==> R |] ==> R
+
+\idx{InterI}    [| !!X. X:C ==> A:X |] ==> A : Inter(C)
+\idx{InterD}    [| A : Inter(C);  X:C |] ==> A:X
+\idx{InterE}    [| A : Inter(C);  A:X ==> R;  ~ X:C ==> R |] ==> R
+
+\idx{UN_I}    [| a:A;  b: B(a) |] ==> b: (UN x:A. B(x))
+\idx{UN_E}    [| b : (UN x:A. B(x));  !!x.[| x:A;  b: B(x) |] ==> R |] ==> R
+
+\idx{INT_I}    (!!x. x:A ==> b: B(x)) ==> b : (INT x:A. B(x))
+\idx{INT_D}    [| b : (INT x:A. B(x));  a:A |] ==> b: B(a)
+\idx{INT_E}    [| b : (INT x:A. B(x));  b: B(a) ==> R;  ~ a:A ==> R |] ==> R
+
+\idx{UnI1}    c:A ==> c : A Un B
+\idx{UnI2}    c:B ==> c : A Un B
+\idx{UnCI}    (~c:B ==> c:A) ==> c : A Un B
+\idx{UnE}    [| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P
+
+\idx{IntI}    [| c:A;  c:B |] ==> c : A Int B
+\idx{IntD1}    c : A Int B ==> c:A
+\idx{IntD2}    c : A Int B ==> c:B
+\idx{IntE}    [| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P
+
+\idx{ComplI}    [| c:A ==> False |] ==> c : Compl(A)
+\idx{ComplD}    [| c : Compl(A) |] ==> ~c:A
+
+\idx{monoI}    [| !!A B. A <= B ==> f(A) <= f(B) |] ==> mono(f)
+\idx{monoD}    [| mono(f);  A <= B |] ==> f(A) <= f(B)
+
+
+----------------------------------------------------------------
+\idx{fun.ML}
+
+\idx{One_OneI}            [| !! x y. f(x) = f(y) ==> x=y |] ==> One_One(f)
+\idx{One_One_inverseI}    (!!x. g(f(x)) = x) ==> One_One(f)
+\idx{One_OneD}            [| One_One(f); f(x) = f(y) |] ==> x=y
+
+\idx{Inv_f_f}             One_One(f)   ==> Inv(f,f(x)) = x
+\idx{f_Inv_f}             y : range(f) ==> f(Inv(f,y)) = y
+
+\idx{Inv_injective}
+    [| Inv(f,x)=Inv(f,y); x: range(f);  y: range(f) |] ==> x=y
+
+\idx{One_One_onI}
+    (!! x y. [| f(x) = f(y); x:A; y:A |] ==> x=y) ==> One_One_on(f,A)
+
+\idx{One_One_on_inverseI}
+    (!!x. x:A ==> g(f(x)) = x) ==> One_One_on(f,A)
+
+\idx{One_One_onD}
+    [| One_One_on(f,A);  f(x)=f(y);  x:A;  y:A |] ==> x=y
+
+\idx{One_One_on_contraD}
+    [| One_One_on(f,A);  ~x=y;  x:A;  y:A |] ==> ~ f(x)=f(y)
+
+
+----------------------------------------------------------------
+\idx{subset.ML}
+
+\idx{Union_upper}     B:A ==> B <= Union(A)
+\idx{Union_least}     [| !!X. X:A ==> X<=C |] ==> Union(A) <= C
+
+\idx{Inter_lower}     B:A ==> Inter(A) <= B
+\idx{Inter_greatest}  [| !!X. X:A ==> C<=X |] ==> C <= Inter(A)
+
+\idx{Un_upper1}       A <= A Un B
+\idx{Un_upper2}       B <= A Un B
+\idx{Un_least}        [| A<=C;  B<=C |] ==> A Un B <= C
+
+\idx{Int_lower1}      A Int B <= A
+\idx{Int_lower2}      A Int B <= B
+\idx{Int_greatest}    [| C<=A;  C<=B |] ==> C <= A Int B
+
+
+----------------------------------------------------------------
+\idx{equalities.ML}
+
+\idx{Int_absorb}        A Int A = A
+\idx{Int_commute}       A Int B  =  B Int A
+\idx{Int_assoc}         (A Int B) Int C  =  A Int (B Int C)
+\idx{Int_Un_distrib}    (A Un B) Int C  =  (A Int C) Un (B Int C)
+
+\idx{Un_absorb}         A Un A = A
+\idx{Un_commute}        A Un B  =  B Un A
+\idx{Un_assoc}          (A Un B) Un C  =  A Un (B Un C)
+\idx{Un_Int_distrib}    (A Int B) Un C  =  (A Un C) Int (B Un C)
+
+\idx{Compl_disjoint}    A Int Compl(A) = \{x.False\}
+\idx{Compl_partition    A Un Compl(A) = \{x.True\}
+\idx{double_complement} Compl(Compl(A)) = A
+
+
+\idx{Compl_Un}          Compl(A Un B) = Compl(A) Int Compl(B)
+\idx{Compl_Int}         Compl(A Int B) = Compl(A) Un Compl(B)
+
+\idx{Union_Un_distrib}  Union(A Un B) = Union(A) Un Union(B)
+\idx{Int_Union_image}   A Int Union(B) = (UN C:B. A Int C)
+\idx{Un_Union_image}    (UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)
+
+\idx{Inter_Un_distrib}  Inter(A Un B) = Inter(A) Int Inter(B)
+\idx{Un_Inter_image}    A Un Inter(B) = (INT C:B. A Un C)
+\idx{Int_Inter_image}   (INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)
+
+
+----------------------------------------------------------------
+prod.ML
+
+      mixfix = [ Delimfix((1<_,/_>), ['a,'b] => ('a,'b)prod, Pair),
+                 TInfixl(*, prod, 20) ],
+thy = extend_theory Set.thy Prod
+  [([prod],([[term],[term]],term))],
+   ([fst],              'a * 'b => 'a),
+   ([snd],              'a * 'b => 'b),
+   ([split],            ['a * 'b, ['a,'b]=>'c] => 'c)],
+\idx{fst_def}             fst(p) == @a. ? b. p = <a,b>),
+\idx{snd_def}             snd(p) == @b. ? a. p = <a,b>),
+\idx{split_def}           split(p,c) == c(fst(p),snd(p)))
+
+\idx{Pair_inject}  [| <a, b> = <a',b'>;  [| a=a';  b=b' |] ==> R |] ==> R
+
+\idx{fst_conv}     fst(<a,b>) = a
+\idx{snd_conv}     snd(<a,b>) = b
+\idx{split_conv}   split(<a,b>, c) = c(a,b)
+
+\idx{surjective_pairing}    p = <fst(p),snd(p)>
+
+----------------------------------------------------------------
+sum.ML
+
+      mixfix = [TInfixl(+, sum, 10)],
+thy = extend_theory Prod.thy sum
+  [([sum], ([[term],[term]],term))],
+ [Inl],              'a => 'a+'b),
+ [Inr],              'b => 'a+'b),
+ [when],             ['a+'b, 'a=>'c, 'b=>'c] =>'c)],
+\idx{when_def}    when == (%p f g. @z.  (!x. p=Inl(x) --> z=f(x))
+                                    & (!y. p=Inr(y) --> z=g(y))))
+
+\idx{Inl_not_Inr}    ~ (Inl(a) = Inr(b))
+
+\idx{One_One_Inl}    One_One(Inl)
+
+\idx{One_One_Inr}    One_One(Inr)
+
+\idx{when_Inl_conv}    when(Inl(x), f, g) = f(x)
+
+\idx{when_Inr_conv}    when(Inr(x), f, g) = g(x)
+
+\idx{sumE}
+    [| !!x::'a. P(Inl(x));  !!y::'b. P(Inr(y)) 
+    |] ==> P(s)
+
+\idx{surjective_sum}    when(s, %x::'a. f(Inl(x)), %y::'b. f(Inr(y))) = f(s)
+
+
+????????????????????????????????????????????????????????????????
+trancl?
+
+----------------------------------------------------------------
+nat.ML
+
+  Sext\{mixfix=[Delimfix(0, nat, 0),
+               Infixl(<,[nat,nat] => bool,50)],
+thy = extend_theory Trancl.thy Nat
+[nat], ([],term))
+[nat_case],          [nat, 'a, nat=>'a] =>'a),
+[pred_nat],nat*nat) set),
+[nat_rec],           [nat, 'a, [nat, 'a]=>'a] => 'a)
+
+\idx{nat_case_def}        nat_case == (%n a f. @z.  (n=0 --> z=a)  
+                                          & (!x. n=Suc(x) --> z=f(x)))),
+\idx{pred_nat_def}        pred_nat == \{p. ? n. p = <n, Suc(n)>\} ),
+\idx{less_def} m<n == <m,n>:trancl(pred_nat)),
+\idx{nat_rec_def} 
+   nat_rec(n,c,d) == wfrec(trancl(pred_nat), 
+                        %rec l. nat_case(l, c, %m. d(m,rec(m))), 
+                        n) )
+
+\idx{nat_induct}    [| P(0); !!k. [| P(k) |] ==> P(Suc(k)) |]  ==> P(n)
+
+
+\idx{Suc_not_Zero}    ~ (Suc(m) = 0)
+\idx{One_One_Suc}    One_One(Suc)
+\idx{n_not_Suc_n}    ~(n=Suc(n))
+
+\idx{nat_case_0_conv}    nat_case(0, a, f) = a
+
+\idx{nat_case_Suc_conv}    nat_case(Suc(k), a, f) = f(k)
+
+\idx{pred_natI}    <n, Suc(n)> : pred_nat
+\idx{pred_natE}
+    [| p : pred_nat;  !!x n. [| p = <n, Suc(n)> |] ==> R 
+    |] ==> R
+
+\idx{wf_pred_nat}    wf(pred_nat)
+
+\idx{nat_rec_0_conv}    nat_rec(0,c,h) = c
+
+\idx{nat_rec_Suc_conv}    nat_rec(Suc(n), c, h) = h(n, nat_rec(n,c,h))
+
+
+(*** Basic properties of less than ***)
+\idx{less_trans}     [| i<j;  j<k |] ==> i<k
+\idx{lessI}          n < Suc(n)
+\idx{zero_less_Suc}  0 < Suc(n)
+
+\idx{less_not_sym}   n<m --> ~m<n 
+\idx{less_not_refl}  ~ (n<n)
+\idx{not_less0}      ~ (n<0)
+
+\idx{Suc_less_eq}    (Suc(m) < Suc(n)) = (m<n)
+\idx{less_induct}    [| !!n. [| ! m. m<n --> P(m) |] ==> P(n) |]  ==>  P(n)
+
+\idx{less_linear}    m<n | m=n | n<m
+
+
+----------------------------------------------------------------
+list.ML
+
+ [([list], ([[term]],term))],
+  ([Nil],       'a list),
+  ([Cons],      ['a, 'a list] => 'a list),
+  ([list_rec],        ['a list, 'b, ['a ,'a list, 'b]=>'b] => 'b),
+  ([list_all],        ('a => bool) => ('a list => bool)),
+  ([map],               ('a=>'b) => ('a list => 'b list))
+
+\idx{map_def}     map(f,xs) == list_rec(xs, Nil, %x l r. Cons(f(x), r)) )
+
+\idx{list_induct}
+    [| P(Nil);   
+       !!x xs. [| P(xs) |] ==> P(Cons(x,xs)) |]  ==> P(l)
+
+\idx{Cons_not_Nil}   ~ Cons(x,xs) = Nil
+\idx{Cons_Cons_eq}   (Cons(x,xs)=Cons(y,ys)) = (x=y & xs=ys)
+
+\idx{list_rec_Nil_conv}    list_rec(Nil,c,h) = c
+\idx{list_rec_Cons_conv}   list_rec(Cons(a,l), c, h) = 
+                               h(a, l, list_rec(l,c,h))
+
+\idx{map_Nil_conv}   map(f,Nil) = Nil
+\idx{map_Cons_conv}  map(f, Cons(x,xs)) = Cons(f(x), map(f,xs))
+

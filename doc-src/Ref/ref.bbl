@@ -1,0 +1,25 @@
+\begin{thebibliography}{1}
+
+\bibitem{charniak80}
+E.~Charniak, C.~K. Riesbeck, and D.~V. McDermott.
+\newblock {\em Artificial Intelligence Programming}.
+\newblock Lawrence Erlbaum Associates, 1980.
+
+\bibitem{debruijn72}
+N.~G. de~Bruijn.
+\newblock Lambda calculus notation with nameless dummies, a tool for automatic
+  formula manipulation, with application to the {Church-Rosser Theorem}.
+\newblock {\em Indagationes Mathematicae}, 34:381--392, 1972.
+
+\bibitem{paulson91}
+Lawrence~C. Paulson.
+\newblock {\em {ML} for the Working Programmer}.
+\newblock Cambridge University Press, 1991.
+
+\bibitem{pelletier86}
+F.~J. Pelletier.
+\newblock Seventy-five problems for testing automatic theorem provers.
+\newblock {\em Journal of Automated Reasoning}, 2:191--216, 1986.
+\newblock Errata, JAR 4 (1988), 235--236.
+
+\end{thebibliography}

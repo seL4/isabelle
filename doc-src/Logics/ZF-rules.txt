@@ -1,0 +1,468 @@
+%%%% RULES.ML
+
+\idx{empty_set}    ~(x:0)
+\idx{union_iff}    A:Union(C) <-> (EX B:C. A:B)
+\idx{power_set}    A : Pow(B) <-> A <= B
+\idx{infinity}     0:Inf & (ALL y:Inf. succ(y): Inf)
+\idx{foundation}   A=0 | (EX x:A. ALL y:x. ~ y:A)
+
+\idx{replacement}  (!!x y z.[| x:A; P(x,y); P(x,z) |] ==> y=z) ==>
+                   y : PrimReplace(A,P) <-> (EX x:A. P(x,y))
+
+\idx{Replace_def}  Replace(A,P) == PrimReplace(A, %x y. (EX!z.P(x,z)) & P(x,y))
+\idx{RepFun_def}   RepFun(A,f) == Replace(A, %x u. u=f(x))
+\idx{Collect_def}  Collect(A,P) == \{ y . x:A, x=y & P(x)\}
+\idx{the_def}      The(P) == Union(\{y . x:\{0\}, P(y)\})
+
+\idx{Upair_def}    Upair(a,b) == 
+                   \{y. x:Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)\}
+
+\idx{Inter_def}    Inter(A) == \{ x:Union(A) . ALL y:A. x:y\}
+
+\idx{Un_def}       A Un  B  == Union(Upair(A,B))
+\idx{Int_def}      A Int B  == Inter(Upair(A,B))
+\idx{Diff_def}     A - B    == \{ x:A . ~(x:B) \}
+\idx{cons_def}     cons(a,A) == Upair(a,a) Un A
+\idx{succ_def}     succ(i) == cons(i,i)
+
+\idx{Pair_def}     <a,b>  == \{\{a,a\}, \{a,b\}\}
+\idx{fst_def}      fst(A) == THE x. EX y. A=<x,y>
+\idx{snd_def}      snd(A) == THE y. EX x. A=<x,y>
+\idx{split_def}    split(p,c) == THE y. EX a b. p=<a,b> & y=c(a,b)
+\idx{Sigma_def}    Sigma(A,B) == UN x:A. UN y:B(x). \{<x,y>\}
+
+\idx{domain_def}   domain(r) == \{a:Union(Union(r)) . EX b. <a,b> : r\}
+\idx{range_def}    range(r) == \{b:Union(Union(r)) . EX a. <a,b> : r\}
+\idx{field_def}    field(r) == domain(r) Un range(r)
+\idx{image_def}    r``A == \{y : range(r) . EX x:A. <x,y> : r\}
+\idx{vimage_def}   r -`` A == \{x : domain(r) . EX y:A. <x,y> : r\}
+
+\idx{lam_def}      Lambda(A,f) == RepFun(A, %x. <x,f(x)>)
+\idx{apply_def}    f`a == THE y. <a,y> : f
+\idx{restrict_def} restrict(f,A) == lam x:A.f`x
+\idx{Pi_def}       Pi(A,B)  == \{f: Pow(Sigma(A,B)). ALL x:A. EX! y. <x,y>: f\}
+
+\idx{subset_def}         A <= B == ALL x:A. x:B
+\idx{strict_subset_def}  A <! B   == A <=B & ~(A=B)
+\idx{extension}          A = B <-> A <= B & B <= A
+
+\idx{Ball_def}   Ball(A,P) == ALL x. x:A --> P(x)
+\idx{Bex_def}    Bex(A,P) == EX x. x:A & P(x)
+
+
+%%%% LEMMAS.ML
+
+\idx{ballI}       [| !!x. x:A ==> P(x) |] ==> ALL x:A. P(x)
+\idx{bspec}       [| ALL x:A. P(x);  x: A |] ==> P(x)
+\idx{ballE}       [| ALL x:A. P(x);  P(x) ==> Q;  ~ x:A ==> Q |] ==> Q
+
+\idx{ball_cong}   [| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> 
+            (ALL x:A. P(x)) <-> (ALL x:A'. P'(x))
+
+\idx{bexI}        [| P(x);  x: A |] ==> EX x:A. P(x)
+\idx{bexCI}       [| ALL x:A. ~P(x) ==> P(a);  a: A |] ==> EX x:A.P(x)
+\idx{bexE}        [| EX x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q |] ==> Q
+
+\idx{bex_cong}    [| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> 
+            (EX x:A. P(x)) <-> (EX x:A'. P'(x))
+
+\idx{subsetI}       (!!x.x:A ==> x:B) ==> A <= B
+\idx{subsetD}       [| A <= B;  c:A |] ==> c:B
+\idx{subsetCE}      [| A <= B;  ~(c:A) ==> P;  c:B ==> P |] ==> P
+\idx{subset_refl}   A <= A
+\idx{subset_trans}  [| A<=B;  B<=C |] ==> A<=C
+
+\idx{equalityI}     [| A <= B;  B <= A |] ==> A = B
+\idx{equalityD1}    A = B ==> A<=B
+\idx{equalityD2}    A = B ==> B<=A
+\idx{equalityE}     [| A = B;  [| A<=B; B<=A |] ==> P |]  ==>  P
+
+\idx{emptyE}          a:0 ==> P
+\idx{empty_subsetI}   0 <= A
+\idx{equals0I}        [| !!y. y:A ==> False |] ==> A=0
+\idx{equals0D}        [| A=0;  a:A |] ==> P
+
+\idx{PowI}            A <= B ==> A : Pow(B)
+\idx{PowD}            A : Pow(B)  ==>  A<=B
+
+\idx{ReplaceI}      [| x: A;  P(x,b);  !!y. P(x,y) ==> y=b |] ==> 
+              b : \{y. x:A, P(x,y)\}
+
+\idx{ReplaceE}      [| b : \{y. x:A, P(x,y)\};  
+                 !!x. [| x: A;  P(x,b);  ALL y. P(x,y)-->y=b |] ==> R 
+              |] ==> R
+
+\idx{Replace_cong}  [| A=B;  !!x y. x:B ==> P(x,y) <-> Q(x,y) |] ==> 
+              \{y. x:A, P(x,y)\} = \{y. x:B, Q(x,y)\}
+
+\idx{RepFunI}       [| a : A |] ==> f(a) : RepFun(A,f)
+\idx{RepFunE}       [| b : RepFun(A, %x.f(x));  
+                 !!x.[| x:A;  b=f(x) |] ==> P |] ==> P
+
+\idx{RepFun_cong}   [| A=B;  !!x. x:B ==> f(x)=g(x) |] ==> 
+              RepFun(A, %x.f(x)) = RepFun(B, %x.g(x))
+
+
+\idx{separation}     x : Collect(A,P) <-> x:A & P(x)
+\idx{CollectI}       [| a:A;  P(a) |] ==> a : \{x:A. P(x)\}
+\idx{CollectE}       [| a : \{x:A. P(x)\};  [| a:A; P(a) |] ==> R |] ==> R
+\idx{CollectD1}      a : \{x:A. P(x)\} ==> a:A
+\idx{CollectD2}      a : \{x:A. P(x)\} ==> P(a)
+
+\idx{Collect_cong}   [| A=B;  !!x. x:B ==> P(x) <-> Q(x) |] ==> 
+               \{x:A. P(x)\} = \{x:B. Q(x)\}
+
+\idx{UnionI}    [| B: C;  A: B |] ==> A: Union(C)
+\idx{UnionE}    [| A : Union(C);  !!B.[| A: B;  B: C |] ==> R |] ==> R
+
+\idx{InterI}    [| !!x. x: C ==> A: x;  c:C |] ==> A : Inter(C)
+\idx{InterD}    [| A : Inter(C);  B : C |] ==> A : B
+\idx{InterE}    [| A : Inter(C);  A:B ==> R;  ~ B:C ==> R |] ==> R
+
+\idx{UN_I}      [| a: A;  b: B(a) |] ==> b: (UN x:A. B(x))
+\idx{UN_E}      [| b : (UN x:A. B(x));  !!x.[| x: A;  b: B(x) |] ==> R |] ==> R
+
+\idx{INT_I}     [| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))
+\idx{INT_E}     [| b : (INT x:A. B(x));  a: A |] ==> b : B(a)
+
+
+%%%% UPAIR.ML
+
+\idx{pairing}      a:Upair(b,c) <-> (a=b | a=c)
+\idx{UpairI1}      a : Upair(a,b)
+\idx{UpairI2}      b : Upair(a,b)
+\idx{UpairE}       [| a : Upair(b,c);  a = b ==> P;  a = c ==> P |] ==> P
+
+\idx{UnI1}         c : A ==> c : A Un B
+\idx{UnI2}         c : B ==> c : A Un B
+\idx{UnCI}         (~c : B ==> c : A) ==> c : A Un B
+\idx{UnE}          [| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P
+
+\idx{IntI}         [| c : A;  c : B |] ==> c : A Int B
+\idx{IntD1}        c : A Int B ==> c : A
+\idx{IntD2}        c : A Int B ==> c : B
+\idx{IntE}         [| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P
+
+\idx{DiffI}        [| c : A;  ~ c : B |] ==> c : A - B
+\idx{DiffD1}       c : A - B ==> c : A
+\idx{DiffD2}       [| c : A - B;  c : B |] ==> P
+\idx{DiffE}        [| c : A - B;  [| c:A; ~ c:B |] ==> P |] ==> P
+
+\idx{consI1}       a : cons(a,B)
+\idx{consI2}       a : B ==> a : cons(b,B)
+\idx{consCI}       (~ a:B ==> a=b) ==> a: cons(b,B)
+\idx{consE}        [| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P
+
+\idx{singletonI}   a : \{a\}
+\idx{singletonE}   [| a : \{b\}; a=b ==> P |] ==> P
+
+\idx{succI1}       i : succ(i)
+\idx{succI2}       i : j ==> i : succ(j)
+\idx{succCI}       (~ i:j ==> i=j) ==> i: succ(j)
+\idx{succE}        [| i : succ(j);  i=j ==> P;  i:j ==> P |] ==> P
+\idx{succ_neq_0}   [| succ(n)=0 |] ==> P
+\idx{succ_inject}  succ(m) = succ(n) ==> m=n
+
+\idx{the_equality}     [| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a
+\idx{theI}             EX! x. P(x) ==> P(THE x. P(x))
+
+\idx{mem_anti_sym}     [| a:b;  b:a |] ==> P
+\idx{mem_anti_refl}    a:a ==> P
+
+
+%%% SUBSET.ML
+
+\idx{Union_upper}       B:A ==> B <= Union(A)
+\idx{Union_least}       [| !!x. x:A ==> x<=C |] ==> Union(A) <= C
+
+\idx{Inter_lower}       B:A ==> Inter(A) <= B
+\idx{Inter_greatest}    [| a:A;  !!x. x:A ==> C<=x |] ==> C <= Inter(A)
+
+\idx{Un_upper1}         A <= A Un B
+\idx{Un_upper2}         B <= A Un B
+\idx{Un_least}          [| A<=C;  B<=C |] ==> A Un B <= C
+
+\idx{Int_lower1}        A Int B <= A
+\idx{Int_lower2}        A Int B <= B
+\idx{Int_greatest}      [| C<=A;  C<=B |] ==> C <= A Int B
+
+\idx{Diff_subset}       A-B <= A
+\idx{Diff_contains}     [| C<=A;  C Int B = 0 |] ==> C <= A-B
+
+\idx{Collect_subset}    Collect(A,P) <= A
+
+%%% PAIR.ML
+
+\idx{Pair_inject1}    <a,b> = <c,d> ==> a=c
+\idx{Pair_inject2}    <a,b> = <c,d> ==> b=d
+\idx{Pair_inject}     [| <a,b> = <c,d>;  [| a=c; b=d |] ==> P |] ==> P
+\idx{Pair_neq_0}      <a,b>=0 ==> P
+
+\idx{fst_conv}        fst(<a,b>) = a
+\idx{snd_conv}        snd(<a,b>) = b
+\idx{split_conv}      split(<a,b>, %x y.c(x,y)) = c(a,b)
+
+\idx{SigmaI}    [| a:A;  b:B(a) |] ==> <a,b> : (SUM x:A. B(x))
+
+\idx{SigmaE}    [| c: (SUM x:A. B(x));  
+             !!x y.[| x:A;  y:B(x);  c=<x,y> |] ==> P 
+          |] ==> P
+
+\idx{SigmaE2}   [| <a,b> : (SUM x:A. B(x));    
+             [| a:A;  b:B(a) |] ==> P   
+          |] ==> P
+
+
+%%% DOMRANGE.ML
+
+\idx{domainI}        <a,b>: r ==> a : domain(r)
+\idx{domainE}        [| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P
+\idx{domain_subset}  domain(Sigma(A,B)) <= A
+
+\idx{rangeI}         <a,b>: r ==> b : range(r)
+\idx{rangeE}         [| b : range(r);  !!x. <x,b>: r ==> P |] ==> P
+\idx{range_subset}   range(A*B) <= B
+
+\idx{fieldI1}        <a,b>: r ==> a : field(r)
+\idx{fieldI2}        <a,b>: r ==> b : field(r)
+\idx{fieldCI}        (~ <c,a>:r ==> <a,b>: r) ==> a : field(r)
+
+\idx{fieldE}         [| a : field(r);  
+                  !!x. <a,x>: r ==> P;  
+                  !!x. <x,a>: r ==> P      
+               |] ==> P
+
+\idx{field_subset}   field(A*A) <= A
+
+\idx{imageI}         [| <a,b>: r;  a:A |] ==> b : r``A
+\idx{imageE}         [| b: r``A;  !!x.[| <x,b>: r;  x:A |] ==> P |] ==> P
+
+\idx{vimageI}        [| <a,b>: r;  b:B |] ==> a : r-``B
+\idx{vimageE}        [| a: r-``B;  !!x.[| <a,x>: r;  x:B |] ==> P |] ==> P
+
+
+%%% FUNC.ML
+
+\idx{fun_is_rel}       f: (PROD x:A.B(x)) ==> f <= Sigma(A,B)
+
+\idx{apply_equality}   [| <a,b>: f;  f: (PROD x:A.B(x)) |] ==> f`a = b
+\idx{apply_equality2}  [| <a,b>: f;  <a,c>: f;  f: (PROD x:A.B(x)) |] ==> b=c
+
+\idx{apply_type}       [| f: (PROD x:A.B(x));  a:A |] ==> f`a : B(a)
+\idx{apply_Pair}       [| f: (PROD x:A.B(x));  a:A |] ==> <a,f`a>: f
+\idx{apply_iff}        [| f: (PROD x:A.B(x));  a:A |] ==> <a,b>: f <-> f`a = b
+
+\idx{domain_type}      [| <a,b> : f;  f: (PROD x:A.B(x)) |] ==> a : A
+\idx{range_type}       [| <a,b> : f;  f: (PROD x:A.B(x)) |] ==> b : B(a)
+
+\idx{Pi_type}          [| f: A->C;  !!x. x:A ==> f`x : B(x) |] ==> f: Pi(A,B)
+\idx{domain_of_fun}    f : Pi(A,B) ==> domain(f)=A
+\idx{range_of_fun}     f : Pi(A,B) ==> f: A->range(f)
+
+\idx{fun_extension}    [| f : (PROD x:A.B(x));  g: (PROD x:A.D(x));  
+                    !!x. x:A ==> f`x = g`x       
+                 |] ==> f=g
+
+\idx{lamI}             a:A ==> <a,b(a)> : (lam x:A. b(x))
+\idx{lamE}             [| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P 
+                 |] ==>  P
+
+\idx{lam_type}         [| !!x. x:A ==> b(x): B(x) |] ==> 
+                 (lam x:A.b(x)) : (PROD x:A.B(x))
+
+\idx{beta_conv}        a : A ==> (lam x:A.b(x)) ` a = b(a)
+\idx{eta_conv}         f : (PROD x:A.B(x)) ==> (lam x:A. f`x) = f
+
+\idx{lam_theI}         (!!x. x:A ==> EX! y. Q(x,y)) ==> EX h. ALL x:A. Q(x, h`x)
+
+\idx{restrict_conv}          a : A ==> restrict(f,A) ` a = f`a
+\idx{restrict_type}          [| !!x. x:A ==> f`x: B(x) |] ==> 
+                       restrict(f,A) : (PROD x:A.B(x))
+
+\idx{fun_empty}              0: 0->0
+\idx{fun_single}             \{<a,b>\} : \{a\} -> \{b\}
+
+\idx{fun_disjoint_Un}        [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  
+                       (f Un g) : (A Un C) -> (B Un D)
+
+\idx{fun_disjoint_apply1}    [| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  
+                       (f Un g)`a = f`a
+
+\idx{fun_disjoint_apply2}    [| c:C;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  
+                       (f Un g)`c = g`c
+
+
+%%% SIMPDATA.ML
+
+  a\in a 		& \bimp &  False\\
+  a\in \emptyset 	& \bimp &  False\\
+  a \in A \union B 	& \bimp &  a\in A \disj a\in B\\
+  a \in A \inter B 	& \bimp &  a\in A \conj a\in B\\
+  a \in A-B 		& \bimp &  a\in A \conj \neg (a\in B)\\
+  a \in {\tt cons}(b,B) & \bimp &  a=b \disj a\in B\\
+  i \in {\tt succ}(j) 	& \bimp &  i=j \disj i\in j\\
+  A\in \bigcup(C) 	& \bimp &  (\exists B. B\in C \conj A\in B)\\
+  A\in \bigcap(C) 	& \bimp &  (\forall B. B\in C \imp A\in B)
+	\qquad (\exists B. B\in C)\\
+  a \in {\tt Collect}(A,P) 	& \bimp &  a\in A \conj P(a)\\
+  b \in {\tt RepFun}(A,f) 	& \bimp &  (\exists x. x\in A \conj b=f(x))
+
+equalities.ML perm.ML plus.ML nat.ML
+----------------------------------------------------------------
+equalities.ML
+
+\idx{Int_absorb}         A Int A = A
+\idx{Int_commute}        A Int B = B Int A
+\idx{Int_assoc}          (A Int B) Int C  =  A Int (B Int C)
+\idx{Int_Un_distrib}     (A Un B) Int C  =  (A Int C) Un (B Int C)
+
+\idx{Un_absorb}          A Un A = A
+\idx{Un_commute}         A Un B = B Un A
+\idx{Un_assoc}           (A Un B) Un C  =  A Un (B Un C)
+\idx{Un_Int_distrib}     (A Int B) Un C  =  (A Un C) Int (B Un C)
+
+\idx{Diff_cancel}        A-A = 0
+\idx{Diff_disjoint}      A Int (B-A) = 0
+\idx{Diff_partition}     A<=B ==> A Un (B-A) = B
+\idx{double_complement}  [| A<=B; B<= C |] ==> (B - (C-A)) = A
+\idx{Diff_Un}            A - (B Un C) = (A-B) Int (A-C)
+\idx{Diff_Int}           A - (B Int C) = (A-B) Un (A-C)
+
+\idx{Union_Un_distrib}   Union(A Un B) = Union(A) Un Union(B)
+\idx{Inter_Un_distrib}   [| a:A;  b:B |] ==> 
+                   Inter(A Un B) = Inter(A) Int Inter(B)
+
+\idx{Int_Union_RepFun}   A Int Union(B) = (UN C:B. A Int C)
+
+\idx{Un_Inter_RepFun}    b:B ==> 
+                   A Un Inter(B) = (INT C:B. A Un C)
+
+\idx{SUM_Un_distrib1}    (SUM x:A Un B. C(x)) = 
+                   (SUM x:A. C(x)) Un (SUM x:B. C(x))
+
+\idx{SUM_Un_distrib2}    (SUM x:C. A(x) Un B(x)) =
+                   (SUM x:C. A(x)) Un (SUM x:C. B(x))
+
+\idx{SUM_Int_distrib1}   (SUM x:A Int B. C(x)) =
+                   (SUM x:A. C(x)) Int (SUM x:B. C(x))
+
+\idx{SUM_Int_distrib2}   (SUM x:C. A(x) Int B(x)) =
+                   (SUM x:C. A(x)) Int (SUM x:C. B(x))
+
+
+----------------------------------------------------------------
+perm.ML
+
+\idx{comp_def}
+        r O s == \{xz : domain(s)*range(r) . 
+                  EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r\}),
+\idx{id_def}                    (*the identity function for A*)
+        id(A) == (lam x:A. x)),
+\idx{inj_def} 
+        inj(A,B) == 
+            \{ f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x\}),
+\idx{surj_def} 
+        surj(A,B) == \{ f: A->B . ALL y:B. EX x:A. f`x=y\}),
+\idx{bij_def}
+        bij(A,B) == inj(A,B) Int surj(A,B))
+
+
+\idx{surj_is_fun}        f: surj(A,B) ==> f: A->B
+\idx{fun_is_surj}        f : Pi(A,B) ==> f: surj(A,range(f))
+
+\idx{inj_is_fun}         f: inj(A,B) ==> f: A->B
+\idx{inj_equality}       [| <a,b>:f;  <c,b>:f;  f: inj(A,B) |] ==> a=c
+
+\idx{bij_is_fun}         f: bij(A,B) ==> f: A->B
+
+\idx{inj_converse_surj}  f: inj(A,B) ==> converse(f): surj(range(f), A)
+
+\idx{left_inverse}       [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a
+\idx{right_inverse}      [| f: inj(A,B);  b: range(f) |] ==> 
+                   f`(converse(f)`b) = b
+
+\idx{inj_converse_inj}   f: inj(A,B) ==> converse(f): inj(range(f), A)
+\idx{bij_converse_bij}   f: bij(A,B) ==> converse(f): bij(B,A)
+
+\idx{comp_type}          [| s<=A*B;  r<=B*C |] ==> (r O s) <= A*C
+\idx{comp_assoc}         (r O s) O t = r O (s O t)
+
+\idx{left_comp_id}       r<=A*B ==> id(B) O r = r
+\idx{right_comp_id}      r<=A*B ==> r O id(A) = r
+
+\idx{comp_func}          [| g: A->B;  f: B->C |] ==> (f O g) : A->C
+\idx{comp_func_apply}    [| g: A->B;  f: B->C;  a:A |] ==> (f O g)`a = f`(g`a)
+
+\idx{comp_inj}      [| g: inj(A,B);   f: inj(B,C)  |] ==> (f O g) : inj(A,C)
+\idx{comp_surj}     [| g: surj(A,B);  f: surj(B,C) |] ==> (f O g) : surj(A,C)
+\idx{comp_bij}      [| g: bij(A,B);  f: bij(B,C) |] ==> (f O g) : bij(A,C)
+
+\idx{left_comp_inverse}     f: inj(A,B) ==> converse(f) O f = id(A)
+\idx{right_comp_inverse}    f: surj(A,B) ==> f O converse(f) = id(B)
+
+\idx{bij_disjoint_Un}   
+    [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> 
+    (f Un g) : bij(A Un C, B Un D)
+
+\idx{restrict_bij}  [| f: inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)
+
+
+----------------------------------------------------------------
+plus.ML
+
+\idx{plus_def}      A+B == \{0\}*A Un \{\{0\}\}*B
+\idx{Inl_def}       Inl(a) == < 0 ,a>
+\idx{Inr_def}       Inr(b) == <\{0\},b>
+\idx{when_def}      when(u,c,d) == 
+                THE y. EX z.(u=Inl(z) & y=c(z)) | (u=Inr(z) & y=d(z))
+
+\idx{plus_InlI}     a : A ==> Inl(a) : A+B
+\idx{plus_InrI}     b : B ==> Inr(b) : A+B
+
+\idx{Inl_inject}    Inl(a) = Inl(b) ==>  a=b
+\idx{Inr_inject}    Inr(a) = Inr(b) ==> a=b
+\idx{Inl_neq_Inr}   Inl(a)=Inr(b) ==> P
+
+\idx{plusE2}        u: A+B ==> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))
+
+\idx{when_Inl_conv} when(Inl(a),c,d) = c(a)
+\idx{when_Inr_conv} when(Inr(b),c,d) = d(b)
+
+\idx{when_type}     [| u: A+B; 
+                 !!x. x: A ==> c(x): C(Inl(x));   
+                 !!y. y: B ==> d(y): C(Inr(y)) 
+              |] ==> when(u,c,d) : C(u)
+
+
+----------------------------------------------------------------
+nat.ML
+
+
+\idx{nat_def}       nat == lfp(lam r: Pow(Inf). \{0\} Un RepFun(r,succ))
+\idx{nat_case_def}  nat_case(n,a,b) == 
+                THE y. n=0 & y=a | (EX x. n=succ(x) & y=b(x))
+\idx{nat_rec_def}   nat_rec(k,a,b) == 
+                transrec(nat, k, %n f. nat_case(n, a, %m. b(m, f`m)))
+
+\idx{nat_0_I}       0 : nat
+\idx{nat_succ_I}    n : nat ==> succ(n) : nat
+
+\idx{nat_induct}        
+    [| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) 
+    |] ==> P(n)
+
+\idx{nat_case_0_conv}       nat_case(0,a,b) = a
+\idx{nat_case_succ_conv}    nat_case(succ(m),a,b) = b(m)
+
+\idx{nat_case_type}     
+    [| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m))  
+    |] ==> nat_case(n,a,b) : C(n)
+
+\idx{nat_rec_0_conv}        nat_rec(0,a,b) = a
+\idx{nat_rec_succ_conv}     m: nat ==> nat_rec(succ(m),a,b) = b(m, nat_rec(m,a,b))
+
+\idx{nat_rec_type}      
+    [| n: nat;  
+       a: C(0);  
+       !!m z. [| m: nat;  z: C(m) |] ==> b(m,z): C(succ(m))  
+    |] ==> nat_rec(n,a,b) : C(n)

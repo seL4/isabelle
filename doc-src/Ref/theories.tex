@@ -1,0 +1,445 @@
+%% $Id$
+\chapter{Theories, Terms and Types} \label{theories}
+\index{theories|(}\index{signatures|bold}
+\index{reading!axioms|see{{\tt extend_theory} and {\tt assume_ax}}}
+Theories organize the syntax, declarations and axioms of a mathematical
+development.  They are built, starting from the Pure theory, by extending
+and merging existing theories.  They have the \ML{} type \ttindex{theory}.
+Theory operations signal errors by raising exception \ttindex{THEORY},
+returning a message and a list of theories.
+
+Signatures, which contain information about sorts, types, constants and
+syntax, have the \ML{} type~\ttindexbold{Sign.sg}.  For identification,
+each signature carries a unique list of {\bf stamps}, which are~\ML{}
+references (to strings).  The strings serve as human-readable names; the
+references serve as unique identifiers.  Each primitive signature has a
+single stamp.  When two signatures are merged, their lists of stamps are
+also merged.  Every theory carries a unique signature.
+
+Terms and types are the underlying representation of logical syntax.  Their
+\ML{} definitions are irrelevant to naive Isabelle users.  Programmers who wish
+to extend Isabelle may need to know such details, say to code a tactic that
+looks for subgoals of a particular form.  Terms and types may be
+`certified' to be well-formed with respect to a given signature.
+
+\section{Defining Theories}
+\label{DefiningTheories}
+
+Theories can be defined either using concrete syntax or by calling certain
+\ML-functions (see \S\ref{BuildingATheory}).  Figure~\ref{TheorySyntax}
+presents the concrete syntax for theories.  This grammar employs the
+following conventions: 
+\begin{itemize}
+\item Identifiers such as $theoryDef$ denote nonterminal symbols.
+\item Text in {\tt typewriter font} denotes terminal symbols.
+\item \ldots{} indicates repetition of a phrase.
+\item A vertical bar~($|$) separates alternative phrases.
+\item Square [brackets] enclose optional phrases.
+\item $id$ stands for an Isabelle identifier.
+\item $string$ stands for an ML string, with its quotation marks.
+\item $k$ stands for a natural number.
+\item $text$ stands for arbitrary ML text.
+\end{itemize}
+
+\begin{figure}[hp]
+\begin{center}
+\begin{tabular}{rclc}
+$theoryDef$ &=& $id$ {\tt=} $id@1$ {\tt+} \dots {\tt+} $id@n$
+                            [{\tt+} $extension$]\\\\
+$extension$ &=& [$classes$] [$default$] [$types$] [$arities$] [$consts$]
+                [$rules$] {\tt end} [$ml$]\\\\
+$classes$ &=& \ttindex{classes} $class$ \dots $class$ \\\\
+$class$ &=& $id$ [{\tt<} $id@1${\tt,} \dots{\tt,} $id@n$] \\\\
+$default$ &=& \ttindex{default} $sort$ \\\\
+$sort$ &=& $id$ ~~$|$~~ {\tt\{} $id@1${\tt,} \dots{\tt,} $id@n$ {\tt\}} \\\\
+$name$ &=& $id$ ~~$|$~~ $string$ \\\\
+$types$ &=& \ttindex{types} $typeDecl$ \dots $typeDecl$ \\\\
+$typeDecl$ &=& $name${\tt,} \dots{\tt,} $name$ $k$
+               [{\tt(} $infix$ {\tt)}] \\\\
+$infix$ &=& \ttindex{infixl} $k$ ~~$|$~~ \ttindex{infixr} $k$ \\\\
+$arities$ &=& \ttindex{arities} $arityDecl$ \dots $arityDecl$ \\\\
+$arityDecl$ &=& $name${\tt,} \dots{\tt,} $name$ {\tt::} $arity$ \\\\
+$arity$ &=& [{\tt(} $sort${\tt,} \dots{\tt,} $sort$ {\tt)}] $id$ \\\\
+$consts$ &=& \ttindex{consts} $constDecl$ \dots $constDecl$ \\\\
+$constDecl$ &=& $name@1${\tt,} \dots{\tt,} $name@n$ {\tt::} $string$
+                [{\tt(} $mixfix$ {\tt)}] \\\\
+$mixfix$ &=& $string$
+             [ [\quad{\tt[} $k@1${\tt,} \dots{\tt,} $k@n$ {\tt]}\quad] $k$]\\
+       &$|$& $infix$ \\
+       &$|$& \ttindex{binder} $string$ $k$\\\\
+$rules$ &=& \ttindex{rules} $rule$ \dots $rule$ \\\\
+$rule$ &=& $id$ $string$ \\\\
+$ml$ &=& \ttindex{ML} $text$
+\end{tabular}
+\end{center}
+\caption{Theory Syntax}
+\label{TheorySyntax}
+\end{figure}
+
+The different parts of a theory definition are interpreted as follows:
+\begin{description}
+\item[$theoryDef$] A theory has a name $id$ and is an extension of the union
+  of existing theories $id@1$ \dots $id@n$ with new classes, types,
+  constants, syntax and axioms.  The basic theory, which contains only the
+  meta-logic, is called {\tt Pure}.
+\item[$class$] The new class $id$ is declared as a subclass of existing
+  classes $id@1$ \dots $id@n$.  This rules out cyclic class structures.
+  Isabelle automatically computes the transitive closure of subclass
+  hierarchies.  Hence it is not necessary to declare $c@1 < c@3$ in addition
+  to $c@1 < c@2$ and $c@2 < c@3$.
+\item[$default$] introduces $sort$ as the new default sort for type
+  variables.  Unconstrained type variables in an input string are
+  automatically constrained by $sort$; this does not apply to type variables
+  created internally during type inference.  If omitted,
+  the default sort is the same as in the parent theory.
+\item[$sort$] is a finite set $id@1$ \dots $id@n$ of classes; a single class
+  $id$ abbreviates the singleton set {\tt\{}$id${\tt\}}.
+\item[$name$] is either an alphanumeric identifier or an arbitrary string.
+\item[$typeDecl$] Each $name$ is declared as a new type constructor with
+  $k$ arguments.  Only binary type constructors can have infix status and
+  symbolic names ($string$).
+\item[$infix$] declares a type or constant to be an infix operator of
+  precedence $k$ associating to the left ({\tt infixl}) or right ({\tt
+    infixr}).
+\item[$arityDecl$] Each existing type constructor $name@1$ \dots $name@n$
+  is given the additional arity $arity$.
+\item[$constDecl$] The new constants $name@1$ \dots $name@n$ are declared to
+  be of type $string$.  For display purposes they can be annotated with
+  $mixfix$ declarations.
+\item[$mixfix$] $string$ is a mixfix template of the form {\tt"}\dots{\tt\_}
+  \dots{\tt\_} \dots{\tt"} where the $i$-th underscore indicates the position
+  where the $i$-th argument should go, $k@i$ is the minimum precedence of
+  the $i$-th argument, and $k$ the precedence of the construct.  The list
+  \hbox{\tt[$k@1$, \dots, $k@n$]} is optional.
+
+  Binary constants can be given infix status.
+
+  A constant $f$ {\tt::} $(\tau@1\To\tau@2)\To\tau@3$ can be given {\em
+    binder} status: {\tt binder} $Q$ $p$ causes $Q\,x.F(x)$ to be treated
+  like $f(F)$; $p$ is the precedence of the construct.
+\item[$rule$] A rule consists of a name $id$ and a formula $string$.  Rule
+  names must be distinct.
+\item[$ml$] This final part of a theory consists of ML code, 
+  typically for parse and print translations.
+\end{description}
+The $mixfix$ and $ml$ sections are explained in more detail in the {\it
+Defining Logics} chapter of the {\it Logics} manual.
+
+\begin{ttbox} 
+use_thy: string -> unit
+\end{ttbox}
+Each theory definition must reside in a separate file.  Let the file {\it
+  tf}{\tt.thy} contain the definition of a theory called $TF$ with rules named
+$r@1$ \dots $r@n$.  Calling \ttindexbold{use_thy}~{\tt"}{\it tf\/}{\tt"} reads
+file {\it tf}{\tt.thy}, writes an intermediate {\ML}-file {\tt.}{\it
+  tf}{\tt.thy.ML}, and reads the latter file.  This declares an {\ML}
+structure~$TF$ containing a component {\tt thy} for the new theory
+and components $r@1$ \dots $r@n$ for the rules; it also contains the
+definitions of the {\tt ML} section if any.  Then {\tt use_thy}
+reads the file {\it tf}{\tt.ML}, if it exists; this file normally contains
+proofs involving the new theory.
+
+
+\section{Basic operations on theories}
+\subsection{Extracting an axiom from a theory}
+\index{theories!extracting axioms|bold}\index{axioms}
+\begin{ttbox} 
+get_axiom: theory -> string -> thm
+assume_ax: theory -> string -> thm
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{get_axiom} $thy$ $name$] 
+returns an axiom with the given $name$ from $thy$, raising exception
+\ttindex{THEORY} if none exists.  Merging theories can cause several axioms
+to have the same name; {\tt get_axiom} returns an arbitrary one.
+
+\item[\ttindexbold{assume_ax} $thy$ $formula$] 
+reads the {\it formula} using the syntax of $thy$, following the same
+conventions as axioms in a theory definition.  You can thus pretend that
+{\it formula} is an axiom; in fact, {\tt assume_ax} returns an assumption.
+You can use the resulting theorem like an axiom.  Note that 
+\ttindex{result} complains about additional assumptions, but 
+\ttindex{uresult} does not.
+
+For example, if {\it formula} is
+\hbox{\tt a=b ==> b=a} then the resulting theorem might have the form
+\hbox{\tt\frenchspacing ?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]}
+\end{description}
+
+\subsection{Building a theory}
+\label{BuildingATheory}
+\index{theories!constructing|bold}
+\begin{ttbox} 
+pure_thy: theory
+merge_theories: theory * theory -> theory
+extend_theory: theory -> string
+        -> (class * class list) list 
+           * sort
+           * (string list * int)list
+           * (string list * (sort list * class))list
+           * (string list * string)list * sext option
+        -> (string*string)list -> theory
+\end{ttbox}
+Type \ttindex{class} is a synonym for {\tt string}; type \ttindex{sort} is
+a synonym for \hbox{\tt class list}.
+\begin{description}
+\item[\ttindexbold{pure_thy}] contains just the types, constants, and syntax
+  of the meta-logic.  There are no axioms: meta-level inferences are carried
+  out by \ML\ functions.
+\item[\ttindexbold{merge_theories} ($thy@1$, $thy@2$)] merges the two
+  theories $thy@1$ and $thy@2$.  The resulting theory contains all types,
+  constants and axioms of the constituent theories; its default sort is the
+  union of the default sorts of the constituent theories.
+\item [\ttindexbold{extend_theory} $thy$ {\tt"}$T${\tt"}
+      ($classes$, $default$, $types$, $arities$, $consts$, $sextopt$) $rules$]
+\hfill\break   %%% include if line is just too short
+is the \ML-equivalent of the following theory definition:
+\begin{ttbox}
+\(T\) = \(thy\) +
+classes \(c\) < \(c@1\),\(\dots\),\(c@m\)
+        \dots
+default {\(d@1,\dots,d@r\)}
+types   \(tycon@1\),\dots,\(tycon@i\) \(n\)
+        \dots
+arities \(tycon@1'\),\dots,\(tycon@j'\) :: (\(s@1\),\dots,\(s@n\))\(c\)
+        \dots
+consts  \(b@1\),\dots,\(b@k\) :: \(\tau\)
+        \dots
+rules   \(name\) \(rule\)
+        \dots
+end
+\end{ttbox}
+where
+\begin{tabular}[t]{l@{~=~}l}
+$classes$ & \tt[("$c$",["$c@1$",\dots,"$c@m$"]),\dots] \\
+$default$ & \tt["$d@1$",\dots,"$d@r$"]\\
+$types$   & \tt[([$tycon@1$,\dots,$tycon@i$], $n$),\dots] \\
+$arities$ & \tt[([$tycon'@1$,\dots,$tycon'@j$], ([$s@1$,\dots,$s@n$],$c$)),\dots]
+\\
+$consts$  & \tt[([$b@1$,\dots,$b@k$],$\tau$),\dots] \\
+$rules$   & \tt[("$name$",$rule$),\dots]
+\end{tabular}
+
+If theories are defined as in \S\ref{DefiningTheories}, new syntax is added
+as mixfix annotations to constants.  Using {\tt extend_theory}, new syntax can
+be added via $sextopt$ which is either {\tt None}, or {\tt Some($sext$)}.  The
+latter case is not documented.
+
+$T$ identifies the theory internally.  When a theory is redeclared, say to
+change an incorrect axiom, bindings to the old axiom may persist.  Isabelle
+ensures that the old and new theories are not involved in the same proof.
+Attempting to combine different theories having the same name $T$ yields the
+fatal error
+\begin{center} \tt
+Attempt to merge different versions of theory: $T$
+\end{center}
+\end{description}
+
+
+\subsection{Inspecting a theory}
+\index{theories!inspecting|bold}
+\begin{ttbox} 
+print_theory  : theory -> unit
+axioms_of     : theory -> (string*thm)list
+parents_of    : theory -> theory list
+sign_of       : theory -> Sign.sg
+stamps_of_thy : theory -> string ref list
+\end{ttbox}
+These provide a simple means of viewing a theory's components.
+Unfortunately, there is no direct connection between a theorem and its
+theory.
+\begin{description}
+\item[\ttindexbold{print_theory} {\it thy}]  
+prints the theory {\it thy\/} at the terminal as a set of identifiers.
+
+\item[\ttindexbold{axioms_of} $thy$] 
+returns the axioms of~$thy$ and its ancestors.
+
+\item[\ttindexbold{parents_of} $thy$] 
+returns the parents of~$thy$.  This list contains zero, one or two
+elements, depending upon whether $thy$ is {\tt pure_thy}, 
+\hbox{\tt extend_theory $thy$} or \hbox{\tt merge_theories ($thy@1$, $thy@2$)}.
+
+\item[\ttindexbold{stamps_of_thy} $thy$]\index{signatures}
+returns the stamps of the signature associated with~$thy$.
+
+\item[\ttindexbold{sign_of} $thy$] 
+returns the signature associated with~$thy$.  It is useful with functions
+like {\tt read_instantiate_sg}, which take a signature as an argument.
+\end{description}
+
+
+\section{Terms}
+\index{terms|bold}
+Terms belong to the \ML{} type \ttindexbold{term}, which is a concrete datatype
+with six constructors: there are six kinds of term.
+\begin{ttbox}
+type indexname = string * int;
+infix 9 $;
+datatype term = Const of string * typ
+              | Free  of string * typ
+              | Var   of indexname * typ
+              | Bound of int
+              | Abs   of string * typ * term
+              | op $  of term * term;
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{Const}($a$, $T$)] 
+is the {\bf constant} with name~$a$ and type~$T$.  Constants include
+connectives like $\land$ and $\forall$ (logical constants), as well as
+constants like~0 and~$Suc$.  Other constants may be required to define the
+concrete syntax of a logic.
+
+\item[\ttindexbold{Free}($a$, $T$)] 
+is the {\bf free variable} with name~$a$ and type~$T$.
+
+\item[\ttindexbold{Var}($v$, $T$)] 
+is the {\bf scheme variable} with indexname~$v$ and type~$T$.  An
+\ttindexbold{indexname} is a string paired with a non-negative index, or
+subscript; a term's scheme variables can be systematically renamed by
+incrementing their subscripts.  Scheme variables are essentially free
+variables, but may be instantiated during unification.
+
+\item[\ttindexbold{Bound} $i$] 
+is the {\bf bound variable} with de Bruijn index~$i$, which counts the
+number of lambdas, starting from zero, between a variable's occurrence and
+its binding.  The representation prevents capture of variables.  For more
+information see de Bruijn \cite{debruijn72} or
+Paulson~\cite[page~336]{paulson91}.
+
+\item[\ttindexbold{Abs}($a$, $T$, $u$)] 
+is the {\bf abstraction} with body~$u$, and whose bound variable has
+name~$a$ and type~$T$.  The name is used only for parsing and printing; it
+has no logical significance.
+
+\item[\tt $t$ \$ $u$] \index{$@{\tt\$}|bold}
+is the {\bf application} of~$t$ to~$u$.  
+\end{description}
+Application is written as an infix operator in order to aid readability.
+For example, here is an \ML{} pattern to recognize first-order formula of
+the form~$A\imp B$, binding the subformulae to~$A$ and~$B$:
+\begin{ttbox} 
+Const("Trueprop",_) $ (Const("op -->",_) $ A $ B)
+\end{ttbox}
+
+
+\section{Certified terms}
+\index{terms!certified|bold}\index{signatures}
+A term $t$ can be {\bf certified} under a signature to ensure that every
+type in~$t$ is declared in the signature and every constant in~$t$ is
+declared as a constant of the same type in the signature.  It must be
+well-typed and must not have any `loose' bound variable
+references.\footnote{This concerns the internal representation of variable
+binding using de Bruijn indexes.} Meta-rules such as {\tt forall_elim} take
+certified terms as arguments.
+
+Certified terms belong to the abstract type \ttindexbold{Sign.cterm}.
+Elements of the type can only be created through the certification process.
+In case of error, Isabelle raises exception~\ttindex{TERM}\@.
+
+\subsection{Printing terms}
+\index{printing!terms|bold}
+\begin{ttbox} 
+Sign.string_of_cterm :      Sign.cterm -> string
+Sign.string_of_term  : Sign.sg -> term -> string
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{Sign.string_of_cterm} $ct$] 
+displays $ct$ as a string.
+
+\item[\ttindexbold{Sign.string_of_term} $sign$ $t$] 
+displays $t$ as a string, using the syntax of~$sign$.
+\end{description}
+
+\subsection{Making and inspecting certified terms}
+\begin{ttbox} 
+Sign.cterm_of   : Sign.sg -> term -> Sign.cterm
+Sign.read_cterm : Sign.sg -> string * typ -> Sign.cterm
+Sign.rep_cterm  : Sign.cterm -> \{T:typ, t:term, 
+                                 sign: Sign.sg, maxidx:int\}
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{Sign.cterm_of} $sign$ $t$] \index{signatures}
+certifies $t$ with respect to signature~$sign$.
+
+\item[\ttindexbold{Sign.read_cterm} $sign$ ($s$, $T$)] 
+reads the string~$s$ using the syntax of~$sign$, creating a certified term.
+The term is checked to have type~$T$; this type also tells the parser what
+kind of phrase to parse.
+
+\item[\ttindexbold{Sign.rep_cterm} $ct$] 
+decomposes $ct$ as a record containing its type, the term itself, its
+signature, and the maximum subscript of its unknowns.  The type and maximum
+subscript are computed during certification.
+\end{description}
+
+
+\section{Types}
+\index{types|bold}
+Types belong to the \ML{} type \ttindexbold{typ}, which is a concrete
+datatype with three constructors.  Types are classified by sorts, which are
+lists of classes.  A class is represented by a string.
+\begin{ttbox}
+type class = string;
+type sort  = class list;
+
+datatype typ = Type  of string * typ list
+             | TFree of string * sort
+             | TVar  of indexname * sort;
+
+infixr 5 -->;
+fun S --> T = Type("fun",[S,T]);
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{Type}($a$, $Ts$)] 
+applies the {\bf type constructor} named~$a$ to the type operands~$Ts$.
+Type constructors include~\ttindexbold{fun}, the binary function space
+constructor, as well as nullary type constructors such
+as~\ttindexbold{prop}.  Other type constructors may be introduced.  In
+expressions, but not in patterns, \hbox{\tt$S$-->$T$} is a convenient
+shorthand for function types.
+
+\item[\ttindexbold{TFree}($a$, $s$)] 
+is the {\bf free type variable} with name~$a$ and sort~$s$.
+
+\item[\ttindexbold{TVar}($v$, $s$)] 
+is the {\bf scheme type variable} with indexname~$v$ and sort~$s$.  Scheme
+type variables are essentially free type variables, but may be instantiated
+during unification.
+\end{description}
+
+
+\section{Certified types}
+\index{types!certified|bold}
+Certified types, which are analogous to certified terms, have type 
+\ttindexbold{Sign.ctyp}.
+
+\subsection{Printing types}
+\index{printing!types|bold}
+\begin{ttbox} 
+Sign.string_of_ctyp :      Sign.ctyp -> string
+Sign.string_of_typ  : Sign.sg -> typ -> string
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{Sign.string_of_ctyp} $cT$] 
+displays $cT$ as a string.
+
+\item[\ttindexbold{Sign.string_of_typ} $sign$ $T$] 
+displays $T$ as a string, using the syntax of~$sign$.
+\end{description}
+
+
+\subsection{Making and inspecting certified types}
+\begin{ttbox} 
+Sign.ctyp_of  : Sign.sg -> typ -> Sign.ctyp
+Sign.rep_ctyp : Sign.ctyp -> \{T: typ, sign: Sign.sg\}
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{Sign.ctyp_of} $sign$ $T$] \index{signatures}
+certifies $T$ with respect to signature~$sign$.
+
+\item[\ttindexbold{Sign.rep_ctyp} $cT$] 
+decomposes $cT$ as a record containing the type itself and its signature.
+\end{description}
+
+\index{theories|)}

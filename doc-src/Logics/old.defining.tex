@@ -1,0 +1,871 @@
+\chapter{Defining Logics} \label{Defining-Logics}
+This chapter is intended for Isabelle experts.  It explains how to define new
+logical systems, Isabelle's {\it raison d'\^etre}.  Isabelle logics are
+hierarchies of theories.  A number of simple examples are contained in the
+introductory manual; the full syntax of theory definitions is shown in the
+{\em Reference Manual}.  The purpose of this chapter is to explain the
+remaining subtleties, especially some context conditions on the class
+structure and the definition of new mixfix syntax.  A full understanding of
+the material requires knowledge of the internal representation of terms (data
+type {\tt term}) as detailed in the {\em Reference Manual}.  Sections marked
+with a * can be skipped on first reading.
+
+
+\section{Classes and Types *}
+\index{*arities!context conditions}
+
+Type declarations are subject to the following two well-formedness
+conditions:
+\begin{itemize}
+\item There are no two declarations $ty :: (\vec{r})c$ and $ty :: (\vec{s})c$
+  with $\vec{r} \neq \vec{s}$.  For example
+\begin{ttbox}
+types ty 1
+arities ty :: (\{logic\}) logic
+        ty :: (\{\})logic
+\end{ttbox}
+leads to an error message and fails.
+\item If there are two declarations $ty :: (s@1,\dots,s@n)c$ and $ty ::
+  (s@1',\dots,s@n')c'$ such that $c' < c$ then $s@i' \preceq s@i$ must hold
+  for $i=1,\dots,n$.  The relationship $\preceq$, defined as
+\[ s' \preceq s \iff \forall c\in s. \exists c'\in s'.~ c'\le c, \]
+expresses that the set of types represented by $s'$ is a subset of the set of
+types represented by $s$.  For example
+\begin{ttbox}
+classes term < logic
+types ty 1
+arities ty :: (\{logic\})logic
+        ty :: (\{\})term
+\end{ttbox}
+leads to an error message and fails.
+\end{itemize}
+These conditions guarantee principal types~\cite{nipkow-prehofer}.
+
+\section{Precedence Grammars}
+\label{PrecedenceGrammars}
+\index{precedence grammar|(}
+
+The precise syntax of a logic is best defined by a context-free grammar.
+These grammars obey the following conventions: identifiers denote
+nonterminals, {\tt typewriter} fount denotes terminals, repetition is
+indicated by \dots, and alternatives are separated by $|$.
+
+In order to simplify the description of mathematical languages, we introduce
+an extended format which permits {\bf precedences}\index{precedence}.  This
+scheme generalizes precedence declarations in \ML\ and {\sc prolog}.  In this
+extended grammar format, nonterminals are decorated by integers, their
+precedence.  In the sequel, precedences are shown as subscripts.  A nonterminal
+$A@p$ on the right-hand side of a production may only be replaced using a
+production $A@q = \gamma$ where $p \le q$.
+
+Formally, a set of context free productions $G$ induces a derivation
+relation $\rew@G$ on strings as follows:
+\[ \alpha A@p \beta ~\rew@G~ \alpha\gamma\beta ~~~iff~~~
+   \exists q \ge p.~(A@q=\gamma) \in G
+\]
+Any extended grammar of this kind can be translated into a normal context
+free grammar.  However, this translation may require the introduction of a
+large number of new nonterminals and productions.
+
+\begin{example}
+\label{PrecedenceEx}
+The following simple grammar for arithmetic expressions demonstrates how
+binding power and associativity of operators can be enforced by precedences.
+\begin{center}
+\begin{tabular}{rclr}
+$A@9$ & = & {\tt0} \\
+$A@9$ & = & {\tt(} $A@0$ {\tt)} \\
+$A@0$ & = & $A@0$ {\tt+} $A@1$ \\
+$A@2$ & = & $A@3$ {\tt*} $A@2$ \\
+$A@3$ & = & {\tt-} $A@3$
+\end{tabular}
+\end{center}
+The choice of precedences determines that \verb$-$ binds tighter than
+\verb$*$ which binds tighter than \verb$+$, and that \verb$+$ and \verb$*$
+associate to the left and right, respectively.
+\end{example}
+
+To minimize the number of subscripts, we adopt the following conventions:
+\begin{itemize}
+\item all precedences $p$ must be in the range $0 \leq p \leq max_pri$ for
+  some fixed $max_pri$.
+\item precedence $0$ on the right-hand side and precedence $max_pri$ on the
+  left-hand side may be omitted.
+\end{itemize}
+In addition, we write the production $A@p = \alpha$ as $A = \alpha~(p)$.
+
+Using these conventions and assuming $max_pri=9$, the grammar in
+Example~\ref{PrecedenceEx} becomes
+\begin{center}
+\begin{tabular}{rclc}
+$A$ & = & {\tt0} & \hspace*{4em} \\
+ & $|$ & {\tt(} $A$ {\tt)} \\
+ & $|$ & $A$ {\tt+} $A@1$ & (0) \\
+ & $|$ & $A@3$ {\tt*} $A@2$ & (2) \\
+ & $|$ & {\tt-} $A@3$ & (3)
+\end{tabular}
+\end{center}
+
+\index{precedence grammar|)}
+
+\section{Basic syntax *}
+
+An informal account of most of Isabelle's syntax (meta-logic, types etc) is
+contained in {\em Introduction to Isabelle}.  A precise description using a
+precedence grammar is shown in Figure~\ref{MetaLogicSyntax}.  This description
+is the basis of all extensions by object-logics.
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{rclc}
+$prop$ &=& \ttindex{PROP} $aprop$ ~~$|$~~ {\tt(} $prop$ {\tt)} \\
+     &$|$& $logic@3$ \ttindex{==} $logic@2$ & (2) \\
+     &$|$& $prop@2$ \ttindex{==>} $prop@1$ & (1) \\
+     &$|$& {\tt[|} $prop$ {\tt;} \dots {\tt;} $prop$ {\tt|]} {\tt==>} $prop@1$ & (1) \\
+     &$|$& {\tt!!} $idts$ {\tt.} $prop$ & (0) \\\\
+$logic$ &=& $prop$ ~~$|$~~ $fun$ \\\\
+$aprop$ &=& $id$ ~~$|$~~ $var$
+    ~~$|$~~ $fun@{max_pri}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)} \\\\
+$fun$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $fun$ {\tt)} \\
+    &$|$& \ttindex{\%} $idts$ {\tt.} $logic$ & (0) \\\\
+$idts$ &=& $idt$ ~~$|$~~ $idt@1$ $idts$ \\\\
+$idt$ &=& $id$ ~~$|$~~ {\tt(} $idt$ {\tt)} \\
+    &$|$& $id$ \ttindex{::} $type$ & (0) \\\\
+$type$ &=& $tfree$ ~~$|$~~ $tvar$ \\
+     &$|$& $tfree$ {\tt::} $sort$ ~~$|$~~ $tvar$ {\tt::} $sort$ \\
+     &$|$& $id$ ~~$|$~~ $type@{max_pri}$ $id$
+                ~~$|$~~ {\tt(} $type$ {\tt,} \dots {\tt,} $type$ {\tt)} $id$ \\
+     &$|$& $type@1$ \ttindex{=>} $type$ & (0) \\
+     &$|$& {\tt[}  $type$ {\tt,} \dots {\tt,} $type$ {\tt]} {\tt=>} $type$&(0)\\
+     &$|$& {\tt(} $type$ {\tt)} \\\\
+$sort$ &=& $id$ ~~$|$~~ {\tt\{\}}
+                ~~$|$~~ {\tt\{} $id$ {\tt,} \dots {\tt,} $id$ {\tt\}} 
+\end{tabular}\index{*"!"!}\index{*"["|}\index{*"|"]}
+\indexbold{type@$type$}\indexbold{sort@$sort$}\indexbold{idts@$idts$}
+\indexbold{logic@$logic$}\indexbold{prop@$prop$}\indexbold{fun@$fun$}
+\end{center}
+\caption{Meta-Logic Syntax}
+\label{MetaLogicSyntax}
+\end{figure}
+The following main categories are defined:
+\begin{description}
+\item[$prop$] Terms of type $prop$, i.e.\ formulae of the meta-logic.
+\item[$aprop$] Atomic propositions.
+\item[$logic$] Terms of types in class $logic$.  Initially, $logic$ contains
+  merely $prop$.  As the syntax is extended by new object-logics, more
+  productions for $logic$ are added (see below).
+\item[$fun$] Terms potentially of function type.
+\item[$type$] Types.
+\item[$idts$] a list of identifiers, possibly constrained by types.  Note
+  that $x::nat~y$ is parsed as $x::(nat~y)$, i.e.\ $y$ is treated like a
+  type constructor applied to $nat$.
+\end{description}
+
+The predefined types $id$, $var$, $tfree$ and $tvar$ represent identifiers
+({\tt f}), unknowns ({\tt ?f}), type variables ({\tt 'a}), and type unknowns
+({\tt ?'a}) respectively.  If we think of them as nonterminals with
+predefined syntax, we may assume that all their productions have precedence
+$max_pri$.
+
+\subsection{Logical types and default syntax}
+
+Isabelle is concerned with mathematical languages which have a certain
+minimal vocabulary: identifiers, variables, parentheses, and the lambda
+calculus.  Logical types, i.e.\ those of class $logic$, are automatically
+equipped with this basic syntax.  More precisely, for any type constructor
+$ty$ with arity $(\dots)c$, where $c$ is a subclass of $logic$, the following
+productions are added:
+\begin{center}
+\begin{tabular}{rclc}
+$ty$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $ty$ {\tt)} \\
+  &$|$& $fun@{max_pri}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)}\\
+  &$|$& $ty@{max_pri}$ {\tt::} $type$\\\\
+$logic$ &=& $ty$
+\end{tabular}
+\end{center}
+
+
+\section{Mixfix syntax}
+\index{mixfix|(}
+
+We distinguish between abstract and concrete syntax.  The {\em abstract}
+syntax is given by the typed constants of a theory.  Abstract syntax trees are
+well-typed terms, i.e.\ values of \ML\ type {\tt term}.  If none of the
+constants are introduced with mixfix annotations, there is no concrete syntax
+to speak of: terms can only be abstractions or applications of the form
+$f(t@1,\dots,t@n)$, where $f$ is a constant or variable.  Since this notation
+quickly becomes unreadable, Isabelle supports syntax definitions in the form
+of unrestricted context-free grammars using mixfix annotations.
+
+Mixfix annotations describe the {\em concrete} syntax, its translation into
+the abstract syntax, and a pretty-printing scheme, all in one.  Isabelle
+syntax definitions are inspired by \OBJ's~\cite{OBJ} {\em mixfix\/} syntax.
+Each mixfix annotation defines a precedence grammar production and associates
+an Isabelle constant with it.
+
+A {\em mixfix declaration} {\tt consts $c$ ::\ $\tau$ ($sy$ $ps$ $p$)} is
+interpreted as a grammar pro\-duction as follows:
+\begin{itemize}
+\item $sy$ is the right-hand side of this production, specified as a {\em
+    mixfix annotation}.  In general, $sy$ is of the form
+  $\alpha@0\_\alpha@1\dots\alpha@{n-1}\_\alpha@n$, where each occurrence of
+  ``\ttindex{_}'' denotes an argument/nonterminal and the strings
+  $\alpha@i$ do not contain ``{\tt_}''.
+\item $\tau$ specifies the types of the nonterminals on the left and right
+  hand side. If $sy$ is of the form above, $\tau$ must be of the form
+  $[\tau@1,\dots,\tau@n] \To \tau'$.  Then argument $i$ is of type $\tau@i$
+  and the result, i.e.\ the left-hand side of the production, is of type
+  $\tau'$.  Both the $\tau@i$ and $\tau'$ may be function types.
+\item $c$ is the name of the Isabelle constant associated with this production.
+  Parsing an instance of the phrase $sy$ generates the {\tt term} {\tt
+    Const($c$,dummyT\footnote{Proper types are inserted later on.  See
+      \S\ref{Typing}})\$$a@1$\$$\dots$\$$a@n$}\index{*dummyT}, where $a@i$ is
+  the term generated by parsing the $i^{th}$ argument.
+\item $ps$ must be of the form $[p@1,\dots,p@n]$, where $p@i$ is the
+  minimal precedence\index{precedence} required of any phrase that may appear
+  as the $i^{th}$ argument.  The null list is interpreted as a list of 0's of
+  the appropriate length.
+\item $p$ is the precedence of this production.
+\end{itemize}
+Notice that there is a close connection between abstract and concrete syntax:
+each production has an associated constant, and types act as {\bf syntactic
+  categories} in the concrete syntax.  To emphasize this connection, we
+sometimes refer to the nonterminals on the right-hand side of a production as
+its arguments and to the nonterminal on the left-hand side as its result.
+
+The maximal legal precedence is called \ttindexbold{max_pri}, which is
+currently 1000.  If you want to ignore precedences, the safest way to do so is
+to use the annotation {\tt($sy$)}: this production puts no precedence
+constraints on any of its arguments and has maximal precedence itself, i.e.\ 
+it is always applicable and does not exclude any productions of its
+arguments.
+
+\begin{example}
+In mixfix notation the grammar in Example~\ref{PrecedenceEx} can be written
+as follows:
+\begin{ttbox}
+types exp 0
+consts "0"  ::              "exp"  ("0" 9)
+       "+"  :: "[exp,exp] => exp"  ("_ + _" [0,1] 0)
+       "*"  :: "[exp,exp] => exp"  ("_ * _" [3,2] 2)
+       "-"  ::       "exp => exp"  ("- _"   [3]   3)
+\end{ttbox}
+Parsing the string \verb!"0 + - 0 + 0"! produces the term {\tt
+  $p$\$($p$\$($m$\$$z$)\$$z$)\$$z$} where {\tt$p =$ Const("+",dummyT)},
+{\tt$m =$ Const("-",dummyT)}, and {\tt$z =$ Const("0",dummyT)}.
+\end{example}
+
+The interpretation of \ttindex{_} in a mixfix annotation is always as a {\bf
+  meta-character}\index{meta-character} which does not represent itself but
+an argument position.  The following characters are also meta-characters:
+\begin{ttbox}
+'   (   )   /
+\end{ttbox}
+Preceding any character with a quote (\verb$'$) turns it into an ordinary
+character.  Thus you can write \verb!''! if you really want a single quote.
+The purpose of the other meta-characters is explained in
+\S\ref{PrettyPrinting}.  Remember that in \ML\ strings \verb$\$ is already a
+(different kind of) meta-character.
+
+
+\subsection{Types and syntactic categories *}
+
+The precise mapping from types to syntactic categories is defined by the
+following function:
+\begin{eqnarray*}
+N(\tau@1\To\tau@2) &=& fun \\
+N((\tau@1,\dots,\tau@n)ty) &=& ty \\
+N(\alpha) &=& logic
+\end{eqnarray*}
+Only the outermost type constructor is taken into account and type variables
+can range over all logical types.  This catches some ill-typed terms (like
+$Cons(x,0)$, where $Cons :: [\alpha,\alpha list] \To \alpha list$ and $0 ::
+nat$) but leaves the real work to the type checker.
+
+In terms of the precedence grammar format introduced in
+\S\ref{PrecedenceGrammars}, the declaration
+\begin{ttbox}
+consts \(c\) :: "[\(\tau@1\),\dots,\(\tau@n\)]\(\To\tau\)" ("\(\alpha@0\_\alpha@1\dots\alpha@{n-1}\_\alpha@n\)") [\(p@1\),\dots,\(p@n\)] \(p\))
+\end{ttbox}
+defines the production
+\[ N(\tau)@p ~~=~~ \alpha@0 ~N(\tau@1)@{p@1}~ \alpha@1~ \dots
+                  ~\alpha@{n-1} ~N(\tau@n)@{p@n}~ \alpha@n
+\]
+
+\subsection{Copy productions *}
+
+Productions which do not create a new node in the abstract syntax tree are
+called {\bf copy productions}.  They must have exactly one nonterminal on
+the right hand side.  The term generated when parsing that nonterminal is
+simply passed up as the result of parsing the whole copy production.  In
+Isabelle a copy production is indicated by an empty constant name, i.e.\ by
+\begin{ttbox}
+consts "" :: \(\tau\)  (\(sy\) \(ps\) \(p\))
+\end{ttbox}
+
+A special kind of copy production is one where, modulo white space, $sy$ is
+{\tt"_"}.  It is called a {\bf chain production}.  Chain productions should be
+seen as an abbreviation mechanism.  Conceptually, they are removed from the
+grammar by adding appropriate new rules.  Precedence information attached to
+chain productions is ignored.  The following example demonstrates the effect:
+the grammar defined by
+\begin{ttbox}
+types A,B,C 0
+consts AB :: "B => A"  ("A _" [10] 517)
+       "" :: "C => B"  ("_"   [0]  100)
+       x  :: "C"       ("x"          5)
+       y  :: "C"       ("y"         15)
+\end{ttbox}
+admits {\tt"A y"} but not {\tt"A x"}.  Had the constant in the second
+production been some non-empty string, both {\tt"A y"} and {\tt"A x"} would
+be legal.
+
+\index{mixfix|)}
+
+\section{Lexical conventions}
+
+The lexical analyzer distinguishes the following kinds of tokens: delimiters,
+identifiers, unknowns, type variables and type unknowns.
+
+Delimiters are user-defined, i.e.\ they are extracted from the syntax
+definition.  If $\alpha@0\_\alpha@1\dots\alpha@{n-1}\_\alpha@n$ is a mixfix
+annotation, each $\alpha@i$ is decomposed into substrings
+$\beta@1~\dots~\beta@k$ which are separated by and do not contain
+\bfindex{white space} ( = blanks, tabs, newlines).  Each $\beta@j$ becomes a
+delimiter.  Thus a delimiter can be an arbitrary string not containing white
+space.
+
+The lexical syntax of identifiers and variables ( = unknowns) is defined in
+the introductory manual.  Parsing an identifier $f$ generates {\tt
+  Free($f$,dummyT)}\index{*dummyT}.  Parsing a variable {\tt?}$v$ generates
+{\tt Var(($u$,$i$),dummyT)} where $i$ is the integer value of the longest
+numeric suffix of $v$ (possibly $0$), and $u$ is the remaining prefix.
+Parsing a variable {\tt?}$v{.}i$ generates {\tt Var(($v$,$i$),dummyT)}.  The
+following table covers the four different cases that can arise:
+\begin{center}\tt
+\begin{tabular}{cccc}
+"?v" & "?v.7" & "?v5" & "?v7.5" \\
+Var(("v",0),$d$) & Var(("v",7),$d$) & Var(("v",5),$d$) & Var(("v7",5),$d$)
+\end{tabular}
+\end{center}
+where $d = {\tt dummyT}$.
+
+In mixfix annotations, \ttindexbold{id}, \ttindexbold{var},
+\ttindexbold{tfree} and \ttindexbold{tvar} are the predefined categories of
+identifiers, unknowns, type variables and type unknowns, respectively.
+
+
+The lexical analyzer translates input strings to token lists by repeatedly
+taking the maximal prefix of the input string that forms a valid token.  A
+maximal prefix that is both a delimiter and an identifier or variable (like
+{\tt ALL}) is treated as a delimiter.  White spaces are separators.
+
+An important consequence of this translation scheme is that delimiters need
+not be separated by white space to be recognized as separate.  If \verb$"-"$
+is a delimiter but \verb$"--"$ is not, the string \verb$"--"$ is treated as
+two consecutive occurrences of \verb$"-"$.  This is in contrast to \ML\ which
+would treat \verb$"--"$ as a single (undeclared) identifier.  The
+consequence of Isabelle's more liberal scheme is that the same string may be
+parsed in a different way after extending the syntax: after adding
+\verb$"--"$ as a delimiter, the input \verb$"--"$ is treated as
+a single occurrence of \verb$"--"$.
+
+\section{Infix operators}
+
+{\tt Infixl} and {\tt infixr} declare infix operators which associate to the
+left and right respectively.  As in \ML, prefixing infix operators with
+\ttindexbold{op} turns them into curried functions.  Infix declarations can
+be reduced to mixfix ones as follows:
+\begin{center}\tt
+\begin{tabular}{l@{~~$\Longrightarrow$~~}l}
+"$c$" ::~$\tau$ (\ttindexbold{infixl} $p$) &
+"op $c$" ::~$\tau$ ("_ $c$ _" [$p$,$p+1$] $p$) \\
+"$c$" ::~$\tau$ (\ttindexbold{infixr} $p$) &
+"op $c$" ::~$\tau$ ("_ $c$ _" [$p+1$,$p$] $p$)
+\end{tabular}
+\end{center}
+
+
+\section{Binders}
+A {\bf binder} is a variable-binding constant, such as a quantifier.
+The declaration
+\begin{ttbox}
+consts \(c\) :: \(\tau\)  (binder \(Q\) \(p\))
+\end{ttbox}\indexbold{*binder}
+introduces a binder $c$ of type $\tau$,
+which must have the form $(\tau@1\To\tau@2)\To\tau@3$.  Its concrete syntax
+is $Q~x.t$.  A binder is like a generalized quantifier where $\tau@1$ is the
+type of the bound variable $x$, $\tau@2$ the type of the body $t$, and
+$\tau@3$ the type of the whole term.  For example $\forall$ can be declared
+like this:
+\begin{ttbox}
+consts All :: "('a => o) => o"  (binder "ALL " 10)
+\end{ttbox}
+This allows us to write $\forall x.P$ either as {\tt ALL $x$.$P$} or {\tt
+  All(\%$x$.$P$)}; the latter form is for purists only.
+
+In case $\tau@2 = \tau@3$, nested quantifications can be written as $Q~x@1
+\dots x@n.t$.  From a syntactic point of view,
+\begin{ttbox}
+consts \(c\) :: "\((\tau@1\To\tau@2)\To\tau@3\)"  (binder "\(Q\)" \(p\))
+\end{ttbox}
+is equivalent to
+\begin{ttbox}
+consts \(c\)   :: "\((\tau@1\To\tau@2)\To\tau@3\)"
+       "\(Q\)" :: "[idts,\(\tau@2\)] => \(\tau@3\)"  ("\(Q\)_.  _" \(p\))
+\end{ttbox}
+where {\tt idts} is the syntactic category $idts$ defined in
+Figure~\ref{MetaLogicSyntax}.
+
+However, there is more to binders than concrete syntax: behind the scenes the
+body of the quantified expression has to be converted into a
+$\lambda$-abstraction (when parsing) and back again (when printing).  This
+is performed by the translation mechanism, which is discussed below.  For
+binders, the definition of the required translation functions has been
+automated.  Many other syntactic forms, such as set comprehension, require
+special treatment.
+
+
+\section{Parse translations *}
+\label{Parse-translations}
+\index{parse translation|(}
+
+So far we have pretended that there is a close enough relationship between
+concrete and abstract syntax to allow an automatic translation from one to
+the other using the constant name supplied with each production.  In many
+cases this scheme is not powerful enough, especially for constructs involving
+variable bindings.  Therefore the $ML$-section of a theory definition can
+associate constant names with user-defined translation functions by including
+a line
+\begin{ttbox}
+val parse_translation = \dots
+\end{ttbox}
+where the right-hand side of this binding must be an \ML-expression of type
+\verb$(string * (term list -> term))list$.
+
+After the input string has been translated into a term according to the
+syntax definition, there is a second phase in which the term is translated
+using the user-supplied functions in a bottom-up manner.  Given a list $tab$
+of the above type, a term $t$ is translated as follows.  If $t$ is not of the
+form {\tt Const($c$,$\tau$)\$$t@1$\$\dots\$$t@n$}, then $t$ is returned
+unchanged.  Otherwise all $t@i$ are translated into $t@i'$.  Let {\tt $t' =$
+  Const($c$,$\tau$)\$$t@1'$\$\dots\$$t@n'$}.  If there is no pair $(c,f)$ in
+$tab$, return $t'$.  Otherwise apply $f$ to $[t@1',\dots,t@n']$.  If that
+raises an exception, return $t'$, otherwise return the result.
+\begin{example}\label{list-enum}
+\ML-lists are constructed by {\tt[]} and {\tt::}.  For readability the
+list \hbox{\tt$x$::$y$::$z$::[]} can be written \hbox{\tt[$x$,$y$,$z$]}.
+In Isabelle the two forms of lists are declared as follows:
+\begin{ttbox}
+types list 1
+      enum 0
+arities list :: (term)term
+consts "[]" :: "'a list"                   ("[]")
+       ":"  :: "['a, 'a list] => 'a list"  (infixr 50)
+       enum :: "enum => 'a list"           ("[_]")
+       sing :: "'a => enum"                ("_")
+       cons :: "['a,enum] => enum"         ("_, _")
+end
+\end{ttbox}
+Because \verb$::$ is already used for type constraints, it is replaced by
+\verb$:$ as the infix list constructor.
+
+In order to allow list enumeration, the new type {\tt enum} is introduced.
+Its only purpose is syntactic and hence it does not need an arity, in
+contrast to the logical type {\tt list}.  Although \hbox{\tt[$x$,$y$,$z$]} is
+syntactically legal, it needs to be translated into a term built up from
+\verb$[]$ and \verb$:$.  This is what \verb$make_list$ accomplishes:
+\begin{ttbox}
+val cons = Const("op :", dummyT);
+
+fun make_list (Const("sing",_)$e) = cons $ e $ Const("[]", dummyT)
+  | make_list (Const("cons",_)$e$es) = cons $ e $ make_list es;
+\end{ttbox}
+To hook this translation up to Isabelle's parser, the theory definition needs
+to contain the following $ML$-section:
+\begin{ttbox}
+ML
+fun enum_tr[enum] = make_list enum;
+val parse_translation = [("enum",enum_tr)]
+\end{ttbox}
+This causes \verb!Const("enum",_)$!$t$ to be replaced by
+\verb$enum_tr[$$t$\verb$]$.
+
+Of course the definition of \verb$make_list$ should be included in the
+$ML$-section.
+\end{example}
+\begin{example}\label{SET}
+  Isabelle represents the set $\{ x \mid P(x) \}$ internally by $Set(\lambda
+  x.P(x))$.  The internal and external forms need separate
+constants:\footnote{In practice, the external form typically has a name
+beginning with an {\at} sign, such as {\tt {\at}SET}.  This emphasizes that
+the constant should be used only for parsing/printing.}
+\begin{ttbox}
+types set 1
+arities set :: (term)term
+consts Set :: "('a => o) => 'a set"
+       SET :: "[id,o] => 'a set"  ("\{_ | _\}")
+\end{ttbox}
+Parsing {\tt"\{$x$ | $P$\}"} according to this syntax yields the term {\tt
+  Const("SET",dummyT) \$ Free("\(x\)",dummyT) \$ \(p\)}, where $p$ is the
+result of parsing $P$.  What we need is the term {\tt
+  Const("Set",dummyT)\$Abs("$x$",dummyT,$p'$)}, where $p'$ is some
+``abstracted'' version of $p$.  Therefore we define a function
+\begin{ttbox}
+fun set_tr[Free(s,T), p] = Const("Set", dummyT) $
+                           Abs(s, T, abstract_over(Free(s,T), p));
+\end{ttbox}
+where \verb$abstract_over: term*term -> term$ is a predefined function such
+that {\tt abstract_over($u$,$t$)} replaces every occurrence of $u$ in $t$ by
+a {\tt Bound} variable of the correct index (i.e.\ 0 at top level).  Remember
+that {\tt dummyT} is replaced by the correct types at a later stage (see
+\S\ref{Typing}).  Function {\tt set_tr} is associated with {\tt SET} by
+including the \ML-text
+\begin{ttbox}
+val parse_translation = [("SET", set_tr)];
+\end{ttbox}
+\end{example}
+
+If you want to run the above examples in Isabelle, you should note that an
+$ML$-section needs to contain not just a definition of
+\verb$parse_translation$ but also of a variable \verb$print_translation$.  The
+purpose of the latter is to reverse the effect of the former during printing;
+details are found in \S\ref{Print-translations}.  Hence you need to include
+the line
+\begin{ttbox}
+val print_translation = [];
+\end{ttbox}
+This is instructive because the terms are then printed out in their internal
+form.  For example the input \hbox{\tt[$x$,$y$,$z$]} is echoed as
+\hbox{\tt$x$:$y$:$z$:[]}.  This helps to check that your parse translation is
+working correctly.
+
+%\begin{warn}
+%Explicit type constraints disappear with type checking but are still
+%visible to the parse translation functions.
+%\end{warn}
+
+\index{parse translation|)}
+
+\section{Printing}
+
+Syntax definitions provide printing information in three distinct ways:
+through
+\begin{itemize}
+\item the syntax of the language (as used for parsing),
+\item pretty printing information, and
+\item print translation functions.
+\end{itemize}
+The bare mixfix declarations enable Isabelle to print terms, but the result
+will not necessarily be pretty and may look different from what you expected.
+To produce a pleasing layout, you need to read the following sections.
+
+\subsection{Printing with mixfix declarations}
+
+Let {\tt$t =$ Const($c$,_)\$$t@1$\$\dots\$$t@n$} be a term and let
+\begin{ttbox}
+consts \(c\) :: \(\tau\) (\(sy\))
+\end{ttbox}
+be a mixfix declaration where $sy$ is of the form
+$\alpha@0\_\alpha@1\dots\alpha@{n-1}\_\alpha@n$.  Printing $t$ according to
+$sy$ means printing the string
+$\alpha@0\beta@1\alpha@1\ldots\alpha@{n-1}\beta@n\alpha@n$, where $\beta@i$
+is the result of printing $t@i$.
+
+Note that the system does {\em not\/} insert blanks.  They should be part of
+the mixfix syntax if they are required to separate tokens or achieve a
+certain layout.
+
+\subsection{Pretty printing}
+\label{PrettyPrinting}
+\index{pretty printing}
+
+In order to format the output, it is possible to embed pretty printing
+directives in mixfix annotations.  These directives are ignored during parsing
+and affect only printing.  The characters {\tt(}, {\tt)} and {\tt/} are
+interpreted as meta-characters\index{meta-character} when found in a mixfix
+annotation.  Their meaning is
+\begin{description}
+\item[~{\tt(}~] Open a block.  A sequence of digits following it is
+  interpreted as the \bfindex{indentation} of this block.  It causes the
+  output to be indented by $n$ positions if a line break occurs within the
+  block.  If {\tt(} is not followed by a digit, the indentation defaults to
+  $0$.
+\item[~{\tt)}~] Close a block.
+\item[~\ttindex{/}~] Allow a \bfindex{line break}.  White space immediately
+  following {\tt/} is not printed if the line is broken at this point.
+\end{description}
+
+\subsection{Print translations *}
+\label{Print-translations}
+\index{print translation|(}
+
+Since terms are translated after parsing (see \S\ref{Parse-translations}),
+there is a similar mechanism to translate them back before printing.
+Therefore the $ML$-section of a theory definition can associate constant
+names with user-defined translation functions by including a line
+\begin{ttbox}
+val print_translation = \dots
+\end{ttbox}
+where the right-hand side of this binding is again an \ML-expression of type
+\verb$(string * (term list -> term))list$.
+Including a pair $(c,f)$ in this list causes the printer to print
+$f[t@1,\dots,t@n]$ whenever it finds {\tt Const($c$,_)\$$t@1$\$\dots\$$t@n$}.
+\begin{example}
+Reversing the effect of the parse translation in Example~\ref{list-enum} is
+accomplished by the following function:
+\begin{ttbox}
+fun make_enum (Const("op :",_) $ e $ es) = case es of
+        Const("[]",_)  =>  Const("sing",dummyT) $ e
+      | _  =>  Const("enum",dummyT) $ e $ make_enum es;
+\end{ttbox}
+It translates \hbox{\tt$x$:$y$:$z$:[]} to \hbox{\tt[$x$,$y$,$z$]}.  However,
+if the input does not terminate with an empty list, e.g.\ \hbox{\tt$x$:$xs$},
+\verb$make_enum$ raises exception {\tt Match}.  This signals that the
+attempted translation has failed and the term should be printed as is.
+The connection with Isabelle's pretty printer is established as follows:
+\begin{ttbox}
+fun enum_tr'[x,xs] = Const("enum",dummyT) $
+                     make_enum(Const("op :",dummyT)$x$xs);
+val print_translation = [("op :", enum_tr')];
+\end{ttbox}
+This declaration causes the printer to print \hbox{\tt enum_tr'[$x$,$y$]}
+whenever it finds \verb!Const("op :",_)$!$x$\verb!$!$y$.
+\end{example}
+\begin{example}
+  In Example~\ref{SET} we showed how to translate the concrete syntax for set
+  comprehension into the proper internal form.  The string {\tt"\{$x$ |
+    $P$\}"} now becomes {\tt Const("Set",_)\$Abs("$x$",_,$p$)}.  If, however,
+  the latter term were printed without translating it back, it would result
+  in {\tt"Set(\%$x$.$P$)"}.  Therefore the abstraction has to be turned back
+  into a term that matches the concrete mixfix syntax:
+\begin{ttbox}
+fun set_tr'[Abs(x,T,P)] =
+      let val (x',P') = variant_abs(x,T,P)
+      in Const("SET",dummyT) $ Free(x',T) $ P' end;
+\end{ttbox}
+The function \verb$variant_abs$, a basic term manipulation function, replaces
+the bound variable $x$ by a {\tt Free} variable $x'$ having a unique name.  A
+term produced by {\tt set_tr'} can now be printed according to the concrete
+syntax defined in Example~\ref{SET} above.
+
+Notice that the application of {\tt set_tr'} fails if the second component of
+the argument is not an abstraction, but for example just a {\tt Free}
+variable.  This is intentional because it signals to the caller that the
+translation is inapplicable.  As a result {\tt Const("Set",_)\$Free("P",_)}
+prints as {\tt"Set(P)"}.
+
+The full theory extension, including concrete syntax and both translation
+functions, has the following form:
+\begin{ttbox}
+types set 1
+arities set :: (term)term
+consts Set :: "('a => o) => 'a set"
+       SET :: "[id,o] => 'a set"  ("\{_ | _\}")
+end
+ML
+fun set_tr[Free(s,T), p] = \dots;
+val parse_translation = [("SET", set_tr)];
+fun set_tr'[Abs(x,T,P)] = \dots;
+val print_translation = [("Set", set_tr')];
+\end{ttbox}
+\end{example}
+As during the parse translation process, the types attached to constants
+during print translation are ignored.  Thus {\tt Const("SET",dummyT)} in
+{\tt set_tr'} above is acceptable.  The types of {\tt Free}s and {\tt Var}s
+however must be preserved because they may get printed (see {\tt
+show_types}).
+
+\index{print translation|)}
+
+\subsection{Printing a term}
+
+Let $tab$ be the set of all string-function pairs of print translations in the
+current syntax.
+
+Terms are printed recursively; print translations are applied top down:
+\begin{itemize}
+\item {\tt Free($x$,_)} is printed as $x$.
+\item {\tt Var(($x$,$i$),_)} is printed as $x$, if $i = 0$ and $x$ does not
+  end with a digit, as $x$ followed by $i$, if $i \neq 0$ and $x$ does not
+  end with a digit, and as {\tt $x$.$i$}, if $x$ ends with a digit.  Thus the
+  following cases can arise:
+\begin{center}
+{\tt\begin{tabular}{cccc}
+\verb$Var(("v",0),_)$ & \verb$Var(("v",7),_)$ & \verb$Var(("v5",0),_)$ \\
+"?v" & "?v7" & "?v5.0"
+\end{tabular}}
+\end{center}
+\item {\tt Abs($x@1$,_,Abs($x@2$,_,\dots Abs($x@n$,_,$p$)\dots))}, where $p$
+  is not an abstraction, is printed as {\tt \%$y@1\dots y@n$.$P$}, where $P$
+  is the result of printing $p$, and the $x@i$ are replaced by $y@i$.  The
+  latter are (possibly new) unique names.
+\item {\tt Bound($i$)} is printed as {\tt B.$i$} \footnote{The occurrence of
+    such ``loose'' bound variables indicates that either you are trying to
+    print a subterm of an abstraction, or there is something wrong with your
+    print translations.}.
+\item The application {\tt$t =$ Const($c$,_)\$$t@1$\$\dots\$$t@n$} (where
+  $n$ may be $0$!) is printed as follows:
+
+  If there is a pair $(c,f)$ in $tab$, print $f[t@1,\dots,t@n]$.  If this
+  application raises exception {\tt Match} or there is no pair $(c,f)$ in
+  $tab$, let $sy$ be the mixfix annotation associated with $c$.  If there is
+  no such $sy$, or if $sy$ does not have exactly $n$ argument positions, $t$
+  is printed as an application; otherwise $t$ is printed according to $sy$.
+
+  All other applications are printed as applications.
+\end{itemize}
+Printing a term {\tt $c$\$$t@1$\$\dots\$$t@n$} as an application means
+printing it as {\tt $s$($s@1$,\dots,$s@n$)}, where $s@i$ is the result of
+printing $t@i$.  If $c$ is a {\tt Const}, $s$ is its first argument;
+otherwise $s$ is the result of printing $c$ as described above.
+\medskip
+
+The printer also inserts parentheses where they are necessary for reasons
+of precedence.
+
+\section{Identifiers, constants, and type inference *}
+\label{Typing}
+
+There is one final step in the translation from strings to terms that we have
+not covered yet.  It explains how constants are distinguished from {\tt Free}s
+and how {\tt Free}s and {\tt Var}s are typed.  Both issues arise because {\tt
+  Free}s and {\tt Var}s are not declared.
+
+An identifier $f$ that does not appear as a delimiter in the concrete syntax
+can be either a free variable or a constant.  Since the parser knows only
+about those constants which appear in mixfix annotations, it parses $f$ as
+{\tt Free("$f$",dummyT)}, where \ttindex{dummyT} is the predefined dummy {\tt
+  typ}.  Although the parser produces these very raw terms, most user
+interface level functions like {\tt goal} type terms according to the given
+theory, say $T$.  In a first step, every occurrence of {\tt Free($f$,_)} or
+{\tt Const($f$,_)} is replaced by {\tt Const($f$,$\tau$)}, provided there is
+a constant $f$ of {\tt typ} $\tau$ in $T$.  This means that identifiers are
+treated as {\tt Free}s iff they are not declared in the theory.  The types of
+the remaining {\tt Free}s (and {\tt Var}s) are inferred as in \ML.  Type
+constraints can be used to remove ambiguities.
+
+One peculiarity of the current type inference algorithm is that variables
+with the same name must have the same type, irrespective of whether they are
+schematic, free or bound.  For example, take the first-order formula $f(x) = x
+\land (\forall f.~ f=f)$ where ${=} :: [\alpha{::}term,\alpha]\To o$ and
+$\forall :: (\alpha{::}term\To o)\To o$.  The first conjunct forces
+$x::\alpha{::}term$ and $f::\alpha\To\alpha$, the second one
+$f::\beta{::}term$.  Although the two $f$'s are distinct, they are required to
+have the same type.  Unifying $\alpha\To\alpha$ and $\beta{::}term$ fails
+because, in first-order logic, function types are not in class $term$.
+
+
+\section{Putting it all together}
+
+Having discussed the individual building blocks of a logic definition, it
+remains to be shown how they fit together.  In particular we need to say how
+an object-logic syntax is hooked up to the meta-logic.  Since all theorems
+must conform to the syntax for $prop$ (see Figure~\ref{MetaLogicSyntax}),
+that syntax has to be extended with the object-level syntax.  Assume that the
+syntax of your object-logic defines a category $o$ of formulae.  These
+formulae can now appear in axioms and theorems wherever $prop$ does if you
+add the production
+\[ prop ~=~ form.  \]
+More precisely, you need a coercion from formulae to propositions:
+\begin{ttbox}
+Base = Pure +
+types o 0
+arities o :: logic
+consts Trueprop :: "o => prop"  ("_"  5)
+end
+\end{ttbox}
+The constant {\tt Trueprop} (the name is arbitrary) acts as an invisible
+coercion function.  Assuming this definition resides in a file {\tt base.thy},
+you have to load it with the command {\tt use_thy"base"}.
+
+One of the simplest nontrivial logics is {\em minimal logic} of
+implication.  Its definition in Isabelle needs no advanced features but
+illustrates the overall mechanism quite nicely:
+\begin{ttbox}
+Hilbert = Base +
+consts "-->" :: "[o,o] => o"  (infixr 10)
+rules
+K   "P --> Q --> P"
+S   "(P --> Q --> R) --> (P --> Q) --> P --> R"
+MP  "[| P --> Q; P |] ==> Q"
+end
+\end{ttbox}
+After loading this definition you can start to prove theorems in this logic:
+\begin{ttbox}
+goal Hilbert.thy "P --> P";
+{\out Level 0}
+{\out P --> P}
+{\out  1.  P --> P}
+by (resolve_tac [Hilbert.MP] 1);
+{\out Level 1}
+{\out P --> P}
+{\out  1.  ?P --> P --> P}
+{\out  2.  ?P}
+by (resolve_tac [Hilbert.MP] 1);
+{\out Level 2}
+{\out P --> P}
+{\out  1.  ?P1 --> ?P --> P --> P}
+{\out  2.  ?P1}
+{\out  3.  ?P}
+by (resolve_tac [Hilbert.S] 1);
+{\out Level 3}
+{\out P --> P}
+{\out  1.  P --> ?Q2 --> P}
+{\out  2.  P --> ?Q2}
+by (resolve_tac [Hilbert.K] 1);
+{\out Level 4}
+{\out P --> P}
+{\out  1.  P --> ?Q2}
+by (resolve_tac [Hilbert.K] 1);
+{\out Level 5}
+{\out P --> P}
+{\out No subgoals!}
+\end{ttbox}
+As you can see, this Hilbert-style formulation of minimal logic is easy to
+define but difficult to use.  The following natural deduction formulation is
+far preferable:
+\begin{ttbox}
+MinI = Base +
+consts "-->" :: "[o,o] => o"  (infixr 10)
+rules
+impI  "(P ==> Q) ==> P --> Q"
+impE  "[| P --> Q; P |] ==> Q"
+end
+\end{ttbox}
+Note, however, that although the two systems are equivalent, this fact cannot
+be proved within Isabelle: {\tt S} and {\tt K} can be derived in \verb$MinI$
+(exercise!), but {\tt impI} cannot be derived in \verb!Hilbert!.  The reason
+is that {\tt impI} is only an {\em admissible} rule in \verb!Hilbert!,
+something that can only be shown by induction over all possible proofs in
+\verb!Hilbert!.
+
+It is a very simple matter to extend minimal logic with falsity:
+\begin{ttbox}
+MinIF = MinI +
+consts False :: "o"
+rules
+FalseE  "False ==> P"
+end
+\end{ttbox}
+On the other hand, we may wish to introduce conjunction only:
+\begin{ttbox}
+MinC = Base +
+consts "&" :: "[o,o] => o"  (infixr 30)
+rules
+conjI  "[| P; Q |] ==> P & Q"
+conjE1 "P & Q ==> P"
+conjE2 "P & Q ==> Q"
+end
+\end{ttbox}
+And if we want to have all three connectives together, we define:
+\begin{ttbox}
+MinIFC = MinIF + MinC
+\end{ttbox}
+Now we can prove mixed theorems like
+\begin{ttbox}
+goal MinIFC.thy "P & False --> Q";
+by (resolve_tac [MinI.impI] 1);
+by (dresolve_tac [MinC.conjE2] 1);
+by (eresolve_tac [MinIF.FalseE] 1);
+\end{ttbox}
+Try this as an exercise!

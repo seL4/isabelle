@@ -1,0 +1,542 @@
+%% $Id$
+\chapter{Proof Management: The Subgoal Module}
+\index{proofs|(}
+\index{subgoal module|(}
+\index{reading!goals|see{proofs, starting}}
+The subgoal module stores the current proof state and many previous states;
+commands can produce new states or return to previous ones.  The {\em state
+list\/} at level $n$ is a list of pairs
+\[ [(\psi@n,\Psi@n),\; (\psi@{n-1},\Psi@{n-1}),\; \ldots,\; (\psi@0,[])] \]
+where $\psi@n$ is the current proof state, $\psi@{n-1}$ is the previous
+one, \ldots, and $\psi@0$ is the initial proof state.  The $\Psi@i$ are
+sequences (lazy lists) of proof states, storing branch points where a
+tactic returned a list longer than one.  The state lists permit various
+forms of backtracking.
+
+Chopping elements from the state list reverts to previous proof states.
+Besides this, the \ttindex{undo} command keeps a list of state lists.  The
+module actually maintains a stack of state lists, to support several
+proofs at the same time.
+
+The subgoal module always contains some proof state.  At the start of the
+Isabelle session, this state consists of a dummy formula.
+
+
+\section{Basic commands}
+Most proofs begin with {\tt goal} or {\tt goalw} and require no other
+commands than {\tt by}, {\tt chop} and {\tt undo}.  They typically end with
+a call to {\tt result}.
+\subsection{Starting a backward proof}
+\index{proofs!starting|bold}
+\begin{ttbox} 
+goal        : theory -> string -> thm list 
+goalw       : theory -> thm list -> string -> thm list 
+goalw_cterm : thm list -> Sign.cterm -> thm list 
+premises    : unit -> thm list
+\end{ttbox}
+The {\tt goal} commands start a new proof by setting the goal.  They
+replace the current state list by a new one consisting of the initial proof
+state.  They also empty the \ttindex{undo} list; this command cannot be
+undone!
+
+They all return a list of meta-hypotheses taken from the main goal.  If
+this list is non-empty, bind its value to an \ML{} identifier by typing
+something like
+\begin{ttbox} 
+val prems = it;
+\end{ttbox}
+These assumptions serve as the premises when you are deriving a rule.  They
+are also stored internally and can be retrieved later by the function {\tt
+  premises}.  When the proof is finished, \ttindex{result} compares the
+stored assumptions with the actual assumptions in the proof state.
+
+Some of the commands unfold definitions using meta-rewrite rules.  This
+expansion affects both the first subgoal and the premises, which would
+otherwise require use of \ttindex{rewrite_goals_tac} and
+\ttindex{rewrite_rule}.
+
+If the main goal has the form {\tt"!!{\it vars}.\ \ldots"}, with an outermost
+quantifier, then the list of premises will be empty.  Subgoal~1 will
+contain the meta-quantified {\it vars\/} as parameters and the goal's premises
+as assumptions.  This is useful when the next step of the proof would
+otherwise be to call \ttindex{cut_facts_tac} with the list of premises
+(\S\ref{cut_facts_tac}).
+
+\begin{description}
+\item[\ttindexbold{goal} {\it theory} {\it formula}; ] 
+begins a new proof, where {\it theory} is usually an \ML\ identifier
+and the {\it formula\/} is written as an \ML\ string.
+
+\item[\ttindexbold{goalw} {\it theory} {\it defs} {\it formula}; ] 
+is like {\tt goal} but also applies the list of {\it defs\/} as
+meta-rewrite rules to the first subgoal and the premises.
+\index{rewriting!meta-level}
+
+\item[\ttindexbold{goalw_cterm} {\it theory} {\it defs} {\it ct}; ] 
+is a version of {\tt goalw} for special applications.  The main goal is
+supplied as a cterm, not as a string.  Typically, the cterm is created from
+a term~$t$ by \hbox{\tt Sign.cterm_of (sign_of thy) $t$}.
+\index{*Sign.cterm_of}\index{*sign_of}
+
+\item[\ttindexbold{premises}()] 
+returns the list of meta-hypotheses associated with the current proof, in
+case you forget to bind them to an \ML{} identifier.
+\end{description}
+
+\subsection{Applying a tactic}
+\index{tactics!commands for applying|bold}
+\begin{ttbox} 
+by   : tactic -> unit
+byev : tactic list -> unit
+\end{ttbox}
+These commands extend the state list.  They apply a tactic to the current
+proof state.  If the tactic succeeds, it returns a non-empty sequence of
+next states.  The head of the sequence becomes the next state, while the
+tail is retained for backtracking (see~{\tt back}).
+\begin{description} \item[\ttindexbold{by} {\it tactic}; ] 
+applies the {\it tactic\/} to the proof state.
+
+\item[\ttindexbold{byev} {\it tactics}; ] 
+applies the list of {\it tactics}, one at a time.  It is useful for testing
+calls to {\tt prove_goal}, and abbreviates \hbox{\tt by (EVERY {\it
+tactics})}.
+\end{description}
+
+\noindent{\bf Error indications:}
+\begin{itemize}
+\item 
+{\tt "by:\ tactic failed"} means that the tactic returned an empty
+sequence when applied to the current proof state. 
+\item 
+{\tt "Warning:\ same as previous level"} means that the new proof state
+is identical to the previous state.
+\item
+{\tt "Warning:\ signature of proof state has changed"} means that a rule
+was applied from outside the theory of the initial proof state.  This
+guards against mistakes such as expressing the goal in intuitionistic logic
+and proving it using classical logic.
+\end{itemize}
+
+\subsection{Extracting the proved theorem}
+\index{ending a proof|bold}
+\begin{ttbox} 
+result  : unit -> thm
+uresult : unit -> thm
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{result}()] 
+returns the final theorem, after converting the free variables to
+schematics.  It discharges the assumptions supplied to the matching 
+\ttindex{goal} command.  
+
+It raises an exception unless the proof state passes certain checks.  There
+must be no assumptions other than those supplied to \ttindex{goal}.  There
+must be no subgoals.  The theorem proved must be a (first-order) instance
+of the original goal, as stated in the \ttindex{goal} command.  This allows
+{\bf answer extraction} --- instantiation of variables --- but no other
+changes to the main goal.  The theorem proved must have the same signature
+as the initial proof state.
+
+\item[\ttindexbold{uresult}()] 
+is similar but omits the checks given above.  It is needed when the initial
+goal contains function unknowns, when definitions are unfolded in the main
+goal, or when \ttindex{assume_ax} has been used.
+\end{description}
+
+
+\subsection{Undoing and backtracking}
+\index{undoing a proof command|bold}
+\index{backtracking command|see{\tt back}}
+\begin{ttbox} 
+chop    : unit -> unit
+choplev : int -> unit
+back    : unit -> unit
+undo    : unit -> unit
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{chop}();] 
+deletes the top level of the state list, cancelling the last \ttindex{by}
+command.  It provides a limited undo facility, and the {\tt undo} command
+can cancel it.
+
+\item[\ttindexbold{choplev} {\it n};] 
+truncates the state list to level~{\it n}. 
+
+\item[\ttindexbold{back}();]
+searches the state list for a non-empty branch point, starting from the top
+level.  The first one found becomes the current proof state --- the most
+recent alternative branch is taken.
+
+\item[\ttindexbold{undo}();] 
+cancels the most recent change to the proof state by the commands \ttindex{by},
+{\tt chop}, {\tt choplev}, and~{\tt back}.  It {\bf cannot}
+cancel {\tt goal} or {\tt undo} itself.  It can be repeated to
+cancel a series of commands.
+\end{description}
+\noindent{\bf Error indications for {\tt back}:}
+\begin{itemize}
+\item
+{\tt"Warning:\ same as previous choice at this level"} means that {\tt
+back} found a non-empty branch point, but that it contained the same proof
+state as the current one.  
+\item
+{\tt "Warning:\ signature of proof state has changed"} means the signature
+of the alternative proof state differs from that of the current state.
+\item 
+{\tt "back:\ no alternatives"} means {\tt back} could find no alternative
+proof state.
+\end{itemize}
+
+\subsection{Printing the proof state}
+\index{printing!proof state|bold}
+\begin{ttbox} 
+pr    : unit -> unit
+prlev : int -> unit
+goals_limit: int ref \hfill{\bf initially 10}
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{pr}();] 
+prints the current proof state.
+
+\item[\ttindexbold{prlev} {\it n};] 
+prints the proof state at level {\it n}.  This allows you to review the
+previous steps of the proof.
+
+\item[\ttindexbold{goals_limit} \tt:= {\it k};] 
+specifies~$k$ as the maximum number of subgoals to print.
+\end{description}
+
+
+\subsection{Timing}
+\index{printing!timing statistics|bold}\index{proofs!timing|bold}
+\begin{ttbox} 
+proof_timing: bool ref \hfill{\bf initially false}
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{proof_timing} \tt:= true;] 
+makes the \ttindex{by} and \ttindex{prove_goal} commands display how much
+processor time was spent.  This information is compiler-dependent.
+\end{description}
+
+
+\section{Shortcuts for applying tactics}
+\index{shortcuts!for ``{\tt by}'' commands|bold}
+These commands call \ttindex{by} with common tactics.  Their chief purpose
+is to minimise typing, although the scanning shortcuts are useful in their
+own right.  Chapter~\ref{tactics} explains the tactics themselves.
+
+\subsection{Refining a given subgoal}
+\begin{ttbox} 
+ba: int -> unit
+br: thm -> int -> unit
+be: thm -> int -> unit
+bd: thm -> int -> unit
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{ba} {\it i};] 
+performs \hbox{\tt by (assume_tac {\it i});}\index{*assume_tac}
+
+\item[\ttindexbold{br} {\it thm} {\it i};] 
+performs \hbox{\tt by (resolve_tac [{\it thm}] {\it i});}\index{*resolve_tac}
+
+\item[\ttindexbold{be} {\it thm} {\it i};] 
+performs \hbox{\tt by (eresolve_tac [{\it thm}] {\it i});}\index{*eresolve_tac}
+
+\item[\ttindexbold{bd} {\it thm} {\it i};] 
+performs \hbox{\tt by (dresolve_tac [{\it thm}] {\it i});}\index{*dresolve_tac}
+\end{description}
+
+\subsubsection{Resolution with a list of theorems}
+\begin{ttbox} 
+brs: thm list -> int -> unit
+bes: thm list -> int -> unit
+bds: thm list -> int -> unit
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{brs} {\it thms} {\it i};] 
+performs \hbox{\tt by (resolve_tac {\it thms} {\it i});}\index{*resolve_tac}
+
+\item[\ttindexbold{bes} {\it thms} {\it i};] 
+performs \hbox{\tt by (eresolve_tac {\it thms} {\it i});}\index{*eresolve_tac}
+
+\item[\ttindexbold{bds} {\it thms} {\it i};] 
+performs \hbox{\tt by (dresolve_tac {\it thms} {\it i});}\index{*dresolve_tac}
+\end{description}
+
+
+\subsection{Scanning shortcuts}
+\index{shortcuts!scanning for subgoals|bold}
+These shortcuts scan for a suitable subgoal (starting from subgoal~1).
+They refine the first subgoal for which the tactic succeeds.  Thus, they
+require less typing than {\tt br}, etc.  They display the selected
+subgoal's number; please watch this, for it may not be what you expect!
+
+\subsubsection{Proof by assumption and resolution}
+\begin{ttbox} 
+fa: unit -> unit
+fr: thm -> unit
+fe: thm -> unit
+fd: thm -> unit
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{fa}();] 
+solves some subgoal by assumption.\index{*assume_tac}
+
+\item[\ttindexbold{fr} {\it thm};] 
+refines some subgoal using \hbox{\tt resolve_tac [{\it thm}]}
+\index{*resolve_tac}
+
+\item[\ttindexbold{fe} {\it thm};] 
+refines some subgoal using \hbox{\tt eresolve_tac [{\it thm}]}
+\index{*eresolve_tac}
+
+\item[\ttindexbold{fd} {\it thm};] 
+refines some subgoal using \hbox{\tt dresolve_tac [{\it thm}]}
+\index{*dresolve_tac}
+\end{description}
+
+\subsubsection{Resolution with a list of theorems}
+\begin{ttbox} 
+frs: thm list -> unit
+fes: thm list -> unit
+fds: thm list -> unit
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{frs} {\it thms};] 
+refines some subgoal using \hbox{\tt resolve_tac {\it thms}}
+\index{*resolve_tac}
+
+\item[\ttindexbold{fes} {\it thms};] 
+refines some subgoal using \hbox{\tt eresolve_tac {\it thms}} 
+\index{*eresolve_tac}
+
+\item[\ttindexbold{fds} {\it thms};] 
+refines some subgoal using \hbox{\tt dresolve_tac {\it thms}} 
+\index{*dresolve_tac}
+\end{description}
+
+\subsection{Other shortcuts}
+\begin{ttbox} 
+bw  : thm -> unit
+bws : thm list -> unit
+ren : string -> int -> unit
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{bw} {\it def};] 
+performs \hbox{\tt by (rewrite_goals_tac [{\it def}]);}
+It unfolds definitions in the subgoals (but not the main goal), by
+meta-rewriting with the given definition.\index{*rewrite_goals_tac}
+\index{rewriting!meta-level}
+
+\item[\ttindexbold{bws}] 
+is like {\tt bw} but takes a list of definitions.
+
+\item[\ttindexbold{ren} {\it names} {\it i};] 
+performs \hbox{\tt by (rename_tac {\it names} {\it i});} it renames
+parameters in subgoal~$i$.  (Ignore the message {\tt Warning:\ same as
+previous level}.)
+\index{*rename_tac}\index{parameters!renaming}
+\end{description}
+
+
+
+\section{Advanced features}
+\subsection{Executing batch proofs}
+\index{proofs!batch|bold}
+\index{batch execution|bold}
+\begin{ttbox} 
+prove_goal  :  theory->          string->(thm list->tactic list)->thm
+prove_goalw :  theory->thm list->string->(thm list->tactic list)->thm
+prove_goalw_cterm: thm list->Sign.cterm->(thm list->tactic list)->thm
+\end{ttbox}
+A collection of derivations may be stored for batch execution using these
+functions.  They create an initial proof state, then apply a tactic to it,
+yielding a sequence of final proof states.  The head of the sequence is
+returned, provided it is an instance of the theorem originally proposed.
+The forms {\tt prove_goal}, {\tt prove_goalw} and {\tt prove_goalw_cterm}
+are analogous to \ttindex{goal}, \ttindex{goalw} and \ttindex{goalw_cterm}.
+
+The tactic is specified by a function from theorem lists to tactic lists.
+The function is applied to the list of meta-hypotheses taken from the main
+goal.  The resulting tactics are applied in sequence (using {\tt EVERY}).
+For example, a proof consisting of the commands
+\begin{ttbox} 
+val prems = goal {\it theory} {\it formula};
+by \(tac@1\);  \ldots  by \(tac@n\);
+val my_thm = result();
+\end{ttbox}
+can be transformed to an expression as follows:
+\begin{ttbox} 
+val my_thm = prove_goal {\it theory} {\it formula}
+ (fn prems=> [ \(tac@1\), \ldots, \(tac@n\) ]);
+\end{ttbox}
+The methods perform identical processing of the initial {\it formula} and
+the final proof state, but {\tt prove_goal} executes the tactic as a
+atomic operation, bypassing the subgoal module.  The commands can also be
+encapsulated in an expression using~{\tt let}:
+\begin{ttbox} 
+val my_thm = 
+    let val prems = goal {\it theory} {\it formula}
+    in  by \(tac@1\);  \ldots  by \(tac@n\);  result() end;
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{prove_goal} {\it theory} {\it formula} {\it tacsf}; ] 
+executes a proof of the {\it formula\/} in the given {\it theory}, using
+the given tactic function.
+
+\item[\ttindexbold{prove_goalw} {\it theory} {\it defs} {\it formula} 
+      {\it tacsf}; ]
+is like {\tt prove_goal} but also applies the list of {\it defs\/} as
+meta-rewrite rules to the first subgoal and the premises.
+\index{rewriting!meta-level}
+
+\item[\ttindexbold{prove_goalw_cterm} {\it theory} {\it defs} {\it ct}
+      {\it tacsf}; ] 
+is a version of {\tt prove_goalw} for special applications.  The main
+goal is supplied as a cterm, not as a string.  Typically, the cterm is
+created from a term~$t$ by \hbox{\tt Sign.cterm_of (sign_of thy) $t$}.
+\index{*Sign.cterm_of}\index{*sign_of}
+\end{description}
+
+
+\subsection{Managing multiple proofs}
+\index{proofs!managing multiple|bold}
+You may save the current state of the subgoal module and resume work on it
+later.  This serves two purposes.  
+\begin{enumerate}
+\item At some point, you may be uncertain of the next step, and
+wish to experiment.
+
+\item During a proof, you may see that a lemma should be proved first.
+\end{enumerate}
+Each saved proof state consists of a list of levels; \ttindex{chop} behaves
+independently for each of the saved proofs.  In addition, each saved state
+carries a separate \ttindex{undo} list.
+
+\subsubsection{The stack of proof states}
+\index{proofs!stacking|bold}
+\begin{ttbox} 
+push_proof   : unit -> unit
+pop_proof    : unit -> thm list
+rotate_proof : unit -> thm list
+\end{ttbox}
+The subgoal module maintains a stack of proof states.  Most subgoal
+commands affect only the top of the stack.  The \ttindex{goal} command {\bf
+replaces} the top of the stack; the only command that pushes a proof on the
+stack is {\tt push_proof}.
+
+To save some point of the proof, call {\tt push_proof}.  You may now
+state a lemma using \ttindex{goal}, or simply continue to apply tactics.
+Later, you can return to the saved point by calling {\tt pop_proof} or 
+{\tt rotate_proof}. 
+
+To view the entire stack, call {\tt rotate_proof} repeatedly; as it rotates
+the stack, it prints the new top element.
+
+\begin{description}
+\item[\ttindexbold{push_proof}();]  
+duplicates the top element of the stack, pushing a copy of the current
+proof state on to the stack.
+
+\item[\ttindexbold{pop_proof}();]  
+discards the top element of the stack.  It returns the list of
+meta-hypotheses associated with the new proof;  you should bind these to an
+\ML\ identifier.  They can also be obtained by calling \ttindex{premises}.
+
+\item[\ttindexbold{rotate_proof}]  
+rotates the stack, moving the top element to the bottom.  It returns the
+list of assumptions associated with the new proof.
+\end{description}
+
+
+\subsubsection{Saving and restoring proof states}
+\index{proofs!saving and restoring|bold}
+\begin{ttbox} 
+save_proof    : unit -> proof
+restore_proof : proof -> thm list
+\end{ttbox}
+States of the subgoal module may be saved as \ML\ values of
+type~\ttindex{proof}, and later restored.
+
+\begin{description}
+\item[\ttindexbold{save_proof}();]  
+returns the current state, which is on top of the stack.
+
+\item[\ttindexbold{restore_proof} {\it prf}]  
+replaces the top of the stack by~{\it prf}.  It returns the list of
+assumptions associated with the new proof.
+\end{description}
+
+
+\subsection{Debugging and inspecting}
+\index{proofs!debugging|bold}
+\index{debugging}
+These specialized operations support the debugging of tactics.  They refer
+to the current proof state of the subgoal module, and fail if there is no
+proof underway.
+
+\subsubsection{Reading and printing terms}
+\index{reading!terms|bold}\index{printing!terms}\index{printing!types}
+\begin{ttbox} 
+read    : string -> term
+prin    : term -> unit
+printyp : typ -> unit
+\end{ttbox}
+These read and print terms (or types) using the syntax associated with the
+proof state.
+
+\begin{description}
+\item[\ttindexbold{read} {\it string}]  
+reads the {\it string} as a term, without type checking.
+
+\item[\ttindexbold{prin} {\it t};]  
+prints the term~$t$ at the terminal.
+
+\item[\ttindexbold{printyp} {\it T};]  
+prints the type~$T$ at the terminal.
+\end{description}
+
+\subsubsection{Inspecting the proof state}
+\index{proofs!inspecting the state|bold}
+\begin{ttbox} 
+topthm  : unit -> thm
+getgoal : int -> term
+gethyps : int -> thm list
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{topthm}()]  
+returns the proof state as an Isabelle theorem.  This is what \ttindex{by}
+would supply to a tactic at this point.  It omits the post-processing of
+\ttindex{result} and \ttindex{uresult}.
+
+\item[\ttindexbold{getgoal} {\it i}]  
+returns subgoal~$i$ of the proof state, as a term.  You may print
+this using {\tt prin}, though you may have to examine the internal
+data structure in order to locate the problem!
+
+\item[\ttindexbold{gethyps} {\it i}]  
+returns the hypotheses of subgoal~$i$ as meta-level assumptions.  In these
+theorems, the subgoal's parameters become free variables.  This command is
+supplied for debugging uses of \ttindex{METAHYPS}.
+\end{description}
+
+\subsubsection{Filtering lists of rules}
+\begin{ttbox} 
+filter_goal: (term*term->bool) -> thm list -> int -> thm list
+\end{ttbox}
+
+\begin{description}
+\item[\ttindexbold{filter_goal} {\it could} {\it ths} {\it i}] 
+applies \hbox{\tt filter_thms {\it could}} to subgoal~$i$ of the proof
+state and returns the list of theorems that survive the filtering. 
+\end{description}
+
+\index{subgoal module|)}
+\index{proofs|)}

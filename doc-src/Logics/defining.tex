@@ -1,0 +1,1557 @@
+%% $Id$
+\newcommand{\rmindex}[1]{{#1}\index{#1}\@}
+\newcommand{\mtt}[1]{\mbox{\tt #1}}
+\newcommand{\ttfct}[1]{\mathop{\mtt{#1}}\nolimits}
+\newcommand{\ttrel}[1]{\mathrel{\mtt{#1}}}
+\newcommand{\Constant}{\ttfct{Constant}}
+\newcommand{\Variable}{\ttfct{Variable}}
+\newcommand{\Appl}[1]{\ttfct{Appl}\mathopen{\mtt[}#1\mathclose{\mtt]}}
+
+
+
+\chapter{Defining Logics} \label{Defining-Logics}
+
+This chapter is intended for Isabelle experts. It explains how to define new
+logical systems, Isabelle's {\em raison d'\^etre}. Isabelle logics are
+hierarchies of theories. A number of simple examples are contained in {\em
+Introduction to Isabelle}; the full syntax of theory definition files ({\tt
+.thy} files) is shown in {\em The Isabelle Reference Manual}. This chapter's
+chief purpose is a thorough description of all syntax related matters
+concerning theories. The most important sections are \S\ref{sec:mixfix} about
+mixfix declarations and \S\ref{sec:macros} describing the macro system. The
+concluding examples of \S\ref{sec:min_logics} are more concerned with the
+logical aspects of the definition of theories. Sections marked with * can be
+skipped on the first reading.
+
+
+%% FIXME move to Refman
+% \section{Classes and types *}
+% \index{*arities!context conditions}
+%
+% Type declarations are subject to the following two well-formedness
+% conditions:
+% \begin{itemize}
+% \item There are no two declarations $ty :: (\vec{r})c$ and $ty :: (\vec{s})c$
+%   with $\vec{r} \neq \vec{s}$.  For example
+% \begin{ttbox}
+% types ty 1
+% arities ty :: ({\ttlbrace}logic{\ttrbrace}) logic
+%         ty :: ({\ttlbrace}{\ttrbrace})logic
+% \end{ttbox}
+% leads to an error message and fails.
+% \item If there are two declarations $ty :: (s@1,\dots,s@n)c$ and $ty ::
+%   (s@1',\dots,s@n')c'$ such that $c' < c$ then $s@i' \preceq s@i$ must hold
+%   for $i=1,\dots,n$.  The relationship $\preceq$, defined as
+% \[ s' \preceq s \iff \forall c\in s. \exists c'\in s'.~ c'\le c, \]
+% expresses that the set of types represented by $s'$ is a subset of the set of
+% types represented by $s$.  For example
+% \begin{ttbox}
+% classes term < logic
+% types ty 1
+% arities ty :: ({\ttlbrace}logic{\ttrbrace})logic
+%         ty :: ({\ttlbrace}{\ttrbrace})term
+% \end{ttbox}
+% leads to an error message and fails.
+% \end{itemize}
+% These conditions guarantee principal types~\cite{nipkow-prehofer}.
+
+
+
+\section{Precedence grammars} \label{sec:precedence_grammars}
+
+The precise syntax of a logic is best defined by a \rmindex{context-free
+grammar}. In order to simplify the description of mathematical languages, we
+introduce an extended format which permits {\bf
+precedences}\indexbold{precedence}. This scheme generalizes precedence
+declarations in \ML\ and {\sc prolog}. In this extended grammar format,
+nonterminals are decorated by integers, their precedence. In the sequel,
+precedences are shown as subscripts. A nonterminal $A@p$ on the right-hand
+side of a production may only be replaced using a production $A@q = \gamma$
+where $p \le q$.
+
+Formally, a set of context free productions $G$ induces a derivation
+relation $\rew@G$ on strings as follows:
+\[ \alpha A@p \beta ~\rew@G~ \alpha\gamma\beta ~~~iff~~~
+   \exists (A@q=\gamma) \in G.~q \ge p
+\]
+Any extended grammar of this kind can be translated into a normal context
+free grammar. However, this translation may require the introduction of a
+large number of new nonterminals and productions.
+
+\begin{example} \label{ex:precedence}
+The following simple grammar for arithmetic expressions demonstrates how
+binding power and associativity of operators can be enforced by precedences.
+\begin{center}
+\begin{tabular}{rclr}
+  $A@9$ & = & {\tt0} \\
+  $A@9$ & = & {\tt(} $A@0$ {\tt)} \\
+  $A@0$ & = & $A@0$ {\tt+} $A@1$ \\
+  $A@2$ & = & $A@3$ {\tt*} $A@2$ \\
+  $A@3$ & = & {\tt-} $A@3$
+\end{tabular}
+\end{center}
+The choice of precedences determines that {\tt -} binds tighter than {\tt *}
+which binds tighter than {\tt +}, and that {\tt +} associates to the left and
+{\tt *} to the right.
+\end{example}
+
+To minimize the number of subscripts, we adopt the following conventions:
+\begin{itemize}
+\item All precedences $p$ must be in the range $0 \leq p \leq max_pri$ for
+  some fixed $max_pri$.
+\item Precedence $0$ on the right-hand side and precedence $max_pri$ on the
+  left-hand side may be omitted.
+\end{itemize}
+In addition, we write the production $A@p = \alpha$ as $A = \alpha~(p)$,
+i.e.\ the precedence of the left-hand side actually appears in the uttermost
+right. Finally, alternatives may be separated by $|$, and repetition
+indicated by \dots.
+
+Using these conventions and assuming $max_pri=9$, the grammar in
+Example~\ref{ex:precedence} becomes
+\begin{center}
+\begin{tabular}{rclc}
+$A$ & = & {\tt0} & \hspace*{4em} \\
+ & $|$ & {\tt(} $A$ {\tt)} \\
+ & $|$ & $A$ {\tt+} $A@1$ & (0) \\
+ & $|$ & $A@3$ {\tt*} $A@2$ & (2) \\
+ & $|$ & {\tt-} $A@3$ & (3)
+\end{tabular}
+\end{center}
+
+
+
+\section{Basic syntax} \label{sec:basic_syntax}
+
+The basis of all extensions by object-logics is the \rmindex{Pure theory},
+bound to the \ML-identifier \ttindex{Pure.thy}. It contains, among many other
+things, the \rmindex{Pure syntax}. An informal account of this basic syntax
+(meta-logic, types etc.) may be found in {\em Introduction to Isabelle}. A
+more precise description using a precedence grammar is shown in
+Figure~\ref{fig:pure_gram}.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{rclc}
+$prop$ &=& \ttindex{PROP} $aprop$ ~~$|$~~ {\tt(} $prop$ {\tt)} \\
+     &$|$& $logic@3$ \ttindex{==} $logic@2$ & (2) \\
+     &$|$& $logic@3$ \ttindex{=?=} $logic@2$ & (2) \\
+     &$|$& $prop@2$ \ttindex{==>} $prop@1$ & (1) \\
+     &$|$& {\tt[|} $prop$ {\tt;} \dots {\tt;} $prop$ {\tt|]} {\tt==>} $prop@1$ & (1) \\
+     &$|$& {\tt!!} $idts$ {\tt.} $prop$ & (0) \\\\
+$logic$ &=& $prop$ ~~$|$~~ $fun$ \\\\
+$aprop$ &=& $id$ ~~$|$~~ $var$
+    ~~$|$~~ $fun@{max_pri}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)} \\\\
+$fun$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $fun$ {\tt)} \\
+    &$|$& \ttindex{\%} $idts$ {\tt.} $logic$ & (0) \\\\
+$idts$ &=& $idt$ ~~$|$~~ $idt@1$ $idts$ \\\\
+$idt$ &=& $id$ ~~$|$~~ {\tt(} $idt$ {\tt)} \\
+    &$|$& $id$ \ttindex{::} $type$ & (0) \\\\
+$type$ &=& $tfree$ ~~$|$~~ $tvar$ \\
+     &$|$& $tfree$ {\tt::} $sort$ ~~$|$~~ $tvar$ {\tt::} $sort$ \\
+     &$|$& $id$ ~~$|$~~ $type@{max_pri}$ $id$
+                ~~$|$~~ {\tt(} $type$ {\tt,} \dots {\tt,} $type$ {\tt)} $id$ \\
+     &$|$& $type@1$ \ttindex{=>} $type$ & (0) \\
+     &$|$& {\tt[}  $type$ {\tt,} \dots {\tt,} $type$ {\tt]} {\tt=>} $type$&(0)\\
+     &$|$& {\tt(} $type$ {\tt)} \\\\
+$sort$ &=& $id$ ~~$|$~~ {\tt\ttlbrace\ttrbrace}
+                ~~$|$~~ {\tt\ttlbrace} $id$ {\tt,} \dots {\tt,} $id$ {\tt\ttrbrace}
+\end{tabular}\index{*"!"!}\index{*"["|}\index{*"|"]}
+\indexbold{type@$type$} \indexbold{sort@$sort$} \indexbold{idt@$idt$}
+\indexbold{idts@$idts$} \indexbold{logic@$logic$} \indexbold{prop@$prop$}
+\indexbold{fun@$fun$}
+\end{center}
+\caption{Meta-Logic Syntax}
+\label{fig:pure_gram}
+\end{figure}
+
+The following main categories are defined:
+\begin{description}
+  \item[$prop$] Terms of type $prop$, i.e.\ formulae of the meta-logic.
+
+  \item[$aprop$] Atomic propositions.
+
+  \item[$logic$] Terms of types in class $logic$. Initially, $logic$ contains
+    merely $prop$. As the syntax is extended by new object-logics, more
+    productions for $logic$ are added automatically for (see below).
+
+  \item[$fun$] Terms potentially of function type.
+
+  \item[$type$] Meta-types.
+
+  \item[$idts$] a list of identifiers, possibly constrained by types. Note
+    that \verb|x :: nat y| is parsed as \verb|x :: (nat y)|, i.e.\ {\tt y}
+    would be treated like a type constructor applied to {\tt nat} here.
+\end{description}
+
+
+\subsection{Logical types and default syntax}
+
+Isabelle is concerned with mathematical languages which have a certain
+minimal vocabulary: identifiers, variables, parentheses, and the lambda
+calculus. Logical types, i.e.\ those of class $logic$, are automatically
+equipped with this basic syntax. More precisely, for any type constructor
+$ty$ with arity $(\dots)c$, where $c$ is a subclass of $logic$, the following
+productions are added:
+\begin{center}
+\begin{tabular}{rclc}
+$ty$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $ty$ {\tt)} \\
+  &$|$& $fun@{max_pri}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)}\\
+  &$|$& $ty@{max_pri}$ {\tt::} $type$\\\\
+$logic$ &=& $ty$
+\end{tabular}
+\end{center}
+
+
+\subsection{Lexical matters *}
+
+The parser does not process input strings directly, it rather operates on
+token lists provided by Isabelle's \rmindex{lexical analyzer} (the
+\bfindex{lexer}). There are two different kinds of tokens: {\bf
+literals}\indexbold{literal token}\indexbold{token!literal} and {\bf valued
+tokens}\indexbold{valued token}\indexbold{token!valued}.
+
+Literals (or delimiters \index{delimiter}) can be regarded as reserved
+words\index{reserved word} of the syntax and the user can add new ones, when
+extending theories. In Figure~\ref{fig:pure_gram} they appear in typewriter
+type, e.g.\ {\tt PROP}, {\tt ==}, {\tt =?=}, {\tt ;}.
+
+Valued tokens on the other hand have a fixed predefined syntax. The lexer
+distinguishes four kinds of them: identifiers\index{identifier},
+unknowns\index{unknown}\index{scheme variable|see{unknown}}, type
+variables\index{type variable}, type unknowns\index{type unknown}\index{type
+scheme variable|see{type unknown}}; they are denoted by $id$\index{id@$id$},
+$var$\index{var@$var$}, $tfree$\index{tfree@$tfree$},
+$tvar$\index{tvar@$tvar$}, respectively. Typical examples are {\tt x}, {\tt
+?x7}, {\tt 'a}, {\tt ?'a3}, the exact syntax is:
+
+\begin{tabular}{rcl}
+$id$        & =   & $letter~quasiletter^*$ \\
+$var$       & =   & ${\tt ?}id ~~|~~ {\tt ?}id{\tt .}nat$ \\
+$tfree$     & =   & ${\tt '}id$ \\
+$tvar$      & =   & ${\tt ?}tfree ~~|~~ {\tt ?}tfree{\tt .}nat$ \\[1ex]
+
+$letter$    & =   & one of {\tt a}\dots {\tt z} {\tt A}\dots {\tt Z} \\
+$digit$     & =   & one of {\tt 0}\dots {\tt 9} \\
+$quasiletter$ & =  & $letter ~~|~~ digit ~~|~~ {\tt _} ~~|~~ {\tt '}$ \\
+$nat$       & =   & $digit^+$
+\end{tabular}
+
+A string of $var$ or $tvar$ describes an \rmindex{unknown} which is
+internally a pair of base name and index (\ML\ type \ttindex{indexname}).
+These components are either explicitly separated by a dot as in {\tt ?x.1} or
+{\tt ?x7.3} or directly run together as in {\tt ?x1}. The latter form is
+possible, if the base name does not end with digits. Additionally, if the
+index is 0, it may be dropped altogether, e.g.\ {\tt ?x} abbreviates {\tt
+?x0} or {\tt ?x.0}.
+
+Note that $id$, $var$, $tfree$, $tvar$ are mutually disjoint, but it is
+perfectly legal that they overlap with the set of literal tokens (e.g.\ {\tt
+PROP}, {\tt ALL}, {\tt EX}).
+
+The lexical analyzer translates input strings to token lists by repeatedly
+taking the maximal prefix of the input string that forms a valid token. A
+maximal prefix that is both a literal and a valued token is treated as a
+literal. Spaces, tabs and newlines are separators; they never occur within
+tokens.
+
+Note that literals need not necessarily be surrounded by white space to be
+recognized as separate. For example, if {\tt -} is a literal but {\tt --} is
+not, then the string {\tt --} is treated as two consecutive occurrences of
+{\tt -}. This is in contrast to \ML\ which would treat {\tt --} always as a
+single symbolic name. The consequence of Isabelle's more liberal scheme is
+that the same string may be parsed in different ways after extending the
+syntax: after adding {\tt --} as a literal, the input {\tt --} is treated as
+a single token.
+
+
+\subsection{Inspecting syntax *}
+
+You may get the \ML\ representation of the syntax of any Isabelle theory by
+applying \index{*syn_of}
+\begin{ttbox}
+  syn_of: theory -> Syntax.syntax
+\end{ttbox}
+\ttindex{Syntax.syntax} is an abstract type containing quite a lot of
+material, wherefore there is no toplevel pretty printer set up for displaying
+it automatically. You have to call one of the following functions instead:
+\index{*Syntax.print_syntax} \index{*Syntax.print_gram}
+\index{*Syntax.print_trans}
+\begin{ttbox}
+  Syntax.print_syntax: Syntax.syntax -> unit
+  Syntax.print_gram: Syntax.syntax -> unit
+  Syntax.print_trans: Syntax.syntax -> unit
+\end{ttbox}
+where {\tt Syntax.print_syntax} shows virtually all information contained in
+a syntax, therefore being quite verbose. Its output is divided into labeled
+sections, the syntax proper is represented by {\tt lexicon}, {\tt roots} and
+{\tt prods}. The rest refers to the manifold facilities to apply syntactic
+translations to parse trees (macro expansion etc.). See \S\ref{sec:macros}
+and \S\ref{sec:tr_funs} for more details on translations.
+
+To simplify coping with the verbosity of {\tt Syntax.print_syntax}, there are
+\ttindex{Syntax.print_gram} to print the syntax proper only and
+\ttindex{Syntax.print_trans} to print the translation related stuff only.
+
+Let's have a closer look at part of Pure's syntax:
+\begin{ttbox}
+Syntax.print_syntax (syn_of Pure.thy);
+{\out lexicon: "!!" "%" "(" ")" "," "." "::" ";" "==" "==>" \dots}
+{\out roots: logic type fun prop}
+{\out prods:}
+{\out   type = tfree  (1000)}
+{\out   type = tvar  (1000)}
+{\out   type = id  (1000)}
+{\out   type = tfree "::" sort[0]  => "_ofsort" (1000)}
+{\out   type = tvar "::" sort[0]  => "_ofsort" (1000)}
+{\out   \vdots}
+{\out consts: "_K" "_appl" "_aprop" "_args" "_asms" "_bigimpl" \dots}
+{\out parse_ast_translation: "_appl" "_bigimpl" "_bracket"}
+{\out   "_idtyp" "_lambda" "_tapp" "_tappl"}
+{\out parse_rules:}
+{\out parse_translation: "!!" "_K" "_abs" "_aprop"}
+{\out print_translation: "all"}
+{\out print_rules:}
+{\out print_ast_translation: "==>" "_abs" "_idts" "fun"}
+\end{ttbox}
+
+\begin{description}
+  \item[\ttindex{lexicon}]
+    The set of literal tokens (i.e.\ reserved words, delimiters) used for
+    lexical analysis.
+
+  \item[\ttindex{roots}]
+    The legal syntactic categories to start parsing with. You name the
+    desired root directly as a string when calling lower level functions or
+    specifying macros. Higher level functions usually expect a type and
+    derive the actual root as follows:\index{root_of_type@$root_of_type$}
+    \begin{itemize}
+      \item $root_of_type(\tau@1 \To \tau@2) = \mtt{fun}$.
+
+      \item $root_of_type(\tau@1 \mathrel{ty} \tau@2) = ty$.
+
+      \item $root_of_type((\tau@1, \dots, \tau@n)ty) = ty$.
+
+      \item $root_of_type(\alpha) = \mtt{logic}$.
+    \end{itemize}
+    Thereby $\tau@1, \dots, \tau@n$ are types, $ty$ a type infix or ordinary
+    type constructor and $\alpha$ a type variable or unknown. Note that only
+    the outermost type constructor is taken into account.
+
+  \item[\ttindex{prods}]
+    The list of productions describing the precedence grammar. Nonterminals
+    $A@n$ are rendered in ASCII as {\tt $A$[$n$]}, literal tokens are quoted.
+    Note that some productions have strings attached after an {\tt =>}. These
+    strings later become the heads of parse trees, but they also play a vital
+    role when terms are printed (see \S\ref{sec:asts}).
+
+    Productions which do not have string attached and thus do not create a
+    new parse tree node are called {\bf copy productions}\indexbold{copy
+    production}. They must have exactly one
+    argument\index{argument!production} (i.e.\ nonterminal or valued token)
+    on the right-hand side. The parse tree generated when parsing that
+    argument is simply passed up as the result of parsing the whole copy
+    production.
+
+    A special kind of copy production is one where the argument is a
+    nonterminal and no additional syntactic sugar (literals) exists. It is
+    called a \bfindex{chain production}. Chain productions should be seen as
+    an abbreviation mechanism: conceptually, they are removed from the
+    grammar by adding appropriate new rules. Precedence information attached
+    to chain productions is ignored, only the dummy value $-1$ is displayed.
+
+  \item[\ttindex{consts}, \ttindex{parse_rules}, \ttindex{print_rules}]
+    This is macro related stuff (see \S\ref{sec:macros}).
+
+  \item[\tt *_translation]
+    \index{*parse_ast_translation} \index{*parse_translation}
+    \index{*print_translation} \index{*print_ast_translation}
+    The sets of constants that invoke translation functions. These are more
+    arcane matters (see \S\ref{sec:asts} and \S\ref{sec:tr_funs}).
+\end{description}
+
+Of course you may inspect the syntax of any theory using the above calling
+sequence. But unfortunately, as more and more material accumulates, the
+output becomes even more verbose. Note that when extending syntaxes new {\tt
+roots}, {\tt prods}, {\tt parse_rules} and {\tt print_rules} are appended to
+the end. The other lists are displayed sorted.
+
+
+
+\section{Abstract syntax trees} \label{sec:asts}
+
+Figure~\ref{fig:parse_print} shows a simplified model of the parsing and
+printing process.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{cl}
+string          & \\
+$\downarrow$    & parser \\
+parse tree      & \\
+$\downarrow$    & \rmindex{parse ast translation} \\
+ast             & \\
+$\downarrow$    & ast rewriting (macros) \\
+ast             & \\
+$\downarrow$    & \rmindex{parse translation}, type-inference \\
+--- well-typed term --- & \\
+$\downarrow$    & \rmindex{print translation} \\
+ast             & \\
+$\downarrow$    & ast rewriting (macros) \\
+ast             & \\
+$\downarrow$    & \rmindex{print ast translation}, printer \\
+string          &
+\end{tabular}
+\end{center}
+\caption{Parsing and Printing}
+\label{fig:parse_print}
+\end{figure}
+
+The parser takes an input string (well, actually a token list produced by the
+lexer) and produces a \rmindex{parse tree}, which is directly derived from
+the productions involved. By applying some internal transformations the parse
+tree becomes an \bfindex{abstract syntax tree} (\bfindex{ast}), macro
+expansion, further translations and finally type inference yields a
+well-typed term\index{term!well-typed}.
+
+The printing process is the reverse, except for some subtleties to be
+discussed later.
+
+Asts are an intermediate form between the very raw parse trees and the typed
+$\lambda$-terms. An ast is either an atom (constant or variable) or a list of
+{\em at least two} subasts. Internally, they have type \ttindex{Syntax.ast}
+which is defined as: \index{*Constant} \index{*Variable} \index{*Appl}
+\begin{ttbox}
+datatype ast =
+  Constant of string |
+  Variable of string |
+  Appl of ast list
+\end{ttbox}
+
+Notation: We write constant atoms as quoted strings, variable atoms as
+non-quoted strings and applications as list of subasts separated by space and
+enclosed in parentheses. For example:
+\begin{ttbox}
+  Appl [Constant "_constrain",
+    Appl [Constant "_abs", Variable "x", Variable "t"],
+    Appl [Constant "fun", Variable "'a", Variable "'b"]]
+  {\rm is written as} ("_constrain" ("_abs" x t) ("fun" 'a 'b))
+\end{ttbox}
+
+Note that {\tt ()} and {\tt (f)} are both illegal.
+
+The resemblance of LISP's S-expressions is intentional, but notice the two
+kinds of atomic symbols: $\Constant x$ and $\Variable x$. This distinction
+has some more obscure reasons and you can ignore it at about half of the
+time. By now you shouldn't take the names ``{\tt Constant}'' and ``{\tt
+Variable}'' too literally. In the later translation to terms $\Variable x$
+may become a constant, free or bound variable, even a type constructor or
+class name; the actual outcome depends on the context.
+
+Similarly, you can think of ${\tt (} f~x@1~\ldots~x@n{\tt )}$ as some sort of
+application of $f$ to the arguments $x@1, \ldots, x@n$. But the actual kind
+of application (say a type constructor $f$ applied to types $x@1, \ldots,
+x@n$) is determined later by context, too.
+
+Forms like {\tt (("_abs" x $t$) $u$)} are perfectly legal, but asts are not
+higher-order: the {\tt "_abs"} does not yet bind the {\tt x} in any way,
+though later at the term level, {\tt ("_abs" x $t$)} will become an {\tt Abs}
+node and occurrences of {\tt x} in $t$ will be replaced by {\tt Bound}s. Even
+if non constant heads of applications may seem unusual, asts should be
+regarded as first order. Purists may think of ${\tt (} f~x@1~\ldots~x@n{\tt
+)}$ as a first order application of some invisible $(n+1)$-ary constant.
+
+
+\subsection{Parse trees to asts}
+
+Asts are generated from parse trees by applying some translation functions,
+which are internally called {\bf parse ast translations}\indexbold{parse ast
+translation}.
+
+We can think of the raw output of the parser as trees built up by nesting the
+right-hand sides of those productions that were used to derive a word that
+matches the input token list. Then parse trees are simply lists of tokens and
+sub parse trees, the latter replacing the nonterminals of the productions.
+Note that we refer here to the actual productions in their internal form as
+displayed by {\tt Syntax.print_syntax}.
+
+Ignoring parse ast translations, the mapping
+$ast_of_pt$\index{ast_of_pt@$ast_of_pt$} from parse trees to asts is derived
+from the productions involved as follows:
+\begin{itemize}
+  \item Valued tokens: $ast_of_pt(t) = \Variable s$, where $t$ is an $id$,
+    $var$, $tfree$ or $tvar$ token, and $s$ its value.
+
+  \item Copy productions: $ast_of_pt(\ldots P \ldots) = ast_of_pt(P)$.
+
+  \item $0$-ary productions: $ast_of_pt(\ldots \mtt{=>} c) = \Constant c$.
+
+  \item $n$-ary productions: $ast_of_pt(\ldots P@1 \ldots P@n \ldots \mtt{=>}
+    c) = \Appl{\Constant c,$ $ast_of_pt(P@1),$ $\ldots,$ $ast_of_pt(P@n)}$,
+    where $n \ge 1$.
+\end{itemize}
+Thereby $P, P@1, \ldots, P@n$ denote sub parse trees or valued tokens and
+``\dots'' zero or more literal tokens. That means literal tokens are stripped
+and do not appear in asts.
+
+The following table presents some simple examples:
+
+{\tt\begin{tabular}{ll}
+\rm input string    & \rm ast \\\hline
+"f"                 & f \\
+"'a"                & 'a \\
+"t == u"            & ("==" t u) \\
+"f(x)"              & ("_appl" f x) \\
+"f(x, y)"           & ("_appl" f ("_args" x y)) \\
+"f(x, y, z)"        & ("_appl" f ("_args" x ("_args" y z))) \\
+"\%x y.\ t"         & ("_lambda" ("_idts" x y) t) \\
+\end{tabular}}
+
+Some of these examples illustrate why further translations are desirable in
+order to provide some nice standard form of asts before macro expansion takes
+place. Hence the Pure syntax provides predefined parse ast
+translations\index{parse ast translation!of Pure} for ordinary applications,
+type applications, nested abstraction, meta implication and function types.
+Their net effect on some representative input strings is shown in
+Figure~\ref{fig:parse_ast_tr}.
+
+\begin{figure}[htb]
+\begin{center}
+{\tt\begin{tabular}{ll}
+\rm string                  & \rm ast \\\hline
+"f(x, y, z)"                & (f x y z) \\
+"'a ty"                     & (ty 'a) \\
+"('a, 'b) ty"               & (ty 'a 'b) \\
+"\%x y z.\ t"               & ("_abs" x ("_abs" y ("_abs" z t))) \\
+"\%x ::\ 'a.\ t"            & ("_abs" ("_constrain" x 'a) t) \\
+"[| P; Q; R |] => S"        & ("==>" P ("==>" Q ("==>" R S))) \\
+"['a, 'b, 'c] => 'd"        & ("fun" 'a ("fun" 'b ("fun" 'c 'd)))
+\end{tabular}}
+\end{center}
+\caption{Built-in Parse Ast Translations}
+\label{fig:parse_ast_tr}
+\end{figure}
+
+This translation process is guided by names of constant heads of asts. The
+list of constants invoking parse ast translations is shown in the output of
+{\tt Syntax.print_syntax} under {\tt parse_ast_translation}.
+
+
+\subsection{Asts to terms *}
+
+After the ast has been normalized by the macro expander (see
+\S\ref{sec:macros}), it is transformed into a term with yet another set of
+translation functions interspersed: {\bf parse translations}\indexbold{parse
+translation}. The result is a non-typed term\index{term!non-typed} which may
+contain type constraints, that is 2-place applications with head {\tt
+"_constrain"}. The second argument of a constraint is a type encoded as term.
+Real types will be introduced later during type inference, which is not
+discussed here.
+
+If we ignore the built-in parse translations of Pure first, then the mapping
+$term_of_ast$\index{term_of_ast@$term_of_ast$} from asts to (non-typed) terms
+is defined by:
+\begin{itemize}
+  \item $term_of_ast(\Constant x) = \ttfct{Const} (x, \mtt{dummyT})$.
+
+  \item $term_of_ast(\Variable \mtt{"?}xi\mtt") = \ttfct{Var} ((x, i),
+    \mtt{dummyT})$, where $x$ is the base name and $i$ the index extracted
+    from $xi$.
+
+  \item $term_of_ast(\Variable x) = \ttfct{Free} (x, \mtt{dummyT})$.
+
+  \item $term_of_ast(\Appl{f, x@1, \ldots, x@n}) = term_of_ast(f) ~{\tt\$}~
+    term_of_ast(x@1)$ {\tt\$} \dots\ {\tt\$} $term_of_ast(x@n)$.
+\end{itemize}
+Note that {\tt Const}, {\tt Var}, {\tt Free} belong to the datatype {\tt
+term} and \ttindex{dummyT} is bound to some dummy {\tt typ}, which is ignored
+during type-inference.
+
+So far the outcome is still a first order term. {\tt Abs}s and {\tt Bound}s
+are introduced by parse translations associated with {\tt "_abs"} and {\tt
+"!!"} (and any other user defined binder).
+
+
+\subsection{Printing of terms *}
+
+When terms are prepared for printing, they are first transformed into asts
+via $ast_of_term$\index{ast_of_term@$ast_of_term$} (ignoring {\bf print
+translations}\indexbold{print translation}):
+\begin{itemize}
+  \item $ast_of_term(\ttfct{Const} (x, \tau)) = \Constant x$.
+
+  \item $ast_of_term(\ttfct{Free} (x, \tau)) = constrain (\Variable x,
+    \tau)$.
+
+  \item $ast_of_term(\ttfct{Var} ((x, i), \tau)) = constrain (\Variable
+    \mtt{"?}xi\mtt", \tau)$, where $\mtt?xi$ is the string representation of
+    the {\tt indexname} $(x, i)$.
+
+  \item $ast_of_term(\ttfct{Abs} (x, \tau, t)) = \ttfct{Appl}
+    \mathopen{\mtt[} \Constant \mtt{"_abs"}, constrain(\Variable x', \tau),$
+    $ast_of_term(t') \mathclose{\mtt]}$, where $x'$ is a version of $x$
+    renamed away from all names occurring in $t$, and $t'$ the body $t$ with
+    all {\tt Bound}s referring to this {\tt Abs} replaced by $\ttfct{Free}
+    (x', \mtt{dummyT})$.
+
+  \item $ast_of_term(\ttfct{Bound} i) = \Variable \mtt{"B.}i\mtt"$. Note that
+    the occurrence of loose bound variables is abnormal and should never
+    happen when printing well-typed terms.
+
+  \item $ast_of_term(f \ttrel{\$} x@1 \ttrel{\$} \ldots \ttrel{\$} x@n) =
+    \ttfct{Appl} \mathopen{\mtt[} ast_of_term(f), ast_of_term(x@1), \ldots,$
+    $ast_of_term(x@n) \mathclose{\mtt]}$, where $f$ is not an application.
+
+  \item $constrain(x, \tau) = x$, if $\tau = \mtt{dummyT}$ \index{*dummyT} or
+    \ttindex{show_types} not set to {\tt true}.
+
+  \item $constrain(x, \tau) = \Appl{\Constant \mtt{"_constrain"}, x, ty}$,
+    where $ty$ is the ast encoding of $\tau$. That is: type constructors as
+    {\tt Constant}s, type variables as {\tt Variable}s and type applications
+    as {\tt Appl}s with the head type constructor as first element.
+    Additionally, if \ttindex{show_sorts} is set to {\tt true}, some type
+    variables are decorated with an ast encoding their sort.
+\end{itemize}
+
+\medskip
+After an ast has been normalized wrt.\ the print macros, it is transformed
+into the final output string. The built-in {\bf print ast
+translations}\indexbold{print ast translation} are essentially the reverse
+ones of the parse ast translations of Figure~\ref{fig:parse_ast_tr}.
+
+For the actual printing process, the names attached to grammar productions of
+the form $\ldots A@{p@1}^1 \ldots A@{p@n}^n \ldots \mtt{=>} c$ play a vital
+role. Whenever an ast with constant head $c$, i.e.\ $\mtt"c\mtt"$ or
+$(\mtt"c\mtt"~ x@1 \ldots x@n)$, is encountered it is printed according to
+the production for $c$. This means that first the arguments $x@1$ \dots $x@n$
+are printed, then put in parentheses if necessary for reasons of precedence,
+and finally joined to a single string, separated by the syntactic sugar of
+the production (denoted by ``\dots'' above).
+
+If an application $(\mtt"c\mtt"~ x@1 \ldots x@m)$ has more arguments than the
+corresponding production, it is first split into $((\mtt"c\mtt"~ x@1 \ldots
+x@n)~ (x@{n+1} \ldots x@m))$. Applications with too few arguments or with
+non-constant head or without a corresponding production are printed as
+$f(x@1, \ldots, x@l)$ or $(\alpha@1, \ldots, \alpha@l) ty$. A single
+$\Variable x$ is simply printed as $x$.
+
+Note that the system does {\em not} insert blanks automatically. They should
+be part of the mixfix declaration (which provide the user interface for
+defining syntax) if they are required to separate tokens. Mixfix declarations
+may also contain pretty printing annotations. See \S\ref{sec:mixfix} for
+details.
+
+
+
+\section{Mixfix declarations} \label{sec:mixfix}
+
+When defining theories, the user usually declares new constants as names
+associated with a type followed by an optional \bfindex{mixfix annotation}.
+If none of the constants are introduced with mixfix annotations, there is no
+concrete syntax to speak of: terms can only be abstractions or applications
+of the form $f(t@1, \dots, t@n)$. Since this notation quickly becomes
+unreadable, Isabelle supports syntax definitions in the form of unrestricted
+context-free \index{context-free grammar} \index{precedence grammar}
+precedence grammars using mixfix annotations.
+
+Mixfix annotations describe the {\em concrete} syntax, a standard translation
+into the abstract syntax and a pretty printing scheme, all in one. Isabelle
+syntax definitions are inspired by \OBJ's~\cite{OBJ} {\em mixfix\/} syntax.
+Each mixfix annotation defines a precedence grammar production and optionally
+associates a constant with it.
+
+There is a general form of mixfix annotation exhibiting the full power of
+extending a theory's syntax, and some shortcuts for common cases like infix
+operators.
+
+The general \bfindex{mixfix declaration} as it may occur within a {\tt
+consts} section\index{consts section@{\tt consts} section} of a {\tt .thy}
+file, specifies a constant declaration and a grammar production at the same
+time. It has the form {\tt $c$ ::\ "$\tau$" ("$sy$" $ps$ $p$)} and is
+interpreted as follows:
+\begin{itemize}
+  \item {\tt $c$ ::\ "$\tau$"} is the actual constant declaration without any
+    syntactic significance.
+
+  \item $sy$ is the right-hand side of the production, specified as a
+    symbolic string. In general, $sy$ is of the form $\alpha@0 \_ \alpha@1
+    \dots \alpha@{n-1} \_ \alpha@n$, where each occurrence of \ttindex{_}
+    denotes an argument\index{argument!mixfix} position and the strings
+    $\alpha@i$ do not contain (non-escaped) {\tt _}. The $\alpha@i$ may
+    consist of delimiters\index{delimiter}, 
+    spaces\index{space (pretty printing)} or \rmindex{pretty printing}
+    annotations (see below).
+
+  \item $\tau$ specifies the syntactic categories of the arguments on the
+    left-hand and of the right-hand side. Arguments may be nonterminals or
+    valued tokens. If $sy$ is of the form above, $\tau$ must be a nested
+    function type with at least $n$ argument positions, say $\tau = [\tau@1,
+    \dots, \tau@n] \To \tau'$. The syntactic category of argument $i$ is
+    derived from type $\tau@i$ (see $root_of_type$ in
+    \S\ref{sec:basic_syntax}). The result, i.e.\ the left-hand side of the
+    production, is derived from type $\tau'$. Note that the $\tau@i$ and
+    $\tau'$ may be function types.
+
+  \item $c$ is the name of the constant associated with the production. If
+    $c$ is the empty string {\tt ""} then this is a \rmindex{copy
+    production}. Otherwise, parsing an instance of the phrase $sy$ generates
+    the ast {\tt ("$c$" $a@1$ $\ldots$ $a@n$)}, where $a@i$ is the ast
+    generated by parsing the $i$-th argument.
+
+  \item $ps$ is an optional list of at most $n$ integers, say {\tt [$p@1$,
+    $\ldots$, $p@m$]}, where $p@i$ is the minimal \rmindex{precedence}
+    required of any phrase that may appear as the $i$-th argument. Missing
+    precedences default to $0$.
+
+  \item $p$ is the \rmindex{precedence} the of this production.
+\end{itemize}
+
+Precedences\index{precedence!range of} may range between $0$ and
+$max_pri$\indexbold{max_pri@$max_pri$} (= 1000). If you want to ignore them,
+the safest way to do so is to use the declaration {\tt $c$ ::\ "$\tau$"
+("$sy$")}. The resulting production puts no precedence constraints on any of
+its arguments and has maximal precedence itself.
+
+\begin{example}
+The following theory specification contains a {\tt consts} section that
+encodes the precedence grammar of Example~\ref{ex:precedence} as mixfix
+declarations:
+\begin{ttbox}
+EXP = Pure +
+types
+  exp 0
+arities
+  exp :: logic
+consts
+  "0" :: "exp"                ("0" 9)
+  "+" :: "[exp, exp] => exp"  ("_ + _" [0, 1] 0)
+  "*" :: "[exp, exp] => exp"  ("_ * _" [3, 2] 2)
+  "-" :: "exp => exp"         ("- _" [3] 3)
+end
+\end{ttbox}
+Note that the {\tt arities} declaration causes {\tt exp} to be added to the
+syntax' roots. If you put the above text into a file {\tt exp.thy} and load
+it via {\tt use_thy "exp"}, you can do some tests:
+\begin{ttbox}
+val read_exp = Syntax.test_read (syn_of EXP.thy) "exp";
+read_exp "0 * 0 * 0 * 0 + 0 + 0 + 0";
+{\out tokens: "0" "*" "0" "*" "0" "*" "0" "+" "0" "+" "0" "+" "0"}
+{\out raw: ("+" ("+" ("+" ("*" "0" ("*" "0" ("*" "0" "0"))) "0") "0") "0")}
+{\out \vdots}
+read_exp "0 + - 0 + 0";
+{\out tokens: "0" "+" "-" "0" "+" "0"}
+{\out raw: ("+" ("+" "0" ("-" "0")) "0")}
+{\out \vdots}
+\end{ttbox}
+The output of \ttindex{Syntax.test_read} includes the token list ({\tt
+tokens}) and the raw ast directly derived from the parse tree, ignoring parse
+ast translations. The rest is tracing information provided by the macro
+expander (see \S\ref{sec:macros}).
+
+Issuing {\tt Syntax.print_gram (syn_of EXP.thy)} will reveal the actual
+grammar productions derived from the above mixfix declarations (lots of
+additional stuff deleted):
+\begin{ttbox}
+exp = "0"  => "0" (9)
+exp = exp[0] "+" exp[1]  => "+" (0)
+exp = exp[3] "*" exp[2]  => "*" (2)
+exp = "-" exp[3]  => "-" (3)
+\end{ttbox}
+\end{example}
+
+Let us now have a closer look at the structure of the string $sy$ appearing
+in mixfix annotations. This string specifies a list of parsing and printing
+directives, namely delimiters\index{delimiter},
+arguments\index{argument!mixfix}, spaces\index{space (pretty printing)},
+blocks of indentation\index{block (pretty printing)} and optional or forced
+line breaks\index{break (pretty printing)}. These are encoded via the
+following character sequences:
+
+\begin{description}
+  \item[~\ttindex_~] An argument\index{argument!mixfix} position.
+
+  \item[~$d$~] A \rmindex{delimiter}, i.e.\ a non-empty sequence of
+    non-special or escaped characters. Escaping a 
+    character\index{escape character} means preceding it with a {\tt '}
+    (quote). Thus you have to write {\tt ''} if you really want a single
+    quote. Delimiters may never contain white space, though.
+
+  \item[~$s$~] A non-empty sequence of spaces\index{space (pretty printing)}
+    for printing.
+
+  \item[~{\ttindex($n$}~] Open a block\index{block (pretty printing)}. $n$ is
+    an optional sequence of digits that specifies the amount of indentation
+    to be added when a line break occurs within the block. If {\tt(} is not
+    followed by a digit, the indentation defaults to $0$.
+
+  \item[~\ttindex)~] Close a block.
+
+  \item[~\ttindex{//}~] Force a line break\index{break (pretty printing)}.
+
+  \item[~\ttindex/$s$~] Allow a line break\index{break (pretty printing)}.
+    Spaces $s$ right after {\tt /} are only printed if the break is not
+    taken.
+\end{description}
+
+In terms of parsing, arguments are nonterminals or valued tokens, while
+delimiters are literal tokens. The other directives have only significance
+for printing. The \rmindex{pretty printing} mechanisms of Isabelle is
+essentially that described in \cite{FIXME:ML_for_the_Working_Programmer}.
+
+
+\subsection{Infixes}
+
+Infix\index{infix} operators associating to the left or right can be declared
+conveniently using \ttindex{infixl} or \ttindex{infixr}.
+
+Roughly speaking, the form {\tt $c$ ::\ "$\tau$" (infixl $p$)} abbreviates:
+\begin{ttbox}
+"op \(c\)" ::\ "\(\tau\)"   ("op \(c\)")
+"op \(c\)" ::\ "\(\tau\)"   ("(_ \(c\)/ _)" [\(p\), \(p + 1\)] \(p\))
+\end{ttbox}
+and {\tt $c$ ::\ "$\tau$" (infixr $p$)} abbreviates:
+\begin{ttbox}
+"op \(c\)" ::\ "\(\tau\)"   ("op \(c\)")
+"op \(c\)" ::\ "\(\tau\)"   ("(_ \(c\)/ _)" [\(p + 1\), \(p\)] \(p\))
+\end{ttbox}
+
+Thus, prefixing infixes with \ttindex{op} makes them behave like ordinary
+function symbols. Special characters occurring in $c$ have to be escaped as
+in delimiters. Also note that the expanded forms above would be actually
+illegal at the user level because of duplicate declarations of constants.
+
+
+\subsection{Binders}
+
+A \bfindex{binder} is a variable-binding construct, such as a
+\rmindex{quantifier}. The constant declaration \indexbold{*binder}
+\begin{ttbox}
+\(c\) ::\ "\(\tau\)"   (binder "\(Q\)" \(p\))
+\end{ttbox}
+introduces a binder $c$ of type $\tau$, which must have the form $(\tau@1 \To
+\tau@2) \To \tau@3$. Its concrete syntax is $Q~x.P$. A binder is like a
+generalized quantifier where $\tau@1$ is the type of the bound variable $x$,
+$\tau@2$ the type of the body $P$, and $\tau@3$ the type of the whole term.
+For example $\forall$ can be declared like this:
+\begin{ttbox}
+All :: "('a => o) => o"   (binder "ALL " 10)
+\end{ttbox}
+This allows us to write $\forall x.P$ either as {\tt All(\%$x$.$P$)} or {\tt
+ALL $x$.$P$}. When printing terms, Isabelle usually uses the latter form, but
+has to fall back on $\mtt{All}(P)$, if $P$ is not an abstraction.
+
+Binders $c$ of type $(\sigma \To \tau) \To \tau$ can be nested; then the
+internal form $c(\lambda x@1. c(\lambda x@2. \ldots c(\lambda x@n. P)
+\ldots))$ corresponds to external $Q~x@1~x@2 \ldots x@n. P$.
+
+\medskip
+The general binder declaration
+\begin{ttbox}
+\(c\) ::\ "(\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)"   (binder "\(Q\)" \(p\))
+\end{ttbox}
+is internally expanded to
+\begin{ttbox}
+\(c\)   ::\ "(\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)"
+"\(Q\)" ::\ "[idts, \(\tau@2\)] => \(\tau@3\)"   ("(3\(Q\)_./ _)" \(p\))
+\end{ttbox}
+with $idts$ being the syntactic category for a list of $id$s optionally
+constrained (see Figure~\ref{fig:pure_gram}). Note that special characters in
+$Q$ have to be escaped as in delimiters.
+
+Additionally, a parse translation\index{parse translation!for binder} for $Q$
+and a print translation\index{print translation!for binder} for $c$ is
+installed. These perform behind the scenes the translation between the
+internal and external forms.
+
+
+
+\section{Syntactic translations (macros)} \label{sec:macros}
+
+So far we have pretended that there is a close enough relationship between
+concrete and abstract syntax to allow an automatic translation from one to
+the other using the constant name supplied with non-copy production. In many
+cases this scheme is not powerful enough. Some typical examples involve
+variable binding constructs (e.g.\ {\tt ALL x:A.P} vs.\ {\tt Ball(A, \%x.P)}
+or convenient notations for enumeration like finite sets, lists etc.\ (e.g.\
+{\tt [x, y, z]} vs.\ {\tt Cons(x, Cons(y, Cons(z, Nil)))}).
+
+Isabelle offers such translation facilities at two different levels, namely
+{\bf macros}\indexbold{macro} and {\bf translation functions}.
+
+Macros are specified by first order rewriting systems that operate on asts.
+They are usually easy to read and in most cases not very difficult to write.
+But some more obscure translations cannot be expressed as macros and you have
+to fall back on the more powerful mechanism of translation functions written
+in \ML. These are quite hard to write and nearly unreadable by the casual
+user (see \S\ref{sec:tr_funs}).
+
+\medskip
+Let us now getting started with the macro system by a simple example:
+
+\begin{example}~ \label{ex:set_trans}
+
+\begin{ttbox}
+SET = Pure +
+types
+  i, o 0
+arities
+  i, o :: logic
+consts
+  Trueprop      :: "o => prop"              ("_" 5)
+  Collect       :: "[i, i => o] => i"
+  "{\at}Collect"    :: "[idt, i, o] => i"       ("(1{\ttlbrace}_:_./ _{\ttrbrace})")
+  Replace       :: "[i, [i, i] => o] => i"
+  "{\at}Replace"    :: "[idt, idt, i, o] => i"  ("(1{\ttlbrace}_./ _:_, _{\ttrbrace})")
+  Ball          :: "[i, i => o] => o"
+  "{\at}Ball"       :: "[idt, i, o] => o"       ("(3ALL _:_./ _)" 10)
+translations
+  "{\ttlbrace}x:A. P{\ttrbrace}"    == "Collect(A, %x. P)"
+  "{\ttlbrace}y. x:A, Q{\ttrbrace}" == "Replace(A, %x y. Q)"
+  "ALL x:A. P"  == "Ball(A, %x. P)"
+end
+\end{ttbox}
+
+This and the following theories are complete working examples, though they
+are fragmentary as they contain merely syntax. They are somewhat fashioned
+after {\tt ZF/zf.thy}, where you should look for a good real-world example.
+
+{\tt SET} defines constants for set comprehension ({\tt Collect}),
+replacement ({\tt Replace}) and bounded universal quantification ({\tt
+Ball}). Without additional syntax you would have to express $\forall x \in A.
+P(x)$ as {\tt Ball(A, P)}. Since this is quite awkward, we define additional
+constants with appropriate concrete syntax. These constants are decorated
+with {\tt\at} to stress their pure syntactic purpose; they should never occur
+within the final well-typed terms. Another consequence is that the user
+cannot 'forge' terms containing such names, like {\tt\at Collect(x)}, for
+being syntactically incorrect.
+
+The included translations cause the replacement of external forms by internal
+forms after parsing and vice versa before printing of terms.
+\end{example}
+
+This is only a very simple but common instance of a more powerful mechanism.
+As a specification of what is to be translated, it should be comprehensible
+without further explanations. But there are also some snags and other
+peculiarities that are typical for macro systems in general. The purpose of
+this section is to explain how Isabelle's macro system really works.
+
+
+\subsection{Specifying macros}
+
+Basically macros are rewrite rules on asts. But unlike other macro systems of
+various programming languages, Isabelle's macros work two way. Therefore a
+syntax contains two lists of rules: one for parsing and one for printing.
+
+The {\tt translations} section\index{translations section@{\tt translations}
+section} consists of a list of rule specifications, whose general form is:
+{\tt $[$ ($root$) $]$ $string$ $[$ => $|$ <= $|$ == $]$ $[$ ($root$) $]$
+$string$}.
+
+This specifies a \rmindex{parse rule} ({\tt =>}) a \rmindex{print rule} ({\tt
+<=}) or both ({\tt ==}). The two $string$s preceded by optional parenthesized
+$root$s denote the left-hand and right-hand side of the rule as 'source
+code'.
+
+Rules are internalized wrt.\ an intermediate signature that is obtained from
+the parent theories' ones by adding all material of all sections preceding
+{\tt translations} in the {\tt .thy} file, especially new syntax defined in
+{\tt consts} is already effective.
+
+Then part of the process that transforms input strings into terms is applied:
+lexing, parsing and parse ast translations (see \S\ref{sec:asts}). Macros as
+specified in the parents are {\em not} expanded. Also note that the lexer
+runs in a different mode that additionally accepts identifiers of the form
+$\_~letter~quasiletter^*$ (like {\tt _idt}, {\tt _K}). The syntactic category
+to parse is specified by $root$, which defaults to {\tt logic}.
+
+Finally, Isabelle tries to guess which atoms of the resulting ast of the rule
+should be treated as constants during matching (see below). These names are
+extracted from all class, type and constant declarations made so far.
+
+\medskip
+The result are two lists of translation rules in internal form, that is pairs
+of asts. They can be viewed using {\tt Syntax.print_syntax}
+(\ttindex{parse_rules} and \ttindex{print_rules}). For {\tt SET} of
+Example~\ref{ex:set_trans} these are:
+\begin{ttbox}
+parse_rules:
+  ("{\at}Collect" x A P)  ->  ("Collect" A ("_abs" x P))
+  ("{\at}Replace" y x A Q)  ->  ("Replace" A ("_abs" x ("_abs" y Q)))
+  ("{\at}Ball" x A P)  ->  ("Ball" A ("_abs" x P))
+print_rules:
+  ("Collect" A ("_abs" x P))  ->  ("{\at}Collect" x A P)
+  ("Replace" A ("_abs" x ("_abs" y Q)))  ->  ("{\at}Replace" y x A Q)
+  ("Ball" A ("_abs" x P))  ->  ("{\at}Ball" x A P)
+\end{ttbox}
+
+Note that in this notation all rules are oriented left to right. In the {\tt
+translations} section, which has been split into two parts, print rules
+appeared right to left.
+
+\begin{warn}
+Be careful not to choose names for variables in rules that are actually
+treated as constant. If in doubt, check the rules in their internal form or
+the section labeled {\tt consts} in the output of {\tt Syntax.print_syntax}.
+\end{warn}
+
+
+\subsection{Applying rules}
+
+In the course of parsing and printing terms, asts are generated as an
+intermediate form as pictured in Figure~\ref{fig:parse_print}. These asts are
+normalized wrt.\ the given lists of translation rules in a uniform manner. As
+stated earlier, asts are supposed to be sort of first order terms. The
+rewriting systems derived from {\tt translations} sections essentially
+resemble traditional first order term rewriting systems. We'll first examine
+how a single rule is applied.
+
+Let $t$ be the ast to be normalized and $(l, r)$ some translation rule. A
+(improper) subast $u$ of $t$ is called {\bf redex}\indexbold{redex (ast)}
+(reducible expression), if it is an instance of $l$. In this case $l$ is said
+to {\bf match}\indexbold{match (ast)} $u$. A redex matched by $l$ may be
+replaced by the corresponding instance of $r$, thus {\bf
+rewriting}\index{rewrite (ast)} the ast $t$.
+
+Matching requires some notion of {\bf place-holders}\indexbold{place-holder
+(ast)} that may occur in rule patterns but not in ordinary asts, which are
+considered ground. Here we simply use {\tt Variable}s for this purpose.
+
+More formally, the matching of $u$ by $l$ is performed as follows (the rule
+pattern is the second argument): \index{match (ast)@$match$ (ast)}
+\begin{itemize}
+  \item $match(\Constant x, \Constant x) = \mbox{OK}$.
+
+  \item $match(\Variable x, \Constant x) = \mbox{OK}$.
+
+  \item $match(u, \Variable x) = \mbox{OK, bind}~x~\mbox{to}~u$.
+
+  \item $match(\Appl{u@1, \ldots, u@n}, \Appl{l@1, \ldots, l@n}) = match(u@1,
+    l@1), \ldots, match(u@n, l@n)$.
+
+  \item $match(u, l) = \mbox{FAIL}$ in any other case.
+\end{itemize}
+
+This means that a {\tt Constant} pattern matches any atomic asts of the same
+name, while a {\tt Variable} matches any ast. If successful, $match$ yields a
+substitution $\sigma$ for all place-holders in $l$, equalling it with the
+redex $u$. Then $\sigma$ is applied to $r$ generating the appropriate
+instance that replaces $u$.
+
+\medskip
+In order to make things simple and fast, ast rewrite rules $(l, r)$ are
+restricted by the following conditions:
+\begin{itemize}
+  \item Rules have to be left linear, i.e.\ $l$ must not contain any {\tt
+    Variable} more than once.
+
+  \item Rules must have constant heads, i.e.\ $l = \mtt"c\mtt"$ or $l =
+    (\mtt"c\mtt" ~ x@1 \ldots x@n)$.
+
+  \item The set of variables contained in $r$ has to be a subset of those of
+    $l$.
+\end{itemize}
+
+\medskip
+Having first order matching in mind, the second case of $match$ may look a
+bit odd. But this is exactly the place, where {\tt Variable}s of non-rule
+asts behave like {\tt Constant}s. The deeper meaning of this is related with
+asts being very 'primitive' in some sense, ignorant of the underlying
+'semantics', only short way from parse trees. At this level it is not yet
+known, which $id$s will become constants, bounds, frees, types or classes. As
+$ast_of_pt$ (see \S\ref{sec:asts}) shows, former parse tree heads appear in
+asts as {\tt Constant}s, while $id$s, $var$s, $tfree$s and $tvar$s become
+{\tt Variable}s.
+
+This is at variance with asts generated from terms before printing (see
+$ast_of_term$ in \S\ref{sec:asts}), where all constants and type constructors
+become {\tt Constant}s.
+
+\begin{warn}
+This means asts may contain quite a messy mixture of {\tt Variable}s and {\tt
+Constant}s, which is insignificant at macro level because $match$ treats them
+alike.
+\end{warn}
+
+Because of this behaviour, different kinds of atoms with the same name are
+indistinguishable, which may make some rules prone to misbehaviour. Regard
+the following fragmentary example:
+\begin{ttbox}
+types
+  Nil 0
+consts
+  Nil     :: "'a list"
+  "[]"    :: "'a list"    ("[]")
+translations
+  "[]"    == "Nil"
+\end{ttbox}
+Then the term {\tt Nil} will be printed as {\tt []}, just as expected. What
+happens with \verb|%Nil.t| or {\tt x::Nil} is left as an exercise.
+
+
+\subsection{Rewriting strategy}
+
+When normalizing an ast by repeatedly applying translation rules until no
+more rule is applicable, there are in each step two choices: which rule to
+apply next, and which redex to reduce.
+
+We could assume that the user always supplies terminating and confluent
+rewriting systems, but this would often complicate things unnecessarily.
+Therefore, we reveal part of the actual rewriting strategy: The normalizer
+always applies the first matching rule reducing an unspecified redex chosen
+first.
+
+Thereby, 'first rule' is roughly speaking meant wrt.\ the appearance of the
+rules in the {\tt translations} sections. But this is more tricky than it
+seems: If a given theory is {\em extended}, new rules are simply appended to
+the end. But if theories are {\em merged}, it is not clear which list of
+rules has priority over the other. In fact the merge order is left
+unspecified. This shouldn't cause any problems in practice, since
+translations of different theories usually do not overlap. {\tt
+Syntax.print_syntax} shows the rules in their internal order.
+
+\medskip
+You can watch the normalization of asts during parsing and printing by
+issuing: \index{*Syntax.trace_norm_ast}
+\begin{ttbox}
+Syntax.trace_norm_ast := true;
+\end{ttbox}
+An alternative is the use of \ttindex{Syntax.test_read}, which is always in
+trace mode. The information displayed when tracing\index{tracing (ast)}
+includes: the ast before normalization ({\tt pre}), redexes with results
+({\tt rewrote}), the normal form finally reached ({\tt post}) and some
+statistics ({\tt normalize}). If tracing is off,
+\ttindex{Syntax.stat_norm_ast} can be set to {\tt true} in order to enable
+printing of the normal form and statistics only.
+
+
+\subsection{More examples}
+
+Let us first reconsider Example~\ref{ex:set_trans}, which is concerned with
+variable binding constructs.
+
+There is a minor disadvantage over an implementation via translation
+functions (as done for binders):
+
+\begin{warn}
+If \ttindex{eta_contract} is set to {\tt true}, terms will be
+$\eta$-contracted {\em before} the ast rewriter sees them. Thus some
+abstraction nodes needed for print rules to match may get lost. E.g.\
+\verb|Ball(A, %x. P(x))| is contracted to {\tt Ball(A, P)}, the print rule is
+no longer applicable and the output will be {\tt Ball(A, P)}. Note that
+$\eta$-expansion via macros is {\em not} possible.
+\end{warn}
+
+\medskip
+Another common trap are meta constraints. If \ttindex{show_types} is set to
+{\tt true}, bound variables will be decorated by their meta types at the
+binding place (but not at occurrences in the body). E.g.\ matching with
+\verb|Collect(A, %x. P)| binds {\tt x} to something like {\tt ("_constrain" y
+"i")} rather than only {\tt y}. Ast rewriting will cause the constraint to
+appear in the external form, say \verb|{y::i:A::i. P::o}|. Therefore your
+syntax should be ready for such constraints to be re-read. This is the case
+in our example, because of the category {\tt idt} of the first argument.
+
+\begin{warn}
+Choosing {\tt id} instead of {\tt idt} is a very common error, especially
+since it appears in former versions of most of Isabelle's object-logics.
+\end{warn}
+
+\begin{example} \label{ex:finset_trans}
+This example demonstrates the use of recursive macros to implement a
+convenient notation for finite sets.
+\begin{ttbox}
+FINSET = SET +
+types
+  is 0
+consts
+  ""            :: "i => is"                ("_")
+  "{\at}Enum"       :: "[i, is] => is"          ("_,/ _")
+  empty         :: "i"                      ("{\ttlbrace}{\ttrbrace}")
+  insert        :: "[i, i] => i"
+  "{\at}Finset"     :: "is => i"                ("{\ttlbrace}(_){\ttrbrace}")
+translations
+  "{\ttlbrace}x, xs{\ttrbrace}"     == "insert(x, {\ttlbrace}xs{\ttrbrace})"
+  "{\ttlbrace}x{\ttrbrace}"         == "insert(x, {\ttlbrace}{\ttrbrace})"
+end
+\end{ttbox}
+
+Finite sets are internally built up by {\tt empty} and {\tt insert}.
+Externally we would like to see \verb|{x, y, z}| rather than {\tt insert(x,
+insert(y, insert(z, empty)))}.
+
+First we define the generic syntactic category {\tt is} for one or more
+objects of type {\tt i} separated by commas (including breaks for pretty
+printing). The category has to be declared as a 0-place type constructor, but
+without {\tt arities} declaration. Hence {\tt is} is not a logical type, no
+default productions will be added, and we can cook our own syntax for {\tt
+is} (first two lines of {\tt consts} section). If we had needed generic
+enumerations of type $\alpha$ (i.e.\ {\tt logic}), we could have used the
+predefined category \ttindex{args} and skipped this part altogether.
+
+Next follows {\tt empty}, which is already equipped with its syntax
+\verb|{}|, and {\tt insert} without concrete syntax. The syntactic constant
+{\tt\at Finset} provides concrete syntax for enumerations of {\tt i} enclosed
+in curly braces. Remember that a pair of parentheses specifies a block of
+indentation for pretty printing. The category {\tt is} can be later reused
+for other enumerations like lists or tuples.
+
+The translations might look a bit odd at the first glance. But rules can be
+only fully understood in their internal forms, which are:
+\begin{ttbox}
+parse_rules:
+  ("{\at}Finset" ("{\at}Enum" x xs))  ->  ("insert" x ("{\at}Finset" xs))
+  ("{\at}Finset" x)  ->  ("insert" x "empty")
+print_rules:
+  ("insert" x ("{\at}Finset" xs))  ->  ("{\at}Finset" ("{\at}Enum" x xs))
+  ("insert" x "empty")  ->  ("{\at}Finset" x)
+\end{ttbox}
+This shows that \verb|{x, xs}| indeed matches any set enumeration of at least
+two elements, binding the first to {\tt x} and the rest to {\tt xs}.
+Likewise, \verb|{xs}| and \verb|{x}| represent any set enumeration. Note that
+the parse rules only work in this order.
+
+\medskip
+Some rules are prone to misbehaviour, as
+\verb|%empty insert. insert(x, empty)| shows, which is printed as
+\verb|%empty insert. {x}|. This problem arises, because the ast rewriter
+cannot discern constants, frees, bounds etc.\ and looks only for names of
+atoms.
+
+Thus the names of {\tt Constant}s occurring in the (internal) left-hand side
+of translation rules should be regarded as 'reserved keywords'. It is good
+practice to choose non-identifiers here like {\tt\at Finset} or sufficiently
+long and strange names.
+\end{example}
+
+\begin{example} \label{ex:prod_trans}
+One of the well-formedness conditions for ast rewrite rules stated earlier
+implies that you can never introduce new {\tt Variable}s on the right-hand
+side. Something like \verb|"K(B)" => "%x. B"| is illegal and could cause
+variable capturing, if it were allowed. In such cases you usually have to
+fall back on translation functions. But there is a trick that makes things
+quite readable in some cases: {\em calling print translations by print
+rules}. This is demonstrated here.
+\begin{ttbox}
+PROD = FINSET +
+consts
+  Pi            :: "[i, i => i] => i"
+  "{\at}PROD"       :: "[idt, i, i] => i"     ("(3PROD _:_./ _)" 10)
+  "{\at}->"         :: "[i, i] => i"          ("(_ ->/ _)" [51, 50] 50)
+translations
+  "PROD x:A. B" => "Pi(A, %x. B)"
+  "A -> B"      => "Pi(A, _K(B))"
+end
+ML
+  val print_translation = [("Pi", dependent_tr' ("{\at}PROD", "{\at}->"))];
+\end{ttbox}
+
+{\tt Pi} is an internal constant for constructing dependent products. Two
+external forms exist: {\tt PROD x:A.B}, the general case, and {\tt A -> B},
+an abbreviation for \verb|Pi(A, %x.B)| with {\tt B} not actually depending on
+{\tt x}.
+
+Now the second parse rule is where the trick comes in: {\tt _K(B)} is
+introduced during ast rewriting, which later becomes \verb|%x.B| due to a
+parse translation associated with \ttindex{_K}. Note that a leading {\tt _}
+in $id$s is allowed in translation rules, but not in ordinary terms. This
+special behaviour of the lexer is very useful for 'forging' asts containing
+names that are not directly accessible normally. Unfortunately, there is no
+such trick for printing, so we have to add a {\tt ML} section for the print
+translation \ttindex{dependent_tr'}.
+
+The parse translation for {\tt _K} is already installed in Pure, and {\tt
+dependent_tr'} is exported by the syntax module for public use. See
+\S\ref{sec:tr_funs} for more of the arcane lore of translation functions.
+\end{example}
+
+
+
+\section{Translation functions *} \label{sec:tr_funs}
+
+This section is about the remaining translation mechanism which enables the
+designer of theories to do almost everything with terms or asts during the
+parsing or printing process, by writing some \ML-functions. The logic \LK\ is
+a good example of a quite sophisticated use of this to transform between
+internal and external representations of associative sequences. The high
+level macro system described in \S\ref{sec:macros} fails here completely.
+
+\begin{warn}
+A full understanding of the matters presented here requires some familiarity
+with Isabelle's internals, especially the datatypes {\tt term}, {\tt typ},
+{\tt Syntax.ast} and the encodings of types and terms as such at the various
+stages of the parsing or printing process. You probably do not really want to
+use translation functions at all!
+\end{warn}
+
+As already mentioned in \S\ref{sec:asts}, there are four kinds of translation
+functions. All such functions are associated with a name which specifies an
+ast's or term's head invoking that function. Such names can be (logical or
+syntactic) constants or type constructors.
+
+{\tt Syntax.print_syntax} displays the sets of names associated with the
+translation functions of a {\tt Syntax.syntax} under
+\ttindex{parse_ast_translation}, \ttindex{parse_translation},
+\ttindex{print_translation} and \ttindex{print_ast_translation}. The user can
+add new ones via the {\tt ML} section\index{ML section@{\tt ML} section} of a
+{\tt .thy} file. But there may never be more than one function of the same
+kind per name.
+
+\begin{warn}
+Conceptually, the {\tt ML} section should appear between {\tt consts} and
+{\tt translations}, i.e.\ newly installed translation functions are already
+effective when macros and logical rules are parsed. {\tt ML} has to be the
+last section because the {\tt .thy} file parser is unable to detect the end
+of \ML\ code in another way than by end-of-file.
+\end{warn}
+
+All text of the {\tt ML} section is simply copied verbatim into the \ML\ file
+generated from a {\tt .thy} file. Definitions made here by the user become
+components of a \ML\ structure of the same name as the theory to be created.
+Therefore local things should be declared within {\tt local}. The following
+special \ML\ values, which are all optional, serve as the interface for the
+installation of user defined translation functions.
+
+\begin{ttbox}
+val parse_ast_translation: (string * (ast list -> ast)) list
+val parse_translation: (string * (term list -> term)) list
+val print_translation: (string * (term list -> term)) list
+val print_ast_translation: (string * (ast list -> ast)) list
+\end{ttbox}
+
+The basic idea behind all four kinds of functions is relatively simple (see
+also Figure~\ref{fig:parse_print}): Whenever --- during the transformations
+between parse trees, asts and terms --- a combination of the form
+$(\mtt"c\mtt"~x@1 \ldots x@n)$ is encountered, and a translation function $f$
+of appropriate kind exists for $c$, the result will be $f \mtt[ x@1, \ldots,
+x@n \mtt]$. Thereby, $x@1, \ldots, x@n$ (with $n \ge 0$) are asts for ast
+translations and terms for term translations. A 'combination' at ast level is
+of the form $\Constant c$ or $\Appl{\Constant c, x@1, \ldots, x@n}$, and at
+term level $\ttfct{Const} (c, \tau)$ or $\ttfct{Const} (c, \tau) \ttrel{\$}
+x@1 \ttrel{\$} \dots \ttrel{\$} x@n$.
+
+\medskip
+Translation functions at ast level differ from those at term level only in
+the same way, as asts and terms differ. Terms, being more complex and more
+specific, allow more sophisticated transformations (typically involving
+abstractions and bound variables).
+
+On the other hand, {\em parse} (ast) translations differ from {\em print}
+(ast) translations more fundamentally:
+\begin{description}
+  \item[Parse (ast) translations] are applied bottom-up, i.e.\ the arguments
+    supplied ($x@1, \ldots, x@n$ above) are already in translated form.
+    Additionally, they may not fail, exceptions are re-raised after printing
+    of an error message.
+
+  \item[Print (ast) translations] are applied top-down, i.e.\ supplied with
+    arguments that are partly still in internal form. The result is again fed
+    into the translation machinery as a whole. Therefore a print (ast)
+    translation should not introduce as head a constant of the same name that
+    invoked it in the first place. Alternatively, exception \ttindex{Match}
+    may be raised, indicating failure of translation.
+\end{description}
+
+Another difference between the parsing and the printing process is, which
+atoms are {\tt Constant}s or {\tt Const}s, i.e.\ able to invoke translation
+functions.
+
+For parse ast translations only former parse tree heads are {\tt Constant}s
+(see also $ast_of_pt$ in \S\ref{sec:asts}). These and additionally introduced
+{\tt Constant}s (e.g.\ by macros), become {\tt Const}s for parse translations
+(see also $term_of_ast$ in \S\ref{sec:asts}).
+
+The situation is slightly different, when terms are prepared for printing,
+since the role of atoms is known. Initially, all logical constants and type
+constructors may invoke print translations. New constants may be introduced
+by these or by macros, able to invoke parse ast translations.
+
+
+\subsection{A simple example *}
+
+Presenting a simple and useful example of translation functions is not that
+easy, since the macro system is sufficient for most simple applications. By
+convention, translation functions always have names ending with {\tt
+_ast_tr}, {\tt _tr}, {\tt _tr'} or {\tt _ast_tr'}. You may look for such
+names in the sources of Pure Isabelle for more examples.
+
+\begin{example} \label{ex:tr_funs}
+
+We continue Example~\ref{ex:prod_trans} by presenting the \ML\ sources of the
+parse translation for \ttindex{_K} and the print translation
+\ttindex{dependent_tr'}:
+
+\begin{ttbox}
+(* nondependent abstraction *)
+
+fun k_tr (*"_K"*) [t] = Abs ("x", dummyT, incr_boundvars 1 t)
+  | k_tr (*"_K"*) ts = raise_term "k_tr" ts;
+
+(* dependent / nondependent quantifiers *)
+
+fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
+      if 0 mem (loose_bnos B) then
+        let val (x', B') = variant_abs (x, dummyT, B);
+        in list_comb (Const (q, dummyT) $ Free (x', T) $ A $ B', ts)
+        end
+      else list_comb (Const (r, dummyT) $ A $ B, ts)
+  | dependent_tr' _ _ = raise Match;
+\end{ttbox}
+
+This text is taken from the Pure sources, ordinary user translations would
+typically appear within the {\tt ML} section of the {\tt .thy} file.
+
+\medskip
+If {\tt k_tr} is called with exactly one argument $t$, it creates a new {\tt
+Abs} node with a body derived from $t$: loose {\tt Bound}s, i.e.\ those
+referring to outer {\tt Abs}s, are incremented using
+\ttindex{incr_boundvars}. This and many other basic term manipulation
+functions are defined in {\tt Pure/term.ML}, the comments there being in most
+cases the only documentation.
+
+Since terms fed into parse translations are not yet typed, the type of the
+bound variable in the new {\tt Abs} is simply {\tt dummyT}.
+
+\medskip
+The argument $(q, r)$ for {\tt dependent_tr'} is supplied already during the
+installation within a {\tt ML} section. This yields a parse translation that
+transforms something like $c(A, \mtt{Abs}(x, T, B), t@1, \ldots, t@n)$ into
+$q(x', A, B', t@1, \ldots, t@n)$ or $r(A, B, t@1, \ldots, t@n)$. The latter
+form, if $B$ does not actually depend on $x$. This is checked using
+\ttindex{loose_bnos}, yet another undocumented function of {\tt
+Pure/term.ML}. Note that $x'$ is a version of $x$ renamed away from all names
+in $B$, and $B'$ the body $B$ with {\tt Bound}s referring to our {\tt Abs}
+node replaced by $\ttfct{Free} (x', \mtt{dummyT})$.
+
+We have to be more careful with types here. While types of {\tt Const}s are
+completely ignored, type constraints may be printed for some {\tt Free}s and
+{\tt Var}s (only if \ttindex{show_types} is set to {\tt true}). Variables of
+type \ttindex{dummyT} are never printed with constraint, though. Thus, a
+constraint of $x'$ may only appear at its binding place, since {\tt Free}s of
+$B'$ replacing the appropriate {\tt Bound}s of $B$ via \ttindex{variant_abs}
+have all type {\tt dummyT}.
+\end{example}
+
+
+
+\section{Example: some minimal logics} \label{sec:min_logics}
+
+This concluding section presents some examples that are very simple from a
+syntactic point of view. They should rather demonstrate how to define new
+object-logics from scratch. In particular we need to say how an object-logic
+syntax is hooked up to the meta-logic. Since all theorems must conform to the
+syntax for $prop$ (see Figure~\ref{fig:pure_gram}), that syntax has to be
+extended with the object-level syntax. Assume that the syntax of your
+object-logic defines a category $o$ of formulae. These formulae can now
+appear in axioms and theorems wherever $prop$ does if you add the production
+\[ prop ~=~ o. \]
+More precisely, you need a coercion from formulae to propositions:
+\begin{ttbox}
+Base = Pure +
+types
+  o 0
+arities
+  o :: logic
+consts
+  Trueprop :: "o => prop"   ("_" 5)
+end
+\end{ttbox}
+The constant {\tt Trueprop} (the name is arbitrary) acts as an invisible
+coercion function. Assuming this definition resides in a file {\tt base.thy},
+you have to load it with the command {\tt use_thy "base"}.
+
+One of the simplest nontrivial logics is {\em minimal logic} of implication.
+Its definition in Isabelle needs no advanced features but illustrates the
+overall mechanism quite nicely:
+\begin{ttbox}
+Hilbert = Base +
+consts
+  "-->" :: "[o, o] => o"   (infixr 10)
+rules
+  K     "P --> Q --> P"
+  S     "(P --> Q --> R) --> (P --> Q) --> P --> R"
+  MP    "[| P --> Q; P |] ==> Q"
+end
+\end{ttbox}
+After loading this definition you can start to prove theorems in this logic:
+\begin{ttbox}
+goal Hilbert.thy "P --> P";
+{\out Level 0}
+{\out P --> P}
+{\out  1.  P --> P}
+by (resolve_tac [Hilbert.MP] 1);
+{\out Level 1}
+{\out P --> P}
+{\out  1.  ?P --> P --> P}
+{\out  2.  ?P}
+by (resolve_tac [Hilbert.MP] 1);
+{\out Level 2}
+{\out P --> P}
+{\out  1.  ?P1 --> ?P --> P --> P}
+{\out  2.  ?P1}
+{\out  3.  ?P}
+by (resolve_tac [Hilbert.S] 1);
+{\out Level 3}
+{\out P --> P}
+{\out  1.  P --> ?Q2 --> P}
+{\out  2.  P --> ?Q2}
+by (resolve_tac [Hilbert.K] 1);
+{\out Level 4}
+{\out P --> P}
+{\out  1.  P --> ?Q2}
+by (resolve_tac [Hilbert.K] 1);
+{\out Level 5}
+{\out P --> P}
+{\out No subgoals!}
+\end{ttbox}
+As you can see, this Hilbert-style formulation of minimal logic is easy to
+define but difficult to use. The following natural deduction formulation is
+far preferable:
+\begin{ttbox}
+MinI = Base +
+consts
+  "-->" :: "[o, o] => o"   (infixr 10)
+rules
+  impI  "(P ==> Q) ==> P --> Q"
+  impE  "[| P --> Q; P |] ==> Q"
+end
+\end{ttbox}
+Note, however, that although the two systems are equivalent, this fact cannot
+be proved within Isabelle: {\tt S} and {\tt K} can be derived in {\tt MinI}
+(exercise!), but {\tt impI} cannot be derived in {\tt Hilbert}. The reason is
+that {\tt impI} is only an {\em admissible} rule in {\tt Hilbert}, something
+that can only be shown by induction over all possible proofs in {\tt
+Hilbert}.
+
+It is a very simple matter to extend minimal logic with falsity:
+\begin{ttbox}
+MinIF = MinI +
+consts
+  False :: "o"
+rules
+  FalseE "False ==> P"
+end
+\end{ttbox}
+On the other hand, we may wish to introduce conjunction only:
+\begin{ttbox}
+MinC = Base +
+consts
+  "&" :: "[o, o] => o"   (infixr 30)
+rules
+  conjI  "[| P; Q |] ==> P & Q"
+  conjE1 "P & Q ==> P"
+  conjE2 "P & Q ==> Q"
+end
+\end{ttbox}
+And if we want to have all three connectives together, we define:
+\begin{ttbox}
+MinIFC = MinIF + MinC
+\end{ttbox}
+Now we can prove mixed theorems like
+\begin{ttbox}
+goal MinIFC.thy "P & False --> Q";
+by (resolve_tac [MinI.impI] 1);
+by (dresolve_tac [MinC.conjE2] 1);
+by (eresolve_tac [MinIF.FalseE] 1);
+\end{ttbox}
+Try this as an exercise!
+

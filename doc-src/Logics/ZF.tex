@@ -1,0 +1,1571 @@
+%% $Id$
+%%%See grant/bra/Lib/ZF.tex for lfp figure
+\chapter{Zermelo-Fraenkel set theory}
+The directory~\ttindexbold{ZF} implements Zermelo-Fraenkel set
+theory~\cite{halmos60,suppes72} as an extension of~\ttindex{FOL}, classical
+first-order logic.  The theory includes a collection of derived natural
+deduction rules, for use with Isabelle's classical reasoning module.  Much
+of it is based on the work of No\"el~\cite{noel}.  The theory has the {\ML}
+identifier \ttindexbold{ZF.thy}.  However, many further theories
+are defined, introducing the natural numbers, etc.
+
+A tremendous amount of set theory has been formally developed, including
+the basic properties of relations, functions and ordinals.  Significant
+results have been proved, such as the Schr\"oder-Bernstein Theorem and the
+Recursion Theorem.  General methods have been developed for solving
+recursion equations over monotonic functors; these have been applied to
+yield constructions of lists and trees.  Thus, we may even regard set
+theory as a computational logic.  It admits recursive definitions of
+functions and types.  It has similarities with Martin-L\"of type theory,
+although of course it is classical.
+
+Because {\ZF} is an extension of {\FOL}, it provides the same packages,
+namely \ttindex{hyp_subst_tac}, the simplifier, and the classical reasoning
+module.  The main simplification set is called \ttindexbold{ZF_ss}.
+Several classical rule sets are defined, including \ttindexbold{lemmas_cs},
+\ttindexbold{upair_cs} and~\ttindexbold{ZF_cs}.  See the files on directory
+{\tt ZF} for details.
+
+
+\section{Which version of axiomatic set theory?}
+Resolution theorem provers can work in set theory, using the
+Bernays-G\"odel axiom system~(BG) because it is
+finite~\cite{boyer86,quaife92}.  {\ZF} does not have a finite axiom system
+(because of its Axiom Scheme of Replacement) and is therefore unsuitable
+for classical resolution.  Since Isabelle has no difficulty with axiom
+schemes, we may adopt either axiom system.
+
+These two theories differ in their treatment of {\bf classes}, which are
+collections that are ``too big'' to be sets.  The class of all sets,~$V$,
+cannot be a set without admitting Russell's Paradox.  In BG, both classes
+and sets are individuals; $x\in V$ expresses that $x$ is a set.  In {\ZF}, all
+variables denote sets; classes are identified with unary predicates.  The
+two systems define essentially the same sets and classes, with similar
+properties.  In particular, a class cannot belong to another class (let
+alone a set).
+
+Modern set theorists tend to prefer {\ZF} because they are mainly concerned
+with sets, rather than classes.  BG requires tiresome proofs that various
+collections are sets; for instance, showing $x\in\{x\}$ requires showing that
+$x$ is a set.  {\ZF} does not have this problem.
+
+
+\begin{figure} 
+\begin{center}
+\begin{tabular}{rrr} 
+  \it name    	&\it meta-type 	& \it description \\ 
+  \idx{0}	& $i$		& empty set\\
+  \idx{cons}	& $[i,i]\To i$	& finite set constructor\\
+  \idx{Upair}	& $[i,i]\To i$	& unordered pairing\\
+  \idx{Pair}	& $[i,i]\To i$	& ordered pairing\\
+  \idx{Inf}	& $i$	& infinite set\\
+  \idx{Pow}	& $i\To i$	& powerset\\
+  \idx{Union} \idx{Inter} & $i\To i$	& set union/intersection \\
+  \idx{split}	& $[i, [i,i]\To i] \To i$ & generalized projection\\
+  \idx{fst} \idx{snd}	& $i\To i$	& projections\\
+  \idx{converse}& $i\To i$	& converse of a relation\\
+  \idx{succ}	& $i\To i$	& successor\\
+  \idx{Collect}	& $[i,i\To o]\To i$	& separation\\
+  \idx{Replace}	& $[i, [i,i]\To o] \To i$	& replacement\\
+  \idx{PrimReplace} & $[i, [i,i]\To o] \To i$	& primitive replacement\\
+  \idx{RepFun}	& $[i, i\To i] \To i$	& functional replacement\\
+  \idx{Pi} \idx{Sigma}	& $[i,i\To i]\To i$	& general product/sum\\
+  \idx{domain}	& $i\To i$	& domain of a relation\\
+  \idx{range}	& $i\To i$	& range of a relation\\
+  \idx{field}	& $i\To i$	& field of a relation\\
+  \idx{Lambda}	& $[i, i\To i]\To i$	& $\lambda$-abstraction\\
+  \idx{restrict}& $[i, i] \To i$	& restriction of a function\\
+  \idx{The}	& $[i\To o]\To i$	& definite description\\
+  \idx{if}	& $[o,i,i]\To i$	& conditional\\
+  \idx{Ball} \idx{Bex}	& $[i, i\To o]\To o$	& bounded quantifiers
+\end{tabular}
+\end{center}
+\subcaption{Constants}
+
+\begin{center}
+\indexbold{*"`"`}
+\indexbold{*"-"`"`}
+\indexbold{*"`}
+\indexbold{*"-}
+\indexbold{*":}
+\indexbold{*"<"=}
+\begin{tabular}{rrrr} 
+  \it symbol  & \it meta-type & \it precedence & \it description \\ 
+  \tt ``	& $[i,i]\To i$	&  Left 90	& image \\
+  \tt -``	& $[i,i]\To i$	&  Left 90	& inverse image \\
+  \tt `		& $[i,i]\To i$	&  Left 90	& application \\
+  \idx{Int}	& $[i,i]\To i$	&  Left 70	& intersection ($\inter$) \\
+  \idx{Un}	& $[i,i]\To i$	&  Left 65	& union ($\union$) \\
+  \tt -		& $[i,i]\To i$	&  Left 65	& set difference ($-$) \\[1ex]
+  \tt:		& $[i,i]\To o$	&  Left 50	& membership ($\in$) \\
+  \tt <=	& $[i,i]\To o$	&  Left 50	& subset ($\subseteq$) 
+\end{tabular}
+\end{center}
+\subcaption{Infixes}
+\caption{Constants of {\ZF}} \label{ZF-constants}
+\end{figure} 
+
+
+\section{The syntax of set theory}
+The language of set theory, as studied by logicians, has no constants.  The
+traditional axioms merely assert the existence of empty sets, unions,
+powersets, etc.; this would be intolerable for practical reasoning.  The
+Isabelle theory declares constants for primitive sets.  It also extends
+{\tt FOL} with additional syntax for finite sets, ordered pairs,
+comprehension, general union/intersection, general sums/products, and
+bounded quantifiers.  In most other respects, Isabelle implements precisely
+Zermelo-Fraenkel set theory.
+
+Figure~\ref{ZF-constants} lists the constants and infixes of~\ZF, while
+Figure~\ref{ZF-trans} presents the syntax translations.  Finally,
+Figure~\ref{ZF-syntax} presents the full grammar for set theory, including
+the constructs of \FOL.
+
+Set theory does not use polymorphism.  All terms in {\ZF} have type~{\it
+i}, which is the type of individuals and lies in class {\it logic}.
+The type of first-order formulae,
+remember, is~{\it o}.
+
+Infix operators include union and intersection ($A\union B$ and $A\inter
+B$), and the subset and membership relations.  Note that $a$\verb|~:|$b$ is
+translated to \verb|~(|$a$:$b$\verb|)|.  The union and intersection
+operators ($\bigcup A$ and $\bigcap A$) form the union or intersection of a
+set of sets; $\bigcup A$ means the same as $\bigcup@{x\in A}x$.  Of these
+operators, only $\bigcup A$ is primitive.
+
+The constant \ttindexbold{Upair} constructs unordered pairs; thus {\tt
+Upair($A$,$B$)} denotes the set~$\{A,B\}$ and {\tt Upair($A$,$A$)} denotes
+the singleton~$\{A\}$.  As usual in {\ZF}, general union is used to define
+binary union.  The Isabelle version goes on to define the constant
+\ttindexbold{cons}:
+\begin{eqnarray*}
+   A\cup B  		& \equiv &	 \bigcup({\tt Upair}(A,B)) \\
+   {\tt cons}(a,B) 	& \equiv &	  {\tt Upair}(a,a) \union B
+\end{eqnarray*}
+The {\tt\{\ldots\}} notation abbreviates finite sets constructed in the
+obvious manner using~{\tt cons} and~$\emptyset$ (the empty set):
+\begin{eqnarray*}
+ \{a,b,c\} & \equiv & {\tt cons}(a,{\tt cons}(b,{\tt cons}(c,\emptyset)))
+\end{eqnarray*}
+
+The constant \ttindexbold{Pair} constructs ordered pairs, as in {\tt
+Pair($a$,$b$)}.  Ordered pairs may also be written within angle brackets,
+as {\tt<$a$,$b$>}.
+
+In {\ZF}, a function is a set of pairs.  A {\ZF} function~$f$ is simply an
+individual as far as Isabelle is concerned: its Isabelle type is~$i$, not
+say $i\To i$.  The infix operator~{\tt`} denotes the application of a
+function set to its argument; we must write~$f{\tt`}x$, not~$f(x)$.  The
+syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
+
+
+\begin{figure} 
+\indexbold{*"-">}
+\indexbold{*"*}
+\begin{center} \tt\frenchspacing
+\begin{tabular}{rrr} 
+  \it external		& \it internal	& \it description \\ 
+  $a$ \ttilde: $b$      & \ttilde($a$ : $b$)    & \rm negated membership\\
+  \{$a@1$, $\ldots$, $a@n$\}  &  cons($a@1$,$\cdots$,cons($a@n$,0)) &
+        \rm finite set \\
+  <$a$, $b$>  		&  Pair($a$,$b$) 	& \rm ordered pair \\
+  <$a$, $b$, $c$>	&  <$a$, <$b$, $c$>>  & \rm nested pairs (any depth) \\
+  \{$x$:$A . P[x]$\}	&  Collect($A$,$\lambda x.P[x]$) &
+        \rm separation \\
+  \{$y . x$:$A$, $Q[x,y]$\}  &  Replace($A$,$\lambda x\,y.Q[x,y]$) &
+        \rm replacement \\
+  \{$b[x] . x$:$A$\}  &  RepFun($A$,$\lambda x.b[x]$) &
+        \rm functional replacement \\
+  \idx{INT} $x$:$A . B[x]$	& Inter(\{$B[x] . x$:$A$\}) &
+	\rm general intersection \\
+  \idx{UN}  $x$:$A . B[x]$	& Union(\{$B[x] . x$:$A$\}) &
+	\rm general union \\
+  \idx{PROD} $x$:$A . B[x]$	& Pi($A$,$\lambda x.B[x]$) & 
+	\rm general product \\
+  \idx{SUM}  $x$:$A . B[x]$	& Sigma($A$,$\lambda x.B[x]$) & 
+	\rm general sum \\
+  $A$ -> $B$		& Pi($A$,$\lambda x.B$) & 
+	\rm function space \\
+  $A$ * $B$		& Sigma($A$,$\lambda x.B$) & 
+	\rm binary product \\
+  \idx{THE}  $x . P[x]$	& The($\lambda x.P[x]$) & 
+	\rm definite description \\
+  \idx{lam}  $x$:$A . b[x]$	& Lambda($A$,$\lambda x.b[x]$) & 
+	\rm $\lambda$-abstraction\\[1ex]
+  \idx{ALL} $x$:$A . P[x]$	& Ball($A$,$\lambda x.P[x]$) & 
+	\rm bounded $\forall$ \\
+  \idx{EX}  $x$:$A . P[x]$	& Bex($A$,$\lambda x.P[x]$) & 
+	\rm bounded $\exists$
+\end{tabular}
+\end{center}
+\caption{Translations for {\ZF}} \label{ZF-trans}
+\end{figure} 
+
+
+\begin{figure} 
+\dquotes
+\[\begin{array}{rcl}
+    term & = & \hbox{expression of type~$i$} \\
+	 & | & "\{ " term\; ("," term)^* " \}" \\
+	 & | & "< " term ", " term " >" \\
+	 & | & "\{ " id ":" term " . " formula " \}" \\
+	 & | & "\{ " id " . " id ":" term "," formula " \}" \\
+	 & | & "\{ " term " . " id ":" term " \}" \\
+	 & | & term " `` " term \\
+	 & | & term " -`` " term \\
+	 & | & term " ` " term \\
+	 & | & term " * " term \\
+	 & | & term " Int " term \\
+	 & | & term " Un " term \\
+	 & | & term " - " term \\
+	 & | & term " -> " term \\
+	 & | & "THE~~"  id  " . " formula\\
+	 & | & "lam~~"  id ":" term " . " term \\
+	 & | & "INT~~"  id ":" term " . " term \\
+	 & | & "UN~~~"  id ":" term " . " term \\
+	 & | & "PROD~"  id ":" term " . " term \\
+	 & | & "SUM~~"  id ":" term " . " term \\[2ex]
+ formula & = & \hbox{expression of type~$o$} \\
+	 & | & term " : " term \\
+	 & | & term " <= " term \\
+	 & | & term " = " term \\
+	 & | & "\ttilde\ " formula \\
+	 & | & formula " \& " formula \\
+	 & | & formula " | " formula \\
+	 & | & formula " --> " formula \\
+	 & | & formula " <-> " formula \\
+	 & | & "ALL " id ":" term " . " formula \\
+	 & | & "EX~~" id ":" term " . " formula \\
+	 & | & "ALL~" id~id^* " . " formula \\
+	 & | & "EX~~" id~id^* " . " formula \\
+	 & | & "EX!~" id~id^* " . " formula
+  \end{array}
+\]
+\caption{Full grammar for {\ZF}} \label{ZF-syntax}
+\end{figure} 
+
+
+\section{Binding operators}
+The constant \ttindexbold{Collect} constructs sets by the principle of {\bf
+  separation}.  The syntax for separation is \hbox{\tt\{$x$:$A$.$P[x]$\}},
+where $P[x]$ is a formula that may contain free occurrences of~$x$.  It
+abbreviates the set {\tt Collect($A$,$\lambda x.P$[x])}, which consists of
+all $x\in A$ that satisfy~$P[x]$.  Note that {\tt Collect} is an
+unfortunate choice of name: some set theories adopt a set-formation
+principle, related to replacement, called collection.
+
+The constant \ttindexbold{Replace} constructs sets by the principle of {\bf
+  replacement}.  The syntax for replacement is
+\hbox{\tt\{$y$.$x$:$A$,$Q[x,y]$\}}.  It denotes the set {\tt
+  Replace($A$,$\lambda x\,y.Q$[x,y])} consisting of all $y$ such that there
+exists $x\in A$ satisfying~$Q[x,y]$.  The Replacement Axiom has the
+condition that $Q$ must be single-valued over~$A$: for all~$x\in A$ there
+exists at most one $y$ satisfying~$Q[x,y]$.  A single-valued binary
+predicate is also called a {\bf class function}.
+
+The constant \ttindexbold{RepFun} expresses a special case of replacement,
+where $Q[x,y]$ has the form $y=b[x]$.  Such a $Q$ is trivially
+single-valued, since it is just the graph of the meta-level
+function~$\lambda x.b[x]$.  The syntax is \hbox{\tt\{$b[x]$.$x$:$A$\}},
+denoting set {\tt RepFun($A$,$\lambda x.b[x]$)} of all $b[x]$ for~$x\in A$.
+This is analogous to the \ML{} functional {\tt map}, since it applies a
+function to every element of a set.
+
+\indexbold{*INT}\indexbold{*UN}
+General unions and intersections of families, namely $\bigcup@{x\in A}B[x]$ and
+$\bigcap@{x\in A}B[x]$, are written \hbox{\tt UN $x$:$A$.$B[x]$} and
+\hbox{\tt INT $x$:$A$.$B[x]$}.  Their meaning is expressed using {\tt
+RepFun} as
+\[ \bigcup(\{B[x]. x\in A\}) \qquad\hbox{and}\qquad 
+   \bigcap(\{B[x]. x\in A\}). 
+\]
+General sums $\sum@{x\in A}B[x]$ and products $\prod@{x\in A}B[x]$ can be
+constructed in set theory, where $B[x]$ is a family of sets over~$A$.  They
+have as special cases $A\times B$ and $A\to B$, where $B$ is simply a set.
+This is similar to the situation in Constructive Type Theory (set theory
+has ``dependent sets'') and calls for similar syntactic conventions.  The
+constants~\ttindexbold{Sigma} and~\ttindexbold{Pi} construct general sums and
+products.  Instead of {\tt Sigma($A$,$B$)} and {\tt Pi($A$,$B$)} we may write
+\hbox{\tt SUM $x$:$A$.$B[x]$} and \hbox{\tt PROD $x$:$A$.$B[x]$}.  
+\indexbold{*SUM}\indexbold{*PROD}%
+The special cases as \hbox{\tt$A$*$B$} and \hbox{\tt$A$->$B$} abbreviate
+general sums and products over a constant family.\footnote{Unlike normal
+infix operators, {\tt*} and {\tt->} merely define abbreviations; there are
+no constants~{\tt op~*} and~\hbox{\tt op~->}.} Isabelle accepts these
+abbreviations in parsing and uses them whenever possible for printing.
+
+\indexbold{*THE} 
+As mentioned above, whenever the axioms assert the existence and uniqueness
+of a set, Isabelle's set theory declares a constant for that set.  These
+constants can express the {\bf definite description} operator~$\iota
+x.P[x]$, which stands for the unique~$a$ satisfying~$P[a]$, if such exists.
+Since all terms in {\ZF} denote something, a description is always
+meaningful, but we do not know its value unless $P[x]$ defines it uniquely.
+Using the constant~\ttindexbold{The}, we may write descriptions as {\tt
+  The($\lambda x.P[x]$)} or use the syntax \hbox{\tt THE $x$.$P[x]$}.
+
+\indexbold{*lam}
+Function sets may be written in $\lambda$-notation; $\lambda x\in A.b[x]$
+stands for the set of all pairs $\pair{x,b[x]}$ for $x\in A$.  In order for
+this to be a set, the function's domain~$A$ must be given.  Using the
+constant~\ttindexbold{Lambda}, we may express function sets as {\tt
+Lambda($A$,$\lambda x.b[x]$)} or use the syntax \hbox{\tt lam $x$:$A$.$b[x]$}.
+
+Isabelle's set theory defines two {\bf bounded quantifiers}:
+\begin{eqnarray*}
+   \forall x\in A.P[x] &\hbox{which abbreviates}& \forall x. x\in A\imp P[x] \\
+   \exists x\in A.P[x] &\hbox{which abbreviates}& \exists x. x\in A\conj P[x]
+\end{eqnarray*}
+The constants~\ttindexbold{Ball} and~\ttindexbold{Bex} are defined
+accordingly.  Instead of {\tt Ball($A$,$P$)} and {\tt Bex($A$,$P$)} we may
+write
+\hbox{\tt ALL $x$:$A$.$P[x]$} and \hbox{\tt EX $x$:$A$.$P[x]$}.
+
+
+%%%% zf.thy
+
+\begin{figure}
+\begin{ttbox}
+\idx{Ball_def}           Ball(A,P) == ALL x. x:A --> P(x)
+\idx{Bex_def}            Bex(A,P)  == EX x. x:A & P(x)
+
+\idx{subset_def}         A <= B  == ALL x:A. x:B
+\idx{extension}          A = B  <->  A <= B & B <= A
+
+\idx{union_iff}          A : Union(C) <-> (EX B:C. A:B)
+\idx{power_set}          A : Pow(B) <-> A <= B
+\idx{foundation}         A=0 | (EX x:A. ALL y:x. ~ y:A)
+
+\idx{replacement}        (ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==>
+                   b : PrimReplace(A,P) <-> (EX x:A. P(x,b))
+\subcaption{The Zermelo-Fraenkel Axioms}
+
+\idx{Replace_def}  Replace(A,P) == 
+                   PrimReplace(A, %x y. (EX!z.P(x,z)) & P(x,y))
+\idx{RepFun_def}   RepFun(A,f)  == \{y . x:A, y=f(x)\}
+\idx{the_def}      The(P)       == Union(\{y . x:\{0\}, P(y)\})
+\idx{if_def}       if(P,a,b)    == THE z. P & z=a | ~P & z=b
+\idx{Collect_def}  Collect(A,P) == \{y . x:A, x=y & P(x)\}
+\idx{Upair_def}    Upair(a,b)   == 
+                 \{y. x:Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b)\}
+\subcaption{Consequences of replacement}
+
+\idx{Inter_def}    Inter(A) == \{ x:Union(A) . ALL y:A. x:y\}
+\idx{Un_def}       A Un  B  == Union(Upair(A,B))
+\idx{Int_def}      A Int B  == Inter(Upair(A,B))
+\idx{Diff_def}     A - B    == \{ x:A . ~(x:B) \}
+\subcaption{Union, intersection, difference}
+
+\idx{cons_def}     cons(a,A) == Upair(a,a) Un A
+\idx{succ_def}     succ(i) == cons(i,i)
+\idx{infinity}     0:Inf & (ALL y:Inf. succ(y): Inf)
+\subcaption{Finite and infinite sets}
+\end{ttbox}
+\caption{Rules and axioms of {\ZF}} \label{ZF-rules}
+\end{figure}
+
+
+\begin{figure}
+\begin{ttbox}
+\idx{Pair_def}       <a,b>      == \{\{a,a\}, \{a,b\}\}
+\idx{split_def}      split(p,c) == THE y. EX a b. p=<a,b> & y=c(a,b)
+\idx{fst_def}        fst(A)     == split(p, %x y.x)
+\idx{snd_def}        snd(A)     == split(p, %x y.y)
+\idx{Sigma_def}      Sigma(A,B) == UN x:A. UN y:B(x). \{<x,y>\}
+\subcaption{Ordered pairs and Cartesian products}
+
+\idx{converse_def}   converse(r) == \{z. w:r, EX x y. w=<x,y> & z=<y,x>\}
+\idx{domain_def}     domain(r)   == \{x. w:r, EX y. w=<x,y>\}
+\idx{range_def}      range(r)    == domain(converse(r))
+\idx{field_def}      field(r)    == domain(r) Un range(r)
+\idx{image_def}      r `` A      == \{y : range(r) . EX x:A. <x,y> : r\}
+\idx{vimage_def}     r -`` A     == converse(r)``A
+\subcaption{Operations on relations}
+
+\idx{lam_def}    Lambda(A,b) == \{<x,b(x)> . x:A\}
+\idx{apply_def}  f`a         == THE y. <a,y> : f
+\idx{Pi_def}     Pi(A,B) == \{f: Pow(Sigma(A,B)). ALL x:A. EX! y. <x,y>: f\}
+\idx{restrict_def}   restrict(f,A) == lam x:A.f`x
+\subcaption{Functions and general product}
+\end{ttbox}
+\caption{Further definitions of {\ZF}} \label{ZF-defs}
+\end{figure}
+
+
+%%%% zf.ML
+
+\begin{figure}
+\begin{ttbox}
+\idx{ballI}       [| !!x. x:A ==> P(x) |] ==> ALL x:A. P(x)
+\idx{bspec}       [| ALL x:A. P(x);  x: A |] ==> P(x)
+\idx{ballE}       [| ALL x:A. P(x);  P(x) ==> Q;  ~ x:A ==> Q |] ==> Q
+
+\idx{ball_cong}   [| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> 
+            (ALL x:A. P(x)) <-> (ALL x:A'. P'(x))
+
+\idx{bexI}        [| P(x);  x: A |] ==> EX x:A. P(x)
+\idx{bexCI}       [| ALL x:A. ~P(x) ==> P(a);  a: A |] ==> EX x:A.P(x)
+\idx{bexE}        [| EX x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q |] ==> Q
+
+\idx{bex_cong}    [| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> 
+            (EX x:A. P(x)) <-> (EX x:A'. P'(x))
+\subcaption{Bounded quantifiers}
+
+\idx{subsetI}       (!!x.x:A ==> x:B) ==> A <= B
+\idx{subsetD}       [| A <= B;  c:A |] ==> c:B
+\idx{subsetCE}      [| A <= B;  ~(c:A) ==> P;  c:B ==> P |] ==> P
+\idx{subset_refl}   A <= A
+\idx{subset_trans}  [| A<=B;  B<=C |] ==> A<=C
+
+\idx{equalityI}     [| A <= B;  B <= A |] ==> A = B
+\idx{equalityD1}    A = B ==> A<=B
+\idx{equalityD2}    A = B ==> B<=A
+\idx{equalityE}     [| A = B;  [| A<=B; B<=A |] ==> P |]  ==>  P
+\subcaption{Subsets and extensionality}
+
+\idx{emptyE}          a:0 ==> P
+\idx{empty_subsetI}   0 <= A
+\idx{equals0I}        [| !!y. y:A ==> False |] ==> A=0
+\idx{equals0D}        [| A=0;  a:A |] ==> P
+
+\idx{PowI}            A <= B ==> A : Pow(B)
+\idx{PowD}            A : Pow(B)  ==>  A<=B
+\subcaption{The empty set; power sets}
+\end{ttbox}
+\caption{Basic derived rules for {\ZF}} \label{ZF-lemmas1}
+\end{figure}
+
+
+
+\begin{figure}
+\begin{ttbox}
+\idx{ReplaceI}      [| x: A;  P(x,b);  !!y. P(x,y) ==> y=b |] ==> 
+              b : \{y. x:A, P(x,y)\}
+
+\idx{ReplaceE}      [| b : \{y. x:A, P(x,y)\};  
+                 !!x. [| x: A;  P(x,b);  ALL y. P(x,y)-->y=b |] ==> R 
+              |] ==> R
+
+\idx{RepFunI}       [| a : A |] ==> f(a) : \{f(x). x:A\}
+\idx{RepFunE}       [| b : \{f(x). x:A\};  
+                 !!x.[| x:A;  b=f(x) |] ==> P |] ==> P
+
+\idx{separation}     a : \{x:A. P(x)\} <-> a:A & P(a)
+\idx{CollectI}       [| a:A;  P(a) |] ==> a : \{x:A. P(x)\}
+\idx{CollectE}       [| a : \{x:A. P(x)\};  [| a:A; P(a) |] ==> R |] ==> R
+\idx{CollectD1}      a : \{x:A. P(x)\} ==> a:A
+\idx{CollectD2}      a : \{x:A. P(x)\} ==> P(a)
+\end{ttbox}
+\caption{Replacement and separation} \label{ZF-lemmas2}
+\end{figure}
+
+
+\begin{figure}
+\begin{ttbox}
+\idx{UnionI}    [| B: C;  A: B |] ==> A: Union(C)
+\idx{UnionE}    [| A : Union(C);  !!B.[| A: B;  B: C |] ==> R |] ==> R
+
+\idx{InterI}    [| !!x. x: C ==> A: x;  c:C |] ==> A : Inter(C)
+\idx{InterD}    [| A : Inter(C);  B : C |] ==> A : B
+\idx{InterE}    [| A : Inter(C);  A:B ==> R;  ~ B:C ==> R |] ==> R
+
+\idx{UN_I}      [| a: A;  b: B(a) |] ==> b: (UN x:A. B(x))
+\idx{UN_E}      [| b : (UN x:A. B(x));  !!x.[| x: A;  b: B(x) |] ==> R 
+          |] ==> R
+
+\idx{INT_I}     [| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))
+\idx{INT_E}     [| b : (INT x:A. B(x));  a: A |] ==> b : B(a)
+\end{ttbox}
+\caption{General Union and Intersection} \label{ZF-lemmas3}
+\end{figure}
+
+
+\section{The Zermelo-Fraenkel axioms}
+The axioms appear in Figure~\ref{ZF-rules}.  They resemble those
+presented by Suppes~\cite{suppes72}.  Most of the theory consists of
+definitions.  In particular, bounded quantifiers and the subset relation
+appear in other axioms.  Object-level quantifiers and implications have
+been replaced by meta-level ones wherever possible, to simplify use of the
+axioms.  See the file \ttindexbold{ZF/zf.thy} for details.
+
+The traditional replacement axiom asserts
+\[ y \in {\tt PrimReplace}(A,P) \bimp (\exists x\in A. P(x,y)) \]
+subject to the condition that $P(x,y)$ is single-valued for all~$x\in A$.
+The Isabelle theory defines \ttindex{Replace} to apply
+\ttindexbold{PrimReplace} to the single-valued part of~$P$, namely
+\[ (\exists!z.P(x,z)) \conj P(x,y). \]
+Thus $y\in {\tt Replace}(A,P)$ if and only if there is some~$x$ such that
+$P(x,-)$ holds uniquely for~$y$.  Because the equivalence is unconditional,
+{\tt Replace} is much easier to use than {\tt PrimReplace}; it defines the
+same set, if $P(x,y)$ is single-valued.  The nice syntax for replacement
+expands to {\tt Replace}.
+
+Other consequences of replacement include functional replacement
+(\ttindexbold{RepFun}) and definite descriptions (\ttindexbold{The}).
+Axioms for separation (\ttindexbold{Collect}) and unordered pairs
+(\ttindexbold{Upair}) are traditionally assumed, but they actually follow
+from replacement~\cite[pages 237--8]{suppes72}.
+
+The definitions of general intersection, etc., are straightforward.  Note
+the definition of \ttindex{cons}, which underlies the finite set notation.
+The axiom of infinity gives us a set that contains~0 and is closed under
+successor (\ttindexbold{succ}).  Although this set is not uniquely defined,
+the theory names it (\ttindexbold{Inf}) in order to simplify the
+construction of the natural numbers.
+					     
+Further definitions appear in Figure~\ref{ZF-defs}.  Ordered pairs are
+defined in the standard way, $\pair{a,b}\equiv\{\{a\},\{a,b\}\}$.  Recall
+that \ttindexbold{Sigma}$(A,B)$ generalizes the Cartesian product of two
+sets.  It is defined to be the union of all singleton sets
+$\{\pair{x,y}\}$, for $x\in A$ and $y\in B(x)$.  This is a typical usage of
+general union.
+
+The projections involve definite descriptions.  The \ttindex{split}
+operation is like the similar operation in Martin-L\"of Type Theory, and is
+often easier to use than \ttindex{fst} and~\ttindex{snd}.  It is defined
+using a description for convenience, but could equivalently be defined by
+\begin{ttbox}
+split(p,c) == c(fst(p),snd(p))
+\end{ttbox}  
+Operations on relations include converse, domain, range, and image.  The
+set ${\tt Pi}(A,B)$ generalizes the space of functions between two sets.
+Note the simple definitions of $\lambda$-abstraction (using
+\ttindex{RepFun}) and application (using a definite description).  The
+function \ttindex{restrict}$(f,A)$ has the same values as~$f$, but only
+over the domain~$A$.
+
+No axiom of choice is provided.  It is traditional to include this axiom
+only where it is needed --- mainly in the theory of cardinal numbers, which
+Isabelle does not formalize at present.
+
+
+\section{From basic lemmas to function spaces}
+Faced with so many definitions, it is essential to prove lemmas.  Even
+trivial theorems like $A\inter B=B\inter A$ would be difficult to prove
+from the definitions alone.  Isabelle's set theory derives many rules using
+a natural deduction style.  Ideally, a natural deduction rule should
+introduce or eliminate just one operator, but this is not always practical.
+For most operators, we may forget its definition and use its derived rules
+instead.
+
+\subsection{Fundamental lemmas}
+Figure~\ref{ZF-lemmas1} presents the derived rules for the most basic
+operators.  The rules for the bounded quantifiers resemble those for the
+ordinary quantifiers, but note that \ttindex{BallE} uses a negated
+assumption in the style of Isabelle's classical module.  The congruence rules
+\ttindex{ball_cong} and \ttindex{bex_cong} are required by Isabelle's
+simplifier, but have few other uses.  Congruence rules must be specially
+derived for all binding operators, and henceforth will not be shown.
+
+Figure~\ref{ZF-lemmas1} also shows rules for the subset and equality
+relations (proof by extensionality), and rules about the empty set and the
+power set operator.
+
+Figure~\ref{ZF-lemmas2} presents rules for replacement and separation.
+The rules for \ttindex{Replace} and \ttindex{RepFun} are much simpler than
+comparable rules for {\tt PrimReplace} would be.  The principle of
+separation is proved explicitly, although most proofs should use the
+natural deduction rules for \ttindex{Collect}.  The elimination rule
+\ttindex{CollectE} is equivalent to the two destruction rules
+\ttindex{CollectD1} and \ttindex{CollectD2}, but each rule is suited to
+particular circumstances.  Although too many rules can be confusing, there
+is no reason to aim for a minimal set of rules.  See the file
+\ttindexbold{ZF/zf.ML} for a complete listing.
+
+Figure~\ref{ZF-lemmas3} presents rules for general union and intersection.
+The empty intersection should be undefined.  We cannot have
+$\bigcap(\emptyset)=V$ because $V$, the universal class, is not a set.  All
+expressions denote something in {\ZF} set theory; the definition of
+intersection implies $\bigcap(\emptyset)=\emptyset$, but this value is
+arbitrary.  The rule \ttindexbold{InterI} must have a premise to exclude
+the empty intersection.  Some of the laws governing intersections require
+similar premises.
+
+
+%%% upair.ML
+
+\begin{figure}
+\begin{ttbox}
+\idx{pairing}      a:Upair(b,c) <-> (a=b | a=c)
+\idx{UpairI1}      a : Upair(a,b)
+\idx{UpairI2}      b : Upair(a,b)
+\idx{UpairE}       [| a : Upair(b,c);  a = b ==> P;  a = c ==> P |] ==> P
+\subcaption{Unordered pairs}
+
+\idx{UnI1}         c : A ==> c : A Un B
+\idx{UnI2}         c : B ==> c : A Un B
+\idx{UnCI}         (~c : B ==> c : A) ==> c : A Un B
+\idx{UnE}          [| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P
+
+\idx{IntI}         [| c : A;  c : B |] ==> c : A Int B
+\idx{IntD1}        c : A Int B ==> c : A
+\idx{IntD2}        c : A Int B ==> c : B
+\idx{IntE}         [| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P
+
+\idx{DiffI}        [| c : A;  ~ c : B |] ==> c : A - B
+\idx{DiffD1}       c : A - B ==> c : A
+\idx{DiffD2}       [| c : A - B;  c : B |] ==> P
+\idx{DiffE}        [| c : A - B;  [| c:A; ~ c:B |] ==> P |] ==> P
+\subcaption{Union, intersection, difference}
+\end{ttbox}
+\caption{Unordered pairs and their consequences} \label{ZF-upair1}
+\end{figure}
+
+
+\begin{figure}
+\begin{ttbox}
+\idx{consI1}       a : cons(a,B)
+\idx{consI2}       a : B ==> a : cons(b,B)
+\idx{consCI}       (~ a:B ==> a=b) ==> a: cons(b,B)
+\idx{consE}        [| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P
+
+\idx{singletonI}   a : \{a\}
+\idx{singletonE}   [| a : \{b\}; a=b ==> P |] ==> P
+\subcaption{Finite and singleton sets}
+
+\idx{succI1}       i : succ(i)
+\idx{succI2}       i : j ==> i : succ(j)
+\idx{succCI}       (~ i:j ==> i=j) ==> i: succ(j)
+\idx{succE}        [| i : succ(j);  i=j ==> P;  i:j ==> P |] ==> P
+\idx{succ_neq_0}   [| succ(n)=0 |] ==> P
+\idx{succ_inject}  succ(m) = succ(n) ==> m=n
+\subcaption{The successor function}
+
+\idx{the_equality}     [| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a
+\idx{theI}             EX! x. P(x) ==> P(THE x. P(x))
+
+\idx{if_P}             P ==> if(P,a,b) = a
+\idx{if_not_P}        ~P ==> if(P,a,b) = b
+
+\idx{mem_anti_sym}     [| a:b;  b:a |] ==> P
+\idx{mem_anti_refl}    a:a ==> P
+\subcaption{Descriptions; non-circularity}
+\end{ttbox}
+\caption{Finite sets and their consequences} \label{ZF-upair2}
+\end{figure}
+
+
+\subsection{Unordered pairs and finite sets}
+Figure~\ref{ZF-upair1} presents the principle of unordered pairing, along
+with its derived rules.  Binary union and intersection are defined in terms
+of ordered pairs, and set difference is included for completeness.  The
+rule \ttindexbold{UnCI} is useful for classical reasoning about unions,
+like {\tt disjCI}\@; it supersedes \ttindexbold{UnI1} and
+\ttindexbold{UnI2}, but these rules are often easier to work with.  For
+intersection and difference we have both elimination and destruction rules.
+Again, there is no reason to provide a minimal rule set.
+
+Figure~\ref{ZF-upair2} is concerned with finite sets.  It presents rules
+for~\ttindex{cons}, the finite set constructor, and rules for singleton
+sets.  Because the successor function is defined in terms of~{\tt cons},
+its derived rules appear here.
+
+Definite descriptions (\ttindex{THE}) are defined in terms of the singleton
+set $\{0\}$, but their derived rules fortunately hide this.  The
+rule~\ttindex{theI} can be difficult to apply, because $\Var{P}$ must be
+instantiated correctly.  However, \ttindex{the_equality} does not have this
+problem and the files contain many examples of its use.
+
+Finally, the impossibility of having both $a\in b$ and $b\in a$
+(\ttindex{mem_anti_sym}) is proved by applying the axiom of foundation to
+the set $\{a,b\}$.  The impossibility of $a\in a$ is a trivial consequence.
+
+See the file \ttindexbold{ZF/upair.ML} for full details.
+
+
+%%% subset.ML
+
+\begin{figure}
+\begin{ttbox}
+\idx{Union_upper}       B:A ==> B <= Union(A)
+\idx{Union_least}       [| !!x. x:A ==> x<=C |] ==> Union(A) <= C
+
+\idx{Inter_lower}       B:A ==> Inter(A) <= B
+\idx{Inter_greatest}    [| a:A;  !!x. x:A ==> C<=x |] ==> C <= Inter(A)
+
+\idx{Un_upper1}         A <= A Un B
+\idx{Un_upper2}         B <= A Un B
+\idx{Un_least}          [| A<=C;  B<=C |] ==> A Un B <= C
+
+\idx{Int_lower1}        A Int B <= A
+\idx{Int_lower2}        A Int B <= B
+\idx{Int_greatest}      [| C<=A;  C<=B |] ==> C <= A Int B
+
+\idx{Diff_subset}       A-B <= A
+\idx{Diff_contains}     [| C<=A;  C Int B = 0 |] ==> C <= A-B
+
+\idx{Collect_subset}    Collect(A,P) <= A
+\end{ttbox}
+\caption{Subset and lattice properties} \label{ZF-subset}
+\end{figure}
+
+
+\subsection{Subset and lattice properties}
+Figure~\ref{ZF-subset} shows that the subset relation is a complete
+lattice.  Unions form least upper bounds; non-empty intersections form
+greatest lower bounds.  A few other laws involving subsets are included.
+See the file \ttindexbold{ZF/subset.ML}.
+
+%%% pair.ML
+
+\begin{figure}
+\begin{ttbox}
+\idx{Pair_inject1}    <a,b> = <c,d> ==> a=c
+\idx{Pair_inject2}    <a,b> = <c,d> ==> b=d
+\idx{Pair_inject}     [| <a,b> = <c,d>;  [| a=c; b=d |] ==> P |] ==> P
+\idx{Pair_neq_0}      <a,b>=0 ==> P
+
+\idx{fst}       fst(<a,b>) = a
+\idx{snd}       snd(<a,b>) = b
+\idx{split}     split(<a,b>, %x y.c(x,y)) = c(a,b)
+
+\idx{SigmaI}    [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)
+
+\idx{SigmaE}    [| c: Sigma(A,B);  
+             !!x y.[| x:A; y:B(x); c=<x,y> |] ==> P |] ==> P
+
+\idx{SigmaE2}   [| <a,b> : Sigma(A,B);    
+             [| a:A;  b:B(a) |] ==> P   |] ==> P
+\end{ttbox}
+\caption{Ordered pairs; projections; general sums} \label{ZF-pair}
+\end{figure}
+
+
+\subsection{Ordered pairs}
+Figure~\ref{ZF-pair} presents the rules governing ordered pairs,
+projections and general sums.  File \ttindexbold{ZF/pair.ML} contains the
+full (and tedious) proof that $\{\{a\},\{a,b\}\}$ functions as an ordered
+pair.  This property is expressed as two destruction rules,
+\ttindexbold{Pair_inject1} and \ttindexbold{Pair_inject2}, and equivalently
+as the elimination rule \ttindexbold{Pair_inject}.
+
+Note the rule \ttindexbold{Pair_neq_0}, which asserts
+$\pair{a,b}\neq\emptyset$.  This is no arbitrary property of
+$\{\{a\},\{a,b\}\}$, but one that we can reasonably expect to hold for any
+encoding of ordered pairs.  It turns out to be useful for constructing
+Lisp-style S-expressions in set theory.
+
+The natural deduction rules \ttindexbold{SigmaI} and \ttindexbold{SigmaE}
+assert that \ttindex{Sigma}$(A,B)$ consists of all pairs of the form
+$\pair{x,y}$, for $x\in A$ and $y\in B(x)$.  The rule \ttindexbold{SigmaE2}
+merely states that $\pair{a,b}\in {\tt Sigma}(A,B)$ implies $a\in A$ and
+$b\in B(a)$.
+
+
+%%% domrange.ML
+
+\begin{figure}
+\begin{ttbox}
+\idx{domainI}        <a,b>: r ==> a : domain(r)
+\idx{domainE}        [| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P
+\idx{domain_subset}  domain(Sigma(A,B)) <= A
+
+\idx{rangeI}         <a,b>: r ==> b : range(r)
+\idx{rangeE}         [| b : range(r);  !!x. <x,b>: r ==> P |] ==> P
+\idx{range_subset}   range(A*B) <= B
+
+\idx{fieldI1}        <a,b>: r ==> a : field(r)
+\idx{fieldI2}        <a,b>: r ==> b : field(r)
+\idx{fieldCI}        (~ <c,a>:r ==> <a,b>: r) ==> a : field(r)
+
+\idx{fieldE}         [| a : field(r);  
+                  !!x. <a,x>: r ==> P;  
+                  !!x. <x,a>: r ==> P      
+               |] ==> P
+
+\idx{field_subset}   field(A*A) <= A
+\subcaption{Domain, range and field of a Relation}
+
+\idx{imageI}         [| <a,b>: r;  a:A |] ==> b : r``A
+\idx{imageE}         [| b: r``A;  !!x.[| <x,b>: r;  x:A |] ==> P |] ==> P
+
+\idx{vimageI}        [| <a,b>: r;  b:B |] ==> a : r-``B
+\idx{vimageE}        [| a: r-``B;  !!x.[| <a,x>: r;  x:B |] ==> P |] ==> P
+\subcaption{Image and inverse image}
+\end{ttbox}
+\caption{Relations} \label{ZF-domrange}
+\end{figure}
+
+
+\subsection{Relations}
+Figure~\ref{ZF-domrange} presents rules involving relations, which are sets
+of ordered pairs.  The converse of a relation~$r$ is the set of all pairs
+$\pair{y,x}$ such that $\pair{x,y}\in r$; if $r$ is a function, then
+{\ttindex{converse}$(r)$} is its inverse.  The rules for the domain
+operation, \ttindex{domainI} and~\ttindex{domainE}, assert that
+\ttindex{domain}$(r)$ consists of every element~$a$ such that $r$ contains
+some pair of the form~$\pair{x,y}$.  The range operation is similar, and
+the field of a relation is merely the union of its domain and range.  Note
+that image and inverse image are generalizations of range and domain,
+respectively.  See the file
+\ttindexbold{ZF/domrange.ML} for derivations of the rules.
+
+
+%%% func.ML
+
+\begin{figure}
+\begin{ttbox}
+\idx{fun_is_rel}      f: Pi(A,B) ==> f <= Sigma(A,B)
+
+\idx{apply_equality}  [| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b
+\idx{apply_equality2} [| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c
+
+\idx{apply_type}      [| f: Pi(A,B);  a:A |] ==> f`a : B(a)
+\idx{apply_Pair}      [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f
+\idx{apply_iff}       f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b
+
+\idx{fun_extension}   [| f : Pi(A,B);  g: Pi(A,D);
+                   !!x. x:A ==> f`x = g`x     |] ==> f=g
+
+\idx{domain_type}     [| <a,b> : f;  f: Pi(A,B) |] ==> a : A
+\idx{range_type}      [| <a,b> : f;  f: Pi(A,B) |] ==> b : B(a)
+
+\idx{Pi_type}         [| f: A->C;  !!x. x:A ==> f`x: B(x) |] ==> f: Pi(A,B)
+\idx{domain_of_fun}   f: Pi(A,B) ==> domain(f)=A
+\idx{range_of_fun}    f: Pi(A,B) ==> f: A->range(f)
+
+\idx{restrict}   a : A ==> restrict(f,A) ` a = f`a
+\idx{restrict_type}   [| !!x. x:A ==> f`x: B(x) |] ==> 
+                restrict(f,A) : Pi(A,B)
+
+\idx{lamI}       a:A ==> <a,b(a)> : (lam x:A. b(x))
+\idx{lamE}       [| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P 
+           |] ==>  P
+
+\idx{lam_type}   [| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A.b(x)) : Pi(A,B)
+
+\idx{beta}       a : A ==> (lam x:A.b(x)) ` a = b(a)
+\idx{eta}        f : Pi(A,B) ==> (lam x:A. f`x) = f
+
+\idx{lam_theI}   (!!x. x:A ==> EX! y. Q(x,y)) ==> EX h. ALL x:A. Q(x, h`x)
+\end{ttbox}
+\caption{Functions and $\lambda$-abstraction} \label{ZF-func1}
+\end{figure}
+
+
+\begin{figure}
+\begin{ttbox}
+\idx{fun_empty}            0: 0->0
+\idx{fun_single}           \{<a,b>\} : \{a\} -> \{b\}
+
+\idx{fun_disjoint_Un}      [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  
+                     (f Un g) : (A Un C) -> (B Un D)
+
+\idx{fun_disjoint_apply1}  [| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  
+                     (f Un g)`a = f`a
+
+\idx{fun_disjoint_apply2}  [| c:C;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  
+                     (f Un g)`c = g`c
+\end{ttbox}
+\caption{Constructing functions from smaller sets} \label{ZF-func2}
+\end{figure}
+
+
+\subsection{Functions}
+Functions, represented by graphs, are notoriously difficult to reason
+about.  The file \ttindexbold{ZF/func.ML} derives many rules, which overlap
+more than they ought.  One day these rules will be tidied up; this section
+presents only the more important ones.
+
+Figure~\ref{ZF-func1} presents the basic properties of \ttindex{Pi}$(A,B)$,
+the generalized function space.  For example, if $f$ is a function and
+$\pair{a,b}\in f$, then $f`a=b$ (\ttindex{apply_equality}).  Two functions
+are equal provided they have equal domains and deliver equals results
+(\ttindex{fun_extension}).
+
+By \ttindex{Pi_type}, a function typing of the form $f\in A\to C$ can be
+refined to the dependent typing $f\in\prod@{x\in A}B(x)$, given a suitable
+family of sets $\{B(x)\}@{x\in A}$.  Conversely, by \ttindex{range_of_fun},
+any dependent typing can be flattened to yield a function type of the form
+$A\to C$; here, $C={\tt range}(f)$.
+
+Among the laws for $\lambda$-abstraction, \ttindex{lamI} and \ttindex{lamE}
+describe the graph of the generated function, while \ttindex{beta} and
+\ttindex{eta} are the standard conversions.  We essentially have a
+dependently-typed $\lambda$-calculus.
+
+Figure~\ref{ZF-func2} presents some rules that can be used to construct
+functions explicitly.  We start with functions consisting of at most one
+pair, and may form the union of two functions provided their domains are
+disjoint.  
+
+
+\begin{figure} 
+\begin{center}
+\begin{tabular}{rrr} 
+  \it name    	&\it meta-type 	& \it description \\ 
+  \idx{id}	& $i$		& identity function \\
+  \idx{inj}	& $[i,i]\To i$	& injective function space\\
+  \idx{surj}	& $[i,i]\To i$	& surjective function space\\
+  \idx{bij}	& $[i,i]\To i$	& bijective function space
+	\\[1ex]
+  \idx{1}	& $i$     	& $\{\emptyset\}$	\\
+  \idx{bool}	& $i$		& the set $\{\emptyset,1\}$	\\
+  \idx{cond}	& $[i,i,i]\To i$	& conditional for {\tt bool}
+	\\[1ex]
+  \idx{Inl}~~\idx{Inr}	& $i\To i$	& injections\\
+  \idx{case}	& $[i,i\To i,i\To i]\To i$	& conditional for $+$
+	\\[1ex]
+  \idx{nat}	& $i$		& set of natural numbers \\
+  \idx{nat_case}& $[i,i,i\To i]\To i$	& conditional for $nat$\\
+  \idx{rec}	& $[i,i,[i,i]\To i]\To i$ & recursor for $nat$
+	\\[1ex]
+  \idx{list}	& $i\To i$ 	& lists over some set\\
+  \idx{list_case} & $[i, i, [i,i]\To i] \To i$	& conditional for $list(A)$ \\
+  \idx{list_rec} & $[i, i, [i,i,i]\To i] \To i$	& recursor for $list(A)$ \\
+  \idx{map}	& $[i\To i, i] \To i$ 	& mapping functional\\
+  \idx{length}	& $i\To i$ 		& length of a list\\
+  \idx{rev}	& $i\To i$ 		& reverse of a list\\
+  \idx{flat}	& $i\To i$ 		& flatting a list of lists\\
+\end{tabular}
+\end{center}
+\subcaption{Constants}
+
+\begin{center}
+\indexbold{*"+}
+\index{#*@{\tt\#*}|bold}
+\index{*div|bold}
+\index{*mod|bold}
+\index{#+@{\tt\#+}|bold}
+\index{#-@{\tt\#-}|bold}
+\begin{tabular}{rrrr} 
+  \idx{O}	& $[i,i]\To i$	&  Right 60	& composition ($\circ$) \\
+  \tt +		& $[i,i]\To i$	&  Right 65	& disjoint union \\
+  \tt \#*	& $[i,i]\To i$	&  Left 70	& multiplication \\
+  \tt div	& $[i,i]\To i$	&  Left 70	& division\\
+  \tt mod	& $[i,i]\To i$	&  Left 70	& modulus\\
+  \tt \#+	& $[i,i]\To i$	&  Left 65	& addition\\
+  \tt \#-	& $[i,i]\To i$ 	&  Left 65	& subtraction\\
+  \tt \@	& $[i,i]\To i$	&  Right 60	& append for lists
+\end{tabular}
+\end{center}
+\subcaption{Infixes}
+\caption{Further constants for {\ZF}} \label{ZF-further-constants}
+\end{figure} 
+
+
+\begin{figure}
+\begin{ttbox}
+\idx{Int_absorb}         A Int A = A
+\idx{Int_commute}        A Int B = B Int A
+\idx{Int_assoc}          (A Int B) Int C  =  A Int (B Int C)
+\idx{Int_Un_distrib}     (A Un B) Int C  =  (A Int C) Un (B Int C)
+
+\idx{Un_absorb}          A Un A = A
+\idx{Un_commute}         A Un B = B Un A
+\idx{Un_assoc}           (A Un B) Un C  =  A Un (B Un C)
+\idx{Un_Int_distrib}     (A Int B) Un C  =  (A Un C) Int (B Un C)
+
+\idx{Diff_cancel}        A-A = 0
+\idx{Diff_disjoint}      A Int (B-A) = 0
+\idx{Diff_partition}     A<=B ==> A Un (B-A) = B
+\idx{double_complement}  [| A<=B; B<= C |] ==> (B - (C-A)) = A
+\idx{Diff_Un}            A - (B Un C) = (A-B) Int (A-C)
+\idx{Diff_Int}           A - (B Int C) = (A-B) Un (A-C)
+
+\idx{Union_Un_distrib}   Union(A Un B) = Union(A) Un Union(B)
+\idx{Inter_Un_distrib}   [| a:A;  b:B |] ==> 
+                   Inter(A Un B) = Inter(A) Int Inter(B)
+
+\idx{Int_Union_RepFun}   A Int Union(B) = (UN C:B. A Int C)
+
+\idx{Un_Inter_RepFun}    b:B ==> 
+                   A Un Inter(B) = (INT C:B. A Un C)
+
+\idx{SUM_Un_distrib1}    (SUM x:A Un B. C(x)) = 
+                   (SUM x:A. C(x)) Un (SUM x:B. C(x))
+
+\idx{SUM_Un_distrib2}    (SUM x:C. A(x) Un B(x)) =
+                   (SUM x:C. A(x))  Un  (SUM x:C. B(x))
+
+\idx{SUM_Int_distrib1}   (SUM x:A Int B. C(x)) =
+                   (SUM x:A. C(x)) Int (SUM x:B. C(x))
+
+\idx{SUM_Int_distrib2}   (SUM x:C. A(x) Int B(x)) =
+                   (SUM x:C. A(x)) Int (SUM x:C. B(x))
+\end{ttbox}
+\caption{Equalities} \label{zf-equalities}
+\end{figure}
+
+\begin{figure}
+\begin{ttbox}
+\idx{comp_def}  r O s     == \{xz : domain(s)*range(r) . 
+                        EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r\}
+\idx{id_def}    id(A)     == (lam x:A. x)
+\idx{inj_def}   inj(A,B)  == \{ f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x\}
+\idx{surj_def}  surj(A,B) == \{ f: A->B . ALL y:B. EX x:A. f`x=y\}
+\idx{bij_def}   bij(A,B)  == inj(A,B) Int surj(A,B)
+\subcaption{Definitions}
+
+\idx{left_inverse}     [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a
+\idx{right_inverse}    [| f: inj(A,B);  b: range(f) |] ==> 
+                 f`(converse(f)`b) = b
+
+\idx{inj_converse_inj} f: inj(A,B) ==> converse(f): inj(range(f), A)
+\idx{bij_converse_bij} f: bij(A,B) ==> converse(f): bij(B,A)
+
+\idx{comp_type}        [| s<=A*B;  r<=B*C |] ==> (r O s) <= A*C
+\idx{comp_assoc}       (r O s) O t = r O (s O t)
+
+\idx{left_comp_id}     r<=A*B ==> id(B) O r = r
+\idx{right_comp_id}    r<=A*B ==> r O id(A) = r
+
+\idx{comp_func}        [| g:A->B; f:B->C |] ==> (f O g):A->C
+\idx{comp_func_apply}  [| g:A->B; f:B->C; a:A |] ==> (f O g)`a = f`(g`a)
+
+\idx{comp_inj}         [| g:inj(A,B);  f:inj(B,C)  |] ==> (f O g):inj(A,C)
+\idx{comp_surj}        [| g:surj(A,B); f:surj(B,C) |] ==> (f O g):surj(A,C)
+\idx{comp_bij}         [| g:bij(A,B); f:bij(B,C) |] ==> (f O g):bij(A,C)
+
+\idx{left_comp_inverse}     f: inj(A,B) ==> converse(f) O f = id(A)
+\idx{right_comp_inverse}    f: surj(A,B) ==> f O converse(f) = id(B)
+
+\idx{bij_disjoint_Un}   
+    [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> 
+    (f Un g) : bij(A Un C, B Un D)
+
+\idx{restrict_bij}  [| f:inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)
+\end{ttbox}
+\caption{Permutations} \label{zf-perm}
+\end{figure}
+
+\begin{figure}
+\begin{ttbox}
+\idx{one_def}        1    == succ(0)
+\idx{bool_def}       bool == {0,1}
+\idx{cond_def}       cond(b,c,d) == if(b=1,c,d)
+
+\idx{sum_def}        A+B == \{0\}*A Un \{1\}*B
+\idx{Inl_def}        Inl(a) == <0,a>
+\idx{Inr_def}        Inr(b) == <1,b>
+\idx{case_def}       case(u,c,d) == split(u, %y z. cond(y, d(z), c(z)))
+\subcaption{Definitions}
+
+\idx{bool_1I}        1 : bool
+\idx{bool_0I}        0 : bool
+
+\idx{boolE}          [| c: bool;  P(1);  P(0) |] ==> P(c)
+\idx{cond_1}         cond(1,c,d) = c
+\idx{cond_0}         cond(0,c,d) = d
+
+\idx{sum_InlI}       a : A ==> Inl(a) : A+B
+\idx{sum_InrI}       b : B ==> Inr(b) : A+B
+
+\idx{Inl_inject}     Inl(a)=Inl(b) ==> a=b
+\idx{Inr_inject}     Inr(a)=Inr(b) ==> a=b
+\idx{Inl_neq_Inr}    Inl(a)=Inr(b) ==> P
+
+\idx{sumE2}   u: A+B ==> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))
+
+\idx{case_Inl}       case(Inl(a),c,d) = c(a)
+\idx{case_Inr}       case(Inr(b),c,d) = d(b)
+\end{ttbox}
+\caption{Booleans and disjoint unions} \label{zf-sum}
+\end{figure}
+
+\begin{figure}
+\begin{ttbox}
+\idx{nat_def}       nat == lfp(lam r: Pow(Inf). \{0\} Un \{succ(x). x:r\}
+
+\idx{nat_case_def}  nat_case(n,a,b) == 
+              THE y. n=0 & y=a | (EX x. n=succ(x) & y=b(x))
+
+\idx{rec_def}       rec(k,a,b) ==  
+              transrec(k, %n f. nat_case(n, a, %m. b(m, f`m)))
+
+\idx{add_def}       m#+n == rec(m, n, %u v.succ(v))
+\idx{diff_def}      m#-n == rec(n, m, %u v. rec(v, 0, %x y.x))
+\idx{mult_def}      m#*n == rec(m, 0, %u v. n #+ v)
+\idx{mod_def}       m mod n == transrec(m, %j f. if(j:n, j, f`(j#-n)))
+\idx{quo_def}       m div n == transrec(m, %j f. if(j:n, 0, succ(f`(j#-n))))
+\subcaption{Definitions}
+
+\idx{nat_0I}        0 : nat
+\idx{nat_succI}     n : nat ==> succ(n) : nat
+
+\idx{nat_induct}        
+    [| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) 
+    |] ==> P(n)
+
+\idx{nat_case_0}    nat_case(0,a,b) = a
+\idx{nat_case_succ} nat_case(succ(m),a,b) = b(m)
+
+\idx{rec_0}         rec(0,a,b) = a
+\idx{rec_succ}      rec(succ(m),a,b) = b(m, rec(m,a,b))
+
+\idx{mult_type}     [| m:nat;  n:nat |] ==> m #* n : nat
+\idx{mult_0}        0 #* n = 0
+\idx{mult_succ}     succ(m) #* n = n #+ (m #* n)
+\idx{mult_commute}  [| m:nat;  n:nat |] ==> m #* n = n #* m
+\idx{add_mult_dist}
+    [| m:nat;  k:nat |] ==> (m #+ n) #* k = (m #* k) #+ (n #* k)
+\idx{mult_assoc}
+    [| m:nat;  n:nat;  k:nat |] ==> (m #* n) #* k = m #* (n #* k)
+
+\idx{mod_quo_equality}
+    [| 0:n;  m:nat;  n:nat |] ==> (m div n)#*n #+ m mod n = m
+\end{ttbox}
+\caption{The natural numbers} \label{zf-nat}
+\end{figure}
+
+\begin{figure}\underscoreon %%because @ is used here
+\begin{ttbox}
+\idx{list_def}        list(A) == lfp(univ(A), %X. {0} Un A*X)
+
+\idx{list_case_def}   list_case(l,c,h) ==
+                THE z. l=0 & z=c | (EX x y. l = <x,y> & z=h(x,y))
+
+\idx{list_rec_def}    list_rec(l,c,h) == 
+                Vrec(l, %l g.list_case(l, c, %x xs. h(x, xs, g`xs)))
+
+\idx{map_def}         map(f,l)  == list_rec(l,  0,  %x xs r. <f(x), r>)
+\idx{length_def}      length(l) == list_rec(l,  0,  %x xs r. succ(r))
+\idx{app_def}         xs@ys     == list_rec(xs, ys, %x xs r. <x,r>)
+\idx{rev_def}         rev(l)    == list_rec(l,  0,  %x xs r. r @ <x,0>)
+\idx{flat_def}        flat(ls)  == list_rec(ls, 0,  %l ls r. l @ r)
+\subcaption{Definitions}
+
+\idx{list_0I}         0 : list(A)
+\idx{list_PairI}      [| a: A;  l: list(A) |] ==> <a,l> : list(A)
+
+\idx{list_induct}
+    [| l: list(A);
+       P(0);
+       !!x y. [| x: A;  y: list(A);  P(y) |] ==> P(<x,y>)
+    |] ==> P(l)
+
+\idx{list_case_0}     list_case(0,c,h) = c
+\idx{list_case_Pair}  list_case(<a,l>, c, h) = h(a,l)
+
+\idx{list_rec_0}      list_rec(0,c,h) = c
+\idx{list_rec_Pair}   list_rec(<a,l>, c, h) = h(a, l, list_rec(l,c,h))
+
+\idx{map_ident}       l: list(A) ==> map(%u.u, l) = l
+\idx{map_compose}     l: list(A) ==> map(h, map(j,l)) = map(%u.h(j(u)), l)
+\idx{map_app_distrib} xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)
+\idx{map_type}
+    [| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) : list(B)
+\idx{map_flat}
+    ls: list(list(A)) ==> map(h, flat(ls)) = flat(map(map(h),ls))
+\end{ttbox}
+\caption{Lists} \label{zf-list}
+\end{figure}
+
+\section{Further developments}
+The next group of developments is complex and extensive, and only
+highlights can be covered here.  Figure~\ref{ZF-further-constants} lists
+some of the further constants and infixes that are declared in the various
+theory extensions.
+
+Figure~\ref{zf-sum} defines $\{0,1\}$ as a set of booleans, with a
+conditional operator.  It also defines the disjoint union of two sets, with
+injections and a case analysis operator.  See files
+\ttindexbold{ZF/bool.ML} and \ttindexbold{ZF/sum.ML}.
+
+Monotonicity properties of most of the set-forming operations are proved.
+These are useful for applying the Knaster-Tarski Fixedpoint Theorem.
+See file \ttindexbold{ZF/mono.ML}.
+
+Figure~\ref{zf-equalities} presents commutative, associative, distributive,
+and idempotency laws of union and intersection, along with other equations.
+See file \ttindexbold{ZF/equalities.ML}.
+
+Figure~\ref{zf-perm} defines composition and injective, surjective and
+bijective function spaces, with proofs of many of their properties.
+See file \ttindexbold{ZF/perm.ML}.
+
+Figure~\ref{zf-nat} presents the natural numbers, with induction and a
+primitive recursion operator.  See file \ttindexbold{ZF/nat.ML}.  File
+\ttindexbold{ZF/arith.ML} develops arithmetic on the natural numbers.  It
+defines addition, multiplication, subtraction, division, and remainder,
+proving the theorem $a \bmod b + (a/b)\times b = a$.  Division and
+remainder are defined by repeated subtraction, which requires well-founded
+rather than primitive recursion.
+
+Figure~\ref{zf-list} presents defines the set of lists over~$A$, ${\tt
+list}(A)$ as the least solution of the equation ${\tt list}(A)\equiv \{0\}
+\union (A\times{\tt list}(A))$.  Structural induction and recursion are
+derived, with some of the usual list functions.  See file
+\ttindexbold{ZF/list.ML}.
+
+The constructions of the natural numbers and lists make use of a suite of
+operators for handling recursive definitions.  The developments are
+summarized below:
+\begin{description}
+\item[\ttindexbold{ZF/lfp.ML}]
+proves the Knaster-Tarski Fixedpoint Theorem in the lattice of subsets of a
+set.  The file defines a least fixedpoint operator with corresponding
+induction rules.  These are used repeatedly in the sequel to define sets
+inductively.  As a simple application, the file contains a short proof of
+the Schr\"oder-Bernstein Theorem.
+
+\item[\ttindexbold{ZF/trancl.ML}]
+defines the transitive closure of a relation (as a least fixedpoint).
+
+\item[\ttindexbold{ZF/wf.ML}]
+proves the Well-Founded Recursion Theorem, using an elegant
+approach of Tobias Nipkow.  This theorem permits general recursive
+definitions within set theory.
+
+\item[\ttindexbold{ZF/ordinal.ML}]
+defines the notions of transitive set and ordinal number.  It derives
+transfinite induction.
+
+\item[\ttindexbold{ZF/epsilon.ML}]
+derives $\epsilon$-induction and $\epsilon$-recursion, which are
+generalizations of transfinite induction.  It also defines
+\ttindexbold{rank}$(x)$, which is the least ordinal $\alpha$ such that $x$
+is constructed at stage $\alpha$ of the cumulative hierarchy (thus $x\in
+V@{\alpha+1}$).
+
+\item[\ttindexbold{ZF/univ.ML}]
+defines a ``universe'' ${\tt univ}(A)$, for constructing sets inductively.
+This set contains $A$ and the natural numbers.  Vitally, it is
+closed under finite products: 
+${\tt univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This file also
+defines set theory's cumulative hierarchy, traditionally written $V@\alpha$
+where $\alpha$ is any ordinal.
+\end{description}
+
+
+\begin{figure}
+\begin{eqnarray*}
+  a\in a 		& \bimp &  \bot\\
+  a\in \emptyset 	& \bimp &  \bot\\
+  a \in A \union B 	& \bimp &  a\in A \disj a\in B\\
+  a \in A \inter B 	& \bimp &  a\in A \conj a\in B\\
+  a \in A-B 		& \bimp &  a\in A \conj \neg (a\in B)\\
+  a \in {\tt cons}(b,B) & \bimp &  a=b \disj a\in B\\
+  i \in {\tt succ}(j) 	& \bimp &  i=j \disj i\in j\\
+  \pair{a,b}\in {\tt Sigma}(A,B)
+		  	& \bimp &  a\in A \conj b\in B(a)\\
+  a \in {\tt Collect}(A,P) 	& \bimp &  a\in A \conj P(a)\\
+  (\forall x \in A. \top) 	& \bimp &  \top
+\end{eqnarray*}
+\caption{Rewrite rules for set theory} \label{ZF-simpdata}
+\end{figure}
+
+
+\section{Simplification rules}
+{\ZF} does not merely inherit simplification from \FOL, but instantiates
+the rewriting package new.  File \ttindexbold{ZF/simpdata.ML} contains the
+details; here is a summary of the key differences:
+\begin{itemize}
+\item 
+\ttindexbold{mk_rew_rules} is given as a function that can
+strip bounded universal quantifiers from a formula.  For example, $\forall
+x\in A.f(x)=g(x)$ yields the conditional rewrite rule $x\in A \Imp
+f(x)=g(x)$.
+\item
+\ttindexbold{ZF_ss} contains congruence rules for all the operators of
+{\ZF}, including the binding operators.  It contains all the conversion
+rules, such as \ttindex{fst} and \ttindex{snd}, as well as the
+rewrites shown in Figure~\ref{ZF-simpdata}.
+\item
+\ttindexbold{FOL_ss} is redeclared with the same {\FOL} rules as the
+previous version, so that it may still be used.  
+\end{itemize}
+
+
+\section{The examples directory}
+This directory contains further developments in {\ZF} set theory.  Here is
+an overview; see the files themselves for more details.
+\begin{description}
+\item[\ttindexbold{ZF/ex/misc.ML}]
+contains miscellaneous examples such as Cantor's Theorem and the
+``Composition of homomorphisms'' challenge.
+
+\item[\ttindexbold{ZF/ex/ramsey.ML}]
+proves the finite exponent 2 version of Ramsey's Theorem.
+
+\item[\ttindexbold{ZF/ex/bt.ML}]
+defines the recursive data structure ${\tt bt}(A)$, labelled binary trees.
+
+\item[\ttindexbold{ZF/ex/sexp.ML}]
+defines the set of Lisp $S$-expressions over~$A$, ${\tt sexp}(A)$.  These
+are unlabelled binary trees whose leaves contain elements of $(A)$.
+
+\item[\ttindexbold{ZF/ex/term.ML}]
+defines a recursive data structure for terms and term lists.
+
+\item[\ttindexbold{ZF/ex/simult.ML}]
+defines primitives for solving mutually recursive equations over sets.
+It constructs sets of trees and forests as an example, including induction
+and recursion rules that handle the mutual recursion.
+
+\item[\ttindexbold{ZF/ex/finite.ML}]
+inductively defines a finite powerset operator.
+
+\item[\ttindexbold{ZF/ex/prop-log.ML}]
+proves soundness and completeness of propositional logic.  This illustrates
+the main forms of induction.
+\end{description}
+
+
+\section{A proof about powersets}
+To demonstrate high-level reasoning about subsets, let us prove the equation
+${Pow(A)\cap Pow(B)}= Pow(A\cap B)$.  Compared with first-order logic, set
+theory involves a maze of rules, and theorems have many different proofs.
+Attempting other proofs of the theorem might be instructive.  This proof
+exploits the lattice properties of intersection.  It also uses the
+monotonicity of the powerset operation, from {\tt ZF/mono.ML}:
+\begin{ttbox}
+\idx{Pow_mono}      A<=B ==> Pow(A) <= Pow(B)
+\end{ttbox}
+We enter the goal and make the first step, which breaks the equation into
+two inclusions by extensionality:\index{equalityI}
+\begin{ttbox}
+goal ZF.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+{\out Level 0}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
+by (resolve_tac [equalityI] 1);
+{\out Level 1}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. Pow(A Int B) <= Pow(A) Int Pow(B)}
+{\out  2. Pow(A) Int Pow(B) <= Pow(A Int B)}
+\end{ttbox}
+Both inclusions could be tackled straightforwardly using {\tt subsetI}.
+A shorter proof results from noting that intersection forms the greatest
+lower bound:\index{*Int_greatest}
+\begin{ttbox}
+by (resolve_tac [Int_greatest] 1);
+{\out Level 2}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. Pow(A Int B) <= Pow(A)}
+{\out  2. Pow(A Int B) <= Pow(B)}
+{\out  3. Pow(A) Int Pow(B) <= Pow(A Int B)}
+\end{ttbox}
+Subgoal~1 follows by applying the monotonicity of {\tt Pow} to $A\inter
+B\subseteq A$; subgoal~2 follows similarly:
+\index{*Int_lower1}\index{*Int_lower2}
+\begin{ttbox}
+by (resolve_tac [Int_lower1 RS Pow_mono] 1);
+{\out Level 3}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. Pow(A Int B) <= Pow(B)}
+{\out  2. Pow(A) Int Pow(B) <= Pow(A Int B)}
+by (resolve_tac [Int_lower2 RS Pow_mono] 1);
+{\out Level 4}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. Pow(A) Int Pow(B) <= Pow(A Int B)}
+\end{ttbox}
+We are left with the opposite inclusion, which we tackle in the
+straightforward way:\index{*subsetI}
+\begin{ttbox}
+by (resolve_tac [subsetI] 1);
+{\out Level 5}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. !!x. x : Pow(A) Int Pow(B) ==> x : Pow(A Int B)}
+\end{ttbox}
+The subgoal is to show $x\in {\tt Pow}(A\cap B)$ assuming $x\in{\tt
+Pow}(A)\cap {\tt Pow}(B)$.  Eliminating this assumption produces two
+subgoals, since intersection is like conjunction.\index{*IntE}
+\begin{ttbox}
+by (eresolve_tac [IntE] 1);
+{\out Level 6}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x : Pow(A Int B)}
+\end{ttbox}
+The next step replaces the {\tt Pow} by the subset
+relation~($\subseteq$).\index{*PowI}
+\begin{ttbox}
+by (resolve_tac [PowI] 1);
+{\out Level 7}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x <= A Int B}
+\end{ttbox}
+We perform the same replacement in the assumptions:\index{*PowD}
+\begin{ttbox}
+by (REPEAT (dresolve_tac [PowD] 1));
+{\out Level 8}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. !!x. [| x <= A; x <= B |] ==> x <= A Int B}
+\end{ttbox}
+Here, $x$ is a lower bound of $A$ and~$B$, but $A\inter B$ is the greatest
+lower bound:\index{*Int_greatest}
+\begin{ttbox}
+by (resolve_tac [Int_greatest] 1);
+{\out Level 9}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. !!x. [| x <= A; x <= B |] ==> x <= A}
+{\out  2. !!x. [| x <= A; x <= B |] ==> x <= B}
+by (REPEAT (assume_tac 1));
+{\out Level 10}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out No subgoals!}
+\end{ttbox}
+We could have performed this proof in one step by applying
+\ttindex{fast_tac} with the classical rule set \ttindex{ZF_cs}.  But we
+must add \ttindex{equalityI} as an introduction rule, since extensionality
+is not used by default:
+\begin{ttbox}
+choplev 0;
+{\out Level 0}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
+by (fast_tac (ZF_cs addIs [equalityI]) 1);
+{\out Level 1}
+{\out Pow(A Int B) = Pow(A) Int Pow(B)}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\section{Monotonicity of the union operator}
+For another example, we prove that general union is monotonic:
+${C\subseteq D}$ implies $\bigcup(C)\subseteq \bigcup(D)$.  To begin, we
+tackle the inclusion using \ttindex{subsetI}:
+\begin{ttbox}
+val [prem] = goal ZF.thy "C<=D ==> Union(C) <= Union(D)";
+{\out Level 0}
+{\out Union(C) <= Union(D)}
+{\out  1. Union(C) <= Union(D)}
+by (resolve_tac [subsetI] 1);
+{\out Level 1}
+{\out Union(C) <= Union(D)}
+{\out  1. !!x. x : Union(C) ==> x : Union(D)}
+\end{ttbox}
+Big union is like an existential quantifier --- the occurrence in the
+assumptions must be eliminated early, since it creates parameters.
+\index{*UnionE}
+\begin{ttbox}
+by (eresolve_tac [UnionE] 1);
+{\out Level 2}
+{\out Union(C) <= Union(D)}
+{\out  1. !!x B. [| x : B; B : C |] ==> x : Union(D)}
+\end{ttbox}
+Now we may apply \ttindex{UnionI}, which creates an unknown involving the
+parameters.  To show $x\in \bigcup(D)$ it suffices to show that $x$ belongs
+to some element, say~$\Var{B2}(x,B)$, of~$D$.
+\begin{ttbox}
+by (resolve_tac [UnionI] 1);
+{\out Level 3}
+{\out Union(C) <= Union(D)}
+{\out  1. !!x B. [| x : B; B : C |] ==> ?B2(x,B) : D}
+{\out  2. !!x B. [| x : B; B : C |] ==> x : ?B2(x,B)}
+\end{ttbox}
+Combining \ttindex{subsetD} with the premise $C\subseteq D$ yields 
+$\Var{a}\in C \Imp \Var{a}\in D$, which reduces subgoal~1:
+\begin{ttbox}
+by (resolve_tac [prem RS subsetD] 1);
+{\out Level 4}
+{\out Union(C) <= Union(D)}
+{\out  1. !!x B. [| x : B; B : C |] ==> ?B2(x,B) : C}
+{\out  2. !!x B. [| x : B; B : C |] ==> x : ?B2(x,B)}
+\end{ttbox}
+The rest is routine.  Note how~$\Var{B2}(x,B)$ is instantiated.
+\begin{ttbox}
+by (assume_tac 1);
+{\out Level 5}
+{\out Union(C) <= Union(D)}
+{\out  1. !!x B. [| x : B; B : C |] ==> x : B}
+by (assume_tac 1);
+{\out Level 6}
+{\out Union(C) <= Union(D)}
+{\out No subgoals!}
+\end{ttbox}
+Again, \ttindex{fast_tac} with \ttindex{ZF_cs} can do this proof in one
+step, provided we somehow supply it with~{\tt prem}.  We can either add
+this premise to the assumptions using \ttindex{cut_facts_tac}, or add
+\hbox{\tt prem RS subsetD} to \ttindex{ZF_cs} as an introduction rule.
+
+The file \ttindex{ZF/equalities.ML} has many similar proofs.
+Reasoning about general intersection can be difficult because of its anomalous
+behavior on the empty set.  However, \ttindex{fast_tac} copes well with
+these.  Here is a typical example:
+\begin{ttbox}
+a:C ==> (INT x:C. A(x) Int B(x)) = (INT x:C.A(x)) Int (INT x:C.B(x))
+\end{ttbox}
+In traditional notation this is
+\[ a\in C \,\Imp\, \bigcap@{x\in C} \Bigl(A(x) \inter B(x)\Bigr) =        
+       \Bigl(\bigcap@{x\in C} A(x)\Bigr)  \inter  
+       \Bigl(\bigcap@{x\in C} B(x)\Bigr)  \]
+
+\section{Low-level reasoning about functions}
+The derived rules {\tt lamI}, {\tt lamE}, {\tt lam_type}, {\tt beta}
+and {\tt eta} support reasoning about functions in a
+$\lambda$-calculus style.  This is generally easier than regarding
+functions as sets of ordered pairs.  But sometimes we must look at the
+underlying representation, as in the following proof
+of~\ttindex{fun_disjoint_apply1}.  This states that if $f$ and~$g$ are
+functions with disjoint domains~$A$ and~$C$, and if $a\in A$, then
+$(f\union g)`a = f`a$:
+\begin{ttbox}
+val prems = goal ZF.thy
+    "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \ttback
+\ttback    (f Un g)`a = f`a";
+{\out Level 0}
+{\out (f Un g) ` a = f ` a}
+{\out  1. (f Un g) ` a = f ` a}
+\end{ttbox}
+Using \ttindex{apply_equality}, we reduce the equality to reasoning about
+ordered pairs.
+\begin{ttbox}
+by (resolve_tac [apply_equality] 1);
+{\out Level 1}
+{\out (f Un g) ` a = f ` a}
+{\out  1. <a,f ` a> : f Un g}
+{\out  2. f Un g : (PROD x:?A. ?B(x))}
+\end{ttbox}
+We must show that the pair belongs to~$f$ or~$g$; by~\ttindex{UnI1} we
+choose~$f$:
+\begin{ttbox}
+by (resolve_tac [UnI1] 1);
+{\out Level 2}
+{\out (f Un g) ` a = f ` a}
+{\out  1. <a,f ` a> : f}
+{\out  2. f Un g : (PROD x:?A. ?B(x))}
+\end{ttbox}
+To show $\pair{a,f`a}\in f$ we use \ttindex{apply_Pair}, which is
+essentially the converse of \ttindex{apply_equality}:
+\begin{ttbox}
+by (resolve_tac [apply_Pair] 1);
+{\out Level 3}
+{\out (f Un g) ` a = f ` a}
+{\out  1. f : (PROD x:?A2. ?B2(x))}
+{\out  2. a : ?A2}
+{\out  3. f Un g : (PROD x:?A. ?B(x))}
+\end{ttbox}
+Using the premises $f\in A\to B$ and $a\in A$, we solve the two subgoals
+from \ttindex{apply_Pair}.  Recall that a $\Pi$-set is merely a generalized
+function space, and observe that~{\tt?A2} is instantiated to~{\tt A}.
+\begin{ttbox}
+by (resolve_tac prems 1);
+{\out Level 4}
+{\out (f Un g) ` a = f ` a}
+{\out  1. a : A}
+{\out  2. f Un g : (PROD x:?A. ?B(x))}
+by (resolve_tac prems 1);
+{\out Level 5}
+{\out (f Un g) ` a = f ` a}
+{\out  1. f Un g : (PROD x:?A. ?B(x))}
+\end{ttbox}
+To construct functions of the form $f\union g$, we apply
+\ttindex{fun_disjoint_Un}:
+\begin{ttbox}
+by (resolve_tac [fun_disjoint_Un] 1);
+{\out Level 6}
+{\out (f Un g) ` a = f ` a}
+{\out  1. f : ?A3 -> ?B3}
+{\out  2. g : ?C3 -> ?D3}
+{\out  3. ?A3 Int ?C3 = 0}
+\end{ttbox}
+The remaining subgoals are instances of the premises.  Again, observe how
+unknowns are instantiated:
+\begin{ttbox}
+by (resolve_tac prems 1);
+{\out Level 7}
+{\out (f Un g) ` a = f ` a}
+{\out  1. g : ?C3 -> ?D3}
+{\out  2. A Int ?C3 = 0}
+by (resolve_tac prems 1);
+{\out Level 8}
+{\out (f Un g) ` a = f ` a}
+{\out  1. A Int C = 0}
+by (resolve_tac prems 1);
+{\out Level 9}
+{\out (f Un g) ` a = f ` a}
+{\out No subgoals!}
+\end{ttbox}
+See the files \ttindex{ZF/func.ML} and \ttindex{ZF/wf.ML} for more
+examples of reasoning about functions.

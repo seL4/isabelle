@@ -1,0 +1,317 @@
+(**** FOL examples ****)
+
+Pretty.setmargin 72;  (*existing macros just allow this margin*)
+print_depth 0;
+
+(*** Intuitionistic examples ***)
+
+(*Quantifier example from Logic&Computation*)
+goal Int_Rule.thy "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
+by (resolve_tac [impI] 1);
+by (resolve_tac [allI] 1);
+by (resolve_tac [exI] 1);
+by (eresolve_tac [exE] 1);
+choplev 2;
+by (eresolve_tac [exE] 1);
+by (resolve_tac [exI] 1);
+by (eresolve_tac [allE] 1);
+by (assume_tac 1);
+
+
+(*Example of Dyckhoff's method*)
+goalw Int_Rule.thy [not_def] "~ ~ ((P-->Q) | (Q-->P))";
+by (resolve_tac [impI] 1);
+by (eresolve_tac [disj_impE] 1);
+by (eresolve_tac [imp_impE] 1);
+by (eresolve_tac [imp_impE] 1);
+by (REPEAT (eresolve_tac [FalseE] 2));
+by (assume_tac 1);
+
+
+
+- goal Int_Rule.thy "(EX ay. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
+Level 0
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+- by (resolve_tac [impI] 1);
+Level 1
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. EX y. ALL x. Q(x,y) ==> ALL x. EX y. Q(x,y)
+- by (resolve_tac [allI] 1);
+Level 2
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)
+- by (resolve_tac [exI] 1);
+Level 3
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. !!x. EX y. ALL x. Q(x,y) ==> Q(x,?y2(x))
+- by (eresolve_tac [exE] 1);
+Level 4
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. !!x y. ALL x. Q(x,y) ==> Q(x,?y2(x))
+- choplev 2;
+Level 2
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)
+- by (eresolve_tac [exE] 1);
+Level 3
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. !!x y. ALL x. Q(x,y) ==> EX y. Q(x,y)
+- by (resolve_tac [exI] 1);
+Level 4
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. !!x y. ALL x. Q(x,y) ==> Q(x,?y3(x,y))
+- by (eresolve_tac [allE] 1);
+Level 5
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+ 1. !!x y. Q(?x4(x,y),y) ==> Q(x,?y3(x,y))
+- by (assume_tac 1);
+Level 6
+(EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))
+No subgoals!
+
+
+
+> goalw Int_Rule.thy [not_def] "~ ~ ((P-->Q) | (Q-->P))";
+Level 0
+~ ~ ((P --> Q) | (Q --> P))
+ 1. ((P --> Q) | (Q --> P) --> False) --> False
+> by (resolve_tac [impI] 1);
+Level 1
+~ ~ ((P --> Q) | (Q --> P))
+ 1. (P --> Q) | (Q --> P) --> False ==> False
+> by (eresolve_tac [disj_impE] 1);
+Level 2
+~ ~ ((P --> Q) | (Q --> P))
+ 1. [| (P --> Q) --> False; (Q --> P) --> False |] ==> False
+> by (eresolve_tac [imp_impE] 1);
+Level 3
+~ ~ ((P --> Q) | (Q --> P))
+ 1. [| (Q --> P) --> False; P; Q --> False |] ==> Q
+ 2. [| (Q --> P) --> False; False |] ==> False
+> by (eresolve_tac [imp_impE] 1);
+Level 4
+~ ~ ((P --> Q) | (Q --> P))
+ 1. [| P; Q --> False; Q; P --> False |] ==> P
+ 2. [| P; Q --> False; False |] ==> Q
+ 3. [| (Q --> P) --> False; False |] ==> False
+> by (REPEAT (eresolve_tac [FalseE] 2));
+Level 5
+~ ~ ((P --> Q) | (Q --> P))
+ 1. [| P; Q --> False; Q; P --> False |] ==> P
+> by (assume_tac 1);
+Level 6
+~ ~ ((P --> Q) | (Q --> P))
+No subgoals!
+
+
+
+
+(*** Classical examples ***)
+
+goal cla_thy "EX y. ALL x. P(y)-->P(x)";
+by (resolve_tac [exCI] 1);
+by (resolve_tac [allI] 1);
+by (resolve_tac [impI] 1);
+by (eresolve_tac [allE] 1);
+prth (allI RSN (2,swap));
+by (eresolve_tac [it] 1);
+by (resolve_tac [impI] 1);
+by (eresolve_tac [notE] 1);
+by (assume_tac 1);
+goal cla_thy "EX y. ALL x. P(y)-->P(x)";
+by (best_tac FOL_dup_cs 1);
+
+
+
+- goal cla_thy "EX y. ALL x. P(y)-->P(x)";
+Level 0
+EX y. ALL x. P(y) --> P(x)
+ 1. EX y. ALL x. P(y) --> P(x)
+- by (resolve_tac [exCI] 1);
+Level 1
+EX y. ALL x. P(y) --> P(x)
+ 1. ALL y. ~(ALL x. P(y) --> P(x)) ==> ALL x. P(?a) --> P(x)
+- by (resolve_tac [allI] 1);
+Level 2
+EX y. ALL x. P(y) --> P(x)
+ 1. !!x. ALL y. ~(ALL x. P(y) --> P(x)) ==> P(?a) --> P(x)
+- by (resolve_tac [impI] 1);
+Level 3
+EX y. ALL x. P(y) --> P(x)
+ 1. !!x. [| ALL y. ~(ALL x. P(y) --> P(x)); P(?a) |] ==> P(x)
+- by (eresolve_tac [allE] 1);
+Level 4
+EX y. ALL x. P(y) --> P(x)
+ 1. !!x. [| P(?a); ~(ALL xa. P(?y3(x)) --> P(xa)) |] ==> P(x)
+- prth (allI RSN (2,swap));
+[| ~(ALL x. ?P1(x)); !!x. ~?Q ==> ?P1(x) |] ==> ?Q
+- by (eresolve_tac [it] 1);
+Level 5
+EX y. ALL x. P(y) --> P(x)
+ 1. !!x xa. [| P(?a); ~P(x) |] ==> P(?y3(x)) --> P(xa)
+- by (resolve_tac [impI] 1);
+Level 6
+EX y. ALL x. P(y) --> P(x)
+ 1. !!x xa. [| P(?a); ~P(x); P(?y3(x)) |] ==> P(xa)
+- by (eresolve_tac [notE] 1);
+Level 7
+EX y. ALL x. P(y) --> P(x)
+ 1. !!x xa. [| P(?a); P(?y3(x)) |] ==> P(x)
+- by (assume_tac 1);
+Level 8
+EX y. ALL x. P(y) --> P(x)
+No subgoals!
+- goal cla_thy "EX y. ALL x. P(y)-->P(x)";
+Level 0
+EX y. ALL x. P(y) --> P(x)
+ 1. EX y. ALL x. P(y) --> P(x)
+- by (best_tac FOL_dup_cs 1);
+Level 1
+EX y. ALL x. P(y) --> P(x)
+No subgoals!
+
+
+(**** finally, the example FOL/ex/if.ML ****)
+
+> val prems = goalw if_thy [if_def]
+#    "[| P ==> Q; ~P ==> R |] ==> if(P,Q,R)";
+Level 0
+if(P,Q,R)
+ 1. P & Q | ~P & R
+> by (Classical.fast_tac (FOL_cs addIs prems) 1);
+Level 1
+if(P,Q,R)
+No subgoals!
+> val ifI = result();
+
+
+> val major::prems = goalw if_thy [if_def]
+#    "[| if(P,Q,R);  [| P; Q |] ==> S; [| ~P; R |] ==> S |] ==> S";
+Level 0
+S
+ 1. S
+> by (cut_facts_tac [major] 1);
+Level 1
+S
+ 1. P & Q | ~P & R ==> S
+> by (Classical.fast_tac (FOL_cs addIs prems) 1);
+Level 2
+S
+No subgoals!
+> val ifE = result();
+
+> goal if_thy "if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))";
+Level 0
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+ 1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+> by (resolve_tac [iffI] 1);
+Level 1
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+ 1. if(P,if(Q,A,B),if(Q,C,D)) ==> if(Q,if(P,A,C),if(P,B,D))
+ 2. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))
+> by (eresolve_tac [ifE] 1);
+Level 2
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+ 1. [| P; if(Q,A,B) |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 2. [| ~P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 3. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))
+> by (eresolve_tac [ifE] 1);
+Level 3
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+ 1. [| P; Q; A |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 2. [| P; ~Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 3. [| ~P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 4. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))
+> by (resolve_tac [ifI] 1);
+Level 4
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+ 1. [| P; Q; A; Q |] ==> if(P,A,C)
+ 2. [| P; Q; A; ~Q |] ==> if(P,B,D)
+ 3. [| P; ~Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 4. [| ~P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 5. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))
+> by (resolve_tac [ifI] 1);
+Level 5
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+ 1. [| P; Q; A; Q; P |] ==> A
+ 2. [| P; Q; A; Q; ~P |] ==> C
+ 3. [| P; Q; A; ~Q |] ==> if(P,B,D)
+ 4. [| P; ~Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 5. [| ~P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))
+ 6. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))
+
+> choplev 0;
+Level 0
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+ 1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+> val if_cs = FOL_cs addSIs [ifI] addSEs[ifE];
+> by (Classical.fast_tac if_cs 1);
+Level 1
+if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))
+No subgoals!
+> val if_commute = result();
+
+> goal if_thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
+Level 0
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))
+ 1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))
+> by (Classical.fast_tac if_cs 1);
+Level 1
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))
+No subgoals!
+> val nested_ifs = result();
+
+
+> choplev 0;
+Level 0
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))
+ 1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))
+> by (rewrite_goals_tac [if_def]);
+Level 1
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))
+ 1. (P & Q | ~P & R) & A | ~(P & Q | ~P & R) & B <->
+    P & (Q & A | ~Q & B) | ~P & (R & A | ~R & B)
+> by (Classical.fast_tac FOL_cs 1);
+Level 2
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))
+No subgoals!
+
+
+> goal if_thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
+Level 0
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))
+ 1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))
+> by (REPEAT (Classical.step_tac if_cs 1));
+Level 1
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))
+ 1. [| A; ~P; R; ~P; R |] ==> B
+ 2. [| B; ~P; ~R; ~P; ~R |] ==> A
+ 3. [| ~P; R; B; ~P; R |] ==> A
+ 4. [| ~P; ~R; A; ~B; ~P |] ==> R
+
+> choplev 0;
+Level 0
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))
+ 1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))
+> by (rewrite_goals_tac [if_def]);
+Level 1
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))
+ 1. (P & Q | ~P & R) & A | ~(P & Q | ~P & R) & B <->
+    P & (Q & A | ~Q & B) | ~P & (R & B | ~R & A)
+> by (Classical.fast_tac FOL_cs 1);
+by: tactic failed
+Exception- ERROR raised
+Exception failure raised
+
+> by (REPEAT (Classical.step_tac FOL_cs 1));
+Level 2
+if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))
+ 1. [| A; ~P; R; ~P; R; ~False |] ==> B
+ 2. [| A; ~P; R; R; ~False; ~B; ~B |] ==> Q
+ 3. [| B; ~P; ~R; ~P; ~A |] ==> R
+ 4. [| B; ~P; ~R; ~Q; ~A |] ==> R
+ 5. [| B; ~R; ~P; ~A; ~R; Q; ~False |] ==> A
+ 6. [| ~P; R; B; ~P; R; ~False |] ==> A
+ 7. [| ~P; ~R; A; ~B; ~R |] ==> P
+ 8. [| ~P; ~R; A; ~B; ~R |] ==> Q

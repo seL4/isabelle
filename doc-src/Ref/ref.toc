@@ -1,0 +1,143 @@
+\contentsline {chapter}{\numberline {1}Introduction}{1}
+\contentsline {section}{\numberline {1.1}Basic interaction with Isabelle}{1}
+\contentsline {section}{\numberline {1.2}Ending a session}{2}
+\contentsline {section}{\numberline {1.3}Reading files of proofs and theories}{2}
+\contentsline {section}{\numberline {1.4}Printing of terms and theorems}{2}
+\contentsline {subsection}{Printing limits}{3}
+\contentsline {subsection}{Printing of meta-level hypotheses}{3}
+\contentsline {subsection}{Printing of types and sorts}{3}
+\contentsline {subsection}{$\eta $-contraction before printing}{3}
+\contentsline {section}{\numberline {1.5}Displaying exceptions as error messages}{4}
+\contentsline {section}{\numberline {1.6}Shell scripts}{4}
+\contentsline {chapter}{\numberline {2}Proof Management: The Subgoal Module}{6}
+\contentsline {section}{\numberline {2.1}Basic commands}{6}
+\contentsline {subsection}{Starting a backward proof}{6}
+\contentsline {subsection}{Applying a tactic}{7}
+\contentsline {subsection}{Extracting the proved theorem}{8}
+\contentsline {subsection}{Undoing and backtracking}{8}
+\contentsline {subsection}{Printing the proof state}{9}
+\contentsline {subsection}{Timing}{9}
+\contentsline {section}{\numberline {2.2}Shortcuts for applying tactics}{9}
+\contentsline {subsection}{Refining a given subgoal}{9}
+\contentsline {subsubsection}{Resolution with a list of theorems}{9}
+\contentsline {subsection}{Scanning shortcuts}{10}
+\contentsline {subsubsection}{Proof by assumption and resolution}{10}
+\contentsline {subsubsection}{Resolution with a list of theorems}{10}
+\contentsline {subsection}{Other shortcuts}{10}
+\contentsline {section}{\numberline {2.3}Advanced features}{11}
+\contentsline {subsection}{Executing batch proofs}{11}
+\contentsline {subsection}{Managing multiple proofs}{11}
+\contentsline {subsubsection}{The stack of proof states}{12}
+\contentsline {subsubsection}{Saving and restoring proof states}{12}
+\contentsline {subsection}{Debugging and inspecting}{12}
+\contentsline {subsubsection}{Reading and printing terms}{13}
+\contentsline {subsubsection}{Inspecting the proof state}{13}
+\contentsline {subsubsection}{Filtering lists of rules}{13}
+\contentsline {chapter}{\numberline {3}Tactics}{14}
+\contentsline {section}{\numberline {3.1}Resolution and assumption tactics}{14}
+\contentsline {subsection}{Resolution tactics}{14}
+\contentsline {subsection}{Assumption tactics}{15}
+\contentsline {subsection}{Matching tactics}{15}
+\contentsline {subsection}{Resolution with instantiation}{15}
+\contentsline {section}{\numberline {3.2}Other basic tactics}{16}
+\contentsline {subsection}{Definitions and meta-level rewriting}{16}
+\contentsline {subsection}{Tactic shortcuts}{17}
+\contentsline {subsection}{Inserting premises and facts}{17}
+\contentsline {subsection}{Theorems useful with tactics}{18}
+\contentsline {section}{\numberline {3.3}Obscure tactics}{18}
+\contentsline {subsection}{Tidying the proof state}{18}
+\contentsline {subsection}{Renaming parameters in a goal}{18}
+\contentsline {subsection}{Composition: resolution without lifting}{19}
+\contentsline {section}{\numberline {3.4}Managing lots of rules}{19}
+\contentsline {subsection}{Combined resolution and elim-resolution}{20}
+\contentsline {subsection}{Discrimination nets for fast resolution}{20}
+\contentsline {section}{\numberline {3.5}Programming tools for proof strategies}{21}
+\contentsline {subsection}{Operations on type {\ptt tactic}}{22}
+\contentsline {subsection}{Tracing}{22}
+\contentsline {subsection}{Sequences}{23}
+\contentsline {subsubsection}{Basic operations on sequences}{23}
+\contentsline {subsubsection}{Converting between sequences and lists}{23}
+\contentsline {subsubsection}{Combining sequences}{23}
+\contentsline {chapter}{\numberline {4}Tacticals}{25}
+\contentsline {section}{\numberline {4.1}The basic tacticals}{25}
+\contentsline {subsection}{Joining two tactics}{25}
+\contentsline {subsection}{Joining a list of tactics}{25}
+\contentsline {subsection}{Repetition tacticals}{26}
+\contentsline {subsection}{Identities for tacticals}{26}
+\contentsline {section}{\numberline {4.2}Control and search tacticals}{27}
+\contentsline {subsection}{Filtering a tactic's results}{27}
+\contentsline {subsection}{Depth-first search}{28}
+\contentsline {subsection}{Other search strategies}{28}
+\contentsline {subsection}{Auxiliary tacticals for searching}{29}
+\contentsline {subsection}{Predicates and functions useful for searching}{29}
+\contentsline {section}{\numberline {4.3}Tacticals for subgoal numbering}{29}
+\contentsline {subsection}{Restricting a tactic to one subgoal}{30}
+\contentsline {subsection}{Scanning for a subgoal by number}{31}
+\contentsline {subsection}{Joining tactic functions}{32}
+\contentsline {subsection}{Applying a list of tactics to 1}{32}
+\contentsline {chapter}{\numberline {5}Theorems and Forward Proof}{33}
+\contentsline {section}{\numberline {5.1}Basic operations on theorems}{33}
+\contentsline {subsection}{Pretty-printing a theorem}{33}
+\contentsline {subsubsection}{Top-level commands}{33}
+\contentsline {subsubsection}{Operations for programming}{34}
+\contentsline {subsection}{Forwards proof: joining rules by resolution}{34}
+\contentsline {subsection}{Expanding definitions in theorems}{35}
+\contentsline {subsection}{Instantiating a theorem}{35}
+\contentsline {subsection}{Miscellaneous forward rules}{35}
+\contentsline {subsection}{Taking a theorem apart}{36}
+\contentsline {subsection}{Tracing flags for unification}{36}
+\contentsline {section}{\numberline {5.2}Primitive meta-level inference rules}{37}
+\contentsline {subsection}{Propositional rules}{38}
+\contentsline {subsubsection}{Assumption}{38}
+\contentsline {subsubsection}{Implication}{38}
+\contentsline {subsubsection}{Logical equivalence (equality)}{39}
+\contentsline {subsection}{Equality rules}{39}
+\contentsline {subsection}{The $\lambda $-conversion rules}{39}
+\contentsline {subsection}{Universal quantifier rules}{40}
+\contentsline {subsubsection}{Forall introduction}{40}
+\contentsline {subsubsection}{Forall elimination}{40}
+\contentsline {subsubsection}{Instantiation of unknowns}{41}
+\contentsline {subsection}{Freezing/thawing type variables}{41}
+\contentsline {section}{\numberline {5.3}Derived rules for goal-directed proof}{41}
+\contentsline {subsection}{Proof by assumption}{41}
+\contentsline {subsection}{Resolution}{41}
+\contentsline {subsection}{Composition: resolution without lifting}{42}
+\contentsline {subsection}{Other meta-rules}{42}
+\contentsline {chapter}{\numberline {6}Theories, Terms and Types}{44}
+\contentsline {section}{\numberline {6.1}Defining Theories}{44}
+\contentsline {section}{\numberline {6.2}Basic operations on theories}{47}
+\contentsline {subsection}{Extracting an axiom from a theory}{47}
+\contentsline {subsection}{Building a theory}{47}
+\contentsline {subsection}{Inspecting a theory}{48}
+\contentsline {section}{\numberline {6.3}Terms}{49}
+\contentsline {section}{\numberline {6.4}Certified terms}{50}
+\contentsline {subsection}{Printing terms}{50}
+\contentsline {subsection}{Making and inspecting certified terms}{50}
+\contentsline {section}{\numberline {6.5}Types}{51}
+\contentsline {section}{\numberline {6.6}Certified types}{51}
+\contentsline {subsection}{Printing types}{51}
+\contentsline {subsection}{Making and inspecting certified types}{51}
+\contentsline {chapter}{\numberline {7}Substitution Tactics}{53}
+\contentsline {section}{\numberline {7.1}Simple substitution}{53}
+\contentsline {section}{\numberline {7.2}Substitution in the hypotheses}{54}
+\contentsline {section}{\numberline {7.3}Setting up {\ptt hyp_subst_tac}}{54}
+\contentsline {chapter}{\numberline {8}Simplification}{57}
+\contentsline {section}{\numberline {8.1}Simplification sets}{57}
+\contentsline {subsection}{Rewrite rules}{57}
+\contentsline {subsection}{Congruence rules}{58}
+\contentsline {subsection}{The subgoaler}{58}
+\contentsline {subsection}{The solver}{59}
+\contentsline {subsection}{The looper}{59}
+\contentsline {section}{\numberline {8.2}The simplification tactics}{59}
+\contentsline {section}{\numberline {8.3}Example: using the simplifier}{60}
+\contentsline {chapter}{\numberline {9}The classical theorem prover}{64}
+\contentsline {section}{\numberline {9.1}The sequent calculus}{64}
+\contentsline {section}{\numberline {9.2}Simulating sequents by natural deduction}{65}
+\contentsline {section}{\numberline {9.3}Extra rules for the sequent calculus}{66}
+\contentsline {section}{\numberline {9.4}Classical rule sets}{67}
+\contentsline {section}{\numberline {9.5}The classical tactics}{68}
+\contentsline {subsection}{Single-step tactics}{69}
+\contentsline {subsection}{The automatic tactics}{69}
+\contentsline {subsection}{Other useful tactics}{69}
+\contentsline {subsection}{Creating swapped rules}{70}
+\contentsline {section}{\numberline {9.6}Setting up the classical prover}{70}

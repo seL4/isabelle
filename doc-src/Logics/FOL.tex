@@ -1,0 +1,918 @@
+%% $Id$
+\chapter{First-order logic}
+The directory~\ttindexbold{FOL} contains theories for first-order logic
+based on Gentzen's natural deduction systems (which he called {\sc nj} and
+{\sc nk}).  Intuitionistic logic is defined first; then classical logic is
+obtained by adding the double negation rule.  Basic proof procedures are
+provided.  The intuitionistic prover works with derived rules to simplify
+implications in the assumptions.  Classical logic makes use of Isabelle's
+generic prover for classical reasoning, which simulates a sequent calculus.
+
+\section{Syntax and rules of inference}
+The logic is many-sorted, using Isabelle's type classes.  The
+class of first-order terms is called {\it term} and is a subclass of
+{\it logic}.  No types of individuals
+are provided, but extensions can define types such as $nat::term$ and type
+constructors such as $list::(term)term$.  See the examples directory.
+Below, the type variable $\alpha$ ranges over class {\it term\/}; the
+equality symbol and quantifiers are polymorphic (many-sorted).  The type of
+formulae is~{\it o}, which belongs to class {\it logic}.
+Figure~\ref{fol-syntax} gives the syntax.  Note that $a$\verb|~=|$b$ is
+translated to \verb|~(|$a$=$b$\verb|)|.
+
+The intuitionistic theory has the \ML\ identifier
+\ttindexbold{IFOL.thy}.  Figure~\ref{fol-rules} shows the inference
+rules with their~\ML\ names.  Negation is defined in the usual way for
+intuitionistic logic; $\neg P$ abbreviates $P\imp\bot$.  The
+biconditional~($\bimp$) is defined through $\conj$ and~$\imp$; introduction
+and elimination rules are derived for it.  
+
+The unique existence quantifier, $\exists!x.P(x)$, is defined in terms
+of~$\exists$ and~$\forall$.  An Isabelle binder, it admits nested
+quantifications.  For instance, $\exists!x y.P(x,y)$ abbreviates
+$\exists!x. \exists!y.P(x,y)$; note that this does not mean that there
+exists a unique pair $(x,y)$ satisfying~$P(x,y)$.
+
+Some intuitionistic derived rules are shown in
+Figure~\ref{fol-int-derived}, again with their \ML\ names.  These include
+rules for the defined symbols $\neg$, $\bimp$ and $\exists!$.  Natural
+deduction typically involves a combination of forwards and backwards
+reasoning, particularly with the destruction rules $(\conj E)$,
+$({\imp}E)$, and~$(\forall E)$.  Isabelle's backwards style handles these
+rules badly, so sequent-style rules are derived to eliminate conjunctions,
+implications, and universal quantifiers.  Used with elim-resolution,
+\ttindex{allE} eliminates a universal quantifier while \ttindex{all_dupE}
+re-inserts the quantified formula for later use.  The rules {\tt
+conj_impE}, etc., support the intuitionistic proof procedure
+(see~\S\ref{fol-int-prover}).
+
+See the files \ttindexbold{FOL/ifol.thy}, \ttindexbold{FOL/ifol.ML} and
+\ttindexbold{FOL/int-prover.ML} for complete listings of the rules and
+derived rules.
+
+\begin{figure} 
+\begin{center}
+\begin{tabular}{rrr} 
+  \it name    	&\it meta-type 	& \it description \\ 
+  \idx{Trueprop}& $o\To prop$		& coercion to $prop$\\
+  \idx{Not}	& $o\To o$		& negation ($\neg$) \\
+  \idx{True}	& $o$			& tautology ($\top$) \\
+  \idx{False}	& $o$			& absurdity ($\bot$)
+\end{tabular}
+\end{center}
+\subcaption{Constants}
+
+\begin{center}
+\begin{tabular}{llrrr} 
+  \it symbol &\it name	   &\it meta-type & \it precedence & \it description \\
+  \idx{ALL}  & \idx{All}  & $(\alpha\To o)\To o$ & 10 & 
+	universal quantifier ($\forall$) \\
+  \idx{EX}   & \idx{Ex}   & $(\alpha\To o)\To o$ & 10 & 
+	existential quantifier ($\exists$) \\
+  \idx{EX!}  & \idx{Ex1}  & $(\alpha\To o)\To o$ & 10 & 
+	unique existence ($\exists!$)
+\end{tabular}
+\end{center}
+\subcaption{Binders} 
+
+\begin{center}
+\indexbold{*"=}
+\indexbold{&@{\tt\&}}
+\indexbold{*"|}
+\indexbold{*"-"-">}
+\indexbold{*"<"-">}
+\begin{tabular}{rrrr} 
+  \it symbol  	& \it meta-type & \it precedence & \it description \\ 
+  \tt =		& $[\alpha,\alpha]\To o$ & Left 50 & equality ($=$) \\
+  \tt \& 	& $[o,o]\To o$ 		& Right 35 & conjunction ($\conj$) \\
+  \tt |		& $[o,o]\To o$ 		& Right 30 & disjunction ($\disj$) \\
+  \tt --> 	& $[o,o]\To o$ 		& Right 25 & implication ($\imp$) \\
+  \tt <-> 	& $[o,o]\To o$ 		& Right 25 & biconditional ($\bimp$) 
+\end{tabular}
+\end{center}
+\subcaption{Infixes}
+
+\dquotes
+\[\begin{array}{rcl}
+ formula & = & \hbox{expression of type~$o$} \\
+	 & | & term " = " term \\
+	 & | & term " \ttilde= " term \\
+	 & | & "\ttilde\ " formula \\
+	 & | & formula " \& " formula \\
+	 & | & formula " | " formula \\
+	 & | & formula " --> " formula \\
+	 & | & formula " <-> " formula \\
+	 & | & "ALL~" id~id^* " . " formula \\
+	 & | & "EX~~" id~id^* " . " formula \\
+	 & | & "EX!~" id~id^* " . " formula
+  \end{array}
+\]
+\subcaption{Grammar}
+\caption{Syntax of {\tt FOL}} \label{fol-syntax}
+\end{figure}
+
+
+\begin{figure} 
+\begin{ttbox}
+\idx{refl}        a=a
+\idx{subst}       [| a=b;  P(a) |] ==> P(b)
+\subcaption{Equality rules}
+
+\idx{conjI}       [| P;  Q |] ==> P&Q
+\idx{conjunct1}   P&Q ==> P
+\idx{conjunct2}   P&Q ==> Q
+
+\idx{disjI1}      P ==> P|Q
+\idx{disjI2}      Q ==> P|Q
+\idx{disjE}       [| P|Q;  P ==> R;  Q ==> R |] ==> R
+
+\idx{impI}        (P ==> Q) ==> P-->Q
+\idx{mp}          [| P-->Q;  P |] ==> Q
+
+\idx{FalseE}      False ==> P
+\subcaption{Propositional rules}
+
+\idx{allI}        (!!x. P(x))  ==> (ALL x.P(x))
+\idx{spec}        (ALL x.P(x)) ==> P(x)
+
+\idx{exI}         P(x) ==> (EX x.P(x))
+\idx{exE}         [| EX x.P(x);  !!x. P(x) ==> R |] ==> R
+\subcaption{Quantifier rules}
+
+\idx{True_def}    True        == False-->False
+\idx{not_def}     ~P          == P-->False
+\idx{iff_def}     P<->Q       == (P-->Q) & (Q-->P)
+\idx{ex1_def}     EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)
+\subcaption{Definitions}
+\end{ttbox}
+
+\caption{Rules of intuitionistic {\tt FOL}} \label{fol-rules}
+\end{figure}
+
+
+\begin{figure} 
+\begin{ttbox}
+\idx{sym}       a=b ==> b=a
+\idx{trans}     [| a=b;  b=c |] ==> a=c
+\idx{ssubst}    [| b=a;  P(a) |] ==> P(b)
+\subcaption{Derived equality rules}
+
+\idx{TrueI}     True
+
+\idx{notI}      (P ==> False) ==> ~P
+\idx{notE}      [| ~P;  P |] ==> R
+
+\idx{iffI}      [| P ==> Q;  Q ==> P |] ==> P<->Q
+\idx{iffE}      [| P <-> Q;  [| P-->Q; Q-->P |] ==> R |] ==> R
+\idx{iffD1}     [| P <-> Q;  P |] ==> Q            
+\idx{iffD2}     [| P <-> Q;  Q |] ==> P
+
+\idx{ex1I}      [| P(a);  !!x. P(x) ==> x=a |]  ==>  EX! x. P(x)
+\idx{ex1E}      [| EX! x.P(x);  !!x.[| P(x);  ALL y. P(y) --> y=x |] ==> R 
+          |] ==> R
+\subcaption{Derived rules for \(\top\), \(\neg\), \(\bimp\) and \(\exists!\)}
+
+\idx{conjE}     [| P&Q;  [| P; Q |] ==> R |] ==> R
+\idx{impE}      [| P-->Q;  P;  Q ==> R |] ==> R
+\idx{allE}      [| ALL x.P(x);  P(x) ==> R |] ==> R
+\idx{all_dupE}  [| ALL x.P(x);  [| P(x); ALL x.P(x) |] ==> R |] ==> R
+\subcaption{Sequent-style elimination rules}
+
+\idx{conj_impE} [| (P&Q)-->S;  P-->(Q-->S) ==> R |] ==> R
+\idx{disj_impE} [| (P|Q)-->S;  [| P-->S; Q-->S |] ==> R |] ==> R
+\idx{imp_impE}  [| (P-->Q)-->S;  [| P; Q-->S |] ==> Q;  S ==> R |] ==> R
+\idx{not_impE}  [| ~P --> S;  P ==> False;  S ==> R |] ==> R
+\idx{iff_impE}  [| (P<->Q)-->S; [| P; Q-->S |] ==> Q; [| Q; P-->S |] ==> P;
+             S ==> R |] ==> R
+\idx{all_impE}  [| (ALL x.P(x))-->S;  !!x.P(x);  S ==> R |] ==> R
+\idx{ex_impE}   [| (EX x.P(x))-->S;  P(a)-->S ==> R |] ==> R
+\end{ttbox}
+\subcaption{Intuitionistic simplification of implication}
+\caption{Derived rules for {\tt FOL}} \label{fol-int-derived}
+\end{figure}
+
+
+\section{Generic packages}
+\FOL{} instantiates most of Isabelle's generic packages;
+see \ttindexbold{FOL/ROOT.ML} for details.
+\begin{itemize}
+\item 
+Because it includes a general substitution rule, \FOL{} instantiates the
+tactic \ttindex{hyp_subst_tac}, which substitutes for an equality
+throughout a subgoal and its hypotheses.
+\item 
+It instantiates the simplifier. \ttindexbold{IFOL_ss} is the simplification
+set for intuitionistic first-order logic, while \ttindexbold{FOL_ss} is the
+simplification set for classical logic.  Both equality ($=$) and the
+biconditional ($\bimp$) may be used for rewriting.  See the file
+\ttindexbold{FOL/simpdata.ML} for a complete listing of the simplification
+rules. 
+\item 
+It instantiates the classical reasoning module.  See~\S\ref{fol-cla-prover}
+for details. 
+\end{itemize}
+
+
+\section{Intuitionistic proof procedures} \label{fol-int-prover}
+Implication elimination (the rules~{\tt mp} and~{\tt impE}) pose
+difficulties for automated proof.  Given $P\imp Q$ we may assume $Q$
+provided we can prove $P$.  In classical logic the proof of $P$ can assume
+$\neg P$, but the intuitionistic proof of $P$ may require repeated use of
+$P\imp Q$.  If the proof of $P$ fails then the whole branch of the proof
+must be abandoned.  Thus intuitionistic propositional logic requires
+backtracking.  For an elementary example, consider the intuitionistic proof
+of $Q$ from $P\imp Q$ and $(P\imp Q)\imp P$.  The implication $P\imp Q$ is
+needed twice:
+\[ \infer[({\imp}E)]{Q}{P\imp Q &
+       \infer[({\imp}E)]{P}{(P\imp Q)\imp P & P\imp Q}} 
+\]
+The theorem prover for intuitionistic logic does not use~{\tt impE}.\@
+Instead, it simplifies implications using derived rules
+(Figure~\ref{fol-int-derived}).  It reduces the antecedents of implications
+to atoms and then uses Modus Ponens: from $P\imp Q$ and $P$ deduce~$Q$.
+The rules \ttindex{conj_impE} and \ttindex{disj_impE} are 
+straightforward: $(P\conj Q)\imp S$ is equivalent to $P\imp (Q\imp S)$, and
+$(P\disj Q)\imp S$ is equivalent to the conjunction of $P\imp S$ and $Q\imp
+S$.  The other \ldots{\tt_impE} rules are unsafe; the method requires
+backtracking.  Observe that \ttindex{imp_impE} does not admit the (unsound)
+inference of~$P$ from $(P\imp Q)\imp S$.  All the rules are derived in
+essentially the same simple manner.
+
+Dyckhoff has independently discovered similar rules, and (more importantly)
+has demonstrated their completeness for propositional
+logic~\cite{dyckhoff}.  However, the tactics given below are not complete
+for first-order logic because they discard universally quantified
+assumptions after a single use.
+\begin{ttbox} 
+mp_tac            : int -> tactic
+eq_mp_tac         : int -> tactic
+Int.safe_step_tac : int -> tactic
+Int.safe_tac      :        tactic
+Int.step_tac      : int -> tactic
+Int.fast_tac      : int -> tactic
+Int.best_tac      : int -> tactic
+\end{ttbox}
+Most of these belong to the structure \ttindexbold{Int}.  They are
+similar or identical to tactics (with the same names) provided by
+Isabelle's classical module (see {\em The Isabelle Reference Manual\/}).
+
+\begin{description}
+\item[\ttindexbold{mp_tac} {\it i}] 
+attempts to use \ttindex{notE} or \ttindex{impE} within the assumptions in
+subgoal $i$.  For each assumption of the form $\neg P$ or $P\imp Q$, it
+searches for another assumption unifiable with~$P$.  By
+contradiction with $\neg P$ it can solve the subgoal completely; by Modus
+Ponens it can replace the assumption $P\imp Q$ by $Q$.  The tactic can
+produce multiple outcomes, enumerating all suitable pairs of assumptions.
+
+\item[\ttindexbold{eq_mp_tac} {\it i}] 
+is like {\tt mp_tac} {\it i}, but may not instantiate unknowns --- thus, it
+is safe.
+
+\item[\ttindexbold{Int.safe_step_tac} $i$] performs a safe step on
+subgoal~$i$.  This may include proof by assumption or Modus Ponens, taking
+care not to instantiate unknowns, or \ttindex{hyp_subst_tac}. 
+
+\item[\ttindexbold{Int.safe_tac}] repeatedly performs safe steps on all 
+subgoals.  It is deterministic, with at most one outcome.
+
+\item[\ttindexbold{Int.inst_step_tac} $i$] is like {\tt safe_step_tac},
+but allows unknowns to be instantiated.
+
+\item[\ttindexbold{step_tac} $i$] tries {\tt safe_tac} or {\tt
+inst_step_tac}, or applies an unsafe rule.  This is the basic step of the
+proof procedure.
+
+\item[\ttindexbold{Int.step_tac} $i$] tries {\tt safe_tac} or
+certain unsafe inferences.  This is the basic step of the intuitionistic
+proof procedure.
+
+\item[\ttindexbold{Int.fast_tac} $i$] applies {\tt step_tac}, using
+depth-first search, to solve subgoal~$i$.
+
+\item[\ttindexbold{Int.best_tac} $i$] applies {\tt step_tac}, using
+best-first search (guided by the size of the proof state) to solve subgoal~$i$.
+\end{description}
+Here are some of the theorems that {\tt Int.fast_tac} proves
+automatically.  The latter three date from {\it Principia Mathematica}
+(*11.53, *11.55, *11.61)~\cite{principia}.
+\begin{ttbox}
+~~P & ~~(P --> Q) --> ~~Q
+(ALL x y. P(x) --> Q(y)) <-> ((EX x. P(x)) --> (ALL y. Q(y)))
+(EX x y. P(x) & Q(x,y)) <-> (EX x. P(x) & (EX y. Q(x,y)))
+(EX y. ALL x. P(x) --> Q(x,y)) --> (ALL x. P(x) --> (EX y. Q(x,y)))
+\end{ttbox}
+
+
+
+\begin{figure} 
+\begin{ttbox}
+\idx{excluded_middle}    ~P | P
+
+\idx{disjCI}    (~Q ==> P) ==> P|Q
+\idx{exCI}      (ALL x. ~P(x) ==> P(a)) ==> EX x.P(x)
+\idx{impCE}     [| P-->Q; ~P ==> R; Q ==> R |] ==> R
+\idx{iffCE}     [| P<->Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R
+\idx{notnotD}   ~~P ==> P
+\idx{swap}      ~P ==> (~Q ==> P) ==> Q
+\end{ttbox}
+\caption{Derived rules for classical logic} \label{fol-cla-derived}
+\end{figure}
+
+
+\section{Classical proof procedures} \label{fol-cla-prover}
+The classical theory has the \ML\ identifier \ttindexbold{FOL.thy}.  It
+consists of intuitionistic logic plus the rule 
+$$ \vcenter{\infer{P}{\infer*{P}{[\neg P]}}} \eqno(classical) $$
+\noindent
+Natural deduction in classical logic is not really all that natural.
+{\FOL} derives classical introduction rules for $\disj$ and~$\exists$, as
+well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
+rule (see Figure~\ref{fol-cla-derived}).
+
+The classical reasoning module is set up for \FOL, as the
+structure~\ttindexbold{Cla}.  This structure is open, so \ML{} identifiers
+such as {\tt step_tac}, {\tt fast_tac}, {\tt best_tac}, etc., refer to it.
+Single-step proofs can be performed, using \ttindex{swap_res_tac} to deal
+with negated assumptions.
+
+{\FOL} defines the following classical rule sets:
+\begin{ttbox} 
+prop_cs    : claset
+FOL_cs     : claset
+FOL_dup_cs : claset
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{prop_cs}] contains the propositional rules, namely
+those for~$\top$, $\bot$, $\conj$, $\disj$, $\neg$, $\imp$ and~$\bimp$,
+along with the rule~\ttindex{refl}.
+
+\item[\ttindexbold{FOL_cs}] 
+extends {\tt prop_cs} with the safe rules \ttindex{allI} and~\ttindex{exE}
+and the unsafe rules \ttindex{allE} and~\ttindex{exI}, as well as rules for
+unique existence.  Search using this is incomplete since quantified
+formulae are used at most once.
+
+\item[\ttindexbold{FOL_dup_cs}] 
+extends {\tt prop_cs} with the safe rules \ttindex{allI} and~\ttindex{exE}
+and the unsafe rules \ttindex{all_dupE} and~\ttindex{exCI}, as well as
+rules for unique existence.  Search using this is complete --- quantified
+formulae may be duplicated --- but frequently fails to terminate.  It is
+generally unsuitable for depth-first search.
+\end{description}
+\noindent
+See the file \ttindexbold{FOL/fol.ML} for derivations of the
+classical rules, and the {\em Reference Manual} for more discussion of
+classical proof methods.
+
+
+\section{An intuitionistic example}
+Here is a session similar to one in {\em Logic and Computation}
+\cite[pages~222--3]{paulson87}.  Isabelle treats quantifiers differently
+from {\sc lcf}-based theorem provers such as {\sc hol}.  The proof begins
+by entering the goal in intuitionistic logic, then applying the rule
+$({\imp}I)$.
+\begin{ttbox}
+goal IFOL.thy "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
+{\out Level 0}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+\ttbreak
+by (resolve_tac [impI] 1);
+{\out Level 1}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. EX y. ALL x. Q(x,y) ==> ALL x. EX y. Q(x,y)}
+\end{ttbox}
+In this example we will never have more than one subgoal.  Applying
+$({\imp}I)$ replaces~\verb|-->| by~\verb|==>|, making
+\(\ex{y}\all{x}Q(x,y)\) an assumption.  We have the choice of
+$({\exists}E)$ and $({\forall}I)$; let us try the latter.
+\begin{ttbox}
+by (resolve_tac [allI] 1);
+{\out Level 2}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)}
+\end{ttbox}
+Applying $({\forall}I)$ replaces the \hbox{\tt ALL x} by \hbox{\tt!!x},
+changing the universal quantifier from object~($\forall$) to
+meta~($\Forall$).  The bound variable is a {\em parameter\/} of the
+subgoal.  We now must choose between $({\exists}I)$ and $({\exists}E)$.  What
+happens if the wrong rule is chosen?
+\begin{ttbox}
+by (resolve_tac [exI] 1);
+{\out Level 3}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. !!x. EX y. ALL x. Q(x,y) ==> Q(x,?y2(x))}
+\end{ttbox}
+The new subgoal~1 contains the function variable {\tt?y2}.  Instantiating
+{\tt?y2} can replace~{\tt?y2(x)} by a term containing~{\tt x}, even
+though~{\tt x} is a bound variable.  Now we analyse the assumption
+\(\exists y.\forall x. Q(x,y)\) using elimination rules:
+\begin{ttbox}
+by (eresolve_tac [exE] 1);
+{\out Level 4}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. !!x y. ALL x. Q(x,y) ==> Q(x,?y2(x))}
+\end{ttbox}
+Applying $(\exists E)$ has produced the parameter {\tt y} and stripped the
+existential quantifier from the assumption.  But the subgoal is unprovable.
+There is no way to unify {\tt ?y2(x)} with the bound variable~{\tt y}:
+assigning \verb|%x.y| to {\tt ?y2} is illegal because {\tt ?y2} is in the
+scope of the bound variable {\tt y}.  Using \ttindex{choplev} we
+can return to the mistake.  This time we apply $({\exists}E)$:
+\begin{ttbox}
+choplev 2;
+{\out Level 2}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)}
+\ttbreak
+by (eresolve_tac [exE] 1);
+{\out Level 3}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. !!x y. ALL x. Q(x,y) ==> EX y. Q(x,y)}
+\end{ttbox}
+We now have two parameters and no scheme variables.  Parameters should be
+produced early.  Applying $({\exists}I)$ and $({\forall}E)$ will produce
+two scheme variables.
+\begin{ttbox}
+by (resolve_tac [exI] 1);
+{\out Level 4}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. !!x y. ALL x. Q(x,y) ==> Q(x,?y3(x,y))}
+\ttbreak
+by (eresolve_tac [allE] 1);
+{\out Level 5}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. !!x y. Q(?x4(x,y),y) ==> Q(x,?y3(x,y))}
+\end{ttbox}
+The subgoal has variables {\tt ?y3} and {\tt ?x4} applied to both
+parameters.  The obvious projection functions unify {\tt?x4(x,y)} with~{\tt
+x} and \verb|?y3(x,y)| with~{\tt y}.
+\begin{ttbox}
+by (assume_tac 1);
+{\out Level 6}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out No subgoals!}
+\end{ttbox}
+The theorem was proved in six tactic steps, not counting the abandoned
+ones.  But proof checking is tedious; {\tt Int.fast_tac} proves the
+theorem in one step.
+\begin{ttbox}
+goal IFOL.thy "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
+{\out Level 0}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out  1. (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+by (Int.fast_tac 1);
+{\out Level 1}
+{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\section{An example of intuitionistic negation}
+The following example demonstrates the specialized forms of implication
+elimination.  Even propositional formulae can be difficult to prove from
+the basic rules; the specialized rules help considerably.  
+
+Propositional examples are easy to invent, for as Dummett notes~\cite[page
+28]{dummett}, $\neg P$ is classically provable if and only if it is
+intuitionistically provable.  Therefore, $P$ is classically provable if and
+only if $\neg\neg P$ is intuitionistically provable.  In both cases, $P$
+must be a propositional formula (no quantifiers).  Our example,
+accordingly, is the double negation of a classical tautology: $(P\imp
+Q)\disj (Q\imp P)$.
+
+When stating the goal, we command Isabelle to expand the negation symbol,
+using the definition $\neg P\equiv P\imp\bot$.  Although negation possesses
+derived rules that effect precisely this definition --- the automatic
+tactics apply them --- it seems more straightforward to unfold the
+negations.
+\begin{ttbox}
+goalw IFOL.thy [not_def] "~ ~ ((P-->Q) | (Q-->P))";
+{\out Level 0}
+{\out ~ ~ ((P --> Q) | (Q --> P))}
+{\out  1. ((P --> Q) | (Q --> P) --> False) --> False}
+\end{ttbox}
+The first step is trivial.
+\begin{ttbox}
+by (resolve_tac [impI] 1);
+{\out Level 1}
+{\out ~ ~ ((P --> Q) | (Q --> P))}
+{\out  1. (P --> Q) | (Q --> P) --> False ==> False}
+\end{ttbox}
+Proving $(P\imp Q)\disj (Q\imp P)$ would suffice, but this formula is
+constructively invalid.  Instead we apply \ttindex{disj_impE}.  It splits
+the assumption into two parts, one for each disjunct.
+\begin{ttbox}
+by (eresolve_tac [disj_impE] 1);
+{\out Level 2}
+{\out ~ ~ ((P --> Q) | (Q --> P))}
+{\out  1. [| (P --> Q) --> False; (Q --> P) --> False |] ==> False}
+\end{ttbox}
+We cannot hope to prove $P\imp Q$ or $Q\imp P$ separately, but
+their negations are inconsistent.  Applying \ttindex{imp_impE} breaks down
+the assumption $\neg(P\imp Q)$, asking to show~$Q$ while providing new
+assumptions~$P$ and~$\neg Q$.
+\begin{ttbox}
+by (eresolve_tac [imp_impE] 1);
+{\out Level 3}
+{\out ~ ~ ((P --> Q) | (Q --> P))}
+{\out  1. [| (Q --> P) --> False; P; Q --> False |] ==> Q}
+{\out  2. [| (Q --> P) --> False; False |] ==> False}
+\end{ttbox}
+Subgoal~2 holds trivially; let us ignore it and continue working on
+subgoal~1.  Thanks to the assumption~$P$, we could prove $Q\imp P$;
+applying \ttindex{imp_impE} is simpler.
+\begin{ttbox}
+by (eresolve_tac [imp_impE] 1);
+{\out Level 4}
+{\out ~ ~ ((P --> Q) | (Q --> P))}
+{\out  1. [| P; Q --> False; Q; P --> False |] ==> P}
+{\out  2. [| P; Q --> False; False |] ==> Q}
+{\out  3. [| (Q --> P) --> False; False |] ==> False}
+\end{ttbox}
+The three subgoals are all trivial.
+\begin{ttbox}
+by (REPEAT (eresolve_tac [FalseE] 2));
+{\out Level 5}
+{\out ~ ~ ((P --> Q) | (Q --> P))}
+{\out  1. [| P; Q --> False; Q; P --> False |] ==> P}
+by (assume_tac 1);
+{\out Level 6}
+{\out ~ ~ ((P --> Q) | (Q --> P))}
+{\out No subgoals!}
+\end{ttbox}
+This proof is also trivial for {\tt Int.fast_tac}.
+
+
+\section{A classical example} \label{fol-cla-example}
+To illustrate classical logic, we shall prove the theorem
+$\ex{y}\all{x}P(y)\imp P(x)$.  Classically, the theorem can be proved as
+follows.  Choose~$y$ such that~$\neg P(y)$, if such exists; otherwise
+$\all{x}P(x)$ is true.  Either way the theorem holds.
+
+The formal proof does not conform in any obvious way to the sketch given
+above.  The key inference is the first one, \ttindex{exCI}; this classical
+version of~$(\exists I)$ allows multiple instantiation of the quantifier.
+\begin{ttbox}
+goal FOL.thy "EX y. ALL x. P(y)-->P(x)";
+{\out Level 0}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. EX y. ALL x. P(y) --> P(x)}
+\ttbreak
+by (resolve_tac [exCI] 1);
+{\out Level 1}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. ALL y. ~ (ALL x. P(y) --> P(x)) ==> ALL x. P(?a) --> P(x)}
+\end{ttbox}
+We now can either exhibit a term {\tt?a} to satisfy the conclusion of
+subgoal~1, or produce a contradiction from the assumption.  The next
+steps routinely break down the conclusion and assumption.
+\begin{ttbox}
+by (resolve_tac [allI] 1);
+{\out Level 2}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x. ALL y. ~ (ALL x. P(y) --> P(x)) ==> P(?a) --> P(x)}
+\ttbreak
+by (resolve_tac [impI] 1);
+{\out Level 3}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x. [| ALL y. ~ (ALL x. P(y) --> P(x)); P(?a) |] ==> P(x)}
+\ttbreak
+by (eresolve_tac [allE] 1);
+{\out Level 4}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x. [| P(?a); ~ (ALL xa. P(?y3(x)) --> P(xa)) |] ==> P(x)}
+\end{ttbox}
+In classical logic, a negated assumption is equivalent to a conclusion.  To
+get this effect, we create a swapped version of $(\forall I)$ and apply it
+using \ttindex{eresolve_tac}; we could equivalently have applied~$(\forall
+I)$ using \ttindex{swap_res_tac}.
+\begin{ttbox}
+allI RSN (2,swap);
+{\out val it = "[| ~ (ALL x. ?P1(x)); !!x. ~ ?Q ==> ?P1(x) |] ==> ?Q" : thm}
+by (eresolve_tac [it] 1);
+{\out Level 5}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x xa. [| P(?a); ~ P(x) |] ==> P(?y3(x)) --> P(xa)}
+\end{ttbox}
+The previous conclusion, {\tt P(x)}, has become a negated assumption;
+we apply~$({\imp}I)$:
+\begin{ttbox}
+by (resolve_tac [impI] 1);
+{\out Level 6}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x xa. [| P(?a); ~ P(x); P(?y3(x)) |] ==> P(xa)}
+\end{ttbox}
+The subgoal has three assumptions.  We produce a contradiction between the
+assumptions~\verb|~P(x)| and~{\tt P(?y3(x))}.  The proof never instantiates
+the unknown~{\tt?a}.
+\begin{ttbox}
+by (eresolve_tac [notE] 1);
+{\out Level 7}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. !!x xa. [| P(?a); P(?y3(x)) |] ==> P(x)}
+\ttbreak
+by (assume_tac 1);
+{\out Level 8}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out No subgoals!}
+\end{ttbox}
+The civilized way to prove this theorem is through \ttindex{best_tac},
+supplying the classical version of~$(\exists I)$:
+\begin{ttbox}
+goal FOL.thy "EX y. ALL x. P(y)-->P(x)";
+{\out Level 0}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out  1. EX y. ALL x. P(y) --> P(x)}
+by (best_tac FOL_dup_cs 1);
+{\out Level 1}
+{\out EX y. ALL x. P(y) --> P(x)}
+{\out No subgoals!}
+\end{ttbox}
+If this theorem seems counterintuitive, then perhaps you are an
+intuitionist.  In constructive logic, proving $\ex{y}\all{x}P(y)\imp P(x)$
+requires exhibiting a particular term~$t$ such that $\all{x}P(t)\imp P(x)$,
+which we cannot do without further knowledge about~$P$.
+
+
+\section{Derived rules and the classical tactics}
+Classical first-order logic can be extended with the propositional
+connective $if(P,Q,R)$, where 
+$$ if(P,Q,R) \equiv P\conj Q \disj \neg P \conj R. \eqno(if) $$
+Theorems about $if$ can be proved by treating this as an abbreviation,
+replacing $if(P,Q,R)$ by $P\conj Q \disj \neg P \conj R$ in subgoals.  But
+this duplicates~$P$, causing an exponential blowup and an unreadable
+formula.  Introducing further abbreviations makes the problem worse.
+
+Natural deduction demands rules that introduce and eliminate $if(P,Q,R)$
+directly, without reference to its definition.  The simple identity
+\[ if(P,Q,R) \bimp (P\imp Q)\conj (\neg P\imp R) \]
+suggests that the
+$if$-introduction rule should be
+\[ \infer[({if}\,I)]{if(P,Q,R)}{\infer*{Q}{P}  &  \infer*{R}{\neg P}} \]
+The $if$-elimination rule reflects the definition of $if(P,Q,R)$ and the
+elimination rules for~$\disj$ and~$\conj$.
+\[ \infer[({if}\,E)]{S}{if(P,Q,R) & \infer*{S}{[P,Q]}
+                                  & \infer*{S}{[\neg P,R]}} 
+\]
+Having made these plans, we get down to work with Isabelle.  The theory of
+classical logic, \ttindex{FOL}, is extended with the constant
+$if::[o,o,o]\To o$.  The axiom \ttindexbold{if_def} asserts the
+equation~$(if)$.
+\begin{ttbox}
+If = FOL +
+consts  if     :: "[o,o,o]=>o"
+rules   if_def "if(P,Q,R) == P&Q | ~P&R"
+end
+\end{ttbox}
+The derivations of the introduction and elimination rules demonstrate the
+methods for rewriting with definitions.  Classical reasoning is required,
+so we use \ttindex{fast_tac}.
+
+
+\subsection{Deriving the introduction rule}
+The introduction rule, given the premises $P\Imp Q$ and $\neg P\Imp R$,
+concludes $if(P,Q,R)$.  We propose the conclusion as the main goal
+using~\ttindex{goalw}, which uses {\tt if_def} to rewrite occurrences
+of $if$ in the subgoal.
+\begin{ttbox}
+val prems = goalw If.thy [if_def]
+    "[| P ==> Q; ~ P ==> R |] ==> if(P,Q,R)";
+{\out Level 0}
+{\out if(P,Q,R)}
+{\out  1. P & Q | ~ P & R}
+\end{ttbox}
+The premises (bound to the {\ML} variable {\tt prems}) are passed as
+introduction rules to \ttindex{fast_tac}:
+\begin{ttbox}
+by (fast_tac (FOL_cs addIs prems) 1);
+{\out Level 1}
+{\out if(P,Q,R)}
+{\out No subgoals!}
+val ifI = result();
+\end{ttbox}
+
+
+\subsection{Deriving the elimination rule}
+The elimination rule has three premises, two of which are themselves rules.
+The conclusion is simply $S$.
+\begin{ttbox}
+val major::prems = goalw If.thy [if_def]
+   "[| if(P,Q,R);  [| P; Q |] ==> S; [| ~ P; R |] ==> S |] ==> S";
+{\out Level 0}
+{\out S}
+{\out  1. S}
+\end{ttbox}
+The major premise contains an occurrence of~$if$, but the version returned
+by \ttindex{goalw} (and bound to the {\ML} variable~{\tt major}) has the
+definition expanded.  Now \ttindex{cut_facts_tac} inserts~{\tt major} as an
+assumption in the subgoal, so that \ttindex{fast_tac} can break it down.
+\begin{ttbox}
+by (cut_facts_tac [major] 1);
+{\out Level 1}
+{\out S}
+{\out  1. P & Q | ~ P & R ==> S}
+\ttbreak
+by (fast_tac (FOL_cs addIs prems) 1);
+{\out Level 2}
+{\out S}
+{\out No subgoals!}
+val ifE = result();
+\end{ttbox}
+As you may recall from {\em Introduction to Isabelle}, there are other
+ways of treating definitions when deriving a rule.  We can start the
+proof using \ttindex{goal}, which does not expand definitions, instead of
+\ttindex{goalw}.  We can use \ttindex{rewrite_goals_tac}
+to expand definitions in the subgoals --- perhaps after calling
+\ttindex{cut_facts_tac} to insert the rule's premises.  We can use
+\ttindex{rewrite_rule}, which is a meta-inference rule, to expand
+definitions in the premises directly.
+
+
+\subsection{Using the derived rules}
+The rules just derived have been saved with the {\ML} names \ttindex{ifI}
+and~\ttindex{ifE}.  They permit natural proofs of theorems such as the
+following:
+\begin{eqnarray*}
+    if(P, if(Q,A,B), if(Q,C,D))	& \bimp & if(Q,if(P,A,C),if(P,B,D)) \\
+    if(if(P,Q,R), A, B)		& \bimp & if(P,if(Q,A,B),if(R,A,B))
+\end{eqnarray*}
+Proofs also require the classical reasoning rules and the $\bimp$
+introduction rule (called~\ttindex{iffI}: do not confuse with~\ttindex{ifI}). 
+
+To display the $if$-rules in action, let us analyse a proof step by step.
+\begin{ttbox}
+goal If.thy
+    "if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))";
+{\out Level 0}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out  1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+\ttbreak
+by (resolve_tac [iffI] 1);
+{\out Level 1}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out  1. if(P,if(Q,A,B),if(Q,C,D)) ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  2. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
+\end{ttbox}
+The $if$-elimination rule can be applied twice in succession.
+\begin{ttbox}
+by (eresolve_tac [ifE] 1);
+{\out Level 2}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out  1. [| P; if(Q,A,B) |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  2. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  3. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
+\ttbreak
+by (eresolve_tac [ifE] 1);
+{\out Level 3}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out  1. [| P; Q; A |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  2. [| P; ~ Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  3. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  4. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
+\end{ttbox}
+
+In the first two subgoals, all formulae have been reduced to atoms.  Now
+$if$-introduction can be applied.  Observe how the $if$-rules break down
+occurrences of $if$ when they become the outermost connective.
+\begin{ttbox}
+by (resolve_tac [ifI] 1);
+{\out Level 4}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out  1. [| P; Q; A; Q |] ==> if(P,A,C)}
+{\out  2. [| P; Q; A; ~ Q |] ==> if(P,B,D)}
+{\out  3. [| P; ~ Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  4. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  5. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
+\ttbreak
+by (resolve_tac [ifI] 1);
+{\out Level 5}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out  1. [| P; Q; A; Q; P |] ==> A}
+{\out  2. [| P; Q; A; Q; ~ P |] ==> C}
+{\out  3. [| P; Q; A; ~ Q |] ==> if(P,B,D)}
+{\out  4. [| P; ~ Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  5. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
+{\out  6. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
+\end{ttbox}
+Where do we stand?  The first subgoal holds by assumption; the second and
+third, by contradiction.  This is getting tedious.  Let us revert to the
+initial proof state and let \ttindex{fast_tac} solve it.  The classical
+rule set {\tt if_cs} contains the rules of~{\FOL} plus the derived rules
+for~$if$.
+\begin{ttbox}
+choplev 0;
+{\out Level 0}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out  1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+val if_cs = FOL_cs addSIs [ifI] addSEs[ifE];
+by (fast_tac if_cs 1);
+{\out Level 1}
+{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
+{\out No subgoals!}
+\end{ttbox}
+This tactic also solves the other example.
+\begin{ttbox}
+goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
+{\out Level 0}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
+{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
+\ttbreak
+by (fast_tac if_cs 1);
+{\out Level 1}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\subsection{Derived rules versus definitions}
+Dispensing with the derived rules, we can treat $if$ as an
+abbreviation, and let \ttindex{fast_tac} prove the expanded formula.  Let
+us redo the previous proof:
+\begin{ttbox}
+choplev 0;
+{\out Level 0}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
+{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
+\ttbreak
+by (rewrite_goals_tac [if_def]);
+{\out Level 1}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
+{\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}
+{\out     P & (Q & A | ~ Q & B) | ~ P & (R & A | ~ R & B)}
+\ttbreak
+by (fast_tac FOL_cs 1);
+{\out Level 2}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
+{\out No subgoals!}
+\end{ttbox}
+Expanding definitions reduces the extended logic to the base logic.  This
+approach has its merits --- especially if the prover for the base logic is
+good --- but can be slow.  In these examples, proofs using {\tt if_cs} (the
+derived rules) run about six times faster than proofs using {\tt FOL_cs}.
+
+Expanding definitions also complicates error diagnosis.  Suppose we are having
+difficulties in proving some goal.  If by expanding definitions we have
+made it unreadable, then we have little hope of diagnosing the problem.
+
+Attempts at program verification often yield invalid assertions.
+Let us try to prove one:
+\begin{ttbox}
+goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
+{\out Level 0}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
+{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
+by (fast_tac FOL_cs 1);
+{\out by: tactic failed}
+\end{ttbox}
+This failure message is uninformative, but we can get a closer look at the
+situation by applying \ttindex{step_tac}.
+\begin{ttbox}
+by (REPEAT (step_tac if_cs 1));
+{\out Level 1}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
+{\out  1. [| A; ~ P; R; ~ P; R |] ==> B}
+{\out  2. [| B; ~ P; ~ R; ~ P; ~ R |] ==> A}
+{\out  3. [| ~ P; R; B; ~ P; R |] ==> A}
+{\out  4. [| ~ P; ~ R; A; ~ B; ~ P |] ==> R}
+\end{ttbox}
+Subgoal~1 is unprovable and yields a countermodel: $P$ and~$B$ are false
+while~$R$ and~$A$ are true.  This truth assignment reduces the main goal to
+$true\bimp false$, which is of course invalid.
+
+We can repeat this analysis by expanding definitions, using just
+the rules of {\FOL}:
+\begin{ttbox}
+choplev 0;
+{\out Level 0}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
+{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
+\ttbreak
+by (rewrite_goals_tac [if_def]);
+{\out Level 1}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
+{\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}
+{\out     P & (Q & A | ~ Q & B) | ~ P & (R & B | ~ R & A)}
+by (fast_tac FOL_cs 1);
+{\out by: tactic failed}
+\end{ttbox}
+Again we apply \ttindex{step_tac}:
+\begin{ttbox}
+by (REPEAT (step_tac FOL_cs 1));
+{\out Level 2}
+{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
+{\out  1. [| A; ~ P; R; ~ P; R; ~ False |] ==> B}
+{\out  2. [| A; ~ P; R; R; ~ False; ~ B; ~ B |] ==> Q}
+{\out  3. [| B; ~ P; ~ R; ~ P; ~ A |] ==> R}
+{\out  4. [| B; ~ P; ~ R; ~ Q; ~ A |] ==> R}
+{\out  5. [| B; ~ R; ~ P; ~ A; ~ R; Q; ~ False |] ==> A}
+{\out  6. [| ~ P; R; B; ~ P; R; ~ False |] ==> A}
+{\out  7. [| ~ P; ~ R; A; ~ B; ~ R |] ==> P}
+{\out  8. [| ~ P; ~ R; A; ~ B; ~ R |] ==> Q}
+\end{ttbox}
+Subgoal~1 yields the same countermodel as before.  But each proof step has
+taken six times as long, and the final result contains twice as many subgoals.
+
+Expanding definitions causes a great increase in complexity.  This is why
+the classical prover has been designed to accept derived rules.

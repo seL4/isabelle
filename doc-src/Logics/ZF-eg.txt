@@ -1,0 +1,217 @@
+(**** ZF examples ****)
+
+Pretty.setmargin 72;  (*existing macros just allow this margin*)
+print_depth 0;
+
+(*** Powerset example ***)
+
+val [prem] = goal ZF_Rule.thy "A<=B  ==>  Pow(A) <= Pow(B)";
+by (resolve_tac [subsetI] 1);
+by (resolve_tac [PowI] 1);
+by (dresolve_tac [PowD] 1);
+by (eresolve_tac [subset_trans] 1);
+by (resolve_tac [prem] 1);
+val Pow_mono = result();
+
+goal ZF_Rule.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+by (resolve_tac [equalityI] 1);
+by (resolve_tac [Int_greatest] 1);
+by (resolve_tac [Int_lower1 RS Pow_mono] 1);
+by (resolve_tac [Int_lower2 RS Pow_mono] 1);
+by (resolve_tac [subsetI] 1);
+by (eresolve_tac [IntE] 1);
+by (resolve_tac [PowI] 1);
+by (REPEAT (dresolve_tac [PowD] 1));
+by (resolve_tac [Int_greatest] 1);
+by (REPEAT (assume_tac 1));
+choplev 0;
+by (fast_tac (ZF_cs addIs [equalityI]) 1);
+
+val [prem] = goal ZF_Rule.thy "C<=D ==> Union(C) <= Union(D)";
+by (resolve_tac [subsetI] 1);
+by (eresolve_tac [UnionE] 1);
+by (resolve_tac [UnionI] 1);
+by (resolve_tac [prem RS subsetD] 1);
+by (assume_tac 1);
+by (assume_tac 1);
+choplev 0;
+by (resolve_tac [Union_least] 1);
+by (resolve_tac [Union_upper] 1);
+by (eresolve_tac [prem RS subsetD] 1);
+
+
+val prems = goal ZF_Rule.thy
+    "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
+\    (f Un g)`a = f`a";
+by (resolve_tac [apply_equality] 1);
+by (resolve_tac [UnI1] 1);
+by (resolve_tac [apply_Pair] 1);
+by (resolve_tac prems 1);
+by (resolve_tac prems 1);
+by (resolve_tac [fun_disjoint_Un] 1);
+by (resolve_tac prems 1);
+by (resolve_tac prems 1);
+by (resolve_tac prems 1);
+
+
+
+
+goal ZF_Rule.thy "f``(UN x:A. B(x)) = (UN x:A. f``B(x))";
+by (resolve_tac [equalityI] 1);
+by (resolve_tac [subsetI] 1);
+fe imageE;
+
+
+goal ZF_Rule.thy "(UN x:C. A(x) Int B) = (UN x:C. A(x))  Int  B";
+by (resolve_tac [equalityI] 1);
+by (resolve_tac [Int_greatest] 1);
+fr UN_mono;
+by (resolve_tac [Int_lower1] 1);
+fr UN_least;
+????
+
+
+> goal ZF_Rule.thy "Pow(A Int B) = Pow(A) Int Pow(B)";
+Level 0
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. Pow(A Int B) = Pow(A) Int Pow(B)
+> by (resolve_tac [equalityI] 1);
+Level 1
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. Pow(A Int B) <= Pow(A) Int Pow(B)
+ 2. Pow(A) Int Pow(B) <= Pow(A Int B)
+> by (resolve_tac [Int_greatest] 1);
+Level 2
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. Pow(A Int B) <= Pow(A)
+ 2. Pow(A Int B) <= Pow(B)
+ 3. Pow(A) Int Pow(B) <= Pow(A Int B)
+> by (resolve_tac [Int_lower1 RS Pow_mono] 1);
+Level 3
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. Pow(A Int B) <= Pow(B)
+ 2. Pow(A) Int Pow(B) <= Pow(A Int B)
+> by (resolve_tac [Int_lower2 RS Pow_mono] 1);
+Level 4
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. Pow(A) Int Pow(B) <= Pow(A Int B)
+> by (resolve_tac [subsetI] 1);
+Level 5
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. !!x. x : Pow(A) Int Pow(B) ==> x : Pow(A Int B)
+> by (eresolve_tac [IntE] 1);
+Level 6
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x : Pow(A Int B)
+> by (resolve_tac [PowI] 1);
+Level 7
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x <= A Int B
+> by (REPEAT (dresolve_tac [PowD] 1));
+Level 8
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. !!x. [| x <= A; x <= B |] ==> x <= A Int B
+> by (resolve_tac [Int_greatest] 1);
+Level 9
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. !!x. [| x <= A; x <= B |] ==> x <= A
+ 2. !!x. [| x <= A; x <= B |] ==> x <= B
+> by (REPEAT (assume_tac 1));
+Level 10
+Pow(A Int B) = Pow(A) Int Pow(B)
+No subgoals!
+> choplev 0;
+Level 0
+Pow(A Int B) = Pow(A) Int Pow(B)
+ 1. Pow(A Int B) = Pow(A) Int Pow(B)
+> by (fast_tac (ZF_cs addIs [equalityI]) 1);
+Level 1
+Pow(A Int B) = Pow(A) Int Pow(B)
+No subgoals!
+
+
+
+
+> val [prem] = goal ZF_Rule.thy "C<=D ==> Union(C) <= Union(D)";
+Level 0
+Union(C) <= Union(D)
+ 1. Union(C) <= Union(D)
+> by (resolve_tac [subsetI] 1);
+Level 1
+Union(C) <= Union(D)
+ 1. !!x. x : Union(C) ==> x : Union(D)
+> by (eresolve_tac [UnionE] 1);
+Level 2
+Union(C) <= Union(D)
+ 1. !!x B. [| x : B; B : C |] ==> x : Union(D)
+> by (resolve_tac [UnionI] 1);
+Level 3
+Union(C) <= Union(D)
+ 1. !!x B. [| x : B; B : C |] ==> ?B2(x,B) : D
+ 2. !!x B. [| x : B; B : C |] ==> x : ?B2(x,B)
+> by (resolve_tac [prem RS subsetD] 1);
+Level 4
+Union(C) <= Union(D)
+ 1. !!x B. [| x : B; B : C |] ==> ?B2(x,B) : C
+ 2. !!x B. [| x : B; B : C |] ==> x : ?B2(x,B)
+> by (assume_tac 1);
+Level 5
+Union(C) <= Union(D)
+ 1. !!x B. [| x : B; B : C |] ==> x : B
+> by (assume_tac 1);
+Level 6
+Union(C) <= Union(D)
+No subgoals!
+
+
+
+> val prems = goal ZF_Rule.thy
+#     "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
+# \    (f Un g)`a = f`a";
+Level 0
+(f Un g) ` a = f ` a
+ 1. (f Un g) ` a = f ` a
+> by (resolve_tac [apply_equality] 1);
+Level 1
+(f Un g) ` a = f ` a
+ 1. <a,f ` a> : f Un g
+ 2. f Un g : (PROD x:?A. ?B(x))
+> by (resolve_tac [UnI1] 1);
+Level 2
+(f Un g) ` a = f ` a
+ 1. <a,f ` a> : f
+ 2. f Un g : (PROD x:?A. ?B(x))
+> by (resolve_tac [apply_Pair] 1);
+Level 3
+(f Un g) ` a = f ` a
+ 1. f : (PROD x:?A2. ?B2(x))
+ 2. a : ?A2
+ 3. f Un g : (PROD x:?A. ?B(x))
+> by (resolve_tac prems 1);
+Level 4
+(f Un g) ` a = f ` a
+ 1. a : A
+ 2. f Un g : (PROD x:?A. ?B(x))
+> by (resolve_tac prems 1);
+Level 5
+(f Un g) ` a = f ` a
+ 1. f Un g : (PROD x:?A. ?B(x))
+> by (resolve_tac [fun_disjoint_Un] 1);
+Level 6
+(f Un g) ` a = f ` a
+ 1. f : ?A3 -> ?B3
+ 2. g : ?C3 -> ?D3
+ 3. ?A3 Int ?C3 = 0
+> by (resolve_tac prems 1);
+Level 7
+(f Un g) ` a = f ` a
+ 1. g : ?C3 -> ?D3
+ 2. A Int ?C3 = 0
+> by (resolve_tac prems 1);
+Level 8
+(f Un g) ` a = f ` a
+ 1. A Int C = 0
+> by (resolve_tac prems 1);
+Level 9
+(f Un g) ` a = f ` a
+No subgoals!

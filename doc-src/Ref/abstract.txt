@@ -1,0 +1,8 @@
+Isabelle Reference Manual.  Report 283
+
+This manual is a comprehensive description of Isabelle, including all
+commands, functions and packages.  Functions are organized according to the
+task they perform.  In each section, basic functions appear before advanced
+ones.  The Index provides an alphabetical listing.  It is intended as a
+reference, not for casual reading.  The manual assumes familiarity with the
+basic concepts explained in Report 280, Introduction to Isabelle.

@@ -1,0 +1,512 @@
+%%%THIS DOCUMENTS THE OBSOLETE SIMPLIFIER!!!!
+\chapter{Simplification} \label{simp-chap}
+\index{simplification|(}
+Object-level rewriting is not primitive in Isabelle.  For efficiency,
+perhaps it ought to be.  On the other hand, it is difficult to conceive of
+a general mechanism that could accommodate the diversity of rewriting found
+in different logics.  Hence rewriting in Isabelle works via resolution,
+using unknowns as place-holders for simplified terms.  This chapter
+describes a generic simplification package, the functor~\ttindex{SimpFun},
+which expects the basic laws of equational logic and returns a suite of
+simplification tactics.  The code lives in
+\verb$Provers/simp.ML$.
+
+This rewriting package is not as general as one might hope (using it for {\tt
+HOL} is not quite as convenient as it could be; rewriting modulo equations is
+not supported~\ldots) but works well for many logics.  It performs
+conditional and unconditional rewriting and handles multiple reduction
+relations and local assumptions.  It also has a facility for automatic case
+splits by expanding conditionals like {\it if-then-else\/} during rewriting.
+
+For many of Isabelle's logics ({\tt FOL}, {\tt ZF}, {\tt LCF} and {\tt HOL})
+the simplifier has been set up already. Hence we start by describing the
+functions provided by the simplifier --- those functions exported by
+\ttindex{SimpFun} through its result signature \ttindex{SIMP} shown in
+Figure~\ref{SIMP}.  
+
+
+\section{Simplification sets}
+\index{simplification sets}
+The simplification tactics are controlled by {\bf simpsets}, which consist of
+three things:
+\begin{enumerate}
+\item {\bf Rewrite rules}, which are theorems like 
+$\Var{m} + succ(\Var{n}) = succ(\Var{m} + \Var{n})$.  {\bf Conditional}
+rewrites such as $m<n \Imp m/n = 0$ are permitted.
+\index{rewrite rules}
+
+\item {\bf Congruence rules}, which typically have the form
+\index{congruence rules}
+\[ \List{\Var{x@1} = \Var{y@1}; \ldots; \Var{x@n} = \Var{y@n}} \Imp
+   f(\Var{x@1},\ldots,\Var{x@n}) = f(\Var{y@1},\ldots,\Var{y@n}).
+\]
+
+\item The {\bf auto-tactic}, which attempts to solve the simplified
+subgoal, say by recognizing it as a tautology.
+\end{enumerate}
+
+\subsection{Congruence rules}
+Congruence rules enable the rewriter to simplify subterms.  Without a
+congruence rule for the function~$g$, no argument of~$g$ can be rewritten.
+Congruence rules can be generalized in the following ways:
+
+{\bf Additional assumptions} are allowed:
+\[ \List{\Var{P@1} \bimp \Var{Q@1};\; \Var{Q@1} \Imp \Var{P@2} \bimp \Var{Q@2}}
+   \Imp (\Var{P@1} \imp \Var{P@2}) \bimp (\Var{Q@1} \imp \Var{Q@2})
+\]
+This rule assumes $Q@1$, and any rewrite rules it contains, while
+simplifying~$P@2$.  Such ``local'' assumptions are effective for rewriting
+formulae such as $x=0\imp y+x=y$.
+
+{\bf Additional quantifiers} are allowed, typically for binding operators:
+\[ \List{\Forall z. \Var{P}(z) \bimp \Var{Q}(z)} \Imp
+   \forall x.\Var{P}(x) \bimp \forall x.\Var{Q}(x)
+\]
+
+{\bf Different equalities} can be mixed.  The following example
+enables the transition from formula rewriting to term rewriting:
+\[ \List{\Var{x@1}=\Var{y@1};\Var{x@2}=\Var{y@2}} \Imp
+   (\Var{x@1}=\Var{x@2}) \bimp (\Var{y@1}=\Var{y@2})
+\]
+\begin{warn}
+It is not necessary to assert a separate congruence rule for each constant,
+provided your logic contains suitable substitution rules. The function {\tt
+mk_congs} derives congruence rules from substitution
+rules~\S\ref{simp-tactics}.
+\end{warn}
+
+
+\begin{figure}
+\indexbold{*SIMP}
+\begin{ttbox}
+infix 4 addrews addcongs delrews delcongs setauto;
+signature SIMP =
+sig
+  type simpset
+  val empty_ss  : simpset
+  val addcongs  : simpset * thm list -> simpset
+  val addrews   : simpset * thm list -> simpset
+  val delcongs  : simpset * thm list -> simpset
+  val delrews   : simpset * thm list -> simpset
+  val print_ss  : simpset -> unit
+  val setauto   : simpset * (int -> tactic) -> simpset
+  val ASM_SIMP_CASE_TAC : simpset -> int -> tactic
+  val ASM_SIMP_TAC      : simpset -> int -> tactic
+  val CASE_TAC          : simpset -> int -> tactic
+  val SIMP_CASE2_TAC    : simpset -> int -> tactic
+  val SIMP_THM          : simpset -> thm -> thm
+  val SIMP_TAC          : simpset -> int -> tactic
+  val SIMP_CASE_TAC     : simpset -> int -> tactic
+  val mk_congs          : theory -> string list -> thm list
+  val mk_typed_congs    : theory -> (string*string) list -> thm list
+  val tracing   : bool ref
+end;
+\end{ttbox}
+\caption{The signature {\tt SIMP}} \label{SIMP}
+\end{figure}
+
+
+\subsection{The abstract type {\tt simpset}}\label{simp-simpsets}
+Simpsets are values of the abstract type \ttindexbold{simpset}.  They are
+manipulated by the following functions:
+\index{simplification sets|bold}
+\begin{description}
+\item[\ttindexbold{empty_ss}] 
+is the empty simpset.  It has no congruence or rewrite rules and its
+auto-tactic always fails.
+
+\item[\tt $ss$ \ttindexbold{addcongs} $thms$] 
+is the simpset~$ss$ plus the congruence rules~$thms$.
+
+\item[\tt $ss$ \ttindexbold{delcongs} $thms$] 
+is the simpset~$ss$ minus the congruence rules~$thms$.
+
+\item[\tt $ss$ \ttindexbold{addrews} $thms$] 
+is the simpset~$ss$ plus the rewrite rules~$thms$.
+
+\item[\tt $ss$ \ttindexbold{delrews} $thms$] 
+is the simpset~$ss$ minus the rewrite rules~$thms$.
+
+\item[\tt $ss$ \ttindexbold{setauto} $tacf$] 
+is the simpset~$ss$ with $tacf$ for its auto-tactic.
+
+\item[\ttindexbold{print_ss} $ss$] 
+prints all the congruence and rewrite rules in the simpset~$ss$.
+\end{description}
+Adding a rule to a simpset already containing it, or deleting one
+from a simpset not containing it, generates a warning message.
+
+In principle, any theorem can be used as a rewrite rule.  Before adding a
+theorem to a simpset, {\tt addrews} preprocesses the theorem to extract the
+maximum amount of rewriting from it.  Thus it need not have the form $s=t$.
+In {\tt FOL} for example, an atomic formula $P$ is transformed into the
+rewrite rule $P \bimp True$.  This preprocessing is not fixed but logic
+dependent.  The existing logics like {\tt FOL} are fairly clever in this
+respect.  For a more precise description see {\tt mk_rew_rules} in
+\S\ref{SimpFun-input}.  
+
+The auto-tactic is applied after simplification to solve a goal.  This may
+be the overall goal or some subgoal that arose during conditional
+rewriting.  Calling ${\tt auto_tac}~i$ must either solve exactly
+subgoal~$i$ or fail.  If it succeeds without reducing the number of
+subgoals by one, havoc and strange exceptions may result.
+A typical auto-tactic is {\tt ares_tac [TrueI]}, which attempts proof by
+assumption and resolution with the theorem $True$.  In explicitly typed
+logics, the auto-tactic can be used to solve simple type checking
+obligations.  Some applications demand a sophisticated auto-tactic such as
+{\tt fast_tac}, but this could make simplification slow.
+  
+\begin{warn}
+Rewriting never instantiates unknowns in subgoals.  (It uses
+\ttindex{match_tac} rather than \ttindex{resolve_tac}.)  However, the
+auto-tactic is permitted to instantiate unknowns.
+\end{warn}
+
+
+\section{The simplification tactics} \label{simp-tactics}
+\index{simplification!tactics|bold}
+\index{tactics!simplification|bold}
+The actual simplification work is performed by the following tactics.  The
+rewriting strategy is strictly bottom up.  Conditions in conditional rewrite
+rules are solved recursively before the rewrite rule is applied.
+
+There are two basic simplification tactics:
+\begin{description}
+\item[\ttindexbold{SIMP_TAC} $ss$ $i$] 
+simplifies subgoal~$i$ using the rules in~$ss$.  It may solve the
+subgoal completely if it has become trivial, using the auto-tactic
+(\S\ref{simp-simpsets}).
+  
+\item[\ttindexbold{ASM_SIMP_TAC}] 
+is like \verb$SIMP_TAC$, but also uses assumptions as additional
+rewrite rules.
+\end{description}
+Many logics have conditional operators like {\it if-then-else}.  If the
+simplifier has been set up with such case splits (see~\ttindex{case_splits}
+in \S\ref{SimpFun-input}), there are tactics which automatically alternate
+between simplification and case splitting:
+\begin{description}
+\item[\ttindexbold{SIMP_CASE_TAC}] 
+is like {\tt SIMP_TAC} but also performs automatic case splits.
+More precisely, after each simplification phase the tactic tries to apply a
+theorem in \ttindex{case_splits}.  If this succeeds, the tactic calls
+itself recursively on the result.
+
+\item[\ttindexbold{ASM_SIMP_CASE_TAC}] 
+is like {\tt SIMP_CASE_TAC}, but also uses assumptions for
+rewriting.
+
+\item[\ttindexbold{SIMP_CASE2_TAC}] 
+is like {\tt SIMP_CASE_TAC}, but also tries to solve the
+pre-conditions of conditional simplification rules by repeated case splits.
+
+\item[\ttindexbold{CASE_TAC}] 
+tries to break up a goal using a rule in
+\ttindex{case_splits}.
+
+\item[\ttindexbold{SIMP_THM}] 
+simplifies a theorem using assumptions and case splitting.
+\end{description}
+Finally there are two useful functions for generating congruence
+rules for constants and free variables:
+\begin{description}
+\item[\ttindexbold{mk_congs} $thy$ $cs$] 
+computes a list of congruence rules, one for each constant in $cs$.
+Remember that the name of an infix constant
+\verb$+$ is \verb$op +$.
+
+\item[\ttindexbold{mk_typed_congs}] 
+computes congruence rules for explicitly typed free variables and
+constants.  Its second argument is a list of name and type pairs.  Names
+can be either free variables like {\tt P}, or constants like \verb$op =$.
+For example in {\tt FOL}, the pair
+\verb$("f","'a => 'a")$ generates the rule \verb$?x = ?y ==> f(?x) = f(?y)$.
+Such congruence rules are necessary for goals with free variables whose
+arguments need to be rewritten.
+\end{description}
+Both functions work correctly only if {\tt SimpFun} has been supplied with the
+necessary substitution rules.  The details are discussed in
+\S\ref{SimpFun-input} under {\tt subst_thms}.
+\begin{warn}
+Using the simplifier effectively may take a bit of experimentation. In
+particular it may often happen that simplification stops short of what you
+expected or runs forever. To diagnose these problems, the simplifier can be
+traced. The reference variable \ttindexbold{tracing} controls the output of
+tracing information.
+\index{tracing!of simplification}
+\end{warn}
+
+
+\section{Example: using the simplifier}
+\index{simplification!example}
+Assume we are working within {\tt FOL} and that
+\begin{description}
+\item[\tt Nat.thy] is a theory including the constants $0$, $Suc$ and $+$,
+\item[\tt add_0] is the rewrite rule $0+n = n$,
+\item[\tt add_Suc] is the rewrite rule $Suc(m)+n = Suc(m+n)$,
+\item[\tt induct] is the induction rule
+$\List{P(0); \Forall x. P(x)\Imp P(Suc(x))} \Imp P(n)$.
+\item[\tt FOL_ss] is a basic simpset for {\tt FOL}.
+\end{description}
+We generate congruence rules for $Suc$ and for the infix operator~$+$:
+\begin{ttbox}
+val nat_congs = mk_congs Nat.thy ["Suc", "op +"];
+prths nat_congs;
+{\out ?Xa = ?Ya ==> Suc(?Xa) = Suc(?Ya)}
+{\out [| ?Xa = ?Ya; ?Xb = ?Yb |] ==> ?Xa + ?Xb = ?Ya + ?Yb}
+\end{ttbox}
+We create a simpset for natural numbers by extending~{\tt FOL_ss}:
+\begin{ttbox}
+val add_ss = FOL_ss  addcongs nat_congs  
+                     addrews  [add_0, add_Suc];
+\end{ttbox}
+Proofs by induction typically involve simplification:\footnote
+{These examples reside on the file {\tt FOL/ex/nat.ML}.} 
+\begin{ttbox}
+goal Nat.thy "m+0 = m";
+{\out Level 0}
+{\out m + 0 = m}
+{\out  1. m + 0 = m}
+\ttbreak
+by (res_inst_tac [("n","m")] induct 1);
+{\out Level 1}
+{\out m + 0 = m}
+{\out  1. 0 + 0 = 0}
+{\out  2. !!x. x + 0 = x ==> Suc(x) + 0 = Suc(x)}
+\end{ttbox}
+Simplification solves the first subgoal:
+\begin{ttbox}
+by (SIMP_TAC add_ss 1);
+{\out Level 2}
+{\out m + 0 = m}
+{\out  1. !!x. x + 0 = x ==> Suc(x) + 0 = Suc(x)}
+\end{ttbox}
+The remaining subgoal requires \ttindex{ASM_SIMP_TAC} in order to use the
+induction hypothesis as a rewrite rule:
+\begin{ttbox}
+by (ASM_SIMP_TAC add_ss 1);
+{\out Level 3}
+{\out m + 0 = m}
+{\out No subgoals!}
+\end{ttbox}
+The next proof is similar.
+\begin{ttbox}
+goal Nat.thy "m+Suc(n) = Suc(m+n)";
+{\out Level 0}
+{\out m + Suc(n) = Suc(m + n)}
+{\out  1. m + Suc(n) = Suc(m + n)}
+\ttbreak
+by (res_inst_tac [("n","m")] induct 1);
+{\out Level 1}
+{\out m + Suc(n) = Suc(m + n)}
+{\out  1. 0 + Suc(n) = Suc(0 + n)}
+{\out  2. !!x. x + Suc(n) = Suc(x + n) ==> Suc(x) + Suc(n) = Suc(Suc(x) + n)}
+\end{ttbox}
+Using the tactical \ttindex{ALLGOALS}, a single command simplifies all the
+subgoals:
+\begin{ttbox}
+by (ALLGOALS (ASM_SIMP_TAC add_ss));
+{\out Level 2}
+{\out m + Suc(n) = Suc(m + n)}
+{\out No subgoals!}
+\end{ttbox}
+Some goals contain free function variables.  The simplifier must have
+congruence rules for those function variables, or it will be unable to
+simplify their arguments:
+\begin{ttbox}
+val f_congs = mk_typed_congs Nat.thy [("f","nat => nat")];
+val f_ss = add_ss addcongs f_congs;
+prths f_congs;
+{\out ?Xa = ?Ya ==> f(?Xa) = f(?Ya)}
+\end{ttbox}
+Here is a conjecture to be proved for an arbitrary function~$f$ satisfying
+the law $f(Suc(n)) = Suc(f(n))$:
+\begin{ttbox}
+val [prem] = goal Nat.thy
+    "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+{\out Level 0}
+{\out f(i + j) = i + f(j)}
+{\out  1. f(i + j) = i + f(j)}
+\ttbreak
+by (res_inst_tac [("n","i")] induct 1);
+{\out Level 1}
+{\out f(i + j) = i + f(j)}
+{\out  1. f(0 + j) = 0 + f(j)}
+{\out  2. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)}
+\end{ttbox}
+We simplify each subgoal in turn.  The first one is trivial:
+\begin{ttbox}
+by (SIMP_TAC f_ss 1);
+{\out Level 2}
+{\out f(i + j) = i + f(j)}
+{\out  1. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)}
+\end{ttbox}
+The remaining subgoal requires rewriting by the premise, shown
+below, so we add it to {\tt f_ss}:
+\begin{ttbox}
+prth prem;
+{\out f(Suc(?n)) = Suc(f(?n))  [!!n. f(Suc(n)) = Suc(f(n))]}
+by (ASM_SIMP_TAC (f_ss addrews [prem]) 1);
+{\out Level 3}
+{\out f(i + j) = i + f(j)}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\section{Setting up the simplifier} \label{SimpFun-input}
+\index{simplification!setting up|bold}
+To set up a simplifier for a new logic, the \ML\ functor
+\ttindex{SimpFun} needs to be supplied with theorems to justify
+rewriting.  A rewrite relation must be reflexive and transitive; symmetry
+is not necessary.  Hence the package is also applicable to non-symmetric
+relations such as occur in operational semantics.  In the sequel, $\gg$
+denotes some {\bf reduction relation}: a binary relation to be used for
+rewriting.  Several reduction relations can be used at once.  In {\tt FOL},
+both $=$ (on terms) and $\bimp$ (on formulae) can be used for rewriting.
+
+The argument to {\tt SimpFun} is a structure with signature
+\ttindexbold{SIMP_DATA}:
+\begin{ttbox}
+signature SIMP_DATA =
+sig
+  val case_splits  : (thm * string) list
+  val dest_red     : term -> term * term * term
+  val mk_rew_rules : thm -> thm list
+  val norm_thms    : (thm*thm) list
+  val red1         : thm
+  val red2         : thm 
+  val refl_thms    : thm list
+  val subst_thms   : thm list 
+  val trans_thms   : thm list
+end;
+\end{ttbox}
+The components of {\tt SIMP_DATA} need to be instantiated as follows.  Many
+of these components are lists, and can be empty.
+\begin{description}
+\item[\ttindexbold{refl_thms}] 
+supplies reflexivity theorems of the form $\Var{x} \gg
+\Var{x}$.  They must not have additional premises as, for example,
+$\Var{x}\in\Var{A} \Imp \Var{x} = \Var{x}\in\Var{A}$ in type theory.
+
+\item[\ttindexbold{trans_thms}] 
+supplies transitivity theorems of the form
+$\List{\Var{x}\gg\Var{y}; \Var{y}\gg\Var{z}} \Imp {\Var{x}\gg\Var{z}}$.
+
+\item[\ttindexbold{red1}] 
+is a theorem of the form $\List{\Var{P}\gg\Var{Q};
+\Var{P}} \Imp \Var{Q}$, where $\gg$ is a relation between formulae, such as
+$\bimp$ in {\tt FOL}.
+
+\item[\ttindexbold{red2}] 
+is a theorem of the form $\List{\Var{P}\gg\Var{Q};
+\Var{Q}} \Imp \Var{P}$, where $\gg$ is a relation between formulae, such as
+$\bimp$ in {\tt FOL}.
+
+\item[\ttindexbold{mk_rew_rules}] 
+is a function that extracts rewrite rules from theorems.  A rewrite rule is
+a theorem of the form $\List{\ldots}\Imp s \gg t$.  In its simplest form,
+{\tt mk_rew_rules} maps a theorem $t$ to the singleton list $[t]$.  More
+sophisticated versions may do things like
+\[
+\begin{array}{l@{}r@{\quad\mapsto\quad}l}
+\mbox{create formula rewrites:}& P & [P \bimp True] \\[.5ex]
+\mbox{remove negations:}& \lnot P & [P \bimp False] \\[.5ex]
+\mbox{create conditional rewrites:}& P\imp s\gg t & [P\Imp s\gg t] \\[.5ex]
+\mbox{break up conjunctions:}& 
+        (s@1 \gg@1 t@1) \conj (s@2 \gg@2 t@2) & [s@1 \gg@1 t@1, s@2 \gg@2 t@2]
+\end{array}
+\]
+The more theorems are turned into rewrite rules, the better.  The function
+is used in two places:
+\begin{itemize}
+\item 
+$ss$~\ttindex{addrews}~$thms$ applies {\tt mk_rew_rules} to each element of
+$thms$ before adding it to $ss$.
+\item 
+simplification with assumptions (as in \ttindex{ASM_SIMP_TAC}) uses
+{\tt mk_rew_rules} to turn assumptions into rewrite rules.
+\end{itemize}
+
+\item[\ttindexbold{case_splits}] 
+supplies expansion rules for case splits.  The simplifier is designed
+for rules roughly of the kind
+\[ \Var{P}(if(\Var{Q},\Var{x},\Var{y})) \bimp (\Var{Q} \imp \Var{P}(\Var{x}))
+\conj (\lnot\Var{Q} \imp \Var{P}(\Var{y})) 
+\] 
+but is insensitive to the form of the right-hand side.  Other examples
+include product types, where $split ::
+(\alpha\To\beta\To\gamma)\To\alpha*\beta\To\gamma$:
+\[ \Var{P}(split(\Var{f},\Var{p})) \bimp (\forall a~b. \Var{p} =
+{<}a,b{>} \imp \Var{P}(\Var{f}(a,b))) 
+\] 
+Each theorem in the list is paired with the name of the constant being
+eliminated, {\tt"if"} and {\tt"split"} in the examples above.
+
+\item[\ttindexbold{norm_thms}] 
+supports an optimization.  It should be a list of pairs of rules of the
+form $\Var{x} \gg norm(\Var{x})$ and $norm(\Var{x}) \gg \Var{x}$.  These
+introduce and eliminate {\tt norm}, an arbitrary function that should be
+used nowhere else.  This function serves to tag subterms that are in normal
+form.  Such rules can speed up rewriting significantly!
+
+\item[\ttindexbold{subst_thms}] 
+supplies substitution rules of the form
+\[ \List{\Var{x} \gg \Var{y}; \Var{P}(\Var{x})} \Imp \Var{P}(\Var{y}) \]
+They are used to derive congruence rules via \ttindex{mk_congs} and
+\ttindex{mk_typed_congs}.  If $f :: [\tau@1,\cdots,\tau@n]\To\tau$ is a
+constant or free variable, the computation of a congruence rule
+\[\List{\Var{x@1} \gg@1 \Var{y@1}; \ldots; \Var{x@n} \gg@n \Var{y@n}}
+\Imp f(\Var{x@1},\ldots,\Var{x@n}) \gg f(\Var{y@1},\ldots,\Var{y@n}) \]
+requires a reflexivity theorem for some reduction ${\gg} ::
+\alpha\To\alpha\To\sigma$ such that $\tau$ is an instance of $\alpha$.  If a
+suitable reflexivity law is missing, no congruence rule for $f$ can be
+generated.   Otherwise an $n$-ary congruence rule of the form shown above is
+derived, subject to the availability of suitable substitution laws for each
+argument position.  
+
+A substitution law is suitable for argument $i$ if it
+uses a reduction ${\gg@i} :: \alpha@i\To\alpha@i\To\sigma@i$ such that
+$\tau@i$ is an instance of $\alpha@i$.  If a suitable substitution law for
+argument $i$ is missing, the $i^{th}$ premise of the above congruence rule
+cannot be generated and hence argument $i$ cannot be rewritten.  In the
+worst case, if there are no suitable substitution laws at all, the derived
+congruence simply degenerates into a reflexivity law.
+
+\item[\ttindexbold{dest_red}] 
+takes reductions apart.  Given a term $t$ representing the judgement
+\mbox{$a \gg b$}, \verb$dest_red$~$t$ should return a triple $(c,ta,tb)$
+where $ta$ and $tb$ represent $a$ and $b$, and $c$ is a term of the form
+\verb$Const(_,_)$, the reduction constant $\gg$.  
+
+Suppose the logic has a coercion function like $Trueprop::o\To prop$, as do
+{\tt FOL} and~{\tt HOL}\@.  If $\gg$ is a binary operator (not necessarily
+infix), the following definition does the job:
+\begin{verbatim}
+   fun dest_red( _ $ (c $ ta $ tb) ) = (c,ta,tb);
+\end{verbatim}
+The wildcard pattern {\tt_} matches the coercion function.
+\end{description}
+
+
+\section{A sample instantiation}
+Here is the instantiation of {\tt SIMP_DATA} for {\FOL}.  The code for {\tt
+mk_rew_rules} is not shown; see the file {\tt FOL/simpdata.ML}.
+\begin{ttbox}
+structure FOL_SimpData : SIMP_DATA =
+  struct
+  val refl_thms      = [ \(\Var{x}=\Var{x}\), \(\Var{P}\bimp\Var{P}\) ]
+  val trans_thms     = [ \(\List{\Var{x}=\Var{y};\Var{y}=\Var{z}}\Imp\Var{x}=\Var{z}\),
+                         \(\List{\Var{P}\bimp\Var{Q};\Var{Q}\bimp\Var{R}}\Imp\Var{P}\bimp\Var{R}\) ]
+  val red1           = \(\List{\Var{P}\bimp\Var{Q}; \Var{P}} \Imp \Var{Q}\)
+  val red2           = \(\List{\Var{P}\bimp\Var{Q}; \Var{Q}} \Imp \Var{P}\)
+  val mk_rew_rules   = ...
+  val case_splits    = [ \(\Var{P}(if(\Var{Q},\Var{x},\Var{y})) \bimp\)
+                           \((\Var{Q} \imp \Var{P}(\Var{x})) \conj (\lnot\Var{Q} \imp \Var{P}(\Var{y}))\) ]
+  val norm_thms      = [ (\(\Var{x}=norm(\Var{x})\),\(norm(\Var{x})=\Var{x}\)),
+                        (\(\Var{P}\bimp{}NORM(\Var{P}\)), \(NORM(\Var{P})\bimp\Var{P}\)) ]
+  val subst_thms     = [ \(\List{\Var{x}=\Var{y}; \Var{P}(\Var{x})}\Imp\Var{P}(\Var{y})\) ]
+  val dest_red       = fn (_ $ (opn $ lhs $ rhs)) => (opn,lhs,rhs)
+  end;
+\end{ttbox}
+
+\index{simplification|)}

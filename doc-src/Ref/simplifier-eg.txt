@@ -1,0 +1,73 @@
+> goal Nat.thy "m+0 = m";
+Level 0
+m + 0 = m
+ 1. m + 0 = m
+> by (res_inst_tac [("n","m")] induct 1);
+Level 1
+m + 0 = m
+ 1. 0 + 0 = 0
+ 2. !!x. x + 0 = x ==> Suc(x) + 0 = Suc(x)
+> by (simp_tac add_ss 1);
+Level 2
+m + 0 = m
+ 1. !!x. x + 0 = x ==> Suc(x) + 0 = Suc(x)
+> by (asm_simp_tac add_ss 1);
+Level 3
+m + 0 = m
+No subgoals!
+
+
+> goal Nat.thy "m+Suc(n) = Suc(m+n)";
+Level 0
+m + Suc(n) = Suc(m + n)
+ 1. m + Suc(n) = Suc(m + n)
+val it = [] : thm list   
+> by (res_inst_tac [("n","m")] induct 1);
+Level 1
+m + Suc(n) = Suc(m + n)
+ 1. 0 + Suc(n) = Suc(0 + n)
+ 2. !!x. x + Suc(n) = Suc(x + n) ==> Suc(x) + Suc(n) = Suc(Suc(x) + n)
+val it = () : unit   
+> by (simp_tac add_ss 1);
+Level 2
+m + Suc(n) = Suc(m + n)
+ 1. !!x. x + Suc(n) = Suc(x + n) ==> Suc(x) + Suc(n) = Suc(Suc(x) + n)
+val it = () : unit   
+> trace_simp := true;
+val it = () : unit   
+> by (asm_simp_tac add_ss 1);
+Rewriting:
+Suc(x) + Suc(n) == Suc(x + Suc(n))
+Rewriting:
+x + Suc(n) == Suc(x + n)
+Rewriting:
+Suc(x) + n == Suc(x + n)
+Rewriting:
+Suc(Suc(x + n)) = Suc(Suc(x + n)) == True
+Level 3
+m + Suc(n) = Suc(m + n)
+No subgoals!
+val it = () : unit   
+
+
+
+> val prems = goal Nat.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+Level 0
+f(i + j) = i + f(j)
+ 1. f(i + j) = i + f(j)
+> prths prems;
+f(Suc(?n)) = Suc(f(?n))  [!!n. f(Suc(n)) = Suc(f(n))]
+
+> by (res_inst_tac [("n","i")] induct 1);
+Level 1
+f(i + j) = i + f(j)
+ 1. f(0 + j) = 0 + f(j)
+ 2. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)
+> by (simp_tac f_ss 1);
+Level 2
+f(i + j) = i + f(j)
+ 1. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)
+> by (asm_simp_tac (f_ss addrews prems) 1);
+Level 3
+f(i + j) = i + f(j)
+No subgoals!

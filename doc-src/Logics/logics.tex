@@ -1,0 +1,61 @@
+\documentstyle[a4,12pt,proof,iman,alltt]{report}
+%% $Id$
+%%%STILL NEEDS MODAL, LCF
+\includeonly{HOL}
+%%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\idx{\1}  
+%%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\idx{\1}  
+%%% to index constants:   \\tt \([a-zA-Z0-9][a-zA-Z0-9_]*\)     \\idx{\1}  
+%%% to deverbify:         \\verb|\([^|]*\)|     \\ttindex{\1}  
+%% run    ../sedindex logics    to prepare index file
+\title{Isabelle's Object-Logics}
+
+\author{{\em Lawrence C. Paulson}\thanks{Tobias Nipkow and Markus Wenzel,
+    of T. U. Munich, wrote the chapter `Defining Logics'.  Markus Wenzel
+    also suggested changes and corrections.  Philippe de Groote wrote the
+    first version of the logic~\LK{} and contributed to~\ZF{}.  Tobias
+    Nipkow developed~\HOL{}, \LCF{} and~\Cube{}.  Philippe No\"el and
+    Martin Coen made many contributions to~\ZF{}.  Martin Coen
+    developed~\Modal{} with assistance from Rajeev Gor\'e.  The research
+    has been funded by the SERC (grants GR/G53279, GR/H40570) and by ESPRIT
+    project 6453: Types}.\\ 
+  Computer Laboratory \\ 
+  University of Cambridge \\[2ex] 
+  {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}} \\[3cm]
+  {\small Copyright \copyright{} \number\year{} by Lawrence C. Paulson} }
+
+\date{}
+
+\newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
+  \hrule\bigskip}
+
+\makeindex
+
+%For indexing names in ttbox; could be local to Chapters, making a subitem...
+\let\idx=\ttindexbold
+%%%%\newcommand\idx[1]{\indexbold{*#1}#1}
+
+\underscoreoff
+
+\setcounter{secnumdepth}{1} \setcounter{tocdepth}{2}  %% {secnumdepth}{2}???
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+\begin{document}
+\maketitle 
+\pagenumbering{roman} \tableofcontents \clearfirst
+\include{intro}
+\include{FOL}
+\include{ZF}
+\include{HOL}
+\include{LK}
+%%\include{Modal}
+\include{CTT}
+%%\include{Cube}
+%%\include{LCF}
+\include{defining}
+\bibliographystyle{plain}
+\bibliography{atp,theory,funprog,logicprog}
+\input{logics.ind}
+\end{document}

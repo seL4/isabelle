@@ -1,0 +1,51 @@
+\documentstyle[a4,12pt,proof,iman,alltt]{report}
+%% $Id$
+%%% \includeonly{thm}
+%%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
+%%% to delete old ones:  \\indexbold{\*[^}]*}
+%% run    sedindex ref    to prepare index file
+%%% needs chapter on Provers/typedsimp.ML?
+\title{The Isabelle Reference Manual}
+
+\author{{\em Lawrence C. Paulson}\thanks
+{Tobias Nipkow, of T. U. Munich, wrote Chapter~8 and part of Chapter~6.
+ Sara Kalvala and Markus Wenzel suggested changes and corrections.
+ The research has been funded by the SERC (grants GR/G53279, GR/H40570)
+  and by ESPRIT project 6453: Types).} 
+\\  
+        Computer Laboratory \\ University of Cambridge \\[2ex]
+        {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}} \\[3cm]
+    {\small Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
+}
+\date{} 
+\makeindex
+
+\underscoreoff
+
+\setcounter{secnumdepth}{1} \setcounter{tocdepth}{2}
+
+\pagestyle{headings}
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+\begin{document}
+\index{definitions|see{rewriting, meta-level}}
+\index{rewriting!object-level|see{simplification}}
+\index{rules!meta-level|see{meta-rules}}
+\include{introduction}
+\include{goals}
+\include{tactic}
+\include{tctical}
+\include{thm}
+\include{theories}
+\include{substitution}
+\include{simplifier}
+\include{classical}
+
+%%seealso's must be last so that they appear last in the index entries
+\index{rewriting!meta-level|seealso{tactics, theorems}}
+
+\bibliographystyle{plain} \small\raggedright\frenchspacing
+\bibliography{atp,funprog,general,logicprog,theory}
+\input{ref.ind}
+\end{document}

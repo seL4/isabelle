@@ -1,0 +1,8 @@
+Isabelle's Object-Logics.  Report 286.
+
+This is the third of the Isabelle manuals.  It covers Isabelle's built-in
+object logics: first-order logic (FOL), Zermelo-Fraenkel set theory (ZF),
+higher-order logic (HOL), the classical sequent calculus (LK), and
+constructive type theory (CTT).  The final chapter discusses how to define
+new logics.  This manual assumes familiarity with Report 280, Introduction
+to Isabelle.

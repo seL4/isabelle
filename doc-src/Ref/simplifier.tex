@@ -1,0 +1,360 @@
+%% $Id$
+\chapter{Simplification} \label{simp-chap}
+\index{simplification|(}
+
+
+This chapter describes Isabelle's generic simplification package, which
+provides a suite of simplification tactics.  This rewriting package is less
+general than its predecessor --- it works only for the equality relation,
+not arbitrary preorders --- but it is fast and flexible.  It performs
+conditional and unconditional rewriting and uses contextual information
+(``local assumptions'').  It provides a few general hooks, which can
+provide automatic case splits during rewriting, for example.  The
+simplifier is set up for many of Isabelle's logics: {\tt FOL}, {\tt ZF},
+{\tt LCF} and {\tt HOL}.
+
+
+\section{Simplification sets}
+\index{simplification sets} 
+
+The simplification tactics are controlled by {\bf simpsets}.  These consist
+of five components: rewrite rules, congruence rules, the subgoaler, the
+solver and the looper.  Normally, the simplifier is set up with sensible
+defaults, so that most simplifier calls specify only rewrite rules.
+Sophisticated usage of the other components can be highly effective, but
+most users should never worry about them.
+
+\subsection{Rewrite rules}\index{rewrite rules}
+
+Rewrite rules are theorems like $Suc(\Var{m}) + \Var{n} = \Var{m} +
+Suc(\Var{n})$, $\Var{P}\conj\Var{P} \bimp \Var{P}$, or $\Var{A} \un \Var{B}
+\equiv \{x.x\in A \disj x\in B\}$.  {\bf Conditional} rewrites such as
+$\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} = 0$ are permitted; the conditions
+can be arbitrary terms.  The infix operation \ttindex{addsimps} adds new
+rewrite rules, while \ttindex{delsimps} deletes rewrite rules from a
+simpset.
+
+Theorems added via \ttindex{addsimps} need not be equalities to start with.
+Each simpset contains a (user-definable) function for extracting equalities
+from arbitrary theorems.  For example $\neg(x\in \{\})$ could be turned
+into $x\in \{\} \equiv False$.  This function can be set with
+\ttindex{setmksimps} but only the definer of a logic should need to do
+this.  Exceptionally, one may want to install a selective version of
+\ttindex{mksimps} in order to filter out looping rewrite rules arising from
+local assumptions (see below).
+
+Internally, all rewrite rules are translated into meta-equalities:
+theorems with conclusion $lhs \equiv rhs$.  To this end every simpset contains
+a function of type \verb$thm -> thm list$ to extract a list
+of meta-equalities from a given theorem.
+
+\begin{warn}\index{rewrite rules}
+  The left-hand side of a rewrite rule must look like a first-order term:
+  after eta-contraction, none of its unknowns should have arguments.  Hence
+  ${\Var{i}+(\Var{j}+\Var{k})} = {(\Var{i}+\Var{j})+\Var{k}}$ and $\neg(\forall
+  x.\Var{P}(x)) \bimp (\exists x.\neg\Var{P}(x))$ are acceptable, whereas
+  $\Var{f}(\Var{x})\in {\tt range}(\Var{f}) = True$ is not.  However, you can
+  replace the offending subterms by new variables and conditions: $\Var{y} =
+  \Var{f}(\Var{x}) \Imp \Var{y}\in {\tt range}(\Var{f}) = True$ is again
+  acceptable.
+\end{warn}
+
+\subsection {Congruence rules}\index{congruence rules}
+Congruence rules are meta-equalities of the form
+\[ \List{\dots} \Imp
+   f(\Var{x@1},\ldots,\Var{x@n}) \equiv f(\Var{y@1},\ldots,\Var{y@n}).
+\]
+They control the simplification of the arguments of certain constants.  For
+example, some arguments can be simplified under additional assumptions:
+\[ \List{\Var{P@1} \bimp \Var{Q@1};\; \Var{Q@1} \Imp \Var{P@2} \bimp \Var{Q@2}}
+   \Imp (\Var{P@1} \imp \Var{P@2}) \equiv (\Var{Q@1} \imp \Var{Q@2})
+\]
+This rule assumes $Q@1$ and any rewrite rules it implies, while
+simplifying~$P@2$.  Such ``local'' assumptions are effective for rewriting
+formulae such as $x=0\imp y+x=y$.  The next example makes similar use of
+such contextual information in bounded quantifiers:
+\[ \List{\Var{A}=\Var{B};\; \Forall x. x\in \Var{B} \Imp \Var{P}(x) = \Var{Q}(x)}
+   \Imp (\forall x\in \Var{A}.\Var{P}(x)) = (\forall x\in \Var{B}.\Var{Q}(x))
+\]
+This congruence rule supplies contextual information for simplifying the
+arms of a conditional expressions:
+\[ \List{\Var{p}=\Var{q};~ \Var{q} \Imp \Var{a}=\Var{c};~
+         \neg\Var{q} \Imp \Var{b}=\Var{d}} \Imp
+   if(\Var{p},\Var{a},\Var{b}) \equiv if(\Var{q},\Var{c},\Var{d})
+\]
+
+A congruence rule can also suppress simplification of certain arguments.
+Here is an alternative congruence rule for conditional expressions:
+\[ \Var{p}=\Var{q} \Imp
+   if(\Var{p},\Var{a},\Var{b}) \equiv if(\Var{q},\Var{a},\Var{b})
+\]
+Only the first argument is simplified; the others remain unchanged.
+This can make simplification much faster, but may require an extra case split
+to prove the goal.  
+
+Congruence rules are added using \ttindex{addeqcongs}.  Their conclusion
+must be a meta-equality, as in the examples above.  It is more
+natural to derive the rules with object-logic equality, for example
+\[ \List{\Var{P@1} \bimp \Var{Q@1};\; \Var{Q@1} \Imp \Var{P@2} \bimp \Var{Q@2}}
+   \Imp (\Var{P@1} \imp \Var{P@2}) \bimp (\Var{Q@1} \imp \Var{Q@2}),
+\]
+So each object-logic should provide an alternative combinator
+\ttindex{addcongs} that expects object-equalities and translates them into
+meta-equalities.
+
+\subsection{The subgoaler} \index{subgoaler}
+The subgoaler is the tactic used to solve subgoals arising out of
+conditional rewrite rules or congruence rules.  The default should be
+simplification itself.  Occasionally this strategy needs to be changed.  For
+example, if the premise of a conditional rule is an instance of its
+conclusion, as in $Suc(\Var{m}) < \Var{n} \Imp \Var{m} < \Var{n}$, the
+default strategy could loop.
+
+The subgoaler can be set explicitly with \ttindex{setsubgoaler}.  For
+example, the subgoaler
+\begin{ttbox}
+fun subgoal_tac ss = resolve_tac (prems_of_ss ss) ORELSE' 
+                     asm_simp_tac ss;
+\end{ttbox}
+tries to solve the subgoal with one of the premises and calls
+simplification only if that fails; here {\tt prems_of_ss} extracts the
+current premises from a simpset.
+
+\subsection{The solver} \index{solver}
+The solver attempts to solve a subgoal after simplification, say by
+recognizing it as a tautology. It can be set with \ttindex{setsolver}.
+Occasionally, simplification on its own is not enough to reduce the subgoal
+to a tautology; additional means, like \verb$fast_tac$, may be necessary.
+
+\begin{warn}
+  Rewriting does not instantiate unknowns.  Trying to rewrite $a\in
+  \Var{A}$ with the rule $\Var{x}\in \{\Var{x}\}$ leads nowhere.  The
+  solver, however, is an arbitrary tactic and may instantiate unknowns as
+  it pleases.  This is the only way the simplifier can handle a conditional
+  rewrite rule whose condition contains extra variables.
+\end{warn}
+
+\begin{warn}
+  If you want to supply your own subgoaler or solver, read on.  The subgoaler
+  is also used to solve the premises of congruence rules, which are usually
+  of the form $s = \Var{x}$, where $s$ needs to be simplified and $\Var{x}$
+  needs to be instantiated with the result. Hence the subgoaler should call
+  the simplifier at some point. The simplifier will then call the solver,
+  which must therefore be prepared to solve goals of the form $t = \Var{x}$,
+  usually by reflexivity. In particular, reflexivity should be tried before
+  any of the fancy tactics like {\tt fast_tac}. It may even happen that, due
+  to simplification, the subgoal is no longer an equality. For example $False
+  \bimp \Var{Q}$ could be rewritten to $\neg\Var{Q}$, in which case the
+  solver must also try resolving with the theorem $\neg False$.
+
+  If the simplifier aborts with the message {\tt Failed congruence proof!},
+  it is due to the subgoaler or solver who failed to prove a premise of a
+  congruence rule.
+\end{warn}
+
+\subsection{The looper} \index{looper}
+The looper is a tactic that is applied after simplification, in case the
+solver failed to solve the simplified goal.  If the looper succeeds, the
+simplification process is started all over again.  Each of the subgoals
+generated by the looper is attacked in turn, in reverse order.  A
+typical looper is case splitting: the expansion of a conditional.  Another
+possibility is to apply an elimination rule on the assumptions.  More
+adventurous loopers could start an induction.  The looper is set with 
+\ttindex{setloop}.
+
+
+\begin{figure}
+\indexbold{*SIMPLIFIER}
+\begin{ttbox}
+infix addsimps addeqcongs delsimps
+      setsubgoaler setsolver setloop setmksimps;
+
+signature SIMPLIFIER =
+sig
+  type simpset
+  val simp_tac:          simpset -> int -> tactic
+  val asm_simp_tac:      simpset -> int -> tactic
+  val asm_full_simp_tac: simpset -> int -> tactic
+  val addeqcongs:  simpset * thm list -> simpset
+  val addsimps:    simpset * thm list -> simpset
+  val delsimps:    simpset * thm list -> simpset
+  val empty_ss:     simpset
+  val merge_ss:     simpset * simpset -> simpset
+  val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
+  val setsolver:    simpset * (thm list -> int -> tactic) -> simpset
+  val setloop:      simpset * (int -> tactic) -> simpset
+  val setmksimps:   simpset * (thm -> thm list) -> simpset
+  val prems_of_ss:  simpset -> thm list
+  val rep_ss:       simpset -> \{simps: thm list, congs: thm list\}
+end;
+\end{ttbox}
+\caption{The signature \ttindex{SIMPLIFIER}} \label{SIMPLIFIER}
+\end{figure}
+
+
+\section{The simplification tactics} \label{simp-tactics}
+\index{simplification!tactics|bold}
+\index{tactics!simplification|bold}
+
+The actual simplification work is performed by the following tactics.  The
+rewriting strategy is strictly bottom up, except for congruence rules, which
+are applied while descending into a term.  Conditions in conditional rewrite
+rules are solved recursively before the rewrite rule is applied.
+
+There are three basic simplification tactics:
+\begin{description}
+\item[\ttindexbold{simp_tac} $ss$ $i$] simplifies subgoal~$i$ using the rules
+  in~$ss$.  It may solve the subgoal completely if it has become trivial,
+  using the solver.
+  
+\item[\ttindexbold{asm_simp_tac}] is like \verb$simp_tac$, but also uses
+  assumptions as additional rewrite rules.
+
+\item[\ttindexbold{asm_full_simp_tac}] is like \verb$asm_simp_tac$, but also
+  simplifies the assumptions one by one, using each assumption in the
+  simplification of the following ones.
+\end{description}
+Using the simplifier effectively may take a bit of experimentation.  The
+tactics can be traced with the ML command \verb$trace_simp := true$.  To
+remind yourself of what is in a simpset, use the function \verb$rep_ss$ to
+return its simplification and congruence rules.
+
+\section{Example: using the simplifier}
+\index{simplification!example}
+Assume we are working within {\tt FOL} and that
+\begin{description}
+\item[\tt Nat.thy] is a theory including the constants $0$, $Suc$ and $+$,
+\item[\tt add_0] is the rewrite rule $0+n = n$,
+\item[\tt add_Suc] is the rewrite rule $Suc(m)+n = Suc(m+n)$,
+\item[\tt induct] is the induction rule
+$\List{P(0); \Forall x. P(x)\Imp P(Suc(x))} \Imp P(n)$.
+\item[\tt FOL_ss] is a basic simpset for {\tt FOL}.\footnote
+{These examples reside on the file {\tt FOL/ex/nat.ML}.} 
+\end{description}
+
+We create a simpset for natural numbers by extending~{\tt FOL_ss}:
+\begin{ttbox}
+val add_ss = FOL_ss addsimps [add_0, add_Suc];
+\end{ttbox}
+Proofs by induction typically involve simplification:
+\begin{ttbox}
+goal Nat.thy "m+0 = m";
+{\out Level 0}
+{\out m + 0 = m}
+{\out  1. m + 0 = m}
+\ttbreak
+by (res_inst_tac [("n","m")] induct 1);
+{\out Level 1}
+{\out m + 0 = m}
+{\out  1. 0 + 0 = 0}
+{\out  2. !!x. x + 0 = x ==> Suc(x) + 0 = Suc(x)}
+\end{ttbox}
+Simplification solves the first subgoal:
+\begin{ttbox}
+by (simp_tac add_ss 1);
+{\out Level 2}
+{\out m + 0 = m}
+{\out  1. !!x. x + 0 = x ==> Suc(x) + 0 = Suc(x)}
+\end{ttbox}
+The remaining subgoal requires \ttindex{asm_simp_tac} in order to use the
+induction hypothesis as a rewrite rule:
+\begin{ttbox}
+by (asm_simp_tac add_ss 1);
+{\out Level 3}
+{\out m + 0 = m}
+{\out No subgoals!}
+\end{ttbox}
+
+\medskip
+The next proof is similar.
+\begin{ttbox}
+goal Nat.thy "m+Suc(n) = Suc(m+n)";
+{\out Level 0}
+{\out m + Suc(n) = Suc(m + n)}
+{\out  1. m + Suc(n) = Suc(m + n)}
+\ttbreak
+by (res_inst_tac [("n","m")] induct 1);
+{\out Level 1}
+{\out m + Suc(n) = Suc(m + n)}
+{\out  1. 0 + Suc(n) = Suc(0 + n)}
+{\out  2. !!x. x + Suc(n) = Suc(x + n) ==> Suc(x) + Suc(n) = Suc(Suc(x) + n)}
+\ttbreak
+by (simp_tac add_ss 1);
+{\out Level 2}
+{\out m + Suc(n) = Suc(m + n)}
+{\out  1. !!x. x + Suc(n) = Suc(x + n) ==> Suc(x) + Suc(n) = Suc(Suc(x) + n)}
+\end{ttbox}
+Switching tracing on illustrates how the simplifier solves the remaining
+subgoal: 
+\begin{ttbox}
+trace_simp := true;
+by (asm_simp_tac add_ss 1);
+{\out Rewriting:}
+{\out Suc(x) + Suc(n) == Suc(x + Suc(n))}
+{\out Rewriting:}
+{\out x + Suc(n) == Suc(x + n)}
+{\out Rewriting:}
+{\out Suc(x) + n == Suc(x + n)}
+{\out Rewriting:}
+{\out Suc(Suc(x + n)) = Suc(Suc(x + n)) == True}
+{\out Level 3}
+{\out m + Suc(n) = Suc(m + n)}
+{\out No subgoals!}
+\end{ttbox}
+As usual, many variations are possible.  At Level~1 we could have solved
+both subgoals at once using the tactical \ttindex{ALLGOALS}:
+\begin{ttbox}
+by (ALLGOALS (asm_simp_tac add_ss));
+{\out Level 2}
+{\out m + Suc(n) = Suc(m + n)}
+{\out No subgoals!}
+\end{ttbox}
+
+\medskip
+Here is a conjecture to be proved for an arbitrary function~$f$ satisfying
+the law $f(Suc(n)) = Suc(f(n))$:\footnote{The previous
+  simplifier required congruence rules for such function variables in
+  order to simplify their arguments.  The present simplifier can be given
+  congruence rules to realize non-standard simplification of a function's
+  arguments, but this is seldom necessary.}
+\begin{ttbox}
+val [prem] = goal Nat.thy
+    "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+{\out Level 0}
+{\out f(i + j) = i + f(j)}
+{\out  1. f(i + j) = i + f(j)}
+{\out val prem = "f(Suc(?n)) = Suc(f(?n))  [!!n. f(Suc(n)) = Suc(f(n))]" : thm}
+\ttbreak
+by (res_inst_tac [("n","i")] induct 1);
+{\out Level 1}
+{\out f(i + j) = i + f(j)}
+{\out  1. f(0 + j) = 0 + f(j)}
+{\out  2. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)}
+\end{ttbox}
+We simplify each subgoal in turn.  The first one is trivial:
+\begin{ttbox}
+by (simp_tac add_ss 1);
+{\out Level 2}
+{\out f(i + j) = i + f(j)}
+{\out  1. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)}
+\end{ttbox}
+The remaining subgoal requires rewriting by the premise, so we add it to
+{\tt add_ss}: 
+\begin{ttbox}
+by (asm_simp_tac (add_ss addsimps [prem]) 1);
+{\out Level 3}
+{\out f(i + j) = i + f(j)}
+{\out No subgoals!}
+\end{ttbox}
+
+No documentation is available on setting up the simplifier for new logics.
+Please consult {\tt FOL/simpdata.ML} to see how this is done, and {\tt
+  FOL/simpdata.ML} for a fairly sophisticated translation of formulae into
+rewrite rules.
+
+%%\section{Setting up the simplifier} \label{SimpFun-input}
+%%Should be written!
+
+
+\index{simplification|)}
+

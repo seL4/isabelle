@@ -1,0 +1,165 @@
+%% $Id$
+\chapter{Substitution Tactics} \label{substitution}
+\index{substitution|(}
+Replacing equals by equals is a basic form of reasoning.  Isabelle supports
+several kinds of equality reasoning.  {\bf Substitution} means to replace
+free occurrences of~$t$ by~$u$ in a subgoal.  This is easily done, given an
+equality $t=u$, provided the logic possesses the appropriate rule ---
+unless you want to substitute even in the assumptions.  The tactic
+\ttindex{hyp_subst_tac} performs substitution in the assumptions, but it
+works via object-level implication, and therefore must be specially set up
+for each suitable object-logic.
+
+Substitution should not be confused with object-level {\bf rewriting}.
+Given equalities of the form $t=u$, rewriting replaces instances of~$t$ by
+corresponding instances of~$u$, and continues until it reaches a normal
+form.  Substitution handles `one-off' replacements by particular
+equalities, while rewriting handles general equalities.
+Chapter~\ref{simp-chap} discusses Isabelle's rewriting tactics.
+
+
+\section{Simple substitution}
+\index{substitution!simple}
+Many logics include a substitution rule of the form\indexbold{*subst}
+$$ \List{\Var{a}=\Var{b}; \Var{P}(\Var{a})} \Imp 
+   \Var{P}(\Var{b})  \eqno(subst)$$
+In backward proof, this may seem difficult to use: the conclusion
+$\Var{P}(\Var{b})$ admits far too many unifiers.  But, if the theorem {\tt
+eqth} asserts $t=u$, then \hbox{\tt eqth RS subst} is the derived rule
+\[ \Var{P}(t) \Imp \Var{P}(u). \]
+Provided $u$ is not an unknown, resolution with this rule is
+well-behaved.\footnote{Unifying $\Var{P}(u)$ with a formula~$Q$
+expresses~$Q$ in terms of its dependence upon~$u$.  There are still $2^k$
+unifiers, if $Q$ has $k$ occurrences of~$u$, but Isabelle ensures that
+the first unifier includes all the occurrences.}  To replace $u$ by~$t$ in
+subgoal~$i$, use
+\begin{ttbox} 
+resolve_tac [eqth RS subst] \(i\) {\it.}
+\end{ttbox}
+To replace $t$ by~$u$ in
+subgoal~$i$, use
+\begin{ttbox} 
+resolve_tac [eqth RS ssubst] \(i\) {\it,}
+\end{ttbox}
+where \ttindexbold{ssubst} is the `swapped' substitution rule
+$$ \List{\Var{a}=\Var{b}; \Var{P}(\Var{b})} \Imp 
+   \Var{P}(\Var{a}).  \eqno(ssubst)$$
+If \ttindex{sym} denotes the symmetry rule
+\(\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}\), then {\tt ssubst} is just
+\hbox{\tt sym RS subst}.  Many logics with equality include the rules {\tt
+subst} and {\tt ssubst}, as well as {\tt refl}, {\tt sym} and {\tt trans}
+(for the usual equality laws).
+
+Elim-resolution is well-behaved with assumptions of the form $t=u$.
+To replace $u$ by~$t$ or $t$ by~$u$ in subgoal~$i$, use
+\begin{ttbox} 
+eresolve_tac [subst] \(i\)    {\it or}    eresolve_tac [ssubst] \(i\) {\it.}
+\end{ttbox}
+
+
+\section{Substitution in the hypotheses}
+\index{substitution!in hypotheses}
+Substitution rules, like other rules of natural deduction, do not affect
+the assumptions.  This can be inconvenient.  Consider proving the subgoal
+\[ \List{c=a; c=b} \Imp a=b. \]
+Calling \hbox{\tt eresolve_tac [ssubst] \(i\)} simply discards the
+assumption~$c=a$, since $c$ does not occur in~$a=b$.  Of course, we can
+work out a solution.  First apply \hbox{\tt eresolve_tac [subst] \(i\)},
+replacing~$a$ by~$c$:
+\[ \List{c=b} \Imp c=b \]
+Equality reasoning can be difficult, but this trivial proof requires
+nothing more sophisticated than substitution in the assumptions.
+Object-logics that include the rule~$(subst)$ provide a tactic for this
+purpose:
+\begin{ttbox} 
+hyp_subst_tac : int -> tactic
+\end{ttbox}
+\begin{description}
+\item[\ttindexbold{hyp_subst_tac} {\it i}] 
+selects an equality assumption of the form $t=u$ or $u=t$, where $t$ is a
+free variable or parameter.  Deleting this assumption, it replaces $t$
+by~$u$ throughout subgoal~$i$, including the other assumptions.
+\end{description}
+The term being replaced must be a free variable or parameter.  Substitution
+for constants is usually unhelpful, since they may appear in other
+theorems.  For instance, the best way to use the assumption $0=1$ is to
+contradict a theorem that states $0\not=1$, rather than to replace 0 by~1
+in the subgoal!
+
+Replacing a free variable causes similar problems if they appear in the
+premises of a rule being derived --- the substitution affects object-level
+assumptions, not meta-level assumptions.  For instance, replacing~$a$
+by~$b$ could make the premise~$P(a)$ worthless.  To avoid this problem, call
+\ttindex{cut_facts_tac} to insert the atomic premises as object-level
+assumptions.
+
+
+\section{Setting up {\tt hyp_subst_tac}} 
+Many Isabelle object-logics, such as {\tt FOL}, {\tt HOL} and their
+descendants, come with {\tt hyp_subst_tac} already defined.  A few others,
+such as {\tt CTT}, do not support this tactic because they lack the
+rule~$(subst)$.  When defining a new logic that includes a substitution
+rule and implication, you must set up {\tt hyp_subst_tac} yourself.  It
+is packaged as the \ML{} functor \ttindex{HypsubstFun}, which takes the
+argument signature~\ttindexbold{HYPSUBST_DATA}:
+\begin{ttbox} 
+signature HYPSUBST_DATA =
+  sig
+  val subst      : thm
+  val sym        : thm
+  val rev_cut_eq : thm
+  val imp_intr   : thm
+  val rev_mp     : thm
+  val dest_eq    : term -> term*term
+  end;
+\end{ttbox}
+Thus, the functor requires the following items:
+\begin{description}
+\item[\ttindexbold{subst}] should be the substitution rule
+$\List{\Var{a}=\Var{b};\; \Var{P}(\Var{a})} \Imp \Var{P}(\Var{b})$.
+
+\item[\ttindexbold{sym}] should be the symmetry rule
+$\Var{a}=\Var{b}\Imp\Var{b}=\Var{a}$.
+
+\item[\ttindexbold{rev_cut_eq}] should have the form
+$\List{\Var{a}=\Var{b};\; \Var{a}=\Var{b}\Imp\Var{R}} \Imp \Var{R}$.
+
+\item[\ttindexbold{imp_intr}] should be the implies introduction
+rule $(\Var{P}\Imp\Var{Q})\Imp \Var{P}\imp\Var{Q}$.
+
+\item[\ttindexbold{rev_mp}] should be the ``reversed'' implies elimination
+rule $\List{\Var{P};  \;\Var{P}\imp\Var{Q}} \Imp \Var{Q}$.
+
+\item[\ttindexbold{dest_eq}] should return the pair~$(t,u)$ when
+applied to the \ML{} term that represents~$t=u$.  For other terms, it
+should raise exception~\ttindex{Match}.
+\end{description}
+The functor resides in {\tt Provers/hypsubst.ML} on the Isabelle
+distribution directory.  It is not sensitive to the precise formalization
+of the object-logic.  It is not concerned with the names of the equality
+and implication symbols, or the types of formula and terms.  Coding the
+function {\tt dest_eq} requires knowledge of Isabelle's representation of
+terms.  For {\tt FOL} it is defined by
+\begin{ttbox} 
+fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)$t$u)) = (t,u);
+\end{ttbox}
+Here {\tt Trueprop} is the coercion from type'~$o$ to type~$prop$, while
+\hbox{\tt op =} is the internal name of the infix operator~{\tt=}.
+Pattern-matching expresses the function concisely, using wildcards~({\tt_})
+to hide the types.
+
+Given a subgoal of the form
+\[ \List{P@1; \cdots ; t=u; \cdots ; P@n} \Imp Q, \]
+\ttindexbold{hyp_subst_tac} locates a suitable equality
+assumption and moves it to the last position using elim-resolution on {\tt
+rev_cut_eq} (possibly re-orienting it using~{\tt sym}):
+\[ \List{P@1; \cdots ; P@n; t=u} \Imp Q \]
+Using $n$ calls of \hbox{\tt eresolve_tac [rev_mp]}, it creates the subgoal
+\[ \List{t=u} \Imp P@1\imp \cdots \imp P@n \imp Q \]
+By \hbox{\tt eresolve_tac [ssubst]}, it replaces~$t$ by~$u$ throughout:
+\[ P'@1\imp \cdots \imp P'@n \imp Q' \]
+Finally, using $n$ calls of \hbox{\tt resolve_tac [imp_intr]}, it restores
+$P'@1$, \ldots, $P'@n$ as assumptions:
+\[ \List{P'@n; \cdots ; P'@1} \Imp Q' \]
+
+\index{substitution|)}

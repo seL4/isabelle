@@ -1,0 +1,151 @@
+(**** HOL examples -- process using Doc/tout HOL-eg.txt  ****)
+
+Pretty.setmargin 72;  (*existing macros just allow this margin*)
+print_depth 0;
+
+
+(*** Conjunction rules ***)
+
+val prems = goal HOL_Rule.thy "[| P; Q |] ==> P&Q";
+by (resolve_tac [and_def RS ssubst] 1);
+by (resolve_tac [allI] 1);
+by (resolve_tac [impI] 1);
+by (eresolve_tac [mp RS mp] 1);
+by (REPEAT (resolve_tac prems 1));
+val conjI = result();
+
+val prems = goal HOL_Rule.thy "[| P & Q |] ==> P";
+prths (prems RL [and_def RS subst]);
+prths (prems RL [and_def RS subst] RL [spec] RL [mp]);
+by (resolve_tac it 1);
+by (REPEAT (ares_tac [impI] 1));
+val conjunct1 = result();
+
+
+(*** Cantor's Theorem: There is no surjection from a set to its powerset. ***)
+
+goal Set.thy "~ ?S : range(f :: 'a=>'a set)";
+by (resolve_tac [notI] 1);
+by (eresolve_tac [rangeE] 1);
+by (eresolve_tac [equalityCE] 1);
+by (dresolve_tac [CollectD] 1);
+by (contr_tac 1);
+by (swap_res_tac [CollectI] 1);
+by (assume_tac 1);
+
+choplev 0;
+by (best_tac (set_cs addSEs [equalityCE]) 1);
+
+
+goal Set.thy "! f:: 'a=>'a set. ! x. ~ f(x) = ?S(f)";
+by (REPEAT (resolve_tac [allI,notI] 1));
+by (eresolve_tac [equalityCE] 1);
+by (dresolve_tac [CollectD] 1);
+by (contr_tac 1);
+by (swap_res_tac [CollectI] 1);
+by (assume_tac 1);
+
+choplev 0;
+by (best_tac (set_cs addSEs [equalityCE]) 1);
+
+
+goal Set.thy "~ (? f:: 'a=>'a set. ! S. ? a. f(a) = S)";
+by (best_tac (set_cs addSEs [equalityCE]) 1);
+
+
+
+
+> val prems = goal HOL_Rule.thy "[| P; Q |] ==> P&Q";
+Level 0
+P & Q
+ 1. P & Q
+> by (resolve_tac [and_def RS ssubst] 1);
+Level 1
+P & Q
+ 1. ! R. (P --> Q --> R) --> R
+> by (resolve_tac [allI] 1);
+Level 2
+P & Q
+ 1. !!R. (P --> Q --> R) --> R
+> by (resolve_tac [impI] 1);
+Level 3
+P & Q
+ 1. !!R. P --> Q --> R ==> R
+> by (eresolve_tac [mp RS mp] 1);
+Level 4
+P & Q
+ 1. !!R. P
+ 2. !!R. Q
+> by (REPEAT (resolve_tac prems 1));
+Level 5
+P & Q
+No subgoals!
+
+
+
+> val prems = goal HOL_Rule.thy "[| P & Q |] ==> P";
+Level 0
+P
+ 1. P
+> prths (prems RL [and_def RS subst]);
+! R. (P --> Q --> R) --> R  [P & Q]
+P & Q  [P & Q]
+
+> prths (prems RL [and_def RS subst] RL [spec] RL [mp]);
+P --> Q --> ?Q ==> ?Q  [P & Q]
+
+> by (resolve_tac it 1);
+Level 1
+P
+ 1. P --> Q --> P
+> by (REPEAT (ares_tac [impI] 1));
+Level 2
+P
+No subgoals!
+
+
+
+
+> goal Set.thy "~ ?S : range(f :: 'a=>'a set)";
+Level 0
+~?S : range(f)
+ 1. ~?S : range(f)
+> by (resolve_tac [notI] 1);
+Level 1
+~?S : range(f)
+ 1. ?S : range(f) ==> False
+> by (eresolve_tac [rangeE] 1);
+Level 2
+~?S : range(f)
+ 1. !!x. ?S = f(x) ==> False
+> by (eresolve_tac [equalityCE] 1);
+Level 3
+~?S : range(f)
+ 1. !!x. [| ?c3(x) : ?S; ?c3(x) : f(x) |] ==> False
+ 2. !!x. [| ~?c3(x) : ?S; ~?c3(x) : f(x) |] ==> False
+> by (dresolve_tac [CollectD] 1);
+Level 4
+~{x. ?P7(x)} : range(f)
+ 1. !!x. [| ?c3(x) : f(x); ?P7(?c3(x)) |] ==> False
+ 2. !!x. [| ~?c3(x) : {x. ?P7(x)}; ~?c3(x) : f(x) |] ==> False
+> by (contr_tac 1);
+Level 5
+~{x. ~x : f(x)} : range(f)
+ 1. !!x. [| ~x : {x. ~x : f(x)}; ~x : f(x) |] ==> False
+> by (swap_res_tac [CollectI] 1);
+Level 6
+~{x. ~x : f(x)} : range(f)
+ 1. !!x. [| ~x : f(x); ~False |] ==> ~x : f(x)
+> by (assume_tac 1);
+Level 7
+~{x. ~x : f(x)} : range(f)
+No subgoals!
+
+> choplev 0;
+Level 0
+~?S : range(f)
+ 1. ~?S : range(f)
+> by (best_tac (set_cs addSEs [equalityCE]) 1);
+Level 1
+~{x. ~x : f(x)} : range(f)
+No subgoals!

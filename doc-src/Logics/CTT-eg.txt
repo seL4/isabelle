@@ -1,0 +1,310 @@
+(**** CTT examples -- process using Doc/tout CTT-eg.txt  ****)
+
+Pretty.setmargin 72;  (*existing macros just allow this margin*)
+print_depth 0;
+
+
+(*** Type inference, from CTT/ex/typechk.ML ***)
+
+goal CTT_Rule.thy "lam n. rec(n, 0, %x y.x) : ?A";
+by (resolve_tac [ProdI] 1);
+by (eresolve_tac [NE] 2);
+by (resolve_tac [NI0] 2);
+by (assume_tac 2);
+by (resolve_tac [NF] 1);
+
+
+
+(*** Logical reasoning, from CTT/ex/elim.ML ***)
+
+val prems = goal CTT_Rule.thy
+    "[| A type;  \
+\       !!x. x:A ==> B(x) type;       \
+\       !!x. x:A ==> C(x) type;       \
+\       p: SUM x:A. B(x) + C(x)       \
+\    |] ==>  ?a : (SUM x:A. B(x)) + (SUM x:A. C(x))";
+by (resolve_tac (prems RL [SumE]) 1);
+by (eresolve_tac [PlusE] 1);
+by (resolve_tac [PlusI_inl] 1);
+by (resolve_tac [SumI] 1);
+by (assume_tac 1);
+by (assume_tac 1);
+by (typechk_tac prems);
+by (pc_tac prems 1);
+
+
+(*** Currying, from CTT/ex/elim.ML ***)
+
+val prems = goal CTT_Rule.thy
+    "[| A type; !!x. x:A ==> B(x) type; \
+\               !!z. z: (SUM x:A. B(x)) ==> C(z) type |] \
+\    ==> ?a : (PROD z : (SUM x:A . B(x)) . C(z)) \
+\         --> (PROD x:A . PROD y:B(x) . C(<x,y>))";
+by (intr_tac prems);
+by (eresolve_tac [ProdE] 1);
+by (intr_tac prems);
+
+
+(*** Axiom of Choice ***)
+
+val prems = goal CTT_Rule.thy   
+    "[| A type;  !!x. x:A ==> B(x) type;  \
+\       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type  \
+\    |] ==> ?a :    (PROD x:A. SUM y:B(x). C(x,y))    \
+\               --> (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
+by (intr_tac prems);
+by (eresolve_tac [ProdE RS SumE_fst] 1);
+by (assume_tac 1);
+by (resolve_tac [replace_type] 1);
+by (resolve_tac [subst_eqtyparg] 1);
+by (resolve_tac [ProdC] 1);
+by (typechk_tac (SumE_fst::prems));
+by (eresolve_tac [ProdE RS SumE_snd] 1);
+by (typechk_tac prems);
+
+
+
+
+> goal CTT_Rule.thy "lam n. rec(n, 0, %x y.x) : ?A";
+Level 0
+lam n. rec(n,0,%x y. x) : ?A
+ 1. lam n. rec(n,0,%x y. x) : ?A
+> by (resolve_tac [ProdI] 1);
+Level 1
+lam n. rec(n,0,%x y. x) : PROD x:?A1. ?B1(x)
+ 1. ?A1 type
+ 2. !!n. n : ?A1 ==> rec(n,0,%x y. x) : ?B1(n)
+> by (eresolve_tac [NE] 2);
+Level 2
+lam n. rec(n,0,%x y. x) : PROD x:N. ?C2(x,x)
+ 1. N type
+ 2. !!n. 0 : ?C2(n,0)
+ 3. !!n x y. [| x : N; y : ?C2(n,x) |] ==> x : ?C2(n,succ(x))
+> by (resolve_tac [NI0] 2);
+Level 3
+lam n. rec(n,0,%x y. x) : N --> N
+ 1. N type
+ 2. !!n x y. [| x : N; y : N |] ==> x : N
+> by (assume_tac 2);
+Level 4
+lam n. rec(n,0,%x y. x) : N --> N
+ 1. N type
+> by (resolve_tac [NF] 1);
+Level 5
+lam n. rec(n,0,%x y. x) : N --> N
+No subgoals!
+
+
+
+
+> val prems = goal CTT_Rule.thy
+#     "[| A type;  \
+# \       !!x. x:A ==> B(x) type;       \
+# \       !!x. x:A ==> C(x) type;       \
+# \       p: SUM x:A. B(x) + C(x)       \
+# \    |] ==>  ?a : (SUM x:A. B(x)) + (SUM x:A. C(x))";
+Level 0
+?a : (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. ?a : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (resolve_tac (prems RL [SumE]) 1);
+Level 1
+split(p,?c1) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. !!x y.
+       [| x : A; y : B(x) + C(x) |] ==>
+       ?c1(x,y) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (eresolve_tac [PlusE] 1);
+Level 2
+split(p,%x y. when(y,?c2(x,y),?d2(x,y)))
+: (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. !!x y xa.
+       [| x : A; xa : B(x) |] ==>
+       ?c2(x,y,xa) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 2. !!x y ya.
+       [| x : A; ya : C(x) |] ==>
+       ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (resolve_tac [PlusI_inl] 1);
+Level 3
+split(p,%x y. when(y,%xa. inl(?a3(x,y,xa)),?d2(x,y)))
+: (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. !!x y xa. [| x : A; xa : B(x) |] ==> ?a3(x,y,xa) : SUM x:A. B(x)
+ 2. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type
+ 3. !!x y ya.
+       [| x : A; ya : C(x) |] ==>
+       ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (resolve_tac [SumI] 1);
+Level 4
+split(p,%x y. when(y,%xa. inl(<?a4(x,y,xa),?b4(x,y,xa)>),?d2(x,y)))
+: (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. !!x y xa. [| x : A; xa : B(x) |] ==> ?a4(x,y,xa) : A
+ 2. !!x y xa. [| x : A; xa : B(x) |] ==> ?b4(x,y,xa) : B(?a4(x,y,xa))
+ 3. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type
+ 4. !!x y ya.
+       [| x : A; ya : C(x) |] ==>
+       ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (assume_tac 1);
+Level 5
+split(p,%x y. when(y,%xa. inl(<x,?b4(x,y,xa)>),?d2(x,y)))
+: (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. !!x y xa. [| x : A; xa : B(x) |] ==> ?b4(x,y,xa) : B(x)
+ 2. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type
+ 3. !!x y ya.
+       [| x : A; ya : C(x) |] ==>
+       ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (assume_tac 1);
+Level 6
+split(p,%x y. when(y,%xa. inl(<x,xa>),?d2(x,y)))
+: (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. !!x y xa. [| x : A; xa : B(x) |] ==> SUM x:A. C(x) type
+ 2. !!x y ya.
+       [| x : A; ya : C(x) |] ==>
+       ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (typechk_tac prems);
+Level 7
+split(p,%x y. when(y,%xa. inl(<x,xa>),?d2(x,y)))
+: (SUM x:A. B(x)) + (SUM x:A. C(x))
+ 1. !!x y ya.
+       [| x : A; ya : C(x) |] ==>
+       ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))
+> by (pc_tac prems 1);
+Level 8
+split(p,%x y. when(y,%xa. inl(<x,xa>),%y. inr(<x,y>)))
+: (SUM x:A. B(x)) + (SUM x:A. C(x))
+No subgoals!
+
+
+
+
+> val prems = goal CTT_Rule.thy
+#     "[| A type; !!x. x:A ==> B(x) type; \
+# \               !!z. z: (SUM x:A. B(x)) ==> C(z) type |] \
+# \    ==> ?a : (PROD z : (SUM x:A . B(x)) . C(z)) \
+# \         --> (PROD x:A . PROD y:B(x) . C(<x,y>))";
+Level 0
+?a : (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))
+ 1. ?a : (PROD z:SUM x:A. B(x). C(z)) -->
+         (PROD x:A. PROD y:B(x). C(<x,y>))
+> by (intr_tac prems);
+Level 1
+lam x xa xb. ?b7(x,xa,xb)
+: (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))
+ 1. !!uu x y.
+       [| uu : PROD z:SUM x:A. B(x). C(z); x : A; y : B(x) |] ==>
+       ?b7(uu,x,y) : C(<x,y>)
+> by (eresolve_tac [ProdE] 1);
+Level 2
+lam x xa xb. x ` <xa,xb>
+: (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))
+ 1. !!uu x y. [| x : A; y : B(x) |] ==> <x,y> : SUM x:A. B(x)
+> by (intr_tac prems);
+Level 3
+lam x xa xb. x ` <xa,xb>
+: (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))
+No subgoals!
+
+
+
+
+> val prems = goal CTT_Rule.thy
+#     "[| A type;  !!x. x:A ==> B(x) type;  \
+# \       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type  \
+# \    |] ==> ?a :    (PROD x:A. SUM y:B(x). C(x,y))    \
+# \               --> (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
+Level 0
+?a : (PROD x:A. SUM y:B(x). C(x,y)) -->
+     (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. ?a : (PROD x:A. SUM y:B(x). C(x,y)) -->
+         (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+> by (intr_tac prems);
+Level 1
+lam x. <lam xa. ?b7(x,xa),lam xa. ?b8(x,xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b7(uu,x) : B(x)
+ 2. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b8(uu,x) : C(x,(lam x. ?b7(uu,x)) ` x)
+> by (eresolve_tac [ProdE RS SumE_fst] 1);
+Level 2
+lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x. x : A ==> x : A
+ 2. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b8(uu,x) : C(x,(lam x. fst(uu ` x)) ` x)
+> by (assume_tac 1);
+Level 3
+lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b8(uu,x) : C(x,(lam x. fst(uu ` x)) ` x)
+> by (resolve_tac [replace_type] 1);
+Level 4
+lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       C(x,(lam x. fst(uu ` x)) ` x) = ?A13(uu,x)
+ 2. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b8(uu,x) : ?A13(uu,x)
+> by (resolve_tac [subst_eqtyparg] 1);
+Level 5
+lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       (lam x. fst(uu ` x)) ` x = ?c14(uu,x) : ?A14(uu,x)
+ 2. !!uu x z.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;
+          z : ?A14(uu,x) |] ==>
+       C(x,z) type
+ 3. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b8(uu,x) : C(x,?c14(uu,x))
+> by (resolve_tac [ProdC] 1);
+Level 6
+lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==> x : ?A15(uu,x)
+ 2. !!uu x xa.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;
+          xa : ?A15(uu,x) |] ==>
+       fst(uu ` xa) : ?B15(uu,x,xa)
+ 3. !!uu x z.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A;
+          z : ?B15(uu,x,x) |] ==>
+       C(x,z) type
+ 4. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b8(uu,x) : C(x,fst(uu ` x))
+> by (typechk_tac (SumE_fst::prems));
+Level 7
+lam x. <lam xa. fst(x ` xa),lam xa. ?b8(x,xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x.
+       [| uu : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>
+       ?b8(uu,x) : C(x,fst(uu ` x))
+> by (eresolve_tac [ProdE RS SumE_snd] 1);
+Level 8
+lam x. <lam xa. fst(x ` xa),lam xa. snd(x ` xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+ 1. !!uu x. x : A ==> x : A
+ 2. !!uu x. x : A ==> B(x) type
+ 3. !!uu x xa. [| x : A; xa : B(x) |] ==> C(x,xa) type
+> by (typechk_tac prems);
+Level 9
+lam x. <lam xa. fst(x ` xa),lam xa. snd(x ` xa)>
+: (PROD x:A. SUM y:B(x). C(x,y)) -->
+  (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))
+No subgoals!

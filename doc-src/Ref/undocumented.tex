@@ -1,0 +1,319 @@
+%%%%Currently UNDOCUMENTED low-level functions!  from previous manual
+
+%%%%Low level information about terms and module Logic.
+%%%%Mainly used for implementation of Pure.
+
+%move to ML sources?
+
+\subsection{Basic declarations}
+The implication symbol is {\tt implies}.
+
+The term \verb|all T| is the universal quantifier for type {\tt T}\@.
+
+The term \verb|equals T| is the equality predicate for type {\tt T}\@.
+
+
+There are a number of basic functions on terms and types.
+
+\index{--->}
+\beginprog
+op ---> : typ list * typ -> typ
+\endprog
+Given types \([ \tau_1, \ldots, \tau_n]\) and \(\tau\), it
+forms the type \(\tau_1\to \cdots \to (\tau_n\to\tau)\).
+
+\index{loose_bnos}
+\beginprog
+loose_bnos: term -> int list
+\endprog
+Calling \verb|loose_bnos t| returns the list of all 'loose' bound variable
+references.  In particular, {\tt Bound~0} is loose unless it is enclosed in
+an abstraction.  Similarly {\tt Bound~1} is loose unless it is enclosed in
+at least two abstractions; if enclosed in just one, the list will contain
+the number 0.  A well-formed term does not contain any loose variables.
+
+Calling {\prog{}type_of \${t}}\index{type_of} computes the type of the
+term~$t$.  Raises exception {\tt TYPE} unless applications are well-typed.
+
+\index{aconv}
+\beginprog
+op aconv: term*term -> bool
+\endprog
+Calling $t\Term{ aconv }u$ tests whether terms~$t$ and~$u$ are
+\(\alpha\)-convertible: identical up to renaming of bound variables.
+\begin{itemize}
+  \item
+    Two constants, {\tt Free}s, or {\tt Var}s are \(\alpha\)-convertible
+    just when their names and types are equal.
+    (Variables having the same name but different types are thus distinct.
+    This confusing situation should be avoided!)
+  \item
+    Two bound variables are \(\alpha\)-convertible
+    just when they have the same number.
+  \item
+    Two abstractions are \(\alpha\)-convertible
+    just when their bodies are, and their bound variables have the same type.
+  \item
+    Two applications are \(\alpha\)-convertible
+    just when the corresponding subterms are.
+\end{itemize}
+
+
+\index{incr_boundvars}
+\beginprog
+incr_boundvars: int -> term -> term
+\endprog
+This increments a term's `loose' bound variables by a given offset,
+required when moving a subterm into a context
+where it is enclosed by a different number of lambdas.
+
+\index{abstract_over}
+\beginprog
+abstract_over: term*term -> term
+\endprog
+For abstracting a term over a subterm \(v\):
+replaces every occurrence of \(v\) by a {\tt Bound} variable
+with the correct index.
+
+Calling \verb|subst_bounds|$([u_{n-1},\ldots,u_0],\,t)$\index{subst_bounds}
+substitutes the $u_i$ for loose bound variables in $t$.  This achieves
+\(\beta\)-reduction of \(u_{n-1} \cdots u_0\) into $t$, replacing {\tt
+Bound~i} with $u_i$.  For \((\lambda x y.t)(u,v)\), the bound variable
+indices in $t$ are $x:1$ and $y:0$.  The appropriate call is
+\verb|subst_bounds([v,u],t)|.  Loose bound variables $\geq n$ are reduced
+by $n$ to compensate for the disappearance of $n$ lambdas.
+
+\index{maxidx_of_term}
+\beginprog
+maxidx_of_term: term -> int
+\endprog
+Computes the maximum index of all the {\tt Var}s in a term.
+If there are no {\tt Var}s, the result is \(-1\).
+
+\index{term_match}
+\beginprog
+term_match: (term*term)list * term*term -> (term*term)list
+\endprog
+Calling \verb|term_match(vts,t,u)| instantiates {\tt Var}s in {\tt t} to
+match it with {\tt u}.  The resulting list of variable/term pairs extends
+{\tt vts}, which is typically empty.  First-order pattern matching is used
+to implement meta-level rewriting.
+
+
+\subsection{The representation of object-rules}
+The module {\tt Logic} contains operations concerned with inference ---
+especially, for constructing and destructing terms that represent
+object-rules.
+
+\index{occs}
+\beginprog
+op occs: term*term -> bool
+\endprog
+Does one term occur in the other?
+(This is a reflexive relation.)
+
+\index{add_term_vars}
+\beginprog
+add_term_vars: term*term list -> term list
+\endprog
+Accumulates the {\tt Var}s in the term, suppressing duplicates.
+The second argument should be the list of {\tt Var}s found so far.
+
+\index{add_term_frees}
+\beginprog
+add_term_frees: term*term list -> term list
+\endprog
+Accumulates the {\tt Free}s in the term, suppressing duplicates.
+The second argument should be the list of {\tt Free}s found so far.
+
+\index{mk_equals}
+\beginprog
+mk_equals: term*term -> term
+\endprog
+Given $t$ and $u$ makes the term $t\equiv u$.
+
+\index{dest_equals}
+\beginprog
+dest_equals: term -> term*term
+\endprog
+Given $t\equiv u$ returns the pair $(t,u)$.
+
+\index{list_implies:}
+\beginprog
+list_implies: term list * term -> term
+\endprog
+Given the pair $([\phi_1,\ldots, \phi_m], \phi)$
+makes the term \([\phi_1;\ldots; \phi_m] \Imp \phi\).
+
+\index{strip_imp_prems}
+\beginprog
+strip_imp_prems: term -> term list
+\endprog
+Given \([\phi_1;\ldots; \phi_m] \Imp \phi\)
+returns the list \([\phi_1,\ldots, \phi_m]\). 
+
+\index{strip_imp_concl}
+\beginprog
+strip_imp_concl: term -> term
+\endprog
+Given \([\phi_1;\ldots; \phi_m] \Imp \phi\)
+returns the term \(\phi\). 
+
+\index{list_equals}
+\beginprog
+list_equals: (term*term)list * term -> term
+\endprog
+For adding flex-flex constraints to an object-rule. 
+Given $([(t_1,u_1),\ldots, (t_k,u_k)], \phi)$,
+makes the term \([t_1\equiv u_1;\ldots; t_k\equiv u_k]\Imp \phi\).
+
+\index{strip_equals}
+\beginprog
+strip_equals: term -> (term*term) list * term
+\endprog
+Given \([t_1\equiv u_1;\ldots; t_k\equiv u_k]\Imp \phi\),
+returns $([(t_1,u_1),\ldots, (t_k,u_k)], \phi)$.
+
+\index{rule_of}
+\beginprog
+rule_of: (term*term)list * term list * term -> term
+\endprog
+Makes an object-rule: given the triple
+\[ ([(t_1,u_1),\ldots, (t_k,u_k)], [\phi_1,\ldots, \phi_m], \phi) \]
+returns the term
+\([t_1\equiv u_1;\ldots; t_k\equiv u_k; \phi_1;\ldots; \phi_m]\Imp \phi\)
+
+\index{strip_horn}
+\beginprog
+strip_horn: term -> (term*term)list * term list * term
+\endprog
+Breaks an object-rule into its parts: given
+\[ [t_1\equiv u_1;\ldots; t_k\equiv u_k; \phi_1;\ldots; \phi_m] \Imp \phi \]
+returns the triple
+\(([(t_k,u_k),\ldots, (t_1,u_1)], [\phi_1,\ldots, \phi_m], \phi).\)
+
+\index{strip_assums}
+\beginprog
+strip_assums: term -> (term*int) list * (string*typ) list * term
+\endprog
+Strips premises of a rule allowing a more general form,
+where $\Forall$ and $\Imp$ may be intermixed.
+This is typical of assumptions of a subgoal in natural deduction.
+Returns additional information about the number, names,
+and types of quantified variables.
+
+
+\index{strip_prems}
+\beginprog
+strip_prems: int * term list * term -> term list * term
+\endprog
+For finding premise (or subgoal) $i$: given the triple
+\( (i, [], \phi_1;\ldots \phi_i\Imp \phi) \)
+it returns another triple,
+\((\phi_i, [\phi_{i-1},\ldots, \phi_1], \phi)\),
+where $\phi$ need not be atomic. Raises an exception if $i$ is out of
+range.
+
+
+\subsection{Environments}
+The module {\tt Envir} (which is normally closed)
+declares a type of environments.
+An environment holds variable assignments
+and the next index to use when generating a variable.
+\par\indent\vbox{\small \begin{verbatim}
+    datatype env = Envir of {asol: term xolist, maxidx: int}
+\end{verbatim}}
+The operations of lookup, update, and generation of variables
+are used during unification.
+
+\beginprog
+empty: int->env
+\endprog
+Creates the environment with no assignments
+and the given index.
+
+\beginprog
+lookup: env * indexname -> term option
+\endprog
+Looks up a variable, specified by its indexname,
+and returns {\tt None} or {\tt Some} as appropriate.
+
+\beginprog
+update: (indexname * term) * env -> env
+\endprog
+Given a variable, term, and environment,
+produces {\em a new environment\/} where the variable has been updated.
+This has no side effect on the given environment.
+
+\beginprog
+genvar: env * typ -> env * term
+\endprog
+Generates a variable of the given type and returns it,
+paired with a new environment (with incremented {\tt maxidx} field).
+
+\beginprog
+alist_of: env -> (indexname * term) list
+\endprog
+Converts an environment into an association list
+containing the assignments.
+
+\beginprog
+norm_term: env -> term -> term
+\endprog
+
+Copies a term, 
+following assignments in the environment,
+and performing all possible \(\beta\)-reductions.
+
+\beginprog
+rewrite: (env * (term*term)list) -> term -> term
+\endprog
+Rewrites a term using the given term pairs as rewrite rules.  Assignments
+are ignored; the environment is used only with {\tt genvar}, to generate
+unique {\tt Var}s as placeholders for bound variables.
+
+
+\subsection{The unification functions}
+
+
+\beginprog
+unifiers: env * ((term*term)list) -> (env * (term*term)list) seq
+\endprog
+This is the main unification function.
+Given an environment and a list of disagreement pairs,
+it returns a sequence of outcomes.
+Each outcome consists of an updated environment and 
+a list of flex-flex pairs (these are discussed below).
+
+\beginprog
+smash_unifiers: env * (term*term)list -> env seq
+\endprog
+This unification function maps an environment and a list of disagreement
+pairs to a sequence of updated environments. The function obliterates
+flex-flex pairs by choosing the obvious unifier. It may be used to tidy up
+any flex-flex pairs remaining at the end of a proof.
+
+\subsubsection{Flexible-flexible disagreement pairs}
+
+
+\subsubsection{Multiple unifiers}
+The unification procedure performs Huet's {\sc match} operation
+\cite{huet75} in big steps.
+It solves \(\Var{f}(t_1,\ldots,t_p) \equiv u\) for \(\Var{f}\) by finding
+all ways of copying \(u\), first trying projection on the arguments
+\(t_i\).  It never copies below any variable in \(u\); instead it returns a
+new variable, resulting in a flex-flex disagreement pair.  
+
+
+\beginprog
+type_assign: cterm -> cterm
+\endprog
+Produces a cterm by updating the signature of its argument
+to include all variable/type assignments.
+Type inference under the resulting signature will assume the
+same type assignments as in the argument.
+This is used in the goal package to give persistence to type assignments
+within each proof. 
+(Contrast with {\sc lcf}'s sticky types \cite[page 148]{paulson-book}.)
+
+

@@ -1,0 +1,139 @@
+%% $Id$
+\chapter{Introduction}
+Several logics come with Isabelle.  Many of them are sufficiently developed
+to serve as comfortable reasoning environments.  They are also good
+starting points for defining new logics.  Each logic is distributed with
+sample proofs, some of which are described in this document.
+
+\begin{quote}
+{\ttindexbold{FOL}} is many-sorted first-order logic with natural
+deduction.  It comes in both constructive and classical versions.
+
+{\ttindexbold{ZF}} is axiomatic set theory, using the Zermelo-Fraenkel
+axioms~\cite{suppes72}.  It is built upon classical~\FOL{}.
+ 
+{\ttindexbold{HOL}} is the higher-order logic of Church~\cite{church40},
+which is also implemented by Gordon's~{\sc hol} system~\cite{gordon88a}.  This
+object-logic should not be confused with Isabelle's meta-logic, which is
+also a form of higher-order logic.
+ 
+{\ttindexbold{CTT}} is a version of Martin-L\"of's Constructive Type
+Theory~\cite{nordstrom90}, with extensional equality.  Universes are not
+included.
+ 
+{\ttindexbold{LK}} is another version of first-order logic, a classical
+sequent calculus.  Sequents have the form $A@1,\ldots,A@m\turn
+B@1,\ldots,B@n$; rules are applied using associative matching.
+
+{\ttindexbold{Modal}} implements the modal logics $T$, $S4$, and~$S43$.  It
+is built upon~\LK{}.
+
+{\ttindexbold{Cube}} is Barendregt's $\lambda$-cube.
+
+{\ttindexbold{LCF}} is a version of Scott's Logic for Computable Functions,
+which is also implemented by the~{\sc lcf} system~\cite{paulson87}.
+\end{quote}
+The logics {\tt Modal}, {\tt Cube} and {\tt LCF} are currently undocumented.
+
+This manual assumes that you have read the {\em Introduction to Isabelle\/}
+and have some experience of using Isabelle to perform interactive proofs.
+It refers to packages defined in the {\em Reference Manual}, which you
+should keep at hand.
+
+
+\section{Syntax definitions}
+This manual defines each logic's syntax using a context-free grammar.
+These grammars obey the following conventions:
+\begin{itemize}
+\item identifiers denote nonterminal symbols
+\item {\tt typewriter} font denotes terminal symbols
+\item parentheses $(\ldots)$ express grouping
+\item constructs followed by a Kleene star, such as $id^*$ and $(\ldots)^*$
+can be repeated~0 or more times 
+\item alternatives are separated by a vertical bar,~$|$
+\item the symbol for alphanumeric identifier is~{\it id\/} 
+\item the symbol for scheme variables is~{\it var}
+\end{itemize}
+To reduce the number of nonterminals and grammar rules required, Isabelle's
+syntax module employs {\bf precedences}.  Each grammar rule is given by a
+mixfix declaration, which has a precedence, and each argument place has a
+precedence.  This general approach handles infix operators that associate
+either to the left or to the right, as well as prefix and binding
+operators.
+
+In a syntactically valid expression, an operator's arguments never involve
+an operator of lower precedence unless brackets are used.  Consider
+first-order logic, where $\exists$ has lower precedence than $\disj$,
+which has lower precedence than $\conj$.  There, $P\conj Q \disj R$
+abbreviates $(P\conj Q) \disj R$ rather than $P\conj (Q\disj R)$.  Also,
+$\exists x.P\disj Q$ abbreviates $\exists x.(P\disj Q)$ rather than
+$(\exists x.P)\disj Q$.  Note especially that $P\disj(\exists x.Q)$
+becomes syntactically invalid if the brackets are removed.
+
+A {\bf binder} is a symbol associated with a constant of type
+$(\sigma\To\tau)\To\tau'$.  For instance, we may declare~$\forall$ as a
+binder for the constant~$All$, which has type $(\alpha\To o)\To o$.  This
+defines the syntax $\forall x.t$ to mean $\forall(\lambda x.t)$.  We can
+also write $\forall x@1\ldots x@m.t$ to abbreviate $\forall x@1.  \ldots
+\forall x@m.t$; this is possible for any constant provided that $\tau$ and
+$\tau'$ are the same type.  \HOL's description operator $\epsilon x.P(x)$
+has type $(\alpha\To bool)\To\alpha$ and can bind only one variable, except
+when $\alpha$ is $bool$.  \ZF's bounded quantifier $\forall x\in A.P(x)$
+cannot be declared as a binder because it has type $[i, i\To o]\To o$.  The
+syntax for binders allows type constraints on bound variables, as in
+\[ \forall (x{::}\alpha) \; y{::}\beta. R(x,y) \]
+
+To avoid excess detail, the logic descriptions adopt a semi-formal style.
+Infix operators and binding operators are listed in separate tables, which
+include their precedences.  Grammars do not give numeric precedences;
+instead, the rules appear in order of decreasing precedence.  This should
+suffice for most purposes; for detailed precedence information, consult the
+syntax definitions in the {\tt.thy} files.  Chapter~\ref{Defining-Logics}
+describes Isabelle's syntax module, including its use of precedences.
+
+Each nonterminal symbol is associated with some Isabelle type.  For
+example, the {\bf formulae} of first-order logic have type~$o$.  Every
+Isabelle expression of type~$o$ is therefore a formula.  These include
+atomic formulae such as $P$, where $P$ is a variable of type~$o$, and more
+generally expressions such as $P(t,u)$, where $P$, $t$ and~$u$ have
+suitable types.  Therefore, ``expression of type~$o$'' is listed as a
+separate possibility in the grammar for formulae.
+
+Infix operators are represented internally by constants with the prefix
+\hbox{\tt"op "}.  For instance, implication is the constant
+\hbox{\tt"op~-->"}.  This permits infixes to be used in non-infix contexts
+(just as with \ML's~{\tt op} keyword).  You also need to know the name of
+the internal constant if you are writing code that inspects terms.
+
+
+\section{Proof procedures}
+Most object-logics come with simple proof procedures.  These are reasonably
+powerful for interactive use, though often simplistic and incomplete.  You
+can do single-step proofs using \verb|resolve_tac| and
+\verb|assume_tac|, referring to the inference rules of the logic by {\sc
+ml} identifiers.
+
+Call a rule {\em safe\/} if applying it to a provable goal always yields
+provable subgoals.  If a rule is safe then it can be applied automatically
+to a goal without destroying our chances of finding a proof.  For instance,
+all the rules of the classical sequent calculus {\sc lk} are safe.
+Intuitionistic logic includes some unsafe rules, like disjunction
+introduction ($P\disj Q$ can be true when $P$ is false) and existential
+introduction ($\ex{x}P(x)$ can be true when $P(a)$ is false for certain
+$a$).  Universal elimination is unsafe if the formula $\all{x}P(x)$ is
+deleted after use.
+
+Proof procedures use safe rules whenever possible, delaying the application
+of unsafe rules. Those safe rules are preferred that generate the fewest
+subgoals. Safe rules are (by definition) deterministic, while the unsafe
+rules require search. The design of a suitable set of rules can be as
+important as the strategy for applying them.
+
+Many of the proof procedures use backtracking.  Typically they attempt to
+solve subgoal~$i$ by repeatedly applying a certain tactic to it.  This
+tactic, which is known as a {\it step tactic}, resolves a selection of
+rules with subgoal~$i$. This may replace one subgoal by many; but the
+search persists until there are fewer subgoals in total than at the start.
+Backtracking happens when the search reaches a dead end: when the step
+tactic fails.  Alternative outcomes are then searched by a depth-first or
+best-first strategy.  
