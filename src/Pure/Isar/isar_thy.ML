@@ -331,7 +331,7 @@ fun begin_theory name parents files =
   let
     val paths = map (apfst Path.unpack) files;
     val thy = ThyInfo.begin_theory name parents paths;
-  in Present.begin_theory name parents paths; thy end;
+  in Present.begin_theory name parents paths thy end;
 
 
 (* FIXME
