@@ -52,32 +52,6 @@ val AddIffs = seq addIff
 val DelIffs = seq delIff
 end;
 
-(** instantiate generic simp procs for `quantifier elimination': **)
-structure Quantifier1 = Quantifier1Fun(
-struct
-  (*abstract syntax*)
-  fun dest_eq((c as Const("op =",_)) $ s $ t) = Some(c,s,t)
-    | dest_eq _ = None;
-  fun dest_conj((c as Const("op &",_)) $ s $ t) = Some(c,s,t)
-    | dest_conj _ = None;
-  val conj = HOLogic.conj
-  val imp  = HOLogic.imp
-  (*rules*)
-  val iff_reflection = eq_reflection
-  val iffI = iffI
-  val sym  = sym
-  val conjI= conjI
-  val conjE= conjE
-  val impI = impI
-  val impE = impE
-  val mp   = mp
-  val exI  = exI
-  val exE  = exE
-  val allI = allI
-  val allE = allE
-end);
-
-
 local
 
   fun prover s = prove_goal HOL.thy s (fn _ => [blast_tac HOL_cs 1]);
@@ -135,13 +109,17 @@ val simp_thms = map prover
    "(P | ~P) = True",    "(~P | P) = True",
    "((~P) = (~Q)) = (P=Q)",
    "(!x. P) = P", "(? x. P) = P", "? x. x=t", "? x. t=x", 
-   "(? x. x=t & P(x)) = P(t)",
-   "(! x. t=x --> P(x)) = P(t)" ];
+(*two needed for the one-point-rule quantifier simplification procs*)
+   "(? x. x=t & P(x)) = P(t)",		(*essential for termination!!*)
+   "(! x. t=x --> P(x)) = P(t)" ];      (*covers a stray case*)
 
 (*Add congruence rules for = (instead of ==) *)
 infix 4 addcongs delcongs;
-fun ss addcongs congs = ss addeqcongs (map standard (congs RL [eq_reflection]));
-fun ss delcongs congs = ss deleqcongs (map standard (congs RL [eq_reflection]));
+fun ss addcongs congs = ss addeqcongs 
+                        (map standard (congs RL [eq_reflection]));
+
+fun ss delcongs congs = ss deleqcongs 
+                        (map standard (congs RL [eq_reflection]));
 
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
@@ -297,13 +275,39 @@ qed_goal "if_bool_eq" HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
                    (fn _ => [rtac expand_if 1]);
 
-(** make simp procs for quantifier elimination **)
+
+(*** make simplification procedures for quantifier elimination ***)
+
+structure Quantifier1 = Quantifier1Fun(
+struct
+  (*abstract syntax*)
+  fun dest_eq((c as Const("op =",_)) $ s $ t) = Some(c,s,t)
+    | dest_eq _ = None;
+  fun dest_conj((c as Const("op &",_)) $ s $ t) = Some(c,s,t)
+    | dest_conj _ = None;
+  val conj = HOLogic.conj
+  val imp  = HOLogic.imp
+  (*rules*)
+  val iff_reflection = eq_reflection
+  val iffI = iffI
+  val sym  = sym
+  val conjI= conjI
+  val conjE= conjE
+  val impI = impI
+  val impE = impE
+  val mp   = mp
+  val exI  = exI
+  val exE  = exE
+  val allI = allI
+  val allE = allE
+end);
+
 local
 val ex_pattern =
-  read_cterm (sign_of HOL.thy) ("? x. P(x) & Q(x)",HOLogic.boolT)
+  read_cterm (sign_of HOL.thy) ("EX x. P(x) & Q(x)",HOLogic.boolT)
 
 val all_pattern =
-  read_cterm (sign_of HOL.thy) ("! x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
+  read_cterm (sign_of HOL.thy) ("ALL x. P(x) & P'(x) --> Q(x)",HOLogic.boolT)
 
 in
 val defEX_regroup =
@@ -312,7 +316,8 @@ val defALL_regroup =
   mk_simproc "defined ALL" [all_pattern] Quantifier1.rearrange_all;
 end;
 
-(** Case splitting **)
+
+(*** Case splitting ***)
 
 local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
 in
