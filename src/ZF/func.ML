@@ -86,7 +86,7 @@ qed "apply_equality";
 
 (*Applying a function outside its domain yields 0*)
 goalw ZF.thy [apply_def]
-    "!!a b f. [| a ~: domain(f);  f: Pi(A,B) |] ==> f`a = 0";
+    "!!a. a ~: domain(f) ==> f`a = 0";
 by (rtac the_0 1);
 by (Blast_tac 1);
 qed "apply_0";
@@ -183,7 +183,11 @@ goalw ZF.thy [lam_def] "(lam x:0. b(x)) = 0";
 by (Simp_tac 1);
 qed "lam_empty";
 
-Addsimps [beta, lam_empty];
+Goalw [lam_def] "domain(Lambda(A,b)) = A";
+by (Blast_tac 1);
+qed "domain_lam";
+
+Addsimps [beta, lam_empty, domain_lam];
 
 (*congruence rule for lambda abstraction*)
 val prems = goalw ZF.thy [lam_def] 
