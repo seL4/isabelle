@@ -16,11 +16,11 @@ val evalc1_elim_cases = map (evalc1.mk_cases com.simps)
 
 val evalc1_cs = relpow_cs addIs (evalc.intrs@evalc1.intrs);
 
-goal Transition.thy "!!c. (c,s) -(0)-> (SKIP,u) ==> c = SKIP & s = u";
+goal Transition.thy "!!c. (c,s) -0-> (SKIP,u) ==> c = SKIP & s = u";
 by(fast_tac evalc1_cs 1);
 val hlemma1 = result();
 
-goal Transition.thy "!!s. (SKIP,s) -(m)-> (SKIP,t) ==> s = t & m = 0";
+goal Transition.thy "!!s. (SKIP,s) -m-> (SKIP,t) ==> s = t & m = 0";
 be rel_pow_E2 1;
 by (Asm_full_simp_tac 1);
 by (eresolve_tac evalc1_elim_cases 1);
@@ -28,7 +28,7 @@ val hlemma2 = result();
 
 
 goal Transition.thy
-  "!s t u c d. (c,s) -(n)-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
+  "!s t u c d. (c,s) -n-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
 \              (c;d, s) -*-> (SKIP, u)";
 by(nat_ind_tac "n" 1);
  (* case n = 0 *)
@@ -65,8 +65,8 @@ qed_spec_mp "evalc_impl_evalc1";
 
 
 goal Transition.thy
-  "!c d s u. (c;d,s) -(n)-> (SKIP,u) --> \
-\            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -(m)-> (SKIP,u) & m <= n)";
+  "!c d s u. (c;d,s) -n-> (SKIP,u) --> \
+\            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -m-> (SKIP,u) & m <= n)";
 by(nat_ind_tac "n" 1);
  (* case n = 0 *)
  by (fast_tac (HOL_cs addSDs [hlemma1] addss !simpset) 1);

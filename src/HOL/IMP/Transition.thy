@@ -12,14 +12,15 @@ consts  evalc1    :: "((com*state)*(com*state))set"
 	"@evalc1" :: "[(com*state),(com*state)] => bool"   
 				("_ -1-> _" [81,81] 100)
 	"@evalcn" :: "[(com*state),(com*state)] => nat => bool"
-				("_ -(_)-> _" [81,81] 100)
+				("_ -_-> _" [81,81] 100)
 	"@evalc*" :: "[(com*state),(com*state)] => bool"   
 				("_ -*-> _" [81,81] 100)
 
 translations
+        "x -1-> (y,z)" == "(x,y,z) : evalc1" 
        	"cs0 -1-> cs1" == "(cs0,cs1) : evalc1"
-        "x -(n)-> (y,z)" == "(x,y,z) : evalc1 ^ n" 
-	"cs0 -(n)-> cs1" == "(cs0,cs1) : evalc1 ^ n"
+        "x -n-> (y,z)" == "(x,y,z) : evalc1 ^ n" 
+	"cs0 -n-> cs1" == "(cs0,cs1) : evalc1 ^ n"
 	"x -*-> (y,z)" == "(x,y,z) : evalc1 ^*" 
 	"cs0 -*-> cs1" == "(cs0,cs1) : evalc1 ^*"
 
