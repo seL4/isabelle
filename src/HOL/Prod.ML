@@ -97,6 +97,9 @@ qed "split_paired_All";
 Addsimps [split_paired_All];
 (* AddIffs is not a good idea because it makes Blast_tac loop *)
 
+bind_thm ("prod_induct",
+  allI RS (allI RS (split_paired_All RS iffD2)) RS spec);
+
 Goal "(? x. P x) = (? a b. P(a,b))";
 by (Fast_tac 1);
 qed "split_paired_Ex";
