@@ -38,9 +38,10 @@ sig
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
-  val erule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
+  val drule: thm list -> Proof.method
+  val frule: thm list -> Proof.method
   val this: Proof.method
   val assumption: Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
@@ -269,15 +270,16 @@ fun gen_rule' tac arg_rules ctxt = METHOD (fn facts =>
     else op @ (LocalRules.get ctxt);
   in FINDGOAL (tac rules facts) end);
 
+fun setup raw_tac =
+  let val tac = gen_rule_tac raw_tac
+  in (tac, gen_rule tac, gen_rule' tac) end;
+
 in
 
-val rule_tac = gen_rule_tac Tactic.resolve_tac;
-val rule = gen_rule rule_tac;
-val some_rule = gen_rule' rule_tac;
-
-val erule_tac = gen_rule_tac Tactic.eresolve_tac;
-val erule = gen_rule erule_tac;
-val some_erule = gen_rule' erule_tac;
+val (rule_tac, rule, some_rule) = setup Tactic.resolve_tac;
+val (erule_tac, erule, some_erule) = setup Tactic.eresolve_tac;
+val (drule_tac, drule, some_drule) = setup Tactic.dresolve_tac;
+val (frule_tac, frule, some_frule) = setup Tactic.forward_tac;
 
 end;
 
@@ -519,7 +521,9 @@ val pure_methods =
   ("fold", thms_args fold, "fold definitions"),
   ("default", thms_ctxt_args some_rule, "apply some rule"),
   ("rule", thms_ctxt_args some_rule, "apply some rule"),
-  ("erule", thms_ctxt_args some_erule, "apply some erule (improper!)"),
+  ("erule", thms_ctxt_args some_erule, "apply some rule in elimination manner (improper!)"),
+  ("drule", thms_ctxt_args some_drule, "apply some rule in destruct manner (improper!)"),
+  ("frule", thms_ctxt_args some_frule, "apply some rule in forward manner (improper!)"),
   ("this", no_args this, "apply current facts as rules"),
   ("assumption", ctxt_args assumption, "proof by assumption, preferring facts")];
 
