@@ -654,7 +654,7 @@ bind_thm ("expand_if_mem1",
 bind_thm ("expand_if_mem2", 
     read_instantiate_sg (sign_of Set.thy) [("P", "%x. ?a : x")] expand_if);
 
-val expand_ifs = [if_bool_eq, expand_if_eq1, expand_if_eq2,
+val expand_ifs = [if_bool_eq_conj, expand_if_eq1, expand_if_eq2,
 		  expand_if_mem1, expand_if_mem2];
 
 
