@@ -8,7 +8,7 @@ Examples of simplification and induction on lists
 
 List = Nat2 +
 
-types list 1
+types 'a list
 arities list :: (term)term
 
 consts

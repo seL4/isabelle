@@ -9,7 +9,7 @@ Inherits from FOL the class term, the type o, and the coercion Trueprop
 *)
 
 Prolog = FOL +
-types   list 1
+types   'a list
 arities list    :: (term)term
 consts  Nil     :: "'a list"
         ":"     :: "['a, 'a list]=> 'a list"            (infixr 60)

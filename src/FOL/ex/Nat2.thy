@@ -1,17 +1,18 @@
 (*  Title: 	FOL/ex/nat2.thy
     ID:         $Id$
     Author: 	Tobias Nipkow
-    Copyright   1991  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 Theory for examples of simplification and induction on the natural numbers
 *)
 
 Nat2 = FOL +
 
-types nat 0
+types nat
 arities nat :: term
 
-consts succ,pred :: "nat => nat"
+consts
+ succ,pred :: "nat => nat"
        "0" :: "nat"	("0")
        "+" :: "[nat,nat] => nat" (infixr 90)
   "<","<=" :: "[nat,nat] => o"   (infixr 70)
