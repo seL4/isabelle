@@ -50,22 +50,22 @@ Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (*For reasoning about the encrypted portion of message NS3*)
-goal thy "!!evs. (Says S A (Crypt {|N, B, K, X|} KA)) : set_of_list evs ==> \
-\                X : parts (sees lost Spy evs)";
+goal thy "!!evs. Says S A (Crypt {|N, B, K, X|} KA) : set_of_list evs \
+\                ==> X : parts (sees lost Spy evs)";
 by (fast_tac (!claset addSEs partsEs
                       addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
 qed "NS3_msg_in_parts_sees_Spy";
                               
 goal thy
-    "!!evs. Says S A (Crypt {|NA, B, K, X|} (shrK A)) : set_of_list evs ==> \
-\                K : parts (sees lost Spy evs)";
+    "!!evs. Says Server A (Crypt {|NA, B, K, X|} (shrK A)) : set_of_list evs \
+\           ==> K : parts (sees lost Spy evs)";
 by (fast_tac (!claset addSEs partsEs
                       addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
-qed "Reveal_parts_sees_Spy";
+qed "Oops_parts_sees_Spy";
 
 val parts_Fake_tac = 
     dres_inst_tac [("lost","lost")] NS3_msg_in_parts_sees_Spy 5 THEN
-    forw_inst_tac [("lost","lost")] Reveal_parts_sees_Spy 8;
+    forw_inst_tac [("lost","lost")] Oops_parts_sees_Spy 8;
 
 (*For proving the easier theorems about X ~: parts (sees lost Spy evs) *)
 fun parts_induct_tac i = SELECT_GOAL
@@ -82,47 +82,29 @@ fun parts_induct_tac i = SELECT_GOAL
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
     sends messages containing X! **)
 
-(*Spy never sees another agent's shared key!*)
+(*Spy never sees another agent's shared key! (unless it's lost at start)*)
 goal thy 
- "!!evs. [| evs : ns_shared lost; A ~: lost |]    \
-\        ==> Key (shrK A) ~: parts (sees lost Spy evs)";
+ "!!evs. evs : ns_shared lost \
+\        ==> (Key (shrK A) : parts (sees lost Spy evs)) = (A : lost)";
 by (parts_induct_tac 1);
 by (Auto_tac());
-qed "Spy_not_see_shrK";
+qed "Spy_see_shrK";
+Addsimps [Spy_see_shrK];
 
-bind_thm ("Spy_not_analz_shrK",
-          [analz_subset_parts, Spy_not_see_shrK] MRS contra_subsetD);
+goal thy 
+ "!!evs. evs : ns_shared lost \
+\        ==> (Key (shrK A) : analz (sees lost Spy evs)) = (A : lost)";
+by (auto_tac(!claset addDs [impOfSubs analz_subset_parts], !simpset));
+qed "Spy_analz_shrK";
+Addsimps [Spy_analz_shrK];
 
-Addsimps [Spy_not_see_shrK, Spy_not_analz_shrK];
+goal thy  "!!A. [| Key (shrK A) : parts (sees lost Spy evs);       \
+\                  evs : ns_shared lost |] ==> A:lost";
+by (fast_tac (!claset addDs [Spy_see_shrK]) 1);
+qed "Spy_see_shrK_D";
 
-(*We go to some trouble to preserve R in the 3rd and 4th subgoals
-  As usual fast_tac cannot be used because it uses the equalities too soon*)
-val major::prems = 
-goal thy  "[| Key (shrK A) : parts (sees lost Spy evs);       \
-\             evs : ns_shared lost;                             \
-\             A:lost ==> R                                  \
-\           |] ==> R";
-by (rtac ccontr 1);
-by (rtac ([major, Spy_not_see_shrK] MRS rev_notE) 1);
-by (swap_res_tac prems 2);
-by (ALLGOALS (fast_tac (!claset addIs prems)));
-qed "Spy_see_shrK_E";
-
-bind_thm ("Spy_analz_shrK_E", 
-          analz_subset_parts RS subsetD RS Spy_see_shrK_E);
-
-AddSEs [Spy_see_shrK_E, Spy_analz_shrK_E];
-
-
-goal thy  
- "!!evs. evs : ns_shared lost ==>                              \
-\        (Key (shrK A) : analz (sees lost Spy evs)) = (A : lost)";
-by (best_tac (!claset addIs [impOfSubs (subset_insertI RS analz_mono)]
-                      addss (!simpset)) 1);
-qed "shrK_mem_analz";
-
-Addsimps [shrK_mem_analz];
-
+bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
+AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 
 (*** Future keys can't be seen or used! ***)
@@ -256,12 +238,7 @@ goal thy
 \                       Crypt {|Key K, Agent A|} (shrK B)|} (shrK A))  \
 \             : set_of_list evs";
 by (etac rev_mp 1);
-by (etac ns_shared.induct 1);
-by parts_Fake_tac;
-(*Fake case*)
-by (best_tac (!claset addSDs [impOfSubs Fake_parts_insert]
-                      addDs  [impOfSubs analz_subset_parts]
-                      addss  (!simpset)) 2);
+by (parts_induct_tac 1);
 by (Auto_tac());
 qed "A_trust_NS2";
 
@@ -286,6 +263,13 @@ by (fast_tac (!claset addEs  partsEs
                       addss (!simpset)) 1);
 qed "Says_S_message_form";
 
+
+(*For proofs involving analz.  We again instantiate the variable to "lost".*)
+val analz_Fake_tac = 
+    forw_inst_tac [("lost","lost")] Says_Server_message_form 8 THEN
+    forw_inst_tac [("lost","lost")] Says_S_message_form 5 THEN 
+    Full_simp_tac 7 THEN
+    REPEAT_FIRST (eresolve_tac [asm_rl, bexE, disjE] ORELSE' hyp_subst_tac);
 
 
 (****
@@ -320,45 +304,13 @@ result();
 
 (** Session keys are not used to encrypt other session keys **)
 
-(*Describes the form of Key K when the following message is sent.  The use of
-  "parts" strengthens the induction hyp for proving the Fake case.  The
-  assumption A ~: lost prevents its being a Faked message. *)
-goal thy
- "!!evs. evs: ns_shared lost ==>                                           \
-\        Crypt {|NA, Agent B, Key K, X|} (shrK A)          \
-\          : parts (sees lost Spy evs)   &   A ~: lost              \
-\        --> (EX evt: ns_shared lost. K = newK evt)";
-by (parts_induct_tac 1);
-by (Auto_tac());
-val lemma = result() RS mp;
-
-
-(*EITHER describes the form of Key K when the following message is sent, 
-  OR     reduces it to the Fake case.*)
-goal thy 
- "!!evs. [| Says S A (Crypt {|NA, Agent B, Key K, X|} (shrK A))  \
-\           : set_of_list evs;  \
-\           evs : ns_shared lost |]                      \
-\        ==> (EX evt: ns_shared lost. K = newK evt)          \
-\          | Key K : analz (sees lost Spy evs)";
-by (case_tac "A : lost" 1);
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
-by (forward_tac [lemma] 1);
-by (fast_tac (!claset addEs  partsEs
-                      addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
-by (Fast_tac 1);
-qed "Reveal_message_form";
-
 (*The equality makes the induction hypothesis easier to apply*)
 goal thy  
  "!!evs. evs : ns_shared lost ==> \
 \  ALL K E. (Key K : analz (Key``(newK``E) Un (sees lost Spy evs))) = \
 \           (K : newK``E | Key K : analz (sees lost Spy evs))";
 by (etac ns_shared.induct 1);
-by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
-by (dtac Reveal_message_form 8);
-by (REPEAT_FIRST (eresolve_tac [bexE, conjE, disjE] ORELSE' hyp_subst_tac));
+by analz_Fake_tac;
 by (REPEAT_FIRST (resolve_tac [allI, analz_image_newK_lemma]));
 by (ALLGOALS 
     (asm_simp_tac 
@@ -366,8 +318,8 @@ by (ALLGOALS
                          @ pushes)
                setloop split_tac [expand_if])));
 (** LEVEL 6 **)
-(*Reveal case 2, NS3, Fake*) 
-by (EVERY (map spy_analz_tac [7,5,2]));
+(*NS3, Fake*) 
+by (EVERY (map spy_analz_tac [5,2]));
 by (REPEAT (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1));
 (*NS3, NS2, Base*)
 by (REPEAT (Fast_tac 3));
@@ -393,10 +345,8 @@ goal thy
 \       Says Server A (Crypt {|NA, Agent B, Key K, X|} (shrK A))         \
 \       : set_of_list evs --> A=A' & NA=NA' & B=B' & X=X'";
 by (etac ns_shared.induct 1);
-by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
-by (REPEAT_FIRST (eresolve_tac [conjE, bexE, disjE] ORELSE' hyp_subst_tac));
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (step_tac (!claset delrules [conjI]) 1);
+by (Step_tac 1);
 (*NS3*)
 by (ex_strip_tac 2);
 by (Fast_tac 2);
@@ -438,9 +388,7 @@ goal thy
 \        (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs) --> \
 \        Key K ~: analz (sees lost Spy evs)";
 by (etac ns_shared.induct 1);
-by (forward_tac [Reveal_message_form] 8);
-by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
-by (REPEAT_FIRST (eresolve_tac [asm_rl, bexE, disjE] ORELSE' hyp_subst_tac));
+by analz_Fake_tac;
 by (ALLGOALS 
     (asm_simp_tac 
      (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
@@ -450,9 +398,9 @@ by (ALLGOALS
 by (fast_tac (!claset addIs [parts_insertI]
                       addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset)) 2);
-(*Revl case 2, OR4, OR2, Fake*) 
+(*OR4, OR2, Fake*) 
 by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
-(*NS3 and Revl subcases*) (**LEVEL 7 **)
+(*NS3 and Oops subcases*) (**LEVEL 7 **)
 by (step_tac (!claset delrules [impCE]) 1);
 by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 2);
 be conjE 2;
@@ -555,11 +503,11 @@ by (fast_tac (!claset addDs [unique_session_keys]) 1);
 val lemma = result();
 
 goal thy
- "!!evs. [| Crypt (Nonce NB) K : parts (sees lost Spy evs);            \
+ "!!evs. [| Crypt (Nonce NB) K : parts (sees lost Spy evs);           \
 \           Says Server A (Crypt {|NA, Agent B, Key K, X|} (shrK A))  \
-\           : set_of_list evs;            \
+\           : set_of_list evs;                                        \
 \           ALL NB. Says A Spy {|NA, NB, Key K|} ~: set_of_list evs;  \
-\           A ~: lost;  B ~: lost;  evs : ns_shared lost |]            \
+\           A ~: lost;  B ~: lost;  evs : ns_shared lost |]           \
 \        ==> Says B A (Crypt (Nonce NB) K) : set_of_list evs";
 by (fast_tac (!claset addSIs [lemma RS mp RS mp RS mp]
 		      addSEs [Spy_not_see_encrypted_key RSN (2, rev_notE)]) 1);

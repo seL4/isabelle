@@ -67,10 +67,11 @@ inductive "ns_shared lost"
           ==> Says A B (Crypt {|Nonce NB, Nonce NB|} K) # evs : ns_shared lost"
   
          (*This message models possible leaks of session keys.
-           The two Nonces identify the protocol run.*)
-    Revl "[| evs: ns_shared lost;  A ~= Spy;
-             Says B' A (Crypt (Nonce NB) K) : set_of_list evs;
-             Says S  A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))
+           The two Nonces identify the protocol run: the rule insists upon
+           the true senders in order to make them accurate.*)
+    Oops "[| evs: ns_shared lost;  A ~= Spy;
+             Says B A (Crypt (Nonce NB) K) : set_of_list evs;
+             Says Server A (Crypt {|Nonce NA, Agent B, Key K, X|} (shrK A))
                : set_of_list evs |]
           ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : ns_shared lost"
 

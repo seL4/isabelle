@@ -61,21 +61,18 @@ inductive otway
 
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
-    OR4  "[| evs: otway;  A ~= B;  B ~= Server;
+    OR4  "[| evs: otway;  A ~= B;
              Says S B {|Nonce NA, X, Crypt {|Nonce NB, Key K|} (shrK B)|}
                : set_of_list evs;
              Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB, X''|}
                : set_of_list evs |]
           ==> Says B A {|Nonce NA, X|} # evs : otway"
 
-         (*This message models possible leaks of session keys.  Alice's Nonce
-           identifies the protocol run.*)
-    Revl "[| evs: otway;  A ~= Spy;
-             Says B' A {|Nonce NA, Crypt {|Nonce NA, Key K|} (shrK A)|}
-               : set_of_list evs;
-             Says A  B {|Nonce NA, Agent A, Agent B, 
-                         Crypt {|Nonce NA, Agent A, Agent B|} (shrK A)|}
+         (*This message models possible leaks of session keys.  The nonces
+           identify the protocol run.*)
+    Oops "[| evs: otway;  B ~= Spy;
+             Says Server B {|Nonce NA, X, Crypt {|Nonce NB, Key K|} (shrK B)|}
                : set_of_list evs |]
-          ==> Says A Spy {|Nonce NA, Key K|} # evs : otway"
+          ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway"
 
 end
