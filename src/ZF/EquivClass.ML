@@ -26,9 +26,8 @@ val refl_comp_subset = result();
 
 goalw EquivClass.thy [equiv_def]
     "!!A r. equiv(A,r) ==> converse(r) O r = r";
-by (rtac equalityI 1);
-by (REPEAT (ares_tac [sym_trans_comp_subset, refl_comp_subset] 1
-     ORELSE etac conjE 1));
+by (fast_tac (subset_cs addSIs [equalityI, sym_trans_comp_subset, 
+				refl_comp_subset]) 1);
 val equiv_comp_eq = result();
 
 (*second half*)
@@ -58,9 +57,8 @@ by (rewrite_goals_tac [sym_def]);
 by (fast_tac ZF_cs 1);
 val equiv_class_eq = result();
 
-val prems = goalw EquivClass.thy [equiv_def,refl_def]
-    "[| equiv(A,r);  a: A |] ==> a: r``{a}";
-by (cut_facts_tac prems 1);
+goalw EquivClass.thy [equiv_def,refl_def]
+    "!!A r. [| equiv(A,r);  a: A |] ==> a: r``{a}";
 by (fast_tac ZF_cs 1);
 val equiv_class_self = result();
 
@@ -207,10 +205,10 @@ val UN_equiv_class2 = result();
 
 (*type checking*)
 val prems = goalw EquivClass.thy [quotient_def]
-    "[| equiv(A,r);  congruent2(r,b);  \
-\       X1: A/r;  X2: A/r;	\
-\	!!x1 x2.  [| x1: A; x2: A |] ==> b(x1,x2) : B |]    \
-\    ==> (UN x1:X1. UN x2:X2. b(x1,x2)) : B";
+    "[| equiv(A,r);  congruent2(r,b);			\
+\       X1: A/r;  X2: A/r;				\
+\	!!x1 x2.  [| x1: A; x2: A |] ==> b(x1,x2) : B	\
+\    |] ==> (UN x1:X1. UN x2:X2. b(x1,x2)) : B";
 by (cut_facts_tac prems 1);
 by (safe_tac ZF_cs);
 by (REPEAT (ares_tac (prems@[UN_equiv_class_type,
