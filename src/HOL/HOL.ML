@@ -1,35 +1,5 @@
-(*  Title:      HOL/HOL.ML
-    ID:         $Id$
-*)
 
-structure HOL =
-struct
-  val thy = the_context ();
-  val plusI = plusI;
-  val minusI = minusI;
-  val timesI = timesI;
-  val eq_reflection = eq_reflection;
-  val refl = refl;
-  val subst = subst;
-  val ext = ext;
-  val impI = impI;
-  val mp = mp;
-  val True_def = True_def;
-  val All_def = All_def;
-  val Ex_def = Ex_def;
-  val False_def = False_def;
-  val not_def = not_def;
-  val and_def = and_def;
-  val or_def = or_def;
-  val Ex1_def = Ex1_def;
-  val iff = iff;
-  val True_or_False = True_or_False;
-  val Let_def = Let_def;
-  val if_def = if_def;
-  val arbitrary_def = arbitrary_def;
-end;
-
-open HOL;
+(* legacy ML bindings *)
 
 val Least_def = thm "Least_def";
 val Least_equality = thm "Least_equality";
@@ -83,3 +53,32 @@ val order_trans = thm "order_trans";
 val order_antisym = thm "order_antisym";
 val order_less_le = thm "order_less_le";
 val linorder_linear = thm "linorder_linear";
+
+structure HOL =
+struct
+  val thy = the_context ();
+  val plusI = plusI;
+  val minusI = minusI;
+  val timesI = timesI;
+  val eq_reflection = eq_reflection;
+  val refl = refl;
+  val subst = subst;
+  val ext = ext;
+  val impI = impI;
+  val mp = mp;
+  val True_def = True_def;
+  val All_def = All_def;
+  val Ex_def = Ex_def;
+  val False_def = False_def;
+  val not_def = not_def;
+  val and_def = and_def;
+  val or_def = or_def;
+  val Ex1_def = Ex1_def;
+  val iff = iff;
+  val True_or_False = True_or_False;
+  val Let_def = Let_def;
+  val if_def = if_def;
+  val arbitrary_def = arbitrary_def;
+end;
+
+open HOL;

@@ -42,7 +42,7 @@ NEWS of the distribution for more details).
 
   * HOL/HoareParallel: large application concerning verification of
     parallel imperative programs (Owicki-Gries method, Rely-Guarantee
-    method, verification examples: garbage collection, mutual
+    method, including examples of garbage collection, mutual
     exclusion, etc.)
     (by Leonor Prensa Nieto).
 
