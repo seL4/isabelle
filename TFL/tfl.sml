@@ -219,8 +219,7 @@ fun mk_case ty_info ty_match usednames range_ty =
           in (map v_to_pats pref_patl, tm)
           end
      else
-     let val pty as Type (full_ty_name,_) = type_of p;
-         val ty_name = NameSpace.base full_ty_name;
+     let val pty as Type (ty_name,_) = type_of p
      in
      case (ty_info ty_name)
      of None => mk_case_fail("Not a known datatype: "^ty_name)
@@ -300,7 +299,7 @@ fun mk_functional thy clauses =
              of [] => ()
           | L => mk_functional_err("The following rows (counting from zero)\
                                    \ are inaccessible: "^stringize L)
- in {functional = Abs(NameSpace.base fname, ftype,
+ in {functional = Abs(Sign.base_name fname, ftype,
 		      abstract_over (fcon, 
 				     absfree(aname,atype, case_tm))),
      pats = patts2}
@@ -552,8 +551,7 @@ fun mk_case ty_info usednames thy =
           in mk{path = rstp, rows = ListPair.zip (pat_rectangle', rights')}
           end
      else                     (* column 0 is all constructors *)
-     let val Type (full_ty_name,_) = type_of p;
-         val ty_name = NameSpace.base full_ty_name;
+     let val Type (ty_name,_) = type_of p
      in
      case (ty_info ty_name)
      of None => fail("Not a known datatype: "^ty_name)
