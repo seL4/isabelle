@@ -8,6 +8,8 @@ header {* Relations *}
 
 theory Relation = Product_Type:
 
+subsection {* Definitions *}
+
 constdefs
   converse :: "('a * 'b) set => ('b * 'a) set"    ("(_^-1)" [1000] 999)
   "r^-1 == {(y, x). (x, y) : r}"
@@ -16,46 +18,46 @@ syntax (xsymbols)
 
 constdefs
   rel_comp  :: "[('b * 'c) set, ('a * 'b) set] => ('a * 'c) set"  (infixr "O" 60)
-    "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
-
-  Image :: "[('a * 'b) set, 'a set] => 'b set"                (infixl "``" 90)
-    "r `` s == {y. ? x:s. (x,y):r}"
-
-  Id    :: "('a * 'a) set"  -- {* the identity relation *}
-    "Id == {p. ? x. p = (x,x)}"
-
-  diag  :: "'a set => ('a * 'a) set"  -- {* diagonal: identity over a set *}
-    "diag(A) == UN x:A. {(x,x)}"
-  
-  Domain :: "('a * 'b) set => 'a set"
-    "Domain(r) == {x. ? y. (x,y):r}"
-
-  Range  :: "('a * 'b) set => 'b set"
-    "Range(r) == Domain(r^-1)"
-
-  Field :: "('a * 'a) set => 'a set"
-    "Field r == Domain r Un Range r"
-
-  refl   :: "['a set, ('a * 'a) set] => bool"  -- {* reflexivity over a set *}
-    "refl A r == r <= A <*> A & (ALL x: A. (x,x) : r)"
-
-  sym    :: "('a * 'a) set => bool"  -- {* symmetry predicate *}
-    "sym(r) == ALL x y. (x,y): r --> (y,x): r"
-
-  antisym:: "('a * 'a) set => bool"  -- {* antisymmetry predicate *}
-    "antisym(r) == ALL x y. (x,y):r --> (y,x):r --> x=y"
-
-  trans  :: "('a * 'a) set => bool"  -- {* transitivity predicate *}
-    "trans(r) == (!x y z. (x,y):r --> (y,z):r --> (x,z):r)"
-
-  single_valued :: "('a * 'b) set => bool"
-    "single_valued r == !x y. (x,y):r --> (!z. (x,z):r --> y=z)"
+  "r O s == {(x,z). EX y. (x, y) : s & (y, z) : r}"
 
   fun_rel_comp :: "['a => 'b, ('b * 'c) set] => ('a => 'c) set"
-    "fun_rel_comp f R == {g. !x. (f x, g x) : R}"
+  "fun_rel_comp f R == {g. ALL x. (f x, g x) : R}"
+
+  Image :: "[('a * 'b) set, 'a set] => 'b set"                (infixl "``" 90)
+  "r `` s == {y. EX x:s. (x,y):r}"
+
+  Id    :: "('a * 'a) set"  -- {* the identity relation *}
+  "Id == {p. EX x. p = (x,x)}"
+
+  diag  :: "'a set => ('a * 'a) set"  -- {* diagonal: identity over a set *}
+  "diag A == UN x:A. {(x,x)}"
+
+  Domain :: "('a * 'b) set => 'a set"
+  "Domain r == {x. EX y. (x,y):r}"
+
+  Range  :: "('a * 'b) set => 'b set"
+  "Range r == Domain(r^-1)"
+
+  Field :: "('a * 'a) set => 'a set"
+  "Field r == Domain r Un Range r"
+
+  refl   :: "['a set, ('a * 'a) set] => bool"  -- {* reflexivity over a set *}
+  "refl A r == r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
+
+  sym    :: "('a * 'a) set => bool"  -- {* symmetry predicate *}
+  "sym r == ALL x y. (x,y): r --> (y,x): r"
+
+  antisym:: "('a * 'a) set => bool"  -- {* antisymmetry predicate *}
+  "antisym r == ALL x y. (x,y):r --> (y,x):r --> x=y"
+
+  trans  :: "('a * 'a) set => bool"  -- {* transitivity predicate *}
+  "trans r == (ALL x y z. (x,y):r --> (y,z):r --> (x,z):r)"
+
+  single_valued :: "('a * 'b) set => bool"
+  "single_valued r == ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z)"
 
   inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set"
-    "inv_image r f == {(x,y). (f(x), f(y)) : r}"
+  "inv_image r f == {(x, y). (f x, f y) : r}"
 
 syntax
   reflexive :: "('a * 'a) set => bool"  -- {* reflexivity over a type *}
@@ -63,7 +65,7 @@ translations
   "reflexive" == "refl UNIV"
 
 
-subsection {* Identity relation *}
+subsection {* The identity relation *}
 
 lemma IdI [intro]: "(a, a) : Id"
   by (simp add: Id_def)
@@ -85,7 +87,7 @@ lemma trans_Id: "trans Id"
   by (simp add: trans_def)
 
 
-subsection {* Diagonal relation: identity restricted to some set *}
+subsection {* Diagonal: identity over a set *}
 
 lemma diag_eqI: "a = b ==> a : A ==> (a, b) : diag A"
   by (simp add: diag_def)
@@ -95,23 +97,23 @@ lemma diagI [intro!]: "a : A ==> (a, a) : diag A"
 
 lemma diagE [elim!]:
   "c : diag A ==> (!!x. x : A ==> c = (x, x) ==> P) ==> P"
-  -- {* The general elimination rule *}
+  -- {* The general elimination rule. *}
   by (unfold diag_def) (rules elim!: UN_E singletonE)
 
 lemma diag_iff: "((x, y) : diag A) = (x = y & x : A)"
   by blast
 
-lemma diag_subset_Times: "diag A <= A <*> A"
+lemma diag_subset_Times: "diag A \<subseteq> A \<times> A"
   by blast
 
 
 subsection {* Composition of two relations *}
 
-lemma rel_compI [intro]: 
+lemma rel_compI [intro]:
   "(a, b) : s ==> (b, c) : r ==> (a, c) : r O s"
   by (unfold rel_comp_def) blast
 
-lemma rel_compE [elim!]: "xz : r O s ==>   
+lemma rel_compE [elim!]: "xz : r O s ==>
   (!!x y z. xz = (x, z) ==> (x, y) : s ==> (y, z) : r  ==> P) ==> P"
   by (unfold rel_comp_def) (rules elim!: CollectE splitE exE conjE)
 
@@ -128,25 +130,41 @@ lemma Id_O_R [simp]: "Id O R = R"
 lemma O_assoc: "(R O S) O T = R O (S O T)"
   by blast
 
-lemma trans_O_subset: "trans r ==> r O r <= r"
+lemma trans_O_subset: "trans r ==> r O r \<subseteq> r"
   by (unfold trans_def) blast
 
-lemma rel_comp_mono: "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)"
+lemma rel_comp_mono: "r' \<subseteq> r ==> s' \<subseteq> s ==> (r' O s') \<subseteq> (r O s)"
   by blast
 
 lemma rel_comp_subset_Sigma:
-  "[| s <= A <*> B;  r <= B <*> C |] ==> (r O s) <= A <*> C"
+    "s \<subseteq> A \<times> B ==> r \<subseteq> B \<times> C ==> (r O s) \<subseteq> A \<times> C"
   by blast
 
-subsection {* Natural deduction for refl(r) *}
 
-lemma reflI: "r <= A <*> A ==> (!!x. x : A ==> (x, x) : r) ==> refl A r"
+subsection {* Composition of function and relation *}
+
+lemma fun_rel_comp_mono: "A \<subseteq> B ==> fun_rel_comp f A \<subseteq> fun_rel_comp f B"
+  by (unfold fun_rel_comp_def) fast
+
+lemma fun_rel_comp_unique:
+  "ALL x. EX! y. (f x, y) : R ==> EX! g. g : fun_rel_comp f R"
+  apply (unfold fun_rel_comp_def)
+  apply (rule_tac a = "%x. THE y. (f x, y) : R" in ex1I)
+  apply (fast dest!: theI')
+  apply (fast intro: ext the1_equality [symmetric])
+  done
+
+
+subsection {* Reflexivity *}
+
+lemma reflI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl A r"
   by (unfold refl_def) (rules intro!: ballI)
 
 lemma reflD: "refl A r ==> a : A ==> (a, a) : r"
   by (unfold refl_def) blast
 
-subsection {* Natural deduction for antisym(r) *}
+
+subsection {* Antisymmetry *}
 
 lemma antisymI:
   "(!!x y. (x, y) : r ==> (y, x) : r ==> x=y) ==> antisym r"
@@ -155,7 +173,8 @@ lemma antisymI:
 lemma antisymD: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
   by (unfold antisym_def) rules
 
-subsection {* Natural deduction for trans(r) *}
+
+subsection {* Transitivity *}
 
 lemma transI:
   "(!!x y z. (x, y) : r ==> (y, z) : r ==> (x, z) : r) ==> trans r"
@@ -164,21 +183,21 @@ lemma transI:
 lemma transD: "trans r ==> (a, b) : r ==> (b, c) : r ==> (a, c) : r"
   by (unfold trans_def) rules
 
-subsection {* Natural deduction for r^-1 *}
 
-lemma converse_iff [iff]: "((a,b): r^-1) = ((b,a):r)"
+subsection {* Converse *}
+
+lemma converse_iff [iff]: "((a,b): r^-1) = ((b,a) : r)"
   by (simp add: converse_def)
 
-lemma converseI: "(a,b):r ==> (b,a): r^-1"
+lemma converseI: "(a, b) : r ==> (b, a) : r^-1"
   by (simp add: converse_def)
 
-lemma converseD: "(a,b) : r^-1 ==> (b,a) : r"
+lemma converseD: "(a,b) : r^-1 ==> (b, a) : r"
   by (simp add: converse_def)
-
-(*More general than converseD, as it "splits" the member of the relation*)
 
 lemma converseE [elim!]:
   "yx : r^-1 ==> (!!x y. yx = (y, x) ==> (x, y) : r ==> P) ==> P"
+    -- {* More general than @{text converseD}, as it ``splits'' the member of the relation. *}
   by (unfold converse_def) (rules elim!: CollectE splitE bexE)
 
 lemma converse_converse [simp]: "(r^-1)^-1 = r"
@@ -190,7 +209,7 @@ lemma converse_rel_comp: "(r O s)^-1 = s^-1 O r^-1"
 lemma converse_Id [simp]: "Id^-1 = Id"
   by blast
 
-lemma converse_diag [simp]: "(diag A) ^-1 = diag A"
+lemma converse_diag [simp]: "(diag A)^-1 = diag A"
   by blast
 
 lemma refl_converse: "refl A r ==> refl A (converse r)"
@@ -201,6 +220,7 @@ lemma antisym_converse: "antisym (converse r) = antisym r"
 
 lemma trans_converse: "trans (converse r) = trans r"
   by (unfold trans_def) blast
+
 
 subsection {* Domain *}
 
@@ -229,16 +249,16 @@ lemma Domain_diag [simp]: "Domain (diag A) = A"
 lemma Domain_Un_eq: "Domain(A Un B) = Domain(A) Un Domain(B)"
   by blast
 
-lemma Domain_Int_subset: "Domain(A Int B) <= Domain(A) Int Domain(B)"
+lemma Domain_Int_subset: "Domain(A Int B) \<subseteq> Domain(A) Int Domain(B)"
   by blast
 
-lemma Domain_Diff_subset: "Domain(A) - Domain(B) <= Domain(A - B)"
+lemma Domain_Diff_subset: "Domain(A) - Domain(B) \<subseteq> Domain(A - B)"
   by blast
 
 lemma Domain_Union: "Domain (Union S) = (UN A:S. Domain A)"
   by blast
 
-lemma Domain_mono: "r <= s ==> Domain r <= Domain s"
+lemma Domain_mono: "r \<subseteq> s ==> Domain r \<subseteq> Domain s"
   by blast
 
 
@@ -268,10 +288,10 @@ lemma Range_diag [simp]: "Range (diag A) = A"
 lemma Range_Un_eq: "Range(A Un B) = Range(A) Un Range(B)"
   by blast
 
-lemma Range_Int_subset: "Range(A Int B) <= Range(A) Int Range(B)"
+lemma Range_Int_subset: "Range(A Int B) \<subseteq> Range(A) Int Range(B)"
   by blast
 
-lemma Range_Diff_subset: "Range(A) - Range(B) <= Range(A - B)"
+lemma Range_Diff_subset: "Range(A) - Range(B) \<subseteq> Range(A - B)"
   by blast
 
 lemma Range_Union: "Range (Union S) = (UN A:S. Range A)"
@@ -282,20 +302,20 @@ subsection {* Image of a set under a relation *}
 
 ML {* overload_1st_set "Relation.Image" *}
 
-lemma Image_iff: "(b : r``A) = (EX x:A. (x,b):r)"
+lemma Image_iff: "(b : r``A) = (EX x:A. (x, b) : r)"
   by (simp add: Image_def)
 
-lemma Image_singleton: "r``{a} = {b. (a,b):r}"
+lemma Image_singleton: "r``{a} = {b. (a, b) : r}"
   by (simp add: Image_def)
 
-lemma Image_singleton_iff [iff]: "(b : r``{a}) = ((a,b):r)"
+lemma Image_singleton_iff [iff]: "(b : r``{a}) = ((a, b) : r)"
   by (rule Image_iff [THEN trans]) simp
 
-lemma ImageI [intro]: "[| (a,b): r;  a:A |] ==> b : r``A"
+lemma ImageI [intro]: "(a, b) : r ==> a : A ==> b : r``A"
   by (unfold Image_def) blast
 
 lemma ImageE [elim!]:
-  "b : r `` A ==> (!!x. (x, b) : r ==> x : A ==> P) ==> P"
+    "b : r `` A ==> (!!x. (x, b) : r ==> x : A ==> P) ==> P"
   by (unfold Image_def) (rules elim!: CollectE bexE)
 
 lemma rev_ImageI: "a : A ==> (a, b) : r ==> b : r `` A"
@@ -311,35 +331,36 @@ lemma Image_Id [simp]: "Id `` A = A"
 lemma Image_diag [simp]: "diag A `` B = A Int B"
   by blast
 
-lemma Image_Int_subset: "R `` (A Int B) <= R `` A Int R `` B"
+lemma Image_Int_subset: "R `` (A Int B) \<subseteq> R `` A Int R `` B"
   by blast
 
 lemma Image_Un: "R `` (A Un B) = R `` A Un R `` B"
   by blast
 
-lemma Image_subset: "r <= A <*> B ==> r``C <= B"
+lemma Image_subset: "r \<subseteq> A \<times> B ==> r``C \<subseteq> B"
   by (rules intro!: subsetI elim!: ImageE dest!: subsetD SigmaD2)
 
 lemma Image_eq_UN: "r``B = (UN y: B. r``{y})"
   -- {* NOT suitable for rewriting *}
   by blast
 
-lemma Image_mono: "[| r'<=r; A'<=A |] ==> (r' `` A') <= (r `` A)"
+lemma Image_mono: "r' \<subseteq> r ==> A' \<subseteq> A ==> (r' `` A') \<subseteq> (r `` A)"
   by blast
 
 lemma Image_UN: "(r `` (UNION A B)) = (UN x:A.(r `` (B x)))"
   by blast
 
-lemma Image_INT_subset: "(r `` (INTER A B)) <= (INT x:A.(r `` (B x)))"
+lemma Image_INT_subset: "(r `` (INTER A B)) \<subseteq> (INT x:A.(r `` (B x)))"
   -- {* Converse inclusion fails *}
   by blast
 
-lemma Image_subset_eq: "(r``A <= B) = (A <= - ((r^-1) `` (-B)))"
+lemma Image_subset_eq: "(r``A \<subseteq> B) = (A \<subseteq> - ((r^-1) `` (-B)))"
   by blast
 
-subsection "single_valued"
 
-lemma single_valuedI: 
+subsection {* Single valued relations *}
+
+lemma single_valuedI:
   "ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z) ==> single_valued r"
   by (unfold single_valued_def)
 
@@ -360,24 +381,9 @@ lemma Image_Collect_split [simp]: "{(x,y). P x y} `` A = {y. EX x:A. P x y}"
   by auto
 
 
-subsection {* Composition of function and relation *}
+subsection {* Inverse image *}
 
-lemma fun_rel_comp_mono: "A <= B ==> fun_rel_comp f A <= fun_rel_comp f B"
-  by (unfold fun_rel_comp_def) fast
-
-lemma fun_rel_comp_unique: 
-  "ALL x. EX! y. (f x, y) : R ==> EX! g. g : fun_rel_comp f R"
-  apply (unfold fun_rel_comp_def)
-  apply (rule_tac a = "%x. THE y. (f x, y) : R" in ex1I)
-  apply (fast dest!: theI')
-  apply (fast intro: ext the1_equality [symmetric])
-  done
-
-
-subsection "inverse image"
-
-lemma trans_inv_image: 
-  "trans r ==> trans (inv_image r f)"
+lemma trans_inv_image: "trans r ==> trans (inv_image r f)"
   apply (unfold trans_def inv_image_def)
   apply (simp (no_asm))
   apply blast
