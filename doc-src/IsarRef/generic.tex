@@ -531,6 +531,7 @@ val thms  : string -> thm list
 \railalias{noasmuse}{no\_asm\_use}
 \railterm{noasmuse}
 
+\indexouternonterm{simpmod}
 \begin{rail}
   ('simp' | simpall) ('!' ?) opt? (simpmod * )
   ;
@@ -728,6 +729,7 @@ while the Simplifier is the canonical tool for automated normalization (see
   clarify & : & \isarmeth \\
 \end{matharray}
 
+\indexouternonterm{clamod}
 \begin{rail}
   'blast' ('!' ?) nat? (clamod * )
   ;
@@ -771,6 +773,7 @@ This is slightly less hazardous than for the Simplifier (see
   bestsimp & : & \isarmeth \\
 \end{matharray}
 
+\indexouternonterm{clasimpmod}
 \begin{rail}
   'auto' '!'? (nat nat)? (clasimpmod * )
   ;
