@@ -43,14 +43,9 @@ bind_thm ("invKey_newK", rewrite_rule [isSymKey_def] isSym_newK);
 Addsimps [invKey_shrK, invKey_newK];
 
 
-(*New keys and nonces are fresh*)
-val shrK_inject = inj_shrK RS injD;
-val newN_inject = inj_newN RS injD
-and newK_inject = inj_newK RS injD;
-AddSEs [shrK_inject, newN_inject, newK_inject,
-	fresh_newK RS notE, fresh_newN RS notE];
-Addsimps [inj_shrK RS inj_eq, inj_newN RS inj_eq, inj_newK RS inj_eq];
-Addsimps [fresh_newN, fresh_newK];
+(*Injectiveness and freshness of new keys and nonces*)
+AddIffs [inj_shrK RS inj_eq, inj_newN RS inj_eq, inj_newK RS inj_eq,
+	 fresh_newN, fresh_newK];
 
 (** Rewrites should not refer to  initState(Friend i) 
     -- not in normal form! **)
@@ -86,7 +81,7 @@ Addsimps [parts_image_Key, analz_image_Key];
 
 goalw thy [keysFor_def] "keysFor (parts (initState C)) = {}";
 by (agent.induct_tac "C" 1);
-by (auto_tac (!claset addIs [range_eqI] delrules partsEs, !simpset));
+by (auto_tac (!claset addIs [range_eqI], !simpset));
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
@@ -116,6 +111,11 @@ qed "Enemy_sees_bad";
 
 AddSIs [sees_own_shrK, Enemy_sees_bad];
 
+goal thy "Enemy: bad";
+by (simp_tac (!simpset addsimps [bad_def]) 1);
+qed "Enemy_in_bad";
+
+AddIffs [Enemy_in_bad];
 
 (** Specialized rewrite rules for (sees A (Says...#evs)) **)
 
@@ -199,6 +199,7 @@ br (invKey_eq RS iffD1) 1;
 by (Simp_tac 1);
 val newK_invKey = result();
 
+AddSDs [newK_invKey];
 
 (** Rewrites to push in Key and Crypt messages, so that other messages can
     be pulled out using the analz_insert rules **)
@@ -216,5 +217,27 @@ val pushCrypts = map (insComm "Crypt ?X ?K")
 val pushes = pushKeys@pushCrypts;
 
 val pushKey_newK = insComm "Key (newK ?evs)"  "Key (shrK ?C)";
+
+
+(*No premature instantiation of variables.  For proving weak liveness.*)
+fun safe_solver prems =
+    match_tac (TrueI::refl::prems) ORELSE' eq_assume_tac
+    ORELSE' etac FalseE;
+
+(*Analysis of Fake cases and of messages that forward unknown parts*)
+val enemy_analz_tac =
+  SELECT_GOAL 
+   (EVERY [  (*push in occurrences of X...*)
+	   (REPEAT o CHANGED)
+	     (res_inst_tac [("x1","X")] (insert_commute RS ssubst) 1),
+	     (*...allowing further simplifications*)
+	   simp_tac (!simpset setloop split_tac [expand_if]) 1,
+	   REPEAT (resolve_tac [impI,notI] 1),
+	   dtac (impOfSubs Fake_analz_insert) 1,
+	   eresolve_tac [asm_rl, synth.Inj] 1,
+	   Fast_tac 1,
+	   Asm_full_simp_tac 1,
+	   IF_UNSOLVED (deepen_tac (!claset addIs [impOfSubs analz_mono]) 0 1)
+	   ]);
 
 
