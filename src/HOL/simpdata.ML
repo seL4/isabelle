@@ -54,7 +54,7 @@ end;
 
 local
 
-  fun prover s = prove_goal HOL.thy s (fn _ => [blast_tac HOL_cs 1]);
+  fun prover s = prove_goal HOL.thy s (K [blast_tac HOL_cs 1]);
 
   val P_imp_P_iff_True = prover "P --> (P = True)" RS mp;
   val P_imp_P_eq_True = P_imp_P_iff_True RS eq_reflection;
@@ -166,11 +166,11 @@ end;
 
 val True_implies_equals = prove_goal HOL.thy
  "(True ==> PROP P) == PROP P"
-(fn _ => [rtac equal_intr_rule 1, atac 2,
+(K [rtac equal_intr_rule 1, atac 2,
           METAHYPS (fn prems => resolve_tac prems 1) 1,
           rtac TrueI 1]);
 
-fun prove nm thm  = qed_goal nm HOL.thy thm (fn _ => [blast_tac HOL_cs 1]);
+fun prove nm thm  = qed_goal nm HOL.thy thm (K [blast_tac HOL_cs 1]);
 
 prove "conj_commute" "(P&Q) = (Q&P)";
 prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
@@ -239,16 +239,16 @@ in  bind_thm("disj_cong",standard (impI RSN (2, th RS mp RS mp)))  end;
 prove "eq_sym_conv" "(x=y) = (y=x)";
 
 qed_goalw "o_apply" HOL.thy [o_def] "(f o g) x = f (g x)"
- (fn _ => [rtac refl 1]);
+ (K [rtac refl 1]);
 
 qed_goal "meta_eq_to_obj_eq" HOL.thy "x==y ==> x=y"
   (fn [prem] => [rewtac prem, rtac refl 1]);
 
 qed_goalw "if_True" HOL.thy [if_def] "(if True then x else y) = x"
- (fn _=>[blast_tac (HOL_cs addIs [select_equality]) 1]);
+ (K [Blast_tac 1]);
 
 qed_goalw "if_False" HOL.thy [if_def] "(if False then x else y) = y"
- (fn _=>[blast_tac (HOL_cs addIs [select_equality]) 1]);
+ (K [Blast_tac 1]);
 
 qed_goal "if_P" HOL.thy "P ==> (if P then x else y) = x"
  (fn [prem] => [ stac (prem RS eqTrueI) 1, rtac if_True 1 ]);
@@ -257,7 +257,7 @@ qed_goal "if_not_P" HOL.thy "~P ==> (if P then x else y) = y"
  (fn [prem] => [ stac (prem RS not_P_imp_P_iff_F) 1, rtac if_False 1 ]);
 *)
 qed_goalw "if_not_P" HOL.thy [if_def] "!!P. ~P ==> (if P then x else y) = y"
- (fn _ => [blast_tac (HOL_cs addIs [select_equality]) 1]);
+ (K [Blast_tac 1]);
 
 qed_goal "expand_if" HOL.thy
     "P(if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))" (K [
@@ -273,7 +273,7 @@ qed_goal "split_if_asm" HOL.thy
 
 qed_goal "if_bool_eq" HOL.thy
                    "(if P then Q else R) = ((P-->Q) & (~P-->R))"
-                   (fn _ => [rtac expand_if 1]);
+                   (K [rtac expand_if 1]);
 
 
 (*** make simplification procedures for quantifier elimination ***)
@@ -337,7 +337,7 @@ fun ss addsplits splits = ss addloop (split_tac splits);
 
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
-  (fn _ => [split_tac [expand_if] 1, blast_tac HOL_cs 1]);
+  (K [split_tac [expand_if] 1, blast_tac HOL_cs 1]);
 
 (** 'if' congruence rules: neither included by default! *)
 
@@ -395,10 +395,10 @@ val HOL_ss =
 
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
-  (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
+  (K [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
 
 qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
-  (fn _ => [rtac ext 1, rtac refl 1]);
+  (K [rtac ext 1, rtac refl 1]);
 
 
 (*For expand_case_tac*)
