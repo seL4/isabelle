@@ -1,10 +1,11 @@
 $Id$
 
-This directory contains some axiomatic type class demos.
-
+This directory contains the following axiomatic type class examples:
 
   Tutorial/     Some simple axclass demos that go along with the paper
                 "Using Axiomatic Type Classes in Isabelle --- a
                 tutorial".
 
-  Group/        Basic group theory with axiomatic type classes.
+  Group/        Some bits of group theory.
+
+  Lattice/      Basic theory of lattices and orders.
