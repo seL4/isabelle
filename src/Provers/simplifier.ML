@@ -134,11 +134,10 @@ fun rep_simproc (Simproc args) = args;
 
 datatype solver = Solver of string * (thm list -> int -> tactic) * stamp;
 
-fun mk_solver name solver = Solver(name, solver, stamp());
+fun mk_solver name solver = Solver (name, solver, stamp());
+fun eq_solver (Solver (_, _, s1), Solver(_, _, s2)) = s1 = s2;
 
-fun eq_solver (Solver(_,_,s1),Solver(_,_,s2)) = s1=s2;
-
-val merge_solvers = generic_merge eq_solver I I;
+val merge_solvers = gen_merge_lists eq_solver;
 
 fun app_sols [] _ _ = no_tac
   | app_sols (Solver(_,solver,_)::sols) thms i =
