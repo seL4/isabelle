@@ -19,6 +19,14 @@ by (Asm_simp_tac 1);
 qed "neq_Nil_conv";
 
 
+goalw thy [wf_def, pred_list_def] "wf(pred_list)";
+by (strip_tac 1);
+by (induct_tac "x" 1);
+by (ALLGOALS Blast_tac);
+qed "wf_pred_list";
+AddIffs [wf_pred_list];
+
+
 (** list_case **)
 
 goal thy

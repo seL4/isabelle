@@ -11,7 +11,7 @@ List = Arith +
 datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
 consts
-
+  pred_list  :: "('a list * 'a list) set"
   "@"         :: ['a list, 'a list] => 'a list            (infixr 65)
   filter      :: ['a => bool, 'a list] => 'a list
   concat      :: 'a list list => 'a list
@@ -44,6 +44,9 @@ translations
 syntax (symbols)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")
 
+
+rules
+  pred_list_def "pred_list == {(x,y). ? h. y = h#x}"
 
 primrec hd list
   "hd([]) = (@x.False)"
@@ -100,4 +103,5 @@ primrec takeWhile list
 primrec dropWhile list
   "dropWhile P [] = []"
   "dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)"
+
 end
