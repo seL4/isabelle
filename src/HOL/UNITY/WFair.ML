@@ -162,11 +162,46 @@ qed "subset_imp_ensures";
 
 bind_thm ("subset_imp_leadsTo", subset_imp_ensures RS leadsTo_Basis);
 
+bind_thm ("leadsTo_refl", subset_refl RS subset_imp_leadsTo);
+
 bind_thm ("empty_leadsTo", empty_subsetI RS subset_imp_leadsTo);
 Addsimps [empty_leadsTo];
 
 bind_thm ("leadsTo_UNIV", subset_UNIV RS subset_imp_leadsTo);
 Addsimps [leadsTo_UNIV];
+
+
+
+(** Variant induction rule: on the preconditions for B **)
+
+(*Lemma is the weak version: can't see how to do it in one step*)
+val major::prems = Goal
+  "[| F : za leadsTo zb;  \
+\     P zb; \
+\     !!A B. [| F : A ensures B;  P B |] ==> P A; \
+\     !!S. ALL A:S. P A ==> P (Union S) \
+\  |] ==> P za";
+(*by induction on this formula*)
+by (subgoal_tac "P zb --> P za" 1);
+(*now solve first subgoal: this formula is sufficient*)
+by (blast_tac (claset() addIs leadsTo_refl::prems) 1);
+by (rtac (major RS leadsTo_induct) 1);
+by (REPEAT (blast_tac (claset() addIs prems) 1));
+val lemma = result();
+
+val major::prems = Goal
+  "[| F : za leadsTo zb;  \
+\     P zb; \
+\     !!A B. [| F : A ensures B;  F : B leadsTo zb;  P B |] ==> P A; \
+\     !!S. ALL A:S. F : A leadsTo zb & P A ==> P (Union S) \
+\  |] ==> P za";
+by (subgoal_tac "F : za leadsTo zb & P za" 1);
+by (etac conjunct2 1);
+by (rtac (major RS lemma) 1);
+by (blast_tac (claset() addIs [leadsTo_Union]@prems) 3);
+by (blast_tac (claset() addIs [leadsTo_Basis,leadsTo_Trans]@prems) 2);
+by (blast_tac (claset() addIs [leadsTo_refl]@prems) 1);
+qed "leadsTo_induct_pre";
 
 
 Goal "[| F : A leadsTo A'; A'<=B' |] ==> F : A leadsTo B'";
@@ -254,15 +289,12 @@ qed "leadsTo_cancel_Diff1";
 
 (** The impossibility law **)
 
-Goal "F : A leadsTo B ==> B={} --> A={}";
-by (etac leadsTo_induct 1);
-by (ALLGOALS Asm_simp_tac);
-by (rewrite_goals_tac [ensures_def, constrains_def, transient_def]);
-by (Blast_tac 1);
-val lemma = result() RS mp;
-
 Goal "F : A leadsTo {} ==> A={}";
-by (blast_tac (claset() addSIs [lemma]) 1);
+by (etac leadsTo_induct_pre 1);
+by (ALLGOALS
+    (asm_full_simp_tac
+     (simpset() addsimps [ensures_def, constrains_def, transient_def])));
+by (Blast_tac 1);
 qed "leadsTo_empty";
 
 
@@ -480,7 +512,7 @@ by (subgoal_tac "F : (A' Int W Un C) leadsTo (A' Int B' Un C)" 1);
 by (rtac leadsTo_Un_duplicate2 2);
 by (blast_tac (claset() addIs [leadsTo_Un_Un, 
                                wlt_leadsTo RS psp2 RS leadsTo_weaken, 
-                               subset_refl RS subset_imp_leadsTo]) 2);
+                               leadsTo_refl]) 2);
 by (dtac leadsTo_Diff 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
 by (subgoal_tac "A Int B <= A Int W" 1);
