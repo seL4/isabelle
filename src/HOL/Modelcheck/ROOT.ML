@@ -1,10 +1,13 @@
 (*  Title:      HOL/Modelcheck/ROOT.ML
     ID:         $Id$
-    Author:     Olaf Mueller, Jan Philipps, Robert Sandner
+    Author:     Olaf Mueller, Tobias Hamberger, Robert Sandner
     Copyright   1997  TU Muenchen
 
-This is the ROOT file for the Eindhoven Modelchecker example
+This is the ROOT file for the Modelchecker examples
 *)
 
+use_thy"EindhovenExample";
 
-use_thy"Example";
+use"mucke_oracle.ML";
+use_thy"MuckeExample1";
+use_thy"MuckeExample2";
