@@ -65,14 +65,12 @@ val output_chr = fn
   "~" => "{\\isachartilde}" |
   c => if Symbol.is_digit c then enclose "{\\isadigit{" "}}" c else c;
 
-fun output_sym s =
-  if Symbol.is_char s then output_chr s
-  else if Symbol.is_raw s then Symbol.decode_raw s
-  else if String.isPrefix "\\<^" s then
-    enclose "\\isactrl" " " (String.substring (s, 3, size s - 4))
-  else if String.isPrefix "\\<" s then
-    enclose "{\\isasym" "}" (String.substring (s, 2, size s - 3))
-  else sys_error "output_sym";
+fun output_sym sym =
+  (case Symbol.decode sym of
+    Symbol.Char s => output_chr s
+  | Symbol.Sym s => enclose "{\\isasym" "}" s
+  | Symbol.Ctrl s => enclose "\\isactrl" " " s
+  | Symbol.Raw s => s);
 
 in
 
