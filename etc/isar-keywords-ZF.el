@@ -180,6 +180,7 @@
     "files"
     "fixes"
     "in"
+    "includes"
     "induction"
     "infix"
     "infixl"
@@ -195,7 +196,6 @@
     "structure"
     "type_elims"
     "type_intros"
-    "uses"
     "where"))
 
 (defconst isar-keywords-control

@@ -187,6 +187,7 @@
     "hide_action"
     "hints"
     "in"
+    "includes"
     "induction"
     "infix"
     "infixl"
@@ -216,7 +217,6 @@
     "to"
     "transitions"
     "transrel"
-    "uses"
     "where"))
 
 (defconst isar-keywords-control
