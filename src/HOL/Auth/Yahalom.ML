@@ -39,27 +39,9 @@ by (REPEAT_FIRST
                               :: yahalom.intrs))));
 qed "yahalom_mono";
 
-(*The Spy can see more than anybody else, except for their initial state*)
-goal thy 
- "!!evs. evs : yahalom lost ==> \
-\     sees lost A evs <= initState lost A Un sees lost Spy evs";
-by (etac yahalom.induct 1);
-by (ALLGOALS (fast_tac (!claset addDs [sees_Says_subset_insert RS subsetD] 
-                                addss (!simpset))));
-qed "sees_agent_subset_sees_Spy";
-
-(*The Spy can see more than anybody else who's lost their key!*)
-goal thy 
- "!!evs. evs : yahalom lost ==> \
-\        A: lost --> A ~= Server --> sees lost A evs <= sees lost Spy evs";
-by (etac yahalom.induct 1);
-by (agent.induct_tac "A" 1);
-by (auto_tac (!claset addDs [sees_Says_subset_insert RS subsetD], (!simpset)));
-qed_spec_mp "sees_lost_agent_subset_sees_Spy";
-
 
 (*Nobody sends themselves messages*)
-goal thy "!!evs. evs : yahalom lost ==> ALL A X. Says A A X ~: set_of_list evs";
+goal thy "!!evs. evs: yahalom lost ==> ALL A X. Says A A X ~: set_of_list evs";
 by (etac yahalom.induct 1);
 by (Auto_tac());
 qed_spec_mp "not_Says_to_self";
@@ -290,12 +272,13 @@ qed "Says_Server_message_form";
     As with Otway-Rees, proof does not need uniqueness of session keys. **)
 
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : yahalom lost;  evt : yahalom lost |]        \
-\        ==> Says Server A                                                \
-\              {|Crypt {|Agent B, Key(newK evt), NA, NB|} (shrK A),       \
-\                Crypt {|Agent A, Key(newK evt)|} (shrK B)|}              \
+ "!!evs. [| A ~: lost;  B ~: lost;                                \
+\           evs : yahalom lost;  evt : yahalom lost |]            \
+\        ==> Says Server A                                        \
+\              {|Crypt {|Agent B, Key K, NA, NB|} (shrK A),       \
+\                Crypt {|Agent A, Key K|} (shrK B)|}              \
 \             : set_of_list evs -->    \
-\            Key(newK evt) ~: analz (sees lost Spy evs)";
+\            Key K ~: analz (sees lost Spy evs)";
 by (etac yahalom.induct 1);
 by (dtac YM4_analz_sees_Spy 6);
 by (ALLGOALS
@@ -344,7 +327,7 @@ qed "Agent_not_see_encrypted_key";
 
 goal thy 
  "!!evs. [| Crypt {|Agent A, Key K|} (shrK B) : parts (sees lost Spy evs); \
-\           B ~: lost;  evs : yahalom lost |]                                 \
+\           B ~: lost;  evs : yahalom lost |]                           \
 \        ==> EX NA NB. Says Server A                                    \
 \                        {|Crypt {|Agent B, Key K,                      \
 \                                  Nonce NA, Nonce NB|} (shrK A),       \
@@ -366,13 +349,13 @@ by (ALLGOALS (best_tac (!claset addSDs [impOfSubs analz_subset_parts,
 qed "Crypt_imp_Server_msg";
 
 
-(*What can B deduce from receipt of YM4?  
-  NOT THAT THE NONCES AGREE (in this version).  But what does the Nonce
-        give us??*)
+(*What can B deduce from receipt of YM4?  NOT THAT THE NONCES AGREE.  Cf the
+  BAN paper page 259.  "If A chose to replay an old key to B in message 4,
+  B could not detect the fraud." *)
 goal thy 
  "!!evs. [| Says A' B {|Crypt {|Agent A, Key K|} (shrK B),              \
 \                       Crypt (Nonce NB) K|} : set_of_list evs;         \
-\           B ~: lost;  evs : yahalom lost |]                                 \
+\           B ~: lost;  evs : yahalom lost |]                           \
 \        ==> EX NA NB. Says Server A                                    \
 \                     {|Crypt {|Agent B, Key K,                         \
 \                               Nonce NA, Nonce NB|} (shrK A),          \
@@ -386,12 +369,10 @@ by (ALLGOALS (fast_tac (!claset addSDs [impOfSubs analz_subset_parts RS
                                         Crypt_imp_Server_msg])));
 qed "YM4_imp_Says_Server_A";
 
-
-
 goal thy 
  "!!evs. [| Says A' B {|Crypt {|Agent A, Key K|} (shrK B),              \
 \                       Crypt (Nonce NB) K|} : set_of_list evs;         \
-\           A ~: lost;  B ~: lost;  evs : yahalom lost |]                      \
+\           A ~: lost;  B ~: lost;  evs : yahalom lost |]               \
 \        ==> Key K ~: analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [YM4_imp_Says_Server_A,
                               Spy_not_see_encrypted_key]) 1);
