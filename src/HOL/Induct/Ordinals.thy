@@ -1,4 +1,4 @@
-(*  Title:      HOL/Induct/Tree.thy
+(*  Title:      HOL/Induct/Ordinals.thy
     ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
@@ -10,7 +10,7 @@ theory Ordinals = Main:
 
 text {*
   Some basic definitions of ordinal numbers.  Draws an Agda
-  development (in Martin-L{\"}of type theory) by Peter Hancock (see
+  development (in Martin-L\"of type theory) by Peter Hancock (see
   \url{http://www.dcs.ed.ac.uk/home/pgh/chat.html}).
 *}
 
@@ -68,8 +68,8 @@ constdefs
   "veb a == veblen a Zero"
 
 constdefs
-  epsilon0 :: ordinal    ("SOME \<^sub>0")
-  "SOME \<^sub>0 == veb Zero"
+  epsilon0 :: ordinal    ("\<epsilon>\<^sub>0")
+  "\<epsilon>\<^sub>0 == veb Zero"
   Gamma0 :: ordinal    ("\<Gamma>\<^sub>0")
   "\<Gamma>\<^sub>0 == Limit (\<lambda>n. iter veb n Zero)"
 
