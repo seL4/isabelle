@@ -7,17 +7,6 @@ Lemmas about functions.
 *)
 
 
-qed_goalw "o_apply" thy [o_def] "(f o g) x = f (g x)"
- (K [rtac refl 1]);
-Addsimps [o_apply];
-
-qed_goalw "o_assoc" thy [o_def] "f o (g o h) = f o g o h"
-  (K [rtac ext 1, rtac refl 1]);
-
-Goalw [o_def] "(f o g)``r = f``(g``r)";
-by (Blast_tac 1);
-qed "image_compose";
-
 Goal "(f = g) = (!x. f(x)=g(x))";
 by (rtac iffI 1);
 by (Asm_simp_tac 1);
@@ -41,6 +30,30 @@ goal Set.thy "!!S. ALL x:S. EX y. Q x y ==> EX f. ALL x:S. Q x (f x)";
 by (fast_tac (claset() addEs [selectI]) 1);
 qed "bchoice";
 
+
+section "o";
+
+qed_goalw "o_apply" thy [o_def] "(f o g) x = f (g x)"
+ (K [rtac refl 1]);
+Addsimps [o_apply];
+
+qed_goalw "o_assoc" thy [o_def] "f o (g o h) = f o g o h"
+  (K [rtac ext 1, rtac refl 1]);
+
+qed_goalw "Id_o" thy [Id_def] "Id o g = g"
+ (K [rtac ext 1, Simp_tac 1]);
+Addsimps [Id_o];
+
+qed_goalw "o_Id" thy [Id_def] "f o Id = f"
+ (K [rtac ext 1, Simp_tac 1]);
+Addsimps [o_Id];
+
+Goalw [o_def] "(f o g)``r = f``(g``r)";
+by (Blast_tac 1);
+qed "image_compose";
+
+
+section "inj";
 
 (*** inj(f): f is a one-to-one function ***)
 
@@ -195,7 +208,7 @@ Addsimps [fun_upd_apply];
 
 qed_goal "fun_upd_same" thy "(f(x:=y)) x = y" 
 	(K [Simp_tac 1]);
-qed_goal "fund_upd_other" thy "!!X. z~=x ==> (f(x:=y)) z = f z"
+qed_goal "fun_upd_other" thy "!!X. z~=x ==> (f(x:=y)) z = f z"
 	(K [Asm_simp_tac 1]);
 (*Addsimps [fun_upd_same, fun_upd_other];*)
 
