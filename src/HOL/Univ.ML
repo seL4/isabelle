@@ -380,23 +380,7 @@ qed "inj_In1";
 
 Goalw [Lim_def] "Lim f = Lim g ==> f = g";
 by (rtac ext 1);
-by (rtac ccontr 1);
-by (etac equalityE 1);
-by (subgoal_tac "? y. y : f x & y ~: g x | y ~: f x & y : g x" 1);
-by (Blast_tac 2);
-by (etac exE 1);
-by (etac disjE 1);
-by (REPEAT (EVERY [
-  dtac subsetD 1,
-  Fast_tac 1,
-  etac UnionE 1,
-  dtac CollectD 1,
-  etac exE 1,
-  hyp_subst_tac 1,
-  etac imageE 1,
-  etac Push_Node_inject 1,
-  Asm_full_simp_tac 1,
-  TRY (thin_tac "?S <= ?T" 1)]));
+by (blast_tac (claset() addSEs [Push_Node_inject]) 1);
 qed "Lim_inject";
 
 Goalw [Funs_def] "S <= T ==> Funs S <= Funs T";
