@@ -6,7 +6,7 @@
 
 %%% Simple document preparation (based on theory token language)
 
-% basic isabelle environment
+% isabelle environments
 
 \newcommand{\isabelledefaultstyle}{\small\tt\slshape}
 \newcommand{\isabellestyle}{}
@@ -18,6 +18,9 @@
 \isabelledefaultstyle\isabellestyle}{}
 
 \newcommand{\isa}[1]{\emph{\isabelledefaultstyle\isabellestyle #1}}
+
+\newenvironment{isabellequote}%
+{\begin{quote}\begin{isabelle}\noindent}{\end{isabelle}\end{quote}}
 
 \newcommand{\isanewline}{\mbox{}\\\mbox{}}
 
