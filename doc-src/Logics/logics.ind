@@ -49,7 +49,7 @@
   \item {\tt add_unsafes}, \bold{111}
   \item {\tt addC0} theorem, 128
   \item {\tt addC_succ} theorem, 128
-  \item {\tt addsplits}, \bold{76}, 81
+  \item {\tt addsplits}, \bold{76}, 81, 87
   \item {\tt ALL} symbol, 7, 26, 60, 62, 69, 70, 105
   \item {\tt All} constant, 7, 60, 105
   \item {\tt All_def} theorem, 64
@@ -253,7 +253,7 @@
   \item {\tt equal_tac}, \bold{125}
   \item {\tt equal_types} theorem, 120
   \item {\tt equal_typesL} theorem, 120
-  \item {\tt equalityCE} theorem, 70, 72, 102
+  \item {\tt equalityCE} theorem, 70, 72, 102, 103
   \item {\tt equalityD1} theorem, 33, 72
   \item {\tt equalityD2} theorem, 33, 72
   \item {\tt equalityE} theorem, 33, 72
@@ -280,7 +280,6 @@
   \item {\tt exL} theorem, 107
   \item {\tt Exp} theory, 100
   \item {\tt expand_if} theorem, 66, 76
-  \item {\tt expand_list_case} theorem, 81
   \item {\tt expand_split} theorem, 77
   \item {\tt expand_sum_case} theorem, 79
   \item {\tt exR} theorem, 107, 110, 112
@@ -406,7 +405,7 @@
   \item {\tt in} symbol, 27, 61
   \item {\textit {ind}} type, 80
   \item {\tt induct} theorem, 44
-  \item {\tt induct_tac}, 81, \bold{88}
+  \item {\tt induct_tac}, 81, \bold{89}
   \item {\tt inductive}, 96--99
   \item {\tt Inf} constant, 25, 29
   \item {\tt infinity} theorem, 31
@@ -568,7 +567,7 @@
   \item {\tt N} constant, 117
   \item {\tt n_not_Suc_n} theorem, 79
   \item {\tt Nat} theory, 46, 80
-  \item {\textit {nat}} type, 79, 80, 88, 89
+  \item {\textit {nat}} type, 79, 80, 89
   \item {\textit{nat}} type, 80--81
   \item {\tt nat} constant, 47
   \item {\tt nat_0I} theorem, 47
@@ -674,7 +673,7 @@
   \item {\tt qcase_def} theorem, 43
   \item {\tt qconverse} constant, 42
   \item {\tt qconverse_def} theorem, 43
-  \item {\tt qed_spec_mp}, 89
+  \item {\tt qed_spec_mp}, 90
   \item {\tt qfsplit_def} theorem, 43
   \item {\tt QInl_def} theorem, 43
   \item {\tt QInr_def} theorem, 43
@@ -694,7 +693,7 @@
   \item {\tt range_of_fun} theorem, 39, 40
   \item {\tt range_subset} theorem, 38
   \item {\tt range_type} theorem, 39
-  \item {\tt rangeE} theorem, 38, 73, 101
+  \item {\tt rangeE} theorem, 38, 73, 102
   \item {\tt rangeI} theorem, 38, 73
   \item {\tt rank} constant, 48
   \item {\tt rank_ss}, \bold{23}
@@ -771,7 +770,7 @@
     \subitem of conjunctions, 6, 75
   \item {\tt singletonE} theorem, 35
   \item {\tt singletonI} theorem, 35
-  \item {\tt size} constant, 87
+  \item {\tt size} constant, 88
   \item {\tt snd} constant, 25, 32, 77, 117, 122
   \item {\tt snd_conv} theorem, 37, 77
   \item {\tt snd_def} theorem, 31, 122
@@ -779,8 +778,10 @@
   \item {\tt spec} theorem, 8, 66
   \item {\tt split} constant, 25, 32, 77, 117, 131
   \item {\tt split} theorem, 37, 77
+  \item {\tt split_$t$_case} theorem, 87
   \item {\tt split_all_tac}, \bold{78}
   \item {\tt split_def} theorem, 31
+  \item {\tt split_list_case} theorem, 81
   \item {\tt ssubst} theorem, 9, 65, 67
   \item {\tt stac}, \bold{75}
   \item {\tt Step_tac}, 22
@@ -839,7 +840,7 @@
   \item {\tt surjective_pairing} theorem, 77
   \item {\tt surjective_sum} theorem, 79
   \item {\tt swap} theorem, 11, 66
-  \item {\tt swap_res_tac}, 16, 102
+  \item {\tt swap_res_tac}, 16, 103
   \item {\tt sym} theorem, 9, 65, 107
   \item {\tt sym_elem} theorem, 120
   \item {\tt sym_type} theorem, 120
