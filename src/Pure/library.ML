@@ -330,20 +330,6 @@ fun downto0 (i :: is, n) = i = n andalso downto0 (is, n - 1)
   | downto0 ([], n) = n = ~1;
 
 
-(* operations on integer lists *)
-
-fun sum [] = 0
-  | sum (n :: ns) = n + sum ns;
-
-fun max [m:int] = m
-  | max (m :: n :: ns) = if m > n then max (m :: ns) else max (n :: ns)
-  | max [] = raise LIST "max";
-
-fun min [m:int] = m
-  | min (m :: n :: ns) = if m < n then min (m :: ns) else min (n :: ns)
-  | min [] = raise LIST "min";
-
-
 (* convert integers to strings *)
 
 (*expand the number in the given base;
