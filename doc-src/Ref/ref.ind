@@ -30,8 +30,10 @@
   \item {\tt addbefore}, \bold{136}
   \item {\tt Addcongs}, \bold{106}
   \item {\tt addcongs}, \bold{111}, 126, 127
+  \item {\tt addD2}, \bold{135}
   \item {\tt AddDs}, \bold{141}
   \item {\tt addDs}, \bold{134}
+  \item {\tt addE2}, \bold{135}
   \item {\tt addeqcongs}, \bold{111}, 127
   \item {\tt AddEs}, \bold{141}
   \item {\tt addEs}, \bold{134}
@@ -40,8 +42,10 @@
   \item {\tt addloop}, \bold{113}
   \item {\tt addSaltern}, \bold{136}
   \item {\tt addSbefore}, \bold{136}
+  \item {\tt addSD2}, \bold{135}
   \item {\tt AddSDs}, \bold{141}
   \item {\tt addSDs}, \bold{134}
+  \item {\tt addSE2}, \bold{135}
   \item {\tt AddSEs}, \bold{141}
   \item {\tt addSEs}, \bold{134}
   \item {\tt Addsimprocs}, \bold{106}
@@ -129,7 +133,7 @@
   \item {\tt Blast.depth_tac}, \bold{138}
   \item {\tt Blast.trace}, \bold{138}
   \item {\tt Blast_tac}, \bold{141}
-  \item {\tt blast_tac}, \bold{138}
+  \item {\tt blast_tac}, \bold{137}
   \item {\tt Bound}, \bold{61}, 85, 87, 88
   \item {\tt bound_hyp_subst_tac}, \bold{101}
   \item {\tt br}, \bold{13}
@@ -148,10 +152,11 @@
   \item {\tt chop}, \bold{11}, 16
   \item {\tt choplev}, \bold{12}
   \item {\tt Clarify_step_tac}, \bold{141}
-  \item {\tt clarify_step_tac}, \bold{137}
+  \item {\tt clarify_step_tac}, \bold{138}
   \item {\tt Clarify_tac}, \bold{141}
-  \item {\tt clarify_tac}, \bold{137}
-  \item {\tt clarsimp_tac}, \bold{137}
+  \item {\tt clarify_tac}, \bold{138}
+  \item {\tt Clarsimp_tac}, \bold{141}
+  \item {\tt clarsimp_tac}, \bold{139}
   \item claset
     \subitem current, 140
   \item {\tt claset} ML type, 134
@@ -704,7 +709,7 @@
     \subitem rules, 100
   \item {\tt subthy}, \bold{59}
   \item {\tt swap} theorem, \bold{142}
-  \item {\tt swap_res_tac}, \bold{141}
+  \item {\tt swap_res_tac}, \bold{142}
   \item {\tt swapify}, \bold{142}
   \item {\tt sym} theorem, 101, \bold{103}
   \item {\tt symmetric}, \bold{47}
