@@ -421,7 +421,7 @@ by (rtac (the_equality RS ssubst) 1);
 by (REPEAT (ares_tac [prema,premx] 1));
 qed "theI";
 
-Goal "(EX! x. P x) ==> P (THE x. P x)";
+Goal "EX! x. P x ==> P (THE x. P x)";
 by (etac ex1E 1);
 by (etac theI 1);
 by (etac allE 1);
