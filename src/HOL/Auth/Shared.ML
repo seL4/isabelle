@@ -56,7 +56,7 @@ AddIffs [newK_notin_initState];
 
 goalw thy [keysFor_def] "keysFor (parts (initState lost C)) = {}";
 by (agent.induct_tac "C" 1);
-by (auto_tac (!claset addIs [range_eqI], !simpset));
+by (Auto_tac ());
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
@@ -210,14 +210,14 @@ AddIs [usedI];
 (** Fresh keys never clash with long-term shared keys **)
 
 goal thy "Key (shrK A) : used evs";
-by (Best_tac 1);
+by (Blast_tac 1);
 qed "shrK_in_used";
 AddIffs [shrK_in_used];
 
-(*Used in parts_Fake_tac and analz_Fake_tac to distinguish session keys
+(*Used in parts_induct_tac and analz_Fake_tac to distinguish session keys
   from long-term shared keys*)
 goal thy "!!K. Key K ~: used evs ==> K ~: range shrK";
-by (Best_tac 1);
+by (Blast_tac 1);
 qed "Key_not_used";
 
 (*A session key cannot clash with a long-term shared key*)
@@ -237,7 +237,7 @@ goal thy "used [] <= used l";
 by (list.induct_tac "l" 1);
 by (event.induct_tac "a" 2);
 by (ALLGOALS Asm_simp_tac);
-by (Best_tac 1);
+by (Blast_tac 1);
 qed "used_nil_subset";
 
 goal thy "used l <= used (l@l')";
@@ -245,7 +245,7 @@ by (list.induct_tac "l" 1);
 by (simp_tac (!simpset addsimps [used_nil_subset]) 1);
 by (event.induct_tac "a" 1);
 by (Asm_simp_tac 1);
-by (Best_tac 1);
+by (Blast_tac 1);
 qed "used_subset_append";
 
 
@@ -372,8 +372,8 @@ val basic_possibility_tac =
 goal thy "sees lost A evs <= initState lost A Un sees lost Spy evs";
 by (list.induct_tac "evs" 1);
 by (event.induct_tac "a" 2);
-by (ALLGOALS (fast_tac (!claset addDs [sees_Says_subset_insert RS subsetD] 
-                                addss (!simpset))));
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (blast_tac (!claset addDs [sees_Says_subset_insert RS subsetD])));
 qed "sees_agent_subset_sees_Spy";
 
 (*The Spy can see more than anybody else who's lost their key!*)
@@ -381,7 +381,8 @@ goal thy "A: lost --> A ~= Server --> sees lost A evs <= sees lost Spy evs";
 by (list.induct_tac "evs" 1);
 by (event.induct_tac "a" 2);
 by (agent.induct_tac "A" 1);
-by (auto_tac (!claset addDs [sees_Says_subset_insert RS subsetD], (!simpset)));
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (blast_tac (!claset addDs [sees_Says_subset_insert RS subsetD])));
 qed_spec_mp "sees_lost_agent_subset_sees_Spy";
 
 

@@ -18,8 +18,7 @@ proof_timing:=true;
 HOL_quantifiers := false;
 
 (*Replacing the variable by a constant improves search speed by 50%!*)
-val Says_imp_sees_Spy' = 
-    read_instantiate_sg (sign_of thy) [("lost","lost")] Says_imp_sees_Spy;
+val Says_imp_sees_Spy' = read_instantiate [("lost","lost")] Says_imp_sees_Spy;
 
 
 (*A "possibility property": there are traces that reach the end*)
@@ -81,35 +80,30 @@ bind_thm ("OR2_parts_sees_Spy",
 bind_thm ("OR4_parts_sees_Spy",
           OR4_analz_sees_Spy RS (impOfSubs analz_subset_parts));
 
-(*We instantiate the variable to "lost".  Leaving it as a Var makes proofs
-  harder to complete, since simplification does less for us.*)
-val parts_Fake_tac = 
+(*For proving the easier theorems about X ~: parts (sees lost Spy evs).
+  We instantiate the variable to "lost" since leaving it as a Var would
+  interfere with simplification.*)
+val parts_induct_tac = 
     let val tac = forw_inst_tac [("lost","lost")] 
-    in  tac OR2_parts_sees_Spy     4 THEN 
+    in  etac otway.induct	   1 THEN 
+	tac OR2_parts_sees_Spy     4 THEN 
         tac OR4_parts_sees_Spy     6 THEN
-        tac Oops_parts_sees_Spy    7
+        tac Oops_parts_sees_Spy    7 THEN
+	prove_simple_subgoals_tac  1
     end;
 
-(*For proving the easier theorems about X ~: parts (sees lost Spy evs) *)
-fun parts_induct_tac i = SELECT_GOAL
-    (DETERM (etac otway.induct 1 THEN parts_Fake_tac THEN
-             (*Fake message*)
-             TRY (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-                                           impOfSubs Fake_parts_insert]
-                            unsafe_addss (!simpset)) 2)) THEN
-     (*Base case*)
-     fast_tac (!claset unsafe_addss (!simpset)) 1 THEN
-     ALLGOALS Asm_simp_tac) i;
 
 (** Theorems of the form X ~: parts (sees lost Spy evs) imply that NOBODY
     sends messages containing X! **)
+
 
 (*Spy never sees another agent's shared key! (unless it's lost at start)*)
 goal thy 
  "!!evs. evs : otway lost \
 \        ==> (Key (shrK A) : parts (sees lost Spy evs)) = (A : lost)";
-by (parts_induct_tac 1);
-by (Auto_tac());
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 qed "Spy_see_shrK";
 Addsimps [Spy_see_shrK];
 
@@ -132,7 +126,7 @@ AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 (*Nobody can have used non-existent keys!*)
 goal thy "!!evs. evs : otway lost ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (sees lost Spy evs))";
-by (parts_induct_tac 1);
+by parts_induct_tac;
 (*Fake*)
 by (best_tac
       (!claset addIs [impOfSubs analz_subset_parts]
@@ -167,7 +161,7 @@ qed "Says_Server_message_form";
 
 
 (*For proofs involving analz.  We again instantiate the variable to "lost".*)
-val analz_Fake_tac = 
+val analz_sees_tac = 
     dres_inst_tac [("lost","lost")] OR2_analz_sees_Spy 4 THEN 
     dres_inst_tac [("lost","lost")] OR4_analz_sees_Spy 6 THEN
     forw_inst_tac [("lost","lost")] Says_Server_message_form 7 THEN
@@ -194,7 +188,7 @@ goal thy
 \            (Key K : analz (Key``KK Un (sees lost Spy evs))) = \
 \            (K : KK | Key K : analz (sees lost Spy evs))";
 by (etac otway.induct 1);
-by analz_Fake_tac;
+by analz_sees_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_freshK_lemma ));
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
@@ -254,7 +248,8 @@ goal thy
 \            Says A B {|NA, Agent A, Agent B,                      \
 \                       Crypt (shrK A) {|NA, Agent A, Agent B|}|}  \
 \             : set_of_list evs";
-by (parts_induct_tac 1);
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
 qed_spec_mp "Crypt_imp_OR1";
 
 
@@ -265,7 +260,8 @@ goal thy
 \ ==> EX B'. ALL B.    \
 \        Crypt (shrK A) {|NA, Agent A, Agent B|} : parts (sees lost Spy evs) \
 \        --> B = B'";
-by (parts_induct_tac 1);
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
 (*OR1: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NA = ?y" 1);
@@ -290,7 +286,8 @@ goal thy
 \             : parts (sees lost Spy evs) -->                    \
 \            Crypt (shrK A) {|NA', NA, Agent A', Agent A|}       \
 \             ~: parts (sees lost Spy evs)";
-by (parts_induct_tac 1);
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
 by (REPEAT (blast_tac (!claset addSEs sees_Spy_partsEs
                                addSDs  [impOfSubs parts_insert_subset_Un]) 1));
 qed_spec_mp"no_nonce_OR1_OR2";
@@ -309,7 +306,8 @@ goal thy
 \                   Crypt (shrK A) {|NA, Key K|},                      \
 \                   Crypt (shrK B) {|NB, Key K|}|}                     \
 \                   : set_of_list evs)";
-by (parts_induct_tac 1);
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
 (*OR1: it cannot be a new Nonce, contradiction.*)
 by (blast_tac (!claset addSIs [parts_insertI] addSEs sees_Spy_partsEs) 1);
 (*OR3 and OR4*) 
@@ -364,7 +362,7 @@ goal thy
 \            Says B Spy {|NA, NB, Key K|} ~: set_of_list evs -->           \
 \            Key K ~: analz (sees lost Spy evs)";
 by (etac otway.induct 1);
-by analz_Fake_tac;
+by analz_sees_tac;
 by (ALLGOALS
     (asm_simp_tac (!simpset addcongs [conj_cong] 
                             addsimps [not_parts_not_analz, analz_insert_freshK]
@@ -418,7 +416,8 @@ goal thy
 \             {|NA, Agent A, Agent B, X,                       \
 \               Crypt (shrK B) {|NA, NB, Agent A, Agent B|}|}  \
 \             : set_of_list evs)";
-by (parts_induct_tac 1);
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
 by (ALLGOALS Blast_tac);
 bind_thm ("Crypt_imp_OR2", result() RSN (2,rev_mp) RS exE);
 
@@ -430,7 +429,8 @@ goal thy
 \ ==> EX NA' A'. ALL NA A.                               \
 \      Crypt (shrK B) {|NA, NB, Agent A, Agent B|} : parts(sees lost Spy evs) \
 \      --> NA = NA' & A = A'";
-by (parts_induct_tac 1);
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
 by (simp_tac (!simpset addsimps [all_conj_distrib]) 1); 
 (*OR2: creation of new Nonce.  Move assertion into global context*)
 by (expand_case_tac "NB = ?y" 1);
@@ -461,7 +461,8 @@ goal thy
 \                  {|NA, Crypt (shrK A) {|NA, Key K|},                   \
 \                        Crypt (shrK B) {|NB, Key K|}|}                  \
 \                   : set_of_list evs)";
-by (parts_induct_tac 1);
+by parts_induct_tac;
+by (Fake_parts_insert_tac 1);
 (*OR1: it cannot be a new Nonce, contradiction.*)
 by (blast_tac (!claset addSIs [parts_insertI] addSEs sees_Spy_partsEs) 1);
 (*OR4*)

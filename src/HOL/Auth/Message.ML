@@ -35,7 +35,7 @@ qed "keysFor_Un";
 
 goalw thy [keysFor_def] "keysFor (UN i. H i) = (UN i. keysFor (H i))";
 by (Blast_tac 1);
-qed "keysFor_UN";
+qed "keysFor_UN1";
 
 (*Monotonicity*)
 goalw thy [keysFor_def] "!!G H. G<=H ==> keysFor(G) <= keysFor(H)";
@@ -67,9 +67,11 @@ goalw thy [keysFor_def]
 by (Auto_tac());
 qed "keysFor_insert_Crypt";
 
-Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 
+Addsimps [keysFor_empty, keysFor_Un, keysFor_UN1, 
           keysFor_insert_Agent, keysFor_insert_Nonce, keysFor_insert_Key, 
           keysFor_insert_Hash, keysFor_insert_MPair, keysFor_insert_Crypt];
+AddSEs [keysFor_Un RS equalityD1 RS subsetD RS UnE,
+	keysFor_UN1 RS equalityD1 RS subsetD RS UN1_E];
 
 goalw thy [keysFor_def] "!!H. Crypt K X : H ==> invKey K : keysFor H";
 by (Blast_tac 1);
@@ -173,8 +175,12 @@ goal thy "parts(UN x. H x) = (UN x. parts(H x))";
 by (simp_tac (!simpset addsimps [UNION1_def, parts_UN]) 1);
 qed "parts_UN1";
 
-(*Added to simplify arguments to parts, analz and synth*)
+(*Added to simplify arguments to parts, analz and synth.
+  NOTE: the UN versions are no longer used!*)
 Addsimps [parts_Un, parts_UN, parts_UN1];
+AddSEs [parts_Un RS equalityD1 RS subsetD RS UnE,
+	parts_UN RS equalityD1 RS subsetD RS UN_E,
+	parts_UN1 RS equalityD1 RS subsetD RS UN1_E];
 
 goal thy "insert X (parts H) <= parts(insert X H)";
 by (blast_tac (!claset addIs [impOfSubs parts_mono]) 1);
@@ -809,6 +815,21 @@ val pushCrypts = map (insComm thy "Crypt ?X ?K")
 (*Cannot be added with Addsimps -- we don't always want to re-order messages*)
 val pushes = pushKeys@pushCrypts;
 
+
+(*** Tactics useful for many protocol proofs ***)
+
+(*Prove base case (subgoal i) and simplify others*)
+fun prove_simple_subgoals_tac i = 
+    fast_tac (!claset addss (!simpset)) i THEN
+    ALLGOALS Asm_simp_tac;
+
+fun Fake_parts_insert_tac i = 
+    blast_tac (!claset addDs [impOfSubs analz_subset_parts,
+			      impOfSubs Fake_parts_insert]) i;
+
+(*Apply rules to break down assumptions of the form
+  Y : parts(insert X H)  and  Y : analz(insert X H)
+*)
 val Fake_insert_tac = 
     dresolve_tac [impOfSubs Fake_analz_insert,
                   impOfSubs Fake_parts_insert] THEN'

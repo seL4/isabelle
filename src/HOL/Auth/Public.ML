@@ -80,7 +80,7 @@ AddSIs  [sees_own_priK, Spy_sees_lost];
 (*Added for Yahalom/lost_tac*)
 goal thy "!!A. [| Crypt (pubK A) X : analz (sees lost Spy evs);  A: lost |] \
 \              ==> X : analz (sees lost Spy evs)";
-by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
+by (blast_tac (!claset addSDs [analz.Decrypt]) 1);
 qed "Crypt_Spy_analz_lost";
 
 (** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
@@ -120,8 +120,8 @@ goal thy "(UN A. parts (sees lost A (Says B C Y # evs))) = \
 by (Step_tac 1);
 by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
 by (ALLGOALS
-    (fast_tac (!claset addss (!simpset addsimps [parts_Un, sees_Cons] 
-                       setloop split_tac [expand_if]))));
+    (fast_tac (!claset unsafe_addss (!simpset addsimps [parts_Un, sees_Cons] 
+				            setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 
 goal thy "Says A B X : set_of_list evs --> X : sees lost Spy evs";
@@ -136,16 +136,14 @@ val sees_Spy_partsEs = make_elim (Says_imp_sees_Spy RS parts.Inj):: partsEs;
 goal thy  
  "!!evs. [| Says A B (Crypt (pubK C) X) : set_of_list evs;  C : lost |] \
 \        ==> X : analz (sees lost Spy evs)";
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "Says_Crypt_lost";
 
 goal thy  
  "!!evs. [| Says A B (Crypt (pubK C) X) : set_of_list evs;        \
 \           X ~: analz (sees lost Spy evs) |]                     \
 \        ==> C ~: lost";
-by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
-                      addss (!simpset)) 1);
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "Says_Crypt_not_lost";
 
 Addsimps [sees_own, sees_Server, sees_Friend, sees_Spy];

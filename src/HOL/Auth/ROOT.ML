@@ -12,6 +12,9 @@ writeln"Root file for HOL/Auth";
 proof_timing := true;
 goals_limit := 1;
 
+(*New version of addss isn't ready--too slow*)
+val op addss = op unsafe_addss;
+
 (*Shared-key protocols*)
 time_use_thy "NS_Shared";
 time_use_thy "OtwayRees";
