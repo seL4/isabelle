@@ -613,6 +613,17 @@ by (rtac le_add2 1);
 by (Asm_full_simp_tac 1);
 qed "add_less_imp_less_diff";
 
+Goal "(i < j-k) = (i+k < (j::nat))";
+br iffI 1;
+ by(case_tac "k <= j" 1);
+  bd le_add_diff_inverse2 1;
+  by(dres_inst_tac [("k","k")] add_less_mono1 1);
+  by(Asm_full_simp_tac 1);
+ by(rotate_tac 1 1);
+ by(asm_full_simp_tac (simpset() addSolver cut_trans_tac) 1);
+be add_less_imp_less_diff 1;
+qed "less_diff_conv";
+
 Goal "Suc i <= n ==> Suc (n - Suc i) = n - i";
 by (asm_simp_tac (simpset() addsimps [Suc_diff_le RS sym]) 1);
 qed "Suc_diff_Suc";

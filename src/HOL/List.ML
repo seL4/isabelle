@@ -246,6 +246,63 @@ by (Asm_simp_tac 1);
 qed "append_eq_appendI";
 
 
+(***
+Simplification procedure for all list equalities.
+Currently only tries to rearranges @ to see if
+- both lists end in a singleton list,
+- or both lists end in the same list.
+***)
+local
+
+val list_eq_pattern =
+  read_cterm (sign_of List.thy) ("(xs::'a list) = ys",HOLogic.boolT);
+
+fun last (cons as Const("List.list.op #",_) $ _ $ xs) =
+      (case xs of Const("List.list.[]",_) => cons | _ => last xs)
+  | last (Const("List.op @",_) $ _ $ ys) = last ys
+  | last t = t;
+
+fun list1 (Const("List.list.op #",_) $ _ $ Const("List.list.[]",_)) = true
+  | list1 _ = false;
+
+fun butlast ((cons as Const("List.list.op #",_) $ x) $ xs) =
+      (case xs of Const("List.list.[]",_) => xs | _ => cons $ butlast xs)
+  | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
+  | butlast xs = Const("List.list.[]",fastype_of xs);
+
+val rearr_tac =
+  simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons]);
+
+fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
+  let
+    val lastl = last lhs and lastr = last rhs
+    fun rearr conv =
+      let val lhs1 = butlast lhs and rhs1 = butlast rhs
+          val Type(_,listT::_) = eqT
+          val appT = [listT,listT] ---> listT
+          val app = Const("List.op @",appT)
+          val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
+          val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
+          val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])
+            handle ERROR =>
+            error("The error(s) above occurred while trying to prove " ^
+                  string_of_cterm ct)
+      in Some((conv RS (thm RS trans)) RS eq_reflection) end
+
+  in if list1 lastl andalso list1 lastr
+     then rearr append1_eq_conv
+     else
+     if lastl aconv lastr
+     then rearr append_same_eq
+     else None
+  end;
+in
+val list_eq_simproc = mk_simproc "list_eq" [list_eq_pattern] list_eq;
+end;
+
+Addsimprocs [list_eq_simproc];
+
+
 (** map **)
 
 section "map";
@@ -827,27 +884,59 @@ AddIffs [sum_eq_0_conv];
 
 (** upto **)
 
-Goal "!i j. ~ j < i --> j - i < Suc j - i";
-by(strip_tac 1);
-br diff_less_Suc_diff 1;
-be leI 1;
-val lemma = result();
+(* Does not terminate! *)
+Goal "[i..j(] = (if i<j then i#[Suc i..j(] else [])";
+by(induct_tac "j" 1);
+by Auto_tac;
+by(REPEAT(trans_tac 1));
+qed "upt_rec";
 
-Goalw [upto_def] "j<i ==> [i..j] = []";
+Goal "j<=i ==> [i..j(] = []";
+by(stac upt_rec 1);
+by(asm_simp_tac (simpset() addSolver cut_trans_tac) 1);
+qed "upt_conv_Nil";
+Addsimps [upt_conv_Nil];
+
+Goal "i<=j ==> [i..(Suc j)(] = [i..j(]@[j]";
+by (Asm_simp_tac 1);
+qed "upt_Suc";
+
+Goal "i<j ==> [i..j(] = i#[Suc i..j(]";
 br trans 1;
-brs paired_upto.rules 1;
-br lemma 1;
-by(Asm_simp_tac 1);
-qed "upto_conv_Nil";
+by(stac upt_rec 1);
+br refl 2;
+by (Asm_simp_tac 1);
+qed "upt_conv_Cons";
 
-Goalw [upto_def] "i<=j ==> [i..j] = i#[Suc i..j]";
-br trans 1;
-brs paired_upto.rules 1;
-br lemma 1;
-by(asm_simp_tac (simpset() addsimps [leD]) 1);
-qed "upto_conv_Cons";
+Goal "length [i..j(] = j-i";
+by(induct_tac "j" 1);
+ by (Simp_tac 1);
+by(asm_simp_tac (simpset() addsimps [Suc_diff_le] addSolver cut_trans_tac) 1);
+qed "length_upt";
+Addsimps [length_upt];
 
-Addsimps [upto_conv_Nil,upto_conv_Cons];
+Goal "i+k < j --> [i..j(] ! k = i+k";
+by(induct_tac "j" 1);
+ by(Simp_tac 1);
+by(asm_simp_tac (simpset() addsimps ([nth_append,less_diff_conv]@add_ac)
+                           addSolver cut_trans_tac) 1);
+br conjI 1;
+ by(Clarify_tac 1);
+ bd add_lessD1 1;
+ by(trans_tac 1);
+by(Clarify_tac 1);
+br conjI 1;
+ by(Clarify_tac 1);
+ by(subgoal_tac "n=i+k" 1);
+  by(Asm_full_simp_tac 1);
+ by(trans_tac 1);
+by(Clarify_tac 1);
+by(subgoal_tac "n=i+k" 1);
+ by(Asm_full_simp_tac 1);
+by(trans_tac 1);
+qed_spec_mp "nth_upt";
+Addsimps [nth_upt];
+
 
 (** nodups & remdups **)
 section "nodups & remdups";
@@ -973,60 +1062,3 @@ by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
 qed "Cons_in_lex";
 AddIffs [Cons_in_lex];
-
-
-(***
-Simplification procedure for all list equalities.
-Currently only tries to rearranges @ to see if
-- both lists end in a singleton list,
-- or both lists end in the same list.
-***)
-local
-
-val list_eq_pattern =
-  read_cterm (sign_of List.thy) ("(xs::'a list) = ys",HOLogic.boolT);
-
-fun last (cons as Const("List.list.op #",_) $ _ $ xs) =
-      (case xs of Const("List.list.[]",_) => cons | _ => last xs)
-  | last (Const("List.op @",_) $ _ $ ys) = last ys
-  | last t = t;
-
-fun list1 (Const("List.list.op #",_) $ _ $ Const("List.list.[]",_)) = true
-  | list1 _ = false;
-
-fun butlast ((cons as Const("List.list.op #",_) $ x) $ xs) =
-      (case xs of Const("List.list.[]",_) => xs | _ => cons $ butlast xs)
-  | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
-  | butlast xs = Const("List.list.[]",fastype_of xs);
-
-val rearr_tac =
-  simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons]);
-
-fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
-  let
-    val lastl = last lhs and lastr = last rhs
-    fun rearr conv =
-      let val lhs1 = butlast lhs and rhs1 = butlast rhs
-          val Type(_,listT::_) = eqT
-          val appT = [listT,listT] ---> listT
-          val app = Const("List.op @",appT)
-          val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
-          val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
-          val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])
-            handle ERROR =>
-            error("The error(s) above occurred while trying to prove " ^
-                  string_of_cterm ct)
-      in Some((conv RS (thm RS trans)) RS eq_reflection) end
-
-  in if list1 lastl andalso list1 lastr
-     then rearr append1_eq_conv
-     else
-     if lastl aconv lastr
-     then rearr append_same_eq
-     else None
-  end;
-in
-val list_eq_simproc = mk_simproc "list_eq" [list_eq_pattern] list_eq;
-end;
-
-Addsimprocs [list_eq_simproc];

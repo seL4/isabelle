@@ -6,7 +6,7 @@
 The datatype of finite lists.
 *)
 
-List = Datatype + Recdef +
+List = Datatype + WF_Rel +
 
 datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
@@ -28,8 +28,7 @@ consts
   tl, butlast :: 'a list => 'a list
   rev         :: 'a list => 'a list
   zip	      :: "'a list => 'b list => ('a * 'b) list"
-  upto        :: nat => nat => nat list                   ("(1[_../_])")
-  paired_upto :: "nat * nat => nat list"
+  upt         :: nat => nat => nat list                   ("(1[_../_'(])")
   remdups     :: 'a list => 'a list
   nodups      :: "'a list => bool"
   replicate   :: nat => 'a => 'a list
@@ -50,6 +49,8 @@ syntax
   "_lupdbinds"     :: [lupdbind, lupdbinds] => lupdbinds ("_,/ _")
   "_LUpdate"       :: ['a, lupdbinds] => 'a           ("_/[(_)]" [900,0] 900)
 
+  upto        :: nat => nat => nat list                   ("(1[_../_])")
+
 translations
   "[x, xs]"     == "x#[xs]"
   "[x]"         == "x#[]"
@@ -57,6 +58,9 @@ translations
 
   "_LUpdate xs (_lupdbinds b bs)"  == "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]"                       == "list_update xs i x"
+
+  "[i..j]" == "[i..(Suc j)(]"
+
 
 syntax (symbols)
   "@filter"   :: [pttrn, 'a list, bool] => 'a list        ("(1[_\\<in>_ ./ _])")
@@ -137,9 +141,9 @@ primrec
 primrec
   "zip xs []     = []"
   "zip xs (y#ys) = (hd xs,y)#zip (tl xs) ys"
-recdef paired_upto "measure(%(i,j). (Suc j)-i)"
-  "paired_upto(i,j) = (if j<i then [] else i#paired_upto(Suc i,j))"
-defs upto_def  "[i..j] == paired_upto(i,j)"
+primrec
+  "[i..0(] = []"
+  "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
 primrec
   "nodups []     = True"
   "nodups (x#xs) = (x ~: set xs & nodups xs)"
