@@ -379,7 +379,7 @@ Addsimps [Collect_split];
 (*Suggested by Pierre Chartier*)
 Goal "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
 by (Blast_tac 1);
-qed "UNION_Times_distrib";
+qed "UN_Times_distrib";
 
 Goal "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))";
 by (Fast_tac 1);
