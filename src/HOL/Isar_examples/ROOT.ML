@@ -13,3 +13,6 @@ time_use_thy "Group";
 time_use_thy "NatSum";
 time_use_thy "KnasterTarski";
 time_use_thy "MutilatedCheckerboard";
+
+add_path "../Induct";
+time_use_thy "MultisetOrder";
