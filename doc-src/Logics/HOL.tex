@@ -1269,21 +1269,22 @@ theorem \tdx{less_induct}:
 \end{ttbox}
 
 
-Reasoning about arithmetic inequalities can be tedious.  A minimal amount of
-automation is provided by the tactic \ttindex{trans_tac} of type \texttt{int ->
-tactic} that deals with simple inequalities.  Note that it only knows about
-\texttt{0}, \texttt{Suc}, {\tt<} and {\tt<=}.  The following goals are all solved by
-\texttt{trans_tac 1}:
-\begin{ttbox}
-{\out  1. \dots ==> m <= Suc(Suc m)}
-{\out  1. [| \dots i <= j \dots Suc j <= k \dots |] ==> i < k}
-{\out  1. [| \dots Suc m <= n \dots ~ m < n \dots |] ==> \dots}
-\end{ttbox}
-For a complete description of the limitations of the tactic and how to avoid
-some of them, see the comments at the start of the file {\tt
-Provers/nat_transitive.ML}.
+Reasoning about arithmetic inequalities can be tedious.  Fortunately HOL
+provides a decision procedure for quantifier-free linear arithmetic (i.e.\ 
+only addition and subtraction). The simplifier invokes a weak version of this
+decision procedure automatically. If this is not sufficent, you can invoke
+the full procedure \ttindex{arith_tac} explicitly.  It copes with arbitrary
+formulae involving {\tt=}, {\tt<}, {\tt<=}, {\tt+}, {\tt-}, {\tt Suc}, {\tt
+  min}, {\tt max} and numerical constants; other subterms are treated as
+atomic; subformulae not involving type $nat$ are ignored; quantified
+subformulae are ignored unless they are positive universal or negative
+existential. Note that the running time is exponential in the number of
+occurrences of {\tt min}, {\tt max}, and {\tt-} because they require case
+distinctions. Note also that \texttt{arith_tac} is not complete: if
+divisibility plays a role, it may fail to prove a valid formula, for example
+$m+m \neq n+n+1$. Fortunately such examples are rare in practice.
 
-If \texttt{trans_tac} fails you, try to find relevant arithmetic results in
+If \texttt{arith_tac} fails you, try to find relevant arithmetic results in
 the library.  The theory \texttt{NatDef} contains theorems about {\tt<} and
 {\tt<=}, the theory \texttt{Arith} contains theorems about \texttt{+},
 \texttt{-} and \texttt{*}, and theory \texttt{Divides} contains theorems about
