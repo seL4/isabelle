@@ -224,27 +224,25 @@ qed "unique_NB";
 (*NB remains secret PROVIDED Alice never responds with round 3*)
 goal thy 
  "!!evs.[| Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs;  \
-\          (ALL C. Says A C (Crypt (pubK C) (Nonce NB)) ~: set evs);    \
-\          A ~: bad;  B ~: bad;  evs : ns_public |]                   \
+\          ALL C. Says A C (Crypt (pubK C) (Nonce NB)) ~: set evs;      \
+\          A ~: bad;  B ~: bad;  evs : ns_public |]                     \
 \       ==> Nonce NB ~: analz (spies evs)";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
-(*NS1*)
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
+by clarify_tac;
+(*NS3: because NB determines A*)
+by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj, unique_NB]) 4);
+(*NS2: by freshness and unicity of NB*)
+by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj]
+                       addEs [no_nonce_NS1_NS2 RSN (2, rev_notE)]
+                       addEs partsEs
+		       addIs [impOfSubs analz_subset_parts]) 3);
+(*NS1: by freshness*)
 by (blast_tac (!claset addSEs spies_partsEs) 2);
 (*Fake*)
 by (spy_analz_tac 1);
-(*NS2 and NS3*)
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (step_tac (!claset delrules [allI]) 1);
-by (Blast_tac 5);
-(*NS3*)
-by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj, unique_NB]) 4);
-(*NS2*)
-by (blast_tac (!claset addSEs spies_partsEs) 3);
-by (blast_tac (!claset addSDs [Says_imp_spies RS parts.Inj]
-                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 2);
-by (blast_tac (!claset addSIs [impOfSubs analz_subset_parts]) 1);
 qed "Spy_not_see_NB";
 
 
@@ -261,16 +259,16 @@ by (etac rev_mp 1);
 by (etac (Says_imp_spies RS parts.Inj RS rev_mp) 1);
 by (parts_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [ex_disj_distrib])));
-(*NS1*)
+by clarify_tac;
+(*NS3: because NB determines A*)
+by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj, 
+			      Spy_not_see_NB, unique_NB]) 3);
+(*NS1: by freshness*)
 by (blast_tac (!claset addSEs spies_partsEs) 2);
 (*Fake*)
 by (blast_tac (!claset addSDs [impOfSubs Fake_parts_insert]
                        addDs  [Spy_not_see_NB, 
 			       impOfSubs analz_subset_parts]) 1);
-(*NS3; not clear why blast_tac needs to be preceeded by Step_tac*)
-by (Step_tac 1);
-by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj,
-			      Spy_not_see_NB, unique_NB]) 1);
 qed "B_trusts_NS3";
 
 
@@ -280,37 +278,33 @@ goal thy
 \ ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs \
 \     --> Nonce NB ~: analz (spies evs)";
 by (analz_induct_tac 1);
-(*NS1*)
-by (blast_tac (!claset addSEs partsEs
-                       addSDs [Says_imp_spies RS parts.Inj]) 2);
+by clarify_tac;
+(*NS2: by freshness and unicity of NB*)
+by (blast_tac (!claset addDs [Says_imp_spies RS parts.Inj]
+                       addEs [no_nonce_NS1_NS2 RSN (2, rev_notE)]
+                       addEs partsEs
+		       addIs [impOfSubs analz_subset_parts]) 3);
+(*NS1: by freshness*)
+by (blast_tac (!claset addSEs spies_partsEs) 2);
 (*Fake*)
 by (spy_analz_tac 1);
-(*NS2 and NS3*)
-by (Step_tac 1);
-by (blast_tac (!claset addSIs [impOfSubs analz_subset_parts, usedI]) 1);
-(*NS2*)
-by (blast_tac (!claset addSEs partsEs
-                       addSDs [Says_imp_spies RS parts.Inj]) 2);
-by (blast_tac (!claset addSDs [Says_imp_spies RS parts.Inj]
-                       addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 1);
-(*NS3*)
+(*NS3: unicity of NB identifies A and NA, but not B*)
 by (forw_inst_tac [("A'","A")] (Says_imp_spies RS parts.Inj RS unique_NB) 1
     THEN REPEAT (eresolve_tac [asm_rl, Says_imp_spies RS parts.Inj] 1));
-by (Step_tac 1);
+by (Auto_tac());
+by (rename_tac "C B' evs3" 1);
 
 (*
 THIS IS THE ATTACK!
-Level 9
+Level 8
 !!evs. [| A ~: bad; B ~: bad; evs : ns_public |]
-       ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|})
-           : set evs -->
+       ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs -->
            Nonce NB ~: analz (spies evs)
- 1. !!evs Aa Ba B' NAa NBa evsa.
-       [| A ~: bad; B ~: bad; evsa : ns_public; A ~= Ba;
-          Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evsa;
-          Says A Ba (Crypt (pubK Ba) {|Nonce NA, Agent A|}) : set evsa;
-          Ba : bad;
-          Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evsa;
-          Nonce NB ~: analz (spies evsa) |]
+ 1. !!C B' evs3.
+       [| A ~: bad; B ~: bad; evs3 : ns_public;
+          Says A C (Crypt (pubK C) {|Nonce NA, Agent A|}) : set evs3;
+          Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs3; C : bad;
+          Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs3;
+          Nonce NB ~: analz (spies evs3) |]
        ==> False
 *)
