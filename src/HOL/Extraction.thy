@@ -213,8 +213,8 @@ theorem exI_realizer:
   "P y x \<Longrightarrow> P (snd (x, y)) (fst (x, y))" by simp
 
 theorem exE_realizer: "P (snd p) (fst p) \<Longrightarrow>
-  (\<And>x y. P y x \<Longrightarrow> Q (f x y)) \<Longrightarrow> Q (case p of (x, y) \<Rightarrow> f x y)"
-  by (cases p) simp
+  (\<And>x y. P y x \<Longrightarrow> Q (f x y)) \<Longrightarrow> Q (let (x, y) = p in f x y)"
+  by (cases p) (simp add: Let_def)
 
 theorem exE_realizer': "P (snd p) (fst p) \<Longrightarrow>
   (\<And>x y. P y x \<Longrightarrow> Q) \<Longrightarrow> Q" by (cases p) simp
@@ -252,7 +252,7 @@ realizers
 
   exI: "\<lambda>x. x" "\<Lambda> P x (h: _). h"
 
-  exE (P, Q): "\<lambda>p pq. case p of (x, y) \<Rightarrow> pq x y"
+  exE (P, Q): "\<lambda>p pq. let (x, y) = p in pq x y"
     "\<Lambda> P Q p (h: _) pq. exE_realizer \<cdot> P \<cdot> p \<cdot> Q \<cdot> pq \<bullet> h"
 
   exE (P): "Null"
