@@ -8,12 +8,12 @@ definition they occurred only at the top-level, i.e.\ directly below a
 constructor. This is not the case any longer for the following model of terms
 where function symbols can be applied to a list of arguments:%
 \end{isamarkuptext}%
-\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}a\ {\isacharbar}\ App\ {\isacharprime}b\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isachardoublequote}%
+\isacommand{datatype}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}{\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Var\ {\isacharprime}v\ {\isacharbar}\ App\ {\isacharprime}f\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Note that we need to quote \isa{term} on the left to avoid confusion with
 the Isabelle command \isacommand{term}.
-Parameter \isa{{\isacharprime}a} is the type of variables and \isa{{\isacharprime}b} the type of
+Parameter \isa{{\isacharprime}v} is the type of variables and \isa{{\isacharprime}f} the type of
 function symbols.
 A mathematical term like $f(x,g(y))$ becomes \isa{App\ f\ {\isacharbrackleft}Var\ x{\isacharcomma}\ App\ g\ {\isacharbrackleft}Var\ y{\isacharbrackright}{\isacharbrackright}}, where \isa{f}, \isa{g}, \isa{x}, \isa{y} are
 suitable values, e.g.\ numbers or strings.
@@ -38,8 +38,8 @@ Let us define a substitution function on terms. Because terms involve term
 lists, we need to define two substitution functions simultaneously:%
 \end{isamarkuptext}%
 \isacommand{consts}\isanewline
-subst\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isasymRightarrow}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ \ \ \ \ \ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isachardoublequote}\isanewline
-substs{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isasymRightarrow}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isachardoublequote}\isanewline
+subst\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}v{\isasymRightarrow}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ \ \ \ \ \ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isachardoublequote}\isanewline
+substs{\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}v{\isasymRightarrow}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{primrec}\isanewline
 \ \ {\isachardoublequote}subst\ s\ {\isacharparenleft}Var\ x{\isacharparenright}\ {\isacharequal}\ s\ x{\isachardoublequote}\isanewline
@@ -58,8 +58,8 @@ to prove a related statement about term lists simultaneously. For example,
 the fact that the identity substitution does not change a term needs to be
 strengthened and proved as follows:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}subst\ \ Var\ t\ \ {\isacharequal}\ {\isacharparenleft}t\ {\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term{\isacharparenright}\ \ {\isasymand}\isanewline
-\ \ \ \ \ \ \ \ substs\ Var\ ts\ {\isacharequal}\ {\isacharparenleft}ts{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}term\ list{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{lemma}\ {\isachardoublequote}subst\ \ Var\ t\ \ {\isacharequal}\ {\isacharparenleft}t\ {\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term{\isacharparenright}\ \ {\isasymand}\isanewline
+\ \ \ \ \ \ \ \ substs\ Var\ ts\ {\isacharequal}\ {\isacharparenleft}ts{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}term\ list{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ t\ \isakeyword{and}\ ts{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
@@ -68,7 +68,7 @@ Note that \isa{Var} is the identity substitution because by definition it
 leaves variables unchanged: \isa{subst\ Var\ {\isacharparenleft}Var\ x{\isacharparenright}\ {\isacharequal}\ Var\ x}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
-parameters \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}b{\isacharparenright}}. As a result, induction would fail
+parameters \isa{{\isacharparenleft}{\isacharprime}v{\isacharcomma}{\isacharprime}f{\isacharparenright}}. As a result, induction would fail
 because the two halves of the goal would be unrelated.
 
 \begin{exercise}
@@ -82,7 +82,7 @@ strengthen it, and prove it. (Note: \isa{{\isasymcirc}} is function composition;
 its definition is found in theorem \isa{o{\isacharunderscore}def}).
 \end{exercise}
 \begin{exercise}\label{ex:trev-trev}
-  Define a function \isa{trev} of type \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ term\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ term}
+  Define a function \isa{trev} of type \isa{{\isacharparenleft}{\isacharprime}v{\isacharcomma}\ {\isacharprime}f{\isacharparenright}\ term\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}\ {\isacharprime}f{\isacharparenright}\ term}
 that recursively reverses the order of arguments of all function symbols in a
   term. Prove that \isa{trev\ {\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t}.
 \end{exercise}
@@ -118,7 +118,7 @@ could derive a new induction principle as well (see
 and to define functions with \isacommand{recdef} instead.
 The details are explained in \S\ref{sec:nested-recdef} below.
 
-Of course, you may also combine mutual and nested recursion. For example,
+Of course, you may also combine mutual and nested recursion of datatypes. For example,
 constructor \isa{Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
 expressions as its argument: \isa{Sum}~\isa{{\isachardoublequote}{\isacharprime}a\ aexp\ list{\isachardoublequote}}.%
 \end{isamarkuptext}%

@@ -28,7 +28,7 @@ on \isa{xs}.
 The key heuristic, and the main point of this section, is to
 generalize the goal before induction. The reason is simple: if the goal is
 too specific, the induction hypothesis is too weak to allow the induction
-step to go through. Let us now illustrate the idea with an example.
+step to go through. Let us illustrate the idea with an example.
 
 Function \isa{rev} has quadratic worst-case running time
 because it calls function \isa{{\isacharat}} for each element of the list and
@@ -62,8 +62,7 @@ There is no choice as to the induction variable, and we immediately simplify:%
 Unfortunately, this is not a complete success:
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ {\isacharbrackleft}a{\isacharbrackright}%
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }itrev\ list\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isasymLongrightarrow}\ itrev\ list\ {\isacharbrackleft}a{\isacharbrackright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ {\isacharbrackleft}a{\isacharbrackright}%
 \end{isabelle}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
@@ -72,7 +71,7 @@ argument, \isa{{\isacharbrackleft}{\isacharbrackright}}.  This suggests a heuris
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
 Of course one cannot do this na\"{\i}vely: \isa{itrev\ xs\ ys\ {\isacharequal}\ rev\ xs} is
-just not true---the correct generalization is%
+just not true --- the correct generalization is%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ {\isachardoublequote}itrev\ xs\ ys\ {\isacharequal}\ rev\ xs\ {\isacharat}\ ys{\isachardoublequote}%
 \begin{isamarkuptxt}%
@@ -114,13 +113,6 @@ applied blindly.
 The variables that require generalization are typically those that 
 change in recursive calls.
 
-In general, if you have tried the above heuristics and still find your
-induction does not go through, and no obvious lemma suggests itself, you may
-need to generalize your proposition even further. This requires insight into
-the problem at hand and is beyond simple rules of thumb.  You
-will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
-to learn about some advanced techniques for inductive proofs.
-
 A final point worth mentioning is the orientation of the equation we just
 proved: the more complex notion (\isa{itrev}) is on the left-hand
 side, the simpler one (\isa{rev}) on the right-hand side. This constitutes
@@ -131,7 +123,14 @@ another, albeit weak heuristic that is not restricted to induction:
 \end{quote}
 This heuristic is tricky to apply because it is not obvious that
 \isa{rev\ xs\ {\isacharat}\ ys} is simpler than \isa{itrev\ xs\ ys}. But see what
-happens if you try to prove \isa{rev\ xs\ {\isacharat}\ ys\ {\isacharequal}\ itrev\ xs\ ys}!%
+happens if you try to prove \isa{rev\ xs\ {\isacharat}\ ys\ {\isacharequal}\ itrev\ xs\ ys}!
+
+In general, if you have tried the above heuristics and still find your
+induction does not go through, and no obvious lemma suggests itself, you may
+need to generalize your proposition even further. This requires insight into
+the problem at hand and is beyond simple rules of thumb.  You
+will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
+to learn about some advanced techniques for inductive proofs.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

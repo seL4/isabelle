@@ -125,7 +125,7 @@ done
 
 text{*
 The @{text"(no_asm)"} modifier of the @{text"rule_format"} directive means
-that the assumption is left unchanged---otherwise the @{text"\<forall>p"} is turned
+that the assumption is left unchanged --- otherwise the @{text"\<forall>p"} is turned
 into a @{text"\<And>p"}, which would complicate matters below. As it is,
 @{thm[source]Avoid_in_lfp} is now
 @{thm[display]Avoid_in_lfp[no_vars]}

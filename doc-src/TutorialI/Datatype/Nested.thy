@@ -9,12 +9,12 @@ constructor. This is not the case any longer for the following model of terms
 where function symbols can be applied to a list of arguments:
 *}
 (*<*)hide const Var(*>*)
-datatype ('a,'b)"term" = Var 'a | App 'b "('a,'b)term list";
+datatype ('v,'f)"term" = Var 'v | App 'f "('v,'f)term list";
 
 text{*\noindent
 Note that we need to quote @{text term} on the left to avoid confusion with
 the Isabelle command \isacommand{term}.
-Parameter @{typ"'a"} is the type of variables and @{typ"'b"} the type of
+Parameter @{typ"'v"} is the type of variables and @{typ"'f"} the type of
 function symbols.
 A mathematical term like $f(x,g(y))$ becomes @{term"App f [Var x, App g
   [Var y]]"}, where @{term f}, @{term g}, @{term x}, @{term y} are
@@ -41,8 +41,8 @@ lists, we need to define two substitution functions simultaneously:
 *}
 
 consts
-subst :: "('a\<Rightarrow>('a,'b)term) \<Rightarrow> ('a,'b)term      \<Rightarrow> ('a,'b)term"
-substs:: "('a\<Rightarrow>('a,'b)term) \<Rightarrow> ('a,'b)term list \<Rightarrow> ('a,'b)term list";
+subst :: "('v\<Rightarrow>('v,'f)term) \<Rightarrow> ('v,'f)term      \<Rightarrow> ('v,'f)term"
+substs:: "('v\<Rightarrow>('v,'f)term) \<Rightarrow> ('v,'f)term list \<Rightarrow> ('v,'f)term list";
 
 primrec
   "subst s (Var x) = s x"
@@ -62,8 +62,8 @@ the fact that the identity substitution does not change a term needs to be
 strengthened and proved as follows:
 *}
 
-lemma "subst  Var t  = (t ::('a,'b)term)  \<and>
-        substs Var ts = (ts::('a,'b)term list)";
+lemma "subst  Var t  = (t ::('v,'f)term)  \<and>
+        substs Var ts = (ts::('v,'f)term list)";
 apply(induct_tac t and ts, simp_all);
 done
 
@@ -72,7 +72,7 @@ Note that @{term Var} is the identity substitution because by definition it
 leaves variables unchanged: @{prop"subst Var (Var x) = Var x"}. Note also
 that the type annotations are necessary because otherwise there is nothing in
 the goal to enforce that both halves of the goal talk about the same type
-parameters @{text"('a,'b)"}. As a result, induction would fail
+parameters @{text"('v,'f)"}. As a result, induction would fail
 because the two halves of the goal would be unrelated.
 
 \begin{exercise}
@@ -84,7 +84,7 @@ strengthen it, and prove it. (Note: @{text"\<circ>"} is function composition;
 its definition is found in theorem @{thm[source]o_def}).
 \end{exercise}
 \begin{exercise}\label{ex:trev-trev}
-  Define a function @{term trev} of type @{typ"('a,'b)term => ('a,'b)term"}
+  Define a function @{term trev} of type @{typ"('v,'f)term => ('v,'f)term"}
 that recursively reverses the order of arguments of all function symbols in a
   term. Prove that @{prop"trev(trev t) = t"}.
 \end{exercise}
@@ -120,7 +120,7 @@ could derive a new induction principle as well (see
 and to define functions with \isacommand{recdef} instead.
 The details are explained in \S\ref{sec:nested-recdef} below.
 
-Of course, you may also combine mutual and nested recursion. For example,
+Of course, you may also combine mutual and nested recursion of datatypes. For example,
 constructor @{text Sum} in \S\ref{sec:datatype-mut-rec} could take a list of
 expressions as its argument: @{text Sum}~@{typ[quotes]"'a aexp list"}.
 *}

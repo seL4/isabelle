@@ -130,7 +130,7 @@ e.g. @{text"[2]"} are also allowed.
 This proof may look surprisingly straightforward. However, note that this
 comes at a cost: the proof script is unreadable because the intermediate
 proof states are invisible, and we rely on the (possibly brittle) magic of
-@{text auto} (@{text simp_all} will not do---try it) to split the subgoals
+@{text auto} (@{text simp_all} will not do --- try it) to split the subgoals
 of the induction up in such a way that case distinction on @{term bs} makes
 sense and solves the proof. Part~\ref{Isar} shows you how to write readable
 and stable proofs.

@@ -25,7 +25,7 @@ The infix function \isa{{\isacharbang}} yields the nth element of a list.%
 \begin{isamarkuptext}%
 HOL comes with a number of overloaded constants and corresponding classes.
 The most important ones are listed in Table~\ref{tab:overloading}. They are
-defined on all numeric types and somtimes on other types as well, for example
+defined on all numeric types and sometimes on other types as well, for example
 \isa{{\isacharminus}}, \isa{{\isasymle}} and \isa{{\isacharless}} on sets.
 
 \begin{table}[htbp]
@@ -36,9 +36,13 @@ Constant & Type & Syntax \\
 \isa{{\isadigit{0}}} & \isa{{\isacharprime}a{\isacharcolon}{\isacharcolon}zero} \\
 \isa{{\isacharplus}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}plus{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} & (infixl 65) \\
 \isa{{\isacharminus}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}minus{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} &  (infixl 65) \\
-\isa{{\isacharasterisk}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}times{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} & (infixl 70) \\
-\isa{{\isacharcircum}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}power{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a} & (infixr 80) \\
 \isa{{\isacharminus}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}minus{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a} \\
+\isa{{\isacharasterisk}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}times{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} & (infixl 70) \\
+\isa{div} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}div{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} & (infixl 70) \\
+\isa{mod} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}div{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} & (infixl 70) \\
+\isa{dvd} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}times{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool} & (infixl 50) \\
+\isa{{\isacharslash}}  & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}inverse{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} & (infixl 70) \\
+\isa{{\isacharcircum}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}power{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a} & (infixr 80) \\
 \isa{abs} &  \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}minus{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a} & ${\mid} x {\mid}$\\
 \isa{{\isasymle}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ord{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool} & (infixl 50) \\
 \isa{{\isacharless}} & \isa{{\isacharparenleft}{\isacharprime}a{\isacharcolon}{\isacharcolon}ord{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool} & (infixl 50) \\

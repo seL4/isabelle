@@ -27,7 +27,7 @@ In Isabelle this becomes%
 \noindent
 Type \isa{aexp} is similar to \isa{expr} in \S\ref{sec:ExprCompiler},
 except that we have fixed the values to be of type \isa{nat} and that we
-have fixed the two binary operations \isa{aexp{\isachardot}Sum} and \isa{Diff}. Boolean
+have fixed the two binary operations \isa{Sum} and \isa{Diff}. Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is fixed via two evaluation functions%
 \end{isamarkuptext}%
@@ -100,7 +100,7 @@ an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{isabelle}
-\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1$ \isa{and} \dots\ \isa{and} $x@n$\isa{{\isacharparenright}}
+\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$\isa{{\isacharparenright}}
 \end{isabelle}
 
 \begin{exercise}

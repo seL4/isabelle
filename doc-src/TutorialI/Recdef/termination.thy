@@ -32,7 +32,7 @@ of your function once more. In our case the required lemma is the obvious one:
 lemma termi_lem: "\<not> x \<le> y \<Longrightarrow> x - Suc y < x - y";
 
 txt{*\noindent
-It was not proved automatically because of the special nature of @{text"-"}
+It was not proved automatically because of the special nature of subtraction
 on @{typ"nat"}. This requires more arithmetic than is tried by default:
 *}
 

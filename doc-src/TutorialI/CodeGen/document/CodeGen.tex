@@ -46,7 +46,7 @@ The execution of the stack machine is modelled by a function
 \isa{exec} that takes a list of instructions, a store (modelled as a
 function from addresses to values, just like the environment for
 evaluating expressions), and a stack (modelled as a list) of values,
-and returns the stack at the end of the execution---the store remains
+and returns the stack at the end of the execution --- the store remains
 unchanged:%
 \end{isamarkuptext}%
 \isacommand{consts}\ exec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isasymRightarrow}{\isacharprime}v{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}v\ list\ {\isasymRightarrow}\ {\isacharprime}v\ list{\isachardoublequote}\isanewline
@@ -102,11 +102,11 @@ automatic case splitting as well, which finishes the proof:%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-Note that because \isaindex{auto} performs simplification, it can
-also be modified in the same way \isa{simp} can. Thus the proof can be
+Note that because both \isaindex{simp_all} and \isaindex{auto} perform simplification, they can
+be modified in the same way \isa{simp} can. Thus the proof can be
 rewritten as%
 \end{isamarkuptext}%
-\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ auto\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
+\isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 Although this is more compact, it is less clear for the reader of the proof.

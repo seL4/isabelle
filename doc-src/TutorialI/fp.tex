@@ -122,11 +122,11 @@ would have alerted us because of the unexpected variable \isa{re}.
   the files have not been modified).
   
   If you suddenly discover that you need to modify a parent theory of your
-  current theory you must first abandon your current theory\indexbold{abandon
+  current theory, you must first abandon your current theory\indexbold{abandon
   theory}\indexbold{theory!abandon} (at the shell
   level type \isacommand{kill}\indexbold{*kill}). After the parent theory has
-  been modified you go back to your original theory. When its first line
-  \isacommand{theory}\texttt{~T~=}~\dots~\texttt{:} is processed, the
+  been modified, you go back to your original theory. When its first line
+  \isa{\isacommand{theory}~T~=~\dots~:} is processed, the
   modified parent is reloaded automatically.
   
   The only time when you need to load a theory by hand is when you simply
@@ -291,12 +291,12 @@ So far we have proved our theorems by \isa{auto}, which simplifies
 \emph{all} subgoals. In fact, \isa{auto} can do much more than that, except
 that it did not need to so far. However, when you go beyond toy examples, you
 need to understand the ingredients of \isa{auto}.  This section covers the
-method that \isa{auto} always applies first, namely simplification.
+method that \isa{auto} always applies first, simplification.
 
 Simplification is one of the central theorem proving tools in Isabelle and
 many other systems. The tool itself is called the \bfindex{simplifier}. The
 purpose of this section is introduce the many features of the simplifier.
-Anybody intending to use HOL should read this section. Later on
+Anybody intending to perform proofs in HOL should read this section. Later on
 ({\S}\ref{sec:simplification-II}) we explain some more advanced features and a
 little bit of how the simplifier works. The serious student should read that
 section as well, in particular in order to understand what happened if things
@@ -359,7 +359,7 @@ previously defined datatypes. This does not include functions:
 This declaration is a real can of worms.
 In HOL it must be ruled out because it requires a type
 \isa{t} such that \isa{t} and its power set \isa{t \isasymFun\ bool} have the
-same cardinality---an impossibility. For the same reason it is not possible
+same cardinality --- an impossibility. For the same reason it is not possible
 to allow recursion involving the type \isa{set}, which is isomorphic to
 \isa{t \isasymFun\ bool}.
 
@@ -380,7 +380,7 @@ alternatives to pure HOL: LCF~\cite{paulson87} is a logic where types like
 \end{isabelle}
 do indeed make sense.  Note the different arrow,
 \isa{\isasymrightarrow} instead of \isa{\isasymRightarrow},
-expressing the type of \textbf{continuous} functions. 
+expressing the type of \emph{continuous} functions. 
 There is even a version of LCF on top of HOL,
 called HOLCF~\cite{MuellerNvOS99}.
 

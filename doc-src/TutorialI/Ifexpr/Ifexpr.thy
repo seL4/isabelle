@@ -55,7 +55,7 @@ from constants (@{term"CIF"}), variables (@{term"VIF"}) and conditionals
 datatype ifex = CIF bool | VIF nat | IF ifex ifex ifex;
 
 text{*\noindent
-The evaluation if If-expressions proceeds as for @{typ"boolex"}:
+The evaluation of If-expressions proceeds as for @{typ"boolex"}:
 *}
 
 consts valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool";

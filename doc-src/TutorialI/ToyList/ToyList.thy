@@ -28,6 +28,7 @@ alternative syntax is the standard syntax. Thus the list \isa{Cons True
 \isacommand{infixr}\indexbold{*infixr} means that @{text"#"} associates to
 the right, i.e.\ the term @{term"x # y # z"} is read as @{text"x # (y # z)"}
 and not as @{text"(x # y) # z"}.
+The @{text 65} is the priority of the infix @{text"#"}.
 
 \begin{warn}
   Syntax annotations are a powerful but optional feature. You
@@ -44,9 +45,10 @@ consts app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"   (infixr "@
 
 text{*
 \noindent
-In contrast to ML, Isabelle insists on explicit declarations of all functions
-(keyword \isacommand{consts}).  (Apart from the declaration-before-use
-restriction, the order of items in a theory file is unconstrained.) Function
+In contrast to many functional programming languages,
+Isabelle insists on explicit declarations of all functions
+(keyword \isacommand{consts}).  Apart from the declaration-before-use
+restriction, the order of items in a theory file is unconstrained. Function
 @{text"app"} is annotated with concrete syntax too. Instead of the
 prefix syntax @{text"app xs ys"} the infix
 @{term"xs @ ys"}\index{$HOL2list@\texttt{\at}|bold} becomes the preferred
@@ -89,11 +91,11 @@ $f(n)$ on both sides.
 \end{warn}
 
 A remark about syntax.  The textual definition of a theory follows a fixed
-syntax with keywords like \isacommand{datatype} and \isacommand{end} (see
-Fig.~\ref{fig:keywords} in Appendix~\ref{sec:Appendix} for a full list).
+syntax with keywords like \isacommand{datatype} and \isacommand{end}.
+% (see Fig.~\ref{fig:keywords} in Appendix~\ref{sec:Appendix} for a full list).
 Embedded in this syntax are the types and formulae of HOL, whose syntax is
-extensible, e.g.\ by new user-defined infix operators
-(see~\ref{sec:infix-syntax}). To distinguish the two levels, everything
+extensible (see \S\ref{sec:syntax-anno}), e.g.\ by new user-defined infix operators.
+To distinguish the two levels, everything
 HOL-specific (terms and types) should be enclosed in
 \texttt{"}\dots\texttt{"}. 
 To lessen this burden, quotation marks around a single identifier can be
@@ -179,10 +181,7 @@ This tells Isabelle to perform induction on variable @{term"xs"}. The suffix
 By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (@{term[source]Nil}) and the induction step
 (@{term[source]Cons}):
-\begin{isabelle}
-~1.~rev~(rev~[])~=~[]\isanewline
-~2.~{\isasymAnd}a~list.~rev(rev~list)~=~list~{\isasymLongrightarrow}~rev(rev(a~\#~list))~=~a~\#~list
-\end{isabelle}
+@{subgoals[display,indent=0,margin=65]}
 
 The induction step is an example of the general format of a subgoal:
 \begin{isabelle}
@@ -211,9 +210,7 @@ This command tells Isabelle to apply a proof strategy called
 ``simplify'' the subgoals.  In our case, subgoal~1 is solved completely (thanks
 to the equation @{prop"rev [] = []"}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
-\begin{isabelle}
-~1.~\dots~rev(rev~list)~=~list~{\isasymLongrightarrow}~rev(rev~list~@~a~\#~[])~=~a~\#~list
-\end{isabelle}
+@{subgoals[display,indent=0,margin=70]}
 In order to simplify this subgoal further, a lemma suggests itself.
 *}
 (*<*)
@@ -231,10 +228,10 @@ proof}\indexbold{proof!abandon} (at the shell level type
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";
 
 txt{*\noindent The keywords \isacommand{theorem}\index{*theorem} and
-\isacommand{lemma}\indexbold{*lemma} are interchangable and merely indicate
-the importance we attach to a proposition.  We use the words
+\isacommand{lemma}\indexbold{*lemma} are interchangeable and merely indicate
+the importance we attach to a proposition.  Therefore we use the words
 \emph{theorem}\index{theorem} and \emph{lemma}\index{lemma} pretty much
-interchangeably.
+interchangeably, too.
 
 There are two variables that we could induct on: @{term"xs"} and
 @{term"ys"}. Because @{text"@"} is defined by recursion on
@@ -285,8 +282,8 @@ if it is obvious from the context that the proof is finished.
 
 % Instead of \isacommand{apply} followed by a dot, you can simply write
 % \isacommand{by}\indexbold{by}, which we do most of the time.
-Notice that in lemma @{thm[source]app_Nil2}
-(as printed out after the final \isacommand{done}) the free variable @{term"xs"} has been
+Notice that in lemma @{thm[source]app_Nil2},
+as printed out after the final \isacommand{done}, the free variable @{term"xs"} has been
 replaced by the unknown @{text"?xs"}, just as explained in
 \S\ref{sec:variables}.
 
@@ -326,7 +323,7 @@ done
 text{*
 \noindent
 succeeds without further ado.
-Now we can go back and prove the first lemma
+Now we can prove the first lemma
 *}
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";

@@ -49,7 +49,7 @@ The execution of the stack machine is modelled by a function
 @{text"exec"} that takes a list of instructions, a store (modelled as a
 function from addresses to values, just like the environment for
 evaluating expressions), and a stack (modelled as a list) of values,
-and returns the stack at the end of the execution---the store remains
+and returns the stack at the end of the execution --- the store remains
 unchanged:
 *}
 
@@ -110,15 +110,15 @@ automatic case splitting as well, which finishes the proof:
 apply(induct_tac xs, simp, simp split: instr.split);
 (*<*)done(*>*)
 text{*\noindent
-Note that because \isaindex{auto} performs simplification, it can
-also be modified in the same way @{text simp} can. Thus the proof can be
+Note that because both \isaindex{simp_all} and \isaindex{auto} perform simplification, they can
+be modified in the same way @{text simp} can. Thus the proof can be
 rewritten as
 *}
 (*<*)
 declare exec_app[simp del];
 lemma [simp]: "\<forall>vs. exec (xs@ys) s vs = exec ys s (exec xs s vs)"; 
 (*>*)
-apply(induct_tac xs, auto split: instr.split);
+apply(induct_tac xs, simp_all split: instr.split);
 (*<*)done(*>*)
 text{*\noindent
 Although this is more compact, it is less clear for the reader of the proof.

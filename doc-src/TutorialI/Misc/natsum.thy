@@ -69,7 +69,8 @@ into account; other arithmetic operations and quantified formulae are ignored.
 For more complex goals, there is the special method \isaindexbold{arith}
 (which attacks the first subgoal). It proves arithmetic goals involving the
 usual logical connectives (@{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"},
-@{text"\<longrightarrow>"}), the relations @{text"\<le>"} and @{text"<"}, and the operations
+@{text"\<longrightarrow>"}), the relations @{text"="}, @{text"\<le>"} and @{text"<"},
+and the operations
 @{text"+"}, @{text"-"}, @{term min} and @{term max}. Technically, this is
 known as the class of (quantifier free) \bfindex{linear arithmetic} formulae.
 For example,

@@ -8,7 +8,7 @@ termination and that the recursion equations (or some suitable derived
 equations) are simplification rules, we might like to prove something about
 our function. Since the function is recursive, the natural proof principle is
 again induction. But this time the structural form of induction that comes
-with datatypes is unlikely to work well---otherwise we could have defined the
+with datatypes is unlikely to work well --- otherwise we could have defined the
 function by \isacommand{primrec}. Therefore \isacommand{recdef} automatically
 proves a suitable induction rule $f$\isa{{\isachardot}induct} that follows the
 recursion pattern of the particular function $f$. We call this
@@ -53,7 +53,7 @@ In general, the format of invoking recursion induction is
 \end{quote}\index{*induct_tac}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes an $n$-tuple. Usually the subgoal will
-contain the term $f~x@1~\dots~x@n$ but this need not be the case. The
+contain the term $f(x@1,\dots,x@n)$ but this need not be the case. The
 induction rules do not mention $f$ at all. For example \isa{sep{\isachardot}induct}
 \begin{isabelle}
 {\isasymlbrakk}~{\isasymAnd}a.~P~a~[];\isanewline

@@ -1,6 +1,6 @@
 (*<*)theory CTL = Base:;(*>*)
 
-subsection{*Computation Tree Logic---CTL*};
+subsection{*Computation Tree Logic --- CTL*};
 
 text{*\label{sec:CTL}
 The semantics of PDL only needs reflexive transitive closure.

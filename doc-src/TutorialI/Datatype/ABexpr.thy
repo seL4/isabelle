@@ -28,13 +28,13 @@ and      'a bexp = Less "'a aexp" "'a aexp"
 text{*\noindent
 Type @{text"aexp"} is similar to @{text"expr"} in \S\ref{sec:ExprCompiler},
 except that we have fixed the values to be of type @{typ"nat"} and that we
-have fixed the two binary operations @{term"Sum"} and @{term"Diff"}. Boolean
+have fixed the two binary operations @{text Sum} and @{term"Diff"}. Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is fixed via two evaluation functions
 *}
 
-consts  evala :: "'a aexp \\<Rightarrow> ('a \\<Rightarrow> nat) \\<Rightarrow> nat"
-        evalb :: "'a bexp \\<Rightarrow> ('a \\<Rightarrow> nat) \\<Rightarrow> bool";
+consts  evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"
+        evalb :: "'a bexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> bool";
 
 text{*\noindent
 that take an expression and an environment (a mapping from variables @{typ"'a"} to values
@@ -53,15 +53,15 @@ primrec
   "evala (Num n) env = n"
 
   "evalb (Less a1 a2) env = (evala a1 env < evala a2 env)"
-  "evalb (And b1 b2) env = (evalb b1 env \\<and> evalb b2 env)"
-  "evalb (Neg b) env = (\\<not> evalb b env)"
+  "evalb (And b1 b2) env = (evalb b1 env \<and> evalb b2 env)"
+  "evalb (Neg b) env = (\<not> evalb b env)"
 
 text{*\noindent
 In the same fashion we also define two functions that perform substitution:
 *}
 
-consts substa :: "('a \\<Rightarrow> 'b aexp) \\<Rightarrow> 'a aexp \\<Rightarrow> 'b aexp"
-       substb :: "('a \\<Rightarrow> 'b aexp) \\<Rightarrow> 'a bexp \\<Rightarrow> 'b bexp";
+consts substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
+       substb :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a bexp \<Rightarrow> 'b bexp";
 
 text{*\noindent
 The first argument is a function mapping variables to expressions, the
@@ -93,8 +93,8 @@ theorem in the induction step. Therefore you need to state and prove both
 theorems simultaneously:
 *}
 
-lemma "evala (substa s a) env = evala a (\\<lambda>x. evala (s x) env) \\<and>
-        evalb (substb s b) env = evalb b (\\<lambda>x. evala (s x) env)";
+lemma "evala (substa s a) env = evala a (\<lambda>x. evala (s x) env) \<and>
+        evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)";
 apply(induct_tac a and b);
 
 txt{*\noindent
@@ -110,7 +110,7 @@ an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{isabelle}
-\isacommand{apply}@{text"(induct_tac"} $x@1$ @{text"and"} \dots\ @{text"and"} $x@n$@{text")"}
+\isacommand{apply}@{text"(induct_tac"} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$@{text")"}
 \end{isabelle}
 
 \begin{exercise}

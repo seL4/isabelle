@@ -71,7 +71,7 @@ we have $P\conj Q$. In a mathematics text, it is typically shown
 like this:
 \[  \infer{P\conj Q}{P & Q} \]
 The rule introduces the conjunction
-symbol~($\conj$) in its conclusion.  Of course, in Isabelle proofs we
+symbol~($\conj$) in its conclusion.  In Isabelle proofs we
 mainly  reason backwards.  When we apply this rule, the subgoal already has
 the form of a conjunction; the proof step makes this conjunction symbol
 disappear. 
@@ -170,7 +170,7 @@ same  purpose:
 \isasymlbrakk?P\ \isasymor\ ?Q;\ ?P\ \isasymLongrightarrow\ ?R;\ ?Q\ \isasymLongrightarrow\ ?R\isasymrbrakk\ \isasymLongrightarrow\ ?R\rulename{disjE}
 \end{isabelle}
 When we use this sort of elimination rule backwards, it produces 
-a case split.  (We have this before, in proofs by induction.)  The following  proof
+a case split.  (We have seen this before, in proofs by induction.)  The following  proof
 illustrates the use of disjunction elimination.  
 \begin{isabelle}
 \isacommand{lemma}\ disj_swap:\ "P\ \isasymor\ Q\ 
@@ -184,7 +184,7 @@ illustrates the use of disjunction elimination.
 We assume \isa{P\ \isasymor\ Q} and
 must prove \isa{Q\ \isasymor\ P}\@.  Our first step uses the disjunction
 elimination rule, \isa{disjE}.  The method {\isa{erule}}  applies an
-elimination rule to the assumptions, searching for one that matches the
+elimination rule, searching for an assumption that matches the
 rule's first premise.  Deleting that assumption, it
 return the subgoals for the remaining premises.  Most of the
 time, this is  the best way to use elimination rules; only rarely is there
@@ -394,7 +394,7 @@ one-line proof.
 As we have seen, Isabelle rules involve variables that begin  with a
 question mark. These are called \textbf{schematic} variables  and act as
 placeholders for terms. \textbf{Unification} refers to  the process of
-making two terms identical, possibly by replacing  their variables by
+making two terms identical, possibly by replacing their schematic variables by
 terms. The simplest case is when the two terms  are already the same. Next
 simplest is when the variables in only one of the term
  are replaced; this is called \textbf{pattern-matching}.  The
@@ -440,7 +440,7 @@ Isabelle also uses function variables to express \textbf{substitution}.
 A typical substitution rule allows us to replace one term by 
 another if we know that two terms are equal. 
 \[ \infer{P[t/x]}{s=t & P[s/x]} \]
-The conclusion uses a notation for substitution: $P[t/x]$ is the result of
+The rule uses a notation for substitution: $P[t/x]$ is the result of
 replacing $x$ by~$t$ in~$P$.  The rule only substitutes in the positions
 designated by~$x$.  For example, it can
 derive symmetry of equality from reflexivity.  Using $x=s$ for~$P$
@@ -566,7 +566,7 @@ Also available are {\isa{drule_tac}}  and \isa{erule_tac}.  Here we need
 \isa{erule_tac} since above we used \isa{erule}.
 \begin{isabelle}
 \isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\ \isasymrbrakk\ \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
-\isacommand{by}\ (erule_tac\ P="\isasymlambda u.\ P\ u\ u\ x"\ 
+\isacommand{by}\ (erule_tac\ P = "\isasymlambda u.\ P\ u\ u\ x"\ 
 \isakeyword{in}\ ssubst)
 \end{isabelle}
 %
@@ -580,7 +580,7 @@ nor possible.
 An alternative to \isa{rule_tac} is to use \isa{rule} with the
 \isa{of} directive, described in \S\ref{sec:forward} below.   An
 advantage  of \isa{rule_tac} is that the instantiations may refer to 
-variables bound in the current subgoal.
+\isasymAnd-bound variables in the current subgoal.
 
 
 \section{Negation}
@@ -632,7 +632,7 @@ technique:
 \isacommand{lemma}\ "\isasymlbrakk{\isasymnot}(P{\isasymlongrightarrow}Q);\
 \isasymnot(R{\isasymlongrightarrow}Q)\isasymrbrakk\ \isasymLongrightarrow\
 R"\isanewline
-\isacommand{apply}\ (erule_tac\ Q="R{\isasymlongrightarrow}Q"\ \isakeyword{in}\
+\isacommand{apply}\ (erule_tac\ Q = "R{\isasymlongrightarrow}Q"\ \isakeyword{in}\
 contrapos_np)\isanewline
 \isacommand{apply}\ intro\isanewline
 \isacommand{by}\ (erule\ notE)
@@ -664,7 +664,7 @@ Instead, we invoke the rule using the
 \isa{by} command.
 Now when Isabelle selects the first assumption, it tries to prove \isa{P\
 \isasymlongrightarrow\ Q} and fails; it then backtracks, finds the 
-assumption~\isa{\isasymnot\ R} and finally proves \isa{R} by assumption.  That
+assumption \isa{\isasymnot~R} and finally proves \isa{R} by assumption.  That
 concludes the proof.
 
 \medskip
@@ -691,7 +691,8 @@ R)\isasymrbrakk\ \isasymLongrightarrow\ P%
 \end{isabelle}
 Next we apply the {\isa{elim}} method, which repeatedly applies 
 elimination rules; here, the elimination rules given 
-in the command.  One of the subgoals is trivial, leaving us with one other:
+in the command.  One of the subgoals is trivial (\isa{\isacommand{apply} assumption}),
+leaving us with one other:
 \begin{isabelle}
 \ 1.\ \isasymlbrakk{\isasymnot}\ (Q\ \isasymand\ R);\ R;\ Q\isasymrbrakk\ \isasymLongrightarrow\ P%
 \end{isabelle}
@@ -704,8 +705,7 @@ combination
 is robust: the \isa{conjI} forces the \isa{erule} to select a
 conjunction.  The two subgoals are the ones we would expect from applying
 conjunction introduction to
-\isa{Q\
-\isasymand\ R}:  
+\isa{Q~\isasymand~R}:  
 \begin{isabelle}
 \ 1.\ \isasymlbrakk R;\ Q;\ \isasymnot\ P\isasymrbrakk\ \isasymLongrightarrow\
 Q\isanewline
@@ -926,10 +926,12 @@ whose introduction rule looks like this in Isabelle:
 \end{isabelle}
 If we can exhibit some $x$ such that $P(x)$ is true, then $\exists x.
 P(x)$ is also true.  It is a dual of the universal elimination rule, and
-logic texts present it using the same notation for substitution.  The existential
+logic texts present it using the same notation for substitution.
+
+The existential
 elimination rule looks like this
 in a logic text: 
-\[ \infer{R}{\exists x.\,P & \infer*{R}{[P]}} \]
+\[ \infer{Q}{\exists x.\,P & \infer*{Q}{[P]}} \]
 %
 It looks like this in Isabelle: 
 \begin{isabelle}
@@ -953,17 +955,18 @@ to the one just above for the universal quantifier.
 
 
 \section{Hilbert's Epsilon-Operator}
+\label{sec:SOME}
 
-Isabelle/HOL provides Hilbert's
-$\epsilon$-operator.  The term $\epsilon x. P(x)$ denotes some $x$ such that $P(x)$ is
+HOL provides Hilbert's
+$\varepsilon$-operator.  The term $\varepsilon x. P(x)$ denotes some $x$ such that $P(x)$ is
 true, provided such a value exists.  Using this operator, we can express an
 existential destruction rule:
-\[ \infer{P[(\epsilon x. P) / \, x]}{\exists x.\,P} \]
+\[ \infer{P[(\varepsilon x. P) / \, x]}{\exists x.\,P} \]
 This rule is seldom used, for it can cause exponential blow-up.  
 
 \subsection{Definite Descriptions}
 
-In ASCII, we write \isa{SOME} for $\epsilon$.
+In ASCII, we write \isa{SOME} for $\varepsilon$.
 \REMARK{the internal constant is \isa{Eps}}
 The main use of \hbox{\isa{SOME\ x.\ P\ x}} is as a \textbf{definite
 description}: when \isa{P} is satisfied by a unique value,~\isa{a}. 
@@ -979,7 +982,7 @@ $n$ such that $A$ is in one-to-one correspondence with $\{1,\ldots,n\}$.  We can
 prove that the cardinality of the empty set is zero (since $n=0$ satisfies the
 description) and proceed to prove other facts.
 
-Here is an example.  HOL defines \isa{inv},\indexbold{*inv (constant)}
+Here is another example.  Isabelle/HOL defines \isa{inv},\indexbold{*inv (constant)}
 which expresses inverses of functions, as a definite
 description:
 \begin{isabelle}
@@ -1025,7 +1028,6 @@ The first step merely unfolds the definition:
 \ 2.\ \isasymAnd x.\ \isasymlbrakk P\ k;\ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\ \isasymle \ x;\ P\ x\ \isasymand \ (\isasymforall y.\ P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y)\isasymrbrakk \isanewline
 \ \ \ \ \ \ \ \ \isasymLongrightarrow \ x\ =\ k%
 \end{isabelle}
-
 As always with \isa{some_equality}, we must show existence and
 uniqueness of the claimed solution,~\isa{k}.  Existence, the first
 subgoal, is trivial.  Uniqueness, the second subgoal, follows by antisymmetry:
@@ -1063,6 +1065,7 @@ For example, let us prove the Axiom of Choice:
 \ "(\isasymforall x.\ \isasymexists \ y.\ P\ x\ y)\ \isasymLongrightarrow \
 \isasymexists f.\ \isasymforall x.\ P\ x\ (f\ x)"\isanewline
 \isacommand{apply}\ (rule\ exI,\ rule\ allI)\isanewline
+
 \ 1.\ \isasymAnd x.\ \isasymforall x.\ \isasymexists y.\ P\ x\ y\
 \isasymLongrightarrow \ P\ x\ (?f\ x)
 \end{isabelle}
@@ -1072,6 +1075,7 @@ rules.
 
 \begin{isabelle}
 \isacommand{apply}\ (drule\ spec,\ erule\ exE)\isanewline
+
 \ 1.\ \isasymAnd x\ y.\ P\ (?x2\ x)\ y\ \isasymLongrightarrow \ P\ x\ (?f\ x)
 \end{isabelle}
 
@@ -1141,7 +1145,8 @@ method results in an error message:
 \begin{isabelle}
 *** empty result sequence -- proof command failed
 \end{isabelle}
-We can tell Isabelle to abandon a failed proof using the \isacommand{oops} command.
+If we interact with Isabelle via the shell interface,
+we abandon a failed proof with the \isacommand{oops} command.
 
 \medskip 
 
@@ -1301,7 +1306,7 @@ will make it known to the classical reasoner (and to the simplifier).
 \begin{isabelle}
 \isacommand{lemma}\
 [iff]:\ "(xs{\isacharat}ys\ =\ [])\ =\
-(xs=[]\ \isacharampersand\ ys=[])"\isanewline
+(xs=[]\ \isasymand\ ys=[])"\isanewline
 \isacommand{apply}\ (induct_tac\ xs)\isanewline
 \isacommand{apply}\ (simp_all)\isanewline
 \isacommand{done}
@@ -1314,7 +1319,7 @@ the \isa{iff} attribute:\REMARK{the ?s are ugly here but we need
 (\mbox{?m}\ *\ \mbox{?n}\ =\ 0)\ =\ (\mbox{?m}\ =\ 0\ \isasymor\ \mbox{?n}\ =\ 0)
 \end{isabelle}
 A product is zero if and only if one of the factors is zero.  The
-reasoning  involves a logical \textsc{or}.  Proving new rules for
+reasoning  involves a disjunction.  Proving new rules for
 disjunctive reasoning  is hard, but translating to an actual disjunction
 works:  the classical reasoner handles disjunction properly.
 
@@ -1490,8 +1495,8 @@ function.
 We state it with the \isa{iff} attribute so that 
 Isabelle can use it to remove some occurrences of \isa{gcd}. 
 The theorem has a one-line 
-proof using \isa{blast} supplied with four introduction 
-rules: note the {\isa{intro}} attribute. The exclamation mark 
+proof using \isa{blast} supplied with two additional introduction 
+rules. The exclamation mark 
 ({\isa{intro}}{\isa{!}})\ signifies safe rules, which are 
 applied aggressively.  Rules given without the exclamation mark 
 are applied reluctantly and their uses can be undone if 
@@ -1519,8 +1524,8 @@ to a limited extent, giving the user fine control over the proof.
 
 Of the latter methods, the most useful is {\isa{clarify}}. It performs 
 all obvious reasoning steps without splitting the goal into multiple 
-parts. It does not apply rules that could render the 
-goal unprovable (so-called unsafe rules). By performing the obvious 
+parts. It does not apply unsafe rules that could render the 
+goal unprovable. By performing the obvious 
 steps, {\isa{clarify}} lays bare the difficult parts of the problem, 
 where human intervention is necessary. 
 
@@ -1568,7 +1573,7 @@ earlier methods search for proofs using standard Isabelle inference.
 That makes them slower but enables them to work correctly in the 
 presence of the more unusual features of Isabelle rules, such 
 as type classes and function unknowns. For example, recall the introduction rule
-for Hilbert's epsilon-operator: 
+for Hilbert's $\varepsilon$-operator: 
 \begin{isabelle}
 ?P\ ?x\ \isasymLongrightarrow\ ?P\ (SOME\ x.\ ?P x)
 \rulename{someI}
@@ -1796,7 +1801,7 @@ values for its variables.  Analogous is \isa{OF}, which generates an
 instance of a rule by specifying facts for its premises.  Let us try
 it with this rule:
 \begin{isabelle}
-\isasymlbrakk gcd(?k,?n){=}1;\ ?k\ dvd\ (?m * ?n)\isasymrbrakk\
+\isasymlbrakk gcd(?k,?n){=}1;\ ?k\ dvd\ ?m * ?n\isasymrbrakk\
 \isasymLongrightarrow\ ?k\ dvd\ ?m
 \rulename{relprime_dvd_mult}
 \end{isabelle}
@@ -1809,7 +1814,7 @@ prove an instance of its first premise:
 We have evaluated an application of the \isa{gcd} function by
 simplification.  Expression evaluation  is not guaranteed to terminate, and
 certainly is not  efficient; Isabelle performs arithmetic operations by 
-rewriting symbolic bit strings.  Here, however, the simplification takes
+rewriting symbolic bit strings.  Here, however, the simplification above takes
 less than one second.  We can specify this new lemma to \isa{OF},
 generating an instance of \isa{relprime_dvd_mult}.  The expression
 \begin{isabelle}
@@ -1826,7 +1831,7 @@ the following facts about the divides relation:
 \isasymlbrakk?k\ dvd\ ?m;\
 ?k\ dvd\ ?n\isasymrbrakk\
 \isasymLongrightarrow\ ?k\ dvd\
-(?m\ +\ ?n)
+?m\ +\ ?n
 \rulename{dvd_add}\isanewline
 ?m\ dvd\ ?m%
 \rulename{dvd_refl}
@@ -1846,7 +1851,7 @@ unspecified:
 \end{isabelle}
 The result is 
 \begin{isabelle}
-\ \ \ \ \ ?k\ dvd\ ?m\ \isasymLongrightarrow\ ?k\ dvd\ (?m\ +\ ?k)
+\ \ \ \ \ ?k\ dvd\ ?m\ \isasymLongrightarrow\ ?k\ dvd\ ?m\ +\ ?k
 \end{isabelle}
 
 You may have noticed that \isa{THEN} and \isa{OF} are based on 
@@ -1933,7 +1938,7 @@ Only the first proof step is given; it inserts the distributive law for
 \begin{isabelle}
 \isacommand{lemma}\
 relprime_dvd_mult:\isanewline
-\ \ \ \ \ \ \ "\isasymlbrakk \ gcd(k,n){=}1;\ k\ dvd\ (m*n)\
+\ \ \ \ \ \ \ "\isasymlbrakk \ gcd(k,n){=}1;\ k\ dvd\ m*n\
 \isasymrbrakk\
 \isasymLongrightarrow\ k\ dvd\
 m"\isanewline
@@ -1943,11 +1948,7 @@ n])
 In the resulting subgoal, note how the equation has been 
 inserted: 
 \begin{isabelle}
-\isasymlbrakk gcd\ (k,\ n)\ =\ 1;\ k\
-dvd\ (m\ *\ n)\isasymrbrakk\ \isasymLongrightarrow\ k\ dvd\
-m\isanewline
-\ 1.\ \isasymlbrakk gcd\ (k,\ n)\ =\ 1;\ k\ dvd\ (m\ *\ n){;}\isanewline
-\ \ \ \ \ m\ *\ gcd\
+\ 1.\ \isasymlbrakk gcd\ (k,\ n)\ =\ 1;\ k\ dvd\ m\ *\ n{;}\ m\ *\ gcd\
 (k,\ n)\
 =\ gcd\ (m\ *\ k,\ m\ *\ n)\isasymrbrakk\isanewline
 \ \ \ \ \isasymLongrightarrow\ k\ dvd\ m
@@ -1956,12 +1957,8 @@ The next proof step, \isa{\isacommand{apply}(simp)},
 utilizes the assumption \isa{gcd(k,n)\ =\
 1}. Here is the result: 
 \begin{isabelle}
-\isasymlbrakk gcd\ (k,\
-n)\ =\ 1;\ k\
-dvd\ (m\ *\ n)\isasymrbrakk\ \isasymLongrightarrow\ k\ dvd\
-m\isanewline
-\ 1.\ \isasymlbrakk gcd\ (k,\ n)\ =\ 1;\ k\ dvd\ (m\ *\ n){;}\isanewline
-\ \ \ \ \ m\ =\ gcd\ (m\ *\ k,\ m\ *\ n)\isasymrbrakk\isanewline
+\ 1.\ \isasymlbrakk gcd\ (k,\ n)\ =\ 1;\ k\ dvd\ (m\ *\ n){;}
+\ m\ =\ gcd\ (m\ *\ k,\ m\ *\ n)\isasymrbrakk\isanewline
 \ \ \ \ \isasymLongrightarrow\ k\ dvd\ m
 \end{isabelle}
 Simplification has yielded an equation for \isa{m} that will be used to
@@ -2042,8 +2039,7 @@ state gives us two subgoals:
 \ 2.\ \isasymlbrakk z\ <\ \#37;\ \#66\ <\ \#2\ *\ z;\ z\ *\ z\ \isasymnoteq\ \#1225;\ Q\ \#34;\ Q\ \#36\isasymrbrakk\isanewline
 \ \ \ \ \isasymLongrightarrow\ z\ =\ \#34\ \isasymor\ z\ =\ \#36
 \end{isabelle}
-
-The first subgoal is trivial, but for the second Isabelle needs help to eliminate
+The first subgoal is trivial (\isa{blast}), but for the second Isabelle needs help to eliminate
 the case
 \isa{z}=35.  The second invocation  of {\isa{subgoal_tac}} leaves two
 subgoals: 
@@ -2056,8 +2052,8 @@ subgoals:
 \ \ \ \ \isasymLongrightarrow\ z\ \isasymnoteq\ \#35
 \end{isabelle}
 
-Assuming that \isa{z} is not 35, the first subgoal follows by linear arithmetic:
-the method {\isa{arith}}. For the second subgoal we apply the method \isa{force}, 
+Assuming that \isa{z} is not 35, the first subgoal follows by linear arithmetic
+(\isa{arith}). For the second subgoal we apply the method \isa{force}, 
 which proceeds by assuming that \isa{z}=35 and arriving at a contradiction.
 
 

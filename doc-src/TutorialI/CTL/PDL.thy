@@ -1,6 +1,6 @@
 (*<*)theory PDL = Base:(*>*)
 
-subsection{*Propositional Dynamic Logic---PDL*}
+subsection{*Propositional Dynamic Logic --- PDL*}
 
 text{*\index{PDL|(}
 The formulae of PDL are built up from atomic propositions via the customary
@@ -68,7 +68,7 @@ converse of a relation and the image of a set under a relation.  Thus
 fixed point (@{term lfp}) of @{term"\<lambda>T. mc f \<union> M\<inverse> `` T"} is the least set
 @{term T} containing @{term"mc f"} and all predecessors of @{term T}. If you
 find it hard to see that @{term"mc(EF f)"} contains exactly those states from
-which there is a path to a state where @{term f} is true, do not worry---that
+which there is a path to a state where @{term f} is true, do not worry --- that
 will be proved in a moment.
 
 First we prove monotonicity of the function inside @{term lfp}

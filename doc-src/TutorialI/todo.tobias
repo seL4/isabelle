@@ -89,10 +89,10 @@ Possible exercises
 ==================
 
 Exercises
-%\begin{exercise}
-%Extend expressions by conditional expressions.
-braucht wfrec!
-%\end{exercise}
+
+For extensionality (in Sets chapter): prove
+valif o norm = valif
+in If-expression case study (Ifexpr)
 
 Nested inductive datatypes: another example/exercise:
  size(t) <= size(subst s t)?

@@ -26,7 +26,7 @@ on @{term xs}.
 The key heuristic, and the main point of this section, is to
 generalize the goal before induction. The reason is simple: if the goal is
 too specific, the induction hypothesis is too weak to allow the induction
-step to go through. Let us now illustrate the idea with an example.
+step to go through. Let us illustrate the idea with an example.
 
 Function @{term"rev"} has quadratic worst-case running time
 because it calls function @{text"@"} for each element of the list and
@@ -61,7 +61,7 @@ apply(induct_tac xs, simp_all);
 
 txt{*\noindent
 Unfortunately, this is not a complete success:
-@{subgoals[display,indent=0,margin=65]}
+@{subgoals[display,indent=0,margin=70]}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
 argument, @{term"[]"}.  This suggests a heuristic:
@@ -69,7 +69,7 @@ argument, @{term"[]"}.  This suggests a heuristic:
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
 Of course one cannot do this na\"{\i}vely: @{term"itrev xs ys = rev xs"} is
-just not true---the correct generalization is
+just not true --- the correct generalization is
 *};
 (*<*)oops;(*>*)
 lemma "itrev xs ys = rev xs @ ys";
@@ -112,13 +112,6 @@ applied blindly.
 The variables that require generalization are typically those that 
 change in recursive calls.
 
-In general, if you have tried the above heuristics and still find your
-induction does not go through, and no obvious lemma suggests itself, you may
-need to generalize your proposition even further. This requires insight into
-the problem at hand and is beyond simple rules of thumb.  You
-will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
-to learn about some advanced techniques for inductive proofs.
-
 A final point worth mentioning is the orientation of the equation we just
 proved: the more complex notion (@{term itrev}) is on the left-hand
 side, the simpler one (@{term rev}) on the right-hand side. This constitutes
@@ -130,6 +123,13 @@ another, albeit weak heuristic that is not restricted to induction:
 This heuristic is tricky to apply because it is not obvious that
 @{term"rev xs @ ys"} is simpler than @{term"itrev xs ys"}. But see what
 happens if you try to prove @{prop"rev xs @ ys = itrev xs ys"}!
+
+In general, if you have tried the above heuristics and still find your
+induction does not go through, and no obvious lemma suggests itself, you may
+need to generalize your proposition even further. This requires insight into
+the problem at hand and is beyond simple rules of thumb.  You
+will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
+to learn about some advanced techniques for inductive proofs.
 *}
 (*<*)
 end

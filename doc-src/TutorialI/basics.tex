@@ -2,7 +2,7 @@
 
 \section{Introduction}
 
-This is a tutorial on how to use Isabelle/HOL as a specification and
+This is a tutorial on how to use the theorem prover Isabelle/HOL as a specification and
 verification system. Isabelle is a generic system for implementing logical
 formalisms, and Isabelle/HOL is the specialization of Isabelle for
 HOL, which abbreviates Higher-Order Logic. We introduce HOL step by step
@@ -15,13 +15,12 @@ this tutorial initially concentrates on functional programming, do not be
 misled: HOL can express most mathematical concepts, and functional
 programming is just one particularly simple and ubiquitous instance.
 
-This tutorial introduces HOL via Isabelle/Isar~\cite{isabelle-isar-ref},
-which is an extension of Isabelle~\cite{paulson-isa-book} with structured
-proofs.\footnote{Thus the full name of the system should be
-  Isabelle/Isar/HOL, but that is a bit of a mouthful.} The most noticeable
-difference to classical Isabelle (which is the basis of another version of
-this tutorial) is the replacement of the ML level by a dedicated language for
-definitions and proofs.
+Isabelle~\cite{paulson-isa-book} is implemented in ML~\cite{SML}.
+This has influenced some of HOL's concrete syntax but is otherwise
+irrelevant for us because this tutorial is based on
+Isabelle/Isar~\cite{isabelle-isar-ref}, an extension of Isabelle
+with structured proofs.\footnote{Thus the full name of the system should be
+  Isabelle/Isar/HOL, but that is a bit of a mouthful.}
 
 A tutorial is by definition incomplete.  Currently the tutorial only
 introduces the rudiments of Isar's proof language. To fully exploit the power
@@ -74,7 +73,7 @@ proofs are in separate ML files.
   HOL contains a theory \isaindexbold{Main}, the union of all the basic
   predefined theories like arithmetic, lists, sets, etc.  
   Unless you know what you are doing, always include \isa{Main}
-  as a direct or indirect parent theory of all your theories.
+  as a direct or indirect parent of all your theories.
 \end{warn}
 
 
@@ -122,7 +121,8 @@ ML "set show_types"
 \end{ttbox}
 
 \noindent
-This can be reversed by \texttt{ML "reset show_types"}. Various other flags
+This can be reversed by \texttt{ML "reset show_types"}. Various other flags,
+which we introduce as we go along,
 can be set and reset in the same manner.\indexbold{flag!(re)setting}
 \end{warn}
 
@@ -196,7 +196,7 @@ functional programming and mathematics. Below we list the main rules that you
 should be familiar with to avoid certain syntactic traps. A particular
 problem for novices can be the priority of operators. If you are unsure, use
 additional parentheses. In those cases where Isabelle echoes your
-input, you can see which parentheses are dropped---they were superfluous. If
+input, you can see which parentheses are dropped --- they were superfluous. If
 you are unsure how to interpret Isabelle's output because you don't know
 where the (dropped) parentheses go, set the \rmindex{flag}
 \isaindexbold{show_brackets}:
@@ -222,7 +222,7 @@ means \isa{(f~x)~+~y} and not \isa{f(x+y)}.
 \item
 Constructs with an opening but without a closing delimiter bind very weakly
 and should therefore be enclosed in parentheses if they appear in subterms, as
-in \isa{f = (\isasymlambda{}x.~x)}. This includes \isaindex{if},
+in \isa{(\isasymlambda{}x.~x) = f}. This includes \isaindex{if},
 \isaindex{let}, \isaindex{case}, \isa{\isasymlambda}, and quantifiers.
 \item
 Never write \isa{\isasymlambda{}x.x} or \isa{\isasymforall{}x.x=x}

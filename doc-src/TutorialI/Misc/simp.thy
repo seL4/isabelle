@@ -49,7 +49,7 @@ The general format of the simplification method is
 where the list of \emph{modifiers} fine tunes the behaviour and may
 be empty. Most if not all of the proofs seen so far could have been performed
 with @{text simp} instead of \isa{auto}, except that @{text simp} attacks
-only the first subgoal and may thus need to be repeated---use
+only the first subgoal and may thus need to be repeated --- use
 \isaindex{simp_all} to simplify all subgoals.
 Note that @{text simp} fails if nothing changes.
 *}
@@ -106,7 +106,7 @@ apply(simp (no_asm));
 done
 
 text{*\noindent
-There are three options that influence the treatment of assumptions:
+There are three modifiers that influence the treatment of assumptions:
 \begin{description}
 \item[@{text"(no_asm)"}]\indexbold{*no_asm}
  means that assumptions are completely ignored.
@@ -119,7 +119,7 @@ There are three options that influence the treatment of assumptions:
 \end{description}
 Both @{text"(no_asm_simp)"} and @{text"(no_asm_use)"} run forever on
 the problematic subgoal above.
-Note that only one of the options is allowed, and it must precede all
+Note that only one of the modifiers is allowed, and it must precede all
 other arguments.
 *}
 
@@ -165,13 +165,14 @@ You should normally not turn a definition permanently into a simplification
 rule because this defeats the whole purpose of an abbreviation.
 
 \begin{warn}
-  If you have defined $f\,x\,y~\isasymequiv~t$ then you can only expand
-  occurrences of $f$ with at least two arguments. Thus it is safer to define
-  $f$~\isasymequiv~\isasymlambda$x\,y.\;t$.
+  If you have defined $f\,x\,y~\isasymequiv~t$ then you can only unfold
+  occurrences of $f$ with at least two arguments. This may be helpful for unfolding
+  $f$ selectively, but it may also get in the way. Defining
+  $f$~\isasymequiv~\isasymlambda$x\,y.\;t$ allows to unfold all occurrences of $f$.
 \end{warn}
 *}
 
-subsubsection{*Simplifying Let-Expressions*}
+subsubsection{*Simplifying {\tt\slshape let}-Expressions*}
 
 text{*\index{simplification!of let-expressions}
 Proving a goal containing \isaindex{let}-expressions almost invariably
@@ -370,7 +371,7 @@ produces the trace
 Applying instance of rewrite rule:
 rev (?x1 \# ?xs1) == rev ?xs1 @ [?x1]
 Rewriting:
-rev [x] == rev [] @ [x]
+rev [a] == rev [] @ [a]
 Applying instance of rewrite rule:
 rev [] == []
 Rewriting:
@@ -378,11 +379,11 @@ rev [] == []
 Applying instance of rewrite rule:
 [] @ ?y == ?y
 Rewriting:
-[] @ [x] == [x]
+[] @ [a] == [a]
 Applying instance of rewrite rule:
 ?x3 \# ?t3 = ?t3 == False
 Rewriting:
-[x] = [] == False
+[a] = [] == False
 \end{ttbox}
 
 In more complicated cases, the trace can be quite lenghty, especially since
