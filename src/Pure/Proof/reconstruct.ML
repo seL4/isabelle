@@ -313,23 +313,26 @@ fun prop_of_atom prop Ts =
     (forall_intr_vfs prop')
   end;
 
-fun prop_of' Hs (PBound i) = nth_elem (i, Hs)
-  | prop_of' Hs (Abst (s, Some T, prf)) =
-      all T $ (Abs (s, T, prop_of' Hs prf))
-  | prop_of' Hs (AbsP (s, Some t, prf)) =
-      Logic.mk_implies (t, prop_of' (t :: Hs) prf)
-  | prop_of' Hs (prf % Some t) = (case prop_of' Hs prf of
-      Const ("all", _) $ f => betapply (f, t)
+val head_norm = Envir.head_norm (Envir.empty 0);
+
+fun prop_of0 Hs (PBound i) = nth_elem (i, Hs)
+  | prop_of0 Hs (Abst (s, Some T, prf)) =
+      all T $ (Abs (s, T, prop_of0 Hs prf))
+  | prop_of0 Hs (AbsP (s, Some t, prf)) =
+      Logic.mk_implies (t, prop_of0 (t :: Hs) prf)
+  | prop_of0 Hs (prf % Some t) = (case head_norm (prop_of0 Hs prf) of
+      Const ("all", _) $ f => f $ t
     | _ => error "prop_of: all expected")
-  | prop_of' Hs (prf1 %% prf2) = (case prop_of' Hs prf1 of
+  | prop_of0 Hs (prf1 %% prf2) = (case head_norm (prop_of0 Hs prf1) of
       Const ("==>", _) $ P $ Q => Q
     | _ => error "prop_of: ==> expected")
-  | prop_of' Hs (Hyp t) = t
-  | prop_of' Hs (PThm (_, _, prop, Some Ts)) = prop_of_atom prop Ts
-  | prop_of' Hs (PAxm (_, prop, Some Ts)) = prop_of_atom prop Ts
-  | prop_of' Hs (Oracle (_, prop, Some Ts)) = prop_of_atom prop Ts
-  | prop_of' _ _ = error "prop_of: partial proof object";
+  | prop_of0 Hs (Hyp t) = t
+  | prop_of0 Hs (PThm (_, _, prop, Some Ts)) = prop_of_atom prop Ts
+  | prop_of0 Hs (PAxm (_, prop, Some Ts)) = prop_of_atom prop Ts
+  | prop_of0 Hs (Oracle (_, prop, Some Ts)) = prop_of_atom prop Ts
+  | prop_of0 _ _ = error "prop_of: partial proof object";
 
+val prop_of' = Pattern.eta_contract oo (Envir.beta_norm oo prop_of0);
 val prop_of = prop_of' [];
 
 
