@@ -292,8 +292,8 @@ in
 
 val _ = ThySyn.add_syntax
  ["intrs", "monos", "con_defs", "congs", "simpset", "|"]
- [axm_section "typedef" "|> Typedef.add_typedef" typedef_decl,
-  (section "record" "|> Record.add_record" record_decl),
+ [axm_section "typedef" "|> TypedefPackage.add_typedef" typedef_decl,
+  (section "record" "|> RecordPackage.add_record" record_decl),
   ("inductive", inductive_decl ""),
   ("coinductive", inductive_decl "Co"),
   (section "datatype" "" datatype_decl),
