@@ -126,12 +126,9 @@ SECONDS=0
 
 PARENT=$(basename "$LOGIC")
 
-ECHO_LINE="echo -n"
-[ "$MULTI" = "true" ] && ECHO_LINE="echo"
-
 if [ -n "$BUILD" ]; then
   ITEM="$SESSION"
-  $ECHO_LINE "Building $ITEM ..."
+  echo "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
@@ -140,7 +137,7 @@ if [ -n "$BUILD" ]; then
   RC=$?
 else
   ITEM=$(basename $LOGIC)-"$SESSION"
-  $ECHO_LINE "Running $ITEM ..."
+  echo "Running $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
   cd "$NAME"
@@ -157,14 +154,9 @@ ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
 # exit status
 
 if [ $RC -eq 0 ]; then
-  if [ "$MULTI" = "true" ]; then
-    echo "Finished $ITEM  ($ELAPSED elapsed time)"
-  else
-    echo " OK  ($ELAPSED elapsed time)"
-  fi
+  echo "Finished $ITEM ($ELAPSED elapsed time)"
   gzip --force "$LOG"
 else
-  [ "$MULTI" = "true" ] || echo
   echo "$ITEM FAILED"
   echo "(see also $LOG)"
   echo; tail $LOG; echo
