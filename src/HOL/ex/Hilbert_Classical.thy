@@ -16,7 +16,7 @@ text {*
 
 subsection {* Proof text *}
 
-theorem "A \<or> \<not> A"
+theorem tnd: "A \<or> \<not> A"
 proof -
   let ?P = "\<lambda>X. X = False \<or> X = True \<and> A"
   let ?Q = "\<lambda>X. X = False \<and> A \<or> X = True"
@@ -95,6 +95,13 @@ proof -
 qed
 
 
+subsection {* Proof term of text *}
+
+text {*
+  {\small @{prf [display, margin = 80] tnd}}
+*}
+
+
 subsection {* Proof script *}
 
 theorem tnd': "A \<or> \<not> A"
@@ -149,17 +156,10 @@ theorem tnd': "A \<or> \<not> A"
   done
 
 
-subsection {* Proof term of text *}
-
-text {*
-  @{prf [display] tnd}
-*}
-
-
 subsection {* Proof term of script *}
 
 text {*
-  @{prf [display] tnd'}
+  {\small @{prf [display, margin = 80] tnd'}}
 *}
 
 end
