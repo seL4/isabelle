@@ -25,12 +25,12 @@ recdef ack "less_than ** less_than"
     "ack (Suc m, Suc n) = ack (m, ack (Suc m, n))"
 
 consts  list_add :: nat list => nat
-primrec list_add list
+primrec
   "list_add []     = 0"
   "list_add (m#ms) = m + list_add ms"
 
 consts  zeroHd  :: nat list => nat
-primrec zeroHd list
+primrec
   "zeroHd []     = 0"
   "zeroHd (m#ms) = m"
 

@@ -148,13 +148,13 @@ qed_goal "RNext_enabled" Memory.thy
 	     res_inst_tac [("s","arg(ch s p)")] sumE 1,
 	      action_simp_tac (simpset()addsimps[Read_def,enabled_ex,base_pair])
 	                      [action_mp ReadInner_enabled,exI] [] 1,
-	      split_all_tac 1, rename_tac "a b" 1, Rd.induct_tac "a" 1,
+	      split_all_tac 1, rename_tac "a b" 1, induct_tac "a" 1,
 	     (* introduce a trivial subgoal to solve flex-flex constraint?! *)
 	      subgoal_tac "b = snd(a,b)" 1,
 	       TRYALL Simp_tac,  (* solves "read" case *)
 	     etac swap 1,
 	     action_simp_tac (simpset()addsimps[Write_def,enabled_ex,base_pair])
 	                     [action_mp WriteInner_enabled,exI] [] 1,
-	     split_all_tac 1, rename_tac "a aa b" 1, Wr.induct_tac "a" 1,
+	     split_all_tac 1, rename_tac "a aa b" 1, induct_tac "a" 1,
 	     subgoal_tac "(aa = fst(snd(a,aa,b))) & (b = snd(snd(a,aa,b)))" 1,
 	     ALLGOALS Simp_tac ]);

@@ -26,7 +26,7 @@ qed "par_beta_varL";
 Addsimps [par_beta_varL];
 
 Goal "t => t";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS Asm_simp_tac);
 qed"par_beta_refl";
 Addsimps [par_beta_refl];
@@ -52,14 +52,14 @@ qed "par_beta_subset_beta";
 (*** => ***)
 
 Goal "!t' n. t => t' --> lift t n => lift t' n";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(fast_tac (claset() addss (simpset()))));
 qed_spec_mp "par_beta_lift";
 Addsimps [par_beta_lift];
 
 Goal
   "!s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
   by (asm_simp_tac (addsplit(simpset())) 1);
  by (strip_tac 1);
  by (eresolve_tac par_beta_cases 1);

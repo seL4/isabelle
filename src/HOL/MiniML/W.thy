@@ -17,7 +17,7 @@ types
 consts
         W :: [expr, ctxt, nat] => result_W
 
-primrec W expr
+primrec
   "W (Var i) A n =  
      (if i < length A then Some( id_subst,   
 	                         bound_typ_inst (%b. TVar(b+n)) (A!i),   

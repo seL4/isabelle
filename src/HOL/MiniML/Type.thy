@@ -25,7 +25,7 @@ datatype
 consts
   mk_scheme :: typ => type_scheme
 
-primrec mk_scheme typ
+primrec
   "mk_scheme (TVar n) = (FVar n)"
   "mk_scheme (t1 -> t2) = ((mk_scheme t1) =-> (mk_scheme t2))"
 
@@ -41,16 +41,16 @@ instance  fun::(term,type_struct)type_struct
 consts
   free_tv :: ['a::type_struct] => nat set
 
-primrec free_tv typ
+primrec
   free_tv_TVar    "free_tv (TVar m) = {m}"
   free_tv_Fun     "free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
 
-primrec free_tv type_scheme
+primrec
   "free_tv (FVar m) = {m}"
   "free_tv (BVar m) = {}"
   "free_tv (S1 =-> S2) = (free_tv S1) Un (free_tv S2)"
 
-primrec free_tv list
+primrec
   "free_tv [] = {}"
   "free_tv (x#l) = (free_tv x) Un (free_tv l)"
 
@@ -59,12 +59,12 @@ primrec free_tv list
 consts
   free_tv_ML :: ['a::type_struct] => nat list
 
-primrec free_tv_ML type_scheme
+primrec
   "free_tv_ML (FVar m) = [m]"
   "free_tv_ML (BVar m) = []"
   "free_tv_ML (S1 =-> S2) = (free_tv_ML S1) @ (free_tv_ML S2)"
 
-primrec free_tv_ML list
+primrec
   "free_tv_ML [] = []"
   "free_tv_ML (x#l) = (free_tv_ML x) @ (free_tv_ML l)"
 
@@ -82,12 +82,12 @@ constdefs
 consts
   bound_tv :: ['a::type_struct] => nat set
 
-primrec bound_tv type_scheme
+primrec
   "bound_tv (FVar m) = {}"
   "bound_tv (BVar m) = {m}"
   "bound_tv (S1 =-> S2) = (bound_tv S1) Un (bound_tv S2)"
 
-primrec bound_tv list
+primrec
   "bound_tv [] = {}"
   "bound_tv (x#l) = (bound_tv x) Un (bound_tv l)"
 
@@ -97,7 +97,7 @@ primrec bound_tv list
 consts
   min_new_bound_tv :: 'a::type_struct => nat
 
-primrec min_new_bound_tv type_scheme
+primrec
   "min_new_bound_tv (FVar n) = 0"
   "min_new_bound_tv (BVar n) = Suc n"
   "min_new_bound_tv (sch1 =-> sch2) = max (min_new_bound_tv sch1) (min_new_bound_tv sch2)"
@@ -118,11 +118,11 @@ constdefs
 consts
   app_subst :: [subst, 'a::type_struct] => 'a::type_struct ("$")
 
-primrec app_subst typ 
+primrec
   app_subst_TVar "$ S (TVar n) = S n" 
   app_subst_Fun  "$ S (t1 -> t2) = ($ S t1) -> ($ S t2)" 
 
-primrec app_subst type_scheme
+primrec
   "$ S (FVar n) = mk_scheme (S n)"
   "$ S (BVar n) = (BVar n)"
   "$ S (sch1 =-> sch2) = ($ S sch1) =-> ($ S sch2)"

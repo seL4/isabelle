@@ -44,7 +44,7 @@ by (Blast_tac 1);
 qed "Sigma_Suc2";
 
 Goal "{i} Times below(n+n) : tiling domino";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_assoc RS sym, Sigma_Suc2])));
 by (resolve_tac tiling.intrs 1);
 by (assume_tac 2);
@@ -57,7 +57,7 @@ by Auto_tac;
 qed "dominoes_tile_row";
 
 Goal "(below m) Times below(n+n) : tiling domino";
-by (nat_ind_tac "m" 1);
+by (induct_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Sigma_Suc1])));
 by (blast_tac (claset() addSIs [tiling_UnI, dominoes_tile_row]
                        addSEs [below_less_iff RS iffD1 RS less_irrefl]) 1);

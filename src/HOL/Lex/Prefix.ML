@@ -7,7 +7,7 @@
 (* Junk: *)
 val [maj,min] = goal Prefix.thy "[| Q([]); !! y ys. Q(y#ys) |] ==> ! l. Q(l)";
 by (rtac allI 1);
-by (list.induct_tac "l" 1);
+by (induct_tac "l" 1);
 by (rtac maj 1);
 by (rtac min 1);
 val list_cases = result();
@@ -37,7 +37,7 @@ qed "Nil_prefix";
 AddIffs[Nil_prefix];
 
 Goalw [prefix_def] "(xs <= []) = (xs = [])";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 qed "prefix_Nil";
@@ -83,7 +83,7 @@ Addsimps [prefix_prefix];
 (* nicht sehr elegant bewiesen - Induktion eigentlich ueberfluessig *)
 Goalw [prefix_def]
    "(xs <= y#ys) = (xs=[] | (? zs. xs=y#zs & zs <= ys))";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (Fast_tac 1);

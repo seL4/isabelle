@@ -8,7 +8,7 @@ AutoMaxChop = DA + MaxChop +
 
 consts
  auto_split :: "('a,'s)da => 's  => 'a list * 'a list => 'a list => 'a splitter"
-primrec auto_split list
+primrec
 "auto_split A q res ps []     = (if fin A q then (ps,[]) else res)"
 "auto_split A q res ps (x#xs) =
    auto_split A (next A x q) (if fin A q then (ps,x#xs) else res) (ps@[x]) xs"

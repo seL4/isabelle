@@ -47,22 +47,22 @@ by (Asm_full_simp_tac 1);
 qed "alpha_A";
 
 Goal "$ (S o alpha) (t::typ) = $ S ($ (%x. TVar (alpha x)) t)";
-by (typ.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS (Asm_full_simp_tac));
 qed "S_o_alpha_typ";
 
 Goal "$ (%u. (S o alpha) u) (t::typ) = $ S ($ (%x. TVar (alpha x)) t)";
-by (typ.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS (Asm_full_simp_tac));
 val S_o_alpha_typ' = result ();
 
 Goal "$ (S o alpha) (sch::type_scheme) = $ S ($ (%x. TVar (alpha x)) sch)";
-by (type_scheme.induct_tac "sch" 1);
+by (induct_tac "sch" 1);
 by (ALLGOALS (Asm_full_simp_tac));
 qed "S_o_alpha_type_scheme";
 
 Goal "$ (S o alpha) (A::type_scheme list) = $ S ($ (%x. TVar (alpha x)) A)";
-by (list.induct_tac "A" 1);
+by (induct_tac "A" 1);
 by (ALLGOALS (Asm_full_simp_tac));
 by (rtac (rewrite_rule [o_def] S_o_alpha_type_scheme) 1);
 qed "S_o_alpha_type_scheme_list";
@@ -106,7 +106,7 @@ qed "free_tv_S'";
 Goal "!!t1::typ. \
 \     (free_tv ($ (%x. TVar (if x : free_tv A then x else n + x)) t1) - free_tv A) <= \
 \         {x. ? y. x = n + y}";
-by (typ.induct_tac "t1" 1);
+by (induct_tac "t1" 1);
 by (Simp_tac 1);
 by (Fast_tac 1);
 by (Simp_tac 1);
@@ -143,7 +143,7 @@ val new_tv_Int_free_tv_empty_scheme = result ();
 
 Goal "!A::type_scheme list. new_tv n A --> {x. ? y. x = n + y} Int free_tv A = {}";
 by (rtac allI 1);
-by (list.induct_tac "A" 1);
+by (induct_tac "A" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 by (fast_tac (claset() addDs [new_tv_Int_free_tv_empty_scheme ]) 1);
@@ -155,7 +155,7 @@ by (strip_tac 1);
 by (etac exE 1);
 by (hyp_subst_tac 1);
 by (res_inst_tac [("x","(%x. S (if n <= x then x - n else x))")] exI 1);
-by (typ.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (Simp_tac 1);
 by (case_tac "nat : free_tv A" 1);
 by (Asm_simp_tac 1);

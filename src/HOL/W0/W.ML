@@ -11,7 +11,7 @@ Delsimps (ex_simps @ all_simps);
 
 (* correctness of W with respect to has_type *)
 Goal "!a s t m n . Ok (s,t,m) = W e a n --> $s a |- e :: t";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (Asm_simp_tac 1);
 (* case Abs e *)
@@ -41,7 +41,7 @@ val has_type_casesE = map(has_type.mk_cases expr.simps)
 
 (* the resulting type variable is always greater or equal than the given one *)
 Goal "!a n s t m. W e a n  = Ok (s,t,m) --> n<=m";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var(n) *)
 by (fast_tac (HOL_cs addss simpset()) 1);
 (* case Abs e *)
@@ -85,7 +85,7 @@ qed "rotate_Ok";
 Goal
      "!n a s t m. new_tv n a --> W e a n = Ok (s,t,m) -->    \
 \                 new_tv m s & new_tv m t";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (fast_tac (HOL_cs addDs [list_all_nth] addss (simpset() 
         addsimps [id_subst_def,new_tv_list,new_tv_subst])) 1);
@@ -151,7 +151,7 @@ qed_spec_mp "new_tv_W";
 
 Goal "!n a s t m v. W e a n = Ok (s,t,m) -->            \
 \         (v:free_tv s | v:free_tv t) --> v<n --> v:free_tv a";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (fast_tac (HOL_cs addIs [nth_mem,subsetD,ftv_mem_sub_ftv_list] 
     addss simpset()) 1);
@@ -217,7 +217,7 @@ Goal
  "!s' a t' n. $s' a |- e :: t' --> new_tv n a -->     \
 \             (? s t. (? m. W e a n = Ok (s,t,m)) &  \
 \                     (? r. $s' a = $r ($s a) & t' = $r t))";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (strip_tac 1);
 by (simp_tac (simpset() addcongs [conj_cong]) 1);

@@ -106,7 +106,7 @@ qed_goal "bin_mult_Bcons0" Bin.thy
 
 qed_goal "integ_of_bin_norm_Bcons" Bin.thy
     "integ_of_bin(norm_Bcons w b) = integ_of_bin(Bcons w b)"
- (fn _ =>[(bin.induct_tac "w" 1),
+ (fn _ =>[(induct_tac "w" 1),
           (ALLGOALS Simp_tac) ]);
 
 qed_goal "integ_of_bin_succ" Bin.thy
@@ -140,11 +140,11 @@ val bin_simps = [iob_Plus,iob_Minus,iob_Bcons];
 
 Goal
     "! w. integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
-by (bin.induct_tac "v" 1);
+by (induct_tac "v" 1);
 by (simp_tac (simpset() addsimps bin_add_simps) 1);
 by (simp_tac (simpset() addsimps bin_add_simps) 1);
 by (rtac allI 1);
-by (bin.induct_tac "w" 1);
+by (induct_tac "w" 1);
 by (asm_simp_tac (simpset() addsimps (bin_add_simps)) 1);
 by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
 by (cut_inst_tac [("P","bool")] True_or_False 1);
@@ -162,7 +162,7 @@ val bin_mult_simps = [integ_of_bin_minus, integ_of_bin_add,
                       integ_of_bin_norm_Bcons];
 
 Goal "integ_of_bin(bin_mult v w) = integ_of_bin v * integ_of_bin w";
-by (bin.induct_tac "v" 1);
+by (induct_tac "v" 1);
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 by (cut_inst_tac [("P","bool")] True_or_False 1);

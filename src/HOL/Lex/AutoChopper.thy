@@ -29,7 +29,8 @@ constdefs
 consts
   acc :: "[('a,'s)da, 's, 'a list list*'a list, 'a list, 'a list, 'a list]
           => 'a list list * 'a list"
-primrec acc List.list
+
+primrec
   "acc A s r ps []     zs = (if ps=[] then r else (ps#fst(r),snd(r)))" 
   "acc A s r ps (x#xs) zs =
             (let t = next A x s

@@ -18,7 +18,7 @@ Addsimps [option_bind_Some,option_bind_None];
 (* expansion of option_bind *)
 Goalw [option_bind_def] "P(option_bind res f) = \
 \         ((res = None --> P None) & (!s. res = Some s --> P(f s)))";
-by (rtac split_option_case 1);
+by (rtac option.split 1);
 qed "split_option_bind";
 
 Goal

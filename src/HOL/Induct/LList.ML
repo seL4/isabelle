@@ -155,10 +155,10 @@ by (res_inst_tac [("n", "k")] less_induct 1);
 by (safe_tac ((claset_of Fun.thy) delrules [equalityI]));
 by (etac LListD.elim 1);
 by (safe_tac (claset_of Prod.thy delrules [equalityI] addSEs [diagE]));
-by (res_inst_tac [("n", "n")] natE 1);
+by (exhaust_tac "n" 1);
 by (Asm_simp_tac 1);
 by (rename_tac "n'" 1);
-by (res_inst_tac [("n", "n'")] natE 1);
+by (exhaust_tac "n'" 1);
 by (asm_simp_tac (simpset() addsimps [CONS_def]) 1);
 by (asm_simp_tac (simpset() addsimps [CONS_def, less_Suc_eq]) 1);
 qed "LListD_implies_ntrunc_equality";
@@ -317,9 +317,9 @@ by (stac prem1 1);
 by (stac prem2 1);
 by (Simp_tac 1);
 by (strip_tac 1);
-by (res_inst_tac [("n", "n")] natE 1);
+by (exhaust_tac "n" 1);
 by (rename_tac "m" 2);
-by (res_inst_tac [("n", "m")] natE 2);
+by (exhaust_tac "m" 2);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [less_Suc_eq])));
 result();
 
@@ -782,12 +782,12 @@ qed "iterates_lmap";
 Goal
     "nat_rec (LCons b l) (%m. lmap(f)) n =      \
 \    LCons (nat_rec b (%m. f) n) (nat_rec l (%m. lmap(f)) n)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "fun_power_lmap";
 
 goal Nat.thy "nat_rec (g x) (%m. g) n = nat_rec x (%m. g) (Suc n)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "fun_power_Suc";
 

@@ -22,7 +22,7 @@ by proof.  Then uniqueness of the quotient and remainder yields theorems
 quoting the previously computed values.  (Or code an oracle...)
 *)
 
-Bin = Integ + 
+Bin = Integ + Datatype +
 
 syntax
   "_Int"           :: xnum => int        ("_")
@@ -43,42 +43,42 @@ consts
 
 (*norm_Bcons adds a bit, suppressing leading 0s and 1s*)
 
-primrec norm_Bcons bin
+primrec
   norm_Plus  "norm_Bcons PlusSign  b = (if b then (Bcons PlusSign b) else PlusSign)"
   norm_Minus "norm_Bcons MinusSign b = (if b then MinusSign else (Bcons MinusSign b))"
   norm_Bcons "norm_Bcons (Bcons w' x') b = Bcons (Bcons w' x') b"
  
-primrec integ_of_bin bin
+primrec
   iob_Plus  "integ_of_bin PlusSign = $#0"
   iob_Minus "integ_of_bin MinusSign = $~($#1)"
   iob_Bcons "integ_of_bin(Bcons w x) = (if x then $#1 else $#0) + (integ_of_bin w) + (integ_of_bin w)" 
 
-primrec bin_succ bin
+primrec
   succ_Plus  "bin_succ PlusSign = Bcons PlusSign True" 
   succ_Minus "bin_succ MinusSign = PlusSign"
   succ_Bcons "bin_succ(Bcons w x) = (if x then (Bcons (bin_succ w) False) else (norm_Bcons w True))"
 
-primrec bin_pred bin
+primrec
   pred_Plus  "bin_pred(PlusSign) = MinusSign"
   pred_Minus "bin_pred(MinusSign) = Bcons MinusSign False"
   pred_Bcons "bin_pred(Bcons w x) = (if x then (norm_Bcons w False) else (Bcons (bin_pred w) True))"
  
-primrec bin_minus bin
+primrec
   min_Plus  "bin_minus PlusSign = PlusSign"
   min_Minus "bin_minus MinusSign = Bcons PlusSign True"
   min_Bcons "bin_minus(Bcons w x) = (if x then (bin_pred (Bcons (bin_minus w) False)) else (Bcons (bin_minus w) False))"
 
-primrec bin_add bin
+primrec
   add_Plus  "bin_add PlusSign w = w"
   add_Minus "bin_add MinusSign w = bin_pred w"
   add_Bcons "bin_add (Bcons v x) w = h_bin v x w"
 
-primrec bin_mult bin
+primrec
   mult_Plus "bin_mult PlusSign w = PlusSign"
   mult_Minus "bin_mult MinusSign w = bin_minus w"
   mult_Bcons "bin_mult (Bcons v x) w = (if x then (bin_add (norm_Bcons (bin_mult v w) False) w) else (norm_Bcons (bin_mult v w) False))"
 
-primrec h_bin bin
+primrec
   h_Plus  "h_bin v x PlusSign =  Bcons v x"
   h_Minus "h_bin v x MinusSign = bin_pred (Bcons v x)"
   h_BCons "h_bin v x (Bcons w y) = norm_Bcons (bin_add v (if (x & y) then bin_succ w else w)) (x~=y)" 

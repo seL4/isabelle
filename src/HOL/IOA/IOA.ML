@@ -83,10 +83,10 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
   by (rename_tac "ex1 ex2 n" 1);
   by (res_inst_tac [("Q","reachable A (ex2 n)")] conjunct1 1);
   by (Asm_full_simp_tac 1);
-  by (nat_ind_tac "n" 1);
+  by (induct_tac "n" 1);
    by (fast_tac (claset() addIs [p1,reachable_0]) 1);
-  by (eres_inst_tac[("x","n")] allE 1);
-  by (exhaust_tac "ex1 n" 1 THEN ALLGOALS Asm_full_simp_tac);
+  by (eres_inst_tac[("x","na")] allE 1);
+  by (exhaust_tac "ex1 na" 1 THEN ALLGOALS Asm_full_simp_tac);
   by Safe_tac;
    by (etac (p2 RS mp) 1);
     by (ALLGOALS(fast_tac(claset() addDs [reachable_n])));

@@ -36,7 +36,7 @@ Addsimps [set_qsort];
 
 goal List.thy
   "(!x:set[x:xs. P(x)].Q(x)) = (!x:set xs. P(x)-->Q(x))";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed"Ball_set_filter";
 Addsimps [Ball_set_filter];
@@ -44,7 +44,7 @@ Addsimps [Ball_set_filter];
 Goal
  "sorted le (xs@ys) = (sorted le xs & sorted le ys & \
 \                     (!x:set xs. !y:set ys. le x y))";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "sorted_append";
 Addsimps [sorted_append];

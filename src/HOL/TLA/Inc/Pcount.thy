@@ -11,7 +11,7 @@ Isabelle/HOL's datatype package generates useful simplifications
 and case distinction tactics.
 *)
 
-Pcount  =  HOL + Arith +
+Pcount  =  Datatype +
 
 datatype pcount = a | b | g
 

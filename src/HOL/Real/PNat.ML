@@ -48,11 +48,8 @@ by (REPEAT (ares_tac prems 1
 qed "pnat_induct";
 
 (*Perform induction on n. *)
-local fun raw_pnat_ind_tac a i = 
-    res_inst_tac [("n",a)] pnat_induct i  THEN  rename_last_tac a [""] (i+1)
-in
-val pnat_ind_tac = Datatype.occs_in_prems raw_pnat_ind_tac
-end;
+fun pnat_ind_tac a i = 
+  res_inst_tac [("n",a)] pnat_induct i  THEN  rename_last_tac a [""] (i+1);
 
 val prems = goal thy
     "[| !!x. P x 1p;  \

@@ -15,7 +15,7 @@ datatype 'a rexp = Empty
                  | Star ('a rexp)
 
 consts lang :: 'a rexp => 'a list set
-primrec lang rexp
+primrec
 lang_Emp  "lang Empty = {}"
 lang_Atom "lang (Atom a) = {[a]}"
 lang_Un   "lang (Union el er) = (lang el) Un (lang er)"

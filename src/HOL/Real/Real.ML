@@ -1267,7 +1267,7 @@ qed "real_nat_less_zero";
 
 Goal "1r <= %%#n";
 by (simp_tac (simpset() addsimps [real_nat_one RS sym]) 1);
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (auto_tac (claset(),simpset () 
     addsimps [real_nat_Suc,real_le_refl,real_nat_one]));
 by (res_inst_tac [("t","1r")] (real_add_zero_left RS subst) 1);

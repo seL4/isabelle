@@ -6,7 +6,8 @@
 Inductive definition of propositional logic.
 *)
 
-PropLog = Finite +
+PropLog = Finite + Datatype +
+
 datatype
     'a pl = false | var 'a ("#_" [1000]) | "->" ('a pl) ('a pl) (infixr 90)
 consts
@@ -32,12 +33,12 @@ defs
   sat_def  "H |= p  ==  (!tt. (!q:H. tt[q]) --> tt[p])"
   eval_def "tt[p] == eval2 p tt"
 
-primrec eval2 pl
+primrec
   "eval2(false) = (%x. False)"
   "eval2(#v) = (%tt. v:tt)"
   "eval2(p->q) = (%tt. eval2 p tt-->eval2 q tt)"
 
-primrec hyps pl
+primrec
   "hyps(false) = (%tt.{})"
   "hyps(#v) = (%tt.{if v:tt then #v else #v->false})"
   "hyps(p->q) = (%tt. hyps p tt Un hyps q tt)"

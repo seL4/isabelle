@@ -6,11 +6,9 @@
 Example: define a PER on pairs of natural numbers (with embedding)
 
 *)
-NPAIR = PER + Arith + (* representation for rational numbers *)
+NPAIR = PER + Datatype + (* representation for rational numbers *)
 
-types np = "(nat * nat)" (* is needed for datatype *)
-
-datatype NP = abs_NP np
+datatype NP = abs_NP "(nat * nat)"
 
 consts	rep_NP :: "NP => nat * nat"
 

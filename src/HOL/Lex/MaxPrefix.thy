@@ -19,7 +19,7 @@ constdefs
 
 consts
  maxsplit :: "('a list => bool) => 'a list * 'a list => 'a list => 'a splitter"
-primrec maxsplit list
+primrec
 "maxsplit P res ps []     = (if P ps then (ps,[]) else res)"
 "maxsplit P res ps (q#qs) = maxsplit P (if P ps then (ps,q#qs) else res)
                                      (ps@[q]) qs"

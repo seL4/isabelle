@@ -16,7 +16,7 @@ val has_type_casesE = map(has_type.mk_cases expr.simps)
 (* the resulting type variable is always greater or equal than the given one *)
 Goal
         "!A n S t m. W e A n  = Some (S,t,m) --> n<=m";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var(n) *)
 by (simp_tac (simpset() addsplits [split_option_bind]) 1);
 (* case Abs e *)
@@ -45,7 +45,7 @@ by (assume_tac 1);
 qed "new_tv_compatible_W";
 
 Goal "new_tv n sch --> new_tv (n + (min_new_bound_tv sch)) (bound_typ_inst (%b. TVar (b + n)) sch)";
-by (type_scheme.induct_tac "sch" 1);
+by (induct_tac "sch" 1);
   by (Asm_full_simp_tac 1);
  by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
 by (strip_tac 1);
@@ -74,7 +74,7 @@ Addsimps [new_tv_bound_typ_inst_sch];
 Goal
      "!n A S t m. new_tv n A --> W e A n = Some (S,t,m) -->    \
 \                 new_tv m S & new_tv m t";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (simp_tac (simpset() addsplits [split_option_bind]) 1);
 by (strip_tac 1);
@@ -156,7 +156,7 @@ by (assume_tac 1);
 qed_spec_mp "new_tv_W";
 
 Goal "(v ~: free_tv sch) --> (v : free_tv (bound_typ_inst (TVar o S) sch)) --> (? x. v = S x)";
-by (type_scheme.induct_tac "sch" 1);
+by (induct_tac "sch" 1);
 by (Asm_full_simp_tac 1);
 by (Asm_full_simp_tac 1);
 by (strip_tac 1);
@@ -170,7 +170,7 @@ Addsimps [free_tv_bound_typ_inst1];
 Goal
      "!n A S t m v. W e A n = Some (S,t,m) -->            \
 \         (v:free_tv S | v:free_tv t) --> v<n --> v:free_tv A";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (simp_tac (simpset() addsimps
     [free_tv_subst] addsplits [split_option_bind]) 1);
@@ -265,7 +265,7 @@ val weaken_not_elem_A_minus_B = result();
 (* correctness of W with respect to has_type *)
 Goal
         "!A S t m n . new_tv n A --> Some (S,t,m) = W e A n --> $S A |- e :: t";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (Asm_full_simp_tac 1);
 by (strip_tac 1);
@@ -388,7 +388,7 @@ Goal
  "!S' A t' n. $S' A |- e :: t' --> new_tv n A -->     \
 \             (? S t. (? m. W e A n = Some (S,t,m)) &  \
 \                     (? R. $S' A = $R ($S A) & t' = $R t))";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 (* case Var n *)
 by (strip_tac 1);
 by (simp_tac (simpset() addcongs [conj_cong]) 1);

@@ -16,7 +16,7 @@ types ctxt = type_scheme list
 consts
   gen :: [ctxt, typ] => type_scheme
 
-primrec gen typ
+primrec
   "gen A (TVar n) = (if (n:(free_tv A)) then (FVar n) else (BVar n))"
   "gen A (t1 -> t2) = (gen A t1) =-> (gen A t2)"
 
@@ -25,7 +25,7 @@ primrec gen typ
 consts
   gen_ML_aux :: [nat list, typ] => type_scheme
 
-primrec gen_ML_aux typ
+primrec
   "gen_ML_aux A (TVar n) = (if (n mem A) then (FVar n) else (BVar n))"
   "gen_ML_aux A (t1 -> t2) = (gen_ML_aux A t1) =-> (gen_ML_aux A t2)"
 

@@ -140,7 +140,7 @@ Goal
  "!i j xs. xs : regset d i j k = \
 \          ((!n:set(butlast(trace d i xs)). n < k) & deltas d xs i = j)";
 by (induct_tac "k" 1);
- by (simp_tac (simpset() addcongs [conj_cong] addsplits [split_list_case]) 1);
+ by (simp_tac (simpset() addcongs [conj_cong] addsplits [list.split]) 1);
 by (strip_tac 1);
 by (asm_simp_tac (simpset() addsimps [conc_def]) 1);
 by (rtac iffI 1);
@@ -149,12 +149,12 @@ by (rtac iffI 1);
  by (REPEAT(eresolve_tac[exE,conjE] 1));
  by (Asm_full_simp_tac 1);
  by (subgoal_tac
-      "(!n:set(butlast(trace d k xsb)). n < Suc k) & deltas d xsb k = k" 1);
+      "(!m:set(butlast(trace d n xsb)). m < Suc n) & deltas d xsb n = n" 1);
   by (asm_simp_tac (simpset() addsimps [set_trace_conv,butlast_append,ball_Un]) 1);
  by (etac star.induct 1);
   by (Simp_tac 1);
  by (asm_full_simp_tac (simpset() addsimps [set_trace_conv,butlast_append,ball_Un]) 1);
-by (case_tac "k : set(butlast(trace d i xs))" 1);
+by (case_tac "n : set(butlast(trace d i xs))" 1);
  by (rtac disjI1 2);
  by (blast_tac (claset() addIs [lemma]) 2);
 by (rtac disjI2 1);

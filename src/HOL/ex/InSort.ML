@@ -7,13 +7,13 @@ Correctness proof of insertion sort.
 *)
 
 Goal "!y. mset(ins f x xs) y = mset (x#xs) y";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "mset_ins";
 Addsimps [mset_ins];
 
 Goal "!x. mset(insort f xs) x = mset xs x";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "insort_permutes";
 
@@ -25,7 +25,7 @@ Addsimps [set_ins];
 
 val prems = goalw InSort.thy [total_def,transf_def]
   "[| total(f); transf(f) |] ==>  sorted f (ins f x xs) = sorted f xs";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 by (cut_facts_tac prems 1);
 by (Fast_tac 1);
@@ -33,6 +33,6 @@ qed "sorted_ins";
 Addsimps [sorted_ins];
 
 Goal "[| total(f); transf(f) |] ==>  sorted f (insort f xs)";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "sorted_insort";

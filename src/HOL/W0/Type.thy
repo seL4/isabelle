@@ -36,7 +36,7 @@ constdefs
 consts
         app_subst :: [subst, 'a::type_struct] => 'a::type_struct ("$")
 
-primrec app_subst typ
+primrec
   app_subst_TVar  "$ s (TVar n) = s n" 
   app_subst_Fun   "$ s (t1 -> t2) = ($ s t1) -> ($ s t2)" 
 
@@ -47,11 +47,11 @@ defs
 consts
         free_tv :: ['a::type_struct] => nat set
 
-primrec free_tv typ
+primrec
   "free_tv (TVar m) = {m}"
   "free_tv (t1 -> t2) = (free_tv t1) Un (free_tv t2)"
 
-primrec free_tv List.list
+primrec
   "free_tv [] = {}"
   "free_tv (x#l) = (free_tv x) Un (free_tv l)"
 

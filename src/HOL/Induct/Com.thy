@@ -6,7 +6,7 @@
 Example of Mutual Induction via Iteratived Inductive Definitions: Commands
 *)
 
-Com = Arith + Inductive +
+Com = Datatype +
 
 types loc
       state = "loc => nat"

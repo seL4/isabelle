@@ -9,7 +9,7 @@
     RPC-Memory example: Memory parameters
 *)
 
-MemoryParameters = Prod + Sum + Arith + RPCMemoryParams +
+MemoryParameters = Datatype + RPCMemoryParams +
 
 (* the memory operations. nb: data types must be defined in theories
    that do not include Intensional -- otherwise the induction rule

@@ -11,7 +11,7 @@ The "simpset" clause in the recdef declaration is omitted on purpose:
 	Isabelle prove those conditions.
 *)
 
-Primes = Divides + WF_Rel +
+Primes = Divides + Recdef + Datatype +
 consts
   is_gcd  :: [nat,nat,nat]=>bool          (*gcd as a relation*)
   gcd     :: "nat*nat=>nat"               (*Euclid's algorithm *)

@@ -102,7 +102,7 @@ qed "imp_false";
 (*This formulation is required for strong induction hypotheses*)
 Goal "hyps p tt |- (if tt[p] then p else p->false)";
 by (rtac (split_if RS iffD2) 1);
-by (PropLog.pl.induct_tac "p" 1);
+by (induct_tac "p" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (fast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 
 			      weaken_right, imp_false]
@@ -140,7 +140,7 @@ qed "thms_excluded_middle_rule";
 (*For the case hyps(p,t)-insert(#v,Y) |- p;
   we also have hyps(p,t)-{#v} <= hyps(p, t-{v}) *)
 Goal "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})";
-by (PropLog.pl.induct_tac "p" 1);
+by (induct_tac "p" 1);
 by (ALLGOALS Simp_tac);
 by (Fast_tac 1);
 qed "hyps_Diff";
@@ -148,7 +148,7 @@ qed "hyps_Diff";
 (*For the case hyps(p,t)-insert(#v -> false,Y) |- p;
   we also have hyps(p,t)-{#v->false} <= hyps(p, insert(v,t)) *)
 Goal "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})";
-by (PropLog.pl.induct_tac "p" 1);
+by (induct_tac "p" 1);
 by (ALLGOALS Simp_tac);
 by (Fast_tac 1);
 qed "hyps_insert";
@@ -169,7 +169,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "hyps_finite";
 
 Goal "hyps p t <= (UN v. {#v, #v->false})";
-by (PropLog.pl.induct_tac "p" 1);
+by (induct_tac "p" 1);
 by (ALLGOALS Simp_tac);
 by (Blast_tac 1);
 qed "hyps_subset";

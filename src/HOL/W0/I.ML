@@ -12,7 +12,7 @@ Goal
   "! a m s s' t n.  \
 \    (new_tv m a & new_tv m s) --> I e a m s = Ok(s',t,n) -->   \
 \    ( ? r. W e ($ s a) m = Ok(r, $ s' t, n) & s' = ($ r o s) )";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
 
   (* case Var n *)
   by (simp_tac (simpset() addsimps [app_subst_list]
@@ -143,7 +143,7 @@ Addsimps [split_paired_Ex];
 
 Goal "!a m s. \
 \  new_tv m a & new_tv m s --> I e a m s = Fail --> W e ($s a) m = Fail";
-by (expr.induct_tac "e" 1);
+by (induct_tac "e" 1);
   by (simp_tac (simpset() addsimps [app_subst_list]) 1);
  by (Simp_tac 1);
  by (strip_tac 1);

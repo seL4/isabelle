@@ -7,7 +7,7 @@ Lambda-terms in de Bruijn notation,
 substitution and beta-reduction.
 *)
 
-Lambda = Arith + Inductive +
+Lambda = Datatype +
 
 datatype dB = Var nat | "$" dB dB (infixl 200) | Abs dB
 
@@ -18,23 +18,23 @@ consts
   substn :: [dB,dB,nat] => dB
   liftn  :: [nat,dB,nat] => dB
 
-primrec lift dB
+primrec
   "lift (Var i) k = (if i < k then Var i else Var(Suc i))"
   "lift (s $ t) k = (lift s k) $ (lift t k)"
   "lift (Abs s) k = Abs(lift s (Suc k))"
 
-primrec subst dB
+primrec
   subst_Var "(Var i)[s/k] = (if k < i then Var(i-1)
                             else if i = k then s else Var i)"
   subst_App "(t $ u)[s/k] = t[s/k] $ u[s/k]"
   subst_Abs "(Abs t)[s/k] = Abs (t[lift s 0 / Suc k])"
 
-primrec liftn dB
+primrec
   "liftn n (Var i) k = (if i < k then Var i else Var(i+n))"
   "liftn n (s $ t) k = (liftn n s k) $ (liftn n t k)"
   "liftn n (Abs s) k = Abs(liftn n s (Suc k))"
 
-primrec substn dB
+primrec
   "substn (Var i) s k = (if k < i then Var(i-1)
                          else if i = k then liftn k s 0 else Var i)"
   "substn (t $ u) s k = (substn t s k) $ (substn u s k)"

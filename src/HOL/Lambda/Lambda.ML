@@ -66,16 +66,16 @@ Addsimps [subst_eq,subst_gt,subst_lt];
 
 Goal
   "!i k. i < Suc k --> lift (lift t i) (Suc k) = lift (lift t k) i";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addSolver cut_trans_tac)));
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed_spec_mp "lift_lift";
 
 Goal "!i j s. j < Suc i --> lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_Suc,subst_Var,lift_lift]
-                                addsplits [split_nat_case]
+                                addsplits [nat.split]
                                 addSolver cut_trans_tac)));
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
@@ -84,7 +84,7 @@ Addsimps [lift_subst];
 
 Goal
   "!i j s. i < Suc j --> lift (t[s/j]) i = (lift t i) [lift s i / Suc j]";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [subst_Var,lift_lift]
                                 addSolver cut_trans_tac)));
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
@@ -92,18 +92,18 @@ by (ALLGOALS trans_tac);
 qed "lift_subst_lt";
 
 Goal "!k s. (lift t k)[s/k] = t";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "subst_lift";
 Addsimps [subst_lift];
 
 
 Goal "!i j u v. i < Suc j --> t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac
       (simpset() addsimps [diff_Suc,subst_Var,lift_lift RS sym,lift_subst_lt]
                  delsplits [split_if]
-                 addsplits [split_nat_case]
+                 addsplits [nat.split]
                  addloop ("if",split_inside_tac[split_if])
                 addSolver cut_trans_tac)));
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
@@ -114,20 +114,20 @@ qed_spec_mp "subst_subst";
 (*** Equivalence proof for optimized substitution ***)
 
 Goal "!k. liftn 0 t k = t";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac(addsplit(simpset()))));
 qed "liftn_0";
 Addsimps [liftn_0];
 
 Goal "!k. liftn (Suc n) t k = lift (liftn n t k) k";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac(addsplit(simpset()))));
 by (blast_tac (claset() addDs [add_lessD1]) 1);
 qed "liftn_lift";
 Addsimps [liftn_lift];
 
 Goal "!n. substn t s n = t[liftn n s 0 / n]";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac(addsplit(simpset()))));
 qed "substn_subst_n";
 Addsimps [substn_subst_n];

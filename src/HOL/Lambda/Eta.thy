@@ -19,7 +19,7 @@ translations
   "s -e>= t" == "(s,t) : eta^="
   "s ->=  t" == "(s,t) : beta^="
 
-primrec free Lambda.dB
+primrec
   "free (Var j) i = (j=i)"
   "free (s $ t) i = (free s i | free t i)"
   "free (Abs s) i = free s (Suc i)"

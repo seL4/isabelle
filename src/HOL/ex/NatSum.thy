@@ -8,7 +8,7 @@ A summation operator. sum(f,n+1) is the sum of all f(i), i=0...n.
 
 NatSum = Arith +
 consts sum     :: [nat=>nat, nat] => nat
-primrec "sum" nat 
+primrec 
   "sum f 0 = 0"
   "sum f (Suc n) = f(n) + sum f n"
 

@@ -14,7 +14,7 @@ Instance = Type +
 consts
   bound_typ_inst :: [subst, type_scheme] => typ
 
-primrec bound_typ_inst type_scheme
+primrec
   "bound_typ_inst S (FVar n) = (TVar n)"
   "bound_typ_inst S (BVar n) = (S n)"
   "bound_typ_inst S (sch1 =-> sch2) = ((bound_typ_inst S sch1) -> (bound_typ_inst S sch2))"
@@ -22,7 +22,7 @@ primrec bound_typ_inst type_scheme
 consts
   bound_scheme_inst :: [nat => type_scheme, type_scheme] => type_scheme
 
-primrec bound_scheme_inst type_scheme
+primrec
   "bound_scheme_inst S (FVar n) = (FVar n)"
   "bound_scheme_inst S (BVar n) = (S n)"
   "bound_scheme_inst S (sch1 =-> sch2) = ((bound_scheme_inst S sch1) =-> (bound_scheme_inst S sch2))"
@@ -38,7 +38,7 @@ defs le_type_scheme_def "sch' <= (sch::type_scheme) == !t. t <| sch' --> t <| sc
 consts
   subst_to_scheme :: [nat => type_scheme, typ] => type_scheme
 
-primrec subst_to_scheme typ
+primrec
   "subst_to_scheme B (TVar n) = (B n)"
   "subst_to_scheme B (t1 -> t2) = ((subst_to_scheme B t1) =-> (subst_to_scheme B t2))"
   

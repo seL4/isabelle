@@ -79,7 +79,7 @@ by (res_inst_tac [("x",
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                addsplits [split_option_case]) 1);
+                addsplits [option.split]) 1);
 qed"comp1_reachable";
 
 
@@ -99,7 +99,7 @@ by (res_inst_tac [("x",
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,filter_oseq_def]
-                addsplits [split_option_case]) 1);
+                addsplits [option.split]) 1);
 qed"comp2_reachable";
 
 Delsplits [split_if];
@@ -161,7 +161,7 @@ by (Simp_tac 1);
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,
                           par_def,starts_of_def,trans_of_def,rename_def]
-                addsplits [split_option_case]) 1);
+                addsplits [option.split]) 1);
 by (best_tac (claset() addSDs [spec] addDs [sym] addss (simpset())) 1);
 qed"reachable_rename_ioa";
 

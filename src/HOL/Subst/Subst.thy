@@ -18,7 +18,7 @@ consts
   srange ::  "('a*('a uterm)) list => 'a set"
 
 
-primrec "op <|"   uterm
+primrec
   subst_Var      "(Var v <| s) = assoc v (Var v) s"
   subst_Const  "(Const c <| s) = Const c"
   subst_Comb  "(Comb M N <| s) = Comb (M <| s) (N <| s)"

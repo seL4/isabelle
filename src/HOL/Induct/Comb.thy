@@ -13,7 +13,7 @@ Example taken from
 *)
 
 
-Comb = Arith + Inductive +
+Comb = Datatype +
 
 (** Datatype definition of combinators S and K, with infixed application **)
 datatype comb = K

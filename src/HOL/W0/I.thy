@@ -11,7 +11,7 @@ I = W +
 consts
         I :: [expr, typ list, nat, subst] => result_W
 
-primrec I expr
+primrec
         "I (Var i) a n s = (if i < length a then Ok(s, a!i, n)
                                     else Fail)"
         "I (Abs e) a n s = ( (s,t,m) := I e ((TVar n)#a) (Suc n) s;

@@ -18,7 +18,7 @@ syntax eps :: "('a,'s)nae => ('s * 's)set"
 translations "eps A" == "step A None"
 
 consts steps :: "('a,'s)nae => 'a list =>   ('s * 's)set"
-primrec steps list
+primrec
 "steps A [] = (eps A)^*"
 "steps A (a#w) = steps A w  O  step A (Some a)  O  (eps A)^*"
 
@@ -28,7 +28,7 @@ constdefs
 
 (* not really used:
 consts delta :: "('a,'s)nae => 'a list => 's => 's set"
-primrec delta list
+primrec
 "delta A [] s = (eps A)^* ^^ {s}"
 "delta A (a#w) s = lift(delta A w) (lift(next A (Some a)) ((eps A)^* ^^ {s}))"
 *)

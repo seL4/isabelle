@@ -14,7 +14,7 @@ See mset on HOL/ex/Sorting.thy
 open Perm;
 
 Goal "l <~~> l";
-by (list.induct_tac "l" 1);
+by (induct_tac "l" 1);
 by (REPEAT (ares_tac perm.intrs 1));
 qed "perm_refl";
 
@@ -50,7 +50,7 @@ bind_thm ("perm_mem", perm_mem_lemma RS mp);
 
 (*We can insert the head anywhere in the list*)
 Goal "a # xs @ ys <~~> xs @ a # ys";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (simp_tac (simpset() addsimps [perm_refl]) 1);
 by (Simp_tac 1);
 by (etac ([perm.swap, perm.Cons] MRS perm.trans) 1);
@@ -63,7 +63,7 @@ by (rtac perm.Cons 1);
 *)
 
 Goal "xs@ys <~~> ys@xs";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (simp_tac (simpset() addsimps [perm_refl]) 1);
 by (Simp_tac 1);
 by (etac ([perm.Cons, perm_append_Cons] MRS perm.trans) 1);
@@ -77,7 +77,7 @@ by (simp_tac (simpset() addsimps [perm_refl]) 1);
 qed "perm_append_single";
 
 Goal "rev xs <~~> xs";
-by (list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 by (simp_tac (simpset() addsimps [perm_refl]) 1);
 by (Simp_tac 1);
 by (rtac (perm_append_single RS perm_sym RS perm.trans) 1);
@@ -85,7 +85,7 @@ by (etac perm.Cons 1);
 qed "perm_rev";
 
 Goal "xs <~~> ys ==> l@xs <~~> l@ys";
-by (list.induct_tac "l" 1);
+by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [perm.Cons]) 1);
 qed "perm_append1";

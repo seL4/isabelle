@@ -23,14 +23,14 @@ syntax deltas :: 'a nat_next => 'a list => nat => nat
 translations "deltas" == "foldl2"
 
 consts trace :: 'a nat_next => nat => 'a list => nat list
-primrec trace list
+primrec
 "trace d i [] = []"
 "trace d i (x#xs) = d x i # trace d (d x i) xs"
 
 (* conversion a la Warshall *)
 
 consts regset :: 'a nat_next => nat => nat => nat => 'a list set
-primrec regset nat
+primrec
 "regset d i j 0 = (if i=j then insert [] {[a] | a. d a i = j}
                           else {[a] | a. d a i = j})"
 "regset d i j (Suc k) = regset d i j k Un

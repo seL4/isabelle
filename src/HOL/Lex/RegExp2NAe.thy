@@ -50,7 +50,7 @@ constdefs
     %s. case s of [] => True | left#s => left & f s)"
 
 consts rexp2nae :: 'a rexp => 'a bitsNAe
-primrec rexp2nae rexp
+primrec
 "rexp2nae Empty      = ([], %a s. {}, %s. False)"
 "rexp2nae(Atom a)    = atom a"
 "rexp2nae(Union r s) = union (rexp2nae r) (rexp2nae s)"

@@ -15,7 +15,7 @@ types
 consts
         W :: [expr, typ list, nat] => result_W
 
-primrec W expr
+primrec
   "W (Var i) a n = (if i < length a then Ok(id_subst, a!i, n)
                     else Fail)"
   "W (Abs e) a n = ( (s,t,m) := W e ((TVar n)#a) (Suc n);

@@ -14,16 +14,16 @@ consts
   total  :: (['a,'a] => bool) => bool
   transf :: (['a,'a] => bool) => bool
 
-primrec sorted1 list
+primrec
   "sorted1 le [] = True"
   "sorted1 le (x#xs) = ((case xs of [] => True | y#ys => le x y) &
                         sorted1 le xs)"
 
-primrec sorted list
+primrec
   "sorted le [] = True"
   "sorted le (x#xs) = ((!y:set xs. le x y) & sorted le xs)"
 
-primrec mset list
+primrec
   "mset [] y = 0"
   "mset (x#xs) y = (if x=y then Suc(mset xs y) else mset xs y)"
 

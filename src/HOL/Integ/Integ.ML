@@ -173,12 +173,12 @@ qed "znegative_zminus_znat";
 (**** zmagnitude: magnitide of an integer, as a natural number ****)
 
 goal Arith.thy "!!n::nat. n - Suc(n+m)=0";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_Suc_add_0";
 
 goal Arith.thy "Suc((n::nat)+m)-n=Suc(m)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_Suc_add_inverse";
 
@@ -785,7 +785,7 @@ Addsimps [zero_zless_Suc_pos, negative_zless_0];
 
 Goal "$~ $#  n <= $#0";
   by (rtac zless_or_eq_imp_zle 1); 
-  by (nat_ind_tac "n" 1); 
+  by (induct_tac "n" 1); 
   by (ALLGOALS Asm_simp_tac); 
 qed "negative_zle_0"; 
 Addsimps[negative_zle_0]; 

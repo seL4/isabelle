@@ -25,7 +25,7 @@ AddSEs (beta_cases@eta_cases);
 section "eta, subst and free";
 
 Goal "!i t u. ~free s i --> s[t/i] = s[u/i]";
-by (dB.induct_tac "s" 1);
+by (induct_tac "s" 1);
 by (ALLGOALS(simp_tac (addsplit (simpset()))));
 by (Blast_tac 1);
 by (Blast_tac 1);
@@ -33,10 +33,10 @@ qed_spec_mp "subst_not_free";
 Addsimps [subst_not_free RS eqTrueI];
 
 Goal "!i k. free (lift t k) i = (i < k & free t i | k < i & free t (i-1))";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
 by (Blast_tac 2);
-by (simp_tac (simpset() addsimps [diff_Suc] addsplits [split_nat_case]) 1);
+by (simp_tac (simpset() addsimps [diff_Suc] addsplits [nat.split]) 1);
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed "free_lift";
@@ -44,12 +44,12 @@ Addsimps [free_lift];
 
 Goal "!i k t. free (s[t/k]) i = \
 \              (free s k & free t i | free s (if i<k then i else Suc i))";
-by (dB.induct_tac "s" 1);
+by (induct_tac "s" 1);
 by (Asm_simp_tac 2);
 by (Blast_tac 2);
 by (asm_full_simp_tac (addsplit (simpset())) 2);
 by (simp_tac (simpset() addsimps [diff_Suc,subst_Var]
-                      addsplits [split_nat_case]) 1);
+                      addsplits [nat.split]) 1);
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
 by (ALLGOALS trans_tac);
 qed "free_subst";
@@ -123,7 +123,7 @@ qed_spec_mp "beta_subst";
 AddIs [beta_subst];
 
 Goal "!i. t[Var i/i] = t[Var(i)/Suc i]";
-by (dB.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (ALLGOALS (asm_simp_tac (addsplit (simpset()))));
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
 by (ALLGOALS trans_tac);
@@ -137,7 +137,7 @@ qed_spec_mp "eta_lift";
 Addsimps [eta_lift];
 
 Goal "!s t i. s -e> t --> u[s/i] -e>> u[t/i]";
-by (dB.induct_tac "u" 1);
+by (induct_tac "u" 1);
 by (ALLGOALS(asm_simp_tac (addsplit (simpset()))));
 by (blast_tac (claset() addIs [r_into_rtrancl]) 1);
 by (blast_tac (claset() addSIs [rtrancl_eta_App]) 1);
@@ -166,7 +166,7 @@ qed "confluent_beta_eta";
 section "Implicit definition of -e>: Abs(lift s 0 $ Var 0) -e> s";
 
 Goal "!i. (~free s i) = (? t. s = lift t i)";
-by (dB.induct_tac "s" 1);
+by (induct_tac "s" 1);
   by (Simp_tac 1);
   by (SELECT_GOAL(safe_tac HOL_cs)1);
    by (etac nat_neqE 1);
