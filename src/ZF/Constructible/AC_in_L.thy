@@ -432,7 +432,7 @@ apply (rule L_new_r_subset)
 done
 
 
-lemma (in Nat_Times_Nat) well_ord_L_new_r:
+lemma (in Nat_Times_Nat) well_ord_L_succ_r:
     "[|Ord(i); well_ord(Lset(i), r); r \<subseteq> Lset(i) * Lset(i)|]
      ==> well_ord(Lset(succ(i)), L_succ_r(fn,r,i))"
 apply (rule well_ordI [OF wf_imp_wf_on])
@@ -496,13 +496,13 @@ done
 lemma (in Nat_Times_Nat) L_r_type:
     "Ord(i) ==> L_r(fn,i) \<subseteq> Lset(i) * Lset(i)"
 apply (induct i rule: trans_induct3_rule)
-  apply (simp_all add: L_succ_r_type well_ord_L_new_r rlimit_def, blast) 
+  apply (simp_all add: L_succ_r_type well_ord_L_succ_r rlimit_def, blast) 
 done
 
 lemma (in Nat_Times_Nat) well_ord_L_r:
     "Ord(i) ==> well_ord(Lset(i), L_r(fn,i))"
 apply (induct i rule: trans_induct3_rule)
-apply (simp_all add: well_ord0 L_r_type well_ord_L_new_r well_ord_rlimit ltD)
+apply (simp_all add: well_ord0 L_r_type well_ord_L_succ_r well_ord_rlimit ltD)
 done
 
 lemma well_ord_L_r:
