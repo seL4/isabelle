@@ -26,7 +26,9 @@ Cube: Pure $(OUT)/Cube
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/Cube: $(OUT)/Pure Cube.ML Cube.thy ROOT.ML
+$(OUT)/Cube: $(OUT)/Pure Base.ML Base.thy CC.ML CC.thy Cube.thy L2.ML \
+  L2.thy LOmega.ML LOmega.thy LP.ML LP.thy LP2.ML LP2.thy LPomega.ML \
+  LPomega.thy Lomega.ML Lomega.thy ROOT.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure Cube
 
 
@@ -34,7 +36,7 @@ $(OUT)/Cube: $(OUT)/Pure Cube.ML Cube.thy ROOT.ML
 
 Cube-ex: Cube $(LOG)/Cube-ex.gz
 
-$(LOG)/Cube-ex.gz: $(OUT)/Cube ex/ex.ML ex/ROOT.ML
+$(LOG)/Cube-ex.gz: $(OUT)/Cube ex/ex.ML ex/ex.thy ex/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/Cube ex
 
 
