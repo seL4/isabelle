@@ -13,10 +13,10 @@ sig
   include SYN_TRANS0
   include MIXFIX0
   include PRINTER0
-  type xrule
-  val |-> : (string * string) * (string * string) -> xrule
-  val <-| : (string * string) * (string * string) -> xrule
-  val <-> : (string * string) * (string * string) -> xrule
+  datatype 'a trrule =
+    op |-> of 'a * 'a |
+    op <-| of 'a * 'a |
+    op <-> of 'a * 'a
 end;
 
 signature SYNTAX =
@@ -29,10 +29,10 @@ sig
   include MIXFIX1
   include PRINTER0
   sharing type ast = Parser.SynExt.Ast.ast
-  type xrule
-  val |-> : (string * string) * (string * string) -> xrule
-  val <-| : (string * string) * (string * string) -> xrule
-  val <-> : (string * string) * (string * string) -> xrule
+  datatype 'a trrule =
+    op |-> of 'a * 'a |
+    op <-| of 'a * 'a |
+    op <-> of 'a * 'a
   type syntax
   val extend_log_types: syntax -> string list -> syntax
   val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
@@ -43,7 +43,8 @@ sig
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (ast list -> ast)) list -> syntax
-  val extend_trrules: syntax -> xrule list -> syntax
+  val extend_trrules: syntax -> (string * string) trrule list -> syntax
+  val extend_trrules_i: syntax -> ast trrule list -> syntax
   val merge_syntaxes: syntax -> syntax -> syntax
   val type_syn: syntax
   val pure_syn: syntax
@@ -344,14 +345,33 @@ fun read_typ syn def_sort str =
 fun simple_read_typ str = read_typ type_syn (K []) str;
 
 
-(* read translation rules *)
 
-datatype 'a rule =
+(** prepare translation rules **)
+
+datatype 'a trrule =
   op |-> of 'a * 'a |
   op <-| of 'a * 'a |
   op <-> of 'a * 'a;
 
-type xrule = (string * string) rule;
+fun map_rule f (x |-> y) = (f x |-> f y)
+  | map_rule f (x <-| y) = (f x <-| f y)
+  | map_rule f (x <-> y) = (f x <-> f y);
+
+fun right_rule (pat1 |-> pat2) = Some (pat1, pat2)
+  | right_rule (pat1 <-| pat2) = None
+  | right_rule (pat1 <-> pat2) = Some (pat1, pat2);
+
+fun left_rule (pat1 |-> pat2) = None
+  | left_rule (pat1 <-| pat2) = Some (pat2, pat1)
+  | left_rule (pat1 <-> pat2) = Some (pat2, pat1);
+
+
+fun check_rule (rule as (lhs, rhs)) =
+  (case rule_error rule of
+    Some msg =>
+      error ("Error in syntax translation rule: " ^ msg ^ "\n" ^
+        str_of_ast lhs ^ "  ->  " ^ str_of_ast rhs)
+  | None => rule);
 
 
 fun read_pattern syn (root, str) =
@@ -371,33 +391,11 @@ fun read_pattern syn (root, str) =
       quote str);
 
 
-fun check_rule (rule as (lhs, rhs)) =
-  (case rule_error rule of
-    Some msg =>
-      error ("Error in syntax translation rule: " ^ msg ^ "\n" ^
-        str_of_ast lhs ^ "  ->  " ^ str_of_ast rhs)
-  | None => rule);
-
-
-fun read_xrules syn xrules =
-  let
-    fun map_rule f (x |-> y) = (f x |-> f y)
-      | map_rule f (x <-| y) = (f x <-| f y)
-      | map_rule f (x <-> y) = (f x <-> f y);
-
-    fun right_rule (xpat1 |-> xpat2) = Some (xpat1, xpat2)
-      | right_rule (xpat1 <-| xpat2) = None
-      | right_rule (xpat1 <-> xpat2) = Some (xpat1, xpat2);
-
-    fun left_rule (xpat1 |-> xpat2) = None
-      | left_rule (xpat1 <-| xpat2) = Some (xpat2, xpat1)
-      | left_rule (xpat1 <-> xpat2) = Some (xpat2, xpat1);
-
-    val rules = map (map_rule (read_pattern syn)) xrules;
-  in
+fun prep_rules rd_pat raw_rules =
+  let val rules = map (map_rule rd_pat) raw_rules in
     (map check_rule (mapfilter right_rule rules),
       map check_rule (mapfilter left_rule rules))
-  end;
+  end
 
 
 
@@ -441,7 +439,10 @@ val extend_consts = ext_syntax syn_ext_const_names;
 
 val extend_trfuns = ext_syntax syn_ext_trfuns;
 
-fun extend_trrules syn xrules =
-  ext_syntax syn_ext_rules syn (read_xrules syn xrules);
+fun extend_trrules syn rules =
+  ext_syntax syn_ext_rules syn (prep_rules (read_pattern syn) rules);
+
+fun extend_trrules_i syn rules =
+  ext_syntax syn_ext_rules syn (prep_rules I rules);
 
 end;
