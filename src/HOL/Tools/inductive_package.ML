@@ -295,7 +295,7 @@ val bad_concl = "Conclusion of introduction rule must have form \"t : S_i\"";
 val all_not_allowed = 
     "Introduction rule must not have a leading \"!!\" quantifier";
 
-val atomize_cterm = hol_rewrite_cterm inductive_atomize;
+val atomize_cterm = full_rewrite_cterm inductive_atomize;
 
 in
 
@@ -543,14 +543,26 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
   the given defs.  Cannot simply use the local con_defs because con_defs=[]
   for inference systems. (??) *)
 
-(*cprop should have the form t:Si where Si is an inductive set*)
+local
 
+(*cprop should have the form t:Si where Si is an inductive set*)
 val mk_cases_err = "mk_cases: proposition not of form \"t : S_i\"";
+
+(*delete needless equality assumptions*)
+val refl_thin = prove_goal HOL.thy "!!P. a = a ==> P ==> P" (fn _ => [assume_tac 1]);
+val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE, Pair_inject];
+val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
+
+fun simp_case_tac solved ss i =
+  EVERY' [elim_tac, asm_full_simp_tac ss, elim_tac, REPEAT o bound_hyp_subst_tac] i
+  THEN_MAYBE (if solved then no_tac else all_tac);
+
+in
 
 fun mk_cases_i elims ss cprop =
   let
     val prem = Thm.assume cprop;
-    val tac = ALLGOALS (InductMethod.simp_case_tac false ss) THEN prune_params_tac;
+    val tac = ALLGOALS (simp_case_tac false ss) THEN prune_params_tac;
     fun mk_elim rl = Drule.standard (Tactic.rule_by_tactic tac (prem RS rl));
   in
     (case get_first (try mk_elim) elims of
@@ -568,6 +580,8 @@ fun smart_mk_cases thy ss cprop =
       (Logic.strip_imp_concl (Thm.term_of cprop))))))) handle TERM _ => error mk_cases_err;
     val (_, {elims, ...}) = the_inductive thy c;
   in mk_cases_i elims ss cprop end;
+
+end;
 
 
 (* inductive_cases(_i) *)
