@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Up2.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class Instance u::(pcpo)po
 *)

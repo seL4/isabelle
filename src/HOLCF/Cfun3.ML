@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Cfun3
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class instance of  -> for class pcpo
 *)

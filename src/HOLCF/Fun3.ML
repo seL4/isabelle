@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Fun3.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 (* for compatibility with old HOLCF-Version *)

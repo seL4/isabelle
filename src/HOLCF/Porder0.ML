@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/Porder0.ML
     ID:         $Id$
     Author:     Oscar Slotosch
-    Copyright   1997 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-    derive the characteristic axioms for the characteristic constants 
+derive the characteristic axioms for the characteristic constants 
 *)
 
 AddIffs [refl_less];

@@ -1,11 +1,9 @@
 (*  Title:      HOLCF/Fix.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993  Technische Universitaet Muenchen
-
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 definitions for fixed point operator and admissibility
-
 *)
 
 Fix = Cfun3 +

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/domain/library.ML
     ID:         $Id$
-    Author : David von Oheimb
-    Copyright 1995, 1996 TU Muenchen
+    Author:     David von Oheimb
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-library for domain section
+Library for domain section.
 *)
 
 

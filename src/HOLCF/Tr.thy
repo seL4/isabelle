@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Tr.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 *)

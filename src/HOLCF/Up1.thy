@@ -1,11 +1,9 @@
 (*  Title:      HOLCF/Up1.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993  Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-
-Lifting
-
+Lifting.
 *)
 
 Up1 = Cfun3 + Sum_Type + Datatype +

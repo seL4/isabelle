@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Fun1.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993  Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Definition of the partial ordering for the type of all functions => (fun)
 *)

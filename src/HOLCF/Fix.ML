@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Fix.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993  Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 fixed point operator and admissibility
 *)

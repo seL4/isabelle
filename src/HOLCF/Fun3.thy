@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/Fun3.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class instance of  => (fun) for class pcpo
-
 *)
 
 Fun3 = Fun2 +

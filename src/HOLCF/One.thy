@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/One.thy
     ID:         $Id$
     Author:     Oscar Slotosch
-    Copyright   1997 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 One = Lift +

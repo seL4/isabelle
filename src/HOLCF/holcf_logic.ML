@@ -1,6 +1,7 @@
 (*  Title:      HOLCF/holcf_logic.ML
     ID:         $Id$
     Author:     David von Oheimb
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Abstract syntax operations for HOLCF.
 *)
@@ -31,11 +32,7 @@ end;
 structure HOLCFLogic: HOLCF_LOGIC =
 struct
 
-local
-
-  open HOLogic;
-
-in
+open HOLogic;
 
 fun mk_btyp t (S,T) = Type (t,[S,T]);
 val mk_prodT = mk_btyp "*";
@@ -62,5 +59,4 @@ val trT       = Type (intern "tr" ,[ ]);
 val oneT      = Type (intern "one",[ ]);
 end;
 
-end; (* local *)
-end; (* struct *)
+end;

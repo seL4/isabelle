@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/Discrete0.thy
     ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1997 TUM
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Discrete CPOs
+Discrete CPOs.
 *)
 
 Discrete0 = Cont + Datatype +

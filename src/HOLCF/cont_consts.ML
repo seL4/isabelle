@@ -1,6 +1,7 @@
 (*  Title:      HOLCF/cont_consts.ML
     ID:         $Id$
     Author:     Tobias Mayr and David von Oheimb
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory extender for consts section.
 *)

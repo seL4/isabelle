@@ -1,11 +1,9 @@
 (*  Title:      HOLCF/Up3.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
-
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class instance of  ('a)u for class pcpo
-
 *)
 
 Up3 = Up2 +

@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Discrete.ML
     ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1997 TUM
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 Goalw [undiscr_def] "undiscr(Discr x) = x";

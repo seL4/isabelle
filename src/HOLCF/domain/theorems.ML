@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/domain/theorems.ML
     ID:         $Id$
-    Author : David von Oheimb
-    Copyright 1995, 1996 TU Muenchen
+    Author:     David von Oheimb
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-proof generator for domain section
+Proof generator for domain section.
 *)
 
 

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/domain/syntax.ML
     ID:         $Id$
-    Author : David von Oheimb
-    Copyright 1995, 1996 TU Muenchen
+    Author:     David von Oheimb
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-syntax generator for domain section
+Syntax generator for domain section.
 *)
 
 structure Domain_Syntax = struct 

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/Up1.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993  Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Lifting
+Lifting.
 *)
 
 Goal "Rep_Up (Abs_Up y) = y";

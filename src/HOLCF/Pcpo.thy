@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Pcpo.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 introduction of the classes cpo and pcpo 
 *)

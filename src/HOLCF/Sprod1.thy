@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/sprod1.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993  Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Partial ordering for the strict product
+Partial ordering for the strict product.
 *)
 
 Sprod1 = Sprod0 +

@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Tr.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 *)
@@ -11,7 +11,7 @@ Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 (* ------------------------------------------------------------------------ *)
 
 Goalw [FF_def,TT_def] "t=UU | t = TT | t = FF";
-by (lift.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (fast_tac HOL_cs 1);
 by (fast_tac (HOL_cs addss simpset()) 1);
 qed "Exh_tr";

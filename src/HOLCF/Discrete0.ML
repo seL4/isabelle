@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Discrete0.ML
     ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1997 TUM
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Proves that 'a discr is a po
 *)

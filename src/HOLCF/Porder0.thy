@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/Porder0.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Definition of class porder (partial order)
-
+Definition of class porder (partial order).
 *)
 
 Porder0 = Main +

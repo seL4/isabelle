@@ -1,11 +1,9 @@
 (*  Title:      HOLCF/HOLCF.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-
-Top theory for HOLCF system
-
+Top theory for HOLCF system.
 *)
 
 HOLCF = Sprod3 + Ssum3 + Up3 + Lift + Discrete + One + Tr

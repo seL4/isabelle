@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/Cfun1.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Definition of the type ->  of continuous functions.
 

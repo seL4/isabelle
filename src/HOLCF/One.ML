@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/One.ML
     ID:         $Id$
     Author:     Oscar Slotosch
-    Copyright   1997 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The unit domain
+The unit domain.
 *)
 
 (* ------------------------------------------------------------------------ *)
@@ -11,7 +11,7 @@ The unit domain
 (* ------------------------------------------------------------------------ *)
 
 Goalw [ONE_def] "t=UU | t = ONE";
-by (lift.induct_tac "t" 1);
+by (induct_tac "t" 1);
 by (Simp_tac 1);
 by (Simp_tac 1);
 qed "Exh_one";

@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/porder.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    Copyright   1993 Technische Universitaet Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Conservative extension of theory Porder0 by constant definitions 
-
 *)
 
 Porder = Porder0 +
