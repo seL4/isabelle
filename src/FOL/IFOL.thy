@@ -119,7 +119,7 @@ axioms
 			setup Simplifier.setup
 use "IFOL_lemmas.ML"	setup attrib_setup
 use "fologic.ML"
-use "hypsubstdata.ML"
+use "hypsubstdata.ML"   setup hypsubst_setup
 use "intprover.ML"
 
 
