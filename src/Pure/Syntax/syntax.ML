@@ -13,10 +13,10 @@ sig
   include SYN_TRANS0
   include MIXFIX0
   include PRINTER0
-  datatype xrule =
-    op |-> of (string * string) * (string * string) |
-    op <-| of (string * string) * (string * string) |
-    op <-> of (string * string) * (string * string)
+  type xrule
+  val |-> : (string * string) * (string * string) -> xrule
+  val <-| : (string * string) * (string * string) -> xrule
+  val <-> : (string * string) * (string * string) -> xrule
 end;
 
 signature SYNTAX =
@@ -29,10 +29,10 @@ sig
   include MIXFIX1
   include PRINTER0
   sharing type ast = Parser.SynExt.Ast.ast
-  datatype xrule =
-    op |-> of (string * string) * (string * string) |
-    op <-| of (string * string) * (string * string) |
-    op <-> of (string * string) * (string * string)
+  type xrule
+  val |-> : (string * string) * (string * string) -> xrule
+  val <-| : (string * string) * (string * string) -> xrule
+  val <-> : (string * string) * (string * string) -> xrule
   type syntax
   val extend_log_types: syntax -> string list -> syntax
   val extend_type_gram: syntax -> (string * int * mixfix) list -> syntax
@@ -313,7 +313,7 @@ fun read_asts (Syntax tabs) xids root str =
 
     fun show_pt pt = writeln (str_of_ast (pt_to_ast (K None) pt));
   in
-    if length pts > !ambiguity_level then
+    if length pts > ! ambiguity_level then
       (writeln ("Warning: Ambiguous input " ^ quote str);
        writeln "produces the following parse trees:";
        seq show_pt pts)
@@ -337,59 +337,54 @@ fun read (syn as Syntax tabs) ty str =
 (* read types *)
 
 fun read_typ syn def_sort str =
-  let
-    val ts = read syn typeT str;
-    val t = case ts of
-                [t'] => t'
-              | _ => error "This should not happen while parsing a type.\n\
-                           \Please check your type syntax for ambiguities!";
-    val sort_env = raw_term_sorts t;
-  in
-    typ_of_term sort_env def_sort t
-  end;
+  (case read syn typeT str of
+    [t] => typ_of_term (raw_term_sorts t) def_sort t
+  | _ => sys_error "read_typ: ambiguous type syntax");
 
 fun simple_read_typ str = read_typ type_syn (K []) str;
 
 
 (* read translation rules *)
 
-fun read_xrule (syn as Syntax tabs)
-              (xrule as ((_, lhs_src), (_, rhs_src))) =
+datatype 'a rule =
+  op |-> of 'a * 'a |
+  op <-| of 'a * 'a |
+  op <-> of 'a * 'a;
+
+type xrule = (string * string) rule;
+
+
+fun read_pattern syn (root, str) =
   let
     val Syntax {consts, ...} = syn;
 
-    fun constantify (ast as Constant _) = ast
-      | constantify (ast as Variable x) =
+    fun constify (ast as Constant _) = ast
+      | constify (ast as Variable x) =
           if x mem consts then Constant x else ast
-      | constantify (Appl asts) = Appl (map constantify asts);
-
-    fun read_pat (root, str) =
-      let val asts = read_asts syn true root str;
-      in if length asts > 1 then
-           error "Error: This should not happen while parsing a syntax \
-                  \translation rule."
-         else constantify (hd asts)
-            handle ERROR => error ("The error above occurred in " ^ quote str)
-      end;
-
-    val rule as (lhs, rhs) = (pairself read_pat) xrule;
+      | constify (Appl asts) = Appl (map constify asts);
   in
-    (case rule_error rule of
-      Some msg =>
-        error ("Error in syntax translation rule: " ^ msg ^
-          "\nexternal: " ^ quote lhs_src ^ "  ->  " ^ quote rhs_src ^
-          "\ninternal: " ^ str_of_ast lhs ^ "  ->  " ^ str_of_ast rhs)
-    | None => rule)
-  end;
+    (case read_asts syn true root str of
+      [ast] => constify ast
+    | _ => error ("Syntactically ambiguous input: " ^ quote str))
+  end handle ERROR =>
+    error ("The error(s) above occurred in translation pattern " ^
+      quote str);
 
 
-datatype xrule =
-  op |-> of (string * string) * (string * string) |
-  op <-| of (string * string) * (string * string) |
-  op <-> of (string * string) * (string * string);
+fun check_rule (rule as (lhs, rhs)) =
+  (case rule_error rule of
+    Some msg =>
+      error ("Error in syntax translation rule: " ^ msg ^ "\n" ^
+        str_of_ast lhs ^ "  ->  " ^ str_of_ast rhs)
+  | None => rule);
+
 
 fun read_xrules syn xrules =
   let
+    fun map_rule f (x |-> y) = (f x |-> f y)
+      | map_rule f (x <-| y) = (f x <-| f y)
+      | map_rule f (x <-> y) = (f x <-> f y);
+
     fun right_rule (xpat1 |-> xpat2) = Some (xpat1, xpat2)
       | right_rule (xpat1 <-| xpat2) = None
       | right_rule (xpat1 <-> xpat2) = Some (xpat1, xpat2);
@@ -397,8 +392,11 @@ fun read_xrules syn xrules =
     fun left_rule (xpat1 |-> xpat2) = None
       | left_rule (xpat1 <-| xpat2) = Some (xpat2, xpat1)
       | left_rule (xpat1 <-> xpat2) = Some (xpat2, xpat1);
-  in (map (read_xrule syn) (mapfilter right_rule xrules),
-      map (read_xrule syn) (mapfilter left_rule xrules))
+
+    val rules = map (map_rule (read_pattern syn)) xrules;
+  in
+    (map check_rule (mapfilter right_rule rules),
+      map check_rule (mapfilter left_rule rules))
   end;
 
 
