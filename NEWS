@@ -170,8 +170,6 @@ and Arith);
 
 *** General ***
 
-* system: support Poly/ML 4.0;
-
 * Pure: the Simplifier has been implemented properly as a derived rule
 outside of the actual kernel (at last!); the overall performance
 penalty in practical applications is about 50%, while reliability of
@@ -182,6 +180,10 @@ the Isabelle inference kernel has been greatly improved;
 
 * Provers: fast_tac (and friends) now handle actual object-logic rules
 as assumptions as well;
+
+* system: support Poly/ML 4.0;
+
+* system: isatool install handles KDE version 1 or 2;
 
 
 
