@@ -121,10 +121,6 @@ fun disambiguate_names thy prf =
 
 (**** translation between proof terms and pure terms ****)
 
-fun change_type T (PThm (name, prf, prop, _)) = PThm (name, prf, prop, T)
-  | change_type T (PAxm (name, prop, _)) = PAxm (name, prop, T)
-  | change_type _ _ = error "Not a proper theorem";
-
 fun proof_of_term thy tab ty =
   let
     val thys = thy :: Theory.ancestors_of thy;
