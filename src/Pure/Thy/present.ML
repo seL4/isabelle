@@ -29,6 +29,7 @@ sig
   val subsection: string -> unit
   val subsubsection: string -> unit
   val setup: (theory -> theory) list
+  val get_info: theory -> {session: string list, is_local: bool}
 end;
 
 structure Present: PRESENT =
@@ -66,7 +67,7 @@ struct
 
   val empty = {session = [], is_local = false};
   val copy = I;
-  val prep_ext  = I;
+  fun prep_ext _ = empty;
   fun merge _ = empty;
   fun print _ _ = ();
 end;
