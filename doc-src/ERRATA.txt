@@ -1,5 +1,7 @@
 ERRATA in Springer book
 
+Thanks to Sara Kalvala, Tobias Nipkow
+
 * = corrected by sending new pages
 
 *page 50: In section heading, Mixfix should be mixfix
@@ -22,9 +24,14 @@ should be addsimps
 
 Ref/tactic: documented subgoals_tac
 
-Logics/ZF: renamed mem_anti_sym and mem_anti_refl
+Ref/theories: added init_thy_reader and removed extend_theory.
 
 Ref/defining: type constraints ("::") now have a very low priority of 4.
               As in ML, they must be enclosed in paretheses most of the time.
 
-Ref/theories: added init_thy_reader and removed extend_theory.
+Ref/syntax (page 145?): there is a repeated "the" in "before the the .thy file"
+
+Logics/ZF: renamed mem_anti_sym and mem_anti_refl to mem_asym and mem_irrefl
+renamed union_iff to Union_iff
+renamed power_set to Pow_iff
+DiffD2: now is really a destruction rule
