@@ -68,7 +68,7 @@ fun TFL_ERR{func,mesg} = U.ERR{module = "Tfl", func = func, mesg = mesg};
  * function contains embedded refs!
  *---------------------------------------------------------------------------*)
 fun gvvariant vlist =
-  let val slist = ref (map (#Name o S.dest_var) vlist)
+  let val slist = ref (map (#1 o dest_Free) vlist)
       val vname = ref "u"
       fun new() = 
          if !vname mem_string (!slist)
@@ -213,7 +213,7 @@ fun mk_case ty_info ty_match FV range_ty =
  val divide = partition fresh_var ty_match
  fun expand constructors ty ((_,[]), _) = mk_case_fail"expand_var_row"
    | expand constructors ty (row as ((prefix, p::rst), rhs)) = 
-       if (S.is_var p) 
+       if (is_Free p) 
        then let val fresh = fresh_constr ty_match ty fresh_var
                 fun expnd (c,gvs) = 
                   let val capp = list_comb(c,gvs)
@@ -234,7 +234,7 @@ fun mk_case ty_info ty_match FV range_ty =
      let val (pat_rectangle,rights) = ListPair.unzip rows
          val col0 = map(hd o #2) pat_rectangle
      in 
-     if (forall S.is_var col0) 
+     if (forall is_Free col0) 
      then let val rights' = map (fn(v,e) => psubst[v|->u] e)
                                 (ListPair.zip (col0, rights))
               val pat_rectangle' = map v_to_prefix pat_rectangle
@@ -285,11 +285,11 @@ fun FV_multiset tm =
 fun no_repeat_vars thy pat =
  let fun check [] = true
        | check (v::rst) =
-         if (U.mem S.aconv v rst) 
-         then raise TFL_ERR{func = "no_repeat_vars",
-             mesg = U.concat(U.quote(#Name(S.dest_var v)))
-                     (U.concat" occurs repeatedly in the pattern "
-                         (U.quote(S.Term_to_string (Thry.typecheck thy pat))))}
+         if mem_term (v,rst) then
+	    raise TFL_ERR{func = "no_repeat_vars",
+			  mesg = quote(#1(dest_Free v)) ^
+			  " occurs repeatedly in the pattern " ^
+			  quote (string_of_cterm (Thry.typecheck thy pat))}
          else check rst
  in check (FV_multiset pat)
  end;
@@ -308,7 +308,7 @@ fun mk_functional thy eqs =
                          clauses)
      val (funcs,pats) = ListPair.unzip(map (paired2 o S.dest_comb) L)
      val f = single (U.mk_set (S.aconv) funcs)
-     val fvar = if (S.is_var f) then f else S.mk_var(S.dest_const f)
+     val fvar = if (is_Free f) then f else S.mk_var(S.dest_const f)
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([],[x])) pats,
                               map GIVEN (enumerate R))
@@ -349,17 +349,29 @@ end end;
 local val f_eq_wfrec_R_M = 
            #ant(S.dest_imp(#2(S.strip_forall (concl Thms.WFREC_COROLLARY))))
       val {lhs=f, rhs} = S.dest_eq f_eq_wfrec_R_M
-      val fname = #Name(S.dest_var f)
+      val (fname,_) = dest_Free f
       val (wfrec,_) = S.strip_comb rhs
 in
-fun wfrec_definition0 thy R functional =
+fun wfrec_definition0 thy fid R functional =
  let val {Bvar,...} = S.dest_abs functional
-     val {Name, Ty} = S.dest_var Bvar  
-     val def_name = U.concat Name "_def"
+     val (Name, Ty) = dest_Free Bvar  
+     val def_name = if Name<>fid then 
+			raise TFL_ERR{func = "wfrec_definition0",
+				      mesg = "Expected a definition of " ^ 
+					     quote fid ^ " but found one of " ^
+				      quote Name}
+		    else Name ^ "_def"
      val (_,ty_theta) = Thry.match_term thy f (S.mk_var{Name=fname,Ty=Ty})
      val wfrec' = S.inst ty_theta wfrec
      val wfrec_R_M' = list_comb(wfrec',[R,functional])
      val def_term = HOLogic.mk_eq(Bvar, wfrec_R_M')
+(****************????????????????
+     val wfrec_R_M = wfrec $ R $ functional
+     val (_, def_term, _) = 
+	 Sign.infer_types (sign_of thy) (K None) (K None) [] false
+	           ([HOLogic.mk_eq(Bvar, wfrec_R_M)], HOLogic.boolT)
+		    
+****************)
   in 
   Thry.make_definition thy def_name def_term
   end
@@ -445,7 +457,7 @@ fun wfrec_eqns thy eqns =
      val given_pats = givens pats
      val {Bvar = f, Body} = S.dest_abs functional
      val {Bvar = x, ...} = S.dest_abs Body
-     val {Name, Ty = Type("fun", [f_dty, f_rty])} = S.dest_var f
+     val (Name, Type("fun", [f_dty, f_rty])) = dest_Free f
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
      val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
@@ -478,13 +490,13 @@ fun lazyR_def thy eqns =
  let val {proto_def,WFR,pats,extracta} = wfrec_eqns thy eqns
      val R1 = S.rand WFR
      val f = S.lhs proto_def
-     val {Name,...} = S.dest_var f
+     val (Name,_) = dest_Free f
      val (extractants,TCl) = ListPair.unzip extracta
      val TCs = foldr (gen_union (op aconv)) (TCl, [])
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
-     val (def,theory) = Thry.make_definition thy (U.concat Name "_def") 
+     val (def,theory) = Thry.make_definition thy (Name ^ "_def") 
                                                  (S.subst[R1 |-> R'] proto_def)
      val fconst = #lhs(S.dest_eq(concl def)) 
      val tych = Thry.typecheck theory
@@ -569,7 +581,7 @@ fun mk_case ty_info FV thy =
          val col0 = map hd pat_rectangle
          val pat_rectangle' = map tl pat_rectangle
      in 
-     if (forall S.is_var col0) (* column 0 is all variables *)
+     if (forall is_Free col0) (* column 0 is all variables *)
      then let val rights' = map (fn ((thm,theta),v) => (thm,theta@[u|->v]))
                                 (ListPair.zip (rights, col0))
           in mk{path = rstp, rows = ListPair.zip (pat_rectangle', rights')}

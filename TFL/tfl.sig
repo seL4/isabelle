@@ -20,7 +20,7 @@ sig
                        -> {functional:term,
                            pats: pattern list}
 
-   val wfrec_definition0 : theory -> term -> term -> thm * theory
+   val wfrec_definition0 : theory -> string -> term -> term -> thm * theory
 
    val post_definition : theory * (thm * pattern list)
                               -> {theory : theory,
