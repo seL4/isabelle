@@ -23,25 +23,25 @@ text {*
 consts
   times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<odot>" 70)
   invers :: "'a \<Rightarrow> 'a"    ("(_\<inv>)" [1000] 999)
-  one :: 'a    ("\<unit>")
+  one :: 'a    ("\<one>")
 
 text {*
   \noindent Next we define class @{text monoid} of monoids with
-  operations @{text \<odot>} and @{text \<unit>}.  Note that multiple class
+  operations @{text \<odot>} and @{text \<one>}.  Note that multiple class
   axioms are allowed for user convenience --- they simply represent
   the conjunction of their respective universal closures.
 *}
 
 axclass monoid \<subseteq> type
   assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
-  left_unit: "\<unit> \<odot> x = x"
-  right_unit: "x \<odot> \<unit> = x"
+  left_unit: "\<one> \<odot> x = x"
+  right_unit: "x \<odot> \<one> = x"
 
 text {*
   \noindent So class @{text monoid} contains exactly those types
-  @{text \<tau>} where @{text "\<odot> \<Colon> \<tau> \<Rightarrow> \<tau> \<Rightarrow> \<tau>"} and @{text "\<unit> \<Colon> \<tau>"}
+  @{text \<tau>} where @{text "\<odot> \<Colon> \<tau> \<Rightarrow> \<tau> \<Rightarrow> \<tau>"} and @{text "\<one> \<Colon> \<tau>"}
   are specified appropriately, such that @{text \<odot>} is associative and
-  @{text \<unit>} is a left and right unit element for the @{text \<odot>}
+  @{text \<one>} is a left and right unit element for the @{text \<odot>}
   operation.
 *}
 
@@ -56,8 +56,8 @@ axclass semigroup \<subseteq> type
   assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"
 
 axclass group \<subseteq> semigroup
-  left_unit: "\<unit> \<odot> x = x"
-  left_inverse: "x\<inv> \<odot> x = \<unit>"
+  left_unit: "\<one> \<odot> x = x"
+  left_inverse: "x\<inv> \<odot> x = \<one>"
 
 axclass agroup \<subseteq> group
   commute: "x \<odot> y = y \<odot> x"
@@ -91,23 +91,23 @@ text {*
   well-known laws of general groups.
 *}
 
-theorem group_right_inverse: "x \<odot> x\<inv> = (\<unit>\<Colon>'a\<Colon>group)"
+theorem group_right_inverse: "x \<odot> x\<inv> = (\<one>\<Colon>'a\<Colon>group)"
 proof -
-  have "x \<odot> x\<inv> = \<unit> \<odot> (x \<odot> x\<inv>)"
+  have "x \<odot> x\<inv> = \<one> \<odot> (x \<odot> x\<inv>)"
     by (simp only: group.left_unit)
-  also have "... = \<unit> \<odot> x \<odot> x\<inv>"
+  also have "... = \<one> \<odot> x \<odot> x\<inv>"
     by (simp only: semigroup.assoc)
   also have "... = (x\<inv>)\<inv> \<odot> x\<inv> \<odot> x \<odot> x\<inv>"
     by (simp only: group.left_inverse)
   also have "... = (x\<inv>)\<inv> \<odot> (x\<inv> \<odot> x) \<odot> x\<inv>"
     by (simp only: semigroup.assoc)
-  also have "... = (x\<inv>)\<inv> \<odot> \<unit> \<odot> x\<inv>"
+  also have "... = (x\<inv>)\<inv> \<odot> \<one> \<odot> x\<inv>"
     by (simp only: group.left_inverse)
-  also have "... = (x\<inv>)\<inv> \<odot> (\<unit> \<odot> x\<inv>)"
+  also have "... = (x\<inv>)\<inv> \<odot> (\<one> \<odot> x\<inv>)"
     by (simp only: semigroup.assoc)
   also have "... = (x\<inv>)\<inv> \<odot> x\<inv>"
     by (simp only: group.left_unit)
-  also have "... = \<unit>"
+  also have "... = \<one>"
     by (simp only: group.left_inverse)
   finally show ?thesis .
 qed
@@ -118,13 +118,13 @@ text {*
   much easier.
 *}
 
-theorem group_right_unit: "x \<odot> \<unit> = (x\<Colon>'a\<Colon>group)"
+theorem group_right_unit: "x \<odot> \<one> = (x\<Colon>'a\<Colon>group)"
 proof -
-  have "x \<odot> \<unit> = x \<odot> (x\<inv> \<odot> x)"
+  have "x \<odot> \<one> = x \<odot> (x\<inv> \<odot> x)"
     by (simp only: group.left_inverse)
   also have "... = x \<odot> x\<inv> \<odot> x"
     by (simp only: semigroup.assoc)
-  also have "... = \<unit> \<odot> x"
+  also have "... = \<one> \<odot> x"
     by (simp only: group_right_inverse)
   also have "... = x"
     by (simp only: group.left_unit)
@@ -193,9 +193,9 @@ proof
   fix x y z :: "'a\<Colon>group"
   show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
     by (rule semigroup.assoc)
-  show "\<unit> \<odot> x = x"
+  show "\<one> \<odot> x = x"
     by (rule group.left_unit)
-  show "x \<odot> \<unit> = x"
+  show "x \<odot> \<one> = x"
     by (rule group_right_unit)
 qed
 
@@ -227,13 +227,13 @@ text {*
 
   \medskip As a typical example, we show that type @{typ bool} with
   exclusive-or as @{text \<odot>} operation, identity as @{text \<inv>}, and
-  @{term False} as @{text \<unit>} forms an Abelian group.
+  @{term False} as @{text \<one>} forms an Abelian group.
 *}
 
 defs (overloaded)
   times_bool_def: "x \<odot> y \<equiv> x \<noteq> (y\<Colon>bool)"
   inverse_bool_def: "x\<inv> \<equiv> x\<Colon>bool"
-  unit_bool_def: "\<unit> \<equiv> False"
+  unit_bool_def: "\<one> \<equiv> False"
 
 text {*
   \medskip It is important to note that above $\DEFS$ are just
@@ -269,9 +269,9 @@ text {*
   \medskip We could now also instantiate our group theory classes to
   many other concrete types.  For example, @{text "int \<Colon> agroup"}
   (e.g.\ by defining @{text \<odot>} as addition, @{text \<inv>} as negation
-  and @{text \<unit>} as zero) or @{text "list \<Colon> (type) semigroup"}
+  and @{text \<one>} as zero) or @{text "list \<Colon> (type) semigroup"}
   (e.g.\ if @{text \<odot>} is defined as list append).  Thus, the
-  characteristic constants @{text \<odot>}, @{text \<inv>}, @{text \<unit>}
+  characteristic constants @{text \<odot>}, @{text \<inv>}, @{text \<one>}
   really become overloaded, i.e.\ have different meanings on different
   types.
 *}

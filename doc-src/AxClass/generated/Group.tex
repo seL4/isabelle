@@ -30,25 +30,25 @@ First we declare some polymorphic constants required later for the
 \isacommand{consts}\isanewline
 \ \ times\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isasymodot}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
 \ \ invers\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}{\isasyminv}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
-\ \ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymunit}{\isachardoublequote}{\isacharparenright}\isamarkupfalse%
+\ \ one\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ \ \ \ {\isacharparenleft}{\isachardoublequote}{\isasymone}{\isachardoublequote}{\isacharparenright}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent Next we define class \isa{monoid} of monoids with
-  operations \isa{{\isasymodot}} and \isa{{\isasymunit}}.  Note that multiple class
+  operations \isa{{\isasymodot}} and \isa{{\isasymone}}.  Note that multiple class
   axioms are allowed for user convenience --- they simply represent
   the conjunction of their respective universal closures.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{axclass}\ monoid\ {\isasymsubseteq}\ type\isanewline
 \ \ assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymodot}\ y{\isacharparenright}\ {\isasymodot}\ z\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}y\ {\isasymodot}\ z{\isacharparenright}{\isachardoublequote}\isanewline
-\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymunit}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\ \ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymunit}\ {\isacharequal}\ x{\isachardoublequote}\isamarkupfalse%
+\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\ \ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \noindent So class \isa{monoid} contains exactly those types
-  \isa{{\isasymtau}} where \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} and \isa{{\isasymunit}\ {\isasymColon}\ {\isasymtau}}
+  \isa{{\isasymtau}} where \isa{{\isasymodot}\ {\isasymColon}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}} and \isa{{\isasymone}\ {\isasymColon}\ {\isasymtau}}
   are specified appropriately, such that \isa{{\isasymodot}} is associative and
-  \isa{{\isasymunit}} is a left and right unit element for the \isa{{\isasymodot}}
+  \isa{{\isasymone}} is a left and right unit element for the \isa{{\isasymodot}}
   operation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -65,8 +65,8 @@ First we declare some polymorphic constants required later for the
 \isanewline
 \isamarkupfalse%
 \isacommand{axclass}\ group\ {\isasymsubseteq}\ semigroup\isanewline
-\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymunit}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
-\ \ left{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymodot}\ x\ {\isacharequal}\ {\isasymunit}{\isachardoublequote}\isanewline
+\ \ left{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\ \ left{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymodot}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequote}\isanewline
 \isanewline
 \isamarkupfalse%
 \isacommand{axclass}\ agroup\ {\isasymsubseteq}\ group\isanewline
@@ -98,16 +98,16 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
   well-known laws of general groups.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isacharparenleft}{\isasymunit}{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isacharparenleft}{\isasymone}{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{proof}\ {\isacharminus}\isanewline
 \ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isasymunit}\ {\isasymodot}\ {\isacharparenleft}x\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{have}\ {\isachardoublequote}x\ {\isasymodot}\ x{\isasyminv}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ {\isacharparenleft}x\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
 \isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymunit}\ {\isasymodot}\ x\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
+\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ x\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
@@ -122,12 +122,12 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
 \isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isasymunit}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
+\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isasymone}\ {\isasymodot}\ x{\isasyminv}{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
 \isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isacharparenleft}{\isasymunit}\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminv}{\isacharparenright}{\isasyminv}\ {\isasymodot}\ {\isacharparenleft}{\isasymone}\ {\isasymodot}\ x{\isasyminv}{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
@@ -137,7 +137,7 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
 \isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymunit}{\isachardoublequote}\isanewline
+\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
@@ -152,11 +152,11 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
   much easier.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymunit}\ {\isacharequal}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{theorem}\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isasymColon}group{\isacharparenright}{\isachardoublequote}\isanewline
 \isamarkupfalse%
 \isacommand{proof}\ {\isacharminus}\isanewline
 \ \ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymunit}\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}x{\isasyminv}\ {\isasymodot}\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\isacommand{have}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x\ {\isasymodot}\ {\isacharparenleft}x{\isasyminv}\ {\isasymodot}\ x{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isachardot}left{\isacharunderscore}inverse{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
@@ -166,7 +166,7 @@ In a sense, axiomatic type classes may be viewed as \emph{abstract
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
 \isacommand{also}\ \isamarkupfalse%
-\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymunit}\ {\isasymodot}\ x{\isachardoublequote}\isanewline
+\isacommand{have}\ {\isachardoublequote}{\isachardot}{\isachardot}{\isachardot}\ {\isacharequal}\ {\isasymone}\ {\isasymodot}\ x{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}simp\ only{\isacharcolon}\ group{\isacharunderscore}right{\isacharunderscore}inverse{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
@@ -251,11 +251,11 @@ From the definition, the \isa{monoid} and \isa{group} classes
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}rule\ semigroup{\isachardot}assoc{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}{\isasymunit}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\isacommand{show}\ {\isachardoublequote}{\isasymone}\ {\isasymodot}\ x\ {\isacharequal}\ x{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}rule\ group{\isachardot}left{\isacharunderscore}unit{\isacharparenright}\isanewline
 \ \ \isamarkupfalse%
-\isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymunit}\ {\isacharequal}\ x{\isachardoublequote}\isanewline
+\isacommand{show}\ {\isachardoublequote}x\ {\isasymodot}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequote}\isanewline
 \ \ \ \ \isamarkupfalse%
 \isacommand{by}\ {\isacharparenleft}rule\ group{\isacharunderscore}right{\isacharunderscore}unit{\isacharparenright}\isanewline
 \isamarkupfalse%
@@ -289,13 +289,13 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
 
   \medskip As a typical example, we show that type \isa{bool} with
   exclusive-or as \isa{{\isasymodot}} operation, identity as \isa{{\isasyminv}}, and
-  \isa{False} as \isa{{\isasymunit}} forms an Abelian group.%
+  \isa{False} as \isa{{\isasymone}} forms an Abelian group.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{defs}\ {\isacharparenleft}\isakeyword{overloaded}{\isacharparenright}\isanewline
 \ \ times{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x\ {\isasymodot}\ y\ {\isasymequiv}\ x\ {\isasymnoteq}\ {\isacharparenleft}y{\isasymColon}bool{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ inverse{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}x{\isasyminv}\ {\isasymequiv}\ x{\isasymColon}bool{\isachardoublequote}\isanewline
-\ \ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}{\isasymunit}\ {\isasymequiv}\ False{\isachardoublequote}\isamarkupfalse%
+\ \ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequote}{\isasymone}\ {\isasymequiv}\ False{\isachardoublequote}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
 \medskip It is important to note that above $\DEFS$ are just
@@ -342,9 +342,9 @@ The result of an $\INSTANCE$ statement is both expressed as a
   \medskip We could now also instantiate our group theory classes to
   many other concrete types.  For example, \isa{int\ {\isasymColon}\ agroup}
   (e.g.\ by defining \isa{{\isasymodot}} as addition, \isa{{\isasyminv}} as negation
-  and \isa{{\isasymunit}} as zero) or \isa{list\ {\isasymColon}\ {\isacharparenleft}type{\isacharparenright}\ semigroup}
+  and \isa{{\isasymone}} as zero) or \isa{list\ {\isasymColon}\ {\isacharparenleft}type{\isacharparenright}\ semigroup}
   (e.g.\ if \isa{{\isasymodot}} is defined as list append).  Thus, the
-  characteristic constants \isa{{\isasymodot}}, \isa{{\isasyminv}}, \isa{{\isasymunit}}
+  characteristic constants \isa{{\isasymodot}}, \isa{{\isasyminv}}, \isa{{\isasymone}}
   really become overloaded, i.e.\ have different meanings on different
   types.%
 \end{isamarkuptext}%
