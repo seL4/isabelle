@@ -48,6 +48,7 @@ recdef ack "measure(\<lambda>m. m) <*lex*> measure(\<lambda>n. n)"
 subsubsection{*Induction*}
 
 lemma "map f (sep(x,xs)) = sep(f x, map f xs)"
+thm sep.induct
 apply(induct_tac x xs rule: sep.induct)
 apply simp_all
 done

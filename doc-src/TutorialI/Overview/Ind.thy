@@ -88,8 +88,16 @@ consts
   acc :: "('a \<times> 'a) set \<Rightarrow> 'a set"
 inductive "acc r"
 intros
-  "(\<forall>y. (x,y) \<in> r \<longrightarrow> y \<in> acc r) \<Longrightarrow> x \<in> acc r"
+  "(\<forall>y. (y,x) \<in> r \<longrightarrow> y \<in> acc r) \<Longrightarrow> x \<in> acc r"
 
+lemma "wf{(x,y). (x,y) \<in> r \<and> y \<in> acc r}"
+thm wfI
+apply(rule_tac A = "acc r" in wfI)
+ apply (blast elim:acc.elims)
+apply(simp(no_asm_use))
+thm acc.induct
+apply(erule acc.induct)
+by blast
 
 consts
   accs :: "('a \<times> 'a) set \<Rightarrow> 'a set"
