@@ -118,6 +118,8 @@ fi
 if [ "$ISAMAKEFILE" != - -a -f "$ISAMAKEFILE" ]; then
   echo "keeping $DIR/$ISAMAKEFILE" >&2
 else
+  [ -z "$QUIET" -a -n "$ISAMAKEFILE" -a "$ISAMAKEFILE" != - ] && \
+    echo "creating $DIR/$ISAMAKEFILE" >&2
   { echo
     echo "## targets"
     echo
@@ -183,6 +185,7 @@ fi
 if [ -f ROOT.ML ]; then
   echo "keeping $PREFIX/ROOT.ML" >&2
 else
+  [ -z "$QUIET" ] && echo "creating $PREFIX/ROOT.ML" >&2
   cat >ROOT.ML <<EOF
 (*
   no_document use_thy "ThisTheory";
@@ -200,9 +203,12 @@ AUTO_PERL=perl
 if [ -e document ]; then
   echo "keeping $PREFIX/document" >&2
 else
+  [ -z "$QUIET" ] && echo "creating $PREFIX/document" >&2
   mkdir document || fail "Bad directory: $PREFIX/document"
+
+  [ -z "$QUIET" ] && echo "creating $PREFIX/document/root.tex" >&2
   TITLE=$(echo "$NAME" | tr _ -)
-  AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[5]" | tr _ -)
+  AUTHOR=$("$AUTO_PERL" -e "@pw = getpwnam(\"$USER\"); print @pw[-3]" | tr _ -)
   cat >document/root.tex <<EOF
 
 \documentclass[11pt,a4paper]{article}
@@ -249,19 +255,17 @@ fi
 # notes
 
 if [ -z "$QUIET" ]; then
-
-cat >&2 <<EOF
+  cat >&2 <<EOF
 
 Notes:
 
   * 'isatool make' processes the session (including document preparation)
 
+  * $DIR/IsaMakefile contains compilation options and file dependencies
+
   * $PREFIX/ROOT.ML needs to contain ML code to load all theories
 
   * $PREFIX/document/root.tex contains the LaTeX master document setup
 
-  * $DIR/IsaMakefile contains compilation options and file dependencies
-
 EOF
-
 fi
