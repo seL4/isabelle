@@ -7,3 +7,4 @@
 HOL_build_completed;	(*Make examples fail if HOL did*)
 
 use_thy "Examples";
+use_thy "List_Examples";
