@@ -11,7 +11,7 @@
 
 
 ## global settings
-MAILTO="kleing@in.tum.de nipkow@in.tum.de wenzelm@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
+MAILTO="kleing@in.tum.de nipkow@in.tum.de berghofe@in.tum.de schirmer@in.tum.de lp15@cam.ac.uk"
 
 TMP=/tmp/isatest-makedist.$$
 MAIL=~/bin/pmail
@@ -24,7 +24,7 @@ MAKEALL=~/bin/isatest-makeall
 TAR=gtar
 
 SUN=sunbroy2
-AT=atbroy37
+AT=atbroy51
 
 SSH="ssh -f"
 
