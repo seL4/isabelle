@@ -71,7 +71,10 @@ apply (cut_tac M_subset_calM M1_in_M)
 apply (simp add: calM_def, blast)
 done
 
-lemma (in sylow_central) exists_x_in_M1: "\<exists>x. x\<in>M1"
+lemma card_nonempty: "0 < card(S) ==> S \<noteq> {}"
+by force
+
+lemma (in sylow_central) exists_x_in_M1: "\<exists>x. x\<in>M1" 
 apply (subgoal_tac "0 < card M1") 
  apply (blast dest: card_nonempty) 
 apply (cut_tac prime_p [THEN prime_imp_one_less])

@@ -96,7 +96,7 @@ apply (simp add: r_coset_eq)
 apply (blast intro: left_zero subgroup_zero_closed)
 done
 
-text{*FIXME: locales don't currently work with @{text rule_tac}, so we
+text{*Locales don't currently work with @{text rule_tac}, so we
 must prove this lemma separately.*}
 lemma (in coset) solve_equation:
     "\<lbrakk>subgroup H G; x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> \<exists>h\<in>H. h \<oplus> x = y"
@@ -217,27 +217,52 @@ done
 
 (* set of inverses of an r_coset *)
 lemma (in coset) rcos_minus:
+  assumes normalHG: "H <| G"
+      and xinG:     "x \<in> carrier G"
+  shows "set_minus G (H #> x) = H #> (\<ominus>x)"
+proof -
+  have H_subset: "H <= carrier G" 
+    by (rule subgroup_imp_subset [OF normal_imp_subgroup, OF normalHG])
+  show ?thesis
+  proof (auto simp add: r_coset_eq image_def set_minus_def)
+    fix h
+    assume "h \<in> H"
+      hence "((\<ominus>x) \<oplus> (\<ominus>h) \<oplus> x) \<oplus> \<ominus>x = \<ominus>(h \<oplus> x)"
+	by (simp add: xinG sum_assoc minus_sum H_subset [THEN subsetD])
+      thus "\<exists>ha\<in>H. ha \<oplus> \<ominus>x = \<ominus>(h \<oplus> x)" 
+       using prems
+	by (blast intro: normal_minus_op_closed1 normal_imp_subgroup 
+			 subgroup_minus_closed)
+  next
+    fix h
+    assume "h \<in> H"
+      hence eq: "(x \<oplus> (\<ominus>h) \<oplus> (\<ominus>x)) \<oplus> x = x \<oplus> \<ominus>h"
+        by (simp add: xinG sum_assoc H_subset [THEN subsetD])
+      hence "(\<exists>j\<in>H. j \<oplus> x = \<ominus> (h \<oplus> (\<ominus>x))) \<and> h \<oplus> \<ominus>x = \<ominus>(\<ominus>(h \<oplus> (\<ominus>x)))"
+       using prems
+	by (simp add: sum_assoc minus_sum H_subset [THEN subsetD],
+            blast intro: eq normal_minus_op_closed2 normal_imp_subgroup 
+			 subgroup_minus_closed)
+      thus "\<exists>y. (\<exists>h\<in>H. h \<oplus> x = y) \<and> h \<oplus> \<ominus>x = \<ominus>y" ..
+  qed
+qed
+
+(*The old proof is something like this, but the rule_tac calls make
+illegal references to implicit structures.
+lemma (in coset) rcos_minus:
      "[| H <| G; x \<in> carrier G |] ==> set_minus G (H #> x) = H #> (\<ominus>x)"
 apply (frule normal_imp_subgroup)
 apply (auto simp add: r_coset_eq image_def set_minus_def)
-(*FIXME: I can't say
 apply (rule_tac x = "(\<ominus>x) \<oplus> (\<ominus>h) \<oplus> x" in bexI)
-*)
-apply (rule rev_bexI [OF normal_minus_op_closed1 [of concl: x]])
-apply (rule_tac [3] subgroup_minus_closed, assumption+)
 apply (simp add: sum_assoc minus_sum subgroup_imp_subset [THEN subsetD])
-(*FIXME: I can't say
+apply (simp add: subgroup_minus_closed, assumption+)
 apply (rule_tac x = "\<ominus> (h \<oplus> (\<ominus>x)) " in exI)
-*)
-apply (rule_tac x = "gminus G (sum G h (gminus G x))" in exI)
 apply (simp add: minus_sum subgroup_imp_subset [THEN subsetD])
-(*FIXME: I can't say
 apply (rule_tac x = "x \<oplus> (\<ominus>h) \<oplus> (\<ominus>x)" in bexI)
-*)
-apply (rule_tac x = "sum G (sum G x (gminus G h)) (gminus G x)" in bexI)
 apply (simp add: sum_assoc subgroup_imp_subset [THEN subsetD])
 apply (simp add: normal_minus_op_closed2 subgroup_minus_closed)
 done
+*)
 
 lemma (in coset) rcos_minus2:
      "[| H <| G; K \<in> rcosets G H; x \<in> K |] ==> set_minus G K = H #> (\<ominus>x)"
@@ -263,15 +288,10 @@ done
 lemma (in coset) rcos_assoc_lcos:
      "[| H <= carrier G; K <= carrier G; x \<in> carrier G |] 
       ==> (H #> x) <#> K = H <#> (x <# K)"
-apply (auto simp add: rcos_def r_coset_def lcos_def l_coset_def
+apply (auto simp add: rcos_def r_coset_def lcos_def l_coset_def 
                       setsum_def set_sum_def Sigma_def image_def)
-apply (force simp add: sum_assoc)+
+apply (force intro!: exI bexI simp add: sum_assoc)+
 done
-
-
-(* sumuct of rcosets *)
-(* To show H x H y = H x y. which is done by
-   H x H y =1= H (x H) y =2= H (H x) y =3= H H x y =4= H x y *)
 
 lemma (in coset) rcos_sum_step1:
      "[| H <| G; x \<in> carrier G; y \<in> carrier G |] 
@@ -302,11 +322,12 @@ by (auto simp add: setrcos_eq normal_imp_subgroup subgroup_imp_subset
                    setsum_rcos_assoc subgroup_sum_id)
 
 
-subsection{*Theorems Necessary for Lagrange*}
+subsection{*Lemmas Leading to Lagrange's Theorem*}
 
 lemma (in coset) setrcos_part_G: "subgroup H G ==> \<Union> rcosets G H = carrier G"
 apply (rule equalityI)
-apply (force simp add: subgroup_imp_subset [THEN subsetD] setrcos_eq r_coset_eq)
+apply (force simp add: subgroup_imp_subset [THEN subsetD] 
+                       setrcos_eq r_coset_eq)
 apply (auto simp add: setrcos_eq subgroup_imp_subset rcos_self)
 done
 
@@ -317,7 +338,8 @@ apply (simp (no_asm_simp) add: r_coset_subset_G [THEN finite_subset])
 done
 
 lemma (in coset) card_cosets_equal:
-     "[| c \<in> rcosets G H;  H <= carrier G; finite(carrier G) |] ==> card c = card H"
+     "[| c \<in> rcosets G H;  H <= carrier G; finite(carrier G) |] 
+      ==> card c = card H"
 apply (auto simp add: setrcos_eq)
 (*FIXME: I can't say
 apply (rule_tac f = "%y. y \<oplus> (\<ominus>a)" and g = "%y. y \<oplus> a" in card_bij_eq)

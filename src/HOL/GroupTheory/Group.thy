@@ -95,13 +95,13 @@ apply (blast dest: funcset_mem)
 done
 
 lemma (in group) left_cancellation:
-  assumes eq: "x \<oplus> y  =  x \<oplus> z"
-      and inG: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G" 
+  assumes "x \<oplus> y  =  x \<oplus> z"
+          "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G" 
   shows "y = z"
 proof -
   have "((\<ominus>x) \<oplus> x) \<oplus> y = ((\<ominus>x) \<oplus> x) \<oplus> z" 
-        by (simp only: eq inG minus_closed sum_assoc) 
-  then show ?thesis by (simp only: inG left_minus left_zero) 
+        by (simp only: prems minus_closed sum_assoc) 
+  thus ?thesis by (simp add: prems) 
 qed
 
 lemma (in group) left_cancellation_iff [simp]:

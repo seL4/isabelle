@@ -40,9 +40,6 @@ apply (rule mult_1_right)
 apply (rule mult_le_mono, auto)
 done
 
-lemma card_nonempty: "0 < card(S) ==> S \<noteq> {}"
-by (force simp add: card_empty)
-
 lemma insert_partition:
      "[| x \<notin> F; \<forall>c1\<in>insert x F. \<forall>c2 \<in> insert x F. c1 \<noteq> c2 --> c1 \<inter> c2 = {}|] 
       ==> x \<inter> \<Union> F = {}"
