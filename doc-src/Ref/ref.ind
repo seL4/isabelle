@@ -56,7 +56,7 @@
   \item {\tt addSIs}, \bold{135}
   \item {\tt addSolver}, \bold{113}
   \item {\tt Addsplits}, \bold{107}
-  \item {\tt addsplits}, 115, \bold{115}
+  \item {\tt addsplits}, \bold{115}
   \item {\tt addss}, \bold{137}, 138
   \item {\tt addSSolver}, \bold{113}
   \item {\tt addSWrapper}, \bold{137}
@@ -685,7 +685,7 @@
   \item {\tt SOMEGOAL}, \bold{37}
   \item {\tt sort} nonterminal, \bold{72}
   \item sort constraints, 71
-  \item sort hypotheses, 44
+  \item sort hypotheses, 44, 46
   \item sorts
     \subitem printing of, 4
   \item {\tt ssubst} theorem, \bold{101}
