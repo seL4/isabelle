@@ -41,3 +41,19 @@ by (thin_tac "(?c,s1) -[ev]-> s2" 5);
 (*SLOW (23s) due to proof reconstruction; needs 60s if thin_tac is omitted*)
 by (REPEAT (blast_tac (!claset addEs [exec_WHILE_case]) 1));
 qed "Function_exec";
+
+
+goalw thy [assign_def] "(s[v/x])x = v";
+by (Simp_tac 1);
+qed "assign_same";
+
+goalw thy [assign_def] "!!y. y~=x ==> (s[v/x])y = s y";
+by (Asm_simp_tac 1);
+qed "assign_different";
+
+goalw thy [assign_def] "s[s x/x] = s";
+br ext 1;
+by (simp_tac (!simpset setloop split_tac[expand_if]) 1);
+qed "assign_triv";
+
+Addsimps [assign_same, assign_different, assign_triv];
