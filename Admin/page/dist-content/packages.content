@@ -20,8 +20,8 @@ interface support, as provided by <a
 href="http://www.proofgeneral.org">Proof General</a> (please <a
 href="http://www.proofgeneral.org/register">register</a>) together
 with the (optional) <a
-href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">X-Symbol</a>
-package.  Both of these should be used with a recent version of <a
+href="http://x-symbol.sourceforge.net">X-Symbol</a> package.  Both of
+these should be used with a recent version of <a
 href="http://www.xemacs.org">XEmacs-21</a> (preferably with MULE).
 
 <p>
