@@ -521,118 +521,11 @@ lemma real_of_nat_neg_int [simp]: "neg z ==> real (nat z) = 0"
 by (simp add: neg_nat real_of_nat_zero)
 
 
-subsection{*Results About @{term real_of_posnat}: to be Deleted*}
-
-lemma real_of_posnat_gt_zero: "0 < real_of_posnat n"
-apply (unfold real_of_posnat_def)
-apply (rule real_gt_zero_preal_Ex [THEN iffD2], blast)
-done
-
-declare real_of_posnat_gt_zero [simp]
-
-lemmas real_inv_real_of_posnat_gt_zero =  real_of_posnat_gt_zero [THEN real_inverse_gt_0, standard]
-declare real_inv_real_of_posnat_gt_zero [simp]
-
-lemmas real_of_posnat_ge_zero = real_of_posnat_gt_zero [THEN order_less_imp_le, standard]
-declare real_of_posnat_ge_zero [simp]
-
-lemma real_of_posnat_not_eq_zero: "real_of_posnat n ~= 0"
-by (rule real_of_posnat_gt_zero [THEN real_not_refl2, THEN not_sym])
-declare real_of_posnat_not_eq_zero [simp]
-
-declare real_of_posnat_not_eq_zero [THEN real_mult_inv_left, simp]
-declare real_of_posnat_not_eq_zero [THEN real_mult_inv_right, simp]
-
-lemma real_of_posnat_ge_one: "1 <= real_of_posnat n"
-apply (simp (no_asm) add: real_of_posnat_one [symmetric])
-apply (induct_tac "n", simp) 
-apply (simp add: real_of_posnat_Suc real_of_posnat_one order_less_imp_le)
-apply (rule add_le_cancel_right [THEN iffD1, of _ "- 1"]) 
-apply (simp add: add_assoc) 
-done
-declare real_of_posnat_ge_one [simp]
-
-lemma real_of_posnat_real_inv_not_zero: "inverse(real_of_posnat n) ~= 0"
-apply (rule real_inverse_not_zero) 
-apply (rule real_of_posnat_gt_zero [THEN real_not_refl2, THEN not_sym])
-done
-declare real_of_posnat_real_inv_not_zero [simp]
-
-lemma real_of_posnat_real_inv_inj: "inverse(real_of_posnat x) = inverse(real_of_posnat y) ==> x = y"
-apply (rule inj_real_of_posnat [THEN injD])
-apply (rule real_of_posnat_real_inv_not_zero
-              [THEN real_mult_left_cancel, THEN iffD1, of x])
-apply (simp add: real_mult_inv_left
-             real_of_posnat_gt_zero [THEN real_not_refl2, THEN not_sym])
-done
-
-lemma real_mult_less_self: "0 < r ==> r*(1 + -inverse(real_of_posnat n)) < r"
-apply (simp (no_asm) add: real_add_mult_distrib2)
-apply (rule_tac C = "-r" in real_less_add_left_cancel)
-apply (auto intro: real_mult_order simp add: real_add_assoc [symmetric] real_minus_zero_less_iff2)
-done
-
-lemma real_of_posnat_inv_Ex_iff: "(EX n. inverse(real_of_posnat n) < r) = (EX n. 1 < r * real_of_posnat n)"
-apply safe
-apply (drule_tac n1 = n in real_of_posnat_gt_zero [THEN real_mult_less_mono1])
-apply (drule_tac [2] n2=n in real_of_posnat_gt_zero [THEN real_inverse_gt_0, THEN real_mult_less_mono1])
-apply (auto simp add: real_of_posnat_gt_zero [THEN real_not_refl2, THEN not_sym] real_mult_assoc)
-done
-
-lemma real_of_posnat_inv_iff: "(inverse(real_of_posnat n) < r) = (1 < r * real_of_posnat n)"
-apply safe
-apply (drule_tac n1 = n in real_of_posnat_gt_zero [THEN real_mult_less_mono1])
-apply (drule_tac [2] n2=n in real_of_posnat_gt_zero [THEN real_inverse_gt_0, THEN real_mult_less_mono1]) 
-apply (auto simp add: real_mult_assoc)
-done
-
 lemma real_mult_le_le_mono1: "[| (0::real) <=z; x<=y |] ==> z*x<=z*y"
   by (rule Ring_and_Field.mult_left_mono)
 
 lemma real_mult_le_le_mono2: "[| (0::real)<=z; x<=y |] ==> x*z<=y*z"
   by (rule Ring_and_Field.mult_right_mono)
-
-lemma real_of_posnat_inv_le_iff: "(inverse(real_of_posnat n) <= r) = (1 <= r * real_of_posnat n)"
-apply safe
-apply (drule_tac n2=n in real_of_posnat_gt_zero [THEN order_less_imp_le, THEN real_mult_le_le_mono1])
-apply (drule_tac [2] n3=n in real_of_posnat_gt_zero [THEN real_inverse_gt_0, THEN order_less_imp_le, THEN real_mult_le_le_mono1])
-apply (auto simp add: real_mult_ac)
-done
-
-lemma real_of_posnat_less_iff: 
-      "(real_of_posnat n < real_of_posnat m) = (n < m)"
-apply (unfold real_of_posnat_def, auto)
-done
-declare real_of_posnat_less_iff [simp]
-
-lemma real_of_posnat_le_iff: "(real_of_posnat n <= real_of_posnat m) = (n <= m)"
-by (auto dest: inj_real_of_posnat [THEN injD] simp add: real_le_less le_eq_less_or_eq)
-declare real_of_posnat_le_iff [simp]
-
-lemma real_mult_less_cancel3: "[| (0::real)<z; x*z<y*z |] ==> x<y"
-by auto
-
-lemma real_mult_less_cancel4: "[| (0::real)<z; z*x<z*y |] ==> x<y"
-  by (force elim: order_less_asym
-            simp add: Ring_and_Field.mult_less_cancel_left)
-
-lemma real_of_posnat_less_inv_iff: "0 < u  ==> (u < inverse (real_of_posnat n)) = (real_of_posnat n < inverse(u))"
-apply safe
-apply (rule_tac n2=n in real_of_posnat_gt_zero [THEN real_inverse_gt_0, THEN real_mult_less_cancel3])
-apply (rule_tac [2] x1 = u in real_inverse_gt_0 [THEN real_mult_less_cancel3])
-apply (auto simp add: real_not_refl2 [THEN not_sym])
-apply (rule_tac z = u in real_mult_less_cancel4)
-apply (rule_tac [3] n1 = n in real_of_posnat_gt_zero [THEN real_mult_less_cancel4])
-apply (auto simp add: real_not_refl2 [THEN not_sym] real_mult_assoc [symmetric])
-done
-
-lemma real_of_posnat_inv_eq_iff: "0 < u ==> (u = inverse(real_of_posnat n)) = (real_of_posnat n = inverse u)"
-by auto
-
-lemma real_add_one_minus_inv_ge_zero: "0 <= 1 + -inverse(real_of_posnat n)"
-apply (rule_tac C = "inverse (real_of_posnat n) " in real_le_add_right_cancel)
-apply (simp (no_asm) add: real_add_assoc real_of_posnat_inv_le_iff)
-done
 
 (*Used just below and in HahnBanach/Aux.thy*)
 lemma real_mult_le_less_mono1: "[| (0::real) \<le> z; x < y |] ==> x*z \<le> y*z"
@@ -640,9 +533,6 @@ apply (rule real_less_or_eq_imp_le)
 apply (drule order_le_imp_less_or_eq)
 apply (auto intro: real_mult_less_mono1)
 done
-
-lemma real_mult_add_one_minus_ge_zero: "0 < r ==> 0 <= r*(1 + -inverse(real_of_posnat n))"
-by (drule real_add_one_minus_inv_ge_zero [THEN real_mult_le_less_mono1], auto)
 
 lemma real_inverse_unique: "x*y = (1::real) ==> y = inverse x"
 apply (case_tac "x ~= 0")
@@ -857,25 +747,8 @@ val real_of_nat_diff = thm "real_of_nat_diff";
 val real_of_nat_zero_iff = thm "real_of_nat_zero_iff";
 val real_of_nat_neg_int = thm "real_of_nat_neg_int";
 
-val real_of_posnat_gt_zero = thm "real_of_posnat_gt_zero";
-val real_inv_real_of_posnat_gt_zero = thm "real_inv_real_of_posnat_gt_zero";
-val real_of_posnat_ge_zero = thm "real_of_posnat_ge_zero";
-val real_of_posnat_not_eq_zero = thm "real_of_posnat_not_eq_zero";
-val real_of_posnat_ge_one = thm "real_of_posnat_ge_one";
-val real_of_posnat_real_inv_not_zero = thm "real_of_posnat_real_inv_not_zero";
-val real_of_posnat_real_inv_inj = thm "real_of_posnat_real_inv_inj";
-val real_mult_less_self = thm "real_mult_less_self";
-val real_of_posnat_inv_Ex_iff = thm "real_of_posnat_inv_Ex_iff";
-val real_of_posnat_inv_iff = thm "real_of_posnat_inv_iff";
 val real_mult_le_le_mono1 = thm "real_mult_le_le_mono1";
 val real_mult_le_le_mono2 = thm "real_mult_le_le_mono2";
-val real_of_posnat_inv_le_iff = thm "real_of_posnat_inv_le_iff";
-val real_of_posnat_less_iff = thm "real_of_posnat_less_iff";
-val real_of_posnat_le_iff = thm "real_of_posnat_le_iff";
-val real_of_posnat_less_inv_iff = thm "real_of_posnat_less_inv_iff";
-val real_of_posnat_inv_eq_iff = thm "real_of_posnat_inv_eq_iff";
-val real_add_one_minus_inv_ge_zero = thm "real_add_one_minus_inv_ge_zero";
-val real_mult_add_one_minus_ge_zero = thm "real_mult_add_one_minus_ge_zero";
 val real_inverse_unique = thm "real_inverse_unique";
 val real_inverse_gt_one = thm "real_inverse_gt_one";
 val real_of_nat_gt_zero_cancel_iff = thm "real_of_nat_gt_zero_cancel_iff";

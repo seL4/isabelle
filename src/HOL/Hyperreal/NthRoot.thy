@@ -76,7 +76,7 @@ apply (frule lemma_nth_realpow_seq , safe)
 apply (auto elim: real_less_asym simp add: real_le_def)
 apply (simp add: real_le_def [symmetric])
 apply (rule order_less_trans [of _ 0])
-apply (auto intro: real_inv_real_of_posnat_gt_zero lemma_nth_realpow_isLub_gt_zero)
+apply (auto intro: lemma_nth_realpow_isLub_gt_zero)
 done
 
 text{*First result we want*}
@@ -108,9 +108,21 @@ apply (rule setleI [THEN isUbI])
 apply (auto simp add: real_le_def)
 done
 
+lemma real_mult_less_self: "0 < r ==> r * (1 + -inverse(real (Suc n))) < r"
+apply (simp (no_asm) add: real_add_mult_distrib2)
+apply (rule_tac C = "-r" in real_less_add_left_cancel)
+apply (auto intro: real_mult_order simp add: real_add_assoc [symmetric] real_minus_zero_less_iff2)
+done
+
+lemma real_mult_add_one_minus_ge_zero:
+     "0 < r ==>  0 <= r*(1 + -inverse(real (Suc n)))"
+apply (simp add: zero_le_mult_iff real_of_nat_inverse_le_iff) 
+apply (simp add: RealOrd.real_of_nat_Suc) 
+done
+
 lemma lemma_nth_realpow_isLub_le:
      "[| isLub (UNIV::real set) {x. x ^ n <= a & (0::real) < x} u;  
-       0 < a; 0 < n |] ==> ALL k. (u*(1 + -inverse(real_of_posnat k))) ^ n <= a"
+       0 < a; 0 < n |] ==> ALL k. (u*(1 + -inverse(real (Suc k)))) ^ n <= a"
 apply (safe)
 apply (frule less_isLub_not_isUb [THEN not_isUb_less_ex])
 apply (rule_tac n = "k" in real_mult_less_self)
