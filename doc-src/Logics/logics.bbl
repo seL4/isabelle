@@ -157,14 +157,6 @@ Lawrence~C. Paulson.
 \newblock {\em Logic and Computation: Interactive proof with Cambridge LCF}.
 \newblock Cambridge University Press, 1987.
 
-\bibitem{paulson-coind}
-Lawrence~C. Paulson.
-\newblock Co-induction and co-recursion in higher-order logic.
-\newblock Technical Report 304, Computer Laboratory, University of Cambridge,
-  July 1993.
-\newblock To appear in the Festscrift for Alonzo Church, edited by A. Anderson
-  and M. Zeleny.
-
 \bibitem{paulson-set-I}
 Lawrence~C. Paulson.
 \newblock Set theory for verification: {I}. {From} foundations to functions.
@@ -181,6 +173,12 @@ Lawrence~C. Paulson.
 Lawrence~C. Paulson.
 \newblock Set theory for verification: {II}. {Induction} and recursion.
 \newblock {\em Journal of Automated Reasoning}, 15(2):167--215, 1995.
+
+\bibitem{paulson-coind}
+Lawrence~C. Paulson.
+\newblock Mechanizing coinduction and corecursion in higher-order logic.
+\newblock {\em Journal of Logic and Computation}, 1996.
+\newblock In press.
 
 \bibitem{paulson-COLOG}
 Lawrence~C. Paulson.

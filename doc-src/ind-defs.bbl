@@ -92,7 +92,9 @@ Monahan, B.~Q.,
 \bibitem{nipkow-CR}
 Nipkow, T.,
 \newblock More {Church-Rosser} proofs (in {Isabelle/HOL}),
-\newblock Tech. rep., T. U. Munich, 1996
+\newblock In {\em Automated Deduction --- {CADE}-13\/} (1996), M.~McRobbie,
+  J.~Slaney, Eds., LNAI, Springer, p.~?,
+\newblock in press
 
 \bibitem{paulin92}
 Paulin-Mohring, C.,
