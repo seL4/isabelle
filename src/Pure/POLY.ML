@@ -32,7 +32,8 @@ fun xML filename banner = commit();
 (*Interface for toplevel pretty printers, see also Pure/install_pp.ML*)
 
 fun make_pp _ pprint (str, blk, brk, en) obj =
-  pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0), en);
+  pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0),
+    fn () => brk (99999, 0), en);
 
 
 (*** File information ***)

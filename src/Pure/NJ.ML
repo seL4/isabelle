@@ -28,7 +28,8 @@ fun make_pp path pprint =
     fun pp pps obj =
       pprint obj
         (add_string pps, begin_block pps INCONSISTENT,
-          fn wd => add_break pps (wd, 0), fn () => end_block pps);
+          fn wd => add_break pps (wd, 0), fn () => add_newline pps,
+          fn () => end_block pps);
   in
     (path, pp)
   end;

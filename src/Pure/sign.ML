@@ -1,13 +1,13 @@
-(*  Title: 	sign
+(*  Title:      Pure/sign.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
   the abstract types "sg" (signatures)
   and "cterm" (certified terms under a signature)
 *)
 
-signature SIGN = 
+signature SIGN =
 sig
   structure Type: TYPE
   structure Symtab: SYMTAB
@@ -20,25 +20,25 @@ sig
   val cterm_of: sg -> term -> cterm
   val ctyp_of: sg -> typ -> ctyp
   val extend: sg -> string ->
-	(class * class list) list * class list *
-	(string list * int) list *
-	(string list * (sort list * class)) list *
-	(string list * string)list * Syntax.sext option -> sg
+        (class * class list) list * class list *
+        (string list * int) list *
+        (string list * (sort list * class)) list *
+        (string list * string)list * Syntax.sext option -> sg
   val merge: sg * sg -> sg
   val pure: sg
   val read_cterm: sg -> string * typ -> cterm
   val read_ctyp: sg -> string -> ctyp
   val read_insts: sg -> (indexname -> typ option) * (indexname -> sort option)
-	          -> (indexname -> typ option) * (indexname -> sort option)
-		  -> (string*string)list
-		  -> (indexname*ctyp)list * (cterm*cterm)list
+                  -> (indexname -> typ option) * (indexname -> sort option)
+                  -> (string*string)list
+                  -> (indexname*ctyp)list * (cterm*cterm)list
   val read_typ: sg * (indexname -> sort option) -> string -> typ
   val rep_cterm: cterm -> {T: typ, t: term, sign: sg, maxidx: int}
   val rep_ctyp: ctyp -> {T: typ, sign: sg}
   val rep_sg: sg -> {tsig: Type.type_sig,
-		     const_tab: typ Symtab.table,
-		     syn: Syntax.syntax,
-		     stamps: string ref list}
+                     const_tab: typ Symtab.table,
+                     syn: Syntax.syntax,
+                     stamps: string ref list}
   val string_of_cterm: cterm -> string
   val string_of_ctyp: ctyp -> string
   val pprint_cterm: cterm -> pprint_args -> unit
@@ -53,7 +53,7 @@ sig
 end;
 
 
-functor SignFun (structure Type:TYPE and Syntax:SYNTAX) : SIGN = 
+functor SignFun (structure Type:TYPE and Syntax:SYNTAX) : SIGN =
 struct
 structure Type = Type;
 structure Symtab = Type.Symtab;
@@ -61,11 +61,11 @@ structure Syntax = Syntax;
 structure Pretty = Syntax.Pretty
 
 (*Signatures of theories. *)
-datatype sg = 
-  Sg of {tsig: Type.type_sig,		(* order-sorted signature of types *)
-	 const_tab: typ Symtab.table,	(*types of constants*)
-	 syn: Syntax.syntax,		(*Parsing and printing operations*)
-	 stamps: string ref list	(*unique theory indentifier*)  };
+datatype sg =
+  Sg of {tsig: Type.type_sig,           (* order-sorted signature of types *)
+         const_tab: typ Symtab.table,   (*types of constants*)
+         syn: Syntax.syntax,            (*Parsing and printing operations*)
+         stamps: string ref list        (*unique theory indentifier*)  };
 
 
 fun rep_sg (Sg args) = args;
@@ -76,24 +76,24 @@ fun pprint_typ(Sg{syn,...}) = Pretty.pprint o Pretty.quote o (Syntax.pretty_typ 
 
 (*Is constant present in table with more generic type?*)
 fun valid_const tsig ctab (a,T) = case Symtab.lookup(ctab, a) of
-	Some U => Type.typ_instance(tsig,T,U) | _ => false;
+        Some U => Type.typ_instance(tsig,T,U) | _ => false;
 
 
 (*Check a term for errors.  Are all constants and types valid in signature?
   Does not check that term is well-typed!*)
-fun term_errors (sign as Sg{tsig,const_tab,...}) = 
+fun term_errors (sign as Sg{tsig,const_tab,...}) =
 let val showtyp = string_of_typ sign;
     fun terrs (Const (a,T), errs) =
-	if valid_const tsig const_tab (a,T)
-	then Type.type_errors (tsig,showtyp) (T,errs)
-	else ("Illegal type for constant: " ^ a ^ ": " ^ showtyp T) :: errs
+        if valid_const tsig const_tab (a,T)
+        then Type.type_errors (tsig,showtyp) (T,errs)
+        else ("Illegal type for constant: " ^ a ^ ": " ^ showtyp T) :: errs
       | terrs (Free (_,T), errs) = Type.type_errors (tsig,showtyp) (T,errs)
       | terrs (Var  ((a,i),T), errs) =
-	if  i>=0  then  Type.type_errors (tsig,showtyp) (T,errs)
-	else  ("Negative index for Var: " ^ a) :: errs
+        if  i>=0  then  Type.type_errors (tsig,showtyp) (T,errs)
+        else  ("Negative index for Var: " ^ a) :: errs
       | terrs (Bound _, errs) = errs (*loose bvars detected by type_of*)
-      | terrs (Abs (_,T,t), errs) = 
-	    Type.type_errors(tsig,showtyp)(T,terrs(t,errs))
+      | terrs (Abs (_,T,t), errs) =
+            Type.type_errors(tsig,showtyp)(T,terrs(t,errs))
       | terrs (f$t, errs) = terrs(f, terrs (t,errs))
 in  terrs  end;
 
@@ -102,7 +102,7 @@ in  terrs  end;
 
 
 (*Reset TVar indices to zero, renaming to preserve distinctness*)
-fun zero_tvar_indices tsig T = 
+fun zero_tvar_indices tsig T =
   let val inxSs = typ_tvars T;
       val nms' = variantlist(map (#1 o #1) inxSs,[]);
       val tye = map (fn ((v,S),a) => (v, TVar((a,0),S))) (inxSs ~~ nms')
@@ -116,16 +116,16 @@ fun read_consts(tsig,syn) =
 let val showtyp = Syntax.string_of_typ syn;
     fun read [] = []
       | read((cs,s)::pairs) =
-	let val t = Syntax.read syn Syntax.typeT s handle ERROR =>
-	            error("The error above occurred in type " ^ s);
-	    val S = Type.defaultS tsig;
-	    val T = Type.varifyT(Syntax.typ_of_term (K S) t)
-	    val T0 = zero_tvar_indices tsig T;
-	in (case Type.type_errors (tsig,showtyp) (T0,[]) of
-		[] => (cs,T0) :: read pairs
-	    | errs => error (cat_lines
- 	   (("Error in type of constants " ^ space_implode " " cs) :: errs)))
-	end
+        let val t = Syntax.read syn Syntax.typeT s handle ERROR =>
+                    error("The error above occurred in type " ^ quote s);
+            val S = Type.defaultS tsig;
+            val T = Type.varifyT(Syntax.typ_of_term (K S) t)
+            val T0 = zero_tvar_indices tsig T;
+        in (case Type.type_errors (tsig,showtyp) (T0,[]) of
+                [] => (cs,T0) :: read pairs
+            | errs => error (cat_lines
+           (("Error in type of constants " ^ space_implode " " cs) :: errs)))
+        end
 in read end;
 
 
@@ -134,11 +134,11 @@ in read end;
   The "ref" in stamps ensures that no two signatures are identical --
   it is impossible to forge a signature.  *)
 fun extend (Sg{tsig, const_tab, syn, stamps, ...}) signame
-	   (newclasses, newdefault, otypes, newtypes, const_decs, osext) : sg =
+           (newclasses, newdefault, otypes, newtypes, const_decs, osext) : sg =
 let val tsig' = Type.extend(tsig,newclasses,newdefault,otypes,newtypes);
     val S = Type.defaultS tsig';
     val roots = filter (Type.logical_type tsig')
-		       (distinct(flat(map #1 newtypes)))
+                       (distinct(flat(map #1 newtypes)))
     val xconsts = map #1 newclasses @ flat (map #1 otypes) @ flat (map #1 const_decs);
     val syn' =
       case osext of
@@ -146,20 +146,20 @@ let val tsig' = Type.extend(tsig,newclasses,newdefault,otypes,newtypes);
       | None => if null roots andalso null xconsts then syn
                 else Syntax.extend (syn, K S) (roots, xconsts, Syntax.empty_sext);
     val sconsts = case osext of
-		    Some(sext) => Syntax.constants sext
-		  | None => [];
+                    Some(sext) => Syntax.constants sext
+                  | None => [];
     val const_decs' = read_consts(tsig',syn') (sconsts @ const_decs)
 in Sg{tsig= tsig',
       const_tab= Symtab.st_of_declist (const_decs', const_tab)
-		 handle Symtab.DUPLICATE(a) =>
-		 error("Constant '" ^ a ^ "' declared twice"), 
+                 handle Symtab.DUPLICATE(a) =>
+                 error("Constant " ^ quote a ^ " declared twice"),
       syn=syn', stamps= ref signame :: stamps}
 end;
 
 
 (* The empty signature *)
 val sg0 = Sg{tsig= Type.tsig0, const_tab= Symtab.null,
-	     syn=Syntax.type_syn,  stamps= []};
+             syn=Syntax.type_syn,  stamps= []};
 
 (*The pure signature*)
 val pure : sg = extend sg0 "Pure"
@@ -181,20 +181,20 @@ val pure : sg = extend sg0 "Pure"
 (*Update table with (a,x) providing any existing asgt to "a" equals x. *)
 fun update_eq ((a,x),tab) =
     case Symtab.lookup(tab,a) of
-	None => Symtab.update((a,x), tab)
-      | Some y => if x=y then tab 
-	    else  raise TERM ("Incompatible types for constant: "^a, []);
+        None => Symtab.update((a,x), tab)
+      | Some y => if x=y then tab
+            else  raise TERM ("Incompatible types for constant: "^a, []);
 
 (*Combine tables, updating tab2 by tab1 and checking.*)
-fun merge_tabs (tab1,tab2) = 
+fun merge_tabs (tab1,tab2) =
     Symtab.balance (foldr update_eq (Symtab.alist_of tab1, tab2));
 
 (*Combine tables, overwriting tab2 with tab1.*)
-fun smash_tabs (tab1,tab2) = 
+fun smash_tabs (tab1,tab2) =
     Symtab.balance (foldr Symtab.update (Symtab.alist_of tab1, tab2));
 
 (*Combine stamps, checking that theory names are disjoint. *)
-fun merge_stamps (stamps1,stamps2) = 
+fun merge_stamps (stamps1,stamps2) =
   let val stamps = stamps1 union stamps2 in
   case findrep (map ! stamps) of
      a::_ => error ("Attempt to merge different versions of theory: " ^ a)
@@ -203,14 +203,14 @@ fun merge_stamps (stamps1,stamps2) =
 
 (*Merge two signatures.  Forms unions of tables.  Prefers sign1. *)
 fun merge (sign1 as Sg{tsig=tsig1,const_tab=ctab1,stamps=stamps1,syn=syn1},
-	   sign2 as Sg{tsig=tsig2,const_tab=ctab2,stamps=stamps2,syn=syn2}) =
+           sign2 as Sg{tsig=tsig2,const_tab=ctab2,stamps=stamps2,syn=syn2}) =
     if stamps2 subset stamps1 then sign1
     else if stamps1 subset stamps2 then sign2
     else  (*neither is union already;  must form union*)
-	   Sg{tsig= Type.merge(tsig1,tsig2),
-	      const_tab= merge_tabs (ctab1, ctab2),
-	      stamps= merge_stamps (stamps1,stamps2),
-	      syn = Syntax.merge(syn1,syn2)};
+           Sg{tsig= Type.merge(tsig1,tsig2),
+              const_tab= merge_tabs (ctab1, ctab2),
+              stamps= merge_stamps (stamps1,stamps2),
+              syn = Syntax.merge(syn1,syn2)};
 
 
 (**** CERTIFIED TYPES ****)
@@ -224,15 +224,15 @@ fun rep_ctyp(Ctyp ctyp) = ctyp;
 fun typ_of (Ctyp{sign,T}) = T;
 
 fun ctyp_of (sign as Sg{tsig,...}) T =
-	case Type.type_errors (tsig,string_of_typ sign) (T,[]) of
-	  [] => Ctyp{sign= sign,T= T}
-	| errs =>  error (cat_lines ("Error in type:" :: errs));
+        case Type.type_errors (tsig,string_of_typ sign) (T,[]) of
+          [] => Ctyp{sign= sign,T= T}
+        | errs =>  error (cat_lines ("Error in type:" :: errs));
 
 (*The only use is a horrible hack in the simplifier!*)
 fun read_typ(Sg{tsig,syn,...}, defS) s =
     let val term = Syntax.read syn Syntax.typeT s;
-	val S0 = Type.defaultS tsig;
-	fun defS0 s = case defS s of Some S => S | None => S0;
+        val S0 = Type.defaultS tsig;
+        fun defS0 s = case defS s of Some S => S | None => S0;
     in Syntax.typ_of_term defS0 term end;
 
 fun read_ctyp sign = ctyp_of sign o read_typ(sign, K None);
@@ -274,19 +274,19 @@ fun cfun f = fn Cterm{sign,t,...} => cterm_of sign (f t);
 
 (*Lexing, parsing, polymorphic typechecking of a term.*)
 fun read_def_cterm (sign as Sg{tsig, const_tab, syn,...}, types, sorts)
-		   (a,T) =
+                   (a,T) =
   let val showtyp = string_of_typ sign
       and showterm = string_of_term sign
       fun termerr [] = ""
-	| termerr [t] = "\nInvolving this term:\n" ^ showterm t ^ "\n"
-	| termerr ts = "\nInvolving these terms:\n" ^
-		       cat_lines (map showterm ts)
+        | termerr [t] = "\nInvolving this term:\n" ^ showterm t ^ "\n"
+        | termerr ts = "\nInvolving these terms:\n" ^
+                       cat_lines (map showterm ts)
       val t = Syntax.read syn T a;
       val (t',tye) = Type.infer_types (tsig, const_tab, types,
-				       sorts, showtyp, T, t)
-		  handle TYPE (msg, Ts, ts) =>
-	  error ("Type checking error: " ^ msg ^ "\n" ^
-		  cat_lines (map showtyp Ts) ^ termerr ts)
+                                       sorts, showtyp, T, t)
+                  handle TYPE (msg, Ts, ts) =>
+          error ("Type checking error: " ^ msg ^ "\n" ^
+                  cat_lines (map showtyp Ts) ^ termerr ts)
   in (cterm_of sign t', tye)
   end
   handle TERM (msg, _) => error ("Error: " ^  msg);
@@ -297,7 +297,7 @@ fun read_cterm sign = #1 o (read_def_cterm (sign, K None, K None));
 (** reading of instantiations **)
 
 fun indexname cs = case Syntax.scan_varname cs of (v,[]) => v
-	| _ => error("Lexical error in variable name: " ^ implode cs);
+        | _ => error("Lexical error in variable name " ^ quote (implode cs));
 
 fun absent ixn =
   error("No such variable in term: " ^ Syntax.string_of_vname ixn);
@@ -308,24 +308,24 @@ fun inst_failure ixn =
 fun read_insts (sign as Sg{tsig,...}) (rtypes,rsorts) (types,sorts) insts =
 let fun split([],tvs,vs) = (tvs,vs)
       | split((sv,st)::l,tvs,vs) = (case explode sv of
-		  "'"::cs => split(l,(indexname cs,st)::tvs,vs)
-		| cs => split(l,tvs,(indexname cs,st)::vs));
+                  "'"::cs => split(l,(indexname cs,st)::tvs,vs)
+                | cs => split(l,tvs,(indexname cs,st)::vs));
     val (tvs,vs) = split(insts,[],[]);
     fun readT((a,i),st) =
-	let val ixn = ("'" ^ a,i);
-	    val S = case rsorts ixn of Some S => S | None => absent ixn;
-	    val T = read_typ (sign,sorts) st;
-	in if Type.typ_instance(tsig,T,TVar(ixn,S)) then (ixn,T)
-	   else inst_failure ixn
-	end
+        let val ixn = ("'" ^ a,i);
+            val S = case rsorts ixn of Some S => S | None => absent ixn;
+            val T = read_typ (sign,sorts) st;
+        in if Type.typ_instance(tsig,T,TVar(ixn,S)) then (ixn,T)
+           else inst_failure ixn
+        end
     val tye = map readT tvs;
     fun add_cterm ((cts,tye), (ixn,st)) =
-	let val T = case rtypes ixn of
-		      Some T => typ_subst_TVars tye T
-		    | None => absent ixn;
-	    val (ct,tye2) = read_def_cterm (sign,types,sorts) (st,T);
-	    val cv = cterm_of sign (Var(ixn,typ_subst_TVars tye2 T))
- 	in ((cv,ct)::cts,tye2 @ tye) end
+        let val T = case rtypes ixn of
+                      Some T => typ_subst_TVars tye T
+                    | None => absent ixn;
+            val (ct,tye2) = read_def_cterm (sign,types,sorts) (st,T);
+            val cv = cterm_of sign (Var(ixn,typ_subst_TVars tye2 T))
+        in ((cv,ct)::cts,tye2 @ tye) end
     val (cterms,tye') = foldl add_cterm (([],tye), vs);
 in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye', cterms) end;
 
