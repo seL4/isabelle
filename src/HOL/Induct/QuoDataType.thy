@@ -118,19 +118,19 @@ theorem msgrel_imp_eqv_freeright:
 by (erule msgrel.induct, auto intro: msgrel.intros)
 
 
-subsubsection{*The Discriminator for Nonces*}
+subsubsection{*The Discriminator for Constructors*}
 
-text{*A function to identify nonces*}
-consts isNONCE :: "freemsg \<Rightarrow> bool"
+text{*A function to distinguish nonces, mpairs and encryptions*}
+consts freediscrim :: "freemsg \<Rightarrow> int"
 primrec
-   "isNONCE (NONCE N) = True"
-   "isNONCE (MPAIR X Y) = False"
-   "isNONCE (CRYPT K X) = isNONCE X"
-   "isNONCE (DECRYPT K X) = isNONCE X"
+   "freediscrim (NONCE N) = 0"
+   "freediscrim (MPAIR X Y) = 1"
+   "freediscrim (CRYPT K X) = freediscrim X + 2"
+   "freediscrim (DECRYPT K X) = freediscrim X - 2"
 
 text{*This theorem helps us prove @{term "Nonce N \<noteq> MPair X Y"}*}
-theorem msgrel_imp_eq_isNONCE:
-     "U \<sim> V \<Longrightarrow> isNONCE U = isNONCE V"
+theorem msgrel_imp_eq_freediscrim:
+     "U \<sim> V \<Longrightarrow> freediscrim U = freediscrim V"
 by (erule msgrel.induct, auto)
 
 
@@ -360,13 +360,21 @@ theorem MPair_MPair_eq [iff]: "(MPair X Y = MPair X' Y') = (X=X' & Y=Y')"
 by (blast dest: MPair_imp_eq_left MPair_imp_eq_right)
 
 lemma NONCE_neqv_MPAIR: "NONCE m \<sim> MPAIR X Y \<Longrightarrow> False"
-by (drule msgrel_imp_eq_isNONCE, simp)
+by (drule msgrel_imp_eq_freediscrim, simp)
 
 theorem Nonce_neq_MPair [iff]: "Nonce N \<noteq> MPair X Y"
 apply (cases X, cases Y) 
 apply (simp add: Nonce_def MPair) 
 apply (blast dest: NONCE_neqv_MPAIR) 
 done
+
+text{*Example suggested by a referee*}
+theorem Crypt_Nonce_neq_Nonce: "Crypt K (Nonce M) \<noteq> Nonce N" 
+by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
+
+text{*...and many similar results*}
+theorem Crypt_Nonce_neq_Nonce: "Crypt K (Crypt K' (Nonce M)) \<noteq> Nonce N" 
+by (auto simp add: Nonce_def Crypt dest: msgrel_imp_eq_freediscrim)  
 
 theorem Crypt_Crypt_eq [iff]: "(Crypt K X = Crypt K X') = (X=X')" 
 proof
@@ -414,6 +422,44 @@ proof (cases msg, erule ssubst)
     show ?case by (simp add: Decrypt)
   qed
 qed
+
+
+subsection{*The Abstract Discriminator*}
+
+text{*However, as @{text Crypt_Nonce_neq_Nonce} above illustrates, we don't
+need this function in order to prove discrimination theorems.*}
+
+constdefs
+  discrim :: "msg \<Rightarrow> int"
+   "discrim X == contents (\<Union>U \<in> Rep_Msg X. {freediscrim U})"
+
+lemma discrim_congruent: "congruent msgrel (\<lambda>U. {freediscrim U})"
+by (simp add: congruent_def msgrel_imp_eq_freediscrim) 
+
+text{*Now prove the four equations for @{term discrim}*}
+
+lemma discrim_Nonce [simp]: "discrim (Nonce N) = 0"
+by (simp add: discrim_def Nonce_def 
+              UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
+
+lemma discrim_MPair [simp]: "discrim (MPair X Y) = 1"
+apply (cases X, cases Y) 
+apply (simp add: discrim_def MPair 
+                 UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
+done
+
+lemma discrim_Crypt [simp]: "discrim (Crypt K X) = discrim X + 2"
+apply (cases X) 
+apply (simp add: discrim_def Crypt
+                 UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
+done
+
+lemma discrim_Decrypt [simp]: "discrim (Decrypt K X) = discrim X - 2"
+apply (cases X) 
+apply (simp add: discrim_def Decrypt
+                 UN_equiv_class [OF equiv_msgrel discrim_congruent]) 
+done
+
 
 end
 
