@@ -13,29 +13,29 @@ val nat_number_of_def = thm "nat_number_of_def";
 Goal "nat (number_of w) = number_of w";
 by (simp_tac (simpset() addsimps [nat_number_of_def]) 1);
 qed "nat_number_of";
-Addsimps [nat_number_of];
-
-(*These rewrites should one day be re-oriented...*)
+Addsimps [nat_number_of, nat_0, nat_1];
 
 Goal "Numeral0 = (0::nat)";
-by (simp_tac (HOL_basic_ss addsimps [nat_0, nat_number_of_def]) 1);
+by (simp_tac (simpset() addsimps [nat_number_of_def]) 1); 
 qed "numeral_0_eq_0";
 
 Goal "Numeral1 = (1::nat)";
-by (simp_tac (HOL_basic_ss addsimps [nat_1, nat_number_of_def, One_nat_def]) 1);
+by (simp_tac (simpset() addsimps [nat_1, nat_number_of_def]) 1); 
 qed "numeral_1_eq_1";
 
-Goal "2 = Suc 1";
-by (simp_tac (HOL_basic_ss addsimps [nat_2, nat_number_of_def, One_nat_def]) 1);
-qed "numeral_2_eq_2";
+Goal "Numeral1 = Suc 0";
+by (simp_tac (simpset() addsimps [numeral_1_eq_1]) 1); 
+qed "numeral_1_eq_Suc_0";
 
-bind_thm ("zero_eq_numeral_0", numeral_0_eq_0 RS sym);
+Goalw [nat_number_of_def, One_nat_def] "2 = Suc 1";
+by (rtac nat_2 1); 
+qed "numeral_2_eq_2";
 
 (** int (coercion from nat to int) **)
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 Goal "int (number_of v :: nat) = \
-\        (if neg (number_of v) then Numeral0 \
+\        (if neg (number_of v) then 0 \
 \         else (number_of v :: int))";
 by (simp_tac
     (simpset_of Int.thy addsimps [neg_nat, nat_number_of_def, 
@@ -45,45 +45,39 @@ Addsimps [int_nat_number_of];
 
 
 val nat_bin_arith_setup =
- [Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
-   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
-    inj_thms = inj_thms,
-    lessD = lessD,
-    simpset = simpset addsimps [int_nat_number_of,
- not_neg_number_of_Pls,neg_number_of_Min,neg_number_of_BIT]})];
+ [Fast_Arith.map_data 
+   (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
+     {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
+      inj_thms = inj_thms,
+      lessD = lessD,
+      simpset = simpset addsimps [int_nat_number_of, not_neg_number_of_Pls,
+                                  neg_number_of_Min,neg_number_of_BIT]})];
 
 (** Successor **)
 
-Goal "(Numeral0::int) <= z ==> Suc (nat z) = nat (Numeral1 + z)";
+Goal "(0::int) <= z ==> Suc (nat z) = nat (1 + z)";
 by (rtac sym 1);
-by (asm_simp_tac (simpset() addsimps [nat_eq_iff]) 1);
+by (asm_simp_tac (simpset() addsimps [nat_eq_iff, int_Suc]) 1);
 qed "Suc_nat_eq_nat_zadd1";
 
-Goal "Suc (number_of v) = \
-\       (if neg (number_of v) then Numeral1 else number_of (bin_succ v))";
+Goal "Suc (number_of v + n) = \
+\       (if neg (number_of v) then 1+n else number_of (bin_succ v) + n)";
 by (simp_tac
     (simpset_of Int.thy addsimps [neg_nat, nat_1, not_neg_eq_ge_0, 
 				  nat_number_of_def, int_Suc, 
 				  Suc_nat_eq_nat_zadd1, number_of_succ]) 1);
+qed "Suc_nat_number_of_add";
+
+Goal "Suc (number_of v) = \
+\       (if neg (number_of v) then 1 else number_of (bin_succ v))";
+by (cut_inst_tac [("n","0")] Suc_nat_number_of_add 1);
+by (asm_full_simp_tac (simpset() delcongs [if_weak_cong]) 1); 
 qed "Suc_nat_number_of";
 Addsimps [Suc_nat_number_of];
 
-Goal "Suc (number_of v + n) = \
-\       (if neg (number_of v) then Numeral1+n else number_of (bin_succ v) + n)";
-by (Simp_tac 1);
-qed "Suc_nat_number_of_add";
-
-Goal "Suc Numeral0 = Numeral1";
-by (Simp_tac 1);
-qed "Suc_numeral_0_eq_1";
-
-Goal "Suc Numeral1 = 2";
-by (Simp_tac 1);
-qed "Suc_numeral_1_eq_2";
-
 (** Addition **)
 
-Goal "[| (Numeral0::int) <= z;  Numeral0 <= z' |] ==> nat (z+z') = nat z + nat z'";
+Goal "[| (0::int) <= z;  0 <= z' |] ==> nat (z+z') = nat z + nat z'";
 by (rtac (inj_int RS injD) 1);
 by (asm_simp_tac (simpset() addsimps [zadd_int RS sym]) 1);
 qed "nat_add_distrib";
@@ -103,7 +97,7 @@ Addsimps [add_nat_number_of];
 
 (** Subtraction **)
 
-Goal "[| (Numeral0::int) <= z';  z' <= z |] ==> nat (z-z') = nat z - nat z'";
+Goal "[| (0::int) <= z';  z' <= z |] ==> nat (z-z') = nat z - nat z'";
 by (rtac (inj_int RS injD) 1);
 by (asm_simp_tac (simpset() addsimps [zdiff_int RS sym, nat_le_eq_zle]) 1);
 qed "nat_diff_distrib";
@@ -122,7 +116,7 @@ Goalw [nat_number_of_def]
      "(number_of v :: nat) - number_of v' = \
 \       (if neg (number_of v') then number_of v \
 \        else let d = number_of (bin_add v (bin_minus v')) in    \
-\             if neg d then Numeral0 else nat d)";
+\             if neg d then 0 else nat d)";
 by (simp_tac
     (simpset_of Int.thy delcongs [if_weak_cong]
 			addsimps [not_neg_eq_ge_0, nat_0,
@@ -134,22 +128,22 @@ Addsimps [diff_nat_number_of];
 
 (** Multiplication **)
 
-Goal "(Numeral0::int) <= z ==> nat (z*z') = nat z * nat z'";
-by (case_tac "Numeral0 <= z'" 1);
+Goal "(0::int) <= z ==> nat (z*z') = nat z * nat z'";
+by (case_tac "0 <= z'" 1);
 by (asm_full_simp_tac (simpset() addsimps [zmult_le_0_iff]) 2);
 by (rtac (inj_int RS injD) 1);
 by (asm_simp_tac (simpset() addsimps [zmult_int RS sym,
 				      int_0_le_mult_iff]) 1);
 qed "nat_mult_distrib";
 
-Goal "z <= (Numeral0::int) ==> nat(z*z') = nat(-z) * nat(-z')"; 
+Goal "z <= (0::int) ==> nat(z*z') = nat(-z) * nat(-z')"; 
 by (rtac trans 1); 
 by (rtac nat_mult_distrib 2); 
 by Auto_tac;  
 qed "nat_mult_distrib_neg";
 
 Goal "(number_of v :: nat) * number_of v' = \
-\      (if neg (number_of v) then Numeral0 else number_of (bin_mult v v'))";
+\      (if neg (number_of v) then 0 else number_of (bin_mult v v'))";
 by (simp_tac
     (simpset_of Int.thy addsimps [neg_nat, not_neg_eq_ge_0, nat_number_of_def, 
 				  nat_mult_distrib RS sym, number_of_mult, 
@@ -161,15 +155,15 @@ Addsimps [mult_nat_number_of];
 
 (** Quotient **)
 
-Goal "(Numeral0::int) <= z ==> nat (z div z') = nat z div nat z'";
-by (case_tac "Numeral0 <= z'" 1);
+Goal "(0::int) <= z ==> nat (z div z') = nat z div nat z'";
+by (case_tac "0 <= z'" 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [div_nonneg_neg_le0, DIVISION_BY_ZERO_DIV]));
-by (zdiv_undefined_case_tac "z' = Numeral0" 1);
+by (zdiv_undefined_case_tac "z' = 0" 1);
  by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_DIV]) 1);
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
 by (rename_tac "m m'" 1);
-by (subgoal_tac "Numeral0 <= int m div int m'" 1);
+by (subgoal_tac "0 <= int m div int m'" 1);
  by (asm_full_simp_tac 
      (simpset() addsimps [numeral_0_eq_0, pos_imp_zdiv_nonneg_iff]) 2);
 by (rtac (inj_int RS injD) 1);
@@ -184,7 +178,7 @@ by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 qed "nat_div_distrib";
 
 Goal "(number_of v :: nat)  div  number_of v' = \
-\         (if neg (number_of v) then Numeral0 \
+\         (if neg (number_of v) then 0 \
 \          else nat (number_of v div number_of v'))";
 by (simp_tac
     (simpset_of Int.thy addsimps [not_neg_eq_ge_0, nat_number_of_def, neg_nat, 
@@ -197,12 +191,12 @@ Addsimps [div_nat_number_of];
 (** Remainder **)
 
 (*Fails if z'<0: the LHS collapses to (nat z) but the RHS doesn't*)
-Goal "[| (Numeral0::int) <= z;  Numeral0 <= z' |] ==> nat (z mod z') = nat z mod nat z'";
-by (zdiv_undefined_case_tac "z' = Numeral0" 1);
+Goal "[| (0::int) <= z;  0 <= z' |] ==> nat (z mod z') = nat z mod nat z'";
+by (zdiv_undefined_case_tac "z' = 0" 1);
  by (simp_tac (simpset() addsimps [numeral_0_eq_0, DIVISION_BY_ZERO_MOD]) 1);
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
 by (rename_tac "m m'" 1);
-by (subgoal_tac "Numeral0 <= int m mod int m'" 1);
+by (subgoal_tac "0 <= int m mod int m'" 1);
  by (asm_full_simp_tac 
      (simpset() addsimps [nat_less_iff, numeral_0_eq_0, pos_mod_sign]) 2);
 by (rtac (inj_int RS injD) 1);
@@ -217,7 +211,7 @@ by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 qed "nat_mod_distrib";
 
 Goal "(number_of v :: nat)  mod  number_of v' = \
-\       (if neg (number_of v) then Numeral0 \
+\       (if neg (number_of v) then 0 \
 \        else if neg (number_of v') then number_of v \
 \        else nat (number_of v mod number_of v'))";
 by (simp_tac
@@ -228,12 +222,36 @@ qed "mod_nat_number_of";
 
 Addsimps [mod_nat_number_of];
 
+structure NatAbstractNumeralsData =
+  struct
+  val dest_eq		= HOLogic.dest_eq o HOLogic.dest_Trueprop o concl_of
+  val is_numeral	= Bin_Simprocs.is_numeral
+  val numeral_0_eq_0    = numeral_0_eq_0
+  val numeral_1_eq_1    = numeral_1_eq_Suc_0
+  val prove_conv   = Bin_Simprocs.prove_conv_nohyps "nat_abstract_numerals"
+  fun norm_tac simps	= ALLGOALS (simp_tac (HOL_ss addsimps simps))
+  val simplify_meta_eq  = Bin_Simprocs.simplify_meta_eq 
+  end
+
+structure NatAbstractNumerals = AbstractNumeralsFun (NatAbstractNumeralsData)
+
+val nat_eval_numerals = 
+  map Bin_Simprocs.prep_simproc
+   [("nat_div_eval_numerals",
+     Bin_Simprocs.prep_pats ["(Suc 0) div m"],
+     NatAbstractNumerals.proc div_nat_number_of),
+    ("nat_mod_eval_numerals",
+     Bin_Simprocs.prep_pats ["(Suc 0) mod m"],
+     NatAbstractNumerals.proc mod_nat_number_of)];
+
+Addsimprocs nat_eval_numerals;
+
 
 (*** Comparisons ***)
 
 (** Equals (=) **)
 
-Goal "[| (Numeral0::int) <= z;  Numeral0 <= z' |] ==> (nat z = nat z') = (z=z')";
+Goal "[| (0::int) <= z;  0 <= z' |] ==> (nat z = nat z') = (z=z')";
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
 qed "eq_nat_nat_iff";
 
@@ -262,7 +280,7 @@ by (simp_tac
     (simpset_of Int.thy addsimps [neg_nat, not_neg_eq_ge_0, nat_number_of_def, 
 				  nat_less_eq_zless, less_number_of_eq_neg,
 				  nat_0]) 1);
-by (simp_tac (simpset_of Int.thy addsimps [neg_eq_less_int0, zminus_zless, 
+by (simp_tac (simpset_of Int.thy addsimps [neg_eq_less_0, zminus_zless, 
 				number_of_minus, zless_nat_eq_int_zless]) 1);
 qed "less_nat_number_of";
 
@@ -278,24 +296,14 @@ qed "le_nat_number_of_eq_not_less";
 
 Addsimps [le_nat_number_of_eq_not_less];
 
-(*** New versions of existing theorems involving 0, 1, 2 ***)
 
-(*Maps n to # n for n = 0, 1, 2*)
-val numeral_sym_ss =
-    HOL_ss addsimps [numeral_0_eq_0 RS sym,
-		     numeral_1_eq_1 RS sym,
-		     numeral_2_eq_2 RS sym,
-		     Suc_numeral_1_eq_2, Suc_numeral_0_eq_1];
-
-fun rename_numerals th = simplify numeral_sym_ss (Thm.transfer (the_context ()) th);
-
-(*Maps # n to n for n = 0, 1, 2*)
+(*Maps #n to n for n = 0, 1, 2*)
 bind_thms ("numerals", [numeral_0_eq_0, numeral_1_eq_1, numeral_2_eq_2]);
 val numeral_ss = simpset() addsimps numerals;
 
 (** Nat **)
 
-Goal "Numeral0 < n ==> n = Suc(n - Numeral1)";
+Goal "0 < n ==> n = Suc(n - 1)";
 by (asm_full_simp_tac numeral_ss 1);
 qed "Suc_pred'";
 
@@ -303,111 +311,48 @@ qed "Suc_pred'";
   NOT suitable for rewriting because n recurs in the condition.*)
 bind_thm ("expand_Suc", inst "n" "number_of ?v" Suc_pred');
 
-(** NatDef & Nat **)
-
-Addsimps (map rename_numerals [min_0L, min_0R, max_0L, max_0R]);
-
-AddIffs (map rename_numerals
-	 [Suc_not_Zero, Zero_not_Suc, zero_less_Suc, not_less0, less_one, 
-	  le0, le_0_eq, neq0_conv, not_gr0]);
-
 (** Arith **)
 
-(*Identity laws for + - * *)	 
-val basic_renamed_arith_simps =
-    map rename_numerals
-        [diff_0, diff_0_eq_0, add_0, add_0_right, 
-	 mult_0, mult_0_right, mult_1, mult_1_right];
-	 
-(*Non-trivial simplifications*)	 
-val other_renamed_arith_simps =
-    map rename_numerals
-	[diff_is_0_eq, zero_less_diff,
-	 mult_is_0, zero_less_mult_iff, mult_eq_1_iff];
-
-Addsimps (basic_renamed_arith_simps @ other_renamed_arith_simps);
-
-AddIffs (map rename_numerals [add_is_0, add_gr_0]);
-
-Goal "Suc n = n + Numeral1";
+Goal "Suc n = n + 1";
 by (asm_simp_tac numeral_ss 1);
 qed "Suc_eq_add_numeral_1";
 
 (* These two can be useful when m = number_of... *)
 
-Goal "(m::nat) + n = (if m=Numeral0 then n else Suc ((m - Numeral1) + n))";
+Goal "(m::nat) + n = (if m=0 then n else Suc ((m - 1) + n))";
 by (case_tac "m" 1);
 by (ALLGOALS (asm_simp_tac numeral_ss));
 qed "add_eq_if";
 
-Goal "(m::nat) * n = (if m=Numeral0 then Numeral0 else n + ((m - Numeral1) * n))";
+Goal "(m::nat) * n = (if m=0 then 0 else n + ((m - 1) * n))";
 by (case_tac "m" 1);
 by (ALLGOALS (asm_simp_tac numeral_ss));
 qed "mult_eq_if";
 
-Goal "(p ^ m :: nat) = (if m=Numeral0 then Numeral1 else p * (p ^ (m - Numeral1)))";
+Goal "(p ^ m :: nat) = (if m=0 then 1 else p * (p ^ (m - 1)))";
 by (case_tac "m" 1);
 by (ALLGOALS (asm_simp_tac numeral_ss));
 qed "power_eq_if";
 
-Goal "[| Numeral0<n; Numeral0<m |] ==> m - n < (m::nat)";
+Goal "[| 0<n; 0<m |] ==> m - n < (m::nat)";
 by (asm_full_simp_tac (numeral_ss addsimps [diff_less]) 1);
 qed "diff_less'";
 
 Addsimps [inst "n" "number_of ?v" diff_less'];
 
-(*various theorems that aren't in the default simpset*)
-bind_thm ("add_is_one'", rename_numerals add_is_1);
-bind_thm ("zero_induct'", rename_numerals zero_induct);
-bind_thm ("diff_self_eq_0'", rename_numerals diff_self_eq_0);
-bind_thm ("mult_eq_self_implies_10'", rename_numerals mult_eq_self_implies_10);
-
-(** Divides **)
-
-Addsimps (map rename_numerals [mod_1, mod_0, div_1, div_0]);
-AddIffs (map rename_numerals [dvd_1_left, dvd_0_right]);
-
-(*useful?*)
-bind_thm ("mod_self'", rename_numerals mod_self);
-bind_thm ("div_self'", rename_numerals div_self);
-bind_thm ("div_less'", rename_numerals div_less);
-bind_thm ("mod_mult_self_is_zero'", rename_numerals mod_mult_self_is_0);
-
 (** Power **)
-
-Goal "(p::nat) ^ Numeral0 = Numeral1";
-by (simp_tac numeral_ss 1);
-qed "power_zero";
-
-Goal "(p::nat) ^ Numeral1 = p";
-by (simp_tac numeral_ss 1);
-qed "power_one";
-Addsimps [power_zero, power_one];
 
 Goal "(p::nat) ^ 2 = p*p";
 by (simp_tac numeral_ss 1);
 qed "power_two";
 
-Goal "Numeral0 < (i::nat) ==> Numeral0 < i^n";
-by (asm_simp_tac numeral_ss 1);
-qed "zero_less_power'";
-Addsimps [zero_less_power'];
-
-bind_thm ("binomial_zero", rename_numerals binomial_0);
-bind_thm ("binomial_Suc'", rename_numerals binomial_Suc);
-bind_thm ("binomial_n_n'", rename_numerals binomial_n_n);
-
-(*binomial_0_Suc doesn't work well on numerals*)
-Addsimps (map rename_numerals [binomial_n_0, binomial_zero, binomial_1]);
-
-Addsimps [rename_numerals card_Pow];
 
 (*** Comparisons involving (0::nat) ***)
 
 Goal "(number_of v = (0::nat)) = \
 \     (if neg (number_of v) then True else iszero (number_of v))";
-by (simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
-qed "eq_number_of_0";
+by (simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym, iszero_0]) 1);
+qed "eq_number_of_0"; 
 
 Goal "((0::nat) = number_of v) = \
 \     (if neg (number_of v) then True else iszero (number_of v))";
@@ -422,7 +367,7 @@ qed "less_0_number_of";
 Addsimps [eq_number_of_0, eq_0_number_of, less_0_number_of];
 
 Goal "neg (number_of v) ==> number_of v = (0::nat)";
-by (asm_simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]) 1);
+by (asm_simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym, iszero_0]) 1);
 qed "neg_imp_number_of_eq_0";
 
 
@@ -489,13 +434,13 @@ Addsimps [eq_number_of_Suc, Suc_eq_number_of,
 	  le_number_of_Suc, le_Suc_number_of];
 
 (* Push int(.) inwards: *)
-Addsimps [int_Suc,zadd_int RS sym];
+Addsimps [zadd_int RS sym];
 
 Goal "(m+m = n+n) = (m = (n::int))";
 by Auto_tac;
 val lemma1 = result();
 
-Goal "m+m ~= int (Suc 0) + n + n";
+Goal "m+m ~= (1::int) + n + n";
 by Auto_tac;
 by (dres_inst_tac [("f", "%x. x mod 2")] arg_cong 1);
 by (full_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1); 
@@ -536,7 +481,7 @@ qed "eq_number_of_Pls_Min";
 (*** Further lemmas about "nat" ***)
 
 Goal "nat (abs (w * z)) = nat (abs w) * nat (abs z)";
-by (case_tac "z=Numeral0 | w=Numeral0" 1);
+by (case_tac "z=0 | w=0" 1);
 by Auto_tac;  
 by (simp_tac (simpset() addsimps [zabs_def, nat_mult_distrib RS sym, 
                           nat_mult_distrib_neg RS sym, zmult_less_0_iff]) 1);

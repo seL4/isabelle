@@ -450,25 +450,15 @@ qed "not_less_less_Suc_eq";
 bind_thms ("not_less_simps", [not_less_less_Suc_eq, leD RS not_less_less_Suc_eq]);
 
 
-(** Re-orientation of the equations 0=x and Suc n = x. *
-
-  The condition "True" is a hack to prevent looping for e.g. Suc m = Suc n.
-  Conditional rewrite rules are tried after unconditional ones.
-**)
+(** Re-orientation of the equations 0=x and 1=x. 
+    No longer added as simprules (they loop) 
+    but via reorient_simproc in Bin **)
 
 (*Polymorphic, not just for "nat"*)
-Goal "True ==> (0 = x) = (x = 0)";
+Goal "(0 = x) = (x = 0)";
 by Auto_tac;  
 qed "zero_reorient";
-Addsimps [zero_reorient];
 
-(*Polymorphic, not just for "nat"*)
-Goal "True ==> (1 = x) = (x = 1)";
+Goal "(1 = x) = (x = 1)";
 by Auto_tac;  
 qed "one_reorient";
-Addsimps [one_reorient];
-
-Goal "True ==> (Suc (Suc 0) = x) = (x = Suc (Suc 0))";  (* FIXME !? *)
-by Auto_tac;
-qed "two_reorient";
-Addsimps [two_reorient];

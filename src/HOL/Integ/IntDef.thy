@@ -31,7 +31,7 @@ constdefs
 
   (*For simplifying equalities*)
   iszero :: int => bool
-  "iszero z == z = int 0"
+  "iszero z == z = (0::int)"
   
 defs (*of overloaded constants*)
   

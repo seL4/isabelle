@@ -243,9 +243,8 @@ by (case_tac "m" 1);
 by (Auto_tac);
 qed "add_is_1";
 
-Goal "(Suc 0 = m+n) = (m=Suc 0 & n=0 | m=0 & n= Suc 0)";
-by (case_tac "m" 1);
-by (Auto_tac);
+Goal "(Suc 0 = m+n) = (m = Suc 0 & n=0 | m=0 & n = Suc 0)";
+by (rtac ([eq_commute, add_is_1] MRS trans) 1);
 qed "one_is_add";
 
 Goal "!!m::nat. (0<m+n) = (0<m | 0<n)";

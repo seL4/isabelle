@@ -10,27 +10,27 @@ This file can't be combined with int_arith1,2 because it requires IntDiv.thy.
 
 (** Factor cancellation theorems for "int" **)
 
-Goal "!!k::int. (k*m <= k*n) = ((Numeral0 < k --> m<=n) & (k < Numeral0 --> n<=m))";
+Goal "!!k::int. (k*m <= k*n) = ((0 < k --> m<=n) & (k < 0 --> n<=m))";
 by (stac zmult_zle_cancel1 1);
 by Auto_tac;  
 qed "int_mult_le_cancel1";
 
-Goal "!!k::int. (k*m < k*n) = ((Numeral0 < k & m<n) | (k < Numeral0 & n<m))";
+Goal "!!k::int. (k*m < k*n) = ((0 < k & m<n) | (k < 0 & n<m))";
 by (stac zmult_zless_cancel1 1);
 by Auto_tac;  
 qed "int_mult_less_cancel1";
 
-Goal "!!k::int. (k*m = k*n) = (k = Numeral0 | m=n)";
+Goal "!!k::int. (k*m = k*n) = (k = 0 | m=n)";
 by Auto_tac;  
 qed "int_mult_eq_cancel1";
 
-Goal "!!k::int. k~=Numeral0 ==> (k*m) div (k*n) = (m div n)";
+Goal "!!k::int. k~=0 ==> (k*m) div (k*n) = (m div n)";
 by (stac zdiv_zmult_zmult1 1); 
 by Auto_tac;  
 qed "int_mult_div_cancel1";
 
 (*For ExtractCommonTermFun, cancelling common factors*)
-Goal "(k*m) div (k*n) = (if k = (Numeral0::int) then Numeral0 else m div n)";
+Goal "(k*m) div (k*n) = (if k = (0::int) then 0 else m div n)";
 by (simp_tac (simpset() addsimps [int_mult_div_cancel1]) 1); 
 qed "int_mult_div_cancel_disj";
 
@@ -54,7 +54,7 @@ structure CancelNumeralFactorCommon =
 
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "intdiv_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "intdiv_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_binop "Divides.op div"
   val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.intT
   val cancel = int_mult_div_cancel1 RS trans
@@ -63,7 +63,7 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 
 structure EqCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "inteq_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "inteq_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
   val cancel = int_mult_eq_cancel1 RS trans
@@ -72,7 +72,7 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "intless_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "intless_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.intT
   val cancel = int_mult_less_cancel1 RS trans
@@ -81,7 +81,7 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "intle_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "intle_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.intT
   val cancel = int_mult_le_cancel1 RS trans
@@ -89,18 +89,18 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
 )
 
 val int_cancel_numeral_factors = 
-  map prep_simproc
+  map Bin_Simprocs.prep_simproc
    [("inteq_cancel_numeral_factors",
-     prep_pats ["(l::int) * m = n", "(l::int) = m * n"], 
+     Bin_Simprocs.prep_pats ["(l::int) * m = n", "(l::int) = m * n"], 
      EqCancelNumeralFactor.proc),
     ("intless_cancel_numeral_factors", 
-     prep_pats ["(l::int) * m < n", "(l::int) < m * n"], 
+     Bin_Simprocs.prep_pats ["(l::int) * m < n", "(l::int) < m * n"], 
      LessCancelNumeralFactor.proc),
     ("intle_cancel_numeral_factors", 
-     prep_pats ["(l::int) * m <= n", "(l::int) <= m * n"], 
+     Bin_Simprocs.prep_pats ["(l::int) * m <= n", "(l::int) <= m * n"], 
      LeCancelNumeralFactor.proc),
     ("intdiv_cancel_numeral_factors", 
-     prep_pats ["((l::int) * m) div n", "(l::int) div (m * n)"], 
+     Bin_Simprocs.prep_pats ["((l::int) * m) div n", "(l::int) div (m * n)"], 
      DivCancelNumeralFactor.proc)];
 
 end;
@@ -181,7 +181,7 @@ structure CancelFactorCommon =
 
 structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "int_eq_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "int_eq_cancel_factor"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.intT
   val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_eq_cancel1
@@ -189,19 +189,19 @@ structure EqCancelFactor = ExtractCommonTermFun
 
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "int_divide_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "int_divide_cancel_factor"
   val mk_bal   = HOLogic.mk_binop "Divides.op div"
   val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.intT
   val simplify_meta_eq  = cancel_simplify_meta_eq int_mult_div_cancel_disj
 );
 
 val int_cancel_factor = 
-  map prep_simproc
+  map Bin_Simprocs.prep_simproc
    [("int_eq_cancel_factor",
-     prep_pats ["(l::int) * m = n", "(l::int) = m * n"], 
+     Bin_Simprocs.prep_pats ["(l::int) * m = n", "(l::int) = m * n"], 
      EqCancelFactor.proc),
     ("int_divide_cancel_factor", 
-     prep_pats ["((l::int) * m) div n", "(l::int) div (m * n)"], 
+     Bin_Simprocs.prep_pats ["((l::int) * m) div n", "(l::int) div (m * n)"], 
      DivideCancelFactor.proc)];
 
 end;

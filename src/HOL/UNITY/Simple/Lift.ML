@@ -142,7 +142,7 @@ val metric_ss = simpset() addsplits [split_if_asm]
 
 
 (*lem_lift_4_1 *)
-Goal "Numeral0 < N ==> \
+Goal "0 < N ==> \
 \     Lift : (moving Int Req n Int {s. metric n s = N} Int \
 \             {s. floor s ~: req s} Int {s. up s})   \
 \            LeadsTo \
@@ -157,7 +157,7 @@ qed "E_thm12a";
 
 
 (*lem_lift_4_3 *)
-Goal "Numeral0 < N ==> \
+Goal "0 < N ==> \
 \     Lift : (moving Int Req n Int {s. metric n s = N} Int \
 \             {s. floor s ~: req s} - {s. up s})   \
 \            LeadsTo (moving Int Req n Int {s. metric n s < N})";
@@ -170,7 +170,7 @@ by (auto_tac (claset(), metric_ss));
 qed "E_thm12b";
 
 (*lift_4*)
-Goal "Numeral0<N ==> Lift : (moving Int Req n Int {s. metric n s = N} Int \
+Goal "0<N ==> Lift : (moving Int Req n Int {s. metric n s = N} Int \
 \                           {s. floor s ~: req s}) LeadsTo     \
 \                          (moving Int Req n Int {s. metric n s < N})";
 by (rtac ([subset_imp_LeadsTo, [E_thm12a, E_thm12b] MRS LeadsTo_Un] 
@@ -182,7 +182,7 @@ qed "lift_4";
 (** towards lift_5 **)
 
 (*lem_lift_5_3*)
-Goal "Numeral0<N   \
+Goal "0<N   \
 \ ==> Lift : (closed Int Req n Int {s. metric n s = N} Int goingup) LeadsTo \
 \            (moving Int Req n Int {s. metric n s < N})";
 by (cut_facts_tac [bounded] 1);
@@ -192,7 +192,7 @@ qed "E_thm16a";
 
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
-Goal "Numeral0<N ==>   \
+Goal "0<N ==>   \
 \     Lift : (closed Int Req n Int {s. metric n s = N} Int goingdown) LeadsTo \
 \                  (moving Int Req n Int {s. metric n s < N})";
 by (cut_facts_tac [bounded] 1);
@@ -203,14 +203,14 @@ qed "E_thm16b";
 
 (*lem_lift_5_0 proves an intersection involving ~goingup and goingup,
   i.e. the trivial disjunction, leading to an asymmetrical proof.*)
-Goal "Numeral0<N ==> Req n Int {s. metric n s = N} <= goingup Un goingdown";
+Goal "0<N ==> Req n Int {s. metric n s = N} <= goingup Un goingdown";
 by (Clarify_tac 1);
 by (auto_tac (claset(), metric_ss));
 qed "E_thm16c";
 
 
 (*lift_5*)
-Goal "Numeral0<N ==> Lift : (closed Int Req n Int {s. metric n s = N}) LeadsTo   \
+Goal "0<N ==> Lift : (closed Int Req n Int {s. metric n s = N}) LeadsTo   \
 \                          (moving Int Req n Int {s. metric n s < N})";
 by (rtac ([subset_imp_LeadsTo, [E_thm16a, E_thm16b] MRS LeadsTo_Un] 
 	  MRS LeadsTo_Trans) 1);
@@ -222,7 +222,7 @@ qed "lift_5";
 (** towards lift_3 **)
 
 (*lemma used to prove lem_lift_3_1*)
-Goal "[| metric n s = Numeral0;  Min <= floor s;  floor s <= Max |] ==> floor s = n";
+Goal "[| metric n s = 0;  Min <= floor s;  floor s <= Max |] ==> floor s = n";
 by (auto_tac (claset(), metric_ss));
 qed "metric_eq_0D";
 
@@ -230,7 +230,7 @@ AddDs [metric_eq_0D];
 
 
 (*lem_lift_3_1*)
-Goal "Lift : (moving Int Req n Int {s. metric n s = Numeral0}) LeadsTo   \
+Goal "Lift : (moving Int Req n Int {s. metric n s = 0}) LeadsTo   \
 \                  (stopped Int atFloor n)";
 by (cut_facts_tac [bounded] 1);
 by (ensures_tac "request_act" 1);
@@ -246,7 +246,7 @@ by (auto_tac (claset(), metric_ss));
 qed "E_thm13";
 
 (*lem_lift_3_6*)
-Goal "Numeral0 < N ==> \
+Goal "0 < N ==> \
 \     Lift : \
 \       (stopped Int Req n Int {s. metric n s = N} Int {s. floor s : req s}) \
 \       LeadsTo (opened Int Req n Int {s. metric n s = N})";
@@ -264,7 +264,7 @@ qed "E_thm15";
 
 (** the final steps **)
 
-Goal "Numeral0 < N ==> \
+Goal "0 < N ==> \
 \     Lift : \
 \       (moving Int Req n Int {s. metric n s = N} Int {s. floor s : req s})   \
 \       LeadsTo (moving Int Req n Int {s. metric n s < N})";
@@ -274,7 +274,7 @@ qed "lift_3_Req";
 
 
 (*Now we observe that our integer metric is really a natural number*)
-Goal "Lift : Always {s. Numeral0 <= metric n s}";
+Goal "Lift : Always {s. 0 <= metric n s}";
 by (rtac (bounded RS Always_weaken) 1);
 by (auto_tac (claset(), metric_ss));
 qed "Always_nonneg";
@@ -283,8 +283,8 @@ val R_thm11 = [Always_nonneg, E_thm11] MRS Always_LeadsTo_weaken;
 
 Goal "Lift : (moving Int Req n) LeadsTo (stopped Int atFloor n)";
 by (rtac (Always_nonneg RS integ_0_le_induct) 1);
-by (case_tac "Numeral0 < z" 1);
-(*If z <= Numeral0 then actually z = Numeral0*)
+by (case_tac "0 < z" 1);
+(*If z <= 0 then actually z = 0*)
 by (force_tac (claset() addIs [R_thm11, order_antisym], 
 	       simpset() addsimps [linorder_not_less]) 2);
 by (rtac ([asm_rl, Un_upper1] MRS LeadsTo_weaken_R) 1);

@@ -119,7 +119,7 @@ proof (rule sqrt_prime_irrational)
   {
     fix m :: nat assume dvd: "m dvd 2"
     hence "m \<le> 2" by (simp add: dvd_imp_le)
-    moreover from dvd have "m \<noteq> 0" by (auto dest: dvd_0_left iff del: neq0_conv)
+    moreover from dvd have "m \<noteq> 0" by (auto iff del: neq0_conv)
     ultimately have "m = 1 \<or> m = 2" by arith
   }
   thus "2 \<in> prime" by (simp add: prime_def)

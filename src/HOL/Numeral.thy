@@ -40,10 +40,10 @@ setup NumeralSyntax.setup
 lemma Let_number_of [simp]: "Let (number_of v) f == f (number_of v)"
   by (simp add: Let_def)
 
-(*The condition "True" is a hack to prevent looping.
-  Conditional rewrite rules are tried after unconditional ones, so a rule
-  like eq_nat_number_of will be tried first to eliminate #mm=#nn. *)
-lemma number_of_reorient [simp]: "True ==> (number_of w = x) = (x = number_of w)"
-  by auto
+lemma Let_0 [simp]: "Let 0 f == f 0"
+  by (simp add: Let_def)
+
+lemma Let_1 [simp]: "Let 1 f == f 1"
+  by (simp add: Let_def)
 
 end

@@ -38,7 +38,7 @@ by (auto_tac (claset() addSIs [sum_ext], simpset()));
 qed_spec_mp "sumj_ext";
 
 
-Goal "(ALL i. i<I --> c s i = Numeral0) -->  sum I s = Numeral0";
+Goal "(ALL i. i<I --> c s i = 0) -->  sum I s = 0";
 by (induct_tac "I" 1);
 by Auto_tac;
 qed "sum0";

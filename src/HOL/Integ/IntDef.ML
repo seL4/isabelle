@@ -7,9 +7,6 @@ The integers as equivalence classes over nat*nat.
 *)
 
 
-(*Rewrite the overloaded 0::int and 1::int*)    (* FIXME *)
-Addsimps [Zero_int_def, One_int_def];
-
 Goalw  [intrel_def] "(((x1,y1),(x2,y2)): intrel) = (x1+y2 = x2+y1)";
 by (Blast_tac 1);
 qed "intrel_iff";
@@ -90,11 +87,10 @@ by (dres_inst_tac [("f","uminus")] arg_cong 1);
 by (Asm_full_simp_tac 1);
 qed "inj_zminus";
 
-Goalw [int_def] "- (int 0) = int 0";
+Goalw [int_def, Zero_int_def] "- 0 = (0::int)";
 by (simp_tac (simpset() addsimps [zminus]) 1);
-qed "zminus_int0";
-
-Addsimps [zminus_int0];
+qed "zminus_0";
+Addsimps [zminus_0];
 
 
 (**** neg: the test for negative integers ****)
@@ -159,61 +155,57 @@ Goal "(int m) + (int n + z) = int (m + n) + z";
 by (simp_tac (simpset() addsimps [zadd_int, zadd_assoc RS sym]) 1);
 qed "zadd_int_left";
 
-Goal "int (Suc m) = int 1 + (int m)";
-by (simp_tac (simpset() addsimps [zadd_int]) 1);
-qed "int_Suc_int_1";
+Goal "int (Suc m) = 1 + (int m)";
+by (simp_tac (simpset() addsimps [One_int_def, zadd_int]) 1);
+qed "int_Suc";
 
-Goalw [int_def] "int 0 + z = z";
+(*also for the instance declaration int :: plus_ac0*)
+Goalw [Zero_int_def, int_def] "(0::int) + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zadd]) 1);
-qed "zadd_int0";
+qed "zadd_0";
+Addsimps [zadd_0];
 
-Goal "z + int 0 = z";
-by (rtac (zadd_commute RS trans) 1);
-by (rtac zadd_int0 1);
-qed "zadd_int0_right";
+Goal "z + (0::int) = z";
+by (rtac ([zadd_commute, zadd_0] MRS trans) 1);
+qed "zadd_0_right";
+Addsimps [zadd_0_right];
 
-Goalw [int_def] "z + (- z) = int 0";
+Goalw [int_def, Zero_int_def] "z + (- z) = (0::int)";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zminus, zadd, add_commute]) 1);
 qed "zadd_zminus_inverse";
 
-Goal "(- z) + z = int 0";
+Goal "(- z) + z = (0::int)";
 by (rtac (zadd_commute RS trans) 1);
 by (rtac zadd_zminus_inverse 1);
 qed "zadd_zminus_inverse2";
 
-Addsimps [zadd_int0, zadd_int0_right,
-	  zadd_zminus_inverse, zadd_zminus_inverse2];
-
-(*for the instance declaration int :: plus_ac0*)
-Goal "0 + z = (z::int)";
-by (Simp_tac 1);
-qed "zadd_zero";
+Addsimps [zadd_zminus_inverse, zadd_zminus_inverse2];
 
 Goal "z + (- z + w) = (w::int)";
-by (simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
+by (simp_tac (simpset() addsimps [zadd_assoc RS sym, zadd_0]) 1);
 qed "zadd_zminus_cancel";
 
 Goal "(-z) + (z + w) = (w::int)";
-by (simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
+by (simp_tac (simpset() addsimps [zadd_assoc RS sym, zadd_0]) 1);
 qed "zminus_zadd_cancel";
 
 Addsimps [zadd_zminus_cancel, zminus_zadd_cancel];
 
-Goal "int 0 - x = -x";
+Goal "(0::int) - x = -x";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
-qed "zdiff_int0";
+qed "zdiff0";
 
-Goal "x - int 0 = x";
+Goal "x - (0::int) = x";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
-qed "zdiff_int0_right";
+qed "zdiff0_right";
 
-Goal "x - x = int 0";
-by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+Goal "x - x = (0::int)";
+by (simp_tac (simpset() addsimps [zdiff_def, Zero_int_def]) 1);
 qed "zdiff_self";
 
-Addsimps [zdiff_int0, zdiff_int0_right, zdiff_self];
+Addsimps [zdiff0, zdiff0_right, zdiff_self];
 
 
 (** Lemmas **)
@@ -321,25 +313,27 @@ Goalw [int_def] "(int m) * (int n) = int (m * n)";
 by (simp_tac (simpset() addsimps [zmult]) 1);
 qed "zmult_int";
 
-Goalw [int_def] "int 0 * z = int 0";
+Goalw [Zero_int_def, int_def] "0 * z = (0::int)";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
-qed "zmult_int0";
+qed "zmult_0";
+Addsimps [zmult_0];
 
-Goalw [int_def] "int (Suc 0) * z = z";
+Goalw [One_int_def, int_def] "(1::int) * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
-qed "zmult_int1";
+qed "zmult_1";
+Addsimps [zmult_1];
 
-Goal "z * int 0 = int 0";
-by (rtac ([zmult_commute, zmult_int0] MRS trans) 1);
-qed "zmult_int0_right";
+Goal "z * 0 = (0::int)";
+by (rtac ([zmult_commute, zmult_0] MRS trans) 1);
+qed "zmult_0_right";
+Addsimps [zmult_0_right];
 
-Goal "z * int (Suc 0) = z";
-by (rtac ([zmult_commute, zmult_int1] MRS trans) 1);
-qed "zmult_int1_right";
-
-Addsimps [zmult_int0, zmult_int0_right, zmult_int1, zmult_int1_right];
+Goal "z * (1::int) = z";
+by (rtac ([zmult_commute, zmult_1] MRS trans) 1);
+qed "zmult_1_right";
+Addsimps [zmult_1_right];
 
 
 (* Theorems about less and less_equal *)
@@ -413,11 +407,26 @@ by (fast_tac (claset() addSEs [inj_int RS injD]) 1);
 qed "int_int_eq"; 
 AddIffs [int_int_eq]; 
 
+Goal "(int n = 0) = (n = 0)";
+by (simp_tac (simpset() addsimps [Zero_int_def]) 1);
+qed "int_eq_0_conv";
+Addsimps [int_eq_0_conv];
+
 Goal "(int m < int n) = (m<n)";
 by (simp_tac (simpset() addsimps [less_iff_Suc_add, zless_iff_Suc_zadd, 
 				  zadd_int]) 1);
 qed "zless_int";
 Addsimps [zless_int];
+
+Goal "~ (int k < 0)";
+by (simp_tac (simpset() addsimps [Zero_int_def]) 1);
+qed "int_less_0_conv";
+Addsimps [int_less_0_conv];
+
+Goal "(0 < int n) = (0 < n)";
+by (simp_tac (simpset() addsimps [Zero_int_def]) 1);
+qed "zero_less_int_conv";
+Addsimps [zero_less_int_conv];
 
 
 (*** Properties of <= ***)
@@ -426,6 +435,16 @@ Goalw [zle_def, le_def] "(int m <= int n) = (m<=n)";
 by (Simp_tac 1);
 qed "zle_int";
 Addsimps [zle_int];
+
+Goal "(0 <= int n)";
+by (simp_tac (simpset() addsimps [Zero_int_def]) 1);
+qed "zero_zle_int";
+Addsimps [zero_zle_int];
+
+Goal "(int n <= 0) = (n = 0)";
+by (simp_tac (simpset() addsimps [Zero_int_def]) 1);
+qed "int_le_0_conv";
+Addsimps [int_le_0_conv];
 
 Goalw [zle_def] "z <= w ==> z < w | z=(w::int)";
 by (cut_facts_tac [zless_linear] 1);
@@ -506,11 +525,13 @@ by (simp_tac (simpset() addsimps [zdiff_zless_eq]) 1);
 qed "zle_zdiff_eq";
 
 Goalw [zdiff_def] "(x-y = z) = (x = z + (y::int))";
-by (auto_tac (claset(), simpset() addsimps [zadd_assoc]));
+by (auto_tac (claset(), 
+              simpset() addsimps [zadd_assoc, symmetric Zero_int_def]));
 qed "zdiff_eq_eq";
 
 Goalw [zdiff_def] "(x = z-y) = (x + (y::int) = z)";
-by (auto_tac (claset(), simpset() addsimps [zadd_assoc]));
+by (auto_tac (claset(), 
+              simpset() addsimps [zadd_assoc, symmetric Zero_int_def]));
 qed "eq_zdiff_eq";
 
 (*This list of rewrites simplifies (in)equalities by bringing subtractions
@@ -528,7 +549,8 @@ bind_thms ("zcompare_rls",
 Goal "!!w::int. (z + w' = z + w) = (w' = w)";
 by Safe_tac;
 by (dres_inst_tac [("f", "%x. x + (-z)")] arg_cong 1);
-by (asm_full_simp_tac (simpset() addsimps zadd_ac) 1);
+by (asm_full_simp_tac (simpset() addsimps symmetric Zero_int_def :: 
+                                          zadd_ac) 1);
 qed "zadd_left_cancel";
 
 Addsimps [zadd_left_cancel];

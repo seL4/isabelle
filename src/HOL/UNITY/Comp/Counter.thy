@@ -21,21 +21,21 @@ consts
   sumj :: "[nat, nat, state]=>int"
 
 primrec (* sum I s = sigma_{i<I}. s (c i) *)
-  "sum 0 s = Numeral0"
+  "sum 0 s = 0"
   "sum (Suc i) s = s (c i) + sum i s"
 
 primrec
-  "sumj 0 i s = Numeral0"
+  "sumj 0 i s = 0"
   "sumj (Suc n) i s = (if n=i then sum n s else s (c n) + sumj n i s)"
   
 types command = "(state*state)set"
 
 constdefs
   a :: "nat=>command"
- "a i == {(s, s'). s'=s(c i:= s (c i) + Numeral1, C:= s C + Numeral1)}"
+ "a i == {(s, s'). s'=s(c i:= s (c i) + 1, C:= s C + 1)}"
 
   Component :: "nat => state program"
   "Component i ==
-    mk_program({s. s C = Numeral0 & s (c i) = Numeral0}, {a i},
+    mk_program({s. s C = 0 & s (c i) = 0}, {a i},
 	       UN G: preserves (%s. s (c i)). Acts G)"
 end  

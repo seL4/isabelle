@@ -6,10 +6,11 @@
 Simprocs for nat numerals (see also nat_simprocs.ML).
 *)
 
-(** For simplifying  Suc m - # n **)
+(** For simplifying  Suc m - #n **)
 
 Goal "Numeral0 < n ==> Suc m - n = m - (n - Numeral1)";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
+by (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1]
+			    addsplits [nat_diff_split]) 1);
 qed "Suc_diff_eq_diff_pred";
 
 (*Now just instantiating n to (number_of v) does the right simplification,
@@ -48,8 +49,8 @@ Goal "nat_case a f ((number_of v) + n) = \
 by (stac add_eq_if 1);
 by (asm_simp_tac
     (simpset() addsplits [nat.split]
-               addsimps [Let_def, neg_imp_number_of_eq_0,
-                         neg_number_of_bin_pred_iff_0]) 1);
+               addsimps [numeral_1_eq_Suc_0 RS sym, Let_def, 
+                   neg_imp_number_of_eq_0, neg_number_of_bin_pred_iff_0]) 1);
 qed "nat_case_add_eq_if";
 
 Addsimps [nat_case_number_of, nat_case_add_eq_if];
@@ -71,8 +72,8 @@ Goal "nat_rec a f (number_of v + n) = \
 by (stac add_eq_if 1);
 by (asm_simp_tac
     (simpset() addsplits [nat.split]
-               addsimps [Let_def, neg_imp_number_of_eq_0,
-                         neg_number_of_bin_pred_iff_0]) 1);
+               addsimps [numeral_1_eq_Suc_0 RS sym, Let_def, 
+                  neg_imp_number_of_eq_0, neg_number_of_bin_pred_iff_0]) 1);
 qed "nat_rec_add_eq_if";
 
 Addsimps [nat_rec_number_of, nat_rec_add_eq_if];
@@ -80,7 +81,7 @@ Addsimps [nat_rec_number_of, nat_rec_add_eq_if];
 
 (** For simplifying  # m - Suc n **)
 
-Goal "m - Suc n = (m - Numeral1) - n";
+Goal "m - Suc n = (m - 1) - n";
 by (simp_tac (numeral_ss addsplits [nat_diff_split]) 1);
 qed "diff_Suc_eq_diff_pred";
 
@@ -93,7 +94,7 @@ qed "diff_Suc_eq_diff_pred";
 (** Evens and Odds, for Mutilated Chess Board **)
 
 (*Case analysis on b<2*)
-Goal "(n::nat) < 2 ==> n = Numeral0 | n = Numeral1";
+Goal "(n::nat) < 2 ==> n = 0 | n = Suc 0";
 by (arith_tac 1);
 qed "less_2_cases";
 
@@ -101,16 +102,16 @@ Goal "Suc(Suc(m)) mod 2 = m mod 2";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (Asm_simp_tac 2);
 be (less_2_cases RS disjE) 1;
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_Suc])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Let_def, mod_Suc, nat_1])));
 qed "mod2_Suc_Suc";
 Addsimps [mod2_Suc_Suc];
 
-Goal "!!m::nat. (0 < m mod 2) = (m mod 2 = Numeral1)";
+Goal "!!m::nat. (0 < m mod 2) = (m mod 2 = 1)";
 by (subgoal_tac "m mod 2 < 2" 1);
 by (Asm_simp_tac 2);
 by (auto_tac (claset(), simpset() delsimps [mod_less_divisor]));
 qed "mod2_gr_0";
-Addsimps [mod2_gr_0, rename_numerals mod2_gr_0];
+Addsimps [mod2_gr_0];
 
 (** Removal of small numerals: Numeral0, Numeral1 and (in additive positions) 2 **)
 

@@ -15,12 +15,7 @@ Pls and leading T's with sign Min.  See ZF/ex/twos-compl.ML/int_of_binary
 for the numerical interpretation.
 
 The representation expects that (m mod 2) is 0 or 1, even if m is negative;
-For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
-
-Division is not defined yet!  To do it efficiently requires computing the
-quotient and remainder using ML and checking the answer using multiplication
-by proof.  Then uniqueness of the quotient and remainder yields theorems
-quoting the previously computed values.  (Or code an oracle...)
+For instance, -5 div 2 = -3 and -5 mod 2 = 1; thus -5 = (-3)*2 + 1
 *)
 
 Bin = Int + Numeral +
@@ -41,11 +36,11 @@ primrec
 instance
   int :: number
 
-primrec
-  number_of_Pls  "number_of Pls = int 0"
-  number_of_Min  "number_of Min = - (int 1)"
-  number_of_BIT  "number_of(w BIT x) = (if x then int 1 else int 0) +
-	                             (number_of w) + (number_of w)" 
+primrec (*the type constraint is essential!*)
+  number_of_Pls  "number_of Pls = 0"
+  number_of_Min  "number_of Min = - (1::int)"
+  number_of_BIT  "number_of(w BIT x) = (if x then 1 else 0) +
+	                               (number_of w) + (number_of w)" 
 
 primrec
   bin_succ_Pls  "bin_succ Pls = Pls BIT True" 
@@ -85,6 +80,5 @@ primrec
   bin_mult_BIT  "bin_mult (v BIT x) w =
 	            (if x then (bin_add (NCons (bin_mult v w) False) w)
 	                  else (NCons (bin_mult v w) False))"
-
 
 end

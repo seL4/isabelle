@@ -22,18 +22,18 @@ consts
   d22set :: "int => int set"
 
 recdef zfact  "measure ((\<lambda>n. nat n) :: int => nat)"
-  "zfact n = (if n \<le> Numeral0 then Numeral1 else n * zfact (n - Numeral1))"
+  "zfact n = (if n \<le> 0 then 1 else n * zfact (n - 1))"
 
 defs
-  setprod_def: "setprod A == (if finite A then fold (op *) Numeral1 A else Numeral1)"
+  setprod_def: "setprod A == (if finite A then fold (op *) 1 A else 1)"
 
 recdef d22set  "measure ((\<lambda>a. nat a) :: int => nat)"
-  "d22set a = (if Numeral1 < a then insert a (d22set (a - Numeral1)) else {})"
+  "d22set a = (if 1 < a then insert a (d22set (a - 1)) else {})"
 
 
 text {* \medskip @{term setprod} --- product of finite set *}
 
-lemma setprod_empty [simp]: "setprod {} = Numeral1"
+lemma setprod_empty [simp]: "setprod {} = 1"
   apply (simp add: setprod_def)
   done
 
@@ -54,7 +54,7 @@ declare d22set.simps [simp del]
 
 lemma d22set_induct:
   "(!!a. P {} a) ==>
-    (!!a. Numeral1 < (a::int) ==> P (d22set (a - Numeral1)) (a - Numeral1)
+    (!!a. 1 < (a::int) ==> P (d22set (a - 1)) (a - 1)
       ==> P (d22set a) a)
     ==> P (d22set u) u"
 proof -
@@ -62,14 +62,14 @@ proof -
   show ?thesis
     apply (rule d22set.induct)
     apply safe
-     apply (case_tac [2] "Numeral1 < a")
+     apply (case_tac [2] "1 < a")
       apply (rule_tac [2] rule_context)
        apply (simp_all (no_asm_simp))
      apply (simp_all (no_asm_simp) add: d22set.simps rule_context)
     done
 qed
 
-lemma d22set_g_1 [rule_format]: "b \<in> d22set a --> Numeral1 < b"
+lemma d22set_g_1 [rule_format]: "b \<in> d22set a --> 1 < b"
   apply (induct a rule: d22set_induct)
    prefer 2
    apply (subst d22set.simps)
@@ -87,7 +87,7 @@ lemma d22set_le_swap: "a < b ==> b \<notin> d22set a"
   apply (auto dest: d22set_le)
   done
 
-lemma d22set_mem [rule_format]: "Numeral1 < b --> b \<le> a --> b \<in> d22set a"
+lemma d22set_mem [rule_format]: "1 < b --> b \<le> a --> b \<in> d22set a"
   apply (induct a rule: d22set.induct)
   apply auto
    apply (simp_all add: d22set.simps)
@@ -109,7 +109,7 @@ lemma d22set_prod_zfact: "setprod (d22set a) = zfact a"
    apply (simp add: d22set.simps zfact.simps)
   apply (subst d22set.simps)
   apply (subst zfact.simps)
-  apply (case_tac "Numeral1 < a")
+  apply (case_tac "1 < a")
    prefer 2
    apply (simp add: d22set.simps zfact.simps)
   apply (simp add: d22set_fin d22set_le_swap)

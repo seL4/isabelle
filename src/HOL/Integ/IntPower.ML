@@ -15,7 +15,7 @@ by (Asm_simp_tac 1);
 by (rtac (zmod_zmult_distrib RS sym) 1);
 qed "zpower_zmod";
 
-Goal "Numeral1^y = (Numeral1::int)";
+Goal "1^y = (1::int)";
 by (induct_tac "y" 1);
 by Auto_tac;
 qed "zpower_1";

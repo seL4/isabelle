@@ -9,7 +9,7 @@ Type "int" is a linear order
 Int = IntDef + 
 
 instance int :: order (zle_refl,zle_trans,zle_anti_sym,int_less_le)
-instance int :: plus_ac0 (zadd_commute,zadd_assoc,zadd_zero)
+instance int :: plus_ac0 (zadd_commute,zadd_assoc,zadd_0)
 instance int :: linorder (zle_linear)
 
 constdefs

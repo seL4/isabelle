@@ -41,30 +41,29 @@ fun svc_abstract t =
 	  | _ => (case gen_assoc Pattern.aeconv (!pairs, t) of
 		      Some v => v
 		    | None   => insert t)
+    (*abstraction of a numeric literal*)
+    fun lit (t as Const("0", _)) = t
+      | lit (t as Const("1", _)) = t
+      | lit (t as Const("Numeral.number_of", _) $ w) = t
+      | lit t = replace t
     (*abstraction of a real/rational expression*)
     fun rat ((c as Const("op +", _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const("op -", _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const("op /", _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const("op *", _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const("uminus", _)) $ x) = c $ (rat x)
-      | rat ((c as Const("0", _))) = c
-      | rat ((c as Const("1", _))) = c
-      | rat (t as Const("Numeral.number_of", _) $ w) = t
-      | rat t = replace t
+      | rat t = lit t
     (*abstraction of an integer expression: no div, mod*)
     fun int ((c as Const("op +", _)) $ x $ y) = c $ (int x) $ (int y)
       | int ((c as Const("op -", _)) $ x $ y) = c $ (int x) $ (int y)
       | int ((c as Const("op *", _)) $ x $ y) = c $ (int x) $ (int y)
       | int ((c as Const("uminus", _)) $ x) = c $ (int x)
-      | int (t as Const("Numeral.number_of", _) $ w) = t
-      | int t = replace t
+      | int t = lit t
     (*abstraction of a natural number expression: no minus*)
     fun nat ((c as Const("op +", _)) $ x $ y) = c $ (nat x) $ (nat y)
       | nat ((c as Const("op *", _)) $ x $ y) = c $ (nat x) $ (nat y)
       | nat ((c as Const("Suc", _)) $ x) = c $ (nat x)
-      | nat (t as Const("0", _)) = t
-      | nat (t as Const("Numeral.number_of", _) $ w) = t
-      | nat t = replace t
+      | nat t = lit t
     (*abstraction of a relation: =, <, <=*)
     fun rel (T, c $ x $ y) =
 	    if T = HOLogic.realT then c $ (rat x) $ (rat y)

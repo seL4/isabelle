@@ -66,19 +66,19 @@ qed "nat_le_add_iff2";
 
 (** For cancel_numeral_factors **)
 
-Goal "(Numeral0::nat) < k ==> (k*m <= k*n) = (m<=n)";
+Goal "(0::nat) < k ==> (k*m <= k*n) = (m<=n)";
 by Auto_tac;  
 qed "nat_mult_le_cancel1";
 
-Goal "(Numeral0::nat) < k ==> (k*m < k*n) = (m<n)";
+Goal "(0::nat) < k ==> (k*m < k*n) = (m<n)";
 by Auto_tac;  
 qed "nat_mult_less_cancel1";
 
-Goal "(Numeral0::nat) < k ==> (k*m = k*n) = (m=n)";
+Goal "(0::nat) < k ==> (k*m = k*n) = (m=n)";
 by Auto_tac;  
 qed "nat_mult_eq_cancel1";
 
-Goal "(Numeral0::nat) < k ==> (k*m) div (k*n) = (m div n)";
+Goal "(0::nat) < k ==> (k*m) div (k*n) = (m div n)";
 by Auto_tac;  
 qed "nat_mult_div_cancel1";
 
@@ -105,6 +105,14 @@ qed "nat_mult_div_cancel_disj";
 structure Nat_Numeral_Simprocs =
 struct
 
+(*Maps n to #n for n = 0, 1, 2*)
+val numeral_syms =
+       [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym, numeral_2_eq_2 RS sym];
+val numeral_sym_ss = HOL_ss addsimps numeral_syms;
+
+fun rename_numerals th = 
+    simplify numeral_sym_ss (Thm.transfer (the_context ()) th);
+
 (*Utilities*)
 
 fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ HOLogic.mk_bin n;
@@ -125,13 +133,13 @@ fun find_first_numeral past (t::terms) =
 val zero = mk_numeral 0;
 val mk_plus = HOLogic.mk_binop "op +";
 
-(*Thus mk_sum[t] yields t+Numeral0; longer sums don't have a trailing zero*)
+(*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
 (*this version ALWAYS includes a trailing zero*)
-fun long_mk_sum []        = zero
+fun long_mk_sum []        = HOLogic.zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
 val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
@@ -153,9 +161,8 @@ fun dest_Sucs_sum t = dest_sum (dest_Sucs (0,t));
 
 val trans_tac = Int_Numeral_Simprocs.trans_tac;
 
-val prove_conv = Int_Numeral_Simprocs.prove_conv;
-
-val bin_simps = [add_nat_number_of, nat_number_of_add_left,
+val bin_simps = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym,
+                 add_nat_number_of, nat_number_of_add_left,
                  diff_nat_number_of, le_nat_number_of_eq_not_less,
                  less_nat_number_of, mult_nat_number_of, 
                  thm "Let_number_of", nat_number_of] @
@@ -204,14 +211,14 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
         handle TERM _ => find_first_coeff (t::past) u terms;
 
 
-(*Simplify Numeral1*n and n*Numeral1 to n*)
-val add_0s = map rename_numerals [add_0, add_0_right];
+(*Simplify 1*n and n*1 to n*)
+val add_0s  = map rename_numerals [add_0, add_0_right];
 val mult_1s = map rename_numerals [mult_1, mult_1_right];
 
 (*Final simplification: cancel + and *; replace Numeral0 by 0 and Numeral1 by 1*)
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
-         [numeral_0_eq_0, numeral_1_eq_1, add_0, add_0_right,
+         [numeral_0_eq_0, numeral_1_eq_Suc_0, add_0, add_0_right,
          mult_0, mult_0_right, mult_1, mult_1_right];
 
 
@@ -243,19 +250,19 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
   val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
-                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@
-                                       [add_0, Suc_eq_add_numeral_1]@add_ac))
+                   (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
+                                [Suc_eq_add_numeral_1] @ add_ac))
                  THEN ALLGOALS (simp_tac
                                 (HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS
-                (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
+                (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end;
 
 
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "nateq_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv "nateq_cancel_numerals"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
   val bal_add1 = nat_eq_add_iff1 RS trans
@@ -264,7 +271,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "natless_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv "natless_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
   val bal_add1 = nat_less_add_iff1 RS trans
@@ -273,7 +280,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "natle_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv "natle_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
   val bal_add1 = nat_le_add_iff1 RS trans
@@ -282,7 +289,7 @@ structure LeCancelNumerals = CancelNumeralsFun
 
 structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "natdiff_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv "natdiff_cancel_numerals"
   val mk_bal   = HOLogic.mk_binop "op -"
   val dest_bal = HOLogic.dest_bin "op -" HOLogic.natT
   val bal_add1 = nat_diff_add_eq1 RS trans
@@ -324,16 +331,15 @@ structure CombineNumeralsData =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val left_distrib      = left_add_mult_distrib RS trans
-  val prove_conv = 
-       Int_Numeral_Simprocs.prove_conv_nohyps "nat_combine_numerals"
+  val prove_conv	= Bin_Simprocs.prove_conv_nohyps "nat_combine_numerals"
   val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
-                   (simp_tac (HOL_ss addsimps add_0s@mult_1s@
-                                       [add_0, Suc_eq_add_numeral_1]@add_ac))
+                   (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
+                              [Suc_eq_add_numeral_1] @ add_ac))
                  THEN ALLGOALS (simp_tac
                                 (HOL_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS
-                (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
+                (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end;
 
@@ -352,8 +358,8 @@ structure CancelNumeralFactorCommon =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff
   val trans_tac         = trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps 
-                                             [Suc_eq_add_numeral_1]@mult_1s))
+  val norm_tac = ALLGOALS 
+                    (simp_tac (HOL_ss addsimps [Suc_eq_add_numeral_1]@mult_1s))
                  THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@mult_ac))
   val numeral_simp_tac	= ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -361,7 +367,7 @@ structure CancelNumeralFactorCommon =
 
 structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "natdiv_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "natdiv_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_binop "Divides.op div"
   val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.natT
   val cancel = nat_mult_div_cancel1 RS trans
@@ -370,7 +376,7 @@ structure DivCancelNumeralFactor = CancelNumeralFactorFun
 
 structure EqCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "nateq_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "nateq_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
   val cancel = nat_mult_eq_cancel1 RS trans
@@ -379,7 +385,7 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "natless_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "natless_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
   val cancel = nat_mult_less_cancel1 RS trans
@@ -388,7 +394,7 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = prove_conv "natle_cancel_numeral_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "natle_cancel_numeral_factor"
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
   val cancel = nat_mult_le_cancel1 RS trans
@@ -443,7 +449,7 @@ structure CancelFactorCommon =
 
 structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "nat_eq_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "nat_eq_cancel_factor"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_eq_cancel_disj
@@ -451,7 +457,7 @@ structure EqCancelFactor = ExtractCommonTermFun
 
 structure LessCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "nat_less_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "nat_less_cancel_factor"
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_less_cancel_disj
@@ -459,7 +465,7 @@ structure LessCancelFactor = ExtractCommonTermFun
 
 structure LeCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "nat_leq_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "nat_leq_cancel_factor"
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_le_cancel_disj
@@ -467,7 +473,7 @@ structure LeCancelFactor = ExtractCommonTermFun
 
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = prove_conv "nat_divide_cancel_factor"
+  val prove_conv = Bin_Simprocs.prove_conv "nat_divide_cancel_factor"
   val mk_bal   = HOLogic.mk_binop "Divides.op div"
   val dest_bal = HOLogic.dest_bin "Divides.op div" HOLogic.natT
   val simplify_meta_eq  = cancel_simplify_meta_eq nat_mult_div_cancel_disj
@@ -514,7 +520,7 @@ test "(i + j + 12 + (k::nat)) - 5 = y";
 test "Suc u - 2 = y";
 test "Suc (Suc (Suc u)) - 2 = y";
 test "(i + j + 2 + (k::nat)) - 1 = y";
-test "(i + j + Numeral1 + (k::nat)) - 2 = y";
+test "(i + j + 1 + (k::nat)) - 2 = y";
 
 test "(2*x + (u*v) + y) - v*3*u = (w::nat)";
 test "(2*x*u*v + 5 + (u*v)*4 + y) - v*u*4 = (w::nat)";
@@ -590,7 +596,8 @@ local
 
 (* reduce contradictory <= to False *)
 val add_rules =
-  [add_nat_number_of, diff_nat_number_of, mult_nat_number_of,
+  [thm "Let_number_of", thm "Let_0", thm "Let_1", nat_0, nat_1, 
+   add_nat_number_of, diff_nat_number_of, mult_nat_number_of,
    eq_nat_number_of, less_nat_number_of, le_nat_number_of_eq_not_less,
    le_Suc_number_of,le_number_of_Suc,
    less_Suc_number_of,less_number_of_Suc,
@@ -610,7 +617,6 @@ val nat_simprocs_setup =
    {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
     inj_thms = inj_thms, lessD = lessD,
     simpset = simpset addsimps add_rules
-                      addsimps basic_renamed_arith_simps
                       addsimprocs simprocs})];
 
 end;

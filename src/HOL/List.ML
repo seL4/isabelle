@@ -232,23 +232,23 @@ Currently only tries to rearranges @ to see if
 local
 
 val list_eq_pattern =
-  Thm.read_cterm (Theory.sign_of (the_context ())) ("(xs::'a list) = ys",HOLogic.boolT);
+  Thm.read_cterm (Theory.sign_of (the_context ())) ("(xs::'a list) = ys",HOLogic.boolT)
 
 fun last (cons as Const("List.list.Cons",_) $ _ $ xs) =
       (case xs of Const("List.list.Nil",_) => cons | _ => last xs)
   | last (Const("List.op @",_) $ _ $ ys) = last ys
-  | last t = t;
+  | last t = t
 
 fun list1 (Const("List.list.Cons",_) $ _ $ Const("List.list.Nil",_)) = true
-  | list1 _ = false;
+  | list1 _ = false
 
 fun butlast ((cons as Const("List.list.Cons",_) $ x) $ xs) =
       (case xs of Const("List.list.Nil",_) => xs | _ => cons $ butlast xs)
   | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
-  | butlast xs = Const("List.list.Nil",fastype_of xs);
+  | butlast xs = Const("List.list.Nil",fastype_of xs)
 
 val rearr_tac =
-  simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons]);
+  simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons])
 
 fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
   let
@@ -272,9 +272,9 @@ fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
      if lastl aconv lastr
      then rearr append_same_eq
      else None
-  end;
+  end
 in
-val list_eq_simproc = mk_simproc "list_eq" [list_eq_pattern] list_eq;
+val list_eq_simproc = mk_simproc "list_eq" [list_eq_pattern] list_eq
 end;
 
 Addsimprocs [list_eq_simproc];
@@ -1501,24 +1501,19 @@ qed "sublist_upt_eq_take";
 Addsimps [sublist_upt_eq_take];
 
 
-(*** Versions of some theorems above using binary numerals ***)
-
-AddIffs (map rename_numerals
-	  [length_0_conv, length_greater_0_conv, sum_eq_0_conv]);
-
-Goal "take n (x#xs) = (if n = Numeral0 then [] else x # take (n - Numeral1) xs)";
+Goal "take n (x#xs) = (if n=0 then [] else x # take (n - 1) xs)";
 by (case_tac "n" 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));
 qed "take_Cons'";
 
-Goal "drop n (x#xs) = (if n = Numeral0 then x#xs else drop (n - Numeral1) xs)";
+Goal "drop n (x#xs) = (if n=0 then x#xs else drop (n - 1) xs)";
 by (case_tac "n" 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));
 qed "drop_Cons'";
 
-Goal "(x#xs)!n = (if n = Numeral0 then x else xs!(n - Numeral1))";
+Goal "(x#xs)!n = (if n=0 then x else xs!(n - 1))";
 by (case_tac "n" 1);
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [numeral_0_eq_0, numeral_1_eq_1])));

@@ -274,18 +274,8 @@ theorem add_eq_conv_diff:
   apply (simp (no_asm) add: expand_fun_eq)
   apply (rule conjI)
    apply force
-  apply clarify
-  apply (rule conjI)
-   apply blast
-  apply clarify
-  apply (rule iffI)
-   apply (rule conjI)
-    apply clarify
-    apply (rule conjI)
-     apply (simp add: eq_sym_conv)   (* FIXME blast fails !? *)
-    apply fast
-   apply simp
-  apply force
+  apply safe
+  apply (simp_all add: eq_sym_conv)
   done
 
 (*

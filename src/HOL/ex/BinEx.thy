@@ -60,7 +60,7 @@ lemma "(-345::int) < -242 + -100"
 lemma "(13557456::int) < 18678654"
   by simp
 
-lemma "(999999::int) \<le> (1000001 + Numeral1) - 2"
+lemma "(999999::int) \<le> (1000001 + 1) - 2"
   by simp
 
 lemma "(1234567::int) \<le> 1234567"
@@ -72,7 +72,7 @@ text {* \medskip Quotient and Remainder *}
 lemma "(10::int) div 3 = 3"
   by simp
 
-lemma "(10::int) mod 3 = Numeral1"
+lemma "(10::int) mod 3 = 1"
   by simp
 
 text {* A negative divisor *}
@@ -104,7 +104,7 @@ lemma "(-10::int) mod -3 = -1"
 
 text {* A few bigger examples *}
 
-lemma "(8452::int) mod 3 = Numeral1"
+lemma "(8452::int) mod 3 = 1"
   by simp
 
 lemma "(59485::int) div 434 = 137"
@@ -119,7 +119,7 @@ text {* \medskip Division by shifting *}
 lemma "10000000 div 2 = (5000000::int)"
   by simp
 
-lemma "10000001 mod 2 = (Numeral1::int)"
+lemma "10000001 mod 2 = (1::int)"
   by simp
 
 lemma "10000055 div 32 = (312501::int)"
@@ -161,10 +161,10 @@ text {* \medskip Subtraction *}
 lemma "(32::nat) - 14 = 18"
   by simp
 
-lemma "(14::nat) - 15 = Numeral0"
+lemma "(14::nat) - 15 = 0"
   by simp
 
-lemma "(14::nat) - 1576644 = Numeral0"
+lemma "(14::nat) - 1576644 = 0"
   by simp
 
 lemma "(48273776::nat) - 3873737 = 44400039"
@@ -185,49 +185,49 @@ text {* \medskip Quotient and Remainder *}
 lemma "(10::nat) div 3 = 3"
   by simp
 
-lemma "(10::nat) mod 3 = Numeral1"
+lemma "(10::nat) mod 3 = 1"
   by simp
 
 lemma "(10000::nat) div 9 = 1111"
   by simp
 
-lemma "(10000::nat) mod 9 = Numeral1"
+lemma "(10000::nat) mod 9 = 1"
   by simp
 
 lemma "(10000::nat) div 16 = 625"
   by simp
 
-lemma "(10000::nat) mod 16 = Numeral0"
+lemma "(10000::nat) mod 16 = 0"
   by simp
 
 
 text {* \medskip Testing the cancellation of complementary terms *}
 
-lemma "y + (x + -x) = (Numeral0::int) + y"
+lemma "y + (x + -x) = (0::int) + y"
   by simp
 
-lemma "y + (-x + (- y + x)) = (Numeral0::int)"
+lemma "y + (-x + (- y + x)) = (0::int)"
   by simp
 
-lemma "-x + (y + (- y + x)) = (Numeral0::int)"
+lemma "-x + (y + (- y + x)) = (0::int)"
   by simp
 
-lemma "x + (x + (- x + (- x + (- y + - z)))) = (Numeral0::int) - y - z"
+lemma "x + (x + (- x + (- x + (- y + - z)))) = (0::int) - y - z"
   by simp
 
-lemma "x + x - x - x - y - z = (Numeral0::int) - y - z"
+lemma "x + x - x - x - y - z = (0::int) - y - z"
   by simp
 
-lemma "x + y + z - (x + z) = y - (Numeral0::int)"
+lemma "x + y + z - (x + z) = y - (0::int)"
   by simp
 
-lemma "x + (y + (y + (y + (-x + -x)))) = (Numeral0::int) + y - x + y + y"
+lemma "x + (y + (y + (y + (-x + -x)))) = (0::int) + y - x + y + y"
   by simp
 
-lemma "x + (y + (y + (y + (-y + -x)))) = y + (Numeral0::int) + y"
+lemma "x + (y + (y + (y + (-y + -x)))) = y + (0::int) + y"
   by simp
 
-lemma "x + y - x + z - x - y - z + x < (Numeral1::int)"
+lemma "x + y - x + z - x - y - z + x < (1::int)"
   by simp
 
 
@@ -302,7 +302,7 @@ lemma bin_add_normal [rule_format]:
     apply simp_all
   done
 
-lemma normal_Pls_eq_0: "w \<in> normal ==> (w = Pls) = (number_of w = (Numeral0::int))"
+lemma normal_Pls_eq_0: "w \<in> normal ==> (w = Pls) = (number_of w = (0::int))"
   apply (erule normal.induct)
      apply auto
   done
@@ -313,7 +313,7 @@ lemma bin_minus_normal: "w \<in> normal ==> bin_minus w \<in> normal"
   apply (rule normal.intros)
   apply assumption
   apply (simp add: normal_Pls_eq_0)
-  apply (simp only: number_of_minus iszero_def zminus_equation [of _ "int 0"])
+  apply (simp only: number_of_minus iszero_def zminus_equation [of _ "0"])
   apply (rule not_sym)
   apply simp
   done
