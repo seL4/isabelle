@@ -39,7 +39,7 @@ by (asm_simp_tac (simpset() addsimps [homo_add RS sym]) 1);
 qed "homo_uminus";
 
 Goal "!! f::('a::ring=>'b::ring). homo f ==> f (a ^ n) = f a ^ n";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (dtac homo_one 1);
 by (Asm_simp_tac 1);
 by (dres_inst_tac [("a", "a^n"), ("b", "a")] homo_mult 1);
@@ -48,7 +48,7 @@ qed "homo_power";
 
 Goal
   "!! f::('a::ring=>'b::ring). homo f ==> f (SUM n g) = SUM n (f o g)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (Asm_simp_tac 1);
 by (Simp_tac 1);
 by (dres_inst_tac [("a", "g (Suc n)"), ("b", "SUM n g")] homo_add 1);

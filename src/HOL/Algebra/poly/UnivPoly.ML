@@ -8,46 +8,33 @@ TODO: monom is *mono*morphism (probably induction needed)
 (* Closure of UP under +, *s, monom, const and * *)
 
 Goalw [UP_def]
-  "!! f g. [| f : UP; g : UP |] ==> (%n. (f n + g n::'a::ring)) : UP";
-by (Step_tac 1);
+  "[| f : UP; g : UP |] ==> (%n. (f n + g n::'a::ring)) : UP";
+by Auto_tac;
 (* instantiate bound for the sum and do case split *)
 by (res_inst_tac [("x", "if n<=na then na else n")] exI 1);
-by (case_tac "n <= na" 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 2);
+by Auto_tac;
 (* first case, bound of g higher *)
-by (etac (make_elim le_bound) 1 THEN atac 1);
-by (REPEAT (Step_tac 1));
-by (Asm_simp_tac 1);
+by (dtac le_bound 1 THEN assume_tac 1);
+by (Force_tac 1);
 (* second case is identical,
   apart from we have to massage the inequality *)
 by (dtac (not_leE RS less_imp_le) 1);
-by (etac (make_elim le_bound) 1 THEN atac 1);
-by (REPEAT (Step_tac 1));
-by (Asm_simp_tac 1);
+by (dtac le_bound 1 THEN assume_tac 1);
+by (Force_tac 1);
 qed "UP_closed_add";
 
 Goalw [UP_def]
-  "!! f. f : UP ==> (%n. (a * f n::'a::ring)) : UP";
-by (REPEAT (Step_tac 1));
-by (Asm_simp_tac 1);
+  "f : UP ==> (%n. (a * f n::'a::ring)) : UP";
+by (Force_tac 1);
 qed "UP_closed_smult";
 
 Goalw [UP_def]
-  "!! m. (%n. if m = n then <1> else <0>) : UP";
-by (Step_tac 1);
-by (res_inst_tac [("x", "m")] exI 1);
-by (Step_tac 1);
-by (dtac (less_not_refl2 RS not_sym) 1);
-by (Asm_simp_tac 1);
+  "(%n. if m = n then <1> else <0>) : UP";
+by Auto_tac;
 qed "UP_closed_monom";
 
-Goalw [UP_def]
-  "!! a. (%n. if n = 0 then a else <0>) : UP";
-by (Step_tac 1);
-by (res_inst_tac [("x", "0")] exI 1);
-by (rtac boundI 1);
-by (asm_simp_tac (simpset() addsimps [less_not_refl2]) 1);
+Goalw [UP_def] "(%n. if n = 0 then a else <0>) : UP";
+by Auto_tac;
 qed "UP_closed_const";
 
 Goal
@@ -56,21 +43,15 @@ Goal
 (* Case split: either f i or g (k - i) is zero *)
 by (case_tac "n<i" 1);
 (* First case, f i is zero *)
-by (SELECT_GOAL Auto_tac 1);
+by (Force_tac 1);
 (* Second case, we have to derive m < k-i *)
 by (subgoal_tac "m < k-i" 1);
-by (SELECT_GOAL Auto_tac 1);
-(* More inequalities, quite nasty *)
-by (rtac add_less_imp_less_diff 1);
-by (stac add_commute 1);
-by (dtac leI 1);
-by (rtac le_less_trans 1);
-by (assume_tac 2);
-by (asm_simp_tac (simpset() addsimps [add_le_mono1]) 1);
+by (arith_tac 2);
+by (Force_tac 1);
 qed "bound_mult_zero";
 
 Goalw [UP_def]
-  "!! f g. [| f : UP; g : UP |] ==> \
+  "[| f : UP; g : UP |] ==> \
 \      (%n. (SUM n (%i. f i * g (n-i))::'a::ring)) : UP";
 by (Step_tac 1);
 (* Instantiate bound for the product, and remove bound in goal *)
@@ -118,7 +99,7 @@ by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_zero, Rep_UP]) 1);
 qed "coeff_zero";
 
 Addsimps [coeff_add, coeff_smult, coeff_monom, coeff_const, 
-  coeff_mult, coeff_zero];
+	  coeff_mult, coeff_zero];
 
 Goalw [up_one_def]
   "coeff n <1> = (if n=0 then <1> else <0>)";
@@ -133,17 +114,16 @@ Addsimps [coeff_one, coeff_uminus];
 
 (* Polynomials form a ring *)
 
-Goalw [coeff_def]
-  "!! p q. [| !! n. coeff n p = coeff n q |] ==> p = q";
+val prems = Goalw [coeff_def]
+  "(!! n. coeff n p = coeff n q) ==> p = q";
 by (res_inst_tac [("t", "p")] (Rep_UP_inverse RS subst) 1);
 by (res_inst_tac [("t", "q")] (Rep_UP_inverse RS subst) 1);
-by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps prems) 1);
 qed "up_eqI";
 
 Goalw [coeff_def]
-  "!! p q. coeff n p ~= coeff n q ==> p ~= q";
-by (etac contrapos 1);
-by (Asm_simp_tac 1);
+  "coeff n p ~= coeff n q ==> p ~= q";
+by Auto_tac;
 qed "up_neqI";
 
 Goal "!! a::('a::ring) up. (a + b) + c = a + (b + c)";
@@ -177,11 +157,11 @@ qed "up_m_assoc";
 Goal "!! a::('a::ring) up. <1> * a = a";
 by (rtac up_eqI 1);
 by (Simp_tac 1);
-by (nat_ind_tac "n" 1); (* this is only a case split *)
-(* Base case *)
-by (Simp_tac 1);
-(* Induction step *)
-by (simp_tac (simpset() delsimps [SUM_Suc] addsimps [SUM_Suc2]) 1);
+by (case_tac "n" 1); 
+(* 0 case *)
+by (Asm_simp_tac 1);
+(* Suc case *)
+by (asm_simp_tac (simpset() delsimps [SUM_Suc] addsimps [SUM_Suc2]) 1);
 qed "up_l_one";
 
 Goal "!! a::('a::ring) up. (a + b) * c = a * c + b * c";
@@ -205,9 +185,9 @@ qed "up_one_not_zero";
 
 Goal "!! a::'a::ring. const a * p = a *s p";
 by (rtac up_eqI 1);
-by (nat_ind_tac "n" 1);  (* really only a case split *)
-by (Simp_tac 1);
-by (simp_tac (simpset() delsimps [SUM_Suc] addsimps [SUM_Suc2]) 1);
+by (case_tac "n" 1); 
+by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() delsimps [SUM_Suc] addsimps [SUM_Suc2]) 1);
 qed "const_mult_is_smult";
 
 Goal "!! a::'a::ring. const (a + b) = const a + const b";
@@ -238,7 +218,7 @@ by (Simp_tac 1);
 by (strip_tac 1);
 by (dres_inst_tac [("f", "Rep_UP")] arg_cong 1);
 by (full_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_const,
-  expand_fun_eq]) 1);
+				       expand_fun_eq]) 1);
 by (dres_inst_tac [("x", "0")] spec 1);
 by (Full_simp_tac 1);
 qed "const_inj";
@@ -252,11 +232,10 @@ by (simp_tac (simpset() addsimps [SUM_ldistr, DiagSum]) 1);
 by (simp_tac (simpset() addsimps [SUM_rdistr]) 1);
 by (res_inst_tac [("m", "n"), ("n", "n+m")] SUM_extend 1);
 by (rtac le_add1 1);
-by (SELECT_GOAL Auto_tac 1);
+by (Force_tac 1);
 by (rtac SUM_cong 1);
 by (rtac refl 1);
 by (res_inst_tac [("m", "m"), ("n", "n+m-i")] SUM_shrink 1);
 by (asm_simp_tac (simpset() addsimps [le_add_diff]) 1);
-by (SELECT_GOAL Auto_tac 1);
-by (rtac refl 1);
+by Auto_tac;
 qed "CauchySum";

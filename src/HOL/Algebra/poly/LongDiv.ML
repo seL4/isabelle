@@ -77,7 +77,7 @@ by (rtac deg_lcoeff_cancel2 1);
   by (rtac add_le_mono1 1);
   by (rtac deg_smult_ring 1);
   by (asm_simp_tac (simpset() addsimps [leI]) 1);
-by (SELECT_GOAL Auto_tac 1);
+by (Force_tac 1);
 by (Simp_tac 1);
 by (res_inst_tac [("m", "deg x - deg g"), ("n", "deg x")] SUM_extend 1);
 by (Simp_tac 1);
@@ -156,18 +156,18 @@ by (etac disjE 1);
 (* r1 = <0> *)
 by (etac disjE 1);
 (* r2 = <0> *)
-by (SELECT_GOAL (auto_tac (claset() addDs [integral], simpset())) 1);
+by (force_tac (claset() addDs [integral], simpset()) 1);
 (* r2 ~= <0> *)
 by (dres_inst_tac [("f", "deg"), ("y", "r2 -- r1")] arg_cong 1);
-by (SELECT_GOAL Auto_tac 1);
+by (Force_tac 1);
 (* r1 ~=<0> *)
 by (etac disjE 1);
 (* r2 = <0> *)
 by (dres_inst_tac [("f", "deg"), ("y", "r2 -- r1")] arg_cong 1);
-by (SELECT_GOAL Auto_tac 1);
+by (Force_tac 1);
 (* r2 ~= <0> *)
 by (dres_inst_tac [("f", "deg"), ("y", "r2 -- r1")] arg_cong 1);
-by (SELECT_GOAL Auto_tac 1);
+by (Asm_full_simp_tac 1);
 by (dtac (order_eq_refl RS add_leD2) 1);
 by (dtac leD 1);
 by (etac notE 1 THEN rtac (deg_add RS le_less_trans) 1);

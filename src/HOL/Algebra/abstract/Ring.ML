@@ -176,22 +176,20 @@ qed "power_Suc";
 Addsimps [power_0, power_Suc];
 
 Goal "<1> ^ n = (<1>::'a::ring)";
-by (nat_ind_tac "n" 1);
-by (Simp_tac 1);
-by (Asm_simp_tac 1);
+by (induct_tac "n" 1);
+by Auto_tac;
 qed "power_one";
 
 Goal "!!n. n ~= 0 ==> <0> ^ n = (<0>::'a::ring)";
 by (etac rev_mp 1);
-by (nat_ind_tac "n" 1);
-by (Simp_tac 1);
-by (Simp_tac 1);
+by (induct_tac "n" 1);
+by Auto_tac;
 qed "power_zero";
 
 Addsimps [power_zero, power_one];
 
 Goal "!! a::'a::ring. a ^ m * a ^ n = a ^ (m + n)";
-by (nat_ind_tac "m" 1);
+by (induct_tac "m" 1);
 by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps m_ac) 1);
 qed "power_mult";

@@ -272,11 +272,8 @@ Addsimps [deg_smult, deg_mult];
 
 goal PolyRing.thy
   "!! p::nat=>'a::ring up. coeff k (SUM n p) = SUM n (%i. coeff k (p i))";
-by (nat_ind_tac "n" 1);
-(* Base case *)
-by (Simp_tac 1);
-(* Induction step *)
-by (Asm_simp_tac 1);
+by (induct_tac "n" 1);
+by Auto_tac;
 qed "coeff_SUM";
 
 goal UnivPoly.thy
@@ -284,8 +281,8 @@ goal UnivPoly.thy
 \    bound n f ==> SUM n (%i. if i = x then f i else <0>) = f x";
 by (simp_tac (simpset() addsimps [SUM_if_singleton]) 1);
 by (auto_tac
-  (claset() addDs [not_leE],
-   simpset()));
+    (claset() addDs [not_leE],
+     simpset()));
 qed "bound_SUM_if";
 
 Goal
@@ -331,12 +328,11 @@ by (Asm_simp_tac 1);
 by (res_inst_tac [("p", "q"), ("n", "0")] up_repr2D 1);
 by (Asm_simp_tac 1);
 by (subgoal_tac "coeff 0 p = <0> | coeff 0 q = <0>" 1);
-by (SELECT_GOAL (auto_tac (claset() addIs [up_eqI], simpset())) 1);
+by (force_tac (claset() addIs [up_eqI], simpset()) 1);
 by (rtac integral 1);
 by (subgoal_tac "coeff 0 (p * q) = <0>" 1);
+by (Asm_simp_tac 2);
 by (Full_simp_tac 1);
-by (Asm_simp_tac 1);
-
 by (dres_inst_tac [("f", "deg")] arg_cong 1);
 by (Asm_full_simp_tac 1);
 qed "up_integral";

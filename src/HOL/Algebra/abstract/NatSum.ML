@@ -19,7 +19,7 @@ Addsimps [SUM_0, SUM_Suc];
 
 Goal
   "SUM (Suc n) f = (SUM n (%i. f (Suc i)) + f 0::'a::ring)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
@@ -51,7 +51,7 @@ Addcongs [SUM_cong];
 section "Ring Properties";
 
 Goal "SUM n (%i. <0>) = (<0>::'a::ring)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "SUM_zero";
@@ -60,7 +60,7 @@ Addsimps [SUM_zero];
 
 Goal
   "!!f::nat=>'a::ring. SUM n (%i. f i + g i) = SUM n f + SUM n g";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
@@ -69,7 +69,7 @@ qed "SUM_add";
 
 Goal
   "!!a::'a::ring. SUM n f * a = SUM n (%i. f i * a)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
@@ -78,7 +78,7 @@ qed "SUM_ldistr";
 
 Goal
   "!!a::'a::ring. a * SUM n f = SUM n (%i. a * f i)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
@@ -97,7 +97,7 @@ Goal
   "!!a::nat=>'a::ring. k <= n --> \
 \  SUM k (%j. SUM j (%i. a i * b (j-i)) * c (n-j)) = \
 \  SUM k (%j. a j * SUM (k-j) (%i. b i * c (n-j-i)))";
-by (nat_ind_tac "k" 1);
+by (induct_tac "k" 1);
 (* Base case *)
 by (simp_tac (simpset() addsimps [m_assoc]) 1);
 (* Induction step *)
@@ -135,7 +135,7 @@ qed "diff_lemma2";
 Goal
   "!! a::nat=>'a::ring. j <= n --> \
 \    SUM j (%i. a i * b (n-i)) = SUM j (%i. a (n-i-(n-j)) * b (i+(n-j)))";
-by (nat_ind_tac "j" 1);
+by (induct_tac "j" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
@@ -160,7 +160,7 @@ section "Changing the Range of Summation";
 Goal
   "!! f::(nat=>'a::ring). \
 \    SUM n (%i. if i = x then f i else <0>) = (if x <= n then f x else <0>)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
@@ -174,20 +174,17 @@ Goal
   "!! f::(nat=>'a::ring). \
 \    m <= n & (ALL i. m < i & i <= n --> f i = <0>) --> \
 \    SUM m f = SUM n f";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
 by (case_tac "m <= n" 1);
 by (rtac impI 1);
 by (etac impE 1);
-by (SELECT_GOAL Auto_tac 1);
+by (Force_tac 1);
 by (etac conjE 1);
 by (dres_inst_tac [("x", "Suc n")] spec 1);
-by (asm_simp_tac (simpset() addsimps [less_Suc_eq_le]) 1);
-(* case n < m, in fact m = Suc n *)
-by (rtac impI 1);
-by (etac conjE 1);
+by Auto_tac;
 by (subgoal_tac "m = Suc n" 1);
 by (Asm_simp_tac 1);
 by (fast_arith_tac 1);
@@ -212,16 +209,11 @@ qed "SUM_extend";
 Goal
   "!! f::(nat=>'a::ring). \
 \    (ALL i. i < m --> f i = <0>) --> SUM d (%i. f (i+m)) = SUM (m+d) f";
-by (nat_ind_tac "d" 1);
+by (induct_tac "d" 1);
 (* Base case *)
-by (nat_ind_tac "m" 1);
+by (induct_tac "m" 1);
 by (Simp_tac 1);
-by (rtac impI 1);
-by (etac impE 1);
-by (Asm_simp_tac 1);
-by (subgoal_tac "SUM m f = <0>" 1);
-by (Asm_simp_tac 1);
-by (Asm_full_simp_tac 1);
+by (Force_tac 1);
 (* Induction step *)
 by (asm_simp_tac (simpset() addsimps add_ac) 1);
 val SUM_shrink_below_lemma = result();
@@ -230,8 +222,8 @@ Goal
   "!! f::(nat=>'a::ring). \
 \    [| m <= n; !!i. i < m ==> f i = <0>; P (SUM (n-m) (%i. f (i+m))) |] ==> \
 \    P (SUM n f)";
-by (asm_full_simp_tac (simpset() addsimps
-  [SUM_shrink_below_lemma, add_diff_inverse, leD]) 1);
+by (asm_full_simp_tac 
+    (simpset() addsimps [SUM_shrink_below_lemma, add_diff_inverse, leD]) 1);
 qed "SUM_extend_below";
 
 section "Result for the Univeral Property of Polynomials";
@@ -240,7 +232,7 @@ Goal
   "!!f::nat=>'a::ring. j <= n + m --> \
 \    SUM j (%k. SUM k (%i. f i * g (k - i))) = \
 \    SUM j (%k. SUM (j - k) (%i. f k * g i))";
-by (nat_ind_tac "j" 1);
+by (induct_tac "j" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)

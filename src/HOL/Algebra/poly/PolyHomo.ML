@@ -81,9 +81,8 @@ qed "EVAL2_monom1";
 Goalw [EVAL2_def]
   "!! phi::'a::ring=>'b::ring. homo phi ==> EVAL2 phi a (monom n) = a ^ n";
 by (Simp_tac 1);
-by (nat_ind_tac "n" 1);  (* really a case split *)
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
+by (case_tac "n" 1); 
+by Auto_tac;
 qed "EVAL2_monom";
 
 Goal

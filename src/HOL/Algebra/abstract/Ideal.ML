@@ -226,31 +226,31 @@ qed "irred_imp_max_ideal";
 (* Divisor chain condition *)
 (* proofs not finished *)
 
-Goal "(ALL i. I i <= I (Suc i)) --> (n <= m & a : I n --> a : I m)";
-by (rtac impI 1);
-by (nat_ind_tac "m" 1);
+Goal "(ALL i. I i <= I (Suc i)) ==> (n <= m & a : I n --> a : I m)";
+by (induct_tac "m" 1);
 by (Blast_tac 1);
 (* induction step *)
+by (rename_tac "m" 1);
 by (case_tac "n <= m" 1);
 by Auto_tac;
 by (subgoal_tac "n = Suc m" 1);
-by (hyp_subst_tac 1);
-by Auto_tac;
-qed "subset_chain_lemma";
+by (arith_tac 2);
+by (Force_tac 1);
+qed_spec_mp "subset_chain_lemma";
 
-Goal "[| ALL i. is_ideal (I i); ALL i. I i <= I (Suc i) |] ==> \
-\    is_ideal (Union (I``UNIV))";
+Goal "[| ALL i. is_ideal (I i); ALL i. I i <= I (Suc i) |] \
+\     ==> is_ideal (Union (I``UNIV))";
 by (rtac is_idealI 1);
 by Auto_tac;
 by (res_inst_tac [("x", "max x xa")] exI 1);
 by (rtac is_ideal_add 1);
 by (Asm_simp_tac 1);
-by (rtac (subset_chain_lemma RS mp RS mp) 1);
+by (rtac subset_chain_lemma 1);
 by (assume_tac 1);
 by (rtac conjI 1);
 by (assume_tac 2);
 by (arith_tac 1);
-by (rtac (subset_chain_lemma RS mp RS mp) 1);
+by (rtac subset_chain_lemma 1);
 by (assume_tac 1);
 by (rtac conjI 1);
 by (assume_tac 2);
