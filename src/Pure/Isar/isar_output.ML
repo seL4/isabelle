@@ -188,8 +188,8 @@ fun check_level i =
   else Scan.fail_with (K "Bad nesting of meta-comments");
 
 val ignore =
-  Scan.depend (fn i => P.position (Scan.one T.is_begin_ignore) >> pair (i + 1)) ||
-  Scan.depend (fn i => P.position (Scan.one T.is_end_ignore) --| 
+  Scan.depend (fn i => opt_newline |-- P.position (Scan.one T.is_begin_ignore) >> pair (i + 1)) ||
+  Scan.depend (fn i => P.position (Scan.one T.is_end_ignore) --|
     (opt_newline -- check_level i) >> pair (i - 1));
 
 val ignore_cmd = Scan.state -- ignore
