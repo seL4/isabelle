@@ -1,0 +1,141 @@
+(*  Title:      Pure/Isar/isar_cmd.ML
+    ID:         $Id$
+    Author:     Markus Wenzel, TU Muenchen
+
+Non-logical toplevel commands.
+*)
+
+signature ISAR_CMD =
+sig
+  val break: Toplevel.transition -> Toplevel.transition
+  val exit: Toplevel.transition -> Toplevel.transition
+  val quit: Toplevel.transition -> Toplevel.transition
+  val use: string -> Toplevel.transition -> Toplevel.transition
+  val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
+  val use_mltext: string -> Toplevel.transition -> Toplevel.transition
+  val use_commit: Toplevel.transition -> Toplevel.transition
+  val cd: string -> Toplevel.transition -> Toplevel.transition
+  val pwd: Toplevel.transition -> Toplevel.transition
+  val use_thy: string -> Toplevel.transition -> Toplevel.transition
+  val load: string -> Toplevel.transition -> Toplevel.transition
+  val print_theory: Toplevel.transition -> Toplevel.transition
+  val print_syntax: Toplevel.transition -> Toplevel.transition
+  val print_attributes: Toplevel.transition -> Toplevel.transition
+  val print_methods: Toplevel.transition -> Toplevel.transition
+  val print_binds: Toplevel.transition -> Toplevel.transition
+  val print_lthms: Toplevel.transition -> Toplevel.transition
+  val print_thms: xstring -> Toplevel.transition -> Toplevel.transition
+  val print_prop: string -> Toplevel.transition -> Toplevel.transition
+  val print_term: string -> Toplevel.transition -> Toplevel.transition
+  val print_type: string -> Toplevel.transition -> Toplevel.transition
+end;
+
+structure IsarCmd: ISAR_CMD =
+struct
+
+
+(* variations on exit *)
+
+val break = Toplevel.imperative (fn () => raise Toplevel.BREAK);
+
+val exit = Toplevel.keep (fn state =>
+  (Context.set_context (try Toplevel.theory_of state);
+    writeln "Leaving the Isar loop.  Invoke 'main_loop();' to restart.";
+    raise Toplevel.TERMINATE));
+
+val quit = Toplevel.imperative quit;
+
+
+(* use ML text *)
+
+fun use name = Toplevel.imperative (fn () => Use.use name);
+
+(*passes changes of theory context*)
+val use_mltext_theory = Toplevel.theory o IsarThy.use_mltext_theory;
+
+(*ignore result theory context*)
+fun use_mltext txt = Toplevel.keep (fn state =>
+  (IsarThy.use_mltext txt (try Toplevel.theory_of state); ()));
+
+(*Note: commit is dynamically bound*)
+val use_commit = use_mltext "commit();";
+
+
+(* current working directory *)
+
+fun print_cd _ = writeln (Library.pwd ());
+
+fun cd dir = Toplevel.imperative (fn () => (Use.cd dir; print_cd ()));
+val pwd = Toplevel.imperative print_cd;
+
+
+(* load theory files *)
+
+fun use_thy name = Toplevel.imperative (fn () => ThyRead.use_thy name);
+
+fun load name =
+  Toplevel.imperative (fn () => Toplevel.excursion (OuterSyntax.read_file (name ^ ".thy")));
+
+
+(* print theory contents *)
+
+val print_theory = Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
+val print_syntax = Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
+val print_attributes = Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
+val print_methods = Toplevel.keep (Method.print_methods o Toplevel.theory_of);
+
+
+(* print proof context contents *)
+
+val print_binds = Toplevel.keep (ProofContext.print_binds o Proof.context_of o Toplevel.proof_of);
+val print_lthms = Toplevel.keep (ProofContext.print_thms o Proof.context_of o Toplevel.proof_of);
+
+
+(* print theorems *)
+
+fun print_thms name = Toplevel.keep (fn state =>
+  let
+    val prt_tthm = Attribute.pretty_tthm;
+    fun prt_tthms [th] = prt_tthm th
+      | prt_tthms ths = Pretty.block (Pretty.fbreaks (map prt_tthm ths));
+
+    val tthms = map (apfst (Thm.transfer (Toplevel.theory_of state)))
+      (Toplevel.node_cases PureThy.get_tthms (ProofContext.get_tthms o Proof.context_of)
+        state name);
+  in Pretty.writeln (prt_tthms tthms) end);
+
+
+(* print types, terms and props *)
+
+fun read_typ thy = Sign.read_typ (Theory.sign_of thy, K None);
+
+fun read_term T thy s =
+  Thm.term_of (#1 (Thm.read_def_cterm (Theory.sign_of thy, K None, K None) [] true (s, T)));
+
+
+fun print_type s = Toplevel.keep (fn state =>
+  let
+    val sign = Toplevel.sign_of state;
+    val T = Toplevel.node_cases read_typ (ProofContext.read_typ o Proof.context_of) state s;
+  in Pretty.writeln (Pretty.quote (Sign.pretty_typ sign T)) end);
+
+fun print_term s = Toplevel.keep (fn state =>
+  let
+    val sign = Toplevel.sign_of state;
+    val t = Toplevel.node_cases (read_term (TVar (("'z", 0), logicS)))
+      (ProofContext.read_term o Proof.context_of) state s;
+    val T = Term.type_of t;
+  in
+    Pretty.writeln (Pretty.block [Pretty.quote (Sign.pretty_term sign t), Pretty.fbrk,
+      Pretty.str "::", Pretty.brk 1, Pretty.quote (Sign.pretty_typ sign T)])
+  end);
+
+fun print_prop s = Toplevel.keep (fn state =>
+  let
+    val sign = Toplevel.sign_of state;
+    val prop =
+      Toplevel.node_cases (read_term propT) (ProofContext.read_prop o Proof.context_of) state s;
+  in Pretty.writeln (Pretty.quote (Sign.pretty_term sign prop)) end);
+
+
+end;
