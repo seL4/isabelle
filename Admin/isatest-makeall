@@ -116,7 +116,6 @@ for SETTINGS in $@; do
         # test log and cleanup
         echo ------------------- test successful --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
         gzip -f $TESTLOG
-        rm -rf $HOME/isabelle-$SHORT
     else
         # test log
         echo ------------------- test FAILED --- `date` --- $HOSTNAME >> $TESTLOG 2>&1
