@@ -1,5 +1,10 @@
-(*** case splitting ***)
-(*
+(*  Title:      Provers/splitter
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    Copyright   1993  TU Munich
+
+Generic case-splitter, suitable for most logics.
+
 Use:
 
 val split_tac = mk_case_split_tac iffD;
@@ -17,10 +22,7 @@ let
 val lift = prove_goal Pure.thy
   "[| !!x::'b::logic. Q(x) == R(x) |] ==> P(%x.Q(x)) == P(%x.R(x))::'a::logic"
   (fn [prem] => [rewtac prem, rtac reflexive_thm 1]);
-(*
-val iffD = prove_goal Pure.thy "[| PROP P == PROP Q; PROP Q |] ==> PROP P"
-  (fn [p1,p2] => [rtac (equal_elim (symmetric p1) p2) 1]);
-*)
+
 val trlift = lift RS transitive_thm;
 val _ $ (Var(P,PT)$_) $ _ = concl_of trlift;
 
