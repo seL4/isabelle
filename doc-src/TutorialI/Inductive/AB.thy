@@ -167,11 +167,13 @@ lemma part2:
 by(simp del:append_take_drop_id);
 
 text{*\noindent
-In the proof, we have had to disable a normally useful lemma:
+In the proof we have disabled the normally useful lemma
 \begin{isabelle}
 @{thm append_take_drop_id[no_vars]}
 \rulename{append_take_drop_id}
 \end{isabelle}
+to allow the simplifier to apply the following lemma instead:
+@{text[display]"[x\<in>xs@ys. P x] = [x\<in>xs. P x] @ [x\<in>ys. P x]"}
 
 To dispose of trivial cases automatically, the rules of the inductive
 definition are declared simplification rules:
@@ -217,23 +219,21 @@ apply(case_tac w);
 (*<*)apply(rename_tac x v)(*>*)
 
 txt{*\noindent
-Simplification disposes of the base case and leaves only two step
-cases to be proved:
+Simplification disposes of the base case and leaves only a conjunction
+of two step cases to be proved:
 if @{prop"w = a#v"} and @{prop[display]"size[x\<in>v. x=a] = size[x\<in>v. x=b]+2"} then
 @{prop"b#v \<in> A"}, and similarly for @{prop"w = b#v"}.
 We only consider the first case in detail.
 
-After breaking the conjuction up into two cases, we can apply
+After breaking the conjunction up into two cases, we can apply
 @{thm[source]part1} to the assumption that @{term w} contains two more @{term
 a}'s than @{term b}'s.
 *}
 
-apply(rule conjI);
- apply(clarify);
- apply(frule part1[of "\<lambda>x. x=a", simplified]);
- apply(erule exE);
- apply(erule conjE);
-
+apply(rule conjI)
+ apply(clarify)
+ apply(frule part1[of "\<lambda>x. x=a", simplified])
+ apply(clarify)
 txt{*\noindent
 This yields an index @{prop"i \<le> length v"} such that
 @{prop[display]"length [x\<in>take i v . x = a] = length [x\<in>take i v . x = b] + 1"}
@@ -241,51 +241,52 @@ With the help of @{thm[source]part2} it follows that
 @{prop[display]"length [x\<in>drop i v . x = a] = length [x\<in>drop i v . x = b] + 1"}
 *}
 
- apply(drule part2[of "\<lambda>x. x=a", simplified]);
-  apply(assumption);
+ apply(drule part2[of "\<lambda>x. x=a", simplified])
+  apply(assumption)
 
 txt{*\noindent
 Now it is time to decompose @{term v} in the conclusion @{prop"b#v \<in> A"}
 into @{term"take i v @ drop i v"},
+*}
+
+ apply(rule_tac n1=i and t=v in subst[OF append_take_drop_id])
+
+txt{*\noindent
+(the variables @{term n1} and @{term t} are the result of composing the
+theorems @{thm[source]subst} and @{thm[source]append_take_drop_id})
 after which the appropriate rule of the grammar reduces the goal
 to the two subgoals @{prop"take i v \<in> A"} and @{prop"drop i v \<in> A"}:
 *}
 
- apply(rule_tac n1=i and t=v in subst[OF append_take_drop_id]);
- apply(rule S_A_B.intros);
+ apply(rule S_A_B.intros)
 
-txt{*\noindent
+txt{*
 Both subgoals follow from the induction hypothesis because both @{term"take i
 v"} and @{term"drop i v"} are shorter than @{term w}:
 *}
 
-  apply(force simp add: min_less_iff_disj);
- apply(force split add: nat_diff_split);
+  apply(force simp add: min_less_iff_disj)
+ apply(force split add: nat_diff_split)
 
-txt{*\noindent
-Note that the variables @{term n1} and @{term t} referred to in the
-substitution step above come from the derived theorem @{text"subst[OF
-append_take_drop_id]"}.
-
+txt{*
 The case @{prop"w = b#v"} is proved analogously:
 *}
 
-apply(clarify);
-apply(frule part1[of "\<lambda>x. x=b", simplified]);
-apply(erule exE);
-apply(erule conjE);
-apply(drule part2[of "\<lambda>x. x=b", simplified]);
- apply(assumption);
-apply(rule_tac n1=i and t=v in subst[OF append_take_drop_id]);
-apply(rule S_A_B.intros);
- apply(force simp add:min_less_iff_disj);
-by(force simp add:min_less_iff_disj split add: nat_diff_split);
+apply(clarify)
+apply(frule part1[of "\<lambda>x. x=b", simplified])
+apply(clarify)
+apply(drule part2[of "\<lambda>x. x=b", simplified])
+ apply(assumption)
+apply(rule_tac n1=i and t=v in subst[OF append_take_drop_id])
+apply(rule S_A_B.intros)
+ apply(force simp add:min_less_iff_disj)
+by(force simp add:min_less_iff_disj split add: nat_diff_split)
 
 text{*
 We conclude this section with a comparison of our proof with 
 Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the texbook
-grammar, for no good reason, excludes the empty word.  That complicates
-matters just a little bit because we now have 8 instead of our 7 productions.
+grammar, for no good reason, excludes the empty word, thus complicating
+matters just a little bit: they have 8 instead of our 7 productions.
 
 More importantly, the proof itself is different: rather than
 separating the two directions, they perform one induction on the

@@ -156,10 +156,14 @@ An easy lemma deals with the suffix \isa{drop\ i\ w}:%
 \isacommand{by}{\isacharparenleft}simp\ del{\isacharcolon}append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-In the proof, we have had to disable a normally useful lemma:
+In the proof we have disabled the normally useful lemma
 \begin{isabelle}
 \isa{take\ n\ xs\ {\isacharat}\ drop\ n\ xs\ {\isacharequal}\ xs}
 \rulename{append_take_drop_id}
+\end{isabelle}
+to allow the simplifier to apply the following lemma instead:
+\begin{isabelle}%
+\ \ \ \ \ {\isacharbrackleft}x{\isasymin}xs{\isacharat}ys{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}x{\isasymin}xs{\isachardot}\ P\ x{\isacharbrackright}\ {\isacharat}\ {\isacharbrackleft}x{\isasymin}ys{\isachardot}\ P\ x{\isacharbrackright}%
 \end{isabelle}
 
 To dispose of trivial cases automatically, the rules of the inductive
@@ -200,22 +204,21 @@ i.e.\ if \isa{w} is empty or not.%
 \ \isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
-Simplification disposes of the base case and leaves only two step
-cases to be proved:
+Simplification disposes of the base case and leaves only a conjunction
+of two step cases to be proved:
 if \isa{w\ {\isacharequal}\ a\ {\isacharhash}\ v} and \begin{isabelle}%
 \ \ \ \ \ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ a{\isacharbrackright}\ {\isacharequal}\ length\ {\isacharbrackleft}x{\isasymin}v\ {\isachardot}\ x\ {\isacharequal}\ b{\isacharbrackright}\ {\isacharplus}\ {\isadigit{2}}%
 \end{isabelle} then
 \isa{b\ {\isacharhash}\ v\ {\isasymin}\ A}, and similarly for \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v}.
 We only consider the first case in detail.
 
-After breaking the conjuction up into two cases, we can apply
+After breaking the conjunction up into two cases, we can apply
 \isa{part{\isadigit{1}}} to the assumption that \isa{w} contains two more \isa{a}'s than \isa{b}'s.%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}rule\ conjI{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}a{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
-\ \isacommand{apply}{\isacharparenleft}erule\ conjE{\isacharparenright}%
+\ \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}%
 \begin{isamarkuptxt}%
 \noindent
 This yields an index \isa{i\ {\isasymle}\ length\ v} such that
@@ -232,29 +235,28 @@ With the help of \isa{part{\isadigit{2}}} it follows that
 \begin{isamarkuptxt}%
 \noindent
 Now it is time to decompose \isa{v} in the conclusion \isa{b\ {\isacharhash}\ v\ {\isasymin}\ A}
-into \isa{take\ i\ v\ {\isacharat}\ drop\ i\ v},
+into \isa{take\ i\ v\ {\isacharat}\ drop\ i\ v},%
+\end{isamarkuptxt}%
+\ \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}v\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+(the variables \isa{n{\isadigit{1}}} and \isa{t} are the result of composing the
+theorems \isa{subst} and \isa{append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id})
 after which the appropriate rule of the grammar reduces the goal
 to the two subgoals \isa{take\ i\ v\ {\isasymin}\ A} and \isa{drop\ i\ v\ {\isasymin}\ A}:%
 \end{isamarkuptxt}%
-\ \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}v\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}rule\ S{\isacharunderscore}A{\isacharunderscore}B{\isachardot}intros{\isacharparenright}%
 \begin{isamarkuptxt}%
-\noindent
 Both subgoals follow from the induction hypothesis because both \isa{take\ i\ v} and \isa{drop\ i\ v} are shorter than \isa{w}:%
 \end{isamarkuptxt}%
 \ \ \isacommand{apply}{\isacharparenleft}force\ simp\ add{\isacharcolon}\ min{\isacharunderscore}less{\isacharunderscore}iff{\isacharunderscore}disj{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}force\ split\ add{\isacharcolon}\ nat{\isacharunderscore}diff{\isacharunderscore}split{\isacharparenright}%
 \begin{isamarkuptxt}%
-\noindent
-Note that the variables \isa{n{\isadigit{1}}} and \isa{t} referred to in the
-substitution step above come from the derived theorem \isa{subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}}.
-
 The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved analogously:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}frule\ part{\isadigit{1}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ exE{\isacharparenright}\isanewline
-\isacommand{apply}{\isacharparenleft}erule\ conjE{\isacharparenright}\isanewline
+\isacommand{apply}{\isacharparenleft}clarify{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}drule\ part{\isadigit{2}}{\isacharbrackleft}of\ {\isachardoublequote}{\isasymlambda}x{\isachardot}\ x{\isacharequal}b{\isachardoublequote}{\isacharcomma}\ simplified{\isacharbrackright}{\isacharparenright}\isanewline
 \ \isacommand{apply}{\isacharparenleft}assumption{\isacharparenright}\isanewline
 \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ n{\isadigit{1}}{\isacharequal}i\ \isakeyword{and}\ t{\isacharequal}v\ \isakeyword{in}\ subst{\isacharbrackleft}OF\ append{\isacharunderscore}take{\isacharunderscore}drop{\isacharunderscore}id{\isacharbrackright}{\isacharparenright}\isanewline
@@ -264,8 +266,8 @@ The case \isa{w\ {\isacharequal}\ b\ {\isacharhash}\ v} is proved analogously:%
 \begin{isamarkuptext}%
 We conclude this section with a comparison of our proof with 
 Hopcroft and Ullman's \cite[p.\ts81]{HopcroftUllman}. For a start, the texbook
-grammar, for no good reason, excludes the empty word.  That complicates
-matters just a little bit because we now have 8 instead of our 7 productions.
+grammar, for no good reason, excludes the empty word, thus complicating
+matters just a little bit: they have 8 instead of our 7 productions.
 
 More importantly, the proof itself is different: rather than
 separating the two directions, they perform one induction on the
