@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # fixgoal.pl - replace goal(w) commands by implicit versions Goal(w)
 #

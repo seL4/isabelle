@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # SML/NJ startup script (for 0.93).
 #
@@ -43,7 +45,7 @@ if [ -z "$OUTFILE" ]; then
 else
   if [ "$INFILE" -ef "$OUTFILE" ]; then
     OUTDIR=$(dirname "$OUTFILE")/tmp
-    OUTFILE=$OUTDIR/$(basename "$OUTFILE")
+    OUTFILE="$OUTDIR"/$(basename "$OUTFILE")
     mkdir -p "$OUTDIR" || fail_out
     MOVE=true
   fi
@@ -63,9 +65,9 @@ else
   FEEDER_OPTS="-q"
 fi
 
-$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; $INFILE $ML_OPTIONS; RC=$?; kill -HUP $FPID; exit $RC; }
-RC=$?
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; "$INFILE" $ML_OPTIONS; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+RC="$?"
 
 
 ## fix heap file
@@ -77,4 +79,4 @@ if [ -n "$MOVE" -a -f "$OUTFILE" ]; then
   mv "$OUTFILE" "$INFILE" || fail_out
 fi
 
-exit $RC
+exit "$RC"

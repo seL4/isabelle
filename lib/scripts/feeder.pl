@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # feeder.pl - feed isabelle session
 #

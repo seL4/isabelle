@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Simple Isabelle interface based on xterm.
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -102,7 +104,7 @@ fi
 PASS="$PASS_MODE $PASS"
 
 if [ -z "$SYMBOLS" -o "$SYMBOLS" = false ]; then
-  exec $XTERM -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE $PASS "$@"
+  exec $XTERM -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e \"$ISABELLE\" $PASS "$@"
 else
   $ISATOOL installfonts
   exec $XTERM -T Isabelle -n Isabelle -geometry "$MAINGEOM" -fn isabelle14 \
@@ -119,5 +121,5 @@ else
     -xrm "*VT100*font5:" \
     -xrm "*fontMenu*font6*Label:" \
     -xrm "*VT100*font6:" \
-    -e $ISABELLE -m isabelle_font -m symbols $PASS "$@"
+    -e \"$ISABELLE\" -m isabelle_font -m symbols $PASS "$@"
 fi

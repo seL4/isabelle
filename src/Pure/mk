@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # mk - build Pure Isabelle.
 #
@@ -51,14 +53,14 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ $# -ne 0 ] && usage
+[ "$#" -ne 0 ] && usage
 
 
 ## main
 
 # get compatibility file
 
-ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
+ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 [ -z "$ML_SYSTEM" ] && \
   fail "Missing ML system settings! Probably not run via 'isatool make'."
 
@@ -83,35 +85,35 @@ if [ -z "$RAW" ]; then
   echo "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
-  $ISABELLE \
+  "$ISABELLE" \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \
-    -c -q -w RAW_ML_SYSTEM Pure > $LOG 2>&1
-  RC=$?
+    -c -q -w RAW_ML_SYSTEM Pure > "$LOG" 2>&1
+  RC="$?"
 else
   ITEM="RAW"
   echo "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
-  $ISABELLE \
+  "$ISABELLE" \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "use\"$COMPAT\" handle _ => exit 1;;" \
-    -q -w RAW_ML_SYSTEM RAW > $LOG 2>&1
-  RC=$?
+    -q -w RAW_ML_SYSTEM RAW > "$LOG" 2>&1
+  RC="$?"
 fi
 
-ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
+ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
 
 
 # exit status
 
-if [ $RC -eq 0 ]; then
+if [ "$RC" -eq 0 ]; then
   echo "Finished $ITEM ($ELAPSED elapsed time)"
   gzip --force "$LOG"
 else
   echo "$ITEM FAILED"
   echo "(see also $LOG)"
-  echo; tail $LOG; echo
+  echo; tail "$LOG"; echo
 fi
 
-exit $RC
+exit "$RC"

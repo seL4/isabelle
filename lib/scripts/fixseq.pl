@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # fixseq.pl - fix references to obsolete Pure/Sequence structure
 #

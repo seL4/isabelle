@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # SML/NJ startup script (for 110 or later).
 #
@@ -76,19 +78,19 @@ else
   FEEDER_OPTS="-q"
 fi
 
-$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; $SML $ML_OPTIONS $DB; RC=$?; kill -HUP $FPID; exit $RC; }
-RC=$?
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; "$SML" $ML_OPTIONS "$DB"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+RC="$?"
 
 
 ## fix heap file name and permissions
 
 if [ -n "$OUTFILE" ]; then
-  eval $($ARCH_N_OPSYS)
+  eval $("$ARCH_N_OPSYS")
   [ -z "$HEAP_SUFFIX" ] && HEAP_SUFFIX="$ARCH-$OPSYS"
   HEAP="$OUTFILE.$HEAP_SUFFIX"
   check_heap_file "$HEAP" && mv "$HEAP" "$OUTFILE" && \
     [ -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 fi
 
-exit $RC
+exit "$RC"

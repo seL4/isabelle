@@ -1,14 +1,16 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # feeder - feed isabelle session
 
 
 ## diagnostics
 
-PRG=$(basename $0)
-DIR=$(dirname $0)
+PRG=$(basename "$0")
+DIR=$(dirname "$0")
 
 function usage()
 {
@@ -73,7 +75,7 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ $# -ne 0 ] && { echo "Bad args: $*"; usage; }
+[ "$#" -ne 0 ] && { echo "Bad args: $*"; usage; }
 
 
 
@@ -82,4 +84,4 @@ shift $(($OPTIND - 1))
 #set by configure
 AUTO_PERL=perl
 
-exec $AUTO_PERL -w $DIR/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$SYMBOLS" "$TAIL"
+exec "$AUTO_PERL" -w "$DIR"/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$SYMBOLS" "$TAIL"

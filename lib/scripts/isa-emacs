@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Emacs Isamode interface wrapper.
 
 
 ## diagnostics
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 function usage()
 {
@@ -71,7 +73,7 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ $# != 0 ] && usage
+[ "$#" != 0 ] && usage
 
 
 ## main
@@ -82,12 +84,12 @@ ARGS=""
 [ "$INITFILE" = false ] && ARGS="$ARGS -q"
 
 
-ARGS="$ARGS -l $ISAMODE_HOME/elisp/isa-site.el"
+ARGS="$ARGS -l \"$ISAMODE_HOME/elisp/isa-site.el\""
 
 for FILE in "$ISABELLE_HOME/etc/isa-settings.el" \
     "$ISABELLE_HOME_USER/etc/isa-settings.el"
 do
-  [ -f "$FILE" ] && ARGS="$ARGS -l $FILE"
+  [ -f "$FILE" ] && ARGS="$ARGS -l \"$FILE\""
 done
 
 ARGS="$ARGS -f isabelle"

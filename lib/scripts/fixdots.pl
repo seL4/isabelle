@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # fixdots.pl - ensure that dots in formulas are followed by non-idents
 #

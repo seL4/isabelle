@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # getsettings - bash source script to augment current env.
 #
@@ -12,11 +14,11 @@ set -o allexport
 ISABELLE_SETTINGS_PRESENT=true
 
 #normalize ISABELLE_HOME as passed by caller
-ISABELLE_HOME=$(cd $ISABELLE_HOME; echo $PWD)
+ISABELLE_HOME=$(cd "$ISABELLE_HOME"; echo "$PWD")
 
 #main executables
-ISABELLE=$ISABELLE_HOME/bin/isabelle
-ISATOOL=$ISABELLE_HOME/bin/isatool
+ISABELLE="$ISABELLE_HOME/bin/isabelle"
+ISATOOL="$ISABELLE_HOME/bin/isatool"
 
 #users tend to put strange things in here ...
 unset ENV
@@ -38,9 +40,12 @@ function choosefrom ()
 }
 
 #get actual settings
-. $ISABELLE_HOME/etc/settings || exit 2
+. "$ISABELLE_HOME/etc/settings" || exit 2
 ISABELLE_SITE_SETTINGS_PRESENT=true
-[ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
+
+[ "$ISABELLE_HOME" -ef "$ISABELLE_HOME_USER" ] && \
+  { echo >&2 "### ISABELLE_HOME and ISABELLE_HOME_USER should not be the same directory!"; }
+[ -f "$ISABELLE_HOME_USER/etc/settings" ] && . "$ISABELLE_HOME_USER/etc/settings"
 
 #append ML system identifier to paths
 if [ -z "$ML_PLATFORM" ]; then
@@ -49,8 +54,6 @@ else
   ML_IDENTIFIER="${ML_SYSTEM}_${ML_PLATFORM}"
 fi
 ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
-ISABELLE_PATH=$(for DIR in $(echo $ISABELLE_PATH | tr : " "); do echo $DIR/$ML_IDENTIFIER; done)
-ISABELLE_PATH=$(echo $ISABELLE_PATH | tr " " :)
 
 set +o allexport
 

@@ -12,11 +12,11 @@ ALL_LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
 
 ## settings
 
-PRG=$(basename $0)
+PRG=$(basename "$0")
 
 export THIS_IS_ISABELLE_BUILD=true
-ISABELLE_HOME=$(dirname $0)
-. $ISABELLE_HOME/lib/scripts/getsettings || \
+ISABELLE_HOME=$(dirname "$0")
+. "$ISABELLE_HOME/lib/scripts/getsettings" || \
   { echo "$PRG probably not called from its original place!"; exit 2; }
 
 
@@ -101,7 +101,7 @@ if [ -z "$BATCH" ]; then
   echo "                *****************************"
   echo
   echo "Please check $ISABELLE_HOME/etc/settings"
-  [ -f $ISABELLE_HOME_USER/etc/settings ] && echo "AND $ISABELLE_HOME_USER/etc/settings"
+  [ -f "$ISABELLE_HOME_USER/etc/settings" ] && echo "AND $ISABELLE_HOME_USER/etc/settings"
   echo "to make sure that Isabelle's ML system settings and compilation options"
   echo "are appropriate."
   echo
@@ -130,8 +130,8 @@ MAKE_LOGICS=""
 
 for L in $LOGICS
 do
-  DIR=$ISABELLE_HOME/src/$L
-  if [ -f $DIR/IsaMakefile ]; then
+  DIR="$ISABELLE_HOME/src/$L"
+  if [ -f "$DIR/IsaMakefile" ]; then
     MAKE_LOGICS="$MAKE_LOGICS $L"
   else
     echo "No such logic: $L"
@@ -140,12 +140,12 @@ done
 
 
 if [ -z "$BATCH" ]; then
-  echo " " $MAKE_LOGICS
+  echo " $MAKE_LOGICS"
   echo
   read
 else
   echo
-  echo "Isabelle build:" $MAKE_LOGICS
+  echo "Isabelle build: $MAKE_LOGICS"
   echo
   echo "ML_SYSTEM=$ML_SYSTEM"
   echo "ML_HOME=$ML_HOME"
@@ -166,10 +166,10 @@ echo "Started at $DATE ($HOST)"
 
 for L in $MAKE_LOGICS
 do
-  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make $TARGETS )
+  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make $TARGETS )
 done
 
 echo -n "Finished at "; date
 
-ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
+ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
 echo "$ELAPSED total elapsed time"

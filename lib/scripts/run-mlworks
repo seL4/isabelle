@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # MLWorks startup script (for 1.0r2 or later).
 #
@@ -24,7 +26,7 @@ if [ -z "$INFILE" ]; then
   MLWORKS="mlworks-basis -tty"
 else
   EXIT=""
-  MLWORKS="mlimage -load $INFILE -tty"
+  MLWORKS="mlimage -load \"$INFILE\" -tty"
 fi
 
 if [ -z "$OUTFILE" ]; then
@@ -46,10 +48,10 @@ else
   FEEDER_OPTS="-q"
 fi
 
-$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; $ML_HOME/$MLWORKS $ML_OPTIONS 2>&1; RC=$?; kill -HUP $FPID; exit $RC; }
-RC=$?
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; "$ML_HOME/$MLWORKS" $ML_OPTIONS 2>&1; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+RC="$?"
 
 [ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
-exit $RC
+exit "$RC"

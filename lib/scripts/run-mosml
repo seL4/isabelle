@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Moscow ML 2.00 startup script
 #
@@ -49,10 +51,10 @@ else
   FEEDER_OPTS="-q"
 fi
 
-$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; $ML_HOME/$MOSML $ML_OPTIONS 2>&1; RC=$?; kill -HUP $FPID; exit $RC; }
-RC=$?
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; "$ML_HOME/$MOSML" $ML_OPTIONS 2>&1; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+RC="$?"
 
 [ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
-exit $RC
+exit "$RC"

@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # patch-scripts.bash - relocate interpreter paths of executable scripts and
 #   insert AUTO_BASH/AUTO_PERL values
@@ -38,14 +40,14 @@ do
   if [ -x "$FILE" ]; then
     sed -e "s:^#!.*/bash:#!$BASH_PATH:" -e "s:^#!.*/perl:#!$PERL_PATH:" \
       -e "s:^AUTO_BASH=.*bash:AUTO_BASH=$AUTO_BASH:" \
-      -e "s:^AUTO_PERL=.*perl:AUTO_PERL=$AUTO_PERL:" $FILE >$FILE~~
-    if cmp -s $FILE $FILE~~; then
-      rm $FILE~~
+      -e "s:^AUTO_PERL=.*perl:AUTO_PERL=$AUTO_PERL:" "$FILE" > "$FILE~~"
+    if cmp -s "$FILE" "$FILE~~"; then
+      rm "$FILE~~"
     else
-      rm -f $FILE
-      mv $FILE~~ $FILE
-      chmod +x $FILE
-      echo fixed $FILE
+      rm -f "$FILE"
+      mv "$FILE~~" "$FILE"
+      chmod +x "$FILE"
+      echo "fixed $FILE"
     fi
   fi
 done

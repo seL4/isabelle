@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Poly/ML startup script.
 #
@@ -28,8 +30,8 @@ function check_mlhome_file()
 
 ## Poly/ML programs
 
-POLY=$ML_HOME/poly
-DISCGARB=$ML_HOME/discgarb
+POLY="$ML_HOME/poly"
+DISCGARB="$ML_HOME/discgarb"
 
 check_mlhome_file "$POLY"
 check_mlhome_file "$DISCGARB"
@@ -68,7 +70,7 @@ elif [ -n "$COPYDB" ]; then
   DB="$OUTFILE"
 else
   [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out; }
-  echo "PolyML.make_database \"$OUTFILE\"; PolyML.quit();" | $POLY -r "$INFILE"
+  echo "PolyML.make_database \"$OUTFILE\"; PolyML.quit();" | "$POLY" -r "$INFILE"
   [ -f "$OUTFILE" ] || fail_out
   DB="$OUTFILE"
 fi
@@ -84,12 +86,12 @@ fi
 
 DB_INFO=$(ls -l "$DB")
 
-$ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" $FEEDER_OPTS | \
-  { read FPID; $POLY $ML_OPTIONS "$DB"; RC=$?; kill -HUP $FPID; exit $RC; }
-RC=$?
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" $FEEDER_OPTS | \
+  { read FPID; "$POLY" $ML_OPTIONS "$DB"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
+RC="$?"
 
 NEW_DB_INFO=$(ls -l "$DB")
-[ -n "$OUTFILE" -a -n "$COMPRESS" -a "$DB_INFO" != "$NEW_DB_INFO" ] && $DISCGARB -c "$OUTFILE"
+[ -n "$OUTFILE" -a -n "$COMPRESS" -a "$DB_INFO" != "$NEW_DB_INFO" ] && "$DISCGARB" -c "$OUTFILE"
 [ -n "$OUTFILE" -a -f "$OUTFILE" -a -n "$NOWRITE" ] && chmod -w "$OUTFILE"
 
-exit $RC
+exit "$RC"

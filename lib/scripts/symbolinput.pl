@@ -1,5 +1,7 @@
 #
 # $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # symbolinput.pl - expand isabelle-0 encoded chars to \<...> sequences.
 #
