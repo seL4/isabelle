@@ -22,18 +22,19 @@ constdefs
   lift_act :: "['a, ('b*'b) set] => (('a=>'b) * ('a=>'b)) set"
     "lift_act i act == {(f,f'). f(i:= f' i) = f' & (f i, f' i) : act}"
 
-  drop_act :: "['a, (('a=>'b) * ('a=>'b)) set] => ('b*'b) set"
-    "drop_act i act == (%(f,f'). (f i, f' i)) `` act"
+  (*Argument C allows weak safety laws to be projected*)
+  drop_act :: "[('a=>'b) set, 'a, (('a=>'b) * ('a=>'b)) set] => ('b*'b) set"
+    "drop_act C i act == {(f i, f' i) | f f'. (f,f'): act & f: C}"
 
   lift_prog :: "['a, 'b program] => ('a => 'b) program"
     "lift_prog i F ==
        mk_program (lift_set i (Init F),
 		   lift_act i `` Acts F)"
 
-  drop_prog :: "['a, ('a=>'b) program] => 'b program"
-    "drop_prog i F ==
+  drop_prog :: "[('a=>'b) set, 'a, ('a=>'b) program] => 'b program"
+    "drop_prog C i F ==
        mk_program (drop_set i (Init F),
-		   drop_act i `` (Acts F))"
+		   drop_act C i `` (Acts F))"
 
   (*simplifies the expression of specifications*)
   constdefs
