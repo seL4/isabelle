@@ -6,7 +6,7 @@
 Zermelo-Fraenkel Set Theory
 *)
 
-ZF = FOL +
+ZF = FOL + Let + 
 
 types
   i
@@ -49,8 +49,7 @@ consts
 
   Pair        :: "[i, i] => i"
   fst, snd    :: "i => i"
-  split       :: "[[i, i] => i, i] => i"
-  fsplit      :: "[[i, i] => o, i] => o"
+  split       :: "[[i, i] => 'a, i] => 'a::logic"  (*for pattern-matching*)
 
   (* Sigma and Pi Operators *)
 
@@ -83,32 +82,37 @@ consts
 
 types
   is
+  pttrns
 
 syntax
-  ""          :: "i => is"                 ("_")
-  "@Enum"     :: "[i, is] => is"           ("_,/ _")
-  "~:"        :: "[i, i] => o"             (infixl 50)
-  "@Finset"   :: "is => i"                 ("{(_)}")
-  "@Tuple"    :: "[i, is] => i"            ("<(_,/ _)>")
-  "@Collect"  :: "[idt, i, o] => i"        ("(1{_: _ ./ _})")
-  "@Replace"  :: "[idt, idt, i, o] => i"   ("(1{_ ./ _: _, _})")
-  "@RepFun"   :: "[i, idt, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
-  "@INTER"    :: "[idt, i, i] => i"        ("(3INT _:_./ _)" 10)
-  "@UNION"    :: "[idt, i, i] => i"        ("(3UN _:_./ _)" 10)
-  "@PROD"     :: "[idt, i, i] => i"        ("(3PROD _:_./ _)" 10)
-  "@SUM"      :: "[idt, i, i] => i"        ("(3SUM _:_./ _)" 10)
-  "->"        :: "[i, i] => i"             (infixr 60)
-  "*"         :: "[i, i] => i"             (infixr 80)
-  "@lam"      :: "[idt, i, i] => i"        ("(3lam _:_./ _)" 10)
-  "@Ball"     :: "[idt, i, o] => o"        ("(3ALL _:_./ _)" 10)
-  "@Bex"      :: "[idt, i, o] => o"        ("(3EX _:_./ _)" 10)
+  ""          :: "i => is"                   ("_")
+  "@Enum"     :: "[i, is] => is"             ("_,/ _")
+  "~:"        :: "[i, i] => o"               (infixl 50)
+  "@Finset"   :: "is => i"                   ("{(_)}")
+  "@Tuple"    :: "[i, is] => i"              ("<(_,/ _)>")
+  "@Collect"  :: "[pttrn, i, o] => i"        ("(1{_: _ ./ _})")
+  "@Replace"  :: "[pttrn, pttrn, i, o] => i" ("(1{_ ./ _: _, _})")
+  "@RepFun"   :: "[i, pttrn, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
+  "@INTER"    :: "[pttrn, i, i] => i"        ("(3INT _:_./ _)" 10)
+  "@UNION"    :: "[pttrn, i, i] => i"        ("(3UN _:_./ _)" 10)
+  "@PROD"     :: "[pttrn, i, i] => i"        ("(3PROD _:_./ _)" 10)
+  "@SUM"      :: "[pttrn, i, i] => i"        ("(3SUM _:_./ _)" 10)
+  "->"        :: "[i, i] => i"               (infixr 60)
+  "*"         :: "[i, i] => i"               (infixr 80)
+  "@lam"      :: "[pttrn, i, i] => i"        ("(3lam _:_./ _)" 10)
+  "@Ball"     :: "[pttrn, i, o] => o"        ("(3ALL _:_./ _)" 10)
+  "@Bex"      :: "[pttrn, i, o] => o"        ("(3EX _:_./ _)" 10)
+
+  (** Patterns -- extends pre-defined type "pttrn" used in abstractions **)
+
+  "@pttrn"  :: "pttrns => pttrn"            ("<_>")
+  ""        :: " pttrn           => pttrns" ("_")
+  "@pttrns" :: "[pttrn,pttrns]   => pttrns" ("_,/_")
 
 translations
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "cons(x, {xs})"
   "{x}"         == "cons(x, 0)"
-  "<x, y, z>"   == "<x, <y, z>>"
-  "<x, y>"      == "Pair(x, y)"
   "{x:A. P}"    == "Collect(A, %x. P)"
   "{y. x:A, Q}" == "Replace(A, %x y. Q)"
   "{b. x:A}"    == "RepFun(A, %x. b)"
@@ -122,6 +126,12 @@ translations
   "ALL x:A. P"  == "Ball(A, %x. P)"
   "EX x:A. P"   == "Bex(A, %x. P)"
 
+  "<x, y, z>"   == "<x, <y, z>>"
+  "<x, y>"      == "Pair(x, y)"
+  "%<x,y,zs>.b"   => "split(%x <y,zs>.b)"
+  "%<x,y>.b"      => "split(%x y.b)"
+(* The <= direction fails if split has more than one argument because
+   ast-matching fails.  Otherwise it would work fine *)
 
 defs
 
@@ -191,10 +201,9 @@ defs
 
   (* this "symmetric" definition works better than {{a}, {a,b}} *)
   Pair_def      "<a,b>  == {{a,a}, {a,b}}"
-  fst_def       "fst == split(%x y.x)"
-  snd_def       "snd == split(%x y.y)"
-  split_def     "split(c,p) == THE y. EX a b. p=<a,b> & y=c(a,b)"
-  fsplit_def    "fsplit(R,z) == EX x y. z=<x,y> & R(x,y)"
+  fst_def       "fst(p) == THE a. EX b. p=<a,b>"
+  snd_def       "snd(p) == THE b. EX a. p=<a,b>"
+  split_def     "split(c,p) == c(fst(p), snd(p))"
   Sigma_def     "Sigma(A,B) == UN x:A. UN y:B(x). {<x,y>}"
 
   (* Operations on relations *)
@@ -224,8 +233,32 @@ end
 
 ML
 
-(* 'Dependent' type operators *)
+(* Pattern-matching and 'Dependent' type operators *)
 
-val print_translation =
-  [("Pi", dependent_tr' ("@PROD", "op ->")),
+local open Syntax
+
+fun pttrn s = const"@pttrn" $ s;
+fun pttrns s t = const"@pttrns" $ s $ t;
+
+fun split2(Abs(x,T,t)) =
+      let val (pats,u) = split1 t
+      in (pttrns (Free(x,T)) pats, subst_bounds([free x],u)) end
+  | split2(Const("split",_) $ r) =
+      let val (pats,s) = split2(r)
+          val (pats2,t) = split1(s)
+      in (pttrns (pttrn pats) pats2, t) end
+and split1(Abs(x,T,t)) =  (Free(x,T), subst_bounds([free x],t))
+  | split1(Const("split",_)$t) = split2(t);
+
+fun split_tr'(t::args) =
+  let val (pats,ft) = split2(t)
+  in list_comb(const"_lambda" $ pttrn pats $ ft, args) end;
+
+in
+
+val print_translation = 
+  [("split", split_tr'),
+   ("Pi",    dependent_tr' ("@PROD", "op ->")),
    ("Sigma", dependent_tr' ("@SUM", "op *"))];
+
+end;
