@@ -1,8 +1,6 @@
 open Type;
 
-Addsimps [app_subst_TVar,app_subst_Fun];
 Addsimps [mgu_eq,mgu_mg,mgu_free];
-Addsimps [free_tv_TVar,free_tv_Fun,free_tv_Nil,free_tv_Cons];
 
 (* mgu does not introduce new type variables *)
 goalw thy [new_tv_def] 
