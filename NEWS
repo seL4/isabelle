@@ -299,7 +299,8 @@ as well;
 
 * system: refrain from any attempt at filtering input streams; no
 longer support ``8bit'' encoding of old isabelle font, instead proper
-iso-latin characters may now be used;
+iso-latin characters may now be used; the related isatools
+"symbolinput" and "nonascii" have disappeared as well;
 
 * system: support Poly/ML 4.1.1 (able to manage larger heaps);
 
