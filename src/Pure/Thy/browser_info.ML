@@ -59,7 +59,7 @@ fun mkdir path = (execute ("mkdir -p " ^ path); ());
 (*Path of Isabelle's main (source) directory
   FIXME: this value should be provided by isatool!*)
 val base_path = ref (
-  "/" ^ space_implode "/" (rev (tl (tl (rev (space_explode "/" (OS.FileSys.getDir ())))))));
+  "/" ^ space_implode "/" (rev (tl (tl (rev (BAD_space_explode "/" (OS.FileSys.getDir ())))))));
 
 
 (* copy contents of file *)  (* FIXME: move to library?*)
@@ -479,7 +479,7 @@ fun init_html () =
 fun finish_html () = if not (!make_html) then () else
   let val tlist_path = tack_on (!index_path) "theory_list.txt";
       val theory_list = TextIO.openIn tlist_path;
-      val theories = space_explode "\n" (TextIO.inputAll theory_list);
+      val theories = BAD_space_explode "\n" (TextIO.inputAll theory_list);
       val dummy = (TextIO.closeIn theory_list; OS.FileSys.remove tlist_path);
 
       val rel_gif_path = relative_path (!index_path) (gif_path ());
@@ -509,7 +509,7 @@ fun finish_html () = if not (!make_html) then () else
       val subdir =
         if inside_isabelle then relative_path (html_path (!base_path)) (!index_path)
         else base_name (!index_path);
-      val subdirs = space_explode "/" subdir;
+      val subdirs = BAD_space_explode "/" subdir;
 
       (*Look for index.html in superdirectories; stop when Isabelle's
         main directory is reached*)
@@ -521,7 +521,7 @@ fun finish_html () = if not (!make_html) then () else
              else ("", n)
           end;
       val (super_index, level_diff) =
-        find_super_index (rev (space_explode "/" (!index_path))) 1;
+        find_super_index (rev (BAD_space_explode "/" (!index_path))) 1;
       val level = length subdirs - level_diff;
 
       (*Add link to current directory to 'super' index.html*)
@@ -559,7 +559,7 @@ fun finish_html () = if not (!make_html) then () else
         ("<A HREF = \"" ^ relative_path (!index_path) super_index ^ 
          "/index.html\">Back</A> to the index of " ^
          (if not inside_isabelle then
-            hd (tl (rev (space_explode "/" (!index_path))))
+            hd (tl (rev (BAD_space_explode "/" (!index_path))))
           else if level = 0 then "Isabelle logics"
           else space_implode "/" (take (level, subdirs))))) ^
        "\n" ^
@@ -647,8 +647,8 @@ fun init_graph usedir_arg =
         let val is = TextIO.openIn infile;
             val (inp_dir, _) = split_filename infile;
             val (outp_dir, _) = split_filename outfile;
-            val entries = map (space_explode " ")
-                            (space_explode "\n" (TextIO.inputAll is));
+            val entries = map (BAD_space_explode " ")
+                            (BAD_space_explode "\n" (TextIO.inputAll is));
 
             fun thyfile f = if f = "\"\"" then f else
               let val (dir, name) =
@@ -763,8 +763,8 @@ fun mk_graph tname abs_path = if not (!make_graph) then () else
 
       fun exists_entry id infile =
         let val is = TextIO.openIn(infile);
-            val IDs = map (hd o tl o (space_explode " "))
-                            (space_explode "\n" (TextIO.inputAll is));
+            val IDs = map (hd o tl o (BAD_space_explode " "))
+                            (BAD_space_explode "\n" (TextIO.inputAll is));
             val _ = TextIO.closeIn is
         in id mem IDs end;
 
