@@ -143,7 +143,7 @@ result();
 
 (*Discussed in Avron, Gentzen-Type Systems, Resolution and Tableaux,
   JAR 10 (265-281), 1993.  Proof is trivial!*)
-Goal "~ ((EX x.~P(x)) & ((EX x. P(x)) | (EX x. P(x) & Q(x))) & ~ (EX x. P(x)))";
+Goal "~((EX x.~P(x)) & ((EX x. P(x)) | (EX x. P(x) & Q(x))) & ~ (EX x. P(x)))";
 by (Blast_tac 1);
 result();
 
@@ -216,16 +216,16 @@ result();
 
 writeln"Problem 24";
 Goal "~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
-\    (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
+\     (~(EX x. P(x)) --> (EX x. Q(x))) & (ALL x. Q(x)|R(x) --> S(x))  \
 \   --> (EX x. P(x)&R(x))";
 by (Blast_tac 1); 
 result();
 
 writeln"Problem 25";
 Goal "(EX x. P(x)) &  \
-\       (ALL x. L(x) --> ~ (M(x) & R(x))) &  \
-\       (ALL x. P(x) --> (M(x) & L(x))) &   \
-\       ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))  \
+\     (ALL x. L(x) --> ~ (M(x) & R(x))) &  \
+\     (ALL x. P(x) --> (M(x) & L(x))) &   \
+\     ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))  \
 \   --> (EX x. Q(x)&P(x))";
 by (Blast_tac 1); 
 result();
@@ -239,10 +239,10 @@ result();
 
 writeln"Problem 27";
 Goal "(EX x. P(x) & ~Q(x)) &   \
-\             (ALL x. P(x) --> R(x)) &   \
-\             (ALL x. M(x) & L(x) --> P(x)) &   \
-\             ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))  \
-\         --> (ALL x. M(x) --> ~L(x))";
+\     (ALL x. P(x) --> R(x)) &   \
+\     (ALL x. M(x) & L(x) --> P(x)) &   \
+\     ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))  \
+\ --> (ALL x. M(x) --> ~L(x))";
 by (Blast_tac 1); 
 result();
 
@@ -263,7 +263,7 @@ result();
 
 writeln"Problem 30";
 Goal "(ALL x. P(x) | Q(x) --> ~ R(x)) & \
-\       (ALL x. (Q(x) --> ~ S(x)) --> P(x) & R(x))  \
+\     (ALL x. (Q(x) --> ~ S(x)) --> P(x) & R(x))  \
 \   --> (ALL x. S(x))";
 by (Blast_tac 1);  
 result();
@@ -278,24 +278,24 @@ result();
 
 writeln"Problem 32";
 Goal "(ALL x. P(x) & (Q(x)|R(x))-->S(x)) & \
-\       (ALL x. S(x) & R(x) --> L(x)) & \
-\       (ALL x. M(x) --> R(x))  \
-\   --> (ALL x. P(x) & M(x) --> L(x))";
+\     (ALL x. S(x) & R(x) --> L(x)) & \
+\     (ALL x. M(x) --> R(x))  \
+\     --> (ALL x. P(x) & M(x) --> L(x))";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 33";
 Goal "(ALL x. P(a) & (P(x)-->P(b))-->P(c))  <->    \
-\    (ALL x. (~P(a) | P(x) | P(c)) & (~P(a) | ~P(b) | P(c)))";
+\     (ALL x. (~P(a) | P(x) | P(c)) & (~P(a) | ~P(b) | P(c)))";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 34  AMENDED (TWICE!!)";
 (*Andrews's challenge*)
 Goal "((EX x. ALL y. p(x) <-> p(y))  <->                \
-\              ((EX x. q(x)) <-> (ALL y. p(y))))     <->        \
-\             ((EX x. ALL y. q(x) <-> q(y))  <->                \
-\              ((EX x. p(x)) <-> (ALL y. q(y))))";
+\      ((EX x. q(x)) <-> (ALL y. p(y))))     <->        \
+\     ((EX x. ALL y. q(x) <-> q(y))  <->                \
+\      ((EX x. p(x)) <-> (ALL y. q(y))))";
 by (Blast_tac 1);
 result();
 
@@ -315,17 +315,17 @@ result();
 writeln"Problem 37";
 Goal "(ALL z. EX w. ALL x. EX y. \
 \          (P(x,z)-->P(y,w)) & P(y,z) & (P(y,w) --> (EX u. Q(u,w)))) & \
-\       (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) & \
-\       ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
-\   --> (ALL x. EX y. R(x,y))";
+\     (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) & \
+\     ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))  \
+\     --> (ALL x. EX y. R(x,y))";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 38";
 Goal "(ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->        \
 \            (EX z. EX w. p(z) & r(x,w) & r(w,z)))  <->         \
-\    (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &    \
-\            (~p(a) | ~(EX y. p(y) & r(x,y)) |                          \
+\     (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &    \
+\             (~p(a) | ~(EX y. p(y) & r(x,y)) |                          \
 \             (EX z. EX w. p(z) & r(x,w) & r(w,z))))";
 by (Blast_tac 1);  (*beats fast_tac!*)
 result();
@@ -363,10 +363,9 @@ by (Blast_tac 1);
 result();
 
 writeln"Problem 44";
-Goal "(ALL x. f(x) -->                                          \
-\             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &       \
-\             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))                   \
-\             --> (EX x. j(x) & ~f(x))";
+Goal "(ALL x. f(x) --> (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y)))) & \
+\     (EX x. j(x) & (ALL y. g(y) --> h(x,y)))                   \
+\     --> (EX x. j(x) & ~f(x))";
 by (Blast_tac 1);
 result();
 
@@ -383,10 +382,10 @@ result();
 
 writeln"Problem 46";
 Goal "(ALL x. f(x) & (ALL y. f(y) & h(y,x) --> g(y)) --> g(x)) &      \
-\    ((EX x. f(x) & ~g(x)) -->                                    \
-\     (EX x. f(x) & ~g(x) & (ALL y. f(y) & ~g(y) --> j(x,y)))) &    \
-\    (ALL x y. f(x) & f(y) & h(x,y) --> ~j(y,x))                    \
-\     --> (ALL x. f(x) --> g(x))";
+\     ((EX x. f(x) & ~g(x)) -->                                    \
+\      (EX x. f(x) & ~g(x) & (ALL y. f(y) & ~g(y) --> j(x,y)))) &    \
+\     (ALL x y. f(x) & f(y) & h(x,y) --> ~j(y,x))                    \
+\      --> (ALL x. f(x) --> g(x))";
 by (Blast_tac 1); 
 result();
 
@@ -419,14 +418,14 @@ result();
 
 writeln"Problem 51";
 Goal "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
-\    (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)";
+\     (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)";
 by (Blast_tac 1);
 result();
 
 writeln"Problem 52";
 (*Almost the same as 51. *)
 Goal "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
-\    (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)";
+\     (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)";
 by (Blast_tac 1);
 result();
 
@@ -498,8 +497,8 @@ result();
 
 writeln"Problem 62 as corrected in JAR 18 (1997), page 135";
 Goal "(ALL x. p(a) & (p(x) --> p(f(x))) --> p(f(f(x))))  <->     \
-\    (ALL x. (~p(a) | p(x) | p(f(f(x)))) &                      \
-\            (~p(a) | ~p(f(x)) | p(f(f(x)))))";
+\     (ALL x. (~p(a) | p(x) | p(f(f(x)))) &                      \
+\             (~p(a) | ~p(f(x)) | p(f(f(x)))))";
 by (Blast_tac 1);
 result();
 
@@ -514,8 +513,8 @@ result();
 (*From Rudnicki, Obvious Inferences, JAR 3 (1987), 383-393.  
   It does seem obvious!*)
 Goal "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) &        \
-\    (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y)))  &        \
-\    (ALL x. K(x) --> ~G(x))   -->   (EX x. K(x) --> ~G(x))";
+\     (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y)))  &        \
+\     (ALL x. K(x) --> ~G(x))   -->   (EX x. K(x) --> ~G(x))";
 by (Fast_tac 1);
 result();
 
