@@ -193,6 +193,12 @@ by (etac (premOrd RS Ord_linear_lt) 1);
 by (ALLGOALS (blast_tac (claset() addSIs [premP] addSDs [premNot])));
 qed "Least_equality";
 
+(*Perform induction on i, then prove the Ord(i) subgoal using prems. *)
+fun trans_ind_tac a prems i = 
+    EVERY [res_inst_tac [("i",a)] trans_induct i,
+           rename_last_tac a ["1"] (i+1),
+           ares_tac prems i];
+
 Goal "[| P(i);  Ord(i) |] ==> P(LEAST x. P(x))";
 by (etac rev_mp 1);
 by (trans_ind_tac "i" [] 1);

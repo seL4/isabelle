@@ -170,12 +170,24 @@ qed "diff_induct";
 
 (** Induction principle analogous to trancl_induct **)
 
+val le_cs = claset() addSIs [leCI] addSEs [leE] addEs [lt_asym];
+
 Goal "m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
 \                 (ALL n:nat. m<n --> P(m,n))";
 by (etac nat_induct 1);
-by (ALLGOALS   
-    (EVERY' [rtac (impI RS impI), rtac (nat_induct RS ballI), assume_tac,
-             blast_tac le_cs, blast_tac le_cs])); 
+by (rtac (impI RS impI) 1);
+by (rtac (nat_induct RS ballI) 1);
+by (assume_tac 1);
+by (Blast_tac 1);
+by (asm_simp_tac (simpset() addsimps [le_iff]) 1);
+by (Blast_tac 1);
+(*and again*)
+by (rtac (impI RS impI) 1);
+by (rtac (nat_induct RS ballI) 1);
+by (assume_tac 1);
+by (Blast_tac 1);
+by (asm_simp_tac (simpset() addsimps [le_iff]) 1);
+by (Blast_tac 1);
 qed "succ_lt_induct_lemma";
 
 val prems = Goal

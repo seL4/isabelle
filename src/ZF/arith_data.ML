@@ -175,8 +175,8 @@ structure LessCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel "Ordinal.op <"
-  val dest_bal = FOLogic.dest_bin "Ordinal.op <" iT
+  val mk_bal   = FOLogic.mk_binrel "Ordinal.lt"
+  val dest_bal = FOLogic.dest_bin "Ordinal.lt" iT
   val bal_add1 = less_add_iff RS iff_trans
   val bal_add2 = less_add_iff RS iff_trans
   val trans_tac = gen_trans_tac iff_trans
