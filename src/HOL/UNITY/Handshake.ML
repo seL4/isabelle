@@ -45,18 +45,17 @@ by (ensures_tac [prgF_def,cmdF_def] "cmdF" 1);
 qed "lemma2_2";
 
 
-Goal "LeadsTo (Join prgF prgG) {s. NF s = k} {s. k < NF s}";
+Goal "LeadsTo (Join prgF prgG) UNIV {s. m < NF s}";
+br LeadsTo_weaken_R 1;
+by (res_inst_tac [("f", "NF"), ("l","Suc m"), ("B","{}")] 
+    R_greaterThan_bounded_induct 1);
+by (auto_tac (claset(), simpset() addsimps [vimage_def]));
+by (trans_tac 2);
+(*The inductive step: LeadsTo (Join prgF prgG) {x. NF x = ma} {x. ma < NF x}*)
 br LeadsTo_Diff 1;
 br lemma2_2 2;
 br LeadsTo_Trans 1;
 br lemma2_2 2;
 br (lemma2_1 RS LeadsTo_weaken_L) 1;
 by Auto_tac;
-val lemma = result();
-
-
-Goal "LeadsTo (Join prgF prgG) UNIV {s. m < NF s}";
-by (res_inst_tac [("f", "NF")] R_lessThan_induct 1);
-auto();
-br (lemma RS LeadsTo_weaken) 1;
-auto();
+qed "progress";
