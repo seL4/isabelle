@@ -153,7 +153,8 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Auth/Event.ML Auth/Event.thy \
   Auth/OtwayRees_Bad.thy Auth/Public.ML Auth/Public.thy Auth/ROOT.ML \
   Auth/Recur.ML Auth/Recur.thy Auth/Shared.ML Auth/Shared.thy \
   Auth/TLS.ML Auth/TLS.thy Auth/WooLam.ML Auth/WooLam.thy \
-  Auth/Yahalom.ML Auth/Yahalom.thy Auth/Yahalom2.ML Auth/Yahalom2.thy
+  Auth/Yahalom.ML Auth/Yahalom.thy Auth/Yahalom2.ML Auth/Yahalom2.thy \
+  Auth/Yahalom_Bad.ML Auth/Yahalom_Bad.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Auth
 
 
