@@ -159,18 +159,18 @@ qed "PlusM";
 goal Type.thy "mono(%X.Unit+X)";
 by (REPEAT (ares_tac [PlusM,constM,idM] 1));
 qed "NatM";
-val def_NatB = store_thm("def_NatB", result() RS (Nat_def RS def_lfp_Tarski));
+bind_thm("def_NatB", result() RS (Nat_def RS def_lfp_Tarski));
 
 goal Type.thy "mono(%X.(Unit+Sigma(A,%y.X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
 qed "ListM";
-val def_ListB = store_thm("def_ListB", result() RS (List_def RS def_lfp_Tarski));
-val def_ListsB = store_thm("def_ListsB", result() RS (Lists_def RS def_gfp_Tarski));
+bind_thm("def_ListB", result() RS (List_def RS def_lfp_Tarski));
+bind_thm("def_ListsB", result() RS (Lists_def RS def_gfp_Tarski));
 
 goal Type.thy "mono(%X.({} + Sigma(A,%y.X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
 qed "IListsM";
-val def_IListsB = store_thm("def_IListsB", result() RS (ILists_def RS def_gfp_Tarski));
+bind_thm("def_IListsB", result() RS (ILists_def RS def_gfp_Tarski));
 
 val ind_type_eqs = [def_NatB,def_ListB,def_ListsB,def_IListsB];
 

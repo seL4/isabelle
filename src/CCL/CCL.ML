@@ -26,7 +26,7 @@ qed_goal "arg_cong" CCL.thy "x=y ==> f(x)=f(y)"
 goal CCL.thy  "(ALL x. f(x) = g(x)) --> (%x.f(x)) = (%x.g(x))";
 by (simp_tac (CCL_ss addsimps [eq_iff]) 1);
 by (fast_tac (set_cs addIs [po_abstractn]) 1);
-val abstractn = store_thm("abstractn", standard (allI RS (result() RS mp)));
+bind_thm("abstractn", standard (allI RS (result() RS mp)));
 
 fun type_of_terms (Const("Trueprop",_) $ 
                    (Const("op =",(Type ("fun", [t,_]))) $ _ $ _)) = t;
@@ -143,7 +143,7 @@ qed "XHlemma1";
 
 goal CCL.thy "(P(t,t') <-> Q) --> (<t,t'> : {p.EX t t'.p=<t,t'> &  P(t,t')} <-> Q)";
 by (fast_tac ccl_cs 1);
-val XHlemma2 = store_thm("XHlemma2", result() RS mp);
+bind_thm("XHlemma2", result() RS mp);
 
 (*** Pre-Order ***)
 
@@ -182,7 +182,7 @@ by (rtac impI 1);
 by (dtac (poXH RS iffD1) 1);
 by (etac rev_mp 1);
 by (simp_tac ccl_ss 1);
-val bot_poleast = store_thm("bot_poleast", result() RS mp);
+bind_thm("bot_poleast", result() RS mp);
 
 goal CCL.thy "<a,b> [= <a',b'> <->  a [= a' & b [= b'";
 by (rtac (poXH RS iff_trans) 1);
@@ -318,7 +318,7 @@ fun eq_coinduct3_tac s i = res_inst_tac [("R",s)] eq_coinduct3 i;
 goalw CCL.thy [apply_def]  "(EX f.t=lam x.f(x)) --> t = lam x.(t ` x)";
 by (safe_tac ccl_cs);
 by (simp_tac ccl_ss 1);
-val cond_eta = store_thm("cond_eta", result() RS mp);
+bind_thm("cond_eta", result() RS mp);
 
 goal CCL.thy "(t=bot) | (t=true) | (t=false) | (EX a b.t=<a,b>) | (EX f.t=lam x.f(x))";
 by (cut_facts_tac [refl RS (eqXH RS iffD1)] 1);

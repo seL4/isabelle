@@ -24,7 +24,7 @@ val genrec_defs = [letrec_def,letrec2_def,letrec3_def];
 goalw Term.thy [let_def] "~ t=bot--> let x be t in f(x) = f(t)";
 by (res_inst_tac [("t","t")] term_case 1);
 by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
-val letB = store_thm("letB", result() RS mp);
+bind_thm("letB", result() RS mp);
 
 goalw Term.thy [let_def] "let x be bot in f(x) = bot";
 by (rtac caseBbot 1);
