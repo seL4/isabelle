@@ -70,8 +70,23 @@ arity   : ( ()
 consts : 'consts' ( ( constDecl ( () | ( '(' mixfix ')' ) ) ) + )
        ;
 
-constDecl : ( name + ',') '::' string ;
+constDecl : ( name + ',') '::' (string | constType) ;
 
+constType : ( applParam * ) applLast;
+
+applParam : ( complexType | '(' paramType ')' |
+              '[' (paramType + ',') ']' ) '=>';
+
+applLast: ( simpleType | '(' (paramType + ',') ')' ) (id *);
+
+complexType: ( simpleType | '(' complexType ')' ) ( id + ) |
+             '(' ( ( complexType | '(' complexType ')' ) + ',' ) ')'
+             id +;
+
+paramType: ( complexType | '(' paramType ')' | '[' ( paramType + ',' ) ']' )
+           ( '=>' paramType * );
+
+simpleType: id | ( tid ( () | '::' id ) );
 
 mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
        | infix
