@@ -1208,7 +1208,7 @@ fun prep_case ctxt name xs {fixes, assumes, binds} =
       | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
   in
     if null (foldr Term.add_typ_tvars (map snd fixes, [])) andalso
-      null (foldr Term.add_term_vars (flat (map #2 assumes), [])) then
+      null (foldr Term.add_term_vars (flat (map snd assumes), [])) then
         {fixes = replace xs fixes, assumes = assumes, binds = map drop_schematic binds}
     else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
   end;
