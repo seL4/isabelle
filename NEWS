@@ -78,6 +78,10 @@ operator;
 * HOL/typedef: simplified package, provide more useful rules (see also
 HOL/subset.thy);
 
+* HOL-Hyperreal: a new target, extending HOL-Real with the hyperreals and 
+Fleuriot's mechanization of analysis;
+
+* HOL-Real, HOL-Hyperreals: improved arithmetic simplification;
 
 *** CTT ***
 
