@@ -2,11 +2,13 @@
 %% $Id$
 
 \documentclass[12pt]{report}
-\usepackage{graphicx,a4,../iman,../extra,../proof,../rail,../pdfsetup}
+\usepackage{graphicx,a4,../iman,../extra,../proof,../rail,../isar,../pdfsetup}
 
 \title{\includegraphics[scale=0.5]{isabelle_isar} \\[4ex] The Isabelle/Isar Reference Manual}
-
 \author{\emph{Markus Wenzel} \\ TU M\"unchen}
+
+\makeindex
+
 
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
 
@@ -19,7 +21,15 @@
 \railterm{lbrace,rbrace}
 
 \railterm{ident,longident,symident,var,textvar,typefree,typevar,nat,string,verbatim}
+\railterm{name,nameref,text,type,term,prop,atom}
 
+\makeatletter
+\newcommand{\railtoken}[1]{{\rail@termfont{#1}}}
+\newcommand{\railnonterm}[1]{{\rail@nontfont{#1}}}
+\makeatother
+
+\newcommand\indexoutertoken[1]{\index{#1@\railtoken{#1} (outer syntax)|bold}}
+\newcommand\indexouternonterm[1]{\index{#1@\railnonterm{#1} (outer syntax)|bold}}
 
 \begin{document}
 
