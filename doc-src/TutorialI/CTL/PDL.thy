@@ -96,7 +96,7 @@ contains the other; the containment is shown pointwise:
 
 apply(rule equalityI);
  apply(rule subsetI);
- apply(simp)
+ apply(simp)(*<*)apply(rename_tac s)(*>*)
 
 txt{*\noindent
 Simplification leaves us with the following first subgoal
