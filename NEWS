@@ -152,9 +152,10 @@ Finite_Set);
 %x. None. Warning: empty_def now refers to the previously hidden definition
 of the empty set.
 
-* Algebra: contains a new formalization of group theory, using locales
-with implicit structures.  Also a new formalization of ring theory and
-and univariate polynomials;
+* Algebra: formalization of classical algebra.  Intended as base for
+any algebraic development in Isabelle.  Currently covers group theory
+(up to Sylow's theorem) and ring theory (Universal Property of
+Univariate Polynomials).  Contributions welcome;
 
 * GroupTheory: deleted, since its material has been moved to Algebra;
 
