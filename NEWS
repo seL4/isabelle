@@ -84,6 +84,8 @@ lemmas, using the graph browser tool;
 
 * Pure: predict failure of "show" in interactive mode;
 
+* Pure: 'thms_containing' now takes actual terms as arguments;
+
 * HOL: improved method 'induct' --- now handles non-atomic goals
 (potential INCOMPATIBILITY); tuned error handling;
 
@@ -96,6 +98,8 @@ well; the 'cases' and 'induct' methods new provide a ?case binding for
 the result to be shown in each case;
 
 * HOL: added 'recdef_tc' command;
+
+* isatool convert assists in eliminating legacy ML scripts;
 
 
 *** HOL ***
