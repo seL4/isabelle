@@ -9,7 +9,7 @@
 
 (*
 
-The packages provides tactics partial_tac and linear_tac that use all
+The package provides tactics partial_tac and linear_tac that use all
 premises of the form
 
   t = u, t ~= u, t < u, t <= u, ~(t < u) and ~(t <= u)
@@ -56,21 +56,22 @@ sig
   val eq_neq_eq_imp_neq : thm (* [| x = u ; u ~= v ; v = z|] ==> x ~= z *)
 
   (* Analysis of premises and conclusion *)
-  (* decomp_part is for partial_tac, decomp_lin is for linear_tac;
-     decomp_x (`x Rel y') should yield (x, Rel, y)
+  (* decomp_x (`x Rel y') should yield (x, Rel, y)
        where Rel is one of "<", "<=", "~<", "~<=", "=" and "~=",
        other relation symbols cause an error message *)
+  (* decomp_part is used by partial_tac *)
   val decomp_part: Sign.sg -> term -> (term * string * term) option
+  (* decomp_lin is used by linear_tac *)
   val decomp_lin: Sign.sg -> term -> (term * string * term) option
 end;
 
-signature TRANS_TAC  =
+signature ORDER_TAC  =
 sig
   val partial_tac: int -> tactic
   val linear_tac:  int -> tactic
 end;
 
-functor Trans_Tac_Fun (Less: LESS_ARITH): TRANS_TAC =
+functor Order_Tac_Fun (Less: LESS_ARITH): ORDER_TAC =
 struct
 
 (* Extract subgoal with signature *)

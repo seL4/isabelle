@@ -986,7 +986,49 @@ lemma eq_neq_eq_imp_neq: "[| x = a ; a ~= b; b = y |] ==> x ~= y"
 
 ML_setup {*
 
-structure Trans_Tac = Trans_Tac_Fun (
+(* The setting up of Quasi_Tac serves as a demo.  Since there is no
+   class for quasi orders, the tactics Quasi_Tac.trans_tac and
+   Quasi_Tac.quasi_tac are not of much use. *)
+
+structure Quasi_Tac = Quasi_Tac_Fun (
+  struct
+    val le_trans = thm "order_trans";
+    val le_refl = thm "order_refl";
+    val eqD1 = thm "order_eq_refl";
+    val eqD2 = thm "sym" RS thm "order_eq_refl";
+    val less_reflE = thm "order_less_irrefl" RS thm "notE";
+    val less_imp_le = thm "order_less_imp_le";
+    val le_neq_trans = thm "order_le_neq_trans";
+    val neq_le_trans = thm "order_neq_le_trans";
+    val less_imp_neq = thm "less_imp_neq";
+
+    fun decomp_gen sort sign (Trueprop $ t) =
+      let fun of_sort t = Sign.of_sort sign (type_of t, sort)
+      fun dec (Const ("Not", _) $ t) = (
+              case dec t of
+                None => None
+              | Some (t1, rel, t2) => Some (t1, "~" ^ rel, t2))
+            | dec (Const ("op =",  _) $ t1 $ t2) = 
+                if of_sort t1
+                then Some (t1, "=", t2)
+                else None
+            | dec (Const ("op <=",  _) $ t1 $ t2) = 
+                if of_sort t1
+                then Some (t1, "<=", t2)
+                else None
+            | dec (Const ("op <",  _) $ t1 $ t2) = 
+                if of_sort t1
+                then Some (t1, "<", t2)
+                else None
+            | dec _ = None
+      in dec t end;
+
+    val decomp_trans = decomp_gen ["HOL.order"];
+    val decomp_quasi = decomp_gen ["HOL.order"];
+
+  end);  (* struct *)
+
+structure Order_Tac = Order_Tac_Fun (
   struct
     val less_reflE = thm "order_less_irrefl" RS thm "notE";
     val le_refl = thm "order_refl";
@@ -1034,26 +1076,29 @@ structure Trans_Tac = Trans_Tac_Fun (
   end);  (* struct *)
 
 simpset_ref() := simpset ()
-    addSolver (mk_solver "Trans_linear" (fn _ => Trans_Tac.linear_tac))
-    addSolver (mk_solver "Trans_partial" (fn _ => Trans_Tac.partial_tac));
+    addSolver (mk_solver "Trans_linear" (fn _ => Order_Tac.linear_tac))
+    addSolver (mk_solver "Trans_partial" (fn _ => Order_Tac.partial_tac));
   (* Adding the transitivity reasoners also as safe solvers showed a slight
      speed up, but the reasoning strength appears to be not higher (at least
      no breaking of additional proofs in the entire HOL distribution, as
      of 5 March 2004, was observed). *)
 *}
 
-(* Optional methods
+(* Optional setup of methods *)
 
+(*
 method_setup trans_partial =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trans_tac_partial)) *}
-  {* simple transitivity reasoner *}	    
+  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (Order_Tac.partial_tac)) *}
+  {* transitivity reasoner for partial orders *}	    
 method_setup trans_linear =
-  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trans_tac_linear)) *}
-  {* simple transitivity reasoner *}
+  {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (Order_Tac.linear_tac)) *}
+  {* transitivity reasoner for linear orders *}
 *)
 
 (*
 declare order.order_refl [simp del] order_less_irrefl [simp del]
+
+can currently not be removed, abel_cancel relies on it.
 *)
 
 subsubsection "Bounded quantifiers"

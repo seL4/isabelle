@@ -6,6 +6,9 @@ New in this Isabelle release
 
 *** General ***
 
+* Provers/quasi.ML:  new transitivity reasoners for transitivity only
+  and quasi orders.
+
 * Provers/trancl.ML:  new transitivity reasoner for transitive and
   reflexive-transitive closure of relations.
 
