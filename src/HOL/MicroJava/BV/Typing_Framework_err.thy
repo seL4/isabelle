@@ -5,7 +5,7 @@
 
 *)
 
-header {* \isaheader{Static and Dynamic Welltyping} *}
+header {* \isaheader{Lifting the Typing Framework to err, app, and eff} *}
 
 theory Typing_Framework_err = Typing_Framework + SemilatAlg:
 
@@ -18,13 +18,11 @@ wt_app_eff :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<
 "wt_app_eff r app step ts \<equiv>
   \<forall>p < size ts. app p (ts!p) \<and> (\<forall>(q,t) \<in> set (step p (ts!p)). t <=_r ts!q)"
 
-
 map_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('a \<times> 'c) list"
 "map_snd f \<equiv> map (\<lambda>(x,y). (x, f y))"
 
 error :: "nat \<Rightarrow> (nat \<times> 'a err) list"
 "error n \<equiv> map (\<lambda>x. (x,Err)) [0..n(]"
-
 
 err_step :: "nat \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> 's step_type \<Rightarrow> 's err step_type"
 "err_step n app step p t \<equiv> 
@@ -32,7 +30,13 @@ err_step :: "nat \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Right
     Err   \<Rightarrow> error n
   | OK t' \<Rightarrow> if app p t' then map_snd OK (step p t') else error n"
 
+app_mono :: "'s ord \<Rightarrow> (nat \<Rightarrow> 's \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
+"app_mono r app n A \<equiv>
+ \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> app p t \<longrightarrow> app p s"
+
+
 lemmas err_step_defs = err_step_def map_snd_def error_def
+
 
 lemma bounded_err_stepD:
   "bounded (err_step n app step) n \<Longrightarrow> 
@@ -66,6 +70,100 @@ apply (simp split: split_if_asm)
 apply (simp add: error_def)
 apply blast
 done
+
+
+lemma bounded_lift:
+  "bounded step n \<Longrightarrow> bounded (err_step n app step) n"
+  apply (unfold bounded_def err_step_def error_def)
+  apply clarify
+  apply (erule allE, erule impE, assumption)
+  apply (case_tac s)
+  apply (auto simp add: map_snd_def split: split_if_asm)
+  done
+
+
+lemma le_list_map_OK [simp]:
+  "\<And>b. map OK a <=[Err.le r] map OK b = (a <=[r] b)"
+  apply (induct a)
+   apply simp
+  apply simp
+  apply (case_tac b)
+   apply simp
+  apply simp
+  done
+
+
+lemma map_snd_lessI:
+  "x <=|r| y \<Longrightarrow> map_snd OK x <=|Err.le r| map_snd OK y"
+  apply (induct x)
+  apply (unfold lesubstep_type_def map_snd_def)
+  apply auto
+  done
+
+
+lemma mono_lift:
+  "order r \<Longrightarrow> app_mono r app n A \<Longrightarrow> bounded (err_step n app step) n \<Longrightarrow>
+  \<forall>s p t. s \<in> A \<and> p < n \<and> s <=_r t \<longrightarrow> app p t \<longrightarrow> step p s <=|r| step p t \<Longrightarrow>
+  mono (Err.le r) (err_step n app step) n (err A)"
+apply (unfold app_mono_def mono_def err_step_def)
+apply clarify
+apply (case_tac s)
+ apply simp 
+apply simp
+apply (case_tac t)
+ apply simp
+ apply clarify
+ apply (simp add: lesubstep_type_def error_def)
+ apply clarify
+ apply (drule in_map_sndD)
+ apply clarify
+ apply (drule bounded_err_stepD, assumption+)
+ apply (rule exI [of _ Err])
+ apply simp
+apply simp
+apply (erule allE, erule allE, erule allE, erule impE)
+ apply (rule conjI, assumption)
+ apply (rule conjI, assumption)
+ apply assumption
+apply (rule conjI)
+apply clarify
+apply (erule allE, erule allE, erule allE, erule impE)
+ apply (rule conjI, assumption)
+ apply (rule conjI, assumption)
+ apply assumption
+apply (erule impE, assumption)
+apply (rule map_snd_lessI, assumption)
+apply clarify
+apply (simp add: lesubstep_type_def error_def)
+apply clarify
+apply (drule in_map_sndD)
+apply clarify
+apply (drule bounded_err_stepD, assumption+)
+apply (rule exI [of _ Err])
+apply simp
+done
+ 
+lemma in_errorD:
+  "(x,y) \<in> set (error n) \<Longrightarrow> y = Err"
+  by (auto simp add: error_def)
+
+lemma pres_type_lift:
+  "\<forall>s\<in>A. \<forall>p. p < n \<longrightarrow> app p s \<longrightarrow> (\<forall>(q, s')\<in>set (step p s). s' \<in> A) 
+  \<Longrightarrow> pres_type (err_step n app step) n (err A)"  
+apply (unfold pres_type_def err_step_def)
+apply clarify
+apply (case_tac b)
+ apply simp
+apply (case_tac s)
+ apply simp
+ apply (drule in_errorD)
+ apply simp
+apply (simp add: map_snd_def split: split_if_asm)
+ apply fast
+apply (drule in_errorD)
+apply simp
+done
+
 
 
 text {*
@@ -158,3 +256,4 @@ proof (unfold wt_err_step_def wt_step_def, intro strip, rule conjI)
 qed
 
 end
+

@@ -9,7 +9,7 @@ header {* \isaheader{Typing and Dataflow Analysis Framework} *}
 theory Typing_Framework = Listn:
 
 text {* 
-  The relationship between dataflow analysis and a welltyped-insruction predicate. 
+  The relationship between dataflow analysis and a welltyped-instruction predicate. 
 *}
 types
   's step_type = "nat \<Rightarrow> 's \<Rightarrow> (nat \<times> 's) list"
