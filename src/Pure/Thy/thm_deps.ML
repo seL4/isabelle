@@ -20,47 +20,49 @@ end;
 structure ThmDeps : THM_DEPS =
 struct
 
-fun enable () = Thm.keep_derivs := ThmDeriv;
-fun disable () = Thm.keep_derivs := MinDeriv;
+open Proofterm;
 
-fun is_internal (name, tags) = name = "" orelse Drule.has_internal tags;
+fun enable () = keep_derivs := ThmDeriv;
+fun disable () = keep_derivs := MinDeriv;
 
-fun is_thm_axm (Theorem x) = not (is_internal x)
-  | is_thm_axm (Axiom x) = not (is_internal x)
-  | is_thm_axm _ = false;
+fun dest_thm_axm (PThm (nt, prf, _, _)) = (nt, prf)
+  | dest_thm_axm (PAxm (n, _, _)) = ((n ^ " (Ax)", []), MinProof [])
+  | dest_thm_axm _ = (("", []), MinProof []);
 
-fun get_name (Theorem (s, _)) = s
-  | get_name (Axiom (s, _)) = s
-  | get_name _ = "";
-
-fun make_deps_graph ((gra, parents), Join (ta, ders)) =
-  let
-    val name = get_name ta;
-  in
-    if is_thm_axm ta then
-      if is_none (Symtab.lookup (gra, name)) then
-        let
-          val (gra', parents') = foldl make_deps_graph ((gra, []), ders);
-          val prefx = #1 (Library.split_last (NameSpace.unpack name));
-          val session =
-            (case prefx of
-              (x :: _) =>
-                (case ThyInfo.lookup_theory x of
-                  Some thy =>
-                    let val name = #name (Present.get_info thy)
-                    in if name = "" then [] else [name] end 
-                | None => [])
-             | _ => ["global"]);
-        in
-          (Symtab.update ((name,
-            {name = Sign.base_name name, ID = name,
-             dir = space_implode "/" (session @ prefx),
-             unfold = false, path = "", parents = parents'}), gra'), name ins parents)
-        end
-      else (gra, name ins parents)
-    else
-      foldl make_deps_graph ((gra, parents), ders)
-  end;
+fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
+  | make_deps_graph (p, Abst (_, _, prf)) = make_deps_graph (p, prf)
+  | make_deps_graph (p, prf1 % prf2) =
+      make_deps_graph (make_deps_graph (p, prf1), prf2)
+  | make_deps_graph (p, prf %% _) = make_deps_graph (p, prf)
+  | make_deps_graph (p, MinProof prfs) = foldl make_deps_graph (p, prfs)
+  | make_deps_graph (p as (gra, parents), prf) =
+      let val ((name, tags), prf') = dest_thm_axm prf
+      in
+        if name <> "" andalso not (Drule.has_internal tags) then
+          if is_none (Symtab.lookup (gra, name)) then
+            let
+              val (gra', parents') = make_deps_graph ((gra, []), prf');
+              val prefx = #1 (Library.split_last (NameSpace.unpack name));
+              val session =
+                (case prefx of
+                  (x :: _) =>
+                    (case ThyInfo.lookup_theory x of
+                      Some thy =>
+                        let val name = #name (Present.get_info thy)
+                        in if name = "" then [] else [name] end 
+                    | None => [])
+                 | _ => ["global"]);
+            in
+              (Symtab.update ((name,
+                {name = Sign.base_name name, ID = name,
+                 dir = space_implode "/" (session @ prefx),
+                 unfold = false, path = "", parents = parents'}), gra'),
+               name ins parents)
+            end
+          else (gra, name ins parents)
+        else
+          make_deps_graph ((gra, parents), prf')
+      end;
 
 fun thm_deps thms =
   let
