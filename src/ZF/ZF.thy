@@ -16,91 +16,91 @@ arities
 
 consts
 
-  "0"           :: "i"                  ("0")   (*the empty set*)
-  Pow           :: "i => i"                     (*power sets*)
-  Inf           :: "i"                          (*infinite set*)
+  "0"         :: "i"                  ("0")   (*the empty set*)
+  Pow         :: "i => i"                     (*power sets*)
+  Inf         :: "i"                          (*infinite set*)
 
   (* Bounded Quantifiers *)
 
-  Ball, Bex     :: "[i, i => o] => o"
+  Ball, Bex   :: "[i, i => o] => o"
 
   (* General Union and Intersection *)
 
-  Union, Inter  :: "i => i"
+  Union,Inter :: "i => i"
 
   (* Variations on Replacement *)
 
-  PrimReplace   :: "[i, [i, i] => o] => i"
-  Replace       :: "[i, [i, i] => o] => i"
-  RepFun        :: "[i, i => i] => i"
-  Collect       :: "[i, i => o] => i"
+  PrimReplace :: "[i, [i, i] => o] => i"
+  Replace     :: "[i, [i, i] => o] => i"
+  RepFun      :: "[i, i => i] => i"
+  Collect     :: "[i, i => o] => i"
 
   (* Descriptions *)
 
-  The           :: "(i => o) => i"      (binder "THE " 10)
-  if            :: "[o, i, i] => i"
+  The         :: "(i => o) => i"      (binder "THE " 10)
+  if          :: "[o, i, i] => i"
 
   (* Finite Sets *)
 
-  Upair, cons   :: "[i, i] => i"
-  succ          :: "i => i"
+  Upair, cons :: "[i, i] => i"
+  succ        :: "i => i"
 
   (* Ordered Pairing *)
 
-  Pair          :: "[i, i] => i"
-  fst, snd      :: "i => i"
-  split         :: "[[i, i] => i, i] => i"
-  fsplit        :: "[[i, i] => o, i] => o"
+  Pair        :: "[i, i] => i"
+  fst, snd    :: "i => i"
+  split       :: "[[i, i] => i, i] => i"
+  fsplit      :: "[[i, i] => o, i] => o"
 
   (* Sigma and Pi Operators *)
 
-  Sigma, Pi     :: "[i, i => i] => i"
+  Sigma, Pi   :: "[i, i => i] => i"
 
   (* Relations and Functions *)
 
-  domain        :: "i => i"
-  range         :: "i => i"
-  field         :: "i => i"
-  converse      :: "i => i"
-  Lambda        :: "[i, i => i] => i"
-  restrict      :: "[i, i] => i"
+  domain      :: "i => i"
+  range       :: "i => i"
+  field       :: "i => i"
+  converse    :: "i => i"
+  Lambda      :: "[i, i => i] => i"
+  restrict    :: "[i, i] => i"
 
   (* Infixes in order of decreasing precedence *)
 
-  "``"          :: "[i, i] => i"    (infixl 90) (*image*)
-  "-``"         :: "[i, i] => i"    (infixl 90) (*inverse image*)
-  "`"           :: "[i, i] => i"    (infixl 90) (*function application*)
-(*"*"           :: "[i, i] => i"    (infixr 80) (*Cartesian product*)*)
-  "Int"         :: "[i, i] => i"    (infixl 70) (*binary intersection*)
-  "Un"          :: "[i, i] => i"    (infixl 65) (*binary union*)
-  "-"           :: "[i, i] => i"    (infixl 65) (*set difference*)
-(*"->"          :: "[i, i] => i"    (infixr 60) (*function space*)*)
-  "<="          :: "[i, i] => o"    (infixl 50) (*subset relation*)
-  ":"           :: "[i, i] => o"    (infixl 50) (*membership relation*)
-(*"~:"          :: "[i, i] => o"    (infixl 50) (*negated membership relation*)*)
+  "``"        :: "[i, i] => i"    (infixl 90) (*image*)
+  "-``"       :: "[i, i] => i"    (infixl 90) (*inverse image*)
+  "`"         :: "[i, i] => i"    (infixl 90) (*function application*)
+(*"*"         :: "[i, i] => i"    (infixr 80) (*Cartesian product*)*)
+  "Int"       :: "[i, i] => i"    (infixl 70) (*binary intersection*)
+  "Un"        :: "[i, i] => i"    (infixl 65) (*binary union*)
+  "-"         :: "[i, i] => i"    (infixl 65) (*set difference*)
+(*"->"        :: "[i, i] => i"    (infixr 60) (*function space*)*)
+  "<="        :: "[i, i] => o"    (infixl 50) (*subset relation*)
+  ":"         :: "[i, i] => o"    (infixl 50) (*membership relation*)
+(*"~:"        :: "[i, i] => o"    (infixl 50) (*negated membership relation*)*)
 
 
 types
   is
 
 syntax
-  ""            :: "i => is"                    ("_")
-  "@Enum"       :: "[i, is] => is"              ("_,/ _")
-  "~:"          :: "[i, i] => o"                (infixl 50)
-  "@Finset"     :: "is => i"                    ("{(_)}")
-  "@Tuple"      :: "[i, is] => i"               ("<(_,/ _)>")
-  "@Collect"    :: "[idt, i, o] => i"           ("(1{_: _ ./ _})")
-  "@Replace"    :: "[idt, idt, i, o] => i"      ("(1{_ ./ _: _, _})")
-  "@RepFun"     :: "[i, idt, i] => i"           ("(1{_ ./ _: _})")
-  "@INTER"      :: "[idt, i, i] => i"           ("(3INT _:_./ _)" 10)
-  "@UNION"      :: "[idt, i, i] => i"           ("(3UN _:_./ _)" 10)
-  "@PROD"       :: "[idt, i, i] => i"           ("(3PROD _:_./ _)" 10)
-  "@SUM"        :: "[idt, i, i] => i"           ("(3SUM _:_./ _)" 10)
-  "->"          :: "[i, i] => i"                (infixr 60)
-  "*"           :: "[i, i] => i"                (infixr 80)
-  "@lam"        :: "[idt, i, i] => i"           ("(3lam _:_./ _)" 10)
-  "@Ball"       :: "[idt, i, o] => o"           ("(3ALL _:_./ _)" 10)
-  "@Bex"        :: "[idt, i, o] => o"           ("(3EX _:_./ _)" 10)
+  ""          :: "i => is"                 ("_")
+  "@Enum"     :: "[i, is] => is"           ("_,/ _")
+  "~:"        :: "[i, i] => o"             (infixl 50)
+  "@Finset"   :: "is => i"                 ("{(_)}")
+  "@Tuple"    :: "[i, is] => i"            ("<(_,/ _)>")
+  "@Collect"  :: "[idt, i, o] => i"        ("(1{_: _ ./ _})")
+  "@Replace"  :: "[idt, idt, i, o] => i"   ("(1{_ ./ _: _, _})")
+  "@RepFun"   :: "[i, idt, i] => i"        ("(1{_ ./ _: _})" [51,0,51])
+  "@INTER"    :: "[idt, i, i] => i"        ("(3INT _:_./ _)" 10)
+  "@UNION"    :: "[idt, i, i] => i"        ("(3UN _:_./ _)" 10)
+  "@PROD"     :: "[idt, i, i] => i"        ("(3PROD _:_./ _)" 10)
+  "@SUM"      :: "[idt, i, i] => i"        ("(3SUM _:_./ _)" 10)
+  "->"        :: "[i, i] => i"             (infixr 60)
+  "*"         :: "[i, i] => i"             (infixr 80)
+  "@lam"      :: "[idt, i, i] => i"        ("(3lam _:_./ _)" 10)
+  "@Ball"     :: "[idt, i, o] => o"        ("(3ALL _:_./ _)" 10)
+  "@Bex"      :: "[idt, i, o] => o"        ("(3EX _:_./ _)" 10)
 
 translations
   "x ~: y"      == "~ (x : y)"
