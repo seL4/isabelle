@@ -66,6 +66,7 @@ signature CLASSICAL =
   val best_tac 		: claset -> int -> tactic
   val slow_best_tac 	: claset -> int -> tactic
   val depth_tac		: claset -> int -> int -> tactic
+  val DEEPEN  	        : (int -> int -> tactic) -> int -> int -> tactic
   val deepen_tac	: claset -> int -> int -> tactic
 
   val contr_tac 	: int -> tactic
@@ -550,12 +551,13 @@ fun dup_step_tac (cs as (CS{dup_netpair,...})) =
 (*Searching to depth m.*)
 fun depth_tac cs m i = STATE(fn state => 
   SELECT_GOAL 
+   (getwrapper cs
     (REPEAT_DETERM1 (safe_step_tac cs 1) THEN_ELSE
      (DEPTH_SOLVE (depth_tac cs m 1),
       inst0_step_tac cs 1  APPEND
       COND (K(m=0)) no_tac
         ((instp_step_tac cs 1 APPEND dup_step_tac cs 1)
-	 THEN DEPTH_SOLVE (depth_tac cs (m-1) 1))))
+	 THEN DEPTH_SOLVE (depth_tac cs (m-1) 1)))))
   i);
 
 (*Iterative deepening tactical.  Allows us to "deepen" any search tactic*)
