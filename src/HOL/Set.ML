@@ -216,7 +216,8 @@ section "The universal set -- UNIV";
 qed_goalw "UNIV_I" Set.thy [UNIV_def] "x : UNIV"
   (fn _ => [rtac CollectI 1, rtac TrueI 1]);
 
-AddIffs [UNIV_I];
+Addsimps [UNIV_I];
+AddIs    [UNIV_I];  (*unsafe makes it less likely to cause problems*)
 
 qed_goal "subset_UNIV" Set.thy "A <= UNIV"
   (fn _ => [rtac subsetI 1, rtac UNIV_I 1]);
