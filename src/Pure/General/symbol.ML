@@ -35,7 +35,7 @@ sig
   val is_blank: symbol -> bool
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
-  val beginning: symbol list -> string
+  val beginning: int -> symbol list -> string
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
   val scan_id: string list -> string * string list
   val scan: string list -> symbol * string list
@@ -300,16 +300,16 @@ fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Q
 
 (* scanning through symbols *)
 
-fun beginning raw_ss =
+fun beginning n raw_ss =
   let
     val (all_ss, _) = Library.take_suffix is_blank raw_ss;
-    val dots = if length all_ss > 10 then " ..." else "";
-    val (ss, _) = Library.take_suffix is_blank (Library.take (10, all_ss));
+    val dots = if length all_ss > n then " ..." else "";
+    val (ss, _) = Library.take_suffix is_blank (Library.take (n, all_ss));
   in implode (map (fn s => if is_blank s then space else s) ss) ^ dots end;
 
 fun scanner msg scan chs =
   let
-    fun err_msg cs = msg ^ ": " ^ beginning cs;
+    fun err_msg cs = msg ^ ": " ^ beginning 10 cs;
     val fin_scan = Scan.error (Scan.finite stopper (!! (fn (cs, _) => err_msg cs) scan));
   in
     (case fin_scan chs of
@@ -327,18 +327,17 @@ local
 val scan_encoded_newline =
   $$ "\r" -- $$ "\n" >> K "\n" ||
   $$ "\r" >> K "\n" ||
-  Scan.optional ($$ "\\") "" -- $$ "\\"  -- $$ "<"  -- $$ "^" -- $$ "n"
-    -- $$ "e" -- $$ "w" -- $$ "l" -- $$ "i" -- $$ "n" -- $$ "e" -- $$ ">" >> K "\n";
+  Scan.optional ($$ "\\") "" -- Scan.list (explode "\\<^newline>") >> K "\n";
 
 fun raw_body c = ord space <= ord c andalso ord c <= ord "~" andalso c <> ">";
-val scan_raw = $$ "r" ^^ $$ "a" ^^ $$ "w" ^^ $$ ":" ^^ (Scan.any raw_body >> implode);
+val scan_raw = Scan.list (explode "raw:") -- Scan.any raw_body >> (implode o op @);
 
 in
 
 val scan =
   scan_encoded_newline ||
   ($$ "\\" --| Scan.optional ($$ "\\") "") ^^ $$ "<" ^^
-    !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
+    !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning 10 cs)
        (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">") ||
   Scan.one not_eof;
 

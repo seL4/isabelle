@@ -1,12 +1,9 @@
 (*  Title:      Pure/General/xml.ML
     ID:         $Id$
-    Author:     Markus Wenzel, LMU Muenchen
-                Stefan Berghofer, TU Muenchen
+    Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Basic support for XML input and output.
-
-FIXME da: missing input raises FAIL (scan.ML), should give error message.
 *)
 
 signature XML =
@@ -51,13 +48,14 @@ val cdata_close = "]]>"
 
 fun cdata s = cdata_open ^ s ^ cdata_close;
 
+
 (* elements *)
 
 datatype tree =
     Elem of string * (string * string) list * tree list
   | Text of string;
 
-fun attribute (a, x) = a ^ " = \"" ^ (text x) ^ "\"";
+fun attribute (a, x) = a ^ " = \"" ^ text x ^ "\"";
 
 fun element name atts cs =
   let val elem = space_implode " " (name :: map attribute atts) in
@@ -67,41 +65,41 @@ fun element name atts cs =
 
 fun string_of_tree (Elem (name, atts, ts)) =
       element name atts (map string_of_tree ts)
-  | string_of_tree (Text s) = s
-  
+  | string_of_tree (Text s) = s;
+
 val header = "<?xml version=\"1.0\"?>\n";
 
 
 (* parser *)
 
-fun err s (xs, _) = "XML parsing error: " ^ s ^ "\nfound:\n" ^
-  implode (take (100, xs));
+fun err s (xs, _) =
+  "XML parsing error: " ^ s ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
 
-val scan_whspc = Scan.repeat ($$ " " || $$ "\n" || $$ "\t");
+val scan_whspc = Scan.any Symbol.is_blank;
 
-val literal = Scan.literal o Scan.make_lexicon o single o explode;
+fun scan_string s = Scan.list (Symbol.explode s) >> K s;
 
 val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 
 val parse_chars = Scan.repeat1 (Scan.unless (scan_whspc -- $$ "<")
   (scan_special || Scan.one Symbol.not_eof)) >> implode;
 
-val parse_cdata = literal "<![CDATA[" |--
-  (Scan.repeat (Scan.unless (literal "]]>") (Scan.one Symbol.not_eof)) >>
-    implode) --| literal "]]>";
+val parse_cdata = scan_string "<![CDATA[" |--
+  (Scan.repeat (Scan.unless (scan_string "]]>") (Scan.one Symbol.not_eof)) >>
+    implode) --| scan_string "]]>";
 
 val parse_att =
   Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --| $$ "\"" --
   (Scan.repeat (Scan.unless ($$ "\"")
     (scan_special || Scan.one Symbol.not_eof)) >> implode) --| $$ "\"";
 
-val parse_comment = literal "<!--" --
-  Scan.repeat (Scan.unless (literal "-->") (Scan.one Symbol.not_eof)) --
-  literal "-->";
+val parse_comment = scan_string "<!--" --
+  Scan.repeat (Scan.unless (scan_string "-->") (Scan.one Symbol.not_eof)) --
+  scan_string "-->";
 
-val parse_pi = literal "<?" |--
-  Scan.repeat (Scan.unless (literal "?>") (Scan.one Symbol.not_eof)) --|
-  literal "?>";
+val parse_pi = scan_string "<?" |--
+  Scan.repeat (Scan.unless (scan_string "?>") (Scan.one Symbol.not_eof)) --|
+  scan_string "?>";
 
 fun parse_content xs =
   ((Scan.optional (scan_whspc |-- parse_chars >> (single o Text)) [] --
@@ -117,14 +115,14 @@ and parse_elem xs =
   ($$ "<" |-- Symbol.scan_id --
     Scan.repeat (scan_whspc |-- parse_att) --| scan_whspc :-- (fn (s, _) =>
       !! (err "Expected > or />")
-        (   literal "/>" >> K []
+        (scan_string "/>" >> K []
          || $$ ">" |-- parse_content --|
             !! (err ("Expected </" ^ s ^ ">"))
-              (literal ("</" ^ s) --| scan_whspc --| $$ ">"))) >>
+              (scan_string ("</" ^ s) --| scan_whspc --| $$ ">"))) >>
     (fn ((s, atts), ts) => Elem (s, atts, ts))) xs;
 
 val parse_document =
-  Scan.option (literal "<!DOCTYPE" -- scan_whspc |--
+  Scan.option (scan_string "<!DOCTYPE" -- scan_whspc |--
     (Scan.repeat (Scan.unless ($$ ">")
       (Scan.one Symbol.not_eof)) >> implode) --| $$ ">" --| scan_whspc) --
   parse_elem;
@@ -132,8 +130,7 @@ val parse_document =
 fun tree_of_string s =
   (case Scan.finite Symbol.stopper (Scan.error (!! (err "Malformed element")
       (scan_whspc |-- parse_elem --| scan_whspc))) (Symbol.explode s) of
-     (x, []) => x
-   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^
-       implode (take (100, ys))));
+    (x, []) => x
+  | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));
 
 end;
