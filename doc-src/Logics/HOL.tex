@@ -1864,7 +1864,7 @@ substructure of the main theory structure.
 This package is derived from the ZF one, described in a
 separate paper,\footnote{It appeared in CADE~\cite{paulson-CADE} and a
   longer version is distributed with Isabelle.} which you should refer to
-in case of difficulties.  The package is simpler than ZF's, thanks to HOL's
+in case of difficulties.  The package is simpler than ZF's thanks to HOL's
 automatic type-checking.  The type of the (co)inductive determines the
 domain of the fixedpoint definition, and the package does not use inference
 rules for type-checking.
@@ -1893,9 +1893,10 @@ names given them in the theory file.
 elim}, using freeness reasoning on some underlying datatype.
 \end{description}
 
-For an inductive definition, the result structure contains two induction rules,
-{\tt induct} and \verb|mutual_induct|.  For a coinductive definition, it
-contains the rule \verb|coinduct|.
+For an inductive definition, the result structure contains two induction
+rules, {\tt induct} and \verb|mutual_induct|.  (To save storage, the latter
+rule is just {\tt True} unless more than one set is being defined.)  For a
+coinductive definition, it contains the rule \verb|coinduct|.
 
 Figure~\ref{def-result-fig} summarizes the two result signatures,
 specifying the types of all these components.
@@ -2003,8 +2004,9 @@ inductive "acc r"
 end
 \end{ttbox}
 The HOL distribution contains many other inductive definitions, such as the
-theory {\tt HOL/ex/PropLog.thy} and the directory {\tt HOL/IMP}.  The
-theory {\tt HOL/ex/LList.thy} contains coinductive definitions.
+theory {\tt HOL/ex/PropLog.thy} and the subdirectories {\tt IMP}, {\tt Lambda}
+and {\tt Auth}.  The theory {\tt HOL/ex/LList.thy} contains coinductive
+definitions.
 
 \index{*coinductive|)} \index{*inductive|)}
 
@@ -2023,7 +2025,7 @@ operational and axiomatic semantics of a simple while-language, the necessary
 equivalence proofs, soundness and completeness of the Hoare rules w.r.t.\ the
 denotational semantics, and soundness and completeness of a verification
 condition generator. Much of development is taken from
-Winskel~\cite{winskel93}. For details see~\cite{Nipkow-FSTTCS-96}.
+Winskel~\cite{winskel93}. For details see~\cite{nipkow-IMP}.
 
 Directory {\tt HOL/Hoare} contains a user friendly surface syntax for Hoare
 logic, including a tactic for generating verification-conditions.

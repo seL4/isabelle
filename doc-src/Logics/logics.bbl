@@ -126,10 +126,36 @@ Per Martin-L\"of.
 \newblock {\em Intuitionistic type theory}.
 \newblock Bibliopolis, 1984.
 
+\bibitem{milner78}
+Robin Milner.
+\newblock A theory of type polymorphism in programming.
+\newblock {\em Journal of Computer and System Sciences}, 17:348--375, 1978.
+
 \bibitem{milner-coind}
 Robin Milner and Mads Tofte.
 \newblock Co-induction in relational semantics.
 \newblock {\em Theoretical Computer Science}, 87:209--220, 1991.
+
+\bibitem{nazareth-nipkow}
+Dieter Nazareth and Tobias Nipkow.
+\newblock Formal verification of algorithm {W}: The monomorphic case.
+\newblock In J.~von Wright, J.~Grundy, and J.~Harrison, editors, {\em Theorem
+  Proving in Higher Order Logics: {TPHOLs} '96}, LNCS 1125, pages 331--345,
+  1996.
+
+\bibitem{Nipkow-CR}
+Tobias Nipkow.
+\newblock More {Church-Rosser} proofs (in {Isabelle/HOL}).
+\newblock In Michael McRobbie and John~K. Slaney, editors, {\em Automated
+  Deduction --- {CADE}-13 International Conference}, LNAI 1104, pages 733--747.
+  Springer, 1996.
+
+\bibitem{nipkow-IMP}
+Tobias Nipkow.
+\newblock Winskel is (almost) right: Towards a mechanized semantics textbook.
+\newblock In V.~Chandru and V.~Vinay, editors, {\em Foundations of Software
+  Technology and Theoretical Computer Science}, volume 1180 of {\em LNCS},
+  pages 180--192. Springer, 1996.
 
 \bibitem{noel}
 Philippe No{\"e}l.
@@ -173,10 +199,23 @@ Lawrence~C. Paulson.
 \newblock Set theory for verification: {II}. {Induction} and recursion.
 \newblock {\em Journal of Automated Reasoning}, 15(2):167--215, 1995.
 
+\bibitem{paulson-ns}
+Lawrence~C. Paulson.
+\newblock Mechanized proofs of security protocols: {Needham-Schroeder} with
+  public keys.
+\newblock Technical Report 413, Computer Laboratory, University of Cambridge,
+  January 1997.
+
 \bibitem{paulson-coind}
 Lawrence~C. Paulson.
 \newblock Mechanizing coinduction and corecursion in higher-order logic.
-\newblock {\em Journal of Logic and Computation}, 7(2), March 1997.
+\newblock {\em Journal of Logic and Computation}, 7(2):175--204, March 1997.
+
+\bibitem{paulson-security}
+Lawrence~C. Paulson.
+\newblock Proving properties of security protocols by induction.
+\newblock In {\em 10th Computer Security Foundations Workshop}. IEEE Computer
+  Society Press, 1997.
 \newblock In press.
 
 \bibitem{paulson-COLOG}
@@ -197,7 +236,7 @@ Lawrence~C. Paulson.
 F.~J. Pelletier.
 \newblock Seventy-five problems for testing automatic theorem provers.
 \newblock {\em Journal of Automated Reasoning}, 2:191--216, 1986.
-\newblock Errata, JAR 4 (1988), 235--236.
+\newblock Errata, JAR 4 (1988), 235--236 and JAR 18 (1997), 135.
 
 \bibitem{plaisted90}
 David~A. Plaisted.
