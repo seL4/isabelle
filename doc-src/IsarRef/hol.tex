@@ -208,7 +208,7 @@ the following attributes.
 \end{rail}
 
 
-\section{(Co)Inductive sets}
+\section{(Co)Inductive sets}\label{sec:inductive}
 
 \indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisaratt{mono}
 \begin{matharray}{rcl}
@@ -367,8 +367,24 @@ indicate ``variable'' parameters $\vec x$ and ``recursive'' assumptions
 $\vec\phi$.  Also note that local definitions may be expressed as $\All{\vec
   x} n \equiv t[\vec x] \Imp \phi[n]$, with induction over $n$.
 
+\medskip
 
-\subsection{Declaring rules}
+Facts presented to either method are consumed according to the number of
+``major premises'' of the rule involved (see also \S\ref{sec:induct-att} and
+\S\ref{sec:cases}), which is usually $0$ for plain cases and induction rules
+of datatypes etc.\ and $1$ for rules of inductive sets and the like.  The
+remaining facts are inserted into the goal verbatim before the actual $cases$
+or $induct$ rule is applied (thus facts may be even passed through an
+induction).
+
+Note that whenever facts are present, the default rule selection scheme would
+provide a ``set'' rule only, with the first fact consumed and the rest
+inserted into the goal.  In order to pass all facts into a ``type'' rule
+instead, one would have to specify this explicitly, e.g.\ by appending
+``$type: name$'' to the method argument.
+
+
+\subsection{Declaring rules}\label{sec:induct-att}
 
 \indexisaratt{cases}\indexisaratt{induct}
 \begin{matharray}{rcl}
@@ -393,6 +409,10 @@ replaced manually by variant versions.
 
 Refer to the $case_names$ and $params$ attributes (see \S\ref{sec:cases}) to
 adjust names of cases and parameters of a rule.
+
+The $consumes$ declaration (cf.\ \S\ref{sec:cases}) is taken care of
+automatically (if none had been given already): $consumes~0$ is specified for
+``type'' rules and $consumes~1$ for ``set'' rules.
 
 
 \subsection{Emulating tactic scripts}\label{sec:induct_tac}
