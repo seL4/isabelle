@@ -213,20 +213,20 @@ val mutual_induct_split =
 
 (** Uncurrying the predicate in the ordinary induction rule **)
 
-(*The name "x.1" comes from the "RS spec" !*)
-val xvar = cterm_of sign (Var(("x",1), elem_type));
+val xvar = cterm_of sign (Var(("x",0), elem_type));
 
 (*strip quantifier and instantiate the variable to a tuple*)
 val induct0 = quant_induct RS spec RSN (2,rev_mp) |>
+              zero_var_indexes |>
               freezeT |>     (*Because elem_type contains TFrees not TVars*)
               instantiate ([], [(xvar, cterm_of sign elem_tuple)]);
 
+val Const ("Trueprop", _) $ (pred_var $ _) = concl_of induct0
+
+
 in
   struct
-  val induct = standard 
-                  (Prod_Syntax.split_rule_var
-                    (Var((pred_name,2), elem_type --> Ind_Syntax.boolT),
-                     induct0));
+  val induct = standard (Prod_Syntax.split_rule_var (pred_var, induct0));
 
   (*Just "True" unless there's true mutual recursion.  This saves storage.*)
   val mutual_induct = Prod_Syntax.remove_split mutual_induct_split
