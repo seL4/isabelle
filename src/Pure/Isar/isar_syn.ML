@@ -414,12 +414,16 @@ val calc_args =
   Scan.option (P.$$$ "(" |-- P.!!! ((P.xthms1 --| P.$$$ ")") -- P.interest));
 
 val alsoP =
-  OuterSyntax.command "also" "intermediate calculational proof step" K.prf_decl
+  OuterSyntax.command "also" "combine calculation and current facts" K.prf_decl
     (calc_args -- P.marg_comment >> IsarThy.also);
 
 val finallyP =
-  OuterSyntax.command "finally" "terminal calculational proof step" K.prf_chain
+  OuterSyntax.command "finally" "combine calculation and current facts, exhibit result" K.prf_chain
     (calc_args -- P.marg_comment >> IsarThy.finally);
+
+val moreoverP =
+  OuterSyntax.command "moreover" "augment calculation by current facts" K.prf_decl
+    (P.marg_comment >> IsarThy.moreover);
 
 
 (* proof navigation *)
@@ -638,8 +642,8 @@ val parsers = [
   defP, fixP, letP, caseP, thenP, fromP, withP, noteP, beginP, endP,
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
   skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
-  proofP, alsoP, finallyP, backP, cannot_undoP, clear_undosP, redoP,
-  undos_proofP, undoP, killP,
+  proofP, alsoP, finallyP, moreoverP, backP, cannot_undoP,
+  clear_undosP, redoP, undos_proofP, undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,

@@ -15,6 +15,7 @@ sig
   val trans_del_local: Proof.context attribute
   val also: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
   val finally: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
+  val moreover: (thm list -> unit) -> Proof.state -> Proof.state
   val setup: (theory -> theory) list
 end;
 
@@ -103,7 +104,18 @@ val trans_attr =
 
 (** proof commands **)
 
+(* maintain calculation *)
+
 val calculationN = "calculation";
+
+fun maintain_calculation calc state =
+  state
+  |> put_calculation calc
+  |> Proof.simple_have_thms calculationN calc
+  |> Proof.reset_facts;
+
+
+(* 'also' and 'finally' *)
 
 fun calculate final opt_rules print state =
   let
@@ -140,13 +152,18 @@ fun calculate final opt_rules print state =
           |> Proof.chain
         else
           state
-          |> put_calculation calc
-          |> Proof.simple_have_thms calculationN calc
-          |> Proof.reset_facts)))
+          |> maintain_calculation calc)))
   end;
 
 fun also print = calculate false print;
 fun finally print = calculate true print;
+
+
+(* 'moreover' *)
+
+fun moreover print state =
+  let val calc = if_none (get_calculation state) [] @ Proof.the_facts state
+  in print calc; state |> maintain_calculation calc end;
 
 
 
