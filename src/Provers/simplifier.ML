@@ -252,38 +252,32 @@ fun merge_ss
 
 
 
-(** simpset data **)
+(** global and local simpset data **)
 
 val simpsetN = "Provers/simpset";
-val simpsetK = Object.kind simpsetN;
 
 
-(* global simpset ref *)
+(* data kind 'Provers/simpset' *)
 
-exception SimpsetGlobal of simpset ref;
+structure SimpsetDataArgs =
+struct
+  val name = simpsetN;
+  type T = simpset ref;
 
-local
-  val empty = SimpsetGlobal (ref empty_ss);
-
-  (*create new reference*)
-  fun prep_ext (SimpsetGlobal (ref ss)) = SimpsetGlobal (ref ss);
-
-  fun merge (SimpsetGlobal (ref ss1), SimpsetGlobal (ref ss2)) =
-    SimpsetGlobal (ref (merge_ss (ss1, ss2)));
-
-  fun print _ (SimpsetGlobal (ref ss)) = print_ss ss;
-in
-  val setup_thy_data = Theory.init_data simpsetK (empty, prep_ext, merge, print);
+  val empty = ref empty_ss;
+  fun prep_ext (ref ss) = (ref ss): T;		  (*create new reference!*)
+  fun merge (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
+  fun print _ (ref ss) = print_ss ss;
 end;
+
+structure SimpsetData = TheoryDataFun(SimpsetDataArgs);
+val print_simpset = SimpsetData.print;
+val simpset_ref_of_sg = SimpsetData.get_sg;
+val simpset_ref_of = SimpsetData.get;
 
 
 (* access global simpset *)
 
-val print_simpset = Theory.print_data simpsetK;
-
-val simpset_ref_of_sg = Sign.get_data simpsetK (fn SimpsetGlobal r => r);
-
-val simpset_ref_of = simpset_ref_of_sg o sign_of;
 val simpset_of_sg = ! o simpset_ref_of_sg;
 val simpset_of = simpset_of_sg o sign_of;
 
@@ -307,12 +301,13 @@ val Delsimprocs = change_simpset (op delsimprocs);
 (* local simpset *)
 
 exception SimpsetLocal of simpset;
+val simpset_localK = Object.kind simpsetN;
 
 fun get_local_simpset (thy, data) =
   (case Symtab.lookup (data, simpsetN) of
     Some (SimpsetLocal ss) => ss
   | None => simpset_of thy
-  | _ => Object.kind_error simpsetK);
+  | _ => Object.kind_error simpset_localK);
 
 fun put_local_simpset ss (thy, data) =
   (thy, Symtab.update ((simpsetN, SimpsetLocal ss), data));
@@ -351,8 +346,11 @@ local
   val simp_attr_global = simp_attr change_global_ss;
   val simp_attr_local = simp_attr change_local_ss;
 in
-  val setup_attrs = Attribute.add_attributes
+(* FIXME
+  val setup_attrs = IsarThy.add_attributes
     [(simpN, simp_attr_global, simp_attr_local, "simplifier")];
+*)
+  val setup_attrs = I;
 
   val simp_add_global = simp_attr_global [simp_addN];
   val simp_del_global = simp_attr_global [simp_delN];
@@ -425,7 +423,7 @@ val asm_full_simplify = simp (true, true, false);
 
 (** theory setup **)
 
-val setup = [setup_thy_data, setup_attrs];
+val setup = [SimpsetData.init, setup_attrs];
 
 
 end;
