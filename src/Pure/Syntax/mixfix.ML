@@ -33,7 +33,6 @@ sig
   val pure_syntax: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
   val pure_applC_syntax: (string * string * mixfix) list
-  val pure_sym_syntax:  (string * string * mixfix) list
   val pure_xsym_syntax: (string * string * mixfix) list
 end;
 
@@ -126,6 +125,8 @@ fun mixfix_args NoSyn = 0
   | mixfix_args (Delimfix sy) = SynExt.mfix_args sy
   | mixfix_args (*infix or binder*) _ = 2;
 
+fun maxpris sy = replicate (SynExt.mfix_args sy) 0;
+
 
 (* syn_ext_types *)
 
@@ -135,7 +136,7 @@ fun syn_ext_types logtypes type_decls =
 
     fun mk_infix sy t p1 p2 p3 =
       SynExt.Mfix ("(_ " ^ sy ^ "/ _)",
-        [SynExt.typeT, SynExt.typeT] ---> SynExt.typeT, t, [p1, p2], p3);
+        [SynExt.typeT, SynExt.typeT] ---> SynExt.typeT, t, p1 :: maxpris sy @ [p2], p3);
 
     fun mfix_of decl =
       let val t = name_of decl in
@@ -163,7 +164,7 @@ fun syn_ext_consts logtypes const_decls =
 
     fun mk_infix sy ty c p1 p2 p3 =
       [SynExt.Mfix ("op " ^ sy, ty, c, [], SynExt.max_pri),
-       SynExt.Mfix ("(_ " ^ sy ^ "/ _)", ty, c, [p1, p2], p3)];
+       SynExt.Mfix ("(_ " ^ sy ^ "/ _)", ty, c, p1 :: maxpris sy @ [p2], p3)];
 
     fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
           [Type ("idts", []), ty2] ---> ty3
@@ -235,6 +236,7 @@ val pure_syntax =
   ("_DDDOT",       "logic",                         Delimfix "..."),
   ("_constify",    "num => num_const",              Delimfix "_"),
   ("_index",       "num_const => index",            Delimfix "\\<^sub>_"),
+  ("_indexvar",    "index",                         Delimfix "\\<index>"),
   ("_noindex",     "index",                         Delimfix ""),
   ("_struct",      "index => logic",                Delimfix "\\<struct>_")];
 
@@ -248,20 +250,16 @@ val pure_applC_syntax =
   ("_applC", "[('b => 'a), cargs] => logic", Mixfix ("(1_/ _)", [SynExt.max_pri, SynExt.max_pri], SynExt.max_pri - 1)),
   ("_applC", "[('b => 'a), cargs] => aprop", Mixfix ("(1_/ _)", [SynExt.max_pri, SynExt.max_pri], SynExt.max_pri - 1))];
 
-val pure_sym_syntax =
+val pure_xsym_syntax =
  [("fun",      "[type, type] => type",  Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
   ("_bracket", "[types, type] => type", Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
   ("_ofsort",  "[tid, sort] => type",   Mixfix ("_\\<Colon>_", [SynExt.max_pri, 0], SynExt.max_pri)),
   ("_constrain", "['a, type] => 'a",    Mixfix ("_\\<Colon>_", [4, 0], 3)),
   ("_idtyp",   "[id, type] => idt",     Mixfix ("_\\<Colon>_", [], 0)),
   ("_lambda",  "[pttrns, 'a] => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-  ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
-  ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
   ("==",       "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>", 2)),
-  ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0))];
-
-val pure_xsym_syntax =
- [("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
+  ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
+  ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Longrightarrow>", 1)),
   ("=?=",      "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>\\<^sup>?", 2)),
   ("_DDDOT",   "aprop",                 Delimfix "\\<dots>"),
   ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
