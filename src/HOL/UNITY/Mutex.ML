@@ -27,7 +27,7 @@ qed "IV";
 (*The safety property: mutual exclusion*)
 Goal "Mutex : Always {s. ~ (m s = #3 & n s = #3)}";
 by (rtac Always_weaken 1);
-by (rtac ([IU, IV] MRS Always_Int) 1);
+by (rtac ([IU, IV] MRS Always_Int_I) 1);
 by Auto_tac;
 qed "mutual_exclusion";
 
