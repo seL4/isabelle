@@ -84,6 +84,7 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val strip_comb: cterm -> cterm * cterm list
   val rule_attribute: ('a -> thm -> thm) -> 'a attribute
   val tag_rule: tag -> thm -> thm
   val untag_rule: string -> thm -> thm
@@ -186,6 +187,14 @@ fun mk_implies(A,B) = Thm.capply (Thm.capply implies A) B;
 (*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
 fun list_implies([], B) = B
   | list_implies(A::AS, B) = mk_implies (A, list_implies(AS,B));
+
+(*cterm version of strip_comb: maps  f(t1,...,tn)  to  (f, [t1,...,tn]) *)
+fun strip_comb ct = 
+  let
+    fun stripc (p as (ct, cts)) =
+      let val (ct1, ct2) = Thm.dest_comb ct
+      in stripc (ct1, ct2 :: cts) end handle CTERM _ => p
+  in stripc (ct, []) end;
 
 
 (** reading of instantiations **)
