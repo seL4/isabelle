@@ -9,4 +9,5 @@ use_thy "BasicLogic";
 use_thy "Peirce";
 use_thy "Cantor";
 use_thy "ExprCompiler";
+use_thy "Group";
 use_thy "NatSum";
