@@ -223,9 +223,9 @@ subsection {* @{text lists}: the list-forming operator over sets *}
 
 consts lists :: "'a set => 'a list set"
 inductive "lists A"
-intros
-Nil [intro!]: "[]: lists A"
-Cons [intro!]: "[| a: A;l: lists A|] ==> a#l : lists A"
+ intros
+  Nil [intro!]: "[]: lists A"
+  Cons [intro!]: "[| a: A;l: lists A|] ==> a#l : lists A"
 
 inductive_cases listsE [elim!]: "x#l : lists A"
 
@@ -648,6 +648,9 @@ by (rule in_lists_conv_set [THEN iffD1])
 lemma in_listsI [intro!]: "\<forall>x\<in>set xs. x \<in> A ==> xs \<in> lists A"
 by (rule in_lists_conv_set [THEN iffD2])
 
+lemma lists_UNIV [simp]: "lists UNIV = UNIV"
+by auto
+
 lemma finite_list: "finite A ==> EX l. set l = A"
 apply (erule finite_induct, auto)
 apply (rule_tac x="x#l" in exI, auto)
@@ -655,6 +658,26 @@ done
 
 lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
+
+
+subsection{*Sets of Lists*}
+
+text{*Resembles a Cartesian product: it denotes the set of lists with head
+  drawn from @{term A} and tail drawn from @{term Xs}.*}
+constdefs
+  set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set"
+   "set_Cons A XS == {z. \<exists>x xs. z = x#xs & x \<in> A & xs \<in> XS}"
+
+lemma [simp]: "set_Cons A {[]} = (%x. [x])`A"
+by (auto simp add: set_Cons_def)
+
+text{*Yields the set of lists, all of the same length as the argument and
+with elements drawn from the corresponding element of the argument.*}
+consts  listset :: "'a set list \<Rightarrow> 'a list set"
+primrec
+   "listset []    = {[]}"
+   "listset(A#As) = set_Cons A (listset As)"
+
 
 subsection {* @{text mem} *}
 
@@ -1556,7 +1579,7 @@ apply(rule wf_prod_fun_image)
 done
 
 lemma lexn_length:
-"!!xs ys. (xs, ys) : lexn r n ==> length xs = n \<and> length ys = n"
+     "!!xs ys. (xs, ys) : lexn r n ==> length xs = n \<and> length ys = n"
 by (induct n) auto
 
 lemma wf_lex [intro!]: "wf r ==> wf (lex r)"
@@ -1619,12 +1642,12 @@ lemma sublist_nil [simp]: "sublist [] A = []"
 by (auto simp add: sublist_def)
 
 lemma sublist_shift_lemma:
-"map fst [p:zip xs [i..i + length xs(] . snd p : A] =
-map fst [p:zip xs [0..length xs(] . snd p + i : A]"
+     "map fst [p:zip xs [i..i + length xs(] . snd p : A] =
+      map fst [p:zip xs [0..length xs(] . snd p + i : A]"
 by (induct xs rule: rev_induct) (simp_all add: add_commute)
 
 lemma sublist_append:
-"sublist (l @ l') A = sublist l A @ sublist l' {j. j + length l : A}"
+     "sublist (l @ l') A = sublist l A @ sublist l' {j. j + length l : A}"
 apply (unfold sublist_def)
 apply (induct l' rule: rev_induct, simp)
 apply (simp add: upt_add_eq_append[of 0] zip_append sublist_shift_lemma)
@@ -1648,11 +1671,11 @@ done
 
 
 lemma take_Cons':
-"take n (x # xs) = (if n = 0 then [] else x # take (n - 1) xs)"
+     "take n (x # xs) = (if n = 0 then [] else x # take (n - 1) xs)"
 by (cases n) simp_all
 
 lemma drop_Cons':
-"drop n (x # xs) = (if n = 0 then x # xs else drop (n - 1) xs)"
+     "drop n (x # xs) = (if n = 0 then x # xs else drop (n - 1) xs)"
 by (cases n) simp_all
 
 lemma nth_Cons': "(x # xs)!n = (if n = 0 then x else xs!(n - 1))"
