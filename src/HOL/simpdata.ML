@@ -8,56 +8,6 @@ Instantiation of the generic simplifier for HOL.
 
 section "Simplifier";
 
-(*** Addition of rules to simpsets and clasets simultaneously ***)      (* FIXME move to Provers/clasimp.ML? *)
-
-infix 4 addIffs delIffs;
-
-(*Takes UNCONDITIONAL theorems of the form A<->B to
-        the Safe Intr     rule B==>A and
-        the Safe Destruct rule A==>B.
-  Also ~A goes to the Safe Elim rule A ==> ?R
-  Failing other cases, A is added as a Safe Intr rule*)
-local
-  val iff_const = HOLogic.eq_const HOLogic.boolT;
-
-  fun addIff ((cla, simp), th) =
-      (case HOLogic.dest_Trueprop (#prop (rep_thm th)) of
-                (Const("Not", _) $ A) =>
-                    cla addSEs [zero_var_indexes (th RS notE)]
-              | (con $ _ $ _) =>
-                    if con = iff_const
-                    then cla addSIs [zero_var_indexes (th RS iffD2)]
-                              addSDs [zero_var_indexes (th RS iffD1)]
-                    else  cla addSIs [th]
-              | _ => cla addSIs [th],
-       simp addsimps [th])
-      handle TERM _ => error ("AddIffs: theorem must be unconditional\n" ^
-                         string_of_thm th);
-
-  fun delIff ((cla, simp), th) =
-      (case HOLogic.dest_Trueprop (#prop (rep_thm th)) of
-           (Const ("Not", _) $ A) =>
-               cla delrules [zero_var_indexes (th RS notE)]
-         | (con $ _ $ _) =>
-               if con = iff_const
-               then cla delrules
-                        [zero_var_indexes (th RS iffD2),
-                         cla_make_elim (zero_var_indexes (th RS iffD1))]
-               else cla delrules [th]
-         | _ => cla delrules [th],
-       simp delsimps [th])
-      handle TERM _ => (warning("DelIffs: ignoring conditional theorem\n" ^
-                                string_of_thm th); (cla, simp));
-
-  fun store_clasimp (cla, simp) = (claset_ref () := cla; simpset_ref () := simp)
-in
-val op addIffs = foldl addIff;
-val op delIffs = foldl delIff;
-fun AddIffs thms = store_clasimp ((claset (), simpset ()) addIffs thms);
-fun DelIffs thms = store_clasimp ((claset (), simpset ()) delIffs thms);
-end;
-
-
 val [prem] = goal (the_context ()) "x==y ==> x=y";
 by (rewtac prem);
 by (rtac refl 1);
@@ -306,8 +256,8 @@ qed "if_bool_eq_disj";
 
 (*** make simplification procedures for quantifier elimination ***)
 
-structure Quantifier1 = Quantifier1Fun(
-struct
+structure Quantifier1 = Quantifier1Fun
+(struct
   (*abstract syntax*)
   fun dest_eq((c as Const("op =",_)) $ s $ t) = Some(c,s,t)
     | dest_eq _ = None;
@@ -507,7 +457,7 @@ fun gen_rulify x =
 
 in
 
-val attrib_setup =
+val rulify_attrib_setup =
  [Attrib.add_attributes
   [("rulify", (gen_rulify, gen_rulify), "put theorem into standard rule form")]];
 
@@ -517,24 +467,15 @@ end;
 
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
-   and Classical  = Classical and Blast = Blast);
+  and Classical  = Classical and Blast = Blast
+  val dest_Trueprop = HOLogic.dest_Trueprop
+  val iff_const = HOLogic.eq_const HOLogic.boolT
+  val not_const = HOLogic.not_const
+  val notE = notE val iffD1 = iffD1 val iffD2 = iffD2
+  val cla_make_elim = cla_make_elim);
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);
-
-
-(* "iff" attribute *)
-
-val iff_add_global = Clasimp.change_global_css (op addIffs);
-val iff_del_global = Clasimp.change_global_css (op delIffs);
-val iff_add_local = Clasimp.change_local_css (op addIffs);
-val iff_del_local = Clasimp.change_local_css (op delIffs);
-
-val iff_attrib_setup =
- [Attrib.add_attributes
-  [("iff", (Attrib.add_del_args iff_add_global iff_del_global,
-    Attrib.add_del_args iff_add_local iff_del_local),
-    "declare simplifier / classical rules")]];
 
 
 

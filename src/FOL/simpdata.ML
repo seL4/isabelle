@@ -6,49 +6,6 @@
 Simplification data for FOL
 *)
 
-(*** Addition of rules to simpsets and clasets simultaneously ***)      (* FIXME move to Provers/clasimp.ML? *)
-
-infix 4 addIffs delIffs;
-
-(*Takes UNCONDITIONAL theorems of the form A<->B to 
-        the Safe Intr     rule B==>A and 
-        the Safe Destruct rule A==>B.
-  Also ~A goes to the Safe Elim rule A ==> ?R
-  Failing other cases, A is added as a Safe Intr rule*)
-local
-  fun addIff ((cla, simp), th) = 
-      (case FOLogic.dest_Trueprop (#prop (rep_thm th)) of
-                (Const("Not", _) $ A) =>
-                    cla addSEs [zero_var_indexes (th RS notE)]
-              | (Const("op <->", _) $ _ $ _) =>
-                    cla addSIs [zero_var_indexes (th RS iffD2)]  
-                        addSDs [zero_var_indexes (th RS iffD1)]
-              | _ => cla addSIs [th],
-       simp addsimps [th])
-      handle TERM _ => error ("AddIffs: theorem must be unconditional\n" ^ 
-                         string_of_thm th);
-
-  fun delIff ((cla, simp), th) = 
-      (case FOLogic.dest_Trueprop (#prop (rep_thm th)) of
-           (Const ("Not", _) $ A) =>
-               cla delrules [zero_var_indexes (th RS notE)]
-         | (Const("op <->", _) $ _ $ _) =>
-               cla delrules [zero_var_indexes (th RS iffD2),
-                             cla_make_elim (zero_var_indexes (th RS iffD1))]
-         | _ => cla delrules [th],
-       simp delsimps [th])
-      handle TERM _ => (warning("DelIffs: ignoring conditional theorem\n" ^ 
-                                string_of_thm th); (cla, simp));
-
-  fun store_clasimp (cla, simp) = (claset_ref () := cla; simpset_ref () := simp)
-in
-val op addIffs = foldl addIff;
-val op delIffs = foldl delIff;
-fun AddIffs thms = store_clasimp ((claset (), simpset ()) addIffs thms);
-fun DelIffs thms = store_clasimp ((claset (), simpset ()) delIffs thms);
-end;
-
-
 
 (* Elimination of True from asumptions: *)
 
@@ -391,7 +348,11 @@ val simpsetup = [fn thy => (simpset_ref_of thy := FOL_ss; thy)];
 
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Splitter = Splitter
-   and Classical  = Cla and Blast = Blast);
+  and Classical  = Cla and Blast = Blast
+  val dest_Trueprop = FOLogic.dest_Trueprop
+  val iff_const = FOLogic.iff val not_const = FOLogic.not
+  val notE = notE val iffD1 = iffD1 val iffD2 = iffD2
+  val cla_make_elim = cla_make_elim);
 open Clasimp;
 
 val FOL_css = (FOL_cs, FOL_ss);
