@@ -116,6 +116,8 @@ sig
   val begin_block: ProofHistory.T -> ProofHistory.T
   val next_block: ProofHistory.T -> ProofHistory.T
   val end_block: ProofHistory.T -> ProofHistory.T
+  val defer: int option -> ProofHistory.T -> ProofHistory.T
+  val prefer: int -> ProofHistory.T -> ProofHistory.T
   val tac: Method.text -> ProofHistory.T -> ProofHistory.T
   val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
   val proof: (Comment.interest * (Method.text * Comment.interest) option) * Comment.text
@@ -340,6 +342,12 @@ end;
 val begin_block = ProofHistory.apply Proof.begin_block;
 val next_block = ProofHistory.apply Proof.next_block;
 val end_block = ProofHistory.applys Proof.end_block;
+
+
+(* shuffle state *)
+
+fun defer i = ProofHistory.applys (Method.refine (Method.Basic (K (Method.defer i))));
+fun prefer i = ProofHistory.applys (Method.refine (Method.Basic (K (Method.prefer i))));
 
 
 (* backward steps *)

@@ -381,6 +381,14 @@ val skip_proofP =
 
 (* proof steps *)
 
+val deferP =
+  OuterSyntax.improper_command "defer" "shuffle internal proof state"
+    K.prf_script (Scan.option P.nat >> (Toplevel.print oo (Toplevel.proof o IsarThy.defer)));
+
+val preferP =
+  OuterSyntax.improper_command "prefer" "shuffle internal proof state"
+    K.prf_script (P.nat >> (Toplevel.print oo (Toplevel.proof o IsarThy.prefer)));
+
 val applyP =
   OuterSyntax.improper_command "apply" "unstructured backward proof step, ignoring facts"
     K.prf_script (P.method >> (Toplevel.print oo (Toplevel.proof o IsarThy.tac)));
@@ -616,8 +624,9 @@ val parsers = [
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
-  skip_proofP, applyP, then_applyP, proofP, alsoP, finallyP, backP,
-  cannot_undoP, clear_undosP, redoP, undos_proofP, kill_proofP, undoP,
+  skip_proofP, deferP, preferP, applyP, then_applyP, proofP, alsoP,
+  finallyP, backP, cannot_undoP, clear_undosP, redoP, undos_proofP,
+  kill_proofP, undoP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
