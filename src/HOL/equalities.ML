@@ -75,10 +75,6 @@ goal thy
 by (Blast_tac 1);
 qed "UN_insert_distrib";
 
-goal thy "(UN x. insert a (B x)) = insert a (UN x. B x)";
-by (Blast_tac 1);
-qed "UN1_insert_distrib";
-
 section "``";
 
 goal thy "f``{} = {}";
@@ -340,8 +336,7 @@ by (blast_tac (claset() addEs [equalityE]) 1);
 qed"Union_empty_conv"; 
 AddIffs [Union_empty_conv];
 
-val prems = goal thy
-   "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
+goal thy "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
@@ -387,20 +382,10 @@ by (Blast_tac 1);
 qed "UN_empty2";
 Addsimps[UN_empty2];
 
-goal thy "(UN x:UNIV. B x) = (UN x. B x)";
-by (Blast_tac 1);
-qed "UN_UNIV";
-Addsimps[UN_UNIV];
-
 goal thy "(INT x:{}. B x) = UNIV";
 by (Blast_tac 1);
 qed "INT_empty";
 Addsimps[INT_empty];
-
-goal thy "(INT x:UNIV. B x) = (INT x. B x)";
-by (Blast_tac 1);
-qed "INT_UNIV";
-Addsimps[INT_UNIV];
 
 goal thy "(UN x:insert a A. B x) = B a Un UNION A B";
 by (Blast_tac 1);
@@ -421,10 +406,6 @@ goal thy
 by (Blast_tac 1);
 qed "INT_insert_distrib";
 
-goal thy "(INT x. insert a (B x)) = insert a (INT x. B x)";
-by (Blast_tac 1);
-qed "INT1_insert_distrib";
-
 goal thy "Union(B``A) = (UN x:A. B(x))";
 by (Blast_tac 1);
 qed "Union_image_eq";
@@ -433,23 +414,15 @@ goal thy "Inter(B``A) = (INT x:A. B(x))";
 by (Blast_tac 1);
 qed "Inter_image_eq";
 
-goal thy "!!A. a: A ==> (UN y:A. c) = c";
+goal thy "!!A. A~={} ==> (UN y:A. c) = c";
 by (Blast_tac 1);
 qed "UN_constant";
+Addsimps[UN_constant];
 
-goal thy "!!A. a: A ==> (INT y:A. c) = c";
+goal thy "!!A. A~={} ==> (INT y:A. c) = c";
 by (Blast_tac 1);
 qed "INT_constant";
-
-goal thy "(UN x. B) = B";
-by (Blast_tac 1);
-qed "UN1_constant";
-Addsimps[UN1_constant];
-
-goal thy "(INT x. B) = B";
-by (Blast_tac 1);
-qed "INT1_constant";
-Addsimps[INT1_constant];
+Addsimps[INT_constant];
 
 goal thy "(UN x:A. B(x)) = Union({Y. ? x:A. Y=B(x)})";
 by (Blast_tac 1);
@@ -646,38 +619,24 @@ qed "Pow_insert";
 local
   fun prover s = prove_goal thy s (fn _ => [Blast_tac 1])
 in
-val UN1_simps = map prover 
-                ["(UN x. insert a (B x)) = insert a (UN x. B x)",
-                 "(UN x. A x Int B)  = ((UN x. A x) Int B)",
-                 "(UN x. A Int B x)  = (A Int (UN x. B x))",
-                 "(UN x. A x Un B)   = ((UN x. A x) Un B)",
-                 "(UN x. A Un B x)   = (A Un (UN x. B x))",
-                 "(UN x. A x - B)    = ((UN x. A x) - B)",
-                 "(UN x. A - B x)    = (A - (INT x. B x))"];
-
-val INT1_simps = map prover
-                ["(INT x. insert a (B x)) = insert a (INT x. B x)",
-                 "(INT x. A x Int B) = ((INT x. A x) Int B)",
-                 "(INT x. A Int B x) = (A Int (INT x. B x))",
-                 "(INT x. A x Un B)  = ((INT x. A x) Un B)",
-                 "(INT x. A Un B x)  = (A Un (INT x. B x))",
-                 "(INT x. A x - B)   = ((INT x. A x) - B)",
-                 "(INT x. A - B x)   = (A - (UN x. B x))"];
-
 val UN_simps = map prover 
-                ["(UN x:C. A x Int B)  = ((UN x:C. A x) Int B)",
-                 "(UN x:C. A Int B x)  = (A Int (UN x:C. B x))",
-                 "(UN x:C. A x - B)    = ((UN x:C. A x) - B)",
-                 "(UN x:C. A - B x)    = (A - (INT x:C. B x))"];
+    ["!!C. C ~= {} ==> (UN x:C. insert a (B x)) = insert a (UN x:C. B x)",
+     "!!C. C ~= {} ==> (UN x:C. A x Un B)   = ((UN x:C. A x) Un B)",
+     "!!C. C ~= {} ==> (UN x:C. A Un B x)   = (A Un (UN x:C. B x))",
+     "(UN x:C. A x Int B)  = ((UN x:C. A x) Int B)",
+     "(UN x:C. A Int B x)  = (A Int (UN x:C. B x))",
+     "(UN x:C. A x - B)    = ((UN x:C. A x) - B)",
+     "(UN x:C. A - B x)    = (A - (INT x:C. B x))"];
 
 val INT_simps = map prover
-                ["(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
-                 "(INT x:C. A x Un B)  = ((INT x:C. A x) Un B)",
-                 "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))"];
+    ["!!C. C ~= {} ==> (INT x:C. A x Int B) = ((INT x:C. A x) Int B)",
+     "!!C. C ~= {} ==> (INT x:C. A Int B x) = (A Int (INT x:C. B x))",
+     "!!C. C ~= {} ==> (INT x:C. A x - B)   = ((INT x:C. A x) - B)",
+     "!!C. C ~= {} ==> (INT x:C. A - B x)   = (A - (UN x:C. B x))",
+     "(INT x:C. insert a (B x)) = insert a (INT x:C. B x)",
+     "(INT x:C. A x Un B)  = ((INT x:C. A x) Un B)",
+     "(INT x:C. A Un B x)  = (A Un (INT x:C. B x))"];
 
-(*The missing laws for bounded Unions and Intersections are conditional
-  on the index set's being non-empty.  Thus they are probably NOT worth 
-  adding as default rewrites.*)
 
 val ball_simps = map prover
     ["(ALL x:A. P x | Q) = ((ALL x:A. P x) | Q)",
@@ -711,5 +670,4 @@ val bex_disj_distrib =
 
 end;
 
-Addsimps (UN1_simps @ INT1_simps @ UN_simps @ INT_simps @ 
-	  ball_simps @ bex_simps);
+Addsimps (UN_simps @ INT_simps @ ball_simps @ bex_simps);

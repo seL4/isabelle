@@ -25,14 +25,13 @@ syntax
 
 consts
   "{}"          :: 'a set                           ("{}")
+  UNIV          :: 'a set
   insert        :: ['a, 'a set] => 'a set
   Collect       :: ('a => bool) => 'a set               (*comprehension*)
   Compl         :: ('a set) => 'a set                   (*complement*)
   Int           :: ['a set, 'a set] => 'a set       (infixl 70)
   Un            :: ['a set, 'a set] => 'a set       (infixl 65)
   UNION, INTER  :: ['a set, 'a => 'b set] => 'b set     (*general*)
-  UNION1        :: ['a => 'b set] => 'b set         (binder "UN " 10)
-  INTER1        :: ['a => 'b set] => 'b set         (binder "INT " 10)
   Union, Inter  :: (('a set) set) => 'a set             (*of a set*)
   Pow           :: 'a set => 'a set set                 (*powerset*)
   range         :: ('a => 'b) => 'b set                 (*of function*)
@@ -47,8 +46,6 @@ consts
 
 syntax
 
-  UNIV          :: 'a set
-
   (* Infix syntax for non-membership *)
 
   "op ~:"       :: ['a, 'a set] => bool               ("op ~:")
@@ -61,6 +58,9 @@ syntax
 
   (* Big Intersection / Union *)
 
+  INTER1        :: [pttrns, 'a => 'b set] => 'b set   ("(3INT _./ _)" 10)
+  UNION1        :: [pttrns, 'a => 'b set] => 'b set   ("(3UN _./ _)" 10)
+
   "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3INT _:_./ _)" 10)
   "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3UN _:_./ _)" 10)
 
@@ -72,14 +72,17 @@ syntax
   "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "UNIV"        == "Compl {}"
   "range f"     == "f``UNIV"
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
   "{x. P}"      == "Collect (%x. P)"
-  "INT x:A. B"  == "INTER A (%x. B)"
+  "UN x y. B"   == "UN x. UN y. B"
+  "UN x. B"     == "UNION UNIV (%x. B)"
+  "INT x y. B"   == "INT x. INT y. B"
+  "INT x. B"    == "INTER UNIV (%x. B)"
   "UN x:A. B"   == "UNION A (%x. B)"
+  "INT x:A. B"  == "INTER A (%x. B)"
   "! x:A. P"    == "Ball A (%x. P)"
   "? x:A. P"    == "Bex A (%x. P)"
   "ALL x:A. P"  => "Ball A (%x. P)"
@@ -104,6 +107,8 @@ syntax (symbols)
   "op ~:"       :: ['a, 'a set] => bool               ("(_/ \\<notin> _)" [50, 51] 50)
   "UN "         :: [idts, bool] => bool               ("(3\\<Union> _./ _)" 10)
   "INT "        :: [idts, bool] => bool               ("(3\\<Inter> _./ _)" 10)
+  "UNION1"      :: [pttrn, 'b set] => 'b set          ("(3\\<Union> _./ _)" 10)
+  "INTER1"      :: [pttrn, 'b set] => 'b set          ("(3\\<Inter> _./ _)" 10)
   "@UNION"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Union> _\\<in>_./ _)" 10)
   "@INTER"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3\\<Inter> _\\<in>_./ _)" 10)
   Union         :: (('a set) set) => 'a set           ("\\<Union> _" [90] 90)
@@ -145,12 +150,11 @@ defs
   set_diff_def  "A - B          == {x. x:A & ~x:B}"
   INTER_def     "INTER A B      == {y. ! x:A. y: B(x)}"
   UNION_def     "UNION A B      == {y. ? x:A. y: B(x)}"
-  INTER1_def    "INTER1 B       == INTER {x. True} B"
-  UNION1_def    "UNION1 B       == UNION {x. True} B"
   Inter_def     "Inter S        == (INT x:S. x)"
   Union_def     "Union S        == (UN x:S. x)"
   Pow_def       "Pow A          == {B. B <= A}"
   empty_def     "{}             == {x. False}"
+  UNIV_def      "UNIV           == {x. True}"
   insert_def    "insert a B     == {x. x=a} Un B"
   image_def     "f``A           == {y. ? x:A. y=f(x)}"
 

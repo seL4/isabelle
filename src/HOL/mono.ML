@@ -28,22 +28,12 @@ val prems = goal Set.thy
 by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "UN_mono";
 
-val [prem] = goal Set.thy
-    "[| !!x. f(x)<=g(x) |] ==> (UN x. f(x)) <= (UN x. g(x))";
-by (blast_tac (claset() addIs [prem RS subsetD]) 1);
-qed "UN1_mono";
-
+(*The last inclusion is POSITIVE! *)
 val prems = goal Set.thy
     "[| B<=A;  !!x. x:A ==> f(x)<=g(x) |] ==> \
 \    (INT x:A. f(x)) <= (INT x:A. g(x))";
 by (blast_tac (claset() addIs (prems RL [subsetD])) 1);
 qed "INT_anti_mono";
-
-(*The inclusion is POSITIVE! *)
-val [prem] = goal Set.thy
-    "[| !!x. f(x)<=g(x) |] ==> (INT x. f(x)) <= (INT x. g(x))";
-by (blast_tac (claset() addIs [prem RS subsetD]) 1);
-qed "INT1_mono";
 
 goal Set.thy "!!C D. C<=D ==> insert a C <= insert a D";
 by (Blast_tac 1);

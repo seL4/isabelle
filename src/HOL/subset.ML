@@ -42,15 +42,6 @@ by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, UN_E, prem RS subsetD] 1));
 qed "UN_least";
 
-goal Set.thy "B(a) <= (UN x. B(x))";
-by (REPEAT (ares_tac [UN1_I RS subsetI] 1));
-qed "UN1_upper";
-
-val [prem] = goal Set.thy "[| !!x. B(x)<=C |] ==> (UN x. B(x)) <= C";
-by (rtac subsetI 1);
-by (REPEAT (eresolve_tac [asm_rl, UN1_E, prem RS subsetD] 1));
-qed "UN1_least";
-
 
 (*** Big Intersection -- greatest lower bound of a set ***)
 
@@ -74,16 +65,6 @@ val [prem] = goal Set.thy
 by (rtac (INT_I RS subsetI) 1);
 by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
 qed "INT_greatest";
-
-goal Set.thy "(INT x. B(x)) <= B(a)";
-by (Blast_tac 1);
-qed "INT1_lower";
-
-val [prem] = goal Set.thy
-    "[| !!x. C<=B(x) |] ==> C <= (INT x. B(x))";
-by (rtac (INT1_I RS subsetI) 1);
-by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
-qed "INT1_greatest";
 
 (*** Finite Union -- the least upper bound of 2 sets ***)
 

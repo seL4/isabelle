@@ -211,6 +211,29 @@ by (REPEAT (resolve_tac (refl::prems) 1));
 qed "setup_induction";
 
 
+section "The universal set -- UNIV";
+
+qed_goalw "UNIV_I" Set.thy [UNIV_def] "x : UNIV"
+  (fn _ => [rtac CollectI 1, rtac TrueI 1]);
+
+AddIffs [UNIV_I];
+
+qed_goal "subset_UNIV" Set.thy "A <= UNIV"
+  (fn _ => [rtac subsetI 1, rtac UNIV_I 1]);
+
+(** Eta-contracting these two rules (to remove P) causes them to be ignored
+    because of their interaction with congruence rules. **)
+
+goalw Set.thy [Ball_def] "Ball UNIV P = All P";
+by (Simp_tac 1);
+qed "ball_UNIV";
+
+goalw Set.thy [Bex_def] "Bex UNIV P = Ex P";
+by (Simp_tac 1);
+qed "bex_UNIV";
+Addsimps [ball_UNIV, bex_UNIV];
+
+
 section "The empty set -- {}";
 
 qed_goalw "empty_iff" Set.thy [empty_def] "(c : {}) = False"
@@ -232,6 +255,21 @@ qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
 
 qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
  (fn _ => [ (Blast_tac 1) ]);
+
+goalw Set.thy [Ball_def] "Ball {} P = True";
+by (Simp_tac 1);
+qed "ball_empty";
+
+goalw Set.thy [Bex_def] "Bex {} P = False";
+by (Simp_tac 1);
+qed "bex_empty";
+Addsimps [ball_empty, bex_empty];
+
+goal thy "UNIV ~= {}";
+by (blast_tac (claset() addEs [equalityE]) 1);
+qed "UNIV_not_empty";
+AddIffs [UNIV_not_empty];
+
 
 
 section "The Powerset operator -- Pow";
@@ -418,14 +456,6 @@ by(Blast_tac 1);
 qed "singleton_conv";
 Addsimps [singleton_conv];
 
-section "The universal set -- UNIV";
-
-qed_goal "UNIV_I" Set.thy "x : UNIV"
-  (fn _ => [rtac ComplI 1, etac emptyE 1]);
-
-qed_goal "subset_UNIV" Set.thy "A <= UNIV"
-  (fn _ => [rtac subsetI 1, rtac UNIV_I 1]);
-
 
 section "Unions of families -- UNION x:A. B(x) is Union(B``A)";
 
@@ -492,52 +522,6 @@ by (REPEAT_FIRST (resolve_tac [INT_I,equalityI,subsetI]));
 by (REPEAT (dtac INT_D 1
      ORELSE ares_tac (prems RL [equalityD1,equalityD2] RL [subsetD]) 1));
 qed "INT_cong";
-
-
-section "Unions over a type; UNION1(B) = Union(range(B))";
-
-goalw Set.thy [UNION1_def] "(b: (UN x. B(x))) = (EX x. b: B(x))";
-by (Simp_tac 1);
-by (Blast_tac 1);
-qed "UN1_iff";
-
-Addsimps [UN1_iff];
-
-(*The order of the premises presupposes that A is rigid; b may be flexible*)
-goal Set.thy "!!b. b: B(x) ==> b: (UN x. B(x))";
-by (Auto_tac());
-qed "UN1_I";
-
-val major::prems = goalw Set.thy [UNION1_def]
-    "[| b : (UN x. B(x));  !!x. b: B(x) ==> R |] ==> R";
-by (rtac (major RS UN_E) 1);
-by (REPEAT (ares_tac prems 1));
-qed "UN1_E";
-
-AddIs  [UN1_I];
-AddSEs [UN1_E];
-
-
-section "Intersections over a type; INTER1(B) = Inter(range(B))";
-
-goalw Set.thy [INTER1_def] "(b: (INT x. B(x))) = (ALL x. b: B(x))";
-by (Simp_tac 1);
-by (Blast_tac 1);
-qed "INT1_iff";
-
-Addsimps [INT1_iff];
-
-val prems = goalw Set.thy [INTER1_def]
-    "(!!x. b: B(x)) ==> b : (INT x. B(x))";
-by (REPEAT (ares_tac (INT_I::prems) 1));
-qed "INT1_I";
-
-goal Set.thy "!!b. b : (INT x. B(x)) ==> b: B(a)";
-by (Asm_full_simp_tac 1);
-qed "INT1_D";
-
-AddSIs [INT1_I]; 
-AddDs  [INT1_D];
 
 
 section "Union";
@@ -662,9 +646,7 @@ val expand_ifs = [if_bool_eq, expand_if_eq1, expand_if_eq2,
 
 (*Each of these has ALREADY been added to simpset() above.*)
 val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
-                 mem_Collect_eq, 
-		 UN_iff, UN1_iff, Union_iff, 
-		 INT_iff, INT1_iff, Inter_iff];
+                 mem_Collect_eq, UN_iff, Union_iff, INT_iff, Inter_iff];
 
 (*Not for Addsimps -- it can cause goals to blow up!*)
 goal Set.thy "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
