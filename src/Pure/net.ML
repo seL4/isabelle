@@ -9,6 +9,9 @@ From the book
     E. Charniak, C. K. Riesbeck, D. V. McDermott. 
     Artificial Intelligence Programming.
     (Lawrence Erlbaum Associates, 1980).  [Chapter 14]
+
+match_term no longer treats abstractions as wildcards but as the constant
+*Abs*.  Requires operands to be beta-eta-normal.
 *)
 
 signature NET = 
@@ -33,25 +36,26 @@ struct
 
 datatype key = CombK | VarK | AtomK of string;
 
-(*Only 'loose' bound variables could arise, since Abs nodes are skipped*)
+(*Bound variables*)
 fun string_of_bound i = "*B*" ^ chr i;
 
 (*Keys are preorder lists of symbols -- constants, Vars, bound vars, ...
-  Any term whose head is a Var is regarded entirely as a Var;
-  abstractions are also regarded as Vars (to cover eta-conversion)
+  Any term whose head is a Var is regarded entirely as a Var.
+  Abstractions are also regarded as Vars.  This covers eta-conversion
+    and "near" eta-conversions such as %x.P(?f(x)).
 *)
 fun add_key_of_terms (t, cs) = 
   let fun rands (f$t, cs) = CombK :: rands (f, add_key_of_terms(t, cs))
 	| rands (Const(c,_), cs) = AtomK c :: cs
 	| rands (Free(c,_),  cs) = AtomK c :: cs
-	| rands (Bound i,  cs) = AtomK (string_of_bound i) :: cs
+	| rands (Bound i,  cs)   = AtomK (string_of_bound i) :: cs
   in case (head_of t) of
-      Var _       => VarK :: cs
+      Var _ => VarK :: cs
     | Abs (_,_,t) => VarK :: cs
-    | _ => rands(t,cs)
+    | _     => rands(t,cs)
   end;
 
-(*convert a term to a key -- a list of keys*)
+(*convert a term to a list of keys*)
 fun key_of_term t = add_key_of_terms (t, []);
 
 
@@ -173,16 +177,18 @@ fun look1 (alist, a) nets =
 (*Return the nodes accessible from the term (cons them before nets) 
   "unif" signifies retrieval for unification rather than matching.
   Var in net matches any term.
-  Abs in object (and Var if "unif") regarded as wildcard.
-  If not "unif", Var in object only matches a variable in net.*)
+  Abs or Var in object: if "unif", regarded as wildcard, 
+                                   else matches only a variable in net.
+*)
 fun matching unif t (net,nets) =
   let fun rands _ (Leaf _, nets) = nets
 	| rands t (Net{comb,alist,...}, nets) =
 	    case t of 
-		(f$t) => foldr (matching unif t) (rands f (comb,[]), nets)
-	      | (Const(c,_)) => look1 (alist, c) nets
-	      | (Free(c,_))  => look1 (alist, c) nets
-	      | (Bound i)    => look1 (alist, string_of_bound i) nets
+		f$t => foldr (matching unif t) (rands f (comb,[]), nets)
+	      | Const(c,_) => look1 (alist, c) nets
+	      | Free(c,_)  => look1 (alist, c) nets
+	      | Bound i    => look1 (alist, string_of_bound i) nets
+	      | Abs _      => look1 (alist, "*Abs*") nets
   in 
      case net of
 	 Leaf _ => nets
@@ -190,13 +196,16 @@ fun matching unif t (net,nets) =
 	   case (head_of t) of
 	       Var _      => if unif then net_skip (net,nets)
 			     else var::nets	   (*only matches Var in net*)
-	     | Abs(_,_,u) => net_skip (net,nets)   (*could match anything*)
+(*If "unif" then a var instantiation in the abstraction could allow
+  an eta-reduction, so regard the abstraction as a wildcard.*)
+	     | Abs(_,_,u) => if unif then net_skip (net,nets)
+                             else rands t (net, var::nets)
 	     | _ => rands t (net, var::nets)	   (*var could match also*)
   end;
 
 val extract_leaves = flat o map (fn Leaf(xs) => xs);
 
-(*return items whose key could match t*)
+(*return items whose key could match t, WHICH MUST BE BETA-ETA NORMAL*)
 fun match_term net t = 
     extract_leaves (matching false t (net,[]));
 
