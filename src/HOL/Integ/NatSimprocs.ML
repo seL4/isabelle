@@ -450,7 +450,10 @@ Goal "m - Suc n = (m - #1) - n";
 by (simp_tac (numeral_ss addsplits [nat_diff_split]) 1);
 qed "diff_Suc_eq_diff_pred";
 
-Addsimps [inst "m" "number_of ?v" diff_Suc_eq_diff_pred];
+(*Obsolete because of natdiff_cancel_numerals
+    Addsimps [inst "m" "number_of ?v" diff_Suc_eq_diff_pred];
+  It LOOPS if #1 is being replaced by 1.
+*)
 
 
 (** Evens and Odds, for Mutilated Chess Board **)
@@ -475,3 +478,19 @@ by (auto_tac (claset(), simpset() delsimps [mod_less_divisor]));
 qed "mod2_gr_0";
 Addsimps [mod2_gr_0, rename_numerals thy mod2_gr_0];
 
+(** Removal of small numerals: #0, #1 and (in additive positions) #2 **)
+
+Goal "#2 + n = Suc (Suc n)";
+by (Simp_tac 1);
+qed "add_2_eq_Suc";
+
+Goal "n + #2 = Suc (Suc n)";
+by (Simp_tac 1);
+qed "add_2_eq_Suc'";
+
+Addsimps [numeral_0_eq_0, numeral_1_eq_1, add_2_eq_Suc, add_2_eq_Suc'];
+
+(*Can be used to eliminate long strings of Sucs, but not by default*)
+Goal "Suc (Suc (Suc n)) = #3 + n";
+by (Simp_tac 1);
+qed "Suc3_eq_add_3";
