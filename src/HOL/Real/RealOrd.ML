@@ -407,7 +407,7 @@ by (dtac (real_not_refl2 RS not_sym RS rinv_not_zero) 1);
 by (EVERY1[dtac real_le_imp_less_or_eq, Step_tac]); 
 by (dtac real_mult_less_zero1 1 THEN assume_tac 1);
 by (auto_tac (claset() addIs [real_zero_less_one RS real_less_asym],
-	      simpset() addsimps [real_minus_mult_eq1 RS sym]));
+	      simpset()));
 qed "real_rinv_gt_zero";
 
 Goal "x < 0 ==> rinv x < 0";
@@ -459,7 +459,7 @@ by (dtac real_less_sum_gt_zero 1);
 by (rtac real_sum_gt_zero_less 1);
 by (dtac real_mult_order 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_add_mult_distrib2,
-    real_minus_mult_eq2 RS sym, real_mult_commute ]) 1);
+					   real_mult_commute ]) 1);
 qed "real_mult_less_mono1";
 
 Goal "[| (0::real) < z; x < y |] ==> z*x < z*y";       
@@ -738,7 +738,6 @@ by (simp_tac (simpset() addsimps [real_add_mult_distrib2]) 1);
 by (res_inst_tac [("C","-r")] real_less_add_left_cancel 1);
 by (auto_tac (claset() addIs [real_mult_order],
 	      simpset() addsimps [real_add_assoc RS sym,
-				  real_minus_mult_eq2 RS sym,
 				  real_minus_zero_less_iff2]));
 qed "real_mult_less_self";
 
@@ -806,10 +805,7 @@ by (auto_tac (claset(),simpset() addsimps
     [real_minus_zero_less_iff2,real_le_less]));
 qed "real_minus_zero_le_iff2";
 
-Goal "-(x*x) <= (0::real)";
-by (simp_tac (simpset() addsimps [real_minus_zero_le_iff2]) 1);
-qed "real_minus_squre_le_zero";
-Addsimps [real_minus_squre_le_zero];
+Addsimps [real_minus_zero_le_iff, real_minus_zero_le_iff2];
 
 Goal "x * x + y * y = 0 ==> x = (0::real)";
 by (dtac real_add_minus_eq_minus 1);
