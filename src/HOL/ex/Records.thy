@@ -64,7 +64,7 @@ subsubsection {* Some lemmas about records *}
 text {* Basic simplifications. *}
 
 lemma "point.make n p = (| x = n, y = p |)"
-  by simp
+  by (simp add: point.make_def)
 
 lemma "x (| x = m, y = n, ... = p |) = m"
   by simp
