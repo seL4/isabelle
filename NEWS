@@ -1,6 +1,10 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
+
+*** Overview of INCOMPATIBILITIES ***
+
+* HOL: induct renamed to lfp_induct;
+
 
 New in Isabelle99-1 (October 2000)
 ----------------------------------
