@@ -27,8 +27,8 @@ sig
     -> tactic option -> thm
   val prove_arity: theory -> string * sort list * class -> thm list
     -> tactic option -> thm
-  val goal_subclass: theory -> class * class -> thm list
-  val goal_arity: theory -> string * sort list * class -> thm list
+  val goal_subclass: theory -> xclass * xclass -> thm list
+  val goal_arity: theory -> xstring * xsort list * xclass -> thm list
 end;
 
 structure AxClass : AX_CLASS =
@@ -284,22 +284,17 @@ val prove_arity =
   prove mk_arity (fn (sg, (t, Ss, c)) => Sign.str_of_arity sg (t, Ss, [c]));
 
 
-(* make goals (for interactive use) *)
-
-fun mk_goal term_of thy sig_prop =
-  goalw_cterm [] (cterm_of (sign_of thy) (term_of sig_prop));
-
-val goal_subclass = mk_goal mk_classrel;
-val goal_arity = mk_goal mk_arity;
-
-
 
 (** add proved subclass relations and arities **)
 
+fun intrn_classrel sg c1_c2 =
+  pairself (Sign.intern_class sg) c1_c2;
+
 fun ext_inst_subclass int raw_c1_c2 axms thms usr_tac thy =
   let
-    val intrn = if int then pairself (Sign.intern_class (sign_of thy)) else I;
-    val c1_c2 = intrn raw_c1_c2;
+    val c1_c2 =
+      if int then intrn_classrel (sign_of thy) raw_c1_c2
+      else raw_c1_c2;
   in
     writeln ("Proving class inclusion " ^
       quote (Sign.str_of_classrel (sign_of thy) c1_c2) ^ " ...");
@@ -308,14 +303,14 @@ fun ext_inst_subclass int raw_c1_c2 axms thms usr_tac thy =
   end;
 
 
+fun intrn_arity sg intrn (t, Ss, x) =
+  (Sign.intern_tycon sg t, map (Sign.intern_sort sg) Ss, intrn sg x);
+
 fun ext_inst_arity int (raw_t, raw_Ss, raw_cs) axms thms usr_tac thy =
   let
     val sign = sign_of thy;
     val (t, Ss, cs) =
-      if int then
-        (Sign.intern_tycon sign raw_t,
-          map (Sign.intern_sort sign) raw_Ss,
-          map (Sign.intern_class sign) raw_cs)
+      if int then intrn_arity sign Sign.intern_sort (raw_t, raw_Ss, raw_cs)
       else (raw_t, raw_Ss, raw_cs);
     val wthms = witnesses thy axms thms;
     fun prove c =
@@ -330,6 +325,18 @@ val add_inst_subclass = ext_inst_subclass true;
 val add_inst_subclass_i = ext_inst_subclass false;
 val add_inst_arity = ext_inst_arity true;
 val add_inst_arity_i = ext_inst_arity false;
+
+
+(* make goals (for interactive use) *)
+
+fun mk_goal term_of thy sig_prop =
+  goalw_cterm [] (cterm_of (sign_of thy) (term_of sig_prop));
+
+fun goal_subclass thy =
+  mk_goal (mk_classrel o intrn_classrel (sign_of thy)) thy;
+
+fun goal_arity thy =
+  mk_goal (mk_arity o intrn_arity (sign_of thy) Sign.intern_class) thy;
 
 
 end;
