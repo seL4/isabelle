@@ -265,16 +265,16 @@ sides; attributes are applied to any immediately preceding theorem.
 
 Proof methods are either basic ones, or expressions composed of methods via
 ``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternative choices),
-``\texttt{?}'' (try), ``\texttt{*}'' (repeat ${} \ge 0$ times), ``\texttt{+}''
-(repeat ${} > 0$ times).  In practice, proof methods are usually just a comma
-separated list of \railqtoken{nameref}~\railnonterm{args} specifications.
-Thus the syntax is similar to that of attributes, with plain parentheses
-instead of square brackets.  Note that parentheses may be dropped for single
-method specifications without arguments.
+``\texttt{?}'' (try), ``\texttt{+}'' (at least once).  In practice, proof
+methods are usually just a comma separated list of
+\railqtoken{nameref}~\railnonterm{args} specifications.  Thus the syntax is
+similar to that of attributes, with plain parentheses instead of square
+brackets.  Note that parentheses may be dropped for single method
+specifications without arguments.
 
 \indexouternonterm{method}
 \begin{rail}
-  method: (nameref | '(' methods ')') (() | '?' | '*' | '+')
+  method: (nameref | '(' methods ')') (() | '?' | '+')
   ;
   methods: (nameref args | method) + (',' | '|')
   ;
