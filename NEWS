@@ -135,12 +135,12 @@ arguments;
 * many properties of integer multiplication, division and remainder
 are now available;
 
-* An interface to the Stanford Validity Checker (SVC) is available
-through the tactic svc_tac.  Propositional tautologies and theorems of
-linear arithmetic are proved automatically.  Numeric variables may
-have types nat, int or real.  SVC must be installed separately, and
-its results must be TAKEN ON TRUST (Isabelle does not check the
-proofs, but tags any invocation of the underlying oracle).
+* An interface to the Stanford Validity Checker (SVC) is available through the
+tactic svc_tac.  Propositional tautologies and theorems of linear arithmetic
+are proved automatically.  SVC must be installed separately, and its results
+must be TAKEN ON TRUST (Isabelle does not check the proofs, but tags any
+invocation of the underlying oracle).  For SVC see
+  http://agamemnon.stanford.edu/~levitt/vc/index.html
 
 * IsaMakefile: the HOL-Real target now builds an actual image;
 
@@ -160,8 +160,13 @@ changed syntax and (many) tactics;
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
 
-* HOL/recdef (TFL): requires theory Recdef; 'congs' syntax now expects
-comma separated list of theorem names rather than an ML expression;
+* HOL/recdef (TFL): 'congs' syntax now expects comma separated list of theorem
+names rather than an ML expression;
+
+* HOL/defer_recdef (TFL): like recdef but the well-founded relation can be
+supplied later.  Program schemes can be defined, such as
+    "While B C s = (if B s then While B C (C s) else s)"
+where the well-founded relation can be chosen after B and C have been given.
 
 * HOL/List: the constructors of type list are now Nil and Cons;
 INCOMPATIBILITY: while [] and infix # syntax is still there, of
