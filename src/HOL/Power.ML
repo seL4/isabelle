@@ -114,7 +114,7 @@ qed_spec_mp "Suc_times_binomial_eq";
 
 Goal "k <= n ==> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k";
 by (asm_simp_tac
-    (simpset_of Nat.thy addsimps [Suc_times_binomial_eq, 
+    (simpset_of NatDef.thy addsimps [Suc_times_binomial_eq, 
 				  div_mult_self_is_m]) 1);
 qed "binomial_Suc_Suc_eq_times";
 
