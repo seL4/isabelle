@@ -605,6 +605,18 @@ goalw thy [psubset_def] "((A::'a set) <= B) = ((A < B) | (A=B))";
 by (Blast_tac 1);
 qed "subset_iff_psubset_eq";
 
+goalw Set.thy [Pow_def] "Pow {} = {{}}";
+by (Auto_tac());
+qed "Pow_empty";
+Addsimps [Pow_empty];
+
+goal Set.thy "Pow (insert a A) = Pow A Un (insert a `` Pow A)";
+by (Step_tac 1);
+be swap 1;
+by (res_inst_tac [("x", "x-{a}")] image_eqI 1);
+by (ALLGOALS Blast_tac);
+qed "Pow_insert";
+
 
 (** Miniscoping: pushing in big Unions and Intersections **)
 local
