@@ -124,7 +124,11 @@ fun any1 pred = one pred -- any pred >> op ::;
 fun optional scan def = scan || succeed def;
 fun option scan = optional (scan >> Some) None;
 
-fun repeat scan xs = (scan -- repeat scan >> op :: || succeed []) xs;
+fun repeat scan =
+  let fun rep ys xs = (case (Some (scan xs) handle FAIL _ => None) of
+    None => (rev ys, xs) | Some (y, xs') => rep (y :: ys) xs')
+  in rep [] end;
+
 fun repeat1 scan = scan -- repeat scan >> op ::;
 
 fun max leq scan1 scan2 xs =
@@ -184,7 +188,7 @@ fun finite' (stopper, is_stopper) scan (state, input) =
   in
     if exists is_stopper input then
       raise ABORT "Stopper may not occur in input of finite scan!"
-    else (force scan --| lift stop) (state, input @ [stopper])
+    else (force scan --| lift stop) (state, rev_append (rev input) [stopper])
   end;
 
 fun finite stopper scan xs =
