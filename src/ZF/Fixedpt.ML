@@ -98,14 +98,14 @@ qed "lfp_lemma3";
 
 Goal "bnd_mono(D,h) ==> lfp(D,h) = h(lfp(D,h))";
 by (REPEAT (ares_tac [equalityI,lfp_lemma2,lfp_lemma3] 1));
-qed "lfp_Tarski";
+qed "lfp_unfold";
 
 (*Definition form, to control unfolding*)
 val [rew,mono] = goal (the_context ())
     "[| A==lfp(D,h);  bnd_mono(D,h) |] ==> A = h(A)";
 by (rewtac rew);
-by (rtac (mono RS lfp_Tarski) 1);
-qed "def_lfp_Tarski";
+by (rtac (mono RS lfp_unfold) 1);
+qed "def_lfp_unfold";
 
 (*** General induction rule for least fixedpoints ***)
 
@@ -222,14 +222,14 @@ qed "gfp_lemma3";
 
 Goal "bnd_mono(D,h) ==> gfp(D,h) = h(gfp(D,h))";
 by (REPEAT (ares_tac [equalityI,gfp_lemma2,gfp_lemma3] 1));
-qed "gfp_Tarski";
+qed "gfp_unfold";
 
 (*Definition form, to control unfolding*)
 val [rew,mono] = goal (the_context ())
     "[| A==gfp(D,h);  bnd_mono(D,h) |] ==> A = h(A)";
 by (rewtac rew);
-by (rtac (mono RS gfp_Tarski) 1);
-qed "def_gfp_Tarski";
+by (rtac (mono RS gfp_unfold) 1);
+qed "def_gfp_unfold";
 
 
 (*** Coinduction rules for greatest fixed points ***)

@@ -53,11 +53,11 @@ by (asm_full_simp_tac (simpset() addsimps
 (* comp *)
 by (Fast_tac 1);
 (* while *)
-by (etac (Gamma_bnd_mono RS lfp_Tarski RS ssubst) 1);
+by (etac (Gamma_bnd_mono RS lfp_unfold RS ssubst) 1);
 by (asm_simp_tac (simpset() addsimps [Gamma_def, bexp1]) 1);
 by (blast_tac (claset() addSIs [bexp1]@evalb_type_intrs) 1);
 (* recursive case of while *)
-by (etac (Gamma_bnd_mono RS lfp_Tarski RS ssubst) 1);
+by (etac (Gamma_bnd_mono RS lfp_unfold RS ssubst) 1);
 by (asm_full_simp_tac (simpset() addsimps [Gamma_def, bexp1]) 1);
 by (blast_tac (claset() addSIs [bexp1]@evalb_type_intrs) 1);
 val com1 = result();

@@ -124,7 +124,7 @@ qed "lconst_fun_bnd_mono";
 
 (* lconst(a) = LCons(a,lconst(a)) *)
 bind_thm ("lconst",
-    ([lconst_def, lconst_fun_bnd_mono] MRS def_lfp_Tarski));
+    ([lconst_def, lconst_fun_bnd_mono] MRS def_lfp_unfold));
 
 val lconst_subset = lconst_def RS def_lfp_subset;
 

@@ -19,7 +19,7 @@ by (REPEAT (ares_tac [rtrancl_bnd_mono, subset_refl, id_mono,
 qed "rtrancl_mono";
 
 (* r^* = id(field(r)) Un ( r O r^* )    *)
-bind_thm ("rtrancl_unfold", rtrancl_bnd_mono RS (rtrancl_def RS def_lfp_Tarski));
+bind_thm ("rtrancl_unfold", rtrancl_bnd_mono RS (rtrancl_def RS def_lfp_unfold));
 
 (** The relation rtrancl **)
 

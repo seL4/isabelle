@@ -14,7 +14,7 @@ by (Blast_tac 1);
 qed "nat_bnd_mono";
 
 (* nat = {0} Un {succ(x). x:nat} *)
-bind_thm ("nat_unfold", nat_bnd_mono RS (nat_def RS def_lfp_Tarski));
+bind_thm ("nat_unfold", nat_bnd_mono RS (nat_def RS def_lfp_unfold));
 
 (** Type checking of 0 and successor **)
 

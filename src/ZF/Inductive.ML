@@ -21,7 +21,7 @@ structure Lfp =
   val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
   val bnd_monoI = bnd_monoI
   val subs      = def_lfp_subset
-  val Tarski    = def_lfp_Tarski
+  val Tarski    = def_lfp_unfold
   val induct    = def_induct
   end;
 
@@ -68,7 +68,7 @@ structure Gfp =
   val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
   val bnd_monoI = bnd_monoI
   val subs      = def_gfp_subset
-  val Tarski    = def_gfp_Tarski
+  val Tarski    = def_gfp_unfold
   val induct    = def_Collect_coinduct
   end;
 

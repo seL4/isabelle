@@ -22,7 +22,7 @@ val [gfun] = goal (the_context ())
 \    g``(Y - f`` lfp(X, %W. X - g``(Y - f``W))) =       \
 \    X - lfp(X, %W. X - g``(Y - f``W)) ";
 by (res_inst_tac [("P", "%u. ?v = X-u")] 
-     (decomp_bnd_mono RS lfp_Tarski RS ssubst) 1);
+     (decomp_bnd_mono RS lfp_unfold RS ssubst) 1);
 by (simp_tac (simpset() addsimps [subset_refl, double_complement,
                              gfun RS fun_is_rel RS image_subset]) 1);
 qed "Banach_last_equation";
