@@ -22,6 +22,7 @@ test: \
       HOL-Real-ex \
   HOL-Hoare \
   HOL-HoareParallel \
+  HOL-Hyperreal-ex \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
@@ -123,7 +124,33 @@ $(OUT)/HOL-Real: $(OUT)/HOL Real/Complex_Numbers.thy \
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
 
 
-## HOL-Real-Hyperreal
+## HOL-Real-ex
+
+HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
+
+$(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML \
+  Real/ex/BinEx.thy Real/ex/document/root.tex
+	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
+
+
+## HOL-Real-HahnBanach
+
+HOL-Real-HahnBanach: HOL-Real $(LOG)/HOL-Real-HahnBanach.gz
+
+$(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
+  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
+  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy \
+  Real/HahnBanach/HahnBanachExtLemmas.thy	\
+  Real/HahnBanach/HahnBanachSupLemmas.thy	\
+  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy \
+  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML \
+  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy \
+  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib \
+  Real/HahnBanach/document/root.tex
+	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Real HahnBanach
+
+
+## HOL-Hyperreal
 
 HOL-Hyperreal: HOL-Real $(OUT)/HOL-Hyperreal
 
@@ -151,31 +178,14 @@ $(OUT)/HOL-Hyperreal: $(OUT)/HOL-Real Hyperreal/ROOT.ML\
 	@cd Hyperreal; $(ISATOOL) usedir -b $(OUT)/HOL-Real HOL-Hyperreal
 
 
-## HOL-Real-ex
+## HOL-Hyperreal-ex
 
-HOL-Real-ex: HOL-Real $(LOG)/HOL-Real-ex.gz
+HOL-Hyperreal-ex: HOL-Hyperreal $(LOG)/HOL-Hyperreal-ex.gz
 
-$(LOG)/HOL-Real-ex.gz: $(OUT)/HOL-Real Real/ex/ROOT.ML \
-  Real/ex/BinEx.thy Real/ex/document/root.tex Real/ex/Sqrt.thy \
-  Real/ex/Sqrt_Script.thy
-	@cd Real; $(ISATOOL) usedir $(OUT)/HOL-Real ex
-
-
-## HOL-Real-HahnBanach
-
-HOL-Real-HahnBanach: HOL-Real $(LOG)/HOL-Real-HahnBanach.gz
-
-$(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
-  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy \
-  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy \
-  Real/HahnBanach/HahnBanachExtLemmas.thy	\
-  Real/HahnBanach/HahnBanachSupLemmas.thy	\
-  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy \
-  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML \
-  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy \
-  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib \
-  Real/HahnBanach/document/root.tex
-	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Real HahnBanach
+$(LOG)/HOL-Hyperreal-ex.gz: $(OUT)/HOL-Hyperreal Hyperreal/ex/ROOT.ML \
+  Hyperreal/ex/document/root.tex Hyperreal/ex/Sqrt.thy \
+  Hyperreal/ex/Sqrt_Script.thy
+	@cd Hyperreal; $(ISATOOL) usedir $(OUT)/HOL-Hyperreal ex
 
 
 ## HOL-Library
@@ -301,7 +311,7 @@ $(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy \
   HoareParallel/RG_Hoare.thy HoareParallel/RG_Syntax.thy	   \
   HoareParallel/RG_Tran.thy HoareParallel/ROOT.ML		   \
   HoareParallel/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL HoareParallel
+	@$(ISATOOL) usedir -g true $(OUT)/HOL HoareParallel
 
 
 ## HOL-Lex
@@ -652,6 +662,7 @@ clean:
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
+		$(LOG)/HOL-Hyperreal-ex.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
 		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 
