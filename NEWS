@@ -46,6 +46,20 @@ the current theory context;
 
 *** HOL ***
 
+* Inductive definition package: Mutually recursive definitions such as
+
+  inductive EVEN ODD
+    intrs
+      null " 0 : EVEN"
+      oddI "n : EVEN ==> Suc n : ODD"
+      evenI "n : ODD ==> Suc n : EVEN"
+
+  are now possible. Theories containing (co)inductive definitions must now
+  have theory "Inductive" as an ancestor. The new component "elims" of the
+  structure created by the package contains an elimination rule for each of
+  the recursive sets. Note that the component "mutual_induct" no longer
+  exists - the induction rule is always contained in "induct".
+
 * HOL/Real: a construction of the reals using Dedekind cuts
 
 * HOL/record: now includes concrete syntax for record terms (still
