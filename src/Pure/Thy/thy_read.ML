@@ -258,6 +258,8 @@ fun use_thy name =
                read_thy tname thy_file;
                use (out_name tname)
               );
+         set_info (file_info thy_file) "" tname;
+                                       (*mark thy_file as successfully loaded*)
 
          if ml_file = "" then ()
          else (writeln ("Reading \"" ^ name ^ ".ML\"");
@@ -455,7 +457,7 @@ fun thyinfo_of_sign sg =
     if is_some opt_info andalso eq_sg (the opt_info) then
       (xname, the opt_info)
     else
-      (case Symtab.find_first (eq_sg o snd) (! loaded_thys) of
+      (case Symtab.find_first (eq_sg o snd) (!loaded_thys) of
         Some name_info => name_info
       | None => error ("Theory " ^ show_sg sg ^ " not stored by loader"))
   end;
@@ -513,21 +515,40 @@ fun qed_goalw name thy rths agoal tacsf =
   (qed_thm := prove_goalw thy rths agoal tacsf;
    use_string ["val " ^ name ^ " = store_thm (" ^ quote name ^", !qed_thm);"]);
 
+
 (* Retrieve theorems *)
 
-(*Get all theorems belonging to a given theory object*)
-fun thmtab thy =
-  let val (_, ThyInfo {thms, ...}) = thyinfo_of_sign (sign_of thy)
+(*Get all direct ancestors of a theory*)
+fun get_parents child =
+  let fun has_child (tname, ThyInfo {children, theory, ...}) = 
+        if child mem children then Some tname else None;
+  in mapfilter has_child (Symtab.dest (!loaded_thys)) end;
+
+(*Get all theorems belonging to a given theory*)
+fun thmtab_ofthy thy =
+  let val (_, ThyInfo {thms, ...}) = thyinfo_of_sign (sign_of thy);
+  in thms end;
+
+fun thmtab_ofname name =
+  let val ThyInfo {thms, ...} = the (get_thyinfo name);
   in thms end;
 
 (*Get a stored theorem specified by theory and name*)
 fun get_thm thy name =
-  (case Symtab.lookup (thmtab thy, name) of
-    Some thm => thm
-  | None => raise THEORY ("get_thm: no theorem " ^ quote name, [thy]));
+  let fun get [] [] searched =
+           raise THEORY ("get_thm: no theorem " ^ quote name, [thy])
+        | get [] ng searched =
+            get (distinct (gen_rems (op =) (ng, searched))) [] searched
+        | get (t::ts) ng searched =
+            (case Symtab.lookup (thmtab_ofname t, name) of
+                 Some thm => thm
+               | None => get ts (ng @ get_parents t) (t::searched));
+
+      val (tname, _) = thyinfo_of_sign (sign_of thy);
+  in get [tname] [] [] end;
 
 (*Get stored theorems of a theory*)
-val thms_of = Symtab.dest o thmtab;
+val thms_of = Symtab.dest o thmtab_ofthy;
 
 
 (* print theory *)
