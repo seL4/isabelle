@@ -117,14 +117,14 @@ qed_spec_mp "widen_trans";
 
 val prove_cast_lemma = prove_typerel_lemma [] cast.elim;
 
-val cast_RefT = prove_typerel "G\\<turnstile>RefT R\\<Rightarrow>? T \\<Longrightarrow> \\<exists>t. T=RefT t" 
+val cast_RefT = prove_typerel "G\\<turnstile>RefT R\\<preceq>? T \\<Longrightarrow> \\<exists>t. T=RefT t" 
 	[prove_typerel_lemma [widen_RefT] cast.elim 
-	"G\\<turnstile>S\\<Rightarrow>? T \\<Longrightarrow> S=RefT R \\<longrightarrow> (\\<exists>t. T=RefT t)"];
+	"G\\<turnstile>S\\<preceq>? T \\<Longrightarrow> S=RefT R \\<longrightarrow> (\\<exists>t. T=RefT t)"];
 
-val cast_RefT2 = prove_typerel "G\\<turnstile>S\\<Rightarrow>? RefT R \\<Longrightarrow> \\<exists>t. S=RefT t" 
+val cast_RefT2 = prove_typerel "G\\<turnstile>S\\<preceq>? RefT R \\<Longrightarrow> \\<exists>t. S=RefT t" 
 	[prove_typerel_lemma [widen_RefT2] cast.elim 
-	"G\\<turnstile>S\\<Rightarrow>? T \\<Longrightarrow> T=RefT R \\<longrightarrow> (\\<exists>t. S=RefT t)"];
+	"G\\<turnstile>S\\<preceq>? T \\<Longrightarrow> T=RefT R \\<longrightarrow> (\\<exists>t. S=RefT t)"];
 
-val cast_PrimT2 = prove_typerel "G\\<turnstile>S\\<Rightarrow>? PrimT pt \\<Longrightarrow> G\\<turnstile>S\\<preceq>PrimT pt" 
- [prove_cast_lemma "G\\<turnstile>S\\<Rightarrow>? T \\<Longrightarrow> T=PrimT pt \\<longrightarrow> G\\<turnstile>S\\<preceq>PrimT pt"];
+val cast_PrimT2 = prove_typerel "G\\<turnstile>S\\<preceq>? PrimT pt \\<Longrightarrow> G\\<turnstile>S\\<preceq>PrimT pt" 
+ [prove_cast_lemma "G\\<turnstile>S\\<preceq>? T \\<Longrightarrow> T=PrimT pt \\<longrightarrow> G\\<turnstile>S\\<preceq>PrimT pt"];
 

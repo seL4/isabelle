@@ -17,13 +17,13 @@ syntax
   subcls1	:: "'c prog \\<Rightarrow> [cname, cname] \\<Rightarrow> bool" ("_\\<turnstile>_\\<prec>C1_"	 [71,71,71] 70)
   subcls	:: "'c prog \\<Rightarrow> [cname, cname] \\<Rightarrow> bool" ("_\\<turnstile>_\\<preceq>C _"	 [71,71,71] 70)
   widen		:: "'c prog \\<Rightarrow> [ty, ty] \\<Rightarrow> bool"       ("_\\<turnstile>_\\<preceq>_"  [71,71,71] 70)
-  cast		:: "'c prog \\<Rightarrow> [ty, ty] \\<Rightarrow> bool"       ("_\\<turnstile>_\\<Rightarrow>? _"[71,71,71] 70)
+  cast		:: "'c prog \\<Rightarrow> [ty, ty] \\<Rightarrow> bool"       ("_\\<turnstile>_\\<preceq>? _"[71,71,71] 70)
 
 translations
   	"G\\<turnstile>C \\<prec>C1 D" == "(C,D) \\<in> subcls1 G"
 	"G\\<turnstile>C \\<preceq>C  D" == "(C,D) \\<in> (subcls1 G)^*"
 	"G\\<turnstile>S \\<preceq>   T" == "(S,T) \\<in> widen   G"
-	"G\\<turnstile>S \\<Rightarrow>?  T" == "(S,T) \\<in> cast    G"
+	"G\\<turnstile>S \\<preceq>?  T" == "(S,T) \\<in> cast    G"
 
 defs
 
@@ -69,8 +69,8 @@ inductive "widen G" intrs (*widening, viz. method invocation conversion, cf. 5.3
   subcls "G\\<turnstile>C\\<preceq>C D \\<Longrightarrow> G\\<turnstile>Class C \\<preceq> Class D"
   null	              "G\\<turnstile>     NT \\<preceq> RefT R"
 
-inductive "cast G" intrs (* casting / narr.ref. conversion, cf. 5.5 / 5.1.5 *)
-  widen	 "G\\<turnstile>S\\<preceq>T  \\<Longrightarrow> G\\<turnstile>      S \\<Rightarrow>? T"
-  subcls "G\\<turnstile>C\\<preceq>C D \\<Longrightarrow> G\\<turnstile>Class D \\<Rightarrow>? Class C"
+inductive "cast G" intrs (* casting conversion, cf. 5.5 / 5.1.5 *)
+  widen	 "G\\<turnstile>S\\<preceq>T   \\<Longrightarrow> G\\<turnstile>      S \\<preceq>? T"
+  subcls "G\\<turnstile>C\\<preceq>C D \\<Longrightarrow> G\\<turnstile>Class D \\<preceq>? Class C"
 
 end

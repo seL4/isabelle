@@ -96,7 +96,7 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
 
   (* cf. 15.15 *)
   Cast	"\\<lbrakk>E\\<turnstile>e\\<Colon>T;
-	  prg E\\<turnstile>T\\<Rightarrow>? T'\\<rbrakk> \\<Longrightarrow>
+	  prg E\\<turnstile>T\\<preceq>? T'\\<rbrakk> \\<Longrightarrow>
 						 E\\<turnstile>Cast T' e\\<Colon>T'"
 
   (* cf. 15.7.1 *)

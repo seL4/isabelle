@@ -30,7 +30,7 @@ by(  auto_tac (claset() addSDs [is_type_fields, map_of_SomeD], simpset()));
 qed "NewC_conforms";
 
 Goalw [cast_ok_def]
- "\\<lbrakk> wf_prog wf_mb G; G,h\\<turnstile>v\\<Colon>\\<preceq>Tb; G\\<turnstile>Tb\\<Rightarrow>? T'; cast_ok G T' h v\\<rbrakk> \
+ "\\<lbrakk> wf_prog wf_mb G; G,h\\<turnstile>v\\<Colon>\\<preceq>Tb; G\\<turnstile>Tb\\<preceq>? T'; cast_ok G T' h v\\<rbrakk> \
 \ \\<Longrightarrow> G,h\\<turnstile>v\\<Colon>\\<preceq>T'";
 by( case_tac1 "v = Null" 1);
 by(  Asm_full_simp_tac 1);
