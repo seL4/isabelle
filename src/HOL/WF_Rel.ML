@@ -26,7 +26,7 @@ by (Simp_tac 1);
 qed "less_than_iff";
 AddIffs [less_than_iff];
 
-Goal "(!!n. (!m. Suc m <= n --> P m) ==> P n) ==> P n";
+Goal "(!!n. (ALL m. Suc m <= n --> P m) ==> P n) ==> P n";
 by (rtac (wf_less_than RS wf_induct) 1);
 by (resolve_tac (premises()) 1);
 by Auto_tac;
@@ -39,7 +39,7 @@ qed_spec_mp "full_nat_induct";
 Goal "wf(r) ==> wf(inv_image r (f::'a=>'b))"; 
 by (full_simp_tac (simpset() addsimps [inv_image_def, wf_eq_minimal]) 1);
 by (Clarify_tac 1);
-by (subgoal_tac "? (w::'b). w : {w. ? (x::'a). x: Q & (f x = w)}" 1);
+by (subgoal_tac "EX (w::'b). w : {w. EX (x::'a). x: Q & (f x = w)}" 1);
 by (blast_tac (claset() delrules [allE]) 2);
 by (etac allE 1);
 by (mp_tac 1);
@@ -137,16 +137,16 @@ qed "wf_iff_acyclic_if_finite";
  *---------------------------------------------------------------------------*)
 
 Goalw [wf_eq_minimal RS eq_reflection]
-  "wf r = (~(? f. !i. (f(Suc i),f i) : r))";
+  "wf r = (~(EX f. ALL i. (f(Suc i),f i) : r))";
 by (rtac iffI 1);
  by (rtac notI 1);
  by (etac exE 1);
- by (eres_inst_tac [("x","{w. ? i. w=f i}")] allE 1);
+ by (eres_inst_tac [("x","{w. EX i. w=f i}")] allE 1);
  by (Blast_tac 1);
 by (etac swap 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
-by (subgoal_tac "!n. nat_rec x (%i y. @z. z:Q & (z,y):r) n : Q" 1);
+by (subgoal_tac "ALL n. nat_rec x (%i y. @z. z:Q & (z,y):r) n : Q" 1);
  by (res_inst_tac[("x","nat_rec x (%i y. @z. z:Q & (z,y):r)")]exI 1);
  by (rtac allI 1);
  by (Simp_tac 1);
@@ -166,19 +166,19 @@ qed "wf_iff_no_infinite_down_chain";
  * Weakly decreasing sequences (w.r.t. some well-founded order) stabilize.
  *---------------------------------------------------------------------------*)
 
-Goal "[| ! i. (f (Suc i), f i) : r^* |] ==> (f (i+k), f i) : r^*";
+Goal "[| ALL i. (f (Suc i), f i) : r^* |] ==> (f (i+k), f i) : r^*";
 by (induct_tac "k" 1);
  by (ALLGOALS Simp_tac);
 by (blast_tac (claset() addIs [rtrancl_trans]) 1);
 val lemma = result();
 
-Goal "[| ! i. (f (Suc i), f i) : r^*; wf (r^+) |] \
-\     ==> ! m. f m = x --> (? i. ! k. f (m+i+k) = f (m+i))";
+Goal "[| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |] \
+\     ==> ALL m. f m = x --> (EX i. ALL k. f (m+i+k) = f (m+i))";
 by (etac wf_induct 1);
 by (Clarify_tac 1);
-by (case_tac "? j. (f (m+j), f m) : r^+" 1);
+by (case_tac "EX j. (f (m+j), f m) : r^+" 1);
  by (Clarify_tac 1);
- by (subgoal_tac "? i. ! k. f ((m+j)+i+k) = f ((m+j)+i)" 1);
+ by (subgoal_tac "EX i. ALL k. f ((m+j)+i+k) = f ((m+j)+i)" 1);
   by (Clarify_tac 1);
   by (res_inst_tac [("x","j+i")] exI 1);
   by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
@@ -186,11 +186,11 @@ by (case_tac "? j. (f (m+j), f m) : r^+" 1);
 by (res_inst_tac [("x","0")] exI 1);
 by (Clarsimp_tac 1);
 by (dres_inst_tac [("i","m"), ("k","k")] lemma 1);
-by (fast_tac (claset() addDs [rtranclE,rtrancl_into_trancl1]) 1);
+by (blast_tac (claset() addEs [rtranclE] addDs [rtrancl_into_trancl1]) 1);
 val lemma = result();
 
-Goal "[| ! i. (f (Suc i), f i) : r^*; wf (r^+) |] \
-\     ==> ? i. ! k. f (i+k) = f i";
+Goal "[| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |] \
+\     ==> EX i. ALL k. f (i+k) = f i";
 by (dres_inst_tac [("x","0")] (lemma RS spec) 1);
 by Auto_tac;
 qed "wf_weak_decr_stable";
@@ -203,7 +203,7 @@ by (simp_tac (simpset() addsimps [less_eq, reflcl_trancl RS sym]
 by (arith_tac 1);
 qed "le_eq";
 
-Goal "[| ! i. f (Suc i) <= ((f i)::nat) |] ==> ? i. ! k. f (i+k) = f i";
+Goal "ALL i. f (Suc i) <= ((f i)::nat) ==> EX i. ALL k. f (i+k) = f i";
 by (res_inst_tac [("r","pred_nat")] wf_weak_decr_stable 1);
 by (asm_simp_tac (simpset() addsimps [le_eq]) 1);
 by (REPEAT (resolve_tac [wf_trancl,wf_pred_nat] 1));
