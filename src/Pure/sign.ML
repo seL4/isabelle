@@ -789,7 +789,7 @@ fun merge_aux (sg1, sg2) =
     (*neither is union already; must form union*)
     let
       val Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1,
-        path, spaces = spaces1, stamps = stamps1} = sg1;
+        path = _, spaces = spaces1, stamps = stamps1} = sg1;
       val Sg {tsig = tsig2, const_tab = const_tab2, syn = syn2,
         path = _, spaces = spaces2, stamps = stamps2} = sg2;
 
@@ -816,7 +816,7 @@ fun merge_aux (sg1, sg2) =
             (map (space_of spaces1) kinds, map (space_of spaces2) kinds);
     in
       Sg {tsig = tsig, const_tab = const_tab, syn = syn,
-        path = path, spaces = spaces, stamps = stamps}
+        path = [], spaces = spaces, stamps = stamps}
     end;
 
 fun merge sgs =
