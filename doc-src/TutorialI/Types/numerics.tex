@@ -19,10 +19,10 @@ used at all numeric types. Table~\ref{tab:overloading} in the appendix
 shows the most important operations, together with the priorities of the
 infix symbols.
 
-
+\index{linear arithmetic}%
 Many theorems involving numeric types can be proved automatically by
 Isabelle's arithmetic decision procedure, the method
-\isa{arith}.  Linear arithmetic comprises addition, subtraction
+\methdx{arith}.  Linear arithmetic comprises addition, subtraction
 and multiplication by constant factors; subterms involving other operators
 are regarded as variables.  The procedure can be slow, especially if the
 subgoal to be proved involves subtraction over type \isa{nat}, which 
@@ -39,6 +39,7 @@ is available.
 \subsection{Numeric Literals}
 \label{sec:numerals}
 
+\index{numeric literals|(}%
 Literals are available for the types of natural numbers, integers 
 and reals and denote integer values of arbitrary size. 
 They begin 
@@ -55,7 +56,7 @@ provided for literals include addition, subtraction, multiplication,
 integer division and remainder.  Fractions of literals (expressed using
 division) are reduced to lowest terms.
 
-\begin{warn}
+\begin{warn}\index{overloading!and arithmetic}
 The arithmetic operators are 
 overloaded, so you must be careful to ensure that each numeric 
 expression refers to a specific type, if necessary by inserting 
@@ -75,8 +76,10 @@ constraint such as \isa{nat}, \isa{int} or \isa{real}, it becomes trivial.
 \end{warn}
 
 \begin{warn}
-Numeric literals are not constructors and therefore must not be used in
-patterns.  For example, this declaration is rejected:
+\index{recdef@\protect\isacommand{recdef} (command)!and numeric literals}  
+Numeric literals are not constructors and therefore
+must not be used in patterns.  For example, this declaration is
+rejected:
 \begin{isabelle}
 \isacommand{recdef}\ h\ "\isacharbraceleft \isacharbraceright "\isanewline
 "h\ \#3\ =\ \#2"\isanewline
@@ -87,21 +90,24 @@ You should use a conditional expression instead:
 \begin{isabelle}
 "h\ i\ =\ (if\ i\ =\ \#3\ then\ \#2\ else\ i)"
 \end{isabelle}
+\index{numeric literals|)}
 \end{warn}
 
 
 
 \subsection{The Type of Natural Numbers, {\tt\slshape nat}}
 
+\index{natural numbers|(}\index{*nat (type)|(}%
 This type requires no introduction: we have been using it from the
 beginning.  Hundreds of theorems about the natural numbers are
 proved in the theories \isa{Nat}, \isa{NatArith} and \isa{Divides}.  Only
 in exceptional circumstances should you resort to induction.
 
 \subsubsection{Literals}
-The notational options for the natural numbers can be confusing. The 
-constant \isa{0} is overloaded to serve as the neutral value 
-in a variety of additive types. The symbols \isa{1} and \isa{2} are 
+\index{numeric literals!for type \protect\isa{nat}}%
+The notational options for the natural numbers are confusing.  The 
+constant \cdx{0} is overloaded to serve as the neutral value 
+in a variety of additive types. The symbols \sdx{1} and \sdx{2} are 
 not constants but abbreviations for \isa{Suc 0} and \isa{Suc(Suc 0)},
 respectively. The literals \isa{\#0}, \isa{\#1} and \isa{\#2}  are
 syntactically different from \isa{0}, \isa{1} and \isa{2}. You  will
@@ -140,14 +146,15 @@ m\ \isasymle \ n\ \isasymLongrightarrow \ m\ div\ k\ \isasymle \ n\ div\ k%
 Various distributive laws concerning multiplication are available:
 \begin{isabelle}
 (m\ +\ n)\ *\ k\ =\ m\ *\ k\ +\ n\ *\ k%
-\rulename{add_mult_distrib}\isanewline
+\rulenamedx{add_mult_distrib}\isanewline
 (m\ -\ n)\ *\ k\ =\ m\ *\ k\ -\ n\ *\ k%
-\rulename{diff_mult_distrib}\isanewline
+\rulenamedx{diff_mult_distrib}\isanewline
 (m\ mod\ n)\ *\ k\ =\ (m\ *\ k)\ mod\ (n\ *\ k)
-\rulename{mod_mult_distrib}
+\rulenamedx{mod_mult_distrib}
 \end{isabelle}
 
 \subsubsection{Division}
+\index{division!for type \protect\isa{nat}}%
 The infix operators \isa{div} and \isa{mod} are overloaded.
 Isabelle/HOL provides the basic facts about quotient and remainder
 on the natural numbers:
@@ -155,7 +162,7 @@ on the natural numbers:
 m\ mod\ n\ =\ (if\ m\ <\ n\ then\ m\ else\ (m\ -\ n)\ mod\ n)
 \rulename{mod_if}\isanewline
 m\ div\ n\ *\ n\ +\ m\ mod\ n\ =\ m%
-\rulename{mod_div_equality}
+\rulenamedx{mod_div_equality}
 \end{isabelle}
 
 Many less obvious facts about quotient and remainder are also provided. 
@@ -174,7 +181,9 @@ a\ mod\ (b*c)\ =\ b * (a\ div\ b\ mod\ c)\ +\ a\ mod\ b%
 \end{isabelle}
 
 Surprisingly few of these results depend upon the
-divisors' being nonzero.  That is because division by
+divisors' being nonzero.
+\index{division!by zero}%
+That is because division by
 zero yields zero:
 \begin{isabelle}
 a\ div\ 0\ =\ 0
@@ -186,20 +195,21 @@ As a concession to convention, these equations are not installed as default
 simplification rules.  In \isa{div_mult_mult1} above, one of
 the two divisors (namely~\isa{c}) must still be nonzero.
 
-The \textbf{divides} relation has the standard definition, which
+The \textbf{divides} relation\index{divides relation}
+has the standard definition, which
 is overloaded over all numeric types: 
 \begin{isabelle}
 m\ dvd\ n\ \isasymequiv\ {\isasymexists}k.\ n\ =\ m\ *\ k
-\rulename{dvd_def}
+\rulenamedx{dvd_def}
 \end{isabelle}
 %
 Section~\ref{sec:proving-euclid} discusses proofs involving this
 relation.  Here are some of the facts proved about it:
 \begin{isabelle}
 \isasymlbrakk m\ dvd\ n;\ n\ dvd\ m\isasymrbrakk \ \isasymLongrightarrow \ m\ =\ n%
-\rulename{dvd_anti_sym}\isanewline
+\rulenamedx{dvd_anti_sym}\isanewline
 \isasymlbrakk k\ dvd\ m;\ k\ dvd\ n\isasymrbrakk \ \isasymLongrightarrow \ k\ dvd\ (m\ +\ n)
-\rulename{dvd_add}
+\rulenamedx{dvd_add}
 \end{isabelle}
 
 \subsubsection{Simplifier Tricks}
@@ -228,9 +238,9 @@ following equations sorts the terms and groups them to the right, making
 the two expressions identical:
 \begin{isabelle}
 m\ +\ n\ +\ k\ =\ m\ +\ (n\ +\ k)
-\rulename{add_assoc}\isanewline
+\rulenamedx{add_assoc}\isanewline
 m\ +\ n\ =\ n\ +\ m%
-\rulename{add_commute}\isanewline
+\rulenamedx{add_commute}\isanewline
 x\ +\ (y\ +\ z)\ =\ y\ +\ (x\
 +\ z)
 \rulename{add_left_commute}
@@ -252,17 +262,20 @@ Here is the resulting subgoal:
 \begin{isabelle}
 \ 1.\ Suc\ (i\ +\ (m\ *\ n\ +\ j\ *\ (k\ *\ l)))\
 =\ f\ (i\ +\ (m\ *\ n\ +\ j\ *\ (k\ *\ l)))%
-\end{isabelle}
+\end{isabelle}%
+\index{natural numbers|)}\index{*nat (type)|)}
+
 
 
 \subsection{The Type of Integers, {\tt\slshape int}}
 
+\index{integers|(}\index{*int (type)|(}%
 Reasoning methods resemble those for the natural numbers, but induction and
 the constant \isa{Suc} are not available.  HOL provides many lemmas
 for proving inequalities involving integer multiplication and division,
 similar to those shown above for type~\isa{nat}.  
 
-The absolute value function \isa{abs} is overloaded for the numeric types.
+The \rmindex{absolute value} function \cdx{abs} is overloaded for the numeric types.
 It is defined for the integers; we have for example the obvious law
 \begin{isabelle}
 \isasymbar x\ *\ y\isasymbar \ =\ \isasymbar x\isasymbar \ *\ \isasymbar y\isasymbar 
@@ -290,7 +303,8 @@ associativity and commutativity theorems for integer addition, while
 prefix~\isa{z} in many theorem names recalls the use of $\mathbb{Z}$ to
 denote the set of integers.
 
-For division and remainder, the treatment of negative divisors follows
+For division and remainder,\index{division!by negative numbers}
+the treatment of negative divisors follows
 mathematical practice: the sign of the remainder follows that
 of the divisor:
 \begin{isabelle}
@@ -334,11 +348,13 @@ The last two differ from their natural number analogues by requiring
 \isa{c} to be zero.  However, \isa{c} cannot be negative: a counterexample
 is
 $\isa{a} = 7$, $\isa{b} = 2$ and $\isa{c} = -3$, when the left-hand side of
-\isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is~$-1$.
+\isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is~$-1$.%
+\index{integers|)}\index{*int (type)|)}
 
 
 \subsection{The Type of Real Numbers, {\tt\slshape real}}
 
+\index{real numbers|(}\index{*real (type)|(}%
 The real numbers enjoy two significant properties that the integers lack. 
 They are
 \textbf{dense}: between every two distinct real numbers there lies another.
@@ -400,7 +416,8 @@ exponentiation:
 \rulename{realpow_abs}
 \end{isabelle}
 
-Numeric literals for type \isa{real} have the same syntax as those for type
+Numeric literals\index{numeric literals!for type \protect\isa{real}}
+for type \isa{real} have the same syntax as those for type
 \isa{int} and only express integral values.  Fractions expressed
 using the division operator are automatically simplified to lowest terms:
 \begin{isabelle}
@@ -417,15 +434,17 @@ is performed.
 Type \isa{real} is only available in the logic HOL-Real, which
 is  HOL extended with the rather substantial development of the real
 numbers.  Base your theory upon theory
-\isa{Real}, not the usual \isa{Main}.  Launch Isabelle using the command 
+\isa{Real}, not the usual \isa{Main}.%
+\index{real numbers|)}\index{*real (type)|)}
+Launch Isabelle using the command 
 \begin{verbatim}
 Isabelle -l HOL-Real
 \end{verbatim}
 \end{warn}
 
 Also distributed with Isabelle is HOL-Hyperreal,
-whose theory \isa{Hyperreal} defines the type \isa{hypreal} of non-standard
-reals.  These
+whose theory \isa{Hyperreal} defines the type \tydx{hypreal} of 
+\rmindex{non-standard reals}.  These
 \textbf{hyperreals} include infinitesimals, which represent infinitely
 small and infinitely large quantities; they facilitate proofs
 about limits, differentiation and integration~\cite{fleuriot-jcm}.  The
