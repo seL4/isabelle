@@ -16,24 +16,17 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = ROOT.ML Holcfb.thy Holcfb.ML Void.thy Void.ML \
-	Porder0.thy Porder.thy Porder.ML  Pcpo.thy \
-	Pcpo.ML Fun1.thy Fun1.ML Fun2.thy Fun2.ML Fun3.thy Fun3.ML \
-	Cfun1.thy Cfun1.ML Cfun2.thy Cfun2.ML Cfun3.thy Cfun3.ML \
-	Cont.thy Cont.ML \
-	Cprod1.thy Cprod1.ML Cprod2.thy Cprod2.ML Cprod3.thy Cprod3.ML \
-	Sprod0.thy Sprod0.ML Sprod1.thy Sprod1.ML Sprod2.thy Sprod2.ML\
-	Sprod3.thy Sprod3.ML\
-	Ssum0.thy Ssum0.ML Ssum1.thy Ssum1.ML Ssum2.thy Ssum2.ML\
-	Ssum3.thy Ssum3.ML\
-	Lift1.thy Lift1.ML Lift2.thy Lift2.ML Lift3.thy Lift3.ML \
-	Fix.thy Fix.ML ccc1.thy ccc1.ML One.thy One.ML \
-	Tr1.thy Tr1.ML Tr2.thy Tr2.ML HOLCF.thy HOLCF.ML \
-	Dnat.thy Dnat.ML Dnat2.thy Dnat2.ML \
-	Stream.thy Stream.ML Stream2.thy Stream2.ML Dlist.thy Dlist.ML 
+THYS = Holcfb.thy Void.thy Porder.thy Pcpo.thy \
+       Fun1.thy Fun2.thy Fun3.thy \
+       Cfun1.thy Cfun2.thy Cfun3.thy Cont.thy \
+       Cprod1.thy Cprod2.thy Cprod3.thy \
+       Sprod0.thy Sprod1.thy Sprod2.thy Sprod3.thy \
+       Ssum0.thy Ssum1.thy Ssum2.thy Ssum3.thy \
+       Lift1.thy Lift2.thy Lift3.thy Fix.thy ccc1.thy One.thy \
+       Tr1.thy Tr2.thy HOLCF.thy Dnat.thy Dnat2.thy \
+       Stream.thy Stream2.thy Dlist.thy 
 
-EX_FILES = ex/Coind.thy ex/Coind.ML ex/Hoare.thy ex/Hoare.ML \
-           ex/Loop.thy ex/Loop.ML ex/Dagstuhl.thy ex/Dagstuhl.ML 
+FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
 
 $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES) 
 	case "$(COMP)" in \
@@ -47,6 +40,11 @@ $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES)
 
 $(BIN)/HOL:
 	cd ../HOL;  $(MAKE)
+
+EX_THYS = ex/Coind.thy ex/Hoare.thy \
+           ex/Loop.thy ex/Dagstuhl.thy 
+
+EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 test:   ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES) 
 	case "$(COMP)" in \
