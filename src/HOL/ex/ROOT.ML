@@ -48,6 +48,7 @@ time_use_thy "LocaleGroup";
 
 (*expressions with quote / antiquote syntax*)
 time_use_thy "Antiquote";
+time_use_thy "Multiquote";
 
 
 writeln "END: Root file for HOL examples";
