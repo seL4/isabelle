@@ -198,7 +198,7 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
 
 HOL-IMP: HOL $(LOG)/HOL-IMP.gz
 
-$(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.thy IMP/Denotation.ML \
+$(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.thy IMP/Compiler.thy IMP/Denotation.ML \
   IMP/Denotation.thy IMP/Expr.ML IMP/Expr.thy IMP/Hoare.ML IMP/Hoare.thy \
   IMP/Natural.ML IMP/Natural.thy IMP/Examples.ML IMP/Examples.thy \
   IMP/Transition.ML IMP/Transition.thy IMP/VC.ML IMP/VC.thy IMP/ROOT.ML

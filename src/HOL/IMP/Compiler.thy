@@ -1,3 +1,11 @@
+(*  Title:      HOL/IMP/Compiler.thy
+    ID:         $Id$
+    Author:     Tobias Nipkow, TUM
+    Copyright   1996 TUM
+
+A simple compiler for a simplistic machine.
+*)
+
 theory Compiler = Natural:
 
 datatype instr = ASIN loc aexp | JMPF bexp nat | JMPB nat
