@@ -249,92 +249,42 @@ Goalw [cut_def] "(x,a):r ==> (cut f r a)(x) = f(x)";
 by (asm_simp_tac HOL_ss 1);
 qed "cut_apply";
 
-(*** is_recfun ***)
+(*** Inductive characterization of wfrec combinator; for details see:   ***)
+(*** John Harrison, "Inductive definitions: automation and application" ***)
 
-Goalw [is_recfun_def,cut_def]
-    "[| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = arbitrary";
-by (etac ssubst 1);
-by (asm_simp_tac HOL_ss 1);
-qed "is_recfun_undef";
+Goalw [adm_wf_def]
+  "[| wf R; adm_wf R F |] ==> EX! y. (x, y) : wfrec_rel R F";
+by (wf_ind_tac "x" [] 1);
+by (rtac ex1I 1);
+by (res_inst_tac [("g","%x. @y. (x, y) : wfrec_rel R F")] wfrec_rel.wfrecI 1);
+by (strip_tac 1);
+byev [etac allE 1, etac impE 1, atac 1];
+by (rtac (some_eq_ex RS ssubst) 1);
+by (etac ex1_implies_ex 1);
+by (etac wfrec_rel.elim 1);
+by (Asm_full_simp_tac 1);
+byev [etac allE 1, etac allE 1, etac allE 1, etac mp 1];
+by (strip_tac 1);
+by (rtac (some_equality RS ssubst) 1);
+by (ALLGOALS Blast_tac);
+qed "wfrec_unique";
 
-(*** NOTE! some simplifications need a different Solver!! ***)
-fun indhyp_tac hyps =
-    (cut_facts_tac hyps THEN'
-       DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
-                        eresolve_tac [transD, mp, allE]));
-val wf_super_ss = HOL_ss addSolver (mk_solver "WF" indhyp_tac);
-
-Goalw [is_recfun_def,cut_def]
-    "[| wf(r);  trans(r);  is_recfun r H a f;  is_recfun r H b g |] ==> \
-    \ (x,a):r --> (x,b):r --> f(x)=g(x)";
-by (etac wf_induct 1);
-by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
-by (asm_simp_tac (wf_super_ss addcongs [if_cong]) 1);
-qed_spec_mp "is_recfun_equal";
-
-
-val prems as [wfr,transr,recfa,recgb,_] = goalw (the_context ()) [cut_def]
-    "[| wf(r);  trans(r); \
-\       is_recfun r H a f;  is_recfun r H b g;  (b,a):r |] ==> \
-\    cut f r b = g";
-val gundef = recgb RS is_recfun_undef
-and fisg   = recgb RS (recfa RS (transr RS (wfr RS is_recfun_equal)));
-by (cut_facts_tac prems 1);
-by (rtac ext 1);
-by (asm_simp_tac (wf_super_ss addsimps [gundef,fisg]) 1);
-qed "is_recfun_cut";
-
-(*** Main Existence Lemma -- Basic Properties of the_recfun ***)
-
-Goalw [the_recfun_def]
-    "is_recfun r H a f ==> is_recfun r H a (the_recfun r H a)";
-by (eres_inst_tac [("P", "is_recfun r H a")] someI 1);
-qed "is_the_recfun";
-
-Goal "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
-by (wf_ind_tac "a" [] 1);
-by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
-                 is_the_recfun 1);
-by (rewtac is_recfun_def);
-by (stac cuts_eq 1);
-by (Clarify_tac 1);
-by (rtac H_cong2 1);
-by (subgoal_tac
-         "the_recfun r H y = cut(%x. H(cut(the_recfun r H y) r x) x) r y" 1);
- by (Blast_tac 2);
-by (etac ssubst 1);
-by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
-by (Clarify_tac 1);
-by (stac cut_apply 1);
- by (fast_tac (claset() addDs [transD]) 1);
-by (fold_tac [is_recfun_def]);
-by (asm_simp_tac (wf_super_ss addsimps[is_recfun_cut]) 1);
-qed "unfold_the_recfun";
-
-Goal "[| wf r; trans r; (x,a) : r; (x,b) : r |] \
-\     ==> the_recfun r H a x = the_recfun r H b x";
-by (best_tac (claset() addIs [is_recfun_equal, unfold_the_recfun]) 1);
-qed "the_recfun_equal";
-
-(** Removal of the premise trans(r) **)
-val th = rewrite_rule[is_recfun_def]
-                     (trans_trancl RSN (2,(wf_trancl RS unfold_the_recfun)));
+Goalw [adm_wf_def] "adm_wf R (%f x. F (cut f R x) x)";
+by (strip_tac 1);
+by (rtac (cuts_eq RS iffD2 RS subst) 1);
+by (atac 1);
+by (rtac refl 1);
+qed "adm_lemma";
 
 Goalw [wfrec_def]
     "wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
-by (rtac H_cong2 1);
-by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
-by (rtac allI 1);
-by (rtac impI 1);
-by (res_inst_tac [("a1","a")] (th RS ssubst) 1);
-by (assume_tac 1);
-by (ftac wf_trancl 1);
-by (ftac r_into_trancl 1);
-by (asm_simp_tac (HOL_ss addsimps [cut_apply]) 1);
-by (rtac H_cong2 1);    (*expose the equality of cuts*)
-by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);
-by (blast_tac (claset() addIs [the_recfun_equal, transD, trans_trancl, 
-			       r_into_trancl]) 1);
+by (rtac (adm_lemma RSN (2, wfrec_unique) RS some1_equality) 1);
+by (atac 1);
+by (rtac wfrec_rel.wfrecI 1);
+by (strip_tac 1);
+by (rtac (some_eq_ex RS iffD2) 1);
+by (rtac (adm_lemma RSN (2, wfrec_unique) RS ex1_implies_ex) 1);
+by (atac 1);
 qed "wfrec";
 
 (*---------------------------------------------------------------------------
