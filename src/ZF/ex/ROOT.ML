@@ -17,8 +17,6 @@ time_use     "ex/misc.ML";
 time_use_thy "ex/Ramsey";
 
 (*Integers & Binary integer arithmetic*)
-use "ex/twos_compl.ML";		(*can delete after autoloader change
-				  and addition of "twos_compl" to Bin.thy*)
 time_use_thy "ex/Bin";
 
 (** Datatypes **)

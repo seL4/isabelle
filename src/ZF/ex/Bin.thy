@@ -6,7 +6,7 @@
 Arithmetic on binary integers.
 *)
 
-Bin = Integ + Univ + 
+Bin = Integ + Univ + "twos_compl" +
 consts
   bin_rec          :: "[i, i, i, [i,i,i]=>i] => i"
   integ_of_bin     :: "i=>i"

@@ -43,7 +43,7 @@ IMP_FILES = IMP/ROOT.ML IMP/Com.ML IMP/Com.thy IMP/Denotation.ML\
 
 EX_FILES = ex/ROOT.ML ex/misc.ML ex/Ramsey.ML ex/Ramsey.thy\
 	   ex/Integ.ML ex/Integ.thy\
-           ex/twos_compl.ML ex/Bin.thy ex/Bin.ML\
+           ex/twos_compl.thy ex/twos_compl.ML ex/Bin.thy ex/Bin.ML\
 	   ex/BT.thy ex/BT.ML ex/Term.thy ex/Term.ML \
 	   ex/TF.thy ex/TF.ML ex/Ntree.thy ex/Ntree.ML \
            ex/Brouwer.thy ex/Brouwer.ML \
