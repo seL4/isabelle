@@ -1067,8 +1067,8 @@ qed "hcmod_triangle_ineq";
 Addsimps [hcmod_triangle_ineq];
 
 Goal "hcmod(b + a) - hcmod b <= hcmod a";
-by (cut_inst_tac [("x1","b"),("y1","a"),("x","-hcmod b")]
-   (hcmod_triangle_ineq RS hypreal_add_le_mono1) 1);
+by (cut_inst_tac [("x1","b"),("y1","a"),("c","-hcmod b")]
+   (hcmod_triangle_ineq RS add_right_mono) 1);
 by (asm_full_simp_tac (simpset() addsimps hypreal_add_ac) 1);
 qed "hcmod_triangle_ineq2";
 Addsimps [hcmod_triangle_ineq2];
