@@ -18,24 +18,23 @@ Do we EVER have rank(a) < rank(<a;b>) ?  Perhaps if the latter rank
     is not a limit ordinal? 
 *)
 
-
 open QPair;
 
 (**** Quine ordered pairing ****)
 
 (** Lemmas for showing that <a;b> uniquely determines a and b **)
 
-qed_goalw "QPair_iff" QPair.thy [QPair_def]
+qed_goalw "QPair_iff" thy [QPair_def]
     "<a;b> = <c;d> <-> a=c & b=d"
  (fn _=> [rtac sum_equal_iff 1]);
 
 bind_thm ("QPair_inject", (QPair_iff RS iffD1 RS conjE));
 
-qed_goal "QPair_inject1" QPair.thy "<a;b> = <c;d> ==> a=c"
+qed_goal "QPair_inject1" thy "<a;b> = <c;d> ==> a=c"
  (fn [major]=>
   [ (rtac (major RS QPair_inject) 1), (assume_tac 1) ]);
 
-qed_goal "QPair_inject2" QPair.thy "<a;b> = <c;d> ==> b=d"
+qed_goal "QPair_inject2" thy "<a;b> = <c;d> ==> b=d"
  (fn [major]=>
   [ (rtac (major RS QPair_inject) 1), (assume_tac 1) ]);
 
@@ -43,12 +42,12 @@ qed_goal "QPair_inject2" QPair.thy "<a;b> = <c;d> ==> b=d"
 (*** QSigma: Disjoint union of a family of sets
      Generalizes Cartesian product ***)
 
-qed_goalw "QSigmaI" QPair.thy [QSigma_def]
+qed_goalw "QSigmaI" thy [QSigma_def]
     "[| a:A;  b:B(a) |] ==> <a;b> : QSigma(A,B)"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[singletonI,UN_I]) 1)) ]);
 
 (*The general elimination rule*)
-qed_goalw "QSigmaE" QPair.thy [QSigma_def]
+qed_goalw "QSigmaE" thy [QSigma_def]
     "[| c: QSigma(A,B);  \
 \       !!x y.[| x:A;  y:B(x);  c=<x;y> |] ==> P \
 \    |] ==> P"
@@ -63,56 +62,111 @@ val QSigmaE2 =
 		  THEN prune_params_tac)
       (read_instantiate [("c","<a;b>")] QSigmaE);  
 
-qed_goal "QSigmaD1" QPair.thy "<a;b> : QSigma(A,B) ==> a : A"
+qed_goal "QSigmaD1" thy "<a;b> : QSigma(A,B) ==> a : A"
  (fn [major]=>
   [ (rtac (major RS QSigmaE2) 1), (assume_tac 1) ]);
 
-qed_goal "QSigmaD2" QPair.thy "<a;b> : QSigma(A,B) ==> b : B(a)"
+qed_goal "QSigmaD2" thy "<a;b> : QSigma(A,B) ==> b : B(a)"
  (fn [major]=>
   [ (rtac (major RS QSigmaE2) 1), (assume_tac 1) ]);
 
 val qpair_cs = ZF_cs addSIs [QSigmaI] addSEs [QSigmaE2, QSigmaE, QPair_inject];
 
 
-qed_goalw "QSigma_cong" QPair.thy [QSigma_def]
+qed_goalw "QSigma_cong" thy [QSigma_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> \
 \    QSigma(A,B) = QSigma(A',B')"
  (fn prems=> [ (simp_tac (ZF_ss addsimps prems) 1) ]);
 
-qed_goal "QSigma_empty1" QPair.thy "QSigma(0,B) = 0"
+qed_goal "QSigma_empty1" thy "QSigma(0,B) = 0"
  (fn _ => [ (fast_tac (qpair_cs addIs [equalityI]) 1) ]);
 
-qed_goal "QSigma_empty2" QPair.thy "A <*> 0 = 0"
+qed_goal "QSigma_empty2" thy "A <*> 0 = 0"
  (fn _ => [ (fast_tac (qpair_cs addIs [equalityI]) 1) ]);
+
+
+(*** Projections: qfst, qsnd ***)
+
+qed_goalw "qfst_conv" thy [qfst_def] "qfst(<a;b>) = a"
+ (fn _=> 
+  [ (fast_tac (qpair_cs addIs [the_equality]) 1) ]);
+
+qed_goalw "qsnd_conv" thy [qsnd_def] "qsnd(<a;b>) = b"
+ (fn _=> 
+  [ (fast_tac (qpair_cs addIs [the_equality]) 1) ]);
+
+val qpair_ss = ZF_ss addsimps [qfst_conv,qsnd_conv];
+
+qed_goal "qfst_type" thy
+    "!!p. p:QSigma(A,B) ==> qfst(p) : A"
+ (fn _=> [ (fast_tac (qpair_cs addss qpair_ss) 1) ]);
+
+qed_goal "qsnd_type" thy
+    "!!p. p:QSigma(A,B) ==> qsnd(p) : B(qfst(p))"
+ (fn _=> [ (fast_tac (qpair_cs addss qpair_ss) 1) ]);
+
+goal thy "!!a A B. a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a";
+by (etac QSigmaE 1);
+by (asm_simp_tac qpair_ss 1);
+qed "QPair_qfst_qsnd_eq";
 
 
 (*** Eliminator - qsplit ***)
 
-qed_goalw "qsplit" QPair.thy [qsplit_def]
-    "qsplit(%x y.c(x,y), <a;b>) = c(a,b)"
- (fn _ => [ (fast_tac (qpair_cs addIs [the_equality]) 1) ]);
+(*A META-equality, so that it applies to higher types as well...*)
+qed_goalw "qsplit" thy [qsplit_def]
+    "qsplit(%x y.c(x,y), <a;b>) == c(a,b)"
+ (fn _ => [ (simp_tac qpair_ss 1),
+            (rtac reflexive_thm 1) ]);
 
-qed_goal "qsplit_type" QPair.thy
+qed_goal "qsplit_type" thy
     "[|  p:QSigma(A,B);   \
 \        !!x y.[| x:A; y:B(x) |] ==> c(x,y):C(<x;y>) \
 \    |] ==> qsplit(%x y.c(x,y), p) : C(p)"
  (fn major::prems=>
   [ (rtac (major RS QSigmaE) 1),
-    (etac ssubst 1),
-    (REPEAT (ares_tac (prems @ [qsplit RS ssubst]) 1)) ]);
+    (asm_simp_tac (qpair_ss addsimps (qsplit::prems)) 1) ]);
+
+goalw thy [qsplit_def]
+  "!!u. u: A<*>B ==>   \
+\       R(qsplit(c,u)) <-> (ALL x:A. ALL y:B. u = <x;y> --> R(c(x,y)))";
+by (etac QSigmaE 1);
+by (asm_simp_tac qpair_ss 1);
+by (fast_tac qpair_cs 1);
+qed "expand_qsplit";
+
+
+(*** qsplit for predicates: result type o ***)
+
+goalw thy [qsplit_def] "!!R a b. R(a,b) ==> qsplit(R, <a;b>)";
+by (asm_simp_tac qpair_ss 1);
+qed "qsplitI";
+
+val major::sigma::prems = goalw thy [qsplit_def]
+    "[| qsplit(R,z);  z:QSigma(A,B);  			\
+\       !!x y. [| z = <x;y>;  R(x,y) |] ==> P  		\
+\   |] ==> P";
+by (rtac (sigma RS QSigmaE) 1);
+by (cut_facts_tac [major] 1);
+by (asm_full_simp_tac (qpair_ss addsimps prems) 1);
+qed "qsplitE";
+
+goalw thy [qsplit_def] "!!R a b. qsplit(R,<a;b>) ==> R(a,b)";
+by (asm_full_simp_tac qpair_ss 1);
+qed "qsplitD";
 
 
 (*** qconverse ***)
 
-qed_goalw "qconverseI" QPair.thy [qconverse_def]
+qed_goalw "qconverseI" thy [qconverse_def]
     "!!a b r. <a;b>:r ==> <b;a>:qconverse(r)"
  (fn _ => [ (fast_tac qpair_cs 1) ]);
 
-qed_goalw "qconverseD" QPair.thy [qconverse_def]
+qed_goalw "qconverseD" thy [qconverse_def]
     "!!a b r. <a;b> : qconverse(r) ==> <b;a> : r"
  (fn _ => [ (fast_tac qpair_cs 1) ]);
 
-qed_goalw "qconverseE" QPair.thy [qconverse_def]
+qed_goalw "qconverseE" thy [qconverse_def]
     "[| yx : qconverse(r);  \
 \       !!x y. [| yx=<y;x>;  <x;y>:r |] ==> P \
 \    |] ==> P"
@@ -125,36 +179,19 @@ qed_goalw "qconverseE" QPair.thy [qconverse_def]
 val qconverse_cs = qpair_cs addSIs [qconverseI] 
 			    addSEs [qconverseD,qconverseE];
 
-qed_goal "qconverse_qconverse" QPair.thy
+qed_goal "qconverse_qconverse" thy
     "!!A B r. r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
  (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
 
-qed_goal "qconverse_type" QPair.thy
+qed_goal "qconverse_type" thy
     "!!A B r. r <= A <*> B ==> qconverse(r) <= B <*> A"
  (fn _ => [ (fast_tac qconverse_cs 1) ]);
 
-qed_goal "qconverse_prod" QPair.thy "qconverse(A <*> B) = B <*> A"
+qed_goal "qconverse_prod" thy "qconverse(A <*> B) = B <*> A"
  (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
 
-qed_goal "qconverse_empty" QPair.thy "qconverse(0) = 0"
+qed_goal "qconverse_empty" thy "qconverse(0) = 0"
  (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
-
-
-(*** qsplit for predicates: result type o ***)
-
-goalw QPair.thy [qfsplit_def] "!!R a b. R(a,b) ==> qfsplit(R, <a;b>)";
-by (REPEAT (ares_tac [refl,exI,conjI] 1));
-qed "qfsplitI";
-
-val major::prems = goalw QPair.thy [qfsplit_def]
-    "[| qfsplit(R,z);  !!x y. [| z = <x;y>;  R(x,y) |] ==> P |] ==> P";
-by (cut_facts_tac [major] 1);
-by (REPEAT (eresolve_tac (prems@[asm_rl,exE,conjE]) 1));
-qed "qfsplitE";
-
-goal QPair.thy "!!R a b. qfsplit(R,<a;b>) ==> R(a,b)";
-by (REPEAT (eresolve_tac [asm_rl,qfsplitE,QPair_inject,ssubst] 1));
-qed "qfsplitD";
 
 
 (**** The Quine-inspired notion of disjoint sum ****)
@@ -163,17 +200,17 @@ val qsum_defs = [qsum_def,QInl_def,QInr_def,qcase_def];
 
 (** Introduction rules for the injections **)
 
-goalw QPair.thy qsum_defs "!!a A B. a : A ==> QInl(a) : A <+> B";
+goalw thy qsum_defs "!!a A B. a : A ==> QInl(a) : A <+> B";
 by (REPEAT (ares_tac [UnI1,QSigmaI,singletonI] 1));
 qed "QInlI";
 
-goalw QPair.thy qsum_defs "!!b A B. b : B ==> QInr(b) : A <+> B";
+goalw thy qsum_defs "!!b A B. b : B ==> QInr(b) : A <+> B";
 by (REPEAT (ares_tac [UnI2,QSigmaI,singletonI] 1));
 qed "QInrI";
 
 (** Elimination rules **)
 
-val major::prems = goalw QPair.thy qsum_defs
+val major::prems = goalw thy qsum_defs
     "[| u: A <+> B;  \
 \       !!x. [| x:A;  u=QInl(x) |] ==> P; \
 \       !!y. [| y:B;  u=QInr(y) |] ==> P \
@@ -185,19 +222,19 @@ qed "qsumE";
 
 (** Injection and freeness equivalences, for rewriting **)
 
-goalw QPair.thy qsum_defs "QInl(a)=QInl(b) <-> a=b";
+goalw thy qsum_defs "QInl(a)=QInl(b) <-> a=b";
 by (simp_tac (ZF_ss addsimps [QPair_iff]) 1);
 qed "QInl_iff";
 
-goalw QPair.thy qsum_defs "QInr(a)=QInr(b) <-> a=b";
+goalw thy qsum_defs "QInr(a)=QInr(b) <-> a=b";
 by (simp_tac (ZF_ss addsimps [QPair_iff]) 1);
 qed "QInr_iff";
 
-goalw QPair.thy qsum_defs "QInl(a)=QInr(b) <-> False";
+goalw thy qsum_defs "QInl(a)=QInr(b) <-> False";
 by (simp_tac (ZF_ss addsimps [QPair_iff, one_not_0 RS not_sym]) 1);
 qed "QInl_QInr_iff";
 
-goalw QPair.thy qsum_defs "QInr(b)=QInl(a) <-> False";
+goalw thy qsum_defs "QInr(b)=QInl(a) <-> False";
 by (simp_tac (ZF_ss addsimps [QPair_iff, one_not_0]) 1);
 qed "QInr_QInl_iff";
 
@@ -213,43 +250,41 @@ val qsum_cs =
              addSEs [PartE, qsumE, QInl_neq_QInr, QInr_neq_QInl]
              addSDs [QInl_inject, QInr_inject];
 
-goal QPair.thy "!!A B. QInl(a): A<+>B ==> a: A";
+goal thy "!!A B. QInl(a): A<+>B ==> a: A";
 by (fast_tac qsum_cs 1);
 qed "QInlD";
 
-goal QPair.thy "!!A B. QInr(b): A<+>B ==> b: B";
+goal thy "!!A B. QInr(b): A<+>B ==> b: B";
 by (fast_tac qsum_cs 1);
 qed "QInrD";
 
 (** <+> is itself injective... who cares?? **)
 
-goal QPair.thy
+goal thy
     "u: A <+> B <-> (EX x. x:A & u=QInl(x)) | (EX y. y:B & u=QInr(y))";
 by (fast_tac qsum_cs 1);
 qed "qsum_iff";
 
-goal QPair.thy "A <+> B <= C <+> D <-> A<=C & B<=D";
+goal thy "A <+> B <= C <+> D <-> A<=C & B<=D";
 by (fast_tac qsum_cs 1);
 qed "qsum_subset_iff";
 
-goal QPair.thy "A <+> B = C <+> D <-> A=C & B=D";
+goal thy "A <+> B = C <+> D <-> A=C & B=D";
 by (simp_tac (ZF_ss addsimps [extension,qsum_subset_iff]) 1);
 by (fast_tac ZF_cs 1);
 qed "qsum_equal_iff";
 
 (*** Eliminator -- qcase ***)
 
-goalw QPair.thy qsum_defs "qcase(c, d, QInl(a)) = c(a)";
-by (rtac (qsplit RS trans) 1);
-by (rtac cond_0 1);
+goalw thy qsum_defs "qcase(c, d, QInl(a)) = c(a)";
+by (simp_tac (ZF_ss addsimps [qsplit, cond_0]) 1);
 qed "qcase_QInl";
 
-goalw QPair.thy qsum_defs "qcase(c, d, QInr(b)) = d(b)";
-by (rtac (qsplit RS trans) 1);
-by (rtac cond_1 1);
+goalw thy qsum_defs "qcase(c, d, QInr(b)) = d(b)";
+by (simp_tac (ZF_ss addsimps [qsplit, cond_1]) 1);
 qed "qcase_QInr";
 
-val major::prems = goal QPair.thy
+val major::prems = goal thy
     "[| u: A <+> B; \
 \       !!x. x: A ==> c(x): C(QInl(x));   \
 \       !!y. y: B ==> d(y): C(QInr(y)) \
@@ -262,18 +297,18 @@ qed "qcase_type";
 
 (** Rules for the Part primitive **)
 
-goal QPair.thy "Part(A <+> B,QInl) = {QInl(x). x: A}";
+goal thy "Part(A <+> B,QInl) = {QInl(x). x: A}";
 by (fast_tac (qsum_cs addIs [equalityI]) 1);
 qed "Part_QInl";
 
-goal QPair.thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
+goal thy "Part(A <+> B,QInr) = {QInr(y). y: B}";
 by (fast_tac (qsum_cs addIs [equalityI]) 1);
 qed "Part_QInr";
 
-goal QPair.thy "Part(A <+> B, %x.QInr(h(x))) = {QInr(y). y: Part(B,h)}";
+goal thy "Part(A <+> B, %x.QInr(h(x))) = {QInr(y). y: Part(B,h)}";
 by (fast_tac (qsum_cs addIs [equalityI]) 1);
 qed "Part_QInr2";
 
-goal QPair.thy "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
+goal thy "!!A B C. C <= A <+> B ==> Part(C,QInl) Un Part(C,QInr) = C";
 by (fast_tac (qsum_cs addIs [equalityI]) 1);
 qed "Part_qsum_equality";
