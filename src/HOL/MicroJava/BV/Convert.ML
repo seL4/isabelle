@@ -4,6 +4,24 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
+
+Goalw[sup_ty_opt_def] "G \\<turnstile> t <=o t";
+by (exhaust_tac "t" 1);
+by Auto_tac;
+qed "sup_ty_opt_refl";
+Addsimps [sup_ty_opt_refl];
+
+Goalw[sup_loc_def] "G \\<turnstile> t <=l t";
+by (induct_tac "t" 1);
+by Auto_tac;
+qed "sup_loc_refl";
+Addsimps [sup_loc_refl];
+
+Goalw[sup_state_def] "G \\<turnstile> s <=s s";
+by Auto_tac;
+qed "sup_state_refl";
+Addsimps [sup_state_refl];
+
 val widen_PrimT_conv1 =
  prove_typerel "(G \\<turnstile> PrimT x \\<preceq> T) = (T = PrimT x)"
  [ prove_widen_lemma "G\\<turnstile>S\\<preceq>T \\<Longrightarrow> S = PrimT x \\<longrightarrow> T = PrimT x"];
@@ -37,3 +55,4 @@ Goalw [sup_loc_def]
 by(simp_tac (simpset() addsimps [list_all2_Cons1]) 1);
 qed "sup_loc_Cons";
 AddIffs [sup_loc_Cons];
+
