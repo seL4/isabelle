@@ -1,0 +1,837 @@
+%% $Id$
+\chapter{Syntax Transformations} \label{chap:syntax}
+\newcommand\ttapp{\mathrel{\hbox{\tt\$}}}
+\newcommand\mtt[1]{\mbox{\tt #1}}
+\newcommand\ttfct[1]{\mathop{\mtt{#1}}\nolimits}
+\newcommand\Constant{\ttfct{Constant}}
+\newcommand\Variable{\ttfct{Variable}}
+\newcommand\Appl[1]{\ttfct{Appl}\,[#1]}
+\index{syntax!transformations|(}
+
+This chapter is intended for experienced Isabelle users who need to define
+macros or code their own translation functions.  It describes the
+transformations between parse trees, abstract syntax trees and terms.
+
+
+\section{Abstract syntax trees} \label{sec:asts}
+\index{ASTs|(} 
+
+The parser, given a token list from the lexer, applies productions to yield
+a parse tree\index{parse trees}.  By applying some internal transformations
+the parse tree becomes an abstract syntax tree, or \AST{}.  Macro
+expansion, further translations and finally type inference yields a
+well-typed term.  The printing process is the reverse, except for some
+subtleties to be discussed later.
+
+Figure~\ref{fig:parse_print} outlines the parsing and printing process.
+Much of the complexity is due to the macro mechanism.  Using macros, you
+can specify most forms of concrete syntax without writing any \ML{} code.
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{cl}
+string          & \\
+$\downarrow$    & parser \\
+parse tree      & \\
+$\downarrow$    & parse \AST{} translation \\
+\AST{}             & \\
+$\downarrow$    & \AST{} rewriting (macros) \\
+\AST{}             & \\
+$\downarrow$    & parse translation, type inference \\
+--- well-typed term --- & \\
+$\downarrow$    & print translation \\
+\AST{}             & \\
+$\downarrow$    & \AST{} rewriting (macros) \\
+\AST{}             & \\
+$\downarrow$    & print \AST{} translation, printer \\
+string          &
+\end{tabular}
+
+\end{center}
+\caption{Parsing and printing}\label{fig:parse_print}
+\end{figure}
+
+Abstract syntax trees are an intermediate form between the raw parse trees
+and the typed $\lambda$-terms.  An \AST{} is either an atom (constant or
+variable) or a list of {\em at least two\/} subtrees.  Internally, they
+have type \mltydx{Syntax.ast}: \index{*Constant} \index{*Variable}
+\index{*Appl}
+\begin{ttbox}
+datatype ast = Constant of string
+             | Variable of string
+             | Appl of ast list
+\end{ttbox}
+%
+Isabelle uses an S-expression syntax for abstract syntax trees.  Constant
+atoms are shown as quoted strings, variable atoms as non-quoted strings and
+applications as a parenthesized list of subtrees.  For example, the \AST
+\begin{ttbox}
+Appl [Constant "_constrain",
+      Appl [Constant "_abs", Variable "x", Variable "t"],
+      Appl [Constant "fun", Variable "'a", Variable "'b"]]
+\end{ttbox}
+is shown as {\tt ("_constrain" ("_abs" x t) ("fun" 'a 'b))}.
+Both {\tt ()} and {\tt (f)} are illegal because they have too few
+subtrees. 
+
+The resemblance to Lisp's S-expressions is intentional, but there are two
+kinds of atomic symbols: $\Constant x$ and $\Variable x$.  Do not take the
+names {\tt Constant} and {\tt Variable} too literally; in the later
+translation to terms, $\Variable x$ may become a constant, free or bound
+variable, even a type constructor or class name; the actual outcome depends
+on the context.
+
+Similarly, you can think of ${\tt (} f~x@1~\ldots~x@n{\tt )}$ as the
+application of~$f$ to the arguments $x@1, \ldots, x@n$.  But the kind of
+application is determined later by context; it could be a type constructor
+applied to types.
+
+Forms like {\tt (("_abs" x $t$) $u$)} are legal, but \AST{}s are
+first-order: the {\tt "_abs"} does not bind the {\tt x} in any way.  Later
+at the term level, {\tt ("_abs" x $t$)} will become an {\tt Abs} node and
+occurrences of {\tt x} in $t$ will be replaced by bound variables (the term
+constructor \ttindex{Bound}).
+
+
+\section{Transforming parse trees to \AST{}s}\label{sec:astofpt}
+\index{ASTs!made from parse trees}
+\newcommand\astofpt[1]{\lbrakk#1\rbrakk}
+
+The parse tree is the raw output of the parser.  Translation functions,
+called {\bf parse AST translations}\indexbold{translations!parse AST},
+transform the parse tree into an abstract syntax tree.
+
+The parse tree is constructed by nesting the right-hand sides of the
+productions used to recognize the input.  Such parse trees are simply lists
+of tokens and constituent parse trees, the latter representing the
+nonterminals of the productions.  Let us refer to the actual productions in
+the form displayed by {\tt Syntax.print_syntax}.
+
+Ignoring parse \AST{} translations, parse trees are transformed to \AST{}s
+by stripping out delimiters and copy productions.  More precisely, the
+mapping $\astofpt{-}$ is derived from the productions as follows:
+\begin{itemize}
+\item Name tokens: $\astofpt{t} = \Variable s$, where $t$ is an \ndx{id},
+  \ndx{var}, \ndx{tid} or \ndx{tvar} token, and $s$ its associated string.
+
+\item Copy productions:\index{productions!copy}
+  $\astofpt{\ldots P \ldots} = \astofpt{P}$.  Here $\ldots$ stands for
+  strings of delimiters, which are discarded.  $P$ stands for the single
+  constituent that is not a delimiter; it is either a nonterminal symbol or
+  a name token.
+
+  \item 0-ary productions: $\astofpt{\ldots \mtt{=>} c} = \Constant c$.
+    Here there are no constituents other than delimiters, which are
+    discarded. 
+
+  \item $n$-ary productions, where $n \ge 1$: delimiters are discarded and
+    the remaining constituents $P@1$, \ldots, $P@n$ are built into an
+    application whose head constant is~$c$:
+    \[ \astofpt{\ldots P@1 \ldots P@n \ldots \mtt{=>} c} = 
+       \Appl{\Constant c, \astofpt{P@1}, \ldots, \astofpt{P@n}}
+    \]
+\end{itemize}
+Figure~\ref{fig:parse_ast} presents some simple examples, where {\tt ==},
+{\tt _appl}, {\tt _args}, and so forth name productions of the Pure syntax.
+These examples illustrate the need for further translations to make \AST{}s
+closer to the typed $\lambda$-calculus.  The Pure syntax provides
+predefined parse \AST{} translations\index{translations!parse AST} for
+ordinary applications, type applications, nested abstractions, meta
+implications and function types.  Figure~\ref{fig:parse_ast_tr} shows their
+effect on some representative input strings.
+
+
+\begin{figure}
+\begin{center}
+\tt\begin{tabular}{ll}
+\rm input string    & \rm \AST \\\hline
+"f"                 & f \\
+"'a"                & 'a \\
+"t == u"            & ("==" t u) \\
+"f(x)"              & ("_appl" f x) \\
+"f(x, y)"           & ("_appl" f ("_args" x y)) \\
+"f(x, y, z)"        & ("_appl" f ("_args" x ("_args" y z))) \\
+"\%x y.\ t"         & ("_lambda" ("_idts" x y) t) \\
+\end{tabular}
+\end{center}
+\caption{Parsing examples using the Pure syntax}\label{fig:parse_ast} 
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\tt\begin{tabular}{ll}
+\rm input string            & \rm \AST{} \\\hline
+"f(x, y, z)"                & (f x y z) \\
+"'a ty"                     & (ty 'a) \\
+"('a, 'b) ty"               & (ty 'a 'b) \\
+"\%x y z.\ t"               & ("_abs" x ("_abs" y ("_abs" z t))) \\
+"\%x ::\ 'a.\ t"            & ("_abs" ("_constrain" x 'a) t) \\
+"[| P; Q; R |] => S"        & ("==>" P ("==>" Q ("==>" R S))) \\
+"['a, 'b, 'c] => 'd"        & ("fun" 'a ("fun" 'b ("fun" 'c 'd)))
+\end{tabular}
+\end{center}
+\caption{Built-in parse \AST{} translations}\label{fig:parse_ast_tr}
+\end{figure}
+
+The names of constant heads in the \AST{} control the translation process.
+The list of constants invoking parse \AST{} translations appears in the
+output of {\tt Syntax.print_syntax} under {\tt parse_ast_translation}.
+
+
+\section{Transforming \AST{}s to terms}\label{sec:termofast}
+\index{terms!made from ASTs}
+\newcommand\termofast[1]{\lbrakk#1\rbrakk}
+
+The \AST{}, after application of macros (see \S\ref{sec:macros}), is
+transformed into a term.  This term is probably ill-typed since type
+inference has not occurred yet.  The term may contain type constraints
+consisting of applications with head {\tt "_constrain"}; the second
+argument is a type encoded as a term.  Type inference later introduces
+correct types or rejects the input.
+
+Another set of translation functions, namely parse
+translations\index{translations!parse}, may affect this process.  If we
+ignore parse translations for the time being, then \AST{}s are transformed
+to terms by mapping \AST{} constants to constants, \AST{} variables to
+schematic or free variables and \AST{} applications to applications.
+
+More precisely, the mapping $\termofast{-}$ is defined by
+\begin{itemize}
+\item Constants: $\termofast{\Constant x} = \ttfct{Const} (x,
+  \mtt{dummyT})$.
+
+\item Schematic variables: $\termofast{\Variable \mtt{"?}xi\mtt"} =
+  \ttfct{Var} ((x, i), \mtt{dummyT})$, where $x$ is the base name and $i$
+  the index extracted from~$xi$.
+
+\item Free variables: $\termofast{\Variable x} = \ttfct{Free} (x,
+  \mtt{dummyT})$.
+
+\item Function applications with $n$ arguments:
+    \[ \termofast{\Appl{f, x@1, \ldots, x@n}} = 
+       \termofast{f} \ttapp
+         \termofast{x@1} \ttapp \ldots \ttapp \termofast{x@n}
+    \]
+\end{itemize}
+Here \ttindex{Const}, \ttindex{Var}, \ttindex{Free} and
+\verb|$|\index{$@{\tt\$}} are constructors of the datatype \mltydx{term},
+while \ttindex{dummyT} stands for some dummy type that is ignored during
+type inference.
+
+So far the outcome is still a first-order term.  Abstractions and bound
+variables (constructors \ttindex{Abs} and \ttindex{Bound}) are introduced
+by parse translations.  Such translations are attached to {\tt "_abs"},
+{\tt "!!"} and user-defined binders.
+
+
+\section{Printing of terms}
+\newcommand\astofterm[1]{\lbrakk#1\rbrakk}\index{ASTs!made from terms}
+
+The output phase is essentially the inverse of the input phase.  Terms are
+translated via abstract syntax trees into strings.  Finally the strings are
+pretty printed.
+
+Print translations (\S\ref{sec:tr_funs}) may affect the transformation of
+terms into \AST{}s.  Ignoring those, the transformation maps
+term constants, variables and applications to the corresponding constructs
+on \AST{}s.  Abstractions are mapped to applications of the special
+constant {\tt _abs}.
+
+More precisely, the mapping $\astofterm{-}$ is defined as follows:
+\begin{itemize}
+  \item $\astofterm{\ttfct{Const} (x, \tau)} = \Constant x$.
+
+  \item $\astofterm{\ttfct{Free} (x, \tau)} = constrain (\Variable x,
+    \tau)$.
+
+  \item $\astofterm{\ttfct{Var} ((x, i), \tau)} = constrain (\Variable
+    \mtt{"?}xi\mtt", \tau)$, where $\mtt?xi$ is the string representation of
+    the {\tt indexname} $(x, i)$.
+
+  \item For the abstraction $\lambda x::\tau.t$, let $x'$ be a variant
+    of~$x$ renamed to differ from all names occurring in~$t$, and let $t'$
+    be obtained from~$t$ by replacing all bound occurrences of~$x$ by
+    the free variable $x'$.  This replaces corresponding occurrences of the
+    constructor \ttindex{Bound} by the term $\ttfct{Free} (x',
+    \mtt{dummyT})$:
+   \[ \astofterm{\ttfct{Abs} (x, \tau, t)} = 
+      \Appl{\Constant \mtt{"_abs"}, 
+        constrain(\Variable x', \tau), \astofterm{t'}}.
+    \]
+
+  \item $\astofterm{\ttfct{Bound} i} = \Variable \mtt{"B.}i\mtt"$.  
+    The occurrence of constructor \ttindex{Bound} should never happen
+    when printing well-typed terms; it indicates a de Bruijn index with no
+    matching abstraction.
+
+  \item Where $f$ is not an application,
+    \[ \astofterm{f \ttapp x@1 \ttapp \ldots \ttapp x@n} = 
+       \Appl{\astofterm{f}, \astofterm{x@1}, \ldots,\astofterm{x@n}}
+    \]
+\end{itemize}
+%
+Type constraints are inserted to allow the printing of types.  This is
+governed by the boolean variable \ttindex{show_types}:
+\begin{itemize}
+  \item $constrain(x, \tau) = x$ \ if $\tau = \mtt{dummyT}$ \index{*dummyT} or
+    \ttindex{show_types} not set to {\tt true}.
+
+  \item $constrain(x, \tau) = \Appl{\Constant \mtt{"_constrain"}, x, 
+         \astofterm{\tau}}$ \ otherwise.  
+
+    Here, $\astofterm{\tau}$ is the \AST{} encoding of $\tau$: type
+    constructors go to {\tt Constant}s; type identifiers go to {\tt
+      Variable}s; type applications go to {\tt Appl}s with the type
+    constructor as the first element.  If \ttindex{show_sorts} is set to
+    {\tt true}, some type variables are decorated with an \AST{} encoding
+    of their sort.
+\end{itemize}
+%
+The \AST{}, after application of macros (see \S\ref{sec:macros}), is
+transformed into the final output string.  The built-in {\bf print AST
+  translations}\indexbold{translations!print AST} effectively reverse the
+parse \AST{} translations of Fig.\ts\ref{fig:parse_ast_tr}.
+
+For the actual printing process, the names attached to productions
+of the form $\ldots A^{(p@1)}@1 \ldots A^{(p@n)}@n \ldots \mtt{=>} c$ play
+a vital role.  Each \AST{} with constant head $c$, namely $\mtt"c\mtt"$ or
+$(\mtt"c\mtt"~ x@1 \ldots x@n)$, is printed according to the production
+for~$c$.  Each argument~$x@i$ is converted to a string, and put in
+parentheses if its priority~$(p@i)$ requires this.  The resulting strings
+and their syntactic sugar (denoted by \dots{} above) are joined to make a
+single string.
+
+If an application $(\mtt"c\mtt"~ x@1 \ldots x@m)$ has more arguments than the
+corresponding production, it is first split into $((\mtt"c\mtt"~ x@1 \ldots
+x@n) ~ x@{n+1} \ldots x@m)$.  Applications with too few arguments or with
+non-constant head or without a corresponding production are printed as
+$f(x@1, \ldots, x@l)$ or $(\alpha@1, \ldots, \alpha@l) ty$.  An occurrence of
+$\Variable x$ is simply printed as~$x$.
+
+Blanks are {\em not\/} inserted automatically.  If blanks are required to
+separate tokens, specify them in the mixfix declaration, possibly preceded
+by a slash~({\tt/}) to allow a line break.
+\index{ASTs|)}
+
+
+
+\section{Macros: Syntactic rewriting} \label{sec:macros}
+\index{macros|(}\index{rewriting!syntactic|(} 
+
+Mixfix declarations alone can handle situations where there is a direct
+connection between the concrete syntax and the underlying term.  Sometimes
+we require a more elaborate concrete syntax, such as quantifiers and list
+notation.  Isabelle's {\bf macros} and {\bf translation functions} can
+perform translations such as
+\begin{center}\tt
+  \begin{tabular}{r@{$\quad\protect\rightleftharpoons\quad$}l}
+    ALL x:A.P   & Ball(A, \%x.P)        \\ \relax
+    [x, y, z]   & Cons(x, Cons(y, Cons(z, Nil)))
+  \end{tabular}
+\end{center}
+Translation functions (see \S\ref{sec:tr_funs}) must be coded in ML; they
+are the most powerful translation mechanism but are difficult to read or
+write.  Macros are specified by first-order rewriting systems that operate
+on abstract syntax trees.  They are usually easy to read and write, and can
+express all but the most obscure translations.
+
+Figure~\ref{fig:set_trans} defines a fragment of first-order logic and set
+theory.\footnote{This and the following theories are complete working
+  examples, though they specify only syntax, no axioms.  The file {\tt
+    ZF/zf.thy} presents the full set theory definition, including many
+  macro rules.}  Theory {\tt SET} defines constants for set comprehension
+({\tt Collect}), replacement ({\tt Replace}) and bounded universal
+quantification ({\tt Ball}).  Each of these binds some variables.  Without
+additional syntax we should have to express $\forall x \in A.  P$ as {\tt
+  Ball(A,\%x.P)}, and similarly for the others.
+
+\begin{figure}
+\begin{ttbox}
+SET = Pure +
+types
+  i, o
+arities
+  i, o :: logic
+consts
+  Trueprop      :: "o => prop"              ("_" 5)
+  Collect       :: "[i, i => o] => i"
+  "{\at}Collect"    :: "[idt, i, o] => i"       ("(1{\ttlbrace}_:_./ _{\ttrbrace})")
+  Replace       :: "[i, [i, i] => o] => i"
+  "{\at}Replace"    :: "[idt, idt, i, o] => i"  ("(1{\ttlbrace}_./ _:_, _{\ttrbrace})")
+  Ball          :: "[i, i => o] => o"
+  "{\at}Ball"       :: "[idt, i, o] => o"       ("(3ALL _:_./ _)" 10)
+translations
+  "{\ttlbrace}x:A. P{\ttrbrace}"    == "Collect(A, \%x. P)"
+  "{\ttlbrace}y. x:A, Q{\ttrbrace}" == "Replace(A, \%x y. Q)"
+  "ALL x:A. P"  == "Ball(A, \%x. P)"
+end
+\end{ttbox}
+\caption{Macro example: set theory}\label{fig:set_trans}
+\end{figure}
+
+The theory specifies a variable-binding syntax through additional
+productions that have mixfix declarations.  Each non-copy production must
+specify some constant, which is used for building \AST{}s.
+\index{constants!syntactic} The additional constants are decorated with
+{\tt\at} to stress their purely syntactic purpose; they should never occur
+within the final well-typed terms.  Furthermore, they cannot be written in
+formulae because they are not legal identifiers.
+
+The translations cause the replacement of external forms by internal forms
+after parsing, and vice versa before printing of terms.  As a specification
+of the set theory notation, they should be largely self-explanatory.  The
+syntactic constants, {\tt\at Collect}, {\tt\at Replace} and {\tt\at Ball},
+appear implicitly in the macro rules via their mixfix forms.
+
+Macros can define variable-binding syntax because they operate on \AST{}s,
+which have no inbuilt notion of bound variable.  The macro variables {\tt
+  x} and~{\tt y} have type~{\tt idt} and therefore range over identifiers,
+in this case bound variables.  The macro variables {\tt P} and~{\tt Q}
+range over formulae containing bound variable occurrences.
+
+Other applications of the macro system can be less straightforward, and
+there are peculiarities.  The rest of this section will describe in detail
+how Isabelle macros are preprocessed and applied.
+
+
+\subsection{Specifying macros}
+Macros are basically rewrite rules on \AST{}s.  But unlike other macro
+systems found in programming languages, Isabelle's macros work in both
+directions.  Therefore a syntax contains two lists of rewrites: one for
+parsing and one for printing.
+
+\index{*translations section}
+The {\tt translations} section specifies macros.  The syntax for a macro is
+\[ (root)\; string \quad
+   \left\{\begin{array}[c]{c} \mtt{=>} \\ \mtt{<=} \\ \mtt{==} \end{array}
+   \right\} \quad
+   (root)\; string 
+\]
+%
+This specifies a parse rule ({\tt =>}), a print rule ({\tt <=}), or both
+({\tt ==}).  The two strings specify the left and right-hand sides of the
+macro rule.  The $(root)$ specification is optional; it specifies the
+nonterminal for parsing the $string$ and if omitted defaults to {\tt
+  logic}.  \AST{} rewrite rules $(l, r)$ must obey certain conditions:
+\begin{itemize}
+\item Rules must be left linear: $l$ must not contain repeated variables.
+
+\item Rules must have constant heads, namely $l = \mtt"c\mtt"$ or $l =
+  (\mtt"c\mtt" ~ x@1 \ldots x@n)$.
+
+\item Every variable in~$r$ must also occur in~$l$.
+\end{itemize}
+
+Macro rules may refer to any syntax from the parent theories.  They may
+also refer to anything defined before the the {\tt .thy} file's {\tt
+  translations} section --- including any mixfix declarations.
+
+Upon declaration, both sides of the macro rule undergo parsing and parse
+\AST{} translations (see \S\ref{sec:asts}), but do not themselves undergo
+macro expansion.  The lexer runs in a different mode that additionally
+accepts identifiers of the form $\_~letter~quasiletter^*$ (like {\tt _idt},
+{\tt _K}).  Thus, a constant whose name starts with an underscore can
+appear in macro rules but not in ordinary terms.
+
+Some atoms of the macro rule's \AST{} are designated as constants for
+matching.  These are all names that have been declared as classes, types or
+constants.
+
+The result of this preprocessing is two lists of macro rules, each stored
+as a pair of \AST{}s.  They can be viewed using {\tt Syntax.print_syntax}
+(sections \ttindex{parse_rules} and \ttindex{print_rules}).  For
+theory~{\tt SET} of Fig.~\ref{fig:set_trans} these are
+\begin{ttbox}
+parse_rules:
+  ("{\at}Collect" x A P)  ->  ("Collect" A ("_abs" x P))
+  ("{\at}Replace" y x A Q)  ->  ("Replace" A ("_abs" x ("_abs" y Q)))
+  ("{\at}Ball" x A P)  ->  ("Ball" A ("_abs" x P))
+print_rules:
+  ("Collect" A ("_abs" x P))  ->  ("{\at}Collect" x A P)
+  ("Replace" A ("_abs" x ("_abs" y Q)))  ->  ("{\at}Replace" y x A Q)
+  ("Ball" A ("_abs" x P))  ->  ("{\at}Ball" x A P)
+\end{ttbox}
+
+\begin{warn}
+  Avoid choosing variable names that have previously been used as
+  constants, types or type classes; the {\tt consts} section in the output
+  of {\tt Syntax.print_syntax} lists all such names.  If a macro rule works
+  incorrectly, inspect its internal form as shown above, recalling that
+  constants appear as quoted strings and variables without quotes.
+\end{warn}
+
+\begin{warn}
+If \ttindex{eta_contract} is set to {\tt true}, terms will be
+$\eta$-contracted {\em before\/} the \AST{} rewriter sees them.  Thus some
+abstraction nodes needed for print rules to match may vanish.  For example,
+\verb|Ball(A, %x. P(x))| contracts {\tt Ball(A, P)}; the print rule does
+not apply and the output will be {\tt Ball(A, P)}.  This problem would not
+occur if \ML{} translation functions were used instead of macros (as is
+done for binder declarations).
+\end{warn}
+
+
+\begin{warn}
+Another trap concerns type constraints.  If \ttindex{show_types} is set to
+{\tt true}, bound variables will be decorated by their meta types at the
+binding place (but not at occurrences in the body).  Matching with
+\verb|Collect(A, %x. P)| binds {\tt x} to something like {\tt ("_constrain" y
+"i")} rather than only {\tt y}.  \AST{} rewriting will cause the constraint to
+appear in the external form, say \verb|{y::i:A::i. P::o}|.  
+
+To allow such constraints to be re-read, your syntax should specify bound
+variables using the nonterminal~\ndx{idt}.  This is the case in our
+example.  Choosing {\tt id} instead of {\tt idt} is a common error,
+especially since it appears in former versions of most of Isabelle's
+object-logics.
+\end{warn}
+
+
+
+\subsection{Applying rules}
+As a term is being parsed or printed, an \AST{} is generated as an
+intermediate form (recall Fig.\ts\ref{fig:parse_print}).  The \AST{} is
+normalized by applying macro rules in the manner of a traditional term
+rewriting system.  We first examine how a single rule is applied.
+
+Let $t$ be the abstract syntax tree to be normalized and $(l, r)$ some
+translation rule.  A subtree~$u$ of $t$ is a {\bf redex} if it is an
+instance of~$l$; in this case $l$ is said to {\bf match}~$u$.  A redex
+matched by $l$ may be replaced by the corresponding instance of~$r$, thus
+{\bf rewriting} the \AST~$t$.  Matching requires some notion of {\bf
+  place-holders} that may occur in rule patterns but not in ordinary
+\AST{}s; {\tt Variable} atoms serve this purpose.
+
+The matching of the object~$u$ by the pattern~$l$ is performed as follows:
+\begin{itemize}
+  \item Every constant matches itself.
+
+  \item $\Variable x$ in the object matches $\Constant x$ in the pattern.
+    This point is discussed further below.
+
+  \item Every \AST{} in the object matches $\Variable x$ in the pattern,
+    binding~$x$ to~$u$.
+
+  \item One application matches another if they have the same number of
+    subtrees and corresponding subtrees match.
+
+  \item In every other case, matching fails.  In particular, {\tt
+      Constant}~$x$ can only match itself.
+\end{itemize}
+A successful match yields a substitution that is applied to~$r$, generating
+the instance that replaces~$u$.
+
+The second case above may look odd.  This is where {\tt Variable}s of
+non-rule \AST{}s behave like {\tt Constant}s.  Recall that \AST{}s are not
+far removed from parse trees; at this level it is not yet known which
+identifiers will become constants, bounds, frees, types or classes.  As
+\S\ref{sec:asts} describes, former parse tree heads appear in \AST{}s as
+{\tt Constant}s, while the name tokens \ndx{id}, \ndx{var}, \ndx{tid} and
+\ndx{tvar} become {\tt Variable}s.  On the other hand, when \AST{}s
+generated from terms for printing, all constants and type constructors
+become {\tt Constant}s; see \S\ref{sec:asts}.  Thus \AST{}s may contain a
+messy mixture of {\tt Variable}s and {\tt Constant}s.  This is
+insignificant at macro level because matching treats them alike.
+
+Because of this behaviour, different kinds of atoms with the same name are
+indistinguishable, which may make some rules prone to misbehaviour.  Example:
+\begin{ttbox}
+types
+  Nil
+consts
+  Nil     :: "'a list"
+  "[]"    :: "'a list"    ("[]")
+translations
+  "[]"    == "Nil"
+\end{ttbox}
+The term {\tt Nil} will be printed as {\tt []}, just as expected.
+The term \verb|%Nil.t| will be printed as \verb|%[].t|, which might not be
+expected! 
+
+Normalizing an \AST{} involves repeatedly applying macro rules until none
+is applicable.  Macro rules are chosen in the order that they appear in the
+{\tt translations} section.  You can watch the normalization of \AST{}s
+during parsing and printing by setting \ttindex{Syntax.trace_norm_ast} to
+{\tt true}.\index{tracing!of macros} Alternatively, use
+\ttindex{Syntax.test_read}.  The information displayed when tracing
+includes the \AST{} before normalization ({\tt pre}), redexes with results
+({\tt rewrote}), the normal form finally reached ({\tt post}) and some
+statistics ({\tt normalize}).  If tracing is off,
+\ttindex{Syntax.stat_norm_ast} can be set to {\tt true} in order to enable
+printing of the normal form and statistics only.
+
+
+\subsection{Example: the syntax of finite sets}
+\index{examples!of macros}
+
+This example demonstrates the use of recursive macros to implement a
+convenient notation for finite sets.
+\index{*empty constant}\index{*insert constant}\index{{}@\verb'{}' symbol}
+\index{"@Enum@{\tt\at Enum} constant}
+\index{"@Finset@{\tt\at Finset} constant}
+\begin{ttbox}
+FINSET = SET +
+types
+  is
+consts
+  ""            :: "i => is"                ("_")
+  "{\at}Enum"       :: "[i, is] => is"          ("_,/ _")
+  empty         :: "i"                      ("{\ttlbrace}{\ttrbrace}")
+  insert        :: "[i, i] => i"
+  "{\at}Finset"     :: "is => i"                ("{\ttlbrace}(_){\ttrbrace}")
+translations
+  "{\ttlbrace}x, xs{\ttrbrace}"     == "insert(x, {\ttlbrace}xs{\ttrbrace})"
+  "{\ttlbrace}x{\ttrbrace}"         == "insert(x, {\ttlbrace}{\ttrbrace})"
+end
+\end{ttbox}
+Finite sets are internally built up by {\tt empty} and {\tt insert}.  The
+declarations above specify \verb|{x, y, z}| as the external representation
+of
+\begin{ttbox}
+insert(x, insert(y, insert(z, empty)))
+\end{ttbox}
+The nonterminal symbol~\ndx{is} stands for one or more objects of type~{\tt
+  i} separated by commas.  The mixfix declaration \hbox{\verb|"_,/ _"|}
+allows a line break after the comma for \rmindex{pretty printing}; if no
+line break is required then a space is printed instead.
+
+The nonterminal is declared as the type~{\tt is}, but with no {\tt arities}
+declaration.  Hence {\tt is} is not a logical type and no default
+productions are added.  If we had needed enumerations of the nonterminal
+{\tt logic}, which would include all the logical types, we could have used
+the predefined nonterminal symbol \ndx{args} and skipped this part
+altogether.  The nonterminal~{\tt is} can later be reused for other
+enumerations of type~{\tt i} like lists or tuples.
+
+\index{"@Finset@{\tt\at Finset} constant}
+Next follows {\tt empty}, which is already equipped with its syntax
+\verb|{}|, and {\tt insert} without concrete syntax.  The syntactic
+constant {\tt\at Finset} provides concrete syntax for enumerations of~{\tt
+  i} enclosed in curly braces.  Remember that a pair of parentheses, as in
+\verb|"{(_)}"|, specifies a block of indentation for pretty printing.
+
+The translations may look strange at first.  Macro rules are best
+understood in their internal forms:
+\begin{ttbox}
+parse_rules:
+  ("{\at}Finset" ("{\at}Enum" x xs))  ->  ("insert" x ("{\at}Finset" xs))
+  ("{\at}Finset" x)  ->  ("insert" x "empty")
+print_rules:
+  ("insert" x ("{\at}Finset" xs))  ->  ("{\at}Finset" ("{\at}Enum" x xs))
+  ("insert" x "empty")  ->  ("{\at}Finset" x)
+\end{ttbox}
+This shows that \verb|{x, xs}| indeed matches any set enumeration of at least
+two elements, binding the first to {\tt x} and the rest to {\tt xs}.
+Likewise, \verb|{xs}| and \verb|{x}| represent any set enumeration.  
+The parse rules only work in the order given.
+
+\begin{warn}
+  The \AST{} rewriter cannot discern constants from variables and looks
+  only for names of atoms.  Thus the names of {\tt Constant}s occurring in
+  the (internal) left-hand side of translation rules should be regarded as
+  \rmindex{reserved words}.  Choose non-identifiers like {\tt\at Finset} or
+  sufficiently long and strange names.  If a bound variable's name gets
+  rewritten, the result will be incorrect; for example, the term
+\begin{ttbox}
+\%empty insert. insert(x, empty)
+\end{ttbox}
+  gets printed as \verb|%empty insert. {x}|.
+\end{warn}
+
+
+\subsection{Example: a parse macro for dependent types}\label{prod_trans}
+\index{examples!of macros}
+
+As stated earlier, a macro rule may not introduce new {\tt Variable}s on
+the right-hand side.  Something like \verb|"K(B)" => "%x. B"| is illegal;
+if allowed, it could cause variable capture.  In such cases you usually
+must fall back on translation functions.  But a trick can make things
+readable in some cases: {\em calling translation functions by parse
+  macros}:
+\begin{ttbox}
+PROD = FINSET +
+consts
+  Pi            :: "[i, i => i] => i"
+  "{\at}PROD"       :: "[idt, i, i] => i"     ("(3PROD _:_./ _)" 10)
+  "{\at}->"         :: "[i, i] => i"          ("(_ ->/ _)" [51, 50] 50)
+\ttbreak
+translations
+  "PROD x:A. B" => "Pi(A, \%x. B)"
+  "A -> B"      => "Pi(A, _K(B))"
+end
+ML
+  val print_translation = [("Pi", dependent_tr' ("{\at}PROD", "{\at}->"))];
+\end{ttbox}
+
+Here {\tt Pi} is an internal constant for constructing general products.
+Two external forms exist: the general case {\tt PROD x:A.B} and the
+function space {\tt A -> B}, which abbreviates \verb|Pi(A, %x.B)| when {\tt B}
+does not depend on~{\tt x}.
+
+The second parse macro introduces {\tt _K(B)}, which later becomes \verb|%x.B|
+due to a parse translation associated with \cdx{_K}.  The order of the
+parse rules is critical.  Unfortunately there is no such trick for
+printing, so we have to add a {\tt ML} section for the print translation
+\ttindex{dependent_tr'}.
+
+Recall that identifiers with a leading {\tt _} are allowed in translation
+rules, but not in ordinary terms.  Thus we can create \AST{}s containing
+names that are not directly expressible.
+
+The parse translation for {\tt _K} is already installed in Pure, and {\tt
+dependent_tr'} is exported by the syntax module for public use.  See
+\S\ref{sec:tr_funs} below for more of the arcane lore of translation functions.
+\index{macros|)}\index{rewriting!syntactic|)}
+
+
+\section{Translation functions} \label{sec:tr_funs}
+\index{translations|(} 
+%
+This section describes the translation function mechanism.  By writing
+\ML{} functions, you can do almost everything with terms or \AST{}s during
+parsing and printing.  The logic \LK\ is a good example of sophisticated
+transformations between internal and external representations of
+associative sequences; here, macros would be useless.
+
+A full understanding of translations requires some familiarity
+with Isabelle's internals, especially the datatypes {\tt term}, {\tt typ},
+{\tt Syntax.ast} and the encodings of types and terms as such at the various
+stages of the parsing or printing process.  Most users should never need to
+use translation functions.
+
+\subsection{Declaring translation functions}
+There are four kinds of translation functions.  Each such function is
+associated with a name, which triggers calls to it.  Such names can be
+constants (logical or syntactic) or type constructors.
+
+{\tt Syntax.print_syntax} displays the sets of names associated with the
+translation functions of a {\tt Syntax.syntax} under
+\ttindex{parse_ast_translation}, \ttindex{parse_translation},
+\ttindex{print_translation} and \ttindex{print_ast_translation}.  You can
+add new ones via the {\tt ML} section\index{*ML section} of
+a {\tt .thy} file.  There may never be more than one function of the same
+kind per name.  Conceptually, the {\tt ML} section should appear between
+{\tt consts} and {\tt translations}; newly installed translation functions
+are already effective when macros and logical rules are parsed.
+
+The {\tt ML} section is copied verbatim into the \ML\ file generated from a
+{\tt .thy} file.  Definitions made here are accessible as components of an
+\ML\ structure; to make some definitions private, use an \ML{} {\tt local}
+declaration.  The {\tt ML} section may install translation functions by
+declaring any of the following identifiers:
+\begin{ttbox}
+val parse_ast_translation : (string * (ast list -> ast)) list
+val print_ast_translation : (string * (ast list -> ast)) list
+val parse_translation     : (string * (term list -> term)) list
+val print_translation     : (string * (term list -> term)) list
+\end{ttbox}
+
+\subsection{The translation strategy}
+All four kinds of translation functions are treated similarly.  They are
+called during the transformations between parse trees, \AST{}s and terms
+(recall Fig.\ts\ref{fig:parse_print}).  Whenever a combination of the form
+$(\mtt"c\mtt"~x@1 \ldots x@n)$ is encountered, and a translation function
+$f$ of appropriate kind exists for $c$, the result is computed by the \ML{}
+function call $f \mtt[ x@1, \ldots, x@n \mtt]$.
+
+For \AST{} translations, the arguments $x@1, \ldots, x@n$ are \AST{}s.  A
+combination has the form $\Constant c$ or $\Appl{\Constant c, x@1, \ldots,
+  x@n}$.  For term translations, the arguments are terms and a combination
+has the form $\ttfct{Const} (c, \tau)$ or $\ttfct{Const} (c, \tau) \ttapp
+x@1 \ttapp \ldots \ttapp x@n$.  Terms allow more sophisticated
+transformations than \AST{}s do, typically involving abstractions and bound
+variables.
+
+Regardless of whether they act on terms or \AST{}s,
+parse translations differ from print translations fundamentally:
+\begin{description}
+\item[Parse translations] are applied bottom-up.  The arguments are already
+  in translated form.  The translations must not fail; exceptions trigger
+  an error message.
+
+\item[Print translations] are applied top-down.  They are supplied with
+  arguments that are partly still in internal form.  The result again
+  undergoes translation; therefore a print translation should not introduce
+  as head the very constant that invoked it.  The function may raise
+  exception \xdx{Match} to indicate failure; in this event it has no
+  effect.
+\end{description}
+
+Only constant atoms --- constructor \ttindex{Constant} for \AST{}s and
+\ttindex{Const} for terms --- can invoke translation functions.  This
+causes another difference between parsing and printing.
+
+Parsing starts with a string and the constants are not yet identified.
+Only parse tree heads create {\tt Constant}s in the resulting \AST, as
+described in \S\ref{sec:astofpt}.  Macros and parse \AST{} translations may
+introduce further {\tt Constant}s.  When the final \AST{} is converted to a
+term, all {\tt Constant}s become {\tt Const}s, as described in
+\S\ref{sec:termofast}.
+
+Printing starts with a well-typed term and all the constants are known.  So
+all logical constants and type constructors may invoke print translations.
+These, and macros, may introduce further constants.
+
+
+\subsection{Example: a print translation for dependent types}
+\index{examples!of translations}\indexbold{*dependent_tr'}
+
+Let us continue the dependent type example (page~\pageref{prod_trans}) by
+examining the parse translation for~\cdx{_K} and the print translation
+{\tt dependent_tr'}, which are both built-in.  By convention, parse
+translations have names ending with {\tt _tr} and print translations have
+names ending with {\tt _tr'}.  Search for such names in the Isabelle
+sources to locate more examples.
+
+Here is the parse translation for {\tt _K}:
+\begin{ttbox}
+fun k_tr [t] = Abs ("x", dummyT, incr_boundvars 1 t)
+  | k_tr ts = raise TERM("k_tr",ts);
+\end{ttbox}
+If {\tt k_tr} is called with exactly one argument~$t$, it creates a new
+{\tt Abs} node with a body derived from $t$.  Since terms given to parse
+translations are not yet typed, the type of the bound variable in the new
+{\tt Abs} is simply {\tt dummyT}.  The function increments all {\tt Bound}
+nodes referring to outer abstractions by calling \ttindex{incr_boundvars},
+a basic term manipulation function defined in {\tt Pure/term.ML}.
+
+Here is the print translation for dependent types:
+\begin{ttbox}
+fun dependent_tr' (q,r) (A :: Abs (x, T, B) :: ts) =
+      if 0 mem (loose_bnos B) then
+        let val (x', B') = variant_abs (x, dummyT, B);
+        in list_comb (Const (q, dummyT) $ Free (x', T) $ A $ B', ts)
+        end
+      else list_comb (Const (r, dummyT) $ A $ B, ts)
+  | dependent_tr' _ _ = raise Match;
+\end{ttbox}
+The argument {\tt (q,r)} is supplied to {\tt dependent_tr'} by a curried
+function application during its installation.  We could set up print
+translations for both {\tt Pi} and {\tt Sigma} by including
+\begin{ttbox}\index{*ML section}
+val print_translation =
+  [("Pi",    dependent_tr' ("{\at}PROD", "{\at}->")),
+   ("Sigma", dependent_tr' ("{\at}SUM", "{\at}*"))];
+\end{ttbox}
+within the {\tt ML} section.  The first of these transforms ${\tt Pi}(A,
+\mtt{Abs}(x, T, B))$ into $\hbox{\tt{\at}PROD}(x', A, B')$ or
+$\hbox{\tt{\at}->}r(A, B)$, choosing the latter form if $B$ does not depend
+on~$x$.  It checks this using \ttindex{loose_bnos}, yet another function
+from {\tt Pure/term.ML}.  Note that $x'$ is a version of $x$ renamed away
+from all names in $B$, and $B'$ the body $B$ with {\tt Bound} nodes
+referring to our {\tt Abs} node replaced by $\ttfct{Free} (x',
+\mtt{dummyT})$.
+
+We must be careful with types here.  While types of {\tt Const}s are
+ignored, type constraints may be printed for some {\tt Free}s and
+{\tt Var}s if \ttindex{show_types} is set to {\tt true}.  Variables of type
+\ttindex{dummyT} are never printed with constraint, though.  The line
+\begin{ttbox}
+        let val (x', B') = variant_abs (x, dummyT, B);
+\end{ttbox}\index{*variant_abs}
+replaces bound variable occurrences in~$B$ by the free variable $x'$ with
+type {\tt dummyT}.  Only the binding occurrence of~$x'$ is given the
+correct type~{\tt T}, so this is the only place where a type
+constraint might appear. 
+\index{translations|)}
+\index{syntax!transformations|)}

@@ -1,10 +1,10 @@
 %% $Id$
 \chapter{Tactics} \label{tactics}
 \index{tactics|(}
-Tactics have type \ttindexbold{tactic}.  They are essentially
+Tactics have type \mltydx{tactic}.  They are essentially
 functions from theorems to theorem sequences, where the theorems represent
 states of a backward proof.  Tactics seldom need to be coded from scratch,
-as functions; the basic tactics suffice for most proofs.
+as functions; instead they are expressed using basic tactics and tacticals.
 
 \section{Resolution and assumption tactics}
 {\bf Resolution} is Isabelle's basic mechanism for refining a subgoal using
@@ -19,6 +19,7 @@ integer~$i$.  They fail (by returning the empty sequence) if~$i$ is out of
 range.
 
 \subsection{Resolution tactics}
+\index{resolution!tactics}
 \index{tactics!resolution|bold}
 \begin{ttbox} 
 resolve_tac  : thm list -> int -> tactic
@@ -30,49 +31,51 @@ These perform resolution on a list of theorems, $thms$, representing a list
 of object-rules.  When generating next states, they take each of the rules
 in the order given.  Each rule may yield several next states, or none:
 higher-order resolution may yield multiple resolvents.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{resolve_tac} {\it thms} {\it i}] 
-refines the proof state using the object-rules, which should normally be
-introduction rules.  It resolves an object-rule's conclusion with
-subgoal~$i$ of the proof state.
+  refines the proof state using the rules, which should normally be
+  introduction rules.  It resolves a rule's conclusion with
+  subgoal~$i$ of the proof state.
 
 \item[\ttindexbold{eresolve_tac} {\it thms} {\it i}] 
-refines the proof state by elim-resolution with the object-rules, which
-should normally be elimination rules.  It resolves with a rule, solves
-its first premise by assumption, and finally {\bf deletes} that assumption
-from any new subgoals.
+  \index{elim-resolution}
+  performs elim-resolution with the rules, which should normally be
+  elimination rules.  It resolves with a rule, solves its first premise by
+  assumption, and finally {\em deletes\/} that assumption from any new
+  subgoals.
 
 \item[\ttindexbold{dresolve_tac} {\it thms} {\it i}] 
-performs destruct-resolution with the object-rules, which normally should
-be destruction rules.  This replaces an assumption by the result of
-applying one of the rules.
+  \index{forward proof}\index{destruct-resolution}
+  performs destruct-resolution with the rules, which normally should
+  be destruction rules.  This replaces an assumption by the result of
+  applying one of the rules.
 
-\item[\ttindexbold{forward_tac}] 
-is like \ttindex{dresolve_tac} except that the selected assumption is not
-deleted.  It applies a rule to an assumption, adding the result as a new
-assumption.
-\end{description}
+\item[\ttindexbold{forward_tac}]\index{forward proof}
+  is like {\tt dresolve_tac} except that the selected assumption is not
+  deleted.  It applies a rule to an assumption, adding the result as a new
+  assumption.
+\end{ttdescription}
 
 \subsection{Assumption tactics}
-\index{tactics!assumption|bold}
+\index{tactics!assumption|bold}\index{assumptions!tactics for}
 \begin{ttbox} 
 assume_tac    : int -> tactic
 eq_assume_tac : int -> tactic
 \end{ttbox} 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{assume_tac} {\it i}] 
 attempts to solve subgoal~$i$ by assumption.
 
 \item[\ttindexbold{eq_assume_tac}] 
 is like {\tt assume_tac} but does not use unification.  It succeeds (with a
-{\bf unique} next state) if one of the assumptions is identical to the
+{\em unique\/} next state) if one of the assumptions is identical to the
 subgoal's conclusion.  Since it does not instantiate variables, it cannot
 make other subgoals unprovable.  It is intended to be called from proof
 strategies, not interactively.
-\end{description}
+\end{ttdescription}
 
 \subsection{Matching tactics} \label{match_tac}
-\index{tactics!matching|bold}
+\index{tactics!matching}
 \begin{ttbox} 
 match_tac  : thm list -> int -> tactic
 ematch_tac : thm list -> int -> tactic
@@ -83,9 +86,9 @@ instantiate unknowns in the proof state.  Flexible subgoals are not updated
 willy-nilly, but are left alone.  Matching --- strictly speaking --- means
 treating the unknowns in the proof state as constants; these tactics merely
 discard unifiers that would update the proof state.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{match_tac} {\it thms} {\it i}] 
-refines the proof state using the object-rules, matching an object-rule's
+refines the proof state using the rules, matching a rule's
 conclusion with subgoal~$i$ of the proof state.
 
 \item[\ttindexbold{ematch_tac}] 
@@ -93,11 +96,11 @@ is like {\tt match_tac}, but performs elim-resolution.
 
 \item[\ttindexbold{dmatch_tac}] 
 is like {\tt match_tac}, but performs destruct-resolution.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Resolution with instantiation} \label{res_inst_tac}
-\index{tactics!instantiation|bold}
+\index{tactics!instantiation}\index{instantiation}
 \begin{ttbox} 
 res_inst_tac  : (string*string)list -> thm -> int -> tactic
 eres_inst_tac : (string*string)list -> thm -> int -> tactic
@@ -134,7 +137,7 @@ particular, they may refer to that subgoal's parameters.  Any unknowns in
 the terms receive subscripts and are lifted over the parameters; thus, you
 may not refer to unknowns in the subgoal.
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{res_inst_tac} {\it insts} {\it thm} {\it i}]
 instantiates the rule {\it thm} with the instantiations {\it insts}, as
 described above, and then performs resolution on subgoal~$i$.  Resolution
@@ -151,12 +154,14 @@ is like {\tt res_inst_tac}, but performs destruct-resolution.
 is like {\tt dres_inst_tac} except that the selected assumption is not
 deleted.  It applies the instantiated rule to an assumption, adding the
 result as a new assumption.
-\end{description}
+\end{ttdescription}
 
 
 \section{Other basic tactics}
 \subsection{Definitions and meta-level rewriting}
-\index{tactics!meta-rewriting|bold}\index{rewriting!meta-level}
+\index{tactics!meta-rewriting|bold}\index{meta-rewriting|bold}
+\index{definitions}
+
 Definitions in Isabelle have the form $t\equiv u$, where typically $t$ is a
 constant or a constant applied to a list of variables, for example $\it
 sqr(n)\equiv n\times n$.  (Conditional definitions, $\phi\Imp t\equiv u$,
@@ -175,7 +180,7 @@ rewrite_tac       : thm list -> tactic
 fold_goals_tac    : thm list -> tactic
 fold_tac          : thm list -> tactic
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{rewrite_goals_tac} {\it defs}]  
 unfolds the {\it defs} throughout the subgoals of the proof state, while
 leaving the main goal unchanged.  Use \ttindex{SELECT_GOAL} to restrict it to a
@@ -191,11 +196,11 @@ leaving the main goal unchanged.
 
 \item[\ttindexbold{fold_tac} {\it defs}]  
 folds the {\it defs} throughout the proof state.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Tactic shortcuts}
-\index{shortcuts!for tactics|bold}
+\index{shortcuts!for tactics}
 \index{tactics!resolution}\index{tactics!assumption}
 \index{tactics!meta-rewriting}
 \begin{ttbox} 
@@ -207,7 +212,7 @@ ares_tac : thm list -> int -> tactic
 rewtac   : thm -> tactic
 \end{ttbox}
 These abbreviate common uses of tactics.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{rtac} {\it thm} {\it i}] 
 abbreviates \hbox{\tt resolve_tac [{\it thm}] {\it i}}, doing resolution.
 
@@ -229,11 +234,11 @@ assume_tac {\it i} ORELSE resolve_tac {\it thms} {\it i}
 
 \item[\ttindexbold{rewtac} {\it def}] 
 abbreviates \hbox{\tt rewrite_goals_tac [{\it def}]}, unfolding a definition.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Inserting premises and facts}\label{cut_facts_tac}
-\index{tactics!for inserting facts|bold}
+\index{tactics!for inserting facts}\index{assumptions!inserting}
 \begin{ttbox} 
 cut_facts_tac : thm list -> int -> tactic
 cut_inst_tac  : (string*string)list -> thm -> int -> tactic
@@ -241,7 +246,7 @@ subgoal_tac   : string -> int -> tactic
 \end{ttbox}
 These tactics add assumptions --- which must be proved, sooner or later ---
 to a given subgoal.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{cut_facts_tac} {\it thms} {\it i}] 
   adds the {\it thms} as new assumptions to subgoal~$i$.  Once they have
   been inserted as assumptions, they become subject to tactics such as {\tt
@@ -259,39 +264,39 @@ to a given subgoal.
 \item[\ttindexbold{subgoal_tac} {\it formula} {\it i}] 
 adds the {\it formula} as a assumption to subgoal~$i$, and inserts the same
 {\it formula} as a new subgoal, $i+1$.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Theorems useful with tactics}
-\index{theorems!of pure theory|bold}
+\index{theorems!of pure theory}
 \begin{ttbox} 
 asm_rl: thm 
 cut_rl: thm 
 \end{ttbox}
-\begin{description}
-\item[\ttindexbold{asm_rl}] 
+\begin{ttdescription}
+\item[\tdx{asm_rl}] 
 is $\psi\Imp\psi$.  Under elim-resolution it does proof by assumption, and
 \hbox{\tt eresolve_tac (asm_rl::{\it thms}) {\it i}} is equivalent to
 \begin{ttbox} 
 assume_tac {\it i}  ORELSE  eresolve_tac {\it thms} {\it i}
 \end{ttbox}
 
-\item[\ttindexbold{cut_rl}] 
+\item[\tdx{cut_rl}] 
 is $\List{\psi\Imp\theta,\psi}\Imp\theta$.  It is useful for inserting
-assumptions; it underlies \ttindex{forward_tac}, \ttindex{cut_facts_tac}
-and \ttindex{subgoal_tac}.
-\end{description}
+assumptions; it underlies {\tt forward_tac}, {\tt cut_facts_tac}
+and {\tt subgoal_tac}.
+\end{ttdescription}
 
 
 \section{Obscure tactics}
 \subsection{Tidying the proof state}
-\index{parameters!removing unused|bold}
+\index{parameters!removing unused}
 \index{flex-flex constraints}
 \begin{ttbox} 
 prune_params_tac : tactic
 flexflex_tac     : tactic
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{prune_params_tac}]  
   removes unused parameters from all subgoals of the proof state.  It works
   by rewriting with the theorem $(\Forall x. V)\equiv V$.  This tactic can
@@ -308,10 +313,10 @@ flexflex_tac     : tactic
   some variables in a rule~(\S\ref{res_inst_tac}).  Normally flex-flex
   constraints can be ignored; they often disappear as unknowns get
   instantiated.
-\end{description}
+\end{ttdescription}
 
 
-\subsection{Renaming parameters in a goal} \index{parameters!renaming|bold}
+\subsection{Renaming parameters in a goal} \index{parameters!renaming}
 \begin{ttbox} 
 rename_tac        : string -> int -> tactic
 rename_last_tac   : string -> string list -> int -> tactic
@@ -327,7 +332,7 @@ $\forall$-bound variable in the conclusion.
 Sometimes there is insufficient information and Isabelle chooses an
 arbitrary name.  The renaming tactics let you override Isabelle's choice.
 Because renaming parameters has no logical effect on the proof state, the
-{\tt by} command prints the needless message {\tt Warning:\ same as previous
+{\tt by} command prints the message {\tt Warning:\ same as previous
 level}.
 
 Alternatively, you can suppress the naming mechanism described above and
@@ -335,7 +340,7 @@ have Isabelle generate uniform names for parameters.  These names have the
 form $p${\tt a}, $p${\tt b}, $p${\tt c},~\ldots, where $p$ is any desired
 prefix.  They are ugly but predictable.
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{rename_tac} {\it str} {\it i}] 
 interprets the string {\it str} as a series of blank-separated variable
 names, and uses them to rename the parameters of subgoal~$i$.  The names
@@ -352,13 +357,13 @@ where several of the new parameters should have related names.
 sets the prefix for uniform renaming to~{\it prefix}.  The default prefix
 is {\tt"k"}.
 
-\item[\ttindexbold{Logic.auto_rename} \tt:= true;] 
+\item[\ttindexbold{Logic.auto_rename} := true;] 
 makes Isabelle generate uniform names for parameters. 
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Composition: resolution without lifting}
-\index{tactics!for composition|bold}
+\index{tactics!for composition}
 \begin{ttbox}
 compose_tac: (bool * thm * int) -> int -> tactic
 \end{ttbox}
@@ -367,14 +372,14 @@ renaming of unknowns.  This low-level operation, which underlies the
 resolution tactics, may occasionally be useful for special effects.
 A typical application is \ttindex{res_inst_tac}, which lifts and instantiates a
 rule, then passes the result to {\tt compose_tac}.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{compose_tac} ($flag$, $rule$, $m$) $i$] 
 refines subgoal~$i$ using $rule$, without lifting.  The $rule$ is taken to
 have the form $\List{\psi@1; \ldots; \psi@m} \Imp \psi$, where $\psi$ need
-{\bf not} be atomic; thus $m$ determines the number of new subgoals.  If
+not be atomic; thus $m$ determines the number of new subgoals.  If
 $flag$ is {\tt true} then it performs elim-resolution --- it solves the
 first premise of~$rule$ by assumption and deletes that assumption.
-\end{description}
+\end{ttdescription}
 
 
 \section{Managing lots of rules}
@@ -398,7 +403,7 @@ pair, it applies resolution if the flag is~{\tt false} and
 elim-resolution if the flag is~{\tt true}.  A single tactic call handles a
 mixture of introduction and elimination rules.
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{biresolve_tac} {\it brls} {\it i}] 
 refines the proof state by resolution or elim-resolution on each rule, as
 indicated by its flag.  It affects subgoal~$i$ of the proof state.
@@ -419,13 +424,13 @@ returns the result of
 \begin{ttbox}
 subgoals_of_brl {\it brl1} < subgoals_of_brl {\it brl2}
 \end{ttbox}
+\end{ttdescription}
 Note that \hbox{\tt sort lessb {\it brls}} sorts a list of $\it
 (flag,rule)$ pairs by the number of new subgoals they will yield.  Thus,
 those that yield the fewest subgoals should be tried first.
-\end{description}
 
 
-\subsection{Discrimination nets for fast resolution}
+\subsection{Discrimination nets for fast resolution}\label{filt_resolve_tac}
 \index{discrimination nets|bold}
 \index{tactics!resolution}
 \begin{ttbox} 
@@ -437,11 +442,12 @@ filt_resolve_tac : thm list -> int -> int -> tactic
 could_unify      : term*term->bool
 filter_thms      : (term*term->bool) -> int*term*thm list -> thm list
 \end{ttbox}
-The module \ttindex{Net} implements a discrimination net data structure for
+The module {\tt Net} implements a discrimination net data structure for
 fast selection of rules \cite[Chapter 14]{charniak80}.  A term is
 classified by the symbol list obtained by flattening it in preorder.
 The flattening takes account of function applications, constants, and free
 and bound variables; it identifies all unknowns and also regards
+\index{lambda abs@$\lambda$-abstractions}
 $\lambda$-abstractions as unknowns, since they could $\eta$-contract to
 anything.  
 
@@ -454,13 +460,13 @@ useful filters.
 
 A net can store introduction rules indexed by their conclusion, and
 elimination rules indexed by their major premise.  Isabelle provides
-several functions for ``compiling'' long lists of rules into fast
+several functions for `compiling' long lists of rules into fast
 resolution tactics.  When supplied with a list of theorems, these functions
 build a discrimination net; the net is used when the tactic is applied to a
 goal.  To avoid repreatedly constructing the nets, use currying: bind the
 resulting tactics to \ML{} identifiers.
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{net_resolve_tac} {\it thms}] 
 builds a discrimination net to obtain the effect of a similar call to {\tt
 resolve_tac}.
@@ -486,7 +492,7 @@ This tactic helps avoid runaway instantiation of unknowns, for example in
 type inference.
 
 \item[\ttindexbold{could_unify} ({\it t},{\it u})] 
-returns {\tt false} if~$t$ and~$u$ are ``obviously'' non-unifiable, and
+returns {\tt false} if~$t$ and~$u$ are `obviously' non-unifiable, and
 otherwise returns~{\tt true}.  It assumes all variables are distinct,
 reporting that {\tt ?a=?a} may unify with {\tt 0=1}.
 
@@ -495,17 +501,17 @@ returns the list of potentially resolvable rules (in {\it thms\/}) for the
 subgoal {\it prem}, using the predicate {\it could\/} to compare the
 conclusion of the subgoal with the conclusion of each rule.  The resulting list
 is no longer than {\it limit}.
-\end{description}
+\end{ttdescription}
 
 
 \section{Programming tools for proof strategies}
 Do not consider using the primitives discussed in this section unless you
-really need to code tactics from scratch,
+really need to code tactics from scratch.
 
 \subsection{Operations on type {\tt tactic}}
-\index{tactics!primitives for coding|bold}
+\index{tactics!primitives for coding}
 A tactic maps theorems to theorem sequences (lazy lists).  The type
-constructor for sequences is called \ttindex{Sequence.seq}.  To simplify the
+constructor for sequences is called \mltydx{Sequence.seq}.  To simplify the
 types of tactics and tacticals, Isabelle defines a type of tactics:
 \begin{ttbox} 
 datatype tactic = Tactic of thm -> thm Sequence.seq
@@ -519,8 +525,8 @@ PRIMITIVE :                  (thm -> thm) -> tactic
 STATE     :               (thm -> tactic) -> tactic
 SUBGOAL   : ((term*int) -> tactic) -> int -> tactic
 \end{ttbox} 
-\begin{description}
-\item[\ttindexbold{tapply} {\it tac} {\it thm}]  
+\begin{ttdescription}
+\item[\ttindexbold{tapply}({\it tac}, {\it thm})]  
 returns the result of applying the tactic, as a function, to {\it thm}.
 
 \item[\ttindexbold{Tactic} {\it f}]  
@@ -533,24 +539,24 @@ one-element sequence.  This packages the meta-rule~$f$ as a tactic.
 \item[\ttindexbold{STATE} $f$] 
 applies $f$ to the proof state and then applies the resulting tactic to the
 same state.  It supports the following style, where the tactic body is
-expressed at a high level, but may peek at the proof state:
+expressed using tactics and tacticals, but may peek at the proof state:
 \begin{ttbox} 
-STATE (fn state => {\it some tactic})
+STATE (fn state => {\it tactic-valued expression})
 \end{ttbox} 
 
 \item[\ttindexbold{SUBGOAL} $f$ $i$] 
 extracts subgoal~$i$ from the proof state as a term~$t$, and computes a
 tactic by calling~$f(t,i)$.  It applies the resulting tactic to the same
-state.  The tactic body is expressed at a high level, but may peek at a
-particular subgoal:
+state.  The tactic body is expressed using tactics and tacticals, but may
+peek at a particular subgoal:
 \begin{ttbox} 
-SUBGOAL (fn (t,i) => {\it some tactic})
+SUBGOAL (fn (t,i) => {\it tactic-valued expression})
 \end{ttbox} 
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Tracing}
-\index{tactics!tracing|bold}
+\index{tactics!tracing}
 \index{tracing!of tactics}
 \begin{ttbox} 
 pause_tac: tactic
@@ -560,7 +566,7 @@ These violate the functional behaviour of tactics by printing information
 when they are applied to a proof state.  Their output may be difficult to
 interpret.  Note that certain of the searching tacticals, such as {\tt
 REPEAT}, have built-in tracing options.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{pause_tac}] 
 prints {\tt** Press RETURN to continue:} and then reads a line from the
 terminal.  If this line is blank then it returns the proof state unchanged;
@@ -569,13 +575,13 @@ otherwise it fails (which may terminate a repetition).
 \item[\ttindexbold{print_tac}] 
 returns the proof state unchanged, with the side effect of printing it at
 the terminal.
-\end{description}
+\end{ttdescription}
 
 
-\subsection{Sequences}
+\section{Sequences}
 \index{sequences (lazy lists)|bold}
-The module \ttindex{Sequence} declares a type of lazy lists.  It uses
-Isabelle's type \ttindexbold{option} to represent the possible presence
+The module {\tt Sequence} declares a type of lazy lists.  It uses
+Isabelle's type \mltydx{option} to represent the possible presence
 (\ttindexbold{Some}) or absence (\ttindexbold{None}) of
 a value:
 \begin{ttbox}
@@ -585,52 +591,52 @@ For clarity, the module name {\tt Sequence} is omitted from the signature
 specifications below; for instance, {\tt null} appears instead of {\tt
   Sequence.null}.
 
-\subsubsection{Basic operations on sequences}
+\subsection{Basic operations on sequences}
 \begin{ttbox} 
 null   : 'a seq
 seqof  : (unit -> ('a * 'a seq) option) -> 'a seq
 single : 'a -> 'a seq
 pull   : 'a seq -> ('a * 'a seq) option
 \end{ttbox}
-\begin{description}
-\item[{\tt Sequence.null}] 
+\begin{ttdescription}
+\item[Sequence.null] 
 is the empty sequence.
 
 \item[\tt Sequence.seqof (fn()=> Some($x$,$s$))] 
 constructs the sequence with head~$x$ and tail~$s$, neither of which is
 evaluated.
 
-\item[{\tt Sequence.single} $x$] 
+\item[Sequence.single $x$] 
 constructs the sequence containing the single element~$x$.
 
-\item[{\tt Sequence.pull} $s$] 
+\item[Sequence.pull $s$] 
 returns {\tt None} if the sequence is empty and {\tt Some($x$,$s'$)} if the
 sequence has head~$x$ and tail~$s'$.  Warning: calling \hbox{Sequence.pull
 $s$} again will {\bf recompute} the value of~$x$; it is not stored!
-\end{description}
+\end{ttdescription}
 
 
-\subsubsection{Converting between sequences and lists}
+\subsection{Converting between sequences and lists}
 \begin{ttbox} 
 chop      : int * 'a seq -> 'a list * 'a seq
 list_of_s : 'a seq -> 'a list
 s_of_list : 'a list -> 'a seq
 \end{ttbox}
-\begin{description}
-\item[{\tt Sequence.chop} ($n$, $s$)] 
+\begin{ttdescription}
+\item[Sequence.chop ($n$, $s$)] 
 returns the first~$n$ elements of~$s$ as a list, paired with the remaining
 elements of~$s$.  If $s$ has fewer than~$n$ elements, then so will the
 list.
 
-\item[{\tt Sequence.list_of_s} $s$] 
+\item[Sequence.list_of_s $s$] 
 returns the elements of~$s$, which must be finite, as a list.
 
-\item[{\tt Sequence.s_of_list} $l$] 
+\item[Sequence.s_of_list $l$] 
 creates a sequence containing the elements of~$l$.
-\end{description}
+\end{ttdescription}
 
 
-\subsubsection{Combining sequences}
+\subsection{Combining sequences}
 \begin{ttbox} 
 append     : 'a seq * 'a seq -> 'a seq
 interleave : 'a seq * 'a seq -> 'a seq
@@ -638,24 +644,24 @@ flats      : 'a seq seq -> 'a seq
 maps       : ('a -> 'b) -> 'a seq -> 'b seq
 filters    : ('a -> bool) -> 'a seq -> 'a seq
 \end{ttbox} 
-\begin{description}
-\item[{\tt Sequence.append} ($s@1$, $s@2$)] 
+\begin{ttdescription}
+\item[Sequence.append ($s@1$, $s@2$)] 
 concatenates $s@1$ to $s@2$.
 
-\item[{\tt Sequence.interleave} ($s@1$, $s@2$)] 
+\item[Sequence.interleave ($s@1$, $s@2$)] 
 joins $s@1$ with $s@2$ by interleaving their elements.  The result contains
 all the elements of the sequences, even if both are infinite.
 
-\item[{\tt Sequence.flats} $ss$] 
+\item[Sequence.flats $ss$] 
 concatenates a sequence of sequences.
 
-\item[{\tt Sequence.maps} $f$ $s$] 
+\item[Sequence.maps $f$ $s$] 
 applies $f$ to every element of~$s=x@1,x@2,\ldots$, yielding the sequence
 $f(x@1),f(x@2),\ldots$.
 
-\item[{\tt Sequence.filters} $p$ $s$] 
+\item[Sequence.filters $p$ $s$] 
 returns the sequence consisting of all elements~$x$ of~$s$ such that $p(x)$
 is {\tt true}.
-\end{description}
+\end{ttdescription}
 
 \index{tactics|)}

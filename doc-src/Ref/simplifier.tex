@@ -3,46 +3,43 @@
 \index{simplification|(}
 
 This chapter describes Isabelle's generic simplification package, which
-provides a suite of simplification tactics.  This rewriting package is less
-general than its predecessor --- it works only for the equality relation,
-not arbitrary preorders --- but it is fast and flexible.  It performs
-conditional and unconditional rewriting and uses contextual information
-(``local assumptions'').  It provides a few general hooks, which can
-provide automatic case splits during rewriting, for example.  The
-simplifier is set up for many of Isabelle's logics: {\tt FOL}, {\tt ZF},
-{\tt LCF} and {\tt HOL}.
+provides a suite of simplification tactics.  It performs conditional and
+unconditional rewriting and uses contextual information (`local
+assumptions').  It provides a few general hooks, which can provide
+automatic case splits during rewriting, for example.  The simplifier is set
+up for many of Isabelle's logics: {\tt FOL}, {\tt ZF}, {\tt LCF} and {\tt
+  HOL}.
 
 
 \section{Simplification sets}\index{simplification sets} 
 The simplification tactics are controlled by {\bf simpsets}.  These consist
 of five components: rewrite rules, congruence rules, the subgoaler, the
-solver and the looper.  Normally, the simplifier is set up with sensible
-defaults, so that most simplifier calls specify only rewrite rules.
-Sophisticated usage of the other components can be highly effective, but
-most users should never worry about them.
+solver and the looper.  The simplifier should be set up with sensible
+defaults so that most simplifier calls specify only rewrite rules.
+Experienced users can exploit the other components to streamline proofs.
+
 
 \subsection{Rewrite rules}\index{rewrite rules}
-Rewrite rules are theorems like $Suc(\Var{m}) + \Var{n} = \Var{m} +
-Suc(\Var{n})$, $\Var{P}\conj\Var{P} \bimp \Var{P}$, or $\Var{A} \union \Var{B}
-\equiv \{x.x\in A \disj x\in B\}$.  {\bf Conditional} rewrites such as
-$\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} = 0$ are permitted; the conditions
-can be arbitrary terms.  The infix operation \ttindex{addsimps} adds new
-rewrite rules, while \ttindex{delsimps} deletes rewrite rules from a
-simpset.
+Rewrite rules are theorems expressing some form of equality:
+\begin{eqnarray*}
+  Suc(\Var{m}) + \Var{n} &=&      \Var{m} + Suc(\Var{n}) \\
+  \Var{P}\conj\Var{P}    &\bimp&  \Var{P} \\
+  \Var{A} \union \Var{B} &\equiv& \{x.x\in \Var{A} \disj x\in \Var{B}\}
+\end{eqnarray*}
+{\bf Conditional} rewrites such as $\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} =
+0$ are permitted; the conditions can be arbitrary terms.  The infix
+operation \ttindex{addsimps} adds new rewrite rules, while
+\ttindex{delsimps} deletes rewrite rules from a simpset.
 
-Theorems added via \ttindex{addsimps} need not be equalities to start with.
-Each simpset contains a (user-definable) function for extracting equalities
-from arbitrary theorems.  For example $\neg(x\in \{\})$ could be turned
-into $x\in \{\} \equiv False$.  This function can be set with
-\ttindex{setmksimps} but only the definer of a logic should need to do
-this.  Exceptionally, one may want to install a selective version of
-\ttindex{mksimps} in order to filter out looping rewrite rules arising from
-local assumptions (see below).
+Internally, all rewrite rules are translated into meta-equalities, theorems
+with conclusion $lhs \equiv rhs$.  Each simpset contains a function for
+extracting equalities from arbitrary theorems.  For example,
+$\neg(\Var{x}\in \{\})$ could be turned into $\Var{x}\in \{\} \equiv
+False$.  This function can be installed using \ttindex{setmksimps} but only
+the definer of a logic should need to do this; see \S\ref{sec:setmksimps}.
+The function processes theorems added by \ttindex{addsimps} as well as
+local assumptions.
 
-Internally, all rewrite rules are translated into meta-equalities:
-theorems with conclusion $lhs \equiv rhs$.  To this end every simpset contains
-a function of type \verb$thm -> thm list$ to extract a list
-of meta-equalities from a given theorem.
 
 \begin{warn}\index{rewrite rules}
   The left-hand side of a rewrite rule must look like a first-order term:
@@ -60,23 +57,23 @@ Congruence rules are meta-equalities of the form
 \[ \List{\dots} \Imp
    f(\Var{x@1},\ldots,\Var{x@n}) \equiv f(\Var{y@1},\ldots,\Var{y@n}).
 \]
-They control the simplification of the arguments of certain constants.  For
+This governs the simplification of the arguments of~$f$.  For
 example, some arguments can be simplified under additional assumptions:
 \[ \List{\Var{P@1} \bimp \Var{Q@1};\; \Var{Q@1} \Imp \Var{P@2} \bimp \Var{Q@2}}
    \Imp (\Var{P@1} \imp \Var{P@2}) \equiv (\Var{Q@1} \imp \Var{Q@2})
 \]
-This rule assumes $Q@1$ and any rewrite rules it implies, while
-simplifying~$P@2$.  Such ``local'' assumptions are effective for rewriting
-formulae such as $x=0\imp y+x=y$.  The next example makes similar use of
-such contextual information in bounded quantifiers:
+Given this rule, the simplifier assumes $Q@1$ and extracts rewrite rules
+from it when simplifying~$P@2$.  Such local assumptions are effective for
+rewriting formulae such as $x=0\imp y+x=y$.  The congruence rule for bounded
+quantifiers can also supply contextual information:
 \begin{eqnarray*}
   &&\List{\Var{A}=\Var{B};\; 
           \Forall x. x\in \Var{B} \Imp \Var{P}(x) = \Var{Q}(x)} \Imp{} \\
  &&\qquad\qquad
     (\forall x\in \Var{A}.\Var{P}(x)) = (\forall x\in \Var{B}.\Var{Q}(x))
 \end{eqnarray*}
-This congruence rule supplies contextual information for simplifying the
-arms of a conditional expressions:
+The congruence rule for conditional expressions can supply contextual
+information for simplifying the arms:
 \[ \List{\Var{p}=\Var{q};~ \Var{q} \Imp \Var{a}=\Var{c};~
          \neg\Var{q} \Imp \Var{b}=\Var{d}} \Imp
    if(\Var{p},\Var{a},\Var{b}) \equiv if(\Var{q},\Var{c},\Var{d})
@@ -100,7 +97,7 @@ natural to derive the rules with object-logic equality, for example
 Each object-logic should define an operator called \ttindex{addcongs} that
 expects object-equalities and translates them into meta-equalities.
 
-\subsection{The subgoaler}
+\subsection{*The subgoaler}
 The subgoaler is the tactic used to solve subgoals arising out of
 conditional rewrite rules or congruence rules.  The default should be
 simplification itself.  Occasionally this strategy needs to be changed.  For
@@ -118,45 +115,48 @@ tries to solve the subgoal with one of the premises and calls
 simplification only if that fails; here {\tt prems_of_ss} extracts the
 current premises from a simpset.
 
-\subsection{The solver}
+\subsection{*The solver}
 The solver is a tactic that attempts to solve a subgoal after
 simplification.  Typically it just proves trivial subgoals such as {\tt
-  True} and $t=t$; it could use sophisticated means such as
-\verb$fast_tac$.  The solver is set using \ttindex{setsolver}.
+  True} and $t=t$.  It could use sophisticated means such as {\tt
+  fast_tac}, though that could make simplification expensive.  The solver
+is set using \ttindex{setsolver}.
 
+Rewriting does not instantiate unknowns.  For example, rewriting cannot
+prove $a\in \Var{A}$ since this requires instantiating~$\Var{A}$.  The
+solver, however, is an arbitrary tactic and may instantiate unknowns as it
+pleases.  This is the only way the simplifier can handle a conditional
+rewrite rule whose condition contains extra variables.
+
+\index{assumptions!in simplification}
 The tactic is presented with the full goal, including the asssumptions.
 Hence it can use those assumptions (say by calling {\tt assume_tac}) even
 inside {\tt simp_tac}, which otherwise does not use assumptions.  The
 solver is also supplied a list of theorems, namely assumptions that hold in
 the local context.
 
-\begin{warn}
-  Rewriting does not instantiate unknowns.  Trying to rewrite $a\in
-  \Var{A}$ with the rule $\Var{x}\in \{\Var{x}\}$ leads nowhere.  The
-  solver, however, is an arbitrary tactic and may instantiate unknowns as
-  it pleases.  This is the only way the simplifier can handle a conditional
-  rewrite rule whose condition contains extra variables.
-\end{warn}
+The subgoaler is also used to solve the premises of congruence rules, which
+are usually of the form $s = \Var{x}$, where $s$ needs to be simplified and
+$\Var{x}$ needs to be instantiated with the result.  Hence the subgoaler
+should call the simplifier at some point.  The simplifier will then call the
+solver, which must therefore be prepared to solve goals of the form $t =
+\Var{x}$, usually by reflexivity.  In particular, reflexivity should be
+tried before any of the fancy tactics like {\tt fast_tac}.  
+
+It may even happen that, due to simplification, the subgoal is no longer an
+equality.  For example $False \bimp \Var{Q}$ could be rewritten to
+$\neg\Var{Q}$.  To cover this case, the solver could try resolving with the
+theorem $\neg False$.
 
 \begin{warn}
-  If you want to supply your own subgoaler or solver, read on.  The subgoaler
-  is also used to solve the premises of congruence rules, which are usually
-  of the form $s = \Var{x}$, where $s$ needs to be simplified and $\Var{x}$
-  needs to be instantiated with the result. Hence the subgoaler should call
-  the simplifier at some point. The simplifier will then call the solver,
-  which must therefore be prepared to solve goals of the form $t = \Var{x}$,
-  usually by reflexivity. In particular, reflexivity should be tried before
-  any of the fancy tactics like {\tt fast_tac}. It may even happen that, due
-  to simplification, the subgoal is no longer an equality. For example $False
-  \bimp \Var{Q}$ could be rewritten to $\neg\Var{Q}$, in which case the
-  solver must also try resolving with the theorem $\neg False$.
-
   If the simplifier aborts with the message {\tt Failed congruence proof!},
-  it is due to the subgoaler or solver that failed to prove a premise of a
-  congruence rule.
+  then the subgoaler or solver has failed to prove a premise of a
+  congruence rule.  This should never occur and indicates that the
+  subgoaler or solver is faulty.
 \end{warn}
 
-\subsection{The looper}
+
+\subsection{*The looper}
 The looper is a tactic that is applied after simplification, in case the
 solver failed to solve the simplified goal.  If the looper succeeds, the
 simplification process is started all over again.  Each of the subgoals
@@ -168,22 +168,21 @@ adventurous loopers could start an induction.  The looper is set with
 
 
 \begin{figure}
-\indexbold{*SIMPLIFIER}
-\indexbold{*simpset}
-\indexbold{*simp_tac}
-\indexbold{*asm_simp_tac}
-\indexbold{*asm_full_simp_tac}
-\indexbold{*addeqcongs}
-\indexbold{*addsimps}
-\indexbold{*delsimps}
-\indexbold{*empty_ss}
-\indexbold{*merge_ss}
-\indexbold{*setsubgoaler}
-\indexbold{*setsolver}
-\indexbold{*setloop}
-\indexbold{*setmksimps}
-\indexbold{*prems_of_ss}
-\indexbold{*rep_ss}
+\index{*simpset ML type}
+\index{*simp_tac}
+\index{*asm_simp_tac}
+\index{*asm_full_simp_tac}
+\index{*addeqcongs}
+\index{*addsimps}
+\index{*delsimps}
+\index{*empty_ss}
+\index{*merge_ss}
+\index{*setsubgoaler}
+\index{*setsolver}
+\index{*setloop}
+\index{*setmksimps}
+\index{*prems_of_ss}
+\index{*rep_ss}
 \begin{ttbox}
 infix addsimps addeqcongs delsimps
       setsubgoaler setsolver setloop setmksimps;
@@ -207,13 +206,13 @@ sig
   val rep_ss:       simpset -> \{simps: thm list, congs: thm list\}
 end;
 \end{ttbox}
-\caption{The signature \ttindex{SIMPLIFIER}} \label{SIMPLIFIER}
+\caption{The simplifier primitives} \label{SIMPLIFIER}
 \end{figure}
 
 
 \section{The simplification tactics} \label{simp-tactics}
-\index{simplification!tactics|bold}
-\index{tactics!simplification|bold}
+\index{simplification!tactics}
+\index{tactics!simplification}
 
 The actual simplification work is performed by the following tactics.  The
 rewriting strategy is strictly bottom up, except for congruence rules, which
@@ -221,40 +220,48 @@ are applied while descending into a term.  Conditions in conditional rewrite
 rules are solved recursively before the rewrite rule is applied.
 
 There are three basic simplification tactics:
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{simp_tac} $ss$ $i$] simplifies subgoal~$i$ using the rules
   in~$ss$.  It may solve the subgoal completely if it has become trivial,
   using the solver.
   
-\item[\ttindexbold{asm_simp_tac}] is like \verb$simp_tac$, but also uses
-  assumptions as additional rewrite rules.
+\item[\ttindexbold{asm_simp_tac}]\index{assumptions!in simplification}
+  is like \verb$simp_tac$, but extracts additional rewrite rules from the
+  assumptions.
 
 \item[\ttindexbold{asm_full_simp_tac}] is like \verb$asm_simp_tac$, but also
   simplifies the assumptions one by one, using each assumption in the
   simplification of the following ones.
-\end{description}
+\end{ttdescription}
 Using the simplifier effectively may take a bit of experimentation.  The
 tactics can be traced with the ML command \verb$trace_simp := true$.  To
 remind yourself of what is in a simpset, use the function \verb$rep_ss$ to
 return its simplification and congruence rules.
 
 \section{Examples using the simplifier}
-\index{simplification!example}
+\index{examples!of simplification}
 Assume we are working within {\tt FOL} and that
-\begin{description}
-\item[\tt Nat.thy] is a theory including the constants $0$, $Suc$ and $+$,
-\item[\tt add_0] is the rewrite rule $0+n = n$,
-\item[\tt add_Suc] is the rewrite rule $Suc(m)+n = Suc(m+n)$,
-\item[\tt induct] is the induction rule
-$\List{P(0); \Forall x. P(x)\Imp P(Suc(x))} \Imp P(n)$.
-\item[\tt FOL_ss] is a basic simpset for {\tt FOL}.\footnote
-{These examples reside on the file {\tt FOL/ex/nat.ML}.} 
-\end{description}
+\begin{ttdescription}
+\item[Nat.thy] 
+  is a theory including the constants $0$, $Suc$ and $+$,
+\item[add_0]
+  is the rewrite rule $0+\Var{n} = \Var{n}$,
+\item[add_Suc]
+  is the rewrite rule $Suc(\Var{m})+\Var{n} = Suc(\Var{m}+\Var{n})$,
+\item[induct]
+  is the induction rule $\List{\Var{P}(0);\; \Forall x. \Var{P}(x)\Imp
+    \Var{P}(Suc(x))} \Imp \Var{P}(\Var{n})$.
+\item[FOL_ss]
+  is a basic simpset for {\tt FOL}.%
+\footnote{These examples reside on the file {\tt FOL/ex/nat.ML}.} 
+\end{ttdescription}
 
 We create a simpset for natural numbers by extending~{\tt FOL_ss}:
 \begin{ttbox}
 val add_ss = FOL_ss addsimps [add_0, add_Suc];
 \end{ttbox}
+
+\subsection{A trivial example}
 Proofs by induction typically involve simplification.  Here is a proof
 that~0 is a right identity:
 \begin{ttbox}
@@ -288,7 +295,9 @@ by (asm_simp_tac add_ss 1);
 {\out No subgoals!}
 \end{ttbox}
 
-The next proof is similar.
+\subsection{An example of tracing}
+Let us prove a similar result involving more complex terms.  The two
+equations together can be used to prove that addition is commutative.
 \begin{ttbox}
 goal Nat.thy "m+Suc(n) = Suc(m+n)";
 {\out Level 0}
@@ -318,14 +327,19 @@ subgoal:
 \begin{ttbox}
 trace_simp := true;
 by (asm_simp_tac add_ss 1);
+\ttbreak
 {\out Rewriting:}
 {\out Suc(x) + Suc(n) == Suc(x + Suc(n))}
+\ttbreak
 {\out Rewriting:}
 {\out x + Suc(n) == Suc(x + n)}
+\ttbreak
 {\out Rewriting:}
 {\out Suc(x) + n == Suc(x + n)}
+\ttbreak
 {\out Rewriting:}
 {\out Suc(Suc(x + n)) = Suc(Suc(x + n)) == True}
+\ttbreak
 {\out Level 3}
 {\out m + Suc(n) = Suc(m + n)}
 {\out No subgoals!}
@@ -339,18 +353,22 @@ by (ALLGOALS (asm_simp_tac add_ss));
 {\out No subgoals!}
 \end{ttbox}
 
-\medskip
+\subsection{Free variables and simplification}
 Here is a conjecture to be proved for an arbitrary function~$f$ satisfying
-the law $f(Suc(n)) = Suc(f(n))$:
+the law $f(Suc(\Var{n})) = Suc(f(\Var{n}))$:
 \begin{ttbox}
 val [prem] = goal Nat.thy
     "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 {\out Level 0}
 {\out f(i + j) = i + f(j)}
 {\out  1. f(i + j) = i + f(j)}
+\ttbreak
 {\out val prem = "f(Suc(?n)) = Suc(f(?n))}
 {\out             [!!n. f(Suc(n)) = Suc(f(n))]" : thm}
-\ttbreak
+\end{ttbox}
+In the theorem~{\tt prem}, note that $f$ is a free variable while
+$\Var{n}$ is a schematic variable.
+\begin{ttbox}
 by (res_inst_tac [("n","i")] induct 1);
 {\out Level 1}
 {\out f(i + j) = i + f(j)}
@@ -365,11 +383,12 @@ by (simp_tac add_ss 1);
 {\out  1. !!x. f(x + j) = x + f(j) ==> f(Suc(x) + j) = Suc(x) + f(j)}
 \end{ttbox}
 The remaining subgoal requires rewriting by the premise, so we add it to
-{\tt add_ss}:\footnote{The previous
-  simplifier required congruence rules for function variables like~$f$ in
-  order to simplify their arguments.  The present simplifier can be given
-  congruence rules to realize non-standard simplification of a function's
-  arguments, but this is seldom necessary.}
+{\tt add_ss}:%
+\footnote{The previous simplifier required congruence rules for function
+  variables like~$f$ in order to simplify their arguments.  It was more
+  general than the current simplifier, but harder to use and slower.  The
+  present simplifier can be given congruence rules to realize non-standard
+  simplification of a function's arguments, but this is seldom necessary.}
 \begin{ttbox}
 by (asm_simp_tac (add_ss addsimps [prem]) 1);
 {\out Level 3}
@@ -378,39 +397,184 @@ by (asm_simp_tac (add_ss addsimps [prem]) 1);
 \end{ttbox}
 
 
-\section{Setting up the simplifier}
-\index{simplification!setting up|bold}
+\section{*Permutative rewrite rules}
+\index{rewrite rules!permutative|(}
+
+A rewrite rule is {\bf permutative} if the left-hand side and right-hand
+side are the same up to renaming of variables.  The most common permutative
+rule is commutativity: $x+y = y+x$.  Other examples include $(x-y)-z =
+(x-z)-y$ in arithmetic and $insert(x,insert(y,A)) = insert(y,insert(x,A))$
+for sets.  Such rules are common enough to merit special attention.
+
+Because ordinary rewriting loops given such rules, the simplifier employs a
+special strategy, called {\bf ordered rewriting}\index{rewriting!ordered}.
+There is a built-in lexicographic ordering on terms.  A permutative rewrite
+rule is applied only if it decreases the given term with respect to this
+ordering.  For example, commutativity rewrites~$b+a$ to $a+b$, but then
+stops because $a+b$ is strictly less than $b+a$.  The Boyer-Moore theorem
+prover~\cite{bm88book} also employs ordered rewriting.
+
+Permutative rewrite rules are added to simpsets just like other rewrite
+rules; the simplifier recognizes their special status automatically.  They
+are most effective in the case of associative-commutative operators.
+(Associativity by itself is not permutative.)  When dealing with an
+AC-operator~$f$, keep the following points in mind:
+\begin{itemize}\index{associative-commutative operators}
+\item The associative law must always be oriented from left to right, namely
+  $f(f(x,y),z) = f(x,f(y,z))$.  The opposite orientation, if used with
+  commutativity, leads to looping!  Future versions of Isabelle may remove
+  this restriction.
+
+\item To complete your set of rewrite rules, you must add not just
+  associativity~(A) and commutativity~(C) but also a derived rule, {\bf
+    left-commutativity} (LC): $f(x,f(y,z)) = f(y,f(x,z))$.
+\end{itemize}
+Ordered rewriting with the combination of A, C, and~LC sorts a term
+lexicographically:
+\[\def\maps#1{\stackrel{#1}{\longmapsto}}
+ (b+c)+a \maps{A} b+(c+a) \maps{C} b+(a+c) \maps{LC} a+(b+c) \]
+Martin and Nipkow~\cite{martin-nipkow} discuss the theory and give many
+examples; other algebraic structures are amenable to ordered rewriting,
+such as boolean rings.
+
+\subsection{Example: sums of integers}
+This example is set in Isabelle's higher-order logic.  Theory
+\thydx{Arith} contains the theory of arithmetic.  The simpset {\tt
+  arith_ss} contains many arithmetic laws including distributivity
+of~$\times$ over~$+$, while {\tt add_ac} is a list consisting of the A, C
+and LC laws for~$+$.  Let us prove the theorem 
+\[ \sum@{i=1}^n i = n\times(n+1)/2. \]
+%
+A functional~{\tt sum} represents the summation operator under the
+interpretation ${\tt sum}(f,n+1) = \sum@{i=0}^n f(i)$.  We extend {\tt
+  Arith} using a theory file:
+\begin{ttbox}
+NatSum = Arith +
+consts sum     :: "[nat=>nat, nat] => nat"
+rules  sum_0      "sum(f,0) = 0"
+       sum_Suc    "sum(f,Suc(n)) = f(n) + sum(f,n)"
+end
+\end{ttbox}
+After declaring {\tt open Natsum}, we make the required simpset by adding
+the AC-rules for~$+$ and the axioms for~{\tt sum}:
+\begin{ttbox}
+val natsum_ss = arith_ss addsimps ([sum_0,sum_Suc] \at add_ac);
+{\out val natsum_ss = SS \{\ldots\} : simpset}
+\end{ttbox}
+Our desired theorem now reads ${\tt sum}(\lambda i.i,n+1) =
+n\times(n+1)/2$.  The Isabelle goal has both sides multiplied by~$2$:
+\begin{ttbox}
+goal NatSum.thy "Suc(Suc(0))*sum(\%i.i,Suc(n)) = n*Suc(n)";
+{\out Level 0}
+{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
+{\out  1. Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
+\end{ttbox}
+Induction should not be applied until the goal is in the simplest form:
+\begin{ttbox}
+by (simp_tac natsum_ss 1);
+{\out Level 1}
+{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
+{\out  1. n + (n + (sum(\%i. i, n) + sum(\%i. i, n))) = n + n * n}
+\end{ttbox}
+Ordered rewriting has sorted the terms in the left-hand side.
+The subgoal is now ready for induction:
+\begin{ttbox}
+by (nat_ind_tac "n" 1);
+{\out Level 2}
+{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
+{\out  1. 0 + (0 + (sum(\%i. i, 0) + sum(\%i. i, 0))) = 0 + 0 * 0}
+\ttbreak
+{\out  2. !!n1. n1 + (n1 + (sum(\%i. i, n1) + sum(\%i. i, n1))) =}
+{\out           n1 + n1 * n1 ==>}
+{\out           Suc(n1) +}
+{\out           (Suc(n1) + (sum(\%i. i, Suc(n1)) + sum(\%i. i, Suc(n1)))) =}
+{\out           Suc(n1) + Suc(n1) * Suc(n1)}
+\end{ttbox}
+Simplification proves both subgoals immediately:\index{*ALLGOALS}
+\begin{ttbox}
+by (ALLGOALS (asm_simp_tac natsum_ss));
+{\out Level 3}
+{\out Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)}
+{\out No subgoals!}
+\end{ttbox}
+If we had omitted {\tt add_ac} from the simpset, simplification would have
+failed to prove the induction step:
+\begin{ttbox}
+Suc(Suc(0)) * sum(\%i. i, Suc(n)) = n * Suc(n)
+ 1. !!n1. n1 + (n1 + (sum(\%i. i, n1) + sum(\%i. i, n1))) =
+          n1 + n1 * n1 ==>
+          n1 + (n1 + (n1 + sum(\%i. i, n1) + (n1 + sum(\%i. i, n1)))) =
+          n1 + (n1 + (n1 + n1 * n1))
+\end{ttbox}
+Ordered rewriting proves this by sorting the left-hand side.  Proving
+arithmetic theorems without ordered rewriting requires explicit use of
+commutativity.  This is tedious; try it and see!
+
+Ordered rewriting is equally successful in proving
+$\sum@{i=1}^n i^3 = n^2\times(n+1)^2/4$.
+
+
+\subsection{Re-orienting equalities}
+Ordered rewriting with the derived rule {\tt symmetry} can reverse equality
+signs:
+\begin{ttbox}
+val symmetry = prove_goal HOL.thy "(x=y) = (y=x)"
+                 (fn _ => [fast_tac HOL_cs 1]);
+\end{ttbox}
+This is frequently useful.  Assumptions of the form $s=t$, where $t$ occurs
+in the conclusion but not~$s$, can often be brought into the right form.
+For example, ordered rewriting with {\tt symmetry} can prove the goal
+\[ f(a)=b \conj f(a)=c \imp b=c. \]
+Here {\tt symmetry} reverses both $f(a)=b$ and $f(a)=c$
+because $f(a)$ is lexicographically greater than $b$ and~$c$.  These
+re-oriented equations, as rewrite rules, replace $b$ and~$c$ in the
+conclusion by~$f(a)$. 
+
+Another example is the goal $\neg(t=u) \imp \neg(u=t)$.
+The differing orientations make this appear difficult to prove.  Ordered
+rewriting with {\tt symmetry} makes the equalities agree.  (Without
+knowing more about~$t$ and~$u$ we cannot say whether they both go to $t=u$
+or~$u=t$.)  Then the simplifier can prove the goal outright.
+
+\index{rewrite rules!permutative|)}
+
+
+\section{*Setting up the simplifier}\label{sec:setting-up-simp}
+\index{simplification!setting up}
 
 Setting up the simplifier for new logics is complicated.  This section
-describes how the simplifier is installed for first-order logic; the code
-is largely taken from {\tt FOL/simpdata.ML}.
+describes how the simplifier is installed for intuitionistic first-order
+logic; the code is largely taken from {\tt FOL/simpdata.ML}.
 
-The simplifier and the case splitting tactic, which resides in a separate
-file, are not part of Pure Isabelle.  They must be loaded explicitly:
+The simplifier and the case splitting tactic, which reside on separate
+files, are not part of Pure Isabelle.  They must be loaded explicitly:
 \begin{ttbox}
 use "../Provers/simplifier.ML";
 use "../Provers/splitter.ML";
 \end{ttbox}
 
 Simplification works by reducing various object-equalities to
-meta-equality.  It requires axioms stating that equal terms and equivalent
-formulae are also equal at the meta-level.  The file {\tt FOL/ifol.thy}
-contains the two lines
-\begin{ttbox}\indexbold{*eq_reflection}\indexbold{*iff_reflection}
+meta-equality.  It requires rules stating that equal terms and equivalent
+formulae are also equal at the meta-level.  The rule declaration part of
+the file {\tt FOL/ifol.thy} contains the two lines
+\begin{ttbox}\index{*eq_reflection theorem}\index{*iff_reflection theorem}
 eq_reflection   "(x=y)   ==> (x==y)"
 iff_reflection  "(P<->Q) ==> (P==Q)"
 \end{ttbox}
-Of course, you should only assert such axioms if they are true for your
+Of course, you should only assert such rules if they are true for your
 particular logic.  In Constructive Type Theory, equality is a ternary
 relation of the form $a=b\in A$; the type~$A$ determines the meaning of the
-equality effectively as a partial equivalence relation.
+equality effectively as a partial equivalence relation.  The present
+simplifier cannot be used.  Rewriting in {\tt CTT} uses another simplifier,
+which resides in the file {\tt typedsimp.ML} and is not documented.  Even
+this does not work for later variants of Constructive Type Theory that use
+intensional equality~\cite{nordstrom90}.
 
 
 \subsection{A collection of standard rewrite rules}
 The file begins by proving lots of standard rewrite rules about the logical
-connectives.  These include cancellation laws and associative laws but
-certainly not commutative laws, which would case looping.  To prove the
-laws easily, it defines a function that echoes the desired law and then
+connectives.  These include cancellation and associative laws.  To prove
+them easily, it defines a function that echoes the desired law and then
 supplies it the theorem prover for intuitionistic \FOL:
 \begin{ttbox}
 fun int_prove_fun s = 
@@ -432,7 +596,7 @@ val conj_rews = map int_prove_fun
 \end{ttbox}
 The file also proves some distributive laws.  As they can cause exponential
 blowup, they will not be included in the standard simpset.  Instead they
-are merely bound to an \ML{} identifier.
+are merely bound to an \ML{} identifier, for user reference.
 \begin{ttbox}
 val distrib_rews  = map int_prove_fun
  ["P & (Q | R) <-> P&Q | P&R", 
@@ -442,6 +606,8 @@ val distrib_rews  = map int_prove_fun
 
 
 \subsection{Functions for preprocessing the rewrite rules}
+\label{sec:setmksimps}
+%
 The next step is to define the function for preprocessing rewrite rules.
 This will be installed by calling {\tt setmksimps} below.  Preprocessing
 occurs whenever rewrite rules are added, whether by user command or
@@ -483,15 +649,15 @@ There are several cases, depending upon the form of the conclusion:
 \item Anything else: return the theorem in a singleton list.
 \end{itemize}
 The resulting theorems are not literally atomic --- they could be
-disjunctive, for example --- but are brokwn down as much as possible.  See
+disjunctive, for example --- but are broken down as much as possible.  See
 the file {\tt ZF/simpdata.ML} for a sophisticated translation of
 set-theoretic formulae into rewrite rules.
 
 The simplified rewrites must now be converted into meta-equalities.  The
-axiom {\tt eq_reflection} converts equality rewrites, while {\tt
+rule {\tt eq_reflection} converts equality rewrites, while {\tt
   iff_reflection} converts if-and-only-if rewrites.  The latter possibility
 can arise in two other ways: the negative theorem~$\neg P$ is converted to
-$P\equiv{\tt False}$, and any other theorem~$\neg P$ is converted to
+$P\equiv{\tt False}$, and any other theorem~$P$ is converted to
 $P\equiv{\tt True}$.  The rules {\tt iff_reflection_F} and {\tt
   iff_reflection_T} accomplish this conversion.
 \begin{ttbox}
@@ -516,9 +682,10 @@ be composed together and supplied below to {\tt setmksimps}.
 
 \subsection{Making the initial simpset}
 It is time to assemble these items.  We open module {\tt Simplifier} to
-gain access to its components.  The infix operator \ttindexbold{addcongs}
-handles congruence rules; given a list of theorems, it converts their
-conclusions into meta-equalities and passes them to \ttindex{addeqcongs}.
+gain access to its components.  We define the infix operator
+\ttindexbold{addcongs} to insert congruence rules; given a list of theorems,
+it converts their conclusions into meta-equalities and passes them to
+\ttindex{addeqcongs}.
 \begin{ttbox}
 open Simplifier;
 \ttbreak
@@ -528,8 +695,7 @@ fun ss addcongs congs =
 \end{ttbox}
 The list {\tt IFOL_rews} contains the default rewrite rules for first-order
 logic.  The first of these is the reflexive law expressed as the
-equivalence $(a=a)\bimp{\tt True}$; if we provided it as $a=a$ it would
-cause looping.
+equivalence $(a=a)\bimp{\tt True}$; the rewrite rule $a=a$ is clearly useless.
 \begin{ttbox}
 val IFOL_rews =
    [refl RS P_iff_T] \at conj_rews \at disj_rews \at not_rews \at 
@@ -541,13 +707,15 @@ subgoal that is simplified to one of these will be removed.
 val notFalseI = int_prove_fun "~False";
 val triv_rls = [TrueI,refl,iff_refl,notFalseI];
 \end{ttbox}
-
+%
 The basic simpset for intuitionistic \FOL{} starts with \ttindex{empty_ss}.
 It preprocess rewrites using {\tt gen_all}, {\tt atomize} and {\tt
   mk_meta_eq}.  It solves simplified subgoals using {\tt triv_rls} and
 assumptions.  It uses \ttindex{asm_simp_tac} to tackle subgoals of
 conditional rewrites.  It takes {\tt IFOL_rews} as rewrite rules.  
 Other simpsets built from {\tt IFOL_ss} will inherit these items.
+In particular, {\tt FOL_ss} extends {\tt IFOL_ss} with classical rewrite
+rules such as $\neg\neg P\bimp P$.
 \index{*setmksimps}\index{*setsolver}\index{*setsubgoaler}
 \index{*addsimps}\index{*addcongs}
 \begin{ttbox}
@@ -570,11 +738,10 @@ effect for conjunctions.
 
 
 \subsection{Case splitting}
-To set up case splitting, we must prove a theorem of the form shown below
-and pass it to \ttindexbold{mk_case_split_tac}.  The tactic
-\ttindexbold{split_tac} uses {\tt mk_meta_eq} to convert the splitting
-rules to meta-equalities.
-
+To set up case splitting, we must prove the theorem below and pass it to
+\ttindexbold{mk_case_split_tac}.  The tactic \ttindexbold{split_tac} uses
+{\tt mk_meta_eq}, defined above, to convert the splitting rules to
+meta-equalities.
 \begin{ttbox}
 val meta_iffD = 
     prove_goal FOL.thy "[| P==Q; Q |] ==> P"
@@ -584,13 +751,14 @@ fun split_tac splits =
     mk_case_split_tac meta_iffD (map mk_meta_eq splits);
 \end{ttbox}
 %
-The splitter is designed for rules roughly of the form
+The splitter replaces applications of a given function; the right-hand side
+of the replacement can be anything.  For example, here is a splitting rule
+for conditional expressions:
 \[ \Var{P}(if(\Var{Q},\Var{x},\Var{y})) \bimp (\Var{Q} \imp \Var{P}(\Var{x}))
 \conj (\lnot\Var{Q} \imp \Var{P}(\Var{y})) 
 \] 
-where the right-hand side can be anything.  Another example is the
-elimination operator (which happens to be called~$split$) for Cartesian
-products:
+Another example is the elimination operator (which happens to be
+called~$split$) for Cartesian products:
 \[ \Var{P}(split(\Var{f},\Var{p})) \bimp (\forall a~b. \Var{p} =
 \langle a,b\rangle \imp \Var{P}(\Var{f}(a,b))) 
 \] 

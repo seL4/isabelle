@@ -110,29 +110,29 @@ end;
 Simpsets are values of the abstract type \ttindexbold{simpset}.  They are
 manipulated by the following functions:
 \index{simplification sets|bold}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{empty_ss}] 
 is the empty simpset.  It has no congruence or rewrite rules and its
 auto-tactic always fails.
 
-\item[\tt $ss$ \ttindexbold{addcongs} $thms$] 
+\item[$ss$ \ttindexbold{addcongs} $thms$] 
 is the simpset~$ss$ plus the congruence rules~$thms$.
 
-\item[\tt $ss$ \ttindexbold{delcongs} $thms$] 
+\item[$ss$ \ttindexbold{delcongs} $thms$] 
 is the simpset~$ss$ minus the congruence rules~$thms$.
 
-\item[\tt $ss$ \ttindexbold{addrews} $thms$] 
+\item[$ss$ \ttindexbold{addrews} $thms$] 
 is the simpset~$ss$ plus the rewrite rules~$thms$.
 
-\item[\tt $ss$ \ttindexbold{delrews} $thms$] 
+\item[$ss$ \ttindexbold{delrews} $thms$] 
 is the simpset~$ss$ minus the rewrite rules~$thms$.
 
-\item[\tt $ss$ \ttindexbold{setauto} $tacf$] 
+\item[$ss$ \ttindexbold{setauto} $tacf$] 
 is the simpset~$ss$ with $tacf$ for its auto-tactic.
 
 \item[\ttindexbold{print_ss} $ss$] 
 prints all the congruence and rewrite rules in the simpset~$ss$.
-\end{description}
+\end{ttdescription}
 Adding a rule to a simpset already containing it, or deleting one
 from a simpset not containing it, generates a warning message.
 
@@ -171,7 +171,7 @@ rewriting strategy is strictly bottom up.  Conditions in conditional rewrite
 rules are solved recursively before the rewrite rule is applied.
 
 There are two basic simplification tactics:
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{SIMP_TAC} $ss$ $i$] 
 simplifies subgoal~$i$ using the rules in~$ss$.  It may solve the
 subgoal completely if it has become trivial, using the auto-tactic
@@ -180,12 +180,12 @@ subgoal completely if it has become trivial, using the auto-tactic
 \item[\ttindexbold{ASM_SIMP_TAC}] 
 is like \verb$SIMP_TAC$, but also uses assumptions as additional
 rewrite rules.
-\end{description}
+\end{ttdescription}
 Many logics have conditional operators like {\it if-then-else}.  If the
 simplifier has been set up with such case splits (see~\ttindex{case_splits}
 in \S\ref{SimpFun-input}), there are tactics which automatically alternate
 between simplification and case splitting:
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{SIMP_CASE_TAC}] 
 is like {\tt SIMP_TAC} but also performs automatic case splits.
 More precisely, after each simplification phase the tactic tries to apply a
@@ -206,10 +206,10 @@ tries to break up a goal using a rule in
 
 \item[\ttindexbold{SIMP_THM}] 
 simplifies a theorem using assumptions and case splitting.
-\end{description}
+\end{ttdescription}
 Finally there are two useful functions for generating congruence
 rules for constants and free variables:
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{mk_congs} $thy$ $cs$] 
 computes a list of congruence rules, one for each constant in $cs$.
 Remember that the name of an infix constant
@@ -223,7 +223,7 @@ For example in {\tt FOL}, the pair
 \verb$("f","'a => 'a")$ generates the rule \verb$?x = ?y ==> f(?x) = f(?y)$.
 Such congruence rules are necessary for goals with free variables whose
 arguments need to be rewritten.
-\end{description}
+\end{ttdescription}
 Both functions work correctly only if {\tt SimpFun} has been supplied with the
 necessary substitution rules.  The details are discussed in
 \S\ref{SimpFun-input} under {\tt subst_thms}.
@@ -240,14 +240,14 @@ tracing information.
 \section{Example: using the simplifier}
 \index{simplification!example}
 Assume we are working within {\tt FOL} and that
-\begin{description}
-\item[\tt Nat.thy] is a theory including the constants $0$, $Suc$ and $+$,
-\item[\tt add_0] is the rewrite rule $0+n = n$,
-\item[\tt add_Suc] is the rewrite rule $Suc(m)+n = Suc(m+n)$,
-\item[\tt induct] is the induction rule
+\begin{ttdescription}
+\item[Nat.thy] is a theory including the constants $0$, $Suc$ and $+$,
+\item[add_0] is the rewrite rule $0+n = n$,
+\item[add_Suc] is the rewrite rule $Suc(m)+n = Suc(m+n)$,
+\item[induct] is the induction rule
 $\List{P(0); \Forall x. P(x)\Imp P(Suc(x))} \Imp P(n)$.
-\item[\tt FOL_ss] is a basic simpset for {\tt FOL}.
-\end{description}
+\item[FOL_ss] is a basic simpset for {\tt FOL}.
+\end{ttdescription}
 We generate congruence rules for $Suc$ and for the infix operator~$+$:
 \begin{ttbox}
 val nat_congs = mk_congs Nat.thy ["Suc", "op +"];
@@ -382,7 +382,7 @@ end;
 \end{ttbox}
 The components of {\tt SIMP_DATA} need to be instantiated as follows.  Many
 of these components are lists, and can be empty.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{refl_thms}] 
 supplies reflexivity theorems of the form $\Var{x} \gg
 \Var{x}$.  They must not have additional premises as, for example,
@@ -485,7 +485,7 @@ infix), the following definition does the job:
    fun dest_red( _ $ (c $ ta $ tb) ) = (c,ta,tb);
 \end{verbatim}
 The wildcard pattern {\tt_} matches the coercion function.
-\end{description}
+\end{ttdescription}
 
 
 \section{A sample instantiation}

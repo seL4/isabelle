@@ -1,7 +1,6 @@
 %% $Id$
 \chapter{Tacticals}
 \index{tacticals|(}
-\index{tactics!combining|see{tacticals}}
 Tacticals are operations on tactics.  Their implementation makes use of
 functional programming techniques, especially for sequences.  Most of the
 time, you may forget about this and regard tacticals as high-level control
@@ -9,7 +8,7 @@ structures.
 
 \section{The basic tacticals}
 \subsection{Joining two tactics}
-\index{tacticals!joining two tactics|bold}
+\index{tacticals!joining two tactics}
 The tacticals {\tt THEN} and {\tt ORELSE}, which provide sequencing and
 alternation, underlie most of the other control structures in Isabelle.
 {\tt APPEND} and {\tt INTLEAVE} provide more sophisticated forms of
@@ -20,40 +19,41 @@ ORELSE   : tactic * tactic -> tactic                 \hfill{\bf infix}
 APPEND   : tactic * tactic -> tactic                 \hfill{\bf infix}
 INTLEAVE : tactic * tactic -> tactic                 \hfill{\bf infix}
 \end{ttbox}
-\begin{description}
-\item[\tt $tac@1$ \ttindexbold{THEN} $tac@2$] 
+\begin{ttdescription}
+\item[$tac@1$ \ttindexbold{THEN} $tac@2$] 
 is the sequential composition of the two tactics.  Applied to a proof
 state, it returns all states reachable in two steps by applying $tac@1$
 followed by~$tac@2$.  First, it applies $tac@1$ to the proof state, getting a
 sequence of next states; then, it applies $tac@2$ to each of these and
 concatenates the results.
 
-\item[\tt $tac@1$ \ttindexbold{ORELSE} $tac@2$] 
+\item[$tac@1$ \ttindexbold{ORELSE} $tac@2$] 
 makes a choice between the two tactics.  Applied to a state, it
 tries~$tac@1$ and returns the result if non-empty; if $tac@1$ fails then it
 uses~$tac@2$.  This is a deterministic choice: if $tac@1$ succeeds then
 $tac@2$ is excluded.
 
-\item[\tt $tac@1$ \ttindexbold{APPEND} $tac@2$] 
+\item[$tac@1$ \ttindexbold{APPEND} $tac@2$] 
 concatenates the results of $tac@1$ and~$tac@2$.  By not making a commitment
-to either tactic, {\tt APPEND} helps avoid incompleteness during search.
+to either tactic, {\tt APPEND} helps avoid incompleteness during
+search.\index{search}
 
-\item[\tt $tac@1$ \ttindexbold{INTLEAVE} $tac@2$] 
+\item[$tac@1$ \ttindexbold{INTLEAVE} $tac@2$] 
 interleaves the results of $tac@1$ and~$tac@2$.  Thus, it includes all
 possible next states, even if one of the tactics returns an infinite
 sequence.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Joining a list of tactics}
-\index{tacticals!joining a list of tactics|bold}
+\index{tacticals!joining a list of tactics}
 \begin{ttbox} 
 EVERY : tactic list -> tactic
 FIRST : tactic list -> tactic
 \end{ttbox}
 {\tt EVERY} and {\tt FIRST} are block structured versions of {\tt THEN} and
 {\tt ORELSE}\@.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{EVERY} {$[tac@1,\ldots,tac@n]$}] 
 abbreviates \hbox{\tt$tac@1$ THEN \ldots{} THEN $tac@n$}.  It is useful for
 writing a series of tactics to be executed in sequence.
@@ -61,11 +61,11 @@ writing a series of tactics to be executed in sequence.
 \item[\ttindexbold{FIRST} {$[tac@1,\ldots,tac@n]$}] 
 abbreviates \hbox{\tt$tac@1$ ORELSE \ldots{} ORELSE $tac@n$}.  It is useful for
 writing a series of tactics to be attempted one after another.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Repetition tacticals}
-\index{tacticals!repetition|bold}
+\index{tacticals!repetition}
 \begin{ttbox} 
 TRY           : tactic -> tactic
 REPEAT_DETERM : tactic -> tactic
@@ -73,7 +73,7 @@ REPEAT        : tactic -> tactic
 REPEAT1       : tactic -> tactic
 trace_REPEAT  : bool ref \hfill{\bf initially false}
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{TRY} {\it tac}] 
 applies {\it tac\/} to the proof state and returns the resulting sequence,
 if non-empty; otherwise it returns the original state.  Thus, it applies
@@ -96,19 +96,19 @@ requires more space.
 is like \hbox{\tt REPEAT {\it tac}} but it always applies {\it tac\/} at
 least once, failing if this is impossible.
 
-\item[\ttindexbold{trace_REPEAT} \tt:= true;] 
+\item[\ttindexbold{trace_REPEAT} := true;] 
 enables an interactive tracing mode for the tacticals {\tt REPEAT_DETERM}
 and {\tt REPEAT}.  To view the tracing options, type {\tt h} at the prompt.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Identities for tacticals}
-\index{tacticals!identities for|bold}
+\index{tacticals!identities for}
 \begin{ttbox} 
 all_tac : tactic
 no_tac  : tactic
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{all_tac}] 
 maps any proof state to the one-element sequence containing that state.
 Thus, it succeeds for all states.  It is the identity element of the
@@ -119,7 +119,7 @@ maps any proof state to the empty sequence.  Thus it succeeds for no state.
 It is the identity element of \ttindex{ORELSE}, \ttindex{APPEND}, and 
 \ttindex{INTLEAVE}\@.  Also, it is a zero element for \ttindex{THEN}, which means that
 \hbox{\tt$tac$ THEN no_tac} is equivalent to {\tt no_tac}.
-\end{description}
+\end{ttdescription}
 These primitive tactics are useful when writing tacticals.  For example,
 \ttindexbold{TRY} and \ttindexbold{REPEAT} (ignoring tracing) can be coded
 as follows: 
@@ -151,6 +151,8 @@ discarding intermediate proof states.
 
 
 \section{Control and search tacticals}
+\index{search!tacticals|(}
+
 A predicate on theorems, namely a function of type \hbox{\tt thm->bool},
 can test whether a proof state enjoys some desirable property --- such as
 having no subgoals.  Tactics that search for satisfactory states are easy
@@ -160,14 +162,14 @@ repeatedly applying a given tactic.
 
 
 \subsection{Filtering a tactic's results}
-\index{tacticals!for filtering|bold}
-\index{tactics!filtering results of|bold}
+\index{tacticals!for filtering}
+\index{tactics!filtering results of}
 \begin{ttbox} 
 FILTER  : (thm -> bool) -> tactic -> tactic
 CHANGED : tactic -> tactic
 \end{ttbox}
-\begin{description}
-\item[\tt \tt FILTER {\it p} $tac$] 
+\begin{ttdescription}
+\item[\tt FILTER {\it p} $tac$] 
 applies $tac$ to the proof state and returns a sequence consisting of those
 result states that satisfy~$p$.
 
@@ -175,11 +177,11 @@ result states that satisfy~$p$.
 applies {\it tac\/} to the proof state and returns precisely those states
 that differ from the original state.  Thus, \hbox{\tt CHANGED {\it tac}}
 always has some effect on the state.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Depth-first search}
-\index{tacticals!searching|bold}
+\index{tacticals!searching}
 \index{tracing!of searching tacticals}
 \begin{ttbox} 
 DEPTH_FIRST   : (thm->bool) -> tactic -> tactic
@@ -187,7 +189,7 @@ DEPTH_SOLVE   : tactic -> tactic
 DEPTH_SOLVE_1 : tactic -> tactic
 trace_DEPTH_FIRST: bool ref \hfill{\bf initially false}
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{DEPTH_FIRST} {\it satp} {\it tac}] 
 returns the proof state if {\it satp} returns true.  Otherwise it applies
 {\it tac}, then recursively searches from each element of the resulting
@@ -201,14 +203,14 @@ uses {\tt DEPTH_FIRST} to search for states having no subgoals.
 uses {\tt DEPTH_FIRST} to search for states having fewer subgoals than the
 given state.  Thus, it insists upon solving at least one subgoal.
 
-\item[\ttindexbold{trace_DEPTH_FIRST} \tt:= true;] 
+\item[\ttindexbold{trace_DEPTH_FIRST} := true;] 
 enables interactive tracing for {\tt DEPTH_FIRST}.  To view the
 tracing options, type {\tt h} at the prompt.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Other search strategies}
-\index{tacticals!searching|bold}
+\index{tacticals!searching}
 \index{tracing!of searching tacticals}
 \begin{ttbox} 
 BREADTH_FIRST   : (thm->bool) -> tactic -> tactic
@@ -220,7 +222,7 @@ trace_BEST_FIRST: bool ref \hfill{\bf initially false}
 These search strategies will find a solution if one exists.  However, they
 do not enumerate all solutions; they terminate after the first satisfactory
 result from {\it tac}.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{BREADTH_FIRST} {\it satp} {\it tac}] 
 uses breadth-first search to find states for which {\it satp\/} is true.
 For most applications, it is too slow.
@@ -241,10 +243,10 @@ is like {\tt BEST_FIRST}, except that the priority queue initially
 contains the result of applying $tac@0$ to the proof state.  This tactical
 permits separate tactics for starting the search and continuing the search.
 
-\item[\ttindexbold{trace_BEST_FIRST} \tt:= true;] 
+\item[\ttindexbold{trace_BEST_FIRST} := true;] 
 enables an interactive tracing mode for the tactical {\tt BEST_FIRST}.  To
 view the tracing options, type {\tt h} at the prompt.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Auxiliary tacticals for searching}
@@ -255,8 +257,8 @@ COND        : (thm->bool) -> tactic -> tactic -> tactic
 IF_UNSOLVED : tactic -> tactic
 DETERM      : tactic -> tactic
 \end{ttbox}
-\begin{description}
-\item[\tt \tt COND {\it p} $tac@1$ $tac@2$] 
+\begin{ttdescription}
+\item[COND {\it p} $tac@1$ $tac@2$] 
 applies $tac@1$ to the proof state if it satisfies~$p$, and applies $tac@2$
 otherwise.  It is a conditional tactical in that only one of $tac@1$ and
 $tac@2$ is applied to a proof state.  However, both $tac@1$ and $tac@2$ are
@@ -271,7 +273,7 @@ resolve_tac}, fail if applied to a proof state that has no subgoals.
 applies {\it tac\/} to the proof state and returns the head of the
 resulting sequence.  {\tt DETERM} limits the search space by making its
 argument deterministic.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Predicates and functions useful for searching}
@@ -282,7 +284,7 @@ has_fewer_prems : int -> thm -> bool
 eq_thm          : thm * thm -> bool
 size_of_thm     : thm -> int
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{has_fewer_prems} $n$ $thm$] 
 reports whether $thm$ has fewer than~$n$ premises.  By currying,
 \hbox{\tt has_fewer_prems $n$} is a predicate on theorems; it may 
@@ -298,7 +300,9 @@ ignored.
 computes the size of $thm$, namely the number of variables, constants and
 abstractions in its conclusion.  It may serve as a distance function for 
 \ttindex{BEST_FIRST}. 
-\end{description}
+\end{ttdescription}
+
+\index{search!tacticals|)}
 
 
 \section{Tacticals for subgoal numbering}
@@ -316,7 +320,7 @@ tacticals for combining values of type {\tt int->tactic}.
 SELECT_GOAL : tactic -> int -> tactic
 METAHYPS    : (thm list -> tactic) -> int -> tactic
 \end{ttbox}
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{SELECT_GOAL} {\it tac} $i$] 
 restricts the effect of {\it tac\/} to subgoal~$i$ of the proof state.  It
 fails if there is no subgoal~$i$, or if {\it tac\/} changes the main goal
@@ -325,14 +329,15 @@ state and uses the result to refine the original proof state at
 subgoal~$i$.  If {\it tac\/} returns multiple results then so does 
 \hbox{\tt SELECT_GOAL {\it tac} $i$}.
 
-Its workings are devious.  {\tt SELECT_GOAL} creates a state of the
-form $\phi\Imp\phi$, with one subgoal.  If subgoal~$i$ has the form say
-$\psi\Imp\theta$, then {\tt SELECT_GOAL} creates the state 
-\[ (\Forall x.\psi\Imp\theta)\Imp(\Forall x.\psi\Imp\theta) \]
-rather than $\List{\psi\Imp\theta;\; \psi}\Imp\theta$, which has two
-subgoals.
+{\tt SELECT_GOAL} works by creating a state of the form $\phi\Imp\phi$,
+with the one subgoal~$\phi$.  If subgoal~$i$ has the form then
+$(\psi\Imp\theta)\Imp(\psi\Imp\theta)$ is in fact $\List{\psi\Imp\theta;\;
+  \psi}\Imp\theta$, a proof state with two subgoals.  Such a proof state
+might cause tactics to go astray.  Therefore {\tt SELECT_GOAL} inserts a
+quantifier to create the state
+\[ (\Forall x.\psi\Imp\theta)\Imp(\Forall x.\psi\Imp\theta). \]
 
-\item[\ttindexbold{METAHYPS} {\it tacf} $i$] 
+\item[\ttindexbold{METAHYPS} {\it tacf} $i$]\index{meta-assumptions}
 takes subgoal~$i$, of the form 
 \[ \Forall x@1 \ldots x@l. \List{\theta@1; \ldots; \theta@k}\Imp\theta, \]
 and creates the list $\theta'@1$, \ldots, $\theta'@k$ of meta-level
@@ -349,7 +354,7 @@ Meta-level assumptions may not contain unknowns.  Unknowns in the
 hypotheses $\theta@1,\ldots,\theta@k$ become free variables in $\theta'@1$,
 \ldots, $\theta'@k$, and are restored afterwards; the {\tt METAHYPS} call
 cannot instantiate them.  Unknowns in $\theta$ may be instantiated.  New
-unknowns in $\phi@1$, \ldots; $\phi@n$ are lifted over the parameters.
+unknowns in $\phi@1$, \ldots, $\phi@n$ are lifted over the parameters.
 
 Here is a typical application.  Calling {\tt hyp_res_tac}~$i$ resolves
 subgoal~$i$ with one of its own assumptions, which may itself have the form
@@ -357,7 +362,7 @@ of an inference rule (these are called {\bf higher-level assumptions}).
 \begin{ttbox} 
 val hyp_res_tac = METAHYPS (fn prems => resolve_tac prems 1);
 \end{ttbox} 
-\end{description}
+\end{ttdescription}
 
 \begin{warn}
 {\tt METAHYPS} fails if the context or new subgoals contain type unknowns.
@@ -366,7 +371,7 @@ In principle, the tactical could treat these like ordinary unknowns.
 
 
 \subsection{Scanning for a subgoal by number}
-\index{tacticals!scanning for subgoals|bold}
+\index{tacticals!scanning for subgoals}
 \begin{ttbox} 
 ALLGOALS         : (int -> tactic) -> tactic
 TRYALL           : (int -> tactic) -> tactic
@@ -383,17 +388,17 @@ subgoals, or to one subgoal.
 
 Suppose that the original proof state has $n$ subgoals.
 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{ALLGOALS} {\it tacf}] 
 is equivalent to
 \hbox{\tt$tacf(n)$ THEN \ldots{} THEN $tacf(1)$}.  
 
-It applies {\it tacf} to all the subgoals, counting {\bf downwards} (to
+It applies {\it tacf} to all the subgoals, counting downwards (to
 avoid problems when subgoals are added or deleted).
 
 \item[\ttindexbold{TRYALL} {\it tacf}] 
 is equivalent to
-\hbox{\tt TRY($tacf(n)$) THEN \ldots{} THEN TRY($tacf(1)$)}.  
+\hbox{\tt TRY$(tacf(n))$ THEN \ldots{} THEN TRY$(tacf(1))$}.  
 
 It attempts to apply {\it tacf} to all the subgoals.  For instance,
 the tactic \hbox{\tt TRYALL assume_tac} attempts to solve all the subgoals by
@@ -403,7 +408,7 @@ assumption.
 is equivalent to
 \hbox{\tt$tacf(n)$ ORELSE \ldots{} ORELSE $tacf(1)$}.  
 
-It applies {\it tacf} to one subgoal, counting {\bf downwards}.  For instance,
+It applies {\it tacf} to one subgoal, counting downwards.  For instance,
 the tactic \hbox{\tt SOMEGOAL assume_tac} solves one subgoal by assumption,
 failing if this is impossible.
 
@@ -411,13 +416,13 @@ failing if this is impossible.
 is equivalent to
 \hbox{\tt$tacf(1)$ ORELSE \ldots{} ORELSE $tacf(n)$}.  
 
-It applies {\it tacf} to one subgoal, counting {\bf upwards}.
+It applies {\it tacf} to one subgoal, counting upwards.
 
 \item[\ttindexbold{REPEAT_SOME} {\it tacf}] 
-applies {\it tacf} once or more to a subgoal, counting {\bf downwards}.
+applies {\it tacf} once or more to a subgoal, counting downwards.
 
 \item[\ttindexbold{REPEAT_FIRST} {\it tacf}] 
-applies {\it tacf} once or more to a subgoal, counting {\bf upwards}.
+applies {\it tacf} once or more to a subgoal, counting upwards.
 
 \item[\ttindexbold{trace_goalno_tac} {\it tac} {\it i}] 
 applies \hbox{\it tac i\/} to the proof state.  If the resulting sequence
@@ -425,13 +430,13 @@ is non-empty, then it is returned, with the side-effect of printing {\tt
 Subgoal~$i$ selected}.  Otherwise, {\tt trace_goalno_tac} returns the empty
 sequence and prints nothing.
 
-It indicates that ``the tactic worked for subgoal~$i$'' and is mainly used
+It indicates that `the tactic worked for subgoal~$i$' and is mainly used
 with {\tt SOMEGOAL} and {\tt FIRSTGOAL}.
-\end{description}
+\end{ttdescription}
 
 
 \subsection{Joining tactic functions}
-\index{tacticals!joining tactic functions|bold}
+\index{tacticals!joining tactic functions}
 \begin{ttbox} 
 THEN'     : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic \hfill{\bf infix 1}
 ORELSE'   : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic \hfill{\bf infix}
@@ -461,16 +466,16 @@ ALLGOALS (REPEAT o (etac exE  ORELSE'  atac))
 These tacticals are polymorphic; $x$ need not be an integer.
 \begin{center} \tt
 \begin{tabular}{r@{\rm\ \ yields\ \ }l}
-    ($tacf@1$~~THEN'~~$tacf@2$)$(x)$ \index{*THEN'} &
+    $(tacf@1$~~THEN'~~$tacf@2)(x)$ \index{*THEN'} &
     $tacf@1(x)$~~THEN~~$tacf@2(x)$ \\
 
-    ($tacf@1$ ORELSE' $tacf@2$)$(x)$ \index{*ORELSE'} &
+    $(tacf@1$ ORELSE' $tacf@2)(x)$ \index{*ORELSE'} &
     $tacf@1(x)$ ORELSE $tacf@2(x)$ \\
 
-    ($tacf@1$ APPEND' $tacf@2$)$(x)$ \index{*APPEND'} &
+    $(tacf@1$ APPEND' $tacf@2)(x)$ \index{*APPEND'} &
     $tacf@1(x)$ APPEND $tacf@2(x)$ \\
 
-    ($tacf@1$ INTLEAVE' $tacf@2$)$(x)$ \index{*INTLEAVE'} &
+    $(tacf@1$ INTLEAVE' $tacf@2)(x)$ \index{*INTLEAVE'} &
     $tacf@1(x)$ INTLEAVE $tacf@2(x)$ \\
 
     EVERY' $[tacf@1,\ldots,tacf@n] \; (x)$ \index{*EVERY'} &
@@ -483,7 +488,7 @@ These tacticals are polymorphic; $x$ need not be an integer.
 
 
 \subsection{Applying a list of tactics to 1}
-\index{tacticals!joining tactic functions|bold}
+\index{tacticals!joining tactic functions}
 \begin{ttbox} 
 EVERY1: (int -> tactic) list -> tactic
 FIRST1: (int -> tactic) list -> tactic
