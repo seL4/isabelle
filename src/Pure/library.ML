@@ -5,8 +5,8 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Basic library: functions, options, pairs, booleans, lists, integers,
-strings, lists as sets, association lists, generic tables, balanced
-trees, orders, I/O and diagnostics, timing, misc.
+rational numbers, strings, lists as sets, association lists, generic
+tables, balanced trees, orders, current directory, misc.
 *)
 
 infix |> |>> |>>> ~~ \ \\ ins ins_string ins_int orf andf prefix upto downto
@@ -44,6 +44,7 @@ sig
   val is_some: 'a option -> bool
   val is_none: 'a option -> bool
   val apsome: ('a -> 'b) -> 'a option -> 'b option
+  exception ERROR
   val try: ('a -> 'b) -> 'a -> 'b option
   val can: ('a -> 'b) -> 'a -> bool
 
@@ -138,9 +139,13 @@ sig
   val radixstring: int * string * int -> string
   val string_of_int: int -> string
   val string_of_indexname: string * int -> string
+  val read_radixint: int * string list -> int * string list
+  val read_int: string list -> int * string list
+  val oct_char: string -> string
 
   (*rational numbers*)
   type rat
+  exception RAT of string
   val rep_rat: rat -> int * int
   val ratadd: rat * rat -> rat
   val ratmul: rat * rat -> rat
@@ -161,11 +166,8 @@ sig
   val commas_quote: string list -> string
   val cat_lines: string list -> string
   val space_explode: string -> string -> string list
-  val std_output: string -> unit
-  val std_error: string -> unit
-  val writeln_default: string -> unit
-  val prefix_lines: string -> string -> string
   val split_lines: string -> string list
+  val prefix_lines: string -> string -> string
   val untabify: string list -> string list
   val suffix: string -> string -> string
   val unsuffix: string -> string -> string
@@ -213,7 +215,6 @@ sig
   val assoc2: (''a * (''b * 'c) list) list * (''a * ''b) -> 'c option
   val gen_assoc: ('a * 'b -> bool) -> ('b * 'c) list * 'a -> 'c option
   val overwrite: (''a * 'b) list * (''a * 'b) -> (''a * 'b) list
-  val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   val gen_overwrite: ('a * 'a -> bool) -> ('a * 'b) list * ('a * 'b) -> ('a * 'b) list
 
   (*lists as tables*)
@@ -249,42 +250,9 @@ sig
   val one_of: 'a list -> 'a
   val frequency: (int * 'a) list -> 'a
 
-  (*I/O and diagnostics*)
+  (*current directory*)
   val cd: string -> unit
   val pwd: unit -> string
-  val writeln_fn: (string -> unit) ref
-  val priority_fn: (string -> unit) ref
-  val tracing_fn: (string -> unit) ref
-  val warning_fn: (string -> unit) ref
-  val error_fn: (string -> unit) ref
-  val writeln: string -> unit
-  val priority: string -> unit
-  val tracing: string -> unit
-  val warning: string -> unit
-  exception ERROR
-  val error_msg: string -> unit
-  val error: string -> 'a
-  val sys_error: string -> 'a
-  val assert: bool -> string -> unit
-  val deny: bool -> string -> unit
-  val assert_all: ('a -> bool) -> 'a list -> ('a -> string) -> unit
-  datatype 'a error = Error of string | OK of 'a
-  val get_error: 'a error -> string option
-  val get_ok: 'a error -> 'a option
-  datatype 'a result = Result of 'a | Exn of exn
-  val get_result: 'a result -> 'a option
-  val get_exn: 'a result -> exn option
-  val handle_error: ('a -> 'b) -> 'a -> 'b error
-  exception ERROR_MESSAGE of string
-  val transform_error: ('a -> 'b) -> 'a -> 'b
-  val transform_failure: (exn -> exn) -> ('a -> 'b) -> 'a -> 'b
-
-  (*timing*)
-  val cond_timeit: bool -> (unit -> 'a) -> 'a
-  val timeit: (unit -> 'a) -> 'a
-  val timeap: ('a -> 'b) -> 'a -> 'b
-  val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
-  val timing: bool ref
 
   (*misc*)
   val make_keylist: ('a -> 'b) -> 'a list -> ('a * 'b) list
@@ -294,7 +262,6 @@ sig
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
   val scanwords: (string -> bool) -> string list -> string list
-  datatype 'a mtree = Join of 'a * 'a mtree list
 end;
 
 structure Library: LIBRARY =
@@ -429,7 +396,7 @@ fun toggle flag = (flag := not (! flag); ! flag);
 
 fun change r f = r := f (! r);
 
-(*temporarily set flag, handling errors*)
+(*temporarily set flag, handling exceptions*)
 fun setmp flag value f x =
   let
     val orig_value = ! flag;
@@ -749,6 +716,24 @@ fun string_of_indexname (a,0) = a
   | string_of_indexname (a,i) = a ^ "_" ^ Int.toString i;
 
 
+(* read integers *)
+
+fun read_radixint (radix: int, cs) : int * string list =
+  let val zero = ord"0"
+      val limit = zero+radix
+      fun scan (num,[]) = (num,[])
+        | scan (num, c::cs) =
+              if  zero <= ord c  andalso  ord c < limit
+              then scan(radix*num + ord c - zero, cs)
+              else (num, c::cs)
+  in  scan(0,cs)  end;
+
+fun read_int cs = read_radixint (10, cs);
+
+fun oct_char s = chr (#1 (read_radixint (8, explode s)));
+
+
+
 (** strings **)
 
 (*functions tuned for strings, avoiding explode*)
@@ -793,6 +778,9 @@ fun space_explode _ "" = []
       in expl (explode str) end;
 
 val split_lines = space_explode "\n";
+
+fun prefix_lines "" txt = txt
+  | prefix_lines prfx txt = txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
 
 (*untabify*)
 fun untabify chs =
@@ -1184,125 +1172,18 @@ fun frequency xs =
   in pick (random_range 1 sum) xs end;
 
 
-(** input / output and diagnostics **)
+(** current directory **)
 
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
-
-fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
-fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
-
-fun prefix_lines "" txt = txt
-  | prefix_lines prfx txt = txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
-
-val writeln_default = std_output o suffix "\n";
-
-(*hooks for various output channels*)
-val writeln_fn = ref writeln_default;
-val priority_fn = ref (fn s => ! writeln_fn s);
-val tracing_fn = ref (fn s => ! writeln_fn s);
-val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
-val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
-
-fun writeln s = ! writeln_fn s;
-fun priority s = ! priority_fn s;
-fun tracing s = ! tracing_fn s;
-fun warning s = ! warning_fn s;
-
-(*print error message and abort to top level*)
-
-fun error_msg s = ! error_fn s;
-fun error s = (error_msg s; raise ERROR);
-fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
-
-fun assert p msg = if p then () else error msg;
-fun deny p msg = if p then error msg else ();
-
-(*Assert pred for every member of l, generating a message if pred fails*)
-fun assert_all pred l msg_fn =
-  let fun asl [] = ()
-        | asl (x::xs) = if pred x then asl xs else error (msg_fn x)
-  in asl l end;
-
-
-(* handle errors capturing messages *)
-
-datatype 'a error =
-  Error of string |
-  OK of 'a;
-
-fun get_error (Error msg) = Some msg
-  | get_error _ = None;
-
-fun get_ok (OK x) = Some x
-  | get_ok _ = None;
-
-datatype 'a result =
-  Result of 'a |
-  Exn of exn;
-
-fun get_result (Result x) = Some x
-  | get_result _ = None;
-
-fun get_exn (Exn exn) = Some exn
-  | get_exn _ = None;
-
-fun handle_error f x =
-  let
-    val buffer = ref ([]: string list);
-    fun capture s = buffer := ! buffer @ [s];
-    fun err_msg () = if not (null (! buffer)) then error_msg (cat_lines (! buffer)) else ();
-  in
-    (case Result (setmp error_fn capture f x) handle exn => Exn exn of
-      Result y => (err_msg (); OK y)
-    | Exn ERROR => Error (cat_lines (! buffer))
-    | Exn exn => (err_msg (); raise exn))
-  end;
-
-
-(* transform ERROR into ERROR_MESSAGE *)
-
-exception ERROR_MESSAGE of string;
-
-fun transform_error f x =
-  (case handle_error f x of
-    OK y => y
-  | Error msg => raise ERROR_MESSAGE msg);
-
-
-(* transform any exception, including ERROR *)
-
-fun transform_failure exn f x =
-  transform_error f x handle Interrupt => raise Interrupt | e => raise exn e;
-
-
-
-(** timing **)
-
-(*a conditional timing function: applies f to () and, if the flag is true,
-  prints its runtime on warning channel*)
-fun cond_timeit flag f =
-  if flag then
-    let val start = startTiming()
-        val result = f ()
-    in warning (endTiming start);  result end
-  else f ();
-
-(*unconditional timing function*)
-fun timeit x = cond_timeit true x;
-
-(*timed application function*)
-fun timeap f x = timeit (fn () => f x);
-fun timeap_msg s f x = (warning s; timeap f x);
-
-(*global timing mode*)
-val timing = ref false;
 
 
 
 (** rational numbers **)
 
 datatype rat = Rat of bool * int * int
+
+exception RAT of string;
 
 fun rep_rat(Rat(a,p,q)) = (if a then p else ~p,q)
 
@@ -1319,10 +1200,10 @@ fun ratadd(Rat(a,p,q),Rat(b,r,s)) =
 
 fun ratmul(Rat(a,p,q),Rat(b,r,s)) = ratnorm(a=b,p*r,q*s)
 
-fun ratinv(Rat(a,p,q)) = if p=0 then error("ratinv") else Rat(a,q,p)
+fun ratinv(Rat(a,p,q)) = if p=0 then raise RAT "ratinv" else Rat(a,q,p)
 
 fun int_ratdiv(p,q) =
-  if q=0 then error("int_ratdiv") else ratnorm(0<=q, p, abs q)
+  if q=0 then raise RAT "int_ratdiv" else ratnorm(0<=q, p, abs q)
 
 fun ratneg(Rat(b,p,q)) = Rat(not b,p,q);
 
@@ -1330,10 +1211,6 @@ fun rat_of_int i = if i < 0 then Rat(false,abs i,1) else Rat(true,i,1);
 
 
 (** misc **)
-
-fun overwrite_warn (args as (alist, (a, _))) msg =
- (if is_none (assoc (alist, a)) then () else warning msg;
-  overwrite args);
 
 (*use the keyfun to make a list of (x, key) pairs*)
 fun make_keylist (keyfun: 'a->'b) : 'a list -> ('a * 'b) list =
@@ -1414,11 +1291,6 @@ fun scanwords is_let cs =
             let val (lets, rest) = take_prefix is_let cs
             in implode lets :: scanwords is_let rest end;
   in scan1 (#2 (take_prefix (not o is_let) cs)) end;
-
-
-
-(* Variable-branching trees: for proof terms etc. *)
-datatype 'a mtree = Join of 'a * 'a mtree list;
 
 
 end;
