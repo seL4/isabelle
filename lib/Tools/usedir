@@ -156,14 +156,16 @@ ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
 
 # exit status
 
-TELL_ITEM=""
-[ "$MULTI" = "true" ] && TELL_ITEM="$ITEM"
-
 if [ $RC -eq 0 ]; then
-  echo "$TELL_ITEM OK  ($ELAPSED elapsed time)"
+  if [ "$MULTI" = "true" ]; then
+    echo "Finished $ITEM  ($ELAPSED elapsed time)"
+  else
+    echo " OK  ($ELAPSED elapsed time)"
+  fi
   gzip --force "$LOG"
 else
-  echo "$TELL_ITEM FAILED"
+  [ "$MULTI" = "true" ] || echo
+  echo "$ITEM FAILED"
   echo "(see also $LOG)"
   echo; tail $LOG; echo
 fi
