@@ -486,7 +486,6 @@ fun prepare_context prep_expr prep_elem1 prep_elem2 close (import, elements) con
     val (ctxt, elemss) = apsnd flat (foldl_map declare_element (import_ctxt, elements));
     val type_env = frozen_tvars ctxt (mapfilter (ProofContext.default_type ctxt o #1)
       (fixes_of_elemss import_elemss @ fixes_of_elemss elemss));
-    val FIXME = PolyML.print type_env;
 
     fun inst_elems ((name, ps), elems) = ((name, ps), elems);    (* FIXME *)
 
