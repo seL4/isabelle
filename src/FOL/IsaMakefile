@@ -17,13 +17,13 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/int.ML ex/intro.ML \
 
 
 $(OUT)/FOL: $(OUT)/Pure $(FILES)
-	@$(ISABELLE) -e "make_html := $(ISABELLE_HTML);" -qu $(OUT)/Pure FOL
+	@$(ISATOOL) usedir -b $(OUT)/Pure FOL
 	@chmod -w $@
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
 test: ex/ROOT.ML $(OUT)/FOL $(EX_FILES)
-	@$(ISATOOL) testdir $(OUT)/FOL ex
+	@$(ISATOOL) usedir $(OUT)/FOL ex
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/FOL
