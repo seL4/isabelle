@@ -184,13 +184,9 @@ by (REPEAT_FIRST (bound_hyp_subst_tac ORELSE'
                   eresolve_tac (prems@[asm_rl, Pair_inject])));
 qed "lessE";
 
-Goal "~ n<0";
-by (rtac notI 1);
-by (etac lessE 1);
-by (etac Zero_neq_Suc 1);
-by (etac Zero_neq_Suc 1);
+Goal "~ n < (0::nat)";
+by (blast_tac (claset() addEs [lessE]) 1);
 qed "not_less0";
-
 AddIffs [not_less0];
 
 (* n<0 ==> R *)
@@ -312,7 +308,7 @@ qed "less_Suc_eq_le";
 (*  m<=n ==> m < Suc n  *)
 bind_thm ("le_imp_less_Suc", less_Suc_eq_le RS iffD2);
 
-Goalw [le_def] "0 <= n";
+Goalw [le_def] "(0::nat) <= n";
 by (rtac not_less0 1);
 qed "le0";
 AddIffs [le0];
@@ -321,7 +317,7 @@ Goalw [le_def] "~ Suc n <= n";
 by (Simp_tac 1);
 qed "Suc_n_not_le_n";
 
-Goalw [le_def] "(i <= 0) = (i = 0)";
+Goalw [le_def] "!!i::nat. (i <= 0) = (i = 0)";
 by (nat_ind_tac "i" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "le_0_eq";

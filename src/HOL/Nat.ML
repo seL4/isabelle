@@ -26,18 +26,18 @@ by (case_tac "n" 1);
 by (REPEAT (Blast_tac 1));
 qed "not0_implies_Suc";
 
-Goal "m<n ==> n ~= 0";
+Goal "!!n::nat. m<n ==> n ~= 0";
 by (case_tac "n" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 
-Goal "(n ~= 0) = (0 < n)";
+Goal "!!n::nat. (n ~= 0) = (0 < n)";
 by (case_tac "n" 1);
 by Auto_tac;
 qed "neq0_conv";
 AddIffs [neq0_conv];
 
-Goal "(0 ~= n) = (0 < n)";
+Goal "!!n::nat. (0 ~= n) = (0 < n)";
 by (case_tac "n" 1);
 by Auto_tac;
 qed "zero_neq_conv";
@@ -50,7 +50,7 @@ Goal "(0<n) = (EX m. n = Suc m)";
 by(fast_tac (claset() addIs [not0_implies_Suc]) 1);
 qed "gr0_conv_Suc";
 
-Goal "(~(0 < n)) = (n=0)";
+Goal "!!n::nat. (~(0 < n)) = (n=0)";
 by (rtac iffI 1);
  by (etac swap 1);
  by (ALLGOALS Asm_full_simp_tac);
@@ -95,12 +95,12 @@ by (case_tac "nat" 2);
 by (ALLGOALS (blast_tac (claset() addIs prems@[less_trans])));
 qed "nat_induct2";
 
-Goal "min 0 n = 0";
+Goal "min 0 n = (0::nat)";
 by (rtac min_leastL 1);
 by (Simp_tac 1);
 qed "min_0L";
 
-Goal "min n 0 = 0";
+Goal "min n 0 = (0::nat)";
 by (rtac min_leastR 1);
 by (Simp_tac 1);
 qed "min_0R";
@@ -111,11 +111,11 @@ qed "min_Suc_Suc";
 
 Addsimps [min_0L,min_0R,min_Suc_Suc];
 
-Goalw [max_def] "max 0 n = n";
+Goalw [max_def] "max 0 n = (n::nat)";
 by (Simp_tac 1);
 qed "max_0L";
 
-Goalw [max_def] "max n 0 = n";
+Goalw [max_def] "max n 0 = (n::nat)";
 by (Simp_tac 1);
 qed "max_0R";
 
