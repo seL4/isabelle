@@ -159,10 +159,8 @@ lemma subst_map [simp]:
     "\<And>t. subst (t \<^sub>\<degree>\<^sub>\<degree> ts) u i = subst t u i \<^sub>\<degree>\<^sub>\<degree> map (\<lambda>t. subst t u i) ts"
   by (induct ts) simp_all
 
-lemma lift_IT [rule_format, intro!]:
-    "t \<in> IT \<Longrightarrow> \<forall>i. lift t i \<in> IT"
-  apply (erule IT.induct)
-    apply (rule allI)
+lemma lift_IT [intro!]: "t \<in> IT \<Longrightarrow> (\<And>i. lift t i \<in> IT)"
+  apply (induct set: IT)
     apply (simp (no_asm))
     apply (rule conjI)
      apply
@@ -200,10 +198,9 @@ lemma lift_typings:
 
 subsection {* Substitution lemmas *}
 
-lemma subst_lemma [rule_format]:
-  "e \<turnstile> t : T \<Longrightarrow> \<forall>e' i U u. e' \<turnstile> u : U \<longrightarrow> e = e'\<langle>i:U\<rangle> \<longrightarrow> e' \<turnstile> t[u/i] : T"
-  apply (erule typing.induct)
-    apply (intro strip)
+lemma subst_lemma:
+    "e \<turnstile> t : T \<Longrightarrow> (\<And>e' i U u. e' \<turnstile> u : U \<Longrightarrow> e = e'\<langle>i:U\<rangle> \<Longrightarrow> e' \<turnstile> t[u/i] : T)"
+  apply (induct set: typing)
     apply (rule_tac x = x and y = i in linorder_cases)
       apply auto
   apply blast
@@ -227,15 +224,32 @@ lemma substs_lemma [rule_format]:
   apply (rule refl)
   done
 
+lemma substs_lemma [rule_format]:
+  "e \<turnstile> u : T \<Longrightarrow> \<forall>Ts. e\<langle>i:T\<rangle> \<tturnstile> ts : Ts \<longrightarrow>
+     e \<tturnstile> (map (\<lambda>t. t[u/i]) ts) : Ts"
+  apply (induct_tac ts)
+   apply (intro strip)
+   apply (case_tac Ts)
+    apply simp
+   apply simp
+  apply (intro strip)
+  apply (case_tac Ts)
+   apply simp
+  apply simp
+  apply (erule conjE)
+  apply (erule subst_lemma)
+   apply assumption
+  apply (rule refl)
+  done
+
 
 subsection {* Subject reduction *}
 
-lemma subject_reduction [rule_format]:
-    "e \<turnstile> t : T \<Longrightarrow> \<forall>t'. t -> t' \<longrightarrow> e \<turnstile> t' : T"
-  apply (erule typing.induct)
+lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> (\<And>t'. t -> t' \<Longrightarrow> e \<turnstile> t' : T)"
+  apply (induct set: typing)
     apply blast
    apply blast
-  apply (intro strip)
+  apply atomize
   apply (ind_cases "s \<^sub>\<degree> t -> t'")
     apply hypsubst
     apply (ind_cases "env \<turnstile> Abs t : T \<Rightarrow> U")
@@ -253,10 +267,10 @@ subsection {* Additional lemmas *}
 lemma app_last: "(t \<^sub>\<degree>\<^sub>\<degree> ts) \<^sub>\<degree> u = t \<^sub>\<degree>\<^sub>\<degree> (ts @ [u])"
   by simp
 
-lemma subst_Var_IT [rule_format]: "r \<in> IT \<Longrightarrow> \<forall>i j. r[Var i/j] \<in> IT"
-  apply (erule IT.induct)
+lemma subst_Var_IT: "r \<in> IT \<Longrightarrow> (\<And>i j. r[Var i/j] \<in> IT)"
+  apply (induct set: IT)
     txt {* Case @{term Var}: *}
-    apply (intro strip)
+    apply atomize
     apply (simp (no_asm) add: subst_Var)
     apply
     ((rule conjI impI)+,
@@ -271,12 +285,12 @@ lemma subst_Var_IT [rule_format]: "r \<in> IT \<Longrightarrow> \<forall>i j. r[
       fast,
       assumption)+
    txt {* Case @{term Lambda}: *}
-   apply (intro strip)
+   apply atomize
    apply simp
    apply (rule IT.Lambda)
    apply fast
   txt {* Case @{term Beta}: *}
-  apply (intro strip)
+  apply atomize
   apply (simp (no_asm_use) add: subst_subst [symmetric])
   apply (rule IT.Beta)
    apply auto
@@ -290,7 +304,7 @@ lemma Var_IT: "Var n \<in> IT"
   done
 
 lemma app_Var_IT: "t \<in> IT \<Longrightarrow> t \<^sub>\<degree> Var i \<in> IT"
-  apply (erule IT.induct)
+  apply (induct set: IT)
     apply (subst app_last)
     apply (rule IT.Var)
     apply simp
