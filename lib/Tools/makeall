@@ -25,6 +25,11 @@ function usage()
   exit 1
 }
 
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
 
 ## main
 
@@ -34,7 +39,7 @@ echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 
 for L in $ALL_LOGICS
 do
-  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make "$@" )
+  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make "$@" ) || fail "Logic $L failed!"
 done
 
 echo -n "Finished at "; date
