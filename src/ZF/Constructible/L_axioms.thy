@@ -1,6 +1,6 @@
 header {*The Class L Satisfies the ZF Axioms*}
 
-theory L_axioms = Formula + Relative + Reflection:
+theory L_axioms = Formula + Relative + Reflection + MetaExists:
 
 
 text {* The class L satisfies the premises of locale @{text M_axioms} *}
@@ -189,10 +189,6 @@ subsection{*Instantiation of the locale @{text reflection}*}
 
 text{*instances of locale constants*}
 constdefs
-  L_Reflects :: "[i=>o,i=>o,[i,i]=>o] => o"
-    "L_Reflects(Cl,P,Q) == Closed_Unbounded(Cl) &
-                           (\<forall>a. Cl(a) --> (\<forall>x \<in> Lset(a). P(x) <-> Q(a,x)))"
-
   L_F0 :: "[i=>o,i] => i"
     "L_F0(P,y) == \<mu>b. (\<exists>z. L(z) \<and> P(<y,z>)) --> (\<exists>z\<in>Lset(b). P(<y,z>))"
 
@@ -202,87 +198,120 @@ constdefs
   L_ClEx :: "[i=>o,i] => o"
     "L_ClEx(P) == \<lambda>a. Limit(a) \<and> normalize(L_FF(P),a) = a"
 
-theorem Triv_reflection [intro]:
-     "L_Reflects(Ord, P, \<lambda>a x. P(x))"
-by (simp add: L_Reflects_def)
 
-theorem Not_reflection [intro]:
-     "L_Reflects(Cl,P,Q) ==> L_Reflects(Cl, \<lambda>x. ~P(x), \<lambda>a x. ~Q(a,x))"
-by (simp add: L_Reflects_def) 
-
-theorem And_reflection [intro]:
-     "[| L_Reflects(Cl,P,Q); L_Reflects(C',P',Q') |] 
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> C'(a), \<lambda>x. P(x) \<and> P'(x), 
-                                      \<lambda>a x. Q(a,x) \<and> Q'(a,x))"
-by (simp add: L_Reflects_def Closed_Unbounded_Int, blast)
-
-theorem Or_reflection [intro]:
-     "[| L_Reflects(Cl,P,Q); L_Reflects(C',P',Q') |] 
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> C'(a), \<lambda>x. P(x) \<or> P'(x), 
-                                      \<lambda>a x. Q(a,x) \<or> Q'(a,x))"
-by (simp add: L_Reflects_def Closed_Unbounded_Int, blast)
-
-theorem Imp_reflection [intro]:
-     "[| L_Reflects(Cl,P,Q); L_Reflects(C',P',Q') |] 
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> C'(a), 
-                   \<lambda>x. P(x) --> P'(x), 
-                   \<lambda>a x. Q(a,x) --> Q'(a,x))"
-by (simp add: L_Reflects_def Closed_Unbounded_Int, blast)
-
-theorem Iff_reflection [intro]:
-     "[| L_Reflects(Cl,P,Q); L_Reflects(C',P',Q') |] 
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> C'(a), 
-                   \<lambda>x. P(x) <-> P'(x), 
-                   \<lambda>a x. Q(a,x) <-> Q'(a,x))"
-by (simp add: L_Reflects_def Closed_Unbounded_Int, blast) 
+text{*We must use the meta-existential quantifier; otherwise the reflection
+      terms become enormous!*} 
+constdefs
+  L_Reflects :: "[i=>o,[i,i]=>o] => prop"      ("(3REFLECTS/ [_,/ _])")
+    "REFLECTS[P,Q] == (??Cl. Closed_Unbounded(Cl) &
+                           (\<forall>a. Cl(a) --> (\<forall>x \<in> Lset(a). P(x) <-> Q(a,x))))"
 
 
-theorem Ex_reflection [intro]:
-     "L_Reflects(Cl, \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))) 
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> L_ClEx(\<lambda>x. P(fst(x),snd(x)), a), 
-                   \<lambda>x. \<exists>z. L(z) \<and> P(x,z), 
-                   \<lambda>a x. \<exists>z\<in>Lset(a). Q(a,x,z))"
+theorem Triv_reflection:
+     "REFLECTS[P, \<lambda>a x. P(x)]"
+apply (simp add: L_Reflects_def) 
+apply (rule meta_exI) 
+apply (rule Closed_Unbounded_Ord) 
+done
+
+theorem Not_reflection:
+     "REFLECTS[P,Q] ==> REFLECTS[\<lambda>x. ~P(x), \<lambda>a x. ~Q(a,x)]"
+apply (unfold L_Reflects_def) 
+apply (erule meta_exE) 
+apply (rule_tac x=Cl in meta_exI, simp) 
+done
+
+theorem And_reflection:
+     "[| REFLECTS[P,Q]; REFLECTS[P',Q'] |] 
+      ==> REFLECTS[\<lambda>x. P(x) \<and> P'(x), \<lambda>a x. Q(a,x) \<and> Q'(a,x)]"
+apply (unfold L_Reflects_def) 
+apply (elim meta_exE) 
+apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI) 
+apply (simp add: Closed_Unbounded_Int, blast) 
+done
+
+theorem Or_reflection:
+     "[| REFLECTS[P,Q]; REFLECTS[P',Q'] |] 
+      ==> REFLECTS[\<lambda>x. P(x) \<or> P'(x), \<lambda>a x. Q(a,x) \<or> Q'(a,x)]"
+apply (unfold L_Reflects_def) 
+apply (elim meta_exE) 
+apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI) 
+apply (simp add: Closed_Unbounded_Int, blast) 
+done
+
+theorem Imp_reflection:
+     "[| REFLECTS[P,Q]; REFLECTS[P',Q'] |] 
+      ==> REFLECTS[\<lambda>x. P(x) --> P'(x), \<lambda>a x. Q(a,x) --> Q'(a,x)]"
+apply (unfold L_Reflects_def) 
+apply (elim meta_exE) 
+apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI) 
+apply (simp add: Closed_Unbounded_Int, blast) 
+done
+
+theorem Iff_reflection:
+     "[| REFLECTS[P,Q]; REFLECTS[P',Q'] |] 
+      ==> REFLECTS[\<lambda>x. P(x) <-> P'(x), \<lambda>a x. Q(a,x) <-> Q'(a,x)]"
+apply (unfold L_Reflects_def) 
+apply (elim meta_exE) 
+apply (rule_tac x="\<lambda>a. Cl(a) \<and> Cla(a)" in meta_exI) 
+apply (simp add: Closed_Unbounded_Int, blast) 
+done
+
+
+theorem Ex_reflection:
+     "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
+      ==> REFLECTS[\<lambda>x. \<exists>z. L(z) \<and> P(x,z), \<lambda>a x. \<exists>z\<in>Lset(a). Q(a,x,z)]"
 apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def) 
+apply (elim meta_exE) 
+apply (rule meta_exI)
 apply (rule reflection.Ex_reflection [OF Lset_mono_le Lset_cont Pair_in_Lset],
        assumption+)
 done
 
-theorem All_reflection [intro]:
-     "L_Reflects(Cl,  \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x)))
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> L_ClEx(\<lambda>x. ~P(fst(x),snd(x)), a), 
-                   \<lambda>x. \<forall>z. L(z) --> P(x,z), 
-                   \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z))" 
+theorem All_reflection:
+     "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
+      ==> REFLECTS[\<lambda>x. \<forall>z. L(z) --> P(x,z), \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z)]" 
 apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def) 
+apply (elim meta_exE) 
+apply (rule meta_exI)
 apply (rule reflection.All_reflection [OF Lset_mono_le Lset_cont Pair_in_Lset],
        assumption+)
 done
 
-theorem Rex_reflection [intro]:
-     "L_Reflects(Cl, \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))) 
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> L_ClEx(\<lambda>x. P(fst(x),snd(x)), a), 
-                   \<lambda>x. \<exists>z[L]. P(x,z), 
-                   \<lambda>a x. \<exists>z\<in>Lset(a). Q(a,x,z))"
-by (unfold rex_def, blast) 
+theorem Rex_reflection:
+     "REFLECTS[ \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
+      ==> REFLECTS[\<lambda>x. \<exists>z[L]. P(x,z), \<lambda>a x. \<exists>z\<in>Lset(a). Q(a,x,z)]"
+apply (unfold rex_def) 
+apply (intro And_reflection Ex_reflection, assumption)
+done
 
-theorem Rall_reflection [intro]:
-     "L_Reflects(Cl,  \<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x)))
-      ==> L_Reflects(\<lambda>a. Cl(a) \<and> L_ClEx(\<lambda>x. ~P(fst(x),snd(x)), a), 
-                   \<lambda>x. \<forall>z[L]. P(x,z), 
-                   \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z))" 
-by (unfold rall_def, blast) 
+theorem Rall_reflection:
+     "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
+      ==> REFLECTS[\<lambda>x. \<forall>z[L]. P(x,z), \<lambda>a x. \<forall>z\<in>Lset(a). Q(a,x,z)]" 
+apply (unfold rall_def) 
+apply (intro Imp_reflection All_reflection, assumption)
+done
+
+lemmas FOL_reflection = 
+        Triv_reflection Not_reflection And_reflection Or_reflection
+        Imp_reflection Iff_reflection Ex_reflection All_reflection
+        Rex_reflection Rall_reflection
 
 lemma ReflectsD:
-     "[|L_Reflects(Cl,P,Q); Ord(i)|] 
+     "[|REFLECTS[P,Q]; Ord(i)|] 
       ==> \<exists>j. i<j & (\<forall>x \<in> Lset(j). P(x) <-> Q(j,x))"
-apply (simp add: L_Reflects_def Closed_Unbounded_def, clarify)
+apply (unfold L_Reflects_def Closed_Unbounded_def) 
+apply (elim meta_exE, clarify) 
 apply (blast dest!: UnboundedD) 
 done
 
 lemma ReflectsE:
-     "[| L_Reflects(Cl,P,Q); Ord(i);
+     "[| REFLECTS[P,Q]; Ord(i);
          !!j. [|i<j;  \<forall>x \<in> Lset(j). P(x) <-> Q(j,x)|] ==> R |]
       ==> R"
-by (blast dest!: ReflectsD) 
+apply (drule ReflectsD, assumption)
+apply blast 
+done
 
 lemma Collect_mem_eq: "{x\<in>A. x\<in>B} = A \<inter> B";
 by blast
@@ -352,11 +381,12 @@ apply (simp add: upair_fm_def Transset_def, auto)
 apply (blast intro: nth_type) 
 done
 
-text{*The @{text simplified} attribute tidies up the reflecting class.*}
-theorem upair_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. upair(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. upair(**Lset(i),f(x),g(x),h(x)))" 
-by (simp add: upair_def, fast) 
+theorem upair_reflection:
+     "REFLECTS[\<lambda>x. upair(L,f(x),g(x),h(x)), 
+               \<lambda>i x. upair(**Lset(i),f(x),g(x),h(x))]" 
+apply (simp add: upair_def)
+apply (intro FOL_reflection)  
+done
 
 subsubsection{*Ordered pairs*}
 
@@ -387,10 +417,12 @@ lemma pair_iff_sats:
        ==> pair(**A, x, y, z) <-> sats(A, pair_fm(i,j,k), env)"
 by (simp add: sats_pair_fm)
 
-theorem pair_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. pair(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. pair(**Lset(i),f(x),g(x),h(x)))"
-by (simp only: pair_def setclass_simps, fast) 
+theorem pair_reflection:
+     "REFLECTS[\<lambda>x. pair(L,f(x),g(x),h(x)), 
+               \<lambda>i x. pair(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: pair_def setclass_simps)
+apply (intro FOL_reflection upair_reflection)  
+done
 
 
 subsubsection{*Binary Unions*}
@@ -421,10 +453,12 @@ lemma union_iff_sats:
        ==> union(**A, x, y, z) <-> sats(A, union_fm(i,j,k), env)"
 by (simp add: sats_union_fm)
 
-theorem union_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. union(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. union(**Lset(i),f(x),g(x),h(x)))" 
-by (simp add: union_def, fast) 
+theorem union_reflection:
+     "REFLECTS[\<lambda>x. union(L,f(x),g(x),h(x)), 
+               \<lambda>i x. union(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: union_def setclass_simps)
+apply (intro FOL_reflection)  
+done
 
 
 subsubsection{*`Cons' for sets*}
@@ -456,10 +490,12 @@ lemma cons_iff_sats:
        ==> is_cons(**A, x, y, z) <-> sats(A, cons_fm(i,j,k), env)"
 by simp
 
-theorem cons_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. is_cons(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. is_cons(**Lset(i),f(x),g(x),h(x)))"
-by (simp only: is_cons_def setclass_simps, fast)
+theorem cons_reflection:
+     "REFLECTS[\<lambda>x. is_cons(L,f(x),g(x),h(x)), 
+               \<lambda>i x. is_cons(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: is_cons_def setclass_simps)
+apply (intro FOL_reflection upair_reflection union_reflection)  
+done
 
 
 subsubsection{*Function Applications*}
@@ -491,10 +527,12 @@ lemma fun_apply_iff_sats:
        ==> fun_apply(**A, x, y, z) <-> sats(A, fun_apply_fm(i,j,k), env)"
 by simp
 
-theorem fun_apply_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. fun_apply(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. fun_apply(**Lset(i),f(x),g(x),h(x)))" 
-by (simp only: fun_apply_def setclass_simps, fast)
+theorem fun_apply_reflection:
+     "REFLECTS[\<lambda>x. fun_apply(L,f(x),g(x),h(x)), 
+               \<lambda>i x. fun_apply(**Lset(i),f(x),g(x),h(x))]" 
+apply (simp only: fun_apply_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
 
 subsubsection{*Variants of Satisfaction Definitions for Ordinals, etc.*}
@@ -507,20 +545,24 @@ lemma sats_subset_fm':
     ==> sats(A, subset_fm(x,y), env) <-> subset(**A, nth(x,env), nth(y,env))" 
 by (simp add: subset_fm_def subset_def) 
 
-theorem subset_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. subset(L,f(x),g(x)), 
-                    \<lambda>i x. subset(**Lset(i),f(x),g(x)))" 
-by (simp add: subset_def, fast) 
+theorem subset_reflection:
+     "REFLECTS[\<lambda>x. subset(L,f(x),g(x)), 
+               \<lambda>i x. subset(**Lset(i),f(x),g(x))]" 
+apply (simp only: subset_def setclass_simps)
+apply (intro FOL_reflection)  
+done
 
 lemma sats_transset_fm':
    "[|x \<in> nat; env \<in> list(A)|]
     ==> sats(A, transset_fm(x), env) <-> transitive_set(**A, nth(x,env))"
 by (simp add: sats_subset_fm' transset_fm_def transitive_set_def) 
 
-theorem transitive_set_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. transitive_set(L,f(x)),
-                    \<lambda>i x. transitive_set(**Lset(i),f(x)))"
-by (simp only: transitive_set_def setclass_simps, fast)
+theorem transitive_set_reflection:
+     "REFLECTS[\<lambda>x. transitive_set(L,f(x)),
+               \<lambda>i x. transitive_set(**Lset(i),f(x))]"
+apply (simp only: transitive_set_def setclass_simps)
+apply (intro FOL_reflection subset_reflection)  
+done
 
 lemma sats_ordinal_fm':
    "[|x \<in> nat; env \<in> list(A)|]
@@ -532,10 +574,11 @@ lemma ordinal_iff_sats:
        ==> ordinal(**A, x) <-> sats(A, ordinal_fm(i), env)"
 by (simp add: sats_ordinal_fm')
 
-theorem ordinal_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. ordinal(L,f(x)),
-                    \<lambda>i x. ordinal(**Lset(i),f(x)))"
-by (simp only: ordinal_def setclass_simps, fast)
+theorem ordinal_reflection:
+     "REFLECTS[\<lambda>x. ordinal(L,f(x)), \<lambda>i x. ordinal(**Lset(i),f(x))]"
+apply (simp only: ordinal_def setclass_simps)
+apply (intro FOL_reflection transitive_set_reflection)  
+done
 
 
 subsubsection{*Membership Relation*}
@@ -569,11 +612,12 @@ lemma Memrel_iff_sats:
        ==> membership(**A, x, y) <-> sats(A, Memrel_fm(i,j), env)"
 by simp
 
-theorem membership_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. membership(L,f(x),g(x)), 
-                    \<lambda>i x. membership(**Lset(i),f(x),g(x)))"
-by (simp only: membership_def setclass_simps, fast)
-
+theorem membership_reflection:
+     "REFLECTS[\<lambda>x. membership(L,f(x),g(x)), 
+               \<lambda>i x. membership(**Lset(i),f(x),g(x))]"
+apply (simp only: membership_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
 subsubsection{*Predecessor Set*}
 
@@ -607,10 +651,12 @@ lemma pred_set_iff_sats:
        ==> pred_set(**A,U,x,r,B) <-> sats(A, pred_set_fm(i,j,k,l), env)"
 by (simp add: sats_pred_set_fm)
 
-theorem pred_set_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. pred_set(L,f(x),g(x),h(x),b(x)), 
-                    \<lambda>i x. pred_set(**Lset(i),f(x),g(x),h(x),b(x)))" 
-by (simp only: pred_set_def setclass_simps, fast) 
+theorem pred_set_reflection:
+     "REFLECTS[\<lambda>x. pred_set(L,f(x),g(x),h(x),b(x)), 
+               \<lambda>i x. pred_set(**Lset(i),f(x),g(x),h(x),b(x))]" 
+apply (simp only: pred_set_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
 
 
@@ -645,10 +691,12 @@ lemma domain_iff_sats:
        ==> is_domain(**A, x, y) <-> sats(A, domain_fm(i,j), env)"
 by simp
 
-theorem domain_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. is_domain(L,f(x),g(x)), 
-                    \<lambda>i x. is_domain(**Lset(i),f(x),g(x)))"
-by (simp only: is_domain_def setclass_simps, fast)
+theorem domain_reflection:
+     "REFLECTS[\<lambda>x. is_domain(L,f(x),g(x)), 
+               \<lambda>i x. is_domain(**Lset(i),f(x),g(x))]"
+apply (simp only: is_domain_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
 
 subsubsection{*Range*}
@@ -682,15 +730,14 @@ lemma range_iff_sats:
        ==> is_range(**A, x, y) <-> sats(A, range_fm(i,j), env)"
 by simp
 
-theorem range_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. is_range(L,f(x),g(x)), 
-                    \<lambda>i x. is_range(**Lset(i),f(x),g(x)))"
-by (simp only: is_range_def setclass_simps, fast)
-
-
+theorem range_reflection:
+     "REFLECTS[\<lambda>x. is_range(L,f(x),g(x)), 
+               \<lambda>i x. is_range(**Lset(i),f(x),g(x))]"
+apply (simp only: is_range_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
  
-
 subsubsection{*Image*}
 
 (* "image(M,r,A,z) == 
@@ -723,10 +770,12 @@ lemma image_iff_sats:
        ==> image(**A, x, y, z) <-> sats(A, image_fm(i,j,k), env)"
 by (simp add: sats_image_fm)
 
-theorem image_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. image(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. image(**Lset(i),f(x),g(x),h(x)))" 
-by (simp only: image_def setclass_simps, fast)
+theorem image_reflection:
+     "REFLECTS[\<lambda>x. image(L,f(x),g(x),h(x)), 
+               \<lambda>i x. image(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: image_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
 
 subsubsection{*The Concept of Relation*}
@@ -756,10 +805,12 @@ lemma relation_iff_sats:
        ==> is_relation(**A, x) <-> sats(A, relation_fm(i), env)"
 by simp
 
-theorem is_relation_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. is_relation(L,f(x)), 
-                    \<lambda>i x. is_relation(**Lset(i),f(x)))"
-by (simp only: is_relation_def setclass_simps, fast)
+theorem is_relation_reflection:
+     "REFLECTS[\<lambda>x. is_relation(L,f(x)), 
+               \<lambda>i x. is_relation(**Lset(i),f(x))]"
+apply (simp only: is_relation_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
 
 subsubsection{*The Concept of Function*}
@@ -794,10 +845,12 @@ lemma function_iff_sats:
        ==> is_function(**A, x) <-> sats(A, function_fm(i), env)"
 by simp
 
-theorem is_function_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. is_function(L,f(x)), 
-                    \<lambda>i x. is_function(**Lset(i),f(x)))"
-by (simp only: is_function_def setclass_simps, fast)
+theorem is_function_reflection:
+     "REFLECTS[\<lambda>x. is_function(L,f(x)), 
+               \<lambda>i x. is_function(**Lset(i),f(x))]"
+apply (simp only: is_function_def setclass_simps)
+apply (intro FOL_reflection pair_reflection)  
+done
 
 
 subsubsection{*Typed Functions*}
@@ -835,11 +888,20 @@ lemma typed_function_iff_sats:
    ==> typed_function(**A, x, y, z) <-> sats(A, typed_function_fm(i,j,k), env)"
 by simp
 
-theorem typed_function_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. typed_function(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. typed_function(**Lset(i),f(x),g(x),h(x)))"
-by (simp only: typed_function_def setclass_simps, fast)
+lemmas function_reflection = 
+        upair_reflection pair_reflection union_reflection
+	cons_reflection fun_apply_reflection subset_reflection
+	transitive_set_reflection ordinal_reflection membership_reflection
+	pred_set_reflection domain_reflection range_reflection image_reflection
+	is_relation_reflection is_function_reflection
 
+
+theorem typed_function_reflection:
+     "REFLECTS[\<lambda>x. typed_function(L,f(x),g(x),h(x)), 
+               \<lambda>i x. typed_function(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: typed_function_def setclass_simps)
+apply (intro FOL_reflection function_reflection)  
+done
 
 
 subsubsection{*Injections*}
@@ -879,10 +941,12 @@ lemma injection_iff_sats:
    ==> injection(**A, x, y, z) <-> sats(A, injection_fm(i,j,k), env)"
 by simp
 
-theorem injection_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. injection(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. injection(**Lset(i),f(x),g(x),h(x)))"
-by (simp only: injection_def setclass_simps, fast)
+theorem injection_reflection:
+     "REFLECTS[\<lambda>x. injection(L,f(x),g(x),h(x)), 
+               \<lambda>i x. injection(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: injection_def setclass_simps)
+apply (intro FOL_reflection function_reflection typed_function_reflection)  
+done
 
 
 subsubsection{*Surjections*}
@@ -919,10 +983,12 @@ lemma surjection_iff_sats:
    ==> surjection(**A, x, y, z) <-> sats(A, surjection_fm(i,j,k), env)"
 by simp
 
-theorem surjection_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. surjection(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. surjection(**Lset(i),f(x),g(x),h(x)))"
-by (simp only: surjection_def setclass_simps, fast)
+theorem surjection_reflection:
+     "REFLECTS[\<lambda>x. surjection(L,f(x),g(x),h(x)), 
+               \<lambda>i x. surjection(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: surjection_def setclass_simps)
+apply (intro FOL_reflection function_reflection typed_function_reflection)  
+done
 
 
 
@@ -954,11 +1020,12 @@ lemma bijection_iff_sats:
    ==> bijection(**A, x, y, z) <-> sats(A, bijection_fm(i,j,k), env)"
 by simp
 
-theorem bijection_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. bijection(L,f(x),g(x),h(x)), 
-                    \<lambda>i x. bijection(**Lset(i),f(x),g(x),h(x)))"
-by (simp only: bijection_def setclass_simps, fast)
-
+theorem bijection_reflection:
+     "REFLECTS[\<lambda>x. bijection(L,f(x),g(x),h(x)), 
+               \<lambda>i x. bijection(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: bijection_def setclass_simps)
+apply (intro And_reflection injection_reflection surjection_reflection)  
+done
 
 
 subsubsection{*Order-Isomorphisms*}
@@ -1010,10 +1077,11 @@ lemma order_isomorphism_iff_sats:
        sats(A, order_isomorphism_fm(i,j,k,j',k'), env)" 
 by simp
 
-theorem order_isomorphism_reflection [simplified,intro]:
-     "L_Reflects(?Cl, \<lambda>x. order_isomorphism(L,f(x),g(x),h(x),g'(x),h'(x)), 
-               \<lambda>i x. order_isomorphism(**Lset(i),f(x),g(x),h(x),g'(x),h'(x)))"
-by (simp only: order_isomorphism_def setclass_simps, fast)
-
+theorem order_isomorphism_reflection:
+     "REFLECTS[\<lambda>x. order_isomorphism(L,f(x),g(x),h(x),g'(x),h'(x)), 
+               \<lambda>i x. order_isomorphism(**Lset(i),f(x),g(x),h(x),g'(x),h'(x))]"
+apply (simp only: order_isomorphism_def setclass_simps)
+apply (intro FOL_reflection function_reflection bijection_reflection)  
+done
 
 end
