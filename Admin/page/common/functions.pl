@@ -43,7 +43,7 @@
       my $year  = $t[5]+1900;      
       my $month = twodig($t[4]+1);
       my $day   = twodig($t[3]);
-      return "$month/$day/$year";
+      return "$year-$month-$day";
 #      my $hour  = twodig($t[2]);
 #      my $min   = twodig($t[1]);
 #      return "$month/$day/$year $hour:$min UTC";
