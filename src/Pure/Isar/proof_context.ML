@@ -28,6 +28,7 @@ sig
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
   val cert_skolem: context -> string -> string
+  val extern_skolem: context -> term -> term
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
@@ -382,7 +383,8 @@ fun cert_typ ctxt raw_T =
 
 (* internalize Skolem constants *)
 
-fun get_skolem (Context {asms = (_, (fixes, _)), ...}) x = assoc (fixes, x);
+fun fixes_of (Context {asms = (_, (fixes, _)), ...}) = fixes;
+fun get_skolem ctxt x = assoc (fixes_of ctxt, x);
 
 fun check_skolem ctxt check x =
   if check andalso can Syntax.dest_skolem x then
@@ -405,6 +407,21 @@ fun cert_skolem ctxt x =
     None => raise CONTEXT ("Undeclared variable: " ^ quote x, ctxt)
   | Some x' => x');
 
+
+(* externalize Skolem constants -- for printing purposes only *)
+
+fun extern_skolem ctxt =
+  let
+    val rev_fixes = map Library.swap (fixes_of ctxt);
+
+    fun extern (t as Free (x, T)) =
+          (case assoc (rev_fixes, x) of
+            Some x' => Free (if get_skolem ctxt x' = Some x then x' else NameSpace.hidden x', T)
+          | None => t)
+      | extern (t $ u) = extern t $ extern u
+      | extern (Abs (x, T, t)) = Abs (x, T, extern t)
+      | extern a = a;
+  in extern end
 
 
 (** prepare terms and propositions **)
