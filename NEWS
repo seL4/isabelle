@@ -10,7 +10,7 @@ New in Isabelle2001 (?? 2001)
 * support bold style (for single symbols only), input syntax is like
 this: "\<^bold>\<alpha>" or "\<^bold>A";
 
-* \<bullet> is no output as bold \cdot by default, which looks much
+* \<bullet> is now output as bold \cdot by default, which looks much
 better in printed text;
 
 * added default LaTeX bindings for \<tturnstile> and \<TTurnstile>;
