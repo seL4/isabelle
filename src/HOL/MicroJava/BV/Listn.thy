@@ -6,7 +6,7 @@
 Lists of a fixed length
 *)
 
-header "Fixed Length Lists"
+header {* \isaheader{Fixed Length Lists} *}
 
 theory Listn = Err:
 

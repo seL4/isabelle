@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Class Declarations and Programs"
+header {* \isaheader{Class Declarations and Programs} *}
 
 theory Decl = Type:
 

@@ -4,7 +4,10 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* State of the JVM *}
+header {* 
+  \chapter{Java Virtual Machine}\label{cha:jvm}
+  \isaheader{State of the JVM} 
+*}
 
 theory JVMState = Conform:
 

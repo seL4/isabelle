@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Operational Evaluation (big step) Semantics"
+header {* \isaheader{Operational Evaluation (big step) Semantics} *}
 
 theory Eval = State + WellType:
 

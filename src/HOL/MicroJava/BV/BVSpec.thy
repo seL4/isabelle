@@ -5,7 +5,7 @@
 
 *)
 
-header "The Bytecode Verifier"
+header {* \isaheader{The Bytecode Verifier}\label{sec:BVSpec} *}
 
 theory BVSpec = Effect:
 

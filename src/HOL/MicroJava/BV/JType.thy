@@ -4,7 +4,7 @@
     Copyright   2000 TUM
 *)
 
-header "The Java Type System as Semilattice"
+header {* \isaheader{The Java Type System as Semilattice} *}
 
 theory JType = WellForm + Err:
 

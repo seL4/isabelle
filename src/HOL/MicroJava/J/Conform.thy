@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Conformity Relations for Type Soundness Proof"
+header {* \isaheader{Conformity Relations for Type Soundness Proof} *}
 
 theory Conform = State + WellType:
 

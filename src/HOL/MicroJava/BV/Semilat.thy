@@ -6,7 +6,10 @@
 Semilattices
 *)
 
-header "Semilattices"
+header {* 
+  \chapter{Bytecode Verifier}\label{cha:bv}
+  \isaheader{Semilattices} 
+*}
 
 theory Semilat = While_Combinator:
 

@@ -3,7 +3,7 @@
     Author:     Stefan Berghofer
 *)
 
-header {* Example for generating executable code from JVM semantics *}
+header {* \isaheader{Example for generating executable code from JVM semantics} *}
 
 theory JVMListExample = JVMExec:
 

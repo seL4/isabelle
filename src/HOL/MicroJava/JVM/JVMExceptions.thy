@@ -4,7 +4,7 @@
     Copyright   2001 Technische Universitaet Muenchen
 *)
 
-header {* Exception handling in the JVM *}
+header {* \isaheader{Exception handling in the JVM} *}
 
 theory JVMExceptions = JVMInstructions:
 

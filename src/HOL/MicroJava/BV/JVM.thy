@@ -4,7 +4,7 @@
     Copyright   2000 TUM
 *)
 
-header "Kildall for the JVM"
+header {* \isaheader{Kildall for the JVM}\label{sec:JVM} *}
 
 theory JVM = Kildall_Lift + JVMType + Opt + Product + Typing_Framework_err +
              EffectMono + BVSpec:

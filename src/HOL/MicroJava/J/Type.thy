@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Java types"
+header {* \isaheader{Java types} *}
 
 theory Type = JBasis:
 

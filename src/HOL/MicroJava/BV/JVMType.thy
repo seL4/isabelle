@@ -5,7 +5,7 @@
 
 *)
 
-header "The JVM Type System as Semilattice"
+header {* \isaheader{The JVM Type System as Semilattice} *}
 
 theory JVMType = Opt + Product + Listn + JType:
 

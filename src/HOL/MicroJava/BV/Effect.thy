@@ -4,7 +4,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-header {* Effect of Instructions on the State Type *}
+header {* \isaheader{Effect of Instructions on the State Type} *}
 
 theory Effect = JVMType + JVMExceptions:
 

@@ -6,7 +6,7 @@
 More about options
 *)
 
-header "More about Options"
+header {* \isaheader{More about Options} *}
 
 theory Opt = Err:
 

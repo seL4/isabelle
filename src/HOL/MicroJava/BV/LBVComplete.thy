@@ -4,7 +4,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-header {* Completeness of the LBV *}
+header {* \isaheader{Completeness of the LBV} *}
 
 (* This theory is currently broken. The port to exceptions
   didn't make it into the Isabelle 2001 release. It is included for 

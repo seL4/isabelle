@@ -7,7 +7,7 @@
 The invariant for the type safety proof.
 *)
 
-header "BV Type Safety Invariant"
+header {* \isaheader{BV Type Safety Invariant} *}
 
 theory Correct = BVSpec + JVMExec:
 

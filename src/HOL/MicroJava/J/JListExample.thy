@@ -3,7 +3,7 @@
     Author:     Stefan Berghofer
 *)
 
-header {* Example for generating executable code from Java semantics *}
+header {* \isaheader{Example for generating executable code from Java semantics} *}
 
 theory JListExample = Eval:
 
@@ -107,7 +107,7 @@ generate_code
       Expr ({list_name}(LAcc l1_name)..
         append_name({[RefT (ClassT list_name)]}[LAcc l4_name])))-> _"
 
-subsection {* Big step execution *}
+section {* Big step execution *}
 
 ML {*
 

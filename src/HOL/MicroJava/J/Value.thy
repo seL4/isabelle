@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Java Values"
+header {* \isaheader{Java Values} *}
 
 theory Value = Type:
 

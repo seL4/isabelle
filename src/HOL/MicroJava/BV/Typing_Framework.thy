@@ -4,7 +4,7 @@
     Copyright   2000 TUM
 *)
 
-header "Typing and Dataflow Analysis Framework"
+header {* \isaheader{Typing and Dataflow Analysis Framework} *}
 
 theory Typing_Framework = Listn:
 

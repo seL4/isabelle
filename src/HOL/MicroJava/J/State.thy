@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Program State"
+header {* \isaheader{Program State} *}
 
 theory State = TypeRel + Value:
 

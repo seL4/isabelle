@@ -6,7 +6,7 @@
 Kildall's algorithm
 *)
 
-header "Kildall's Algorithm"
+header {* \isaheader{Kildall's Algorithm}\label{sec:Kildall} *}
 
 theory Kildall = Typing_Framework + While_Combinator + Product:
 

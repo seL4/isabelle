@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Relations between Java Types"
+header {* \isaheader{Relations between Java Types} *}
 
 theory TypeRel = Decl:
 

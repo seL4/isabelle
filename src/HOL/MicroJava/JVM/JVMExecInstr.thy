@@ -5,7 +5,7 @@
 *)
 
 
-header {* JVM Instruction Semantics *}
+header {* \isaheader{JVM Instruction Semantics} *}
 
 
 theory JVMExecInstr = JVMInstructions + JVMState:

@@ -5,7 +5,7 @@
 
 *)
 
-header "Static and Dynamic Welltyping"
+header {* \isaheader{Static and Dynamic Welltyping} *}
 
 theory Typing_Framework_err = Typing_Framework:
 

@@ -6,7 +6,7 @@
 Products as semilattices
 *)
 
-header "Products as Semilattices"
+header {* \isaheader{Products as Semilattices} *}
 
 theory Product = Err:
 

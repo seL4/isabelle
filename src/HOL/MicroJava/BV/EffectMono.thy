@@ -4,7 +4,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-header {* Monotonicity of eff and app *}
+header {* \isaheader{Monotonicity of eff and app} *}
 
 theory EffectMono = Effect:
 

@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* Program Execution in the JVM *}
+header {* \isaheader{Program Execution in the JVM} *}
 
 theory JVMExec = JVMExecInstr + JVMExceptions:
 

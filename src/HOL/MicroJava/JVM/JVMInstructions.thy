@@ -4,7 +4,7 @@
     Copyright   2000 Technische Universitaet Muenchen
 *)
 
-header {* Instructions of the JVM *}
+header {* \isaheader{Instructions of the JVM} *}
 
 
 theory JVMInstructions = JVMState:

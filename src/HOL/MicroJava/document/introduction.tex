@@ -1,0 +1,110 @@
+
+\section*{Introduction}
+\label{sec:introduction}
+
+This document contains the automatically generated listings of the
+Isabelle sources for \mJava. \mJava{} is a reduced model of JavaCard,
+dedicated to the study of the interaction of the source language, byte
+code, the byte code verifier and the compiler. In order to make the
+Isabelle sources more accessible, this introduction provides a brief
+survey of the main concepts of \mJava.
+
+The \mJava{} \textbf{source language} (see \charef{cha:j})
+only comprises a part of the original JavaCard language. It models
+features such as:
+\begin{itemize}
+\item The basic ``primitive types'' of Java 
+\item Object orientation, in particular classes, and relevant
+  relations on classes (subclass, widening)
+
+\item Methods and method signatures
+\item Inheritance and overriding of methods, dynamic binding
+
+\item Representatives of ``relevant'' expressions and statements 
+\item Generation and propagation of system exceptions
+\end{itemize}
+
+However, the following features are missing in \mJava{} wrt.{} JavaCard:
+\begin{itemize}
+\item Some primitive types (\texttt{byte, short})
+\item Interfaces and related concepts, arrays
+\item Most numeric operations, syntactic variants of statements
+  (\texttt{do}-loop, \texttt{for}-loop)
+\item Complex block structure, method bodies with multiple returns
+\item Abrupt termination (\texttt{break, continue})
+\item Class and method modifiers (such as \texttt{static} and
+  \texttt{public/private} access modifiers)
+\item User-defined exception classes and an explicit
+  \texttt{throw}-statement. Exceptions cannot be caught.
+\item A ``definite assignment'' check
+\end{itemize}
+In addition, features are missing that are not part of the JavaCard
+language, such as multithreading and garbage collection. No attempt
+has been made to model peculiarities of JavaCard such as the applet
+firewall or the transaction mechanism.
+
+For a more complete Isabelle model of JavaCard, the reader should
+consult the Bali formalization
+(\url{http://isabelle.in.tum.de/verificard/Bali/document.pdf}), which
+models most of the source language features of JavaCard, however without
+describing the bytecode level.
+
+The central topics of the source language formalization are:
+\begin{itemize}
+\item Description of the structure of the ``runtime environment'', in
+  particular structure of classes and the program state
+\item Definition of syntax, typing rules and operational semantics of
+  statements and expressions
+\item Definition of ``conformity'' (characterizing type safety) and a
+  type safety proof
+\end{itemize}
+
+
+The \mJava{} \textbf{virtual machine} (see \charef{cha:jvm})
+corresponds rather directly to the source level, in the sense that the
+same data types are supported and bytecode instructions required for
+emulating the source level operations are provided. Again, only one
+representative of different variants of instructions has been
+selected; for example, there is only one comparison operator.  The
+formalization of the bytecode level is purely descriptive (``no
+theorems'') and rather brief as compared to the source level; all
+questions related to type systems for and type correctness of bytecode
+are dealt with in chapter on bytecode verification.
+
+The problem of \textbf{bytecode verification} (see \charef{cha:bv}) is
+dealt with in several stages:
+\begin{itemize}
+\item First, the notion of ``method type'' is introduced, which
+  corresponds to the notion of ``type'' on the source level.
+\item Well-typedness of instructions wrt. a method type is defined
+  (see \secref{sec:BVSpec}). Roughly speaking, determining
+  well-typedness is \emph{type checking}.
+\item It is shown that bytecode that is well-typed in this sense can
+  be safely executed -- a type soundness proof on the bytecode level
+  (\secref{sec:BVSpecTypeSafe}). 
+\item Given raw bytecode, one of the purposes of bytecode verification
+  is to determine a method type that is well-typed according to the
+  above definition. Roughly speaking, this is \emph{type inference}.
+  The Isabelle formalization presents bytecode verification as an
+  instance of an abstract dataflow algorithm (Kildall's algorithm, see
+  \secrefs{sec:Kildall} to \ref{sec:JVM}).
+%\item For \emph{lightweight bytecode verification}, type checking of
+%  bytecode can be reduced to method types with small size. 
+\end{itemize}
+
+Bytecode verification in \mJava{} so far takes into account:
+\begin{itemize}
+\item Operations and branching instructions
+\item Exceptions
+\end{itemize}
+Initialization during object creation is not accounted for in the
+present document 
+(see the formalization in
+\url{http://isabelle.in.tum.de/verificard/obj-init/document.pdf}),
+neither is the \texttt{jsr} instruction.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

@@ -1,26 +1,36 @@
-
-\documentclass[11pt,a4paper]{article}
+%\documentclass[11pt,a4paper]{article}
+\documentclass[11pt,a4paper]{book}
 \usepackage{graphicx,latexsym,isabelle,isabellesym,pdfsetup}
 
 \urlstyle{rm}
 \pagestyle{myheadings}
 
+%make a bit more space
 \addtolength{\hoffset}{-1,5cm}
 \addtolength{\textwidth}{4cm}
 \addtolength{\voffset}{-2cm}
 \addtolength{\textheight}{4cm}
 
 %subsection instead of section to make the toc readable
+\newcommand{\isaheader}[1]
+{\newpage\markright{Theory~\isabellecontext}\subsection{#1}}
 \renewcommand{\thesubsection}{\arabic{subsection}}
-\renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\subsection{#1}}
+\renewcommand{\isamarkupheader}[1]{#1}
 \renewcommand{\isamarkupsection}[1]{\subsubsection{#1}}
+\renewcommand{\isamarkupsubsection}[1]{\subsubsection{#1}}
 
 %remove spaces from the isabelle environment (trivlist makes them too large)
-\renewenvironment{isabelle}
-{\begin{isabellebody}}
-{\end{isabellebody}}
+%\renewenvironment{isabelle}
+%{\begin{isabellebody}}
+%{\end{isabellebody}}
+
 
 \newcommand{\mJava}{$\mu$Java}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\secrefs}[1]{Sections~\ref{#1}}
+\newcommand{\charef}[1]{Chapter~\ref{#1}}
+\newcommand{\charefs}[1]{Chapters~\ref{#1}}
+
 
 %remove clutter from the toc
 \setcounter{secnumdepth}{3}
@@ -28,27 +38,30 @@
 
 \begin{document}
 
-\title{\mJava}
-\author{Gerwin Klein \\ Tobias Nipkow \\ David von Oheimb \\ Cornelia Pusch}
+\title{Java Source and Bytecode Formalizations in Isabelle: \mJava\\
+%  {\large -- VerifiCard Project Deliverables -- }
+}
+\author{Gerwin Klein \and Tobias Nipkow \and David von Oheimb \and
+  Leonor Prensa Nieto \and Norbert Schirmer \and Martin Strecker}
 \maketitle
 
-\begin{abstract}\noindent
-  This formal development defines {\mJava}, a small fragment of the
-  programming language Java (with essentially just classes), together with a
-  corresponding virtual machine, a specification of its bytecode verifier
-  and a lightweight bytecode verifier.
-  It is shown that {\mJava} and the given specification of the bytecode
-  verifier are type-safe, and that the lightweight bytecode verifier
-  is functionally equivalent to the bytecode verifier specification.
-  See also the homepage of project Bali at \url{http://isabelle.in.tum.de/Bali/}.
-\end{abstract}
 
 \tableofcontents
 \parindent 0pt \parskip 0.5ex
 
+\input{introduction.tex}
+
+\section*{Theory Dependencies}
+
+Figure \ref{theory-deps} shows the dependencies between 
+the Isabelle theories in the following sections.
+
+\begin{figure}
 \begin{center}
   \includegraphics[scale=0.4]{session_graph}
 \end{center}
+\caption{Theory Dependency Graph\label{theory-deps}}
+\end{figure}
 
 \newpage
 \input{session}

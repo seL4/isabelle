@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* The Lightweight Bytecode Verifier *}
+header {* \isaheader{The Lightweight Bytecode Verifier} *}
 
 theory LBVSpec = Effect + Kildall:
 

@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Well-typedness Constraints"
+header {* \isaheader{Well-typedness Constraints} *}
 
 theory WellType = Term + WellForm:
 

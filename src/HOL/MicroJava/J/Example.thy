@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Example MicroJava Program"
+header {* \isaheader{Example MicroJava Program} *}
 
 theory Example = Eval:
 

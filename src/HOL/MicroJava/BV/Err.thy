@@ -6,7 +6,7 @@
 The error type
 *)
 
-header "The Error Type"
+header {* \isaheader{The Error Type} *}
 
 theory Err = Semilat:
 

@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Expressions and Statements"
+header {* \isaheader{Expressions and Statements} *}
 
 theory Term = Value:
 

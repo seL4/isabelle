@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header {* Correctness of the LBV *}
+header {* \isaheader{Correctness of the LBV} *}
 
 (* This theory is currently broken. The port to exceptions
   didn't make it into the Isabelle 2001 release. It is included for 

@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Well-formedness of Java programs"
+header {* \isaheader{Well-formedness of Java programs} *}
 
 theory WellForm = TypeRel:
 

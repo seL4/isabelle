@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "Type Safety Proof"
+header {* \isaheader{Type Safety Proof} *}
 
 theory JTypeSafe = Eval + Conform:
 

@@ -4,7 +4,7 @@
     Copyright   1999 Technische Universitaet Muenchen
 *)
 
-header "BV Type Safety Proof"
+header {* \isaheader{BV Type Safety Proof}\label{sec:BVSpecTypeSafe} *}
 
 theory BVSpecTypeSafe = Correct:
 

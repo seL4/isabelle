@@ -4,7 +4,10 @@
     Copyright   1999 TU Muenchen
 *)
 
-header "Some Auxiliary Definitions"
+header {* 
+  \chapter{Java Source Language}\label{cha:j}
+  \isaheader{Some Auxiliary Definitions}
+*}
 
 theory JBasis = Main: 
 
