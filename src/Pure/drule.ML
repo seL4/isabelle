@@ -74,6 +74,8 @@ sig
   val swap_prems_rl     : thm
   val equal_intr_rule   : thm
   val instantiate'	: ctyp option list -> cterm option list -> thm -> thm
+  val incr_indexes	: int -> thm -> thm
+  val incr_indexes_wrt	: int list -> ctyp list -> cterm list -> thm list -> thm -> thm
 end;
 
 signature DRULE =
@@ -667,6 +669,27 @@ fun unvarify raw_thm =
     val ct = Thm.cterm_of (Thm.sign_of_thm thm);
     val frees = map (fn ((x, _), T) => Some (ct (Free (x, T)))) (vars_of thm);
   in instantiate' [] frees thm end;
+
+
+(* increment var indexes *)
+
+fun incr_indexes 0 thm = thm
+  | incr_indexes inc thm =
+      let
+        val sign = Thm.sign_of_thm thm;
+
+        fun inc_tvar ((x, i), S) = Some (Thm.ctyp_of sign (TVar ((x, i + inc), S)));
+        fun inc_var ((x, i), T) = Some (Thm.cterm_of sign (Var ((x, i + inc), T)));
+      in instantiate' (map inc_tvar (tvars_of thm)) (map inc_var (vars_of thm)) thm end;
+
+fun incr_indexes_wrt is cTs cts thms =
+  let
+    val maxidx =
+      foldl Int.max (~1, is @
+        map (maxidx_of_typ o #T o Thm.rep_ctyp) cTs @
+        map (#maxidx o Thm.rep_cterm) cts @
+        map (#maxidx o Thm.rep_thm) thms);
+  in incr_indexes (maxidx + 1) end;
 
 
 (* mk_triv_goal *)
