@@ -5,7 +5,10 @@
 # $Header$
 #
 # $Log$
-# Revision 1.2  1997/03/17 11:25:52  wenzelm
+# Revision 1.3  1998/10/19 13:37:02  oheimb
+# corrected Header
+#
+# Revision 1.2  1997/03/17  11:25:52  wenzelm
 # fixed perl path;
 #
 # Revision 1.1.1.1  1996/06/25  15:44:59  oheimb
