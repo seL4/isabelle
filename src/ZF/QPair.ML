@@ -125,7 +125,7 @@ qed_goalw "qconverseE" QPair.thy [qconverse_def]
 val qconverse_cs = qpair_cs addSIs [qconverseI] 
 			    addSEs [qconverseD,qconverseE];
 
-qed_goal "qconverse_of_qconverse" QPair.thy
+qed_goal "qconverse_qconverse" QPair.thy
     "!!A B r. r<=QSigma(A,B) ==> qconverse(qconverse(r)) = r"
  (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
 
@@ -133,7 +133,7 @@ qed_goal "qconverse_type" QPair.thy
     "!!A B r. r <= A <*> B ==> qconverse(r) <= B <*> A"
  (fn _ => [ (fast_tac qconverse_cs 1) ]);
 
-qed_goal "qconverse_of_prod" QPair.thy "qconverse(A <*> B) = B <*> A"
+qed_goal "qconverse_prod" QPair.thy "qconverse(A <*> B) = B <*> A"
  (fn _ => [ (fast_tac (qconverse_cs addSIs [equalityI]) 1) ]);
 
 qed_goal "qconverse_empty" QPair.thy "qconverse(0) = 0"
