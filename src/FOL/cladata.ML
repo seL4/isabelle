@@ -61,6 +61,11 @@ end;
 
 claset := FOL_cs;
 
+fun claset_of tname =
+  case get_thydata tname "claset" of
+      None => empty_cs
+    | Some (CS_DATA cs) => cs;
+
 (*** Applying BlastFun to create Blast_tac ***)
 structure Blast_Data = 
   struct

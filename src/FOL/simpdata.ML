@@ -247,9 +247,10 @@ in add_thydata "FOL"
      ("simpset", ThyMethods {merge = merge, put = put, get = get})
 end;
 
-
-add_thy_reader_file "thy_data.ML";
-
+fun simpset_of tname =
+  case get_thydata tname "simpset" of
+      None => empty_ss
+    | Some (SS_DATA ss) => ss;
 
 
 
