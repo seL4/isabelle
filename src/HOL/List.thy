@@ -1889,24 +1889,29 @@ primrec
    "listset(A#As) = set_Cons A (listset As)"
 
 
-subsection{*Relations on lists*}
+subsection{*Relations on Lists*}
 
-subsubsection {* Lexicographic orderings on lists *}
+subsubsection {* Length Lexicographic Ordering *}
 
-consts
-lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
+text{*These orderings preserve well-foundedness: shorter lists 
+  precede longer lists. These ordering are not used in dictionaries.*}
+
+consts lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
+        --{*The lexicographic ordering for lists of the specified length*}
 primrec
-"lexn r 0 = {}"
-"lexn r (Suc n) =
-(prod_fun (%(x,xs). x#xs) (%(x,xs). x#xs) ` (r <*lex*> lexn r n)) Int
-{(xs,ys). length xs = Suc n \<and> length ys = Suc n}"
+  "lexn r 0 = {}"
+  "lexn r (Suc n) =
+    (prod_fun (%(x,xs). x#xs) (%(x,xs). x#xs) ` (r <*lex*> lexn r n)) Int
+    {(xs,ys). length xs = Suc n \<and> length ys = Suc n}"
 
 constdefs
-lex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-"lex r == \<Union>n. lexn r n"
+  lex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
+    "lex r == \<Union>n. lexn r n"
+        --{*Holds only between lists of the same length*}
 
-lexico :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
-"lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
+  lexico :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
+    "lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
+        --{*Compares lists by their length and then lexicographically*}
 
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
@@ -1932,9 +1937,9 @@ apply (blast dest: lexn_length not_sym)
 done
 
 lemma lexn_conv:
-"lexn r n =
-{(xs,ys). length xs = n \<and> length ys = n \<and>
-(\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y):r)}"
+  "lexn r n =
+    {(xs,ys). length xs = n \<and> length ys = n \<and>
+    (\<exists>xys x y xs' ys'. xs= xys @ x#xs' \<and> ys= xys @ y # ys' \<and> (x, y):r)}"
 apply (induct n, simp, blast)
 apply (simp add: image_Collect lex_prod_def, safe, blast)
  apply (rule_tac x = "ab # xys" in exI, simp)
@@ -1942,17 +1947,17 @@ apply (case_tac xys, simp_all, blast)
 done
 
 lemma lex_conv:
-"lex r =
-{(xs,ys). length xs = length ys \<and>
-(\<exists>xys x y xs' ys'. xs = xys @ x # xs' \<and> ys = xys @ y # ys' \<and> (x, y):r)}"
+  "lex r =
+    {(xs,ys). length xs = length ys \<and>
+    (\<exists>xys x y xs' ys'. xs = xys @ x # xs' \<and> ys = xys @ y # ys' \<and> (x, y):r)}"
 by (force simp add: lex_def lexn_conv)
 
 lemma wf_lexico [intro!]: "wf r ==> wf (lexico r)"
 by (unfold lexico_def) blast
 
 lemma lexico_conv:
-"lexico r = {(xs,ys). length xs < length ys |
-length xs = length ys \<and> (xs, ys) : lex r}"
+    "lexico r = {(xs,ys). length xs < length ys |
+                 length xs = length ys \<and> (xs, ys) : lex r}"
 by (simp add: lexico_def diag_def lex_prod_def measure_def inv_image_def)
 
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
@@ -1962,14 +1967,109 @@ lemma Nil2_notin_lex [iff]: "(xs, []) \<notin> lex r"
 by (simp add:lex_conv)
 
 lemma Cons_in_lex [iff]:
-"((x # xs, y # ys) : lex r) =
-((x, y) : r \<and> length xs = length ys | x = y \<and> (xs, ys) : lex r)"
+    "((x # xs, y # ys) : lex r) =
+      ((x, y) : r \<and> length xs = length ys | x = y \<and> (xs, ys) : lex r)"
 apply (simp add: lex_conv)
 apply (rule iffI)
  prefer 2 apply (blast intro: Cons_eq_appendI, clarify)
 apply (case_tac xys, simp, simp)
 apply blast
 done
+
+
+subsubsection {* Lexicographic Ordering *}
+
+text {* Classical lexicographic ordering on lists, ie. "a" < "ab" < "b".
+    This ordering does \emph{not} preserve well-foundedness.
+     Author: N. Voelker, March 2005 *} 
+
+constdefs 
+  lexord :: "('a * 'a)set \<Rightarrow> ('a list * 'a list) set" 
+  "lexord  r == {(x,y). \<exists> a v. y = x @ a # v \<or> 
+            (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
+
+lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"
+  by (unfold lexord_def, induct_tac y, auto) 
+
+lemma lexord_Nil_right[simp]: "(x,[]) \<notin> lexord r"
+  by (unfold lexord_def, induct_tac x, auto)
+
+lemma lexord_cons_cons[simp]:
+     "((a # x, b # y) \<in> lexord r) = ((a,b)\<in> r | (a = b & (x,y)\<in> lexord r))"
+  apply (unfold lexord_def, safe, simp_all)
+  apply (case_tac u, simp, simp)
+  apply (case_tac u, simp, clarsimp, blast, blast, clarsimp)
+  apply (erule_tac x="b # u" in allE)
+  by force
+
+lemmas lexord_simps = lexord_Nil_left lexord_Nil_right lexord_cons_cons
+
+lemma lexord_append_rightI: "\<exists> b z. y = b # z \<Longrightarrow> (x, x @ y) \<in> lexord r"
+  by (induct_tac x, auto)  
+
+lemma lexord_append_left_rightI:
+     "(a,b) \<in> r \<Longrightarrow> (u @ a # x, u @ b # y) \<in> lexord r"
+  by (induct_tac u, auto)
+
+lemma lexord_append_leftI: " (u,v) \<in> lexord r \<Longrightarrow> (x @ u, x @ v) \<in> lexord r"
+  by (induct x, auto)
+
+lemma lexord_append_leftD:
+     "\<lbrakk> (x @ u, x @ v) \<in> lexord r; (! a. (a,a) \<notin> r) \<rbrakk> \<Longrightarrow> (u,v) \<in> lexord r"
+  by (erule rev_mp, induct_tac x, auto)
+
+lemma lexord_take_index_conv: 
+   "((x,y) : lexord r) = 
+    ((length x < length y \<and> take (length x) y = x) \<or> 
+     (\<exists>i. i < min(length x)(length y) & take i x = take i y & (x!i,y!i) \<in> r))"
+  apply (unfold lexord_def Let_def, clarsimp) 
+  apply (rule_tac f = "(% a b. a \<or> b)" in arg_cong2)
+  apply auto 
+  apply (rule_tac x="hd (drop (length x) y)" in exI)
+  apply (rule_tac x="tl (drop (length x) y)" in exI)
+  apply (erule subst, simp add: min_def) 
+  apply (rule_tac x ="length u" in exI, simp) 
+  apply (rule_tac x ="take i x" in exI) 
+  apply (rule_tac x ="x ! i" in exI) 
+  apply (rule_tac x ="y ! i" in exI, safe) 
+  apply (rule_tac x="drop (Suc i) x" in exI)
+  apply (drule sym, simp add: drop_Suc_conv_tl) 
+  apply (rule_tac x="drop (Suc i) y" in exI)
+  by (simp add: drop_Suc_conv_tl) 
+
+-- {* lexord is extension of partial ordering List.lex *} 
+lemma lexord_lex: " (x,y) \<in> lex r = ((x,y) \<in> lexord r \<and> length x = length y)"
+  apply (rule_tac x = y in spec) 
+  apply (induct_tac x, clarsimp) 
+  by (clarify, case_tac x, simp, force)
+
+lemma lexord_irreflexive: "(! x. (x,x) \<notin> r) \<Longrightarrow> (y,y) \<notin> lexord r"
+  by (induct y, auto)
+
+lemma lexord_trans: 
+    "\<lbrakk> (x, y) \<in> lexord r; (y, z) \<in> lexord r; trans r \<rbrakk> \<Longrightarrow> (x, z) \<in> lexord r"
+   apply (erule rev_mp)+
+   apply (rule_tac x = x in spec) 
+  apply (rule_tac x = z in spec) 
+  apply ( induct_tac y, simp, clarify)
+  apply (case_tac xa, erule ssubst) 
+  apply (erule allE, erule allE) -- {* avoid simp recursion *} 
+  apply (case_tac x, simp, simp) 
+  apply (case_tac x, erule allE, erule allE, simp) 
+  apply (erule_tac x = listb in allE) 
+  apply (erule_tac x = lista in allE, simp)
+  apply (unfold trans_def)
+  by blast
+
+lemma lexord_transI:  "trans r \<Longrightarrow> trans (lexord r)"
+  by (rule transI, drule lexord_trans, blast) 
+
+lemma lexord_linear: "(! a b. (a,b)\<in> r | a = b | (b,a) \<in> r) \<Longrightarrow> (x,y) : lexord r | x = y | (y,x) : lexord r"
+  apply (rule_tac x = y in spec) 
+  apply (induct_tac x, rule allI) 
+  apply (case_tac x, simp, simp) 
+  apply (rule allI, case_tac x, simp, simp) 
+  by blast
 
 
 subsubsection{*Lifting a Relation on List Elements to the Lists*}
