@@ -5,7 +5,7 @@
 # makemainpage -- make main Isabelle web pages
 
 TARGET=/usr/proj/isabelle-repository/www
-FILES="index.html docs.html about.html cambridge.gif munich.gif"
+FILES="index.html docs.html logics.html cambridge.gif munich.gif"
 PREFIX=main
 
 PRG=$(basename $0)
