@@ -25,17 +25,17 @@ one of the elements of the chain. *}
 
 lemma some_H'h't:
   "[| M = norm_pres_extensions E p F f; c \\<in> chain M; 
-  graph H h = \\<Union> c; x \\<in> H |]
+  graph H h = \\<Union>c; x \\<in> H |]
    ==> \\<exists>H' h'. graph H' h' \\<in> c \\<and> (x, h x) \\<in> graph H' h' 
        \\<and> is_linearform H' h' \\<and> is_subspace H' E 
        \\<and> is_subspace F H' \\<and> graph F f \\<subseteq> graph H' h' 
        \\<and> (\\<forall>x \\<in> H'. h' x <= p x)"
 proof -
   assume m: "M = norm_pres_extensions E p F f" and "c \\<in> chain M"
-     and u: "graph H h = \\<Union> c" "x \\<in> H"
+     and u: "graph H h = \\<Union>c" "x \\<in> H"
 
   have h: "(x, h x) \\<in> graph H h" ..
-  with u have "(x, h x) \\<in> \\<Union> c" by simp
+  with u have "(x, h x) \\<in> \\<Union>c" by simp
   hence ex1: "\\<exists>g \\<in> c. (x, h x) \\<in> g" 
     by (simp only: Union_iff)
   thus ?thesis
@@ -75,13 +75,13 @@ the domain $H'$ of some function $h'$, such that $h$ extends $h'$.
 
 lemma some_H'h': 
   "[| M = norm_pres_extensions E p F f; c \\<in> chain M; 
-  graph H h = \\<Union> c; x \\<in> H |] 
+  graph H h = \\<Union>c; x \\<in> H |] 
   ==> \\<exists>H' h'. x \\<in> H' \\<and> graph H' h' \\<subseteq> graph H h 
       \\<and> is_linearform H' h' \\<and> is_subspace H' E \\<and> is_subspace F H'
       \\<and> graph F f \\<subseteq> graph H' h' \\<and> (\\<forall>x \\<in> H'. h' x <= p x)" 
 proof -
   assume "M = norm_pres_extensions E p F f" and cM: "c \\<in> chain M"
-     and u: "graph H h = \\<Union> c" "x \\<in> H"  
+     and u: "graph H h = \\<Union>c" "x \\<in> H"  
 
   have "\\<exists>H' h'. graph H' h' \\<in> c \\<and> (x, h x) \\<in> graph H' h' 
        \\<and> is_linearform H' h' \\<and> is_subspace H' E 
@@ -109,13 +109,13 @@ $h'$, such that $h$ extends $h'$. *}
 
 lemma some_H'h'2: 
   "[| M = norm_pres_extensions E p F f; c \\<in> chain M; 
-  graph H h = \\<Union> c;  x \\<in> H; y \\<in> H |] 
+  graph H h = \\<Union>c;  x \\<in> H; y \\<in> H |] 
   ==> \\<exists>H' h'. x \\<in> H' \\<and> y \\<in> H' \\<and> graph H' h' \\<subseteq> graph H h 
       \\<and> is_linearform H' h' \\<and> is_subspace H' E \\<and> is_subspace F H'
       \\<and> graph F f \\<subseteq> graph H' h' \\<and> (\\<forall>x \\<in> H'. h' x <= p x)" 
 proof -
   assume "M = norm_pres_extensions E p F f" "c \\<in> chain M" 
-         "graph H h = \\<Union> c" "x \\<in> H" "y \\<in> H"
+         "graph H h = \\<Union>c" "x \\<in> H" "y \\<in> H"
 
   txt {* $x$ is in the domain $H'$ of some function $h'$, 
   such that $h$ extends $h'$. *} 
@@ -188,10 +188,10 @@ of a chain $c$ is definite, i.~e.~t is the graph of a function. *}
 
 lemma sup_definite: 
   "[| M == norm_pres_extensions E p F f; c \\<in> chain M; 
-  (x, y) \\<in> \\<Union> c; (x, z) \\<in> \\<Union> c |] ==> z = y"
+  (x, y) \\<in> \\<Union>c; (x, z) \\<in> \\<Union>c |] ==> z = y"
 proof - 
   assume "c \\<in> chain M" "M == norm_pres_extensions E p F f"
-    "(x, y) \\<in> \\<Union> c" "(x, z) \\<in> \\<Union> c"
+    "(x, y) \\<in> \\<Union>c" "(x, z) \\<in> \\<Union>c"
   thus ?thesis
   proof (elim UnionE chainE2)
 
@@ -245,10 +245,10 @@ function $h'$ is linear by construction of $M$.  *}
 
 lemma sup_lf: 
   "[| M = norm_pres_extensions E p F f; c \\<in> chain M; 
-  graph H h = \\<Union> c |] ==> is_linearform H h"
+  graph H h = \\<Union>c |] ==> is_linearform H h"
 proof - 
   assume "M = norm_pres_extensions E p F f" "c \\<in> chain M"
-         "graph H h = \\<Union> c"
+         "graph H h = \\<Union>c"
  
   show "is_linearform H h"
   proof
@@ -306,11 +306,11 @@ of $f$ and the supremum is an extension
 for every element of the chain.*}
 
 lemma sup_ext:
-  "[| graph H h = \\<Union> c; M = norm_pres_extensions E p F f; 
+  "[| graph H h = \\<Union>c; M = norm_pres_extensions E p F f; 
   c \\<in> chain M; \\<exists>x. x \\<in> c |] ==> graph F f \\<subseteq> graph H h"
 proof -
   assume "M = norm_pres_extensions E p F f" "c \\<in> chain M" 
-         "graph H h = \\<Union> c"
+         "graph H h = \\<Union>c"
   assume "\\<exists>x. x \\<in> c"
   thus ?thesis 
   proof
@@ -332,8 +332,8 @@ proof -
       fix G g assume "graph F f \\<subseteq> graph G g"
       also assume "graph G g = x"
       also have "... \\<in> c" .
-      hence "x \\<subseteq> \\<Union> c" by fast
-      also have [RS sym]: "graph H h = \\<Union> c" .
+      hence "x \\<subseteq> \\<Union>c" by fast
+      also have [RS sym]: "graph H h = \\<Union>c" .
       finally show ?thesis .
     qed
   qed
@@ -345,12 +345,12 @@ $F$ and the closure properties follow from the fact that $F$ is a
 vector space. *}
 
 lemma sup_supF: 
-  "[|  graph H h = \\<Union> c; M = norm_pres_extensions E p F f; 
+  "[|  graph H h = \\<Union>c; M = norm_pres_extensions E p F f; 
   c \\<in> chain M; \\<exists>x. x \\<in> c; is_subspace F E; is_vectorspace E |] 
   ==> is_subspace F H"
 proof - 
   assume "M = norm_pres_extensions E p F f" "c \\<in> chain M" "\\<exists>x. x \\<in> c"
-    "graph H h = \\<Union> c" "is_subspace F E" "is_vectorspace E"
+    "graph H h = \\<Union>c" "is_subspace F E" "is_vectorspace E"
 
   show ?thesis 
   proof
@@ -377,12 +377,12 @@ text{* \medskip The domain $H$ of the limit function is a subspace
 of $E$. *}
 
 lemma sup_subE: 
-  "[| graph H h = \\<Union> c; M = norm_pres_extensions E p F f; 
+  "[| graph H h = \\<Union>c; M = norm_pres_extensions E p F f; 
   c \\<in> chain M; \\<exists>x. x \\<in> c; is_subspace F E; is_vectorspace E |] 
   ==> is_subspace H E"
 proof - 
   assume "M = norm_pres_extensions E p F f" "c \\<in> chain M" "\\<exists>x. x \\<in> c"
-    "graph H h = \\<Union> c" "is_subspace F E" "is_vectorspace E"
+    "graph H h = \\<Union>c" "is_subspace F E" "is_vectorspace E"
   show ?thesis 
   proof
  
@@ -461,11 +461,11 @@ bounded by $p$.
 *}
 
 lemma sup_norm_pres:
-  "[| graph H h = \\<Union> c; M = norm_pres_extensions E p F f; 
+  "[| graph H h = \\<Union>c; M = norm_pres_extensions E p F f; 
   c \\<in> chain M |] ==> \\<forall>x \\<in> H. h x <= p x"
 proof
   assume "M = norm_pres_extensions E p F f" "c \\<in> chain M" 
-         "graph H h = \\<Union> c"
+         "graph H h = \\<Union>c"
   fix x assume "x \\<in> H"
   have "\\<exists>H' h'. x \\<in> H' \\<and> graph H' h' \\<subseteq> graph H h 
           \\<and> is_linearform H' h' \\<and> is_subspace H' E \\<and> is_subspace F H'

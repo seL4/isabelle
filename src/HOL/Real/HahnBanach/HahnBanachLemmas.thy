@@ -1,3 +1,3 @@
 
-theory HahnBanachLemmas = HahnBanachSupLemmas + HahnBanachExtLemmas:;
-end;
+theory HahnBanachLemmas = HahnBanachSupLemmas + HahnBanachExtLemmas:
+end

@@ -78,23 +78,23 @@ proof -
   -- {* Define $M$ as the set of all norm-preserving extensions of $F$. \skp *}
   {
     fix c assume "c \\<in> chain M" "\\<exists>x. x \\<in> c"
-    have "\\<Union> c \\<in> M"
+    have "\\<Union>c \\<in> M"
     -- {* Show that every non-empty chain $c$ of $M$ has an upper bound in $M$: *}
     -- {* $\Union c$ is greater than any element of the chain $c$, so it suffices to show $\Union c \in M$. *}
     proof (unfold M_def, rule norm_pres_extensionI)
-      show "\\<exists>H h. graph H h = \\<Union> c
+      show "\\<exists>H h. graph H h = \\<Union>c
               \\<and> is_linearform H h 
               \\<and> is_subspace H E 
               \\<and> is_subspace F H 
               \\<and> graph F f \\<subseteq> graph H h
               \\<and> (\\<forall>x \\<in> H. h x <= p x)"
       proof (intro exI conjI)
-        let ?H = "domain (\\<Union> c)"
-        let ?h = "funct (\\<Union> c)"
+        let ?H = "domain (\\<Union>c)"
+        let ?h = "funct (\\<Union>c)"
 
-        show a: "graph ?H ?h = \\<Union> c" 
+        show a: "graph ?H ?h = \\<Union>c" 
         proof (rule graph_domain_funct)
-          fix x y z assume "(x, y) \\<in> \\<Union> c" "(x, z) \\<in> \\<Union> c"
+          fix x y z assume "(x, y) \\<in> \\<Union>c" "(x, z) \\<in> \\<Union>c"
           show "z = y" by (rule sup_definite)
         qed
         show "is_linearform ?H ?h" 
@@ -214,7 +214,7 @@ proof -
 		    fix t assume "t \\<in> H" 
 		    have "(SOME (y, a). t = y + a \\<cdot> x' \\<and> y \\<in> H)
                          = (t, #0)"
-		      by (rule decomp_H'_H) (assumption+, rule x');
+		      by (rule decomp_H'_H) (assumption+, rule x')
 		    thus "h t = h' t" by (simp! add: Let_def)
 		  next
 		    show "H \\<subseteq> H'"

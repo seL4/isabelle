@@ -38,19 +38,6 @@ proof -
 qed
 
 text_raw {* \medskip *}
-text {* Some lemmas about linear orders. *}
-
-theorem linorder_linear_split: 
-"[| x < a ==> Q; x = a ==> Q; a < (x::'a::linorder) ==> Q |] ==> Q"
-  by (rule linorder_less_linear [of x a, elimify]) force+
-
-lemma le_max1: "x <= max x (y::'a::linorder)"
-  by (simp add: le_max_iff_disj[of x x y])
-
-lemma le_max2: "y <= max x (y::'a::linorder)" 
-  by (simp add: le_max_iff_disj[of y x y])
-
-text_raw {* \medskip *}
 text{* Some lemmas for the reals. *}
 
 lemma real_add_minus_eq: "x - y = (#0::real) ==> x = y"
@@ -66,9 +53,9 @@ proof -
   hence "x < y | x = y" by (force simp add: order_le_less)
   thus ?thesis
   proof (elim disjE) 
-   assume "x < y" show ?thesis by  (rule real_mult_le_less_mono2) simp
+    assume "x < y" show ?thesis by  (rule real_mult_le_less_mono2) simp
   next 
-   assume "x = y" thus ?thesis by simp
+    assume "x = y" thus ?thesis by simp
   qed
 qed
 
@@ -79,9 +66,9 @@ proof -
   hence "x < y | x = y" by (force simp add: order_le_less)
   thus ?thesis
   proof (elim disjE) 
-   assume "x < y" show ?thesis by (rule real_mult_le_less_mono1) simp
+    assume "x < y" show ?thesis by (rule real_mult_le_less_mono1) simp
   next 
-   assume "x = y" thus ?thesis by simp
+    assume "x = y" thus ?thesis by simp
   qed
 qed
 
@@ -108,27 +95,27 @@ proof -
   thus ?thesis by (simp only: real_mult_commute)
 qed
 
-lemma real_rinv_gt_zero1: "#0 < x ==> #0 < rinv x";
-proof -; 
-  assume "#0 < x";
-  have "0 < x"; by simp;
-  hence "0 < rinv x"; by (rule real_rinv_gt_zero);
-  thus ?thesis; by simp;
-qed;
+lemma real_rinv_gt_zero1: "#0 < x ==> #0 < rinv x"
+proof - 
+  assume "#0 < x"
+  have "0 < x" by simp
+  hence "0 < rinv x" by (rule real_rinv_gt_zero)
+  thus ?thesis by simp
+qed
 
 lemma real_mult_inv_right1: "x \\<noteq> #0 ==> x*rinv(x) = #1"
-   by simp
+  by simp
 
 lemma real_mult_inv_left1: "x \\<noteq> #0 ==> rinv(x) * x = #1"
-   by simp
+  by simp
 
 lemma real_le_mult_order1a: 
-      "[| (#0::real) <= x; #0 <= y |] ==> #0 <= x * y"
+  "[| (#0::real) <= x; #0 <= y |] ==> #0 <= x * y"
 proof -
   assume "#0 <= x" "#0 <= y"
-    have "[|0 <= x; 0 <= y|] ==> 0 <= x * y"  
-      by (rule real_le_mult_order)
-    thus ?thesis by (simp!)
+  have "[|0 <= x; 0 <= y|] ==> 0 <= x * y"  
+    by (rule real_le_mult_order)
+  thus ?thesis by (simp!)
 qed
 
 lemma real_mult_diff_distrib: 
@@ -138,7 +125,7 @@ proof -
   also have "a * ... = a * - x + a * - y" 
     by (simp only: real_add_mult_distrib2)
   also have "... = - a * x - a * y" 
-    by simp;
+    by simp
   finally show ?thesis .
 qed
 
@@ -148,7 +135,7 @@ proof -
   also have "a * ... = a * x + a * - y" 
     by (simp only: real_add_mult_distrib2)
   also have "... = a * x - a * y"   
-    by simp;
+    by simp
   finally show ?thesis .
 qed
 
@@ -156,7 +143,7 @@ lemma real_minus_le: "- (x::real) <= y ==> - y <= x"
   by simp
 
 lemma real_diff_ineq_swap: 
-  "(d::real) - b <= c + a ==> - a - b <= c - d"
+    "(d::real) - b <= c + a ==> - a - b <= c - d"
   by simp
 
 end

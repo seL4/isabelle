@@ -136,7 +136,7 @@ proof (unfold function_norm_def is_function_norm_def
         $y\in B$. If $y = 0$ then $y \leq \idt{max}\ap c\ap 0$: *}
 
 	fix y assume "y = (#0::real)"
-        show "y <= b" by (simp! add: le_max2)
+        show "y <= b" by (simp! add: le_maxI2)
 
         txt{* The second case is 
         $y = {|f\ap x|}/{\norm x}$ for some 
@@ -184,7 +184,7 @@ proof (unfold function_norm_def is_function_norm_def
             by (rule not_sym, rule lt_imp_not_eq, 
               rule normed_vs_norm_gt_zero)
         qed
-        also have "c * ... <= b " by (simp! add: le_max1)
+        also have "c * ... <= b " by (simp! add: le_maxI1)
 	finally show "y <= b" .
       qed simp
     qed

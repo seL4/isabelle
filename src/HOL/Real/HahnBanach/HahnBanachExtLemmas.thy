@@ -270,10 +270,10 @@ proof;
 
     txt{* Now we show  
     $h\ap y + a \cdot \xi\leq  p\ap (y\plus a \mult x_0)$ 
-    by case analysis on $a$. \label{linorder_linear_split}*};
+    by case analysis on $a$. *};
 
     also; have "... <= p (y + a \\<cdot> x0)";
-    proof (rule linorder_linear_split); 
+    proof (rule linorder_less_split); 
 
       assume z: "a = #0"; 
       with vs y a; show ?thesis; by simp;
