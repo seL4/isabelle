@@ -1,7 +1,7 @@
 #
 # $Id$
 #
-# patch-scripts.bash - relocate interpreter paths of Isabelle scripts.
+# patch-scripts.bash - relocate interpreter paths of executable scripts.
 #
 
 ## find binaries
