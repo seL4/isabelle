@@ -120,41 +120,6 @@ fun absent ixn =
 fun inst_failure ixn =
   error("Instantiation of " ^ Syntax.string_of_vname ixn ^ " fails");
 
-(* this code is a bit of a mess. add_cterm could be simplified greatly if
-   simultaneous instantiations were read or at least type checked
-   simultaneously rather than one after the other. This would make the tricky
-   composition of implicit type instantiations (parameter tye) superfluous.
-
-fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
-let val {tsig,...} = Sign.rep_sg sign
-    fun split([],tvs,vs) = (tvs,vs)
-      | split((sv,st)::l,tvs,vs) = (case explode sv of
-                  "'"::cs => split(l,(indexname cs,st)::tvs,vs)
-                | cs => split(l,tvs,(indexname cs,st)::vs));
-    val (tvs,vs) = split(insts,[],[]);
-    fun readT((a,i),st) =
-        let val ixn = ("'" ^ a,i);
-            val S = case rsorts ixn of Some S => S | None => absent ixn;
-            val T = Sign.read_typ (sign,sorts) st;
-        in if Type.typ_instance(tsig,T,TVar(ixn,S)) then (ixn,T)
-           else inst_failure ixn
-        end
-    val tye = map readT tvs;
-    fun add_cterm ((cts,tye,used), (ixn,st)) =
-        let val T = case rtypes ixn of
-                      Some T => typ_subst_TVars tye T
-                    | None => absent ixn;
-            val (ct,tye2) = read_def_cterm(sign,types,sorts) used false (st,T);
-            val cts' = (ixn,T,ct)::cts
-            fun inst(ixn,T,ct) = (ixn,typ_subst_TVars tye2 T,ct)
-            val used' = add_term_tvarnames(term_of ct,used);
-        in (map inst cts',tye2 @ tye,used') end
-    val (cterms,tye',_) = foldl add_cterm (([],tye,used), vs);
-in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye',
-    map (fn (ixn,T,ct) => (cterm_of sign (Var(ixn,T)), ct)) cterms)
-end;
-*)
-
 fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
 let val {tsig,...} = Sign.rep_sg sign
     fun split([],tvs,vs) = (tvs,vs)
