@@ -150,24 +150,16 @@ fun print_thms args = Toplevel.keep (fn state =>
   let val st = Toplevel.node_case Proof.init_state Proof.enter_forward state
   in Pretty.writeln (Proof.pretty_thms (IsarThy.get_thmss args st)) end);
 
-
-fun read_typ thy = Sign.read_typ (Theory.sign_of thy, K None);
-
-fun read_term T thy s =
-  Thm.term_of (#1 (Thm.read_def_cterm (Theory.sign_of thy, K None, K None) [] true (s, T)));
-
-
 fun print_type s = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
-    val T = Toplevel.node_case read_typ (ProofContext.read_typ o Proof.context_of) state s;
+    val T = ProofContext.read_typ (Toplevel.context_of state) s;
   in Pretty.writeln (Pretty.quote (Sign.pretty_typ sign T)) end);
 
 fun print_term s = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
-    val t = Toplevel.node_case (read_term (TVar (("'z", 0), logicS)))
-      (ProofContext.read_term o Proof.context_of) state s;
+    val t = ProofContext.read_term (Toplevel.context_of state) s;
     val T = Term.type_of t;
   in
     Pretty.writeln (Pretty.block [Pretty.quote (Sign.pretty_term sign t), Pretty.fbrk,
@@ -177,8 +169,7 @@ fun print_term s = Toplevel.keep (fn state =>
 fun print_prop s = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
-    val prop =
-      Toplevel.node_case (read_term propT) (ProofContext.read_prop o Proof.context_of) state s;
+    val prop = ProofContext.read_prop (Toplevel.context_of state) s;
   in Pretty.writeln (Pretty.quote (Sign.pretty_term sign prop)) end);
 
 
