@@ -93,7 +93,7 @@ lemma "e \<turnstile> Abs (Abs (Abs (Var 2 \<^sub>\<degree> Var 0 \<^sub>\<degre
   by force
 
 
-subsection {* @{text n}-ary function types *}
+subsection {* n-ary function types *}
 
 lemma list_app_typeD [rule_format]:
     "\<forall>t T. e \<turnstile> t \<^sub>\<degree>\<^sub>\<degree> ts : T \<longrightarrow> (\<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts)"
@@ -193,7 +193,7 @@ proof -
 qed
 
 lemma lift_typings [rule_format]:
-  "\<forall>Ts. e \<tturnstile> ts : Ts \<longrightarrow> (e\<langle>i:U\<rangle>) \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
+  "\<forall>Ts. e \<tturnstile> ts : Ts \<longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
   apply (induct_tac ts)
    apply simp
   apply (intro strip)
@@ -214,7 +214,7 @@ lemma subst_lemma [rule_format]:
   done
 
 lemma substs_lemma [rule_format]:
-  "e \<turnstile> u : T \<Longrightarrow> \<forall>Ts. (e\<langle>i:T\<rangle>) \<tturnstile> ts : Ts \<longrightarrow>
+  "e \<turnstile> u : T \<Longrightarrow> \<forall>Ts. e\<langle>i:T\<rangle> \<tturnstile> ts : Ts \<longrightarrow>
      e \<tturnstile> (map (\<lambda>t. t[u/i]) ts) : Ts"
   apply (induct_tac ts)
    apply (intro strip)
@@ -370,7 +370,6 @@ proof (induct U)
           from varT True have T: "T = T'' \<Rightarrow> Ts \<Rrightarrow> T'"
             by cases auto
           with uT have uT': "e \<turnstile> u : T'' \<Rightarrow> Ts \<Rrightarrow> T'" by simp
-          from Var have SI: "?R a" by cases (simp_all add: Cons)
           from T have "(Var 0 \<^sub>\<degree>\<^sub>\<degree> map (\<lambda>t. lift t 0)
             (map (\<lambda>t. t[u/i]) as))[(u \<^sub>\<degree> a[u/i])/0] \<in> IT"
           proof (rule MI2)
@@ -385,8 +384,8 @@ proof (induct U)
                 show "e\<langle>0:T''\<rangle> \<turnstile> Var 0 : T''"
                   by (rule typing.Var) simp
               qed
-              from argT uIT uT show "a[u/i] \<in> IT"
-                by (rule SI[rule_format])
+              from Var have "?R a" by cases (simp_all add: Cons)
+              with argT uIT uT show "a[u/i] \<in> IT" by simp
               from argT uT show "e \<turnstile> a[u/i] : T''"
                 by (rule subst_lemma) simp
             qed
