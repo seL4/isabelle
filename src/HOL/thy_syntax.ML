@@ -82,7 +82,7 @@ fun inductive_decl co =
          )
       end
     val ipairs = "intrs" $$-- repeat1 (ident -- !! string)
-    fun optstring s = optional (s $$-- string) "\"[]\"" >> trim
+    fun optstring s = optional (s $$-- string >> trim) "[]"
   in
     repeat1 name -- ipairs -- optstring "monos" -- optstring "con_defs"
       >> mk_params
@@ -231,7 +231,7 @@ val primrec_decl =
 
 
 (*fname: name of function being defined; rel: well-founded relation*)
-fun mk_rec_decl ((fname, rel), axms) =
+fun mk_rec_decl (((fname, rel), ss), axms) =
   let val fid = trim fname
       val intrnl_name = fid ^ "_Intrnl"
   in
@@ -246,13 +246,15 @@ fun mk_rec_decl ((fname, rel), axms) =
           \  struct\n\
           \  val _ = writeln \"Proofs for recursive function " ^ fid ^ "\"\n\
           \  val {rules, induct, tcs} = \n\
-          \    \t Tfl.simplify_defn(thy, (" ^ quote fid ^ 
+          \    \t Tfl.simplify_defn (" ^ ss ^ ") (thy, (" ^ quote fid ^ 
 					  ", pats_" ^ intrnl_name ^ "))\n\
           \  end;\n\
           \val pats_" ^ intrnl_name ^ " = ();\n")
   end;
 
-val rec_decl = (name -- string -- repeat1 string >> mk_rec_decl) ;
+val rec_decl = (name -- string -- 
+		optional ("simpset" $$-- string >> trim) "!simpset" -- 
+		repeat1 string >> mk_rec_decl) ;
 
 
 
@@ -260,7 +262,7 @@ val rec_decl = (name -- string -- repeat1 string >> mk_rec_decl) ;
 
 (** sections **)
 
-val user_keywords = ["intrs", "monos", "con_defs", "|"];
+val user_keywords = ["intrs", "monos", "con_defs", "simpset", "|"];
 
 val user_sections =
  [axm_section "typedef" "|> Typedef.add_typedef" typedef_decl,
