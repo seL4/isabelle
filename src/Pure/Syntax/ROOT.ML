@@ -10,7 +10,6 @@ use "lexicon.ML";
 use "ast.ML";
 use "syn_ext.ML";
 use "parser.ML";
-(*use "earley0A.ML";*)      (* FIXME remove *)
 use "type_ext.ML";
 use "sextension.ML";
 use "mixfix.ML";
@@ -24,8 +23,6 @@ structure Ast = AstFun(Pretty);
 structure SynExt = SynExtFun(structure Lexicon = Lexicon and Ast = Ast);
 structure Parser = ParserFun(structure Symtab = Symtab and Lexicon = Lexicon
   and SynExt = SynExt);
-(*structure Earley = EarleyFun(structure Symtab = Symtab and Lexicon = Lexicon
-  and SynExt = SynExt);*)     (* FIXME remove *)
 structure TypeExt = TypeExtFun(structure Lexicon = Lexicon and SynExt = SynExt);
 structure SExtension = SExtensionFun(structure TypeExt = TypeExt and Parser = Parser);
 structure Mixfix = MixfixFun(structure Lexicon = Lexicon and SynExt = SynExt and
@@ -36,5 +33,6 @@ structure Syntax = SyntaxFun(structure Symtab = Symtab and TypeExt = TypeExt
   and SExtension = SExtension and Mixfix = Mixfix and Printer = Printer);
 structure BasicSyntax: BASIC_SYNTAX = Syntax;
 
-structure OldMixfix: SEXTENSION0 = SExtension;   (* FIXME *)
-
+(* FIXME tmp hacks *)
+structure BasicSyntax = struct open BasicSyntax Mixfix end;
+structure OldMixfix: SEXTENSION0 = SExtension;
