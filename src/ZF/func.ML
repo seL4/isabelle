@@ -75,10 +75,13 @@ goalw ZF.thy [Pi_def, function_def]
 by (Blast_tac 1);
 qed "apply_equality2";
 
-goalw ZF.thy [apply_def] "!!a b f. [| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b";
-by (rtac the_equality 1);
-by (rtac apply_equality2 2);
-by (REPEAT (assume_tac 1));
+goalw ZF.thy [apply_def, function_def]
+     "!!a b f. [| <a,b>: f;  function(f) |] ==> f`a = b";
+by (blast_tac (claset() addIs [the_equality]) 1);
+qed "function_apply_equality";
+
+goalw ZF.thy [Pi_def] "!!a b f. [| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b";
+by (blast_tac (claset() addIs [function_apply_equality]) 1);
 qed "apply_equality";
 
 (*Applying a function outside its domain yields 0*)
@@ -249,6 +252,10 @@ by (etac (eta RS subst) 1);
 by (asm_full_simp_tac (FOL_ss addsimps [beta, image_lam, subset_iff]
                               addcongs [RepFun_cong]) 1);
 qed "image_fun";
+
+goal thy "!!f. [| f: Pi(A,B);  x: A |] ==> f `` cons(x,y) = cons(f`x, f``y)";
+by (blast_tac (claset() addDs [apply_equality, apply_Pair]) 1);
+qed "Pi_image_cons";
 
 
 (*** properties of "restrict" ***)
