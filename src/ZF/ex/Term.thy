@@ -20,27 +20,24 @@ datatype
     type_intrs  "[list_univ RS subsetD]"
 *)
 
-consts
+constdefs
   term_rec  :: [i, [i,i,i]=>i] => i
-  term_map  :: [i=>i, i] => i
-  term_size :: i=>i
-  reflect   :: i=>i
-  preorder  :: i=>i
-  postorder :: i=>i
-
-defs
-  term_rec_def
    "term_rec(t,d) == 
-   Vrec(t, %t g. term_case(%x zs. d(x, zs, map(%z. g`z, zs)), t))"
+    Vrec(t, %t g. term_case(%x zs. d(x, zs, map(%z. g`z, zs)), t))"
 
-  term_map_def  "term_map(f,t) == term_rec(t, %x zs rs. Apply(f(x), rs))"
+  term_map  :: [i=>i, i] => i
+    "term_map(f,t) == term_rec(t, %x zs rs. Apply(f(x), rs))"
 
-  term_size_def "term_size(t) == term_rec(t, %x zs rs. succ(list_add(rs)))"
+  term_size :: i=>i
+   "term_size(t) == term_rec(t, %x zs rs. succ(list_add(rs)))"
 
-  reflect_def   "reflect(t) == term_rec(t, %x zs rs. Apply(x, rev(rs)))"
+  reflect   :: i=>i
+    "reflect(t) == term_rec(t, %x zs rs. Apply(x, rev(rs)))"
 
-  preorder_def  "preorder(t) == term_rec(t, %x zs rs. Cons(x, flat(rs)))"
+  preorder  :: i=>i
+    "preorder(t) == term_rec(t, %x zs rs. Cons(x, flat(rs)))"
 
-  postorder_def "postorder(t) == term_rec(t, %x zs rs. flat(rs) @ [x])"
+  postorder :: i=>i
+    "postorder(t) == term_rec(t, %x zs rs. flat(rs) @ [x])"
 
 end
