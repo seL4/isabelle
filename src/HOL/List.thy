@@ -491,6 +491,9 @@ lemma map_injective:
  "!!xs. map f xs = map f ys ==> inj f ==> xs = ys"
 by (induct ys) (auto dest!:injD)
 
+lemma inj_map_eq_map[simp]: "inj f \<Longrightarrow> (map f xs = map f ys) = (xs = ys)"
+by(blast dest:map_injective)
+
 lemma inj_mapI: "inj f ==> inj (map f)"
 by (rules dest: map_injective injD intro: inj_onI)
 
@@ -501,7 +504,7 @@ apply (erule_tac x = "[x]" in ballE)
 apply blast
 done
 
-lemma inj_map: "inj (map f) = inj f"
+lemma inj_map[iff]: "inj (map f) = inj f"
 by (blast dest: inj_mapD intro: inj_mapI)
 
 
