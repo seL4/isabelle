@@ -19,11 +19,9 @@ typedef (REAL)
 
 
 instance
-   real  :: {ord, zero, plus, times, minus, inverse}
+   real  :: {ord, zero, one, plus, times, minus, inverse}
 
 consts 
-  "1r"   :: real               ("1r")  
-
    (*Overloaded constants denoting the Nat and Real subsets of enclosing
      types such as hypreal and complex*)
    Nats, Reals :: "'a set"
@@ -38,7 +36,7 @@ defs
   "0 == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1p),
                                 preal_of_prat(prat_of_pnat 1p))})"
   real_one_def   
-  "1r == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1p) + 
+  "1 == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1p) + 
             preal_of_prat(prat_of_pnat 1p),preal_of_prat(prat_of_pnat 1p))})"
 
   real_minus_def
@@ -48,7 +46,7 @@ defs
   "R - (S::real) == R + - S"
 
   real_inverse_def
-  "inverse (R::real) == (SOME S. (R = 0 & S = 0) | S * R = 1r)"
+  "inverse (R::real) == (SOME S. (R = 0 & S = 0) | S * R = 1)"
 
   real_divide_def
   "R / (S::real) == R * inverse S"
@@ -69,7 +67,7 @@ constdefs
 defs
 
   (*overloaded*)
-  real_of_nat_def   "real n == real_of_posnat n + (- 1r)"
+  real_of_nat_def   "real n == real_of_posnat n + (- 1)"
 
   real_add_def  
   "P+Q == Abs_REAL(UN p1:Rep_REAL(P). UN p2:Rep_REAL(Q).

@@ -15,7 +15,7 @@ typedef (Integ)
   int = "UNIV//intrel"            (Equiv.quotient_def)
 
 instance
-  int :: {ord, zero, plus, times, minus}
+  int :: {ord, zero, one, plus, times, minus}
 
 defs
   zminus_def
@@ -35,7 +35,8 @@ constdefs
   
 defs (*of overloaded constants*)
   
-  Zero_int_def      "0 == int 0"
+  Zero_int_def "0 == int 0"
+  One_int_def "1 == int 1"
 
   zadd_def
    "z + w == 

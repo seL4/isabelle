@@ -410,7 +410,7 @@ val add_rules = simp_thms @ bin_arith_simps @ bin_rel_simps @
 		 zmult_1, zmult_1_right, 
 		 zmult_minus1, zmult_minus1_right,
 		 zminus_zadd_distrib, zminus_zminus, zmult_assoc,
-                 Zero_int_def, int_0, zadd_int RS sym, int_Suc];
+                 Zero_int_def, One_int_def, int_0, int_1, zadd_int RS sym, int_Suc];
 
 val simprocs = [Int_Times_Assoc.conv, Int_Numeral_Simprocs.combine_numerals]@
                Int_Numeral_Simprocs.cancel_numerals;

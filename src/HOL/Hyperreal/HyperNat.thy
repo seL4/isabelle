@@ -15,10 +15,9 @@ constdefs
 typedef hypnat = "UNIV//hypnatrel"              (Equiv.quotient_def)
 
 instance
-   hypnat  :: {ord,zero,plus,times,minus}
+   hypnat  :: {ord, zero, one, plus, times, minus}
 
 consts
-  "1hn"       :: hypnat               ("1hn")  
   "whn"       :: hypnat               ("whn")  
 
 constdefs
@@ -54,7 +53,7 @@ defs
   (** hypernatural arithmetic **)
   
   hypnat_zero_def      "0 == Abs_hypnat(hypnatrel``{%n::nat. 0})"
-  hypnat_one_def       "1hn == Abs_hypnat(hypnatrel``{%n::nat. 1})"
+  hypnat_one_def       "1 == Abs_hypnat(hypnatrel``{%n::nat. 1})"
 
   (* omega is in fact an infinite hypernatural number = [<1,2,3,...>] *)
   hypnat_omega_def     "whn == Abs_hypnat(hypnatrel``{%n::nat. n})"

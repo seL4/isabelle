@@ -25,12 +25,7 @@ constdefs
 typedef hypreal = "UNIV//hyprel"   (Equiv.quotient_def)
 
 instance
-   hypreal  :: {ord, zero, plus, times, minus, inverse}
-
-consts 
-
-  "1hr"          :: hypreal               ("1hr")  
-
+   hypreal  :: {ord, zero, one, plus, times, minus, inverse}
 
 defs
 
@@ -38,7 +33,7 @@ defs
   "0 == Abs_hypreal(hyprel``{%n::nat. (Numeral0::real)})"
 
   hypreal_one_def
-  "1hr == Abs_hypreal(hyprel``{%n::nat. (Numeral1::real)})"
+  "1 == Abs_hypreal(hyprel``{%n::nat. (Numeral1::real)})"
 
   hypreal_minus_def
   "- P == Abs_hypreal(UN X: Rep_hypreal(P). hyprel``{%n::nat. - (X n)})"

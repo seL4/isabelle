@@ -1248,7 +1248,7 @@ by (auto_tac (claset(),
 by (forward_tac [HNatInfinite_add_one] 1);
 by (dtac bspec 1 THEN assume_tac 1);
 by (dtac bspec 1 THEN assume_tac 1);
-by (dres_inst_tac [("x","N + 1hn")] bspec 1 THEN assume_tac 1);
+by (dres_inst_tac [("x","N + (1::hypnat)")] bspec 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [hyperpow_add]) 1);
 by (dtac approx_mult_subst_SReal 1 THEN assume_tac 1);
 by (dtac approx_trans3 1 THEN assume_tac 1);

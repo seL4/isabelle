@@ -39,7 +39,7 @@ Goalw [int_def,real_zero_def] "real (int 0) = 0";
 by (simp_tac (simpset() addsimps [real_of_int, preal_add_commute]) 1);
 qed "real_of_int_zero";
 
-Goalw [int_def,real_one_def] "real (int 1) = 1r";
+Goalw [int_def,real_one_def] "real (int 1) = (1::real)";
 by (auto_tac (claset(),
 	      simpset() addsimps [real_of_int,
 				  preal_of_prat_add RS sym,pnat_two_eq,
@@ -80,7 +80,7 @@ by (auto_tac (claset(),
 qed "real_of_int_mult";
 Addsimps [real_of_int_mult RS sym];
 
-Goal "real (int (Suc n)) = real (int n) + 1r";
+Goal "real (int (Suc n)) = real (int n) + (1::real)";
 by (simp_tac (simpset() addsimps [real_of_int_one RS sym, zadd_int] @ 
                                  zadd_ac) 1);
 qed "real_of_int_Suc";

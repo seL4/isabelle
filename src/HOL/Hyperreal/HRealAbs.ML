@@ -241,7 +241,7 @@ by (simp_tac (simpset() addsimps [inj_on_def, hypreal_of_nat_def]) 1);
 qed "inj_hypreal_of_nat";
 
 Goalw [hypreal_of_nat_def] 
-     "hypreal_of_nat (Suc n) = hypreal_of_nat n + 1hr";
+     "hypreal_of_nat (Suc n) = hypreal_of_nat n + (1::hypreal)";
 by (simp_tac (simpset() addsimps [real_of_nat_Suc]) 1);
 qed "hypreal_of_nat_Suc";
 

@@ -20,7 +20,7 @@ instance hypreal :: {power}
 
 consts hpowr :: "[hypreal,nat] => hypreal"  
 primrec
-     hpowr_0   "r ^ 0       = 1hr"
+     hpowr_0   "r ^ 0       = (1::hypreal)"
      hpowr_Suc "r ^ (Suc n) = (r::hypreal) * (r ^ n)"
 
 consts

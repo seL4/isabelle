@@ -137,7 +137,7 @@ by (rtac (real_minus_zero_less_iff RS iffD1) 1);
 by (Asm_full_simp_tac 1);
 qed "real_mult_less_zero";
 
-Goalw [real_one_def] "0 < 1r";
+Goalw [real_one_def] "0 < (1::real)";
 by (auto_tac (claset() addIs [real_gt_zero_preal_Ex RS iffD2],
 	      simpset() addsimps [real_of_preal_def]));
 qed "real_zero_less_one";
@@ -230,7 +230,7 @@ qed "real_add_le_mono";
 
 Goal "EX (x::real). x < y";
 by (rtac (real_add_zero_right RS subst) 1);
-by (res_inst_tac [("x","y + (- 1r)")] exI 1);
+by (res_inst_tac [("x","y + (- (1::real))")] exI 1);
 by (auto_tac (claset() addSIs [real_add_less_mono2],
 	  simpset() addsimps [real_minus_zero_less_iff2, real_zero_less_one]));
 qed "real_less_Ex";
@@ -264,31 +264,31 @@ Addsimps [real_le_square];
              An embedding of the naturals in the reals
  ----------------------------------------------------------------------------*)
 
-Goalw [real_of_posnat_def] "real_of_posnat 0 = 1r";
+Goalw [real_of_posnat_def] "real_of_posnat 0 = (1::real)";
 by (simp_tac (simpset() addsimps [pnat_one_iff RS sym,real_of_preal_def,
                        symmetric real_one_def]) 1);
 qed "real_of_posnat_one";
 
-Goalw [real_of_posnat_def] "real_of_posnat (Suc 0) = 1r + 1r";
+Goalw [real_of_posnat_def] "real_of_posnat (Suc 0) = (1::real) + (1::real)";
 by (simp_tac (simpset() addsimps [real_of_preal_def,real_one_def,
                                pnat_two_eq,real_add,prat_of_pnat_add RS sym,
                                preal_of_prat_add RS sym] @ pnat_add_ac) 1);
 qed "real_of_posnat_two";
 
 Goalw [real_of_posnat_def]
-     "real_of_posnat n1 + real_of_posnat n2 = real_of_posnat (n1 + n2) + 1r";
+     "real_of_posnat n1 + real_of_posnat n2 = real_of_posnat (n1 + n2) + (1::real)";
 by (full_simp_tac (simpset() addsimps [real_of_posnat_one RS sym,
     real_of_posnat_def,real_of_preal_add RS sym,preal_of_prat_add RS sym,
     prat_of_pnat_add RS sym,pnat_of_nat_add]) 1);
 qed "real_of_posnat_add";
 
-Goal "real_of_posnat (n + 1) = real_of_posnat n + 1r";
-by (res_inst_tac [("x1","1r")] (real_add_right_cancel RS iffD1) 1);
+Goal "real_of_posnat (n + 1) = real_of_posnat n + (1::real)";
+by (res_inst_tac [("x1","(1::real)")] (real_add_right_cancel RS iffD1) 1);
 by (rtac (real_of_posnat_add RS subst) 1);
 by (full_simp_tac (simpset() addsimps [real_of_posnat_two,real_add_assoc]) 1);
 qed "real_of_posnat_add_one";
 
-Goal "real_of_posnat (Suc n) = real_of_posnat n + 1r";
+Goal "real_of_posnat (Suc n) = real_of_posnat n + (1::real)";
 by (stac (real_of_posnat_add_one RS sym) 1);
 by (Simp_tac 1);
 qed "real_of_posnat_Suc";
@@ -306,7 +306,7 @@ Goalw [real_of_nat_def] "real (0::nat) = 0";
 by (simp_tac (simpset() addsimps [real_of_posnat_one]) 1);
 qed "real_of_nat_zero";
 
-Goalw [real_of_nat_def] "real (Suc 0) = 1r";
+Goalw [real_of_nat_def] "real (Suc 0) = (1::real)";
 by (simp_tac (simpset() addsimps [real_of_posnat_two, real_add_assoc]) 1);
 qed "real_of_nat_one";
 Addsimps [real_of_nat_zero, real_of_nat_one];
@@ -319,7 +319,7 @@ qed "real_of_nat_add";
 Addsimps [real_of_nat_add];
 
 (*Not for addsimps: often the LHS is used to represent a positive natural*)
-Goalw [real_of_nat_def] "real (Suc n) = real n + 1r";
+Goalw [real_of_nat_def] "real (Suc n) = real n + (1::real)";
 by (simp_tac (simpset() addsimps [real_of_posnat_Suc] @ real_add_ac) 1);
 qed "real_of_nat_Suc";
 
@@ -475,20 +475,20 @@ by (auto_tac (claset() addSDs [order_le_imp_less_or_eq]
 	      simpset()));
 qed "real_mult_less_mono'";
 
-Goal "1r <= x ==> 0 < x";
+Goal "(1::real) <= x ==> 0 < x";
 by (rtac ccontr 1 THEN dtac real_leI 1);
 by (dtac order_trans 1 THEN assume_tac 1);
 by (auto_tac (claset() addDs [real_zero_less_one RSN (2,order_le_less_trans)],
 	      simpset()));
 qed "real_gt_zero";
 
-Goal "[| 1r < r; 1r <= x |]  ==> x <= r * x";
+Goal "[| (1::real) < r; (1::real) <= x |]  ==> x <= r * x";
 by (dtac (real_gt_zero RS order_less_imp_le) 1);
 by (auto_tac (claset() addSDs [real_mult_le_less_mono1],
     simpset()));
 qed "real_mult_self_le";
 
-Goal "[| 1r <= r; 1r <= x |]  ==> x <= r * x";
+Goal "[| (1::real) <= r; (1::real) <= x |]  ==> x <= r * x";
 by (dtac order_le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [real_mult_self_le], simpset()));
 qed "real_mult_self_le2";
@@ -502,7 +502,7 @@ by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_not_refl2 RS 
 					   not_sym RS real_mult_inv_right]) 1);
 by (ftac real_inverse_gt_zero 1);
-by (forw_inst_tac [("x","1r"),("z","inverse x")] real_mult_less_mono2 1);
+by (forw_inst_tac [("x","(1::real)"),("z","inverse x")] real_mult_less_mono2 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_not_refl2 RS 
          not_sym RS real_mult_inv_left,real_mult_assoc RS sym]) 1);

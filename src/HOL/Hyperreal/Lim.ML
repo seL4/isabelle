@@ -1712,7 +1712,7 @@ by (auto_tac (claset() addIs [abs_eqI1], simpset()));
 qed "abs_real_of_nat_cancel";
 Addsimps [abs_real_of_nat_cancel];
 
-Goal "~ abs(x) + 1r < x";
+Goal "~ abs(x) + (1::real) < x";
 by (rtac real_leD 1);
 by (auto_tac (claset() addIs [abs_ge_self RS order_trans],simpset()));
 qed "abs_add_one_not_less_self";

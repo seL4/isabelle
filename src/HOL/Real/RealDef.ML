@@ -338,7 +338,7 @@ qed "real_mult_left_commute";
 bind_thms ("real_mult_ac", 
 	   [real_mult_assoc, real_mult_commute, real_mult_left_commute]);
 
-Goalw [real_one_def,pnat_one_def] "1r * z = z";
+Goalw [real_one_def,pnat_one_def] "(1::real) * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_REAL 1);
 by (asm_full_simp_tac
     (simpset() addsimps [real_mult,
@@ -348,7 +348,7 @@ qed "real_mult_1";
 
 Addsimps [real_mult_1];
 
-Goal "z * 1r = z";
+Goal "z * (1::real) = z";
 by (simp_tac (simpset() addsimps [real_mult_commute]) 1);
 qed "real_mult_1_right";
 
@@ -382,11 +382,11 @@ qed "real_minus_mult_eq2";
 
 Addsimps [real_minus_mult_eq1 RS sym, real_minus_mult_eq2 RS sym];
 
-Goal "(- 1r) * z = -z";
+Goal "(- (1::real)) * z = -z";
 by (Simp_tac 1);
 qed "real_mult_minus_1";
 
-Goal "z * (- 1r) = -z";
+Goal "z * (- (1::real)) = -z";
 by (stac real_mult_commute 1);
 by (Simp_tac 1);
 qed "real_mult_minus_1_right";
@@ -441,7 +441,7 @@ by (simp_tac (simpset() addsimps [real_mult_commute',
 qed "real_diff_mult_distrib2";
 
 (*** one and zero are distinct ***)
-Goalw [real_zero_def,real_one_def] "0 ~= 1r";
+Goalw [real_zero_def,real_one_def] "0 ~= (1::real)";
 by (auto_tac (claset(),
          simpset() addsimps [preal_self_less_add_left RS preal_not_refl2]));
 qed "real_zero_not_eq_one";
@@ -453,7 +453,7 @@ by (auto_tac (claset(),simpset() addsimps [preal_add_commute]));
 qed "real_zero_iff";
 
 Goalw [real_zero_def,real_one_def] 
-          "!!(x::real). x ~= 0 ==> EX y. x*y = 1r";
+          "!!(x::real). x ~= 0 ==> EX y. x*y = (1::real)";
 by (res_inst_tac [("z","x")] eq_Abs_REAL 1);
 by (cut_inst_tac [("r1.0","xa"),("r2.0","y")] preal_linear 1);
 by (auto_tac (claset() addSDs [preal_less_add_left_Ex],
@@ -471,12 +471,12 @@ by (auto_tac (claset(),
     @ preal_add_ac @ preal_mult_ac));
 qed "real_mult_inv_right_ex";
 
-Goal "x ~= 0 ==> EX y. y*x = 1r";
+Goal "x ~= 0 ==> EX y. y*x = (1::real)";
 by (dtac real_mult_inv_right_ex 1); 
 by (auto_tac (claset(), simpset() addsimps [real_mult_commute]));  
 qed "real_mult_inv_left_ex";
 
-Goalw [real_inverse_def] "x ~= 0 ==> inverse(x)*x = 1r";
+Goalw [real_inverse_def] "x ~= 0 ==> inverse(x)*x = (1::real)";
 by (ftac real_mult_inv_left_ex 1);
 by (Step_tac 1);
 by (rtac someI2 1);
@@ -484,7 +484,7 @@ by Auto_tac;
 qed "real_mult_inv_left";
 Addsimps [real_mult_inv_left];
 
-Goal "x ~= 0 ==> x*inverse(x) = 1r";
+Goal "x ~= 0 ==> x*inverse(x) = (1::real)";
 by (stac real_mult_commute 1);
 by (auto_tac (claset(), simpset() addsimps [real_mult_inv_left]));
 qed "real_mult_inv_right";
@@ -548,7 +548,7 @@ by (auto_tac (claset() addDs [real_inverse_not_zero],simpset()));
 qed "real_inverse_inverse";
 Addsimps [real_inverse_inverse];
 
-Goalw [real_inverse_def] "inverse(1r) = 1r";
+Goalw [real_inverse_def] "inverse((1::real)) = (1::real)";
 by (cut_facts_tac [real_zero_not_eq_one RS 
                    not_sym RS real_mult_inv_left_ex] 1);
 by (auto_tac (claset(),

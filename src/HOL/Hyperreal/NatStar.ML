@@ -358,7 +358,7 @@ qed "starfun_less_mono";
 (*----------------------------------------------------------------
             NS extension when we displace argument by one
  ---------------------------------------------------------------*)
-Goal "(*fNat* (%n. f (Suc n))) N = (*fNat* f) (N + 1hn)";
+Goal "(*fNat* (%n. f (Suc n))) N = (*fNat* f) (N + (1::hypnat))";
 by (res_inst_tac [("z","N")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
          simpset() addsimps [starfunNat, hypnat_one_def,hypnat_add]));

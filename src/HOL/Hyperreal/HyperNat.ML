@@ -310,13 +310,13 @@ qed "hypnat_mult_left_commute";
 val hypnat_mult_ac = [hypnat_mult_assoc, hypnat_mult_commute, 
                       hypnat_mult_left_commute];
 
-Goalw [hypnat_one_def] "1hn * z = z";
+Goalw [hypnat_one_def] "(1::hypnat) * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (asm_full_simp_tac (simpset() addsimps [hypnat_mult]) 1);
 qed "hypnat_mult_1";
 Addsimps [hypnat_mult_1];
 
-Goal "z * 1hn = z";
+Goal "z * (1::hypnat) = z";
 by (simp_tac (simpset() addsimps [hypnat_mult_commute]) 1);
 qed "hypnat_mult_1_right";
 Addsimps [hypnat_mult_1_right];
@@ -375,7 +375,7 @@ qed "hypnat_add_mult_distrib2";
 Addsimps [hypnat_add_mult_distrib2];
 
 (*** (hypnat) one and zero are distinct ***)
-Goalw [hypnat_zero_def,hypnat_one_def] "(0::hypnat) ~= 1hn";
+Goalw [hypnat_zero_def,hypnat_one_def] "(0::hypnat) ~= (1::hypnat)";
 by Auto_tac;
 qed "hypnat_zero_not_eq_one";
 Addsimps [hypnat_zero_not_eq_one];
@@ -446,7 +446,7 @@ AddIffs [hypnat_not_less0];
 bind_thm ("hypnat_less_zeroE", hypnat_not_less0 RS notE);
 
 Goalw [hypnat_less_def,hypnat_zero_def,hypnat_one_def]
-      "(n<1hn) = (n=0)";
+      "(n<(1::hypnat)) = (n=0)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset() addSIs [exI] addEs 
     [FreeUltrafilterNat_subset],simpset()));
@@ -680,7 +680,7 @@ by (auto_tac (claset() addIs [hypnat_mult_order, hypnat_less_imp_le],
 qed "hypnat_le_mult_order";
 
 Goalw [hypnat_one_def,hypnat_zero_def,hypnat_less_def] 
-      "(0::hypnat) < 1hn";
+      "(0::hypnat) < (1::hypnat)";
 by (res_inst_tac [("x","%n. 0")] exI 1);
 by (res_inst_tac [("x","%n. Suc 0")] exI 1);
 by Auto_tac;
@@ -736,19 +736,19 @@ by (auto_tac (claset() addDs [(hypnat_less_imp_le RS
 qed "hypnat_add_self_le";
 Addsimps [hypnat_add_self_le];
 
-Goal "(x::hypnat) < x + 1hn";
+Goal "(x::hypnat) < x + (1::hypnat)";
 by (cut_facts_tac [hypnat_zero_less_one 
          RS hypnat_add_less_mono2] 1);
 by Auto_tac;
 qed "hypnat_add_one_self_less";
 Addsimps [hypnat_add_one_self_less];
 
-Goalw [hypnat_le_def] "~ x + 1hn <= x";
+Goalw [hypnat_le_def] "~ x + (1::hypnat) <= x";
 by (Simp_tac 1);
 qed "not_hypnat_add_one_le_self";
 Addsimps [not_hypnat_add_one_le_self];
 
-Goal "((0::hypnat) < n) = (1hn <= n)";
+Goal "((0::hypnat) < n) = ((1::hypnat) <= n)";
 by (res_inst_tac [("x","n")] hypnat_trichotomyE 1);
 by (auto_tac (claset(),simpset() addsimps [hypnat_le_def]));
 qed "hypnat_gt_zero_iff";
@@ -756,11 +756,11 @@ qed "hypnat_gt_zero_iff";
 Addsimps  [hypnat_le_add_diff_inverse, hypnat_le_add_diff_inverse2,
            hypnat_less_imp_le RS hypnat_le_add_diff_inverse2];
 
-Goal "(0 < n) = (EX m. n = m + 1hn)";
+Goal "(0 < n) = (EX m. n = m + (1::hypnat))";
 by (Step_tac 1);
 by (res_inst_tac [("x","m")] hypnat_trichotomyE 2);
 by (rtac hypnat_less_trans 2);
-by (res_inst_tac [("x","n - 1hn")] exI 1);
+by (res_inst_tac [("x","n - (1::hypnat)")] exI 1);
 by (auto_tac (claset(),simpset() addsimps 
     [hypnat_gt_zero_iff,hypnat_add_commute]));
 qed "hypnat_gt_zero_iff2";
@@ -806,7 +806,7 @@ Goalw [hypnat_le_def,le_def]
 by Auto_tac;
 qed "hypnat_of_nat_le_iff";
 
-Goalw [hypnat_of_nat_def,hypnat_one_def] "hypnat_of_nat (Suc 0) = 1hn";
+Goalw [hypnat_of_nat_def,hypnat_one_def] "hypnat_of_nat (Suc 0) = (1::hypnat)";
 by (Simp_tac 1);
 qed "hypnat_of_nat_one";
 
@@ -825,7 +825,7 @@ by (full_simp_tac (simpset() addsimps [hypnat_of_nat_zero_iff]) 1);
 qed "hypnat_of_nat_not_zero_iff";
 
 Goalw [hypnat_of_nat_def,hypnat_one_def]
-     "hypnat_of_nat (Suc n) = hypnat_of_nat n + 1hn";
+     "hypnat_of_nat (Suc n) = hypnat_of_nat n + (1::hypnat)";
 by (auto_tac (claset(),simpset() addsimps [hypnat_add]));
 qed "hypnat_of_nat_Suc";
 
@@ -911,7 +911,7 @@ Goal "hypnat_of_nat 0 : Nats";
 by (Simp_tac 1);
 qed "SHNat_hypnat_of_nat_zero";
 
-Goal "1hn : Nats";
+Goal "(1::hypnat) : Nats";
 by (simp_tac (simpset() addsimps [SHNat_hypnat_of_nat_one,
     hypnat_of_nat_one RS sym]) 1);
 qed "SHNat_one";
@@ -924,7 +924,7 @@ qed "SHNat_zero";
 Addsimps [SHNat_hypnat_of_nat_one,SHNat_hypnat_of_nat_zero,
           SHNat_one,SHNat_zero];
 
-Goal "1hn + 1hn : Nats";
+Goal "(1::hypnat) + (1::hypnat) : Nats";
 by (rtac ([SHNat_one,SHNat_one] MRS SHNat_add) 1);
 qed "SHNat_two";
 
@@ -1000,7 +1000,7 @@ by Auto_tac;
 qed "hypnat_zero_less_hypnat_omega";
 Addsimps [hypnat_zero_less_hypnat_omega];
 
-Goal "1hn < whn";
+Goal "(1::hypnat) < whn";
 by (rtac (hypnat_omega_gt_SHNat RS ballE) 1);
 by Auto_tac;
 qed "hypnat_one_less_hypnat_omega";
@@ -1104,7 +1104,7 @@ by (blast_tac (claset() addIs [HNatInfinite_FreeUltrafilterNat,
     FreeUltrafilterNat_HNatInfinite]) 1);
 qed "HNatInfinite_FreeUltrafilterNat_iff";
 
-Goal "x : HNatInfinite ==> 1hn < x";
+Goal "x : HNatInfinite ==> (1::hypnat) < x";
 by (auto_tac (claset(),simpset() addsimps [HNatInfinite_iff]));
 qed "HNatInfinite_gt_one";
 Addsimps [HNatInfinite_gt_one];
@@ -1112,7 +1112,7 @@ Addsimps [HNatInfinite_gt_one];
 Goal "0 ~: HNatInfinite";
 by (auto_tac (claset(),simpset() 
     addsimps [HNatInfinite_iff]));
-by (dres_inst_tac [("a","1hn")] equals0D 1);
+by (dres_inst_tac [("a","(1::hypnat)")] equals0D 1);
 by (Asm_full_simp_tac 1);
 qed "zero_not_mem_HNatInfinite";
 Addsimps [zero_not_mem_HNatInfinite];
@@ -1121,7 +1121,7 @@ Goal "x : HNatInfinite ==> x ~= 0";
 by Auto_tac;
 qed "HNatInfinite_not_eq_zero";
 
-Goal "x : HNatInfinite ==> 1hn <= x";
+Goal "x : HNatInfinite ==> (1::hypnat) <= x";
 by (blast_tac (claset() addIs [hypnat_less_imp_le,
          HNatInfinite_gt_one]) 1);
 qed "HNatInfinite_ge_one";
@@ -1156,20 +1156,20 @@ by (auto_tac (claset() addSIs [hypnat_less_imp_le],
     simpset() addsimps [not_SHNat_HNatInfinite_iff,HNatInfinite_iff]));
 qed "HNatInfinite_SHNat_diff";
 
-Goal "x: HNatInfinite ==> x + 1hn: HNatInfinite";
+Goal "x: HNatInfinite ==> x + (1::hypnat): HNatInfinite";
 by (auto_tac (claset() addIs [HNatInfinite_SHNat_add],
               simpset()));
 qed "HNatInfinite_add_one";
 
-Goal "x: HNatInfinite ==> x - 1hn: HNatInfinite";
+Goal "x: HNatInfinite ==> x - (1::hypnat): HNatInfinite";
 by (rtac ccontr 1 THEN dtac not_HNatInfinite_SHNat 1);
-by (dres_inst_tac [("x","x - 1hn"),("y","1hn")] SHNat_add 1);
+by (dres_inst_tac [("x","x - (1::hypnat)"),("y","(1::hypnat)")] SHNat_add 1);
 by (auto_tac (claset(),simpset() addsimps 
     [not_SHNat_HNatInfinite_iff RS sym]));
 qed "HNatInfinite_minus_one";
 
-Goal "x : HNatInfinite ==> EX y. x = y + 1hn";
-by (res_inst_tac [("x","x - 1hn")] exI 1);
+Goal "x : HNatInfinite ==> EX y. x = y + (1::hypnat)";
+by (res_inst_tac [("x","x - (1::hypnat)")] exI 1);
 by Auto_tac;
 qed "HNatInfinite_is_Suc";
 
@@ -1253,7 +1253,7 @@ by (simp_tac (simpset() addsimps [hypreal_of_hypnat, real_of_nat_zero]) 1);
 qed "hypreal_of_hypnat_zero";
 
 Goalw [hypnat_one_def] 
-     "hypreal_of_hypnat 1hn = Numeral1";
+     "hypreal_of_hypnat (1::hypnat) = Numeral1";
 by (simp_tac (HOL_ss addsimps
              [one_eq_numeral_1 RS sym, hypreal_one_def]) 1); 
 by (simp_tac (simpset() addsimps [hypreal_of_hypnat, real_of_nat_one]) 1);
@@ -1297,12 +1297,12 @@ Addsimps [hypnat_eq_zero];
 
 Goal "~ (ALL n. n = (0::hypnat))";
 by Auto_tac;
-by (res_inst_tac [("x","1hn")] exI 1);
+by (res_inst_tac [("x","(1::hypnat)")] exI 1);
 by (Simp_tac 1);
 qed "hypnat_not_all_eq_zero";
 Addsimps [hypnat_not_all_eq_zero];
 
-Goal "n ~= 0 ==> (n <= 1hn) = (n = 1hn)";
+Goal "n ~= 0 ==> (n <= (1::hypnat)) = (n = (1::hypnat))";
 by (auto_tac (claset(), simpset() addsimps [hypnat_le_less]));
 qed "hypnat_le_one_eq_one";
 Addsimps [hypnat_le_one_eq_one];

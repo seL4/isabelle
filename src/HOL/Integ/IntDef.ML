@@ -7,8 +7,8 @@ The integers as equivalence classes over nat*nat.
 *)
 
 
-(*Rewrite the overloaded 0::int to (int 0)*)    (* FIXME !? *)
-Addsimps [Zero_int_def];
+(*Rewrite the overloaded 0::int and 1::int*)    (* FIXME *)
+Addsimps [Zero_int_def, One_int_def];
 
 Goalw  [intrel_def] "(((x1,y1),(x2,y2)): intrel) = (x1+y2 = x2+y1)";
 by (Blast_tac 1);

@@ -182,8 +182,14 @@ Addsimps [zadd_0, zadd_0_right];
 
 (** Converting simple cases of (int n) to numerals **)
 
-(*int 0 = Numeral0 *)
-bind_thm ("int_0", number_of_Pls RS sym);
+Goal "int 0 = Numeral0";
+by (rtac sym 1);
+by (rtac number_of_Pls 1);
+qed "int_0";
+
+Goal "int 1 = Numeral1";
+by (Simp_tac 1);
+qed "int_1";
 
 Goal "int (Suc n) = Numeral1 + int n";
 by (simp_tac (simpset() addsimps [zadd_int]) 1);

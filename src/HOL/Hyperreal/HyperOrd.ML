@@ -149,7 +149,7 @@ by (rtac (hypreal_minus_zero_less_iff RS iffD1) 1);
 by (Asm_full_simp_tac 1);
 qed "hypreal_mult_less_zero";
 
-Goalw [hypreal_one_def,hypreal_zero_def,hypreal_less_def] "0 < 1hr";
+Goalw [hypreal_one_def,hypreal_zero_def,hypreal_less_def] "0 < (1::hypreal)";
 by (res_inst_tac [("x","%n. Numeral0")] exI 1);
 by (res_inst_tac [("x","%n. Numeral1")] exI 1);
 by (auto_tac (claset(),

@@ -44,7 +44,7 @@ Addsimps [sumhr_zero];
 
 (* Theorem corresponding to recursive case in def of sumr *)
 Goalw [hypnat_one_def]
-     "sumhr(m,n+1hn,f) = (if n + 1hn <= m then Numeral0 \
+     "sumhr(m,n+(1::hypnat),f) = (if n + (1::hypnat) <= m then Numeral0 \
 \                         else sumhr(m,n,f) + (*fNat* f) n)";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
@@ -55,7 +55,7 @@ by (auto_tac (claset(),
 by (ALLGOALS(Ultra_tac));
 qed "sumhr_if";
 
-Goalw [hypnat_one_def] "sumhr (n + 1hn, n, f) = Numeral0";
+Goalw [hypnat_one_def] "sumhr (n + (1::hypnat), n, f) = Numeral0";
 by (simp_tac (HOL_ss addsimps
              [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
@@ -73,7 +73,7 @@ qed "sumhr_eq_bounds";
 Addsimps [sumhr_eq_bounds];
 
 Goalw [hypnat_one_def] 
-     "sumhr (m,m + 1hn,f) = (*fNat* f) m";
+     "sumhr (m,m + (1::hypnat),f) = (*fNat* f) m";
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
               simpset() addsimps [sumhr, hypnat_add,starfunNat]));
@@ -290,7 +290,7 @@ qed "NSsummable_NSCauchy";
 Goalw [NSLIMSEQ_def] "NSsummable f ==> f ----NS> Numeral0";
 by (auto_tac (claset(), simpset() addsimps [NSsummable_NSCauchy]));
 by (dtac bspec 1 THEN Auto_tac);
-by (dres_inst_tac [("x","N + 1hn")] bspec 1);
+by (dres_inst_tac [("x","N + (1::hypnat)")] bspec 1);
 by (auto_tac (claset() addIs [HNatInfinite_add_one,
                               approx_hrabs_zero_cancel],
               simpset() addsimps [rename_numerals hypreal_of_real_zero]));

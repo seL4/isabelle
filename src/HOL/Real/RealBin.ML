@@ -17,7 +17,7 @@ Goalw [real_number_of_def] "(0::real) = Numeral0";
 by (simp_tac (simpset() addsimps [real_of_int_zero RS sym]) 1);
 qed "zero_eq_numeral_0";
 
-Goalw [real_number_of_def] "1r = Numeral1";
+Goalw [real_number_of_def] "(1::real) = Numeral1";
 by (simp_tac (simpset() addsimps [real_of_int_one RS sym]) 1);
 qed "one_eq_numeral_1";
 
@@ -109,14 +109,14 @@ qed "le_real_number_of_eq_not_less";
 
 Addsimps [le_real_number_of_eq_not_less];
 
-(*** New versions of existing theorems involving 0, 1r ***)
+(*** New versions of existing theorems involving 0, 1 ***)
 
 Goal "- Numeral1 = (-1::real)";
 by (Simp_tac 1);
 qed "minus_numeral_one";
 
 
-(*Maps 0 to Numeral0 and 1r to Numeral1 and -1r to -1*)
+(*Maps 0 to Numeral0 and 1 to Numeral1 and -(Numeral1) to -1*)
 val real_numeral_ss = 
     HOL_ss addsimps [zero_eq_numeral_0, one_eq_numeral_1, 
 		     minus_numeral_one];
@@ -125,7 +125,7 @@ fun rename_numerals th =
     asm_full_simplify real_numeral_ss (Thm.transfer (the_context ()) th);
 
 
-(*Now insert some identities previously stated for 0 and 1r*)
+(*Now insert some identities previously stated for 0 and 1*)
 
 (** RealDef & Real **)
 
