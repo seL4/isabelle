@@ -55,7 +55,7 @@ use "simpdata.ML";
 
 qed_goal "ex1_functional" FOL.thy
     "!!a b c. [| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
- (fn _ => [ (deepen_tac FOL_cs 0 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 
 print_depth 8;
