@@ -220,5 +220,10 @@ XSYMBOL_HOME=$(choosefrom \
 # Einhoven model checker
 #EINDHOVEN_HOME=/usr/local/bin
 
-# ZChaff SAT solver
+# ZChaff, Version 2003.12.04 (SAT Solver)
 #ZCHAFF_HOME=/usr/local/bin
+
+# BerkMin561 (SAT Solver)
+#BERKMIN_HOME=/usr/local/bin
+#BERKMIN_EXE=BerkMin561-linux
+#BERKMIN_EXE=BerkMin561-solaris
