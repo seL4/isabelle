@@ -11,6 +11,7 @@ LOGICS="HOL ZF"
 DISTBASE=~/tmp/isadist
 ROOT=/usr/share
 BIN=/usr/bin
+RPMRELEASE=0
 
 
 ## diagnostics
@@ -96,7 +97,7 @@ cat >$TMP/SPECS/isabelle.spec <<EOF
 Summary:	Isabelle Theorem Proving Environment
 Name:		isabelle
 Version:	$RPMVERSION
-Release:	1
+Release:	$RPMRELEASE
 Group:		Applications/Math
 Copyright:	University of Cambridge Computer Laboratory
 Url:		http://www.cl.cam.ac.uk/Research/HVG/Isabelle/
@@ -245,11 +246,11 @@ rpm --rcfile "$TMP/rpmrc" -bb "$TMP/SPECS/isabelle.spec"
 
 mkdir -p "$DISTBASE/rpm"
 cd "$TMP/RPMS/i386"
-cp "isabelle-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
-cp "isabelle-HOL-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
-cp "isabelle-HOL-Real-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-HOL-Real.i386.rpm"
-cp "isabelle-ZF-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
-cp "isabelle-pdfdocs-$RPMVERSION-1.i386.rpm" "$DISTBASE/rpm/isabelle-pdfdocs.rpm"
+cp "isabelle-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle.rpm"
+cp "isabelle-HOL-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL.i386.rpm"
+cp "isabelle-HOL-Real-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-HOL-Real.i386.rpm"
+cp "isabelle-ZF-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-ZF.i386.rpm"
+cp "isabelle-pdfdocs-$RPMVERSION-${RPMRELEASE}.i386.rpm" "$DISTBASE/rpm/isabelle-pdfdocs.rpm"
 
 # clean up
 cd /
