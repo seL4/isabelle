@@ -21,7 +21,7 @@ FILES = tutorial.tex basics.tex fp.tex appendix.tex \
 	Inductive/advanced-examples.tex \
 	Protocol/protocol.tex \
 	Rules/rules.tex Sets/sets.tex \
-	Types/numerics.tex Types/records.tex Types/types.tex \
+	Types/numerics.tex Types/types.tex \
 	Documents/documents.tex \
 	../iman.sty ../ttbox.sty ../extra.sty \
 	isabelle.sty isabellesym.sty ../pdfsetup.sty
