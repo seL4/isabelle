@@ -563,8 +563,8 @@ fun ?? b = if b then Seq.single () else Seq.empty;
 
 fun ?! s = is_some (Seq.pull s);    
 
-fun op__61__1 x = Seq.single x;
+fun op_61__1 x = Seq.single x;
 
-val op__61__2 = op__61__1;
+val op_61__2 = op_61__1;
 
-fun op__61__1_2 (x, y) = ?? (x = y);
+fun op_61__1_2 (x, y) = ?? (x = y);
