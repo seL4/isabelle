@@ -24,8 +24,7 @@ proof (rule order_antisym)
   show ge: "!!n. n <= f n"
   proof -
     fix k show "!!n. k == f n ==> n <= k" (is "PROP ?P k")
-    proof (induct k
-        rule: nat_less_induct [rule_format])
+    proof (induct k rule: less_induct)
       fix k assume hyp: "!!m. m < k ==> PROP ?P m"
       fix n assume k_def: "k == f n"
       show "n <= k"
