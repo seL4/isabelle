@@ -59,21 +59,24 @@ consts
 syntax
   "_beta" :: "[dB, dB] => bool"  (infixl "->" 50)
   "_beta_rtrancl" :: "[dB, dB] => bool"  (infixl "->>" 50)
+syntax (latex)
+  "_beta" :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+  "_beta_rtrancl" :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50)
 translations
-  "s -> t" == "(s, t) \<in> beta"
-  "s ->> t" == "(s, t) \<in> beta^*"
+  "s \<rightarrow>\<^sub>\<beta> t" == "(s, t) \<in> beta"
+  "s \<rightarrow>\<^sub>\<beta>\<^sup>* t" == "(s, t) \<in> beta^*"
 
 inductive beta
   intros
-    beta [simp, intro!]: "Abs s \<degree> t -> s[t/0]"
-    appL [simp, intro!]: "s -> t ==> s \<degree> u -> t \<degree> u"
-    appR [simp, intro!]: "s -> t ==> u \<degree> s -> u \<degree> t"
-    abs [simp, intro!]: "s -> t ==> Abs s -> Abs t"
+    beta [simp, intro!]: "Abs s \<degree> t \<rightarrow>\<^sub>\<beta> s[t/0]"
+    appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
+    appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
+    abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs s \<rightarrow>\<^sub>\<beta> Abs t"
 
 inductive_cases beta_cases [elim!]:
-  "Var i -> t"
-  "Abs r -> s"
-  "s \<degree> t -> u"
+  "Var i \<rightarrow>\<^sub>\<beta> t"
+  "Abs r \<rightarrow>\<^sub>\<beta> s"
+  "s \<degree> t \<rightarrow>\<^sub>\<beta> u"
 
 declare if_not_P [simp] not_less_eq [simp]
   -- {* don't add @{text "r_into_rtrancl[intro!]"} *}
@@ -82,25 +85,25 @@ declare if_not_P [simp] not_less_eq [simp]
 subsection {* Congruence rules *}
 
 lemma rtrancl_beta_Abs [intro!]:
-    "s ->> s' ==> Abs s ->> Abs s'"
+    "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' ==> Abs s \<rightarrow>\<^sub>\<beta>\<^sup>* Abs s'"
   apply (erule rtrancl_induct)
    apply (blast intro: rtrancl_into_rtrancl)+
   done
 
 lemma rtrancl_beta_AppL:
-    "s ->> s' ==> s \<degree> t ->> s' \<degree> t"
+    "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t"
   apply (erule rtrancl_induct)
    apply (blast intro: rtrancl_into_rtrancl)+
   done
 
 lemma rtrancl_beta_AppR:
-    "t ->> t' ==> s \<degree> t ->> s \<degree> t'"
+    "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s \<degree> t'"
   apply (erule rtrancl_induct)
    apply (blast intro: rtrancl_into_rtrancl)+
   done
 
 lemma rtrancl_beta_App [intro]:
-    "[| s ->> s'; t ->> t' |] ==> s \<degree> t ->> s' \<degree> t'"
+    "[| s \<rightarrow>\<^sub>\<beta>\<^sup>* s'; t \<rightarrow>\<^sub>\<beta>\<^sup>* t' |] ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'"
   apply (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR
     intro: rtrancl_trans)
   done
@@ -183,21 +186,42 @@ text {* Not used in Church-Rosser proof, but in Strong
   Normalization. \medskip *}
 
 theorem subst_preserves_beta [simp]:
-    "r -> s ==> (\<And>t i. r[t/i] -> s[t/i])"
+    "r \<rightarrow>\<^sub>\<beta> s ==> (\<And>t i. r[t/i] \<rightarrow>\<^sub>\<beta> s[t/i])"
   apply (induct set: beta)
      apply (simp_all add: subst_subst [symmetric])
   done
 
+theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r[t/i] \<rightarrow>\<^sub>\<beta>\<^sup>* s[t/i]"
+  apply (erule rtrancl.induct)
+  apply (rule rtrancl_refl)
+  apply (erule rtrancl_into_rtrancl)
+  apply (erule subst_preserves_beta)
+  done
+
 theorem lift_preserves_beta [simp]:
-    "r -> s ==> (\<And>i. lift r i -> lift s i)"
+    "r \<rightarrow>\<^sub>\<beta> s ==> (\<And>i. lift r i \<rightarrow>\<^sub>\<beta> lift s i)"
   by (induct set: beta) auto
 
+theorem lift_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> lift r i \<rightarrow>\<^sub>\<beta>\<^sup>* lift s i"
+  apply (erule rtrancl.induct)
+  apply (rule rtrancl_refl)
+  apply (erule rtrancl_into_rtrancl)
+  apply (erule lift_preserves_beta)
+  done
+
 theorem subst_preserves_beta2 [simp]:
-    "\<And>r s i. r -> s ==> t[r/i] ->> t[s/i]"
+    "\<And>r s i. r \<rightarrow>\<^sub>\<beta> s ==> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
   apply (induct t)
     apply (simp add: subst_Var r_into_rtrancl)
    apply (simp add: rtrancl_beta_App)
   apply (simp add: rtrancl_beta_Abs)
+  done
+
+theorem subst_preserves_beta2': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
+  apply (erule rtrancl.induct)
+  apply (rule rtrancl_refl)
+  apply (erule rtrancl_trans)
+  apply (erule subst_preserves_beta2)
   done
 
 end
