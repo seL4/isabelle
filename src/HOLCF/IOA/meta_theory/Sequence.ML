@@ -7,20 +7,6 @@ Theorems about Sequences over flat domains with lifted elements
 
 *)
 
-(* FIX: Put into Fix.ML to adm_lemmas !!! *)
-
-goal thy "!! P. [| adm (%x. P x --> Q x); adm (%x.Q x --> P x) |] \
-\           ==> adm (%x. P x = Q x)";
-by (res_inst_tac [("P2","(%x.(P x --> Q x) & (Q x --> P x))")] (adm_cong RS iffD1) 1);
-by (Fast_tac 1);
-by (etac adm_conj 1);
-by (assume_tac 1);
-qed"adm_iff";
-
-Addsimps [adm_iff];
-
-
-
 Addsimps [andalso_and,andalso_or];
 
 (* ----------------------------------------------------------------------------------- *)
@@ -486,7 +472,7 @@ qed"FiniteFilter";
 section "admissibility";
 
 (* Finite x is proven to be adm: Finite_flat shows that there are only chains of length one.
-   Then the assumption that an _infinite_ chain exists (from admI) is set to a contradiction 
+   Then the assumption that an _infinite_ chain exists (from admI2) is set to a contradiction 
    to Finite_flat *)
 
 goal thy "!! (x:: 'a Seq). Finite x ==> !y. Finite (y:: 'a Seq) & x<<y --> x=y";
@@ -502,7 +488,7 @@ qed_spec_mp"Finite_flat";
 
 
 goal thy "adm(%(x:: 'a Seq).Finite x)";
-by (rtac admI 1);
+by (rtac admI2 1);
 by (eres_inst_tac [("x","0")] allE 1);
 back();
 by (etac exE 1);

@@ -363,7 +363,7 @@ qed_goal_spec_mp "stream_finite_less" thy
 	fast_tac (HOL_cs addSIs [stream_finite_UU, stream_finite_lemma1]) 1]);
 
 qed_goal "adm_not_stream_finite" thy "adm (%x. ~  stream_finite x)" (fn _ => [
-	rtac admI 1,
+	rtac admI2 1,
 	dtac spec 1,
 	etac contrapos 1,
 	dtac stream_finite_less 1,
