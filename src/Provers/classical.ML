@@ -270,12 +270,13 @@ val empty_cs =
 
 fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, xtraIs, xtraEs, ...}) =
   let val pretty_thms = map Display.pretty_thm in
-    Pretty.writeln (Pretty.big_list "safe introduction rules:" (pretty_thms safeIs));
-    Pretty.writeln (Pretty.big_list "unsafe introduction rules:" (pretty_thms hazIs));
-    Pretty.writeln (Pretty.big_list "extra introduction rules:" (pretty_thms xtraIs));
-    Pretty.writeln (Pretty.big_list "safe elimination rules:" (pretty_thms safeEs));
-    Pretty.writeln (Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs));
-    Pretty.writeln (Pretty.big_list "extra elimination rules:" (pretty_thms xtraEs))
+    [Pretty.big_list "safe introduction rules:" (pretty_thms safeIs),
+      Pretty.big_list "unsafe introduction rules:" (pretty_thms hazIs),
+      Pretty.big_list "extra introduction rules:" (pretty_thms xtraIs),
+      Pretty.big_list "safe elimination rules:" (pretty_thms safeEs),
+      Pretty.big_list "unsafe elimination rules:" (pretty_thms hazEs),
+      Pretty.big_list "extra elimination rules:" (pretty_thms xtraEs)]
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
 fun rep_cs (CS args) = args;

@@ -170,9 +170,10 @@ fun print_ss ss =
     fun pretty_proc (name, lhss) =
       Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
   in
-    Pretty.writeln (Pretty.big_list "simplification rules:" (pretty_thms simps));
-    Pretty.writeln (Pretty.big_list "simplification procedures:" (map pretty_proc procs));
-    Pretty.writeln (Pretty.big_list "congruences:" (pretty_thms congs))
+    [Pretty.big_list "simplification rules:" (pretty_thms simps),
+      Pretty.big_list "simplification procedures:" (map pretty_proc procs),
+      Pretty.big_list "congruences:" (pretty_thms congs)]
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
 
