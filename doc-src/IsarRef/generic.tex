@@ -527,7 +527,8 @@ val thms  : string -> thm list
 
   opt: '(' (noasm | noasmsimp | noasmuse) ')'
   ;
-  simpmod: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') | 'other') ':' thmrefs
+  simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
+    'split' (() | 'add' | 'del') | 'other') ':' thmrefs
   ;
 \end{rail}
 
@@ -536,15 +537,18 @@ val thms  : string -> thm list
   according to the arguments given.  Note that the \railtterm{only} modifier
   first removes all other rewrite rules, congruences, and looper tactics
   (including splits), and then behaves like \railtterm{add}.
-
-  The \railtterm{split} modifiers add or delete rules for the Splitter (see
-  also \cite{isabelle-ref}), the default is to add.  This works only if the
-  Simplifier method has been properly setup to include the Splitter (all major
-  object logics such HOL, HOLCF, FOL, ZF do this already).
-
-  The \railtterm{other} modifier ignores its arguments.  Nevertheless,
-  additional kinds of rules may be declared by including appropriate
-  attributes in the specification.
+  
+  \medskip The \railtterm{cong} modifiers add or delete Simplifier congruence
+  rules (see also \cite{isabelle-ref}), the default is to add.
+  
+  \medskip The \railtterm{split} modifiers add or delete rules for the
+  Splitter (see also \cite{isabelle-ref}), the default is to add.  This works
+  only if the Simplifier method has been properly setup to include the
+  Splitter (all major object logics such HOL, HOLCF, FOL, ZF do this already).
+  
+  \medskip The \railtterm{other} modifier ignores its arguments.
+  Nevertheless, additional kinds of rules may be declared by including
+  appropriate attributes in the specification.
 \item [$simp_all$] is similar to $simp$, but acts on all goals.
 \end{descr}
 
@@ -568,9 +572,9 @@ but are not used in the simplification of each other or the conclusion (cf.
 \medskip
 
 The Splitter package is usually configured to work as part of the Simplifier.
-There is no separate $split$ method available.  The effect of repeatedly
-applying \texttt{split_tac} can be simulated by
-$(simp~only\colon~split\colon~\vec a)$.
+The effect of repeatedly applying \texttt{split_tac} can be simulated by
+$(simp~only\colon~split\colon~\vec a)$.  There is also a separate $split$
+method available for single-step case splitting, see \S\ref{sec:basic-eq}.
 
 
 \subsection{Declaring rules}
@@ -580,12 +584,12 @@ $(simp~only\colon~split\colon~\vec a)$.
 \begin{matharray}{rcl}
   print_simpset & : & \isarkeep{theory~|~proof} \\
   simp & : & \isaratt \\
-  split & : & \isaratt \\
   cong & : & \isaratt \\
+  split & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-  ('simp' | 'split' | 'cong') (() | 'add' | 'del')
+  ('simp' | 'cong' | 'split') (() | 'add' | 'del')
   ;
 \end{rail}
 
@@ -594,8 +598,8 @@ $(simp~only\colon~split\colon~\vec a)$.
   Simplifier, which is also known as ``simpset'' internally
   \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
 \item [$simp$] declares simplification rules.
-\item [$split$] declares split rules.
 \item [$cong$] declares congruence rules.
+\item [$split$] declares case split rules.
 \end{descr}
 
 
@@ -618,7 +622,7 @@ See the ML functions of the same name in \cite[\S10]{isabelle-ref} for more
 information.
 
 
-\section{Basic equational reasoning}
+\section{Basic equational reasoning}\label{sec:basic-eq}
 
 \indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisarmeth{split}\indexisaratt{symmetric}
 \begin{matharray}{rcl}
@@ -750,8 +754,8 @@ This is slightly less hazardous than for the Simplifier (see
   ('auto' | 'force' | 'clarsimp' | 'fastsimp') ('!' ?) (clasimpmod * )
   ;
 
-  clasimpmod: ('simp' (() | 'add' | 'del' | 'only') | 'other' |
-    ('split' (() | 'add' | 'del')) |
+  clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
+    'cong' (() | 'add' | 'del') | ('split' (() | 'add' | 'del')) | 'other' |
     (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' thmrefs
 \end{rail}
 
