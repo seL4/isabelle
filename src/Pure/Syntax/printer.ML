@@ -6,41 +6,31 @@ Pretty printing of asts, terms, types and print (ast) translation.
 *)
 
 signature PRINTER0 =
-sig
+  sig
   val show_brackets: bool ref
   val show_sorts: bool ref
   val show_types: bool ref
   val show_no_free_types: bool ref
-end;
+  end;
 
 signature PRINTER =
-sig
+  sig
   include PRINTER0
-  structure Symtab: SYMTAB
-  structure SynExt: SYN_EXT
-  local open SynExt SynExt.Ast in
-    val term_to_ast: (string -> (term list -> term) option) -> term -> ast
-    val typ_to_ast: (string -> (term list -> term) option) -> typ -> ast
-    type prtab
-    val empty_prtab: prtab
-    val extend_prtab: prtab -> xprod list -> prtab
-    val merge_prtabs: prtab -> prtab -> prtab
-    val pretty_term_ast: bool -> prtab -> (string -> (ast list -> ast) option)
-      -> ast -> Pretty.T
-    val pretty_typ_ast: bool -> prtab -> (string -> (ast list -> ast) option)
-      -> ast -> Pretty.T
-  end
-end;
+  val term_to_ast: (string -> (term list -> term) option) -> term -> Ast.ast
+  val typ_to_ast: (string -> (term list -> term) option) -> typ -> Ast.ast
+  type prtab
+  val empty_prtab: prtab
+  val extend_prtab: prtab -> SynExt.xprod list -> prtab
+  val merge_prtabs: prtab -> prtab -> prtab
+  val pretty_term_ast: bool -> prtab -> (string -> (Ast.ast list -> Ast.ast) option)
+    -> Ast.ast -> Pretty.T
+  val pretty_typ_ast: bool -> prtab -> (string -> (Ast.ast list -> Ast.ast) option)
+    -> Ast.ast -> Pretty.T
+  end;
 
-functor PrinterFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
-  and SynTrans: SYN_TRANS sharing TypeExt.SynExt = SynTrans.Parser.SynExt)
-  : PRINTER =
+structure Printer : PRINTER =
 struct
-
-structure Symtab = Symtab;
-structure SynExt = TypeExt.SynExt;
-open SynTrans.Parser.Lexicon SynExt.Ast SynExt TypeExt SynTrans;
-
+open Lexicon Ast SynExt TypeExt SynTrans;
 
 (** options for printing **)
 
