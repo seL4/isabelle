@@ -113,8 +113,8 @@ very subtle cases of nontermination. For example, invoking
 \end{ttbox}
 gives rise to the infinite reduction sequence
 \[
-P\,(f\,x) \stackrel{f\,x = f\,y}{\mapsto} P\,(f\,y) \stackrel{y = x}{\mapsto}
-P\,(f\,x) \stackrel{f\,x = f\,y}{\mapsto} \cdots
+P\,(f\,x) \stackrel{f\,x = f\,y}{\longmapsto} P\,(f\,y) \stackrel{y = x}{\longmapsto}
+P\,(f\,x) \stackrel{f\,x = f\,y}{\longmapsto} \cdots
 \]
 whereas applying the same tactic to
 \begin{ttbox}
@@ -975,45 +975,6 @@ by (asm_simp_tac (simpset() addsimps [prem]) 1);
 {\out f(i + j) = i + f(j)}
 {\out No subgoals!}
 \end{ttbox}
-
-\subsection{Reordering assumptions}
-\label{sec:reordering-asms}
-\index{assumptions!reordering}
-
-As mentioned in {\S}\ref{sec:simp-for-dummies-tacs},
-\ttindex{asm_full_simp_tac} may require the assumptions to be permuted
-to be more effective.  Given the subgoal
-\begin{ttbox}
-{\out 1. [| ALL x. P x --> f x = g x; Q(f a); P a; R |] ==> S}
-\end{ttbox}
-we can rotate the assumptions two positions to the right
-\begin{ttbox}
-by (rotate_tac ~2 1);
-\end{ttbox}
-to obtain
-\begin{ttbox}
-{\out 1. [| P a; R; ALL x. P x --> f x = g x; Q(f a) |] ==> S}
-\end{ttbox}
-which enables \verb$asm_full_simp_tac$ to simplify \verb$Q(f a)$ to
-\verb$Q(g a)$ because now all required assumptions are to the left of
-\verb$Q(f a)$.
-
-Since rotation alone cannot produce arbitrary permutations, you can also pick
-out a particular assumption which needs to be rewritten and move it the the
-right end of the assumptions.  In the above case rotation can be replaced by
-\begin{ttbox}
-by (dres_inst_tac [("psi","Q(f a)")] asm_rl 1);
-\end{ttbox}
-which is more directed and leads to
-\begin{ttbox}
-{\out 1. [| ALL x. P x --> f x = g x; P a; R; Q(f a) |] ==> S}
-\end{ttbox}
-
-\begin{warn}
-  Reordering assumptions usually leads to brittle proofs and should be
-  avoided.  Future versions of \verb$asm_full_simp_tac$ will completely
-  remove the need for such manipulations.
-\end{warn}
 
 
 \section{Permutative rewrite rules}
