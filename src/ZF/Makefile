@@ -21,7 +21,8 @@ COMP = $(ISABELLECOMP)
 FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	func.ML AC.thy AC.ML simpdata.ML Bool.thy Bool.ML \
 	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
-	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
+	ind_syntax.ML add_ind_def.thy add_ind_def.ML \
+\       intr_elim.ML indrule.ML inductive.ML \
 	equalities.ML Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
 	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
@@ -29,25 +30,23 @@ FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	OrderArith.thy OrderArith.ML OrderType.thy OrderType.ML \
 	Cardinal.thy Cardinal.ML CardinalArith.thy CardinalArith.ML \
 	Cardinal_AC.thy Cardinal_AC.ML InfDatatype.thy InfDatatype.ML \
-	Zorn0.thy Zorn0.ML Zorn.thy Zorn.ML Nat.thy Nat.ML Fin.ML \
-	List.ML ListFn.thy ListFn.ML
+	Zorn.thy Zorn.ML Nat.thy Nat.ML Finite.thy Finite.ML \
+	List.thy List.ML
 
-IMP_FILES = IMP/ROOT.ML IMP/Aexp.ML IMP/Aexp.thy IMP/Assign.ML IMP/Assign.thy\
-            IMP/Bexp.ML IMP/Bexp.thy IMP/Com.ML IMP/Com.thy IMP/Denotation.ML\
-            IMP/Denotation.thy IMP/Equiv.ML IMP/Equiv.thy IMP/Evala0.thy\
-            IMP/Evala.ML IMP/Evala.thy IMP/Evalb0.thy IMP/Evalb.ML\
-            IMP/Evalb.thy IMP/Evalc0.thy IMP/Evalc.ML IMP/Evalc.thy
+IMP_FILES = IMP/ROOT.ML IMP/Com.ML IMP/Com.thy IMP/Denotation.ML\
+            IMP/Denotation.thy IMP/Equiv.ML IMP/Equiv.thy
 
-EX_FILES = ex/ROOT.ML ex/Acc.ML ex/Bin.ML ex/BinFn.ML ex/BinFn.thy\
-	   ex/BT.ML ex/BT_Fn.ML ex/BT_Fn.thy ex/Comb.ML\
-	   ex/Contract0.ML ex/Contract0.thy ex/CoUnit.ML ex/Data.ML\
-	   ex/Enum.ML ex/Equiv.ML ex/Equiv.thy ex/Integ.ML ex/Integ.thy\
-	   ex/ListN.ML ex/LList.ML ex/LList_Eq.ML ex/LListFn.ML ex/LListFn.thy\
-	   ex/misc.ML ex/ParContract.ML ex/Primrec0.ML ex/Primrec0.thy\
-	   ex/Prop.ML ex/PropLog.ML ex/PropLog.thy ex/Ramsey.ML ex/Ramsey.thy\
-	   ex/Rmap.ML ex/Term.ML ex/TermFn.ML ex/TermFn.thy \
-	   ex/Ntree.ML ex/Brouwer.ML \
-	   ex/TF.ML ex/TF_Fn.ML ex/TF_Fn.thy ex/twos_compl.ML
+EX_FILES = ex/ROOT.ML ex/misc.ML ex/Ramsey.ML ex/Ramsey.thy\
+	   ex/Equiv.ML ex/Equiv.thy ex/Integ.ML ex/Integ.thy\
+           ex/twos_compl.ML ex/Bin.thy ex/Bin.ML\
+	   ex/BT.thy ex/BT.ML ex/Term.thy ex/Term.ML \
+	   ex/TF.thy ex/TF.ML ex/Ntree.thy ex/Ntree.ML \
+           ex/Brouwer.thy ex/Brouwer.ML \
+	   ex/Data.thy ex/Data.ML ex/Enum.thy ex/Enum.ML \
+	   ex/Rmap.thy ex/Rmap.ML ex/PropLog.ML ex/PropLog.thy \
+	   ex/ListN.thy ex/ListN.ML ex/Acc.thy ex/Acc.ML\
+	   ex/Comb.thy ex/Comb.ML ex/Primrec.thy ex/Primrec.ML\
+           ex/LList.thy ex/LList.ML ex/CoUnit.thy ex/CoUnit.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 

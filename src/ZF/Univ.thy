@@ -6,9 +6,12 @@
 The cumulative hierarchy and a small universe for recursive types
 
 Standard notation for Vset(i) is V(i), but users might want V for a variable
+
+NOTE: univ(A) could be a translation; would simplify many proofs!
+  But Ind_Syntax.univ refers to the constant "univ"
 *)
 
-Univ = Arith + Sum + Fin + "mono" +
+Univ = Arith + Sum + "mono" +
 consts
     Vfrom       :: "[i,i]=>i"
     Vset        :: "i=>i"

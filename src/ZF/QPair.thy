@@ -45,4 +45,4 @@ end
 ML
 
 val print_translation =
-  [("QSigma", dependent_tr' ("@QSUM", " <*>"))];
+  [("QSigma", dependent_tr' ("@QSUM", "<*>"))];

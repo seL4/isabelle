@@ -1,1 +1,1 @@
-InfDatatype = Datatype + Univ + Cardinal_AC
+InfDatatype = Datatype + Univ + Finite + Cardinal_AC

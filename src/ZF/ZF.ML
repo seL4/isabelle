@@ -10,69 +10,70 @@ open ZF;
 
 signature ZF_LEMMAS = 
   sig
-  val ballE	: thm
-  val ballI	: thm
-  val ball_cong	: thm
-  val ball_simp	: thm
-  val ball_tac	: int -> tactic
-  val bexCI	: thm
-  val bexE	: thm
-  val bexI	: thm
-  val bex_cong	: thm
-  val bspec	: thm
-  val CollectD1	: thm
-  val CollectD2	: thm
-  val CollectE	: thm
-  val CollectI	: thm
+  val ballE		: thm
+  val ballI		: thm
+  val ball_cong		: thm
+  val ball_simp		: thm
+  val ball_tac		: int -> tactic
+  val bexCI		: thm
+  val bexE		: thm
+  val bexI		: thm
+  val bex_cong		: thm
+  val bspec		: thm
+  val CollectD1		: thm
+  val CollectD2		: thm
+  val CollectE		: thm
+  val CollectI		: thm
   val Collect_cong	: thm
-  val emptyE	: thm
+  val emptyE		: thm
   val empty_subsetI	: thm
   val equalityCE	: thm
   val equalityD1	: thm
   val equalityD2	: thm
-  val equalityE	: thm
-  val equalityI	: thm
+  val equalityE		: thm
+  val equalityI		: thm
   val equality_iffI	: thm
-  val equals0D	: thm
-  val equals0I	: thm
+  val equals0D		: thm
+  val equals0I		: thm
   val ex1_functional	: thm
-  val InterD	: thm
-  val InterE	: thm
-  val InterI	: thm
-  val Inter_iff : thm
-  val INT_E	: thm
-  val INT_I	: thm
-  val INT_cong	: thm
-  val lemmas_cs	: claset
-  val PowD	: thm
-  val PowI	: thm
-  val RepFunE	: thm
-  val RepFunI	: thm
+  val InterD		: thm
+  val InterE		: thm
+  val InterI		: thm
+  val Inter_iff 	: thm
+  val INT_E		: thm
+  val INT_I		: thm
+  val INT_cong		: thm
+  val lemmas_cs		: claset
+  val PowD		: thm
+  val PowI		: thm
+  val RepFunE		: thm
+  val RepFunI		: thm
   val RepFun_eqI	: thm
   val RepFun_cong	: thm
   val RepFun_iff	: thm
-  val ReplaceE	: thm
-  val ReplaceE2	: thm
-  val ReplaceI	: thm
+  val ReplaceE		: thm
+  val ReplaceE2		: thm
+  val ReplaceI		: thm
   val Replace_iff	: thm
   val Replace_cong	: thm
-  val rev_ballE	: thm
-  val rev_bspec	: thm
+  val rev_ballE		: thm
+  val rev_bspec		: thm
   val rev_subsetD	: thm
   val separation	: thm
   val setup_induction	: thm
   val set_mp_tac	: int -> tactic
-  val subsetCE	: thm
-  val subsetD	: thm
-  val subsetI	: thm
+  val subsetCE		: thm
+  val subsetD		: thm
+  val subsetI		: thm
   val subset_iff	: thm
   val subset_refl	: thm
   val subset_trans	: thm
-  val UnionE	: thm
-  val UnionI	: thm
-  val UN_E	: thm
-  val UN_I	: thm
-  val UN_cong	: thm
+  val UnionE		: thm
+  val UnionI		: thm
+  val Union_in_Pow	: thm
+  val UN_E		: thm
+  val UN_I		: thm
+  val UN_cong		: thm
   end;
 
 
@@ -478,6 +479,11 @@ val lemmas_cs = FOL_cs
   addSEs [bexE, make_elim PowD, UnionE, ReplaceE2, RepFunE,
 	  CollectE, emptyE]
   addEs [rev_ballE, InterD, make_elim InterD, subsetD, subsetCE];
+
+(*Lemma for the inductive definition in Zorn.thy*)
+val Union_in_Pow = prove_goal ZF.thy
+    "!!Y. Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)"
+ (fn _ => [fast_tac lemmas_cs 1]);
 
 end;
 

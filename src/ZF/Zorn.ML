@@ -3,30 +3,52 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Conclusion to proofs from the paper
+Proofs from the paper
     Abrial & Laffitte, 
     Towards the Mechanization of the Proofs of Some 
     Classical Theorems of Set Theory. 
 *)
 
+open Zorn;
 
-structure Zorn = Inductive_Fun
- (val thy        = Zorn0.thy |> add_consts [("TFin", "[i,i]=>i", NoSyn)]
-  val thy_name   = "Zorn"
-  val rec_doms   = [("TFin","Pow(S)")]
-  val sintrs     = ["[| x : TFin(S,next);  next: increasing(S) \
-\                    |] ==> next`x : TFin(S,next)",
-                    "Y : Pow(TFin(S,next)) ==> Union(Y) : TFin(S,next)"]
-  val monos      = [Pow_mono]
-  val con_defs   = []
-  val type_intrs = [next_bounded, Union_in_Pow]
-  val type_elims = []);
+(*** Section 1.  Mathematical Preamble ***)
+
+goal ZF.thy "!!A B C. (ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";
+by (fast_tac ZF_cs 1);
+val Union_lemma0 = result();
+
+goal ZF.thy
+    "!!A B C. [| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B";
+by (fast_tac ZF_cs 1);
+val Inter_lemma0 = result();
+
+
+(*** Section 2.  The Transfinite Construction ***)
+
+goalw Zorn.thy [increasing_def]
+    "!!f A. f: increasing(A) ==> f: Pow(A)->Pow(A)";
+by (eresolve_tac [CollectD1] 1);
+val increasingD1 = result();
+
+goalw Zorn.thy [increasing_def]
+    "!!f A. [| f: increasing(A); x<=A |] ==> x <= f`x";
+by (eresolve_tac [CollectD2 RS spec RS mp] 1);
+by (assume_tac 1);
+val increasingD2 = result();
+
+(*????????????????????????????????????????????????????????????????
+goal Zorn.thy
+    "!!next S. [| X : Pow(S);  next: increasing(S) |] ==> next`X : Pow(S)";
+by (eresolve_tac [increasingD1 RS apply_type] 1);
+by (assume_tac 1);
+val next_bounded = result();
+*)
 
 (*Introduction rules*)
-val [TFin_nextI, Pow_TFin_UnionI] = Zorn.intrs;
+val [TFin_nextI, Pow_TFin_UnionI] = TFin.intrs;
 val TFin_UnionI = PowI RS Pow_TFin_UnionI;
 
-val TFin_is_subset = Zorn.dom_subset RS subsetD RS PowD;
+val TFin_is_subset = TFin.dom_subset RS subsetD RS PowD;
 
 
 (** Structural induction on TFin(S,next) **)
@@ -36,7 +58,7 @@ val major::prems = goal Zorn.thy
 \     !!x. [| x : TFin(S,next);  P(x);  next: increasing(S) |] ==> P(next`x); \
 \     !!Y. [| Y <= TFin(S,next);  ALL y:Y. P(y) |] ==> P(Union(Y)) \
 \  |] ==> P(n)";
-by (rtac (major RS Zorn.induct) 1);
+by (rtac (major RS TFin.induct) 1);
 by (ALLGOALS (fast_tac (ZF_cs addIs prems)));
 val TFin_induct = result();
 
@@ -240,7 +262,7 @@ by (assume_tac 2);
 by (resolve_tac [refl] 2);
 by (asm_full_simp_tac 
     (ZF_ss addsimps [subset_refl RS TFin_UnionI RS
-		     (Zorn.dom_subset RS subsetD)]
+		     (TFin.dom_subset RS subsetD)]
            setloop split_tac [expand_if]) 1);
 by (eresolve_tac [choice_not_equals RS notE] 1);
 by (REPEAT (assume_tac 1));

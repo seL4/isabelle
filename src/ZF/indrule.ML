@@ -1,7 +1,7 @@
 (*  Title: 	ZF/indrule.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
+    Copyright   1994  University of Cambridge
 
 Induction rule module -- for Inductive/Coinductive Definitions
 
@@ -15,18 +15,24 @@ signature INDRULE =
   end;
 
 
-functor Indrule_Fun (structure Ind: INDUCTIVE and 
-		     Pr: PR and Intr_elim: INTR_ELIM) : INDRULE  =
+functor Indrule_Fun
+    (structure Inductive: sig include INDUCTIVE_ARG INDUCTIVE_I end
+     and Pr: PR and Intr_elim: INTR_ELIM) : INDRULE  =
 struct
-open Logic Ind Intr_elim;
+open Logic Ind_Syntax Inductive Intr_elim;
 
-val dummy = writeln "Proving the induction rules...";
+val sign = sign_of thy;
+
+val (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
+
+val big_rec_name = space_implode "_" rec_names;
+val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
+
+val _ = writeln "  Proving the induction rules...";
 
 (*** Prove the main induction rule ***)
 
 val pred_name = "P";		(*name for predicate variables*)
-
-val prove = prove_term (sign_of Intr_elim.thy);
 
 val big_rec_def::part_rec_defs = Intr_elim.defs;
 
@@ -63,7 +69,7 @@ val pred = Free(pred_name, iT-->oT);
 val ind_prems = map (induct_prem (map (rpair pred) rec_tms)) intr_tms;
 
 val quant_induct = 
-    prove part_rec_defs 
+    prove_term sign part_rec_defs 
       (list_implies (ind_prems, mk_tprop (mk_all_imp(big_rec_tm,pred))),
        fn prems =>
        [rtac (impI RS allI) 1,
@@ -112,7 +118,7 @@ val induct_concl =
 and mutual_induct_concl = mk_tprop(fold_bal (app conj) qconcls);
 
 val lemma = (*makes the link between the two induction rules*)
-    prove part_rec_defs 
+    prove_term sign part_rec_defs 
 	  (mk_implies (induct_concl,mutual_induct_concl), 
 	   fn prems =>
 	   [cut_facts_tac prems 1,
@@ -139,7 +145,7 @@ fun mutual_ind_tac [] 0 = all_tac
 	i  THEN mutual_ind_tac prems (i-1);
 
 val mutual_induct_fsplit = 
-    prove []
+    prove_term sign []
 	  (list_implies (map (induct_prem (rec_tms~~preds)) intr_tms,
 			 mutual_induct_concl),
 	   fn prems =>

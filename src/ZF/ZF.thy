@@ -91,11 +91,11 @@ consts
   "`"   :: "[i, i] => i"    (infixl 90) (*function application*)
 
   (*Except for their translations, * and -> are right and ~: left associative infixes*)
-  " *"  :: "[i, i] => i"    ("(_ */ _)" [81, 80] 80) (*Cartesian product*)
+  "*"  :: "[i, i] => i"    ("(_ */ _)" [81, 80] 80) (*Cartesian product*)
   "Int" :: "[i, i] => i"    (infixl 70) (*binary intersection*)
   "Un"  :: "[i, i] => i"    (infixl 65) (*binary union*)
   "-"   :: "[i, i] => i"    (infixl 65) (*set difference*)
-  " ->" :: "[i, i] => i"    ("(_ ->/ _)" [61, 60] 60) (*function space*)
+  "->" :: "[i, i] => i"    ("(_ ->/ _)" [61, 60] 60) (*function space*)
   "<="  :: "[i, i] => o"    (infixl 50) (*subset relation*)
   ":"   :: "[i, i] => o"    (infixl 50) (*membership relation*)
   "~:"  :: "[i, i] => o"    ("(_ ~:/ _)" [50, 51] 50) (*negated membership relation*)
@@ -215,6 +215,6 @@ ML
 (* 'Dependent' type operators *)
 
 val print_translation =
-  [("Pi", dependent_tr' ("@PROD", " ->")),
-   ("Sigma", dependent_tr' ("@SUM", " *"))];
+  [("Pi", dependent_tr' ("@PROD", "->")),
+   ("Sigma", dependent_tr' ("@SUM", "*"))];
 

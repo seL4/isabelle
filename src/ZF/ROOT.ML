@@ -28,8 +28,20 @@ fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 
 print_depth 1;
 
+(*Add user sections for inductive/datatype definitions*)
+use_thy "Datatype";
+structure ThySyn = ThySynFun
+ (val user_keywords = ["inductive", "coinductive", "datatype", "codatatype", 
+		       "and", "|", "<=", "domains", "intrs", "monos", 
+		       "con_defs", "type_intrs", "type_elims"] 
+  and user_sections = [("inductive",  inductive_decl ""),
+		       ("coinductive",  inductive_decl "Co"),
+		       ("datatype",  datatype_decl ""),
+		       ("codatatype",  datatype_decl "Co")]);
+init_thy_reader ();
+
 use_thy "InfDatatype";
-use_thy "ListFn";
+use_thy "List";
 
 (*printing functions are inherited from FOL*)
 print_depth 8;

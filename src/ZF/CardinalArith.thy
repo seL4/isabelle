@@ -6,7 +6,7 @@
 Cardinal Arithmetic
 *)
 
-CardinalArith = Cardinal + OrderArith + Arith + Fin + 
+CardinalArith = Cardinal + OrderArith + Arith + Finite + 
 consts
 
   InfCard     :: "i=>o"

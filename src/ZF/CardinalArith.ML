@@ -309,19 +309,24 @@ val nat_cmult_eq_mult = result();
 
 (*** Infinite Cardinals are Limit Ordinals ***)
 
-(*Using lam_injective might simplify this proof!*)
+goalw CardinalArith.thy [lepoll_def]
+    "!!i. nat <= A ==> succ(A) lepoll A";
+by (res_inst_tac [("x",
+    "lam z:succ(A). if(z=A, 0, if(z:nat, succ(z), z))")] exI 1);
+by (res_inst_tac [("d", "%y. if(y:nat, nat_case(A,%z.z,y), y)")] 
+    lam_injective 1);
+by (fast_tac (ZF_cs addSIs [if_type, nat_0I, nat_succI]) 1);
+by (asm_simp_tac 
+    (ZF_ss addsimps [nat_case_0, nat_case_succ, nat_0I, nat_succI]
+           setloop split_tac [expand_if]) 1);
+val nat_succ_lepoll = result();
+
 goalw CardinalArith.thy [lepoll_def, inj_def]
     "!!i. nat <= A ==> succ(A) lepoll A";
 by (res_inst_tac [("x",
    "lam z:succ(A). if(z=A, 0, if(z:nat, succ(z), z))")] exI 1);
 by (rtac (lam_type RS CollectI) 1);
-by (rtac if_type 1);
-by (etac ([asm_rl, nat_0I] MRS subsetD) 1);
-by (etac succE 1);
-by (contr_tac 1);
-by (rtac if_type 1);
-by (assume_tac 2);
-by (etac ([asm_rl, nat_succI] MRS subsetD) 1 THEN assume_tac 1);
+by (fast_tac (ZF_cs addSIs [if_type, nat_0I, nat_succI]) 1);
 by (REPEAT (rtac ballI 1));
 by (asm_simp_tac 
     (ZF_ss addsimps [succ_inject_iff, succ_not_0, succ_not_0 RS not_sym]

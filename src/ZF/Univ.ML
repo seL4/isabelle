@@ -202,14 +202,14 @@ by (rtac (Limit_Vfrom_eq RS equalityD1 RS subsetD RS UN_E) 1);
 by (REPEAT (ares_tac (prems @ [ltI, Limit_is_Ord]) 1));
 val Limit_VfromE = result();
 
-val zero_in_Vfrom_Limit = Limit_has_0 RS ltD RS zero_in_Vfrom;
+val zero_in_VLimit = Limit_has_0 RS ltD RS zero_in_Vfrom;
 
 val [major,limiti] = goal Univ.thy
     "[| a: Vfrom(A,i);  Limit(i) |] ==> {a} : Vfrom(A,i)";
 by (rtac ([major,limiti] MRS Limit_VfromE) 1);
 by (etac ([singleton_in_Vfrom, limiti] MRS Limit_VfromI) 1);
 by (etac (limiti RS Limit_has_succ) 1);
-val singleton_in_Vfrom_Limit = result();
+val singleton_in_VLimit = result();
 
 val Vfrom_UnI1 = Un_upper1 RS (subset_refl RS Vfrom_mono RS subsetD)
 and Vfrom_UnI2 = Un_upper2 RS (subset_refl RS Vfrom_mono RS subsetD);
@@ -224,7 +224,7 @@ by (rtac ([doubleton_in_Vfrom, limiti] MRS Limit_VfromI) 1);
 by (etac Vfrom_UnI1 1);
 by (etac Vfrom_UnI2 1);
 by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt] 1));
-val doubleton_in_Vfrom_Limit = result();
+val doubleton_in_VLimit = result();
 
 val [aprem,bprem,limiti] = goal Univ.thy
     "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i) |] ==> \
@@ -237,83 +237,48 @@ by (rtac ([Pair_in_Vfrom, limiti] MRS Limit_VfromI) 1);
 by (etac Vfrom_UnI1 1);
 by (etac Vfrom_UnI2 1);
 by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt] 1));
-val Pair_in_Vfrom_Limit = result();
+val Pair_in_VLimit = result();
 
 goal Univ.thy "!!i. Limit(i) ==> Vfrom(A,i)*Vfrom(A,i) <= Vfrom(A,i)";
-by (REPEAT (ares_tac [subsetI,Pair_in_Vfrom_Limit] 1
+by (REPEAT (ares_tac [subsetI,Pair_in_VLimit] 1
      ORELSE eresolve_tac [SigmaE, ssubst] 1));
-val product_Vfrom_Limit = result();
+val product_VLimit = result();
 
-val Sigma_subset_Vfrom_Limit = 
-    [Sigma_mono, product_Vfrom_Limit] MRS subset_trans |> standard;
+val Sigma_subset_VLimit = 
+    [Sigma_mono, product_VLimit] MRS subset_trans |> standard;
 
-val nat_subset_Vfrom_Limit = 
+val nat_subset_VLimit = 
     [nat_le_Limit RS le_imp_subset, i_subset_Vfrom] MRS subset_trans 
 	|> standard;
 
 goal Univ.thy "!!i. [| n: nat;  Limit(i) |] ==> n : Vfrom(A,i)";
-by (REPEAT (ares_tac [nat_subset_Vfrom_Limit RS subsetD] 1));
-val nat_into_Vfrom_Limit = result();
+by (REPEAT (ares_tac [nat_subset_VLimit RS subsetD] 1));
+val nat_into_VLimit = result();
 
 (** Closure under disjoint union **)
 
-val zero_in_Vfrom_Limit = Limit_has_0 RS ltD RS zero_in_Vfrom |> standard;
+val zero_in_VLimit = Limit_has_0 RS ltD RS zero_in_Vfrom |> standard;
 
 goal Univ.thy "!!i. Limit(i) ==> 1 : Vfrom(A,i)";
-by (REPEAT (ares_tac [nat_into_Vfrom_Limit, nat_0I, nat_succI] 1));
-val one_in_Vfrom_Limit = result();
+by (REPEAT (ares_tac [nat_into_VLimit, nat_0I, nat_succI] 1));
+val one_in_VLimit = result();
 
 goalw Univ.thy [Inl_def]
     "!!A a. [| a: Vfrom(A,i); Limit(i) |] ==> Inl(a) : Vfrom(A,i)";
-by (REPEAT (ares_tac [zero_in_Vfrom_Limit, Pair_in_Vfrom_Limit] 1));
-val Inl_in_Vfrom_Limit = result();
+by (REPEAT (ares_tac [zero_in_VLimit, Pair_in_VLimit] 1));
+val Inl_in_VLimit = result();
 
 goalw Univ.thy [Inr_def]
     "!!A b. [| b: Vfrom(A,i); Limit(i) |] ==> Inr(b) : Vfrom(A,i)";
-by (REPEAT (ares_tac [one_in_Vfrom_Limit, Pair_in_Vfrom_Limit] 1));
-val Inr_in_Vfrom_Limit = result();
+by (REPEAT (ares_tac [one_in_VLimit, Pair_in_VLimit] 1));
+val Inr_in_VLimit = result();
 
 goal Univ.thy "!!i. Limit(i) ==> Vfrom(C,i)+Vfrom(C,i) <= Vfrom(C,i)";
-by (fast_tac (sum_cs addSIs [Inl_in_Vfrom_Limit, Inr_in_Vfrom_Limit]) 1);
-val sum_Vfrom_Limit = result();
+by (fast_tac (sum_cs addSIs [Inl_in_VLimit, Inr_in_VLimit]) 1);
+val sum_VLimit = result();
 
-val sum_subset_Vfrom_Limit = 
-    [sum_mono, sum_Vfrom_Limit] MRS subset_trans |> standard;
-
-
-(** Closure under finite powerset **)
-
-goal Univ.thy
-   "!!i. [| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
-by (eresolve_tac [Fin_induct] 1);
-by (fast_tac (ZF_cs addSDs [Limit_has_0]) 1);
-by (safe_tac ZF_cs);
-by (eresolve_tac [Limit_VfromE] 1);
-by (assume_tac 1);
-by (res_inst_tac [("x", "xa Un j")] exI 1);
-by (best_tac (ZF_cs addIs [subset_refl RS Vfrom_mono RS subsetD, 
-			   Un_least_lt]) 1);
-val Fin_Vfrom_lemma = result();
-
-goal Univ.thy "!!i. Limit(i) ==> Fin(Vfrom(A,i)) <= Vfrom(A,i)";
-by (rtac subsetI 1);
-by (dresolve_tac [Fin_Vfrom_lemma] 1);
-by (safe_tac ZF_cs);
-by (resolve_tac [Vfrom RS ssubst] 1);
-by (fast_tac (ZF_cs addSDs [ltD]) 1);
-val Fin_Vfrom_Limit = result();
-
-val Fin_subset_Vfrom_Limit = 
-    [Fin_mono, Fin_Vfrom_Limit] MRS subset_trans |> standard;
-
-goal Univ.thy "!!i. [| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)";
-by (eresolve_tac [nat_fun_subset_Fin RS subset_trans] 1);
-by (REPEAT (ares_tac [Fin_subset_Vfrom_Limit, Sigma_subset_Vfrom_Limit,
-		      nat_subset_Vfrom_Limit, subset_refl] 1));
-val nat_fun_Vfrom_Limit = result();
-
-val nat_fun_subset_Vfrom_Limit = 
-    [Pi_mono, nat_fun_Vfrom_Limit] MRS subset_trans |> standard;
+val sum_subset_VLimit = 
+    [sum_mono, sum_VLimit] MRS subset_trans |> standard;
 
 
 
@@ -344,8 +309,8 @@ goal Univ.thy
 \          <a,b> : Vfrom(A,i)";
 by (etac (Transset_Pair_subset RS conjE) 1);
 by (etac Transset_Vfrom 1);
-by (REPEAT (ares_tac [Pair_in_Vfrom_Limit] 1));
-val Transset_Pair_subset_Vfrom_Limit = result();
+by (REPEAT (ares_tac [Pair_in_VLimit] 1));
+val Transset_Pair_subset_VLimit = result();
 
 
 (*** Closure under product/sum applied to elements -- thus Vfrom(A,i) 
@@ -368,7 +333,7 @@ by (etac (Vfrom_UnI2 RS Vfrom_UnI1) 4);
 by (etac (Vfrom_UnI1 RS Vfrom_UnI1) 3);
 by (rtac (succI1 RS UnI2) 2);
 by (REPEAT (ares_tac [limiti, Limit_has_0, Limit_has_succ, Un_least_lt] 1));
-val in_Vfrom_Limit = result();
+val in_VLimit = result();
 
 (** products **)
 
@@ -384,10 +349,10 @@ val prod_in_Vfrom = result();
 val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a*b : Vfrom(A,i)";
-by (rtac ([aprem,bprem,limiti] MRS in_Vfrom_Limit) 1);
+by (rtac ([aprem,bprem,limiti] MRS in_VLimit) 1);
 by (REPEAT (ares_tac [exI, conjI, prod_in_Vfrom, transset,
 		      limiti RS Limit_has_succ] 1));
-val prod_in_Vfrom_Limit = result();
+val prod_in_VLimit = result();
 
 (** Disjoint sums, aka Quine ordered pairs **)
 
@@ -404,10 +369,10 @@ val sum_in_Vfrom = result();
 val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a+b : Vfrom(A,i)";
-by (rtac ([aprem,bprem,limiti] MRS in_Vfrom_Limit) 1);
+by (rtac ([aprem,bprem,limiti] MRS in_VLimit) 1);
 by (REPEAT (ares_tac [exI, conjI, sum_in_Vfrom, transset,
 		      limiti RS Limit_has_succ] 1));
-val sum_in_Vfrom_Limit = result();
+val sum_in_VLimit = result();
 
 (** function space! **)
 
@@ -429,10 +394,10 @@ val fun_in_Vfrom = result();
 val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a->b : Vfrom(A,i)";
-by (rtac ([aprem,bprem,limiti] MRS in_Vfrom_Limit) 1);
+by (rtac ([aprem,bprem,limiti] MRS in_VLimit) 1);
 by (REPEAT (ares_tac [exI, conjI, fun_in_Vfrom, transset,
 		      limiti RS Limit_has_succ] 1));
-val fun_in_Vfrom_Limit = result();
+val fun_in_VLimit = result();
 
 
 (*** The set Vset(i) ***)
@@ -594,21 +559,21 @@ val A_into_univ = A_subset_univ RS subsetD;
 (** Closure under unordered and ordered pairs **)
 
 goalw Univ.thy [univ_def] "!!A a. a: univ(A) ==> {a} : univ(A)";
-by (REPEAT (ares_tac [singleton_in_Vfrom_Limit, Limit_nat] 1));
+by (REPEAT (ares_tac [singleton_in_VLimit, Limit_nat] 1));
 val singleton_in_univ = result();
 
 goalw Univ.thy [univ_def] 
     "!!A a. [| a: univ(A);  b: univ(A) |] ==> {a,b} : univ(A)";
-by (REPEAT (ares_tac [doubleton_in_Vfrom_Limit, Limit_nat] 1));
+by (REPEAT (ares_tac [doubleton_in_VLimit, Limit_nat] 1));
 val doubleton_in_univ = result();
 
 goalw Univ.thy [univ_def]
     "!!A a. [| a: univ(A);  b: univ(A) |] ==> <a,b> : univ(A)";
-by (REPEAT (ares_tac [Pair_in_Vfrom_Limit, Limit_nat] 1));
+by (REPEAT (ares_tac [Pair_in_VLimit, Limit_nat] 1));
 val Pair_in_univ = result();
 
 goalw Univ.thy [univ_def] "univ(A)*univ(A) <= univ(A)";
-by (rtac (Limit_nat RS product_Vfrom_Limit) 1);
+by (rtac (Limit_nat RS product_VLimit) 1);
 val product_univ = result();
 
 val Sigma_subset_univ = 
@@ -616,7 +581,7 @@ val Sigma_subset_univ =
 
 goalw Univ.thy [univ_def]
     "!!a b.[| <a,b> <= univ(A);  Transset(A) |] ==> <a,b> : univ(A)";
-by (etac Transset_Pair_subset_Vfrom_Limit 1);
+by (etac Transset_Pair_subset_VLimit 1);
 by (REPEAT (ares_tac [Ord_nat,Limit_nat] 1));
 val Transset_Pair_subset_univ = result();
 
@@ -633,7 +598,7 @@ val nat_into_univ = standard (nat_subset_univ RS subsetD);
 (** instances for 1 and 2 **)
 
 goalw Univ.thy [univ_def] "1 : univ(A)";
-by (rtac (Limit_nat RS one_in_Vfrom_Limit) 1);
+by (rtac (Limit_nat RS one_in_VLimit) 1);
 val one_in_univ = result();
 
 (*unused!*)
@@ -651,37 +616,19 @@ val bool_into_univ = standard (bool_subset_univ RS subsetD);
 (** Closure under disjoint union **)
 
 goalw Univ.thy [univ_def] "!!A a. a: univ(A) ==> Inl(a) : univ(A)";
-by (etac (Limit_nat RSN (2,Inl_in_Vfrom_Limit)) 1);
+by (etac (Limit_nat RSN (2,Inl_in_VLimit)) 1);
 val Inl_in_univ = result();
 
 goalw Univ.thy [univ_def] "!!A b. b: univ(A) ==> Inr(b) : univ(A)";
-by (etac (Limit_nat RSN (2,Inr_in_Vfrom_Limit)) 1);
+by (etac (Limit_nat RSN (2,Inr_in_VLimit)) 1);
 val Inr_in_univ = result();
 
 goalw Univ.thy [univ_def] "univ(C)+univ(C) <= univ(C)";
-by (rtac (Limit_nat RS sum_Vfrom_Limit) 1);
+by (rtac (Limit_nat RS sum_VLimit) 1);
 val sum_univ = result();
 
 val sum_subset_univ = [sum_mono, sum_univ] MRS subset_trans |> standard;
 
-
-(** Closure under finite powerset **)
-
-goalw Univ.thy [univ_def] "Fin(univ(A)) <= univ(A)";
-by (rtac (Limit_nat RS Fin_Vfrom_Limit) 1);
-val Fin_univ = result();
-
-val Fin_subset_univ = [Fin_mono, Fin_univ] MRS subset_trans |> standard;
-
-goalw Univ.thy [univ_def] "!!i. n: nat ==> n -> univ(A) <= univ(A)";
-by (etac (Limit_nat RSN (2,nat_fun_Vfrom_Limit)) 1);
-val nat_fun_univ = result();
-
-val nat_fun_subset_univ = [Pi_mono, nat_fun_univ] MRS subset_trans |> standard;
-
-goal Univ.thy "!!f. [| f: n -> B;  B <= univ(A);  n : nat |] ==> f : univ(A)";
-by (REPEAT (ares_tac [nat_fun_subset_univ RS subsetD] 1));
-val nat_fun_into_univ = result();
 
 (** Closure under binary union -- use Un_least **)
 (** Closure under Collect -- use  (Collect_subset RS subset_trans)  **)

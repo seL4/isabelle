@@ -135,3 +135,15 @@ by (fast_tac (ZF_cs addSIs [Ord_UN] addEs [ltE]) 1);
 by (eresolve_tac [InfCard_is_Card RS Card_is_Ord RS Card_csucc] 1);
 val cardinal_UN_Ord_lt_csucc = result();
 
+goal Cardinal_AC.thy
+    "!!K. [| InfCard(K);  |I| le K;  ALL i:I. j(i) < csucc(K) |] ==> \
+\         (UN i:I. j(i)) < csucc(K)";
+by (asm_full_simp_tac
+    (ZF_ss addsimps [InfCard_is_Card, le_Card_iff, lepoll_def]) 1);
+by (eresolve_tac [exE] 1);
+by (resolve_tac [lt_trans1] 1);
+by (resolve_tac [cardinal_UN_Ord_lt_csucc] 2);
+by (assume_tac 2);
+
+val ?cardinal_UN_Ord_lt_csucc = result();
+

@@ -208,8 +208,8 @@ val QInl_neq_QInr = standard (QInl_QInr_iff RS iffD1 RS FalseE);
 val QInr_neq_QInl = standard (QInr_QInl_iff RS iffD1 RS FalseE);
 
 val qsum_cs = 
-    ZF_cs addIs [QInlI,QInrI] addSEs [qsumE,QInl_neq_QInr,QInr_neq_QInl]
-          addSDs [QInl_inject,QInr_inject];
+    qpair_cs addIs [QInlI,QInrI] addSEs [qsumE,QInl_neq_QInr,QInr_neq_QInl]
+             addSDs [QInl_inject,QInr_inject];
 
 goal QPair.thy "!!A B. QInl(a): A<+>B ==> a: A";
 by (fast_tac qsum_cs 1);

@@ -1,4 +1,5 @@
 (*Dummy theory to document dependencies *)
 
-Datatype = "constructor" + "inductive" + "coinductive" + Univ + QUniv
-               (*this must be capital to avoid conflicts with ML's "datatype" *)
+Datatype = "constructor" + "inductive" + Univ + QUniv
+
+(*Datatype must be capital to avoid conflicts with ML's "datatype" *)

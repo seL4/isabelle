@@ -6,9 +6,13 @@
 Abstract Syntax functions for Inductive Definitions
 *)
 
-
-(*Make a definition, lhs==rhs, checking that vars on lhs contain *)
-fun mk_defpair sign (lhs, rhs) = 
+(*The structure protects these items from redeclaration (somewhat!).  The 
+  datatype definitions in theory files refer to these items by name!
+*)
+structure Ind_Syntax =
+struct
+(*Make a definition lhs==rhs, checking that vars on lhs contain those of rhs*)
+fun mk_defpair (lhs, rhs) = 
   let val Const(name, _) = head_of lhs
       val dummy = assert (term_vars rhs subset term_vars lhs
 		          andalso
@@ -19,6 +23,8 @@ fun mk_defpair sign (lhs, rhs) =
 		          term_tfrees rhs subset term_tfrees lhs)
 	          ("Extra variables on RHS in definition of " ^ name)
   in (name ^ "_def", Logic.mk_equals (lhs, rhs)) end;
+
+fun get_def thy s = get_axiom thy (s^"_def");
 
 fun lookup_const sign a = Symtab.lookup(#const_tab (Sign.rep_sg sign), a);
 
@@ -64,7 +70,6 @@ fun mk_all (Free(x,T),P) = all_const $ (absfree (x,T,P));
 fun mk_all_imp (A,P) = 
     all_const $ Abs("v", iT, imp $ (mem_const $ Bound 0 $ A) $ (P $ Bound 0));
 
-
 val Part_const = Const("Part", [iT,iT-->iT]--->iT);
 
 val Collect_const = Const("Collect", [iT,iT-->oT]--->iT);
@@ -85,13 +90,61 @@ fun prove_term sign defs (P,tacsf) =
 (*Read an assumption in the given theory*)
 fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
 
+fun readtm sign T a = 
+    read_cterm sign (a,T) |> term_of
+    handle ERROR => error ("The error above occurred for " ^ a);
+
+(*Skipping initial blanks, find the first identifier*)
+fun scan_to_id s = 
+    s |> explode |> take_prefix is_blank |> #2 |> Lexicon.scan_id |> #1
+    handle LEXICAL_ERROR => error ("Expected to find an identifier in " ^ s);
+
+fun is_backslash c = c = "\\";
+
+(*Apply string escapes to a quoted string; see Def of Standard ML, page 3
+  Does not handle the \ddd form;  no error checking*)
+fun escape [] = []
+  | escape cs = (case take_prefix (not o is_backslash) cs of
+	 (front, []) => front
+       | (front, _::"n"::rest) => front @ ("\n" :: escape rest)
+       | (front, _::"t"::rest) => front @ ("\t" :: escape rest)
+       | (front, _::"^"::c::rest) => front @ (chr(ord(c)-64) :: escape rest)
+       | (front, _::"\""::rest) => front @ ("\"" :: escape rest)
+       | (front, _::"\\"::rest) => front @ ("\\" :: escape rest)
+       | (front, b::c::rest) => 
+	   if is_blank c   (*remove any further blanks and the following \ *)
+	   then front @ escape (tl (snd (take_prefix is_blank rest)))
+	   else error ("Unrecognized string escape: " ^ implode(b::c::rest)));
+
+(*Remove the first and last charaters -- presumed to be quotes*)
+val trim = implode o escape o rev o tl o rev o tl o explode;
+
+(*simple error-checking in the premises of an inductive definition*)
+fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
+	error"Premises may not be conjuctive"
+  | chk_prem rec_hd (Const("op :",_) $ t $ X) = 
+	deny (Logic.occs(rec_hd,t)) "Recursion term on left of member symbol"
+  | chk_prem rec_hd t = 
+	deny (Logic.occs(rec_hd,t)) "Recursion term in side formula";
+
+
+(*Inverse of varifyT.  Move to Pure/type.ML?*)
+fun unvarifyT (Type (a, Ts)) = Type (a, map unvarifyT Ts)
+  | unvarifyT (TVar ((a, 0), S)) = TFree (a, S)
+  | unvarifyT T = T;
+
+(*Inverse of varify.  Move to Pure/logic.ML?*)
+fun unvarify (Const(a,T))    = Const(a, unvarifyT T)
+  | unvarify (Var((a,0), T)) = Free(a, unvarifyT T)
+  | unvarify (Var(ixn,T))    = Var(ixn, unvarifyT T)	(*non-zero index!*)
+  | unvarify (Abs (a,T,body)) = Abs (a, unvarifyT T, unvarify body)
+  | unvarify (f$t) = unvarify f $ unvarify t
+  | unvarify t = t;
+
+
 (*Make distinct individual variables a1, a2, a3, ..., an. *)
 fun mk_frees a [] = []
   | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (bump_string a) Ts;
-
-(*Used by intr-elim.ML and in individual datatype definitions*)
-val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
-		   ex_mono, Collect_mono, Part_mono, in_mono];
 
 (*Return the conclusion of a rule, of the form t:X*)
 fun rule_concl rl = 
@@ -118,27 +171,55 @@ fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
 fun gen_make_elim elim_rls rl = 
       standard (tryres (rl, elim_rls @ [revcut_rl]));
 
-(** For constructor.ML **)
+(** For datatype definitions **)
 
-(*Avoids duplicate definitions by removing constants already declared mixfix*)
-fun remove_mixfixes None decs = decs
-  | remove_mixfixes (Some sext) decs =
-      let val mixtab = Symtab.st_of_declist(Syntax.constants sext, Symtab.null)
-	  fun is_mix c = case Symtab.lookup(mixtab,c) of
-			     None=>false | Some _ => true
-      in  map (fn (cs,styp)=> (filter_out is_mix cs, styp)) decs
-      end;
+fun dest_mem (Const("op :",_) $ x $ A) = (x,A)
+  | dest_mem _ = error "Constructor specifications must have the form x:A";
 
-fun ext_constants None        = []
-  | ext_constants (Some sext) = Syntax.constants sext;
+(*read a constructor specification*)
+fun read_construct sign (id, sprems, syn) =
+    let val prems = map (readtm sign oT) sprems
+	val args = map (#1 o dest_mem) prems
+	val T = (map (#2 o dest_Free) args) ---> iT
+		handle TERM _ => error 
+		    "Bad variable in constructor specification"
+        val name = const_name id syn  (*handle infix constructors*)
+    in ((id,T,syn), name, args, prems) end;
 
+val read_constructs = map o map o read_construct;
+
+(*convert constructor specifications into introduction rules*)
+fun mk_intr_tms (rec_tm, constructs) =
+  let fun mk_intr ((id,T,syn), name, args, prems) =
+	  Logic.list_implies
+	      (map mk_tprop prems,
+	       mk_tprop (mem_const $ list_comb(Const(name,T), args) $ rec_tm)) 
+  in  map mk_intr constructs  end;
+
+val mk_all_intr_tms = flat o map mk_intr_tms o op ~~;
+
+val Un		= Const("op Un", [iT,iT]--->iT)
+and empty	= Const("0", iT)
+and univ	= Const("univ", iT-->iT)
+and quniv	= Const("quniv", iT-->iT);
+
+(*Make a datatype's domain: form the union of its set parameters*)
+fun union_params rec_tm =
+  let val (_,args) = strip_comb rec_tm
+  in  case (filter (fn arg => type_of arg = iT) args) of
+         []    => empty
+       | iargs => fold_bal (app Un) iargs
+  end;
+
+fun data_domain rec_tms =
+  replicate (length rec_tms) (univ $ union_params (hd rec_tms));
+
+fun Codata_domain rec_tms =
+  replicate (length rec_tms) (quniv $ union_params (hd rec_tms));
 
 (*Could go to FOL, but it's hardly general*)
-val [def] = goal IFOL.thy "a==b ==> a=c <-> c=b";
-by (rewtac def);
-by (rtac iffI 1);
-by (REPEAT (etac sym 1));
-val def_swap_iff = result();
+val def_swap_iff = prove_goal IFOL.thy "a==b ==> a=c <-> c=b"
+ (fn [def] => [(rewtac def), (rtac iffI 1), (REPEAT (etac sym 1))]);
 
 val def_trans = prove_goal IFOL.thy "[| f==g;  g(a)=b |] ==> f(a)=b"
   (fn [rew,prem] => [ rewtac rew, rtac prem 1 ]);
@@ -146,4 +227,6 @@ val def_trans = prove_goal IFOL.thy "[| f==g;  g(a)=b |] ==> f(a)=b"
 (*Delete needless equality assumptions*)
 val refl_thin = prove_goal IFOL.thy "!!P. [| a=a;  P |] ==> P"
      (fn _ => [assume_tac 1]);
+
+end;
 

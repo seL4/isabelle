@@ -50,9 +50,8 @@ fun typechk_tac tyrls = REPEAT (typechk_step_tac tyrls);
 
 val ZF_typechecks = [if_type,lam_type,SigmaI,apply_type,split_type];
 
-(*To instantiate variables in typing conditions; 
-  to perform type checking faster than rewriting can
-  NOT TERRIBLY USEFUL because it does not simplify conjunctions*)
+(*Instantiates variables in typing conditions.
+  drawback: does not simplify conjunctions*)
 fun type_auto_tac tyrls hyps = SELECT_GOAL
     (DEPTH_SOLVE (typechk_step_tac (tyrls@hyps)
            ORELSE ares_tac [TrueI,refl,iff_refl,ballI,allI,conjI,impI] 1));
