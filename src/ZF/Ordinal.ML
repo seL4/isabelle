@@ -635,21 +635,18 @@ by (rtac (UN_least_le RS lt_trans2) 1);
 by (REPEAT (ares_tac [jlti, succ_leI, limit] 1));
 qed "UN_succ_least_lt";
 
-val prems = Goal
-    "[| a: A;  i le b(a);  !!x. x:A ==> Ord(b(x)) |] ==> i le (UN x:A. b(x))";
-by (resolve_tac (prems RL [ltE]) 1);
+Goal "[| a: A;  i le b(a);  Ord(UN x:A. b(x)) |] ==> i le (UN x:A. b(x))";
+by (ftac ltD 1); 
 by (rtac (le_imp_subset RS subset_trans RS subset_imp_le) 1);
-by (REPEAT (ares_tac (prems @ [UN_upper, Ord_UN]) 1));
+by (REPEAT (ares_tac [lt_Ord, UN_upper] 1));
 qed "UN_upper_le";
 
 val [leprem] = Goal
     "[| !!x. x:A ==> c(x) le d(x) |] ==> (UN x:A. c(x)) le (UN x:A. d(x))";
 by (rtac UN_least_le 1);
 by (rtac UN_upper_le 2);
-by (REPEAT (ares_tac [leprem] 2));
-by (rtac Ord_UN 1);
-by (REPEAT (eresolve_tac [asm_rl, leprem RS ltE] 1
-     ORELSE dtac Ord_succD 1));
+by (etac leprem 3);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Ord_UN, leprem RS le_Ord2])));
 qed "le_implies_UN_le_UN";
 
 Goal "Ord(i) ==> (UN y:i. succ(y)) = i";

@@ -218,7 +218,7 @@ by (rtac (rank RS trans) 1);
 by (rtac le_anti_sym 1);
 by (rtac UN_upper_le 2);
 by (rtac UN_least_le 1);
-by (auto_tac (claset() addIs [rank_mono], simpset()));
+by (auto_tac (claset() addIs [rank_mono], simpset() addsimps [Ord_UN]));
 qed "rank_Pow";
 
 Goal "rank(0) = 0";
