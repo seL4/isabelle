@@ -185,9 +185,12 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
 HOL-Modelcheck: HOL $(LOG)/HOL-Modelcheck.gz
 
 $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
-  Modelcheck/Example.ML Modelcheck/Example.thy Modelcheck/MCSyn.ML \
-  Modelcheck/MCSyn.thy Modelcheck/MuCalculus.ML	\
-  Modelcheck/MuCalculus.thy Modelcheck/ROOT.ML
+  Modelcheck/MuckeExample1.ML Modelcheck/MuckeExample1.thy Modelcheck/MuckeSyn.ML \
+  Modelcheck/MuckeExample2.ML Modelcheck/MuckeExample2.thy \
+  Modelcheck/EindhovenExample.ML Modelcheck/EindhovenExample.thy \
+  Modelcheck/mucke_oracle.ML \
+  Modelcheck/MuckeSyn.thy Modelcheck/EindhovenSyn.ML Modelcheck/MuCalculus.ML	\
+  Modelcheck/MuCalculus.thy Modelcheck/EindhovenSyn.thy Modelcheck/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
 
 
