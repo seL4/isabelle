@@ -25,7 +25,6 @@ sig
       -> theory -> theory
     val add_sigclass_i: class * class list -> (string * typ * mixfix) list
       -> theory -> theory
-    val axclass_tac: theory -> thm list -> tactic
     val prove_classrel: theory -> class * class -> thm list
       -> tactic option -> thm
     val prove_arity: theory -> string * sort list * class -> thm list
@@ -34,8 +33,8 @@ sig
       -> tactic option -> theory -> theory
     val add_inst_arity: string * sort list * class list -> string list
       -> thm list -> tactic option -> theory -> theory
-    val add_defns: (string * string) list -> theory -> theory  (* FIXME *)
-    val add_defns_i: (string * term) list -> theory -> theory  (* FIXME *)
+    val add_defns: (string * string) list -> theory -> theory
+    val add_defns_i: (string * term) list -> theory -> theory
     val mk_classrel: class * class -> term
     val dest_classrel: term -> class * class
     val mk_arity: string * sort list * class -> term
@@ -55,14 +54,118 @@ structure Tactical = Goals.Tactical;
 structure Thm = Tactical.Thm;
 structure Sign = Thm.Sign;
 structure Type = Sign.Type;
+structure Pretty = Sign.Syntax.Pretty;
 
 open Logic Thm Tactical Tactic Goals;
 
 
-(* FIXME fake! - remove *)
+(** add constant definitions **)  (* FIXME -> drule.ML (?) *)
 
-val add_defns = add_axioms;
-val add_defns_i = add_axioms_i;
+(* all_axioms_of *)
+
+(*results may contain duplicates!*)
+
+fun ancestry_of thy =
+  thy :: flat (map ancestry_of (parents_of thy));
+
+val all_axioms_of = flat o map axioms_of o ancestry_of;
+
+
+(* clash_types, clash_consts *)
+
+(*check if types have common instance (ignoring sorts)*)
+
+fun clash_types ty1 ty2 =
+  let
+    val ty1' = Type.varifyT ty1;
+    val ty2' = incr_tvar (maxidx_of_typ ty1' + 1) (Type.varifyT ty2);
+  in
+    Type.raw_unify (ty1', ty2')
+  end;
+
+fun clash_consts (c1, ty1) (c2, ty2) =
+  c1 = c2 andalso clash_types ty1 ty2;
+
+
+(* clash_defns *)
+
+fun clash_defn c_ty (name, tm) =
+  let val (c, ty') = dest_Const (head_of (fst (Logic.dest_equals tm))) in
+    if clash_consts c_ty (c, ty') then Some (name, ty') else None
+  end handle TERM _ => None;
+
+fun clash_defns c_ty axms =
+  distinct (mapfilter (clash_defn c_ty) axms);
+
+
+(* dest_defn *)
+
+fun dest_defn tm =
+  let
+    fun err msg = raise_term msg [tm];
+
+    val (lhs, rhs) = Logic.dest_equals tm
+      handle TERM _ => err "Not a meta-equality (==)";
+    val (head, args) = strip_comb lhs;
+    val (c, ty) = dest_Const head
+      handle TERM _ => err "Head of lhs not a constant";
+
+    fun occs_const (Const c_ty') = clash_consts (c, ty) c_ty'
+      | occs_const (Abs (_, _, t)) = occs_const t
+      | occs_const (t $ u) = occs_const t orelse occs_const u
+      | occs_const _ = false;
+  in
+    if not (forall is_Free args) then
+      err "Arguments of lhs have to be variables"
+    else if not (null (duplicates args)) then
+      err "Duplicate variables on lhs"
+    else if not (term_frees rhs subset args) then
+      err "Extra variables on rhs"
+    else if not (term_tfrees rhs subset typ_tfrees ty) then
+      err "Extra type variables on rhs"
+    else if occs_const rhs then
+      err "Constant to be defined clashes with occurrence(s) on rhs"
+    else (c, ty)
+  end;
+
+
+(* check_defn *)
+
+fun err_in_axm name msg =
+  (writeln msg; error ("The error(s) above occurred in axiom " ^ quote name));
+
+fun check_defn sign (axms, (name, tm)) =
+  let
+    fun show_const (c, ty) = quote (Pretty.string_of (Pretty.block
+      [Pretty.str (c ^ " ::"), Pretty.brk 1, Sign.pretty_typ sign ty]));
+
+    fun show_defn c (dfn, ty') = show_const (c, ty') ^ " in " ^ dfn;
+    fun show_defns c = commas o map (show_defn c);
+
+    val (c, ty) = dest_defn tm
+      handle TERM (msg, _) => err_in_axm name msg;
+    val defns = clash_defns (c, ty) axms;
+  in
+    if not (null defns) then
+      err_in_axm name ("Definition of " ^ show_const (c, ty) ^
+        " clashes with " ^ show_defns c defns)
+    else (name, tm) :: axms
+  end;
+
+
+(* add_defns *)
+
+fun ext_defns prep_axm raw_axms thy =
+  let
+    val axms = map (prep_axm (sign_of thy)) raw_axms;
+    val all_axms = all_axioms_of thy;
+  in
+    foldl (check_defn (sign_of thy)) (all_axms, axms);
+    add_axioms_i axms thy
+  end;
+
+val add_defns_i = ext_defns cert_axm;
+val add_defns = ext_defns read_axm;
 
 
 
@@ -284,7 +387,7 @@ fun class_axms thy =
 
 (* axclass_tac *)
 
-(*(1) repeatedly resolve goals of form "(| ty : c_class |)",  (* FIXME rename (| |) *)
+(*(1) repeatedly resolve goals of form "OFCLASS(ty, c_class)",
       try "cI" axioms first and use class_triv as last resort
   (2) rewrite goals using user supplied definitions
   (3) repeatedly resolve goals with user supplied non-definitions*)
