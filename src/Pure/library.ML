@@ -69,6 +69,7 @@ sig
   val hd: 'a list -> 'a
   val tl: 'a list -> 'a list
   val cons: 'a -> 'a list -> 'a list
+  val append: 'a list -> 'a list -> 'a list
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
@@ -381,6 +382,8 @@ fun tl [] = raise LIST "tl"
   | tl (_ :: xs) = xs;
 
 fun cons x xs = x :: xs;
+
+fun append xs ys = xs @ ys;
 
 
 (* fold *)
