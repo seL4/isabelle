@@ -17,12 +17,11 @@ signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
   val ml_path: string -> Path.T
-  val find_file: Path.T -> (Path.T * File.info) option
-  val check_file: Path.T -> File.info option
-  val load_file: Path.T -> File.info
-  val check_thy: string -> bool -> File.info
-  val deps_thy: string -> bool -> File.info * (string list * Path.T list)
-  val load_thy: string -> bool -> bool -> File.info
+  val check_file: Path.T -> (Path.T * File.info) option
+  val load_file: Path.T -> (Path.T * File.info)
+  val check_thy: string -> bool -> (Path.T * File.info) list
+  val deps_thy: string -> bool -> (Path.T * File.info) list * (string list * Path.T list)
+  val load_thy: string -> bool -> bool -> (Path.T * File.info) list
 end;
 
 signature PRIVATE_THY_LOAD =
@@ -36,7 +35,7 @@ structure ThyLoad: PRIVATE_THY_LOAD =
 struct
 
 
-(* load path *)
+(* maintain load path *)
 
 val load_path = ref [Path.current];
 fun change_path f = load_path := f (! load_path);
@@ -47,54 +46,60 @@ fun del_path s = change_path (filter_out (equal (Path.unpack s)));
 fun reset_path () = load_path := [Path.current];
 
 
-(* find / check file *)
+(* file formats *)
 
-fun find_file file_src =
+val ml_exts = ["", "ML", "sml"];
+val ml_path = Path.ext "ML" o Path.basic;
+val thy_path = Path.ext "thy" o Path.basic;
+
+
+(* check_file *)
+
+fun check_file src_path =
   let
-    val file = Path.expand file_src;
-    fun find dir =
-      let val full_path = Path.append dir file
-      in apsome (pair full_path) (File.info full_path) end;
-  in get_first find (if Path.is_basic file then ! load_path else [Path.current]) end;
+    val path = Path.expand src_path;
+
+    fun find_ext rel_path ext =
+      let val ext_path = Path.ext ext rel_path
+      in apsome (fn info => (File.full_path ext_path, info)) (File.info ext_path) end;
+
+    fun find_dir dir =
+      get_first (find_ext (Path.append dir path)) ml_exts;
+  in get_first find_dir (if Path.is_basic path then ! load_path else [Path.current]) end;
 
 
-(* process ML files *)
-
-val check_file = apsome #2 o find_file;
+(* load_file *)
 
 fun load_file raw_path =
-  (case find_file raw_path of
-    Some (path, info) => (Use.use_path path; info)
-  | None => error ("Could not find ML file " ^ quote (Path.pack raw_path)));
+  (case check_file raw_path of
+    None => error ("Could not find ML file " ^ quote (Path.pack raw_path))
+  | Some (path, info) => (Symbol.use path; (path, info)));
 
-val ml_path = Path.ext "ML" o Path.basic;
+
+(* check_thy *)
+
+fun check_thy name ml =
+  (case check_file (thy_path name) of
+    None => error ("Could not find theory file for " ^ quote name)
+  | Some thy_info => thy_info ::
+      (case if ml then check_file (ml_path name) else None of
+        None => []
+      | Some info => [info]));
 
 
 (* process theory files *)
-
-val thy_ext = Path.ext "thy";
-
-fun process_thy f name =
-  let val path = thy_ext (Path.basic name) in
-    (case find_file path of
-      Some (path, info) => (info, f path)
-    | None => error ("Could not find theory file " ^ quote (Path.pack path)))
-  end;
 
 (*hooks for theory syntax dependent operations*)
 fun undefined _ = raise Match;
 val deps_thy_fn = ref (undefined: string -> bool -> Path.T -> string list * Path.T list);
 val load_thy_fn = ref (undefined: string -> bool -> bool -> Path.T -> unit);
 
-fun check_thy name ml =
-  let val (thy_info, _) = process_thy (K ()) name in
-    (case if ml then check_file (ml_path name) else None of
-      None => thy_info
-    | Some info => File.join_info thy_info info)
-  end;
+fun process_thy f name ml =
+  let val master = check_thy name ml
+  in (master, f (#1 (hd master))) end;
 
-fun deps_thy name ml = process_thy (fn path => ! deps_thy_fn name ml path) name;
-fun load_thy name ml time = #1 (process_thy (fn path => ! load_thy_fn name ml time path) name);
+fun deps_thy name ml = process_thy (! deps_thy_fn name ml) name ml;
+fun load_thy name ml time = #1 (process_thy (! load_thy_fn name ml time) name ml);
 
 
 end;
