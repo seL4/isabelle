@@ -422,7 +422,7 @@ fun raw_arith_tac i st =
 
 in
 
-val arith_tac = fast_arith_tac ORELSE' (atomize_tac THEN' raw_arith_tac);
+val arith_tac = fast_arith_tac ORELSE' (ObjectLogic.atomize_tac THEN' raw_arith_tac);
 
 fun arith_method prems =
   Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
