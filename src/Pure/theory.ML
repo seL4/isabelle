@@ -74,7 +74,7 @@ sig
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
   val init_data: (string * (object * (object -> object) *
-    (object * object -> object) * (object -> unit))) list -> theory -> theory
+    (object * object -> object) * (Sign.sg -> object -> unit))) list -> theory -> theory
   val get_data: theory -> string -> object
   val put_data: string * object -> theory -> theory
   val prep_ext: theory -> theory
