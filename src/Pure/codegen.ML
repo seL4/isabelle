@@ -568,9 +568,9 @@ fun test_term thy sz i t =
             Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
             Pretty.block [Pretty.str "if ",
               mk_app false (Pretty.str "testf") (map (Pretty.str o fst) frees),
-              Pretty.brk 1, Pretty.str "then None",
+              Pretty.brk 1, Pretty.str "then Library.None",
               Pretty.brk 1, Pretty.str "else ",
-              Pretty.block [Pretty.str "Some ", Pretty.block (Pretty.str "[" ::
+              Pretty.block [Pretty.str "Library.Some ", Pretty.block (Pretty.str "[" ::
                 flat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn (s, T) => [Pretty.block
                     [Pretty.str ("(" ^ quote s ^ ","), Pretty.brk 1,
