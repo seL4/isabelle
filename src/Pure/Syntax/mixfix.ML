@@ -28,7 +28,7 @@ sig
   val pure_syntax: (string * string * mixfix) list
   val pure_appl_syntax: (string * string * mixfix) list
   val pure_applC_syntax: (string * string * mixfix) list
-  val pure_symfont_syntax: (string * string * mixfix) list
+  val pure_sym_syntax: (string * string * mixfix) list
 end;
 
 signature MIXFIX =
@@ -190,13 +190,13 @@ val pure_applC_syntax =
   ("_applC",     "[('b => 'a), cargs] => logic",  Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1)),
   ("_applC",     "[('b => 'a), cargs] => aprop",  Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1))];
 
-val pure_symfont_syntax =
- [("fun",      "[type, type] => type",            Mixfix ("(_/ \\{Rightarrow} _)", [1, 0], 0)),
-  ("_bracket", "[types, type] => type",           Mixfix ("([_]/ \\{Rightarrow} _)", [0, 0], 0)),
-  ("_lambda",  "[idts, 'a] => logic",             Mixfix ("(3\\{lambda}_./ _)", [], 0)),
-  ("==>",      "[prop, prop] => prop",            InfixrName ("\\{Midarrow}\\{Rightarrow}", 1)),
-  ("_bigimpl", "[asms, prop] => prop",            Mixfix ("((3\\{ldbrak} _ \\{rdbrak})/ \\{Midarrow}\\{Rightarrow} _)", [0, 1], 1)),
-  ("==",       "['a::{}, 'a] => prop",            InfixrName ("\\{equiv}", 2)),
-  ("!!",       "[idts, prop] => prop",            Mixfix ("(3\\{Vee}_./ _)", [0, 0], 0))];
+val pure_sym_syntax =
+ [("fun",      "[type, type] => type",            Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
+  ("_bracket", "[types, type] => type",           Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
+  ("_lambda",  "[idts, 'a] => logic",             Mixfix ("(3\\<lambda>_./ _)", [], 0)),
+  ("==>",      "[prop, prop] => prop",            InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
+  ("_bigimpl", "[asms, prop] => prop",            Mixfix ("((3\\<lbrakk> _ \\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
+  ("==",       "['a::{}, 'a] => prop",            InfixrName ("\\<equiv>", 2)),
+  ("!!",       "[idts, prop] => prop",            Mixfix ("(3\\<And>_./ _)", [0, 0], 0))];
 
 end;
