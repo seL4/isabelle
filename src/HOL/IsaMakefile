@@ -21,7 +21,6 @@ test: \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
   HOL-Hoare \
-  HOL-HoareParallel \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
