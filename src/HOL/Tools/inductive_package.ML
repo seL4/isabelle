@@ -37,7 +37,7 @@ sig
        mk_cases:thm list -> string -> thm, mono:thm,
        unfold:thm}
   val add_inductive : bool -> bool -> string list -> string list
-    -> thm list -> thm list -> theory -> theory *
+    -> xstring list -> xstring list -> theory -> theory *
       {defs:thm list, elims:thm list, raw_induct:thm, induct:thm,
        intrs:thm list,
        mk_cases:thm list -> string -> thm, mono:thm,
@@ -600,7 +600,8 @@ fun add_inductive verbose coind c_strings intr_strings monos con_defs thy =
     val intr_ts'' = map subst intr_ts';
 
   in add_inductive_i verbose false "" coind false false cs'' intr_ts''
-    monos con_defs thy
+    (map (Attribute.thm_of) (PureThy.get_tthmss thy monos))
+    (map (Attribute.thm_of) (PureThy.get_tthmss thy con_defs)) thy
   end;
 
 end;
