@@ -36,8 +36,8 @@ sig
   val add_datatype_x: string * string list -> (string * string list * mixfix) list list ->
     thm list * thm list * thm list -> theory -> theory * inductive_result * datatype_result
   val add_datatype: string * string list -> (string * string list * mixfix) list list ->
-    (xstring * Args.src list) list * (xstring * Args.src list) list *
-    (xstring * Args.src list) list -> theory -> theory * inductive_result * datatype_result
+    (thmref * Args.src list) list * (thmref * Args.src list) list *
+    (thmref * Args.src list) list -> theory -> theory * inductive_result * datatype_result
 end;
 
 functor Add_datatype_def_Fun
