@@ -43,7 +43,7 @@
 \end{descr}
 
 
-\section{Primitive types}
+\section{Primitive types}\label{sec:typedef}
 
 \indexisarcmd{typedecl}\indexisarcmd{typedef}
 \begin{matharray}{rcl}
@@ -140,7 +140,7 @@ for case-analysis and induction, there are also emulations of ML tactics
 \S\ref{sec:induct_tac}.
 
 
-\section{Recursive functions}
+\section{Recursive functions}\label{sec:recursion}
 
 \indexisarcmd{primrec}\indexisarcmd{recdef}\indexisarcmd{recdef-tc}
 \begin{matharray}{rcl}
@@ -278,190 +278,33 @@ See \cite{isabelle-HOL} for further information on inductive definitions in
 HOL.
 
 
-\section{Proof by cases and induction}\label{sec:induct-method}
-%FIXME move to generic.tex
+\section{Arithmetic}
 
-\subsection{Proof methods}\label{sec:induct-method-proper}
-
-\indexisarmeth{cases}\indexisarmeth{induct}
+\indexisarmeth{arith}\indexisaratt{arith-split}
 \begin{matharray}{rcl}
-  cases & : & \isarmeth \\
-  induct & : & \isarmeth \\
-\end{matharray}
-
-The $cases$ and $induct$ methods provide a uniform interface to case analysis
-and induction over datatypes, inductive sets, and recursive functions.  The
-corresponding rules may be specified and instantiated in a casual manner.
-Furthermore, these methods provide named local contexts that may be invoked
-via the $\CASENAME$ proof command within the subsequent proof text (cf.\ 
-\S\ref{sec:cases}).  This accommodates compact proof texts even when reasoning
-about large specifications.
-
-\begin{rail}
-  'cases' ('(' 'simplified' ')')? spec
-  ;
-  'induct' ('(' 'stripped' ')')? spec
-  ;
-
-  spec: open? args rule? params?
-  ;
-  open: '(' 'open' ')'
-  ;
-  args: (insts * 'and') 
-  ;
-  rule: ('type' | 'set') ':' nameref | 'rule' ':' thmref
-  ;
-  params: 'of' ':' insts
-  ;
-\end{rail}
-
-\begin{descr}
-\item [$cases~insts~R~ps$] applies method $rule$ with an appropriate case
-  distinction theorem, instantiated to the subjects $insts$.  Symbolic case
-  names are bound according to the rule's local contexts.
-  
-  The rule is determined as follows, according to the facts and arguments
-  passed to the $cases$ method:
-  \begin{matharray}{llll}
-    \Text{facts}    &       & \Text{arguments} & \Text{rule} \\\hline
-                    & cases &           & \Text{classical case split} \\
-                    & cases & t         & \Text{datatype exhaustion (type of $t$)} \\
-    \edrv a \in A   & cases & \dots     & \Text{inductive set elimination (of $A$)} \\
-    \dots           & cases & \dots ~ R & \Text{explicit rule $R$} \\
-  \end{matharray}
-  
-  Several instantiations may be given, referring to the \emph{suffix} of
-  premises of the case rule; within each premise, the \emph{prefix} of
-  variables is instantiated.  In most situations, only a single term needs to
-  be specified; this refers to the first variable of the last premise (it is
-  usually the same for all cases).
-  
-  Additional parameters may be specified as $ps$; these are applied after the
-  primary instantiation in the same manner as by the $of$ attribute (cf.\ 
-  \S\ref{sec:pure-meth-att}).  This feature is rarely needed in practice; a
-  typical application would be to specify additional arguments for rules
-  stemming from parameterized inductive definitions (see also
-  \S\ref{sec:inductive}).
-
-  The $simplified$ option causes ``obvious cases'' of the rule to be solved
-  beforehand, while the others are left unscathed.
-  
-  The $open$ option causes the parameters of the new local contexts to be
-  exposed to the current proof context.  Thus local variables stemming from
-  distant parts of the theory development may be introduced in an implicit
-  manner, which can be quite confusing to the reader.  Furthermore, this
-  option may cause unwanted hiding of existing local variables, resulting in
-  less robust proof texts.
-  
-\item [$induct~insts~R~ps$] is analogous to the $cases$ method, but refers to
-  induction rules, which are determined as follows:
-  \begin{matharray}{llll}
-    \Text{facts}    &        & \Text{arguments} & \Text{rule} \\\hline
-                    & induct & P ~ x ~ \dots & \Text{datatype induction (type of $x$)} \\
-    \edrv x \in A   & induct & \dots         & \Text{set induction (of $A$)} \\
-    \dots           & induct & \dots ~ R     & \Text{explicit rule $R$} \\
-  \end{matharray}
-  
-  Several instantiations may be given, each referring to some part of a mutual
-  inductive definition or datatype --- only related partial induction rules
-  may be used together, though.  Any of the lists of terms $P, x, \dots$
-  refers to the \emph{suffix} of variables present in the induction rule.
-  This enables the writer to specify only induction variables, or both
-  predicates and variables, for example.
-  
-  Additional parameters may be given in the same way as for $cases$.
-  
-  The $stripped$ option causes implications and (bounded) universal
-  quantifiers to be removed from each new subgoal emerging from the
-  application of the induction rule.  This accommodates special applications
-  of ``strengthened induction predicates''.  This option is rarely needed, the
-  $induct$ method already handles proper rules appropriately by default.
-  
-  The $open$ option has the same effect as for the $cases$ method, see above.
-\end{descr}
-
-Above methods produce named local contexts (cf.\ \S\ref{sec:cases}), as
-determined by the instantiated rule \emph{before} it has been applied to the
-internal proof state.\footnote{As a general principle, Isar proof text may
-  never refer to parts of proof states directly.} Thus proper use of symbolic
-cases usually require the rule to be instantiated fully, as far as the
-emerging local contexts and subgoals are concerned.  In particular, for
-induction both the predicates and variables have to be specified.  Otherwise
-the $\CASENAME$ command would refuse to invoke cases containing schematic
-variables.  Furthermore the resulting local goal statement is bound to the
-term variable $\Var{case}$\indexisarvar{case} --- for each case where it is
-fully specified.
-
-The $\isarkeyword{print_cases}$ command (\S\ref{sec:cases}) prints all named
-cases present in the current proof state.
-
-\medskip
-
-It is important to note that there is a fundamental difference of the $cases$
-and $induct$ methods in handling of non-atomic goal statements: $cases$ just
-applies a certain rule in backward fashion, splitting the result into new
-goals with the local contexts being augmented in a purely monotonic manner.
-
-In contrast, $induct$ passes the full goal statement through the ``recursive''
-course involved in the induction.  Thus the original statement is basically
-replaced by separate copies, corresponding to the induction hypotheses and
-conclusion; the original goal context is no longer available.  This behavior
-allows \emph{strengthened induction predicates} to be expressed concisely as
-meta-level rule statements, i.e.\ $\All{\vec x} \vec\phi \Imp \psi$ to
-indicate ``variable'' parameters $\vec x$ and ``recursive'' assumptions
-$\vec\phi$.  Also note that local definitions may be expressed as $\All{\vec
-  x} n \equiv t[\vec x] \Imp \phi[n]$, with induction over $n$.
-
-\medskip
-
-Facts presented to either method are consumed according to the number of
-``major premises'' of the rule involved (see also \S\ref{sec:induct-att} and
-\S\ref{sec:cases}), which is usually $0$ for plain cases and induction rules
-of datatypes etc.\ and $1$ for rules of inductive sets and the like.  The
-remaining facts are inserted into the goal verbatim before the actual $cases$
-or $induct$ rule is applied (thus facts may be even passed through an
-induction).
-
-Note that whenever facts are present, the default rule selection scheme would
-provide a ``set'' rule only, with the first fact consumed and the rest
-inserted into the goal.  In order to pass all facts into a ``type'' rule
-instead, one would have to specify this explicitly, e.g.\ by appending
-``$type: name$'' to the method argument.
-
-
-\subsection{Declaring rules}\label{sec:induct-att}
-
-\indexisarcmd{print-induct-rules}\indexisaratt{cases}\indexisaratt{induct}
-\begin{matharray}{rcl}
-  \isarcmd{print_induct_rules}^* & : & \isarkeep{theory~|~proof} \\
-  cases & : & \isaratt \\
-  induct & : & \isaratt \\
+  arith & : & \isarmeth \\
+  arith_split & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
-  'cases' spec
-  ;
-  'induct' spec
-  ;
-
-  spec: ('type' | 'set') ':' nameref
+  'arith' '!'?
   ;
 \end{rail}
 
-The $cases$ and $induct$ attributes augment the corresponding context of rules
-for reasoning about inductive sets and types.  The standard rules are already
-declared by HOL definitional packages.  For special applications, these may be
-replaced manually by variant versions.
+The $arith$ method decides linear arithmetic problems (on types $nat$, $int$,
+$real$).  Any current facts are inserted into the goal before running the
+procedure.  The ``!''~argument causes the full context of assumptions to be
+included.  The $arith_split$ attribute declares case split rules to be
+expanded before the arithmetic procedure is invoked.
 
-Refer to the $case_names$ and $ps$ attributes (see \S\ref{sec:cases}) to
-adjust names of cases and parameters of a rule.
-
-The $consumes$ declaration (cf.\ \S\ref{sec:cases}) is taken care of
-automatically (if none had been given already): $consumes~0$ is specified for
-``type'' rules and $consumes~1$ for ``set'' rules.
+Note that a simpler (but faster) version of arithmetic reasoning is already
+performed by the Simplifier.
 
 
-\subsection{Emulating tactic scripts}\label{sec:induct_tac}
+\section{Cases and induction: emulating tactic scripts}\label{sec:induct_tac}
+
+The following important tactical tools of Isabelle/HOL have been ported to
+Isar.  These should be never used in proper proof texts!
 
 \indexisarmeth{case-tac}\indexisarmeth{induct-tac}
 \indexisarmeth{ind-cases}\indexisarcmd{inductive-cases}
@@ -510,37 +353,12 @@ automatically (if none had been given already): $consumes~0$ is specified for
   
 \item [$ind_cases$ and $\isarkeyword{inductive_cases}$] provide an interface
   to the \texttt{mk_cases} operation.  Rules are simplified in an unrestricted
-  forward manner, unlike the proper $cases$ method (see
-  \S\ref{sec:induct-method-proper}) which requires simplified cases to be
-  solved completely.
+  forward manner.
   
   While $ind_cases$ is a proof method to apply the result immediately as
   elimination rules, $\isarkeyword{inductive_cases}$ provides case split
   theorems at the theory level for later use,
 \end{descr}
-
-
-\section{Arithmetic}
-
-\indexisarmeth{arith}\indexisaratt{arith-split}
-\begin{matharray}{rcl}
-  arith & : & \isarmeth \\
-  arith_split & : & \isaratt \\
-\end{matharray}
-
-\begin{rail}
-  'arith' '!'?
-  ;
-\end{rail}
-
-The $arith$ method decides linear arithmetic problems (on types $nat$, $int$,
-$real$).  Any current facts are inserted into the goal before running the
-procedure.  The ``!''~argument causes the full context of assumptions to be
-included.  The $arith_split$ attribute declares case split rules to be
-expanded before the arithmetic procedure is invoked.
-
-Note that a simpler (but faster) version of arithmetic reasoning is already
-performed by the Simplifier.
 
 
 %%% Local Variables: 
