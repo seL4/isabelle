@@ -771,6 +771,24 @@ fun assert_all pred l msg_fn =
   in  asl l  end;
 
 
+(* handle errors (capturing messages) *)
+
+datatype 'a error =
+  Error of string |
+  OK of 'a;
+
+fun handle_error f x =
+  let
+    val buffer = ref "";
+    fun capture s = buffer := ! buffer ^ s ^ "\n";
+    val result = Some (setmp error_fn capture f x) handle ERROR => None;
+  in
+    case result of
+      None => Error (! buffer)
+    | Some y => OK y
+  end;
+
+
 (* read / write files *)
 
 fun read_file name =
