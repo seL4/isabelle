@@ -8,11 +8,11 @@ open Relation;
 
 (** Identity relation **)
 
-goalw Relation.thy [id_def] "(a,a) : id";  
+goalw thy [id_def] "(a,a) : id";  
 by (Blast_tac 1);
 qed "idI";
 
-val major::prems = goalw Relation.thy [id_def]
+val major::prems = goalw thy [id_def]
     "[| p: id;  !!x.[| p = (x,x) |] ==> P  \
 \    |] ==>  P";  
 by (rtac (major RS CollectE) 1);
@@ -20,7 +20,7 @@ by (etac exE 1);
 by (eresolve_tac prems 1);
 qed "idE";
 
-goalw Relation.thy [id_def] "(a,b):id = (a=b)";
+goalw thy [id_def] "(a,b):id = (a=b)";
 by (Blast_tac 1);
 qed "pair_in_id_conv";
 Addsimps [pair_in_id_conv];
@@ -28,13 +28,13 @@ Addsimps [pair_in_id_conv];
 
 (** Composition of two relations **)
 
-goalw Relation.thy [comp_def]
+goalw thy [comp_def]
     "!!r s. [| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
 by (Blast_tac 1);
 qed "compI";
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
-val prems = goalw Relation.thy [comp_def]
+val prems = goalw thy [comp_def]
     "[| xz : r O s;  \
 \       !!x y z. [| xz = (x,z);  (x,y):s;  (y,z):r |] ==> P \
 \    |] ==> P";
@@ -43,7 +43,7 @@ by (REPEAT (eresolve_tac [CollectE, splitE, exE, conjE] 1
      ORELSE ares_tac prems 1));
 qed "compE";
 
-val prems = goal Relation.thy
+val prems = goal thy
     "[| (a,c) : r O s;  \
 \       !!y. [| (a,y):s;  (y,c):r |] ==> P \
 \    |] ==> P";
@@ -54,45 +54,55 @@ qed "compEpair";
 AddIs [compI, idI];
 AddSEs [compE, idE];
 
-goal Relation.thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
+goal thy "R O id = R";
+by (Fast_tac 1);
+qed "R_O_id";
+
+goal thy "id O R = R";
+by (Fast_tac 1);
+qed "id_O_R";
+
+Addsimps [R_O_id,id_O_R];
+
+goal thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
 qed "comp_mono";
 
-goal Relation.thy
+goal thy
     "!!r s. [| s <= A Times B;  r <= B Times C |] ==> (r O s) <= A Times C";
 by (Blast_tac 1);
 qed "comp_subset_Sigma";
 
 (** Natural deduction for trans(r) **)
 
-val prems = goalw Relation.thy [trans_def]
+val prems = goalw thy [trans_def]
     "(!! x y z. [| (x,y):r;  (y,z):r |] ==> (x,z):r) ==> trans(r)";
 by (REPEAT (ares_tac (prems@[allI,impI]) 1));
 qed "transI";
 
-goalw Relation.thy [trans_def]
+goalw thy [trans_def]
     "!!r. [| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
 by (Blast_tac 1);
 qed "transD";
 
 (** Natural deduction for r^-1 **)
 
-goalw Relation.thy [inverse_def] "!!a b r. ((a,b): r^-1) = ((b,a):r)";
+goalw thy [inverse_def] "!!a b r. ((a,b): r^-1) = ((b,a):r)";
 by (Simp_tac 1);
 qed "inverse_iff";
 
 AddIffs [inverse_iff];
 
-goalw Relation.thy [inverse_def] "!!a b r. (a,b):r ==> (b,a): r^-1";
+goalw thy [inverse_def] "!!a b r. (a,b):r ==> (b,a): r^-1";
 by (Simp_tac 1);
 qed "inverseI";
 
-goalw Relation.thy [inverse_def] "!!a b r. (a,b) : r^-1 ==> (b,a) : r";
+goalw thy [inverse_def] "!!a b r. (a,b) : r^-1 ==> (b,a) : r";
 by (Blast_tac 1);
 qed "inverseD";
 
 (*More general than inverseD, as it "splits" the member of the relation*)
-qed_goalw "inverseE" Relation.thy [inverse_def]
+qed_goalw "inverseE" thy [inverse_def]
     "[| yx : r^-1;  \
 \       !!x y. [| yx=(y,x);  (x,y):r |] ==> P \
 \    |] ==> P"
@@ -103,30 +113,30 @@ qed_goalw "inverseE" Relation.thy [inverse_def]
 
 AddSEs [inverseE];
 
-goalw Relation.thy [inverse_def] "(r^-1)^-1 = r";
+goalw thy [inverse_def] "(r^-1)^-1 = r";
 by (Blast_tac 1);
 qed "inverse_inverse";
 Addsimps [inverse_inverse];
 
-goal Relation.thy "(r O s)^-1 = s^-1 O r^-1";
+goal thy "(r O s)^-1 = s^-1 O r^-1";
 by (Blast_tac 1);
 qed "inverse_comp";
 
-goal Relation.thy "id^-1 = id";
+goal thy "id^-1 = id";
 by (Blast_tac 1);
 qed "inverse_id";
 Addsimps [inverse_id];
 
 (** Domain **)
 
-qed_goalw "Domain_iff" Relation.thy [Domain_def]
+qed_goalw "Domain_iff" thy [Domain_def]
     "a: Domain(r) = (EX y. (a,y): r)"
  (fn _=> [ (Blast_tac 1) ]);
 
-qed_goal "DomainI" Relation.thy "!!a b r. (a,b): r ==> a: Domain(r)"
+qed_goal "DomainI" thy "!!a b r. (a,b): r ==> a: Domain(r)"
  (fn _ => [ (etac (exI RS (Domain_iff RS iffD2)) 1) ]);
 
-qed_goal "DomainE" Relation.thy
+qed_goal "DomainE" thy
     "[| a : Domain(r);  !!y. (a,y): r ==> P |] ==> P"
  (fn prems=>
   [ (rtac (Domain_iff RS iffD1 RS exE) 1),
@@ -142,10 +152,10 @@ Addsimps [Domain_id];
 
 (** Range **)
 
-qed_goalw "RangeI" Relation.thy [Range_def] "!!a b r.(a,b): r ==> b : Range(r)"
+qed_goalw "RangeI" thy [Range_def] "!!a b r.(a,b): r ==> b : Range(r)"
  (fn _ => [ (etac (inverseI RS DomainI) 1) ]);
 
-qed_goalw "RangeE" Relation.thy [Range_def]
+qed_goalw "RangeE" thy [Range_def]
     "[| b : Range(r);  !!x. (x,b): r ==> P |] ==> P"
  (fn major::prems=>
   [ (rtac (major RS DomainE) 1),
@@ -162,20 +172,26 @@ Addsimps [Range_id];
 
 (*** Image of a set under a relation ***)
 
-qed_goalw "Image_iff" Relation.thy [Image_def]
+qed_goalw "Image_iff" thy [Image_def]
     "b : r^^A = (? x:A. (x,b):r)"
  (fn _ => [ Blast_tac 1 ]);
 
-qed_goal "Image_singleton_iff" Relation.thy
+qed_goalw "Image_singleton" thy [Image_def]
+    "r^^{a} = {b. (a,b):r}"
+ (fn _ => [ Blast_tac 1 ]);
+
+qed_goal "Image_singleton_iff" thy
     "(b : r^^{a}) = ((a,b):r)"
  (fn _ => [ rtac (Image_iff RS trans) 1,
             Blast_tac 1 ]);
 
-qed_goalw "ImageI" Relation.thy [Image_def]
+AddIffs [Image_singleton_iff];
+
+qed_goalw "ImageI" thy [Image_def]
     "!!a b r. [| (a,b): r;  a:A |] ==> b : r^^A"
  (fn _ => [ (Blast_tac 1)]);
 
-qed_goalw "ImageE" Relation.thy [Image_def]
+qed_goalw "ImageE" thy [Image_def]
     "[| b: r^^A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P"
  (fn major::prems=>
   [ (rtac (major RS CollectE) 1),
@@ -187,7 +203,7 @@ AddIs  [ImageI];
 AddSEs [ImageE];
 
 
-qed_goal "Image_empty" Relation.thy
+qed_goal "Image_empty" thy
     "R^^{} = {}"
  (fn _ => [ Blast_tac 1 ]);
 
@@ -199,27 +215,21 @@ qed "Image_id";
 
 Addsimps [Image_id];
 
-qed_goal "Image_Int_subset" Relation.thy
+qed_goal "Image_Int_subset" thy
     "R ^^ (A Int B) <= R ^^ A Int R ^^ B"
  (fn _ => [ Blast_tac 1 ]);
 
-qed_goal "Image_Un" Relation.thy
+qed_goal "Image_Un" thy
     "R ^^ (A Un B) = R ^^ A Un R ^^ B"
  (fn _ => [ Blast_tac 1 ]);
 
 
-qed_goal "Image_subset" Relation.thy
+qed_goal "Image_subset" thy
     "!!A B r. r <= A Times B ==> r^^C <= B"
  (fn _ =>
   [ (rtac subsetI 1),
     (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ]);
 
-goal Relation.thy "R O id = R";
-by (Fast_tac 1);
-qed "R_O_id";
-
-goal Relation.thy "id O R = R";
-by (Fast_tac 1);
-qed "id_O_R";
-
-Addsimps [R_O_id,id_O_R];
+goal thy "f-``(r^-1 ^^ {x}) = (UN y: r^-1 ^^ {x}. f-``{y})";
+by (Blast_tac 1);
+qed "vimage_inverse_Image";
