@@ -2,6 +2,130 @@
 \begin{isabellebody}%
 \def\isabellecontext{Documents}%
 \isamarkupfalse%
+%
+\isamarkupsection{Concrete syntax \label{sec:concrete-syntax}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Concerning Isabelle's ``inner'' language of simply-typed \isa{{\isasymlambda}}-calculus, the core concept of Isabelle's elaborate infrastructure
+  for concrete syntax is that of general \emph{mixfix
+  annotations}\index{mixfix annotations|bold}.  Associated with any
+  kind of name and type declaration, mixfixes give rise both to
+  grammar productions for the parser and output templates for the
+  pretty printer.
+
+  In full generality, the whole affair of parser and pretty printer
+  configuration is rather subtle.  Any syntax specifications given by
+  end-users need to interact properly with the existing setup of
+  Isabelle/Pure and Isabelle/HOL; see \cite{isabelle-ref} for further
+  details.  It is particularly important to get the precedence of new
+  syntactic constructs right, avoiding ambiguities with existing
+  elements.
+
+  \medskip Subsequently we introduce a few simple declaration forms
+  that already cover the most common situations fairly well.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Infixes%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Syntax annotations may be included wherever constants are declared
+  directly or indirectly, including \isacommand{consts},
+  \isacommand{constdefs}, or \isacommand{datatype} (for the
+  constructor operations).  Type-constructors may be annotated as
+  well, although this is less frequently encountered in practice
+  (\isa{{\isacharasterisk}} and \isa{{\isacharplus}} types may come to mind).
+
+  Infix declarations\index{infix annotations|bold} provide a useful
+  special case of mixfixes, where users need not care about the full
+  details of priorities, nesting, spacing, etc.  The subsequent
+  example of the exclusive-or operation on boolean values illustrates
+  typical infix declarations.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ {\isachardoublequote}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Any curried function with at least two arguments may be associated
+  with infix syntax: \isa{xor\ A\ B} and \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B} refer to
+  the same expression internally.  In partial applications with less
+  than two operands there is a special notation with \isa{op} prefix:
+  \isa{xor} without arguments is represented as \isa{op\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}};
+  combined with plain prefix application this turns \isa{xor\ A}
+  into \isa{op\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ A}.
+
+  \medskip The string \isa{{\isachardoublequote}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequote}} in the above declaration
+  refers to the bit of concrete syntax to represent the operator,
+  while the number \isa{{\isadigit{6}}{\isadigit{0}}} determines the precedence of the whole
+  construct.
+
+  As it happens, Isabelle/HOL already spends many popular combinations
+  of ASCII symbols for its own use, including both \isa{{\isacharplus}} and
+  \isa{{\isacharplus}{\isacharplus}}.  Slightly more awkward combinations like the present
+  \isa{{\isacharbrackleft}{\isacharplus}{\isacharbrackright}} tend to be available for user extensions.  The current
+  arrangement of inner syntax may be inspected via
+  \commdx{print\protect\_syntax}, albeit its output is enormous.
+
+  Operator precedence also needs some special considerations.  The
+  admissible range is 0--1000.  Very low or high priorities are
+  basically reserved for the meta-logic.  Syntax of Isabelle/HOL
+  mainly uses the range of 10--100: the equality infix \isa{{\isacharequal}} is
+  centered at 50, logical connectives (like \isa{{\isasymor}} and \isa{{\isasymand}}) are below 50, and algebraic ones (like \isa{{\isacharplus}} and \isa{{\isacharasterisk}}) above 50.  User syntax should strive to coexist with common
+  HOL forms, or use the mostly unused range 100--900.
+
+  \medskip The keyword \isakeyword{infixl} specifies an operator that
+  is nested to the \emph{left}: in iterated applications the more
+  complex expression appears on the left-hand side: \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} stands for \isa{{\isacharparenleft}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B{\isacharparenright}\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C}.  Similarly,
+  \isakeyword{infixr} refers to nesting to the \emph{right}, which
+  would turn \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C} into \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ {\isacharparenleft}B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C{\isacharparenright}}.
+  In contrast, a \emph{non-oriented} declaration via
+  \isakeyword{infix} would always demand explicit parentheses.
+  
+  Many binary operations observe the associative law, so the exact
+  grouping does not matter.  Nevertheless, formal statements need be
+  given in a particular format, associativity needs to be treated
+  explicitly within the logic.  Exclusive-or is happens to be
+  associative, as shown below.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ xor{\isacharunderscore}assoc{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B{\isacharparenright}\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C\ {\isacharequal}\ A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ {\isacharparenleft}B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{by}\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ xor{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Such rules may be used in simplification to regroup nested
+  expressions as required.  Note that the system would actually print
+  the above statement as \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C\ {\isacharequal}\ A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ {\isacharparenleft}B\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ C{\isacharparenright}}
+  (due to nesting to the left).  We have preferred to give the fully
+  parenthesized form in the text for clarity.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkuptrue%
+\isamarkuptrue%
 \isamarkupfalse%
 \end{isabellebody}%
 %%% Local Variables:

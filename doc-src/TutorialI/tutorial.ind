@@ -21,9 +21,6 @@
   \item \verb$^$\texttt{*}, \bold{201}
   \item \isasymAnd, \bold{12}, \bold{201}
   \item \ttAnd, \bold{201}
-  \item \isasymrightleftharpoons, 55
-  \item \isasymrightharpoonup, 55
-  \item \isasymleftharpoondown, 55
   \item \emph {$\Rightarrow $}, \bold{5}
   \item \ttlbr, \bold{201}
   \item \ttrbr, \bold{201}
@@ -283,6 +280,7 @@
   \item inductive definitions, 119--137
   \item \isacommand {inductive\_cases} (command), 123, 131
   \item infinitely branching trees, 43
+  \item infix annotations, \bold{54}
   \item \isacommand{infixr} (annotation), 10
   \item \isa {inj_on_def} (theorem), \bold{102}
   \item injections, 102
@@ -326,6 +324,7 @@
   \item LCF, 43
   \item \isa {LEAST} (symbol), 23, 77
   \item least number operator, \see{\protect\isa{LEAST}}{77}
+  \item Leibniz, Gottfried Wilhelm, 53
   \item \isacommand {lemma} (command), 13
   \item \isacommand {lemmas} (command), 85, 94
   \item \isa {length} (symbol), 18
@@ -357,6 +356,7 @@
   \item meta-logic, \bold{72}
   \item methods, \bold{16}
   \item \isa {min} (constant), 23, 24
+  \item mixfix annotations, \bold{53}
   \item \isa {mod} (symbol), 23
   \item \isa {mod_div_equality} (theorem), \bold{143}
   \item \isa {mod_mult_distrib} (theorem), \bold{143}
@@ -419,6 +419,7 @@
   \item \isacommand {prefer} (command), 16, 92
   \item primitive recursion, \see{recursion, primitive}{1}
   \item \isacommand {primrec} (command), 10, 18, 38--43
+  \item \isacommand {print\_syntax} (command), 54
   \item product type, \see{pairs and tuples}{1}
   \item Proof General, \bold{7}
   \item proof state, 12
@@ -544,7 +545,6 @@
   \item surjections, 102
   \item \isa {sym} (theorem), \bold{86}
   \item syntax, 6, 11
-  \item syntax translations, 55--56
 
   \indexspace
 
@@ -569,7 +569,6 @@
   \item tracing the simplifier, \bold{33}
   \item \isa {trancl_trans} (theorem), \bold{105}
   \item transition systems, 109
-  \item \isacommand {translations} (command), 55--56
   \item tries, 44--46
   \item \isa {True} (constant), 5
   \item \isa {truncate} (constant), 155
