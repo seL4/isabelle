@@ -68,7 +68,7 @@ struct
    handle Assoc_fail => None;
  
  val conv = 
-     Simplifier.mk_simproc "assoc_fold_sums"
+     Simplifier.mk_simproc "assoc_fold"
        [Thm.cterm_of (Theory.sign_of Data.thy)
 	             (Data.plus $ Free("x",Data.T) $ Free("y",Data.T))]
        proc;
