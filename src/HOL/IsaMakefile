@@ -430,7 +430,9 @@ HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
 $(LOG)/HOL-Lambda.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Lambda/Commutation.thy Lambda/Eta.thy Lambda/InductTermi.thy Lambda/Lambda.thy \
   Lambda/ListApplication.thy Lambda/ListBeta.thy Lambda/ListOrder.thy \
-  Lambda/ParRed.thy Lambda/Type.thy Lambda/ROOT.ML Lambda/document/root.tex
+  Lambda/ParRed.thy Lambda/StrongNorm.thy Lambda/Type.thy \
+  Lambda/WeakNorm.thy Lambda/ROOT.ML \
+  Lambda/document/root.bib Lambda/document/root.tex
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Lambda
 
 
