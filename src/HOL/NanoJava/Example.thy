@@ -139,12 +139,12 @@ theorem add_homomorph_lb:
 apply (rule hoare_ehoare.Meth) (* 1 *)
 apply clarsimp
 apply (rule_tac P'= "\<lambda>Z s. (s:s<This> \<ge> fst Z \<and> s:s<Par> \<ge> snd Z) \<and> D=Nat" and 
-                Q'= "\<lambda>Z s. s:s<Res> \<ge> fst Z+snd Z" in Conseq)
+        Q'= "\<lambda>Z s. s:s<Res> \<ge> fst Z+snd Z" in AxSem.Conseq)
 prefer 2
 apply  (clarsimp simp add: init_locs_def init_vars_def)
 apply rule
 apply (case_tac "D = Nat", simp_all, rule_tac [2] cFalse)
-apply (rule_tac P = "\<lambda>Z Cm s. s:s<This> \<ge> fst Z \<and> s:s<Par> \<ge> snd Z" in Impl1)
+apply (rule_tac P = "\<lambda>Z Cm s. s:s<This> \<ge> fst Z \<and> s:s<Par> \<ge> snd Z" in AxSem.Impl1)
 apply (clarsimp simp add: body_def)  (* 4 *)
 apply (rename_tac n m)
 apply (rule_tac Q = "\<lambda>v s. (s:s<This> \<ge> n \<and> s:s<Par> \<ge> m) \<and> 
@@ -175,7 +175,7 @@ apply  clarsimp
 apply  (rule hoare_ehoare.Meth) (* 17 *)
 apply  clarsimp
 apply  (case_tac "D = Nat", simp_all, rule_tac [2] cFalse)
-apply  (rule Conseq)
+apply  (rule AxSem.Conseq)
 apply   rule
 apply   (rule hoare_ehoare.Asm) (* 20 *)
 apply   (rule_tac a = "((case n of 0 \<Rightarrow> 0 | Suc m \<Rightarrow> m),m+1)" in UN_I, rule+)
@@ -189,7 +189,7 @@ apply clarify
 apply (rule hoare_ehoare.Meth) (* 24 *)
 apply clarsimp
 apply  (case_tac "D = Nat", simp_all, rule_tac [2] cFalse)
-apply (rule Impl1)
+apply (rule AxSem.Impl1)
 apply (clarsimp simp add: body_def)
 apply (rule hoare_ehoare.Comp) (* 26 *)
 prefer 2

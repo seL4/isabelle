@@ -113,9 +113,10 @@ intros
             A |-e {P} e {Q }"
 
 
-subsection "Fully polymorphic variants"
+subsection "Fully polymorphic variants, required for Example only"
 
 axioms
+
   Conseq:"[| \<forall>Z. A |- {P' Z} c {Q' Z};
              \<forall>s t. (\<forall>Z. P' Z s --> Q' Z t) --> (P s --> Q t) |] ==>
                  A |- {P} c {Q }"
@@ -202,11 +203,11 @@ lemma Union: "A |\<turnstile> (\<Union>Z. C Z) = (\<forall>Z. A |\<turnstile> C 
 by (auto intro: hoare_ehoare.ConjI hoare_ehoare.ConjE)
 
 lemma Impl1': 
-   "\<lbrakk>\<forall>Z. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) |\<turnstile> 
+   "\<lbrakk>\<forall>Z::state. A\<union> (\<Union>Z. (\<lambda>Cm. (P Z Cm, Impl Cm, Q Z Cm))`Ms) |\<turnstile> 
                  (\<lambda>Cm. (P Z Cm, body Cm, Q Z Cm))`Ms; 
     Cm \<in> Ms\<rbrakk> \<Longrightarrow> 
                 A   \<turnstile>  {P Z Cm} Impl Cm {Q Z Cm}"
-apply (drule Impl)
+apply (drule AxSem.Impl)
 apply (erule Weaken)
 apply (auto del: image_eqI intro: rev_image_eqI)
 done

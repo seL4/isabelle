@@ -285,7 +285,7 @@ done
 
 lemma MGF_Impl: "{} |\<turnstile> {MGT (Impl M) Z}"
 apply (unfold MGT_def)
-apply (rule_tac 'a = state in Impl1')
+apply (rule Impl1')
 apply  (rule_tac [2] UNIV_I)
 apply clarsimp
 apply (rule hoare_ehoare.ConjI)
