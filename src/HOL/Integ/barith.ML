@@ -2,7 +2,7 @@
 (*                                                            *)
 (*                                                            *)
 (*          Trying to implement an Bounded arithmetic         *)
-(*                                                            *)
+(*           Chaieb Amine                                     *)
 (*                                                            *)
 (**************************************************************)
   
