@@ -128,7 +128,7 @@ qed "var_elimR";
  *---------------------------------------------------------------------------*)
 val wfr = tc0 RS conjunct1
 and tc  = tc0 RS conjunct2;
-val unifyRules0 = map (normalize_thm [fn th => wfr RS th, fn th => tc RS th]) 
+val unifyRules0 = map (rule_by_tactic (rtac wfr 1 THEN TRY(rtac tc 1)))
                      unify.simps;
 
 val unifyInduct0 = [wfr,tc] MRS unify.induct;

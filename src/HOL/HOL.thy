@@ -191,7 +191,7 @@ defs
 
 (* theory and package setup *)
 
-use "HOL_lemmas.ML"	setup attrib_setup
+use "HOL_lemmas.ML"
 use "cladata.ML"	setup hypsubst_setup setup Classical.setup setup clasetup
 
 lemma all_eq: "(!!x. P x) == Trueprop (ALL x. P x)"
@@ -219,6 +219,6 @@ use "blastdata.ML"	setup Blast.setup
 use "simpdata.ML"	setup Simplifier.setup
 			setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
                         setup Splitter.setup setup Clasimp.setup setup iff_attrib_setup
-
+			setup attrib_setup
 
 end

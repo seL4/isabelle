@@ -480,6 +480,37 @@ qed "restrict_to_left";
 val simpsetup =
   [fn thy => (simpset_ref_of thy := HOL_ss addcongs [if_weak_cong]; thy)];
 
+(*** conversion of -->/! into ==>/!! ***)
+
+local
+  val rules = [symmetric(thm"all_eq"),symmetric(thm"imp_eq"),Drule.norm_hhf_eq]
+  val ss = HOL_basic_ss addsimps rules
+in
+
+val rulify = zero_var_indexes o strip_shyps_warning o forall_elim_vars_safe o simplify ss;
+
+fun qed_spec_mp name = ThmDatabase.ml_store_thm(name, rulify(result()));
+
+fun qed_goal_spec_mp name thy s p = 
+	bind_thm (name, rulify (prove_goal thy s p));
+
+fun qed_goalw_spec_mp name thy defs s p = 
+	bind_thm (name, rulify (prove_goalw thy defs s p));
+
+end;
+
+local
+
+fun gen_rulify x =
+  Attrib.no_args (Drule.rule_attribute (fn _ => rulify)) x;
+
+in
+
+val attrib_setup =
+ [Attrib.add_attributes
+  [("rulify", (gen_rulify, gen_rulify), "put theorem into standard rule form")]];
+
+end;
 
 (*** integration of simplifier with classical reasoner ***)
 

@@ -11,9 +11,8 @@ From page 260 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-fun impOfAlways th = 
-    normalize_thm [RSspec,RSmp]
-       (th RS Always_includes_reachable RS subsetD RS CollectD);
+fun impOfAlways th =
+  rulify (th RS Always_includes_reachable RS subsetD RS CollectD);
 
 AddEs spies_partsEs;
 AddDs [impOfSubs analz_subset_parts];

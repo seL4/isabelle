@@ -198,9 +198,8 @@ struct
 		{f = f, R = R, rules = rules,
 		 full_pats_TCs = full_pats_TCs,
 		 TCs = TCs}
-	val rules' = map (standard o normalize_thm [RSmp]) (R.CONJUNCTS rules)
-    in  {induct = meta_outer
-		   (normalize_thm [RSspec,RSmp] (induction RS spec')), 
+	val rules' = map (standard o rulify) (R.CONJUNCTS rules)
+    in  {induct = meta_outer (rulify (induction RS spec')), 
 	 rules = ListPair.zip(rules', rows),
 	 tcs = (termination_goals rules') @ tcs}
     end

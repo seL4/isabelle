@@ -31,7 +31,7 @@ qed_spec_mp "sorted_qsort";
 (*** Version two: type classes ***)
 
 Goal "multiset (quickSort xs) z = multiset xs z";
-by (res_inst_tac [("u","xs")] quickSort.induct 1);
+by (res_inst_tac [("x","xs")] quickSort.induct 1);
 by Auto_tac;
 qed "quickSort_permutes";
 Addsimps [quickSort_permutes];
@@ -43,7 +43,7 @@ qed "set_quickSort";
 Addsimps [set_quickSort];
 
 Goal "sorted (op <=) (quickSort xs)";
-by (res_inst_tac [("u","xs")] quickSort.induct 1);
+by (res_inst_tac [("x","xs")] quickSort.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (blast_tac (claset() addIs [linorder_linear RS disjE, order_trans]) 1);
 qed_spec_mp "sorted_quickSort";

@@ -60,7 +60,7 @@ by Auto_tac;
 qed "d22set_le_swap";
 
 Goal "#1<b --> b<=a --> b:(d22set a)";
-by (res_inst_tac [("u","a")] d22set.induct 1);
+by (res_inst_tac [("x","a")] d22set.induct 1);
 by Auto_tac;
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [d22set_eq])));
 qed_spec_mp "d22set_mem";
@@ -75,7 +75,7 @@ val [zfact_eq] = zfact.simps;
 Delsimps zfact.simps; 
 
 Goal "setprod(d22set a) = zfact a";
-by (res_inst_tac [("u","a")] d22set.induct 1);
+by (res_inst_tac [("x","a")] d22set.induct 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [d22set_eq,zfact_eq]) 1);
 by (stac d22set_eq 1);
