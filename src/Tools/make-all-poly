@@ -1,9 +1,0 @@
-#! /bin/sh
-#$Id$
-#Make entire system using Poly/ML
-#Pathnames will have to be modified for your site
-ML_DBASE=/usr/groups/theory/poly/polyml/`arch`/ML_dbase
-ISABELLEBIN=/homes/`whoami`/dbases
-ISABELLECOMP="poly -noDisplay -h 15000"
-export ML_DBASE ISABELLEBIN ISABELLECOMP 
-nohup make-all $*
