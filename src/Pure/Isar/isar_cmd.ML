@@ -20,6 +20,7 @@ sig
   val clear_undos_theory: int -> Toplevel.transition -> Toplevel.transition
   val redo: Toplevel.transition -> Toplevel.transition
   val undos_proof: int -> Toplevel.transition -> Toplevel.transition
+  val kill_proof_notify: (unit -> unit) -> Toplevel.transition -> Toplevel.transition
   val kill_proof: Toplevel.transition -> Toplevel.transition
   val undo_theory: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
@@ -84,10 +85,12 @@ val redo = Toplevel.history History.redo o Toplevel.proof ProofHistory.redo;
 fun undos_proof n = Toplevel.proof (fn prf =>
   if ProofHistory.is_initial prf then raise Toplevel.UNDEF else funpow n ProofHistory.undo prf);
 
-val kill_proof = Toplevel.history (fn hist =>
+fun kill_proof_notify (f: unit -> unit) = Toplevel.history (fn hist =>
   (case History.current hist of
     Toplevel.Theory _ => raise Toplevel.UNDEF
-  | Toplevel.Proof _ => History.undo hist));
+  | Toplevel.Proof _ => (f (); History.undo hist)));
+
+val kill_proof = kill_proof_notify (K ());
 
 val undo_theory = Toplevel.history (fn hist =>
   if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
