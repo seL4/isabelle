@@ -30,18 +30,18 @@ sig
   val smart_store_thms: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
-  val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory
-  val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory
+  val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory * thm list
+  val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory * thm list list
   val have_thmss: bstring -> theory attribute list ->
     (thm list * theory attribute list) list -> theory -> theory * thm list
-  val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory
-  val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
-  val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory -> theory
-  val add_axiomss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory
-  val add_defs: ((bstring * string) * theory attribute list) list -> theory -> theory
-  val add_defs_i: ((bstring * term) * theory attribute list) list -> theory -> theory
-  val add_defss: ((bstring * string list) * theory attribute list) list -> theory -> theory
-  val add_defss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory
+  val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory * thm list
+  val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory * thm list
+  val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory -> theory * thm list list
+  val add_axiomss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory * thm list list
+  val add_defs: ((bstring * string) * theory attribute list) list -> theory -> theory * thm list
+  val add_defs_i: ((bstring * term) * theory attribute list) list -> theory -> theory * thm list
+  val add_defss: ((bstring * string list) * theory attribute list) list -> theory -> theory * thm list list
+  val add_defss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory * thm list list
   val get_name: theory -> string
   val put_name: string -> theory -> theory
   val global_path: theory -> theory
@@ -232,10 +232,14 @@ fun add_thmx app_name app_att ((bname, thmx), atts) thy =
     val thms'' = enter_thmx (Theory.sign_of thy') app_name (bname, thmx');
   in (thy', thms'') end;
 
-fun add_thmxs name app = Library.apply o map (fst oo add_thmx name app);
+fun add_thms args theory =
+  (theory, args)
+  |> foldl_map (fn (thy, arg) => add_thmx name_single Thm.apply_attributes arg thy)
+  |> apsnd (map hd);
 
-val add_thms = add_thmxs name_single Thm.apply_attributes;
-val add_thmss = add_thmxs name_multi Thm.applys_attributes;
+fun add_thmss args theory =
+  (theory, args)
+  |> foldl_map (fn (thy, arg) => add_thmx name_multi Thm.applys_attributes arg thy);
 
 
 (* have_thmss *)
@@ -292,22 +296,22 @@ local
   fun get_axs thy named_axs =
     map (forall_elim_vars 0 o Thm.get_axiom thy o fst) named_axs;
 
-  fun add_single add ((name, ax), atts) thy =
+  fun add_single add (thy, ((name, ax), atts)) =
     let
       val named_ax = name_single name ax;
       val thy' = add named_ax thy;
       val thm = hd (get_axs thy' named_ax);
-    in add_thms [((name, thm), atts)] thy' end;
+    in apsnd hd (add_thms [((name, thm), atts)] thy') end;
 
-  fun add_multi add ((name, axs), atts) thy =
+  fun add_multi add (thy, ((name, axs), atts)) =
     let
       val named_axs = name_multi name axs;
       val thy' = add named_axs thy;
       val thms = get_axs thy' named_axs;
-    in add_thmss [((name, thms), atts)] thy' end;
+    in apsnd hd (add_thmss [((name, thms), atts)] thy') end;
 
-  fun add_singles add = Library.apply o map (add_single add);
-  fun add_multis add = Library.apply o map (add_multi add);
+  fun add_singles add args thy = foldl_map (add_single add) (thy, args);
+  fun add_multis add args thy = foldl_map (add_multi add) (thy, args);
 in
   val add_axioms    = add_singles Theory.add_axioms;
   val add_axioms_i  = add_singles Theory.add_axioms_i;
@@ -441,7 +445,7 @@ val proto_pure =
   |> Theory.add_modesyntax ("", false)
     [("Goal", "prop => prop", Mixfix ("_", [0], 0))]
   |> local_path
-  |> (add_defs o map Thm.no_attributes)
+  |> (#1 oo (add_defs o map Thm.no_attributes))
    [("flexpair_def", "(t =?= u) == (t == u::'a::{})"),
     ("Goal_def", "GOAL (PROP A) == PROP A")]
   |> end_theory;
