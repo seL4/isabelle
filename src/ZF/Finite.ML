@@ -48,6 +48,7 @@ qed "Fin_UnI";
 
 Addsimps [Fin_UnI];
 
+
 (*The union of a set of finite sets is finite.*)
 val [major] = goal Finite.thy "C : Fin(Fin(A)) ==> Union(C) : Fin(A)";
 by (rtac (major RS Fin_induct) 1);
@@ -67,6 +68,18 @@ qed "Fin_subset_lemma";
 Goal "[| c<=b;  b: Fin(A) |] ==> c: Fin(A)";
 by (REPEAT (ares_tac [Fin_subset_lemma RS spec RS mp] 1));
 qed "Fin_subset";
+
+Goal "b: Fin(A) ==> b Int c : Fin(A)";
+by (blast_tac (claset() addIs [Fin_subset]) 1);
+qed "Fin_IntI1";
+
+Goal "c: Fin(A) ==> b Int c : Fin(A)";
+by (blast_tac (claset() addIs [Fin_subset]) 1);
+qed "Fin_IntI2";
+
+Addsimps[Fin_IntI1, Fin_IntI2];
+AddIs[Fin_IntI1, Fin_IntI2];
+
 
 val major::prems = Goal
     "[| c: Fin(A);  b: Fin(A);                                  \
