@@ -4,7 +4,7 @@
 
 ## targets
 
-default: styles HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Misc
+default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Recdef HOL-Misc styles
 
 
 ## global settings
@@ -19,16 +19,11 @@ LOG = $(OUT)/log
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
 
-styles: isabelle.sty isabellesym.sty pdfsetup.sty
-
-isabelle.sty: $(ISABELLE_HOME)/lib/texinputs/isabelle.sty
-	cp $(ISABELLE_HOME)/lib/texinputs/isabelle.sty .
-
-isabellesym.sty: $(ISABELLE_HOME)/lib/texinputs/isabellesym.sty
-	cp $(ISABELLE_HOME)/lib/texinputs/isabellesym.sty .
-
-pdfsetup.sty: $(ISABELLE_HOME)/lib/texinputs/pdfsetup.sty
-	cp $(ISABELLE_HOME)/lib/texinputs/pdfsetup.sty .
+styles:
+	@$(ISATOOL) latex -o sty
+	@rm -f */document/isabelle.sty
+	@rm -f */document/isabellesym.sty
+	@rm -f */document/pdfsetup.sty
 
 
 ## HOL-Ifexpr
