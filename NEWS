@@ -105,8 +105,8 @@ style files, achieving self-contained LaTeX sources;
 on WWW server seperately); improved graphs of nested sessions; removed
 graph for 'all sessions';
 
-* several improvements in isabelle.sty; \isamarkupheader is now
-\section by default;
+* several improvements in isabelle.sty; \isabellestyle{it} produces
+near math mode output; \isamarkupheader is now \section by default;
 
 
 *** Isar ***
@@ -325,6 +325,10 @@ hiding of names;
 of isabelle and isatool usedir (currently only observed by Poly/ML);
 
 * provide TAGS file for Isabelle sources;
+
+* settings: smart setup of canonical ML_HOME, ISABELLE_INTERFACE, and
+XSYMBOL_HOME; no longer need to do manual configuration in most
+situations;
 
 * ML: infix 'OF' is a version of 'MRS' with more appropriate argument
 order;
