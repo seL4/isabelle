@@ -114,9 +114,6 @@ lemma hypreal_add_left_cancel_le: "(z+v \<le> z+w) = (v \<le> (w::hypreal))"
 lemma hypreal_add_less_mono: "[| (z1::hypreal) < y1; z2 < y2 |] ==> z1 + z2 < y1 + y2"
  by (rule Ring_and_Field.add_strict_mono)
 
-lemma hypreal_add_le_mono1: "(q1::hypreal) \<le> q2  ==> q1 + x \<le> q2 + x"
-  by (rule Ring_and_Field.add_right_mono)
-
 lemma hypreal_add_le_mono: "[|(i::hypreal)\<le>j;  k\<le>l |] ==> i + k \<le> j + l"
  by (rule Ring_and_Field.add_mono)
 
@@ -142,92 +139,15 @@ done
 lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) \<le> y|] ==> r < x + y"
 by (auto dest: hypreal_add_less_le_mono)
 
-
-(**** The simproc abel_cancel ****)
-
-(*** Two lemmas needed for the simprocs ***)
-
-(*Deletion of other terms in the formula, seeking the -x at the front of z*)
-lemma hypreal_add_cancel_21: "((x::hypreal) + (y + z) = y + u) = ((x + z) = u)"
-apply (subst hypreal_add_left_commute)
-apply (rule hypreal_add_left_cancel)
-done
-
-(*A further rule to deal with the case that
-  everything gets cancelled on the right.*)
-lemma hypreal_add_cancel_end: "((x::hypreal) + (y + z) = y) = (x = -z)"
-apply (subst hypreal_add_left_commute)
-apply (rule_tac t = y in hypreal_add_zero_right [THEN subst], subst hypreal_add_left_cancel)
-apply (simp (no_asm) add: hypreal_eq_diff_eq [symmetric])
-done
-
-ML{*
-val hypreal_add_cancel_21 = thm "hypreal_add_cancel_21";
-val hypreal_add_cancel_end = thm "hypreal_add_cancel_end";
-
-structure Hyperreal_Cancel_Data =
-struct
-  val ss		= HOL_ss
-  val eq_reflection	= eq_reflection
-
-  val sg_ref		= Sign.self_ref (Theory.sign_of (the_context ()))
-  val T			= Type("HyperDef.hypreal",[])
-  val zero		= Const ("0", T)
-  val restrict_to_left  = restrict_to_left
-  val add_cancel_21	= hypreal_add_cancel_21
-  val add_cancel_end	= hypreal_add_cancel_end
-  val add_left_cancel	= hypreal_add_left_cancel
-  val add_assoc		= hypreal_add_assoc
-  val add_commute	= hypreal_add_commute
-  val add_left_commute	= hypreal_add_left_commute
-  val add_0		= hypreal_add_zero_left
-  val add_0_right	= hypreal_add_zero_right
-
-  val eq_diff_eq	= hypreal_eq_diff_eq
-  val eqI_rules		= [hypreal_less_eqI, hypreal_eq_eqI, hypreal_le_eqI]
-  fun dest_eqI th = 
-      #1 (HOLogic.dest_bin "op =" HOLogic.boolT
-	      (HOLogic.dest_Trueprop (concl_of th)))
-
-  val diff_def		= hypreal_diff_def
-  val minus_add_distrib	= hypreal_minus_add_distrib
-  val minus_minus	= hypreal_minus_minus
-  val minus_0		= hypreal_minus_zero
-  val add_inverses	= [hypreal_add_minus, hypreal_add_minus_left]
-  val cancel_simps	= [hypreal_add_minus_cancelA, hypreal_minus_add_cancelA]
-end;
-
-structure Hyperreal_Cancel = Abel_Cancel (Hyperreal_Cancel_Data);
-
-Addsimprocs [Hyperreal_Cancel.sum_conv, Hyperreal_Cancel.rel_conv];
-*}
-
 lemma hypreal_le_add_right_cancel: "!!(A::hypreal). A + C \<le> B + C ==> A \<le> B"
-apply (drule_tac x = "-C" in hypreal_add_le_mono1)
-apply (simp add: hypreal_add_assoc)
-done
+  by (rule Ring_and_Field.add_le_imp_le_right)
 
 lemma hypreal_le_add_left_cancel: "!!(A::hypreal). C + A \<le> C + B ==> A \<le> B"
-apply (drule_tac x = "-C" in hypreal_add_left_le_mono1)
-apply (simp add: hypreal_add_assoc [symmetric])
+apply (simp add: ); 
 done
 
-lemma hypreal_mult_less_zero: "[| 0 < x; y < 0 |] ==> x*y < (0::hypreal)"
-apply (drule hypreal_minus_zero_less_iff [THEN iffD2])
-apply (drule hypreal_mult_order, assumption)
-apply (rule hypreal_minus_zero_less_iff [THEN iffD1], simp)
-done
-
-lemma hypreal_mult_less_zero1: "[| x < 0; y < 0 |] ==> (0::hypreal) < x * y"
-apply (drule hypreal_minus_zero_less_iff [THEN iffD2])+
-apply (drule hypreal_mult_order, assumption, simp)
-done
-
-lemma hypreal_le_square: "(0::hypreal) \<le> x*x"
-apply (rule_tac x = 0 and y = x in hypreal_linear_less2)
-apply (auto intro: hypreal_mult_order hypreal_mult_less_zero1 order_less_imp_le)
-done
-declare hypreal_le_square [simp]
+lemma hypreal_le_square [simp]: "(0::hypreal) \<le> x*x"
+  by (rule Ring_and_Field.zero_le_square)
 
 lemma hypreal_add_order: "[| 0 < x; 0 < y |] ==> (0::hypreal) < x + y"
 apply (erule order_less_trans)
@@ -250,29 +170,8 @@ lemma hypreal_inverse_gt_0: "0 < x ==> 0 < inverse (x::hypreal)"
 lemma hypreal_inverse_less_0: "x < 0 ==> inverse (x::hypreal) < 0"
   by (rule Ring_and_Field.negative_imp_inverse_negative)
 
-lemma hypreal_less_swap_iff: "((x::hypreal) < y) = (-y < -x)"
-apply (subst hypreal_less_minus_iff)
-apply (rule_tac x1 = x in hypreal_less_minus_iff [THEN ssubst])
-apply (simp (no_asm) add: hypreal_add_commute)
-done
 
-lemma hypreal_gt_zero_iff: 
-      "((0::hypreal) < x) = (-x < x)"
-apply (unfold hypreal_zero_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (auto simp add: hypreal_less hypreal_minus, ultra+)
-done
-
-lemma hypreal_lt_zero_iff: "(x < (0::hypreal)) = (x < -x)"
-apply (rule hypreal_minus_zero_less_iff [THEN subst])
-apply (subst hypreal_gt_zero_iff)
-apply (simp (no_asm_use))
-done
-
-
-(*----------------------------------------------------------------------------
-               Existence of infinite hyperreal number
- ----------------------------------------------------------------------------*)
+subsection{*Existence of Infinite Hyperreal Number*}
 
 lemma Rep_hypreal_omega: "Rep_hypreal(omega) \<in> hypreal"
 apply (unfold omega_def)
@@ -381,14 +280,9 @@ ML
 val hrabs_def = thm "hrabs_def";
 val hypreal_hrabs = thm "hypreal_hrabs";
 
-val hypreal_less_swap_iff = thm"hypreal_less_swap_iff";
-val hypreal_gt_zero_iff = thm"hypreal_gt_zero_iff";
 val hypreal_add_less_mono1 = thm"hypreal_add_less_mono1";
 val hypreal_add_less_mono2 = thm"hypreal_add_less_mono2";
-val hypreal_lt_zero_iff = thm"hypreal_lt_zero_iff";
 val hypreal_mult_order = thm"hypreal_mult_order";
-val hypreal_mult_less_zero1 = thm"hypreal_mult_less_zero1";
-val hypreal_mult_less_zero = thm"hypreal_mult_less_zero";
 val hypreal_le_add_order = thm"hypreal_le_add_order";
 val hypreal_add_right_cancel_less = thm"hypreal_add_right_cancel_less";
 val hypreal_add_left_cancel_less = thm"hypreal_add_left_cancel_less";
@@ -396,7 +290,6 @@ val hypreal_add_right_cancel_le = thm"hypreal_add_right_cancel_le";
 val hypreal_add_left_cancel_le = thm"hypreal_add_left_cancel_le";
 val hypreal_add_less_mono = thm"hypreal_add_less_mono";
 val hypreal_add_left_le_mono1 = thm"hypreal_add_left_le_mono1";
-val hypreal_add_le_mono1 = thm"hypreal_add_le_mono1";
 val hypreal_add_le_mono = thm"hypreal_add_le_mono";
 val hypreal_add_less_le_mono = thm"hypreal_add_less_le_mono";
 val hypreal_add_le_less_mono = thm"hypreal_add_le_less_mono";
@@ -431,6 +324,65 @@ val hypreal_0_le_mult_iff = thm"hypreal_0_le_mult_iff";
 val hypreal_mult_less_0_iff = thm"hypreal_mult_less_0_iff";
 val hypreal_mult_le_0_iff = thm"hypreal_mult_le_0_iff";
 val hypreal_mult_self_sum_ge_zero = thm "hypreal_mult_self_sum_ge_zero";
+*}
+
+(**** The simproc abel_cancel ****)
+
+(*** Two lemmas needed for the simprocs ***)
+
+(*Deletion of other terms in the formula, seeking the -x at the front of z*)
+lemma hypreal_add_cancel_21: "((x::hypreal) + (y + z) = y + u) = ((x + z) = u)"
+apply (subst hypreal_add_left_commute)
+apply (rule hypreal_add_left_cancel)
+done
+
+(*A further rule to deal with the case that
+  everything gets cancelled on the right.*)
+lemma hypreal_add_cancel_end: "((x::hypreal) + (y + z) = y) = (x = -z)"
+apply (subst hypreal_add_left_commute)
+apply (rule_tac t = y in hypreal_add_zero_right [THEN subst], subst hypreal_add_left_cancel)
+apply (simp (no_asm) add: hypreal_eq_diff_eq [symmetric])
+done
+
+ML{*
+val hypreal_add_cancel_21 = thm "hypreal_add_cancel_21";
+val hypreal_add_cancel_end = thm "hypreal_add_cancel_end";
+
+structure Hyperreal_Cancel_Data =
+struct
+  val ss		= HOL_ss
+  val eq_reflection	= eq_reflection
+
+  val sg_ref		= Sign.self_ref (Theory.sign_of (the_context ()))
+  val T			= Type("HyperDef.hypreal",[])
+  val zero		= Const ("0", T)
+  val restrict_to_left  = restrict_to_left
+  val add_cancel_21	= hypreal_add_cancel_21
+  val add_cancel_end	= hypreal_add_cancel_end
+  val add_left_cancel	= hypreal_add_left_cancel
+  val add_assoc		= hypreal_add_assoc
+  val add_commute	= hypreal_add_commute
+  val add_left_commute	= hypreal_add_left_commute
+  val add_0		= hypreal_add_zero_left
+  val add_0_right	= hypreal_add_zero_right
+
+  val eq_diff_eq	= hypreal_eq_diff_eq
+  val eqI_rules		= [hypreal_less_eqI, hypreal_eq_eqI, hypreal_le_eqI]
+  fun dest_eqI th = 
+      #1 (HOLogic.dest_bin "op =" HOLogic.boolT
+	      (HOLogic.dest_Trueprop (concl_of th)))
+
+  val diff_def		= hypreal_diff_def
+  val minus_add_distrib	= hypreal_minus_add_distrib
+  val minus_minus	= hypreal_minus_minus
+  val minus_0		= hypreal_minus_zero
+  val add_inverses	= [hypreal_add_minus, hypreal_add_minus_left]
+  val cancel_simps	= [hypreal_add_minus_cancelA, hypreal_minus_add_cancelA]
+end;
+
+structure Hyperreal_Cancel = Abel_Cancel (Hyperreal_Cancel_Data);
+
+Addsimprocs [Hyperreal_Cancel.sum_conv, Hyperreal_Cancel.rel_conv];
 *}
 
 end
