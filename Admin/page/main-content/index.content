@@ -58,11 +58,15 @@ New features in <strong><!-- _GP_ distname --></strong> include
 <li><code>arith</code> now generates counterexamples for reals as well.</li>
 
 <li>New <code>quickcheck</code> command
-    to search for counterexamples of executable goals.</li>
+    to search for counterexamples of executable goals.
+  (see HOL/ex/Quickcheck_Examples.thy)</li>
 <li>New <code>refute</code> command
-    to search for finite countermodels of goals.</li>
+    to search for finite countermodels of goals.
+  (see HOL/ex/Refute_Examples.thy)
+</li>
 
-<li>Presentation and x-symbol enhancements, greek letters and sub/superscripts in identifiers.</li>
+<li>Presentation and x-symbol enhancements, greek letters and
+sub/superscripts allowed in identifiers.</li>
 </ul>
 <a href="dist/<!-- _GP_ distname -->/NEWS">[Complete Changelog]</a>
 <p>
