@@ -171,13 +171,13 @@ lemma nonzero_power_divide:
 by (simp add: divide_inverse power_mult_distrib nonzero_power_inverse)
 
 lemma power_divide: 
-    "(a/b) ^ n = ((a::'a::{field,division_by_zero,ringpower}) ^ n/ b ^ n)"
+    "(a/b) ^ n = ((a::'a::{field,division_by_zero,ringpower}) ^ n / b ^ n)"
 apply (case_tac "b=0", simp add: power_0_left)
 apply (rule nonzero_power_divide) 
 apply assumption 
 done
 
-lemma power_abs: "abs(a ^ n) = abs(a::'a::{ordered_field,ringpower}) ^ n"
+lemma power_abs: "abs(a ^ n) = abs(a::'a::{ordered_ring,ringpower}) ^ n"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc abs_mult)
 done
@@ -301,8 +301,7 @@ primrec (power)
   
 instance nat :: ringpower
 proof
-  fix z :: nat
-  fix n :: nat
+  fix z n :: nat
   show "z^0 = 1" by simp
   show "z^(Suc n) = z * (z^n)" by simp
 qed
