@@ -716,17 +716,19 @@ by (rtac (lmap_def RS def_llist_corec RS trans) 1);
 by (Simp_tac 1);
 qed "lmap_LCons";
 
+Addsimps [lmap_LNil, lmap_LCons];
+
 
 (** Two easy results about lmap **)
 
 goal LList.thy "lmap (f o g) l = lmap f (lmap g l)";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (ALLGOALS (simp_tac (!simpset addsimps [lmap_LNil, lmap_LCons])));
+by (ALLGOALS Simp_tac);
 qed "lmap_compose";
 
 goal LList.thy "lmap (%x.x) l = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (ALLGOALS (simp_tac (!simpset addsimps [lmap_LNil, lmap_LCons])));
+by (ALLGOALS Simp_tac);
 qed "lmap_ident";
 
 
@@ -744,7 +746,7 @@ by (rtac rangeI 1);
 by (safe_tac (!claset));
 by (res_inst_tac [("x1", "f(u)")] (iterates RS ssubst) 1);
 by (res_inst_tac [("x1", "u")] (iterates RS ssubst) 1);
-by (simp_tac (!simpset addsimps [lmap_LCons]) 1);
+by (Simp_tac 1);
 qed "lmap_iterates";
 
 goal LList.thy "iterates f x = LCons x (lmap f (iterates f x))";
@@ -760,7 +762,7 @@ goal LList.thy
     "nat_rec (LCons b l) (%m. lmap(f)) n =      \
 \    LCons (nat_rec b (%m. f) n) (nat_rec l (%m. lmap(f)) n)";
 by (nat_ind_tac "n" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [lmap_LCons])));
+by (ALLGOALS Asm_simp_tac);
 qed "fun_power_lmap";
 
 goal Nat.thy "nat_rec (g x) (%m. g) n = nat_rec x (%m. g) (Suc n)";
@@ -814,17 +816,19 @@ by (rtac (llist_corec RS trans) 1);
 by (Simp_tac 1);
 qed "lappend_LCons";
 
+Addsimps [lappend_LNil_LNil, lappend_LNil_LCons, lappend_LCons];
+
 goal LList.thy "lappend LNil l = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (ALLGOALS 
-    (simp_tac (!simpset addsimps [lappend_LNil_LNil, lappend_LNil_LCons])));
+by (ALLGOALS Simp_tac);
 qed "lappend_LNil";
 
 goal LList.thy "lappend l LNil = l";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (ALLGOALS 
-    (simp_tac (!simpset addsimps [lappend_LNil_LNil, lappend_LCons])));
+by (ALLGOALS Simp_tac);
 qed "lappend_LNil2";
+
+Addsimps [lappend_LNil, lappend_LNil2];
 
 (*The infinite first argument blocks the second*)
 goal LList.thy "lappend (iterates f x) N = iterates f x";
@@ -833,7 +837,7 @@ by (res_inst_tac [("r", "range(%u.(lappend (iterates f u) N,iterates f u))")]
 by (rtac rangeI 1);
 by (safe_tac (!claset));
 by (stac iterates 1);
-by (simp_tac (!simpset addsimps [lappend_LCons]) 1);
+by (Simp_tac 1);
 qed "lappend_iterates";
 
 (** Two proofs that lmap distributes over lappend **)
@@ -849,26 +853,20 @@ by (rtac rangeI 1);
 by (safe_tac (!claset));
 by (res_inst_tac [("l", "l")] llistE 1);
 by (res_inst_tac [("l", "n")] llistE 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps
-      [lappend_LNil_LNil,lappend_LCons,lappend_LNil_LCons,
-       lmap_LNil,lmap_LCons])));
+by (ALLGOALS Asm_simp_tac);
 by (REPEAT_SOME (ares_tac [llistD_Fun_LCons_I, UN1_I RS UnI1, rangeI]));
-by (rtac range_eqI 1);
-by (rtac (refl RS Pair_cong) 1);
-by (stac lmap_LNil 1);
-by (rtac refl 1);
 qed "lmap_lappend_distrib";
 
 (*Shorter proof of theorem above using llist_equalityI as strong coinduction*)
 goal LList.thy "lmap f (lappend l n) = lappend (lmap f l) (lmap f n)";
 by (res_inst_tac [("l","l")] llist_fun_equalityI 1);
-by (simp_tac (!simpset addsimps [lappend_LNil, lmap_LNil])1);
-by (simp_tac (!simpset addsimps [lappend_LCons, lmap_LCons]) 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 qed "lmap_lappend_distrib";
 
 (*Without strong coinduction, three case analyses might be needed*)
 goal LList.thy "lappend (lappend l1 l2) l3 = lappend l1 (lappend l2 l3)";
 by (res_inst_tac [("l","l1")] llist_fun_equalityI 1);
-by (simp_tac (!simpset addsimps [lappend_LNil])1);
-by (simp_tac (!simpset addsimps [lappend_LCons]) 1);
+by (Simp_tac 1);
+by (Simp_tac 1);
 qed "lappend_assoc";
