@@ -7,7 +7,7 @@
 
 Delrules [equalityI];
 
-(*** Many theorems similar to those in Integ.thy ***)
+(*** Many theorems similar to those in theory Integ ***)
 (*** Proving that ratrel is an equivalence relation ***)
 
 Goal "[| (x1::pnat) * y2 = x2 * y1; x2 * y3 = x3 * y2 |] \
@@ -38,7 +38,7 @@ Goalw [ratrel_def]
 by (Fast_tac 1);
 qed "ratrelE_lemma";
 
-val [major,minor] = goal thy
+val [major,minor] = goal (the_context ())
   "[| p: ratrel;  \
 \     !!x1 y1 x2 y2. [| p = ((x1,y1),(x2,y2));  x1*y2 = x2*y1 \
 \                    |] ==> Q |] ==> Q";
@@ -96,7 +96,7 @@ by Safe_tac;
 by (Asm_full_simp_tac 1);
 qed "inj_prat_of_pnat";
 
-val [prem] = goal thy
+val [prem] = goal (the_context ())
     "(!!x y. z = Abs_prat(ratrel^^{(x,y)}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [prat_def] Rep_prat RS quotientE) 1);
@@ -443,6 +443,11 @@ by (auto_tac (claset() addDs [prat_mult_less2_mono1],
     simpset() addsimps [prat_mult_commute]));
 qed "prat_mult_left_less2_mono1";
 
+Goal "!!(a1::prat). a1 < a2 ==> a1 * b + a2 * c < a2 * (b + c)";
+by (auto_tac (claset() addSIs [prat_add_less2_mono1,prat_mult_less2_mono1],
+              simpset() addsimps [prat_add_mult_distrib2]));
+qed "lemma_prat_add_mult_mono";
+
 (* there is no smallest positive fraction *)
 Goalw [prat_less_def] "EX (x::prat). x < y";
 by (cut_facts_tac [lemma_prat_dense] 1);
@@ -606,7 +611,7 @@ Goal "w <= (w::prat)";
 by (simp_tac (simpset() addsimps [prat_le_eq_less_or_eq]) 1);
 qed "prat_le_refl";
 
-val prems = goal thy "!!i. [| i <= j; j < k |] ==> i < (k::prat)";
+val prems = goal (the_context ()) "!!i. [| i <= j; j < k |] ==> i < (k::prat)";
 by (dtac prat_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [prat_less_trans]) 1);
 qed "prat_le_less_trans";
