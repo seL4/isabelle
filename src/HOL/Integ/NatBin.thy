@@ -848,8 +848,10 @@ consts_code
   "uminus" :: "int => int"      ("`~")
   "op +" :: "int => int => int" ("(_ `+/ _)")
   "op *" :: "int => int => int" ("(_ `*/ _)")
+(* Fails for 0:
   "op div" :: "int => int => int" ("(_ div/ _)")
   "op mod" :: "int => int => int" ("(_ mod/ _)")
+*)
   "op <" :: "int => int => bool" ("(_ </ _)")
   "op <=" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                         ("(_ < 0)")
