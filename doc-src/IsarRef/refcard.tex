@@ -14,13 +14,13 @@
   $\PROOF{m@1}~\dots~\QED{m@2}$ & apply proof methods \\
   $\BG~\dots~\EN$ & declare explicit blocks \\
   $\isarcmd{next}$ & switch implicit blocks \\
-  $\NOTE{a}{a@1~\dots~a@n}$ & reconsider facts \\
-  $\LET{p = t}$ & \text{abbreviate terms by matching} \\
+  $\NOTE{a}{a@1\;\dots\;a@n}$ & reconsider facts \\
+  $\LET{p = t}$ & \text{abbreviate terms by higher-order matching} \\
 \end{tabular}
 
 \begin{matharray}{rcl}
-  theory{\dsh}stmt & = & \THEOREM{name}{form} ~proof \\
-  & \Or & \LEMMA{name}{form}~proof \\
+  theory{\dsh}stmt & = & \THEOREM{name}{prop} ~proof \\
+  & \Or & \LEMMA{name}{prop}~proof \\
   & \Or & \TYPES~\dots \Or \CONSTS~\dots \Or \DEFS~\dots \Or \dots \\[1ex]
   proof & = & \PROOF{method}~stmt^*~\QED{method} \\[1ex]
   stmt & = & \BG~stmt^*~\EN \\
@@ -28,11 +28,11 @@
   & \Or & \NOTE{name}{name^+} \\
   & \Or & \LET{term = term} \\[0.5ex]
   & \Or & \FIX{var^+} \\
-  & \Or & \ASSUME{name}{form^+}\\
+  & \Or & \ASSUME{name}{prop^+}\\
   & \Or & \THEN~goal{\dsh}stmt \\
   & \Or & goal{\dsh}stmt \\
-  goal{\dsh}stmt & = & \HAVE{name}{form}~proof \\
-  & \Or & \SHOW{name}{form}~proof \\
+  goal{\dsh}stmt & = & \HAVE{name}{prop}~proof \\
+  & \Or & \SHOW{name}{prop}~proof \\
 \end{matharray}
 
 
@@ -44,8 +44,8 @@
   \DOT & \equiv & \BY{assumption} \\
   \HENCENAME & \equiv & \THEN~\HAVENAME \\
   \THUSNAME & \equiv & \THEN~\SHOWNAME \\
-  \FROM{a@1~\dots~a@n} & \equiv & \NOTE{this}{a@1~\dots~a@n}~\THEN \\
-  \WITH{a@1~\dots~a@n} & \equiv & \FROM{a@1~\dots~a@n~this} \\[1ex]
+  \FROM{a@1\;\dots\;a@n} & \equiv & \NOTE{this}{a@1\;\dots\;a@n}~\THEN \\
+  \WITH{a@1\;\dots\;a@n} & \equiv & \FROM{a@1\;\dots\;a@n~this} \\[1ex]
   \FROM{this} & \equiv & \THEN \\
   \FROM{this}~\HAVENAME & \equiv & \HENCENAME \\
   \FROM{this}~\SHOWNAME & \equiv & \THUSNAME \\
@@ -67,7 +67,7 @@
 \subsection{Diagnostic commands}
 
 \begin{matharray}{ll}
-  \isarcmd{thm}~a@1~\dots~a@n & \text{print theorems} \\
+  \isarcmd{thm}~a@1\;\dots\;a@n & \text{print theorems} \\
   \isarcmd{term}~t & \text{print term} \\
   \isarcmd{prop}~\phi & \text{print meta-level proposition} \\
   \isarcmd{typ}~\tau & \text{print meta-level type} \\
@@ -78,22 +78,22 @@
 
 \begin{tabular}{ll}
   \multicolumn{2}{l}{\textbf{Single steps (forward-chaining facts)}} \\[0.5ex]
-  $assumption$ & apply assumption \\
-  $rule~a@1~\dots~a@n$ & apply some rule  \\
+  $assumption$ & apply some assumption \\
+  $rule~a@1\;\dots\;a@n$ & apply some rule  \\
   $rule$ & apply standard rule (default for $\PROOFNAME$) \\
   $induct~x$ & apply induction rule \\
-  $contradiction$ & apply $\neg{}$ elimination rule \\[2ex]
+  $contradiction$ & apply $\neg{}$ elimination rule (any order) \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
   $-$ & \text{no rules} \\
-  $intro~a@1~\dots~a@n$ & \text{introduction rules} \\
-  $elim~a@1~\dots~a@n$ & \text{elimination rules} \\
-  $unfold~a@1~\dots~a@n$ & \text{definitions} \\[2ex]
+  $intro~a@1\;\dots\;a@n$ & \text{introduction rules} \\
+  $elim~a@1\;\dots\;a@n$ & \text{elimination rules} \\
+  $unfold~a@1\;\dots\;a@n$ & \text{definitions} \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
   $simp$ & Simplifier \\
-  $blast$, $fast$ & Classical reasoner \\
-  $force$, $auto$ & Simplifier + Classical reasoner \\
+  $blast$, $fast$ & Classical Reasoner \\
+  $force$, $auto$ & Simplifier + Classical Reasoner \\
   $arith$ & Arithmetic procedure \\
 \end{tabular}
 
@@ -102,8 +102,8 @@
 
 \begin{tabular}{ll}
   \multicolumn{2}{l}{\textbf{Modify rules}} \\[0.5ex]
-  $OF~a@1~\dots~a@n$ & apply rule to facts (skip ``$_$'') \\
-  $of~t@1~\dots~t@n$ & apply rule to terms (skip ``$_$'') \\
+  $OF~a@1\;\dots\;a@n$ & apply rule to facts (skipping ``$_$'') \\
+  $of~t@1\;\dots\;t@n$ & apply rule to terms (skipping ``$_$'') \\
   $RS~b$ & resolve fact with rule \\
   $standard$ & put into standard result form \\
   $rulify$ & put into object-rule form \\
@@ -111,11 +111,10 @@
 
   \multicolumn{2}{l}{\textbf{Modify context}} \\[0.5ex]
   $simp$ & declare Simplifier rules \\
-  $intro$, $elim$, $dest$ & declare Classical reasoner rules (also ``$!$'' or ``$!!$'') \\
-  $iff$ & declare Simplifier + Classical reasoner rules \\
-  $trans$ & calculational rules (general transitivity) \\
+  $intro$, $elim$, $dest$ & declare Classical Reasoner rules (also ``$!$'' or ``$!!$'') \\
+  $iff$ & declare Simplifier + Classical Reasoner rules \\
+  $trans$ & declare calculational rules (general transitivity) \\
 \end{tabular}
-
 
 %%% Local Variables: 
 %%% mode: latex

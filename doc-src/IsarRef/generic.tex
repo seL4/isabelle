@@ -37,9 +37,9 @@
   becomes a (generalized) \emph{elimination}.
   
   Note that the classical reasoner introduces another version of $rule$ that
-  is able to pick appropriate rules automatically, whenever explicit $thms$
-  are omitted (see \S\ref{sec:classical-basic}); that method is the default
-  for $\PROOFNAME$ steps.  Note that ``$\DDOT$'' (double-dot) abbreviates
+  is able to pick appropriate rules automatically, whenever $thms$ are omitted
+  (see \S\ref{sec:classical-basic}); that method is the default for
+  $\PROOFNAME$ steps.  Note that ``$\DDOT$'' (double-dot) abbreviates
   $\BY{default}$.
 \item [$erule~thms$] is similar to $rule$, but applies rules by
   elim-resolution.  This is an improper method, mainly for experimentation and
@@ -47,11 +47,11 @@
   $rule$ (single step, involving facts) or $elim$ (repeated steps, see
   \S\ref{sec:classical-basic}).
 \item [$unfold~thms$ and $fold~thms$] expand and fold back again the given
-  meta-level definitions throughout all goals; any facts provided are
-  \emph{ignored}.
-\item [$succeed$] yields a single (unchanged) result; it is the identify of
+  meta-level definitions throughout all goals; any facts provided are inserted
+  into the goal and subject to rewriting as well.
+\item [$succeed$] yields a single (unchanged) result; it is the identity of
   the ``\texttt{,}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
-\item [$fail$] yields an empty result sequence; it is the identify of the
+\item [$fail$] yields an empty result sequence; it is the identity of the
   ``\texttt{|}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
 \end{descr}
 
@@ -98,12 +98,12 @@
   result).
 \item [$OF~thms$, $RS~n~thm$, and $COMP~n~thm$] compose rules.  $OF$ applies
   $thms$ in parallel (cf.\ \texttt{MRS} in \cite[\S5]{isabelle-ref}, but note
-  the reversed order).  Note that premises may be skipped by including $\_$
-  (underscore) as argument.
+  the reversed order).  Note that premises may be skipped by including
+  ``$\_$'' (underscore) as argument.
   
   $RS$ resolves with the $n$-th premise of $thm$; $COMP$ is a version of $RS$
-  that does not include the automatic lifting process that is normally
-  intended (cf.\ \texttt{RS} and \texttt{COMP} in \cite[\S5]{isabelle-ref}).
+  that skips the automatic lifting process that is normally intended (cf.\ 
+  \texttt{RS} and \texttt{COMP} in \cite[\S5]{isabelle-ref}).
   
 \item [$of~\vec t$ and $where~\vec x = \vec t$] perform positional and named
   instantiation, respectively.  The terms given in $of$ are substituted for
@@ -180,9 +180,10 @@ command required.
 \item [$\FINALLY~(thms)$] maintaining $calculation$ in the same way as
   $\ALSO$, and concludes the current calculational thread.  The final result
   is exhibited as fact for forward chaining towards the next goal. Basically,
-  $\FINALLY$ just abbreviates $\ALSO~\FROM{calculation}$.  Typical proof
-  idioms are``$\FINALLY~\SHOW{}{\Var{thesis}}~\DOT$'' and
-  ``$\FINALLY~\HAVE{}{\phi}~\DOT$''.
+  $\FINALLY$ just abbreviates $\ALSO~\FROM{calculation}$.  Note that
+  ``$\FINALLY~\SHOW{}{\Var{thesis}}~\DOT$'' and
+  ``$\FINALLY~\HAVE{}{\phi}~\DOT$'' are typical idioms for concluding
+  calculational proofs.
   
 \item [$trans$] maintains the set of transitivity rules of the theory or proof
   context, by adding or deleting theorems (the default is to add).
@@ -204,12 +205,12 @@ command required.
   intro_classes & : & \isarmeth \\
 \end{matharray}
 
-Axiomatic type classes are provided by Isabelle/Pure as a purely
-\emph{definitional} interface to type classes (cf.~\S\ref{sec:classes}).  Thus
-any object logic may make use of this light-weight mechanism for abstract
-theories.  See \cite{Wenzel:1997:TPHOL} for more information.  There is also a
-tutorial on \emph{Using Axiomatic Type Classes in Isabelle} that is part of
-the standard Isabelle documentation.
+Axiomatic type classes are provided by Isabelle/Pure as a \emph{definitional}
+interface to type classes (cf.~\S\ref{sec:classes}).  Thus any object logic
+may make use of this light-weight mechanism of abstract theories.  See
+\cite{Wenzel:1997:TPHOL} for more information.  There is also a tutorial on
+\emph{Using Axiomatic Type Classes in Isabelle} that is part of the standard
+Isabelle documentation.
 %FIXME cite
 
 \begin{rail}
@@ -225,21 +226,22 @@ the standard Isabelle documentation.
   holding.  Class axioms may not contain more than one type variable.  The
   class axioms (with implicit sort constraints added) are bound to the given
   names.  Furthermore a class introduction rule is generated, which is
-  employed by method $intro_classes$ in support instantiation proofs of this
+  employed by method $intro_classes$ to support instantiation proofs of this
   class.
   
 \item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~t ::
   (\vec s)c$] setup up a goal stating the class relation or type arity.  The
-  proof would usually proceed by the $intro_classes$ method, and then
-  establish the characteristic theorems of the type classes involved.  After
-  finishing the proof the theory will be augmented by a type signature
-  declaration corresponding to the resulting theorem.
-\item [$intro_classes$] repeatedly expands the class introduction rules of
+  proof would usually proceed by $intro_classes$, and then establish the
+  characteristic theorems of the type classes involved.  After finishing the
+  proof, the theory will be augmented by a type signature declaration
+  corresponding to the resulting theorem.
+\item [$intro_classes$] repeatedly expands all class introduction rules of
   this theory.
 \end{descr}
 
-See theory \texttt{HOL/Isar_examples/Group} for a simple example of using
-axiomatic type classes, including instantiation proofs.
+%FIXME
+%See theory \texttt{HOL/Isar_examples/Group} for a simple example of using
+%axiomatic type classes, including instantiation proofs.
 
 
 \section{The Simplifier}
@@ -345,7 +347,7 @@ information.
   given ones may be applied.  The latter form admits better control of what
   actually happens, thus it is very appropriate as an initial method for
   $\PROOFNAME$ that splits up certain connectives of the goal, before entering
-  the actual proof.
+  the actual sub-proof.
   
 \item [$contradiction$] solves some goal by contradiction, deriving any result
   from both $\neg A$ and $A$.  Facts, which are guaranteed to participate, may
@@ -388,7 +390,10 @@ information.
 
 Any of above methods support additional modifiers of the context of classical
 rules.  There semantics is analogous to the attributes given in
-\S\ref{sec:classical-mod}.
+\S\ref{sec:classical-mod}.  Facts provided by forward chaining are inserted
+into the goal before doing the search.  The ``!''~argument causes the full
+context of assumptions to be included as well.\footnote{This is slightly less
+  hazardous than for the Simplifier (see \S\ref{sec:simp}).}
 
 
 \subsection{Combined automated methods}
@@ -403,7 +408,7 @@ rules.  There semantics is analogous to the attributes given in
   ('force' | 'auto') ('!' ?) (clasimpmod * )
   ;
 
-  clasimpmod: ('simp' ('add' | 'del' | 'only') | other |
+  clasimpmod: ('simp' ('add' | 'del' | 'only') | 'other' |
     (('intro' | 'elim' | 'dest') (() | '!' | '!!') | 'del')) ':' thmrefs
 \end{rail}
 
@@ -414,7 +419,12 @@ rules.  There semantics is analogous to the attributes given in
   modifier arguments correspond to those given in \S\ref{sec:simp} and
   \S\ref{sec:classical-auto}.  Just note that the ones related to the
   Simplifier are prefixed by \railtoken{simp} here.
+  
+  Facts provided by forward chaining are inserted into the goal before doing
+  the search.  The ``!''~argument causes the full context of assumptions to be
+  included as well.
 \end{descr}
+
 
 \subsection{Modifying the context}\label{sec:classical-mod}
 

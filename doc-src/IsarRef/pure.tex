@@ -370,10 +370,9 @@ following commands provide some way to do so.
   afterwards.  Thus $text$ may actually change the theory as a side effect.
   
 \item [$\isarkeyword{setup}~text$] changes the current theory context by
-  applying setup functions from $text$, which refers to an ML expression of
-  type $(theory \to theory)~list$.  The $\isarkeyword{setup}$ command is the
-  canonical way to initialize object-logic specific tools and packages written
-  in ML.
+  applying $text$, which refers to an ML expression of type $(theory \to
+  theory)~list$.  The $\isarkeyword{setup}$ command is the canonical way to
+  initialize object-logic specific tools and packages written in ML.
 \end{descr}
 
 
@@ -424,7 +423,7 @@ oracle invocation.  See \cite[\S6]{isabelle-ref} for more information.
 
 \section{Proof commands}
 
-Proof commands provide transitions of Isar/VM machine configurations, which
+Proof commands perform transitions of Isar/VM machine configurations, which
 are block-structured, consisting of a stack of nodes with three main
 components: logical proof context, current facts, and open goals.  Isar/VM
 transitions are \emph{typed} according to the following three three different
@@ -434,16 +433,18 @@ modes of operation:
   to be \emph{proven}; the next command may refine it by some proof method
   (read: tactic), and enter a sub-proof to establish the actual result.
 \item [$proof(state)$] is like an internal theory mode: the context may be
-  augmented by \emph{stating} additional assumptions, intermediate result etc.
+  augmented by \emph{stating} additional assumptions, intermediate results
+  etc.
 \item [$proof(chain)$] is intermediate between $proof(state)$ and
-  $proof(prove)$: existing facts (i.e.\ the contents of $this$) have been just
-  picked up in order to be used when refining the goal claimed next.
+  $proof(prove)$: existing facts (i.e.\ the contents of the special ``$this$''
+  register) have been just picked up in order to be used when refining the
+  goal claimed next.
 \end{descr}
 
 
 \subsection{Proof markup commands}\label{sec:markup-prf}
 
-\indexisarcmd{sect}\indexisarcmd{subsect}\indexisarcmd{subsect}
+\indexisarcmd{sect}\indexisarcmd{subsect}\indexisarcmd{subsubsect}
 \indexisarcmd{txt}\indexisarcmd{txt-raw}
 \begin{matharray}{rcl}
   \isarcmd{sect} & : & \isartrans{proof(state)}{proof(state)} \\
@@ -480,10 +481,10 @@ The logical proof context consists of fixed variables and assumptions.  The
 former closely correspond to Skolem constants, or meta-level universal
 quantification as provided by the Isabelle/Pure logical framework.
 Introducing some \emph{arbitrary, but fixed} variable via $\FIX x$ results in
-a local object that may be used in the subsequent proof as any other variable
+a local value that may be used in the subsequent proof as any other variable
 or constant.  Furthermore, any result $\edrv \phi[x]$ exported from the
-current context will be universally closed wrt.\ $x$ at the outermost level:
-$\edrv \All x \phi$; this is expressed using Isabelle's meta-variables.
+context will be universally closed wrt.\ $x$ at the outermost level: $\edrv
+\All x \phi$ (this is expressed using Isabelle's meta-variables).
 
 Similarly, introducing some assumption $\chi$ has two effects.  On the one
 hand, a local theorem is created that may be used as a fact in subsequent
@@ -497,9 +498,9 @@ $\PRESUMENAME$ leaves the subgoal unchanged in order to be proved later by the
 user.
 
 Local definitions, introduced by $\DEF{}{x \equiv t}$, are achieved by
-combining $\FIX x$ with another kind of assumption that causes any
-hypothetical equation $x \equiv t$ to be eliminated by reflexivity.  Thus,
-exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
+combining $\FIX x$ with another version of assumption that causes any
+hypothetical equation $x \equiv t$ to be eliminated by the reflexivity rule.
+Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 
 \begin{rail}
   'fix' (vars + 'and') comment?
@@ -530,7 +531,7 @@ exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
   these concatenated.
 \item [$\DEF{a}{x \equiv t}$] introduces a local (non-polymorphic) definition.
   In results exported from the context, $x$ is replaced by $t$.  Basically,
-  $\DEF{}{x \equiv t}$ abbreviates $\FIX{x}~\PRESUME{}{x \equiv t}$, with the
+  $\DEF{}{x \equiv t}$ abbreviates $\FIX{x}~\ASSUME{}{x \equiv t}$, with the
   resulting hypothetical equation solved by reflexivity.
   
   The default name for the definitional equation is $x_def$.
@@ -554,7 +555,7 @@ New facts are established either by assumption or proof of local statements.
 Any fact will usually be involved in further proofs, either as explicit
 arguments of proof methods or when forward chaining towards the next goal via
 $\THEN$ (and variants).  Note that the special theorem name
-$this$.\indexisarthm{this} refers to the most recently established facts.
+$this$\indexisarthm{this} refers to the most recently established facts.
 \begin{rail}
   'note' thmdef? thmrefs comment?
   ;
@@ -596,8 +597,8 @@ as ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
 \begin{matharray}{rcl}
   \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
   \isarcmd{lemma} & : & \isartrans{theory}{proof(prove)} \\
-  \isarcmd{have} & : & \isartrans{proof(state)}{proof(prove)} \\
-  \isarcmd{show} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \isarcmd{have} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+  \isarcmd{show} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
   \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
   \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
 \end{matharray}
@@ -605,7 +606,7 @@ as ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}}
 Proof mode is entered from theory mode by initial goal commands $\THEOREMNAME$
 and $\LEMMANAME$.  New local goals may be claimed within proof mode as well.
 Four variants are available, indicating whether the result is meant to solve
-some pending goal and whether forward chaining is employed.
+some pending goal or whether forward chaining is employed.
 
 \begin{rail}
   ('theorem' | 'lemma') goal
@@ -620,7 +621,7 @@ some pending goal and whether forward chaining is employed.
 \begin{descr}
 \item [$\THEOREM{a}{\phi}$] enters proof mode with $\phi$ as main goal,
   eventually resulting in some theorem $\turn \phi$ put back into the theory.
-\item [$\LEMMANAME$] is similar to $\THEOREMNAME$, but tags the result as
+\item [$\LEMMA{a}{\phi}$] is similar to $\THEOREMNAME$, but tags the result as
   ``lemma''.
 \item [$\HAVE{a}{\phi}$] claims a local goal, eventually resulting in a
   theorem with the current assumption context as hypotheses.
@@ -655,8 +656,8 @@ Isar framework admits proof methods to be invoked in two places only.
   goal to a number of sub-goals that are to be solved later.  Facts are passed
   to $m@1$ for forward chaining, if so indicated by $proof(chain)$ mode.
   
-\item A \emph{terminal} conclusion step $\QED{m@2}$ solves any remaining goals
-  completely.  No facts are passed to $m@2$.
+\item A \emph{terminal} conclusion step $\QED{m@2}$ is intended to solve
+  remaining goals.  No facts are passed to $m@2$.
 \end{enumerate}
 
 The only other proper way to affect pending goals is by $\SHOWNAME$ (or
@@ -668,17 +669,19 @@ Also note that initial proof methods should either solve the goal completely,
 or constitute some well-understood reduction to new sub-goals.  Arbitrary
 automatic proof tools that are prone leave a large number of badly structured
 sub-goals are no help in continuing the proof document in any intelligible
-way.  A much better technique would be to $\SHOWNAME$ some non-trivial
-reduction as an explicit rule, which is solved completely by some automated
-method, and then applied to some pending goal.
+way.
+%FIXME
+%A more appropriate technique would be to $\SHOWNAME$ some non-trivial
+%reduction as an explicit rule, which is solved completely by some automated
+%method, and then applied to some pending goal.
 
 \medskip
 
 Unless given explicitly by the user, the default initial method is
 ``$default$'', which is usually set up to apply a single standard elimination
 or introduction rule according to the topmost symbol involved.  There is no
-separate default terminal method; in any case the final step is to solve all
-remaining goals by assumption, though.
+separate default terminal method.  In any case, any goals left after that are
+solved by assumption as the very last step.
 
 \begin{rail}
   'proof' interest? meth? comment?
@@ -708,8 +711,8 @@ remaining goals by assumption, though.
   $\SHOWNAME$ into $\HAVENAME$, or weakening the local context by replacing
   some occurrences of $\ASSUMENAME$ by $\PRESUMENAME$.
 \item [$\BYY{m@1}{m@2}$] is a \emph{terminal proof}\index{proof!terminal}; it
-  abbreviates $\PROOF{m@1}~\QED{m@2}$, with automatic backtracking across both
-  methods.  Debugging an unsuccessful $\BYY{m@1}{m@2}$ commands might be done
+  abbreviates $\PROOF{m@1}~\QED{m@2}$, with backtracking across both methods,
+  though.  Debugging an unsuccessful $\BYY{m@1}{m@2}$ commands might be done
   by expanding its definition; in many cases $\PROOF{m@1}$ is already
   sufficient to see what is going wrong.
 \item [``$\DDOT$''] is a \emph{default proof}\index{proof!default}; it
@@ -717,12 +720,12 @@ remaining goals by assumption, though.
 \item [``$\DOT$''] is a \emph{trivial proof}\index{proof!trivial}; it
   abbreviates $\BY{assumption}$.
 \item [$\isarkeyword{sorry}$] is a \emph{fake proof}\index{proof!fake};
-  provided that \texttt{quick_and_dirty} is enabled, $\isarkeyword{sorry}$
-  pretends to solve the goal without further ado.  Of course, the result is a
-  fake theorem only, involving some oracle in its internal derivation object
-  (this is indicated as ``$[!]$'' in the printed result).  The main
-  application of $\isarkeyword{sorry}$ is to support experimentation and
-  top-down proof development.
+  provided that the \texttt{quick_and_dirty} flag is enabled,
+  $\isarkeyword{sorry}$ pretends to solve the goal without further ado.  Of
+  course, the result is a fake theorem only, involving some oracle in its
+  internal derivation object (this is indicated as ``$[!]$'' in the printed
+  result).  The main application of $\isarkeyword{sorry}$ is to support
+  experimentation and top-down proof development.
 \end{descr}
 
 
@@ -772,13 +775,13 @@ come in handy for interactive exploration and debugging.
 \end{matharray}
 
 Abbreviations may be either bound by explicit $\LET{p \equiv t}$ statements,
-or by annotating assumptions or goal statements ($\ASSUMENAME$, $\SHOWNAME$
-etc.) with a list of patterns $\ISS{p@1 \dots}{p@n}$.  In both cases,
-higher-order matching is invoked to bind extra-logical term variables, which
-may be either named schematic variables of the form $\Var{x}$, or nameless
-dummies ``\texttt{_}'' (underscore).\indexisarvar{_@\texttt{_}} Note that in
-the $\LETNAME$ form the patterns occur on the left-hand side, while the
-$\ISNAME$ patterns are in postfix position.
+or by annotating assumptions or goal statements with a list of patterns
+$\ISS{p@1\;\dots}{p@n}$.  In both cases, higher-order matching is invoked to
+bind extra-logical term variables, which may be either named schematic
+variables of the form $\Var{x}$, or nameless dummies ``\texttt{_}''
+(underscore).\indexisarvar{_@\texttt{_}} Note that in the $\LETNAME$ form the
+patterns occur on the left-hand side, while the $\ISNAME$ patterns are in
+postfix position.
 
 Term abbreviations are quite different from actual local definitions as
 introduced via $\DEFNAME$ (see \S\ref{sec:proof-context}).  The latter are
@@ -807,7 +810,7 @@ $\Var{thesis_prop}$\indexisarvar{thesis-prop} refers to the full proposition
 (which may be a rule), $\Var{thesis_concl}$\indexisarvar{thesis-concl} to its
 (atomic) conclusion, and $\Var{thesis}$\indexisarvar{thesis} to its
 object-logical statement.  The latter two abstract over any meta-level
-parameters bound by $\Forall$.
+parameters.
 
 Fact statements resulting from assumptions or finished goals are bound as
 $\Var{this_prop}$\indexisarvar{this-prop},
@@ -816,7 +819,7 @@ $\Var{this}$\indexisarvar{this}, similar to $\Var{thesis}$ above.  In case
 $\Var{this}$ refers to an object-logic statement that is an application
 $f(t)$, then $t$ is bound to the special text variable
 ``$\dots$''\indexisarvar{\dots} (three dots).  The canonical application of
-this feature are calculational proofs (see \S\ref{sec:calculation}).
+the latter are calculational proofs (see \S\ref{sec:calculation}).
 
 
 \subsection{Block structure}
@@ -834,8 +837,8 @@ local goal statement automatically opens \emph{two} blocks, which are closed
 again when concluding the sub-proof (by $\QEDNAME$ etc.).  Sections of
 different context within a sub-proof may be switched via $\isarkeyword{next}$,
 which is just a single block-close followed by block-open again.  Thus the
-effect of $\isarkeyword{next}$ is a local reset the proof
-context.\footnote{There is no goal focus involved here!}
+effect of $\isarkeyword{next}$ to reset the local proof context. There is no
+goal focus involved here!
 
 For slightly more advanced applications, there are explicit block parentheses
 as well.  These typically achieve a stronger forward style of reasoning.
@@ -887,8 +890,8 @@ theory or proof configuration is not changed.
   specifications are applied to a temporary context derived from the current
   theory or proof; the result is discarded, i.e.\ attributes involved in
   $thms$ do not have any permanent effect.
-\item [$\isarkeyword{term}~t$, $\isarkeyword{prop}~\phi$] read, type-checks
-  and print terms or propositions according to the current theory or proof
+\item [$\isarkeyword{term}~t$, $\isarkeyword{prop}~\phi$] read, type-check and
+  print terms or propositions according to the current theory or proof
   context; the inferred type of $t$ is output as well.  Note that these
   commands are also useful in inspecting the current environment of term
   abbreviations.
@@ -915,17 +918,16 @@ theory or proof configuration is not changed.
   process.
 \item [$\isarkeyword{pwd}~$] prints the current working directory.
 \item [$\isarkeyword{use_thy}$, $\isarkeyword{use_thy_only}$,
-  $\isarkeyword{update_thy}$, and $\isarkeyword{update_thy_only}$] load some
+  $\isarkeyword{update_thy}$, $\isarkeyword{update_thy_only}$] load some
   theory given as $name$ argument.  These commands are basically the same as
-  the corresponding ML functions\footnote{For historic reasons, the original
-    ML versions also change the theory context to that of the theory loaded.}
-  (see also \cite[\S1,\S6]{isabelle-ref}).  Note that both the ML and Isar
-  versions may load new- and old-style theories alike.
+  the corresponding ML functions\footnote{The ML versions also change the
+    implicit theory context to that of the theory loaded.}  (see also
+  \cite[\S1,\S6]{isabelle-ref}).  Note that both the ML and Isar versions may
+  load new- and old-style theories alike.
 \end{descr}
 
-Note that these system commands are scarcely used when working with the
-Proof~General interface, since loading of theories is done fully
-transparently.
+These system commands are scarcely used when working with the Proof~General
+interface, since loading of theories is done fully transparently.
 
 %%% Local Variables: 
 %%% mode: latex
