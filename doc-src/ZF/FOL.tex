@@ -12,16 +12,16 @@ classical reasoner, which simulates a sequent calculus.
 
 \section{Syntax and rules of inference}
 The logic is many-sorted, using Isabelle's type classes.  The class of
-first-order terms is called \cldx{term} and is a subclass of \texttt{logic}.
+first-order terms is called \cldx{term} and is a subclass of \isa{logic}.
 No types of individuals are provided, but extensions can define types such
-as \texttt{nat::term} and type constructors such as \texttt{list::(term)term}
+as \isa{nat::term} and type constructors such as \isa{list::(term)term}
 (see the examples directory, \texttt{FOL/ex}).  Below, the type variable
-$\alpha$ ranges over class \texttt{term}; the equality symbol and quantifiers
+$\alpha$ ranges over class \isa{term}; the equality symbol and quantifiers
 are polymorphic (many-sorted).  The type of formulae is~\tydx{o}, which
 belongs to class~\cldx{logic}.  Figure~\ref{fol-syntax} gives the syntax.
 Note that $a$\verb|~=|$b$ is translated to $\neg(a=b)$.
 
-Figure~\ref{fol-rules} shows the inference rules with their~\ML\ names.
+Figure~\ref{fol-rules} shows the inference rules with their names.
 Negation is defined in the usual way for intuitionistic logic; $\neg P$
 abbreviates $P\imp\bot$.  The biconditional~($\bimp$) is defined through
 $\conj$ and~$\imp$; introduction and elimination rules are derived for it.
@@ -33,7 +33,7 @@ $\exists!x. \exists!y.P(x,y)$; note that this does not mean that there
 exists a unique pair $(x,y)$ satisfying~$P(x,y)$.
 
 Some intuitionistic derived rules are shown in
-Fig.\ts\ref{fol-int-derived}, again with their \ML\ names.  These include
+Fig.\ts\ref{fol-int-derived}, again with their names.  These include
 rules for the defined symbols $\neg$, $\bimp$ and $\exists!$.  Natural
 deduction typically involves a combination of forward and backward
 reasoning, particularly with the destruction rules $(\conj E)$,
@@ -41,12 +41,11 @@ $({\imp}E)$, and~$(\forall E)$.  Isabelle's backward style handles these
 rules badly, so sequent-style rules are derived to eliminate conjunctions,
 implications, and universal quantifiers.  Used with elim-resolution,
 \tdx{allE} eliminates a universal quantifier while \tdx{all_dupE}
-re-inserts the quantified formula for later use.  The rules {\tt
-conj_impE}, etc., support the intuitionistic proof procedure
+re-inserts the quantified formula for later use.  The rules
+\isa{conj\_impE}, etc., support the intuitionistic proof procedure
 (see~\S\ref{fol-int-prover}).
 
-See the files \texttt{FOL/IFOL.thy}, \texttt{FOL/IFOL.ML} and
-\texttt{FOL/intprover.ML} for complete listings of the rules and
+See the on-line theory library for complete listings of the rules and
 derived rules.
 
 \begin{figure} 
@@ -68,7 +67,7 @@ derived rules.
         universal quantifier ($\forall$) \\
   \sdx{EX}   & \cdx{Ex}   & $(\alpha\To o)\To o$ & 10 & 
         existential quantifier ($\exists$) \\
-  \texttt{EX!}  & \cdx{Ex1}  & $(\alpha\To o)\To o$ & 10 & 
+  \isa{EX!}  & \cdx{Ex1}  & $(\alpha\To o)\To o$ & 10 & 
         unique existence ($\exists!$)
 \end{tabular}
 \index{*"E"X"! symbol}
@@ -195,36 +194,32 @@ derived rules.
 FOL instantiates most of Isabelle's generic packages.
 \begin{itemize}
 \item 
-It instantiates the simplifier.  Both equality ($=$) and the biconditional
-($\bimp$) may be used for rewriting.  Tactics such as \texttt{Asm_simp_tac} and
-\texttt{Full_simp_tac} refer to the default simpset (\texttt{simpset()}), which works for
-most purposes.  Named simplification sets include \ttindexbold{IFOL_ss},
-for intuitionistic first-order logic, and \ttindexbold{FOL_ss},
-for classical logic.  See the file
-\texttt{FOL/simpdata.ML} for a complete listing of the simplification
-rules%
-\iflabelundefined{sec:setting-up-simp}{}%
-        {, and \S\ref{sec:setting-up-simp} for discussion}.
+It instantiates the simplifier, which is invoked through the method 
+\isa{simp}.  Both equality ($=$) and the biconditional
+($\bimp$) may be used for rewriting.  
 
 \item 
-It instantiates the classical reasoner.  See~\S\ref{fol-cla-prover}
+It instantiates the classical reasoner, which is invoked mainly through the 
+methods \isa{blast} and \isa{auto}.  See~\S\ref{fol-cla-prover}
 for details. 
-
-\item FOL provides the tactic \ttindex{hyp_subst_tac}, which substitutes for
-  an equality throughout a subgoal and its hypotheses.  This tactic uses FOL's
-  general substitution rule.
+%
+%\item FOL provides the tactic \ttindex{hyp_subst_tac}, which substitutes for
+%  an equality throughout a subgoal and its hypotheses.  This tactic uses FOL's
+%  general substitution rule.
 \end{itemize}
 
 \begin{warn}\index{simplification!of conjunctions}%
-  Reducing $a=b\conj P(a)$ to $a=b\conj P(b)$ is sometimes advantageous.  The
+  Simplifying $a=b\conj P(a)$ to $a=b\conj P(b)$ is often advantageous.  The
   left part of a conjunction helps in simplifying the right part.  This effect
   is not available by default: it can be slow.  It can be obtained by
-  including \ttindex{conj_cong} in a simpset, \verb$addcongs [conj_cong]$.
+  including the theorem \isa{conj_cong}\index{*conj_cong (rule)}%
+  as a congruence rule in
+  simplification, \isa{simp cong:\ conj\_cong}.
 \end{warn}
 
 
 \section{Intuitionistic proof procedures} \label{fol-int-prover}
-Implication elimination (the rules~\texttt{mp} and~\texttt{impE}) pose
+Implication elimination (the rules~\isa{mp} and~\isa{impE}) pose
 difficulties for automated proof.  In intuitionistic logic, the assumption
 $P\imp Q$ cannot be treated like $\neg P\disj Q$.  Given $P\imp Q$, we may
 use~$Q$ provided we can prove~$P$; the proof of~$P$ may require repeated
@@ -238,21 +233,22 @@ twice:
 \[ \infer[({\imp}E)]{Q}{P\imp Q &
        \infer[({\imp}E)]{P}{(P\imp Q)\imp P & P\imp Q}} 
 \]
-The theorem prover for intuitionistic logic does not use~\texttt{impE}.\@
+The theorem prover for intuitionistic logic does not use~\isa{impE}.\@
 Instead, it simplifies implications using derived rules
 (Fig.\ts\ref{fol-int-derived}).  It reduces the antecedents of implications
 to atoms and then uses Modus Ponens: from $P\imp Q$ and~$P$ deduce~$Q$.
 The rules \tdx{conj_impE} and \tdx{disj_impE} are 
 straightforward: $(P\conj Q)\imp S$ is equivalent to $P\imp (Q\imp S)$, and
 $(P\disj Q)\imp S$ is equivalent to the conjunction of $P\imp S$ and $Q\imp
-S$.  The other \ldots{\tt_impE} rules are unsafe; the method requires
+S$.  The other \ldots\isa{\_impE} rules are unsafe; the method requires
 backtracking.  All the rules are derived in the same simple manner.
 
 Dyckhoff has independently discovered similar rules, and (more importantly)
 has demonstrated their completeness for propositional
 logic~\cite{dyckhoff}.  However, the tactics given below are not complete
 for first-order logic because they discard universally quantified
-assumptions after a single use.
+assumptions after a single use. These are \ML{} functions, and are listed
+below with their \ML{} type:
 \begin{ttbox} 
 mp_tac              : int -> tactic
 eq_mp_tac           : int -> tactic
@@ -263,8 +259,13 @@ IntPr.step_tac      : int -> tactic
 IntPr.fast_tac      : int -> tactic
 IntPr.best_tac      : int -> tactic
 \end{ttbox}
-Most of these belong to the structure \texttt{IntPr} and resemble the
-tactics of Isabelle's classical reasoner.
+Most of these belong to the structure \ML{} \texttt{IntPr} and resemble the
+tactics of Isabelle's classical reasoner.  Note that you can use the 
+\isa{tactic} method to call \ML{} tactics in an Isar script:
+\begin{isabelle}
+\isacommand{apply}\ (tactic\ {* IntPr.fast\_tac 1*})
+\end{isabelle}
+Here is a description of each tactic:
 
 \begin{ttdescription}
 \item[\ttindexbold{mp_tac} {\it i}] 
@@ -336,14 +337,15 @@ derives classical introduction rules for $\disj$ and~$\exists$, as well as
 classical elimination rules for~$\imp$ and~$\bimp$, and the swap rule (see
 Fig.\ts\ref{fol-cla-derived}).
 
-The classical reasoner is installed.  Tactics such as \texttt{Blast_tac} and {\tt
-Best_tac} refer to the default claset (\texttt{claset()}), which works for most
-purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
-propositional rules, and \ttindexbold{FOL_cs}, which also includes quantifier
-rules.  See the file \texttt{FOL/cladata.ML} for lists of the
-classical rules, and 
+The classical reasoner is installed.  The most useful methods are
+\isa{blast} (pure classical reasoning) and \isa{auto} (classical reasoning
+combined with simplification), but the full range of
+methods is available, including \isa{clarify},
+\isa{fast}, \isa{best} and \isa{force}. 
+ See the 
 \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
         {Chap.\ts\ref{chap:classical}} 
+and the \emph{Tutorial}~\cite{isa-tutorial}
 for more discussion of classical proof methods.
 
 
@@ -352,106 +354,93 @@ Here is a session similar to one in {\em Logic and Computation}
 \cite[pages~222--3]{paulson87}.  Isabelle treats quantifiers differently
 from {\sc lcf}-based theorem provers such as {\sc hol}.  
 
-First, we specify that we are working in intuitionistic logic:
-\begin{ttbox}
-context IFOL.thy;
-\end{ttbox}
+The theory header must specify that we are working in intuitionistic
+logic:
+\begin{isabelle}
+\isacommand{theory}\ IFOL\_examples\ =\ IFOL:
+\end{isabelle}
 The proof begins by entering the goal, then applying the rule $({\imp}I)$.
-\begin{ttbox}
-Goal "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
-{\out Level 0}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-\ttbreak
-by (resolve_tac [impI] 1);
-{\out Level 1}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. EX y. ALL x. Q(x,y) ==> ALL x. EX y. Q(x,y)}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{lemma}\ "(EX\ y.\ ALL\ x.\ Q(x,y))\ -->\ \ (ALL\ x.\ EX\ y.\ Q(x,y))"\isanewline
+\ 1.\ (\isasymexists y.\ \isasymforall x.\ Q(x,\ y))\
+\isasymlongrightarrow \ (\isasymforall x.\ \isasymexists y.\ Q(x,\ y))
+\isanewline
+\isacommand{apply}\ (rule\ impI)\isanewline
+\ 1.\ \isasymexists y.\ \isasymforall x.\ Q(x,\ y)\
+\isasymLongrightarrow \ \isasymforall x.\ \isasymexists y.\ Q(x,\ y)
+\end{isabelle}
+Isabelle's output is shown as it would appear using Proof General.
 In this example, we shall never have more than one subgoal.  Applying
-$({\imp}I)$ replaces~\verb|-->| by~\verb|==>|, making
-\(\ex{y}\all{x}Q(x,y)\) an assumption.  We have the choice of
+$({\imp}I)$ replaces~\isa{\isasymlongrightarrow}
+by~\isa{\isasymLongrightarrow}, so that
+\(\ex{y}\all{x}Q(x,y)\) becomes an assumption.  We have the choice of
 $({\exists}E)$ and $({\forall}I)$; let us try the latter.
-\begin{ttbox}
-by (resolve_tac [allI] 1);
-{\out Level 2}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)}
-\end{ttbox}
-Applying $({\forall}I)$ replaces the \texttt{ALL~x} by \hbox{\tt!!x},
-changing the universal quantifier from object~($\forall$) to
-meta~($\Forall$).  The bound variable is a {\bf parameter} of the
-subgoal.  We now must choose between $({\exists}I)$ and $({\exists}E)$.  What
-happens if the wrong rule is chosen?
-\begin{ttbox}
-by (resolve_tac [exI] 1);
-{\out Level 3}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. !!x. EX y. ALL x. Q(x,y) ==> Q(x,?y2(x))}
-\end{ttbox}
-The new subgoal~1 contains the function variable {\tt?y2}.  Instantiating
-{\tt?y2} can replace~{\tt?y2(x)} by a term containing~\texttt{x}, even
-though~\texttt{x} is a bound variable.  Now we analyse the assumption
+\begin{isabelle}
+\isacommand{apply}\ (rule\ allI)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymexists y.\ \isasymforall x.\ Q(x,\ y)\
+\isasymLongrightarrow \ \isasymexists y.\ Q(x,\ y)\hfill\((*)\)
+\end{isabelle}
+Applying $({\forall}I)$ replaces the \isa{\isasymforall
+x} (in ASCII, \isa{ALL~x}) by \isa{\isasymAnd x}
+(or \isa{!!x}), replacing FOL's universal quantifier by Isabelle's 
+meta universal quantifier.  The bound variable is a {\bf parameter} of
+the subgoal.  We now must choose between $({\exists}I)$ and
+$({\exists}E)$.  What happens if the wrong rule is chosen?
+\begin{isabelle}
+\isacommand{apply}\ (rule\ exI)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymexists y.\ \isasymforall x.\ Q(x,\ y)\
+\isasymLongrightarrow \ Q(x,\ ?y2(x))
+\end{isabelle}
+The new subgoal~1 contains the function variable \isa{?y2}.  Instantiating
+\isa{?y2} can replace~\isa{?y2(x)} by a term containing~\isa{x}, even
+though~\isa{x} is a bound variable.  Now we analyse the assumption
 \(\exists y.\forall x. Q(x,y)\) using elimination rules:
-\begin{ttbox}
-by (eresolve_tac [exE] 1);
-{\out Level 4}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. !!x y. ALL x. Q(x,y) ==> Q(x,?y2(x))}
-\end{ttbox}
-Applying $(\exists E)$ has produced the parameter \texttt{y} and stripped the
+\begin{isabelle}
+\isacommand{apply}\ (erule\ exE)\isanewline
+\ 1.\ \isasymAnd x\ y.\ \isasymforall x.\ Q(x,\ y)\ \isasymLongrightarrow \ Q(x,\ ?y2(x))
+\end{isabelle}
+Applying $(\exists E)$ has produced the parameter \isa{y} and stripped the
 existential quantifier from the assumption.  But the subgoal is unprovable:
-there is no way to unify \texttt{?y2(x)} with the bound variable~\texttt{y}.
-Using \texttt{choplev} we can return to the critical point.  This time we
-apply $({\exists}E)$:
-\begin{ttbox}
-choplev 2;
-{\out Level 2}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. !!x. EX y. ALL x. Q(x,y) ==> EX y. Q(x,y)}
-\ttbreak
-by (eresolve_tac [exE] 1);
-{\out Level 3}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. !!x y. ALL x. Q(x,y) ==> EX y. Q(x,y)}
-\end{ttbox}
+there is no way to unify \isa{?y2(x)} with the bound variable~\isa{y}.
+Using Proof General, we can return to the critical point, marked
+$(*)$ above.  This time we apply $({\exists}E)$:
+\begin{isabelle}
+\isacommand{apply}\ (erule\ exE)\isanewline
+\ 1.\ \isasymAnd x\ y.\ \isasymforall x.\ Q(x,\ y)\
+\isasymLongrightarrow \ \isasymexists y.\ Q(x,\ y)
+\end{isabelle}
 We now have two parameters and no scheme variables.  Applying
 $({\exists}I)$ and $({\forall}E)$ produces two scheme variables, which are
 applied to those parameters.  Parameters should be produced early, as this
 example demonstrates.
-\begin{ttbox}
-by (resolve_tac [exI] 1);
-{\out Level 4}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. !!x y. ALL x. Q(x,y) ==> Q(x,?y3(x,y))}
-\ttbreak
-by (eresolve_tac [allE] 1);
-{\out Level 5}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. !!x y. Q(?x4(x,y),y) ==> Q(x,?y3(x,y))}
-\end{ttbox}
-The subgoal has variables \texttt{?y3} and \texttt{?x4} applied to both
-parameters.  The obvious projection functions unify {\tt?x4(x,y)} with~{\tt
-x} and \verb|?y3(x,y)| with~\texttt{y}.
-\begin{ttbox}
-by (assume_tac 1);
-{\out Level 6}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out No subgoals!}
-\end{ttbox}
-The theorem was proved in six tactic steps, not counting the abandoned
-ones.  But proof checking is tedious; \ttindex{IntPr.fast_tac} proves the
-theorem in one step.
-\begin{ttbox}
-Goal "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))";
-{\out Level 0}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out  1. (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-by (IntPr.fast_tac 1);
-{\out Level 1}
-{\out (EX y. ALL x. Q(x,y)) --> (ALL x. EX y. Q(x,y))}
-{\out No subgoals!}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ exI)\isanewline
+\ 1.\ \isasymAnd x\ y.\ \isasymforall x.\ Q(x,\ y)\
+\isasymLongrightarrow \ Q(x,\ ?y3(x,\ y))
+\isanewline
+\isacommand{apply}\ (erule\ allE)\isanewline
+\ 1.\ \isasymAnd x\ y.\ Q(?x4(x,\ y),\ y)\ \isasymLongrightarrow \
+Q(x,\ ?y3(x,\ y))
+\end{isabelle}
+The subgoal has variables \isa{?y3} and \isa{?x4} applied to both
+parameters.  The obvious projection functions unify \isa{?x4(x,y)} with~\isa{
+x} and \isa{?y3(x,y)} with~\isa{y}.
+\begin{isabelle}
+\isacommand{apply}\ assumption\isanewline
+No\ subgoals!\isanewline
+\isacommand{done}
+\end{isabelle}
+The theorem was proved in six method invocations, not counting the
+abandoned ones.  But proof checking is tedious, and the \ML{} tactic
+\ttindex{IntPr.fast_tac} can prove the theorem in one step.
+\begin{isabelle}
+\isacommand{lemma}\ "(EX\ y.\ ALL\ x.\ Q(x,y))\ -->\ \ (ALL\ x.\ EX\ y.\ Q(x,y))"\isanewline
+\ 1.\ (\isasymexists y.\ \isasymforall x.\ Q(x,\ y))\
+\isasymlongrightarrow \ (\isasymforall x.\ \isasymexists y.\ Q(x,\ y))
+\isanewline
+\isacommand{by} (tactic {*IntPr.fast_tac 1*})\isanewline
+No\ subgoals!
+\end{isabelle}
 
 
 \section{An example of intuitionistic negation}
@@ -463,168 +452,151 @@ Propositional examples are easy to invent.  As Dummett notes~\cite[page
 28]{dummett}, $\neg P$ is classically provable if and only if it is
 intuitionistically provable;  therefore, $P$ is classically provable if and
 only if $\neg\neg P$ is intuitionistically provable.%
-\footnote{Of course this holds only for propositional logic, not if $P$ is
-  allowed to contain quantifiers.} Proving $\neg\neg P$ intuitionistically is
+\footnote{This remark holds only for propositional logic, not if $P$ is
+  allowed to contain quantifiers.}
+%
+Proving $\neg\neg P$ intuitionistically is
 much harder than proving~$P$ classically.
 
 Our example is the double negation of the classical tautology $(P\imp
-Q)\disj (Q\imp P)$.  When stating the goal, we command Isabelle to expand
-negations to implications using the definition $\neg P\equiv P\imp\bot$.
-This allows use of the special implication rules.
-\begin{ttbox}
-Goalw [not_def] "~ ~ ((P-->Q) | (Q-->P))";
-{\out Level 0}
-{\out ~ ~ ((P --> Q) | (Q --> P))}
-{\out  1. ((P --> Q) | (Q --> P) --> False) --> False}
-\end{ttbox}
-The first step is trivial.
-\begin{ttbox}
-by (resolve_tac [impI] 1);
-{\out Level 1}
-{\out ~ ~ ((P --> Q) | (Q --> P))}
-{\out  1. (P --> Q) | (Q --> P) --> False ==> False}
-\end{ttbox}
+Q)\disj (Q\imp P)$.  The first step is apply the
+\isa{unfold} method, which expands
+negations to implications using the definition $\neg P\equiv P\imp\bot$
+and allows use of the special implication rules.
+\begin{isabelle}
+\isacommand{lemma}\ "\isachartilde \ \isachartilde \ ((P-->Q)\ |\ (Q-->P))"\isanewline
+\ 1.\ \isasymnot \ \isasymnot \ ((P\ \isasymlongrightarrow \ Q)\ \isasymor \ (Q\ \isasymlongrightarrow \ P))
+\isanewline
+\isacommand{apply}\ (unfold\ not\_def)\isanewline
+\ 1.\ ((P\ \isasymlongrightarrow \ Q)\ \isasymor \ (Q\ \isasymlongrightarrow \ P)\ \isasymlongrightarrow \ False)\ \isasymlongrightarrow \ False%
+\end{isabelle}
+The next step is a trivial use of $(\imp I)$.
+\begin{isabelle}
+\isacommand{apply}\ (rule\ impI)\isanewline
+\ 1.\ (P\ \isasymlongrightarrow \ Q)\ \isasymor \ (Q\ \isasymlongrightarrow \ P)\ \isasymlongrightarrow \ False\ \isasymLongrightarrow \ False%
+\end{isabelle}
 By $(\imp E)$ it would suffice to prove $(P\imp Q)\disj (Q\imp P)$, but
-that formula is not a theorem of intuitionistic logic.  Instead we apply
-the specialized implication rule \tdx{disj_impE}.  It splits the
+that formula is not a theorem of intuitionistic logic.  Instead, we
+apply the specialized implication rule \tdx{disj_impE}.  It splits the
 assumption into two assumptions, one for each disjunct.
-\begin{ttbox}
-by (eresolve_tac [disj_impE] 1);
-{\out Level 2}
-{\out ~ ~ ((P --> Q) | (Q --> P))}
-{\out  1. [| (P --> Q) --> False; (Q --> P) --> False |] ==> False}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (erule\ disj\_impE)\isanewline
+\ 1.\ \isasymlbrakk (P\ \isasymlongrightarrow \ Q)\ \isasymlongrightarrow \ False;\ (Q\ \isasymlongrightarrow \ P)\ \isasymlongrightarrow \ False\isasymrbrakk \ \isasymLongrightarrow \
+False
+\end{isabelle}
 We cannot hope to prove $P\imp Q$ or $Q\imp P$ separately, but
 their negations are inconsistent.  Applying \tdx{imp_impE} breaks down
 the assumption $\neg(P\imp Q)$, asking to show~$Q$ while providing new
 assumptions~$P$ and~$\neg Q$.
-\begin{ttbox}
-by (eresolve_tac [imp_impE] 1);
-{\out Level 3}
-{\out ~ ~ ((P --> Q) | (Q --> P))}
-{\out  1. [| (Q --> P) --> False; P; Q --> False |] ==> Q}
-{\out  2. [| (Q --> P) --> False; False |] ==> False}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (erule\ imp\_impE)\isanewline
+\ 1.\ \isasymlbrakk (Q\ \isasymlongrightarrow \ P)\ \isasymlongrightarrow \ False;\ P;\ Q\ \isasymlongrightarrow \ False\isasymrbrakk \ \isasymLongrightarrow \ Q\isanewline
+\ 2.\ \isasymlbrakk (Q\ \isasymlongrightarrow \ P)\ \isasymlongrightarrow \ False;\ False\isasymrbrakk \ \isasymLongrightarrow \
+False
+\end{isabelle}
 Subgoal~2 holds trivially; let us ignore it and continue working on
 subgoal~1.  Thanks to the assumption~$P$, we could prove $Q\imp P$;
 applying \tdx{imp_impE} is simpler.
-\begin{ttbox}
-by (eresolve_tac [imp_impE] 1);
-{\out Level 4}
-{\out ~ ~ ((P --> Q) | (Q --> P))}
-{\out  1. [| P; Q --> False; Q; P --> False |] ==> P}
-{\out  2. [| P; Q --> False; False |] ==> Q}
-{\out  3. [| (Q --> P) --> False; False |] ==> False}
-\end{ttbox}
+\begin{isabelle}
+\ \isacommand{apply}\ (erule\ imp\_impE)\isanewline
+\ 1.\ \isasymlbrakk P;\ Q\ \isasymlongrightarrow \ False;\ Q;\ P\ \isasymlongrightarrow \ False\isasymrbrakk \ \isasymLongrightarrow \ P\isanewline
+\ 2.\ \isasymlbrakk P;\ Q\ \isasymlongrightarrow \ False;\ False\isasymrbrakk \ \isasymLongrightarrow \ Q\isanewline
+\ 3.\ \isasymlbrakk (Q\ \isasymlongrightarrow \ P)\ \isasymlongrightarrow \ False;\ False\isasymrbrakk \ \isasymLongrightarrow \ False%
+\end{isabelle}
 The three subgoals are all trivial.
-\begin{ttbox}
-by (REPEAT (eresolve_tac [FalseE] 2));
-{\out Level 5}
-{\out ~ ~ ((P --> Q) | (Q --> P))}
-{\out  1. [| P; Q --> False; Q; P --> False |] ==> P}
-\ttbreak
-by (assume_tac 1);
-{\out Level 6}
-{\out ~ ~ ((P --> Q) | (Q --> P))}
-{\out No subgoals!}
-\end{ttbox}
-This proof is also trivial for \texttt{IntPr.fast_tac}.
+\begin{isabelle}
+\isacommand{apply}\ assumption\ \isanewline
+\ 1.\ \isasymlbrakk P;\ Q\ \isasymlongrightarrow \ False;\
+False\isasymrbrakk \ \isasymLongrightarrow \ Q\isanewline
+\ 2.\ \isasymlbrakk (Q\ \isasymlongrightarrow \ P)\
+\isasymlongrightarrow \ False;\ False\isasymrbrakk \
+\isasymLongrightarrow \ False%
+\isanewline
+\isacommand{apply}\ (erule\ FalseE)+\isanewline
+No\ subgoals!\isanewline
+\isacommand{done}
+\end{isabelle}
+This proof is also trivial for the \ML{} tactic \isa{IntPr.fast_tac}.
 
 
 \section{A classical example} \label{fol-cla-example}
 To illustrate classical logic, we shall prove the theorem
 $\ex{y}\all{x}P(y)\imp P(x)$.  Informally, the theorem can be proved as
 follows.  Choose~$y$ such that~$\neg P(y)$, if such exists; otherwise
-$\all{x}P(x)$ is true.  Either way the theorem holds.  First, we switch to
-classical logic:
-\begin{ttbox}
-context FOL.thy;
-\end{ttbox}
+$\all{x}P(x)$ is true.  Either way the theorem holds.  First, we must
+work in a theory based on classical logic:
+\begin{isabelle}
+\isacommand{theory}\ FOL\_examples\ =\ FOL:
+\end{isabelle}
 
 The formal proof does not conform in any obvious way to the sketch given
-above.  The key inference is the first one, \tdx{exCI}; this classical
-version of~$(\exists I)$ allows multiple instantiation of the quantifier.
-\begin{ttbox}
-Goal "EX y. ALL x. P(y)-->P(x)";
-{\out Level 0}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. EX y. ALL x. P(y) --> P(x)}
-\ttbreak
-by (resolve_tac [exCI] 1);
-{\out Level 1}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. ALL y. ~ (ALL x. P(y) --> P(x)) ==> ALL x. P(?a) --> P(x)}
-\end{ttbox}
-We can either exhibit a term {\tt?a} to satisfy the conclusion of
+above.  Its key step is its first rule, \tdx{exCI}, a classical
+version of~$(\exists I)$ that allows multiple instantiation of the
+quantifier.
+\begin{isabelle}
+\isacommand{lemma}\ "EX\ y.\ ALL\ x.\ P(y)-->P(x)"\isanewline
+\ 1.\ \isasymexists y.\ \isasymforall x.\ P(y)\ \isasymlongrightarrow \ P(x)
+\isanewline
+\isacommand{apply}\ (rule\ exCI)\isanewline
+\ 1.\ \isasymforall y.\ \isasymnot \ (\isasymforall x.\ P(y)\ \isasymlongrightarrow \ P(x))\ \isasymLongrightarrow \ \isasymforall x.\ P(?a)\ \isasymlongrightarrow \ P(x)
+\end{isabelle}
+We can either exhibit a term \isa{?a} to satisfy the conclusion of
 subgoal~1, or produce a contradiction from the assumption.  The next
 steps are routine.
-\begin{ttbox}
-by (resolve_tac [allI] 1);
-{\out Level 2}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. !!x. ALL y. ~ (ALL x. P(y) --> P(x)) ==> P(?a) --> P(x)}
-\ttbreak
-by (resolve_tac [impI] 1);
-{\out Level 3}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. !!x. [| ALL y. ~ (ALL x. P(y) --> P(x)); P(?a) |] ==> P(x)}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ allI)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymforall y.\ \isasymnot \ (\isasymforall x.\ P(y)\ \isasymlongrightarrow \ P(x))\ \isasymLongrightarrow \ P(?a)\ \isasymlongrightarrow \ P(x)
+\isanewline
+\isacommand{apply}\ (rule\ impI)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymlbrakk \isasymforall y.\ \isasymnot \ (\isasymforall x.\ P(y)\ \isasymlongrightarrow \ P(x));\ P(?a)\isasymrbrakk \ \isasymLongrightarrow \ P(x)
+\end{isabelle}
 By the duality between $\exists$ and~$\forall$, applying~$(\forall E)$
-in effect applies~$(\exists I)$ again.
-\begin{ttbox}
-by (eresolve_tac [allE] 1);
-{\out Level 4}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. !!x. [| P(?a); ~ (ALL xa. P(?y3(x)) --> P(xa)) |] ==> P(x)}
-\end{ttbox}
+is equivalent to applying~$(\exists I)$ again.
+\begin{isabelle}
+\isacommand{apply}\ (erule\ allE)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymlbrakk P(?a);\ \isasymnot \ (\isasymforall xa.\ P(?y3(x))\ \isasymlongrightarrow \ P(xa))\isasymrbrakk \ \isasymLongrightarrow \ P(x)
+\end{isabelle}
 In classical logic, a negated assumption is equivalent to a conclusion.  To
 get this effect, we create a swapped version of $(\forall I)$ and apply it
-using \ttindex{eresolve_tac}; we could equivalently have applied $(\forall
-I)$ using \ttindex{swap_res_tac}.
-\begin{ttbox}
-allI RSN (2,swap);
-{\out val it = "[| ~(ALL x. ?P1(x)); !!x. ~ ?Q ==> ?P1(x) |] ==> ?Q" : thm}
-by (eresolve_tac [it] 1);
-{\out Level 5}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. !!x xa. [| P(?a); ~ P(x) |] ==> P(?y3(x)) --> P(xa)}
-\end{ttbox}
-The previous conclusion, \texttt{P(x)}, has become a negated assumption.
-\begin{ttbox}
-by (resolve_tac [impI] 1);
-{\out Level 6}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. !!x xa. [| P(?a); ~ P(x); P(?y3(x)) |] ==> P(xa)}
-\end{ttbox}
+using \ttindex{erule}.
+\begin{isabelle}
+\isacommand{apply}\ (erule\ allI\ [THEN\ [2]\ swap])\isanewline
+\ 1.\ \isasymAnd x\ xa.\ \isasymlbrakk P(?a);\ \isasymnot \ P(x)\isasymrbrakk \ \isasymLongrightarrow \ P(?y3(x))\ \isasymlongrightarrow \ P(xa)
+\end{isabelle}
+The operand of \isa{erule} above denotes the following theorem:
+\begin{isabelle}
+\ \ \ \ \isasymlbrakk \isasymnot \ (\isasymforall x.\ ?P1(x));\
+\isasymAnd x.\ \isasymnot \ ?P\ \isasymLongrightarrow \
+?P1(x)\isasymrbrakk \
+\isasymLongrightarrow \ ?P%
+\end{isabelle}
+The previous conclusion, \isa{P(x)}, has become a negated assumption.
+\begin{isabelle}
+\isacommand{apply}\ (rule\ impI)\isanewline
+\ 1.\ \isasymAnd x\ xa.\ \isasymlbrakk P(?a);\ \isasymnot \ P(x);\ P(?y3(x))\isasymrbrakk \ \isasymLongrightarrow \ P(xa)
+\end{isabelle}
 The subgoal has three assumptions.  We produce a contradiction between the
-\index{assumptions!contradictory} assumptions~\verb|~P(x)| and~{\tt
-  P(?y3(x))}.  The proof never instantiates the unknown~{\tt?a}.
-\begin{ttbox}
-by (eresolve_tac [notE] 1);
-{\out Level 7}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. !!x xa. [| P(?a); P(?y3(x)) |] ==> P(x)}
-\ttbreak
-by (assume_tac 1);
-{\out Level 8}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out No subgoals!}
-\end{ttbox}
-The civilised way to prove this theorem is through \ttindex{Blast_tac},
-which automatically uses the classical version of~$(\exists I)$:
-\begin{ttbox}
-Goal "EX y. ALL x. P(y)-->P(x)";
-{\out Level 0}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out  1. EX y. ALL x. P(y) --> P(x)}
-by (Blast_tac 1);
-{\out Depth = 0}
-{\out Depth = 1}
-{\out Depth = 2}
-{\out Level 1}
-{\out EX y. ALL x. P(y) --> P(x)}
-{\out No subgoals!}
-\end{ttbox}
+\index{assumptions!contradictory} assumptions~\isa{\isasymnot P(x)}
+and~\isa{P(?y3(x))}.   The proof never instantiates the
+unknown~\isa{?a}.
+\begin{isabelle}
+\isacommand{apply}\ (erule\ notE)\isanewline
+\ 1.\ \isasymAnd x\ xa.\ \isasymlbrakk P(?a);\ P(?y3(x))\isasymrbrakk \ \isasymLongrightarrow \ P(x)
+\isanewline
+\isacommand{apply}\ assumption\isanewline
+No\ subgoals!\isanewline
+\isacommand{done}
+\end{isabelle}
+The civilised way to prove this theorem is using the
+\methdx{blast} method, which automatically uses the classical form
+of the rule~$(\exists I)$:
+\begin{isabelle}
+\isacommand{lemma}\ "EX\ y.\ ALL\ x.\ P(y)-->P(x)"\isanewline
+\ 1.\ \isasymexists y.\ \isasymforall x.\ P(y)\ \isasymlongrightarrow \ P(x)
+\isanewline
+\isacommand{by}\ blast\isanewline
+No\ subgoals!
+\end{isabelle}
 If this theorem seems counterintuitive, then perhaps you are an
 intuitionist.  In constructive logic, proving $\ex{y}\all{x}P(y)\imp P(x)$
 requires exhibiting a particular term~$t$ such that $\all{x}P(t)\imp P(x)$,
@@ -655,17 +627,17 @@ Having made these plans, we get down to work with Isabelle.  The theory of
 classical logic, \texttt{FOL}, is extended with the constant
 $if::[o,o,o]\To o$.  The axiom \tdx{if_def} asserts the
 equation~$(if)$.
-\begin{ttbox}
-If = FOL +
-consts  if     :: [o,o,o]=>o
-rules   if_def "if(P,Q,R) == P&Q | ~P&R"
-end
-\end{ttbox}
+\begin{isabelle}
+\isacommand{theory}\ If\ =\ FOL:\isanewline
+\isacommand{constdefs}\isanewline
+\ \ if\ ::\ "[o,o,o]=>o"\isanewline
+\ \ \ "if(P,Q,R)\ ==\ P\&Q\ |\ \isachartilde P\&R"
+\end{isabelle}
 We create the file \texttt{If.thy} containing these declarations.  (This file
 is on directory \texttt{FOL/ex} in the Isabelle distribution.)  Typing
-\begin{ttbox}
+\begin{isabelle}
 use_thy "If";  
-\end{ttbox}
+\end{isabelle}
 loads that theory and sets it to be the current context.
 
 
@@ -673,264 +645,205 @@ loads that theory and sets it to be the current context.
 
 The derivations of the introduction and elimination rules demonstrate the
 methods for rewriting with definitions.  Classical reasoning is required,
-so we use \texttt{blast_tac}.
+so we use \isa{blast}.
 
 The introduction rule, given the premises $P\Imp Q$ and $\neg P\Imp R$,
-concludes $if(P,Q,R)$.  We propose the conclusion as the main goal
-using~\ttindex{Goalw}, which uses \texttt{if_def} to rewrite occurrences
-of $if$ in the subgoal.
-\begin{ttbox}
-val prems = Goalw [if_def]
-    "[| P ==> Q; ~ P ==> R |] ==> if(P,Q,R)";
-{\out Level 0}
-{\out if(P,Q,R)}
-{\out  1. P & Q | ~ P & R}
-\end{ttbox}
-The premises (bound to the {\ML} variable \texttt{prems}) are passed as
-introduction rules to \ttindex{blast_tac}.  Remember that \texttt{claset()} refers
-to the default classical set.
-\begin{ttbox}
-by (blast_tac (claset() addIs prems) 1);
-{\out Level 1}
-{\out if(P,Q,R)}
-{\out No subgoals!}
-qed "ifI";
-\end{ttbox}
+concludes $if(P,Q,R)$.  We propose this lemma and immediately simplify
+using \isa{if\_def} to expand the definition of \isa{if} in the
+subgoal.
+\begin{isabelle}
+\isacommand{lemma}\ ifI: "[|\ P\ ==>\ Q;\ \isachartilde P\ ==>\ R\
+|]\ ==>\ if(P,Q,R)"\isanewline
+\ 1.\ \isasymlbrakk P\ \isasymLongrightarrow \ Q;\ \isasymnot \ P\ \isasymLongrightarrow \ R\isasymrbrakk \ \isasymLongrightarrow \ if(P,\ Q,\ R)
+\isanewline
+\isacommand{apply}\ (simp\ add:\ if\_def)\isanewline
+\ 1.\ \isasymlbrakk P\ \isasymLongrightarrow \ Q;\ \isasymnot \ P\ \isasymLongrightarrow \ R\isasymrbrakk \ \isasymLongrightarrow \ P\ \isasymand \ Q\ \isasymor \ \isasymnot \ P\ \isasymand \
+R
+\end{isabelle}
+The rule's premises, although expressed using meta-level implication
+(\isa{\isasymLongrightarrow}) are passed as ordinary implications to
+\methdx{blast}.  
+\begin{isabelle}
+\isacommand{apply}\ blast\isanewline
+No\ subgoals!\isanewline
+\isacommand{done}
+\end{isabelle}
 
 
 \subsection{Deriving the elimination rule}
 The elimination rule has three premises, two of which are themselves rules.
 The conclusion is simply $S$.
-\begin{ttbox}
-val major::prems = Goalw [if_def]
-   "[| if(P,Q,R);  [| P; Q |] ==> S; [| ~ P; R |] ==> S |] ==> S";
-{\out Level 0}
-{\out S}
-{\out  1. S}
-\end{ttbox}
-The major premise contains an occurrence of~$if$, but the version returned
-by \ttindex{Goalw} (and bound to the {\ML} variable~\texttt{major}) has the
-definition expanded.  Now \ttindex{cut_facts_tac} inserts~\texttt{major} as an
-assumption in the subgoal, so that \ttindex{blast_tac} can break it down.
-\begin{ttbox}
-by (cut_facts_tac [major] 1);
-{\out Level 1}
-{\out S}
-{\out  1. P & Q | ~ P & R ==> S}
-\ttbreak
-by (blast_tac (claset() addIs prems) 1);
-{\out Level 2}
-{\out S}
-{\out No subgoals!}
-qed "ifE";
-\end{ttbox}
-As you may recall from
-\iflabelundefined{definitions}{{\em Introduction to Isabelle}}%
-        {\S\ref{definitions}}, there are other
-ways of treating definitions when deriving a rule.  We can start the
-proof using \texttt{Goal}, which does not expand definitions, instead of
-\texttt{Goalw}.  We can use \ttindex{rew_tac}
-to expand definitions in the subgoals---perhaps after calling
-\ttindex{cut_facts_tac} to insert the rule's premises.  We can use
-\ttindex{rewrite_rule}, which is a meta-inference rule, to expand
-definitions in the premises directly.
+\begin{isabelle}
+\isacommand{lemma}\ ifE:\isanewline
+\ \ \ "[|\ if(P,Q,R);\ \ [|P;\ Q|]\ ==>\ S;\ [|\isachartilde P;\ R|]\ ==>\ S\ |]\ ==>\ S"\isanewline
+\ 1.\ \isasymlbrakk if(P,\ Q,\ R);\ \isasymlbrakk P;\ Q\isasymrbrakk \ \isasymLongrightarrow \ S;\ \isasymlbrakk \isasymnot \ P;\ R\isasymrbrakk \ \isasymLongrightarrow \ S\isasymrbrakk \ \isasymLongrightarrow \ S%
+\isanewline
+\isacommand{apply}\ (simp\ add:\ if\_def)\isanewline
+\ 1.\ \isasymlbrakk P\ \isasymand \ Q\ \isasymor \ \isasymnot \ P\ \isasymand \ R;\ \isasymlbrakk P;\ Q\isasymrbrakk \ \isasymLongrightarrow \ S;\ \isasymlbrakk \isasymnot \ P;\ R\isasymrbrakk \ \isasymLongrightarrow \ S\isasymrbrakk \ \isasymLongrightarrow \ S%
+\end{isabelle}
+The proof script is the same as before: \isa{simp} followed by
+\isa{blast}:
+\begin{isabelle}
+\isacommand{apply}\ blast\isanewline
+No\ subgoals!\isanewline
+\isacommand{done}
+\end{isabelle}
 
 
 \subsection{Using the derived rules}
-The rules just derived have been saved with the {\ML} names \tdx{ifI}
-and~\tdx{ifE}.  They permit natural proofs of theorems such as the
-following:
+Our new derived rules, \tdx{ifI} and~\tdx{ifE}, permit natural
+proofs of theorems such as the following:
 \begin{eqnarray*}
     if(P, if(Q,A,B), if(Q,C,D)) & \bimp & if(Q,if(P,A,C),if(P,B,D)) \\
     if(if(P,Q,R), A, B)         & \bimp & if(P,if(Q,A,B),if(R,A,B))
 \end{eqnarray*}
 Proofs also require the classical reasoning rules and the $\bimp$
-introduction rule (called~\tdx{iffI}: do not confuse with~\texttt{ifI}). 
+introduction rule (called~\tdx{iffI}: do not confuse with~\isa{ifI}). 
 
 To display the $if$-rules in action, let us analyse a proof step by step.
-\begin{ttbox}
-Goal "if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))";
-{\out Level 0}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out  1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-\ttbreak
-by (resolve_tac [iffI] 1);
-{\out Level 1}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out  1. if(P,if(Q,A,B),if(Q,C,D)) ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  2. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{lemma}\ if\_commute:\isanewline
+\ \ \ \ \ "if(P,\ if(Q,A,B),\
+if(Q,C,D))\ <->\ if(Q,\ if(P,A,C),\ if(P,B,D))"\isanewline
+\isacommand{apply}\ (rule\ iffI)\isanewline
+\ 1.\ if(P,\ if(Q,\ A,\ B),\ if(Q,\ C,\ D))\ \isasymLongrightarrow \isanewline
+\isaindent{\ 1.\ }if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 2.\ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\ \isasymLongrightarrow \isanewline
+\isaindent{\ 2.\ }if(P,\ if(Q,\ A,\ B),\ if(Q,\ C,\ D))
+\end{isabelle}
 The $if$-elimination rule can be applied twice in succession.
-\begin{ttbox}
-by (eresolve_tac [ifE] 1);
-{\out Level 2}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out  1. [| P; if(Q,A,B) |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  2. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  3. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
-\ttbreak
-by (eresolve_tac [ifE] 1);
-{\out Level 3}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out  1. [| P; Q; A |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  2. [| P; ~ Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  3. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  4. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (erule\ ifE)\isanewline
+\ 1.\ \isasymlbrakk P;\ if(Q,\ A,\ B)\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 2.\ \isasymlbrakk \isasymnot \ P;\ if(Q,\ C,\ D)\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 3.\ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\ \isasymLongrightarrow \isanewline
+\isaindent{\ 3.\ }if(P,\ if(Q,\ A,\ B),\ if(Q,\ C,\ D))
+\isanewline
+\isacommand{apply}\ (erule\ ifE)\isanewline
+\ 1.\ \isasymlbrakk P;\ Q;\ A\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 2.\ \isasymlbrakk P;\ \isasymnot \ Q;\ B\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 3.\ \isasymlbrakk \isasymnot \ P;\ if(Q,\ C,\ D)\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 4.\ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\ \isasymLongrightarrow \isanewline
+\isaindent{\ 4.\ }if(P,\ if(Q,\ A,\ B),\ if(Q,\ C,\ D))
+\end{isabelle}
 %
 In the first two subgoals, all assumptions have been reduced to atoms.  Now
 $if$-introduction can be applied.  Observe how the $if$-rules break down
 occurrences of $if$ when they become the outermost connective.
-\begin{ttbox}
-by (resolve_tac [ifI] 1);
-{\out Level 4}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out  1. [| P; Q; A; Q |] ==> if(P,A,C)}
-{\out  2. [| P; Q; A; ~ Q |] ==> if(P,B,D)}
-{\out  3. [| P; ~ Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  4. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  5. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
-\ttbreak
-by (resolve_tac [ifI] 1);
-{\out Level 5}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out  1. [| P; Q; A; Q; P |] ==> A}
-{\out  2. [| P; Q; A; Q; ~ P |] ==> C}
-{\out  3. [| P; Q; A; ~ Q |] ==> if(P,B,D)}
-{\out  4. [| P; ~ Q; B |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  5. [| ~ P; if(Q,C,D) |] ==> if(Q,if(P,A,C),if(P,B,D))}
-{\out  6. if(Q,if(P,A,C),if(P,B,D)) ==> if(P,if(Q,A,B),if(Q,C,D))}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ ifI)\isanewline
+\ 1.\ \isasymlbrakk P;\ Q;\ A;\ Q\isasymrbrakk \ \isasymLongrightarrow \ if(P,\ A,\ C)\isanewline
+\ 2.\ \isasymlbrakk P;\ Q;\ A;\ \isasymnot \ Q\isasymrbrakk \ \isasymLongrightarrow \ if(P,\ B,\ D)\isanewline
+\ 3.\ \isasymlbrakk P;\ \isasymnot \ Q;\ B\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 4.\ \isasymlbrakk \isasymnot \ P;\ if(Q,\ C,\ D)\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 5.\ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\ \isasymLongrightarrow \isanewline
+\isaindent{\ 5.\ }if(P,\ if(Q,\ A,\ B),\ if(Q,\ C,\ D))
+\isanewline
+\isacommand{apply}\ (rule\ ifI)\isanewline
+\ 1.\ \isasymlbrakk P;\ Q;\ A;\ Q;\ P\isasymrbrakk \ \isasymLongrightarrow \ A\isanewline
+\ 2.\ \isasymlbrakk P;\ Q;\ A;\ Q;\ \isasymnot \ P\isasymrbrakk \ \isasymLongrightarrow \ C\isanewline
+\ 3.\ \isasymlbrakk P;\ Q;\ A;\ \isasymnot \ Q\isasymrbrakk \ \isasymLongrightarrow \ if(P,\ B,\ D)\isanewline
+\ 4.\ \isasymlbrakk P;\ \isasymnot \ Q;\ B\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 5.\ \isasymlbrakk \isasymnot \ P;\ if(Q,\ C,\ D)\isasymrbrakk \ \isasymLongrightarrow \ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\isanewline
+\ 6.\ if(Q,\ if(P,\ A,\ C),\ if(P,\ B,\ D))\ \isasymLongrightarrow \isanewline
+\isaindent{\ 6.\ }if(P,\ if(Q,\ A,\ B),\ if(Q,\ C,\ D))
+\end{isabelle}
 Where do we stand?  The first subgoal holds by assumption; the second and
 third, by contradiction.  This is getting tedious.  We could use the classical
 reasoner, but first let us extend the default claset with the derived rules
 for~$if$.
-\begin{ttbox}
-AddSIs [ifI];
-AddSEs [ifE];
-\end{ttbox}
-Now we can revert to the
-initial proof state and let \ttindex{blast_tac} solve it.  
-\begin{ttbox}
-choplev 0;
-{\out Level 0}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out  1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-by (Blast_tac 1);
-{\out Level 1}
-{\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-{\out No subgoals!}
-\end{ttbox}
-This tactic also solves the other example.
-\begin{ttbox}
-Goal "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
-{\out Level 0}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-\ttbreak
-by (Blast_tac 1);
-{\out Level 1}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-{\out No subgoals!}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{declare}\ ifI\ [intro!]\isanewline
+\isacommand{declare}\ ifE\ [elim!]
+\end{isabelle}
+With these declarations, we could have proved this theorem with a single
+call to \isa{blast}.  Here is another example:
+\begin{isabelle}
+\isacommand{lemma}\ "if(if(P,Q,R),\ A,\ B)\ <->\ if(P,\ if(Q,A,B),\ if(R,A,B))"\isanewline
+\ 1.\ if(if(P,\ Q,\ R),\ A,\ B)\ \isasymlongleftrightarrow \ if(P,\ if(Q,\ A,\ B),\ if(R,\ A,\ B))
+\isanewline
+\isacommand{by}\ blast
+\end{isabelle}
 
 
 \subsection{Derived rules versus definitions}
 Dispensing with the derived rules, we can treat $if$ as an
 abbreviation, and let \ttindex{blast_tac} prove the expanded formula.  Let
 us redo the previous proof:
-\begin{ttbox}
-choplev 0;
-{\out Level 0}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-\end{ttbox}
-This time, simply unfold using the definition of $if$:
-\begin{ttbox}
-by (rewtac if_def);
-{\out Level 1}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-{\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}
-{\out     P & (Q & A | ~ Q & B) | ~ P & (R & A | ~ R & B)}
-\end{ttbox}
-We are left with a subgoal in pure first-order logic, which is why the 
-classical reasoner can prove it given \texttt{FOL_cs} alone.  (We could, of 
-course, have used \texttt{Blast_tac}.)
-\begin{ttbox}
-by (blast_tac FOL_cs 1);
-{\out Level 2}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
-{\out No subgoals!}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{lemma}\ "if(if(P,Q,R),\ A,\ B)\ <->\ if(P,\ if(Q,A,B),\ if(R,A,B))"\isanewline
+\ 1.\ if(if(P,\ Q,\ R),\ A,\ B)\ \isasymlongleftrightarrow \ if(P,\ if(Q,\ A,\ B),\ if(R,\ A,\ B))
+\end{isabelle}
+This time, we simply unfold using the definition of $if$:
+\begin{isabelle}
+\isacommand{apply}\ (simp\ add:\ if\_def)\isanewline
+\ 1.\ (P\ \isasymand \ Q\ \isasymor \ \isasymnot \ P\ \isasymand \ R)\ \isasymand \ A\ \isasymor \ (\isasymnot \ P\ \isasymor \ \isasymnot \ Q)\ \isasymand \ (P\ \isasymor \ \isasymnot \ R)\ \isasymand \ B\ \isasymlongleftrightarrow \isanewline
+\isaindent{\ 1.\ }P\ \isasymand \ (Q\ \isasymand \ A\ \isasymor \ \isasymnot \ Q\ \isasymand \ B)\ \isasymor \ \isasymnot \ P\ \isasymand \ (R\ \isasymand \ A\ \isasymor \ \isasymnot \ R\ \isasymand \ B)
+\end{isabelle}
+We are left with a subgoal in pure first-order logic, and it falls to
+\isa{blast}:
+\begin{isabelle}
+\isacommand{apply}\ blast\isanewline
+No\ subgoals!
+\end{isabelle}
 Expanding definitions reduces the extended logic to the base logic.  This
-approach has its merits --- especially if the prover for the base logic is
-good --- but can be slow.  In these examples, proofs using the default
-claset (which includes the derived rules) run about six times faster 
-than proofs using \texttt{FOL_cs}.
+approach has its merits, but it can be slow.  In these examples, proofs
+using the derived rules for~\isa{if} run about six
+times faster  than proofs using just the rules of first-order logic.
 
-Expanding definitions also complicates error diagnosis.  Suppose we are having
-difficulties in proving some goal.  If by expanding definitions we have
-made it unreadable, then we have little hope of diagnosing the problem.
+Expanding definitions can also make it harder to diagnose errors. 
+Suppose we are having difficulties in proving some goal.  If by expanding
+definitions we have made it unreadable, then we have little hope of
+diagnosing the problem.
 
 Attempts at program verification often yield invalid assertions.
 Let us try to prove one:
-\begin{ttbox}
-Goal "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
-{\out Level 0}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-by (Blast_tac 1);
-{\out by: tactic failed}
-\end{ttbox}
-This failure message is uninformative, but we can get a closer look at the
-situation by applying \ttindex{Step_tac}.
-\begin{ttbox}
-by (REPEAT (Step_tac 1));
-{\out Level 1}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-{\out  1. [| A; ~ P; R; ~ P; R |] ==> B}
-{\out  2. [| B; ~ P; ~ R; ~ P; ~ R |] ==> A}
-{\out  3. [| ~ P; R; B; ~ P; R |] ==> A}
-{\out  4. [| ~ P; ~ R; A; ~ B; ~ P |] ==> R}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{lemma}\ "if(if(P,Q,R),\ A,\ B)\ <->\ if(P,\ if(Q,A,B),\ if(R,B,A))"\isanewline
+\ 1.\ if(if(P,\ Q,\ R),\ A,\ B)\ \isasymlongleftrightarrow \ if(P,\ if(Q,\ A,\ B),\ if(R,\ B,\
+A))
+\end{isabelle}
+Calling \isa{blast} yields an uninformative failure message. We can
+get a closer look at the situation by applying \methdx{auto}.
+\begin{isabelle}
+\isacommand{apply}\ auto\isanewline
+\ 1.\ \isasymlbrakk A;\ \isasymnot \ P;\ R\isasymrbrakk \ \isasymLongrightarrow \ B\isanewline
+\ 2.\ \isasymlbrakk B;\ \isasymnot \ P;\ \isasymnot \ R\isasymrbrakk \ \isasymLongrightarrow \ A\isanewline
+\ 3.\ \isasymlbrakk B;\ \isasymnot \ P;\ R\isasymrbrakk \ \isasymLongrightarrow \ A\isanewline
+\ 4.\ \isasymlbrakk \isasymnot \ R;\ A;\ \isasymnot \ B;\ \isasymnot \ P\isasymrbrakk \ \isasymLongrightarrow \
+False
+\end{isabelle}
 Subgoal~1 is unprovable and yields a countermodel: $P$ and~$B$ are false
 while~$R$ and~$A$ are true.  This truth assignment reduces the main goal to
 $true\bimp false$, which is of course invalid.
 
 We can repeat this analysis by expanding definitions, using just the rules of
-FOL:
-\begin{ttbox}
-choplev 0;
-{\out Level 0}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-{\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-\ttbreak
-by (rewtac if_def);
-{\out Level 1}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-{\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}
-{\out     P & (Q & A | ~ Q & B) | ~ P & (R & B | ~ R & A)}
-by (blast_tac FOL_cs 1);
-{\out by: tactic failed}
-\end{ttbox}
-Again we apply \ttindex{step_tac}:
-\begin{ttbox}
-by (REPEAT (step_tac FOL_cs 1));
-{\out Level 2}
-{\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-{\out  1. [| A; ~ P; R; ~ P; R; ~ False |] ==> B}
-{\out  2. [| A; ~ P; R; R; ~ False; ~ B; ~ B |] ==> Q}
-{\out  3. [| B; ~ P; ~ R; ~ P; ~ A |] ==> R}
-{\out  4. [| B; ~ P; ~ R; ~ Q; ~ A |] ==> R}
-{\out  5. [| B; ~ R; ~ P; ~ A; ~ R; Q; ~ False |] ==> A}
-{\out  6. [| ~ P; R; B; ~ P; R; ~ False |] ==> A}
-{\out  7. [| ~ P; ~ R; A; ~ B; ~ R |] ==> P}
-{\out  8. [| ~ P; ~ R; A; ~ B; ~ R |] ==> Q}
-\end{ttbox}
+first-order logic:
+\begin{isabelle}
+\isacommand{lemma}\ "if(if(P,Q,R),\ A,\ B)\ <->\ if(P,\ if(Q,A,B),\ if(R,B,A))"\isanewline
+\ 1.\ if(if(P,\ Q,\ R),\ A,\ B)\ \isasymlongleftrightarrow \ if(P,\ if(Q,\ A,\ B),\ if(R,\ B,\
+A))
+\isanewline
+\isacommand{apply}\ (simp\ add:\ if\_def)\isanewline
+\ 1.\ (P\ \isasymand \ Q\ \isasymor \ \isasymnot \ P\ \isasymand \ R)\ \isasymand \ A\ \isasymor \ (\isasymnot \ P\ \isasymor \ \isasymnot \ Q)\ \isasymand \ (P\ \isasymor \ \isasymnot \ R)\ \isasymand \ B\ \isasymlongleftrightarrow \isanewline
+\isaindent{\ 1.\ }P\ \isasymand \ (Q\ \isasymand \ A\ \isasymor \ \isasymnot \ Q\ \isasymand \ B)\ \isasymor \ \isasymnot \ P\ \isasymand \ (R\ \isasymand \ B\ \isasymor \ \isasymnot \ R\ \isasymand \ A)
+\end{isabelle}
+Again \isa{blast} would fail, so we try \methdx{auto}:
+\begin{isabelle}
+\isacommand{apply}\ (auto)\ \isanewline
+\ 1.\ \isasymlbrakk A;\ \isasymnot \ P;\ R\isasymrbrakk \ \isasymLongrightarrow \ B\isanewline
+\ 2.\ \isasymlbrakk A;\ \isasymnot \ P;\ R;\ \isasymnot \ B\isasymrbrakk \ \isasymLongrightarrow \ Q\isanewline
+\ 3.\ \isasymlbrakk B;\ \isasymnot \ R;\ \isasymnot \ P;\ \isasymnot \ A\isasymrbrakk \ \isasymLongrightarrow \ False\isanewline
+\ 4.\ \isasymlbrakk B;\ \isasymnot \ P;\ \isasymnot \ A;\ \isasymnot \ R;\ Q\isasymrbrakk \ \isasymLongrightarrow \ False\isanewline
+\ 5.\ \isasymlbrakk B;\ \isasymnot \ Q;\ \isasymnot \ R;\ \isasymnot \ P;\ \isasymnot \ A\isasymrbrakk \ \isasymLongrightarrow \ False\isanewline
+\ 6.\ \isasymlbrakk B;\ \isasymnot \ A;\ \isasymnot \ P;\ R\isasymrbrakk \ \isasymLongrightarrow \ False\isanewline
+\ 7.\ \isasymlbrakk \isasymnot \ P;\ A;\ \isasymnot \ B;\ \isasymnot \ R\isasymrbrakk \ \isasymLongrightarrow \ False\isanewline
+\ 8.\ \isasymlbrakk \isasymnot \ P;\ A;\ \isasymnot \ B;\ \isasymnot \ R\isasymrbrakk \ \isasymLongrightarrow \ Q%
+\end{isabelle}
 Subgoal~1 yields the same countermodel as before.  But each proof step has
 taken six times as long, and the final result contains twice as many subgoals.
 
-Expanding definitions causes a great increase in complexity.  This is why
-the classical prover has been designed to accept derived rules.
+Expanding your definitions usually makes proofs more difficult.  This is
+why the classical prover has been designed to accept derived rules.
 
 \index{first-order logic|)}

@@ -1,8 +1,14 @@
 %% $Id$
 \documentclass[11pt,a4paper]{report}
-\usepackage{graphicx,../iman,../extra,../ttbox,../proof,../rail,latexsym,../pdfsetup}
+\usepackage{isabelle,isabellesym}
+\usepackage{graphicx,logics,../ttbox,../proof,../rail,latexsym}
 
-%%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
+\usepackage{../pdfsetup}   
+%last package!
+
+\remarkstrue 
+
+%%% to index derived rls: ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
 %%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\tdx{\1}  
 %%% to index constants:   \\tt \([a-zA-Z0-9][a-zA-Z0-9_]*\)     \\cdx{\1}  
 %%% to deverbify:         \\verb|\([^|]*\)|     \\ttindex{\1}  
@@ -13,19 +19,13 @@
 \author{{\em Lawrence C. Paulson}\\
         Computer Laboratory \\ University of Cambridge \\
         \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
-        With Contributions by Tobias Nipkow and Markus Wenzel%
-\thanks{Markus Wenzel made numerous improvements.
-    Philippe de Groote contributed to~ZF.  Philippe No\"el and
-    Martin Coen made many contributions to~ZF.  The research has 
-    been funded by the EPSRC (grants GR/G53279, GR/H40570, GR/K57381,
-    GR/K77051, GR/M75440) and by ESPRIT (projects 3245:
-    Logical Frameworks, and 6453: Types) and by the DFG Schwerpunktprogramm
-    \emph{Deduktion}.}
-}
+        With Contributions by Tobias Nipkow and Markus Wenzel}
 
 \newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
   \hrule\bigskip}
 \newenvironment{constants}{\begin{center}\small\begin{tabular}{rrrr}}{\end{tabular}\end{center}}
+
+\let\ts=\thinspace
 
 \makeindex
 
@@ -45,9 +45,30 @@ This manual describes Isabelle's formalizations of many-sorted first-order
 logic (\texttt{FOL}) and Zermelo-Fraenkel set theory (\texttt{ZF}).  See the
 \emph{Reference Manual} for general Isabelle commands, and \emph{Introduction
   to Isabelle} for an overall tutorial.
+
+This manual is part of the earlier Isabelle documentation, 
+which is somewhat superseded by the Isabelle/HOL
+\emph{Tutorial}~\cite{isa-tutorial}. However, the present document is the
+only available documentation for Isabelle's versions of first-order logic
+and set theory. Much of it is concerned with 
+the primitives for conducting proofs 
+using the ML top level.  It has been rewritten to use the Isar proof
+language, but evidence of the old \ML{} orientation remains.
 \end{abstract}
 
-\pagenumbering{roman} \tableofcontents \clearfirst
+
+\subsubsection*{Acknowledgements} 
+Markus Wenzel made numerous improvements.
+    Philippe de Groote contributed to~ZF.  Philippe No\"el and
+    Martin Coen made many contributions to~ZF.  The research has 
+    been funded by the EPSRC (grants GR/G53279, GR/H40570, GR/K57381,
+    GR/K77051, GR/M75440) and by ESPRIT (projects 3245:
+    Logical Frameworks, and 6453: Types) and by the DFG Schwerpunktprogramm
+    \emph{Deduktion}.
+    
+\pagenumbering{roman} \tableofcontents \cleardoublepage
+\pagenumbering{arabic} 
+\setcounter{page}{1} 
 \input{../Logics/syntax}
 \include{FOL}
 \include{ZF}

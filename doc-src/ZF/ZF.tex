@@ -5,7 +5,7 @@
 The theory~\thydx{ZF} implements Zermelo-Fraenkel set
 theory~\cite{halmos60,suppes72} as an extension of~\texttt{FOL}, classical
 first-order logic.  The theory includes a collection of derived natural
-deduction rules, for use with Isabelle's classical reasoner.  Much
+deduction rules, for use with Isabelle's classical reasoner.  Some
 of it is based on the work of No\"el~\cite{noel}.
 
 A tremendous amount of set theory has been formally developed, including the
@@ -22,10 +22,6 @@ trees.  Moreover it handles coinductive definitions, such as
 bisimulation relations, and codatatype definitions, such as streams.  It
 provides a streamlined syntax for defining primitive recursive functions over
 datatypes. 
-
-Because ZF is an extension of FOL, it provides the same packages, namely
-\texttt{hyp_subst_tac}, the simplifier, and the classical reasoner.  The
-default simpset and claset are usually satisfactory.
 
 Published articles~\cite{paulson-set-I,paulson-set-II} describe \texttt{ZF}
 less formally than this chapter.  Isabelle employs a novel treatment of
@@ -129,42 +125,42 @@ Figure~\ref{zf-trans} presents the syntax translations.  Finally,
 Figure~\ref{zf-syntax} presents the full grammar for set theory, including the
 constructs of FOL.
 
-Local abbreviations can be introduced by a \texttt{let} construct whose
+Local abbreviations can be introduced by a \isa{let} construct whose
 syntax appears in Fig.\ts\ref{zf-syntax}.  Internally it is translated into
 the constant~\cdx{Let}.  It can be expanded by rewriting with its
 definition, \tdx{Let_def}.
 
-Apart from \texttt{let}, set theory does not use polymorphism.  All terms in
-ZF have type~\tydx{i}, which is the type of individuals and has class~{\tt
-  term}.  The type of first-order formulae, remember, is~\textit{o}.
+Apart from \isa{let}, set theory does not use polymorphism.  All terms in
+ZF have type~\tydx{i}, which is the type of individuals and has
+class~\cldx{term}.  The type of first-order formulae, remember, 
+is~\tydx{o}.
 
 Infix operators include binary union and intersection ($A\un B$ and
 $A\int B$), set difference ($A-B$), and the subset and membership
-relations.  Note that $a$\verb|~:|$b$ is translated to $\neg(a\in b)$.  The
+relations.  Note that $a$\verb|~:|$b$ is translated to $\lnot(a\in b)$,
+which is equivalent to  $a\notin b$.  The
 union and intersection operators ($\bigcup A$ and $\bigcap A$) form the
 union or intersection of a set of sets; $\bigcup A$ means the same as
 $\bigcup@{x\in A}x$.  Of these operators, only $\bigcup A$ is primitive.
 
-The constant \cdx{Upair} constructs unordered pairs; thus {\tt
-  Upair($A$,$B$)} denotes the set~$\{A,B\}$ and \texttt{Upair($A$,$A$)}
-denotes the singleton~$\{A\}$.  General union is used to define binary
-union.  The Isabelle version goes on to define the constant
+The constant \cdx{Upair} constructs unordered pairs; thus \isa{Upair($A$,$B$)} denotes the set~$\{A,B\}$ and
+\isa{Upair($A$,$A$)} denotes the singleton~$\{A\}$.  General union is
+used to define binary union.  The Isabelle version goes on to define
+the constant
 \cdx{cons}:
 \begin{eqnarray*}
-   A\cup B              & \equiv &       \bigcup(\texttt{Upair}(A,B)) \\
-   \texttt{cons}(a,B)      & \equiv &        \texttt{Upair}(a,a) \un B
+   A\cup B              & \equiv &       \bigcup(\isa{Upair}(A,B)) \\
+   \isa{cons}(a,B)      & \equiv &        \isa{Upair}(a,a) \un B
 \end{eqnarray*}
 The $\{a@1, \ldots\}$ notation abbreviates finite sets constructed in the
-obvious manner using~\texttt{cons} and~$\emptyset$ (the empty set):
-\begin{eqnarray*}
- \{a,b,c\} & \equiv & \texttt{cons}(a,\texttt{cons}(b,\texttt{cons}(c,\emptyset)))
+obvious manner using~\isa{cons} and~$\emptyset$ (the empty set) \isasymin \begin{eqnarray*}
+ \{a,b,c\} & \equiv & \isa{cons}(a,\isa{cons}(b,\isa{cons}(c,\emptyset)))
 \end{eqnarray*}
 
-The constant \cdx{Pair} constructs ordered pairs, as in {\tt
-Pair($a$,$b$)}.  Ordered pairs may also be written within angle brackets,
+The constant \cdx{Pair} constructs ordered pairs, as in \isa{Pair($a$,$b$)}.  Ordered pairs may also be written within angle brackets,
 as {\tt<$a$,$b$>}.  The $n$-tuple {\tt<$a@1$,\ldots,$a@{n-1}$,$a@n$>}
 abbreviates the nest of pairs\par\nobreak
-\centerline{\texttt{Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots).}}
+\centerline{\isa{Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots).}}
 
 In ZF, a function is a set of pairs.  A ZF function~$f$ is simply an
 individual as far as Isabelle is concerned: its Isabelle type is~$i$, not say
@@ -236,7 +232,7 @@ is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
          & | & term " ` " term \\
          & | & term " * " term \\
          & | & term " Int " term \\
-         & | & term " Un " term \\
+         & | & term " \isasymunion " term \\
          & | & term " - " term \\
          & | & term " -> " term \\
          & | & "THE~~"  id  " . " formula\\
@@ -271,16 +267,15 @@ is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 The constant \cdx{Collect} constructs sets by the principle of {\bf
   separation}.  The syntax for separation is
 \hbox{\tt\ttlbrace$x$:$A$.\ $P[x]$\ttrbrace}, where $P[x]$ is a formula
-that may contain free occurrences of~$x$.  It abbreviates the set {\tt
-  Collect($A$,$\lambda x. P[x]$)}, which consists of all $x\in A$ that
-satisfy~$P[x]$.  Note that \texttt{Collect} is an unfortunate choice of
+that may contain free occurrences of~$x$.  It abbreviates the set \isa{Collect($A$,$\lambda x. P[x]$)}, which consists of all $x\in A$ that
+satisfy~$P[x]$.  Note that \isa{Collect} is an unfortunate choice of
 name: some set theories adopt a set-formation principle, related to
 replacement, called collection.
 
 The constant \cdx{Replace} constructs sets by the principle of {\bf
   replacement}.  The syntax
-\hbox{\tt\ttlbrace$y$.\ $x$:$A$,$Q[x,y]$\ttrbrace} denotes the set {\tt
-  Replace($A$,$\lambda x\,y. Q[x,y]$)}, which consists of all~$y$ such
+\hbox{\tt\ttlbrace$y$.\ $x$:$A$,$Q[x,y]$\ttrbrace} denotes the set 
+\isa{Replace($A$,$\lambda x\,y. Q[x,y]$)}, which consists of all~$y$ such
 that there exists $x\in A$ satisfying~$Q[x,y]$.  The Replacement Axiom
 has the condition that $Q$ must be single-valued over~$A$: for
 all~$x\in A$ there exists at most one $y$ satisfying~$Q[x,y]$.  A
@@ -290,16 +285,16 @@ The constant \cdx{RepFun} expresses a special case of replacement,
 where $Q[x,y]$ has the form $y=b[x]$.  Such a $Q$ is trivially
 single-valued, since it is just the graph of the meta-level
 function~$\lambda x. b[x]$.  The resulting set consists of all $b[x]$
-for~$x\in A$.  This is analogous to the \ML{} functional \texttt{map},
+for~$x\in A$.  This is analogous to the \ML{} functional \isa{map},
 since it applies a function to every element of a set.  The syntax is
-\hbox{\tt\ttlbrace$b[x]$.\ $x$:$A$\ttrbrace}, which expands to {\tt
-  RepFun($A$,$\lambda x. b[x]$)}.
+\isa{\ttlbrace$b[x]$.\ $x$:$A$\ttrbrace}, which expands to 
+\isa{RepFun($A$,$\lambda x. b[x]$)}.
 
 \index{*INT symbol}\index{*UN symbol} 
 General unions and intersections of indexed
 families of sets, namely $\bigcup@{x\in A}B[x]$ and $\bigcap@{x\in A}B[x]$,
-are written \hbox{\tt UN $x$:$A$.\ $B[x]$} and \hbox{\tt INT $x$:$A$.\ $B[x]$}.
-Their meaning is expressed using \texttt{RepFun} as
+are written \isa{UN $x$:$A$.\ $B[x]$} and \isa{INT $x$:$A$.\ $B[x]$}.
+Their meaning is expressed using \isa{RepFun} as
 \[
 \bigcup(\{B[x]. x\in A\}) \qquad\hbox{and}\qquad 
 \bigcap(\{B[x]. x\in A\}). 
@@ -310,14 +305,14 @@ have as special cases $A\times B$ and $A\to B$, where $B$ is simply a set.
 This is similar to the situation in Constructive Type Theory (set theory
 has `dependent sets') and calls for similar syntactic conventions.  The
 constants~\cdx{Sigma} and~\cdx{Pi} construct general sums and
-products.  Instead of \texttt{Sigma($A$,$B$)} and \texttt{Pi($A$,$B$)} we may
+products.  Instead of \isa{Sigma($A$,$B$)} and \isa{Pi($A$,$B$)} we may
 write 
-\hbox{\tt SUM $x$:$A$.\ $B[x]$} and \hbox{\tt PROD $x$:$A$.\ $B[x]$}.  
+\isa{SUM $x$:$A$.\ $B[x]$} and \isa{PROD $x$:$A$.\ $B[x]$}.  
 \index{*SUM symbol}\index{*PROD symbol}%
 The special cases as \hbox{\tt$A$*$B$} and \hbox{\tt$A$->$B$} abbreviate
 general sums and products over a constant family.\footnote{Unlike normal
 infix operators, {\tt*} and {\tt->} merely define abbreviations; there are
-no constants~\texttt{op~*} and~\hbox{\tt op~->}.} Isabelle accepts these
+no constants~\isa{op~*} and~\isa{op~->}.} Isabelle accepts these
 abbreviations in parsing and uses them whenever possible for printing.
 
 \index{*THE symbol} As mentioned above, whenever the axioms assert the
@@ -326,15 +321,14 @@ for that set.  These constants can express the {\bf definite description}
 operator~$\iota x. P[x]$, which stands for the unique~$a$ satisfying~$P[a]$,
 if such exists.  Since all terms in ZF denote something, a description is
 always meaningful, but we do not know its value unless $P[x]$ defines it
-uniquely.  Using the constant~\cdx{The}, we may write descriptions as {\tt
-  The($\lambda x. P[x]$)} or use the syntax \hbox{\tt THE $x$.\ $P[x]$}.
+uniquely.  Using the constant~\cdx{The}, we may write descriptions as 
+\isa{The($\lambda x. P[x]$)} or use the syntax \isa{THE $x$.\ $P[x]$}.
 
 \index{*lam symbol}
 Function sets may be written in $\lambda$-notation; $\lambda x\in A. b[x]$
 stands for the set of all pairs $\pair{x,b[x]}$ for $x\in A$.  In order for
 this to be a set, the function's domain~$A$ must be given.  Using the
-constant~\cdx{Lambda}, we may express function sets as {\tt
-Lambda($A$,$\lambda x. b[x]$)} or use the syntax \hbox{\tt lam $x$:$A$.\ $b[x]$}.
+constant~\cdx{Lambda}, we may express function sets as \isa{Lambda($A$,$\lambda x. b[x]$)} or use the syntax \isa{lam $x$:$A$.\ $b[x]$}.
 
 Isabelle's set theory defines two {\bf bounded quantifiers}:
 \begin{eqnarray*}
@@ -342,79 +336,79 @@ Isabelle's set theory defines two {\bf bounded quantifiers}:
    \exists x\in A. P[x] &\hbox{abbreviates}& \exists x. x\in A\conj P[x]
 \end{eqnarray*}
 The constants~\cdx{Ball} and~\cdx{Bex} are defined
-accordingly.  Instead of \texttt{Ball($A$,$P$)} and \texttt{Bex($A$,$P$)} we may
+accordingly.  Instead of \isa{Ball($A$,$P$)} and \isa{Bex($A$,$P$)} we may
 write
-\hbox{\tt ALL $x$:$A$.\ $P[x]$} and \hbox{\tt EX $x$:$A$.\ $P[x]$}.
+\isa{ALL $x$:$A$.\ $P[x]$} and \isa{EX $x$:$A$.\ $P[x]$}.
 
 
 %%%% ZF.thy
 
 \begin{figure}
-\begin{ttbox}
-\tdx{Let_def}            Let(s, f) == f(s)
+\begin{alltt*}\isastyleminor
+\tdx{Let_def}:           Let(s, f) == f(s)
 
-\tdx{Ball_def}           Ball(A,P) == ALL x. x:A --> P(x)
-\tdx{Bex_def}            Bex(A,P)  == EX x. x:A & P(x)
+\tdx{Ball_def}:          Ball(A,P) == {\isasymforall}x. x \isasymin A --> P(x)
+\tdx{Bex_def}:           Bex(A,P)  == {\isasymexists}x. x \isasymin A & P(x)
 
-\tdx{subset_def}         A <= B  == ALL x:A. x:B
-\tdx{extension}          A = B  <->  A <= B & B <= A
+\tdx{subset_def}:        A \isasymsubseteq B  == {\isasymforall}x \isasymin A. x \isasymin B
+\tdx{extension}:         A = B  <->  A \isasymsubseteq B & B \isasymsubseteq A
 
-\tdx{Union_iff}          A : Union(C) <-> (EX B:C. A:B)
-\tdx{Pow_iff}            A : Pow(B) <-> A <= B
-\tdx{foundation}         A=0 | (EX x:A. ALL y:x. ~ y:A)
+\tdx{Union_iff}:         A \isasymin Union(C) <-> ({\isasymexists}B \isasymin C. A \isasymin B)
+\tdx{Pow_iff}:           A \isasymin Pow(B) <-> A \isasymsubseteq B
+\tdx{foundation}:        A=0 | ({\isasymexists}x \isasymin A. {\isasymforall}y \isasymin x. y \isasymnotin A)
 
-\tdx{replacement}        (ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==>
-                   b : PrimReplace(A,P) <-> (EX x:A. P(x,b))
+\tdx{replacement}:       ({\isasymforall}x \isasymin A. {\isasymforall}y z. P(x,y) & P(x,z) --> y=z) ==>
+                   b \isasymin PrimReplace(A,P) <-> ({\isasymexists}x{\isasymin}A. P(x,b))
 \subcaption{The Zermelo-Fraenkel Axioms}
 
-\tdx{Replace_def}  Replace(A,P) == 
-                   PrimReplace(A, \%x y. (EX!z. P(x,z)) & P(x,y))
-\tdx{RepFun_def}   RepFun(A,f)  == {\ttlbrace}y . x:A, y=f(x)\ttrbrace
-\tdx{the_def}      The(P)       == Union({\ttlbrace}y . x:{\ttlbrace}0{\ttrbrace}, P(y){\ttrbrace})
-\tdx{if_def}       if(P,a,b)    == THE z. P & z=a | ~P & z=b
-\tdx{Collect_def}  Collect(A,P) == {\ttlbrace}y . x:A, x=y & P(x){\ttrbrace}
-\tdx{Upair_def}    Upair(a,b)   == 
-                 {\ttlbrace}y. x:Pow(Pow(0)), (x=0 & y=a) | (x=Pow(0) & y=b){\ttrbrace}
+\tdx{Replace_def}: Replace(A,P) == 
+                   PrimReplace(A, \%x y. (\isasymexists!z. P(x,z)) & P(x,y))
+\tdx{RepFun_def}:  RepFun(A,f)  == {\ttlbrace}y . x \isasymin A, y=f(x)\ttrbrace
+\tdx{the_def}:     The(P)       == Union({\ttlbrace}y . x \isasymin {\ttlbrace}0{\ttrbrace}, P(y){\ttrbrace})
+\tdx{if_def}:      if(P,a,b)    == THE z. P & z=a | ~P & z=b
+\tdx{Collect_def}: Collect(A,P) == {\ttlbrace}y . x \isasymin A, x=y & P(x){\ttrbrace}
+\tdx{Upair_def}:   Upair(a,b)   == 
+               {\ttlbrace}y. x\isasymin{}Pow(Pow(0)), x=0 & y=a | x=Pow(0) & y=b{\ttrbrace}
 \subcaption{Consequences of replacement}
 
-\tdx{Inter_def}    Inter(A) == {\ttlbrace}x:Union(A) . ALL y:A. x:y{\ttrbrace}
-\tdx{Un_def}       A Un  B  == Union(Upair(A,B))
-\tdx{Int_def}      A Int B  == Inter(Upair(A,B))
-\tdx{Diff_def}     A - B    == {\ttlbrace}x:A . x~:B{\ttrbrace}
+\tdx{Inter_def}:   Inter(A) == {\ttlbrace}x \isasymin Union(A) . {\isasymforall}y \isasymin A. x \isasymin y{\ttrbrace}
+\tdx{Un_def}:      A \isasymunion B  == Union(Upair(A,B))
+\tdx{Int_def}:     A Int B  == Inter(Upair(A,B))
+\tdx{Diff_def}:    A - B    == {\ttlbrace}x \isasymin A . x \isasymnotin B{\ttrbrace}
 \subcaption{Union, intersection, difference}
-\end{ttbox}
+\end{alltt*}
 \caption{Rules and axioms of ZF} \label{zf-rules}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{cons_def}     cons(a,A) == Upair(a,a) Un A
-\tdx{succ_def}     succ(i) == cons(i,i)
-\tdx{infinity}     0:Inf & (ALL y:Inf. succ(y): Inf)
+\begin{alltt*}\isastyleminor
+\tdx{cons_def}:    cons(a,A) == Upair(a,a) \isasymunion A
+\tdx{succ_def}:    succ(i) == cons(i,i)
+\tdx{infinity}:    0 \isasymin Inf & ({\isasymforall}y \isasymin Inf. succ(y) \isasymin Inf)
 \subcaption{Finite and infinite sets}
 
-\tdx{Pair_def}       <a,b>      == {\ttlbrace}{\ttlbrace}a,a{\ttrbrace}, {\ttlbrace}a,b{\ttrbrace}{\ttrbrace}
-\tdx{split_def}      split(c,p) == THE y. EX a b. p=<a,b> & y=c(a,b)
-\tdx{fst_def}        fst(A)     == split(\%x y. x, p)
-\tdx{snd_def}        snd(A)     == split(\%x y. y, p)
-\tdx{Sigma_def}      Sigma(A,B) == UN x:A. UN y:B(x). {\ttlbrace}<x,y>{\ttrbrace}
+\tdx{Pair_def}:      <a,b>      == {\ttlbrace}{\ttlbrace}a,a{\ttrbrace}, {\ttlbrace}a,b{\ttrbrace}{\ttrbrace}
+\tdx{split_def}:     split(c,p) == THE y. {\isasymexists}a b. p=<a,b> & y=c(a,b)
+\tdx{fst_def}:       fst(A)     == split(\%x y. x, p)
+\tdx{snd_def}:       snd(A)     == split(\%x y. y, p)
+\tdx{Sigma_def}:     Sigma(A,B) == {\isasymUnion}x \isasymin A. {\isasymUnion}y \isasymin B(x). {\ttlbrace}<x,y>{\ttrbrace}
 \subcaption{Ordered pairs and Cartesian products}
 
-\tdx{converse_def}   converse(r) == {\ttlbrace}z. w:r, EX x y. w=<x,y> & z=<y,x>{\ttrbrace}
-\tdx{domain_def}     domain(r)   == {\ttlbrace}x. w:r, EX y. w=<x,y>{\ttrbrace}
-\tdx{range_def}      range(r)    == domain(converse(r))
-\tdx{field_def}      field(r)    == domain(r) Un range(r)
-\tdx{image_def}      r `` A      == {\ttlbrace}y : range(r) . EX x:A. <x,y> : r{\ttrbrace}
-\tdx{vimage_def}     r -`` A     == converse(r)``A
+\tdx{converse_def}: converse(r) == {\ttlbrace}z. w\isasymin{}r, {\isasymexists}x y. w=<x,y> & z=<y,x>{\ttrbrace}
+\tdx{domain_def}:   domain(r)   == {\ttlbrace}x. w \isasymin r, {\isasymexists}y. w=<x,y>{\ttrbrace}
+\tdx{range_def}:    range(r)    == domain(converse(r))
+\tdx{field_def}:    field(r)    == domain(r) \isasymunion range(r)
+\tdx{image_def}:    r `` A      == {\ttlbrace}y\isasymin{}range(r) . {\isasymexists}x \isasymin A. <x,y> \isasymin r{\ttrbrace}
+\tdx{vimage_def}:   r -`` A     == converse(r)``A
 \subcaption{Operations on relations}
 
-\tdx{lam_def}    Lambda(A,b) == {\ttlbrace}<x,b(x)> . x:A{\ttrbrace}
-\tdx{apply_def}  f`a         == THE y. <a,y> : f
-\tdx{Pi_def}     Pi(A,B) == {\ttlbrace}f: Pow(Sigma(A,B)). ALL x:A. EX! y. <x,y>: f{\ttrbrace}
-\tdx{restrict_def}   restrict(f,A) == lam x:A. f`x
+\tdx{lam_def}:   Lambda(A,b) == {\ttlbrace}<x,b(x)> . x \isasymin A{\ttrbrace}
+\tdx{apply_def}: f`a         == THE y. <a,y> \isasymin f
+\tdx{Pi_def}: Pi(A,B) == {\ttlbrace}f\isasymin{}Pow(Sigma(A,B)). {\isasymforall}x\isasymin{}A. \isasymexists!y. <x,y>\isasymin{}f{\ttrbrace}
+\tdx{restrict_def}:  restrict(f,A) == lam x \isasymin A. f`x
 \subcaption{Functions and general product}
-\end{ttbox}
+\end{alltt*}
 \caption{Further definitions of ZF} \label{zf-defs}
 \end{figure}
 
@@ -426,19 +420,19 @@ presented by Suppes~\cite{suppes72}.  Most of the theory consists of
 definitions.  In particular, bounded quantifiers and the subset relation
 appear in other axioms.  Object-level quantifiers and implications have
 been replaced by meta-level ones wherever possible, to simplify use of the
-axioms.  See the file \texttt{ZF/ZF.thy} for details.
+axioms.  
 
 The traditional replacement axiom asserts
-\[ y \in \texttt{PrimReplace}(A,P) \bimp (\exists x\in A. P(x,y)) \]
+\[ y \in \isa{PrimReplace}(A,P) \bimp (\exists x\in A. P(x,y)) \]
 subject to the condition that $P(x,y)$ is single-valued for all~$x\in A$.
 The Isabelle theory defines \cdx{Replace} to apply
 \cdx{PrimReplace} to the single-valued part of~$P$, namely
 \[ (\exists!z. P(x,z)) \conj P(x,y). \]
-Thus $y\in \texttt{Replace}(A,P)$ if and only if there is some~$x$ such that
+Thus $y\in \isa{Replace}(A,P)$ if and only if there is some~$x$ such that
 $P(x,-)$ holds uniquely for~$y$.  Because the equivalence is unconditional,
-\texttt{Replace} is much easier to use than \texttt{PrimReplace}; it defines the
+\isa{Replace} is much easier to use than \isa{PrimReplace}; it defines the
 same set, if $P(x,y)$ is single-valued.  The nice syntax for replacement
-expands to \texttt{Replace}.
+expands to \isa{Replace}.
 
 Other consequences of replacement include functional replacement
 (\cdx{RepFun}) and definite descriptions (\cdx{The}).
@@ -447,7 +441,7 @@ Axioms for separation (\cdx{Collect}) and unordered pairs
 from replacement~\cite[pages 237--8]{suppes72}.
 
 The definitions of general intersection, etc., are straightforward.  Note
-the definition of \texttt{cons}, which underlies the finite set notation.
+the definition of \isa{cons}, which underlies the finite set notation.
 The axiom of infinity gives us a set that contains~0 and is closed under
 successor (\cdx{succ}).  Although this set is not uniquely defined,
 the theory names it (\cdx{Inf}) in order to simplify the
@@ -466,53 +460,53 @@ Martin-L\"of's Type Theory, and is often easier to use than \cdx{fst}
 and~\cdx{snd}.
 
 Operations on relations include converse, domain, range, and image.  The
-set ${\tt Pi}(A,B)$ generalizes the space of functions between two sets.
+set $\isa{Pi}(A,B)$ generalizes the space of functions between two sets.
 Note the simple definitions of $\lambda$-abstraction (using
 \cdx{RepFun}) and application (using a definite description).  The
 function \cdx{restrict}$(f,A)$ has the same values as~$f$, but only
 over the domain~$A$.
 
 
-%%%% zf.ML
+%%%% zf.thy
 
 \begin{figure}
-\begin{ttbox}
-\tdx{ballI}       [| !!x. x:A ==> P(x) |] ==> ALL x:A. P(x)
-\tdx{bspec}       [| ALL x:A. P(x);  x: A |] ==> P(x)
-\tdx{ballE}       [| ALL x:A. P(x);  P(x) ==> Q;  ~ x:A ==> Q |] ==> Q
+\begin{alltt*}\isastyleminor
+\tdx{ballI}:     [| !!x. x\isasymin{}A ==> P(x) |] ==> {\isasymforall}x\isasymin{}A. P(x)
+\tdx{bspec}:     [| {\isasymforall}x\isasymin{}A. P(x);  x\isasymin{}A |] ==> P(x)
+\tdx{ballE}:     [| {\isasymforall}x\isasymin{}A. P(x);  P(x) ==> Q;  x \isasymnotin A ==> Q |] ==> Q
 
-\tdx{ball_cong}   [| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> 
-            (ALL x:A. P(x)) <-> (ALL x:A'. P'(x))
+\tdx{ball_cong}:  [| A=A';  !!x. x\isasymin{}A' ==> P(x) <-> P'(x) |] ==> 
+             ({\isasymforall}x\isasymin{}A. P(x)) <-> ({\isasymforall}x\isasymin{}A'. P'(x))
 
-\tdx{bexI}        [| P(x);  x: A |] ==> EX x:A. P(x)
-\tdx{bexCI}       [| ALL x:A. ~P(x) ==> P(a);  a: A |] ==> EX x:A. P(x)
-\tdx{bexE}        [| EX x:A. P(x);  !!x. [| x:A; P(x) |] ==> Q |] ==> Q
+\tdx{bexI}:      [| P(x);  x\isasymin{}A |] ==> {\isasymexists}x\isasymin{}A. P(x)
+\tdx{bexCI}:     [| {\isasymforall}x\isasymin{}A. ~P(x) ==> P(a);  a\isasymin{}A |] ==> {\isasymexists}x\isasymin{}A. P(x)
+\tdx{bexE}:      [| {\isasymexists}x\isasymin{}A. P(x);  !!x. [| x\isasymin{}A; P(x) |] ==> Q |] ==> Q
 
-\tdx{bex_cong}    [| A=A';  !!x. x:A' ==> P(x) <-> P'(x) |] ==> 
-            (EX x:A. P(x)) <-> (EX x:A'. P'(x))
+\tdx{bex_cong}:  [| A=A';  !!x. x\isasymin{}A' ==> P(x) <-> P'(x) |] ==> 
+             ({\isasymexists}x\isasymin{}A. P(x)) <-> ({\isasymexists}x\isasymin{}A'. P'(x))
 \subcaption{Bounded quantifiers}
 
-\tdx{subsetI}       (!!x. x:A ==> x:B) ==> A <= B
-\tdx{subsetD}       [| A <= B;  c:A |] ==> c:B
-\tdx{subsetCE}      [| A <= B;  ~(c:A) ==> P;  c:B ==> P |] ==> P
-\tdx{subset_refl}   A <= A
-\tdx{subset_trans}  [| A<=B;  B<=C |] ==> A<=C
+\tdx{subsetI}:     (!!x. x \isasymin A ==> x \isasymin B) ==> A \isasymsubseteq B
+\tdx{subsetD}:     [| A \isasymsubseteq B;  c \isasymin A |] ==> c \isasymin B
+\tdx{subsetCE}:    [| A \isasymsubseteq B;  c \isasymnotin A ==> P;  c \isasymin B ==> P |] ==> P
+\tdx{subset_refl}:  A \isasymsubseteq A
+\tdx{subset_trans}: [| A \isasymsubseteq B;  B \isasymsubseteq C |] ==> A \isasymsubseteq C
 
-\tdx{equalityI}     [| A <= B;  B <= A |] ==> A = B
-\tdx{equalityD1}    A = B ==> A<=B
-\tdx{equalityD2}    A = B ==> B<=A
-\tdx{equalityE}     [| A = B;  [| A<=B; B<=A |] ==> P |]  ==>  P
+\tdx{equalityI}:   [| A \isasymsubseteq B;  B \isasymsubseteq A |] ==> A = B
+\tdx{equalityD1}:  A = B ==> A \isasymsubseteq B
+\tdx{equalityD2}:  A = B ==> B \isasymsubseteq A
+\tdx{equalityE}:   [| A = B;  [| A \isasymsubseteq B; B \isasymsubseteq A |] ==> P |]  ==>  P
 \subcaption{Subsets and extensionality}
 
-\tdx{emptyE}          a:0 ==> P
-\tdx{empty_subsetI}   0 <= A
-\tdx{equals0I}        [| !!y. y:A ==> False |] ==> A=0
-\tdx{equals0D}        [| A=0;  a:A |] ==> P
+\tdx{emptyE}:        a \isasymin 0 ==> P
+\tdx{empty_subsetI}:  0 \isasymsubseteq A
+\tdx{equals0I}:      [| !!y. y \isasymin A ==> False |] ==> A=0
+\tdx{equals0D}:      [| A=0;  a \isasymin A |] ==> P
 
-\tdx{PowI}            A <= B ==> A : Pow(B)
-\tdx{PowD}            A : Pow(B)  ==>  A<=B
+\tdx{PowI}:          A \isasymsubseteq B ==> A \isasymin Pow(B)
+\tdx{PowD}:          A \isasymin Pow(B)  ==>  A \isasymsubseteq B
 \subcaption{The empty set; power sets}
-\end{ttbox}
+\end{alltt*}
 \caption{Basic derived rules for ZF} \label{zf-lemmas1}
 \end{figure}
 
@@ -541,14 +535,13 @@ power set operator.
 
 Figure~\ref{zf-lemmas2} presents rules for replacement and separation.
 The rules for \cdx{Replace} and \cdx{RepFun} are much simpler than
-comparable rules for \texttt{PrimReplace} would be.  The principle of
+comparable rules for \isa{PrimReplace} would be.  The principle of
 separation is proved explicitly, although most proofs should use the
-natural deduction rules for \texttt{Collect}.  The elimination rule
+natural deduction rules for \isa{Collect}.  The elimination rule
 \tdx{CollectE} is equivalent to the two destruction rules
 \tdx{CollectD1} and \tdx{CollectD2}, but each rule is suited to
 particular circumstances.  Although too many rules can be confusing, there
-is no reason to aim for a minimal set of rules.  See the file
-\texttt{ZF/ZF.ML} for a complete listing.
+is no reason to aim for a minimal set of rules.  
 
 Figure~\ref{zf-lemmas3} presents rules for general union and intersection.
 The empty intersection should be undefined.  We cannot have
@@ -562,120 +555,120 @@ similar premises.
 
 %the [p] gives better page breaking for the book
 \begin{figure}[p]
-\begin{ttbox}
-\tdx{ReplaceI}      [| x: A;  P(x,b);  !!y. P(x,y) ==> y=b |] ==> 
-              b : {\ttlbrace}y. x:A, P(x,y){\ttrbrace}
+\begin{alltt*}\isastyleminor
+\tdx{ReplaceI}:   [| x\isasymin{}A;  P(x,b);  !!y. P(x,y) ==> y=b |] ==> 
+            b\isasymin{}{\ttlbrace}y. x\isasymin{}A, P(x,y){\ttrbrace}
 
-\tdx{ReplaceE}      [| b : {\ttlbrace}y. x:A, P(x,y){\ttrbrace};  
-                 !!x. [| x: A;  P(x,b);  ALL y. P(x,y)-->y=b |] ==> R 
-              |] ==> R
+\tdx{ReplaceE}:   [| b\isasymin{}{\ttlbrace}y. x\isasymin{}A, P(x,y){\ttrbrace};  
+               !!x. [| x\isasymin{}A; P(x,b); {\isasymforall}y. P(x,y)-->y=b |] ==> R 
+            |] ==> R
 
-\tdx{RepFunI}       [| a : A |] ==> f(a) : {\ttlbrace}f(x). x:A{\ttrbrace}
-\tdx{RepFunE}       [| b : {\ttlbrace}f(x). x:A{\ttrbrace};  
-                 !!x.[| x:A;  b=f(x) |] ==> P |] ==> P
+\tdx{RepFunI}:    [| a\isasymin{}A |] ==> f(a)\isasymin{}{\ttlbrace}f(x). x\isasymin{}A{\ttrbrace}
+\tdx{RepFunE}:    [| b\isasymin{}{\ttlbrace}f(x). x\isasymin{}A{\ttrbrace};  
+                !!x.[| x\isasymin{}A;  b=f(x) |] ==> P |] ==> P
 
-\tdx{separation}     a : {\ttlbrace}x:A. P(x){\ttrbrace} <-> a:A & P(a)
-\tdx{CollectI}       [| a:A;  P(a) |] ==> a : {\ttlbrace}x:A. P(x){\ttrbrace}
-\tdx{CollectE}       [| a : {\ttlbrace}x:A. P(x){\ttrbrace};  [| a:A; P(a) |] ==> R |] ==> R
-\tdx{CollectD1}      a : {\ttlbrace}x:A. P(x){\ttrbrace} ==> a:A
-\tdx{CollectD2}      a : {\ttlbrace}x:A. P(x){\ttrbrace} ==> P(a)
-\end{ttbox}
+\tdx{separation}:  a\isasymin{}{\ttlbrace}x\isasymin{}A. P(x){\ttrbrace} <-> a\isasymin{}A & P(a)
+\tdx{CollectI}:    [| a\isasymin{}A;  P(a) |] ==> a\isasymin{}{\ttlbrace}x\isasymin{}A. P(x){\ttrbrace}
+\tdx{CollectE}:    [| a\isasymin{}{\ttlbrace}x\isasymin{}A. P(x){\ttrbrace};  [| a\isasymin{}A; P(a) |] ==> R |] ==> R
+\tdx{CollectD1}:   a\isasymin{}{\ttlbrace}x\isasymin{}A. P(x){\ttrbrace} ==> a\isasymin{}A
+\tdx{CollectD2}:   a\isasymin{}{\ttlbrace}x\isasymin{}A. P(x){\ttrbrace} ==> P(a)
+\end{alltt*}
 \caption{Replacement and separation} \label{zf-lemmas2}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{UnionI}    [| B: C;  A: B |] ==> A: Union(C)
-\tdx{UnionE}    [| A : Union(C);  !!B.[| A: B;  B: C |] ==> R |] ==> R
+\begin{alltt*}\isastyleminor
+\tdx{UnionI}: [| B\isasymin{}C;  A\isasymin{}B |] ==> A\isasymin{}Union(C)
+\tdx{UnionE}: [| A\isasymin{}Union(C);  !!B.[| A\isasymin{}B;  B\isasymin{}C |] ==> R |] ==> R
 
-\tdx{InterI}    [| !!x. x: C ==> A: x;  c:C |] ==> A : Inter(C)
-\tdx{InterD}    [| A : Inter(C);  B : C |] ==> A : B
-\tdx{InterE}    [| A : Inter(C);  A:B ==> R;  ~ B:C ==> R |] ==> R
+\tdx{InterI}: [| !!x. x\isasymin{}C ==> A\isasymin{}x;  c\isasymin{}C |] ==> A\isasymin{}Inter(C)
+\tdx{InterD}: [| A\isasymin{}Inter(C);  B\isasymin{}C |] ==> A\isasymin{}B
+\tdx{InterE}: [| A\isasymin{}Inter(C);  A\isasymin{}B ==> R;  B \isasymnotin C ==> R |] ==> R
 
-\tdx{UN_I}      [| a: A;  b: B(a) |] ==> b: (UN x:A. B(x))
-\tdx{UN_E}      [| b : (UN x:A. B(x));  !!x.[| x: A;  b: B(x) |] ==> R 
-          |] ==> R
+\tdx{UN_I}:   [| a\isasymin{}A;  b\isasymin{}B(a) |] ==> b\isasymin{}({\isasymUnion}x\isasymin{}A. B(x))
+\tdx{UN_E}:   [| b\isasymin{}({\isasymUnion}x\isasymin{}A. B(x));  !!x.[| x\isasymin{}A;  b\isasymin{}B(x) |] ==> R 
+           |] ==> R
 
-\tdx{INT_I}     [| !!x. x: A ==> b: B(x);  a: A |] ==> b: (INT x:A. B(x))
-\tdx{INT_E}     [| b : (INT x:A. B(x));  a: A |] ==> b : B(a)
-\end{ttbox}
+\tdx{INT_I}:  [| !!x. x\isasymin{}A ==> b\isasymin{}B(x);  a\isasymin{}A |] ==> b\isasymin{}({\isasymInter}x\isasymin{}A. B(x))
+\tdx{INT_E}:  [| b\isasymin{}({\isasymInter}x\isasymin{}A. B(x));  a\isasymin{}A |] ==> b\isasymin{}B(a)
+\end{alltt*}
 \caption{General union and intersection} \label{zf-lemmas3}
 \end{figure}
 
 
-%%% upair.ML
+%%% upair.thy
 
 \begin{figure}
-\begin{ttbox}
-\tdx{pairing}      a:Upair(b,c) <-> (a=b | a=c)
-\tdx{UpairI1}      a : Upair(a,b)
-\tdx{UpairI2}      b : Upair(a,b)
-\tdx{UpairE}       [| a : Upair(b,c);  a = b ==> P;  a = c ==> P |] ==> P
-\end{ttbox}
+\begin{alltt*}\isastyleminor
+\tdx{pairing}:   a\isasymin{}Upair(b,c) <-> (a=b | a=c)
+\tdx{UpairI1}:   a\isasymin{}Upair(a,b)
+\tdx{UpairI2}:   b\isasymin{}Upair(a,b)
+\tdx{UpairE}:    [| a\isasymin{}Upair(b,c);  a=b ==> P;  a=c ==> P |] ==> P
+\end{alltt*}
 \caption{Unordered pairs} \label{zf-upair1}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{UnI1}         c : A ==> c : A Un B
-\tdx{UnI2}         c : B ==> c : A Un B
-\tdx{UnCI}         (~c : B ==> c : A) ==> c : A Un B
-\tdx{UnE}          [| c : A Un B;  c:A ==> P;  c:B ==> P |] ==> P
+\begin{alltt*}\isastyleminor
+\tdx{UnI1}:      c\isasymin{}A ==> c\isasymin{}A \isasymunion B
+\tdx{UnI2}:      c\isasymin{}B ==> c\isasymin{}A \isasymunion B
+\tdx{UnCI}:      (c \isasymnotin B ==> c\isasymin{}A) ==> c\isasymin{}A \isasymunion B
+\tdx{UnE}:       [| c\isasymin{}A \isasymunion B;  c\isasymin{}A ==> P;  c\isasymin{}B ==> P |] ==> P
 
-\tdx{IntI}         [| c : A;  c : B |] ==> c : A Int B
-\tdx{IntD1}        c : A Int B ==> c : A
-\tdx{IntD2}        c : A Int B ==> c : B
-\tdx{IntE}         [| c : A Int B;  [| c:A; c:B |] ==> P |] ==> P
+\tdx{IntI}:      [| c\isasymin{}A;  c\isasymin{}B |] ==> c\isasymin{}A Int B
+\tdx{IntD1}:     c\isasymin{}A Int B ==> c\isasymin{}A
+\tdx{IntD2}:     c\isasymin{}A Int B ==> c\isasymin{}B
+\tdx{IntE}:      [| c\isasymin{}A Int B;  [| c\isasymin{}A; c\isasymin{}B |] ==> P |] ==> P
 
-\tdx{DiffI}        [| c : A;  ~ c : B |] ==> c : A - B
-\tdx{DiffD1}       c : A - B ==> c : A
-\tdx{DiffD2}       c : A - B ==> c ~: B
-\tdx{DiffE}        [| c : A - B;  [| c:A; ~ c:B |] ==> P |] ==> P
-\end{ttbox}
+\tdx{DiffI}:     [| c\isasymin{}A;  c \isasymnotin B |] ==> c\isasymin{}A - B
+\tdx{DiffD1}:    c\isasymin{}A - B ==> c\isasymin{}A
+\tdx{DiffD2}:    c\isasymin{}A - B ==> c  \isasymnotin  B
+\tdx{DiffE}:     [| c\isasymin{}A - B;  [| c\isasymin{}A; c \isasymnotin B |] ==> P |] ==> P
+\end{alltt*}
 \caption{Union, intersection, difference} \label{zf-Un}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{consI1}       a : cons(a,B)
-\tdx{consI2}       a : B ==> a : cons(b,B)
-\tdx{consCI}       (~ a:B ==> a=b) ==> a: cons(b,B)
-\tdx{consE}        [| a : cons(b,A);  a=b ==> P;  a:A ==> P |] ==> P
+\begin{alltt*}\isastyleminor
+\tdx{consI1}:    a\isasymin{}cons(a,B)
+\tdx{consI2}:    a\isasymin{}B ==> a\isasymin{}cons(b,B)
+\tdx{consCI}:    (a \isasymnotin B ==> a=b) ==> a\isasymin{}cons(b,B)
+\tdx{consE}:     [| a\isasymin{}cons(b,A);  a=b ==> P;  a\isasymin{}A ==> P |] ==> P
 
-\tdx{singletonI}   a : {\ttlbrace}a{\ttrbrace}
-\tdx{singletonE}   [| a : {\ttlbrace}b{\ttrbrace}; a=b ==> P |] ==> P
-\end{ttbox}
+\tdx{singletonI}:  a\isasymin{}{\ttlbrace}a{\ttrbrace}
+\tdx{singletonE}:  [| a\isasymin{}{\ttlbrace}b{\ttrbrace}; a=b ==> P |] ==> P
+\end{alltt*}
 \caption{Finite and singleton sets} \label{zf-upair2}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{succI1}       i : succ(i)
-\tdx{succI2}       i : j ==> i : succ(j)
-\tdx{succCI}       (~ i:j ==> i=j) ==> i: succ(j)
-\tdx{succE}        [| i : succ(j);  i=j ==> P;  i:j ==> P |] ==> P
-\tdx{succ_neq_0}   [| succ(n)=0 |] ==> P
-\tdx{succ_inject}  succ(m) = succ(n) ==> m=n
-\end{ttbox}
+\begin{alltt*}\isastyleminor
+\tdx{succI1}:    i\isasymin{}succ(i)
+\tdx{succI2}:    i\isasymin{}j ==> i\isasymin{}succ(j)
+\tdx{succCI}:    (i \isasymnotin j ==> i=j) ==> i\isasymin{}succ(j)
+\tdx{succE}:     [| i\isasymin{}succ(j);  i=j ==> P;  i\isasymin{}j ==> P |] ==> P
+\tdx{succ_neq_0}:  [| succ(n)=0 |] ==> P
+\tdx{succ_inject}: succ(m) = succ(n) ==> m=n
+\end{alltt*}
 \caption{The successor function} \label{zf-succ}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{the_equality}     [| P(a);  !!x. P(x) ==> x=a |] ==> (THE x. P(x)) = a
-\tdx{theI}             EX! x. P(x) ==> P(THE x. P(x))
+\begin{alltt*}\isastyleminor
+\tdx{the_equality}: [| P(a); !!x. P(x) ==> x=a |] ==> (THE x. P(x))=a
+\tdx{theI}:         \isasymexists! x. P(x) ==> P(THE x. P(x))
 
-\tdx{if_P}              P ==> (if P then a else b) = a
-\tdx{if_not_P}         ~P ==> (if P then a else b) = b
+\tdx{if_P}:          P ==> (if P then a else b) = a
+\tdx{if_not_P}:     ~P ==> (if P then a else b) = b
 
-\tdx{mem_asym}         [| a:b;  b:a |] ==> P
-\tdx{mem_irrefl}       a:a ==> P
-\end{ttbox}
+\tdx{mem_asym}:     [| a\isasymin{}b;  b\isasymin{}a |] ==> P
+\tdx{mem_irrefl}:   a\isasymin{}a ==> P
+\end{alltt*}
 \caption{Descriptions; non-circularity} \label{zf-the}
 \end{figure}
 
@@ -685,16 +678,16 @@ Figure~\ref{zf-upair1} presents the principle of unordered pairing, along
 with its derived rules.  Binary union and intersection are defined in terms
 of ordered pairs (Fig.\ts\ref{zf-Un}).  Set difference is also included.  The
 rule \tdx{UnCI} is useful for classical reasoning about unions,
-like \texttt{disjCI}\@; it supersedes \tdx{UnI1} and
+like \isa{disjCI}\@; it supersedes \tdx{UnI1} and
 \tdx{UnI2}, but these rules are often easier to work with.  For
 intersection and difference we have both elimination and destruction rules.
 Again, there is no reason to provide a minimal rule set.
 
 Figure~\ref{zf-upair2} is concerned with finite sets: it presents rules
-for~\texttt{cons}, the finite set constructor, and rules for singleton
+for~\isa{cons}, the finite set constructor, and rules for singleton
 sets.  Figure~\ref{zf-succ} presents derived rules for the successor
-function, which is defined in terms of~\texttt{cons}.  The proof that {\tt
-  succ} is injective appears to require the Axiom of Foundation.
+function, which is defined in terms of~\isa{cons}.  The proof that 
+\isa{succ} is injective appears to require the Axiom of Foundation.
 
 Definite descriptions (\sdx{THE}) are defined in terms of the singleton
 set~$\{0\}$, but their derived rules fortunately hide this
@@ -707,33 +700,30 @@ Finally, the impossibility of having both $a\in b$ and $b\in a$
 (\tdx{mem_asym}) is proved by applying the Axiom of Foundation to
 the set $\{a,b\}$.  The impossibility of $a\in a$ is a trivial consequence.
 
-See the file \texttt{ZF/upair.ML} for full proofs of the rules discussed in
-this section.
 
-
-%%% subset.ML
+%%% subset.thy?
 
 \begin{figure}
-\begin{ttbox}
-\tdx{Union_upper}       B:A ==> B <= Union(A)
-\tdx{Union_least}       [| !!x. x:A ==> x<=C |] ==> Union(A) <= C
+\begin{alltt*}\isastyleminor
+\tdx{Union_upper}:    B\isasymin{}A ==> B \isasymsubseteq Union(A)
+\tdx{Union_least}:    [| !!x. x\isasymin{}A ==> x \isasymsubseteq C |] ==> Union(A) \isasymsubseteq C
 
-\tdx{Inter_lower}       B:A ==> Inter(A) <= B
-\tdx{Inter_greatest}    [| a:A;  !!x. x:A ==> C<=x |] ==> C <= Inter(A)
+\tdx{Inter_lower}:    B\isasymin{}A ==> Inter(A) \isasymsubseteq B
+\tdx{Inter_greatest}: [| a\isasymin{}A; !!x. x\isasymin{}A ==> C \isasymsubseteq x |] ==> C\isasymsubseteq{}Inter(A)
 
-\tdx{Un_upper1}         A <= A Un B
-\tdx{Un_upper2}         B <= A Un B
-\tdx{Un_least}          [| A<=C;  B<=C |] ==> A Un B <= C
+\tdx{Un_upper1}:      A \isasymsubseteq A \isasymunion B
+\tdx{Un_upper2}:      B \isasymsubseteq A \isasymunion B
+\tdx{Un_least}:       [| A \isasymsubseteq C;  B \isasymsubseteq C |] ==> A \isasymunion B \isasymsubseteq C
 
-\tdx{Int_lower1}        A Int B <= A
-\tdx{Int_lower2}        A Int B <= B
-\tdx{Int_greatest}      [| C<=A;  C<=B |] ==> C <= A Int B
+\tdx{Int_lower1}:     A Int B \isasymsubseteq A
+\tdx{Int_lower2}:     A Int B \isasymsubseteq B
+\tdx{Int_greatest}:   [| C \isasymsubseteq A;  C \isasymsubseteq B |] ==> C \isasymsubseteq A Int B
 
-\tdx{Diff_subset}       A-B <= A
-\tdx{Diff_contains}     [| C<=A;  C Int B = 0 |] ==> C <= A-B
+\tdx{Diff_subset}:    A-B \isasymsubseteq A
+\tdx{Diff_contains}:  [| C \isasymsubseteq A;  C Int B = 0 |] ==> C \isasymsubseteq A-B
 
-\tdx{Collect_subset}    Collect(A,P) <= A
-\end{ttbox}
+\tdx{Collect_subset}: Collect(A,P) \isasymsubseteq A
+\end{alltt*}
 \caption{Subset and lattice properties} \label{zf-subset}
 \end{figure}
 
@@ -742,34 +732,33 @@ this section.
 The subset relation is a complete lattice.  Unions form least upper bounds;
 non-empty intersections form greatest lower bounds.  Figure~\ref{zf-subset}
 shows the corresponding rules.  A few other laws involving subsets are
-included.  Proofs are in the file \texttt{ZF/subset.ML}.
-
+included. 
 Reasoning directly about subsets often yields clearer proofs than
 reasoning about the membership relation.  Section~\ref{sec:ZF-pow-example}
-below presents an example of this, proving the equation ${{\tt Pow}(A)\cap
-  {\tt Pow}(B)}= {\tt Pow}(A\cap B)$.
+below presents an example of this, proving the equation 
+${\isa{Pow}(A)\cap \isa{Pow}(B)}= \isa{Pow}(A\cap B)$.
 
-%%% pair.ML
+%%% pair.thy
 
 \begin{figure}
-\begin{ttbox}
-\tdx{Pair_inject1}    <a,b> = <c,d> ==> a=c
-\tdx{Pair_inject2}    <a,b> = <c,d> ==> b=d
-\tdx{Pair_inject}     [| <a,b> = <c,d>;  [| a=c; b=d |] ==> P |] ==> P
-\tdx{Pair_neq_0}      <a,b>=0 ==> P
+\begin{alltt*}\isastyleminor
+\tdx{Pair_inject1}: <a,b> = <c,d> ==> a=c
+\tdx{Pair_inject2}: <a,b> = <c,d> ==> b=d
+\tdx{Pair_inject}:  [| <a,b> = <c,d>;  [| a=c; b=d |] ==> P |] ==> P
+\tdx{Pair_neq_0}:   <a,b>=0 ==> P
 
-\tdx{fst_conv}        fst(<a,b>) = a
-\tdx{snd_conv}        snd(<a,b>) = b
-\tdx{split}           split(\%x y. c(x,y), <a,b>) = c(a,b)
+\tdx{fst_conv}:     fst(<a,b>) = a
+\tdx{snd_conv}:     snd(<a,b>) = b
+\tdx{split}:        split(\%x y. c(x,y), <a,b>) = c(a,b)
 
-\tdx{SigmaI}          [| a:A;  b:B(a) |] ==> <a,b> : Sigma(A,B)
+\tdx{SigmaI}:     [| a\isasymin{}A;  b\isasymin{}B(a) |] ==> <a,b>\isasymin{}Sigma(A,B)
 
-\tdx{SigmaE}          [| c: Sigma(A,B);  
-                   !!x y.[| x:A; y:B(x); c=<x,y> |] ==> P |] ==> P
+\tdx{SigmaE}:     [| c\isasymin{}Sigma(A,B);  
+                !!x y.[| x\isasymin{}A; y\isasymin{}B(x); c=<x,y> |] ==> P |] ==> P
 
-\tdx{SigmaE2}         [| <a,b> : Sigma(A,B);    
-                   [| a:A;  b:B(a) |] ==> P   |] ==> P
-\end{ttbox}
+\tdx{SigmaE2}:    [| <a,b>\isasymin{}Sigma(A,B);    
+                [| a\isasymin{}A;  b\isasymin{}B(a) |] ==> P   |] ==> P
+\end{alltt*}
 \caption{Ordered pairs; projections; general sums} \label{zf-pair}
 \end{figure}
 
@@ -777,9 +766,9 @@ below presents an example of this, proving the equation ${{\tt Pow}(A)\cap
 \subsection{Ordered pairs} \label{sec:pairs}
 
 Figure~\ref{zf-pair} presents the rules governing ordered pairs,
-projections and general sums.  File \texttt{ZF/pair.ML} contains the
-full (and tedious) proof that $\{\{a\},\{a,b\}\}$ functions as an ordered
-pair.  This property is expressed as two destruction rules,
+projections and general sums --- in particular, that
+$\{\{a\},\{a,b\}\}$ functions as an ordered pair.  This property is
+expressed as two destruction rules,
 \tdx{Pair_inject1} and \tdx{Pair_inject2}, and equivalently
 as the elimination rule \tdx{Pair_inject}.
 
@@ -791,69 +780,68 @@ satisfy $\pair{\emptyset;\emptyset}=\emptyset$.
 The natural deduction rules \tdx{SigmaI} and \tdx{SigmaE}
 assert that \cdx{Sigma}$(A,B)$ consists of all pairs of the form
 $\pair{x,y}$, for $x\in A$ and $y\in B(x)$.  The rule \tdx{SigmaE2}
-merely states that $\pair{a,b}\in \texttt{Sigma}(A,B)$ implies $a\in A$ and
+merely states that $\pair{a,b}\in \isa{Sigma}(A,B)$ implies $a\in A$ and
 $b\in B(a)$.
 
 In addition, it is possible to use tuples as patterns in abstractions:
 \begin{center}
-{\tt\%<$x$,$y$>. $t$} \quad stands for\quad \texttt{split(\%$x$ $y$.\ $t$)}
+{\tt\%<$x$,$y$>. $t$} \quad stands for\quad \isa{split(\%$x$ $y$.\ $t$)}
 \end{center}
 Nested patterns are translated recursively:
 {\tt\%<$x$,$y$,$z$>. $t$} $\leadsto$ {\tt\%<$x$,<$y$,$z$>>. $t$} $\leadsto$
-\texttt{split(\%$x$.\%<$y$,$z$>. $t$)} $\leadsto$ \texttt{split(\%$x$. split(\%$y$
+\isa{split(\%$x$.\%<$y$,$z$>. $t$)} $\leadsto$ \isa{split(\%$x$. split(\%$y$
   $z$.\ $t$))}.  The reverse translation is performed upon printing.
 \begin{warn}
-  The translation between patterns and \texttt{split} is performed automatically
+  The translation between patterns and \isa{split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
-  may differ, which affects proofs.  For example the term {\tt
-    (\%<x,y>.<y,x>)<a,b>} requires the theorem \texttt{split} to rewrite to
+  may differ, which affects proofs.  For example the term \isa{(\%<x,y>.<y,x>)<a,b>} requires the theorem \isa{split} to rewrite to
   {\tt<b,a>}.
 \end{warn}
 In addition to explicit $\lambda$-abstractions, patterns can be used in any
 variable binding construct which is internally described by a
 $\lambda$-abstraction.  Here are some important examples:
 \begin{description}
-\item[Let:] \texttt{let {\it pattern} = $t$ in $u$}
-\item[Choice:] \texttt{THE~{\it pattern}~.~$P$}
-\item[Set operations:] \texttt{UN~{\it pattern}:$A$.~$B$}
-\item[Comprehension:] \texttt{{\ttlbrace}~{\it pattern}:$A$~.~$P$~{\ttrbrace}}
+\item[Let:] \isa{let {\it pattern} = $t$ in $u$}
+\item[Choice:] \isa{THE~{\it pattern}~.~$P$}
+\item[Set operations:] \isa{\isasymUnion~{\it pattern}:$A$.~$B$}
+\item[Comprehension:] \isa{{\ttlbrace}~{\it pattern}:$A$~.~$P$~{\ttrbrace}}
 \end{description}
 
 
-%%% domrange.ML
+%%% domrange.thy?
 
 \begin{figure}
-\begin{ttbox}
-\tdx{domainI}        <a,b>: r ==> a : domain(r)
-\tdx{domainE}        [| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P
-\tdx{domain_subset}  domain(Sigma(A,B)) <= A
+\begin{alltt*}\isastyleminor
+\tdx{domainI}:     <a,b>\isasymin{}r ==> a\isasymin{}domain(r)
+\tdx{domainE}:     [| a\isasymin{}domain(r); !!y. <a,y>\isasymin{}r ==> P |] ==> P
+\tdx{domain_subset}: domain(Sigma(A,B)) \isasymsubseteq A
 
-\tdx{rangeI}         <a,b>: r ==> b : range(r)
-\tdx{rangeE}         [| b : range(r);  !!x. <x,b>: r ==> P |] ==> P
-\tdx{range_subset}   range(A*B) <= B
+\tdx{rangeI}:      <a,b>\isasymin{}r ==> b\isasymin{}range(r)
+\tdx{rangeE}:      [| b\isasymin{}range(r); !!x. <x,b>\isasymin{}r ==> P |] ==> P
+\tdx{range_subset}: range(A*B) \isasymsubseteq B
 
-\tdx{fieldI1}        <a,b>: r ==> a : field(r)
-\tdx{fieldI2}        <a,b>: r ==> b : field(r)
-\tdx{fieldCI}        (~ <c,a>:r ==> <a,b>: r) ==> a : field(r)
+\tdx{fieldI1}:     <a,b>\isasymin{}r ==> a\isasymin{}field(r)
+\tdx{fieldI2}:     <a,b>\isasymin{}r ==> b\isasymin{}field(r)
+\tdx{fieldCI}:     (<c,a> \isasymnotin r ==> <a,b>\isasymin{}r) ==> a\isasymin{}field(r)
 
-\tdx{fieldE}         [| a : field(r);  
-                  !!x. <a,x>: r ==> P;  
-                  !!x. <x,a>: r ==> P      
+\tdx{fieldE}:      [| a\isasymin{}field(r); 
+                  !!x. <a,x>\isasymin{}r ==> P; 
+                  !!x. <x,a>\isasymin{}r ==> P      
                |] ==> P
 
-\tdx{field_subset}   field(A*A) <= A
-\end{ttbox}
+\tdx{field_subset}:  field(A*A) \isasymsubseteq A
+\end{alltt*}
 \caption{Domain, range and field of a relation} \label{zf-domrange}
 \end{figure}
 
 \begin{figure}
-\begin{ttbox}
-\tdx{imageI}         [| <a,b>: r;  a:A |] ==> b : r``A
-\tdx{imageE}         [| b: r``A;  !!x.[| <x,b>: r;  x:A |] ==> P |] ==> P
+\begin{alltt*}\isastyleminor
+\tdx{imageI}:      [| <a,b>\isasymin{}r; a\isasymin{}A |] ==> b\isasymin{}r``A
+\tdx{imageE}:      [| b\isasymin{}r``A; !!x.[| <x,b>\isasymin{}r; x\isasymin{}A |] ==> P |] ==> P
 
-\tdx{vimageI}        [| <a,b>: r;  b:B |] ==> a : r-``B
-\tdx{vimageE}        [| a: r-``B;  !!x.[| <a,x>: r;  x:B |] ==> P |] ==> P
-\end{ttbox}
+\tdx{vimageI}:     [| <a,b>\isasymin{}r; b\isasymin{}B |] ==> a\isasymin{}r-``B
+\tdx{vimageE}:     [| a\isasymin{}r-``B; !!x.[| <a,x>\isasymin{}r;  x\isasymin{}B |] ==> P |] ==> P
+\end{alltt*}
 \caption{Image and inverse image} \label{zf-domrange2}
 \end{figure}
 
@@ -870,77 +858,76 @@ the field of a relation is merely the union of its domain and range.
 
 Figure~\ref{zf-domrange2} presents rules for images and inverse images.
 Note that these operations are generalisations of range and domain,
-respectively.  See the file \texttt{ZF/domrange.ML} for derivations of the
-rules.
+respectively. 
 
 
-%%% func.ML
+%%% func.thy
 
 \begin{figure}
-\begin{ttbox}
-\tdx{fun_is_rel}      f: Pi(A,B) ==> f <= Sigma(A,B)
+\begin{alltt*}\isastyleminor
+\tdx{fun_is_rel}:     f\isasymin{}Pi(A,B) ==> f \isasymsubseteq Sigma(A,B)
 
-\tdx{apply_equality}  [| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b
-\tdx{apply_equality2} [| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c
+\tdx{apply_equality}: [| <a,b>\isasymin{}f; f\isasymin{}Pi(A,B) |] ==> f`a = b
+\tdx{apply_equality2}: [| <a,b>\isasymin{}f; <a,c>\isasymin{}f; f\isasymin{}Pi(A,B) |] ==> b=c
 
-\tdx{apply_type}      [| f: Pi(A,B);  a:A |] ==> f`a : B(a)
-\tdx{apply_Pair}      [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f
-\tdx{apply_iff}       f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b
+\tdx{apply_type}:     [| f\isasymin{}Pi(A,B); a\isasymin{}A |] ==> f`a\isasymin{}B(a)
+\tdx{apply_Pair}:     [| f\isasymin{}Pi(A,B); a\isasymin{}A |] ==> <a,f`a>\isasymin{}f
+\tdx{apply_iff}:      f\isasymin{}Pi(A,B) ==> <a,b>\isasymin{}f <-> a\isasymin{}A & f`a = b
 
-\tdx{fun_extension}   [| f : Pi(A,B);  g: Pi(A,D);
-                   !!x. x:A ==> f`x = g`x     |] ==> f=g
+\tdx{fun_extension}:  [| f\isasymin{}Pi(A,B); g\isasymin{}Pi(A,D);
+                   !!x. x\isasymin{}A ==> f`x = g`x     |] ==> f=g
 
-\tdx{domain_type}     [| <a,b> : f;  f: Pi(A,B) |] ==> a : A
-\tdx{range_type}      [| <a,b> : f;  f: Pi(A,B) |] ==> b : B(a)
+\tdx{domain_type}:    [| <a,b>\isasymin{}f; f\isasymin{}Pi(A,B) |] ==> a\isasymin{}A
+\tdx{range_type}:     [| <a,b>\isasymin{}f; f\isasymin{}Pi(A,B) |] ==> b\isasymin{}B(a)
 
-\tdx{Pi_type}         [| f: A->C;  !!x. x:A ==> f`x: B(x) |] ==> f: Pi(A,B)
-\tdx{domain_of_fun}   f: Pi(A,B) ==> domain(f)=A
-\tdx{range_of_fun}    f: Pi(A,B) ==> f: A->range(f)
+\tdx{Pi_type}:        [| f\isasymin{}A->C; !!x. x\isasymin{}A ==> f`x\isasymin{}B(x) |] ==> f\isasymin{}Pi(A,B)
+\tdx{domain_of_fun}:  f\isasymin{}Pi(A,B) ==> domain(f)=A
+\tdx{range_of_fun}:   f\isasymin{}Pi(A,B) ==> f\isasymin{}A->range(f)
 
-\tdx{restrict}        a : A ==> restrict(f,A) ` a = f`a
-\tdx{restrict_type}   [| !!x. x:A ==> f`x: B(x) |] ==> 
-                restrict(f,A) : Pi(A,B)
-\end{ttbox}
+\tdx{restrict}:       a\isasymin{}A ==> restrict(f,A) ` a = f`a
+\tdx{restrict_type}:  [| !!x. x\isasymin{}A ==> f`x\isasymin{}B(x) |] ==> 
+                restrict(f,A)\isasymin{}Pi(A,B)
+\end{alltt*}
 \caption{Functions} \label{zf-func1}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{lamI}      a:A ==> <a,b(a)> : (lam x:A. b(x))
-\tdx{lamE}      [| p: (lam x:A. b(x));  !!x.[| x:A; p=<x,b(x)> |] ==> P 
+\begin{alltt*}\isastyleminor
+\tdx{lamI}:     a\isasymin{}A ==> <a,b(a)>\isasymin{}(lam x\isasymin{}A. b(x))
+\tdx{lamE}:     [| p\isasymin{}(lam x\isasymin{}A. b(x)); !!x.[| x\isasymin{}A; p=<x,b(x)> |] ==> P 
           |] ==>  P
 
-\tdx{lam_type}  [| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A. b(x)) : Pi(A,B)
+\tdx{lam_type}: [| !!x. x\isasymin{}A ==> b(x)\isasymin{}B(x) |] ==> (lam x\isasymin{}A. b(x))\isasymin{}Pi(A,B)
 
-\tdx{beta}      a : A ==> (lam x:A. b(x)) ` a = b(a)
-\tdx{eta}       f : Pi(A,B) ==> (lam x:A. f`x) = f
-\end{ttbox}
+\tdx{beta}:     a\isasymin{}A ==> (lam x\isasymin{}A. b(x)) ` a = b(a)
+\tdx{eta}:      f\isasymin{}Pi(A,B) ==> (lam x\isasymin{}A. f`x) = f
+\end{alltt*}
 \caption{$\lambda$-abstraction} \label{zf-lam}
 \end{figure}
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{fun_empty}            0: 0->0
-\tdx{fun_single}           {\ttlbrace}<a,b>{\ttrbrace} : {\ttlbrace}a{\ttrbrace} -> {\ttlbrace}b{\ttrbrace}
+\begin{alltt*}\isastyleminor
+\tdx{fun_empty}:           0\isasymin{}0->0
+\tdx{fun_single}:          {\ttlbrace}<a,b>{\ttrbrace}\isasymin{}{\ttlbrace}a{\ttrbrace} -> {\ttlbrace}b{\ttrbrace}
 
-\tdx{fun_disjoint_Un}      [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  
-                     (f Un g) : (A Un C) -> (B Un D)
+\tdx{fun_disjoint_Un}:     [| f\isasymin{}A->B; g\isasymin{}C->D; A Int C = 0  |] ==>  
+                     (f \isasymunion g)\isasymin{}(A \isasymunion C) -> (B \isasymunion D)
 
-\tdx{fun_disjoint_apply1}  [| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  
-                     (f Un g)`a = f`a
+\tdx{fun_disjoint_apply1}: [| a\isasymin{}A; f\isasymin{}A->B; g\isasymin{}C->D;  A\isasyminter{}C = 0 |] ==>  
+                     (f \isasymunion g)`a = f`a
 
-\tdx{fun_disjoint_apply2}  [| c:C;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  
-                     (f Un g)`c = g`c
-\end{ttbox}
+\tdx{fun_disjoint_apply2}: [| c\isasymin{}C; f\isasymin{}A->B; g\isasymin{}C->D;  A\isasyminter{}C = 0 |] ==>  
+                     (f \isasymunion g)`c = g`c
+\end{alltt*}
 \caption{Constructing functions from smaller sets} \label{zf-func2}
 \end{figure}
 
 
 \subsection{Functions}
 Functions, represented by graphs, are notoriously difficult to reason
-about.  The file \texttt{ZF/func.ML} derives many rules, which overlap more
+about.  The ZF theory provides many derived rules, which overlap more
 than they ought.  This section presents the more important rules.
 
 Figure~\ref{zf-func1} presents the basic properties of \cdx{Pi}$(A,B)$,
@@ -953,7 +940,7 @@ By \tdx{Pi_type}, a function typing of the form $f\in A\to C$ can be
 refined to the dependent typing $f\in\prod@{x\in A}B(x)$, given a suitable
 family of sets $\{B(x)\}@{x\in A}$.  Conversely, by \tdx{range_of_fun},
 any dependent typing can be flattened to yield a function type of the form
-$A\to C$; here, $C={\tt range}(f)$.
+$A\to C$; here, $C=\isa{range}(f)$.
 
 Among the laws for $\lambda$-abstraction, \tdx{lamI} and \tdx{lamE}
 describe the graph of the generated function, while \tdx{beta} and
@@ -967,45 +954,45 @@ disjoint.
 
 
 \begin{figure}
-\begin{ttbox}
-\tdx{Int_absorb}         A Int A = A
-\tdx{Int_commute}        A Int B = B Int A
-\tdx{Int_assoc}          (A Int B) Int C  =  A Int (B Int C)
-\tdx{Int_Un_distrib}     (A Un B) Int C  =  (A Int C) Un (B Int C)
+\begin{alltt*}\isastyleminor
+\tdx{Int_absorb}:        A Int A = A
+\tdx{Int_commute}:       A Int B = B Int A
+\tdx{Int_assoc}:         (A Int B) Int C  =  A Int (B Int C)
+\tdx{Int_Un_distrib}:    (A \isasymunion B) Int C  =  (A Int C) \isasymunion (B Int C)
 
-\tdx{Un_absorb}          A Un A = A
-\tdx{Un_commute}         A Un B = B Un A
-\tdx{Un_assoc}           (A Un B) Un C  =  A Un (B Un C)
-\tdx{Un_Int_distrib}     (A Int B) Un C  =  (A Un C) Int (B Un C)
+\tdx{Un_absorb}:         A \isasymunion A = A
+\tdx{Un_commute}:        A \isasymunion B = B \isasymunion A
+\tdx{Un_assoc}:          (A \isasymunion B) \isasymunion C  =  A \isasymunion (B \isasymunion C)
+\tdx{Un_Int_distrib}:    (A Int B) \isasymunion C  =  (A \isasymunion C) Int (B \isasymunion C)
 
-\tdx{Diff_cancel}        A-A = 0
-\tdx{Diff_disjoint}      A Int (B-A) = 0
-\tdx{Diff_partition}     A<=B ==> A Un (B-A) = B
-\tdx{double_complement}  [| A<=B; B<= C |] ==> (B - (C-A)) = A
-\tdx{Diff_Un}            A - (B Un C) = (A-B) Int (A-C)
-\tdx{Diff_Int}           A - (B Int C) = (A-B) Un (A-C)
+\tdx{Diff_cancel}:       A-A = 0
+\tdx{Diff_disjoint}:     A Int (B-A) = 0
+\tdx{Diff_partition}:    A \isasymsubseteq B ==> A \isasymunion (B-A) = B
+\tdx{double_complement}: [| A \isasymsubseteq B; B \isasymsubseteq C |] ==> (B - (C-A)) = A
+\tdx{Diff_Un}:           A - (B \isasymunion C) = (A-B) Int (A-C)
+\tdx{Diff_Int}:          A - (B Int C) = (A-B) \isasymunion (A-C)
 
-\tdx{Union_Un_distrib}   Union(A Un B) = Union(A) Un Union(B)
-\tdx{Inter_Un_distrib}   [| a:A;  b:B |] ==> 
-                   Inter(A Un B) = Inter(A) Int Inter(B)
+\tdx{Union_Un_distrib}:  Union(A \isasymunion B) = Union(A) \isasymunion Union(B)
+\tdx{Inter_Un_distrib}:  [| a \isasymin A;  b \isasymin B |] ==> 
+                   Inter(A \isasymunion B) = Inter(A) Int Inter(B)
 
-\tdx{Int_Union_RepFun}   A Int Union(B) = (UN C:B. A Int C)
+\tdx{Int_Union_RepFun}:  A Int Union(B) = ({\isasymUnion}C \isasymin B. A Int C)
 
-\tdx{Un_Inter_RepFun}    b:B ==> 
-                   A Un Inter(B) = (INT C:B. A Un C)
+\tdx{Un_Inter_RepFun}:   b \isasymin B ==> 
+                   A \isasymunion Inter(B) = ({\isasymInter}C \isasymin B. A \isasymunion C)
 
-\tdx{SUM_Un_distrib1}    (SUM x:A Un B. C(x)) = 
-                   (SUM x:A. C(x)) Un (SUM x:B. C(x))
+\tdx{SUM_Un_distrib1}:   (SUM x \isasymin A \isasymunion B. C(x)) = 
+                   (SUM x \isasymin A. C(x)) \isasymunion (SUM x \isasymin B. C(x))
 
-\tdx{SUM_Un_distrib2}    (SUM x:C. A(x) Un B(x)) =
-                   (SUM x:C. A(x))  Un  (SUM x:C. B(x))
+\tdx{SUM_Un_distrib2}:   (SUM x \isasymin C. A(x) \isasymunion B(x)) =
+                   (SUM x \isasymin C. A(x)) \isasymunion (SUM x \isasymin C. B(x))
 
-\tdx{SUM_Int_distrib1}   (SUM x:A Int B. C(x)) =
-                   (SUM x:A. C(x)) Int (SUM x:B. C(x))
+\tdx{SUM_Int_distrib1}:  (SUM x \isasymin A Int B. C(x)) =
+                   (SUM x \isasymin A. C(x)) Int (SUM x \isasymin B. C(x))
 
-\tdx{SUM_Int_distrib2}   (SUM x:C. A(x) Int B(x)) =
-                   (SUM x:C. A(x)) Int (SUM x:C. B(x))
-\end{ttbox}
+\tdx{SUM_Int_distrib2}:  (SUM x \isasymin C. A(x) Int B(x)) =
+                   (SUM x \isasymin C. A(x)) Int (SUM x \isasymin C. B(x))
+\end{alltt*}
 \caption{Equalities} \label{zf-equalities}
 \end{figure}
 
@@ -1014,45 +1001,43 @@ disjoint.
 %\begin{constants} 
 %  \cdx{1}       & $i$           &       & $\{\emptyset\}$       \\
 %  \cdx{bool}    & $i$           &       & the set $\{\emptyset,1\}$     \\
-%  \cdx{cond}   & $[i,i,i]\To i$ &       & conditional for \texttt{bool}    \\
-%  \cdx{not}    & $i\To i$       &       & negation for \texttt{bool}       \\
-%  \sdx{and}    & $[i,i]\To i$   & Left 70 & conjunction for \texttt{bool}  \\
-%  \sdx{or}     & $[i,i]\To i$   & Left 65 & disjunction for \texttt{bool}  \\
-%  \sdx{xor}    & $[i,i]\To i$   & Left 65 & exclusive-or for \texttt{bool}
+%  \cdx{cond}   & $[i,i,i]\To i$ &       & conditional for \isa{bool}    \\
+%  \cdx{not}    & $i\To i$       &       & negation for \isa{bool}       \\
+%  \sdx{and}    & $[i,i]\To i$   & Left 70 & conjunction for \isa{bool}  \\
+%  \sdx{or}     & $[i,i]\To i$   & Left 65 & disjunction for \isa{bool}  \\
+%  \sdx{xor}    & $[i,i]\To i$   & Left 65 & exclusive-or for \isa{bool}
 %\end{constants}
 %
-\begin{ttbox}
-\tdx{bool_def}       bool == {\ttlbrace}0,1{\ttrbrace}
-\tdx{cond_def}       cond(b,c,d) == if b=1 then c else d
-\tdx{not_def}        not(b)  == cond(b,0,1)
-\tdx{and_def}        a and b == cond(a,b,0)
-\tdx{or_def}         a or b  == cond(a,1,b)
-\tdx{xor_def}        a xor b == cond(a,not(b),b)
+\begin{alltt*}\isastyleminor
+\tdx{bool_def}:      bool == {\ttlbrace}0,1{\ttrbrace}
+\tdx{cond_def}:      cond(b,c,d) == if b=1 then c else d
+\tdx{not_def}:       not(b)  == cond(b,0,1)
+\tdx{and_def}:       a and b == cond(a,b,0)
+\tdx{or_def}:        a or b  == cond(a,1,b)
+\tdx{xor_def}:       a xor b == cond(a,not(b),b)
 
-\tdx{bool_1I}        1 : bool
-\tdx{bool_0I}        0 : bool
-\tdx{boolE}          [| c: bool;  c=1 ==> P;  c=0 ==> P |] ==> P
-\tdx{cond_1}         cond(1,c,d) = c
-\tdx{cond_0}         cond(0,c,d) = d
-\end{ttbox}
+\tdx{bool_1I}:       1 \isasymin bool
+\tdx{bool_0I}:       0 \isasymin bool
+\tdx{boolE}:         [| c \isasymin bool;  c=1 ==> P;  c=0 ==> P |] ==> P
+\tdx{cond_1}:        cond(1,c,d) = c
+\tdx{cond_0}:        cond(0,c,d) = d
+\end{alltt*}
 \caption{The booleans} \label{zf-bool}
 \end{figure}
 
 
 \section{Further developments}
 The next group of developments is complex and extensive, and only
-highlights can be covered here.  It involves many theories and ML files of
-proofs. 
+highlights can be covered here.  It involves many theories and proofs. 
 
 Figure~\ref{zf-equalities} presents commutative, associative, distributive,
 and idempotency laws of union and intersection, along with other equations.
-See file \texttt{ZF/equalities.ML}.
 
 Theory \thydx{Bool} defines $\{0,1\}$ as a set of booleans, with the usual
 operators including a conditional (Fig.\ts\ref{zf-bool}).  Although ZF is a
 first-order theory, you can obtain the effect of higher-order logic using
-\texttt{bool}-valued functions, for example.  The constant~\texttt{1} is
-translated to \texttt{succ(0)}.
+\isa{bool}-valued functions, for example.  The constant~\isa{1} is
+translated to \isa{succ(0)}.
 
 \begin{figure}
 \index{*"+ symbol}
@@ -1062,24 +1047,24 @@ translated to \texttt{succ(0)}.
   \cdx{Inl}~~\cdx{Inr}  & $i\To i$      &       & injections\\
   \cdx{case}    & $[i\To i,i\To i, i]\To i$ &   & conditional for $A+B$
 \end{constants}
-\begin{ttbox}
-\tdx{sum_def}        A+B == {\ttlbrace}0{\ttrbrace}*A Un {\ttlbrace}1{\ttrbrace}*B
-\tdx{Inl_def}        Inl(a) == <0,a>
-\tdx{Inr_def}        Inr(b) == <1,b>
-\tdx{case_def}       case(c,d,u) == split(\%y z. cond(y, d(z), c(z)), u)
+\begin{alltt*}\isastyleminor
+\tdx{sum_def}:   A+B == {\ttlbrace}0{\ttrbrace}*A \isasymunion {\ttlbrace}1{\ttrbrace}*B
+\tdx{Inl_def}:   Inl(a) == <0,a>
+\tdx{Inr_def}:   Inr(b) == <1,b>
+\tdx{case_def}:  case(c,d,u) == split(\%y z. cond(y, d(z), c(z)), u)
 
-\tdx{sum_InlI}       a : A ==> Inl(a) : A+B
-\tdx{sum_InrI}       b : B ==> Inr(b) : A+B
+\tdx{InlI}:      a \isasymin A ==> Inl(a) \isasymin A+B
+\tdx{InrI}:      b \isasymin B ==> Inr(b) \isasymin A+B
 
-\tdx{Inl_inject}     Inl(a)=Inl(b) ==> a=b
-\tdx{Inr_inject}     Inr(a)=Inr(b) ==> a=b
-\tdx{Inl_neq_Inr}    Inl(a)=Inr(b) ==> P
+\tdx{Inl_inject}:  Inl(a)=Inl(b) ==> a=b
+\tdx{Inr_inject}:  Inr(a)=Inr(b) ==> a=b
+\tdx{Inl_neq_Inr}: Inl(a)=Inr(b) ==> P
 
-\tdx{sumE2}   u: A+B ==> (EX x. x:A & u=Inl(x)) | (EX y. y:B & u=Inr(y))
+\tdx{sum_iff}:  u \isasymin A+B <-> ({\isasymexists}x\isasymin{}A. u=Inl(x)) | ({\isasymexists}y\isasymin{}B. u=Inr(y))
 
-\tdx{case_Inl}       case(c,d,Inl(a)) = c(a)
-\tdx{case_Inr}       case(c,d,Inr(b)) = d(b)
-\end{ttbox}
+\tdx{case_Inl}:  case(c,d,Inl(a)) = c(a)
+\tdx{case_Inr}:  case(c,d,Inr(b)) = d(b)
+\end{alltt*}
 \caption{Disjoint unions} \label{zf-sum}
 \end{figure}
 
@@ -1092,18 +1077,18 @@ unions play a role in datatype definitions, particularly when there is
 mutual recursion~\cite{paulson-set-II}.
 
 \begin{figure}
-\begin{ttbox}
-\tdx{QPair_def}       <a;b> == a+b
-\tdx{qsplit_def}      qsplit(c,p)  == THE y. EX a b. p=<a;b> & y=c(a,b)
-\tdx{qfsplit_def}     qfsplit(R,z) == EX x y. z=<x;y> & R(x,y)
-\tdx{qconverse_def}   qconverse(r) == {\ttlbrace}z. w:r, EX x y. w=<x;y> & z=<y;x>{\ttrbrace}
-\tdx{QSigma_def}      QSigma(A,B)  == UN x:A. UN y:B(x). {\ttlbrace}<x;y>{\ttrbrace}
+\begin{alltt*}\isastyleminor
+\tdx{QPair_def}:      <a;b> == a+b
+\tdx{qsplit_def}:     qsplit(c,p)  == THE y. {\isasymexists}a b. p=<a;b> & y=c(a,b)
+\tdx{qfsplit_def}:    qfsplit(R,z) == {\isasymexists}x y. z=<x;y> & R(x,y)
+\tdx{qconverse_def}:  qconverse(r) == {\ttlbrace}z. w \isasymin r, {\isasymexists}x y. w=<x;y> & z=<y;x>{\ttrbrace}
+\tdx{QSigma_def}:     QSigma(A,B)  == {\isasymUnion}x \isasymin A. {\isasymUnion}y \isasymin B(x). {\ttlbrace}<x;y>{\ttrbrace}
 
-\tdx{qsum_def}        A <+> B      == ({\ttlbrace}0{\ttrbrace} <*> A) Un ({\ttlbrace}1{\ttrbrace} <*> B)
-\tdx{QInl_def}        QInl(a)      == <0;a>
-\tdx{QInr_def}        QInr(b)      == <1;b>
-\tdx{qcase_def}       qcase(c,d)   == qsplit(\%y z. cond(y, d(z), c(z)))
-\end{ttbox}
+\tdx{qsum_def}:       A <+> B      == ({\ttlbrace}0{\ttrbrace} <*> A) \isasymunion ({\ttlbrace}1{\ttrbrace} <*> B)
+\tdx{QInl_def}:       QInl(a)      == <0;a>
+\tdx{QInr_def}:       QInr(b)      == <1;b>
+\tdx{qcase_def}:      qcase(c,d)   == qsplit(\%y z. cond(y, d(z), c(z)))
+\end{alltt*}
 \caption{Non-standard pairs, products and sums} \label{zf-qpair}
 \end{figure}
 
@@ -1122,49 +1107,49 @@ addition, {\tt<$a$;$b$>} is continuous.  The theory supports coinductive
 definitions, for example of infinite lists~\cite{paulson-mscs}.
 
 \begin{figure}
-\begin{ttbox}
-\tdx{bnd_mono_def}   bnd_mono(D,h) == 
-                 h(D)<=D & (ALL W X. W<=X --> X<=D --> h(W) <= h(X))
+\begin{alltt*}\isastyleminor
+\tdx{bnd_mono_def}:  bnd_mono(D,h) == 
+                 h(D) \isasymsubseteq D & ({\isasymforall}W X. W \isasymsubseteq X --> X \isasymsubseteq D --> h(W) \isasymsubseteq h(X))
 
-\tdx{lfp_def}        lfp(D,h) == Inter({\ttlbrace}X: Pow(D). h(X) <= X{\ttrbrace})
-\tdx{gfp_def}        gfp(D,h) == Union({\ttlbrace}X: Pow(D). X <= h(X){\ttrbrace})
+\tdx{lfp_def}:       lfp(D,h) == Inter({\ttlbrace}X \isasymin Pow(D). h(X) \isasymsubseteq X{\ttrbrace})
+\tdx{gfp_def}:       gfp(D,h) == Union({\ttlbrace}X \isasymin Pow(D). X \isasymsubseteq h(X){\ttrbrace})
 
 
-\tdx{lfp_lowerbound} [| h(A) <= A;  A<=D |] ==> lfp(D,h) <= A
+\tdx{lfp_lowerbound} [| h(A) \isasymsubseteq A;  A \isasymsubseteq D |] ==> lfp(D,h) \isasymsubseteq A
 
-\tdx{lfp_subset}     lfp(D,h) <= D
+\tdx{lfp_subset}:    lfp(D,h) \isasymsubseteq D
 
-\tdx{lfp_greatest}   [| bnd_mono(D,h);  
-                  !!X. [| h(X) <= X;  X<=D |] ==> A<=X 
-               |] ==> A <= lfp(D,h)
+\tdx{lfp_greatest}:  [| bnd_mono(D,h);  
+                  !!X. [| h(X) \isasymsubseteq X;  X \isasymsubseteq D |] ==> A \isasymsubseteq X 
+               |] ==> A \isasymsubseteq lfp(D,h)
 
-\tdx{lfp_Tarski}     bnd_mono(D,h) ==> lfp(D,h) = h(lfp(D,h))
+\tdx{lfp_Tarski}:    bnd_mono(D,h) ==> lfp(D,h) = h(lfp(D,h))
 
-\tdx{induct}         [| a : lfp(D,h);  bnd_mono(D,h);
-                  !!x. x : h(Collect(lfp(D,h),P)) ==> P(x)
+\tdx{induct}:        [| a \isasymin lfp(D,h);  bnd_mono(D,h);
+                  !!x. x \isasymin h(Collect(lfp(D,h),P)) ==> P(x)
                |] ==> P(a)
 
-\tdx{lfp_mono}       [| bnd_mono(D,h);  bnd_mono(E,i);
-                  !!X. X<=D ==> h(X) <= i(X)  
-               |] ==> lfp(D,h) <= lfp(E,i)
+\tdx{lfp_mono}:      [| bnd_mono(D,h);  bnd_mono(E,i);
+                  !!X. X \isasymsubseteq D ==> h(X) \isasymsubseteq i(X)  
+               |] ==> lfp(D,h) \isasymsubseteq lfp(E,i)
 
-\tdx{gfp_upperbound} [| A <= h(A);  A<=D |] ==> A <= gfp(D,h)
+\tdx{gfp_upperbound} [| A \isasymsubseteq h(A);  A \isasymsubseteq D |] ==> A \isasymsubseteq gfp(D,h)
 
-\tdx{gfp_subset}     gfp(D,h) <= D
+\tdx{gfp_subset}:    gfp(D,h) \isasymsubseteq D
 
-\tdx{gfp_least}      [| bnd_mono(D,h);  
-                  !!X. [| X <= h(X);  X<=D |] ==> X<=A
-               |] ==> gfp(D,h) <= A
+\tdx{gfp_least}:     [| bnd_mono(D,h);  
+                  !!X. [| X \isasymsubseteq h(X);  X \isasymsubseteq D |] ==> X \isasymsubseteq A
+               |] ==> gfp(D,h) \isasymsubseteq A
 
-\tdx{gfp_Tarski}     bnd_mono(D,h) ==> gfp(D,h) = h(gfp(D,h))
+\tdx{gfp_Tarski}:    bnd_mono(D,h) ==> gfp(D,h) = h(gfp(D,h))
 
-\tdx{coinduct}       [| bnd_mono(D,h); a: X; X <= h(X Un gfp(D,h)); X <= D 
-               |] ==> a : gfp(D,h)
+\tdx{coinduct}:      [| bnd_mono(D,h); a \isasymin X; X \isasymsubseteq h(X \isasymunion gfp(D,h)); X \isasymsubseteq D 
+               |] ==> a \isasymin gfp(D,h)
 
-\tdx{gfp_mono}       [| bnd_mono(D,h);  D <= E;
-                  !!X. X<=D ==> h(X) <= i(X)  
-               |] ==> gfp(D,h) <= gfp(E,i)
-\end{ttbox}
+\tdx{gfp_mono}:      [| bnd_mono(D,h);  D \isasymsubseteq E;
+                  !!X. X \isasymsubseteq D ==> h(X) \isasymsubseteq i(X)  
+               |] ==> gfp(D,h) \isasymsubseteq gfp(E,i)
+\end{alltt*}
 \caption{Least and greatest fixedpoints} \label{zf-fixedpt}
 \end{figure}
 
@@ -1186,35 +1171,34 @@ proofs.
 Monotonicity properties are proved for most of the set-forming operations:
 union, intersection, Cartesian product, image, domain, range, etc.  These
 are useful for applying the Knaster-Tarski Fixedpoint Theorem.  The proofs
-themselves are trivial applications of Isabelle's classical reasoner.  See
-file \texttt{ZF/mono.ML}.
+themselves are trivial applications of Isabelle's classical reasoner. 
 
 
 \subsection{Finite sets and lists}
 
 Theory \texttt{Finite} (Figure~\ref{zf-fin}) defines the finite set operator;
-${\tt Fin}(A)$ is the set of all finite sets over~$A$.  The theory employs
+$\isa{Fin}(A)$ is the set of all finite sets over~$A$.  The theory employs
 Isabelle's inductive definition package, which proves various rules
 automatically.  The induction rule shown is stronger than the one proved by
 the package.  The theory also defines the set of all finite functions
 between two given sets.
 
 \begin{figure}
-\begin{ttbox}
-\tdx{Fin.emptyI}      0 : Fin(A)
-\tdx{Fin.consI}       [| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)
+\begin{alltt*}\isastyleminor
+\tdx{Fin.emptyI}      0 \isasymin Fin(A)
+\tdx{Fin.consI}       [| a \isasymin A;  b \isasymin Fin(A) |] ==> cons(a,b) \isasymin Fin(A)
 
 \tdx{Fin_induct}
-    [| b: Fin(A);
+    [| b \isasymin Fin(A);
        P(0);
-       !!x y. [| x: A;  y: Fin(A);  x~:y;  P(y) |] ==> P(cons(x,y))
+       !!x y. [| x \isasymin A;  y \isasymin Fin(A);  x \isasymnotin y;  P(y) |] ==> P(cons(x,y))
     |] ==> P(b)
 
-\tdx{Fin_mono}        A<=B ==> Fin(A) <= Fin(B)
-\tdx{Fin_UnI}         [| b: Fin(A);  c: Fin(A) |] ==> b Un c : Fin(A)
-\tdx{Fin_UnionI}      C : Fin(Fin(A)) ==> Union(C) : Fin(A)
-\tdx{Fin_subset}      [| c<=b;  b: Fin(A) |] ==> c: Fin(A)
-\end{ttbox}
+\tdx{Fin_mono}:       A \isasymsubseteq B ==> Fin(A) \isasymsubseteq Fin(B)
+\tdx{Fin_UnI}:        [| b \isasymin Fin(A);  c \isasymin Fin(A) |] ==> b \isasymunion c \isasymin Fin(A)
+\tdx{Fin_UnionI}:     C \isasymin Fin(Fin(A)) ==> Union(C) \isasymin Fin(A)
+\tdx{Fin_subset}:     [| c \isasymsubseteq b;  b \isasymin Fin(A) |] ==> c \isasymin Fin(A)
+\end{alltt*}
 \caption{The finite set operator} \label{zf-fin}
 \end{figure}
 
@@ -1231,37 +1215,37 @@ between two given sets.
 \end{constants}
 
 \underscoreon %%because @ is used here
-\begin{ttbox}
-\tdx{NilI}            Nil : list(A)
-\tdx{ConsI}           [| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)
+\begin{alltt*}\isastyleminor
+\tdx{NilI}:           Nil \isasymin list(A)
+\tdx{ConsI}:          [| a \isasymin A;  l \isasymin list(A) |] ==> Cons(a,l) \isasymin list(A)
 
 \tdx{List.induct}
-    [| l: list(A);
+    [| l \isasymin list(A);
        P(Nil);
-       !!x y. [| x: A;  y: list(A);  P(y) |] ==> P(Cons(x,y))
+       !!x y. [| x \isasymin A;  y \isasymin list(A);  P(y) |] ==> P(Cons(x,y))
     |] ==> P(l)
 
-\tdx{Cons_iff}        Cons(a,l)=Cons(a',l') <-> a=a' & l=l'
-\tdx{Nil_Cons_iff}    ~ Nil=Cons(a,l)
+\tdx{Cons_iff}:       Cons(a,l)=Cons(a',l') <-> a=a' & l=l'
+\tdx{Nil_Cons_iff}:    Nil \isasymnoteq Cons(a,l)
 
-\tdx{list_mono}       A<=B ==> list(A) <= list(B)
+\tdx{list_mono}:      A \isasymsubseteq B ==> list(A) \isasymsubseteq list(B)
 
-\tdx{map_ident}       l: list(A) ==> map(\%u. u, l) = l
-\tdx{map_compose}     l: list(A) ==> map(h, map(j,l)) = map(\%u. h(j(u)), l)
+\tdx{map_ident}:      l \isasymin list(A) ==> map(\%u. u, l) = l
+\tdx{map_compose}:    l \isasymin list(A) ==> map(h, map(j,l)) = map(\%u. h(j(u)), l)
 \tdx{map_app_distrib} xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)
 \tdx{map_type}
-    [| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) : list(B)
+    [| l \isasymin list(A);  !!x. x \isasymin A ==> h(x) \isasymin B |] ==> map(h,l) \isasymin list(B)
 \tdx{map_flat}
     ls: list(list(A)) ==> map(h, flat(ls)) = flat(map(map(h),ls))
-\end{ttbox}
+\end{alltt*}
 \caption{Lists} \label{zf-list}
 \end{figure}
 
 
-Figure~\ref{zf-list} presents the set of lists over~$A$, ${\tt list}(A)$.  The
+Figure~\ref{zf-list} presents the set of lists over~$A$, $\isa{list}(A)$.  The
 definition employs Isabelle's datatype package, which defines the introduction
 and induction rules automatically, as well as the constructors, case operator
-(\verb|list_case|) and recursion operator.  The theory then defines the usual
+(\isa{list\_case}) and recursion operator.  The theory then defines the usual
 list functions by primitive recursion.  See theory \texttt{List}.
 
 
@@ -1277,44 +1261,45 @@ list functions by primitive recursion.  See theory \texttt{List}.
   \cdx{bij}     & $[i,i]\To i$  &       & bijective function space
 \end{constants}
 
-\begin{ttbox}
-\tdx{comp_def}  r O s     == {\ttlbrace}xz : domain(s)*range(r) . 
-                        EX x y z. xz=<x,z> & <x,y>:s & <y,z>:r{\ttrbrace}
-\tdx{id_def}    id(A)     == (lam x:A. x)
-\tdx{inj_def}   inj(A,B)  == {\ttlbrace} f: A->B. ALL w:A. ALL x:A. f`w=f`x --> w=x {\ttrbrace}
-\tdx{surj_def}  surj(A,B) == {\ttlbrace} f: A->B . ALL y:B. EX x:A. f`x=y {\ttrbrace}
-\tdx{bij_def}   bij(A,B)  == inj(A,B) Int surj(A,B)
+\begin{alltt*}\isastyleminor
+\tdx{comp_def}: r O s     == {\ttlbrace}xz \isasymin domain(s)*range(r) . 
+                        {\isasymexists}x y z. xz=<x,z> & <x,y> \isasymin s & <y,z> \isasymin r{\ttrbrace}
+\tdx{id_def}:   id(A)     == (lam x \isasymin A. x)
+\tdx{inj_def}:  inj(A,B)  == {\ttlbrace} f \isasymin A->B. {\isasymforall}w \isasymin A. {\isasymforall}x \isasymin A. f`w=f`x --> w=x {\ttrbrace}
+\tdx{surj_def}: surj(A,B) == {\ttlbrace} f \isasymin A->B . {\isasymforall}y \isasymin B. {\isasymexists}x \isasymin A. f`x=y {\ttrbrace}
+\tdx{bij_def}:  bij(A,B)  == inj(A,B) Int surj(A,B)
 
 
-\tdx{left_inverse}     [| f: inj(A,B);  a: A |] ==> converse(f)`(f`a) = a
-\tdx{right_inverse}    [| f: inj(A,B);  b: range(f) |] ==> 
+\tdx{left_inverse}:    [| f \isasymin inj(A,B);  a \isasymin A |] ==> converse(f)`(f`a) = a
+\tdx{right_inverse}:   [| f \isasymin inj(A,B);  b \isasymin range(f) |] ==> 
                  f`(converse(f)`b) = b
 
-\tdx{inj_converse_inj} f: inj(A,B) ==> converse(f): inj(range(f), A)
-\tdx{bij_converse_bij} f: bij(A,B) ==> converse(f): bij(B,A)
+\tdx{inj_converse_inj} f \isasymin inj(A,B) ==> converse(f) \isasymin inj(range(f), A)
+\tdx{bij_converse_bij} f \isasymin bij(A,B) ==> converse(f) \isasymin bij(B,A)
 
-\tdx{comp_type}        [| s<=A*B;  r<=B*C |] ==> (r O s) <= A*C
-\tdx{comp_assoc}       (r O s) O t = r O (s O t)
+\tdx{comp_type}:       [| s \isasymsubseteq A*B;  r \isasymsubseteq B*C |] ==> (r O s) \isasymsubseteq A*C
+\tdx{comp_assoc}:      (r O s) O t = r O (s O t)
 
-\tdx{left_comp_id}     r<=A*B ==> id(B) O r = r
-\tdx{right_comp_id}    r<=A*B ==> r O id(A) = r
+\tdx{left_comp_id}:    r \isasymsubseteq A*B ==> id(B) O r = r
+\tdx{right_comp_id}:   r \isasymsubseteq A*B ==> r O id(A) = r
 
-\tdx{comp_func}        [| g:A->B; f:B->C |] ==> (f O g):A->C
-\tdx{comp_func_apply}  [| g:A->B; f:B->C; a:A |] ==> (f O g)`a = f`(g`a)
+\tdx{comp_func}:       [| g \isasymin A->B; f \isasymin B->C |] ==> (f O g)
+\isasymin A ->C
+\tdx{comp_func_apply}: [| g \isasymin A->B; f \isasymin B->C; a \isasymin A |] ==> (f O g)`a = f`(g`a)
 
-\tdx{comp_inj}         [| g:inj(A,B);  f:inj(B,C)  |] ==> (f O g):inj(A,C)
-\tdx{comp_surj}        [| g:surj(A,B); f:surj(B,C) |] ==> (f O g):surj(A,C)
-\tdx{comp_bij}         [| g:bij(A,B); f:bij(B,C) |] ==> (f O g):bij(A,C)
+\tdx{comp_inj}:        [| g \isasymin inj(A,B);  f \isasymin inj(B,C)  |] ==> (f O g):inj(A,C)
+\tdx{comp_surj}:       [| g \isasymin surj(A,B); f \isasymin surj(B,C) |] ==> (f O g):surj(A,C)
+\tdx{comp_bij}:        [| g \isasymin bij(A,B); f \isasymin bij(B,C) |] ==> (f O g):bij(A,C)
 
-\tdx{left_comp_inverse}     f: inj(A,B) ==> converse(f) O f = id(A)
-\tdx{right_comp_inverse}    f: surj(A,B) ==> f O converse(f) = id(B)
+\tdx{left_comp_inverse}:    f \isasymin inj(A,B) ==> converse(f) O f = id(A)
+\tdx{right_comp_inverse}:   f \isasymin surj(A,B) ==> f O converse(f) = id(B)
 
-\tdx{bij_disjoint_Un}   
-    [| f: bij(A,B);  g: bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> 
-    (f Un g) : bij(A Un C, B Un D)
+\tdx{bij_disjoint_Un}:  
+    [| f \isasymin bij(A,B);  g \isasymin bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> 
+    (f \isasymunion g) \isasymin bij(A \isasymunion C, B \isasymunion D)
 
-\tdx{restrict_bij}  [| f:inj(A,B);  C<=A |] ==> restrict(f,C): bij(C, f``C)
-\end{ttbox}
+\tdx{restrict_bij}: [| f \isasymin inj(A,B);  C \isasymsubseteq A |] ==> restrict(f,C) \isasymin bij(C, f``C)
+\end{alltt*}
 \caption{Permutations} \label{zf-perm}
 \end{figure}
 
@@ -1325,17 +1310,17 @@ bijective.  Figure~\ref{zf-perm} displays many of their properties that
 have been proved.  These results are fundamental to a treatment of
 equipollence and cardinality.
 
-Theory \thydx{Univ} defines a `universe' $\texttt{univ}(A)$, which is used by
+Theory \thydx{Univ} defines a `universe' $\isa{univ}(A)$, which is used by
 the datatype package.  This set contains $A$ and the
-natural numbers.  Vitally, it is closed under finite products: ${\tt
-  univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This theory also
+natural numbers.  Vitally, it is closed under finite products: 
+$\isa{univ}(A)\times\isa{univ}(A)\subseteq\isa{univ}(A)$.  This theory also
 defines the cumulative hierarchy of axiomatic set theory, which
 traditionally is written $V@\alpha$ for an ordinal~$\alpha$.  The
 `universe' is a simple generalization of~$V@\omega$.
 
-Theory \thydx{QUniv} defines a `universe' ${\tt quniv}(A)$, which is used by
+Theory \thydx{QUniv} defines a `universe' $\isa{quniv}(A)$, which is used by
 the datatype package to construct codatatypes such as streams.  It is
-analogous to ${\tt univ}(A)$ (and is defined in terms of it) but is closed
+analogous to $\isa{univ}(A)$ (and is defined in terms of it) but is closed
 under the non-standard product and sum.
 
 
@@ -1344,7 +1329,7 @@ under the non-standard product and sum.
 ZF provides the simplifier and the classical reasoner.  Moreover it supplies a
 specialized tool to infer `types' of terms.
 
-\subsection{Simplification}
+\subsection{Simplification and Classical Reasoning}
 
 ZF inherits simplification from FOL but adopts it for set theory.  The
 extraction of rewrite rules takes the ZF primitives into account.  It can
@@ -1353,25 +1338,14 @@ strip bounded universal quantifiers from a formula; for example, ${\forall
 f(x)=g(x)$.  Given $a\in\{x\in A. P(x)\}$ it extracts rewrite rules from $a\in
 A$ and~$P(a)$.  It can also break down $a\in A\int B$ and $a\in A-B$.
 
-Simplification tactics tactics such as \texttt{Asm_simp_tac} and
-\texttt{Full_simp_tac} use the default simpset (\texttt{simpset()}), which
-works for most purposes.  A small simplification set for set theory is
-called~\ttindexbold{ZF_ss}, and you can even use \ttindex{FOL_ss} as a minimal
-starting point.  \texttt{ZF_ss} contains congruence rules for all the binding
-operators of ZF.  It contains all the conversion rules, such as \texttt{fst}
-and \texttt{snd}, as well as the rewrites shown in Fig.\ts\ref{zf-simpdata}.
-See the file \texttt{ZF/simpdata.ML} for a fuller list.
+The default simpset used by \isa{simp} contains congruence rules for all of ZF's
+binding operators.  It contains all the conversion rules, such as
+\isa{fst} and
+\isa{snd}, as well as the rewrites shown in Fig.\ts\ref{zf-simpdata}.
 
-
-\subsection{Classical Reasoning}
-
-As for the classical reasoner, tactics such as \texttt{Blast_tac} and {\tt
-  Best_tac} refer to the default claset (\texttt{claset()}).  This works for
-most purposes.  Named clasets include \ttindexbold{ZF_cs} (basic set theory)
-and \ttindexbold{le_cs} (useful for reasoning about the relations $<$ and
-$\le$).  You can use \ttindex{FOL_cs} as a minimal basis for building your own
-clasets.  See \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
-{Chap.\ts\ref{chap:classical}} for more discussion of classical proof methods.
+Classical reasoner methods such as \isa{blast} and \isa{auto} refer to
+a rich collection of built-in axioms for all the set-theoretic
+primitives.
 
 
 \begin{figure}
@@ -1379,10 +1353,10 @@ clasets.  See \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
   a\in \emptyset        & \bimp &  \bot\\
   a \in A \un B      & \bimp &  a\in A \disj a\in B\\
   a \in A \int B      & \bimp &  a\in A \conj a\in B\\
-  a \in A-B             & \bimp &  a\in A \conj \neg (a\in B)\\
-  \pair{a,b}\in {\tt Sigma}(A,B)
+  a \in A-B             & \bimp &  a\in A \conj \lnot (a\in B)\\
+  \pair{a,b}\in \isa{Sigma}(A,B)
                         & \bimp &  a\in A \conj b\in B(a)\\
-  a \in {\tt Collect}(A,P)      & \bimp &  a\in A \conj P(a)\\
+  a \in \isa{Collect}(A,P)      & \bimp &  a\in A \conj P(a)\\
   (\forall x \in \emptyset. P(x)) & \bimp &  \top\\
   (\forall x \in A. \top)       & \bimp &  \top
 \end{eqnarray*}
@@ -1396,68 +1370,73 @@ clasets.  See \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 Isabelle/ZF provides simple tactics to help automate those proofs that are
 essentially type-checking.  Such proofs are built by applying rules such as
 these:
-\begin{ttbox}
-[| ?P ==> ?a: ?A; ~?P ==> ?b: ?A |] ==> (if ?P then ?a else ?b): ?A
+\begin{ttbox}\isastyleminor
+[| ?P ==> ?a \isasymin ?A; ~?P ==> ?b \isasymin ?A |] ==> (if ?P then ?a else ?b) \isasymin ?A
 
-[| ?m : nat; ?n : nat |] ==> ?m #+ ?n : nat
+[| ?m \isasymin nat; ?n \isasymin nat |] ==> ?m #+ ?n \isasymin nat
 
-?a : ?A ==> Inl(?a) : ?A + ?B  
+?a \isasymin ?A ==> Inl(?a) \isasymin ?A + ?B  
 \end{ttbox}
 In typical applications, the goal has the form $t\in\Var{A}$: in other words,
 we have a specific term~$t$ and need to infer its `type' by instantiating the
 set variable~$\Var{A}$.  Neither the simplifier nor the classical reasoner
 does this job well.  The if-then-else rule, and many similar ones, can make
 the classical reasoner loop.  The simplifier refuses (on principle) to
-instantiate variables during rewriting, so goals such as \texttt{i\#+j :\ ?A}
+instantiate variables during rewriting, so goals such as \isa{i\#+j \isasymin \ ?A}
 are left unsolved.
 
 The simplifier calls the type-checker to solve rewritten subgoals: this stage
 can indeed instantiate variables.  If you have defined new constants and
-proved type-checking rules for them, then insert the rules using
-\texttt{AddTCs} and the rest should be automatic.  In particular, the
-simplifier will use type-checking to help satisfy conditional rewrite rules.
-Call the tactic \ttindex{Typecheck_tac} to break down all subgoals using
-type-checking rules.
+proved type-checking rules for them, then declare the rules using
+the attribute \isa{TC} and the rest should be automatic.  In
+particular, the simplifier will use type-checking to help satisfy
+conditional rewrite rules. Call the method \ttindex{typecheck} to
+break down all subgoals using type-checking rules. You can add new
+type-checking rules temporarily like this:
+\begin{isabelle}
+\isacommand{apply}\ (typecheck add: inj_is_fun)
+\end{isabelle}
 
-Though the easiest way to invoke the type-checker is via the simplifier,
-specialized applications may require more detailed knowledge of
-the type-checking primitives.  They are modelled on the simplifier's:
-\begin{ttdescription}
-\item[\ttindexbold{tcset}] is the type of tcsets: sets of type-checking rules.
 
-\item[\ttindexbold{addTCs}] is an infix operator to add type-checking rules to
-  a tcset.
-  
-\item[\ttindexbold{delTCs}] is an infix operator to remove type-checking rules
-  from a tcset.
-
-\item[\ttindexbold{typecheck_tac}] is a tactic for attempting to prove all
-  subgoals using the rules given in its argument, a tcset.
-\end{ttdescription}
-
-Tcsets, like simpsets, are associated with theories and are merged when
-theories are merged.  There are further primitives that use the default tcset.
-\begin{ttdescription}
-\item[\ttindexbold{tcset}] is a function to return the default tcset; use the
-  expression \texttt{tcset()}.
-
-\item[\ttindexbold{AddTCs}] adds type-checking rules to the default tcset.
-  
-\item[\ttindexbold{DelTCs}] removes type-checking rules from the default
-  tcset.
-
-\item[\ttindexbold{Typecheck_tac}] calls \texttt{typecheck_tac} using the
-  default tcset.
-\end{ttdescription}
-
-To supply some type-checking rules temporarily, using \texttt{Addrules} and
-later \texttt{Delrules} is the simplest way.  There is also a high-tech
-approach.  Call the simplifier with a new solver expressed using
-\ttindexbold{type_solver_tac} and your temporary type-checking rules.
-\begin{ttbox}
-by (asm_simp_tac 
-     (simpset() setSolver type_solver_tac (tcset() addTCs prems)) 2);
-\end{ttbox}
+%Though the easiest way to invoke the type-checker is via the simplifier,
+%specialized applications may require more detailed knowledge of
+%the type-checking primitives.  They are modelled on the simplifier's:
+%\begin{ttdescription}
+%\item[\ttindexbold{tcset}] is the type of tcsets: sets of type-checking rules.
+%
+%\item[\ttindexbold{addTCs}] is an infix operator to add type-checking rules to
+%  a tcset.
+%  
+%\item[\ttindexbold{delTCs}] is an infix operator to remove type-checking rules
+%  from a tcset.
+%
+%\item[\ttindexbold{typecheck_tac}] is a tactic for attempting to prove all
+%  subgoals using the rules given in its argument, a tcset.
+%\end{ttdescription}
+%
+%Tcsets, like simpsets, are associated with theories and are merged when
+%theories are merged.  There are further primitives that use the default tcset.
+%\begin{ttdescription}
+%\item[\ttindexbold{tcset}] is a function to return the default tcset; use the
+%  expression \isa{tcset()}.
+%
+%\item[\ttindexbold{AddTCs}] adds type-checking rules to the default tcset.
+%  
+%\item[\ttindexbold{DelTCs}] removes type-checking rules from the default
+%  tcset.
+%
+%\item[\ttindexbold{Typecheck_tac}] calls \isa{typecheck_tac} using the
+%  default tcset.
+%\end{ttdescription}
+%
+%To supply some type-checking rules temporarily, using \isa{Addrules} and
+%later \isa{Delrules} is the simplest way.  There is also a high-tech
+%approach.  Call the simplifier with a new solver expressed using
+%\ttindexbold{type_solver_tac} and your temporary type-checking rules.
+%\begin{ttbox}\isastyleminor
+%by (asm_simp_tac 
+%     (simpset() setSolver type_solver_tac (tcset() addTCs prems)) 2);
+%\end{ttbox}
 
 
 \section{Natural number and integer arithmetic}
@@ -1481,32 +1460,32 @@ by (asm_simp_tac
   \tt \#-       & $[i,i]\To i$  &  Left 65      & subtraction
 \end{constants}
 
-\begin{ttbox}
-\tdx{nat_def}  nat == lfp(lam r: Pow(Inf). {\ttlbrace}0{\ttrbrace} Un {\ttlbrace}succ(x). x:r{\ttrbrace}
+\begin{ttbox}\isastyleminor
+\tdx{nat_def}: nat == lfp(lam r \isasymin Pow(Inf). {\ttlbrace}0{\ttrbrace} \isasymunion {\ttlbrace}succ(x). x \isasymin r{\ttrbrace}
 
-\tdx{nat_case_def}  nat_case(a,b,k) == 
-              THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))
+\tdx{nat_case_def}: nat_case(a,b,k) == 
+              THE y. k=0 & y=a | ({\isasymexists}x. k=succ(x) & y=b(x))
 
-\tdx{nat_0I}           0 : nat
-\tdx{nat_succI}        n : nat ==> succ(n) : nat
+\tdx{nat_0I}:          0 \isasymin nat
+\tdx{nat_succI}:       n \isasymin nat ==> succ(n) \isasymin nat
 
-\tdx{nat_induct}        
-    [| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) 
+\tdx{nat_induct}:       
+    [| n \isasymin nat;  P(0);  !!x. [| x \isasymin nat;  P(x) |] ==> P(succ(x)) 
     |] ==> P(n)
 
-\tdx{nat_case_0}      nat_case(a,b,0) = a
-\tdx{nat_case_succ}   nat_case(a,b,succ(m)) = b(m)
+\tdx{nat_case_0}:     nat_case(a,b,0) = a
+\tdx{nat_case_succ}:  nat_case(a,b,succ(m)) = b(m)
 
-\tdx{add_0_natify}     0 #+ n = natify(n)
-\tdx{add_succ}         succ(m) #+ n = succ(m #+ n)
+\tdx{add_0_natify}:    0 #+ n = natify(n)
+\tdx{add_succ}:        succ(m) #+ n = succ(m #+ n)
 
-\tdx{mult_type}        m #* n : nat
-\tdx{mult_0}           0 #* n = 0
-\tdx{mult_succ}        succ(m) #* n = n #+ (m #* n)
-\tdx{mult_commute}     m #* n = n #* m
-\tdx{add_mult_dist}    (m #+ n) #* k = (m #* k) #+ (n #* k)
-\tdx{mult_assoc}       (m #* n) #* k = m #* (n #* k)
-\tdx{mod_div_equality} m: nat ==> (m div n)#*n #+ m mod n = m
+\tdx{mult_type}:       m #* n \isasymin nat
+\tdx{mult_0}:          0 #* n = 0
+\tdx{mult_succ}:       succ(m) #* n = n #+ (m #* n)
+\tdx{mult_commute}:    m #* n = n #* m
+\tdx{add_mult_dist}:   (m #+ n) #* k = (m #* k) #+ (n #* k)
+\tdx{mult_assoc}:      (m #* n) #* k = m #* (n #* k)
+\tdx{mod_div_equality} m \isasymin nat ==> (m div n)#*n #+ m mod n = m
 \end{ttbox}
 \caption{The natural numbers} \label{zf-nat}
 \end{figure}
@@ -1515,7 +1494,7 @@ by (asm_simp_tac
 
 Theory \thydx{Nat} defines the natural numbers and mathematical
 induction, along with a case analysis operator.  The set of natural
-numbers, here called \texttt{nat}, is known in set theory as the ordinal~$\omega$.
+numbers, here called \isa{nat}, is known in set theory as the ordinal~$\omega$.
 
 Theory \thydx{Arith} develops arithmetic on the natural numbers
 (Fig.\ts\ref{zf-nat}).  Addition, multiplication and subtraction are defined
@@ -1526,27 +1505,27 @@ commutative, associative and distributive laws, identity and cancellation
 laws, etc.  The most interesting result is perhaps the theorem $a \bmod b +
 (a/b)\times b = a$.
 
-To minimize the need for tedious proofs of $t\in\texttt{nat}$, the arithmetic
+To minimize the need for tedious proofs of $t\in\isa{nat}$, the arithmetic
 operators coerce their arguments to be natural numbers.  The function
-\cdx{natify} is defined such that $\texttt{natify}(n) = n$ if $n$ is a natural
-number, $\texttt{natify}(\texttt{succ}(x)) =
-\texttt{succ}(\texttt{natify}(x))$ for all $x$, and finally
-$\texttt{natify}(x)=0$ in all other cases.  The benefit is that the addition,
+\cdx{natify} is defined such that $\isa{natify}(n) = n$ if $n$ is a natural
+number, $\isa{natify}(\isa{succ}(x)) =
+\isa{succ}(\isa{natify}(x))$ for all $x$, and finally
+$\isa{natify}(x)=0$ in all other cases.  The benefit is that the addition,
 subtraction, multiplication, division and remainder operators always return
 natural numbers, regardless of their arguments.  Algebraic laws (commutative,
-associative, distributive) are unconditional.  Occurrences of \texttt{natify}
+associative, distributive) are unconditional.  Occurrences of \isa{natify}
 as operands of those operators are simplified away.  Any remaining occurrences
 can either be tolerated or else eliminated by proving that the argument is a
 natural number.
 
 The simplifier automatically cancels common terms on the opposite sides of
 subtraction and of relations ($=$, $<$ and $\le$).  Here is an example:
-\begin{ttbox}
- 1. i #+ j #+ k #- j < k #+ l
-> by (Simp_tac 1);
+\begin{isabelle}
+ 1. i \#+ j \#+ k \#- j < k \#+ l\isanewline
+\isacommand{apply}\ simp\isanewline
  1. natify(i) < natify(l)
-\end{ttbox}
-Given the assumptions \texttt{i:nat} and \texttt{l:nat}, both occurrences of
+\end{isabelle}
+Given the assumptions \isa{i \isasymin nat} and \isa{l \isasymin nat}, both occurrences of
 \cdx{natify} would be simplified away.
 
 
@@ -1564,14 +1543,14 @@ Given the assumptions \texttt{i:nat} and \texttt{l:nat}, both occurrences of
   \tt \$<=      & $[i,i]\To o$  &  Left 50      & $\le$ on integers
 \end{constants}
 
-\begin{ttbox}
-\tdx{zadd_0_intify}     0 $+ n = intify(n)
+\begin{ttbox}\isastyleminor
+\tdx{zadd_0_intify}:    0 $+ n = intify(n)
 
-\tdx{zmult_type}        m $* n : int
-\tdx{zmult_0}           0 $* n = 0
-\tdx{zmult_commute}     m $* n = n $* m
-\tdx{zadd_zmult_dist}    (m $+ n) $* k = (m $* k) $+ (n $* k)
-\tdx{zmult_assoc}       (m $* n) $* k = m $* (n $* k)
+\tdx{zmult_type}:       m $* n \isasymin int
+\tdx{zmult_0}:          0 $* n = 0
+\tdx{zmult_commute}:    m $* n = n $* m
+\tdx{zadd_zmult_dist}:   (m $+ n) $* k = (m $* k) $+ (n $* k)
+\tdx{zmult_assoc}:      (m $* n) $* k = m $* (n $* k)
 \end{ttbox}
 \caption{The integers} \label{zf-int}
 \end{figure}
@@ -1590,17 +1569,18 @@ applying the function \cdx{intify}.  This function is the identity on integers
 and maps other operands to zero.
 
 Decimal notation is provided for the integers.  Numbers, written as
-\texttt{\#$nnn$} or \texttt{\#-$nnn$}, are represented internally in
+\isa{\#$nnn$} or \isa{\#-$nnn$}, are represented internally in
 two's-complement binary.  Expressions involving addition, subtraction and
 multiplication of numeral constants are evaluated (with acceptable efficiency)
 by simplification.  The simplifier also collects similar terms, multiplying
 them by a numerical coefficient.  It also cancels occurrences of the same
 terms on the other side of the relational operators.  Example:
-\begin{ttbox}
- 1. y $+ z $+ #-3 $* x $+ y $<= x $* #2 $+ z
-> by (Simp_tac 1);
- 1. #2 $* y $<= #5 $* x
-\end{ttbox}
+\begin{isabelle}
+ 1. y \$+ z \$+ \#-3 \$* x \$+ y \$<=  x \$* \#2 \$+
+z\isanewline
+\isacommand{apply}\ simp\isanewline
+ 1. \#2 \$* y \$<= \#5 \$* x
+\end{isabelle}
 For more information on the integers, please see the theories on directory
 \texttt{ZF/Integ}. 
 
@@ -1612,7 +1592,7 @@ For more information on the integers, please see the theories on directory
 \index{*datatype|(}
 
 The \ttindex{datatype} definition package of ZF constructs inductive datatypes
-similar to those of \ML.  It can also construct coinductive datatypes
+similar to \ML's.  It can also construct coinductive datatypes
 (codatatypes), which are non-well-founded structures such as streams.  It
 defines the set using a fixed-point construction and proves induction rules,
 as well as theorems for recursion and case combinators.  It supplies
@@ -1623,7 +1603,7 @@ mutual and indirect recursion.
 \subsection{Basics}
 \label{subsec:datatype:basics}
 
-A \texttt{datatype} definition has the following form:
+A \isa{datatype} definition has the following form:
 \[
 \begin{array}{llcl}
 \mathtt{datatype} & t@1(A@1,\ldots,A@h) & = &
@@ -1655,42 +1635,46 @@ if the datatype package is given a theorem asserting that $F$ is monotonic.
 If the datatype has indirect occurrences, then Isabelle/ZF does not support
 recursive function definitions.
 
-A simple example of a datatype is \texttt{list}, which is built-in, and is
+A simple example of a datatype is \isa{list}, which is built-in, and is
 defined by
-\begin{ttbox}
-consts     list :: i=>i
-datatype  "list(A)" = Nil | Cons ("a:A", "l: list(A)")
+\begin{ttbox}\isastyleminor
+consts     list :: "i=>i"
+datatype  "list(A)" = Nil | Cons ("a \isasymin A", "l \isasymin list(A)")
 \end{ttbox}
 Note that the datatype operator must be declared as a constant first.
-However, the package declares the constructors.  Here, \texttt{Nil} gets type
-$i$ and \texttt{Cons} gets type $[i,i]\To i$.
+However, the package declares the constructors.  Here, \isa{Nil} gets type
+$i$ and \isa{Cons} gets type $[i,i]\To i$.
 
 Trees and forests can be modelled by the mutually recursive datatype
 definition
-\begin{ttbox}
-consts     tree, forest, tree_forest :: i=>i
-datatype  "tree(A)"   = Tcons ("a: A",  "f: forest(A)")
-and       "forest(A)" = Fnil  |  Fcons ("t: tree(A)",  "f: forest(A)")
+\begin{ttbox}\isastyleminor
+consts   
+  tree :: "i=>i"
+  forest :: "i=>i"
+  tree_forest :: "i=>i"
+datatype  "tree(A)"   = Tcons ("a{\isasymin}A",  "f{\isasymin}forest(A)")
+and "forest(A)" = Fnil | Fcons ("t{\isasymin}tree(A)",  "f{\isasymin}forest(A)")
 \end{ttbox}
-Here $\texttt{tree}(A)$ is the set of trees over $A$, $\texttt{forest}(A)$ is
-the set of forests over $A$, and  $\texttt{tree_forest}(A)$ is the union of
+Here $\isa{tree}(A)$ is the set of trees over $A$, $\isa{forest}(A)$ is
+the set of forests over $A$, and  $\isa{tree_forest}(A)$ is the union of
 the previous two sets.  All three operators must be declared first.
 
-The datatype \texttt{term}, which is defined by
-\begin{ttbox}
-consts     term :: i=>i
-datatype  "term(A)" = Apply ("a: A", "l: list(term(A))")
-  monos "[list_mono]"
+The datatype \isa{term}, which is defined by
+\begin{ttbox}\isastyleminor
+consts     term :: "i=>i"
+datatype  "term(A)" = Apply ("a \isasymin A", "l \isasymin list(term(A))")
+  monos list_mono
 \end{ttbox}
-is an example of nested recursion.  (The theorem \texttt{list_mono} is proved
-in file \texttt{List.ML}, and the \texttt{term} example is devaloped in theory
-\thydx{ex/Term}.)
+is an example of nested recursion.  (The theorem \isa{list_mono} is proved
+in theory \isa{List}, and the \isa{term} example is developed in
+theory
+\thydx{Induct/Term}.)
 
 \subsubsection{Freeness of the constructors}
 
 Constructors satisfy {\em freeness} properties.  Constructions are distinct,
-for example $\texttt{Nil}\not=\texttt{Cons}(a,l)$, and they are injective, for
-example $\texttt{Cons}(a,l)=\texttt{Cons}(a',l') \bimp a=a' \conj l=l'$.
+for example $\isa{Nil}\not=\isa{Cons}(a,l)$, and they are injective, for
+example $\isa{Cons}(a,l)=\isa{Cons}(a',l') \bimp a=a' \conj l=l'$.
 Because the number of freeness is quadratic in the number of constructors, the
 datatype package does not prove them.  Instead, it ensures that simplification
 will prove them dynamically: when the simplifier encounters a formula
@@ -1699,54 +1683,54 @@ reasoning.
 
 Freeness reasoning can also be done using the classical reasoner, but it is
 more complicated.  You have to add some safe elimination rules rules to the
-claset.  For the \texttt{list} datatype, they are called
-\texttt{list.free_SEs}.  Occasionally this exposes the underlying
+claset.  For the \isa{list} datatype, they are called
+\isa{list.free_elims}.  Occasionally this exposes the underlying
 representation of some constructor, which can be rectified using the command
-\hbox{\tt fold_tac list.con_defs}.
+\isa{unfold list.con_defs [symmetric]}.
 
 
 \subsubsection{Structural induction}
 
 The datatype package also provides structural induction rules.  For datatypes
 without mutual or nested recursion, the rule has the form exemplified by
-\texttt{list.induct} in Fig.\ts\ref{zf-list}.  For mutually recursive
+\isa{list.induct} in Fig.\ts\ref{zf-list}.  For mutually recursive
 datatypes, the induction rule is supplied in two forms.  Consider datatype
-\texttt{TF}.  The rule \texttt{tree_forest.induct} performs induction over a
-single predicate~\texttt{P}, which is presumed to be defined for both trees
+\isa{TF}.  The rule \isa{tree_forest.induct} performs induction over a
+single predicate~\isa{P}, which is presumed to be defined for both trees
 and forests:
-\begin{ttbox}
-[| x : tree_forest(A);
-   !!a f. [| a : A; f : forest(A); P(f) |] ==> P(Tcons(a, f)); 
+\begin{ttbox}\isastyleminor
+[| x \isasymin tree_forest(A);
+   !!a f. [| a \isasymin A; f \isasymin forest(A); P(f) |] ==> P(Tcons(a, f)); 
    P(Fnil);
-   !!f t. [| t : tree(A); P(t); f : forest(A); P(f) |]
+   !!f t. [| t \isasymin tree(A); P(t); f \isasymin forest(A); P(f) |]
           ==> P(Fcons(t, f)) 
 |] ==> P(x)
 \end{ttbox}
-The rule \texttt{tree_forest.mutual_induct} performs induction over two
-distinct predicates, \texttt{P_tree} and \texttt{P_forest}.
-\begin{ttbox}
+The rule \isa{tree_forest.mutual_induct} performs induction over two
+distinct predicates, \isa{P_tree} and \isa{P_forest}.
+\begin{ttbox}\isastyleminor
 [| !!a f.
-      [| a : A; f : forest(A); P_forest(f) |] ==> P_tree(Tcons(a, f));
+      [| a{\isasymin}A; f{\isasymin}forest(A); P_forest(f) |] ==> P_tree(Tcons(a,f));
    P_forest(Fnil);
-   !!f t. [| t : tree(A); P_tree(t); f : forest(A); P_forest(f) |]
+   !!f t. [| t{\isasymin}tree(A); P_tree(t); f{\isasymin}forest(A); P_forest(f) |]
           ==> P_forest(Fcons(t, f)) 
-|] ==> (ALL za. za : tree(A) --> P_tree(za)) &
-    (ALL za. za : forest(A) --> P_forest(za))
+|] ==> ({\isasymforall}za. za \isasymin tree(A) --> P_tree(za)) &
+    ({\isasymforall}za. za \isasymin forest(A) --> P_forest(za))
 \end{ttbox}
 
-For datatypes with nested recursion, such as the \texttt{term} example from
-above, things are a bit more complicated.  The rule \texttt{term.induct}
-refers to the monotonic operator, \texttt{list}:
-\begin{ttbox}
-[| x : term(A);
-   !!a l. [| a: A; l: list(Collect(term(A), P)) |] ==> P(Apply(a, l)) 
+For datatypes with nested recursion, such as the \isa{term} example from
+above, things are a bit more complicated.  The rule \isa{term.induct}
+refers to the monotonic operator, \isa{list}:
+\begin{ttbox}\isastyleminor
+[| x \isasymin term(A);
+   !!a l. [| a \isasymin A; l \isasymin list(Collect(term(A), P)) |] ==> P(Apply(a, l)) 
 |] ==> P(x)
 \end{ttbox}
-The file \texttt{ex/Term.ML} derives two higher-level induction rules, one of
-which is particularly useful for proving equations:
-\begin{ttbox}
-[| t : term(A);
-   !!x zs. [| x : A; zs : list(term(A)); map(f, zs) = map(g, zs) |]
+The theory \isa{Induct/Term.thy} derives two higher-level induction rules,
+one of which is particularly useful for proving equations:
+\begin{ttbox}\isastyleminor
+[| t \isasymin term(A);
+   !!x zs. [| x \isasymin A; zs \isasymin list(term(A)); map(f, zs) = map(g, zs) |]
            ==> f(Apply(x, zs)) = g(Apply(x, zs)) 
 |] ==> f(t) = g(t)  
 \end{ttbox}
@@ -1754,25 +1738,23 @@ How this can be generalized to other nested datatypes is a matter for future
 research.
 
 
-\subsubsection{The \texttt{case} operator}
+\subsubsection{The \isa{case} operator}
 
 The package defines an operator for performing case analysis over the
-datatype.  For \texttt{list}, it is called \texttt{list_case} and satisfies
+datatype.  For \isa{list}, it is called \isa{list_case} and satisfies
 the equations
-\begin{ttbox}
+\begin{ttbox}\isastyleminor
 list_case(f_Nil, f_Cons, []) = f_Nil
 list_case(f_Nil, f_Cons, Cons(a, l)) = f_Cons(a, l)
 \end{ttbox}
-Here \texttt{f_Nil} is the value to return if the argument is \texttt{Nil} and
-\texttt{f_Cons} is a function that computes the value to return if the
-argument has the form $\texttt{Cons}(a,l)$.  The function can be expressed as
+Here \isa{f_Nil} is the value to return if the argument is \isa{Nil} and
+\isa{f_Cons} is a function that computes the value to return if the
+argument has the form $\isa{Cons}(a,l)$.  The function can be expressed as
 an abstraction, over patterns if desired (\S\ref{sec:pairs}).
 
-For mutually recursive datatypes, there is a single \texttt{case} operator.
-In the tree/forest example, the constant \texttt{tree_forest_case} handles all
+For mutually recursive datatypes, there is a single \isa{case} operator.
+In the tree/forest example, the constant \isa{tree_forest_case} handles all
 of the constructors of the two datatypes.
-
-
 
 
 \subsection{Defining datatypes}
@@ -1792,7 +1774,7 @@ datadecls: ( '"' id arglist '"' '=' (constructor + '|') ) + 'and'
          ;
 constructor : name ( () | consargs )  ( () | ( '(' mixfix ')' ) )
          ;
-consargs : '(' ('"' var ':' term '"' + ',') ')'
+consargs : '(' ('"' var ' : ' term '"' + ',') ')'
          ;
 \end{rail}
 \caption{Syntax of datatype declarations}
@@ -1807,57 +1789,68 @@ values of the set.
 
 Most of the theorems about datatypes become part of the default simpset.  You
 never need to see them again because the simplifier applies them
-automatically.  Induction or exhaustion are usually invoked by hand,
-usually via these special-purpose tactics:
+automatically.  
+
+\subsubsection{Specialized methods for datatypes}
+
+Induction and case-analysis can be invoked using these special-purpose
+methods:
 \begin{ttdescription}
-\item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$] applies structural
-  induction on variable $x$ to subgoal $i$, provided the type of $x$ is a
+\item[\methdx{induct_tac} $x$] applies structural
+  induction on variable $x$ to subgoal~1, provided the type of $x$ is a
   datatype.  The induction variable should not occur among other assumptions
   of the subgoal.
 \end{ttdescription}
-In some cases, induction is overkill and a case distinction over all
+% 
+% we also have the ind_cases method, but what does it do?
+In some situations, induction is overkill and a case distinction over all
 constructors of the datatype suffices.
 \begin{ttdescription}
-\item[\ttindexbold{exhaust_tac} {\tt"}$x${\tt"} $i$]
- performs an exhaustive case analysis for the variable~$x$.
+\item[\methdx{Inductive.case_tac} $x$]
+ performs a case analysis for the variable~$x$.
 \end{ttdescription}
 
 Both tactics can only be applied to a variable, whose typing must be given in
-some assumption, for example the assumption \texttt{x:\ list(A)}.  The tactics
-also work for the natural numbers (\texttt{nat}) and disjoint sums, although
+some assumption, for example the assumption \isa{x \isasymin \ list(A)}.  The tactics
+also work for the natural numbers (\isa{nat}) and disjoint sums, although
 these sets were not defined using the datatype package.  (Disjoint sums are
-not recursive, so only \texttt{exhaust_tac} is available.)
+not recursive, so only \isa{case_tac} is available.)
 
-\bigskip
+Structured Isar methods are also available. Below, $t$ 
+stands for the name of the datatype.
+\begin{ttdescription}
+\item[\methdx{induct} \isa{set:}\ $t$] is the Isar induction tactic.
+\item[\methdx{cases} \isa{set:}\ $t$] is the Isar case-analysis tactic.
+\end{ttdescription}
+
+
+\subsubsection{The theorems proved by a datatype declaration}
+
 Here are some more details for the technically minded.  Processing the
-theory file produces an \ML\ structure which, in addition to the usual
-components, contains a structure named $t$ for each datatype $t$ defined in
-the file.  Each structure $t$ contains the following elements:
-\begin{ttbox}
-val intrs         : thm list  \textrm{the introduction rules}
-val elim          : thm       \textrm{the elimination (case analysis) rule}
-val induct        : thm       \textrm{the standard induction rule}
-val mutual_induct : thm       \textrm{the mutual induction rule, or \texttt{True}}
-val case_eqns     : thm list  \textrm{equations for the case operator}
-val recursor_eqns : thm list  \textrm{equations for the recursor}
-val con_defs      : thm list  \textrm{definitions of the case operator and constructors}
-val free_iffs     : thm list  \textrm{logical equivalences for proving freeness}
-val free_SEs      : thm list  \textrm{elimination rules for proving freeness}
-val mk_free       : string -> thm  \textrm{A function for proving freeness theorems}
-val mk_cases      : string -> thm  \textrm{case analysis, see below}
-val defs          : thm list  \textrm{definitions of operators}
-val bnd_mono      : thm list  \textrm{monotonicity property}
-val dom_subset    : thm list  \textrm{inclusion in `bounding set'}
+datatype declaration of a set~$t$ produces a name space~$t$ containing
+the following theorems:
+\begin{ttbox}\isastyleminor
+intros          \textrm{the introduction rules}
+cases           \textrm{the case analysis rule}
+induct          \textrm{the standard induction rule}
+mutual_induct   \textrm{the mutual induction rule, if needed}
+case_eqns       \textrm{equations for the case operator}
+recursor_eqns   \textrm{equations for the recursor}
+simps           \textrm{the union of} case_eqns \textrm{and} recursor_eqns
+con_defs        \textrm{definitions of the case operator and constructors}
+free_iffs       \textrm{logical equivalences for proving freeness}
+free_elims      \textrm{elimination rules for proving freeness}
+defs            \textrm{datatype definition(s)}
 \end{ttbox}
-Furthermore there is the theorem $C$\texttt{_I} for every constructor~$C$; for
-example, the \texttt{list} datatype's introduction rules are bound to the
-identifiers \texttt{Nil_I} and \texttt{Cons_I}.
+Furthermore there is the theorem $C$ for every constructor~$C$; for
+example, the \isa{list} datatype's introduction rules are bound to the
+identifiers \isa{Nil} and \isa{Cons}.
 
-For a codatatype, the component \texttt{coinduct} is the coinduction rule,
-replacing the \texttt{induct} component.
+For a codatatype, the component \isa{coinduct} is the coinduction rule,
+replacing the \isa{induct} component.
 
-See the theories \texttt{ex/Ntree} and \texttt{ex/Brouwer} for examples of
-infinitely branching datatypes.  See theory \texttt{ex/LList} for an example
+See the theories \isa{Induct/Ntree} and \isa{Induct/Brouwer} for examples of
+infinitely branching datatypes.  See theory \isa{Induct/LList} for an example
 of a codatatype.  Some of these theories illustrate the use of additional,
 undocumented features of the datatype package.  Datatype definitions are
 reduced to inductive definitions, and the advanced features should be
@@ -1868,80 +1861,94 @@ understood in that light.
 
 \subsubsection{The datatype of binary trees}
 
-Let us define the set $\texttt{bt}(A)$ of binary trees over~$A$.  The theory
+Let us define the set $\isa{bt}(A)$ of binary trees over~$A$.  The theory
 must contain these lines:
-\begin{ttbox}
-consts   bt :: i=>i
-datatype "bt(A)"  =  Lf  |  Br ("a: A",  "t1: bt(A)",  "t2: bt(A)")
+\begin{ttbox}\isastyleminor
+consts   bt :: "i=>i"
+datatype "bt(A)" = Lf | Br ("a\isasymin{}A", "t1\isasymin{}bt(A)", "t2\isasymin{}bt(A)")
 \end{ttbox}
-After loading the theory, we can prove, for example, that no tree equals its
-left branch.  To ease the induction, we state the goal using quantifiers.
-\begin{ttbox}
-Goal "l : bt(A) ==> ALL x r. Br(x,l,r) ~= l";
-{\out Level 0}
-{\out l : bt(A) ==> ALL x r. Br(x, l, r) ~= l}
-{\out  1. l : bt(A) ==> ALL x r. Br(x, l, r) ~= l}
-\end{ttbox}
+After loading the theory, we can prove some theorem.  
+We begin by declaring the constructor's typechecking rules
+as simplification rules:
+\begin{isabelle}
+\isacommand{declare}\ bt.intros\ [simp]%
+\end{isabelle}
+
+Our first example is the theorem that no tree equals its
+left branch.  To make the inductive hypothesis strong enough, 
+the proof requires a quantified induction formula, but 
+the \isa{rule\_format} attribute will remove the quantifiers 
+before the theorem is stored.
+\begin{isabelle}
+\isacommand{lemma}\ Br\_neq\_left\ [rule\_format]:\ "l\ \isasymin \
+bt(A)\ ==>\ \isasymforall x\ r.\ Br(x,l,r)\isasymnoteq{}l"\isanewline
+\ 1.\ l\ \isasymin \ bt(A)\ \isasymLongrightarrow \ \isasymforall x\ r.\ Br(x,\ l,\ r)\ \isasymnoteq \ l%
+\end{isabelle}
 This can be proved by the structural induction tactic:
-\begin{ttbox}
-by (induct_tac "l" 1);
-{\out Level 1}
-{\out l : bt(A) ==> ALL x r. Br(x, l, r) ~= l}
-{\out  1. ALL x r. Br(x, Lf, r) ~= Lf}
-{\out  2. !!a t1 t2.}
-{\out        [| a : A; t1 : bt(A);}
-{\out           ALL x r. Br(x, t1, r) ~= t1; t2 : bt(A);}
-{\out           ALL x r. Br(x, t2, r) ~= t2 |]}
-{\out        ==> ALL x r. Br(x, Br(a, t1, t2), r) ~= Br(a, t1, t2)}
-\end{ttbox}
-Both subgoals are proved using \texttt{Auto_tac}, which performs the necessary
+\begin{isabelle}
+\ \ \isacommand{apply}\ (induct\_tac\ l)\isanewline
+\ 1.\ \isasymforall x\ r.\ Br(x,\ Lf,\ r)\ \isasymnoteq \ Lf\isanewline
+\ 2.\ \isasymAnd a\ t1\ t2.\isanewline
+\isaindent{\ 2.\ \ \ \ }\isasymlbrakk a\ \isasymin \ A;\ t1\ \isasymin \ bt(A);\ \isasymforall x\ r.\ Br(x,\ t1,\ r)\ \isasymnoteq \ t1;\ t2\ \isasymin \ bt(A);\isanewline
+\isaindent{\ 2.\ \ \ \ \ \ \ }\isasymforall x\ r.\ Br(x,\ t2,\ r)\ \isasymnoteq \ t2\isasymrbrakk \isanewline
+\isaindent{\ 2.\ \ \ \ }\isasymLongrightarrow \ \isasymforall x\ r.\ Br(x,\ Br(a,\ t1,\ t2),\ r)\ \isasymnoteq \ Br(a,\ t1,\ t2)
+\end{isabelle}
+Both subgoals are proved using \isa{auto}, which performs the necessary
 freeness reasoning. 
-\begin{ttbox}
-by Auto_tac;
-{\out Level 2}
-{\out l : bt(A) ==> ALL x r. Br(x, l, r) ~= l}
-{\out No subgoals!}
-\end{ttbox}
-To remove the quantifiers from the induction formula, we save the theorem using
-\ttindex{qed_spec_mp}.
-\begin{ttbox}
-qed_spec_mp "Br_neq_left";
-{\out val Br_neq_left = "?l : bt(?A) ==> Br(?x, ?l, ?r) ~= ?l" : thm}
-\end{ttbox}
+\begin{isabelle}
+\ \ \isacommand{apply}\ auto\isanewline
+No\ subgoals!\isanewline
+\isacommand{done}
+\end{isabelle}
+
+An alternative proof uses Isar's fancy \isa{induct} method, which 
+automatically quantifies over all free variables:
+
+\begin{isabelle}
+\isacommand{lemma}\ Br\_neq\_left':\ "l\ \isasymin \ bt(A)\ ==>\ (!!x\ r.\ Br(x,\ l,\ r)\ \isasymnoteq \ l)"\isanewline
+\ \ \isacommand{apply}\ (induct\ set:\ bt)\isanewline
+\ 1.\ \isasymAnd x\ r.\ Br(x,\ Lf,\ r)\ \isasymnoteq \ Lf\isanewline
+\ 2.\ \isasymAnd a\ t1\ t2\ x\ r.\isanewline
+\isaindent{\ 2.\ \ \ \ }\isasymlbrakk a\ \isasymin \ A;\ t1\ \isasymin \ bt(A);\ \isasymAnd x\ r.\ Br(x,\ t1,\ r)\ \isasymnoteq \ t1;\ t2\ \isasymin \ bt(A);\isanewline
+\isaindent{\ 2.\ \ \ \ \ \ \ }\isasymAnd x\ r.\ Br(x,\ t2,\ r)\ \isasymnoteq \ t2\isasymrbrakk \isanewline
+\isaindent{\ 2.\ \ \ \ }\isasymLongrightarrow \ Br(x,\ Br(a,\ t1,\ t2),\ r)\ \isasymnoteq \ Br(a,\ t1,\ t2)
+\end{isabelle}
+Compare the form of the induction hypotheses with the corresponding ones in
+the previous proof. As before, to conclude requires only \isa{auto}.
 
 When there are only a few constructors, we might prefer to prove the freenness
-theorems for each constructor.  This is trivial, using the function given us
-for that purpose:
-\begin{ttbox}
-val Br_iff = 
-    bt.mk_free "Br(a,l,r)=Br(a',l',r') <-> a=a' & l=l' & r=r'";
-{\out val Br_iff =}
-{\out   "Br(?a, ?l, ?r) = Br(?a', ?l', ?r') <->}
-{\out                     ?a = ?a' & ?l = ?l' & ?r = ?r'" : thm}
-\end{ttbox}
+theorems for each constructor.  This is simple:
+\begin{isabelle}
+\isacommand{lemma}\ Br\_iff:\ "Br(a,l,r)\ =\ Br(a',l',r')\ <->\ a=a'\ \&\ l=l'\ \&\ r=r'"\isanewline
+\ \ \isacommand{by}\ (blast\ elim!:\ bt.free\_elims)
+\end{isabelle}
+Here we see a demonstration of freeness reasoning using
+\isa{bt.free\_elims}, but simpler still is just to apply \isa{auto}.
 
-The purpose of \ttindex{mk_cases} is to generate instances of the elimination
-(case analysis) rule that have been simplified using freeness reasoning.  For
-example, this instance of the elimination rule propagates type-checking
-information from the premise $\texttt{Br}(a,l,r)\in\texttt{bt}(A)$:
-\begin{ttbox}
-val BrE = bt.mk_cases "Br(a,l,r) : bt(A)";
-{\out val BrE =}
-{\out   "[| Br(?a, ?l, ?r) : bt(?A);}
-{\out       [| ?a : ?A; ?l : bt(?A); ?r : bt(?A) |] ==> ?Q |]}
-{\out    ==> ?Q" : thm}
-\end{ttbox}
+An \ttindex{inductive\_cases} declaration generates instances of the
+case analysis rule that have been simplified  using freeness
+reasoning. 
+\begin{isabelle}
+\isacommand{inductive\_cases}\ Br\_in\_bt:\ "Br(a,\ l,\ r)\ \isasymin \ bt(A)"
+\end{isabelle}
+The theorem just created is 
+\begin{isabelle}
+\isasymlbrakk Br(a,\ l,\ r)\ \isasymin \ bt(A);\ \isasymlbrakk a\ \isasymin \ A;\ l\ \isasymin \ bt(A);\ r\ \isasymin \ bt(A)\isasymrbrakk \ \isasymLongrightarrow \ Q\isasymrbrakk \ \isasymLongrightarrow \ Q.
+\end{isabelle}
+It is an elimination rule that from $\isa{Br}(a,l,r)\in\isa{bt}(A)$
+lets us infer $a\in A$, $l\in\isa{bt}(A)$ and
+$r\in\isa{bt}(A)$.
 
 
 \subsubsection{Mixfix syntax in datatypes}
 
-Mixfix syntax is sometimes convenient.  The theory \texttt{ex/PropLog} makes a
+Mixfix syntax is sometimes convenient.  The theory \isa{Induct/PropLog} makes a
 deep embedding of propositional logic:
-\begin{ttbox}
+\begin{ttbox}\isastyleminor
 consts     prop :: i
 datatype  "prop" = Fls
-                 | Var ("n: nat")                ("#_" [100] 100)
-                 | "=>" ("p: prop", "q: prop")   (infixr 90)
+                 | Var ("n \isasymin nat")                ("#_" [100] 100)
+                 | "=>" ("p \isasymin prop", "q \isasymin prop")   (infixr 90)
 \end{ttbox}
 The second constructor has a special $\#n$ syntax, while the third constructor
 is an infixed arrow.
@@ -1950,7 +1957,7 @@ is an infixed arrow.
 \subsubsection{A giant enumeration type}
 
 This example shows a datatype that consists of 60 constructors:
-\begin{ttbox}
+\begin{ttbox}\isastyleminor
 consts  enum :: i
 datatype
   "enum" = C00 | C01 | C02 | C03 | C04 | C05 | C06 | C07 | C08 | C09
@@ -1962,15 +1969,15 @@ datatype
 end
 \end{ttbox}
 The datatype package scales well.  Even though all properties are proved
-rather than assumed, full processing of this definition takes under 15 seconds
-(on a 300 MHz Pentium).  The constructors have a balanced representation,
-essentially binary notation, so freeness properties can be proved fast.
-\begin{ttbox}
-Goal "C00 ~= C01";
-by (Simp_tac 1);
-\end{ttbox}
-You need not derive such inequalities explicitly.  The simplifier will dispose
-of them automatically.
+rather than assumed, full processing of this definition takes around two seconds
+(on a 1.8GHz machine).  The constructors have a balanced representation,
+related to binary notation, so freeness properties can be proved fast.
+\begin{isabelle}
+\isacommand{lemma}\ "C00 \isasymnoteq\ C01"\isanewline
+\ \ \isacommand{by}\ simp
+\end{isabelle}
+You need not derive such inequalities explicitly.  The simplifier will
+dispose of them automatically.
 
 \index{*datatype|)}
 
@@ -1986,38 +1993,34 @@ datatype package.  Isabelle proves the desired recursion equations as
 theorems.
 
 In principle, one could introduce primitive recursive functions by asserting
-their reduction rules as new axioms.  Here is a dangerous way of defining the
-append function for lists:
-\begin{ttbox}\slshape
-consts  "\at" :: [i,i]=>i                        (infixr 60)
-rules 
-   app_Nil   "[] \at ys = ys"
-   app_Cons  "(Cons(a,l)) \at ys = Cons(a, l \at ys)"
-\end{ttbox}
-Asserting axioms brings the danger of accidentally asserting nonsense.  It
-should be avoided at all costs!
+their reduction rules as axioms.  Here is a dangerous way of defining a
+recursive function over binary trees:
+\begin{isabelle}
+\isacommand{consts}\ \ n\_nodes\ ::\ "i\ =>\ i"\isanewline
+\isacommand{axioms}\isanewline
+\ \ n\_nodes\_Lf:\ "n\_nodes(Lf)\ =\ 0"\isanewline
+\ \ n\_nodes\_Br:\ "n\_nodes(Br(a,l,r))\ =\ succ(n\_nodes(l)\ \#+\ n\_nodes(r))"
+\end{isabelle}
+Asserting axioms brings the danger of accidentally introducing
+contradictions.  It should be avoided whenever possible.
 
 The \ttindex{primrec} declaration is a safe means of defining primitive
 recursive functions on datatypes:
-\begin{ttbox}
-consts  "\at" :: [i,i]=>i                        (infixr 60)
-primrec 
-   "[] \at ys = ys"
-   "(Cons(a,l)) \at ys = Cons(a, l \at ys)"
-\end{ttbox}
-Isabelle will now check that the two rules do indeed form a primitive
-recursive definition.  For example, the declaration
-\begin{ttbox}
-primrec
-   "[] \at ys = us"
-\end{ttbox}
-is rejected with an error message ``\texttt{Extra variables on rhs}''.
+\begin{isabelle}
+\isacommand{consts}\ \ n\_nodes\ ::\ "i\ =>\ i"\isanewline
+\isacommand{primrec}\isanewline
+\ \ "n\_nodes(Lf)\ =\ 0"\isanewline
+\ \ "n\_nodes(Br(a,\ l,\ r))\ =\ succ(n\_nodes(l)\ \#+\ n\_nodes(r))"
+\end{isabelle}
+Isabelle will now derive the two equations from a low-level definition  
+based upon well-founded recursion.  If they do not define a legitimate
+recursion, then Isabelle will reject the declaration.
 
 
 \subsubsection{Syntax of recursive definitions}
 
 The general form of a primitive recursive definition is
-\begin{ttbox}
+\begin{ttbox}\isastyleminor
 primrec
     {\it reduction rules}
 \end{ttbox}
@@ -2032,17 +2035,16 @@ immaterial.  For missing constructors, the function is defined to return zero.
 All reduction rules are added to the default simpset.
 If you would like to refer to some rule by name, then you must prefix
 the rule with an identifier.  These identifiers, like those in the
-\texttt{rules} section of a theory, will be visible at the \ML\ level.
+\isa{rules} section of a theory, will be visible in proof scripts.
 
-The reduction rules for {\tt\at} become part of the default simpset, which
+The reduction rules become part of the default simpset, which
 leads to short proof scripts:
-\begin{ttbox}\underscoreon
-Goal "xs: list(A) ==> (xs @ ys) @ zs = xs @ (ys @ zs)";
-by (induct\_tac "xs" 1);
-by (ALLGOALS Asm\_simp\_tac);
-\end{ttbox}
+\begin{isabelle}
+\isacommand{lemma}\ n\_nodes\_type\ [simp]:\ "t\ \isasymin \ bt(A)\ ==>\ n\_nodes(t)\ \isasymin \ nat"\isanewline
+\ \ \isacommand{by}\ (induct\_tac\ t,\ auto)
+\end{isabelle}
 
-You can even use the \texttt{primrec} form with non-recursive datatypes and
+You can even use the \isa{primrec} form with non-recursive datatypes and
 with codatatypes.  Recursion is not allowed, but it provides a convenient
 syntax for defining functions by cases.
 
@@ -2051,26 +2053,42 @@ syntax for defining functions by cases.
 
 All arguments, other than the recursive one, must be the same in each equation
 and in each recursive call.  To get around this restriction, use explict
-$\lambda$-abstraction and function application.  Here is an example, drawn
-from the theory \texttt{Resid/Substitution}.  The type of redexes is declared
-as follows:
-\begin{ttbox}
-consts  redexes :: i
-datatype
-  "redexes" = Var ("n: nat")            
-            | Fun ("t: redexes")
-            | App ("b:bool" ,"f:redexes" , "a:redexes")
-\end{ttbox}
-
-The function \texttt{lift} takes a second argument, $k$, which varies in
+$\lambda$-abstraction and function application.  For example, let us
+define the tail-recursive version of \isa{n\_nodes}, using an 
+accumulating argument for the counter.  The second argument, $k$, varies in
 recursive calls.
-\begin{ttbox}
-primrec
-  "lift(Var(i)) = (lam k:nat. if i<k then Var(i) else Var(succ(i)))"
-  "lift(Fun(t)) = (lam k:nat. Fun(lift(t) ` succ(k)))"
-  "lift(App(b,f,a)) = (lam k:nat. App(b, lift(f)`k, lift(a)`k))"
-\end{ttbox}
-Now \texttt{lift(r)`k} satisfies the required recursion equations.
+\begin{isabelle}
+\isacommand{consts}\ \ n\_nodes\_aux\ ::\ "i\ =>\ i"\isanewline
+\isacommand{primrec}\isanewline
+\ \ "n\_nodes\_aux(Lf)\ =\ (\isasymlambda k\ \isasymin \ nat.\ k)"\isanewline
+\ \ "n\_nodes\_aux(Br(a,l,r))\ =\ \isanewline
+\ \ \ \ \ \ (\isasymlambda k\ \isasymin \ nat.\ n\_nodes\_aux(r)\ `\ \ (n\_nodes\_aux(l)\ `\ succ(k)))"
+\end{isabelle}
+Now \isa{n\_nodes\_aux(t)\ `\ k} is our function in two arguments. We
+can prove a theorem relating it to \isa{n\_nodes}. Note the quantification
+over \isa{k\ \isasymin \ nat}:
+\begin{isabelle}
+\isacommand{lemma}\ n\_nodes\_aux\_eq\ [rule\_format]:\isanewline
+\ \ \ \ \ "t\ \isasymin \ bt(A)\ ==>\ \isasymforall k\ \isasymin \ nat.\ n\_nodes\_aux(t)`k\ =\ n\_nodes(t)\ \#+\ k"\isanewline
+\ \ \isacommand{by}\ (induct\_tac\ t,\ simp\_all)
+\end{isabelle}
+
+Now, we can use \isa{n\_nodes\_aux} to define a tail-recursive version
+of \isa{n\_nodes}:
+\begin{isabelle}
+\isacommand{constdefs}\isanewline
+\ \ n\_nodes\_tail\ ::\ "i\ =>\ i"\isanewline
+\ \ \ "n\_nodes\_tail(t)\ ==\ n\_nodes\_aux(t)\ `\ 0"
+\end{isabelle}
+It is easy to
+prove that \isa{n\_nodes\_tail} is equivalent to \isa{n\_nodes}:
+\begin{isabelle}
+\isacommand{lemma}\ "t\ \isasymin \ bt(A)\ ==>\ n\_nodes\_tail(t)\ =\ n\_nodes(t)"\isanewline
+\ \isacommand{by}\ (simp\ add:\ n\_nodes\_tail\_def\ n\_nodes\_aux\_eq)
+\end{isabelle}
+
+
+
 
 \index{recursion!primitive|)}
 \index{*primrec|)}
@@ -2095,9 +2113,10 @@ particular, the (co)inductive sets {\bf must} be declared separately as
 constants, and may have mixfix syntax or be subject to syntax translations.
 
 Each (co)inductive definition adds definitions to the theory and also
-proves some theorems.  Each definition creates an \ML\ structure, which is a
-substructure of the main theory structure.
-This package is described in detail in a separate paper,%
+proves some theorems.  It behaves identially to the analogous
+inductive definition except that instead of an induction rule there is
+a coinduction rule.  Its treatment of coinduction is described in
+detail in a separate paper,%
 \footnote{It appeared in CADE~\cite{paulson-CADE}; a longer version is
   distributed with Isabelle as \emph{A Fixedpoint Approach to 
  (Co)Inductive and (Co)Datatype Definitions}.}  %
@@ -2106,28 +2125,25 @@ which you might refer to for background information.
 
 \subsection{The syntax of a (co)inductive definition}
 An inductive definition has the form
-\begin{ttbox}
+\begin{ttbox}\isastyleminor
 inductive
-  domains    {\it domain declarations}
-  intrs      {\it introduction rules}
-  monos      {\it monotonicity theorems}
-  con_defs   {\it constructor definitions}
-  type_intrs {\it introduction rules for type-checking}
-  type_elims {\it elimination rules for type-checking}
+  domains     {\it domain declarations}
+  intros      {\it introduction rules}
+  monos       {\it monotonicity theorems}
+  con_defs    {\it constructor definitions}
+  type_intros {\it introduction rules for type-checking}
+  type_elims  {\it elimination rules for type-checking}
 \end{ttbox}
 A coinductive definition is identical, but starts with the keyword
-{\tt co\-inductive}.  
+\isa{co\-inductive}.  
 
-The {\tt monos}, {\tt con\_defs}, {\tt type\_intrs} and {\tt type\_elims}
-sections are optional.  If present, each is specified either as a list of
-identifiers or as a string.  If the latter, then the string must be a valid
-\textsc{ml} expression of type {\tt thm list}.  The string is simply inserted
-into the {\tt _thy.ML} file; if it is ill-formed, it will trigger \textsc{ml}
-error messages.  You can then inspect the file on the temporary directory.
+The \isa{monos}, \isa{con\_defs}, \isa{type\_intros} and \isa{type\_elims}
+sections are optional.  If present, each is specified as a list of
+theorems, which may contain Isar attributes as usual.
 
 \begin{description}
 \item[\it domain declarations] are items of the form
-  {\it string\/}~{\tt <=}~{\it string}, associating each recursive set with
+  {\it string\/}~\isa{\isasymsubseteq }~{\it string}, associating each recursive set with
   its domain.  (The domain is some existing set that is large enough to
   hold the new set being defined.)
 
@@ -2144,15 +2160,15 @@ error messages.  You can then inspect the file on the temporary directory.
   appearing in the introduction rules.  The (co)datatype package supplies
   the constructors' definitions here.  Most (co)inductive definitions omit
   this section; one exception is the primitive recursive functions example;
-  see theory \texttt{ex/Primrec}.
+  see theory \isa{Induct/Primrec}.
   
-\item[\it type\_intrs] consists of introduction rules for type-checking the
+\item[\it type\_intros] consists of introduction rules for type-checking the
   definition: for demonstrating that the new set is included in its domain.
   (The proof uses depth-first search.)
 
 \item[\it type\_elims] consists of elimination rules for type-checking the
   definition.  They are presumed to be safe and are applied as often as
-  possible prior to the {\tt type\_intrs} search.
+  possible prior to the \isa{type\_intros} search.
 \end{description}
 
 The package has a few restrictions:
@@ -2167,89 +2183,87 @@ operators.
 may contain any number of side-conditions.
 
 \item Side-conditions of the form $x=t$, where the variable~$x$ does not
-  occur in~$t$, will be substituted through the rule \verb|mutual_induct|.
+  occur in~$t$, will be substituted through the rule \isa{mutual\_induct}.
 \end{itemize}
 
 
 \subsection{Example of an inductive definition}
 
-Two declarations, included in a theory file, define the finite powerset
-operator.  First we declare the constant~\texttt{Fin}.  Then we declare it
-inductively, with two introduction rules:
-\begin{ttbox}
-consts  Fin :: i=>i
-
-inductive
-  domains   "Fin(A)" <= "Pow(A)"
-  intrs
-    emptyI  "0 : Fin(A)"
-    consI   "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"
-  type_intrs empty_subsetI, cons_subsetI, PowI
-  type_elims "[make_elim PowD]"
-\end{ttbox}
-The resulting theory structure contains a substructure, called~\texttt{Fin}.
-It contains the \texttt{Fin}$~A$ introduction rules as the list
-\texttt{Fin.intrs}, and also individually as \texttt{Fin.emptyI} and
-\texttt{Fin.consI}.  The induction rule is \texttt{Fin.induct}.
+Below, we shall see how Isabelle/ZF defines the finite powerset
+operator.  The first step is to declare the constant~\isa{Fin}.  Then we
+must declare it inductively, with two introduction rules:
+\begin{isabelle}
+\isacommand{consts}\ \ Fin\ ::\ "i=>i"\isanewline
+\isacommand{inductive}\isanewline
+\ \ \isakeyword{domains}\ \ \ "Fin(A)"\ \isasymsubseteq\ "Pow(A)"\isanewline
+\ \ \isakeyword{intros}\isanewline
+\ \ \ \ emptyI:\ \ "0\ \isasymin\ Fin(A)"\isanewline
+\ \ \ \ consI:\ \ \ "[|\ a\ \isasymin\ A;\ \ b\ \isasymin\ Fin(A)\ |]\ ==>\ cons(a,b)\ \isasymin\ Fin(A)"\isanewline
+\ \ \isakeyword{type\_intros}\ \ empty\_subsetI\ cons\_subsetI\ PowI\isanewline
+\ \ \isakeyword{type\_elims}\ \ \ PowD\ [THEN\ revcut\_rl]\end{isabelle}
+The resulting theory contains a name space, called~\isa{Fin}.
+The \isa{Fin}$~A$ introduction rules can be referred to collectively as
+\isa{Fin.intros}, and also individually as \isa{Fin.emptyI} and
+\isa{Fin.consI}.  The induction rule is \isa{Fin.induct}.
 
 The chief problem with making (co)inductive definitions involves type-checking
 the rules.  Sometimes, additional theorems need to be supplied under
-\texttt{type_intrs} or \texttt{type_elims}.  If the package fails when trying
+\isa{type_intros} or \isa{type_elims}.  If the package fails when trying
 to prove your introduction rules, then set the flag \ttindexbold{trace_induct}
-to \texttt{true} and try again.  (See the manual \emph{A Fixedpoint Approach
+to \isa{true} and try again.  (See the manual \emph{A Fixedpoint Approach
   \ldots} for more discussion of type-checking.)
 
-In the example above, $\texttt{Pow}(A)$ is given as the domain of
-$\texttt{Fin}(A)$, for obviously every finite subset of~$A$ is a subset
+In the example above, $\isa{Pow}(A)$ is given as the domain of
+$\isa{Fin}(A)$, for obviously every finite subset of~$A$ is a subset
 of~$A$.  However, the inductive definition package can only prove that given a
 few hints.
 Here is the output that results (with the flag set) when the
-\texttt{type_intrs} and \texttt{type_elims} are omitted from the inductive
+\isa{type_intros} and \isa{type_elims} are omitted from the inductive
 definition above:
-\begin{ttbox}
+\begin{ttbox}\isastyleminor
 Inductive definition Finite.Fin
 Fin(A) ==
 lfp(Pow(A),
-    \%X. {z: Pow(A) . z = 0 | (EX a b. z = cons(a, b) & a : A & b : X)})
+    \%X. {z \isasymin Pow(A) . z = 0 | ({\isasymexists}a b. z = cons(a, b) & a \isasymin A & b \isasymin X)})
   Proving monotonicity...
 \ttbreak
   Proving the introduction rules...
 The type-checking subgoal:
-0 : Fin(A)
- 1. 0 : Pow(A)
+0 \isasymin Fin(A)
+ 1. 0 \isasymin Pow(A)
 \ttbreak
 The subgoal after monos, type_elims:
-0 : Fin(A)
- 1. 0 : Pow(A)
+0 \isasymin Fin(A)
+ 1. 0 \isasymin Pow(A)
 *** prove_goal: tactic failed
 \end{ttbox}
 We see the need to supply theorems to let the package prove
-$\emptyset\in\texttt{Pow}(A)$.  Restoring the \texttt{type_intrs} but not the
-\texttt{type_elims}, we again get an error message:
-\begin{ttbox}
+$\emptyset\in\isa{Pow}(A)$.  Restoring the \isa{type_intros} but not the
+\isa{type_elims}, we again get an error message:
+\begin{ttbox}\isastyleminor
 The type-checking subgoal:
-0 : Fin(A)
- 1. 0 : Pow(A)
+0 \isasymin Fin(A)
+ 1. 0 \isasymin Pow(A)
 \ttbreak
 The subgoal after monos, type_elims:
-0 : Fin(A)
- 1. 0 : Pow(A)
+0 \isasymin Fin(A)
+ 1. 0 \isasymin Pow(A)
 \ttbreak
 The type-checking subgoal:
-cons(a, b) : Fin(A)
- 1. [| a : A; b : Fin(A) |] ==> cons(a, b) : Pow(A)
+cons(a, b) \isasymin Fin(A)
+ 1. [| a \isasymin A; b \isasymin Fin(A) |] ==> cons(a, b) \isasymin Pow(A)
 \ttbreak
 The subgoal after monos, type_elims:
-cons(a, b) : Fin(A)
- 1. [| a : A; b : Pow(A) |] ==> cons(a, b) : Pow(A)
+cons(a, b) \isasymin Fin(A)
+ 1. [| a \isasymin A; b \isasymin Pow(A) |] ==> cons(a, b) \isasymin Pow(A)
 *** prove_goal: tactic failed
 \end{ttbox}
 The first rule has been type-checked, but the second one has failed.  The
 simplest solution to such problems is to prove the failed subgoal separately
-and to supply it under \texttt{type_intrs}.  The solution actually used is
-to supply, under \texttt{type_elims}, a rule that changes
-$b\in\texttt{Pow}(A)$ to $b\subseteq A$; together with \texttt{cons_subsetI}
-and \texttt{PowI}, it is enough to complete the type-checking.
+and to supply it under \isa{type_intros}.  The solution actually used is
+to supply, under \isa{type_elims}, a rule that changes
+$b\in\isa{Pow}(A)$ to $b\subseteq A$; together with \isa{cons_subsetI}
+and \isa{PowI}, it is enough to complete the type-checking.
 
 
 
@@ -2257,95 +2271,97 @@ and \texttt{PowI}, it is enough to complete the type-checking.
 
 An inductive definition may involve arbitrary monotonic operators.  Here is a
 standard example: the accessible part of a relation.  Note the use
-of~\texttt{Pow} in the introduction rule and the corresponding mention of the
-rule \verb|Pow_mono| in the \texttt{monos} list.  If the desired rule has a
+of~\isa{Pow} in the introduction rule and the corresponding mention of the
+rule \isa{Pow\_mono} in the \isa{monos} list.  If the desired rule has a
 universally quantified premise, usually the effect can be obtained using
-\texttt{Pow}.
-\begin{ttbox}
-consts  acc :: i=>i
-inductive
-  domains "acc(r)" <= "field(r)"
-  intrs
-    vimage  "[| r-``{a}: Pow(acc(r)); a: field(r) |] ==> a: acc(r)"
-  monos      Pow_mono
-\end{ttbox}
+\isa{Pow}.
+\begin{isabelle}
+\isacommand{consts}\ \ acc\ ::\ "i\ =>\ i"\isanewline
+\isacommand{inductive}\isanewline
+\ \ \isakeyword{domains}\ "acc(r)"\ \isasymsubseteq \ "field(r)"\isanewline
+\ \ \isakeyword{intros}\isanewline
+\ \ \ \ vimage:\ \ "[|\ r-``\isacharbraceleft a\isacharbraceright\ \isasymin\ Pow(acc(r));\ a\ \isasymin \ field(r)\ |]
+\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ ==>\ a\ \isasymin \ acc(r)"\isanewline
+\ \ \isakeyword{monos}\ \ Pow\_mono
+\end{isabelle}
 
-Finally, here is a coinductive definition.  It captures (as a bisimulation)
-the notion of equality on lazy lists, which are first defined as a codatatype:
-\begin{ttbox}
-consts  llist :: i=>i
-codatatype  "llist(A)" = LNil | LCons ("a: A", "l: llist(A)")
-\ttbreak
+Finally, here are some coinductive definitions.  We begin by defining
+lazy (potentially infinite) lists as a codatatype:
+\begin{isabelle}
+\isacommand{consts}\ \ llist\ \ ::\ "i=>i"\isanewline
+\isacommand{codatatype}\isanewline
+\ \ "llist(A)"\ =\ LNil\ |\ LCons\ ("a\ \isasymin \ A",\ "l\ \isasymin \ llist(A)")\isanewline
+\end{isabelle}
 
-consts  lleq :: i=>i
-coinductive
-  domains "lleq(A)" <= "llist(A) * llist(A)"
-  intrs
-    LNil  "<LNil, LNil> : lleq(A)"
-    LCons "[| a:A; <l,l'>: lleq(A) |] 
-           ==> <LCons(a,l), LCons(a,l')>: lleq(A)"
-  type_intrs  "llist.intrs"
-\end{ttbox}
-This use of \texttt{type_intrs} is typical: the relation concerns the
-codatatype \texttt{llist}, so naturally the introduction rules for that
+The notion of equality on such lists is modelled as a bisimulation:
+\begin{isabelle}
+\isacommand{consts}\ \ lleq\ ::\ "i=>i"\isanewline
+\isacommand{coinductive}\isanewline
+\ \ \isakeyword{domains}\ "lleq(A)"\ <=\ "llist(A)\ *\ llist(A)"\isanewline
+\ \ \isakeyword{intros}\isanewline
+\ \ \ \ LNil:\ \ "<LNil,\ LNil>\ \isasymin \ lleq(A)"\isanewline
+\ \ \ \ LCons:\ "[|\ a\ \isasymin \ A;\ <l,l'>\ \isasymin \ lleq(A)\ |]\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ ==>\ <LCons(a,l),\ LCons(a,l')>\ \isasymin \ lleq(A)"\isanewline
+\ \ \isakeyword{type\_intros}\ \ llist.intros
+\end{isabelle}
+This use of \isa{type_intros} is typical: the relation concerns the
+codatatype \isa{llist}, so naturally the introduction rules for that
 codatatype will be required for type-checking the rules.
 
 The Isabelle distribution contains many other inductive definitions.  Simple
-examples are collected on subdirectory \texttt{ZF/ex}.  The directory
-\texttt{Coind} and the theory \texttt{ZF/ex/LList} contain coinductive
+examples are collected on subdirectory \isa{ZF/Induct}.  The directory
+\isa{Coind} and the theory \isa{ZF/Induct/LList} contain coinductive
 definitions.  Larger examples may be found on other subdirectories of
-\texttt{ZF}, such as \texttt{IMP}, and \texttt{Resid}.
+\isa{ZF}, such as \isa{IMP}, and \isa{Resid}.
 
 
-\subsection{The result structure}
+\subsection{Theorems generated}
 
-Each (co)inductive set defined in a theory file generates an \ML\ substructure
-having the same name.  The the substructure contains the following elements:
-
-\begin{ttbox}
-val intrs         : thm list  \textrm{the introduction rules}
-val elim          : thm       \textrm{the elimination (case analysis) rule}
-val mk_cases      : string -> thm  \textrm{case analysis, see below}
-val induct        : thm       \textrm{the standard induction rule}
-val mutual_induct : thm       \textrm{the mutual induction rule, or \texttt{True}}
-val defs          : thm list  \textrm{definitions of operators}
-val bnd_mono      : thm list  \textrm{monotonicity property}
-val dom_subset    : thm list  \textrm{inclusion in `bounding set'}
+Each (co)inductive set defined in a theory file generates a name space
+containing the following elements:
+\begin{ttbox}\isastyleminor
+intros        \textrm{the introduction rules}
+elim          \textrm{the elimination (case analysis) rule}
+induct        \textrm{the standard induction rule}
+mutual_induct \textrm{the mutual induction rule, if needed}
+defs          \textrm{definitions of inductive sets}
+bnd_mono      \textrm{monotonicity property}
+dom_subset    \textrm{inclusion in `bounding set'}
 \end{ttbox}
-Furthermore there is the theorem $C$\texttt{_I} for every constructor~$C$; for
-example, the \texttt{list} datatype's introduction rules are bound to the
-identifiers \texttt{Nil_I} and \texttt{Cons_I}.
+Furthermore, each introduction rule is available under its declared
+name. For a codatatype, the component \isa{coinduct} is the coinduction rule,
+replacing the \isa{induct} component.
 
-For a codatatype, the component \texttt{coinduct} is the coinduction rule,
-replacing the \texttt{induct} component.
-
-Recall that \ttindex{mk_cases} generates simplified instances of the
-elimination (case analysis) rule.  It is as useful for inductive definitions
-as it is for datatypes.  There are many examples in the theory
-\texttt{ex/Comb}, which is discussed at length
-elsewhere~\cite{paulson-generic}.  The theory first defines the datatype
-\texttt{comb} of combinators:
-\begin{ttbox}
+Recall that the \ttindex{inductive\_cases} declaration generates
+simplified instances of the case analysis rule.  It is as useful for
+inductive definitions as it is for datatypes.  There are many examples
+in the theory
+\isa{Induct/Comb}, which is discussed at length
+elsewhere~\cite{paulson-generic}.  The theory first defines the
+datatype
+\isa{comb} of combinators:
+\begin{ttbox}\isastyleminor
 consts comb :: i
 datatype  "comb" = K
                  | S
-                 | "#" ("p: comb", "q: comb")   (infixl 90)
+                 | "#" ("p \isasymin comb", "q \isasymin comb")   (infixl 90)
 \end{ttbox}
 The theory goes on to define contraction and parallel contraction
-inductively.  Then the file \texttt{ex/Comb.ML} defines special cases of
-contraction using \texttt{mk_cases}:
-\begin{ttbox}
-val K_contractE = contract.mk_cases "K -1-> r";
-{\out val K_contractE = "K -1-> ?r ==> ?Q" : thm}
-\end{ttbox}
-We can read this as saying that the combinator \texttt{K} cannot reduce to
-anything.  Similar elimination rules for \texttt{S} and application are also
-generated and are supplied to the classical reasoner.  Note that
-\texttt{comb.con_defs} is given to \texttt{mk_cases} to allow freeness
-reasoning on datatype \texttt{comb}.
+inductively.  Then the theory \isa{Induct/Comb.thy} defines special
+cases of contraction, such as this one:
+\begin{isabelle}
+\isacommand{inductive\_cases}\ K\_contractE [elim!]:\ "K -1-> r"
+\end{isabelle}
+The theorem just created is \isa{K -1-> r \ \isasymLongrightarrow \ Q},
+which expresses that the combinator \isa{K} cannot reduce to
+anything.  (From the assumption \isa{K-1->r}, we can conclude any desired
+formula \isa{Q}\@.)  Similar elimination rules for \isa{S} and application are also
+generated. The attribute \isa{elim!}\ shown above supplies the generated
+theorem to the classical reasoner.  This mode of working allows
+effective reasoniung about operational semantics.
 
 \index{*coinductive|)} \index{*inductive|)}
-
 
 
 
@@ -2356,49 +2372,48 @@ operators for handling recursive function definitions.  I have described
 the developments in detail elsewhere~\cite{paulson-set-II}.  Here is a brief
 summary:
 \begin{itemize}
-  \item Theory \texttt{Trancl} defines the transitive closure of a relation
+  \item Theory \isa{Trancl} defines the transitive closure of a relation
     (as a least fixedpoint).
 
-  \item Theory \texttt{WF} proves the Well-Founded Recursion Theorem, using an
+  \item Theory \isa{WF} proves the well-founded recursion theorem, using an
     elegant approach of Tobias Nipkow.  This theorem permits general
     recursive definitions within set theory.
 
-  \item Theory \texttt{Ord} defines the notions of transitive set and ordinal
+  \item Theory \isa{Ord} defines the notions of transitive set and ordinal
     number.  It derives transfinite induction.  A key definition is {\bf
       less than}: $i<j$ if and only if $i$ and $j$ are both ordinals and
     $i\in j$.  As a special case, it includes less than on the natural
     numbers.
     
-  \item Theory \texttt{Epsilon} derives $\varepsilon$-induction and
+  \item Theory \isa{Epsilon} derives $\varepsilon$-induction and
     $\varepsilon$-recursion, which are generalisations of transfinite
-    induction and recursion.  It also defines \cdx{rank}$(x)$, which
-    is the least ordinal $\alpha$ such that $x$ is constructed at
-    stage $\alpha$ of the cumulative hierarchy (thus $x\in
-    V@{\alpha+1}$).
+    induction and recursion.  It also defines \cdx{rank}$(x)$, which is the
+    least ordinal $\alpha$ such that $x$ is constructed at stage $\alpha$ of
+    the cumulative hierarchy (thus $x\in V@{\alpha+1}$).
 \end{itemize}
 
 Other important theories lead to a theory of cardinal numbers.  They have
 not yet been written up anywhere.  Here is a summary:
 \begin{itemize}
-\item Theory \texttt{Rel} defines the basic properties of relations, such as
+\item Theory \isa{Rel} defines the basic properties of relations, such as
   (ir)reflexivity, (a)symmetry, and transitivity.
 
-\item Theory \texttt{EquivClass} develops a theory of equivalence
+\item Theory \isa{EquivClass} develops a theory of equivalence
   classes, not using the Axiom of Choice.
 
-\item Theory \texttt{Order} defines partial orderings, total orderings and
+\item Theory \isa{Order} defines partial orderings, total orderings and
   wellorderings.
 
-\item Theory \texttt{OrderArith} defines orderings on sum and product sets.
+\item Theory \isa{OrderArith} defines orderings on sum and product sets.
   These can be used to define ordinal arithmetic and have applications to
   cardinal arithmetic.
 
-\item Theory \texttt{OrderType} defines order types.  Every wellordering is
+\item Theory \isa{OrderType} defines order types.  Every wellordering is
   equivalent to a unique ordinal, which is its order type.
 
-\item Theory \texttt{Cardinal} defines equipollence and cardinal numbers.
+\item Theory \isa{Cardinal} defines equipollence and cardinal numbers.
  
-\item Theory \texttt{CardinalArith} defines cardinal addition and
+\item Theory \isa{CardinalArith} defines cardinal addition and
   multiplication, and proves their elementary laws.  It proves that there
   is no greatest cardinal.  It also proves a deep result, namely
   $\kappa\otimes\kappa=\kappa$ for every infinite cardinal~$\kappa$; see
@@ -2408,20 +2423,20 @@ not yet been written up anywhere.  Here is a summary:
 
 The following developments involve the Axiom of Choice (AC):
 \begin{itemize}
-\item Theory \texttt{AC} asserts the Axiom of Choice and proves some simple
+\item Theory \isa{AC} asserts the Axiom of Choice and proves some simple
   equivalent forms.
 
-\item Theory \texttt{Zorn} proves Hausdorff's Maximal Principle, Zorn's Lemma
+\item Theory \isa{Zorn} proves Hausdorff's Maximal Principle, Zorn's Lemma
   and the Wellordering Theorem, following Abrial and
   Laffitte~\cite{abrial93}.
 
-\item Theory \verb|Cardinal_AC| uses AC to prove simplified theorems about
+\item Theory \isa{Cardinal\_AC} uses AC to prove simplified theorems about
   the cardinals.  It also proves a theorem needed to justify
   infinitely branching datatype declarations: if $\kappa$ is an infinite
   cardinal and $|X(\alpha)| \le \kappa$ for all $\alpha<\kappa$ then
   $|\union\sb{\alpha<\kappa} X(\alpha)| \le \kappa$.
 
-\item Theory \texttt{InfDatatype} proves theorems to justify infinitely
+\item Theory \isa{InfDatatype} proves theorems to justify infinitely
   branching datatypes.  Arbitrary index sets are allowed, provided their
   cardinalities have an upper bound.  The theory also justifies some
   unusual cases of finite branching, involving the finite powerset operator
@@ -2431,190 +2446,154 @@ The following developments involve the Axiom of Choice (AC):
 
 
 \section{The examples directories}
-Directory \texttt{HOL/IMP} contains a mechanised version of a semantic
+Directory \isa{HOL/IMP} contains a mechanised version of a semantic
 equivalence proof taken from Winskel~\cite{winskel93}.  It formalises the
 denotational and operational semantics of a simple while-language, then
 proves the two equivalent.  It contains several datatype and inductive
 definitions, and demonstrates their use.
 
-The directory \texttt{ZF/ex} contains further developments in ZF set theory.
+The directory \isa{ZF/ex} contains further developments in ZF set theory.
 Here is an overview; see the files themselves for more details.  I describe
 much of this material in other
-publications~\cite{paulson-set-I,paulson-set-II,paulson-CADE}.
+publications~\cite{paulson-set-I,paulson-set-II,paulson-fixedpt-milner}.
 \begin{itemize}
-\item File \texttt{misc.ML} contains miscellaneous examples such as
+\item File \isa{misc.ML} contains miscellaneous examples such as
   Cantor's Theorem, the Schr\"oder-Bernstein Theorem and the `Composition
   of homomorphisms' challenge~\cite{boyer86}.
 
-\item Theory \texttt{Ramsey} proves the finite exponent 2 version of
+\item Theory \isa{Ramsey} proves the finite exponent 2 version of
   Ramsey's Theorem, following Basin and Kaufmann's
   presentation~\cite{basin91}.
 
-\item Theory \texttt{Integ} develops a theory of the integers as
+\item Theory \isa{Integ} develops a theory of the integers as
   equivalence classes of pairs of natural numbers.
 
-\item Theory \texttt{Primrec} develops some computation theory.  It
+\item Theory \isa{Primrec} develops some computation theory.  It
   inductively defines the set of primitive recursive functions and presents a
   proof that Ackermann's function is not primitive recursive.
 
-\item Theory \texttt{Primes} defines the Greatest Common Divisor of two
+\item Theory \isa{Primes} defines the Greatest Common Divisor of two
   natural numbers and and the ``divides'' relation.
 
-\item Theory \texttt{Bin} defines a datatype for two's complement binary
+\item Theory \isa{Bin} defines a datatype for two's complement binary
   integers, then proves rewrite rules to perform binary arithmetic.  For
-  instance, $1359\times {-}2468 = {-}3354012$ takes under 14 seconds.
+  instance, $1359\times {-}2468 = {-}3354012$ takes 0.3 seconds.
 
-\item Theory \texttt{BT} defines the recursive data structure ${\tt
-    bt}(A)$, labelled binary trees.
+\item Theory \isa{BT} defines the recursive data structure $\isa{bt}(A)$, labelled binary trees.
 
-\item Theory \texttt{Term} defines a recursive data structure for terms
+\item Theory \isa{Term} defines a recursive data structure for terms
   and term lists.  These are simply finite branching trees.
 
-\item Theory \texttt{TF} defines primitives for solving mutually
+\item Theory \isa{TF} defines primitives for solving mutually
   recursive equations over sets.  It constructs sets of trees and forests
   as an example, including induction and recursion rules that handle the
   mutual recursion.
 
-\item Theory \texttt{Prop} proves soundness and completeness of
+\item Theory \isa{Prop} proves soundness and completeness of
   propositional logic~\cite{paulson-set-II}.  This illustrates datatype
   definitions, inductive definitions, structural induction and rule
   induction.
 
-\item Theory \texttt{ListN} inductively defines the lists of $n$
+\item Theory \isa{ListN} inductively defines the lists of $n$
   elements~\cite{paulin-tlca}.
 
-\item Theory \texttt{Acc} inductively defines the accessible part of a
+\item Theory \isa{Acc} inductively defines the accessible part of a
   relation~\cite{paulin-tlca}.
 
-\item Theory \texttt{Comb} defines the datatype of combinators and
+\item Theory \isa{Comb} defines the datatype of combinators and
   inductively defines contraction and parallel contraction.  It goes on to
   prove the Church-Rosser Theorem.  This case study follows Camilleri and
   Melham~\cite{camilleri92}.
 
-\item Theory \texttt{LList} defines lazy lists and a coinduction
+\item Theory \isa{LList} defines lazy lists and a coinduction
   principle for proving equations between them.
 \end{itemize}
 
 
 \section{A proof about powersets}\label{sec:ZF-pow-example}
 To demonstrate high-level reasoning about subsets, let us prove the
-equation ${{\tt Pow}(A)\cap {\tt Pow}(B)}= {\tt Pow}(A\cap B)$.  Compared
+equation ${\isa{Pow}(A)\cap \isa{Pow}(B)}= \isa{Pow}(A\cap B)$.  Compared
 with first-order logic, set theory involves a maze of rules, and theorems
 have many different proofs.  Attempting other proofs of the theorem might
 be instructive.  This proof exploits the lattice properties of
 intersection.  It also uses the monotonicity of the powerset operation,
-from \texttt{ZF/mono.ML}:
-\begin{ttbox}
-\tdx{Pow_mono}      A<=B ==> Pow(A) <= Pow(B)
-\end{ttbox}
+from \isa{ZF/mono.ML}:
+\begin{isabelle}
+\tdx{Pow_mono}:     A \isasymsubseteq B ==> Pow(A) \isasymsubseteq Pow(B)
+\end{isabelle}
 We enter the goal and make the first step, which breaks the equation into
 two inclusions by extensionality:\index{*equalityI theorem}
-\begin{ttbox}
-Goal "Pow(A Int B) = Pow(A) Int Pow(B)";
-{\out Level 0}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
-\ttbreak
-by (resolve_tac [equalityI] 1);
-{\out Level 1}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. Pow(A Int B) <= Pow(A) Int Pow(B)}
-{\out  2. Pow(A) Int Pow(B) <= Pow(A Int B)}
-\end{ttbox}
-Both inclusions could be tackled straightforwardly using \texttt{subsetI}.
+\begin{isabelle}
+\isacommand{lemma}\ "Pow(A\ Int\ B)\ =\ Pow(A)\ Int\ Pow(B)"\isanewline
+\ 1.\ Pow(A\ \isasyminter \ B)\ =\ Pow(A)\ \isasyminter \ Pow(B)\isanewline
+\isacommand{apply}\ (rule\ equalityI)\isanewline
+\ 1.\ Pow(A\ \isasyminter \ B)\ \isasymsubseteq \ Pow(A)\ \isasyminter \ Pow(B)\isanewline
+\ 2.\ Pow(A)\ \isasyminter \ Pow(B)\ \isasymsubseteq \ Pow(A\ \isasyminter \ B)
+\end{isabelle}
+Both inclusions could be tackled straightforwardly using \isa{subsetI}.
 A shorter proof results from noting that intersection forms the greatest
 lower bound:\index{*Int_greatest theorem}
-\begin{ttbox}
-by (resolve_tac [Int_greatest] 1);
-{\out Level 2}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. Pow(A Int B) <= Pow(A)}
-{\out  2. Pow(A Int B) <= Pow(B)}
-{\out  3. Pow(A) Int Pow(B) <= Pow(A Int B)}
-\end{ttbox}
-Subgoal~1 follows by applying the monotonicity of \texttt{Pow} to $A\int
+\begin{isabelle}
+\isacommand{apply}\ (rule\ Int\_greatest)\isanewline
+\ 1.\ Pow(A\ \isasyminter \ B)\ \isasymsubseteq \ Pow(A)\isanewline
+\ 2.\ Pow(A\ \isasyminter \ B)\ \isasymsubseteq \ Pow(B)\isanewline
+\ 3.\ Pow(A)\ \isasyminter \ Pow(B)\ \isasymsubseteq \ Pow(A\ \isasyminter \ B)
+\end{isabelle}
+Subgoal~1 follows by applying the monotonicity of \isa{Pow} to $A\int
 B\subseteq A$; subgoal~2 follows similarly:
 \index{*Int_lower1 theorem}\index{*Int_lower2 theorem}
-\begin{ttbox}
-by (resolve_tac [Int_lower1 RS Pow_mono] 1);
-{\out Level 3}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. Pow(A Int B) <= Pow(B)}
-{\out  2. Pow(A) Int Pow(B) <= Pow(A Int B)}
-\ttbreak
-by (resolve_tac [Int_lower2 RS Pow_mono] 1);
-{\out Level 4}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. Pow(A) Int Pow(B) <= Pow(A Int B)}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ Int\_lower1\ [THEN\ Pow\_mono])\isanewline
+\ 1.\ Pow(A\ \isasyminter \ B)\ \isasymsubseteq \ Pow(B)\isanewline
+\ 2.\ Pow(A)\ \isasyminter \ Pow(B)\ \isasymsubseteq \ Pow(A\ \isasyminter \ B)
+\isanewline
+\isacommand{apply}\ (rule\ Int\_lower2\ [THEN\ Pow\_mono])\isanewline
+\ 1.\ Pow(A)\ \isasyminter \ Pow(B)\ \isasymsubseteq \ Pow(A\ \isasyminter \ B)
+\end{isabelle}
 We are left with the opposite inclusion, which we tackle in the
 straightforward way:\index{*subsetI theorem}
-\begin{ttbox}
-by (resolve_tac [subsetI] 1);
-{\out Level 5}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. !!x. x : Pow(A) Int Pow(B) ==> x : Pow(A Int B)}
-\end{ttbox}
-The subgoal is to show $x\in {\tt Pow}(A\cap B)$ assuming $x\in{\tt
-Pow}(A)\cap {\tt Pow}(B)$; eliminating this assumption produces two
+\begin{isabelle}
+\isacommand{apply}\ (rule\ subsetI)\isanewline
+\ 1.\ \isasymAnd x.\ x\ \isasymin \ Pow(A)\ \isasyminter \ Pow(B)\ \isasymLongrightarrow \ x\ \isasymin \ Pow(A\ \isasyminter \ B)
+\end{isabelle}
+The subgoal is to show $x\in \isa{Pow}(A\cap B)$ assuming $x\in\isa{Pow}(A)\cap \isa{Pow}(B)$; eliminating this assumption produces two
 subgoals.  The rule \tdx{IntE} treats the intersection like a conjunction
 instead of unfolding its definition.
-\begin{ttbox}
-by (eresolve_tac [IntE] 1);
-{\out Level 6}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x : Pow(A Int B)}
-\end{ttbox}
-The next step replaces the \texttt{Pow} by the subset
+\begin{isabelle}
+\isacommand{apply}\ (erule\ IntE)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymlbrakk x\ \isasymin \ Pow(A);\ x\ \isasymin \ Pow(B)\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymin \ Pow(A\ \isasyminter \ B)
+\end{isabelle}
+The next step replaces the \isa{Pow} by the subset
 relation~($\subseteq$).\index{*PowI theorem}
-\begin{ttbox}
-by (resolve_tac [PowI] 1);
-{\out Level 7}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x <= A Int B}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ PowI)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymlbrakk x\ \isasymin \ Pow(A);\ x\ \isasymin \ Pow(B)\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymsubseteq \ A\ \isasyminter \ B%
+\end{isabelle}
 We perform the same replacement in the assumptions.  This is a good
-demonstration of the tactic \ttindex{dresolve_tac}:\index{*PowD theorem}
-\begin{ttbox}
-by (REPEAT (dresolve_tac [PowD] 1));
-{\out Level 8}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. !!x. [| x <= A; x <= B |] ==> x <= A Int B}
-\end{ttbox}
+demonstration of the tactic \ttindex{drule}:\index{*PowD theorem}
+\begin{isabelle}
+\isacommand{apply}\ (drule\ PowD)+\isanewline
+\ 1.\ \isasymAnd x.\ \isasymlbrakk x\ \isasymsubseteq \ A;\ x\ \isasymsubseteq \ B\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymsubseteq \ A\ \isasyminter \ B%
+\end{isabelle}
 The assumptions are that $x$ is a lower bound of both $A$ and~$B$, but
 $A\int B$ is the greatest lower bound:\index{*Int_greatest theorem}
-\begin{ttbox}
-by (resolve_tac [Int_greatest] 1);
-{\out Level 9}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. !!x. [| x <= A; x <= B |] ==> x <= A}
-{\out  2. !!x. [| x <= A; x <= B |] ==> x <= B}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ Int\_greatest)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymlbrakk x\ \isasymsubseteq \ A;\ x\ \isasymsubseteq \ B\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymsubseteq \ A\isanewline
+\ 2.\ \isasymAnd x.\ \isasymlbrakk x\ \isasymsubseteq \ A;\ x\ \isasymsubseteq \ B\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymsubseteq \ B%
+\end{isabelle}
 To conclude the proof, we clear up the trivial subgoals:
-\begin{ttbox}
-by (REPEAT (assume_tac 1));
-{\out Level 10}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out No subgoals!}
-\end{ttbox}
-\medskip
-We could have performed this proof in one step by applying
-\ttindex{Blast_tac}.  Let us
-go back to the start:
-\begin{ttbox}
-choplev 0;
-{\out Level 0}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
-by (Blast_tac 1);
-{\out Depth = 0}
-{\out Depth = 1}
-{\out Depth = 2}
-{\out Depth = 3}
-{\out Level 1}
-{\out Pow(A Int B) = Pow(A) Int Pow(B)}
-{\out No subgoals!}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (assumption+)\isanewline
+\isacommand{done}%
+\end{isabelle}
+
+We could have performed this proof instantly by calling
+\ttindex{blast}:
+\begin{isabelle}
+\isacommand{lemma}\ "Pow(A\ Int\ B)\ =\ Pow(A)\ Int\ Pow(B)"\isanewline
+\isacommand{by}
+\end{isabelle}
 Past researchers regarded this as a difficult proof, as indeed it is if all
 the symbols are replaced by their definitions.
 \goodbreak
@@ -2623,169 +2602,132 @@ the symbols are replaced by their definitions.
 For another example, we prove that general union is monotonic:
 ${C\subseteq D}$ implies $\bigcup(C)\subseteq \bigcup(D)$.  To begin, we
 tackle the inclusion using \tdx{subsetI}:
-\begin{ttbox}
-Goal "C<=D ==> Union(C) <= Union(D)";
-{\out Level 0}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out  1. C <= D ==> Union(C) <= Union(D)}
-\ttbreak
-by (resolve_tac [subsetI] 1);
-{\out Level 1}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out  1. !!x. [| C <= D; x : Union(C) |] ==> x : Union(D)}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{lemma}\ "C\isasymsubseteq D\ ==>\ Union(C)\
+\isasymsubseteq \ Union(D)"\isanewline
+\isacommand{apply}\ (rule\ subsetI)\isanewline
+\ 1.\ \isasymAnd x.\ \isasymlbrakk C\ \isasymsubseteq \ D;\ x\ \isasymin \ \isasymUnion C\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymin \ \isasymUnion D%
+\end{isabelle}
 Big union is like an existential quantifier --- the occurrence in the
 assumptions must be eliminated early, since it creates parameters.
 \index{*UnionE theorem}
-\begin{ttbox}
-by (eresolve_tac [UnionE] 1);
-{\out Level 2}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out  1. !!x B. [| C <= D; x : B; B : C |] ==> x : Union(D)}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (erule\ UnionE)\isanewline
+\ 1.\ \isasymAnd x\ B.\ \isasymlbrakk C\ \isasymsubseteq \ D;\ x\ \isasymin \ B;\ B\ \isasymin \ C\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymin \ \isasymUnion D%
+\end{isabelle}
 Now we may apply \tdx{UnionI}, which creates an unknown involving the
-parameters.  To show $x\in \bigcup(D)$ it suffices to show that $x$ belongs
-to some element, say~$\Var{B2}(x,B)$, of~$D$.
-\begin{ttbox}
-by (resolve_tac [UnionI] 1);
-{\out Level 3}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out  1. !!x B. [| C <= D; x : B; B : C |] ==> ?B2(x,B) : D}
-{\out  2. !!x B. [| C <= D; x : B; B : C |] ==> x : ?B2(x,B)}
-\end{ttbox}
-Combining \tdx{subsetD} with the assumption $C\subseteq D$ yields 
+parameters.  To show \isa{x\ \isasymin \ \isasymUnion D} it suffices to show that~\isa{x} belongs
+to some element, say~\isa{?B2(x,B)}, of~\isa{D}\@.
+\begin{isabelle}
+\isacommand{apply}\ (rule\ UnionI)\isanewline
+\ 1.\ \isasymAnd x\ B.\ \isasymlbrakk C\ \isasymsubseteq \ D;\ x\ \isasymin \ B;\ B\ \isasymin \ C\isasymrbrakk \ \isasymLongrightarrow \ ?B2(x,\ B)\ \isasymin \ D\isanewline
+\ 2.\ \isasymAnd x\ B.\ \isasymlbrakk C\ \isasymsubseteq \ D;\ x\ \isasymin \ B;\ B\ \isasymin \ C\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymin \ ?B2(x,\ B)
+\end{isabelle}
+Combining the rule \tdx{subsetD} with the assumption \isa{C\ \isasymsubseteq \ D} yields 
 $\Var{a}\in C \Imp \Var{a}\in D$, which reduces subgoal~1.  Note that
-\texttt{eresolve_tac} has removed that assumption.
-\begin{ttbox}
-by (eresolve_tac [subsetD] 1);
-{\out Level 4}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out  1. !!x B. [| x : B; B : C |] ==> ?B2(x,B) : C}
-{\out  2. !!x B. [| C <= D; x : B; B : C |] ==> x : ?B2(x,B)}
-\end{ttbox}
-The rest is routine.  Observe how~$\Var{B2}(x,B)$ is instantiated.
-\begin{ttbox}
-by (assume_tac 1);
-{\out Level 5}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out  1. !!x B. [| C <= D; x : B; B : C |] ==> x : B}
-by (assume_tac 1);
-{\out Level 6}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out No subgoals!}
-\end{ttbox}
-Again, \ttindex{Blast_tac} can prove the theorem in one step.
-\begin{ttbox}
-by (Blast_tac 1);
-{\out Depth = 0}
-{\out Depth = 1}
-{\out Depth = 2}
-{\out Level 1}
-{\out C <= D ==> Union(C) <= Union(D)}
-{\out No subgoals!}
-\end{ttbox}
+\isa{erule} removes the subset assumption.
+\begin{isabelle}
+\isacommand{apply}\ (erule\ subsetD)\isanewline
+\ 1.\ \isasymAnd x\ B.\ \isasymlbrakk x\ \isasymin \ B;\ B\ \isasymin \ C\isasymrbrakk \ \isasymLongrightarrow \ ?B2(x,\ B)\ \isasymin \ C\isanewline
+\ 2.\ \isasymAnd x\ B.\ \isasymlbrakk C\ \isasymsubseteq \ D;\ x\ \isasymin \ B;\ B\ \isasymin \ C\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymin \ ?B2(x,\ B)
+\end{isabelle}
+The rest is routine.  Observe how the first call to \isa{assumption}
+instantiates \isa{?B2(x,B)} to~\isa{B}\@.
+\begin{isabelle}
+\isacommand{apply}\ assumption\ \isanewline
+\ 1.\ \isasymAnd x\ B.\ \isasymlbrakk C\ \isasymsubseteq \ D;\ x\ \isasymin \ B;\ B\ \isasymin \ C\isasymrbrakk \ \isasymLongrightarrow \ x\ \isasymin \ B%
+\isanewline
+\isacommand{apply}\ assumption\ \isanewline
+No\ subgoals!\isanewline
+\isacommand{done}%
+\end{isabelle}
+Again, \isa{blast} can prove this theorem in one step.
 
-The file \texttt{ZF/equalities.ML} has many similar proofs.  Reasoning about
+The theory \isa{ZF/equalities.thy} has many similar proofs.  Reasoning about
 general intersection can be difficult because of its anomalous behaviour on
-the empty set.  However, \ttindex{Blast_tac} copes well with these.  Here is
+the empty set.  However, \isa{blast} copes well with these.  Here is
 a typical example, borrowed from Devlin~\cite[page 12]{devlin79}:
-\begin{ttbox}
-a:C ==> (INT x:C. A(x) Int B(x)) = (INT x:C. A(x)) Int (INT x:C. B(x))
-\end{ttbox}
-In traditional notation this is
 \[ a\in C \,\Imp\, \inter@{x\in C} \Bigl(A(x) \int B(x)\Bigr) =        
        \Bigl(\inter@{x\in C} A(x)\Bigr)  \int  
        \Bigl(\inter@{x\in C} B(x)\Bigr)  \]
 
 \section{Low-level reasoning about functions}
-The derived rules \texttt{lamI}, \texttt{lamE}, \texttt{lam_type}, \texttt{beta}
-and \texttt{eta} support reasoning about functions in a
+The derived rules \isa{lamI}, \isa{lamE}, \isa{lam_type}, \isa{beta}
+and \isa{eta} support reasoning about functions in a
 $\lambda$-calculus style.  This is generally easier than regarding
 functions as sets of ordered pairs.  But sometimes we must look at the
 underlying representation, as in the following proof
 of~\tdx{fun_disjoint_apply1}.  This states that if $f$ and~$g$ are
 functions with disjoint domains~$A$ and~$C$, and if $a\in A$, then
 $(f\un g)`a = f`a$:
-\begin{ttbox}
-Goal "[| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \ttback
-\ttback    (f Un g)`a = f`a";
-{\out Level 0}
-{\out [| a : A; f : A -> B; g : C -> D; A Int C = 0 |]}
-{\out ==> (f Un g) ` a = f ` a}
-{\out  1. [| a : A; f : A -> B; g : C -> D; A Int C = 0 |]}
-{\out     ==> (f Un g) ` a = f ` a}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{lemma}\ "[|\ a\ \isasymin \ A;\ \ f\ \isasymin \ A->B;\ \ g\ \isasymin \ C->D;\ \ A\ \isasyminter \ C\ =\ 0\ |]
+\isanewline
+\ \ \ \ \ \ \ \ ==>\ (f\ \isasymunion \ g)`a\ =\ f`a"
+\end{isabelle}
 Using \tdx{apply_equality}, we reduce the equality to reasoning about
-ordered pairs.  The second subgoal is to verify that $f\un g$ is a function.
-To save space, the assumptions will be abbreviated below.
-\begin{ttbox}
-by (resolve_tac [apply_equality] 1);
-{\out Level 1}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> <a,f ` a> : f Un g}
-{\out  2. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
-\end{ttbox}
+ordered pairs.  The second subgoal is to verify that \isa{f\ \isasymunion \ g} is a function, since
+\isa{Pi(?A,?B)} denotes a dependent function space.
+\begin{isabelle}
+\isacommand{apply}\ (rule\ apply\_equality)\isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 1.\ }\isasymLongrightarrow \ \isasymlangle a,\ f\ `\ a\isasymrangle \ \isasymin \ f\ \isasymunion \ g\isanewline
+\ 2.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 2.\ }\isasymLongrightarrow \ f\ \isasymunion \ g\ \isasymin \ Pi(?A,\ ?B)
+\end{isabelle}
 We must show that the pair belongs to~$f$ or~$g$; by~\tdx{UnI1} we
 choose~$f$:
-\begin{ttbox}
-by (resolve_tac [UnI1] 1);
-{\out Level 2}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> <a,f ` a> : f}
-{\out  2. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ UnI1)\isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ \isasymlangle a,\ f\ `\ a\isasymrangle \ \isasymin \ f\isanewline
+\ 2.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 2.\ }\isasymLongrightarrow \ f\ \isasymunion \ g\ \isasymin \ Pi(?A,\ ?B)
+\end{isabelle}
 To show $\pair{a,f`a}\in f$ we use \tdx{apply_Pair}, which is
 essentially the converse of \tdx{apply_equality}:
-\begin{ttbox}
-by (resolve_tac [apply_Pair] 1);
-{\out Level 3}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> f : (PROD x:?A2. ?B2(x))}
-{\out  2. [| \ldots |] ==> a : ?A2}
-{\out  3. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ apply\_Pair)\isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ f\ \isasymin \ Pi(?A2,?B2)\isanewline
+\ 2.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ a\ \isasymin \ ?A2\isanewline
+\ 3.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 3.\ }\isasymLongrightarrow \ f\ \isasymunion \ g\ \isasymin \ Pi(?A,\ ?B)
+\end{isabelle}
 Using the assumptions $f\in A\to B$ and $a\in A$, we solve the two subgoals
 from \tdx{apply_Pair}.  Recall that a $\Pi$-set is merely a generalized
-function space, and observe that~{\tt?A2} is instantiated to~\texttt{A}.
-\begin{ttbox}
-by (assume_tac 1);
-{\out Level 4}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> a : A}
-{\out  2. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
-by (assume_tac 1);
-{\out Level 5}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> f Un g : (PROD x:?A. ?B(x))}
-\end{ttbox}
+function space, and observe that~{\tt?A2} gets instantiated to~\isa{A}.
+\begin{isabelle}
+\isacommand{apply}\ assumption\ \isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ a\ \isasymin \ A\isanewline
+\ 2.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 2.\ }\isasymLongrightarrow \ f\ \isasymunion \ g\ \isasymin \ Pi(?A,\ ?B)
+\isanewline
+\isacommand{apply}\ assumption\ \isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 1.\ }\isasymLongrightarrow \ f\ \isasymunion \ g\ \isasymin \ Pi(?A,\ ?B)
+\end{isabelle}
 To construct functions of the form $f\un g$, we apply
 \tdx{fun_disjoint_Un}:
-\begin{ttbox}
-by (resolve_tac [fun_disjoint_Un] 1);
-{\out Level 6}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> f : ?A3 -> ?B3}
-{\out  2. [| \ldots |] ==> g : ?C3 -> ?D3}
-{\out  3. [| \ldots |] ==> ?A3 Int ?C3 = 0}
-\end{ttbox}
+\begin{isabelle}
+\isacommand{apply}\ (rule\ fun\_disjoint\_Un)\isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ f\ \isasymin \ ?A3\ \isasymrightarrow \ ?B3\isanewline
+\ 2.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ g\ \isasymin \ ?C3\ \isasymrightarrow \ ?D3\isanewline
+\ 3.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ ?A3\ \isasyminter \ ?C3\ =\ 0
+\end{isabelle}
 The remaining subgoals are instances of the assumptions.  Again, observe how
-unknowns are instantiated:
-\begin{ttbox}
-by (assume_tac 1);
-{\out Level 7}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> g : ?C3 -> ?D3}
-{\out  2. [| \ldots |] ==> A Int ?C3 = 0}
-by (assume_tac 1);
-{\out Level 8}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out  1. [| \ldots |] ==> A Int C = 0}
-by (assume_tac 1);
-{\out Level 9}
-{\out [| \ldots |] ==> (f Un g) ` a = f ` a}
-{\out No subgoals!}
-\end{ttbox}
-See the files \texttt{ZF/func.ML} and \texttt{ZF/WF.ML} for more
+unknowns become instantiated:
+\begin{isabelle}
+\isacommand{apply}\ assumption\ \isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ g\ \isasymin \ ?C3\ \isasymrightarrow \ ?D3\isanewline
+\ 2.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ A\ \isasyminter \ ?C3\ =\ 0
+\isanewline
+\isacommand{apply}\ assumption\ \isanewline
+\ 1.\ \isasymlbrakk a\ \isasymin \ A;\ f\ \isasymin \ A\ \isasymrightarrow \ B;\ g\ \isasymin \ C\ \isasymrightarrow \ D;\ A\ \isasyminter \ C\ =\ 0\isasymrbrakk \ \isasymLongrightarrow \ A\ \isasyminter \ C\ =\ 0
+\isanewline
+\isacommand{apply}\ assumption\ \isanewline
+No\ subgoals!\isanewline
+\isacommand{done}
+\end{isabelle}
+See the theories \isa{ZF/func.thy} and \isa{ZF/WF.thy} for more
 examples of reasoning about functions.
 
 \index{set theory|)}
