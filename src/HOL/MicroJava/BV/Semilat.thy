@@ -122,28 +122,52 @@ lemma (in semilat) closedI [simp, intro]:
   "closed A f"
   by (insert semilat) (simp add: semilat_Def)
 
-lemma (in semilat) ub1 [simp]:
+lemma closedD:
+  "\<lbrakk> closed A f; x:A; y:A \<rbrakk> \<Longrightarrow> x +_f y : A"
+  by (unfold closed_def) blast
+
+lemma closed_UNIV [simp]: "closed UNIV f"
+  by (simp add: closed_def)
+
+
+lemma (in semilat) closed_f [simp, intro]:
+  "\<lbrakk>x:A; y:A\<rbrakk>  \<Longrightarrow> x +_f y : A"
+  by (simp add: closedD [OF closedI])
+
+lemma (in semilat) refl_r [intro, simp]:
+  "x <=_r x"
+  by simp
+
+lemma (in semilat) antisym_r [intro?]:
+  "\<lbrakk> x <=_r y; y <=_r x \<rbrakk> \<Longrightarrow> x = y"
+  by (rule order_antisym) auto
+  
+lemma (in semilat) trans_r [trans, intro?]:
+  "\<lbrakk>x <=_r y; y <=_r z\<rbrakk> \<Longrightarrow> x <=_r z"
+  by (auto intro: order_trans)    
+  
+
+lemma (in semilat) ub1 [simp, intro?]:
   "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> x <=_r x +_f y"
   by (insert semilat) (unfold semilat_Def, simp)
 
-lemma (in semilat) ub2 [simp]:
+lemma (in semilat) ub2 [simp, intro?]:
   "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> y <=_r x +_f y"
   by (insert semilat) (unfold semilat_Def, simp)
 
-lemma (in semilat) lub [simp]:
+lemma (in semilat) lub [simp, intro?]:
  "\<lbrakk> x <=_r z; y <=_r z; x:A; y:A; z:A \<rbrakk> \<Longrightarrow> x +_f y <=_r z";
   by (insert semilat) (unfold semilat_Def, simp)
 
 
 lemma (in semilat) plus_le_conv [simp]:
   "\<lbrakk> x:A; y:A; z:A \<rbrakk> \<Longrightarrow> (x +_f y <=_r z) = (x <=_r z & y <=_r z)"
-apply (blast intro: ub1 ub2 lub order_trans)
-done
+  by (blast intro: ub1 ub2 lub order_trans)
 
 lemma (in semilat) le_iff_plus_unchanged:
   "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> (x <=_r y) = (x +_f y = y)"
 apply (rule iffI)
- apply (blast intro: order_antisym lub order_refl ub2);
+ apply (blast intro: antisym_r refl_r lub ub2)
 apply (erule subst)
 apply simp
 done
@@ -157,34 +181,17 @@ apply simp
 done 
 
 
-lemma closedD:
-  "\<lbrakk> closed A f; x:A; y:A \<rbrakk> \<Longrightarrow> x +_f y : A"
-apply (unfold closed_def)
-apply blast
-done
-
-lemma closed_UNIV [simp]: "closed UNIV f"
-  by (simp add: closed_def)
-
-
 lemma (in semilat) plus_assoc [simp]:
   assumes a: "a \<in> A" and b: "b \<in> A" and c: "c \<in> A"
   shows "a +_f (b +_f c) = a +_f b +_f c"
 proof -
-  have order: "order r" ..
-  note order_trans [OF order,trans]
-  note closedD [OF closedI, intro]
-  note ub1 [intro]
-  note ub2 [intro]
-  note lub [intro]
-
   from a b have ab: "a +_f b \<in> A" ..
   from this c have abc: "(a +_f b) +_f c \<in> A" ..
   from b c have bc: "b +_f c \<in> A" ..
   from a this have abc': "a +_f (b +_f c) \<in> A" ..
 
-  from order show ?thesis
-  proof (rule order_antisym)
+  show ?thesis
+  proof    
     show "a +_f (b +_f c) <=_r (a +_f b) +_f c"
     proof -
       from a b have "a <=_r a +_f b" .. 
@@ -216,15 +223,11 @@ lemma (in semilat) plus_com_lemma:
   "\<lbrakk>a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b <=_r b +_f a"
 proof -
   assume a: "a \<in> A" and b: "b \<in> A"  
-  from b a have "a <=_r b +_f a" by (rule ub2)
-  moreover
-  from b a have "b <=_r b +_f a" by (rule ub1)
-  moreover
-  note a b
-  moreover
-  from b a have "b +_f a \<in> A" by (rule closedD [OF closedI])
-  ultimately
-  show ?thesis by (rule lub)
+  from b a have "a <=_r b +_f a" .. 
+  moreover from b a have "b <=_r b +_f a" ..
+  moreover note a b
+  moreover from b a have "b +_f a \<in> A" ..
+  ultimately show ?thesis ..
 qed
 
 lemma (in semilat) plus_commutative:

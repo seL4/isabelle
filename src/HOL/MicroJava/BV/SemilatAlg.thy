@@ -70,8 +70,8 @@ proof (induct x)
   assume y: "y \<in> A" and xs: "set (x#xs) \<subseteq> A"
   assume IH: "\<And>y. \<lbrakk> set xs \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> xs ++_f y \<in> A"
   from xs obtain x: "x \<in> A" and "set xs \<subseteq> A" by simp
-  from semilat x y have "(x +_f y) \<in> A" by (simp add: closedD)
-  with semilat xs have "xs ++_f (x +_f y) \<in> A" by - (rule IH)
+  from x y have "(x +_f y) \<in> A" ..
+  with xs have "xs ++_f (x +_f y) \<in> A" by - (rule IH)
   thus "(x#xs) ++_f y \<in> A" by simp
 qed
 
@@ -87,10 +87,8 @@ proof (induct x)
   assume "\<And>y. \<lbrakk>set l \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r l ++_f y"
   hence IH: "\<And>y. y \<in> A \<Longrightarrow> y <=_r l ++_f y" .
 
-  have "order r" .. note order_trans [OF this, trans]
-
-  from a y have "y <=_r a +_f y" by (rule ub2)
-  also from a y have "a +_f y \<in> A" by (simp add: closedD)
+  from a y have "y <=_r a +_f y" ..
+  also from a y have "a +_f y \<in> A" ..
   hence "(a +_f y) <=_r l ++_f (a +_f y)" by (rule IH)
   finally have "y <=_r l ++_f (a +_f y)" .
   thus "y <=_r (a#l) ++_f y" by simp
@@ -103,7 +101,6 @@ proof (induct ls)
   show "\<And>y. x \<in> set [] \<Longrightarrow> x <=_r [] ++_f y" by simp
 
   fix y s ls
-  have "order r" .. note order_trans [OF this, trans]
   assume "set (s#ls) \<subseteq> A"
   then obtain s: "s \<in> A" and ls: "set ls \<subseteq> A" by simp
   assume y: "y \<in> A" 
@@ -116,8 +113,8 @@ proof (induct ls)
   then obtain xls: "x = s \<or> x \<in> set ls" by simp
   moreover {
     assume xs: "x = s"
-    from s y have "s <=_r s +_f y" by (rule ub1)
-    also from s y have "s +_f y \<in> A" by (simp add: closedD)
+    from s y have "s <=_r s +_f y" ..
+    also from s y have "s +_f y \<in> A" ..
     with ls have "(s +_f y) <=_r ls ++_f (s +_f y)" by (rule pp_ub2)
     finally have "s <=_r ls ++_f (s +_f y)" .
     with xs have "x <=_r ls ++_f (s +_f y)" by simp
@@ -125,7 +122,7 @@ proof (induct ls)
   moreover {
     assume "x \<in> set ls"
     hence "\<And>y. y \<in> A \<Longrightarrow> x <=_r ls ++_f y" by (rule IH)
-    moreover from s y have "s +_f y \<in> A" by (simp add: closedD)
+    moreover from s y have "s +_f y \<in> A" ..
     ultimately have "x <=_r ls ++_f (s +_f y)" .
   }
   ultimately 
@@ -145,14 +142,14 @@ next
   then obtain l: "l \<in> A" and ls: "set ls \<subseteq> A" by auto
   assume "\<forall>x \<in> set (l#ls). x <=_r z"
   then obtain "l <=_r z" and lsz: "\<forall>x \<in> set ls. x <=_r z" by auto
-  assume "y <=_r z" have "l +_f y <=_r z" by (rule lub)
+  assume "y <=_r z" have "l +_f y <=_r z" ..  
   moreover
-  from l y have "l +_f y \<in> A" by (fast intro: closedD)
+  from l y have "l +_f y \<in> A" ..
   moreover
   assume "\<And>y. y \<in> A \<Longrightarrow> set ls \<subseteq> A \<Longrightarrow> \<forall>x \<in> set ls. x <=_r z \<Longrightarrow> y <=_r z
           \<Longrightarrow> ls ++_f y <=_r z"
   ultimately
-  have "ls ++_f (l +_f y) <=_r z" by - (insert ls lsz)
+  have "ls ++_f (l +_f y) <=_r z" using ls lsz by -
   thus "(l#ls) ++_f y <=_r z" by simp
 qed
 
