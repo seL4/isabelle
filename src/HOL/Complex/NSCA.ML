@@ -838,11 +838,10 @@ by (dtac sym 1 THEN dtac sym 1);
 by (res_inst_tac [("z","X x")] eq_Abs_complex 1);
 by (res_inst_tac [("z","Y x")] eq_Abs_complex 1);
 by (auto_tac (claset(),HOL_ss addsimps [complex_minus,complex_add,
-    complex_mod,pair_mem_complex RS Abs_complex_inverse,snd_conv,
-    fst_conv,two_eq_Suc_Suc]));
+    complex_mod, snd_conv, fst_conv,numeral_2_eq_2]));
 by (rtac (realpow_two_abs RS subst) 1);
 by (res_inst_tac [("x1","xa + - xb")] (realpow_two_abs RS subst) 1);
-by (simp_tac (simpset() addsimps [two_eq_Suc_Suc RS sym]) 1);
+by (simp_tac (simpset() addsimps [numeral_2_eq_2 RS sym]) 1);
 by (rtac lemma_sqrt_hcomplex_capprox 1);
 by Auto_tac;
 qed "hcomplex_capproxI";
@@ -869,11 +868,11 @@ by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (res_inst_tac [("x","u")] exI 1 THEN Auto_tac);
 by (Ultra_tac 1);
 by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
-by (auto_tac (claset(),simpset() addsimps [complex_mod,two_eq_Suc_Suc] delsimps [realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
 by (rtac ccontr 1 THEN dtac real_leI 1);
 by (dtac order_less_le_trans 1 THEN assume_tac 1);
 by (dtac (real_sqrt_ge_abs1 RSN (2,order_less_le_trans)) 1);
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc RS sym]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2 RS sym]));
 qed "CFinite_HFinite_Re";
 
 Goal "Abs_hcomplex(hcomplexrel ``{%n. X n}) : CFinite \
@@ -901,12 +900,12 @@ by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (res_inst_tac [("x","2*(u + v)")] exI 1);
 by (Ultra_tac 1);
 by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
-by (auto_tac (claset(),simpset() addsimps [complex_mod,two_eq_Suc_Suc] delsimps [realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
 by (subgoal_tac "0 < u" 1 THEN arith_tac 2);
 by (subgoal_tac "0 < v" 1 THEN arith_tac 2);
 by (rtac (realpow_two_abs RS subst) 1);
 by (res_inst_tac [("x1","Y x")] (realpow_two_abs RS subst) 1);
-by (simp_tac (simpset() addsimps [two_eq_Suc_Suc RS sym]) 1);
+by (simp_tac (simpset() addsimps [numeral_2_eq_2 RS sym]) 1);
 by (rtac lemma_sqrt_hcomplex_capprox 1);
 by Auto_tac;
 qed "HFinite_Re_Im_CFinite";

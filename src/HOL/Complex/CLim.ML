@@ -1059,7 +1059,7 @@ Goalw [nscderiv_def]
      "x ~= 0 ==> NSCDERIV (%x. inverse(x)) x :> (- (inverse x ^ 2))";
 by (rtac ballI 1 THEN Asm_full_simp_tac 1 THEN Step_tac 1);
 by (forward_tac [CInfinitesimal_add_not_zero] 1);
-by (asm_full_simp_tac (simpset() addsimps [hcomplex_add_commute,two_eq_Suc_Suc]) 2); 
+by (asm_full_simp_tac (simpset() addsimps [hcomplex_add_commute,numeral_2_eq_2]) 2); 
 by (auto_tac (claset(),
      simpset() addsimps [starfunC_inverse_inverse,hcomplex_diff_def] 
                delsimps [hcomplex_minus_mult_eq1 RS sym,
@@ -1116,7 +1116,7 @@ qed "NSCDERIV_inverse_fun";
 
 
 Goal "x ~= (0::complex) \\<Longrightarrow> (x * inverse(x) ^ 2) = inverse x";
-by (auto_tac (claset(),simpset() addsimps [two_eq_Suc_Suc]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2]));
 qed "lemma_complex_mult_inverse_squared";
 Addsimps [lemma_complex_mult_inverse_squared];
 

@@ -866,7 +866,7 @@ declare hcomplex_hcnj_zero_iff [iff]
 
 lemma hcomplex_mult_hcnj: "z * hcnj z = hcomplex_of_hypreal (hRe(z) ^ 2 + hIm(z) ^ 2)"
 apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (auto simp add: hcnj hcomplex_mult hcomplex_of_hypreal hRe hIm hypreal_add hypreal_mult complex_mult_cnj two_eq_Suc_Suc)
+apply (auto simp add: hcnj hcomplex_mult hcomplex_of_hypreal hRe hIm hypreal_add hypreal_mult complex_mult_cnj numeral_2_eq_2)
 done
 
 
@@ -951,7 +951,7 @@ declare hcmod_minus [simp]
 
 lemma hcmod_mult_hcnj: "hcmod(z * hcnj(z)) = hcmod(z) ^ 2"
 apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (auto simp add: hcmod hcomplex_mult hcnj hypreal_mult complex_mod_mult_cnj two_eq_Suc_Suc)
+apply (auto simp add: hcmod hcomplex_mult hcnj hypreal_mult complex_mod_mult_cnj numeral_2_eq_2)
 done
 
 lemma hcmod_ge_zero: "(0::hypreal) <= hcmod x"
@@ -976,9 +976,9 @@ lemma hcmod_add_squared_eq:
 apply (rule_tac z = "x" in eq_Abs_hcomplex)
 apply (rule_tac z = "y" in eq_Abs_hcomplex)
 apply (auto simp add: hcmod hcomplex_add hypreal_mult hRe hcnj hcomplex_mult
-                      two_eq_Suc_Suc realpow_two [symmetric] 
+                      numeral_2_eq_2 realpow_two [symmetric] 
                  simp del: realpow_Suc)
-apply (auto simp add: two_eq_Suc_Suc [symmetric] complex_mod_add_squared_eq
+apply (auto simp add: numeral_2_eq_2 [symmetric] complex_mod_add_squared_eq
                  hypreal_add [symmetric] hypreal_mult [symmetric] 
                  hypreal_of_real_def [symmetric])
 done
@@ -1000,9 +1000,9 @@ lemma hcmod_triangle_squared: "hcmod (x + y) ^ 2 <= (hcmod(x) + hcmod(y)) ^ 2"
 apply (rule_tac z = "x" in eq_Abs_hcomplex)
 apply (rule_tac z = "y" in eq_Abs_hcomplex)
 apply (auto simp add: hcmod hcnj hcomplex_add hypreal_mult hypreal_add
-                      hypreal_le realpow_two [symmetric] two_eq_Suc_Suc
+                      hypreal_le realpow_two [symmetric] numeral_2_eq_2
             simp del: realpow_Suc)
-apply (simp (no_asm) add: two_eq_Suc_Suc [symmetric])
+apply (simp (no_asm) add: numeral_2_eq_2 [symmetric])
 done
 declare hcmod_triangle_squared [simp]
 
@@ -1191,7 +1191,7 @@ done
 declare hcomplex_i_mult_eq [simp]
 
 lemma hcomplexpow_i_squared: "iii ^ 2 = - 1"
-apply (simp (no_asm) add: two_eq_Suc_Suc)
+apply (simp (no_asm) add: numeral_2_eq_2)
 done
 declare hcomplexpow_i_squared [simp]
 
@@ -1296,7 +1296,7 @@ lemma hcmod_i: "hcmod (hcomplex_of_hypreal(x) + iii * hcomplex_of_hypreal(y)) =
       ( *f* sqrt) (x ^ 2 + y ^ 2)"
 apply (rule_tac z = "x" in eq_Abs_hypreal)
 apply (rule_tac z = "y" in eq_Abs_hypreal)
-apply (auto simp add: hcomplex_of_hypreal iii_def hcomplex_add hcomplex_mult starfun hypreal_mult hypreal_add hcmod cmod_i two_eq_Suc_Suc)
+apply (auto simp add: hcomplex_of_hypreal iii_def hcomplex_add hcomplex_mult starfun hypreal_mult hypreal_add hcmod cmod_i numeral_2_eq_2)
 done
 
 lemma hcomplex_eq_hRe_eq:
@@ -1420,7 +1420,7 @@ lemma hcomplex_inverse_complex_split: "inverse(hcomplex_of_hypreal x + iii * hco
       iii * hcomplex_of_hypreal(y/(x ^ 2 + y ^ 2))"
 apply (rule_tac z = "x" in eq_Abs_hypreal)
 apply (rule_tac z = "y" in eq_Abs_hypreal)
-apply (auto simp add: hcomplex_of_hypreal hcomplex_mult hcomplex_add iii_def starfun hypreal_mult hypreal_add hcomplex_inverse hypreal_divide hcomplex_diff complex_inverse_complex_split two_eq_Suc_Suc)
+apply (auto simp add: hcomplex_of_hypreal hcomplex_mult hcomplex_add iii_def starfun hypreal_mult hypreal_add hcomplex_inverse hypreal_divide hcomplex_diff complex_inverse_complex_split numeral_2_eq_2)
 done
 
 lemma hRe_mult_i_eq:
