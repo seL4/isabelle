@@ -10,20 +10,20 @@ sig
   type key
   type 'a T
   exception UNDEFINED of key
-  exception DUPLICATE of key
-  exception CYCLES of key list list
   val empty: 'a T
-  val map : ('a -> 'b) -> 'a T -> 'b T
-  val foldl : ('a * (key * ('b * (key list * key list))) -> 'a) -> 'a * 'b T -> 'a
-  val info: 'a T -> key -> 'a
-  val map_info: ('a -> 'a) -> key -> 'a T -> 'a T
-  val preds: 'a T -> key -> key list
-  val succs: 'a T -> key -> key list
+  val get_nodes: 'a T -> (key * 'a) list
+  val map_nodes: ('a -> 'b) -> 'a T -> 'b T
+  val get_node: 'a T -> key -> 'a
+  val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
+  val imm_preds: 'a T -> key -> key list
+  val imm_succs: 'a T -> key -> key list
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
   val find_paths: 'a T -> key * key -> key list list
+  exception DUPLICATE of key
   val add_node: key * 'a -> 'a T -> 'a T
   val add_edge: key * key -> 'a T -> 'a T
+  exception CYCLES of key list list
   val add_edge_acyclic: key * key -> 'a T -> 'a T
   val derive_node: key * 'a -> key list -> 'a T -> 'a T
 end;
@@ -50,52 +50,47 @@ val op ins_key = gen_ins eq_key;
 structure Table = TableFun(Key);
 type keys = unit Table.table;
 
+val empty_keys = Table.empty: keys;
+
 infix mem_keys;
 fun x mem_keys tab = is_some (Table.lookup (tab: keys, x));
 
 infix ins_keys;
 fun x ins_keys tab = if x mem_keys tab then tab else Table.update ((x, ()), tab);
 
-val empty_keys = Table.empty: keys;
-fun make_keys xs = foldl (fn (tab, x) => x ins_keys tab) (empty_keys, xs);
 fun dest_keys tab = rev (Table.foldl (fn (xs, (x, ())) => x :: xs) ([], tab: keys));
 
 
-(* datatype of graphs *)
+(* graphs *)
 
 datatype 'a T = Graph of ('a * (key list * key list)) Table.table;
 
 exception UNDEFINED of key;
-exception DUPLICATE of key;
-exception CYCLES of key list list;
-
-
-(* basic operations *)
-
-fun map_graph f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
-fun foldl_graph f (x, Graph tab) = Table.foldl f (x, tab);
 
 val empty = Graph Table.empty;
 
-fun get_node (Graph tab) x =
+fun get_entry (Graph tab) x =
   (case Table.lookup (tab, x) of
-    Some node => node
+    Some entry => entry
   | None => raise UNDEFINED x);
 
-fun info G = #1 o get_node G;
-fun preds G = #1 o #2 o get_node G;
-fun succs G = #2 o #2 o get_node G;
-
-fun map_node f x (G as Graph tab) =
-  let val node = get_node G x
-  in Graph (Table.update ((x, f node), tab)) end;
-
-fun map_info f = map_node (fn (info, ps) => (f info, ps));
+fun map_entry x f (G as Graph tab) = Graph (Table.update ((x, f (get_entry G x)), tab));
 
 
-(* reachable nodes *)
+(* nodes *)
 
-fun reachable_keys next xs =
+fun get_nodes (Graph tab) =
+  rev (Table.foldl (fn (nodes, (x, (i, _))) => (x, i) :: nodes) ([], tab));
+
+fun map_nodes f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
+
+fun get_node G = #1 o get_entry G;
+fun map_node x f = map_entry x (fn (i, ps) => (f i, ps));
+
+
+(* reachability *)
+
+fun reachable next xs =
   let
     fun reach (R, x) =
       if x mem_keys R then R
@@ -103,34 +98,40 @@ fun reachable_keys next xs =
     and reachs R_xs = foldl reach R_xs;
   in reachs (empty_keys, xs) end;
 
-val reachable = dest_keys oo reachable_keys;
+(*immediate*)
+fun imm_preds G = #1 o #2 o get_entry G;
+fun imm_succs G = #2 o #2 o get_entry G;
 
-fun all_preds G = reachable (preds G);
-fun all_succs G = reachable (succs G);
+(*transitive*)
+fun all_preds G = dest_keys o reachable (imm_preds G);
+fun all_succs G = dest_keys o reachable (imm_succs G);
 
 
-(* find_paths *)
+(* paths *)
 
 fun find_paths G (x, y) =
   let
-    val X = reachable_keys (succs G) [x];
+    val X = reachable (imm_succs G) [x];
     fun paths ps p =
       if eq_key (p, x) then [p :: ps]
       else flat (map (paths (p :: ps))
-        (filter (fn pp => pp mem_keys X andalso not (pp mem_key ps)) (preds G p)));
-  in if y mem_keys X then (paths [] y) else [] end;
+        (filter (fn pp => pp mem_keys X andalso not (pp mem_key ps)) (imm_preds G p)));
+  in get_entry G y; if y mem_keys X then (paths [] y) else [] end;
 
 
 (* build graphs *)
+
+exception DUPLICATE of key;
 
 fun add_node (x, info) (Graph tab) =
   Graph (Table.update_new ((x, (info, ([], []))), tab)
     handle Table.DUP key => raise DUPLICATE key);
 
 fun add_edge (x, y) G =
-  (get_node G x; get_node G y;
-    G |> map_node (fn (i, (preds, succs)) => (i, (preds, y ins_key succs))) x
-      |> map_node (fn (i, (preds, succs)) => (i, (x ins_key preds, succs))) y);
+  G |> map_entry x (fn (i, (preds, succs)) => (i, (preds, y ins_key succs)))
+    |> map_entry y (fn (i, (preds, succs)) => (i, (x ins_key preds, succs)));
+
+exception CYCLES of key list list;
 
 fun add_edge_acyclic (x, y) G =
   (case find_paths G (y, x) of
@@ -139,11 +140,6 @@ fun add_edge_acyclic (x, y) G =
 
 fun derive_node (x, y) zs G =
   foldl (fn (H, z) => add_edge_acyclic (z, x) H) (add_node (x, y) G, zs);
-
-
-(*final declarations of this structure!*)
-val map = map_graph;
-val foldl = foldl_graph;
 
 
 end;
