@@ -241,7 +241,7 @@ proof -
     { 
       fix b
       have "?Q (l#ls) b"
-      proof (cases b)
+      proof (cases (open) b)
         case Nil
         thus ?thesis by (auto dest: sup_loc_length)
       next

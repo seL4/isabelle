@@ -282,7 +282,7 @@ proof -
                "G \<turnstile> s2 <=s s1" "i = ins!pc"
 
   show ?thesis
-  proof (cases "cert!pc")
+  proof (cases (open) "cert!pc")
     case None
     with wtl fits
     show ?thesis 

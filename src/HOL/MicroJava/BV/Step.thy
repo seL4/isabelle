@@ -187,7 +187,7 @@ by (cases s, cases "2 < length (fst s)", auto dest: 1 2)
 
 lemma appIAdd[simp]:
 "app (IAdd, G, rT, s) = (\<exists> ST LT. s = (PrimT Integer#PrimT Integer#ST,LT))"  (is "?app s = ?P s")
-proof (cases s)
+proof (cases (open) s)
   case Pair
   have "?app (a,b) = ?P (a,b)"
   proof (cases "a")
@@ -234,7 +234,7 @@ lemma appInvoke[simp]:
                                        G \<turnstile> X \<preceq> Class C \<and>  
                                        (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT) \<and> 
                                        method (G,C) (mn,fpTs) \<noteq> None)" (is "?app s = ?P s")
-proof (cases s)
+proof (cases (open) s)
   case Pair
   have "?app (a,b) \<Longrightarrow> ?P (a,b)"
   proof -

@@ -47,7 +47,7 @@ proof -
   have "\<forall> s0 pc. wtl_inst_list is G rT s0 s2 cert (pc+length is) pc 
      \<longrightarrow> (\<exists> phi. pc + length is < length phi \<and> fits_partial phi pc is G rT s0 s2 cert)"
     (is "?P is")
-  proof (induct "?P" "is")
+  proof (induct (open) ?P "is")
     case Nil
     show "?P []" by (simp add: fits_partial_def exists_list)
     case Cons

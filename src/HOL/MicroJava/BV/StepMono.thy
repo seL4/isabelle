@@ -15,7 +15,7 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 
 lemma sup_loc_some [rulify]:
 "\<forall> y n. (G \<turnstile> b <=l y) \<longrightarrow> n < length y \<longrightarrow> y!n = Some t \<longrightarrow> (\<exists>t. b!n = Some t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
-proof (induct "?P" b)
+proof (induct (open) ?P b)
   show "?P []" by simp
 
   case Cons
@@ -59,7 +59,7 @@ qed
 
 lemma append_length_n [rulify]: 
 "\<forall>n. n \<le> length x \<longrightarrow> (\<exists>a b. x = a@b \<and> length a = n)" (is "?P x")
-proof (induct "?P" "x")
+proof (induct (open) ?P x)
   show "?P []" by simp
 
   fix l ls assume Cons: "?P ls"
@@ -122,7 +122,7 @@ proof -
   assume app: "app (i, G, rT, s1)"
   
   show ?thesis
-  proof (cases i)
+  proof (cases (open) i)
     case Load
     
     from G
@@ -308,7 +308,7 @@ proof (cases s1, cases s2)
     by (auto dest!: app_step_some);
 
   have "G \<turnstile> (a1',b1') <=s (a2',b2')"
-  proof (cases i)
+  proof (cases (open) i)
     case Load
 
     with s app1
