@@ -1,8 +1,9 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle99 (October 1999)
+--------------------------------
 
 *** Overview of INCOMPATIBILITIES (see below for more details) ***
 
@@ -55,12 +56,12 @@ will be instantiated for other types and logics as well.
 
 *** General ***
 
-* new Isabelle/Isar subsystem provides an alternative to traditional
+* New Isabelle/Isar subsystem provides an alternative to traditional
 tactical theorem proving; together with the ProofGeneral/isar user
 interface it offers an interactive environment for developing human
 readable proof documents (Isar == Intelligible semi-automated
 reasoning); for further information see isatool doc isar-ref,
-src/HOL/Isar_examples and http://isabelle.in.tum.de/Isar/;
+src/HOL/Isar_examples and http://isabelle.in.tum.de/Isar/
 
 * improved presentation of theories: better HTML markup (including
 colors), graph views in several sizes; isatool usedir now provides a
@@ -69,8 +70,7 @@ preparation based on (PDF)LaTeX is available as well (for new-style
 theories only); see isatool doc system for more information;
 
 * native support for Proof General, both for classic Isabelle and
-Isabelle/Isar (the latter is slightly better supported and more
-robust);
+Isabelle/Isar;
 
 * ML function thm_deps visualizes dependencies of theorems and lemmas,
 using the graph browser tool;
@@ -90,7 +90,7 @@ option -p DIR installs standalone binaries;
 more robust handling of platform specific ML images for SML/NJ;
 
 * the settings environment is now statically scoped, i.e. it is never
-read again in sub-processes invoked from isabelle, isatool, or
+created again in sub-processes invoked from isabelle, isatool, or
 Isabelle;
 
 * path element specification '~~' refers to '$ISABELLE_HOME';
@@ -125,8 +125,8 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 * new shorthand tactics ftac, eatac, datac, fatac;
 
 * qed (and friends) now accept "" as result name; in that case the
-result is not stored, but proper checks and presentation of the result
-still apply;
+theorem is not stored, but proper checks and presentation of the
+result still apply;
 
 * theorem database now also indexes constants "Trueprop", "all",
 "==>", "=="; thus thms_containing, findI etc. may retrieve more rules;
@@ -246,8 +246,8 @@ thus available for user theories;
 HOL/List; hardly an INCOMPATIBILITY since '>>' syntax is used all the
 time;
 
-* HOL: new tactic smp_tac: int -> int -> tactic, which applies spec several
-  times and then mp
+* HOL: new tactic smp_tac: int -> int -> tactic, which applies spec
+several times and then mp;
 
 
 *** LK ***
@@ -317,8 +317,8 @@ opposed to intra-theory data slots offered via TheoryDataFun;
 * proper handling of dangling sort hypotheses (at last!);
 Thm.strip_shyps and Drule.strip_shyps_warning take care of removing
 extra sort hypotheses that can be witnessed from the type signature;
-the force_strip_shyps is gone, any remaining shyps are simply left in
-the theorem (with a warning issued by strip_shyps_warning);
+the force_strip_shyps flag is gone, any remaining shyps are simply
+left in the theorem (with a warning issued by strip_shyps_warning);
 
 
 
