@@ -35,7 +35,7 @@ sig
   val interactive: bool -> transition -> transition
   val print: transition -> transition
   val reset: transition -> transition
-  val init: (bool -> state -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
+  val init: (bool -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
   val exit: transition -> transition
   val kill: transition -> transition
   val keep: (state -> unit) -> transition -> transition
@@ -93,22 +93,20 @@ fun print_node (Theory thy) = print_ctxt thy
 
 (* datatype state *)
 
-datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) list;
+datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) option;
 
-val toplevel = State [];
+val toplevel = State None;
 
-fun is_toplevel (State []) = true
+fun is_toplevel (State None) = true
   | is_toplevel _ = false;
 
-fun str_of_state (State []) = "at top level"
-  | str_of_state (State ((node, _) :: _)) = str_of_node (History.current node);
+fun str_of_state (State None) = "at top level"
+  | str_of_state (State (Some (node, _))) = str_of_node (History.current node);
 
 
 (* prompt_state hook *)
 
-fun prompt_state_default (State nodes) =
-  let val len = length nodes
-  in (if len < 2 then "" else string_of_int len) ^ Source.default_prompt end;
+fun prompt_state_default (State _) = Source.default_prompt;
 
 val prompt_state_fn = ref prompt_state_default;
 fun prompt_state state = ! prompt_state_fn state;
@@ -116,15 +114,15 @@ fun prompt_state state = ! prompt_state_fn state;
 
 (* print state *)
 
-fun print_topnode _ (State []) = ()
-  | print_topnode prt (State ((node, _) :: _)) = prt (History.current node);
+fun print_current_node _ (State None) = ()
+  | print_current_node prt (State (Some (node, _))) = prt (History.current node);
 
-val print_state_context = print_topnode print_node_ctxt;
+val print_state_context = print_current_node print_node_ctxt;
 
 fun print_state_default state =
   let val ref (begin_state, end_state, _) = Goals.current_goals_markers in
     if begin_state = "" then () else writeln begin_state;
-    print_topnode print_node state;
+    print_current_node print_node state;
     if end_state = "" then () else writeln end_state
   end;
 
@@ -136,8 +134,8 @@ fun print_state state = ! print_state_fn state;
 
 exception UNDEF;
 
-fun node_history_of (State []) = raise UNDEF
-  | node_history_of (State ((node, _) :: _)) = node;
+fun node_history_of (State None) = raise UNDEF
+  | node_history_of (State (Some (node, _))) = node;
 
 val node_of = History.current o node_history_of;
 
@@ -186,10 +184,10 @@ fun return (result, None) = result
 
 in
 
-fun node_trans _ _ _ (State []) = raise UNDEF
-  | node_trans int hist f (State ((node, term) :: nodes)) =
+fun node_trans _ _ _ (State None) = raise UNDEF
+  | node_trans int hist f (State (Some (node, term))) =
       let
-        fun mk_state nd = State ((nd, term) :: nodes);
+        fun mk_state nd = State (Some (nd, term));
 
         val cont_node = History.map (checkpoint_node int) node;
         val back_node = History.map (copy_node int) cont_node;
@@ -221,9 +219,9 @@ end;
 
 datatype trans =
   Reset |                                       (*empty toplevel*)
-  Init of (bool -> state -> node) * ((node -> unit) * (node -> unit)) |
-    (*push node; provide exit/kill operation*)
-  Exit |                                        (*pop node*)
+  Init of (bool -> node) * ((node -> unit) * (node -> unit)) |
+    (*init node; provide exit/kill operation*)
+  Exit |                                        (*conclude node*)
   Kill |                                        (*abort node*)
   Keep of bool -> state -> unit |               (*peek at state*)
   History of node History.T -> node History.T | (*history operation (undo etc.)*)
@@ -235,17 +233,18 @@ fun undo_limit int = if int then None else Some 0;
 local
 
 fun apply_tr _ Reset _ = toplevel
-  | apply_tr int (Init (f, term)) (state as State nodes) =
-      State ((History.init (undo_limit int) (f int state), term) :: nodes)
-  | apply_tr _ Exit (State []) = raise UNDEF
-  | apply_tr _ Exit (State ((node, (exit, _)):: nodes)) =
-      (exit (History.current node); State nodes)
-  | apply_tr _ Kill (State []) = raise UNDEF
-  | apply_tr _ Kill (State ((node, (_, kill)) :: nodes)) =
-      (kill (History.current node); State nodes)
+  | apply_tr int (Init (f, term)) (State None) =
+      State (Some (History.init (undo_limit int) (f int), term))
+  | apply_tr _ (Init _ ) (State (Some _)) = raise UNDEF
+  | apply_tr _ Exit (State None) = raise UNDEF
+  | apply_tr _ Exit (State (Some (node, (exit, _)))) =
+      (exit (History.current node); State None)
+  | apply_tr _ Kill (State None) = raise UNDEF
+  | apply_tr _ Kill (State (Some (node, (_, kill)))) =
+      (kill (History.current node); State None)
   | apply_tr int (Keep f) state = (exhibit_interrupt (f int) state; state)
-  | apply_tr _ (History _) (State []) = raise UNDEF
-  | apply_tr _ (History f) (State ((node, term) :: nodes)) = State ((f node, term) :: nodes)
+  | apply_tr _ (History _) (State None) = raise UNDEF
+  | apply_tr _ (History f) (State (Some (node, term))) = State (Some (f node, term))
   | apply_tr int (MapCurrent f) state = node_trans int false f state
   | apply_tr int (AppCurrent f) state = node_trans int true f state;
 
@@ -327,7 +326,7 @@ fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
 
 fun init_theory f exit kill =
-  init (fn int => fn _ => Theory (f int))
+  init (fn int => Theory (f int))
     (fn Theory thy => exit thy | _ => raise UNDEF)
     (fn Theory thy => kill thy | _ => raise UNDEF);
 
@@ -419,9 +418,9 @@ fun excur [] x = x
 in
 
 fun excursion trs =
-  (case excur trs (State []) of
-    State [] => ()
-  | _ => raise ERROR_MESSAGE "Open block(s) pending at end of input");
+  (case excur trs (State None) of
+    State None => ()
+  | _ => raise ERROR_MESSAGE "Unfinished development at end of input");
 
 fun excursion_error trs =
   excursion trs handle exn => error (exn_message exn);
