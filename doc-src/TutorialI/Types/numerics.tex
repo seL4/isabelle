@@ -363,6 +363,18 @@ $\isa{a} = 7$, $\isa{b} = 2$ and $\isa{c} = -3$, when the left-hand side of
 \isa{zdiv_zmult2_eq} is $-2$ while the right-hand side is~$-1$.%
 \index{integers|)}\index{*int (type)|)}
 
+Induction is less important for integers than it is for the natural numbers, but it can be valuable if the range of integers has a lower or upper bound.  There are four rules for integer induction, corresponding to the possible relations of the bound ($\ge$, $>$, $\le$ and $<$):
+\begin{isabelle}
+\isasymlbrakk k\ \isasymle \ i;\ P\ k;\ \isasymAnd i.\ \isasymlbrakk k\ \isasymle \ i;\ P\ i\isasymrbrakk \ \isasymLongrightarrow \ P(i+1)\isasymrbrakk \ \isasymLongrightarrow \ P\ i%
+\rulename{int_ge_induct}\isanewline
+\isasymlbrakk k\ <\ i;\ P(k+1);\ \isasymAnd i.\ \isasymlbrakk k\ <\ i;\ P\ i\isasymrbrakk \ \isasymLongrightarrow \ P(i+1)\isasymrbrakk \ \isasymLongrightarrow \ P\ i%
+\rulename{int_gr_induct}\isanewline
+\isasymlbrakk i\ \isasymle \ k;\ P\ k;\ \isasymAnd i.\ \isasymlbrakk i\ \isasymle \ k;\ P\ i\isasymrbrakk \ \isasymLongrightarrow \ P(i-1)\isasymrbrakk \ \isasymLongrightarrow \ P\ i%
+\rulename{int_le_induct}\isanewline
+\isasymlbrakk i\ <\ k;\ P(k-1);\ \isasymAnd i.\ \isasymlbrakk i\ <\ k;\ P\ i\isasymrbrakk \ \isasymLongrightarrow \ P(i-1)\isasymrbrakk \ \isasymLongrightarrow \ P\ i%
+\rulename{int_less_induct}
+\end{isabelle}
+
 
 \subsection{The Type of Real Numbers, {\tt\slshape real}}
 
