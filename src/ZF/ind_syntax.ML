@@ -71,7 +71,7 @@ fun readtm sign T a =
 
 (*Skipping initial blanks, find the first identifier*)
 fun scan_to_id s = 
-    s |> explode |> take_prefix is_blank |> #2 |> Lexicon.scan_id |> #1
+    s |> explode |> take_prefix is_blank |> #2 |> Scanner.scan_id |> #1
     handle LEXICAL_ERROR => error ("Expected to find an identifier in " ^ s);
 
 fun is_backslash c = c = "\\";
@@ -143,7 +143,7 @@ fun read_construct sign (id, sprems, syn) =
 	val T = (map (#2 o dest_Free) args) ---> iT
 		handle TERM _ => error 
 		    "Bad variable in constructor specification"
-        val name = const_name id syn  (*handle infix constructors*)
+        val name = Syntax.const_name id syn  (*handle infix constructors*)
     in ((id,T,syn), name, args, prems) end;
 
 val read_constructs = map o map o read_construct;
