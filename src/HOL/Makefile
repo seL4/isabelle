@@ -78,7 +78,7 @@ IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet\
 IOA_ABP_NAMES = Action Correctness Lemmas
 IOA_MT_NAMES = Asig IOA Option Solve
 
-IOA_FILES = IOA/ROOT.ML IOA/NTP/Spec.thy\
+IOA_FILES = IOA/ROOT_NTP.ML IOA/ROOT_ABP.ML IOA/NTP/Spec.thy\
  $(IOA_NTP_NAMES:%=IOA/NTP/%.thy) $(IOA_NTP_NAMES:%=IOA/NTP/%.ML)\
  IOA/ABP/Abschannel.thy IOA/ABP/Abschannel_finite.thy IOA/ABP/Env.thy\
  IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy IOA/ABP/Packet.thy\
