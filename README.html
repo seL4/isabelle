@@ -32,7 +32,7 @@ make a nice platform for Isabelle.
 Furthermore, Isabelle needs the following software, which is not part
 of the distribution:
 <ul>
-<li> A full Standard ML Compiler (e.g. SML of New Jersey).
+<li> A full Standard ML Compiler (e.g. Poly/ML).
 <li> The GNU bash shell (version 1.x or 2.x).
 <li> Perl 5.x - the Pathologically Eclectic Rubbish Lister (Perl 4.x
 is <em>not</em> sufficient).
@@ -43,37 +43,31 @@ is <em>not</em> sufficient).
 The following ML system and platform combinations are known to work
 very well:
 <ul>
+<li> Poly/ML 3.x on Linux and Suns.
 <li> SML/NJ 110.x on any Unix platform (e.g. Linux, Suns).
 <li> SML/NJ 0.93 on Suns and SGIs. There seem to be several
 problems with Linux and HP-UX, though.
-<li> Poly/ML versions 2.x and 3.1 on Suns.
 </ul>
 
-<p>
+<p> <A HREF="http://www.polyml.org/">Poly/ML</A>, previously a commercial
+product, is back in the public domain.  It is the best compiler for running
+Isabelle, requiring the least memory and offering the fastest performance.
 
-<a
+<p> <a
 href="http://cm.bell-labs.com/cm/cs/what/smlnj/software.html">SML/NJ</a>
 needs lots of store and disk space, but it is free.  The current
 official release is 110 (there is an <a
 href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj/release/110/smlnj-110.0-3.i386.rpm">RPM
 archive</a> available for Linux/x86).  We still support the old 0.93
-release, but do not recommend to use it.
+release, but do not recommend it.
 
-<p>
+<p> MLWorks is a commercial ML programming environment developed by 
+<a href="http://www.harlequin.com/">Harlequin</A> and was
+unfortunately withdrawn after that company was taken over.  Isabelle on
+MLWorks 2.0 works well.  It is about 20% faster than on SML/NJ while using
+slightly less memory and disk space.  A few minor features (e.g. ML top-level
+pretty printing) are not supported, though. 
 
-<a href="http://www.harlequin.com/products/ads/ml/">MLWorks</a> is a
-commercial ML programming environment.  Isabelle on MLWorks 2.0 works
-well.  It is about 20% faster than on SML/NJ while using slightly less
-memory and disk space.  A few minor features (e.g. ML top-level pretty
-printing) are not supported, though.
-
-<p>
-
-Poly/ML used to be a commercial product by Abstract Hardware Limited
-(now Abstract, Inc.).  It is no longer available.  We're awaiting news
-about future availability of Poly/ML.
-
-<p>
 
 
 <h2>Installation</h2>
