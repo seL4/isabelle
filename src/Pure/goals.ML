@@ -13,6 +13,8 @@ pending proofs.
 signature GOALS =
   sig
   type proof
+  val atomic_goal	: theory -> string -> thm list
+  val atomic_goalw	: theory -> thm list -> string -> thm list
   val ba		: int -> unit
   val back		: unit -> unit
   val bd		: thm -> int -> unit
@@ -127,20 +129,29 @@ fun result_error_default state msg : thm =
 val result_error_fn = ref result_error_default;
 
 (*Common treatment of "goal" and "prove_goal":
-  Return assumptions, initial proof state, and function to make result. *)
-fun prepare_proof rths chorn =
+  Return assumptions, initial proof state, and function to make result.
+  "atomic" indicates if the goal should be wrapped up in the function
+  "Goal::prop=>prop" to avoid assumptions being returned separately.
+*)
+fun prepare_proof atomic rths chorn =
   let val {sign, t=horn,...} = rep_cterm chorn;
       val (_,As,B) = Logic.strip_horn(horn);
+      val atoms = atomic andalso
+            forall (fn t => not(Logic.is_implies t orelse Logic.is_all t)) As;
+      val (As,B) = if atoms then ([],horn) else (As,B);
       val cAs = map (cterm_of sign) As;
-      val prems = map (rewrite_rule rths o forall_elim_vars(0) o assume) cAs
-      and st0 = (rewrite_goals_rule rths o trivial) (cterm_of sign B)
+      val prems = map (rewrite_rule rths o forall_elim_vars(0) o assume) cAs;
+      val cB = cterm_of sign B;
+      val st0 = let val st = Drule.instantiate' [] [Some cB] Drule.triv_goal
+                in  rewrite_goals_rule rths st end
       (*discharges assumptions from state in the order they appear in goal;
 	checks (if requested) that resulting theorem is equivalent to goal. *)
       fun mkresult (check,state) =
         let val state = Seq.hd (flexflex_rule state)
 	    		handle THM _ => state   (*smash flexflex pairs*)
 	    val ngoals = nprems_of state
-            val th = strip_shyps (implies_intr_list cAs state)
+            val ath = strip_shyps (implies_intr_list cAs state)
+            val th = ath RS Drule.rev_triv_goal
             val {hyps,prop,sign=sign',...} = rep_thm th
             val xshyps = extra_shyps th;
         in  if not check then th
@@ -157,7 +168,7 @@ fun prepare_proof rths chorn =
                  commas (map (Sign.str_of_sort sign) xshyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
-		 then  standard th 
+		 then  standard th
 	    else  !result_error_fn state "proved a different theorem"
         end
   in
@@ -196,7 +207,7 @@ fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise ERROR);
 
 (*Version taking the goal as a cterm*)
 fun prove_goalw_cterm rths chorn tacsf =
-  let val (prems, st0, mkresult) = prepare_proof rths chorn
+  let val (prems, st0, mkresult) = prepare_proof false rths chorn
       val tac = EVERY (tacsf prems)
       fun statef() = 
 	  (case Seq.pull (tac st0) of 
@@ -304,8 +315,8 @@ fun prlim n = (goals_limit:=n; pr());
 
 (*Version taking the goal as a cterm; if you have a term t and theory thy, use
     goalw_cterm rths (cterm_of (sign_of thy) t);      *)
-fun goalw_cterm rths chorn = 
-  let val (prems, st0, mkresult) = prepare_proof rths chorn
+fun agoalw_cterm atomic rths chorn = 
+  let val (prems, st0, mkresult) = prepare_proof atomic rths chorn
   in  undo_list := [];
       setstate [ (st0, Seq.empty) ];  
       curr_prems := prems;
@@ -313,14 +324,25 @@ fun goalw_cterm rths chorn =
       prems
   end;
 
+val goalw_cterm = agoalw_cterm false;
+
 (*Version taking the goal as a string*)
-fun goalw thy rths agoal = 
-  goalw_cterm rths (read_cterm(sign_of thy)(agoal,propT))
+fun agoalw atomic thy rths agoal = 
+  agoalw_cterm atomic rths (read_cterm(sign_of thy)(agoal,propT))
   handle ERROR => error (*from type_assign, etc via prepare_proof*)
 	    ("The error(s) above occurred for " ^ quote agoal);
 
+val goalw = agoalw false;
+
 (*String version with no meta-rewrite-rules*)
-fun goal thy = goalw thy [];
+fun agoal atomic thy = agoalw atomic thy [];
+val goal = agoal false;
+
+(*now the versions that wrap the goal up in `Goal' to make it atomic*)
+
+val atomic_goalw = agoalw true;
+val atomic_goal = agoal true;
+
 
 (*Proof step "by" the given tactic -- apply tactic to the proof state*)
 fun by_com tac ((th,ths), pairs) : gstack =

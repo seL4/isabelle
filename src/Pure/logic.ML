@@ -21,7 +21,9 @@ sig
   val dest_type		: term -> typ
   val flatten_params	: int -> term -> term
   val incr_indexes	: typ list * int -> term -> term
+  val is_all            : term -> bool
   val is_equals         : term -> bool
+  val is_implies        : term -> bool
   val lift_fns		: term * int -> (term -> term) * (term -> term)
   val list_flexpairs	: (term*term)list * term -> term
   val list_implies	: term list * term -> term
@@ -55,6 +57,12 @@ struct
 
 (*** Abstract syntax operations on the meta-connectives ***)
 
+(** all **)
+
+fun is_all (Const ("all", _) $ _) = true
+  | is_all _ = false;
+
+
 (** equality **)
 
 (*Make an equality.  DOES NOT CHECK TYPE OF u*)
@@ -73,6 +81,9 @@ fun mk_implies(A,B) = implies $ A $ B;
 
 fun dest_implies (Const("==>",_) $ A $ B)  =  (A,B)
   | dest_implies A = raise TERM("dest_implies", [A]);
+
+fun is_implies (Const ("==>", _) $ _ $ _) = true
+  | is_implies _ = false;
 
 
 (** nested implications **)
