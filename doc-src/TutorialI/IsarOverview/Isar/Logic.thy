@@ -695,7 +695,7 @@ lemma assumes A: "(x,y) \<in> r*" and B: "(y,z) \<in> r*"
 proof -
   from A B show ?thesis
   proof induct
-    fix x assume "(x,z) \<in> r*"  -- "B[x := z]"
+    fix x assume "(x,z) \<in> r*"  -- "B[y := x]"
     thus "(x,z) \<in> r*" .
   next
     fix x' x y
@@ -709,7 +709,7 @@ qed
 text{*\noindent We start the proof with \isakeyword{from}~@{text"A
 B"}. Only @{text A} is ``consumed'' by the first proof step, here
 induction. Since @{text B} is left over we don't just prove @{text
-?thesis} but in fact @{text"B \<Longrightarrow> ?thesis"}, just as in the previous
+?thesis} but @{text"B \<Longrightarrow> ?thesis"}, just as in the previous
 proof, only more elegantly. The base case is trivial. In the
 assumptions for the induction step we can see very clearly how things
 fit together and permit ourselves the obvious forward step
