@@ -9,6 +9,15 @@ Compatibility file for Standard ML of New Jersey version 0.93.
 (*needs the Basis Library emulation*)
 use "basis.ML";
 
+structure String =
+struct
+  fun substring args = String.substring args
+    handle String.Substring => raise Subscript;
+  fun isPrefix s1 s2 = (s1 = substring(s2,0, size s1))
+    handle Subscript => false;
+end;
+
+
 
 (** ML system related **)
 
