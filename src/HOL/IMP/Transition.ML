@@ -33,12 +33,8 @@ goal Transition.thy
   "!s t u c d. (c,s) -n-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
 \              (c;d, s) -*-> (SKIP, u)";
 by (nat_ind_tac "n" 1);
- (* case n = 0 *)
  by (fast_tac (claset() addIs [rtrancl_into_rtrancl2])1);
-(* induction step *)
-by (safe_tac (claset() addSDs [rel_pow_Suc_D2]));
-by (split_all_tac 1);
-by (fast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac  (claset() addIs [rtrancl_into_rtrancl2]addSDs [rel_pow_Suc_D2])1);
 qed_spec_mp "lemma1";
 
 

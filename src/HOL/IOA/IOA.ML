@@ -56,18 +56,19 @@ goalw IOA.thy (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
   by (asm_full_simp_tac (simpset() delsimps bex_simps) 1);
   by Safe_tac;
-  by (res_inst_tac [("x","(%i. if i<n then fst ex i                    \
+  by (rename_tac "n ex1 ex2 a1 a4 a5 a2 a3" 1);
+  by (res_inst_tac [("x","(%i. if i<n then ex1 i                    \
 \                            else (if i=n then Some a else None),    \
-\                         %i. if i<Suc n then snd ex i else t)")] bexI 1);
-  by (res_inst_tac [("x","Suc(n)")] exI 1);
-  by (Simp_tac 1);
-  by (Asm_simp_tac 1);
+\                         %i. if i<Suc n then ex2 i else t)")] bexI 1);
+   by (res_inst_tac [("x","Suc(n)")] exI 1);
+   by (Simp_tac 1);
+  by (Asm_full_simp_tac 1);
   by (REPEAT(rtac allI 1));
   by (res_inst_tac [("m","na"),("n","n")] (make_elim less_linear) 1);
   by (etac disjE 1);
-  by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
+   by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
   by (etac disjE 1);
-  by (Asm_simp_tac 1);
+   by (Asm_simp_tac 1);
   by (forward_tac [less_not_sym] 1);
   by (asm_simp_tac (simpset() addsimps [less_not_refl2,less_Suc_eq]) 1);
 qed "reachable_n";
@@ -78,14 +79,16 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
 \  ==> invariant A P";
   by (rewrite_goals_tac(reachable_def::Let_def::exec_rws));
   by Safe_tac;
-  by (res_inst_tac [("Q","reachable A (snd ex n)")] conjunct1 1);
+  by (rename_tac "n ex1 ex2" 1);
+  by (res_inst_tac [("Q","reachable A (ex2 n)")] conjunct1 1);
+  by (Asm_full_simp_tac 1);
   by (nat_ind_tac "n" 1);
-  by (fast_tac (claset() addIs [p1,reachable_0]) 1);
-  by (eres_inst_tac[("x","n")]allE 1);
-  by (exhaust_tac "fst ex n" 1 THEN ALLGOALS Asm_full_simp_tac);
+   by (fast_tac (claset() addIs [p1,reachable_0]) 1);
+  by (eres_inst_tac[("x","n")] allE 1);
+  by (exhaust_tac "ex1 n" 1 THEN ALLGOALS Asm_full_simp_tac);
   by Safe_tac;
-  by (etac (p2 RS mp) 1);
-  by (ALLGOALS(fast_tac(claset() addDs [reachable_n])));
+   by (etac (p2 RS mp) 1);
+    by (ALLGOALS(fast_tac(claset() addDs [reachable_n])));
 qed "invariantI";
 
 val [p1,p2] = goal IOA.thy

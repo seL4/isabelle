@@ -16,16 +16,17 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 
   by (simp_tac(simpset() addsimps [has_trace_def])1);
   by Safe_tac;
+  by (rename_tac "f ex1 ex2" 1);
 
   (* choose same trace, therefore same NF *)
-  by (res_inst_tac[("x","mk_trace  C (fst ex)")] exI 1);
+  by (res_inst_tac[("x","mk_trace  C ex1")] exI 1);
   by (Asm_full_simp_tac 1);
 
   (* give execution of abstract automata *)
-  by (res_inst_tac[("x","(mk_trace A (fst ex),%i. f(snd ex i))")] bexI 1);
+  by (res_inst_tac[("x","(mk_trace A ex1,%i. f (ex2 i))")] bexI 1);
 
   (* Traces coincide *)
-  by (asm_simp_tac (simpset() addsimps [mk_trace_def,filter_oseq_idemp])1);
+   by (asm_simp_tac (simpset() addsimps [mk_trace_def,filter_oseq_idemp])1);
 
   (* Use lemma *)
   by (forward_tac [states_of_exec_reachable] 1);
@@ -42,8 +43,8 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
   by (asm_full_simp_tac (simpset() addsimps [is_execution_fragment_def])1);
   by Safe_tac;
 
-  by (eres_inst_tac [("x","snd ex n")] allE 1);
-  by (eres_inst_tac [("x","snd ex (Suc n)")] allE 1);
+  by (eres_inst_tac [("x","ex2 n")] allE 1);
+  by (eres_inst_tac [("x","ex2 (Suc n)")] allE 1);
   by (eres_inst_tac [("x","a")] allE 1);
   by (Asm_full_simp_tac 1);
 qed "trace_inclusion";
@@ -73,7 +74,7 @@ by (res_inst_tac [("x",
 \    %i. fst (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac (claset() delWrapper "split_all_tac") 1);
+ by (fast_tac (claset() delSWrapper "split_all_tac") 1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,
@@ -93,7 +94,7 @@ by (res_inst_tac [("x",
 \    %i. snd (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac (claset() delWrapper "split_all_tac") 1);
+ by (fast_tac (claset() delSWrapper "split_all_tac") 1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac
       (simpset() addsimps [executions_def,is_execution_fragment_def,

@@ -72,7 +72,7 @@ fun find_pair_param prem =
 
 in
 
-val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
+val split_all_tac = REPEAT1 o SUBGOAL (fn (prem,i) =>
   case find_pair_param prem of
     None => no_tac
   | Some x => EVERY[res_inst_tac[("p",x)] PairE i,
@@ -80,8 +80,7 @@ val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
 
 end;
 
-(* consider addSbefore ?? *)
-claset_ref() := claset() addbefore ("split_all_tac",split_all_tac);
+claset_ref() := claset() addSaltern ("split_all_tac", split_all_tac);
 
 (*** lemmas for splitting paired `!!'
 Does not work with simplifier because it also affects premises in
@@ -446,7 +445,7 @@ fun mk_tuple (Type("*", [T1,T2])) tms =
 
 (*Attempts to remove occurrences of split, and pair-valued parameters*)
 val remove_split = rewrite_rule [split RS eq_reflection]  o  
-                   rule_by_tactic (ALLGOALS split_all_tac);
+                   rule_by_tactic (TRYALL split_all_tac);
 
 (*Uncurries any Var of function type in the rule*)
 fun split_rule_var (t as Var(v, Type("fun",[T1,T2])), rl) =
