@@ -111,7 +111,7 @@
 \newcommand\List[1]{\lbrakk#1\rbrakk}  %was \obj
 \newcommand\vpile[1]{\begin{array}{c}#1\end{array}}
 \newenvironment{matharray}[1]{\[\begin{array}{#1}}{\end{array}\]}
-\newcommand{\text}[1]{\mbox{#1}}
+\newcommand{\Text}[1]{\mbox{#1}}
 
 \DeclareMathSymbol{\dshsym}{\mathalpha}{letters}{"2D}
 \newcommand{\dsh}{\mathit{\dshsym}}
@@ -124,18 +124,6 @@
 \def\ML{{\sc ml}}
 \def\OBJ{{\sc obj}}
 \def\AST{{\sc ast}}
-
-\def\Pure{{\tt Pure}\@}
-\def\CPure{{\tt CPure}\@}
-\def\LCF{{\tt LCF}\@}
-\def\FOL{{\tt FOL}\@}
-\def\HOL{{\tt HOL}\@}
-\def\HOLCF{{\tt HOLCF}\@}
-\def\LK{{\tt LK}\@}
-\def\ZF{{\tt ZF}\@}
-\def\CTT{{\tt CTT}\@}
-\def\Cube{{\tt Cube}\@}
-\def\Modal{{\tt Modal}\@}
 
 %macros to change the treatment of symbols
 \def\relsemicolon{\mathcode`\;="303B}   %treat ; like a relation
@@ -150,21 +138,6 @@
 \def\descrlabel#1{\hspace\labelsep #1}
 \def\descr{\list{}{\labelwidth\z@ \itemindent-\leftmargin\let\makelabel\descrlabel}}
 \let\enddescr\endlist
-
-%%%% \tt things
-
-\def\ttdescriptionlabel#1{\hspace\labelsep \tt #1}
-\def\ttdescription{\list{}{\labelwidth\z@ \itemindent-\leftmargin
-       \let\makelabel\ttdescriptionlabel}}
-
-\let\endttdescription\endlist
-
-\chardef\ttilde=`\~     % A tilde for \tt font
-\chardef\ttback=`\\     % A backslash for \tt font
-\chardef\ttlbrace=`\{   % A left brace for \tt font
-\chardef\ttrbrace=`\}   % A right brace for \tt font
-
-\newcommand\out{\ \ttfamily\slshape}   %% for output from terminal sessions
 
 % The mathcodes for the letters A, ..., Z, a, ..., z are changed to
 % generate text italic rather than math italic by default. This makes
