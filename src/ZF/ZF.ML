@@ -46,6 +46,7 @@ qed_goal "rev_ballE" ZF.thy
 
 AddSIs [ballI];
 AddEs  [rev_ballE];
+AddXDs [bspec];
 
 (*Takes assumptions ALL x:A.P(x) and a:A; creates assumption P(a)*)
 val ball_tac = dtac bspec THEN' assume_tac;
