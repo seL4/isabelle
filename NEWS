@@ -110,6 +110,9 @@ rather than just a warning (in interactive mode);
 
 *** HOL ***
 
+* 'specification' command added, allowing for definition by
+specification.
+
 * arith(_tac)
 
  - Produces a counter example if it cannot prove a goal.

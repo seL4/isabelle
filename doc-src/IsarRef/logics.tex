@@ -533,6 +533,31 @@ the following attributes.
   ;
 \end{rail}
 
+\subsection{Definition by specification}\label{sec:hol-specification}
+
+\indexisarcmdof{HOL}{specification}
+\begin{matharray}{rcl}
+  \isarcmd{specification} & : & \isartrans{theory}{proof(prove)} \\
+\end{matharray}
+
+\begin{rail}
+'specification' '(' (decl +) ')' thmdecl? prop
+;
+decl: ((name ':')? term '(overloaded)'?)
+\end{rail}
+
+\begin{descr}
+\item [$\isarkeyword{specification}~decls~\phi$] sets up a
+  goal stating the existence of terms with the property specified to
+  hold for the constants given in $\mathit{decls}$.  After finishing
+  the proof, the theory will be augmented with definitions for the
+  given constants, and a theorem stating the property for these
+  constants is returned.
+\item[$decl$] declares a constant to be defined by the specification
+  given.  The definition for the constant $c$ is bound to the name
+  $c$\_def unless a theorem name is given in the declaration.
+  Overloaded constants should be declared as such.
+\end{descr}
 
 \subsection{(Co)Inductive sets}\label{sec:hol-inductive}
 
