@@ -14,6 +14,7 @@ ALL_LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Pure Sequents ZF"
 
 PRG=$(basename $0)
 
+export THIS_IS_ISABELLE_BUILD=true
 ISABELLE_HOME=$(dirname $0)
 . $ISABELLE_HOME/lib/scripts/getsettings || \
   { echo "$PRG probably not called from its original place!"; exit 2; }
@@ -30,6 +31,7 @@ function usage()
   echo "    -a           all logics"
   echo "    -b           batch mode"
   echo "    -i           make images"
+  echo "    -m TARGET    make this target"
   echo "    -t           make test"
   echo
   echo "  Compile the named LOGICS (default $ISABELLE_LOGIC), or all object logics"
@@ -51,10 +53,9 @@ function fail()
 
 ALL=""
 BATCH=""
-IMAGES=""
-TEST=""
+TARGETS=""
 
-while getopts "abit" OPT
+while getopts "abim:t" OPT
 do
   case "$OPT" in
     a)
@@ -64,10 +65,13 @@ do
       BATCH=true
       ;;
     i)
-      IMAGES=images
+      TARGETS="$TARGETS images"
+      ;;
+    m)
+      TARGETS="$TARGETS $OPTARG"
       ;;
     t)
-      TEST=test
+      TARGETS="$TARGETS test"
       ;;
     \?)
       usage
@@ -160,12 +164,9 @@ DATE=$(date)
 HOST=$(hostname)
 echo "Started at $DATE ($HOST)"
 
-unset ISABELLE_SETTINGS_PRESENT
-export THIS_IS_ISABELLE_BUILD=true
-
 for L in $MAKE_LOGICS
 do
-  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make $IMAGES $TEST )
+  ( cd $ISABELLE_HOME/src/$L; $ISATOOL make $TARGETS )
 done
 
 echo -n "Finished at "; date
