@@ -45,6 +45,7 @@ sig
   val fold_tac: thm list -> tactic
   val forward_tac: thm list -> int -> tactic   
   val forw_inst_tac: (string*string)list -> thm -> int -> tactic
+  val freeze: thm -> thm   
   val is_fact: thm -> bool
   val lessb: (bool * thm) * (bool * thm) -> bool
   val lift_inst_rule: thm * int * (string*string)list * thm -> thm
@@ -99,7 +100,7 @@ fun trace_goalno_tac tf i = Tactic (fn state =>
 fun string_of (a,0) = a
   | string_of (a,i) = a ^ "_" ^ string_of_int i;
 
-(*convert all Vars in a theorem to Frees -- export??*)
+(*convert all Vars in a theorem to Frees*)
 fun freeze th =
   let val fth = freezeT th
       val {prop,sign,...} = rep_thm fth
