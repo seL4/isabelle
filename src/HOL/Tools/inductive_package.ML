@@ -31,6 +31,7 @@ derive "streamlined" induction rules for relations.
 signature INDUCTIVE_PACKAGE =
 sig
   val quiet_mode: bool ref
+  val unify_consts: Sign.sg -> term list -> term list -> term list * term list
   val get_inductive: theory -> string ->
     {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
       induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
@@ -60,6 +61,37 @@ fun message s = if !quiet_mode then () else writeln s;
 
 fun coind_prefix true = "co"
   | coind_prefix false = "";
+
+
+(* the following code ensures that each recursive set *)
+(* always has the same type in all introduction rules *)
+
+fun unify_consts sign cs intr_ts =
+  (let
+    val {tsig, ...} = Sign.rep_sg sign;
+    val add_term_consts_2 =
+      foldl_aterms (fn (cs, Const c) => c ins cs | (cs, _) => cs);
+    fun varify (t, (i, ts)) =
+      let val t' = map_term_types (incr_tvar (i + 1)) (Type.varify (t, []))
+      in (maxidx_of_term t', t'::ts) end;
+    val (i, cs') = foldr varify (cs, (~1, []));
+    val (i', intr_ts') = foldr varify (intr_ts, (i, []));
+    val rec_consts = foldl add_term_consts_2 ([], cs');
+    val intr_consts = foldl add_term_consts_2 ([], intr_ts');
+    fun unify (env, (cname, cT)) =
+      let val consts = map snd (filter (fn c => fst c = cname) intr_consts)
+      in foldl (fn ((env', j'), Tp) => (Type.unify tsig j' env' Tp))
+          (env, (replicate (length consts) cT) ~~ consts)
+      end;
+    val (env, _) = foldl unify (([], i'), rec_consts);
+    fun typ_subst_TVars_2 env T = let val T' = typ_subst_TVars env T
+      in if T = T' then T else typ_subst_TVars_2 env T' end;
+    val subst = fst o Type.freeze_thaw o
+      (map_term_types (typ_subst_TVars_2 env))
+
+  in (map subst cs', map subst intr_ts')
+  end) handle Type.TUNIFY =>
+    (warning "Occurrences of recursive constant have non-unifiable types"; (cs, intr_ts));
 
 
 (* misc *)
@@ -143,7 +175,9 @@ fun check_rule sign cs r =
       | _ => err_in_rule sign r msg1)
   end;
 
-fun try' f msg sign t = (f t) handle _ => error (msg ^ Sign.string_of_term sign t);
+fun try' f msg sign t = (case (try f t) of
+      Some x => x
+    | None => error (msg ^ Sign.string_of_term sign t));
 
 
 
@@ -656,41 +690,14 @@ fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs
     val intr_names = map (fst o fst) intro_srcs;
     val intr_ts = map (readtm (Theory.sign_of thy) propT o snd o fst) intro_srcs;
     val intr_atts = map (map (Attrib.global_attribute thy) o snd) intro_srcs;
-
-    (* the following code ensures that each recursive set *)
-    (* always has the same type in all introduction rules *)
-
-    val {tsig, ...} = Sign.rep_sg sign;
-    val add_term_consts_2 =
-      foldl_aterms (fn (cs, Const c) => c ins cs | (cs, _) => cs);
-    fun varify (t, (i, ts)) =
-      let val t' = map_term_types (incr_tvar (i + 1)) (Type.varify (t, []))
-      in (maxidx_of_term t', t'::ts) end;
-    val (i, cs') = foldr varify (cs, (~1, []));
-    val (i', intr_ts') = foldr varify (intr_ts, (i, []));
-    val rec_consts = foldl add_term_consts_2 ([], cs');
-    val intr_consts = foldl add_term_consts_2 ([], intr_ts');
-    fun unify (env, (cname, cT)) =
-      let val consts = map snd (filter (fn c => fst c = cname) intr_consts)
-      in (foldl (fn ((env', j'), Tp) => Type.unify tsig j' env' Tp)
-        (env, (replicate (length consts) cT) ~~ consts)) handle _ =>
-          error ("Occurrences of constant '" ^ cname ^
-            "' have incompatible types")
-      end;
-    val (env, _) = foldl unify (([], i'), rec_consts);
-    fun typ_subst_TVars_2 env T = let val T' = typ_subst_TVars env T
-      in if T = T' then T else typ_subst_TVars_2 env T' end;
-    val subst = fst o Type.freeze_thaw o
-      (map_term_types (typ_subst_TVars_2 env));
-    val cs'' = map subst cs';
-    val intr_ts'' = map subst intr_ts';
+    val (cs', intr_ts') = unify_consts sign cs intr_ts;
 
     val ((thy', con_defs), monos) = thy
       |> IsarThy.apply_theorems raw_monos
       |> apfst (IsarThy.apply_theorems raw_con_defs);
   in
-    add_inductive_i verbose false "" coind false false cs''
-      atts ((intr_names ~~ intr_ts'') ~~ intr_atts) monos con_defs thy'
+    add_inductive_i verbose false "" coind false false cs'
+      atts ((intr_names ~~ intr_ts') ~~ intr_atts) monos con_defs thy'
   end;
 
 
