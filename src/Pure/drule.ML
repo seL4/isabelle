@@ -56,6 +56,9 @@ sig
   val rewrite_thm	: bool * bool * bool
                           -> (meta_simpset -> thm -> thm option)
                           -> meta_simpset -> thm -> thm
+  val rewrite_cterm	: bool * bool * bool
+                          -> (meta_simpset -> thm -> thm option)
+                          -> meta_simpset -> cterm -> thm
   val rewrite_goals_rule_aux: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_goal_rule	: bool* bool * bool
                           -> (meta_simpset -> thm -> thm option)
@@ -452,6 +455,7 @@ fun rewrite_rule_aux _ []   th = th
       fconv_rule (rew_conv (true,false,false) prover (Thm.mss_of thms)) th;
 
 fun rewrite_thm mode prover mss = fconv_rule (rew_conv mode prover mss);
+fun rewrite_cterm mode prover mss = Thm.rewrite_cterm mode mss prover;
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
 fun rewrite_goals_rule_aux _ []   th = th
