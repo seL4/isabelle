@@ -30,14 +30,14 @@ qed "two_RepI";
 
 (*** Induction ***)
 
-val major::prems = goal (the_context ())
+val major::prems = Goal
     "[| i: pnat;  P(1);   \
 \       !!j. [| j: pnat; P(j) |] ==> P(Suc(j)) |]  ==> P(i)";
 by (rtac ([pnat_def, pnat_fun_mono, major] MRS def_induct) 1);
 by (blast_tac (claset() addIs prems) 1);
 qed "PNat_induct";
 
-val prems = goalw (the_context ()) [pnat_one_def,pnat_Suc_def]
+val prems = Goalw [pnat_one_def,pnat_Suc_def]
     "[| P(1p);   \
 \       !!n. P(n) ==> P(pSuc n) |]  ==> P(n)";
 by (rtac (Rep_pnat_inverse RS subst) 1);   
@@ -50,7 +50,7 @@ qed "pnat_induct";
 fun pnat_ind_tac a i = 
   res_inst_tac [("n",a)] pnat_induct i  THEN  rename_last_tac a [""] (i+1);
 
-val prems = goal (the_context ())
+val prems = Goal
     "[| !!x. P x 1p;  \
 \       !!y. P 1p (pSuc y);  \
 \       !!x y. [| P x y |] ==> P (pSuc x) (pSuc y)  \
@@ -63,7 +63,7 @@ by (REPEAT (ares_tac (prems@[allI]) 1 ORELSE etac spec 1));
 qed "pnat_diff_induct";
 
 (*Case analysis on the natural numbers*)
-val prems = goal (the_context ())
+val prems = Goal
     "[| n=1p ==> P;  !!x. n = pSuc(x) ==> P |] ==> P";
 by (subgoal_tac "n=1p | (EX x. n = pSuc(x))" 1);
 by (fast_tac (claset() addSEs prems) 1);
@@ -340,11 +340,6 @@ Goal "n <= (n::pnat)";
 by (simp_tac (simpset() addsimps [pnat_le_eq_less_or_eq]) 1);
 qed "pnat_le_refl";
 
-val prems = goal (the_context ()) "!!i. [| i <= j; j < k |] ==> i < (k::pnat)";
-by (dtac pnat_le_imp_less_or_eq 1);
-by (blast_tac (claset() addIs [pnat_less_trans]) 1);
-qed "pnat_le_less_trans";
-
 Goal "[| i < j; j <= k |] ==> i < (k::pnat)";
 by (dtac pnat_le_imp_less_or_eq 1);
 by (blast_tac (claset() addIs [pnat_less_trans]) 1);
@@ -371,26 +366,6 @@ by (etac pnat_less_not_refl2 1);
 by (blast_tac (claset() addSDs [pnat_le_imp_less_or_eq]) 1);
 qed "pnat_less_le";
 
-(** LEAST -- the least number operator **)
-
-Goal "(! m::pnat. P m --> n <= m) = (! m. m < n --> ~ P m)";
-by (blast_tac (claset() addIs [pnat_leI] addEs [pnat_leE]) 1);
-val lemma = result();
-
-(* Comment below from NatDef.ML where Least_nat_def is proved*)
-(* This is an old def of Least for nat, which is derived for compatibility *)
-Goalw [Least_def]
-  "(LEAST n::pnat. P n) == (@n. P(n) & (ALL m. m < n --> ~P(m)))";
-by (simp_tac (simpset() addsimps [lemma]) 1);
-qed "Least_pnat_def";
-
-val [prem1,prem2] = goalw (the_context ()) [Least_pnat_def]
-    "[| P(k::pnat);  !!x. x<k ==> ~P(x) |] ==> (LEAST x. P(x)) = k";
-by (rtac select_equality 1);
-by (blast_tac (claset() addSIs [prem1,prem2]) 1);
-by (cut_facts_tac [pnat_less_linear] 1);
-by (blast_tac (claset() addSIs [prem1] addSDs [prem2]) 1);
-qed "pnat_Least_equality";
 
 (***) (***) (***) (***) (***) (***) (***) (***)
 
@@ -411,28 +386,6 @@ qed "pnat_add_left_cancel_less";
 
 Addsimps [pnat_add_left_cancel, pnat_add_right_cancel,
   pnat_add_left_cancel_le, pnat_add_left_cancel_less];
-
-Goal "n <= ((m + n)::pnat)";
-by (simp_tac (simpset() addsimps [pnat_le_iff_Rep_pnat_le,
-                    sum_Rep_pnat_sum RS sym,le_add2]) 1);
-qed "pnat_le_add2";
-
-Goal "n <= ((n + m)::pnat)";
-by (simp_tac (simpset() addsimps pnat_add_ac) 1);
-by (rtac pnat_le_add2 1);
-qed "pnat_le_add1";
-
-(*** "i <= j ==> i <= j + m" ***)
-bind_thm ("pnat_trans_le_add1", pnat_le_add1 RSN (2,pnat_le_trans));
-
-(*** "i <= j ==> i <= m + j" ***)
-bind_thm ("pnat_trans_le_add2", pnat_le_add2 RSN (2,pnat_le_trans));
-
-(*"i < j ==> i < j + m"*)
-bind_thm ("pnat_trans_less_add1", pnat_le_add1 RSN (2,pnat_less_le_trans));
-
-(*"i < j ==> i < m + j"*)
-bind_thm ("pnat_trans_less_add2", pnat_le_add2 RSN (2,pnat_less_le_trans));
 
 Goalw [pnat_less_def] "i+j < (k::pnat) ==> i<k";
 by (auto_tac (claset() addEs [add_lessD1],
@@ -594,17 +547,9 @@ by (full_simp_tac (simpset() addsimps [pnat_mult_1,
 qed "pnat_mult_1_left";
 
 (*Multiplication is an AC-operator*)
-bind_thms ("pnat_mult_ac", [pnat_mult_assoc, pnat_mult_commute, pnat_mult_left_commute]);
+bind_thms ("pnat_mult_ac", 
+	   [pnat_mult_assoc, pnat_mult_commute, pnat_mult_left_commute]);
 
-Goal "!!i j k::pnat. i<=j ==> i * k <= j * k";
-by (asm_full_simp_tac (simpset() addsimps [pnat_le_iff_Rep_pnat_le,
-                     mult_Rep_pnat_mult RS sym,mult_le_mono1]) 1);
-qed "pnat_mult_le_mono1";
-
-Goal "!!i::pnat. [| i<=j; k<=l |] ==> i*k<=j*l";
-by (asm_full_simp_tac (simpset() addsimps [pnat_le_iff_Rep_pnat_le,
-                     mult_Rep_pnat_mult RS sym,mult_le_mono]) 1);
-qed "pnat_mult_le_mono";
 
 Goal "!!i::pnat. i<j ==> k*i < k*j";
 by (asm_full_simp_tac (simpset() addsimps [pnat_less_def,
@@ -629,9 +574,11 @@ qed "pnat_mult_less_cancel1";
 Addsimps [pnat_mult_less_cancel1, pnat_mult_less_cancel2];
 
 Goalw [pnat_mult_def]  "(m*(k::pnat) = n*k) = (m=n)";
-by (auto_tac (claset() addSDs [inj_on_Abs_pnat RS inj_onD, 
-    inj_Rep_pnat RS injD] addIs [mult_Rep_pnat], 
-    simpset() addsimps [Rep_pnat_gt_zero RS mult_cancel2]));
+by (cut_inst_tac [("x","k")] Rep_pnat_gt_zero 1);
+by (auto_tac (claset() addSDs [inj_on_Abs_pnat RS inj_onD,
+                               inj_Rep_pnat RS injD] 
+                       addIs [mult_Rep_pnat], 
+    simpset() addsimps [mult_cancel2]));
 qed "pnat_mult_cancel2";
 
 Goal "((k::pnat)*m = k*n) = (m=n)";
@@ -641,13 +588,12 @@ qed "pnat_mult_cancel1";
 
 Addsimps [pnat_mult_cancel1, pnat_mult_cancel2];
 
-Goal
-     "!!(z1::pnat). z2*z3 = z4*z5  ==> z2*(z1*z3) = z4*(z1*z5)";
+Goal "!!(z1::pnat). z2*z3 = z4*z5  ==> z2*(z1*z3) = z4*(z1*z5)";
 by (auto_tac (claset() addIs [pnat_mult_cancel1 RS iffD2],
-    simpset() addsimps [pnat_mult_left_commute]));
+              simpset() addsimps [pnat_mult_left_commute]));
 qed "pnat_same_multI2";
 
-val [prem] = goal (the_context ())
+val [prem] = Goal
     "(!!u. z = Abs_pnat(u) ==> P) ==> P";
 by (cut_inst_tac [("x1","z")] 
     (rewrite_rule [pnat_def] (Rep_pnat RS Abs_pnat_inverse)) 1);
