@@ -205,7 +205,7 @@ fun print_goals maxgoals state =
   end;
 
 
-(*"hook" for user interfaces: allows print_goals to be replaced*)
+(*"hook" for user interfaces: allows print_goals to be replaced*)	(* FIXME remove!? *)
 val print_goals_ref = ref print_goals;
 
 end;
