@@ -14,7 +14,7 @@ consts
 
 defs
   diamond_def
-  "diamond(R) == !x y z. (x,y):R --> (x,z):R --> (EX u. (y,u):R & (z,u):R)" 
+  "diamond(R) == !x y.(x,y):R --> (!z.(x,z):R --> (EX u. (y,u):R & (z,u):R))" 
 
   confluent_def "confluent(R) == diamond(R^*)"
 

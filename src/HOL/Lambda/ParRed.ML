@@ -49,22 +49,6 @@ by (ALLGOALS(fast_tac (parred_cs addIs
         rtrancl_into_rtrancl] addEs [rtrancl_trans])));
 qed "par_beta_subset_beta";
 
-(*** cd ***)
-
-goal ParRed.thy "cd(Var n @ t) = Var n @ cd t";
-by(simp_tac (parred_ss addsimps [cd_App]) 1);
-qed"cd_App_Var";
-
-goal ParRed.thy "cd((r @ s) @ t) = cd(r @ s) @ cd t";
-by(simp_tac (parred_ss addsimps [cd_App]) 1);
-qed"cd_App_App";
-
-goal ParRed.thy "cd((Fun s) @ t) = (cd s)[cd t/0]";
-by(simp_tac (parred_ss addsimps [cd_App,deFun_Fun]) 1);
-qed"cd_App_Fun";
-
-val parred_ss = parred_ss addsimps [cd_App_Var,cd_App_App,cd_App_Fun];
-
 (*** => ***)
 
 goal ParRed.thy "!s' n. s => s' --> lift s n => lift s' n";
@@ -87,6 +71,32 @@ by(fast_tac (parred_cs addss parred_ss) 1);
 bind_thm("par_beta_subst",
          result()  RS spec RS spec RS spec RS spec RS mp RS mp);
 
+(*** Confluence (directly) ***)
+
+goalw ParRed.thy [diamond_def] "diamond(par_beta)";
+by(REPEAT(rtac allI 1));
+br impI 1;
+be (par_beta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1;
+by(ALLGOALS(fast_tac (parred_cs addSIs [par_beta_subst])));
+qed "diamond_par_beta";
+
+
+(*** cd ***)
+
+goal ParRed.thy "cd(Var n @ t) = Var n @ cd t";
+by(simp_tac (parred_ss addsimps [cd_App]) 1);
+qed"cd_App_Var";
+
+goal ParRed.thy "cd((r @ s) @ t) = cd(r @ s) @ cd t";
+by(simp_tac (parred_ss addsimps [cd_App]) 1);
+qed"cd_App_App";
+
+goal ParRed.thy "cd((Fun s) @ t) = (cd s)[cd t/0]";
+by(simp_tac (parred_ss addsimps [cd_App,deFun_Fun]) 1);
+qed"cd_App_Fun";
+
+val parred_ss = parred_ss addsimps [cd_App_Var,cd_App_App,cd_App_Fun];
+
 goal ParRed.thy "!t. s => t --> t => cd s";
 by(db.induct_tac "s" 1);
   by(simp_tac parred_ss 1);
@@ -95,7 +105,7 @@ by(db.induct_tac "s" 1);
  by(ALLGOALS(fast_tac (parred_cs addSIs [par_beta_subst] addss parred_ss)));
 bind_thm("par_beta_cd", result() RS spec RS mp);
 
-(*** Confluence ***)
+(*** Confluence (via cd) ***)
 
 goalw ParRed.thy [diamond_def] "diamond(par_beta)";
 by(fast_tac (HOL_cs addIs [par_beta_cd]) 1);
