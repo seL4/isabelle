@@ -134,7 +134,7 @@ by (etac finite_induct 1);
 by (Clarify_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
  by (Clarify_tac 1);
- by (full_simp_tac (simpset() addsimps [inj_on_def]) 1);
+ by (full_simp_tac (simpset() addsimps [inj_on_def]delsimps[inj_eq]) 1);
  by (Blast_tac 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
@@ -407,6 +407,15 @@ Addsimps [card_insert_disjoint];
 (* Delete rules to do with cardR relation: obsolete *)
 Delrules [cardR_emptyE];
 Delrules cardR.intrs;
+
+Goal "finite A ==> (card A = 0) = (A = {})";
+by Auto_tac;
+by (dres_inst_tac [("a","x")] mk_disjoint_insert 1);
+by (Clarify_tac 1);
+by (rotate_tac ~1 1);
+by Auto_tac;
+qed "card_0_eq";
+Addsimps[card_0_eq];
 
 Goal "finite A ==> card(insert x A) = (if x:A then card A else Suc(card(A)))";
 by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
@@ -785,8 +794,7 @@ by (dres_inst_tac [("x","xa - {x}")] spec 1);
 by (subgoal_tac ("x ~: xa") 1);
 by Auto_tac;
 by (etac rev_mp 1 THEN stac card_Diff_singleton 1);
-by (auto_tac (claset() addIs [finite_subset],
-	      simpset()));
+by (auto_tac (claset() addIs [finite_subset], simpset()));
 qed "choose_deconstruct";
 
 Goal "[| finite(A); finite(B);  f : A funcset B;  inj_on f A |] \
@@ -814,7 +822,7 @@ by (rtac funcsetI 3);
 by (rtac funcsetI 1);
 (* arity *)
 by (auto_tac (claset() addSEs [equalityE], 
-	      simpset() addsimps [inj_on_def, restrict_def]));
+	      simpset() addsimps [inj_on_def, restrict_def]delsimps[inj_eq]));
 by (stac Diff_insert0 1);
 by Auto_tac;
 qed "constr_bij";

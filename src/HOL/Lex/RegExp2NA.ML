@@ -286,7 +286,6 @@ qed "accepts_conc";
 
 Goalw [epsilon_def,step_def] "step epsilon a = {}";
 by (Simp_tac 1);
-by (Blast_tac 1);
 qed "step_epsilon";
 Addsimps [step_epsilon];
 

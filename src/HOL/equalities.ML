@@ -28,6 +28,11 @@ by (Blast_tac 1);
 qed "not_psubset_empty";
 AddIffs [not_psubset_empty];
 
+Goal "(Collect P = {}) = (!x. ~ P x)";
+by Auto_tac;
+qed "Collect_empty_eq";
+Addsimps[Collect_empty_eq];
+
 Goal "{x. P x | Q x} = {x. P x} Un {x. Q x}";
 by (Blast_tac 1);
 qed "Collect_disj_eq";
@@ -151,6 +156,14 @@ Addsimps[if_image_distrib];
 val prems = Goal "[|M = N; !!x. x:N ==> f x = g x|] ==> f``M = g``N";
 by (simp_tac (simpset() addsimps image_def::prems) 1);
 qed "image_cong";
+
+
+section "range";
+
+Goal "{u. ? x. u = f x} = range f";
+by Auto_tac;
+qed "full_SetCompr_eq";
+Addsimps[full_SetCompr_eq];
 
 
 section "Int";

@@ -223,7 +223,7 @@ by (stac gen_subst_commutes 1);
   by (etac IntE 1);
   by (dtac (free_tv_S' RS subsetD) 1);
   by (dtac (free_tv_alpha RS subsetD) 1);
-  by (Asm_full_simp_tac 1);
+  by (asm_full_simp_tac (simpset() delsimps [full_SetCompr_eq])  1);
   by (etac exE 1);
   by (hyp_subst_tac 1);
   by (subgoal_tac "new_tv (n + y) ($ S A)" 1);

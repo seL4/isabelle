@@ -21,7 +21,6 @@ qed "start_atom";
 Goalw [atom_def,step_def]
  "eps(atom a) = {}";
 by (Simp_tac 1);
-by (Blast_tac 1);
 qed "eps_atom";
 Addsimps [eps_atom];
 

@@ -234,6 +234,11 @@ by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "splitI2";
 
+Goal "!!p. [| !!a b. (a,b)=p ==> c a b x |] ==> split c p x";
+by (split_all_tac 1);
+by (Asm_simp_tac 1);
+qed "splitI2'";
+
 Goal "c a b ==> split c (a,b)";
 by (Asm_simp_tac 1);
 qed "splitI";
@@ -268,7 +273,7 @@ val prems = Goalw [split_def]
 by (REPEAT (resolve_tac (prems@[surjective_pairing]) 1));
 qed "mem_splitE";
 
-AddSIs [splitI, splitI2, mem_splitI, mem_splitI2];
+AddSIs [splitI, splitI2, splitI2', mem_splitI, mem_splitI2];
 AddSEs [splitE, mem_splitE];
 
 (* allows simplifications of nested splits in case of independent predicates *)

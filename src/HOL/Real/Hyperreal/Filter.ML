@@ -346,7 +346,7 @@ val [prem] = goal thy "~ finite (UNIV:: 'a set) ==> \
 \            {A:: 'a set. finite (- A)} : Filter UNIV";
 by (cut_facts_tac [prem] 1);
 by (rtac mem_FiltersetI2 1);
-by (auto_tac (claset(),simpset() addsimps [Compl_Int]));
+by (auto_tac (claset(), simpset() delsimps [Collect_empty_eq]));
 by (eres_inst_tac [("c","UNIV")] equalityCE 1);
 by (Auto_tac);
 by (etac (Compl_anti_mono RS finite_subset) 1);

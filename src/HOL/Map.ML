@@ -44,7 +44,25 @@ qed_goalw "chg_map_upd" thy [chg_map_def]
 Addsimps[chg_map_new, chg_map_upd];
 
 
-section "option_map";
+section "map_of";
+
+Goal "map_of xs k = Some y --> (k,y):set xs";
+by (induct_tac "xs" 1);
+by  (Simp_tac 1);
+by (split_all_tac 1);
+by (Asm_simp_tac 1);
+qed_spec_mp "map_of_SomeD";
+
+Goal "[| map_of xs k = Some z; P z |] ==> map_of [(k,z):xs . P z] k = Some z";
+br mp 1;
+ba  2;
+by (etac thin_rl 1);
+by (induct_tac "xs" 1);
+by  Auto_tac;
+qed "map_of_filter_in";
+
+
+section "option_map related";
 
 qed_goal "option_map_o_empty" thy 
          "option_map f o empty = empty" (K [rtac ext 1, Simp_tac 1]);
@@ -53,7 +71,6 @@ qed_goal "option_map_o_map_upd" thy
 	 "option_map f o m(a|->b) = (option_map f o m)(a|->f b)" 
 	(K [rtac ext 1, Simp_tac 1]);
 Addsimps[option_map_o_empty, option_map_o_map_upd];
-
 
 section "++";
 
@@ -78,6 +95,12 @@ qed_spec_mp "override_Some_iff";
 bind_thm ("override_SomeD", standard(override_Some_iff RS iffD1));
 AddSDs[override_SomeD];
 
+Goal "!!xx. n k = Some xx ==> (m ++ n) k = Some xx";
+by (stac override_Some_iff 1);
+by (Fast_tac 1);
+qed "override_find_right";
+Addsimps[override_find_right];
+
 Goalw [override_def] "((m ++ n) k = None) = (n k = None & m k = None)";
 by (simp_tac (simpset() addsplits [option.split]) 1);
 qed "override_None";
@@ -91,13 +114,6 @@ by (rtac ext 1);
 by (asm_simp_tac (simpset() addsplits [option.split]) 1);
 qed "map_of_override";
 Addsimps [map_of_override];
-
-Goal "map_of xs k = Some y --> (k,y):set xs";
-by (induct_tac "xs" 1);
-by  (Simp_tac 1);
-by (split_all_tac 1);
-by (Asm_simp_tac 1);
-qed_spec_mp "map_of_SomeD";
 
 
 section "dom";

@@ -110,6 +110,7 @@ by (etac arg_cong 2);
 by (etac injD 1);
 by (assume_tac 1);
 qed "inj_eq";
+Addsimps[inj_eq];
 
 Goal "inj(f) ==> (@x. f(x)=f(y)) = y";
 by (etac injD 1);
@@ -410,7 +411,7 @@ qed "surj_compose";
 Goal "[| f : A funcset B; g: B funcset C; f `` A = B; inj_on f A; inj_on g B |]\
 \     ==> inj_on (compose A g f) A";
 by (auto_tac (claset(),
-	      simpset() addsimps [inj_on_def, compose_eq]));
+	      simpset() addsimps [inj_on_def, compose_eq] delsimps[inj_eq]));
 qed "inj_on_compose";
 
 
@@ -462,7 +463,8 @@ qed "Inv_funcset";
 Goal "[| f: A funcset B;  inj_on f A;  f `` A = B;  x: A |] \
 \     ==> (lam y: B. (Inv A f) y) (f x) = x";
 by (asm_simp_tac (simpset() addsimps [restrict_apply1, funcset_mem]) 1);
-by (asm_full_simp_tac (simpset() addsimps [Inv_def, inj_on_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [Inv_def, inj_on_def]
+			delsimps[inj_eq]) 1);
 by (rtac selectI2 1);
 by Auto_tac;
 qed "Inv_f_f";
