@@ -7,32 +7,22 @@ LeadsTo relation, restricted to the set of reachable states.
 *)
 
 
-(*constrains (Acts prg) B B'
-  ==> constrains (Acts prg) (reachable prg Int B) (reachable prg Int B')*)
-bind_thm ("constrains_reachable",
-	  rewrite_rule [stable_def] stable_reachable RS constrains_Int);
-
 
 (*** Specialized laws for handling invariants ***)
 
-Goal "invariant prg INV ==> reachable prg Int INV = reachable prg";
-bd invariant_includes_reachable 1;
-by (Blast_tac 1);
-qed "reachable_Int_INV";
-
-Goal "[| invariant prg INV;  LeadsTo prg (INV Int A) A' |]   \
+Goal "[| Invariant prg INV;  LeadsTo prg (INV Int A) A' |]   \
 \     ==> LeadsTo prg A A'";
 by (asm_full_simp_tac
     (simpset() addsimps [LeadsTo_def, reachable_Int_INV,
 			 Int_assoc RS sym]) 1);
-qed "invariant_LeadsToI";
+qed "Invariant_LeadsToI";
 
-Goal "[| invariant prg INV;  LeadsTo prg A A' |]   \
+Goal "[| Invariant prg INV;  LeadsTo prg A A' |]   \
 \     ==> LeadsTo prg A (INV Int A')";
 by (asm_full_simp_tac
     (simpset() addsimps [LeadsTo_def, reachable_Int_INV,
 			 Int_assoc RS sym]) 1);
-qed "invariant_LeadsToD";
+qed "Invariant_LeadsToD";
 
 
 (*** Introduction rules: Basis, Trans, Union ***)
@@ -41,9 +31,6 @@ Goal "leadsTo (Acts prg) A B ==> LeadsTo prg A B";
 by (simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 by (blast_tac (claset() addIs [psp_stable2, stable_reachable]) 1);
 qed "leadsTo_imp_LeadsTo";
-
-(* ensures (Acts prg) A B ==> LeadsTo prg A B *)
-bind_thm ("LeadsTo_Basis", leadsTo_Basis RS leadsTo_imp_LeadsTo);
 
 Goal "[| LeadsTo prg A B;  LeadsTo prg B C |] ==> LeadsTo prg A C";
 by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
@@ -138,33 +125,37 @@ by (blast_tac (claset() addIs [LeadsTo_Trans, LeadsTo_weaken_R,
 qed "LeadsTo_weaken";
 
 
-(** More rules using the premise "invariant prg" **)
+(** More rules using the premise "Invariant prg" **)
 
-Goal "[| invariant prg INV;      \
-\        constrains (Acts prg) (INV Int (A-A')) (A Un A'); \
+Goalw [LeadsTo_def, Constrains_def]
+     "[| Constrains prg (A-A') (A Un A'); transient  (Acts prg) (A-A') |]   \
+\     ==> LeadsTo prg A A'";
+by (rtac (ensuresI RS leadsTo_Basis) 1);
+by (blast_tac (claset() addIs [transient_strengthen]) 2);
+by (blast_tac (claset() addIs [constrains_weaken]) 1);
+qed "LeadsTo_Basis";
+
+Goal "[| Invariant prg INV;      \
+\        Constrains prg (INV Int (A-A')) (A Un A'); \
 \        transient  (Acts prg) (INV Int (A-A')) |]   \
 \ ==> LeadsTo prg A A'";
-br invariant_LeadsToI 1;
-ba 1;
-by (rtac (ensuresI RS LeadsTo_Basis) 1);
-by (ALLGOALS 
-    (full_simp_tac (simpset() addsimps [Int_Diff, Int_Un_distrib RS sym, 
-					Diff_Int_distrib RS sym])));
-be invariantE 1;
-by (blast_tac (claset() addSDs [stable_constrains_Int]
-			addIs [constrains_weaken]) 1);
-qed "invariant_LeadsTo_Basis";
+by (rtac Invariant_LeadsToI 1);
+by (assume_tac 1);
+by (rtac LeadsTo_Basis 1);
+by (blast_tac (claset() addIs [transient_strengthen]) 2);
+by (blast_tac (claset() addIs [Invariant_ConstrainsD RS Constrains_weaken]) 1);
+qed "Invariant_LeadsTo_Basis";
 
-Goal "[| invariant prg INV;      \
+Goal "[| Invariant prg INV;      \
 \        LeadsTo prg A A'; id: Acts prg;   \
 \        INV Int B  <= A;  INV Int A' <= B' |] \
 \     ==> LeadsTo prg B B'";
-br invariant_LeadsToI 1;
-ba 1;
-bd invariant_LeadsToD 1;
-ba 1;
+by (rtac Invariant_LeadsToI 1);
+by (assume_tac 1);
+by (dtac Invariant_LeadsToD 1);
+by (assume_tac 1);
 by (blast_tac (claset()addIs [LeadsTo_weaken]) 1);
-qed "invariant_LeadsTo_weaken";
+qed "Invariant_LeadsTo_weaken";
 
 
 (*Set difference: maybe combine with leadsTo_weaken_L??
@@ -250,43 +241,39 @@ qed "LeadsTo_empty";
 (** PSP: Progress-Safety-Progress **)
 
 (*Special case of PSP: Misra's "stable conjunction".  Doesn't need id:Acts. *)
-Goal "[| LeadsTo prg A A'; stable (Acts prg) B |] \
-\     ==> LeadsTo prg (A Int B) (A' Int B)";
-by (asm_full_simp_tac (simpset() addsimps [LeadsTo_def, Int_assoc RS sym, 
-					   psp_stable]) 1);
+Goal
+  "[| LeadsTo prg A A';  Stable prg B |] ==> LeadsTo prg (A Int B) (A' Int B)";
+by (full_simp_tac (simpset() addsimps [LeadsTo_def, Stable_eq_stable]) 1);
+by (dtac psp_stable 1);
+by (assume_tac 1);
+by (asm_full_simp_tac (simpset() addsimps Int_ac) 1);
 qed "PSP_stable";
 
-Goal "[| LeadsTo prg A A'; stable (Acts prg) B |] \
+Goal "[| LeadsTo prg A A'; Stable prg B |] \
 \     ==> LeadsTo prg (B Int A) (B Int A')";
 by (asm_simp_tac (simpset() addsimps (PSP_stable::Int_ac)) 1);
 qed "PSP_stable2";
 
-
-Goal "[| LeadsTo prg A A'; constrains (Acts prg) B B'; id: Acts prg |] \
+Goalw [LeadsTo_def, Constrains_def]
+     "[| LeadsTo prg A A'; Constrains prg B B'; id: Acts prg |] \
 \     ==> LeadsTo prg (A Int B) ((A' Int B) Un (B' - B))";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
-by (dtac psp 1);
-by (etac constrains_reachable 1);
-by (etac leadsTo_weaken 2);
-by (ALLGOALS Blast_tac);
+by (blast_tac (claset() addDs [psp] addIs [leadsTo_weaken]) 1);
 qed "PSP";
 
-Goal "[| LeadsTo prg A A'; constrains (Acts prg) B B'; id: Acts prg |] \
+Goal "[| LeadsTo prg A A'; Constrains prg B B'; id: Acts prg |] \
 \     ==> LeadsTo prg (B Int A) ((B Int A') Un (B' - B))";
 by (asm_simp_tac (simpset() addsimps (PSP::Int_ac)) 1);
 qed "PSP2";
 
-Goalw [unless_def]
-   "[| LeadsTo prg A A'; unless (Acts prg) B B'; id: Acts prg |] \
+Goalw [Unless_def]
+     "[| LeadsTo prg A A'; Unless prg B B'; id: Acts prg |] \
 \     ==> LeadsTo prg (A Int B) ((A' Int B) Un B')";
 by (dtac PSP 1);
 by (assume_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Un_Diff_Diff, Int_Diff_Un]) 2);
-by (asm_full_simp_tac (simpset() addsimps [Diff_Int_distrib]) 2);
-by (etac LeadsTo_Diff 2);
-by (blast_tac (claset() addIs [subset_imp_LeadsTo]) 2);
-by Auto_tac;
-qed "PSP_unless";
+by (blast_tac (claset() addIs [LeadsTo_Diff, LeadsTo_weaken, 
+			       subset_imp_LeadsTo]) 2);
+by (assume_tac 1);
+qed "PSP_Unless";
 
 
 (*** Induction rules ***)
@@ -294,7 +281,7 @@ qed "PSP_unless";
 (** Meta or object quantifier ????? **)
 Goal "[| wf r;     \
 \        ALL m. LeadsTo prg (A Int f-``{m})                     \
-\                                 ((A Int f-``(r^-1 ^^ {m})) Un B);   \
+\                           ((A Int f-``(r^-1 ^^ {m})) Un B);   \
 \        id: Acts prg |] \
 \     ==> LeadsTo prg A B";
 by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
@@ -353,49 +340,42 @@ qed "GreaterThan_bounded_induct";
 
 (*** Completion: Binary and General Finite versions ***)
 
-Goal "[| LeadsTo prg A A';  stable (Acts prg) A';   \
-\        LeadsTo prg B B';  stable (Acts prg) B';  id: Acts prg |] \
+Goal "[| LeadsTo prg A A';  Stable prg A';   \
+\        LeadsTo prg B B';  Stable prg B';  id: Acts prg |] \
 \     ==> LeadsTo prg (A Int B) (A' Int B')";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
-by (blast_tac (claset() addIs [stable_completion RS leadsTo_weaken] 
-                        addSIs [stable_Int, stable_reachable]) 1);
+by (full_simp_tac (simpset() addsimps [LeadsTo_def, Stable_eq_stable]) 1);
+by (blast_tac (claset() addIs [stable_completion, leadsTo_weaken]) 1);
 qed "Stable_completion";
 
 
-Goal "[| finite I;  id: Acts prg |]                     \
+Goal "[| finite I;  id: Acts prg |]      \
 \     ==> (ALL i:I. LeadsTo prg (A i) (A' i)) -->  \
-\         (ALL i:I. stable (Acts prg) (A' i)) -->         \
+\         (ALL i:I. Stable prg (A' i)) -->         \
 \         LeadsTo prg (INT i:I. A i) (INT i:I. A' i)";
 by (etac finite_induct 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac 
-    (simpset() addsimps [Stable_completion, stable_def, 
-			 ball_constrains_INT]) 1);
+by (asm_simp_tac (simpset() addsimps [Stable_completion, ball_Stable_INT]) 1);
 qed_spec_mp "Finite_stable_completion";
 
 
-Goal "[| LeadsTo prg A (A' Un C);  constrains (Acts prg) A' (A' Un C); \
-\        LeadsTo prg B (B' Un C);  constrains (Acts prg) B' (B' Un C); \
+Goal "[| LeadsTo prg A (A' Un C);  Constrains prg A' (A' Un C); \
+\        LeadsTo prg B (B' Un C);  Constrains prg B' (B' Un C); \
 \        id: Acts prg |] \
 \     ==> LeadsTo prg (A Int B) ((A' Int B') Un C)";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def, Int_Un_distrib]) 1);
-by (dtac completion 1);
-by (assume_tac 2);
-by (ALLGOALS 
-    (asm_simp_tac 
-     (simpset() addsimps [constrains_reachable, Int_Un_distrib RS sym])));
-by (blast_tac (claset() addIs [leadsTo_weaken]) 1);
+by (full_simp_tac (simpset() addsimps [LeadsTo_def, Constrains_def,
+				       Int_Un_distrib]) 1);
+by (blast_tac (claset() addIs [completion, leadsTo_weaken]) 1);
 qed "Completion";
 
 
 Goal "[| finite I;  id: Acts prg |] \
 \     ==> (ALL i:I. LeadsTo prg (A i) (A' i Un C)) -->  \
-\         (ALL i:I. constrains (Acts prg) (A' i) (A' i Un C)) --> \
+\         (ALL i:I. Constrains prg (A' i) (A' i Un C)) --> \
 \         LeadsTo prg (INT i:I. A i) ((INT i:I. A' i) Un C)";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
-by (dtac ball_constrains_INT 1);
+by (dtac ball_Constrains_INT 1);
 by (asm_full_simp_tac (simpset() addsimps [Completion]) 1); 
 qed "Finite_completion";
 
@@ -408,22 +388,22 @@ qed "Finite_completion";
 (*proves "constrains" properties when the program is specified*)
 fun constrains_tac (main_def::cmd_defs) = 
    SELECT_GOAL
-      (EVERY [TRY (rtac stableI 1),
+      (EVERY [REPEAT (resolve_tac [StableI, stableI,
+				   constrains_imp_Constrains] 1),
 	      rtac constrainsI 1,
 	      full_simp_tac (simpset() addsimps [main_def]) 1,
-	      REPEAT_FIRST (eresolve_tac [disjE]),
+	      REPEAT_FIRST (etac disjE ),
 	      rewrite_goals_tac cmd_defs,
 	      ALLGOALS (SELECT_GOAL Auto_tac)]);
 
 
-(*proves "ensures" properties when the program is specified*)
+(*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac (main_def::cmd_defs) sact = 
     SELECT_GOAL
-      (EVERY [REPEAT (invariant_Int_tac 1),
-	      etac invariant_LeadsTo_Basis 1 
+      (EVERY [REPEAT (Invariant_Int_tac 1),
+	      etac Invariant_LeadsTo_Basis 1 
 	          ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
-		  REPEAT (ares_tac [leadsTo_imp_LeadsTo, leadsTo_Basis, 
-				    ensuresI] 1),
+		  REPEAT (ares_tac [LeadsTo_Basis, ensuresI] 1),
 	      res_inst_tac [("act", sact)] transient_mem 2,
 	      simp_tac (simpset() addsimps (Domain_partial_func::cmd_defs)) 3,
 	      simp_tac (simpset() addsimps [main_def]) 2,

@@ -44,34 +44,36 @@ by (asm_simp_tac (simpset() addsimps [gr_implies_gr0 RS le_pred_eq]) 1);
 qed "less_imp_le_pred";
 
 
-Goalw [Lprg_def] "invariant Lprg open_stop";
-by (rtac invariantI 1);
+Goalw [Lprg_def] "Invariant Lprg open_stop";
+by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
 qed "open_stop";
 
-Goalw [Lprg_def] "invariant Lprg stop_floor";
-by (rtac invariantI 1);
+Goalw [Lprg_def] "Invariant Lprg stop_floor";
+by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
 qed "stop_floor";
 
-(*Should not have to prove open_stop concurrently!!*)
-Goalw [Lprg_def] "invariant Lprg (open_stop Int open_move)";
-by (rtac invariantI 1);
+(*This one needs open_stop, which was proved above*)
+Goal "Invariant Lprg open_move";
+by (rtac InvariantI 1);
+br (open_stop RS Invariant_ConstrainsI RS StableI) 2;
+bw Lprg_def;
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
 qed "open_move";
 
-Goalw [Lprg_def] "invariant Lprg moving_up";
-by (rtac invariantI 1);
+Goalw [Lprg_def] "Invariant Lprg moving_up";
+by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
 by (blast_tac (claset() addDs [le_imp_less_or_eq]) 1);
 qed "moving_up";
 
-Goalw [Lprg_def] "invariant Lprg moving_down";
-by (rtac invariantI 1);
+Goalw [Lprg_def] "Invariant Lprg moving_down";
+by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
 by (dres_inst_tac [("m","f")] le_imp_less_or_eq 3);
@@ -82,8 +84,8 @@ qed "moving_down";
 
 xxxxxxxxxxxxxxxx;
 
-Goalw [Lprg_def] "invariant Lprg bounded";
-by (rtac invariantI 1);
+Goalw [Lprg_def] "Invariant Lprg bounded";
+by (rtac InvariantI 1);
 by (Force_tac 1);
 by (constrains_tac (cmd_defs@always_defs) 1);
 by (ALLGOALS
@@ -94,8 +96,8 @@ by (blast_tac (claset() addIs [diff_le_self, le_trans]) 1);
 by (blast_tac (claset() addIs [diff_le_self, le_trans]) 3);
 qed "bounded";
 
-Goalw [Lprg_def] "invariant Lprg invariantV";
-by (rtac invariantI 1);
+Goalw [Lprg_def] "Invariant Lprg invariantV";
+by (rtac InvariantI 1);
 by (constrains_tac cmd_defs 2);
 by Auto_tac;
 qed "invariantV";
@@ -122,7 +124,7 @@ qed "U_F1";
 
 Goal "LeadsTo Lprg {s. ~ PP s & MM s = 2} {s. MM s = 3}";
 by (cut_facts_tac [invariantUV] 1);
-bw Lprg_def;
+by (rewtac Lprg_def);
 by (ensures_tac cmd_defs "cmd2U" 1);
 qed "U_F2";
 

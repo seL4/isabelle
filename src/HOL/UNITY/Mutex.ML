@@ -26,34 +26,35 @@ and dest_defs   = thms"state.dest_defs";
 
 Addsimps update_defs;
 
-
 Addsimps [invariantU_def, invariantV_def];
 
 
-Goalw [Mprg_def] "invariant Mprg invariantU";
-by (rtac invariantI 1);
+Goalw [Mprg_def] "Invariant Mprg invariantU";
+by (rtac InvariantI 1);
 by (constrains_tac cmd_defs 2);
 by Auto_tac;
 qed "invariantU";
 
-Goalw [Mprg_def] "invariant Mprg invariantV";
-by (rtac invariantI 1);
+Goalw [Mprg_def] "Invariant Mprg invariantV";
+by (rtac InvariantI 1);
 by (constrains_tac cmd_defs 2);
 by Auto_tac;
 qed "invariantV";
 
-val invariantUV = invariant_Int_rule [invariantU, invariantV];
+val invariantUV = Invariant_Int_rule [invariantU, invariantV];
 
 
 (*The safety property: mutual exclusion*)
 Goal "(reachable Mprg) Int {s. MM s = 3 & NN s = 3} = {}";
-by (cut_facts_tac [invariantUV RS invariant_includes_reachable] 1);
+by (cut_facts_tac [invariantUV RS Invariant_includes_reachable] 1);
 by Auto_tac;
 qed "mutual_exclusion";
 
 
 (*The bad invariant FAILS in cmd1V*)
-Goalw [bad_invariantU_def] "stable (Acts Mprg) bad_invariantU";
+Goalw [Mprg_def, bad_invariantU_def] "Invariant Mprg bad_invariantU";
+by (rtac InvariantI 1);
+by (Force_tac 1);
 by (constrains_tac cmd_defs 1);
 by (REPEAT (trans_tac 1));
 by (safe_tac (claset() addSEs [le_SucE]));
@@ -67,7 +68,7 @@ getgoal 1;
 
 (*** Progress for U ***)
 
-Goalw [unless_def] "unless (Acts Mprg) {s. MM s=2} {s. MM s=3}";
+Goalw [Unless_def] "Unless Mprg {s. MM s=2} {s. MM s=3}";
 by (constrains_tac cmd_defs 1);
 qed "U_F0";
 
@@ -77,13 +78,12 @@ qed "U_F1";
 
 Goal "LeadsTo Mprg {s. ~ PP s & MM s = 2} {s. MM s = 3}";
 by (cut_facts_tac [invariantUV] 1);
-bw Mprg_def;
+by (rewtac Mprg_def);
 by (ensures_tac cmd_defs "cmd2U" 1);
 qed "U_F2";
 
 Goal "LeadsTo Mprg {s. MM s = 3} {s. PP s}";
-by (rtac leadsTo_imp_LeadsTo 1); 
-by (res_inst_tac [("B", "{s. MM s = 4}")] leadsTo_Trans 1);
+by (res_inst_tac [("B", "{s. MM s = 4}")] LeadsTo_Trans 1);
 by (ensures_tac cmd_defs "cmd4U" 2);
 by (ensures_tac cmd_defs "cmd3U" 1);
 qed "U_F3";
@@ -109,15 +109,15 @@ val U_lemma123 = result();
 
 (*Misra's F4*)
 Goal "LeadsTo Mprg {s. UU s} {s. PP s}";
-by (rtac ([invariantU, U_lemma123] MRS invariant_LeadsTo_weaken) 1);
+by (rtac ([invariantU, U_lemma123] MRS Invariant_LeadsTo_weaken) 1);
 by Auto_tac;
-qed "u_leadsto_p";
+qed "u_Leadsto_p";
 
 
 (*** Progress for V ***)
 
 
-Goalw [unless_def] "unless (Acts Mprg) {s. NN s=2} {s. NN s=3}";
+Goalw [Unless_def] "Unless Mprg {s. NN s=2} {s. NN s=3}";
 by (constrains_tac cmd_defs 1);
 qed "V_F0";
 
@@ -131,8 +131,7 @@ by (ensures_tac cmd_defs "cmd2V" 1);
 qed "V_F2";
 
 Goal "LeadsTo Mprg {s. NN s = 3} {s. ~ PP s}";
-by (rtac leadsTo_imp_LeadsTo 1); 
-by (res_inst_tac [("B", "{s. NN s = 4}")] leadsTo_Trans 1);
+by (res_inst_tac [("B", "{s. NN s = 4}")] LeadsTo_Trans 1);
 by (ensures_tac cmd_defs "cmd4V" 2);
 by (ensures_tac cmd_defs "cmd3V" 1);
 qed "V_F3";
@@ -159,9 +158,9 @@ val V_lemma123 = result();
 
 (*Misra's F4*)
 Goal "LeadsTo Mprg {s. VV s} {s. ~ PP s}";
-by (rtac ([invariantV, V_lemma123] MRS invariant_LeadsTo_weaken) 1);
+by (rtac ([invariantV, V_lemma123] MRS Invariant_LeadsTo_weaken) 1);
 by Auto_tac;
-qed "v_leadsto_not_p";
+qed "v_Leadsto_not_p";
 
 
 (** Absence of starvation **)
@@ -174,10 +173,10 @@ by (rtac U_F2 2);
 by (simp_tac (simpset() addsimps [Collect_conj_eq] ) 1);
 by (stac Un_commute 1);
 by (rtac LeadsTo_Un_duplicate 1);
-by (rtac ([v_leadsto_not_p, U_F0] MRS PSP_unless RSN(2, LeadsTo_cancel2)) 1);
+by (rtac ([v_Leadsto_not_p, U_F0] MRS PSP_Unless RSN(2, LeadsTo_cancel2)) 1);
 by (rtac (U_F1 RS LeadsTo_weaken_R) 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
-qed "m1_leadsto_3";
+qed "m1_Leadsto_3";
 
 
 (*The same for V*)
@@ -188,7 +187,7 @@ by (rtac V_F2 2);
 by (simp_tac (simpset() addsimps [Collect_conj_eq] ) 1);
 by (stac Un_commute 1);
 by (rtac LeadsTo_Un_duplicate 1);
-by (rtac ([u_leadsto_p, V_F0] MRS PSP_unless  RSN(2, LeadsTo_cancel2)) 1);
+by (rtac ([u_Leadsto_p, V_F0] MRS PSP_Unless  RSN(2, LeadsTo_cancel2)) 1);
 by (rtac (V_F1 RS LeadsTo_weaken_R) 1);
 by (auto_tac (claset() addSEs [less_SucE], simpset()));
-qed "n1_leadsto_3";
+qed "n1_Leadsto_3";

@@ -11,6 +11,9 @@ From Misra's Chapter 5: Asynchronous Compositions of Programs
 Union = SubstAx + FP +
 
 constdefs
+   JOIN  :: ['a set, 'a => 'b program] => 'b program
+    "JOIN I prg == (|Init = INT i:I. Init (prg i),
+	           Acts = UN  i:I. Acts (prg i)|)"
 
    Join :: ['a program, 'a program] => 'a program
     "Join prgF prgG == (|Init = Init prgF Int Init prgG,
@@ -18,5 +21,11 @@ constdefs
 
    Null :: 'a program
     "Null == (|Init = UNIV, Acts = {id}|)"
+
+syntax
+  "@JOIN"      :: [pttrn, 'a set, 'b set] => 'b set  ("(3JN _:_./ _)" 10)
+
+translations
+  "JN x:A. B"   == "JOIN A (%x. B)"
 
 end

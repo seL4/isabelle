@@ -38,8 +38,4 @@ inductive "reachable prg"
     Acts  "[| act: Acts prg;  s : reachable prg;  (s,s'): act |]
 	   ==> s' : reachable prg"
 
-constdefs
-  invariant :: "['a program, 'a set] => bool"
-  "invariant prg A == (Init prg) <= A & stable (Acts prg) A"
-
 end

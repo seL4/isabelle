@@ -22,40 +22,40 @@ qed "id_in_Acts";
 AddIffs [id_in_Acts];
 
 
-Goalw [prgF_def, prgG_def] "invariant (Join prgF prgG) invFG";
-by (rtac invariantI 1);
-by (force_tac (claset(), 
-	       simpset() addsimps [Join_def]) 1);
-by (auto_tac (claset(), simpset() addsimps [stable_Join]));
+Goalw [prgF_def, prgG_def] "Invariant (Join prgF prgG) invFG";
+by (rtac InvariantI 1);
+by (Force_tac 1);
+by (rtac (constrains_imp_Constrains RS StableI) 1);
+by (auto_tac (claset(), simpset() addsimps [constrains_Join]));
 by (constrains_tac [prgG_def,cmdG_def] 2);
 by (auto_tac (claset() addIs [le_anti_sym] addSEs [le_SucE], simpset()));
 by (constrains_tac [prgF_def,cmdF_def] 1);
 qed "invFG";
 
 Goal "LeadsTo (Join prgF prgG) {s. NF s = k & ~ BB s} {s. NF s = k & BB s}";
-br (ensures_stable_Join1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1;
+by (rtac (ensures_stable_Join1 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (ensures_tac [prgG_def,cmdG_def] "cmdG" 2);
 by (constrains_tac [prgF_def,cmdF_def] 1);
 qed "lemma2_1";
 
 Goal "LeadsTo (Join prgF prgG) {s. NF s = k & BB s} {s. k < NF s}";
-br (ensures_stable_Join2 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1;
+by (rtac (ensures_stable_Join2 RS leadsTo_Basis RS leadsTo_imp_LeadsTo) 1);
 by (constrains_tac [prgG_def,cmdG_def] 2);
 by (ensures_tac [prgF_def,cmdF_def] "cmdF" 1);
 qed "lemma2_2";
 
 
 Goal "LeadsTo (Join prgF prgG) UNIV {s. m < NF s}";
-br LeadsTo_weaken_R 1;
+by (rtac LeadsTo_weaken_R 1);
 by (res_inst_tac [("f", "NF"), ("l","Suc m"), ("B","{}")] 
     GreaterThan_bounded_induct 1);
 by (auto_tac (claset(), simpset() addsimps [vimage_def]));
 by (trans_tac 2);
 (*The inductive step: LeadsTo (Join prgF prgG) {x. NF x = ma} {x. ma < NF x}*)
-br LeadsTo_Diff 1;
-br lemma2_2 2;
-br LeadsTo_Trans 1;
-br lemma2_2 2;
-br (lemma2_1 RS LeadsTo_weaken_L) 1;
+by (rtac LeadsTo_Diff 1);
+by (rtac lemma2_2 2);
+by (rtac LeadsTo_Trans 1);
+by (rtac lemma2_2 2);
+by (rtac (lemma2_1 RS LeadsTo_weaken_L) 1);
 by Auto_tac;
 qed "progress";

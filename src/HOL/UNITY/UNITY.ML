@@ -21,8 +21,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "constrainsI";
 
 Goalw [constrains_def]
-    "[| constrains acts A A'; act: acts;  (s,s'): act;  s: A |] \
-\            ==> s': A'";
+    "[| constrains acts A A'; act: acts;  (s,s'): act;  s: A |] ==> s': A'";
 by (Blast_tac 1);
 qed "constrainsD";
 
@@ -90,8 +89,7 @@ Goalw [constrains_def]
 by (Blast_tac 1);
 qed "all_constrains_INT";
 
-Goalw [constrains_def]
-    "[| constrains acts A A'; id: acts |] ==> A<=A'";
+Goalw [constrains_def] "[| constrains acts A A'; id: acts |] ==> A<=A'";
 by (Blast_tac 1);
 qed "constrains_imp_subset";
 
@@ -104,25 +102,21 @@ qed "constrains_trans";
 
 (*** stable ***)
 
-Goalw [stable_def]
-    "constrains acts A A ==> stable acts A";
+Goalw [stable_def] "constrains acts A A ==> stable acts A";
 by (assume_tac 1);
 qed "stableI";
 
-Goalw [stable_def]
-    "stable acts A ==> constrains acts A A";
+Goalw [stable_def] "stable acts A ==> constrains acts A A";
 by (assume_tac 1);
 qed "stableD";
 
 Goalw [stable_def]
-    "[| stable acts A; stable acts A' |]   \
-\    ==> stable acts (A Un A')";
+    "[| stable acts A; stable acts A' |] ==> stable acts (A Un A')";
 by (blast_tac (claset() addIs [constrains_Un]) 1);
 qed "stable_Un";
 
 Goalw [stable_def]
-    "[| stable acts A; stable acts A' |]   \
-\    ==> stable acts (A Int A')";
+    "[| stable acts A; stable acts A' |] ==> stable acts (A Int A')";
 by (blast_tac (claset() addIs [constrains_Int]) 1);
 qed "stable_Int";
 
@@ -144,15 +138,15 @@ qed "stable_constrains_Int";
   in forward proof.*)
 Goalw [constrains_def]
     "[| ALL m. constrains acts {s. s x = m} (B m) |] \
-\    ==> constrains acts {s. P(s x)} (UN m. {s. P(m)} Int B m)";
+\    ==> constrains acts {s. s x : M} (UN m:M. B m)";
 by (Blast_tac 1);
 qed "elimination";
+
 
 (*As above, but for the trivial case of a one-variable state, in which the
   state is identified with its one variable.*)
 Goalw [constrains_def]
-    "[| ALL m. constrains acts {m} (B m) |] \
-\    ==> constrains acts {s. P s} (UN m. {s. P(m)} Int B m)";
+    "(ALL m. constrains acts {m} (B m)) ==> constrains acts M (UN m:M. B m)";
 by (Blast_tac 1);
 qed "elimination_sing";
 

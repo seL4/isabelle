@@ -6,7 +6,7 @@
 LeadsTo relation: restricted to the set of reachable states.
 *)
 
-SubstAx = WFair + Traces + 
+SubstAx = WFair + Constrains + 
 
 constdefs
 
