@@ -114,7 +114,7 @@ fun init_graph remote_path curr_sess = map (fn name =>
     path =
       if null session then "" else
       if is_some remote_path andalso not is_local then
-        Url.pack (Url.append (the remote_path) (Url.file
+        Url.pack (Url.append (the remote_path) (Url.File
           (Path.append (Path.make session) (html_path name))))
       else Path.pack (Path.append (mk_rel_path curr_sess session) (html_path name)),
     unfold = false,
@@ -242,7 +242,7 @@ fun with_context f = f (PureThy.get_name (Context.the_context ()));
 
 val session_entries =
   HTML.session_entries o
-    map (fn name => (Url.file (Path.append (Path.basic name) index_path), name));
+    map (fn name => (Url.File (Path.append (Path.basic name) index_path), name));
 
 fun get_entries dir =
   split_lines (File.read (Path.append dir session_entries_path));
@@ -294,16 +294,16 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk = if first_time then
-          Url.append (the remote_path) (Url.file (Path.append sess_prefix parent_index_path))
-        else Url.file parent_index_path;
+          Url.append (the remote_path) (Url.File (Path.append sess_prefix parent_index_path))
+        else Url.File parent_index_path;
       val readme =
         if File.exists readme_html_path then Some readme_html_path
         else if File.exists readme_path then Some readme_path
         else None;
 
       val index_text = HTML.begin_index (index_up_lnk, parent_name)
-        (Url.file index_path, session_name) (apsome Url.file readme)
-          (apsome Url.file document_path) (Url.unpack "medium.html");
+        (Url.File index_path, session_name) (apsome Url.File readme)
+          (apsome Url.File document_path) (Url.unpack "medium.html");
     in
       session_info := Some (make_session_info (name, parent_name, session_name, path, html_prefix,
       info, doc, doc_graph, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
@@ -377,7 +377,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       write_graph graph (Path.append html_prefix graph_path);
       copy_files (Path.unpack "~~/lib/browser/GraphBrowser.jar") html_prefix;
       seq (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
-        (HTML.applet_pages name (Url.file index_path, name));
+        (HTML.applet_pages name (Url.File index_path, name));
       copy_files (Path.unpack "~~/lib/html/isabelle.css") html_prefix;
       seq finish_html thys;
       seq (uncurry File.write) files;
@@ -417,9 +417,9 @@ fun parent_link remote_path curr_session name =
   let val {name = _, session, is_local} = get_info (ThyInfo.theory name)
   in (if null session then None else
      Some (if is_some remote_path andalso not is_local then
-       Url.append (the remote_path) (Url.file
+       Url.append (the remote_path) (Url.File
          (Path.append (Path.make session) (html_path name)))
-     else Url.file (Path.append (mk_rel_path curr_session session)
+     else Url.File (Path.append (mk_rel_path curr_session session)
        (html_path name))), name)
   end;
 
@@ -439,17 +439,17 @@ fun begin_theory name raw_parents orig_files thy =
             val base_html = html_ext base;
           in
             add_file (Path.append html_prefix base_html,
-              HTML.ml_file (Url.file base) (File.read path));
-            (Some (Url.file base_html), Url.file raw_path, loadit)
+              HTML.ml_file (Url.File base) (File.read path));
+            (Some (Url.File base_html), Url.File raw_path, loadit)
           end
       | None => (warning ("Browser info: expected to find ML file" ^ quote (Path.pack raw_path));
-          (None, Url.file raw_path, loadit)));
+          (None, Url.File raw_path, loadit)));
 
     val files_html = map prep_file files;
 
     fun prep_html_source (tex_source, html_source, html) =
       let
-        val txt = HTML.begin_theory (Url.file index_path, session)
+        val txt = HTML.begin_theory (Url.File index_path, session)
           name parents files_html (Buffer.content html_source)
       in (tex_source, Buffer.empty, Buffer.add txt html) end;
 
@@ -461,7 +461,7 @@ fun begin_theory name raw_parents orig_files thy =
   in
     change_theory_info name prep_html_source;
     add_graph_entry entry;
-    add_html_index (HTML.theory_entry (Url.file (html_path name), name));
+    add_html_index (HTML.theory_entry (Url.File (html_path name), name));
     add_tex_index (Latex.theory_entry name);
     BrowserInfoData.put {name = sess_name, session = path, is_local = is_some remote_path} thy
   end);
