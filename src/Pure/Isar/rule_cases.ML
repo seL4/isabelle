@@ -14,7 +14,7 @@ sig
   val get: thm -> string list
   val add: thm -> thm * string list
   val none: thm -> thm * string list
-  val make: thm -> string list -> (string * T) list
+  val make: bool -> thm -> string list -> (string * T) list
   val rename_params: string list list -> thm -> thm
   val params: string list list -> 'a attribute
 end;
@@ -45,17 +45,18 @@ fun none thm = (thm, []);
 
 (* prepare cases *)
 
-fun prep_case thm name i =
+fun prep_case opaq thm name i =
   let
     val (_, _, Bi, _) = Thm.dest_state (thm, i)
       handle THM _ => raise THM ("More cases than premises in rule", 0, [thm]);
-    val rev_params = rename_wrt_term Bi (Logic.strip_params Bi);
+    val rev_params = map (if opaq then apfst Syntax.internal else I)
+      (rename_wrt_term Bi (Logic.strip_params Bi));
     val rev_frees = map Free rev_params;
     val props = map (fn t => Term.subst_bounds (rev_frees, t)) (Logic.strip_assums_hyp Bi);
   in (name, (rev rev_params, props)) end;
 
-fun make thm names =
-  #1 (foldr (fn (name, (cases, i)) => (prep_case thm name i :: cases, i - 1))
+fun make opaq thm names =
+  #1 (foldr (fn (name, (cases, i)) => (prep_case opaq thm name i :: cases, i - 1))
     (Library.drop (length names - Thm.nprems_of thm, names), ([], Thm.nprems_of thm)));
 
 
