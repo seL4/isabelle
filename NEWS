@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -9,7 +10,9 @@ New in Isabelle2002 (January 2002)
 * greatly simplified document preparation setup, including more
 graceful interpretation of isatool usedir -i/-d/-D options, and more
 instructive isatool mkdir; users should basically be able to get
-started with "isatool mkdir Test && isatool make";
+started with "isatool mkdir HOL Test && isatool make"; alternatively,
+users may run a separate document processing stage manually like this:
+"isatool usedir -D output HOL Test && isatool document Test/output";
 
 * theory dependency graph may now be incorporated into documents;
 isatool usedir -g true will produce session_graph.eps/.pdf for use
