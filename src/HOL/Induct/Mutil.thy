@@ -27,6 +27,6 @@ constdefs
    "below n   == {i. i<n}"
   
   colored  :: "nat => (nat*nat)set"
-   "colored b == {(i,j). (i+j) mod 2 = b}"
+   "colored b == {(i,j). (i+j) mod #2 = b}"
 
 end

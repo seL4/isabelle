@@ -37,26 +37,27 @@ by Auto_tac;
 qed "Sigma_Suc1";
 
 Goalw [below_def]
-    "A <*> below(Suc n) = (A <*> {n}) Un (A <*> (below n))";
+    "A <*> below(#2+n) = (A <*> {n}) Un (A <*> {Suc n}) Un (A <*> (below n))";
 by Auto_tac;
+by (arith_tac 1);
 qed "Sigma_Suc2";
 
 Addsimps [Sigma_Suc1, Sigma_Suc2];
 
-Goal "({i} <*> {n}) Un ({i} <*> {m}) = {(i,m), (i,n)}";
+Goal "({i} <*> {m}) Un ({i} <*> {n}) = {(i,m), (i,n)}";
 by Auto_tac;
 qed "sing_Times_lemma";
 
-Goal "{i} <*> below(n+n) : tiling domino";
+Goal "{i} <*> below(#2*n) : tiling domino";
 by (induct_tac "n" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_assoc RS sym])));
+by (ALLGOALS Asm_simp_tac);
 by (rtac tiling.Un 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [sing_Times_lemma])));
 qed "dominoes_tile_row";
 
 AddSIs [dominoes_tile_row]; 
 
-Goal "(below m) <*> below(n+n) : tiling domino";
+Goal "(below m) <*> below(#2*n) : tiling domino";
 by (induct_tac "m" 1);
 by Auto_tac;
 qed "dominoes_tile_matrix";
@@ -66,7 +67,7 @@ qed "dominoes_tile_matrix";
 
 Goalw [colored_def]
     "colored b Int (insert (i,j) C) = \
-\      (if (i+j) mod 2 = b then insert (i,j) (colored b Int C) \
+\      (if (i+j) mod #2 = b then insert (i,j) (colored b Int C) \
 \                          else colored b Int C)";
 by Auto_tac;
 qed "colored_insert";
@@ -107,7 +108,7 @@ qed "tiling_domino_0_1";
 
 (*Final argument is surprisingly complex*)
 Goal "[| t : tiling domino;       \
-\        (i+j) mod 2 = 0;  (k+l) mod 2 = 0;  \
+\        (i+j) mod #2 = 0;  (k+l) mod #2 = 0;  \
 \        {(i,j),(k,l)} <= t;  l ~= j |]    \
 \     ==> (t - {(i,j)} - {(k,l)}) ~: tiling domino";
 by (rtac notI 1);
@@ -121,8 +122,8 @@ by (ALLGOALS (force_tac (claset() addSIs [card_Diff1_less],
 qed "gen_mutil_not_tiling";
 
 (*Apply the general theorem to the well-known case*)
-Goal "[| t = below(Suc m + Suc m) <*> below(Suc n + Suc n) |] \
-\     ==> t - {(0,0)} - {(Suc(m+m), Suc(n+n))} ~: tiling domino";
+Goal "[| t = below(#2 * Suc m) <*> below(#2 * Suc n) |] \
+\     ==> t - {(0,0)} - {(Suc(#2*m), Suc(#2*n))} ~: tiling domino";
 by (rtac gen_mutil_not_tiling 1);
 by (blast_tac (claset() addSIs [dominoes_tile_matrix]) 1);
 by Auto_tac;

@@ -150,9 +150,11 @@ by (res_inst_tac [("j", "ack(Suc(1), ack(i1 + i2, j))")] less_trans 1);
 by (Asm_simp_tac 1);
 by (rtac (ack_nest_bound RS less_le_trans) 2);
 by (Asm_simp_tac 2);
-by (blast_tac (claset() addSIs [le_add1, le_add2]
-		       addIs  [le_imp_less_Suc, ack_le_mono1, le_SucI, 
-			       add_le_mono]) 1);
+by (cut_inst_tac [("i","i1"), ("m1","i2"), ("k","j")] 
+    (le_add1 RS ack_le_mono1) 1);
+by (cut_inst_tac [("i","i2"), ("m1","i1"), ("k","j")] 
+    (le_add2 RS ack_le_mono1) 1);
+by Auto_tac;
 qed "ack_add_bound";
 
 (*PROPERTY A 12.  Article uses existential quantifier but the ALF proof
