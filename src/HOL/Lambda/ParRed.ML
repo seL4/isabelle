@@ -80,13 +80,12 @@ qed "diamond_par_beta";
 
 (*** cd ***)
 
+Addsimps cd.rules;
+
 Goal "!t. s => t --> t => cd s";
-by (dB.induct_tac "s" 1);
-  by (Simp_tac 1);
- by (etac rev_mp 1);
- by (dB.induct_tac "dB1" 1);
- by (ALLGOALS(fast_tac (claset() addSIs [par_beta_subst] 
-                                addss (simpset()))));
+by(res_inst_tac[("u","s")] cd.induct 1);
+by(Auto_tac);
+by(fast_tac (claset() addSIs [par_beta_subst]) 1);
 qed_spec_mp "par_beta_cd";
 
 (*** Confluence (via cd) ***)
