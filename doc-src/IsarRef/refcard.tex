@@ -6,15 +6,15 @@
 \subsection{Primitives and basic syntax}
 
 \begin{tabular}{ll}
-  $\FIX{x}$ & augment context by $\All x \Box$ \\
-  $\ASSUME{a}{\phi}$ & augment context by $\phi \Imp \Box$ \\
+  $\FIX{\vec x}$ & augment context by $\All {\vec x} \Box$ \\
+  $\ASSUME{a}{\vec\phi}$ & augment context by $\vec\phi \Imp \Box$ \\
   $\THEN$ & indicate forward chaining \\
   $\HAVE{a}{\phi}$ & prove local result \\
   $\SHOW{a}{\phi}$ & prove local result, establishing some goal \\
   $\PROOF{m@1}~\dots~\QED{m@2}$ & apply proof methods \\
   $\BG~\dots~\EN$ & declare explicit blocks \\
   $\NEXT$ & switch implicit blocks \\
-  $\NOTE{a}{a@1\;\dots\;a@n}$ & reconsider facts \\
+  $\NOTE{a}{\vec b}$ & reconsider facts \\
   $\LET{p = t}$ & \text{abbreviate terms by higher-order matching} \\
 \end{tabular}
 
@@ -44,8 +44,8 @@
   \DOT & \equiv & \BY{this} \\
   \HENCENAME & \equiv & \THEN~\HAVENAME \\
   \THUSNAME & \equiv & \THEN~\SHOWNAME \\
-  \FROM{a@1\;\dots\;a@n} & \equiv & \NOTE{this}{a@1\;\dots\;a@n}~\THEN \\
-  \WITH{a@1\;\dots\;a@n} & \equiv & \FROM{a@1\;\dots\;a@n~this} \\[1ex]
+  \FROM{\vec a} & \equiv & \NOTE{this}{\vec a}~\THEN \\
+  \WITH{\vec a} & \equiv & \FROM{\vec a~this} \\[1ex]
   \FROM{this} & \equiv & \THEN \\
   \FROM{this}~\HAVENAME & \equiv & \HENCENAME \\
   \FROM{this}~\SHOWNAME & \equiv & \THUSNAME \\
@@ -57,11 +57,12 @@
 \begin{matharray}{rcl}
   \ALSO@0 & \approx & \NOTE{calculation}{this} \\
   \ALSO@{n+1} & \approx & \NOTE{calculation}{trans~[OF~calculation~this]} \\
-  \FINALLY & \approx & \ALSO~\FROM{calculation} \\
-  \PRESUME{a}{\phi} & \approx & \ASSUME{a}{\phi} \\
-  \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t} \\
-  \CASE{c} & & \text{invoke named context} \\
-  \SORRY &  & \text{fake proof} \\
+  \FINALLY & \approx & \ALSO~\FROM{calculation} \\[0.5ex]
+  \PRESUME{a}{\vec\phi} & \approx & \ASSUME{a}{\vec\phi}~~\text{(permissive assumption)} \\
+  \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t}~~\text{(definitional assumption)} \\
+  \OBTAIN{\vec x}{a}{\vec\phi} & \approx & \FIX{\vec x}~\ASSUME{a}{\vec\phi}~~\text{(generalized elimination)} \\
+  \CASE{a} & \approx & \FIX{\vec x}~\ASSUME{a}{\vec\phi}~~\text{(named context)} \\[0.5ex]
+  \SORRY & \approx & \BY{cheating} \\
 \end{matharray}
 
 
@@ -108,7 +109,7 @@
 \section{Attributes}
 
 \begin{tabular}{ll}
-  \multicolumn{2}{l}{\textbf{Modify rules}} \\[0.5ex]
+  \multicolumn{2}{l}{\textbf{Manipulate rules}} \\[0.5ex]
   $OF~a@1\;\dots\;a@n$ & apply rule to facts (skipping ``$_$'') \\
   $of~t@1\;\dots\;t@n$ & apply rule to terms (skipping ``$_$'') \\
   $RS~b$ & resolve fact with rule \\
@@ -123,6 +124,30 @@
   $iff$ & declare Simplifier + Classical Reasoner rules \\
   $trans$ & declare calculational rules (general transitivity) \\
 \end{tabular}
+
+
+\section{Emulating tactic scripts}
+
+\subsection{Proof commands}
+
+\begin{tabular}{ll}
+  $\isarkeyword{apply}~(m)$ & apply proof method (at initial position) \\
+  $\isarkeyword{apply_end}~(m)$ & apply proof method (near terminal position) \\
+  $\isarkeyword{defer}~n$ & move subgoal to end \\
+  $\isarkeyword{prefer}~n$ & move subgoal to beginning \\
+  $\isarkeyword{back}$ & backtrack last command \\
+\end{tabular}
+
+\subsection{Proof methods}
+
+\begin{tabular}{ll}
+  $tactic~text$ & method from ML tactic \\
+\end{tabular}
+
+
+
+
+
 
 %%% Local Variables: 
 %%% mode: latex
