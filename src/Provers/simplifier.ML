@@ -82,15 +82,14 @@ sig
   val      asm_rewrite: simpset -> cterm -> thm
   val     full_rewrite: simpset -> cterm -> thm
   val asm_full_rewrite: simpset -> cterm -> thm
-  val setup: (theory -> theory) list
-  val get_local_simpset: local_theory -> simpset
-  val put_local_simpset: simpset -> local_theory -> local_theory
-  val simp_add: tag
-  val simp_del: tag
+  val print_local_simpset: Proof.context -> unit
+  val get_local_simpset: Proof.context -> simpset
+  val put_local_simpset: simpset -> Proof.context -> Proof.context
   val simp_add_global: theory attribute
   val simp_del_global: theory attribute
-  val simp_add_local: local_theory attribute
-  val simp_del_local: local_theory attribute
+  val simp_add_local: Proof.context attribute
+  val simp_del_local: Proof.context attribute
+  val setup: (theory -> theory) list
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -258,14 +257,11 @@ fun merge_ss
 
 (** global and local simpset data **)
 
-val simpsetN = "Provers/simpset";
+(* theory data kind 'Provers/simpset' *)
 
-
-(* data kind 'Provers/simpset' *)
-
-structure SimpsetDataArgs =
+structure GlobalSimpsetArgs =
 struct
-  val name = simpsetN;
+  val name = "Provers/simpset";
   type T = simpset ref;
 
   val empty = ref empty_ss;
@@ -274,10 +270,10 @@ struct
   fun print _ (ref ss) = print_ss ss;
 end;
 
-structure SimpsetData = TheoryDataFun(SimpsetDataArgs);
-val print_simpset = SimpsetData.print;
-val simpset_ref_of_sg = SimpsetData.get_sg;
-val simpset_ref_of = SimpsetData.get;
+structure GlobalSimpset = TheoryDataFun(GlobalSimpsetArgs);
+val print_simpset = GlobalSimpset.print;
+val simpset_ref_of_sg = GlobalSimpset.get_sg;
+val simpset_ref_of = GlobalSimpset.get;
 
 
 (* access global simpset *)
@@ -302,65 +298,20 @@ val Addsimprocs = change_simpset (op addsimprocs);
 val Delsimprocs = change_simpset (op delsimprocs);
 
 
-(* local simpset *)
+(* proof data kind 'Provers/simpset' *)
 
-exception SimpsetLocal of simpset;
-val simpset_localK = Object.kind simpsetN;
-
-fun get_local_simpset (thy, data) =
-  (case Symtab.lookup (data, simpsetN) of
-    Some (SimpsetLocal ss) => ss
-  | None => simpset_of thy
-  | _ => Object.kind_error simpset_localK);
-
-fun put_local_simpset ss (thy, data) =
-  (thy, Symtab.update ((simpsetN, SimpsetLocal ss), data));
-
-
-
-(** simplifier attributes **)
-
-(* tags *)
-
-val simpN = "simp";
-val simp_addN = "add";
-val simp_delN = "del";
-
-val simp_tag = (simpN, []);
-val simp_add = (simpN, [simp_addN]);
-val simp_del = (simpN, [simp_delN]);
-
-
-(* attributes *)
-
-local
-  fun simp_attr change args (x, tth) =
-    if null args orelse args = [simp_addN] then change (op addsimps) (x, tth)
-    else if args = [simp_delN] then change (op delsimps) (x, tth)
-    else Attribute.fail simpN ("bad argument(s) " ^ commas_quote args);
-
-  fun change_global_ss f (thy, tth) =
-    let val r = simpset_ref_of thy
-    in r := f (! r, [Attribute.thm_of tth]); (thy, tth) end;
-
-  fun change_local_ss f (lthy, tth) =
-    let val ss = f (get_local_simpset lthy, [Attribute.thm_of tth])
-    in (put_local_simpset ss lthy, tth) end;
-
-  val simp_attr_global = simp_attr change_global_ss;
-  val simp_attr_local = simp_attr change_local_ss;
-in
-(* FIXME
-  val setup_attrs = IsarThy.add_attributes
-    [(simpN, simp_attr_global, simp_attr_local, "simplifier")];
-*)
-  val setup_attrs = I;
-
-  val simp_add_global = simp_attr_global [simp_addN];
-  val simp_del_global = simp_attr_global [simp_delN];
-  val simp_add_local = simp_attr_local [simp_addN];
-  val simp_del_local = simp_attr_local [simp_delN];
+structure LocalSimpsetArgs =
+struct
+  val name = "Provers/simpset";
+  type T = simpset;
+  val init = simpset_of;
+  fun print _ ss = print_ss ss;
 end;
+
+structure LocalSimpset = ProofDataFun(LocalSimpsetArgs);
+val print_local_simpset = LocalSimpset.print;
+val get_local_simpset = LocalSimpset.get;
+val put_local_simpset = LocalSimpset.put;
 
 
 
@@ -431,9 +382,96 @@ val asm_full_rewrite = simp_cterm (true, true, false);
 
 
 
+(** attributes **)
+
+(* add / del rules *)
+
+val simp_addN = "add";
+val simp_delN = "del";
+
+val addsimps' = Attribute.lift_modifier (op addsimps);
+val delsimps' = Attribute.lift_modifier (op delsimps);
+
+local
+  fun change_global_ss f (thy, tth) =
+    let val r = simpset_ref_of thy
+    in r := f (! r, [tth]); (thy, tth) end;
+
+  fun change_local_ss f (ctxt, tth) =
+    let val ss = f (get_local_simpset ctxt, [tth])
+    in (put_local_simpset ss ctxt, tth) end;
+
+  fun simp_att change = Attrib.syntax
+    (Args.$$$ simp_delN >> K delsimps' ||
+      Args.$$$ simp_addN >> K addsimps' || Scan.succeed addsimps') change;
+in
+  val simp_add_global = change_global_ss addsimps';
+  val simp_del_global = change_global_ss delsimps';
+  val simp_add_local = change_local_ss addsimps';
+  val simp_del_local = change_local_ss delsimps';
+  val simp_attr = (simp_att change_global_ss, simp_att change_local_ss);
+end;
+
+
+(* conversions *)
+
+fun conv_attr f =
+  (Attrib.no_args (Attribute.rule simpset_of f),
+    Attrib.no_args (Attribute.rule get_local_simpset f));
+
+
+(* setup_attrs *)
+
+val setup_attrs = Attrib.add_attributes
+ [("simp",              simp_attr, "simplification rule"),
+  ("simplify",          conv_attr simplify, "simplify rule"),
+  ("asm_simplify",      conv_attr asm_simplify, "simplify rule, using assumptions"),
+  ("full_simplify",     conv_attr full_simplify, "fully simplify rule"),
+  ("asm_full_simplify", conv_attr asm_full_simplify, "fully simplify rule, using assumptions")];
+
+
+
+(** proof methods **)
+
+(* simplification *)
+
+fun smart_simp_tac [] ss i = simp_tac ss i
+  | smart_simp_tac facts ss i =
+      REPEAT_DETERM (etac Drule.thin_rl i) THEN
+      metacuts_tac (map Attribute.thm_of facts) i THEN
+      asm_full_simp_tac ss i;
+
+fun smart_simp ss = Method.METHOD (fn facts => FIRSTGOAL (smart_simp_tac facts ss));
+
+
+(* simp methods *)	(* FIXME !? *)
+
+fun simp_args meth =
+  Method.sectioned_args get_local_simpset addsimps'
+    [(simp_addN, addsimps'), (simp_delN, delsimps')] meth;
+
+fun gen_simp tac =
+  let
+    fun tac' x = FIRSTGOAL (CHANGED o tac x);
+    fun meth ss = Method.METHOD (fn facts => tac' (addsimps' (ss, facts)));
+  in simp_args meth end;
+
+
+(* setup_methods *)
+
+val setup_methods = Method.add_methods
+ [("simp",          simp_args smart_simp, "simplification"),
+  ("simp_tac",      gen_simp simp_tac, "simp_tac"),
+  ("asm_simp",      gen_simp asm_simp_tac, "asm_simp_tac"),
+  ("full_simp",     gen_simp full_simp_tac, "full_simp_tac"),
+  ("asm_full_simp", gen_simp asm_full_simp_tac, "asm_full_simp_tac"),
+  ("asm_lr_simp",   gen_simp asm_lr_simp_tac, "asm_lr_simp_tac")];
+
+
+
 (** theory setup **)
 
-val setup = [SimpsetData.init, setup_attrs];
+val setup = [GlobalSimpset.init, LocalSimpset.init, setup_attrs, setup_methods];
 
 
 end;
