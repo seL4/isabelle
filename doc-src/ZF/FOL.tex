@@ -259,8 +259,9 @@ IntPr.step_tac      : int -> tactic
 IntPr.fast_tac      : int -> tactic
 IntPr.best_tac      : int -> tactic
 \end{ttbox}
-Most of these belong to the structure \ML{} \texttt{IntPr} and resemble the
-tactics of Isabelle's classical reasoner.  Note that you can use the 
+Most of these belong to the structure \ML{} structure \texttt{IntPr} and resemble the
+tactics of Isabelle's classical reasoner.  There are no corresponding
+Isar methods, but you can use the 
 \isa{tactic} method to call \ML{} tactics in an Isar script:
 \begin{isabelle}
 \isacommand{apply}\ (tactic\ {* IntPr.fast\_tac 1*})
@@ -350,12 +351,14 @@ for more discussion of classical proof methods.
 
 
 \section{An intuitionistic example}
-Here is a session similar to one in {\em Logic and Computation}
-\cite[pages~222--3]{paulson87}.  Isabelle treats quantifiers differently
-from {\sc lcf}-based theorem provers such as {\sc hol}.  
+Here is a session similar to one in the book {\em Logic and Computation}
+\cite[pages~222--3]{paulson87}. It illustrates the treatment of
+quantifier reasoning, which is different in Isabelle than it is in
+{\sc lcf}-based theorem provers such as {\sc hol}.  
 
-The theory header must specify that we are working in intuitionistic
-logic:
+The theory header specifies that we are working in intuitionistic
+logic by designating \isa{IFOL} rather than \isa{FOL} as the parent
+theory:
 \begin{isabelle}
 \isacommand{theory}\ IFOL\_examples\ =\ IFOL:
 \end{isabelle}
@@ -524,7 +527,7 @@ To illustrate classical logic, we shall prove the theorem
 $\ex{y}\all{x}P(y)\imp P(x)$.  Informally, the theorem can be proved as
 follows.  Choose~$y$ such that~$\neg P(y)$, if such exists; otherwise
 $\all{x}P(x)$ is true.  Either way the theorem holds.  First, we must
-work in a theory based on classical logic:
+work in a theory based on classical logic, the theory \isa{FOL}:
 \begin{isabelle}
 \isacommand{theory}\ FOL\_examples\ =\ FOL:
 \end{isabelle}

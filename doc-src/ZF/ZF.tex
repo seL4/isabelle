@@ -231,7 +231,7 @@ is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
          & | & term " -`` " term \\
          & | & term " ` " term \\
          & | & term " * " term \\
-         & | & term " Int " term \\
+         & | & term " \isasyminter " term \\
          & | & term " \isasymunion " term \\
          & | & term " - " term \\
          & | & term " -> " term \\
@@ -373,7 +373,7 @@ write
 
 \tdx{Inter_def}:   Inter(A) == {\ttlbrace}x \isasymin Union(A) . {\isasymforall}y \isasymin A. x \isasymin y{\ttrbrace}
 \tdx{Un_def}:      A \isasymunion B  == Union(Upair(A,B))
-\tdx{Int_def}:     A Int B  == Inter(Upair(A,B))
+\tdx{Int_def}:     A \isasyminter B  == Inter(Upair(A,B))
 \tdx{Diff_def}:    A - B    == {\ttlbrace}x \isasymin A . x \isasymnotin B{\ttrbrace}
 \subcaption{Union, intersection, difference}
 \end{alltt*}
@@ -434,7 +434,8 @@ $P(x,-)$ holds uniquely for~$y$.  Because the equivalence is unconditional,
 same set, if $P(x,y)$ is single-valued.  The nice syntax for replacement
 expands to \isa{Replace}.
 
-Other consequences of replacement include functional replacement
+Other consequences of replacement include replacement for 
+meta-level functions
 (\cdx{RepFun}) and definite descriptions (\cdx{The}).
 Axioms for separation (\cdx{Collect}) and unordered pairs
 (\cdx{Upair}) are traditionally assumed, but they actually follow
@@ -617,10 +618,10 @@ similar premises.
 \tdx{UnCI}:      (c \isasymnotin B ==> c\isasymin{}A) ==> c\isasymin{}A \isasymunion B
 \tdx{UnE}:       [| c\isasymin{}A \isasymunion B;  c\isasymin{}A ==> P;  c\isasymin{}B ==> P |] ==> P
 
-\tdx{IntI}:      [| c\isasymin{}A;  c\isasymin{}B |] ==> c\isasymin{}A Int B
-\tdx{IntD1}:     c\isasymin{}A Int B ==> c\isasymin{}A
-\tdx{IntD2}:     c\isasymin{}A Int B ==> c\isasymin{}B
-\tdx{IntE}:      [| c\isasymin{}A Int B;  [| c\isasymin{}A; c\isasymin{}B |] ==> P |] ==> P
+\tdx{IntI}:      [| c\isasymin{}A;  c\isasymin{}B |] ==> c\isasymin{}A \isasyminter B
+\tdx{IntD1}:     c\isasymin{}A \isasyminter B ==> c\isasymin{}A
+\tdx{IntD2}:     c\isasymin{}A \isasyminter B ==> c\isasymin{}B
+\tdx{IntE}:      [| c\isasymin{}A \isasyminter B;  [| c\isasymin{}A; c\isasymin{}B |] ==> P |] ==> P
 
 \tdx{DiffI}:     [| c\isasymin{}A;  c \isasymnotin B |] ==> c\isasymin{}A - B
 \tdx{DiffD1}:    c\isasymin{}A - B ==> c\isasymin{}A
@@ -715,12 +716,12 @@ the set $\{a,b\}$.  The impossibility of $a\in a$ is a trivial consequence.
 \tdx{Un_upper2}:      B \isasymsubseteq A \isasymunion B
 \tdx{Un_least}:       [| A \isasymsubseteq C;  B \isasymsubseteq C |] ==> A \isasymunion B \isasymsubseteq C
 
-\tdx{Int_lower1}:     A Int B \isasymsubseteq A
-\tdx{Int_lower2}:     A Int B \isasymsubseteq B
-\tdx{Int_greatest}:   [| C \isasymsubseteq A;  C \isasymsubseteq B |] ==> C \isasymsubseteq A Int B
+\tdx{Int_lower1}:     A \isasyminter B \isasymsubseteq A
+\tdx{Int_lower2}:     A \isasyminter B \isasymsubseteq B
+\tdx{Int_greatest}:   [| C \isasymsubseteq A;  C \isasymsubseteq B |] ==> C \isasymsubseteq A \isasyminter B
 
 \tdx{Diff_subset}:    A-B \isasymsubseteq A
-\tdx{Diff_contains}:  [| C \isasymsubseteq A;  C Int B = 0 |] ==> C \isasymsubseteq A-B
+\tdx{Diff_contains}:  [| C \isasymsubseteq A;  C \isasyminter B = 0 |] ==> C \isasymsubseteq A-B
 
 \tdx{Collect_subset}: Collect(A,P) \isasymsubseteq A
 \end{alltt*}
@@ -825,9 +826,9 @@ $\lambda$-abstraction.  Here are some important examples:
 \tdx{fieldCI}:     (<c,a> \isasymnotin r ==> <a,b>\isasymin{}r) ==> a\isasymin{}field(r)
 
 \tdx{fieldE}:      [| a\isasymin{}field(r); 
-                  !!x. <a,x>\isasymin{}r ==> P; 
-                  !!x. <x,a>\isasymin{}r ==> P      
-               |] ==> P
+                !!x. <a,x>\isasymin{}r ==> P; 
+                !!x. <x,a>\isasymin{}r ==> P      
+             |] ==> P
 
 \tdx{field_subset}:  field(A*A) \isasymsubseteq A
 \end{alltt*}
@@ -867,7 +868,7 @@ respectively.
 \begin{alltt*}\isastyleminor
 \tdx{fun_is_rel}:     f\isasymin{}Pi(A,B) ==> f \isasymsubseteq Sigma(A,B)
 
-\tdx{apply_equality}: [| <a,b>\isasymin{}f; f\isasymin{}Pi(A,B) |] ==> f`a = b
+\tdx{apply_equality}:  [| <a,b>\isasymin{}f; f\isasymin{}Pi(A,B) |] ==> f`a = b
 \tdx{apply_equality2}: [| <a,b>\isasymin{}f; <a,c>\isasymin{}f; f\isasymin{}Pi(A,B) |] ==> b=c
 
 \tdx{apply_type}:     [| f\isasymin{}Pi(A,B); a\isasymin{}A |] ==> f`a\isasymin{}B(a)
@@ -912,7 +913,7 @@ respectively.
 \tdx{fun_empty}:           0\isasymin{}0->0
 \tdx{fun_single}:          {\ttlbrace}<a,b>{\ttrbrace}\isasymin{}{\ttlbrace}a{\ttrbrace} -> {\ttlbrace}b{\ttrbrace}
 
-\tdx{fun_disjoint_Un}:     [| f\isasymin{}A->B; g\isasymin{}C->D; A Int C = 0  |] ==>  
+\tdx{fun_disjoint_Un}:     [| f\isasymin{}A->B; g\isasymin{}C->D; A \isasyminter C = 0  |] ==>  
                      (f \isasymunion g)\isasymin{}(A \isasymunion C) -> (B \isasymunion D)
 
 \tdx{fun_disjoint_apply1}: [| a\isasymin{}A; f\isasymin{}A->B; g\isasymin{}C->D;  A\isasyminter{}C = 0 |] ==>  
@@ -955,28 +956,28 @@ disjoint.
 
 \begin{figure}
 \begin{alltt*}\isastyleminor
-\tdx{Int_absorb}:        A Int A = A
-\tdx{Int_commute}:       A Int B = B Int A
-\tdx{Int_assoc}:         (A Int B) Int C  =  A Int (B Int C)
-\tdx{Int_Un_distrib}:    (A \isasymunion B) Int C  =  (A Int C) \isasymunion (B Int C)
+\tdx{Int_absorb}:        A \isasyminter A = A
+\tdx{Int_commute}:       A \isasyminter B = B \isasyminter A
+\tdx{Int_assoc}:         (A \isasyminter B) \isasyminter C  =  A \isasyminter (B \isasyminter C)
+\tdx{Int_Un_distrib}:    (A \isasymunion B) \isasyminter C  =  (A \isasyminter C) \isasymunion (B \isasyminter C)
 
 \tdx{Un_absorb}:         A \isasymunion A = A
 \tdx{Un_commute}:        A \isasymunion B = B \isasymunion A
 \tdx{Un_assoc}:          (A \isasymunion B) \isasymunion C  =  A \isasymunion (B \isasymunion C)
-\tdx{Un_Int_distrib}:    (A Int B) \isasymunion C  =  (A \isasymunion C) Int (B \isasymunion C)
+\tdx{Un_Int_distrib}:    (A \isasyminter B) \isasymunion C  =  (A \isasymunion C) \isasyminter (B \isasymunion C)
 
 \tdx{Diff_cancel}:       A-A = 0
-\tdx{Diff_disjoint}:     A Int (B-A) = 0
+\tdx{Diff_disjoint}:     A \isasyminter (B-A) = 0
 \tdx{Diff_partition}:    A \isasymsubseteq B ==> A \isasymunion (B-A) = B
 \tdx{double_complement}: [| A \isasymsubseteq B; B \isasymsubseteq C |] ==> (B - (C-A)) = A
-\tdx{Diff_Un}:           A - (B \isasymunion C) = (A-B) Int (A-C)
-\tdx{Diff_Int}:          A - (B Int C) = (A-B) \isasymunion (A-C)
+\tdx{Diff_Un}:           A - (B \isasymunion C) = (A-B) \isasyminter (A-C)
+\tdx{Diff_Int}:          A - (B \isasyminter C) = (A-B) \isasymunion (A-C)
 
 \tdx{Union_Un_distrib}:  Union(A \isasymunion B) = Union(A) \isasymunion Union(B)
 \tdx{Inter_Un_distrib}:  [| a \isasymin A;  b \isasymin B |] ==> 
-                   Inter(A \isasymunion B) = Inter(A) Int Inter(B)
+                   Inter(A \isasymunion B) = Inter(A) \isasyminter Inter(B)
 
-\tdx{Int_Union_RepFun}:  A Int Union(B) = ({\isasymUnion}C \isasymin B. A Int C)
+\tdx{Int_Union_RepFun}:  A \isasyminter Union(B) = ({\isasymUnion}C \isasymin B. A \isasyminter C)
 
 \tdx{Un_Inter_RepFun}:   b \isasymin B ==> 
                    A \isasymunion Inter(B) = ({\isasymInter}C \isasymin B. A \isasymunion C)
@@ -987,11 +988,11 @@ disjoint.
 \tdx{SUM_Un_distrib2}:   (SUM x \isasymin C. A(x) \isasymunion B(x)) =
                    (SUM x \isasymin C. A(x)) \isasymunion (SUM x \isasymin C. B(x))
 
-\tdx{SUM_Int_distrib1}:  (SUM x \isasymin A Int B. C(x)) =
-                   (SUM x \isasymin A. C(x)) Int (SUM x \isasymin B. C(x))
+\tdx{SUM_Int_distrib1}:  (SUM x \isasymin A \isasyminter B. C(x)) =
+                   (SUM x \isasymin A. C(x)) \isasyminter (SUM x \isasymin B. C(x))
 
-\tdx{SUM_Int_distrib2}:  (SUM x \isasymin C. A(x) Int B(x)) =
-                   (SUM x \isasymin C. A(x)) Int (SUM x \isasymin C. B(x))
+\tdx{SUM_Int_distrib2}:  (SUM x \isasymin C. A(x) \isasyminter B(x)) =
+                   (SUM x \isasymin C. A(x)) \isasyminter (SUM x \isasymin C. B(x))
 \end{alltt*}
 \caption{Equalities} \label{zf-equalities}
 \end{figure}
@@ -1109,13 +1110,13 @@ definitions, for example of infinite lists~\cite{paulson-mscs}.
 \begin{figure}
 \begin{alltt*}\isastyleminor
 \tdx{bnd_mono_def}:  bnd_mono(D,h) == 
-                 h(D) \isasymsubseteq D & ({\isasymforall}W X. W \isasymsubseteq X --> X \isasymsubseteq D --> h(W) \isasymsubseteq h(X))
+               h(D)\isasymsubseteq{}D & ({\isasymforall}W X. W\isasymsubseteq{}X --> X\isasymsubseteq{}D --> h(W)\isasymsubseteq{}h(X))
 
 \tdx{lfp_def}:       lfp(D,h) == Inter({\ttlbrace}X \isasymin Pow(D). h(X) \isasymsubseteq X{\ttrbrace})
 \tdx{gfp_def}:       gfp(D,h) == Union({\ttlbrace}X \isasymin Pow(D). X \isasymsubseteq h(X){\ttrbrace})
 
 
-\tdx{lfp_lowerbound} [| h(A) \isasymsubseteq A;  A \isasymsubseteq D |] ==> lfp(D,h) \isasymsubseteq A
+\tdx{lfp_lowerbound}: [| h(A) \isasymsubseteq A;  A \isasymsubseteq D |] ==> lfp(D,h) \isasymsubseteq A
 
 \tdx{lfp_subset}:    lfp(D,h) \isasymsubseteq D
 
@@ -1133,7 +1134,7 @@ definitions, for example of infinite lists~\cite{paulson-mscs}.
                   !!X. X \isasymsubseteq D ==> h(X) \isasymsubseteq i(X)  
                |] ==> lfp(D,h) \isasymsubseteq lfp(E,i)
 
-\tdx{gfp_upperbound} [| A \isasymsubseteq h(A);  A \isasymsubseteq D |] ==> A \isasymsubseteq gfp(D,h)
+\tdx{gfp_upperbound}: [| A \isasymsubseteq h(A);  A \isasymsubseteq D |] ==> A \isasymsubseteq gfp(D,h)
 
 \tdx{gfp_subset}:    gfp(D,h) \isasymsubseteq D
 
@@ -1191,7 +1192,7 @@ between two given sets.
 \tdx{Fin_induct}
     [| b \isasymin Fin(A);
        P(0);
-       !!x y. [| x \isasymin A;  y \isasymin Fin(A);  x \isasymnotin y;  P(y) |] ==> P(cons(x,y))
+       !!x y. [| x\isasymin{}A; y\isasymin{}Fin(A); x\isasymnotin{}y; P(y) |] ==> P(cons(x,y))
     |] ==> P(b)
 
 \tdx{Fin_mono}:       A \isasymsubseteq B ==> Fin(A) \isasymsubseteq Fin(B)
@@ -1216,8 +1217,8 @@ between two given sets.
 
 \underscoreon %%because @ is used here
 \begin{alltt*}\isastyleminor
-\tdx{NilI}:           Nil \isasymin list(A)
-\tdx{ConsI}:          [| a \isasymin A;  l \isasymin list(A) |] ==> Cons(a,l) \isasymin list(A)
+\tdx{NilI}:       Nil \isasymin list(A)
+\tdx{ConsI}:      [| a \isasymin A;  l \isasymin list(A) |] ==> Cons(a,l) \isasymin list(A)
 
 \tdx{List.induct}
     [| l \isasymin list(A);
@@ -1230,11 +1231,11 @@ between two given sets.
 
 \tdx{list_mono}:      A \isasymsubseteq B ==> list(A) \isasymsubseteq list(B)
 
-\tdx{map_ident}:      l \isasymin list(A) ==> map(\%u. u, l) = l
-\tdx{map_compose}:    l \isasymin list(A) ==> map(h, map(j,l)) = map(\%u. h(j(u)), l)
-\tdx{map_app_distrib} xs: list(A) ==> map(h, xs@ys) = map(h,xs) @ map(h,ys)
+\tdx{map_ident}:      l\isasymin{}list(A) ==> map(\%u. u, l) = l
+\tdx{map_compose}:    l\isasymin{}list(A) ==> map(h, map(j,l)) = map(\%u. h(j(u)), l)
+\tdx{map_app_distrib}: xs\isasymin{}list(A) ==> map(h, xs@ys) = map(h,xs)@map(h,ys)
 \tdx{map_type}
-    [| l \isasymin list(A);  !!x. x \isasymin A ==> h(x) \isasymin B |] ==> map(h,l) \isasymin list(B)
+    [| l\isasymin{}list(A); !!x. x\isasymin{}A ==> h(x)\isasymin{}B |] ==> map(h,l)\isasymin{}list(B)
 \tdx{map_flat}
     ls: list(list(A)) ==> map(h, flat(ls)) = flat(map(map(h),ls))
 \end{alltt*}
@@ -1265,40 +1266,39 @@ list functions by primitive recursion.  See theory \texttt{List}.
 \tdx{comp_def}: r O s     == {\ttlbrace}xz \isasymin domain(s)*range(r) . 
                         {\isasymexists}x y z. xz=<x,z> & <x,y> \isasymin s & <y,z> \isasymin r{\ttrbrace}
 \tdx{id_def}:   id(A)     == (lam x \isasymin A. x)
-\tdx{inj_def}:  inj(A,B)  == {\ttlbrace} f \isasymin A->B. {\isasymforall}w \isasymin A. {\isasymforall}x \isasymin A. f`w=f`x --> w=x {\ttrbrace}
-\tdx{surj_def}: surj(A,B) == {\ttlbrace} f \isasymin A->B . {\isasymforall}y \isasymin B. {\isasymexists}x \isasymin A. f`x=y {\ttrbrace}
-\tdx{bij_def}:  bij(A,B)  == inj(A,B) Int surj(A,B)
+\tdx{inj_def}:  inj(A,B)  == {\ttlbrace} f\isasymin{}A->B. {\isasymforall}w\isasymin{}A. {\isasymforall}x\isasymin{}A. f`w=f`x --> w=x {\ttrbrace}
+\tdx{surj_def}: surj(A,B) == {\ttlbrace} f\isasymin{}A->B . {\isasymforall}y\isasymin{}B. {\isasymexists}x\isasymin{}A. f`x=y {\ttrbrace}
+\tdx{bij_def}:  bij(A,B)  == inj(A,B) \isasyminter surj(A,B)
 
 
-\tdx{left_inverse}:    [| f \isasymin inj(A,B);  a \isasymin A |] ==> converse(f)`(f`a) = a
-\tdx{right_inverse}:   [| f \isasymin inj(A,B);  b \isasymin range(f) |] ==> 
+\tdx{left_inverse}:    [| f\isasymin{}inj(A,B);  a\isasymin{}A |] ==> converse(f)`(f`a) = a
+\tdx{right_inverse}:   [| f\isasymin{}inj(A,B);  b\isasymin{}range(f) |] ==> 
                  f`(converse(f)`b) = b
 
-\tdx{inj_converse_inj} f \isasymin inj(A,B) ==> converse(f) \isasymin inj(range(f), A)
-\tdx{bij_converse_bij} f \isasymin bij(A,B) ==> converse(f) \isasymin bij(B,A)
+\tdx{inj_converse_inj}: f\isasymin{}inj(A,B) ==> converse(f) \isasymin inj(range(f),A)
+\tdx{bij_converse_bij}: f\isasymin{}bij(A,B) ==> converse(f) \isasymin bij(B,A)
 
-\tdx{comp_type}:       [| s \isasymsubseteq A*B;  r \isasymsubseteq B*C |] ==> (r O s) \isasymsubseteq A*C
-\tdx{comp_assoc}:      (r O s) O t = r O (s O t)
+\tdx{comp_type}:     [| s \isasymsubseteq A*B;  r \isasymsubseteq B*C |] ==> (r O s) \isasymsubseteq A*C
+\tdx{comp_assoc}:    (r O s) O t = r O (s O t)
 
-\tdx{left_comp_id}:    r \isasymsubseteq A*B ==> id(B) O r = r
-\tdx{right_comp_id}:   r \isasymsubseteq A*B ==> r O id(A) = r
+\tdx{left_comp_id}:  r \isasymsubseteq A*B ==> id(B) O r = r
+\tdx{right_comp_id}: r \isasymsubseteq A*B ==> r O id(A) = r
 
-\tdx{comp_func}:       [| g \isasymin A->B; f \isasymin B->C |] ==> (f O g)
-\isasymin A ->C
-\tdx{comp_func_apply}: [| g \isasymin A->B; f \isasymin B->C; a \isasymin A |] ==> (f O g)`a = f`(g`a)
+\tdx{comp_func}:     [| g\isasymin{}A->B; f\isasymin{}B->C |] ==> (f O g) \isasymin A->C
+\tdx{comp_func_apply}: [| g\isasymin{}A->B; f\isasymin{}B->C; a\isasymin{}A |] ==> (f O g)`a = f`(g`a)
 
-\tdx{comp_inj}:        [| g \isasymin inj(A,B);  f \isasymin inj(B,C)  |] ==> (f O g):inj(A,C)
-\tdx{comp_surj}:       [| g \isasymin surj(A,B); f \isasymin surj(B,C) |] ==> (f O g):surj(A,C)
-\tdx{comp_bij}:        [| g \isasymin bij(A,B); f \isasymin bij(B,C) |] ==> (f O g):bij(A,C)
+\tdx{comp_inj}:      [| g\isasymin{}inj(A,B);  f\isasymin{}inj(B,C)  |] ==> (f O g)\isasymin{}inj(A,C)
+\tdx{comp_surj}:     [| g\isasymin{}surj(A,B); f\isasymin{}surj(B,C) |] ==> (f O g)\isasymin{}surj(A,C)
+\tdx{comp_bij}:      [| g\isasymin{}bij(A,B); f\isasymin{}bij(B,C) |] ==> (f O g)\isasymin{}bij(A,C)
 
-\tdx{left_comp_inverse}:    f \isasymin inj(A,B) ==> converse(f) O f = id(A)
-\tdx{right_comp_inverse}:   f \isasymin surj(A,B) ==> f O converse(f) = id(B)
+\tdx{left_comp_inverse}:    f\isasymin{}inj(A,B) ==> converse(f) O f = id(A)
+\tdx{right_comp_inverse}:   f\isasymin{}surj(A,B) ==> f O converse(f) = id(B)
 
 \tdx{bij_disjoint_Un}:  
-    [| f \isasymin bij(A,B);  g \isasymin bij(C,D);  A Int C = 0;  B Int D = 0 |] ==> 
-    (f \isasymunion g) \isasymin bij(A \isasymunion C, B \isasymunion D)
+    [| f\isasymin{}bij(A,B);  g\isasymin{}bij(C,D);  A \isasyminter C = 0;  B \isasyminter D = 0 |] ==> 
+    (f \isasymunion g)\isasymin{}bij(A \isasymunion C, B \isasymunion D)
 
-\tdx{restrict_bij}: [| f \isasymin inj(A,B);  C \isasymsubseteq A |] ==> restrict(f,C) \isasymin bij(C, f``C)
+\tdx{restrict_bij}: [| f\isasymin{}inj(A,B); C\isasymsubseteq{}A |] ==> restrict(f,C)\isasymin{}bij(C, f``C)
 \end{alltt*}
 \caption{Permutations} \label{zf-perm}
 \end{figure}
@@ -1371,7 +1371,8 @@ Isabelle/ZF provides simple tactics to help automate those proofs that are
 essentially type-checking.  Such proofs are built by applying rules such as
 these:
 \begin{ttbox}\isastyleminor
-[| ?P ==> ?a \isasymin ?A; ~?P ==> ?b \isasymin ?A |] ==> (if ?P then ?a else ?b) \isasymin ?A
+[| ?P ==> ?a \isasymin ?A; ~?P ==> ?b \isasymin ?A |] 
+==> (if ?P then ?a else ?b) \isasymin ?A
 
 [| ?m \isasymin nat; ?n \isasymin nat |] ==> ?m #+ ?n \isasymin nat
 
@@ -1394,7 +1395,7 @@ conditional rewrite rules. Call the method \ttindex{typecheck} to
 break down all subgoals using type-checking rules. You can add new
 type-checking rules temporarily like this:
 \begin{isabelle}
-\isacommand{apply}\ (typecheck add: inj_is_fun)
+\isacommand{apply}\ (typecheck add:\ inj_is_fun)
 \end{isabelle}
 
 
@@ -1460,33 +1461,33 @@ type-checking rules temporarily like this:
   \tt \#-       & $[i,i]\To i$  &  Left 65      & subtraction
 \end{constants}
 
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 \tdx{nat_def}: nat == lfp(lam r \isasymin Pow(Inf). {\ttlbrace}0{\ttrbrace} \isasymunion {\ttlbrace}succ(x). x \isasymin r{\ttrbrace}
 
-\tdx{nat_case_def}: nat_case(a,b,k) == 
+\tdx{nat_case_def}:  nat_case(a,b,k) == 
               THE y. k=0 & y=a | ({\isasymexists}x. k=succ(x) & y=b(x))
 
-\tdx{nat_0I}:          0 \isasymin nat
-\tdx{nat_succI}:       n \isasymin nat ==> succ(n) \isasymin nat
+\tdx{nat_0I}:           0 \isasymin nat
+\tdx{nat_succI}:        n \isasymin nat ==> succ(n) \isasymin nat
 
-\tdx{nat_induct}:       
+\tdx{nat_induct}:        
     [| n \isasymin nat;  P(0);  !!x. [| x \isasymin nat;  P(x) |] ==> P(succ(x)) 
     |] ==> P(n)
 
-\tdx{nat_case_0}:     nat_case(a,b,0) = a
-\tdx{nat_case_succ}:  nat_case(a,b,succ(m)) = b(m)
+\tdx{nat_case_0}:       nat_case(a,b,0) = a
+\tdx{nat_case_succ}:    nat_case(a,b,succ(m)) = b(m)
 
-\tdx{add_0_natify}:    0 #+ n = natify(n)
-\tdx{add_succ}:        succ(m) #+ n = succ(m #+ n)
+\tdx{add_0_natify}:     0 #+ n = natify(n)
+\tdx{add_succ}:         succ(m) #+ n = succ(m #+ n)
 
-\tdx{mult_type}:       m #* n \isasymin nat
-\tdx{mult_0}:          0 #* n = 0
-\tdx{mult_succ}:       succ(m) #* n = n #+ (m #* n)
-\tdx{mult_commute}:    m #* n = n #* m
-\tdx{add_mult_dist}:   (m #+ n) #* k = (m #* k) #+ (n #* k)
-\tdx{mult_assoc}:      (m #* n) #* k = m #* (n #* k)
-\tdx{mod_div_equality} m \isasymin nat ==> (m div n)#*n #+ m mod n = m
-\end{ttbox}
+\tdx{mult_type}:        m #* n \isasymin nat
+\tdx{mult_0}:           0 #* n = 0
+\tdx{mult_succ}:        succ(m) #* n = n #+ (m #* n)
+\tdx{mult_commute}:     m #* n = n #* m
+\tdx{add_mult_dist}:    (m #+ n) #* k = (m #* k) #+ (n #* k)
+\tdx{mult_assoc}:       (m #* n) #* k = m #* (n #* k)
+\tdx{mod_div_equality}: m \isasymin nat ==> (m div n)#*n #+ m mod n = m
+\end{alltt*}
 \caption{The natural numbers} \label{zf-nat}
 \end{figure}
 
@@ -1543,7 +1544,7 @@ Given the assumptions \isa{i \isasymin nat} and \isa{l \isasymin nat}, both occu
   \tt \$<=      & $[i,i]\To o$  &  Left 50      & $\le$ on integers
 \end{constants}
 
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 \tdx{zadd_0_intify}:    0 $+ n = intify(n)
 
 \tdx{zmult_type}:       m $* n \isasymin int
@@ -1551,7 +1552,7 @@ Given the assumptions \isa{i \isasymin nat} and \isa{l \isasymin nat}, both occu
 \tdx{zmult_commute}:    m $* n = n $* m
 \tdx{zadd_zmult_dist}:   (m $+ n) $* k = (m $* k) $+ (n $* k)
 \tdx{zmult_assoc}:      (m $* n) $* k = m $* (n $* k)
-\end{ttbox}
+\end{alltt*}
 \caption{The integers} \label{zf-int}
 \end{figure}
 
@@ -1637,34 +1638,34 @@ recursive function definitions.
 
 A simple example of a datatype is \isa{list}, which is built-in, and is
 defined by
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 consts     list :: "i=>i"
 datatype  "list(A)" = Nil | Cons ("a \isasymin A", "l \isasymin list(A)")
-\end{ttbox}
+\end{alltt*}
 Note that the datatype operator must be declared as a constant first.
 However, the package declares the constructors.  Here, \isa{Nil} gets type
 $i$ and \isa{Cons} gets type $[i,i]\To i$.
 
 Trees and forests can be modelled by the mutually recursive datatype
 definition
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 consts   
   tree :: "i=>i"
   forest :: "i=>i"
   tree_forest :: "i=>i"
 datatype  "tree(A)"   = Tcons ("a{\isasymin}A",  "f{\isasymin}forest(A)")
 and "forest(A)" = Fnil | Fcons ("t{\isasymin}tree(A)",  "f{\isasymin}forest(A)")
-\end{ttbox}
+\end{alltt*}
 Here $\isa{tree}(A)$ is the set of trees over $A$, $\isa{forest}(A)$ is
 the set of forests over $A$, and  $\isa{tree_forest}(A)$ is the union of
 the previous two sets.  All three operators must be declared first.
 
 The datatype \isa{term}, which is defined by
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 consts     term :: "i=>i"
 datatype  "term(A)" = Apply ("a \isasymin A", "l \isasymin list(term(A))")
   monos list_mono
-\end{ttbox}
+\end{alltt*}
 is an example of nested recursion.  (The theorem \isa{list_mono} is proved
 in theory \isa{List}, and the \isa{term} example is developed in
 theory
@@ -1698,17 +1699,17 @@ datatypes, the induction rule is supplied in two forms.  Consider datatype
 \isa{TF}.  The rule \isa{tree_forest.induct} performs induction over a
 single predicate~\isa{P}, which is presumed to be defined for both trees
 and forests:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 [| x \isasymin tree_forest(A);
    !!a f. [| a \isasymin A; f \isasymin forest(A); P(f) |] ==> P(Tcons(a, f)); 
    P(Fnil);
    !!f t. [| t \isasymin tree(A); P(t); f \isasymin forest(A); P(f) |]
           ==> P(Fcons(t, f)) 
 |] ==> P(x)
-\end{ttbox}
+\end{alltt*}
 The rule \isa{tree_forest.mutual_induct} performs induction over two
 distinct predicates, \isa{P_tree} and \isa{P_forest}.
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 [| !!a f.
       [| a{\isasymin}A; f{\isasymin}forest(A); P_forest(f) |] ==> P_tree(Tcons(a,f));
    P_forest(Fnil);
@@ -1716,24 +1717,24 @@ distinct predicates, \isa{P_tree} and \isa{P_forest}.
           ==> P_forest(Fcons(t, f)) 
 |] ==> ({\isasymforall}za. za \isasymin tree(A) --> P_tree(za)) &
     ({\isasymforall}za. za \isasymin forest(A) --> P_forest(za))
-\end{ttbox}
+\end{alltt*}
 
 For datatypes with nested recursion, such as the \isa{term} example from
 above, things are a bit more complicated.  The rule \isa{term.induct}
 refers to the monotonic operator, \isa{list}:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 [| x \isasymin term(A);
-   !!a l. [| a \isasymin A; l \isasymin list(Collect(term(A), P)) |] ==> P(Apply(a, l)) 
+   !!a l. [| a\isasymin{}A; l\isasymin{}list(Collect(term(A), P)) |] ==> P(Apply(a,l)) 
 |] ==> P(x)
-\end{ttbox}
+\end{alltt*}
 The theory \isa{Induct/Term.thy} derives two higher-level induction rules,
 one of which is particularly useful for proving equations:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 [| t \isasymin term(A);
    !!x zs. [| x \isasymin A; zs \isasymin list(term(A)); map(f, zs) = map(g, zs) |]
            ==> f(Apply(x, zs)) = g(Apply(x, zs)) 
 |] ==> f(t) = g(t)  
-\end{ttbox}
+\end{alltt*}
 How this can be generalized to other nested datatypes is a matter for future
 research.
 
@@ -1863,10 +1864,10 @@ understood in that light.
 
 Let us define the set $\isa{bt}(A)$ of binary trees over~$A$.  The theory
 must contain these lines:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 consts   bt :: "i=>i"
 datatype "bt(A)" = Lf | Br ("a\isasymin{}A", "t1\isasymin{}bt(A)", "t2\isasymin{}bt(A)")
-\end{ttbox}
+\end{alltt*}
 After loading the theory, we can prove some theorem.  
 We begin by declaring the constructor's typechecking rules
 as simplification rules:
@@ -1880,8 +1881,7 @@ the proof requires a quantified induction formula, but
 the \isa{rule\_format} attribute will remove the quantifiers 
 before the theorem is stored.
 \begin{isabelle}
-\isacommand{lemma}\ Br\_neq\_left\ [rule\_format]:\ "l\ \isasymin \
-bt(A)\ ==>\ \isasymforall x\ r.\ Br(x,l,r)\isasymnoteq{}l"\isanewline
+\isacommand{lemma}\ Br\_neq\_left\ [rule\_format]:\ "l\isasymin bt(A)\ ==>\ \isasymforall x\ r.\ Br(x,l,r)\isasymnoteq{}l"\isanewline
 \ 1.\ l\ \isasymin \ bt(A)\ \isasymLongrightarrow \ \isasymforall x\ r.\ Br(x,\ l,\ r)\ \isasymnoteq \ l%
 \end{isabelle}
 This can be proved by the structural induction tactic:
@@ -1944,12 +1944,12 @@ $r\in\isa{bt}(A)$.
 
 Mixfix syntax is sometimes convenient.  The theory \isa{Induct/PropLog} makes a
 deep embedding of propositional logic:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 consts     prop :: i
 datatype  "prop" = Fls
                  | Var ("n \isasymin nat")                ("#_" [100] 100)
                  | "=>" ("p \isasymin prop", "q \isasymin prop")   (infixr 90)
-\end{ttbox}
+\end{alltt*}
 The second constructor has a special $\#n$ syntax, while the third constructor
 is an infixed arrow.
 
@@ -1957,7 +1957,7 @@ is an infixed arrow.
 \subsubsection{A giant enumeration type}
 
 This example shows a datatype that consists of 60 constructors:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 consts  enum :: i
 datatype
   "enum" = C00 | C01 | C02 | C03 | C04 | C05 | C06 | C07 | C08 | C09
@@ -1967,7 +1967,7 @@ datatype
          | C40 | C41 | C42 | C43 | C44 | C45 | C46 | C47 | C48 | C49
          | C50 | C51 | C52 | C53 | C54 | C55 | C56 | C57 | C58 | C59
 end
-\end{ttbox}
+\end{alltt*}
 The datatype package scales well.  Even though all properties are proved
 rather than assumed, full processing of this definition takes around two seconds
 (on a 1.8GHz machine).  The constructors have a balanced representation,
@@ -2220,11 +2220,11 @@ few hints.
 Here is the output that results (with the flag set) when the
 \isa{type_intros} and \isa{type_elims} are omitted from the inductive
 definition above:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 Inductive definition Finite.Fin
 Fin(A) ==
 lfp(Pow(A),
-    \%X. {z \isasymin Pow(A) . z = 0 | ({\isasymexists}a b. z = cons(a, b) & a \isasymin A & b \isasymin X)})
+    \%X. {z\isasymin{}Pow(A) . z = 0 | ({\isasymexists}a b. z = cons(a,b) & a\isasymin{}A & b\isasymin{}X)})
   Proving monotonicity...
 \ttbreak
   Proving the introduction rules...
@@ -2236,11 +2236,11 @@ The subgoal after monos, type_elims:
 0 \isasymin Fin(A)
  1. 0 \isasymin Pow(A)
 *** prove_goal: tactic failed
-\end{ttbox}
+\end{alltt*}
 We see the need to supply theorems to let the package prove
 $\emptyset\in\isa{Pow}(A)$.  Restoring the \isa{type_intros} but not the
 \isa{type_elims}, we again get an error message:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 The type-checking subgoal:
 0 \isasymin Fin(A)
  1. 0 \isasymin Pow(A)
@@ -2257,7 +2257,7 @@ The subgoal after monos, type_elims:
 cons(a, b) \isasymin Fin(A)
  1. [| a \isasymin A; b \isasymin Pow(A) |] ==> cons(a, b) \isasymin Pow(A)
 *** prove_goal: tactic failed
-\end{ttbox}
+\end{alltt*}
 The first rule has been type-checked, but the second one has failed.  The
 simplest solution to such problems is to prove the failed subgoal separately
 and to supply it under \isa{type_intros}.  The solution actually used is
@@ -2341,12 +2341,12 @@ in the theory
 elsewhere~\cite{paulson-generic}.  The theory first defines the
 datatype
 \isa{comb} of combinators:
-\begin{ttbox}\isastyleminor
+\begin{alltt*}\isastyleminor
 consts comb :: i
 datatype  "comb" = K
                  | S
                  | "#" ("p \isasymin comb", "q \isasymin comb")   (infixl 90)
-\end{ttbox}
+\end{alltt*}
 The theory goes on to define contraction and parallel contraction
 inductively.  Then the theory \isa{Induct/Comb.thy} defines special
 cases of contraction, such as this one:
@@ -2396,7 +2396,7 @@ Other important theories lead to a theory of cardinal numbers.  They have
 not yet been written up anywhere.  Here is a summary:
 \begin{itemize}
 \item Theory \isa{Rel} defines the basic properties of relations, such as
-  (ir)reflexivity, (a)symmetry, and transitivity.
+  reflexivity, symmetry and transitivity.
 
 \item Theory \isa{EquivClass} develops a theory of equivalence
   classes, not using the Axiom of Choice.
