@@ -177,7 +177,8 @@
     "}"))
 
 (defconst isar-keywords-minor
-  '("and"
+  '("advanced"
+    "and"
     "assumes"
     "binder"
     "case_eqns"

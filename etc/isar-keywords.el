@@ -187,6 +187,7 @@
 
 (defconst isar-keywords-minor
   '("actions"
+    "advanced"
     "and"
     "assumes"
     "binder"
