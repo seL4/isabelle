@@ -18,6 +18,7 @@ qed "update_idem_iff";
 (* f x = y ==> f(x:=y) = f *)
 bind_thm("update_idem", update_idem_iff RS iffD2);
 
+(* f(x := f x) = f *)
 AddIffs [refl RS update_idem];
 
 Goal "(f(x:=y))z = (if z=x then y else f z)";

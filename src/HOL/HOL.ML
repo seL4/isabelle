@@ -335,7 +335,7 @@ qed_goal "exCI" HOL.thy "(! x. ~P(x) ==> P(a)) ==> ? x. P(x)"
 (* case distinction *)
 
 qed_goal "case_split_thm" HOL.thy "[| P ==> Q; ~P ==> Q |] ==> Q"
-  (fn [p1,p2] => [cut_facts_tac [excluded_middle] 1, etac disjE 1,
+  (fn [p1,p2] => [rtac (excluded_middle RS disjE) 1,
                   etac p2 1, etac p1 1]);
 
 fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
