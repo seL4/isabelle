@@ -10,8 +10,6 @@ Should be executed in the subdirectory HOL.
 val banner = "Higher-Order Logic";
 writeln banner;
 
-reset global_names;
-
 print_depth 1;
 
 (* Add user sections *)

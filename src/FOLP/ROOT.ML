@@ -12,8 +12,6 @@ val banner = "First-Order Logic with Natural Deduction with Proof Terms";
 
 writeln banner;
 
-reset global_names;
-
 print_depth 1;
 
 use_thy "IFOLP";

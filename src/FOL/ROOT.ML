@@ -11,8 +11,6 @@ val banner = "First-Order Logic with Natural Deduction";
 
 writeln banner;
 
-reset global_names;
-
 print_depth 1;  
 
 use "../Provers/simplifier.ML";
