@@ -726,13 +726,15 @@ val oct_char = chr o octal;
 
 (*** Printing ***)
 
-
 (*Makes a variant of the name c distinct from the names in bs.
-  First attaches the suffix "a" and then increments this. *)
-fun variant bs c : string =
-  let fun vary2 c = if (c mem_string bs) then  vary2 (bump_string c)  else  c
-      fun vary1 c = if (c mem_string bs) then  vary2 (c ^ "a")  else  c
-  in  vary1 (if c="" then "u" else c)  end;
+  First attaches the suffix "a" and then increments this;
+  preserves a suffix of underscores "_". *)
+fun variant bs name =
+  let
+    val (c, u) = pairself implode (Library.take_suffix (equal "_") (Symbol.explode name));
+    fun vary2 c = if ((c ^ u) mem_string bs) then vary2 (bump_string c) else c;
+    fun vary1 c = if ((c ^ u) mem_string bs) then vary2 (c ^ "a") else c;
+  in vary1 (if c = "" then "u" else c) ^ u end;
 
 (*Create variants of the list of names, with priority to the first ones*)
 fun variantlist ([], used) = []
