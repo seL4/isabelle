@@ -26,9 +26,11 @@ type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
 signature CLASET_THY_DATA =
 sig
   val clasetK: string
-  exception ClasetData of exn ref
-  val thy_data: string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))
-  val fix_methods: exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit) -> unit
+  exception ClasetData of object ref
+  val thy_data: string * (object * (object -> object) *
+    (object * object -> object) * (object -> unit))
+  val fix_methods: object * (object -> object) *
+    (object * object -> object) * (object -> unit) -> unit
 end;
 
 signature CLASSICAL_DATA =
@@ -137,15 +139,15 @@ struct
 (* data kind claset -- forward declaration *)
 
 val clasetK = "claset";
-exception ClasetData of exn ref;
+exception ClasetData of object ref;
 
 local
   fun undef _ = raise Match;
 
   val empty_ref = ref ERROR;
-  val prep_ext_fn = ref (undef: exn -> exn);
-  val merge_fn = ref (undef: exn * exn -> exn);
-  val print_fn = ref (undef: exn -> unit);
+  val prep_ext_fn = ref (undef: object -> object);
+  val merge_fn = ref (undef: object * object -> object);
+  val print_fn = ref (undef: object -> unit);
 
   val empty = ClasetData empty_ref;
   fun prep_ext exn = ! prep_ext_fn exn;

@@ -14,7 +14,7 @@ sig
   val rep_theory: theory ->
     {sign: Sign.sg,
       axioms: term Symtab.table,
-      oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
+      oracles: ((Sign.sg * object -> term) * stamp) Symtab.table,
       parents: theory list,
       ancestors: theory list}
   val sign_of: theory -> Sign.sg
@@ -67,16 +67,16 @@ sig
   val add_trrules_i: Syntax.ast Syntax.trrule list -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
-  val add_oracle: bstring * (Sign.sg * exn -> term) -> theory -> theory
+  val add_oracle: bstring * (Sign.sg * object -> term) -> theory -> theory
   val add_defs: (bstring * string) list -> theory -> theory
   val add_defs_i: (bstring * term) list -> theory -> theory
   val add_path: string -> theory -> theory
   val add_space: string * string list -> theory -> theory
   val add_name: string -> theory -> theory
-  val init_data: (string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))) list
-    -> theory -> theory
-  val get_data: theory -> string -> exn
-  val put_data: string * exn -> theory -> theory
+  val init_data: (string * (object * (object -> object) *
+    (object * object -> object) * (object -> unit))) list -> theory -> theory
+  val get_data: theory -> string -> object
+  val put_data: string * object -> theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
   val pre_pure: theory
@@ -93,7 +93,7 @@ datatype theory =
   Theory of {
     sign: Sign.sg,
     axioms: term Symtab.table,
-    oracles: ((Sign.sg * exn -> term) * stamp) Symtab.table,
+    oracles: ((Sign.sg * object -> term) * stamp) Symtab.table,
     parents: theory list,
     ancestors: theory list};
 

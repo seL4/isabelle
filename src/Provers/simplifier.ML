@@ -46,7 +46,8 @@ sig
   val merge_ss:     simpset * simpset -> simpset
   val prems_of_ss:  simpset -> thm list
 
-  val simpset_thy_data: string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))
+  val simpset_thy_data: string * (object * (object -> object) *
+    (object * object -> object) * (object -> unit))
   val simpset_ref_of_sg: Sign.sg -> simpset ref
   val simpset_ref_of: theory -> simpset ref
   val simpset_of_sg: Sign.sg -> simpset

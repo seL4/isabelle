@@ -110,10 +110,10 @@ sig
   val add_path: string -> sg -> sg
   val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
-  val init_data: string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit))
-    -> sg -> sg
-  val get_data: sg -> string -> exn
-  val put_data: string * exn -> sg -> sg
+  val init_data: string * (object * (object -> object) *
+    (object * object -> object) * (object -> unit)) -> sg -> sg
+  val get_data: sg -> string -> object
+  val put_data: string * object -> sg -> sg
   val print_data: sg -> string -> unit
   val merge_refs: sg_ref * sg_ref -> sg_ref
   val prep_ext: sg -> sg

@@ -69,8 +69,8 @@ fun print (Theorems (ref {space, thms_tab, const_idx = _})) =
 
 in
 
-val theorems_data:
-  string * (exn * (exn -> exn) * (exn * exn -> exn) * (exn -> unit)) =
+val theorems_data: string * (object * (object -> object) *
+  (object * object -> object) * (object -> unit)) =
     (theoremsK, (mk_empty (), mk_empty, mk_empty, print));
 
 end;
