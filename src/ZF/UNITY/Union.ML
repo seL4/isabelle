@@ -168,7 +168,9 @@ Addsimps [Inter_0];
 
 Goal "Init(JN i:I. F(i)) = (if I=0 then state else (INT i:I. Init(F(i))))";
 by (simp_tac (simpset() addsimps [JOIN_def]) 1);
-by (auto_tac (claset() addSEs [not_emptyE], simpset() addsimps [INT_Int_distrib]));
+by (auto_tac (claset() addSEs [not_emptyE],
+               simpset() addsimps INT_extend_simps
+                         delsimps INT_simps));
 qed "Init_JN";
 
 Goalw [JOIN_def]
@@ -496,10 +498,9 @@ by (auto_tac (claset(), simpset() addsimps [ok_def]));
 qed "ok_Join_commute_I";
 
 Goal "F ok JOIN(I,G) <-> (ALL i:I. F ok G(i))";
-by (auto_tac (claset() addSEs [not_emptyE], simpset() addsimps [ok_def]));
-by (blast_tac (claset() addDs [Acts_type RS subsetD]) 1);
+by (force_tac (claset() addDs [Acts_type RS subsetD] addSEs [not_emptyE],
+               simpset() addsimps [ok_def]) 1);
 qed "ok_JN_iff1";
-
 
 Goal "JOIN(I,G) ok F   <->  (ALL i:I. G(i) ok F)";
 by (auto_tac (claset() addSEs [not_emptyE], simpset() addsimps [ok_def]));
@@ -531,11 +532,11 @@ qed "Allowed_Join";
 Goal "i:I ==> \
 \  Allowed(JOIN(I,F)) = (INT i:I. Allowed(programify(F(i))))";
 by (auto_tac (claset(), simpset() addsimps [Allowed_def]));
+by (Blast_tac 1); 
 qed "Allowed_JN";
 Addsimps [Allowed_SKIP, Allowed_Join, Allowed_JN];
 
-Goal 
-"F ok G <-> (programify(F):Allowed(programify(G)) & \
+Goal "F ok G <-> (programify(F):Allowed(programify(G)) & \
 \  programify(G):Allowed(programify(F)))";
 by (asm_simp_tac (simpset() addsimps [ok_def, Allowed_def]) 1);
 qed "ok_iff_Allowed";

@@ -183,8 +183,9 @@ apply (subgoal_tac "M ok G")
 apply (drule guaranteesD, assumption)
   apply (simp add: merge_spec_def merge_follows_def, blast)
 apply (simp cong add: Follows_cong
-    add: refl_prefix
-       mono_bag_of [THEN subset_Follows_comp, THEN subsetD, unfolded comp_def])
+	    add: refl_prefix
+	       mono_bag_of [THEN subset_Follows_comp, THEN subsetD, 
+			    unfolded metacomp_def])
 done
 
 end

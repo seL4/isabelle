@@ -37,7 +37,7 @@ inductive
 	      <Union(S),B>:leads(D, F)"
 
   monos        Pow_mono
-  type_intrs  "[Union_PowI, UnionI, PowI]"
+  type_intrs  "[Union_Pow_iff RS iffD2, UnionI, PowI]"
  
 constdefs
 

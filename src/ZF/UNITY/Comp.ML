@@ -169,11 +169,11 @@ qed "preserves_fun_pair_iff";
 AddIffs [preserves_fun_pair_iff];
 
 Goal "(fun_pair(f, g) comp h)(x) = fun_pair(f comp h, g comp h, x)";
-by (simp_tac (simpset() addsimps [fun_pair_def, comp_def]) 1);
+by (simp_tac (simpset() addsimps [fun_pair_def, metacomp_def]) 1);
 qed "fun_pair_comp_distrib";
 
 Goal "(f comp g)(x) = f(g(x))";
-by (simp_tac (simpset() addsimps [comp_def]) 1);
+by (simp_tac (simpset() addsimps [metacomp_def]) 1);
 qed "comp_apply";
 Addsimps [comp_apply];
 

@@ -13,7 +13,7 @@ Goal "[|A=A'; r=r'; !!x. x:state ==> f(x)=f'(x); !!x. x:state ==> g(x)=g'(x)|] =
 by (asm_full_simp_tac (simpset() addsimps [Increasing_def,Follows_def]@prems) 1);
 qed "Follows_cong";
 
-Goalw [mono1_def, comp_def] 
+Goalw [mono1_def, metacomp_def] 
 "[| mono1(A, r, B, s, h); ALL x:state. f(x):A & g(x):A |] ==> \
 \  Always({x:state. <f(x), g(x)>:r})<=Always({x:state. <(h comp f)(x), (h comp g)(x)>:s})";
 by (auto_tac (claset(), simpset() addsimps 
@@ -40,7 +40,7 @@ qed "imp_Always_comp2";
 
 (* comp LeadsTo *)
 
-Goalw [mono1_def, comp_def]
+Goalw [mono1_def, metacomp_def]
 "[| mono1(A, r, B, s, h); refl(A,r); trans[B](s); \
 \       ALL x:state. f(x):A & g(x):A |] ==> \
 \ (INT j:A. {s:state. <j, g(s)>:r} LeadsTo {s:state. <j,f(s)>:r}) <= \

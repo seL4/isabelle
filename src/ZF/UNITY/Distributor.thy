@@ -158,8 +158,9 @@ apply (rule Follows_msetsum_UN)
 apply (auto simp add: distr_spec_def distr_follows_def)
 apply (drule guaranteesD, assumption)
 apply (simp_all cong add: Follows_cong
-    add: refl_prefix
-       mono_bag_of [THEN subset_Follows_comp, THEN subsetD, unfolded comp_def])
+		add: refl_prefix
+		   mono_bag_of [THEN subset_Follows_comp, THEN subsetD, 
+				unfolded metacomp_def])
 done
 
 end

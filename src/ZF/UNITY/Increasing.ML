@@ -37,7 +37,7 @@ qed "increasing_constant";
 Addsimps [increasing_constant];
 
 Goalw [increasing_def, stable_def, part_order_def, 
-       constrains_def, mono1_def, comp_def]
+       constrains_def, mono1_def, metacomp_def]
 "[| mono1(A, r, B, s, g); refl(A, r); trans[B](s)  |] ==> \
 \  increasing[A](r, f) <= increasing[B](s, g comp f)";
 by (Clarify_tac 1);
@@ -113,7 +113,7 @@ qed "Increasing_constant";
 Addsimps [Increasing_constant];
 
 Goalw [Increasing_def, Stable_def, Constrains_def, part_order_def, 
-       constrains_def, mono1_def, comp_def]
+       constrains_def, mono1_def, metacomp_def]
 "[| mono1(A, r, B, s, g); refl(A, r); trans[B](s) |] ==> \
 \  Increasing[A](r, f) <= Increasing[B](s, g comp f)";
 by Safe_tac;

@@ -922,6 +922,9 @@ by blast
 lemma Union_Pow_eq [simp]: "Union(Pow(A)) = A"
 by blast
 
+lemma Union_Pow_iff: "Union(A) \<in> Pow(B) <-> A \<in> Pow(Pow(B))"
+by blast
+
 lemma Pow_Int_eq [simp]: "Pow(A Int B) = Pow(A) Int Pow(B)"
 by blast
 
@@ -1231,6 +1234,7 @@ val Un_Pow_subset = thm "Un_Pow_subset";
 val UN_Pow_subset = thm "UN_Pow_subset";
 val subset_Pow_Union = thm "subset_Pow_Union";
 val Union_Pow_eq = thm "Union_Pow_eq";
+val Union_Pow_iff = thm "Union_Pow_iff";
 val Pow_Int_eq = thm "Pow_Int_eq";
 val Pow_INT_eq = thm "Pow_INT_eq";
 val RepFun_eq_0_iff = thm "RepFun_eq_0_iff";
