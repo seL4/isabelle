@@ -48,6 +48,27 @@ by Auto_tac;
 qed "finite_range_updI";
 
 
+section "sum_case and empty/map_upd";
+
+Goal "sum_case (m(k|->y)) empty =  (sum_case m empty)(Inl k|->y)";
+by (rtac ext 1);
+by (simp_tac (simpset() addsplits [sum.split]) 1);
+qed "sum_case_map_upd_empty";
+Addsimps[sum_case_map_upd_empty];
+
+Goal "sum_case empty (m(k|->y)) =  (sum_case empty m)(Inr k|->y)";
+by (rtac ext 1);
+by (simp_tac (simpset() addsplits [sum.split]) 1);
+qed "sum_case_empty_map_upd";
+Addsimps[sum_case_empty_map_upd];
+
+Goal "sum_case (m1(k1|->y1)) (m2(k2|->y2)) = (sum_case (m1(k1|->y1)) m2)(Inr k2|->y2)";
+by (rtac ext 1);
+by (simp_tac (simpset() addsplits [sum.split]) 1);
+qed "sum_case_map_upd_map_upd";
+Addsimps[sum_case_map_upd_map_upd];
+
+
 section "map_upds";
 
 Goal "a ~: set as --> (!m bs. (m(a|->b)(as[|->]bs)) = (m(as[|->]bs)(a|->b)))";
@@ -93,9 +114,10 @@ by (induct_tac "l" 1);
 by  Auto_tac;
 qed_spec_mp "weak_map_of_SomeI";
 
-Goal "[| map_of xs k = Some z; P z |] ==> map_of [(k,z):xs . P z] k = Some z";
+Goal 
+"[| map_of xs k = Some z; P k z |] ==> map_of (filter (split P) xs) k = Some z";
 by (rtac mp 1);
-by (assume_tac 2);
+by (atac 2);
 by (etac thin_rl 1);
 by (induct_tac "xs" 1);
 by  Auto_tac;
@@ -108,6 +130,11 @@ by (rtac finite_subset 1);
 by (assume_tac 2);
 by Auto_tac;
 qed "finite_range_map_of";
+
+Goal "map_of (map (%(a,b). (a,f b)) xs) x = option_map f (map_of xs x)";
+by (induct_tac "xs" 1);
+by Auto_tac;
+qed "map_of_map";
 
 
 section "option_map related";
@@ -123,6 +150,7 @@ by (Simp_tac 1);
 qed "option_map_o_map_upd";
 
 Addsimps[option_map_o_empty, option_map_o_map_upd];
+
 
 section "++";
 
