@@ -17,16 +17,13 @@ typedef (CFun)  ('a, 'b) "->" (infixr 0) = "{f. cont f}" (CfunI)
 instance "->"  :: (cpo,cpo)sq_ord
 
 consts  
-        fapp      :: "('a -> 'b)=>('a => 'b)"   (* usually Rep_Cfun *)
+        fapp      :: "('a -> 'b)=>('a => 'b)" ("_`_" [999,1000] 999)
+					        (* usually Rep_Cfun *)
                                                 (* application      *)
         fabs      :: "('a => 'b)=>('a -> 'b)"     (binder "LAM " 10)
                                                 (* usually Abs_Cfun *)
                                                 (* abstraction      *)
         less_cfun :: "[('a -> 'b),('a -> 'b)]=>bool"
-
-syntax  "@fapp"   :: "('a -> 'b)=>('a => 'b)" ("_`_" [999,1000] 999)
-
-translations "f`x" == "fapp f x"
 
 syntax (symbols)
   "->"		:: [type, type] => type	("(_ \\<rightarrow>/ _)" [1,0]0)
