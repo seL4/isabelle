@@ -11,7 +11,7 @@ Goal "number_of v + (number_of v' + (k::nat)) = \
 \         else if neg (number_of v') then number_of v + k \
 \         else number_of (bin_add v v') + k)";
 by (Simp_tac 1);
-qed "add_nat_number_of_add";
+qed "nat_number_of_add_left";
 
 
 (** For cancel_numerals **)
@@ -19,49 +19,50 @@ qed "add_nat_number_of_add";
 Goal "j <= (i::nat) ==> ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)";
 by (asm_simp_tac (simpset() addsplits [nat_diff_split'] 
 		            addsimps [add_mult_distrib]) 1);
-qed "diff_add_eq1";
+qed "nat_diff_add_eq1";
 
 Goal "i <= (j::nat) ==> ((i*u + m) - (j*u + n)) = (m - ((j-i)*u + n))";
 by (asm_simp_tac (simpset() addsplits [nat_diff_split'] 
 		            addsimps [add_mult_distrib]) 1);
-qed "diff_add_eq2";
+qed "nat_diff_add_eq2";
 
 Goal "j <= (i::nat) ==> (i*u + m = j*u + n) = ((i-j)*u + m = n)";
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
                                   addsimps [add_mult_distrib]));
-qed "eq_add_iff1";
+qed "nat_eq_add_iff1";
 
 Goal "i <= (j::nat) ==> (i*u + m = j*u + n) = (m = (j-i)*u + n)";
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
                                   addsimps [add_mult_distrib]));
-qed "eq_add_iff2";
+qed "nat_eq_add_iff2";
 
 Goal "j <= (i::nat) ==> (i*u + m < j*u + n) = ((i-j)*u + m < n)";
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
                                   addsimps [add_mult_distrib]));
-qed "less_add_iff1";
+qed "nat_less_add_iff1";
 
 Goal "i <= (j::nat) ==> (i*u + m < j*u + n) = (m < (j-i)*u + n)";
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
                                   addsimps [add_mult_distrib]));
-qed "less_add_iff2";
+qed "nat_less_add_iff2";
 
 Goal "j <= (i::nat) ==> (i*u + m <= j*u + n) = ((i-j)*u + m <= n)";
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
                                   addsimps [add_mult_distrib]));
-qed "le_add_iff1";
+qed "nat_le_add_iff1";
 
 Goal "i <= (j::nat) ==> (i*u + m <= j*u + n) = (m <= (j-i)*u + n)";
 by (auto_tac (claset(), simpset() addsplits [nat_diff_split'] 
                                   addsimps [add_mult_distrib]));
-qed "le_add_iff2";
+qed "nat_le_add_iff2";
 
 structure Nat_Numeral_Simprocs =
 struct
 
-(*Utilities for simproc inverse_fold*)
+(*Utilities*)
 
-fun mk_numeral n = HOLogic.number_of_const $ NumeralSyntax.mk_bin n;
+fun mk_numeral n = HOLogic.number_of_const HOLogic.natT $ 
+                   NumeralSyntax.mk_bin n;
 
 (*Decodes a unary or binary numeral to a NATURAL NUMBER*)
 fun dest_numeral (Const ("0", _)) = 0
@@ -78,7 +79,9 @@ fun find_first_numeral past (t::terms) =
 val zero = mk_numeral 0;
 val mk_plus = HOLogic.mk_binop "op +";
 
+(*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
+  | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
 val dest_plus = HOLogic.dest_bin "op +" HOLogic.natT;
@@ -110,9 +113,13 @@ fun prove_conv tacs sg (t, u) =
 	  ("The error(s) above occurred while trying to prove " ^
 	   (string_of_cterm (cterm_of sg (mk_eqv (t, u))))));
 
-fun all_simp_tac ss rules = ALLGOALS (simp_tac (ss addsimps rules));
+val bin_simps = [add_nat_number_of, nat_number_of_add_left,
+		 diff_nat_number_of, le_nat_number_of_eq_not_less, 
+		 less_nat_number_of, Let_number_of, nat_number_of] @ 
+                bin_arith_simps @ bin_rel_simps;
 
 val add_norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps add_ac));
+
 
 (****combine_coeffs will make this obsolete****)
 structure FoldSucData =
@@ -128,8 +135,8 @@ structure FoldSucData =
   val double_diff_eq	= diff_add_assoc_diff
   val move_diff_eq	= diff_add_assoc2
   val prove_conv	= prove_conv
-  val numeral_simp_tac	= all_simp_tac (simpset()
-					  addsimps [Suc_nat_number_of_add])
+  val numeral_simp_tac	= ALLGOALS
+                (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@bin_simps))
   val add_norm_tac	= ALLGOALS (simp_tac (simpset() addsimps Suc_eq_add_numeral_1::add_ac))
   end;
 
@@ -185,9 +192,6 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 val add_0s = map (rename_numerals NatBin.thy) [add_0, add_0_right];
 val mult_1s = map (rename_numerals NatBin.thy) [mult_1, mult_1_right];
 
-val bin_simps = [add_nat_number_of, add_nat_number_of_add] @ 
-                bin_arith_simps @ bin_rel_simps;
-
 structure CancelNumeralsCommon =
   struct
   val mk_sum    	= mk_sum
@@ -196,11 +200,12 @@ structure CancelNumeralsCommon =
   val dest_coeff	= dest_coeff
   val find_first_coeff	= find_first_coeff []
   val prove_conv	= prove_conv
-  val numeral_simp_tac	= ALLGOALS (simp_tac (simpset() addsimps [numeral_0_eq_0 RS sym]))
   val norm_tac = ALLGOALS
                    (simp_tac (HOL_ss addsimps add_0s@mult_1s@bin_simps@
                                               [Suc_eq_add_numeral_1]@add_ac))
                  THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
+  val numeral_simp_tac	= ALLGOALS
+                (simp_tac (HOL_ss addsimps [numeral_0_eq_0 RS sym]@add_0s@bin_simps))
   end;
 
 
@@ -209,8 +214,8 @@ structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
-  val bal_add1	= eq_add_iff1 RS trans
-  val bal_add2	= eq_add_iff2 RS trans
+  val bal_add1	= nat_eq_add_iff1 RS trans
+  val bal_add2	= nat_eq_add_iff2 RS trans
 );
 
 (* nat less *)
@@ -218,8 +223,8 @@ structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT
-  val bal_add1	= less_add_iff1 RS trans
-  val bal_add2	= less_add_iff2 RS trans
+  val bal_add1	= nat_less_add_iff1 RS trans
+  val bal_add2	= nat_less_add_iff2 RS trans
 );
 
 (* nat le *)
@@ -227,8 +232,8 @@ structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT
-  val bal_add1	= le_add_iff1 RS trans
-  val bal_add2	= le_add_iff2 RS trans
+  val bal_add1	= nat_le_add_iff1 RS trans
+  val bal_add2	= nat_le_add_iff2 RS trans
 );
 
 (* nat diff *)
@@ -236,8 +241,8 @@ structure DiffCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val mk_bal   = HOLogic.mk_binop "op -"
   val dest_bal = HOLogic.dest_bin "op -" HOLogic.natT
-  val bal_add1	= diff_add_eq1 RS trans
-  val bal_add2	= diff_add_eq2 RS trans
+  val bal_add1	= nat_diff_add_eq1 RS trans
+  val bal_add2	= nat_diff_add_eq2 RS trans
 );
 
 
@@ -268,7 +273,7 @@ val cancel_numerals =
 end;
 
 
-Addsimprocs [Nat_Numeral_Simprocs.fold_Suc];
+(**Addsimprocs [Nat_Numeral_Simprocs.fold_Suc];**)
 Addsimprocs Nat_Numeral_Simprocs.cancel_numerals;
 
 (*examples:
