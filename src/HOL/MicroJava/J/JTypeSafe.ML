@@ -135,10 +135,8 @@ Goalw [wf_java_prog_def]
 \ xc\\<le>|h' \\<and> (h', l)\\<Colon>\\<preceq>(G, lT) \\<and>  (x' = None \\<longrightarrow> G,h'\\<turnstile>v\\<Colon>\\<preceq>rTa)";
 by( dtac (insertI1 RSN (2,(equalityD2 RS subsetD))) 1);
 by( dtac (max_spec2appl_meths RS appl_methsD) 1);
-by( etac conjE 1);
-by( dtac non_np_objD' 1);
-by(    atac 1);
-by(   atac 1);
+by( Clarify_tac 1);
+by( datac non_np_objD' 2 1);
 by(  strip_tac1 1);
 by(  Asm_full_simp_tac 1);
 by( Clarsimp_tac 1);
@@ -325,13 +323,9 @@ by   Auto_tac;
 qed "exec_type_sound";
 
 Goal "\\<lbrakk>G=prg E; wf_java_prog G; G\\<turnstile>(x,s) -e\\<succ>a'\\<rightarrow> Norm s'; a' \\<noteq> Null;\
-\         s\\<Colon>\\<preceq>E; E\\<turnstile>e\\<Colon>Class C; m_head G C sig \\<noteq> None\\<rbrakk> \\<Longrightarrow> \
+\         s\\<Colon>\\<preceq>E; E\\<turnstile>e\\<Colon>Class C; method (G,C) sig \\<noteq> None\\<rbrakk> \\<Longrightarrow> \
 \ method (G,fst (the (heap s' (the_Addr a')))) sig \\<noteq> None";
-by( dtac eval_type_sound 1);
-by(     atac 1);
-by(    atac 1);
-by(   atac 1);
-by(  atac 1);
+by( datac eval_type_sound 4 1);
 by( not_None_tac 1);
 by( split_all_tac 1);
 by(rewtac wf_java_prog_def);

@@ -36,21 +36,18 @@ consts
 
   more_spec	:: "'c prog \\<Rightarrow> (ty \\<times> 'x) \\<times> ty list \\<Rightarrow>
 		               (ty \\<times> 'x) \\<times> ty list \\<Rightarrow> bool"
-  m_head	:: "'c prog \\<Rightarrow>  cname \\<Rightarrow> sig \\<Rightarrow>  (ty \\<times> ty) option"
   appl_methds	:: "'c prog \\<Rightarrow>  cname \\<Rightarrow> sig \\<Rightarrow> ((ty \\<times> ty) \\<times> ty list) set"
   max_spec	:: "'c prog \\<Rightarrow>  cname \\<Rightarrow> sig \\<Rightarrow> ((ty \\<times> ty) \\<times> ty list) set"
 
 defs
 
-  m_head_def  "m_head G C sig \\<equiv> 
-		 option_map (\\<lambda>(md,(rT,mb)). (Class md,rT)) (method (G,C) sig)"
-                                                               
   more_spec_def	  "more_spec G \\<equiv> \\<lambda>((d,h),pTs). \\<lambda>((d',h'),pTs'). G\\<turnstile>d\\<preceq>d' \\<and>
 		                  list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'"
   
   (* applicable methods, cf. 15.11.2.1 *)
-  appl_methds_def "appl_methds G C \\<equiv> \\<lambda>(mn, pTs). {(mh,pTs') |mh pTs'.
-		                  m_head G C (mn, pTs') = Some mh \\<and>
+  appl_methds_def "appl_methds G C \\<equiv> \\<lambda>(mn, pTs).
+		                 {((Class md,rT),pTs') |md rT mb pTs'.
+		                  method (G,C)  (mn, pTs') = Some (md,rT,mb) \\<and>
 		                  list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'}"
 
   (* maximally specific methods, cf. 15.11.2.2 *)
