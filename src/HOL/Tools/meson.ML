@@ -268,13 +268,6 @@ fun make_horns ths =
     name_thms "Horn#"
       (gen_distinct Drule.eq_thm_prop (foldr (add_contras clause_rules) (ths,[])));
 
-(*Convert a list of clauses to meta-level clauses, with no contrapositives,
-  for ordinary resolution.*)
-fun make_meta_clauses ths =
-    name_thms "MClause#"
-      (gen_distinct Drule.eq_thm_prop
-       (map (make_horn resolution_clause_rules) ths));
-
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)
 
@@ -348,7 +341,45 @@ fun meson_claset_tac cs =
 val meson_tac = CLASET' meson_claset_tac;
 
 
-(* proof method setup *)
+(** Code to support ordinary resolution, rather than Model Elimination **)
+
+(*Convert a list of clauses to meta-level clauses, with no contrapositives,
+  for ordinary resolution.*)
+
+(*Rules to convert the head literal into a negated assumption. If the head
+  literal is already negated, then using notEfalse instead of notEfalse'
+  prevents a double negation.*)
+val notEfalse = read_instantiate [("R","False")] notE;
+val notEfalse' = rotate_prems 1 notEfalse;
+
+fun negate_nead th = 
+    th RS notEfalse handle THM _ => th RS notEfalse';
+
+(*Converting one clause*)
+fun make_meta_clause th = negate_nead (make_horn resolution_clause_rules th);
+
+fun make_meta_clauses ths =
+    name_thms "MClause#"
+      (gen_distinct Drule.eq_thm_prop (map make_meta_clause ths));
+
+(*Permute a rule's premises to move the i-th premise to the last position.*)
+fun make_last i th =
+  let val n = nprems_of th 
+  in  if 1 <= i andalso i <= n 
+      then Thm.permute_prems (i-1) 1 th
+      else raise THM("make_last", i, [th])
+  end;
+
+(*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
+  double-negations.*)
+val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
+
+(*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
+fun select_literal i cl = negate_head (make_last i cl);
+
+
+
+(** proof method setup **)
 
 local
 
