@@ -7,5 +7,5 @@
 Syntax.ambiguity_level := 100;
 
 time_use_thy "Eta";
-time_use_thy "Accessible_Part";
+no_document time_use_thy "Accessible_Part";
 time_use_thy "Type";
