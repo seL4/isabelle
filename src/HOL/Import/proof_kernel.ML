@@ -1236,10 +1236,10 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	    Some (Some thmname) =>
 	    let
 		val _ = message ("Looking for " ^ thmname)
-		val th1 = (Some (transform_error (PureThy.get_thm thy) thmname)
+		val th1 = (Some (transform_error (PureThy.get_thm thy) (thmname, None))
 			   handle ERROR_MESSAGE _ =>
 				  (case split_name thmname of
-				       Some (listname,idx) => (Some (nth_elem(idx-1,PureThy.get_thms thy listname))
+				       Some (listname,idx) => (Some (nth_elem(idx-1,PureThy.get_thms thy (listname, None)))
 							       handle _ => None)
 				     | None => None))
 	    in

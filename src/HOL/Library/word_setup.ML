@@ -24,7 +24,7 @@ local
     fun add_word thy =
 	let
  (*lcp**	    val fast1_th = PureThy.get_thm thy "Word.fast_nat_to_bv_def"**)
-	    val fast2_th = PureThy.get_thm thy "Word.fast_bv_to_nat_def"
+	    val fast2_th = PureThy.get_thm thy ("Word.fast_bv_to_nat_def", None)
  (*lcp**	    fun f sg thms (Const("Word.nat_to_bv",_) $ (Const("Numeral.number_of",_) $ t)) =
 		if num_is_usable t
 		then Some (Drule.cterm_instantiate [(cterm_of sg (Var(("w",0),Type("Numeral.bin",[]))),cterm_of sg t)] fast1_th)

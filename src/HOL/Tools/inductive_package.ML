@@ -51,7 +51,7 @@ sig
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val add_inductive: bool -> bool -> string list ->
-    ((bstring * string) * Args.src list) list -> (xstring * Args.src list) list ->
+    ((bstring * string) * Args.src list) list -> (thmref * Args.src list) list ->
     theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
@@ -617,11 +617,11 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     val sign = Theory.sign_of thy;
 
     val sum_case_rewrites =
-      (if PureThy.get_name thy = "Datatype" then PureThy.get_thms thy "sum.cases"
+      (if PureThy.get_name thy = "Datatype" then PureThy.get_thms thy ("sum.cases", None)
         else
           (case ThyInfo.lookup_theory "Datatype" of
             None => []
-          | Some thy' => PureThy.get_thms thy' "sum.cases")) |> map mk_meta_eq;
+          | Some thy' => PureThy.get_thms thy' ("sum.cases", None))) |> map mk_meta_eq;
 
     val (preds, ind_prems, mutual_ind_concl, factors) =
       mk_indrule cs cTs params intr_ts;
