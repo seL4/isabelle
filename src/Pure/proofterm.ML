@@ -47,6 +47,7 @@ sig
   val add_prf_tfree_names : string list * proof -> string list
   val add_prf_tvar_ixns : indexname list * proof -> indexname list
   val maxidx_of_proof : proof -> int
+  val size_of_proof : proof -> int
   val change_type : typ list option -> proof -> proof
   val prf_abstract_over : term -> proof -> proof
   val prf_incr_bv : int -> int -> int -> int -> proof -> proof
@@ -270,6 +271,14 @@ val add_prf_tvar_ixns = fold_proof_terms add_term_tvar_ixns (add_typ_ixns o swap
 
 fun maxidx_of_proof prf = fold_proof_terms
   (Int.max o apfst maxidx_of_term) (Int.max o apfst maxidx_of_typ) (~1, prf); 
+
+fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
+  | size_of_proof (AbsP (_, t, prf)) =
+      if_none (apsome size_of_term t) 1 + size_of_proof prf
+  | size_of_proof (prf1 %% prf2) = size_of_proof prf1 + size_of_proof prf2
+  | size_of_proof (prf % t) =
+      if_none (apsome size_of_term t) 1 + size_of_proof prf
+  | size_of_proof _ = 1;
 
 fun change_type opTs (PThm (name, prf, prop, _)) = PThm (name, prf, prop, opTs)
   | change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
