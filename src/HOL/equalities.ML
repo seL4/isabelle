@@ -720,6 +720,8 @@ by (case_tac "b" 1);
 by Auto_tac;
 qed "all_bool_eq";
 
+bind_thm ("bool_induct", conjI RS (all_bool_eq RS iffD2) RS spec);
+
 Goal "(EX b::bool. P b) = (P True | P False)";
 by Auto_tac;
 by (case_tac "b" 1);
