@@ -73,7 +73,7 @@ val scan_esc =
 
 val scan_str =
   scan_esc ||
-  scan_blank >> K " " ||
+  scan_blank >> K Symbol.space ||
   keep_line (Scan.one (not_equal "\"" andf Symbol.not_eof));
 
 val scan_string =
