@@ -343,7 +343,9 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 
 (** Standard abbreviations **)
 
-fun stac th = CHANGED o rtac (th RS ssubst);
+(*Fails unless the substitution has an effect*)
+fun stac th = CHANGED_GOAL (rtac (th RS ssubst));
+
 fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
 
 

@@ -238,7 +238,9 @@ val [not_sym] = compose(sym,2,contrapos);
 
 (*Substitution: rule and tactic*)
 bind_thm ("ssubst", sym RS subst);
-fun stac th = CHANGED o rtac (th RS ssubst);
+
+(*Fails unless the substitution has an effect*)
+fun stac th = CHANGED_GOAL (rtac (th RS ssubst));
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 qed_goal "ex1_equalsE" IFOL.thy
