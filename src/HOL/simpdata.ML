@@ -52,6 +52,9 @@ val AddIffs = seq addIff
 val DelIffs = seq delIff
 end;
 
+qed_goal "meta_eq_to_obj_eq" HOL.thy "x==y ==> x=y"
+  (fn [prem] => [rewtac prem, rtac refl 1]);
+
 local
 
   fun prover s = prove_goal HOL.thy s (K [blast_tac HOL_cs 1]);
@@ -95,7 +98,7 @@ val simp_thms = map prover
  [ "(x=x) = True",
    "(~True) = False", "(~False) = True", "(~ ~ P) = P",
    "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
-   "(True=P) = P", "(P=True) = P",
+   "(True=P) = P", "(P=True) = P", "(False=P) = (~P)", "(P=False) = (~P)",
    "(True --> P) = P", "(False --> P) = True", 
    "(P --> True) = True", "(P --> P) = True",
    "(P --> False) = (~P)", "(P --> ~P) = (~P)",
@@ -115,11 +118,15 @@ val simp_thms = map prover
 
 (*Add congruence rules for = (instead of ==) *)
 infix 4 addcongs delcongs;
-fun ss addcongs congs = ss addeqcongs 
-                        (map standard (congs RL [eq_reflection]));
 
-fun ss delcongs congs = ss deleqcongs 
-                        (map standard (congs RL [eq_reflection]));
+fun mk_meta_cong rl =
+  standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
+  handle THM _ =>
+  error("Premises and conclusion of congruence rules must be =-equalities");
+
+fun ss addcongs congs = ss addeqcongs (map mk_meta_cong congs);
+
+fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
 
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
@@ -240,9 +247,6 @@ prove "eq_sym_conv" "(x=y) = (y=x)";
 
 qed_goalw "o_apply" HOL.thy [o_def] "(f o g) x = f (g x)"
  (K [rtac refl 1]);
-
-qed_goal "meta_eq_to_obj_eq" HOL.thy "x==y ==> x=y"
-  (fn [prem] => [rewtac prem, rtac refl 1]);
 
 qed_goalw "if_True" HOL.thy [if_def] "(if True then x else y) = x"
  (K [Blast_tac 1]);
@@ -370,10 +374,10 @@ val mksimps_pairs =
    ("All", [spec]), ("True", []), ("False", []),
    ("If", [if_bool_eq RS iffD1])];
 
-fun unsafe_solver prems = FIRST'[resolve_tac (TrueI::refl::prems),
+fun unsafe_solver prems = FIRST'[resolve_tac (reflexive_thm::TrueI::refl::prems),
 				 atac, etac FalseE];
 (*No premature instantiation of variables during simplification*)
-fun   safe_solver prems = FIRST'[match_tac (TrueI::refl::prems),
+fun   safe_solver prems = FIRST'[match_tac (reflexive_thm::TrueI::prems),
 				 eq_assume_tac, ematch_tac [FalseE]];
 
 val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac

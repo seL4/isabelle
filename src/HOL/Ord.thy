@@ -45,4 +45,7 @@ axclass order < ord
   order_antisym "[| x <= y; y <= x |] ==> x = y"
   order_less_le "x < y = (x <= y & x ~= y)"
 
+axclass linorder < order
+  linorder_linear "x <= y | y <= x"
+
 end

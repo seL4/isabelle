@@ -54,3 +54,38 @@ by (split_tac [expand_if] 1);
 by (Asm_simp_tac 1);
 by (blast_tac (claset() addIs [order_antisym]) 1);
 qed "min_leastR";
+
+
+section "Linear/Total Orders";
+
+goal thy "!!x::'a::linorder. x<y | x=y | y<x";
+by (simp_tac (simpset() addsimps [order_less_le]) 1);
+by(cut_facts_tac [linorder_linear] 1);
+by (Blast_tac 1);
+qed "linorder_less_linear";
+
+goalw thy [max_def] "!!z::'a::linorder. (z <= max x y) = (z <= x | z <= y)";
+by (simp_tac (simpset() addsimps [] addsplits [expand_if]) 1);
+by(cut_facts_tac [linorder_linear] 1);
+by (blast_tac (claset() addIs [order_trans]) 1);
+qed "le_max_iff_disj";
+
+goalw thy [max_def] "!!z::'a::linorder. (max x y <= z) = (x <= z & y <= z)";
+by (simp_tac (simpset() addsimps [] addsplits [expand_if]) 1);
+by(cut_facts_tac [linorder_linear] 1);
+by (blast_tac (claset() addIs [order_trans]) 1);
+qed "max_le_iff_conj";
+
+goalw thy [min_def] "!!z::'a::linorder. (z <= min x y) = (z <= x & z <= y)";
+by (simp_tac (simpset() addsimps [] addsplits [expand_if]) 1);
+by(cut_facts_tac [linorder_linear] 1);
+by (blast_tac (claset() addIs [order_trans]) 1);
+qed "le_min_iff_conj";
+
+goalw thy [min_def] "!!z::'a::linorder. (min x y <= z) = (x <= z | y <= z)";
+by (simp_tac (simpset() addsimps [] addsplits [expand_if]) 1);
+by(cut_facts_tac [linorder_linear] 1);
+by (blast_tac (claset() addIs [order_trans]) 1);
+qed "min_le_iff_disj";
+
+

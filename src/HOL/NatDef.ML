@@ -588,7 +588,15 @@ by (rtac iffI 1);
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]) 1);
 qed "nat_less_le";
 
-(** max **)
+(* Axiom 'linorder_linear' of class 'linorder': *)
+goal thy "(m::nat) <= n | n <= m";
+by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (cut_facts_tac [less_linear] 1);
+by(Blast_tac 1);
+qed "nat_le_linear";
+
+
+(** max
 
 goalw thy [max_def] "!!z::nat. (z <= max x y) = (z <= x | z <= y)";
 by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
@@ -612,7 +620,7 @@ goalw thy [min_def] "!!z::nat. (min x y <= z) = (x <= z | y <= z)";
 by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
 by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
 qed "min_le_iff_disj";
-
+ **)
 
 (** LEAST -- the least number operator **)
 
@@ -624,8 +632,6 @@ val lemma = result();
 goalw thy [Least_def]
   "(LEAST n::nat. P n) == (@n. P(n) & (ALL m. m < n --> ~P(m)))";
 by (simp_tac (simpset() addsimps [lemma]) 1);
-by (rtac eq_reflection 1);
-by (rtac refl 1);
 qed "Least_nat_def";
 
 val [prem1,prem2] = goalw thy [Least_nat_def]
