@@ -18,6 +18,8 @@ header{*Progress Sets*}
 
 theory ProgressSets = Transformers:
 
+subsection {*Complete Lattices and the Operator @{term cl}*}
+
 constdefs
   lattice :: "'a set set => bool"
    --{*Meier calls them closure sets, but they are just complete lattices*}
@@ -97,8 +99,7 @@ done
 
 lemma cl_UN: "lattice L ==> cl L (\<Union>i\<in>I. r i) = (\<Union>i\<in>I. cl L (r i))"
 apply (rule equalityI) 
- prefer 2 
-  apply (simp add: cl_def, blast)
+ prefer 2 apply (simp add: cl_def, blast)
 apply (rule cl_least)
  apply (blast intro: UN_in_lattice cl_in_lattice)
 apply (blast intro: subset_cl [THEN subsetD])  
@@ -122,6 +123,8 @@ lemma cl_subset_in_lattice: "[|cl L r \<subseteq> r; lattice L|] ==> r\<in>L"
 by (simp add: cl_ident_iff [symmetric] equalityI subset_cl)
 
 
+subsection {*Progress Sets and the Main Lemma*}
+
 constdefs 
   closed :: "['a program, 'a set, 'a set,  'a set set] => bool"
    "closed F T B L == \<forall>M. \<forall>act \<in> Acts F. B\<subseteq>M & T\<inter>M \<in> L -->
@@ -136,93 +139,102 @@ lemma closedD:
     ==> T \<inter> (B \<union> wp act M) \<in> L"
 by (simp add: closed_def) 
 
+text{*Note: the formalization below replaces Meier's @{term q} by @{term B}
+and @{term m} by @{term X}. *}
+
+text{*Part of the proof of the claim at the bottom of page 97.  It's
+proved separately because the argument requires a generalization over
+all @{term "act \<in> Acts F"}.*}
 lemma lattice_awp_lemma:
-  assumes tmc:  "T\<inter>m \<in> C" --{*induction hypothesis in theorem below*}
-      and qsm:  "q \<subseteq> m"   --{*holds in inductive step*}
+  assumes TXC:  "T\<inter>X \<in> C" --{*induction hypothesis in theorem below*}
+      and BsubX:  "B \<subseteq> X"   --{*holds in inductive step*}
       and latt: "lattice C"
-      and tc:   "T \<in> C"
-      and qc:   "q \<in> C"
-      and clos: "closed F T q C"
-    shows "T \<inter> (q \<union> awp F (m \<union> cl C (T\<inter>r))) \<in> C"
+      and TC:   "T \<in> C"
+      and BC:   "B \<in> C"
+      and clos: "closed F T B C"
+    shows "T \<inter> (B \<union> awp F (X \<union> cl C (T\<inter>r))) \<in> C"
 apply (simp del: INT_simps add: awp_def INT_extend_simps) 
 apply (rule INT_in_lattice [OF latt]) 
 apply (erule closedD [OF clos]) 
-apply (simp add: subset_trans [OF qsm Un_upper1]) 
-apply (subgoal_tac "T \<inter> (m \<union> cl C (T\<inter>r)) = (T\<inter>m) \<union> cl C (T\<inter>r)")
- prefer 2 apply (blast intro: tc rev_subsetD [OF _ cl_least]) 
+apply (simp add: subset_trans [OF BsubX Un_upper1]) 
+apply (subgoal_tac "T \<inter> (X \<union> cl C (T\<inter>r)) = (T\<inter>X) \<union> cl C (T\<inter>r)")
+ prefer 2 apply (blast intro: TC rev_subsetD [OF _ cl_least]) 
 apply (erule ssubst) 
-apply (blast intro: Un_in_lattice latt cl_in_lattice tmc) 
+apply (blast intro: Un_in_lattice latt cl_in_lattice TXC) 
 done
 
+text{*Remainder of the proof of the claim at the bottom of page 97.*}
 lemma lattice_lemma:
-  assumes tmc:  "T\<inter>m \<in> C" --{*induction hypothesis in theorem below*}
-      and qsm:  "q \<subseteq> m"   --{*holds in inductive step*}
+  assumes TXC:  "T\<inter>X \<in> C" --{*induction hypothesis in theorem below*}
+      and BsubX:  "B \<subseteq> X"   --{*holds in inductive step*}
       and act:  "act \<in> Acts F"
       and latt: "lattice C"
-      and tc:   "T \<in> C"
-      and qc:   "q \<in> C"
-      and clos: "closed F T q C"
-    shows "T \<inter> (wp act m \<inter> awp F (m \<union> cl C (T\<inter>r)) \<union> m) \<in> C"
-apply (subgoal_tac "T \<inter> (q \<union> wp act m) \<in> C")
- prefer 2 apply (simp add: closedD [OF clos] act qsm tmc)
+      and TC:   "T \<in> C"
+      and BC:   "B \<in> C"
+      and clos: "closed F T B C"
+    shows "T \<inter> (wp act X \<inter> awp F (X \<union> cl C (T\<inter>r)) \<union> X) \<in> C"
+apply (subgoal_tac "T \<inter> (B \<union> wp act X) \<in> C")
+ prefer 2 apply (simp add: closedD [OF clos] act BsubX TXC)
 apply (drule Int_in_lattice
-              [OF _ lattice_awp_lemma [OF tmc qsm latt tc qc clos, of r]
+              [OF _ lattice_awp_lemma [OF TXC BsubX latt TC BC clos, of r]
                     latt])
 apply (subgoal_tac
-	 "T \<inter> (q \<union> wp act m) \<inter> (T \<inter> (q \<union> awp F (m \<union> cl C (T\<inter>r)))) = 
-	  T \<inter> (q \<union> wp act m \<inter> awp F (m \<union> cl C (T\<inter>r)))") 
+	 "T \<inter> (B \<union> wp act X) \<inter> (T \<inter> (B \<union> awp F (X \<union> cl C (T\<inter>r)))) = 
+	  T \<inter> (B \<union> wp act X \<inter> awp F (X \<union> cl C (T\<inter>r)))") 
  prefer 2 apply blast 
 apply simp  
-apply (drule Un_in_lattice [OF _ tmc latt]) 
+apply (drule Un_in_lattice [OF _ TXC latt])  
 apply (subgoal_tac
-	 "T \<inter> (q \<union> wp act m \<inter> awp F (m \<union> cl C (T\<inter>r))) \<union> T\<inter>m = 
-	  T \<inter> (wp act m \<inter> awp F (m \<union> cl C (T\<inter>r)) \<union> m)")
- prefer 2 apply (blast intro: qsm [THEN subsetD], simp) 
+	 "T \<inter> (B \<union> wp act X \<inter> awp F (X \<union> cl C (T\<inter>r))) \<union> T\<inter>X = 
+	  T \<inter> (wp act X \<inter> awp F (X \<union> cl C (T\<inter>r)) \<union> X)")
+ apply simp 
+apply (blast intro: BsubX [THEN subsetD]) 
 done
 
 
+text{*Induction step for the main lemma*}
 lemma progress_induction_step:
-  assumes tmc:  "T\<inter>m \<in> C" --{*induction hypothesis in theorem below*}
+  assumes TXC:  "T\<inter>X \<in> C" --{*induction hypothesis in theorem below*}
       and act:  "act \<in> Acts F"
-      and mwens: "m \<in> wens_set F q"
+      and Xwens: "X \<in> wens_set F B"
       and latt: "lattice C"
-      and  tc:  "T \<in> C"
-      and  qc:  "q \<in> C"
-      and clos: "closed F T q C"
+      and  TC:  "T \<in> C"
+      and  BC:  "B \<in> C"
+      and clos: "closed F T B C"
       and Fstable: "F \<in> stable T"
-  shows "T \<inter> wens F act m \<in> C"
+  shows "T \<inter> wens F act X \<in> C"
 proof -
-from mwens have qsm: "q \<subseteq> m"
- by (rule wens_set_imp_subset) 
-let ?r = "wens F act m"
-have "?r \<subseteq> (wp act m \<inter> awp F (m\<union>?r)) \<union> m"
- by (simp add: wens_unfold [symmetric])
-then have "T\<inter>?r \<subseteq> T \<inter> ((wp act m \<inter> awp F (m\<union>?r)) \<union> m)"
- by blast
-then have "T\<inter>?r \<subseteq> T \<inter> ((wp act m \<inter> awp F (T \<inter> (m\<union>?r))) \<union> m)"
- by (simp add: awp_Int_eq Fstable stable_imp_awp_ident, blast) 
-then have "T\<inter>?r \<subseteq> T \<inter> ((wp act m \<inter> awp F (m \<union> cl C (T\<inter>?r))) \<union> m)"
- by (blast intro: awp_mono [THEN [2] rev_subsetD] subset_cl [THEN subsetD])
-then have "cl C (T\<inter>?r) \<subseteq> 
-           cl C (T \<inter> ((wp act m \<inter> awp F (m \<union> cl C (T\<inter>?r))) \<union> m))"
- by (rule cl_mono) 
-then have "cl C (T\<inter>?r) \<subseteq> 
-           T \<inter> ((wp act m \<inter> awp F (m \<union> cl C (T\<inter>?r))) \<union> m)"
- by (simp add: cl_ident lattice_lemma [OF tmc qsm act latt tc qc clos])
-then have "cl C (T\<inter>?r) \<subseteq> (wp act m \<inter> awp F (m \<union> cl C (T\<inter>?r))) \<union> m"
- by blast
-then have "cl C (T\<inter>?r) \<subseteq> ?r"
- by (blast intro!: subset_wens) 
-then have cl_subset: "cl C (T\<inter>?r) \<subseteq> T\<inter>?r"
- by (simp add: Int_subset_iff cl_ident tc
-               subset_trans [OF cl_mono [OF Int_lower1]]) 
-show ?thesis
- by (rule cl_subset_in_lattice [OF cl_subset latt]) 
+  from Xwens have BsubX: "B \<subseteq> X"
+    by (rule wens_set_imp_subset) 
+  let ?r = "wens F act X"
+  have "?r \<subseteq> (wp act X \<inter> awp F (X\<union>?r)) \<union> X"
+    by (simp add: wens_unfold [symmetric])
+  then have "T\<inter>?r \<subseteq> T \<inter> ((wp act X \<inter> awp F (X\<union>?r)) \<union> X)"
+    by blast
+  then have "T\<inter>?r \<subseteq> T \<inter> ((wp act X \<inter> awp F (T \<inter> (X\<union>?r))) \<union> X)"
+    by (simp add: awp_Int_eq Fstable stable_imp_awp_ident, blast) 
+  then have "T\<inter>?r \<subseteq> T \<inter> ((wp act X \<inter> awp F (X \<union> cl C (T\<inter>?r))) \<union> X)"
+    by (blast intro: awp_mono [THEN [2] rev_subsetD] subset_cl [THEN subsetD])
+  then have "cl C (T\<inter>?r) \<subseteq> 
+             cl C (T \<inter> ((wp act X \<inter> awp F (X \<union> cl C (T\<inter>?r))) \<union> X))"
+    by (rule cl_mono) 
+  then have "cl C (T\<inter>?r) \<subseteq> 
+             T \<inter> ((wp act X \<inter> awp F (X \<union> cl C (T\<inter>?r))) \<union> X)"
+    by (simp add: cl_ident lattice_lemma [OF TXC BsubX act latt TC BC clos])
+  then have "cl C (T\<inter>?r) \<subseteq> (wp act X \<inter> awp F (X \<union> cl C (T\<inter>?r))) \<union> X"
+    by blast
+  then have "cl C (T\<inter>?r) \<subseteq> ?r"
+    by (blast intro!: subset_wens) 
+  then have cl_subset: "cl C (T\<inter>?r) \<subseteq> T\<inter>?r"
+    by (simp add: Int_subset_iff cl_ident TC
+                  subset_trans [OF cl_mono [OF Int_lower1]]) 
+  show ?thesis
+    by (rule cl_subset_in_lattice [OF cl_subset latt]) 
 qed
 
-
+text{*The Lemma proved on page 96*}
 lemma progress_set_lemma:
-      "[|C \<in> progress_set F T B; r \<in> wens_set F B|] ==> T\<inter>r \<in> C"
+     "[|C \<in> progress_set F T B; r \<in> wens_set F B|] ==> T\<inter>r \<in> C"
 apply (simp add: progress_set_def, clarify) 
 apply (erule wens_set.induct) 
   txt{*Base*}
@@ -233,6 +245,51 @@ txt{*Disjunctive case*}
 apply (subgoal_tac "(\<Union>U\<in>W. T \<inter> U) \<in> C") 
  apply (simp add: Int_Union) 
 apply (blast intro: UN_in_lattice) 
+done
+
+
+subsection {*The Progress Set Union Theorem*}
+
+lemma closed_mono:
+  assumes BB':  "B \<subseteq> B'"
+      and TBwp: "T \<inter> (B \<union> wp act M) \<in> C"
+      and B'C:  "B' \<in> C"
+      and TC:   "T \<in> C"
+      and latt: "lattice C"
+  shows "T \<inter> (B' \<union> wp act M) \<in> C"
+proof -
+  from TBwp have "(T\<inter>B) \<union> (T \<inter> wp act M) \<in> C"
+    by (simp add: Int_Un_distrib)
+  then have TBBC: "(T\<inter>B') \<union> ((T\<inter>B) \<union> (T \<inter> wp act M)) \<in> C"
+    by (blast intro: Int_in_lattice Un_in_lattice TC B'C latt) 
+  show ?thesis
+    by (rule eqelem_imp_iff [THEN iffD1, OF _ TBBC], 
+        blast intro: BB' [THEN subsetD]) 
+qed
+
+
+lemma progress_set_mono:
+    assumes BB':  "B \<subseteq> B'"
+    shows
+     "[| B' \<in> C;  C \<in> progress_set F T B|] 
+      ==> C \<in> progress_set F T B'"
+by (simp add: progress_set_def closed_def closed_mono [OF BB'] 
+                 subset_trans [OF BB']) 
+
+theorem progress_set_Union:
+  assumes prog: "C \<in> progress_set F T B"
+      and BB':  "B \<subseteq> B'"
+      and B'C:  "B' \<in> C"
+      and Gco: "!!X. X\<in>C ==> G \<in> X-B co X"
+      and leadsTo: "F \<in> A leadsTo B'"
+  shows "F\<squnion>G \<in> T\<inter>A leadsTo B'"
+apply (insert prog) 
+apply (rule leadsTo_Join [OF leadsTo]) 
+  apply (force simp add: progress_set_def awp_iff_stable [symmetric]) 
+apply (simp add: awp_iff_constrains)
+apply (drule progress_set_mono [OF BB' B'C]) 
+apply (blast intro: progress_set_lemma Gco constrains_weaken_L 
+                    BB' [THEN subsetD]) 
 done
 
 end

@@ -3,11 +3,15 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 
-Predicate Transformers from 
+Predicate Transformers.  From 
 
     David Meier and Beverly Sanders,
     Composing Leads-to Properties
     Theoretical Computer Science 243:1-2 (2000), 339-361.
+
+    David Meier,
+    Progress Properties in Program Refinement and Parallel Composition
+    Swiss Federal Institute of Technology Zurich (1997)
 *)
 
 header{*Predicate Transformers*}
@@ -274,10 +278,10 @@ apply (rule_tac x = "\<Union>{Z. \<exists>U\<in>W. Z = f U}" in exI)
 apply (blast intro: wens_set.Union) 
 done
 
-theorem leadsTo_Union:
-  assumes awpF: "T-B \<subseteq> awp F T"
+theorem leadsTo_Join:
+  assumes leadsTo: "F \<in> A leadsTo B"
+      and awpF: "T-B \<subseteq> awp F T"
       and awpG: "!!X. X \<in> wens_set F B ==> (T\<inter>X) - B \<subseteq> awp G (T\<inter>X)"
-      and leadsTo: "F \<in> A leadsTo B"
   shows "F\<squnion>G \<in> T\<inter>A leadsTo B"
 apply (rule leadsTo [THEN leadsTo_imp_wens_set, THEN bexE]) 
 apply (rule wens_Union [THEN bexE]) 
@@ -472,10 +476,10 @@ done
 
 text{*Generalizing Misra's Fixed Point Union Theorem (4.41)*}
 
-lemma fp_leadsTo_Union:
+lemma fp_leadsTo_Join:
     "[|T-B \<subseteq> awp F T; T-B \<subseteq> FP G; F \<in> A leadsTo B|] ==> F\<squnion>G \<in> T\<inter>A leadsTo B"
-apply (rule leadsTo_Union, assumption)
- apply (simp add: FP_def awp_iff_constrains stable_def constrains_def, blast, assumption)
+apply (rule leadsTo_Join, assumption, blast)
+apply (simp add: FP_def awp_iff_constrains stable_def constrains_def, blast) 
 done
 
 end

@@ -88,11 +88,11 @@ apply (subst UN_atLeast_UNIV [symmetric])
 apply (rule leadsTo_UN [OF atLeast_leadsTo]) 
 done
 
-text{*Result (4.39): Applying the Union Theorem*}
+text{*Result (4.39): Applying the leadsTo-Join Theorem*}
 theorem "FF\<squnion>GG \<in> atLeast 0 leadsTo atLeast (k::int)"
 apply (subgoal_tac "FF\<squnion>GG \<in> (atLeast 0 \<inter> atLeast 0) leadsTo atLeast k")
  apply simp
-apply (rule_tac T = "atLeast 0" in leadsTo_Union)
+apply (rule_tac T = "atLeast 0" in leadsTo_Join)
   apply (simp add: awp_iff FF_def, constrains)
  apply (simp add: awp_iff GG_def wens_set_FF, constrains)
 apply (rule leadsTo_weaken_L [OF FF_leadsTo], simp) 
