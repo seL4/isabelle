@@ -18,6 +18,7 @@ test: \
   HOL-CTL \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
+  HOL-GroupTheory \
   HOL-Hoare \
   HOL-IMP \
   HOL-IMPP \
@@ -249,6 +250,18 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
   NumberTheory/WilsonBij.thy NumberTheory/WilsonRuss.thy \
   NumberTheory/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL NumberTheory
+
+
+## HOL-GroupTheory
+
+HOL-GroupTheory: HOL $(LOG)/HOL-GroupTheory.gz
+
+$(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
+  Library/Primes.thy \
+  GroupTheory/Exponent.thy GroupTheory/Exponent.ML GroupTheory/Group.thy\
+  GroupTheory/Group.ML GroupTheory/Sylow.thy GroupTheory/Sylow.ML\
+  GroupTheory/ROOT.ML
+	@$(ISATOOL) usedir $(OUT)/HOL GroupTheory
 
 
 ## HOL-Hoare
