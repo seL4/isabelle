@@ -6,21 +6,15 @@
 Nat is a partial order
 *)
 
-Nat = NatDef +
+Nat = NatDef + Inductive +
 
-(*install 'automatic' induction tactic, pretending nat is a datatype
-  except for induct_tac and exhaust_tac, everything is dummy*)
+setup
+  DatatypePackage.setup
 
-MLtext {|
-|> Dtype.add_datatype_info
-("nat", {case_const = Bound 0, case_rewrites = [],
-  constructors = [], induct_tac = nat_ind_tac,
-  exhaustion = natE,
-  exhaust_tac = fn v => (res_inst_tac [("n",v)] natE)
-                        THEN_ALL_NEW (rotate_tac ~1),
-  nchotomy = ProtoPure.flexpair_def, case_cong = ProtoPure.flexpair_def})
-|}
-
+rep_datatype nat
+  distinct "[[Suc_not_Zero, Zero_not_Suc]]"
+  inject   "[[Suc_Suc_eq]]"
+  induct   nat_induct
 
 instance nat :: order (le_refl,le_trans,le_anti_sym,nat_less_le)
 instance nat :: linorder (nat_le_linear)
