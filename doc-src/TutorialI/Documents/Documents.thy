@@ -297,6 +297,46 @@ text {*
   instructions in a schematic manner.  This enables users to write
   authentic reports on theory developments with little effort, where
   most consistency checks are handled by the system.
+
+  Here is an example to illustrate the idea of Isabelle document
+  preparation.
+
+  \bigskip The following datatype definition of @{text "'a bintree"}
+  models binary trees with nodes being decorated by elements of type
+  @{typ 'a}.
+*}
+
+datatype 'a bintree =
+  Leaf | Branch 'a  "'a bintree"  "'a bintree"
+
+text {*
+  \noindent The datatype induction rule generated here is of the form
+  @{thm [display] bintree.induct [no_vars]}
+
+  \bigskip The above document output has been produced by the
+  following theory specification:
+
+  \begin{ttbox}
+  text {\ttlbrace}*
+    The following datatype definition of {\at}{\ttlbrace}text "'a bintree"{\ttrbrace}
+    models binary trees with nodes being decorated by elements
+    of type {\at}{\ttlbrace}typ 'a{\ttrbrace}.
+  *{\ttrbrace}
+
+  datatype 'a bintree =
+    Leaf | Branch 'a  "'a bintree"  "'a bintree"
+
+  text {\ttlbrace}*
+    {\ttback}noindent The datatype induction rule generated here is
+    of the form {\at}{\ttlbrace}thm [display] bintree.induct [no_vars]{\ttrbrace}
+  *{\ttrbrace}
+  \end{ttbox}
+
+  Here we have augmented the theory by formal comments (via
+  \isakeyword{text} blocks).  The informal parts may again refer to
+  formal entities by means of ``antiquotations'' (such as
+  \texttt{\at}\verb,{text "'a bintree"}, or
+  \texttt{\at}\verb,{typ 'a},; see also \S\ref{sec:doc-prep-text}.
 *}
 
 
@@ -334,7 +374,8 @@ text {*
   \texttt{IsaMakefile} \cite{isabelle-sys}.}
 
   \medskip The detailed arrangement of the session sources is as
-  follows; advanced
+  follows.  This may be ignored in the beginning, but some of these
+  files need to be edited in realistic applications.
 
   \begin{itemize}
 
@@ -468,10 +509,10 @@ text {*
   \renewcommand{\isamarkupheader}[1]{\chapter{#1}}
 \end{verbatim}
 
-  \noindent That particular modification requires to change the
-  default \verb,\documentclass{article}, in \texttt{root.tex} to
-  something that supports the notion of chapters in the first place,
-  such as \verb,\documentclass{report},.
+  \noindent That particular modification requires change to the
+  document class given in \texttt{root.tex} to something that supports
+  the notion of chapters in the first place, such as
+  \verb,\documentclass{report},.
 
   \medskip The {\LaTeX} macro \verb,\isabellecontext, is maintained to
   hold the name of the current theory context.  This is particularly
@@ -488,10 +529,10 @@ text {*
 *}
 
 
-subsection {* Formal Comments and Antiquotations *}
+subsection {* Formal Comments and Antiquotations \label{sec:doc-prep-text} *}
 
 text {*
-  Isabelle source comments, which are of the form
+  Isabelle \bfindex{source comments}, which are of the form
   \verb,(,\verb,*,~\dots~\verb,*,\verb,),, essentially act like white
   space and do not really contribute to the content.  They mainly
   serve technical purposes to mark certain oddities in the raw input
