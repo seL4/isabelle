@@ -1,1 +1,1 @@
-use_thy "MatrixLP"
+use_thy "SparseMatrix"

@@ -634,12 +634,6 @@ HOL-Matrix: HOL HOL-Complex $(LOG)/HOL-Matrix.gz
 
 $(LOG)/HOL-Matrix.gz: $(OUT)/HOL-Complex \
   Matrix/MatrixGeneral.thy Matrix/Matrix.thy Matrix/SparseMatrix.thy \
-  Matrix/Float.thy Matrix/FloatArith.ML Matrix/ExactFloatingPoint.ML \
-  Matrix/Cplex.ML Matrix/CplexMatrixConverter.ML \
-  Matrix/FloatSparseMatrixBuilder.ML \
-  Matrix/conv.ML Matrix/eq_codegen.ML Matrix/codegen_prep.ML \
-  Matrix/fspmlp.ML \
-  Matrix/MatrixLP_gensimp.ML Matrix/MatrixLP.ML Matrix/MatrixLP.thy \
   Matrix/document/root.tex Matrix/ROOT.ML
 	@cd Matrix; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOL-Matrix
 

@@ -41,7 +41,7 @@ next
   from hyp have d: "Max (?S) < m" by (simp add: a nrows_def)
   have "m \<notin> ?S"
     proof -
-      have "m \<in> ?S \<Longrightarrow> m <= Max(?S)" by (simp add:Max_ge[OF c b])
+      have "m \<in> ?S \<Longrightarrow> m <= Max(?S)" by (simp add: Max_ge[OF c b])
       moreover from d have "~(m <= Max ?S)" by (simp)
       ultimately show "m \<notin> ?S" by (auto)
     qed
@@ -537,12 +537,14 @@ lemma foldseq_zerotail:
   and nm: "n <= m"
   shows
   "foldseq f s n = foldseq f s m"
+proof -
+  show "foldseq f s n = foldseq f s m"
     apply (simp add: foldseq_tail[OF nm, of f s])
     apply (rule foldseq_significant_positions)
     apply (auto)
     apply (subst foldseq_zero)
     by (simp add: fz sz)+
-
+qed
 
 lemma foldseq_zerotail2:
   assumes "! x. f x 0 = x"
@@ -663,7 +665,7 @@ lemma mult_matrix_nm:
   assumes prems: "ncols A <= n" "nrows B <= n" "ncols A <= m" "nrows B <= m" "fadd 0 0 = 0" "fmul 0 0 = 0"
   shows "mult_matrix_n n fmul fadd A B = mult_matrix_n m fmul fadd A B"
 proof -
-  from prems have "mult_matrix_n n fmul fadd A B = mult_matrix fmul fadd A B" by (simp add: mult_matrix_n[where n = n])
+  from prems have "mult_matrix_n n fmul fadd A B = mult_matrix fmul fadd A B" by (simp add: mult_matrix_n)
   also from prems have "\<dots> = mult_matrix_n m fmul fadd A B" by (simp add: mult_matrix_n[THEN sym])
   finally show "mult_matrix_n n fmul fadd A B = mult_matrix_n m fmul fadd A B" by simp
 qed
@@ -759,7 +761,6 @@ proof -
     qed
 qed
 
-
 instance matrix :: (zero) zero ..
 
 defs(overloaded)
@@ -785,25 +786,23 @@ qed
 lemma combine_matrix_zero_l_neutral: "zero_l_neutral f \<Longrightarrow> zero_l_neutral (combine_matrix f)"
   by (simp add: zero_l_neutral_def combine_matrix_def combine_infmatrix_def)
 
-
 lemma combine_matrix_zero_r_neutral: "zero_r_neutral f \<Longrightarrow> zero_r_neutral (combine_matrix f)"
   by (simp add: zero_r_neutral_def combine_matrix_def combine_infmatrix_def)
 
 lemma mult_matrix_zero_closed: "\<lbrakk>fadd 0 0 = 0; zero_closed fmul\<rbrakk> \<Longrightarrow> zero_closed (mult_matrix fmul fadd)"
   apply (simp add: zero_closed_def mult_matrix_def mult_matrix_n_def)
-  apply (simp add: foldseq_zero zero_matrix_def) 
-  done
-
+  apply (auto)
+  by (subst foldseq_zero, (simp add: zero_matrix_def)+)+
 
 lemma mult_matrix_n_zero_right[simp]: "\<lbrakk>fadd 0 0 = 0; !a. fmul a 0 = 0\<rbrakk> \<Longrightarrow> mult_matrix_n n fmul fadd A 0 = 0"
   apply (simp add: mult_matrix_n_def)
-  apply (simp add: foldseq_zero zero_matrix_def)
-  done
+  apply (subst foldseq_zero)
+  by (simp_all add: zero_matrix_def)
 
 lemma mult_matrix_n_zero_left[simp]: "\<lbrakk>fadd 0 0 = 0; !a. fmul 0 a = 0\<rbrakk> \<Longrightarrow> mult_matrix_n n fmul fadd 0 A = 0"
   apply (simp add: mult_matrix_n_def)
-  apply (simp add: foldseq_zero zero_matrix_def)
-  done
+  apply (subst foldseq_zero)
+  by (simp_all add: zero_matrix_def)
 
 lemma mult_matrix_zero_left[simp]: "\<lbrakk>fadd 0 0 = 0; !a. fmul 0 a = 0\<rbrakk> \<Longrightarrow> mult_matrix fmul fadd 0 A = 0"
 by (simp add: mult_matrix_def)
@@ -851,7 +850,7 @@ apply (auto)
 apply (subst RepAbs_matrix)
 apply (rule exI[of _ "Suc m"], simp)
 apply (rule exI[of _ "Suc n"], simp+)
-by (simplesubst RepAbs_matrix, rule exI[of _ "Suc j"], simp, rule exI[of _ "Suc i"], simp+)+
+by (subst RepAbs_matrix, rule exI[of _ "Suc j"], simp, rule exI[of _ "Suc i"], simp+)+
 
 lemma apply_singleton_matrix[simp]: "f 0 = 0 \<Longrightarrow> apply_matrix f (singleton_matrix j i x) = (singleton_matrix j i (f x))"
 apply (subst Rep_matrix_inject[symmetric])
@@ -892,7 +891,7 @@ by simp
 
 lemma combine_singleton: "f 0 0 = 0 \<Longrightarrow> combine_matrix f (singleton_matrix j i a) (singleton_matrix j i b) = singleton_matrix j i (f a b)"
 apply (simp add: singleton_matrix_def combine_matrix_def combine_infmatrix_def)
-apply (simplesubst RepAbs_matrix)
+apply (subst RepAbs_matrix)
 apply (rule exI[of _ "Suc j"], simp)
 apply (rule exI[of _ "Suc i"], simp)
 apply (rule comb[of "Abs_matrix" "Abs_matrix"], simp, (rule ext)+)
@@ -911,7 +910,7 @@ lemma Rep_move_matrix[simp]:
   (if (neg ((int j)-y)) | (neg ((int i)-x)) then 0 else Rep_matrix A (nat((int j)-y)) (nat((int i)-x)))"
 apply (simp add: move_matrix_def)
 apply (auto)
-by (simplesubst RepAbs_matrix,
+by (subst RepAbs_matrix,
   rule exI[of _ "(nrows A)+(nat (abs y))"], auto, rule nrows, arith,
   rule exI[of _ "(ncols A)+(nat (abs x))"], auto, rule ncols, arith)+
 

@@ -1532,12 +1532,6 @@ subsection {* Absolute Value *}
 lemma abs_one [simp]: "abs 1 = (1::'a::ordered_idom)"
   by (simp add: abs_if zero_less_one [THEN order_less_not_sym]) 
 
-lemma abs_eq [simp]: "(0::'a::ordered_idom) \<le> a ==> abs a = a"
-by (simp add: abs_if linorder_not_less [symmetric]) 
-
-lemma abs_minus_eq [simp]: "a < (0::'a::ordered_idom) ==> abs a = -a"
-by (simp add: abs_if linorder_not_less [symmetric])
-
 lemma abs_le_mult: "abs (a * b) \<le> (abs a) * (abs (b::'a::lordered_ring))" 
 proof -
   let ?x = "pprt a * pprt b - pprt a * nprt b - nprt a * pprt b + nprt a * nprt b"
@@ -1599,10 +1593,6 @@ proof -
     assume "0 <= a * b"
     then show ?thesis
       apply (simp_all add: mulprts abs_prts)
-      apply (simp add: 
-	iff2imp[OF zero_le_iff_zero_nprt]
-	iff2imp[OF le_zero_iff_pprt_id]
-      )
       apply (insert prems)
       apply (auto simp add: 
 	ring_eq_simps 
@@ -1617,8 +1607,7 @@ proof -
     then show ?thesis
       apply (simp_all add: mulprts abs_prts)
       apply (insert prems)
-      apply (auto simp add: ring_eq_simps iff2imp[OF zero_le_iff_zero_nprt] iff2imp[OF le_zero_iff_zero_pprt]
-	iff2imp[OF le_zero_iff_pprt_id] iff2imp[OF zero_le_iff_nprt_id])
+      apply (auto simp add: ring_eq_simps)
       apply(drule (1) mult_pos_le[of a b],simp)
       apply(drule (1) mult_neg_le[of a b],simp)
       done
@@ -1740,24 +1729,86 @@ proof -
   with prems show "abs (A-A1) <= (A2-A1)" by simp
 qed
 
-lemma linprog_dual_estimate_1:
+lemma mult_le_prts:
+  assumes
+  "a1 <= (a::'a::lordered_ring)"
+  "a <= a2"
+  "b1 <= b"
+  "b <= b2"
+  shows
+  "a * b <= pprt a2 * pprt b2 + pprt a1 * nprt b2 + nprt a2 * pprt b1 + nprt a1 * nprt b1"
+proof - 
+  have "a * b = (pprt a + nprt a) * (pprt b + nprt b)" 
+    apply (subst prts[symmetric])+
+    apply simp
+    done
+  then have "a * b = pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
+    by (simp add: ring_eq_simps)
+  moreover have "pprt a * pprt b <= pprt a2 * pprt b2"
+    by (simp_all add: prems mult_mono)
+  moreover have "pprt a * nprt b <= pprt a1 * nprt b2"
+  proof -
+    have "pprt a * nprt b <= pprt a * nprt b2"
+      by (simp add: mult_left_mono prems)
+    moreover have "pprt a * nprt b2 <= pprt a1 * nprt b2"
+      by (simp add: mult_right_mono_neg prems)
+    ultimately show ?thesis
+      by simp
+  qed
+  moreover have "nprt a * pprt b <= nprt a2 * pprt b1"
+  proof - 
+    have "nprt a * pprt b <= nprt a2 * pprt b"
+      by (simp add: mult_right_mono prems)
+    moreover have "nprt a2 * pprt b <= nprt a2 * pprt b1"
+      by (simp add: mult_left_mono_neg prems)
+    ultimately show ?thesis
+      by simp
+  qed
+  moreover have "nprt a * nprt b <= nprt a1 * nprt b1"
+  proof -
+    have "nprt a * nprt b <= nprt a * nprt b1"
+      by (simp add: mult_left_mono_neg prems)
+    moreover have "nprt a * nprt b1 <= nprt a1 * nprt b1"
+      by (simp add: mult_right_mono_neg prems)
+    ultimately show ?thesis
+      by simp
+  qed
+  ultimately show ?thesis
+    by - (rule add_mono | simp)+
+qed
+    
+lemma mult_le_dual_prts: 
   assumes
   "A * x \<le> (b::'a::lordered_ring)"
   "0 \<le> y"
-  "A1 <= A"
-  "A <= A2"
-  "c1 <= c"
-  "c <= c2"
-  "abs x \<le> r"
+  "A1 \<le> A"
+  "A \<le> A2"
+  "c1 \<le> c"
+  "c \<le> c2"
+  "r1 \<le> x"
+  "x \<le> r2"
   shows
-  "c * x \<le> y * b + (y * (A2 - A1) + abs (y * A1 - c1) + (c2 - c1)) * r"
+  "c * x \<le> y * b + (let s1 = c1 - y * A2; s2 = c2 - y * A1 in pprt s2 * pprt r2 + pprt s1 * nprt r2 + nprt s2 * pprt r1 + nprt s1 * nprt r1)"
+  (is "_ <= _ + ?C")
 proof -
-  from prems have delta_A: "abs (A-A1) <= (A2-A1)" by (simp add: le_ge_imp_abs_diff_1)
-  from prems have delta_c: "abs (c-c1) <= (c2-c1)" by (simp add: le_ge_imp_abs_diff_1)
-  show ?thesis
-    apply (rule_tac linprog_dual_estimate)
-    apply (auto intro: delta_A delta_c simp add: prems)
+  from prems have "y * (A * x) <= y * b" by (simp add: mult_left_mono) 
+  moreover have "y * (A * x) = c * x + (y * A - c) * x" by (simp add: ring_eq_simps)  
+  ultimately have "c * x + (y * A - c) * x <= y * b" by simp
+  then have "c * x <= y * b - (y * A - c) * x" by (simp add: le_diff_eq)
+  then have cx: "c * x <= y * b + (c - y * A) * x" by (simp add: ring_eq_simps)
+  have s2: "c - y * A <= c2 - y * A1"
+    by (simp add: diff_def prems add_mono mult_left_mono)
+  have s1: "c1 - y * A2 <= c - y * A"
+    by (simp add: diff_def prems add_mono mult_left_mono)
+  have prts: "(c - y * A) * x <= ?C"
+    apply (simp add: Let_def)
+    apply (rule mult_le_prts)
+    apply (simp_all add: prems s1 s2)
     done
+  then have "y * b + (c - y * A) * x <= y * b + ?C"
+    by simp
+  with cx show ?thesis
+    by(simp only:)
 qed
 
 ML {*

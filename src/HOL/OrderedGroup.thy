@@ -594,6 +594,21 @@ proof -
   from a b show ?thesis by blast
 qed
 
+lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
+lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
+
+lemma pprt_eq_id[simp]: "0 <= x \<Longrightarrow> pprt x = x"
+  by (simp add: pprt_def le_def_join join_aci)
+
+lemma nprt_eq_id[simp]: "x <= 0 \<Longrightarrow> nprt x = x"
+  by (simp add: nprt_def le_def_meet meet_aci)
+
+lemma pprt_eq_0[simp]: "x <= 0 \<Longrightarrow> pprt x = 0"
+  by (simp add: pprt_def le_def_join join_aci)
+
+lemma nprt_eq_0[simp]: "0 <= x \<Longrightarrow> nprt x = 0"
+  by (simp add: nprt_def le_def_meet meet_aci)
+
 lemma join_0_imp_0: "join a (-a) = 0 \<Longrightarrow> a = (0::'a::lordered_ab_group)"
 proof -
   {
@@ -775,6 +790,12 @@ by (simp add: le_def_join pprt_def join_comm)
 
 lemma zero_le_iff_nprt_id: "(a \<le> 0) = (nprt a = a)"
 by (simp add: le_def_meet nprt_def meet_comm)
+
+lemma pprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> pprt a <= pprt b"
+  by (simp add: le_def_join pprt_def join_aci)
+
+lemma nprt_mono[simp]: "(a::_::lordered_ab_group) <= b \<Longrightarrow> nprt a <= nprt b"
+  by (simp add: le_def_meet nprt_def meet_aci)
 
 lemma iff2imp: "(A=B) \<Longrightarrow> (A \<Longrightarrow> B)"
 by (simp)

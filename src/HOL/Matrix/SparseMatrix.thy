@@ -138,6 +138,14 @@ lemma sorted_spvec_minus_spvec:
   apply (simp add: sorted_spvec.simps split:list.split_asm)
   done
 
+lemma sorted_spvec_minus_spvec:
+  "sorted_spvec v \<Longrightarrow> sorted_spvec (minus_spvec v)"
+  apply (induct v)
+  apply (simp)
+  apply (frule sorted_spvec_cons1, simp)
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
+  done
+
 lemma sorted_spvec_abs_spvec:
   "sorted_spvec v \<Longrightarrow> sorted_spvec (abs_spvec v)"
   apply (induct v)
@@ -233,7 +241,6 @@ lemma sorted_addmult_spvec[rule_format]: "sorted_spvec a \<longrightarrow> sorte
   apply (frule_tac as=arr in sorted_spvec_cons1)
   apply (frule_tac as=brr in sorted_spvec_cons1)
   apply (simp)
-  apply (case_tac "a=aa")
   apply (simp_all add: sorted_spvec_addmult_spvec_helper3)
   done
 
@@ -590,6 +597,13 @@ constdefs
 
 ML {* simp_depth_limit := 2 *}
 
+lemma disj_matrices_contr1: "disj_matrices A B \<Longrightarrow> Rep_matrix A j i \<noteq> 0 \<Longrightarrow> Rep_matrix B j i = 0"
+   by (simp add: disj_matrices_def)
+
+lemma disj_matrices_contr2: "disj_matrices A B \<Longrightarrow> Rep_matrix B j i \<noteq> 0 \<Longrightarrow> Rep_matrix A j i = 0"
+   by (simp add: disj_matrices_def)
+
+
 lemma disj_matrices_add: "disj_matrices A B \<Longrightarrow> disj_matrices C D \<Longrightarrow> disj_matrices A D \<Longrightarrow> disj_matrices B C \<Longrightarrow> 
   (A + B <= C + D) = (A <= C & B <= (D::('a::lordered_ab_group) matrix))"
   apply (auto)
@@ -800,7 +814,7 @@ lemma sparse_row_matrix_abs:
   apply (induct A)
   apply (simp_all add: sparse_row_vector_abs sparse_row_matrix_cons)
   apply (frule_tac sorted_spvec_cons1, simp)
-  apply (subst Rep_matrix_inject[symmetric])
+  apply (simplesubst Rep_matrix_inject[symmetric])
   apply (rule ext)+
   apply auto
   apply (case_tac "x=a")
@@ -858,27 +872,6 @@ lemma sorted_sparse_matrix_imp_spvec: "sorted_sparse_matrix A \<Longrightarrow> 
 lemma sorted_sparse_matrix_imp_spmat: "sorted_sparse_matrix A \<Longrightarrow> sorted_spmat A"
   by (simp add: sorted_sparse_matrix_def)
 
-lemmas sparse_row_matrix_op_simps =
-  sorted_sparse_matrix_imp_spmat sorted_sparse_matrix_imp_spvec
-  sparse_row_add_spmat sorted_spvec_add_spmat sorted_spmat_add_spmat
-  sparse_row_diff_spmat sorted_spvec_diff_spmat sorted_spmat_diff_spmat
-  sparse_row_matrix_minus sorted_spvec_minus_spmat sorted_spmat_minus_spmat
-  sparse_row_mult_spmat sorted_spvec_mult_spmat sorted_spmat_mult_spmat
-  sparse_row_matrix_abs sorted_spvec_abs_spmat sorted_spmat_abs_spmat
-  le_spmat_iff_sparse_row_le
-
-lemma zero_eq_Numeral0: "(0::_::number_ring) = Numeral0" by simp
-
-lemmas sparse_row_matrix_arith_simps[simplified zero_eq_Numeral0] = 
-  mult_spmat.simps mult_spvec_spmat.simps 
-  addmult_spvec.simps 
-  smult_spvec_empty smult_spvec_cons
-  add_spmat.simps add_spvec.simps
-  minus_spmat.simps minus_spvec.simps
-  abs_spmat.simps abs_spvec.simps
-  diff_spmat_def
-  le_spmat.simps le_spvec.simps
-
 lemmas sorted_sp_simps = 
   sorted_spvec.simps
   sorted_spmat.simps
@@ -898,7 +891,210 @@ lemmas boolarith = bool1 bool2 bool3 bool4 bool5 bool6 bool7 bool8 bool9 bool10
 
 lemma if_case_eq: "(if b then x else y) = (case b of True => x | False => y)" by simp
 
-lemma spm_linprog_dual_estimate_1:
+consts
+  pprt_spvec :: "('a::{lordered_ab_group}) spvec \<Rightarrow> 'a spvec"
+  nprt_spvec :: "('a::{lordered_ab_group}) spvec \<Rightarrow> 'a spvec"
+  pprt_spmat :: "('a::{lordered_ab_group}) spmat \<Rightarrow> 'a spmat"
+  nprt_spmat :: "('a::{lordered_ab_group}) spmat \<Rightarrow> 'a spmat"
+
+primrec
+  "pprt_spvec [] = []"
+  "pprt_spvec (a#as) = (fst a, pprt (snd a)) # (pprt_spvec as)"
+
+primrec
+  "nprt_spvec [] = []"
+  "nprt_spvec (a#as) = (fst a, nprt (snd a)) # (nprt_spvec as)"
+
+primrec 
+  "pprt_spmat [] = []"
+  "pprt_spmat (a#as) = (fst a, pprt_spvec (snd a))#(pprt_spmat as)"
+  (*case (pprt_spvec (snd a)) of [] \<Rightarrow> (pprt_spmat as) | y#ys \<Rightarrow> (fst a, y#ys)#(pprt_spmat as))"*)
+
+primrec 
+  "nprt_spmat [] = []"
+  "nprt_spmat (a#as) = (fst a, nprt_spvec (snd a))#(nprt_spmat as)"
+  (*case (nprt_spvec (snd a)) of [] \<Rightarrow> (nprt_spmat as) | y#ys \<Rightarrow> (fst a, y#ys)#(nprt_spmat as))"*)
+
+
+lemma pprt_add: "disj_matrices A (B::(_::lordered_ring) matrix) \<Longrightarrow> pprt (A+B) = pprt A + pprt B"
+  apply (simp add: pprt_def join_matrix)
+  apply (simp add: Rep_matrix_inject[symmetric])
+  apply (rule ext)+
+  apply simp
+  apply (case_tac "Rep_matrix A x xa \<noteq> 0")
+  apply (simp_all add: disj_matrices_contr1)
+  done
+
+lemma nprt_add: "disj_matrices A (B::(_::lordered_ring) matrix) \<Longrightarrow> nprt (A+B) = nprt A + nprt B"
+  apply (simp add: nprt_def meet_matrix)
+  apply (simp add: Rep_matrix_inject[symmetric])
+  apply (rule ext)+
+  apply simp
+  apply (case_tac "Rep_matrix A x xa \<noteq> 0")
+  apply (simp_all add: disj_matrices_contr1)
+  done
+
+lemma pprt_singleton[simp]: "pprt (singleton_matrix j i (x::_::lordered_ring)) = singleton_matrix j i (pprt x)"
+  apply (simp add: pprt_def join_matrix)
+  apply (simp add: Rep_matrix_inject[symmetric])
+  apply (rule ext)+
+  apply simp
+  done
+
+lemma nprt_singleton[simp]: "nprt (singleton_matrix j i (x::_::lordered_ring)) = singleton_matrix j i (nprt x)"
+  apply (simp add: nprt_def meet_matrix)
+  apply (simp add: Rep_matrix_inject[symmetric])
+  apply (rule ext)+
+  apply simp
+  done
+
+lemma less_imp_le: "a < b \<Longrightarrow> a <= (b::_::order)" by (simp add: less_def)
+
+lemma sparse_row_vector_pprt: "sorted_spvec v \<Longrightarrow> sparse_row_vector (pprt_spvec v) = pprt (sparse_row_vector v)"
+  apply (induct v)
+  apply (simp_all)
+  apply (frule sorted_spvec_cons1, auto)
+  apply (subst pprt_add)
+  apply (subst disj_matrices_commute)
+  apply (rule disj_sparse_row_singleton)
+  apply auto
+  done
+
+lemma sparse_row_vector_nprt: "sorted_spvec v \<Longrightarrow> sparse_row_vector (nprt_spvec v) = nprt (sparse_row_vector v)"
+  apply (induct v)
+  apply (simp_all)
+  apply (frule sorted_spvec_cons1, auto)
+  apply (subst nprt_add)
+  apply (subst disj_matrices_commute)
+  apply (rule disj_sparse_row_singleton)
+  apply auto
+  done
+  
+  
+lemma pprt_move_matrix: "pprt (move_matrix (A::('a::lordered_ring) matrix) j i) = move_matrix (pprt A) j i"
+  apply (simp add: pprt_def)
+  apply (simp add: join_matrix)
+  apply (simp add: Rep_matrix_inject[symmetric])
+  apply (rule ext)+
+  apply (simp)
+  done
+
+lemma nprt_move_matrix: "nprt (move_matrix (A::('a::lordered_ring) matrix) j i) = move_matrix (nprt A) j i"
+  apply (simp add: nprt_def)
+  apply (simp add: meet_matrix)
+  apply (simp add: Rep_matrix_inject[symmetric])
+  apply (rule ext)+
+  apply (simp)
+  done
+
+lemma sparse_row_matrix_pprt: "sorted_spvec m \<Longrightarrow> sorted_spmat m \<Longrightarrow> sparse_row_matrix (pprt_spmat m) = pprt (sparse_row_matrix m)"
+  apply (induct m)
+  apply simp
+  apply simp
+  apply (frule sorted_spvec_cons1)
+  apply (simp add: sparse_row_matrix_cons sparse_row_vector_pprt)
+  apply (subst pprt_add)
+  apply (subst disj_matrices_commute)
+  apply (rule disj_move_sparse_vec_mat)
+  apply auto
+  apply (simp add: sorted_spvec.simps)
+  apply (simp split: list.split)
+  apply auto
+  apply (simp add: pprt_move_matrix)
+  done
+
+lemma sparse_row_matrix_nprt: "sorted_spvec m \<Longrightarrow> sorted_spmat m \<Longrightarrow> sparse_row_matrix (nprt_spmat m) = nprt (sparse_row_matrix m)"
+  apply (induct m)
+  apply simp
+  apply simp
+  apply (frule sorted_spvec_cons1)
+  apply (simp add: sparse_row_matrix_cons sparse_row_vector_nprt)
+  apply (subst nprt_add)
+  apply (subst disj_matrices_commute)
+  apply (rule disj_move_sparse_vec_mat)
+  apply auto
+  apply (simp add: sorted_spvec.simps)
+  apply (simp split: list.split)
+  apply auto
+  apply (simp add: nprt_move_matrix)
+  done
+
+lemma sorted_pprt_spvec: "sorted_spvec v \<Longrightarrow> sorted_spvec (pprt_spvec v)"
+  apply (induct v)
+  apply (simp)
+  apply (frule sorted_spvec_cons1)
+  apply simp
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
+  done
+
+lemma sorted_nprt_spvec: "sorted_spvec v \<Longrightarrow> sorted_spvec (nprt_spvec v)"
+  apply (induct v)
+  apply (simp)
+  apply (frule sorted_spvec_cons1)
+  apply simp
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
+  done
+
+lemma sorted_spvec_pprt_spmat: "sorted_spvec m \<Longrightarrow> sorted_spvec (pprt_spmat m)"
+  apply (induct m)
+  apply (simp)
+  apply (frule sorted_spvec_cons1)
+  apply simp
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
+  done
+
+lemma sorted_spvec_nprt_spmat: "sorted_spvec m \<Longrightarrow> sorted_spvec (nprt_spmat m)"
+  apply (induct m)
+  apply (simp)
+  apply (frule sorted_spvec_cons1)
+  apply simp
+  apply (simp add: sorted_spvec.simps split:list.split_asm)
+  done
+
+lemma sorted_spmat_pprt_spmat: "sorted_spmat m \<Longrightarrow> sorted_spmat (pprt_spmat m)"
+  apply (induct m)
+  apply (simp_all add: sorted_pprt_spvec)
+  done
+
+lemma sorted_spmat_nprt_spmat: "sorted_spmat m \<Longrightarrow> sorted_spmat (nprt_spmat m)"
+  apply (induct m)
+  apply (simp_all add: sorted_nprt_spvec)
+  done
+
+constdefs
+  mult_est_spmat :: "('a::lordered_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat"
+  "mult_est_spmat r1 r2 s1 s2 == 
+  add_spmat (mult_spmat (pprt_spmat s2) (pprt_spmat r2), add_spmat (mult_spmat (pprt_spmat s1) (nprt_spmat r2), 
+  add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1), mult_spmat (nprt_spmat s1) (nprt_spmat r1))))"  
+
+lemmas sparse_row_matrix_op_simps =
+  sorted_sparse_matrix_imp_spmat sorted_sparse_matrix_imp_spvec
+  sparse_row_add_spmat sorted_spvec_add_spmat sorted_spmat_add_spmat
+  sparse_row_diff_spmat sorted_spvec_diff_spmat sorted_spmat_diff_spmat
+  sparse_row_matrix_minus sorted_spvec_minus_spmat sorted_spmat_minus_spmat
+  sparse_row_mult_spmat sorted_spvec_mult_spmat sorted_spmat_mult_spmat
+  sparse_row_matrix_abs sorted_spvec_abs_spmat sorted_spmat_abs_spmat
+  le_spmat_iff_sparse_row_le
+  sparse_row_matrix_pprt sorted_spvec_pprt_spmat sorted_spmat_pprt_spmat
+  sparse_row_matrix_nprt sorted_spvec_nprt_spmat sorted_spmat_nprt_spmat
+
+lemma zero_eq_Numeral0: "(0::_::number_ring) = Numeral0" by simp
+
+lemmas sparse_row_matrix_arith_simps[simplified zero_eq_Numeral0] = 
+  mult_spmat.simps mult_spvec_spmat.simps 
+  addmult_spvec.simps 
+  smult_spvec_empty smult_spvec_cons
+  add_spmat.simps add_spvec.simps
+  minus_spmat.simps minus_spvec.simps
+  abs_spmat.simps abs_spvec.simps
+  diff_spmat_def
+  le_spmat.simps le_spvec.simps
+  pprt_spmat.simps pprt_spvec.simps
+  nprt_spmat.simps nprt_spvec.simps
+  mult_est_spmat_def
+
+
+(*lemma spm_linprog_dual_estimate_1:
   assumes  
   "sorted_sparse_matrix A1"
   "sorted_sparse_matrix A2"
@@ -918,5 +1114,59 @@ lemma spm_linprog_dual_estimate_1:
   "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b, mult_spmat (add_spmat (add_spmat (mult_spmat y (diff_spmat A2 A1), 
   abs_spmat (diff_spmat (mult_spmat y A1) c1)), diff_spmat c2 c1)) r))"
   by (insert prems, simp add: sparse_row_matrix_op_simps linprog_dual_estimate_1[where A=A])
+*)
 
+lemma spm_mult_le_dual_prts: 
+  assumes
+  "sorted_sparse_matrix A1"
+  "sorted_sparse_matrix A2"
+  "sorted_sparse_matrix c1"
+  "sorted_sparse_matrix c2"
+  "sorted_sparse_matrix y"
+  "sorted_sparse_matrix r1"
+  "sorted_sparse_matrix r2"
+  "sorted_spvec b"
+  "le_spmat ([], y)"
+  "sparse_row_matrix A1 \<le> A"
+  "A \<le> sparse_row_matrix A2"
+  "sparse_row_matrix c1 \<le> c"
+  "c \<le> sparse_row_matrix c2"
+  "sparse_row_matrix r1 \<le> x"
+  "x \<le> sparse_row_matrix r2"
+  "A * x \<le> sparse_row_matrix (b::('a::lordered_ring) spmat)"
+  shows
+  "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b,
+  (let s1 = diff_spmat c1 (mult_spmat y A2); s2 = diff_spmat c2 (mult_spmat y A1) in 
+  add_spmat (mult_spmat (pprt_spmat s2) (pprt_spmat r2), add_spmat (mult_spmat (pprt_spmat s1) (nprt_spmat r2), 
+  add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1), mult_spmat (nprt_spmat s1) (nprt_spmat r1)))))))"
+  apply (simp add: Let_def)
+  apply (insert prems)
+  apply (simp add: sparse_row_matrix_op_simps ring_eq_simps)  
+  apply (rule mult_le_dual_prts[where A=A, simplified Let_def ring_eq_simps])
+  apply (auto)
+  done
+
+lemma spm_mult_le_dual_prts_no_let: 
+  assumes
+  "sorted_sparse_matrix A1"
+  "sorted_sparse_matrix A2"
+  "sorted_sparse_matrix c1"
+  "sorted_sparse_matrix c2"
+  "sorted_sparse_matrix y"
+  "sorted_sparse_matrix r1"
+  "sorted_sparse_matrix r2"
+  "sorted_spvec b"
+  "le_spmat ([], y)"
+  "sparse_row_matrix A1 \<le> A"
+  "A \<le> sparse_row_matrix A2"
+  "sparse_row_matrix c1 \<le> c"
+  "c \<le> sparse_row_matrix c2"
+  "sparse_row_matrix r1 \<le> x"
+  "x \<le> sparse_row_matrix r2"
+  "A * x \<le> sparse_row_matrix (b::('a::lordered_ring) spmat)"
+  shows
+  "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b,
+  mult_est_spmat r1 r2 (diff_spmat c1 (mult_spmat y A2)) (diff_spmat c2 (mult_spmat y A1))))"
+  by (simp add: prems mult_est_spmat_def spm_mult_le_dual_prts[where A=A, simplified Let_def])
+ 
 end
