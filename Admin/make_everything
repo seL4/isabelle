@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# $Id$
+#
+# make_everything -- an adhoc script that demonstrates the general procedure
+#   of creating the Isabelle distribution and WWW page
+#
+# assumptions:
+#   - proper settings for polyml are present by magic
+#     (e.g. via ~/isabelle/etc/settings)
+#   - ~/tmp/isadist/contrib holds packages of external tools (polyml etc.)
+#
+
+date
+
+REPOS=~/isabelle/src
+DIST=~/tmp/isadist
+
+$REPOS/Admin/makedist ${1:---}
+ISABELLE_DIST=$(cat $DIST/ISABELLE_DIST)
+
+case $(hostname) in
+  *broy*)
+    #Note: this causes strange behaviour with "nohup" -- better use "screen"
+    ssh sunbroy1 ". ~/.bashrc; $REPOS/Admin/makebin $ISABELLE_DIST"
+    ssh atbroy37 ". ~/.bashrc; $REPOS/Admin/makebin $ISABELLE_DIST"
+    ;;
+  *)
+    $REPOS/Admin/makebin $ISABELLE_DIST
+    ;;
+esac
+
+cd $(dirname "$ISABELLE_DIST")
+cp -a ../contrib .
+
+cd page && make
+cd .. && rm -rf page
+
+date
