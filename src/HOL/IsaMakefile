@@ -291,11 +291,11 @@ $(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy \
 HOL-Lex: HOL $(LOG)/HOL-Lex.gz
 
 $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
-  Lex/AutoChopper.thy Lex/AutoChopper.ML Lex/AutoChopper1.thy \
-  Lex/AutoMaxChop.thy Lex/AutoMaxChop.ML Lex/AutoProj.thy Lex/AutoProj.ML \
-  Lex/Automata.thy Lex/Automata.ML Lex/Chopper.thy Lex/DA.thy Lex/DA.ML \
-  Lex/MaxChop.thy Lex/MaxChop.ML Lex/MaxPrefix.thy Lex/MaxPrefix.ML \
-  Lex/NA.thy Lex/NA.ML Lex/NAe.thy Lex/NAe.ML Lex/RegExp2NAe.thy \
+  Lex/AutoChopper.thy Lex/AutoChopper1.thy \
+  Lex/AutoMaxChop.thy Lex/AutoMaxChop.ML Lex/AutoProj.thy \
+  Lex/Automata.thy Lex/Chopper.thy Lex/DA.thy \
+  Lex/MaxChop.thy Lex/MaxPrefix.thy \
+  Lex/NA.thy Lex/NAe.thy Lex/RegExp2NAe.thy \
   Lex/Scanner.thy Lex/RegExp2NAe.ML Lex/RegExp2NA.thy Lex/RegExp2NA.ML \
   Lex/ROOT.ML Lex/RegExp.thy Lex/RegSet.thy Lex/RegSet.ML \
   Lex/RegSet_of_nat_DA.thy Lex/RegSet_of_nat_DA.ML Library/List_Prefix.thy
