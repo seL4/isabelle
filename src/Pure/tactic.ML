@@ -106,6 +106,7 @@ end;
 signature TACTIC =
 sig
   include BASIC_TACTIC
+  val innermost_params: int -> thm -> (string * typ) list
   val untaglist: (int * 'a) list -> 'a list
   val orderlist: (int * 'a) list -> 'a list
   val rewrite: bool -> thm list -> cterm -> thm
@@ -211,6 +212,11 @@ fun distinct_subgoals_tac state =
     in  Seq.single (thawfn implied)  end
 end;
 
+
+(*Determine print names of goal parameters (reversed)*)
+fun innermost_params i st =
+  let val (_, _, Bi, _) = dest_state (st, i)
+  in rename_wrt_term Bi (Logic.strip_params Bi) end;
 
 (*Lift and instantiate a rule wrt the given state and subgoal number *)
 fun lift_inst_rule (st, i, sinsts, rule) =
