@@ -119,7 +119,7 @@ fun makeStep (Trans (a,_,p), Trans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl
 |   makeStep (RTrans (a,_,p), Trans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.rtrancl_trancl_trancl))
 |   makeStep (Trans (a,_,p), RTrans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl_rtrancl_trancl))   
 |   makeStep (RTrans (a,_,p), RTrans(_,c,q))  = RTrans (a,c, Thm ([p,q], Cls.rtrancl_trans))  
-|   makeStep (a,b) = error ("makeStep: internal error: undefined case\n"^(makestring a) ^"\n" ^ (makestring b));
+|   makeStep (a,b) = error ("trancl_tac: internal error in makeStep: undefined case");
 
 (* ******************************************************************* *)
 (*                                                                     *)
