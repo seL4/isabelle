@@ -790,11 +790,6 @@ lemma setprod_of_int: "of_int (setprod f A) = setprod (of_int \<circ> f) A"
 lemma int_setprod: "int (setprod f A) = setprod (int \<circ> f) A"
   by (simp add: int_eq_of_nat setprod_of_nat)
 
-lemma setsum_constant [simp]: "finite A ==> (\<Sum>x \<in> A. y) = of_nat(card A) * y"
-  apply (erule finite_induct)
-  apply (auto simp add: ring_distrib add_ac)
-  done
-
 lemma setprod_nonzero_nat:
     "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::nat)) ==> setprod f A \<noteq> 0"
   by (rule setprod_nonzero, auto)
