@@ -208,7 +208,7 @@ fun read_instantiate context_of raw_insts x thm =
   in Thm.instantiate (cenvT, cenv) thm end;
 
 
-val insts = Scan.lift (Args.enum1 "and" (Args.var --| Args.$$$ "=" -- Args.name));
+fun insts x = Scan.lift (Args.enum1 "and" (Args.var --| Args.$$$ "=" -- Args.name)) x;
 fun gen_where context_of = syntax (insts >> (Attribute.rule o read_instantiate context_of));
 
 val global_where = gen_where ProofContext.init;
