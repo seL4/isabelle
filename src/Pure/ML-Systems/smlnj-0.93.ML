@@ -15,6 +15,8 @@ struct
     handle String.Substring => raise Subscript;
   fun isPrefix s1 s2 = (s1 = substring(s2,0, size s1))
     handle Subscript => false;
+  fun str (s : string) = s;
+  fun translate f s = implode (map f (explode s));
 end;
 
 
