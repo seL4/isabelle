@@ -17,6 +17,7 @@ sig
   val empty: 'a seq
   val cons: 'a * 'a seq -> 'a seq
   val single: 'a -> 'a seq
+  val try: ('a -> 'b) -> 'a -> 'b seq
   val hd: 'a seq -> 'a
   val tl: 'a seq -> 'a seq
   val chop: int * 'a seq -> 'a list * 'a seq
@@ -72,6 +73,12 @@ fun single x = cons (x, empty);
 (*head and tail -- beware of calling the sequence function twice!!*)
 fun hd xq = #1 (the (pull xq))
 and tl xq = #2 (the (pull xq));
+
+(*partial function as procedure*)
+fun try f x =
+  (case Library.try f x of
+    Some y => single y
+  | None => empty);
 
 
 (*the list of the first n elements, paired with rest of sequence;
