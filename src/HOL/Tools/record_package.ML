@@ -31,9 +31,9 @@ sig
   val mk_update: term -> string * term -> term
   val print_records: theory -> unit
   val add_record: (string list * bstring) -> string option
-    -> (bstring * string) list -> theory -> theory * {simps: thm list, iffs: thm list}
+    -> (bstring * string * mixfix) list -> theory -> theory * {simps: thm list, iffs: thm list}
   val add_record_i: (string list * bstring) -> (typ list * string) option
-    -> (bstring * typ) list -> theory -> theory * {simps: thm list, iffs: thm list}
+    -> (bstring * typ * mixfix) list -> theory -> theory * {simps: thm list, iffs: thm list}
   val setup: (theory -> theory) list
 end;
 
@@ -657,7 +657,7 @@ fun field_definitions fields names xs alphas zeta moreT more vars named_vars thy
 
 (* record_definition *)
 
-fun record_definition (args, bname) parent (parents: parent_info list) bfields thy =
+fun record_definition (args, bname) parent (parents: parent_info list) raw_fields thy =
   let
     val sign = Theory.sign_of thy;
 
@@ -665,6 +665,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val name = Sign.full_name sign bname;
     val full = Sign.full_name_path sign bname;
     val base = Sign.base_name;
+
+    val (bfields, field_syntax) = split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
 
 
     (* basic components *)
@@ -839,8 +841,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_tyabbrs_i recordT_specs
       |> Theory.add_path bname
       |> Theory.add_trfuns ([], [], field_tr's, [])
+      |> Theory.add_consts_i
+        (map2 (fn ((x, T), mx) => (x, T, mx)) (sel_decls, field_syntax @ [Syntax.NoSyn]))
       |> (Theory.add_consts_i o map Syntax.no_syn)
-        (sel_decls @ update_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
+        (update_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
       |> (PureThy.add_defs_i false o map Thm.no_attributes) sel_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes) update_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes)
@@ -1002,10 +1006,10 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
 
     (* fields *)
 
-    fun prep_field (env, (c, raw_T)) =
+    fun prep_field (env, (c, raw_T, mx)) =
       let val (env', T) = prep_typ sign (env, raw_T) handle ERROR =>
         error ("The error(s) above occured in field " ^ quote c)
-      in (env', (c, T)) end;
+      in (env', (c, T, mx)) end;
 
     val (envir, bfields) = foldl_map prep_field (init_env, raw_fields);
     val envir_names = map fst envir;
@@ -1037,12 +1041,12 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     val err_no_fields = if null bfields then ["No fields present"] else [];
 
     val err_dup_fields =
-      (case duplicates (map fst bfields) of
+      (case duplicates (map #1 bfields) of
         [] => []
       | dups => ["Duplicate field(s) " ^ commas_quote dups]);
 
     val err_bad_fields =
-      if forall (not_equal moreN o fst) bfields then []
+      if forall (not_equal moreN o #1) bfields then []
       else ["Illegal field name " ^ quote moreN];
 
     val err_dup_sorts =
@@ -1081,7 +1085,7 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val record_decl =
   P.type_args -- P.name -- (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+")
-    -- Scan.repeat1 (P.name -- (P.$$$ "::" |-- P.typ) --| P.marg_comment));
+    -- Scan.repeat1 (P.const --| P.marg_comment));
 
 val recordP =
   OuterSyntax.command "record" "define extensible record" K.thy_decl
