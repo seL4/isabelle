@@ -1,33 +1,33 @@
 \begin{theindex}
 
-  \item \ttall, \bold{189}
-  \item \texttt{?}, \bold{189}
-  \item \isasymuniqex, \bold{189}
-  \item \ttuniquex, \bold{189}
-  \item {\texttt {\&}}, \bold{189}
-  \item \verb$~$, \bold{189}
-  \item \verb$~=$, \bold{189}
-  \item \ttor, \bold{189}
+  \item \ttall, \bold{187}
+  \item \texttt{?}, \bold{187}
+  \item \isasymuniqex, \bold{187}
+  \item \ttuniquex, \bold{187}
+  \item {\texttt {\&}}, \bold{187}
+  \item \verb$~$, \bold{187}
+  \item \verb$~=$, \bold{187}
+  \item \ttor, \bold{187}
   \item \texttt{[]}, \bold{7}
   \item \texttt{\#}, \bold{7}
-  \item \texttt{\at}, \bold{8}, 189
-  \item \isasymnotin, \bold{189}
-  \item \verb$~:$, \bold{189}
-  \item \isasymInter, \bold{189}
-  \item \isasymUnion, \bold{189}
-  \item \isasyminverse, \bold{189}
-  \item \verb$^-1$, \bold{189}
-  \item \isactrlsup{\isacharasterisk}, \bold{189}
-  \item \verb$^$\texttt{*}, \bold{189}
-  \item \isasymAnd, \bold{10}, \bold{189}
-  \item \ttAnd, \bold{189}
+  \item \texttt{\at}, \bold{8}, 187
+  \item \isasymnotin, \bold{187}
+  \item \verb$~:$, \bold{187}
+  \item \isasymInter, \bold{187}
+  \item \isasymUnion, \bold{187}
+  \item \isasyminverse, \bold{187}
+  \item \verb$^-1$, \bold{187}
+  \item \isactrlsup{\isacharasterisk}, \bold{187}
+  \item \verb$^$\texttt{*}, \bold{187}
+  \item \isasymAnd, \bold{10}, \bold{187}
+  \item \ttAnd, \bold{187}
   \item \isasymrightleftharpoons, 24
   \item \isasymrightharpoonup, 24
   \item \isasymleftharpoondown, 24
   \item \emph {$\Rightarrow $}, \bold{3}
-  \item \ttlbr, \bold{189}
-  \item \ttrbr, \bold{189}
-  \item \texttt {\%}, \bold{189}
+  \item \ttlbr, \bold{187}
+  \item \ttrbr, \bold{187}
+  \item \texttt {\%}, \bold{187}
   \item \texttt {;}, \bold{5}
   \item \isa {()} (constant), 22
   \item \isa {+} (tactical), 83
@@ -46,14 +46,14 @@
   \item abandoning a proof, \bold{11}
   \item abandoning a theory, \bold{14}
   \item \isa {abs} (constant), 135
-  \item \texttt {abs}, \bold{189}
+  \item \texttt {abs}, \bold{187}
   \item absolute value, 135
   \item \isa {add} (modifier), 27
   \item \isa {add_ac} (theorems), 134
   \item \isa {add_assoc} (theorem), \bold{134}
   \item \isa {add_commute} (theorem), \bold{134}
   \item \isa {add_mult_distrib} (theorem), \bold{133}
-  \item \texttt {ALL}, \bold{189}
+  \item \texttt {ALL}, \bold{187}
   \item \isa {All} (constant), 93
   \item \isa {allE} (theorem), \bold{65}
   \item \isa {allI} (theorem), \bold{64}
@@ -63,8 +63,8 @@
   \item \isa {arith} (method), 21, 131
   \item arithmetic operations
     \subitem for \protect\isa{nat}, 21
-  \item \textsc {ascii} symbols, \bold{189}
-  \item associative-commutative function, 158
+  \item \textsc {ascii} symbols, \bold{187}
+  \item associative-commutative function, 156
   \item \isa {assumption} (method), 53
   \item assumptions
     \subitem of subgoal, 10
@@ -105,7 +105,7 @@
   \item \isa {case} expressions, 3, 4, 16
   \item case distinctions, 17
   \item case splits, \bold{29}
-  \item \isa {case_tac} (method), 17, 85
+  \item \isa {case_tac} (method), 17, 85, 139
   \item \isa {clarify} (method), 75, 76
   \item \isa {clarsimp} (method), 75, 76
   \item \isa {classical} (theorem), \bold{57}
@@ -123,8 +123,8 @@
     \subitem of subgoal, 10
   \item conditional expressions, \see{\isa{if} expressions}{1}
   \item conditional simplification rules, 29
-  \item \isa {cong} (attribute), 158
-  \item congruence rules, \bold{157}
+  \item \isa {cong} (attribute), 156
+  \item congruence rules, \bold{155}
   \item \isa {conjE} (theorem), \bold{55}
   \item \isa {conjI} (theorem), \bold{52}
   \item \isa {Cons} (constant), 7
@@ -134,6 +134,7 @@
   \item converse
     \subitem of a relation, \bold{96}
   \item \isa {converse_iff} (theorem), \bold{96}
+  \item CTL, 105--110, 171--173
 
   \indexspace
 
@@ -141,6 +142,7 @@
   \item datatypes, 15--20
     \subitem and nested recursion, 38, 42
     \subitem mutually recursive, 36
+    \subitem nested, 160
   \item \isacommand {defer} (command), 14, 84
   \item Definitional Approach, 24
   \item definitions, \bold{23}
@@ -190,7 +192,7 @@
   \item Euclid's algorithm, 85--88
   \item even numbers
     \subitem defining inductively, 111--115
-  \item \texttt {EX}, \bold{189}
+  \item \texttt {EX}, \bold{187}
   \item \isa {Ex} (constant), 93
   \item \isa {exE} (theorem), \bold{66}
   \item \isa {exI} (theorem), \bold{66}
@@ -199,7 +201,7 @@
     \subitem for functions, \bold{93, 94}
     \subitem for records, 143
     \subitem for sets, \bold{90}
-  \item \ttEXU, \bold{189}
+  \item \ttEXU, \bold{187}
 
   \indexspace
 
@@ -219,8 +221,9 @@
   \item \isa {fst} (constant), 22
   \item function types, 3
   \item functions, 93--95
+    \subitem partial, 162
     \subitem total, 9, 44--50
-    \subitem underdefined, 165
+    \subitem underdefined, 163
 
   \indexspace
 
@@ -236,7 +239,6 @@
   \indexspace
 
   \item \isa {hd} (constant), 15, 35
-  \item higher-order pattern, \bold{159}
   \item Hilbert's $\varepsilon$-operator, 70
   \item HOLCF, 41
   \item Hopcroft, J. E., 129
@@ -265,8 +267,11 @@
   \item \isa {impI} (theorem), \bold{56}
   \item implication, 56--57
   \item \isa {ind_cases} (method), 115
-  \item \isa {induct_tac} (method), 10, 17, 50, 172
-  \item induction, 168--175
+  \item \isa {induct_tac} (method), 10, 17, 50, 170
+  \item induction, 166--173
+    \subitem complete, 168
+    \subitem deriving new schemas, 170
+    \subitem on a term, 167
     \subitem recursion, 49--50
     \subitem structural, 17
     \subitem well-founded, 99
@@ -283,21 +288,22 @@
   \item \isa {insert} (constant), 91
   \item \isa {insert} (method), 81--82
   \item instance, \bold{145}
-  \item \texttt {INT}, \bold{189}
-  \item \texttt {Int}, \bold{189}
+  \item \texttt {INT}, \bold{187}
+  \item \texttt {Int}, \bold{187}
   \item \isa {int} (type), 135
   \item \isa {INT_iff} (theorem), \bold{92}
   \item \isa {IntD1} (theorem), \bold{89}
   \item \isa {IntD2} (theorem), \bold{89}
   \item integers, 135
   \item \isa {INTER} (constant), 93
-  \item \texttt {Inter}, \bold{189}
+  \item \texttt {Inter}, \bold{187}
   \item \isa {Inter_iff} (theorem), \bold{92}
   \item intersection, 89
     \subitem indexed, 92
   \item \isa {IntI} (theorem), \bold{89}
   \item \isa {intro} (method), 58
   \item \isa {intro!} (attribute), 112
+  \item \isa {intro_classes} (method), 145
   \item introduction rules, 52--53
   \item \isa {inv} (constant), 70
   \item \isa {inv_image_def} (theorem), \bold{99}
@@ -322,13 +328,13 @@
   \item \isacommand {lemma} (command), 11
   \item \isacommand {lemmas} (command), 77, 86
   \item \isa {length} (symbol), 16
-  \item \isa {length_induct}, \bold{172}
+  \item \isa {length_induct}, \bold{170}
   \item \isa {less_than} (constant), 98
   \item \isa {less_than_iff} (theorem), \bold{98}
   \item \isa {let} expressions, 3, 4, 29
   \item \isa {Let_def} (theorem), 29
   \item \isa {lex_prod_def} (theorem), \bold{99}
-  \item lexicographic product, \bold{99}, 160
+  \item lexicographic product, \bold{99}, 158
   \item {\texttt{lfp}}
     \subitem applications of, \see{CTL}{100}
   \item linear arithmetic, 20--22, 131
@@ -336,7 +342,7 @@
   \item \isa {list} (type), 2, 7, 15
   \item \isa {list.split} (theorem), 30
   \item \isa {lists_mono} (theorem), \bold{121}
-  \item Lowe, Gavin, 178--179
+  \item Lowe, Gavin, 176--177
 
   \indexspace
 
@@ -356,17 +362,19 @@
   \item \isa {mono_def} (theorem), \bold{100}
   \item monotone functions, \bold{100}, 123
     \subitem and inductive definitions, 121--122
-  \item \isa {more} (constant), 140--142
+  \item \isa {more} (constant), 140, 141
   \item \isa {mp} (theorem), \bold{56}
   \item \isa {mult_ac} (theorems), 134
+  \item multiple inheritance, \bold{149}
   \item multiset ordering, \bold{99}
 
   \indexspace
 
   \item \isa {nat} (type), 2, 20, 133--134
+  \item \isa {nat_less_induct} (theorem), 168
   \item natural deduction, 51--52
   \item natural numbers, 20, 133--134
-  \item Needham-Schroeder protocol, 177--179
+  \item Needham-Schroeder protocol, 175--177
   \item negation, 57--59
   \item \isa {Nil} (constant), 7
   \item \isa {no_asm} (modifier), 27
@@ -384,14 +392,14 @@
   \indexspace
 
   \item \isa {O} (symbol), 96
-  \item \texttt {o}, \bold{189}
+  \item \texttt {o}, \bold{187}
   \item \isa {o_def} (theorem), \bold{94}
   \item \isa {OF} (attribute), 79--80
   \item \isa {of} (attribute), 77, 80
   \item \isa {only} (modifier), 27
   \item \isacommand {oops} (command), 11
   \item \isa {option} (type), \bold{22}
-  \item ordered rewriting, \bold{158}
+  \item ordered rewriting, \bold{156}
   \item overloading, 21, 144--146
     \subitem and arithmetic, 132
 
@@ -399,12 +407,11 @@
 
   \item pairs and tuples, 22, 137--140
   \item parent theories, \bold{2}
-  \item partial function, 164
   \item pattern matching
     \subitem and \isacommand{recdef}, 45
-  \item pattern, higher-order, \bold{159}
+  \item patterns
+    \subitem higher-order, \bold{157}
   \item PDL, 102--104
-  \item permutative rewrite rule, \bold{158}
   \item \isacommand {pr} (command), 14, 84
   \item \isacommand {prefer} (command), 14, 84
   \item primitive recursion, \see{recursion, primitive}{1}
@@ -416,7 +423,7 @@
     \subitem abandoning, \bold{11}
     \subitem examples of failing, 71--73
   \item protocols
-    \subitem security, 177--187
+    \subitem security, 175--185
 
   \indexspace
 
@@ -439,18 +446,19 @@
   \item \isa {Real} (theory), 137
   \item \isa {real} (type), 136--137
   \item real numbers, 136--137
-  \item \isacommand {recdef} (command), 44--50, 98, 160--168
+  \item \isacommand {recdef} (command), 44--50, 98, 158--166
     \subitem and numeric literals, 132
-  \item \isa {recdef_cong} (attribute), 164
+  \item \isa {recdef_cong} (attribute), 162
   \item \isa {recdef_simp} (attribute), 46
-  \item \isa {recdef_wf} (attribute), 162
+  \item \isa {recdef_wf} (attribute), 160
   \item \isacommand {record} (command), 140
   \item \isa {record_split} (method), 143
   \item records, 140--144
     \subitem extensible, 141--142
   \item recursion
+    \subitem guarded, 163
     \subitem primitive, 16
-    \subitem well-founded, \bold{161}
+    \subitem well-founded, \bold{159}
   \item recursion induction, 49--50
   \item \isacommand {redo} (command), 14
   \item reflexive and transitive closure, 96--98
@@ -460,16 +468,15 @@
     \subitem well-founded, 98--99
   \item \isa {rename_tac} (method), 66--67
   \item \isa {rev} (constant), 8--12, 32
-  \item rewrite rule
-    \subitem permutative, \bold{158}
   \item rewrite rules, \bold{25}
+    \subitem permutative, \bold{156}
   \item rewriting, \bold{25}
-    \subitem ordered, \bold{158}
   \item \isa {rotate_tac} (method), 28
   \item \isa {rtrancl_refl} (theorem), \bold{96}
   \item \isa {rtrancl_trans} (theorem), \bold{96}
   \item rule induction, 112--114
   \item rule inversion, 114--115, 123--124
+  \item \isa {rule_format} (attribute), 167
   \item \isa {rule_tac} (method), 60
     \subitem and renaming, 67
 
@@ -490,19 +497,18 @@
   \item \isa {simp} (method), \bold{26}
   \item \isa {simp} del (attribute), 26
   \item \isa {simp_all} (method), 26, 35
-  \item simplification, 25--31, 157--160
+  \item simplification, 25--31, 155--158
     \subitem of \isa{let}-expressions, 29
-    \subitem ordered, \bold{158}
     \subitem with definitions, 28
     \subitem with/of assumptions, 27
-  \item simplification rule, 159--160
+  \item simplification rule, 157--158
   \item simplification rules, 26
     \subitem adding and deleting, 27
   \item \isa {simplified} (attribute), 77, 80
   \item \isa {size} (constant), 15
   \item \isa {snd} (constant), 22
   \item \isa {SOME} (symbol), 70
-  \item \texttt {SOME}, \bold{189}
+  \item \texttt {SOME}, \bold{187}
   \item \isa {Some} (constant), \bold{22}
   \item \isa {some_equality} (theorem), \bold{70}
   \item \isa {someI} (theorem), \bold{70}
@@ -519,6 +525,7 @@
   \item \isa {split_if_asm} (theorem), 30
   \item \isa {ssubst} (theorem), \bold{61}
   \item structural induction, \see{induction, structural}{1}
+  \item subclasses, 144, 148
   \item subgoal numbering, 44
   \item \isa {subgoal_tac} (method), 82
   \item subgoals, 10
@@ -568,17 +575,17 @@
   \item type synonyms, 23
   \item type variables, 3
   \item \isacommand {typedecl} (command), 101, 150
-  \item \isacommand {typedef} (command), 151--155
+  \item \isacommand {typedef} (command), 151--154
   \item types, 2--3
     \subitem declaring, 150--151
-    \subitem defining, 151--155
+    \subitem defining, 151--154
   \item \isacommand {types} (command), 23
 
   \indexspace
 
   \item Ullman, J. D., 129
-  \item \texttt {UN}, \bold{189}
-  \item \texttt {Un}, \bold{189}
+  \item \texttt {UN}, \bold{187}
+  \item \texttt {Un}, \bold{187}
   \item \isa {UN_E} (theorem), \bold{92}
   \item \isa {UN_I} (theorem), \bold{92}
   \item \isa {UN_iff} (theorem), \bold{92}
@@ -586,7 +593,7 @@
   \item \isacommand {undo} (command), 14
   \item unification, 60--63
   \item \isa {UNION} (constant), 93
-  \item \texttt {Union}, \bold{189}
+  \item \texttt {Union}, \bold{187}
   \item union
     \subitem indexed, 92
   \item \isa {Union_iff} (theorem), \bold{92}
@@ -604,14 +611,16 @@
 
   \indexspace
 
-  \item Wenzel, Markus, v
+  \item Wenzel, Markus, vii
   \item \isa {wf_induct} (theorem), \bold{99}
   \item \isa {wf_inv_image} (theorem), \bold{99}
   \item \isa {wf_less_than} (theorem), \bold{98}
   \item \isa {wf_lex_prod} (theorem), \bold{99}
   \item \isa {wf_measure} (theorem), \bold{99}
-  \item \isa {while} (constant), 167
-  \item \isa {While_Combinator} (theory), 167
+  \item \isa {wf_subset} (theorem), 160
+  \item \isa {while} (constant), 165
+  \item \isa {While_Combinator} (theory), 165
+  \item \isa {while_rule} (theorem), 165
 
   \indexspace
 

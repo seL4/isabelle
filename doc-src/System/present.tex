@@ -31,8 +31,8 @@ Isabelle also generates graph files that represent the theory hierarchy of a
 logic.  There is a graph browser Java applet embedded in the generated HTML
 pages, and also a stand-alone application that allows browsing theory graphs
 without having to start a WWW browser first.  The latter version also includes
-features such as generating {\sc PostScript} files, which are not available in
-the applet version.  See \S\ref{sec:browse} for further information.
+features such as generating Postscript files, which are not available in the
+applet version.  See \S\ref{sec:browse} for further information.
 
 \medskip
 
@@ -101,8 +101,7 @@ appropriate \texttt{IsaMakefile}, via the Isabelle \texttt{make} utility.
 There is a separate \texttt{mkdir} tool to provide easy setup of all this,
 with only minimal manual editing required.
 \begin{ttbox}
-isatool mkdir -d Foo
-edit Foo/ROOT.ML
+isatool mkdir Foo
 isatool make
 \end{ttbox}
 See \S\ref{sec:tool-mkdir} for more information on preparing Isabelle session
@@ -201,13 +200,12 @@ follows:
   
 \item[Open \dots] Open a new graph file.
   
-\item[Export to PostScript] Outputs the current graph in {\sc
-    PostScript} format, appropriately scaled to fit on one single
-  sheet of paper.  The resulting file can be printed directly.
+\item[Export to PostScript] Outputs the current graph in Postscript format,
+  appropriately scaled to fit on one single sheet of paper.  The resulting
+  file can be printed directly.
   
-\item[Export to EPS] Outputs the current graph in Encapsulated {\sc
-    PostScript} format. The resulting file can be included in other
-  documents.
+\item[Export to EPS] Outputs the current graph in Encapsulated Postscript
+  format. The resulting file can be included in other documents.
 
 \item[Quit] Quit the graph browser.
 
@@ -260,6 +258,7 @@ Usage: document [OPTIONS] [DIR]
     -c           cleanup -- be aggressive in removing old stuff
     -o FORMAT    specify output format: dvi (default), dvi.gz, ps,
                  ps.gz, pdf
+    -v           be verbose
 
   Prepare the theory session document in DIR (default 'document')
   producing the specified output format.
@@ -360,8 +359,11 @@ This is known to work with recent versions of the \textsl{teTeX} distribution.
 \label{sec:tool-mkdir}
 
 The \tooldx{mkdir} utility prepares Isabelle session source directories,
-including a sensible default setup of \texttt{IsaMakefile}, \texttt{ROOT.ML}
-and an optional \texttt{document} directory.  Its usage is:
+including a sensible default setup of \texttt{IsaMakefile}, \texttt{ROOT.ML},
+and a \texttt{document} directory with a minimal \texttt{root.tex} that is
+sufficient print all theories of the session (in the order of appearance); see
+\S\ref{sec:tool-document} for further information on Isabelle document
+preparation.  The usage of \texttt{mkdir} is:
 \begin{ttbox}
 Usage: mkdir [OPTIONS] [LOGIC] NAME
 
@@ -369,9 +371,9 @@ Usage: mkdir [OPTIONS] [LOGIC] NAME
     -I FILE      alternative IsaMakefile output
     -P           include parent logic target
     -b           setup build mode (session outputs heap image)
-    -d           setup document
+    -q           quiet mode
 
-  Prepare session directory, including IsaMakefile, document etc.
+  Prepare session directory, including IsaMakefile and document source,
   with parent LOGIC (default ISABELLE_LOGIC=\$ISABELLE_LOGIC)
 \end{ttbox}
 
@@ -405,10 +407,8 @@ directory \texttt{NAME}, rather than the current one.  See
 \S\ref{sec:tool-usedir} for further information on \emph{build mode} vs.\ 
 \emph{example mode} of the \texttt{usedir} utility.
 
-\medskip The \texttt{-d} option creates a \texttt{document} directory with a
-minimal \texttt{root.tex} file, which is sufficient to get all theories pretty
-printed in the order of appearance.  See \S\ref{sec:tool-document} for further
-information on Isabelle document preparation.
+\medskip The \texttt{-q} enables quiet mode, suppressing further notes on how
+to proceed.
 
 
 \subsection*{Examples}
@@ -416,7 +416,8 @@ information on Isabelle document preparation.
 The standard setup of a single ``example session'' based on the default logic,
 with proper document generation is generated like this:
 \begin{ttbox}
-isatool mkdir -d Foo
+isatool mkdir Foo
+isatool make
 \end{ttbox}
 \noindent The theory sources should be put into the \texttt{Foo} directory, and its
 \texttt{ROOT.ML} should be edited to load all required theories.  Invoking
@@ -431,6 +432,7 @@ changing the options passed to \texttt{usedir}.
 The \tooldx{usedir} utility builds object-logic images, or runs example
 sessions based on existing logics. Its usage is:
 \begin{ttbox}
+
 Usage: usedir [OPTIONS] LOGIC NAME
 
   Options are:
@@ -441,8 +443,10 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -d FORMAT    build document as FORMAT (default false)
     -i BOOL      generate theory browser information (default false)
     -m MODE      add print mode for output
+    -p LEVEL     set level of detail for proof objects
     -r           reset session path
     -s NAME      override session NAME
+    -v BOOL      be verbose (default false)
 
   Build object-logic or run examples. Also creates browsing
   information (HTML etc.) according to settings.
@@ -499,6 +503,13 @@ directory.  For example, \texttt{-D document} would leave a copy of the
 \texttt{document} or \texttt{latex} tools may be run later, facilitating much
 easier debugging of {\LaTeX} errors, for example.  Note that a copy of the
 Isabelle style files will be placed in \texttt{PATH} as well.
+
+\medskip The \texttt{-p} option determines the level of detail for internal
+proof objects, see also the \emph{Isabelle Reference
+  Manual}~\cite{isabelle-ref}.
+
+\medskip The \texttt{-v} option causes additional information to be printed
+during while running the session, notably the location of prepared documents.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend on

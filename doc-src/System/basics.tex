@@ -374,49 +374,48 @@ are available:
 
 \begin{itemize}
 \item \texttt{none} is just a pass-through to plain \texttt{isabelle}. Thus
-  \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.
-  
+  \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.  This is
+  the factory default.
+
 \item \texttt{xterm} refers to a simple \textsl{xterm} based interface which
   is part of the Isabelle distribution.
+  
+  This interface runs \texttt{isabelle} within its own \textsl{xterm} window.
+  Usually, display of mathematical symbols from the Isabelle font is enabled
+  as well (see \S\ref{sec:tool-installfonts} for X11 font configuration
+  issues).  Furthermore, different kinds of identifiers in logical terms are
+  highlighted appropriately, e.g.\ free variables in bold and bound variables
+  underlined.  There are some more options available, just pass
+  ``\texttt{-?}'' to get the usage printed.
   
 \item \texttt{emacs} refers to David Aspinall's \emph{Isamode}\index{user
     interface!Isamode} for emacs.  Isabelle just provides a wrapper for this,
   the actual Isamode distribution is available elsewhere \cite{isamode}.
   
 \item Proof~General~\cite{proofgeneral}\index{user interface!Proof General} is
-  distributed with separate interface wrapper scripts for Isabelle.  See below
-  for more details.
-\end{itemize}
-
-The factory default for \texttt{ISABELLE_INTERFACE} is \texttt{xterm}.  This
-interface runs \texttt{isabelle} within its own \textsl{xterm} window.
-Usually, display of mathematical symbols from the Isabelle font is enabled as
-well (see \S\ref{sec:tool-installfonts} for X11 font configuration issues).
-Furthermore, different kinds of identifiers in logical terms are highlighted
-appropriately, e.g.\ free variables in bold and bound variables underlined.
-There are some more options available, just pass ``\texttt{-?}'' to get the
-usage printed.
-
-\medskip Proof~General\index{user interface!Proof General} is a much more
-advanced interface.  It supports both classic Isabelle (as
-\texttt{ProofGeneral/isa}) and Isabelle/Isar (as \texttt{ProofGeneral/isar}).
-Note that the latter is inherently more robust.
-
-Using the Isabelle interface wrapper scripts as provided by Proof~General, a
-typical setup for Isabelle/Isar would be like this:
-\begin{ttbox}
+  an advanced interface for common theorem proving environments.  It has
+  become the de-facto standard for Isabelle recently, supporting both the old
+  ML top-level of classic Isabelle and the more convenient Isabelle/Isar
+  interpreter loop.  The Proof~General distributions includes separate
+  interface wrapper scripts (in \texttt{ProofGeneral/isa} and
+  \texttt{ProofGeneral/isar}).  The canonical settings for Isabelle/Isar are
+  as follows:
+  \begin{ttbox}
 ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
-PROOFGENERAL_OPTIONS="-u false"
-\end{ttbox}
-Thus \texttt{Isabelle} would automatically invoke Emacs with proper setup of
-the Proof~General Lisp packages.  There are some options available, such as
-\texttt{-l} for passing the logic image to be used.
+PROOFGENERAL_OPTIONS=""
+  \end{ttbox}
+  Thus \texttt{Isabelle} would automatically invoke Emacs with proper setup of
+  the Proof~General Lisp packages.  There are some options available, such as
+  \texttt{-l} for passing the logic image to be used, or \texttt{-m} to tune
+  the standard print mode.
+  
+  \medskip Note that the world may be also seen the other way round: Emacs may
+  be started first (with proper setup of Proof~General mode), and
+  \texttt{isabelle} run from within.  This requires further Emacs Lisp
+  configuration, see the Proof~General documentation \cite{proofgeneral} for
+  more information.
 
-\medskip Note that the world may be also seen the other way round: Emacs may
-be started first (with proper setup of Proof~General mode), and
-\texttt{isabelle} run from within.  This requires further Emacs Lisp
-configuration, see the Proof~General documentation \cite{proofgeneral} for
-more information.
+\end{itemize}
 
 %%% Local Variables:
 %%% mode: latex
