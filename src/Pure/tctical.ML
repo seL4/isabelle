@@ -6,9 +6,8 @@
 Tacticals
 *)
 
-infix 1 THEN THEN';
+infix 1 THEN THEN' THEN_MAYBE THEN_MAYBE';
 infix 0 ORELSE APPEND INTLEAVE ORELSE' APPEND' INTLEAVE';
-
 infix 0 THEN_ELSE;
 
 
@@ -56,6 +55,8 @@ signature TACTICAL =
   val suppress_tracing  : bool ref
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val THEN_MAYBE	: tactic * tactic -> tactic
+  val THEN_MAYBE'	: ('a -> tactic) * ('a -> tactic) -> ('a -> tactic)
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
   val traced_tac        : (thm -> (thm * thm Sequence.seq) option) -> tactic
   val tracify           : bool ref -> tactic -> thm -> thm Sequence.seq
@@ -146,6 +147,13 @@ fun COND testfun thenf elsef = (fn prf =>
 
 (*Do the tactic or else do nothing*)
 fun TRY tac = tac ORELSE all_tac;
+
+(*Execute tac1, but only execute tac2 if there are at least as many subgoals
+  as before.  This ensures that tac2 is only applied to an outcome of tac1.*)
+fun tac1 THEN_MAYBE tac2 = let fun has_fewer_prems n rule = (nprems_of rule < n)
+in STATE (fn state => tac1  THEN  
+	 COND (has_fewer_prems (nprems_of state)) all_tac tac2) end;
+fun (tac1 THEN_MAYBE' tac2) x = tac1 x THEN_MAYBE tac2 x;
 
 
 (*** List-oriented tactics ***)
