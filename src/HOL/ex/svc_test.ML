@@ -16,7 +16,7 @@ set Svc.trace;
   in its length, though Fast_tac manages*)
 Goal "P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P=P";
 by (svc_tac 1);
-result();
+qed "";
 
 (** Some big tautologies supplied by John Harrison **)
 
@@ -43,7 +43,7 @@ Goal "~(~v12 & \
 \  (~v7 | ~v8 | v9) & \
 \  (~v10 | ~v11 | v12))";
 by (svc_tac 1);
-result();
+qed "";
 
 (*Tautology name: dk17_be*)
 Goal "(GE17 <-> ~IN4 & ~IN3 & ~IN2 & ~IN1) & \
@@ -122,7 +122,7 @@ Goal "(GE17 <-> ~IN4 & ~IN3 & ~IN2 & ~IN1) & \
 \       (OUT1 <-> WRES7 & IN8) & \
 \       (OUT0 <-> WRES7 & ~IN8)";
 by (svc_tac 1);
-result();
+qed "";
 
 (*Tautology name: sqn_be.  Fast_tac only takes a couple of seconds.*)
 Goal "(GE0 <-> IN6 & IN1 | ~IN6 & ~IN1) & \
@@ -226,7 +226,7 @@ Goal "(GE0 <-> IN6 & IN1 | ~IN6 & ~IN1) & \
 \       WRES18 & WRES0 & ~IN5 | \
 \       WRES19)";
 by (svc_tac 1);
-result();
+qed "";
 
 
 (** Linear arithmetic **)
@@ -235,20 +235,20 @@ Goal "x ~= #14 & x ~= #13 & x ~= #12 & x ~= #11 & x ~= #10 & x ~= #9 & \
 \     x ~= #8 & x ~= #7 & x ~= #6 & x ~= #5 & x ~= #4 & x ~= #3 & \
 \     x ~= #2 & x ~= #1 & #0 < x & x < #16 --> #15 = (x::int)";
 by (svc_tac 1);
-result();
+qed "";
 
 (*merely to test polarity handling in the presence of biconditionals*)
 Goal "(x < (y::int)) = (x+#1 <= y)";
 by (svc_tac 1);
-result();
+qed "";
 
 (** Natural number examples requiring implicit "non-negative" assumptions*)
 
 Goal "(#3::nat)*a <= #2 + #4*b + #6*c  & #11 <= #2*a + b + #2*c & \
 \     a + #3*b <= #5 + #2*c  --> #2 + #3*b <= #2*a + #6*c";
 by (svc_tac 1);
-result();
+qed "";
 
 Goal "(n::nat) < #2 ==> (n = #0) | (n = #1)";
 by (svc_tac 1);
-result();
+qed "";
