@@ -73,6 +73,10 @@ coinductive "LListD(r)"
     CONS_I "[| (a,b): r;  (M,N) : LListD(r)   
             |] ==> (CONS a M, CONS b N) : LListD(r)"
 
+translations
+  "case p of LNil => a | LCons x l => b" == "llist_case a (%x l.b) p"
+
+
 defs
   (*Now used exclusively for abbreviating the coinduction rule*)
   list_Fun_def   "list_Fun A X ==   
@@ -94,15 +98,18 @@ defs
   LList_corec_fun_def
     "LList_corec_fun k f == 
      nat_rec (%x. {})                         
-              (%j r x. sum_case (%u.NIL) (split(%z w. CONS z (r w))) (f x)) k"
+             (%j r x. case f x of Inl u    => NIL
+                                | Inr(z,w) => CONS z (r w)) 
+             k"
 
   LList_corec_def
     "LList_corec a f == UN k. LList_corec_fun k f a"
 
   llist_corec_def
    "llist_corec a f == 
-       Abs_llist(LList_corec a (%z.sum_case (%x.Inl(x)) 
-                                    (split(%v w. Inr((Leaf(v), w)))) (f z)))"
+       Abs_llist(LList_corec a 
+                 (%z.case f z of Inl x    => Inl(x)
+                               | Inr(v,w) => Inr(Leaf(v), w)))"
 
   llistD_Fun_def
    "llistD_Fun(r) ==    
@@ -116,13 +123,14 @@ defs
    "Lmap f M == LList_corec M (List_case (Inl ()) (%x M'. Inr((f(x), M'))))"
 
   lmap_def
-   "lmap f l == llist_corec l (llist_case (Inl ()) (%y z. Inr((f(y), z))))"
+   "lmap f l == llist_corec l (%z. case z of LNil => (Inl ()) 
+                                           | LCons y z => Inr(f(y), z))"
 
   iterates_def  "iterates f a == llist_corec a (%x. Inr((x, f(x))))"     
 
 (*Append generates its result by applying f, where
-    f((NIL,NIL)) = Inl(())
-    f((NIL, CONS N1 N2)) = Inr((N1, (NIL,N2))
+    f((NIL,NIL))          = Inl(())
+    f((NIL, CONS N1 N2))  = Inr((N1, (NIL,N2))
     f((CONS M1 M2, N))    = Inr((M1, (M2,N))
 *)
 
