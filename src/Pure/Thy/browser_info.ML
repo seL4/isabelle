@@ -79,7 +79,7 @@ signature BROWSER_INFO =
 sig
   val output_dir       : string ref
   val home_path        : string ref
-
+  val base_path        : string ref
   val make_graph       : bool ref
   val init_graph       : string -> unit
   val mk_graph         : string -> string -> unit
