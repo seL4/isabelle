@@ -48,6 +48,14 @@ by (simp_tac (simpset() addsimps [Join_commute]) 1);
 by (Blast_tac 1);
 qed "component_Join2";
 
+Goal "F<=G ==> F Join G = G";
+by (auto_tac (claset(), simpset() addsimps [component_def, Join_left_absorb]));
+qed "Join_absorb1";
+
+Goal "G<=F ==> F Join G = F";
+by (auto_tac (claset(), simpset() addsimps Join_ac@[component_def]));
+qed "Join_absorb2";
+
 Goalw [component_def] "i : I ==> (F i) <= (JN i:I. (F i))";
 by (blast_tac (claset() addIs [JN_absorb]) 1);
 qed "component_JN";

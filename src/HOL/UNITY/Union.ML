@@ -126,7 +126,7 @@ qed "Join_absorb";
 
 Addsimps [Join_absorb];
 
-Goalw [Join_def] "A Join (A Join B) = A Join B";
+Goalw [Join_def] "F Join (F Join G) = F Join G";
 by (rtac program_equalityI 1);
 by Auto_tac;
 qed "Join_left_absorb";
@@ -336,15 +336,16 @@ by (Clarify_tac 1);
 by (force_tac (claset() addSEs [allE, ballE], simpset()) 1);
 qed "localTo_imp_o_localTo";
 
+(*NOT USED*)
 Goalw [LOCALTO_def, stable_def, constrains_def]
      "(%s. x) localTo[C] F = UNIV";
 by (Blast_tac 1);
 qed "triv_localTo_eq_UNIV";
 
-Goal "(F Join G : v localTo[C] H) = (F : v localTo[C] H  &  G : v localTo[C] H)";
-by (asm_full_simp_tac 
-    (simpset() addsimps [LOCALTO_def, Diff_Join_distrib,
-			 stable_def, Join_constrains]) 1);
+Goal "(F Join G : v localTo[C] H) = \
+\     (F : v localTo[C] H  &  G : v localTo[C] H)";
+by (simp_tac (simpset() addsimps [LOCALTO_def, Diff_Join_distrib,
+				  stable_def, Join_constrains]) 1);
 by (Blast_tac 1);
 qed "Join_localTo";
 

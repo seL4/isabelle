@@ -8,17 +8,6 @@ Extending of state sets
   function g (forgotten) maps the extended state to the "extending part"
 *)
 
-
-
-		Goal "(A Int B = {}) = (ALL x:A. ALL y:B. x ~= y)";
-		by  (Blast_tac 1);
-		qed "disjoint_iff_not_equal";
-
-		Goal "ff -`` (ff `` A) = {y. EX x:A. ff x = ff y}";
-		by (blast_tac (claset() addIs [sym]) 1);
-		qed "vimage_image_eq";
-
-
 (** These we prove OUTSIDE the locale. **)
 
 (*Possibly easier than reasoning about "inv h"*)
@@ -277,7 +266,7 @@ by (Force_tac 1);
 qed "project_act_Id";
 
 Goalw [project_set_def, project_act_def]
-  "Domain (project_act h (Restrict C act)) = project_set h (Domain act Int C)";
+  "Domain (project_act h act) = project_set h (Domain act)";
 by (force_tac (claset(), 
               simpset() addsimps [split_extended_all]) 1);
 qed "Domain_project_act";
@@ -330,14 +319,19 @@ by Auto_tac;
 qed "project_set_UNIV";
 Addsimps [project_set_UNIV];
 
+Goal "project h C (extend h F) = \
+\     mk_program (Init F, Restrict (project_set h C) `` Acts F)";
+by (rtac program_equalityI 1);
+by (asm_simp_tac (simpset() addsimps [image_eq_UN, 
+                   project_act_extend_act_restrict]) 2);
+by (Simp_tac 1);
+qed "project_extend_eq";
+
 (*ALL act: Acts F. Domain act is MUCH TOO STRONG since Domain Id = UNIV!*)
 Goal "UNIV <= project_set h C \
 \     ==> project h C (extend h F) = F";
-by (simp_tac (simpset() addsimps [extend_def, project_def]) 1);
-by (rtac program_equalityI 1);
-by (asm_simp_tac (simpset() addsimps [image_image_eq_UN, image_UN, 
-                   subset_UNIV RS subset_trans RS Restrict_triv]) 2);
-by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [project_extend_eq, image_eq_UN, 
+                   subset_UNIV RS subset_trans RS Restrict_triv]) 1);
 qed "extend_inverse";
 Addsimps [extend_inverse];
 
@@ -409,12 +403,14 @@ by (auto_tac (claset(),
               simpset() addsimps [extend_act_def]));
 qed "Restrict_extend_set";
 
-Goal "(Diff (extend_set h C) (extend h G) (extend_act h `` acts)) = \
+Goalw [Diff_def]
+     "(Diff (extend_set h C) (extend h G) (extend_act h `` acts)) = \
 \     extend h (Diff C G acts)";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Diff_def, image_image_eq_UN,
-				  Restrict_extend_set,
-				  inj_extend_act RS image_set_diff]));
+by (rtac program_equalityI 1);
+by (Simp_tac 1);
+by (simp_tac (simpset() addsimps [inj_extend_act RS image_set_diff]) 1);
+by (simp_tac (simpset() addsimps [image_eq_UN,
+				  Restrict_extend_set]) 1);
 qed "Diff_extend_eq";
 
 (*Opposite inclusion fails; this inclusion's more general than that of

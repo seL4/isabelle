@@ -62,14 +62,17 @@ Addsimps [Acts_eq, Init_eq];
 
 (** The notation of equality for type "program" **)
 
-Goal "[| Init F = Init G; Acts F = Acts G |] ==> F = G";
-by (subgoals_tac ["EX x. Rep_Program F = x",
-		  "EX x. Rep_Program G = x"] 1);
-by (REPEAT (Blast_tac 2));
-by (Clarify_tac 1);
+
+Goal "mk_program (Init F, Acts F) = F";
+by (cut_inst_tac [("x", "F")] Rep_Program 1);
 by (auto_tac (claset(), rep_ss));
 by (REPEAT (dres_inst_tac [("f", "Abs_Program")] arg_cong 1));
-by (asm_full_simp_tac rep_ss 1);
+by (asm_full_simp_tac (rep_ss addsimps [insert_absorb]) 1);
+qed "surjective_mk_program";
+
+Goal "[| Init F = Init G; Acts F = Acts G |] ==> F = G";
+by (stac (surjective_mk_program RS sym) 1);
+by (stac (surjective_mk_program RS sym) 1 THEN Force_tac 1);
 qed "program_equalityI";
 
 val [major,minor] =
@@ -77,6 +80,8 @@ Goal "[| F = G; [| Init F = Init G; Acts F = Acts G |] ==> P |] ==> P";
 by (rtac minor 1);
 by (auto_tac (claset(), simpset() addsimps [major]));
 qed "program_equalityE";
+
+Addsimps [surjective_mk_program];
 
 
 (*** These rules allow "lazy" definition expansion 

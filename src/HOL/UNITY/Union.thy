@@ -33,7 +33,7 @@ constdefs
 
   (*The weak version of localTo, considering only G's reachable states*)
   LocalTo :: ['a => 'b, 'a program] => 'a program set  (infixl 80)
-    "v LocalTo F == {G. G : v localTo[reachable G] F}"
+    "v LocalTo F == {G. G : v localTo[reachable (F Join G)] F}"
 
   (*Two programs with disjoint actions, except for identity actions.
     It's a weak property but still useful.*)

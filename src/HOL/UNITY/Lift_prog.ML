@@ -453,12 +453,14 @@ by (dtac (lift_export extend_localTo_guar_increasing) 1);
 by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
 qed "lift_prog_localTo_guar_increasing";
 
+(***
 Goal "F : (v LocalTo G) guarantees Increasing func  \
 \     ==> lift_prog i F : (v o sub i) LocalTo (lift_prog i G)  \
 \                         guarantees Increasing (func o sub i)";
 by (dtac (lift_export extend_LocalTo_guar_Increasing) 1);
 by (asm_full_simp_tac (simpset() addsimps [lift_prog_correct, o_def]) 1);
 qed "lift_prog_LocalTo_guar_Increasing";
+***)
 
 Goal "F : Always A guarantees Always B \
 \ ==> lift_prog i F : Always(lift_set i A) guarantees Always (lift_set i B)";

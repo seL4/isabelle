@@ -61,6 +61,17 @@ Goal "f``(g``A - B) = (UN x: (A - g-`` B). {f(g(x))})";
 by (Blast_tac 1);
 qed "image_Diff_image_eq";
 
+Goal "Domain (Restrict A r) = A Int Domain r";
+by (Blast_tac 1);
+qed "Domain_Restrict";
+
+Goal "(Restrict A r) ^^ B = r ^^ (A Int B)";
+by (Blast_tac 1);
+qed "Image_Restrict";
+
+Addsimps [Domain_Restrict, Image_Restrict];
+
+
 
 (*** lessThan ***)
 

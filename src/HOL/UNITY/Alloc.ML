@@ -388,7 +388,7 @@ qed "System_Increasing_giv";
 
 (*A LOT of work just to lift "Client_Progress" to the array*)
 Goal "lift_prog i Client \
-\  : Increasing (giv o sub i) Int ((%z. z i) localTo[UNIV] (lift_prog i Client)) \
+\  : Increasing (giv o sub i) Int ((%z. z i) LocalTo (lift_prog i Client)) \
 \    guarantees \
 \    (INT h. {s. h <=  (giv o sub i) s & \
 \                       h pfixGe (ask o sub i) s}  \
