@@ -17,7 +17,7 @@ Verification:
 No proofs yet.
 *)
 
-AutoChopper1 = DA + Chopper + WF_Rel +
+AutoChopper1 = DA + Chopper + Recdef +
 
 consts
   acc :: "(('a,'s)da * 'a list * 's * 'a list list * 'a list * 'a list)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Recdef.thy
+(*  Title:      HOL/ex/Recdefs.thy
     ID:         $Id$
     Author:     Konrad Slind and Lawrence C Paulson
     Copyright   1996  University of Cambridge
@@ -95,7 +95,7 @@ recdef fqsort "measure (size o snd)"
 *)
 consts mapf :: nat => nat list
 recdef mapf "measure(%m. m)"
-congs "[map_cong]"
+congs map_cong
 "mapf 0 = []"
 "mapf (Suc n) = concat(map (%x. mapf x) (replicate n n))"
 

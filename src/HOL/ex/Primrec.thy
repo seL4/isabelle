@@ -16,7 +16,7 @@ See also E. Mendelson, Introduction to Mathematical Logic.
 Demonstrates recursive definitions, the TFL package
 *)
 
-Primrec = WF_Rel + List +
+Primrec = Main +
 
 consts ack  :: "nat * nat => nat"
 recdef ack "less_than ** less_than"

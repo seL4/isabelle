@@ -6,7 +6,7 @@
 Unification algorithm
 *)
 
-Unify = Unifier + WF_Rel + Option + 
+Unify = Unifier + Recdef + Option +
 
 consts
 
