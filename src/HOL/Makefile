@@ -72,14 +72,14 @@ IMP_NAMES = Com Denotation Equiv Properties
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:    $(BIN)/HOL  $(IMP_FILES)
-	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"IMP";quit();' | $(LOGIC)
 
 ##Hoare logic
 Hoare_NAMES = Hoare Arith2 Examples
 Hoare_FILES = Hoare/ROOT.ML $(Hoare_NAMES:%=Hoare/%.thy) $(Hoare_NAMES:%=Hoare/%.ML)
 
 Hoare:  $(BIN)/HOL  $(Hoare_FILES)
-	echo 'exit_use"Hoare/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"Hoare";quit();' | $(LOGIC)
 
 ##The integers in HOL
 INTEG_NAMES = Equiv Integ 
@@ -88,7 +88,7 @@ INTEG_FILES = Integ/ROOT.ML \
               $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
 
 Integ:  $(BIN)/HOL  $(INTEG_FILES)
-	echo 'exit_use"Integ/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"Integ";quit();' | $(LOGIC)
 
 ##I/O Automata
 IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet\
@@ -96,7 +96,7 @@ IOA_NTP_NAMES = Abschannel Action Correctness Impl Lemmas Multiset Packet\
 IOA_ABP_NAMES = Action Correctness Lemmas
 IOA_MT_NAMES = Asig IOA Option Solve
 
-IOA_FILES = IOA/ROOT_NTP.ML IOA/ROOT_ABP.ML IOA/NTP/Spec.thy\
+IOA_FILES = IOA/NTP/ROOT.ML IOA/ABP/ROOT.ML IOA/NTP/Spec.thy\
  $(IOA_NTP_NAMES:%=IOA/NTP/%.thy) $(IOA_NTP_NAMES:%=IOA/NTP/%.ML)\
  IOA/ABP/Abschannel.thy IOA/ABP/Abschannel_finite.thy IOA/ABP/Env.thy\
  IOA/ABP/Impl.thy IOA/ABP/Impl_finite.thy IOA/ABP/Packet.thy\
@@ -105,8 +105,8 @@ IOA_FILES = IOA/ROOT_NTP.ML IOA/ROOT_ABP.ML IOA/NTP/Spec.thy\
  $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:    $(BIN)/HOL  $(IOA_FILES)
-	echo 'exit_use"IOA/ROOT_NTP.ML";quit();' | $(LOGIC)
-#	echo 'exit_use"IOA/ROOT_ABP.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"IOA/NTP";quit();' | $(LOGIC)
+	echo 'exit_use_dir"IOA/ABP";quit();' | $(LOGIC)
 
 ##Properties of substitutions
 SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
@@ -115,7 +115,7 @@ SUBST_FILES = Subst/ROOT.ML \
               $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
 
 Subst:  $(BIN)/HOL  $(SUBST_FILES)
-	echo 'exit_use"Subst/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"Subst";quit();' | $(LOGIC)
 
 ##Confluence of Lambda-calculus
 LAMBDA_NAMES = Lambda ParRed Commutation Eta
@@ -123,8 +123,8 @@ LAMBDA_NAMES = Lambda ParRed Commutation Eta
 LAMBDA_FILES = Lambda/ROOT.ML \
               $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
 
-Lambda:	$(BIN)/HOL  $(LAMBDA_FILES)
-	echo 'exit_use"Lambda/ROOT.ML";quit();' | $(LOGIC)
+Lambda:  $(BIN)/HOL $(LAMBDA_FILES)
+	echo 'exit_use_dir"Lambda";quit();' | $(LOGIC)
 
 ##Type inference for MiniML
 MINIML_NAMES = I Maybe MiniML Type W
@@ -132,8 +132,8 @@ MINIML_NAMES = I Maybe MiniML Type W
 MINIML_FILES = MiniML/ROOT.ML \
               $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
 
-MiniML:	$(BIN)/HOL  $(MINIML_FILES)
-	echo 'exit_use"MiniML/ROOT.ML";quit();' | $(LOGIC)
+MiniML: $(BIN)/HOL  $(MINIML_FILES)
+	echo 'exit_use_dir"MiniML";quit();' | $(LOGIC)
 
 ##Lexical analysis
 LEX_FILES = Auto AutoChopper Chopper Prefix
@@ -142,7 +142,7 @@ LEX_FILES = Lex/ROOT.ML \
             $(LEX_NAMES:%=Lex/%.thy) $(LEX_NAMES:%=Lex/%.ML)
 
 Lex:	$(BIN)/HOL  $(LEX_FILES)
-	echo 'exit_use"Lex/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"Lex";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
 EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String \
@@ -152,7 +152,7 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
            ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 ex:     $(BIN)/HOL  $(EX_FILES)
-	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"ex";quit();' | $(LOGIC)
 
 #Full test.
 test:   $(BIN)/HOL IMP Hoare Lex Integ Subst Lambda MiniML IOA ex

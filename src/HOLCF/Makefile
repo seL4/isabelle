@@ -61,8 +61,8 @@ EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
 test:   ex/ROOT.ML  $(BIN)/HOLCF  $(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
-	sml*)	echo 'exit_use"ex/ROOT.ML"' | $(BIN)/HOLCF;;\
+	poly*)	echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
+	sml*)	echo 'exit_use_dir"ex"' | $(BIN)/HOLCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
@@ -77,8 +77,9 @@ EXPLICIT_DOMAINS_FILES = explicit_domains/ROOT.ML $(EXPLICIT_DOMAINS_THYS)\
 
 test2:	explicit_domains/ROOT.ML  $(BIN)/HOLCF  $(EXPLICIT_DOMAINS_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'exit_use"explicit_domains/ROOT.ML"; quit();' | $(COMP) $(BIN)/HOLCF ;;\
-	sml*)	echo 'exit_use"explicit_domains/ROOT.ML"' | $(BIN)/HOLCF;;\
+	poly*)	echo 'exit_use_dir"explicit_domains"; quit();' \
+                  | $(COMP) $(BIN)/HOLCF ;;\
+	sml*)	echo 'exit_use_dir"explicit_domains"' | $(BIN)/HOLCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

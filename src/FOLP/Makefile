@@ -52,8 +52,8 @@ $(BIN)/Pure:
 
 test:   ex/ROOT.ML  $(BIN)/FOLP  $(EX_FILES) 
 	case "$(COMP)" in \
-	poly*)	echo 'exit_use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/FOLP ;;\
-	sml*)	echo 'exit_use"ex/ROOT.ML";' | $(BIN)/FOLP;;\
+	poly*)	echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/FOLP ;;\
+	sml*)	echo 'exit_use_dir"ex";' | $(BIN)/FOLP;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

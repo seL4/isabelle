@@ -69,7 +69,7 @@ IMP_NAMES = Com Denotation Equiv
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:   $(BIN)/ZF  $(IMP_FILES)
-	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"IMP";quit();' | $(LOGIC)
 
 ##Coinduction example
 COIND_NAMES = ECR Language MT Map Static Types Values 
@@ -78,7 +78,7 @@ COIND_FILES = Coind/ROOT.ML Coind/BCR.thy  Coind/Dynamic.thy \
               $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
 
 Coind:  $(BIN)/ZF  $(COIND_FILES)
-	echo 'exit_use"Coind/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"Coind";quit();' | $(LOGIC)
 
 ##AC examples
 AC_NAMES = AC_Equiv OrdQuant Transrec2 Cardinal_aux \
@@ -92,7 +92,7 @@ AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
            $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
 
 AC:  $(BIN)/ZF  $(AC_FILES)
-	echo 'exit_use"AC/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"AC";quit();' | $(LOGIC)
 
 ##Residuals example
 
@@ -103,7 +103,7 @@ RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) \
                             $(RESID_NAMES:%=Resid/%.ML)
 
 Resid:  $(BIN)/ZF  $(RESID_FILES)
-	echo 'exit_use"Resid/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"Resid";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
 EX_NAMES = Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
@@ -113,7 +113,7 @@ EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 #Test ZF by loading the examples in directory ex
 ex:     $(BIN)/ZF  $(EX_FILES)
-	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
+	echo 'exit_use_dir"ex";quit();' | $(LOGIC)
 
 #Full test.
 test:   $(BIN)/ZF IMP Coind AC Resid ex
