@@ -868,7 +868,7 @@ fun prove_unique_tac lemma =
           REPEAT o (mp_tac ORELSE' eresolve_tac [asm_rl,exE]),
           (*Duplicate the assumption*)
           forw_inst_tac [("psi", "ALL C.?P(C)")] asm_rl,
-          fast_tac (!claset addSDs [spec])];
+          depth_tac (!claset addSDs [spec]) 0];
 
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
