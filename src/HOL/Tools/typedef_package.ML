@@ -26,6 +26,23 @@ structure TypedefPackage: TYPEDEF_PACKAGE =
 struct
 
 
+(** theory context references **)
+
+val type_definitionN = "subset.type_definition";
+val type_definition_def = thm "type_definition_def";
+
+val Rep = thm "Rep";
+val Rep_inverse = thm "Rep_inverse";
+val Abs_inverse = thm "Abs_inverse";
+val Rep_inject = thm "Rep_inject";
+val Abs_inject = thm "Abs_inject";
+val Rep_cases = thm "Rep_cases";
+val Abs_cases = thm "Abs_cases";
+val Rep_induct = thm "Rep_induct";
+val Abs_induct = thm "Abs_induct";
+
+
+
 (** type declarations **)
 
 fun add_typedecls decls thy =
@@ -101,36 +118,40 @@ fun err_in_typedef name =
 
 fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
   let
-    val _ = Theory.requires thy "Set" "typedefs";
+    val _ = Theory.requires thy "subset" "typedefs";
     val sign = Theory.sign_of thy;
-    val full_name = Sign.full_name sign;
+    val full = Sign.full_name sign;
 
     (*rhs*)
+    val full_name = full name;
     val cset = prep_term sign vs raw_set;
     val {T = setT, t = set, ...} = Thm.rep_cterm cset;
     val rhs_tfrees = term_tfrees set;
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Sign.string_of_typ sign setT));
+    val cset_pat = Thm.cterm_of sign (Var ((name, 0), setT));
 
     (*lhs*)
     val lhs_tfrees = map (fn v => (v, if_none (assoc (rhs_tfrees, v)) HOLogic.termS)) vs;
     val tname = Syntax.type_name t mx;
-    val newT = Type (full_name tname, map TFree lhs_tfrees);
+    val full_tname = full tname;
+    val newT = Type (full_tname, map TFree lhs_tfrees);
 
     val Rep_name = "Rep_" ^ name;
     val Abs_name = "Abs_" ^ name;
-    val setC = Const (full_name name, setT);
-    val RepC = Const (full_name Rep_name, newT --> oldT);
-    val AbsC = Const (full_name Abs_name, oldT --> newT);
+
+    val setC = Const (full_name, setT);
+    val RepC = Const (full Rep_name, newT --> oldT);
+    val AbsC = Const (full Abs_name, oldT --> newT);
     val x_new = Free ("x", newT);
     val y_old = Free ("y", oldT);
-    val set' = if no_def then set else setC;
 
-    (*axioms*)
-    val rep_type = HOLogic.mk_Trueprop (HOLogic.mk_mem (RepC $ x_new, set'));
-    val rep_type_inv = HOLogic.mk_Trueprop (HOLogic.mk_eq (AbsC $ (RepC $ x_new), x_new));
-    val abs_type_inv = Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_mem (y_old, set')),
-      HOLogic.mk_Trueprop (HOLogic.mk_eq (RepC $ (AbsC $ y_old), y_old)));
+    val set' = if no_def then set else setC;    (* FIXME !?? *)
+
+    val typedef_name = "type_definition_" ^ name;
+    val typedefC =
+      Const (type_definitionN, (newT --> oldT) --> (oldT --> newT) --> setT --> HOLogic.boolT);
+    val typedef_prop = HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ set');
 
     (*theory extender*)
     fun do_typedef theory =
@@ -143,10 +164,26 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
          (Abs_name, oldT --> newT, NoSyn)])
       |> (if no_def then I else (#1 oo (PureThy.add_defs_i false o map Thm.no_attributes))
        [Logic.mk_defpair (setC, set)])
-      |> (#1 oo (PureThy.add_axioms_i o map Thm.no_attributes))
-       [(Rep_name, rep_type),
-        (Rep_name ^ "_inverse", rep_type_inv),
-        (Abs_name ^ "_inverse", abs_type_inv)]
+      |> PureThy.add_axioms_i [((typedef_name, typedef_prop), [])]
+      |> (fn (theory', typedef_ax) =>
+        let fun make th = standard (th OF typedef_ax) in
+          theory'
+          |> (#1 oo PureThy.add_thms)
+            ([((Rep_name, make Rep), []),
+              ((Rep_name ^ "_inverse", make Rep_inverse), []),
+              ((Abs_name ^ "_inverse", make Abs_inverse), [])] @
+            (if no_def then [] else
+             [((Rep_name ^ "_inject", make Rep_inject), []),
+              ((Abs_name ^ "_inject", make Abs_inject), []),
+              ((Rep_name ^ "_cases", make Rep_cases),
+                [RuleCases.case_names [Rep_name], InductAttrib.cases_set_global full_name]),
+              ((Abs_name ^ "_cases", make Abs_cases),
+                [RuleCases.case_names [Abs_name], InductAttrib.cases_type_global full_tname]),
+              ((Rep_name ^ "_induct", make Rep_induct),
+                [RuleCases.case_names [Rep_name], InductAttrib.induct_set_global full_name]),
+              ((Abs_name ^ "_induct", make Abs_induct),
+                [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])]))
+        end)
       handle ERROR => err_in_typedef name;
 
 
@@ -173,7 +210,7 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
     val errs = illegal_vars @ dup_lhs_tfrees @ extra_rhs_tfrees @ illegal_frees;
   in
     if null errs then () else error (cat_lines errs);
-    (cset, do_typedef)
+    (cset, cset_pat, do_typedef)
   end handle ERROR => err_in_typedef name;
 
 
@@ -181,7 +218,7 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
 
 fun gen_add_typedef prep_term no_def name typ set names thms tac thy =
   let
-    val (cset, do_typedef) = prepare_typedef prep_term no_def name typ set thy;
+    val (cset, _, do_typedef) = prepare_typedef prep_term no_def name typ set thy;
     val result = prove_nonempty thy cset (names, thms, tac);
   in check_nonempty cset result; thy |> do_typedef end;
 
@@ -197,11 +234,13 @@ fun typedef_attribute cset do_typedef (thy, thm) =
 
 fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
   let
-    val (cset, do_typedef) = prepare_typedef prep_term false name typ set thy;
+    val (cset, cset_pat, do_typedef) = prepare_typedef prep_term false name typ set thy;
     val goal = Thm.term_of (goal_nonempty true cset);
+    val goal_pat = Thm.term_of (goal_nonempty true cset_pat);
   in
     thy
-    |> IsarThy.theorem_i (("", [typedef_attribute cset do_typedef], (goal, ([], []))), comment) int
+    |> IsarThy.theorem_i (("", [typedef_attribute cset do_typedef],
+      (goal, ([goal_pat], []))), comment) int
   end;
 
 val typedef_proof = gen_typedef_proof read_term;
