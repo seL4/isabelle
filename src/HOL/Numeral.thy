@@ -31,9 +31,19 @@ translations
 
 setup NumeralSyntax.setup
 
+syntax (xsymbols)
+  "_square" :: "'a => 'a"  ("(_\<twosuperior>)" [1000] 999)
+syntax (HTML output)
+  "_square" :: "'a => 'a"  ("(_\<twosuperior>)" [1000] 999)
+syntax (output)
+  "_square" :: "'a => 'a"  ("(_ ^/ 2)" [81] 80)
+translations
+  "x\<twosuperior>" == "x^2"
+  "x\<twosuperior>" <= "x^(2::nat)"
 
-(*Unfold all "let"s involving constants*)
+
 lemma Let_number_of [simp]: "Let (number_of v) f == f (number_of v)"
+  -- {* Unfold all @{text let}s involving constants *}
   by (simp add: Let_def)
 
 lemma Let_0 [simp]: "Let 0 f == f 0"
