@@ -47,9 +47,6 @@ qed "diamond_rtrancl";
 
 (*** Results about Contraction ***)
 
-bind_thm ("contract_induct",
-    (contract.mutual_induct RS spec RS spec RSN (2,rev_mp)));
-
 (** Non-contraction results **)
 
 (*Derive a case for each combinator constructor*)
@@ -122,16 +119,16 @@ val parcontract_cs =
 
 (*** Basic properties of parallel contraction ***)
 
-goal Comb.thy "!!x z. K#x =1=> z ==> (EX p'. z = K#p' & x =1=> p')";
+goal Comb.thy "!!x z. K#x =1=> z ==> (EX x'. z = K#x' & x =1=> x')";
 by (fast_tac parcontract_cs 1);
 qed "K1_parcontractD";
 
-goal Comb.thy "!!x z. S#x =1=> z ==> (EX p'. z = S#p' & x =1=> p')";
+goal Comb.thy "!!x z. S#x =1=> z ==> (EX x'. z = S#x' & x =1=> x')";
 by (fast_tac parcontract_cs 1);
 qed "S1_parcontractD";
 
 goal Comb.thy
- "!!x y z. S#x#y =1=> z ==> (EX p' q'. z = S#p'#q' & x =1=> p' & y =1=> q')";
+ "!!x y z. S#x#y =1=> z ==> (EX x' y'. z = S#x'#y' & x =1=> x' & y =1=> y')";
 by (fast_tac (parcontract_cs addSDs [S1_parcontractD]) 1);
      (*the extra rule makes the proof more than twice as fast*)
 qed "S2_parcontractD";
